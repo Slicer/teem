@@ -1,9 +1,5 @@
 verbose message to confirm directIO success
 
-add gamma to struct, fileformat
-
-key/value pairs
-
 matlab reader/writer for raw and ascii formats
 
 enable imagemagick-style format flagging on filenames ("PNM:-"),
