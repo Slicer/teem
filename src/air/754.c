@@ -416,7 +416,11 @@ airFPClass_d(double val) {
   int hibit;
 
   f.v = val;
-  FP_GET(sign, exp, frac, f);
+  sign = f.c2.sign; 
+  exp = f.c2.exp;    /* this seems to be a WIN32 bug: on a quiet-NaN, f.c.exp should 
+			be non-zero, but it was completely zero, so that this function
+			returned airFP_NEG_DENORM instead of airFP_QNAN */
+  frac = f.c.frac;
   hibit = frac >> 51;
 
   index = ((!!sign) << 2) | ((!!exp) << 1) | (!!frac);
@@ -478,6 +482,7 @@ airFPClass_d(double val) {
     }
     break;
   }
+  fprintf(stderr, "airFPClass_d(%g): returning %d\n", val, ret); fflush(stderr);
   return ret;
 #endif
 }
