@@ -28,11 +28,8 @@ copy /y /b ..\ext\include\pngconf.h "%__hdest%"
 echo Installing ext libs into %__ldest%
 mkdir "%__ldest%"
 copy /y /b ..\ext\lib\zlib.lib "%__ldest%"
-copy /y /b ..\ext\lib\zlib_s.lib "%__ldest%"
 copy /y /b ..\ext\lib\libbz2.lib "%__ldest%"
-copy /y /b ..\ext\lib\libbz2_s.lib "%__ldest%"
 copy /y /b ..\ext\lib\libpng.lib "%__ldest%"
-copy /y /b ..\ext\lib\libpng_s.lib "%__ldest%"
 echo Installing ext dlls into %__ddest%
 mkdir "%__ddest%"
 copy /y /b ..\ext\lib\zlib.dll "%__ddest%"
