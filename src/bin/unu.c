@@ -74,6 +74,7 @@ main(int argc, char **argv) {
     /* yes, we have that command */
     /* initialize variables used by the various commands */
     argv0 = malloc(strlen(UNRRDU) + strlen(argv[1]) + 2);
+    airMopMem(mop, &argv0, airMopAlways);
     sprintf(argv0, "%s %s", UNRRDU, argv[1]);
 
     /* run the individual unu program, saving its exit status */
