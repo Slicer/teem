@@ -37,9 +37,9 @@ int
 nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, double min, double max) {
   char me[]="nrrdArithGamma", func[]="gamma", err[AIR_STRLEN_MED];
   double val;
-  nrrdBigInt I, num;
-  double (*lup)(void *, nrrdBigInt);
-  double (*ins)(void *, nrrdBigInt, double);
+  size_t I, num;
+  double (*lup)(void *, size_t);
+  double (*ins)(void *, size_t, double);
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -143,10 +143,10 @@ double (*_nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
 int
 nrrdArithUnaryOp(Nrrd *nout, int op, Nrrd *nin) {
   char me[]="nrrdArithUnaryOp", err[AIR_STRLEN_MED];
-  nrrdBigInt N, I;
+  size_t N, I;
   int size[NRRD_DIM_MAX];
-  double (*insert)(void *v, nrrdBigInt I, double d), 
-    (*lookup)(void *v, nrrdBigInt I), (*uop)(double), val;
+  double (*insert)(void *v, size_t I, double d), 
+    (*lookup)(void *v, size_t I), (*uop)(double), val;
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -221,9 +221,9 @@ double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
 int
 nrrdArithBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
   char me[]="nrrdArithBinaryOp", err[AIR_STRLEN_MED], *contA, *contB;
-  nrrdBigInt N, I;
+  size_t N, I;
   int type, size[NRRD_DIM_MAX];
-  double (*insert)(void *v, nrrdBigInt I, double d), 
+  double (*insert)(void *v, size_t I, double d), 
     (*bop)(double a, double b), valA, valB;
   Nrrd *nin;
 
@@ -306,9 +306,9 @@ nrrdArithTernaryOp(Nrrd *nout, int op,
 		   NrrdIter *inA, NrrdIter *inB, NrrdIter *inC) {
   char me[]="nrrdArithTernaryOp", err[AIR_STRLEN_MED],
     *contA, *contB, *contC;
-  nrrdBigInt N, I;
+  size_t N, I;
   int type, size[NRRD_DIM_MAX];
-  double (*insert)(void *v, nrrdBigInt I, double d), 
+  double (*insert)(void *v, size_t I, double d), 
     (*top)(double a, double b, double c), valA, valB, valC;
   Nrrd *nin;
 
