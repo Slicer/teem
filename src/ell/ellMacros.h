@@ -90,6 +90,9 @@ extern "C" {
 #define ELL_3V_SCALE(v2, v1, a) \
   ((v2)[0] = (v1)[0]*a, (v2)[1] = (v1)[1]*a, (v2)[2] = (v1)[2]*a, (v2))
 
+#define ELL_3V_SCALEADD(v2, v1, a) \
+  ((v2)[0] += (v1)[0]*a, (v2)[1] += (v1)[1]*a, (v2)[2] += (v1)[2]*a, (v2))
+
 #define ELL_3V_LEN(v) \
   (sqrt((v)[0]*(v)[0] + (v)[1]*(v)[1] + (v)[2]*(v)[2]))
 
