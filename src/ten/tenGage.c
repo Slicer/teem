@@ -189,7 +189,7 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   /* char me[]="_tenGageAnswer"; */
   unsigned int query;
   gage_t *ans, *tenAns, *tgradAns, *QgradAns, *evalAns, *evecAns, tmptmp=0,
-    dtA=0, dtB=0, dtC=0, dtD=0, dtE=0, dtF=0, cbA, cbB, cbC;
+    dtA=0, dtB=0, dtC=0, dtD=0, dtE=0, dtF=0, cbA, cbB;
   int *offset;
 
 #if !GAGE_TYPE_FLOAT
@@ -243,8 +243,10 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   if (1 & (query >> tenGageQ)) {
     cbA = -(dtA + dtD + dtF);
     cbB = dtA*dtD - dtB*dtB + dtA*dtF - dtC*dtC + dtD*dtF - dtE*dtE;
+    /*
     cbC = -(dtA*dtD*dtF + 2*dtB*dtE*dtC
 	    - dtC*dtC*dtD - dtB*dtB*dtF - dtA*dtE*dtE);
+    */
     ans[offset[tenGageQ]] = cbA*cbA - 3*cbB;
   }
   if (1 & (query >> tenGageQGradVec)) {
