@@ -587,7 +587,7 @@ TEEM_API void airMopDebug(airArray *arr);
 ** doubles > FLT_MAX: airExists_f would say these are infinity.
 */
 #if defined(_WIN32) || defined(__ECC) /* NrrdIO-hack-002 */
-#define AIR_EXISTS(x) (airExists_d(x))
+#define AIR_EXISTS(x) (airExists(x))
 #else
 #define AIR_EXISTS(x) (!((x) - (x)))
 #endif
