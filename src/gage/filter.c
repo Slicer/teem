@@ -27,39 +27,39 @@
 ** One possible rare surpise: if a filter is not continuous with 0
 ** at the end of its support, and if the sample location is at the
 ** highest possible point (xi == N-2, xf = 1.0), then the filter
-** weights may not be the desired ones.  Forward differencing is a
-** good example of this.
+** weights may not be the desired ones.  Forward differencing (via
+** nrrdKernelForwDiff) is a good example of this.
 */
 void
 _gageFslSet(gageContext *ctx) {
   int fr, i;
   gage_t *fslx, *fsly, *fslz;
-  gage_t T, Tx, Ty, Tz;
+  gage_t xf, yf, zf;
 
   fr = ctx->fr;
   fslx = ctx->fsl + 0*2*fr;
   fsly = ctx->fsl + 1*2*fr;
   fslz = ctx->fsl + 2*2*fr;
+  xf = ctx->xf;
+  yf = ctx->yf;
+  zf = ctx->zf;
   switch (fr) {
   case 1:
-    T = ctx->xf; fslx[0]=T--; fslx[1]=T;
-    T = ctx->yf; fsly[0]=T--; fsly[1]=T;
-    T = ctx->zf; fslz[0]=T--; fslz[1]=T;
+    fslx[0] = xf; fslx[1] = xf-1;
+    fsly[0] = yf; fsly[1] = yf-1;
+    fslz[0] = zf; fslz[1] = zf-1;
     break;
-  case 2:
-    T = ctx->xf+1; fslx[0]=T--; fslx[1]=T--; fslx[2]=T--; fslx[3]=T;
-    T = ctx->yf+1; fsly[0]=T--; fsly[1]=T--; fsly[2]=T--; fsly[3]=T;
-    T = ctx->zf+1; fslz[0]=T--; fslz[1]=T--; fslz[2]=T--; fslz[3]=T;
+  case 20:
+    fslx[0] = xf+1; fslx[1] = xf; fslx[2] = xf-1; fslx[3] = xf-2;
+    fsly[0] = yf+1; fsly[1] = yf; fsly[2] = yf-1; fsly[3] = yf-2;
+    fslz[0] = zf+1; fslz[1] = zf; fslz[2] = zf-1; fslz[3] = zf-2;
     break;
   default:
     /* filter radius bigger than 2 */
-    Tx = ctx->xf + fr - 1;
-    Ty = ctx->yf + fr - 1;
-    Tz = ctx->zf + fr - 1;
-    for (i=0; i<2*fr; i++) {
-      fslx[i] = Tx--;
-      fsly[i] = Ty--;
-      fslz[i] = Tz--;
+    for (i=-fr+1; i<=fr; i++) {
+      fslx[i] = xf-i;
+      fsly[i] = yf-i;
+      fslz[i] = zf-i;
     }
     break;
   }
@@ -153,7 +153,7 @@ _gageFwSet(gageContext *ctx) {
   }
 
   if (ctx->verbose > 1) {
-    fprintf(stderr, "%s: filter weights immediately after evaluation:\n", me);
+    fprintf(stderr, "%s: filter weights after kernel evaluation:\n", me);
     _gagePrint_fslw(ctx);
   }
   if (ctx->renormalize) {
@@ -216,7 +216,13 @@ int
 _gageLocationSet(gageContext *ctx, int *newBidxP,
 		 gage_t x, gage_t y, gage_t z) {
   char me[]="_gageProbeLocationSet";
-  int tx, ty, tz, xi, yi, zi, bidx, dif;
+  int tx, ty, tz,     /* "top" x, y, z: highest valid float-point
+			 position for position in unpadded volume */
+    xi, yi, zi,       /* computed integral positions in unpadded
+                         volume */
+    dif,              /* difference between coordinates between 
+			 "havePad"- and "needPad"-padded volumes */
+    bidx;             /* base index in padded volume */   
   gage_t xf, yf, zf;
   
   tx = ctx->sx - 2*ctx->havePad - 1;
@@ -234,16 +240,21 @@ _gageLocationSet(gageContext *ctx, int *newBidxP,
   xi = x; xi -= xi == tx; xf = x - xi;
   yi = y; yi -= yi == ty; yf = y - yi;
   zi = z; zi -= zi == tz; zf = z - zi;
-  dif = ctx->havePad - ctx->fr + 1;
+  dif = ctx->havePad - ctx->needPad;
   bidx = xi + dif + ctx->sx*(yi + dif + ctx->sy*(zi + dif));
   if (ctx->verbose > 1) {
     fprintf(stderr, "%s: \n"
 	    "        pos (% 15.7f,% 15.7f,% 15.7f) \n"
-	    "        -> i(%5d,%5d,%5d) \n"
+	    "        -> i(%5d,%5d,%5d) (unpadded) \n"
+	    "        -> i(%5d,%5d,%5d) (padded) \n"
 	    "         + f(% 15.7f,% 15.7f,% 15.7f) \n"
 	    "        -> bidx = %d\n",
-	    me, (float)x, (float)y, (float)z,
-	    xi, yi, zi, (float)xf, (float)yf, (float)zf, bidx);
+	    me,
+	    (float)x, (float)y, (float)z,
+	    xi, yi, zi,
+	    xi + dif, yi + dif, zi + dif,
+	    (float)xf, (float)yf, (float)zf,
+	    bidx);
   }
   if (ctx->bidx != bidx) {
     *newBidxP = AIR_TRUE;

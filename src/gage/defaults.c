@@ -22,4 +22,5 @@
 
 int gageDefVerbose = 0;
 int gageDefRenormalize = AIR_FALSE;
+int gageDefCheckIntegrals = AIR_TRUE;
 double gageDefSclEpsilon = 0.00001;

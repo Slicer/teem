@@ -58,13 +58,18 @@ extern "C" {
 ** of values that gage works with: "float" or "double".  It is an
 ** unfortunate but greatly simplifying restriction that this type
 ** is used for all types of probing (scalar, vector, etc).
+**
+** So: choose float or double and comment/uncomment the corresponding
+** set of lines below.
 */
 
 typedef float gage_t;
+#define gage_nrrdType nrrdTypeFloat
 #define GAGE_TYPE_FLOAT 1
 
 /*
 typedef double gage_t;
+#define gage_nrrdType nrrdTypeDouble
 #define GAGE_TYPE_FLOAT 0
 */
 
@@ -153,6 +158,11 @@ typedef struct {
 				 is same as kernel's continuous
 				 integral, and that the 1nd and 2nd
 				 deriv weights really sum to 0.0 */
+  int checkIntegrals;         /* call the "integral" method of the
+				 kernel to verify that it is
+				 appropriate for the task for which
+				 the kernel is being set:
+				 reconstruction: 1.0, derivatives: 0.0 */
   /*  --------------------------------------- Internal state */
   /*  ------------ kernel-dependent */
   int needPad;                /* amount of boundary margin required
@@ -238,6 +248,7 @@ typedef struct {
 /* defaults.c */
 extern int gageDefVerbose;
 extern int gageDefRenormalize;
+extern int gageDefCheckIntegrals;
 extern double gageDefSclEpsilon;
 
 /* enums.c */
