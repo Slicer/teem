@@ -222,7 +222,7 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
 #if GAGE_TYPE_FLOAT
     tenEigensolve(evalAns, evecAns, tenAns);
 #else
-    TEN_LIST_COPY(tenAnsF, tenAns);
+    TEN_T_COPY(tenAnsF, tenAns);
     tenEigensolve(evalAnsF, evecAnsF, tenAnsF);
     ELL_3V_COPY(evalAns, evalAnsF);
     ELL_3M_COPY(evecAns, evecAnsF);
@@ -232,7 +232,7 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
 #if GAGE_TYPE_FLOAT
     tenEigensolve(evalAns, NULL, tenAns);
 #else
-    TEN_LIST_COPY(tenAnsF, tenAns);
+    TEN_T_COPY(tenAnsF, tenAns);
     tenEigensolve(evalAnsF, NULL, tenAnsF);
     ELL_3V_COPY(evalAns, evalAnsF);
 #endif
