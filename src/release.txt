@@ -63,30 +63,37 @@ be maintained with a finer granularity than major teem releases.
 With major releases, update the "teem" symlink.
 mojojojo:
 setenv TEEM_ARCH darwin
+setenv TEEM_PNG
 setenv TEEM_ZLIB
 setenv TEEM_BZIP2
 setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/darwin/lib
 setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
 carrot:
 setenv TEEM_ARCH irix6.n32
+setenv TEEM_PNG
 setenv TEEM_ZLIB
 setenv TEEM_BZIP2
 setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/irix6.n32/lib
 setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
+setenv TEEM_PNG_LPATH -L/home/sci/gk/usr/irix6.n32/lib
+setenv TEEM_PNG_IPATH -I/home/sci/gk/usr/include
 rapture:
 setenv TEEM_ARCH irix6.64
+setenv TEEM_PNG
 setenv TEEM_ZLIB
 setenv TEEM_BZIP2
 setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/irix6.64/lib
 setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
 shot:
 setenv TEEM_ARCH linux
+setenv TEEM_PNG
 setenv TEEM_ZLIB
 setenv TEEM_BZIP2
 setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/linux/lib
 setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
 faith:
 setenv TEEM_ARCH solaris
+setenv TEEM_PNG
 setenv TEEM_ZLIB
 setenv TEEM_BZIP2
 setenv TEEM_BZIP2_LPATH -L/home/gk/lib
@@ -134,11 +141,8 @@ yes | rm -rf teem; mv teem-html teem
 yes | rm -rf teem-html*
 exit
 
-cd ..
-rm -rf teemdoc
-
 9) make tarball of documentation
-cvs -d /usr/sci/projects/teem/cvs co teemdoc; cd teemdoc
-mv html teem-${VERSION}-html
+(continued from above)
+mv teem-html teem-${VERSION}-html
 tar czvf teem-${VERSION}-html.tgz teem-${VERSION}-html
 mv teem-${VERSION}-html.tgz ~/rel

@@ -1,3 +1,12 @@
+Changes from 1.5beta1: ---------------------------------
+
+- BUG FIX (read.c, parseNrrd.c): when doing detached headers
+and io->skipData, io->dir won't be set (won't know directory
+of header), but that's not an error. _nrrdReadNrrdParse_data_file
+no longer complains in this case.  Also, the io->dataFile is
+not airFclosed if io->skipdata after the data has (not) been
+read if io->skipData.
+
 Changes from 1.5beta0: ---------------------------------
 
 - BUG FIX (apply1D.c): in setting colSize for 1D maps, when output

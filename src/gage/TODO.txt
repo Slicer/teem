@@ -1,3 +1,5 @@
+check curvature calculations being off by a factor of two
+
 test gageContextCopy
 
 add kernel flags to qbert, make them match those in mrender
