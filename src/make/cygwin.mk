@@ -18,6 +18,7 @@
 INSTALL = /usr/bin/install
 CC = /usr/bin/gcc
 
+TEEM_ENDIAN = 1234
 
 
 

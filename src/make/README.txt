@@ -27,6 +27,12 @@ The variables that can/must be set by the individual architecture
 .mk files.  Those which must be set are marked by a (*):
 =========================
 
+TEEM_ENDIAN (*): some things in the air library are too annoying to do
+  if the endianness is determined only at run-time, so just setting
+  here simplifies things
+  1234: Little Endian (Intel and friends)
+  4321: Big Endian (everyone else)
+
 CC, LD, AR, RM, INSTALL, CHMOD (*): programs used during make
 
 PURIFY:  the "purify" command name (with full path if needed).  This must

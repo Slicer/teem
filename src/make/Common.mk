@@ -15,6 +15,8 @@
 # of Utah. All Rights Reserved.
 #
 #
+
+
 #
 # Common makefile variables and rules for all teem libraries
 #
@@ -29,7 +31,7 @@ KNOWN_ARCH = irix6.n32 irix6.64 linux solaris
 ifndef TEEM_ARCH
   $(warning *)
   $(warning *)
-  $(warning *    Env variable TEEM_ARCH not set.)
+  $(warning *    Environment variable TEEM_ARCH not set.)
   $(warning *    Possible settings currently supported:)
   $(warning *    $(KNOWN_ARCH))
   $(warning *)
@@ -46,7 +48,7 @@ SUBARCH = $(patsubst .%,%,$(suffix $(TEEM_ARCH)))
 ifeq (,$(strip $(findstring $(TEEM_ARCH),$(KNOWN_ARCH))))
   $(warning *)
   $(warning *)
-  $(warning *    Env variable TEEM_ARCH = "$(TEEM_ARCH)" unknown)
+  $(warning *    Environment variable TEEM_ARCH = "$(TEEM_ARCH)" unknown)
   $(warning *    Possible settings currently supported:)
   $(warning *    $(KNOWN_ARCH))
   $(warning *)
@@ -103,6 +105,8 @@ INSTALL_BINS = $(addprefix $(BDEST)/,$(notdir $(BINS)))
 # ... however, we need to set VPATH in order to help make find the 
 # sources for the binaries in their subdirectories
 VPATH = $(sort $(dir $(BINS)))
+# Thus, bane can have its single binary "gkms" built from "bane/bin/gkms.c",
+# but it will be installed as "gkms" in the architecture's bin directory
 
 #
 # flags.
@@ -123,6 +127,23 @@ endif
 CFLAGS += $(OPT_CFLAG) $(ARCH_CFLAG)
 LDFLAGS += $(ARCH_LDFLAG) $(SHARED_LDFLAG)
 ARFLAGS = ru
+
+#
+# for things like endianness, TEEM_x is set in the archicture-specific
+# makefile, and NEED_x is set in the library which needs that info.
+# Right now x is either "ENDIAN" or "QNANHIBIT".
+#
+ifeq ($(NEED_ENDIAN),true)
+  CFLAGS += -DTEEM_ENDIAN=$(TEEM_ENDIAN)
+  SET_DIE = 1
+endif
+ifeq ($(NEED_QNANHIBIT),true)
+  CFLAGS += -DTEEM_QNANHIBIT=$(TEEM_QNANHIBIT)
+  SET_DIE = 1
+endif
+ifeq ($(SET_DIE),1)
+  CFLAGS += $(CPP_ERROR_DIE)
+endif
 
 #
 # are we using purify?
@@ -176,9 +197,10 @@ destroy: clean uninstall
 # all objects depend on all headers
 $(OBJS): $(HEADERS) $(PRIV_HEADERS)
 
-# NB: .o's are never created in the same directory as the source
+# NB: .o files are NEVER created in the same directory as the source
 $(OBJ_PREF)/%.o: %.c
-	$(P) $(CC) $(CFLAGS) -I. $(IPATH) -c $< -o $@
+	$(P) $(CC) $(CFLAGS) -I. $(IPATH) -c $< \
+	   -o $@
 
 # the libraries are dependent on the respective object files
 $(LIB.A): $(OBJS)
@@ -199,8 +221,10 @@ $(LIB.S): $(OBJS)
 # NB: This creates the executable in the same directory as the .c file
 #
 %: %.c $(THISLIB)
-	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) -I. $(IPATH) -o $@ $< \
-	$(THISLIB_LPATH) $(LPATH) $(BINLIBS)
+	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) -I. $(IPATH) \
+	   -o $@ $< \
+	   $(THISLIB_LPATH) $(LPATH) \
+	   $(BINLIBS)
 
 # This rule is to satisfy the target $(INSTALL_HDRS)
 $(IDEST)/%: %
@@ -217,5 +241,8 @@ $(LDEST)/%: $(OBJ_PREF)/%
 # NB: VPATH is used to locate the prerequisite %.c in a subdirectory
 #
 $(BDEST)/%: %.c $(INSTALL_LIBS) $(INSTALL_HDRS)
-	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) -o $@ $< $(LPATH) $(BINLIBS)
+	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) \
+	   -o $@ $< \
+	   $(LPATH) $(BINLIBS)
 	$(CHMOD) 755 $@
+

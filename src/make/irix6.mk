@@ -26,6 +26,8 @@ OTHER_CLEAN = so_locations
 PURIFY = purify
 
 SHEXT = so
+CFLAGS =
+CPP_ERROR_DIE = -diag_error 1035
 OPT_CFLAG = -O2
 STATIC_CFLAG = -Bstatic
 SHARED_CFLAG = -Bdynamic
@@ -41,3 +43,6 @@ else
     $(error irix6 mode $(SUBARCH) not recognized) 
   endif
 endif
+
+TEEM_ENDIAN = 4321
+TEEM_QNANHIBIT = 0
