@@ -162,7 +162,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "p", "pos array", airTypeOther, 1, 1, &npos, "",
              "Instead of being on a grid, tensors are at arbitrary locations, "
              "as defined by this 3-by-N array of floats. Doing this makes "
-             "various other options moot. ", NULL, NULL,
+             "various other options moot", NULL, NULL,
              nrrdHestNrrd);
   hestOptAdd(&hopt, "m", "mask vol", airTypeOther, 1, 1, &(gparm->nmask), "",
              "Scalar volume (if any) for masking region in which glyphs are "
