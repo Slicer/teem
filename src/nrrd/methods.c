@@ -260,7 +260,6 @@ nrrdEmpty(Nrrd *nrrd) {
 Nrrd *
 nrrdNuke(Nrrd *nrrd) {
   
-  printf("!nrrdNuke(%p): HELLO!\n", nrrd);
   if (nrrd) {
     nrrdEmpty(nrrd);
     nrrdNix(nrrd);

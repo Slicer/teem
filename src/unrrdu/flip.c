@@ -59,7 +59,6 @@ flipMain(int argc, char **argv, char *me) {
     airMopError(mop);
     return 1;
   }
-  printf("!%s: nout = %p\n", me, nout);
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (nrrdSave(out, nout, NULL)) {

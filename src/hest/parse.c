@@ -1021,7 +1021,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
 ** free()s whatever was allocated by hestParse()
 ** 
 ** returns NULL only to facilitate use with the airMop functions.
-** You should probably ignored this quirk.
+** You should probably just ignore this quirk.
 */
 void *
 hestParseFree(hestOpt *opt) {
@@ -1033,7 +1033,7 @@ hestParseFree(hestOpt *opt) {
 
   numOpts = _hestNumOpts(opt);
   for (op=0; op<=numOpts-1; op++) {
-    printf("hestParseFree: op = %d/%d\n", op, numOpts-1);
+    printf("!hestParseFree: op = %d/%d\n", op, numOpts-1);
     vP = opt[op].valueP;
     vAP = opt[op].valueP;
     str = opt[op].valueP;
@@ -1043,7 +1043,12 @@ hestParseFree(hestOpt *opt) {
       /* nothing was allocated */
       break;
     case 1:
-      *vP = airFree(*vP);
+      if (airTypeString == opt[op].type) {
+	*vP = airFree(*vP);
+      }
+      else {
+	*vP = opt[op].CB->delete(*vP);
+      }
       break;
     case 2:
       if (airTypeString == opt[op].type) {
@@ -1066,7 +1071,7 @@ hestParseFree(hestOpt *opt) {
       }
       else {
 	for (i=0; i<=*(opt[op].sawP)-1; i++) {
-	  (*vAP)[i] = airFree((*vAP)[i]);
+	  (*vAP)[i] = opt[op].CB->delete((*vAP)[i]);
 	}
 	*vAP = airFree(*vAP);
       }
