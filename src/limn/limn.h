@@ -442,6 +442,7 @@ extern int limnObjectSpaceTransform(limnObject *obj, limnCamera *cam,
 extern int limnObjectPartTransform(limnObject *obj, int ri, float tx[16]);
 extern int limnObjectDepthSortParts(limnObject *obj);
 extern int limnObjectDepthSortFaces(limnObject *obj);
+extern int limnObjectFaceReverse(limnObject *obj);
 
 /* renderLimn.c */
 extern int limnObjectRender(limnObject *obj, limnCamera *cam, limnWindow *win);

@@ -26,13 +26,13 @@ int
 main(int argc, char *argv[]) {
   char *me, *err, *outS;
   limnCamera *cam;
-  float matA[16], matB[16];
+  float matA[16], matB[16], winscale, edgeWidth[5];
   hestOpt *hopt=NULL;
   airArray *mop;
   limnObject *obj;
   limnLook *look; int lookIdx;
   limnWindow *win;
-  int partIdx;
+  int partIdx, wire, concave;
   Nrrd *nmap;
 
   mop = airMopNew();
@@ -57,6 +57,18 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "e", "envmap", airTypeOther, 1, 1, &nmap, NULL,
 	     "16checker-based environment map",
 	     NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "ws", "winscale", airTypeFloat, 1, 1, &winscale,
+	     "200", "world to points (PostScript) scaling");
+  hestOptAdd(&hopt, "wire", NULL, airTypeInt, 0, 0, &wire, NULL,
+	     "just do wire-frame rendering");
+  hestOptAdd(&hopt, "concave", NULL, airTypeInt, 0, 0, &concave, NULL,
+	     "use slightly buggy rendering method suitable for "
+	     "concave or self-occluding objects");
+  hestOptAdd(&hopt, "wd", "5 widths", airTypeFloat, 5, 5, edgeWidth,
+	     "0.0 0.0 3.0 2.0 0.0",
+	     "width of edges drawn for five kinds of "
+	     "edges: back non-crease, back crease, "
+	     "silohuette, front crease, front non-crease");
   hestOptAdd(&hopt, "o", "output PS", airTypeString, 1, 1, &outS, "out.ps",
 	     "output file to render postscript into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
@@ -88,28 +100,31 @@ main(int argc, char *argv[]) {
   ELL_3V_SET(look->kads, 1, 0, 0);
   look->spow = 0;
 
+  /* X axis: rod */
   partIdx = limnObjectCylinderAdd(obj, 0, 0, 16);
   ELL_4M_IDENTITY_SET(matA);
   ELL_4M_SCALE_SET(matB, 1, 0.2, 0.2); ell_4m_post_mul_f(matA, matB);
   ELL_4M_TRANSLATE_SET(matB, 1.3, 0.0, 0.0); ell_4m_post_mul_f(matA, matB);
   limnObjectPartTransform(obj, partIdx, matA);
 
+  /* Y axis: rod + ball */
   partIdx = limnObjectCylinderAdd(obj, 0, 1, 16);
   ELL_4M_IDENTITY_SET(matA);
   ELL_4M_SCALE_SET(matB, 0.2, 1, 0.2); ell_4m_post_mul_f(matA, matB);
   ELL_4M_TRANSLATE_SET(matB, 0.0, 1.3, 0.0); ell_4m_post_mul_f(matA, matB);
   limnObjectPartTransform(obj, partIdx, matA);
 
-  partIdx = limnObjectCylinderAdd(obj, 0, 2, 16);
-  ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, 0.2, 0.2, 1); ell_4m_post_mul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, 1.3); ell_4m_post_mul_f(matA, matB);
-  limnObjectPartTransform(obj, partIdx, matA);
-
   partIdx = limnObjectPolarSphereAdd(obj, 0, 0, 32, 16);
   ELL_4M_IDENTITY_SET(matA);
   ELL_4M_SCALE_SET(matB, 0.28, 0.28, 0.28); ell_4m_post_mul_f(matA, matB);
   ELL_4M_TRANSLATE_SET(matB, 0.0, 2.6, 0.0); ell_4m_post_mul_f(matA, matB);
+  limnObjectPartTransform(obj, partIdx, matA);
+
+  /* Z axis: rod + ball + ball */
+  partIdx = limnObjectCylinderAdd(obj, 0, 2, 16);
+  ELL_4M_IDENTITY_SET(matA);
+  ELL_4M_SCALE_SET(matB, 0.2, 0.2, 1); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, 1.3); ell_4m_post_mul_f(matA, matB);
   limnObjectPartTransform(obj, partIdx, matA);
 
   partIdx = limnObjectPolarSphereAdd(obj, 0, 1, 32, 16);
@@ -125,12 +140,21 @@ main(int argc, char *argv[]) {
   limnObjectPartTransform(obj, partIdx, matA);
 
   win = limnWindowNew(limnDevicePS);
+  win->scale = winscale;
+  win->ps.wireFrame = wire;
+  win->ps.lineWidth[limnEdgeTypeBackFacet] = edgeWidth[0];
+  win->ps.lineWidth[limnEdgeTypeBackCrease] = edgeWidth[1];
+  win->ps.lineWidth[limnEdgeTypeContour] = edgeWidth[2];
+  win->ps.lineWidth[limnEdgeTypeFrontCrease] = edgeWidth[3];
+  win->ps.lineWidth[limnEdgeTypeFrontFacet] = edgeWidth[4];
 
   win->file = fopen(outS, "w");
   airMopAdd(mop, win, (airMopper)limnWindowNix, airMopAlways);
 
   if (limnObjectRender(obj, cam, win)
-      || limnObjectPSDraw(obj, cam, nmap, win)) {
+      || (concave
+	  ? limnObjectPSDrawConcave(obj, cam, nmap, win)
+	  : limnObjectPSDraw(obj, cam, nmap, win))) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;

@@ -27,10 +27,12 @@ limnObjectRender(limnObject *obj, limnCamera *cam, limnWindow *win) {
   
   E = 0;
   if (!E) E |= limnCameraUpdate(cam);
+  /*
   fprintf(stderr, "%s: true up = %g %g %g\n", me,
 	  -cam->V[0], -cam->V[1], -cam->V[2]);
   fprintf(stderr, "%s: true right = %g %g %g\n", me,
 	  cam->U[0], cam->U[1], cam->U[2]);
+  */
   if (!E) E |= limnObjectHomog(obj, limnSpaceWorld);
   if (!E) E |= limnObjectNormals(obj, limnSpaceWorld);
   if (!E) E |= limnObjectSpaceTransform(obj, cam, win, limnSpaceView);

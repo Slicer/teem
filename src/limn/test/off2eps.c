@@ -34,7 +34,7 @@ main(int argc, char *argv[]) {
   limnWindow *win;
   Nrrd *nmap;
   FILE *file;
-  int wire, concave, describe;
+  int wire, concave, describe, reverse;
 
   mop = airMopNew();
   cam = limnCameraNew();
@@ -67,6 +67,9 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "concave", NULL, airTypeInt, 0, 0, &concave, NULL,
 	     "use slightly buggy rendering method suitable for "
 	     "concave or self-occluding objects");
+  hestOptAdd(&hopt, "reverse", NULL, airTypeInt, 0, 0, &reverse, NULL,
+	     "reverse ordering of vertices per face (needed if they "
+	     "specified in clockwise order)");
   hestOptAdd(&hopt, "describe", NULL, airTypeInt, 0, 0, &describe, NULL,
 	     "for debugging: list object definition of OFF read");
   hestOptAdd(&hopt, "wd", "5 widths", airTypeFloat, 5, 5, edgeWidth,
@@ -115,6 +118,18 @@ main(int argc, char *argv[]) {
     fprintf(stdout, "----------------- POST-READ -----------------\n");
     limnObjectDescribe(stdout, obj);
     fprintf(stdout, "----------------- POST-READ -----------------\n");
+  }
+  if (reverse) {
+    if (limnObjectFaceReverse(obj)) {
+      airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
+  }
+  if (describe) {
+    fprintf(stdout, "----------------- POST-REVERSE -----------------\n");
+    limnObjectDescribe(stdout, obj);
+    fprintf(stdout, "----------------- POST-REVERSE -----------------\n");
   }
   win = limnWindowNew(limnDevicePS);
   win->ps.lineWidth[limnEdgeTypeBackFacet] = edgeWidth[0];

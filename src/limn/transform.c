@@ -308,11 +308,11 @@ limnObjectDepthSortFaces(limnObject *obj) {
 
   obj->faceSort = (int*)calloc(obj->faceNum, sizeof(int));
   for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
-    face =  obj->face + faceIdx;
+    face = obj->face + faceIdx;
     part = obj->part + face->partIdx;
     face->depth = 0;
     for (vii=0; vii<face->sideNum; vii++) {
-      vert = obj->vert + part->vertIdx[vii];
+      vert = obj->vert + part->vertIdx[face->vertIdxIdx[vii]];
       face->depth += vert->screen[2];
     }
     face->depth /= face->sideNum;
@@ -325,3 +325,36 @@ limnObjectDepthSortFaces(limnObject *obj) {
   return 0;
 }
 
+int
+limnObjectFaceReverse(limnObject *obj) {
+  char me[]="limnObjectFaceReverse", err[AIR_STRLEN_MED];
+  limnFace *face; int faceIdx;
+  limnPart *part;
+  int *buff, sii;
+
+  if (!obj) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  buff = NULL;
+  for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
+    face = obj->face + faceIdx;
+    part = obj->part + face->partIdx;
+    buff = (int *)calloc(face->sideNum, sizeof(int));
+    if (!(buff)) {
+      sprintf(err, "%s: couldn't allocate %d side buffer for face %d\n", 
+	      me, face->sideNum, faceIdx);
+      biffAdd(LIMN, err); return 1;
+    }
+    memcpy(buff, face->vertIdxIdx, face->sideNum*sizeof(int));
+    for (sii=0; sii<face->sideNum; sii++) {
+      face->vertIdxIdx[sii] = buff[face->sideNum-1-sii];
+    }
+    memcpy(buff, face->edgeIdxIdx, face->sideNum*sizeof(int));
+    for (sii=0; sii<face->sideNum; sii++) {
+      face->edgeIdxIdx[sii] = buff[face->sideNum-1-sii];
+    }
+    free(buff);
+  }
+  return 0;
+}

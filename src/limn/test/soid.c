@@ -53,12 +53,12 @@ int
 main(int argc, char *argv[]) {
   char *me, *err, *outS;
   float p[3], q[4], mR[9], eval[3], len, sh, cl, cp, qA, qB;
-  float matA[16], matB[16], os, rad, edgeWidth[5];
+  float matA[16], matB[16], os, rad, edgeWidth[5], AB[2];
   hestOpt *hopt=NULL;
   airArray *mop;
   limnObject *obj;
   limnLook *look; int lookRod, lookSoid;
-  limnPart *part; int partIdx;
+  limnPart *part; int partIdx=-1; /* sssh */
   int res, axis, sphere;
   FILE *file;
 
@@ -69,6 +69,10 @@ main(int argc, char *argv[]) {
   me = argv[0];
   hestOptAdd(&hopt, "sc", "scalings", airTypeFloat, 3, 3, eval, "1 1 1",
 	     "axis-aligned scaling to do on ellipsoid");
+  hestOptAdd(&hopt, "AB", "A, B exponents", airTypeFloat, 2, 2, AB, "nan nan",
+	     "Directly set the A, B parameters to the superquadric surface, "
+	     "over-riding the default behavior of determining them from the "
+	     "scalings \"-sc\" as superquadric tensor glyphs");
   hestOptAdd(&hopt, "os", "over-all scaling", airTypeFloat, 1, 1, &os, "1",
 	     "over-all scaling (multiplied by scalings)");
   hestOptAdd(&hopt, "sh", "superquad sharpness", airTypeFloat, 1, 1, &sh, "0",
@@ -112,22 +116,29 @@ main(int argc, char *argv[]) {
   ELL_4V_SCALE(q, 1.0/len, q);
   washQtoM3(mR, q);
 
-  ELL_3V_SCALE(eval, os, eval);
-  ELL_SORT3(eval[0], eval[1], eval[2], cl);
-  cl = (eval[0] - eval[1])/(eval[0] + eval[1] + eval[2]);
-  cp = 2*(eval[1] - eval[2])/(eval[0] + eval[1] + eval[2]);
-  if (cl > cp) {
-    axis = ELL_MAX3_IDX(eval[0], eval[1], eval[2]);
-    qA = pow(1-cp, sh);
-    qB = pow(1-cl, sh);
+  if (AIR_EXISTS(AB[0]) && AIR_EXISTS(AB[1])) {
+    qA = AB[0];
+    qB = AB[1];
+    axis = 2;
   } else {
-    axis = ELL_MIN3_IDX(eval[0], eval[1], eval[2]);
-    qA = pow(1-cl, sh);
-    qB = pow(1-cp, sh);
+    ELL_3V_SCALE(eval, os, eval);
+    ELL_SORT3(eval[0], eval[1], eval[2], cl);
+    cl = (eval[0] - eval[1])/(eval[0] + eval[1] + eval[2]);
+    cp = 2*(eval[1] - eval[2])/(eval[0] + eval[1] + eval[2]);
+    if (cl > cp) {
+      axis = ELL_MAX3_IDX(eval[0], eval[1], eval[2]);
+      qA = pow(1-cp, sh);
+      qB = pow(1-cl, sh);
+    } else {
+      axis = ELL_MIN3_IDX(eval[0], eval[1], eval[2]);
+      qA = pow(1-cl, sh);
+      qB = pow(1-cp, sh);
+    }
+    /*
+    fprintf(stderr, "eval = %g %g %g -> cl=%g %s cp=%g -> axis = %d\n",
+	    eval[0], eval[1], eval[2], cl, cl > cp ? ">" : "<", cp, axis);
+    */
   }
-  fprintf(stderr, "eval = %g %g %g -> cl=%g %s cp=%g -> axis = %d\n",
-	  eval[0], eval[1], eval[2], cl, cl > cp ? ">" : "<", cp, axis);
-
   if (sphere) {
     partIdx = limnObjectPolarSphereAdd(obj, lookSoid, 
 				       0, 2*res, res);
