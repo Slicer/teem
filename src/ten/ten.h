@@ -101,8 +101,6 @@ typedef struct {
   float edgeWidth[5];     /* same as limnOptsPS */
   float anisoThresh, confThresh, useColor;
   float maskThresh, glyphScale;
-  float sumFloor, sumCeil;
-  float fakeSat;
   int dim;
 } tenGlyphParm;
 
