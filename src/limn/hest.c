@@ -48,7 +48,7 @@ limnHestCamOptAdd(hestOpt **hoptP, limnCam *cam,
 	     atDef, "camera look-at point");
   hestOptAdd(&hopt, "up", "up dir", airTypeDouble, 3, 3, cam->up,
 	     upDef, "camera pseudo up vector");
-  hestOptAdd(&hopt, "rh", "right", airTypeInt, 0, 0, &(cam->rightHanded), NULL,
+  hestOptAdd(&hopt, "rh", NULL, airTypeInt, 0, 0, &(cam->rightHanded), NULL,
 	     "use a right-handed UVN frame (V points down)");
   hestOptAdd(&hopt, "dn", "near", airTypeDouble, 1, 1, &(cam->near),
 	     dnDef, "distance to near clipping plane");
@@ -56,7 +56,7 @@ limnHestCamOptAdd(hestOpt **hoptP, limnCam *cam,
 	     diDef, "distance to image plane");
   hestOptAdd(&hopt, "df", "far", airTypeDouble, 1, 1, &(cam->faar),
 	     dfDef, "distance to far clipping plane");
-  hestOptAdd(&hopt, "ar", "at-rel", airTypeInt, 0, 0, &(cam->atRel), NULL,
+  hestOptAdd(&hopt, "ar", NULL, airTypeInt, 0, 0, &(cam->atRel), NULL,
 	     "near, image, and far plane distances are relative to "
 	     "the *at* point, instead of the eye point");
   hestOptAdd(&hopt, "ur", "uMin uMax", airTypeDouble, 2, 2, cam->uRange,

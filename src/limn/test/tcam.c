@@ -42,7 +42,7 @@ main(int argc, char *argv[]) {
 	     "0 0 0", "camera look-at point");
   hestOptAdd(&hopt, "up", "up dir", airTypeDouble, 3, 3, cam->up,
 	     "0 0 1", "camera pseudo up vector");
-  hestOptAdd(&hopt, "rh", "right", airTypeInt, 0, 0, &(cam->rightHanded), NULL,
+  hestOptAdd(&hopt, "rh", NULL, airTypeInt, 0, 0, &(cam->rightHanded), NULL,
 	     "use a right-handed UVN frame (V points down)");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
 		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
