@@ -45,6 +45,7 @@ alanContextInit(alanContext *actx) {
     ELL_3V_SET(actx->size, 0, 0, 0);
     actx->oversample = 0;
     actx->numThreads = 1;
+    actx->frameInterval = 10;
     actx->saveInterval = 100;
     actx->maxIteration = 100000;
     actx->K = AIR_NAN;
@@ -67,6 +68,7 @@ alanContextNew(void) {
   actx = (alanContext *)calloc(1, sizeof(alanContext));
   actx->nlev[0] = actx->nlev[1] = NULL;
   actx->nten = NULL;
+  alanContextInit(actx);
   return actx;
 }
 
@@ -181,8 +183,8 @@ alanTensorSet(alanContext *actx, Nrrd *nten, int oversample) {
 
   nrrdNuke(actx->nten);
   actx->nten = nrrdNew();
-  if (nrrdConvert(actx->nten, nten, nrrdTypeDouble)) {
-    sprintf(err, "%s: trouble converting tensors to doubles", me);
+  if (nrrdConvert(actx->nten, nten, alan_nt)) {
+    sprintf(err, "%s: trouble converting tensors to alan_t", me);
     biffMove(ALAN, err, NRRD); return 1;
   }
   actx->size[0] = oversample*nten->axis[1].size;
@@ -240,6 +242,10 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
   case alanParmSaveInterval:
     parmI = parm;
     actx->saveInterval = parmI;
+    break;
+  case alanParmFrameInterval:
+    parmI = parm;
+    actx->frameInterval = parmI;
     break;
   case alanParmMaxIteration:
     parmI = parm;

@@ -27,13 +27,18 @@ main(int argc, char *argv[]) {
 
   me = argv[0];
 
+  airSrand();
   actx = alanContextNew();
   if (alanDimensionSet(actx, 2)
-      || alan2DSizeSet(actx, 256, 256)
-      || alanParmSet(actx, alanParmMaxIteration, 10)
+      || alan2DSizeSet(actx, 128, 128)
+      || alanParmSet(actx, alanParmMaxIteration, 10000)
       || alanParmSet(actx, alanParmVerbose, 1)
+      || alanParmSet(actx, alanParmTextureType, alanTextureTypeTuring)
       || alanParmSet(actx, alanParmRandRange, 0.1)
-      || alanParmSet(actx, alanParmSaveInterval, 2)) {
+      || alanParmSet(actx, alanParmK, 0.0125)
+      || alanParmSet(actx, alanParmSaveInterval, 0)
+      || alanParmSet(actx, alanParmFrameInterval, 10)
+      ) {
     err = biffGetDone(ALAN);
     fprintf(stderr, "%s: trouble: %s\n", me, err); 
     free(err); return 1;
@@ -44,6 +49,9 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble: %s\n", me, err); 
     free(err); return 1;
   }
+  fprintf(stderr, "%s: stop = %d\n", me, actx->stop);
+  nrrdSave("lev0.nrrd", actx->nlev[0], NULL);
+  nrrdSave("lev1.nrrd", actx->nlev[1], NULL);
   
   return 0;
 }

@@ -52,6 +52,7 @@ enum {
   alanParmVerbose,
   alanParmTextureType,
   alanParmNumThreads,
+  alanParmFrameInterval,
   alanParmSaveInterval,
   alanParmMaxIteration,
   alanParmRandRange,
@@ -63,27 +64,54 @@ enum {
   alanParmLast
 };
 
-/* there is no alan_t: we always use doubles for now */
+enum {
+  alanStopUnknown=0,
+  alanStopNot=0,
+  alanStopMaxIteration,
+  alanStopNonExist,
+  alanStopConverged,
+  alanStopLast
+};    
+
+/* all morphogen values are stored as
+** 1: floats
+** 0: doubles
+*/
+#if 1
+typedef float alan_t;
+#define alan_nt nrrdTypeFloat
+#define ALAN_FLOAT 1
+#else 
+typedef double alan_t;
+#define alan_nt nrrdTypeDouble
+#define ALAN_FLOAT 0
+#endif
 
 typedef struct {
+  /* INPUT ----------------------------- */
   int verbose,
     textureType,     /* what kind are we (from alanTextureType* enum) */
     dim,             /* either 2 or 3 */
     size[3],         /* number of texels in X, Y, (Z) */
     oversample,      /* oversampling of tensors to texels */
     numThreads,      /* number of threads, of pthreads available here */
-    saveInterval,    /* number of iterations between which to save snapshots */
-    iter,            /* current iteration */
+    frameInterval,   /* number of iterations between which to an image */
+    saveInterval,    /* number of iterations between which to save all state */
     maxIteration;    /* limit to number of iterations */
-    
-  double K, F,       /* simulation variables */
+  alan_t K, F,       /* simulation variables */
     speed,           /* euler integration step size */
     initA, initB,    /* initial (constant) values for each morphogen */
     diffA, diffB,    /* base diffusion rates for each morphogen */
     randRange;       /* amplitude of noise to destabalize Turing */
-  Nrrd *nlev[2];     /* levels of all morphogens, alternating buffers */
   Nrrd *nten;        /* tensors guiding texture.  May have 1+3 or 1+6 values
 			per sample, depending on dim */
+
+  /* INTERNAL -------------------------- */
+  int iter;          /* current iteration */
+  Nrrd *nlev[2];     /* levels of all morphogens, alternating buffers */
+
+  /* OUTPUT ---------------------------- */
+  int stop;          /* why we stopped */
 } alanContext;
 
 /* methodsAlan.c */
