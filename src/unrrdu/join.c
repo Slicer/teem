@@ -25,17 +25,22 @@ char *_unrrdu_joinInfoL =
 (INFO
  ". Can stich images into volumes, or tile images side "
  "by side, or attach images onto volumes.  If there are many many "
- "files to name in the \"-i\" option, consider putting the list of "
+ "files to name in the \"-i\" option, and using wildcards won't work, "
+ "consider putting the list of "
  "filenames into a seperate text file (e.g. \"slices.txt\"), and then "
- "name this file as a response file (e.g. \"-i @slices.txt\").");
+ "name this file as a response file (e.g. \"-i @slices.txt\"). "
+ "This command now allows you to set the same pieces of information that "
+ "previously had to be set with \"unu axinfo\": label, spacing, and min/max. "
+ "These can be use whether the join axis is new (because of \"-incr\") or not.");
 
 int
 unrrdu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err;
+  char *out, *err, *label;
   Nrrd **nin;
   Nrrd *nout;
   int ninLen, axis, incrDim, pret;
+  double mm[2], spc;
   airArray *mop;
 
   hparm->respFileEnable = AIR_TRUE;
@@ -45,11 +50,17 @@ unrrdu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     &ninLen, NULL, nrrdHestNrrd);
   OPT_ADD_AXIS(axis, "axis to join along");
   hestOptAdd(&opt, "incr", NULL, airTypeInt, 0, 0, &incrDim, NULL,
-	     "in situations where the join axis is among the axes of "
-	     "the input nrrds, then this flag signifies that the join "
+	     "in situations where the join axis is *not* among the existing "
+	     "axes of the input nrrds, then this flag signifies that the join "
 	     "axis should be *inserted*, and the output dimension should "
 	     "be one greater than input dimension.  Without this flag, the "
 	     "nrrds are joined side-by-side, along an existing axis.");
+  hestOptAdd(&opt, "l", "label", airTypeString, 1, 1, &label, "",
+	     "label to associate with join axis");
+  hestOptAdd(&opt, "mm", "min max", airTypeDouble, 2, 2, mm, "nan nan",
+	     "min and max values along join axis");
+  hestOptAdd(&opt, "sp", "spacing", airTypeDouble, 1, 1, &spc, "nan",
+	     "spacing between samples along join axis");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
@@ -67,6 +78,19 @@ unrrdu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
     fprintf(stderr, "%s: error joining nrrds:\n%s", me, err);
     airMopError(mop);
     return 1;
+  }
+  if (strlen(label)) {
+    AIR_FREE(nout->axis[axis].label);
+    nout->axis[axis].label = airStrdup(label);
+  }
+  if (AIR_EXISTS(mm[0])) {
+    nout->axis[axis].min = mm[0];
+  }
+  if (AIR_EXISTS(mm[1])) {
+    nout->axis[axis].max = mm[1];
+  }
+  if (AIR_EXISTS(spc)) {
+    nout->axis[axis].spacing = spc;
   }
 
   SAVE(out, nout, NULL);
