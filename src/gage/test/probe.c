@@ -52,22 +52,96 @@ usage(char *me) {
 }
 
 int
+probeParseNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[] = "probeParseNrrd", *nerr;
+  Nrrd **nrrdP;
+  airArray *mop;
+  
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  nrrdP = ptr;
+  mop = airMopInit();
+  *nrrdP = nrrdNew();
+  airMopAdd(mop, *nrrdP, (airMopper)nrrdNuke, airMopOnError);
+  if (nrrdLoad(*nrrdP, str)) {
+    airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
+    strncpy(err, nerr, AIR_STRLEN_HUGE-1);
+    airMopError(mop);
+    return 1;
+  }
+  airMopOkay(mop);
+  return 0;
+}
+
+hestCB probeNrrdHestCB = {
+  sizeof(Nrrd *),
+  "nrrd",
+  probeParseNrrd,
+  (airMopper)nrrdNuke
+}; 
+
+int
+probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[] = "probeParseKind";
+  gageKind **kindP;
+  
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  kindP = ptr;
+  airToLower(str);
+  if (!strcmp("scalar", str)) {
+    *kindP = gageKindScl;
+  } else if (!strcmp("vector", str)) {
+    *kindP = gageKindVec;
+  } else {
+    sprintf(err, "%s: not recognized", me);
+    return 1;
+  }
+    
+  return 0;
+}
+
+hestCB probeKindHestCB = {
+  sizeof(gageKind *),
+  "kind",
+  probeParseKind,
+  NULL
+}; 
+
+int
 main(int argc, char *argv[]) {
-  char *me, *ninS, *whatS, *scaleS, *k0S, *k1S, *k2S, *noutS;
+  char *me;
+  hestParm *hparm;
+  hestOpt *hopt = NULL;
+  gageKind *kind;
+
+  char *whatS, *scaleS, *k0S, *k1S, *k2S, *noutS;
   float x, y, z, scale;
   gage_t *out;
-  Nrrd *nin, *nout;
   int a, idx, what, ansLen, offset, E, xi, yi, zi,
     six, siy, siz, sox, soy, soz;
   double t0, t1, kparm[3][NRRD_KERNEL_PARMS_NUM];
+  Nrrd *nin, *nout;
+  NrrdKernel *k0, *k1, *k2;
   gageSclAnswer *san;
   gageSimple *gsl;
-  NrrdKernel *k0, *k1, *k2;
 
   me = argv[0];
+  hparm = hestParmNew();
+  hparm->elideSingleOtherType = AIR_TRUE;
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
+	     "input volume",
+	     NULL, NULL, &probeNrrdHestCB);
+  hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
+	     "\"kind\" of volume (\"scalar\" or \"vector\")",
+	     NULL, NULL, &probeKindHestCB);
+
   if (8 != argc) 
     usage(me);
-  ninS = argv[1];
   whatS = argv[2];
   scaleS = argv[3];
   k0S = argv[4];
@@ -75,14 +149,6 @@ main(int argc, char *argv[]) {
   k2S = argv[6];
   noutS = argv[7];
 
-  if (nrrdLoad(nin=nrrdNew(), ninS)) {
-    fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(NRRD));
-    exit(1);
-  }
-  if (3 != nin->dim) {
-    fprintf(stderr, "%s: need a 3-dimensional nrrd (not %d)\n", me, nin->dim);
-    exit(1);
-  }
   if (gageSclUnknown == (what = airEnumVal(gageScl, whatS))) {
     fprintf(stderr, "%s: couldn't parse \"%s\" as gageScl\n", me, whatS);
     exit(1);

@@ -283,6 +283,7 @@ typedef struct {
 */
 typedef struct gageKind_t {
   char str[AIR_STRLEN_SMALL];       /* short identifying string for kind */
+  airEnum *enm;                     /* such as gageScl (NB: not a pointer) */
   int baseDim,                      /* dimension that x,y,z axes start on */
     valLen,                         /* number of scalars per data point */
     queryMax,                       /* such as GAGE_SCL_MAX */

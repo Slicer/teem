@@ -23,6 +23,7 @@
 gageKind
 _gageKindScl = {
   "scalar",
+  &gageScl,
   0,
   1,
   GAGE_SCL_MAX,
@@ -43,6 +44,7 @@ gageKindScl = &_gageKindScl;
 gageKind
 _gageKindVec = {
   "vector",
+  &gageVec,
   1,
   3,
   GAGE_VEC_MAX,
