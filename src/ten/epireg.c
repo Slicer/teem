@@ -909,6 +909,7 @@ tenEpiRegister3D(Nrrd **nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
   for (i=0; i<ninLen; i++) {
     airMopAdd(mop, nbuffA[i] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
     airMopAdd(mop, nbuffB[i] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+    nrrdAxisInfoCopy(nout[i], nin[i], NULL, NRRD_AXIS_INFO_NONE);
   }
   airMopAdd(mop, npxfr = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nhst = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
@@ -1016,7 +1017,7 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *ngrad,
 		 NrrdKernel *kern, double *kparm,
 		 int progress, int verbose) {
   char me[]="tenEpiRegister4D", err[AIR_STRLEN_MED];
-  int ni, ninLen;
+  int ni, ninLen, amap[4]={-1, 1, 2, 3};
   Nrrd **nout, **nin;
   airArray *mop;
 
@@ -1062,6 +1063,7 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *ngrad,
     sprintf(err, "%s: trouble joining output", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
+  nrrdAxisInfoCopy(_nout, _nin, amap, NRRD_AXIS_INFO_NONE);
   
   airMopOkay(mop);
   return 0;

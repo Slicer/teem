@@ -139,12 +139,21 @@ tenEstimateSingle(float *ten, float *dwi, double *emat, int DD,
   return;
 }
 
+/*
+******** tenEstimate3D
+**
+** takes an array of DWIs (starting with the B=0 image), joins them up,
+** and passes it all off to tenEstimate4
+**
+** Note: this will copy per-axis peripheral information from _ndwi[0]
+*/
 int
 tenEstimate3D(Nrrd *nten, Nrrd **nterrP, Nrrd **_ndwi, int dwiLen, 
 	      Nrrd *_nbmat, float thresh, float soft, float b) {
   char me[]="tenEstimate", err[AIR_STRLEN_MED];
   Nrrd *ndwi;
   airArray *mop;
+  int amap[4] = {-1, 0, 1, 2};
 
   if (!(_ndwi)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -157,6 +166,7 @@ tenEstimate3D(Nrrd *nten, Nrrd **nterrP, Nrrd **_ndwi, int dwiLen,
     sprintf(err, "%s: trouble joining inputs", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
+  nrrdAxisInfoCopy(ndwi, _ndwi[0], amap, NRRD_AXIS_INFO_NONE);
   if (tenEstimate4D(nten, nterrP, ndwi, _nbmat, thresh, soft, b)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
@@ -169,8 +179,8 @@ tenEstimate3D(Nrrd *nten, Nrrd **nterrP, Nrrd **_ndwi, int dwiLen,
 /*
 ******** tenEstimate4D
 **
-** given a stack of DWI volumes (ndwi) and the list of gradient directions
-** used for acquisiton (_ngrad), computes and stores diffusion tensors in
+** given a stack of DWI volumes (ndwi) and the imaging B-matrix used 
+** for acquisiton (_nbmat), computes and stores diffusion tensors in
 ** nten.
 **
 ** The mean of the diffusion-weighted images is thresholded at "thresh" with
@@ -187,7 +197,7 @@ tenEstimate4D(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *_nbmat,
   char me[]="tenEstimate4D", err[AIR_STRLEN_MED];
   Nrrd *nbmat, *nemat, *ncrop, *nhist;
   airArray *mop;
-  int E, DD, d, II, sx, sy, sz, cmin[4], cmax[4];
+  int E, DD, d, II, sx, sy, sz, cmin[4], cmax[4], amap[4] = {-1,1,2,3};
   float *ten, dwi1[_TEN_MAX_DWI_NUM], dwi2[_TEN_MAX_DWI_NUM], *terr=NULL, te,
     d1, d2, (*lup)(const void *, size_t);
   double *bmat, *emat;
@@ -295,6 +305,8 @@ tenEstimate4D(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *_nbmat,
     ten += 7;
   }
   /* tenEigenvalueClamp(nten, nten, 0, AIR_NAN); */
+
+  nrrdAxisInfoCopy(nten, ndwi, amap, NRRD_AXIS_INFO_NONE);
 
   airMopOkay(mop);
   return 0;
