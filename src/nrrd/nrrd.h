@@ -453,37 +453,39 @@ typedef struct {
 */
 typedef struct {
   const NrrdKernel 
-    *kernel[NRRD_DIM_MAX];   /* which kernel to use on each axis; use NULL to
-                                say no resampling whatsoever on this axis */
+    *kernel[NRRD_DIM_MAX]; /* which kernel to use on each axis; use NULL to
+                              say no resampling whatsoever on this axis */
   int samples[NRRD_DIM_MAX]; /* number of samples per axis */
   double parm[NRRD_DIM_MAX][NRRD_KERNEL_PARMS_NUM], /* kernel arguments */
     min[NRRD_DIM_MAX],
-    max[NRRD_DIM_MAX];       /* min[i] and max[i] are the range, in WORLD
-                                space, along which to resample axis i.  axis mins
-                                and maxs are required on resampled axes. */
-  int boundary,              /* value from the nrrdBoundary enum */
-    type,                    /* desired type of output, use nrrdTypeUnknown for
-                                "same as input" */
-    renormalize,             /* when downsampling with a kernel with non-zero
-                                integral, should we renormalize the weights to
-                                match the kernel integral so as to remove annoying
-                                ripple */
-    round,                   /* when copying from the last intermediate (floating
-                                point) result to the output nrrd, for integer
-                                outputs, do we round to the nearest integer first,
-                                before clamping and assigning.  Enabling this fixed
-                                the mystery of downsampling large constant regions
-                                of 255 (uchar), and ending up with 254 */
-    clamp,                    /* when copying from the last intermediate (floating
-                                 point) result to the output nrrd, should we clamp
-                                 the values to the range of values for the output
-                                 type, a concern only for integer outputs */
-    cheap;                    /* when *downsampling* (reducing the number of
-                                 samples), don't bother expanding the kernel to
-                                 achieve filtering in the old index space; with
-                                 nrrdKernelBox this can lead to subsampling by
-                                 picking using every other value */
-  double padValue;            /* if padding, what value to pad with */
+    max[NRRD_DIM_MAX];     /* min[i] and max[i] are the range, in WORLD space,
+                              along which to resample axis i.  axis mins and
+                              maxs are required on resampled axes. */
+  int boundary,            /* value from the nrrdBoundary enum */
+    type,                  /* desired type of output, use nrrdTypeUnknown for
+                              "same as input" */
+    renormalize,           /* when downsampling with a kernel with non-zero
+                              integral, should we renormalize the weights to
+                              match the kernel integral so as to remove
+                              annoying ripple */
+    round,                 /* when copying from the last intermediate (floating
+                              point) result to the output nrrd, for integer
+                              outputs, do we round to the nearest integer
+                              first, before clamping and assigning.  Enabling
+                              this fixed the mystery of downsampling large
+                              constant regions of 255 (uchar), and ending up
+                              with 254 */
+    clamp,                  /* when copying from the last intermediate
+                               (floating point) result to the output nrrd,
+                               should we clamp the values to the range of
+                               values for the output type, a concern only for
+                               integer outputs */
+    cheap;                  /* when *downsampling* (reducing the number of
+                               samples), don't bother expanding the kernel to
+                               achieve filtering in the old index space; with
+                               nrrdKernelBox this can lead to subsampling by
+                               picking using every other value */
+  double padValue;          /* if padding, what value to pad with */
 } NrrdResampleInfo;
 
 /*
