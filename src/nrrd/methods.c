@@ -302,8 +302,8 @@ _nrrdSizeValid(int dim, int *size) {
   
   for (d=0; d<dim; d++) {
     if (!(size[d] > 0)) {
-      sprintf(err, "%s: invalid size (%d) for axis %d (of %d)",
-	      me, size[d], d, dim-1);
+      sprintf(err, "%s: invalid size (%d) for axis %d (dim = %d)",
+	      me, size[d], d, dim);
       biffAdd(NRRD, err); return AIR_FALSE;
     }
   }
@@ -629,7 +629,7 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
       biffAdd(NRRD, err); return 1;
     }
   } else {
-    /* this is essentially a reshape */
+    /* this is essentially a reshape, or maybe not even that */
     nrrd->type = type;
     nrrd->dim = dim;
     nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, size);
@@ -665,7 +665,6 @@ nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim, ...) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  nrrdAxesGet_nva(nrrd, nrrdAxesInfoSize, size);
   if (nrrdMaybeAlloc_nva(nrrd, type, dim, size)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
