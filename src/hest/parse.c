@@ -189,7 +189,7 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
       if (!( opt[op].CB->size > 0 )) {
 	if (err)
 	  sprintf(err, "%s!!!!!! opt[%d]'s \"size\" (%d) invalid", 
-		  ME, op, opt[op].CB->size);
+		  ME, op, (int)(opt[op].CB->size));
 	return 1;
       }
       if (!( opt[op].type )) {
@@ -625,7 +625,8 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
     cP = vP = opt[op].valueP;
     if (parm->verbosity) {
       printf("%s %d of %d: \"%s\": |%s| --> kind=%d, type=%d, size=%d\n", 
-	     me, op, numOpts-1, prms[op], ident, opt[op].kind, type, size);
+	     me, op, numOpts-1, prms[op], ident, opt[op].kind, type,
+	     (int)size);
     }
     /* we may over-write these */
     opt[op].alloc = 0;
@@ -1032,6 +1033,7 @@ hestParseFree(hestOpt *opt) {
 
   numOpts = _hestNumOpts(opt);
   for (op=0; op<=numOpts-1; op++) {
+    printf("hestParseFree: op = %d/%d\n", op, numOpts-1);
     vP = opt[op].valueP;
     vAP = opt[op].valueP;
     str = opt[op].valueP;
