@@ -80,7 +80,7 @@ char *makeInfoL = (INFO
 int
 makeMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
-  char *out, *err, *dataFileName;
+  char *out, *err, *dataFileName, *content;
   Nrrd *nrrd;
   int *size, sizeLen, spacingLen, headerOnly;
   double *spacing;
@@ -106,26 +106,26 @@ makeMain(int argc, char **argv, char *me) {
 	     "is reading the nrrd)");
   hestOptAdd(&opt, "i", "file", airTypeString, 1, 1, &dataFileName, NULL,
 	     "Filename of data file; use \"-\" for stdin");
-  hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &(nrrd->type),
-	     NULL, "type of data (e.g. \"uchar\", \"int\", \"float\", "
+  hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &(nrrd->type), NULL,
+	     "type of data (e.g. \"uchar\", \"int\", \"float\", "
 	     "\"double\", etc.)",
 	     NULL, nrrdType);
   hestOptAdd(&opt, "s", "sz0 sz1", airTypeInt, 1, -1, &size, NULL,
 	     "number of samples along each axis (and implicit indicator "
 	     "of dimension of nrrd)", &sizeLen);
-  hestOptAdd(&opt, "sp", "spc0 spc1", airTypeDouble, 1, -1, &spacing,
-	     NULL, "spacing between samples on each axis.  Use \"nan\" for "
+  hestOptAdd(&opt, "sp", "spc0 spc1", airTypeDouble, 1, -1, &spacing, NULL,
+	     "spacing between samples on each axis.  Use \"nan\" for "
 	     "any non-spatial axes (e.g. spacing between red, green, and blue "
 	     "along axis 0 of interleaved RGB image data)", &spacingLen);
-  hestOptAdd(&opt, "ls", "lineskip", airTypeInt, 1, 1,
-	     &(io->lineSkip), "0",
+  hestOptAdd(&opt, "c", "content", airTypeString, 1, 1, &content, "",
+	     "Specifies the content string of the nrrd, which is built upon "
+	     "by many nrrd function to record a history of operations");
+  hestOptAdd(&opt, "ls", "lineskip", airTypeInt, 1, 1, &(io->lineSkip), "0",
 	     "number of ascii lines to skip before reading data");
-  hestOptAdd(&opt, "bs", "byteskip", airTypeInt, 1, 1,
-	     &(io->byteSkip), "0",
+  hestOptAdd(&opt, "bs", "byteskip", airTypeInt, 1, 1, &(io->byteSkip), "0",
 	     "number of bytes to skip (after skipping ascii lines, if any) "
 	     "before reading data");
-  hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1,
-	     &(io->encoding), "raw",
+  hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &(io->encoding), "raw",
 	     "data encoding. Possibilities are \"raw\" and \"ascii\"",
 	     NULL, nrrdEncoding);
   hestOptAdd(&opt, "en", "endian", airTypeEnum, 1, 1, &(io->endian),
@@ -160,6 +160,9 @@ makeMain(int argc, char **argv, char *me) {
   nrrd->dim = sizeLen;
   nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, size);
   nrrdAxesSet_nva(nrrd, nrrdAxesInfoSpacing, spacing);
+  if (airStrlen(content)) {
+    nrrd->content = airStrdup(content);
+  }
   
   if (headerOnly) {
     /* we don't have to fopen() any input; all we care about
