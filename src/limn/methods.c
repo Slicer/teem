@@ -18,6 +18,22 @@
 
 #include "limn.h"
 
+limnLight *
+limnLightNew(void) {
+  limnLight *lit;
+
+  lit = (limnLight *)calloc(1, sizeof(limnLight));
+  return lit;
+}
+
+limnLight *
+limnLightNix(limnLight *lit) {
+  
+  if (lit)
+    free(lit);
+  return NULL;
+}
+
 limnCam *
 limnCamNew(void) {
   limnCam *cam;
@@ -25,7 +41,7 @@ limnCamNew(void) {
   cam = (limnCam *)calloc(1, sizeof(limnCam));
   cam->eyeRel = 1;
   cam->leftHanded = 0;
-  return(cam);
+  return cam;
 }
 
 limnCam *
@@ -43,8 +59,8 @@ _limnOptsPSDefaults(limnOptsPS *ps) {
   ps->edgeWidth[0] = 0.0;
   ps->edgeWidth[1] = 0.00;
   ps->edgeWidth[2] = 2;
-  ps->edgeWidth[3] = 0.5;
-  ps->edgeWidth[4] = 2;
+  ps->edgeWidth[3] = 0;
+  ps->edgeWidth[4] = 0;
   ps->creaseAngle = 80;
   ps->bgGray = 0.9;
 }
@@ -57,11 +73,11 @@ limnWinNew(int device) {
   win->device = device;
   switch(device) {
   case limnDevicePS:
-    win->zFlip = 1;
+    win->yFlip = 1;
     _limnOptsPSDefaults(&(win->ps));
     break;
   }
-  win->scale = 400;
+  win->scale = 72;
   win->file = NULL;
   return win;
 }

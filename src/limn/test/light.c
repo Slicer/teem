@@ -16,29 +16,38 @@
 */
 
 
-#include <limn.h>
-
-void
-cb(float rgb[3], float vec[3], void *blah) {
-  float r, g, b;
-  
-  ELL_3V_GET(r, g, b, vec);
-  r = AIR_ABS(r);
-  g = AIR_ABS(g);
-  b = AIR_ABS(b);
-  ELL_3V_SET(rgb, r, g, b);
-  return;
-}
-
 char *me;
+
+#include <limn.h>
 
 int
 main(int argc, char *argv[]) {
+  limnLight *lit;
+  limnCam *cam;
   Nrrd *map, *ppm;
 
   me = argv[0];
 
-  if (limnEnvMapFill(map=nrrdNew(), cb, NULL, limnQN16)) {
+  cam = limnCamNew();
+  ELL_3V_SET(cam->from, 10, 0, 0);
+  ELL_3V_SET(cam->at, 0, 0, 0);
+  ELL_3V_SET(cam->up, 0, 0, 1);
+  cam->uMin = -(cam->uMax = 4);
+  cam->vMin = -(cam->vMax = 3);
+  cam->near = -5;
+  cam->dist = 0;
+  cam->far =  5;
+  cam->eyeRel = AIR_FALSE;
+
+  lit = limnLightNew();
+  limnLightSet(lit, AIR_TRUE, 1, 0, 0, 1, 0, 0);
+  limnLightSet(lit, AIR_TRUE, 0, 1, 0, 0, 1, 0);
+  limnLightSet(lit, AIR_TRUE, 0, 0, 1, 0, 0, 1);
+  limnLightUpdate(lit, cam);
+  
+  if (limnEnvMapFill(map=nrrdNew(), 
+		     limnLightDiffuseCB, lit,
+		     limnQN16)) {
     fprintf(stderr, "%s: trouble:\n%s", me, biffGet(LIMN));
     exit(1);
   }
@@ -52,7 +61,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s", me, biffGet(NRRD));
     exit(1);
   }
-
+  
   nrrdNuke(map);
   nrrdNuke(ppm);
   exit(0);

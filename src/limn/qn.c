@@ -32,14 +32,14 @@
 
 /* ----------------------------------------------------------------  */
 
-void
+float *
 limnQN16toV(float *vec, unsigned short qn, int zeroZero, int doNorm) {
   int ui, vi;
   double u, v, x, y, z, n;
 
   if (zeroZero && !qn) {
     vec[0] = vec[1] = vec[2] = 0;
-    return;
+    return NULL;
   }
 
   ui = qn & 0xFF;
@@ -62,7 +62,7 @@ limnQN16toV(float *vec, unsigned short qn, int zeroZero, int doNorm) {
     vec[2] = z;
   }
 
-  return;
+  return vec;
 }
 
 unsigned short
@@ -112,7 +112,7 @@ limnQNVto16(float *vec, int zeroZero) {
 
 /* ----------------------------------------------------------------  */
 
-void
+float *
 limnQN16PB1toV(float *vec, unsigned short qn, int doNorm) {
   int ui, vi;
   double u, v, x, y, z, n;
@@ -141,6 +141,7 @@ limnQN16PB1toV(float *vec, unsigned short qn, int doNorm) {
   else {
     vec[0] = vec[1] = vec[2] = 0;
   }
+  return vec;
 }
 
 unsigned short
@@ -186,7 +187,7 @@ limnQNVto16PB1(float *vec) {
 
 /* ----------------------------------------------------------------  */
 
-void
+float *
 limnQN15toV(float *vec, unsigned short qn, int doNorm) {
   int ui, vi, zi;
   double u, v, x, y, z, n;
@@ -216,6 +217,7 @@ limnQN15toV(float *vec, unsigned short qn, int doNorm) {
   else {
     vec[0] = vec[1] = vec[2] = 0.0;
   }
+  return vec;
 }
 
 unsigned short
@@ -244,6 +246,3 @@ limnQNVto15(float *vec) {
     return 0;
   }
 }
-
-
-

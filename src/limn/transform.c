@@ -107,28 +107,20 @@ int
 _limnObjDTransform(limnObj *obj, limnCam *cam, limnWin *win) {
   int pi;
   limnPoint *p;
-  float u0, u1, v0, v1, wy0, wy1, wx0, wx1, aspect;
+  float wy0, wy1, wx0, wx1, t;
   
-  u0 = cam->uMin;
-  u1 = cam->uMax;
-  v0 = cam->vMin;
-  v1 = cam->vMax;
   wx0 = 0;
-  wx1 = (u1 - u0)*
-  aspect = /(v1 - v0);
-  if (win->zFlip) {
-    w0 = aspect*win->size;
-    w1 = 0;
+  wx1 = (cam->uMax - cam->uMin)*win->scale;
+  wy0 = 0;
+  wy1 = (cam->vMax - cam->vMin)*win->scale;
+  ELL_4V_SET(win->bbox, wx0, wy0, wx1, wy1);
+  if (win->yFlip) {
+    ELL_SWAP2(wy0, wy1, t);
   }
-  else {
-    w0 = 0;
-    w1 = aspect*win->size;
-  }
-  ELL_4V_SET(win->bbox, 0, 0, win->size, aspect*win->size);
   for (pi=0; pi<=obj->pA->len-1; pi++) {
     p = obj->p + pi;
-    p->d[0] = AIR_AFFINE(u0, p->s[0], u1, 0, win->size);
-    p->d[1] = AIR_AFFINE(v0, p->s[1], v1, w0, w1);
+    p->d[0] = AIR_AFFINE(cam->uMin, p->s[0], cam->uMax, wx0, wx1);
+    p->d[1] = AIR_AFFINE(cam->vMin, p->s[1], cam->vMax, wy0, wy1);
   }
   return 0;
 }

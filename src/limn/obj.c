@@ -18,7 +18,7 @@
 
 #include "limn.h"
 
-#define LIMN_INCR 16
+#define LIMN_INCR 50
 
 limnObj *
 limnObjNew(int edges) {

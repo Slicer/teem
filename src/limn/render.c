@@ -58,16 +58,21 @@ _limnPSEpilogue(limnObj *obj, limnCam *cam, limnWin *win) {
 
 void
 _limnPSDrawFace(limnObj *obj, limnFace *f, 
-		limnCam *cam, limnWin *win) {
+		limnCam *cam, Nrrd *nmap, limnWin *win) {
   int vi;
   limnPoint *p;
-
+  unsigned short qn;
+  float *map;
+  
+  qn = limnQNVto16(f->wn, AIR_FALSE);
+  map = nmap->data;
   for (vi=0; vi<f->vNum; vi++) {
     p = obj->p + obj->v[vi + f->vBase];
     fprintf(win->file, "%g %g %s\n", 
 	    p->d[0], p->d[1], vi ? "lineto" : "moveto");
   }
-  fprintf(win->file, "closepath 1 setgray fill\n");
+  fprintf(win->file, "closepath %g %g %g setrgbcolor fill\n",
+	  map[0 + 3*qn], map[1 + 3*qn], map[2 + 3*qn]);
 }
 
 void
@@ -84,7 +89,7 @@ _limnPSDrawEdge(limnObj *obj, limnEdge *e,
 }
 
 int
-limnObjPSRender(limnObj *obj, limnCam *cam, limnWin *win) {
+limnObjPSRender(limnObj *obj, limnCam *cam, Nrrd *map, limnWin *win) {
   int vis0, vis1;
   float angle;
   limnFace *f, *f0, *f1; int fi;
@@ -101,7 +106,7 @@ limnObjPSRender(limnObj *obj, limnCam *cam, limnWin *win) {
       f = &(obj->f[r->fBase + fi]);
       f->visib = f->sn[2] < 0;
       if (f->visib)
-	_limnPSDrawFace(obj, f, cam, win);
+	_limnPSDrawFace(obj, f, cam, map, win);
     }
 
     fprintf(win->file, "0 setgray\n");
