@@ -39,7 +39,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int d, scaleLen, type, bb;
+  int d, scaleLen, type, bb, pret;
   airArray *mop;
   float *scale;
   double padVal;

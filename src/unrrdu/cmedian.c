@@ -41,7 +41,7 @@ unrrdu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *ntmp, *nout;
-  int bins, radius, pad;
+  int bins, radius, pad, pret;
   airArray *mop;
   float wght;
 

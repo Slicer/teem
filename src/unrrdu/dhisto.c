@@ -28,7 +28,7 @@ unrrdu_dhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int size;
+  int size, pret;
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input nrrd");

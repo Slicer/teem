@@ -28,7 +28,7 @@ unrrdu_unquantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int dbl;
+  int dbl, pret;
   double oldMin, oldMax;
   airArray *mop;
 

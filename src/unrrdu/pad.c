@@ -28,7 +28,7 @@ unrrdu_padMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int *minOff, minLen, *maxOff, maxLen, ax, bb,
+  int *minOff, minLen, *maxOff, maxLen, ax, bb, pret,
     min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
   double padVal;
   airArray *mop;

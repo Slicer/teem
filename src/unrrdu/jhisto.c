@@ -34,7 +34,7 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd **nin, *nout;
-  int type, d, ninLen, *bin, binLen, clamp[NRRD_DIM_MAX];
+  int type, d, ninLen, *bin, binLen, clamp[NRRD_DIM_MAX], pret;
   airArray *mop;
 
   hestOptAdd(&opt, "i", "nin0 nin1", airTypeOther, 2, -1, &nin, NULL,

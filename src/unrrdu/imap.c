@@ -38,7 +38,7 @@ unrrdu_imapMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err;
   Nrrd *nin, *nmap, *nacl, *nout;
   airArray *mop;
-  int typeOut, rescale, aclLen;
+  int typeOut, rescale, aclLen, pret;
 
   OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "m", "map", airTypeOther, 1, 1, &nmap, NULL,

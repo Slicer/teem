@@ -36,6 +36,7 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin, *nout;
   airArray *mop;
   NrrdIO *io;
+  int pret;
 
   mop = airMopInit();
   io = nrrdIONew();

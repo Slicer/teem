@@ -37,7 +37,7 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *err, *inS=NULL, *outS=NULL;
   NrrdIO *io;
   airArray *mop;
-  int len, magic;
+  int len, magic, pret;
   FILE *fin, *fout;
 
   mop = airMopInit();

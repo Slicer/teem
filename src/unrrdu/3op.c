@@ -34,7 +34,7 @@ unrrdu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err;
   NrrdIter *in1, *in2, *in3;
   Nrrd *nout, *ntmp=NULL;
-  int op, type, E;
+  int op, type, E, pret;
   airArray *mop;
 
   hestOptAdd(&opt, NULL, "operator", airTypeEnum, 1, 1, &op, NULL,

@@ -83,12 +83,17 @@ extern "C" {
   }
 
 #define PARSE() \
-  if (hestParse(opt, argc, argv, &err, hparm)) { \
-    fprintf(stderr, "%s: %s\n", me, err); free(err); \
-    hestUsage(stderr, opt, me, hparm); \
-    hestGlossary(stderr, opt, hparm); \
-    airMopError(mop); \
-    return 1; \
+  if ((pret=hestParse(opt, argc, argv, &err, hparm))) { \
+    if (1 == pret) { \
+      fprintf(stderr, "%s: %s\n", me, err); free(err); \
+      hestUsage(stderr, opt, me, hparm); \
+      hestGlossary(stderr, opt, hparm); \
+      airMopError(mop); \
+      return 1; \
+    } else { \
+      /* ... like tears ... in rain. Time ... to die. */ \
+      exit(1); \
+    } \
   }
 
 #define SAVE(outS, nout, io) \

@@ -38,7 +38,7 @@ unrrdu_shuffleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int axis, inverse;
+  int axis, inverse, pret;
   int *perm, *iperm, **whichperm, permLen;
   airArray *mop;
 

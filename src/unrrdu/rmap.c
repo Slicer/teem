@@ -43,7 +43,7 @@ unrrdu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err;
   Nrrd *nin, *nmap, *nout;
   airArray *mop;
-  int mapax, typeOut, rescale;
+  int mapax, typeOut, rescale, pret;
 
   OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "m", "map", airTypeOther, 1, 1, &nmap, NULL,

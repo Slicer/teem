@@ -28,7 +28,7 @@ unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int bins, type;
+  int bins, type, pret;
   double min, max;
   airArray *mop;
 

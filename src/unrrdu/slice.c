@@ -30,7 +30,7 @@ unrrdu_sliceMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int axis, _pos[2], pos;
+  int axis, _pos[2], pos, pret;
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input nrrd");

@@ -39,6 +39,7 @@ unrrdu_blockMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err;
   Nrrd *nin, *nout;
   airArray *mop;
+  int pret;
 
   /* if we gave a default for this, then there it would fine to have 
      no command-line arguments whatsoever, and then the user would not

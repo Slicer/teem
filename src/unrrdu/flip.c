@@ -29,7 +29,7 @@ unrrdu_flipMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int axis;
+  int axis, pret;
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input nrrd");

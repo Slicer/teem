@@ -33,7 +33,7 @@ unrrdu_reshapeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int *size, sizeLen;
+  int *size, sizeLen, pret;
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input nrrd");

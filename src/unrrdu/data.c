@@ -44,7 +44,7 @@ unrrdu_dataMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin;
   NrrdIO *io;
   airArray *mop;
-  int car;
+  int car, pret;
   FILE *fin, *fout, *dataFile;
 
   mop = airMopInit();

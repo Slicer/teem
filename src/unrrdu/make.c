@@ -40,7 +40,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *dataFileName, *content, encInfo[AIR_STRLEN_LARGE];
   Nrrd *nrrd;
-  int *size, sizeLen, spacingLen, headerOnly;
+  int *size, sizeLen, spacingLen, headerOnly, pret;
   double *spacing;
   airArray *mop;
   NrrdIO *io;

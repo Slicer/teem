@@ -35,7 +35,7 @@ unrrdu_heqMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *mapS;
   Nrrd *nin, *nout, *nmap;
-  int bins, smart;
+  int bins, smart, pret;
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input nrrd");

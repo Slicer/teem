@@ -28,7 +28,7 @@ unrrdu_cropMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int *minOff, minLen, *maxOff, maxLen, ax,
+  int *minOff, minLen, *maxOff, maxLen, ax, pret,
     min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
   airArray *mop;
 

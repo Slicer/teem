@@ -36,7 +36,7 @@ unrrdu_lutMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err;
   Nrrd *nin, *nlut, *nout;
   airArray *mop;
-  int lutax, typeOut, rescale;
+  int lutax, typeOut, rescale, pret;
 
   OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "m", "lut", airTypeOther, 1, 1, &nlut, NULL,

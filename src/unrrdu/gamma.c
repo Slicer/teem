@@ -34,6 +34,7 @@ unrrdu_gammaMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin, *nout;
   double min, max, gamma;
   airArray *mop;
+  int pret;
 
   OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "g", "gamma", airTypeDouble, 1, 1, &gamma, NULL,

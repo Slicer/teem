@@ -29,7 +29,7 @@ unrrdu_histaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int axis, type, bins;
+  int axis, type, bins, pret;
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input nrrd");
