@@ -387,7 +387,7 @@ _nrrdWriteDataBzip2(Nrrd *nrrd, NrrdIO *io) {
   /* Open bzfile for writing. Verbosity and work factor are set
      to default values. */
   bzfout = BZ2_bzWriteOpen(&bzerror, io->dataFile, bs, 0, 0);
-  if (bzerror != BZ_OK) {
+  if (BZ_OK != bzerror) {
     sprintf(err, "%s: error opening BZFILE: %s", me, 
 	    BZ2_bzerror(bzfout, &bzerror));
     biffAdd(NRRD, err);
@@ -415,15 +415,20 @@ _nrrdWriteDataBzip2(Nrrd *nrrd, NrrdIO *io) {
   bzerror = BZ_OK;
   while (size - total_written > block_size) {
     BZ2_bzWrite(&bzerror, bzfout, data, block_size);
-    if (bzerror != BZ_OK) break;
+    if (BZ_OK != bzerror) break;
     /* Increment the data pointer to the next available spot. */
     data += block_size; 
     total_written += block_size;
   }
-  block_size = (int)(size - total_written);
-  BZ2_bzWrite(&bzerror, bzfout, data, block_size);
+  /* write the last (possibly smaller) block when its humungous data;
+     write the whole data when its small */
+  if (BZ_OK == bzerror) {
+    block_size = (int)(size - total_written);
+    BZ2_bzWrite(&bzerror, bzfout, data, block_size);
+    total_written += block_size;
+  }
 
-  if (bzerror != BZ_OK) {
+  if (BZ_OK != bzerror) {
     sprintf(err, "%s: error writing to BZFILE: %s",
 	    me, BZ2_bzerror(bzfout, &bzerror));
     biffAdd(NRRD, err);
@@ -432,7 +437,7 @@ _nrrdWriteDataBzip2(Nrrd *nrrd, NrrdIO *io) {
 
   /* Close the BZFILE. */
   BZ2_bzWriteClose(&bzerror, bzfout, 0, NULL, NULL);
-  if (bzerror != BZ_OK) {
+  if (BZ_OK != bzerror) {
     sprintf(err, "%s: error closing BZFILE: %s", me,
 	    BZ2_bzerror(bzfout, &bzerror));
     biffAdd(NRRD, err);

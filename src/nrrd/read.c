@@ -545,7 +545,7 @@ _nrrdReadDataBzip2(Nrrd *nrrd, NrrdIO *io) {
   /* Ok, now we can begin reading. */
   bzerror = BZ_OK;
   while ((read = BZ2_bzRead(&bzerror, bzfin, data, block_size))
-	  && bzerror == BZ_OK) {
+	  && (BZ_OK == bzerror || BZ_STREAM_END == bzerror) ) {
     /* Increment the data pointer to the next available spot. */
     data += read;
     total_read += read;
@@ -558,7 +558,7 @@ _nrrdReadDataBzip2(Nrrd *nrrd, NrrdIO *io) {
       block_size = (int)(size - total_read);
   }
   
-  if (bzerror != BZ_OK || bzerror != BZ_STREAM_END) {
+  if (!( BZ_OK == bzerror || BZ_STREAM_END == bzerror )) {
     sprintf(err, "%s: error reading from BZFILE: %s",
 	    me, BZ2_bzerror(bzfin, &bzerror));
     biffAdd(NRRD, err);
@@ -567,7 +567,7 @@ _nrrdReadDataBzip2(Nrrd *nrrd, NrrdIO *io) {
 
   /* Close the BZFILE. */
   BZ2_bzReadClose(&bzerror, bzfin);
-  if (bzerror != BZ_OK) {
+  if (BZ_OK != bzerror) {
     sprintf(err, "%s: error closing BZFILE: %s", me,
 	    BZ2_bzerror(bzfin, &bzerror));
     biffAdd(NRRD, err);
