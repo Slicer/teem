@@ -55,6 +55,7 @@ miteThreadNew() {
       + gageKindAnswerOffset(miteValGageKind, ii);
   }
   mtt->verbose = 0;
+  mtt->skip = 0;
   mtt->thrid = -1;
   mtt->ui = mtt->vi = -1;
   mtt->raySample = 0;
@@ -121,6 +122,7 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
   (*mttP)->raySample = 0;
   (*mttP)->samples = 0;
   (*mttP)->verbose = 0;
+  (*mttP)->skip = 0;
   (*mttP)->_normal = _miteAnswerPointer(*mttP, mrr->normalSpec);
   
   /* set up shading answers */

@@ -385,6 +385,8 @@ typedef struct miteThread_t {
                                    to be one pixel because only one thread
                                    should be creating and storing this per-
                                    pixel information in the miteUser */
+    skip,                       /* non-zero if we shouldn't actually do any
+                                   work for this pixel */
     thrid,                      /* thread ID */
     ui, vi,                     /* image coords of current ray */
     raySample,                  /* number of samples finished in this ray */

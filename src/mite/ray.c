@@ -36,6 +36,8 @@ miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
     fflush(stderr);
   }
   mtt->verbose = (uIndex == muu->verbUi && vIndex == muu->verbVi);
+  mtt->skip = (muu->verbUi >= 0 && muu->verbVi >= 0
+               && !mtt->verbose);
   if (mtt->verbose) {
     /* create muu->ndebug */
     muu->ndebug = nrrdNew();
@@ -127,6 +129,7 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
   *B = (E - 1 + ad[2])*col[2] + s[2];
   *A = mtt->range[miteRangeAlpha];
   *A = AIR_CLAMP(0.0, *A, 1.0);
+  /*
   if (mtt->verbose) {
     fprintf(stderr, "%s: col[] = %g,%g,%g; A,E = %g,%g; Kads = %g,%g,%g\n", me,
             col[0], col[1], col[2], mtt->range[miteRangeAlpha], E, ka, kd, ks);
@@ -136,6 +139,7 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
     fprintf(stderr, "%s: ad[] = %g,%g,%g\n", me, ad[0], ad[1], ad[2]);
     fprintf(stderr, "%s:  --> R,G,B,A = %g,%g,%g,%g\n", me, *R, *G, *B, *A);
   }
+  */
   return;
 }
 
@@ -151,6 +155,11 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
 
   if (!inside) {
     return mtt->rayStep;
+  }
+
+  if (mtt->skip) {
+    /* we have one verbose pixel, but we're not on it */
+    return 0.0;
   }
 
   /* early ray termination */
@@ -232,19 +241,23 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
   /* if there's opacity, do shading and compositing */
   if (mtt->range[miteRangeAlpha]) {
     /* fprintf(stderr, "%s: mtt->TT = %g\n", me, mtt->TT); */
+    /*
     if (mtt->verbose) {
       fprintf(stderr, "%s: before compositing: RGBT = %g,%g,%g,%g\n",
               me, mtt->RR, mtt->GG, mtt->BB, mtt->TT);
     }
+    */
     _miteRGBACalc(&R, &G, &B, &A, mtt, mrr, muu);
     mtt->RR += mtt->TT*A*R;
     mtt->GG += mtt->TT*A*G;
     mtt->BB += mtt->TT*A*B;
     mtt->TT *= 1-A;
+    /*
     if (mtt->verbose) {
       fprintf(stderr, "%s: after compositing: RGBT = %g,%g,%g,%g\n",
               me, mtt->RR, mtt->GG, mtt->BB, mtt->TT);
     }
+    */
     /* fprintf(stderr, "%s: mtt->TT = %g\n", me, mtt->TT); */
   } else {
     R = G = B = A = 0;
