@@ -41,9 +41,8 @@ hoovStubRayBegin(void *threadInfo, void *renderInfo, void *userInfo,
 		 double rayStartIndex[3],
 		 double rayDirWorld[3],
 		 double rayDirIndex[3]) {
-  char me[]="hoovStubRayBegin";
-
   /*
+  char me[]="hoovStubRayBegin";
   fprintf(stderr, "%s: ray(%d,%d), len=%g\n"
 	  "  start=(%g,%g,%g)\n"
 	  "  dir=(%g,%g,%g)\n",
@@ -61,9 +60,8 @@ hoovStubSample(void *threadInfo, void *renderInfo, void *userInfo,
 	       int inside,
 	       double samplePosWorld[3],
 	       double samplePosIndex[3]) {
-  char me[]="hoovStubSample";
-
   /*
+  char me[]="hoovStubSample";
   fprintf(stderr, "%s:      sample(%g,%g,%g)\n", me,
 	  samplePosWorld[0], samplePosWorld[1], samplePosWorld[2]);
   */
