@@ -19,7 +19,7 @@ LIB = nrrd
 HEADERS = nrrd.h nrrdDefines.h nrrdAccessors.h
 LIBOBJS = types.o arrays.o accessors.o io.o methods.o \
 	subset.o reorder.o measr.o histogram.o filt.o \
-	convert.o endian.o kernel.o
+	endian.o kernel.o map.o
 #TEST_BINS = test/subtest test/iotest test/typestest
 TEST_BINS = test/ktest test/shuff test/subtest
 BINS = 
