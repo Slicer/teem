@@ -447,11 +447,11 @@ nrrdCopy (Nrrd *nout, Nrrd *nin) {
     biffAdd(NRRD, err); return 1;
   }
   nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
-  if (nrrdMaybeAlloc_nva(nout, nin->type, nin->dim, size)) {
-    sprintf(err, "%s: couldn't allocate data", me);
-    biffAdd(NRRD, err); return 1;
-  }
   if (nin->data) {
+    if (nrrdMaybeAlloc_nva(nout, nin->type, nin->dim, size)) {
+      sprintf(err, "%s: couldn't allocate data", me);
+      biffAdd(NRRD, err); return 1;
+    }
     memcpy(nout->data, nin->data,
 	   nrrdElementNumber(nin)*nrrdElementSize(nin));
   } else {
