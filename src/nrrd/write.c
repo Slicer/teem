@@ -550,10 +550,10 @@ _nrrdSprintFieldInfo(char **strP, Nrrd *nrrd, NrrdIO *io, int field) {
     sprintf(*strP, "%s: %s", fs, airEnumStr(nrrdEncoding, io->encoding));
     break;
   case nrrdField_endian:
-    if (airStrlen(io->dataFN)) {
-      /* we record whatever endianness was given with unu make -h
-	 because we're writing a header (only) to describe
-	 existing data on disk */
+    if (airEndianUnknown != io->endian) {
+      /* we know a specific endianness because either it was recorded as
+	 part of "unu make -h", or it was set (and data was possibly
+	 altered) as part of "unu save" */
       endi = io->endian;
     } else {
       /* we record our current architecture's endian because we're
