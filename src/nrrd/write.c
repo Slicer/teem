@@ -415,7 +415,8 @@ _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
     io->dataFile = file;
   }
 
-  fprintf(file, "%s\n", airEnumStr(nrrdMagic, nrrdMagicNRRD0001));
+  /* fprintf(file, "%s\n", airEnumStr(nrrdMagic, nrrdMagicNRRD0001)); */
+  fprintf(file, "%s\n", airEnumStr(nrrdMagic, nrrdMagicOldNRRD));
 
   /* this is where the majority of the header printing happens */
   for (i=1; i<=NRRD_FIELD_MAX; i++) {

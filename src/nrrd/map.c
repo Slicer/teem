@@ -402,9 +402,8 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
       sprintf(err, "%s: failed to create histogram", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
-    if (nhistP) {
-      airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopOnError);
-    }
+    airMopAdd(mop, nhist, (airMopper)nrrdNuke,
+	      nhistP ? airMopOnError : airMopAlways);
     hist = nhist->data;
     min = nhist->axis[0].min;
     max = nhist->axis[0].max;
@@ -416,9 +415,8 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
       sprintf(err, "%s: failed to allocate histogram", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
-    if (nhistP) {
-      airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopOnError);
-    }
+    airMopAdd(mop, nhist, (airMopper)nrrdNuke,
+	      nhistP ? airMopOnError : airMopAlways);
     hist = nhist->data;
     nhist->axis[0].size = bins;
     /* allocate the respect, steady, and last arrays */
