@@ -30,7 +30,7 @@ cp src/LICENSE.txt ~/usr/teemdoc/html/tree/src/
   | grep -v " ten" | grep -v " _ten" \
   | grep -v " echo" | grep -v " _echo"
   b) Make sure #defines in header files are properly prefixed:
-  cd teem/inlude
+  cd ../../inlude
   grep #define *.h | grep -v _export \
   | grep -v " echo" | grep -v " ell" | grep -v " gage" \
   | grep -v " AIR" | grep -v " _AIR" \
@@ -67,7 +67,9 @@ setenv TEEM_PNG
 setenv TEEM_ZLIB
 setenv TEEM_BZIP2
 setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/darwin/lib
-setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
+setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/darwin/include
+setenv TEEM_PNG_LPATH -L/home/sci/gk/usr/darwin/lib
+setenv TEEM_PNG_IPATH -I/home/sci/gk/usr/darwin/include
 carrot:
 setenv TEEM_ARCH irix6.n32
 setenv TEEM_PNG
@@ -86,13 +88,13 @@ setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/irix6.64/lib
 setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
 setenv TEEM_PNG_LPATH -L/home/sci/gk/usr/irix6.64/lib
 setenv TEEM_PNG_IPATH -I/home/sci/gk/usr/irix6.64/include
-shot:
+haruko:
 setenv TEEM_ARCH linux
 setenv TEEM_PNG
 setenv TEEM_ZLIB
 setenv TEEM_BZIP2
-setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/linux/lib
-setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
+# setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/linux/lib
+# setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
 faith:
 setenv TEEM_ARCH solaris
 setenv TEEM_PNG
