@@ -323,7 +323,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   airArray *mop;
   int threadIdx;
   
-  /* this calls limnCamUpdate() */
+  /* this calls limnCameraUpdate() */
   if (hooverContextCheck(ctx)) {
     sprintf(err, "%s: problem detected in given context", me);
     biffAdd(HOOVER, err);
