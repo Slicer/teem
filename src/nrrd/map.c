@@ -301,7 +301,9 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
 
   /* set information in new volume */
   /* nrrdPeripheralInit(nout); nout==nin qualms */
-  nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+  if (nout != nin) {
+    nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+  }
   nout->oldMin = min;
   nout->oldMax = max;
   if (nrrdContentSet(nout, func, nin, "%d", bits)) {
@@ -386,7 +388,8 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
   }
   /* we start by simply copying, because the only thing we're 
      changing is the values themselves, and all peripheral
-     information is intact */
+     information is unchanged by this value remapping, even
+     min and max. */
   if (nout != nin) {
     if (nrrdCopy(nout, nin)) {
       sprintf(err, "%s:", me); 

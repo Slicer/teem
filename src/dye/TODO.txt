@@ -1,0 +1,6 @@
+colormapping of float data- 
+  lookup tables, or full ramps
+  (but this all needs the nrrd io.c re-write)
+
+
+

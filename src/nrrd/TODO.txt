@@ -7,6 +7,8 @@ nrrdQuantize
 
 ------- teem 1.4 cutoff ---------
 
+VTK file input and output!
+
 HEY: need to create textual representation of resampling parameters
 
 change nrrdHistoEq to use 1D regular maps, allow learning of mapping used.

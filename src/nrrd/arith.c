@@ -86,6 +86,9 @@ nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, double min, double max) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
+  if (nout != nin) {
+    nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+  }
   
   return 0;
 }

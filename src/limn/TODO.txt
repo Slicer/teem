@@ -1,0 +1,4 @@
+limn: postscript generation of 1D data plots
+      pnm2eps
+      camera paths!, and general animation stuff
+
