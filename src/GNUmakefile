@@ -99,9 +99,7 @@ include $(TEEM_SRC)/make/externals.mk
 LIBS = air hest biff nrrd ell unrrdu dye moss gage bane limn hoover alan echo ten mite coil
 NUMS =  0   1    2    3    4    5    6    7    8    9    A    B     C    D    E   F    G
 RNUMS = G   F   E    D    C    B    A    9    8    7    6    5    4     3    2    1   0
-#LIBS = air hest biff nrrd ell unrrdu dye moss gage bane limn hoover alan echo ten
-#NUMS =  0   1    2    3    4    5    6    7    8    9    A    B     C    D    E  
-#RNUMS = F   E    D    C    B    A    9    8    7    6    5    4     3    2    1  
+
 NUM/LIBS = $(join $(NUMS),$(LIBS:%=/%))
 RNUM/LIBS = $(join $(RNUMS),$(LIBS:%=/%))
 
@@ -293,22 +291,14 @@ more.cflags = $(if $($(1).NEED_ENDIAN),-DTEEM_ENDIAN=$(TEEM_ENDIAN))\
 ##
 banner = echo "--------------------" $(1) "--------------------"
 
-##             1   2
-## newer.than(mes,needs) : returns $mes if any of the files in $mes
-## don't exist, or if any of the files in $needs don't exist or are
-## newer than anything in $mes. See comments in compare.sh for info.
-##
-newer.than = $(shell mes='$(1)' ; needs='$(2)' ; \
-  . $(TEEM_SRC)/make/compare.sh)
-
 #src2lib = $(notdir $(patsubst %/,%,$(dir $(1:.c=))))
 #HDR2LIB = $(notdir $(patsubst %/,%,$(dir $(1:.h=))))
 #STL2LIB = $(patsubst lib%,%,$(notdir $(1:.a=)))
 #SHL2LIB = $(patsubst lib%,%,$(notdir $(1:.$(TEEM_SHEXT)=)))
 
-used.hdrs = $(foreach lib,$(1),$(call hdrs.inst,$(lib)))
-used.libs = $(foreach lib,$(1),$(call libs.inst,$(lib)))
-used = $(call used.libs,$(1)) $(call used.hdrs,$(1))
+#used.hdrs = $(foreach lib,$(1),$(call hdrs.inst,$(lib)))
+#used.libs = $(foreach lib,$(1),$(call libs.inst,$(lib)))
+#used = $(call used.libs,$(1)) $(call used.hdrs,$(1))
 
 ## related to external optional libraries.  Called "xtern"s to avoid
 ## similarities to library "ext"s above.
