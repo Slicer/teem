@@ -34,7 +34,6 @@ extern "C" {
 #include <biff.h>
 
 #include "nrrdDefines.h"
-#include "nrrdMacros.h"          /* tested in macrotest.c */
 #include "nrrdAccessors.h"
 
 #define NRRD "nrrd"
