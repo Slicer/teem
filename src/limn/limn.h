@@ -69,7 +69,11 @@ typedef struct limnCam_t {
 			point, but with the same sense (sign) as above */
     leftHanded;
   
-  float W2V[16],     /* not usually user-set: the world to view transform */
+  float W2V[16],     /* not usually user-set: the world to view transform.
+			The _rows_ of this matrix (or the 3x3 submatrix)
+			are the U, V, N vectors which form the right-handed
+			view-space coordinate frame.  The matrix is stored
+			in column-major order. */
     vspNear, vspFar,
     vspDist;         /* not usually user-set: near and far dist (view space) */
 } limnCam;
