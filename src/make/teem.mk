@@ -203,10 +203,10 @@ ifeq ($(NEED_DIO),true)
   CFLAGS += -DTEEM_DIO=$(TEEM_DIO)
   SET_DIE = 1
 endif
-ifeq ($(NEED_32BIT),true)
-  CFLAGS += -DTEEM_32BIT=$(TEEM_32BIT)
-  SET_DIE = 1
-endif
+# oops: the AIR_SIZE_T_FMT basically requires this for all source files
+# wishing to use it, which might as well be all source files...
+CFLAGS += -DTEEM_32BIT=$(TEEM_32BIT)
+SET_DIE = 1
 
 # the SET_DIE silliness is because with some cc compilers (cough, SGI),
 # C-preprocessor "error"s aren't fatal unless you specifically ask
