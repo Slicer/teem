@@ -30,7 +30,8 @@ usage() {
 int
 main(int argc, char **argv) {
   FILE *file;
-  Nrrd *nrrd, *hist, *pgm;
+  Nrrd *nrrd, *hist;
+  /* Nrrd *pgm; */
   int smart, bins;
   char *err;
   

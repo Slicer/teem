@@ -71,6 +71,7 @@ main(int argc, char *argv[]) {
   int i, udim, min[NRRD_MAX_DIM], max[NRRD_MAX_DIM], 
     minoffset[NRRD_MAX_DIM], maxoffset[NRRD_MAX_DIM];
   Nrrd *nin, *nout;
+  double t1, t2;
 
   me = argv[0];
   if (0 != (argc-3) % 2) {
@@ -114,12 +115,15 @@ main(int argc, char *argv[]) {
   }
 
   nout = nrrdNew();
+  t1 = airTime();
   if (nrrdSubvolume(nout, nin, min, max, 1)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error cropping nrrd:\n%s", me, err);
     free(err);
     exit(1);
   }
+  t2 = airTime();
+  printf("%s: nrrdSubvolume took %g seconds\n", me, t2-t1);
   nout->encoding = nrrdEncodingRaw;
   if (nrrdSave(outStr, nout)) {
     err = biffGet(NRRD);

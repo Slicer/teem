@@ -46,7 +46,7 @@ main(int argc, char **argv) {
   bitStr = argv[4];
   noutStr = argv[5];
 
-  min = max = airNand();
+  min = max = AIR_NAN;
   if (strcmp(minStr, "#")) {
     if (1 != sscanf(minStr, "%lg", &min)) {
       fprintf(stderr, "%s: can't parse %s as a double\n", me, minStr);
@@ -71,7 +71,7 @@ main(int argc, char **argv) {
     exit(1);
   }
   if (!( AIR_EXISTS(min) && AIR_EXISTS(max) )) {
-    if (nrrdRange(&nin->min, &nin->max, nin)) {
+    if (nrrdMinMaxFind(&nin->min, &nin->max, nin)) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: trouble with nrrdRange:\n%s", me, err);
       free(err);
@@ -83,8 +83,10 @@ main(int argc, char **argv) {
       max = nin->max;
     fprintf(stderr, "%s: using min=%g, max=%g\n", me, min, max);
   }
+  nin->min = min;
+  nin->max = max;
   nout = nrrdNew();
-  if (nrrdQuantize(nout, nin, min, max, bits)) {
+  if (nrrdQuantize(nout, nin, bits, nrrdMinMaxUse)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: couldn't create output nrrd:\n%s", me, err);
     free(err);

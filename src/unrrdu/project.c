@@ -32,6 +32,7 @@ main(int argc, char *argv[]) {
   char *in, *out, *err;
   int axis, measr;
   Nrrd *nin, *nout;
+  double t1, t2;
 
   me = argv[0];
   if (5 != argc)
@@ -52,13 +53,15 @@ main(int argc, char *argv[]) {
     free(err);
     exit(1);
   }
-  nout = nrrdNew();
-  if (nrrdMeasureAxis(nout, nin, axis, measr)) {
+  t1 = airTime();
+  if (nrrdMeasureAxis(nout = nrrdNew(), nin, axis, measr)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error projecting nrrd:\n%s\n", me, err);
     free(err);
     exit(1);
   }
+  t2 = airTime();
+  printf("%s: projection took %g seconds\n", me, t2-t1);
   nout->encoding = nin->encoding;
   if (nrrdSave(out, nout)) {
     err = biffGet(NRRD);
