@@ -679,6 +679,10 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
     line++;
     len = airOneLine(file, io->line, NRRD_STRLEN_LINE);
   }
+  /*
+  fprintf(stderr, "%s: nrrd->dim = %d, sx = %d; sy = %d\n",
+	  me, nrrd->dim, sx, sy);
+  */
   
   switch (nrrd->dim) {
   case 2:
