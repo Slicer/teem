@@ -312,6 +312,10 @@ nrrdDrawHisto(Nrrd *nout, Nrrd *nin, int sy) {
 	 );
     }
   }
+  for (k=0; k<=nin->numComments-1; k++) {
+    sprintf(cmt, "(%s)", nin->comment[k]);
+    nrrdAddComment(nout, cmt);
+  }
   sprintf(cmt, "min value: %g\n", nin->axisMin[0]);
   nrrdAddComment(nout, cmt);
   sprintf(cmt, "max value: %g\n", nin->axisMax[0]);
