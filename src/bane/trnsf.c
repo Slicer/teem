@@ -148,7 +148,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
 int
 bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
   char me[]="bane1DOpacInfoFrom2D", err[AIR_STRLEN_MED];
-  Nrrd *projH2, *projH1, *projN, *projG1;
+  Nrrd *projH2=NULL, *projH1=NULL, *projN=NULL, *projG1=NULL;
   float *data1D;
   int E, i, len;
   
