@@ -1,5 +1,5 @@
 /*
-  teem: Gordon Kindlmann's research software
+  Teem: Gordon Kindlmann's research software
   Copyright (C) 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
