@@ -46,6 +46,10 @@ const int hooverMyPthread = 0;
 ** inside a cube with edge length 2, centered at the origin.
 **
 ** volHLen[i] is the HALF the length of the volume along axis i
+**
+** NOTE: at some point this will be replaced by gageShapeUnitLengths,
+** but that will mean API changes for hoover, since right now nothing
+** uses or cares about the gageShape struct
 */
 void
 _hooverLearnLengths(double volHLen[3], double voxLen[3], hooverContext *ctx) {

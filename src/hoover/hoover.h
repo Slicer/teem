@@ -91,10 +91,6 @@ typedef int (hooverRenderEnd_t)(void *rend, void *user);
 ** 5) opaque "user information" pointer
 ** 6) the number of threads to spawn
 ** 7) the callbacks
-**
-** For the sake of some simplicity, the of both the volume is always
-** assumed to be node-centered, and the image is always assumed to
-** be cell-centered.
 */
 typedef struct {
 
