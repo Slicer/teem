@@ -144,8 +144,10 @@ extern int limnSetUVN(limnCam *cam);
 extern int limnWriteAsOBJ(FILE *file, limnObj *obj);
 
 /* qn.c */
-extern void limnQN2Vec(float *vec, unsigned short qn, int doNorm);
-extern unsigned short limnVec2QN(float *vec);
+extern void limn16QNtoV(float *vec, unsigned short qn, int doNorm);
+extern unsigned short limnVto16QN(float *vec);
+extern void limn15QNtoV(float *vec, unsigned short qn, int doNorm);
+extern unsigned short limnVto15QN(float *vec);
 
 /* shapes.c */
 extern limnObj *limnNewCube();
