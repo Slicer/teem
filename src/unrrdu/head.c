@@ -64,16 +64,16 @@ unrrdu_headDoit(char *me, NrrdIO *io, char *inS, FILE *fout) {
     _nrrdOneLine(&len, io, fin);
   };
   
-#ifdef _WIN32
-  /* seems that only on windows does the writing process's fwrite() to
-     stdout fail if we exit without consuming everything from stdin */
-  {
-	int c = fgetc(fin);
-	while (EOF != c) {
-	  c = fgetc(fin);
-	}
+  /* experience has shown that on at least windows and darwin, the writing
+     process's fwrite() to stdout will fail if we exit without consuming
+     everything from stdin */
+  if (stdin == fin) {
+    int c = getc(fin);
+    while (EOF != c) {
+      c = getc(fin);
+    }
   }
-#endif
+  /* #endif */
 
   airMopOkay(mop);
   return 0;
