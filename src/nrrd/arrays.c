@@ -41,7 +41,7 @@ nrrdTypeConv[NRRD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
 */
 int 
 nrrdTypeSize[NRRD_TYPE_MAX+1] = {
-  0, /* unknown */
+  0,  /* unknown */
   1,  /* char */
   1,  /* unsigned char */
   2,  /* short */
@@ -52,7 +52,7 @@ nrrdTypeSize[NRRD_TYPE_MAX+1] = {
   8,  /* unsigned long long */
   4,  /* float */
   8,  /* double */
-  0  /* effectively unknown; user has to set explicitly */
+  0   /* effectively unknown; user has to set explicitly */
 };
 
 int 
@@ -68,7 +68,7 @@ nrrdTypeFixed[NRRD_TYPE_MAX+1] = {
   1,  /* unsigned long long */
   0,  /* float */
   0,  /* double */
-  1   /* for some reasone we pretent that blocks are fixed point */
+  1   /* for some reason we pretend that blocks are fixed point */
 };
 
 /*
@@ -105,6 +105,37 @@ _nrrdFieldValidInPNM[NRRD_FIELD_MAX+1] = {
 };
 
 /*
+** _nrrdFieldOnePerAxis
+** 
+** whether or not you need one value per axis, like labels and spacings
+*/
+int
+_nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1] = {
+  0, /* nrrdField_unknown */
+  0, /* nrrdField_comment */
+  0, /* nrrdField_content */
+  0, /* nrrdField_number */
+  0, /* nrrdField_type */
+  0, /* nrrdField_block_size */
+  0, /* nrrdField_dimension */
+  1, /* nrrdField_sizes */
+  1, /* nrrdField_spacings */
+  1, /* nrrdField_axis_mins */
+  1, /* nrrdField_axis_maxs */
+  1, /* nrrdField_centers */
+  1, /* nrrdField_labels */
+  0, /* nrrdField_min */
+  0, /* nrrdField_max */
+  0, /* nrrdField_old_min */
+  0, /* nrrdField_old_max */
+  0, /* nrrdField_data_file */
+  0, /* nrrdField_endian */
+  0, /* nrrdField_encoding */
+  0, /* nrrdField_line_skip */
+  0  /* nrrdField_byte_skip */
+};
+
+/*
 ** _nrrdFieldValidInTable[]
 ** 
 ** these fields are valid embedded in table comments
@@ -117,9 +148,10 @@ _nrrdFieldValidInTable[NRRD_FIELD_MAX+1] = {
   1, /* nrrdField_comment */
   1, /* nrrdField_content */
   0, /* nrrdField_number */
-  0, /* nrrdField_type: decided AGAINST table holding general type */
+  0, /* nrrdField_type: decided AGAINST table holding general type 
+	(but I forget why ...) */
   0, /* nrrdField_block_size */
-  0, /* nrrdField_dimension */
+  1, /* nrrdField_dimension: but can only be 1 or 2 */
   0, /* nrrdField_sizes */
   1, /* nrrdField_spacings */
   1, /* nrrdField_axis_mins */
