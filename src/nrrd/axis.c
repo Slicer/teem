@@ -879,6 +879,7 @@ nrrdSpacingCalculate(const Nrrd *nrrd, int ax,
          && AIR_IN_CL(0, ax, nrrd->dim-1)
          && !_nrrdCheck(nrrd, AIR_TRUE, AIR_FALSE) )) {
     /* there's a problem with the arguments */
+    *spacing = AIR_NAN;
     ret = nrrdSpacingStatusUnknown;
   } else {
     if (AIR_EXISTS(nrrd->axis[ax].spacing)) {
@@ -898,6 +899,7 @@ nrrdSpacingCalculate(const Nrrd *nrrd, int ax,
                            nrrd->axis[ax].spaceDirection);
       } else {
         ret = nrrdSpacingStatusNone;
+        *spacing = AIR_NAN;
       }      
     }
   }

@@ -636,6 +636,9 @@ TEEM_API void nrrdAxisInfoIdxRange(double *loP, double *hiP,
                                    double loPos, double hiPos);
 TEEM_API void nrrdAxisInfoSpacingSet(Nrrd *nrrd, int ax);
 TEEM_API void nrrdAxisInfoMinMaxSet(Nrrd *nrrd, int ax, int defCenter);
+TEEM_API int nrrdSpacingCalculate(const Nrrd *nrrd, int ax,
+                                  double *spacing, int *sdim,
+                                  double vector[NRRD_SPACE_DIM_MAX]);
 
 /******** simple things */
 /* simple.c */
