@@ -603,7 +603,7 @@ extern int nrrdCheapMedian(Nrrd *nout, Nrrd *nin,
 ** nrrdSpatialResample(), and to hold the intermediate sampling
 ** results.  Not as good as templating, but better than hard-coding
 ** float versus double.  Actually, the difference between float and
-** double not exposed in any functions or objects declared in this
+** double is not exposed in any functions or objects declared in this
 ** header; it is entirely internal to the operation of
 ** nrrdSpatialResample().
 **
