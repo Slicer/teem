@@ -31,7 +31,9 @@ char *_tend_gradsInfoL =
    "faster.  In the mean time, you can run a second pass on the output of "
    "the first pass, using lower drag. A second phase of the algorithm "
    "tries random signs in gradient directions in trying to find an optimally "
-   "balanced set of directions.");
+   "balanced set of directions.  This uses a randomized search, so if it "
+   "doesn't seem to be finishing in a reasonable amount of time, try "
+   "restarting.");
 
 int
 tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
