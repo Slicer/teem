@@ -247,7 +247,12 @@ main(int argc, char *argv[]) {
   fprintf(stderr, "\n");
   t1 = airTime();
   fprintf(stderr, "probe rate = %g KHz\n", sox*soy*soz/(1000.0*(t1-t0)));
-  nrrdSave(outS, nout, NULL);
+  if (nrrdSave(outS, nout, NULL)) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble saving output:\n%s\n", me, err);
+    airMopError(mop);
+    return 1;
+  }
 
   airMopOkay(mop);
   return 0;

@@ -89,7 +89,7 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop); return 1;
   }
   if (!len) {
-    fprintf(stderr, "%s: immediately hit EOF", me);
+    fprintf(stderr, "%s: immediately hit EOF\n", me);
     airMopError(mop); return 1;
   }
   magic = airEnumVal(nrrdMagic, io->line);
