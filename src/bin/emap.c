@@ -23,8 +23,8 @@
 #include <teem/nrrd.h>
 #include <teem/limn.h>
 
-char *emapInfo = ("Creates environment maps based on limn's 16checker "
-		  "normal quantization method.  By taking into account "
+char *emapInfo = ("Creates environment maps based on limn's \"checker\" "
+		  "normal quantization methods.  By taking into account "
 		  "camera parameters, this allows for both lights in "
 		  "both world and view space.  Solely out of laziness, "
 		  "the nrrd format is used for specifying the lights, but not "
@@ -40,8 +40,8 @@ main(int argc, char *argv[]) {
   Nrrd *nlight, *nmap, *ndebug;
   char *me, *outS, *errS, *debugS;
   airArray *mop;
-  float amb[3], *linfo, *debug, *map, W[3], V[3];
-  int li, ui, vi, qn;
+  float amb[3], *linfo, *debug, *map, W[3], V[3], diff;
+  int li, ui, vi, qn, bits, method;
   limnLight *light;
   limnCamera *cam;
   double u, v, r, w, V2W[9];
@@ -56,6 +56,9 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "i", "nlight", airTypeOther, 1, 1, &nlight, NULL,
 	     "input nrrd containing light information",
 	     NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "b", "# bits", airTypeInt, 1, 1, &bits, "16",
+	     "number of bits to use for normal quantization, "
+	     "between 8 and 16 inclusive. ");
   hestOptAdd(&hopt, "amb", "ambient RGB", airTypeFloat, 3, 3, amb, "0 0 0",
 	     "ambient light color");
   hestOptAdd(&hopt, "fr", "from point", airTypeDouble, 3, 3, cam->from,"1 0 0",
@@ -78,6 +81,22 @@ main(int argc, char *argv[]) {
 		 AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
+
+  switch(bits) {
+  case 16: method = limnQN16checker; break;
+  case 15: method = limnQN15checker; break;
+  case 14: method = limnQN14checker; break;
+  case 13: method = limnQN13checker; break;
+  case 12: method = limnQN12checker; break;
+  case 11: method = limnQN11checker; break;
+  case 10: method = limnQN10checker; break;
+  case 9: method = limnQN9checker; break;
+  case 8: method = limnQN8checker; break;
+  default:
+    fprintf(stderr, "%s: requested #bits (%d) not in valid range [8,16]\n",
+	    me, bits);
+    airMopError(mop); return 1;
+  }
 
   if (!(nrrdTypeFloat == nlight->type &&
 	2 == nlight->dim && 
@@ -110,7 +129,7 @@ main(int argc, char *argv[]) {
   }
   nmap=nrrdNew();
   airMopAdd(mop, nmap, (airMopper)nrrdNuke, airMopAlways);
-  if (limnEnvMapFill(nmap, limnLightDiffuseCB, limnQN16checker, light)) {
+  if (limnEnvMapFill(nmap, limnLightDiffuseCB, method, light)) {
     airMopAdd(mop, errS = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: problem making environment map:\n%s\n", me, errS);
     airMopError(mop); return 1;
@@ -140,14 +159,28 @@ main(int argc, char *argv[]) {
 	/* first, the near side of the sphere */
 	ELL_3V_SET(V, u, v, -w);
 	ELL_3MV_MUL(W, V2W, V);
-	qn = limnVtoQN_f[limnQN16checker](W);
+	qn = limnVtoQN_f[method](W);
+	/* 
+	limnQNtoV_f[method](V, qn);
+	ELL_3V_SUB(W, W, V);
+	diff = ELL_3V_LEN(W);
+	ELL_3V_SET(debug + 3*(ui + 1024*vi), diff, diff, diff);
+	*/
 	ELL_3V_COPY(debug + 3*(ui + 1024*vi), map + 3*qn);
+
 	
 	/* second, the far side of the sphere */
 	ELL_3V_SET(V, u, v, w);
 	ELL_3MV_MUL(W, V2W, V);
-	qn = limnVtoQN_f[limnQN16checker](W);
+	qn = limnVtoQN_f[method](W);
+	/*
+	limnQNtoV_f[method](V, qn);
+	ELL_3V_SUB(W, W, V);
+	diff = ELL_3V_LEN(W);
+	ELL_3V_SET(debug + 3*(ui + 512 + 1024*vi), diff, diff, diff);
+	*/
 	ELL_3V_COPY(debug + 3*(ui + 512 + 1024*vi), map + 3*qn);
+
       }
     }
     nrrdSave(debugS, ndebug, NULL);

@@ -43,7 +43,55 @@ limnEnvMapFill(Nrrd *map, limnEnvMapCB cb, int qnMethod, void *data) {
     }
     mapData = map->data;
     for (qn=0; qn<=sx*sy-1; qn++) {
-      limnQNtoV_f[limnQN16checker](vec, qn);
+      limnQNtoV_f[qnMethod](vec, qn);
+      cb(mapData + 3*qn, vec, data);
+    }
+    break;
+  case limnQN14checker:
+    sx = sy = 128;
+    if (nrrdMaybeAlloc(map, nrrdTypeFloat, 3, 3, sx, sy)) {
+      sprintf(err, "%s: couldn't alloc output", me);
+      biffMove(LIMN, err, NRRD); return 1;
+    }
+    mapData = map->data;
+    for (qn=0; qn<=sx*sy-1; qn++) {
+      limnQNtoV_f[qnMethod](vec, qn);
+      cb(mapData + 3*qn, vec, data);
+    }
+    break;
+  case limnQN12checker:
+    sx = sy = 64;
+    if (nrrdMaybeAlloc(map, nrrdTypeFloat, 3, 3, sx, sy)) {
+      sprintf(err, "%s: couldn't alloc output", me);
+      biffMove(LIMN, err, NRRD); return 1;
+    }
+    mapData = map->data;
+    for (qn=0; qn<=sx*sy-1; qn++) {
+      limnQNtoV_f[qnMethod](vec, qn);
+      cb(mapData + 3*qn, vec, data);
+    }
+    break;
+  case limnQN10checker:
+    sx = sy = 32;
+    if (nrrdMaybeAlloc(map, nrrdTypeFloat, 3, 3, sx, sy)) {
+      sprintf(err, "%s: couldn't alloc output", me);
+      biffMove(LIMN, err, NRRD); return 1;
+    }
+    mapData = map->data;
+    for (qn=0; qn<=sx*sy-1; qn++) {
+      limnQNtoV_f[qnMethod](vec, qn);
+      cb(mapData + 3*qn, vec, data);
+    }
+    break;
+  case limnQN8checker:
+    sx = sy = 16;
+    if (nrrdMaybeAlloc(map, nrrdTypeFloat, 3, 3, sx, sy)) {
+      sprintf(err, "%s: couldn't alloc output", me);
+      biffMove(LIMN, err, NRRD); return 1;
+    }
+    mapData = map->data;
+    for (qn=0; qn<=sx*sy-1; qn++) {
+      limnQNtoV_f[qnMethod](vec, qn);
       cb(mapData + 3*qn, vec, data);
     }
     break;

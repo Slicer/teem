@@ -269,16 +269,21 @@ typedef struct {
 ** the different quantized normal schemes currently supported
 */
 enum {
-  limnQNUnknown,     /* 0 */
-  limnQN16checker,   /* 1 */
-  limnQN16simple,    /* 2 */
-  limnQN16border1,   /* 3 */
-  limnQN15checker,   /* 4 */
-  limnQN14checker,   /* 5 */
-  limnQN12checker,   /* 6 */
+  limnQNUnknown,     /*  0 */
+  limnQN16simple,    /*  1 */
+  limnQN16border1,   /*  2 */
+  limnQN16checker,   /*  3 */
+  limnQN15checker,   /*  4 */
+  limnQN14checker,   /*  5 */
+  limnQN13checker,   /*  6 */
+  limnQN12checker,   /*  7 */
+  limnQN11checker,   /*  8 */
+  limnQN10checker,   /*  9 */
+  limnQN9checker,    /* 10 */
+  limnQN8checker,    /* 11 */
   limnQNLast
 };
-#define LIMN_QN_MAX      6
+#define LIMN_QN_MAX     11
 
 enum {
   limnSplineTypeUnknown,     /* 0 */
@@ -370,7 +375,7 @@ TEEM_API int limnLightUpdate(limnLight *lit, limnCamera *cam);
 /* env.c */
 typedef void (*limnEnvMapCB)(float rgb[3], float vec[3], void *data);
 TEEM_API int limnEnvMapFill(Nrrd *envMap, limnEnvMapCB cb, 
-			  int qnMethod, void *data);
+			    int qnMethod, void *data);
 TEEM_API void limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit);
 TEEM_API int limnEnvMapCheck(Nrrd *envMap);
 
@@ -407,9 +412,10 @@ TEEM_API int limnObjectPartAdd(limnObject *obj);
 TEEM_API int limnObjectVertexAdd(limnObject *obj, int partIdx, int lookIdx,
 				 float x, float y, float z);
 TEEM_API int limnObjectEdgeAdd(limnObject *obj, int partIdx, int lookIdx,
-			       int faceIdxIdx, int vertIdxIdx0, int vertIdxIdx1);
-TEEM_API int limnObjectFaceAdd(limnObject *obj, int partIdx,
-			       int lookIdx, int sideNum, int *vertIdxIdx);
+			       int faceIdxIdx, int vertIdxIdx0,
+			       int vertIdxIdx1);
+TEEM_API int limnObjectFaceAdd(limnObject *obj, int partIdx, int lookIdx,
+			       int sideNum, int *vertIdxIdx);
 
 /* io.c */
 TEEM_API int limnObjectDescribe(FILE *file, limnObject *obj);
@@ -424,9 +430,10 @@ TEEM_API int limnObjectCylinderAdd(limnObject *obj, int lookIdx,
 				   int axis,int res);
 TEEM_API int limnObjectPolarSphereAdd(limnObject *obj, int lookIdx, int axis,
 				      int thetaRes, int phiRes);
-TEEM_API int limnObjectConeAdd(limnObject *obj, int lookIdx, int axis, int res);
-TEEM_API int limnObjectPolarSuperquadAdd(limnObject *obj, int lookIdx, int axis,
-					 float A, float B,
+TEEM_API int limnObjectConeAdd(limnObject *obj, int lookIdx,
+			       int axis, int res);
+TEEM_API int limnObjectPolarSuperquadAdd(limnObject *obj, int lookIdx,
+					 int axis, float A, float B,
 					 int thetaRes, int phiRes);
 
 /* transform.c */
@@ -434,13 +441,15 @@ TEEM_API int limnObjectHomog(limnObject *obj, int space);
 TEEM_API int limnObjectNormals(limnObject *obj, int space);
 TEEM_API int limnObjectSpaceTransform(limnObject *obj, limnCamera *cam,
 				      limnWindow *win, int space);
-TEEM_API int limnObjectPartTransform(limnObject *obj, int partIdx, float tx[16]);
+TEEM_API int limnObjectPartTransform(limnObject *obj, int partIdx,
+				     float tx[16]);
 TEEM_API int limnObjectDepthSortParts(limnObject *obj);
 TEEM_API int limnObjectDepthSortFaces(limnObject *obj);
 TEEM_API int limnObjectFaceReverse(limnObject *obj);
 
 /* renderLimn.c */
-TEEM_API int limnObjectRender(limnObject *obj, limnCamera *cam, limnWindow *win);
+TEEM_API int limnObjectRender(limnObject *obj, limnCamera *cam,
+			      limnWindow *win);
 TEEM_API int limnObjectPSDraw(limnObject *obj, limnCamera *cam,
 			      Nrrd *envMap, limnWindow *win);
 TEEM_API int limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
@@ -452,7 +461,8 @@ TEEM_API limnSplineTypeSpec *limnSplineTypeSpecNix(limnSplineTypeSpec *spec);
 TEEM_API limnSpline *limnSplineNew(Nrrd *ncpt, int info,
 				   limnSplineTypeSpec *spec);
 TEEM_API limnSpline *limnSplineNix(limnSpline *spline);
-TEEM_API int limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type);
+TEEM_API int limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin,
+				     int info, int type);
 TEEM_API limnSpline *limnSplineCleverNew(Nrrd *ncpt, int info,
 					 limnSplineTypeSpec *spec);
 TEEM_API int limnSplineUpdate(limnSpline *spline, Nrrd *ncpt);

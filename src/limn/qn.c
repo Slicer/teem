@@ -90,95 +90,6 @@ _limnQN16simple_VtoQN_f(float *vec) {
 
 /* ----------------------------------------------------------------  */
 
-  /*
-    x =  [  1.0   1.0 ] u
-    y    [  1.0  -1.0 ] v
-  */
-
-  /*
-    u =  [  0.5   0.5 ] x
-    v    [  0.5  -0.5 ] y
-  */
-
-  /* xor of low bits == 0 --> z<0 ; xor == 1 --> z>0 */
-
-/* May 11 2003 GK verified that except at equator seam,
-   the error due to quantization is unbiased */
-
-#define _16_QtoV(vec, qn) \
-  ui = (qn) & 0xFF; \
-  vi = ((qn) >> 8) & 0xFF; \
-  u = AIR_AFFINE(0, ui, 255, -0.5, 0.5); \
-  v = AIR_AFFINE(0, vi, 255, -0.5, 0.5); \
-  x =  u + v; \
-  y =  u - v; \
-  z = 1 - AIR_ABS(x) - AIR_ABS(y); \
-  /* would this be better served by a branch? */ \
-  z *= (((ui ^ vi) & 0x01) << 1) - 1; \
-  n = 1.0/sqrt(x*x + y*y + z*z); \
-  (vec)[0] = x*n; \
-  (vec)[1] = y*n; \
-  (vec)[2] = z*n
-
-void
-_limnQN16checker_QNtoV_f(float *vec, int qn) {
-  int ui, vi;
-  double u, v, x, y, z, n;
-
-  _16_QtoV(vec, qn);
-}
-
-void
-_limnQN16checker_QNtoV_d(double *vec, int qn) {
-  int ui, vi;
-  double u, v, x, y, z, n;
-
-  _16_QtoV(vec, qn);
-}
-
-#define _16_VtoQ(vec) \
-  x = (vec)[0]; \
-  y = (vec)[1]; \
-  z = (vec)[2]; \
-  L = AIR_ABS(x) + AIR_ABS(y) + AIR_ABS(z); \
-  if (!L) { \
-    return 0; \
-  } \
-  x /= L; \
-  y /= L; \
-  if (z > 0) { \
-    AIR_INDEX(-1.0, x, 1.0, 255, xi); \
-    AIR_INDEX(-1.0 - 1.0/255, y, 1.0 + 1.0/255, 256, yi); \
-    ui = xi + yi - 127; \
-    vi = xi - yi + 128; \
-  } \
-  else { \
-    AIR_INDEX(-1.0 - 1.0/255, x, 1.0 + 1.0/255, 256, xi); \
-    AIR_INDEX(-1, y, 1, 255, yi); \
-    ui = xi + yi - 127; \
-    vi = xi - yi + 127; \
-  }
-
-int
-_limnQN16checker_VtoQN_f(float *vec) {
-  double L, x, y, z;
-  int xi, yi, ui, vi;
-
-  _16_VtoQ(vec);
-  return (vi << 8) | ui;
-}
-
-int
-_limnQN16checker_VtoQN_d(double *vec) {
-  double L, x, y, z;
-  int xi, yi, ui, vi;
-
-  _16_VtoQ(vec);
-  return (vi << 8) | ui;
-}
-
-/* ----------------------------------------------------------------  */
-
 void
 _limnQN16border1_QNtoV_f(float *vec, int qn) {
   int ui, vi;
@@ -236,6 +147,144 @@ _limnQN16border1_VtoQN_f(float *vec) {
 
 /* ----------------------------------------------------------------  */
 
+  /*
+    x =  [  1.0   1.0 ] u
+    y    [  1.0  -1.0 ] v
+  */
+
+  /*
+    u =  [  0.5   0.5 ] x
+    v    [  0.5  -0.5 ] y
+  */
+
+  /* xor of low bits == 0 --> z<0 ; xor == 1 --> z>0 */
+
+/* May 11 2003 GK (visually) verified that except at equator seam,
+   the error due to quantization is unbiased */
+
+#define _EVEN_QtoV(HNB, vec, qn) \
+  ui = (qn) & ((1<<HNB)-1); \
+  vi = ((qn) >> HNB) & ((1<<HNB)-1); \
+  u = AIR_AFFINE(0, ui, ((1<<HNB)-1), -0.5, 0.5); \
+  v = AIR_AFFINE(0, vi, ((1<<HNB)-1), -0.5, 0.5); \
+  x =  u + v; \
+  y =  u - v; \
+  z = 1 - AIR_ABS(x) - AIR_ABS(y); \
+  /* would this be better served by a branch? */ \
+  z *= (((ui ^ vi) & 0x01) << 1) - 1; \
+  n = 1.0/sqrt(x*x + y*y + z*z); \
+  (vec)[0] = x*n; \
+  (vec)[1] = y*n; \
+  (vec)[2] = z*n
+
+#define _EVEN_VtoQ(HNB, vec) \
+  x = (vec)[0]; \
+  y = (vec)[1]; \
+  z = (vec)[2]; \
+  L = AIR_ABS(x) + AIR_ABS(y) + AIR_ABS(z); \
+  if (!L) { \
+    return 0; \
+  } \
+  x /= L; \
+  y /= L; \
+  if (z > 0) { \
+    AIR_INDEX(-1.0, x, 1.0, ((1<<HNB)-1), xi); \
+    AIR_INDEX(-1.0 - 1.0/((1<<HNB)-1), y, 1.0 + 1.0/((1<<HNB)-1), \
+              (1<<HNB), yi); \
+    ui = xi + yi - ((1<<(HNB-1))-1); \
+    vi = xi - yi + (1<<(HNB-1)); \
+  } \
+  else { \
+    AIR_INDEX(-1.0 - 1.0/((1<<HNB)-1), x, 1.0 + 1.0/((1<<HNB)-1), \
+              (1<<HNB), xi); \
+    AIR_INDEX(-1, y, 1, ((1<<HNB)-1), yi); \
+    ui = xi + yi - ((1<<(HNB-1))-1); \
+    vi = xi - yi + ((1<<(HNB-1))-1); \
+  } \
+  return (vi << HNB) | ui
+
+#define _16_QtoV(vec, qn) \
+  ui = (qn) & 0xFF; \
+  vi = ((qn) >> 8) & 0xFF; \
+  u = AIR_AFFINE(0, ui, 255, -0.5, 0.5); \
+  v = AIR_AFFINE(0, vi, 255, -0.5, 0.5); \
+  x =  u + v; \
+  y =  u - v; \
+  z = 1 - AIR_ABS(x) - AIR_ABS(y); \
+  /* would this be better served by a branch? */ \
+  z *= (((ui ^ vi) & 0x01) << 1) - 1; \
+  n = 1.0/sqrt(x*x + y*y + z*z); \
+  (vec)[0] = x*n; \
+  (vec)[1] = y*n; \
+  (vec)[2] = z*n
+
+void
+_limnQN16checker_QNtoV_f(float *vec, int qn) {
+  int ui, vi;
+  double u, v, x, y, z, n;
+
+  /* _16_QtoV(vec, qn); */
+  _EVEN_QtoV(8, vec, qn);
+}
+
+void
+_limnQN16checker_QNtoV_d(double *vec, int qn) {
+  int ui, vi;
+  double u, v, x, y, z, n;
+
+  /* _16_QtoV(vec, qn); */
+  _EVEN_QtoV(8, vec, qn);
+}
+
+#define _16_VtoQ(vec) \
+  x = (vec)[0]; \
+  y = (vec)[1]; \
+  z = (vec)[2]; \
+  L = AIR_ABS(x) + AIR_ABS(y) + AIR_ABS(z); \
+  if (!L) { \
+    return 0; \
+  } \
+  x /= L; \
+  y /= L; \
+  if (z > 0) { \
+    AIR_INDEX(-1.0, x, 1.0, 255, xi); \
+    AIR_INDEX(-1.0 - 1.0/255, y, 1.0 + 1.0/255, 256, yi); \
+    ui = xi + yi - 127; \
+    vi = xi - yi + 128; \
+  } \
+  else { \
+    AIR_INDEX(-1.0 - 1.0/255, x, 1.0 + 1.0/255, 256, xi); \
+    AIR_INDEX(-1, y, 1, 255, yi); \
+    ui = xi + yi - 127; \
+    vi = xi - yi + 127; \
+  }
+
+int
+_limnQN16checker_VtoQN_f(float *vec) {
+  double L, x, y, z;
+  int xi, yi, ui, vi;
+  
+  /*
+  _16_VtoQ(vec);
+  return (vi << 8) | ui;
+  */
+  _EVEN_VtoQ(8, vec);
+}
+
+int
+_limnQN16checker_VtoQN_d(double *vec) {
+  double L, x, y, z;
+  int xi, yi, ui, vi;
+
+  /*
+  _16_VtoQ(vec);
+  return (vi << 8) | ui;
+  */
+  _EVEN_VtoQ(8, vec);
+}
+
+/* ----------------------------------------------------------------  */
+
 void
 _limnQN15checker_QNtoV_f(float *vec, int qn) {
   int ui, vi, zi;
@@ -280,27 +329,12 @@ _limnQN15checker_VtoQN_f(float *vec) {
 
 /* ----------------------------------------------------------- */
 
-#define _14_QNtoV(vec, qn) \
-  ui = (qn) & 0x7F; \
-  vi = ((qn) >> 7) & 0x7F; \
-  u = AIR_AFFINE(0, ui, 127, -0.5, 0.5); \
-  v = AIR_AFFINE(0, vi, 127, -0.5, 0.5); \
-  x =  u + v; \
-  y =  u - v; \
-  z = 1 - AIR_ABS(x) - AIR_ABS(y); \
-  /* would this be better served by a branch? */ \
-  z *= (((ui ^ vi) & 0x01) << 1) - 1; \
-  n = 1.0/sqrt(x*x + y*y + z*z); \
-  (vec)[0] = x*n; \
-  (vec)[1] = y*n; \
-  (vec)[2] = z*n
-
 void
 _limnQN14checker_QNtoV_f(float *vec, int qn) {
   int ui, vi;
   double u, v, x, y, z, n;
 
-  _14_QNtoV(vec, qn);
+  _EVEN_QtoV(7, vec, qn);
 }
 
 void
@@ -308,39 +342,15 @@ _limnQN14checker_QNtoV_d(double *vec, int qn) {
   int ui, vi;
   double u, v, x, y, z, n;
 
-  _14_QNtoV(vec, qn);
+  _EVEN_QtoV(7, vec, qn);
 }
-
-#define _14_VtoQN(vec) \
-  x = (vec)[0]; \
-  y = (vec)[1]; \
-  z = (vec)[2]; \
-  L = AIR_ABS(x) + AIR_ABS(y) + AIR_ABS(z); \
-  if (!L) { \
-    return 0; \
-  } \
-  x /= L; \
-  y /= L; \
-  if (z > 0) { \
-    AIR_INDEX(-1.0, x, 1.0, 127, xi); \
-    AIR_INDEX(-1.0 - 1.0/127, y, 1.0 + 1.0/127, 128, yi); \
-    ui = xi + yi - 63; \
-    vi = xi - yi + 64; \
-  } \
-  else { \
-    AIR_INDEX(-1.0 - 1.0/127, x, 1.0 + 1.0/127, 128, xi); \
-    AIR_INDEX(-1, y, 1, 127, yi); \
-    ui = xi + yi - 63; \
-    vi = xi - yi + 63; \
-  }
 
 int
 _limnQN14checker_VtoQN_f(float *vec) {
   double L, x, y, z;
   int xi, yi, ui, vi;
 
-  _14_VtoQN(vec);
-  return (vi << 7) | ui;
+  _EVEN_VtoQ(7, vec);
 }
 
 int
@@ -348,33 +358,17 @@ _limnQN14checker_VtoQN_d(double *vec) {
   double L, x, y, z;
   int xi, yi, ui, vi;
   
-  _14_VtoQN(vec);
-  return (vi << 7) | ui;
+  _EVEN_VtoQ(7, vec);
 }
 
 /* ----------------------------------------------------------- */
-
-#define _12_QNtoV(vec, qn) \
-  ui = (qn) & 0x3F; \
-  vi = ((qn) >> 6) & 0x3F; \
-  u = AIR_AFFINE(0, ui, 63, -0.5, 0.5); \
-  v = AIR_AFFINE(0, vi, 63, -0.5, 0.5); \
-  x =  u + v; \
-  y =  u - v; \
-  z = 1 - AIR_ABS(x) - AIR_ABS(y); \
-  /* would this be better served by a branch? */ \
-  z *= (((ui ^ vi) & 0x01) << 1) - 1; \
-  n = 1.0/sqrt(x*x + y*y + z*z); \
-  (vec)[0] = x*n; \
-  (vec)[1] = y*n; \
-  (vec)[2] = z*n
 
 void
 _limnQN12checker_QNtoV_f(float *vec, int qn) {
   int ui, vi;
   double u, v, x, y, z, n;
 
-  _12_QNtoV(vec, qn);
+  _EVEN_QtoV(6, vec, qn);
 }
 
 void
@@ -382,39 +376,15 @@ _limnQN12checker_QNtoV_d(double *vec, int qn) {
   int ui, vi;
   double u, v, x, y, z, n;
 
-  _12_QNtoV(vec, qn);
+  _EVEN_QtoV(6, vec, qn);
 }
-
-#define _12_VtoQN(vec) \
-  x = vec[0]; \
-  y = vec[1]; \
-  z = vec[2]; \
-  L = AIR_ABS(x) + AIR_ABS(y) + AIR_ABS(z); \
-  if (!L) { \
-    return 0; \
-  } \
-  x /= L; \
-  y /= L; \
-  if (z > 0) { \
-    AIR_INDEX(-1.0, x, 1.0, 63, xi); \
-    AIR_INDEX(-1.0 - 1.0/63, y, 1.0 + 1.0/63, 64, yi); \
-    ui = xi + yi - 31; \
-    vi = xi - yi + 32; \
-  } \
-  else { \
-    AIR_INDEX(-1.0 - 1.0/63, x, 1.0 + 1.0/63, 64, xi); \
-    AIR_INDEX(-1, y, 1, 63, yi); \
-    ui = xi + yi - 31; \
-    vi = xi - yi + 31; \
-  }
 
 int
 _limnQN12checker_VtoQN_f(float *vec) {
   double L, x, y, z;
   int xi, yi, ui, vi;
   
-  _12_VtoQN(vec);
-  return (vi << 6) | ui;
+  _EVEN_VtoQ(6, vec);
 }
 
 int
@@ -422,8 +392,7 @@ _limnQN12checker_VtoQN_d(double *vec) {
   double L, x, y, z;
   int xi, yi, ui, vi;
   
-  _12_VtoQN(vec);
-  return (vi << 6) | ui;
+  _EVEN_VtoQ(6, vec);
 }
 
 /* ----------------------------------------------------------- */
@@ -431,45 +400,63 @@ _limnQN12checker_VtoQN_d(double *vec) {
 void (*
 limnQNtoV_f[LIMN_QN_MAX+1])(float *, int) = {
   NULL,
-  _limnQN16checker_QNtoV_f,
   _limnQN16simple_QNtoV_f,
   _limnQN16border1_QNtoV_f,
+  _limnQN16checker_QNtoV_f,
   _limnQN15checker_QNtoV_f,
   _limnQN14checker_QNtoV_f,
-  _limnQN12checker_QNtoV_f
+  _limnQN12checker_QNtoV_f,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
 };
   
 void (*
 limnQNtoV_d[LIMN_QN_MAX+1])(double *, int) = {
   NULL,
+  NULL,
+  NULL,
   _limnQN16checker_QNtoV_d,
   NULL,
-  NULL,
-  NULL,
   _limnQN14checker_QNtoV_d,
-  _limnQN12checker_QNtoV_d
+  _limnQN12checker_QNtoV_d,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
 };
   
 int (*
 limnVtoQN_f[LIMN_QN_MAX+1])(float *vec) = {
   NULL,
-  _limnQN16checker_VtoQN_f,
   _limnQN16simple_VtoQN_f,
   _limnQN16border1_VtoQN_f,
+  _limnQN16checker_VtoQN_f,
   _limnQN15checker_VtoQN_f,
   _limnQN14checker_VtoQN_f,
-  _limnQN12checker_VtoQN_f
+  NULL,
+  _limnQN12checker_VtoQN_f,
+  NULL,
+  NULL,
+  NULL,
+  NULL
 };
 
 int (*
 limnVtoQN_d[LIMN_QN_MAX+1])(double *vec) = {
   NULL,
+  NULL,
+  NULL,
   _limnQN16checker_VtoQN_d,
   NULL,
-  NULL,
-  NULL,
   _limnQN14checker_VtoQN_d,
-  _limnQN12checker_VtoQN_d
+  NULL,
+  _limnQN12checker_VtoQN_d,
+  NULL,
+  NULL,
+  NULL,
+  NULL
 };
 
 int
@@ -477,8 +464,13 @@ limnQNBins[LIMN_QN_MAX+1] = {
   -1,
   (1 << 16),
   (1 << 16),
+  (1 << 16),
   (1 << 15),
   (1 << 14),
-  (1 << 12)
+  (1 << 12),
+  (1 << 11),
+  (1 << 10),
+  (1 << 9),
+  (1 << 8)
 };
 

@@ -30,7 +30,7 @@ char *_tend_gradsInfoL =
    "solution converges, to get closer to the minimum energy configuration "
    "faster.  In the mean time, you can run a second pass on the output of "
    "the first pass, using lower drag. A second phase of the algorithm "
-   "tries random signs in gradient directions in trying to find an optimally "
+   "tries sign changes in gradient directions in trying to find an optimally "
    "balanced set of directions.  This uses a randomized search, so if it "
    "doesn't seem to be finishing in a reasonable amount of time, try "
    "restarting.");

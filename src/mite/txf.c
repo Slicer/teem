@@ -202,16 +202,6 @@ miteNtxfCheck(const Nrrd *ntxf) {
     }
   }
   for (axi=1; axi<ntxf->dim; axi++) {
-    if (!( AIR_EXISTS(ntxf->axis[axi].min) && 
-	   AIR_EXISTS(ntxf->axis[axi].max) )) {
-      sprintf(err, "%s: min and max of axis %d aren't both set", me, axi);
-      biffAdd(MITE, err); return 1;
-    }
-    if (!( ntxf->axis[axi].min < ntxf->axis[axi].max )) {
-      sprintf(err, "%s: min (%g) not less than max (%g) on axis %d", 
-	      me, ntxf->axis[axi].min, ntxf->axis[axi].max, axi);
-      biffAdd(MITE, err); return 1;
-    }
     if (1 == ntxf->axis[axi].size) {
       sprintf(err, "%s: # samples on axis %d must be > 1", me, axi);
       biffAdd(MITE, err); return 1;
@@ -242,6 +232,17 @@ miteNtxfCheck(const Nrrd *ntxf) {
 		"but not %d", me, domStr, limnQNBins[limnQN16checker],
 		limnQNBins[limnQN14checker], limnQNBins[limnQN12checker],
 		ntxf->axis[axi].size);
+	biffAdd(MITE, err); return 1;
+      }
+    } else {
+      if (!( AIR_EXISTS(ntxf->axis[axi].min) && 
+	     AIR_EXISTS(ntxf->axis[axi].max) )) {
+	sprintf(err, "%s: min and max of axis %d aren't both set", me, axi);
+	biffAdd(MITE, err); return 1;
+      }
+      if (!( ntxf->axis[axi].min < ntxf->axis[axi].max )) {
+	sprintf(err, "%s: min (%g) not less than max (%g) on axis %d", 
+		me, ntxf->axis[axi].min, ntxf->axis[axi].max, axi);
 	biffAdd(MITE, err); return 1;
       }
     }
