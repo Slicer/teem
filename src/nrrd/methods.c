@@ -353,6 +353,21 @@ nrrdUnwrap(Nrrd *nrrd) {
   return nrrdNix(nrrd);
 }
 
+void
+_nrrdTraverse(Nrrd *nrrd) {
+  char *test, tval;
+  nrrdBigInt I, N;
+  int S;
+  
+  N = nrrdElementNumber(nrrd);
+  S = nrrdElementSize(nrrd);
+  tval = 0;
+  test = nrrd->data;
+  for (I=0; I<N*S; I++) {
+    tval += test[I];
+  }
+}
+
 /*
 ******** nrrdAlloc_nva()
 **
@@ -372,9 +387,6 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
   char me[] = "nrrdAlloc_nva", err[NRRD_STRLEN_MED];
   nrrdBigInt num;
   int d, esize;
-
-  char *test, tval;
-  nrrdBigInt I;
 
   if (!(nrrd && size)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -410,12 +422,6 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
     biffAdd(NRRD, err); return 1 ;
   }
   nrrd->dim = dim;
-
-  printf("!%s: data at %llx is from calloc(" NRRD_BIG_INT_PRINTF ", %d)\n",
-	 me, (unsigned long long int)nrrd->data, num, esize);
-  for (I=0,tval=0,test=nrrd->data; I<=num*esize; I++) {
-    tval += test[I];
-  }
 
   return 0;
 }

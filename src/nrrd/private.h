@@ -63,6 +63,7 @@ extern int _nrrdReadNrrdParseField(Nrrd *nrrd, nrrdIO *io, int useBiff);
 
 /* methods.c */
 extern int _nrrdSizeValid(int dim, int *size);
+extern void _nrrdTraverse(Nrrd *nrrd);
 
 /* extern C */
 #ifdef __cplusplus

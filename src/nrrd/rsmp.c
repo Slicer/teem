@@ -777,6 +777,8 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   }
 
   /* enough already */
+  _nrrdTraverse(nout);
   airMopDone(mop, AIR_FALSE);
+  _nrrdTraverse(nout);
   return 0;
 }
