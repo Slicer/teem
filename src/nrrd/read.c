@@ -714,7 +714,7 @@ nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *_io) {
   case nrrdMagicOldNRRD:
   case nrrdMagicNRRD0001:
     io->format = nrrdFormatNRRD;
-     if (_nrrdReadNrrd(file, nrrd, io)) {
+    if (_nrrdReadNrrd(file, nrrd, io)) {
       sprintf(err, "%s: trouble reading NRRD", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }

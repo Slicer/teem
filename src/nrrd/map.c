@@ -58,7 +58,8 @@ nrrdMinMaxSet(Nrrd *nrrd) {
 **    are non-existent, with the end result that only the non-existent
 **    values are over-written
 ** 2) obeys the nrrdStateClever8BitMinMax global state to short-cut
-**    finding min and max for 8-bit data.
+**    finding min and max for 8-bit data.  Values for nrrd->min or 
+**    nrrd->max which were existant to start with are untouched.
 ** 3) reports error if there are no existent values in nrrd (AIR_EXISTS()
 **    fails on every value)
 **
@@ -92,11 +93,15 @@ nrrdMinMaxClever(Nrrd *nrrd) {
   if (nrrdStateClever8BitMinMax
       && (nrrdTypeChar == nrrd->type || nrrdTypeUChar == nrrd->type)) {
     if (nrrdTypeChar == nrrd->type) {
-      nrrd->min = SCHAR_MIN;
-      nrrd->max = SCHAR_MAX;
+      if (!AIR_EXISTS(nrrd->min))
+	nrrd->min = SCHAR_MIN;
+      if (!AIR_EXISTS(nrrd->max))
+	nrrd->max = SCHAR_MAX;
     } else {
-      nrrd->min = 0;
-      nrrd->max = UCHAR_MAX;
+      if (!AIR_EXISTS(nrrd->min))
+	nrrd->min = 0;
+      if (!AIR_EXISTS(nrrd->max))
+	nrrd->max = UCHAR_MAX;
     }
     nrrdHasNonExistSet(nrrd);
     return 0;
