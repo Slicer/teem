@@ -33,7 +33,7 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   hestParm *hparm=NULL;
   miteUser *muu;
-  char *me, *errS, *outS, *shadeStr, *normalStr;
+  char *me, *errS, *outS, *shadeStr, *normalStr, debugStr[AIR_STRLEN_MED];
   int renorm, baseDim, verbPix[2], offfr;
   int E, Ecode;
   float ads[3];
@@ -256,7 +256,16 @@ main(int argc, char *argv[]) {
   fprintf(stderr, "\n");
   fprintf(stderr, "%s: rendering time = %g secs\n", me, muu->rendTime);
   fprintf(stderr, "%s: sampling rate = %g Khz\n", me, muu->sampRate);
-  
+  if (muu->ndebug) {
+    /* if its been generated, we should save it */
+    sprintf(debugStr, "%04d-%04d-debug.nrrd", verbPix[0], verbPix[1]);
+    if (nrrdSave(debugStr, muu->ndebug, NULL)) {
+      airMopAdd(mop, errS = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble saving ray debug:\n%s\n", me, errS);
+      airMopError(mop);
+      return 1;
+    }
+  }
   if (nrrdSave(outS, muu->nout, NULL)) {
     airMopAdd(mop, errS = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble saving image:\n%s\n", me, errS);
