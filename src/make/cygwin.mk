@@ -18,8 +18,8 @@
 #
 #
 
-
-# this will stay unset until I figure out gcc creation of Windows DLLs
+# Cygwin-free DLLs are not as easy to make as once thought, but at
+# some point I'll support Cygwin-using shared objects
 TEEM_SHEXT = 
 
 CC = gcc
