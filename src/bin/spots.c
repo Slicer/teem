@@ -38,12 +38,17 @@ main(int argc, char *argv[]) {
   alanContext *actx;
   int *size, sizeLen, fi, si, wrap, nt, cfn;
   double speed, mch, alphabeta[2], time0, time1, H;
-  Nrrd *ninit=NULL, *nparm=NULL;
+  Nrrd *ninit=NULL, *nten=NULL, *nparm=NULL;
 
   me = argv[0];
-  hestOptAdd(&hopt, "s", "sx sy", airTypeInt, 2, 3, &size, NULL,
+  hestOptAdd(&hopt, "s", "sx sy", airTypeInt, 2, 3, &size, "128 128",
 	     "size of texture, and also determines its dimension", 
 	     &sizeLen);
+  hestOptAdd(&hopt, "ten", "tensors", airTypeOther, 1, 1, &nten, "",
+	     "diffusion tensors to use for guiding the texture generation. "
+	     "If used, over-rides the \"-s\" option, both for setting "
+	     "texture dimension and size (in connection with \"-ovs\")",
+	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "wrap", NULL, airTypeInt, 0, 0, &wrap, NULL,
 	     "wrap edges of texture around a topological torus (which "
 	     "makes a texture suitable for tiling)");
@@ -55,7 +60,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "dt", "time", airTypeDouble, 1, 1, &speed, "1.0",
 	     "time-step size in Euler integration.  Can be larger, at "
 	     "risk of hitting divergent instability.");
-  hestOptAdd(&hopt, "dx", "size", airTypeDouble, 1, 1, &H, "1.0",
+  hestOptAdd(&hopt, "dx", "size", airTypeDouble, 1, 1, &H, "1.3",
 	     "nominal size of simulation grid element.");
   hestOptAdd(&hopt, "mch", "change", airTypeDouble, 1, 1, &mch, "0.00001",
 	     "the minimum change, averaged over the whole texture, in the "
@@ -86,11 +91,21 @@ main(int argc, char *argv[]) {
 
   actx = alanContextNew();
   airMopAdd(mop, actx, (airMopper)alanContextNix, airMopAlways);
-  alanDimensionSet(actx, sizeLen);
-  if (2 == sizeLen) {
-    alan2DSizeSet(actx, size[0], size[1]);
+  if (nten) {
+    if (alanDimensionSet(actx, nten->dim - 1)
+	|| alanTensorSet(actx, nten, 1)) {
+      airMopAdd(mop, err = biffGetDone(ALAN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble setting parameters:\n%s\n", me, err);
+      airMopError(mop);
+      return 1;
+    }
   } else {
-    alan3DSizeSet(actx, size[0], size[1], size[2]);
+    alanDimensionSet(actx, sizeLen);
+    if (2 == sizeLen) {
+      alan2DSizeSet(actx, size[0], size[1]);
+    } else {
+      alan3DSizeSet(actx, size[0], size[1], size[2]);
+    }
   }
 
   if (alanParmSet(actx, alanParmVerbose, 1)
@@ -109,7 +124,7 @@ main(int argc, char *argv[]) {
       || alanParmSet(actx, alanParmWrapAround, wrap)
       || alanParmSet(actx, alanParmNumThreads, nt)) {
     airMopAdd(mop, err = biffGetDone(ALAN), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble setting paramters:\n%s\n", me, err);
+    fprintf(stderr, "%s: trouble setting parameters:\n%s\n", me, err);
     airMopError(mop);
     return 1;
   }
