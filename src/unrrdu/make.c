@@ -176,9 +176,11 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
       sprintf(err, "%s: couldn't skip lines", me);
       biffAdd(NRRD, err); return 1;
     }
-    if (nrrdByteSkip(io)) {
-      sprintf(err, "%s: couldn't skip bytes", me);
-      biffAdd(NRRD, err); return 1;
+    if (!nrrdEncodingIsCompression[io->encoding]) {
+      if (nrrdByteSkip(io)) {
+	sprintf(err, "%s: couldn't skip bytes", me);
+	biffAdd(NRRD, err); return 1;
+      }
     }
     if (nrrdReadData[io->encoding](nrrd, io)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
