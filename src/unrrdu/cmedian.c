@@ -20,7 +20,7 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Cheap histogram-based median filtering"
+#define INFO "Cheap histogram-based median/mode filtering"
 char *_unrrdu_cmedianInfoL =
 (INFO
  ". Only works on 1, 2, or 3 dimensions.  The window "
@@ -31,23 +31,24 @@ char *_unrrdu_cmedianInfoL =
  "the window, and updating it as the window slides "
  "through the volume.  Because of this histogramming, "
  "precision will be lost on anything other than "
- "8-bit data (assuming a sane # bins \"-b\").  Also, "
- "this is \"cheap\" because it doesn't do any filtering "
- "on the border (as defined by radius \"-r\"); values at "
- "these locations are simply copied from input.");
+ "8-bit data (assuming a sane # bins \"-b\").");
 
 int
 unrrdu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *ntmp, *nout;
-  int bins, radius, pad, pret;
+  int bins, radius, pad, pret, mode;
   airArray *mop;
   float wght;
 
   hestOptAdd(&opt, "r", "radius", airTypeInt, 1, 1, &radius, NULL,
 	     "how big a window to filter over. \"-r 1\" leads to a "
 	     "3x3 window in an image, and a 3x3x3 window in a volume");
+  hestOptAdd(&opt, "mode", NULL, airTypeInt, 0, 0, &mode, NULL,
+	     "By default, median filtering is done.  Using this option "
+	     "enables mode filtering, in which the most common value is "
+	     "used as output");
   hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, "2048",
 	     "# of bins in histogram");
   hestOptAdd(&opt, "w", "weight", airTypeFloat, 1, 1, &wght, "1.0",
@@ -92,7 +93,7 @@ unrrdu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
     ntmp = nin;
   }
 
-  if (nrrdCheapMedian(nout, ntmp, radius, wght, bins)) {
+  if (nrrdCheapMedian(nout, ntmp, mode, radius, wght, bins)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing cheap median:\n%s", me, err);
     airMopError(mop);

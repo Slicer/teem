@@ -126,7 +126,7 @@ baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   if (radius) {
     if (nrrdSimplePad(npadopac, nopac, radius, nrrdBoundaryBleed) 
-	|| nrrdCheapMedian(nmedpadopac, npadopac, radius, 1.0, 2048)
+	|| nrrdCheapMedian(nmedpadopac, npadopac, AIR_FALSE, radius, 1.0, 2048)
 	|| nrrdSimpleCrop(nout, nmedpadopac, radius)) {
       sprintf(err, "%s: error in padding, median filtering, or cropping", me);
       biffMove(BANE, err, NRRD); airMopError(mop); return 1;
