@@ -903,14 +903,12 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	if (1 == _hestCase(opt, udflt, nprm, appr, op)) {
 	  *((void**)vP) = NULL;
 	  /* alloc and sawP set above */
-	}
-	else {
+	} else {
 	  if (airTypeString == type) {
 	    /* this is sneakiness: we allocate one more element so that
 	       the resulting char** is, like argv, NULL-terminated */
-	    *((void**)vP) = calloc(nprm[op], size+1);
-	  }
-	  else {
+	    *((void**)vP) = calloc(nprm[op]+1, size);
+	  } else {
 	    *((void**)vP) = calloc(nprm[op], size);
 	  }
 	  if (parm->verbosity) {
