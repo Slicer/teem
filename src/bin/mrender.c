@@ -110,7 +110,7 @@ mrendUserCheck(mrendUser *uu) {
 	    airEnumStr(nrrdCenter, uu->nin->axis[2].center));
     biffAdd(MREND, err); return 1;
   }
-  if (1 != gageKindScl->ansLength[uu->whatq]) {
+  if (1 != gageKindScl->table[uu->whatq].answerLength) {
     sprintf(err, "%s: quantity %s isn't a scalar; can't render it\n",
 	    me, airEnumStr(gageKindScl->enm, uu->whatq));
     biffAdd(MREND, err); return 1;
@@ -172,7 +172,7 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   if (!E) E |= gageKernelSet(uu->gctx0, gageKernel22,
 			     uu->ksp[gageKernel22]->kernel,
 			     uu->ksp[gageKernel22]->parm);
-  if (!E) E |= gageQuerySet(uu->gctx0, pvl, 1 << uu->whatq);
+  if (!E) E |= gageQueryItemOn(uu->gctx0, pvl, uu->whatq);
   if (!E) E |= gageUpdate(uu->gctx0);
   if (E) {
     sprintf(err, "%s: gage trouble", me);
@@ -364,7 +364,7 @@ mrendGage(char *prefix) {
   /* 1st pass through- determine needed buffer size */
   len = 0;
   for (i=airEnumUnknown(gageScl)+1; !airEnumValCheck(gageScl, i); i++) {
-    if (1 == gageKindScl->ansLength[i]) {
+    if (1 == gageKindScl->table[i].answerLength) {
       line = airEnumFmtDesc(gageScl, i, AIR_FALSE, "\n \b\bo \"%s\": %s");
       len += strlen(line);
       free(line);
@@ -375,7 +375,7 @@ mrendGage(char *prefix) {
     strcpy(ret, prefix);
     /* 2nd pass through: create output */
     for (i=airEnumUnknown(gageScl)+1; !airEnumValCheck(gageScl, i); i++) {
-      if (1 == gageKindScl->ansLength[i]) {
+      if (1 == gageKindScl->table[i].answerLength) {
 	line = airEnumFmtDesc(gageScl, i, AIR_FALSE, "\n \b\bo \"%s\": %s");
 	strcat(ret, line);
 	free(line);

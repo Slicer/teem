@@ -104,7 +104,7 @@ main(int argc, char *argv[]) {
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   if (!E) E |= gageKernelSet(ctx, gageKernel00,
 			     gantric->kernel, gantric->parm);
-  if (!E) E |= gageQuerySet(ctx, pvl, 1 << gageSclValue);
+  if (!E) E |= gageQueryItemOn(ctx, pvl, gageSclValue);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));

@@ -191,7 +191,7 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
   gagePerVolume *pvl;
   gage_t *val, *gmag, *scnd;
   float *vghF;
-  int E, i, j, k, query;
+  int E, i, j, k;
   airArray *mop;
   
   doH = !!doH;
@@ -218,11 +218,11 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel22, k22->kernel, k22->parm);
-  query = (1 << gageSclValue) | (1 << gageSclGradMag);
+  if (!E) E |= gageQueryItemOn(ctx, pvl, gageSclValue);
+  if (!E) E |= gageQueryItemOn(ctx, pvl, gageSclGradMag);
   if (doH) {
-    query |= (1 << gageScl2ndDD);
+    if (!E) E |= gageQueryItemOn(ctx, pvl, gageScl2ndDD);
   }
-  if (!E) E |= gageQuerySet(ctx, pvl, query);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
     sprintf(err, "%s: gage trouble", me);

@@ -47,8 +47,8 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, muu, (airMopper)miteUserNix, airMopAlways);
   
   hparm->respFileEnable = AIR_TRUE;
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &(muu->nin), NULL,
-	     "input nrrd to render", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "i", "nsin", airTypeOther, 1, 1, &(muu->nsin), NULL,
+	     "input scalar volume to render", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "txf", "nin", airTypeOther, 1, -1, &(muu->ntxf), NULL,
 	     "one or more transfer functions",
 	     &(muu->ntxfNum), NULL, nrrdHestNrrd);
@@ -136,8 +136,8 @@ main(int argc, char *argv[]) {
     return 1;
   }
 
-  nrrdAxisInfoGet_nva(muu->nin, nrrdAxisInfoSize, muu->hctx->volSize);
-  nrrdAxisInfoGet_nva(muu->nin, nrrdAxisInfoSpacing, muu->hctx->volSpacing);
+  nrrdAxisInfoGet_nva(muu->nsin, nrrdAxisInfoSize, muu->hctx->volSize);
+  nrrdAxisInfoGet_nva(muu->nsin, nrrdAxisInfoSpacing, muu->hctx->volSpacing);
   muu->hctx->user = muu;
   muu->hctx->renderBegin = (hooverRenderBegin_t *)miteRenderBegin;
   muu->hctx->threadBegin = (hooverThreadBegin_t *)miteThreadBegin;

@@ -142,8 +142,8 @@ main(int argc, char *argv[]) {
     return 1;
   }
 
-  ansLen = kind->ansLength[what];
-  iBaseDim = gageKindScl == kind ? 0 : 1;
+  ansLen = kind->table[what].answerLength;
+  iBaseDim = kind->baseDim;
   oBaseDim = 1 == ansLen ? 0 : 1;
   six = nin->axis[0+iBaseDim].size;
   siy = nin->axis[1+iBaseDim].size;
@@ -172,7 +172,7 @@ main(int argc, char *argv[]) {
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm); 
   if (!E) E |= gageKernelSet(ctx, gageKernel22, k22->kernel, k22->parm);
-  if (!E) E |= gageQuerySet(ctx, pvl, 1 << what);
+  if (!E) E |= gageQueryItemOn(ctx, pvl, what);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
