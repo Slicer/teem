@@ -36,15 +36,15 @@ gammaMain(int argc, char **argv, char *me) {
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input nrrd");
+  hestOptAdd(&opt, "g", "gamma", airTypeDouble, 1, 1, &gamma, NULL,
+	     "gamma > 1.0 brightens; gamma < 1.0 darkens. "
+	     "Negative gammas invert values (like in xv). ");
   hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
 	     "Value to implicitly map to 0.0 prior to calling pow(). "
 	     "Defaults to lowest value found in input nrrd.");
   hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
 	     "Value to implicitly map to 1.0 prior to calling pow(). "
 	     "Defaults to highest value found in input nrrd.");
-  hestOptAdd(&opt, "g", "gamma", airTypeDouble, 1, 1, &gamma, NULL,
-	     "The power given to pow() to transform values.  1.0 does "
-	     "nothing.  Negative gammas invert values (like in xv). ");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
