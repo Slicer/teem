@@ -179,7 +179,6 @@ extern int nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin);
 extern int _nrrdCopy(Nrrd *nout, const Nrrd *nin, int bitflag);
 extern int _nrrdSizeCheck(int dim, const int *size, int useBiff);
 extern void _nrrdTraverse(Nrrd *nrrd);
-extern int _nrrdCopyShallow (Nrrd *nout, const Nrrd *nin);
 
 #if TEEM_ZLIB
 #include <zlib.h>
