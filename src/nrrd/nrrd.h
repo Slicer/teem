@@ -325,7 +325,7 @@ extern int nrrdTypeFixed[];
 extern int nrrdTypeUnsigned[];
 extern double nrrdTypeMin[];
 extern double nrrdTypeMax[];
-extern unsigned long long int nrrdTypeNumberValues[];
+extern double nrrdTypeNumberValues[];
 
 /******** things useful with hest */
 extern hestCB *nrrdHestNrrd;
@@ -457,6 +457,7 @@ extern void nrrdMinMaxSet(Nrrd *nrrd);
 extern int nrrdMinMaxCleverSet(Nrrd *nrrd);
 extern int nrrdConvert(Nrrd *nout, Nrrd *nin, int type);
 extern int nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits);
+extern int nrrdUnquantize(Nrrd *nout, Nrrd *nin, int type);
 extern int nrrdHistoEq(Nrrd *nout, Nrrd *nin,
 		       Nrrd **nhistP, int bins, int smart);
 
@@ -483,8 +484,12 @@ extern int nrrdSimpleCrop(Nrrd *nout, Nrrd *nin, int crop);
 
 /******** padding */
 /* superset.c */
+extern int nrrdPad_nva(Nrrd *nout, Nrrd *nin, int *min, int *max,
+		       int boundary, double padValue);
 extern int nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary,
 		   ... /* if nrrdBoundaryPad, what value */);
+extern int nrrdSimplePad_nva(Nrrd *nout, Nrrd *nin, int pad,
+			     int boundary, double padValue);
 extern int nrrdSimplePad(Nrrd *nout, Nrrd *nin, int pad, int boundary,
 			 ... /* if nrrdBoundaryPad, what value */);
 
@@ -543,9 +548,9 @@ extern int nrrdCheapMedian(Nrrd *nout, Nrrd *nin,
 ** header; it is entirely internal to the operation of
 ** nrrdSpatialResample().
 **
-** Choose one by setting #if arg to 0 or 1
+** Choose by setting "#if" arg to 1 (for float) or 0 (for double)
 */
-#if 0
+#if 1
 typedef float nrrdResample_t;
 #  define NRRD_RESAMPLE_FLOAT 1
 #else
