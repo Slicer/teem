@@ -57,7 +57,7 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
   limnObject *obj;
-  limnLook *look; int lookIdx;
+  limnLook *look; int lookRod, lookSoid;
   limnPart *part; int partIdx;
   int res, axis, sphere;
   FILE *file;
@@ -92,13 +92,14 @@ main(int argc, char *argv[]) {
   obj = limnObjectNew(10, AIR_TRUE);
   airMopAdd(mop, obj, (airMopper)limnObjectNix, airMopAlways);
 
-  /* create limnLooks for ellipsoid (#0) and for rods (#1) */
-  lookIdx = airArrayIncrLen(obj->lookArr, 2);
-  look = obj->look + lookIdx + 0;
+  /* create limnLooks for ellipsoid and for rods */
+  lookSoid = limnObjectLookAdd(obj);
+  look = obj->look + lookSoid;
   ELL_4V_SET(look->rgba, 1, 1, 1, 1);
   ELL_3V_SET(look->kads, 0.2, 0.8, 0);
   look->spow = 0;
-  look = obj->look + lookIdx + 1;
+  lookRod = limnObjectLookAdd(obj);
+  look = obj->look + lookRod;
   ELL_4V_SET(look->rgba, 0, 0, 0, 1);
   ELL_3V_SET(look->kads, 1, 0, 0);
   look->spow = 0;
@@ -128,9 +129,11 @@ main(int argc, char *argv[]) {
 	  eval[0], eval[1], eval[2], cl, cl > cp ? ">" : "<", cp, axis);
 
   if (sphere) {
-    partIdx = limnObjectPolarSphereAdd(obj, 0, 0, 2*res, res);
+    partIdx = limnObjectPolarSphereAdd(obj, lookSoid, 
+				       0, 2*res, res);
   } else {
-    partIdx = limnObjectPolarSuperquadAdd(obj, 0, axis, qA, qB, 2*res, res);
+    partIdx = limnObjectPolarSuperquadAdd(obj, lookSoid, 
+					  axis, qA, qB, 2*res, res);
   }
   part = obj->part + partIdx;
   ELL_4M_IDENTITY_SET(matA);
@@ -141,7 +144,7 @@ main(int argc, char *argv[]) {
   limnObjectPartTransform(obj, partIdx, matA);
 
   if (rad) {
-    partIdx = limnObjectCylinderAdd(obj, 1, 0, res);
+    partIdx = limnObjectCylinderAdd(obj, lookRod, 0, res);
     ELL_4M_IDENTITY_SET(matA);
     ELL_4M_SCALE_SET(matB, (1-eval[0])/2, rad, rad);
     ell_4m_post_mul_f(matA, matB);
@@ -149,7 +152,7 @@ main(int argc, char *argv[]) {
     ell_4m_post_mul_f(matA, matB);
     limnObjectPartTransform(obj, partIdx, matA);
     
-    partIdx = limnObjectCylinderAdd(obj, 1, 0, res);
+    partIdx = limnObjectCylinderAdd(obj, lookRod, 0, res);
     ELL_4M_IDENTITY_SET(matA);
     ELL_4M_SCALE_SET(matB, (1-eval[0])/2, rad, rad);
     ell_4m_post_mul_f(matA, matB);
@@ -157,7 +160,7 @@ main(int argc, char *argv[]) {
     ell_4m_post_mul_f(matA, matB);
     limnObjectPartTransform(obj, partIdx, matA);
     
-    partIdx = limnObjectCylinderAdd(obj, 1, 1, res);
+    partIdx = limnObjectCylinderAdd(obj, lookRod, 1, res);
     ELL_4M_IDENTITY_SET(matA);
     ELL_4M_SCALE_SET(matB, rad, (1-eval[1])/2, rad);
     ell_4m_post_mul_f(matA, matB);
@@ -165,7 +168,7 @@ main(int argc, char *argv[]) {
     ell_4m_post_mul_f(matA, matB);
     limnObjectPartTransform(obj, partIdx, matA);
     
-    partIdx = limnObjectCylinderAdd(obj, 1, 1, res);
+    partIdx = limnObjectCylinderAdd(obj, lookRod, 1, res);
     ELL_4M_IDENTITY_SET(matA);
     ELL_4M_SCALE_SET(matB, rad, (1-eval[1])/2, rad);
     ell_4m_post_mul_f(matA, matB);
@@ -173,7 +176,7 @@ main(int argc, char *argv[]) {
     ell_4m_post_mul_f(matA, matB);
     limnObjectPartTransform(obj, partIdx, matA);
     
-    partIdx = limnObjectCylinderAdd(obj, 1, 2, res);
+    partIdx = limnObjectCylinderAdd(obj, lookRod, 2, res);
     ELL_4M_IDENTITY_SET(matA);
     ELL_4M_SCALE_SET(matB, rad, rad, (1-eval[2])/2);
     ell_4m_post_mul_f(matA, matB);
@@ -181,7 +184,7 @@ main(int argc, char *argv[]) {
     ell_4m_post_mul_f(matA, matB);
     limnObjectPartTransform(obj, partIdx, matA);
     
-    partIdx = limnObjectCylinderAdd(obj, 1, 2, res);
+    partIdx = limnObjectCylinderAdd(obj, lookRod, 2, res);
     ELL_4M_IDENTITY_SET(matA);
     ELL_4M_SCALE_SET(matB, rad, rad, (1-eval[2])/2);
     ell_4m_post_mul_f(matA, matB);

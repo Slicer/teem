@@ -246,7 +246,7 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
       for (eii=0; eii<part->edgeIdxNum; eii++) {
 	edge = obj->edge + part->edgeIdx[eii];
 	face0 = obj->face + part->faceIdx[edge->faceIdxIdx[0]];
-	face1 = (-1 == edge->faceIdxIdx[0]
+	face1 = (-1 == edge->faceIdxIdx[1]
 		 ? NULL
 		 : obj->face + part->faceIdx[edge->faceIdxIdx[1]]);
 	if (!face1) {

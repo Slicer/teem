@@ -169,7 +169,7 @@ limnObjectEdgeAdd(limnObject *obj, int partIdx, int lookIdx,
   /* do a linear search through this part's existing edges */
   for (edgeIdxIdx=0; edgeIdxIdx<part->edgeIdxNum; edgeIdxIdx++) {
     edgeIdx = part->edgeIdx[edgeIdxIdx];
-    edge = &(obj->edge[edgeIdx]);
+    edge = obj->edge + edgeIdx;
     if (edge->vertIdxIdx[0] == vertIdxIdx0
 	&& edge->vertIdxIdx[1] == vertIdxIdx1) {
       break;
@@ -178,7 +178,7 @@ limnObjectEdgeAdd(limnObject *obj, int partIdx, int lookIdx,
   if (edgeIdxIdx == part->edgeIdxNum) {
     /* edge not found, add it */
     edgeIdx = airArrayIncrLen(obj->edgeArr, 1);
-    edge = &(obj->edge[edgeIdx]);
+    edge = obj->edge + edgeIdx;
     edgeIdxIdx = airArrayIncrLen(part->edgeIdxArr, 1);
     part->edgeIdx[edgeIdxIdx] = edgeIdx;
     edge->vertIdxIdx[0] = vertIdxIdx0;

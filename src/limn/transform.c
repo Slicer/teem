@@ -67,6 +67,7 @@ _limnObjectNormals(limnObject *obj, int space) {
       ELL_3V_CROSS(cross, vec1, vec2);
       ELL_3V_ADD2(nn, nn, cross);
     }
+
     if (limnSpaceWorld == space) {
       ELL_3V_NORM(face->worldNormal, nn, norm);
       /*

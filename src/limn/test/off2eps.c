@@ -111,6 +111,11 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
+  if (describe) {
+    fprintf(stdout, "----------------- POST-READ -----------------\n");
+    limnObjectDescribe(stdout, obj);
+    fprintf(stdout, "----------------- POST-READ -----------------\n");
+  }
   win = limnWindowNew(limnDevicePS);
   win->ps.lineWidth[limnEdgeTypeBackFacet] = edgeWidth[0];
   win->ps.lineWidth[limnEdgeTypeBackCrease] = edgeWidth[1];
@@ -136,7 +141,9 @@ main(int argc, char *argv[]) {
   fclose(win->file);
   
   if (describe) {
+    fprintf(stdout, "----------------- POST-RENDER -----------------\n");
     limnObjectDescribe(stdout, obj);
+    fprintf(stdout, "----------------- POST-RENDER -----------------\n");
   }
 
   airMopOkay(mop);
