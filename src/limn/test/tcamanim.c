@@ -57,7 +57,7 @@ _limnReadCamanim(int imgSize[2], limnCamera **keycamP, double **timeP,
     airStrtrans(airStrtrans(line, '{', ' '), '}', ' ');
     ki = airArrayIncrLen(camA, 1);
     airArrayIncrLen(dwellA, 1);
-    if (15 != sscanf(line, "cam.di %lg cam.at %lg %lg %lg "
+    if (14 != sscanf(line, "cam.di %lg cam.at %lg %lg %lg "
 		     "cam.up %lg %lg %lg cam.dn %lg cam.df %lg cam.va %lg "
 		     "relDwell %lg cam.fr %lg %lg %lg",
 		     &di, at+0, at+1, at+2,

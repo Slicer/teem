@@ -264,6 +264,13 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
       biffAdd(LIMN, err); airMopError(mop); return 1;
     }
     ell_4m_to_q_d(quat + 4*ii, keycam[ii].W2V);
+    fprintf(stderr, "!%s: keycam[%d].W2V:\n", me, ii);
+    ell_4m_print_d(stderr, keycam[ii].W2V);
+    fprintf(stderr, "!%s: --> q = %g %g %g %g --> \n", me,
+	    (quat + 4*ii)[0], (quat + 4*ii)[1],
+	    (quat + 4*ii)[2], (quat + 4*ii)[3]);
+    ell_q_to_3m_d(W2V, quat + 4*ii);
+    ell_3m_print_d(stderr, W2V);
     if (ii) {
       if (0 > ELL_4V_DOT(quat + 4*ii, quat + 4*(ii-1))) {
 	ELL_4V_SCALE(quat + 4*ii, -1, quat + 4*ii);
@@ -273,8 +280,9 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
     ELL_3V_COPY(atpt + 3*ii, keycam[ii].at);
     ELL_3V_COPY(upvc + 3*ii, keycam[ii].up);
     ELL_3V_SUB(fratVec, keycam[ii].from, keycam[ii].at);
-    ELL_4V_SET(dist + 4*ii,
-	       ELL_3V_LEN(fratVec),
+    fratDist = ELL_3V_LEN(fratVec);
+    fprintf(stderr, "!%s(%d): fratDist = %g\n", me, ii, fratDist);
+    ELL_4V_SET(dist + 4*ii, fratDist, 
 	       keycam[ii].neer, keycam[ii].dist, keycam[ii].faar);
     ELL_2V_SET(fova + 2*ii, keycam[ii].fov, keycam[ii].aspect);
   }
@@ -332,7 +340,7 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
     if (!E) from = (double*)(nfrom->data);
     if (!E) E |= limnSplineNrrdEvaluate(natpt, atptSpline, nsample);
     if (!E) atpt = (double*)(natpt->data);
-    if (!E) E |= limnSplineNrrdEvaluate(nupvc, atptSpline, nsample);
+    if (!E) E |= limnSplineNrrdEvaluate(nupvc, upvcSpline, nsample);
     if (!E) upvc = (double*)(nupvc->data);
     break;
   }
@@ -358,6 +366,7 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
       ELL_3V_COPY(cam[ii].up, upvc + 3*ii);
     } else {
       fratDist = (dist + 4*ii)[0];
+      fprintf(stderr, "!%s(%d): fratDist = %g\n", me, ii, fratDist);
       ell_q_to_3m_d(W2V, quat + 4*ii);
       ELL_3MV_ROW1_GET(cam[ii].up, W2V);
       if (cam[ii].rightHanded) {
