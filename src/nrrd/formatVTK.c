@@ -240,6 +240,10 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
             me, nio->line);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
+  if (_nrrdCalloc(nrrd, nio, file)) {
+    sprintf(err, "%s: couldn't allocate memory for data", me);
+    biffAdd(NRRD, err); return 1;
+  }
   if (nio->encoding->read(file, nrrd->data, nrrdElementNumber(nrrd),
                           nrrd, nio)) {
     sprintf(err, "%s:", me);
