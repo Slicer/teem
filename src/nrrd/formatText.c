@@ -21,7 +21,7 @@
 #include "privateNrrd.h"
 
 int
-_nrrdFormatText_available() {
+_nrrdFormatText_available(void) {
   
   return AIR_TRUE;
 }

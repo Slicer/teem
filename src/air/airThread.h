@@ -23,13 +23,14 @@
 #if TEEM_PTHREAD
 #include <pthread.h>
 #elif defined(_WIN32)
+#define _WIN32_WINNT 0x400
 #include <windows.h>
 #endif
 
 #if defined(_WIN32) && !defined(TEEM_STATIC)
-#define air_export __declspec(dllimport)
+#define airThread_export __declspec(dllimport)
 #else
-#define air_export
+#define airThread_export
 #endif
 
 #ifdef __cplusplus
@@ -107,13 +108,13 @@ typedef struct {
 
 /* if non-zero: we have some kind of multi-threading available, either
    via pthreads, or via Windows stuff */
-extern air_export const int airThreadCapable;
+extern airThread_export const int airThreadCapable;
 
 /* When multi-threading is not available, and hence constructs like
    mutexes are not available, the operations on them will be no-ops. When
    this variable is non-zero, we fprintf(stderr) a warning to this effect
    when those constructs are used */
-extern air_export int airThreadNoopWarning; 
+extern airThread_export int airThreadNoopWarning; 
 
 extern int airThreadCreate(airThread *thread, void *(*threadBody)(void *),
 			   void *arg);

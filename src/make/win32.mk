@@ -89,7 +89,7 @@ $(WIN32.DEST)/teem.def: teem.dsp
 	@msdev $(WIN32.DEST)/teem_shared.dsp /make "teem_shared - Win32 Release" /clean
 	@-msdev $(WIN32.DEST)/teem_shared.dsp /make "teem_shared - Win32 Release" /build
 	@dlltool --export-all-symbols --output-def teem.def $(WIN32.DEST)/shared/release/*.obj
-	@grep -v '; dlltool' teem.def | grep -v '_real' | grep -v '??' | grep -v '_hooverThreadBody' > $(WIN32.DEST)/teem.def
+	@grep -v '; dlltool' teem.def | grep -v '_real' | grep -v '??' | grep -v '_airThreadWin32Body' > $(WIN32.DEST)/teem.def
 	@rm teem.def
 	@-msdev $(WIN32.DEST)/teem_shared.dsp /make "teem_shared - Win32 Release" /clean
 	@echo "done"

@@ -97,7 +97,7 @@ airThreadCondDone(airThreadCond *cond) {
 
 const int airThreadCapable = AIR_TRUE;
 
-int WINAPI airThreadWin32Body(void *arg) {
+int WINAPI _airThreadWin32Body(void *arg) {
   airThread *t;
 
   t = (airThread *)arg;
@@ -110,7 +110,7 @@ airThreadCreate(airThread *thread, void *(*threadBody)(void *), void *arg) {
 
   thread->body = threadBody;
   thread->arg = arg;
-  thread->handle = CreateThread(0, 0, airThreadWin32Body, (void *)&thread, 0, 0);
+  thread->handle = CreateThread(0, 0, _airThreadWin32Body, (void *)&thread, 0, 0);
   return NULL == thread->handle;
 }
 

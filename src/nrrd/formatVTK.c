@@ -24,7 +24,7 @@
 #define MAGIC2 "# vtk DataFile Version 2.0"
 
 int
-_nrrdFormatVTK_available() {
+_nrrdFormatVTK_available(void) {
   
   return AIR_TRUE;
 }

@@ -55,7 +55,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /dll /incremental:no /debug /machine:I386 /pdbtype:sept
 # SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 /libpath:"../lib/shared" png.lib bz2.lib z.lib /nologo /dll /incremental:no /debug /machine:I386 /def:"teem.def" /out:"../bin/teem_d.dll" /implib:"../lib/shared/teem_d.lib /pdb:"../lib/shared/teem_d.pdb" /pdbtype:sept
+# ADD LINK32 /libpath:"../lib/shared" png.lib bz2.lib z.lib kernel32.lib /nologo /dll /incremental:no /debug /machine:I386 /def:"teem.def" /out:"../bin/teem_d.dll" /implib:"../lib/shared/teem_d.lib /pdb:"../lib/shared/teem_d.pdb" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
 # Begin Special Build Tool
 TargetName=teem_d
@@ -87,7 +87,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /dll /pdb:none /machine:I386
-# ADD LINK32 /libpath:"../lib/shared" png.lib bz2.lib z.lib /nologo /dll /pdb:none /machine:I386 /out:"../bin/teem.dll" /implib:"../lib/shared/teem.lib" /def:"teem.def"
+# ADD LINK32 /libpath:"../lib/shared" png.lib bz2.lib z.lib kernel32.lib /nologo /dll /pdb:none /machine:I386 /out:"../bin/teem.dll" /implib:"../lib/shared/teem.lib" /def:"teem.def"
 # Begin Special Build Tool
 TargetName=teem
 SOURCE="$(InputPath)"
