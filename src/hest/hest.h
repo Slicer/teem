@@ -159,7 +159,7 @@ extern void hestOptAdd(hestOpt **optP,
 		       char *flag, char *name,
 		       int type, int min, int max,
 		       void *valueP, const char *dflt, const char *info,
-		       ... /* int *sawP, airEnum *enm , hestCB* */);
+		       ... /* int *sawP, airEnum *enm , hestCB *CB */);
 extern hestOpt *hestOptFree(hestOpt *opt);
 extern int hestOptCheck(hestOpt *opt, char **errP);
 
