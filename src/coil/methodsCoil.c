@@ -197,8 +197,9 @@ coilOutputGet(Nrrd *nout, coilContext *cctx) {
     biffAdd(COIL, err); return 1;
   }
   baseDim = (1 == cctx->kind->valLen ? 0 : 1);
-  if (nrrdSlice(nout, cctx->nvol, baseDim, 0)) {
-    sprintf(err, "%s: trouble slicing to get output", me);
+  if (nrrdSlice(nout, cctx->nvol, baseDim, 0)
+      || nrrdAxisInfoCopy(nout, cctx->nin, NULL, NRRD_AXIS_INFO_NONE)) {
+    sprintf(err, "%s: trouble getting output", me);
     biffMove(COIL, err, NRRD); return 1;
   }
   return 0;

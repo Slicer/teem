@@ -158,7 +158,8 @@ typedef struct {
 */
 typedef struct coilContext_t {
   /* ---------- input */
-  const Nrrd *nin;                 /* input volume, converted to coil_t nvol */
+  const Nrrd *nin;                 /* input volume (converted to type coil_t
+				      in nvol, below) */
   const coilKind *kind;            /* what kind of volume is nin */
   const coilMethod *method;        /* what method of filtering to use */
   int radius,                      /* how big a neighborhood to look at when

@@ -136,7 +136,7 @@ _coilKindScalarFilterModifiedCurvature(coil_t *delta, coil_t **iv3,
 				       double spacing[3],
 				       double parm[COIL_PARMS_NUM]) {
   coil_t forwX[3], backX[3], forwY[3], backY[3], forwZ[3], backZ[3],
-    grad[3], gm, eps, KK, LL, rspX, rspY, rspZ;
+    grad[3], gm, eps, KK, LL, rspX, rspY, rspZ, lerp;
 
   /* reciprocals of spacings in X, Y, and Z */
   rspX = 1.0/spacing[0];
@@ -168,10 +168,13 @@ _coilKindScalarFilterModifiedCurvature(coil_t *delta, coil_t **iv3,
   backY[1] *= _COIL_CONDUCT(LL, KK)/(eps + sqrt(LL));
   LL = ELL_3V_DOT(backZ, backZ);
   backZ[2] *= _COIL_CONDUCT(LL, KK)/(eps + sqrt(LL));
-  
-  delta[0] = gm*parm[0]*(rspX*(forwX[0] - backX[0])
-			 + rspY*(forwY[1] - backY[1])
-			 + rspZ*(forwZ[2] - backZ[2]));
+
+  lerp = parm[2];
+  delta[0] = (lerp*_coilLaplacian3(iv3, spacing)
+	      + (1-lerp)*gm*(rspX*(forwX[0] - backX[0])
+			     + rspY*(forwY[1] - backY[1])
+			     + rspZ*(forwZ[2] - backZ[2])));
+  delta[0] *= parm[0];
 }
 
 void

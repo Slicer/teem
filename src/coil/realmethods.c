@@ -54,7 +54,7 @@ const coilMethod
 _coilMethodModifiedCurvature = {
   "modified-curvature",
   coilMethodTypeModifiedCurvature,
-  2
+  3
 };
 const coilMethod*
 coilMethodModifiedCurvature = &_coilMethodModifiedCurvature;
