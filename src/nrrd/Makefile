@@ -30,9 +30,9 @@ TEEM_LIB_OBJS = \
 	reorder.o    resample.o   simple.o     subset.o     \
 	superset.o   write.o
 
-#TEST_BINS = test/enum2str test/str2enum 
 TEST_BINS = test/trand test/shuff test/ax test/io test/minmax test/tkernel
-TEEM_BINS = bin/nrrdSanity bin/overrgb
+TEST_BINS = 
+TEEM_BINS = bin/nrrdSanity bin/overrgb bin/idx2pos bin/pos2idx
 TEEM_BIN_LIBS = -lnrrd -lbiff -lhest -lair -lm
 
-include ../make/Common.mk
+include ../make/teem.mk
