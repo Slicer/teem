@@ -33,6 +33,17 @@
 extern "C" {
 #endif
 
+/*
+** On what is shorted to "hoov" and what stays "hoover":
+** The library name stays libhoover.a
+** The include file stays hoover.h
+** Source files which require the library name as suffix use "hoover".
+** The biff key is HOOVER --> "hoover"
+** Everything else is shortened: prefix on:
+** #defines (including #include guards), functions and global variables,
+** struct type names, enum values, typedefs
+*/
+
 #define HOOVER "hoover"
 
 #define HOOV_THREAD_MAX 128
