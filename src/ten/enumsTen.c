@@ -36,8 +36,10 @@ _tenAnisoStr[TEN_ANISO_MAX+1][AIR_STRLEN_SMALL] = {
   "RA",
   "FA",
   "VF",
-  "RR",
-  "RP",
+  "Q",
+  "R",
+  "S",
+  "Th",
   "Cz",
   "Tr"
 };

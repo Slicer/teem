@@ -24,7 +24,8 @@
 char *_tend_anplotInfoL =
   (INFO
    ".  The metrics all vary from 0.0 to 1.0, and will be sampled "
-   "in the lower right half of the image.");
+   "in the lower right half of the image.  The plane on which they are "
+   "sampled is a surface of constant trace.");
 
 int
 tend_anplotMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -33,12 +34,16 @@ tend_anplotMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int res, aniso;
+  int res, aniso, whole;
   Nrrd *nout;
   char *outS;
 
   hestOptAdd(&hopt, "r", "res", airTypeInt, 1, 1, &res, "256",
 	     "resolution of anisotropy plot");
+  hestOptAdd(&hopt, "w", NULL, airTypeInt, 0, 0, &whole, NULL,
+	     "sample the whole triangle of constant trace, instead of just the "
+	     "sixth of it in which the eigenvalues have the traditional sorted "
+	     "order. ");
   hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &aniso, NULL,
 	     "Which anisotropy metric to plot.  " TEN_ANISO_DESC,
 	     NULL, tenAniso);
@@ -53,7 +58,7 @@ tend_anplotMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (tenAnisoPlot(nout, aniso, res)) {
+  if (tenAnisoPlot(nout, aniso, res, whole)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making plot:\n%s\n", me, err);
     airMopError(mop); exit(1);

@@ -60,13 +60,16 @@ enum {
   tenAniso_RA,        /* 11: Bass+Pier's relative anisotropy */
   tenAniso_FA,        /* 12: (Bass+Pier's fractional anisotropy)/sqrt(2) */
   tenAniso_VF,        /* 13: volume fraction = 1-(Bass+Pier's volume ratio) */
-  tenAniso_RR,        /* 14: square of radius of circle in cubic solve for evals */
-  tenAniso_RP,        /* 15: root phase in cubic eval solve */
-  tenAniso_Cz,        /* 16: Zhukov's invariant-based */
-  tenAniso_Tr,        /* 17: plain old trace */
+  tenAniso_Q,         /* 14: radius of root circle is 2*sqrt(Q/9) 
+		             (this is 9 times proper Q in cubic solution) */
+  tenAniso_R,         /* 15: phase of root circle is acos(R/Q^3) */
+  tenAniso_S,         /* 16: sqrt(Q^3 - R^2) */
+  tenAniso_Th,        /* 17: R/Q^3 */
+  tenAniso_Cz,        /* 18: Zhukov's invariant-based anisotropy metric */
+  tenAniso_Tr,        /* 19: plain old trace */
   tenAnisoLast
 };
-#define TEN_ANISO_MAX    17
+#define TEN_ANISO_MAX    19
 
 typedef struct {
   Nrrd *vThreshVol;
@@ -146,7 +149,7 @@ extern int tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
 extern ten_export float tenAnisoSigma;  /* added to denominator
 					   in Westin anisos */
 extern void tenAnisoCalc(float c[TEN_ANISO_MAX+1], float eval[3]);
-extern int tenAnisoPlot(Nrrd *nout, int aniso, int res);
+extern int tenAnisoPlot(Nrrd *nout, int aniso, int res, int whole);
 extern int tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, float thresh);
 extern int tenAnisoHistogram(Nrrd *nout, Nrrd *nin,
 			     int version, int resolution);

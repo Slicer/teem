@@ -36,6 +36,8 @@ void
 tenAnisoCalc(float c[TEN_ANISO_MAX+1], float e[3]) {
   float e0, e1, e2, stdv, mean, sum, cl, cp, ca, ra, fa, vf, denom;
 
+  float A, B, C, R, Q;
+
   if (!( e[0] >= e[1] && e[1] >= e[2] )) {
     fprintf(stderr, "tenAnisoCalc: eigen values not sorted: "
 	    "%g %g %g (%d %d)\n",
@@ -86,12 +88,17 @@ tenAnisoCalc(float c[TEN_ANISO_MAX+1], float e[3]) {
   vf = 1 - e0*e1*e2/(mean*mean*mean);
   vf = AIR_CLAMP(0.0, vf, 1.0);
   c[tenAniso_VF] = vf;
-  /* that's right, this is NOT dimensionless */
-  c[tenAniso_RR] = e0*e0 + e1*e1 + e2*e2 - e0*e1 - e0*e2 - e1*e2;
-  /* but this one is */
-  c[tenAniso_RP] = acos(-0.5*(e0+e1-2*e2)*(e0+e2-2*e1)*(e1+e2-2*e0)
-			/ sqrt(tenAnisoSigma +
-			       c[tenAniso_RR]*c[tenAniso_RR]*c[tenAniso_RR]))/M_PI;
+
+  A = (-e0 - e1 - e2);
+  B = e0*e1 + e0*e2 + e1*e2;
+  C = -e0*e1*e2;
+  /* this is 9*Q, where 2*sqrt(Q) is the actual root radius */
+  c[tenAniso_Q] = A*A - 3*B;
+  Q = c[tenAniso_Q]/9.0;
+  c[tenAniso_R] = 2*A*A*A - 9*A*B + 27*C;
+  R = c[tenAniso_R]/54.0;
+  c[tenAniso_S] = sqrt(Q*Q*Q - R*R);
+  c[tenAniso_Th] = R/sqrt(Q*Q*Q);
   c[tenAniso_Cz] = ((e0 + e1)/(tenAnisoSigma + e2) 
 		    + (e1 + e2)/(tenAnisoSigma + e0) 
 		    + (e0 + e2)/(tenAnisoSigma + e1))/6;
@@ -100,7 +107,7 @@ tenAnisoCalc(float c[TEN_ANISO_MAX+1], float e[3]) {
 }
 
 int
-tenAnisoPlot(Nrrd *nout, int aniso, int res) {
+tenAnisoPlot(Nrrd *nout, int aniso, int res, int whole) {
   char me[]="tenAnisoMap", err[AIR_STRLEN_MED];
   float *out, c[TEN_ANISO_MAX+1], tmp;
   int x, y;
@@ -122,9 +129,15 @@ tenAnisoPlot(Nrrd *nout, int aniso, int res) {
     biffMove(TEN, err, NRRD); return 1;
   }
   out = nout->data;
-  ELL_3V_SET(m0, S, S, S);
-  ELL_3V_SET(m1, L, 0, 0);
-  ELL_3V_SET(m2, P, P, 0);
+  if (whole) {
+    ELL_3V_SET(m0, 1, 0, 0);
+    ELL_3V_SET(m1, 0, 1, 0);
+    ELL_3V_SET(m2, 0, 0, 1);
+  } else {
+    ELL_3V_SET(m0, S, S, S);
+    ELL_3V_SET(m1, L, 0, 0);
+    ELL_3V_SET(m2, P, P, 0);
+  }
   for (y=0; y<res; y++) {
     for (x=0; x<=y; x++) {
       /* (c0,c1,c2) are the barycentric coordinates */

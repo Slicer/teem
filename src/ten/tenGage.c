@@ -186,7 +186,8 @@ void
 _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   /* char me[]="_tenGageAnswer"; */
   unsigned int query;
-  gage_t *ans, *tenAns, *tgradAns, *rrgradAns, *evalAns, *evecAns, tmptmp=0;
+  gage_t *ans, *tenAns, *tgradAns, *rrgradAns, *evalAns, *evecAns, tmptmp=0,
+    a, b, c, d, e, f, A, B, C, Q, R;
   int *offset;
 
 #if !GAGE_TYPE_FLOAT
@@ -204,19 +205,22 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   evecAns = ans + offset[tenGageEvec];
   if (1 & (query >> tenGageTensor)) {
     /* done if doV */
+    a = tenAns[1];
+    b = tenAns[2];
+    c = tenAns[3];
+    d = tenAns[4];
+    e = tenAns[5];
+    f = tenAns[6];
     if (ctx->verbose) {
       fprintf(stderr, "tensor = (%g) %g %g %g   %g %g   %g\n", tenAns[0],
-	      tenAns[1], tenAns[2], tenAns[3], tenAns[4], tenAns[5], tenAns[6]);
+	      a, b, c, d, e, f);
     }
   }
   if (1 & (query >> tenGageTrace)) {
-    ans[offset[tenGageTrace]] = tenAns[1] + tenAns[4] + tenAns[6];
+    ans[offset[tenGageTrace]] = a + d + f;
   }
   if (1 & (query >> tenGageFrobTensor)) {
-    ans[offset[tenGageTrace]] =
-      sqrt(tenAns[1]*tenAns[1] + 2*tenAns[2]*tenAns[2] + 2*tenAns[3]*tenAns[3] 
-	   + tenAns[4]*tenAns[4] + 2*tenAns[5]*tenAns[5] 
-	   + tenAns[6]*tenAns[6]);
+    ans[offset[tenGageTrace]] = sqrt(a*a + 2*b*b + 2*c*c + d*d + 2*e*e + f*f);
   }
   /* HEY: this is pretty sub-optimal if the only thing we want is the 
      eigenvalues for doing anisotropy determination ... */
@@ -234,17 +238,20 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     /* done if doD1 */
   }
   if (1 & (query >> tenGageRR)) {
-    
+    A = -(a + d + f);
+    B = a*d - b*b + a*f - c*c + d*f - e*e;
+    C = -(a*d*f + 2*b*e*c - c*c*d - b*b*f - a*e*e);
+    ans[offset[tenGageRR]] = A*A - 3*B;
   }
   if (1 & (query >> tenGageRRGradVec)) {
     ELL_3V_SET(rrgradAns, 0, 0, 0);
-    ELL_3V_SCALEINCR(rrgradAns,   tenAns[1], tgradAns + 1*3);
-    ELL_3V_SCALEINCR(rrgradAns, 2*tenAns[2], tgradAns + 2*3);
-    ELL_3V_SCALEINCR(rrgradAns, 2*tenAns[3], tgradAns + 3*3);
-    ELL_3V_SCALEINCR(rrgradAns,   tenAns[4], tgradAns + 4*3);
-    ELL_3V_SCALEINCR(rrgradAns, 2*tenAns[5], tgradAns + 5*3);
-    ELL_3V_SCALEINCR(rrgradAns,   tenAns[6], tgradAns + 6*3);
-    tmptmp = -(tenAns[1] + tenAns[4] + tenAns[6])/3;
+    ELL_3V_SCALEINCR(rrgradAns,   a, tgradAns + 1*3);
+    ELL_3V_SCALEINCR(rrgradAns, 2*b, tgradAns + 2*3);
+    ELL_3V_SCALEINCR(rrgradAns, 2*c, tgradAns + 3*3);
+    ELL_3V_SCALEINCR(rrgradAns,   d, tgradAns + 4*3);
+    ELL_3V_SCALEINCR(rrgradAns, 2*e, tgradAns + 5*3);
+    ELL_3V_SCALEINCR(rrgradAns,   f, tgradAns + 6*3);
+    tmptmp = -(a + d + f)/3;
     ELL_3V_SCALEINCR(rrgradAns, tmptmp, tgradAns + 1*3);
     ELL_3V_SCALEINCR(rrgradAns, tmptmp, tgradAns + 4*3);
     ELL_3V_SCALEINCR(rrgradAns, tmptmp, tgradAns + 6*3);
