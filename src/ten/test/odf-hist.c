@@ -44,7 +44,8 @@ main(int argc, char *argv[]) {
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "min", "min", airTypeFloat, 1, 1, &min, "0.0",
              "ODF values below this are ignored, and per-voxel ODF is "
-             "normalized to have sum 1.0");
+             "normalized to have sum 1.0.  Use \"nan\" to subtract out "
+             "the per-voxel min.");
   hestOptAdd(&hopt, "b", "bins", airTypeInt, 1, 1, &bins, "128",
              "number of bins in histograms");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
@@ -92,7 +93,7 @@ main(int argc, char *argv[]) {
   {
     /* we modify the lengths of the vectors here */
     int NN, VV, ii, jj, kk, *anglut;
-    float *odf, *hist, *covar, *vec, *vi, *vj, tmp;
+    float *odf, *hist, *covar, *vec, *vi, *vj, tmp, pvmin;
     double *mean;
     Nrrd *nodf, *nanglut;
 
@@ -146,15 +147,28 @@ main(int argc, char *argv[]) {
         fprintf(stderr, "%d/%d\n", kk, NN);
       }
       tmp = 0;
-      for (ii=0; ii<VV; ii++) {
-        odf[ii] = AIR_MAX(0.0, odf[ii]-min);
-        tmp += odf[ii];
+      if (AIR_EXISTS(min)) {
+        for (ii=0; ii<VV; ii++) {
+          odf[ii] = AIR_MAX(0.0, odf[ii]-min);
+          tmp += odf[ii];
+        }
+      } else {
+        /* we do the more sketchy per-voxel min subtraction */
+        pvmin = airFPGen_f(airFP_POS_INF);
+        for (ii=0; ii<VV; ii++) {
+          pvmin = AIR_MIN(pvmin, odf[ii]);
+        }
+        for (ii=0; ii<VV; ii++) {
+          odf[ii] -= pvmin;
+          tmp += odf[ii];
+        }
       }
       if (tmp) {
         /* something left after subtracting out baseline isotropic */
         for (ii=0; ii<VV; ii++) {
           odf[ii] /= tmp;
         }
+        /* odf[] is normalized to 1.0 sum */
         for (jj=0; jj<VV; jj++) {
           for (ii=0; ii<=jj; ii++) {
             tmp = odf[ii]*odf[jj];
