@@ -795,9 +795,13 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
     biffAdd(NRRD, err); return 1;
   }
 
-  /* maybe copy the resampling final result into the output nrrd,
+  /* copy the resampling final result into the output nrrd, maybe
      clamping as we go to insure that fixed point results don't have
-     unexpected wrap-around.  */
+     unexpected wrap-around. 
+     NOTE, HOWEVER!!! that the difference between the last round of
+     resampling (in floating point), and the result of assigning to
+     a fixed point output volume can be as high as 0.99999... because
+     nrrdFInsert does not round!!! */
   numOut = nrrdElementNumber(nout);
   if (info->clamp) {
     for (I=0; I<numOut; I++) {
