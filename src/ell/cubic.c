@@ -37,7 +37,7 @@
 ** This does NOT use biff
 */
 int
-ellCubic(double A, double B, double C, double *root, int polish) {
+ellCubic(double root[3], double A, double B, double C, int polish) {
   double epsilon = 1.0E-11, sq_A, p, q, cb_p, D, sqrt_D, 
     u, v, x, phi, t, sub;
 

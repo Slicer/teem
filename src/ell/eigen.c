@@ -30,7 +30,7 @@
 ** This does NOT use biff
 */
 void
-ell3mNullspace1(double n[9], double ans[3]) {
+ell3mNullspace1(double ans[3], double n[9]) {
   double t0[3], t1[3], t2[3], norm;
   
   /* find the three cross-products of pairs of column vectors of n */
@@ -64,7 +64,7 @@ ell3mNullspace1(double n[9], double ans[3]) {
 ** This does NOT use biff
 */
 void
-ell3mNullspace2(double _n[9], double ans0[3], double ans1[3]) {
+ell3mNullspace2(double ans0[3], double ans1[3], double _n[9]) {
   double n[9], tmp[3], norm;
 
   /* copy to local matrix */
@@ -104,7 +104,7 @@ ell3mNullspace2(double _n[9], double ans0[3], double ans1[3]) {
 ** This does NOT use biff
 */
 int
-ell3mEigenvalues(double m[9], double eval[3], int polish) {
+ell3mEigenvalues(double eval[3], double m[9], int polish) {
   double A, B, C;
 
   /* 
@@ -119,7 +119,7 @@ ell3mEigenvalues(double m[9], double eval[3], int polish) {
   C = (m[2]*m[4] - m[1]*m[5])*m[6]
     + (m[0]*m[5] - m[2]*m[3])*m[7]
     + (m[1]*m[3] - m[0]*m[4])*m[8];
-  return ellCubic(A, B, C, eval, polish);
+  return ellCubic(eval, A, B, C, polish);
 }
 
 /*
@@ -129,8 +129,9 @@ ell3mEigenvalues(double m[9], double eval[3], int polish) {
 ** m+0, m+3, m+6, are the COLUMNS of the matrix.
 **
 ** returns information about the roots according to ellCubeRoot enum,
-** see header for ellCubic for details.  When eval[i] is set, evec[i]
-** is set to a corresponding eigenvector.
+** see header for ellCubic for details.  When eval[i] is set, evec+3*i
+** is set to a corresponding eigenvector.  The eigenvectors are
+** (evec+0)[], (evec+3)[], and (evec+6)[]
 **
 ** The eigenvalues (and associated eigenvectors) are sorted in
 ** descending order.
@@ -138,7 +139,7 @@ ell3mEigenvalues(double m[9], double eval[3], int polish) {
 ** This does NOT use biff
 */
 int
-ell3mEigensolve(double m[9], double eval[3], double evec[3][3], int polish) {
+ell3mEigensolve(double eval[3], double evec[9], double m[9], int polish) {
   double n[9], e0, e1, e2, t /* , tmpv[3] */ ;
   int roots;
 
@@ -149,7 +150,7 @@ ell3mEigensolve(double m[9], double eval[3], double evec[3][3], int polish) {
     printf(" {%20.15f,\t%20.15f,\t%20.15f}};\n",m[2], m[5], m[8]);
     } */
   
-  roots = ell3mEigenvalues(m, eval, polish);
+  roots = ell3mEigenvalues(eval, m, polish);
   ELL_3V_GET(e0, e1, e2, eval);
   /* if (linealDebug) {
     printf("lineal3Eigensolve: numroots = %d\n", numroots);
@@ -158,6 +159,7 @@ ell3mEigensolve(double m[9], double eval[3], double evec[3][3], int polish) {
   /* we form m - lambda.I by doing a memcpy from m, and then
      (repeatedly) over-writing the diagonal elements */
   memcpy(n, m, 9*sizeof(double));
+  /* ELL_3M_COPY(n, m); */
   switch (roots) {
   case ellCubicRootThree:
     ELL_SORT3(e0, e1, e2, t);
@@ -166,27 +168,27 @@ ell3mEigensolve(double m[9], double eval[3], double evec[3][3], int polish) {
 	     eval[0], eval[1], eval[2]);
 	     } */
     ELL_3M_SETDIAG(n, m[0]-e0, m[4]-e0, m[8]-e0);
-    ell3mNullspace1(n, evec[0]);
+    ell3mNullspace1(evec+0, n);
     ELL_3M_SETDIAG(n, m[0]-e1, m[4]-e1, m[8]-e1);
-    ell3mNullspace1(n, evec[1]);
+    ell3mNullspace1(evec+3, n);
     ELL_3M_SETDIAG(n, m[0]-e2, m[4]-e2, m[8]-e2);
-    ell3mNullspace1(n, evec[2]);
+    ell3mNullspace1(evec+6, n);
     ELL_3V_SET(eval, e0, e1, e2);
     break;
   case ellCubicRootSingleDouble:
     if (e0 > e1) {
       /* one big (e0) , two small (e1) : more like a cigar */
       ELL_3M_SETDIAG(n, m[0]-e0, m[4]-e0, m[8]-e0);
-      ell3mNullspace1(n, evec[0]);
+      ell3mNullspace1(evec+0, n);
       ELL_3M_SETDIAG(n, m[0]-e1, m[4]-e1, m[8]-e1);
-      ell3mNullspace2(n, evec[1], evec[2]);
+      ell3mNullspace2(evec+3, evec+6, n);
     }
     else {
       /* two big (e1), one small (e0): more like a pancake */
       ELL_3M_SETDIAG(n, m[0]-e1, m[4]-e1, m[8]-e1);
-      ell3mNullspace2(n, evec[0], evec[1]);
+      ell3mNullspace2(evec+0, evec+3, n);
       ELL_3M_SETDIAG(n, m[0]-e0, m[4]-e0, m[8]-e0);
-      ell3mNullspace1(n, evec[2]);
+      ell3mNullspace1(evec+6, n);
       /* e2 == e1 */
       ELL_SWAP2(e0, e1, t);
       ELL_3V_SET(eval, e0, e1, e2);
@@ -194,16 +196,16 @@ ell3mEigensolve(double m[9], double eval[3], double evec[3][3], int polish) {
     break;
   case ellCubicRootTriple:
     /* one triple root; use any basis as the eigenvectors */
-    ELL_3V_SET(evec[0], 1, 0, 0);
-    ELL_3V_SET(evec[1], 0, 1, 0);
-    ELL_3V_SET(evec[2], 0, 0, 1);
+    ELL_3V_SET(evec+0, 1, 0, 0);
+    ELL_3V_SET(evec+3, 0, 1, 0);
+    ELL_3V_SET(evec+6, 0, 0, 1);
     break;
   case ellCubicRootSingle:
     /* only one real root */
     ELL_3M_SETDIAG(n, m[0]-e0, m[4]-e0, m[8]-e0);
-    ell3mNullspace1(n, evec[0]);
-    ELL_3V_SET(evec[1], AIR_NAN, AIR_NAN, AIR_NAN);
-    ELL_3V_SET(evec[2], AIR_NAN, AIR_NAN, AIR_NAN);
+    ell3mNullspace1(evec+0, n);
+    ELL_3V_SET(evec+3, AIR_NAN, AIR_NAN, AIR_NAN);
+    ELL_3V_SET(evec+6, AIR_NAN, AIR_NAN, AIR_NAN);
     break;
   }
   /* if (ellDebug) {

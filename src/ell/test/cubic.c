@@ -48,7 +48,7 @@ main(int argc, char **argv) {
   }
 
   ellDebug = AIR_TRUE;
-  ret = ellCubic(A, B, C, r, AIR_TRUE);
+  ret = ellCubic(r, A, B, C, AIR_TRUE);
   ans0 = C + r[0]*(B + r[0]*(A + r[0]));
   switch(ret) {
   case ellCubicRootSingle:

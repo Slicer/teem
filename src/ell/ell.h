@@ -47,14 +47,14 @@ extern int ellDebug;
 extern void ell4mPrint(FILE *f, float s[16]);
 
 /* cubic.c */
-extern int ellCubic(double A, double B, double C, double *root, int polish);
+extern int ellCubic(double root[3], double A, double B, double C, int polish);
 
 /* eigen.c */
-extern void ell3mNullspace1(double n[9], double ans[3]);
-extern void ell3mNullspace2(double n[9], double ans0[3], double ans1[3]);
-extern int ell3mEigenvalues(double m[9], double eval[3], 
+extern void ell3mNullspace1(double ans[3], double n[9]);
+extern void ell3mNullspace2(double ans0[3], double ans1[3], double n[9]);
+extern int ell3mEigenvalues(double eval[3], double m[9], 
 			    int polish);
-extern int ell3mEigensolve(double m[9], double eval[3], double evec[3][3],
+extern int ell3mEigensolve(double eval[3], double evec[9], double m[9],
 			   int polish);
 
 
