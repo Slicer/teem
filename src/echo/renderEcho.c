@@ -226,7 +226,7 @@ echoRayColor(echoCol_t *chan, int samp, echoRay *ray,
   }
 
   intx.boxhits = 0;
-  if (!echoRayIntx(&intx, ray, scene, parm)) {
+  if (!echoRayIntx(&intx, ray, scene, parm, tstate)) {
     if (tstate->verbose) {
       printf("echoRayColor: (nothing was hit)\n");
     }
@@ -325,6 +325,7 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
   ray.shadow = AIR_FALSE;
   img = (echoCol_t *)nraw->data;
   fprintf(stderr, "%s:       ", me);  /* prep for printing airDoneStr */
+  tstate->verbose = AIR_FALSE;
   for (imgVi=0; imgVi<parm->imgResV; imgVi++) {
     imgV = NRRD_POS(nrrdCenterCell, cam->vRange[0], cam->vRange[1],
 		    parm->imgResV, imgVi);
@@ -336,7 +337,6 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
       imgU = NRRD_POS(nrrdCenterCell, cam->uRange[0], cam->uRange[1],
 		      parm->imgResU, imgUi);
 
-      tstate->verbose = AIR_FALSE;
       /*
       tstate->verbose = ( (205 == imgUi && 103 == imgVi) ||
 			  (0 && 150 == imgUi && 232 == imgVi) ||
@@ -372,7 +372,6 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
 	ELL_3V_SCALEADD3(at, 1, imgOrig, tmp0, U, tmp1, V);
 
 	/* do it! */
-	ray.verbose = tstate->verbose;
 	ELL_3V_SUB(ray.dir, at, ray.from);
 	ray.neer = 0.0;
 	ray.faar = ECHO_POS_MAX;

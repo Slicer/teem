@@ -146,7 +146,7 @@ _echoIntxColorPhong(INTXCOLOR_ARGS) {
 	       shRay.dir[0], shRay.dir[1], shRay.dir[2],
 	       shRay.neer, shRay.faar);
       }
-      if (echoRayIntx(&shIntx, &shRay, scene, parm)) {
+      if (echoRayIntx(&shIntx, &shRay, scene, parm, tstate)) {
 	/* the shadow ray hit something, nevermind */
 	if (tstate->verbose) {
 	  printf("       SHADOWED\n");
@@ -267,7 +267,7 @@ _echoIntxColorMetal(INTXCOLOR_ARGS) {
       if (parm->doShadows) {
 	ELL_3V_COPY(shRay.dir, ldir);
 	shRay.faar = ldist;
-	if (_echoRayIntx[scene->type](&shIntx, &shRay, parm, scene)) {
+	if (echoRayIntx(&shIntx, &shRay, parm, scene)) {
 	  /* the shadow ray hit something, nevermind */
 	  continue;
 	}

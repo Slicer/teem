@@ -337,7 +337,6 @@ typedef struct {
 ** all info associated with a ray being intersected against a scene
 */
 typedef struct {
-  int verbose;
   echoPos_t from[3],    /* ray comes from this point */
     dir[3],             /* ray goes in this (not normalized) direction */
     neer, faar;         /* look for intx in this interval */
@@ -434,8 +433,8 @@ extern void echoMatterTextureSet(echoScene *scene, echoObject *obj,
 				 Nrrd *ntext);
 
 /* intx.c ------------------------------------------- */
-extern int echoRayIntx(echoIntx *intx, echoRay *ray,
-		       echoScene *scene, echoRTParm *parm);
+extern int echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene,
+		       echoRTParm *parm, echoThreadState *tstate);
 
 /* renderEcho.c ---------------------------------------- */
 extern int echoThreadStateInit(echoThreadState *tstate,

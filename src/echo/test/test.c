@@ -23,7 +23,7 @@ int
 main(int argc, char **argv) {
   char *me, *err;
   echoScene *scene;
-  echoObject *sph, *list, *split;
+  echoObject *sph, *rect, *list, *split;
   Nrrd *nraw;
   limnCam *cam;
   echoRTParm *parm;
@@ -37,7 +37,7 @@ main(int argc, char **argv) {
   scene = echoSceneNew();
   airMopAdd(mop, scene, (airMopper)echoSceneNix, airMopAlways);
   list = echoObjectNew(scene, echoTypeList);
-  for (I=0; I<60; I++) {
+  for (I=0; I<30; I++) {
     sph = echoObjectNew(scene, echoTypeSphere);
     R = airRand();
     G = airRand();
@@ -46,19 +46,28 @@ main(int argc, char **argv) {
 		  AIR_AFFINE(0, R, 1, -1, 1),
 		  AIR_AFFINE(0, G, 1, -1, 1),
 		  AIR_AFFINE(0, B, 1, -1, 1),
-		  0.2);
+		  0.05);
     echoColorSet(sph, R, G, B, 1.0);
     echoMatterPhongSet(scene, sph, 0, 1, 0, 40);
     echoListAdd(list, sph);
   }
   split = echoListSplit3(scene, list, 10);
   echoObjectAdd(scene, split);
-  sph = echoObjectNew(scene, echoTypeRectangle);
-  echoRectangleSet(sph, 1, -1, -1,
-		   1, 0, 0,
-		   0, 1, 0);
-  echoColorSet(sph, 1, 1, 1, 1);
-  echoMatterLightSet(scene, sph, 1);
+
+  rect = echoObjectNew(scene, echoTypeRectangle);
+  echoRectangleSet(rect, -1, -1, -1,
+		   2, 0, 0,
+		   0, 2, 0);
+  echoColorSet(rect, 1, 1, 1, 1);
+  echoMatterPhongSet(scene, rect, 0, 1, 0, 40);
+  echoObjectAdd(scene, rect);
+
+  rect = echoObjectNew(scene, echoTypeRectangle);
+  echoRectangleSet(rect, -0.25, -0.25, 2,
+		   0.5, 0, 0,
+		   0, 0.5, 0);
+  echoColorSet(rect, 1, 1, 1, 1);
+  echoMatterLightSet(scene, rect, 3);
   
 
   nraw = nrrdNew();
@@ -80,11 +89,11 @@ main(int argc, char **argv) {
   cam->rightHanded = AIR_TRUE;
   cam->uRange[0] = -1.4;  cam->vRange[0] = -1.4;
   cam->uRange[1] =  1.4;  cam->vRange[1] =  1.4;
-  parm->imgResU = parm->imgResV = 256;
-  parm->numSamples = 4;
+  parm->imgResU = parm->imgResV = 600;
+  parm->numSamples = 64;
   parm->jitterType = echoJitterJitter;
   parm->aperture = 0;
-  parm->renderBoxes = AIR_TRUE;
+  parm->renderBoxes = AIR_FALSE;
 
   if (echoRTRender(nraw, cam, scene, parm, gstate)) {
     airMopAdd(mop, err = biffGetDone(ECHO), airFree, airMopAlways);

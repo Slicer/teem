@@ -104,7 +104,7 @@ _echoRayIntx_CubeTest(echoPos_t *tP, int *axP, int *dirP,
 		      echoPos_t xmin, echoPos_t xmax,
 		      echoPos_t ymin, echoPos_t ymax,
 		      echoPos_t zmin, echoPos_t zmax,
-		      echoRay *ray) {
+		      echoRay *ray, echoThreadState *tstate) {
   echoPos_t txmin, tymin, tzmin, txmax, tymax, tzmax,
     dx, dy, dz, ox, oy, oz, tmin, tmax;
   int axmin, axmax, sgn[3];
@@ -123,7 +123,7 @@ _echoRayIntx_CubeTest(echoPos_t *tP, int *axP, int *dirP,
   if (txmax < tymax) { tmax = txmax; axmax = 0; }
   else               { tmax = tymax; axmax = 1; }
   if (tzmax < tmax)  { tmax = tzmax; axmax = 2; }
-  if (0 && ray->verbose) {
+  if (0 && tstate->verbose) {
     printf("%s: dir = (%g,%g,%g); tx: %g,%g ; ty: %g,%g ; tz: %g,%g \n"
 	   "  ---> %g,%g (%d)\n"
 	   "  axmin = %d, axmax = %d\n",
@@ -154,9 +154,9 @@ _echoRayIntx_Cube(RAYINTX_ARGS(Cube)) {
   int ax, dir;
 
   if (!_echoRayIntx_CubeTest(&t, &ax, &dir,
-			    -0.5, 0.5,
-			    -0.5, 0.5,
-			    -0.5, 0.5, ray)) 
+			     -0.5, 0.5,
+			     -0.5, 0.5,
+			     -0.5, 0.5, ray, tstate)) 
     return AIR_FALSE;
   intx->obj = (echoObject *)obj;
   intx->t = t;
@@ -166,7 +166,7 @@ _echoRayIntx_Cube(RAYINTX_ARGS(Cube)) {
   case 2: ELL_3V_SET(intx->norm, 0, 0, dir); break;
   }
   intx->face = ax + 3*(dir + 1)/2;
-  if (0 && ray->verbose) {
+  if (0 && tstate->verbose) {
     printf("%s: ax = %d --> norm = (%g,%g,%g)\n",
 	   "_echoRayIntx_Cube", ax,
 	   intx->norm[0], intx->norm[1], intx->norm[2]);
@@ -302,8 +302,8 @@ _echoRayIntx_TriMesh(RAYINTX_ARGS(TriMesh)) {
   if (!_echoRayIntx_CubeTest(&t, &ax, &dir,
 			    trim->min[0], trim->max[0],
 			    trim->min[1], trim->max[1],
-			    trim->min[2], trim->max[2], ray)) {
-    if (ray->verbose) {
+			    trim->min[2], trim->max[2], ray, tstate)) {
+    if (tstate->verbose) {
       printf("(trimesh bbox (%g,%g,%g) --> (%g,%g,%g) not hit)\n",
 	     trim->min[0], trim->min[1], trim->min[2],
 	     trim->max[0], trim->max[1], trim->max[2]);
@@ -346,9 +346,9 @@ _echoRayIntx_AABBox(RAYINTX_ARGS(AABBox)) {
   if (_echoRayIntx_CubeTest(&t, &ax, &dir,
 			    box->min[0], box->max[0],
 			    box->min[1], box->max[1],
-			    box->min[2], box->max[2], ray)) {
+			    box->min[2], box->max[2], ray, tstate)) {
     intx->boxhits++;
-    ret = _echoRayIntx[box->obj->type](intx, ray, box->obj, parm);
+    ret = _echoRayIntx[box->obj->type](intx, ray, box->obj, parm, tstate);
   } else {
     ret = AIR_FALSE;
   }
@@ -378,7 +378,7 @@ _echoRayIntx_Split(RAYINTX_ARGS(Split)) {
     maxb = obj->max0;
   }
   
-  if (ray->verbose) {
+  if (tstate->verbose) {
     printf("_echoRayIntx_Split (shadow = %d):\n", ray->shadow);
     printf("_echoRayIntx_Split: 1st: (%g,%g,%g) -- (%g,%g,%g) (obj %d)\n", 
 	   mina[0], mina[1], mina[2],
@@ -392,9 +392,9 @@ _echoRayIntx_Split(RAYINTX_ARGS(Split)) {
   if (_echoRayIntx_CubeTest(&t, &ax, &dir,
 			   mina[0], maxa[0],
 			   mina[1], maxa[1],
-			   mina[2], maxa[2], ray)) {
+			   mina[2], maxa[2], ray, tstate)) {
     intx->boxhits++;
-    if (_echoRayIntx[a->type](intx, ray, a, parm)) {
+    if (_echoRayIntx[a->type](intx, ray, a, parm, tstate)) {
       if (ray->shadow) {
 	return AIR_TRUE;
       }
@@ -405,9 +405,9 @@ _echoRayIntx_Split(RAYINTX_ARGS(Split)) {
   if (_echoRayIntx_CubeTest(&t, &ax, &dir,
 			   minb[0], maxb[0],
 			   minb[1], maxb[1],
-			   minb[2], maxb[2], ray)) {
+			   minb[2], maxb[2], ray, tstate)) {
     intx->boxhits++;
-    if (_echoRayIntx[b->type](intx, ray, b, parm)) {
+    if (_echoRayIntx[b->type](intx, ray, b, parm, tstate)) {
       ray->faar = intx->t;
       ret = AIR_TRUE;
     }
@@ -421,24 +421,24 @@ _echoRayIntx_List(RAYINTX_ARGS(List)) {
   echoObject *kid;
 
   ret = AIR_FALSE;
-  if (ray->verbose) {
+  if (tstate->verbose) {
     printf("_echoRayIntx_List(d=%d): have %d kids to test\n",
 	   ray->depth, obj->objArr->len);
   }
   for (i=0; i<obj->objArr->len; i++) {
     kid = obj->obj[i];
-    if (0 && ray->verbose) {
+    if (0 && tstate->verbose) {
       printf("_echoRayIntx_List: testing a %d ... ", kid->type);
     }
-    if (_echoRayIntx[kid->type](intx, ray, kid, parm)) {
+    if (_echoRayIntx[kid->type](intx, ray, kid, parm, tstate)) {
       ray->faar = intx->t;
       ret = AIR_TRUE;
-      if (0 && ray->verbose) {
+      if (0 && tstate->verbose) {
 	printf("YES\n");
       }
     }
     else {
-      if (0 && ray->verbose) {
+      if (0 && tstate->verbose) {
 	printf("YES\n");
       }
     }
@@ -458,7 +458,7 @@ _echoRayIntx_Instance(RAYINTX_ARGS(Instance)) {
   */
   ELL_4V_SET(a, ray->from[0], ray->from[1], ray->from[2], 1);
   ELL_4MV_MUL(b, obj->Mi, a);  ELL_34V_HOMOG(iray.from, b);
-  if (0 && ray->verbose) {
+  if (0 && tstate->verbose) {
     ell4mPRINT(stdout, obj->Mi);
     printf("from (%g,%g,%g)\n   -- Mi --> (%g,%g,%g,%g)\n   --> (%g,%g,%g)\n",
 	   a[0], a[1], a[2],
@@ -467,7 +467,7 @@ _echoRayIntx_Instance(RAYINTX_ARGS(Instance)) {
   }
   ELL_4V_SET(a, ray->dir[0], ray->dir[1], ray->dir[2], 0);
   ELL_4MV_MUL(b, obj->Mi, a);   ELL_3V_COPY(iray.dir, b);
-  if (0 && ray->verbose) {
+  if (0 && tstate->verbose) {
     printf("dir (%g,%g,%g)\n   -- Mi --> (%g,%g,%g,%g)\n   --> (%g,%g,%g)\n",
 	   a[0], a[1], a[2],
 	   b[0], b[1], b[2], b[3], 
@@ -478,12 +478,12 @@ _echoRayIntx_Instance(RAYINTX_ARGS(Instance)) {
   iray.faar = ray->faar;
   iray.depth = ray->depth;
   iray.shadow = ray->shadow;
-  
-  if (_echoRayIntx[obj->obj->type](intx, &iray, obj->obj, parm)) {
+
+  if (_echoRayIntx[obj->obj->type](intx, &iray, obj->obj, parm, tstate)) {
     ELL_4V_SET(a, intx->norm[0], intx->norm[1], intx->norm[2], 0);
     ELL_4MV_TMUL(b, obj->Mi, a);
     ELL_3V_COPY(intx->norm, b);
-    if (ray->verbose) {
+    if (tstate->verbose) {
       printf("hit a %d with M == \n", obj->obj->type);
       ell4mPRINT(stdout, obj->M);
       printf(" (det = %f), and Mi == \n", ell4mDET(obj->M));
@@ -530,14 +530,15 @@ _echoRayIntxUV[ECHO_TYPE_NUM] = {
 
 
 int
-echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene, echoRTParm *parm) {
+echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene,
+	    echoRTParm *parm, echoThreadState *tstate) {
   int idx, ret;
   echoObject *kid;
   
   ret = AIR_FALSE;
   for (idx=0; idx<scene->rendArr->len; idx++) {
     kid = scene->rend[idx];
-    if (_echoRayIntx[kid->type](intx, ray, kid, parm)) {
+    if (_echoRayIntx[kid->type](intx, ray, kid, parm, tstate)) {
       ray->faar = intx->t;
       ret = AIR_TRUE;
     }

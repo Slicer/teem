@@ -50,7 +50,8 @@ extern _echoIntxColor_t _echoIntxColor[/* matter idx */];
 
 /* intx.c */
 #define RAYINTX_ARGS(TYPE) echoIntx *intx, echoRay *ray, \
-                           echo##TYPE *obj, echoRTParm *parm
+                           echo##TYPE *obj, echoRTParm *parm,  \
+                           echoThreadState *tstate
 typedef int (*_echoRayIntx_t)(RAYINTX_ARGS(Object));
 extern _echoRayIntx_t _echoRayIntx[/* object type idx */];
 typedef void (*_echoRayIntxUV_t)(echoIntx *intx);
