@@ -111,7 +111,7 @@ baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
       gthresh = gthrInfo[1]*ninfo->axis[2].max;
     }
     else {
-      if (nrrdProject(nmax, ninfo, 1, nrrdMeasureMax)) {
+      if (nrrdProject(nmax, ninfo, 1, nrrdMeasureMax, nrrdTypeDefault)) {
 	sprintf(err, "%s: couldn't do max projection of 1D histo-info", me);
 	biffAdd(BANE, err); airMopError(mop); return 1;
       }

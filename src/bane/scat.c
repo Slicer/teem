@@ -40,8 +40,8 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
   hA = nrrdNew(); hB = nrrdNew();
   /* create initial projections */
   E = 0;
-  if (!E) E |= nrrdProject(gA, hvol, 1, nrrdMeasureSum);
-  if (!E) E |= nrrdProject(hA, hvol, 0, nrrdMeasureSum);
+  if (!E) E |= nrrdProject(gA, hvol, 1, nrrdMeasureSum, nrrdTypeDefault);
+  if (!E) E |= nrrdProject(hA, hvol, 0, nrrdMeasureSum, nrrdTypeDefault);
   if (E) {
     sprintf(err, "%s: trouble creating raw scatterplots", me);
     biffMove(BANE, err, NRRD); return 1;
