@@ -28,12 +28,15 @@ echoParamNew(void) {
   param->jitter = echoJitterNone;
   param->samples = 1;
   param->shadow = AIR_TRUE;
-  param->recDepth = 1;
+  param->maxRecDepth = 1;
   param->reuseJitter = AIR_FALSE;
   param->permuteJitter = AIR_TRUE;
   param->amR = 1.0;
   param->amG = 1.0;
   param->amB = 1.0;
+  param->mrR = 1.0;
+  param->mrG = 0.0;
+  param->mrB = 1.0;
   param->bgR = 0.0;
   param->bgG = 0.0;
   param->bgB = 0.0;
@@ -41,6 +44,7 @@ echoParamNew(void) {
   param->timeGamma = 6.0;
   param->renderLights = AIR_TRUE;
   param->refDistance = 1.0;
+  param->areaLightHack = 35;
 
   /* these will have to be user-set */
   param->imgResU = param->imgResV = 0;

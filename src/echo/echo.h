@@ -35,11 +35,11 @@
 #if 0
 typedef float echoPos_t;
 #define echoPos_nrrdType nrrdTypeFloat
-#define POS_MAX FLT_MAX
+#define ECHO_POS_MAX FLT_MAX
 #else 
 typedef double echoPos_t;
 #define echoPos_nrrdType nrrdTypeDouble
-#define POS_MAX DBL_MAX
+#define ECHO_POS_MAX DBL_MAX
 #endif
 
 #if 0
@@ -53,7 +53,8 @@ typedef double echoCol_t;
 #define ECHO_AABBOX_OBJECT_MAX 8
 #define ECHO_LIST_OBJECT_INCR 8
 #define ECHO_IMG_CHANNELS 5
-#define ECHO_EPSILON 0.000001
+#define ECHO_EPSILON 0.00001      /* used for adjusting ray positions */
+#define ECHO_NEAR0 0.004          /* used for comparing transparency to zero */
 
 typedef struct {
   /* ray-tracing parameters */
@@ -62,14 +63,16 @@ typedef struct {
     shadow,            /* do shadowing */
     samples,           /* # samples per pixel */
     imgResU, imgResV,  /* horizontal and vertical image resolution */
-    recDepth,          /* max recursion depth */
+    maxRecDepth,       /* max recursion depth */
     reuseJitter,       /* don't recompute jitter offsets per pixel */
     permuteJitter,     /* properly permute the various jitter arrays */
     renderLights;      /* render the area lights */
   float aperture,      /* shallowness of field */
     timeGamma,         /* gamma for values in time image */
-    refDistance;       /* reference distance for 1/(r*r)'ing area lights */
+    refDistance,       /* reference distance for 1/(r*r)'ing area lights */
+    areaLightHack;     /* don't ask */
   echoCol_t
+    mrR, mrG, mrB,     /* color used when max recursion depth is met */
     amR, amG, amB;     /* ambient light color */
 
   /* RGB image generation parameters */
@@ -151,18 +154,19 @@ extern airEnum echoObject;
 
 enum {
   echoObjectUnknown,
-  echoObjectSphere,     /* 1 */
-  echoObjectCube,       /* 2 */
-  echoObjectTriangle,   /* 3 */
-  echoObjectRectangle,  /* 4 */
-  echoObjectTriMesh,    /* 5: only triangles in the mesh */
-  echoObjectIsosurface, /* 6 */
-  echoObjectAABBox,     /* 7 */
-  echoObjectList,       /* 8 */
-  echoObjectInstance,   /* 9 */
+  echoObjectSphere,     /*  1 */
+  echoObjectCube,       /*  2 */
+  echoObjectUnitCube,   /*  3 */
+  echoObjectTriangle,   /*  4 */
+  echoObjectRectangle,  /*  5 */
+  echoObjectTriMesh,    /*  6: only triangles in the mesh */
+  echoObjectIsosurface, /*  7 */
+  echoObjectAABBox,     /*  8 */
+  echoObjectList,       /*  9 */
+  echoObjectInstance,   /* 10 */
   echoObjectLast
 };
-#define ECHO_OBJECT_MAX    9
+#define ECHO_OBJECT_MAX    10
 
 /* function: me, k, intx --> lit color */
 
@@ -189,8 +193,13 @@ typedef struct {
 typedef struct {
   ECHO_OBJECT_COMMON;
   ECHO_OBJECT_MATTER;
-  /* ??? */
+  echoPos_t lo[3], hi[3];
 } EchoObjectCube;
+
+typedef struct {
+  ECHO_OBJECT_COMMON;
+  ECHO_OBJECT_MATTER;
+} EchoObjectUnitCube;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
@@ -203,7 +212,7 @@ typedef struct {
 typedef struct {
   ECHO_OBJECT_COMMON;
   ECHO_OBJECT_MATTER;
-  echoPos_t origin[3], edge0[3], edge1[3];
+  echoPos_t origin[3], edge0[3], edge1[3], area;
 } EchoObjectRectangle;
 
 typedef struct {
@@ -311,6 +320,8 @@ typedef struct {
     near, far;          /* look for intx in this interval */
   int depth,            /* recursion depth */
     shadow;             /* this is a shadow ray */
+  echoCol_t transp;     /* for shadow rays, the transparency so far; starts
+			   at 1.0, goes down to 0.0 */
 } EchoRay;
 
 typedef struct {
@@ -320,6 +331,7 @@ typedef struct {
   echoPos_t norm[3],    /* computed with every intersection */
     view[3],            /* always used with coloring */
     pos[3];             /* always used with coloring (and perhaps texturing) */
+  int depth;            /* the depth of the ray that generated this intx */
   /* ??? extra information for where in tri mesh it hit? */
 } EchoIntx;
 

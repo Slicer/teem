@@ -44,6 +44,7 @@ _echoObject##TYPE##_new(void) {                                  \
 
 NEW_TMPL(Sphere,);
 NEW_TMPL(Cube,);
+NEW_TMPL(UnitCube,);
 NEW_TMPL(Triangle,);
 NEW_TMPL(Rectangle,);
 NEW_TMPL(TriMesh, /* ??? */ );
@@ -74,6 +75,7 @@ _echoObjectNew[ECHO_OBJECT_MAX+1])(void) = {
   NULL,
   (EchoObject *(*)(void))_echoObjectSphere_new,
   (EchoObject *(*)(void))_echoObjectCube_new,
+  (EchoObject *(*)(void))_echoObjectUnitCube_new,
   (EchoObject *(*)(void))_echoObjectTriangle_new,
   (EchoObject *(*)(void))_echoObjectRectangle_new,
   (EchoObject *(*)(void))_echoObjectTriMesh_new,
@@ -121,6 +123,7 @@ NIX_TMPL(Instance,
 EchoObject *(*
 _echoObjectNix[ECHO_OBJECT_MAX+1])(EchoObject *) = {
   NULL,
+  (EchoObject *(*)(EchoObject *))airFree,
   (EchoObject *(*)(EchoObject *))airFree,
   (EchoObject *(*)(EchoObject *))airFree,
   (EchoObject *(*)(EchoObject *))airFree,
@@ -195,6 +198,7 @@ echoObjectRectangleSet(EchoObject *_rect,
     ELL_3V_SET(rect->origin, ogx, ogy, ogz);
     ELL_3V_SET(rect->edge0, e0x, e0y, e0z);
     ELL_3V_SET(rect->edge1, e1x, e1y, e1z);
+    rect->area = ELL_3V_LEN(rect->edge0) * ELL_3V_LEN(rect->edge1);
   }
   return;
 }

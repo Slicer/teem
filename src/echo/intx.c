@@ -25,8 +25,6 @@
                         EchoParam *param, EchoObject##TYPE *obj
 */
 
-#define SET_VIEW(intx, ray) \
-  ELL_3V_SCALE(intx->view, ray->dir, -1)
 #define SET_POS(intx, ray) \
   intx->pos[0] = ray->from[0] + intx->t*ray->dir[0]; \
   intx->pos[1] = ray->from[1] + intx->t*ray->dir[1]; \
@@ -69,22 +67,19 @@ _echoRayIntxSphere(INTX_ARGS(Sphere)) {
 }
 
 void
-_echoRayIntxFinishSphere(EchoIntx *intx, EchoRay *ray, int uvNeed) {
+_echoRayIntxUVSphere(EchoIntx *intx, EchoRay *ray) {
   echoPos_t len, u, v;
 
-  SET_VIEW(intx, ray);
-  if (uvNeed) {
-    ELL_3V_NORM(intx->norm, intx->norm, len);
-    if (intx->norm[0] || intx->norm[1]) {
-      u = atan2(intx->norm[1], intx->norm[0]);
-      intx->u = AIR_AFFINE(-M_PI, u, M_PI, 0.0, 1.0);
-      v = asin(intx->norm[2]);
-      intx->v = AIR_AFFINE(-M_PI/2, v, M_PI/2, 0.0, 1.0);
-    }
-    else {
-      intx->u = 0;
-      intx->v = AIR_AFFINE(-1.0, intx->norm[2], 1.0, 0.0, 1.0);
-    }
+  ELL_3V_NORM(intx->norm, intx->norm, len);
+  if (intx->norm[0] || intx->norm[1]) {
+    u = atan2(intx->norm[1], intx->norm[0]);
+    intx->u = AIR_AFFINE(-M_PI, u, M_PI, 0.0, 1.0);
+    v = asin(intx->norm[2]);
+    intx->v = AIR_AFFINE(-M_PI/2, v, M_PI/2, 0.0, 1.0);
+  }
+  else {
+    intx->u = 0;
+    intx->v = AIR_AFFINE(-1.0, intx->norm[2], 1.0, 0.0, 1.0);
   }
 }
 
@@ -146,13 +141,6 @@ _echoRayIntxRectangle(INTX_ARGS(Rectangle)) {
   return AIR_TRUE;
 }
 
-void
-_echoRayIntxFinishRectangle(EchoIntx *intx, EchoRay *ray, int uvNeed) {
-
-  SET_VIEW(intx, ray);
-  SET_POS(intx, ray);
-}
-		      
 int
 _echoRayIntxTriangle(INTX_ARGS(Triangle)) {
   echoPos_t pvec[3], qvec[3], tvec[3], det, t, u, v, edge0[3], edge1[3];
@@ -174,13 +162,6 @@ _echoRayIntxTriangle(INTX_ARGS(Triangle)) {
   return AIR_TRUE;
 }
 
-void
-_echoRayIntxFinishTriangle(EchoIntx *intx, EchoRay *ray, int uvNeed) {
-
-  SET_VIEW(intx, ray);
-  SET_POS(intx, ray);
-}
-	      
 int
 _echoRayIntxList(INTX_ARGS(List)) {
   int i, ret;
@@ -204,6 +185,12 @@ _echoRayIntxList(INTX_ARGS(List)) {
   return ret;
 }
 
+void
+_echoRayIntxUVNoop(EchoIntx *intx, EchoRay *ray) {
+
+}
+	      
+
 _echoRayIntx_t
 _echoRayIntx[ECHO_OBJECT_MAX+1] = {
   NULL,
@@ -218,13 +205,13 @@ _echoRayIntx[ECHO_OBJECT_MAX+1] = {
   (_echoRayIntx_t)NULL
 };
 
-_echoRayIntxFinish_t
-_echoRayIntxFinish[ECHO_OBJECT_MAX+1] = {
+_echoRayIntxUV_t
+_echoRayIntxUV[ECHO_OBJECT_MAX+1] = {
   NULL,
-  _echoRayIntxFinishSphere,
+  _echoRayIntxUVSphere,
   NULL,
-  _echoRayIntxFinishTriangle,
-  _echoRayIntxFinishRectangle,
+  _echoRayIntxUVNoop,
+  _echoRayIntxUVNoop,
   NULL,
   NULL,
   NULL,
