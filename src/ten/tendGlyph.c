@@ -57,13 +57,11 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   gparm = tenGlyphParmNew();
   airMopAdd(mop, gparm, (airMopper)tenGlyphParmNix, airMopAlways);
 
-  hestOptAdd(&hopt, "g", "glyph shape", airTypeEnum, 1, 1, &(gparm->glyphType),
-	     "box", "shape of glyph to use for display.  Possibilities "
-	     "include \"box\", \"sphere\", \"cylinder\", and "
-	     "\"superquad\"", NULL, tenGlyphType);
-  hestOptAdd(&hopt, "gr", "glyph res", airTypeInt, 1, 1, &(gparm->res),
-	     "10", "resolution of polygonalization of glyphs (all glyphs "
-	     "other than the default box)");
+  /* which points will rendered */
+  hestOptAdd(&hopt, "ctr", "conf thresh", airTypeFloat, 1, 1,
+	     &(gparm->confThresh),
+	     "0.5", "Glyphs will be drawn only for tensors with confidence "
+	     "values greater than this threshold");
   hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &(gparm->anisoType),
 	     "fa", "Which anisotropy metric to use for thresholding the data "
 	     "points to be drawn", NULL, tenAniso);
@@ -71,10 +69,6 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     &(gparm->anisoThresh),
 	     "0.5", "Glyphs will be drawn only for tensors with anisotropy "
 	     "greater than this threshold");
-  hestOptAdd(&hopt, "ctr", "conf thresh", airTypeFloat, 1, 1,
-	     &(gparm->confThresh),
-	     "0.5", "Glyphs will be drawn only for tensors with confidence "
-	     "values greater than this threshold");
   hestOptAdd(&hopt, "m", "mask vol", airTypeOther, 1, 1, &(gparm->nmask), 
 	     "", "Scalar volume for masking region in which glyphs are "
 	     "drawn, in conjunction with \"mtr\" flag.  ", NULL, NULL,
@@ -83,18 +77,23 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     &(gparm->maskThresh),
 	     "0.5", "Glyphs will be drawn only for tensors with mask "
 	     "value greater than this threshold");
-  hestOptAdd(&hopt, "wd", "silo, edge width", airTypeFloat, 3, 3,
-	     gparm->edgeWidth + 2,
-	     "0.8 0.4 0.0", "width of edges drawn for three kinds of glyph "
-	     "edges: silohuette, crease, non-crease");
+
+  /* how glyphs will be shaped and colored */
+  hestOptAdd(&hopt, "g", "glyph shape", airTypeEnum, 1, 1, &(gparm->glyphType),
+	     "box", "shape of glyph to use for display.  Possibilities "
+	     "include \"box\", \"sphere\", \"cylinder\", and "
+	     "\"superquad\"", NULL, tenGlyphType);
+  hestOptAdd(&hopt, "gsc", "scale", airTypeFloat, 1, 1, &(gparm->glyphScale),
+	     "0.01", "over-all glyph size in world-space");
   hestOptAdd(&hopt, "sat", "saturation", airTypeFloat, 1, 1, &(gparm->colSat),
 	     "1.0", "saturation to use on glyph colors (use 0.0 for B+W)");
   hestOptAdd(&hopt, "gam", "gamma", airTypeFloat, 1, 1, &(gparm->colGamma),
 	     "0.7", "gamma to use on color components (after saturation)");
-  hestOptAdd(&hopt, "psc", "scale", airTypeFloat, 1, 1, &(win->scale), "100",
-	     "scaling from unit in screen space to postscript points");
-  hestOptAdd(&hopt, "gsc", "scale", airTypeFloat, 1, 1, &(gparm->glyphScale),
-	     "0.01", "over-all glyph size in world-space");
+  hestOptAdd(&hopt, "emap", "env map", airTypeOther, 1, 1, &emap,
+	     "", "environment map to use for shading glyphs.  By default, "
+	     "there is no shading", NULL, NULL, nrrdHestNrrd);
+
+  /* camera */
   hestOptAdd(&hopt, "fr", "from point", airTypeDouble, 3, 3, cam->from,"4 4 4",
 	     "position of camera, used to determine view vector");
   hestOptAdd(&hopt, "at", "at point", airTypeDouble, 3, 3, cam->at, "0 0 0",
@@ -109,9 +108,19 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "-1 1", "range in U direction of image plane");
   hestOptAdd(&hopt, "vr", "vMin vMax", airTypeDouble, 2, 2, cam->vRange,
 	     "-1 1", "range in V direction of image plane");
-  hestOptAdd(&hopt, "emap", "env map", airTypeOther, 1, 1, &emap,
-	     "", "environment map to use for shading glyphs.  By default, "
-	     "there is no shading", NULL, NULL, nrrdHestNrrd);
+
+  /* postscript-specific options */
+  hestOptAdd(&hopt, "gr", "glyph res", airTypeInt, 1, 1, &(gparm->res),
+	     "10", "resolution of polygonalization of glyphs (all glyphs "
+	     "other than the default box)");
+  hestOptAdd(&hopt, "wd", "3 widths", airTypeFloat, 3, 3,
+	     gparm->edgeWidth + 2,
+	     "0.8 0.4 0.0", "width of edges drawn for three kinds of glyph "
+	     "edges: silohuette, crease, non-crease");
+  hestOptAdd(&hopt, "psc", "scale", airTypeFloat, 1, 1, &(win->scale), "100",
+	     "scaling from unit in screen space to postscript points");
+
+  /* input/output */
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nten, "-",
 	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
