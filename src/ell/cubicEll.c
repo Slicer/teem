@@ -57,8 +57,8 @@ ellCubic(double root[3], double A, double B, double C, int newton) {
     phi = 1.0/3.0*acos(-q/sqrt(-cb_p));
     t = 2*sqrt(-p);
     root[0] = t*cos(phi) - sub;
-    root[1] = -t*cos(phi + M_PI/3.0) - sub;
-    root[2] = -t*cos(phi - M_PI/3.0) - sub;
+    root[1] = t*cos(phi + 2*M_PI/3.0) - sub;
+    root[2] = t*cos(phi - 2*M_PI/3.0) - sub;
     /*
     if (!AIR_EXISTS(root[0])) {
       printf("ellCubic: %g %g %g --> nan!!!\n", A, B, C);
