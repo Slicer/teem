@@ -157,9 +157,6 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const int *min) {
     idxIn, idxOut,           /* linear indices for input and output */
     numLines;                /* number of scanlines in output nrrd */
   char *dataIn, *dataOut, *subCont;
-  double zeros[1024];
-
-  memset(zeros, 0, 1024*sizeof(double));
 
   /* errors */
   if (!(nout && nin && nsub && min)) {
