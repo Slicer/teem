@@ -63,6 +63,7 @@ _hestSetBuff(char *B, hestOpt *O, hestParm *P, int showlong) {
     strcat(B, "]");
 }
 
+/* early version of _hestSetBuff() function */
 #define SETBUFF(B, O) \
   strcat(B, O.flag ? "-" : ""), \
   strcat(B, O.flag ? O.flag : ""), \
@@ -93,7 +94,7 @@ _hestPrintStr(FILE *f, int indent, int already, int width, char *_str,
     ws = airStrtok(!wrd ? str : NULL, " ", &last);
     /* ... but then convert tabs to spaces */
     airStrtrans(ws, '\t', ' ');
-    if (pos + 1 + strlen(ws) <= width) {
+    if (pos + 1 + strlen(ws) <= width - !!bslash) {
       /* if this word would still fit on the current line */
       if (wrd) fprintf(f, " ");
       fprintf(f, "%s", ws);
@@ -222,8 +223,12 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
       strcat(buff, opt[i].info);
     if ((opt[i].min || _hestMax(opt[i].max))
 	&& (!( 2 == opt[i].kind
+	       && airTypeEnum == opt[i].type 
+	       && parm->elideSingleEnumType )) 
+	&& (!( 2 == opt[i].kind
 	       && airTypeOther == opt[i].type 
-	       && parm->elideSingleOtherType )) ) {
+	       && parm->elideSingleOtherType )) 
+	) {
       /* if there are newlines in the info, then we want to clarify the
          type by printing it on its own line */
       if (opt[i].info && strchr(opt[i].info, '\n')) {
@@ -252,9 +257,11 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
 	}
       }
       sprintf(tmpS, "%s%s", 
-	      (airTypeOther == opt[i].type
-	       ? opt[i].CB->type
-	       : airTypeStr[opt[i].type]),
+	      (airTypeEnum == opt[i].type
+	       ? opt[i].enm->name
+	       : (airTypeOther == opt[i].type
+		  ? opt[i].CB->type
+		  : airTypeStr[opt[i].type])),
 	      _hestMax(opt[i].max) > 1 ? "s" : "");
       strcat(buff, tmpS);
       strcat(buff, ")");

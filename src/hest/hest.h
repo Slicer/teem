@@ -19,9 +19,6 @@
 
 #ifndef HEST_HAS_BEEN_INCLUDED
 #define HEST_HAS_BEEN_INCLUDED
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include <stdio.h>
 #include <stddef.h>
@@ -73,6 +70,7 @@ typedef struct {
     *info;              /* description to be printed with "glossary" info */
   int *sawP;            /* used ONLY for multiple variable parameter options
 			   (min < max > 2): storage of # of parsed values */
+  airEnum *enm;         /* used ONLY for airTypeEnum options */
   hestCB *CB;           /* used ONLY for airTypeOther options */
 
   /* --------------------- end of user-defined fields */
@@ -114,10 +112,10 @@ typedef struct {
 typedef struct {
   int verbosity,        /* verbose diagnostic messages to stdout */
     respFileEnable,     /* whether or not to use response files */
-    elideSingleOtherType, /* if type is "other" (based on callbacks),
-			   and if its a single fixed parameter option, then
-			   don't bother printing the type information as
-			   part of hestGlossary() */
+    elideSingleEnumType,  /* if type is airTypeEnum, and if its a single fixed
+			     parameter option, then don't bother printing the
+			     type information as part of hestGlossary() */
+    elideSingleOtherType, /* like above, but for airTypeOther */
     elideSingleNonExistFloatDefault, /* if default for a single fixed
 			   floating point (float or double) parameter doesn't
 			   AIR_EXIST, then don't display the default */
@@ -137,6 +135,7 @@ typedef struct {
 /* defaults.c */
 extern int hestVerbosity;
 extern int hestRespFileEnable;
+extern int hestElideSingleEnumType;
 extern int hestElideSingleOtherType;
 extern int hestElideSingleNonExistFloatDefault;
 extern int hestColumns;
@@ -151,7 +150,8 @@ extern hestParm *hestParmFree(hestParm *parm);
 extern void hestOptAdd(hestOpt **optP, 
 		       char *flag, char *name,
 		       int type, int min, int max,
-		       void *valueP, const char *dflt, const char *info, ...);
+		       void *valueP, const char *dflt, const char *info,
+		       ... /* airEnum* , hestCB* */);
 extern hestOpt *hestOptFree(hestOpt *opt);
 extern int hestOptCheck(hestOpt *opt, char **errP);
 
@@ -167,7 +167,4 @@ extern void hestUsage(FILE *file, hestOpt *opt, char *argv0, hestParm *parm);
 extern void hestGlossary(FILE *file, hestOpt *opt, hestParm *parm);
 extern void hestInfo(FILE *file, char *argv0, char *info, hestParm *parm);
 
-#ifdef __cplusplus
-}
-#endif
 #endif /* HEST_HAS_BEEN_INCLUDED */

@@ -19,9 +19,6 @@
 
 #ifndef HEST_PRIVATE_HAS_BEEN_INCLUDED
 #define HEST_PRIVATE_HAS_BEEN_INCLUDED
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* methods.c */
 extern char *_hestIdent(char *ident, hestOpt *opt, hestParm *parm, int brief);
@@ -38,8 +35,4 @@ extern int _hestMax(int max);
 extern int _hestPanic(hestOpt *opt, char *err, hestParm *parm);
 extern int _hestErrStrlen(hestOpt *opt, int argc, char **argv);
 
-
-#ifdef __cplusplus
-}
-#endif
 #endif /* HEST_HAS_BEEN_INCLUDED */

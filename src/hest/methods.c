@@ -29,6 +29,7 @@ hestParmNew() {
   if (parm) {
     parm->verbosity = hestVerbosity;
     parm->respFileEnable = hestRespFileEnable;
+    parm->elideSingleEnumType = hestElideSingleEnumType;
     parm->elideSingleOtherType = hestElideSingleOtherType;
     parm->elideSingleNonExistFloatDefault = 
       hestElideSingleNonExistFloatDefault;
@@ -54,6 +55,9 @@ _hestOptInit(hestOpt *opt) {
   opt->type = opt->min = opt->max = 0;
   opt->valueP = NULL;
   opt->dflt = opt->info = NULL;
+  opt->sawP = NULL;
+  opt->enm = NULL;
+  opt->CB = NULL;
   opt->sawP = NULL;
   opt->kind = opt->alloc = 0;
 }
@@ -98,14 +102,26 @@ hestOptAdd(hestOpt **optP,
   ret[num].valueP = valueP;
   ret[num].dflt = airStrdup(dflt);
   ret[num].info = airStrdup(info);
+  /* initialize the things that may be set below */
+  ret[num].sawP = NULL;
+  ret[num].enm = NULL;
+  ret[num].CB = NULL;
+  /* deal with var args */
   if (5 == _hestKind(&(ret[num]))) {
     va_start(ap, info);
     ret[num].sawP = va_arg(ap, int*);
     va_end(ap);
   }
-  if (airTypeOther == type) {
+  if (airTypeEnum == type) {
     va_start(ap, info);
     va_arg(ap, int*);  /* skip sawP */
+    ret[num].enm = va_arg(ap, airEnum*);
+    va_end(ap);
+  }
+  if (airTypeOther == type) {
+    va_start(ap, info);
+    va_arg(ap, int*);      /* skip sawP */
+    va_arg(ap, airEnum*);  /* skip enm */
     ret[num].CB = va_arg(ap, hestCB*);
     va_end(ap);
   }
