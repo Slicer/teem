@@ -137,9 +137,6 @@ _miteDomainParse(char *label, gageKind *kind) {
     }
     /* this signifies that its a miteScl, not a gageScl */
     domI += GAGE_SCL_MAX+1;
-    sprintf(err, "%s: sorry, only txf domain variables currently supported "
-	    "are those directly measured by gage", me);
-    biffAdd(MITE, err); return -1;
   }
   return domI;
 }
@@ -226,12 +223,15 @@ miteNtxfCheck(Nrrd *ntxf, gageKind *kind) {
 
 unsigned int
 _miteNtxfQuery(Nrrd *ntxf, gageKind *kind) {
-  int i;
+  int i, dom;
   unsigned int query;
 
   query = 0;
   for (i=1; i<ntxf->dim; i++) {
-    query |= 1 << _miteDomainParse(ntxf->axis[i].label, kind);
+    dom = _miteDomainParse(ntxf->axis[i].label, kind);
+    if (AIR_IN_OP(gageSclUnknown, dom, gageSclLast)) {
+      query |= 1 << dom;
+    }
   }
   return query;
 }
@@ -343,7 +343,12 @@ _miteStageSet(miteThread *mtt, miteRender *mrr, gageKind *kind) {
     for (di=ntxf->dim-1; di>=1; di--) {
       stage = mtt->stage + si;
       dom = _miteDomainParse(ntxf->axis[di].label, kind);
-      stage->val = mtt->ans + kind->ansOffset[dom];
+      if (AIR_IN_OP(gageSclUnknown, dom, gageSclLast)) {
+	stage->val = mtt->ans + kind->ansOffset[dom];
+      } else {
+	dom -= GAGE_SCL_MAX+1;
+	stage->val = mtt->mscl + dom;
+      }
       /*
       fprintf(stderr, "!%s: ans=%p + offset[%d]=%d == %p\n", me,
 	      mtt->ans, dom, kind->ansOffset[dom], stage->val);
