@@ -24,12 +24,12 @@
 ** it is set to either 0 or 1
 */
 
-#if TEEM_DIO == 1
-#  /* its 1 */
+#ifndef TEEM_DIO
+#  error TEEM_DIO not defined, see architecture-specific .mk file or check compilation options
+#elif TEEM_DIO == 1
+#  /* okay, its 1 */
+#elif TEEM_DIO == 0
+#  /* okay, its 0 */
 #else
-#  if TEEM_DIO == 0
-#    /* its 0 */
-#  else
-#    error TEEM_DIO not set to 0 or 1, see architecture-specific .mk file or check compilation options
-#  endif
+#  error TEEM_DIO not set to 1 or 0, see architecture-specific .mk file or check compilation options
 #endif

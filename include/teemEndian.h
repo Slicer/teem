@@ -24,12 +24,12 @@
 ** it is set to either 1234 or 4321
 */
 
-#if TEEM_ENDIAN == 1234
-#  /* its little endian */
+#ifndef TEEM_ENDIAN
+#  error TEEM_ENDIAN not defined, see architecture-specific .mk file or check compilation options
+#elif TEEM_ENDIAN == 1234
+#  /* okay, its little endian */
+#elif TEEM_ENDIAN == 4321
+#  /* okay, its big endian */
 #else
-#  if TEEM_ENDIAN == 4321
-#    /* its big endian */
-#  else
-#    error TEEM_ENDIAN not set to 1234 or 4321, see architecture-specific .mk file or check compilation options
-#  endif
+#  error TEEM_ENDIAN not set to 1234 (little endian) or 4321 (big endian), see architecture-specific .mk file or check compilation options
 #endif

@@ -24,12 +24,12 @@
 ** it is set to either 0 or 1
 */
 
-#if TEEM_32BIT == 1
-#  /* its 1 */
+#ifndef TEEM_32BIT
+#  error TEEM_32BIT not defined, see architecture-specific .mk file or check compilation options
+#elif TEEM_32BIT == 1
+#  /* okay, its 1 */
+#elif TEEM_32BIT == 0
+#  /* okay, its 0 */
 #else
-#  if TEEM_32BIT == 0
-#    /* its 0 */
-#  else
-#    error TEEM_32BIT not set to 0 or 1, see architecture-specific .mk file or check compilation options
-#  endif
+#  error TEEM_32BIT not set to 0 or 1, see architecture-specific .mk file or check compilation options
 #endif
