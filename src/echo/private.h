@@ -38,6 +38,8 @@ extern _echoRayIntxUV_t _echoRayIntxUV[ECHO_OBJECT_MAX+1];
 typedef void (*_echoIntxColor_t) (COLOR_ARGS);
 extern _echoIntxColor_t _echoIntxColor[ECHO_MATTER_MAX+1];
 
+extern int _echoRefract(echoPos_t T[3], echoPos_t V[3],
+			echoPos_t N[3], echoCol_t index);
 
 #endif /*  ECHO_PRIVATE_HAS_BEEN_INCLUDED */
 

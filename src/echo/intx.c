@@ -66,6 +66,23 @@ _echoRayIntxSphere(INTX_ARGS(Sphere)) {
   return AIR_TRUE;
 }
 
+void
+_echoRayIntxUVSphere(EchoIntx *intx, EchoRay *ray) {
+  echoPos_t len, u, v;
+
+  ELL_3V_NORM(intx->norm, intx->norm, len);
+  if (intx->norm[0] || intx->norm[1]) {
+    u = atan2(intx->norm[1], intx->norm[0]);
+    intx->u = AIR_AFFINE(-M_PI, u, M_PI, 0.0, 1.0);
+    v = asin(intx->norm[2]);
+    intx->v = AIR_AFFINE(-M_PI/2, v, M_PI/2, 0.0, 1.0);
+  }
+  else {
+    intx->u = 0;
+    intx->v = AIR_AFFINE(-1.0, intx->norm[2], 1.0, 0.0, 1.0);
+  }
+}
+
 int
 _echoRayIntxCube(INTX_ARGS(Cube)) {
   echoPos_t txmin, tymin, tzmin, txmax, tymax, tzmax,
@@ -114,11 +131,11 @@ _echoRayIntxCube(INTX_ARGS(Cube)) {
     return AIR_FALSE;
   t = tmin;
   ax = axmin;
-  dir = -1;
+  dir = 1;
   if (!AIR_INSIDE(ray->near, t, ray->far)) {
     t = tmax;
     ax = axmax;
-    dir = 1;
+    dir = -1;
     if (!AIR_INSIDE(ray->near, t, ray->far)) {
       return AIR_FALSE;
     }
@@ -130,30 +147,37 @@ _echoRayIntxCube(INTX_ARGS(Cube)) {
   case 1: ELL_3V_SET(intx->norm, 0, dir, 0); break;
   case 2: ELL_3V_SET(intx->norm, 0, 0, dir); break;
   }
-  printf("%s: ax = %d --> norm = (%g,%g,%g)\n",
-	 "_echoRayIntxCube", ax,
-	 intx->norm[0], intx->norm[1], intx->norm[2]);
+  intx->face = ax;
+  if (0 && param->verbose) {
+    printf("%s: ax = %d --> norm = (%g,%g,%g)\n",
+	   "_echoRayIntxCube", ax,
+	   intx->norm[0], intx->norm[1], intx->norm[2]);
+  }
   /* set in intx:
-     yes: t, norm, 
+     yes: t, norm, face
      no: u, v, view, pos
   */
   return AIR_TRUE;
 }
 
 void
-_echoRayIntxUVSphere(EchoIntx *intx, EchoRay *ray) {
-  echoPos_t len, u, v;
+_echoRayIntxUVCube(EchoIntx *intx, EchoRay *ray) {
+  echoPos_t x, y, z;
 
-  ELL_3V_NORM(intx->norm, intx->norm, len);
-  if (intx->norm[0] || intx->norm[1]) {
-    u = atan2(intx->norm[1], intx->norm[0]);
-    intx->u = AIR_AFFINE(-M_PI, u, M_PI, 0.0, 1.0);
-    v = asin(intx->norm[2]);
-    intx->v = AIR_AFFINE(-M_PI/2, v, M_PI/2, 0.0, 1.0);
-  }
-  else {
-    intx->u = 0;
-    intx->v = AIR_AFFINE(-1.0, intx->norm[2], 1.0, 0.0, 1.0);
+  ELL_3V_GET(x, y, z, intx->pos);
+  switch(intx->face) {
+  case 0:
+    intx->u = AIR_AFFINE(-0.5, y, 0.5, 0.0, 1.0);
+    intx->v = AIR_AFFINE(-0.5, z, 0.5, 0.0, 1.0);
+    break;
+  case 1:
+    intx->u = AIR_AFFINE(-0.5, x, 0.5, 0.0, 1.0);
+    intx->v = AIR_AFFINE(-0.5, z, 0.5, 0.0, 1.0);
+    break;
+  case 2:
+    intx->u = AIR_AFFINE(-0.5, x, 0.5, 0.0, 1.0);
+    intx->v = AIR_AFFINE(-0.5, y, 0.5, 0.0, 1.0);
+    break;
   }
 }
 
@@ -283,7 +307,7 @@ _echoRayIntxUV_t
 _echoRayIntxUV[ECHO_OBJECT_MAX+1] = {
   NULL,
   _echoRayIntxUVSphere,
-  NULL,
+  _echoRayIntxUVCube,
   _echoRayIntxUVNoop,
   _echoRayIntxUVNoop,
   NULL,

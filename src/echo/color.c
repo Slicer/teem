@@ -46,15 +46,13 @@ _echoLightColDirArea(COLDIR_ARGS(Area)) {
   jitt = ((echoPos_t *)tstate->njitt->data) + samp*2*ECHO_SAMPLE_NUM;
   x = jitt[0 + 2*echoSampleAreaLight] + 0.5;
   y = jitt[1 + 2*echoSampleAreaLight] + 0.5;
-  at[0] = rect->origin[0] + x*rect->edge0[0] + y*rect->edge1[0];
-  at[1] = rect->origin[1] + x*rect->edge0[1] + y*rect->edge1[1];
-  at[2] = rect->origin[2] + x*rect->edge0[2] + y*rect->edge1[2];
+  ELL_3V_SCALEADD3(at, 1.0, rect->origin, x, rect->edge0, y, rect->edge1);
   ELL_3V_SUB(ldir, at, intx->pos);
   *distP = ELL_3V_LEN(ldir);
   colScale = param->refDistance/(*distP);
   colScale *= colScale*param->areaLightHack*rect->area;
-  ELL_3V_SCALE(lcol, lcol, colScale);
-  ELL_3V_SCALE(ldir, ldir, 1.0/(*distP));
+  ELL_3V_SCALE(lcol, colScale, lcol);
+  ELL_3V_SCALE(ldir, 1.0/(*distP), ldir);
   return;
 }
 
@@ -84,8 +82,7 @@ void
 _echoIntxColorPhong(COLOR_ARGS) {
   echoCol_t *mat,        /* pointer to object's material info */
     oa,                  /* object opacity */
-    dr, dg, db,          /* ambient + diffuse contribution */
-    sr, sg, sb,          /* specular contribution */
+    d[3], s[3],          /* ambient + diffuse, specular */
     ka, kd, ks, sh,      /* phong parameters */
     lcol[3];             /* light color */
   echoPos_t tmp,
@@ -96,8 +93,8 @@ _echoIntxColorPhong(COLOR_ARGS) {
     ldist;               /* distance to light */
   int lt;
   EchoLight *light;
-  EchoRay shRay;         /* (not a pointer) */
-  EchoIntx shIntx;       /* (not a pointer) */
+  EchoRay shRay;
+  EchoIntx shIntx;
 
   shRay.depth = 0;
   shRay.shadow = AIR_TRUE;
@@ -111,14 +108,15 @@ _echoIntxColorPhong(COLOR_ARGS) {
 
   ELL_3V_NORM(norm, intx->norm, tmp);
   ELL_3V_NORM(view, intx->view, tmp);
-  ELL_3V_SCALE(refl, view, -1);
   tmp = 2*ELL_3V_DOT(view, norm);
-  ELL_3V_SCALEADD(refl, norm, tmp);
+  ELL_3V_SCALEADD(refl, -1, view, tmp, norm);
 
-  dr = ka*param->amR;
-  dg = ka*param->amG;
-  db = ka*param->amG;
-  sr = sg = sb = 0.0;
+  d[0] = ka*param->amR;
+  d[1] = ka*param->amG;
+  d[2] = ka*param->amG;
+  s[0] = s[1] = s[2] = 0.0;
+  ELL_3V_COPY(shRay.from, intx->pos);
+  shRay.near = ECHO_EPSILON;
   for (lt=0; lt<lightArr->len; lt++) {
     light = ((EchoLight **)lightArr->data)[lt];
     _echoLightColDir[light->type](lcol, ldir, &ldist, param,
@@ -127,11 +125,7 @@ _echoIntxColorPhong(COLOR_ARGS) {
     if (tmp <= 0)
       continue;
     if (param->shadow) {
-      shRay.from[0] = intx->pos[0] + ECHO_EPSILON*norm[0];
-      shRay.from[1] = intx->pos[1] + ECHO_EPSILON*norm[1];
-      shRay.from[2] = intx->pos[2] + ECHO_EPSILON*norm[2];
       ELL_3V_COPY(shRay.dir, ldir);
-      shRay.near = 0.0;
       shRay.far = ldist;
       if (_echoRayIntx[scene->type](&shIntx, &shRay, param, scene)) {
 	/* the shadow ray hit something, nevermind */
@@ -139,9 +133,7 @@ _echoIntxColorPhong(COLOR_ARGS) {
       }
     }
     tmp *= kd;
-    dr += lcol[0]*tmp;
-    dg += lcol[1]*tmp;
-    db += lcol[2]*tmp;
+    ELL_3V_SCALEADD(d, 1, d, tmp, lcol);
     /* NOTE: by including the specular stuff on this side of the
        "continue", we are disallowing specular highlights on the
        backsides of even semi-transparent surfaces. */
@@ -149,75 +141,233 @@ _echoIntxColorPhong(COLOR_ARGS) {
       tmp = ELL_3V_DOT(ldir, refl);
       if (tmp > 0) {
 	tmp = ks*pow(tmp, sh);
-	sr += lcol[0]*tmp;
-	sg += lcol[1]*tmp;
-	sb += lcol[2]*tmp;
+	ELL_3V_SCALEADD(s, 1, s, tmp, lcol);
       }
     }
   }
   
-  chan[0] = mat[echoMatterR]*dr + sr;
-  chan[1] = mat[echoMatterG]*dg + sg;
-  chan[2] = mat[echoMatterB]*db + sb;
+  chan[0] = mat[echoMatterR]*d[0] + s[0];
+  chan[1] = mat[echoMatterG]*d[1] + s[1];
+  chan[2] = mat[echoMatterB]*d[2] + s[2];
   chan[3] = oa;
+}
+
+void
+_echoFuzzifyNormal(echoPos_t norm[3], echoCol_t fuzz,
+		   echoPos_t *jitt, echoPos_t view[3]) {
+  float tmp, p0[3], p1[3], origNorm[3], j0, j1;
+  int side, newside;
+
+  /* we assume that the incoming normal is actually normalized */
+  ELL_3V_COPY(origNorm, norm);
+  side = (ELL_3V_DOT(view, origNorm) > 0 ? 1 : -1);
+  ell3vPerp_f(p0, origNorm);
+  ELL_3V_NORM(p0, p0, tmp);
+  ELL_3V_CROSS(p1, p0, origNorm);
+  j0 = fuzz*jitt[0 + 2*echoSampleNormal];
+  j1 = fuzz*jitt[1 + 2*echoSampleNormal];
+  ELL_3V_SCALEADD3(norm, 1.0, origNorm, j0, p0, j1, p1);
+  newside = (ELL_3V_DOT(view, norm) > 0 ? 1 : -1);
+  if (side != newside) {
+    ELL_3V_SCALEADD3(norm, 1.0, origNorm, -j0, p0, -j1, p1);
+  }
+  ELL_3V_NORM(norm, norm, tmp);
 }
 
 void
 _echoIntxColorMetal(COLOR_ARGS) {
   echoCol_t *mat,        /* pointer to object's material info */
-    r, g, b,
-    ka, fuzz,
+    RS, RD,
+    d[3],
+    fuzz,
+    lcol[3],
     rfCol[5];         /* color from reflected ray */
-  float               /* since I don't want to branch to call ell3vPerp_? */
-    tmp,
+  echoPos_t tmp,
     view[3],          /* unit-length view vector */
-    norm[3],          /* unit-length normal */
-    p0[3], p1[3];     /* perpendicular to normal */
-  echoPos_t *jitt;    /* fuzzy reflection jittering */
+    norm[3];          /* unit-length normal */
+  echoPos_t *jitt,    /* fuzzy reflection jittering */
+    ldir[3], ldist;
   double c;
-  EchoRay rfRay;         /* (not a pointer) */
+  EchoRay rfRay, shRay;
+  EchoIntx shIntx;
+  int lt;
+  EchoLight *light;
 
   mat = intx->obj->mat;
 
-  ELL_3V_NORM(norm, intx->norm, tmp);
-  rfRay.from[0] = intx->pos[0] + ECHO_EPSILON*norm[0];
-  rfRay.from[1] = intx->pos[1] + ECHO_EPSILON*norm[1];
-  rfRay.from[2] = intx->pos[2] + ECHO_EPSILON*norm[2];
-  fuzz = mat[echoMatterMetalFuzzy];
-  if (fuzz) {
-    ell3vPerp_f(p0, norm);
-    ELL_3V_NORM(p0, p0, tmp);
-    ELL_3V_CROSS(p1, p0, norm);
-    jitt = (echoPos_t *)tstate->njitt->data;
-    tmp = fuzz*jitt[0 + 2*echoSampleNormal];
-    ELL_3V_SCALEADD(norm, p0, tmp);
-    tmp = fuzz*jitt[1 + 2*echoSampleNormal];
-    ELL_3V_SCALEADD(norm, p1, tmp);
-    ELL_3V_NORM(norm, intx->norm, tmp);
+  if (0 && param->verbose) {
+    printf("depth = %d, t = %g\n", intx->depth, intx->t);
   }
+  ELL_3V_NORM(intx->norm, intx->norm, tmp);
   ELL_3V_NORM(view, intx->view, tmp);
-  tmp = 2*ELL_3V_DOT(view, norm);
-  rfRay.dir[0] = -view[0] + tmp*norm[0];
-  rfRay.dir[1] = -view[1] + tmp*norm[1];
-  rfRay.dir[2] = -view[2] + tmp*norm[2];
-  rfRay.near = 0;
+  ELL_3V_COPY(norm, intx->norm);
+  ELL_3V_COPY(rfRay.from, intx->pos);
+  rfRay.near = ECHO_EPSILON;
   rfRay.far = ECHO_POS_MAX;
   rfRay.depth = intx->depth + 1;
   rfRay.shadow = AIR_FALSE;
-
+  fuzz = mat[echoMatterMetalFuzzy];
+  if (fuzz) {
+    jitt = (echoPos_t *)tstate->njitt->data + samp*2*ECHO_SAMPLE_NUM;
+    _echoFuzzifyNormal(norm, fuzz, jitt, view);
+  }
+  tmp = 2*ELL_3V_DOT(view, norm);
+  ELL_3V_SCALEADD(rfRay.dir, -1.0, view, tmp, norm);
   echoRayColor(rfCol, samp, &rfRay, param, tstate, scene, lightArr);
   
-  c = ELL_3V_DOT(norm, view);
-  c = 1 - c;
+  c = 1 - ELL_3V_DOT(norm, view);
   c = c*c*c*c*c;
-  r = mat[echoMatterR];
-  g = mat[echoMatterG];
-  b = mat[echoMatterB];
-  chan[0] = (r + (1 - r)*c)*rfCol[0];
-  chan[1] = (g + (1 - g)*c)*rfCol[1];
-  chan[2] = (b + (1 - b)*c)*rfCol[2];
+  RS = mat[echoMatterMetalR0];
+  RS = RS + (1 - RS)*c;
+  RD = mat[echoMatterMetalKd]*(1-RS);
+  d[0] = d[1] = d[2] = 0.0;
+  if (RD) {
+    /* compute the diffuse component */
+    ELL_3V_COPY(shRay.from, intx->pos);
+    shRay.near = ECHO_EPSILON;
+    for (lt=0; lt<lightArr->len; lt++) {
+      light = ((EchoLight **)lightArr->data)[lt];
+      _echoLightColDir[light->type](lcol, ldir, &ldist, param,
+				    light, samp, intx, tstate);
+      tmp = ELL_3V_DOT(ldir, norm);
+      if (tmp <= 0)
+	continue;
+      if (0 && param->verbose) {
+	printf("light %d: dot = %g\n", lt, tmp);
+      }
+      if (param->shadow) {
+	ELL_3V_COPY(shRay.dir, ldir);
+	shRay.far = ldist;
+	if (_echoRayIntx[scene->type](&shIntx, &shRay, param, scene)) {
+	  /* the shadow ray hit something, nevermind */
+	  continue;
+	}
+      }
+      ELL_3V_SCALEADD(d, 1, d, tmp, lcol);
+    }
+  }
+  chan[0] = mat[echoMatterR]*(RD*d[0] + RS*rfCol[0]);
+  chan[1] = mat[echoMatterG]*(RD*d[1] + RS*rfCol[1]);
+  chan[2] = mat[echoMatterB]*(RD*d[2] + RS*rfCol[2]);
   chan[3] = 1.0;
 
+  return;
+}
+
+/*
+** n == 1, n_t == index 
+*/
+int
+_echoRefract(echoPos_t T[3], echoPos_t V[3],
+	     echoPos_t N[3], echoCol_t index) {
+  echoPos_t cosTh, cosPh, sinPhsq, rad, tmp1, tmp2;
+
+  cosTh = ELL_3V_DOT(V, N);
+  sinPhsq = (1 - cosTh*cosTh)/(index*index);
+  rad = 1 - sinPhsq;
+  if (rad < 0) 
+    return AIR_FALSE;
+  /* else we do not have total internal reflection */
+  cosPh = sqrt(rad);
+  tmp1 = -1.0/index; tmp2 = cosTh/index - cosPh; 
+  ELL_3V_SCALEADD(T, tmp1, V, tmp2, N);
+  return AIR_TRUE;
+}
+
+void
+_echoIntxColorGlass(COLOR_ARGS) {
+  echoCol_t *mat,     /* pointer to object's material info */
+    RS, R0,
+    k[3], r, g, b,
+    fuzz, index,
+    rfCol[5],         /* color from reflected ray */
+    trCol[5];         /* color from transmitted ray */
+  echoPos_t           /* since I don't want to branch to call ell3vPerp_? */
+    tmp,
+    refl[3], tran[3],
+    view[3],          /* unit-length view vector */
+    norm[3];          /* unit-length normal */
+  echoPos_t *jitt;    /* fuzzy reflection jittering */
+  double c;
+  EchoRay trRay, rfRay;
+
+  mat = intx->obj->mat;
+
+  ELL_3V_NORM(intx->norm, intx->norm, tmp);
+  ELL_3V_COPY(norm, intx->norm);
+  ELL_3V_NORM(view, intx->view, tmp);
+  ELL_3V_COPY(trRay.from, intx->pos);
+  ELL_3V_COPY(rfRay.from, intx->pos);
+  trRay.near = rfRay.near = ECHO_EPSILON;
+  trRay.far = rfRay.far = ECHO_POS_MAX;
+  trRay.depth = rfRay.depth = intx->depth + 1;
+  trRay.shadow = rfRay.shadow = AIR_FALSE;
+  fuzz = mat[echoMatterGlassFuzzy];
+  index = mat[echoMatterGlassIndex];
+  if (fuzz) {
+    jitt = (echoPos_t *)tstate->njitt->data + samp*2*ECHO_SAMPLE_NUM;
+    _echoFuzzifyNormal(norm, fuzz, jitt, view);
+  }
+  tmp = ELL_3V_DOT(view, norm);
+  ELL_3V_SCALEADD(refl, -1, view, 2*tmp, norm);
+  if (0 && param->verbose) {
+    printf("(glass; depth = %d)\n", intx->depth);
+    printf("view . norm = %g\n", tmp);
+  }
+  
+  if (tmp > 0) {
+    /* "d.n < 0": we're bouncing off the outside */
+    _echoRefract(tran, view, norm, index);
+    c = tmp;
+    if (0 && param->verbose) {
+      printf("view = (%g,%g,%g)\n",
+	     view[0], view[1], view[2]);
+      printf("tran = (%g,%g,%g)\n",
+	     tran[0], tran[1], tran[2]);
+      printf("c = %g\n", c);
+    }
+    ELL_3V_SET(k, 1, 1, 1);
+  }
+  else {
+    /* we're bouncing off the inside */
+    r = mat[echoMatterR];
+    g = mat[echoMatterG];
+    b = mat[echoMatterB];
+    k[0] = r*exp((r-1)*intx->t);
+    k[1] = g*exp((g-1)*intx->t);
+    k[2] = b*exp((b-1)*intx->t);
+    ELL_3V_SCALE(norm, -1, norm);
+    if (_echoRefract(tran, view, norm, 1/index)) {
+      c = -ELL_3V_DOT(tran, norm);
+    }
+    else {
+      /* holy moly, its total internal reflection time */
+      ELL_3V_COPY(rfRay.dir, refl);
+      echoRayColor(chan, samp, &rfRay, param, tstate, scene, lightArr);
+      chan[0] *= k[0];
+      chan[1] *= k[1];
+      chan[2] *= k[2];
+      return;
+    }
+  }
+  R0 = (index - 1)/(index + 1);
+  R0 *= R0;
+  c = 1 - c;
+  c = c*c*c*c*c;
+  RS = R0 + (1-R0)*c;
+  if (0 && param->verbose) {
+    printf("index = %g, R0 = %g, RS = %g\n", index, R0, RS);
+    printf("k = %g %g %g\n", k[0], k[1], k[2]);
+  }
+  ELL_3V_COPY(rfRay.dir, refl);
+  echoRayColor(rfCol, samp, &rfRay, param, tstate, scene, lightArr);
+  ELL_3V_COPY(trRay.dir, tran);
+  echoRayColor(trCol, samp, &trRay, param, tstate, scene, lightArr);
+  ELL_3V_SCALEADD(chan, RS, rfCol, 1-RS, trCol);
+  chan[0] *= k[0];
+  chan[1] *= k[1];
+  chan[2] *= k[2];
+  chan[3] = 1.0;
   return;
 }
 
@@ -236,7 +386,7 @@ _echoIntxColor_t
 _echoIntxColor[ECHO_MATTER_MAX+1] = {
   _echoIntxColorNone,
   _echoIntxColorPhong,
-  NULL, /* glass */
+  _echoIntxColorGlass,
   _echoIntxColorMetal,
   _echoIntxColorLight,
 };
@@ -260,27 +410,30 @@ echoMatterPhongSet(EchoObject *obj,
 void
 echoMatterGlassSet(EchoObject *obj,
 		   echoCol_t r, echoCol_t g, echoCol_t b,
-		   echoCol_t fuzzy, echoCol_t index, echoCol_t ka) {
+		   echoCol_t index, echoCol_t kd, echoCol_t fuzzy) {
 
   obj->matter = echoMatterGlass;
   obj->mat[echoMatterR] = r;
   obj->mat[echoMatterG] = g;
   obj->mat[echoMatterB] = b;
-  obj->mat[echoMatterKa] = ka;
-  obj->mat[echoMatterGlassFuzzy] = fuzzy;
+  obj->mat[echoMatterKa] = 0.0;
   obj->mat[echoMatterGlassIndex] = index;
+  obj->mat[echoMatterGlassKd] = kd;
+  obj->mat[echoMatterGlassFuzzy] = fuzzy;
 }
 
 void
 echoMatterMetalSet(EchoObject *obj,
 		   echoCol_t r, echoCol_t g, echoCol_t b,
-		   echoCol_t fuzzy, echoCol_t ka) {
+		   echoCol_t R0, echoCol_t kd, echoCol_t fuzzy) {
 
   obj->matter = echoMatterMetal;
   obj->mat[echoMatterR] = r;
   obj->mat[echoMatterG] = g;
   obj->mat[echoMatterB] = b;
-  obj->mat[echoMatterKa] = ka;
+  obj->mat[echoMatterKa] = 0.0;
+  obj->mat[echoMatterMetalR0] = R0;
+  obj->mat[echoMatterMetalKd] = kd;
   obj->mat[echoMatterMetalFuzzy] = fuzzy;
 }
 

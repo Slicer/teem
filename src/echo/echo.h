@@ -66,7 +66,8 @@ typedef struct {
     maxRecDepth,       /* max recursion depth */
     reuseJitter,       /* don't recompute jitter offsets per pixel */
     permuteJitter,     /* properly permute the various jitter arrays */
-    renderLights;      /* render the area lights */
+    renderLights,      /* render the area lights */
+    seedRand;          /* call airSrand() (don't if repeatability wanted) */
   float aperture,      /* shallowness of field */
     timeGamma,         /* gamma for values in time image */
     refDistance,       /* reference distance for 1/(r*r)'ing area lights */
@@ -137,11 +138,14 @@ enum {
   echoMatterPhongAlpha  /* 7 */
 };
 enum {
-  echoMatterGlassFuzzy   = 4,
-  echoMatterGlassIndex  /* 5 */
+  echoMatterGlassIndex   = 4,
+  echoMatterGlassKd,    /* 5 */
+  echoMatterGlassFuzzy  /* 6 */
 };
 enum {
-  echoMatterMetalFuzzy   = 4
+  echoMatterMetalR0      = 4,
+  echoMatterMetalKd,    /* 5 */
+  echoMatterMetalFuzzy  /* 6 */
 };
 
 #define ECHO_MATTER_VALUE_NUM 8
@@ -325,7 +329,7 @@ typedef struct {
     view[3],            /* always used with coloring */
     pos[3];             /* always used with coloring (and perhaps texturing) */
   int depth;            /* the depth of the ray that generated this intx */
-  /* ??? extra information for where in tri mesh it hit? */
+  int face;
 } EchoIntx;
 
 extern int echoComposite(Nrrd *nimg, Nrrd *nraw, EchoParam *param);
@@ -349,12 +353,13 @@ extern void echoMatterPhongSet(EchoObject *obj,
 			       echoCol_t ks, echoCol_t sh);
 extern void echoMatterGlassSet(EchoObject *obj,
 			       echoCol_t r, echoCol_t g, echoCol_t b,
-			       echoCol_t fuzzy, echoCol_t index, echoCol_t ka);
+			       echoCol_t index, echoCol_t kd, echoCol_t fuzzy);
 extern void echoMatterMetalSet(EchoObject *obj,
 			       echoCol_t r, echoCol_t g, echoCol_t b,
-			       echoCol_t fuzzy, echoCol_t ka);
+			       echoCol_t R0, echoCol_t kd, echoCol_t fuzzy);
 extern void echoMatterLightSet(EchoObject *obj,
 			       echoCol_t r, echoCol_t g, echoCol_t b);
+
 
 
 #endif /* ECHO_HAS_BEEN_INCLUDED */
