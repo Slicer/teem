@@ -20,7 +20,7 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-int
+const int
 _nrrdWriteHexTable[16] = {
   '0', '1', '2', '3', '4', '5', '6', '7',
   '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
@@ -31,7 +31,7 @@ _nrrdWriteHexTable[16] = {
 ** -1: whitespace
 ** [0,15]: values
 */
-int
+const int
 _nrrdReadHexTable[128] = {
 /* 0   1   2   3   4   5   6   7   8   9 */
   -2, -2, -2, -2, -2, -2, -2, -2, -2, -1,  /*   0 */

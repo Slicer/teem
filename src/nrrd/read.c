@@ -376,13 +376,14 @@ nrrdLoad (Nrrd *nrrd, const char *filename, NrrdIO *nio) {
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   
-  if (nrrdFormatNRRD == nio->format) {
-    if (nio->keepNrrdDataFileOpen && file != nio->dataFile) {
-      /* we have to keep the datafile open.  If was attached, we can't
-	 close file, because that is the datafile.  If was detached,
-	 file != nio->dataFIle, we we can close file.  */
-      airFclose(file);
-    }
+  if (nrrdFormatNRRD == nio->format
+      && nio->keepNrrdDataFileOpen && file == nio->dataFile ) {
+    /* we have to keep the datafile open.  If was attached, we can't
+       close file, because that is the datafile.  If was detached,
+       file != nio->dataFile, so we can close file.  */
+  } else {
+    /* always close non-NRRD files */
+    airFclose(file);
   }
 
   airMopOkay(mop);

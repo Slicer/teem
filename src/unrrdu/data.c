@@ -77,6 +77,7 @@ unrrdu_dataMain(int argc, char **argv, char *me, hestParm *hparm) {
     fputc(car, stdout);
     car = fgetc(nio->dataFile);
   }
+  airFclose(nio->dataFile);
   
   airMopOkay(mop);
   return 0;

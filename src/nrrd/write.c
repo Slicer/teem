@@ -277,6 +277,13 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
     *strP = malloc(fslen + 20);
     sprintf(*strP, "%s%s: %d", prefix, fs, nrrd->blockSize);
     break;
+  case nrrdField_min:
+  case nrrdField_max:
+    /* we're basically a no-op, now that these fields became meaningless */
+    *strP = malloc(fslen + 30);
+    sprintf(*strP, "%s%s: 0.0", prefix, fs);
+    strcat(*strP, buff);
+    break;
   case nrrdField_old_min:
     *strP = malloc(fslen + 30);
     sprintf(*strP, "%s%s: ", prefix, fs);
