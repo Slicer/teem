@@ -69,3 +69,5 @@ nrrd.XTERN += PNG
 ## link lines, respectively.
 PTHREAD.LINK = -lpthread
 air.XTERN += PTHREAD
+alan.XTERN += PTHREAD     ## this is a total hack!
+hoover.XTERN += PTHREAD   ## this isn't actually necessary now
