@@ -59,22 +59,6 @@ _nrrdMeasrMax(void *line, int lineType, int len, float axmin, float axmax,
 }
 
 void
-_nrrdMeasrAbsMax(void *line, int lineType, int len, float axmin, float axmax, 
-		 void *ans, int ansType) {
-  double val, max;
-  int i;
-
-  max = nrrdDLookup[lineType](line, 0);
-  max = AIR_ABS(max);
-  for (i=1; i<=len-1; i++) {
-    val = nrrdDLookup[lineType](line, i);
-    val = AIR_ABS(val);
-    max = AIR_MAX(max, val);
-  }
-  nrrdDStore[ansType](ans, max);
-}
-
-void
 _nrrdMeasrProduct(void *line, int lineType, int len, float axmin, float axmax,
 		  void *ans, int ansType) {
   double val, prod;
@@ -408,7 +392,6 @@ void (*nrrdMeasr[NRRD_MEASR_MAX+1])(void *, int, int, float, float,
   _nrrdMeasrUnknown,
   _nrrdMeasrMin,
   _nrrdMeasrMax,
-  _nrrdMeasrAbsMax,
   _nrrdMeasrProduct,
   _nrrdMeasrSum,
   _nrrdMeasrMean,
@@ -433,7 +416,6 @@ _nrrdMeasureType(Nrrd *nin, int measr) {
 
   switch(measr) {
   case nrrdMeasrMin:
-  case nrrdMeasrAbsMax:
   case nrrdMeasrMax:
   case nrrdMeasrMedian:
   case nrrdMeasrMode:

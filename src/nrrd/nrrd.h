@@ -258,32 +258,31 @@ typedef enum {
 ** ways to "measure" some portion of the array
 ** NEEDS TO BE IN SYNC WITH nrrdMeasr array in measr.c
 */
-#define NRRD_MEASR_MAX 19
+#define NRRD_MEASR_MAX 18
 typedef enum {
   nrrdMeasrUnknown,          /* 0: nobody knows */
   nrrdMeasrMin,              /* 1: smallest value */
   nrrdMeasrMax,              /* 2: biggest value */
-  nrrdMeasrAbsMax,           /* 3: take your abs to the max */
-  nrrdMeasrProduct,          /* 4: product of all values */
-  nrrdMeasrSum,              /* 5: sum of all values */
-  nrrdMeasrMean,             /* 6: average of values */
-  nrrdMeasrMedian,           /* 7: value at 50th percentile */
-  nrrdMeasrMode,             /* 8: most common value */
-  nrrdMeasrL1,               /* 9 */
-  nrrdMeasrL2,               /* 10 */
-  nrrdMeasrLinf,             /* 11 */
+  nrrdMeasrProduct,          /* 3: product of all values */
+  nrrdMeasrSum,              /* 4: sum of all values */
+  nrrdMeasrMean,             /* 5: average of values */
+  nrrdMeasrMedian,           /* 6: value at 50th percentile */
+  nrrdMeasrMode,             /* 7: most common value */
+  nrrdMeasrL1,               /* 8 */
+  nrrdMeasrL2,               /* 9 */
+  nrrdMeasrLinf,             /* 10 */
   /* 
   ** these nrrdMeasrHisto* measures interpret the array as a histogram
   ** of some implied value distribution
   */
-  nrrdMeasrHistoMin,         /* 12 */
-  nrrdMeasrHistoMax,         /* 13 */
-  nrrdMeasrHistoProduct,     /* 14 */
-  nrrdMeasrHistoSum,         /* 15 */
-  nrrdMeasrHistoMean,        /* 16 */
-  nrrdMeasrHistoMedian,      /* 17 */
-  nrrdMeasrHistoMode,        /* 18 */
-  nrrdMeasrHistoVariance,    /* 19 */
+  nrrdMeasrHistoMin,         /* 11 */
+  nrrdMeasrHistoMax,         /* 12 */
+  nrrdMeasrHistoProduct,     /* 13 */
+  nrrdMeasrHistoSum,         /* 14 */
+  nrrdMeasrHistoMean,        /* 15 */
+  nrrdMeasrHistoMedian,      /* 16 */
+  nrrdMeasrHistoMode,        /* 17 */
+  nrrdMeasrHistoVariance,    /* 18 */
   nrrdMeasrLast
 } nrrdMeasrs;
 
