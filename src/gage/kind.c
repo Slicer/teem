@@ -1,0 +1,128 @@
+/*
+  teem: Gordon Kindlmann's research software
+  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
+#include "gage.h"
+#include "privateGage.h"
+
+/*
+******** gageKindCheck
+**
+** some some basic checking of the gageEntryItem array (the "table") for
+** the sorts of mistakes that may be introduced by its hand-coding, although
+** theoretically this is good for dynamically-generated gageKinds as well.
+*/
+int
+gageKindCheck(gageKind *kind) {
+  char me[]="gageKindCheck", err[AIR_STRLEN_MED];
+  int ii, pitem, pindex, alen;
+
+  if (!kind) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  if (kind->itemMax > GAGE_ITEM_MAX) {
+    sprintf(err, "%s: kind \"%s\" item max %d > GAGE_ITEM_MAX %d", 
+	    me, kind->name, kind->itemMax, GAGE_ITEM_MAX);
+    biffAdd(GAGE, err); return 1;
+  }
+  for (ii=0; ii<=kind->itemMax; ii++) {
+    if (ii != kind->table[ii].enumVal) {
+      sprintf(err, "%s: item %d of kind \"%s\" has enumVal %d (not %d)",
+	      me, ii, kind->name, kind->table[ii].enumVal, ii);
+      biffAdd(GAGE, err); return 1;
+    }
+    alen = kind->table[ii].answerLength;
+    if (!(1 <= alen)) {
+      sprintf(err, "%s: item %d of kind \"%s\" has invalid answerLength %d",
+	      me, ii, kind->name, alen);
+      biffAdd(GAGE, err); return 1;
+    }
+    if (!(AIR_IN_CL(0, kind->table[ii].needDeriv, 2))) {
+      sprintf(err, "%s: item %d of kind \"%s\" has invalid needDeriv %d",
+	      me, ii, kind->name, kind->table[ii].needDeriv);
+      biffAdd(GAGE, err); return 1;
+    }
+    pitem = kind->table[ii].parentItem;
+    pindex = kind->table[ii].parentIndex;
+    if (-1 != pitem) {
+      if (-1 != kind->table[pitem].parentItem) {
+	sprintf(err, "%s: item %d of kind \"%s\" has parent %d which "
+		"wants to have parent %d: can't have sub-sub-items", 
+		me, ii, kind->name, pitem, kind->table[pitem].parentItem);
+	biffAdd(GAGE, err); return 1;
+      }
+      if (!( 0 <= pindex
+	     && (pindex + alen <= kind->table[pitem].answerLength) )) {
+	sprintf(err, "%s: item %d of kind \"%s\" wants index range [%d,%d] "
+		"of parent %d, which isn't in valid range [0,%d]",
+		me, ii, kind->name,
+		pindex, pindex + alen - 1,
+		pitem, kind->table[pitem].answerLength - 1);
+	biffAdd(GAGE, err); return 1;
+      }
+    }
+  }  
+  return 0;
+}
+
+int
+gageKindTotalAnswerLength(gageKind *kind) {
+  char me[]="gageKindTotalAnswerLength", *err;
+  int ii, alen;
+
+  if (gageKindCheck(kind)) {
+    err = biffGetDone(GAGE); 
+    fprintf(stderr, "%s: PANIC:\n %s", me, err);
+    free(err); exit(1);
+  }
+  alen = 0;
+  for (ii=0; ii<=kind->itemMax; ii++) {
+    alen += (-1 == kind->table[ii].parentItem
+	     ? kind->table[ii].answerLength
+	     : 0);
+  }
+  return alen;
+}
+
+int
+_gageKindAnswerOffset(gageKind *kind, int item) {
+
+  return (item
+	  ? (kind->table[item-1].answerLength 
+	     + _gageKindAnswerOffset(kind, item-1))
+	  : 0);
+}
+
+int
+gageKindAnswerOffset(gageKind *kind, int item) {
+  char me[]="gageKindAnswerOffset", *err;  
+  
+  if (gageKindCheck(kind)) {
+    err = biffGetDone(GAGE); 
+    fprintf(stderr, "%s: PANIC:\n %s", me, err);
+    free(err); exit(1);
+  }
+
+  /* here's why its important that there are no sub-sub-items */
+  return (-1 == kind->table[item].parentItem
+	  ? _gageKindAnswerOffset(kind, item)
+	  : (kind->table[item].parentIndex
+	     + _gageKindAnswerOffset(kind, kind->table[item].parentItem)));
+}
+
