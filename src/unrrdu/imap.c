@@ -38,7 +38,7 @@ imapMain(int argc, char **argv, char *me) {
   char *out, *err;
   Nrrd *nin, *nmap, *nout;
   airArray *mop;
-  int mapax, rescale;
+  int rescale;
 
   OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "m", "map", airTypeOther, 1, 1, &nmap, NULL,
@@ -59,7 +59,6 @@ imapMain(int argc, char **argv, char *me) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  mapax = nmap->dim - 1;
   if (rescale) {
     nrrdMinMaxCleverSet(nin);
   }
