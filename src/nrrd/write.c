@@ -124,10 +124,10 @@ _nrrdFieldInteresting (Nrrd *nrrd, NrrdIO *io, int field) {
     ret = io->seperateHeader;
     break;
   case nrrdField_line_skip:
-    ret = AIR_FALSE;
+    ret = io->lineSkip > 0;
     break;
   case nrrdField_byte_skip:
-    ret = AIR_FALSE;
+    ret = io->byteSkip > 0;
     break;
   }
 
