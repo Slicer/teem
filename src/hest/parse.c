@@ -647,8 +647,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
     airMopAdd(mop, err, airFree, airMopAlways);
   }
 
-
-  /* -------- check on validity of the hest array */
+  /* -------- check on validity of the hestOpt array */
   if (_hestPanic(opt, err, parm)) {
     airMopDone(mop, AIR_TRUE); return 1;
   }

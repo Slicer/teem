@@ -22,6 +22,7 @@ extern "C" {
 #endif
 
 #include <stdio.h>
+#include <stdarg.h>
 #include <air.h>
 
 /*
@@ -95,6 +96,12 @@ extern char hestRespFileComment;
 /* methods.c */
 extern hestParm *hestParmNew(void);
 extern hestParm *hestParmNix(hestParm *parm);
+extern hestOpt *hestOptNew(void);
+extern hestOpt *hestOptAdd(hestOpt *opt, 
+			   char *flag, char *name,
+			   int type, int min, int max,
+			   void *valueP, char *dflt, char *info, ...);
+extern hestOpt *hestOptNix(hestOpt *opt);
 
 /* usage.c */
 extern void hestInfo(FILE *file, char *argv0, char *info, hestParm *parm);

@@ -76,7 +76,7 @@ hestOptAdd(hestOpt *opt,
     return NULL;
 
   num = _hestNumOpts(opt);
-  if (!(ret = calloc(num+1, sizeof(hestOpt))))
+  if (!(ret = calloc(num+2, sizeof(hestOpt))))
     return NULL;
 
   if (num)

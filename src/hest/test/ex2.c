@@ -22,42 +22,51 @@
 
 int
 main(int argc, char **argv) {
-  int res[2], v, numIn;
-  char **in, *out;
+  static int res[2], v, numIn;
+  static char **in, *out;
   int n;
-  hestOpt opt[] = {
-    {"res",   "sx sy", airTypeInt,    2,  2,   res,  "640 480",
-     "image resolution"},
-    {"v",     "level", airTypeInt,    0,  1,   &v,   "0",
-     "verbosity level"},
-    {"out",   "file",  airTypeString, 1,  1,   &out, "output.ppm",
-     "PPM image output"},
-    {NULL,    "file",  airTypeString, 1, -1,   &in,  NULL,
-     "input image file(s)", &numIn},
-    {NULL, NULL, 0}
-  };
-  char err[AIR_STRLEN_HUGE], info[] = 
+  hestOpt *opt;
+  hestParm *parm;
+  char *err = NULL, info[] = 
     "This program does nothing in particular, though it does attempt "
     "to pose as some sort of command-line image processing program. "
     "As usual, any implied functionality is purely coincidental, "
     "especially since this is the output of a unicyclist.";
 
+  parm = hestParmNew();
+  parm->respFileEnable = AIR_TRUE;
+
+  opt = hestOptNew();
+  opt = hestOptAdd(opt, "res",   "sx sy", airTypeInt,    2,  2,   res,
+		   NULL,         "image resolution");
+  opt = hestOptAdd(opt, "v",     "level", airTypeInt,    0,  1,   &v,
+		   "0",          "verbosity level");
+  opt = hestOptAdd(opt, "out",   "file",  airTypeString, 1,  1,   &out,
+		   "output.ppm", "PPM image output");
+  opt = hestOptAdd(opt, NULL,    "input", airTypeString, 1, -1,   &in,
+		   NULL,         "input image file(s)", &numIn);
+  
   if (1 == argc) {
     /* didn't get anything at all on command line */
-    hestInfo(stderr, argv[0], info, NULL);
-    hestUsage(stderr, opt, argv[0], NULL);
-    hestGlossary(stderr, opt, NULL);
+    hestInfo(stderr, argv[0], info, parm);
+    hestUsage(stderr, opt, argv[0], parm);
+    hestGlossary(stderr, opt, parm);
+    opt = hestOptNix(opt);
+    parm = hestParmNix(parm);
     exit(1);
   }
 
   /* else we got something, see if we can parse it */
-  if (hestParse(opt, argv+1, err, NULL)) {
-    printf("ERROR: %s\n", err);
-    hestUsage(stderr, opt, argv[0], NULL);
-    hestGlossary(stderr, opt, NULL);
+  if (hestParse(opt, argc-1, argv+1, NULL, parm)) {
+    fprintf(stderr, "ERROR: %s\n", err);
+    hestUsage(stderr, opt, argv[0], parm);
+    hestGlossary(stderr, opt, parm);
+    opt = hestOptNix(opt);
+    parm = hestParmNix(parm);
     exit(1);
   }
-
+  
+  printf("(err = %s)\n", err);
   printf("res = %d %d\n", res[0], res[1]);
   printf("  v = %d\n", v);
   printf("out = \"%s\"\n", out);
@@ -67,6 +76,8 @@ main(int argc, char **argv) {
   }
   printf("\n");
 
-  hestFree(opt, NULL);
+  hestParseFree(opt, parm);
+  opt = hestOptNix(opt);
+  parm = hestParmNix(parm);
   exit(0);
 }
