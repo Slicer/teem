@@ -269,7 +269,7 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, int bits) {
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   if (nrrdStateDisallowIntegerNonExist && range->hasNonExist) {
     sprintf(err, "%s: can't quantize non-existent values (NaN, +/-inf)", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   
   /* allocate space if necessary */
@@ -278,7 +278,7 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, int bits) {
      nout==nin if type sizes match */
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
     sprintf(err, "%s: failed to create output", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 
   /* the skinny */
@@ -325,10 +325,11 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, int bits) {
   nout->oldMax = maxIn;
   if (nrrdContentSet(nout, func, nin, "%d", bits)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   nout->blockSize = 0;
 
+  airMopOkay(mop); 
   return 0;
 }
 
@@ -560,6 +561,7 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
     }
     /* now create the histogram */
     range = nrrdRangeNewSet(nin, nrrdBlind8BitRangeState);
+    airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
     if (range->min == range->max) {
       sprintf(err, "%s: invalid min and max in nrrd.  "
 	      "Min and max are equivalent (min,max = %g).", me, range->min);

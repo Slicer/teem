@@ -305,6 +305,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   float fracIncluded;
   unsigned char *nhvdata;
   Nrrd *rawhvol;
+  airArray *mop;
 
   if (!(hvol && nin && hvp)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -320,15 +321,16 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   sy = nin->axis[1].size;
   sz = nin->axis[2].size;
 
-  /* create the gageSimple and initialize it */
+  mop = airMopNew();
   ctx = gageContextNew();
+  airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
   pvl = gagePerVolumeNew(ctx, nin, gageKindScl);
   gageParmSet(ctx, gageParmVerbose, 0);
   gageParmSet(ctx, gageParmRenormalize, hvp->renormalize);
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   if (!hvp->k3pack) {
     sprintf(err, "%s: code currently assumes k3pack", me);
-    biffAdd(BANE, err); return 1;
+    biffAdd(BANE, err); airMopError(mop); return 1;
   }
   gageParmSet(ctx, gageParmK3Pack, hvp->k3pack);
   E = 0;
@@ -345,13 +347,13 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   if (!E) E |= gageUpdate(ctx);
   if (E) {
     sprintf(err, "%s: trouble setting up gage", me);
-    biffMove(BANE, err, GAGE); return 1;
+    biffMove(BANE, err, GAGE); airMopError(mop); return 1;
   }
   pad = GAGE_FR(ctx);
   
   if (baneFindInclusion(min, max, nin, hvp, ctx)) {
     sprintf(err, "%s: trouble finding inclusion ranges", me);
-    biffAdd(BANE, err); return 1;
+    biffAdd(BANE, err); airMopError(mop); return 1;
   }
   if (max[0] == min[0]) {
     max[0] += 1;
@@ -386,8 +388,9 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   if (nrrdMaybeAlloc(rawhvol=nrrdNew(), nrrdTypeInt, 3, shx, shy, shz)) {
     sprintf(err, "%s: couldn't allocate raw histovol (%dx%dx%d)", me,
 	    shx, shy, shz);
-    biffMove(BANE, err, NRRD); return 1;
+    biffMove(BANE, err, NRRD); airMopError(mop); return 1;
   }
+  airMopAdd(mop, rawhvol, (airMopper)nrrdNuke, airMopAlways);
   rhvdata = rawhvol->data;
   included = 0;
   
@@ -420,7 +423,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   if (fracIncluded < hvp->incLimit) {
     sprintf(err, "%s: included only %g%% of data, wanted at least %g%%",
 	    me, 100*fracIncluded, 100*hvp->incLimit);
-    biffAdd(BANE, err); return 1;
+    biffAdd(BANE, err); airMopError(mop); return 1;
   }
   if (hvp->verbose) {
     fprintf(stderr, "\b\b\b\b\b\b  done\n");
@@ -432,7 +435,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   clipVal = hvp->clip->ans(rawhvol, hvp->clipParm);
   if (-1 == clipVal) {
     sprintf(err, "%s: trouble determining clip value", me);
-    biffAdd(BANE, err); return 1;
+    biffAdd(BANE, err); airMopError(mop); return 1;
   }
   if (hvp->verbose)
     fprintf(stderr, "%s: will clip at %d\n", me, clipVal);
@@ -442,8 +445,9 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   }
   if (nrrdMaybeAlloc(hvol, nrrdTypeUChar, 3, shx, shy, shz)) {
     sprintf(err, "%s: couldn't alloc finished histovol", me);
-    biffMove(BANE, err, NRRD); return 1;
+    biffMove(BANE, err, NRRD); airMopError(mop); return 1;
   }
+  airMopAdd(mop, hvol, (airMopper)nrrdEmpty, airMopOnError);
   hvol->axis[0].min = min[0];
   hvol->axis[1].min = min[1];
   hvol->axis[2].min = min[2];
@@ -473,8 +477,8 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   }
   if (hvp->verbose)
     fprintf(stderr, "\b\b\b\b\b\b  done\n");
-  nrrdNuke(rawhvol);
 
+  airMopOkay(mop); 
   return 0;
 }
 
