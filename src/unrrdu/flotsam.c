@@ -77,6 +77,20 @@ unuUsage(char *me, hestParm *hparm) {
 ** For parsing position along an axis. Can be a simple integer,
 ** or M to signify last position along axis (#samples-1), or
 ** M+<int> or M-<int> to signify some position relative to the end.
+**
+** It can also be m+<int> to signify some position relative to some
+** "minimum", assuming that a minimum position is being specified
+** at the same time as this one.  Obviously, there has to be some 
+** error handling to make sure that no one is trying to define a
+** minimum position with respect to itself.  And, the ability to
+** specify a position as "m+<int>" shouldn't be advertised in situations
+** (unu slice) where you only have one position, rather than an interval
+** between two positions (unu crop and unu pad).
+**
+** This information is represented with two integers, pos[0] and pos[1]:
+** pos[0] ==  0: pos[1] gives the absolute position
+** pos[0] ==  1: pos[1] gives the position relative to the last index
+** pos[0] == -1: pos[1] gives the position relative to a "minimum" position
 */
 int
 unuParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
@@ -94,21 +108,39 @@ unuParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     return 0;
   }
   if ('M' == str[0]) {
-    if (!('-' == str[1] || '+' == str[1])) {
-      sprintf(err, "%s: M can be followed only by + or -", me);
+    if (!( '-' == str[1] || '+' == str[1] )) {
+      sprintf(err, "%s: \'M\' can be followed only by \'+\' or \'-\'", me);
       return 1;
     }
     pos[0] = 1;
-    if (1 != sscanf(str+1, "%d", pos + 1)) {
+    if (1 != sscanf(str+1, "%d", &(pos[1]))) {
       sprintf(err, "%s: can't parse \"%s\" as M+<int> or M-<int>", me, str);
       return 1;
     }
-  } else {
-    pos[0] = 0;
-    if (1 != sscanf(str, "%d", pos + 1)) {
-      sprintf(err, "%s: can't parse \"%s\" as int", me, str);
+    return 0;
+  }
+  if ('m' == str[0]) {
+    if ('+' != str[1]) {
+      sprintf(err, "%s: \'m\' can only be followed by \'+\'", me);
       return 1;
     }
+    pos[0] = -1;
+    if (1 != sscanf(str+1, "%d", &(pos[1]))) {
+      sprintf(err, "%s: can't parse \"%s\" as m+<int>", me, str);
+      return 1;
+    }
+    if (pos[1] < 0 ) {
+      sprintf(err, "%s: int in m+<int> must be non-negative (not %d)",
+	      me, pos[1]);
+      return 1;
+    }
+    return 0;
+  }
+  /* else its just a plain unadorned integer */
+  pos[0] = 0;
+  if (1 != sscanf(str, "%d", &(pos[1]))) {
+    sprintf(err, "%s: can't parse \"%s\" as int", me, str);
+    return 1;
   }
   return 0;
 }

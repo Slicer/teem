@@ -53,6 +53,10 @@ unu_sliceMain(int argc, char **argv, char *me, hestParm *hparm) {
     fprintf(stderr, "%s: axis %d not in range [0,%d]\n", me, axis, nin->dim-1);
     return 1;
   }
+  if (_pos[0] == -1) {
+    fprintf(stderr, "%s: m+<int> specification format meaningless here\n", me);
+    return 1;
+  }
   pos = _pos[0]*(nin->axis[axis].size-1) + _pos[1];
 
   nout = nrrdNew();

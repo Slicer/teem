@@ -37,10 +37,13 @@ unu_padMain(int argc, char **argv, char *me, hestParm *hparm) {
   OPT_ADD_BOUND("min", minOff,
 		"low corner of bounding box.\n "
 		"\b\bo <int> gives 0-based index\n "
-		"\b\bo M+<int>, M-<int> give index relative "
+		"\b\bo M, M+<int>, M-<int> give index relative "
 		"to the last sample on the axis (M == #samples-1).",
 		minLen);
-  OPT_ADD_BOUND("max", maxOff, "high corner of bounding box", maxLen);
+  OPT_ADD_BOUND("max", maxOff, "high corner of bounding box.  Besides "
+		"the specification styles described above, there's also:\n "
+		"\b\bo m+<int> give index relative to minimum.",
+		maxLen);
   hestOptAdd(&opt, "b", "behavior", airTypeEnum, 1, 1, &bb, "bleed",
 	     "How to handle samples beyond the input bounds:\n "
 	     "\b\bo \"pad\": use some specified value\n "
@@ -66,10 +69,24 @@ unu_padMain(int argc, char **argv, char *me, hestParm *hparm) {
     return 1;
   }
   for (ax=0; ax<=nin->dim-1; ax++) {
+    if (-1 == minOff[0 + 2*ax]) {
+      fprintf(stderr, "%s: can't use m+<int> specification for axis %d min\n",
+	      me, ax);
+      airMopError(mop);
+      return 1;
+    }
+  }
+  for (ax=0; ax<=nin->dim-1; ax++) {
     min[ax] = minOff[0 + 2*ax]*(nin->axis[ax].size-1) + minOff[1 + 2*ax];
-    max[ax] = maxOff[0 + 2*ax]*(nin->axis[ax].size-1) + maxOff[1 + 2*ax];
+    if (-1 == maxOff[0 + 2*ax]) {
+      max[ax] = min[ax] + maxOff[1 + 2*ax];
+    } else {
+      max[ax] = maxOff[0 + 2*ax]*(nin->axis[ax].size-1) + maxOff[1 + 2*ax];
+    }
+    /*
     fprintf(stderr, "%s: ax %2d: min = %4d, max = %4d\n",
 	    me, ax, min[ax], max[ax]);
+    */
   }
 
   nout = nrrdNew();
