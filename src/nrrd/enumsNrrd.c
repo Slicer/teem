@@ -284,14 +284,14 @@ nrrdCenter = &_nrrdCenter_enum;
   nrrdKind3Vector,             9: 3 component vector 
   nrrdKind3Normal,            10: 3 component vector, assumed normalized 
   nrrdKind4Vector,            11: 4 component vector 
-  nrrdKind2DSymTensor,        12: Txx Txy Tyy 
-  nrrdKind2DMaskedSymTensor,  13: mask Txx Txy Tyy 
-  nrrdKind2DTensor,           14: Txx Txy Tyx Tyy 
-  nrrdKind2DMaskedTensor,     15: mask Txx Txy Tyx Tyy 
-  nrrdKind3DSymTensor,        16: Txx Txy Txz Tyy Tyz Tzz 
-  nrrdKind3DMaskedSymTensor,  17: mask Txx Txy Txz Tyy Tyz Tzz 
-  nrrdKind3DTensor,           18: Txx Txy Txz Tyx Tyy Tyz Tzx Tzy Tzz 
-  nrrdKind3DMaskedTensor,     19: mask Txx Txy Txz Tyx Tyy Tyz Tzx Tzy Tzz 
+  nrrdKind2DSymMatrix,        12: Mxx Mxy Myy 
+  nrrdKind2DMaskedSymMatrix,  13: mask Mxx Mxy Myy 
+  nrrdKind2DMatrix,           14: Mxx Mxy Myx Myy 
+  nrrdKind2DMaskedMatrix,     15: mask Mxx Mxy Myx Myy 
+  nrrdKind3DSymMatrix,        16: Mxx Mxy Mxz Myy Myz Mzz 
+  nrrdKind3DMaskedSymMatrix,  17: mask Mxx Mxy Mxz Myy Myz Mzz 
+  nrrdKind3DMatrix,           18: Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz 
+  nrrdKind3DMaskedMatrix,     19: mask Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz 
 */
 
 char
@@ -308,14 +308,14 @@ _nrrdKindStr[NRRD_KIND_MAX+1][AIR_STRLEN_SMALL] = {
   "3-vector",
   "3-normal",
   "4-vector",
-  "2D-symmetric-tensor",
-  "2D-masked-symmetric-tensor",
-  "2D-tensor",
-  "2D-masked-tensor",
-  "3D-symmetric-tensor",
-  "3D-masked-symmetric-tensor",
-  "3D-tensor",
-  "3D-masked-tensor"
+  "2D-symmetric-matrix",
+  "2D-masked-symmetric-matrix",
+  "2D-matrix",
+  "2D-masked-matrix",
+  "3D-symmetric-matrix",
+  "3D-masked-symmetric-matrix",
+  "3D-matrix",
+  "3D-masked-matrix"
 };
 
 char
@@ -332,14 +332,14 @@ _nrrdKindDesc[NRRD_KIND_MAX+1][AIR_STRLEN_MED] = {
   "a 3-element vector",
   "a 3-element vector which is assumed normalized",
   "a 4-element vector",
-  "3 elements of 2D symmetric tensor: Txx Txy Tyy",
-  "mask plus 3 elements of 2D symmetric tensor: mask Txx Txy Tyy",
-  "4 elements of general 2D tensor: Txx Txy Tyx Tyy",
-  "mask plus 4 elements of general 2D tensor: mask Txx Txy Tyx Tyy",
-  "6 elements of 3D symmetric tensor: Txx Txy Txz Tyy Tyz Tzz",
-  "mask plus 6 elements of 3D symmetric tensor: mask Txx Txy Txz Tyy Tyz Tzz",
-  "9 elements of general 3D tensor: Txx Txy Txz Tyx Tyy Tyz Tzx Tzy Tzz",
-  "mask plus 9 elements of general 3D tensor: mask Txx Txy Txz Tyx Tyy Tyz Tzx Tzy Tzz"
+  "3 elements of 2D symmetric matrix: Mxx Mxy Myy",
+  "mask plus 3 elements of 2D symmetric matrix: mask Mxx Mxy Myy",
+  "4 elements of general 2D matrix: Mxx Mxy Myx Myy",
+  "mask plus 4 elements of general 2D matrix: mask Mxx Mxy Myx Myy",
+  "6 elements of 3D symmetric matrix: Mxx Mxy Mxz Myy Myz Mzz",
+  "mask plus 6 elements of 3D symmetric matrix: mask Mxx Mxy Mxz Myy Myz Mzz",
+  "9 elements of general 3D matrix: Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz",
+  "mask plus 9 elements of general 3D matrix: mask Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz"
 };
 
 char
@@ -355,14 +355,22 @@ _nrrdKindStr_Eqv[][AIR_STRLEN_SMALL] = {
   "3-vector",
   "3-normal",
   "4-vector",
-  "2D-symmetric-tensor", "2D-sym-tensor",
-  "2D-masked-symmetric-tensor", "2D-masked-sym-tensor",
-  "2D-tensor",
-  "2D-masked-tensor",
-  "3D-symmetric-tensor", "3D-sym-tensor",
-  "3D-masked-symmetric-tensor", "3D-masked-sym-tensor",
-  "3D-tensor",
-  "3D-masked-tensor",
+  "2D-symmetric-matrix", "2D-sym-matrix", 
+        "2D-symmetric-tensor", "2D-sym-tensor",
+  "2D-masked-symmetric-matrix", "2D-masked-sym-matrix",
+        "2D-masked-symmetric-tensor", "2D-masked-sym-tensor",
+  "2D-matrix",
+        "2D-tensor",
+  "2D-masked-matrix",
+        "2D-masked-tensor",
+  "3D-symmetric-matrix", "3D-sym-matrix",
+        "3D-symmetric-tensor", "3D-sym-tensor",
+  "3D-masked-symmetric-matrix", "3D-masked-sym-matrix",
+        "3D-masked-symmetric-tensor", "3D-masked-sym-tensor",
+  "3D-matrix",
+        "3D-tensor",
+  "3D-masked-matrix",
+        "3D-masked-tensor",
   ""
 };
 
@@ -379,14 +387,22 @@ _nrrdKindVal_Eqv[] = {
   nrrdKind3Vector,
   nrrdKind3Normal,
   nrrdKind4Vector,
-  nrrdKind2DSymTensor, nrrdKind2DSymTensor,
-  nrrdKind2DMaskedSymTensor, nrrdKind2DMaskedSymTensor,
-  nrrdKind2DTensor,
-  nrrdKind2DMaskedTensor,
-  nrrdKind3DSymTensor, nrrdKind3DSymTensor,
-  nrrdKind3DMaskedSymTensor, nrrdKind3DMaskedSymTensor,
-  nrrdKind3DTensor,
-  nrrdKind3DMaskedTensor,
+  nrrdKind2DSymMatrix, nrrdKind2DSymMatrix,
+        nrrdKind2DSymMatrix, nrrdKind2DSymMatrix,
+  nrrdKind2DMaskedSymMatrix, nrrdKind2DMaskedSymMatrix,
+        nrrdKind2DMaskedSymMatrix, nrrdKind2DMaskedSymMatrix,
+  nrrdKind2DMatrix,
+        nrrdKind2DMatrix,
+  nrrdKind2DMaskedMatrix,
+        nrrdKind2DMaskedMatrix,
+  nrrdKind3DSymMatrix, nrrdKind3DSymMatrix,
+        nrrdKind3DSymMatrix, nrrdKind3DSymMatrix,
+  nrrdKind3DMaskedSymMatrix, nrrdKind3DMaskedSymMatrix,
+        nrrdKind3DMaskedSymMatrix, nrrdKind3DMaskedSymMatrix,
+  nrrdKind3DMatrix,
+        nrrdKind3DMatrix,
+  nrrdKind3DMaskedMatrix,
+        nrrdKind3DMaskedMatrix,
 };
 
 airEnum

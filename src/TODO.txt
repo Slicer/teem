@@ -1,12 +1,17 @@
+unu: jhisto works with axis[0] elements when given a single nrrd
+
+nrrd: copy MetaIO methods for multiple detached data files
+nrrd: generalize I/O so that magic needn't be on line by itself
+nrrd: allow nrrd header I/O to and from strings
+nrrd: make nrrdMake from guts of "unu make"
 nrrd: add orientation fields and information
+nrrd: add support for VFF file format
 
 fix "gkms pvg": try to reproduce problem with mouse data
 
 qbert: downsmpl x+y, upsmplpad on Z error about unequal centers
 
 qbert on cygwin: running out of memory w/out error
-
-biff call for pre-allocated buffer
 
 tend epireg: figure out how to do fitting without HST estimation
 
@@ -34,14 +39,6 @@ teem: fix bugs in teem makefile stuff:
 
 ell: debug SVD of things based on negative eigenvalues
  - add flag to say: always positive sv's, or always right-handed rotations
-
-nrrd: add support for VFF file format
-
-nrrd: generalize I/O so that magic needn't be on line by itself
-
-nrrd: allow nrrd header I/O to and from strings
-
-nrrd: make nrrdMake from guts of "unu make"
 
 leaf: do it
 
@@ -83,8 +80,6 @@ returning an int error code
 
 dye: see if dyeColorParse should allocate the thing and return it
 
-unu jhisto works with axis[0] elements when given a single nrrd
-
 FAQ on teem coding standards
 Banks's policy.txt:
  - documenting cross-code assumptions and dependencies
@@ -103,7 +98,7 @@ echo: test textured lights
 
 bin/emap: allow generating envmaps useful for specular highlights
 
-mite: add diffuse and specular envmape
+mite: add diffuse and specular envmap
 
 gage: consider changing gageProbe() to take position both in index and
 unit world space, since many programs only care about unit world space

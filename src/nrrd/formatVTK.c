@@ -71,7 +71,7 @@ _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
          || (4 == nrrd->dim && 3 == nrrd->axis[0].size)
          || (4 == nrrd->dim && 9 == nrrd->axis[0].size) )) {
     sprintf(err, "%s: nrrd didn't look like a volume of scalars, "
-            "vectors, or tensors", me);
+            "vectors, or matrices", me);
     biffMaybeAdd(NRRD, err, useBiff); 
     return AIR_FALSE;
   }
@@ -275,7 +275,7 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   if (!( 3 == nrrd->dim || 
          (4 == nrrd->dim && (3 == nrrd->axis[0].size ||
                              9 == nrrd->axis[0].size)) )) {
-    sprintf(err, "%s: doesn't seem to be scalar, vector, or tensor", me);
+    sprintf(err, "%s: doesn't seem to be scalar, vector, or matrix", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   sax = nrrd->dim - 3;

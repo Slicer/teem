@@ -103,28 +103,28 @@ nrrdKindSize(int kind) {
   case nrrdKind4Vector:
     ret = 4;
     break;
-  case nrrdKind2DSymTensor:
+  case nrrdKind2DSymMatrix:
     ret = 3;
     break;
-  case nrrdKind2DMaskedSymTensor:
+  case nrrdKind2DMaskedSymMatrix:
     ret = 4;
     break;
-  case nrrdKind2DTensor:
+  case nrrdKind2DMatrix:
     ret = 4;
     break;
-  case nrrdKind2DMaskedTensor:
+  case nrrdKind2DMaskedMatrix:
     ret = 5;
     break;
-  case nrrdKind3DSymTensor:
+  case nrrdKind3DSymMatrix:
     ret = 6;
     break;
-  case nrrdKind3DMaskedSymTensor:
+  case nrrdKind3DMaskedSymMatrix:
     ret = 7;
     break;
-  case nrrdKind3DTensor:
+  case nrrdKind3DMatrix:
     ret = 9;
     break;
-  case nrrdKind3DMaskedTensor:
+  case nrrdKind3DMaskedMatrix:
     ret = 10;
     break;
   default:

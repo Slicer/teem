@@ -194,14 +194,14 @@ enum {
   nrrdKind3Vector,           /*  9: 3 component vector */
   nrrdKind3Normal,           /* 10: 3 component vector, assumed normalized */
   nrrdKind4Vector,           /* 11: 4 component vector */
-  nrrdKind2DSymTensor,       /* 12: Txx Txy Tyy */
-  nrrdKind2DMaskedSymTensor, /* 13: mask Txx Txy Tyy */
-  nrrdKind2DTensor,          /* 14: Txx Txy Tyx Tyy */
-  nrrdKind2DMaskedTensor,    /* 15: mask Txx Txy Tyx Tyy */
-  nrrdKind3DSymTensor,       /* 16: Txx Txy Txz Tyy Tyz Tzz */
-  nrrdKind3DMaskedSymTensor, /* 17: mask Txx Txy Txz Tyy Tyz Tzz */
-  nrrdKind3DTensor,          /* 18: Txx Txy Txz Tyx Tyy Tyz Tzx Tzy Tzz */
-  nrrdKind3DMaskedTensor,    /* 19: mask Txx Txy Txz Tyx Tyy Tyz Tzx Tzy Tzz */
+  nrrdKind2DSymMatrix,       /* 12: Mxx Mxy Myy */
+  nrrdKind2DMaskedSymMatrix, /* 13: mask Mxx Mxy Myy */
+  nrrdKind2DMatrix,          /* 14: Mxx Mxy Myx Myy */
+  nrrdKind2DMaskedMatrix,    /* 15: mask Mxx Mxy Myx Myy */
+  nrrdKind3DSymMatrix,       /* 16: Mxx Mxy Mxz Myy Myz Mzz */
+  nrrdKind3DMaskedSymMatrix, /* 17: mask Mxx Mxy Mxz Myy Myz Mzz */
+  nrrdKind3DMatrix,          /* 18: Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz */
+  nrrdKind3DMaskedMatrix,    /* 19: mask Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz */
   nrrdKindLast
 };
 #define NRRD_KIND_MAX           19

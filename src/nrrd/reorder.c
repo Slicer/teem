@@ -137,7 +137,7 @@ nrrdInvertPerm(int *invp, const int *p, int n) {
 ** detecting how many of the low-index axes are left untouched by 
 ** the permutation- this constitutes a "scanline" which can be
 ** copied around as a unit.  For permuting the y and z axes of a
-** matrix-x-y-z order tensor volume, this optimization produced a
+** matrix-x-y-z order matrix volume, this optimization produced a
 ** factor of 5 speed up (exhaustive multi-platform tests, of course).
 **
 ** The axes[] array determines the permutation of the axes.
