@@ -150,8 +150,8 @@ extern "C" {
 #define ELL_3V_LEN(v) \
   (sqrt((v)[0]*(v)[0] + (v)[1]*(v)[1] + (v)[2]*(v)[2]))
 
-#define ELL_3V_NORM(v2, v1, norm) \
-  (norm = 1.0/ELL_3V_LEN(v1), ELL_3V_SCALE(v2, norm, v1))
+#define ELL_3V_NORM(v2, v1, length) \
+  (length = ELL_3V_LEN(v1), ELL_3V_SCALE(v2, 1.0/length, v1))
 
 #define ELL_3V_CROSS(v3, v1, v2) \
   ((v3)[0] = (v1)[1]*(v2)[2] - (v1)[2]*(v2)[1], \
