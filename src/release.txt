@@ -63,34 +63,34 @@ mojojojo:
 setenv TEEM_ARCH darwin
 setenv TEEM_ZLIB
 setenv TEEM_BZIP2
-setenv TEEM_BZIP2.LPATH -L/home/sci/gk/usr/darwin/lib
-setenv TEEM_BZIP2.IPATH -I/home/sci/gk/usr/include
+setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/darwin/lib
+setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
 carrot:
 setenv TEEM_ARCH irix6.n32
 setenv TEEM_ZLIB
 setenv TEEM_BZIP2
-setenv TEEM_BZIP2.LPATH -L/home/sci/gk/usr/irix6.n32/lib
-setenv TEEM_BZIP2.IPATH -I/home/sci/gk/usr/include
+setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/irix6.n32/lib
+setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
 rapture:
 setenv TEEM_ARCH irix6.64
 setenv TEEM_ZLIB
 setenv TEEM_BZIP2
-setenv TEEM_BZIP2.LPATH -L/home/sci/gk/usr/irix6.64/lib
-setenv TEEM_BZIP2.IPATH -I/home/sci/gk/usr/include
+setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/irix6.64/lib
+setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
 shot:
 setenv TEEM_ARCH linux
 setenv TEEM_ZLIB
 setenv TEEM_BZIP2
-setenv TEEM_BZIP2.LPATH -L/home/sci/gk/usr/linux/lib
-setenv TEEM_BZIP2.IPATH -I/home/sci/gk/usr/include
+setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/linux/lib
+setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
 faith:
 setenv TEEM_ARCH solaris
 setenv TEEM_ZLIB
 setenv TEEM_BZIP2
-setenv TEEM_BZIP2.LPATH -L/home/gk/lib
-setenv TEEM_BZIP2.IPATH -I/home/gk/include
-setenv TEEM_ZLIB.LPATH -L/home/gk/lib
-setenv TEEM_ZLIB.IPATH -I/home/gk/include
+setenv TEEM_BZIP2_LPATH -L/home/gk/lib
+setenv TEEM_BZIP2_IPATH -I/home/gk/include
+setenv TEEM_ZLIB_LPATH -L/home/gk/lib
+setenv TEEM_ZLIB_IPATH -I/home/gk/include
 
 4) Create source-only tgz:
 cvs checkout teem; cd teem
@@ -117,18 +117,18 @@ and without compression encodings.
 7) Move all the binary builds to the web server
 
 8) update online documentation (which may be done more often than releases)
-cvs -d /usr/sci/projects/teem/cvs co teem; cd teem/html
-find . -name CVS  -exec rm -rf {} \; ; cd ..
-mv html teem-${VERSION}-html
-tar czvf teem-${VERSION}-html.tgz teem-${VERSION}-html
-scp teem-${VERSION}-html.tgz faith.cs.utah.edu:/home/gk/web
+cvs -d /usr/sci/projects/teem/cvs co teemdoc; cd teemdoc
+mv html teem-html
+tar czvf teem-html.tgz teem-html
+scp teem-html.tgz faith.cs.utah.edu:/home/gk/web
 
 ssh faith.cs.utah.edu
 
-cd web; tar xzvf teem-*-html.tgz
-yes | rm -rf teem; mv teem-*-html teem
-yes | rm -rf teem-*-html*
+cd web; tar xzvf teem-html.tgz
+yes | rm -rf teem; mv teem-html teem
+yes | rm -rf teem-html*
 exit
 
 cd ..
-rm -rf teem
+rm -rf teemdoc
+

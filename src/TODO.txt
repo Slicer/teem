@@ -1,3 +1,7 @@
+make sure MacOSX ascii line terminations are kosher
+
+making volume datasets
+
 figure out shared libraries on cygwin.
 
 DTInspect: resurrect
@@ -6,8 +10,6 @@ DTInspect: resurrect
  - trouble building "anisovol" in ten/test directory
 
 lumin integration
-
-------- teem 1.5beta1 cutoff ---------
 
 Test that shared libraries work everywhere they should.
 
