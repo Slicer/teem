@@ -82,10 +82,15 @@ tenEvecRGB(Nrrd *nout, Nrrd *nin, int which, int aniso,
     cdata += 3;
     tdata += 7;
   }
-  if (nrrdAxisInfoCopy(nout, nin, NULL, (NRRD_AXIS_INFO_SIZE_BIT
-                                         | NRRD_AXIS_INFO_KIND_BIT) )) {
+  if (nrrdAxisInfoCopy(nout, nin, NULL, (NRRD_AXIS_INFO_SIZE_BIT))) {
     sprintf(err, "%s: couldn't copy axis info", me);
     biffMove(TEN, err, NRRD); return 1;
+  }
+  nout->axis[0].kind = nrrdKind3Color;
+  if (nrrdBasicInfoCopy(nout, nin,
+                        NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
   }
   
   return 0;
@@ -179,6 +184,11 @@ tenEvqVolume(Nrrd *nout, Nrrd *nin, int which, int aniso, int scaleByAniso) {
                                         | NRRD_AXIS_INFO_KIND_BIT) )) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
+  }
+  if (nrrdBasicInfoCopy(nout, nin,
+                        NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
   }
   
   return 0;

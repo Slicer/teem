@@ -110,6 +110,11 @@ tenExpand(Nrrd *nout, Nrrd *nin, double scale, double thresh) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
+  if (nrrdBasicInfoCopy(nout, nin,
+                        NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
   nout->axis[0].label = airFree(nout->axis[0].label);
   nout->axis[0].label = airStrdup("matrix");
 
@@ -171,6 +176,11 @@ tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine) {
   if (nrrdAxisInfoCopy(tseven, tnine, NULL, NRRD_AXIS_INFO_SIZE_BIT)) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
+  }
+  if (nrrdBasicInfoCopy(tseven, tnine,
+                        NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
   }
   tseven->axis[0].label = airFree(tseven->axis[0].label);
   tseven->axis[0].label = airStrdup("tensor");

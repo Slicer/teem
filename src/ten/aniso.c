@@ -219,6 +219,11 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, double thresh) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
+  if (nrrdBasicInfoCopy(nout, nin,
+                        NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
 
   return 0;
 }

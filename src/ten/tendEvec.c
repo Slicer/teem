@@ -110,7 +110,14 @@ tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
+  if (nrrdBasicInfoCopy(nout, nin,
+                        NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
+    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble:\n%s\n", me, err);
+    airMopError(mop); return 1;
+  }
   nout->axis[0].label = airFree(nout->axis[0].label);
+  nout->axis[0].kind = nrrdKindUnknown;
 
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);

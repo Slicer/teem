@@ -452,6 +452,11 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   ELL_4V_SET(amap, -1, 1, 2, 3);
   nrrdAxisInfoCopy(nten, ndwi, amap, NRRD_AXIS_INFO_NONE);
   nten->axis[0].kind = nrrdKind3DMaskedSymMatrix;
+  if (nrrdBasicInfoCopy(nten, ndwi,
+                        NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
 
   airMopOkay(mop);
   return 0;

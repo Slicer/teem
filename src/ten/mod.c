@@ -77,6 +77,7 @@ tenSizeNormalize(Nrrd *nout, Nrrd *nin, double _weight[3],
     tin += 7;
     tout += 7;
   }
+  /* basic and per-axis info handled by nrrdCopy above */
   
   return 0;
 }
@@ -115,6 +116,8 @@ tenSizeScale(Nrrd *nout, Nrrd *nin, double amount) {
     tin += 7;
     tout += 7;
   }
+  /* basic and per-axis info handled by nrrdCopy above */
+
   return 0;
 }
 
@@ -176,6 +179,8 @@ tenAnisoScale(Nrrd *nout, Nrrd *nin, double scale,
     tin += 7;
     tout += 7;
   }
+  /* basic and per-axis info handled by nrrdCopy above */
+
   return 0;
 }
 
@@ -223,6 +228,8 @@ tenEigenvalueClamp(Nrrd *nout, Nrrd *nin, double min, double max) {
     tin += 7;
     tout += 7;
   }
+  /* basic and per-axis info handled by nrrdCopy above */
+
   return 0;
 }
 
@@ -263,6 +270,8 @@ tenEigenvaluePower(Nrrd *nout, Nrrd *nin, double expo) {
     tin += 7;
     tout += 7;
   }
+  /* basic and per-axis info handled by nrrdCopy above */
+
   return 0;
 }
 
@@ -303,5 +312,7 @@ tenEigenvalueAdd(Nrrd *nout, Nrrd *nin, double val) {
     tin += 7;
     tout += 7;
   }
+  /* basic and per-axis info handled by nrrdCopy above */
+
   return 0;
 }
