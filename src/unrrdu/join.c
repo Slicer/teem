@@ -24,7 +24,10 @@
 char *_unrrdu_joinInfoL =
 (INFO
  ". Can stich images into volumes, or tile images side "
- "by side, or attach images onto volumes.");
+ "by side, or attach images onto volumes.  If there are many many "
+ "files to name in the \"-i\" option, consider putting the list of "
+ "filenames into a seperate text file (e.g. \"slices.txt\"), and then "
+ "name this file as a response file (e.g. \"-i @slices.txt\").");
 
 int
 unrrdu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -33,6 +36,8 @@ unrrdu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd **nin, *nout;
   int ninLen, axis, incrDim, pret;
   airArray *mop;
+
+  hparm->respFileEnable = AIR_TRUE;
 
   hestOptAdd(&opt, "i", "nin0", airTypeOther, 1, -1, &nin, NULL,
 	     "everything to be joined together",
