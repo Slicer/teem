@@ -23,9 +23,9 @@ char *me;
 
 void
 usage() {
-  /*              0    1     2      3      4     (5) */
+  /*              0    1     2      3     (4) */
   fprintf(stderr, 
-	  "usage: %s <nIn> <type> <size> <nOut>\n",
+	  "usage: %s <nIn> <type> <nOut>\n",
 	  me);
   exit(1);
 }
@@ -33,23 +33,18 @@ usage() {
 int
 main(int argc, char *argv[]) {
   char *inStr, *outStr, *err;
-  int type, size;
+  int type;
   Nrrd *nin, *nout;
 
   me = argv[0];
-  if (5 != argc) {
+  if (4 != argc) {
     usage();
   }
   inStr = argv[1];
-  outStr = argv[4];
+  outStr = argv[3];
   type = nrrdEnumStrToVal(nrrdEnumType, argv[2]);
   if (!AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast)) {
     fprintf(stderr, "%s: couldn't parse \"%s\" as type\n", me, argv[2]);
-    exit(1);
-  }
-  if (1 != sscanf(argv[3], "%d", &size)) {
-    fprintf(stderr, "%s: couldn't parse \"%s\" as integral size\n", 
-	    me, argv[3]);
     exit(1);
   }
   if (nrrdLoad(nin=nrrdNew(), inStr)) {
@@ -58,7 +53,7 @@ main(int argc, char *argv[]) {
     free(err);
     exit(1);
   }
-  if (nrrdUnblock(nout = nrrdNew(), nin, type, size)) {
+  if (nrrdUnblock(nout = nrrdNew(), nin, type)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error unblockifying nrrd:\n%s", me, err);
     free(err);
