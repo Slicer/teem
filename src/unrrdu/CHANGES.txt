@@ -27,6 +27,7 @@ agree with flag for unu rmap and unu imap.
 - change to nrrdApply1DLut() call: added "rescale" argument.
 
 make.c:
+- added "-c" flag to allow setting the content
 - added "-h" flag to allow generation of detached header
 files; this turned out to be rather annoying.
 
