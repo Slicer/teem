@@ -80,6 +80,7 @@ F(convert) \
 F(resample) \
 F(cmedian) \
 F(quantize) \
+F(unquantize) \
 F(project) \
 F(slice) \
 F(dice) \
