@@ -1007,7 +1007,6 @@ _nrrdReadWarningHandlerPNG (png_structp png, png_const_charp message)
   biffAdd(NRRD, err);
   /* no longjump, execution continues */
 }
-#endif
 
 /* we need to use the file I/O callbacks on windows
    to make sure we can mix VC6 libpng with VC7 teem */
@@ -1019,7 +1018,8 @@ _nrrdReadDataPNG (png_structp png, png_bytep data, png_size_t len)
   read = (png_size_t)fread(data, (png_size_t)1, len, (FILE*)png->io_ptr);
   if (read != len) png_error(png, "file read error");
 }
-#endif
+#endif /* WIN32 */
+#endif /* TEEM_PNG */
 
 int
 _nrrdReadPNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
