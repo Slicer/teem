@@ -214,8 +214,10 @@ _tenGradientChangeApply(Nrrd *nvel1, Nrrd *npos1,
     ELL_3V_SCALE_ADD2(pos1,
                       1.0, pos0,
                       amount*tgparm->dt, dpdt);
+    /* impose constraints: pos is unit-length vector ... */
     ELL_3V_NORM(pos1, pos1, len);
     dot = ELL_3V_DOT(vel1, pos1);
+    /* ... and velocity must be tangential */
     ELL_3V_SCALE_ADD2(vel1, 1.0, vel1, -dot, pos1);
     vel1 += 3;
     pos1 += 3;
