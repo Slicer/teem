@@ -470,8 +470,6 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis) {
   }
   nperm->size[outdim-1] = outlen;
 
-  nrrdSave("nperm.nrrd", nperm);
-
   /* do the permutation required to get output in right order */
   for (i=0; i<=outdim-1; i++) {
     permute[i] = (i < axis 
