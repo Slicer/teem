@@ -57,41 +57,6 @@ _hoovLearnLengths(double volHLen[3], double voxLen[3], hoovContext *ctx) {
 }
 
 /*
-** _hoovLearnScales()
-**
-** this assumes that limnCamUpdate(ctx->cam) has been called
-**
-*/
-void
-_hoovLearnScales(double rayZero[3],
-		 hoovContext *ctx) {
-  double scale;           /* how to scale (u,v) coordinates on image plane
-			     to (u,v)-ish coordinates on near plane */
-
-  ELL_3V_SCALEADD(rayZero,
-		  1.0, ctx->cam->from,
-		  ctx->cam->vspNear, ctx->cam->N);
-  if (ctx->cam->ortho) {
-    scale = 1.0;
-  }
-  else {
-    scale = ctx->cam->vspNear/ctx->cam->vspDist;
-  }
-  /*
-  *uBaseP = scale*AIR_AFFINE(-0.5, 0, ctx->imgSize[0]-0.5, 
-			     ctx->cam->uRange[0], ctx->cam->uRange[1]);
-  *uCapP = scale*AIR_AFFINE(-0.5, ctx->imgSize[0]-1, ctx->imgSize[0]-0.5, 
-			    ctx->cam->uRange[0], ctx->cam->uRange[1]);
-  *vBaseP = scale*AIR_AFFINE(-0.5, 0, ctx->imgSize[1]-0.5, 
-			     ctx->cam->vRange[0], ctx->cam->vRange[1]);
-  *vCapP = scale*AIR_AFFINE(-0.5, ctx->imgSize[1]-1, ctx->imgSize[1]-0.5, 
-			    ctx->cam->vRange[0], ctx->cam->vRange[1]);
-  fprintf(stderr, "_hoovLearnScales: %g %g %g %g\n",
-	  *uBaseP, *uCapP, *vBaseP, *vCapP);
-	  */
-}
-
-/*
 ** _hoovExtraContext struct
 **
 ** Like hoovContext, this is READ-ONLY information which is not specific
@@ -116,7 +81,9 @@ _hoovExtraContextNew(hoovContext *ctx) {
   ec = calloc(1, sizeof(_hoovExtraContext));
   if (ec) {
     _hoovLearnLengths(ec->volHLen, ec->voxLen, ctx);
-    _hoovLearnScales(ec->rayZero, ctx);
+    ELL_3V_SCALEADD(ec->rayZero,
+		    1.0, ctx->cam->from,
+		    ctx->cam->vspNear, ctx->cam->N);
   }
   return ec;
 }
