@@ -657,7 +657,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	switch (type) {
 	case airTypeEnum:
 	  if (1 != airParseStrE(vP, prms[op], " ", 1, opt[op].enm)) {
-	    sprintf(err, "%couldn't parse %s\"%s\" as %s for %s",
+	    sprintf(err, "%couldn\'t parse %s\"%s\" as %s for %s",
 		    me, udflt[op] ? "(default) " : "", prms[op],
 		    opt[op].enm->name, ident);
 	    return 1;
