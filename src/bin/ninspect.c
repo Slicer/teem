@@ -233,7 +233,7 @@ doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
      nrrdTypeUChar because ninspect_proj finishes each projection
      with nrrdQuantize to 8-bits */
   if (nrrdAlloc(nout, nrrdTypeUChar, 3,
-		3, srl + 3*margin + sap, ssi + 3*margin + sap)) {
+                3, srl + 3*margin + sap, ssi + 3*margin + sap)) {
     sprintf(err, "%s: couldn't allocate output", me);
     biffMove(NINSPECT, err, NRRD);
     airMopError(mop); return 1;
@@ -263,11 +263,11 @@ void
 ninspect_usage() {
 
   fprintf(stderr, "\nusage: %s <input volume> <output image>\n\n",
-	  NINSPECT);
+          NINSPECT);
   fprintf(stderr, "<input volume>: must be a 3-D array in NRRD or "
-	  "NRRD-compatible format.\n");
+          "NRRD-compatible format.\n");
   fprintf(stderr, "<output image>: will be saved out in whatever format " 
-	  "is implied by the\n");
+          "is implied by the\n");
   fprintf(stderr, "   extension (if recognized), or else in NRRD format\n");
 }
 
@@ -327,7 +327,7 @@ main(int argc, char *argv[]) {
     err=biffGetDone(NRRD);
     airMopAdd(mop, err, airFree, airMopAlways);
     fprintf(stderr, "%s: trouble saving output image \"%s\":\n%s",
-	    me, outS, err);
+            me, outS, err);
     airMopError(mop); return 1;
   }
 

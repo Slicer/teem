@@ -463,16 +463,16 @@ main(int argc, char *argv[]) {
              "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")",
              NULL, NULL, &probeKindHestCB);
   limnHestCameraOptAdd(&hopt, uu->hctx->cam,
-		       NULL, "0 0 0", "0 0 1",
-		       NULL, NULL, NULL,
-		       "nan nan", "nan nan", "20");
+                       NULL, "0 0 0", "0 0 1",
+                       NULL, NULL, NULL,
+                       "nan nan", "nan nan", "20");
   hestOptAdd(&hopt, "offfr", NULL, airTypeInt, 0, 0, &offfr, NULL,
-	     "the given eye point (\"-fr\") is to be interpreted "
-	     "as an offset from the at point.");
+             "the given eye point (\"-fr\") is to be interpreted "
+             "as an offset from the at point.");
   hestOptAdd(&hopt, "turn", "angle", airTypeDouble, 1, 1, &turn, "0.0",
-	     "angle (degrees) by which to rotate the from point around "
-	     "true up, for making stereo pairs.  Positive means move "
-	     "towards positive U (the right)");
+             "angle (degrees) by which to rotate the from point around "
+             "true up, for making stereo pairs.  Positive means move "
+             "towards positive U (the right)");
   hestOptAdd(&hopt, "is", "image size", airTypeInt, 2, 2, uu->hctx->imgSize,
              "256 256", "image dimensions");
   hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1,
@@ -560,8 +560,8 @@ main(int argc, char *argv[]) {
     ELL_3V_SUB(eye, uu->hctx->cam->from, uu->hctx->cam->at);
     ELL_3V_NORM(eye, eye, eyedist);
     ELL_3V_SCALE_ADD2(uu->hctx->cam->from,
-		      cos(turn), eye,
-		      sin(turn), uu->hctx->cam->U);
+                      cos(turn), eye,
+                      sin(turn), uu->hctx->cam->U);
     ELL_3V_SCALE(uu->hctx->cam->from, eyedist, uu->hctx->cam->from);
     if (limnCameraUpdate(uu->hctx->cam)) {
       airMopAdd(mop, errS = biffGetDone(LIMN), airFree, airMopAlways);

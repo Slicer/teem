@@ -132,7 +132,7 @@ setenv TEEM_PTHREAD
 setenv TEEM_LINK_SHARED
 setenv PATH ${PATH}:/home/sci/gk/usr/local/irix6.64/bin
 setenv LD_LIBRARY64_PATH ${LD_LIBRARY64_PATH}:/home/sci/gk/usr/local/irix6.64/lib
-haruko:
+carnitas:
 setenv TEEM_ARCH linux.32
 setenv TEEM_PNG
 setenv TEEM_ZLIB
@@ -148,7 +148,7 @@ setenv PATH ${PATH}:/home/sci/gk/usr/local/linux.32/bin
 alias valgrind /home/sci/gk/usr/linux/bin/valgrind \
   --show-reachable=yes --leak-check=yes 
 
-faith:
+vision:
 setenv TEEM_ARCH solaris
 setenv TEEM_PNG
 setenv TEEM_ZLIB
@@ -167,7 +167,7 @@ setenv TEEM_PNG_IPATH -I/usr/local/include
 -  ssh to some ARCH machine, copy teem-VERSION-src.tar.gz there if needed
 -  setenv TEEM_XXX for all the externals that it makes sense to 
       compile into the distributed statically linked binaries
-setenv VERSION 1.7.0
+setenv VERSION 1.8.0
 tar xzvf ~/rel/teem-${VERSION}-src.tar.gz
 cd teem-${VERSION}-src; setenv TEEM_DEST `pwd`
 cd src; make; cd ..

@@ -1315,9 +1315,9 @@ nrrdKernelParse(const NrrdKernel **kernelP,
       parm[0] = nrrdDefKernelParm0;
     } else {
       if (pstr) {
-	sprintf(err, "%s: \"%s\" (in \"%s\") has more than %d doubles",
-		me, _pstr, _str, (*kernelP)->numParm);
-	biffAdd(NRRD, err); return 1;
+        sprintf(err, "%s: \"%s\" (in \"%s\") has more than %d doubles",
+                me, _pstr, _str, (*kernelP)->numParm);
+        biffAdd(NRRD, err); return 1;
       }
     }
   }
