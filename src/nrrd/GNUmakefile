@@ -52,14 +52,14 @@ $(L).OBJS = \
 	endianNrrd.o enumsNrrd.o filt.o         gzio.o           \
 	hestNrrd.o   histogram.o iter.o         kernel.o         \
 	map.o        measure.o   methodsNrrd.o  parseNrrd.o      \
-	read.o       reorder.o   resampleNrrd.o simple.o         \
-	subset.o     superset.o  tmfKernel.o      \
-	winKernel.o  ccmethods.o cc.o           range.o          \
-	formatNRRD.o     formatPNM.o      formatPNG.o \
-	formatVTK.o      formatText.o     formatEPS.o      format.o \
-        encodingRaw.o    encodingAscii.o  encodingHex.o \
-	encodingGzip.o   encodingBzip2.o  encoding.o \
-	write.o        keyvalue.o
+	read.o       write.o        reorder.o   resampleNrrd.o \
+	simple.o     subset.o     superset.o  tmfKernel.o      \
+	winKernel.o  ccmethods.o  cc.o        range.o          \
+        encoding.o   encodingRaw.o  encodingAscii.o  encodingHex.o \
+	encodingGzip.o   encodingBzip2.o  \
+	format.o     formatNRRD.o     formatPNM.o      formatPNG.o \
+	formatVTK.o      formatText.o     formatEPS.o      \
+	keyvalue.o
 $(L).TESTS = test/tread test/trand test/ax test/io test/minmax test/tkernel \
 	test/typestest test/tline test/genvol test/quadvol test/convo test/kv \
 	test/reuse test/histrad
