@@ -86,6 +86,12 @@ gageSimpleKernelSet(gageSimple *gsl,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return 1;
   }
+  printf("%s: unknown = %d\n", me, airEnumUnknown(gageKernel));
+  printf("%s: valid(%d) = %d\n", me,-1, airEnumValidVal(gageKernel,-1));
+  printf("%s: valid(%d) = %d\n", me, 0, airEnumValidVal(gageKernel, 0));
+  printf("%s: valid(%d) = %d\n", me, 1, airEnumValidVal(gageKernel, 1));
+  printf("%s: valid(%d) = %d\n", me, 2, airEnumValidVal(gageKernel, 2));
+  printf("%s: valid(%d) = %d\n", me, 3, airEnumValidVal(gageKernel, 3));
   if (!airEnumValidVal(gageKernel, which)) {
     sprintf(err, "%s: \"which\" (%d) not in range [%d,%d]", me,
 	    which, gageKernelUnknown+1, gageKernelLast-1);

@@ -142,9 +142,9 @@ main(int argc, char *argv[]) {
   hestOpt *hopt = NULL;
   probeNrrdKernel k00, k11, k22;
   float x, y, z, scale;
-  int what, a, idx, ansLen, E, xi, yi, zi,
+  int what, a, idx, ansLen, E, xi, yi, zi, otype,
     six, siy, siz, sox, soy, soz;
-  gage_t *out, *answer;
+  gage_t *answer;
   Nrrd *nin, *nout;
   gageSimple *gsl;
   gageSclAnswer *san;
@@ -173,6 +173,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "22", "kern22", airTypeOther, 1, 1, &k22,
 	     "fordif", "kernel for gageKernel22",
 	     NULL, NULL, &probeKernelHestCB);
+  hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &otype, "float",
+	     "type of output volume", NULL, nrrdType);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
 	     "output volume");
 
@@ -250,18 +252,15 @@ main(int argc, char *argv[]) {
   if (ansLen > 1) {
     printf("%s: creating %d x %d x %d x %d output\n", 
 	   me, ansLen, sox, soy, soz);
-    if (!E) E != nrrdAlloc(nout=nrrdNew(), gage_nrrdType,
-			      4, ansLen, sox, soy, soz);
+    if (!E) E != nrrdAlloc(nout=nrrdNew(), otype, 4, ansLen, sox, soy, soz);
   } else {
     printf("%s: creating %d x %d x %d output\n", me, sox, soy, soz);
-    if (!E) E != nrrdAlloc(nout=nrrdNew(), gage_nrrdType,
-			   3, sox, soy, soz);
+    if (!E) E != nrrdAlloc(nout=nrrdNew(), otype, 3, sox, soy, soz);
   }
   if (E) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(NRRD));
     exit(1);
   }
-  out = nout->data;
   t0 = airTime();
   fprintf(stderr, "%s: si{x,y,z} = %d, %d, %d\n", me, six, siy, siz);
   fprintf(stderr, "%s: so{x,y,z} = %d, %d, %d\n", me, sox, soy, soz);
@@ -287,10 +286,12 @@ main(int argc, char *argv[]) {
 	  exit(1);
 	}
 	if (1 == ansLen) {
-	  out[ansLen*idx] = *answer;
+	  nrrdFInsert[nout->type](nout->data, idx,
+				  nrrdFClamp[nout->type](*answer));
 	} else {
 	  for (a=0; a<=ansLen-1; a++) {
-	    out[a + ansLen*idx] = answer[a];
+	    nrrdFInsert[nout->type](nout->data, a + ansLen*idx, 
+				    nrrdFClamp[nout->type](answer[a]));
 	  }
 	}
       }
