@@ -187,10 +187,10 @@ CFLAGS += $(TEEM_CPP_ERROR_DIE)
 ## If using purify, set P to all the purify stuff that will prefix
 ## compile and link commands
 ## 
-ifneq (undefined,$(origin $(TEEM_PURIFY)))
+ifneq (undefined,$(origin TEEM_PURIFY))
   P = $(TEEM_PURIFY_CMD) \
-    -inuse-at-exit=yes -add-suppression-files=$(PCACHE)/.purify \
-    -always-use-cache-dir -cache-dir=$(PCACHE)
+    -inuse-at-exit=yes -add-suppression-files=$(PCACHE)/.purify
+#    -always-use-cache-dir -cache-dir=$(PCACHE)
 endif
 
 #######################################
