@@ -23,3 +23,12 @@ came from the default string, or from the command line
 - there's no way to access the string that was parsed to get the
 information for an option (could be from default, or command-line,
 or response file)
+
+- (from tendGlyph.c): learned: a huge problem with hest and its
+var-arg-based hestOptAdd is that it can't tell when you've based
+multiple strings for the detailed usage information by accident.  I
+had accidentally inserted a comma into my multi-line string for the
+"info" arg, relying on the automatic string concatenation, and ended
+up passing total garbage to hestOptAdd for the airEnum pointer,
+causing me to think that the tenGlyphType airEnum was malformed, when
+it was in fact fine ... 
