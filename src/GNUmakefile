@@ -45,6 +45,11 @@
 TEEM_ROOT ?= ..
 TEEM_SRC ?= .
 
+## When making Windows project files, set TEEM_ARCH to cygwin
+ifeq (project, $(MAKECMDGOALS))
+TEEM_ARCH ?= cygwin
+endif
+
 ## read in the check* functions, and check on TEEM_ARCH
 ##
 include $(TEEM_SRC)/make/errorCheck.mk
@@ -372,66 +377,4 @@ endif
 unmegalibs:
 	$(RM) $(foreach ext,$(LIBEXTS),$(LDEST)/libteem.$(ext))
 
-## all the windows project file stuff
-## 
-## need to make project files for the teem dll, one for each teem binary, and
-## one for the workspace containing all these...
-##
-project: teem.dsp bins.dsp workspace install_lib.bat
-
-sortedObjs = $(sort $(foreach lib,$(LIBS),$(addsuffix /$(lib),$($(lib).OBJS))))
-flipOnSlash = ..\\\\..\\\\src\\\\$(notdir $(1))\\\\$(subst /,,$(dir $(1)))
-teem.dsp:
-	@echo s/TEEMALLDOTC/$(patsubst %.o,\# Begin Source File\\n\\nSOURCE=%.c\\n\# End Source File\\n,$(foreach obj,$(sortedObjs),$(call flipOnSlash,$(obj))))/g > cmd.ed
-	@echo s/TEEMALLDOTH/$(patsubst %.h,\# Begin Source File\\n\\nSOURCE=%.h\\n\# End Source File\\n,$(foreach lib,$(LIBS),$(addprefix ..\\\\..\\\\src\\\\$(lib)\\\\,$($(lib).PUBLIC_HEADERS) $($(lib).PRIVATE_HEADERS))))/g >> cmd.ed
-	@echo s/TEEMALLINC/$(foreach lib,$(LIBS),\\/I \"..\\/..\\/src\\/$(lib)\")/g >> cmd.ed
-	@echo "s/ #/#/g" >> cmd.ed
-	@sed -f cmd.ed ../win32/make/teem_shared.dsp.tmpl > ../win32/make/teem_shared.dsp
-	@sed -f cmd.ed ../win32/make/teem_static.dsp.tmpl > ../win32/make/teem_static.dsp
-	@unix2dos ../win32/make/teem_shared.dsp 2> /dev/null
-	@unix2dos ../win32/make/teem_static.dsp 2> /dev/null
-	@rm -rf cmd.ed
-
-bins.dsp: $(foreach bin,$(BINS),teembin.$(bin).dsp)
-
-# NB: pattern-specific variable BIN is set once per binary
-teembin.%.dsp: BIN = $(patsubst teembin.%.dsp,%,$@)
-teembin.%.dsp:
-	@echo s/TEEMBINNAME/$(BIN)/g > cmd.ed
-	@echo s/TEEMALLINC/$(foreach lib,$(LIBS),\\/I \"..\\/..\\/src\\/$(lib)\")/g >> cmd.ed
-	@echo s/TEEMBINDOTC/\# Begin Source File\\n\\nSOURCE=..\\\\..\\\\src\\\\bin\\\\$(BIN).c\\n\# End Source File\\n/g >> cmd.ed
-	@echo "s/ #/#/g" >> cmd.ed
-	@sed -f cmd.ed ../win32/make/teem_bin.dsp.tmpl > ../win32/make/$(BIN).dsp
-	@unix2dos ../win32/make/$(BIN).dsp 2> /dev/null
-	@rm -rf cmd.ed
-
-workspace:
-	@echo s/TEEMBINPROJECT/$(foreach bin,$(BINS),\\nProject: \"$(bin)\"=.\\\\$(bin).dsp - Package Owner=\<4\>\\n\\nPackage=\<5\>\\n{{{\\n}}}\\n\\nPackage=\<4\>\\n{{{\\n\ \ \ \ Begin Project Dependency\\n\ \ \ \ Project_Dep_Name teem_s\\n\ \ \ \ End Project Dependency\\n}}}\\n\\n\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\\n)/g > cmd.ed
-	@echo "s/ #/#/g" >> cmd.ed
-	@sed -f cmd.ed ../win32/make/teem.dsw.tmpl > ../win32/make/teem.dsw
-	@unix2dos ../win32/make/teem.dsw 2> /dev/null
-	@rm -rf cmd.ed
-
-install_lib.bat:
-	@echo s/TEEMALLDOTH/$(foreach hdr,$(foreach lib,$(LIBS),$(addprefix $(lib)\\\\,$($(lib).PUBLIC_HEADERS))),copy \\/y \\/b ..\\\\..\\\\src\\\\$(hdr) \"\%__hdest\%\"\\n)/g > cmd.ed
-	@echo "s/ copy/copy/g" >> cmd.ed
-	@sed -f cmd.ed ../win32/make/install_lib.bat.tmpl > ../win32/make/install_lib.bat
-	@unix2dos ../win32/make/install_lib.bat 2> /dev/null
-	@rm -rf cmd.ed
-
-def: teem.dsp
-	@msdev ../win32/make/teem_shared.dsp /make "teem - Win32 Release" /clean
-	@-msdev ../win32/make/teem_shared.dsp /make "teem - Win32 Release" /build
-	@dlltool --export-all-symbols --output-def teem.def ../win32/make/shared/release/*.obj
-	@grep -v '; dlltool' teem.def | grep -v '_real' | grep -v '??' | grep -v '_hooverThreadBody' > ../win32/make/teem.def
-	@rm teem.def
-	@-msdev ../win32/make/teem_shared.dsp /make "teem - Win32 Release" /clean
-
-unproject:
-	rm -rf ../win32/make/*.dsp ../win32/make/*.dsw ../win32/make/install_lib.bat
-
-win32:
-	@-msdev ../win32/make/teem.dsw /make all /build
-
-win32-clean:
-	@-msdev ../win32/make/teem.dsw /make all /clean
+include $(TEEM_SRC)/make/win32.mk
