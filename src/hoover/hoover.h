@@ -29,6 +29,12 @@
 #include <ell.h>
 #include <limn.h>
 
+#if defined(WIN32) && !defined(TEEM_BUILD)
+#define hoover_export __declspec(dllimport)
+#else
+#define hoover_export
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -254,13 +260,13 @@ extern void hooverContextNix(hooverContext *ctx);
 extern int hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP);
 
 /* stub.c */
-extern hooverRenderBegin_t hooverStubRenderBegin;
-extern hooverThreadBegin_t hooverStubThreadBegin;
-extern hooverRayBegin_t hooverStubRayBegin;
-extern hooverSample_t hooverStubSample;
-extern hooverRayEnd_t hooverStubRayEnd;
-extern hooverThreadEnd_t hooverStubThreadEnd;
-extern hooverRenderEnd_t hooverStubRenderEnd;
+extern hoover_export hooverRenderBegin_t hooverStubRenderBegin;
+extern hoover_export hooverThreadBegin_t hooverStubThreadBegin;
+extern hoover_export hooverRayBegin_t hooverStubRayBegin;
+extern hoover_export hooverSample_t hooverStubSample;
+extern hoover_export hooverRayEnd_t hooverStubRayEnd;
+extern hoover_export hooverThreadEnd_t hooverStubThreadEnd;
+extern hoover_export hooverRenderEnd_t hooverStubRenderEnd;
 
 #ifdef __cplusplus
 }
