@@ -49,11 +49,11 @@ $(L).NEED = limn gage dye unrrdu nrrd ell biff air
 $(L).PUBLIC_HEADERS = ten.h tenMacros.h
 $(L).PRIVATE_HEADERS = tenPrivate.h
 $(L).OBJS = tensor.o chan.o aniso.o methodsTen.o enumsTen.o miscTen.o \
-	tenGage.o \
+	tenGage.o fiberMethods.o fiber.o defaultsTen.o \
 	tendFlotsam.o tendAnplot.o tendAnvol.o tendEval.o \
-	tendEvec.o tendCalc.o tendExpand.o tendEvq.o tendPoint.o \
+	tendEvec.o tendCalc.o tendSten.o tendExpand.o tendEvq.o tendPoint.o \
 	tendAnhist.o tendMake.o tendSatin.o tendShrink.o
-$(L).TESTS = test/rgbprobe
+$(L).TESTS = test/trace
 ####
 ####
 ####

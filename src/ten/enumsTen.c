@@ -20,6 +20,8 @@
 #include "ten.h"
 #include "tenPrivate.h"
 
+/* -------------------------------------------------------------- */
+
 char
 _tenAnisoStr[TEN_ANISO_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown aniso)",
@@ -55,7 +57,7 @@ _tenAniso = {
 airEnum *
 tenAniso = &_tenAniso;
 
-/* -------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
 char
 _tenGageStr[][AIR_STRLEN_SMALL] = {
@@ -183,3 +185,82 @@ _tenGage = {
 };
 airEnum *
 tenGage = &_tenGage;
+
+/* --------------------------------------------------------------------- */
+
+char
+_tenFiberStyleStr[][AIR_STRLEN_SMALL] = {
+  "(unknown tenFiberStyle)",
+  "evec1",
+  "tensorline",
+  "pureline",
+  "zhukov"
+};
+
+char
+_tenFiberStyleDesc[][AIR_STRLEN_MED] = {
+  "unknown tenFiber style",
+  "simply follow principal eigenvector",
+  "Weinstein-Kindlmann tensorlines",
+  "based on tensor multiplication only",
+  "Zhukov's oriented tensors"
+};
+
+char
+_tenFiberStyleStrEqv[][AIR_STRLEN_SMALL] = {
+  "ev1", "evec1",
+  "tline", "tensorline",
+  "pline", "pureline",
+  "z", "zhukov"
+  ""
+};
+
+int
+_tenFiberStyleValEqv[] = {
+  tenFiberStyleEvec1, tenFiberStyleEvec1,
+  tenFiberStyleTensorLine, tenFiberStyleTensorLine,
+  tenFiberStylePureLine, tenFiberStylePureLine,
+  tenFiberStyleZhukov, tenFiberStyleZhukov
+};
+
+airEnum
+_tenFiberStyle = {
+  "tenFiberStyle",
+  TEN_FIBER_STYLE_MAX,
+  _tenFiberStyleStr, NULL,
+  _tenFiberStyleDesc,
+  _tenFiberStyleStrEqv, _tenFiberStyleValEqv,
+  AIR_FALSE
+};
+airEnum *
+tenFiberStyle = &_tenFiberStyle;
+
+/* ----------------------------------------------------------------------- */
+
+char
+_tenFiberStopStr[][AIR_STRLEN_SMALL] = {
+  "(unknown tenFiberStop)",
+  "aniso",
+  "length",
+  "bounds"
+};
+
+char
+_tenFiberStopDesc[][AIR_STRLEN_MED] = {
+  "unknown tenFiber stop",
+  "anisotropy went below threshold",
+  "fiber length exceeded normalcy bounds",
+  "fiber went outside bounding box"
+};
+
+airEnum
+_tenFiberStop = {
+  "tenFiberStop",
+  TEN_FIBER_STOP_MAX,
+  _tenFiberStopStr, NULL,
+  _tenFiberStopDesc,
+  NULL, NULL,
+  AIR_FALSE
+};
+airEnum *
+tenFiberStop = &_tenFiberStop;

@@ -17,30 +17,14 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
 #include "ten.h"
 #include "tenPrivate.h"
 
-tenGlyphParm *
-tenGlyphParmNew() {
-  tenGlyphParm *parm;
+const char
+tenDefFiberKernel[] = "cubic:0,0.5";
 
-  parm = calloc(1, sizeof(tenGlyphParm));
-  if (parm) {
-    parm->anisoThresh = parm->anisoType = AIR_NAN;
-    parm->vThreshVol = NULL;
-    parm->dwiThresh = parm->vThresh = parm->useColor = AIR_NAN;
-    parm->thresh = parm->cscale = AIR_NAN;
-  }
-  return parm;
-}
+double
+tenDefFiberStep = 0.01;
 
-tenGlyphParm *
-tenGlyphParmNix(tenGlyphParm *parm) {
-
-  if (parm) {
-    free(parm);
-  }
-  return NULL;
-}
-
+double
+tenDefFiberMaxHalfLen = 3;
