@@ -59,6 +59,7 @@ _gageContextInit(gageContext *ctx) {
   if (ctx) {
     ctx->verbose = gageDefVerbose;
     ctx->renormalize = gageDefRenormalize;
+    ctx->checkIntegrals = gageDefCheckIntegrals;
     /* malloc/calloc doesn't generate NULLs ... */
     ctx->fsl = NULL;
     ctx->off = NULL;
@@ -123,21 +124,23 @@ _gageKernelSet(gageContext *ctx,
     sprintf(err, "%s: kernel's support (%g) not > 0", me, support);
     biffAdd(GAGE, err); return 1;
   }
-  integral = k->integral(kparm);
-  if (gageKernel00 == which ||
-      gageKernel10 == which ||
-      gageKernel20 == which) {
-    if (!( integral > 0 )) {
-      sprintf(err, "%s: reconstruction kernel's integral (%g) not > 0",
-	      me, integral);
-      biffAdd(GAGE, err); return 1;
-    }
-  } else {
-    /* its a derivative, so integral must be zero */
-    if (!( integral == 0 )) {
-      sprintf(err, "%s: derivative kernel's integral (%g) not == 0",
-	      me, integral);
-      biffAdd(GAGE, err); return 1;
+  if (ctx->checkIntegrals) {
+    integral = k->integral(kparm);
+    if (gageKernel00 == which ||
+	gageKernel10 == which ||
+	gageKernel20 == which) {
+      if (!( integral > 0 )) {
+	sprintf(err, "%s: reconstruction kernel's integral (%g) not > 0",
+		me, integral);
+	biffAdd(GAGE, err); return 1;
+      }
+    } else {
+      /* its a derivative, so integral must be zero */
+      if (!( integral == 0 )) {
+	sprintf(err, "%s: derivative kernel's integral (%g) not == 0",
+		me, integral);
+	biffAdd(GAGE, err); return 1;
+      }
     }
   }
 
@@ -179,7 +182,7 @@ _gageKernelDependentSet(gageContext *ctx) {
   }
   ctx->fr = AIR_ROUNDUP(maxRad);
   ctx->fd = 2*ctx->fr;
-  ctx->needPad = ctx->fr-1;
+  ctx->needPad = ctx->fr - 1;
   if (ctx->verbose) {
     fprintf(stderr, "%s: fr = %d, fd = %d, needPad = %d\n",
 	    me, ctx->fr, ctx->fd, ctx->needPad);
@@ -289,6 +292,18 @@ _gageVolumeDependentSet(gageContext *ctx, Nrrd *npad, int baseDim) {
       break;
     }
   }
+  if (ctx->verbose) {
+    fprintf(stderr, "%s: fw re-scaling for non-unit spacing:\n", me);
+    fprintf(stderr, "              X               Y               Z\n");
+#define PRINT(NN) \
+    fprintf(stderr, "   "#NN": % 15.7f % 15.7f % 15.7f\n", \
+	    ctx->fwScl[gageKernel##NN][0], \
+	    ctx->fwScl[gageKernel##NN][1], \
+	    ctx->fwScl[gageKernel##NN][2]);
+    PRINT(00);
+    PRINT(11);
+    PRINT(22);
+  }
   if (!ctx->off) {
     sprintf(err, "%s: offset array (ctx->off) not allocated", me);
     biffAdd(GAGE, err); return 1;
@@ -298,7 +313,7 @@ _gageVolumeDependentSet(gageContext *ctx, Nrrd *npad, int baseDim) {
     for (j=0; j<fd; j++)
       for (i=0; i<fd; i++)
 	ctx->off[i + fd*(j + fd*k)] = i + ctx->sx*(j + ctx->sy*k);
-  if (ctx->verbose) {
+  if (ctx->verbose > 2) {
     fprintf(stderr, "%s: newly calculated offset array\n", me);
     _gagePrint_off(ctx);
   }

@@ -49,7 +49,7 @@ _gageFslSet(gageContext *ctx) {
     fsly[0] = yf; fsly[1] = yf-1;
     fslz[0] = zf; fslz[1] = zf-1;
     break;
-  case 20:
+  case 2:
     fslx[0] = xf+1; fslx[1] = xf; fslx[2] = xf-1; fslx[3] = xf-2;
     fsly[0] = yf+1; fsly[1] = yf; fsly[2] = yf-1; fsly[3] = yf-2;
     fslz[0] = zf+1; fslz[1] = zf; fslz[2] = zf-1; fslz[3] = zf-2;

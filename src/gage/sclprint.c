@@ -37,11 +37,12 @@ _gageSclPrint_query(unsigned int query) {
 void
 _gageSclPrint_iv3(gageSclContext *ctx) {
   gage_t *iv3;
-  int i;
+  int i, fd;
 
   iv3 = ctx->iv3;
+  fd = ctx->c.fd;
   fprintf(stderr, "iv3[]:\n");
-  switch(ctx->c.fd) {
+  switch(fd) {
   case 2:
     fprintf(stderr, "% 10.4f   % 10.4f\n", (float)iv3[6], (float)iv3[7]);
     fprintf(stderr, "   % 10.4f   % 10.4f\n\n", (float)iv3[4], (float)iv3[5]);
@@ -68,8 +69,9 @@ _gageSclPrint_iv3(gageSclContext *ctx) {
     }
     break;
   default:
-    for (i=0; i<ctx->c.fd*ctx->c.fd*ctx->c.fd; i++) {
-      fprintf(stderr, "  iv3[% 5d] = % 10.4f\n", i, (float)iv3[i]);
+    for (i=0; i<fd*fd*fd; i++) {
+      fprintf(stderr, "  iv3[% 3d,% 3d,% 3d] = % 10.4f\n",
+	      i%fd, (i/fd)%fd, i/(fd*fd), (float)iv3[i]);
     }
     break;
   }

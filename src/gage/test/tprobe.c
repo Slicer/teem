@@ -50,7 +50,8 @@ usage(char *me) {
 int
 main(int argc, char *argv[]) {
   char *me, *ninS, *whatS, *scaleS, *k0S, *k1S, *k2S, *noutS;
-  float x, y, z, scale, *out;
+  float x, y, z, scale;
+  gage_t *out;
   Nrrd *nin, *npad, *nout;
   int a, idx, what, ansLen, offset, E, xi, yi, zi, pad,
     six, siy, siz, sox, soy, soz;
@@ -108,6 +109,7 @@ main(int argc, char *argv[]) {
   ctx = gageSclContextNew();
   ctx->c.verbose = 1;   /* but this is reset when we start traversing */
   ctx->c.renormalize = AIR_FALSE;
+  ctx->c.checkIntegrals = AIR_FALSE;
   E = 0;
   if (!E) E |= gageSclKernelSet(ctx, gageKernel00, k0, param[0]);
   if (!E) E |= gageSclKernelSet(ctx, gageKernel11, k1, param[1]);
@@ -141,11 +143,11 @@ main(int argc, char *argv[]) {
   if (ansLen > 1) {
     printf("%s: creating %d x %d x %d x %d output\n", 
 	   me, ansLen, sox, soy, soz);
-    if (!E) E != nrrdAlloc(nout=nrrdNew(), nrrdTypeFloat, 
+    if (!E) E != nrrdAlloc(nout=nrrdNew(), gage_nrrdType,
 			      4, ansLen, sox, soy, soz);
   } else {
     printf("%s: creating %d x %d x %d output\n", me, sox, soy, soz);
-    if (!E) E != nrrdAlloc(nout=nrrdNew(), nrrdTypeFloat, 
+    if (!E) E != nrrdAlloc(nout=nrrdNew(), gage_nrrdType,
 			   3, sox, soy, soz);
   }
   if (E) {
@@ -166,10 +168,11 @@ main(int argc, char *argv[]) {
 	x = AIR_AFFINE(0, xi, sox-1, 0, six-1);
 	idx = xi + sox*(yi + soy*zi);
 
-	ctx->c.verbose = 2*( !xi && !yi && !zi ||
-			     ((sox-1 == xi) && (30 == yi) && (10 == zi)) ||
-			     ((40 == xi) && (30 == yi) && (62 == zi)) ||
-			     ((40 == xi) && (30 == yi) && (63 == zi)) );
+	ctx->c.verbose = 2*( /* !xi && !yi && !zi || */
+			    /* ((100 == xi) && (8 == yi) && (8 == zi)) */
+			    ((61 == xi) && (51 == yi) && (46 == zi))
+			     /* ((40 == xi) && (30 == yi) && (62 == zi)) || */
+			     /* ((40 == xi) && (30 == yi) && (63 == zi)) */ ); 
 
 	if (gageSclProbe(ctx, x, y, z)) {
 	  fprintf(stderr, 

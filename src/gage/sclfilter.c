@@ -70,6 +70,10 @@ _gageScl3PFilter2(gage_t *ivX, gage_t *ivY, gage_t *ivZ,
     gvec[2] = D1_2(0,Z);                       /* g_z */
   }
   if (doD2) {
+    /* actually, there is no possible way in which it makes sense to
+       try to measure a second derivative with only two samples, so
+       all this "if (doD2)" code is basically bogus, but we'll keep it
+       around for generality ... */
     /* x0y0z2 */
     hess[8] = D2_2(0,Z);                       /* h_zz */
   }
@@ -168,6 +172,8 @@ _gageScl3PFilter4(gage_t *ivX, gage_t *ivY, gage_t *ivZ,
   ivY[13] = VL_4(13,X);
   ivY[14] = VL_4(14,X);
   ivY[15] = VL_4(15,X);
+  /*
+  */
   /* x0y0 */
   ivZ[ 0] = VL_4( 0,Y);
   ivZ[ 1] = VL_4( 1,Y);
@@ -176,6 +182,19 @@ _gageScl3PFilter4(gage_t *ivX, gage_t *ivY, gage_t *ivZ,
   /* x0y0z0 */
   if (doV) {
     *val = VL_4( 0,Z);                          /* f */
+    if (AIR_ABS(505.6159668 - *val) < 0.0001) {
+      printf("ivY =   % 10.4f   % 10.4f   % 10.4f   % 10.4f\n",
+	     ivY[ 0], ivY[ 1], ivY[ 2], ivY[ 3]);
+      printf("ivY =   % 10.4f   % 10.4f   % 10.4f   % 10.4f\n",
+	     ivY[ 4], ivY[ 5], ivY[ 6], ivY[ 7]);
+      printf("ivY =   % 10.4f   % 10.4f   % 10.4f   % 10.4f\n",
+	     ivY[ 8], ivY[ 9], ivY[10], ivY[11]);
+      printf("ivY =   % 10.4f   % 10.4f   % 10.4f   % 10.4f\n",
+	     ivY[12], ivY[13], ivY[14], ivY[15]);
+      printf("--> \nivZ =   % 10.4f   % 10.4f   % 10.4f   % 10.4f\n",
+	     ivZ[ 0], ivZ[ 1], ivZ[ 2], ivZ[ 3]);
+      printf("--> *val = % 10.4f\n", (float)(*val));
+    }
   }
 
   if (!( doD1 || doD2 ))
