@@ -38,7 +38,7 @@ main(int argc, char *argv[]) {
   char *outS;
   alanContext *actx;
   int *size, sizeLen, fi, si, wrap, nt, cfn;
-  double deltaT, mch, xch, alphabeta[2], time0, time1, H;
+  double deltaT, mch, xch, alphabeta[2], time0, time1, deltaX, react, rrange;
   Nrrd *ninit=NULL, *nten=NULL, *nparm=NULL;
 
   me = argv[0];
@@ -58,17 +58,21 @@ main(int argc, char *argv[]) {
 	     "the growth and decay parameters appearing in the reaction "
 	     "terms of the reaction-diffusion equations.  The default "
 	     "values were the ones published by Turing.");
+  hestOptAdd(&hopt, "sr", "react", airTypeDouble, 1, 1, &react, "1.0",
+	     "scaling of reaction term");
+  hestOptAdd(&hopt, "rr", "range range", airTypeDouble, 1, 1, &rrange, "4.0",
+	     "amount of random noise to add to inital textures");
   hestOptAdd(&hopt, "dt", "time", airTypeDouble, 1, 1, &deltaT, "1.0",
 	     "time-step size in Euler integration.  Can be larger, at "
 	     "risk of hitting divergent instability.");
-  hestOptAdd(&hopt, "dx", "size", airTypeDouble, 1, 1, &H, "1.3",
+  hestOptAdd(&hopt, "dx", "size", airTypeDouble, 1, 1, &deltaX, "1.3",
 	     "nominal size of simulation grid element.");
   hestOptAdd(&hopt, "mch", "change", airTypeDouble, 1, 1, &mch, "0.00001",
-	     "the minimum significant change, averaged over the whole texture, in the "
-	     "first morphogen: to signify convergence");
+	     "the minimum significant change (averaged over the whole "
+	     "texture) in the first morphogen: to signify convergence");
   hestOptAdd(&hopt, "xch", "change", airTypeDouble, 1, 1, &xch, "6",
-	     "the maximum allowable change, averaged over the whole texture, in the "
-	     "first morphogen: to signify divergence");
+	     "the maximum allowable change (averaged over the whole "
+	     "texture) in the first morphogen: to signify divergence");
   hestOptAdd(&hopt, "fi", "frame inter", airTypeInt, 1, 1, &fi, "0",
 	     "the number of iterations between which to save out an 8-bit "
 	     "image of the texture, or \"0\" to disable such action");
@@ -114,15 +118,15 @@ main(int argc, char *argv[]) {
 
   if (alanParmSet(actx, alanParmVerbose, 1)
       || alanParmSet(actx, alanParmTextureType, alanTextureTypeTuring)
-      || alanParmSet(actx, alanParmRandRange, 4.0)
       || alanParmSet(actx, alanParmK, 0.0125)
-      || alanParmSet(actx, alanParmH, 1.2)
       || alanParmSet(actx, alanParmAlpha, alphabeta[0])
       || alanParmSet(actx, alanParmBeta, alphabeta[1])
+      || alanParmSet(actx, alanParmDeltaX, deltaX)
       || alanParmSet(actx, alanParmDeltaT, deltaT)
-      || alanParmSet(actx, alanParmH, H)
+      || alanParmSet(actx, alanParmReact, react)
       || alanParmSet(actx, alanParmMinAverageChange, mch)
       || alanParmSet(actx, alanParmMaxPixelChange, xch)
+      || alanParmSet(actx, alanParmRandRange, rrange)
       || alanParmSet(actx, alanParmSaveInterval, si)
       || alanParmSet(actx, alanParmFrameInterval, fi)
       || alanParmSet(actx, alanParmConstantFilename, cfn)

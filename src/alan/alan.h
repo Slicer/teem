@@ -52,11 +52,12 @@ enum {
   alanParmMaxIteration,
   alanParmRandRange,
   alanParmDeltaT,
+  alanParmDeltaX,
   alanParmDiffA,
   alanParmDiffB,
+  alanParmReact,
   alanParmK,
   alanParmF,
-  alanParmH,
   alanParmMinAverageChange,
   alanParmMaxPixelChange,
   alanParmAlpha,
@@ -105,13 +106,14 @@ typedef struct alanContext_t {
     maxIteration,     /* cap on # of iterations */
     constFilename;    /* always use the same filename when saving frames */
   alan_t K, F,        /* simulation variables */
-    H,                /* size of spatial grid discretization */
+    deltaX,           /* size of spatial grid discretization */
     minAverageChange, /* min worthwhile "avergageChange" value (see below),
 			 assume convergence if it falls below this */
     maxPixelChange,   /* maximum allowed change in the first morphogen (on
 			 any single pixels), assume unstable divergence if 
 			 this is exceeded */
     alpha, beta,      /* variables for turing */
+    react,            /* additional scaling of reaction term */
     deltaT,           /* euler integration step size */
     initA, initB,     /* initial (constant) values for each morphogen */
     diffA, diffB,     /* base diffusion rates for each morphogen */

@@ -40,10 +40,11 @@ alanContextInit(alanContext *actx) {
     actx->maxPixelChange = 6;
     actx->K = AIR_NAN;
     actx->F = AIR_NAN;
-    actx->H = 1.25;
+    actx->deltaX = 1.25;
     actx->alpha = 16;
     actx->beta = 12;
     actx->deltaT = 1.0;
+    actx->react = 1.0;
     actx->initA = actx->initB = 0;
     actx->diffA = actx->diffB = 0;
     actx->perIteration = NULL;
@@ -259,6 +260,12 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
   case alanParmDeltaT:
     actx->deltaT = parm;
     break;
+  case alanParmDeltaX:
+    actx->deltaX = parm;
+    break;
+  case alanParmReact:
+    actx->react = parm;
+    break;
   case alanParmDiffA:
     actx->diffA = parm;
     break;
@@ -273,9 +280,6 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
     break;
   case alanParmF:
     actx->F = parm;
-    break;
-  case alanParmH:
-    actx->H = parm;
     break;
   case alanParmMinAverageChange:
     actx->minAverageChange = parm;

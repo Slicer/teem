@@ -212,7 +212,7 @@ typedef struct {
 
 void *
 _alanTuringWorker(void *_task) {
-  alan_t *tendata, *ten, Dxx, Dxy, Dyy, react,
+  alan_t *tendata, *ten, Dxx, Dxy, Dyy, react, _react,
     *lev0, *lev1, *parm, deltaT, alpha, beta, A, B,
     *v[27], lapA, lapB, deltaA, deltaB, diffA, diffB, change;
   int dim, iter, stop, startW, endW, idx,
@@ -226,11 +226,12 @@ _alanTuringWorker(void *_task) {
   sy = task->actx->size[1];
   sz = (2 == dim ? 1 : task->actx->size[2]);
   parm = (alan_t*)(task->actx->nparm->data);
-  diffA = task->actx->diffA/pow(task->actx->H, dim);
-  diffB = task->actx->diffB/pow(task->actx->H, dim);
+  diffA = task->actx->diffA/pow(task->actx->deltaX, dim);
+  diffB = task->actx->diffB/pow(task->actx->deltaX, dim);
   startW = task->idx*sy/task->actx->numThreads;
   endW = (task->idx+1)*sy/task->actx->numThreads;
   tendata = task->actx->nten ? (alan_t *)task->actx->nten->data : NULL;
+  _react = task->actx->react;
 
   if (2 == dim) {
     startZ = 0;
@@ -355,6 +356,7 @@ _alanTuringWorker(void *_task) {
 	    react = 1;
 	  }
 	  
+	  react *= _react;
 	  deltaA = deltaT*(react*task->actx->K*(alpha - A*B) + diffA*lapA);
 	  if (AIR_ABS(deltaA) > task->actx->maxPixelChange) {
 	    stop = alanStopDiverged;
