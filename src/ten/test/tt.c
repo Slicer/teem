@@ -42,6 +42,7 @@ _cap2xyz(double xyz[3], double ca, double cp, int version, int whole) {
 	       AIR_AFFINE(0.0, 0.9, 1.0, mean, cl),
 	       AIR_AFFINE(0.0, 0.9, 1.0, mean, cp),
 	       AIR_AFFINE(0.0, 0.9, 1.0, mean, cs));
+    ELL_3V_SET(xyz, cl, cp, cs);
   } else {
     if (1 == version) {
       ELL_3V_SET(xyz,

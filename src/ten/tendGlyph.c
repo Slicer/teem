@@ -126,7 +126,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopNew();
   cam = limnCameraNew();
   airMopAdd(mop, cam, (airMopper)limnCameraNix, airMopAlways);
-  glyph = limnObjectNew(100, AIR_TRUE);
+  glyph = limnObjectNew(1000, AIR_TRUE);
   airMopAdd(mop, glyph, (airMopper)limnObjectNix, airMopAlways);
   scene = echoSceneNew();
   airMopAdd(mop, scene, (airMopper)echoSceneNix, airMopAlways);

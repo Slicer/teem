@@ -181,7 +181,7 @@ enum {
   tenGageEvec1,         /* 16: "evec1", medium eigenvectors of tensor: GT[3] */
   tenGageEvec2,         /* 17: "evec2", minor eigenvectors of tensor: GT[3] */
 
-  tenGageTensorGrad,    /* 18: "tg, all tensor component gradients, starting
+  tenGageTensorGrad,    /* 18: "tg", all tensor component gradients, starting
 			       with the confidence gradient: GT[21] */
 
   tenGageTraceGradVec,  /* 19: "trgv": gradient (vector) of trace: GT[3] */
@@ -216,10 +216,20 @@ enum {
   tenGageThetaGradMag,  /* 41: "thgm", gradient magnitude of Th: GT[1] */
   tenGageThetaNormal,   /* 42: "thn", normalized gradient of Th: GT[3] */
 
-  tenGageAniso,         /* 43: "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
+  tenGageShapeGrads,    /* 43, "shgs", projections of tensor gradient onto the
+			       normalized shape gradients: eigenvalue 
+				ean, variance, skew, in that order: GT[9]  */
+  tenGageShapeGradMags, /* 44: "shgms", what the tensor-valued shape gradients
+			       where to be normalized by: GT[3] */
+  tenGageRotTans,       /* 45: "rts", projections of the tensor gradient onto
+			       non-normalized rotation tangents: GT[9] */
+  tenGageRotTanMags,    /* 46: "rtms", lengths of rotation tangents: GT[3] */
+  tenGageEvalGrads,     /* 47: "evgs", projections of tensor gradient onto
+			       gradients of eigenvalues: GT[9] */
+  tenGageAniso,         /* 48: "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
   tenGageLast
 };
-#define TEN_GAGE_ITEM_MAX  43
+#define TEN_GAGE_ITEM_MAX  48
 
 /*
 ******** tenFiberType* enum
@@ -442,6 +452,17 @@ TEEM_API void tenMakeOne_f(float ten[7],
 			   float conf, float eval[3], float evec[9]);
 TEEM_API int tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec);
 TEEM_API int tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos, int dim);
+TEEM_API void tenShapeGradients_d(double mean[7],
+				  double var[7], double *varNorm,
+				  double skew[7], double *skewNorm,
+				  double eval[3], double evec[9],
+				  int *didEigen,
+				  double ten[7]);
+TEEM_API void tenRotationTangents_d(double ups1[7], double *ups1Mag,
+				    double ups2[7], double *ups2Mag,
+				    double ups3[7], double *ups3Mag,
+				    double eval[3], double evec[9],
+				    double ten[7]);
 
 /* chan.c */
 /* old tenCalc* functions replaced by tenEstimate* */

@@ -57,6 +57,15 @@ extern "C" {
                     (t)[4] = (m)[4], (t)[5] = (m)[5], \
                                      (t)[6] = (m)[8] )
 
+#define TEN_T_EXISTS(t) ( \
+    AIR_EXISTS((t)[0]) \
+ && AIR_EXISTS((t)[1]) \
+ && AIR_EXISTS((t)[2]) \
+ && AIR_EXISTS((t)[3]) \
+ && AIR_EXISTS((t)[4]) \
+ && AIR_EXISTS((t)[5]) \
+ && AIR_EXISTS((t)[6]) )
+
 #define TEN_T_SET(t, conf, a, b, c, d, e, f) ( \
    (t)[0] = (conf), \
    (t)[1] = (a), (t)[2] = (b), (t)[3] = (c), \

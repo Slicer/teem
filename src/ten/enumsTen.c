@@ -124,6 +124,13 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "P grad mag",
   "P normal",
 
+  "shape gradients",
+  "shape gradient mags",
+  "rotation tangents",
+  "rotation tangent mags",
+
+  "eigenvalue gradients",
+
   "anisotropies"
 };
 
@@ -173,6 +180,11 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "P grad vec",
   "P grad mag",
   "P normal",
+  "shape gradients",
+  "shape gradient mags",
+  "rotation tangents",
+  "rotation tangent mags",
+  "eigenvalue gradients",
   "anisotropies"
 };
 
@@ -197,7 +209,7 @@ _tenGageVal[] = {
   tenGageEvec0,         /* "evec0", major eigenvectors of tensor: GT[3] */
   tenGageEvec1,         /* "evec1", medium eigenvectors of tensor: GT[3] */
   tenGageEvec2,         /* "evec2", minor eigenvectors of tensor: GT[3] */
-  tenGageTensorGrad,    /* "tg, all tensor component gradients: GT[21] */
+  tenGageTensorGrad,    /* "tg", all tensor component gradients: GT[21] */
   tenGageTraceGradVec,  /* "trgv": gradient (vector) of trace: GT[3] */
   tenGageTraceGradMag,  /* "trgm": gradient magnitude of trace: GT[1] */
   tenGageTraceNormal,   /* "trn": normal of trace: GT[3] */
@@ -222,6 +234,11 @@ _tenGageVal[] = {
   tenGageThetaGradVec,  /* "thgv", gradient vector of P: GT[3] */
   tenGageThetaGradMag,  /* "thgm", gradient magnitude of P: GT[1] */
   tenGageThetaNormal,   /* "thn", normalized gradient of P: GT[3] */
+  tenGageShapeGrads,    /* "shgs" */
+  tenGageShapeGradMags, /* "shgms" */
+  tenGageRotTans,       /* "rts" */
+  tenGageRotTanMags,    /* "rtms" */
+  tenGageEvalGrads,     /* "evgs" */
   tenGageAniso          /* "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
 };
 
@@ -270,6 +287,11 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "thgv", "th grad vec",
   "thgm", "th grad mag",
   "thn", "th normal",
+  "shgs", "shape gradients",
+  "shgms", "shape gradient mags",
+  "rts", "rotation tangents",
+  "rtms", "rotation tangent mags",
+  "evgs", "eigenvalue gradients",
   "an", "aniso", "anisotropies",
   ""
 };
@@ -319,6 +341,11 @@ _tenGageValEqv[] = {
   tenGageThetaGradVec, tenGageThetaGradVec,
   tenGageThetaGradMag, tenGageThetaGradMag,
   tenGageThetaNormal, tenGageThetaNormal,
+  tenGageShapeGrads, tenGageShapeGrads,
+  tenGageShapeGradMags, tenGageShapeGradMags,
+  tenGageRotTans, tenGageRotTans,
+  tenGageRotTanMags, tenGageRotTanMags,
+  tenGageEvalGrads, tenGageEvalGrads,
   tenGageAniso, tenGageAniso, tenGageAniso
 };
 
@@ -351,7 +378,7 @@ _tenFiberTypeDesc[][AIR_STRLEN_MED] = {
   "simply follow principal eigenvector",
   "Weinstein-Kindlmann tensorlines",
   "based on tensor multiplication only",
-  "Zhukov's oriented tensors"
+  "Zhukov\'s oriented tensors"
 };
 
 char

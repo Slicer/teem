@@ -17,14 +17,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-extern void
-tenShapeGradients_d(double mean[7],
-		    double var[7], double *varNorm,
-		    double skew[7], double *skewNorm,
-		    double evec[9], double eval[9], int *didEigen,
-		    double ten[7]);
-
-
 #include "ten.h"
 #include "privateTen.h"
 
@@ -85,6 +77,15 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageThetaGradVec,        3,  1,  {tenGageRGradVec, tenGageQGradVec, tenGageTheta, -1, -1},                              -1,  -1},
   {tenGageThetaGradMag,        1,  1,  {tenGageThetaGradVec, -1, -1, -1, -1},                                                 -1,  -1},
   {tenGageThetaNormal,         3,  1,  {tenGageThetaGradVec, tenGageThetaGradMag, -1, -1, -1},                                -1,  -1},
+  
+  /* the ...Mags item doesn't actually require all of the previous item,
+     but its the easiest way to implement it for now */
+  {tenGageShapeGrads,          9,  1,  {tenGageTensor, tenGageTensorGrad, -1, -1, -1},                                        -1,  -1},
+  {tenGageShapeGradMags,       3,  1,  {tenGageShapeGrads, -1, -1, -1, -1},                                                   -1,  -1},
+  {tenGageRotTans,             9,  1,  {tenGageTensor, tenGageTensorGrad, tenGageEval, tenGageEvec, -1},                      -1,  -1},
+  {tenGageRotTanMags,          3,  1,  {tenGageRotTans, -1, -1, -1, -1},                                                      -1,  -1},
+
+  {tenGageEvalGrads,           9,  1,  {tenGageTensorGrad, tenGageEval, tenGageEvec, -1},                                     -1,  -1},
 
   {tenGageAniso, TEN_ANISO_MAX+1,  0,  {tenGageEval0, tenGageEval1, tenGageEval2, -1, -1},                                    -1,  -1}
 };
@@ -154,6 +155,7 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   gage_t *tenAns, *evalAns, *evecAns, *vecTmp=NULL,
     *gradDtA=NULL, *gradDtB=NULL, *gradDtC=NULL,
     *gradDtD=NULL, *gradDtE=NULL, *gradDtF=NULL,
+    gradDdXYZ[21],
     *gradCbS=NULL, *gradCbB=NULL, *gradCbQ=NULL, *gradCbR=NULL;
   double tmp0, tmp1, magTmp=0,
     gradCbA[3], gradCbC[3],
@@ -234,6 +236,8 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorGrad)) {
     /* done if doD1 */
+    /* still have to set up point variables that item answers
+       below will rely on as short-cuts */
     vecTmp = pvl->directAnswer[tenGageTensorGrad];
     gradDtA = vecTmp + 1*3;
     gradDtB = vecTmp + 2*3;
@@ -241,39 +245,22 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     gradDtD = vecTmp + 4*3;
     gradDtE = vecTmp + 5*3;
     gradDtF = vecTmp + 6*3;
+    TEN_T_SET(gradDdXYZ + 0*7, tenAns[0],
+	      gradDtA[0], gradDtB[0], gradDtC[0],
+	      gradDtD[0], gradDtE[0],
+	      gradDtF[0]);
+    TEN_T_SET(gradDdXYZ + 1*7, tenAns[0],
+	      gradDtA[1], gradDtB[1], gradDtC[1],
+	      gradDtD[1], gradDtE[1],
+	      gradDtF[1]);
+    TEN_T_SET(gradDdXYZ + 2*7, tenAns[0],
+	      gradDtA[2], gradDtB[2], gradDtC[2],
+	      gradDtD[2], gradDtE[2],
+	      gradDtF[2]);
   }
 
   /* --- Trace --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTraceGradVec)) {
-    /*
-    double tmpT[7], meanGrad[7], varGrad[7], varNorm, skewGrad[7], skewNorm,
-      copyT[7];
-    int didEigen=0;
-    
-    TEN_T_COPY(copyT, tenAns);
-    tenShapeGradients_d(meanGrad, 
-			varGrad, &varNorm,
-			skewGrad, &skewNorm,
-			NULL, NULL, &didEigen,
-			copyT);
-    vecTmp = pvl->directAnswer[tenGageTraceGradVec];
-    TEN_T_SET(tmpT, tenAns[0],
-	      gradDtA[0], gradDtB[0], gradDtC[0],
-	      gradDtD[0], gradDtE[0],
-	      gradDtF[0]);
-    vecTmp[0] = TEN_T_DOT(meanGrad, tmpT);
-    TEN_T_SET(tmpT, tenAns[0],
-	      gradDtA[1], gradDtB[1], gradDtC[1],
-	      gradDtD[1], gradDtE[1],
-	      gradDtF[1]);
-    vecTmp[1] = TEN_T_DOT(meanGrad, tmpT);
-    TEN_T_SET(tmpT, tenAns[0],
-	      gradDtA[2], gradDtB[2], gradDtC[2],
-	      gradDtD[2], gradDtE[2],
-	      gradDtF[2]);
-    vecTmp[2] = TEN_T_DOT(meanGrad, tmpT);
-    */
-
     vecTmp = pvl->directAnswer[tenGageTraceGradVec];
     ELL_3V_ADD3(vecTmp, gradDtA, gradDtD, gradDtF);
     ELL_3V_SCALE(gradCbA, -1, vecTmp);
@@ -343,35 +330,6 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   }
   /* --- Q --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageQGradVec)) {
-    /*
-    double tmpT[7], meanGrad[7], varGrad[7], varNorm, skewGrad[7], skewNorm,
-      copyT[7];
-    int didEigen=0;
-    
-    TEN_T_COPY(copyT, tenAns);
-    tenShapeGradients_d(meanGrad, 
-			varGrad, &varNorm,
-			skewGrad, &skewNorm,
-			NULL, NULL, &didEigen,
-			copyT);
-    gradCbQ = vecTmp = pvl->directAnswer[tenGageQGradVec];
-    TEN_T_SET(tmpT, tenAns[0],
-	      gradDtA[0], gradDtB[0], gradDtC[0],
-	      gradDtD[0], gradDtE[0],
-	      gradDtF[0]);
-    vecTmp[0] = TEN_T_DOT(varGrad, tmpT);
-    TEN_T_SET(tmpT, tenAns[0],
-	      gradDtA[1], gradDtB[1], gradDtC[1],
-	      gradDtD[1], gradDtE[1],
-	      gradDtF[1]);
-    vecTmp[1] = TEN_T_DOT(varGrad, tmpT);
-    TEN_T_SET(tmpT, tenAns[0],
-	      gradDtA[2], gradDtB[2], gradDtC[2],
-	      gradDtD[2], gradDtE[2],
-	      gradDtF[2]);
-    vecTmp[2] = TEN_T_DOT(varGrad, tmpT);
-    */
-
     gradCbQ = vecTmp = pvl->directAnswer[tenGageQGradVec];
     ELL_3V_SCALE_ADD2(vecTmp,
 		      1.0/9.0, gradCbS, 
@@ -435,6 +393,78 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageThetaNormal)) {
     ELL_3V_SCALE(pvl->directAnswer[tenGageThetaNormal],
 		 1.0/(epsilon + magTmp), vecTmp);
+  }
+  /* --- Shape gradients + rotation tangents --- */
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageShapeGrads)
+      || GAGE_QUERY_ITEM_TEST(pvl->query, tenGageShapeGradMags)) {
+    double meanGrad[7], varGrad[7], varNorm,
+      skewGrad[7], skewNorm, copyT[7],
+      locEval[3], locEvec[9];
+    int didEigen=0;
+    
+    TEN_T_COPY(copyT, tenAns);
+    tenShapeGradients_d(meanGrad, 
+			varGrad, &varNorm,
+			skewGrad, &skewNorm,
+			locEval, locEvec, &didEigen,
+			copyT);
+    vecTmp[0] = TEN_T_DOT(meanGrad, gradDdXYZ + 0*7);
+    vecTmp[1] = TEN_T_DOT(meanGrad, gradDdXYZ + 1*7);
+    vecTmp[2] = TEN_T_DOT(meanGrad, gradDdXYZ + 2*7);
+    ELL_3V_COPY(pvl->directAnswer[tenGageShapeGrads] + 0*3, vecTmp);
+    vecTmp[0] = TEN_T_DOT(varGrad, gradDdXYZ + 0*7);
+    vecTmp[1] = TEN_T_DOT(varGrad, gradDdXYZ + 1*7);
+    vecTmp[2] = TEN_T_DOT(varGrad, gradDdXYZ + 2*7);
+    ELL_3V_COPY(pvl->directAnswer[tenGageShapeGrads] + 1*3, vecTmp);
+    vecTmp[0] = TEN_T_DOT(skewGrad, gradDdXYZ + 0*7);
+    vecTmp[1] = TEN_T_DOT(skewGrad, gradDdXYZ + 1*7);
+    vecTmp[2] = TEN_T_DOT(skewGrad, gradDdXYZ + 2*7);
+    ELL_3V_COPY(pvl->directAnswer[tenGageShapeGrads] + 2*3, vecTmp);
+    pvl->directAnswer[tenGageShapeGradMags][0] = 1;
+    pvl->directAnswer[tenGageShapeGradMags][1] = varNorm;
+    pvl->directAnswer[tenGageShapeGradMags][2] = skewNorm;
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEvalGrads)) {
+    double matOut[9], tenOut[9];
+    int evi;
+
+    for (evi=0; evi<=2; evi++) {
+      ELL_3MV_OUTER(matOut, evecAns + evi*3, evecAns + evi*3);
+      TEN_M2T(tenOut, matOut);
+      vecTmp[0] = TEN_T_DOT(tenOut, gradDdXYZ + 0*7);
+      vecTmp[1] = TEN_T_DOT(tenOut, gradDdXYZ + 1*7);
+      vecTmp[2] = TEN_T_DOT(tenOut, gradDdXYZ + 2*7);
+      ELL_3V_COPY(pvl->directAnswer[tenGageEvalGrads] + evi*3, vecTmp);
+    }
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRotTans)
+      || GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRotTanMags)) {
+    double ups1[7], ups2[7], ups3[7], 
+      ups1Mag, ups2Mag, ups3Mag,
+      eval[3], evec[9], copyT[7];
+
+    TEN_T_COPY(copyT, tenAns);
+    ELL_3V_COPY(eval, evalAns);
+    ELL_9V_COPY(evec, evecAns);
+    tenRotationTangents_d(ups1, &ups1Mag,
+			  ups2, &ups2Mag,
+			  ups3, &ups3Mag,
+			  eval, evec, copyT);
+    vecTmp[0] = TEN_T_DOT(ups1, gradDdXYZ + 0*7);
+    vecTmp[1] = TEN_T_DOT(ups1, gradDdXYZ + 1*7);
+    vecTmp[2] = TEN_T_DOT(ups1, gradDdXYZ + 2*7);
+    ELL_3V_COPY(pvl->directAnswer[tenGageRotTans] + 0*3, vecTmp);
+    vecTmp[0] = TEN_T_DOT(ups2, gradDdXYZ + 0*7);
+    vecTmp[1] = TEN_T_DOT(ups2, gradDdXYZ + 1*7);
+    vecTmp[2] = TEN_T_DOT(ups2, gradDdXYZ + 2*7);
+    ELL_3V_COPY(pvl->directAnswer[tenGageRotTans] + 1*3, vecTmp);
+    vecTmp[0] = TEN_T_DOT(ups3, gradDdXYZ + 0*7);
+    vecTmp[1] = TEN_T_DOT(ups3, gradDdXYZ + 1*7);
+    vecTmp[2] = TEN_T_DOT(ups3, gradDdXYZ + 2*7);
+    ELL_3V_COPY(pvl->directAnswer[tenGageRotTans] + 2*3, vecTmp);
+    pvl->directAnswer[tenGageRotTanMags][0] = ups1Mag;
+    pvl->directAnswer[tenGageRotTanMags][1] = ups2Mag;
+    pvl->directAnswer[tenGageRotTanMags][2] = ups3Mag;
   }
   /* --- Aniso --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageAniso)) {

@@ -91,6 +91,10 @@ tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten, Nrrd *npos, Nrrd *nslc) {
     sprintf(err, "%s: unset (or invalid) glyphType (%d)", me, parm->glyphType);
     biffAdd(TEN, err); return 1;
   }
+  if (!( parm->glyphScale > 0)) {
+    sprintf(err, "%s: glyphScale must be > 0 (not %g)", me, parm->glyphScale);
+    biffAdd(TEN, err); return 1;
+  }
   if (parm->nmask) {
     if (npos) {
       sprintf(err, "%s: can't do masking with explicit coordinate list", me);
@@ -253,6 +257,10 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   }
   for (idx=0; idx<numGlyphs; idx++, _idx = idx) {
     tdata = (float*)(nten->data) + 7*idx;
+    if (!( TEN_T_EXISTS(tdata) )) {
+      /* there's nothing we can do here */
+      continue;
+    }
     if (npos) {
       ELL_3V_COPY(pW, (float*)(npos->data) + 3*idx);
     } else {
