@@ -56,7 +56,7 @@ mossSamplerKernelSet (mossSampler *smplr, NrrdKernel *kernel, double *kparm) {
 int
 mossSamplerUpdate (mossSampler *smplr) {
   char me[]="mossSamplerUpdate", err[AIR_STRLEN_MED];
-  int ncol, fdiam;
+  int ncol=0, fdiam=0;
 
   if (!(smplr)) {
     sprintf(err, "%s: got NULL pointer", me);

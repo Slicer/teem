@@ -44,7 +44,7 @@ $(L).SEEN := true
 #### Describe library here
 ####
 ####
-$(L).NEED = air hest biff ell nrrd dye
+$(L).NEED = air hest biff ell nrrd
 $(L).PUBLIC_HEADERS = moss.h
 $(L).PRIVATE_HEADERS = privateMoss.h
 $(L).OBJS = defaultsMoss.o methodsMoss.o sampler.o xform.o hestMoss.o

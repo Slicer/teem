@@ -26,7 +26,6 @@
 #include <biff.h>
 #include <ell.h>
 #include <nrrd.h>
-#include <dye.h>
 
 #if defined(WIN32) && !defined(TEEM_BUILD)
 #define moss_export __declspec(dllimport)

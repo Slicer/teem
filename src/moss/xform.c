@@ -52,7 +52,7 @@ mossMatPreMultiply (double _mat[6], double _x[6]) {
   MOSS_MAT_6TO9(mat, _mat);
   ell3mPreMul_d(mat, x);
   MOSS_MAT_9TO6(_mat, mat);
-  return mat;
+  return _mat;
 }
 
 double *
@@ -63,7 +63,7 @@ mossMatPostMultiply (double _mat[6], double _x[6]) {
   MOSS_MAT_6TO9(mat, _mat);
   ell3mPostMul_d(mat, x);
   MOSS_MAT_9TO6(_mat, mat);
-  return mat;
+  return _mat;
 }
 
 double *
