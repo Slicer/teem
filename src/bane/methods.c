@@ -91,6 +91,7 @@ baneHVolParmGKMSInit(baneHVolParm *hvp) {
   }
 }
 
+/*
 baneProbeK3Pack *
 baneProbeK3PackNew() {
   baneProbeK3Pack *pack;
@@ -115,3 +116,5 @@ baneProbeK3PackNix(baneProbeK3Pack *pack) {
   }
   return NULL;
 }
+*/
+

@@ -35,8 +35,8 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
 
   /* create initial projections */
   E = 0;
-  if (!E) E |= nrrdMeasureAxis(gA = nrrdNew(), hvol, 1, nrrdMeasureSum);
-  if (!E) E |= nrrdMeasureAxis(hA = nrrdNew(), hvol, 0, nrrdMeasureSum);
+  if (!E) E |= nrrdProject(gA = nrrdNew(), hvol, 1, nrrdMeasureSum);
+  if (!E) E |= nrrdProject(hA = nrrdNew(), hvol, 0, nrrdMeasureSum);
   if (E) {
     sprintf(err, "%s: trouble creating raw scatterplots", me);
     biffMove(BANE, err, NRRD); return 1;

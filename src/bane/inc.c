@@ -89,7 +89,7 @@ Nrrd *
 _baneIncPercentileNrrd(double *parm) {
   Nrrd *nhist;
   
-  nrrdAlloc_va(nhist=nrrdNew(), nrrdTypeInt, 1, (int)(parm[0]));
+  nrrdAlloc(nhist=nrrdNew(), nrrdTypeInt, 1, (int)(parm[0]));
   return nhist;
 }
 
@@ -97,7 +97,7 @@ Nrrd *
 _baneIncStdvNrrd(double *parm) {
   Nrrd *nhist;
   
-  nrrdAlloc_va(nhist=nrrdNew(), nrrdTypeInt, 1, (int)(parm[0]));
+  nrrdAlloc(nhist=nrrdNew(), nrrdTypeInt, 1, (int)(parm[0]));
   return nhist;
 }
 

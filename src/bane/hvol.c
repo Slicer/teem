@@ -38,12 +38,12 @@ _baneValidMeasrParm(baneMeasrParm *mp) {
     sprintf(err, "%s: need resolution at least 2 (not %d)", me, mp->res);
     biffSet(BANE, err); return 0;
   }
-  if (!( AIR_INSIDE(baneMeasrUnknown+1, mp->measr, baneMeasrLast-1) )) {
+  if (!( AIR_BETWEEN(baneMeasrUnknown, mp->measr, baneMeasrLast) )) {
     sprintf(err, "%s: measurement index %d outside range [%d,%d]", me,
 	    mp->measr, baneMeasrUnknown+1, baneMeasrLast-1);
     biffSet(BANE, err); return 0;
   }
-  if (!( AIR_INSIDE(baneIncUnknown+1, mp->inc, baneIncLast-1) )) {
+  if (!( AIR_BETWEEN(baneIncUnknown, mp->inc, baneIncLast) )) {
     sprintf(err, "%s: inclusion index %d outside range [%d,%d]", me,
 	    mp->inc, baneIncUnknown+1, baneIncLast-1);
     biffSet(BANE, err); return 0;
@@ -75,7 +75,7 @@ _baneValidInput(Nrrd *nin, baneHVolParm *hvp) {
     sprintf(err, "%s: need a 3-dimensional nrrd (not %d)", me, nin->dim);
     biffSet(BANE, err); return 0;
   }
-  if (!( AIR_OPINSIDE(nrrdTypeUnknown, nin->type, nrrdTypeLast) &&
+  if (!( AIR_BETWEEN(nrrdTypeUnknown, nin->type, nrrdTypeLast) &&
 	 nin->type != nrrdTypeBlock )) {
     sprintf(err, "%s: must have a scalar type nrrd", me);
     biffSet(BANE, err); return 0;
@@ -100,7 +100,7 @@ _baneValidInput(Nrrd *nin, baneHVolParm *hvp) {
       biffAdd(BANE, err); return 0;
     }
   }
-  if (!( AIR_INSIDE(baneClipUnknown+1, hvp->clip, baneClipLast-1) )) {
+  if (!( AIR_BETWEEN(baneClipUnknown, hvp->clip, baneClipLast) )) {
     sprintf(err, "%s: clip method index %d outside range [%d,%d]",
 	    me, hvp->clip, baneClipUnknown+1, baneClipLast-1);
     biffSet(BANE, err); return 0;
@@ -135,7 +135,7 @@ _baneFindInclusion(double min[3], double max[3],
   incIdx0 = hvp->axp[0].inc;
   incIdx1 = hvp->axp[1].inc;
   incIdx2 = hvp->axp[2].inc;
-  /* printf("%s: HEY %d %d %d\n", me, incIdx0, incIdx1, incIdx2); */
+  fprintf(stderr, "!%s: %d %d %d\n", me, incIdx0, incIdx1, incIdx2);
   incParm0 = hvp->axp[0].incParm;
   incParm1 = hvp->axp[1].incParm;
   incParm2 = hvp->axp[2].incParm;
@@ -321,7 +321,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   shx = hvp->axp[0].res;
   shy = hvp->axp[1].res;
   shz = hvp->axp[2].res;
-  if (nrrdAlloc_va(rawhvol=nrrdNew(), nrrdTypeInt, 3, shx, shy, shz)) {
+  if (nrrdAlloc(rawhvol=nrrdNew(), nrrdTypeInt, 3, shx, shy, shz)) {
     sprintf(err, "%s: couldn't allocate raw histovol (%dx%dx%d)", me,
 	    shx, shy, shz);
     biffMove(BANE, err, NRRD); return 1;
@@ -379,7 +379,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
     fprintf(stderr, "%s: creating 8-bit histogram volume ...       ", me);
     fflush(stderr);
   }
-  if (nrrdAlloc_va(hvol, nrrdTypeUChar, 3, shx, shy, shz)) {
+  if (nrrdAlloc(hvol, nrrdTypeUChar, 3, shx, shy, shz)) {
     sprintf(err, "%s: couldn't alloc finished histovol", me);
     biffMove(BANE, err, NRRD); return 1;
   }
@@ -464,9 +464,8 @@ baneApplyMeasr(Nrrd *nout, Nrrd *nin, int measr) {
   sz = nin->axis[2].size;
   marg = baneMeasrMargin[measr];
   msr = baneMeasr[measr];
-  insert = nrrdFInsert[nrrdTypeFloat];
 
-  if (nrrdAlloc_va(nout, nrrdTypeFloat, 3, sx, sy, sz)) {
+  if (nrrdAlloc(nout, nrrdTypeFloat, 3, sx, sy, sz)) {
     sprintf(err, "%s: couldn't alloc output nrrd", me);
     biffMove(BANE, err, NRRD); return 1;
   }

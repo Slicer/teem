@@ -56,7 +56,7 @@ _baneMeasrLapl_cd(Nrrd *n, nrrdBigInt idx) {
 
   lookup = nrrdDLookup[n->type]; 
   sx = n->axis[0].size; sxy = sx*n->axis[1].size;
-  nrrdAxesGet(n, nrrdAxesInfoSpacing, spc);
+  nrrdAxesGet_nva(n, nrrdAxesInfoSpacing, spc);
   cv = lookup(n->data, idx);
 
   lapl = ( (lookup(n->data, idx + 1) - 2*cv + 
@@ -140,7 +140,7 @@ _baneMeasrHess_cd(Nrrd *n, nrrdBigInt idx) {
     dx, dy, dz, spc[3], dot1, dot2, dot3, hess, mag;
 
   _baneMeasrFillCache(n, idx, V);
-  nrrdAxesGet(n, nrrdAxesInfoSpacing, spc);
+  nrrdAxesGet_nva(n, nrrdAxesInfoSpacing, spc);
 
   dx = (V[1][1][2] - V[1][1][0])/(2*spc[0]);
   dy = (V[1][2][1] - V[1][0][1])/(2*spc[1]);
@@ -177,7 +177,7 @@ _baneMeasrGMG_cd(Nrrd *n, nrrdBigInt idx) {
 
   lookup = nrrdDLookup[n->type]; 
   sx = n->axis[0].size; sxy = sx*n->axis[1].size;
-  nrrdAxesGet(n, nrrdAxesInfoSpacing, spc);
+  nrrdAxesGet_nva(n, nrrdAxesInfoSpacing, spc);
   
   G[0] = (lookup(n->data, idx   +1) - lookup(n->data, idx   -1))/(2*spc[0]);
   G[1] = (lookup(n->data, idx  +sx) - lookup(n->data, idx  -sx))/(2*spc[1]);

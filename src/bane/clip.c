@@ -36,11 +36,12 @@ _baneClipAbsolute(Nrrd *rhv, double *parm) {
 int
 _baneClipPeakRatio(Nrrd *rhv, double *parm) {
   int *hits, maxhits;
-  nrrdBigInt idx;
+  nrrdBigInt idx, num;
   
   hits = rhv->data;
   maxhits = 0;
-  for (idx=0; idx<=rhv->num-1; idx++) {
+  num = nrrdElementNumber(rhv);
+  for (idx=0; idx<=num-1; idx++) {
     maxhits = AIR_MAX(maxhits, hits[idx]);
   }
   return maxhits*parm[0];
@@ -60,21 +61,22 @@ _baneClipPercentile(Nrrd *rhv, double *parm) {
   char me[]="_baneClipPercentile", err[128];
   Nrrd *copy;
   int *hits, clip;
-  nrrdBigInt sum, out, outsum, hi;
+  nrrdBigInt num, sum, out, outsum, hi;
   
   if (nrrdCopy(copy=nrrdNew(), rhv)) {
     sprintf(err, "%s: couldn't create copy of histovol", me);
     biffMove(BANE, err, NRRD); return -1;
   }
   hits = copy->data;
-  qsort(hits, copy->num, sizeof(int), &_baneClipCompare);
+  num = nrrdElementNumber(copy);
+  qsort(hits, num, sizeof(int), nrrdValCompare[nrrdTypeInt]);
   sum = 0;
-  for (hi=0; hi<=copy->num-1; hi++) {
+  for (hi=0; hi<=num-1; hi++) {
     sum += hits[hi];
   }
   out = sum*parm[0]/100;
   outsum = 0;
-  for (hi=0; hi<=copy->num-1; hi++) {
+  for (hi=0; hi<=num-1; hi++) {
     if (outsum >= out)
       break;
     outsum += hits[hi];
@@ -89,13 +91,15 @@ _baneClipTopN(Nrrd *rhv, double *parm) {
   char me[]="_baneClipTopN", err[128];
   Nrrd *copy;
   int *hits, clip;
+  nrrdBigInt num;
 
   if (nrrdCopy(copy=nrrdNew(), rhv)) {
     sprintf(err, "%s: couldn't create copy of histovol", me);
     biffMove(BANE, err, NRRD); return -1;
   }
   hits = copy->data;
-  qsort(hits, copy->num, sizeof(int), &_baneClipCompare);
+  num = nrrdElementNumber(copy);
+  qsort(hits, num, sizeof(int), &_baneClipCompare);
   clip = hits[(int)parm[0]];
   nrrdNuke(copy);
   return clip;
