@@ -20,11 +20,16 @@
 #include "echo.h"
 #include "privateEcho.h"
 
-#define SET_POS(intx, ray) \
-  intx->pos[0] = ray->from[0] + intx->t*ray->dir[0]; \
-  intx->pos[1] = ray->from[1] + intx->t*ray->dir[1]; \
-  intx->pos[2] = ray->from[2] + intx->t*ray->dir[2]
-  
+/* intx.c */
+#define INTX_ARGS(TYPE) EchoIntx *intx, EchoRay *ray,               \
+                        EchoRTParm *parm, Echo##TYPE *obj
+
+typedef int (*_echoRayIntx_t)(INTX_ARGS(Object));
+extern _echoRayIntx_t _echoRayIntx[ECHO_OBJECT_MAX+1];
+
+typedef void (*_echoRayIntxUV_t)(EchoIntx *intx);
+extern _echoRayIntxUV_t _echoRayIntxUV[ECHO_OBJECT_MAX+1];
+
 int
 _echoRayIntxSphere(INTX_ARGS(Sphere)) {
   echoPos_t t, A, B, C, r[3], dscr, pos[3];
@@ -51,7 +56,7 @@ _echoRayIntxSphere(INTX_ARGS(Sphere)) {
   intx->t = t;
   ELL_3V_SCALEADD(pos, 1, ray->from, t, ray->dir);
   ELL_3V_SUB(intx->norm, pos, obj->pos);
-  intx->obj = (EchoObject *)obj;
+  intx->obj = OBJECT(obj);
   /* set in intx:
      yes: t, norm
      no: u, v, view, pos
@@ -72,6 +77,8 @@ _echoRayIntxUVSphere(EchoIntx *intx) {
   }
   else {
     intx->u = 0;
+    /* this is valid because if we're here, then intx->norm[2]
+       is either 1.0 or -1.0 */
     intx->v = AIR_AFFINE(1.0, intx->norm[2], -1.0, 0.0, 1.0);
   }
 }
@@ -81,8 +88,8 @@ _echoRayIntxUVTriMesh(EchoIntx *intx) {
   echoPos_t u, v, norm[3], len;
   EchoTriMesh *trim;
 
-  trim = TRIM(intx->obj);
-  ELL_3V_SUB(norm, intx->pos, trim->origin);
+  trim = TRIMESH(intx->obj);
+  ELL_3V_SUB(norm, intx->pos, trim->meanvert);
   ELL_3V_NORM(norm, norm, len);
   if (norm[0] || norm[1]) {
     u = atan2(norm[1], norm[0]);
@@ -295,7 +302,7 @@ _echoRayIntxTriMesh(INTX_ARGS(TriMesh)) {
     }
     return AIR_FALSE;
   }
-  /* stupid lineer search for now */
+  /* stupid linear search for now */
   ret = AIR_FALSE;
   for (i=0; i<trim->numF; i++) {
     pos = trim->pos + 3*trim->vert[0 + 3*i];

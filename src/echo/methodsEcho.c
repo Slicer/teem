@@ -25,31 +25,28 @@ echoRTParmNew(void) {
   
   parm = (EchoRTParm *)calloc(1, sizeof(EchoRTParm));
   parm->jitter = echoJitterNone;
-  parm->samples = 1;
   parm->shadow = AIR_TRUE;
+  parm->samples = 1;
+  parm->imgResU = parm->imgResV = 256;
   parm->maxRecDepth = 5;
   parm->reuseJitter = AIR_FALSE;
   parm->permuteJitter = AIR_TRUE;
+  parm->renderLights = AIR_TRUE;
+  parm->renderBoxes = AIR_FALSE;
+  parm->seedRand = AIR_TRUE;
+  parm->aperture = 0.0;     /* pinhole camera by default */
+  parm->timeGamma = 6.0;
+  parm->refDistance = 1.0;
+  parm->mrR = 1.0;
+  parm->mrG = 0.0;
+  parm->mrB = 1.0;
   parm->amR = 1.0;
   parm->amG = 1.0;
   parm->amB = 1.0;
-  parm->mrR = 0.0;
-  parm->mrG = 0.0;
-  parm->mrB = 0.0;
   parm->bgR = 0.0;
   parm->bgG = 0.0;
   parm->bgB = 0.0;
   parm->gamma = 2.2;
-  parm->timeGamma = 6.0;
-  parm->renderLights = AIR_TRUE;
-  parm->renderBoxes = AIR_FALSE;
-  parm->refDistance = 1.0;
-  parm->seedRand = AIR_TRUE;
-
-  /* these will have to be user-set */
-  parm->imgResU = parm->imgResV = 0;
-  parm->aperture = AIR_NAN;
-
   return parm;
 }
 
@@ -66,14 +63,16 @@ echoGlobalStateNew(void) {
   EchoGlobalState *state;
   
   state = (EchoGlobalState *)calloc(1, sizeof(EchoGlobalState));
-  
+  state->time = 0;
   return state;
 }
 
 EchoGlobalState *
 echoGlobalStateNix(EchoGlobalState *state) {
 
-  free(state);
+  if (state) {
+    airFree(state);
+  }
   return NULL;
 }
 
@@ -84,18 +83,21 @@ echoThreadStateNew(void) {
   state = (EchoThreadState *)calloc(1, sizeof(EchoThreadState));
   state->njitt = nrrdNew();
   state->nperm = nrrdNew();
-  
+  state->permBuff = NULL;
+  state->chanBuff = NULL;
   return state;
 }
 
 EchoThreadState *
 echoThreadStateNix(EchoThreadState *state) {
 
-  nrrdNuke(state->njitt);
-  nrrdNuke(state->nperm);
-  free(state->permBuff);
-  free(state->chanBuff);
-  free(state);
+  if (state) {
+    nrrdNuke(state->njitt);
+    nrrdNuke(state->nperm);
+    airFree(state->permBuff);
+    airFree(state->chanBuff);
+    airFree(state);
+  }
   return NULL;
 }
 

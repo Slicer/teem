@@ -31,6 +31,15 @@ _echoJitterStr[ECHO_JITTER_MAX+1][AIR_STRLEN_SMALL] = {
 };
 
 char
+_echoJitterDesc[ECHO_JITTER_MAX+1][AIR_STRLEN_MED] = {
+  "unknown_jitter",
+  "no jittering; samples are always at center of region",
+  "samples are at regular grid vertices",
+  "samples are randomly located with grid cells",
+  "samples are just random"
+};
+
+char
 _echoJitterStrEqv[][AIR_STRLEN_SMALL] = {
   "none",
   "grid", "regular",
@@ -51,6 +60,7 @@ _echoJitter_ae = {
   "jitter",
   ECHO_JITTER_MAX,
   _echoJitterStr,  NULL,
+  _echoJitterDesc,
   _echoJitterStrEqv, _echoJitterValEqv,
   AIR_FALSE
 };
@@ -69,6 +79,21 @@ _echoObjectStr[ECHO_OBJECT_MAX+1][AIR_STRLEN_SMALL] = {
   "mesh",
   "isosurface",
   "AABoundingBox",
+  "split",
+  "list",
+  "instance"
+};
+
+char
+_echoObjectDesc[ECHO_OBJECT_MAX+1][AIR_STRLEN_MED] = {
+  "unknown_object",
+  "sphere",
+  "unit cube, centered at the origin",
+  "triangle",
+  "rectangle",
+  "mesh of triangles",
+  "isosurface of some volume dataset",
+  "axis-aligned bounding box",
   "split",
   "list",
   "instance"
@@ -107,6 +132,7 @@ _echoObject_ae = {
   "object",
   ECHO_OBJECT_MAX,
   _echoObjectStr,  NULL,
+  _echoObjectDesc,
   _echoObjectStrEqv, _echoObjectValEqv,
   AIR_FALSE
 };

@@ -207,7 +207,7 @@ echoCheck(Nrrd *nraw, limnCam *cam,
     sprintf(err, "%s: camera trouble", me);
     biffMove(ECHO, err, LIMN); return 1;
   }
-  if (!airEnumValidVal(echoJitter_ae, parm->jitter)) {
+  if (!airEnumValValid(echoJitter_ae, parm->jitter)) {
     sprintf(err, "%s: jitter method (%d) invalid", me, parm->jitter);
     biffAdd(ECHO, err); return 1;
   }
@@ -298,7 +298,7 @@ echoRayColor(echoCol_t *chan, int samp, EchoRay *ray,
   }
 
   intx.boxhits = 0;
-  if (!_echoRayIntx[scene->type](&intx, ray, parm, scene)) {
+  if (!echoRayIntx(&intx, ray, parm, scene)) {
     if (echoVerbose) {
       printf("echoRayColor: (nothing was hit)\n");
     }
@@ -385,9 +385,9 @@ echoRTRender(Nrrd *nraw, limnCam *cam,
   
   /* set eye, U, V, N, imgOrig */
   ELL_3V_COPY(eye, cam->from);
-  ELL_4MV_GET_ROW0(U, cam->W2V);
-  ELL_4MV_GET_ROW1(V, cam->W2V);
-  ELL_4MV_GET_ROW2(N, cam->W2V);
+  ELL_4MV_ROW0_GET(U, cam->W2V);
+  ELL_4MV_ROW1_GET(V, cam->W2V);
+  ELL_4MV_ROW2_GET(N, cam->W2V);
   ELL_3V_SCALEADD(imgOrig, 1.0, eye, cam->vspDist, N);
   
   /* determine pixel dimensions */

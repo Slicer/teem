@@ -24,29 +24,18 @@
 extern "C" {
 #endif
 
-#define OBJECT(obj)   ((EchoObject*)obj)
-#define SPLIT(obj)    ((EchoSplit*)obj)
-#define LIST(obj)     ((EchoList*)obj)
-#define SPHERE(obj)   ((EchoSphere*)obj)
-#define RECT(obj)     ((EchoRectangle*)obj)
-#define AABBOX(obj)   ((EchoAABBox*)obj)
-#define TRIMESH(obj)  ((EchoTriMesh*)obj)
-#define TRIM(obj)     ((EchoTriMesh*)obj)
-#define TRI(obj)      ((EchoTriangle*)obj)
-#define INST(obj)     ((EchoInstance*)obj)
+#define OBJECT(obj)    ((EchoObject*)obj)
+#define SPLIT(obj)     ((EchoSplit*)obj)
+#define LIST(obj)      ((EchoList*)obj)
+#define SPHERE(obj)    ((EchoSphere*)obj)
+#define RECTANGLE(obj) ((EchoRectangle*)obj)
+#define AABBOX(obj)    ((EchoAABBox*)obj)
+#define TRIMESH(obj)   ((EchoTriMesh*)obj)
+#define TRIANGLE(obj)  ((EchoTriangle*)obj)
+#define INSTANCE(obj)  ((EchoInstance*)obj)
 
 #define ECHO_NEW(TYPE) \
   (EchoObject##TYPE *)echoNew(echoObject##Type)
-
-/* intx.c */
-#define INTX_ARGS(TYPE) EchoIntx *intx, EchoRay *ray,               \
-                        EchoRTParm *parm, Echo##TYPE *obj
-
-typedef int (*_echoRayIntx_t)(INTX_ARGS(Object));
-extern _echoRayIntx_t _echoRayIntx[ECHO_OBJECT_MAX+1];
-
-typedef void (*_echoRayIntxUV_t)(EchoIntx *intx);
-extern _echoRayIntxUV_t _echoRayIntxUV[ECHO_OBJECT_MAX+1];
 
 /* color.c */
 #define COLOR_ARGS echoCol_t *chan, EchoIntx *intx, int samp,       \
@@ -58,14 +47,6 @@ extern _echoIntxColor_t _echoIntxColor[ECHO_MATTER_MAX+1];
 
 extern int _echoRefract(echoPos_t T[3], echoPos_t V[3],
 			echoPos_t N[3], echoCol_t index);
-
-/* object.c */
-
-#define BNDS_ARGS(TYPE) echoPos_t lo[3], echoPos_t hi[3], \
-                        Echo##TYPE *obj
-
-typedef void (*_echoBoundsGet_t)(BNDS_ARGS(Object));
-extern _echoBoundsGet_t _echoBoundsGet[ECHO_OBJECT_MAX+1];
 
 #ifdef __cplusplus
 }

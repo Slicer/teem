@@ -94,7 +94,7 @@ typedef struct {
     reuseJitter,       /* don't recompute jitter offsets per pixel */
     permuteJitter,     /* properly permute the various jitter arrays */
     renderLights,      /* render the area lights */
-    renderBoxes,       
+    renderBoxes,       /* faintly render bounding boxes */
     seedRand;          /* call airSrand() (don't if repeatability wanted) */
   float aperture,      /* shallowness of field */
     timeGamma,         /* gamma for values in time image */
@@ -163,8 +163,8 @@ enum {
 **
 ** the different materials that are supported.  This setting determines
 ** the interpretation of the vector of floats/doubles that constitutes
-** the material information.  The Light material is only supported on
-** rectangles.
+** the material information.  The Light material is currently only
+** supported on rectangles.
 */
 enum {
   echoMatterUnknown,
@@ -180,7 +180,7 @@ enum {
   echoMatterPhongKa,    /* 0 */
   echoMatterPhongKd,    /* 1 */
   echoMatterPhongKs,    /* 2 */
-  echoMatterPhongSh,    /* 3 */
+  echoMatterPhongSp,    /* 3 */
 };
 enum {
   echoMatterGlassIndex, /* 0 */
@@ -208,17 +208,17 @@ extern echo_export airEnum *echoObject_ae;
    the airEnum ends with _ae */
 
 enum {
-  echoObjectUnknown,
-  echoSphere,     /*  1 */
-  echoCube,       /*  2 */
-  echoTriangle,   /*  3 */
-  echoRectangle,  /*  4 */
-  echoTriMesh,    /*  5: only triangles in the mesh */
-  echoIsosurface, /*  6 */
-  echoAABBox,     /*  7 */
-  echoSplit,      /*  8 */
-  echoList,       /*  9 */
-  echoInstance,   /* 10 */
+  echoObjectUnknown, /*  0 */
+  echoSphere,        /*  1 */
+  echoCube,          /*  2 */
+  echoTriangle,      /*  3 */
+  echoRectangle,     /*  4 */
+  echoTriMesh,       /*  5: only triangles in the mesh */
+  echoIsosurface,    /*  6 */
+  echoAABBox,        /*  7 */
+  echoSplit,         /*  8 */
+  echoList,          /*  9 */
+  echoInstance,      /* 10 */
   echoObjectLast
 };
 
@@ -270,7 +270,7 @@ typedef struct {
 typedef struct {
   ECHO_OBJECT_COMMON;
   ECHO_OBJECT_MATTER;
-  echoPos_t origin[3], min[3], max[3];
+  echoPos_t meanvert[3], min[3], max[3];
   int numV, numF;
   echoPos_t *pos;
   int *vert;
@@ -312,14 +312,30 @@ typedef struct {
   EchoObject *obj;
 } EchoInstance;
 
+/* methodsEcho.c --------------------------------------- */
+extern EchoRTParm *echoRTParmNew();
+extern EchoRTParm *echoRTParmNix(EchoRTParm *parm);
+extern EchoGlobalState *echoGlobalStateNew();
+extern EchoGlobalState *echoGlobalStateNix(EchoGlobalState *state);
+extern EchoThreadState *echoThreadStateNew();
+extern EchoThreadState *echoThreadStateNix(EchoThreadState *state);
+extern limnCam *echoLimnCamNew();   /* set some fields after limnCamNew() */
+
+/* objmethods.c --------------------------------------- */
 extern EchoObject *echoNew(unsigned char type);
 extern EchoObject *echoNix(EchoObject *obj);
 extern EchoObject *echoNuke(EchoObject *obj);
-extern void echoBoundsGet(echoPos_t *lo, echoPos_t *hi, EchoObject *obj);
 extern int echoIsContainer(EchoObject *obj);
+
+/* bounds.c --------------------------------------- */
+extern void echoBoundsGet(echoPos_t *lo, echoPos_t *hi, EchoObject *obj);
+
+/* list.c --------------------------------------- */
 extern void echoListAdd(EchoObject *parent, EchoObject *child);
 extern EchoObject *echoListSplit(EchoObject *list, int axis);
 extern EchoObject *echoListSplit3(EchoObject *list, int depth);
+
+
 extern void echoSphereSet(EchoObject *sphere,
 			  echoPos_t x, echoPos_t y,
 			  echoPos_t z, echoPos_t rad);
@@ -338,15 +354,6 @@ extern void echoInstanceSet(EchoObject *inst,
 			    echoPos_t *M, EchoObject *obj, int own);
 extern EchoObject *echoRoughSphere(int theRes, int phiRes,
 				   echoPos_t *matx);
-
-/* methodsEcho.c --------------------------------------- */
-extern EchoRTParm *echoRTParmNew();
-extern EchoRTParm *echoRTParmNix(EchoRTParm *parm);
-extern EchoGlobalState *echoGlobalStateNew();
-extern EchoGlobalState *echoGlobalStateNix(EchoGlobalState *state);
-extern EchoThreadState *echoThreadStateNew();
-extern EchoThreadState *echoThreadStateNix(EchoThreadState *state);
-extern limnCam *echoLimnCamNew();   /* set some fields after limnCamNew() */
 
 /* renderEcho.c ---------------------------------------- */
 
@@ -384,6 +391,8 @@ extern int echoRTRender(Nrrd *nraw, limnCam *cam,
 			EchoObject *scene, airArray *lightArr);
 
 /* intx.c ------------------------------------------- */
+extern int echoRayIntx(EchoIntx *intx, EchoRay *ray,
+		       EchoRTParm *parm, EchoObject *obj);
 extern void echoRayColor(echoCol_t *chan, int samp, EchoRay *ray,
 			 EchoRTParm *parm, EchoThreadState *tstate,
 			 EchoObject *scene, airArray *lightArr);
