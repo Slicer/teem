@@ -1,3 +1,5 @@
+create nrrdRsmp_t typedef and make sure that resampler uses it
+
 make decision on whether nrrdBigInt should simply be size_t
 
 test regular and irregular colormaps with only 2 points, 
