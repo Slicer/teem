@@ -80,13 +80,52 @@ tenSizeNormalize(Nrrd *nout, Nrrd *nin, float _weight[3],
   return 0;
 }
 
+int
+tenSizeScale(Nrrd *nout, Nrrd *nin, float amount) {
+  char me[]="tenSizeScale", err[AIR_STRLEN_MED];
+  size_t I, N;
+  float *tin, *tout;
+
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_FALSE, AIR_TRUE)) {
+    sprintf(err, "%s: didn't get a tensor nrrd", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (nout != nin) {
+    if (nrrdCopy(nout, nin)) {
+      sprintf(err, "%s: couldn't allocate output", me);
+      biffMove(TEN, err, NRRD); return 1;
+    }
+  }
+  tin = (float *)(nin->data);
+  tout = (float *)(nout->data);
+  N = nrrdElementNumber(nin)/7;
+  for (I=0; I<N; I++) {
+    tout[0] = tin[0];
+    tout[1] = amount*tin[1];
+    tout[2] = amount*tin[2];
+    tout[3] = amount*tin[3];
+    tout[4] = amount*tin[4];
+    tout[5] = amount*tin[5];
+    tout[6] = amount*tin[6];
+    tin += 7;
+    tout += 7;
+  }
+  return 0;
+}
+
+
 /*
 ******** tenAnisoScale
 **
 ** scales the "deviatoric" part of a tensor up or down
 */
 int
-tenAnisoScale(Nrrd *nout, Nrrd *nin, float scale, int fixDet) {
+tenAnisoScale(Nrrd *nout, Nrrd *nin, float scale,
+	      int fixDet, int makePositive) {
   char me[]="tenAnisoScale", err[AIR_STRLEN_MED];
   size_t I, N;
   float *tin, *tout, mean, eval[3], evec[9];
@@ -110,10 +149,10 @@ tenAnisoScale(Nrrd *nout, Nrrd *nin, float scale, int fixDet) {
   N = nrrdElementNumber(nin)/7;
   for (I=0; I<N; I++) {
     tenEigensolve(eval, evec, tin);
-    eval[0] = AIR_MAX(eval[0], 0.00001);
-    eval[1] = AIR_MAX(eval[1], 0.00001);
-    eval[2] = AIR_MAX(eval[2], 0.00001);
     if (fixDet) {
+      eval[0] = AIR_MAX(eval[0], 0.00001);
+      eval[1] = AIR_MAX(eval[1], 0.00001);
+      eval[2] = AIR_MAX(eval[2], 0.00001);
       eval[0] = log(eval[0]);
       eval[1] = log(eval[1]);
       eval[2] = log(eval[2]);
@@ -127,13 +166,10 @@ tenAnisoScale(Nrrd *nout, Nrrd *nin, float scale, int fixDet) {
       eval[1] = exp(eval[1]);
       eval[2] = exp(eval[2]);
     }
-    if (eval[2] < 0) {
-      fprintf(stderr, "%s: WARNING: re-enforcing semi-positive-"
-	      "definiteness on eigenvalues (%g, %g, %g) at sample %d\n", me,
-	      eval[0], eval[1], eval[2], (int)I);
-      eval[0] = AIR_MAX(eval[0], 0.00001);
-      eval[1] = AIR_MAX(eval[1], 0.00001);
-      eval[2] = AIR_MAX(eval[2], 0.00001);
+    if (eval[2] < 0 && makePositive) {
+      eval[0] = AIR_MAX(eval[0], 0.0);
+      eval[1] = AIR_MAX(eval[1], 0.0);
+      eval[2] = AIR_MAX(eval[2], 0.0);
     }
     tenMakeOne(tout, tin[0], eval, evec);
     tin += 7;
@@ -222,6 +258,46 @@ tenEigenvaluePower(Nrrd *nout, Nrrd *nin, float expo) {
     eval[0] = pow(eval[0], expo);
     eval[1] = pow(eval[1], expo);
     eval[2] = pow(eval[2], expo);
+    tenMakeOne(tout, tin[0], eval, evec);
+    tin += 7;
+    tout += 7;
+  }
+  return 0;
+}
+
+/*
+******** tenEigenvalueAdd
+**
+** adds something to all eigenvalues
+*/
+int
+tenEigenvalueAdd(Nrrd *nout, Nrrd *nin, float val) {
+  char me[]="tenEigenvalueAdd", err[AIR_STRLEN_MED];
+  size_t I, N;
+  float *tin, *tout, eval[3], evec[9];
+
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_FALSE, AIR_TRUE)) {
+    sprintf(err, "%s: didn't get a tensor nrrd", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (nout != nin) {
+    if (nrrdCopy(nout, nin)) {
+      sprintf(err, "%s: couldn't allocate output", me);
+      biffMove(TEN, err, NRRD); return 1;
+    }
+  }
+  tin = (float *)(nin->data);
+  tout = (float *)(nout->data);
+  N = nrrdElementNumber(nin)/7;
+  for (I=0; I<N; I++) {
+    tenEigensolve(eval, evec, tin);
+    eval[0] += val;
+    eval[1] += val;
+    eval[2] += val;
     tenMakeOne(tout, tin[0], eval, evec);
     tin += 7;
     tout += 7;
