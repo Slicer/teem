@@ -229,7 +229,7 @@ enum {
 			     1:dv_y/dx  4:dv_y/dy  7:dv_y/dz
 			     2:dv_z/dx  5:dv_z/dy  8:dv_z/dz */
   gageVecDivergence,  /*  4: divergence (based on Jacobian): *GT */
-  gageVecCurl,        /*  5: curl (based on Jacobian): *GT */
+  gageVecCurl,        /*  5: curl (based on Jacobian): GT[3] */
   gageVecLast
 };
 #define GAGE_VEC_MAX      5
