@@ -208,7 +208,7 @@ typedef struct miteThread_t {
   gageContext *gctx;            /* per-thread context */
   gage_t *ans,                  /* shortcut to gctx->pvl[0]->ans */
     *norm,                      /* shortcut to ans[...normal...] */
-    mscl[MITE_SCL_MAX];         /* all the miteScl */
+    mscl[MITE_SCL_MAX+1];       /* all the miteScl */
   int verbose,                  /* blah blah blah */
     thrid,                      /* thread ID */
     ui, vi,                     /* image coords */
