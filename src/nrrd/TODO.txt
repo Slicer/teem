@@ -1,22 +1,58 @@
+test regular and irregular colormaps with only 2 points
+
+1D irregular maps, 2D luts/rmaps
+
+check resampler getting info with NULL kernel on each axis
+(bug that Joe and I had with qbert when no resmapling was needed)
+
+DOCUMENT FILE FORMATS!
+
+VTK file input and output!
+
 test working with nout==nin
 nrrdContentSet
 nrrdConvert
 nrrdQuantize
 
-------- teem 1.4 cutoff ---------
-
-VTK file input and output!
-
-for kernels: teach them their derivatives, and whether or not they
-need renormalization
-
-HEY: need to create textual representation of resampling parameters
-
 change nrrdHistoEq to use 1D regular maps, allow learning of mapping used.
 
-nrrdPad_nva, nrrdSimplePad_nva
-
 write a select() function to replace qsort() in median calculation
+
+gzip encoding
+
+----- teem 1.5 cut-off -----
+
+Bricking!
+
+kernels: teach them their derivatives, or if they are derivatives,
+and how accurate they are.  Perhaps kernels don't actually belong in nrrd.
+
+split ?
+
+magic death: some string that causes nrrdRead to exit(0) (or something
+else abortive) when read as magic, to fix annoyance with string of unu
+commands all complaining in cascade about input error "immediately hit
+EOF".  How about "GOOD_NIGHT_NRRD"
+
+----- teem 1.6 cut-off -----
+
+clarify and document all IO stuff
+
+fourier+hartley transforms, integration with fftw
+
+other encodings- base 85, hex
+
+test suite
+
+no other big things for nrrd planned...
+
+----- teem 1.7 cut-off -----
+
+make nrrdDescribe() a little prettier
+
+create textual representation of resampling parameters
+
+nrrdPad_nva, nrrdSimplePad_nva? but then what about nrrdCrop?
 
 revisit resampler, one last time
 go through all functions to:
@@ -35,20 +71,12 @@ verify behavior WRT blocks:
 verify that all axis and nrrd fields are accounted for
   all functions making a "nout" from a "nin"
  
-finish writing format.txt
-
-make nrrdDescribe() a little prettier
-
-split
-
 debug and scrutinize current implementation of all "nhdr" related behavior
 
 clarify policy regarding when data in the nrrd will be free()ed
 
 determine a consistent policy regarding assumptions and expections
 surrounding use of the min and max fields, perhaps also oldMin and oldMax
-
-other encodings- base 85, gzip, hex
 
 try to enforce the policy that variables which exist solely to be
 a local copy of values in nrrds should be **eliminated**.  This
