@@ -36,7 +36,7 @@ _nrrdEncodingBzip2_available(void) {
 }
 
 int
-_nrrdEncodingBzip2_read(FILE *file, void *buf, size_t elNum,
+_nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum,
                         Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingBzip2_read", err[AIR_STRLEN_MED];
 #if TEEM_BZIP2
@@ -85,7 +85,7 @@ _nrrdEncodingBzip2_read(FILE *file, void *buf, size_t elNum,
      as we think we should. */
   total_read = 0;
   /* Pointer to the blocks as we read them. */
-  data = nrrd->data;
+  data = (char *)_data;
   
   /* Ok, now we can begin reading. */
   bzerror = BZ_OK;
@@ -136,7 +136,7 @@ _nrrdEncodingBzip2_read(FILE *file, void *buf, size_t elNum,
 }
 
 int
-_nrrdEncodingBzip2_write(FILE *file, const void *buf, size_t elNum,
+_nrrdEncodingBzip2_write(FILE *file, const void *_data, size_t elNum,
                          const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingBzip2_write", err[AIR_STRLEN_MED];
 #if TEEM_BZIP2
@@ -178,7 +178,7 @@ _nrrdEncodingBzip2_write(FILE *file, const void *buf, size_t elNum,
      as we think we should. */
   total_written = 0;
   /* Pointer to the blocks as we write them. */
-  data = nrrd->data;
+  data = (char *)_data;
   
   /* Ok, now we can begin writing. */
   bzerror = BZ_OK;

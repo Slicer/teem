@@ -32,7 +32,7 @@ _nrrdEncodingGzip_available(void) {
 }
 
 int
-_nrrdEncodingGzip_read(FILE *file, void *buf, size_t elNum,
+_nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
                        Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingGzip_read", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
@@ -78,7 +78,7 @@ _nrrdEncodingGzip_read(FILE *file, void *buf, size_t elNum,
      as we think we should. */
   total_read = 0;
   /* Pointer to the blocks as we read them. */
-  data = nrrd->data;
+  data = (char *)_data;
   
   /* Ok, now we can begin reading. */
   while ((error = _nrrdGzRead(gzfin, data, block_size, &read)) == 0 
@@ -128,7 +128,7 @@ _nrrdEncodingGzip_read(FILE *file, void *buf, size_t elNum,
 }
 
 int
-_nrrdEncodingGzip_write(FILE *file, const void *buf, size_t elNum,
+_nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
                         const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingGzip_write", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
@@ -179,7 +179,7 @@ _nrrdEncodingGzip_write(FILE *file, const void *buf, size_t elNum,
      as we think we should. */
   total_written = 0;
   /* Pointer to the blocks as we write them. */
-  data = nrrd->data;
+  data = (char *)_data;
   
   /* Ok, now we can begin writing. */
   while ((error = _nrrdGzWrite(gzfout, data, block_size, &wrote)) == 0 

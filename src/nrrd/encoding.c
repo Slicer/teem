@@ -29,7 +29,8 @@
 **    are needed for {en/de}coding
 **
 ** what a NrrdEncoding has to do:
-** -- read data from file into nrrd->data, or vice versa.
+** -- read data from file into the "data" argument (BUT NOT nrrd->data!!),
+**     or vice versa.
 ** -- respect nrrdStateVerboseIO with messages to stderr, if possible
 ** -- in case of error, put text error messages into biff via
 **    biffAdd(NRRD, <error char*>)
