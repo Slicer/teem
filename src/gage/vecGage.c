@@ -21,14 +21,20 @@
 #include "privateGage.h"
 
 /*
-  gageVecVector,      *  0: component-wise-interpolatd (CWI) vector: GT[3] *
-  gageVecLength,      *  1: length of CWI vector: *GT *
-  gageVecNormalized,  *  2: normalized CWI vector: GT[3] *
-  gageVecJacobian,    *  3: component-wise Jacobian: GT[9] *
-  gageVecDivergence,  *  4: divergence (based on Jacobian): *GT *
-  gageVecCurl,        *  5: curl (based on Jacobian): *GT *
-  gageVecLast
-  0   1   2   3   4   5
+  gageVecVector,      *  0: component-wise-interpolatd (CWI) vector: GT[3]
+  gageVecLength,      *  1: length of CWI vector: *GT
+  gageVecNormalized,  *  2: normalized CWI vector: GT[3]
+  gageVecJacobian,    *  3: component-wise Jacobian: GT[9]
+  gageVecDivergence,  *  4: divergence (based on Jacobian): *GT
+  gageVecCurl,        *  5: curl (based on Jacobian): GT[3]
+  gageVecGradient0,   *  6: gradient of 1st component of vector: GT[3]
+  gageVecGradient1,   *  7: gradient of 2nd component of vector: GT[3]
+  gageVecGradient2,   *  8: gradient of 3rd component of vector: GT[3]
+  gageVecMultiGrad,   *  9: sum of outer products of gradients: GT[9]
+  gageVecL2MG,        * 10: L2 norm of multi-gradient: *GT
+  gageVecMGEval,      * 11: eigenvalues of multi-gradient: GT[3]
+  gageVecMGEvec,      * 12: eigenvectors of multi-gradient: GT[9]
+  0   1   2   3   4   5   6   7   8   9  10  11  12
 */
 
 /*
@@ -38,7 +44,7 @@
 */
 int
 gageVecAnsLength[GAGE_VEC_MAX+1] = {
-  3,  1,  3,  9,  1,  3
+  3,  1,  3,  9,  1,  3,  3,  3,  3,  9,  1,  3,  9
 };
 
 /*
@@ -48,7 +54,7 @@ gageVecAnsLength[GAGE_VEC_MAX+1] = {
 */
 int
 gageVecAnsOffset[GAGE_VEC_MAX+1] = {
-  0,  3,  4,  7, 16, 17 /* 20 */
+  0,  3,  4,  7, 16, 17, 20, 23, 26, 29, 38, 39, 42  /* 51 */
 };
 
 /*
@@ -59,7 +65,7 @@ gageVecAnsOffset[GAGE_VEC_MAX+1] = {
 */
 int
 _gageVecNeedDeriv[GAGE_VEC_MAX+1] = {
-  1,  1,  1,  2,  2,  2
+  1,  1,  1,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2
 };
 
 /*
@@ -87,7 +93,28 @@ _gageVecPrereq[GAGE_VEC_MAX+1] = {
   (1<<gageVecJacobian),
 
   /* gageVecCurl */
-  (1<<gageVecJacobian)
+  (1<<gageVecJacobian),
+
+  /* gageVecGradient0 */
+  (1<<gageVecJacobian),
+
+  /* gageVecGradient1 */
+  (1<<gageVecJacobian),
+
+  /* gageVecGradient2 */
+  (1<<gageVecJacobian),
+
+  /* gageVecMultiGrad */
+  (1<<gageVecGradient0) | (1<<gageVecGradient1) | (1<<gageVecGradient2),
+
+  /* gageVecL2MG */
+  (1<<gageVecMultiGrad),
+
+  /* gageVecMGEval */
+  (1<<gageVecMultiGrad),
+
+  /* gageVecMGEvec */
+  (1<<gageVecMultiGrad) | (1<<gageVecMGEval)
 };
 
 void
@@ -170,6 +197,7 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageVecAnswer";
   gageVecAnswer *van;
   unsigned int query;
+  double tmpMat[9], mgevec[9], mgeval[3];
 
   /*
   gageVecVector,      *  0: component-wise-interpolatd (CWI) vector: GT[3] *
@@ -177,7 +205,15 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   gageVecNormalized,  *  2: normalized CWI vector: GT[3] *
   gageVecJacobian,    *  3: component-wise Jacobian: GT[9] *
   gageVecDivergence,  *  4: divergence (based on Jacobian): *GT *
-  gageVecCurl,        *  5: curl (based on Jacobian): *GT *
+  gageVecCurl,        *  5: curl (based on Jacobian): GT[3] *
+  gageVecGradient0,   *  6: gradient of 1st component of vector: GT[3] *
+  gageVecGradient1,   *  7: gradient of 2nd component of vector: GT[3] *
+  gageVecGradient2,   *  8: gradient of 3rd component of vector: GT[3] *
+  gageVecMultiGrad,   *  9: sum of outer products of gradients: GT[9] *
+  gageVecL2MG,        * 10: L2 norm of multi-gradient: *GT *
+  gageVecMGEval,      * 11: eigenvalues of multi-gradient: GT[3] *
+  gageVecMGEvec,      * 12: eigenvectors of multi-gradient: GT[9] *
+  gageVecLast
   */
 
   query = pvl->query;
@@ -224,6 +260,39 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
     van->curl[1] = van->jac[6] - van->jac[2];
     van->curl[2] = van->jac[1] - van->jac[3];
   }
+  if (1 & (query >> gageVecGradient0)) {
+    van->g0[0] = van->jac[0];
+    van->g0[1] = van->jac[3];
+    van->g0[2] = van->jac[6];
+  }
+  if (1 & (query >> gageVecGradient1)) {
+    van->g1[0] = van->jac[1];
+    van->g1[1] = van->jac[4];
+    van->g1[2] = van->jac[7];
+  }
+  if (1 & (query >> gageVecGradient2)) {
+    van->g2[0] = van->jac[2];
+    van->g2[1] = van->jac[5];
+    van->g2[2] = van->jac[8];
+  }
+  if (1 & (query >> gageVecMultiGrad)) {
+    ELL_3M_SET_IDENTITY(van->mg);
+    ELL_3MV_OUTERADD(van->mg, van->g0, van->g0);
+    ELL_3MV_OUTERADD(van->mg, van->g1, van->g1);
+    ELL_3MV_OUTERADD(van->mg, van->g2, van->g2);
+  }
+  if (1 & (query >> gageVecL2MG)) {
+    *(van->l2mg) = ELL_3M_L2NORM(van->mg);
+  }
+  if (1 & (query >> gageVecMGEval)) {
+    ELL_3M_COPY(tmpMat, van->mg);
+    /* HEY: look at the return value for root multiplicity? */
+    ell3mEigensolve(mgeval, mgevec, tmpMat, AIR_TRUE);
+    ELL_3V_COPY(van->mgeval, mgeval);
+  }
+  if (1 & (query >> gageVecMGEvec)) {
+    ELL_3M_COPY(van->mgevec, mgevec);
+  }
 
   return;
 }
@@ -237,6 +306,13 @@ _gageVecStr[][AIR_STRLEN_SMALL] = {
   "Jacobian",
   "divergence",
   "curl"
+  "gradient0",
+  "gradient1",
+  "gradient2",
+  "multi-gradient",
+  "L2(multi-gradient)",
+  "multi-gradient eigenvalues",
+  "multi-gradient eigenvectors",
 };
 
 int
@@ -248,6 +324,13 @@ _gageVecVal[] = {
   gageVecJacobian,
   gageVecDivergence,
   gageVecCurl,
+  gageVecGradient0,
+  gageVecGradient1,
+  gageVecGradient2,
+  gageVecMultiGrad,
+  gageVecL2MG,
+  gageVecMGEval,
+  gageVecMGEvec,
 };
 
 #define GV_V gageVecVector
@@ -256,6 +339,13 @@ _gageVecVal[] = {
 #define GV_J gageVecJacobian
 #define GV_D gageVecDivergence
 #define GV_C gageVecCurl
+#define GV_G0 gageVecGradient0
+#define GV_G1 gageVecGradient1
+#define GV_G2 gageVecGradient2
+#define GV_MG gageVecMultiGrad
+#define GV_LM gageVecL2MG
+#define GV_ML gageVecMGEval
+#define GV_MC gageVecMGEvec
 
 char
 _gageVecStrEqv[][AIR_STRLEN_SMALL] = {
@@ -264,7 +354,13 @@ _gageVecStrEqv[][AIR_STRLEN_SMALL] = {
   "n", "normalized", "normalized vector",
   "jacobian", "jac", "j",
   "divergence", "div", "d",
-  "curl", "c"
+  "curl", "c",
+  "g0", "grad0", "gradient0",
+  "g1", "grad1", "gradient1",
+  "g2", "grad2", "gradient2",
+  "l2mg", "l2multigrad",
+  "mgeval", "mg eval", "multigrad eigenvalues",
+  "mgevec", "mg evec", "multigrad eigenvectors",
   ""
 };
 
@@ -275,7 +371,13 @@ _gageVecValEqv[] = {
   GV_N, GV_N, GV_N,
   GV_J, GV_J, GV_J,
   GV_D, GV_D, GV_D,
-  GV_C, GV_C
+  GV_C, GV_C,
+  GV_G0, GV_G0, GV_G0,
+  GV_G1, GV_G1, GV_G1,
+  GV_G2, GV_G2, GV_G2,
+  GV_MG, GV_MG,
+  GV_ML, GV_ML, GV_ML,
+  GV_MC, GV_MC, GV_MC
 };
 
 airEnum
@@ -298,12 +400,19 @@ _gageVecAnswerNew() {
   if (van) {
     for (i=0; i<GAGE_VEC_TOTAL_ANS_LENGTH; i++)
       van->ans[i] = AIR_NAN;
-    van->vec  = &(van->ans[gageVecAnsOffset[gageVecVector]]);
-    van->len  = &(van->ans[gageVecAnsOffset[gageVecLength]]);
-    van->norm = &(van->ans[gageVecAnsOffset[gageVecNormalized]]);
-    van->jac  = &(van->ans[gageVecAnsOffset[gageVecJacobian]]);
-    van->div  = &(van->ans[gageVecAnsOffset[gageVecDivergence]]);
-    van->curl = &(van->ans[gageVecAnsOffset[gageVecCurl]]);
+    van->vec    = &(van->ans[gageVecAnsOffset[gageVecVector]]);
+    van->len    = &(van->ans[gageVecAnsOffset[gageVecLength]]);
+    van->norm   = &(van->ans[gageVecAnsOffset[gageVecNormalized]]);
+    van->jac    = &(van->ans[gageVecAnsOffset[gageVecJacobian]]);
+    van->div    = &(van->ans[gageVecAnsOffset[gageVecDivergence]]);
+    van->curl   = &(van->ans[gageVecAnsOffset[gageVecCurl]]);
+    van->g0     = &(van->ans[gageVecAnsOffset[gageVecGradient0]]);
+    van->g1     = &(van->ans[gageVecAnsOffset[gageVecGradient1]]);
+    van->g2     = &(van->ans[gageVecAnsOffset[gageVecGradient2]]);
+    van->mg     = &(van->ans[gageVecAnsOffset[gageVecMultiGrad]]);
+    van->l2mg   = &(van->ans[gageVecAnsOffset[gageVecL2MG]]);
+    van->mgeval = &(van->ans[gageVecAnsOffset[gageVecMGEval]]);
+    van->mgevec = &(van->ans[gageVecAnsOffset[gageVecMGEvec]]);
   }
   return van;
 }

@@ -185,11 +185,13 @@ enum {
   gageSclShapeTrace,  /* 11, (K1+K2)/Curvedness: *GT */
   gageSclShapeIndex,  /* 12: Koen.'s shape index, ("S"): *GT */
   gageSclK1K2,        /* 13: principle curvature magnitudes: GT[2] */
-  gageSclCurvDir,     /* 14: principle curvature directions: GT[6] */
+  gageSclMeanCurv,    /* 14: mean curvatuve (K1 + K2)/2: *GT */
+  gageSclGaussCurv,   /* 15: gaussian curvature K1*K2: *GT */
+  gageSclCurvDir,     /* 16: principle curvature directions: GT[6] */
   gageSclLast
 };
-#define GAGE_SCL_MAX     14
-#define GAGE_SCL_TOTAL_ANS_LENGTH 51
+#define GAGE_SCL_MAX     16
+#define GAGE_SCL_TOTAL_ANS_LENGTH 53
 
 /*
 ******** GAGE_SCL_*_BIT #defines
@@ -212,7 +214,9 @@ enum {
 #define GAGE_SCL_SHAPETRACE_BIT (1<<11)
 #define GAGE_SCL_SHAPEINDEX_BIT (1<<12)
 #define GAGE_SCL_K1K2_BIT       (1<<13)
-#define GAGE_SCL_CURVDIR_BIT    (1<<14)
+#define GAGE_SCL_MEANCURV_BIT  (1<<14)
+#define GAGE_SCL_GAUSSCURV_BIT (1<<15)
+#define GAGE_SCL_CURVDIR_BIT    (1<<16)
 
 /*
 ******** gageVec* enum
@@ -230,10 +234,17 @@ enum {
 			     2:dv_z/dx  5:dv_z/dy  8:dv_z/dz */
   gageVecDivergence,  /*  4: divergence (based on Jacobian): *GT */
   gageVecCurl,        /*  5: curl (based on Jacobian): GT[3] */
+  gageVecGradient0,   /*  6: gradient of 1st component of vector: GT[3] */
+  gageVecGradient1,   /*  7: gradient of 2nd component of vector: GT[3] */
+  gageVecGradient2,   /*  8: gradient of 3rd component of vector: GT[3] */
+  gageVecMultiGrad,   /*  9: sum of outer products of gradients: GT[9] */
+  gageVecL2MG,        /* 10: L2 norm of multi-gradient: *GT */
+  gageVecMGEval,      /* 11: eigenvalues of multi-gradient: GT[3] */
+  gageVecMGEvec,      /* 12: eigenvectors of multi-gradient: GT[9] */
   gageVecLast
 };
-#define GAGE_VEC_MAX      5
-#define GAGE_VEC_TOTAL_ANS_LENGTH 20
+#define GAGE_VEC_MAX     12
+#define GAGE_VEC_TOTAL_ANS_LENGTH 51
 
 #define GAGE_VEC_VECTOR_BIT     (1<<0)
 #define GAGE_VEC_LENGTH_BIT     (1<<1)
@@ -241,6 +252,13 @@ enum {
 #define GAGE_VEC_JACOBIAN_BIT   (1<<3)
 #define GAGE_VEC_DIVERGENCE_BIT (1<<4)
 #define GAGE_VEC_CURL_BIT       (1<<5)
+#define GAGE_VEC_GRADIENT0_BIT  (1<<6)
+#define GAGE_VEC_GRADIENT1_BIT  (1<<7)
+#define GAGE_VEC_GRADIENT2_BIT  (1<<8)
+#define GAGE_VEC_MULTIGRAD_BIT  (1<<9)
+#define GAGE_VEC_L2MG_BIT       (1<<10)
+#define GAGE_VEC_MGEVAL_BIT     (1<<11)
+#define GAGE_VEC_MGEVEC_BIT     (1<<12)
 
 struct gageKind_t;  /* dumb forward declaraction, ignore */
 
@@ -291,6 +309,10 @@ typedef struct gageContext_t {
 				 results from low-order convolutions. */
   gage_t gradMagMin;          /* pre-normalized vector lengths can't be
 				 smaller than this */
+  gage_t gradMagCurvMin;      /* punt on computing curvature information if
+				 gradient magnitude is less than this. Yes,
+				 this is scalar-kind-specific, but there's
+				 no other good place for it */
   double integralNearZero;    /* tolerance with checkIntegrals on derivative
 				 kernels */
   NrrdKernel *k[GAGE_KERNEL_NUM];
@@ -437,7 +459,7 @@ typedef struct {
     *val, *gvec,                     /* convenience pointers into ans[] */
     *gmag, *norm,      
     *hess, *lapl, *heval, *hevec, *scnd,
-    *gten, *C, *St, *Si, *k1k2, *cdir;
+    *gten, *C, *St, *Si, *k1k2, *mc, *gc, *cdir;
 } gageSclAnswer;
 
 /*
@@ -450,12 +472,16 @@ typedef struct {
     ans[GAGE_VEC_TOTAL_ANS_LENGTH], /* all the answers */
     *vec, *len,                     /* convenience pointers into ans[] */
     *norm, *jac,      
-    *div, *curl;
+    *div, *curl,
+    *g0, *g1, *g2,
+    *mg, *l2mg,
+    *mgeval, *mgevec;
 } gageVecAnswer;
 
 /* defaultsGage.c */
 extern gage_export int gageDefVerbose;
 extern gage_export gage_t gageDefGradMagMin;
+extern gage_export gage_t gageDefGradMagCurvMin;
 extern gage_export int gageDefRenormalize;
 extern gage_export int gageDefCheckIntegrals;
 extern gage_export int gageDefNoRepadWhenSmaller;

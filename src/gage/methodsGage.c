@@ -34,6 +34,7 @@ gageContextNew() {
   if (ctx) {
     ctx->verbose = gageDefVerbose;
     ctx->gradMagMin = gageDefGradMagMin;
+    ctx->gradMagCurvMin = gageDefGradMagCurvMin;
     ctx->renormalize = gageDefRenormalize;
     ctx->checkIntegrals = gageDefCheckIntegrals;
     ctx->noRepadWhenSmaller = gageDefNoRepadWhenSmaller;

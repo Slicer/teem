@@ -21,25 +21,26 @@
 #include "privateGage.h"
 
 /*
-  gageSclUnknown=-1,  * -1: nobody knows *
-  gageSclValue,       *  0: data value: *GT *
-  gageSclGradVec,     *  1: gradient vector, un-normalized: GT[3] *
-  gageSclGradMag,     *  2: gradient magnitude: *GT *
-  gageSclNormal,      *  3: gradient vector, normalized: GT[3] *
-  gageSclHessian,     *  4: Hessian: GT[9] *
-  gageSclLaplacian,   *  5: Laplacian: Dxx + Dyy + Dzz: *GT *
-  gageSclHessEval,    *  6: Hessian's eigenvalues: GT[3] *
-  gageSclHessEvec,    *  7: Hessian's eigenvectors: GT[9] *
-  gageScl2ndDD,       *  8: 2nd dir.deriv. along gradient: *GT *
-  gageSclGeomTens,    *  9: symm. matrix w/ evals 0,K1,K2 and evecs grad,
-			     curvature directions: GT[9] *
-  gageSclCurvedness,  * 10: L2 norm of K1, K2 (not Koen.'s "C"): *GT *
-  gageSclShapeTrace,  * 11, (K1+K2)/Curvedness: *GT *
-  gageSclShapeIndex,  * 12: Koen.'s shape index, ("S"): *GT *
-  gageSclK1K2,        * 13: principle curvature magnitudes: GT[2] *
-  gageSclCurvDir,     * 14: principle curvature directions: GT[6] *
-  gageSclLast
-  0   1   2   3   4   5   6   7   8   9  10  11  12  13  14
+  gageSclUnknown=-1,   -1: nobody knows 
+  gageSclValue,         0: data value: *GT 
+  gageSclGradVec,       1: gradient vector, un-normalized: GT[3] 
+  gageSclGradMag,       2: gradient magnitude: *GT 
+  gageSclNormal,        3: gradient vector, normalized: GT[3] 
+  gageSclHessian,       4: Hessian: GT[9] (column-order) 
+  gageSclLaplacian,     5: Laplacian: Dxx + Dyy + Dzz: *GT 
+  gageSclHessEval,      6: Hessian's eigenvalues: GT[3] 
+  gageSclHessEvec,      7: Hessian's eigenvectors: GT[9] 
+  gageScl2ndDD,         8: 2nd dir.deriv. along gradient: *GT 
+  gageSclGeomTens,      9: symm. matrix w/ evals 0,K1,K2 and evecs grad,
+			     curvature directions: GT[9] 
+  gageSclCurvedness,   10: L2 norm of K1, K2 (not Koen.'s "C"): *GT 
+  gageSclShapeTrace,   11, (K1+K2)/Curvedness: *GT 
+  gageSclShapeIndex,   12: Koen.'s shape index, ("S"): *GT 
+  gageSclK1K2,         13: principle curvature magnitudes: GT[2] 
+  gageSclMeanCurve,    14: mean curvatuve (K1 + K2)/2: *GT 
+  gageSclGaussCurv,    15: gaussian curvature K1*K2: *GT 
+  gageSclCurvDir,      16: principle curvature directions: GT[6] 
+  0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
 */
 
 /*
@@ -49,7 +50,7 @@
 */
 int
 gageSclAnsLength[GAGE_SCL_MAX+1] = {
-  1,  3,  1,  3,  9,  1,  3,  9,  1,  9,  1,  1,  1,  2,  6
+  1,  3,  1,  3,  9,  1,  3,  9,  1,  9,  1,  1,  1,  2,  1,  1,  6
 };
 
 /*
@@ -59,7 +60,7 @@ gageSclAnsLength[GAGE_SCL_MAX+1] = {
 */
 int
 gageSclAnsOffset[GAGE_SCL_MAX+1] = {
-  0,  1,  4,  5,  8, 17, 18, 21, 30, 31, 40, 41, 42, 43, 45  /* 51 */
+  0,  1,  4,  5,  8, 17, 18, 21, 30, 31, 40, 41, 42, 43, 45, 46, 47 /* 53 */
 };
 
 /*
@@ -70,7 +71,7 @@ gageSclAnsOffset[GAGE_SCL_MAX+1] = {
 */
 int
 _gageSclNeedDeriv[GAGE_SCL_MAX+1] = {
-  1,  2,  2,  2,  4,  4,  4,  4,  6,  6,  6,  6,  6,  6,  6
+  1,  2,  2,  2,  4,  4,  4,  4,  6,  6,  6,  6,  6,  6,  6,  6,  6
 };
 
 /*
@@ -124,6 +125,12 @@ _gageSclPrereq[GAGE_SCL_MAX+1] = {
   /* gageSclK1K2 */
   (1<<gageSclCurvedness) | (1<<gageSclShapeTrace),
 
+  /* gageSclMeanCurv */
+  (1<<gageSclK1K2),
+
+  /* gageSclGaussCurv */
+  (1<<gageSclK1K2),
+
   /* gageSclCurvDir */
   (1<<gageSclGeomTens) | (1<<gageSclK1K2)
   
@@ -146,6 +153,8 @@ _gageSclStr[][AIR_STRLEN_SMALL] = {
   "shape trace",
   "shape index",
   "kappa1 kappa2",
+  "mean curvature",
+  "Gaussian curvature",
   "curvature directions"
 };
 
@@ -166,6 +175,8 @@ _gageSclVal[] = {
   gageSclShapeTrace,
   gageSclShapeIndex,
   gageSclK1K2,
+  gageSclMeanCurv,
+  gageSclGaussCurv,
   gageSclCurvDir
 };
 
@@ -183,6 +194,8 @@ _gageSclVal[] = {
 #define GS_ST gageSclShapeTrace
 #define GS_SI gageSclShapeIndex
 #define GS_KK gageSclK1K2
+#define GS_MC gageSclMeanCurv
+#define GS_GC gageSclGaussCurv
 #define GS_CD gageSclCurvDir
 
 char
@@ -202,6 +215,8 @@ _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
   "st", "shape trace",
   "si", "shape index",
   "k1k2", "k1 k2", "kappa1kappa2", "kappa1 kappa2",
+  "mc", "mcurv", "meancurv", "mean curvature",
+  "gc", "gcurv", "gausscurv", "gaussian curvature",
   "cdir", "c dir", "curvdir", "curv dir", "curvature directions",
   ""
 };
@@ -221,7 +236,9 @@ _gageSclValEqv[] = {
   GS_CV, GS_CV,
   GS_ST, GS_ST,
   GS_SI, GS_SI,
-  GS_KK, GS_KK, GS_KK, GS_KK, 
+  GS_KK, GS_KK, GS_KK, GS_KK,
+  GS_MC, GS_MC, GS_MC, GS_MC,
+  GS_GC, GS_GC, GS_GC, GS_GC,
   GS_CD, GS_CD, GS_CD, GS_CD, GS_CD
 };
 
@@ -259,6 +276,8 @@ _gageSclAnswerNew() {
     san->St    = &(san->ans[gageSclAnsOffset[gageSclShapeTrace]]);
     san->Si    = &(san->ans[gageSclAnsOffset[gageSclShapeIndex]]);
     san->k1k2  = &(san->ans[gageSclAnsOffset[gageSclK1K2]]);
+    san->mc    = &(san->ans[gageSclAnsOffset[gageSclMeanCurv]]);
+    san->gc    = &(san->ans[gageSclAnsOffset[gageSclGaussCurv]]);
     san->cdir  = &(san->ans[gageSclAnsOffset[gageSclCurvDir]]);
   }
   return san;

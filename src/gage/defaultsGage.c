@@ -26,6 +26,9 @@ gageDefVerbose = 0;
 gage_t
 gageDefGradMagMin = 0.00001;
 
+gage_t
+gageDefGradMagCurvMin = 0.0;
+
 int
 gageDefRenormalize = AIR_FALSE;
 
