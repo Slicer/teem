@@ -33,6 +33,7 @@ extern "C" {
 #endif
 
 /* define TEEM_API */
+/* NrrdIO-hack-000 */
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
 #  if defined(TEEM_BUILD)
 #    define TEEM_API extern __declspec(dllexport)
@@ -49,6 +50,8 @@ extern "C" {
 #  pragma warning ( disable : 4305 )
 #  pragma warning ( disable : 4309 )
 #  pragma warning ( disable : 4273 )
+#  pragma warning ( disable : 4756 )
+#  pragma warning ( disable : 4723 )
 #endif
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -292,7 +295,7 @@ TEEM_API const airFloat airFloatQNaN;
 TEEM_API const airFloat airFloatSNaN;
 TEEM_API const airFloat airFloatPosInf;
 TEEM_API const airFloat airFloatNegInf;
-TEEM_API float airNaN();
+TEEM_API float airNaN(void);
 TEEM_API int airIsNaN(float f);
 TEEM_API int airIsInf_f(float f);
 TEEM_API int airIsInf_d(double d);
@@ -397,7 +400,7 @@ enum {
 };
 #define AIR_INSANE_MAX        11
 TEEM_API const char *airInsaneErr(int insane);
-TEEM_API int airSanity();
+TEEM_API int airSanity(void);
 
 /* miscAir.c */
 TEEM_API const char *airTeemVersion;
@@ -566,13 +569,13 @@ TEEM_API void airMopDebug(airArray *arr);
 **
 ** There are two performance consequences of using airExists_d(x):
 ** 1) Its a function call (but WIN32 can __inline it)
-** 2) (via AIR_EXISTS_G) It requires bit-wise operations on 64-bit
+** 2) (via AIR_EXISTS_D) It requires bit-wise operations on 64-bit
 ** ints, which might be terribly slow.
 **
 ** The reason for using airExists_d and not airExists_f is for
 ** doubles > FLT_MAX: airExists_f would say these are infinity.
 */
-#ifdef _WIN32
+#ifdef _WIN32 /* NrrdIO-hack-001 */
 #define AIR_EXISTS(x) (airExists_d(x))
 #else
 #define AIR_EXISTS(x) (!((x) - (x)))

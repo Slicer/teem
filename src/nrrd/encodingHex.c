@@ -73,8 +73,6 @@ _nrrdEncodingHex_read(Nrrd *nrrd, NrrdIoState *nio) {
   data = nrrd->data;
   nibIdx = 0;
   nibNum = 2*nrrdElementNumber(nrrd)*nrrdElementSize(nrrd);
-  /* I forget if this was the right thing to do...
-     if (nibNum/nrrdElementNumber(nrrd) != (size_t)(2*nrrdElementSize(nrrd))){ */
   if ((int)(nibNum/nrrdElementNumber(nrrd)) != 2*nrrdElementSize(nrrd)) {
     sprintf(err, "%s: size_t can't hold 2*(#bytes in array)\n", me);
     biffAdd(NRRD, err); return 1;

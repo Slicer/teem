@@ -21,7 +21,7 @@
 #include "air.h"
 #include <teem32bit.h>
 /* timer functions */
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include <io.h>
 #include <fcntl.h>
 #include <time.h>
@@ -111,7 +111,7 @@ airFopen(const char *name, FILE *std, const char *mode) {
 
   if (!strcmp(name, "-")) {
     ret = std;
-#ifdef _WIN32
+#ifdef _MSC_VER
     if (strchr(mode, 'b')) {
       _setmode(_fileno(ret), _O_BINARY);
     }
