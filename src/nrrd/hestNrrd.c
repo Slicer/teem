@@ -160,12 +160,13 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
      are different ways of writing the same number, such as "3" -->
      "+3", "3.1" --> "3.10", so someone accidently using the file when
      they mean to use the number has easy ways of changing the number
-     representation.  As many trivial transformations are not
-     available on filenames. Another problem is that one really wants
-     a general robust test to see if a given string is a valid number
-     representation AND NOTHING BUT THAT, and sscanf() is not that
-     test.  In any case, if there are to be improved smarts about this
-     matter, they need to be implemented below and nowhere else. */
+     representation, since these trivial transformations will probably
+     not all result in valid filenames. Another problem is that one
+     really wants a general robust test to see if a given string is a
+     valid number representation AND NOTHING BUT THAT, and sscanf() is
+     not that test.  In any case, if there are to be improved smarts
+     about this matter, they need to be implemented below and nowhere
+     else. */
   
   nrrd = nrrdNew();
   ret = nrrdLoad(nrrd, str);
