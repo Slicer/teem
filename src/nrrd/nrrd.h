@@ -427,6 +427,7 @@ extern nrrd_export const NrrdEncoding *nrrdDefWriteEncoding;
 extern nrrd_export int nrrdDefWriteBareText;
 extern nrrd_export int nrrdDefWriteCharsPerLine;
 extern nrrd_export int nrrdDefWriteValsPerLine;
+/* ---- BEGIN non-NrrdIO */
 extern nrrd_export int nrrdDefRsmpBoundary;
 extern nrrd_export int nrrdDefRsmpType;
 extern nrrd_export double nrrdDefRsmpScale;
@@ -434,22 +435,27 @@ extern nrrd_export int nrrdDefRsmpRenormalize;
 extern nrrd_export int nrrdDefRsmpRound;
 extern nrrd_export int nrrdDefRsmpClamp;
 extern nrrd_export double nrrdDefRsmpPadValue;
+extern nrrd_export double nrrdDefKernelParm0;
+/* ---- END non-NrrdIO */
 extern nrrd_export int nrrdDefCenter;
 extern nrrd_export double nrrdDefSpacing;
-extern nrrd_export double nrrdDefKernelParm0;
 extern nrrd_export int nrrdStateVerboseIO;
+/* ---- BEGIN non-NrrdIO */
 extern nrrd_export int nrrdStateBlind8BitRange;
 extern nrrd_export int nrrdStateMeasureType;
 extern nrrd_export int nrrdStateMeasureModeBins;
 extern nrrd_export int nrrdStateMeasureHistoType;
+extern nrrd_export int nrrdStateDisallowIntegerNonExist;
+/* ---- END non-NrrdIO */
 extern nrrd_export int nrrdStateAlwaysSetContent;
 extern nrrd_export int nrrdStateDisableContent;
 extern nrrd_export char *nrrdStateUnknownContent;
-extern nrrd_export int nrrdStateDisallowIntegerNonExist;
 extern nrrd_export int nrrdStateGrayscaleImage3D;
 extern nrrd_export int nrrdStateKeyValueReturnInternalPointers;
+/* ---- BEGIN non-NrrdIO */
 extern void nrrdDefGetenv(void);
 extern void nrrdStateGetenv(void);
+/* ---- END non-NrrdIO */
 
 /******** all the airEnums used through-out nrrd */
 /* (the actual C enums are in nrrdEnums.h) */

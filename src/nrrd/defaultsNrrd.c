@@ -38,14 +38,16 @@ const NrrdEncoding *nrrdDefWriteEncoding = &_nrrdEncodingRaw;
 int nrrdDefWriteBareText = AIR_TRUE;
 int nrrdDefWriteCharsPerLine = 75;
 int nrrdDefWriteValsPerLine = 8;
+/* ---- BEGIN non-NrrdIO */
 int nrrdDefRsmpBoundary = nrrdBoundaryBleed;
 int nrrdDefRsmpType = nrrdTypeDefault;
 double nrrdDefRsmpScale = 1.0;    /* these two should probably be the same */
-double nrrdDefKernelParm0 = 1.0; 
 int nrrdDefRsmpRenormalize = AIR_TRUE;
 int nrrdDefRsmpRound = AIR_TRUE;
 int nrrdDefRsmpClamp = AIR_TRUE;
 double nrrdDefRsmpPadValue = 0.0;
+double nrrdDefKernelParm0 = 1.0; 
+/* ---- END non-NrrdIO */
 int nrrdDefCenter = nrrdCenterNode;
 double nrrdDefSpacing = 1.0;
 
@@ -54,14 +56,16 @@ double nrrdDefSpacing = 1.0;
    like defaults, they are not thread-safe if different threads ever
    set them differently. */
 int nrrdStateVerboseIO = 1;
+/* ---- BEGIN non-NrrdIO */
 int nrrdStateBlind8BitRange = AIR_TRUE;
 int nrrdStateMeasureType = nrrdTypeFloat;
 int nrrdStateMeasureModeBins = 1024;
 int nrrdStateMeasureHistoType = nrrdTypeFloat;
+int nrrdStateDisallowIntegerNonExist = AIR_TRUE;
+/* ---- END non-NrrdIO */
 int nrrdStateAlwaysSetContent = AIR_TRUE;
 int nrrdStateDisableContent = AIR_FALSE;
 char *nrrdStateUnknownContent = NRRD_UNKNOWN;
-int nrrdStateDisallowIntegerNonExist = AIR_TRUE;
 int nrrdStateGrayscaleImage3D = AIR_FALSE;
 /* there is no sane reason to change this default initialization */
 int nrrdStateKeyValueReturnInternalPointers = AIR_FALSE;
@@ -72,6 +76,7 @@ int nrrdStateKeyValueReturnInternalPointers = AIR_FALSE;
 /* Are there other assumptions currently built into nrrd which could
    stand to be user-controllable? */
 
+/* ---- BEGIN non-NrrdIO */
 void
 nrrdDefGetenv(void) {
   char *envS;
@@ -124,3 +129,4 @@ nrrdStateGetenv(void) {
   return;
 }
 
+/* ---- END non-NrrdIO */

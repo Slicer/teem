@@ -581,6 +581,7 @@ nrrdSanity (void) {
 	    nrrdCenterUnknown+1, nrrdCenterLast-1);
     biffAdd(NRRD, err); return 0;
   }
+  /* ---- BEGIN non-NrrdIO */
   if (!( nrrdTypeDefault == nrrdDefRsmpType
 	 || !airEnumValCheck(nrrdType, nrrdDefRsmpType) )) {
     sprintf(err, "%s: nrrdDefRsmpType (%d) not in valid range [%d,%d]",
@@ -588,7 +589,6 @@ nrrdSanity (void) {
 	    nrrdTypeUnknown, nrrdTypeLast-1);
     biffAdd(NRRD, err); return 0;
   }
-  /* ---- BEGIN non-NrrdIO */
   if (airEnumValCheck(nrrdBoundary, nrrdDefRsmpBoundary)) {
     sprintf(err, "%s: nrrdDefRsmpBoundary (%d) not in valid range [%d,%d]",
 	    me, nrrdDefRsmpBoundary,
