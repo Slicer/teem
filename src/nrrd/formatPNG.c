@@ -294,7 +294,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
   /* read all text fields from the text chunk */
   numtxt = png_get_text(png, info, &txt, NULL);
   for (i=0; i<numtxt; i++) {
-    if (!strcmp(txt[i].key, NRRD_PNG_KEY)) {
+    if (!strcmp(txt[i].key, NRRD_PNG_FIELD_KEY)) {
       int ret;
       nio->pos = 0;
       /* Reading PNGs teaches Gordon that his scheme for parsing nrrd header
@@ -346,6 +346,11 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
 	  biffAdd(NRRD, err); return 1;
 	}
 	c = airStrtok(NULL, "\n", &p);
+      }
+    } else {
+      if (nrrdKeyValueAdd(nrrd, txt[i].key, txt[i].text)) {
+	sprintf(err, "%s: couldn't add key/value pair", me);
+	biffAdd(NRRD, err); return 1;
       }
     }
   }
@@ -451,9 +456,20 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIO *nio) {
   csize = 0;
   for (i=1; i<=NRRD_FIELD_MAX; i++) {
     if (_nrrdFieldValidInImage[i] && _nrrdFieldInteresting(nrrd, nio, i)) { 
-      txt[numtxt].key = NRRD_PNG_KEY;
+      txt[numtxt].key = NRRD_PNG_FIELD_KEY;
       txt[numtxt].compression = PNG_TEXT_COMPRESSION_NONE;
       _nrrdSprintFieldInfo(&(txt[numtxt].text), "", nrrd, nio, i);      
+      numtxt++;
+    }
+  }
+  /* add nrrd key/value pairs to the chunk */
+  for (i=0; i<nrrdKeyValueSize(nrrd); i++) {
+    char *key, *value;
+    nrrdKeyValueIndex(nrrd, &key, &value, i);
+    if (NULL != key && NULL != value) {
+      txt[numtxt].key = key;
+      txt[numtxt].text = value;
+      txt[numtxt].compression = PNG_TEXT_COMPRESSION_NONE;
       numtxt++;
     }
   }
