@@ -1,6 +1,7 @@
 #
 # teem: Gordon Kindlmann's research software
-# Copyright (C) 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
+# Copyright (C) 2005  Gordon Kindlmann
+# Copyright (C) 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
