@@ -673,22 +673,20 @@ int
 nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
   char me[]="nrrdSave", err[NRRD_STRLEN_MED];
   FILE *file;
-  int nullio;
+  airArray *mop;
 
   if (!(nrrd && filename)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
+  mop = airMopInit();
   if (!io) {
-    nullio = AIR_TRUE;
     io = nrrdIONew();
     if (!io) {
       sprintf(err, "%s: couldn't alloc something", me);
       biffAdd(NRRD, err); return 1;
     }
-  }
-  else {
-    nullio = AIR_FALSE;
+    airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
   }
   if (nrrdEncodingUnknown == io->encoding) {
     io->encoding = nrrdDefWrtEncoding;
@@ -696,7 +694,7 @@ nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
   else if (!AIR_BETWEEN(nrrdEncodingUnknown, io->encoding, 
 			nrrdEncodingLast)) {
     sprintf(err, "%s: invalid encoding %d\n", me, io->encoding);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 
   if (!strcmp("-", filename)) {
@@ -706,8 +704,9 @@ nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
     if (!(file = fopen(filename, "wb"))) {
       sprintf(err, "%s: couldn't fopen(\"%s\",\"wb\"): %s", 
 	      me, filename, strerror(errno));
-      biffAdd(NRRD, err); return 1;
+      biffAdd(NRRD, err); airMopError(mop); return 1;
     }
+    airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
   }
 
   _nrrdSplitName(io->dir, io->base, filename);
@@ -716,12 +715,10 @@ nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
 
   if (nrrdWrite(file, nrrd, io)) {
     sprintf(err, "%s: trouble", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  fclose(file);
-  if (nullio) {
-    nrrdIONix(io);
-  }
+
+  airMopOkay(mop);
   return 0;
 }
 
