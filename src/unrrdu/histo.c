@@ -28,7 +28,7 @@ unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *nwght;
-  int bins, type, pret;
+  int bins, type, pret, hack;
   double min, max;
   airArray *mop;
 
@@ -59,6 +59,12 @@ unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+  
+  /* at some point Gordon was really annoyed with the "default" max
+     of a connected-component uchar volume being 255, instead of the
+     true answer */
+  hack = nrrdStateClever8BitMinMax;
+  nrrdStateClever8BitMinMax = AIR_FALSE;
 
   /* If the input nrrd never specified min and max, then they'll be
      AIR_NAN, and nrrdMinMaxCleverSet will find them.  If the input nrrd
@@ -78,6 +84,7 @@ unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   SAVE(out, nout, NULL);
 
   airMopOkay(mop);
+  nrrdStateClever8BitMinMax = hack;
   return 0;
 }
 
