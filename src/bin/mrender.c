@@ -79,6 +79,7 @@ char *info = ("A demonstration of hoover, gage, and nrrd measures. "
 typedef struct {
   Nrrd *nin;            /* input volume to render */
   gageKind *kind;       /* the kind of volume it is */
+  int verbPixel[2];     /* which pixel to do verbose stuff on */
   double rayStep,       /* distance between sampling planes */
     fromNaN;            /* what to convert non-existent value to */
   int whatq,            /* what to measure along the ray */
@@ -319,6 +320,13 @@ mrendRayBegin(mrendThread *tt, mrendRender *rr, mrendUser *uu,
 
   tt->ui = uIndex;
   tt->vi = vIndex;
+  if (!( -1 == uu->verbPixel[0] && -1 == uu->verbPixel[1] )) {
+    if (uIndex == uu->verbPixel[0] && vIndex == uu->verbPixel[1]) {
+      gageParmSet(uu->gctx0, gageParmVerbose, AIR_TRUE);
+    } else {
+      gageParmSet(uu->gctx0, gageParmVerbose, AIR_FALSE);
+    }
+  }
   tt->rayLen = rayLen;
   tt->rayStep = (uu->rayStep*tt->rayLen /
 		 (uu->hctx->cam->vspFaar - uu->hctx->cam->vspNeer));
@@ -433,7 +441,7 @@ int
 main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   hestParm *hparm;
-  int E, Ecode, renorm;
+  int E, Ecode, renorm, base;
   char *me, *errS, *whatS;
   mrendUser *uu;
   airArray *mop;
@@ -492,6 +500,9 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1,
 	     &(uu->hctx->numThreads),
 	     "1", "number of threads hoover should use");
+  hestOptAdd(&hopt, "vp", "img coords", airTypeInt, 2, 2, &(uu->verbPixel),
+	     "-1 -1", "pixel coordinates for which to turn on all verbose "
+	     "debugging messages, or \"-1 -1\" to disable this.");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &(uu->outS),
 	     NULL, "file to write output nrrd to");
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -525,13 +536,20 @@ main(int argc, char *argv[]) {
 	  airEnumStr(uu->kind->enm, uu->whatq), uu->kind->name);
   
   /* set remaining fields of hoover context */
-  nrrdAxisInfoGet_nva(uu->nin, nrrdAxisInfoSize, uu->hctx->volSize);
-  nrrdAxisInfoGet_nva(uu->nin, nrrdAxisInfoSpacing, uu->hctx->volSpacing);
-  if (nrrdCenterUnknown != uu->nin->axis[0].center) {
-    uu->hctx->volCentering = uu->nin->axis[0].center;
+  base = uu->kind->baseDim;
+  uu->hctx->volSize[0] = uu->nin->axis[base+0].size;
+  uu->hctx->volSize[1] = uu->nin->axis[base+1].size;
+  uu->hctx->volSize[2] = uu->nin->axis[base+2].size;
+  uu->hctx->volSpacing[0] = uu->nin->axis[base+0].spacing;
+  uu->hctx->volSpacing[1] = uu->nin->axis[base+1].spacing;
+  uu->hctx->volSpacing[2] = uu->nin->axis[base+2].spacing;
+  if (nrrdCenterUnknown != uu->nin->axis[base].center) {
+    uu->hctx->volCentering = uu->nin->axis[base].center;
     fprintf(stderr, "%s: setting volCentering to %s\n", me,
-	    airEnumStr(nrrdCenter, uu->nin->axis[0].center));
+	    airEnumStr(nrrdCenter, uu->nin->axis[base].center));
   }
+  fprintf(stderr, "!%s: uu->hctx->volCentering = %d\n",
+	  me, uu->hctx->volCentering);
   /* this is reasonable for now */
   uu->hctx->imgCentering = nrrdCenterCell;
   uu->hctx->user = uu;
