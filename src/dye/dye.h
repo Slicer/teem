@@ -47,7 +47,7 @@ enum {
 #define DYE_MAX_SPACE 6
 
 #define DYE_VALID_SPACE(spc) \
-  (AIR_BETWEEN(dyeSpaceUnknown, spc, dyeSpaceLast))
+  (AIR_IN_OP(dyeSpaceUnknown, (spc), dyeSpaceLast))
 
 typedef struct {
   float val[2][3];        /* room for two colors: two triples of floats */

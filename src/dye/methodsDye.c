@@ -72,7 +72,7 @@ dyeColorInit(dyeColor *col) {
 dyeColor *
 dyeColorSet(dyeColor *col, int space, float v0, float v1, float v2) {
   
-  if (col && AIR_BETWEEN(dyeSpaceUnknown, space, dyeSpaceLast)) {
+  if (col && DYE_VALID_SPACE(space)) {
     col->ii = AIR_CLAMP(0, col->ii, 1);
 
     /* We switch to the other one if the current one seems to be used,
