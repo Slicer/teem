@@ -31,6 +31,17 @@ _gageKernelStr[][AIR_STRLEN_SMALL] = {
   "22"
 };
 
+int
+_gageKernelVal[] = {
+  gageKernelUnknown,
+  gageKernel00,
+  gageKernel10,
+  gageKernel11,
+  gageKernel20,
+  gageKernel21,
+  gageKernel22
+};
+
 char
 _gageKernelStrEqv[][AIR_STRLEN_SMALL] = {
   "00",
@@ -56,7 +67,7 @@ airEnum
 _gageKernel_enum = {
   "kernel",
   GAGE_KERNEL_NUM,
-  _gageKernelStr, NULL,
+  _gageKernelStr, _gageKernelVal,
   _gageKernelStrEqv, _gageKernelValEqv,
   AIR_FALSE
 };

@@ -76,16 +76,16 @@ typedef double gage_t;
 ** of what kind of volume is being probed.
 */
 enum {
-  gageKernelUnknown,   /* 0: nobody knows */
-  gageKernel00,        /* 1: reconstructing values */
-  gageKernel10,        /* 2: reconstructing 1st derivatives */
-  gageKernel11,        /* 3: measuring 1st derivatives */
-  gageKernel20,        /* 4: reconstructing 1st partials and 2nd deriv.s */
-  gageKernel21,        /* 5: measuring 1st partials for a 2nd derivative */
-  gageKernel22,        /* 6: measuring 2nd derivatives */
+  gageKernelUnknown=-1, /*-1: nobody knows */
+  gageKernel00,         /* 0: reconstructing values */
+  gageKernel10,         /* 1: reconstructing 1st derivatives */
+  gageKernel11,         /* 2: measuring 1st derivatives */
+  gageKernel20,         /* 3: reconstructing 1st partials and 2nd deriv.s */
+  gageKernel21,         /* 4: measuring 1st partials for a 2nd derivative */
+  gageKernel22,         /* 5: measuring 2nd derivatives */
   gageKernelLast
 };
-#define GAGE_KERNEL_NUM   6
+#define GAGE_KERNEL_NUM    6
 
 /*
 ** modifying the enums below (scalar, vector, etc query quantities)

@@ -182,14 +182,14 @@ main(int argc, char *argv[]) {
     hestInfo(stderr, me, probeInfo, hparm);
     hestUsage(stderr, hopt, me, hparm);
     hestGlossary(stderr, hopt, hparm);
-    hestOptFree(hopt);
+    hestOptFree(hopt); hestParmFree(hparm);
     return 1;
   }
   if (hestParse(hopt, argc-1, argv+1, &herr, hparm)) {
     fprintf(stderr, "%s: %s\n", me, herr); free(herr);
     hestUsage(stderr, hopt, me, hparm);
     hestGlossary(stderr, hopt, hparm);
-    hestOptFree(hopt);
+    hestOptFree(hopt); hestParmFree(hparm);
     return 1;
   }
   printf("|%s|\n", whatS);
@@ -200,7 +200,7 @@ main(int argc, char *argv[]) {
 	    me, whatS, kind->name);
     hestUsage(stderr, hopt, me, hparm);
     hestGlossary(stderr, hopt, hparm);
-    hestOptFree(hopt);
+    hestOptFree(hopt); hestParmFree(hparm);
     return 1;
   }
 
@@ -305,5 +305,6 @@ main(int argc, char *argv[]) {
   nrrdNuke(nin);
   nrrdNuke(nout);
   gageSimpleNix(gsl);
+  hestOptFree(hopt); hestParmFree(hparm);
   exit(0);
 }
