@@ -26,7 +26,7 @@ int
 main(int argc, char *argv[]) {
   char *me, *err, *inS, *outS;
   limnCamera *cam;
-  float winscale, edgeWidth[5], creaseAngle;
+  float bg[3], winscale, edgeWidth[5], creaseAngle;
   hestOpt *hopt=NULL;
   airArray *mop;
   limnObject *obj;
@@ -72,6 +72,8 @@ main(int argc, char *argv[]) {
 	     "specified in clockwise order)");
   hestOptAdd(&hopt, "describe", NULL, airTypeInt, 0, 0, &describe, NULL,
 	     "for debugging: list object definition of OFF read");
+  hestOptAdd(&hopt, "bg", "background", airTypeFloat, 3, 3, bg, "1 1 1",
+	     "background RGB color; each component in range [0.0,1.0]");
   hestOptAdd(&hopt, "nobg", NULL, airTypeInt, 0, 0, &nobg, NULL,
 	     "don't initially fill with background color");
   hestOptAdd(&hopt, "wd", "5 widths", airTypeFloat, 5, 5, edgeWidth,
@@ -138,6 +140,7 @@ main(int argc, char *argv[]) {
   win->ps.wireFrame = wire;
   win->ps.creaseAngle = creaseAngle;
   win->ps.noBackground = nobg;
+  ELL_3V_COPY(win->ps.bg, bg);
 
   win->file = airFopen(outS, stdout, "w");
   airMopAdd(mop, win, (airMopper)limnWindowNix, airMopAlways);
