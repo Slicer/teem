@@ -58,7 +58,7 @@ echo unu axinfo -a 1 -l "gage(mc)" -mm -2.2 2.2 -o txf2.nrrd
 echo unu axinfo -a 1 -l "gage(k1)" -mm -2.2 2.2 -o txf2.nrrd
 echo unu axinfo -a 1 -l "gage(k2)" -mm -2.2 2.2 -o txf2.nrrd
 
-miter -i quad.nrrd \
+valgrind miter -i quad.nrrd \
   -k00 cubic:1,0 -k11 cubicd:1,0 -k22 cubicdd:1,0 \
   -or -rh -fr 1 -3 7.5 \
   -dn -2 -di 0 -df 2 -ar \
@@ -71,7 +71,9 @@ miter -i quad.nrrd \
 rm -f {4,3,2,1,0}{4,3,2,1,0}.nrrd
 rm -f {4,3,2,1,0}.nrrd
 rm -f BB.nrrd
-rm -f quad.nrrd
+echo rm -f quad.nrrd
+echo rm -f txf.nrrd txf2.nrrd
+
 
 
 
