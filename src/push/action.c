@@ -130,6 +130,55 @@ _pushInputProcess(pushContext *pctx) {
   return 0;
 }
 
+int
+pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pushContext *pctx) {
+  char me[]="pushOutputGet", err[AIR_STRLEN_MED];
+  int min[2], max[2], npt, pi;
+  float *tdata;
+  push_t *posVel;
+
+  npt = pctx->nPosVel->axis[1].size;
+  if (nPosOut) {
+    min[0] = 0;
+    min[1] = 0;
+    max[0] = (2 == pctx->dimIn ? 1 : 2);
+    max[1] = npt - 1;
+    if (nrrdCrop(nPosOut, pctx->nPosVel, min, max)) {
+      sprintf(err, "%s: couldn't crop to recover position output", me);
+      biffMove(PUSH, err, NRRD); return 1;
+    }
+  }
+  if (nTenOut) {
+    /*    (0)         (0)
+     *     1  2  3     1  2
+     *        4  5        3
+     *           6            */
+    if (nrrdMaybeAlloc(nTenOut, nrrdTypeFloat, 2,
+                       (2 == pctx->dimIn ? 4 : 7), npt)) {
+      sprintf(err, "%s: couldn't allocate tensor output", me);
+      biffMove(PUSH, err, NRRD); return 1;
+    }
+    tdata = (float*)nTenOut->data;
+    posVel = (push_t*)pctx->nPosVel->data;
+    for (pi=0; pi<npt; pi++) {
+      _pushProbe(pctx, pctx->gctx, posVel[0], posVel[1], posVel[2]);
+      if (2 == pctx->dimIn) {
+        tdata[0] = pctx->tenAns[0];
+        tdata[1] = pctx->tenAns[1];
+        tdata[2] = pctx->tenAns[2];
+        tdata[3] = pctx->tenAns[4];
+        tdata += 4;
+      } else {
+        TEN_T_COPY(tdata, pctx->tenAns);
+        tdata += 7;
+      }
+      posVel += 6;
+    }
+  }
+
+  return 0;
+}
+
 void
 _pushProbe(pushContext *pctx, gageContext *gctx,
            double x, double y, double z) {
@@ -208,9 +257,29 @@ _pushInitialize(pushContext *pctx) {
 }
 
 void
+_pushForceIncr(push_t force[3],
+               push_t myten[7], push_t mypos[3], push_t *there) {
+  push_t diff[3], tmp[3], ctr, len;
+  
+  ELL_3V_SUB(diff, mypos, there);
+  ELL_3V_NORM(diff, diff, len);
+  /*  (0)
+   *   1  2  3
+   *   2  4  5
+   *   3  5  6 
+   */
+  tmp[0] = myten[1]*diff[0] + myten[2]*diff[1] + myten[3]*diff[2];
+  tmp[1] = myten[2]*diff[0] + myten[4]*diff[1] + myten[5]*diff[2];
+  tmp[2] = myten[3]*diff[0] + myten[5]*diff[1] + myten[6]*diff[2];
+  ctr = ELL_3V_DOT(tmp, diff);
+  ELL_3V_SCALE_INCR(force, ctr/(len*len), diff);
+  return;
+}
+
+void
 _pushRepel(pushTask *task, int batch,
            double parm[PUSH_STAGE_PARM_MAX]) {
-  push_t *mypos, *posVel, *velAcc, diff[3], force[3], tmp[3], len;
+  push_t *mypos, myten[7], *posVel, *velAcc, force[3], tmp[3];
   int pi, pj, npt, ppb;
 
   npt = task->pctx->nPosVel->axis[1].size;
@@ -219,35 +288,27 @@ _pushRepel(pushTask *task, int batch,
   velAcc = (push_t *)task->pctx->nVelAcc->data;
   for (pi=batch*ppb; pi<(batch+1)*ppb; pi++) {
     mypos = posVel + 3*(0 + 2*pi);
+    _pushProbe(task->pctx, task->gctx, mypos[0], mypos[1], mypos[2]);
+    TEN_T_COPY(myten, task->tenAns);
     ELL_3V_SET(force, 0, 0, 0);
     for (pj=0; pj<npt; pj++) {
       if (pi == pj) {
         continue;
       }
-      ELL_3V_SUB(diff, mypos, posVel + 3*(0 + 2*pj));
-      ELL_3V_NORM(diff, diff, len);
-      ELL_3V_SCALE_INCR(force, 1/(len*len), diff);
+      _pushForceIncr(force, myten, mypos, posVel + 3*(0 + 2*pj));
     }
     ELL_3V_COPY(tmp, mypos);
-    tmp[0] = task->pctx->minPos[0];
-    ELL_3V_SUB(diff, mypos, tmp);
-    ELL_3V_NORM(diff, diff, len);
-    ELL_3V_SCALE_INCR(force, 1/(len*len), diff);
+    tmp[0] = 2*task->pctx->minPos[0] - tmp[0];
+    _pushForceIncr(force, myten, mypos, tmp);
     ELL_3V_COPY(tmp, mypos);
-    tmp[0] = task->pctx->maxPos[0];
-    ELL_3V_SUB(diff, mypos, tmp);
-    ELL_3V_NORM(diff, diff, len);
-    ELL_3V_SCALE_INCR(force, 1/(len*len), diff);
+    tmp[0] = 2*task->pctx->maxPos[0] - tmp[0];
+    _pushForceIncr(force, myten, mypos, tmp);
     ELL_3V_COPY(tmp, mypos);
-    tmp[1] = task->pctx->minPos[1];
-    ELL_3V_SUB(diff, mypos, tmp);
-    ELL_3V_NORM(diff, diff, len);
-    ELL_3V_SCALE_INCR(force, 1/(len*len), diff);
+    tmp[1] = 2*task->pctx->minPos[1] - tmp[1];
+    _pushForceIncr(force, myten, mypos, tmp);
     ELL_3V_COPY(tmp, mypos);
-    tmp[1] = task->pctx->maxPos[1];
-    ELL_3V_SUB(diff, mypos, tmp);
-    ELL_3V_NORM(diff, diff, len);
-    ELL_3V_SCALE_INCR(force, 1/(len*len), diff);
+    tmp[1] = 2*task->pctx->maxPos[1] - tmp[1];
+    _pushForceIncr(force, myten, mypos, tmp);
     ELL_3V_SCALE_INCR(force, -task->pctx->drag, posVel + 3*(1 + 2*pi));
     ELL_3V_COPY(velAcc + 3*(0 + 2*pi), posVel + 3*(1 + 2*pi));
     ELL_3V_COPY(velAcc + 3*(1 + 2*pi), force);
@@ -273,8 +334,9 @@ _pushUpdate(pushTask *task, int batch,
                (posVel + 3*(0 + 2*pi))[1],
                (posVel + 3*(0 + 2*pi))[2]);
     move = task->tenAns[0] > 0.5;
-    ELL_3V_SCALE_INCR(posVel + 3*(0 + 2*pi), dt, velAcc + 3*(0 + 2*pi));
-    ELL_3V_SCALE_INCR(posVel + 3*(1 + 2*pi), dt, velAcc + 3*(1 + 2*pi));
+    ELL_3V_SCALE_INCR(posVel + 3*(0 + 2*pi), move*dt, velAcc + 3*(0 + 2*pi));
+    ELL_3V_SCALE_INCR(posVel + 3*(1 + 2*pi), move*dt, velAcc + 3*(1 + 2*pi));
+    ELL_3V_SCALE(posVel + 3*(1 + 2*pi), move, posVel + 3*(1 + 2*pi));
     vel += ELL_3V_LEN(posVel + 3*(1 + 2*pi));
   }
   task->meanVel += vel/ppb;

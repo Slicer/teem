@@ -26,16 +26,18 @@ extern "C" {
 #endif
 
 /* corePush.c */
-void _pushProcessDummy(pushTask *task, int batch, 
-                       double parm[PUSH_STAGE_PARM_MAX]);
+extern void _pushProcessDummy(pushTask *task, int batch, 
+                              double parm[PUSH_STAGE_PARM_MAX]);
 
 /* action.c */
-int _pushInputProcess(pushContext *pctx);
-void _pushInitialize(pushContext *pctx);
-void _pushRepel(pushTask *task, int batch,
-                double parm[PUSH_STAGE_PARM_MAX]);
-void _pushUpdate(pushTask *task, int batch,
-                 double parm[PUSH_STAGE_PARM_MAX]);
+extern void _pushProbe(pushContext *pctx, gageContext *gctx,
+                       double x, double y, double z);
+extern int _pushInputProcess(pushContext *pctx);
+extern void _pushInitialize(pushContext *pctx);
+extern void _pushRepel(pushTask *task, int batch,
+                       double parm[PUSH_STAGE_PARM_MAX]);
+extern void _pushUpdate(pushTask *task, int batch,
+                        double parm[PUSH_STAGE_PARM_MAX]);
 
 #ifdef __cplusplus
 }

@@ -301,28 +301,6 @@ pushIterate(pushContext *pctx) {
   return 0;
 }
 
-int
-pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pushContext *pctx) {
-  char me[]="pushOutputGet", err[AIR_STRLEN_MED];
-  int min[2], max[2];
-
-  min[0] = 0;
-  min[1] = 0;
-  max[0] = (2 == pctx->dimIn ? 1 : 2);
-  max[1] = pctx->nPosVel->axis[1].size - 1;
-  if (nPosOut) {
-    if (nrrdCrop(nPosOut, pctx->nPosVel, min, max)) {
-      sprintf(err, "%s: couldn't crop to recover output", me);
-      biffMove(PUSH, err, NRRD); return 1;
-    }
-  }
-  if (nTenOut) {
-
-  }
-
-  return 0;
-}
-
 /*
 ** blows away nten and gctx
 */

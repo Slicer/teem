@@ -29,10 +29,10 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
   
-  char *outS;
+  char *outS[2];
   int numIters, numThread, numBatch, ptsPerBatch, snap;
   pushContext *pctx;
-  Nrrd *nin, *nPosOut;
+  Nrrd *nin, *nPosOut, *nTenOut;
   double step, drag, minMeanVel;
   NrrdKernelSpec *kk;
   
@@ -60,8 +60,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &kk,
              "tent", "kernel for tensor field sampling",
              NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "tmp.nrrd",
-             "output file to save filtering result into");
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 2, 2, outS, "p.nrrd t.nrrd",
+             "output files to save position and tensor info into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -71,6 +71,8 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, pctx, (airMopper)pushContextNix, airMopAlways);
   nPosOut = nrrdNew();
   airMopAdd(mop, nPosOut, (airMopper)nrrdNuke, airMopAlways);
+  nTenOut = nrrdNew();
+  airMopAdd(mop, nTenOut, (airMopper)nrrdNuke, airMopAlways);
   
   pctx->nin = nin;
   pctx->numThread = numThread;
@@ -87,7 +89,7 @@ main(int argc, char *argv[]) {
 
   if (pushStart(pctx)
       || pushRun(pctx)
-      || pushOutputGet(nPosOut, NULL, pctx)
+      || pushOutputGet(nPosOut, nTenOut, pctx)
       || pushFinish(pctx)) {
     airMopAdd(mop, err = biffGetDone(PUSH), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
@@ -95,7 +97,8 @@ main(int argc, char *argv[]) {
     return 1;
   }
   fprintf(stderr, "%s: time to compute = %g secs\n", me, pctx->time);
-  if (nrrdSave(outS, nPosOut, NULL)) {
+  if (nrrdSave(outS[0], nPosOut, NULL)
+      || nrrdSave(outS[1], nTenOut, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't save output:\n%s\n", me, err);
     airMopError(mop); 

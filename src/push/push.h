@@ -118,10 +118,10 @@ TEEM_API pushContext *pushContextNix(pushContext *pctx);
 /* corePush.c */
 TEEM_API int pushStart(pushContext *pctx);
 TEEM_API int pushIterate(pushContext *pctx);
-TEEM_API int pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pushContext *pctx);
 TEEM_API int pushFinish(pushContext *pctx);
 
 /* action.c */
+TEEM_API int pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pushContext *pctx);
 TEEM_API int pushRun(pushContext *pctx);
 
 #ifdef __cplusplus
