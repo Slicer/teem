@@ -51,7 +51,7 @@ tenGlyphParmNew() {
     parm->slicePos = -1;
     parm->sliceAnisoType = tenAnisoUnknown;
     parm->sliceOffset = 0.0;
-    parm->sliceAnisoGamma = 1.0;
+    parm->sliceGamma = 1.0;
   }
   return parm;
 }
@@ -63,8 +63,9 @@ tenGlyphParmNix(tenGlyphParm *parm) {
 }
 
 int
-tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten, Nrrd *npos) {
+tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten, Nrrd *npos, Nrrd *nslc) {
   char me[]="tenGlyphParmCheck", err[AIR_STRLEN_MED];
+  int duh, tenSize[3];
 
   if (!(parm && nten)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -126,10 +127,30 @@ tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten, Nrrd *npos) {
 	      parm->slicePos, nten->axis[1+parm->sliceAxis].size-1);
       biffAdd(TEN, err); return 1;
     }
-    if (airEnumValCheck(tenAniso, parm->sliceAnisoType)) {
-      sprintf(err, "%s: unset (or invalid) sliceAnisoType (%d)",
-	      me, parm->sliceAnisoType);
-      biffAdd(TEN, err); return 1;
+    if (nslc) {
+      if (2 != nslc->dim) {
+	sprintf(err, "%s: explicit slice must be 2-D (not %d)", me, nslc->dim);
+	biffAdd(TEN, err); return 1;
+      }
+      tenSize[0] = nten->axis[1].size;
+      tenSize[1] = nten->axis[2].size;
+      tenSize[2] = nten->axis[3].size;
+      for (duh=parm->sliceAxis; duh<2; duh++) {
+	tenSize[duh] = tenSize[duh+1];
+      }
+      if (!( tenSize[0] == nslc->axis[0].size
+	     && tenSize[1] == nslc->axis[1].size )) {
+	sprintf(err, "%s: axis %d slice of %dx%dx%d volume is not %dx%d", me,
+		parm->sliceAxis, nten->axis[1].size, nten->axis[2].size,
+		nten->axis[3].size, nslc->axis[0].size, nslc->axis[1].size);
+	biffAdd(TEN, err); return 1;
+      }
+    } else {
+      if (airEnumValCheck(tenAniso, parm->sliceAnisoType)) {
+	sprintf(err, "%s: unset (or invalid) sliceAnisoType (%d)",
+		me, parm->sliceAnisoType);
+	biffAdd(TEN, err); return 1;
+      }
     }
   }
   return 0;
@@ -137,15 +158,15 @@ tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten, Nrrd *npos) {
 
 int
 tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
-	    Nrrd *nten, Nrrd *npos, tenGlyphParm *parm) {
+	    tenGlyphParm *parm, Nrrd *nten, Nrrd *npos, Nrrd *nslc) {
   char me[]="tenGlyphGen", err[AIR_STRLEN_MED];
   gageShape *shape;
   airArray *mop;
   double pI[3], pW[3];
   float cl, cp, *tdata, evec[9], eval[3], *cvec,
     aniso[TEN_ANISO_MAX+1], sRot[16], mA[16], mB[16],
-    R, G, B, qA, qB, glyphAniso, sliceAniso;
-  int idx, _idx=0, ri, axis, si=0, numGlyphs;
+    R, G, B, qA, qB, glyphAniso, sliceGray;
+  int slcCoord[3], slcIdx, idx, _idx=0, ri, axis, spi=0, numGlyphs, duh;
   limnPart *lglyph;
   limnSP *sp;
   echoObject *eglyph, *inst, *list=NULL, *split, *esquare;
@@ -186,7 +207,7 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
       biffAdd(TEN, err); airMopError(mop); return 1;
     }
   }
-  if (tenGlyphParmCheck(parm, nten, npos)) {
+  if (tenGlyphParmCheck(parm, nten, npos, nslc)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
@@ -220,12 +241,12 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
   }
   if (glyphsLimn) {
     /* create limnSPs for diffuse (#0) and flat (#1) shading */
-    si = airArrayIncrLen(glyphsLimn->sA, 2);
-    sp = glyphsLimn->s + si + 0;
+    spi = airArrayIncrLen(glyphsLimn->sA, 2);
+    sp = glyphsLimn->s + spi + 0;
     ELL_4V_SET(sp->rgba, 1, 1, 1, 1);
     ELL_3V_SET(sp->k, 0, 1, 0);
     sp->spec = 0;
-    sp = glyphsLimn->s + si + 1;
+    sp = glyphsLimn->s + spi + 1;
     ELL_4V_SET(sp->rgba, 1, 1, 1, 1);
     ELL_3V_SET(sp->k, 1, 0, 0);
     sp->spec = 0;
@@ -251,29 +272,38 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	  continue;
       }
     }
-    if (!( tdata[0] >= parm->confThresh ))
-      continue;
     tenEigensolve(eval, evec, tdata);
-    if (parm->onlyPositive) {
-      if (eval[2] < 0) {
-	/* didn't have all positive eigenvalues, its outta here */
-	continue;
-      }
-    }
     tenAnisoCalc(aniso, eval);
     if (parm->doSlice
 	&& pI[parm->sliceAxis] == parm->slicePos) {
-      sliceAniso = aniso[parm->sliceAnisoType];
-      /* HEY: look, a visualization parameter (0.03) that is not
-	 exposed anywhere in an API, just super ... */
-      sliceAniso = AIR_AFFINE(0, sliceAniso, 1, 0.03, 1);
-      if (parm->sliceAnisoGamma > 0) {
-	sliceAniso = pow(sliceAniso, 1.0/parm->sliceAnisoGamma);
+      /* set sliceGray */
+      if (nslc) {
+	/* we aren't masked by confidence, as anisotropy slice is */
+	for (duh=0; duh<parm->sliceAxis; duh++) {
+	  slcCoord[duh] = pI[duh];
+	}
+	for (duh=duh<parm->sliceAxis; duh<2; duh++) {
+	  slcCoord[duh] = pI[duh+1];
+	}
+	ELL_3V_COPY(slcCoord, pI);
+	slcIdx = slcCoord[0] + nslc->axis[0].size*slcCoord[1];
+	sliceGray = nrrdFLookup[nslc->type](nslc->data, slcIdx);
       } else {
-	sliceAniso = 1.0 - pow(sliceAniso, -1.0/parm->sliceAnisoGamma);
+	if (!( tdata[0] >= parm->confThresh ))
+	  continue;
+	sliceGray = aniso[parm->sliceAnisoType];
+	/* HEY: look, a visualization parameter (0.03) that is not
+	   exposed anywhere in an API, just super ... */
+	sliceGray = AIR_AFFINE(0, sliceGray, 1, 0.03, 1);
       }
+      if (parm->sliceGamma > 0) {
+	sliceGray = pow(sliceGray, 1.0/parm->sliceGamma);
+      } else {
+	sliceGray = 1.0 - pow(sliceGray, -1.0/parm->sliceGamma);
+      }
+      /* make slice contribution */
       if (glyphsLimn) {
-	ri = limnObjSquareAdd(glyphsLimn, si + 1);
+	ri = limnObjSquareAdd(glyphsLimn, spi + 1);
 	ELL_4M_IDENTITY_SET(mA);
 	ell_4m_post_mul_f(mA, sRot);
 	if (!npos) {
@@ -291,7 +321,7 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 			     originOffset[2]);
 	ell_4m_post_mul_f(mA, mB);
 	lglyph = glyphsLimn->r + ri;
-	ELL_4V_SET(lglyph->rgba, sliceAniso, sliceAniso, sliceAniso, 1);
+	ELL_4V_SET(lglyph->rgba, sliceGray, sliceGray, sliceGray, 1);
 	limnObjPartTransform(glyphsLimn, ri, mA);
       }
       if (glyphsEcho) {
@@ -299,11 +329,19 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	ELL_3V_ADD2(((echoRectangle*)esquare)->origin, pW, originOffset);
 	ELL_3V_COPY(((echoRectangle*)esquare)->edge0, edge0);
 	ELL_3V_COPY(((echoRectangle*)esquare)->edge1, edge1);
-	echoColorSet(esquare, sliceAniso, sliceAniso, sliceAniso, 1);
+	echoColorSet(esquare, sliceGray, sliceGray, sliceGray, 1);
 	echoMatterPhongSet(glyphsEcho, esquare, 1, 0, 0, 40);
 	echoListAdd(list, esquare);
       }
     }
+    if (parm->onlyPositive) {
+      if (eval[2] < 0) {
+	/* didn't have all positive eigenvalues, its outta here */
+	continue;
+      }
+    }
+    if (!( tdata[0] >= parm->confThresh ))
+      continue;
     if (!( aniso[parm->anisoType] >= parm->anisoThresh ))
       continue;
     glyphAniso = aniso[parm->colAnisoType];
@@ -368,18 +406,18 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
     if (glyphsLimn) {
       switch(parm->glyphType) {
       case tenGlyphTypeBox:
-	ri = limnObjCubeAdd(glyphsLimn, si + 0);
+	ri = limnObjCubeAdd(glyphsLimn, spi + 0);
 	break;
       case tenGlyphTypeSphere:
-	ri = limnObjPolarSphereAdd(glyphsLimn, si + 0, axis,
+	ri = limnObjPolarSphereAdd(glyphsLimn, spi + 0, axis,
 				   2*parm->facetRes, parm->facetRes);
 	break;
       case tenGlyphTypeCylinder:
-	ri = limnObjCylinderAdd(glyphsLimn, si + 0, axis, parm->facetRes);
+	ri = limnObjCylinderAdd(glyphsLimn, spi + 0, axis, parm->facetRes);
 	break;
       case tenGlyphTypeSuperquad:
       default:
-	ri = limnObjPolarSuperquadAdd(glyphsLimn, si + 0, axis, qA, qB, 
+	ri = limnObjPolarSuperquadAdd(glyphsLimn, spi + 0, axis, qA, qB, 
 				      2*parm->facetRes, parm->facetRes);
 	break;
       }

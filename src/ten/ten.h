@@ -124,10 +124,10 @@ typedef struct {
      in grayscale as a sheet of grayscale squares, one per sample. As
      with glyphs, these are thresholded by confThresh and maskThresh
      (but not anisoThresh).  Things can be lightened up with a
-     sliceAnisoGamma > 1.  The squares will be at their corresponding
+     sliceGamma > 1.  The squares will be at their corresponding
      sample locations, but offset by sliceOffset */
   int doSlice, sliceAxis, slicePos, sliceAnisoType;
-  float sliceOffset, sliceAnisoGamma;
+  float sliceOffset, sliceGamma;
 } tenGlyphParm;
 
 #define TEN_ANISO_DESC \
@@ -350,9 +350,11 @@ extern ten_export airEnum *tenGlyphType;
 /* glyph.c */
 extern tenGlyphParm *tenGlyphParmNew();
 extern tenGlyphParm *tenGlyphParmNix(tenGlyphParm *parm);
-extern int tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten, Nrrd *npos);
+extern int tenGlyphParmCheck(tenGlyphParm *parm,
+			     Nrrd *nten, Nrrd *npos, Nrrd *nslc);
 extern int tenGlyphGen(limnObj *glyphs, echoScene *scene,
-		       Nrrd *nten, Nrrd *npos, tenGlyphParm *parm);
+		       tenGlyphParm *parm,
+		       Nrrd *nten, Nrrd *npos, Nrrd *nslc);
 
 /* tensor.c */
 extern ten_export int tenVerbose;

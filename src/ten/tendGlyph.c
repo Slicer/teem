@@ -41,7 +41,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  Nrrd *nten, *emap, *nraw, *npos;
+  Nrrd *nten, *emap, *nraw, *npos, *nslc;
   char *outS;
   limnCamera *cam;
   limnObj *glyph;
@@ -151,13 +151,17 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "For showing a gray-scale slice of anisotropy: the axis "
 	     "and position along which to slice.  Use \"-1 -1\" to signify "
 	     "that no slice should be shown");
+  hestOptAdd(&hopt, "si", "slice image", airTypeOther, 1, 1, &nslc, "",
+	     "Instead of showing a slice of the anisotropy used to cull "
+	     "glyphs, show something else. ", NULL, NULL,
+	     nrrdHestNrrd);
   hestOptAdd(&hopt, "off", "slice offset", airTypeFloat, 1, 1, 
 	     &(gparm->sliceOffset), "0.0",
 	     "Offset from slice position to render slice at (so that it "
 	     "doesn't occlude glyphs).");
   hestOptAdd(&hopt, "sg", "slice gamma", airTypeFloat, 1, 1, 
-	     &(gparm->sliceAnisoGamma), "1.7",
-	     "Gamma to apply to anisotropy values on slice.");
+	     &(gparm->sliceGamma), "1.7",
+	     "Gamma to apply to values on slice.");
 
   /* camera */
   hestOptAdd(&hopt, "fr", "from point", airTypeDouble, 3, 3, cam->from, NULL,
@@ -223,7 +227,8 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   if (tenGlyphGen(doRT ? NULL : glyph, 
 		  doRT ? scene : NULL,
-		  nten, npos, gparm)) {
+		  gparm,
+		  nten, npos, nslc)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble generating glyphs:\n%s\n", me, err);
     airMopError(mop); return 1;
