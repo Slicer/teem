@@ -71,6 +71,8 @@ typedef struct {
 				    data filename.  This filename includes
 				    the extension; "base" just signifies
 				    "not full path" */
+    dataFN[NRRD_STRLEN_LINE],    /* for "unu make -h" only: the exact name of
+				    the data file file */
     line[NRRD_STRLEN_LINE];      /* buffer for saving one line from file */
 
   int pos;                       /* line[pos] is beginning of stuff which
@@ -463,12 +465,15 @@ extern int nrrdHistoEq(Nrrd *nout, Nrrd *nin,
 
 /******** rest of point-wise value remapping, and "color"mapping */
 /* apply1D.c */
-extern int nrrdApply1DLut(Nrrd *nout, Nrrd *nin, Nrrd *nlut, int rescale);
-extern int nrrdApply1DRegMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap, int rescale);
+extern int nrrdApply1DLut(Nrrd *nout, Nrrd *nin, Nrrd *nlut, 
+			  int typeOut, int rescale);
+extern int nrrdApply1DRegMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
+			     int typeOut, int rescale);
 extern int nrrd1DIrregMapValid(Nrrd *nmap);
+extern int nrrd1DIrregAclGenerate(Nrrd *nacl, Nrrd *nmap, int aclLen);
 extern int nrrd1DIrregAclValid(Nrrd *nacl);
 extern int nrrdApply1DIrregMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap, Nrrd *nacl,
-			       int rescale);
+			       int typeOut, int rescale);
 
 /******** sampling, slicing, cropping */
 /* subset.c */
