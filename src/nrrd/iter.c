@@ -141,10 +141,10 @@ NrrdIter *
 nrrdIterNix(NrrdIter *iter) {
 
   if (iter) {
-    free(iter);
     if (iter->ownNrrd) {
       iter->ownNrrd = nrrdNuke(iter->ownNrrd);
     }
+    free(iter);
   }
   return NULL;
 }
