@@ -63,7 +63,7 @@ typedef struct {
 				    the extension; "base" just signifies
 				    "not full path" */
     dataFN[NRRD_STRLEN_LINE],    /* for "unu make -h" only: the exact name of
-				    the data file file */
+				    the data file */
     line[NRRD_STRLEN_LINE];      /* buffer for saving one line from file */
 
   int pos;                       /* line[pos] is beginning of stuff which
@@ -102,6 +102,9 @@ typedef struct {
 				    something with the formatting, then what
 				    is the max number of values to write on
 				    a line */
+    skipData,                    /* if non-zero, on input, we don't read data,
+				    instead setting nrrd->data to NULL.  This
+				    results in a broken Nrrd, so be careful. */
     seen[NRRD_FIELD_MAX+1];      /* for error checking in header parsing */
 } NrrdIO;
 

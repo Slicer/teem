@@ -365,12 +365,16 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
     biffAdd(NRRD, err); return 1;
   }
 
-  if (nrrdReadData[io->encoding](nrrd, io)) {
-    if (2 <= nrrdStateVerboseIO) {
-      fprintf(stderr, "error!\n");
+  if (!io->skipData) {
+    if (nrrdReadData[io->encoding](nrrd, io)) {
+      if (2 <= nrrdStateVerboseIO) {
+	fprintf(stderr, "error!\n");
+      }
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
     }
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+  } else {
+    nrrd->data = NULL;
   }
   if (2 <= nrrdStateVerboseIO) {
     fprintf(stderr, "done)\n");
@@ -524,9 +528,13 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, NrrdIO *io) {
     nrrdAxesSet(nrrd, nrrdAxesInfoSize, sx, sy);
   }
   io->dataFile = file;
-  if (nrrdReadData[io->encoding](nrrd, io)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+  if (!io->skipData) {
+    if (nrrdReadData[io->encoding](nrrd, io)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  } else {
+    nrrd->data = NULL;
   }
   
   return 0;
