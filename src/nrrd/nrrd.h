@@ -50,62 +50,68 @@ extern "C" {
 ** Once the nrrd has been read or written, this information is moot.
 */
 typedef struct {
-  char dir[NRRD_STRLEN_LINE],    /* allows us to remember the directory
-                                    from whence this nrrd was "load"ed,
-                                    or to whence this nrrd is "save"ed,
-                                    so as to facilitate games with data
-                                    files relative to header files */
-    base[NRRD_STRLEN_LINE],      /* when "save"ing a nrrd into seperate 
-                                    header and data, the name of the header
-				    file (e.g. "output.nhdr"); this is
-				    massaged to produce a header-relative
-				    data filename.  This filename includes
-				    the extension; "base" just signifies
-				    "not full path" */
-    dataFN[NRRD_STRLEN_LINE],    /* for "unu make -h" only: the exact name of
-				    the data file */
-    line[NRRD_STRLEN_LINE];      /* buffer for saving one line from file */
+  char *dir,                /* allows us to remember the directory
+			       from whence this nrrd was "load"ed, or
+			       to whence this nrrd is "save"ed, so as
+			       to facilitate games with data files
+			       relative to header files */
+    *base,                  /* when "save"ing a nrrd into seperate
+			       header and data, the name of the header
+			       file (e.g. "output.nhdr"); this is
+			       massaged to produce a header-relative
+			       data filename.  This filename includes
+			       the extension; "base" just signifies
+			       "not full path" */
+    *dataFN,                /* for "unu make -h" only: the exact name
+			       of the data file.  In fact, we use the
+			       non-NULL-ity of this as the flag indicating
+			       that we're doing the unu make -h game */
+    *line;                  /* buffer for saving one line from file */
+  
+  int lineLen,              /* allocated size of line, including the
+			       last character for \0 */
+    pos;                    /* line[pos] is beginning of stuff which
+			       still has yet to be parsed */
 
-  int pos;                       /* line[pos] is beginning of stuff which
-				    still has yet to be parsed */
+  FILE *dataFile;           /* if non-NULL, where the data is to be
+			       read from or written to.  If NULL, data
+			       will be read from current file */
 
-  FILE *dataFile;                /* if non-NULL, where the data is to
-                                    be read from or written to.  If
-                                    NULL, data will be read from
-                                    current file */
-
-  int magic,                     /* on input, magic of file read */
-    format,                      /* which format (from nrrdFormat) */
-    encoding,                    /* which encoding (from nrrdEncoding) */
-    endian,                      /* endian-ness of the data in file, for
-				    those encoding/type combinations
-				    for which it matters (from nrrdEndian) */
-    lineSkip,                    /* if dataFile non-NULL, the number of lines
-                                    in dataFile that should be skipped over
-                                    (so as to bypass another form of ASCII
-                                    header preceeding raw data) */
-    byteSkip,                    /* exactly like lineSkip, but bytes 
-                                    instead of lines.  First the lines are
-                                    skipped, then the bytes */
-    seperateHeader,              /* nrrd is split into distinct header and
-				    data (in either reading or writing) */
-    bareTable,                   /* when writing a table, is there any
-				    effort made to record the nrrd struct
-				    info in the text file */
-    charsPerLine,                /* when writing ASCII data in which we intend
-				    only to write a huge long list of numbers
-				    whose text formatting implies nothing, then
-				    how many characters do we limit ourselves
-				    to per line */
-    valsPerLine,                 /* when writing ASCII data in which we DO
-				    intend to sigify (or at least hint at)
-				    something with the formatting, then what
-				    is the max number of values to write on
-				    a line */
-    skipData,                    /* if non-zero, on input, we don't read data,
-				    instead setting nrrd->data to NULL.  This
-				    results in a broken Nrrd, so be careful. */
-    seen[NRRD_FIELD_MAX+1];      /* for error checking in header parsing */
+  int magic,                /* on input, magic of file read */
+    format,                 /* which format (from nrrdFormat) */
+    encoding,               /* which encoding (from nrrdEncoding) */
+    endian,                 /* endian-ness of the data in file, for
+			       those encoding/type combinations for
+			       which it matters (from nrrdEndian) */
+    lineSkip,               /* if dataFile non-NULL, the number of
+			       lines in dataFile that should be
+			       skipped over (so as to bypass another
+			       form of ASCII header preceeding raw
+			       data) */
+    byteSkip,               /* exactly like lineSkip, but bytes
+			       instead of lines.  First the lines are
+			       skipped, then the bytes */
+    seperateHeader,         /* nrrd is split into distinct header and
+			       data (in either reading or writing) */
+    bareTable,              /* when writing a table, is there any
+			       effort made to record the nrrd struct
+			       info in the text file */
+    charsPerLine,           /* when writing ASCII data in which we
+			       intend only to write a huge long list
+			       of numbers whose text formatting
+			       implies nothing, then how many
+			       characters do we limit ourselves to per
+			       line */
+    valsPerLine,            /* when writing ASCII data in which we DO
+			       intend to sigify (or at least hint at)
+			       something with the formatting, then
+			       what is the max number of values to
+			       write on a line */
+    skipData,               /* if non-zero, on input, we don't read
+			       data, instead setting nrrd->data to
+			       NULL.  This results in a broken Nrrd,
+			       so be careful. */
+    seen[NRRD_FIELD_MAX+1]; /* for error checking in header parsing */
 } NrrdIO;
 
 /*
