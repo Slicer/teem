@@ -20,7 +20,7 @@
 
 #include "../ten.h"
 
-char *info = ("Sample space of tensor orientations.");
+char *info = ("Sample space of tensor shape.");
 
 void
 _clp2xyz(double xyz[3], double clp[2]) {
@@ -66,7 +66,6 @@ main(int argc, char *argv[]) {
   char *me, *err, *outS;
   hestOpt *hopt=NULL;
   airArray *mop;
-  limnObj *obj;
   
   int xi, yi, zi, samp;
   float *tdata;
@@ -87,9 +86,6 @@ main(int argc, char *argv[]) {
 		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-  
-  obj = limnObjNew(10, AIR_TRUE);
-  airMopAdd(mop, obj, (airMopper)limnObjNix, airMopAlways);
   
   nten = nrrdNew();
   airMopAdd(mop, nten, (airMopper)nrrdNuke, airMopAlways);
