@@ -38,7 +38,7 @@ EchoObjectMesh *
 _echoObjectMesh_new(void) {
   EchoObjectMesh *ret;
 
-  ret = (EchoObjectMesh *)calloc(1, sizeof(EchoObjectMesh *));
+  ret = (EchoObjectMesh *)calloc(1, sizeof(EchoObjectMesh));
   ret->type = echoObjectMesh;
   /* ??? */
   return ret;
@@ -48,9 +48,11 @@ EchoObjectAABox *
 _echoObjectAABox_new(void) {
   EchoObjectAABox *ret;
 
-  ret = (EchoObjectAABox *)calloc(1, sizeof(EchoObjectAABox *));
+  ret = (EchoObjectAABox *)calloc(1, sizeof(EchoObjectAABox));
   ret->type = echoObjectAABox;
   ret->obj = NULL;
+  fprintf(stderr, "!%s: ret->obj = 0x%p; &(ret->obj) = 0x%p\n", 
+	  "_echoObjectAABox_new", ret->obj, &(ret->obj));
   ret->objArr = airArrayNew((void**)&(ret->obj), NULL, 
 			    sizeof(EchoObject *), ECHO_OBJECT_INCR);
   /* register callbacks ... */
