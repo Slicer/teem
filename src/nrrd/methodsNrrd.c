@@ -455,6 +455,7 @@ int
 nrrdCopy (Nrrd *nout, const Nrrd *nin) {
   char me[]="nrrdCopy", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX];
+  int i;
 
   if (!(nin && nout)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -500,6 +501,18 @@ nrrdCopy (Nrrd *nout, const Nrrd *nin) {
   if (nrrdCommentCopy(nout, nin)) {
     sprintf(err, "%s: trouble copying comments", me);
     biffAdd(NRRD, err); return 1;
+  }
+
+  /* HEY: Replace this with something more efficient */
+  for (i=0; i<nrrdKeyValueSize(nin); i++) {
+    char *key, *value;
+    nrrdKeyValueIndex(nin, &key, &value, i);
+    if (NULL != key && NULL != value) {
+      if (nrrdKeyValueAdd(nout, key, value)) {
+	sprintf(err, "%s: couldn't add key/value pair", me);
+	biffAdd(NRRD, err); return 1;
+      }
+    }
   }
 
   return 0;
