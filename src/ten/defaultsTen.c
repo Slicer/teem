@@ -30,7 +30,7 @@ double
 tenDefFiberStepSize = 0.01;
 
 int
-tenDefFiberOutputIndexSpace = AIR_FALSE;
+tenDefFiberUseIndexSpace = AIR_FALSE;
 
 double
 tenDefFiberMaxHalfLen = 3;
@@ -43,3 +43,6 @@ tenDefFiberAnisoThresh = 0.5;
 
 int
 tenDefFiberIntg = tenFiberIntgEuler;
+
+double
+tenDefFiberWPunct = 0;

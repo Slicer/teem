@@ -91,13 +91,15 @@ tenFiberContextNew(Nrrd *dtvol) {
 			      only get read if the right tenFiberStopSet has
 			      been called, in which case they'll be set... */
     tfx->stepSize = tenDefFiberStepSize;
-    tfx->outputIndexSpace = tenDefFiberOutputIndexSpace;
+    tfx->useIndexSpace = tenDefFiberUseIndexSpace;
     tfx->maxHalfLen = tenDefFiberMaxHalfLen;
     tfx->intg = tenDefFiberIntg;
+    tfx->wPunct = tenDefFiberWPunct;
     tfx->stop = 0;
 
     tfx->query = 0;
     tfx->dten = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageTensor);
+    tfx->eval = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageEval);
     tfx->evec = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageEvec);
     tfx->aniso = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageAniso);
   }
@@ -120,6 +122,7 @@ tenFiberTypeSet(tenFiberContext *tfx, int type) {
     break;
   case tenFiberTypeTensorLine:
     tfx->query |= ((1 << tenGageTensor)
+		   | (1 << tenGageEval)  /* we'll compute c_l by hand */
 		   | (1 << tenGageEvec));
     break;
   case tenFiberTypePureLine:
@@ -265,14 +268,22 @@ tenFiberIntgSet(tenFiberContext *tfx, int intg) {
 
 int
 tenFiberParmSet(tenFiberContext *tfx, int parm, double val) {
+  char me[]="tenFiberParmSet";
 
   if (tfx) {
     switch(parm) {
     case tenFiberParmStepSize:
       tfx->stepSize = val;
       break;
+    case tenFiberParmUseIndexSpace:
+      tfx->useIndexSpace = !!val;
+      break;
+    case tenFiberParmWPunct:
+      tfx->wPunct = val;
+      break;
     default:
-      /* morons */
+      fprintf(stderr, "%s: WARNING!!! tenFiberParm %d not handled\n",
+	      me, parm);
       break;
     }
   }

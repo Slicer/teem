@@ -95,8 +95,29 @@ _tenFiberStep_Evec1(tenFiberContext *tfx, double step[3]) {
 
 void
 _tenFiberStep_TensorLine(tenFiberContext *tfx, double step[3]) {
-  char me[]="_tenFiberStep_TensorLine";
-  fprintf(stderr, "%s: sorry, unimplemented!\n", me);
+  double cl, evec0[3], vout[3], vin[3], len;
+  
+  ELL_3V_COPY(evec0, tfx->evec + 3*0);
+  _tenFiberAlign(tfx, evec0);
+
+  if (ELL_3V_DOT(tfx->lastDir, tfx->lastDir)) {
+    ELL_3V_COPY(vin, tfx->lastDir);
+    TEN_3VLIST_MUL(vout, tfx->dten, tfx->lastDir);
+    ELL_3V_NORM(vout, vout, len);
+    _tenFiberAlign(tfx, vout);  /* HEY: is this needed? */
+  } else {
+    ELL_3V_COPY(vin, evec0);
+    ELL_3V_COPY(vout, evec0);
+  }
+
+  cl = (tfx->eval[0] - tfx->eval[1])/(tfx->eval[0] + 0.00001);
+
+  ELL_3V_SCALE_ADD3(step,
+		    cl, evec0,
+		    (1-cl)*(1-tfx->wPunct), vin,
+		    (1-cl)*tfx->wPunct, vout);
+  _tenFiberAlign(tfx, step);
+  ELL_3V_NORM(step, step, len);
 }
 
 void
@@ -169,28 +190,35 @@ _tenFiberIntegrate[TEN_FIBER_INTG_MAX+1])(tenFiberContext *tfx, double *) = {
 /*
 ******** tenFiberTrace
 **
-** takes a starting position in *index* space (same as gage)
+** takes a starting position in index or world space, depending on the
+** value of tfx->useIndexSpace
 */
 int
-tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber,
-	      double startX, double startY, double startZ) {
+tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber, double start[3]) {
   char me[]="tenFiberTrace", err[AIR_STRLEN_MED];
   airArray *fptsArr[2];      /* airArrays of backward (0) and forward (1)
 				fiber points */
   double *fpts[2];           /* arrays storing forward and backward
 				fiber points */
   double
+    tmp[3],
     iPos[3],
     forwDir[3],
     *fiber;                  /* array of both forward and backward points, 
 				when finished */
-  int i, stop, idx;
+  int i, ret, stop, idx;
 
   if (!(tfx && nfiber)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  if (gageProbe(tfx->gtx, startX, startY, startZ)) {
+  if (tfx->useIndexSpace) {
+    ret = gageProbe(tfx->gtx, start[0], start[1], start[2]);
+  } else {
+    gageShapeUnitWtoI(tfx->gtx->shape, tmp, start);
+    ret = gageProbe(tfx->gtx, tmp[0], tmp[1], tmp[2]);
+  }
+  if (ret) {
     sprintf(err, "%s: first gageProbe failed: %s (%d)", 
 	    me, gageErrStr, gageErrNum);
     biffAdd(TEN, err); return 1;
@@ -202,7 +230,7 @@ tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber,
     return 0;
   }
 
-  /* initialized the quantities which describe the fiber halves */
+  /* initialize the quantities which describe the fiber halves */
   tfx->halfLen[0] = tfx->halfLen[1] = 0.0;
   tfx->numSteps[0] = tfx->numSteps[1] = 0.0;
   tfx->whyStop[0] = tfx->whyStop[1] = tenFiberStopUnknown;
@@ -212,9 +240,13 @@ tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber,
     fptsArr[tfx->dir] = airArrayNew((void**)&(fpts[tfx->dir]), NULL, 
 				    3*sizeof(double), TEN_FIBER_INCR);
     tfx->halfLen[tfx->dir] = 0;
-    
-    ELL_3V_SET(iPos, startX, startY, startZ);
-    gageShapeUnitItoW(tfx->gtx->shape, tfx->wPos, iPos);
+    if (tfx->useIndexSpace) {
+      ELL_3V_COPY(iPos, start);
+      gageShapeUnitItoW(tfx->gtx->shape, tfx->wPos, iPos);
+    } else {
+      gageShapeUnitWtoI(tfx->gtx->shape, iPos, start);
+      ELL_3V_COPY(tfx->wPos, start);
+    }
     ELL_3V_SET(tfx->lastDir, 0, 0, 0);
     for (tfx->numSteps[tfx->dir] = 0; 1; tfx->numSteps[tfx->dir]++) {
       if (_tenFiberProbe(tfx, tfx->wPos)) {
@@ -229,13 +261,13 @@ tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber,
 	break;
       }
       idx = airArrayIncrLen(fptsArr[tfx->dir], 1);
-      if (tfx->outputIndexSpace) {
+      if (tfx->useIndexSpace) {
 	gageShapeUnitWtoI(tfx->gtx->shape, iPos, tfx->wPos);
 	ELL_3V_COPY(fpts[tfx->dir] + 3*idx, iPos);
       } else {
 	ELL_3V_COPY(fpts[tfx->dir] + 3*idx, tfx->wPos);
       }
-
+      /* forwDir is set by this to a unit-length vector */
       if (_tenFiberIntegrate[tfx->intg](tfx, forwDir)) {
 	tfx->whyStop[tfx->dir] = tenFiberStopBounds;
 	break;

@@ -230,13 +230,15 @@ enum {
 #define TEN_FIBER_NUM_STEPS_MAX 10240
 
 enum {
-  tenFiberParmUnknown,          /* 0: nobody knows */
-  tenFiberParmStepSize,         /* 1: base step size */
-  tenFiberParmOutputIndexSpace, /* 2: non-zero iff output of fiber should be in
-				   index space, instead of default world */
+  tenFiberParmUnknown,         /* 0: nobody knows */
+  tenFiberParmStepSize,        /* 1: base step size */
+  tenFiberParmUseIndexSpace,   /* 2: non-zero iff output of fiber should be 
+				  seeded in and output in index space,
+				  instead of default world */
+  tenFiberParmWPunct,          /* 3: tensor-line parameter */
   tenFiberParmLast
 };
-#define TEN_FIBER_PARM_MAX         2
+#define TEN_FIBER_PARM_MAX        3
 
 /*
 ******** tenFiberContext
@@ -255,11 +257,12 @@ typedef struct {
     stop;               /* BITFLAG for different reasons to stop a fiber */
   double anisoThresh;   /* anisotropy threshold */
   int maxNumSteps,      /* max # steps allowed on one fiber half */
-    outputIndexSpace;   /* output in index space, not world space */
+    useIndexSpace;      /* output in index space, not world space */
   double stepSize,      /* step size in world space */
     maxHalfLen;         /* longest propagation (forward or backward) allowed
 			   from midpoint */
   double confThresh;    /* confidence threshold */
+  double wPunct;        /* knob for tensor lines */
   /* ---- internal ----- */
   int query,            /* query we'll send to gageQuerySet */
     dir;                /* current direction being computed (0 or 1) */
@@ -268,6 +271,7 @@ typedef struct {
     lastDir[3];         /* previous value of wDir */
   gageContext *gtx;     /* wrapped around dtvol */
   gage_t *dten,         /* gageAnswerPointer(gtx->pvl[0], tenGageTensor) */
+    *eval,              /* gageAnswerPointer(gtx->pvl[0], tenGageEval) */
     *evec,              /* gageAnswerPointer(gtx->pvl[0], tenGageEvec) */
     *aniso;             /* gageAnswerPointer(gtx->pvl[0], tenGageAniso) */
   /* ---- output ------- */
@@ -326,11 +330,12 @@ typedef struct {
 extern ten_export const char *tenBiffKey;
 extern ten_export const char tenDefFiberKernel[];
 extern ten_export double tenDefFiberStepSize;
-extern ten_export int tenDefFiberOutputIndexSpace;
+extern ten_export int tenDefFiberUseIndexSpace;
 extern ten_export double tenDefFiberMaxHalfLen;
 extern ten_export int tenDefFiberAnisoType;
 extern ten_export double tenDefFiberAnisoThresh;
 extern ten_export int tenDefFiberIntg;
+extern ten_export double tenDefFiberWPunct;
 
 /* enumsTen.c */
 extern ten_export airEnum *tenAniso;
@@ -406,8 +411,7 @@ extern int tenFiberUpdate(tenFiberContext *tfx);
 extern tenFiberContext *tenFiberContextNix(tenFiberContext *tfx);
 
 /* fiber.c */
-extern int tenFiberTrace(tenFiberContext *tfx, Nrrd *fiber,
-			 double startX, double startY, double startZ);
+extern int tenFiberTrace(tenFiberContext *tfx, Nrrd *fiber, double start[3]);
 
 /* epireg.c */
 extern int tenEpiRegister3D(Nrrd **nout, Nrrd **ndwi, int dwiLen, Nrrd *ngrad,
