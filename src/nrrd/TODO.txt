@@ -1,3 +1,5 @@
+why the hell isn't spacing and other axis information passed by unu Nop?
+
 test working with nout==nin
 nrrdContentSet
 nrrdConvert
