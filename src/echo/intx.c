@@ -18,7 +18,7 @@
 */
 
 #include "echo.h"
-#include "private.h"
+#include "privateEcho.h"
 
 /*
  define INTX_ARGS(TYPE) EchoIntx *intx, EchoRay *ray,               \

@@ -27,7 +27,7 @@ TEEM_LIB_OBJS = \
 	endianNrrd.o enumsNrrd.o    filt.o        hestNrrd.o     \
 	histogram.o  iter.o         kernel.o      map.o          \
 	measure.o    methodsNrrd.o  parseNrrd.o   read.o         \
-	reorder.o    resampleNrrd.o simpleNrrd.o  subset.o       \
+	reorder.o    resampleNrrd.o simple.o      subset.o       \
 	superset.o   write.o
 
 TEST_BINS = test/trand test/shuff test/ax test/io test/minmax test/tkernel

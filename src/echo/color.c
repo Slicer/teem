@@ -18,7 +18,7 @@
 */
 
 #include "echo.h"
-#include "private.h"
+#include "privateEcho.h"
 
 #define COLDIR_ARGS(TYPE) echoCol_t lcol[3], echoPos_t ldir[3],          \
                           echoPos_t *distP, EchoParm *parm,            \
