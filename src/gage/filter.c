@@ -49,7 +49,7 @@ _gageFslSet(gageContext *ctx) {
     fsly[0] = yf; fsly[1] = yf-1;
     fslz[0] = zf; fslz[1] = zf-1;
     break;
-  case 2:
+  case 20:
     fslx[0] = xf+1; fslx[1] = xf; fslx[2] = xf-1; fslx[3] = xf-2;
     fsly[0] = yf+1; fsly[1] = yf; fsly[2] = yf-1; fsly[3] = yf-2;
     fslz[0] = zf+1; fslz[1] = zf; fslz[2] = zf-1; fslz[3] = zf-2;
@@ -57,9 +57,9 @@ _gageFslSet(gageContext *ctx) {
   default:
     /* filter radius bigger than 2 */
     for (i=-fr+1; i<=fr; i++) {
-      fslx[i] = xf-i;
-      fsly[i] = yf-i;
-      fslz[i] = zf-i;
+      fslx[i+fr-1] = xf-i;
+      fsly[i+fr-1] = yf-i;
+      fslz[i+fr-1] = zf-i;
     }
     break;
   }
