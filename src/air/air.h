@@ -366,10 +366,11 @@ enum {
   airInsane_QNaNHiBit,     /*  6: airMyQNaNHiBit is wrong */
   airInsane_dio,           /*  7: airMyDio set to something invalid */
   airInsane_32Bit,         /*  8: airMy32Bit is wrong */
-  airInsane_FISize,        /*  9: sizeof(float), sizeof(int) not 4 */
-  airInsane_DLSize         /* 10: sizeof(double), sizeof(airLLong) not 8 */
+  airInsane_UCSize,        /*  9: unsigned char isn't 8 bits */
+  airInsane_FISize,        /* 10: sizeof(float), sizeof(int) not 4 */
+  airInsane_DLSize         /* 11: sizeof(double), sizeof(airLLong) not 8 */
 };
-#define AIR_INSANE_MAX        10
+#define AIR_INSANE_MAX        11
 extern const char *airInsaneErr(int insane);
 extern int airSanity();
 

@@ -32,6 +32,7 @@ airSanity(void) {
   float nanF, pinfF, ninfF;
   int tmpI, sign, exp, frac, size;
   char endian;
+  unsigned char uc0, uc1;
   static int _airSanity=0;
   
   if (_airSanity) {
@@ -53,7 +54,12 @@ airSanity(void) {
     }
   }    
 
-  /* checks on sizes of float, int, double, airLLong */  
+  /* checks on sizes of uchar, float, int, double, airLLong */  
+  uc0 = 255;
+  uc1 = uc0 + 1;  /* to avoid compiler warnings */
+  if (!( 255 == uc0 && 0 == uc1 )) {
+    return airInsane_UCSize;
+  }
   /* these justify the AIR_EXISTS_F and AIR_EXISTS_D macros */
   if (!( (sizeof(float) == sizeof(int)) && (4 == sizeof(int)) )) {
     return airInsane_FISize;
@@ -127,6 +133,7 @@ _airInsaneErr[AIR_INSANE_MAX+1][AIR_STRLEN_MED] = {
   "TEEM_QNANHIBIT is wrong",
   "TEEM_DIO has invalid value",
   "TEEM_32BIT is wrong",
+  "unsigned char isn't 8 bits",
   "sizeof(float), sizeof(int) not both == 4",
   "sizeof(double), sizeof(airLLong) not both == 8",
 };
