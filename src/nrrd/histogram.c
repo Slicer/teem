@@ -82,16 +82,18 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type) {
 	/* value is outside range; ignore it */
 	continue;
       }
-      AIR_INDEX(min, val, max+eps, bins, idx);
-      /* count is a double in order to simplify clamping the
-	 hit values to the representable range for nout->type */
-      /*
-      printf("!%s: %d: index(%g, %g, %g, %d) = %d\n", 
-	     me, (int)I, min, val, max, bins, idx);
-      */
-      count = nrrdDLookup[nout->type](nout->data, idx);
-      count = nrrdDClamp[nout->type](count + 1);
-      nrrdDInsert[nout->type](nout->data, idx, count);
+      if (AIR_INSIDE(min, val, max)) {
+	AIR_INDEX(min, val, max+eps, bins, idx);
+	/*
+	printf("!%s: %d: index(%g, %g, %g, %d) = %d\n", 
+	       me, (int)I, min, val, max, bins, idx);
+	*/
+	/* count is a double in order to simplify clamping the
+	   hit values to the representable range for nout->type */
+	count = nrrdDLookup[nout->type](nout->data, idx);
+	count = nrrdDClamp[nout->type](count + 1);
+	nrrdDInsert[nout->type](nout->data, idx, count);
+      }
     }
   }
 

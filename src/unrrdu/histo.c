@@ -28,9 +28,16 @@ histoMain(int argc, char **argv, char *me) {
   char *out, *err;
   Nrrd *nin, *nout;
   int bins, type;
+  double min, max;
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input nrrd");
+  hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
+	     "Value at low end of histogram. Defaults to lowest value "
+	     "found in input nrrd.");
+  hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
+	     "Value at high end of histogram. Defaults to highest value "
+	     "found in input nrrd.");
   hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, NULL,
 	     "# of bins in histogram");
   hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &type, "int",
@@ -48,6 +55,14 @@ histoMain(int argc, char **argv, char *me) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
+  /* If the input nrrd never specified min and max, then they'll be
+     AIR_NAN, and nrrdMinMaxClever will find them.  If the input nrrd
+     had a notion of min and max, we should respect it, but not if the
+     user specified something else. */
+  if (AIR_EXISTS(min))
+    nin->min = min;
+  if (AIR_EXISTS(max))
+    nin->max = max;
   if (nrrdHisto(nout, nin, bins, type)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error calculating histogram:\n%s", me, err);
