@@ -20,15 +20,7 @@
 #include "ten.h"
 #include "tenPrivate.h"
 
-/* learned: a huge problem with hest and its var-arg-based hestOptAdd
-   is that it can't tell when you've based multiple strings for the
-   detailed usage information by accident.  I had accidentally inserted
-   a comma into my multi-line string for the "info" arg, relying on the
-   automatic string concatenation, and ended up passing total garbage
-   to hestOptAdd for the airEnum pointer, causing me to think that the
-   tenGlyphType airEnum was malformed, when it was in fact fine ... */
-
-#define INFO "Generate postscript or ray-traced renderings of box glyphs"
+#define INFO "Generate postscript or ray-traced renderings of 3D glyphs"
 char *_tend_glyphInfoL =
   (INFO
    ".  Whether the output is postscript or a ray-traced image is controlled "

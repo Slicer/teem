@@ -354,6 +354,7 @@ extern int tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine);
 extern int tenEigensolve(float eval[3], float evec[9], float ten[7]);
 extern void tenMakeOne(float ten[7], float conf, float eval[3], float evec[9]);
 extern int tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec);
+extern int tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos);
 
 /* chan.c */
 /* old tenCalc* functions replaced by tenEstimate* */
@@ -440,10 +441,12 @@ F(sim) \
 F(make) \
 F(sten) \
 F(glyph) \
+F(ellipse) \
 F(anplot) \
 F(anvol) \
 F(anhist) \
 F(point) \
+F(slice) \
 F(fiber) \
 F(eval) \
 F(evec) \

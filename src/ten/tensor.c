@@ -388,3 +388,71 @@ tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec) {
 
   return 0;
 }
+
+int
+tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos) {
+  Nrrd *nslice, *ncoeff[4];
+  int ci[4];
+  char me[]="tenSlice", err[AIR_STRLEN_MED];
+  airArray *mop;
+
+  if (!(nout && nten)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (tenTensorCheck(nten, nrrdTypeDefault, AIR_TRUE)) {
+    sprintf(err, "%s: didn't get a valid tensor field", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!(AIR_IN_CL(0, axis, 2))) {
+    sprintf(err, "%s: axis %d not in valid range [0,1,2]", me, axis);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!(AIR_IN_CL(0, pos, nten->axis[1+axis].size-1))) {
+    sprintf(err, "%s: slice position %d not in valid range [0..%d]", me,
+	    pos, nten->axis[1+axis].size-1);
+    biffAdd(TEN, err); return 1;
+  }
+
+  /*
+  ** threshold        0
+  ** Dxx Dxy Dxz      1   2   3
+  ** Dxy Dyy Dyz  =  (2)  4   5
+  ** Dxz Dyz Dzz     (3) (5)  6 
+  */
+  mop = airMopNew();
+  airMopAdd(mop, nslice=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, ncoeff[0]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, ncoeff[1]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, ncoeff[2]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, ncoeff[3]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  switch(axis) {
+  case 0:
+    ELL_4V_SET(ci, 0, 4, 5, 6);
+    break;
+  case 1:
+    ELL_4V_SET(ci, 0, 1, 3, 6);
+    break;
+  case 2:
+    ELL_4V_SET(ci, 0, 1, 2, 4);
+    break;
+  default:
+    sprintf(err, "%s: axis %d bogus", me, axis);
+    biffAdd(TEN, err); airMopError(mop); return 1;
+    break;
+  }
+  if (nrrdSlice(nslice, nten, axis+1, pos)
+      || nrrdSlice(ncoeff[0], nslice, 0, ci[0])
+      || nrrdSlice(ncoeff[1], nslice, 0, ci[1])
+      || nrrdSlice(ncoeff[2], nslice, 0, ci[2])
+      || nrrdSlice(ncoeff[3], nslice, 0, ci[3])
+      || nrrdJoin(nout, (const Nrrd **)ncoeff, 4, 0, AIR_TRUE)) {
+    sprintf(err, "%s: trouble collecting coefficients", me);
+    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+  }
+
+  airMopOkay(mop);
+  return 0;
+}
+
+
