@@ -72,6 +72,7 @@ gageSclContextNew() {
     ctx->gmag  = &(ctx->ans[gageSclAnsOffset[gageSclGradMag]]);
     ctx->norm  = &(ctx->ans[gageSclAnsOffset[gageSclNormal]]);
     ctx->hess  = &(ctx->ans[gageSclAnsOffset[gageSclHess]]);
+    ctx->lapl  = &(ctx->ans[gageSclAnsOffset[gageSclLapl]]);
     ctx->heval = &(ctx->ans[gageSclAnsOffset[gageSclHessEval]]);
     ctx->hevec = &(ctx->ans[gageSclAnsOffset[gageSclHessEvec]]);
     ctx->scnd  = &(ctx->ans[gageSclAnsOffset[gageScl2ndDD]]);
@@ -230,7 +231,7 @@ _gageSclResetKernelDependent(gageSclContext *ctx) {
 */
 int
 gageSclSetKernel(gageSclContext *ctx, int which,
-		 nrrdKernel *k, double *param) {
+		 NrrdKernel *k, double *param) {
   char me[]="gageSclSetKernel", err[AIR_STRLEN_MED];
   int numParam;
   double support, integral;

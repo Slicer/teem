@@ -28,6 +28,7 @@ _gageSclStr[][AIR_STRLEN_SMALL] = {
   "gradient magnitude",
   "normalized gradient",
   "Hessian",
+  "Laplacian",
   "Hessian eigenvalues",
   "Hessian eigenvectors",
   "2nd DD along gradient",
@@ -46,6 +47,7 @@ _gageSclVal[] = {
   gageSclGradMag,
   gageSclNormal,
   gageSclHess,
+  gageSclLapl,
   gageSclHessEval,
   gageSclHessEvec,
   gageScl2ndDD,
@@ -61,6 +63,7 @@ _gageSclVal[] = {
 #define GS_GM gageSclGradMag
 #define GS_N  gageSclNormal
 #define GS_H  gageSclHess
+#define GS_L  gageSclLapl
 #define GS_HA gageSclHessEval
 #define GS_HE gageSclHessEvec
 #define GS_2D gageScl2ndDD
@@ -77,6 +80,7 @@ _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
   "g", "gmag", "gradmag", "grad mag", "gradient magnitude",
   "n", "gnorm", "normg", "norm", "normgrad", "norm grad","normalized gradient",
   "h", "hess", "hessian",
+  "l", "lapl", "laplacian",
   "heval", "h eval", "hessian eval", "hessian eigenvalues",
   "hevec", "h evec", "hessian evec", "hessian eigenvectors",
   "2d", "2dd", "2nddd", "2nd dd", "2nd dd along gradient",
@@ -94,6 +98,7 @@ _gageSclValEqv[] = {
   GS_GM, GS_GM, GS_GM, GS_GM, GS_GM, 
   GS_N, GS_N, GS_N, GS_N, GS_N, GS_N, GS_N,
   GS_H, GS_H, GS_H, 
+  GS_L, GS_L, GS_L, 
   GS_HA, GS_HA, GS_HA, GS_HA, 
   GS_HE, GS_HE, GS_HE, GS_HE, 
   GS_2D, GS_2D, GS_2D, GS_2D, GS_2D,

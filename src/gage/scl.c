@@ -21,6 +21,60 @@
 #include "private.h"
 
 void
+_gageScl3PRenormalizeFw(gageSclContext *ctx,
+			int doD1, int doD2) {
+  double integral, s1x, s1y, s1z, s2x, s2y, s2z, asx, asy, asz;
+  int fd, i;
+  GT *fw0, *fw1, *fw2;
+
+  fd = ctx->fd;
+  fw0 = ctx->fw00;
+  fw1 = ctx->fw11;
+  fw2 = ctx->fw22;
+  integral = ctx->k[gageKernel00]->integral(ctx->kparam[gageKernel00]);
+  s1x = s1y = s1z = 0;
+  for (i=0; i<=fd-1; i++) {
+    s1x += fw0[i + fd*0];
+    s1y += fw0[i + fd*1];
+    s1z += fw0[i + fd*2];
+  }
+  for (i=0; i<=fd-1; i++) {
+    fw0[i + fd*0] *= integral/s1x;
+    fw0[i + fd*1] *= integral/s1y;
+    fw0[i + fd*2] *= integral/s1z;
+  }
+  if (doD1) {
+    s1x = s1y = s1z = 0;
+    for (i=0; i<=fd/2-1; i++) {
+      s1x += fw1[i + fd*0];
+      s1y += fw1[i + fd*1];
+      s1z += fw1[i + fd*2];
+    }
+    s2x = s2y = s2z = 0;
+    for (i=fd/2; i<=fd-1; i++) {
+      s2x += fw1[i + fd*0];
+      s2y += fw1[i + fd*1];
+      s2z += fw1[i + fd*2];
+    }
+    /* lower half of 1st deriv mask: negative-ish values */
+    /* upper half of 1st deriv mask: positive-ish values */
+    asx = (s2x - s1x)/2.0;
+    asy = (s2y - s1y)/2.0;
+    asz = (s2z - s1z)/2.0;
+    for (i=0; i<=fd/2-1; i++) {
+      fw1[i + fd*0] *= asx/s1x;
+      fw1[i + fd*1] *= asy/s1y;
+      fw1[i + fd*2] *= asz/s1z;
+    }
+    for (i=fd/2; i<=fd-1; i++) {
+      fw1[i + fd*0] *= asx/s2x;
+      fw1[i + fd*1] *= asy/s2y;
+      fw1[i + fd*2] *= asz/s2z;
+    }
+  }
+}
+
+void
 _gageSclSetFslw(gageSclContext *ctx,
 		double xf, double yf, double zf,
 		int doD1, int doD2) {
@@ -40,21 +94,21 @@ _gageSclSetFslw(gageSclContext *ctx,
   fd = ctx->fd;
   switch (fd) {
   case 2:
-    T = -xf; fsl[0+2*0]=T++; fsl[1+2*0]=T;
-    T = -yf; fsl[0+2*1]=T++; fsl[1+2*1]=T;
-    T = -zf; fsl[0+2*2]=T++; fsl[1+2*2]=T;
+    T = -xf; fsl[1+2*0]=T++; fsl[0+2*0]=T;
+    T = -yf; fsl[1+2*1]=T++; fsl[0+2*1]=T;
+    T = -zf; fsl[1+2*2]=T++; fsl[0+2*2]=T;
     break;
   case 4:
-    T = -xf-1; fsl[0+4*0]=T++; fsl[1+4*0]=T++; fsl[2+4*0]=T++; fsl[3+4*0]=T;
-    T = -yf-1; fsl[0+4*1]=T++; fsl[1+4*1]=T++; fsl[2+4*1]=T++; fsl[3+4*1]=T;
-    T = -zf-1; fsl[0+4*2]=T++; fsl[1+4*2]=T++; fsl[2+4*2]=T++; fsl[3+4*2]=T;
+    T = -xf-1; fsl[3+4*0]=T++; fsl[2+4*0]=T++; fsl[1+4*0]=T++; fsl[0+4*0]=T;
+    T = -yf-1; fsl[3+4*1]=T++; fsl[2+4*1]=T++; fsl[1+4*1]=T++; fsl[0+4*1]=T;
+    T = -zf-1; fsl[3+4*2]=T++; fsl[2+4*2]=T++; fsl[1+4*2]=T++; fsl[0+4*2]=T;
     break;
   default:
     /* filter diameter is bigger than 4 */
-    for (i=0; i<ctx->fd; i++) {
-      fsl[i + fd*0] = -xf - ctx->needPad + i;
-      fsl[i + fd*1] = -yf - ctx->needPad + i;
-      fsl[i + fd*2] = -zf - ctx->needPad + i;
+    for (i=0; i<fd; i++) {
+      fsl[-fd-1-i + fd*0] = -xf - ctx->needPad + i;
+      fsl[-fd-1-i + fd*1] = -yf - ctx->needPad + i;
+      fsl[-fd-1-i + fd*2] = -zf - ctx->needPad + i;
     }
     break;
   }
@@ -98,11 +152,15 @@ _gageSclSetFslw(gageSclContext *ctx,
     break;
   }
 
-  /*
   if (ctx->renormalize) {
-    _gageSclRenormalize(ctx, fw0, fw1, fw2, doD1, doD2);
+    if (ctx->k3pack) {
+      _gageScl3PRenormalizeFw(ctx, doD1, doD2);
+    }
+    else {
+      fprintf(stderr,
+	      "_gageSclSetFslw: non-3pack renormalize not implemented!\n");
+    }
   }
-  */
 
   /* fix scalings for anisotropic voxels */
   xs = ctx->xs;
@@ -145,14 +203,12 @@ _gageSclSetFslw(gageSclContext *ctx,
 
 void
 _gageSclAnswer(gageSclContext *ctx) {
+  char me[]="_gageSclAnswer";
   unsigned int query;
-  GT *gvec, *hess;
-  double len, norm[3], tmpMat[9], tmpVec[3], sHess[9],
-    gp1[3], gp2[3], ZPPr[9], ZPPc[9], ZPP[9], 
-    ginv, T, N, D, K1, K2, m[9], hevec[9], heval[3];
-
-  gvec = ctx->gvec;
-  hess = ctx->hess;
+  GT len, tmpMat[9], tmpVec[3], sHess[9],
+    gp1[3], gp2[3], ZPP[9], 
+    ginv, T, N, D, K1, K2;
+  double m[9], hevec[9], heval[3];
 
   query = ctx->query;
   if (1 & (query >> gageSclValue)) {
@@ -169,22 +225,29 @@ _gageSclAnswer(gageSclContext *ctx) {
     }
   }
   if (1 & (query >> gageSclGradMag)) {
-    ctx->gmag[0] = sqrt(ELL_3V_DOT(gvec, gvec)
+    ctx->gmag[0] = sqrt(ELL_3V_DOT(ctx->gvec, ctx->gvec)
 			+ ctx->epsilon*ctx->epsilon);
   }
   if (1 & (query >> gageSclNormal)) {
-    ELL_3V_SCALE(ctx->norm, gvec, 1.0/ctx->gmag[0]);
+    ELL_3V_SCALE(ctx->norm, ctx->gvec, 1.0/ctx->gmag[0]);
     len = sqrt(ELL_3V_DOT(ctx->norm, ctx->norm) + ctx->epsilon*ctx->epsilon);
     ELL_3V_SCALE(ctx->norm, ctx->norm, 1.0/len);
   }
   if (1 & (query >> gageSclHess)) {
     if (ctx->verbose) {
-      printf("hess = \n");
-      /* HEY */ ell3mPrint_f(stdout, hess);
+      fprintf(stderr, "%s: hess = \n", me);
+#if GT_FLOAT
+      ell3mPrint_f(stdout, ctx->hess);
+#else
+      ell3mPrint_d(stdout, ctx->hess);
+#endif
     }
   }
+  if (1 & (query >> gageSclLapl)) {
+    *(ctx->lapl) = ctx->hess[0] + ctx->hess[4] + ctx->hess[8];
+  }
   if (1 & (query >> gageSclHessEval)) {
-    ELL_3M_COPY(m, hess);
+    ELL_3M_COPY(m, ctx->hess);
     /* HEY: look at the return value for root multiplicity? */
     ell3mEigensolve(heval, hevec, m, AIR_TRUE);
     ELL_3V_COPY(ctx->heval, heval);
@@ -193,34 +256,18 @@ _gageSclAnswer(gageSclContext *ctx) {
     ELL_3M_COPY(ctx->hevec, hevec);
   }
   if (1 & (query >> gageScl2ndDD)) {
-    ELL_3MV_MUL(tmpVec, hess, ctx->norm);
+    ELL_3MV_MUL(tmpVec, ctx->hess, ctx->norm);
     ctx->scnd[0] = ELL_3V_DOT(ctx->norm, tmpVec);
   }
   if (1 & (query >> gageSclGeomTens)) {
     ginv = 1.0/ctx->gmag[0];
     /* we also flip the sign here, so that when values "inside"
        an isosurface are higher, we get the expected sense */
-    ELL_3M_SCALE(sHess, hess, -ginv);
-    /* find a vector perpendicular to the normal */
-    ell3vPerp_d(gp1, norm);
-    ELL_3V_NORM(gp1, gp1, len);
-    ELL_3V_CROSS(gp2, norm, gp1);
-    /* set up ZPPr as the matrix that projects (x,y,z) vectors onto 
-       the right-handed basis (norm , gp1, gp2), and then
-       totally zeroes out the norm component; then set ZPPc
-       is the transpose of that.
-       remember that the storage order of the matrix is:
-       0 3 6 
-       1 4 7
-       2 5 8
-    */
-    ZPPr[0] = ZPPr[3] = ZPPr[6] = 0;
-    ELL_3MV_SET_ROW1(ZPPr, gp1);
-    ELL_3MV_SET_ROW2(ZPPr, gp2);
-    ELL_3M_TRANSPOSE(ZPPc, ZPPr);
-    
-    /* ZPP = ZPPc * ZPPr  (this also happens to be equal to ZPPr * ZPPc) */
-    ELL_3M_MUL(ZPP, ZPPc, ZPPr);
+    ELL_3M_SCALE(sHess, ctx->hess, -ginv);
+    ELL_3MV_OUTER(ZPP, ctx->norm, ctx->norm);
+    ZPP[0] -= 1;
+    ZPP[4] -= 1;
+    ZPP[8] -= 1;
 
     /* ctx->gen = ZPP * sHess * ZPP */
     ELL_3M_MUL(tmpMat, sHess, ZPP);
@@ -229,8 +276,14 @@ _gageSclAnswer(gageSclContext *ctx) {
     if (ctx->verbose) {
       ELL_3MV_MUL(tmpVec, ctx->gten, ctx->norm); len = ELL_3V_LEN(tmpVec);
       printf("should be small: %30.15lf\n", len);
+#if GT_FLOAT
+      ell3vPerp_f(gp1, ctx->norm);
+#else
+      ell3vPerp_d(gp1, ctx->norm);
+#endif
       ELL_3MV_MUL(tmpVec, ctx->gten, gp1); len = ELL_3V_LEN(tmpVec);
       printf("should be bigger: %30.15lf\n", len);
+      ELL_3V_CROSS(gp2, gp1, ctx->norm);
       ELL_3MV_MUL(tmpVec, ctx->gten, gp2); len = ELL_3V_LEN(tmpVec);
       printf("should be bigger: %30.15lf\n", len);
     }
@@ -240,7 +293,7 @@ _gageSclAnswer(gageSclContext *ctx) {
     N = ELL_3M_L2NORM(ctx->gten);
     D = 2*N*N - T*T;
     if (D < 0) {
-      printf("D = % 22.10f\n", D);
+      fprintf(stderr, "%s: !!! D = % 22.10f\n", me, D);
     }
     D = AIR_MAX(D, 0);
     D = sqrt(D);
@@ -248,7 +301,8 @@ _gageSclAnswer(gageSclContext *ctx) {
     ctx->k1k2[1] = K2 = 0.5*(T - D);
   }
   if (1 & (query >> gageSclCurvDir)) {
-    
+    /* HEY */
+    fprintf(stderr, "%s: sorry, gageSclCurvDir not implemented\n", me);
   }
   if (1 & (query >> gageSclShapeIndex)) {
     ctx->S[0] = -(2/M_PI)*atan2(K1 + K2, K1 - K2);
@@ -324,13 +378,13 @@ gageSclProbe(gageSclContext *ctx, float x, float y, float z) {
   /* perform the filtering */
   if (ctx->k3pack) {
     switch (fd) {
-    case -2:
+    case 2:
       _gageScl3PFilter2(ctx->iv3, ctx->iv2, ctx->iv1, 
 			ctx->fw00, ctx->fw11, ctx->fw22,
 			ctx->val, ctx->gvec, ctx->hess,
 			doD1, doD2);
       break;
-    case -4:
+    case 4:
       _gageScl3PFilter4(ctx->iv3, ctx->iv2, ctx->iv1,
 			ctx->fw00, ctx->fw11, ctx->fw22,
 			ctx->val, ctx->gvec, ctx->hess,

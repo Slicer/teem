@@ -56,7 +56,7 @@ lutMain(int argc, char **argv, char *me) {
   if (!(AIR_EXISTS(nlut->axis[lutax].min) &&
 	AIR_EXISTS(nlut->axis[lutax].max))) {
     /* set the lut min and max to the data range */
-    nrrdCleverMinMax(nin);
+    nrrdMinMaxClever(nin);
     nlut->axis[lutax].min = nin->min;
     nlut->axis[lutax].max = nin->max;
   }

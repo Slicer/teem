@@ -27,7 +27,7 @@
 */
 int
 gageSclAnsLength[GAGE_SCL_MAX+1] = {
-  1,  3,  1,  3,  9,  3,  9,  1,  9,  2,  6,  1,  1
+  1,  3,  1,  3,  9,  1,  3,  9,  1,  9,  2,  6,  1,  1
 };
 
 /*
@@ -37,7 +37,7 @@ gageSclAnsLength[GAGE_SCL_MAX+1] = {
 */
 int
 gageSclAnsOffset[GAGE_SCL_MAX+1] = {
-  0,  1,  4,  5,  8, 17, 20, 29, 30, 39, 41, 47, 48
+  0,  1,  4,  5,  8, 17, 18, 21, 30, 31, 40, 42, 48, 49
 };
 
 /*
@@ -47,7 +47,7 @@ gageSclAnsOffset[GAGE_SCL_MAX+1] = {
 */
 int
 _gageSclNeedDeriv[GAGE_SCL_MAX+1] = {
-  0,  1,  1,  1,  2,  2,  2,  2,  2,  2,  2,  2,  2
+  0,  1,  1,  1,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2
 };
 
 
@@ -60,42 +60,45 @@ _gageSclNeedDeriv[GAGE_SCL_MAX+1] = {
 */
 unsigned int
 _gageSclPrereq[GAGE_SCL_MAX+1] = {
-  /*  0: gageSclValue */
+  /* gageSclValue */
   0,
 
-  /*  1: gageSclGradVec */
+  /* gageSclGradVec */
   0,
 
-  /*  2: gageSclGradMag */
+  /* gageSclGradMag */
   (1<<gageSclGradVec),
 
-  /*  3: gageSclNormal */
+  /* gageSclNormal */
   (1<<gageSclGradVec) | (1<<gageSclGradMag),
 
-  /*  4: gageScalarHess */
+  /* gageSclHess */
   0,
 
-  /*  5: gageSclHessEval */
+  /* gageSclLapl */
   (1<<gageSclHess),
 
-  /*  6: gageSclHessEvec */
+  /* gageSclHessEval */
+  (1<<gageSclHess),
+
+  /* gageSclHessEvec */
   (1<<gageSclHess) | (1<<gageSclHessEval),
 
-  /*  7: gageScl2ndDD */
+  /* gageScl2ndDD */
   (1<<gageSclHess) | (1<<gageSclNormal),
 
-  /*  8: gageSclGeomTens */
+  /* gageSclGeomTens */
   (1<<gageSclHess) | (1<<gageSclNormal) | (1<<gageSclGradMag),
   
-  /*  9: gageSclK1K2 */
+  /* gageSclK1K2 */
   (1<<gageSclGeomTens),
 
-  /* 10: gageSclCurvDir */
+  /* gageSclCurvDir */
   (1<<gageSclGeomTens) | (1<<gageSclNormal),
   
-  /* 11: gageSclShapeIndex */
+  /* gageSclShapeIndex */
   (1<<gageSclK1K2),
 
-  /* 12: gageSclCurvedness */
+  /* gageSclCurvedness */
   (1<<gageSclK1K2)
 };

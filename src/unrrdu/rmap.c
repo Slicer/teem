@@ -62,7 +62,7 @@ rmapMain(int argc, char **argv, char *me) {
   if (!(AIR_EXISTS(nmap->axis[mapax].min) &&
 	AIR_EXISTS(nmap->axis[mapax].max))) {
     /* set the map min and max to the data range */
-    nrrdCleverMinMax(nin);
+    nrrdMinMaxClever(nin);
     nmap->axis[mapax].min = nin->min;
     nmap->axis[mapax].max = nin->max;
   }

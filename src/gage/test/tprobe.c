@@ -56,7 +56,7 @@ main(int argc, char *argv[]) {
     six, siy, siz, sox, soy, soz;
   double t0, t1, param[3][NRRD_KERNEL_PARAMS_MAX];
   gageSclContext *ctx;
-  nrrdKernel *k0, *k1, *k2;
+  NrrdKernel *k0, *k1, *k2;
 
   me = argv[0];
   if (8 != argc) 

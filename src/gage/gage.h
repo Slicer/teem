@@ -71,19 +71,20 @@ enum {
   gageSclGradMag,     /*  2: gradient magnitude (*GT) */
   gageSclNormal,      /*  3: gradient vector, normalized (GT[3]) */
   gageSclHess,        /*  4: Hessian (GT[9]) */
-  gageSclHessEval,    /*  5: Hessian's eigenvalues (GT[3]) */
-  gageSclHessEvec,    /*  6: Hessian's eigenvectors (GT[9]) */
-  gageScl2ndDD,       /*  7: 2nd dir.deriv. along gradient (*GT) */
-  gageSclGeomTens,    /*  8: symm. matrix w/ evals 0,K1,K2 and evecs grad,
+  gageSclLapl,        /*  5: Laplacian: Dxx + Dyy + Dzz (*GT) */
+  gageSclHessEval,    /*  6: Hessian's eigenvalues (GT[3]) */
+  gageSclHessEvec,    /*  7: Hessian's eigenvectors (GT[9]) */
+  gageScl2ndDD,       /*  8: 2nd dir.deriv. along gradient (*GT) */
+  gageSclGeomTens,    /*  9: symm. matrix w/ evals 0,K1,K2 and evecs grad,
 			     curvature directions (GT[9]) */
-  gageSclK1K2,        /*  9: principle curvature magnitudes (GT[2]) */
-  gageSclCurvDir,     /* 10: principle curvature directions (GT[6]) */
-  gageSclShapeIndex,  /* 11: Koen.'s shape index, ("S") (*GT) */
-  gageSclCurvedness,  /* 12: L2 norm of K1, K2 (not Koen.'s "C") (*GT) */
+  gageSclK1K2,        /* 10: principle curvature magnitudes (GT[2]) */
+  gageSclCurvDir,     /* 11: principle curvature directions (GT[6]) */
+  gageSclShapeIndex,  /* 12: Koen.'s shape index, ("S") (*GT) */
+  gageSclCurvedness,  /* 13: L2 norm of K1, K2 (not Koen.'s "C") (*GT) */
   gageSclLast
 };
-#define GAGE_SCL_MAX     12
-#define GAGE_SCL_TOTAL_ANS_LENGTH 49
+#define GAGE_SCL_MAX     13
+#define GAGE_SCL_TOTAL_ANS_LENGTH 50
 
 enum {
   gageKernelUnknown=-1, /* -1: nobody knows */
@@ -101,7 +102,7 @@ enum {
 typedef struct {
   /*  --------------------------------------- Input parameters */
   unsigned int query;               /* the query */
-  nrrdKernel *k[GAGE_KERNEL_MAX+1]; /* interp, 1st, 2nd deriv. kernels */
+  NrrdKernel *k[GAGE_KERNEL_MAX+1]; /* interp, 1st, 2nd deriv. kernels */
   double kparam[GAGE_KERNEL_MAX+1][NRRD_KERNEL_PARAMS_MAX];
                                     /* kernel parameters */
   Nrrd *npad;                       /* user-padded nrrd */
@@ -159,7 +160,7 @@ typedef struct {
   GAGE_TYPE
     ans[GAGE_SCL_TOTAL_ANS_LENGTH], /* where all the answers are held */
     *val, *gvec, *gmag, *norm,      /* convenience pointers into ans[] */
-    *hess, *heval, *hevec, *scnd,
+    *hess, *lapl, *heval, *hevec, *scnd,
     *gten, *k1k2, *cdir, *S, *C;
 } gageSclContext;
 
@@ -182,7 +183,7 @@ extern gageSclContext *gageSclContextNix(gageSclContext *ctx);
 extern int gageSclSetQuery(gageSclContext *ctx, unsigned int query);
 extern void gageSclResetKernels(gageSclContext *ctx);
 extern int gageSclSetKernel(gageSclContext *ctx, int which,
-			    nrrdKernel *k, double *param);
+			    NrrdKernel *k, double *param);
 extern int gageSclGetNeedPad(gageSclContext *ctx);
 extern int gageSclSetPaddedVolume(gageSclContext *ctx, int pad, Nrrd *npad);
 extern int gageSclUpdate(gageSclContext *ctx);

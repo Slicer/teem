@@ -249,7 +249,7 @@ unuParseMaybeType(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="unuParseMaybeType";
   int *typeP;
 
-  fprintf(stderr, "!%s: str = \"%s\"\n", me, str);
+  /* fprintf(stderr, "!%s: str = \"%s\"\n", me, str); */
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -265,7 +265,7 @@ unuParseMaybeType(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
       return 1;
     }
   }
-  fprintf(stderr, "!%s: *typeP = %d\n", me, *typeP);
+  /* fprintf(stderr, "!%s: *typeP = %d\n", me, *typeP); */
   return 0;
 }
 
