@@ -1,7 +1,7 @@
 =============== 
 
   teem: Gordon Kindlmann's research software
-  Copyright (C) 2002, 2001, 2000, 1999, 1998 University of Utah
+  Copyright (C) 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -52,36 +52,26 @@ libraries in their own programs.
    start by saying "nrrd sanity check passed", then email me; there
    are serious problems.
 
-If you want only the nrrd library and the related utilities (unrrdu)
-then type: "make just-nrrd".
+What?  No GNU configure script?  Not yet.  If you want to volunteer
+your services writing a configure script, and you're good GNU make
+programmer, then please go for it, and it will be added to teem.
 
-What?  No configure or auto-conf script?  That's right.  Because the
-architecture specific stuff is all set with a file in the "src/make"
-directory, and because this never "installs" anything to a location
-outside this directory tree, and because this is nearly all very
-vanilla ANSI C, these tools don't seem very necessary.  If you want
-to write such scripts, I'll happily add them to the distribution.
-
-However, you may need to alter the appropriate architecture-specific
-".mk" file in the "src/make" directory.  This is unlikely.  If you
-feel there is a bug in those files, please email me at
-gk@cs.utah.edu
+For the time being, you may need to alter the appropriate
+architecture-specific ".mk" file in the "src/make" directory.  This is
+unlikely.  If you feel there is a bug in those files, please email me
+at gk@cs.utah.edu
 
 =============== General Info
 
 These libraries and utilities are written by Gordon Kindlmann in
 support of his research.  Other people have also found them useful.
 
-I'm using CVS so that I have more discipline about how I write my own
-code, and also to facilitate other people getting it and contributing
-bug fixes.
-
 I consider the software in this CVS tree to be relatively stable and
 well-tested, unlike the many other libraries which I'm currently
 working on.  While I am open to the idea of adding new wrappers,
-extensions, or libraries to teem, please keep in mind that they will
-undergo my scrutiny before they will be added to the official CVS
-tree.
+extensions, or libraries to teem, please keep in mind that I will
+scrutinize with great scepticism any such additions to the CVS
+repository.
 
 Much of teem would be better re-written in C++.  But not the majority
 of it.  C is a small language, and a simple language, and I know
@@ -99,10 +89,11 @@ src/
   source for the libraries is in here.  There is also a "src/make/"
   directory which is just for makefile (.mk) files.
 include/
-  the include (.h) files for all the libraries (such as nrrd.h)
-  get put here (but don't originate from here).  There are also
-  some short header files that are used to verify the correct
+  Some short header files that are used to verify the correct
   setting of compiler variables, such as TEEM_ENDIAN.
+include/teem/
+  The include (.h) files for all the libraries (such as nrrd.h)
+  get put here (but don't originate from here).  
 irix6.64/
 irix6.n32/
 linux.32/
@@ -147,6 +138,8 @@ aspects of GNU style (http://www.gnu.org/prep/standards.html) which I like:
 - Try to avoid assignments inside if-conditional.
 
 other:
+- make sure that error detection code is as seperate as possible
+  from code which gets something done (a sort of preamble of asserts)
 - Spell-check all comments.
 - No constants embedding in code- either use #defines or enums.
 - to distinguish between a continuous (float) variable and one (int) which
