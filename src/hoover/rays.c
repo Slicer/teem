@@ -323,6 +323,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   _hooverThreadArg *errArg;
 #if TEEM_PTHREAD
   pthread_t thread[HOOVER_THREAD_MAX];
+  pthread_attr_t attr;
 #endif
 
   void *renderInfo;
@@ -373,8 +374,12 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
      errArg->whichErr */
 
 #ifdef TEEM_PTHREAD
+  pthread_attr_init(&attr);
+#  ifdef __sgi
+  pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
+#  endif
   for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
-    if ((ret = pthread_create(&thread[threadIdx], NULL, _hooverThreadBody, 
+    if ((ret = pthread_create(&thread[threadIdx], &attr, _hooverThreadBody, 
 			      (void *) &args[threadIdx]))) {
       *errCodeP = ret;
       *errThreadP = threadIdx;
