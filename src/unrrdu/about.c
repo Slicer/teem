@@ -87,7 +87,8 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
   sprintf(fmt, "%%%ds\n",
 	  (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
-  sprintf(buff, "(teem version %s)", airTeemVersion);
+  sprintf(buff, "(teem version %s, %s)",
+	  airTeemVersion, airTeemReleaseDate);
   sprintf(fmt, "%%%ds\n",
 	  (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);

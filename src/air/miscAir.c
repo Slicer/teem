@@ -37,12 +37,15 @@ const char airMyFmt_size_t[] = "%lu";
 
 /*
 ******** airTeemVersion
+******** airTeemReleaseDate
 **
 ** updated with each release to contain a string representation of 
-** the teem version number.  Originated in version 1.5.
+** the teem version number and release date.  Originated in version 1.5.
 */
 const char *
-airTeemVersion = "1.5";
+airTeemVersion = "1.5 pre-release";
+const char *
+airTeemReleaseDate = "8 July 2003";
 
 /*
 ******** airSrand()

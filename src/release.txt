@@ -1,5 +1,7 @@
 Things to do with each teem release:
 
+-2) update airTeemVersion and airTeemReleaseDate in air/misc.c
+
 -1) Bring documentation up-to-date with source tree
 (in teem top-level)
 make sure all the unrrdu pages agree with unu usage info
