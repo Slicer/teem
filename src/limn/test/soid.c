@@ -22,18 +22,46 @@
 
 char *info = ("Render a single ellipsoid in postscript.");
 
+void
+washQtoM3(float m[9], float q[4]) {
+  float p[4], w, x, y, z, len;
+
+  ELL_4V_COPY(p, q);
+  len = ELL_4V_LEN(p);
+  ELL_4V_SCALE(p, 1.0/len, p);
+  w = p[0];
+  x = p[1];
+  y = p[2];
+  z = p[3];
+  /* mathematica work implies that we should be 
+     setting ROW vectors here */
+  ELL_3V_SET(m+0, 
+	     1 - 2*(y*y + z*z),
+	     2*(x*y - w*z),
+	     2*(x*z + w*y));
+  ELL_3V_SET(m+3,
+	     2*(x*y + w*z),
+	     1 - 2*(x*x + z*z),
+	     2*(y*z - w*x));
+  ELL_3V_SET(m+6,
+	     2*(x*z - w*y),
+	     2*(y*z + w*x),
+	     1 - 2*(x*x + y*y));
+}
+
 int
 main(int argc, char *argv[]) {
   char *me, *err, *outS;
   limnCamera *cam;
-  float matA[16], matB[16], sc[3], rad, edgeWidth[5];
+  float p[3], q[4], mR[9], eval[3], len, sh, cl, cp, qA, qB;
+  float matA[16], matB[16], os, sc[3], rad, edgeWidth[5];
   hestOpt *hopt=NULL;
   airArray *mop;
   limnObj *obj;
   limnSP *sp;
   limnPart *r;
   limnWin *win;
-  int ri, si, res;
+  int ri, si, res, axis, sphere;
   Nrrd *nmap;
 
   mop = airMopNew();
@@ -62,10 +90,19 @@ main(int argc, char *argv[]) {
 	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "sc", "scalings", airTypeFloat, 3, 3, sc, "1 1 1",
 	     "axis-aligned scaling to do on ellipsoid");
+  hestOptAdd(&hopt, "os", "over-all scaling", airTypeFloat, 1, 1, &os, "1",
+	     "over-all scaling (multiplied by scalings)");
+  hestOptAdd(&hopt, "sh", "superquad sharpness", airTypeFloat, 1, 1, &sh, "0",
+	     "how much to sharpen edges as a "
+	     "function of differences between eigenvalues");
+  hestOptAdd(&hopt, "sphere", NULL, airTypeInt, 0, 0, &sphere, NULL,
+	     "none of this superquadric crap: use a sphere, dammit");
+  hestOptAdd(&hopt, "p", "x y z", airTypeFloat, 3, 3, p, "0 0 0",
+	     "location in quaternion quotient space");
   hestOptAdd(&hopt, "r", "radius", airTypeFloat, 1, 1, &rad, "0.015",
-	     "black axis cylinder radius");
+	     "black axis cylinder radius (or 0.0 to not drawn these)");
   hestOptAdd(&hopt, "res", "resolution", airTypeInt, 1, 1, &res, "25",
-	     "black axis cylinder radius");
+	     "tesselation resolution for both glyph and axis cylinders");
   hestOptAdd(&hopt, "wd", "3 widths", airTypeFloat, 3, 3, edgeWidth + 2,
 	     "1.5 0.7 0.0",
 	     "width of edges drawn for three kinds of "
@@ -101,68 +138,101 @@ main(int argc, char *argv[]) {
   ELL_3V_SET(sp->k, 1, 0, 0);
   sp->spec = 0;
 
-  ri = limnObjPolarSphereAdd(obj, 0, 0, 2*res, res);
+  q[0] = 1.0;
+  q[1] = p[0];
+  q[2] = p[1];
+  q[3] = p[2];
+  len = ELL_4V_LEN(q);
+  ELL_4V_SCALE(q, 1.0/len, q);
+  washQtoM3(mR, q);
+
+  sc[0] *= os; sc[1] *= os; sc[2] *= os;
+  ELL_3V_COPY(eval, sc);
+  ELL_SORT3(eval[0], eval[1], eval[2], cl);
+  cl = (eval[0] - eval[1])/(eval[0] + eval[1] + eval[2]);
+  cp = 2*(eval[1] - eval[2])/(eval[0] + eval[1] + eval[2]);
+  if (cl > cp) {
+    axis = ELL_MAX3_IDX(sc[0], sc[1], sc[2]);
+    qA = pow(1-cp, sh);
+    qB = pow(1-cl, sh);
+  } else {
+    axis = ELL_MIN3_IDX(sc[0], sc[1], sc[2]);
+    qA = pow(1-cl, sh);
+    qB = pow(1-cp, sh);
+  }
+  fprintf(stderr, "eval = %g %g %g -> cl=%g %s cp=%g -> axis = %d\n",
+	  eval[0], eval[1], eval[2], cl, cl > cp ? ">" : "<", cp, axis);
+
+  if (sphere) {
+    ri = limnObjPolarSphereAdd(obj, 0, 0, 2*res, res);
+  } else {
+    ri = limnObjPolarSuperquadAdd(obj, 0, axis, qA, qB, 2*res, res);
+  }
   r = obj->r + ri; ELL_4V_SET(r->rgba, 1, 1, 1, 1);
   ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, sc[0], sc[1], sc[2]); ell_4m_post_mul_f(matA, matB);
-  limnObjPartTransform(obj, ri, matA);
-
-  ri = limnObjCylinderAdd(obj, 1, 0, res);
-  r = obj->r + ri; ELL_4V_SET(r->rgba, 0, 0, 0, 1);
-  ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, (1-sc[0])/2, rad, rad);
+  ELL_4M_SCALE_SET(matB, sc[0], sc[1], sc[2]);
   ell_4m_post_mul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, (1+sc[0])/2, 0.0, 0.0); 
+  ELL_43M_INSET(matB, mR);
   ell_4m_post_mul_f(matA, matB);
   limnObjPartTransform(obj, ri, matA);
 
-  ri = limnObjCylinderAdd(obj, 1, 0, res);
-  r = obj->r + ri; ELL_4V_SET(r->rgba, 0, 0, 0, 1);
-  ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, (1-sc[0])/2, rad, rad);
-  ell_4m_post_mul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, -(1+sc[0])/2, 0.0, 0.0); 
-  ell_4m_post_mul_f(matA, matB);
-  limnObjPartTransform(obj, ri, matA);
-
-
-  ri = limnObjCylinderAdd(obj, 1, 1, res);
-  r = obj->r + ri; ELL_4V_SET(r->rgba, 0, 0, 0, 1);
-  ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, rad, (1-sc[1])/2, rad);
-  ell_4m_post_mul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, (1+sc[1])/2, 0.0); 
-  ell_4m_post_mul_f(matA, matB);
-  limnObjPartTransform(obj, ri, matA);
-
-  ri = limnObjCylinderAdd(obj, 1, 1, res);
-  r = obj->r + ri; ELL_4V_SET(r->rgba, 0, 0, 0, 1);
-  ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, rad, (1-sc[1])/2, rad);
-  ell_4m_post_mul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, -(1+sc[1])/2, 0.0); 
-  ell_4m_post_mul_f(matA, matB);
-  limnObjPartTransform(obj, ri, matA);
-
-
-  ri = limnObjCylinderAdd(obj, 1, 2, res);
-  r = obj->r + ri; ELL_4V_SET(r->rgba, 0, 0, 0, 1);
-  ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, rad, rad, (1-sc[2])/2);
-  ell_4m_post_mul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, (1+sc[2])/2); 
-  ell_4m_post_mul_f(matA, matB);
-  limnObjPartTransform(obj, ri, matA);
-
-  ri = limnObjCylinderAdd(obj, 1, 2, res);
-  r = obj->r + ri; ELL_4V_SET(r->rgba, 0, 0, 0, 1);
-  ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, rad, rad, (1-sc[2])/2);
-  ell_4m_post_mul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, -(1+sc[2])/2); 
-  ell_4m_post_mul_f(matA, matB);
-  limnObjPartTransform(obj, ri, matA);
-
+  if (rad) {
+    ri = limnObjCylinderAdd(obj, 1, 0, res);
+    r = obj->r + ri; ELL_4V_SET(r->rgba, 0, 0, 0, 1);
+    ELL_4M_IDENTITY_SET(matA);
+    ELL_4M_SCALE_SET(matB, (1-sc[0])/2, rad, rad);
+    ell_4m_post_mul_f(matA, matB);
+    ELL_4M_TRANSLATE_SET(matB, (1+sc[0])/2, 0.0, 0.0); 
+    ell_4m_post_mul_f(matA, matB);
+    limnObjPartTransform(obj, ri, matA);
+    
+    ri = limnObjCylinderAdd(obj, 1, 0, res);
+    r = obj->r + ri; ELL_4V_SET(r->rgba, 0, 0, 0, 1);
+    ELL_4M_IDENTITY_SET(matA);
+    ELL_4M_SCALE_SET(matB, (1-sc[0])/2, rad, rad);
+    ell_4m_post_mul_f(matA, matB);
+    ELL_4M_TRANSLATE_SET(matB, -(1+sc[0])/2, 0.0, 0.0); 
+    ell_4m_post_mul_f(matA, matB);
+    limnObjPartTransform(obj, ri, matA);
+    
+    
+    ri = limnObjCylinderAdd(obj, 1, 1, res);
+    r = obj->r + ri; ELL_4V_SET(r->rgba, 0, 0, 0, 1);
+    ELL_4M_IDENTITY_SET(matA);
+    ELL_4M_SCALE_SET(matB, rad, (1-sc[1])/2, rad);
+    ell_4m_post_mul_f(matA, matB);
+    ELL_4M_TRANSLATE_SET(matB, 0.0, (1+sc[1])/2, 0.0); 
+    ell_4m_post_mul_f(matA, matB);
+    limnObjPartTransform(obj, ri, matA);
+    
+    ri = limnObjCylinderAdd(obj, 1, 1, res);
+    r = obj->r + ri; ELL_4V_SET(r->rgba, 0, 0, 0, 1);
+    ELL_4M_IDENTITY_SET(matA);
+    ELL_4M_SCALE_SET(matB, rad, (1-sc[1])/2, rad);
+    ell_4m_post_mul_f(matA, matB);
+    ELL_4M_TRANSLATE_SET(matB, 0.0, -(1+sc[1])/2, 0.0); 
+    ell_4m_post_mul_f(matA, matB);
+    limnObjPartTransform(obj, ri, matA);
+    
+    
+    ri = limnObjCylinderAdd(obj, 1, 2, res);
+    r = obj->r + ri; ELL_4V_SET(r->rgba, 0, 0, 0, 1);
+    ELL_4M_IDENTITY_SET(matA);
+    ELL_4M_SCALE_SET(matB, rad, rad, (1-sc[2])/2);
+    ell_4m_post_mul_f(matA, matB);
+    ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, (1+sc[2])/2); 
+    ell_4m_post_mul_f(matA, matB);
+    limnObjPartTransform(obj, ri, matA);
+    
+    ri = limnObjCylinderAdd(obj, 1, 2, res);
+    r = obj->r + ri; ELL_4V_SET(r->rgba, 0, 0, 0, 1);
+    ELL_4M_IDENTITY_SET(matA);
+    ELL_4M_SCALE_SET(matB, rad, rad, (1-sc[2])/2);
+    ell_4m_post_mul_f(matA, matB);
+    ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, -(1+sc[2])/2); 
+    ell_4m_post_mul_f(matA, matB);
+    limnObjPartTransform(obj, ri, matA);
+  }
 
   win = limnWinNew(limnDevicePS);
   ELL_5V_COPY(win->ps.edgeWidth, edgeWidth);

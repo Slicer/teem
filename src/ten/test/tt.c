@@ -23,17 +23,28 @@
 char *info = ("Sample space of tensor orientation.");
 
 void
-_cap2xyz(double xyz[3], double ca, double cp) {
+_cap2xyz(double xyz[3], double ca, double cp, int version) {
   double cl, cs;
   
   cs = 1 - ca;
   cl = 1 - cs - cp;
+  /*
   xyz[0] = cs*0.333 + cl*1.0 + cp*0.5;
   xyz[1] = cs*0.333 + cl*0.0 + cp*0.5;
   xyz[2] = cs*0.333 + cl*0.0 + cp*0.0;
   xyz[0] = AIR_AFFINE(0, ca, 1, 1.1*xyz[0], 0.86*xyz[0]);
   xyz[1] = AIR_AFFINE(0, ca, 1, 1.1*xyz[1], 0.86*xyz[1]);
   xyz[2] = AIR_AFFINE(0, ca, 1, 1.1*xyz[2], 0.86*xyz[2]);
+  */
+  if (1 == version) {
+    xyz[0] = (3 + 3*cl - cs)/6;
+    xyz[1] = (2 - 2*cl + cp)/6;
+    xyz[2] = 2*cs/6;
+  } else {
+    xyz[0] = 1;
+    xyz[1] = 1 - cl;
+    xyz[2] = cs;
+  }
 }
 
 void
@@ -69,10 +80,10 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
   
-  int xi, yi, samp;
+  int xi, yi, samp, version;
   float *tdata;
   double p[3], xyz[3], q[4], len, hackcp, maxca;
-  double ca, cp, mD[9], mRF[9], mRI[9], mT[9];
+  double ca, cp, mD[9], mRF[9], mRI[9], mT[9], hack;
   Nrrd *nten;
   mop = airMopNew();
   
@@ -83,6 +94,11 @@ main(int argc, char *argv[]) {
 	     "location in quaternion quotient space");
   hestOptAdd(&hopt, "ca", "max ca", airTypeDouble, 1, 1, &maxca, "0.8",
 	     "maximum ca to use at bottom edge of triangle");
+  hestOptAdd(&hopt, "hack", "hack", airTypeDouble, 1, 1, &hack, "0.04",
+	     "this is a hack");
+  hestOptAdd(&hopt, "v", "version", airTypeInt, 1, 1, &version, "1",
+	     "which version of the Westin metrics to use to parameterize "
+	     "triangle; \"1\" for ISMRM 97, \"2\" for MICCAI 99");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
 	     "output file to save tensors into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
@@ -93,6 +109,11 @@ main(int argc, char *argv[]) {
   nten = nrrdNew();
   airMopAdd(mop, nten, (airMopper)nrrdNuke, airMopAlways);
 
+  if (!( 1 == version || 2 == version )) {
+    fprintf(stderr, "%s: version must be 1 or 2 (not %d)\n", me, version);
+    airMopError(mop); 
+    return 1;
+  }
   if (nrrdMaybeAlloc(nten, nrrdTypeFloat, 4,
 		     7, 2*samp-1, samp, 3)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
@@ -109,11 +130,11 @@ main(int argc, char *argv[]) {
   washQtoM3(mRF, q);
   ELL_3M_TRAN(mRI, mRF);
   for (yi=0; yi<samp; yi++) {
-    ca = AIR_AFFINE(0, yi, samp-1, 0.04, maxca);
-    hackcp = AIR_AFFINE(0, yi, samp-1, 0.04, 0);
+    ca = AIR_AFFINE(0, yi, samp-1, hack, maxca);
+    hackcp = AIR_AFFINE(0, yi, samp-1, hack, 0);
     for (xi=0; xi<=yi; xi++) {
-      cp = AIR_AFFINE(0, xi, samp-1, hackcp, maxca-0.02);
-      _cap2xyz(xyz, ca, cp);
+      cp = AIR_AFFINE(0, xi, samp-1, hackcp, maxca-hack/2.0);
+      _cap2xyz(xyz, ca, cp, version);
       /*
       fprintf(stderr, "%s: (%d,%d) -> (%g,%g) -> %g %g %g\n", me,
 	      yi, xi, ca, cp, xyz[0], xyz[1], xyz[2]);
