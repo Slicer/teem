@@ -55,17 +55,17 @@ enum {
   tenAniso_RA,        /* 11: Bass+Pier's relative anisotropy */
   tenAniso_FA,        /* 12: (Bass+Pier's fractional anisotropy)/sqrt(2) */
   tenAniso_VF,        /* 13: volume fraction = 1-(Bass+Pier's volume ratio) */
-  tenAniso_Q,         /* 14: radius of root circle is 2*sqrt(Q/9) 
-		             (this is 9 times proper Q in cubic solution) */
-  tenAniso_R,         /* 15: phase of root circle is acos(R/Q^3) */
-  tenAniso_S,         /* 16: sqrt(Q^3 - R^2) */
-  tenAniso_Th,        /* 17: R/Q^3 */
-  tenAniso_Cz,        /* 18: Zhukov's invariant-based anisotropy metric */
-  tenAniso_Det,       /* 19: plain old determinant */
-  tenAniso_Tr,        /* 20: plain old trace */
+  tenAniso_Q,         /* 14: radius of root circle is 2*sqrt(Q) */
+  tenAniso_R,         /* 15: half of third moment of eigenvalues */
+  tenAniso_S,         /* 16: frobenius norm, squared */
+  tenAniso_Skew,      /* 17: R/sqrt(2*Q^3) */
+  tenAniso_Th,        /* 18: acos(sqrt(2)*skew)/3 */
+  tenAniso_Cz,        /* 19: Zhukov's invariant-based anisotropy metric */
+  tenAniso_Det,       /* 20: plain old determinant */
+  tenAniso_Tr,        /* 21: plain old trace */
   tenAnisoLast
 };
-#define TEN_ANISO_MAX    20
+#define TEN_ANISO_MAX    21
 
 /*
 ******** tenGlyphType* enum
@@ -458,7 +458,8 @@ TEEM_API int tenSimulate(Nrrd *ndwi, Nrrd *nT2, Nrrd *nten,
 /* aniso.c */
 TEEM_API float tenAnisoSigma;  /* added to denominator in Westin anisos */
 TEEM_API void tenAnisoCalc(float c[TEN_ANISO_MAX+1], float eval[3]);
-TEEM_API int tenAnisoPlot(Nrrd *nout, int aniso, int res, int whole);
+TEEM_API int tenAnisoPlot(Nrrd *nout, int aniso, int res,
+			  int whole, int nanout);
 TEEM_API int tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, float thresh);
 TEEM_API int tenAnisoHistogram(Nrrd *nout, Nrrd *nin,
 			       int version, int resolution);

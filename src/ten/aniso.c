@@ -91,13 +91,11 @@ tenAnisoCalc(float c[TEN_ANISO_MAX+1], float e[3]) {
   A = (-e0 - e1 - e2);
   B = e0*e1 + e0*e2 + e1*e2;
   C = -e0*e1*e2;
-  /* this is 9*Q, where 2*sqrt(Q) is the actual root radius */
-  c[tenAniso_Q] = A*A - 3*B;
-  Q = c[tenAniso_Q]/9.0;
-  c[tenAniso_R] = 2*A*A*A - 9*A*B + 27*C;
-  R = c[tenAniso_R]/54.0;
-  c[tenAniso_S] = sqrt(Q*Q*Q - R*R);
-  c[tenAniso_Th] = R/sqrt(Q*Q*Q);
+  Q = c[tenAniso_Q] = (A*A - 3*B)/9;
+  R = c[tenAniso_R] = (2*A*A*A - 9*A*B + 27*C)/54;
+  c[tenAniso_S] = e0*e0 + e1*e1 + e2*e2;
+  c[tenAniso_Skew] = R/sqrt(tenAnisoSigma + 2*Q*Q*Q);
+  c[tenAniso_Th] = acos(sqrt(2)*c[tenAniso_Skew])/3;
   c[tenAniso_Cz] = ((e0 + e1)/(tenAnisoSigma + e2) 
 		    + (e1 + e2)/(tenAnisoSigma + e0) 
 		    + (e0 + e2)/(tenAnisoSigma + e1))/6;
@@ -107,7 +105,7 @@ tenAnisoCalc(float c[TEN_ANISO_MAX+1], float e[3]) {
 }
 
 int
-tenAnisoPlot(Nrrd *nout, int aniso, int res, int whole) {
+tenAnisoPlot(Nrrd *nout, int aniso, int res, int whole, int nanout) {
   char me[]="tenAnisoMap", err[AIR_STRLEN_MED];
   float *out, c[TEN_ANISO_MAX+1], tmp;
   int x, y;
@@ -150,6 +148,11 @@ tenAnisoPlot(Nrrd *nout, int aniso, int res, int whole) {
       ELL_SORT3(e[0], e[1], e[2], tmp); /* got some warnings w/out this */
       tenAnisoCalc(c, e);
       out[x + res*y] = c[aniso];
+    }
+    if (nanout) {
+      for (x=y+1; x<res; x++) {
+	out[x + res*y] = AIR_NAN;
+      }
     }
   }
 

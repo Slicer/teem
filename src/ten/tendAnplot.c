@@ -34,7 +34,7 @@ tend_anplotMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int res, aniso, whole;
+  int res, aniso, whole, nanout;
   Nrrd *nout;
   char *outS;
 
@@ -45,6 +45,9 @@ tend_anplotMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "instead of just the "
 	     "sixth of it in which the eigenvalues have the "
 	     "traditional sorted order. ");
+  hestOptAdd(&hopt, "nan", NULL, airTypeInt, 0, 0, &nanout, NULL,
+	     "set the pixel values outside the triangle to be NaN, "
+	     "instead of 0");
   hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &aniso, NULL,
 	     "Which anisotropy metric to plot.  " TEN_ANISO_DESC,
 	     NULL, tenAniso);
@@ -59,7 +62,7 @@ tend_anplotMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (tenAnisoPlot(nout, aniso, res, whole)) {
+  if (tenAnisoPlot(nout, aniso, res, whole, nanout)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making plot:\n%s\n", me, err);
     airMopError(mop); return 1;
