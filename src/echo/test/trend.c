@@ -22,12 +22,16 @@
 
 void
 makeSceneBVH(limnCam *cam, EchoParam *param,
-	       EchoObject *scene, airArray *lightArr) {
+	     EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *sphere, *rect;
   EchoLight *light;
   int i, N;
   float r, g, b;
+  EchoObject *scene; airArray *lightArr;
   
+  *sceneP = scene = echoObjectNew(echoObjectList);
+  *lightArrP = lightArr = echoLightArrayNew();
+
   ELL_3V_SET(cam->from, 10, 20, 30);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, 0, 1);
@@ -79,10 +83,14 @@ makeSceneBVH(limnCam *cam, EchoParam *param,
 
 void
 makeSceneGlass(limnCam *cam, EchoParam *param,
-	       EchoObject *scene, airArray *lightArr) {
+	       EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *cube, *rect;
   EchoLight *light;
+  EchoObject *scene; airArray *lightArr;
   
+  *sceneP = scene = echoObjectNew(echoObjectList);
+  *lightArrP = lightArr = echoLightArrayNew();
+
   ELL_3V_SET(cam->from, 2, -2, 7.5);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, 1, 0);
@@ -154,10 +162,14 @@ makeSceneGlass(limnCam *cam, EchoParam *param,
 
 void
 makeSceneGlassMetal(limnCam *cam, EchoParam *param,
-		    EchoObject *scene, airArray *lightArr) {
+		    EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *sphere, *cube, *rect;
   EchoLight *light;
+  EchoObject *scene; airArray *lightArr;
   
+  *sceneP = scene = echoObjectNew(echoObjectList);
+  *lightArrP = lightArr = echoLightArrayNew();
+
   ELL_3V_SET(cam->from, 3, 0, 6);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   -1, 0, 0);
@@ -250,9 +262,13 @@ makeSceneGlassMetal(limnCam *cam, EchoParam *param,
 
 void
 makeSceneShadow(limnCam *cam, EchoParam *param,
-		EchoObject *scene, airArray *lightArr) {
+		EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *sphere, *rect, *tri;
   EchoLight *light;
+  EchoObject *scene; airArray *lightArr;
+
+  *sceneP = scene = echoObjectNew(echoObjectList);
+  *lightArrP = lightArr = echoLightArrayNew();
 
   ELL_3V_SET(cam->from, 2, 0, 20);
   ELL_3V_SET(cam->at,   0, 0, 0);
@@ -339,12 +355,16 @@ makeSceneShadow(limnCam *cam, EchoParam *param,
 
 void
 makeSceneRainLights(limnCam *cam, EchoParam *param,
-		    EchoObject *scene, airArray *lightArr) {
+		    EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *sphere, *rect;
   EchoLight *light;
   int i, N;
   echoPos_t w;
   float r, g, b;
+  EchoObject *scene; airArray *lightArr;
+
+  *sceneP = scene = echoObjectNew(echoObjectList);
+  *lightArrP = lightArr = echoLightArrayNew();
 
   ELL_3V_SET(cam->from, 2, 0, 4);
   ELL_3V_SET(cam->at,   0, 0, 0);
@@ -436,12 +456,6 @@ main(int argc, char **argv) {
   state = echoGlobalStateNew();
   airMopAdd(mop, state, (airMopper)echoGlobalStateNix, airMopAlways);
 
-  scene = echoObjectNew(echoObjectList);
-  airMopAdd(mop, scene, (airMopper)echoObjectNix, airMopAlways);
-  
-  lightArr = echoLightArrayNew();
-  airMopAdd(mop, lightArr, (airMopper)echoLightArrayNix, airMopAlways);
-
   nraw = nrrdNew();
   nimg = nrrdNew();
   nppm = nrrdNew();
@@ -453,11 +467,13 @@ main(int argc, char **argv) {
   airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, npgm, (airMopper)nrrdNuke, airMopAlways);
 
-  /* makeSceneRainLights(cam, param, scene, lightArr); */
-  /* makeSceneShadow(cam, param, scene, lightArr); */
-  /* makeSceneGlassMetal(cam, param, scene, lightArr); */
-  /* makeSceneGlass(cam, param, scene, lightArr);  */
-  makeSceneBVH(cam, param, scene, lightArr);
+  /* makeSceneRainLights(cam, param, &scene, &lightArr); */
+  /* makeSceneShadow(cam, param, &scene, &lightArr); */
+  /* makeSceneGlassMetal(cam, param, &scene, &lightArr); */
+  /* makeSceneGlass(cam, param, &scene, &lightArr);  */
+  makeSceneBVH(cam, param, &scene, &lightArr);
+  airMopAdd(mop, scene, (airMopper)echoObjectNix, airMopAlways);
+  airMopAdd(mop, lightArr, (airMopper)echoLightArrayNix, airMopAlways);
 
   E = 0;
   if (!E) E |= echoRender(nraw, cam, param, state, scene, lightArr);
