@@ -214,7 +214,7 @@ tenBMatrixCheck(Nrrd *nbmat) {
 ** narrower then stdev for brain
 */
 int
-_tenFindValley(float *valP, Nrrd *nhist, float tweak) {
+_tenFindValley(float *valP, Nrrd *nhist, float tweak, int save) {
   char me[]="_tenFindValley", err[AIR_STRLEN_MED];
   double gparm[NRRD_KERNEL_PARMS_NUM], dparm[NRRD_KERNEL_PARMS_NUM];
   Nrrd *ntmpA, *ntmpB, *nhistD, *nhistDD;
@@ -237,7 +237,7 @@ _tenFindValley(float *valP, Nrrd *nhist, float tweak) {
   airMopAdd(mop, nhistDD=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
 
   bins = nhist->axis[0].size;
-  gparm[0] = bins/50;  /* wacky heuristic for gaussian stdev */
+  gparm[0] = bins/128;  /* wacky heuristic for gaussian stdev */
   gparm[1] = 3;        /* how many stdevs to cut-off at */
   dparm[0] = 1.0;      /* unit spacing */
   dparm[1] = 1.0;      /* B-Spline kernel */
@@ -251,6 +251,10 @@ _tenFindValley(float *valP, Nrrd *nhist, float tweak) {
 			    nrrdKernelBCCubicDD, dparm, &bins, NULL)) {
     sprintf(err, "%s: trouble processing histogram", me);
     biffMove(TEN, err, NRRD), airMopError(mop); return 1;
+  }
+  if (save) {
+    nrrdSave("tmp-histA.nrrd", ntmpA, NULL);
+    nrrdSave("tmp-histB.nrrd", ntmpB, NULL);
   }
   hist = (float*)(ntmpB->data);
   histD = (float*)(nhistD->data);
@@ -280,3 +284,4 @@ _tenFindValley(float *valP, Nrrd *nhist, float tweak) {
   airMopOkay(mop);
   return 0;
 }
+

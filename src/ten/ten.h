@@ -470,7 +470,8 @@ TEEM_API short tenEvqOne(float vec[3], float scl);
 TEEM_API int tenEvqVolume(Nrrd *nout, Nrrd *nin, int which,
 			  int aniso, int scaleByAniso);
 TEEM_API int tenBMatrixCheck(Nrrd *nbmat);
-TEEM_API int _tenFindValley(float *valP, Nrrd *nhist, float tweak);
+TEEM_API int _tenFindValley(float *valP, Nrrd *nhist,
+			    float tweak, int save);
 
 /* fiberMethods.c */
 TEEM_API tenFiberContext *tenFiberContextNew(Nrrd *dtvol);
