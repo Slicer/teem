@@ -69,9 +69,9 @@ BINS.INST := $(call _binI,$(BINS))
 bin/dev: $(BINS.DEV)
 bin/install: $(BINS.INST)
 bin/clean: 
-	$(RM) $(BINS.DEV)
+	$(RM) $(addsuffix $(DOTEXE),$(BINS.DEV))
 bin/clobber: bin/clean
-	$(RM) $(BINS.INST)
+	$(RM) $(addsuffix $(DOTEXE),$(BINS.INST))
 
 ## All the prerequisite usables of the bins, recursivly expanded.  The
 ## calls to need() will work correctly because we've gotten here only

@@ -89,7 +89,7 @@ $(L)/dev : $(call used,$($(L).need)) \
 ##
 $(L)/clean :
 	$(RM) $(call objs.dev,$(_L)) $(call libs.dev,$(_L)) \
-	  $(call tests.dev,$(_L))
+	  $(addsuffix $(DOTEXE),$(call tests.dev,$(_L)))
 
 ## $(L)/clobber undoes $(L)/install.
 ##
