@@ -154,6 +154,11 @@ extern "C" {
 
 #define ELL_3V_LEN(v) (sqrt(ELL_3V_DOT((v),(v))))
 
+#define ELL_3V_DIST(a, b)                    \
+  sqrt(((a)[0] - (b)[0])*((a)[0] - (b)[0]) + \
+       ((a)[1] - (b)[1])*((a)[1] - (b)[1]) + \
+       ((a)[2] - (b)[2])*((a)[2] - (b)[2]))
+
 #define ELL_3V_NORM(v2, v1, length) \
   (length = ELL_3V_LEN(v1), ELL_3V_SCALE(v2, 1.0/length, v1))
 
@@ -232,7 +237,7 @@ extern "C" {
 #define ELL_3M_DIAG_SET(m, a, b, c) \
   ((m)[0] = (a), (m)[4] = (b), (m)[8] = (c))
 
-#define ELL_3M_TRAN(m2, m1) \
+#define ELL_3M_TRANSPOSE(m2, m1) \
   ((m2)[0] = (m1)[0],            \
    (m2)[1] = (m1)[3],            \
    (m2)[2] = (m1)[6],            \
@@ -243,7 +248,7 @@ extern "C" {
    (m2)[7] = (m1)[5],            \
    (m2)[8] = (m1)[8])
 
-#define ELL_3M_TRAN_IP(m, t) \
+#define ELL_3M_TRANSPOSE_IP(m, t) \
   (ELL_SWAP2((m)[1],(m)[3],(t)),  \
    ELL_SWAP2((m)[2],(m)[6],(t)),  \
    ELL_SWAP2((m)[5],(m)[7],(t)))
@@ -336,6 +341,25 @@ extern "C" {
    (m3)[7] = (m1)[1]*(m2)[6] + (m1)[4]*(m2)[7] + (m1)[7]*(m2)[8], \
    (m3)[8] = (m1)[2]*(m2)[6] + (m1)[5]*(m2)[7] + (m1)[8]*(m2)[8])
 
+#define ELL_3M_SCALE_SET(m, x, y, z)  \
+  (ELL_3V_SET((m)+ 0, (x),  0 ,  0 ), \
+   ELL_3V_SET((m)+ 3,  0 , (y),  0 ), \
+   ELL_3V_SET((m)+ 6,  0 ,  0 , (z)))
+
+#define ELL_3M_ROTATE_X_SET(m, th)               \
+  (ELL_3V_SET((m)+ 0,  1 ,     0    ,     0   ), \
+   ELL_3V_SET((m)+ 3,  0 ,  cos(th) , +sin(th)), \
+   ELL_3V_SET((m)+ 6,  0 , -sin(th) ,  cos(th)))
+
+#define ELL_3M_ROTATE_Y_SET(m, th)               \
+  (ELL_3V_SET((m)+ 0,  cos(th) ,  0 , -sin(th)), \
+   ELL_3V_SET((m)+ 3,     0    ,  1 ,     0   ), \
+   ELL_3V_SET((m)+ 6, +sin(th) ,  0 ,  cos(th)))
+
+#define ELL_3M_ROTATE_Z_SET(m, th)               \
+  (ELL_3V_SET((m)+ 0,  cos(th) , +sin(th) ,  0), \
+   ELL_3V_SET((m)+ 3, -sin(th) ,  cos(th) ,  0), \
+   ELL_3V_SET((m)+ 6,     0    ,     0    ,  1))
 
 /*
 ** the 4x4 matrix-related macros assume that the matrix indexing is:
@@ -430,7 +454,7 @@ extern "C" {
    ELL_4V_COPY((m2)+ 8, (m1)+ 8), \
    ELL_4V_COPY((m2)+12, (m1)+12))
 
-#define ELL_4M_TRAN(m2, m1) \
+#define ELL_4M_TRANSPOSE(m2, m1) \
   ((m2)[ 0] = (m1)[ 0],          \
    (m2)[ 1] = (m1)[ 4],          \
    (m2)[ 2] = (m1)[ 8],          \
@@ -448,7 +472,7 @@ extern "C" {
    (m2)[14] = (m1)[11],          \
    (m2)[15] = (m1)[15])
 
-#define ELL_4M_TRAN_IP(m, t)   \
+#define ELL_4M_TRANSPOSE_IP(m, t)   \
   (ELL_SWAP2((m)[ 1],(m)[ 4],(t)),  \
    ELL_SWAP2((m)[ 2],(m)[ 8],(t)),  \
    ELL_SWAP2((m)[ 3],(m)[12],(t)),  \

@@ -173,7 +173,7 @@ _gageVecFilter (gageContext *ctx, gagePerVolume *pvl) {
        in column order, the 1st column currently contains the three
        derivatives of the X component; this should be the 1st row, and
        likewise for the 2nd and 3rd column/rows.  */
-    ELL_3M_TRAN_IP(jac, tmp);
+    ELL_3M_TRANSPOSE_IP(jac, tmp);
   }
 
   return;

@@ -288,7 +288,7 @@ tenMakeOne(float ten[7], float conf, float eval[3], float evec[9]) {
 
   ELL_3M_ZERO_SET(diag);
   ELL_3M_DIAG_SET(diag, eval[0], eval[1], eval[2]);
-  ELL_3M_TRAN(evecT, evec);
+  ELL_3M_TRANSPOSE(evecT, evec);
   ELL_3M_MUL(tmpMat1, diag, evecT);
   ELL_3M_MUL(tmpMat2, evec, tmpMat1);
   ten[0] = conf;
