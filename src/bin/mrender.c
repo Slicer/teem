@@ -441,11 +441,11 @@ int
 main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   hestParm *hparm;
-  int E, Ecode, renorm, base;
+  int E, Ecode, renorm, base, offfr;
   char *me, *errS, *whatS;
   mrendUser *uu;
   airArray *mop;
-  double gmc;
+  double gmc, turn, eye[3], eyedist;
 
   me = argv[0];
   mop = airMopNew();
@@ -462,9 +462,16 @@ main(int argc, char *argv[]) {
              "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")",
              NULL, NULL, &probeKindHestCB);
   limnHestCameraOptAdd(&hopt, uu->hctx->cam,
-                       NULL, "0 0 0", "0 0 1",
-                       NULL, NULL, NULL,
-                       "nan nan", "nan nan", "20");
+		       NULL, "0 0 0", "0 0 1",
+		       NULL, NULL, NULL,
+		       "nan nan", "nan nan", "20");
+  hestOptAdd(&hopt, "offfr", NULL, airTypeInt, 0, 0, &offfr, NULL,
+	     "the given eye point (\"-fr\") is to be interpreted "
+	     "as an offset from the at point.");
+  hestOptAdd(&hopt, "turn", "angle", airTypeDouble, 1, 1, &turn, "0.0",
+	     "angle (degrees) by which to rotate the from point around "
+	     "true up, for making stereo pairs.  Positive means move "
+	     "towards positive U (the right)");
   hestOptAdd(&hopt, "is", "image size", airTypeInt, 2, 2, uu->hctx->imgSize,
              "256 256", "image dimensions");
   hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1,
@@ -535,6 +542,9 @@ main(int argc, char *argv[]) {
           airEnumStr(nrrdMeasure, uu->measr),
           airEnumStr(uu->kind->enm, uu->whatq), uu->kind->name);
   
+  if (offfr) {
+    ELL_3V_INCR(uu->hctx->cam->from, uu->hctx->cam->at);
+  }
   if (limnCameraAspectSet(uu->hctx->cam, 
                           uu->hctx->imgSize[0], uu->hctx->imgSize[1],
                           nrrdCenterCell)
@@ -544,6 +554,30 @@ main(int argc, char *argv[]) {
     airMopError(mop);
     return 1;
   }
+  if (turn) {
+    turn *= AIR_PI/180;
+    ELL_3V_SUB(eye, uu->hctx->cam->from, uu->hctx->cam->at);
+    ELL_3V_NORM(eye, eye, eyedist);
+    ELL_3V_SCALE_ADD2(uu->hctx->cam->from,
+		      cos(turn), eye,
+		      sin(turn), uu->hctx->cam->U);
+    ELL_3V_SCALE(uu->hctx->cam->from, eyedist, uu->hctx->cam->from);
+    if (limnCameraUpdate(uu->hctx->cam)) {
+      airMopAdd(mop, errS = biffGetDone(LIMN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble setting camera (again):\n%s\n", me, errS);
+      airMopError(mop);
+      return 1;
+    }
+  }
+  /*
+  fprintf(stderr, "%s: camera info\n", me);
+  fprintf(stderr, "    U = {%g,%g,%g}\n",
+	  uu->hctx->cam->U[0], uu->hctx->cam->U[1], uu->hctx->cam->U[2]);
+  fprintf(stderr, "    V = {%g,%g,%g}\n",
+	  uu->hctx->cam->V[0], uu->hctx->cam->V[1], uu->hctx->cam->V[2]);
+  fprintf(stderr, "    N = {%g,%g,%g}\n",
+	  uu->hctx->cam->N[0], uu->hctx->cam->N[1], uu->hctx->cam->N[2]);
+  */
 
   /* set remaining fields of hoover context */
   base = uu->kind->baseDim;

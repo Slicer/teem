@@ -34,10 +34,10 @@ main(int argc, char *argv[]) {
   hestParm *hparm=NULL;
   miteUser *muu;
   char *me, *errS, *outS, *shadeStr, *normalStr;
-  int renorm, baseDim, verbPix[2];
+  int renorm, baseDim, verbPix[2], offfr;
   int E, Ecode;
   float ads[3];
-  double gmc;
+  double gmc, turn, eye[3], eyedist;
   Nrrd *nin;
 
   me = argv[0];
@@ -59,14 +59,21 @@ main(int argc, char *argv[]) {
              "one or more transfer functions",
              &(muu->ntxfNum), NULL, nrrdHestNrrd);
   limnHestCameraOptAdd(&hopt, muu->hctx->cam,
-                       NULL, "0 0 0", "0 0 1",
-                       NULL, NULL, NULL,
-                       "nan nan", "nan nan", "20");
+		       NULL, "0 0 0", "0 0 1",
+		       NULL, NULL, NULL,
+		       "nan nan", "nan nan", "20");
+  hestOptAdd(&hopt, "offfr", NULL, airTypeInt, 0, 0, &offfr, NULL,
+	     "the given eye point (\"-fr\") is to be interpreted "
+	     "as an offset from the at point.");
   hestOptAdd(&hopt, "ffr", "fake from", airTypeDouble, 3, 3,
-             &(muu->fakeFrom), "nan nan nan",
-             "eye point to use for view-dependent transfer functions. "
-             "By default (not using this option), the point used is the "
-             "normally specified camera eye point.");
+	     &(muu->fakeFrom), "nan nan nan",
+	     "eye point to use for view-dependent transfer functions. "
+	     "By default (not using this option), the point used is the "
+	     "normally specified camera eye point.");
+  hestOptAdd(&hopt, "turn", "angle", airTypeDouble, 1, 1, &turn, "0.0",
+	     "angle (degrees) by which to rotate the from point around "
+	     "true up, for making stereo pairs.  Positive means move "
+	     "towards positive U (the right)");
   hestOptAdd(&hopt, "am", "ambient", airTypeFloat, 3, 3, muu->lit->amb,
              "1 1 1", "ambient light color");
   hestOptAdd(&hopt, "ld", "light pos", airTypeFloat, 3, 3, muu->lit->_dir[0],
@@ -153,8 +160,11 @@ main(int argc, char *argv[]) {
   gageParmSet(muu->gctx0, gageParmRenormalize, renorm);
   muu->verbUi = verbPix[0];
   muu->verbVi = verbPix[1];
+  if (offfr) {
+    ELL_3V_INCR(muu->hctx->cam->from, muu->hctx->cam->at);
+  }
 
-  muu->nout = nrrdNew();  
+  muu->nout = nrrdNew();
   airMopAdd(mop, muu->nout, (airMopper)nrrdNuke, airMopAlways);
   ELL_3V_SET(muu->lit->col[0], 1, 1, 1);
   muu->lit->on[0] = AIR_TRUE;
@@ -179,6 +189,30 @@ main(int argc, char *argv[]) {
     airMopError(mop);
     return 1;
   }
+  if (turn) {
+    turn *= AIR_PI/180;
+    ELL_3V_SUB(eye, muu->hctx->cam->from, muu->hctx->cam->at);
+    ELL_3V_NORM(eye, eye, eyedist);
+    ELL_3V_SCALE_ADD2(muu->hctx->cam->from,
+		      cos(turn), eye,
+		      sin(turn), muu->hctx->cam->U);
+    ELL_3V_SCALE(muu->hctx->cam->from, eyedist, muu->hctx->cam->from);
+    if (limnCameraUpdate(muu->hctx->cam)) {
+      airMopAdd(mop, errS = biffGetDone(LIMN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble setting camera (again):\n%s\n", me, errS);
+      airMopError(mop);
+      return 1;
+    }
+  }
+  /*
+  fprintf(stderr, "%s: camera info\n", me);
+  fprintf(stderr, "    U = {%g,%g,%g}\n",
+	  muu->hctx->cam->U[0], muu->hctx->cam->U[1], muu->hctx->cam->U[2]);
+  fprintf(stderr, "    V = {%g,%g,%g}\n",
+	  muu->hctx->cam->V[0], muu->hctx->cam->V[1], muu->hctx->cam->V[2]);
+  fprintf(stderr, "    N = {%g,%g,%g}\n",
+	  muu->hctx->cam->N[0], muu->hctx->cam->N[1], muu->hctx->cam->N[2]);
+  */
   strncpy(muu->shadeStr, shadeStr, AIR_STRLEN_MED-1);
   strncpy(muu->normalStr, normalStr, AIR_STRLEN_MED-1);
   muu->shadeStr[AIR_STRLEN_MED-1] = 0;
