@@ -29,8 +29,9 @@ dhistMain(int argc, char **argv, char *me) {
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input nrrd");
-  hestOptAdd(&opt, NULL, "sizeY", airTypeInt, 1, 1, &size, NULL,
-	     "size of output image");
+  hestOptAdd(&opt, "h", "height", airTypeInt, 1, 1, &size, NULL,
+	     "height of output image (horizontal size is determined by "
+	     "number of bins in input histogram).");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
@@ -50,7 +51,7 @@ dhistMain(int argc, char **argv, char *me) {
     return 1;
   }
 
-  SAVE(NULL);
+  SAVE(nout, NULL);
 
   airMopOkay(mop);
   return 0;

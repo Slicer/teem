@@ -27,15 +27,14 @@ int
 heqMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
-  Nrrd *nin, *nout;
+  Nrrd *nrrd;
   int bins, smart;
   airArray *mop;
 
-  OPT_ADD_NIN(nin, "input nrrd");
+  OPT_ADD_NIN(nrrd, "input nrrd");
   hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, NULL,
 	     "# bins to use in histogram that is created in order to "
-	     "calculate the mapping that achieves the equalization. Values "
-	     "around 1024 are good.");
+	     "calculate the mapping that achieves the equalization.");
   hestOptAdd(&opt, "s", "bins", airTypeInt, 0, 1, &smart, "0",
 	     "# bins in value histogram to ignore in calculating the mapping. "
 	     "Bins are ignored when they get more hits than other bins, and "
@@ -51,17 +50,14 @@ heqMain(int argc, char **argv, char *me) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  nout = nrrdNew();
-  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-
-  if (nrrdHistoEq(nout, NULL, bins, smart)) {
+  if (nrrdHistoEq(nrrd, NULL, bins, smart)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble histogram equalizing:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
 
-  SAVE(NULL);
+  SAVE(nrrd, NULL);
 
   airMopOkay(mop);
   return 0;

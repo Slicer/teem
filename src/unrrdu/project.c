@@ -95,7 +95,7 @@ projectMain(int argc, char **argv, char *me) {
     return 1;
   }
 
-  SAVE(NULL);
+  SAVE(nout, NULL);
 
   airMopOkay(mop);
   return 0;

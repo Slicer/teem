@@ -58,6 +58,7 @@ extern hestCB unuNrrdHestCB;
 extern hestCB unuTypeHestCB;
 extern hestCB unuPosHestCB;
 extern hestCB unuBoundaryHestCB;
+extern hestCB unuEncodingHestCB;
 
 typedef struct {
   char *name, *info;
@@ -91,8 +92,8 @@ typedef struct {
     return 1; \
   }
 
-#define SAVE(io) \
-  if (nrrdSave(out, nout, (io))) { \
+#define SAVE(nout, io) \
+  if (nrrdSave(out, (nout), (io))) { \
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways); \
     fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s\n", me, out, err); \
     airMopError(mop); \

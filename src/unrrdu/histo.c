@@ -25,12 +25,15 @@ histoMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int size;
+  int bins, type;
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input nrrd");
-  hestOptAdd(&opt, NULL, "size", airTypeInt, 1, 1, &size, NULL,
-	     "size of output image");
+  hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, NULL,
+	     "# of bins in histogram");
+  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "int",
+	     "type to use for bins in output histogram",
+             NULL, &unuTypeHestCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
@@ -43,14 +46,14 @@ histoMain(int argc, char **argv, char *me) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdHisto(nout, nin, size, nrrdTypeInt)) {
+  if (nrrdHisto(nout, nin, bins, type)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error calculating histogram:\n%s", me, err);
     free(err);
     return 1;
   }
 
-  SAVE(NULL);
+  SAVE(nout, NULL);
 
   airMopOkay(mop);
   return 0;

@@ -74,7 +74,7 @@ void
 hestOptAdd(hestOpt **optP, 
 	   char *flag, char *name,
 	   int type, int min, int max,
-	   void *valueP, char *dflt, char *info, ...) {
+	   void *valueP, const char *dflt, const char *info, ...) {
   hestOpt *ret = NULL;
   int num;
   va_list ap;

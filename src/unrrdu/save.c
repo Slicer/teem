@@ -21,31 +21,6 @@ char *saveName = "save";
 char *saveInfo = "Write nrrd with specific file format or encoding";
 
 int
-unuParseEncoding(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unuParseEncoding";
-  int *encodingP;
-
-  if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  encodingP = ptr;
-  *encodingP = nrrdEnumStrToVal(nrrdEnumEncoding, str);
-  if (nrrdEncodingUnknown == *encodingP) {
-    sprintf(err, "%s: \"%s\" is not a recognized encoding", me, str);
-    return 1;
-  }
-  return 0;
-}
-
-hestCB unuEncodingHestCB = {
-  sizeof(int),
-  "encoding",
-  unuParseEncoding,
-  NULL
-};
-
-int
 unuParseFormat(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="unuParseFormat";
   int *formatP;
@@ -108,7 +83,7 @@ saveMain(int argc, char **argv, char *me) {
   io->format = format;
   io->encoding = encoding;
   
-  SAVE(io);
+  SAVE(nout, io);
 
   airMopOkay(mop);
   return 0;

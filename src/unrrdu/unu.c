@@ -71,8 +71,9 @@ hestParm *hparm;
     That's it.
 **********************************************************/
 #define MAP(F) \
-F(resample) \
+F(make) \
 F(convert) \
+F(resample) \
 F(quantize) \
 F(project) \
 F(slice) \
@@ -90,7 +91,9 @@ F(unblock) \
 F(histo) \
 F(dhist) \
 F(jhist) \
+F(histax) \
 F(heq) \
+F(gamma) \
 F(save)
 /*********************************************************/
 
@@ -241,6 +244,31 @@ hestCB unuBoundaryHestCB = {
   sizeof(int),
   "boundary behavior",
   unuParseBoundary,
+  NULL
+};
+
+int
+unuParseEncoding(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[]="unuParseEncoding";
+  int *encodingP;
+
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  encodingP = ptr;
+  *encodingP = nrrdEnumStrToVal(nrrdEnumEncoding, str);
+  if (nrrdEncodingUnknown == *encodingP) {
+    sprintf(err, "%s: \"%s\" is not a recognized encoding", me, str);
+    return 1;
+  }
+  return 0;
+}
+
+hestCB unuEncodingHestCB = {
+  sizeof(int),
+  "encoding",
+  unuParseEncoding,
   NULL
 };
 
