@@ -100,7 +100,7 @@ enum {
 **
 ** all the things that gage can measure in a scalar volume.  The query is
 ** formed by a bitwise-or of left-shifts of 1 by these values:
-**   (1<<gageSclVal)|(1<<gageSclGradMag)|(1<<gageScl2ndDD)
+**   (1<<gageSclValue)|(1<<gageSclGradMag)|(1<<gageScl2ndDD)
 ** queries for the value, gradient magnitude, and 2nd directional derivative.
 **
 ** NOTE: although it is currently listed that way, it is not necessary
