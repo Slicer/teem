@@ -95,6 +95,7 @@ resampleMain(int argc, char **argv, char *me) {
   NrrdResampleInfo *info;
   NrrdKernelSpec *unuk;
 
+  hparm->elideSingleOtherDefault = AIR_FALSE;
   OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "s", "s0 ", airTypeOther, 1, -1, &scale, NULL,
 	     "For each axis, information about how many samples in output:\n "
@@ -104,8 +105,7 @@ resampleMain(int argc, char **argv, char *me) {
 	     " the number samples in input, multiplied by <float>\n "
 	     "\b\bo \"<int>\": exact number of samples",
 	     &scaleLen, NULL, &unuScaleHestCB);
-  hestOptAdd(&opt, "k", "kern", airTypeOther, 1, 1, &unuk,
-	     "quartic:0.0834",
+  hestOptAdd(&opt, "k", "kern", airTypeOther, 1, 1, &unuk, "quartic:0.0834",
 	     "The kernel to use for resampling.  Possibilities include:\n "
 	     "\b\bo \"box\": nearest neighbor interpolation\n "
 	     "\b\bo \"tent\": linear interpolation\n "
