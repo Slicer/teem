@@ -41,7 +41,7 @@ usage(char *me) {
 int
 main(int argc, char *argv[]) {
   char *me, *kS, *minS, *stepS, *maxS, *outS;
-  NrrdKernel *k;
+  const NrrdKernel *k;
   double parm[NRRD_KERNEL_PARMS_NUM], min, step, max, integral,
     *dom_d, *ran_d;
   float *dom_f, *ran_f, v, r_f, r_d;
