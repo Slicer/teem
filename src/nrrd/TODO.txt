@@ -5,7 +5,7 @@ gaussian kernel,
 sinc kernel,
 pow2pad super function,
 revisit slicer,
-join, split, reshape,
+split, reshape,
 resampling, blurring,  <-- document setting the float param[] vector
 weighted median filter
 
