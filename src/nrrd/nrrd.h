@@ -632,27 +632,29 @@ extern nrrd_export int nrrdKernelTMF_maxD;
 extern nrrd_export int nrrdKernelTMF_maxC;
 extern nrrd_export int nrrdKernelTMF_maxA;
 /* winKernel.c : various kinds of windowed sincs */
-extern nrrd_export NrrdKernel *nrrdKernelHann, /* Hann (cosine-bell) windowed sinc */
-  *nrrdKernelHannD;                /* 1st derivative of Hann windowed since */
-  *nrrdKernelHannDD;               /* 2nd derivative */
-  *nrrdKernelBlackman;             /* Blackman windowed sinc */
-  *nrrdKernelBlackmanD;            /* 1st derivative of Blackman windowed sinc */
-  *nrrdKernelBlackmanDD;           /* 2nd derivative */
+extern nrrd_export NrrdKernel
+  *nrrdKernelHann,               /* Hann (cosine-bell) windowed sinc */
+  *nrrdKernelHannD,              /* 1st derivative of Hann windowed since */
+  *nrrdKernelHannDD,             /* 2nd derivative */
+  *nrrdKernelBlackman,           /* Blackman windowed sinc */
+  *nrrdKernelBlackmanD,          /* 1st derivative of Blackman windowed sinc */
+  *nrrdKernelBlackmanDD;         /* 2nd derivative */
 /* kernel.c */
-extern nrrd_export NrrdKernel *nrrdKernelZero, /* zero everywhere */
-  *nrrdKernelBox,                  /* box filter (nearest neighbor) */
-  *nrrdKernelTent,                 /* tent filter (linear interpolation) */
-  *nrrdKernelForwDiff,             /* forward-difference-ish 1st deriv. */
-  *nrrdKernelCentDiff,             /* central-difference-ish 1st deriv. */
-  *nrrdKernelBCCubic,              /* BC family of cubic polynomial splines */
-  *nrrdKernelBCCubicD,             /* 1st deriv. of BC cubic family */
-  *nrrdKernelBCCubicDD,            /* 2nd deriv. of BC cubic family */
-  *nrrdKernelAQuartic,             /* A family of quartic C2 interp. splines */
-  *nrrdKernelAQuarticD,            /* 1st deriv. of A quartic family */
-  *nrrdKernelAQuarticDD,           /* 2nd deriv. of A quartic family */
-  *nrrdKernelGaussian,             /* Gaussian */
-  *nrrdKernelGaussianD,            /* 1st derivative of Gaussian */
-  *nrrdKernelGaussianDD;           /* 2nd derivative of Gaussian */
+extern nrrd_export NrrdKernel
+  *nrrdKernelZero,               /* zero everywhere */
+  *nrrdKernelBox,                /* box filter (nearest neighbor) */
+  *nrrdKernelTent,               /* tent filter (linear interpolation) */
+  *nrrdKernelForwDiff,           /* forward-difference-ish 1st deriv. */
+  *nrrdKernelCentDiff,           /* central-difference-ish 1st deriv. */
+  *nrrdKernelBCCubic,            /* BC family of cubic polynomial splines */
+  *nrrdKernelBCCubicD,           /* 1st deriv. of BC cubic family */
+  *nrrdKernelBCCubicDD,          /* 2nd deriv. of BC cubic family */
+  *nrrdKernelAQuartic,           /* A family of quartic C2 interp. splines */
+  *nrrdKernelAQuarticD,          /* 1st deriv. of A quartic family */
+  *nrrdKernelAQuarticDD,         /* 2nd deriv. of A quartic family */
+  *nrrdKernelGaussian,           /* Gaussian */
+  *nrrdKernelGaussianD,          /* 1st derivative of Gaussian */
+  *nrrdKernelGaussianDD;         /* 2nd derivative of Gaussian */
 extern int nrrdKernelParse(NrrdKernel **kernelP, double *parm,
 			   const char *str);
 
