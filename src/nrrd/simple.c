@@ -148,7 +148,6 @@ nrrdContentSet (Nrrd *nout, const char *func,
   }
   /* we copy the input nrrd content first, before blowing away the
      output content, in case nout == nin */
-  fprintf(stderr, "!%s: yo: |%s|\n", me, nin->content);
   content = (nin->content ? 
 	     airStrdup(nin->content) : 
 	     airStrdup(nrrdStateUnknownContent));
@@ -157,14 +156,11 @@ nrrdContentSet (Nrrd *nout, const char *func,
     biffAdd(NRRD, err); return 1;
   }
   va_start(ap, format);
-  fprintf(stderr, "!%s: func = |%s|, content = |%s|, format = |%s|\n",
-	  me, func, content, format);
   if (_nrrdContentSet_nva(nout, func, content, format, ap)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); va_end(ap); free(content); return 1;
   }
   va_end(ap);
-  fprintf(stderr, "!%s: done\n", me);
 
   free(content); 
   return 0;

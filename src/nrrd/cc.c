@@ -826,13 +826,10 @@ nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, Nrrd *nin) {
     ins(nout->data, I, map[lup(nin->data, I)]);
   }
 
-  fprintf(stderr, "%s: bingo 0\n", me);
   if (nrrdContentSet(nout, func, nin, "")) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  fprintf(stderr, "%s: bingo 1\n", me);
   airMopOkay(mop); 
-  fprintf(stderr, "%s: bingo\n", me);
   return 0;
 }
