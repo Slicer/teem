@@ -22,6 +22,7 @@
 
 #define MAGIC1 "# vtk DataFile Version 1.0"
 #define MAGIC2 "# vtk DataFile Version 2.0"
+#define MAGIC3 "# vtk DataFile Version 3.0"
 
 int
 _nrrdFormatVTK_available(void) {
@@ -53,19 +54,15 @@ _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
     return AIR_FALSE;
   }
   if (!( nrrdTypeUChar == nrrd->type
-	 || nrrdTypeShort == nrrd->type
+	 || nrrdTypeChar == nrrd->type
 	 || nrrdTypeUShort == nrrd->type
+	 || nrrdTypeShort == nrrd->type
+	 || nrrdTypeUInt == nrrd->type
 	 || nrrdTypeInt == nrrd->type
 	 || nrrdTypeFloat == nrrd->type
 	 || nrrdTypeDouble == nrrd->type )) {
-    sprintf(err, "%s: type must be %s, %s, %s, %s, %s, or %s (not %s)", me,
-	    airEnumStr(nrrdType, nrrdTypeUChar),
-	    airEnumStr(nrrdType, nrrdTypeShort),
-	    airEnumStr(nrrdType, nrrdTypeUShort),
-	    airEnumStr(nrrdType, nrrdTypeInt),
-	    airEnumStr(nrrdType, nrrdTypeFloat),
-	    airEnumStr(nrrdType, nrrdTypeDouble),
-	    airEnumStr(nrrdType, nrrd->type));
+    sprintf(err, "%s: type %s doesn't fit in VTK (as currently implemented)",
+	    me, airEnumStr(nrrdType, nrrd->type));
     biffMaybeAdd(NRRD, err, useBiff); 
     return AIR_FALSE;
   }
@@ -84,7 +81,8 @@ int
 _nrrdFormatVTK_contentStartsLike(NrrdIoState *nio) {
   
   return (!strcmp(MAGIC1, nio->line)
-	  || !strcmp(MAGIC2, nio->line));
+	  || !strcmp(MAGIC2, nio->line)
+	  || !strcmp(MAGIC3, nio->line));
 }
 
 int
@@ -193,10 +191,14 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     }
   } else if (!strcmp(three[2], "unsigned_char")) {
     nrrd->type = nrrdTypeUChar;
+  } else if (!strcmp(three[2], "char")) {
+    nrrd->type = nrrdTypeChar;
   } else if (!strcmp(three[2], "unsigned_short")) {
     nrrd->type = nrrdTypeUShort;
   } else if (!strcmp(three[2], "short")) {
     nrrd->type = nrrdTypeShort;
+  } else if (!strcmp(three[2], "unsigned_int")) {
+    nrrd->type = nrrdTypeUInt;
   } else if (!strcmp(three[2], "int")) {
     nrrd->type = nrrdTypeInt;
   } else if (!strcmp(three[2], "float")) {
@@ -204,6 +206,9 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   } else if (!strcmp(three[2], "double")) {
     nrrd->type = nrrdTypeDouble;
   } else {
+    /* "unsigned_long" and "long" fall in here- I don't know what
+       the VTK people mean by these types, since always mean different
+       things on 32-bit versus 64-bit architectures */
     sprintf(err, "%s: type \"%s\" not recognized", me, three[2]);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
@@ -293,11 +298,17 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   case nrrdTypeUChar:
     strcpy(type, "unsigned_char");
     break;
+  case nrrdTypeChar:
+    strcpy(type, "char");
+    break;
   case nrrdTypeUShort:
     strcpy(type, "unsigned_short");
     break;
   case nrrdTypeShort:
     strcpy(type, "short");
+    break;
+  case nrrdTypeUInt:
+    strcpy(type, "unsigned_int");
     break;
   case nrrdTypeInt:
     strcpy(type, "int");
@@ -313,7 +324,7 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
 	    airEnumStr(nrrdType, nrrd->type));
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  fprintf(file, "%s\n", MAGIC2);
+  fprintf(file, "%s\n", MAGIC3);
   /* there is a file-format-imposed limit on the length of the "content" */
   if (nrrd->content) {
     /* when the "250" below was previously "255", vtk didn't deal */
