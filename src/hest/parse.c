@@ -230,9 +230,9 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
 	  fprintf(stderr, "%s: panic 7\n", me);
 	return 1;
       }
-      if (opt[op].CB->delete && (sizeof(void*) != opt[op].CB->size)) {
+      if (opt[op].CB->destroy && (sizeof(void*) != opt[op].CB->size)) {
 	if (err)
-	  sprintf(err, "%s!!!!!! opt[%d] has a \"delete\", but size isn't "
+	  sprintf(err, "%s!!!!!! opt[%d] has a \"destroy\", but size isn't "
 		  "sizeof(void*)", ME, op);
 	else
 	  fprintf(stderr, "%s: panic 8\n", me);
@@ -711,11 +711,11 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 		      ME, prms[op], opt[op].CB->type, ident, ret);
 	    return 1;
 	  }
-	  if (opt[op].CB->delete) {
+	  if (opt[op].CB->destroy) {
 	    /* vP is the address of a void*, we manage the void * */
 	    opt[op].alloc = 1;
 	    airMopAdd(pmop, (void**)vP, (airMopper)airSetNull, airMopOnError);
-	    airMopAdd(pmop, *((void**)vP), opt[op].CB->delete, airMopOnError);
+	    airMopAdd(pmop, *((void**)vP), opt[op].CB->destroy, airMopOnError);
 	  }
 	  break;
 	default:
@@ -769,13 +769,13 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	    }
 	  }
 	  free(prmsCopy);
-	  if (opt[op].CB->delete) {
+	  if (opt[op].CB->destroy) {
 	    /* vP is an array of void*s, we manage the individual void*s */
 	    opt[op].alloc = 2;
 	    for (p=0; p<=opt[op].min-1; p++) {
 	      airMopAdd(pmop, ((void**)vP)+p, (airMopper)airSetNull,
 			airMopOnError);
-	      airMopAdd(pmop, *(((void**)vP)+p), opt[op].CB->delete,
+	      airMopAdd(pmop, *(((void**)vP)+p), opt[op].CB->destroy,
 			airMopOnError);
 	    }
 	  }
@@ -832,11 +832,11 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 		      ME, prms[op], opt[op].CB->type, ident, ret);
 	    return 1;
 	  }
-	  if (opt[op].CB->delete) {
+	  if (opt[op].CB->destroy) {
 	    /* vP is the address of a void*, we manage the void* */
 	    opt[op].alloc = 1;
 	    airMopAdd(pmop, vP, (airMopper)airSetNull, airMopOnError);
-	    airMopAdd(pmop, *((void**)vP), opt[op].CB->delete, airMopOnError);
+	    airMopAdd(pmop, *((void**)vP), opt[op].CB->destroy, airMopOnError);
 	  }
 	  break;
 	default:
@@ -907,7 +907,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	  case airTypeOther:
 	    cP = *((void**)vP);
 	    prmsCopy = airStrdup(prms[op]);
-	    opt[op].alloc = (opt[op].CB->delete ? 3 : 1);
+	    opt[op].alloc = (opt[op].CB->destroy ? 3 : 1);
 	    for (p=0; p<=nprm[op]-1; p++) {
 	      tok = airStrtok(!p ? prmsCopy : NULL, " ", &last);
 	      strcpy(cberr, "");
@@ -927,13 +927,13 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	      }
 	    }
 	    free(prmsCopy);
-	    if (opt[op].CB->delete) {
+	    if (opt[op].CB->destroy) {
 	      for (p=0; p<=nprm[op]-1; p++) {
 		/* avert your eyes.  vP is the address of an array of void*s.
 		   We manage the void*s */
 		airMopAdd(pmop, (*((void***)vP))+p, (airMopper)airSetNull,
 			  airMopOnError);
-		airMopAdd(pmop, *((*((void***)vP))+p), opt[op].CB->delete,
+		airMopAdd(pmop, *((*((void***)vP))+p), opt[op].CB->destroy,
 			  airMopOnError);
 	      }
 	    }
@@ -1141,10 +1141,10 @@ hestParseFree(hestOpt *opt) {
       }
       else {
 	/* alloc is one either because we parsed one thing, and we have a
-	   delete callback, or, because we parsed a dynamically-created array
-	   of things, and we don't have a delete callback */
-	if (opt[op].CB->delete) {
-	  *vP = opt[op].CB->delete(*vP);
+	   destroy callback, or, because we parsed a dynamically-created array
+	   of things, and we don't have a destroy callback */
+	if (opt[op].CB->destroy) {
+	  *vP = opt[op].CB->destroy(*vP);
 	}
 	else {
 	  *vP = airFree(*vP);
@@ -1159,7 +1159,7 @@ hestParseFree(hestOpt *opt) {
       }
       else {
 	for (i=0; i<=opt[op].min-1; i++) {
-	  vP[i] = opt[op].CB->delete(vP[i]);
+	  vP[i] = opt[op].CB->destroy(vP[i]);
 	}
       }
       break;
@@ -1172,7 +1172,7 @@ hestParseFree(hestOpt *opt) {
       }
       else {
 	for (i=0; i<=*(opt[op].sawP)-1; i++) {
-	  (*vAP)[i] = opt[op].CB->delete((*vAP)[i]);
+	  (*vAP)[i] = opt[op].CB->destroy((*vAP)[i]);
 	}
 	*vAP = airFree(*vAP);
       }

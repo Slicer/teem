@@ -38,7 +38,7 @@ extern "C" {
 ** anything to store individual things, though it may allocate an
 ** array in the case of a multiple variable parameter option.  If your
 ** things are actually pointers to things, then you do the allocation
-** in the parse() callback.  In this case, you set delete() to be your
+** in the parse() callback.  In this case, you set destroy() to be your
 ** "destructor", and it will be called on the result of derefencing the
 ** argument to parse().
 */
@@ -50,7 +50,7 @@ typedef struct {
 			   be called multiple times for multiple parameter
 			   options.  A non-zero return value is considered
 			   an error.  Error message go in the err string */
-  void *(*delete)(void *ptr);
+  void *(*destroy)(void *ptr);
                         /* if non-NULL, this is the destructor that will be
 			   called by hestParseFree() (or by hestParse() if
 			   there is an error midway through parsing).  The
