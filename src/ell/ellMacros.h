@@ -83,6 +83,10 @@
       ? 2                        \
       : 1))
 
+#define _ELL_2_DET(a,b,c,d) ((a)*(d) - (c)*(b))
+
+#define ELL_2M_DET(m) _ELL_2_DET((m)[0],(m)[1],(m)[2],(m)[3])
+
 /*
 ** the 3x3 matrix-related macros assume that the matrix indexing is:
 ** 0  3  6
@@ -185,10 +189,10 @@
    ELL_3V_COPY((m2)+3, (m1)+3), \
    ELL_3V_COPY((m2)+6, (m1)+6))
 
-#define ELL_3M_SET_IDENT(m) \
+#define ELL_3M_SET_IDENTITY(m) \
   (ELL_3V_SET((m)+0,  1 ,  0 ,  0), \
    ELL_3V_SET((m)+3,  0 ,  1 ,  0), \
-   ELL_3V_SET((m)+9,  0 ,  0 ,  1))
+   ELL_3V_SET((m)+6,  0 ,  0 ,  1))
 
 #define ELL_3M_SET_DIAG(m, a, b, c) \
   ((m)[0] = (a), (m)[4] = (b), (m)[8] = (c))
@@ -210,6 +214,18 @@
   (sqrt((m)[0]*(m)[0] + (m)[1]*(m)[1] + (m)[2]*(m)[2] + \
         (m)[3]*(m)[3] + (m)[4]*(m)[4] + (m)[5]*(m)[5] + \
         (m)[6]*(m)[6] + (m)[7]*(m)[7] + (m)[8]*(m)[8]))
+
+#define _ELL_3_DET(a,b,c,d,e,f,g,h,i) \
+  (  (a)*(e)*(i) \
+   + (d)*(h)*(c) \
+   + (g)*(b)*(f) \
+   - (g)*(e)*(c) \
+   - (d)*(b)*(i) \
+   - (a)*(h)*(f))
+
+#define ELL_3M_DET(m) _ELL_3_DET((m)[0],(m)[1],(m)[2],\
+                                 (m)[3],(m)[4],(m)[5],\
+                                 (m)[6],(m)[7],(m)[8])
 
 #define ELL_3MV_GET_COL0(v, m) \
   (ELL_3V_SET((v), (m)[0], (m)[1], (m)[2]))
@@ -433,7 +449,7 @@
    ELL_4V_SET((m)+ 8, (a)[2], (b)[2], (c)[2], (d)[2]), \
    ELL_4V_SET((m)+12, (a)[3], (b)[3], (c)[3], (d)[3]))
 
-#define ELL_4M_SET_IDENT(m) \
+#define ELL_4M_SET_IDENTITY(m) \
   (ELL_4V_SET((m)+ 0,  1 ,  0 ,  0 , 0), \
    ELL_4V_SET((m)+ 4,  0 ,  1 ,  0 , 0), \
    ELL_4V_SET((m)+ 8,  0 ,  0 ,  1 , 0), \
@@ -500,6 +516,20 @@
    (l)[ 4] = (m)[3], (l)[ 5] = (m)[4], (l)[ 6] = (m)[5], (l)[ 7] = 0, \
    (l)[ 8] = (m)[6], (l)[ 9] = (m)[7], (l)[10] = (m)[8], (l)[11] = 0, \
    (l)[12] =   0   , (l)[13] =   0   , (l)[14] =   0   , (l)[15] = 1)
+
+#define ELL_4M_DET(m) \
+  (  (m)[ 0] * _ELL_3_DET((m)[ 5], (m)[ 6], (m)[ 7], \
+                          (m)[ 9], (m)[10], (m)[11], \
+                          (m)[13], (m)[14], (m)[15]) \
+   - (m)[ 4] * _ELL_3_DET((m)[ 1], (m)[ 2], (m)[ 3], \
+                          (m)[ 9], (m)[10], (m)[11], \
+                          (m)[13], (m)[14], (m)[15]) \
+   + (m)[ 8] * _ELL_3_DET((m)[ 1], (m)[ 2], (m)[ 3], \
+                          (m)[ 5], (m)[ 6], (m)[ 7], \
+                          (m)[13], (m)[14], (m)[15]) \
+   - (m)[12] * _ELL_3_DET((m)[ 1], (m)[ 2], (m)[ 3], \
+                          (m)[ 5], (m)[ 6], (m)[ 7], \
+                          (m)[ 9], (m)[10], (m)[11]))
 
 #define ELL_5V_SET(v, a, b, c, d, e) \
   ((v)[0]=(a), (v)[1]=(b), (v)[2]=(c), (v)[3]=(d), (v)[4]=(e))

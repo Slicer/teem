@@ -20,7 +20,7 @@
 
 LIB = ell
 HEADERS = ell.h ellMacros.h
-LIB_OBJS = cubic.o eigen.o misc.o vec.o
+LIB_OBJS = cubic.o eigen.o misc.o vec.o mat.o
 TEST_BINS = test/sort3 test/cubic
 BINS = 
 BIN_LIBS = -lell -lbiff -lair -lm

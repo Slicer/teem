@@ -82,7 +82,7 @@ makeSceneTexture(limnCam *cam, EchoParam *param,
   trim = echoObjectRoughSphere(8, 4, matx);
   echoMatterPhongSet(trim, 1, 1, 1, 1.0,
 		     0.1, 0.5, 0.9, 50);
-  echoMatterTextureSet(trim, ntext);
+  /* echoMatterTextureSet(trim, ntext); */
   echoObjectListAdd(scene, trim);
 
   
