@@ -65,15 +65,15 @@ extern "C" {
 ** set of lines below.
 */
 
-/*
 typedef float gage_t;
 #define gage_nrrdType nrrdTypeFloat
 #define GAGE_TYPE_FLOAT 1
-*/
 
+/*
 typedef double gage_t;
 #define gage_nrrdType nrrdTypeDouble
 #define GAGE_TYPE_FLOAT 0
+*/
 
 /*
 ******** GAGE_FD, GAGE_FR #defines
@@ -496,19 +496,10 @@ typedef struct gageKind_t {
     totalAnsLen,                    /* such as GAGE_SCL_TOTAL_ANS_LENGTH */
     *needDeriv;                     /* such as _gageSclNeedDeriv */
   unsigned int *queryPrereq;        /* such as _gageSclPrereq; */
-  void (*queryPrint)(FILE *,        /* such as _gageSclPrint_query() */
-		     unsigned int), 
 
-  /* when bricking is supported in nrrd, it will also have to be supported
-     in gage, but the only place that will have to be bricking-aware is
-     the iv3Fill method in the kind: once the iv3 is filled, everything
-     else is unchanged */
-    (*iv3Fill)(gageContext *,       /* such as _gageSclIv3Fill() */
-	       gagePerVolume *),
-
-    (*iv3Print)(FILE *,             /* such as _gageSclIv3Print() */
-		gageContext *,
-		gagePerVolume *),
+  void (*iv3Print)(FILE *,          /* such as _gageSclIv3Print() */
+		   gageContext *,
+		   gagePerVolume *),
     (*filter)(gageContext *,        /* such as _gageSclFilter() */
 	      gagePerVolume *),
     (*answer)(gageContext *,        /* such as _gageSclAnswer() */
@@ -518,8 +509,14 @@ typedef struct gageKind_t {
 
 /* the "answer structs" are gone- now we're just using the bare array
    "ans" in the gagePerVolume, more easily used with help from
-   gageAnswerPointer() */
+   gageAnswerPointer() or ... */
 
+/*
+******** #define GAGE_ANSWER_POINTER()
+**
+** a non-error-checking version of gageAnswerPointer()
+*/
+#define GAGE_ANSWER_POINTER(pvl, m) ((pvl)->ans + (pvl)->kind->ansOffset[(m)])
 
 /* defaultsGage.c */
 extern gage_export int gageDefVerbose;
@@ -543,6 +540,24 @@ extern gage_export gage_t gageZeroNormal[3];
 extern gage_export airEnum *gageKernel;
 extern void gageParmReset(gageParm *parm);
 extern void gagePointReset(gagePoint *point);
+
+/* print.c */
+extern void gageQueryPrint(FILE *file, gageKind *kind, unsigned int query);
+
+/* sclfilter.c */
+extern void gageScl3PFilter2(gage_t *iv3, gage_t *iv2, gage_t *iv1,
+			     gage_t *fw00, gage_t *fw11, gage_t *fw22,
+			     gage_t *val, gage_t *gvec, gage_t *hess,
+			     int doV, int doD1, int doD2);
+extern void gageScl3PFilter4(gage_t *iv3, gage_t *iv2, gage_t *iv1,
+			     gage_t *fw00, gage_t *fw11, gage_t *fw22,
+			     gage_t *val, gage_t *gvec, gage_t *hess,
+			     int doV, int doD1, int doD2);
+extern void gageScl3PFilterN(int fd,
+			     gage_t *iv3, gage_t *iv2, gage_t *iv1,
+			     gage_t *fw00, gage_t *fw11, gage_t *fw22,
+			     gage_t *val, gage_t *gvec, gage_t *hess,
+			     int doV, int doD1, int doD2);
 
 /* scl.c */
 extern gage_export int gageSclAnsLength[GAGE_SCL_MAX+1];

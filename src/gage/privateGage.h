@@ -43,8 +43,6 @@ extern "C" {
 #define PADSIZE_X(ctx) ((ctx)->shape.sx + 2*((ctx)->havePad))
 #define PADSIZE_Y(ctx) ((ctx)->shape.sy + 2*((ctx)->havePad))
 #define PADSIZE_Z(ctx) ((ctx)->shape.sz + 2*((ctx)->havePad))
-#define ANSWER(pvl, m) \
-  ((pvl)->ans + (pvl)->kind->ansOffset[(m)])
 
 /* pvl.c */
 extern gagePerVolume *_gagePerVolumeCopy(gagePerVolume *pvl, int fd);
@@ -57,30 +55,15 @@ extern void _gagePrint_fslw(FILE *, gageContext *ctx);
 extern int _gageLocationSet(gageContext *ctx, gage_t x, gage_t y, gage_t z);
 
 /* sclprint.c */
-extern void _gageSclPrint_query(FILE *, unsigned int query);
 extern void _gageSclIv3Print(FILE *, gageContext *ctx, gagePerVolume *pvl);
 
 /* sclfilter.c */
-extern void _gageScl3PFilter2(GT *iv3, GT *iv2, GT *iv1,
-			      GT *fw00, GT *fw11, GT *fw22,
-			      GT *val, GT *gvec, GT *hess,
-			      int doV, int doD1, int doD2);
-extern void _gageScl3PFilter4(GT *iv3, GT *iv2, GT *iv1,
-			      GT *fw00, GT *fw11, GT *fw22,
-			      GT *val, GT *gvec, GT *hess,
-			      int doV, int doD1, int doD2);
-extern void _gageScl3PFilterN(int fd,
-			      GT *iv3, GT *iv2, GT *iv1,
-			      GT *fw00, GT *fw11, GT *fw22,
-			      GT *val, GT *gvec, GT *hess,
-			      int doV, int doD1, int doD2);
 extern void _gageSclFilter(gageContext *ctx, gagePerVolume *pvl);
 
 /* sclanswer.c */
 extern void _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl);
 
 /* vecprint.c */
-extern void _gageVecPrint_query(FILE *, unsigned int query);
 extern void _gageVecIv3Print(FILE *, gageContext *ctx, gagePerVolume *pvl);
 
 /* misc.c */

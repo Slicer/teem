@@ -162,3 +162,17 @@ _gagePrint_fslw (FILE *file, gageContext *ctx) {
   }
   return;
 }
+
+void
+gageQueryPrint(FILE *file, gageKind *kind, unsigned int query) {
+  unsigned int q;
+
+  fprintf(file, "%s query = %u ...\n", kind->name, query);
+  q = kind->queryMax+1;
+  do {
+    q--;
+    if ((1<<q) & query) {
+      fprintf(file, "    %3d: %s\n", q, airEnumStr(kind->enm, q));
+    }
+  } while (q);
+}

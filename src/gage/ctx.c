@@ -419,6 +419,76 @@ gagePerVolumeDetach (gageContext *ctx, gagePerVolume *pvl) {
 }
 
 /*
+** gageIv3Fill()
+**
+** based on ctx's shape and havePad, and the (xi,yi,zi) determined from
+** the probe location, fills the iv3 cache in the given pervolume
+*/
+void
+gageIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
+  char me[]="gageIv3Fill";
+  int i, sx, sy, sz, fd, fddd, bidx, tup;
+  void *here;
+  
+  sx = PADSIZE_X(ctx);
+  sy = PADSIZE_Y(ctx);
+  sz = PADSIZE_Z(ctx);
+  fd = GAGE_FD(ctx);
+  fddd = fd*fd*fd;
+  /* we shouldn't have to worry about centering anymore, since it
+     was taken into account in calculating havePad in _gageHavePadUpdate(),
+     right ? */
+  /* diff = -ctx->havePad + (nrrdCenterCell == ctx->shape.center); */
+  bidx = (ctx->point.xi - ctx->havePad
+	  + sx*(ctx->point.yi - ctx->havePad
+		+ sy*(ctx->point.zi - ctx->havePad)));
+  if (ctx->verbose) {
+    fprintf(stderr, "%s: padded size = (%d,%d,%d);\n"
+	    "  fd = %d; point (padded) coord = (%d,%d,%d) --> bidx = %d\n", me,
+	    sx, sy, sz, fd, ctx->point.xi, ctx->point.yi, ctx->point.zi, bidx);
+  }
+  here = ((char*)(pvl->npad->data) + (bidx * pvl->kind->valLen * 
+				      nrrdTypeSize[pvl->npad->type]));
+  switch(pvl->kind->valLen) {
+  case 1:
+    for (i=0; i<fddd; i++) {
+      pvl->iv3[i] = pvl->lup(here, ctx->off[i]);
+    }
+    break;
+    /* the tuple axis is being shifted from the fastest to
+       the slowest axis, to anticipate component-wise filtering
+       operations */
+  case 3:
+    for (i=0; i<fddd; i++) {
+      pvl->iv3[i + fddd*0] = pvl->lup(here, 0 + 3*ctx->off[i]);
+      pvl->iv3[i + fddd*1] = pvl->lup(here, 1 + 3*ctx->off[i]);
+      pvl->iv3[i + fddd*2] = pvl->lup(here, 2 + 3*ctx->off[i]);
+    }
+    break;
+  case 7:
+    /* this might come in handy for tenGage ... */
+    for (i=0; i<fddd; i++) {
+      pvl->iv3[i + fddd*0] = pvl->lup(here, 0 + 7*ctx->off[i]);
+      pvl->iv3[i + fddd*1] = pvl->lup(here, 1 + 7*ctx->off[i]);
+      pvl->iv3[i + fddd*2] = pvl->lup(here, 2 + 7*ctx->off[i]);
+      pvl->iv3[i + fddd*3] = pvl->lup(here, 3 + 7*ctx->off[i]);
+      pvl->iv3[i + fddd*4] = pvl->lup(here, 4 + 7*ctx->off[i]);
+      pvl->iv3[i + fddd*5] = pvl->lup(here, 5 + 7*ctx->off[i]);
+      pvl->iv3[i + fddd*6] = pvl->lup(here, 6 + 7*ctx->off[i]);
+    }
+    break;
+  default:
+    for (i=0; i<fddd; i++) {
+      for (tup=0; tup<pvl->kind->valLen; tup++) {
+	pvl->iv3[i + fddd*tup] = pvl->lup(here, 0 + pvl->kind->valLen*ctx->off[i]);
+      }
+    }
+    break;
+  }
+  return;
+}
+
+/*
 ******** gageProbe()
 **
 ** how to do probing.  (x,y,z) position is in UNPADDED volume
@@ -447,7 +517,7 @@ gageProbe (gageContext *ctx, gage_t x, gage_t y, gage_t z) {
 	 yi == ctx->point.yi &&
 	 zi == ctx->point.zi )) {
     for (i=0; i<ctx->numPvl; i++) {
-      ctx->pvl[i]->kind->iv3Fill(ctx, ctx->pvl[i]);
+      gageIv3Fill(ctx, ctx->pvl[i]);
     }
   }
   /* fprintf(stderr, "##%s: bingo 2\n", me); */

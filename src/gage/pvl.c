@@ -161,13 +161,15 @@ gageNixerSet (gagePerVolume *pvl, gageNixer_t *nixer) {
 ******** gageAnswerPointer()
 **
 ** way of getting a pointer to a specific answer in a pervolume's ans array
+**
+** Basically just a wrapper around GAGE_ANSWER_POINTER with error checking
 */
 gage_t *
 gageAnswerPointer (gagePerVolume *pvl, int measure) {
   gage_t *ret;
 
   if (pvl && airEnumValValid(pvl->kind->enm, measure)) {
-    ret = ANSWER(pvl, measure);
+    ret = GAGE_ANSWER_POINTER(pvl, measure);
   } else {
     ret = NULL;
   }
@@ -202,8 +204,8 @@ gageQuerySet (gagePerVolume *pvl, unsigned int query) {
   }
   pvl->query = query;
   if (pvl->verbose) {
-    fprintf(stderr, "%s: original query = %u ...\n", me, pvl->query);
-    pvl->kind->queryPrint(stderr, pvl->query);
+    fprintf(stderr, "%s: original ", me);
+    gageQueryPrint(stderr, pvl->kind, pvl->query);
   }
   /* recursive expansion of prerequisites */
   do {
@@ -216,8 +218,8 @@ gageQuerySet (gagePerVolume *pvl, unsigned int query) {
     } while (q);
   } while (pvl->query != lastq);
   if (pvl->verbose) {
-    fprintf(stderr, "!%s: expanded query = %u ...\n", me, pvl->query);
-    pvl->kind->queryPrint(stderr, pvl->query);
+    fprintf(stderr, "%s: expanded ", me);
+    gageQueryPrint(stderr, pvl->kind, pvl->query);
   }
   pvl->flag[gagePvlFlagQuery] = AIR_TRUE;
 

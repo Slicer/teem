@@ -123,78 +123,49 @@ _gageVecPrereq[GAGE_VEC_MAX+1] = {
 };
 
 void
-_gageVecIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
-  int i, sx, sy, bidx, fd, fddd;
-  void *here;
-
-  sx = PADSIZE_X(ctx);
-  sy = PADSIZE_Y(ctx);
-  fd = GAGE_FD(ctx);
-  fddd = fd*fd*fd;
-  /* the reason to "- ctx->havePad" is that we need to locate the lowest
-     corner of the cube of values needed for this probe location, which,
-     due to filter size, is lower than the location of the probe itself */
-  bidx = (ctx->point.xi - ctx->havePad 
-	  + sx*(ctx->point.yi - ctx->havePad 
-		+ sy*(ctx->point.zi - ctx->havePad)));
-  here = ((char*)(pvl->npad->data) + (bidx * pvl->kind->valLen * 
-				      nrrdTypeSize[pvl->npad->type]));
-  for (i=0; i<fddd; i++) {
-    /* the vector component axis is being shifted from the fastest to
-       the slowest axis, to anticipate component-wise filtering
-       operations */
-    pvl->iv3[i + fddd*0] = pvl->lup(here, 0 + 3*ctx->off[i]);
-    pvl->iv3[i + fddd*1] = pvl->lup(here, 1 + 3*ctx->off[i]);
-    pvl->iv3[i + fddd*2] = pvl->lup(here, 2 + 3*ctx->off[i]);
-  }
-
-  return;
-}
-
-void
 _gageVecFilter (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageVecFilter";
   gage_t *fw00, *fw11, *fw22, *vec, *jac, tmp;
   int fd;
 
   fd = GAGE_FD(ctx);
-  vec = ANSWER(pvl, gageVecVector);
-  jac = ANSWER(pvl, gageVecJacobian);
+  vec = GAGE_ANSWER_POINTER(pvl, gageVecVector);
+  jac = GAGE_ANSWER_POINTER(pvl, gageVecJacobian);
+  if (!ctx->parm.k3pack) {
+    fprintf(stderr, "!%s: sorry, 6pack filtering not implemented\n", me);
+    return;
+  }
   fw00 = ctx->fw + fd*3*gageKernel00;
   fw11 = ctx->fw + fd*3*gageKernel11;
   fw22 = ctx->fw + fd*3*gageKernel22;
   /* perform the filtering */
-  if (ctx->parm.k3pack) {
-    switch (fd) {
-    case 2:
+  switch (fd) {
+  case 2:
 #define DOIT_2(J) \
-      _gageScl3PFilter2(pvl->iv3 + J*8, pvl->iv2 + J*4, pvl->iv1 + J*2, \
-			fw00, fw11, fw22, \
-                        vec + J, jac + J*3, NULL, \
-			pvl->needD[0], pvl->needD[1], AIR_FALSE)
-      DOIT_2(0); DOIT_2(1); DOIT_2(2); 
-      break;
-    case 4:
+      gageScl3PFilter2(pvl->iv3 + J*8, pvl->iv2 + J*4, pvl->iv1 + J*2, \
+		       fw00, fw11, fw22, \
+                       vec + J, jac + J*3, NULL, \
+		       pvl->needD[0], pvl->needD[1], AIR_FALSE)
+    DOIT_2(0); DOIT_2(1); DOIT_2(2); 
+    break;
+  case 4:
 #define DOIT_4(J) \
-      _gageScl3PFilter4(pvl->iv3 + J*64, pvl->iv2 + J*16, pvl->iv1 + J*4, \
-			fw00, fw11, fw22, \
-                        vec + J, jac + J*3, NULL, \
-			pvl->needD[0], pvl->needD[1], AIR_FALSE)
-      DOIT_4(0); DOIT_4(1); DOIT_4(2); 
-      break;
-    default:
+      gageScl3PFilter4(pvl->iv3 + J*64, pvl->iv2 + J*16, pvl->iv1 + J*4, \
+		       fw00, fw11, fw22, \
+                       vec + J, jac + J*3, NULL, \
+		       pvl->needD[0], pvl->needD[1], AIR_FALSE)
+    DOIT_4(0); DOIT_4(1); DOIT_4(2); 
+    break;
+  default:
 #define DOIT_N(J)\
-      _gageScl3PFilterN(fd, \
-                        pvl->iv3 + J*fd*fd*fd, \
-                        pvl->iv2 + J*fd*fd, pvl->iv1 + J*fd, \
-			fw00, fw11, fw22, \
-                        vec + J, jac + J*3, NULL, \
-			pvl->needD[0], pvl->needD[1], AIR_FALSE)
-      DOIT_N(0); DOIT_N(1); DOIT_N(2); 
-      break;
-    }
-  } else {
-    fprintf(stderr, "!%s: sorry, 6pack filtering not implemented\n", me);
+      gageScl3PFilterN(fd, \
+                       pvl->iv3 + J*fd*fd*fd, \
+                       pvl->iv2 + J*fd*fd, pvl->iv1 + J*fd, \
+		       fw00, fw11, fw22, \
+                       vec + J, jac + J*3, NULL, \
+		       pvl->needD[0], pvl->needD[1], AIR_FALSE)
+    DOIT_N(0); DOIT_N(1); DOIT_N(2); 
+    break;
   }
 
   if (pvl->needD[1]) {
@@ -451,8 +422,6 @@ _gageKindVec = {
   GAGE_VEC_TOTAL_ANS_LENGTH,
   _gageVecNeedDeriv,
   _gageVecPrereq,
-  _gageVecPrint_query,
-  _gageVecIv3Fill,
   _gageVecIv3Print,
   _gageVecFilter,
   _gageVecAnswer

@@ -21,20 +21,6 @@
 #include "privateGage.h"
 
 void
-_gageVecPrint_query (FILE *file, unsigned int query) {
-  unsigned int q;
-
-  fprintf(file, "query = %u ...\n", query);
-  q = GAGE_VEC_MAX+1;
-  do {
-    q--;
-    if ((1<<q) & query) {
-      fprintf(file, "    %3d: %s\n", q, airEnumStr(gageVec, q));
-    }
-  } while (q);
-}
-
-void
 _gageVecIv3Print (FILE *file, gageContext *ctx, gagePerVolume *pvl) {
   
   fprintf(file, "_gageVecIv3Print() not implemented\n");

@@ -21,20 +21,6 @@
 #include "privateGage.h"
 
 void
-_gageSclPrint_query (FILE *file, unsigned int query) {
-  unsigned int q;
-
-  fprintf(file, "query = %u ...\n", query);
-  q = GAGE_SCL_MAX+1;
-  do {
-    q--;
-    if ((1<<q) & query) {
-      fprintf(file, "    %3d: %s\n", q, airEnumStr(gageScl, q));
-    }
-  } while (q);
-}
-
-void
 _gageSclIv3Print (FILE *file, gageContext *ctx, gagePerVolume *pvl) {
   gage_t *iv3;
   int i, fd;

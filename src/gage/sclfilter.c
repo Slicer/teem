@@ -25,10 +25,10 @@
 #define Z 2
 
 void
-_gageScl3PFilter2 (gage_t *ivX, gage_t *ivY, gage_t *ivZ,
-		   gage_t *fw0, gage_t *fw1, gage_t *fw2,
-		   gage_t *val, gage_t *gvec, gage_t *hess,
-		   int doV, int doD1, int doD2) {
+gageScl3PFilter2 (gage_t *ivX, gage_t *ivY, gage_t *ivZ,
+		  gage_t *fw0, gage_t *fw1, gage_t *fw2,
+		  gage_t *val, gage_t *gvec, gage_t *hess,
+		  int doV, int doD1, int doD2) {
 
   /* fw? + 2*?
        |     |  
@@ -131,10 +131,10 @@ _gageScl3PFilter2 (gage_t *ivX, gage_t *ivY, gage_t *ivZ,
 }
 
 void
-_gageScl3PFilter4 (gage_t *ivX, gage_t *ivY, gage_t *ivZ,
-		   gage_t *fw0, gage_t *fw1, gage_t *fw2,
-		   gage_t *val, gage_t *gvec, gage_t *hess,
-		   int doV, int doD1, int doD2) {
+gageScl3PFilter4 (gage_t *ivX, gage_t *ivY, gage_t *ivZ,
+		  gage_t *fw0, gage_t *fw1, gage_t *fw2,
+		  gage_t *val, gage_t *gvec, gage_t *hess,
+		  int doV, int doD1, int doD2) {
 
   /* fw? + 4*?
        |     |  
@@ -298,11 +298,11 @@ _gageScl3PFilter4 (gage_t *ivX, gage_t *ivY, gage_t *ivZ,
 }
 
 void
-_gageScl3PFilterN (int fd,
-		   gage_t *ivX, gage_t *ivY, gage_t *ivZ,
-		   gage_t *fw0, gage_t *fw1, gage_t *fw2,
-		   gage_t *val, gage_t *gvec, gage_t *hess,
-		   int doV, int doD1, int doD2) {
+gageScl3PFilterN (int fd,
+		  gage_t *ivX, gage_t *ivY, gage_t *ivZ,
+		  gage_t *fw0, gage_t *fw1, gage_t *fw2,
+		  gage_t *val, gage_t *gvec, gage_t *hess,
+		  int doV, int doD1, int doD2) {
   int i, j;
   gage_t T;
 
@@ -388,7 +388,7 @@ _gageScl3PFilterN (int fd,
   /* x2y0 */
   for (j=0; j<fd; j++) { VL_N(ivZ[j],j,Y); }
   /* x2y0z0 */
-  VL_N(hess[0],0,Z);                         /* h_xx */
+  VL_N(hess[0],0,Z);                          /* h_xx */
 
   return;
 }
@@ -402,40 +402,40 @@ _gageSclFilter (gageContext *ctx, gagePerVolume *pvl) {
   fd = GAGE_FD(ctx);
   offset = gageKindScl->ansOffset;
   ans = pvl->ans;
+  if (!ctx->parm.k3pack) {
+    fprintf(stderr, "!%s: sorry, 6-pack filtering not implemented\n", me);
+    return;
+  }
   fw00 = ctx->fw + fd*3*gageKernel00;
   fw11 = ctx->fw + fd*3*gageKernel11;
   fw22 = ctx->fw + fd*3*gageKernel22;
   /* perform the filtering */
-  if (ctx->parm.k3pack) {
-    switch (fd) {
-    case 2:
-      _gageScl3PFilter2(pvl->iv3, pvl->iv2, pvl->iv1, 
-			fw00, fw11, fw22,
-			ans + offset[gageSclValue],
-			ans + offset[gageSclGradVec],
-			ans + offset[gageSclHessian],
-			pvl->needD[0], pvl->needD[1], pvl->needD[2]);
-      break;
-    case 4:
-      _gageScl3PFilter4(pvl->iv3, pvl->iv2, pvl->iv1, 
-			fw00, fw11, fw22,
-			ans + offset[gageSclValue],
-			ans + offset[gageSclGradVec],
-			ans + offset[gageSclHessian],
-			pvl->needD[0], pvl->needD[1], pvl->needD[2]);
-      break;
-    default:
-      _gageScl3PFilterN(fd,
-			pvl->iv3, pvl->iv2, pvl->iv1, 
-			fw00, fw11, fw22,
-			ans + offset[gageSclValue],
-			ans + offset[gageSclGradVec],
-			ans + offset[gageSclHessian],
-			pvl->needD[0], pvl->needD[1], pvl->needD[2]);
-      break;
-    }
-  } else {
-    fprintf(stderr, "!%s: sorry, 6-pack filtering not implemented\n", me);
+  switch (fd) {
+  case 2:
+    gageScl3PFilter2(pvl->iv3, pvl->iv2, pvl->iv1, 
+		     fw00, fw11, fw22,
+		     ans + offset[gageSclValue],
+		     ans + offset[gageSclGradVec],
+		     ans + offset[gageSclHessian],
+		     pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+    break;
+  case 4:
+    gageScl3PFilter4(pvl->iv3, pvl->iv2, pvl->iv1, 
+		     fw00, fw11, fw22,
+		     ans + offset[gageSclValue],
+		     ans + offset[gageSclGradVec],
+		     ans + offset[gageSclHessian],
+		     pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+    break;
+  default:
+    gageScl3PFilterN(fd,
+		     pvl->iv3, pvl->iv2, pvl->iv1, 
+		     fw00, fw11, fw22,
+		     ans + offset[gageSclValue],
+		     ans + offset[gageSclGradVec],
+		     ans + offset[gageSclHessian],
+		     pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+    break;
   }
 
   return;

@@ -63,7 +63,7 @@ gageSclAnsLength[GAGE_SCL_MAX+1] = {
 int
 gageSclAnsOffset[GAGE_SCL_MAX+1] = {
   0,  1,  4,  5,  8, 17, 18, 21, 30, 31, 40, 41, 42, 43, 44, 45, 46, 47, 53
-  /* --> 54 == GAGE_SCL_TOTAL_ANS_LENGTH*/
+  /* --> 54 == GAGE_SCL_TOTAL_ANS_LENGTH */
 };
 
 /*
@@ -86,7 +86,7 @@ _gageSclNeedDeriv[GAGE_SCL_MAX+1] = {
 ** 
 ** this records the measurements which are needed as ingredients for any
 ** given measurement, but it is not necessarily the recursive expansion of
-** that requirement (that role is performed by gageSclSetQuery())
+** that requirement (that role is performed by gageQuerySet())
 */
 unsigned int
 _gageSclPrereq[GAGE_SCL_MAX+1] = {
@@ -302,40 +302,6 @@ _gageScl = {
 airEnum *
 gageScl = &_gageScl;
 
-/*
-** _gageSclIv3Fill()
-**
-** based on ctx's shape and havePad, and the (xi,yi,zi) determined from
-** the probe location, fills the iv3 cache in the given pervolume
-*/
-void
-_gageSclIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="_gageSclIv3Fill";
-  int i, sx, sy, sz, fd, bidx, diff;
-  void *here;
-  
-  sx = PADSIZE_X(ctx);
-  sy = PADSIZE_Y(ctx);
-  sz = PADSIZE_Z(ctx);
-  fd = GAGE_FD(ctx);
-  diff = -ctx->havePad + (nrrdCenterCell == ctx->shape.center);
-  diff = -ctx->havePad;
-  bidx = (ctx->point.xi + diff
-	  + sx*(ctx->point.yi + diff
-		+ sy*(ctx->point.zi + diff)));
-  if (ctx->verbose) {
-    fprintf(stderr, "%s: padded size = (%d,%d,%d);\n"
-	    "  fd = %d; point (padded) coord = (%d,%d,%d) --> bidx = %d\n", me,
-	    sx, sy, sz, fd, ctx->point.xi, ctx->point.yi, ctx->point.zi, bidx);
-  }
-  here = ((char*)(pvl->npad->data) + (bidx * pvl->kind->valLen * 
-				      nrrdTypeSize[pvl->npad->type]));
-  for (i=0; i<fd*fd*fd; i++)
-    pvl->iv3[i] = pvl->lup(here, ctx->off[i]);
-
-  return;
-}
-
 gageKind
 _gageKindScl = {
   "scalar",
@@ -348,8 +314,6 @@ _gageKindScl = {
   GAGE_SCL_TOTAL_ANS_LENGTH,
   _gageSclNeedDeriv,
   _gageSclPrereq,
-  _gageSclPrint_query,
-  _gageSclIv3Fill,
   _gageSclIv3Print,
   _gageSclFilter,
   _gageSclAnswer
