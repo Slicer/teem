@@ -46,10 +46,8 @@ main(int argc, char **argv) {
 	     "input image file(s)");
   hestOptAdd(&opt, "option","opt", airTypeString, 0, 1, &option, "default",
 	     "this is just a test");
-  /*
   hestOptAdd(&opt, NULL,    "input", airTypeString, 1, -1,  &in,  NULL,
 	     "input image file(s)", &numIn);
-  */
   hestOptAdd(&opt, "ints",  "N",     airTypeInt,    1,  -1, &ints,  "10 20 30",
 	     "a list of integers", &numN);
   hestOptAdd(&opt, "res",   "sx sy", airTypeInt,    2,  2,  res,  NULL,

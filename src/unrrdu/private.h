@@ -26,6 +26,8 @@ extern "C" {
 #include <hest.h>
 #include <nrrd.h>
 
+#define UNRRDU_COLUMNS 78
+
 /*
 ** OPT_ADD_...
 **

@@ -22,6 +22,8 @@
 #include <hest.h>
 #include <nrrd.h>
 
+#include <ctype.h>
+
 #include "private.h"
 
 /* how we expect this program to identify itself */
@@ -161,12 +163,58 @@ hestCB unuNrrdHestCB = {
 }; 
 
 int
+unuLooksLikeANumber(char *str) {
+  char c;
+  /* 0: -+                (no restriction, but that's a little daft)
+     1: 0123456789        n > 0
+     2: .                 0 <= n <= 1
+     3: eE                0 <= n <= 1
+     4: everything else   0 == n
+  */
+  int count[5];
+  
+  count[0] = count[1] = count[2] = count[3] = count[4] = 0;
+  while (*str) {
+    c = tolower(*str);
+    switch (c) {
+    case '-': case '+':
+      count[0]++;
+      break;
+    case '0': case '1': case '2': case '3': case '4':
+    case '5': case '6': case '7': case '8': case '9':
+      count[1]++;
+      break;
+    case '.':
+      count[2]++;
+      break;
+    case 'e':
+      count[3]++;
+      break;
+    default:
+      count[4]++;
+      break;
+    }
+    str++;
+  }
+  if (count[1] > 0 &&
+      AIR_INSIDE(0, count[2], 1) &&
+      AIR_INSIDE(0, count[3], 1) &&
+      count[4] == 0) {
+    return AIR_TRUE;
+  }
+  else {
+    return AIR_FALSE;
+  }
+}
+
+int
 unuParseNrrdIter(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="unuParseNrrdIter", *nerr;
   Nrrd *nrrd;
   NrrdIter **iterP;
   airArray *mop;
   double val;
+  int ret;
   
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -176,16 +224,63 @@ unuParseNrrdIter(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   mop = airMopInit();
   *iterP = nrrdIterNew();
   airMopAdd(mop, *iterP, (airMopper)nrrdIterNuke, airMopOnError);
-  if (1 == airSingleSscanf(str, "%lf", &val)) {
-    /* printf("%s: parsed single value %g\n", me, val); */
-    nrrdIterSetValue(*iterP, val);
-  }
-  else {
-    if (nrrdLoad(nrrd = nrrdNew(), str)) {
+
+  /* the challenge here is determining if a given string represents a
+     filename or a number.  Obviously there are cases where it could
+     be both, so we'll assume its a filename first.  Because: there
+     are different ways of writing the same number, such as "3" -->
+     "+3", "3.1" --> "3.10", so someone accidently using the file when
+     they mean to use the number has easy ways of changing the number
+     representation.  On the other hand, to change the file name
+     representation, they could prefix it with "./".  Another problem
+     is that one really wants a general robust test to see if a given
+     string is a valid number representation AND NOTHING BUT THAT, and
+     sscanf() is not that test.  In any case, if there are to be
+     improved smarts about this matter, they need to be implemented
+     below and nowhere else. */
+
+  if ((ret = nrrdLoad(nrrd = nrrdNew(), str))) {
+    /* so it didn't load as a nrrd- if its because fopen() failed,
+       then we'll try it as a number.  If its for another reason,
+       then we complain */
+    if (2 != ret) {
+      /* it failed because of something besides the fopen(), so complain */
       nerr = biffGetDone(NRRD);
       strncpy(err, nerr, AIR_STRLEN_HUGE-1);
       return 1;
     }
+    else {
+      /* fopen() failed, so it probably wasn't meant to be a filename */
+      free(biffGetDone(NRRD));
+      if (unuLooksLikeANumber(str)) {
+	/* printf("|%s| looks like a number\n", str); */
+	if (1 == airSingleSscanf(str, "%lf", &val)) {
+	  nrrdIterSetValue(*iterP, val);
+	}
+	else {
+	  /* oh, this is bad. */
+	  fprintf(stderr, "%s: PANIC, is it a number or not?", me);
+	  exit(1);
+	}
+      }
+      else {
+	/* it doesn't look like a number, but the fopen failed, so
+	   we'll let it fail again and pass back the error messages */
+	if (nrrdLoad(nrrd = nrrdNew(), str)) {
+	  nerr = biffGetDone(NRRD);
+	  strncpy(err, nerr, AIR_STRLEN_HUGE-1);
+	  return 1;
+	}
+	else {
+	  /* what the hell? */
+	  fprintf(stderr, "%s: PANIC, is it a nrrd or not?", me);
+	  exit(1);
+	}
+      }
+    }
+  }
+  else {
+    /* first attempt at nrrdLoad() was SUCCESSFUL */
     nrrdIterSetNrrd(*iterP, nrrd);
   }
   airMopAdd(mop, iterP, (airMopper)airSetNull, airMopOnError);
@@ -288,7 +383,8 @@ usage(char *me) {
   }
 
   sprintf(buff, "--- %s: Utah nrrd utilities (unrrdu) command-line interface ---", me);
-  sprintf(fmt, "%%%ds\n", (int)((80-strlen(buff))/2 + strlen(buff) - 1));
+  sprintf(fmt, "%%%ds\n",
+	  (int)((UNRRDU_COLUMNS-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
   
   for (i=0; cmdList[i]; i++) {
@@ -302,7 +398,8 @@ usage(char *me) {
     strcat(buff, " ... ");
     len = strlen(buff);
     fprintf(stderr, "%s", buff);
-    _hestPrintStr(stderr, len, len, 80, cmdList[i]->info, AIR_FALSE);
+    _hestPrintStr(stderr, len, len, UNRRDU_COLUMNS,
+		  cmdList[i]->info, AIR_FALSE);
   }
 }
 
@@ -331,9 +428,14 @@ main(int argc, char **argv) {
     hparm->elideSingleOtherType = AIR_TRUE;
     hparm->elideSingleOtherDefault = AIR_TRUE;
     hparm->elideSingleNonExistFloatDefault = AIR_TRUE;
+    hparm->columns = UNRRDU_COLUMNS;
     argv0 = malloc(strlen(UNU) + strlen(argv[1]) + 2);
     sprintf(argv0, "%s %s", UNU, argv[1]);
+
+    /* run the individual unu program */
     ret = cmdList[i]->main(argc-2, argv+2, argv0);
+
+    /* cleanup */
     free(argv0);
     hestParmFree(hparm);
   }

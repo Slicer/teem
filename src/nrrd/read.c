@@ -779,6 +779,14 @@ _nrrdSplitName(char *path, char *base, const char *name) {
   return ret;
 }
 
+/*
+******** nrrdLoad()
+**
+** (documentation here)
+**
+** sneakiness: returns 2 if the reason for problem was a failed fopen().
+** 
+*/
 int
 nrrdLoad(Nrrd *nrrd, const char *filename) {
   char me[]="nrrdLoad", err[AIR_STRLEN_MED];
@@ -813,7 +821,7 @@ nrrdLoad(Nrrd *nrrd, const char *filename) {
     if (!file) {
       sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s", 
 	      me, filename, strerror(errno));
-      biffAdd(NRRD, err); airMopError(mop); return 1;
+      biffAdd(NRRD, err); airMopError(mop); return 2;
     }
     airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
   }

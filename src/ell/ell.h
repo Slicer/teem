@@ -59,10 +59,22 @@ extern void ell4vPrint_d(FILE *f, double s[4]);
 /* vec.c */
 extern void ell3vPerp_f(float p[3], float v[3]);
 extern void ell3vPerp_d(double p[3], double v[3]);
+extern void ell3mvMul_f(float v2[3], float m[9], float v1[3]);
+extern void ell3mvMul_d(double v2[3], double m[9], double v1[3]);
+extern void ell4mvMul_f(float v2[4], float m[16], float v1[4]);
+extern void ell4mvMul_d(double v2[4], double m[16], double v1[4]);
 
 /* mat.c */
+extern void ell3mMul_f(float m3[9], float m1[9], float m2[9]);
+extern void ell3mMul_d(double m3[9], double m1[9], double m2[9]);
+extern float ell3mDet_f(float m[9]);
+extern double ell3mDet_d(double m[9]);
 extern void ell3mInvert_f(float i[9], float m[9]);
 extern void ell3mInvert_d(double i[9], double m[9]);
+extern void ell4mMul_f(float m3[16], float m1[16], float m2[16]);
+extern void ell4mMul_d(double m3[16], double m1[16], double m2[16]);
+extern float ell4mDet_f(float m[16]);
+extern double ell4mDet_d(double m[16]);
 extern void ell4mInvert_f(float i[16], float m[16]);
 extern void ell4mInvert_d(double i[16], double m[16]);
 
