@@ -206,12 +206,12 @@ limnObjPartTransform(limnObj *obj, int ri, float tx[16]) {
 }
 
 int
-_limnPartDepthCompare(void *_a, void *_b) {
+_limnPartDepthCompare(const void *_a, const void *_b) {
   limnPart *a;
   limnPart *b;
 
-  a = _a;
-  b = _b;
+  a = (limnPart *)_a;
+  b = (limnPart *)_b;
   return AIR_COMPARE(b->z, a->z);
 }
 
