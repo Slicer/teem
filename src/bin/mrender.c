@@ -93,13 +93,13 @@ mrendUserNix(mrendUser *uu) {
 }
 
 int
-mrendUserValid(mrendUser *uu) {
-  char me[]="mrendUserValid", err[AIR_STRLEN_MED];
+mrendUserCheck(mrendUser *uu) {
+  char me[]="mrendUserCheck", err[AIR_STRLEN_MED];
   
   if (3 != uu->nin->dim) {
     sprintf(err, "%s: input nrrd needs 3 dimensions, not %d", 
 	    me, uu->nin->dim);
-    biffAdd(MREND, err); return 0;
+    biffAdd(MREND, err); return 1;
   }
   if (!( uu->nin->axis[0].center == uu->nin->axis[1].center &&
 	 uu->nin->axis[0].center == uu->nin->axis[2].center )) {
@@ -107,15 +107,15 @@ mrendUserValid(mrendUser *uu) {
 	    airEnumStr(nrrdCenter, uu->nin->axis[0].center),
 	    airEnumStr(nrrdCenter, uu->nin->axis[1].center),
 	    airEnumStr(nrrdCenter, uu->nin->axis[2].center));
-    biffAdd(MREND, err); return 0;
+    biffAdd(MREND, err); return 1;
   }
   if (1 != gageKindScl->ansLength[uu->whatq]) {
     sprintf(err, "%s: quantity %s isn't a scalar; can't render it\n",
 	    me, airEnumStr(gageKindScl->enm, uu->whatq));
-    biffAdd(MREND, err); return 0;
+    biffAdd(MREND, err); return 1;
   }
   
-  return 1;
+  return 0;
 }
 
 /* -------------------------------------------------------------- */
@@ -151,16 +151,16 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   gagePerVolume *pvl;
   int E, thr;
 
-  /* this assumes that mrendUserValid(uu) has passed */
+  /* this assumes that mrendUserCheck(uu) has passed */
 
   *rrP = (mrendRender *)calloc(1, sizeof(mrendRender));
   airMopAdd(uu->mrmop, *rrP, airFree, airMopAlways);
-  pvl = gagePerVolumeNew(uu->nin, gageKindScl);
   /* pvl managed via parent context */
 
   (*rrP)->time0 = airTime();
 
   E = 0;
+  if (!E) E |= !(pvl = gagePerVolumeNew(uu->nin, gageKindScl));
   if (!E) E |= gagePerVolumeAttach(uu->gctx0, pvl);
   if (!E) E |= gageKernelSet(uu->gctx0, gageKernel00,
 			     uu->ksp[gageKernel00]->kernel,
@@ -426,8 +426,8 @@ main(int argc, char *argv[]) {
 	     "first derivative kernel",
 	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k22", "kernel", airTypeOther, 1, 1,
-	     &(uu->ksp[gageKernel22]), "fordif",
-	     "second derivative kernel (if needed, DON'T use default)",
+	     &(uu->ksp[gageKernel22]), "cubicdd:1,0",
+	     "second derivative kernel",
 	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "rn", NULL, airTypeBool, 0, 0, &renorm, NULL,
 	     "renormalize kernel weights at each new sample location. "
@@ -460,7 +460,7 @@ main(int argc, char *argv[]) {
 		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!mrendUserValid(uu)) {
+  if (mrendUserCheck(uu)) {
     fprintf(stderr, "%s: problem with input parameters:\n%s\n",
 	    me, errS = biffGetDone(MREND)); free(errS);
     airMopError(mop);

@@ -19,110 +19,146 @@
 
 #include <air.h>
 #include <biff.h>
-#include <hest.h>
+#include <ell.h>
 #include <nrrd.h>
+#include <limn.h>
+#include <hoover.h>
+#include <mite.h>
 
-char *overInfo = ("Composites an RGBA nrrd over "
-		  "a background color, after doing gamma correction, "
-		  "then quantizes to an 8-bit ppm.  Actually, the "
-		  "input nrrd can have more than 4 values per pixel, "
-		  "but only the first four are used.  If the RGBA nrrd "
-		  "is floating point, the values are taken at face value; "
-		  "if it is fixed point, the values interpreted as having "
-		  "been quantized "
-		  "(so that 8-bit RGBA images will act as you expect).");
+char *miteInfo = ("A simple but effective little volume renderer.");
 
 int
 main(int argc, char *argv[]) {
-  hestOpt *hopt=NULL;
-  Nrrd *nin, *nout,    /* initial input and final output */
-    *ninD,             /* input converted to double */
-    *nrgbaD;           /* rgba input as double */
-  char *me, *outS, *errS;
-  double gamma, back[3], *rgbaD, r, g, b, a;
   airArray *mop;
-  int E, N, min[3], max[3], i, rI, gI, bI;
-  unsigned char *outUC;
+  hestOpt *hopt=NULL;
+  hestParm *hparm=NULL;
+  miteUser *muu;
+  char *me, *errS, *outS;
+  int renorm;
+  int E, Ecode;
+  float ads[3];
 
   me = argv[0];
   mop = airMopNew();
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-	     "input nrrd to composite", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "g", "gamma", airTypeDouble, 1, 1, &gamma, "1.0",
-	     "gamma to apply to image data");
-  hestOptAdd(&hopt, "b", "background", airTypeDouble, 3, 3, back, "0 0 0",
-	     "background color to composite against; white is "
-	     "1 1 1, not 255 255 255.");
+  hparm = hestParmNew();
+  airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
+  muu = miteUserNew();
+  fprintf(stderr, "%s: muu = %p, muu->hctx = %p\n", me, muu, muu->hctx);
+  airMopAdd(mop, muu, (airMopper)miteUserNix, airMopAlways);
+  
+  hparm->respFileEnable = AIR_TRUE;
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &(muu->nin), NULL,
+	     "input nrrd to render", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "txf", "nin", airTypeOther, 1, -1, &(muu->ntxf), NULL,
+	     "one or more transfer functions",
+	     &(muu->ntxfNum), NULL, nrrdHestNrrd);
+  limnHestCamOptAdd(&hopt, muu->hctx->cam,
+		    NULL, "0 0 0", "0 0 1",
+		    NULL, NULL, NULL,
+		    NULL, NULL);
+  hestOptAdd(&hopt, "am", "ambient", airTypeFloat, 3, 3, muu->lit->amb,
+	     "1 1 1", "ambient light color");
+  hestOptAdd(&hopt, "ld", "light pos", airTypeFloat, 3, 3, muu->lit->_dir[0],
+	     "0 0 -1", "view space light position (extended to infinity)");
+  hestOptAdd(&hopt, "is", "image size", airTypeInt, 2, 2, muu->hctx->imgSize,
+	     "256 256", "image dimensions");
+  hestOptAdd(&hopt, "ads", "ka kd ks", airTypeFloat, 3, 3, ads,
+	     "0.1 0.6 0.3", "phong components");
+  hestOptAdd(&hopt, "sp", "spec pow", mite_at, 1, 1, 
+	     &(muu->rangeInit[miteRangeSP]), "30", "phong specular power");
+  hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1,
+	     &(muu->ksp[gageKernel00]),
+	     "tent", "value reconstruction kernel",
+	     NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "k11", "kernel", airTypeOther, 1, 1,
+	     &(muu->ksp[gageKernel11]),
+	     "fordif", "first derivative kernel",
+	     NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "k22", "kernel", airTypeOther, 1, 1,
+	     &(muu->ksp[gageKernel22]),
+	     "cubicdd:1,0",  "second derivative kernel",
+	     NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "rn", NULL, airTypeBool, 0, 0, &renorm, NULL,
+	     "renormalize kernel weights at each new sample location. "
+	     "\"Accurate\" kernels don't need this; doing it always "
+	     "makes things go slower");
+  hestOptAdd(&hopt, "sum", NULL, airTypeBool, 0, 0, &(muu->justSum), NULL,
+	     "Ignore opacity and composite simply by summing");
+  hestOptAdd(&hopt, "nolight", NULL, airTypeBool, 0, 0, &(muu->noDirLight),
+	     NULL, "Ignore directional lights, use ambient only");
+  hestOptAdd(&hopt, "step", "size", airTypeDouble, 1, 1, &(muu->rayStep),
+	     "0.01", "step size along ray in world space");
+  hestOptAdd(&hopt, "ref", "size", airTypeDouble, 1, 1, &(muu->refStep),
+	     "0.01", "\"reference\" step size (world space) for doing "
+	     "opacity correction in compositing");
+  hestOptAdd(&hopt, "n1", "near1", airTypeDouble, 1, 1, &(muu->near1),
+	     "0.99", "close enough to 1.0 to terminate ray");
+  if (hooverMyPthread) {
+    hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1,
+	       &(muu->hctx->numThreads),
+	       "1", "number of threads hoover should use");
+  } else {
+    muu->hctx->numThreads = 1;
+  }
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS,
-	     NULL, "file to write output PPM image to");
-  hestParseOrDie(hopt, argc-1, argv+1, NULL, me, overInfo,
-		 AIR_TRUE, AIR_TRUE, AIR_TRUE);
+	     NULL, "file to write output nrrd to");
+  hestParseOrDie(hopt, argc-1, argv+1, hparm,
+		 me, miteInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-  
-  if (!(3 == nin->dim && 4 <= nin->axis[0].size)) {
-    fprintf(stderr, "%s: doesn't look like an RGBA nrrd\n", me);
-    airMopError(mop); return 1;
-  }
-  if (nrrdTypeBlock == nin->type) {
-    fprintf(stderr, "%s: can't use a %s nrrd", me,
-	    airEnumStr(nrrdType, nrrdTypeBlock));
-    airMopError(mop); return 1;
-  }
 
-  ninD = nrrdNew();
-  airMopAdd(mop, ninD, (airMopper)nrrdNuke, airMopAlways);
-  nrgbaD = nrrdNew();
-  airMopAdd(mop, nrgbaD, (airMopper)nrrdNuke, airMopAlways);  
-  nout=nrrdNew();
-  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+  /* finish processing command-line args */
+  muu->rangeInit[miteRangeKa] = ads[0];
+  muu->rangeInit[miteRangeKd] = ads[1];
+  muu->rangeInit[miteRangeKs] = ads[2];
+  gageSet(muu->gctx0, gageParmRenormalize, renorm);
 
-  E = 0;
-  if (nrrdTypeFixed[nin->type]) {
-    if (!E) E |= nrrdUnquantize(ninD, nin, nrrdTypeDouble);
-  } else if (nrrdTypeFloat == nin->type) {
-    if (!E) E |= nrrdConvert(ninD, nin, nrrdTypeDouble);
-  } else {
-    if (!E) E |= nrrdCopy(ninD, nin);
-  }  
-  min[0] = min[1] = min[2] = 0;
-  max[0] = 3;
-  max[1] = nin->axis[1].size-1;
-  max[2] = nin->axis[2].size-1;
-  if (!E) E |= nrrdCrop(nrgbaD, ninD, min, max);
-  if (!E) E |= nrrdPPM(nout, nin->axis[1].size, nin->axis[2].size);
+  muu->nout = nrrdNew();  
+  airMopAdd(mop, muu->nout, (airMopper)nrrdNuke, airMopAlways);
+  ELL_3V_SET(muu->lit->col[0], 1, 1, 1);
+  muu->lit->on[0] = AIR_TRUE;
+  muu->lit->vsp[0] = AIR_TRUE;
+  fprintf(stderr, "%s: muu = %p, muu->ctx->cam = %p\n",
+	  me, muu, muu->hctx->cam);
+  limnCamUpdate(muu->hctx->cam);
+  limnLightUpdate(muu->lit, muu->hctx->cam);
+  fprintf(stderr, "%s: light dir: %g %g %g\n", me,
+	  muu->lit->dir[0][0], muu->lit->dir[0][1], muu->lit->dir[0][2]);
+
+  nrrdAxesGet_nva(muu->nin, nrrdAxesInfoSize, muu->hctx->volSize);
+  nrrdAxesGet_nva(muu->nin, nrrdAxesInfoSpacing, muu->hctx->volSpacing);
+  muu->hctx->user = muu;
+  muu->hctx->renderBegin = (hooverRenderBegin_t *)miteRenderBegin;
+  muu->hctx->threadBegin = (hooverThreadBegin_t *)miteThreadBegin;
+  muu->hctx->rayBegin = (hooverRayBegin_t *)miteRayBegin;
+  muu->hctx->sample = (hooverSample_t *)miteSample;
+  muu->hctx->rayEnd = (hooverRayEnd_t *)miteRayEnd;
+  muu->hctx->threadEnd = (hooverThreadEnd_t *)miteThreadEnd;
+  muu->hctx->renderEnd = (hooverRenderEnd_t *)miteRenderEnd;
+
+  fprintf(stderr, "%s: rendering ... ", me); fflush(stderr);
+
+  E = hooverRender(muu->hctx, &Ecode, NULL);
   if (E) {
-    fprintf(stderr, "%s: trouble:\n%s", me, errS = biffGetDone(NRRD));
-    free(errS); return 1;
+    if (hooverErrInit == E) {
+      airMopAdd(mop, errS = biffGetDone(HOOVER), airFree, airMopAlways);
+      fprintf(stderr, "%s: ERROR:\n%s\n", me, errS);
+    } else {
+      airMopAdd(mop, errS = biffGetDone(MITE), airFree, airMopAlways);
+      fprintf(stderr, "%s: ERROR:\n%s\n", me, errS);
+    }
+    airMopError(mop);
+    return 1;
   }
-  
-  outUC = (unsigned char*)nout->data;
-  rgbaD = (double *)nrgbaD->data;
-  N = nin->axis[1].size * nin->axis[2].size;
-  for (i=0; i<N; i++) {
-    r = AIR_CLAMP(0, rgbaD[0], 1);
-    g = AIR_CLAMP(0, rgbaD[1], 1);
-    b = AIR_CLAMP(0, rgbaD[2], 1);
-    a = AIR_CLAMP(0, rgbaD[3], 1);
-    r = pow(r, 1.0/gamma);
-    g = pow(g, 1.0/gamma);
-    b = pow(b, 1.0/gamma);
-    r = a*r + (1-a)*back[0];
-    g = a*g + (1-a)*back[1];
-    b = a*b + (1-a)*back[2];
-    AIR_INDEX(0.0, r, 1.0, 256, rI);
-    AIR_INDEX(0.0, g, 1.0, 256, gI);
-    AIR_INDEX(0.0, b, 1.0, 256, bI);
-    outUC[0] = rI;
-    outUC[1] = gI;
-    outUC[2] = bI;
-    outUC += 3;
-    rgbaD += 4;
-  }
+  fprintf(stderr, "\n");
+  fprintf(stderr, "%s: rendering time = %g secs\n", me, muu->rendTime);
+  fprintf(stderr, "%s: sampling rate = %g Khz\n", me, muu->sampRate);
 
-  if (nrrdSave(outS, nout, NULL)) {
-    fprintf(stderr, "%s: trouble:\n%s", me, errS = biffGetDone(NRRD));
-    free(errS); return 1;
+  if (nrrdSave(outS, muu->nout, NULL)) {
+    airMopAdd(mop, errS = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble saving image:\n%s\n", me, errS);
+    airMopError(mop);
+    return 1;
   }
   
   airMopOkay(mop);
