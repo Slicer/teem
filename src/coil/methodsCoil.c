@@ -190,12 +190,14 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
 int
 coilOutputGet(Nrrd *nout, coilContext *cctx) {
   char me[]="coilOutputGet", err[AIR_STRLEN_MED];
+  int baseDim;
 
   if (!(nout && cctx)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(COIL, err); return 1;
   }
-  if (nrrdSlice(nout, cctx->nvol, 0, 0)) {
+  baseDim = (1 == cctx->kind->valLen ? 0 : 1);
+  if (nrrdSlice(nout, cctx->nvol, baseDim, 0)) {
     sprintf(err, "%s: trouble slicing to get output", me);
     biffMove(COIL, err, NRRD); return 1;
   }

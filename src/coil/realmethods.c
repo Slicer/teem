@@ -19,6 +19,7 @@
 
 #include "coil.h"
 
+/* ------------------------------------------ */
 const coilMethod
 _coilMethodTesting = {
   "testing",
@@ -28,6 +29,7 @@ _coilMethodTesting = {
 const coilMethod*
 coilMethodTesting = &_coilMethodTesting;
 
+/* ------------------------------------------ */
 const coilMethod
 _coilMethodHomogeneous = {
   "homogeneous",
@@ -37,6 +39,7 @@ _coilMethodHomogeneous = {
 const coilMethod*
 coilMethodHomogeneous = &_coilMethodHomogeneous;
 
+/* ------------------------------------------ */
 const coilMethod
 _coilMethodPeronaMalik = {
   "perona-malik",
@@ -46,12 +49,23 @@ _coilMethodPeronaMalik = {
 const coilMethod*
 coilMethodPeronaMalik = &_coilMethodPeronaMalik;
 
+/* ------------------------------------------ */
+const coilMethod
+_coilMethodModifiedCurvature = {
+  "modified-curvature",
+  coilMethodTypeModifiedCurvature,
+  2
+};
+const coilMethod*
+coilMethodModifiedCurvature = &_coilMethodModifiedCurvature;
+
+/* ------------------------------------------ */
 const coilMethod*
 coilMethodArray[COIL_METHOD_TYPE_MAX+1] = {
   NULL,
   &_coilMethodTesting,
   &_coilMethodHomogeneous,
   &_coilMethodPeronaMalik,
-  NULL,
+  &_coilMethodModifiedCurvature,
   NULL
 };

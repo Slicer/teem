@@ -28,7 +28,7 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
   
-  int numIters, numThreads, methodType, _parmLen, pi, radius;
+  int numIters, numThreads, methodType, kindType, _parmLen, pi, radius;
   Nrrd *nin, *nout;
   coilContext *cctx;
   double *_parm, parm[COIL_PARMS_NUM];
@@ -39,6 +39,8 @@ main(int argc, char *argv[]) {
 	     "number of iterations to do processing for");
   hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1, &numThreads, "5",
 	     "number of threads to run");
+  hestOptAdd(&hopt, "k", "kind", airTypeEnum, 1, 1, &kindType, NULL,
+	     "what kind of volume is input", NULL, coilKindType);
   hestOptAdd(&hopt, "m", "method", airTypeEnum, 1, 1, &methodType, "test",
 	     "what kind of filtering to perform", NULL, coilMethodType);
   hestOptAdd(&hopt, "p", "parms", airTypeDouble, 1, -1, &_parm, NULL,
@@ -70,7 +72,7 @@ main(int argc, char *argv[]) {
     parm[pi] = _parm[pi];
   }
   if (coilContextAllSet(cctx, nin,
-			coilKindScalar, coilMethodArray[methodType],
+			coilKindArray[kindType], coilMethodArray[methodType],
 			radius, numThreads, 1 /* verbose */,
 			parm)
       || coilStart(cctx)

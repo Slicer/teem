@@ -203,6 +203,7 @@ TEEM_API airEnum *coilKindType;
 
 /* scalarCoil.c */
 TEEM_API const coilKind *coilKindScalar;
+TEEM_API const coilKind *coilKindArray[COIL_KIND_TYPE_MAX+1];
 
 /* tensorCoil.c */
 TEEM_API const coilKind *coilKindTensor;

@@ -92,7 +92,7 @@ char
 _coilKindTypeStrEqv[][AIR_STRLEN_SMALL] = {
   "scalar",
   "3color",
-  "7tensor",
+  "7tensor", "tensor",
   ""
 };
 
@@ -100,7 +100,7 @@ int
 _coilKindTypeValEqv[] = {
   coilKindTypeScalar,
   coilKindType3Color,
-  coilKindType7Tensor
+  coilKindType7Tensor, coilKindType7Tensor
 };
 
 airEnum

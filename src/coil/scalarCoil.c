@@ -19,6 +19,21 @@
 
 #include "coil.h"
 
+/*
+**  x ----> X
+**   \   [0][0]  [1][0]  [2][0]
+**  |  \   [0][1]  [1][1]  [2][1]
+**  |    Y   [0][2]  [1][2]  [2][2]
+**  |
+**  |    [0][3]  [1][3]  [2][3]
+**  Z      [0][4]  [1][4]  [2][4]
+**           [0][5]  [1][5]  [2][5]
+**  
+**       [0][6]  [1][6]  [2][6]
+**         [0][7]  [1][7]  [2][7]
+**           [0][8]  [1][8]  [2][8]
+*/
+
 coil_t
 _coilLaplacian3(coil_t **iv3, double spacing[3]) {
   
@@ -42,32 +57,12 @@ _coilKindScalarFilterHomogeneous(coil_t *delta, coil_t **iv3,
   delta[0] = parm[0]*_coilLaplacian3(iv3, spacing);
 }
 
-/*
-**  x ----> X
-**   \   [0][0]  [1][0]  [2][0]
-**  |  \   [0][1]  [1][1]  [2][1]
-**  |    Y   [0][2]  [1][2]  [2][2]
-**  |
-**  |    [0][3]  [1][3]  [2][3]
-**  Z      [0][4]  [1][4]  [2][4]
-**           [0][5]  [1][5]  [2][5]
-**  
-**       [0][6]  [1][6]  [2][6]
-**         [0][7]  [1][7]  [2][7]
-**           [0][8]  [1][8]  [2][8]
-*/
-
 void
-_coilKindScalarFilterPeronaMalik(coil_t *delta, coil_t **i,
-				 double spacing[3],
-				 double parm[COIL_PARMS_NUM]) {
-  coil_t forwX[3], backX[3], forwY[3], backY[3], forwZ[3], backZ[3], 
-    KK, rspX, rspY, rspZ;
-
-  /* reciprocals of spacings in X, Y, and Z */
-  rspX = 1.0/spacing[0];
-  rspY = 1.0/spacing[1];
-  rspZ = 1.0/spacing[2];
+_coilKindScalar3x3x3Gradients(coil_t *forwX, coil_t *backX,
+			      coil_t *forwY, coil_t *backY,
+			      coil_t *forwZ, coil_t *backZ,
+			      coil_t **i,
+			      coil_t rspX, coil_t rspY, coil_t rspZ) {
 
   /* gradients at forward and backward X */
   forwX[0] = rspX*(i[2][4] - i[1][4]);
@@ -93,26 +88,90 @@ _coilKindScalarFilterPeronaMalik(coil_t *delta, coil_t **i,
   backZ[1] = rspY*(i[1][2] + i[1][5] - i[1][0] - i[1][3])/2;
   backZ[2] = rspZ*(i[1][4] - i[1][1]);
 
+  return;
+}
+
+#define _COIL_CONDUCT(LL, KK) \
+  (exp(-0.5*(LL)/(KK)))
+
+/*
+#define _COIL_CONDUCT(vec, KK) \
+  (1.0/(1.0 + (LL)/(KK)))
+*/
+
+void
+_coilKindScalarFilterPeronaMalik(coil_t *delta, coil_t **iv3,
+				 double spacing[3],
+				 double parm[COIL_PARMS_NUM]) {
+  coil_t forwX[3], backX[3], forwY[3], backY[3], forwZ[3], backZ[3], 
+    KK, rspX, rspY, rspZ;
+
+  /* reciprocals of spacings in X, Y, and Z */
+  rspX = 1.0/spacing[0];
+  rspY = 1.0/spacing[1];
+  rspZ = 1.0/spacing[2];
+
+  _coilKindScalar3x3x3Gradients(forwX, backX,
+				forwY, backY,
+				forwZ, backZ,
+				iv3,
+				rspX, rspY, rspZ);
+  
   /* compute fluxes */
   KK = parm[1]*parm[1];
-  /*
-  forwX[0] *= 1.0/(1.0 + ELL_3V_DOT(forwX, forwX)/KK);
-  forwY[1] *= 1.0/(1.0 + ELL_3V_DOT(forwY, forwY)/KK);
-  forwZ[2] *= 1.0/(1.0 + ELL_3V_DOT(forwZ, forwZ)/KK);
-  backX[0] *= 1.0/(1.0 + ELL_3V_DOT(backX, backX)/KK);
-  backY[1] *= 1.0/(1.0 + ELL_3V_DOT(backY, backY)/KK);
-  backZ[2] *= 1.0/(1.0 + ELL_3V_DOT(backZ, backZ)/KK);
-  */
-  forwX[0] *= exp(-0.5*ELL_3V_DOT(forwX, forwX)/KK);
-  forwY[1] *= exp(-0.5*ELL_3V_DOT(forwY, forwY)/KK);
-  forwZ[2] *= exp(-0.5*ELL_3V_DOT(forwZ, forwZ)/KK);
-  backX[0] *= exp(-0.5*ELL_3V_DOT(backX, backX)/KK);
-  backY[1] *= exp(-0.5*ELL_3V_DOT(backY, backY)/KK);
-  backZ[2] *= exp(-0.5*ELL_3V_DOT(backZ, backZ)/KK);
+  forwX[0] *= _COIL_CONDUCT(ELL_3V_DOT(forwX, forwX), KK);
+  forwY[1] *= _COIL_CONDUCT(ELL_3V_DOT(forwY, forwY), KK);
+  forwZ[2] *= _COIL_CONDUCT(ELL_3V_DOT(forwZ, forwZ), KK);
+  backX[0] *= _COIL_CONDUCT(ELL_3V_DOT(backX, backX), KK);
+  backY[1] *= _COIL_CONDUCT(ELL_3V_DOT(backY, backY), KK);
+  backZ[2] *= _COIL_CONDUCT(ELL_3V_DOT(backZ, backZ), KK);
 
   delta[0] = parm[0]*(rspX*(forwX[0] - backX[0])
 		      + rspY*(forwY[1] - backY[1])
 		      + rspZ*(forwZ[2] - backZ[2]));
+}
+
+void
+_coilKindScalarFilterModifiedCurvature(coil_t *delta, coil_t **iv3,
+				       double spacing[3],
+				       double parm[COIL_PARMS_NUM]) {
+  coil_t forwX[3], backX[3], forwY[3], backY[3], forwZ[3], backZ[3],
+    grad[3], gm, eps, KK, LL, rspX, rspY, rspZ;
+
+  /* reciprocals of spacings in X, Y, and Z */
+  rspX = 1.0/spacing[0];
+  rspY = 1.0/spacing[1];
+  rspZ = 1.0/spacing[2];
+
+  _coilKindScalar3x3x3Gradients(forwX, backX,
+				forwY, backY,
+				forwZ, backZ,
+				iv3,
+				rspX, rspY, rspZ);
+  grad[0] = rspX*(iv3[2][4] - iv3[0][4]);
+  grad[1] = rspY*(iv3[1][5] - iv3[1][3]);
+  grad[2] = rspZ*(iv3[1][7] - iv3[1][1]);
+  gm = ELL_3V_LEN(grad);
+  
+  /* compute fluxes */
+  eps = 0.000001;
+  KK = parm[1]*parm[1];
+  LL = ELL_3V_DOT(forwX, forwX);
+  forwX[0] *= _COIL_CONDUCT(LL, KK)/(eps + sqrt(LL));
+  LL = ELL_3V_DOT(forwY, forwY);
+  forwY[1] *= _COIL_CONDUCT(LL, KK)/(eps + sqrt(LL));
+  LL = ELL_3V_DOT(forwZ, forwZ);
+  forwZ[2] *= _COIL_CONDUCT(LL, KK)/(eps + sqrt(LL));
+  LL = ELL_3V_DOT(backX, backX);
+  backX[0] *= _COIL_CONDUCT(LL, KK)/(eps + sqrt(LL));
+  LL = ELL_3V_DOT(backY, backY);
+  backY[1] *= _COIL_CONDUCT(LL, KK)/(eps + sqrt(LL));
+  LL = ELL_3V_DOT(backZ, backZ);
+  backZ[2] *= _COIL_CONDUCT(LL, KK)/(eps + sqrt(LL));
+  
+  delta[0] = gm*parm[0]*(rspX*(forwX[0] - backX[0])
+			 + rspY*(forwY[1] - backY[1])
+			 + rspZ*(forwZ[2] - backZ[2]));
 }
 
 void
@@ -129,10 +188,22 @@ _coilKindScalar = {
    _coilKindScalarFilterTesting,
    _coilKindScalarFilterHomogeneous,
    _coilKindScalarFilterPeronaMalik,
-   NULL,
+   _coilKindScalarFilterModifiedCurvature,
    NULL},
   _coilKindScalarUpdate
 };
 
 const coilKind *
 coilKindScalar = &_coilKindScalar;
+
+/* ------------------------------------------ */
+
+extern const coilKind _coilKind7Tensor;
+
+const coilKind*
+coilKindArray[COIL_KIND_TYPE_MAX+1] = {
+  NULL,
+  &_coilKindScalar,
+  NULL,
+  &_coilKind7Tensor
+};

@@ -88,6 +88,18 @@ _coilIv3Fill_1_1(coil_t **iv3, coil_t *here, int radius, int valLen,
   return;
 }
 
+void
+_coilIv3Fill_1_7(coil_t **iv3, coil_t *here, int radius, int valLen,
+	     int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ) {
+  int vi,          /* value index */
+    xni, yni, zni, /* neighborhood (iv3) indices */
+    xvi, yvi, zvi; /* volume indices */
+  coil_t *tmp;
+
+  _COIL_IV3_FILL(1, 3, 7);
+  return;
+}
+
 int
 _coilThisZGet(coilTask *task, int doFilter) {
   int thisZ, *thisFlag, *thatFlag;
@@ -187,6 +199,8 @@ _coilTaskNew(coilContext *cctx, int threadIdx) {
     }
     if (1 == cctx->radius && 1 == cctx->kind->valLen) {
       task->iv3Fill = _coilIv3Fill_1_1;
+    } else if (1 == cctx->radius && 7 == cctx->kind->valLen) {
+      task->iv3Fill = _coilIv3Fill_1_7;
     } else {
       task->iv3Fill = _coilIv3Fill_R_L;
     }
