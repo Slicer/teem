@@ -89,7 +89,7 @@ _ell_3m_enforce_orthogonality(double v[9]) {
   d20 = ELL_3V_DOT(v+3*2, v+3*0);
   d21 = ELL_3V_DOT(v+3*2, v+3*1);
   d22 = ELL_3V_DOT(v+3*2, v+3*2);
-  ELL_3V_SCALE_ADD2(tv, 1, v+3*2, -d20/d00, v+3*0, -d21/d00, v+3*1);
+  ELL_3V_SCALE_ADD3(tv, 1, v+3*2, -d20/d00, v+3*0, -d21/d00, v+3*1);
   scl = sqrt(d22/ELL_3V_DOT(tv, tv));
   ELL_3V_SCALE(v+3*2, scl, tv);
   return;
