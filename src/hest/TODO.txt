@@ -1,4 +1,14 @@
+for super long things like "tend glyph", it would be nice to have
+seperator lines between the long versions of options, to visually
+group them somewhat.
+
 basic problems with hest:
+
+- there's no such thing as a trully optional parameter: data is needed
+for all options, whether it comes from the default string or the
+command line, and its an error if no data is found.  Not having
+optional parameters is getting in the way of things like allowing "unu
+make" taking centerings.
 
 - there's no way to tell whether the information for any given option 
 came from the default string, or from the command line
