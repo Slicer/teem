@@ -294,11 +294,18 @@ double _nrrdTernaryOpLerp(double a, double b, double c) {
     return AIR_LERP(a, b, c);
   }
 }
-
+double _nrrdTernaryOpExists(double a, double b, double c) {
+  return (AIR_EXISTS(a) ? b : c);
+}
+double _nrrdTernaryOpBetween(double a, double b, double c) {
+  return (a <= b && b <= c);
+}
 double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
   NULL,
   _nrrdTernaryOpClamp,
-  _nrrdTernaryOpLerp
+  _nrrdTernaryOpLerp,
+  _nrrdTernaryOpExists,
+  _nrrdTernaryOpBetween
 };
 
 int

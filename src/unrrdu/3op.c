@@ -43,7 +43,11 @@ topMain(int argc, char **argv, char *me) {
 	     "the first and the third\n "
 	     "\b\bo \"lerp\": linear interpolation between the second and "
 	     "third values, as the first value varies between 0.0 and 1.0, "
-	     "respectively",
+	     "respectively\n "
+	     "\b\bo \"exists\": if the first value exists, use the second "
+	     "value, otherwise use the third\n "
+	     "\b\bo \"between\": 1 iff second value is >= first and <= "
+	     "second, 0 otherwise",
 	     NULL, nrrdTernaryOp);
   hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
 	     "First input.  Can be float or nrrd.",

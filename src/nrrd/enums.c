@@ -585,20 +585,26 @@ char
 _nrrdTernaryOpStr[NRRD_TERNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_ternary_op)",
   "clamp",
-  "lerp"
+  "lerp",
+  "exists",
+  "between"
 };
 
 char
 _nrrdTernaryOpStrEqv[][AIR_STRLEN_SMALL] = {
   "clamp",
   "lerp",
+  "exists",
+  "between", "tween", "btw",
   ""
 };
 
 int
 _nrrdTernaryOpValEqv[] = {
   nrrdTernaryOpClamp,
-  nrrdTernaryOpLerp
+  nrrdTernaryOpLerp,
+  nrrdTernaryOpExists,
+  nrrdTernaryOpBetween, nrrdTernaryOpBetween, nrrdTernaryOpBetween
 };
 
 airEnum
