@@ -66,7 +66,7 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
   }
   if (!( nin->dim-1 == nslice->dim )) {
     sprintf(err, "%s: dim of slice (%d) not one less than dim of input (%d)",
-            me, nslice->dim, nin->dim-1);
+            me, nslice->dim, nin->dim);
     biffAdd(NRRD, err); return 1;
   }
   if (!( nin->type == nslice->type )) {
