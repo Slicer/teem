@@ -85,7 +85,9 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "cheap", NULL, airTypeInt, 0, 0, &(info->cheap), NULL,
              "when downsampling (reducing number of samples), don't "
              "try to do correct filtering by scaling kernel to match "
-             "new (stretched) index space; keep it in old index space. ");
+             "new (stretched) index space; keep it in old index space. "
+             "When used in conjunction with \"-k box\", this can implement "
+             "subsampling which chooses every Nth value. ");
   hestOptAdd(&opt, "b", "behavior", airTypeEnum, 1, 1, &bb, "bleed",
              "How to handle samples beyond the input bounds:\n "
              "\b\bo \"pad\": use some specified value\n "
