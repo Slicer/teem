@@ -35,7 +35,7 @@ miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
     fprintf(stderr, "%d/%d ", vIndex, muu->hctx->imgSize[1]);
     fflush(stderr);
   }
-  mtt->verbose = 0*(uIndex == 2 && vIndex == 2);
+  mtt->verbose = 0*(uIndex == 35 && vIndex == 42);
   mtt->RR = mtt->GG = mtt->BB = 0.0;
   mtt->TT = 1.0;
   ELL_3V_SCALE(mtt->V, -1, rayDirWorld);
@@ -51,7 +51,7 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
     ad[3],                          /* ambient+diffuse light contribution */
     s[3] = {0,0,0},                 /* specular light contribution */
     col[3], E, ka, kd, ks, sp,      /* txf-determined rendering variables */
-    LdotN, HdotN, H[3], N[3];       /* for lighting calculation */
+    LdotN=0, HdotN, H[3], N[3];     /* for lighting calculation */
 
   col[0] = mtt->range[miteRangeRed];
   col[1] = mtt->range[miteRangeGreen];
@@ -88,6 +88,9 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
   if (mtt->verbose) {
     fprintf(stderr, "%s: col[] = %g,%g,%g; A,E = %g,%g; Kads = %g,%g,%g\n", me,
 	    col[0], col[1], col[2], mtt->range[miteRangeAlpha], E, ka, kd, ks);
+    fprintf(stderr, "%s: N = (%g,%g,%g), L = (%g,%g,%g) ---> LdotN = %g\n",
+	    me, N[0], N[1], N[2], muu->lit->dir[0][0], muu->lit->dir[0][1],
+	    muu->lit->dir[0][2], LdotN);
     fprintf(stderr, "%s: ad[] = %g,%g,%g\n", me, ad[0], ad[1], ad[2]);
     fprintf(stderr, "%s:  --> R,G,B,A = %g,%g,%g,%g\n", me, *R, *G, *B, *A);
   }
