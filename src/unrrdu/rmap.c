@@ -59,11 +59,13 @@ unrrdu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
 	     "Low end of input range. Defaults to lowest value "
 	     "found in input nrrd.  Explicitly setting this is useful "
-	     "only with rescaling (\"-r\")");
+	     "only with rescaling (\"-r\") or if the map domain is only "
+	     "implicitly defined");
   hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
 	     "High end of input range. Defaults to highest value "
 	     "found in input nrrd.  Explicitly setting this is useful "
-	     "only with rescaling (\"-r\")");
+	     "only with rescaling (\"-r\") or if the map domain is only "
+	     "implicitly defined");
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &typeOut, "default",
 	     "specify the type (\"int\", \"float\", etc.) of the "
 	     "output nrrd. "
@@ -83,11 +85,23 @@ unrrdu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
+  /* here is a big difference between unu and nrrd: we enforce
+     rescaling any time that the map domain is implicit.  This
+     is how the pre-1.6 functionality is recreated.  Also, whenever
+     there is rescaling we pass a NrrdRange to reflect the (optional)
+     user range specification, instead of letting nrrdApply1DRegMap
+     find the input range itself (by passing a NULL NrrdRange).
+  */
+  if (!( AIR_EXISTS(nmap->axis[nmap->dim - 1].min) && 
+	 AIR_EXISTS(nmap->axis[nmap->dim - 1].max) )) {
+    rescale = AIR_TRUE;
+  }
   if (rescale) {
     range = nrrdRangeNew(min, max);
     airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
     nrrdRangeSafeSet(range, nin, nrrdBlind8BitRangeState);
   }
+
   if (nrrdTypeDefault == typeOut) {
     typeOut = nmap->type;
   }

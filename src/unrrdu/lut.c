@@ -75,11 +75,17 @@ unrrdu_lutMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
+  /* see comment rmap.c */
+  if (!( AIR_EXISTS(nlut->axis[nlut->dim - 1].min) && 
+	 AIR_EXISTS(nlut->axis[nlut->dim - 1].max) )) {
+    rescale = AIR_TRUE;
+  }
   if (rescale) {
     range = nrrdRangeNew(min, max);
     airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
     nrrdRangeSafeSet(range, nin, nrrdBlind8BitRangeState);
   }
+
   if (nrrdTypeDefault == typeOut) {
     typeOut = nlut->type;
   }
