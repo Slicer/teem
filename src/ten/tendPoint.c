@@ -69,6 +69,8 @@ tend_pointMain(int argc, char **argv, char *me, hestParm *hparm) {
   fprintf(stderr, "location = (%d,%d,%d)\n", loc[0], loc[1], loc[2]);
   fprintf(stderr, "confidence = %g\n", tdata[0]);
   fprintf(stderr, "tensor =\n");
+  fprintf(stderr, "{%.7f,%.7f,%.7f,%.7f,%.7f,%.7f} = \n",
+	  tdata[1], tdata[2], tdata[3], tdata[4], tdata[5], tdata[6]);
   fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", tdata[1], tdata[2], tdata[3]);
   fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", tdata[2], tdata[4], tdata[5]);
   fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", tdata[3], tdata[5], tdata[6]);
