@@ -39,6 +39,9 @@ text of the GNU Lesser General Public License should be in the file
    however it is that you invoke a GNU make.  This MUST be GNU make.
    I am in fact using features unique to GNU make.
 
+If you want only the nrrd library and the related utilities (unrrdu)
+then type: "make just-nrrd".
+
 What?  No configure or auto-conf script?  That's right.  Because the
 architecture specific stuff is all set with a file in the "src/make"
 directory, and because this never "installs" anything to a location

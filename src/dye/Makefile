@@ -18,11 +18,11 @@
 #
 #
 
-LIB = dye
+TEEM_LIB = dye
 HEADERS = dye.h
-LIB_OBJS = methods.o convert.o
+TEEM_LIB_OBJS = methods.o convert.o
 TEST_BINS = test/conv test/bow
-BINS =
-BIN_LIBS = -ldye -lbiff -lair -lm
+TEEM_BINS =
+TEEM_BIN_LIBS = -ldye -lbiff -lair -lm
 
 include ../make/Common.mk

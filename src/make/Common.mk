@@ -19,7 +19,7 @@
 #
 
 # learned: you get very confusing errors if one the filenames in 
-# $(LIB_OBJS) ends with ".c"
+# $(TEEM_LIB_OBJS) ends with ".c"
 
 
 
@@ -105,52 +105,52 @@ include $(PREFIX)/src/make/$(ARCH).mk
 
 # if we need to create a new library, then we set up some variables
 # relating to the library name, location, and required objects:
-# OBJ_PREF OBJS LIB.A _LIB.A LIB.S _LIB.S
+# OBJ_PREF OBJS TEEM_LIB.A _TEEM_LIB.A TEEM_LIB.S _TEEM_LIB.S
 #
-ifdef LIB
-  OBJ_PREF = $(ODEST)/$(LIB)
-  OBJS = $(addprefix $(OBJ_PREF)/,$(LIB_OBJS))
-  LIB_BASENAME ?= lib$(LIB)
-  _LIB.A = $(LIB_BASENAME).a
-  LIB.A = $(OBJ_PREF)/$(_LIB.A)
+ifdef TEEM_LIB
+  OBJ_PREF = $(ODEST)/$(TEEM_LIB)
+  OBJS = $(addprefix $(OBJ_PREF)/,$(TEEM_LIB_OBJS))
+  TEEM_LIB_BASENAME ?= lib$(TEEM_LIB)
+  _TEEM_LIB.A = $(TEEM_LIB_BASENAME).a
+  TEEM_LIB.A = $(OBJ_PREF)/$(_TEEM_LIB.A)
   # if SHEXT is not defined to any non-zero length string, then these
   # variables are not set, and no shared libraries are created at all
   ifdef SHEXT
-    _LIB.S = $(LIB_BASENAME).$(SHEXT)
-    LIB.S = $(OBJ_PREF)/$(_LIB.S)
+    _TEEM_LIB.S = $(TEEM_LIB_BASENAME).$(SHEXT)
+    TEEM_LIB.S = $(OBJ_PREF)/$(_TEEM_LIB.S)
   endif
 endif
 
-ifdef BIN
-  _BIN = $(notdir $(BIN))
-  _BLIB = $(patsubst %/,%,$(dir $(BIN)))
+ifdef TEEM_BIN
+  _TEEM_BIN = $(notdir $(TEEM_BIN))
+  _B_TEEM_LIB = $(patsubst %/,%,$(dir $(TEEM_BIN)))
   ifdef OBJ_PREF
-    ifneq ($(OBJ_PREF),$(ODEST)/$(_BLIB))
-      $(error BIN $(BIN) must be in same path as LIB $(LIB))
+    ifneq ($(OBJ_PREF),$(ODEST)/$(_B_TEEM_LIB))
+      $(error TEEM_BIN $(TEEM_BIN) must be in same path as TEEM_LIB $(TEEM_LIB))
     endif
   endif
-  OBJ_PREF = $(ODEST)/$(_BLIB)
-  OBJS = $(addprefix $(OBJ_PREF)/,$(BIN_OBJS))
-  # The non-installed binary will be called $(_BIN) and will be in the
+  OBJ_PREF = $(ODEST)/$(_B_TEEM_LIB)
+  OBJS = $(addprefix $(OBJ_PREF)/,$(TEEM_BIN_OBJS))
+  # The non-installed binary will be called $(_TEEM_BIN) and will be in the
   # main source directory (wherever this .mk file was sourced from).
   # The installed binary goes in the usual place (BDEST)
 endif
 
 # the complete path names for installed headers and libraries
 INSTALL_HDRS = $(addprefix $(IDEST)/,$(HEADERS))
-INSTALL_LIBS = $(addprefix $(LDEST)/,$(_LIB.A) $(_LIB.S))
+INSTALL_TEEM_LIBS = $(addprefix $(LDEST)/,$(_TEEM_LIB.A) $(_TEEM_LIB.S))
 
 # the complete path name for the "single" binary
-INSTALL_BIN = $(addprefix $(BDEST)/,$(_BIN))
+INSTALL_TEEM_BIN = $(addprefix $(BDEST)/,$(_TEEM_BIN))
 
 # the complete path names of the binaries to be installed.
 # The fanciness here is that we want to allow the sources for the binaries
 # to be in subdirectories of where the library's sources are, but those
 # subdirectories can't be part of the installed binary name ...
-INSTALL_BINS = $(addprefix $(BDEST)/,$(notdir $(BINS)))
+INSTALL_TEEM_BINS = $(addprefix $(BDEST)/,$(notdir $(TEEM_BINS)))
 # ... however, we need to set VPATH in order to help "make" find the 
 # sources for the binaries in their subdirectories
-VPATH = $(sort $(dir $(BINS)))
+VPATH = $(sort $(dir $(TEEM_BINS)))
 # Thus, bane can have its single binary "gkms" built from "bane/bin/gkms.c",
 # but it will be installed as "gkms" in the architecture's bin directory
 
@@ -159,7 +159,7 @@ VPATH = $(sort $(dir $(BINS)))
 #
 ifeq ($(TEEM_LINK_SHARED),true)
   BIN_CFLAGS += $(SHARED_CFLAG)
-  ifdef LIB
+  ifdef TEEM_LIB
     ifndef SHEXT
       $(warning *)
       $(warning *)
@@ -169,14 +169,14 @@ ifeq ($(TEEM_LINK_SHARED),true)
       $(warning *)
       $(error Make quitting)
     endif
-    THISLIB = $(LIB.S)
-    THISLIB_LPATH = -L$(OBJ_PREF)
+    THIS_TEEM_LIB = $(TEEM_LIB.S)
+    THIS_TEEM_LIB_LPATH = -L$(OBJ_PREF)
   endif
 else
   BIN_CFLAGS += $(STATIC_CFLAG)
-  ifdef LIB
-    THISLIB = $(LIB.A)
-    THISLIB_LPATH = -L$(OBJ_PREF)
+  ifdef TEEM_LIB
+    THIS_TEEM_LIB = $(TEEM_LIB.A)
+    THIS_TEEM_LIB_LPATH = -L$(OBJ_PREF)
   endif
 endif  
 CFLAGS += $(OPT_CFLAG) $(ARCH_CFLAG)
@@ -242,26 +242,26 @@ endif
 # install-able things from this library can say "make install" (and
 # not "make; make install") while someone debugging/developing a
 # library can say "make"
-all: $(LIB.A) $(LIB.S) $(TEST_BINS) $(BINS) $(_BIN)
+all: $(TEEM_LIB.A) $(TEEM_LIB.S) $(TEST_BINS) $(TEEM_BINS) $(_TEEM_BIN)
 testbins: $(TEST_BINS)
-bins: $(BINS)
+bins: $(TEEM_BINS)
 
 # "make install" installs the headers, libraries, and binaries, but
 # does not build the bins or test bins in the current directory
-install: $(INSTALL_LIBS) $(INSTALL_BINS) $(INSTALL_HDRS) $(INSTALL_BIN)
+install: $(INSTALL_TEEM_LIBS) $(INSTALL_TEEM_BINS) $(INSTALL_HDRS) $(INSTALL_TEEM_BIN)
 
 # "make clean" removes what's created by "make" ("make all")
 clean:
-	$(RM) $(OBJS) $(LIB.A) $(LIB.S) $(TEST_BINS) $(BINS) \
-	  $(OTHER_CLEAN) $(BIN)
+	$(RM) $(OBJS) $(TEEM_LIB.A) $(TEEM_LIB.S) $(TEST_BINS) $(TEEM_BINS) \
+	  $(OTHER_CLEAN) $(TEEM_BIN)
 
 # "make uninstall" removes what's created by "make install"
 uninstall:
 	$(if $(HEADERS), $(RM) $(foreach h, $(HEADERS), $(IDEST)/$(h)))
-	$(if $(LIB), $(RM) $(LDEST)/$(_LIB.A))
-	$(if $(LIB.S), $(RM) $(LDEST)/$(_LIB.S))
-	$(if $(BINS), $(RM) $(foreach b, $(BINS), $(BDEST)/$(b)))
-	$(if $(BIN), $(RM) $(BDEST)/$(BIN))
+	$(if $(TEEM_LIB), $(RM) $(LDEST)/$(_TEEM_LIB.A))
+	$(if $(TEEM_LIB.S), $(RM) $(LDEST)/$(_TEEM_LIB.S))
+	$(if $(TEEM_BINS), $(RM) $(foreach b, $(TEEM_BINS), $(BDEST)/$(b)))
+	$(if $(TEEM_BIN), $(RM) $(BDEST)/$(TEEM_BIN))
 
 # "make destroy" does as you'd expect
 destroy: clean uninstall
@@ -274,31 +274,31 @@ $(OBJ_PREF)/%.o: %.c
 	$(P) $(CC) $(CFLAGS) -I. $(IPATH) -c $< -o $@
 
 # the libraries are dependent on the respective object files
-$(LIB.A): $(OBJS)
-	$(AR) $(ARFLAGS) $(LIB.A) $(OBJS)
-$(LIB.S): $(OBJS)
-	$(LD) -o $(LIB.S) $(LDFLAGS) $(LPATH) $(OBJS) $(LDLIBS)
+$(TEEM_LIB.A): $(OBJS)
+	$(AR) $(ARFLAGS) $(TEEM_LIB.A) $(OBJS)
+$(TEEM_LIB.S): $(OBJS)
+	$(LD) -o $(TEEM_LIB.S) $(LDFLAGS) $(LPATH) $(OBJS) $(LD_TEEM_LIBS)
 
 # This rule is for binaries and test binaries which are NOT being
-# installed.  Such binaries depend on the library file $(THISLIB)
-# (which will be defined ifdef LIB, and will probably be set to
-# lib$(LIB).a or lib$(LIB).$(SHEXT), according to
+# installed.  Such binaries depend on the library file $(THIS_TEEM_LIB)
+# (which will be defined ifdef TEEM_LIB, and will probably be set to
+# lib$(TEEM_LIB).a or lib$(TEEM_LIB).$(SHEXT), according to
 # $(TEEM_LINK_SHARED)).  We link against the copy of the library
-# living in the object directory (with $(THISLIB_LPATH) preceeding
+# living in the object directory (with $(THIS_TEEM_LIB_LPATH) preceeding
 # $(LPATH)), so that the binaries can be use to debug the library
 # before installing the library in the proper lib directory.  The
 # style of linking is still controlled by $(TEEM_LINK_SHARED).
 #
 # NB: This creates the executable in the same directory as the .c file
 #
-%: %.c $(THISLIB)
+%: %.c $(THIS_TEEM_LIB)
 	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) -I. $(IPATH) -o $@ $< \
-	   $(THISLIB_LPATH) $(LPATH) \
-	   $(BIN_LIBS)
+	   $(THIS_TEEM_LIB_LPATH) $(LPATH) \
+	   $(TEEM_BIN_LIBS)
 
-$(_BIN): $(OBJS)
+$(_TEEM_BIN): $(OBJS)
 	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) -I. $(IPATH) -o $@ $(OBJS) \
-	   $(LPATH) $(BIN_LIBS)
+	   $(LPATH) $(TEEM_BIN_LIBS)
 
 # This rule is to satisfy the target $(INSTALL_HDRS)
 $(IDEST)/%: %
@@ -306,25 +306,28 @@ $(IDEST)/%: %
 	$(CHMOD) 644 $(IDEST)/$<
 
 
-# This rule is to satisfy the target $(INSTALL_LIBS)
+# This rule is to satisfy the target $(INSTALL_TEEM_LIBS)
 $(LDEST)/%: $(OBJ_PREF)/%
 	$(CP) $< $(LDEST)
 	$(CHMOD) 755 $<
 
 
-# This rule is to satisfy the target $(INSTALL_BIN)
-$(BDEST)/$(_BIN): $(_BIN)
-	$(CP) $(_BIN)$(DOTEXE) $(BDEST)
-	$(CHMOD) 755 $(BDEST)/$(_BIN)$(DOTEXE)
+# This rule is to satisfy the target $(INSTALL_TEEM_BIN)
+$(BDEST)/$(_TEEM_BIN): $(_TEEM_BIN)
+	$(CP) $(_TEEM_BIN)$(DOTEXE) $(BDEST)
+	$(CHMOD) 755 $(BDEST)/$(_TEEM_BIN)$(DOTEXE)
 
-# This rule is to satisfy the target $(INSTALL_BINS)
+# This rule is to satisfy the target $(INSTALL_TEEM_BINS)
 # The binaries which are to be installed should link against the
 # already-installed libraries, and use the already installed headers.
 #
 # NB: VPATH is used to locate the prerequisite %.c in a subdirectory
 #
-$(BDEST)/%: %.c $(INSTALL_LIBS) $(INSTALL_HDRS)
+$(BDEST)/%: %.c $(INSTALL_TEEM_LIBS) $(INSTALL_HDRS)
 	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) -o $@ $< \
-	   $(LPATH) $(BIN_LIBS)
+	   $(LPATH) $(TEEM_BIN_LIBS)
 	$(CHMOD) 755 $@$(DOTEXE)
 
+# LIB -> TEEM_LIB
+# LIB_OBJS -> TEEM_LIB_OBJS
+# BIN_LIBS -> TEEM_BIN_LIBS

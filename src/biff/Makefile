@@ -18,11 +18,11 @@
 #
 #
 
-LIB = biff
+TEEM_LIB = biff
 HEADERS = biff.h
-LIB_OBJS = biff.o
+TEEM_LIB_OBJS = biff.o
 TEST_BINS = test/test
-BINS = 
-BIN_LIBS = -lbiff -lair -lm
+TEEM_BINS = 
+TEEM_BIN_LIBS = -lbiff -lair -lm
 
 include ../make/Common.mk

@@ -168,8 +168,8 @@ enum {
 #define ECHO_MATTER_VALUE_NUM 8
 
 /* enum.c ------------------------------------------ */
-extern airEnum echoJitter;
-extern airEnum echoObject;
+extern airEnum *echoJitter;
+extern airEnum *echoObject;
 
 /* object.c ---------------------------------------- */
 

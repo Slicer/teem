@@ -25,7 +25,7 @@ TEEM_LIB_OBJS = tensor.o chan.o aniso.o methods.o arrays.o
 #TEST_BINS = test/chan2tens test/anisos test/boxes test/anisovol test/slices \
 #	test/es test/anisovol
 TEST_BINS = test/chan2tens test/anisos
-BINS = 
+TEEM_BINS = 
 TEEM_BIN_LIBS = -lten -lnrrd -lell -lbiff -lair -lm
 
 include ../make/Common.mk

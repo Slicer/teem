@@ -35,8 +35,7 @@ extern "C" {
 #include <air.h>
 #include <biff.h>
 #include <nrrd.h>
-
-#define BANE_SMALL_STRLEN 65
+#include <gage.h>
 
 #define BANE_HIST_EQ_BINS 1024
 
@@ -60,9 +59,9 @@ enum {
   baneRangeLast
 };
 extern char baneRangeStr[][BANE_SMALL_STRLEN];
-typedef void (*baneRangeType)(double *minP, double *maxP, 
-			      double min, double max);
-extern baneRangeType baneRange[BANE_RANGE_MAX+1];
+typedef void (*baneRange_t)(double *minP, double *maxP, 
+			    double min, double max);
+extern baneRange_t baneRange[BANE_RANGE_MAX+1];
 
 /*
 ******** baneMeasr enum
@@ -75,22 +74,24 @@ extern baneRangeType baneRange[BANE_RANGE_MAX+1];
 ** baneRange as indicated by baneMeasrRange[].  Some measurements can't
 ** be taken on the boundary of the volume, baneMeasrMargin[] tells how
 ** many voxels in you have to be before the measurement can safely happen
+**
+** Except for the "gradient of magnitude of gradient", these measures map
+** directly to measures in the gageScl enum (and that one difference is
+** the reason for these being different)
 */
 #define BANE_MEASR_MAX 5
 enum {
   baneMeasrUnknown,    /* 0: nobody knows */
   baneMeasrVal,        /* 1: the data value */
-  baneMeasrGradMag_cd, /* 2: gradient magnitude from central differences */
-  baneMeasrLapl_cd,    /* 3: Laplacian, 2nd central differences */
-  baneMeasrHess_cd,    /* 4: Hessian-based measure of 2nd DD along gradient
-			  using central differences */
-  baneMeasrGMG_cd,     /* 5: gradient of magnitude of gradient,
-			  using central differences */
+  baneMeasrGradMag,    /* 2: gradient magnitude */
+  baneMeasrLapl,       /* 3: Laplacian */
+  baneMeasrHess,       /* 4: Hessian-based measure of 2nd DD along gradient */
+  baneMeasrGMG,        /* 5: gradient of magnitude of gradient */
+  baneMeasrCurvedness  
   baneMeasrLast
 };
 extern char baneMeasrStr[][BANE_SMALL_STRLEN];
 extern int baneMeasrRange[BANE_MEASR_MAX+1];
-extern int baneMeasrMargin[BANE_MEASR_MAX+1];
 typedef double (*baneMeasrType)(Nrrd *n, nrrdBigInt idx);
 extern baneMeasrType baneMeasr[BANE_MEASR_MAX+1];
 
@@ -103,7 +104,7 @@ extern baneMeasrType baneMeasr[BANE_MEASR_MAX+1];
 ** to be included in the histogram volume.  Each inclusion method has
 ** some parameters (at most BANE_INC_NUM_PARM) which are (or can be
 ** harmlessly cast to) floats.  Some of them need a histogram in order
-** to determing the new min and max, as indicated by baneIncNeedsHisto[]
+** to determine the new min and max, as indicated by baneIncNeedsHisto[]
 */
 #define BANE_INC_NUM_PARM 3
 #define BANE_INC_MAX 4
@@ -171,9 +172,9 @@ typedef struct {
 **
 */
 typedef struct {
-  int verb;                            /* status messages to stderr */
+  int verbose;                         /* status messages to stderr */
   baneMeasrParm axp[3];                /* parameters for axes' measurement */
-  int clip;                      /* how to clip hit counts in hvol */
+  int clip;                            /* how to clip hit counts in hvol */
   double clipParm[BANE_CLIP_NUM_PARM], /* parameter(s) to clip method */
     incLimit;                          /* lowest permissible fraction of the
 					  data remaining after new inclusion

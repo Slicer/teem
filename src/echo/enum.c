@@ -47,13 +47,15 @@ _echoJitterValEqv[] = {
 };
 
 airEnum
-echoJitter = {
+_echoJitter = {
   "jitter",
   ECHO_JITTER_MAX,
   _echoJitterStr,  NULL,
   _echoJitterStrEqv, _echoJitterValEqv,
   AIR_FALSE
 };
+airEnum *
+echoJitter = &_echoJitter;
 
 /* ------------------------------- object --------------------------- */
 
@@ -98,10 +100,12 @@ _echoObjectValEqv[] = {
 };
 
 airEnum
-echoObject = {
+_echoObject = {
   "object",
   ECHO_OBJECT_MAX,
   _echoObjectStr,  NULL,
   _echoObjectStrEqv, _echoObjectValEqv,
   AIR_FALSE
 };
+airEnum *
+echoObject = &_echoObject;
