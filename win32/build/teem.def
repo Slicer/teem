@@ -1,0 +1,2621 @@
+EXPORTS
+	unrrdu_unquantizeMain @ 1
+	_airBadInsane @ 2845 DATA
+	_airBool @ 2846 DATA
+	_airBoolDesc @ 2847 DATA
+	_airBoolStr @ 2848 DATA
+	_airBoolStrEqv @ 2849 DATA
+	_airBoolVal @ 2850 DATA
+	_airBoolValEqv @ 2851 DATA
+	_airEndian @ 2852 DATA
+	_airEndianDesc @ 2853 DATA
+	_airEndianStr @ 2854 DATA
+	_airEndianVal @ 2855 DATA
+	_airEnumIndex @ 2856
+	_airInsaneErr @ 2857 DATA
+	_airMopPrint @ 2858
+	_airMopWhenStr @ 2859 DATA
+	_airNoDioErr @ 2860 DATA
+	_airSetData @ 2861
+	_airSetLen @ 2862
+	_baneAxisCheck @ 2863
+	_baneAxisInit @ 2864
+	_baneClipAbsolute @ 2865 DATA
+	_baneClipAbsolute_Ans @ 2866
+	_baneClipPeakRatio @ 2867 DATA
+	_baneClipPeakRatio_Ans @ 2868
+	_baneClipPercentile @ 2869 DATA
+	_baneClipPercentile_Ans @ 2870
+	_baneClipTopN @ 2871 DATA
+	_baneClipTopN_Ans @ 2872
+	_baneClipUnknown @ 2873 DATA
+	_baneClipUnknown_Ans @ 2874
+	_baneGkmsDonData @ 2875 DATA
+	_baneGkmsDonNew @ 2876
+	_baneGkmsHestBEF @ 2877 DATA
+	_baneGkmsHestGthresh @ 2878 DATA
+	_baneGkmsHestIncStrategy @ 2879 DATA
+	_baneGkmsMeasr @ 2880 DATA
+	_baneGkmsMeasrStr @ 2881 DATA
+	_baneGkmsMeasrVal @ 2882 DATA
+	_baneGkms_hvolInfoL @ 2883 DATA
+	_baneGkms_infoInfoL @ 2884 DATA
+	_baneGkms_miteInfoL @ 2885 DATA
+	_baneGkms_opacInfoL @ 2886 DATA
+	_baneGkms_pvgInfoL @ 2887 DATA
+	_baneGkms_scatInfoL @ 2888 DATA
+	_baneGkms_txfInfoL @ 2889 DATA
+	_baneIncAbsolute @ 2890 DATA
+	_baneIncAbsolute_Ans @ 2891
+	_baneIncPercentile @ 2892 DATA
+	_baneIncPercentile_Ans @ 2893
+	_baneIncRangeRatio @ 2894 DATA
+	_baneIncRangeRatio_Ans @ 2895
+	_baneIncStdv @ 2896 DATA
+	_baneIncStdv_Ans @ 2897
+	_baneIncStdv_EmptyHistNew @ 2898
+	_baneIncStdv_Pass @ 2899
+	_baneIncUnknown @ 2900 DATA
+	_baneIncUnknown_Ans @ 2901
+	_baneInc_EmptyHistNew @ 2902
+	_baneInc_HistFill @ 2903
+	_baneInc_HistNew @ 2904
+	_baneInc_LearnMinMax @ 2905
+	_baneMeasrCurvedness @ 2906 DATA
+	_baneMeasrCurvedness_Ans @ 2907
+	_baneMeasrGradMag @ 2908 DATA
+	_baneMeasrGradMag_Ans @ 2909
+	_baneMeasrHess @ 2910 DATA
+	_baneMeasrHess_Ans @ 2911
+	_baneMeasrLapl @ 2912 DATA
+	_baneMeasrLapl_Ans @ 2913
+	_baneMeasrShapeTrace @ 2914 DATA
+	_baneMeasrShapeTrace_Ans @ 2915
+	_baneMeasrUnknown @ 2916 DATA
+	_baneMeasrUnknown_Ans @ 2917
+	_baneMeasrValFloat @ 2918 DATA
+	_baneMeasrValPos @ 2919 DATA
+	_baneMeasrValZeroCent @ 2920 DATA
+	_baneMeasrVal_Ans @ 2921
+	_baneOpacCalcA @ 2922
+	_baneOpacCalcB @ 2923
+	_baneRangeFloat @ 2924 DATA
+	_baneRangeFloat_Ans @ 2925
+	_baneRangeNeg @ 2926 DATA
+	_baneRangeNeg_Ans @ 2927
+	_baneRangePos @ 2928 DATA
+	_baneRangePos_Ans @ 2929
+	_baneRangeUnknown @ 2930 DATA
+	_baneRangeUnknown_Ans @ 2931
+	_baneRangeZeroCent @ 2932 DATA
+	_baneRangeZeroCent_Ans @ 2933
+	_baneSigmaCalc1D @ 2934
+	_baneTRexDone @ 2935
+	_baneTRexRead @ 2936
+	_baneTesting @ 2937 DATA
+	_biffAA @ 2938 DATA
+	_biffAddErr @ 2939
+	_biffAddKey @ 2940
+	_biffCheckKey @ 2941
+	_biffErr @ 2942 DATA
+	_biffFindKey @ 2943
+	_biffIdx @ 2944 DATA
+	_biffInit @ 2945
+	_biffNewEntry @ 2946
+	_biffNukeEntry @ 2947
+	_biffNum @ 2948 DATA
+	_echoAABBox_bounds @ 2949
+	_echoAABBox_new @ 2950
+	_echoBoundsGet @ 2951 DATA
+	_echoBuff @ 2952 DATA
+	_echoCube_bounds @ 2953
+	_echoCube_new @ 2954
+	_echoCylinder_bounds @ 2955
+	_echoCylinder_new @ 2956
+	_echoDot @ 2957
+	_echoInstance_bounds @ 2958
+	_echoInstance_new @ 2959
+	_echoIntxColor @ 2960 DATA
+	_echoIntxColorGlass @ 2961
+	_echoIntxColorLight @ 2962
+	_echoIntxColorMetal @ 2963
+	_echoIntxColorPhong @ 2964
+	_echoIntxColorUnknown @ 2965
+	_echoIsosurface_bounds @ 2966
+	_echoIsosurface_new @ 2967
+	_echoJitter @ 2968 DATA
+	_echoJitterDesc @ 2969 DATA
+	_echoJitterStr @ 2970 DATA
+	_echoJitterStrEqv @ 2971 DATA
+	_echoJitterVal @ 2972 DATA
+	_echoJitterValEqv @ 2973 DATA
+	_echoList_bounds @ 2974
+	_echoList_new @ 2975
+	_echoList_nix @ 2976
+	_echoMatter @ 2977 DATA
+	_echoMatterDesc @ 2978 DATA
+	_echoMatterInit @ 2979
+	_echoMatterStr @ 2980 DATA
+	_echoObjectNew @ 2981 DATA
+	_echoObjectNix @ 2982 DATA
+	_echoPosCompare @ 2983
+	_echoPosSet @ 2984
+	_echoRayIntx @ 2985 DATA
+	_echoRayIntxUV @ 2986 DATA
+	_echoRayIntxUV_Cube @ 2987
+	_echoRayIntxUV_Noop @ 2988
+	_echoRayIntxUV_Sphere @ 2989
+	_echoRayIntxUV_TriMesh @ 2990
+	_echoRayIntx_AABBox @ 2991
+	_echoRayIntx_Cube @ 2992
+	_echoRayIntx_CubeSolid @ 2993
+	_echoRayIntx_CubeSurf @ 2994
+	_echoRayIntx_Cylinder @ 2995
+	_echoRayIntx_Instance @ 2996
+	_echoRayIntx_List @ 2997
+	_echoRayIntx_Noop @ 2998
+	_echoRayIntx_Rectangle @ 2999
+	_echoRayIntx_Sphere @ 3000
+	_echoRayIntx_Split @ 3001
+	_echoRayIntx_Superquad @ 3002
+	_echoRayIntx_TriMesh @ 3003
+	_echoRayIntx_Triangle @ 3004
+	_echoRectangle_bounds @ 3005
+	_echoRectangle_new @ 3006
+	_echoRefract @ 3007
+	_echoSceneLightAdd @ 3008
+	_echoSceneNrrdAdd @ 3009
+	_echoSphere_bounds @ 3010
+	_echoSphere_new @ 3011
+	_echoSplit_bounds @ 3012
+	_echoSplit_new @ 3013
+	_echoSuperquad_bounds @ 3014
+	_echoSuperquad_new @ 3015
+	_echoTriMesh_bounds @ 3016
+	_echoTriMesh_new @ 3017
+	_echoTriMesh_nix @ 3018
+	_echoTriangle_bounds @ 3019
+	_echoTriangle_new @ 3020
+	_echoType @ 3021 DATA
+	_echoTypeDesc @ 3022 DATA
+	_echoTypeStr @ 3023 DATA
+	_echoTypeStrEqv @ 3024 DATA
+	_echoTypeVal @ 3025 DATA
+	_echoTypeValEqv @ 3026 DATA
+	_echoVerbose @ 3027 DATA
+	_echo_SuperquadX_lvg @ 3028
+	_echo_SuperquadX_v @ 3029
+	_echo_SuperquadX_vg @ 3030
+	_echo_SuperquadY_lvg @ 3031
+	_echo_SuperquadY_v @ 3032
+	_echo_SuperquadY_vg @ 3033
+	_echo_SuperquadZ_lvg @ 3034
+	_echo_SuperquadZ_v @ 3035
+	_echo_SuperquadZ_vg @ 3036
+	_ellAlign3 @ 3037
+	_ellFixerUpper @ 3038
+	_ellInverse @ 3039
+	_ellLUBackSub @ 3040
+	_ellLUDecomp @ 3041
+	_gageCacheProbe @ 3042
+	_gageCacheSizeUpdate @ 3043
+	_gageFslSet @ 3044
+	_gageFwDerivRenormalize @ 3045
+	_gageFwSet @ 3046
+	_gageFwValueRenormalize @ 3047
+	_gageHash @ 3048
+	_gageHavePadUpdate @ 3049
+	_gageKernelDesc @ 3050 DATA
+	_gageKernelStr @ 3051 DATA
+	_gageKernelStrEqv @ 3052 DATA
+	_gageKernelVal @ 3053 DATA
+	_gageKernelValEqv @ 3054 DATA
+	_gageKernel_enum @ 3055 DATA
+	_gageKindScl @ 3056 DATA
+	_gageKindVec @ 3057 DATA
+	_gageLocationSet @ 3058
+	_gageNeedDUpdate @ 3059
+	_gageNeedKUpdate @ 3060
+	_gageNpadUpdate @ 3061
+	_gageOffValueUpdate @ 3062
+	_gagePerVolumeCopy @ 3063
+	_gagePrint_fslw @ 3064
+	_gagePrint_off @ 3065
+	_gagePvlFlagCheck @ 3066
+	_gagePvlFlagDown @ 3067
+	_gagePvlNeedDUpdate @ 3068
+	_gageScl @ 3069 DATA
+	_gageSclAnswer @ 3070
+	_gageSclDesc @ 3071 DATA
+	_gageSclFilter @ 3072
+	_gageSclIv3Print @ 3073
+	_gageSclNeedDeriv @ 3074 DATA
+	_gageSclPrereq @ 3075 DATA
+	_gageSclStr @ 3076 DATA
+	_gageSclStrEqv @ 3077 DATA
+	_gageSclVal @ 3078 DATA
+	_gageSclValEqv @ 3079 DATA
+	_gageShapeSet @ 3080
+	_gageStandardNixer @ 3081
+	_gageStandardPadder @ 3082
+	_gageVec @ 3083 DATA
+	_gageVecAnswer @ 3084
+	_gageVecDesc @ 3085 DATA
+	_gageVecFilter @ 3086
+	_gageVecIv3Print @ 3087
+	_gageVecNeedDeriv @ 3088 DATA
+	_gageVecPrereq @ 3089 DATA
+	_gageVecStr @ 3090 DATA
+	_gageVecStrEqv @ 3091 DATA
+	_gageVecVal @ 3092 DATA
+	_gageVecValEqv @ 3093 DATA
+	_hestArgc @ 3094
+	_hestArgsInResponseFiles @ 3095
+	_hestCase @ 3096
+	_hestDefaults @ 3097
+	_hestErrStrlen @ 3098
+	_hestExtract @ 3099
+	_hestExtractFlagged @ 3100
+	_hestExtractUnflagged @ 3101
+	_hestIdent @ 3102
+	_hestKind @ 3103
+	_hestMax @ 3104
+	_hestNextUnflagged @ 3105
+	_hestNumOpts @ 3106
+	_hestOptFree @ 3107
+	_hestOptInit @ 3108
+	_hestPanic @ 3109
+	_hestPrintArgv @ 3110
+	_hestPrintStr @ 3111
+	_hestResponseFiles @ 3112
+	_hestSetBuff @ 3113
+	_hestSetValues @ 3114
+	_hestWhichFlag @ 3115
+	_hooverExtraContextNew @ 3116
+	_hooverExtraContextNix @ 3117
+	_hooverLearnLengths @ 3118
+	_limnEdgeInit @ 3120
+	_limnObjDTransform @ 3121
+	_limnObjNormals @ 3122
+	_limnObjSTransform @ 3123
+	_limnObjVTransform @ 3124
+	_limnObjWHomog @ 3125
+	_limnOptsPSDefaults @ 3126
+	_limnPSDrawEdge @ 3127
+	_limnPSDrawFace @ 3128
+	_limnPSEpilogue @ 3129
+	_limnPSPreamble @ 3130
+	_limnPartDepthCompare @ 3131
+	_limnQN_15checker_QNtoV @ 3132
+	_limnQN_15checker_VtoQN @ 3133
+	_limnQN_16border1_QNtoV @ 3134
+	_limnQN_16border1_VtoQN @ 3135
+	_limnQN_16checker_QNtoV @ 3136
+	_limnQN_16checker_VtoQN @ 3137
+	_limnQN_16simple_QNtoV @ 3138
+	_limnQN_16simple_VtoQN @ 3139
+	_miteDomainParse @ 3140
+	_miteNtxfAlphaAdjust @ 3141
+	_miteNtxfCopy @ 3142
+	_miteNtxfQuery @ 3143
+	_miteRGBACalc @ 3144
+	_miteRenderNew @ 3145
+	_miteRenderNix @ 3146
+	_miteScl @ 3147 DATA
+	_miteSclStr @ 3148 DATA
+	_miteSclStrEqv @ 3149 DATA
+	_miteSclVal @ 3150 DATA
+	_miteSclValEqv @ 3151 DATA
+	_miteStageNum @ 3152
+	_miteStageRun @ 3153
+	_miteStageSet @ 3154
+	_miteUserCheck @ 3155
+	_mossCenter @ 3156
+	_mossHestOrigin @ 3157 DATA
+	_mossHestOriginParse @ 3158
+	_mossHestTransform @ 3159 DATA
+	_mossHestTransformParse @ 3160
+	_nrrd1DIrregFindInterval @ 3161
+	_nrrd1DIrregMapDomain @ 3162
+	_nrrdA41_d @ 3163
+	_nrrdA41_f @ 3164
+	_nrrdA4Int @ 3165
+	_nrrdA4N_d @ 3166
+	_nrrdA4N_f @ 3167
+	_nrrdA4Sup @ 3168
+	_nrrdApply1DLutOrRegMap @ 3169
+	_nrrdApply1DSetUp @ 3170
+	_nrrdAxisInfo @ 3171 DATA
+	_nrrdAxisInfoCopy @ 3172
+	_nrrdAxisInfoDesc @ 3173 DATA
+	_nrrdAxisInfoInit @ 3174
+	_nrrdAxisInfoStr @ 3175 DATA
+	_nrrdBC1_d @ 3176
+	_nrrdBC1_f @ 3177
+	_nrrdBCInt @ 3178
+	_nrrdBCN_d @ 3179
+	_nrrdBCN_f @ 3180
+	_nrrdBCSup @ 3181
+	_nrrdBinaryOp @ 3182 DATA
+	_nrrdBinaryOpAdd @ 3183
+	_nrrdBinaryOpAtan2 @ 3184
+	_nrrdBinaryOpCompare @ 3185
+	_nrrdBinaryOpDesc @ 3186 DATA
+	_nrrdBinaryOpDivide @ 3187
+	_nrrdBinaryOpEqual @ 3188
+	_nrrdBinaryOpExists @ 3189
+	_nrrdBinaryOpFmod @ 3190
+	_nrrdBinaryOpGT @ 3191
+	_nrrdBinaryOpGTE @ 3192
+	_nrrdBinaryOpLT @ 3193
+	_nrrdBinaryOpLTE @ 3194
+	_nrrdBinaryOpMax @ 3195
+	_nrrdBinaryOpMin @ 3196
+	_nrrdBinaryOpMod @ 3197
+	_nrrdBinaryOpMultiply @ 3198
+	_nrrdBinaryOpNotEqual @ 3199
+	_nrrdBinaryOpPow @ 3200
+	_nrrdBinaryOpStr @ 3201 DATA
+	_nrrdBinaryOpStrEqv @ 3202 DATA
+	_nrrdBinaryOpSubtract @ 3203
+	_nrrdBinaryOpValEqv @ 3204 DATA
+	_nrrdBinaryOp_enum @ 3205 DATA
+	_nrrdBlack_1_d @ 3206
+	_nrrdBlack_1_f @ 3207
+	_nrrdBlack_N_d @ 3208
+	_nrrdBlack_N_f @ 3209
+	_nrrdBlockEndian @ 3210
+	_nrrdBoundary @ 3211 DATA
+	_nrrdBoundaryDesc @ 3212 DATA
+	_nrrdBoundaryStr @ 3213 DATA
+	_nrrdBox1_d @ 3214
+	_nrrdBox1_f @ 3215
+	_nrrdBoxInt @ 3216
+	_nrrdBoxN_d @ 3217
+	_nrrdBoxN_f @ 3218
+	_nrrdBoxSup @ 3219
+	_nrrdCCAdj_1 @ 3220
+	_nrrdCCAdj_2 @ 3221
+	_nrrdCCAdj_3 @ 3222
+	_nrrdCCAdj_N @ 3223
+	_nrrdCCEqvAdd @ 3224
+	_nrrdCCFind_1 @ 3225
+	_nrrdCCFind_2 @ 3226
+	_nrrdCCFind_3 @ 3227
+	_nrrdCCFind_N @ 3228
+	_nrrdCC_EqvIncr @ 3229 DATA
+	_nrrdCC_eclass @ 3230
+	_nrrdCC_settle @ 3231
+	_nrrdCC_verb @ 3232 DATA
+	_nrrdCD1_d @ 3233
+	_nrrdCD1_f @ 3234
+	_nrrdCDInt @ 3235
+	_nrrdCDN_d @ 3236
+	_nrrdCDN_f @ 3237
+	_nrrdCDSup @ 3238
+	_nrrdCM_median @ 3239
+	_nrrdCM_mode @ 3240
+	_nrrdCM_printhist @ 3241
+	_nrrdCM_wtAlloc @ 3242
+	_nrrdCalloc @ 3243
+	_nrrdCenter @ 3244
+	_nrrdCenter2 @ 3245
+	_nrrdCenterDesc @ 3246 DATA
+	_nrrdCenterStr @ 3247 DATA
+	_nrrdCenter_enum @ 3248 DATA
+	_nrrdCheapMedian1D @ 3249
+	_nrrdCheapMedian2D @ 3250
+	_nrrdCheapMedian3D @ 3251
+	_nrrdCheckEnums @ 3252
+	_nrrdContentGet @ 3253
+	_nrrdContentSet @ 3254
+	_nrrdContentSet_nva @ 3255
+	_nrrdConv @ 3256 DATA
+	_nrrdConvCHCH @ 3257
+	_nrrdConvCHDB @ 3258
+	_nrrdConvCHFL @ 3259
+	_nrrdConvCHJN @ 3260
+	_nrrdConvCHLL @ 3261
+	_nrrdConvCHSH @ 3262
+	_nrrdConvCHUC @ 3263
+	_nrrdConvCHUI @ 3264
+	_nrrdConvCHUL @ 3265
+	_nrrdConvCHUS @ 3266
+	_nrrdConvDBCH @ 3267
+	_nrrdConvDBDB @ 3268
+	_nrrdConvDBFL @ 3269
+	_nrrdConvDBJN @ 3270
+	_nrrdConvDBLL @ 3271
+	_nrrdConvDBSH @ 3272
+	_nrrdConvDBUC @ 3273
+	_nrrdConvDBUI @ 3274
+	_nrrdConvDBUL @ 3275
+	_nrrdConvDBUS @ 3276
+	_nrrdConvFLCH @ 3277
+	_nrrdConvFLDB @ 3278
+	_nrrdConvFLFL @ 3279
+	_nrrdConvFLJN @ 3280
+	_nrrdConvFLLL @ 3281
+	_nrrdConvFLSH @ 3282
+	_nrrdConvFLUC @ 3283
+	_nrrdConvFLUI @ 3284
+	_nrrdConvFLUL @ 3285
+	_nrrdConvFLUS @ 3286
+	_nrrdConvJNCH @ 3287
+	_nrrdConvJNDB @ 3288
+	_nrrdConvJNFL @ 3289
+	_nrrdConvJNJN @ 3290
+	_nrrdConvJNLL @ 3291
+	_nrrdConvJNSH @ 3292
+	_nrrdConvJNUC @ 3293
+	_nrrdConvJNUI @ 3294
+	_nrrdConvJNUL @ 3295
+	_nrrdConvJNUS @ 3296
+	_nrrdConvLLCH @ 3297
+	_nrrdConvLLDB @ 3298
+	_nrrdConvLLFL @ 3299
+	_nrrdConvLLJN @ 3300
+	_nrrdConvLLLL @ 3301
+	_nrrdConvLLSH @ 3302
+	_nrrdConvLLUC @ 3303
+	_nrrdConvLLUI @ 3304
+	_nrrdConvLLUL @ 3305
+	_nrrdConvLLUS @ 3306
+	_nrrdConvSHCH @ 3307
+	_nrrdConvSHDB @ 3308
+	_nrrdConvSHFL @ 3309
+	_nrrdConvSHJN @ 3310
+	_nrrdConvSHLL @ 3311
+	_nrrdConvSHSH @ 3312
+	_nrrdConvSHUC @ 3313
+	_nrrdConvSHUI @ 3314
+	_nrrdConvSHUL @ 3315
+	_nrrdConvSHUS @ 3316
+	_nrrdConvUCCH @ 3317
+	_nrrdConvUCDB @ 3318
+	_nrrdConvUCFL @ 3319
+	_nrrdConvUCJN @ 3320
+	_nrrdConvUCLL @ 3321
+	_nrrdConvUCSH @ 3322
+	_nrrdConvUCUC @ 3323
+	_nrrdConvUCUI @ 3324
+	_nrrdConvUCUL @ 3325
+	_nrrdConvUCUS @ 3326
+	_nrrdConvUICH @ 3327
+	_nrrdConvUIDB @ 3328
+	_nrrdConvUIFL @ 3329
+	_nrrdConvUIJN @ 3330
+	_nrrdConvUILL @ 3331
+	_nrrdConvUISH @ 3332
+	_nrrdConvUIUC @ 3333
+	_nrrdConvUIUI @ 3334
+	_nrrdConvUIUL @ 3335
+	_nrrdConvUIUS @ 3336
+	_nrrdConvULCH @ 3337
+	_nrrdConvULDB @ 3338
+	_nrrdConvULFL @ 3339
+	_nrrdConvULJN @ 3340
+	_nrrdConvULLL @ 3341
+	_nrrdConvULSH @ 3342
+	_nrrdConvULUC @ 3343
+	_nrrdConvULUI @ 3344
+	_nrrdConvULUL @ 3345
+	_nrrdConvULUS @ 3346
+	_nrrdConvUSCH @ 3347
+	_nrrdConvUSDB @ 3348
+	_nrrdConvUSFL @ 3349
+	_nrrdConvUSJN @ 3350
+	_nrrdConvUSLL @ 3351
+	_nrrdConvUSSH @ 3352
+	_nrrdConvUSUC @ 3353
+	_nrrdConvUSUI @ 3354
+	_nrrdConvUSUL @ 3355
+	_nrrdConvUSUS @ 3356
+	_nrrdDA41_d @ 3357
+	_nrrdDA41_f @ 3358
+	_nrrdDA4Int @ 3359
+	_nrrdDA4N_d @ 3360
+	_nrrdDA4N_f @ 3361
+	_nrrdDA4Sup @ 3362
+	_nrrdDBC1_d @ 3363
+	_nrrdDBC1_f @ 3364
+	_nrrdDBCInt @ 3365
+	_nrrdDBCN_d @ 3366
+	_nrrdDBCN_f @ 3367
+	_nrrdDBCSup @ 3368
+	_nrrdDBlack_1_d @ 3369
+	_nrrdDBlack_1_f @ 3370
+	_nrrdDBlack_N_d @ 3371
+	_nrrdDBlack_N_f @ 3372
+	_nrrdDClampCH @ 3373
+	_nrrdDClampDB @ 3374
+	_nrrdDClampFL @ 3375
+	_nrrdDClampIN @ 3376
+	_nrrdDClampLL @ 3377
+	_nrrdDClampSH @ 3378
+	_nrrdDClampUC @ 3379
+	_nrrdDClampUI @ 3380
+	_nrrdDClampUL @ 3381
+	_nrrdDClampUS @ 3382
+	_nrrdDDA41_d @ 3383
+	_nrrdDDA41_f @ 3384
+	_nrrdDDA4Int @ 3385
+	_nrrdDDA4N_d @ 3386
+	_nrrdDDA4N_f @ 3387
+	_nrrdDDA4Sup @ 3388
+	_nrrdDDBC1_d @ 3389
+	_nrrdDDBC1_f @ 3390
+	_nrrdDDBCInt @ 3391
+	_nrrdDDBCN_d @ 3392
+	_nrrdDDBCN_f @ 3393
+	_nrrdDDBCSup @ 3394
+	_nrrdDDBlack_1_d @ 3395
+	_nrrdDDBlack_1_f @ 3396
+	_nrrdDDBlack_N_d @ 3397
+	_nrrdDDBlack_N_f @ 3398
+	_nrrdDDG1_d @ 3399
+	_nrrdDDG1_f @ 3400
+	_nrrdDDGInt @ 3401
+	_nrrdDDGN_d @ 3402
+	_nrrdDDGN_f @ 3403
+	_nrrdDDGSup @ 3404
+	_nrrdDDHann_1_d @ 3405
+	_nrrdDDHann_1_f @ 3406
+	_nrrdDDHann_N_d @ 3407
+	_nrrdDDHann_N_f @ 3408
+	_nrrdDG1_d @ 3409
+	_nrrdDG1_f @ 3410
+	_nrrdDGInt @ 3411
+	_nrrdDGN_d @ 3412
+	_nrrdDGN_f @ 3413
+	_nrrdDGSup @ 3414
+	_nrrdDHann_1_d @ 3415
+	_nrrdDHann_1_f @ 3416
+	_nrrdDHann_N_d @ 3417
+	_nrrdDHann_N_f @ 3418
+	_nrrdDWindSincInt @ 3419
+	_nrrdEncoding @ 3420 DATA
+	_nrrdEncodingDesc @ 3421 DATA
+	_nrrdEncodingStr @ 3422 DATA
+	_nrrdEncodingStrEqv @ 3423 DATA
+	_nrrdEncodingValEqv @ 3424 DATA
+	_nrrdFClampCH @ 3425
+	_nrrdFClampDB @ 3426
+	_nrrdFClampFL @ 3427
+	_nrrdFClampIN @ 3428
+	_nrrdFClampLL @ 3429
+	_nrrdFClampSH @ 3430
+	_nrrdFClampUC @ 3431
+	_nrrdFClampUI @ 3432
+	_nrrdFClampUL @ 3433
+	_nrrdFClampUS @ 3434
+	_nrrdFD1_d @ 3435
+	_nrrdFD1_f @ 3436
+	_nrrdFDInt @ 3437
+	_nrrdFDN_d @ 3438
+	_nrrdFDN_f @ 3439
+	_nrrdFDSup @ 3440
+	_nrrdField @ 3441 DATA
+	_nrrdFieldDesc @ 3442 DATA
+	_nrrdFieldInteresting @ 3443
+	_nrrdFieldOnePerAxis @ 3444 DATA
+	_nrrdFieldRequired @ 3445 DATA
+	_nrrdFieldSep @ 3446 DATA
+	_nrrdFieldStr @ 3447 DATA
+	_nrrdFieldStrEqv @ 3448 DATA
+	_nrrdFieldValEqv @ 3449 DATA
+	_nrrdFieldValidInImage @ 3450 DATA
+	_nrrdFieldValidInTable @ 3451 DATA
+	_nrrdFixFormat @ 3452
+	_nrrdFormat @ 3453 DATA
+	_nrrdFormatDesc @ 3454 DATA
+	_nrrdFormatStr @ 3455 DATA
+	_nrrdFormatStrEqv @ 3456 DATA
+	_nrrdFormatUsesDIO @ 3457 DATA
+	_nrrdFormatValEqv @ 3458 DATA
+	_nrrdFprintCH @ 3459
+	_nrrdFprintDB @ 3460
+	_nrrdFprintFL @ 3461
+	_nrrdFprintIN @ 3462
+	_nrrdFprintLL @ 3463
+	_nrrdFprintSH @ 3464
+	_nrrdFprintUC @ 3465
+	_nrrdFprintUI @ 3466
+	_nrrdFprintUL @ 3467
+	_nrrdFprintUS @ 3468
+	_nrrdG1_d @ 3469
+	_nrrdG1_f @ 3470
+	_nrrdGInt @ 3471
+	_nrrdGN_d @ 3472
+	_nrrdGN_f @ 3473
+	_nrrdGSup @ 3474
+	_nrrdGetQuotedString @ 3475
+	_nrrdGuessFormat @ 3476
+	_nrrdGzClose @ 3477
+	_nrrdGzOpen @ 3478
+	_nrrdGzRead @ 3479
+	_nrrdGzWrite @ 3480
+	_nrrdHann_1_d @ 3481
+	_nrrdHann_1_f @ 3482
+	_nrrdHann_N_d @ 3483
+	_nrrdHann_N_f @ 3484
+	_nrrdHeaderCheck @ 3485
+	_nrrdHestIter @ 3486 DATA
+	_nrrdHestIterParse @ 3487
+	_nrrdHestKernelSpec @ 3488 DATA
+	_nrrdHestKernelSpecParse @ 3489
+	_nrrdHestNrrd @ 3490 DATA
+	_nrrdHestNrrdParse @ 3491
+	_nrrdHistoEqCompare @ 3492
+	_nrrdIOInit @ 3493
+	_nrrdInsertDBCH @ 3494
+	_nrrdInsertDBDB @ 3495
+	_nrrdInsertDBFL @ 3496
+	_nrrdInsertDBJN @ 3497
+	_nrrdInsertDBLL @ 3498
+	_nrrdInsertDBSH @ 3499
+	_nrrdInsertDBUC @ 3500
+	_nrrdInsertDBUI @ 3501
+	_nrrdInsertDBUL @ 3502
+	_nrrdInsertDBUS @ 3503
+	_nrrdInsertFLCH @ 3504
+	_nrrdInsertFLDB @ 3505
+	_nrrdInsertFLFL @ 3506
+	_nrrdInsertFLJN @ 3507
+	_nrrdInsertFLLL @ 3508
+	_nrrdInsertFLSH @ 3509
+	_nrrdInsertFLUC @ 3510
+	_nrrdInsertFLUI @ 3511
+	_nrrdInsertFLUL @ 3512
+	_nrrdInsertFLUS @ 3513
+	_nrrdInsertJNCH @ 3514
+	_nrrdInsertJNDB @ 3515
+	_nrrdInsertJNFL @ 3516
+	_nrrdInsertJNJN @ 3517
+	_nrrdInsertJNLL @ 3518
+	_nrrdInsertJNSH @ 3519
+	_nrrdInsertJNUC @ 3520
+	_nrrdInsertJNUI @ 3521
+	_nrrdInsertJNUL @ 3522
+	_nrrdInsertJNUS @ 3523
+	_nrrdKernelA4 @ 3524 DATA
+	_nrrdKernelBC @ 3525 DATA
+	_nrrdKernelBlackman @ 3526 DATA
+	_nrrdKernelBox @ 3527 DATA
+	_nrrdKernelCD @ 3528 DATA
+	_nrrdKernelDA4 @ 3529 DATA
+	_nrrdKernelDBC @ 3530 DATA
+	_nrrdKernelDBlack @ 3531 DATA
+	_nrrdKernelDDA4 @ 3532 DATA
+	_nrrdKernelDDBC @ 3533 DATA
+	_nrrdKernelDDBlack @ 3534 DATA
+	_nrrdKernelDDG @ 3535 DATA
+	_nrrdKernelDDHann @ 3536 DATA
+	_nrrdKernelDG @ 3537 DATA
+	_nrrdKernelDHann @ 3538 DATA
+	_nrrdKernelFD @ 3539 DATA
+	_nrrdKernelG @ 3540 DATA
+	_nrrdKernelHann @ 3541 DATA
+	_nrrdKernelParseTMFInt @ 3542
+	_nrrdKernelStrToKern @ 3543
+	_nrrdKernelTent @ 3544 DATA
+	_nrrdKernelZero @ 3545 DATA
+	_nrrdKernel_TMFBAD @ 3546 DATA
+	_nrrdKernel_TMF_d0_c0_1ef @ 3547 DATA
+	_nrrdKernel_TMF_d0_c0_2ef @ 3548 DATA
+	_nrrdKernel_TMF_d0_c0_3ef @ 3549 DATA
+	_nrrdKernel_TMF_d0_c0_4ef @ 3550 DATA
+	_nrrdKernel_TMF_d0_c1_1ef @ 3551 DATA
+	_nrrdKernel_TMF_d0_c1_2ef @ 3552 DATA
+	_nrrdKernel_TMF_d0_c1_3ef @ 3553 DATA
+	_nrrdKernel_TMF_d0_c1_4ef @ 3554 DATA
+	_nrrdKernel_TMF_d0_c2_1ef @ 3555 DATA
+	_nrrdKernel_TMF_d0_c2_2ef @ 3556 DATA
+	_nrrdKernel_TMF_d0_c2_3ef @ 3557 DATA
+	_nrrdKernel_TMF_d0_c2_4ef @ 3558 DATA
+	_nrrdKernel_TMF_d0_c3_1ef @ 3559 DATA
+	_nrrdKernel_TMF_d0_c3_2ef @ 3560 DATA
+	_nrrdKernel_TMF_d0_c3_3ef @ 3561 DATA
+	_nrrdKernel_TMF_d0_c3_4ef @ 3562 DATA
+	_nrrdKernel_TMF_d0_cn_1ef @ 3563 DATA
+	_nrrdKernel_TMF_d0_cn_2ef @ 3564 DATA
+	_nrrdKernel_TMF_d0_cn_3ef @ 3565 DATA
+	_nrrdKernel_TMF_d0_cn_4ef @ 3566 DATA
+	_nrrdKernel_TMF_d1_c0_1ef @ 3567 DATA
+	_nrrdKernel_TMF_d1_c0_2ef @ 3568 DATA
+	_nrrdKernel_TMF_d1_c0_3ef @ 3569 DATA
+	_nrrdKernel_TMF_d1_c0_4ef @ 3570 DATA
+	_nrrdKernel_TMF_d1_c1_1ef @ 3571 DATA
+	_nrrdKernel_TMF_d1_c1_2ef @ 3572 DATA
+	_nrrdKernel_TMF_d1_c1_3ef @ 3573 DATA
+	_nrrdKernel_TMF_d1_c1_4ef @ 3574 DATA
+	_nrrdKernel_TMF_d1_c2_1ef @ 3575 DATA
+	_nrrdKernel_TMF_d1_c2_2ef @ 3576 DATA
+	_nrrdKernel_TMF_d1_c2_3ef @ 3577 DATA
+	_nrrdKernel_TMF_d1_c2_4ef @ 3578 DATA
+	_nrrdKernel_TMF_d1_c3_1ef @ 3579 DATA
+	_nrrdKernel_TMF_d1_c3_2ef @ 3580 DATA
+	_nrrdKernel_TMF_d1_c3_3ef @ 3581 DATA
+	_nrrdKernel_TMF_d1_c3_4ef @ 3582 DATA
+	_nrrdKernel_TMF_d1_cn_1ef @ 3583 DATA
+	_nrrdKernel_TMF_d1_cn_2ef @ 3584 DATA
+	_nrrdKernel_TMF_d1_cn_3ef @ 3585 DATA
+	_nrrdKernel_TMF_d1_cn_4ef @ 3586 DATA
+	_nrrdKernel_TMF_d2_c0_1ef @ 3587 DATA
+	_nrrdKernel_TMF_d2_c0_2ef @ 3588 DATA
+	_nrrdKernel_TMF_d2_c0_3ef @ 3589 DATA
+	_nrrdKernel_TMF_d2_c0_4ef @ 3590 DATA
+	_nrrdKernel_TMF_d2_c1_1ef @ 3591 DATA
+	_nrrdKernel_TMF_d2_c1_2ef @ 3592 DATA
+	_nrrdKernel_TMF_d2_c1_3ef @ 3593 DATA
+	_nrrdKernel_TMF_d2_c1_4ef @ 3594 DATA
+	_nrrdKernel_TMF_d2_c2_1ef @ 3595 DATA
+	_nrrdKernel_TMF_d2_c2_2ef @ 3596 DATA
+	_nrrdKernel_TMF_d2_c2_3ef @ 3597 DATA
+	_nrrdKernel_TMF_d2_c2_4ef @ 3598 DATA
+	_nrrdKernel_TMF_d2_c3_1ef @ 3599 DATA
+	_nrrdKernel_TMF_d2_c3_2ef @ 3600 DATA
+	_nrrdKernel_TMF_d2_c3_3ef @ 3601 DATA
+	_nrrdKernel_TMF_d2_c3_4ef @ 3602 DATA
+	_nrrdKernel_TMF_d2_cn_1ef @ 3603 DATA
+	_nrrdKernel_TMF_d2_cn_2ef @ 3604 DATA
+	_nrrdKernel_TMF_d2_cn_3ef @ 3605 DATA
+	_nrrdKernel_TMF_d2_cn_4ef @ 3606 DATA
+	_nrrdKernel_TMF_dn_c0_1ef @ 3607 DATA
+	_nrrdKernel_TMF_dn_c0_2ef @ 3608 DATA
+	_nrrdKernel_TMF_dn_c0_3ef @ 3609 DATA
+	_nrrdKernel_TMF_dn_c0_4ef @ 3610 DATA
+	_nrrdKernel_TMF_dn_c1_1ef @ 3611 DATA
+	_nrrdKernel_TMF_dn_c1_2ef @ 3612 DATA
+	_nrrdKernel_TMF_dn_c1_3ef @ 3613 DATA
+	_nrrdKernel_TMF_dn_c1_4ef @ 3614 DATA
+	_nrrdKernel_TMF_dn_c2_1ef @ 3615 DATA
+	_nrrdKernel_TMF_dn_c2_2ef @ 3616 DATA
+	_nrrdKernel_TMF_dn_c2_3ef @ 3617 DATA
+	_nrrdKernel_TMF_dn_c2_4ef @ 3618 DATA
+	_nrrdKernel_TMF_dn_c3_1ef @ 3619 DATA
+	_nrrdKernel_TMF_dn_c3_2ef @ 3620 DATA
+	_nrrdKernel_TMF_dn_c3_3ef @ 3621 DATA
+	_nrrdKernel_TMF_dn_c3_4ef @ 3622 DATA
+	_nrrdKernel_TMF_dn_cn_1ef @ 3623 DATA
+	_nrrdKernel_TMF_dn_cn_2ef @ 3624 DATA
+	_nrrdKernel_TMF_dn_cn_3ef @ 3625 DATA
+	_nrrdKernel_TMF_dn_cn_4ef @ 3626 DATA
+	_nrrdLoadDBCH @ 3627
+	_nrrdLoadDBDB @ 3628
+	_nrrdLoadDBFL @ 3629
+	_nrrdLoadDBJN @ 3630
+	_nrrdLoadDBLL @ 3631
+	_nrrdLoadDBSH @ 3632
+	_nrrdLoadDBUC @ 3633
+	_nrrdLoadDBUI @ 3634
+	_nrrdLoadDBUL @ 3635
+	_nrrdLoadDBUS @ 3636
+	_nrrdLoadFLCH @ 3637
+	_nrrdLoadFLDB @ 3638
+	_nrrdLoadFLFL @ 3639
+	_nrrdLoadFLJN @ 3640
+	_nrrdLoadFLLL @ 3641
+	_nrrdLoadFLSH @ 3642
+	_nrrdLoadFLUC @ 3643
+	_nrrdLoadFLUI @ 3644
+	_nrrdLoadFLUL @ 3645
+	_nrrdLoadFLUS @ 3646
+	_nrrdLoadJNCH @ 3647
+	_nrrdLoadJNDB @ 3648
+	_nrrdLoadJNFL @ 3649
+	_nrrdLoadJNJN @ 3650
+	_nrrdLoadJNLL @ 3651
+	_nrrdLoadJNSH @ 3652
+	_nrrdLoadJNUC @ 3653
+	_nrrdLoadJNUI @ 3654
+	_nrrdLoadJNUL @ 3655
+	_nrrdLoadJNUS @ 3656
+	_nrrdLooksLikeANumber @ 3657
+	_nrrdLookupDBCH @ 3658
+	_nrrdLookupDBDB @ 3659
+	_nrrdLookupDBFL @ 3660
+	_nrrdLookupDBJN @ 3661
+	_nrrdLookupDBLL @ 3662
+	_nrrdLookupDBSH @ 3663
+	_nrrdLookupDBUC @ 3664
+	_nrrdLookupDBUI @ 3665
+	_nrrdLookupDBUL @ 3666
+	_nrrdLookupDBUS @ 3667
+	_nrrdLookupFLCH @ 3668
+	_nrrdLookupFLDB @ 3669
+	_nrrdLookupFLFL @ 3670
+	_nrrdLookupFLJN @ 3671
+	_nrrdLookupFLLL @ 3672
+	_nrrdLookupFLSH @ 3673
+	_nrrdLookupFLUC @ 3674
+	_nrrdLookupFLUI @ 3675
+	_nrrdLookupFLUL @ 3676
+	_nrrdLookupFLUS @ 3677
+	_nrrdLookupJNCH @ 3678
+	_nrrdLookupJNDB @ 3679
+	_nrrdLookupJNFL @ 3680
+	_nrrdLookupJNJN @ 3681
+	_nrrdLookupJNLL @ 3682
+	_nrrdLookupJNSH @ 3683
+	_nrrdLookupJNUC @ 3684
+	_nrrdLookupJNUI @ 3685
+	_nrrdLookupJNUL @ 3686
+	_nrrdLookupJNUS @ 3687
+	_nrrdMagic @ 3688 DATA
+	_nrrdMagicDesc @ 3689 DATA
+	_nrrdMagicStr @ 3690 DATA
+	_nrrdMeasure @ 3691 DATA
+	_nrrdMeasureDesc @ 3692 DATA
+	_nrrdMeasureHistoL2 @ 3693
+	_nrrdMeasureHistoMax @ 3694
+	_nrrdMeasureHistoMean @ 3695
+	_nrrdMeasureHistoMedian @ 3696
+	_nrrdMeasureHistoMin @ 3697
+	_nrrdMeasureHistoMode @ 3698
+	_nrrdMeasureHistoProduct @ 3699
+	_nrrdMeasureHistoSum @ 3700
+	_nrrdMeasureHistoVariance @ 3701
+	_nrrdMeasureL1 @ 3702
+	_nrrdMeasureL2 @ 3703
+	_nrrdMeasureLinf @ 3704
+	_nrrdMeasureMax @ 3705
+	_nrrdMeasureMean @ 3706
+	_nrrdMeasureMedian @ 3707
+	_nrrdMeasureMin @ 3708
+	_nrrdMeasureMode @ 3709
+	_nrrdMeasureProduct @ 3710
+	_nrrdMeasureSD @ 3711
+	_nrrdMeasureStr @ 3712 DATA
+	_nrrdMeasureStrEqv @ 3713 DATA
+	_nrrdMeasureSum @ 3714
+	_nrrdMeasureType @ 3715
+	_nrrdMeasureUnknown @ 3716
+	_nrrdMeasureValEqv @ 3717 DATA
+	_nrrdMeasureVariance @ 3718
+	_nrrdMinMaxCH @ 3719
+	_nrrdMinMaxDB @ 3720
+	_nrrdMinMaxFL @ 3721
+	_nrrdMinMaxIN @ 3722
+	_nrrdMinMaxLL @ 3723
+	_nrrdMinMaxSH @ 3724
+	_nrrdMinMaxUC @ 3725
+	_nrrdMinMaxUI @ 3726
+	_nrrdMinMaxUL @ 3727
+	_nrrdMinMaxUS @ 3728
+	_nrrdNoopEndian @ 3729
+	_nrrdOneLine @ 3730
+	_nrrdReadDataAscii @ 3731
+	_nrrdReadDataBzip2 @ 3732
+	_nrrdReadDataGzip @ 3733
+	_nrrdReadDataHex @ 3734
+	_nrrdReadDataRaw @ 3735
+	_nrrdReadErrorHandlerPNG @ 3736
+	_nrrdReadHexTable @ 3737 DATA
+	_nrrdReadNrrd @ 3738
+	_nrrdReadNrrdParseField @ 3739
+	_nrrdReadNrrdParseInfo @ 3740 DATA
+	_nrrdReadNrrdParse_axis_maxs @ 3741
+	_nrrdReadNrrdParse_axis_mins @ 3742
+	_nrrdReadNrrdParse_block_size @ 3743
+	_nrrdReadNrrdParse_byte_skip @ 3744
+	_nrrdReadNrrdParse_centers @ 3745
+	_nrrdReadNrrdParse_comment @ 3746
+	_nrrdReadNrrdParse_content @ 3747
+	_nrrdReadNrrdParse_data_file @ 3748
+	_nrrdReadNrrdParse_dimension @ 3749
+	_nrrdReadNrrdParse_encoding @ 3750
+	_nrrdReadNrrdParse_endian @ 3751
+	_nrrdReadNrrdParse_labels @ 3752
+	_nrrdReadNrrdParse_line_skip @ 3753
+	_nrrdReadNrrdParse_max @ 3754
+	_nrrdReadNrrdParse_min @ 3755
+	_nrrdReadNrrdParse_nonfield @ 3756
+	_nrrdReadNrrdParse_number @ 3757
+	_nrrdReadNrrdParse_old_max @ 3758
+	_nrrdReadNrrdParse_old_min @ 3759
+	_nrrdReadNrrdParse_sizes @ 3760
+	_nrrdReadNrrdParse_spacings @ 3761
+	_nrrdReadNrrdParse_type @ 3762
+	_nrrdReadNrrdParse_units @ 3763
+	_nrrdReadPNG @ 3764
+	_nrrdReadPNM @ 3765
+	_nrrdReadTable @ 3766
+	_nrrdReadVTK @ 3767
+	_nrrdReadWarningHandlerPNG @ 3768
+	_nrrdRelDirFlag @ 3769 DATA
+	_nrrdResampleCheckInfo @ 3770
+	_nrrdResampleComputePermute @ 3771
+	_nrrdResampleInfoInit @ 3772
+	_nrrdResampleMakeWeightIndex @ 3773
+	_nrrdSizeCheck @ 3774
+	_nrrdSplitName @ 3775
+	_nrrdSprintCH @ 3776
+	_nrrdSprintDB @ 3777
+	_nrrdSprintFL @ 3778
+	_nrrdSprintFieldInfo @ 3779
+	_nrrdSprintIN @ 3780
+	_nrrdSprintLL @ 3781
+	_nrrdSprintSH @ 3782
+	_nrrdSprintUC @ 3783
+	_nrrdSprintUI @ 3784
+	_nrrdSprintUL @ 3785
+	_nrrdSprintUS @ 3786
+	_nrrdStoreDBCH @ 3787
+	_nrrdStoreDBDB @ 3788
+	_nrrdStoreDBFL @ 3789
+	_nrrdStoreDBJN @ 3790
+	_nrrdStoreDBLL @ 3791
+	_nrrdStoreDBSH @ 3792
+	_nrrdStoreDBUC @ 3793
+	_nrrdStoreDBUI @ 3794
+	_nrrdStoreDBUL @ 3795
+	_nrrdStoreDBUS @ 3796
+	_nrrdStoreFLCH @ 3797
+	_nrrdStoreFLDB @ 3798
+	_nrrdStoreFLFL @ 3799
+	_nrrdStoreFLJN @ 3800
+	_nrrdStoreFLLL @ 3801
+	_nrrdStoreFLSH @ 3802
+	_nrrdStoreFLUC @ 3803
+	_nrrdStoreFLUI @ 3804
+	_nrrdStoreFLUL @ 3805
+	_nrrdStoreFLUS @ 3806
+	_nrrdStoreJNCH @ 3807
+	_nrrdStoreJNDB @ 3808
+	_nrrdStoreJNFL @ 3809
+	_nrrdStoreJNJN @ 3810
+	_nrrdStoreJNLL @ 3811
+	_nrrdStoreJNSH @ 3812
+	_nrrdStoreJNUC @ 3813
+	_nrrdStoreJNUI @ 3814
+	_nrrdStoreJNUL @ 3815
+	_nrrdStoreJNUS @ 3816
+	_nrrdSwap16Endian @ 3817
+	_nrrdSwap32Endian @ 3818
+	_nrrdSwap64Endian @ 3819
+	_nrrdSwapEndian @ 3820 DATA
+	_nrrdTableSep @ 3821 DATA
+	_nrrdTent1_d @ 3822
+	_nrrdTent1_f @ 3823
+	_nrrdTentInt @ 3824
+	_nrrdTentN_d @ 3825
+	_nrrdTentN_f @ 3826
+	_nrrdTentSup @ 3827
+	_nrrdTernaryOp @ 3828 DATA
+	_nrrdTernaryOpClamp @ 3829
+	_nrrdTernaryOpDesc @ 3830 DATA
+	_nrrdTernaryOpExists @ 3831
+	_nrrdTernaryOpInClosed @ 3832
+	_nrrdTernaryOpInOpen @ 3833
+	_nrrdTernaryOpLerp @ 3834
+	_nrrdTernaryOpStr @ 3835 DATA
+	_nrrdTernaryOp_enum @ 3836 DATA
+	_nrrdType @ 3837 DATA
+	_nrrdTypeDesc @ 3838 DATA
+	_nrrdTypeStr @ 3839 DATA
+	_nrrdTypeStrEqv @ 3840 DATA
+	_nrrdTypeValEqv @ 3841 DATA
+	_nrrdUnaryOp @ 3842 DATA
+	_nrrdUnaryOpAbs @ 3843
+	_nrrdUnaryOpAcos @ 3844
+	_nrrdUnaryOpAsin @ 3845
+	_nrrdUnaryOpAtan @ 3846
+	_nrrdUnaryOpCbrt @ 3847
+	_nrrdUnaryOpCeil @ 3848
+	_nrrdUnaryOpCos @ 3849
+	_nrrdUnaryOpDesc @ 3850 DATA
+	_nrrdUnaryOpErf @ 3851
+	_nrrdUnaryOpExists @ 3852
+	_nrrdUnaryOpExp @ 3853
+	_nrrdUnaryOpFloor @ 3854
+	_nrrdUnaryOpLog @ 3855
+	_nrrdUnaryOpLog10 @ 3856
+	_nrrdUnaryOpLog1p @ 3857
+	_nrrdUnaryOpNegative @ 3858
+	_nrrdUnaryOpReciprocal @ 3859
+	_nrrdUnaryOpRoundDown @ 3860
+	_nrrdUnaryOpRoundUp @ 3861
+	_nrrdUnaryOpSgn @ 3862
+	_nrrdUnaryOpSin @ 3863
+	_nrrdUnaryOpSqrt @ 3864
+	_nrrdUnaryOpStr @ 3865 DATA
+	_nrrdUnaryOpStrEqv @ 3866 DATA
+	_nrrdUnaryOpTan @ 3867
+	_nrrdUnaryOpValEqv @ 3868 DATA
+	_nrrdUnaryOp_enum @ 3869 DATA
+	_nrrdValCompareCH @ 3870
+	_nrrdValCompareDB @ 3871
+	_nrrdValCompareFL @ 3872
+	_nrrdValCompareIN @ 3873
+	_nrrdValCompareLL @ 3874
+	_nrrdValCompareSH @ 3875
+	_nrrdValCompareUC @ 3876
+	_nrrdValCompareUI @ 3877
+	_nrrdValCompareUL @ 3878
+	_nrrdValCompareUS @ 3879
+	_nrrdWindSincInt @ 3880
+	_nrrdWindSincSup @ 3881
+	_nrrdWriteDataAscii @ 3882
+	_nrrdWriteDataBzip2 @ 3883
+	_nrrdWriteDataGzip @ 3884
+	_nrrdWriteDataHex @ 3885
+	_nrrdWriteDataRaw @ 3886
+	_nrrdWriteErrorHandlerPNG @ 3887
+	_nrrdWriteHexTable @ 3888 DATA
+	_nrrdWriteNrrd @ 3889
+	_nrrdWritePNG @ 3890
+	_nrrdWritePNM @ 3891
+	_nrrdWriteTable @ 3892
+	_nrrdWriteVTK @ 3893
+	_nrrdWriteWarningHandlerPNG @ 3894
+	_nrrdZero1_d @ 3895
+	_nrrdZero1_f @ 3896
+	_nrrdZeroInt @ 3897
+	_nrrdZeroN_d @ 3898
+	_nrrdZeroN_f @ 3899
+	_nrrdZeroSup @ 3900
+	_nrrd_TMFBAD_1_d @ 3901
+	_nrrd_TMFBAD_1_f @ 3902
+	_nrrd_TMFBAD_Int @ 3903
+	_nrrd_TMFBAD_N_d @ 3904
+	_nrrd_TMFBAD_N_f @ 3905
+	_nrrd_TMFBAD_Sup @ 3906
+	_nrrd_TMF_d0_c0_1ef_1_d @ 3907
+	_nrrd_TMF_d0_c0_1ef_1_f @ 3908
+	_nrrd_TMF_d0_c0_1ef_Int @ 3909
+	_nrrd_TMF_d0_c0_1ef_N_d @ 3910
+	_nrrd_TMF_d0_c0_1ef_N_f @ 3911
+	_nrrd_TMF_d0_c0_1ef_Sup @ 3912
+	_nrrd_TMF_d0_c0_2ef_1_d @ 3913
+	_nrrd_TMF_d0_c0_2ef_1_f @ 3914
+	_nrrd_TMF_d0_c0_2ef_Int @ 3915
+	_nrrd_TMF_d0_c0_2ef_N_d @ 3916
+	_nrrd_TMF_d0_c0_2ef_N_f @ 3917
+	_nrrd_TMF_d0_c0_2ef_Sup @ 3918
+	_nrrd_TMF_d0_c0_3ef_1_d @ 3919
+	_nrrd_TMF_d0_c0_3ef_1_f @ 3920
+	_nrrd_TMF_d0_c0_3ef_Int @ 3921
+	_nrrd_TMF_d0_c0_3ef_N_d @ 3922
+	_nrrd_TMF_d0_c0_3ef_N_f @ 3923
+	_nrrd_TMF_d0_c0_3ef_Sup @ 3924
+	_nrrd_TMF_d0_c0_4ef_1_d @ 3925
+	_nrrd_TMF_d0_c0_4ef_1_f @ 3926
+	_nrrd_TMF_d0_c0_4ef_Int @ 3927
+	_nrrd_TMF_d0_c0_4ef_N_d @ 3928
+	_nrrd_TMF_d0_c0_4ef_N_f @ 3929
+	_nrrd_TMF_d0_c0_4ef_Sup @ 3930
+	_nrrd_TMF_d0_c1_1ef_1_d @ 3931
+	_nrrd_TMF_d0_c1_1ef_1_f @ 3932
+	_nrrd_TMF_d0_c1_1ef_Int @ 3933
+	_nrrd_TMF_d0_c1_1ef_N_d @ 3934
+	_nrrd_TMF_d0_c1_1ef_N_f @ 3935
+	_nrrd_TMF_d0_c1_1ef_Sup @ 3936
+	_nrrd_TMF_d0_c1_2ef_1_d @ 3937
+	_nrrd_TMF_d0_c1_2ef_1_f @ 3938
+	_nrrd_TMF_d0_c1_2ef_Int @ 3939
+	_nrrd_TMF_d0_c1_2ef_N_d @ 3940
+	_nrrd_TMF_d0_c1_2ef_N_f @ 3941
+	_nrrd_TMF_d0_c1_2ef_Sup @ 3942
+	_nrrd_TMF_d0_c1_3ef_1_d @ 3943
+	_nrrd_TMF_d0_c1_3ef_1_f @ 3944
+	_nrrd_TMF_d0_c1_3ef_Int @ 3945
+	_nrrd_TMF_d0_c1_3ef_N_d @ 3946
+	_nrrd_TMF_d0_c1_3ef_N_f @ 3947
+	_nrrd_TMF_d0_c1_3ef_Sup @ 3948
+	_nrrd_TMF_d0_c1_4ef_1_d @ 3949
+	_nrrd_TMF_d0_c1_4ef_1_f @ 3950
+	_nrrd_TMF_d0_c1_4ef_Int @ 3951
+	_nrrd_TMF_d0_c1_4ef_N_d @ 3952
+	_nrrd_TMF_d0_c1_4ef_N_f @ 3953
+	_nrrd_TMF_d0_c1_4ef_Sup @ 3954
+	_nrrd_TMF_d0_c2_1ef_1_d @ 3955
+	_nrrd_TMF_d0_c2_1ef_1_f @ 3956
+	_nrrd_TMF_d0_c2_1ef_Int @ 3957
+	_nrrd_TMF_d0_c2_1ef_N_d @ 3958
+	_nrrd_TMF_d0_c2_1ef_N_f @ 3959
+	_nrrd_TMF_d0_c2_1ef_Sup @ 3960
+	_nrrd_TMF_d0_c2_2ef_1_d @ 3961
+	_nrrd_TMF_d0_c2_2ef_1_f @ 3962
+	_nrrd_TMF_d0_c2_2ef_Int @ 3963
+	_nrrd_TMF_d0_c2_2ef_N_d @ 3964
+	_nrrd_TMF_d0_c2_2ef_N_f @ 3965
+	_nrrd_TMF_d0_c2_2ef_Sup @ 3966
+	_nrrd_TMF_d0_c2_3ef_1_d @ 3967
+	_nrrd_TMF_d0_c2_3ef_1_f @ 3968
+	_nrrd_TMF_d0_c2_3ef_Int @ 3969
+	_nrrd_TMF_d0_c2_3ef_N_d @ 3970
+	_nrrd_TMF_d0_c2_3ef_N_f @ 3971
+	_nrrd_TMF_d0_c2_3ef_Sup @ 3972
+	_nrrd_TMF_d0_c2_4ef_1_d @ 3973
+	_nrrd_TMF_d0_c2_4ef_1_f @ 3974
+	_nrrd_TMF_d0_c2_4ef_Int @ 3975
+	_nrrd_TMF_d0_c2_4ef_N_d @ 3976
+	_nrrd_TMF_d0_c2_4ef_N_f @ 3977
+	_nrrd_TMF_d0_c2_4ef_Sup @ 3978
+	_nrrd_TMF_d0_c3_1ef_1_d @ 3979
+	_nrrd_TMF_d0_c3_1ef_1_f @ 3980
+	_nrrd_TMF_d0_c3_1ef_Int @ 3981
+	_nrrd_TMF_d0_c3_1ef_N_d @ 3982
+	_nrrd_TMF_d0_c3_1ef_N_f @ 3983
+	_nrrd_TMF_d0_c3_1ef_Sup @ 3984
+	_nrrd_TMF_d0_c3_2ef_1_d @ 3985
+	_nrrd_TMF_d0_c3_2ef_1_f @ 3986
+	_nrrd_TMF_d0_c3_2ef_Int @ 3987
+	_nrrd_TMF_d0_c3_2ef_N_d @ 3988
+	_nrrd_TMF_d0_c3_2ef_N_f @ 3989
+	_nrrd_TMF_d0_c3_2ef_Sup @ 3990
+	_nrrd_TMF_d0_c3_3ef_1_d @ 3991
+	_nrrd_TMF_d0_c3_3ef_1_f @ 3992
+	_nrrd_TMF_d0_c3_3ef_Int @ 3993
+	_nrrd_TMF_d0_c3_3ef_N_d @ 3994
+	_nrrd_TMF_d0_c3_3ef_N_f @ 3995
+	_nrrd_TMF_d0_c3_3ef_Sup @ 3996
+	_nrrd_TMF_d0_c3_4ef_1_d @ 3997
+	_nrrd_TMF_d0_c3_4ef_1_f @ 3998
+	_nrrd_TMF_d0_c3_4ef_Int @ 3999
+	_nrrd_TMF_d0_c3_4ef_N_d @ 4000
+	_nrrd_TMF_d0_c3_4ef_N_f @ 4001
+	_nrrd_TMF_d0_c3_4ef_Sup @ 4002
+	_nrrd_TMF_d0_cn_1ef_1_d @ 4003
+	_nrrd_TMF_d0_cn_1ef_1_f @ 4004
+	_nrrd_TMF_d0_cn_1ef_Int @ 4005
+	_nrrd_TMF_d0_cn_1ef_N_d @ 4006
+	_nrrd_TMF_d0_cn_1ef_N_f @ 4007
+	_nrrd_TMF_d0_cn_1ef_Sup @ 4008
+	_nrrd_TMF_d0_cn_2ef_1_d @ 4009
+	_nrrd_TMF_d0_cn_2ef_1_f @ 4010
+	_nrrd_TMF_d0_cn_2ef_Int @ 4011
+	_nrrd_TMF_d0_cn_2ef_N_d @ 4012
+	_nrrd_TMF_d0_cn_2ef_N_f @ 4013
+	_nrrd_TMF_d0_cn_2ef_Sup @ 4014
+	_nrrd_TMF_d0_cn_3ef_1_d @ 4015
+	_nrrd_TMF_d0_cn_3ef_1_f @ 4016
+	_nrrd_TMF_d0_cn_3ef_Int @ 4017
+	_nrrd_TMF_d0_cn_3ef_N_d @ 4018
+	_nrrd_TMF_d0_cn_3ef_N_f @ 4019
+	_nrrd_TMF_d0_cn_3ef_Sup @ 4020
+	_nrrd_TMF_d0_cn_4ef_1_d @ 4021
+	_nrrd_TMF_d0_cn_4ef_1_f @ 4022
+	_nrrd_TMF_d0_cn_4ef_Int @ 4023
+	_nrrd_TMF_d0_cn_4ef_N_d @ 4024
+	_nrrd_TMF_d0_cn_4ef_N_f @ 4025
+	_nrrd_TMF_d0_cn_4ef_Sup @ 4026
+	_nrrd_TMF_d1_c0_1ef_1_d @ 4027
+	_nrrd_TMF_d1_c0_1ef_1_f @ 4028
+	_nrrd_TMF_d1_c0_1ef_Int @ 4029
+	_nrrd_TMF_d1_c0_1ef_N_d @ 4030
+	_nrrd_TMF_d1_c0_1ef_N_f @ 4031
+	_nrrd_TMF_d1_c0_1ef_Sup @ 4032
+	_nrrd_TMF_d1_c0_2ef_1_d @ 4033
+	_nrrd_TMF_d1_c0_2ef_1_f @ 4034
+	_nrrd_TMF_d1_c0_2ef_Int @ 4035
+	_nrrd_TMF_d1_c0_2ef_N_d @ 4036
+	_nrrd_TMF_d1_c0_2ef_N_f @ 4037
+	_nrrd_TMF_d1_c0_2ef_Sup @ 4038
+	_nrrd_TMF_d1_c0_3ef_1_d @ 4039
+	_nrrd_TMF_d1_c0_3ef_1_f @ 4040
+	_nrrd_TMF_d1_c0_3ef_Int @ 4041
+	_nrrd_TMF_d1_c0_3ef_N_d @ 4042
+	_nrrd_TMF_d1_c0_3ef_N_f @ 4043
+	_nrrd_TMF_d1_c0_3ef_Sup @ 4044
+	_nrrd_TMF_d1_c0_4ef_1_d @ 4045
+	_nrrd_TMF_d1_c0_4ef_1_f @ 4046
+	_nrrd_TMF_d1_c0_4ef_Int @ 4047
+	_nrrd_TMF_d1_c0_4ef_N_d @ 4048
+	_nrrd_TMF_d1_c0_4ef_N_f @ 4049
+	_nrrd_TMF_d1_c0_4ef_Sup @ 4050
+	_nrrd_TMF_d1_c1_1ef_1_d @ 4051
+	_nrrd_TMF_d1_c1_1ef_1_f @ 4052
+	_nrrd_TMF_d1_c1_1ef_Int @ 4053
+	_nrrd_TMF_d1_c1_1ef_N_d @ 4054
+	_nrrd_TMF_d1_c1_1ef_N_f @ 4055
+	_nrrd_TMF_d1_c1_1ef_Sup @ 4056
+	_nrrd_TMF_d1_c1_2ef_1_d @ 4057
+	_nrrd_TMF_d1_c1_2ef_1_f @ 4058
+	_nrrd_TMF_d1_c1_2ef_Int @ 4059
+	_nrrd_TMF_d1_c1_2ef_N_d @ 4060
+	_nrrd_TMF_d1_c1_2ef_N_f @ 4061
+	_nrrd_TMF_d1_c1_2ef_Sup @ 4062
+	_nrrd_TMF_d1_c1_3ef_1_d @ 4063
+	_nrrd_TMF_d1_c1_3ef_1_f @ 4064
+	_nrrd_TMF_d1_c1_3ef_Int @ 4065
+	_nrrd_TMF_d1_c1_3ef_N_d @ 4066
+	_nrrd_TMF_d1_c1_3ef_N_f @ 4067
+	_nrrd_TMF_d1_c1_3ef_Sup @ 4068
+	_nrrd_TMF_d1_c1_4ef_1_d @ 4069
+	_nrrd_TMF_d1_c1_4ef_1_f @ 4070
+	_nrrd_TMF_d1_c1_4ef_Int @ 4071
+	_nrrd_TMF_d1_c1_4ef_N_d @ 4072
+	_nrrd_TMF_d1_c1_4ef_N_f @ 4073
+	_nrrd_TMF_d1_c1_4ef_Sup @ 4074
+	_nrrd_TMF_d1_c2_1ef_1_d @ 4075
+	_nrrd_TMF_d1_c2_1ef_1_f @ 4076
+	_nrrd_TMF_d1_c2_1ef_Int @ 4077
+	_nrrd_TMF_d1_c2_1ef_N_d @ 4078
+	_nrrd_TMF_d1_c2_1ef_N_f @ 4079
+	_nrrd_TMF_d1_c2_1ef_Sup @ 4080
+	_nrrd_TMF_d1_c2_2ef_1_d @ 4081
+	_nrrd_TMF_d1_c2_2ef_1_f @ 4082
+	_nrrd_TMF_d1_c2_2ef_Int @ 4083
+	_nrrd_TMF_d1_c2_2ef_N_d @ 4084
+	_nrrd_TMF_d1_c2_2ef_N_f @ 4085
+	_nrrd_TMF_d1_c2_2ef_Sup @ 4086
+	_nrrd_TMF_d1_c2_3ef_1_d @ 4087
+	_nrrd_TMF_d1_c2_3ef_1_f @ 4088
+	_nrrd_TMF_d1_c2_3ef_Int @ 4089
+	_nrrd_TMF_d1_c2_3ef_N_d @ 4090
+	_nrrd_TMF_d1_c2_3ef_N_f @ 4091
+	_nrrd_TMF_d1_c2_3ef_Sup @ 4092
+	_nrrd_TMF_d1_c2_4ef_1_d @ 4093
+	_nrrd_TMF_d1_c2_4ef_1_f @ 4094
+	_nrrd_TMF_d1_c2_4ef_Int @ 4095
+	_nrrd_TMF_d1_c2_4ef_N_d @ 4096
+	_nrrd_TMF_d1_c2_4ef_N_f @ 4097
+	_nrrd_TMF_d1_c2_4ef_Sup @ 4098
+	_nrrd_TMF_d1_c3_1ef_1_d @ 4099
+	_nrrd_TMF_d1_c3_1ef_1_f @ 4100
+	_nrrd_TMF_d1_c3_1ef_Int @ 4101
+	_nrrd_TMF_d1_c3_1ef_N_d @ 4102
+	_nrrd_TMF_d1_c3_1ef_N_f @ 4103
+	_nrrd_TMF_d1_c3_1ef_Sup @ 4104
+	_nrrd_TMF_d1_c3_2ef_1_d @ 4105
+	_nrrd_TMF_d1_c3_2ef_1_f @ 4106
+	_nrrd_TMF_d1_c3_2ef_Int @ 4107
+	_nrrd_TMF_d1_c3_2ef_N_d @ 4108
+	_nrrd_TMF_d1_c3_2ef_N_f @ 4109
+	_nrrd_TMF_d1_c3_2ef_Sup @ 4110
+	_nrrd_TMF_d1_c3_3ef_1_d @ 4111
+	_nrrd_TMF_d1_c3_3ef_1_f @ 4112
+	_nrrd_TMF_d1_c3_3ef_Int @ 4113
+	_nrrd_TMF_d1_c3_3ef_N_d @ 4114
+	_nrrd_TMF_d1_c3_3ef_N_f @ 4115
+	_nrrd_TMF_d1_c3_3ef_Sup @ 4116
+	_nrrd_TMF_d1_c3_4ef_1_d @ 4117
+	_nrrd_TMF_d1_c3_4ef_1_f @ 4118
+	_nrrd_TMF_d1_c3_4ef_Int @ 4119
+	_nrrd_TMF_d1_c3_4ef_N_d @ 4120
+	_nrrd_TMF_d1_c3_4ef_N_f @ 4121
+	_nrrd_TMF_d1_c3_4ef_Sup @ 4122
+	_nrrd_TMF_d1_cn_1ef_1_d @ 4123
+	_nrrd_TMF_d1_cn_1ef_1_f @ 4124
+	_nrrd_TMF_d1_cn_1ef_Int @ 4125
+	_nrrd_TMF_d1_cn_1ef_N_d @ 4126
+	_nrrd_TMF_d1_cn_1ef_N_f @ 4127
+	_nrrd_TMF_d1_cn_1ef_Sup @ 4128
+	_nrrd_TMF_d1_cn_2ef_1_d @ 4129
+	_nrrd_TMF_d1_cn_2ef_1_f @ 4130
+	_nrrd_TMF_d1_cn_2ef_Int @ 4131
+	_nrrd_TMF_d1_cn_2ef_N_d @ 4132
+	_nrrd_TMF_d1_cn_2ef_N_f @ 4133
+	_nrrd_TMF_d1_cn_2ef_Sup @ 4134
+	_nrrd_TMF_d1_cn_3ef_1_d @ 4135
+	_nrrd_TMF_d1_cn_3ef_1_f @ 4136
+	_nrrd_TMF_d1_cn_3ef_Int @ 4137
+	_nrrd_TMF_d1_cn_3ef_N_d @ 4138
+	_nrrd_TMF_d1_cn_3ef_N_f @ 4139
+	_nrrd_TMF_d1_cn_3ef_Sup @ 4140
+	_nrrd_TMF_d1_cn_4ef_1_d @ 4141
+	_nrrd_TMF_d1_cn_4ef_1_f @ 4142
+	_nrrd_TMF_d1_cn_4ef_Int @ 4143
+	_nrrd_TMF_d1_cn_4ef_N_d @ 4144
+	_nrrd_TMF_d1_cn_4ef_N_f @ 4145
+	_nrrd_TMF_d1_cn_4ef_Sup @ 4146
+	_nrrd_TMF_d2_c0_1ef_1_d @ 4147
+	_nrrd_TMF_d2_c0_1ef_1_f @ 4148
+	_nrrd_TMF_d2_c0_1ef_Int @ 4149
+	_nrrd_TMF_d2_c0_1ef_N_d @ 4150
+	_nrrd_TMF_d2_c0_1ef_N_f @ 4151
+	_nrrd_TMF_d2_c0_1ef_Sup @ 4152
+	_nrrd_TMF_d2_c0_2ef_1_d @ 4153
+	_nrrd_TMF_d2_c0_2ef_1_f @ 4154
+	_nrrd_TMF_d2_c0_2ef_Int @ 4155
+	_nrrd_TMF_d2_c0_2ef_N_d @ 4156
+	_nrrd_TMF_d2_c0_2ef_N_f @ 4157
+	_nrrd_TMF_d2_c0_2ef_Sup @ 4158
+	_nrrd_TMF_d2_c0_3ef_1_d @ 4159
+	_nrrd_TMF_d2_c0_3ef_1_f @ 4160
+	_nrrd_TMF_d2_c0_3ef_Int @ 4161
+	_nrrd_TMF_d2_c0_3ef_N_d @ 4162
+	_nrrd_TMF_d2_c0_3ef_N_f @ 4163
+	_nrrd_TMF_d2_c0_3ef_Sup @ 4164
+	_nrrd_TMF_d2_c0_4ef_1_d @ 4165
+	_nrrd_TMF_d2_c0_4ef_1_f @ 4166
+	_nrrd_TMF_d2_c0_4ef_Int @ 4167
+	_nrrd_TMF_d2_c0_4ef_N_d @ 4168
+	_nrrd_TMF_d2_c0_4ef_N_f @ 4169
+	_nrrd_TMF_d2_c0_4ef_Sup @ 4170
+	_nrrd_TMF_d2_c1_1ef_1_d @ 4171
+	_nrrd_TMF_d2_c1_1ef_1_f @ 4172
+	_nrrd_TMF_d2_c1_1ef_Int @ 4173
+	_nrrd_TMF_d2_c1_1ef_N_d @ 4174
+	_nrrd_TMF_d2_c1_1ef_N_f @ 4175
+	_nrrd_TMF_d2_c1_1ef_Sup @ 4176
+	_nrrd_TMF_d2_c1_2ef_1_d @ 4177
+	_nrrd_TMF_d2_c1_2ef_1_f @ 4178
+	_nrrd_TMF_d2_c1_2ef_Int @ 4179
+	_nrrd_TMF_d2_c1_2ef_N_d @ 4180
+	_nrrd_TMF_d2_c1_2ef_N_f @ 4181
+	_nrrd_TMF_d2_c1_2ef_Sup @ 4182
+	_nrrd_TMF_d2_c1_3ef_1_d @ 4183
+	_nrrd_TMF_d2_c1_3ef_1_f @ 4184
+	_nrrd_TMF_d2_c1_3ef_Int @ 4185
+	_nrrd_TMF_d2_c1_3ef_N_d @ 4186
+	_nrrd_TMF_d2_c1_3ef_N_f @ 4187
+	_nrrd_TMF_d2_c1_3ef_Sup @ 4188
+	_nrrd_TMF_d2_c1_4ef_1_d @ 4189
+	_nrrd_TMF_d2_c1_4ef_1_f @ 4190
+	_nrrd_TMF_d2_c1_4ef_Int @ 4191
+	_nrrd_TMF_d2_c1_4ef_N_d @ 4192
+	_nrrd_TMF_d2_c1_4ef_N_f @ 4193
+	_nrrd_TMF_d2_c1_4ef_Sup @ 4194
+	_nrrd_TMF_d2_c2_1ef_1_d @ 4195
+	_nrrd_TMF_d2_c2_1ef_1_f @ 4196
+	_nrrd_TMF_d2_c2_1ef_Int @ 4197
+	_nrrd_TMF_d2_c2_1ef_N_d @ 4198
+	_nrrd_TMF_d2_c2_1ef_N_f @ 4199
+	_nrrd_TMF_d2_c2_1ef_Sup @ 4200
+	_nrrd_TMF_d2_c2_2ef_1_d @ 4201
+	_nrrd_TMF_d2_c2_2ef_1_f @ 4202
+	_nrrd_TMF_d2_c2_2ef_Int @ 4203
+	_nrrd_TMF_d2_c2_2ef_N_d @ 4204
+	_nrrd_TMF_d2_c2_2ef_N_f @ 4205
+	_nrrd_TMF_d2_c2_2ef_Sup @ 4206
+	_nrrd_TMF_d2_c2_3ef_1_d @ 4207
+	_nrrd_TMF_d2_c2_3ef_1_f @ 4208
+	_nrrd_TMF_d2_c2_3ef_Int @ 4209
+	_nrrd_TMF_d2_c2_3ef_N_d @ 4210
+	_nrrd_TMF_d2_c2_3ef_N_f @ 4211
+	_nrrd_TMF_d2_c2_3ef_Sup @ 4212
+	_nrrd_TMF_d2_c2_4ef_1_d @ 4213
+	_nrrd_TMF_d2_c2_4ef_1_f @ 4214
+	_nrrd_TMF_d2_c2_4ef_Int @ 4215
+	_nrrd_TMF_d2_c2_4ef_N_d @ 4216
+	_nrrd_TMF_d2_c2_4ef_N_f @ 4217
+	_nrrd_TMF_d2_c2_4ef_Sup @ 4218
+	_nrrd_TMF_d2_c3_1ef_1_d @ 4219
+	_nrrd_TMF_d2_c3_1ef_1_f @ 4220
+	_nrrd_TMF_d2_c3_1ef_Int @ 4221
+	_nrrd_TMF_d2_c3_1ef_N_d @ 4222
+	_nrrd_TMF_d2_c3_1ef_N_f @ 4223
+	_nrrd_TMF_d2_c3_1ef_Sup @ 4224
+	_nrrd_TMF_d2_c3_2ef_1_d @ 4225
+	_nrrd_TMF_d2_c3_2ef_1_f @ 4226
+	_nrrd_TMF_d2_c3_2ef_Int @ 4227
+	_nrrd_TMF_d2_c3_2ef_N_d @ 4228
+	_nrrd_TMF_d2_c3_2ef_N_f @ 4229
+	_nrrd_TMF_d2_c3_2ef_Sup @ 4230
+	_nrrd_TMF_d2_c3_3ef_1_d @ 4231
+	_nrrd_TMF_d2_c3_3ef_1_f @ 4232
+	_nrrd_TMF_d2_c3_3ef_Int @ 4233
+	_nrrd_TMF_d2_c3_3ef_N_d @ 4234
+	_nrrd_TMF_d2_c3_3ef_N_f @ 4235
+	_nrrd_TMF_d2_c3_3ef_Sup @ 4236
+	_nrrd_TMF_d2_c3_4ef_1_d @ 4237
+	_nrrd_TMF_d2_c3_4ef_1_f @ 4238
+	_nrrd_TMF_d2_c3_4ef_Int @ 4239
+	_nrrd_TMF_d2_c3_4ef_N_d @ 4240
+	_nrrd_TMF_d2_c3_4ef_N_f @ 4241
+	_nrrd_TMF_d2_c3_4ef_Sup @ 4242
+	_nrrd_TMF_d2_cn_1ef_1_d @ 4243
+	_nrrd_TMF_d2_cn_1ef_1_f @ 4244
+	_nrrd_TMF_d2_cn_1ef_Int @ 4245
+	_nrrd_TMF_d2_cn_1ef_N_d @ 4246
+	_nrrd_TMF_d2_cn_1ef_N_f @ 4247
+	_nrrd_TMF_d2_cn_1ef_Sup @ 4248
+	_nrrd_TMF_d2_cn_2ef_1_d @ 4249
+	_nrrd_TMF_d2_cn_2ef_1_f @ 4250
+	_nrrd_TMF_d2_cn_2ef_Int @ 4251
+	_nrrd_TMF_d2_cn_2ef_N_d @ 4252
+	_nrrd_TMF_d2_cn_2ef_N_f @ 4253
+	_nrrd_TMF_d2_cn_2ef_Sup @ 4254
+	_nrrd_TMF_d2_cn_3ef_1_d @ 4255
+	_nrrd_TMF_d2_cn_3ef_1_f @ 4256
+	_nrrd_TMF_d2_cn_3ef_Int @ 4257
+	_nrrd_TMF_d2_cn_3ef_N_d @ 4258
+	_nrrd_TMF_d2_cn_3ef_N_f @ 4259
+	_nrrd_TMF_d2_cn_3ef_Sup @ 4260
+	_nrrd_TMF_d2_cn_4ef_1_d @ 4261
+	_nrrd_TMF_d2_cn_4ef_1_f @ 4262
+	_nrrd_TMF_d2_cn_4ef_Int @ 4263
+	_nrrd_TMF_d2_cn_4ef_N_d @ 4264
+	_nrrd_TMF_d2_cn_4ef_N_f @ 4265
+	_nrrd_TMF_d2_cn_4ef_Sup @ 4266
+	_nrrd_TMF_dn_c0_1ef_1_d @ 4267
+	_nrrd_TMF_dn_c0_1ef_1_f @ 4268
+	_nrrd_TMF_dn_c0_1ef_Int @ 4269
+	_nrrd_TMF_dn_c0_1ef_N_d @ 4270
+	_nrrd_TMF_dn_c0_1ef_N_f @ 4271
+	_nrrd_TMF_dn_c0_1ef_Sup @ 4272
+	_nrrd_TMF_dn_c0_2ef_1_d @ 4273
+	_nrrd_TMF_dn_c0_2ef_1_f @ 4274
+	_nrrd_TMF_dn_c0_2ef_Int @ 4275
+	_nrrd_TMF_dn_c0_2ef_N_d @ 4276
+	_nrrd_TMF_dn_c0_2ef_N_f @ 4277
+	_nrrd_TMF_dn_c0_2ef_Sup @ 4278
+	_nrrd_TMF_dn_c0_3ef_1_d @ 4279
+	_nrrd_TMF_dn_c0_3ef_1_f @ 4280
+	_nrrd_TMF_dn_c0_3ef_Int @ 4281
+	_nrrd_TMF_dn_c0_3ef_N_d @ 4282
+	_nrrd_TMF_dn_c0_3ef_N_f @ 4283
+	_nrrd_TMF_dn_c0_3ef_Sup @ 4284
+	_nrrd_TMF_dn_c0_4ef_1_d @ 4285
+	_nrrd_TMF_dn_c0_4ef_1_f @ 4286
+	_nrrd_TMF_dn_c0_4ef_Int @ 4287
+	_nrrd_TMF_dn_c0_4ef_N_d @ 4288
+	_nrrd_TMF_dn_c0_4ef_N_f @ 4289
+	_nrrd_TMF_dn_c0_4ef_Sup @ 4290
+	_nrrd_TMF_dn_c1_1ef_1_d @ 4291
+	_nrrd_TMF_dn_c1_1ef_1_f @ 4292
+	_nrrd_TMF_dn_c1_1ef_Int @ 4293
+	_nrrd_TMF_dn_c1_1ef_N_d @ 4294
+	_nrrd_TMF_dn_c1_1ef_N_f @ 4295
+	_nrrd_TMF_dn_c1_1ef_Sup @ 4296
+	_nrrd_TMF_dn_c1_2ef_1_d @ 4297
+	_nrrd_TMF_dn_c1_2ef_1_f @ 4298
+	_nrrd_TMF_dn_c1_2ef_Int @ 4299
+	_nrrd_TMF_dn_c1_2ef_N_d @ 4300
+	_nrrd_TMF_dn_c1_2ef_N_f @ 4301
+	_nrrd_TMF_dn_c1_2ef_Sup @ 4302
+	_nrrd_TMF_dn_c1_3ef_1_d @ 4303
+	_nrrd_TMF_dn_c1_3ef_1_f @ 4304
+	_nrrd_TMF_dn_c1_3ef_Int @ 4305
+	_nrrd_TMF_dn_c1_3ef_N_d @ 4306
+	_nrrd_TMF_dn_c1_3ef_N_f @ 4307
+	_nrrd_TMF_dn_c1_3ef_Sup @ 4308
+	_nrrd_TMF_dn_c1_4ef_1_d @ 4309
+	_nrrd_TMF_dn_c1_4ef_1_f @ 4310
+	_nrrd_TMF_dn_c1_4ef_Int @ 4311
+	_nrrd_TMF_dn_c1_4ef_N_d @ 4312
+	_nrrd_TMF_dn_c1_4ef_N_f @ 4313
+	_nrrd_TMF_dn_c1_4ef_Sup @ 4314
+	_nrrd_TMF_dn_c2_1ef_1_d @ 4315
+	_nrrd_TMF_dn_c2_1ef_1_f @ 4316
+	_nrrd_TMF_dn_c2_1ef_Int @ 4317
+	_nrrd_TMF_dn_c2_1ef_N_d @ 4318
+	_nrrd_TMF_dn_c2_1ef_N_f @ 4319
+	_nrrd_TMF_dn_c2_1ef_Sup @ 4320
+	_nrrd_TMF_dn_c2_2ef_1_d @ 4321
+	_nrrd_TMF_dn_c2_2ef_1_f @ 4322
+	_nrrd_TMF_dn_c2_2ef_Int @ 4323
+	_nrrd_TMF_dn_c2_2ef_N_d @ 4324
+	_nrrd_TMF_dn_c2_2ef_N_f @ 4325
+	_nrrd_TMF_dn_c2_2ef_Sup @ 4326
+	_nrrd_TMF_dn_c2_3ef_1_d @ 4327
+	_nrrd_TMF_dn_c2_3ef_1_f @ 4328
+	_nrrd_TMF_dn_c2_3ef_Int @ 4329
+	_nrrd_TMF_dn_c2_3ef_N_d @ 4330
+	_nrrd_TMF_dn_c2_3ef_N_f @ 4331
+	_nrrd_TMF_dn_c2_3ef_Sup @ 4332
+	_nrrd_TMF_dn_c2_4ef_1_d @ 4333
+	_nrrd_TMF_dn_c2_4ef_1_f @ 4334
+	_nrrd_TMF_dn_c2_4ef_Int @ 4335
+	_nrrd_TMF_dn_c2_4ef_N_d @ 4336
+	_nrrd_TMF_dn_c2_4ef_N_f @ 4337
+	_nrrd_TMF_dn_c2_4ef_Sup @ 4338
+	_nrrd_TMF_dn_c3_1ef_1_d @ 4339
+	_nrrd_TMF_dn_c3_1ef_1_f @ 4340
+	_nrrd_TMF_dn_c3_1ef_Int @ 4341
+	_nrrd_TMF_dn_c3_1ef_N_d @ 4342
+	_nrrd_TMF_dn_c3_1ef_N_f @ 4343
+	_nrrd_TMF_dn_c3_1ef_Sup @ 4344
+	_nrrd_TMF_dn_c3_2ef_1_d @ 4345
+	_nrrd_TMF_dn_c3_2ef_1_f @ 4346
+	_nrrd_TMF_dn_c3_2ef_Int @ 4347
+	_nrrd_TMF_dn_c3_2ef_N_d @ 4348
+	_nrrd_TMF_dn_c3_2ef_N_f @ 4349
+	_nrrd_TMF_dn_c3_2ef_Sup @ 4350
+	_nrrd_TMF_dn_c3_3ef_1_d @ 4351
+	_nrrd_TMF_dn_c3_3ef_1_f @ 4352
+	_nrrd_TMF_dn_c3_3ef_Int @ 4353
+	_nrrd_TMF_dn_c3_3ef_N_d @ 4354
+	_nrrd_TMF_dn_c3_3ef_N_f @ 4355
+	_nrrd_TMF_dn_c3_3ef_Sup @ 4356
+	_nrrd_TMF_dn_c3_4ef_1_d @ 4357
+	_nrrd_TMF_dn_c3_4ef_1_f @ 4358
+	_nrrd_TMF_dn_c3_4ef_Int @ 4359
+	_nrrd_TMF_dn_c3_4ef_N_d @ 4360
+	_nrrd_TMF_dn_c3_4ef_N_f @ 4361
+	_nrrd_TMF_dn_c3_4ef_Sup @ 4362
+	_nrrd_TMF_dn_cn_1ef_1_d @ 4363
+	_nrrd_TMF_dn_cn_1ef_1_f @ 4364
+	_nrrd_TMF_dn_cn_1ef_Int @ 4365
+	_nrrd_TMF_dn_cn_1ef_N_d @ 4366
+	_nrrd_TMF_dn_cn_1ef_N_f @ 4367
+	_nrrd_TMF_dn_cn_1ef_Sup @ 4368
+	_nrrd_TMF_dn_cn_2ef_1_d @ 4369
+	_nrrd_TMF_dn_cn_2ef_1_f @ 4370
+	_nrrd_TMF_dn_cn_2ef_Int @ 4371
+	_nrrd_TMF_dn_cn_2ef_N_d @ 4372
+	_nrrd_TMF_dn_cn_2ef_N_f @ 4373
+	_nrrd_TMF_dn_cn_2ef_Sup @ 4374
+	_nrrd_TMF_dn_cn_3ef_1_d @ 4375
+	_nrrd_TMF_dn_cn_3ef_1_f @ 4376
+	_nrrd_TMF_dn_cn_3ef_Int @ 4377
+	_nrrd_TMF_dn_cn_3ef_N_d @ 4378
+	_nrrd_TMF_dn_cn_3ef_N_f @ 4379
+	_nrrd_TMF_dn_cn_3ef_Sup @ 4380
+	_nrrd_TMF_dn_cn_4ef_1_d @ 4381
+	_nrrd_TMF_dn_cn_4ef_1_f @ 4382
+	_nrrd_TMF_dn_cn_4ef_Int @ 4383
+	_nrrd_TMF_dn_cn_4ef_N_d @ 4384
+	_nrrd_TMF_dn_cn_4ef_N_f @ 4385
+	_nrrd_TMF_dn_cn_4ef_Sup @ 4386
+	_tenAniso @ 4774 DATA
+	_tenAnisoStr @ 4775 DATA
+	_tenEpiRegBB @ 4776
+	_tenEpiRegBlur @ 4777
+	_tenEpiRegCC @ 4778
+	_tenEpiRegCheck @ 4779
+	_tenEpiRegEstimHST @ 4780
+	_tenEpiRegFindThresh @ 4781
+	_tenEpiRegFitHST @ 4782
+	_tenEpiRegGetHST @ 4783
+	_tenEpiRegMoments @ 4784
+	_tenEpiRegPairXforms @ 4785
+	_tenEpiRegSave @ 4786
+	_tenEpiRegSliceWarp @ 4787
+	_tenEpiRegThreshold @ 4788
+	_tenEpiRegWarp @ 4789
+	_tenFiberAlign @ 4790
+	_tenFiberCheckStop @ 4791
+	_tenFiberIntegrate @ 4792 DATA
+	_tenFiberIntegrate_Euler @ 4793
+	_tenFiberIntegrate_RK4 @ 4794
+	_tenFiberProbe @ 4795
+	_tenFiberStep @ 4796 DATA
+	_tenFiberStep_Evec1 @ 4797
+	_tenFiberStep_PureLine @ 4798
+	_tenFiberStep_TensorLine @ 4799
+	_tenFiberStep_Zhukov @ 4800
+	_tenFiberStop @ 4801 DATA
+	_tenFiberStopDesc @ 4802 DATA
+	_tenFiberStopStr @ 4803 DATA
+	_tenFiberStopStrEqv @ 4804 DATA
+	_tenFiberStopValEqv @ 4805 DATA
+	_tenFiberType @ 4806 DATA
+	_tenFiberTypeDesc @ 4807 DATA
+	_tenFiberTypeStr @ 4808 DATA
+	_tenFiberTypeStrEqv @ 4809 DATA
+	_tenFiberTypeValEqv @ 4810 DATA
+	_tenFindValley @ 4811
+	_tenGage @ 4812 DATA
+	_tenGageAnswer @ 4813
+	_tenGageDesc @ 4814 DATA
+	_tenGageFilter @ 4815
+	_tenGageIv3Print @ 4816
+	_tenGageKind @ 4817 DATA
+	_tenGageNeedDeriv @ 4818 DATA
+	_tenGagePrereq @ 4819 DATA
+	_tenGageStr @ 4820 DATA
+	_tenGageStrEqv @ 4821 DATA
+	_tenGageVal @ 4822 DATA
+	_tenGageValEqv @ 4823 DATA
+	_tenGlyphType @ 4824 DATA
+	_tenGlyphTypeDesc @ 4825 DATA
+	_tenGlyphTypeStr @ 4826 DATA
+	_tenGlyphTypeStrEqv @ 4827 DATA
+	_tenGlyphTypeValEqv @ 4828 DATA
+	_tendFiberStopCB @ 4829 DATA
+	_tend_anhistInfoL @ 4830 DATA
+	_tend_anplotInfoL @ 4831 DATA
+	_tend_anvolInfoL @ 4832 DATA
+	_tend_bmatInfoL @ 4833 DATA
+	_tend_epiregInfoL @ 4834 DATA
+	_tend_estimInfoL @ 4835 DATA
+	_tend_evalInfoL @ 4836 DATA
+	_tend_evecInfoL @ 4837 DATA
+	_tend_evqInfoL @ 4838 DATA
+	_tend_expandInfoL @ 4839 DATA
+	_tend_fiberInfoL @ 4840 DATA
+	_tend_glyphInfoL @ 4841 DATA
+	_tend_makeInfoL @ 4842 DATA
+	_tend_pointInfoL @ 4843 DATA
+	_tend_satinInfoL @ 4844 DATA
+	_tend_shrinkInfoL @ 4845 DATA
+	_tend_simInfoL @ 4846 DATA
+	_tend_stenInfoL @ 4847 DATA
+	_unrrdu_1opInfoL @ 4848 DATA
+	_unrrdu_2opInfoL @ 4849 DATA
+	_unrrdu_3opInfoL @ 4850 DATA
+	_unrrdu_axdeleteInfoL @ 4851 DATA
+	_unrrdu_axinfoInfoL @ 4852 DATA
+	_unrrdu_axinsertInfoL @ 4853 DATA
+	_unrrdu_axmergeInfoL @ 4854 DATA
+	_unrrdu_axsplitInfoL @ 4855 DATA
+	_unrrdu_blockInfoL @ 4856 DATA
+	_unrrdu_ccadjInfoL @ 4857 DATA
+	_unrrdu_ccfindInfoL @ 4858 DATA
+	_unrrdu_ccmergeInfoL @ 4859 DATA
+	_unrrdu_ccsettleInfoL @ 4860 DATA
+	_unrrdu_cmedianInfoL @ 4861 DATA
+	_unrrdu_convertInfoL @ 4862 DATA
+	_unrrdu_cropInfoL @ 4863 DATA
+	_unrrdu_dataInfoL @ 4864 DATA
+	_unrrdu_dhistoInfoL @ 4865 DATA
+	_unrrdu_diceInfoL @ 4866 DATA
+	_unrrdu_flipInfoL @ 4867 DATA
+	_unrrdu_gammaInfoL @ 4868 DATA
+	_unrrdu_headInfoL @ 4869 DATA
+	_unrrdu_heqInfoL @ 4870 DATA
+	_unrrdu_histaxInfoL @ 4871 DATA
+	_unrrdu_histoInfoL @ 4872 DATA
+	_unrrdu_imapInfoL @ 4873 DATA
+	_unrrdu_insetInfoL @ 4874 DATA
+	_unrrdu_jhistoInfoL @ 4875 DATA
+	_unrrdu_joinInfoL @ 4876 DATA
+	_unrrdu_lutInfoL @ 4877 DATA
+	_unrrdu_makeInfoL @ 4878 DATA
+	_unrrdu_minmaxInfoL @ 4879 DATA
+	_unrrdu_padInfoL @ 4880 DATA
+	_unrrdu_permuteInfoL @ 4881 DATA
+	_unrrdu_projectInfoL @ 4882 DATA
+	_unrrdu_quantizeInfoL @ 4883 DATA
+	_unrrdu_resampleInfoL @ 4884 DATA
+	_unrrdu_reshapeInfoL @ 4885 DATA
+	_unrrdu_rmapInfoL @ 4886 DATA
+	_unrrdu_saveInfoL @ 4887 DATA
+	_unrrdu_shuffleInfoL @ 4888 DATA
+	_unrrdu_sliceInfoL @ 4889 DATA
+	_unrrdu_spliceInfoL @ 4890 DATA
+	_unrrdu_swapInfoL @ 4891 DATA
+	_unrrdu_unblockInfoL @ 4892 DATA
+	_unrrdu_unquantizeInfoL @ 4893 DATA
+	airArrayIncrLen @ 4894
+	airArrayNew @ 4895
+	airArrayNix @ 4896
+	airArrayNuke @ 4897
+	airArrayPointerCB @ 4898
+	airArraySetLen @ 4899
+	airArrayStructCB @ 4900
+	airAtod @ 4901
+	airBinaryPrintUInt @ 4902
+	airBool @ 4903 DATA
+	airCbrt @ 4904
+	airDLoad @ 4905
+	airDStore @ 4906
+	airDioInfo @ 4907
+	airDioRead @ 4908
+	airDioTest @ 4909
+	airDioWrite @ 4910
+	airDisableDio @ 4911 DATA
+	airDoneStr @ 4912
+	airEndian @ 4913 DATA
+	airEndsWith @ 4914
+	airEnumDesc @ 4915
+	airEnumFmtDesc @ 4916
+	airEnumStr @ 4917
+	airEnumUnknown @ 4918
+	airEnumVal @ 4919
+	airEnumValCheck @ 4920
+	airErf @ 4921
+	airExists_d @ 4922
+	airExists_f @ 4923
+	airFLoad @ 4924
+	airFPClass_d @ 4925
+	airFPClass_f @ 4926
+	airFPFprintf_d @ 4927
+	airFPFprintf_f @ 4928
+	airFPGen_d @ 4929
+	airFPGen_f @ 4930
+	airFPPartsToVal_d @ 4931
+	airFPPartsToVal_f @ 4932
+	airFPValToParts_d @ 4933
+	airFPValToParts_f @ 4934
+	airFStore @ 4935
+	airFclose @ 4936
+	airFloatNegInf @ 4937 DATA
+	airFloatPosInf @ 4938 DATA
+	airFloatQNaN @ 4939 DATA
+	airFloatSNaN @ 4940 DATA
+	airFopen @ 4941
+	airFree @ 4942
+	airFreeP @ 4943
+	airILoad @ 4944
+	airIStore @ 4945
+	airInsaneErr @ 4946
+	airIsInf_d @ 4947
+	airIsInf_f @ 4948
+	airIsNaN @ 4949
+	airLog2 @ 4950
+	airMopAdd @ 4951
+	airMopDebug @ 4952
+	airMopDone @ 4953
+	airMopError @ 4954
+	airMopMem @ 4955
+	airMopNew @ 4956
+	airMopOkay @ 4957
+	airMopPrint @ 4958
+	airMopSub @ 4959
+	airMopUnMem @ 4960
+	airMy32Bit @ 4961 DATA
+	airMyBigBitField @ 4962 DATA
+	airMyDio @ 4963 DATA
+	airMyEndian @ 4964 DATA
+	airMyFmt_size_t @ 4965 DATA
+	airMyQNaNHiBit @ 4966 DATA
+	airNaN @ 4967
+	airNoDioErr @ 4968
+	airNull @ 4969
+	airOneLine @ 4970
+	airOneLinify @ 4971
+	airParseStr @ 4972 DATA
+	airParseStrB @ 4973
+	airParseStrC @ 4974
+	airParseStrD @ 4975
+	airParseStrE @ 4976
+	airParseStrF @ 4977
+	airParseStrI @ 4978
+	airParseStrS @ 4979
+	airRand @ 4980
+	airRandInt @ 4981
+	airSanity @ 4982
+	airSetNull @ 4983
+	airSgn @ 4984
+	airSgnPow @ 4985
+	airShuffle @ 4986
+	airSinglePrintf @ 4987
+	airSingleSscanf @ 4988
+	airSrand @ 4989
+	airStrdup @ 4990
+	airStrlen @ 4991
+	airStrntok @ 4992
+	airStrtok @ 4993
+	airStrtrans @ 4994
+	airTeemReleaseDate @ 4995 DATA
+	airTeemVersion @ 4996 DATA
+	airTime @ 4997
+	airToLower @ 4998
+	airToUpper @ 4999
+	airTypeSize @ 5000 DATA
+	airTypeStr @ 5001 DATA
+	bane1DOpacInfoFrom2D @ 5002
+	baneBcptsCheck @ 5003
+	baneBiffKey @ 5004 DATA
+	baneClipAbsolute @ 5005 DATA
+	baneClipArray @ 5006 DATA
+	baneClipPeakRatio @ 5007 DATA
+	baneClipPercentile @ 5008 DATA
+	baneClipTopN @ 5009 DATA
+	baneClipUnknown @ 5010 DATA
+	baneDefIncLimit @ 5011 DATA
+	baneDefMakeMeasrVol @ 5012 DATA
+	baneDefPercHistBins @ 5013 DATA
+	baneDefRenormalize @ 5014 DATA
+	baneDefVerbose @ 5015 DATA
+	baneFindInclusion @ 5016
+	baneGKMSHVol @ 5017
+	baneGkmsCmdList @ 5018 DATA
+	baneGkmsHestBEF @ 5019 DATA
+	baneGkmsHestGthresh @ 5020 DATA
+	baneGkmsHestIncStrategy @ 5021 DATA
+	baneGkmsMeasr @ 5022 DATA
+	baneGkmsParseBEF @ 5023
+	baneGkmsParseGthresh @ 5024
+	baneGkmsParseIncStrategy @ 5025
+	baneGkmsUsage @ 5026
+	baneGkms_hvolCmd @ 5027 DATA
+	baneGkms_hvolMain @ 5028
+	baneGkms_infoCmd @ 5029 DATA
+	baneGkms_infoMain @ 5030
+	baneGkms_miteCmd @ 5031 DATA
+	baneGkms_miteMain @ 5032
+	baneGkms_opacCmd @ 5033 DATA
+	baneGkms_opacMain @ 5034
+	baneGkms_pvgCmd @ 5035 DATA
+	baneGkms_pvgMain @ 5036
+	baneGkms_scatCmd @ 5037 DATA
+	baneGkms_scatMain @ 5038
+	baneGkms_txfCmd @ 5039 DATA
+	baneGkms_txfMain @ 5040
+	baneHVolCheck @ 5041
+	baneHVolParmGKMSInit @ 5042
+	baneHVolParmNew @ 5043
+	baneHVolParmNix @ 5044
+	baneHack @ 5045 DATA
+	baneIncAbsolute @ 5046 DATA
+	baneIncArray @ 5047 DATA
+	baneIncPercentile @ 5048 DATA
+	baneIncRangeRatio @ 5049 DATA
+	baneIncStdv @ 5050 DATA
+	baneIncUnknown @ 5051 DATA
+	baneInfoCheck @ 5052
+	baneInputCheck @ 5053
+	baneMakeHVol @ 5054
+	baneMeasrArray @ 5055 DATA
+	baneMeasrCurvedness @ 5056 DATA
+	baneMeasrGradMag @ 5057 DATA
+	baneMeasrHess @ 5058 DATA
+	baneMeasrLapl @ 5059 DATA
+	baneMeasrShapeTrace @ 5060 DATA
+	baneMeasrUnknown @ 5061 DATA
+	baneMeasrVal @ 5062 DATA
+	baneMeasrValFloat @ 5063 DATA
+	baneMeasrValPos @ 5064 DATA
+	baneMeasrValZeroCent @ 5065 DATA
+	baneNpos @ 5066 DATA
+	baneOpacCalc @ 5067
+	baneOpacInfo @ 5068
+	banePosCalc @ 5069
+	banePosCheck @ 5070
+	baneProbe @ 5071
+	baneRangeArray @ 5072 DATA
+	baneRangeFloat @ 5073 DATA
+	baneRangeNeg @ 5074 DATA
+	baneRangePos @ 5075 DATA
+	baneRangeUnknown @ 5076 DATA
+	baneRangeZeroCent @ 5077 DATA
+	baneRawScatterplots @ 5078
+	baneSigmaCalc @ 5079
+	baneStateHistEqBins @ 5080 DATA
+	baneStateHistEqSmart @ 5081 DATA
+	biffAdd @ 5082
+	biffCheck @ 5083
+	biffDone @ 5084
+	biffGet @ 5085
+	biffGetDone @ 5086
+	biffMaybeAdd @ 5087
+	biffMove @ 5088
+	biffSet @ 5089
+	dyeBiffKey @ 5090 DATA
+	dyeColorCopy @ 5091
+	dyeColorGet @ 5092
+	dyeColorGetAs @ 5093
+	dyeColorInit @ 5094
+	dyeColorNew @ 5095
+	dyeColorNix @ 5096
+	dyeColorParse @ 5097
+	dyeColorSet @ 5098
+	dyeColorSprintf @ 5099
+	dyeConvert @ 5100
+	dyeHSLtoRGB @ 5101
+	dyeHSVtoRGB @ 5102
+	dyeIdentity @ 5103
+	dyeLABtoXYZ @ 5104
+	dyeLUVtoXYZ @ 5105
+	dyeLcbrt @ 5106
+	dyeLcubed @ 5107
+	dyeRGBtoHSL @ 5108
+	dyeRGBtoHSV @ 5109
+	dyeRGBtoXYZ @ 5110
+	dyeRGBtoXYZMatx @ 5111 DATA
+	dyeSimpleConvert @ 5112 DATA
+	dyeSpaceToStr @ 5113 DATA
+	dyeStrToSpace @ 5114
+	dyeWhiteXYZ_n @ 5115 DATA
+	dyeWhiteuvp_n @ 5116 DATA
+	dyeXYZtoLAB @ 5117
+	dyeXYZtoLUV @ 5118
+	dyeXYZtoRGB @ 5119
+	dyeXYZtoRGBMatx @ 5120 DATA
+	echoBiffKey @ 5121 DATA
+	echoBoundsGet @ 5122
+	echoChannelAverage @ 5123
+	echoColorSet @ 5124
+	echoCylinderSet @ 5125
+	echoEnvmapLookup @ 5126
+	echoGlobalStateNew @ 5127
+	echoGlobalStateNix @ 5128
+	echoInstanceSet @ 5129
+	echoIntxColor @ 5130
+	echoIntxFuzzify @ 5131
+	echoIntxLightColor @ 5132
+	echoIntxMaterialColor @ 5133
+	echoJitter @ 5134 DATA
+	echoJitterCompute @ 5135
+	echoLightColor @ 5136
+	echoLightPosition @ 5137
+	echoListAdd @ 5138
+	echoListSplit @ 5139
+	echoListSplit3 @ 5140
+	echoMatter @ 5141 DATA
+	echoMatterGlassSet @ 5142
+	echoMatterLightSet @ 5143
+	echoMatterMetalSet @ 5144
+	echoMatterPhongSet @ 5145
+	echoMatterTextureSet @ 5146
+	echoObjectAdd @ 5147
+	echoObjectHasMatter @ 5148 DATA
+	echoObjectNew @ 5149
+	echoObjectNix @ 5150
+	echoRTParmNew @ 5151
+	echoRTParmNix @ 5152
+	echoRTRender @ 5153
+	echoRTRenderCheck @ 5154
+	echoRayColor @ 5155
+	echoRayIntx @ 5156
+	echoRectangleSet @ 5157
+	echoRoughSphereNew @ 5158
+	echoSceneNew @ 5159
+	echoSceneNix @ 5160
+	echoSphereSet @ 5161
+	echoSuperquadSet @ 5162
+	echoTextureLookup @ 5163
+	echoThreadStateInit @ 5164
+	echoThreadStateNew @ 5165
+	echoThreadStateNix @ 5166
+	echoTriMeshSet @ 5167
+	echoTriangleSet @ 5168
+	echoType @ 5169 DATA
+	ell3mDet_d @ 5170
+	ell3mDet_f @ 5171
+	ell3mEigensolve @ 5172
+	ell3mEigenvalues @ 5173
+	ell3mInvert_d @ 5174
+	ell3mInvert_f @ 5175
+	ell3mMul_d @ 5176
+	ell3mMul_f @ 5177
+	ell3mNullspace1 @ 5178
+	ell3mNullspace2 @ 5179
+	ell3mPostMul_d @ 5180
+	ell3mPostMul_f @ 5181
+	ell3mPreMul_d @ 5182
+	ell3mPreMul_f @ 5183
+	ell3mPrint_d @ 5184
+	ell3mPrint_f @ 5185
+	ell3mvMul_d @ 5186
+	ell3mvMul_f @ 5187
+	ell3vPerp_d @ 5188
+	ell3vPerp_f @ 5189
+	ell3vPrint_d @ 5190
+	ell3vPrint_f @ 5191
+	ell4mDet_d @ 5192
+	ell4mDet_f @ 5193
+	ell4mInvert_d @ 5194
+	ell4mInvert_f @ 5195
+	ell4mMul_d @ 5196
+	ell4mMul_f @ 5197
+	ell4mPostMul_d @ 5198
+	ell4mPostMul_f @ 5199
+	ell4mPreMul_d @ 5200
+	ell4mPreMul_f @ 5201
+	ell4mPrint_d @ 5202
+	ell4mPrint_f @ 5203
+	ell4mvMul_d @ 5204
+	ell4mvMul_f @ 5205
+	ell4vPrint_d @ 5206
+	ell4vPrint_f @ 5207
+	ellBiffKey @ 5208 DATA
+	ellCubic @ 5209
+	ellDebug @ 5210 DATA
+	ellNmInverse @ 5211
+	ellNmMultiply @ 5212
+	ellNmPseudoInverse @ 5213
+	ellNmTranspose @ 5214
+	ellNmValid @ 5215
+	gageAnswerPointer @ 5216
+	gageBiffKey @ 5217 DATA
+	gageContextCopy @ 5218
+	gageContextNew @ 5219
+	gageContextNix @ 5220
+	gageDefCheckIntegrals @ 5221 DATA
+	gageDefCurvNormalSide @ 5222 DATA
+	gageDefDefaultCenter @ 5223 DATA
+	gageDefDefaultSpacing @ 5224 DATA
+	gageDefGradMagCurvMin @ 5225 DATA
+	gageDefGradMagMin @ 5226 DATA
+	gageDefK3Pack @ 5227 DATA
+	gageDefKernelIntegralNearZero @ 5228 DATA
+	gageDefNoRepadWhenSmaller @ 5229 DATA
+	gageDefRenormalize @ 5230 DATA
+	gageDefRequireAllSpacings @ 5231 DATA
+	gageDefRequireEqualCenters @ 5232 DATA
+	gageDefVerbose @ 5233 DATA
+	gageErrNum @ 5234 DATA
+	gageErrStr @ 5235 DATA
+	gageIv3Fill @ 5236
+	gageKernel @ 5237 DATA
+	gageKernelReset @ 5238
+	gageKernelSet @ 5239
+	gageKindScl @ 5240 DATA
+	gageKindVec @ 5241 DATA
+	gageNixerSet @ 5242
+	gagePadderSet @ 5243
+	gageParmReset @ 5244
+	gageParmSet @ 5245
+	gagePerVolumeAttach @ 5246
+	gagePerVolumeDetach @ 5247
+	gagePerVolumeIsAttached @ 5248
+	gagePerVolumeNew @ 5249
+	gagePerVolumeNix @ 5250
+	gagePointReset @ 5251
+	gageProbe @ 5252
+	gageQueryPrint @ 5253
+	gageQuerySet @ 5254
+	gageScl @ 5255 DATA
+	gageScl3PFilter2 @ 5256
+	gageScl3PFilter4 @ 5257
+	gageScl3PFilterN @ 5258
+	gageSclAnsLength @ 5259 DATA
+	gageSclAnsOffset @ 5260 DATA
+	gageShapeEqual @ 5261
+	gageShapeNew @ 5262
+	gageShapeNix @ 5263
+	gageShapeReset @ 5264
+	gageShapeSet @ 5265
+	gageShapeUnitItoW @ 5266
+	gageShapeUnitWtoI @ 5267
+	gageStructureTensor @ 5268
+	gageUpdate @ 5269
+	gageVec @ 5270 DATA
+	gageVecAnsLength @ 5271 DATA
+	gageVecAnsOffset @ 5272 DATA
+	gageVolumeCheck @ 5273
+	gageZeroNormal @ 5274 DATA
+	hestCleverPluralizeOtherY @ 5275 DATA
+	hestColumns @ 5276 DATA
+	hestElideMultipleEmptyStringDefault @ 5277 DATA
+	hestElideMultipleNonExistFloatDefault @ 5278 DATA
+	hestElideSingleEmptyStringDefault @ 5279 DATA
+	hestElideSingleEnumType @ 5280 DATA
+	hestElideSingleNonExistFloatDefault @ 5281 DATA
+	hestElideSingleOtherDefault @ 5282 DATA
+	hestElideSingleOtherType @ 5283 DATA
+	hestGlossary @ 5284
+	hestGreedySingleString @ 5285 DATA
+	hestInfo @ 5286
+	hestMinNumArgs @ 5287
+	hestMultiFlagSep @ 5288 DATA
+	hestOptAdd @ 5289
+	hestOptCheck @ 5290
+	hestOptFree @ 5291
+	hestParmFree @ 5292
+	hestParmNew @ 5293
+	hestParse @ 5294
+	hestParseFree @ 5295
+	hestParseOrDie @ 5296
+	hestRespFileComment @ 5297 DATA
+	hestRespFileEnable @ 5298 DATA
+	hestRespFileFlag @ 5299 DATA
+	hestUsage @ 5300
+	hestVarParamStopFlag @ 5301 DATA
+	hestVerbosity @ 5302 DATA
+	hooverBiffKey @ 5303 DATA
+	hooverContextCheck @ 5304
+	hooverContextNew @ 5305
+	hooverContextNix @ 5306
+	hooverDefImgCentering @ 5307 DATA
+	hooverDefVolCentering @ 5308 DATA
+	hooverMyPthread @ 5309 DATA
+	hooverRender @ 5310
+	hooverStubRayBegin @ 5311
+	hooverStubRayEnd @ 5312
+	hooverStubRenderBegin @ 5313
+	hooverStubRenderEnd @ 5314
+	hooverStubSample @ 5315
+	hooverStubThreadBegin @ 5316
+	hooverStubThreadEnd @ 5317
+	limnBiffKey @ 5318 DATA
+	limnCamNew @ 5319
+	limnCamNix @ 5320
+	limnCamUpdate @ 5321
+	limnDefCamAtRel @ 5322 DATA
+	limnDefCamOrtho @ 5323 DATA
+	limnDefCamRightHanded @ 5324 DATA
+	limnEnvMapCheck @ 5325
+	limnEnvMapFill @ 5326
+	limnHestCamOptAdd @ 5327
+	limnLightDiffuseCB @ 5328
+	limnLightNew @ 5329
+	limnLightNix @ 5330
+	limnLightReset @ 5331
+	limnLightSet @ 5332
+	limnLightSetAmbient @ 5333
+	limnLightSwitch @ 5334
+	limnLightUpdate @ 5335
+	limnObjConeAdd @ 5336
+	limnObjCubeAdd @ 5337
+	limnObjCylinderAdd @ 5338
+	limnObjDepthSortParts @ 5339
+	limnObjDescribe @ 5340
+	limnObjEdgeAdd @ 5341
+	limnObjFaceAdd @ 5342
+	limnObjHomog @ 5343
+	limnObjLoneEdgeAdd @ 5344
+	limnObjNew @ 5345
+	limnObjNix @ 5346
+	limnObjNormals @ 5347
+	limnObjPSDraw @ 5348
+	limnObjPartFinish @ 5349
+	limnObjPartStart @ 5350
+	limnObjPartTransform @ 5351
+	limnObjPointAdd @ 5352
+	limnObjPolarSphereAdd @ 5353
+	limnObjPolarSuperquadAdd @ 5354
+	limnObjRender @ 5355
+	limnObjSPAdd @ 5356
+	limnObjSpaceTransform @ 5357
+	limnObjSquareAdd @ 5358
+	limnQNBytes @ 5359 DATA
+	limnQNtoV @ 5360 DATA
+	limnVtoQN @ 5361 DATA
+	limnWinNew @ 5362
+	limnWinNix @ 5363
+	miteBiffKey @ 5364 DATA
+	miteDefNear1 @ 5365 DATA
+	miteDefNormalSide @ 5366 DATA
+	miteDefRefStep @ 5367 DATA
+	miteDefRenorm @ 5368 DATA
+	miteNtxfCheck @ 5369
+	miteRangeChar @ 5370 DATA
+	miteRayBegin @ 5371
+	miteRayEnd @ 5372
+	miteRenderBegin @ 5373
+	miteRenderEnd @ 5374
+	miteSample @ 5375
+	miteScl @ 5376 DATA
+	miteThreadBegin @ 5377
+	miteThreadEnd @ 5378
+	miteUserNew @ 5379
+	miteUserNix @ 5380
+	mossBiffKey @ 5381 DATA
+	mossDefBoundary @ 5382 DATA
+	mossDefCenter @ 5383 DATA
+	mossHestOrigin @ 5384 DATA
+	mossHestTransform @ 5385 DATA
+	mossImageAlloc @ 5386
+	mossImageCheck @ 5387
+	mossLinearTransform @ 5388
+	mossMatApply @ 5389
+	mossMatFlipSet @ 5390
+	mossMatIdentitySet @ 5391
+	mossMatInvert @ 5392
+	mossMatPostMultiply @ 5393
+	mossMatPreMultiply @ 5394
+	mossMatPrint @ 5395
+	mossMatRotateSet @ 5396
+	mossMatScaleSet @ 5397
+	mossMatShearSet @ 5398
+	mossMatTranslateSet @ 5399
+	mossSamplerEmpty @ 5400
+	mossSamplerFill @ 5401
+	mossSamplerImageSet @ 5402
+	mossSamplerKernelSet @ 5403
+	mossSamplerNew @ 5404
+	mossSamplerNix @ 5405
+	mossSamplerSample @ 5406
+	mossSamplerUpdate @ 5407
+	mossVerbose @ 5408 DATA
+	nrrd1DIrregAclCheck @ 5409
+	nrrd1DIrregAclGenerate @ 5410
+	nrrd1DIrregMapCheck @ 5411
+	nrrdAlloc @ 5412
+	nrrdAlloc_nva @ 5413
+	nrrdApply1DIrregMap @ 5414
+	nrrdApply1DLut @ 5415
+	nrrdApply1DRegMap @ 5416
+	nrrdArithBinaryOp @ 5417
+	nrrdArithGamma @ 5418
+	nrrdArithIterBinaryOp @ 5419
+	nrrdArithIterTernaryOp @ 5420
+	nrrdArithTernaryOp @ 5421
+	nrrdArithUnaryOp @ 5422
+	nrrdAxesDelete @ 5423
+	nrrdAxesInsert @ 5424
+	nrrdAxesMerge @ 5425
+	nrrdAxesPermute @ 5426
+	nrrdAxesSplit @ 5427
+	nrrdAxesSwap @ 5428
+	nrrdAxisIdx @ 5429
+	nrrdAxisIdxRange @ 5430
+	nrrdAxisInfo @ 5431 DATA
+	nrrdAxisInfoCopy @ 5432
+	nrrdAxisInfoGet @ 5433
+	nrrdAxisInfoGet_nva @ 5434
+	nrrdAxisInfoSet @ 5435
+	nrrdAxisInfoSet_nva @ 5436
+	nrrdAxisMinMaxSet @ 5437
+	nrrdAxisPos @ 5438
+	nrrdAxisPosRange @ 5439
+	nrrdAxisSpacingSet @ 5440
+	nrrdBiffKey @ 5441 DATA
+	nrrdBinaryOp @ 5442 DATA
+	nrrdBlock @ 5443
+	nrrdBoundary @ 5444 DATA
+	nrrdByteSkip @ 5445
+	nrrdCCAdjacency @ 5446
+	nrrdCCFind @ 5447
+	nrrdCCMax @ 5448
+	nrrdCCMerge @ 5449
+	nrrdCCNum @ 5450
+	nrrdCCRevalue @ 5451
+	nrrdCCSettle @ 5452
+	nrrdCCSize @ 5453
+	nrrdCCValid @ 5454
+	nrrdCenter @ 5455 DATA
+	nrrdCheapMedian @ 5456
+	nrrdCheck @ 5457
+	nrrdCommentAdd @ 5458
+	nrrdCommentClear @ 5459
+	nrrdCommentCopy @ 5460
+	nrrdCommentScan @ 5461
+	nrrdContentSet @ 5462
+	nrrdConvert @ 5463
+	nrrdCopy @ 5464
+	nrrdCrop @ 5465
+	nrrdDClamp @ 5466 DATA
+	nrrdDInsert @ 5467 DATA
+	nrrdDLoad @ 5468 DATA
+	nrrdDLookup @ 5469 DATA
+	nrrdDStore @ 5470 DATA
+	nrrdDefCenter @ 5471 DATA
+	nrrdDefGetenv @ 5472
+	nrrdDefKernelParm0 @ 5473 DATA
+	nrrdDefRsmpBoundary @ 5474 DATA
+	nrrdDefRsmpClamp @ 5475 DATA
+	nrrdDefRsmpPadValue @ 5476 DATA
+	nrrdDefRsmpRenormalize @ 5477 DATA
+	nrrdDefRsmpRound @ 5478 DATA
+	nrrdDefRsmpScale @ 5479 DATA
+	nrrdDefRsmpType @ 5480 DATA
+	nrrdDefSpacing @ 5481 DATA
+	nrrdDefWriteBareTable @ 5482 DATA
+	nrrdDefWriteCharsPerLine @ 5483 DATA
+	nrrdDefWriteEncoding @ 5484 DATA
+	nrrdDefWriteSeperateHeader @ 5485 DATA
+	nrrdDefWriteValsPerLine @ 5486 DATA
+	nrrdDescribe @ 5487
+	nrrdDirBaseSet @ 5488
+	nrrdElementNumber @ 5489
+	nrrdElementSize @ 5490
+	nrrdEmpty @ 5491
+	nrrdEncoding @ 5492 DATA
+	nrrdEncodingEndianMatters @ 5493 DATA
+	nrrdEncodingIsAvailable @ 5494 DATA
+	nrrdEncodingIsCompression @ 5495 DATA
+	nrrdFClamp @ 5496 DATA
+	nrrdFInsert @ 5497 DATA
+	nrrdFLoad @ 5498 DATA
+	nrrdFLookup @ 5499 DATA
+	nrrdFStore @ 5500 DATA
+	nrrdField @ 5501 DATA
+	nrrdFindMinMax @ 5502 DATA
+	nrrdFitsInFormat @ 5503
+	nrrdFlip @ 5504
+	nrrdFormat @ 5505 DATA
+	nrrdFormatIsAvailable @ 5506 DATA
+	nrrdFormatIsImage @ 5507 DATA
+	nrrdFprint @ 5508 DATA
+	nrrdHasNonExistSet @ 5509
+	nrrdHestIter @ 5510 DATA
+	nrrdHestKernelSpec @ 5511 DATA
+	nrrdHestNrrd @ 5512 DATA
+	nrrdHisto @ 5513
+	nrrdHistoAxis @ 5514
+	nrrdHistoDraw @ 5515
+	nrrdHistoEq @ 5516
+	nrrdHistoJoint @ 5517
+	nrrdIInsert @ 5518 DATA
+	nrrdILoad @ 5519 DATA
+	nrrdILookup @ 5520 DATA
+	nrrdIONew @ 5521
+	nrrdIONix @ 5522
+	nrrdIOReset @ 5523
+	nrrdIStore @ 5524 DATA
+	nrrdInit @ 5525
+	nrrdInset @ 5526
+	nrrdInvertPerm @ 5527
+	nrrdIterContent @ 5528
+	nrrdIterNew @ 5529
+	nrrdIterNix @ 5530
+	nrrdIterNuke @ 5531
+	nrrdIterSetNrrd @ 5532
+	nrrdIterSetValue @ 5533
+	nrrdIterValue @ 5534
+	nrrdJoin @ 5535
+	nrrdKernelAQuartic @ 5536 DATA
+	nrrdKernelAQuarticD @ 5537 DATA
+	nrrdKernelAQuarticDD @ 5538 DATA
+	nrrdKernelBCCubic @ 5539 DATA
+	nrrdKernelBCCubicD @ 5540 DATA
+	nrrdKernelBCCubicDD @ 5541 DATA
+	nrrdKernelBlackman @ 5542 DATA
+	nrrdKernelBlackmanD @ 5543 DATA
+	nrrdKernelBlackmanDD @ 5544 DATA
+	nrrdKernelBox @ 5545 DATA
+	nrrdKernelCentDiff @ 5546 DATA
+	nrrdKernelForwDiff @ 5547 DATA
+	nrrdKernelGaussian @ 5548 DATA
+	nrrdKernelGaussianD @ 5549 DATA
+	nrrdKernelGaussianDD @ 5550 DATA
+	nrrdKernelHann @ 5551 DATA
+	nrrdKernelHannD @ 5552 DATA
+	nrrdKernelHannDD @ 5553 DATA
+	nrrdKernelParmSet @ 5554
+	nrrdKernelParse @ 5555
+	nrrdKernelSpecNew @ 5556
+	nrrdKernelSpecNix @ 5557
+	nrrdKernelSpecParse @ 5558
+	nrrdKernelSpecSet @ 5559
+	nrrdKernelTMF @ 5560 DATA
+	nrrdKernelTMF_maxA @ 5561 DATA
+	nrrdKernelTMF_maxC @ 5562 DATA
+	nrrdKernelTMF_maxD @ 5563 DATA
+	nrrdKernelTent @ 5564 DATA
+	nrrdKernelZero @ 5565 DATA
+	nrrdKernel_TMFBAD @ 5566 DATA
+	nrrdLineSkip @ 5567
+	nrrdLoad @ 5568
+	nrrdMagic @ 5569 DATA
+	nrrdMaybeAlloc @ 5570
+	nrrdMaybeAlloc_nva @ 5571
+	nrrdMeasure @ 5572 DATA
+	nrrdMeasureLine @ 5573 DATA
+	nrrdMinMaxCleverSet @ 5574
+	nrrdMinMaxSet @ 5575
+	nrrdNew @ 5576
+	nrrdNix @ 5577
+	nrrdNuke @ 5578
+	nrrdPGM @ 5579
+	nrrdPPM @ 5580
+	nrrdPad @ 5581
+	nrrdPad_nva @ 5582
+	nrrdPeripheralCopy @ 5583
+	nrrdPeripheralInit @ 5584
+	nrrdProject @ 5585
+	nrrdQuantize @ 5586
+	nrrdRead @ 5587
+	nrrdReadData @ 5588 DATA
+	nrrdResampleInfoNew @ 5589
+	nrrdResampleInfoNix @ 5590
+	nrrdReshape @ 5591
+	nrrdReshape_nva @ 5592
+	nrrdSameSize @ 5593
+	nrrdSample @ 5594
+	nrrdSample_nva @ 5595
+	nrrdSanity @ 5596
+	nrrdSave @ 5597
+	nrrdShuffle @ 5598
+	nrrdSimpleCrop @ 5599
+	nrrdSimplePad @ 5600
+	nrrdSimplePad_nva @ 5601
+	nrrdSimpleResample @ 5602
+	nrrdSlice @ 5603
+	nrrdSpatialResample @ 5604
+	nrrdSplice @ 5605
+	nrrdSprint @ 5606 DATA
+	nrrdStateAlwaysSetContent @ 5607 DATA
+	nrrdStateClever8BitMinMax @ 5608 DATA
+	nrrdStateDisableContent @ 5609 DATA
+	nrrdStateDisallowIntegerNonExist @ 5610 DATA
+	nrrdStateGetenv @ 5611
+	nrrdStateGrayscaleImage3D @ 5612 DATA
+	nrrdStateMeasureHistoType @ 5613 DATA
+	nrrdStateMeasureModeBins @ 5614 DATA
+	nrrdStateMeasureType @ 5615 DATA
+	nrrdStateUnknownContent @ 5616 DATA
+	nrrdStateVerboseIO @ 5617 DATA
+	nrrdSwapEndian @ 5618
+	nrrdTable @ 5619
+	nrrdTernaryOp @ 5620 DATA
+	nrrdType @ 5621 DATA
+	nrrdTypeIsIntegral @ 5622 DATA
+	nrrdTypeIsUnsigned @ 5623 DATA
+	nrrdTypeMax @ 5624 DATA
+	nrrdTypeMin @ 5625 DATA
+	nrrdTypeNumberOfValues @ 5626 DATA
+	nrrdTypePrintfStr @ 5627 DATA
+	nrrdTypeSize @ 5628 DATA
+	nrrdUnaryOp @ 5629 DATA
+	nrrdUnblock @ 5630
+	nrrdUnquantize @ 5631
+	nrrdUnwrap @ 5632
+	nrrdValCompare @ 5633 DATA
+	nrrdWrap @ 5634
+	nrrdWrap_nva @ 5635
+	nrrdWrite @ 5636
+	nrrdWriteData @ 5637 DATA
+	tenAniso @ 5638 DATA
+	tenAnisoCalc @ 5639
+	tenAnisoHistogram @ 5640
+	tenAnisoPlot @ 5641
+	tenAnisoSigma @ 5642 DATA
+	tenAnisoVolume @ 5643
+	tenBMatrix @ 5644
+	tenBiffKey @ 5645 DATA
+	tenBmatCheck @ 5646
+	tenCalcOneTensor1 @ 5647
+	tenCalcOneTensor2 @ 5648
+	tenCalcTensor @ 5649
+	tenDefFiberAnisoThresh @ 5650 DATA
+	tenDefFiberAnisoType @ 5651 DATA
+	tenDefFiberIntg @ 5652 DATA
+	tenDefFiberKernel @ 5653 DATA
+	tenDefFiberMaxHalfLen @ 5654 DATA
+	tenDefFiberOutputIndexSpace @ 5655 DATA
+	tenDefFiberStepSize @ 5656 DATA
+	tenEigensolve @ 5657
+	tenEigenvalueMin @ 5658
+	tenEpiRegister @ 5659
+	tenEstimate @ 5660
+	tenEstimateOne @ 5661
+	tenEvqOne @ 5662
+	tenEvqVolume @ 5663
+	tenExpand @ 5664
+	tenFiberContextNew @ 5665
+	tenFiberContextNix @ 5666
+	tenFiberIntgSet @ 5667
+	tenFiberKernelSet @ 5668
+	tenFiberParmSet @ 5669
+	tenFiberStop @ 5670 DATA
+	tenFiberStopReset @ 5671
+	tenFiberStopSet @ 5672
+	tenFiberTrace @ 5673
+	tenFiberType @ 5674 DATA
+	tenFiberTypeSet @ 5675
+	tenFiberUpdate @ 5676
+	tenGage @ 5677 DATA
+	tenGageAnsLength @ 5678 DATA
+	tenGageAnsOffset @ 5679 DATA
+	tenGageKind @ 5680 DATA
+	tenGlyphGen @ 5681
+	tenGlyphParmCheck @ 5682
+	tenGlyphParmNew @ 5683
+	tenGlyphParmNix @ 5684
+	tenGlyphType @ 5685 DATA
+	tenGradCheck @ 5686
+	tenMake @ 5687
+	tenMakeOne @ 5688
+	tenShrink @ 5689
+	tenSimulate @ 5690
+	tenSimulateOne @ 5691
+	tenTensorCheck @ 5692
+	tenVerbose @ 5693 DATA
+	tendCmdList @ 5694 DATA
+	tendFiberStopCB @ 5695 DATA
+	tendFiberStopParse @ 5696
+	tendUsage @ 5697
+	tend_anhistCmd @ 5698 DATA
+	tend_anhistMain @ 5699
+	tend_anplotCmd @ 5700 DATA
+	tend_anplotMain @ 5701
+	tend_anvolCmd @ 5702 DATA
+	tend_anvolMain @ 5703
+	tend_bmatCmd @ 5704 DATA
+	tend_bmatMain @ 5705
+	tend_epiregCmd @ 5706 DATA
+	tend_epiregMain @ 5707
+	tend_estimCmd @ 5708 DATA
+	tend_estimMain @ 5709
+	tend_evalCmd @ 5710 DATA
+	tend_evalMain @ 5711
+	tend_evecCmd @ 5712 DATA
+	tend_evecMain @ 5713
+	tend_evqCmd @ 5714 DATA
+	tend_evqMain @ 5715
+	tend_expandCmd @ 5716 DATA
+	tend_expandMain @ 5717
+	tend_fiberCmd @ 5718 DATA
+	tend_fiberMain @ 5719
+	tend_glyphCmd @ 5720 DATA
+	tend_glyphMain @ 5721
+	tend_makeCmd @ 5722 DATA
+	tend_makeMain @ 5723
+	tend_pointCmd @ 5724 DATA
+	tend_pointMain @ 5725
+	tend_satinCmd @ 5726 DATA
+	tend_satinGen @ 5727
+	tend_satinMain @ 5728
+	tend_satinSphereEigen @ 5729
+	tend_satinTorusEigen @ 5730
+	tend_shrinkCmd @ 5731 DATA
+	tend_shrinkMain @ 5732
+	tend_simCmd @ 5733 DATA
+	tend_simMain @ 5734
+	tend_stenCmd @ 5735 DATA
+	tend_stenMain @ 5736
+	unrrduBiffKey @ 5737 DATA
+	unrrduCmdList @ 5738 DATA
+	unrrduDefNumColumns @ 5739 DATA
+	unrrduEpsSave @ 5740
+	unrrduFormatPlusCB @ 5741 DATA
+	unrrduFormatPlusParse @ 5742
+	unrrduHestBitsCB @ 5743 DATA
+	unrrduHestEncodingCB @ 5744 DATA
+	unrrduHestFileCB @ 5745 DATA
+	unrrduHestMaybeTypeCB @ 5746 DATA
+	unrrduHestPosCB @ 5747 DATA
+	unrrduHestScaleCB @ 5748 DATA
+	unrrduMakeRead @ 5749
+	unrrduMaybeFclose @ 5750
+	unrrduParseBits @ 5751
+	unrrduParseEncoding @ 5752
+	unrrduParseFile @ 5753
+	unrrduParseMaybeType @ 5754
+	unrrduParsePos @ 5755
+	unrrduParseScale @ 5756
+	unrrduUsage @ 5757
+	unrrdu_1opCmd @ 5758 DATA
+	unrrdu_1opMain @ 5759
+	unrrdu_2opCmd @ 5760 DATA
+	unrrdu_2opMain @ 5761
+	unrrdu_3opCmd @ 5762 DATA
+	unrrdu_3opMain @ 5763
+	unrrdu_aboutCmd @ 5764 DATA
+	unrrdu_aboutMain @ 5765
+	unrrdu_axdeleteCmd @ 5766 DATA
+	unrrdu_axdeleteMain @ 5767
+	unrrdu_axinfoCmd @ 5768 DATA
+	unrrdu_axinfoMain @ 5769
+	unrrdu_axinsertCmd @ 5770 DATA
+	unrrdu_axinsertMain @ 5771
+	unrrdu_axmergeCmd @ 5772 DATA
+	unrrdu_axmergeMain @ 5773
+	unrrdu_axsplitCmd @ 5774 DATA
+	unrrdu_axsplitMain @ 5775
+	unrrdu_blockCmd @ 5776 DATA
+	unrrdu_blockMain @ 5777
+	unrrdu_ccadjCmd @ 5778 DATA
+	unrrdu_ccadjMain @ 5779
+	unrrdu_ccfindCmd @ 5780 DATA
+	unrrdu_ccfindMain @ 5781
+	unrrdu_ccmergeCmd @ 5782 DATA
+	unrrdu_ccmergeMain @ 5783
+	unrrdu_ccsettleCmd @ 5784 DATA
+	unrrdu_ccsettleMain @ 5785
+	unrrdu_cmedianCmd @ 5786 DATA
+	unrrdu_cmedianMain @ 5787
+	unrrdu_convertCmd @ 5788 DATA
+	unrrdu_convertMain @ 5789
+	unrrdu_cropCmd @ 5790 DATA
+	unrrdu_cropMain @ 5791
+	unrrdu_dataCmd @ 5792 DATA
+	unrrdu_dataMain @ 5793
+	unrrdu_dhistoCmd @ 5794 DATA
+	unrrdu_dhistoMain @ 5795
+	unrrdu_diceCmd @ 5796 DATA
+	unrrdu_diceMain @ 5797
+	unrrdu_flipCmd @ 5798 DATA
+	unrrdu_flipMain @ 5799
+	unrrdu_gammaCmd @ 5800 DATA
+	unrrdu_gammaMain @ 5801
+	unrrdu_headCmd @ 5802 DATA
+	unrrdu_headDoit @ 5803
+	unrrdu_headMain @ 5804
+	unrrdu_heqCmd @ 5805 DATA
+	unrrdu_heqMain @ 5806
+	unrrdu_histaxCmd @ 5807 DATA
+	unrrdu_histaxMain @ 5808
+	unrrdu_histoCmd @ 5809 DATA
+	unrrdu_histoMain @ 5810
+	unrrdu_imapCmd @ 5811 DATA
+	unrrdu_imapMain @ 5812
+	unrrdu_insetCmd @ 5813 DATA
+	unrrdu_insetMain @ 5814
+	unrrdu_jhistoCmd @ 5815 DATA
+	unrrdu_jhistoMain @ 5816
+	unrrdu_joinCmd @ 5817 DATA
+	unrrdu_joinMain @ 5818
+	unrrdu_lutCmd @ 5819 DATA
+	unrrdu_lutMain @ 5820
+	unrrdu_makeCmd @ 5821 DATA
+	unrrdu_makeMain @ 5822
+	unrrdu_minmaxCmd @ 5823 DATA
+	unrrdu_minmaxMain @ 5824
+	unrrdu_padCmd @ 5825 DATA
+	unrrdu_padMain @ 5826
+	unrrdu_permuteCmd @ 5827 DATA
+	unrrdu_permuteMain @ 5828
+	unrrdu_projectCmd @ 5829 DATA
+	unrrdu_projectMain @ 5830
+	unrrdu_quantizeCmd @ 5831 DATA
+	unrrdu_quantizeMain @ 5832
+	unrrdu_resampleCmd @ 5833 DATA
+	unrrdu_resampleMain @ 5834
+	unrrdu_reshapeCmd @ 5835 DATA
+	unrrdu_reshapeMain @ 5836
+	unrrdu_rmapCmd @ 5837 DATA
+	unrrdu_rmapMain @ 5838
+	unrrdu_saveCmd @ 5839 DATA
+	unrrdu_saveMain @ 5840
+	unrrdu_shuffleCmd @ 5841 DATA
+	unrrdu_shuffleMain @ 5842
+	unrrdu_sliceCmd @ 5843 DATA
+	unrrdu_sliceMain @ 5844
+	unrrdu_spliceCmd @ 5845 DATA
+	unrrdu_spliceMain @ 5846
+	unrrdu_swapCmd @ 5847 DATA
+	unrrdu_swapMain @ 5848
+	unrrdu_unblockCmd @ 5849 DATA
+	unrrdu_unblockMain @ 5850
+	unrrdu_unquantizeCmd @ 5851 DATA
