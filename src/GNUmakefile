@@ -120,13 +120,31 @@ teem/clean   : $(addsuffix /clean,$(LIBS) bin)
 teem/clobber : $(addsuffix /clobber,$(LIBS) bin)
 nothing : ;
 
+## if.missing(stuff): returns a $stuff if one or more of the files
+## listed in stuff don't exist
+##
+if.missing = $(if $(strip $(foreach x,$(1),$(if $(wildcard $(x)),,no))),$(1))
+
 ## Set directory-related variables: where to install things, as well
 ## as the directories used in conjunction with the -I and -L path
 ## flags for cc and ld
 ##
-IDEST = $(TEEM_ROOT)/include
-LDEST = $(TEEM_ROOT)/$(TEEM_ARCH)/lib
-BDEST = $(TEEM_ROOT)/$(TEEM_ARCH)/bin
+ifeq (undefined,$(origin TEEM_DEST))
+  IDEST = $(TEEM_ROOT)/include
+  LDEST = $(TEEM_ROOT)/$(TEEM_ARCH)/lib
+  BDEST = $(TEEM_ROOT)/$(TEEM_ARCH)/bin
+else
+  IDEST = $(TEEM_DEST)/include
+  LDEST = $(TEEM_DEST)/lib
+  BDEST = $(TEEM_DEST)/bin
+  ## complain if the destination directories don't exist
+  $(if $(call if.missing,$(IDEST) $(LDEST) $(BDEST)),\
+    $(error TEEM_DEST="$(TEEM_DEST)" lacks include,lib,bin subdirectories))
+  ## don't bother w/ a rule, just copy the teem*.h headers over there
+  ## if it doesn't look like they're there already
+  $(if $(filter 3,$(words $(wildcard $(IDEST)/teem*.h))),,\
+    $(shell cp $(TEEM_ROOT)/include/teem*.h $(IDEST)))
+endif
 ODEST = $(TEEM_ROOT)/$(TEEM_ARCH)/obj
 PCACHE = $(TEEM_ROOT)/$(TEEM_ARCH)/purify
 IPATH += -I$(IDEST)
@@ -247,11 +265,6 @@ more.cflags = $(if $($(1).NEED_ENDIAN),-DTEEM_ENDIAN=$(TEEM_ENDIAN))\
 ## fatally confused parallel builds
 ##
 banner = echo "--------------------" $(1) "--------------------"
-
-## if.missing(stuff): returns a $stuff if one or more of the files
-## listed in stuff don't exist
-##
-if.missing = $(if $(strip $(foreach x,$(1),$(if $(wildcard $(x)),,no))),$(1))
 
 ##             1   2
 ## newer.than(mes,needs) : returns $mes if any of the files in $mes
