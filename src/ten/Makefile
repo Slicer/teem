@@ -28,4 +28,4 @@ TEST_BINS = test/chan2tens test/anisos
 TEEM_BINS = 
 TEEM_BIN_LIBS = -lten -lnrrd -lell -lbiff -lair -lm
 
-include ../make/Common.mk
+include ../make/teem.mk

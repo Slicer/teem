@@ -25,4 +25,4 @@ TEST_BINS = test/conv test/bow
 TEEM_BINS =
 TEEM_BIN_LIBS = -ldye -lbiff -lair -lm
 
-include ../make/Common.mk
+include ../make/teem.mk

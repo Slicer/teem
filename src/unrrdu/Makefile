@@ -38,4 +38,4 @@ TEEM_BIN_OBJS += flip.o slice.o convert.o crop.o pad.o permute.o histo.o \
 	save.o 
 TEEM_BIN_LIBS = -lnrrd -lbiff -lhest -lair -lm
 
-include ../make/Common.mk
+include ../make/teem.mk

@@ -25,4 +25,4 @@ TEST_BINS = test/sort3 test/cubic
 TEEM_BINS = 
 TEEM_BIN_LIBS = -lell -lbiff -lair -lm
 
-include ../make/Common.mk
+include ../make/teem.mk

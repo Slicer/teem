@@ -25,4 +25,4 @@ TEST_BINS = test/test
 TEEM_BINS = 
 TEEM_BIN_LIBS = -lbiff -lair -lm
 
-include ../make/Common.mk
+include ../make/teem.mk

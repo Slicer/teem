@@ -27,4 +27,4 @@ TEEM_LIB_OBJS = defaults.o qn.o light.o cam.o methods.o obj.o io.o \
 TEST_BINS = test/map test/light test/tcam
 TEEM_BIN_LIBS = -llimn -lell -lnrrd -lbiff -lhest -lair -lm
 
-include ../make/Common.mk
+include ../make/teem.mk

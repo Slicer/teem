@@ -25,4 +25,4 @@ TEEM_BINS = bin/miter
 TEEM_BIN_LIBS = -lmite -lhoover -llimn -lgage -lnrrd -lell \
 	-lhest -lbiff -lair -lm
 
-include ../make/Common.mk
+include ../make/teem.mk

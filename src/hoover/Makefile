@@ -25,4 +25,4 @@ TEST_BINS =
 TEEM_BINS = bin/mrender
 TEEM_BIN_LIBS = -lhoover -llimn -lgage -lnrrd -lell -lhest -lbiff -lair -lm
 
-include ../make/Common.mk
+include ../make/teem.mk

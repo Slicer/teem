@@ -26,4 +26,4 @@ TEST_BINS = test/ex0 test/ex1 test/ex2 test/ex3 test/ex4 test/ex5 \
 	test/strings
 TEEM_BIN_LIBS = -lhest -lair -lm
 
-include ../make/Common.mk
+include ../make/teem.mk

@@ -29,4 +29,4 @@ TEST_BINS = test/tblah
 TEEM_BINS = bin/gkms
 TEEM_BIN_LIBS = -lbane -lgage -lnrrd -lell -lbiff -lair -lm
 
-include ../make/Common.mk
+include ../make/teem.mk

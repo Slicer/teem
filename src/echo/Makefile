@@ -29,4 +29,4 @@ TEST_BINS = test/trend test/glyph
 TEEM_BINS = 
 TEEM_BIN_LIBS = -lten -lecho -llimn -ldye -lnrrd -lell -lbiff -lhest -lair -lm
 
-include ../make/Common.mk
+include ../make/teem.mk
