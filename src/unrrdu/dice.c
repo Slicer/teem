@@ -21,7 +21,7 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Slice *everywhere* along one axis"
+#define INFO "Save all slices along one axis into separate files"
 char *_unrrdu_diceInfoL = 
 (INFO
  ". Calls \"unu slice\" for each position "
