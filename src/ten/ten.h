@@ -346,11 +346,11 @@ extern ten_export gageKind *tenGageKind;
 /* tend{Flotsam,Anplot,Anvol,Evec,Eval,...}.c */
 #define TEND_DECLARE(C) extern ten_export unrrduCmd tend_##C##Cmd;
 #define TEND_LIST(C) &tend_##C##Cmd,
+/* removed from below (superseded by estim): F(calc) \ */
 #define TEND_MAP(F) \
 F(epireg) \
 F(emat) \
 F(estim) \
-F(calc) \
 F(make) \
 F(sten) \
 F(glyph) \

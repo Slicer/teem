@@ -42,7 +42,8 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   float thresh, soft, b;
 
   hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, NULL,
-	     "confidence threshold");
+	     "value at which to threshold the mean DWI value per pixel "
+	     "in order to generate the \"confidence\" mask");
   hestOptAdd(&hopt, "s", "soft", airTypeFloat, 1, 1, &soft, "0",
 	     "how fuzzy confidence boundary should be.  By default, "
 	     "confidence boundary is perfectly sharp");
