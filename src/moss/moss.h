@@ -59,7 +59,7 @@ enum {
 
 typedef struct {
   Nrrd *image;                         /* the image to sample */
-  NrrdKernel *kernel;                  /* which kernel to use on both axes */
+  const NrrdKernel *kernel;            /* which kernel to use on both axes */
   double kparm[NRRD_KERNEL_PARMS_NUM]; /* kernel arguments */
   float *ivc;                          /* intermediate value cache */
   double *xFslw, *yFslw;               /* filter sample locations->weights */
@@ -90,7 +90,7 @@ extern int mossImageAlloc(Nrrd *image, int type, int sx, int sy, int ncol);
 /* sampler.c */
 extern int mossSamplerImageSet(mossSampler *smplr, Nrrd *image, float *bg);
 extern int mossSamplerKernelSet(mossSampler *smplr,
-				NrrdKernel *kernel, double *kparm);
+				const NrrdKernel *kernel, double *kparm);
 extern int mossSamplerUpdate(mossSampler *smplr);
 extern int mossSamplerSample(float *val, mossSampler *smplr,
 			     double xPos, double yPos);

@@ -47,7 +47,8 @@ mossSamplerImageSet (mossSampler *smplr, Nrrd *image, float *bg) {
 }
 
 int
-mossSamplerKernelSet (mossSampler *smplr, NrrdKernel *kernel, double *kparm) {
+mossSamplerKernelSet (mossSampler *smplr, 
+		      const NrrdKernel *kernel, double *kparm) {
   char me[]="mossSamplerKernelSet", err[AIR_STRLEN_MED];
   int i;
 
