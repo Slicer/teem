@@ -155,6 +155,7 @@ nrrdCommentScan(Nrrd *nrrd, const char *key) {
 ******** nrrdCommentCopy()
 **
 ** copies comments from one nrrd to another
+** Existing comments in nout are blown away
 **
 ** This does NOT use biff.
 */
@@ -185,7 +186,7 @@ nrrdCommentCopy(Nrrd *nout, const Nrrd *nin) {
     sprintf(err, "%s: couldn't add all comments", me);
     biffMaybeAdd(NRRD, err, useBiff);
     */
-    return 1;
+    return 3;
   }
   return 0;
 }
