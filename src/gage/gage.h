@@ -61,19 +61,19 @@ extern "C" {
 ** unfortunate but greatly simplifying restriction that this type
 ** is used for all types of probing (scalar, vector, etc).
 **
-** So: choose float or double and comment/uncomment the corresponding
-** set of lines below.
+** So: choose double by defining TEEM_GAGE_TYPE_DOUBLE and float
+** otherwise.
 */
 
-typedef float gage_t;
-#define gage_nrrdType nrrdTypeFloat
-#define GAGE_TYPE_FLOAT 1
-
-/*
+#ifdef TEEM_GAGE_TYPE_DOUBLE
 typedef double gage_t;
 #define gage_nrrdType nrrdTypeDouble
 #define GAGE_TYPE_FLOAT 0
-*/
+#else
+typedef float gage_t;
+#define gage_nrrdType nrrdTypeFloat
+#define GAGE_TYPE_FLOAT 1
+#endif
 
 /*
 ******** GAGE_FD, GAGE_FR #defines
