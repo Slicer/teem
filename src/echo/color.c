@@ -21,7 +21,7 @@
 #include "private.h"
 
 #define COLDIR_ARGS(TYPE) echoCol_t lcol[3], echoPos_t ldir[3],          \
-                          echoPos_t *distP, EchoParam *param,            \
+                          echoPos_t *distP, EchoParm *parm,            \
                           EchoLight##TYPE *light, int samp,              \
                           EchoIntx *intx, EchoThreadState *tstate
 
@@ -49,8 +49,8 @@ _echoLightColDirArea(COLDIR_ARGS(Area)) {
   ELL_3V_SCALEADD3(at, 1.0, rect->origin, x, rect->edge0, y, rect->edge1);
   ELL_3V_SUB(ldir, at, intx->pos);
   *distP = ELL_3V_LEN(ldir);
-  colScale = param->refDistance/(*distP);
-  colScale *= colScale*param->areaLightHack*rect->area;
+  colScale = parm->refDistance/(*distP);
+  colScale *= colScale*parm->areaLightHack*rect->area;
   ELL_3V_SCALE(lcol, colScale, lcol);
   ELL_3V_SCALE(ldir, 1.0/(*distP), ldir);
   return;
@@ -68,7 +68,7 @@ _echoLightColDir[ECHO_LIGHT_MAX+1] = {
 
 /*
  define COLOR_ARGS echoCol_t *chan, EchoIntx *intx, int samp,       \
-                   EchoParam *param, EchoThreadState *tstate,       \
+                   EchoParm *parm, EchoThreadState *tstate,       \
                    EchoObject *scene, airArray *lightArr
 */
 
@@ -111,7 +111,7 @@ _echoIntxColorPhong(COLOR_ARGS) {
     icol[4],             /* "intersection color" */
     oa,                  /* object opacity */
     d[3], s[3],          /* ambient + diffuse, specular */
-    ka, kd, ks, sh,      /* phong parameters */
+    ka, kd, ks, sh,      /* phong parmeters */
     lcol[3];             /* light color */
   echoPos_t tmp,
     view[3],             /* unit-length view vector */
@@ -139,36 +139,36 @@ _echoIntxColorPhong(COLOR_ARGS) {
   tmp = 2*ELL_3V_DOT(view, norm);
   ELL_3V_SCALEADD(refl, -1, view, tmp, norm);
 
-  d[0] = ka*param->amR;
-  d[1] = ka*param->amG;
-  d[2] = ka*param->amG;
+  d[0] = ka*parm->amR;
+  d[1] = ka*parm->amG;
+  d[2] = ka*parm->amG;
   s[0] = s[1] = s[2] = 0.0;
   ELL_3V_COPY(shRay.from, intx->pos);
   shRay.near = ECHO_EPSILON;
   for (lt=0; lt<lightArr->len; lt++) {
     light = ((EchoLight **)lightArr->data)[lt];
-    _echoLightColDir[light->type](lcol, ldir, &ldist, param,
+    _echoLightColDir[light->type](lcol, ldir, &ldist, parm,
 				  light, samp, intx, tstate);
     tmp = ELL_3V_DOT(ldir, norm);
     if (tmp <= 0)
       continue;
-    if (param->shadow) {
+    if (parm->shadow) {
       ELL_3V_COPY(shRay.dir, ldir);
       shRay.far = ldist;
-      if (param->verbose) {
+      if (parm->verbose) {
 	printf("%d: from (%g,%g,%g) to (%g,%g,%g) for [%g,%g] (scene %d)\n",
 	       lt, shRay.from[0], shRay.from[1], shRay.from[2],
 	       shRay.dir[0], shRay.dir[1], shRay.dir[2],
 	       shRay.near, shRay.far, scene->type);
       }
-      if (_echoRayIntx[scene->type](&shIntx, &shRay, param, scene)) {
+      if (_echoRayIntx[scene->type](&shIntx, &shRay, parm, scene)) {
 	/* the shadow ray hit something, nevermind */
-	if (param->verbose) {
+	if (parm->verbose) {
 	  printf("       SHADOWED\n");
 	}
 	continue;
       }
-      if (param->verbose) {
+      if (parm->verbose) {
 	printf(" I see the light\n");
       }
     }
@@ -236,7 +236,7 @@ _echoIntxColorMetal(COLOR_ARGS) {
 
   mat = intx->obj->mat;
 
-  if (0 && param->verbose) {
+  if (0 && parm->verbose) {
     printf("depth = %d, t = %g\n", intx->depth, intx->t);
   }
   ELL_3V_NORM(intx->norm, intx->norm, tmp);
@@ -255,7 +255,7 @@ _echoIntxColorMetal(COLOR_ARGS) {
   }
   tmp = 2*ELL_3V_DOT(view, norm);
   ELL_3V_SCALEADD(rfRay.dir, -1.0, view, tmp, norm);
-  echoRayColor(rfCol, samp, &rfRay, param, tstate, scene, lightArr);
+  echoRayColor(rfCol, samp, &rfRay, parm, tstate, scene, lightArr);
   
   c = 1 - ELL_3V_DOT(norm, view);
   c = c*c*c*c*c;
@@ -269,18 +269,18 @@ _echoIntxColorMetal(COLOR_ARGS) {
     shRay.near = ECHO_EPSILON;
     for (lt=0; lt<lightArr->len; lt++) {
       light = ((EchoLight **)lightArr->data)[lt];
-      _echoLightColDir[light->type](lcol, ldir, &ldist, param,
+      _echoLightColDir[light->type](lcol, ldir, &ldist, parm,
 				    light, samp, intx, tstate);
       tmp = ELL_3V_DOT(ldir, norm);
       if (tmp <= 0)
 	continue;
-      if (0 && param->verbose) {
+      if (0 && parm->verbose) {
 	printf("light %d: dot = %g\n", lt, tmp);
       }
-      if (param->shadow) {
+      if (parm->shadow) {
 	ELL_3V_COPY(shRay.dir, ldir);
 	shRay.far = ldist;
-	if (_echoRayIntx[scene->type](&shIntx, &shRay, param, scene)) {
+	if (_echoRayIntx[scene->type](&shIntx, &shRay, parm, scene)) {
 	  /* the shadow ray hit something, nevermind */
 	  continue;
 	}
@@ -353,7 +353,7 @@ _echoIntxColorGlass(COLOR_ARGS) {
     _echoFuzzifyNormal(norm, fuzz, jitt, view);
   }
   ELL_3V_SCALEADD(refl, -1, view, 2*tmp, norm);
-  if (0 && param->verbose) {
+  if (0 && parm->verbose) {
     printf("(glass; depth = %d)\n", intx->depth);
     printf("view . norm = %g\n", tmp);
   }
@@ -362,7 +362,7 @@ _echoIntxColorGlass(COLOR_ARGS) {
     /* "d.n < 0": we're bouncing off the outside */
     _echoRefract(tran, view, norm, index);
     c = tmp;
-    if (0 && param->verbose) {
+    if (0 && parm->verbose) {
       printf("view = (%g,%g,%g)\n",
 	     view[0], view[1], view[2]);
       printf("tran = (%g,%g,%g)\n",
@@ -386,7 +386,7 @@ _echoIntxColorGlass(COLOR_ARGS) {
     else {
       /* holy moly, its total internal reflection time */
       ELL_3V_COPY(rfRay.dir, refl);
-      echoRayColor(chan, samp, &rfRay, param, tstate, scene, lightArr);
+      echoRayColor(chan, samp, &rfRay, parm, tstate, scene, lightArr);
       chan[0] *= k[0];
       chan[1] *= k[1];
       chan[2] *= k[2];
@@ -398,14 +398,14 @@ _echoIntxColorGlass(COLOR_ARGS) {
   c = 1 - c;
   c = c*c*c*c*c;
   RS = R0 + (1-R0)*c;
-  if (0 && param->verbose) {
+  if (0 && parm->verbose) {
     printf("index = %g, R0 = %g, RS = %g\n", index, R0, RS);
     printf("k = %g %g %g\n", k[0], k[1], k[2]);
   }
   ELL_3V_COPY(rfRay.dir, refl);
-  echoRayColor(rfCol, samp, &rfRay, param, tstate, scene, lightArr);
+  echoRayColor(rfCol, samp, &rfRay, parm, tstate, scene, lightArr);
   ELL_3V_COPY(trRay.dir, tran);
-  echoRayColor(trCol, samp, &trRay, param, tstate, scene, lightArr);
+  echoRayColor(trCol, samp, &trRay, parm, tstate, scene, lightArr);
   ELL_3V_SCALEADD(chan, RS, rfCol, 1-RS, trCol);
   chan[0] *= k[0];
   chan[1] *= k[1];

@@ -17,9 +17,14 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef ECHO_PRIVATE_HAS_BEEN_INCLUDED
 #define ECHO_PRIVATE_HAS_BEEN_INCLUDED
 
+#define OBJECT(obj)   ((EchoObject*)obj)
 #define SPLIT(obj)    ((EchoObjectSplit*)obj)
 #define LIST(obj)     ((EchoObjectList*)obj)
 #define SPHERE(obj)   ((EchoObjectSphere*)obj)
@@ -31,7 +36,7 @@
 
 /* intx.c */
 #define INTX_ARGS(TYPE) EchoIntx *intx, EchoRay *ray,               \
-                        EchoParam *param, EchoObject##TYPE *obj
+                        EchoParm *parm, EchoObject##TYPE *obj
 
 typedef int (*_echoRayIntx_t)(INTX_ARGS( ));
 extern _echoRayIntx_t _echoRayIntx[ECHO_OBJECT_MAX+1];
@@ -41,7 +46,7 @@ extern _echoRayIntxUV_t _echoRayIntxUV[ECHO_OBJECT_MAX+1];
 
 /* color.c */
 #define COLOR_ARGS echoCol_t *chan, EchoIntx *intx, int samp,       \
-                   EchoParam *param, EchoThreadState *tstate,       \
+                   EchoParm *parm, EchoThreadState *tstate,       \
                    EchoObject *scene, airArray *lightArr
 
 typedef void (*_echoIntxColor_t) (COLOR_ARGS);
@@ -61,3 +66,7 @@ extern _echoObjectBounds_t _echoObjectBounds[ECHO_OBJECT_MAX+1];
 
 #endif /*  ECHO_PRIVATE_HAS_BEEN_INCLUDED */
 
+
+#ifdef __cplusplus
+}
+#endif

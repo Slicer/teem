@@ -17,6 +17,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef ECHO_HAS_BEEN_INCLUDED
 #define ECHO_HAS_BEEN_INCLUDED
 
@@ -35,11 +39,13 @@
 #if 1
 typedef float echoPos_t;
 #define echoPos_nrrdType nrrdTypeFloat
+#define echoPos_airType airTypeFloat
 #define ECHO_POS_MIN (-FLT_MAX)
 #define ECHO_POS_MAX FLT_MAX
 #else 
 typedef double echoPos_t;
 #define echoPos_nrrdType nrrdTypeDouble
+#define echoPos_airType airTypeDouble
 #define ECHO_POS_MIN (-DBL_MAX)
 #define ECHO_POS_MAX DBL_MAX
 #endif
@@ -60,7 +66,7 @@ typedef double echoCol_t;
 #define ECHO_LEN_SMALL_ENOUGH 16
 
 typedef struct {
-  /* ray-tracing parameters */
+  /* ray-tracing parmeters */
   int verbose,         /* verbosity level */
     jitter,            /* what kind of jittering to do */
     shadow,            /* do shadowing */
@@ -84,16 +90,16 @@ typedef struct {
   echoCol_t
     bgR, bgG, bgB;     /* background color */
   float gamma;         /* display device gamma */
-} EchoParam;
+} EchoParm;
 
 typedef struct {
   double time;         /* time to render image */
 } EchoGlobalState;
 
 typedef struct {
-  Nrrd *nperm,         /* ECHO_JITTER_NUM permutations (length param->samples)
+  Nrrd *nperm,         /* ECHO_JITTER_NUM permutations (length parm->samples)
 			  used to order jittering */
-    *njitt;            /* 2 x ECHO_JITTER_NUM x param->samples values of 
+    *njitt;            /* 2 x ECHO_JITTER_NUM x parm->samples values of 
 			  type echoPos_t in [-1/2,1/2] */
   int *permBuff;       /* temp array for creating permutations */
   echoCol_t *chanBuff; /* for storing individual sample colors */
@@ -261,7 +267,7 @@ typedef struct {
 
 typedef struct {
   ECHO_OBJECT_COMMON;
-  echoPos_t M[16], mot[9];
+  echoPos_t Mi[16], M[16], mot[9];
   int own, motion;
   EchoObject *obj;
 } EchoObjectInstance;  
@@ -336,8 +342,8 @@ extern void echoLightDirectionalSet(EchoLight *light,
 extern void echoLightAreaSet(EchoLight *light, EchoObject *obj);
 
 /* methods.c --------------------------------------- */
-extern EchoParam *echoParamNew();
-extern EchoParam *echoParamNix(EchoParam *param);
+extern EchoParm *echoParmNew();
+extern EchoParm *echoParmNix(EchoParm *parm);
 extern EchoGlobalState *echoGlobalStateNew();
 extern EchoGlobalState *echoGlobalStateNix(EchoGlobalState *state);
 extern EchoThreadState *echoThreadStateNew();
@@ -368,18 +374,18 @@ typedef struct {
     boxhits;            /* how many bounding boxes we hit */
 } EchoIntx;
 
-extern int echoComposite(Nrrd *nimg, Nrrd *nraw, EchoParam *param);
-extern int echoPPM(Nrrd *nppm, Nrrd *nimg, EchoParam *param);
+extern int echoComposite(Nrrd *nimg, Nrrd *nraw, EchoParm *parm);
+extern int echoPPM(Nrrd *nppm, Nrrd *nimg, EchoParm *parm);
 extern int echoThreadStateInit(EchoThreadState *tstate,
-			       EchoParam *param, EchoGlobalState *gstate);
-extern void echoJitterSet(EchoParam *param, EchoThreadState *state);
+			       EchoParm *parm, EchoGlobalState *gstate);
+extern void echoJitterSet(EchoParm *parm, EchoThreadState *state);
 extern int echoRender(Nrrd *nraw, limnCam *cam,
-		      EchoParam *param, EchoGlobalState *gstate,
+		      EchoParm *parm, EchoGlobalState *gstate,
 		      EchoObject *scene, airArray *lightArr);
 
 /* intx.c ------------------------------------------- */
 extern void echoRayColor(echoCol_t *chan, int samp, EchoRay *ray,
-			 EchoParam *param, EchoThreadState *tstate,
+			 EchoParm *parm, EchoThreadState *tstate,
 			 EchoObject *scene, airArray *lightArr);
 
 /* color.c ------------------------------------------ */
@@ -400,3 +406,7 @@ extern void echoMatterTextureSet(EchoObject *obj, Nrrd *ntext);
 
 #endif /* ECHO_HAS_BEEN_INCLUDED */
 
+
+#ifdef __cplusplus
+}
+#endif

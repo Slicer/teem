@@ -19,46 +19,46 @@
 
 #include "echo.h"
 
-EchoParam *
-echoParamNew(void) {
-  EchoParam *param;
+EchoParm *
+echoParmNew(void) {
+  EchoParm *parm;
   
-  param = (EchoParam *)calloc(1, sizeof(EchoParam));
-  param->verbose = 1;
-  param->jitter = echoJitterNone;
-  param->samples = 1;
-  param->shadow = AIR_TRUE;
-  param->maxRecDepth = 5;
-  param->reuseJitter = AIR_FALSE;
-  param->permuteJitter = AIR_TRUE;
-  param->amR = 1.0;
-  param->amG = 1.0;
-  param->amB = 1.0;
-  param->mrR = 0.0;
-  param->mrG = 0.0;
-  param->mrB = 0.0;
-  param->bgR = 0.0;
-  param->bgG = 0.0;
-  param->bgB = 0.0;
-  param->gamma = 2.2;
-  param->timeGamma = 6.0;
-  param->renderLights = AIR_TRUE;
-  param->renderBoxes = AIR_FALSE;
-  param->refDistance = 1.0;
-  param->areaLightHack = 35;
-  param->seedRand = AIR_TRUE;
+  parm = (EchoParm *)calloc(1, sizeof(EchoParm));
+  parm->verbose = 1;
+  parm->jitter = echoJitterNone;
+  parm->samples = 1;
+  parm->shadow = AIR_TRUE;
+  parm->maxRecDepth = 5;
+  parm->reuseJitter = AIR_FALSE;
+  parm->permuteJitter = AIR_TRUE;
+  parm->amR = 1.0;
+  parm->amG = 1.0;
+  parm->amB = 1.0;
+  parm->mrR = 0.0;
+  parm->mrG = 0.0;
+  parm->mrB = 0.0;
+  parm->bgR = 0.0;
+  parm->bgG = 0.0;
+  parm->bgB = 0.0;
+  parm->gamma = 2.2;
+  parm->timeGamma = 6.0;
+  parm->renderLights = AIR_TRUE;
+  parm->renderBoxes = AIR_FALSE;
+  parm->refDistance = 1.0;
+  parm->areaLightHack = 35;
+  parm->seedRand = AIR_TRUE;
 
   /* these will have to be user-set */
-  param->imgResU = param->imgResV = 0;
-  param->aperture = AIR_NAN;
+  parm->imgResU = parm->imgResV = 0;
+  parm->aperture = AIR_NAN;
 
-  return param;
+  return parm;
 }
 
-EchoParam *
-echoParamNix(EchoParam *param) {
+EchoParm *
+echoParmNix(EchoParm *parm) {
 
-  free(param);
+  free(parm);
 
   return NULL;
 }

@@ -22,7 +22,7 @@
 
 /*
  define INTX_ARGS(TYPE) EchoIntx *intx, EchoRay *ray,               \
-                        EchoParam *param, EchoObject##TYPE *obj
+                        EchoParm *parm, EchoObject##TYPE *obj
 */
 
 #define SET_POS(intx, ray) \
@@ -163,7 +163,7 @@ _echoRayIntxCube(INTX_ARGS(Cube)) {
   case 2: ELL_3V_SET(intx->norm, 0, 0, dir); break;
   }
   intx->face = ax;
-  if (0 && param->verbose) {
+  if (0 && parm->verbose) {
     printf("%s: ax = %d --> norm = (%g,%g,%g)\n",
 	   "_echoRayIntxCube", ax,
 	   intx->norm[0], intx->norm[1], intx->norm[2]);
@@ -235,7 +235,7 @@ _echoRayIntxRectangle(INTX_ARGS(Rectangle)) {
   echoPos_t pvec[3], qvec[3], tvec[3], det, t, u, v, *edge0, *edge1;
   
   if (echoMatterLight == obj->matter
-      && (ray->shadow || !param->renderLights)) {
+      && (ray->shadow || !parm->renderLights)) {
     return AIR_FALSE;
   }
   edge0 = obj->edge0;
@@ -247,7 +247,7 @@ _echoRayIntxRectangle(INTX_ARGS(Rectangle)) {
   intx->u = u;
   intx->v = v;
   ELL_3V_CROSS(intx->norm, edge0, edge1);
-  intx->obj = (EchoObject *)obj;
+  intx->obj = OBJECT(obj);
   /* set in intx:
      yes: t, u, v, norm
      no: pos, view
@@ -288,7 +288,7 @@ _echoRayIntxTriMesh(INTX_ARGS(TriMesh)) {
 			    trim->min[0], trim->max[0],
 			    trim->min[1], trim->max[1],
 			    trim->min[2], trim->max[2], ray)) {
-    if (param->verbose) {
+    if (parm->verbose) {
       printf("(trimesh bbox (%g,%g,%g) --> (%g,%g,%g) not hit)\n",
 	     trim->min[0], trim->min[1], trim->min[2],
 	     trim->max[0], trim->max[1], trim->max[2]);
@@ -344,13 +344,23 @@ _echoRayIntxSplit(INTX_ARGS(Split)) {
     maxb = obj->max0;
   }
 
+  if (parm->verbose) {
+    printf("_echoRayIntxSplit (shadow = %d):\n", ray->shadow);
+    printf("_echoRayIntxSplit: 1st: (%g,%g,%g) -- (%g,%g,%g) (obj %d)\n", 
+	   mina[0], mina[1], mina[2],
+	   maxa[0], maxa[1], maxa[2], a->type);
+    printf("_echoRayIntxSplit: 2nd: (%g,%g,%g) -- (%g,%g,%g) (obj %d)\n",
+	   minb[0], minb[1], minb[2],
+	   maxb[0], maxb[1], maxb[2], b->type);
+  }
+
   ret = AIR_FALSE;
   if (_echoRayIntxCubeTest(&t, &ax, &dir,
 			   mina[0], maxa[0],
 			   mina[1], maxa[1],
 			   mina[2], maxa[2], ray)) {
     intx->boxhits++;
-    if (_echoRayIntx[a->type](intx, ray, param, a)) {
+    if (_echoRayIntx[a->type](intx, ray, parm, a)) {
       if (ray->shadow) {
 	return AIR_TRUE;
       }
@@ -363,7 +373,7 @@ _echoRayIntxSplit(INTX_ARGS(Split)) {
 			   minb[1], maxb[1],
 			   minb[2], maxb[2], ray)) {
     intx->boxhits++;
-    if (_echoRayIntx[b->type](intx, ray, param, b)) {
+    if (_echoRayIntx[b->type](intx, ray, parm, b)) {
       ray->far = intx->t;
       ret = AIR_TRUE;
     }
@@ -384,23 +394,36 @@ _echoRayIntxList(INTX_ARGS(List)) {
 			      box->min[0], box->max[0],
 			      box->min[1], box->max[1],
 			      box->min[2], box->max[2], ray)) {
+      if (parm->verbose) {
+	printf("_echoRayIntxList: missed box (%g,%g,%g)--(%g,%g,%g)\n",
+	       box->min[0], box->min[1], box->min[2],
+	       box->max[0], box->max[1], box->max[2]);
+      }
       return AIR_FALSE;
     }
     intx->boxhits++;
   }
   
   ret = AIR_FALSE;
+  if (parm->verbose) {
+    printf("_echoRayIntxList: have %d kids to test\n", obj->objArr->len);
+  }
   for (i=0; i<obj->objArr->len; i++) {
     kid = obj->obj[i];
-    if (_echoRayIntx[kid->type](intx, ray,
-				param, kid)) {
-      if (ray->shadow) {
-	/* we don't care where this hit is, or whether it is
-	   the closest one; we hit something, so we're in shadow */
-	return AIR_TRUE;
-      }
+    if (parm->verbose) {
+      printf("_echoRayIntxList: testing a %d ... ", kid->type);
+    }
+    if (_echoRayIntx[kid->type](intx, ray, parm, kid)) {
       ray->far = intx->t;
       ret = AIR_TRUE;
+      if (parm->verbose) {
+	printf("YES\n");
+      }
+    }
+    else {
+      if (parm->verbose) {
+	printf("YES\n");
+      }
     }
   }
   
@@ -417,18 +440,18 @@ _echoRayIntxInstance(INTX_ARGS(Instance)) {
   ELL_3V_COPY(iray.dir, ray->dir);
   */
   ELL_4V_SET(a, ray->from[0], ray->from[1], ray->from[2], 1);
-  ELL_4MV_MUL(b, obj->M, a);  ELL_34V_HOMOG(iray.from, b);
-  if (0 && param->verbose) {
-    ell4mPrint_f(stdout, obj->M);
-    printf("from (%g,%g,%g)\n   -- M --> (%g,%g,%g,%g)\n   --> (%g,%g,%g)\n",
+  ELL_4MV_MUL(b, obj->Mi, a);  ELL_34V_HOMOG(iray.from, b);
+  if (0 && parm->verbose) {
+    ell4mPrint_f(stdout, obj->Mi);
+    printf("from (%g,%g,%g)\n   -- Mi --> (%g,%g,%g,%g)\n   --> (%g,%g,%g)\n",
 	   a[0], a[1], a[2],
 	   b[0], b[1], b[2], b[3], 
 	   iray.from[0], iray.from[1], iray.from[2]);
   }
   ELL_4V_SET(a, ray->dir[0], ray->dir[1], ray->dir[2], 0);
-  ELL_4MV_MUL(b, obj->M, a);   ELL_3V_COPY(iray.dir, b);
-  if (0 && param->verbose) {
-    printf("dir (%g,%g,%g)\n   -- M --> (%g,%g,%g,%g)\n   --> (%g,%g,%g)\n",
+  ELL_4MV_MUL(b, obj->Mi, a);   ELL_3V_COPY(iray.dir, b);
+  if (0 && parm->verbose) {
+    printf("dir (%g,%g,%g)\n   -- Mi --> (%g,%g,%g,%g)\n   --> (%g,%g,%g)\n",
 	   a[0], a[1], a[2],
 	   b[0], b[1], b[2], b[3], 
 	   iray.dir[0], iray.dir[1], iray.dir[2]);
@@ -439,9 +462,9 @@ _echoRayIntxInstance(INTX_ARGS(Instance)) {
   iray.depth = ray->depth;
   iray.shadow = ray->shadow;
   
-  if (_echoRayIntx[obj->obj->type](intx, &iray, param, obj->obj)) {
+  if (_echoRayIntx[obj->obj->type](intx, &iray, parm, obj->obj)) {
     ELL_4V_SET(a, intx->norm[0], intx->norm[1], intx->norm[2], 0);
-    ELL_4MV_TMUL(b, obj->M, a);
+    ELL_4MV_TMUL(b, obj->Mi, a);
     ELL_3V_COPY(intx->norm, b);
     return AIR_TRUE;
   }
@@ -488,7 +511,7 @@ _echoRayIntxUV[ECHO_OBJECT_MAX+1] = {
 
 int
 echoRayIntx(EchoIntx *intx, EchoRay *ray,
-	    EchoParam *param, EchoObject *obj) {
+	    EchoParm *parm, EchoObject *obj) {
 
-  return _echoRayIntx[obj->type](intx, ray, param, obj);
+  return _echoRayIntx[obj->type](intx, ray, parm, obj);
 }
