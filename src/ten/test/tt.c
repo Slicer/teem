@@ -122,9 +122,9 @@ main(int argc, char *argv[]) {
       ELL_3M_IDENTITY_SET(mD);
       ELL_3M_DIAG_SET(mD, xyz[0], xyz[1], xyz[2]);
       ELL_3M_IDENTITY_SET(mT);
-      ell3mPostMul_d(mT, mRI);
-      ell3mPostMul_d(mT, mD);
-      ell3mPostMul_d(mT, mRF);
+      ell3m_post_mul_d(mT, mRI);
+      ell3m_post_mul_d(mT, mD);
+      ell3m_post_mul_d(mT, mRF);
       
       tdata = (float*)nten->data + 
 	7*(2*(samp-1-xi) - (samp-1-yi) + (2*samp-1)*((samp-1-yi) + samp));
