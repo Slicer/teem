@@ -19,6 +19,9 @@
 
 #include "echo.h"
 
+const char *
+echoBiffKey = "echo";
+
 echoRTParm *
 echoRTParmNew(void) {
   echoRTParm *parm;

@@ -20,6 +20,9 @@
 #include "moss.h"
 #include "privateMoss.h"
 
+const char *
+mossBiffKey = "moss";
+
 int
 mossDefBoundary = nrrdBoundaryBleed;
 

@@ -20,6 +20,9 @@
 
 #include "ell.h"
 
+const char *
+ellBiffKey = "ell";
+
 /*
 ******** ellDebug
 **

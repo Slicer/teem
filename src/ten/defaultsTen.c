@@ -20,6 +20,9 @@
 #include "ten.h"
 #include "tenPrivate.h"
 
+const char *
+tenBiffKey = "ten";
+
 const char
 tenDefFiberKernel[] = "cubic:0,0.5";
 

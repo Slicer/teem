@@ -20,6 +20,9 @@
 #include "gage.h"
 #include "privateGage.h"
 
+const char *
+gageBiffKey = "gage";
+
 int
 gageDefVerbose = 0;
 

@@ -19,6 +19,8 @@
 
 #include "hoover.h"
 
+const char *
+hooverBiffKey = "hoover";
 int
 hooverDefVolCentering = nrrdCenterNode;
 int

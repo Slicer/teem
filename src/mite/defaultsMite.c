@@ -20,6 +20,9 @@
 #include "mite.h"
 #include "privateMite.h"
 
+const char *
+miteBiffKey = "mite";
+
 double
 miteDefRefStep = 0.01;
 

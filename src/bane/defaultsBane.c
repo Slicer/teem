@@ -19,6 +19,9 @@
 
 #include "bane.h"
 
+const char *
+baneBiffKey = "bane";
+
 int
 baneDefVerbose = 0;
 

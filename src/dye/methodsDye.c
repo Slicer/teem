@@ -20,6 +20,9 @@
 
 #include "dye.h"
 
+const char *
+dyeBiffKey = "dye";
+
 char
 dyeSpaceToStr[][AIR_STRLEN_SMALL] = {
   "(unknown)",

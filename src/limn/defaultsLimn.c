@@ -19,6 +19,9 @@
 
 #include "limn.h"
 
+const char *
+limnBiffKey = "limn";
+
 int
 limnDefCamAtRel = AIR_FALSE;
 int
