@@ -23,7 +23,7 @@
 #define INFO "Binary operation on two nrrds, or on a nrrd and a constant"
 char *_unrrdu_2opInfoL =
 (INFO
- ". Either the first or second operand can be a float, "
+ ". Either the first or second operand can be a float constant, "
  "but not both.  Use \"-\" for an operand to signify "
  "a nrrd to be read from stdin (a pipe).  Note, however, "
  "that \"-\" can probably only be used once (reliably).");
@@ -46,8 +46,9 @@ unrrdu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "\b\bo \"fmod\": same as fmod() in C\n "
 	     "\b\bo \"atan2\": same as atan2() in C\n "
 	     "\b\bo \"min\", \"max\": minimum, maximum\n "
-	     "\b\bo \"lt\": 1 if 1st value less than 2nd value, otherwise 0\n "
-	     "\b\bo \"comp\": -1, 0, or 1 if 1st value is less than,"
+	     "\b\bo \"lt\", \"lte\", \"gt\", \"gte\": same as C's <, <=, >, <=\n "
+	     "\b\bo \"eq\", \"neq\": same as C's == and !=\n "
+	     "\b\bo \"comp\": -1, 0, or 1 if 1st value is less than, "
              "equal to, or greater than 2nd value",
 	     NULL, nrrdBinaryOp);
   hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
