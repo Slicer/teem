@@ -613,17 +613,20 @@ echoObjectRoughSphere(int theRes, int phiRes, echoPos_t *matx) {
   ELL_3V_SET(tmp, 0, 0, 1); _echoSetPos(pos, matx, tmp); pos += 3;
   for (phidx=1; phidx<phiRes; phidx++) {
     ph = AIR_AFFINE(0, phidx, phiRes, 0.0, M_PI);
+    printf("phidx = %d -> ph = %g -> sin(ph) = %g\n", phidx, ph, sin(ph));
     for (thidx=0; thidx<theRes; thidx++) {
       th = AIR_AFFINE(0, thidx, theRes, 0.0, 2*M_PI);
-      ELL_3V_SET(tmp, cos(th)*sin(ph), sin(th)*sin(ph), sin(ph));
+      ELL_3V_SET(tmp, cos(th)*sin(ph), sin(th)*sin(ph), cos(ph));
+      printf("tmp = %g,%g,%g\n", tmp[0], tmp[1], tmp[2]);
       _echoSetPos(pos, matx, tmp); pos += 3;
     }
   }
   ELL_3V_SET(tmp, 0, 0, -1); _echoSetPos(pos, matx, tmp);
 
-  for (thidx=0; thidx<theRes+1; thidx++) {
+  for (thidx=0; thidx<theRes; thidx++) {
     n = AIR_MOD(thidx+1, theRes);
     ELL_3V_SET(vert, 0, 1+thidx, 1+n); vert += 3;
+    printf("face: %d %d %d\n", 0, 1+thidx, 1+n);
   }
   for (phidx=0; phidx<phiRes-2; phidx++) {
     for (thidx=0; thidx<theRes; thidx++) {
@@ -634,13 +637,16 @@ echoObjectRoughSphere(int theRes, int phiRes, echoPos_t *matx) {
 		 1+phidx*theRes+n); vert += 3;
     }
   }
-  for (thidx=0; thidx<theRes+1; thidx++) {
+  /*
+  for (thidx=0; thidx<theRes; thidx++) {
     n = AIR_MOD(thidx+1, theRes);
     ELL_3V_SET(vert, 1+(phiRes-1)*theRes+thidx, trim->numV-1,
 	       1+(phiRes-1)*theRes+n); vert += 3;
   }
+  */
 
-  echoObjectTriMeshSet(ret, trim->numV, _pos, trim->numF, _vert);
+  echoObjectTriMeshSet(ret, trim->numV, _pos, trim->numF-theRes, _vert);
+  /* echoObjectTriMeshSet(ret, trim->numV, _pos, trim->numF, _vert); */
   
   return(ret);
 }
