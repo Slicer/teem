@@ -199,7 +199,7 @@ tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
   ELL_3M_SUB(m, m, iso);
   if (_evec) {
     ret = ell_3m_eigensolve_d(eval, evec, m, AIR_TRUE);
-    if (ell_cubic_root_three != ret && tenVerbose) {
+    if (tenVerbose) {
       fprintf(stderr, "---- cubic ret = %d\n", ret);
       fprintf(stderr, "tensor = {\n");
       fprintf(stderr, "    % 15.7f,\n", t[1]);
@@ -208,7 +208,7 @@ tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
       fprintf(stderr, "    % 15.7f,\n", t[4]);
       fprintf(stderr, "    % 15.7f,\n", t[5]);
       fprintf(stderr, "    % 15.7f}\n", t[6]);
-      fprintf(stderr, "roots = \n");
+      fprintf(stderr, "roots = %d:\n", ret);
       fprintf(stderr, "    % 31.15f\n", trc + eval[0]);
       fprintf(stderr, "    % 31.15f\n", trc + eval[1]);
       fprintf(stderr, "    % 31.15f\n", trc + eval[2]);

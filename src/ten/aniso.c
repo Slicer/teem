@@ -184,7 +184,7 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, float thresh) {
   out = nout->data;
   in = nin->data;
   for (I=0; I<=N-1; I++) {
-    /* tenVerbose = (I == 1882); */
+    /* tenVerbose = (I == 911327); */
     tensor = in + I*7;
     if (tensor[0] < thresh) {
       out[I] = 0.0;
