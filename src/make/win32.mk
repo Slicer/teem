@@ -51,12 +51,12 @@ teem.dsp.build:
 
 headers.copy:
 	@echo -n "Copying headers..."
-	@mkdir -p ../include/teem
-	@$(CP) $(foreach lib,$(LIBS),$(addprefix $(lib)/,$($(lib).PUBLIC_HEADERS))) ../include/teem
+	@mkdir -p ../win32/include/teem
+	@$(CP) $(foreach lib,$(LIBS),$(addprefix $(lib)/,$($(lib).PUBLIC_HEADERS))) ../win32/include/teem
 	@echo "done"
 
 headers.clean:
-	@$(RM) $(foreach lib,$(LIBS),$(addprefix ../include/teem/,$($(lib).PUBLIC_HEADERS)))
+	$(RM) -r ../win32/include/teem
 
 teem.dsw.build:
 	@echo -n "Creating teem.dsw..."
