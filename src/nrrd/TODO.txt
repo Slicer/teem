@@ -1,3 +1,12 @@
+write a select() function to replace qsort() in median calculation
+make the NRRD00.01 ---> NRRD0001 switchover
+
+revisit resampler, one last time
+go through all functions to:
+- determine when nin can == nout
+- pass "content" correctly
+- make sure content adjustment agrees with unrrdu
+
 try setting NRRD_DIM_MAX to 2 or 3 and doing lots of unrrdu stuff
 
 determine which of the things below should be transferred to rules.txt
