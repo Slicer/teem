@@ -53,7 +53,7 @@ baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "w", "value width", airTypeFloat, 1, 1, &width, NULL,
 	     "range of values to be spanned at top of triangle");
   hestOptAdd(&opt, "step", NULL, airTypeInt, 0, 0, &step, NULL,
-	     "instead of assigning opacity inside a triangular region, ",
+	     "instead of assigning opacity inside a triangular region, "
 	     "make it more like a step function, in which opacity never "
 	     "decreases in increasing data value");
   hestOptAdd(&opt, "a", "max opac", airTypeFloat, 1, 1, &maxa, "1.0",
