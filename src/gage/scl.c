@@ -71,6 +71,10 @@ gageSclAnsOffset[GAGE_SCL_MAX+1] = {
 **
 ** each value is a BIT FLAG representing the different value/derivatives
 ** that are needed to calculate the quantity.  
+**
+** 1: need value interpolation reconstruction (as with k00)
+** 2: need first derivatives (as with k11)
+** 4: need second derivatives (as with k22)
 */
 int
 _gageSclNeedDeriv[GAGE_SCL_MAX+1] = {

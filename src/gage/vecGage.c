@@ -21,19 +21,20 @@
 #include "privateGage.h"
 
 /*
-  gageVecVector,      *  0: component-wise-interpolatd (CWI) vector: GT[3]
-  gageVecLength,      *  1: length of CWI vector: *GT
-  gageVecNormalized,  *  2: normalized CWI vector: GT[3]
-  gageVecJacobian,    *  3: component-wise Jacobian: GT[9]
-  gageVecDivergence,  *  4: divergence (based on Jacobian): *GT
-  gageVecCurl,        *  5: curl (based on Jacobian): GT[3]
-  gageVecGradient0,   *  6: gradient of 1st component of vector: GT[3]
-  gageVecGradient1,   *  7: gradient of 2nd component of vector: GT[3]
-  gageVecGradient2,   *  8: gradient of 3rd component of vector: GT[3]
-  gageVecMultiGrad,   *  9: sum of outer products of gradients: GT[9]
-  gageVecL2MG,        * 10: L2 norm of multi-gradient: *GT
-  gageVecMGEval,      * 11: eigenvalues of multi-gradient: GT[3]
-  gageVecMGEvec,      * 12: eigenvectors of multi-gradient: GT[9]
+  gageVecVector,       0: "v", component-wise-intrpolated (CWI) vec: GT[3] 
+  gageVecLength,       1: "l", length of CWI vector: *GT 
+  gageVecNormalized,   2: "n", normalized CWI vector: GT[3] 
+  gageVecJacobian,     3: "j", component-wise Jacobian: GT[9]
+  gageVecDivergence,   4: "d", divergence (based on Jacobian): *GT 
+  gageVecCurl,         5: "c", curl (based on Jacobian): GT[3] 
+  gageVecGradient0,    6: "g1", gradient of 1st component of vector: GT[3] 
+  gageVecGradient1,    7: "g2", gradient of 2nd component of vector: GT[3] 
+  gageVecGradient2,    8: "g3", gradient of 3rd component of vector: GT[3] 
+  gageVecMultiGrad,    9: "mg", sum of outer products of gradients: GT[9] 
+  gageVecL2MG,        10: "l2mg", L2 norm of multi-gradient: *GT 
+  gageVecMGEval,      11: "mgeval", eigenvalues of multi-gradient: GT[3] 
+  gageVecMGEvec,      12: "mgevec", eigenvectors of multi-gradient: GT[9] 
+
   0   1   2   3   4   5   6   7   8   9  10  11  12
 */
 
@@ -62,6 +63,10 @@ gageVecAnsOffset[GAGE_VEC_MAX+1] = {
 **
 ** each value is a BIT FLAG representing the different value/derivatives
 ** that are needed to calculate the quantity.  
+**
+** 1: need value interpolation reconstruction (as with k00)
+** 2: need first derivatives (as with k11)
+** 4: need second derivatives (as with k22)
 */
 int
 _gageVecNeedDeriv[GAGE_VEC_MAX+1] = {
@@ -209,6 +214,7 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
   unsigned int query;
   double tmpMat[9], mgevec[9], mgeval[3];
   gage_t *ans, *vecAns, *normAns, *jacAns;
+  int *offset;
 
   /*
   gageVecVector,      *  0: component-wise-interpolatd (CWI) vector: GT[3] *
@@ -229,9 +235,10 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
 
   query = pvl->query;
   ans = pvl->ans;
-  vecAns = ans + gageVecVector;
-  jacAns = ans + gageVecJacobian;
-  normAns = ans + gageVecNormalized;
+  offset = gageKindVec->ansOffset;
+  vecAns = ans + offset[gageVecVector];
+  jacAns = ans + offset[gageVecJacobian];
+  normAns = ans + offset[gageVecNormalized];
   if (1 & (query >> gageVecVector)) {
     /* done if doV */
     if (ctx->verbose) {
@@ -240,11 +247,11 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
     }
   }
   if (1 & (query >> gageVecLength)) {
-    ans[gageVecLength] = ELL_3V_LEN(vecAns);
+    ans[offset[gageVecLength]] = ELL_3V_LEN(vecAns);
   }
   if (1 & (query >> gageVecNormalized)) {
-    if (ans[gageVecLength]) {
-      ELL_3V_SCALE(normAns, 1.0/ans[gageVecLength], vecAns);
+    if (ans[offset[gageVecLength]]) {
+      ELL_3V_SCALE(normAns, 1.0/ans[offset[gageVecLength]], vecAns);
     } else {
       ELL_3V_COPY(normAns, gageZeroNormal);
     }
@@ -262,52 +269,56 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
     }
   }
   if (1 & (query >> gageVecDivergence)) {
-    ans[gageVecDivergence] = jacAns[0] + jacAns[4] + jacAns[8];
+    ans[offset[gageVecDivergence]] = jacAns[0] + jacAns[4] + jacAns[8];
     if (ctx->verbose) {
       fprintf(stderr, "%s: div = %g + %g + %g  = %g\n", me,
-	      jacAns[0], jacAns[4], jacAns[8], ans[gageVecDivergence]);
+	      jacAns[0], jacAns[4], jacAns[8],
+	      ans[offset[gageVecDivergence]]);
     }
   }
   if (1 & (query >> gageVecCurl)) {
-    (ans + gageVecCurl)[0] = jacAns[5] - jacAns[7];
-    (ans + gageVecCurl)[1] = jacAns[6] - jacAns[2];
-    (ans + gageVecCurl)[2] = jacAns[1] - jacAns[3];
+    (ans + offset[gageVecCurl])[0] = jacAns[5] - jacAns[7];
+    (ans + offset[gageVecCurl])[1] = jacAns[6] - jacAns[2];
+    (ans + offset[gageVecCurl])[2] = jacAns[1] - jacAns[3];
   }
   if (1 & (query >> gageVecGradient0)) {
-    (ans + gageVecGradient0)[0] = jacAns[0];
-    (ans + gageVecGradient0)[1] = jacAns[3];
-    (ans + gageVecGradient0)[2] = jacAns[6];
+    (ans + offset[gageVecGradient0])[0] = jacAns[0];
+    (ans + offset[gageVecGradient0])[1] = jacAns[3];
+    (ans + offset[gageVecGradient0])[2] = jacAns[6];
   }
   if (1 & (query >> gageVecGradient1)) {
-    (ans + gageVecGradient1)[0] = jacAns[1];
-    (ans + gageVecGradient1)[1] = jacAns[4];
-    (ans + gageVecGradient1)[2] = jacAns[7];
+    (ans + offset[gageVecGradient1])[0] = jacAns[1];
+    (ans + offset[gageVecGradient1])[1] = jacAns[4];
+    (ans + offset[gageVecGradient1])[2] = jacAns[7];
   }
   if (1 & (query >> gageVecGradient2)) {
-    (ans + gageVecGradient2)[0] = jacAns[2];
-    (ans + gageVecGradient2)[1] = jacAns[5];
-    (ans + gageVecGradient2)[2] = jacAns[8];
+    (ans + offset[gageVecGradient2])[0] = jacAns[2];
+    (ans + offset[gageVecGradient2])[1] = jacAns[5];
+    (ans + offset[gageVecGradient2])[2] = jacAns[8];
   }
   if (1 & (query >> gageVecMultiGrad)) {
-    ELL_3M_IDENTITY_SET(ans + gageVecMultiGrad);
-    ELL_3MV_OUTERADD(ans + gageVecMultiGrad,
-		     ans + gageVecGradient0, ans + gageVecGradient0);
-    ELL_3MV_OUTERADD(ans + gageVecMultiGrad,
-		     ans + gageVecGradient1, ans + gageVecGradient1);
-    ELL_3MV_OUTERADD(ans + gageVecMultiGrad,
-		     ans + gageVecGradient2, ans + gageVecGradient2);
+    ELL_3M_IDENTITY_SET(ans + offset[gageVecMultiGrad]);
+    ELL_3MV_OUTERADD(ans + offset[gageVecMultiGrad],
+		     ans + offset[gageVecGradient0],
+		     ans + offset[gageVecGradient0]);
+    ELL_3MV_OUTERADD(ans + offset[gageVecMultiGrad],
+		     ans + offset[gageVecGradient1],
+		     ans + offset[gageVecGradient1]);
+    ELL_3MV_OUTERADD(ans + offset[gageVecMultiGrad],
+		     ans + offset[gageVecGradient2],
+		     ans + offset[gageVecGradient2]);
   }
   if (1 & (query >> gageVecL2MG)) {
-    ans[gageVecL2MG] = ELL_3M_L2NORM(ans + gageVecMultiGrad);
+    ans[offset[gageVecL2MG]] = ELL_3M_L2NORM(ans + offset[gageVecMultiGrad]);
   }
   if (1 & (query >> gageVecMGEval)) {
-    ELL_3M_COPY(tmpMat, ans + gageVecMultiGrad);
+    ELL_3M_COPY(tmpMat, ans + offset[gageVecMultiGrad]);
     /* HEY: look at the return value for root multiplicity? */
     ell3mEigensolve(mgeval, mgevec, tmpMat, AIR_TRUE);
-    ELL_3V_COPY(ans + gageVecMGEval, mgeval);
+    ELL_3V_COPY(ans + offset[gageVecMGEval], mgeval);
   }
   if (1 & (query >> gageVecMGEvec)) {
-    ELL_3M_COPY(ans + gageVecMGEvec, mgevec);
+    ELL_3M_COPY(ans + offset[gageVecMGEvec], mgevec);
   }
 
   return;
