@@ -19,6 +19,10 @@
 
 #include "private.h"
 
+/* bad bad bad */
+extern int _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io, int writeData);
+
+
 void *
 unuMaybeFclose(void *_file) {
   FILE *file;
@@ -62,42 +66,57 @@ hestCB unuFileHestCB = {
 };
 
 char *makeName = "make";
-#define INFO "Create a nrrd from scratch, starting with raw or ascii data"
+#define INFO "Create a nrrd (or nrrd header) from scratch"
 char *makeInfo = INFO;
 char *makeInfoL = (INFO
-		   ". The data can be in a file or coming from stdin. "
+		   ".  The data can be in a file or coming from stdin. "
 		   "This provides an easy way of providing the bare minimum "
 		   "information about some data so as to wrap it in a "
 		   "nrrd, either to pass on for further unu processing, "
-		   "or to save to disk.");
+		   "or to save to disk.  However, with \"-h\", this creates "
+		   "only a detached nrrd header file, without ever reading "
+		   "or writing data. ");
 
 int
 makeMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
-  char *out, *err;
+  char *out, *err, *dataFileName;
   Nrrd *nrrd;
-  int *size, sizeLen, spacingLen;
+  int *size, sizeLen, spacingLen, headerOnly;
   double *spacing;
   airArray *mop;
   NrrdIO *io;
+  FILE *fileOut;
 
   mop = airMopInit();
   io = nrrdIONew();
   airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
   nrrd = nrrdNew();
   airMopAdd(mop, nrrd, (airMopper)nrrdNuke, airMopAlways);
-
-  hestOptAdd(&opt, "i", "file", airTypeOther, 1, 1, &(io->dataFile), "-",
-	     "File to read data from; use \"-\" for stdin",
-	     NULL, NULL, &unuFileHestCB);
+  
+  hestOptAdd(&opt, "i", "file", airTypeString, 1, 1, &dataFileName, NULL,
+	     "Filename of data file; use \"-\" for stdin");
+  hestOptAdd(&opt, "h", NULL, airTypeBool, 0, 0, &headerOnly, NULL,
+	     "Generate header ONLY: don't write out the whole nrrd, "
+	     "don't even bother reading the input data, just output the "
+	     "detached nrrd header file (usually with a \".nhdr\" "
+	     "extension) determined by the options below. "
+	     "The filename given with \"-i\" should probably start "
+	     "with \"./\" to indicate that the "
+	     "data file is to be found relative to the header file "
+	     "(as opposed to the current working directory of whomever "
+	     "is reading the nrrd)");
   hestOptAdd(&opt, "t,type", "type", airTypeEnum, 1, 1, &(nrrd->type),
-	     NULL, "type of data (e.g. \"uchar\", \"int\", etc)",
+	     NULL, "type of data (e.g. \"uchar\", \"int\", \"float\", "
+	     "\"double\", etc.)",
 	     NULL, nrrdType);
   hestOptAdd(&opt, "s,size", "size0 size1", airTypeInt, 1, -1, &size, NULL,
 	     "number of samples along each axis (and implicit indicator "
 	     "of dimension of nrrd)", &sizeLen);
   hestOptAdd(&opt, "sp,spacing", "spc0 spc1", airTypeDouble, 1, -1, &spacing,
-	     NULL, "spacing between samples on each axis", &spacingLen);
+	     NULL, "spacing between samples on each axis.  Use \"nan\" for "
+	     "any non-spatial axes (e.g. spacing between red, green, and blue "
+	     "along axis 0 of interleaved RGB image data)", &spacingLen);
   hestOptAdd(&opt, "ls,lineskip", "skip", airTypeInt, 1, 1,
 	     &(io->lineSkip), "0",
 	     "number of ascii lines to skip before reading data");
@@ -113,10 +132,10 @@ makeMain(int argc, char **argv, char *me) {
 	     airEnumStr(airEndian, airMyEndian),
 	     "Endianness of data; relevent for any raw data with value "
 	     "representation bigger than 8 bits: \"little\" for Intel and "
-	     "friends; \"big\" for everyone else.\n "
-	     "Defaults to endianness of this machine.",
+	     "friends; \"big\" for everyone else. "
+	     "Defaults to endianness of this machine",
 	     NULL, airEndian);
-  OPT_ADD_NOUT(out, "output nrrd");
+  OPT_ADD_NOUT(out, "output filename");
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(makeInfoL);
@@ -127,35 +146,74 @@ makeMain(int argc, char **argv, char *me) {
      so as to simulate having read the information from a header */
   if (!( AIR_INSIDE(1, sizeLen, NRRD_DIM_MAX) )) {
     fprintf(stderr, "%s: # axis sizes (%d) not in valid nrrd dimension "
-	    "range ([1,%d])", me, sizeLen, NRRD_DIM_MAX);
+	    "range ([1,%d])\n", me, sizeLen, NRRD_DIM_MAX);
     airMopError(mop);
     return 1;
   }
   if (sizeLen != spacingLen) {
     fprintf(stderr,
-	    "%s: got different numbers of sizes (%d) and spacings (%d)",
+	    "%s: got different numbers of sizes (%d) and spacings (%d)\n",
 	    me, sizeLen, spacingLen);
+    airMopError(mop);
+    return 1;
   }
   nrrd->dim = sizeLen;
   nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, size);
   nrrdAxesSet_nva(nrrd, nrrdAxesInfoSpacing, spacing);
   
-  if (nrrdLineSkip(io)) {
-    sprintf(err, "%s: couldn't skip lines", me);
-    biffAdd(NRRD, err); return 1;
+  if (headerOnly) {
+    /* we don't have to fopen() any input; all we care about
+       is the name of the input datafile.  We disallow stdin here */
+    if (!strcmp("-", dataFileName)) {
+      fprintf(stderr, "%s: can't store stdin as data file in header\n", me);
+      airMopError(mop); return 1;
+    }
+    strcpy(io->dataFN, dataFileName);
+    io->seperateHeader = AIR_TRUE;
+    /* we open and hand off the output FILE* to _nrrdWriteNrrd,
+       which not write any data (because of the AIR_FALSE) */
+    if (!strcmp("-", out)) {
+      fileOut = stdout;
+    } else {
+      if (!( fileOut = fopen(out, "wb") )) {
+	fprintf(stderr, "%s: couldn't fopen(\"%s\",\"wb\"): %s\n", 
+		me, out, strerror(errno));
+	airMopError(mop); return 1;
+      }
+      airMopAdd(mop, fileOut, (airMopper)airFclose, airMopAlways);
+    }
+    _nrrdWriteNrrd(fileOut, nrrd, io, AIR_FALSE);
+  } else {
+    /* we're not actually using the handy unuFileHestCB above,
+       since we have to open the input data file by hand */
+    if (!strcmp("-", dataFileName)) {
+      io->dataFile  = stdin;
+    } else {
+      if (!( io->dataFile = fopen(dataFileName, "rb") )) {
+	fprintf(stderr, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", 
+		me, out, strerror(errno));
+	airMopError(mop); return 1;
+      }
+      airMopAdd(mop, io->dataFile, (airMopper)airFclose, airMopAlways);
+    }
+    if (nrrdLineSkip(io)) {
+      sprintf(err, "%s: couldn't skip lines", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    if (nrrdByteSkip(io)) {
+      sprintf(err, "%s: couldn't skip bytes", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    if (nrrdReadData[io->encoding](nrrd, io)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: error reading data:\n%s", me, err);
+      airMopError(mop);
+      return 1;
+    }
+    /* we are saving normally- no need to subvert nrrdSave() here;
+       we just pass it the output filename */
+    SAVE(out, nrrd, NULL);
   }
-  if (nrrdByteSkip(io)) {
-    sprintf(err, "%s: couldn't skip bytes", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (nrrdReadData[io->encoding](nrrd, io)) {
-    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: error reading data:\n%s", me, err);
-    airMopError(mop);
-    return 1;
-  }
-
-  SAVE(nrrd, NULL);
 
   airMopOkay(mop);
   return 0;
