@@ -52,7 +52,7 @@ main(int argc, char *argv[]) {
   limnSpline *spline;
   hestOpt *hopt=NULL;
   airArray *mop;
-  int bi, ci, i, N, M, pause, loop;
+  int bi, ci, i, N, M, loop;
   Nrrd *ncptA, *ncptB, *nout;
   double *out, minT, maxT, scale, tran[2], B, C;
   limnSplineTypeSpec *spec;
@@ -106,8 +106,6 @@ main(int argc, char *argv[]) {
     airMopError(mop);
     return 1;
   }
-
-  pause = M/150;
 
   printf("%%!\n");
   printf("1 setlinewidth\n");

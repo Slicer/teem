@@ -26,19 +26,17 @@ int
 main(int argc, char *argv[]) {
   char *me, *err, *outS;
   float p[3], q[4], mR[9], eval[3], scale[3], len, sh, cl, cp, qA, qB;
-  float matA[16], matB[16], os, rad, edgeWidth[5], AB[2];
+  float matA[16], matB[16], os, rad, AB[2];
   hestOpt *hopt=NULL;
   airArray *mop;
   limnObject *obj;
   limnLook *look; int lookRod, lookSoid;
-  limnPart *part; int partIdx=-1; /* sssh */
+  int partIdx=-1; /* sssh */
   int res, axis, sphere;
   FILE *file;
 
   mop = airMopNew();
   
-  edgeWidth[0] = 0;
-  edgeWidth[1] = 0;
   me = argv[0];
   hestOptAdd(&hopt, "sc", "scalings", airTypeFloat, 3, 3, scale, "1 1 1",
 	     "axis-aligned scaling to do on ellipsoid");
@@ -116,7 +114,6 @@ main(int argc, char *argv[]) {
     partIdx = limnObjectPolarSuperquadAdd(obj, lookSoid, 
 					  axis, qA, qB, 2*res, res);
   }
-  part = obj->part + partIdx;
   ELL_4M_IDENTITY_SET(matA);
   ELL_4M_SCALE_SET(matB, scale[0], scale[1], scale[2]);
   ell_4m_post_mul_f(matA, matB);
