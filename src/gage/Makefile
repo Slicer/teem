@@ -24,8 +24,8 @@ PRIV_HEADERS = private.h
 TEEM_LIB_OBJS = \
 	defaults.o enums.o arrays.o methods.o kinds.o general.o print.o \
 	filter.o scl.o sclfilter.o sclprint.o vec.o vecprint.o simple.o
-TEST_BINS = test/qbert test/gantry
-TEEM_BINS = bin/vprobe
+TEST_BINS = test/gantry
+TEEM_BINS = bin/vprobe bin/qbert 
 TEEM_BIN_LIBS = -lgage -lnrrd -lbiff -lell -lhest -lair -lm
 
 include ../make/Common.mk
