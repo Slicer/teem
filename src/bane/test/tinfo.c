@@ -48,7 +48,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble parsing %s as an int\n", me, dStr);
     usage();
   }
-  if (baneOpacInfo(info = nrrdNew(), hvol, dim)) {
+  if (baneOpacInfo(info = nrrdNew(), hvol, dim, nrrdMeasureHistoMean)) {
     fprintf(stderr, "%s: trouble calculting %d-D opacity info:\n%s\n",
 	    me, dim, biffGet(BANE));
     exit(1);

@@ -262,7 +262,7 @@ _baneIncStdv(double *minP, double *maxP,
     *maxP = mean + parm[1]*stdv/2;
     break;
   default:
-    *minP = *maxP = airNand();
+    *minP = *maxP = AIR_NAN;
     break;
   }
   /* printf("%s: HEY min, max = %g, %g\n", "_baneIncStdv", *minP, *maxP); */

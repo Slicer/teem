@@ -23,7 +23,7 @@ _baneMeasrUnknown(Nrrd *n, NRRD_BIG_INT idx) {
   char me[]="_baneMeasrUnknown";
   
   fprintf(stderr, "%s: Need To Specify A Measure !!!\n", me);
-  return airNand();
+  return AIR_NAN;
 }
 
 double

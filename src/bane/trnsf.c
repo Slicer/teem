@@ -19,7 +19,7 @@
 #include "bane.h"
 
 int
-baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim) {
+baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
   char me[]="baneOpacInfo", err[128];
   Nrrd *proj2, *proj1, *projT;
   float *data2D, *data1D;
@@ -30,6 +30,15 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim) {
   }
   if (!(1 == dim || 2 == dim)) {
     sprintf(err, "%s: got dimension %d, not 1 or 2", me, dim);
+    biffSet(BANE, err); return 1;
+  }
+  if (!(nrrdMeasureHistoMin == measr ||
+	nrrdMeasureHistoMax == measr ||
+	nrrdMeasureHistoMean == measr ||
+	nrrdMeasureHistoMedian == measr ||
+	nrrdMeasureHistoMode == measr)) {
+    sprintf(err, "%s: measure %d doesn't make sense for histovolume",
+	    me, dim);
     biffSet(BANE, err); return 1;
   }
   if (!baneValidHVol(hvol)) {
@@ -52,12 +61,12 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim) {
     data1D = info->data;
 
     /* sum up along 2nd deriv for each data value, grad mag */
-    if (nrrdMeasureAxis(proj2 = nrrdNew(), hvol, 1, nrrdMeasrSum)) {
+    if (nrrdMeasureAxis(proj2 = nrrdNew(), hvol, 1, nrrdMeasureSum)) {
       sprintf(err, "%s: trouble projecting out 2nd deriv. for g(v)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
     /* now determine average gradient at each value (0: grad, 1: value) */
-    if (nrrdMeasureAxis(proj1 = nrrdNew(), proj2, 0, nrrdMeasrHistoMean)) {
+    if (nrrdMeasureAxis(proj1 = nrrdNew(), proj2, 0, measr)) {
       sprintf(err, "%s: trouble projecting along gradient for g(v)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
@@ -68,12 +77,12 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim) {
     nrrdNuke(proj2);
 
     /* sum up along gradient for each data value, 2nd deriv */
-    if (nrrdMeasureAxis(proj2 = nrrdNew(), hvol, 0, nrrdMeasrSum)) {
+    if (nrrdMeasureAxis(proj2 = nrrdNew(), hvol, 0, nrrdMeasureSum)) {
       sprintf(err, "%s: trouble projecting out gradient for h(v)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
     /* now determine average gradient at each value (0: 2nd deriv, 1: value) */
-    if (nrrdMeasureAxis(proj1 = nrrdNew(), proj2, 0, nrrdMeasrHistoMean)) {
+    if (nrrdMeasureAxis(proj1 = nrrdNew(), proj2, 0, measr)) {
       sprintf(err, "%s: trouble projecting along 2nd deriv. for h(v)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
@@ -104,7 +113,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim) {
     data2D = info->data;
 
     /* first create h(v,g) */
-    if (nrrdMeasureAxis(proj2 = nrrdNew(), hvol, 1, nrrdMeasrHistoMean)) {
+    if (nrrdMeasureAxis(proj2 = nrrdNew(), hvol, 1, measr)) {
       sprintf(err, "%s: trouble projecting (step 1) to create h(v,g)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
@@ -119,7 +128,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim) {
     nrrdNuke(projT);
 
     /* then create #hits(v,g) */
-    if (nrrdMeasureAxis(proj2 = nrrdNew(), hvol, 1, nrrdMeasrSum)) {
+    if (nrrdMeasureAxis(proj2 = nrrdNew(), hvol, 1, nrrdMeasureSum)) {
       sprintf(err, "%s: trouble projecting (step 1) to create #(v,g)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
@@ -153,10 +162,14 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
   
   len = info2D->size[1];
   E = 0;
-  if (!E) E |= nrrdMeasureAxis(projH2=nrrdNew(), info2D, 0, nrrdMeasrProduct);
-  if (!E) E |= nrrdMeasureAxis(projH1=nrrdNew(), projH2, 1, nrrdMeasrSum);
-  if (!E) E |= nrrdMeasureAxis(projN=nrrdNew(), info2D, 2, nrrdMeasrSum);
-  if (!E) E |= nrrdMeasureAxis(projG1=nrrdNew(), info2D, 2,nrrdMeasrHistoMean);
+  if (!E) E |= nrrdMeasureAxis(projH2=nrrdNew(), info2D, 0, 
+			       nrrdMeasureProduct);
+  if (!E) E |= nrrdMeasureAxis(projH1=nrrdNew(), projH2, 1, 
+			       nrrdMeasureSum);
+  if (!E) E |= nrrdMeasureAxis(projN=nrrdNew(), info2D, 2, 
+			       nrrdMeasureSum);
+  if (!E) E |= nrrdMeasureAxis(projG1=nrrdNew(), info2D, 2,
+			       nrrdMeasureHistoMean);
   if (E) {
     sprintf(err, "%s: trouble creating need projections", me);
     biffAdd(BANE, err); return 1;
@@ -281,12 +294,13 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
       if (AIR_EXISTS(g) && AIR_EXISTS(h))
 	p = -sigma*sigma*h/AIR_MAX(0, g-gthresh);
       else
-	p = airNanf();
-      p = airIsInff(p) ? 10000 : p;
+	p = AIR_NAN;
+      p = airIsInf(p) ? 10000 : p;
       posData[i] = p;
     }
   }
   else {
+    /* 2 == d */
     sv = info->size[1];
     sg = info->size[2];
     if (!pos->data) {
@@ -310,9 +324,9 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
 	  p = -sigma*sigma*h/AIR_MAX(0, g-gthresh);
 	}
 	else {
-	  p = airNanf();
+	  p = AIR_NAN;
 	}
-	p = airIsInff(p) ? airNanf() : p;
+	p = airIsInf(p) ? AIR_NAN : p;
 	posData[vi + sv*gi] = p;
       }
     }

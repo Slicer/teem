@@ -26,7 +26,7 @@ _baneInitMeasrParm(baneMeasrParm *axp) {
   axp->measr = baneMeasrUnknown;
   axp->inc = baneIncUnknown;
   for (i=0; i<=BANE_INC_NUM_PARM-1; i++) {
-    axp->incParm[i] = airNanf();
+    axp->incParm[i] = AIR_NAN;
   }
 }
 
@@ -43,7 +43,7 @@ baneHVolParmNew() {
     _baneInitMeasrParm(hvp->axp + 2);
     hvp->clip = baneClipUnknown;
     for (i=0; i<=BANE_CLIP_NUM_PARM-1; i++) {
-      hvp->clipParm[i] = airNanf();
+      hvp->clipParm[i] = AIR_NAN;
     }
     hvp->incLimit = BANE_DEF_INCLIMIT/100.0;
   }

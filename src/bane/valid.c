@@ -88,7 +88,7 @@ baneValidInfo(Nrrd *info, int wantDim) {
     sprintf(err, "%s: 1st axis needs size 2 (not %d)", me, info->size[0]);
     biffSet(BANE, err); return 0;
   }
-  return 1;
+  return gotDim-1;
 }
 
 int

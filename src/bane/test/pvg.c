@@ -86,7 +86,7 @@ main(int argc, char *argv[]) {
   posData = (float*)(pos->data);
 
   /* assert that min = -max; */
-  min = max = airNanf();
+  min = max = AIR_NAN;
   for (g=0; g<=sg-1; g++) {
     for (v=0; v<=sv-1; v++) {
       idx = v + sv*g;

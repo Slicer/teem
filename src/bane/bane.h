@@ -22,6 +22,8 @@
 extern "C" {
 #endif
 
+#define BANE "bane"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -32,7 +34,8 @@ extern "C" {
 #include <nrrd.h>
 
 #define BANE_SMALL_STRLEN 65
-#define BANE "bane"
+
+#define BANE_HIST_EQ_BINS 1024
 
 /*
 ******** baneRange enum
@@ -249,7 +252,7 @@ extern int baneValidPos(Nrrd *pos, int wantDim);
 extern int baneValidBcpts(Nrrd *Bcpts);
 
 /* trnsf.c */
-extern int baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim);
+extern int baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr);
 extern int bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D);
 extern int baneSigmaCalc(float *sP, Nrrd *info);
 extern int banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info);
@@ -264,6 +267,10 @@ extern int baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos);
 /* trex.c */
 extern float *_baneTRexRead(char *fname);
 extern void _baneTRexDone();
+
+/* scat.c */
+extern int baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq);
+
 
 
 #ifdef __cplusplus
