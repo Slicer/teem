@@ -492,6 +492,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP,
   size_t I, num;
   airArray *mop;
 
+
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
@@ -515,6 +516,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP,
       biffAdd(NRRD, err); return 1;
     }
   }
+
   mop = airMopNew();
   if (nmapP) {
     airMopAdd(mop, nmapP, (airMopper)airSetNull, airMopOnError);
