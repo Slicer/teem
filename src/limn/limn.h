@@ -143,7 +143,8 @@ typedef struct {
 typedef struct {
   limnOptsPS ps;
   int device;
-  float scale, bbox[4];
+  float scale, 
+    bbox[4];          /* minX minY maxX maxY */
   int yFlip;
   FILE *file;
 } limnWindow;
