@@ -60,8 +60,6 @@ echoGlobalStateNew(void) {
   EchoGlobalState *state;
   
   state = (EchoGlobalState *)calloc(1, sizeof(EchoGlobalState));
-  state->time0 = AIR_NAN;
-  state->time1 = AIR_NAN;
   
   return state;
 }

@@ -29,11 +29,27 @@ _echoLightColDirDirectional(COLDIR_ARGS(Directional)) {
   
   ELL_3V_COPY(lcol, light->col);
   ELL_3V_COPY(ldir, light->dir);
+  return;
 }
 
 void
 _echoLightColDirArea(COLDIR_ARGS(Area)) {
-  
+  EchoObjectRectangle *rect;
+  echoPos_t at[3], *jitt, tmp;
+
+  /* we assume light->obj is a EchoObjectRectangle with echoMatterLight */
+  rect = (EchoObjectRectangle *)light->obj;
+  ELL_3V_COPY(lcol, rect->mat);
+  jitt = ((echoPos_t *)tstate->njitt->data) + samp*2*ECHO_SAMPLE_NUM;
+  ELL_3V_COPY(at, rect->origin);
+  tmp = jitt[0 + 2*echoSampleAreaLight] + 0.5;
+  ELL_3V_SCALEADD(at, rect->edge0, tmp);
+  tmp = jitt[1 + 2*echoSampleAreaLight] + 0.5;
+  ELL_3V_SCALEADD(at, rect->edge1, tmp);
+  ELL_3V_SUB(ldir, at, intx->pos);
+  ELL_3V_SUB(ldir, intx->pos, at);
+  ELL_3V_NORM(ldir, ldir, tmp);
+  return;
 }
 
 typedef void (*_echoLightColDir_t)(COLDIR_ARGS());
@@ -141,5 +157,42 @@ echoMatterPhongSet(EchoObject *obj,
   obj->mat[echoMatterPhongKd] = kd;
   obj->mat[echoMatterPhongKs] = ks;
   obj->mat[echoMatterPhongSh] = sh;
+}
+		   
+void
+echoMatterGlassSet(EchoObject *obj,
+		   echoCol_t r, echoCol_t g, echoCol_t b,
+		   echoCol_t fuzzy, echoCol_t index, echoCol_t ka) {
+
+  obj->matter = echoMatterGlass;
+  obj->mat[echoMatterR] = r;
+  obj->mat[echoMatterG] = g;
+  obj->mat[echoMatterB] = b;
+  obj->mat[echoMatterKa] = ka;
+  obj->mat[echoMatterGlassFuzzy] = fuzzy;
+  obj->mat[echoMatterGlassIndex] = index;
+}
+
+void
+echoMatterMetalSet(EchoObject *obj,
+		   echoCol_t r, echoCol_t g, echoCol_t b,
+		   echoCol_t fuzzy, echoCol_t ka) {
+
+  obj->matter = echoMatterMetal;
+  obj->mat[echoMatterR] = r;
+  obj->mat[echoMatterG] = g;
+  obj->mat[echoMatterB] = b;
+  obj->mat[echoMatterKa] = ka;
+  obj->mat[echoMatterMetalFuzzy] = fuzzy;
+}
+
+void
+echoMatterLightSet(EchoObject *obj,
+		   echoCol_t r, echoCol_t g, echoCol_t b) {
+
+  obj->matter = echoMatterLight;
+  obj->mat[echoMatterR] = r;
+  obj->mat[echoMatterG] = g;
+  obj->mat[echoMatterB] = b;
 }
 		   

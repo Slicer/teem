@@ -76,7 +76,7 @@ typedef struct {
 } EchoParam;
 
 typedef struct {
-  double time0, time1; /* start and end time for whole image rendering */
+  double time;         /* time to render image */
 } EchoGlobalState;
 
 typedef struct {
@@ -131,7 +131,8 @@ enum {
   echoMatterPhongAlpha  /* 7 */
 };
 enum {
-  echoMatterGlassFuzzy   = 4
+  echoMatterGlassFuzzy   = 4,
+  echoMatterGlassIndex  /* 5 */
 };
 enum {
   echoMatterMetalFuzzy   = 4
@@ -240,6 +241,10 @@ extern void echoObjectListAdd(EchoObject *parent, EchoObject *child);
 extern void echoObjectSphereSet(EchoObject *sphere,
 				echoPos_t x, echoPos_t y,
 				echoPos_t z, echoPos_t rad);
+extern void echoObjectRectangleSet(EchoObject *_rect,
+				   echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
+				   echoPos_t x0, echoPos_t y0, echoPos_t z0,
+				   echoPos_t x1, echoPos_t y1, echoPos_t z1);
 
 /* light.c ---------------------------------------- */
 
@@ -275,9 +280,10 @@ extern EchoLight *echoLightNix(EchoLight *light);
 extern airArray *echoLightArrayNew();
 extern void echoLightArrayAdd(airArray *lightArr, EchoLight *light);
 extern airArray *echoLightArrayNix(airArray *lightArr);
-extern void echoLightDirectionalSet(EchoLight *_light,
+extern void echoLightDirectionalSet(EchoLight *light,
 				    echoCol_t r, echoCol_t g, echoCol_t b,
 				    echoPos_t x, echoPos_t y, echoPos_t z);
+extern void echoLightAreaSet(EchoLight *light, EchoObject *obj);
 
 /* methods.c --------------------------------------- */
 extern EchoParam *echoParamNew();
@@ -296,7 +302,7 @@ typedef struct {
 } EchoRay;
 
 typedef struct {
-  echoPos_t t;
+  echoPos_t t, u, v;
   echoPos_t view[3], norm[3], pos[3];
   EchoObject *obj;
   /* ??? extra information for where in tri mesh it hit? */
@@ -318,11 +324,19 @@ extern void echoRayColor(echoCol_t *chan, int samp,
 			 EchoParam *param, EchoThreadState *tstate,
 			 EchoObject *scene, airArray *lightArr);
 
+/* color.c ------------------------------------------ */
 extern void echoMatterPhongSet(EchoObject *obj,
-			       echoCol_t r, echoCol_t g,
-			       echoCol_t b, echoCol_t a, 
-			       echoCol_t ka, echoCol_t kd,
+			       echoCol_t r, echoCol_t g, echoCol_t b,
+			       echoCol_t a, echoCol_t ka, echoCol_t kd,
 			       echoCol_t ks, echoCol_t sh);
+extern void echoMatterGlassSet(EchoObject *obj,
+			       echoCol_t r, echoCol_t g, echoCol_t b,
+			       echoCol_t fuzzy, echoCol_t index, echoCol_t ka);
+extern void echoMatterMetalSet(EchoObject *obj,
+			       echoCol_t r, echoCol_t g, echoCol_t b,
+			       echoCol_t fuzzy, echoCol_t ka);
+extern void echoMatterLightSet(EchoObject *obj,
+			       echoCol_t r, echoCol_t g, echoCol_t b);
 
 
 #endif /* ECHO_HAS_BEEN_INCLUDED */

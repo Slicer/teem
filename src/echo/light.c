@@ -115,4 +115,12 @@ echoLightDirectionalSet(EchoLight *_light,
   }
 }
   
-			
+void
+echoLightAreaSet(EchoLight *_light, EchoObject *obj) {
+  EchoLightArea *light;
+
+  if (_light && echoLightArea == _light->type) {
+    light = (EchoLightArea *)_light;
+    light->obj = obj;
+  }
+}

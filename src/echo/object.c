@@ -182,3 +182,19 @@ echoObjectSphereSet(EchoObject *_sphere,
   }
   return;
 }
+
+void
+echoObjectRectangleSet(EchoObject *_rect,
+		       echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
+		       echoPos_t e0x, echoPos_t e0y, echoPos_t e0z,
+		       echoPos_t e1x, echoPos_t e1y, echoPos_t e1z) {
+  EchoObjectRectangle *rect;
+
+  if (_rect && echoObjectRectangle == _rect->type) {
+    rect = (EchoObjectRectangle *)_rect;
+    ELL_3V_SET(rect->origin, ogx, ogy, ogz);
+    ELL_3V_SET(rect->edge0, e0x, e0y, e0z);
+    ELL_3V_SET(rect->edge1, e1x, e1y, e1z);
+  }
+}
+		       

@@ -339,7 +339,7 @@ echoRender(Nrrd *nraw, limnCam *cam,
     biffAdd(ECHO, err); return 1;
   }
 
-  gstate->time0 = airTime();
+  gstate->time = airTime();
   airSrand();
   echoJitterSet(param, tstate);
   if (param->verbose > 2)
@@ -364,6 +364,8 @@ echoRender(Nrrd *nraw, limnCam *cam,
     for (imgUi=0; imgUi<param->imgResU; imgUi++) {
       imgU = NRRD_AXIS_POS(nrrdCenterCell, cam->uMin, cam->uMax,
 			   param->imgResU, imgUi);
+
+      param->verbose = (33 == imgUi && 63 == imgVi);
 
       /* initialize things on first "scanline" */
       jitt = (echoPos_t *)tstate->njitt->data;
@@ -416,7 +418,7 @@ echoRender(Nrrd *nraw, limnCam *cam,
 	echoJitterSet(param, tstate);
     }
   }
-  gstate->time1 = airTime();
+  gstate->time = airTime() - gstate->time;
   
   tstate = echoThreadStateNix(tstate);
 

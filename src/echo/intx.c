@@ -20,6 +20,13 @@
 #include "echo.h"
 #include "private.h"
 
+/*
+ define INTX_ARGS(TYPE) EchoIntx *intx,                             \
+                        echoPos_t from[3], echoPos_t dir[3],        \
+                        echoPos_t near, echoPos_t far,              \
+                        EchoParam *param, EchoObject##TYPE *obj
+*/
+
 int
 _echoRayIntxSphere(INTX_ARGS(Sphere)) {
   echoPos_t t, A, B, C, r[3], dscr, eps;
@@ -56,7 +63,43 @@ _echoRayIntxSphere(INTX_ARGS(Sphere)) {
   intx->t = t + eps;
   ELL_3V_COPY(intx->pos, from);
   ELL_3V_SCALEADD(intx->pos, dir, t);
-  ELL_3V_SUB(intx->norm, obj->pos, intx->pos);
+  ELL_3V_SUB(intx->norm, intx->pos, obj->pos);
+  ELL_3V_SUB(intx->view, from, intx->pos);
+  intx->obj = (EchoObject *)obj;
+  return AIR_TRUE;
+}
+
+int
+_echoRayIntxRectangle(INTX_ARGS(Rectangle)) {
+  echoPos_t pvec[3], qvec[3], tvec[3], det, t, u, v, eps, *edge0, *edge1;
+  
+  edge0 = obj->edge0;
+  edge1 = obj->edge1;
+  ELL_3V_CROSS(pvec, dir, edge1);
+  det = ELL_3V_DOT(pvec, edge0);
+  eps = param->epsilon;
+  if (det > -eps && det < eps)
+    return AIR_FALSE;
+  /* now det is the reciprocal of the determinant */
+  det = 1.0/det;
+  ELL_3V_SUB(tvec, from, obj->origin);
+  u = det * ELL_3V_DOT(pvec, tvec);
+  if (u < 0.0 || u > 1.0)
+    return AIR_FALSE;
+  ELL_3V_CROSS(qvec, tvec, edge0);
+  v = det * ELL_3V_DOT(qvec, dir);
+  if (v < 0.0 || v > 1.0)
+    return AIR_FALSE;
+  t = det * ELL_3V_DOT(qvec, edge1);
+  if (t < near || t > far)
+    return AIR_FALSE;
+  intx->t = t;
+  intx->u = u;
+  intx->v = v;
+  ELL_3V_CROSS(intx->norm, edge0, edge1);
+  intx->pos[0] = obj->origin[0] + u*edge0[0] + v*edge1[0];
+  intx->pos[1] = obj->origin[1] + u*edge0[1] + v*edge1[1];
+  intx->pos[2] = obj->origin[2] + u*edge0[2] + v*edge1[2];
   ELL_3V_SUB(intx->view, intx->pos, from);
   intx->obj = (EchoObject *)obj;
   return AIR_TRUE;
@@ -64,7 +107,6 @@ _echoRayIntxSphere(INTX_ARGS(Sphere)) {
 
 int
 _echoRayIntxList(INTX_ARGS(List)) {
-  char me[]="_echoRayIntxList";
   int i, ret;
   echoPos_t nearestFar;
   EchoObject *kid;
@@ -91,7 +133,7 @@ _echoRayIntx[ECHO_OBJECT_MAX+1] = {
   (_echoRayIntx_t)_echoRayIntxSphere,
   (_echoRayIntx_t)NULL,
   (_echoRayIntx_t)NULL,
-  (_echoRayIntx_t)NULL,
+  (_echoRayIntx_t)_echoRayIntxRectangle,
   (_echoRayIntx_t)NULL,
   (_echoRayIntx_t)NULL,
   (_echoRayIntx_t)NULL,
@@ -108,6 +150,3 @@ echoRayIntx(EchoIntx *intx,
 
   return _echoRayIntx[obj->type](intx, from, dir, near, far, param, obj);
 }
-
-
-	

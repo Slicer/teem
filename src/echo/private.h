@@ -20,6 +20,7 @@
 #ifndef ECHO_PRIVATE_HAS_BEEN_INCLUDED
 #define ECHO_PRIVATE_HAS_BEEN_INCLUDED
 
+/* intx.c */
 #define INTX_ARGS(TYPE) EchoIntx *intx,                             \
                         echoPos_t from[3], echoPos_t dir[3],        \
                         echoPos_t near, echoPos_t far,              \
@@ -29,6 +30,9 @@ typedef int (*_echoRayIntx_t)(INTX_ARGS());
 
 extern _echoRayIntx_t _echoRayIntx[ECHO_OBJECT_MAX+1];
 
+
+
+/* color.c */
 #define COLOR_ARGS echoCol_t *chan, EchoIntx *intx, int samp,       \
                    EchoParam *param, EchoThreadState *tstate,       \
                    EchoObject *obj, airArray *lightArr
