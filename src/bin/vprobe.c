@@ -101,8 +101,10 @@ main(int argc, char *argv[]) {
 	     NULL, NULL, &probeKindHestCB);
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
 	     "the quantity (scalar, vector, or matrix) to learn by probing");
-  hestOptAdd(&hopt, "s", "sclX sclY sxlZ", airTypeFloat, 3, 3, scale, "1.0 1.0 1.0",
-	     "scaling factor for resampling on each axis (>1.0 : supersampling)");
+  hestOptAdd(&hopt, "s", "sclX sclY sxlZ", airTypeFloat, 3, 3, scale,
+	     "1.0 1.0 1.0",
+	     "scaling factor for resampling on each axis "
+	     "(>1.0 : supersampling)");
   hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00,
 	     "tent", "kernel for gageKernel00",
 	     NULL, NULL, nrrdHestKernelSpec);
