@@ -3,20 +3,33 @@ Changes from 1.4:
 nrrd.h:
 - API CHANGE: nrrdMinMaxClever() renamed to
 nrrdMinMaxCleverSet()
-- API CHANGE: nrrdApply1DLut() and nrrdApply1DRegMap() now
-take a last boolean flag "rescale", indicating that values
-from input nrrd should be affine-rescaled from nrrd range to
-lut/map domain.
+- API NEW: added nrrdApply1DIrregMap(), for "colormapping"
+with irregular univariate maps
 - API NEW: added nrrd1DIrregMapValid(),
 nrrd1DIrregAclValid() which may be useful for verifying
 suitability of nrrds used in nrrdApply1DIrregMap().
-- API NEW: added nrrdApply1DIrregMap(), for "colormapping"
-with irregular univariate maps
-- API NEW: added _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1]
+- API CHANGE: nrrdApply1DLut() and nrrdApply1DRegMap() now
+take two final int arguments:
+  typeOut: what type should output be
+  rescale: values from input nrrd should be affine-rescaled
+           from nrrd range to lut/map domain.
+nrrdApply1DIrregMap() uses the same two arguments.
+- API NEW: added _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1],
+which is non-zero for nrrdField_{sizes,spacings,etc.}:
+those things for which you need as many values as there
+are axes in the nrrd.
+- API CHANGE: (but no one should notice): added dataFN[]
+to NrrdIO struct, basically so that "unu make -h" can
+subvert _nrrdWriteNrrd().
 - FUNCTIONALITY CHANGE: tables can now hold 1D data, see
 info for read.c and simple.c
+- FUNCTIONALITY CHANGE: nrrdHistoEq() now permits learning
+not the histogram ("nhistP"), but the transform used to
+shift values ("nmapP") in a form suitable for
+nrrdApply1DRegMap(); in fact that is what nrrdHistoEq() calls
+itself.  This way one mapping can be applied to other nrrds.
 - FILE FORMAT CHANGE: this was supposed to have been done
-for teem-1.4: normal nrrd magic is "NRRD0001", instead of
+for teem-1.4: default nrrd magic is "NRRD0001", instead of
 "NRRD00.01"
 - fixed comment typos and spacing
 
@@ -25,6 +38,20 @@ nrrdMacros.h:
 NRRD_AXIS_NODE_POS(), NRRD_AXIS_CELL_IDX(),
 NRRD_AXIS_NODE_IDX(), which are special case versions of
 NRRD_AXIS_POS() and NRRD_AXIS_IDX()
+
+methods.c:
+- BUG FIX: nrrdMaybeAlloc_nva() was not correctly calculating
+the allocated size of the desired output- using 
+nrrdElementSize(nrrd) instead of nrrdTypeSize[type].  This
+meant that situations requiring a bigger allocation were
+not always detected as such, causing a later segfault.
+Also, nrrdAxesSet_nva(nrrdAxesInfoSize) was not being
+called on the newly allocated output.
+
+apply1D.c:
+- API CHANGE: in nrrdApply1DLut() and nrrdApply1DRegMap(),
+allowing specification of output type (as does 
+nrrdApply1DIrregMap())
 
 arrays.c:
 - added _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1]
@@ -40,6 +67,9 @@ histogram.c:
 - nrrdMinMaxClever() renamed to nrrdMinMaxCleverSet()
 
 map.c:
+- changed nrrdHistoEq() to use nrrdApply1DRegMap(), 
+changed type of "steady" array to uint, changed type
+of non-smart histogram to uint
 - nrrdMinMaxClever() renamed to nrrdMinMaxCleverSet()
 
 measure.c:
@@ -78,6 +108,11 @@ data to be in a table, see info in read.c changelog.
 - clarified comment about action of nrrdHasNonExistSet()
 
 write.c:
+- _nrrdWriteNrrd() now takes a "writeData" boolean argument,
+which is used by "unu make -h".  This complicates the logic,
+but if writeData is zero, you never write data, and the
+"data file:" field becomes interesting enough to print,
+giving the value of io->dataFN.
 - FILE FORMAT CHANGE: this was supposed to have been done
 for teem-1.4: normal nrrd magic is "NRRD0001", instead of
 "NRRD00.01"
