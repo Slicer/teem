@@ -50,6 +50,10 @@ tenSizeNormalize(Nrrd *nout, Nrrd *nin, float _weight[3],
   weight[0] /= size;
   weight[1] /= size;
   weight[2] /= size;
+  /*
+  fprintf(stderr, "!%s: real weight = %g %g %g; amount = %g\n",
+	  me, weight[0], weight[1], weight[2], amount);
+  */
   tin = (float*)(nin->data);
   tout = (float*)(nout->data);
   N = nrrdElementNumber(nin)/7;
@@ -58,9 +62,16 @@ tenSizeNormalize(Nrrd *nout, Nrrd *nin, float _weight[3],
     size = (weight[0]*AIR_ABS(eval[0])
 	    + weight[1]*AIR_ABS(eval[1])
 	    + weight[2]*AIR_ABS(eval[2]));
+    /*
+    fprintf(stderr, "!%s: eval = %g %g %g --> size = %g --> ",
+	    me, eval[0], eval[1], eval[2], size);
+    */
     eval[0] = AIR_AFFINE(0, amount, 1, eval[0], eval[0]/size);
     eval[1] = AIR_AFFINE(0, amount, 1, eval[1], eval[1]/size);
     eval[2] = AIR_AFFINE(0, amount, 1, eval[2], eval[2]/size);
+    /*
+    fprintf(stderr, "%g %g %g\n", eval[0], eval[1], eval[2]);
+    */
     tenMakeOne(tout, tin[0], eval, evec);
     tin += 7;
     tout += 7;
