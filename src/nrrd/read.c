@@ -223,9 +223,15 @@ nrrdByteSkip (Nrrd *nrrd, NrrdIoState *nio) {
 */
 int
 nrrdRead (Nrrd *nrrd, FILE *file, NrrdIoState *nio) {
-  char err[AIR_STRLEN_MED], me[] = "nrrdRead";
+  char me[]="nrrdRead", err[AIR_STRLEN_MED];
   int len, fi;
   airArray *mop;
+
+  /* sanity check, for good measure */
+  if (!nrrdSanity()) {
+    sprintf(err, "%s: sanity check FAILED: have to fix and re-compile", me);
+    biffAdd(NRRD, err); return 1;
+  }
 
   if (!(file && nrrd)) {
     sprintf(err, "%s: got NULL pointer", me);
