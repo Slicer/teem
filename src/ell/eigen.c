@@ -178,28 +178,28 @@ ell3mEigensolve(double eval[3], double evec[9], double m[9], int polish) {
       printf("lineal3Eigensolve: evals: %20.15f %20.15f %20.15f\n", 
 	     eval[0], eval[1], eval[2]);
 	     } */
-    ELL_3M_SET_DIAG(n, m[0]-e0, m[4]-e0, m[8]-e0);
+    ELL_3M_DIAG_SET(n, m[0]-e0, m[4]-e0, m[8]-e0);
     ell3mNullspace1(evec+0, n);
-    ELL_3M_SET_DIAG(n, m[0]-e1, m[4]-e1, m[8]-e1);
+    ELL_3M_DIAG_SET(n, m[0]-e1, m[4]-e1, m[8]-e1);
     ell3mNullspace1(evec+3, n);
-    ELL_3M_SET_DIAG(n, m[0]-e2, m[4]-e2, m[8]-e2);
+    ELL_3M_DIAG_SET(n, m[0]-e2, m[4]-e2, m[8]-e2);
     ell3mNullspace1(evec+6, n);
     ELL_3V_SET(eval, e0, e1, e2);
     break;
   case ellCubicRootSingleDouble:
     if (e0 > e1) {
       /* one big (e0) , two small (e1) : more like a cigar */
-      ELL_3M_SET_DIAG(n, m[0]-e0, m[4]-e0, m[8]-e0);
+      ELL_3M_DIAG_SET(n, m[0]-e0, m[4]-e0, m[8]-e0);
       ell3mNullspace1(evec+0, n);
-      ELL_3M_SET_DIAG(n, m[0]-e1, m[4]-e1, m[8]-e1);
+      ELL_3M_DIAG_SET(n, m[0]-e1, m[4]-e1, m[8]-e1);
       ell3mNullspace2(evec+3, evec+6, n);
       ELL_3V_SET(eval, e0, e1, e1);
     }
     else {
       /* two big (e1), one small (e0): more like a pancake */
-      ELL_3M_SET_DIAG(n, m[0]-e1, m[4]-e1, m[8]-e1);
+      ELL_3M_DIAG_SET(n, m[0]-e1, m[4]-e1, m[8]-e1);
       ell3mNullspace2(evec+0, evec+3, n);
-      ELL_3M_SET_DIAG(n, m[0]-e0, m[4]-e0, m[8]-e0);
+      ELL_3M_DIAG_SET(n, m[0]-e0, m[4]-e0, m[8]-e0);
       ell3mNullspace1(evec+6, n);
       ELL_3V_SET(eval, e1, e1, e0);
     }
@@ -212,7 +212,7 @@ ell3mEigensolve(double eval[3], double evec[9], double m[9], int polish) {
     break;
   case ellCubicRootSingle:
     /* only one real root */
-    ELL_3M_SET_DIAG(n, m[0]-e0, m[4]-e0, m[8]-e0);
+    ELL_3M_DIAG_SET(n, m[0]-e0, m[4]-e0, m[8]-e0);
     ell3mNullspace1(evec+0, n);
     ELL_3V_SET(evec+3, AIR_NAN, AIR_NAN, AIR_NAN);
     ELL_3V_SET(evec+6, AIR_NAN, AIR_NAN, AIR_NAN);

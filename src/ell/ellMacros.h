@@ -210,17 +210,17 @@ extern "C" {
    ELL_3V_COPY((m2)+3, (m1)+3), \
    ELL_3V_COPY((m2)+6, (m1)+6))
 
-#define ELL_3M_SET_IDENTITY(m) \
+#define ELL_3M_IDENTITY_SET(m) \
   (ELL_3V_SET((m)+0,  1 ,  0 ,  0), \
    ELL_3V_SET((m)+3,  0 ,  1 ,  0), \
    ELL_3V_SET((m)+6,  0 ,  0 ,  1))
 
-#define ELL_3M_SET_ZERO(m) \
+#define ELL_3M_ZERO_SET(m) \
   (ELL_3V_SET((m)+0,  0 ,  0 ,  0), \
    ELL_3V_SET((m)+3,  0 ,  0 ,  0), \
    ELL_3V_SET((m)+6,  0 ,  0 ,  0))
 
-#define ELL_3M_SET_DIAG(m, a, b, c) \
+#define ELL_3M_DIAG_SET(m, a, b, c) \
   ((m)[0] = (a), (m)[4] = (b), (m)[8] = (c))
 
 #define ELL_3M_TRANSPOSE(m2, m1) \
@@ -258,40 +258,40 @@ extern "C" {
                                   (m)[3],(m)[4],(m)[5],\
                                   (m)[6],(m)[7],(m)[8])
 
-#define ELL_3MV_GET_COL0(v, m) \
+#define ELL_3MV_COL0_GET(v, m) \
   (ELL_3V_SET((v), (m)[0], (m)[1], (m)[2]))
 
-#define ELL_3MV_GET_COL1(v, m) \
+#define ELL_3MV_COL1_GET(v, m) \
   (ELL_3V_SET((v), (m)[3], (m)[4], (m)[5]))
 
-#define ELL_3MV_GET_COL2(v, m) \
+#define ELL_3MV_COL2_GET(v, m) \
   (ELL_3V_SET((v), (m)[6], (m)[7], (m)[8]))
 
-#define ELL_3MV_GET_ROW0(v, m) \
+#define ELL_3MV_ROW0_GET(v, m) \
   (ELL_3V_SET((v), (m)[0], (m)[3], (m)[6]))
 
-#define ELL_3MV_GET_ROW1(v, m) \
+#define ELL_3MV_ROW1_GET(v, m) \
   (ELL_3V_SET((v), (m)[1], (m)[4], (m)[7]))
 
-#define ELL_3MV_GET_ROW2(v, m) \
+#define ELL_3MV_ROW2_GET(v, m) \
   (ELL_3V_SET((v), (m)[2], (m)[5], (m)[8]))
 
-#define ELL_3MV_SET_COL0(m, v) \
+#define ELL_3MV_COL0_SET(m, v) \
   (ELL_3V_GET((m)[0], (m)[1], (m)[2], (v)))
 
-#define ELL_3MV_SET_COL1(m, v) \
+#define ELL_3MV_COL1_SET(m, v) \
   (ELL_3V_GET((m)[3], (m)[4], (m)[5], (v)))
 
-#define ELL_3MV_SET_COL2(m, v) \
+#define ELL_3MV_COL2_SET(m, v) \
   (ELL_3V_GET((m)[6], (m)[7], (m)[8], (v)))
 
-#define ELL_3MV_SET_ROW0(m, v) \
+#define ELL_3MV_ROW0_SET(m, v) \
   (ELL_3V_GET((m)[0], (m)[3], (m)[6], (v)))
 
-#define ELL_3MV_SET_ROW1(m, v) \
+#define ELL_3MV_ROW1_SET(m, v) \
   (ELL_3V_GET((m)[1], (m)[4], (m)[7], (v)))
 
-#define ELL_3MV_SET_ROW2(m, v) \
+#define ELL_3MV_ROW2_SET(m, v) \
   (ELL_3V_GET((m)[2], (m)[5], (m)[8], (v)))
 
 #define ELL_3MV_OUTER(m, v1, v2) \
@@ -403,52 +403,52 @@ extern "C" {
    ELL_SWAP2((m)[ 7],(m)[13],(t)),  \
    ELL_SWAP2((m)[11],(m)[14],(t)))
 
-#define ELL_4MV_GET_COL0(v, m) \
+#define ELL_4MV_COL0_GET(v, m) \
   (ELL_4V_SET((v), (m)[ 0], (m)[ 1], (m)[ 2], (m)[ 3]))
 
-#define ELL_4MV_GET_COL1(v, m) \
+#define ELL_4MV_COL1_GET(v, m) \
   (ELL_4V_SET((v), (m)[ 4], (m)[ 5], (m)[ 6], (m)[ 7]))
 
-#define ELL_4MV_GET_COL2(v, m) \
+#define ELL_4MV_COL2_GET(v, m) \
   (ELL_4V_SET((v), (m)[ 8], (m)[ 9], (m)[10], (m)[11])
 
-#define ELL_4MV_GET_COL3(v, m) \
+#define ELL_4MV_COL3_GET(v, m) \
   (ELL_4V_SET((v), (m)[12], (m)[13], (m)[14], (m)[15]))
 
-#define ELL_4MV_GET_ROW0(v, m) \
+#define ELL_4MV_ROW0_GET(v, m) \
   (ELL_4V_SET((v), (m)[ 0], (m)[ 4], (m)[ 8], (m)[12]))
 
-#define ELL_4MV_GET_ROW1(v, m) \
+#define ELL_4MV_ROW1_GET(v, m) \
   (ELL_4V_SET((v), (m)[ 1], (m)[ 5], (m)[ 9], (m)[13]))
 
-#define ELL_4MV_GET_ROW2(v, m) \
+#define ELL_4MV_ROW2_GET(v, m) \
   (ELL_4V_SET((v), (m)[ 2], (m)[ 6], (m)[10], (m)[14]))
 
-#define ELL_4MV_GET_ROW3(v, m) \
+#define ELL_4MV_ROW3_GET(v, m) \
   (ELL_4V_SET((v), (m)[ 3], (m)[ 7], (m)[11], (m)[15]))
 
-#define ELL_4MV_SET_COL0(m, v) \
+#define ELL_4MV_COL0_SET(m, v) \
   (ELL_4V_GET((m)[ 0], (m)[ 1], (m)[ 2], (m)[ 3], (v)))
 
-#define ELL_4MV_SET_COL1(m, v) \
+#define ELL_4MV_COL1_SET(m, v) \
   (ELL_4V_GET((m)[ 4], (m)[ 5], (m)[ 6], (m)[ 7], (v)))
 
-#define ELL_4MV_SET_COL2(m, v) \
+#define ELL_4MV_COL2_SET(m, v) \
   (ELL_4V_GET((m)[ 8], (m)[ 9], (m)[10], (m)[11], (v)))
 
-#define ELL_4MV_SET_COL3(m, v) \
+#define ELL_4MV_COL3_SET(m, v) \
   (ELL_4V_GET((m)[12], (m)[13], (m)[14], (m)[15], (v)))
 
-#define ELL_4MV_SET_ROW0(m, v) \
+#define ELL_4MV_ROW0_SET(m, v) \
   (ELL_4V_GET((m)[ 0], (m)[ 4], (m)[ 8], (m)[12], (v)))
 
-#define ELL_4MV_SET_ROW1(m, v) \
+#define ELL_4MV_ROW1_SET(m, v) \
   (ELL_4V_GET((m)[ 1], (m)[ 5], (m)[ 9], (m)[13], (v)))
 
-#define ELL_4MV_SET_ROW2(m, v) \
+#define ELL_4MV_ROW2_SET(m, v) \
   (ELL_4V_GET((m)[ 2], (m)[ 6], (m)[10], (m)[14], (v)))
 
-#define ELL_4MV_SET_ROW3(m, v) \
+#define ELL_4MV_ROW3_SET(m, v) \
   (ELL_4V_GET((m)[ 3], (m)[ 7], (m)[11], (m)[15], (v)))
 
 #define ELL_4MV_MUL(v2, m, v1)                                              \
@@ -481,55 +481,55 @@ extern "C" {
 ** These macros are intended to be used as aids with homogeneous transforms
 */
 
-#define ELL_4M_SET_COLS(m, a, b, c, d)  \
+#define ELL_4M_COLS_SET(m, a, b, c, d)  \
   (ELL_4V_COPY((m)+ 0, a),              \
    ELL_4V_COPY((m)+ 4, b),              \
    ELL_4V_COPY((m)+ 8, c),              \
    ELL_4V_COPY((m)+12, d))
 
-#define ELL_4M_SET_ROWS(m, a, b, c, d)                 \
+#define ELL_4M_ROWS_SET(m, a, b, c, d)                 \
   (ELL_4V_SET((m)+ 0, (a)[0], (b)[0], (c)[0], (d)[0]), \
    ELL_4V_SET((m)+ 4, (a)[1], (b)[1], (c)[1], (d)[1]), \
    ELL_4V_SET((m)+ 8, (a)[2], (b)[2], (c)[2], (d)[2]), \
    ELL_4V_SET((m)+12, (a)[3], (b)[3], (c)[3], (d)[3]))
 
-#define ELL_4M_SET_IDENTITY(m) \
+#define ELL_4M_IDENTITY_SET(m) \
   (ELL_4V_SET((m)+ 0,  1 ,  0 ,  0 , 0), \
    ELL_4V_SET((m)+ 4,  0 ,  1 ,  0 , 0), \
    ELL_4V_SET((m)+ 8,  0 ,  0 ,  1 , 0), \
    ELL_4V_SET((m)+12,  0 ,  0 ,  0 , 1))
 
-#define ELL_4M_SET_ZERO(m) \
+#define ELL_4M_ZERO_SET(m) \
   (ELL_4V_SET((m)+ 0,  0 ,  0 ,  0 , 0), \
    ELL_4V_SET((m)+ 4,  0 ,  0 ,  0 , 0), \
    ELL_4V_SET((m)+ 8,  0 ,  0 ,  0 , 0), \
    ELL_4V_SET((m)+12,  0 ,  0 ,  0 , 0))
 
-#define ELL_4M_SET_SCALE(m, x, y, z)     \
+#define ELL_4M_SCALE_SET(m, x, y, z)     \
   (ELL_4V_SET((m)+ 0, (x),  0 ,  0 , 0), \
    ELL_4V_SET((m)+ 4,  0 , (y),  0 , 0), \
    ELL_4V_SET((m)+ 8,  0 ,  0 , (z), 0), \
    ELL_4V_SET((m)+12,  0 ,  0 ,  0 , 1))
 
-#define ELL_4M_SET_TRANSLATE(m, x, y, z) \
+#define ELL_4M_TRANSLATE_SET(m, x, y, z) \
   (ELL_4V_SET((m)+ 0,  1 ,  0 ,  0 , 0), \
    ELL_4V_SET((m)+ 4,  0 ,  1 ,  0 , 0), \
    ELL_4V_SET((m)+ 8,  0 ,  0 ,  1 , 0), \
    ELL_4V_SET((m)+12, (x), (y), (z), 1))
 
-#define ELL_4M_SET_ROTATE_X(m, th)                   \
+#define ELL_4M_ROTATE_X_SET(m, th)                   \
   (ELL_4V_SET((m)+ 0,  1 ,     0    ,     0    , 0), \
    ELL_4V_SET((m)+ 4,  0 ,  cos(th) , +sin(th) , 0), \
    ELL_4V_SET((m)+ 8,  0 , -sin(th) ,  cos(th) , 0), \
    ELL_4V_SET((m)+12,  0 ,     0    ,     0    , 1))
 
-#define ELL_4M_SET_ROTATE_Y(m, th)                   \
+#define ELL_4M_ROTATE_Y_SET(m, th)                   \
   (ELL_4V_SET((m)+ 0,  cos(th) ,  0 , -sin(th) , 0), \
    ELL_4V_SET((m)+ 4,     0    ,  1 ,     0    , 0), \
    ELL_4V_SET((m)+ 8, +sin(th) ,  0 ,  cos(th) , 0), \
    ELL_4V_SET((m)+12,     0    ,  0 ,     0    , 1))
 
-#define ELL_4M_SET_ROTATE_Z(m, th)                   \
+#define ELL_4M_ROTATE_Z_SET(m, th)                   \
   (ELL_4V_SET((m)+ 0,  cos(th) , +sin(th) ,  0 , 0), \
    ELL_4V_SET((m)+ 4, -sin(th) ,  cos(th) ,  0 , 0), \
    ELL_4V_SET((m)+ 8,     0    ,     0    ,  1 , 0), \
