@@ -35,8 +35,6 @@ unrrdu_minmaxDoit(char *me, char *inS, FILE *fout) {
   Nrrd *nrrd;
   NrrdRange *range;
   airArray *mop;
-  int len;
-  FILE *fin;
 
   mop = airMopNew();
   airMopAdd(mop, nrrd=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
@@ -63,9 +61,6 @@ unrrdu_minmaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *err, **inS;
   airArray *mop;
   int pret, ni, ninLen;
-#ifdef _WIN32
-  int c;
-#endif
 
   mop = airMopNew();
   hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL,
