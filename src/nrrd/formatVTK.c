@@ -229,11 +229,13 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     nrrdAxisInfoSet(nrrd, nrrdAxisInfoSize, 3, sx, sy, sz);
     nrrdAxisInfoSet(nrrd, nrrdAxisInfoSpacing, AIR_NAN, xs, ys, zs);
     nrrdAxisInfoSet(nrrd, nrrdAxisInfoMin, AIR_NAN, xm, ym, zm);
+    nrrd->axis[0].kind = nrrdKind3Vector;
   } else if (!strncmp("TENSORS", three[0], strlen("TENSORS"))) {
     nrrd->dim = 4;
     nrrdAxisInfoSet(nrrd, nrrdAxisInfoSize, 9, sx, sy, sz);
     nrrdAxisInfoSet(nrrd, nrrdAxisInfoSpacing, AIR_NAN, xs, ys, zs);
     nrrdAxisInfoSet(nrrd, nrrdAxisInfoMin, AIR_NAN, xm, ym, zm);
+    nrrd->axis[0].kind = nrrdKind3DMatrix;
   } else {
     sprintf(err, "%s: sorry, can only deal with SCALARS, VECTORS, and TENSORS "
             "currently, so couldn't parse attribute declaration \"%s\"",
@@ -268,7 +270,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 int
 _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatVTK_write", err[AIR_STRLEN_MED];
-  int i, sx, sy, sz, szmult, sax;
+  int i, sx, sy, sz, sax;
   double xs, ys, zs, xm, ym, zm;
   char type[AIR_STRLEN_MED], name[AIR_STRLEN_SMALL];
   Nrrd *nrrd;
@@ -360,16 +362,13 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   if (3 == nrrd->dim) {
     fprintf(file, "SCALARS %s %s\n", name, type);
     fprintf(file, "LOOKUP_TABLE default\n");
-    szmult = 1;
   } else {
     /* 4 == nrrd->dim */
     if (3 == nrrd->axis[0].size) {
       fprintf(file, "VECTORS %s %s\n", name, type);
-      szmult = 3;
     } else {
       fprintf(file, "TENSORS %s %s\n", name, type);
     }
-    szmult = 9;
   }
   if (1 < nrrdElementSize(nrrd)
       && nio->encoding->endianMatters
