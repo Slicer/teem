@@ -18,7 +18,7 @@
 #
 #
 
-# TEEM_SHEXT = dylib
+TEEM_SHEXT = dylib
 TEEM_SHEXT = 
 
 AR = libtool
