@@ -673,11 +673,13 @@ nrrdReadDataRaw(FILE *file, Nrrd *nrrd) {
   }
   num = nrrd->num;
   size = nrrdTypeSize[nrrd->type];
-  if (nrrdAlloc(nrrd, nrrd->num, nrrd->type, nrrd->dim)) {
-    /* admittedly weird to be calling this since we already have num, 
-       type, dim set-- just a way to get error reporting on calloc */
-    sprintf(err, "%s: nrrdAlloc() failed", me);
-    biffAdd(NRRD, err); return 1;
+  if (!nrrd->data) {
+    if (nrrdAlloc(nrrd, nrrd->num, nrrd->type, nrrd->dim)) {
+      /* admittedly weird to be calling this since we already have num, 
+	 type, dim set-- just a way to get error reporting on calloc */
+      sprintf(err, "%s: nrrdAlloc() failed", me);
+      biffAdd(NRRD, err); return 1;
+    }
   }
   if (num != fread(nrrd->data, size, num, file)) {
     sprintf(err, "%s: unable to read %d objects of size %d", me, num, size);
@@ -911,7 +913,7 @@ nrrdSave(char *name, Nrrd *nrrd) {
       writer = nrrdWritePNM;
       goto write;
     }
-    fprintf(stderr, "(%s: type doesn't match PGM, saving as NRRD)\n", me);
+    fprintf(stderr, "(%s: type or shape can't be PGM, saving as NRRD)\n", me);
   }
   ext = strstr(name, _nrrdPPMExt);
   if (ext && ext == name + strlen(name) - strlen(_nrrdPPMExt)) {
@@ -919,7 +921,7 @@ nrrdSave(char *name, Nrrd *nrrd) {
       writer = nrrdWritePNM;
       goto write;
     }
-    fprintf(stderr, "(%s: type doesn't match PPM, saving as NRRD)\n", me);
+    fprintf(stderr, "(%s: type or shape can't be PPM, saving as NRRD)\n", me);
   }
  write:
   if (writer(file, nrrd)) {
@@ -939,9 +941,11 @@ nrrdRead(FILE *file, Nrrd *nrrd) {
     sprintf(err, "%s: nrrdReadHeader() failed", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdAlloc(nrrd, nrrd->num, nrrd->type, nrrd->dim)) {
-    sprintf(err, "%s: nrrdAlloc() failed", me);
-    biffAdd(NRRD, err); return 1;
+  if (!nrrd->data) {
+    if (nrrdAlloc(nrrd, nrrd->num, nrrd->type, nrrd->dim)) {
+      sprintf(err, "%s: nrrdAlloc() failed", me);
+      biffAdd(NRRD, err); return 1;
+    }
   }
   if (nrrdReadData(file, nrrd)) {
     sprintf(err, "%s: nrrdReadData() failed", me);
@@ -1178,12 +1182,13 @@ nrrdWriteDataAscii(FILE *file, Nrrd *nrrd) {
   size = nrrdTypeSize[type];
   for (i=0; i<=nrrd->num-1; i++) {
     nrrdFprint[type](file, data);
-    if ( (nrrd->dim == 2 &&
+    if ( (nrrd->dim == 1)
+	 ||
+	 (nrrd->dim == 2 &&
 	  nrrd->size[0] <= 6 && 
 	  !((i+1)%(nrrd->size[0])))
 	 ||
-	 (nrrd->dim != 2 &&
-	  !((i+1)%6))
+	 (nrrd->dim != 2 && !((i+1)%6))
 	 ) {
       fprintf(file, "\n");
     }
