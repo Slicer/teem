@@ -178,7 +178,7 @@ ell_3m_eigenvalues_d(double _eval[3], double _m[9], int newton) {
   int roots;
 
   frob = ELL_3M_FROB(_m);
-  scale = frob > 10 ? 10.0/frob : 1.0;
+  scale = frob ? 1.0/frob : 1.0;
   ELL_3M_SCALE(m, scale, _m);
   /* 
   ** from gordon with mathematica; these are the coefficients of the
