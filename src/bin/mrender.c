@@ -28,11 +28,12 @@
 
 #define MREND "mrender"
 
-char *info = ("A demonstration of nrrd measures, with hoover and gage. "
+char *info = ("A demonstration of hoover, gage, and nrrd measures. "
 	      "Uses hoover to cast rays through a scalar volume, gage to "
-	      "reconstruct values along the rays, and a specified "
-	      "nrrd measure to reduce all the values along a ray down "
-	      "to one scalar, which is saved in the output (float) image.");
+	      "measure one of various quantities along the rays, and a "
+	      "specified nrrd measure to reduce all the values along a ray "
+	      "down to one scalar, which is saved in the output (float) "
+	      "image.");
 
 /* -------------------------------------------------------------- */
 
@@ -405,7 +406,7 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, uu, (airMopper)mrendUserInfoNix, airMopAlways);
 
   buff = mrendGageInfo("the quantity to measure at sample points along " \
-		       "rays. Possibilities include:%s");
+		       "rays. Possibilities include:");
   airMopAdd(mop, buff, airFree, airMopAlways);
 
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &(uu->nin), NULL,
