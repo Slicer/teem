@@ -30,13 +30,12 @@ usage() {
 
 int
 main(int argc, char **argv) {
-  FILE *fin, *fout;
+  char *err;
   Nrrd *nin[NRRD_MAX_DIM], *nout;
   int d, n, bin[NRRD_MAX_DIM], clamp[NRRD_MAX_DIM];
   float min[NRRD_MAX_DIM], max[NRRD_MAX_DIM];
 
   me = argv[0];
-  printf("argc = %d\n", argc);
   if (argc < 4 || 0 != argc%2) 
     usage();
   n = (argc-2)/2;
@@ -45,56 +44,51 @@ main(int argc, char **argv) {
 	    me, NRRD_MAX_DIM);
     exit(1);
   }
-  printf("%s: will try to parse 2*%d args\n", me, n);
+  fprintf(stderr, "%s: will try to parse 2*%d args\n", me, n);
   for (d=0; d<=n-1; d++) {
-    if (!(fin = fopen(argv[1+d], "r"))) {
-      fprintf(stderr, "%s: couldn't open file %d \"%s\" for reading\n", 
-	      me, d, argv[1+d]);
+    if (!(nin[d] = nrrdNewOpen(argv[1+d]))) {
+      err = biffGet(NRRD);
+      fprintf(stderr, "%s: trouble reading nrrd %d from \"%s\":\n%s\n", me,
+	      d, argv[1+d], err);
+      free(err);
       exit(1);
     }
-    if (!(nin[d] = nrrdNewRead(fin))) {
-      fprintf(stderr, "%s: trouble reading nrrd %d \"%s\":\n%s\n", me,
-	      d, argv[1+d], biffGet(NRRD));
-    }
-    fclose(fin);
     if (1 != sscanf(argv[1+n+d], "%d", bin+d)) {
       fprintf(stderr, "%s: couldn't parse %s as in int\n", me, argv[1+n+d]);
       exit(1);
     }
   }
-  if (!(fout = fopen(argv[2*n+1], "w"))) {
-    fprintf(stderr, "%s: couldn't open output file \"%s\" for writing\n",
-	    me, argv[2*n+1]);
-    exit(1);
-  }
 
   for (d=0; d<=n-1; d++) {
-    if (nrrdRange(nin[d])) {
+    if (nrrdRange(&nin[d]->min, &nin[d]->max, nin[d])) {
       fprintf(stderr, "%s: trouble determining range in nrrd %d (%s):\n%s\n",
 	      me, d, argv[1+d], biffGet(NRRD));
     }
     min[d] = nin[d]->min;
     max[d] = nin[d]->max;
-    printf("range %d: %f %f\n", d, min[d], max[d]);
-    printf("bin %d: %d\n", d, bin[d]);
+    fprintf(stderr, "range %d: %f %f\n", d, min[d], max[d]);
+    fprintf(stderr, "bin %d: %d\n", d, bin[d]);
     clamp[d] = 0;
   }
   
-  printf("%s: computing multi-histogram ... ", me); fflush(stdout);
+  fprintf(stderr, "%s: computing multi-histogram ... ", me); fflush(stdout);
   if (!(nout = nrrdNewMultiHisto(nin, n, bin, min, max, clamp))) {
     fprintf(stderr, "%s: trouble doing multi-histogram:\n%s\n", 
 	    me, biffGet(NRRD));
     exit(1);
   }
-  printf("done\n");
-  if (nrrdWrite(fout, nout)) {
-    fprintf(stderr, "%s: trouble writing output nrrd:\n%s\n", 
-	    me, biffGet(NRRD));
-    exit(1);
-  }
-  fclose(fout);
+  fprintf(stderr, "done\n");
   for (d=0; d<=n-1; d++) {
     nrrdNuke(nin[d]);
   }
+
+  if (nrrdSave(argv[2*n+1], nout)) {
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: trouble writing output nrrd to \"%s\":\n%s\n", 
+	    me, argv[2*n+1], err);
+    exit(1);
+  }
+  
   nrrdNuke(nout);
+  exit(0);
 }

@@ -30,8 +30,7 @@ usage() {
 
 int
 main(int argc, char **argv) {
-  FILE *fin, *fout;
-  char *inStr, *axStr, *binStr, *outStr;
+  char *err, *inStr, *axStr, *binStr, *outStr;
   int axis, bins;
   Nrrd *nin, *nout;
 
@@ -49,27 +48,26 @@ main(int argc, char **argv) {
 	    me, axStr, binStr);
     exit(1);
   }
-  if (!(fin = fopen(inStr, "r"))) {
-    fprintf(stderr, "%s: couldn't open %s for reading\n", me, inStr);
+  if (!(nin = nrrdNewOpen(inStr))) {
+    err = biffGet(NRRD);
+    fprintf(stderr, 
+	    "%s: trouble reading nrrd from \"%s\":\n%s\n", me, inStr, err);
+    free(err);
     exit(1);
   }
-  if (!(fout = fopen(outStr, "w"))) {
-    fprintf(stderr, "%s: couldn't open %s for writing\n", me, outStr);
-    exit(1);
-  }
-  if (!(nin = nrrdNewRead(fin))) {
-    fprintf(stderr, "%s: trouble reading nrrd:\n%s\n", me, biffGet(NRRD));
-    exit(1);
-  }
+  
   if (!(nout = nrrdNewHistoAxis(nin, axis, bins))) {
     fprintf(stderr, "%s: trouble in nrrdNewHistoAxis:\n%s\n", 
 	    me, biffGet(NRRD));
     exit(1);
   }
   nout->encoding = nrrdEncodingRaw;
-  if (nrrdWrite(fout, nout)) {
-    fprintf(stderr, "%s: trouble writing output:\n%s\n",
-	    me, biffGet(NRRD));
+  if (nrrdSave(outStr, nout)) {
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: trouble writing output to \"%s\":\n%s\n",
+	    me, outStr, err);
+    free(err);
     exit(1);
   }
+  exit(0);
 }

@@ -22,14 +22,13 @@ char *me;
 
 void
 usage() {
-                      /*  0     1       2      3       4    */
+                      /*  0     1       2      3       4    (5) */
   fprintf(stderr, "usage: %s <nrrdIn> <axis> <pos> <nrrdOut>\n", me);
   exit(1);
 }
 
 int
 main(int argc, char *argv[]) {
-  FILE *fin, *fout;
   char *in, *out, *err;
   int axis, pos;
   Nrrd *nin, *nout;
@@ -37,6 +36,7 @@ main(int argc, char *argv[]) {
   me = argv[0];
   if (5 != argc)
     usage();
+
   if (2 != (sscanf(argv[2], "%d", &axis) + 
 	    sscanf(argv[3], "%d", &pos))) {
     fprintf(stderr, "%s: couldn't parse (%s,%s) as (axis,pos)\n", 
@@ -45,32 +45,27 @@ main(int argc, char *argv[]) {
   }
   in = argv[1];
   out = argv[4];
-  if (!(fin = fopen(in, "r"))) {
-    fprintf(stderr, "%s: couldn't open %s for reading\n", me, in);
-    exit(1);
-  }
-  if (!(nin = nrrdNewRead(fin))) {
+
+  if (!(nin = nrrdNewOpen(in))) {
     err = biffGet(NRRD);
-    fprintf(stderr, "%s: error reading nrrd:\n%s\n", me, err);
+    fprintf(stderr, "%s: couldn't get nrrd from %s:\n%s\n", me, in, err);
+    free(err);
     exit(1);
   }
-  fclose(fin);
   if (!(nout = nrrdNewSlice(nin, axis, pos))) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error slicing nrrd:\n%s\n", me, err);
-    exit(1);
-  }
-  if (!(fout = fopen(out, "w"))) {
-    fprintf(stderr, "%s: couldn't open %s for writing\n", me, out);
+    free(err);
     exit(1);
   }
   nout->encoding = nin->encoding;
-  if (nrrdWrite(fout, nout)) {
+  if (nrrdSave(out, nout)) {
     err = biffGet(NRRD);
-    fprintf(stderr, "%s: error writing nrrd:\n%s\n", me, err);
+    fprintf(stderr, "%s: error saving nrrd to %s:\n%s\n", me, out, err);
+    free(err);
     exit(1);
   }
-  fclose(fout);
+    
   nrrdNuke(nin);
   nrrdNuke(nout);
   exit(0);

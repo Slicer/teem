@@ -32,17 +32,13 @@ main(int argc, char **argv) {
   FILE *file;
   Nrrd *nrrd, *hist, *pgm;
   int smart, bins;
-  int (*writer)(FILE *, Nrrd *);
+  char *err;
   
   me = argv[0];
 
   if (5 != argc)
     usage();
 
-  if (!(file = fopen(argv[1], "r"))) {
-    fprintf(stderr, "%s: couldn't open %s for reading\n", me, argv[1]);
-    exit(1);
-  }
   if (1 != sscanf(argv[2], "%d", &bins)) {
     fprintf(stderr, "%s: couldn't parse \"%s\" as int\n", me, argv[2]);
     exit(1);
@@ -51,27 +47,31 @@ main(int argc, char **argv) {
     fprintf(stderr, "%s: couldn't parse \"%s\" as int\n", me, argv[3]);
     exit(1);
   }
-  if (!(nrrd = nrrdNewRead(file))) {
+  if (!(nrrd = nrrdNewOpen(argv[1]))) {
+    err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble reading nrrd from %s:\n%s", 
-	    me, argv[1], biffGet(NRRD));
+	    me, argv[1], err);
+    free(err);
     exit(1);
   }
-  fclose(file);
   if (nrrdHistoEq(nrrd, &hist, bins, smart)) {
-    fprintf(stderr, "%s: trouble doing histogram equalization:\n%s",
-	    me, biffGet(NRRD));
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: trouble doing histogram equalization:\n%s", me, err);
+    free(err);
     exit(1);
   }
   if (file = fopen("hist0.pgm", "w")) {
     if (!(pgm = nrrdNewDrawHisto(hist, 800))) {
-      fprintf(stderr, "%s: trouble drawing data histogram:\n%s",
-	      me, biffGet(NRRD));
+      err = biffGet(NRRD);
+      fprintf(stderr, "%s: trouble drawing data histogram:\n%s", me, err);
+      free(err);
       exit(1);
     }
     pgm->encoding = nrrdEncodingRaw;
     if (nrrdWritePNM(file, pgm)) {
-      fprintf(stderr, "%s: trouble writing histogram image:\n%s",
-	      me, biffGet(NRRD));
+      err = biffGet(NRRD);
+      fprintf(stderr, "%s: trouble writing histogram image:\n%s", me, err);
+      free(err);
       exit(1);
     }
     printf("%s: wrote \"BEFORE\" histogram image in hist0.pgm\n", me);
@@ -81,19 +81,23 @@ main(int argc, char **argv) {
   }
   if (file = fopen("hist1.pgm", "w")) {
     if (!(hist = nrrdNewHisto(nrrd, bins))) {
+      err = biffGet(NRRD);
       fprintf(stderr, "%s: trouble generating post-HEQ histogram:\n%s",
-	      me, biffGet(NRRD));
+	      me, err);
+      free(err);
       exit(1);
     }
     if (!(pgm = nrrdNewDrawHisto(hist, 800))) {
-      fprintf(stderr, "%s: trouble drawing data histogram:\n%s",
-	      me, biffGet(NRRD));
+      err = biffGet(NRRD);
+      fprintf(stderr, "%s: trouble drawing data histogram:\n%s", me, err);
+      free(err);
       exit(1);
     }
     pgm->encoding = nrrdEncodingRaw;
     if (nrrdWritePNM(file, pgm)) {
-      fprintf(stderr, "%s: trouble writing histogram image:\n%s",
-	      me, biffGet(NRRD));
+      err = biffGet(NRRD);
+      fprintf(stderr, "%s: trouble writing histogram image:\n%s", me, err);
+      free(err);
       exit(1);
     }
     printf("%s: wrote \"AFTER\" histogram image in hist1.pgm\n", me);
@@ -101,19 +105,28 @@ main(int argc, char **argv) {
     nrrdNuke(pgm);
     nrrdNuke(hist);
   }    
-    
-  if (!(file = fopen(argv[4], "w"))) {
-    fprintf(stderr, "%s: couldn't open %s for writing\n", me, argv[4]);
-    exit(1);
+  
+  if (strstr(argv[4], ".pgm")) {
+    if (!(file = fopen(argv[4], "w"))) {
+      fprintf(stderr, "%s: couldn't open %s for writing\n", me, argv[4]);
+      exit(1);
+    }
+    if (nrrdWritePNM(file, nrrd)) {
+      err = biffGet(NRRD);
+      fprintf(stderr, "%s: trouble writing PGM\n%s", me, err);
+      free(err);
+      exit(1);
+    }
+    fclose(file);
   }
-  writer = (strstr(argv[4], ".pgm")
-	    ? nrrdWritePNM
-	    : nrrdWrite);
-  if (writer(file, nrrd)) {
-    fprintf(stderr, "%s: trouble in writer:\n%s", me, biffGet(NRRD));
-    exit(1);
+  else {
+    if (nrrdSave(argv[4], nrrd)) {
+      err = biffGet(NRRD);
+      fprintf(stderr, "%s: trouble writing nrrd:\n%s", me, err);
+      free(err);
+      exit(1);
+    }
   }
-  fclose(file);
   nrrdNuke(nrrd);
   exit(0);
 }

@@ -19,7 +19,7 @@ LIB =
 HEADERS = 
 LIBOBJS = 
 TEST_BINS = 
-BINS = crop histo histax permute slice xsect stitch \
+BINS = crop histo histax permute slice dice stitch \
 	2a arith heq median nconvert quantize project mhisto
 BINLIBS = -lnrrd -lbiff -lair -lm
 

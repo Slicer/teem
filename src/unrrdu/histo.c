@@ -30,8 +30,8 @@ usage() {
 
 int
 main(int argc, char **argv) {
-  FILE *fin, *fout;
-  char *xStr, *yStr, *inStr, *outStr;
+  FILE *fout;
+  char *err, *xStr, *yStr, *inStr, *outStr;
   int sx, sy;
   Nrrd *nin, *nhist, *nimg;
 
@@ -49,37 +49,42 @@ main(int argc, char **argv) {
 	    me, xStr, yStr);
     exit(1);
   }
-  if (!(fin = fopen(inStr, "r"))) {
-    fprintf(stderr, "%s: couldn't open %s for reading\n", me, inStr);
+  if (!strcmp(outStr, "-")) {
+    fprintf(stderr, "%s: sorry, can't write PNMs to stdout yet\n", me);
     exit(1);
   }
+  if (!(nin = nrrdNewOpen(inStr))) {
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: can't read nrrd from \"%s\":\n%s", me, inStr, err);
+    free(err);
+    exit(1);
+  }
+  if (!(nhist = nrrdNewHisto(nin, sx))) {
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: trouble making histogram:\n%s\n", me, err);
+    free(err);
+    exit(1);
+  }
+  if (!(nimg = nrrdNewDrawHisto(nhist, sy))) {
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: trouble drawing histogram:\n%s\n", me, err);
+    free(err);
+    exit(1);
+  }
+  nimg->encoding = nrrdEncodingRaw;
   if (!(fout = fopen(outStr, "w"))) {
     fprintf(stderr, "%s: couldn't open %s for writing\n", me, outStr);
     exit(1);
   }
-  printf("reading data\n");
-  if (!(nin = nrrdNewRead(fin))) {
-    fprintf(stderr, "%s: trouble reading nrrd:\n%s\n", me, biffGet(NRRD));
-    exit(1);
-  }
-  printf("making histogram; width = %d\n", sx);
-  if (!(nhist = nrrdNewHisto(nin, sx))) {
-    fprintf(stderr, "%s: trouble making histogram:\n%s\n", 
-	    me, biffGet(NRRD));
-    exit(1);
-  }
-  printf("drawing histogram; height = %d\n", sy);
-  if (!(nimg = nrrdNewDrawHisto(nhist, sy))) {
-    fprintf(stderr, "%s: trouble drawing histogram:\n%s\n",
-	    me, biffGet(NRRD));
-    exit(1);
-  }
-  nimg->encoding = nrrdEncodingRaw;
   if (nrrdWritePNM(fout, nimg)) {
-    fprintf(stderr, "%s: trouble writing histogram image:\n%s\n",
-	    me, biffGet(NRRD));
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: trouble writing histogram image to \"%s\":\n%s\n",
+	    me, outStr, err);
+    free(err);
     exit(1);
   }
+  fclose(fout);
+
   nrrdNuke(nin);
   nrrdNuke(nhist);
   nrrdNuke(nimg);

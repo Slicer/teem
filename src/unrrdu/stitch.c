@@ -22,8 +22,13 @@ char *me;
 
 void
 usage() {
-                      /*  0      1        2          argc-3  argc-2  argc-1 */
-  fprintf(stderr, "usage: %s <NameIn0> <NameIn1> ... <axis> <label> <NameOut>\n", me);
+              /*  0      1        2          argc-3  argc-2  argc-1  (argc) */
+  fprintf(stderr, 
+	  "usage: %s <NameIn0> <NameIn1> ... <axis> <label> <NameOut>\n", me);
+              /*  0    1      2       3      4          argc-2  argc-1 (argc)*/
+  fprintf(stderr, 
+	  "usage: %s <axis> <label> <nin0> <nin1> ... <nin(n-1)> <NameOut>\n",
+	  me);
   fprintf(stderr, "       <axis> is which axis the given slices should\n");
   fprintf(stderr, "       lie along in the new (output) nrrd, that is,\n");
   fprintf(stderr, "       which axis along which you'd slice the new\n");
@@ -33,7 +38,6 @@ usage() {
 
 int
 main(int argc, char *argv[]) {
-  FILE *fin, *fout;
   char *err, *label;
   int dim,         /* the dimension of the slices */
     sliceMemSize,  /* size in bytes of data of one slice */
@@ -48,33 +52,34 @@ main(int argc, char *argv[]) {
   if (!(size >= 1))
     usage();
 
-  label = argv[argc-2];
+  label = argv[2];
+  if (1 != sscanf(argv[1], "%d", &axis)) {
+    fprintf(stderr, "%s: couldn't parse %s as axis\n", me, argv[1]);
+    exit(1);
+  }
   printf("%s: planning to stitch %d slices\n", me, size);
-  if (1 != sscanf(argv[argc-3], "%d", &axis)) {
-    fprintf(stderr, "%s: couldn't parse %s as axis\n", me, argv[argc-3]);
+  if (!(nin = (Nrrd **)calloc(size, sizeof(Nrrd *)))) {
+    fprintf(stderr, "%s: couldn't alloc array of input nrrds\n", me);
     exit(1);
   }
-  nin = (Nrrd **)calloc(size, sizeof(Nrrd *));
-  if (!(fin = fopen(argv[1], "r"))) {
-    fprintf(stderr, "%s: can't open %s for reading\n", me, argv[1]);
-    exit(1);
-  }
-  if (!(nin[0] = nrrdNewRead(fin))) {
+  /* the first nrrd we read in sets the standard for dimension,
+     number, type, and axis sizes that all subsequent nrrds have to
+     match */
+  if (!(nin[0] = nrrdNewOpen(argv[3]))) {
     err = biffGet(NRRD);
-    fprintf(stderr, "%s: error reading nrrd:%s\n", me, err);
+    fprintf(stderr, "%s: error reading nrrd from \"%s\":\n%s\n", 
+	    me, argv[3], err);
+    free(err);
     exit(1);
   }
   for (pos=1; pos<=size-1; pos++) {
-    if (!(fin = fopen(argv[1+pos], "r"))) {
-      fprintf(stderr, "%s: can't open %s for reading\n", me, argv[1+pos]);
-      exit(1);
-    }
-    if (!(nin[pos] = nrrdNewRead(fin))) {
+    if (!(nin[pos] = nrrdNewOpen(argv[3+pos]))) {
       err = biffGet(NRRD);
-      fprintf(stderr, "%s: error reading nrrd:%s\n", me, err);
+      fprintf(stderr, "%s: error reading nrrd from \"%s\":\n%s\n", 
+	      me, argv[3+pos], err);
+      free(err);
       exit(1);
     }
-    fclose(fin);
     if (!(nin[pos]->dim == nin[0]->dim &&
 	  nin[pos]->num == nin[0]->num &&
 	  nin[pos]->type == nin[0]->type)) {
@@ -97,8 +102,9 @@ main(int argc, char *argv[]) {
   if (!(ntmp = nrrdNewAlloc(size*nin[0]->num, 
 			    nin[0]->type, 
 			    nin[0]->dim+1))) {
-    fprintf(stderr, "%s: couldn't make tmp nrrd:%s\n", 
-	    me, biffGet(NRRD));
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: couldn't make tmp nrrd:%s\n", me, err);
+    free(err);
     exit(1);
   }
   sprintf(ntmp->content, "(slices)");
@@ -135,19 +141,20 @@ main(int argc, char *argv[]) {
     /* printf("   axes[%d] = %d\n", j, axes[j]); */
   }
   if (!(nout = nrrdNewPermuteAxes(ntmp, axes))) {
-    fprintf(stderr, "%s: error permuting nrrd:\n%s", me, biffGet(NRRD));
-    exit(1);
-  }
-  if (!(fout = fopen(argv[argc-1], "w"))) {
-    fprintf(stderr, "%s: couldn't open %s for writing\n", me, argv[argc-1]);
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: error permuting nrrd:\n%s", me, err);
+    free(err);
     exit(1);
   }
   nout->encoding = nrrdEncodingRaw;
-  if (nrrdWrite(fout, nout)) {
-    fprintf(stderr, "%s: error writing nrrd:\n%s", me, biffGet(NRRD));
+  if (nrrdSave(argv[argc-1], nout)) {
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: error writing nrrd to \"%s\":\n%s", 
+	    me, argv[argc-1], err);
+    free(err);
     exit(1);
   }
-  fclose(fout);
+
   free(nin);
   nrrdNuke(nout);
   exit(0);

@@ -22,8 +22,8 @@ char *me;
 
 void
 usage() {
-                      
-  fprintf(stderr, /* 0  1        2       3       4   */
+  /*               0    1        2       3       4     (5) */
+  fprintf(stderr, 
 	  "usage: %s <nrrdIn> <radius> <bins> <nrrdOut>\n",
 	  me);
   exit(1);
@@ -31,7 +31,6 @@ usage() {
 
 int
 main(int argc, char *argv[]) {
-  FILE *fin, *fout;
   char *inStr, *outStr, *radiusStr, *binsStr, *err;
   int radius, bins;
   Nrrd *nin, *nout;
@@ -40,10 +39,12 @@ main(int argc, char *argv[]) {
   if (argc != 5) {
     usage();
   }
+
   inStr = argv[1];
   radiusStr = argv[2];
   binsStr = argv[3];
   outStr = argv[4];
+
   if (1 != sscanf(radiusStr, "%d", &radius)) {
     fprintf(stderr, "%s: couldn't parse %s as int\n", me, radiusStr);
     exit(1);
@@ -52,30 +53,25 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: couldn't parse %s as int\n", me, binsStr);
     exit(1);
   }
-  if (!(fin = fopen(inStr, "r"))) {
-    fprintf(stderr, "%s: couldn't open %s for reading\n", me, inStr);
-    exit(1);
-  }
-  if (!(nin = nrrdNewRead(fin))) {
+
+  if (!(nin = nrrdNewOpen(inStr))) {
     err = biffGet(NRRD);
-    fprintf(stderr, "%s: error reading nrrd:%s\n", me, err);
+    fprintf(stderr, "%s: error reading nrrd from \"%s\":%s\n", me, inStr, err);
+    free(err);
     exit(1);
   }
-  fclose(fin);
   if (!(nout = nrrdNewMedian(nin, radius, bins))) {
     fprintf(stderr, "%s: error in median filtering:\n%s", me, biffGet(NRRD));
     exit(1);
   }
-  if (!(fout = fopen(outStr, "w"))) {
-    fprintf(stderr, "%s: couldn't open %s for writing\n", me, outStr);
+  nout->encoding = nrrdEncodingRaw;
+  if (nrrdSave(outStr, nout)) {
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: error writing nrrd to \"%s\":\n%s", me, outStr, err);
+    free(err);
     exit(1);
   }
-  nout->encoding = nin->encoding;
-  if (nrrdWrite(fout, nout)) {
-    fprintf(stderr, "%s: error writing nrrd:\n%s", me, biffGet(NRRD));
-    exit(1);
-  }
-  fclose(fout);
+
   nrrdNuke(nin);
   nrrdNuke(nout);
   exit(0);

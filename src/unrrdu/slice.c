@@ -22,74 +22,51 @@ char *me;
 
 void
 usage() {
-                      /*  0     1       2          3    */
-  fprintf(stderr, "usage: %s <nrrdIn> <axis> <baseNameOut>\n", me);
+                      /*  0     1       2      3       4    (5) */
+  fprintf(stderr, "usage: %s <nrrdIn> <axis> <pos> <nrrdOut>\n", me);
   exit(1);
 }
 
 int
 main(int argc, char *argv[]) {
-  FILE *fin, *fout;
-  char *in, *base, out[128], *err, format[10];
-  int top, axis, pos;
-  Nrrd *nin, *nout = NULL;
+  char *in, *out, *err;
+  int axis, pos;
+  Nrrd *nin, *nout;
 
   me = argv[0];
-  if (4 != argc)
+  if (5 != argc)
     usage();
-  if (1 != sscanf(argv[2], "%d", &axis)) {
-    fprintf(stderr, "%s: couldn't parse %s as axis\n", me, argv[2]);
+
+  if (2 != (sscanf(argv[2], "%d", &axis) + 
+	    sscanf(argv[3], "%d", &pos))) {
+    fprintf(stderr, "%s: couldn't parse (%s,%s) as (axis,pos)\n", 
+	    me, argv[2], argv[3]);
     exit(1);
   }
   in = argv[1];
-  base = argv[3];
-  if (!(fin = fopen(in, "r"))) {
-    fprintf(stderr, "%s: couldn't open %s for reading\n", me, in);
-    exit(1);
-  }
-  if (!(nin = nrrdNewRead(fin))) {
+  out = argv[4];
+
+  if (!(nin = nrrdNewOpen(in))) {
     err = biffGet(NRRD);
-    fprintf(stderr, "%s: error reading nrrd:%s\n", me, err);
+    fprintf(stderr, "%s: couldn't get nrrd from %s:\n%s\n", me, in, err);
+    free(err);
     exit(1);
   }
-  fclose(fin);
-  if (!(AIR_INSIDE(0, axis, nin->dim-1))) {
-    fprintf(stderr, "%s: given axis (%d) outside range [0,%d]\n",
-	    me, axis, nin->dim-1);
+  if (!(nout = nrrdNewSlice(nin, axis, pos))) {
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: error slicing nrrd:\n%s\n", me, err);
+    free(err);
     exit(1);
   }
-  top = nin->size[axis]-1;
-  if (top > 9999)
-    sprintf(format, "%%s%%05d.nrrd");
-  else if (top > 999)
-    sprintf(format, "%%s%%04d.nrrd");
-  else if (top > 99)
-    sprintf(format, "%%s%%03d.nrrd");
-  else if (top > 9)
-    sprintf(format, "%%s%%02d.nrrd");
-  else
-    sprintf(format, "%%s%%01d.nrrd");
-  for (pos=0; pos<=top; pos++) {
-    sprintf(out, format, base, pos);
-    printf("%s\n", out);
-    if (!(nout = nrrdNewSlice(nin, axis, pos))) {
-      err = biffGet(NRRD);
-      fprintf(stderr, "%s: error slicing nrrd:%s\n", me, err);
-      exit(1);
-    }
-    nout->encoding = nin->encoding;
-    if (!(fout = fopen(out, "w"))) {
-      fprintf(stderr, "%s: couldn't open %s for writing\n", me, out);
-      exit(1);
-    }
-    if (nrrdWrite(fout, nout)) {
-      err = biffGet(NRRD);
-      fprintf(stderr, "%s: error writing nrrd:%s\n", me, err);
-      exit(1);
-    }
-    fclose(fout);
-    nrrdNuke(nout);
+  nout->encoding = nrrdEncodingRaw;
+  if (nrrdSave(out, nout)) {
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: error saving nrrd to %s:\n%s\n", me, out, err);
+    free(err);
+    exit(1);
   }
+    
   nrrdNuke(nin);
+  nrrdNuke(nout);
   exit(0);
 }

@@ -30,29 +30,28 @@ usage() {
 
 int
 main(int argc, char **argv) {
-  FILE *fin, *fout;
   Nrrd *nin;
+  char *err;
 
   me = argv[0];
   if (3 != argc)
     usage();
-  if (!(fin = fopen(argv[1], "r"))) {
-    fprintf(stderr, "%s: couldn't open %s for reading\n", me, argv[1]);
-    exit(1);
-  }
-  if (!(fout = fopen(argv[2], "w"))) {
-    fprintf(stderr, "%s: couldn't open %s for writing\n", me, argv[2]);
-    exit(1);
-  }
-  if (!(nin = nrrdNewRead(fin))) {
-    fprintf(stderr, "%s: trouble reading nrrd:\n%s\n", me, 
-	    biffGet(NRRD));
+  if (!(nin = nrrdNewOpen(argv[1]))) {
+    err = biffGet(NRRD);
+    fprintf(stderr, 
+	    "%s: trouble reading nrrd from \"%s\":\n%s\n", me, argv[1], err);
+    free(err);
     exit(1);
   }
   nin->encoding = nrrdEncodingAscii;
-  if (nrrdWrite(fout, nin)) {
-    fprintf(stderr, "%s: trouble writing nrrd:\n%s\n",
-	    me, biffGet(NRRD));
+  if (nrrdSave(argv[2], nin)) {
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: trouble writing nrrd to \"%s\":\n%s\n",
+	    me, argv[2], err);
+    free(err);
     exit(1);
   }
+  
+  nrrdNuke(nin);
+  exit(0);
 }
