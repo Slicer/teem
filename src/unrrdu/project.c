@@ -87,7 +87,6 @@ projectMain(int argc, char **argv, char *me) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  printf("%s: axis = %d, measr = %d\n", me, axis, measr);
   if (nrrdProject(nout, nin, axis, measr)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error projecting nrrd:\n%s", me, err);
