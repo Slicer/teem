@@ -64,23 +64,23 @@ alanUpdate(alanContext *actx) {
     sprintf(err, "%s: ", me);
     biffAdd(ALAN, err); return 1;
   }
-  if (actx->nlev[0] || actx->nlev[0]) {
-    sprintf(err, "%s: confusion: nlev[0,1] already allocated?", me);
+  if (actx->_nlev[0] || actx->_nlev[0]) {
+    sprintf(err, "%s: confusion: _nlev[0,1] already allocated?", me);
     biffAdd(ALAN, err); return 1;
   }
-  actx->nlev[0] = nrrdNew();
-  actx->nlev[1] = nrrdNew();
+  actx->_nlev[0] = nrrdNew();
+  actx->_nlev[1] = nrrdNew();
   actx->nparm = nrrdNew();
   if (2 == actx->dim) {
-    ret = (nrrdMaybeAlloc(actx->nlev[0], alan_nt, 3,
+    ret = (nrrdMaybeAlloc(actx->_nlev[0], alan_nt, 3,
 			  2, actx->size[0], actx->size[1])
-	   || nrrdCopy(actx->nlev[1], actx->nlev[0])
+	   || nrrdCopy(actx->_nlev[1], actx->_nlev[0])
 	   || nrrdMaybeAlloc(actx->nparm, alan_nt, 3,
 			     3, actx->size[0], actx->size[1]));
   } else {
-    ret = (nrrdMaybeAlloc(actx->nlev[0], alan_nt, 4,
+    ret = (nrrdMaybeAlloc(actx->_nlev[0], alan_nt, 4,
 			  2, actx->size[0], actx->size[1], actx->size[2])
-	   || nrrdCopy(actx->nlev[1], actx->nlev[0])
+	   || nrrdCopy(actx->_nlev[1], actx->_nlev[0])
 	   || nrrdMaybeAlloc(actx->nparm, alan_nt, 4,
 			     3, actx->size[0], actx->size[1], actx->size[2]));
   }
@@ -102,8 +102,8 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
     sprintf(err, "%s: ", me);
     biffAdd(ALAN, err); return 1;
   }
-  if (!( actx->nlev[0] && actx->nlev[0] && actx->nparm )) {
-    sprintf(err, "%s: nlev[0,1] not allocated: call alanUpdate", me);
+  if (!( actx->_nlev[0] && actx->_nlev[0] && actx->nparm )) {
+    sprintf(err, "%s: _nlev[0,1] not allocated: call alanUpdate", me);
     biffAdd(ALAN, err); return 1;
   }
   
@@ -114,7 +114,7 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
     }
     if (!( alan_nt == nlevInit->type 
 	   && nlevInit->dim == 1 + actx->dim
-	   && actx->nlev[0]->axis[0].size == nlevInit->axis[0].size
+	   && actx->_nlev[0]->axis[0].size == nlevInit->axis[0].size
 	   && actx->size[0] == nlevInit->axis[1].size
 	   && actx->size[1] == nlevInit->axis[2].size 
 	   && (2 == actx->dim || actx->size[2] == nlevInit->axis[3].size) )) {
@@ -142,8 +142,8 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
 
 #define RAND AIR_AFFINE(0, airRand(), 1, -actx->randRange, actx->randRange)
 
-  N = nrrdElementNumber(actx->nlev[0])/actx->nlev[0]->axis[0].size;
-  lev0 = (alan_t*)(actx->nlev[0]->data);
+  N = nrrdElementNumber(actx->_nlev[0])/actx->_nlev[0]->axis[0].size;
+  lev0 = (alan_t*)(actx->_nlev[0]->data);
   parm = (alan_t*)(actx->nparm->data);
   for (I=0; I<N; I++) {
     if (levInit) {
@@ -177,14 +177,16 @@ _alanPerIteration(alanContext *actx, int iter) {
   char me[]="_alanPerIteration", fname[AIR_STRLEN_MED];
   Nrrd *nslc, *nimg;
 
-  if (actx->saveInterval && !(iter % actx->saveInterval)) {
+  if (actx->verbose && !(iter % 100)) {
     fprintf(stderr, "%s: iter = %d, averageChange = %g\n",
 	    me, iter, actx->averageChange);
+  }
+  if (actx->saveInterval && !(iter % actx->saveInterval)) {
     sprintf(fname, "%06d.nrrd", actx->constFilename ? 0 : iter);
-    nrrdSave(fname, actx->nlev[iter % 2], NULL);
+    nrrdSave(fname, actx->_nlev[(iter+1) % 2], NULL);
   }
   if (actx->frameInterval && !(iter % actx->frameInterval)) {
-    nrrdSlice(nslc=nrrdNew(), actx->nlev[iter % 2], 0, 0);
+    nrrdSlice(nslc=nrrdNew(), actx->_nlev[(iter+1) % 2], 0, 0);
     nrrdQuantize(nimg=nrrdNew(), nslc, NULL, 8);
     sprintf(fname, "%06d.png", actx->constFilename ? 0 : iter);
     nrrdSave(fname, nimg, NULL);
@@ -228,13 +230,15 @@ _alanTuring2DWorker(void *_task) {
        alanStopNot == task->actx->stop && iter < task->actx->maxIteration; 
        iter++) {
 
-    lev0 = (alan_t*)(task->actx->nlev[iter % 2]->data);
-    lev1 = (alan_t*)(task->actx->nlev[(iter+1) % 2]->data);
+    if (0 == task->idx) {
+      task->actx->iter = iter;
+      task->actx->nlev = task->actx->_nlev[(iter+1) % 2];
+    }
+    lev0 = (alan_t*)(task->actx->_nlev[iter % 2]->data);
+    lev1 = (alan_t*)(task->actx->_nlev[(iter+1) % 2]->data);
     stop = alanStopNot;
     change = 0;
-    for (y = startY;
-	 alanStopNot == stop && y < endY; 
-	 y++) {
+    for (y = startY; y < endY; y++) {
       if (task->actx->wrap) {
 	py = AIR_MOD(y+1, sy);
 	my = AIR_MOD(y-1, sy);
@@ -242,9 +246,7 @@ _alanTuring2DWorker(void *_task) {
 	py = AIR_MIN(y+1, sy-1);
 	my = AIR_MAX(y-1, 0);
       }
-      for (x = 0; 
-	   alanStopNot == stop && x < sx; 
-	   x++) {
+      for (x = 0; x < sx; x++) {
 	if (task->actx->wrap) {
 	  px = AIR_MOD(x+1, sx);
 	  mx = AIR_MOD(x-1, sx);
@@ -272,13 +274,11 @@ _alanTuring2DWorker(void *_task) {
 	deltaA = task->actx->K*(alpha - A*B) + diffA*lapA;
 	if (AIR_ABS(deltaA) > task->actx->maxPixelChange) {
 	  stop = alanStopDiverged;
-	  break;
 	}
 	change += AIR_ABS(deltaA);
 	deltaB = task->actx->K*(A*B - B - beta) + diffB*lapB;
 	if (!( AIR_EXISTS(deltaA) && AIR_EXISTS(deltaB) )) {
 	  stop = alanStopNonExist;
-	  break;
 	}
 	
 	A += speed*deltaA;
@@ -297,12 +297,13 @@ _alanTuring2DWorker(void *_task) {
       /* I must be the last thread to reach this point; all 
 	 others must have passed the mutex unlock, and are
 	 sitting at the barrier */
-      if (task->actx->averageChange < task->actx->minAverageChange) {
+      if (alanStopNot != stop) {
+	/* there was some problem in going from lev0 to lev1, which
+	   we deal with now by setting actx->stop */
+	task->actx->stop = stop;
+      } else if (task->actx->averageChange < task->actx->minAverageChange) {
 	/* we converged */
 	task->actx->stop = alanStopConverged;
-      } else if (alanStopNot != stop) {
-	/* we stopped for some reason */
-	task->actx->stop = stop;
       } else {
 	/* we keep going */
 	_alanPerIteration(task->actx, iter);
@@ -333,13 +334,12 @@ alanRun(alanContext *actx) {
   int tid, hack=AIR_FALSE;
   alanTask task[ALAN_THREAD_MAX];
 
-  fprintf(stderr, "%s: blah 0\n", me);
   if (_alanCheck(actx)) {
     sprintf(err, "%s: ", me);
     biffAdd(ALAN, err); return 1;
   }
-  if (!( actx->nlev[0] && actx->nlev[0] )) {
-    sprintf(err, "%s: nlev[0,1] not allocated: "
+  if (!( actx->_nlev[0] && actx->_nlev[0] )) {
+    sprintf(err, "%s: _nlev[0,1] not allocated: "
 	    "call alanUpdate + alanInit", me);
     biffAdd(ALAN, err); return 1;
   }
@@ -353,7 +353,6 @@ alanRun(alanContext *actx) {
   actx->averageChange = 0;
   actx->changeCount = 0;
   actx->stop = alanStopNot;
-  fprintf(stderr, "%s: blah\n", me);
   for (tid=0; tid<actx->numThreads; tid++) {
     task[tid].actx = actx;
     task[tid].idx = tid;

@@ -128,7 +128,9 @@ typedef struct alanContext_t {
   int (*perIteration)(struct alanContext_t *, int iter);
 
   /* INTERNAL -------------------------- */
-  Nrrd *nlev[2];      /* levels of morphogens, alternating buffers */
+  int iter;           /* current iteration */
+  Nrrd *_nlev[2],     /* levels of morphogens, alternating buffers */
+    *nlev;            /* pointer to last iterations output */
   Nrrd *nparm;        /* alpha, beta values for all texels */
   alan_t 
     averageChange;    /* average amount of "change" in last iteration */

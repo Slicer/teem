@@ -48,8 +48,9 @@ alanContextInit(alanContext *actx) {
     actx->diffA = actx->diffB = 0;
     actx->perIteration = NULL;
     actx->randRange = 0.01;
-    actx->nlev[0] = nrrdNuke(actx->nlev[0]);
-    actx->nlev[1] = nrrdNuke(actx->nlev[1]);
+    actx->_nlev[0] = nrrdNuke(actx->_nlev[0]);
+    actx->_nlev[1] = nrrdNuke(actx->_nlev[1]);
+    actx->nlev = actx->_nlev[0];
     actx->nparm = nrrdNuke(actx->nparm);
     actx->nten = nrrdNuke(actx->nten);
     actx->constFilename = AIR_FALSE;
@@ -62,7 +63,8 @@ alanContextNew(void) {
   alanContext *actx;
 
   actx = (alanContext *)calloc(1, sizeof(alanContext));
-  actx->nlev[0] = actx->nlev[1] = NULL;
+  actx->_nlev[0] = actx->_nlev[1] = NULL;
+  actx->nlev = NULL;
   actx->nparm = NULL;
   actx->nten = NULL;
   alanContextInit(actx);
@@ -73,8 +75,8 @@ alanContext *
 alanContextNix(alanContext *actx) {
 
   if (actx) {
-    actx->nlev[0] = nrrdNuke(actx->nlev[0]);
-    actx->nlev[1] = nrrdNuke(actx->nlev[1]);
+    actx->_nlev[0] = nrrdNuke(actx->_nlev[0]);
+    actx->_nlev[1] = nrrdNuke(actx->_nlev[1]);
     actx->nparm = nrrdNuke(actx->nparm);
     actx->nten = nrrdNuke(actx->nten);
     free(actx);
