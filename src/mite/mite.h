@@ -29,12 +29,6 @@
 #include <teem/hoover.h>
 #include <teem/ten.h>
 
-#if defined(_WIN32) && !defined(TEEM_STATIC) && !defined(__CYGWIN__)
-#define mite_export __declspec(dllimport)
-#else
-#define mite_export
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -328,51 +322,51 @@ typedef struct miteThread_t {
 } miteThread;
 
 /* defaultsMite.c */
-extern mite_export const char *miteBiffKey;
-extern mite_export double miteDefRefStep;
-extern mite_export int miteDefRenorm;
-extern mite_export int miteDefNormalSide;
-extern mite_export double miteDefOpacNear1;
-extern mite_export double miteDefOpacMatters;
+TEEM_API const char *miteBiffKey;
+TEEM_API double miteDefRefStep;
+TEEM_API int miteDefRenorm;
+TEEM_API int miteDefNormalSide;
+TEEM_API double miteDefOpacNear1;
+TEEM_API double miteDefOpacMatters;
 
 /* kindnot.c */
-extern mite_export airEnum *miteVal;
-extern mite_export gageKind *miteValGageKind;
+TEEM_API airEnum *miteVal;
+TEEM_API gageKind *miteValGageKind;
 
 /* txf.c */
-extern mite_export char miteRangeChar[MITE_RANGE_NUM];
-extern void miteVariablePrint(char *buff, const gageQuerySpec *qsp);
-extern int miteVariableParse(gageQuerySpec *qsp, const char *label);
-extern int miteNtxfCheck(const Nrrd *ntxf);
+TEEM_API char miteRangeChar[MITE_RANGE_NUM];
+TEEM_API void miteVariablePrint(char *buff, const gageQuerySpec *qsp);
+TEEM_API int miteVariableParse(gageQuerySpec *qsp, const char *label);
+TEEM_API int miteNtxfCheck(const Nrrd *ntxf);
 
 /* user.c */
-extern miteUser *miteUserNew();
-extern miteUser *miteUserNix(miteUser *muu);
+TEEM_API miteUser *miteUserNew();
+TEEM_API miteUser *miteUserNix(miteUser *muu);
 
 /* renderMite.c */
-extern miteShadeSpec *miteShadeSpecNew();
-extern miteShadeSpec *miteShadeSpecNix(miteShadeSpec *);
-extern int miteShadeParse(miteShadeSpec *shpec, char *shadeStr);
-extern int miteRenderBegin(miteRender **mrrP, miteUser *muu);
-extern int miteRenderEnd(miteRender *mrr, miteUser *muu);
+TEEM_API miteShadeSpec *miteShadeSpecNew();
+TEEM_API miteShadeSpec *miteShadeSpecNix(miteShadeSpec *);
+TEEM_API int miteShadeParse(miteShadeSpec *shpec, char *shadeStr);
+TEEM_API int miteRenderBegin(miteRender **mrrP, miteUser *muu);
+TEEM_API int miteRenderEnd(miteRender *mrr, miteUser *muu);
 
 /* thread.c */
-extern int miteThreadBegin(miteThread **mttP, miteRender *mrr, miteUser *muu,
-			   int whichThread);
-extern int miteThreadEnd(miteThread *mtt, miteRender *mrr, miteUser *muu);
+TEEM_API int miteThreadBegin(miteThread **mttP, miteRender *mrr, miteUser *muu,
+			     int whichThread);
+TEEM_API int miteThreadEnd(miteThread *mtt, miteRender *mrr, miteUser *muu);
 
 /* ray.c */
-extern int miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
-			int uIndex, int vIndex, 
-			double rayLen,
-			double rayStartWorld[3], double rayStartIndex[3],
-			double rayDirWorld[3], double rayDirIndex[3]);
-extern double miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
-			 int num, double rayT, int inside,
-			 double samplePosWorld[3],
-			 double samplePosIndex[3]);
-extern int miteRayEnd(miteThread *mtt, miteRender *mrr,
-		      miteUser *muu);
+TEEM_API int miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
+			  int uIndex, int vIndex, 
+			  double rayLen,
+			  double rayStartWorld[3], double rayStartIndex[3],
+			  double rayDirWorld[3], double rayDirIndex[3]);
+TEEM_API double miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
+			   int num, double rayT, int inside,
+			   double samplePosWorld[3],
+			   double samplePosIndex[3]);
+TEEM_API int miteRayEnd(miteThread *mtt, miteRender *mrr,
+			miteUser *muu);
 
 #ifdef __cplusplus
 }
