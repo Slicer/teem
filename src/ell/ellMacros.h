@@ -212,6 +212,11 @@ extern "C" {
    ELL_3V_SET((m)+3,  0 ,  1 ,  0), \
    ELL_3V_SET((m)+6,  0 ,  0 ,  1))
 
+#define ELL_3M_SET_ZERO(m) \
+  (ELL_3V_SET((m)+0,  0 ,  0 ,  0), \
+   ELL_3V_SET((m)+3,  0 ,  0 ,  0), \
+   ELL_3V_SET((m)+6,  0 ,  0 ,  0))
+
 #define ELL_3M_SET_DIAG(m, a, b, c) \
   ((m)[0] = (a), (m)[4] = (b), (m)[8] = (c))
 
@@ -290,6 +295,11 @@ extern "C" {
   (ELL_3V_SCALE((m)+0, (v2)[0], (v1)), \
    ELL_3V_SCALE((m)+3, (v2)[1], (v1)), \
    ELL_3V_SCALE((m)+6, (v2)[2], (v1)))
+
+#define ELL_3MV_OUTERADD(m, v1, v2) \
+  (ELL_3V_SCALEADD((m)+0, 1, (m)+0, (v2)[0], (v1)), \
+   ELL_3V_SCALEADD((m)+3, 1, (m)+3, (v2)[1], (v1)), \
+   ELL_3V_SCALEADD((m)+6, 1, (m)+6, (v2)[2], (v1)))
 
 #define ELL_3MV_MUL(v2, m, v1) \
   ((v2)[0] = (m)[0]*(v1)[0] + (m)[3]*(v1)[1] + (m)[6]*(v1)[2], \
@@ -485,6 +495,12 @@ extern "C" {
    ELL_4V_SET((m)+ 4,  0 ,  1 ,  0 , 0), \
    ELL_4V_SET((m)+ 8,  0 ,  0 ,  1 , 0), \
    ELL_4V_SET((m)+12,  0 ,  0 ,  0 , 1))
+
+#define ELL_4M_SET_ZERO(m) \
+  (ELL_4V_SET((m)+ 0,  0 ,  0 ,  0 , 0), \
+   ELL_4V_SET((m)+ 4,  0 ,  0 ,  0 , 0), \
+   ELL_4V_SET((m)+ 8,  0 ,  0 ,  0 , 0), \
+   ELL_4V_SET((m)+12,  0 ,  0 ,  0 , 0))
 
 #define ELL_4M_SET_SCALE(m, x, y, z)     \
   (ELL_4V_SET((m)+ 0, (x),  0 ,  0 , 0), \
