@@ -27,23 +27,36 @@
 ** unu commands.  They define options which are common across many different
 ** commands, so that the unu interface is as consistent as possible.  They
 ** all assume a hestOpt *opt variable, but they take the option variable
-** and option description as arguments.
+** and option description as arguments.  The expected type of the variable
+** is given before each macro.
 */
+/* Nrrd *var */
 #define OPT_ADD_NIN(var, desc) \
   hestOptAdd(&opt, "i|input", "nin", airTypeOther, 1, 1, &(var), "-", desc, \
-	     NULL, &hestNrrdCB)
+	     NULL, &unuNrrdHestCB)
+
+/* char *var */
 #define OPT_ADD_NOUT(var, desc) \
   hestOptAdd(&opt, "o|output", "nout", airTypeString, 1, 1, &(var), "-", desc)
+
+/* int var */
 #define OPT_ADD_AXIS(var, desc) \
   hestOptAdd(&opt, "a|axis", "axis", airTypeInt, 1, 1, &(var), NULL, desc)
-#define OPT_ADD_POS(var, desc) \
-  hestOptAdd(&opt, "p|position", "pos", airTypeInt, 1, 1, &(var), NULL, desc)
+
+/* int *var; int saw */
+#define OPT_ADD_BOUND(name, var, desc, saw) \
+  hestOptAdd(&opt, name, "pos0", airTypeOther, 1, -1, &(var), NULL, desc, \
+	     &(saw), &unuPosHestCB)
+
+/* int var */
 #define OPT_ADD_TYPE(var, desc) \
   hestOptAdd(&opt, "t|type", "type", airTypeOther, 1, 1, &(var), NULL, desc, \
-             NULL, typeCB);
+             NULL, &unuTypeHestCB)
 
 extern hestParm *hparm;
-extern hestCB hestNrrdCB;
+extern hestCB unuNrrdHestCB;
+extern hestCB unuTypeHestCB;
+extern hestCB unuPosHestCB;
 
 typedef struct {
   char *name, *info;

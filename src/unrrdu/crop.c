@@ -15,120 +15,62 @@
   of Utah. All Rights Reserved.
 */
 
+#include "private.h"
 
-#include <nrrd.h>
-#include <limits.h>
-
-int
-usage(char *me) {
-                      
-  fprintf(stderr, /* 0  1        2        3                 argc-2  argc-1*/ 
-	  "usage: %s <nIn> <ax0min> <ax0max> <ax1min> ... <axN-1max> <nOut>\n",
-	  me);
-  fprintf(stderr, 
-	  "       min and max should be either a signed integer, or \n");
-  fprintf(stderr, 
-	  "       \"M\", \"M+n\", or \"M-n\", where M signifies top\n");
-  fprintf(stderr, 
-	  "       position along its respective axis (#samples - 1),\n");
-  fprintf(stderr, "and +n/-n is an offset from that position\n");
-  return 1;
-}
+char *cropName = "crop";
+char *cropInfo = "Crop along each axis to make a smaller nrrd";
 
 int
-getint(char *str, int *n, int *offset) {
-
-  *offset = 0;
-  if ('M' == str[0]) {
-    *n = INT_MAX;
-    if (1 < strlen(str)) {
-      if (('+' == str[1] || '-' == str[1])) {
-	if (1 != sscanf(str+1, "%d", offset)) {
-	  return 1;
-	}
-	/* else we succesfully parsed the offset */
-      }
-      else {
-	/* something other that '+' or '-' after 'M' */
-	return 1;
-      }
-    }
-  }
-  else {
-    if (1 != sscanf(str, "%d", n)) {
-      return 1;
-    }
-    /* else we successfully parsed n */
-  }
-  return 0;
-}
-
-int
-main(int argc, char *argv[]) {
-  char *me, *inStr, *outStr, *err;
-  int i, udim, min[NRRD_DIM_MAX], max[NRRD_DIM_MAX], 
-    minoffset[NRRD_DIM_MAX], maxoffset[NRRD_DIM_MAX];
+cropMain(int argc, char **argv, char *me) {
+  hestOpt *opt = NULL;
+  char *out, *err;
   Nrrd *nin, *nout;
-  double t1, t2;
+  int *min, numMin, *max, numMax;
+  airArray *mop;
 
-  me = argv[0];
-  if (0 != (argc-3) % 2) {
-    return usage(me);
-  }
-  udim = (argc - 3)/2;
-  if (!(udim > 1)) {
-    return usage(me);
-  }
-  inStr = argv[1];
-  outStr = argv[argc-1];
-  for (i=0; i<=udim-1; i++) {
-    if (getint(argv[2 + 2*i + 0], min + i, minoffset + i)) {
-      printf("%s: Couldn't parse min for axis %d, \"%s\"\n",
-	     me, i, argv[2 + 2*i + 0]);
-      return usage(me);
-    }
-    if (getint(argv[2 + 2*i + 1], max + i, maxoffset + i)) {
-      printf("%s: Couldn't parse max for axis %d, \"%s\"\n",
-	     me, i, argv[2 + 2*i + 1]);
-      return usage(me);
-    }
-  }
-  if (nrrdLoad(nin=nrrdNew(), inStr)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble reading input:%s\n", me, err);
-    free(err);
+  OPT_ADD_NIN(nin, "input");
+  OPT_ADD_BOUND("min", min, "low corner of bounding box", numMin);
+  OPT_ADD_BOUND("max", max, "high corner of bounding box", numMax);
+  OPT_ADD_NOUT(out, "output nrrd");
+
+  mop = airMopInit();
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+
+  if (!argc) {
+    hestInfo(stderr, me, cropInfo, hparm);
+    hestUsage(stderr, opt, me, hparm);
+    hestGlossary(stderr, opt, hparm);
+    airMopError(mop);
     return 1;
   }
-  if (udim != nin->dim) {
-    fprintf(stderr, "%s: input nrrd has dimension %d, but given %d axes\n",
-	    me, nin->dim, udim);
+
+  if (hestParse(opt, argc, argv, &err, hparm)) {
+    fprintf(stderr, "%s: %s\n", me, err); free(err);
+    hestUsage(stderr, opt, me, hparm);
+    hestGlossary(stderr, opt, hparm);
+    airMopError(mop);
     return 1;
   }
-  for (i=0; i<=udim-1; i++) {
-    if (INT_MAX == min[i])
-      min[i] = nin->axis[i].size - 1 + minoffset[i];
-    if (INT_MAX == max[i])
-      max[i] = nin->axis[i].size - 1 + maxoffset[i];
-    fprintf(stderr, "%s: axis % 2d: %d -> %d\n", me, i, min[i], max[i]);
-  }
+  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  t1 = airTime();
-  if (nrrdCrop(nout=nrrdNew(), nin, min, max)) {
-    err = biffGet(NRRD);
+  /*
+  nout = nrrdNew();
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+  if (nrrd(nout, nin, axis)) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error cropping nrrd:\n%s", me, err);
-    free(err);
-    return 1;
-  }
-  t2 = airTime();
-  fprintf(stderr, "%s: nrrdCrop() took %g seconds\n", me, t2-t1);
-  if (nrrdSave(outStr, nout, NULL)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: error writing nrrd:\n%s", me, err);
-    free(err);
+    airMopError(mop);
     return 1;
   }
 
-  nrrdNuke(nin);
-  nrrdNuke(nout);
+  if (nrrdSave(out, nout, NULL)) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s\n", me, out, err);
+    airMopError(mop);
+    return 1;
+  }
+  */
+
+  airMopOkay(mop);
   return 0;
 }

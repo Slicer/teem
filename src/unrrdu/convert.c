@@ -17,29 +17,26 @@
 
 #include "private.h"
 
-/* NB: not the same as char sliceName[] = "slice"; Read your C FAQs */
-char *sliceName = "slice";
-char *sliceInfo = "Slice at a position along an axis";
+char *convertName = "convert";
+char *convertInfo = "Convert nrrd to another type (as if by per-value cast)";
 
 int
-sliceMain(int argc, char **argv, char *me) {
+convertMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int axis, pos;
+  int type;
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input");
-  OPT_ADD_AXIS(axis, "axis to slice along");
-  hestOptAdd(&opt, "p|position", "pos", airTypeInt, 1, 1, &pos, NULL,
-	     "position (in index space) to slice at");
+  OPT_ADD_TYPE(type, "type to convert to");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   if (!argc) {
-    hestInfo(stderr, me, sliceInfo, hparm);
+    hestInfo(stderr, me, convertInfo, hparm);
     hestUsage(stderr, opt, me, hparm);
     hestGlossary(stderr, opt, hparm);
     airMopError(mop);
@@ -57,9 +54,9 @@ sliceMain(int argc, char **argv, char *me) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdSlice(nout, nin, axis, pos)) {
+  if (nrrdConvert(nout, nin, type)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: error slicing nrrd:\n%s", me, err);
+    fprintf(stderr, "%s: error converting nrrd:\n%s", me, err);
     airMopError(mop);
     return 1;
   }

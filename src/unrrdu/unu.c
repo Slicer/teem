@@ -71,7 +71,9 @@ hestParm *hparm;
     That's it.
 **********************************************************/
 #define MAP(F) \
+F(convert) \
 F(slice) \
+F(crop) \
 F(flip)
 /*********************************************************/
 
@@ -100,8 +102,8 @@ unuCmd *cmdList[] = {
 /* set up hestCB structs for common non-trivial things */
 
 int
-parseNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "parseNrrd", *nerr;
+unuParseNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[] = "unuParseNrrd", *nerr;
   Nrrd **nrrdP;
   airArray *mop;
   
@@ -126,12 +128,80 @@ parseNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB hestNrrdCB = {
+hestCB unuNrrdHestCB = {
   sizeof(Nrrd *),
   "nrrd",
-  parseNrrd,
+  unuParseNrrd,
   (airMopper)nrrdNuke
 }; 
+
+int
+unuParseType(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[]="unuParseType";
+  int *typeP;
+
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  typeP = ptr;
+  *typeP = nrrdEnumStrToVal(nrrdEnumType, str);
+  if (nrrdTypeUnknown == *typeP) {
+    sprintf(err, "%s: \"%s\" is not a recognized nrrd type", me, str);
+    return 1;
+  }
+  return 0;
+}
+
+hestCB unuTypeHestCB = {
+  sizeof(int),
+  "type",
+  unuParseType,
+  NULL
+};
+
+int
+unuParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[]="unuParsePos";
+  int *pos;
+
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  pos = ptr;
+  if (!strcmp("M", str)) {
+    pos[0] = 1;
+    pos[1] = 0;
+    return 0;
+  }
+  if ('M' == str[0]) {
+    if (!('-' == str[1] || '+' == str[1])) {
+      sprintf(err, "%s: M can be followed only by + or -", me);
+      return 1;
+    }
+    pos[0] = 1;
+    if (1 != sscanf(str+1, "%d", pos + 1)) {
+      sprintf(err, "%s: can't parse \"%s\" as M+<int> or M-<int>", me, str);
+      return 1;
+    }
+  }
+  else {
+    pos[0] = 0;
+    if (1 != sscanf(str, "%d", pos + 1)) {
+      sprintf(err, "%s: can't parse \"%s\" as int", me, str);
+      return 1;
+    }
+  }
+  return 0;
+}
+
+hestCB unuPosHestCB = {
+  2*sizeof(int),
+  "position",
+  unuParsePos,
+  NULL
+};
 
 void
 usage(char *me) {

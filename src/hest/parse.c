@@ -660,12 +660,11 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	  ret = opt[op].CB->parse(vP, prms[op], cberr);
 	  if (ret) {
 	    if (strlen(cberr))
-	      sprintf(err, "%serror parsing \"%s\" as %s:%s%s", 
-		      ME, prms[op], opt[op].CB->type, 
-		      strchr(cberr, '\n') ? "\n" : "", cberr);
+	      sprintf(err, "%serror parsing \"%s\" as %s for %s:\n%s", 
+		      ME, prms[op], opt[op].CB->type, ident, cberr);
 	    else 
-	      sprintf(err, "%serror parsing \"%s\" as %s: return val %d", 
-		      ME, prms[op], opt[op].CB->type, ret);
+	      sprintf(err, "%serror parsing \"%s\" as %s for %s: returned %d", 
+		      ME, prms[op], opt[op].CB->type, ident, ret);
 	    return 1;
 	  }
 	  if (opt[op].CB->delete) {
@@ -707,13 +706,13 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	    ret = opt[op].CB->parse(cP + p*size, tok, cberr);
 	    if (ret) {
 	      if (strlen(cberr))
-		sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s:%s%s", 
-			ME, tok, prms[op], opt[op].CB->type,
-			strchr(cberr, '\n') ? "\n" : "", cberr);
+		sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s "
+			"for %s:\n%s", 
+			ME, tok, prms[op], opt[op].CB->type, ident, cberr);
 	      else 
-		sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s: "
-			"return val %d", 
-			ME, tok, prms[op], opt[op].CB->type, ret);
+		sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s "
+			"for %s: returned %d", 
+			ME, tok, prms[op], opt[op].CB->type, ident, ret);
 	      free(prmsCopy);
 	      return 1;
 	    }
@@ -772,12 +771,11 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	  ret = opt[op].CB->parse(vP, prms[op], cberr);
 	  if (ret) {
 	    if (strlen(cberr))
-	      sprintf(err, "%serror parsing \"%s\" as %s:%s%s", 
-		      ME, prms[op], opt[op].CB->type,
-		      strchr(cberr, '\n') ? "\n" : "", cberr);
+	      sprintf(err, "%serror parsing \"%s\" as %s for %s:\n%s", 
+		      ME, prms[op], opt[op].CB->type, ident, cberr);
 	    else 
-	      sprintf(err, "%serror parsing \"%s\" as %s: return val %d", 
-		      ME, prms[op], opt[op].CB->type, ret);
+	      sprintf(err, "%serror parsing \"%s\" as %s for %s: returned %d", 
+		      ME, prms[op], opt[op].CB->type, ident, ret);
 	    return 1;
 	  }
 	  if (opt[op].CB->delete) {
@@ -846,14 +844,14 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	      ret = opt[op].CB->parse(cP + p*size, tok, cberr);
 	      if (ret) {
 		if (strlen(cberr))
-		  sprintf(err,"%serror parsing \"%s\" (in \"%s\") as %s:%s%s", 
-			  ME, tok, prms[op], opt[op].CB->type,
-			  strchr(cberr, '\n') ? "\n" : "", cberr);
+		  sprintf(err,"%serror parsing \"%s\" (in \"%s\") as %s "
+			  "for %s:\n%s", 
+			  ME, tok, prms[op], opt[op].CB->type, ident, cberr);
 
 		else 
-		  sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s: "
-			  "return val %d", 
-			  ME, tok, prms[op], opt[op].CB->type, ret);
+		  sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s "
+			  "for %s: returned %d", 
+			  ME, tok, prms[op], opt[op].CB->type, ident, ret);
 		free(prmsCopy);
 		return 1;
 	      }
