@@ -804,7 +804,6 @@ switch (sz) {                                 \
   default: memcpy((a), (b), (sz)); break;     \
 }
 
-
 #ifdef __cplusplus
 }
 #endif
