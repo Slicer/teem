@@ -32,7 +32,7 @@
 extern "C" {
 #endif
 
-#if defined(_WIN32) && defined(TEEM_DLL)
+#if defined(_WIN32) && !defined(TEEM_STATIC)
 #define air_export __declspec(dllimport)
 #else
 #define air_export
