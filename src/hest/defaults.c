@@ -22,7 +22,7 @@
 
 int hestVerbosity = 0;
 int hestRespFileEnable = AIR_FALSE;
-int hestColumns = 80;
+int hestColumns = 79;
 int hestElideSingleEnumType = AIR_FALSE;
 int hestElideSingleOtherType = AIR_FALSE;
 int hestElideSingleOtherDefault = AIR_FALSE;
