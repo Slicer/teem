@@ -424,7 +424,7 @@ _nrrdNonCmtLine(FILE *file, char *line, int size, Nrrd *nrrd) {
   return len;
 }
 
-nrrdMagic
+int
 nrrdReadMagic(FILE *file) {
   char line[NRRD_BIG_STRLEN], err[NRRD_MED_STRLEN], 
     me[] = "nrrdReadMagic";
@@ -446,7 +446,7 @@ nrrdReadMagic(FILE *file) {
     }
   }
   if (i < nrrdMagicLast) {
-    return (nrrdMagic)i;
+    return i;
   }
   else {
     return nrrdMagicUnknown;
@@ -456,7 +456,7 @@ nrrdReadMagic(FILE *file) {
 int
 nrrdReadHeader(FILE *file, Nrrd *nrrd) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdReadHeader";
-  nrrdMagic magic;
+  int magic;
 
   magic = nrrdReadMagic(file);
   switch (magic) {
@@ -814,7 +814,7 @@ nrrdSave(char *name, Nrrd *nrrd) {
   
   if (!(name && nrrd)) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return NULL;
+    biffSet(NRRD, err); return 1;
   }
   file = fopen(name, "wb");
   if (!file) {
@@ -1127,7 +1127,7 @@ nrrdWriteDataBase85(FILE *file, Nrrd *nrrd) {
 }
 
 int
-nrrdReadPNMHeader(FILE *file, Nrrd *nrrd, nrrdMagic magic) {
+nrrdReadPNMHeader(FILE *file, Nrrd *nrrd, int magic) {
   char err[NRRD_MED_STRLEN], line[NRRD_BIG_STRLEN], 
     me[] = "nrrdReadPNMHeader";
   int ascii, color, bitmap, 
