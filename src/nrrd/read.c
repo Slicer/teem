@@ -54,8 +54,9 @@ _nrrdOneLine (int *lenP, NrrdIO *io, FILE *file) {
   airArray *lineArr;
   int len, lineIdx;
 
-  if (!( lenP && file && io )) {
-    sprintf(err, "%s: got NULL pointer", me);
+  if (!( lenP && io && file)) {
+    sprintf(err, "%s: got NULL pointer (%p, %p, %p)", me,
+	    lenP, io, file);
     biffAdd(NRRD, err); return 1;
   }
   if (0 == io->lineLen) {
@@ -681,6 +682,8 @@ nrrdByteSkip (Nrrd *nrrd, NrrdIO *io) {
 int
 _nrrdReadNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadNrrd", *err=NULL;
+  /* NOTE: err has to be dynamically allocated because of the 
+     arbitrary-sized input lines that it may have to copy */
   int ret, len;
 
   /* parse header lines */
@@ -809,8 +812,10 @@ _nrrdReadNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   }
   if (io->seperateHeader && stdin != io->dataFile) {
     if (!io->keepSeperateDataFileOpen && !io->skipData) {
+      /* HEY: is Gordon getting too clever here? */
       AIR_FCLOSE(io->dataFile);
     }
+    /* fprintf(stderr, "!%s: io->dataFile = %p\n", me, io->dataFile); */
   } else {
     /* put things back the way we found them */
     io->dataFile = NULL;
