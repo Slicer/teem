@@ -170,11 +170,19 @@ ell_3m_2d_nullspace_d(double ans0[3], double ans1[3], double _n[9]) {
 ** given matrix is NOT modified
 **
 ** This does NOT use biff
+**
+** Doing the frobenius normalization proved successfull in avoiding the
+** the creating of NaN eigenvalues when the coefficients of the matrix
+** were really large (> 50000).
 */
 int
-ell_3m_eigenvalues_d(double eval[3], double m[9], int newton) {
-  double A, B, C;
+ell_3m_eigenvalues_d(double _eval[3], double _m[9], int newton) {
+  double A, B, C, scale, frob, m[9], eval[3];
+  int ret;
 
+  frob = ELL_3M_FROB(_m);
+  scale = frob > 10 ? 10.0/frob : 1.0;
+  ELL_3M_SCALE(m, scale, _m);
   /* 
   ** from gordon with mathematica; these are the coefficients of the
   ** cubic polynomial in x: det(x*I - M).  The full cubic is
@@ -187,7 +195,9 @@ ell_3m_eigenvalues_d(double eval[3], double m[9], int newton) {
   C = (m[2]*m[4] - m[1]*m[5])*m[6]
     + (m[0]*m[5] - m[2]*m[3])*m[7]
     + (m[1]*m[3] - m[0]*m[4])*m[8];
-  return ell_cubic(eval, A, B, C, newton);
+  ret = ell_cubic(eval, A, B, C, newton);
+  ELL_3V_SCALE(_eval, 1.0/scale, eval);
+  return ret;
 }
 
 /*
