@@ -66,12 +66,12 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
     strcat(encInfo,
 	   "\n The specifiers for compressions may be followed by a colon "
 	   "\":\", followed by an optional digit giving compression \"level\" "
-	   "(for gzip) or \"block size\" (for bzip2), followed by an optional "
-	   "character (for gzip):\n "
+	   "(for gzip) or \"block size\" (for bzip2).  For gzip, this can be "
+	   "followed by an optional character for a compression strategy:\n "
 	   "\b\bo \"d\": default, Huffman with string match\n "
 	   "\b\bo \"h\": Huffman alone\n "
 	   "\b\bo \"f\": specialized for filtered data\n "
-	   "\"gz\", \"gz:9\", \"gz:9f\" are all valid");
+	   "For example, \"gz\", \"gz:9\", \"gz:9f\" are all valid");
   }
   hestOptAdd(&opt, "e", "encoding", airTypeOther, 1, 1, enc, "raw",
 	     encInfo, NULL, NULL, &unrrduHestEncodingCB);
