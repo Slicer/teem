@@ -38,6 +38,7 @@ _nrrdMeasureMin(void *line, int lineType, int len,
   double val, M;
   int i;
 
+  fprintf("_nrrdMeasureMin: line = %p; len = %d\n", line, len);
   if (nrrdTypeFixed[lineType]) {
     M = nrrdDLookup[lineType](line, 0);
     for (i=1; i<3; i++) {
