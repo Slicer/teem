@@ -33,7 +33,7 @@ bopMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
   NrrdIter *in1, *in2;
-  Nrrd *nout, *ntmp;
+  Nrrd *nout, *ntmp=NULL;
   int op, type, E;
   airArray *mop;
 
