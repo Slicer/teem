@@ -284,11 +284,12 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
 	if (!( tdata[0] >= parm->confThresh ))
 	  continue;
 	sliceGray = aniso[parm->sliceAnisoType];
-	sliceGray = AIR_AFFINE(0, sliceGray, 1, parm->sliceBias, 1);
       }
       if (parm->sliceGamma > 0) {
+	sliceGray = AIR_AFFINE(0, sliceGray, 1, parm->sliceBias, 1);
 	sliceGray = pow(sliceGray, 1.0/parm->sliceGamma);
       } else {
+	sliceGray = AIR_AFFINE(0, sliceGray, 1, 0, 1-parm->sliceBias);
 	sliceGray = 1.0 - pow(sliceGray, -1.0/parm->sliceGamma);
       }
       /* make slice contribution */
