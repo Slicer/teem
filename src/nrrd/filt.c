@@ -295,6 +295,7 @@ nrrdCheapMedian(Nrrd *nout, Nrrd *nin, int mode, int radius, float wght,
 		int bins) {
   char me[]="nrrdCheapMedian", func[]="cmedian", err[AIR_STRLEN_MED];
   float *hist;
+  int hack;
 
   if (!(nin && nout)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -327,10 +328,13 @@ nrrdCheapMedian(Nrrd *nout, Nrrd *nin, int mode, int radius, float wght,
     sprintf(err, "%s: failed to create copy of input", me);
     biffAdd(NRRD, err); return 1;
   }
+  hack = nrrdStateClever8BitMinMax;
+  nrrdStateClever8BitMinMax = AIR_FALSE;
   if (nrrdMinMaxCleverSet(nin)) {
     sprintf(err, "%s: couldn't learn value range", me);
     biffAdd(NRRD, err); return 1;
   }
+  nrrdStateClever8BitMinMax = hack;
   if (!(hist = (float*)calloc(bins, sizeof(float)))) {
     sprintf(err, "%s: couldn't allocate histogram (%d bins)", me, bins);
     biffAdd(NRRD, err); return 1;
