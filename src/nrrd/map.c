@@ -229,7 +229,7 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
 int
 nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   char me[] = "nrrdQuantize", func[]="quantize", err[AIR_STRLEN_MED];
-  double valIn, min, max, eps;
+  double valIn, minIn, maxIn, eps;
   int valOut, type=nrrdTypeUnknown, size[NRRD_DIM_MAX];
   unsigned long long int valOutll;
   size_t I, num;
@@ -280,9 +280,9 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
 
   /* the skinny */
   num = nrrdElementNumber(nin);
-  min = nin->min; 
-  max = nin->max;
-  eps = (min == max ? 1.0 : 0.0);
+  minIn = nin->min; 
+  maxIn = nin->max;
+  eps = (minIn == maxIn ? 1.0 : 0.0);
   outUC = (unsigned char*)nout->data;
   outUS = (unsigned short*)nout->data;
   outUI = (unsigned int*)nout->data;
@@ -290,24 +290,24 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   case 8:
     for (I=0; I<num; I++) {
       valIn = nrrdDLookup[nin->type](nin->data, I);
-      valIn = AIR_CLAMP(min, valIn, max);
-      AIR_INDEX(min, valIn, max+eps, 1 << 8, valOut);
+      valIn = AIR_CLAMP(minIn, valIn, maxIn);
+      AIR_INDEX(minIn, valIn, maxIn+eps, 1 << 8, valOut);
       outUC[I] = valOut;
     }
     break;
   case 16:
     for (I=0; I<num; I++) {
       valIn = nrrdDLookup[nin->type](nin->data, I);
-      valIn = AIR_CLAMP(min, valIn, max);
-      AIR_INDEX(min, valIn, max+eps, 1 << 16, valOut);
+      valIn = AIR_CLAMP(minIn, valIn, maxIn);
+      AIR_INDEX(minIn, valIn, maxIn+eps, 1 << 16, valOut);
       outUS[I] = valOut;
     }
     break;
   case 32:
     for (I=0; I<num; I++) {
       valIn = nrrdDLookup[nin->type](nin->data, I);
-      valIn = AIR_CLAMP(min, valIn, max);
-      AIR_INDEX(min, valIn, max+eps, 1LLU << 32, valOutll);
+      valIn = AIR_CLAMP(minIn, valIn, maxIn);
+      AIR_INDEX(minIn, valIn, maxIn+eps, 1LLU << 32, valOutll);
       outUI[I] = valOutll;
     }
     break;
@@ -318,18 +318,123 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   if (nout != nin) {
     nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
   }
-  nout->oldMin = min;
-  nout->oldMax = max;
+  nout->min = nout->max = AIR_NAN;
+  nout->oldMin = minIn;
+  nout->oldMax = maxIn;
   if (nrrdContentSet(nout, func, nin, "%d", bits)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  nout->min = nout->max = AIR_NAN;
   nout->blockSize = 0;
   nout->hasNonExist = nrrdNonExistFalse;
 
   return 0;
 }
+
+/*
+******** nrrdUnquantize()
+**
+** try to recover floating point values from a quantized nrrd,
+** using the oldMin and oldMax values, if they exist.  If they
+** don't exist, the output range will be 0.0 to 1.0.  However,
+** because we're using NRRD_AXIS_CELL_POS to recover values,
+** the output values will never be exactly 0.0 to 1.0 (or oldMin
+** to oldMax).  In unsigned char data, for instance, the value
+** V will be mapped to:
+** NRRD_AXIS_CELL_POS(0.0, 1.0, 256, V) ==
+** AIR_AFFINE(0, V + 0.5, 256, 0.0, 1.0) ==
+** ((double)(1.0)-(0.0))*((double)(V+0.5)-(0)) / ((double)(256)-(0)) + (0.0))
+** (1.0)*(V+0.5) / (256.0) + (0.0) ==
+** (V+1)/512
+** so a 0 will be mapped to 1/512 = 0.00195
+*/
+int
+nrrdUnquantize(Nrrd *nout, Nrrd *nin, int type) {
+  char me[]="nrrdUnquantize", func[]="unquantize", err[AIR_STRLEN_MED];
+  float *outF;
+  double *outD, minIn, numValIn, minOut, maxOut, valIn;
+  int size[NRRD_DIM_MAX];
+  size_t NN, II;
+
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!airEnumValidVal(nrrdType, type)) {
+    sprintf(err, "%s: don't recognize type %d\n", me, type);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!( type == nrrdTypeFloat || type == nrrdTypeDouble )) {
+    sprintf(err, "%s: output type must be %s or %s (not %s)", me,
+	    airEnumStr(nrrdType, nrrdTypeFloat),
+	    airEnumStr(nrrdType, nrrdTypeDouble),
+	    airEnumStr(nrrdType, type));
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdTypeBlock == nin->type) {
+    sprintf(err, "%s: can't unquantize type %s", me,
+	    airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!nrrdTypeFixed[nin->type]) {
+    sprintf(err, "%s: can only unquantize fixed-point types, not %s", me,
+	    airEnumStr(nrrdType, nin->type));
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nout == nin && nrrdTypeSize[type] != nrrdTypeSize[nin->type]) {
+    sprintf(err, "%s: nout==nin but input,output type sizes unequal", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
+  if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
+    sprintf(err, "%s: failed to create output", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  minIn = nrrdTypeMin[nin->type];
+  numValIn = nrrdTypeNumberValues[nin->type];
+  if (AIR_EXISTS(nin->oldMin) && AIR_EXISTS(nin->oldMax)) {
+    minOut = nin->oldMin;
+    maxOut = nin->oldMax;
+  } else {
+    minOut = 0.0;
+    maxOut = 1.0;
+  }
+  outF = (float*)nout->data;
+  outD = (double*)nout->data;
+  NN = nrrdElementNumber(nin);
+  switch(type) {
+  case nrrdTypeFloat:
+    for (II=0; II<NN; II++) {
+      valIn = minIn + nrrdDLookup[nin->type](nin->data, II);
+      outF[II] = NRRD_AXIS_CELL_POS(minOut, maxOut, numValIn, valIn);
+    }
+    break;
+  case nrrdTypeDouble:
+    for (II=0; II<NN; II++) {
+      valIn = minIn + nrrdDLookup[nin->type](nin->data, II);
+      outD[II] = NRRD_AXIS_CELL_POS(minOut, maxOut, numValIn, valIn);
+    }
+    break;
+  }
+
+  /* set information in new volume */
+  /* nrrdPeripheralInit(nout); nout==nin qualms */
+  if (nout != nin) {
+    nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+  }
+  nout->min = NRRD_AXIS_CELL_POS(minOut, maxOut, numValIn, 0);
+  nout->max = NRRD_AXIS_CELL_POS(minOut, maxOut, numValIn, numValIn-1);
+  nout->oldMin = nout->oldMax = AIR_NAN;
+  if (nrrdContentSet(nout, func, nin, "")) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  nout->blockSize = 0;
+  nout->hasNonExist = nrrdNonExistFalse;
+  return 0;
+}
+
 
 /*
 ** _nrrdHistoEqCompare()
