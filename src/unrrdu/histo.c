@@ -27,13 +27,19 @@ int
 unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
-  Nrrd *nin, *nout;
+  Nrrd *nin, *nout, *nwght;
   int bins, type, pret;
   double min, max;
   airArray *mop;
 
   hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, NULL,
 	     "# of bins in histogram");
+  hestOptAdd(&opt, "w", "nweight", airTypeOther, 1, 1, &nwght, "",
+	     "how to weigh contributions to joint histogram.  By default "
+	     "(not using this option), the increment is one bin count per "
+	     "sample, but by giving a nrrd, the value in the nrrd at the "
+	     "corresponding location will be the bin count increment ",
+	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
 	     "Value at low end of histogram. Defaults to lowest value "
 	     "found in input nrrd.");
@@ -62,7 +68,7 @@ unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
     nin->min = min;
   if (AIR_EXISTS(max))
     nin->max = max;
-  if (nrrdHisto(nout, nin, bins, type)) {
+  if (nrrdHisto(nout, nin, nwght, bins, type)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error calculating histogram:\n%s", me, err);
     free(err);

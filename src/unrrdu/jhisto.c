@@ -33,19 +33,22 @@ int
 unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
-  Nrrd **nin, *nout;
+  Nrrd **nin, *nout, *nwght;
   int type, d, ninLen, *bin, binLen, clamp[NRRD_DIM_MAX], pret,
     minLen, maxLen;
   airArray *mop;
   double *min, *max;
 
-  hestOptAdd(&opt, "i", "nin0 nin1", airTypeOther, 2, -1, &nin, NULL,
-	     "All input nrrds",
-	     &ninLen, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "b", "bins0 bins1", airTypeInt, 2, -1, &bin, NULL,
 	     "bins<i> is the number of bins to use along axis i (of joint "
 	     "histogram), which represents the values of nin<i> ",
 	     &binLen);
+  hestOptAdd(&opt, "w", "nweight", airTypeOther, 1, 1, &nwght, "",
+	     "how to weigh contributions to joint histogram.  By default "
+	     "(not using this option), the increment is one bin count per "
+	     "sample, but by giving a nrrd, the value in the nrrd at the "
+	     "corresponding location will be the bin count increment ",
+	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "min", "min0 min1", airTypeDouble, 2, -1, &min, "nan nan",
 	     "min<i> is the low range of values to be quantized along "
 	     "axis i; use \"nan\" to represent lowest value present ",
@@ -58,6 +61,9 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
 	       "counts in the joint histogram).  Clamping is done on hit "
 	       "counts so that they never overflow a fixed-point type",
 	       "uint");
+  hestOptAdd(&opt, "i", "nin0 nin1", airTypeOther, 2, -1, &nin, NULL,
+	     "All input nrrds",
+	     &ninLen, NULL, nrrdHestNrrd);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
@@ -73,7 +79,7 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
-  if (1 != minLen) {
+  if (2 != minLen || (AIR_EXISTS(min[0]) || AIR_EXISTS(min[1]))) {
     if (minLen != ninLen) {
       fprintf(stderr, "%s: # mins (%d) != # input nrrds (%d)\n", me,
 	      minLen, ninLen);
@@ -85,7 +91,7 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
       }
     }
   }
-  if (1 != maxLen) {
+  if (2 != maxLen || (AIR_EXISTS(max[0]) || AIR_EXISTS(max[1]))) {
     if (maxLen != ninLen) {
       fprintf(stderr, "%s: # maxs (%d) != # input nrrds (%d)\n", me,
 	      maxLen, ninLen);
@@ -111,7 +117,7 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdHistoJoint(nout, nin, ninLen, bin, type, clamp)) {
+  if (nrrdHistoJoint(nout, nin, ninLen, nwght, bin, type, clamp)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing joint histogram:\n%s", me, err);
     airMopError(mop);
