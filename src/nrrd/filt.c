@@ -360,6 +360,7 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   range = nrrdRangeNewSet(nin, nrrdBlind8BitRangeFalse);
+  airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   if (!(hist = (float*)calloc(bins, sizeof(float)))) {
     sprintf(err, "%s: couldn't allocate histogram (%d bins)", me, bins);
     biffAdd(NRRD, err); airMopError(mop); return 1;
