@@ -138,7 +138,7 @@ usage(char *me) {
   }
 
   sprintf(buff, "--- %s: command-line nrrd interface ---", me);
-  sprintf(fmt, "%%%ds\n", (80-strlen(buff))/2 + strlen(buff) - 1);
+  sprintf(fmt, "%%%ds\n", (int)((80-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
   
   for (i=0; cmdList[i]; i++) {
