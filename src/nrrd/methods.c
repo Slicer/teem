@@ -270,7 +270,7 @@ nrrdNewCopy(Nrrd *nin) {
     sprintf(err, "%s: nrrdNew() failed", me);
     biffAdd(NRRD, err); return(NULL);
   }
-  if (nrrdCopy(nin, nout)) {
+  if (nrrdCopy(nout, nin)) {
     sprintf(err, "%s: trouble copying nrrd", me);
     biffAdd(NRRD, err); return(NULL);
   }
