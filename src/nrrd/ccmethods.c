@@ -57,12 +57,14 @@ _nrrdCC_settle (int *map, int len) {
   return max;
 }
 
+/*
 int
 nrrdCCSettle(Nrrd *nout, Nrrd *nin) {
   char me[]="nrrdCCSettle", err[AIR_STRLEN_MED];
 
   return 0;
 }
+*/
 
 
 /*

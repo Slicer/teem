@@ -157,7 +157,7 @@ _nrrdCCFind_2(Nrrd *nout, int *numid, airArray *eqvArr,
 int
 _nrrdCCFind_3(Nrrd *nout, int *numid, airArray *eqvArr,
 	      Nrrd *nin, int conny) {
-  /* char me[]="_nrrdCCFind_2", err[AIR_STRLEN_MED]*/ ; 
+  /* char me[]="_nrrdCCFind_2", err[AIR_STRLEN_MED] ; */
   double pvl[14], vl=0;
   int id, pid[14], *out, (*lup)(void *, size_t);
   int p, x, y, z, sx, sy, sz;  
