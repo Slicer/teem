@@ -70,6 +70,16 @@ const coilMethod*
 coilMethodSelf = &_coilMethodSelf;
 
 /* ------------------------------------------ */
+const coilMethod
+_coilMethodFinish = {
+  "finish",
+  coilMethodTypeFinish,
+  4
+};
+const coilMethod*
+coilMethodFinish = &_coilMethodFinish;
+
+/* ------------------------------------------ */
 const coilMethod*
 coilMethodArray[COIL_METHOD_TYPE_MAX+1] = {
   NULL,
@@ -78,5 +88,6 @@ coilMethodArray[COIL_METHOD_TYPE_MAX+1] = {
   &_coilMethodPeronaMalik,
   &_coilMethodModifiedCurvature,
   NULL,
-  &_coilMethodSelf
+  &_coilMethodSelf,
+  &_coilMethodFinish
 };

@@ -76,9 +76,10 @@ enum {
   coilMethodTypeModifiedCurvature,  /* 4 */
   coilMethodTypeCurvatureFlow,      /* 5 */
   coilMethodTypeSelf,               /* 6 */
+  coilMethodTypeFinish,             /* 7 */
   coilMethodTypeLast
 };
-#define COIL_METHOD_TYPE_MAX           6
+#define COIL_METHOD_TYPE_MAX           7
 
 /*
 ******** coilMethod struct

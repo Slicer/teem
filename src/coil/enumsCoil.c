@@ -27,7 +27,8 @@ _coilMethodTypeStr[COIL_METHOD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "perona-malik",
   "modified curvature",
   "curvature flow",
-  "self"
+  "self",
+  "finish"
 };
 
 char
@@ -38,7 +39,8 @@ _coilMethodTypeDesc[COIL_METHOD_TYPE_MAX+1][AIR_STRLEN_MED] = {
   "Perona-Malik",
   "modified curvature diffusion",
   "curvature flow",
-  "self-diffusion of diffusion tensors"
+  "self-diffusion of diffusion tensors",
+  "finish a phd already"
 };
 
 char
@@ -49,6 +51,7 @@ _coilMethodTypeStrEqv[][AIR_STRLEN_SMALL] = {
   "mcde",
   "flow",
   "self",
+  "finish",
   ""
 };
 
@@ -59,7 +62,8 @@ _coilMethodTypeValEqv[] = {
   coilMethodTypePeronaMalik, coilMethodTypePeronaMalik,
   coilMethodTypeModifiedCurvature,
   coilMethodTypeCurvatureFlow,
-  coilMethodTypeSelf
+  coilMethodTypeSelf,
+  coilMethodTypeFinish,
 };
 
 airEnum
