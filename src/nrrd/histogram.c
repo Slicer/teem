@@ -31,7 +31,7 @@ nrrdHistoAxis(Nrrd *nin, Nrrd *nout, int axis, int bins) {
     sprintf(err, "%s: invalid args", me);
     biffSet(NRRD, err); return 1;
   }
-  if (!NRRD_INSIDE(0, axis, nin->dim-1)) {
+  if (!AIR_INSIDE(0, axis, nin->dim-1)) {
     sprintf(err, "%s: axis %d is not in range [0,%d]", me, axis, nin->dim-1);
     biffSet(NRRD, err); return 1;
   }
@@ -69,7 +69,7 @@ nrrdHistoAxis(Nrrd *nin, Nrrd *nout, int axis, int bins) {
 
     /* get input nrrd value and compute its histogram index */
     val = nrrdFLookup[nin->type](nin->data, I);
-    NRRD_INDEX(nin->min, val, nin->max, bins, hidx);
+    AIR_INDEX(nin->min, val, nin->max, bins, hidx);
 
     /* determine coordinate in output nrrd, update bin count */
     memcpy(hcoord, coord, nin->dim*sizeof(int));
@@ -154,7 +154,7 @@ nrrdHisto(Nrrd *nin, Nrrd *nout, int bins) {
   for (I=0; I<=nin->num-1; I++) {
     val = nrrdFLookup[nin->type](data, I);
     if (AIR_EXISTS(val)) {
-      NRRD_INDEX(min, val, max, bins, idx);
+      AIR_INDEX(min, val, max, bins, idx);
       ++hist[idx];
     }
   }
@@ -339,11 +339,11 @@ nrrdDrawHisto(Nrrd *nin, Nrrd *nout, int sy) {
   Y = (int*)calloc(sx, sizeof(int));
   logY = (int*)calloc(sx, sizeof(int));
   for (k=0; k<=numticks-1; k++) {
-    NRRD_INDEX(0, log10(pow(10,k+1) + 1), log10(maxhits+1), sy, ticks[k]);
+    AIR_INDEX(0, log10(pow(10,k+1) + 1), log10(maxhits+1), sy, ticks[k]);
   }
   for (x=0; x<=sx-1; x++) {
-    NRRD_INDEX(0, hist[x], maxhits, sy, Y[x]);
-    NRRD_INDEX(0, log10(hist[x]+1), log10(maxhits+1), sy, logY[x]);
+    AIR_INDEX(0, hist[x], maxhits, sy, Y[x]);
+    AIR_INDEX(0, log10(hist[x]+1), log10(maxhits+1), sy, logY[x]);
     /* printf("%d -> %d,%d", x, Y[x], logY[x]); */
   }
   for (y=0; y<=sy-1; y++) {
@@ -368,7 +368,7 @@ nrrdDrawHisto(Nrrd *nin, Nrrd *nout, int sy) {
   sprintf(cmt, "max value: %g\n", nin->axisMax[0]);
   nrrdAddComment(nout, cmt);
   sprintf(cmt, "max hits: %d, around value %g\n", maxhits, 
-	  NRRD_AFFINE(0, maxhitidx, sx-1, nin->axisMin[0], nin->axisMax[0]));
+	  AIR_AFFINE(0, maxhitidx, sx-1, nin->axisMin[0], nin->axisMax[0]));
   nrrdAddComment(nout, cmt);
   free(Y);
   free(logY);
@@ -496,7 +496,7 @@ nrrdHistoEq(Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
     for (I=0; I<=nin->num-1; I++) {
       val = nrrdDLookup[nin->type](nin->data, I);
       if (AIR_EXISTS(val)) {
-	NRRD_INDEX(min, val, max, bins, idx);
+	AIR_INDEX(min, val, max, bins, idx);
 	/*
 	if (!AIR_INSIDE(0, idx, bins-1)) {
 	  printf("%s: I=%d; val=%g, [%g,%g] ===> %d\n", 
@@ -537,7 +537,7 @@ nrrdHistoEq(Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
 
   /* integrate the histogram then normalize it */
   for (i=0; i<=bins; i++) {
-    xcoord[i] = NRRD_AFFINE(0, i, bins, min, max);
+    xcoord[i] = AIR_AFFINE(0, i, bins, min, max);
     if (i == 0) {
       ycoord[i] = 0;
     }
@@ -548,14 +548,14 @@ nrrdHistoEq(Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
     }
   }
   for (i=0; i<=bins; i++) {
-    ycoord[i] = NRRD_AFFINE(0, ycoord[i], ycoord[bins], min, max);
+    ycoord[i] = AIR_AFFINE(0, ycoord[i], ycoord[bins], min, max);
   }
 
   /* map the nrrd values through the normalized histogram integral */
   for (i=0; i<=nin->num-1; i++) {
     val = nrrdDLookup[nin->type](nin->data, i);
-    NRRD_INDEX(min, val, max, bins, idx);
-    val = NRRD_AFFINE(xcoord[idx], val, xcoord[idx+1], 
+    AIR_INDEX(min, val, max, bins, idx);
+    val = AIR_AFFINE(xcoord[idx], val, xcoord[idx+1], 
 		      ycoord[idx], ycoord[idx+1]);
     nrrdDInsert[nin->type](nin->data, i, val);
   }

@@ -573,7 +573,7 @@ nrrdCheck(Nrrd *nrrd) {
     sprintf(err, "%s: type is \"block\" but no blocksize given", me);
     biffSet(NRRD, err); return(1);
   }
-  if (!NRRD_INSIDE(1, nrrd->dim, NRRD_MAX_DIM)) {
+  if (!AIR_INSIDE(1, nrrd->dim, NRRD_MAX_DIM)) {
     sprintf(err, "%s: dimension %d is outside valid range [1,%d]",
 	    me, nrrd->dim, NRRD_MAX_DIM);
     biffSet(NRRD, err); return(1);

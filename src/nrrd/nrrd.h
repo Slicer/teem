@@ -288,7 +288,8 @@ typedef enum {
 **
 ** for identifying how a file was written to disk, for those encodings
 ** where the data on disk is dependent on the endianness of the
-** architecture
+** architecture.  There could potentially be more endiannesses
+** at some future date.
 */
 typedef enum {
   nrrdEndianUnknown,         /* 0: nobody knows */
@@ -449,7 +450,7 @@ extern int    (*nrrdFprint[13])(FILE *, void *);
 extern float  (*nrrdFClamp[13])(float);
 extern double (*nrrdDClamp[13])(double);
 
-/******** sampling, slicing, cropping, and permuting */
+/******** sampling, slicing, cropping+padding, permuting, shuffling */
 /* subset.c */
 extern int nrrdElementSize(Nrrd *nrrd);
 extern int nrrdSample(Nrrd *nin, int *coord, void *val);
@@ -460,6 +461,7 @@ extern Nrrd *nrrdNewPermuteAxes(Nrrd *nin, int *axes);
 extern int nrrdSubvolume(Nrrd *nin, Nrrd *nout, 
 			 int *minIdx, int *maxIdx, int clamp);
 extern Nrrd *nrrdNewSubvolume(Nrrd *nin, int *minIdx, int *maxIdx, int clamp);
+extern int nrrdShuffle(Nrrd *nin, Nrrd *nout, int axis, int *perm);
 
 /******** measuring and projecting */
 /* measr.c */

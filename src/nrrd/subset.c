@@ -19,7 +19,7 @@
 #include "nrrd.h"
 
 /*
-** this isn't used any more.  terrible, terrible idea
+** this isn't used any more.  Thank God.  Terrible, terrible idea.
 */
 void
 _nrrdSelectElements(void *dataIn, void *dataOut, int size,
@@ -74,7 +74,7 @@ nrrdSample(Nrrd *nrrd, int *coord, void *val) {
   size = nrrdElementSize(nrrd);
   dim = nrrd->dim;
   for (i=0; i<=dim-1; i++) {
-    if (!(NRRD_INSIDE(0, coord[i], nrrd->size[i]-1))) {
+    if (!(AIR_INSIDE(0, coord[i], nrrd->size[i]-1))) {
       sprintf(err, "%s: coordinate %d on axis %d out of bounds (0 to %d)", 
 	      me, coord[i], i, nrrd->size[i]-1);
       biffSet(NRRD, err); return 1;
@@ -121,12 +121,12 @@ nrrdSlice(Nrrd *nin, Nrrd *nout, int axis, int pos) {
     sprintf(err, "%s: invalid args", me);
     biffSet(NRRD, err); return 1;
   }
-  if (!(NRRD_INSIDE(0, axis, nin->dim-1))) {
+  if (!(AIR_INSIDE(0, axis, nin->dim-1))) {
     sprintf(err, "%s: slice axis %d out of bounds (0 to %d)", 
 	    me, axis, nin->dim-1);
     biffSet(NRRD, err); return 1;
   }
-  if (!(NRRD_INSIDE(0, pos, nin->size[axis]-1) )) {
+  if (!(AIR_INSIDE(0, pos, nin->size[axis]-1) )) {
     sprintf(err, "%s: position %d out of bounds (0 to %d)", 
 	    me, axis, nin->size[axis]-1);
     biffSet(NRRD, err); return 1;
@@ -236,7 +236,7 @@ nrrdPermuteAxes(Nrrd *nin, Nrrd *nout, int *axes) {
   }
   memset(used, 0, NRRD_MAX_DIM*sizeof(int));
   for (d=0; d<=nin->dim-1; d++) {
-    if (!NRRD_INSIDE(0, axes[d], nin->dim-1)) {
+    if (!AIR_INSIDE(0, axes[d], nin->dim-1)) {
       sprintf(err, "%s: axis#%d == %d out of bounds", me, d, axes[d]);
       biffSet(NRRD, err); return 1;
     }
@@ -369,7 +369,7 @@ nrrdSubvolume(Nrrd *nin, Nrrd *nout, int *min, int *max, int clamp) {
     ** min[d] > max[d] is how the caller requests flipping along
     ** that axis
     */
-    len[d] = NRRD_ABS(max[d] - min[d]) + 1;
+    len[d] = AIR_ABS(max[d] - min[d]) + 1;
     num *= len[d];
   }
   if (!(nout->data)) {
@@ -396,16 +396,16 @@ nrrdSubvolume(Nrrd *nin, Nrrd *nout, int *min, int *max, int clamp) {
 	/* flip along this axis */
 	coord[d] = len[d] - 1 - coord[d];
       }
-      coord[d] += NRRD_MIN(max[d], min[d]);
+      coord[d] += AIR_MIN(max[d], min[d]);
       idx /= len[d];
     }
     /* we go from coord[] to idx (original volume linear index) */
     idx = 0;
     outside = 0;
     for (d=dim-1; d>=0; d--) {
-      if (!NRRD_INSIDE(0, coord[d], nin->size[d]-1)) {
+      if (!AIR_INSIDE(0, coord[d], nin->size[d]-1)) {
 	if (clamp) {
-	  coord[d] = NRRD_CLAMP(0, coord[d], nin->size[d]-1);
+	  coord[d] = AIR_CLAMP(0, coord[d], nin->size[d]-1);
 	}
 	else {
 	  /* we allow the coord[] array and idx to hold bogus values 
@@ -427,10 +427,10 @@ nrrdSubvolume(Nrrd *nin, Nrrd *nout, int *min, int *max, int clamp) {
   for (d=0; d<=dim-1; d++) {
     nout->size[d] = len[d];
     nout->spacing[d] = nin->spacing[d];
-    nout->axisMin[d] = NRRD_AFFINE(0, min[d], len[d]-1,
-				   nin->axisMin[d], nin->axisMax[d]);
-    nout->axisMax[d] = NRRD_AFFINE(0, max[d], len[d]-1,
-				   nin->axisMin[d], nin->axisMax[d]);
+    nout->axisMin[d] = AIR_AFFINE(0, min[d], len[d]-1,
+				  nin->axisMin[d], nin->axisMax[d]);
+    nout->axisMax[d] = AIR_AFFINE(0, max[d], len[d]-1,
+				  nin->axisMin[d], nin->axisMax[d]);
     strcpy(nout->label[d], nin->label[d]);
   }
   sprintf(nout->content, "crop(%s,", nin->content);
@@ -467,3 +467,76 @@ nrrdNewSubvolume(Nrrd *nin, int *min, int *max, int clamp) {
   }
   return nout;
 }
+
+/*
+******** nrrdShuffle
+**
+** rearranges hyperslices of a nrrd along a given axis according
+** to given permutation.  This could be used, for example, to
+** re-order the elements along the 0th axis when the nrrd is a
+** 4D array representing a volume of vectors.
+**
+** the given permutation array must allocated for at least as long
+** as the input nrrd along the chosen axis.  perm[j] = i means that
+** the value at position j in the _new_ array should come from
+** position i in the _old_array.  The standpoint is from the new,
+** looking at where to find the values amid the old array.  This
+** allows multiple positions in the new array to copy from the same
+** old position, and insures that there is an source for all positions
+** along the new array.
+*/
+int
+nrrdShuffle(Nrrd *nin, Nrrd *nout, int axis, int *perm) {
+  char err[NRRD_MED_STRLEN], me[]="nrrdShuffle";
+  int typesize, *size, d, dim, ci[NRRD_MAX_DIM+1], co[NRRD_MAX_DIM+1];
+  NRRD_BIG_INT I, idxI, idxO, N;
+  unsigned char *dataI, *dataO;
+
+  if (!(nin && nout && perm)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffSet(NRRD, err);
+    return 1;
+  }
+  if (!AIR_INSIDE(0, axis, nin->dim-1)) {
+    sprintf(err, "%s: axis %d outside valid range [0,%d]", 
+	    me, axis, nin->dim-1);
+    biffSet(NRRD, err);
+    return 1;
+  }
+  if (!(nout->data)) {
+    /* HEY!!: this is just a hack for the time being */
+    if (nrrdCopy(nin, nout)) {
+      sprintf(err, "%s: failed to allocate output", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  
+  N = nin->num;
+  size = nin->size;
+  dim = nin->dim;
+  dataI = nin->data;
+  dataO = nout->data;
+  typesize = nrrdTypeSize[nin->type];
+  memset(ci, 0, (NRRD_MAX_DIM+1)*sizeof(int));
+  memset(co, 0, (NRRD_MAX_DIM+1)*sizeof(int));
+  for (I=0; I<=N-1; I++) {
+    memcpy(ci, co, NRRD_MAX_DIM*sizeof(int));
+    ci[axis] = perm[co[axis]];
+    idxI = ci[dim-1];
+    idxO = co[dim-1];
+    for (d=dim-2; d>=0; d--) {
+      idxI = ci[d] + size[d]*idxI;
+      idxO = co[d] + size[d]*idxO;
+    }
+    memcpy(dataO + typesize*idxO, dataI + typesize*idxI, typesize);
+    d = 0;
+    co[d]++;
+    while (d <= dim-1 && co[d] == size[d]) {
+      co[d] = 0;
+      d++;
+      co[d]++; 
+    }
+  }
+  return 0;
+}
+

@@ -37,7 +37,7 @@ _index(Nrrd *nin, NRRD_BIG_INT I, int bins) {
   int idx;
   
   val = nrrdDLookup[nin->type](nin->data, I);
-  NRRD_INDEX(nin->min, val, nin->max, bins, idx);
+  AIR_INDEX(nin->min, val, nin->max, bins, idx);
   return(idx);
 }
 
@@ -72,7 +72,7 @@ _nrrdMedian1D(Nrrd *nin, Nrrd *nout, int radius,
   /* find median at each point using existing histogram */
   for (X=radius; X<=nin->num-radius-1; X++) {
     idx = _median(hist, half);
-    val = NRRD_AFFINE(0, idx, bins-1, nin->min, nin->max);
+    val = AIR_AFFINE(0, idx, bins-1, nin->min, nin->max);
     nrrdDInsert[nout->type](nout->data, X, val);
     /* probably update histogram for next iteration */
     if (X < nin->num-radius-1) {
@@ -105,7 +105,7 @@ _nrrdMedian2D(Nrrd *nin, Nrrd *nout, int radius,
     /* find median at each point using existing histogram */
     for (X=radius; X<=sx-radius-1; X++) {
       idx = _median(hist, half);
-      val = NRRD_AFFINE(0, idx, bins-1, nin->min, nin->max);
+      val = AIR_AFFINE(0, idx, bins-1, nin->min, nin->max);
       nrrdDInsert[nout->type](nout->data, X + sx*Y, val);
       /* probably update histogram for next iteration */
       if (X < nin->num-radius-1) {
@@ -145,7 +145,7 @@ _nrrdMedian3D(Nrrd *nin, Nrrd *nout, int radius,
       /* find median at each point using existing histogram */
       for (X=radius; X<=sx-radius-1; X++) {
 	idx = _median(hist, half);
-	val = NRRD_AFFINE(0, idx, bins-1, nin->min, nin->max);
+	val = AIR_AFFINE(0, idx, bins-1, nin->min, nin->max);
 	nrrdDInsert[nout->type](nout->data, X + sx*(Y + sy*Z), val);
 	/* probably update histogram for next iteration */
 	if (X < nin->num-radius-1) {
@@ -180,7 +180,7 @@ nrrdMedian(Nrrd *nin, Nrrd *nout, int radius, int bins) {
     sprintf(err, "%s: need bins >= 1 (got %d)", me, bins);
     biffSet(NRRD, err); return 1;
   }
-  if (!(NRRD_INSIDE(1, nin->dim, 3))) {
+  if (!(AIR_INSIDE(1, nin->dim, 3))) {
     sprintf(err, "%s: can only handle dim 1, 2, 3 (not %d)", me, nin->dim);
     biffSet(NRRD, err); return 1;    
   }

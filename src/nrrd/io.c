@@ -294,7 +294,7 @@ _nrrdParseLine(Nrrd *nrrd, char *line) {
       break;
     }
   }
-  if (NRRD_INSIDE(0, f, _nrrdNumFields-1)) {
+  if (AIR_INSIDE(0, f, _nrrdNumFields-1)) {
     /*
     printf("_nrrdParseLine: saw field %d head, to parse \"%s\"", f, next);
     */
@@ -370,7 +370,7 @@ _nrrdParseLine(Nrrd *nrrd, char *line) {
 		me, fieldStr[f]);
 	biffSet(NRRD, err); return 1;
       }
-      if (!NRRD_INSIDE(1, nrrd->dim, NRRD_MAX_DIM)) {
+      if (!AIR_INSIDE(1, nrrd->dim, NRRD_MAX_DIM)) {
 	sprintf(err, "%s: dimension %d is outside valid range [1,%d]",
 		me, nrrd->dim, NRRD_MAX_DIM);
 	biffSet(NRRD, err); return(1);
@@ -563,9 +563,9 @@ nrrdReadData(FILE *file, Nrrd *nrrd) {
     sprintf(err, "%s: invalid args", me);
     biffSet(NRRD, err); return 1;
   }
-  if (!(NRRD_INSIDE(nrrdEncodingUnknown+1,
-		    nrrd->encoding,
-		    nrrdEncodingLast-1))) {
+  if (!(AIR_INSIDE(nrrdEncodingUnknown+1,
+		   nrrd->encoding,
+		   nrrdEncodingLast-1))) {
     sprintf(err, "%s: invalid encoding: %d", me, nrrd->encoding);
     biffSet(NRRD, err); return 1;
   }
@@ -675,7 +675,7 @@ nrrdReadDataAscii(FILE *file, Nrrd *nrrd) {
   }
   type = nrrd->type;
   data = nrrd->data;
-  if (!(NRRD_INSIDE(nrrdTypeUnknown+1, type, nrrdTypeLast-1))) {
+  if (!(AIR_INSIDE(nrrdTypeUnknown+1, type, nrrdTypeLast-1))) {
     sprintf(err, "%s: got bogus type %d", me, type);
     biffAdd(NRRD, err); return 1;
   }
@@ -942,9 +942,9 @@ nrrdWriteHeader(FILE *file, Nrrd *nrrd) {
     sprintf(err, "%s: nrrdCheck() failed", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(NRRD_INSIDE(nrrdEncodingUnknown+1,
-		    nrrd->encoding,
-		    nrrdEncodingLast-1))) {
+  if (!(AIR_INSIDE(nrrdEncodingUnknown+1,
+		   nrrd->encoding,
+		   nrrdEncodingLast-1))) {
     sprintf(err, "%s: invalid encoding: %d", me, nrrd->encoding);
     biffSet(NRRD, err); return 1;
   }
@@ -1033,9 +1033,9 @@ nrrdWriteData(FILE *file, Nrrd *nrrd) {
     sprintf(err, "%s: invalid args", me);
     biffSet(NRRD, err); return 1;
   }
-  if (!(NRRD_INSIDE(nrrdEncodingUnknown+1,
-		    nrrd->encoding,
-		    nrrdEncodingLast-1))) {
+  if (!(AIR_INSIDE(nrrdEncodingUnknown+1,
+		   nrrd->encoding,
+		   nrrdEncodingLast-1))) {
     sprintf(err, "%s: invalid encoding: %d", me, nrrd->encoding);
     biffSet(NRRD, err); return 1;
   }
@@ -1102,7 +1102,7 @@ nrrdWriteDataAscii(FILE *file, Nrrd *nrrd) {
   }
   type = nrrd->type;
   data = nrrd->data;
-  if (!(NRRD_INSIDE(nrrdTypeUnknown+1, type, nrrdTypeLast-1))) {
+  if (!(AIR_INSIDE(nrrdTypeUnknown+1, type, nrrdTypeLast-1))) {
     sprintf(err, "%s: got bogus type %d", me, type);
     biffAdd(NRRD, err); return 1;
   }
@@ -1213,9 +1213,9 @@ nrrdReadPNMHeader(FILE *file, Nrrd *nrrd, int magic) {
       continue;
     }
   }
-  sx = NRRD_MAX(0, sx);
-  sy = NRRD_MAX(0, sy);
-  max = NRRD_MAX(0, max);
+  sx = AIR_MAX(0, sx);
+  sy = AIR_MAX(0, sy);
+  max = AIR_MAX(0, max);
   /* printf("%s: image is %dx%d, maxval=%d\n", me, sx, sy, max); */
   nrrd->num = (color ? 3 : 1)*sx*sy;
   /* we do not support binary bit arrays; a binary PGM will get

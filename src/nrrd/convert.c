@@ -160,14 +160,14 @@ nrrdQuantize(Nrrd *nin, Nrrd *nout, float min, float max, int bits) {
     switch (bits) {
     case 8:
     case 16:
-      NRRD_INDEX(min, valIn, max, 1 << bits, valOut);
-      valOut = NRRD_CLAMP(0, valOut, (1 << bits)-1);
+      AIR_INDEX(min, valIn, max, 1 << bits, valOut);
+      valOut = AIR_CLAMP(0, valOut, (1 << bits)-1);
       nrrdDInsert[nout->type](nout->data, I, valOut);
       break;
     case 32:
-      NRRD_INDEX(min, valIn, max, 1LLU << 32, valOutll);
+      AIR_INDEX(min, valIn, max, 1LLU << 32, valOutll);
       /* this line isn't compiling on my intel laptop */
-      valOut = NRRD_CLAMP(0, valOut, (1LLU << 32)-1);
+      valOut = AIR_CLAMP(0, valOut, (1LLU << 32)-1);
       nrrdDInsert[nout->type](nout->data, I, valOutll);
       break;
     }
