@@ -360,7 +360,7 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
   }
   
   /* the skinny */
-  typeSize = nrrdTypeSize[nin->type];
+  typeSize = nrrdElementSize(nin);
   dataIn = nin->data;
   dataOut = nout->data;
   nrrdAxesGet(nin, nrrdAxesInfoSize, szIn);

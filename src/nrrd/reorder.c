@@ -90,16 +90,21 @@ int
 nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
   char me[]="nrrdPermuteAxes", err[NRRD_STRLEN_MED],
     tmpS[NRRD_STRLEN_SMALL];
-  nrrdBigInt 
+  nrrdBigInt iOut, iIn,
     srcI, dstI,              /* indices into input and output nrrds */
     lineSize,                /* size of block of memory which can be
 				moved contiguously from input to output,
 				thought of as a "scanline" */
     numLines;                /* how many "scanlines" there are to permute */
   char *src, *dest;
-  int coord[NRRD_DIM_MAX+1], /* coordinates in output nrrd */
+  int 
+    szIn[NRRD_DIM_MAX],
+    szOut[NRRD_DIM_MAX],
+    cIn[NRRD_DIM_MAX],
+    cOut[NRRD_DIM_MAX],
+    coord[NRRD_DIM_MAX+1], /* coordinates in output nrrd */
     ip[NRRD_DIM_MAX+1],      /* inverse of permutation in "axes" */
-    topFax,                  /* highest axis which is fixed in permutation */
+    lowPax,                  /* lowest axis which is "p"ermutated */
     d,                       /* running index along dimensions */
     dim;                     /* copy of nin->dim */
 
@@ -115,9 +120,9 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
   dim = nin->dim;
   for (d=0; d<=dim-1 && axes[d] == d; d++)
     ;
-  topFax = d-1;
+  lowPax = d;
 
-  if (topFax == dim-1) {
+  if (lowPax == dim) {
     /* we were given the identity permutation, just copy whole thing */
     if (nrrdCopy(nout, nin)) {
       sprintf(err, "%s: trouble copying input", me);
@@ -126,7 +131,8 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
     return 0;
   }
   
-  /* else topFax < dim-1 (actually, topFax < dim-2) */
+  /* else lowPax < dim (actually, lowPax < dim-1) */
+  fprintf(stderr, "%s: lowPax = %d\n", me, lowPax);
   
   /* set information in new volume */
   nout->blockSize = nin->blockSize;
@@ -134,41 +140,36 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
     sprintf(err, "%s: failed to allocate output", me);
     biffAdd(NRRD, err); return 1;
   }
+  if (nrrdAxesCopy(nout, nin, axes, NRRD_AXESINFO_NONE)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return 1;
+  }
   
   lineSize = 1;
-  for (d=0; d<=topFax; d++) {
+  for (d=0; d<=lowPax-1; d++) {
     lineSize *= nin->axis[d].size;
   }
   numLines = nin->num/lineSize;
   lineSize *= nrrdElementSize(nin);
   src = nin->data;
   dest = nout->data;
-  memset(coord, 0, NRRD_DIM_MAX*sizeof(int));
-  /* we march through linear index space of input nrrd */
-  for (srcI=0; srcI<=numLines-1; srcI++) {
-    /* from coordinates in output nrrd, find linear index into input */
-    dstI = coord[dim-1];
-    for (d=dim-2; d>topFax; d--)
-      dstI = coord[d] + nout->axis[d].size*dstI;
-
-    /* copy */
-    /* memcpy(dest + dstI*elSize, src + srcI*elSize, elSize); */
-    memcpy(dest + dstI*lineSize, src + srcI*lineSize, lineSize);
-
-    /* increment coordinates in output nrrd */
-    d = topFax+1;
-    coord[ip[d]]++;
-    while (d <= dim-1 && coord[ip[d]] == nout->axis[ip[d]].size) {
-      coord[ip[d]] = 0;
-      if (++d <= dim-1) 
-	coord[ip[d]]++; 
-    }
+  nrrdAxesGet(nin, nrrdAxesInfoSize, szIn);
+  nrrdAxesGet(nout, nrrdAxesInfoSize, szOut);
+  fprintf(stderr, "%s: szOut = %d %d %d\n", me, szOut[0], szOut[1], szOut[2]);
+  fprintf(stderr, "%s: numLines = %d, lineSize = %d\n", me,
+	  (int)numLines, (int)lineSize);
+  memset(cOut, 0, NRRD_DIM_MAX*sizeof(int));
+  for (iOut=0; iOut<=numLines-1; iOut++) {
+    for (d=0; d<=dim-1; d++)
+      cIn[axes[d]] = cOut[d];
+    NRRD_COORD_INDEX(iIn, cIn, szIn, dim, d);
+    printf("!%s: (%d,%d,%d) -> %d; (%d,%d,%d) -> %d\n", me,
+	   cOut[0], cOut[1], cOut[2], (int)iOut,
+	   cIn[0], cIn[1], cIn[2], (int)iIn);
+    memcpy(dest + iOut*lineSize, src + iIn*lineSize, lineSize);
+    NRRD_COORD_INCR(cOut+lowPax, szOut+lowPax, dim-lowPax, d);
   }
 
-  if (nrrdAxesCopy(nout, nin, axes, NRRD_AXESINFO_NONE)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(NRRD, err); return 1;
-  }
   nout->content = airFree(nout->content);
   if (nin->content) {
     nout->content = calloc(strlen("permute(,())")

@@ -116,9 +116,9 @@ main(int argc, char *argv[]) {
 
   nout = nrrdNew();
   t1 = airTime();
-  if (nrrdPad(nout, nin, min, max, nrrdBoundaryWrap)) {
   /* if (nrrdPad(nout, nin, min, max, nrrdBoundaryPad, 222.0)) { */
   /* if (nrrdPad(nout, nin, min, max, nrrdBoundaryBleed)) { */
+  if (nrrdPad(nout, nin, min, max, nrrdBoundaryWrap)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error padding nrrd:\n%s", me, err);
     free(err);
