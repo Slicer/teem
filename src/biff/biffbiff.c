@@ -181,7 +181,7 @@ _biffAddKey(const char *key) {
 
   /* find index of new key */
   for (ii=0; ii<=_biffNum-1; ii++) {
-    if (strcmp(key, _biffErr[i]->key) < 0) {
+    if (strcmp(key, _biffErr[ii]->key) < 0) {
       /* we've hit the one which comes after the new key */
       break;
     }
@@ -380,6 +380,12 @@ biffGet(const char *key) {
   return ret;
 }
 
+/*
+******** biffGetStrlen()
+**
+** for when you want to allocate the buffer for the biff string, this is
+** how you learn its length
+*/
 int
 biffGetStrlen(const char *key) {
   int max, sum;
@@ -399,11 +405,22 @@ biffGetStrlen(const char *key) {
   return sum;
 }
 
+/*
+******** biffSetStr()
+**
+** for when you want to allocate the buffer for the biff string, this is
+** how you get the error message itself
+*/
 void
 biffSetStr(char *str, const char *key) {
   int max, sum;
   char me[] = "biffSetStr", *buf;
   _biffEntry *ent;
+
+  if (!str) {
+    fprintf(stderr, "%s: ERROR: got NULL buffer \"%s\"\n", me, key);
+    return;
+  }
 
   _biffInit();
   _biffCheckKey(key);
@@ -539,4 +556,16 @@ biffGetDone(const char *key) {
   biffDone(key);
 
   return ret;
+}
+
+void
+biffSetStrDone(char *str, const char *key) {
+
+  _biffInit();
+  _biffCheckKey(key);
+
+  biffSetStr(str, key);
+  biffDone(key);
+
+  return;
 }

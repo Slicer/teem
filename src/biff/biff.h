@@ -45,7 +45,10 @@ TEEM_API void biffDone(const char *key);
 TEEM_API void biffMove(const char *destKey, const char *err,
                        const char *srcKey);
 TEEM_API char *biffGet(const char *key);
+TEEM_API int biffGetStrlen(const char *key);
+TEEM_API void biffSetStr(char *str, const char *key);
 TEEM_API char *biffGetDone(const char *key);
+TEEM_API void biffSetStrDone(char *str, const char *key);
 
 #ifdef __cplusplus
 }
