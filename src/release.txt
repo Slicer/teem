@@ -88,6 +88,10 @@ setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/irix6.64/lib
 setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
 setenv TEEM_PNG_LPATH -L/home/sci/gk/usr/irix6.64/lib
 setenv TEEM_PNG_IPATH -I/home/sci/gk/usr/irix6.64/include
+
+setenv TEEM_PTHREAD
+setenv TEEM_LINK_SHARED
+setenv LD_LIBRARY64_PATH ${LD_LIBRARY64_PATH}:/home/sci/gk/usr/local/irix6.64/lib
 haruko:
 setenv TEEM_ARCH linux
 setenv TEEM_PNG
@@ -95,6 +99,13 @@ setenv TEEM_ZLIB
 setenv TEEM_BZIP2
 # setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/linux/lib
 # setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
+
+setenv OPT_CFLAG "-g -O2"
+setenv TEEM_LINK_SHARED
+setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sci/gk/usr/local/linux/lib
+setenv PATH ${PATH}:/home/sci/gk/usr/local/linux/bin
+alias valgrind /home/sci/gk/usr/linux/bin/valgrind
+
 faith:
 setenv TEEM_ARCH solaris
 setenv TEEM_PNG
