@@ -203,10 +203,9 @@ _tenEMBimodalPP(tenEMBimodalParm *biparm) {
 double
 _tenEMBimodalNewFraction1(tenEMBimodalParm *biparm) {
   int i;
-  double pp1, pp2, h, sum1, sum2, f1;
+  double pp1, pp2, h, sum1, sum2;
 
   sum1 = sum2 = 0.0;
-  f1 = biparm->fraction1;
   for (i=0; i<biparm->N; i++) {
     pp1 = biparm->pp1[i];
     pp2 = biparm->pp2[i];
