@@ -203,7 +203,7 @@ typedef struct {
 ** It is a strong but very simplifying assumption that the paramater
 ** array ("parm") is always type double.  There is essentially no
 ** value in allowing flexibility between float and double, and much
-** teem code assumes that it will always bee type double.
+** teem code assumes that it will always be type double.
 */
 typedef struct {
   int numParm;                           /* number of parameters needed
@@ -267,8 +267,8 @@ typedef struct {
 /*
 ******** NrrdIter struct
 **
-** to hold values, either a single value, or a whole nrrd of values,
-** and to facilitate iterating through those values
+** To hold values: either a single value, or a whole nrrd of values.
+** Also, this facilitates iterating through those values
 */
 typedef struct {
   Nrrd *nrrd;                       /* nrrd to get values from */
@@ -377,10 +377,10 @@ extern NrrdIter *nrrdIterNuke(NrrdIter *iter);
 extern int nrrdAxesCopy(Nrrd *nout, Nrrd *nin, int *map, int bitflag);
 extern void nrrdAxesSet_nva(Nrrd *nin, int axInfo, void *info);
 extern void nrrdAxesSet(Nrrd *nin, int axInfo,
-			... /* void * */);
+			... /* void* */);
 extern void nrrdAxesGet_nva(Nrrd *nrrd, int axInfo, void *info);
 extern void nrrdAxesGet(Nrrd *nrrd, int axInfo,
-			... /* void * */);
+			... /* void* */);
 extern double nrrdAxisPos(Nrrd *nrrd, int ax, double idx);
 extern double nrrdAxisIdx(Nrrd *nrrd, int ax, double pos);
 extern void nrrdAxisPosRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
@@ -455,17 +455,20 @@ extern int nrrdWrite(FILE *file, Nrrd *nrrd, NrrdIO *io);
 /******** some of the point-wise value remapping, conversion, and such */
 /* map.c */
 extern void nrrdMinMaxSet(Nrrd *nrrd);
-extern int nrrdMinMaxClever(Nrrd *nrrd);
+extern int nrrdMinMaxCleverSet(Nrrd *nrrd);
 extern int nrrdConvert(Nrrd *nout, Nrrd *nin, int type);
 extern int nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits);
 extern int nrrdHistoEq(Nrrd *nout, Nrrd *nin,
 		       Nrrd **nhistP, int bins, int smart);
 
 /******** rest of point-wise value remapping, and "color"mapping */
-/* apply.c */
-extern int nrrdApply1DLut(Nrrd *nout, Nrrd *nin, Nrrd *nlut);
-extern int nrrdApply1DRegMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
-			     NrrdKernel *kernel, double *parm);
+/* apply1D.c */
+extern int nrrdApply1DLut(Nrrd *nout, Nrrd *nin, Nrrd *nlut, int rescale);
+extern int nrrdApply1DRegMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap, int rescale);
+extern int nrrd1DIrregMapValid(Nrrd *nmap);
+extern int nrrd1DIrregAclValid(Nrrd *nacl);
+extern int nrrdApply1DIrregMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap, Nrrd *nacl,
+			       int rescale);
 
 /******** sampling, slicing, cropping */
 /* subset.c */
