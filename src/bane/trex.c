@@ -23,7 +23,7 @@
 /* learned:
 ** NEVER EVER EVER bypass your own damn pseudo-constructors!
 ** "npos" used to be a Nrrd (not a pointer), and Joe's 
-** trex stuff was crashing because the if data free(data) in nrrdAlloc
+** trex stuff was crashing because the if data free(data) in nrrd Alloc
 ** was freeing random stuff, but (and this is the weird part)
 ** only on some 1-D nrrds of 256 floats (pos1D info), and not others.
 */

@@ -181,8 +181,8 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
 	  GAGE_FD(uu->gctx0));
 
-  if (nrrdAlloc((*rrP)->nout=nrrdNew(), nrrdTypeFloat, 2,
-		uu->hctx->imgSize[0], uu->hctx->imgSize[1])) {
+  if (nrrdMaybeAlloc((*rrP)->nout=nrrdNew(), nrrdTypeFloat, 2,
+		     uu->hctx->imgSize[0], uu->hctx->imgSize[1])) {
     sprintf(err, "%s: nrrd trouble", me);
     biffMove(MREND, err, NRRD);
     return 1;

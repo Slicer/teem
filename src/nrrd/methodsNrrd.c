@@ -651,7 +651,6 @@ nrrdMaybeAlloc_nva (Nrrd *nrrd, int type, int dim, int *size) {
     biffAdd(NRRD, err); return 1;
   }
 
-  
   if (!(nrrd->data)) {
     need = 1;
   } else {

@@ -55,7 +55,7 @@ _baneGkmsDonNew(int invert) {
   Nrrd *ret;
   float *data;
 
-  if (nrrdAlloc(ret=nrrdNew(), nrrdTypeFloat, 2, 4, 23)) {
+  if (nrrdMaybeAlloc(ret=nrrdNew(), nrrdTypeFloat, 2, 4, 23)) {
     sprintf("%s: can't create output", me);
     biffAdd(BANE, err); return NULL;
   }

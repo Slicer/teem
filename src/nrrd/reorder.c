@@ -587,7 +587,8 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
   }
   size[outdim-1] = outlen;
   outnum *= size[outdim-1];
-  if (nrrdAlloc_nva(ntmpperm = nrrdNew(), ninperm[0]->type, outdim, size)) {
+  if (nrrdMaybeAlloc_nva(ntmpperm = nrrdNew(), ninperm[0]->type,
+			 outdim, size)) {
     sprintf(err, "%s: trouble allocating permutation nrrd", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }

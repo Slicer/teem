@@ -107,7 +107,7 @@ baneGkmsParseBEF(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   airMopAdd(mop, *nrrdP=nrrdNew(), (airMopper)nrrdNuke, airMopOnError);
   if (4 == sscanf(str, "%g,%g,%g,%g", &shape, &width, &cent, &alpha)) {
     /* its a valid BEF specification, we make the nrrd ourselves */
-    if (nrrdAlloc(*nrrdP, nrrdTypeFloat, 2, 2, 6)) {
+    if (nrrdMaybeAlloc(*nrrdP, nrrdTypeFloat, 2, 2, 6)) {
       airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
       strncpy(err, nerr, AIR_STRLEN_HUGE-1);
       airMopError(mop);

@@ -185,10 +185,11 @@ main(int argc, char *argv[]) {
   if (ansLen > 1) {
     fprintf(stderr, "%s: creating %d x %d x %d x %d output\n", 
 	   me, ansLen, sox, soy, soz);
-    if (!E) E |= nrrdAlloc(nout=nrrdNew(), otype, 4, ansLen, sox, soy, soz);
+    if (!E) E |= nrrdMaybeAlloc(nout=nrrdNew(), otype, 4,
+				ansLen, sox, soy, soz);
   } else {
     fprintf(stderr, "%s: creating %d x %d x %d output\n", me, sox, soy, soz);
-    if (!E) E |= nrrdAlloc(nout=nrrdNew(), otype, 3, sox, soy, soz);
+    if (!E) E |= nrrdMaybeAlloc(nout=nrrdNew(), otype, 3, sox, soy, soz);
   }
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (E) {

@@ -185,7 +185,7 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
 
   /* allocate space if necessary */
   nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
-  /* MUST be nrrdMaybeAlloc_nva (not nrrdAlloc_nva) because we allow
+  /* MUST be nrrdMaybeAlloc_nva (not nrrd Alloc_nva) because we allow
      nout==nin if type sizes match */
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
     sprintf(err, "%s: failed to allocate output", me);
@@ -270,7 +270,7 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   
   /* allocate space if necessary */
   nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
-  /* MUST be nrrdMaybeAlloc_nva (not nrrdAlloc_nva) because we allow
+  /* MUST be nrrdMaybeAlloc_nva (not nrrd Alloc_nva) because we allow
      nout==nin if type sizes match */
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
     sprintf(err, "%s: failed to create output", me);
@@ -533,7 +533,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP,
     /* for "smart" mode, we have to some extra work while creating the
        histogram to look for bins incessantly hit with the exact same
        value */
-    if (nrrdAlloc(nhist=nrrdNew(), nrrdTypeUInt, 1, bins)) {
+    if (nrrdMaybeAlloc(nhist=nrrdNew(), nrrdTypeUInt, 1, bins)) {
       sprintf(err, "%s: failed to allocate histogram", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
@@ -602,7 +602,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP,
       /* printf("%s: disrespecting bin %d\n", me, steady[1+2*i]); */
     }
   }
-  if (nrrdAlloc(nmap=nrrdNew(), nrrdTypeFloat, 1, bins+1)) {
+  if (nrrdMaybeAlloc(nmap=nrrdNew(), nrrdTypeFloat, 1, bins+1)) {
     sprintf(err, "%s: failed to create map nrrd", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }

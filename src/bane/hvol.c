@@ -166,8 +166,8 @@ baneFindInclusion(double min[3], double max[3],
 	    incPass[0], incPass[1], incPass[2]);
     */
     if (hvp->makeMeasrVol && !hvp->measrVol) {
-      if (nrrdAlloc(hvp->measrVol=nrrdNew(), nrrdTypeFloat, 4,
-		    3, sx, sy, sz)) {
+      if (nrrdMaybeAlloc(hvp->measrVol=nrrdNew(), nrrdTypeFloat, 4,
+			 3, sx, sy, sz)) {
 	sprintf(err, "%s: couldn't allocate 3x%dx%dx%d VGH volume",
 		me, sx, sy, sz);
 	biffMove(BANE, err, NRRD); return 1;
@@ -211,8 +211,8 @@ baneFindInclusion(double min[3], double max[3],
   }
   if (inc[0]->passB || inc[1]->passB || inc[2]->passB) {
     if (hvp->makeMeasrVol && !hvp->measrVol) {
-      if (nrrdAlloc(hvp->measrVol=nrrdNew(), nrrdTypeFloat, 4,
-		    3, sx, sy, sz)) {
+      if (nrrdMaybeAlloc(hvp->measrVol=nrrdNew(), nrrdTypeFloat, 4,
+			 3, sx, sy, sz)) {
 	sprintf(err, "%s: couldn't allocate 3x%dx%dx%d VGH volume",
 		me, sx, sy, sz);
 	biffMove(BANE, err, NRRD); return 1;
@@ -375,7 +375,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   shx = hvp->ax[0].res;
   shy = hvp->ax[1].res;
   shz = hvp->ax[2].res;
-  if (nrrdAlloc(rawhvol=nrrdNew(), nrrdTypeInt, 3, shx, shy, shz)) {
+  if (nrrdMaybeAlloc(rawhvol=nrrdNew(), nrrdTypeInt, 3, shx, shy, shz)) {
     sprintf(err, "%s: couldn't allocate raw histovol (%dx%dx%d)", me,
 	    shx, shy, shz);
     biffMove(BANE, err, NRRD); return 1;

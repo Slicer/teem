@@ -31,7 +31,7 @@ _baneInc_HistNew(double *incParm) {
   char me[]="_baneInc_HistNew", err[AIR_STRLEN_MED];
   Nrrd *nhist;
   
-  if (nrrdAlloc(nhist=nrrdNew(), nrrdTypeInt, 1, (int)(incParm[0]))) {
+  if (nrrdMaybeAlloc(nhist=nrrdNew(), nrrdTypeInt, 1, (int)(incParm[0]))) {
     sprintf(err, "%s: ", me);
     biffMove(BANE, err, NRRD); return NULL;
   }

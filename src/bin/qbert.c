@@ -176,7 +176,7 @@ qbertProbe(Nrrd *nout, Nrrd *nin, int *sz) {
   val = gageAnswerPointer(pvl, gageSclValue);
   gmag = gageAnswerPointer(pvl, gageSclGradMag);
   scnd = gageAnswerPointer(pvl, gageScl2ndDD);
-  if (nrrdAlloc(nout, nrrdTypeFloat, 4, 3, sz[0], sz[1], sz[2])) {
+  if (nrrdMaybeAlloc(nout, nrrdTypeFloat, 4, 3, sz[0], sz[1], sz[2])) {
     sprintf(err, "%s: couldn't allocate floating point VGH volume", me);
     biffMove(QBERT, err, NRRD); return 1;
   }
@@ -256,9 +256,9 @@ qbertMakeVghHists(Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
   fprintf(stderr, "[%g .. %g]\n", minh, maxh);
   fprintf(stderr, "%s: using %d-bin histograms\n", me, bins);
   E = 0;
-  if (!E) E |= nrrdAlloc(nvhist, nrrdTypeInt, 1, bins);
-  if (!E) E |= nrrdAlloc(nghist, nrrdTypeInt, 1, bins);
-  if (!E) E |= nrrdAlloc(nhhist, nrrdTypeInt, 1, bins);
+  if (!E) E |= nrrdMaybeAlloc(nvhist, nrrdTypeInt, 1, bins);
+  if (!E) E |= nrrdMaybeAlloc(nghist, nrrdTypeInt, 1, bins);
+  if (!E) E |= nrrdMaybeAlloc(nhhist, nrrdTypeInt, 1, bins);
   if (E) {
     sprintf(err, "%s: couldn't allocate 3 %d-bin histograms", me, bins);
     biffMove(QBERT, err, NRRD); return 1;
@@ -351,7 +351,7 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
 	  me, (int)(perc[2]*sz[0]*sz[1]*sz[2]/100), minh, maxh);
   fprintf(stderr, "%s: putting 2ndDD in range 1 to 169 (0.0 -> 85)\n", me);
   
-  if (nrrdAlloc(nvgh, nrrdTypeUChar, 4, 3, sz[0], sz[1], sz[2])) {
+  if (nrrdMaybeAlloc(nvgh, nrrdTypeUChar, 4, 3, sz[0], sz[1], sz[2])) {
     sprintf(err, "%s: couldn't allocate 8-bit VGH volume", me);
     biffMove(QBERT, err, NRRD); return 1;
   }
