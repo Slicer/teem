@@ -71,6 +71,22 @@ nrrdTypeFixed[NRRD_TYPE_MAX+1] = {
   1   /* for some reason we pretend that blocks are fixed point */
 };
 
+int 
+nrrdTypeUnsigned[NRRD_TYPE_MAX+1] = {
+  0,  /* unknown */
+  0,  /* char */
+  1,  /* unsigned char */
+  0,  /* short */
+  1,  /* unsigned short */
+  0,  /* int */
+  1,  /* unsigned int */
+  0,  /* long long */
+  1,  /* unsigned long long */
+  0,  /* float */
+  0,  /* double */
+  0   /* for some reason we pretend that blocks are signed */
+};
+
 /*
 ** _nrrdFieldValidInPNM[]
 **
