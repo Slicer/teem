@@ -654,7 +654,7 @@ double (*nrrdDClamp[13])(double) = {
   nrrdDClampLD,
   NULL};
 
-/* this is where Gordon admits he might have some use for C++ */
+/* about here is where Gordon admits he might have some use for C++ */
 
 #define _MM_ARGS(type) type *minP, type *maxP, NRRD_BIG_INT N, type *v
 #define _MM_FIXED(type)                                                  \

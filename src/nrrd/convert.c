@@ -171,3 +171,4 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, float min, float max, int bits) {
   /* bye */
   return(0);
 }
+
