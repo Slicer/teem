@@ -165,12 +165,6 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
   return 0;
 }
 
-/*
-**  0 1 2
-**  3 4 5
-**  6 7 8
-*/
-
 int
 _alanPerIteration(alanContext *actx, int iter) {
   char me[]="_alanPerIteration", fname[AIR_STRLEN_MED];
@@ -217,7 +211,8 @@ typedef struct {
 
 void *
 _alanTuring2DWorker(void *_task) {
-  alan_t *lev0, *lev1, *parm, speed, alpha, beta, A, B,
+  alan_t *tendata, *ten, Dxx, Dxy, Dyy, react,
+    *lev0, *lev1, *parm, speed, alpha, beta, A, B,
     *v[9], lapA, lapB, deltaA, deltaB, diffA, diffB, change;
   int iter, stop, startY, endY, idx, px, mx, py, my, sx, sy, x, y;
   alanTask *task;
@@ -230,6 +225,7 @@ _alanTuring2DWorker(void *_task) {
   diffB = task->actx->diffB/(task->actx->H*task->actx->H);
   startY = task->idx*sy/task->actx->numThreads;
   endY = (task->idx+1)*sy/task->actx->numThreads;
+  tendata = task->actx->nten ? (alan_t *)task->actx->nten->data : NULL;
 
   for (iter = 0; 
        alanStopNot == task->actx->stop && iter < task->actx->maxIteration; 
@@ -260,6 +256,7 @@ _alanTuring2DWorker(void *_task) {
 	  mx = AIR_MAX(x-1, 0);
 	}
 	idx = x + sx*(y);
+	ten = tendata + 4*(x + sx*(y));
 	A = lev0[0 + 2*idx];
 	B = lev0[1 + 2*idx];
 	speed = parm[0 + 3*idx];
@@ -273,22 +270,40 @@ _alanTuring2DWorker(void *_task) {
 	v[6] = lev0 + 2*(mx + sx*(py));
 	v[7] = lev0 + 2*( x + sx*(py));
 	v[8] = lev0 + 2*(px + sx*(py));
-	lapA = v[1][0] + v[3][0] + v[5][0] + v[7][0] - 4*A;
-	lapB = v[1][1] + v[3][1] + v[5][1] + v[7][1] - 4*B;
+	if (tendata) {
+	  /*
+	  **  0 1 2   -Dxy/2          Dyy         Dxy/2
+	  **  3 4 5     Dxx     -2*(Dxx + Dyy)     Dxx
+	  **  6 7 8    Dxy/2          Dyy        -Dxy/2
+	  */
+	  Dxx = ten[1];
+	  Dxy = ten[2];
+	  Dyy = ten[3];
+	  lapA = (Dxy*(v[2][0] + v[6][0] - v[0][0] - v[8][0])/2
+		  + Dxx*(v[3][0] + v[5][0]) + Dyy*(v[1][0] + v[7][0])
+		  - 2*(Dxx + Dyy)*A);
+	  lapB = (Dxy*(v[2][1] + v[6][1] - v[0][1] - v[8][1])/2
+		  + Dxx*(v[3][1] + v[5][1]) + Dyy*(v[1][1] + v[7][1])
+		  - 2*(Dxx + Dyy)*A);
+	  react = ten[0];
+	} else {
+	  lapA = v[1][0] + v[3][0] + v[5][0] + v[7][0] - 4*A;
+	  lapB = v[1][1] + v[3][1] + v[5][1] + v[7][1] - 4*B;
+	  react = 1;
+	}
 	
-	deltaA = speed*(task->actx->K*(alpha - A*B) + diffA*lapA);
+	deltaA = speed*(react*task->actx->K*(alpha - A*B) + diffA*lapA);
 	if (AIR_ABS(deltaA) > task->actx->maxPixelChange) {
 	  stop = alanStopDiverged;
 	}
 	change += AIR_ABS(deltaA);
-	deltaB = speed*(task->actx->K*(A*B - B - beta) + diffB*lapB);
+	deltaB = speed*(react*task->actx->K*(A*B - B - beta) + diffB*lapB);
 	if (!( AIR_EXISTS(deltaA) && AIR_EXISTS(deltaB) )) {
 	  stop = alanStopNonExist;
 	}
 	
 	A += deltaA;
-	B += deltaB;  
-	B = AIR_MAX(0, B);
+	B = AIR_MAX(0, B + deltaB);
 	lev1[0 + 2*idx] = A;
 	lev1[1 + 2*idx] = B; 
       }

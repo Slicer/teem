@@ -90,12 +90,6 @@ alanContextNix(alanContext *actx) {
     biffAdd(ALAN, err); return 1; \
   }
 
-#define GOT_NULL2 \
-  if (!( actx && nten )) { \
-    sprintf(err, "%s: got NULL pointer", me); \
-    biffAdd(ALAN, err); return 1; \
-  }
-
 #define DIM_SET \
   if (0 == actx->dim) { \
     sprintf(err, "%s: dimension of texture not set", me); \
@@ -163,7 +157,10 @@ int
 alanTensorSet(alanContext *actx, Nrrd *nten, int oversample) {
   char me[]="alanTensorSet", err[AIR_STRLEN_MED];
 
-  GOT_NULL2;
+  if (!( actx && nten )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(ALAN, err); return 1;
+  }
   DIM_SET;
   if (!( oversample > 0 )) {
     sprintf(err, "%s: oversample %d invalid", me, oversample);
@@ -181,7 +178,11 @@ alanTensorSet(alanContext *actx, Nrrd *nten, int oversample) {
     }
   }
 
-  nrrdNuke(actx->nten);
+  if (1 != oversample) {
+    sprintf(err, "%s: sorry, can only handle oversample==1 now", me);
+    biffAdd(ALAN, err); return 1;
+  }
+  actx->nten = nrrdNuke(actx->nten);
   actx->nten = nrrdNew();
   if (nrrdConvert(actx->nten, nten, alan_nt)) {
     sprintf(err, "%s: trouble converting tensors to alan_t", me);
