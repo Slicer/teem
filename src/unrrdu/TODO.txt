@@ -1,5 +1,3 @@
-libunrrdu
-add nrrdSanity check to unu
 add -min and -max flags to unu lut, rmap, imap
 
 valgrind new unu
