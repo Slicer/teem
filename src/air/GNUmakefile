@@ -49,7 +49,7 @@ $(L).PRIVATE_HEADERS = privateAir.h
 $(L).OBJS = 754.o rand48.o array.o miscAir.o parseAir.o endianAir.o \
 	dio.o mop.o enum.o sane.o string.o threadAir.o
 $(L).TESTS = test/floatprint test/doubleprint test/tok \
-	test/tmop test/tline test/fp test/trand
+	test/tmop test/tline test/fp test/trand test/tdio
 
 $(L).NEED_ENDIAN = true
 $(L).NEED_QNANHIBIT = true

@@ -452,16 +452,16 @@ TEEM_API double airDStore(void *v, int t, double d);
 */
 enum {
   airNoDio_okay,    /*  0: actually, you CAN do direct I/O */
-  airNoDio_arch,    /*  1: teem thinks this architecture can't do it */
-  airNoDio_format,  /*  2: teem thinks given data file format can't use it */
-  airNoDio_file,    /*  3: given NULL file */
-  airNoDio_std,     /*  4: DIO isn't possible for std{in|out|err} */
-  airNoDio_fd,      /*  5: couldn't get underlying file descriptor */
-  airNoDio_fcntl,   /*  6: the required fcntl() call failed */
-  airNoDio_small,   /*  7: requested size is too small */
-  airNoDio_size,    /*  8: requested size not a multiple of d_miniosz */
-  airNoDio_ptr,     /*  9: pointer not multiple of d_mem */
-  airNoDio_fpos,    /* 10: current file position not multiple of d_miniosz */
+  airNoDio_arch,    /*  1: Teem thinks this architecture can't do it */
+  airNoDio_format,  /*  2: Teem thinks given data file format can't use it */
+  airNoDio_std,     /*  3: DIO isn't possible for std{in|out|err} */
+  airNoDio_fd,      /*  4: couldn't get underlying file descriptor */
+  airNoDio_dioinfo, /*  5: calling fcntl() to get direct I/O info failed */
+  airNoDio_small,   /*  6: requested size is too small */
+  airNoDio_size,    /*  7: requested size not a multiple of d_miniosz */
+  airNoDio_ptr,     /*  8: pointer not multiple of d_mem */
+  airNoDio_fpos,    /*  9: current file position not multiple of d_miniosz */
+  airNoDio_setfl,   /* 10: fcntl(fd, SETFL, FDIRECT) failed */
   airNoDio_test,    /* 11: couldn't memalign() even a small bit of memory */
   airNoDio_disable  /* 12: someone disabled it with airDisableDio */
 };
@@ -469,10 +469,11 @@ enum {
 TEEM_API const char *airNoDioErr(int noDio);
 TEEM_API const int airMyDio;
 TEEM_API int airDisableDio;
-TEEM_API int airDioInfo(int *mem, int *min, int *max, FILE *file);
-TEEM_API int airDioTest(size_t size, FILE *file, void *ptr);
-TEEM_API size_t airDioRead(FILE *file, void **ptrP, size_t size);
-TEEM_API size_t airDioWrite(FILE *file, void *ptr, size_t size);
+TEEM_API void airDioInfo(int *align, int *min, int *max, int fd);
+TEEM_API int airDioTest(int fd, void *ptr, size_t size);
+TEEM_API void *airDioMalloc(size_t size, int fd);
+TEEM_API size_t airDioRead(int fd, void *ptr, size_t size);
+TEEM_API size_t airDioWrite(int fd, void *ptr, size_t size);
 
 /* mop.c: clean-up utilities */
 enum {
