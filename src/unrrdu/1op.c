@@ -57,7 +57,6 @@ uopMain(int argc, char **argv, char *me) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  fprintf(stderr, "%s: op = %d\n", me, op);
   if (nrrdArithUnaryOp(nout, op, nin)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing unary operation:\n%s", me, err);

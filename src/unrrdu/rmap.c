@@ -66,7 +66,7 @@ rmapMain(int argc, char **argv, char *me) {
     nmap->axis[mapax].min = nin->min;
     nmap->axis[mapax].max = nin->max;
   }
-  if (nrrdApply1DRegMap(nout, nmap, nin, NULL, NULL)) {
+  if (nrrdApply1DRegMap(nout, nin, nmap, NULL, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble applying map:\n%s", me, err);
     airMopError(mop);

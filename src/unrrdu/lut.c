@@ -60,7 +60,7 @@ lutMain(int argc, char **argv, char *me) {
     nlut->axis[lutax].min = nin->min;
     nlut->axis[lutax].max = nin->max;
   }
-  if (nrrdApply1DLut(nout, nlut, nin)) {
+  if (nrrdApply1DLut(nout, nin, nlut)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble applying LUT:\n%s", me, err);
     airMopError(mop);

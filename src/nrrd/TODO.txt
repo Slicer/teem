@@ -1,18 +1,7 @@
-all source files: "<=X-1" --> "<X"
-
 test working with nout==nin
 nrrdContentSet
 nrrdConvert
 nrrdQuantize
-
-figure out trouble with Mariana
-
-figure out what of axes and content gets passed through
-with nrrdUnaryOp, nrrdBinaryOp, nrrdTernaryOp
-
-1D mappings, regular and irregular
-
-allow nrrdBlock and nrrdUnblock to have nin==nout
 
 ------- teem 1.4 cutoff ---------
 
