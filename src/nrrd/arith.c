@@ -197,7 +197,7 @@ double _nrrdBinaryOpFmod(double a, double b)      {return fmod(a,b);}
 double _nrrdBinaryOpAtan2(double a, double b)     {return atan2(a,b);}
 double _nrrdBinaryOpMin(double a, double b)       {return AIR_MIN(a,b);}
 double _nrrdBinaryOpMax(double a, double b)       {return AIR_MAX(a,b);}
-double _nrrdBinaryOpLessThan(double a, double b)  {return (a < b ? 0 : 1);}
+double _nrrdBinaryOpLessThan(double a, double b)  {return (a < b ? 1 : 0);}
 double _nrrdBinaryOpCompare(double a, double b) {
   return (a < b ? -1 : (a > b ? 1 : 0));}
 
