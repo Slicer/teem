@@ -243,7 +243,7 @@ baneProbe(float *_ans, Nrrd *nin, int query,
     lidx = xi-fr+1 + sx*(yi-fr+1 + sy*(zi-fr+1));
     ptr = (char*)data + lidx*nrrdTypeSize[nin->type];
     switch (fd) {
-    case 2:
+    case 20:
       for (i=0; i<=7; i++) {
 	val[i] = lup(ptr, o2[i]);
       }
@@ -255,7 +255,7 @@ baneProbe(float *_ans, Nrrd *nin, int query,
 	printf("   % 10.4f   % 10.4f\n", val[0], val[1]);
       }
       break;
-    case 4:
+    case 40:
       for (i=0; i<=63; i++)
 	val[i] = lup(ptr, o4[i]); {
       }
@@ -294,7 +294,7 @@ baneProbe(float *_ans, Nrrd *nin, int query,
   /* we have the relevant values in val[], now get values for fsl[], 
      fw0[], fw1[], fw2[] arrays based on subvoxel position (xf, yf, zf) */
   switch (fd) {
-  case 2:
+  case 20:
     fslx[0] = -xf; fslx[1] = -xf+1;
     fsly[0] = -yf; fsly[1] = -yf+1;
     fslz[0] = -zf; fslz[1] = -zf+1;
@@ -305,7 +305,7 @@ baneProbe(float *_ans, Nrrd *nin, int query,
       printf("z[]: % 10.4f   % 10.4f\n", fslz[0], fslz[1]);
     }
     break;
-  case 4:
+  case 40:
     fslx[0] = -xf-1; fslx[1] = -xf; fslx[2] = -xf+1; fslx[3] = -xf+2;
     fsly[0] = -yf-1; fsly[1] = -yf; fsly[2] = -yf+1; fsly[3] = -yf+2;
     fslz[0] = -zf-1; fslz[1] = -zf; fslz[2] = -zf+1; fslz[3] = -zf+2;
@@ -518,6 +518,7 @@ baneProbe(float *_ans, Nrrd *nin, int query,
     /* h_yy */
     for (tmpF=i=0; i<=fd-1; i++)
       tmpF += fw0z[i]*fi1[i];
+    hess[4] = tmpF;
     /* x1 */
     for (k=0; k<=fd-1; k++)
       for (j=0; j<=fd-1; j++) {
