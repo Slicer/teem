@@ -23,7 +23,7 @@
 
 # all the architectures currently supported
 #KNOWN_ARCH = irix6.n32 irix6.64 linux cygwin
-KNOWN_ARCH = irix6.n32 irix6.64 linux
+KNOWN_ARCH = irix6.n32 irix6.64 linux solaris
 
 # there is no default architecture
 ifndef TEEM_ARCH
