@@ -640,30 +640,34 @@ nrrdSameSize(Nrrd *n1, Nrrd *n2) {
 }
 
 void
-_nrrdInitResample(NrrdResampleInfo *info) {
-  int i;
-  
-  info->kernel = NULL;
-  for (i=0; i<=NRRD_MAX_KERNEL_ARGS-1; i++) {
-    info->args[i] = airNand();
+_nrrdInitResample(nrrdResampleInfo *info) {
+  int i, d;
+
+  for (d=0; d<=NRRD_MAX_DIM-1; d++) {
+    info->kernel[d] = nrrdKernelUnknown;
+    info->samples[d] = 0;
+    for (i=0; i<=NRRD_MAX_KERNEL_PARAMS-1; i++)
+      info->param[d][i] = airNanf();
+    info->min[d] = info->max[d] = airNanf();
   }
-  info->min = info->max = airNand();
-  info->samples = 0;
+  info->type = nrrdTypeUnknown;
+  info->pad = 0;
+  info->padValue = 0.0;
 }
 
-NrrdResampleInfo *
+nrrdResampleInfo *
 nrrdResampleInfoNew(void) {
-  NrrdResampleInfo *info;
+  nrrdResampleInfo *info;
 
-  info = (NrrdResampleInfo*)(calloc(1, sizeof(NrrdResampleInfo)));
+  info = (nrrdResampleInfo*)(calloc(1, sizeof(nrrdResampleInfo)));
   if (info) {
     _nrrdInitResample(info);
   }
   return info;
 }
 
-NrrdResampleInfo *
-nrrdResampleInfoNix(NrrdResampleInfo *info) {
+nrrdResampleInfo *
+nrrdResampleInfoNix(nrrdResampleInfo *info) {
   
   if (info) {
     free(info);
