@@ -64,10 +64,10 @@ limnVto16QN(float *vec) {
   }
   zi = (ui ^ vi) & 0x01;
   if (!zi && z > 1.0/128.0) {
-    printf("fuck01\n");
+    printf("panic01\n");
   } 
   else if (zi && z < -1.0/128.0) {
-    printf("fuck02\n");
+    printf("panic02\n");
   }
   return (vi << 8) | ui;
 }
