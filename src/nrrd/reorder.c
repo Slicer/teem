@@ -1044,4 +1044,17 @@ nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type) {
   return 0;
 }
 
+/* for nrrdTile...
+
+will require that # slices be <= number of images: won't crop for you,
+but will happy pad with black
+
+pick which axis to slice along
+
+pick which two axis (in order) will be tiled into
+
+then write nrrdUntile
+
+ */
+
 /* ---- END non-NrrdIO */
