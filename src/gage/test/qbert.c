@@ -125,6 +125,7 @@ main(int argc, char *argv[]) {
 	     "output volume in nrrd format");
   if (hestOptCheck(hopt, &herr)) { printf("%s\n", herr); exit(1); }
 
+
   if (1 == argc) {
     hestInfo(stderr, me, info, hparm);
     hestUsage(stderr, hopt, me, hparm);
@@ -242,6 +243,7 @@ main(int argc, char *argv[]) {
   /* we have to use a slightly blurring kernel for the 2nd derivatives
      to work out (B-spline is kind of rotationally symmetric) */
   kparm[0] = 1.0; kparm[1] = 0.0; kparm[2] = 0.5;
+  kparm[0] = 1.0; kparm[1] = 1.0; kparm[2] = 0.0;
   if (!E) E |= gageSclKernelSet(ctx, gageKernel00,
 				nrrdKernelBCCubic, kparm);
   kparm[0] = 1.0; kparm[1] = 1.0; kparm[2] = 0.0;
