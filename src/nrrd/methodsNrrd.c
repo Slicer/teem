@@ -26,10 +26,11 @@ void
 _nrrdIOInit(NrrdIO *io) {
 
   if (io) {
-    strcpy(io->dir, "");
-    strcpy(io->base, "");
-    strcpy(io->dataFN, "");
-    strcpy(io->line, "");
+    io->dir = NULL;
+    io->base = NULL;
+    io->dataFN = NULL;
+    io->line = NULL;
+    io->lineLen = 0;
     io->pos = 0;
     io->dataFile = NULL;
     io->magic = nrrdMagicUnknown;
@@ -53,7 +54,6 @@ nrrdIONew(void) {
   
   io = calloc(1, sizeof(NrrdIO));
   if (io) {
-    /* explicitly sets pointers to NULL */
     _nrrdIOInit(io);
   }
   return io;
@@ -71,11 +71,14 @@ nrrdIOReset(NrrdIO *io) {
 
   /* this started as a copy of the body of _nrrdIOInit() */
   if (io) {
-    strcpy(io->dir, "");
-    strcpy(io->base, "");
-    strcpy(io->line, "");
-    io->pos = 0;
+    /* okay to leave buffers allocated */
+    io->dir = airFree(io->dir);
+    io->base = airFree(io->base);
+    io->dataFN = airFree(io->dataFN);
+    /* io->line is the one thing it makes sense to recycle */
+    if (io->line) strcpy(io->line, ""); 
     io->dataFile = NULL;
+    io->pos = 0;
     io->magic = nrrdMagicUnknown;
     /* io->format = nrrdDefWrtFormat; */
     /* io->encoding = nrrdDefWrtEncoding; */
@@ -91,6 +94,10 @@ nrrdIOReset(NrrdIO *io) {
 NrrdIO *
 nrrdIONix(NrrdIO *io) {
 
+  airFree(io->dir);
+  airFree(io->base);
+  airFree(io->dataFN);
+  airFree(io->line);
   return airFree(io);
 }
 
