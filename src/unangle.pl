@@ -5,7 +5,6 @@
 # equivalent character sequences.
 
 while (<>) {
-    chop;
     s/</&lt;/g;
     s/>/&gt;/g;
     print;
