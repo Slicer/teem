@@ -495,7 +495,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: This teem not compiled with multi-threading support.\n", me);
     fprintf(stderr, "%s: --> can't use %d threads; only using 1\n",
 	    me, uu->hctx->numThreads);
-    uu->hctx->numThreads = 1;
+    //uu->hctx->numThreads = 1;
   }
 
   E = hooverRender(uu->hctx, &Ecode, NULL);

@@ -380,6 +380,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
       return hooverErrThreadCreate;
     }
   }
+
   for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
     if ((ret = airThreadJoin(&thread[threadIdx], (void **) (&errArg)))) {
       *errCodeP = ret;

@@ -26,7 +26,7 @@ const int airMultiThreaded = 0;
 #endif
 
 /* ------------------------------------------------------------------ */
-#if TEEM_PTHREADS /* --------------------------------------- PTHREADS */
+#if TEEM_PTHREAD /* ----------------------------------------- PTHREAD */
 /* ------------------------------------------------------------------ */
 
 int
@@ -88,7 +88,7 @@ airThreadCreate(airThread *thread, void *(*threadBody)(void *), void *arg) {
 
 int
 airThreadJoin(airThread *thread, void **retP) {
-  retP = thread->ret;
+  *retP = thread->ret;
   return 0;
 }
 

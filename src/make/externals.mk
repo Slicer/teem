@@ -67,4 +67,4 @@ nrrd.XTERN += PNG
 ## TEEM_PTHREAD_LPATH to "-I<path>" and "-L<path>" for the compile and
 ## link lines, respectively.
 PTHREAD.LINK = -lpthread
-hoover.XTERN += PTHREAD
+air.XTERN += PTHREAD
