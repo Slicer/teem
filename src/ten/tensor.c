@@ -99,16 +99,15 @@ tenExpand(Nrrd *nout, Nrrd *nin, float thresh) {
     seven = (float*)(nin->data) + I*7;
     nine = (float*)(nout->data) + I*9;
     if (seven[0] < thresh) {
-      ELL_3M_SET_ZERO(nine);
+      ELL_3M_ZERO_SET(nine);
       continue;
     }
     TEN_LIST2MAT(nine, seven);
   }
-  if (nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE)) {
+  if (nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_SIZE_BIT)) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
-  
 
   return 0;
 }

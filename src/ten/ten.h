@@ -110,6 +110,10 @@ extern void tenAnisoCalc(float c[TEN_ANISO_MAX+1], float eval[3]);
 extern int tenAnisoPlot(Nrrd *nout, int aniso, int res);
 extern int tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, float thresh);
 
+/* miscTen.c */
+extern short tenEvqOne(float vec[3], float scl);
+extern int tenEvqVolume(Nrrd *nout, Nrrd *nin, int which, int aniso);
+
 /* glyph.c */
 extern int tenGlyphGen(limnObj *obj, Nrrd *nin, tenGlyphParm *parm);
 
@@ -121,7 +125,9 @@ F(calc) \
 F(anplot) \
 F(anvol) \
 F(eval) \
-F(evec)
+F(evec) \
+F(evq) \
+F(expand)
 TEND_MAP(TEND_DECLARE)
 extern ten_export unrrduCmd *tendCmdList[]; 
 extern void tendUsage(char *me, hestParm *hparm);

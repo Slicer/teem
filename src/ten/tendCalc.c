@@ -24,7 +24,9 @@
 char *_tend_calcInfoL =
   (INFO
    ".  The tensors are calculated everwhere but the threshold and slope "
-   "arguments determine what the confidence values are.");
+   "arguments determine what the confidence values are.  The output is a "
+   "volume with 7 values per float: confidence, Dxx, Dxy, Dxz, Dyy, Dyz, "
+   "Dzz.  The confidence values range from 0.0 to 1.0");
 
 int
 tend_calcMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -44,7 +46,8 @@ tend_calcMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "b", "b", airTypeFloat, 1, 1, &b, "1",
 	     "b value from scan");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
+	     "input volume of diffusion-weighted images",
+	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
 	     "output image (floating point)");
 

@@ -41,7 +41,7 @@ tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "c", "c0 ", airTypeInt, 1, 3, &comp, NULL,
 	     "which eigenvalues should be saved out. \"0\" for the "
 	     "largest, \"1\" for the middle, \"2\" for the smallest, "
-	     "\"01\", \"12\", \"012\" or similar for more than one",
+	     "\"0 1\", \"1 2\", \"0 1 2\" or similar for more than one",
 	     &compLen);
   hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "0.5",
 	     "confidence threshold");
