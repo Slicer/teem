@@ -33,7 +33,7 @@ char *_unrrdu_saveInfoL =
 int
 unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err;
+  char *out, *err, encInfo[AIR_STRLEN_HUGE];
   Nrrd *nin, *nout;
   int format, encoding;
   airArray *mop;
@@ -46,15 +46,16 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "\b\bo \"pnm\": PNM image; PPM for color, PGM for grayscale\n "
 	     "\b\bo \"text\": plain ASCII text for 1-D and 2-D data",
 	     NULL, nrrdFormat);
+  strcpy(encInfo,
+	 "output file format. Possibilities include:"
+	 "\n \b\bo \"raw\": raw encoding"
+	 "\n \b\bo \"ascii\": print data in ascii");
+  if (nrrdEncodingAvailable[nrrdEncodingZlib]) {
+    strcat(encInfo, 
+	   "\n \b\bo \"gz\": gzipped compressed raw format");
+  }
   hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &encoding, "raw",
-	     "output file format. Possibilities include:"
-	     "\n \b\bo \"raw\": raw encoding"
-	     "\n \b\bo \"ascii\": print data in ascii"
-#ifdef TEEM_ZLIB
-	     "\n \b\bo \"gz\": gzipped compressed raw format"
-#endif
-	     ,
-	     NULL, nrrdEncoding);
+	     encInfo, NULL, nrrdEncoding);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
