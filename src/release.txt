@@ -1,26 +1,61 @@
 Things to do with each teem release:
 
-0) Make sure it works.
-  a) Run nm on libteem.a to make sure that I'm prefixing everything
-  properly.  Figure out a way to make sure the header files are also
-  kosher wrt namespace issues.
-  b) "make teem/dev teem/install" on every supported architecture,
+0) Check namespace safety
+  a) Make sure all library symbols are properly prefixed.  On linux,
+  this should return nothing:
+  cd teem/linux/lib
+  nm libteem.so | grep -v "gcc2_compiled." | grep -v " U " | grep -v " A " \
+  | grep -v " air" | grep -v " _air" \
+  | grep -v " hest" | grep -v " _hest" \
+  | grep -v " biff" | grep -v " _biff" \
+  | grep -v " ell" | grep -v " _ell" \
+  | grep -v " nrrd" | grep -v " _nrrd" \
+  | grep -v " unrrdu" | grep -v " _unrrdu" \
+  | grep -v " dye" | grep -v " _dye" \
+  | grep -v " gage" | grep -v " _gage" \
+  | grep -v " bane" | grep -v " _bane" \
+  | grep -v " limn" | grep -v " _limn" \
+  | grep -v " hoover" | grep -v " _hoover" \
+  | grep -v " mite" | grep -v " _mite" \
+  | grep -v " ten" | grep -v " _ten" \
+  | grep -v " echo" | grep -v " _echo"
+  b) Make sure #defines in header files are properly prefixed:
+  cd teem/inlude
+  grep #define *.h | grep -v _export \
+  | grep -v " echo" | grep -v " ell" | grep -v " gage" \
+  | grep -v " AIR" | grep -v " _AIR" \
+  | grep -v " HEST" | grep -v " _HEST" \
+  | grep -v " BIFF" | grep -v " _BIFF" \
+  | grep -v " ELL" | grep -v " _ELL" \
+  | grep -v " NRRD" | grep -v " _NRRD" \
+  | grep -v " UNRRDU" | grep -v " _UNRRDU" \
+  | grep -v " DYE" | grep -v " _DYE" \
+  | grep -v " GAGE" | grep -v " _GAGE" \
+  | grep -v " BANE" | grep -v " _BANE" \
+  | grep -v " LIMN" | grep -v " _LIMN" \
+  | grep -v " HOOVER" | grep -v " _HOOVER" \
+  | grep -v " MITE" | grep -v " _MITE" \
+  | grep -v " TEN" | grep -v " _TEN" \
+  | grep -v " ECHO" | grep -v " _ECHO"
+
+1) Make sure it works
+  "make teem/dev teem/install" on every supported architecture,
   and make sure Windows stuff also still works.
 
-1) Make tgz snapshot of CVS repository
+2) Make tgz snapshot of CVS repository
 
-2) Checkout a tree into /usr/sci/projects/teem, and in this,
+3) Checkout a tree into /usr/sci/projects/teem, and in this,
 "make teem/install" on all platforms that share the SCI facility,
 so that all SCItizens have access to teem.  This should actually
 be maintained with a finer granularity than major teem releases.
 
-3) Create source-only tgz:
+4) Create source-only tgz:
    a) cvs checkout teem
    b) (cd teem; find . -name CVS  -exec rm -rf {} \;)
    c) mv teem teem-VERSION
    c) tar czvf teem-VERSION.tgz teem-VERSION
 
-3) Create Unix-ish binary builds: for each ARCH in:
+5) Create Unix-ish binary builds: for each ARCH in:
   "irix6.n32 irix6.64 linux cygwin solaris darwin"
    a) ssh to some ARCH machine, copy teem-VERSION.tgz there if needed
    b) setenv TEEM_XXX for all the externals that it makes sense to 
@@ -30,13 +65,13 @@ be maintained with a finer granularity than major teem releases.
    e) (cd teem-VERSION/src; make)
    f) tar czvf teem-VERSION-ARCH.tgz
 
-4) Create Windows binary builds.  For Windows, we probably should NOT
+6) Create Windows binary builds.  For Windows, we probably should NOT
 compile with any TEEM_XXX externals, because DLLs are the preferred
 route, and we can't assume that they'll have any of the DLLs.
 
-5) Move all the binary builds to the web server
+7) Move all the binary builds to the web server
 
-6) update online documentation (which may be done more often than releases)
+8) update online documentation (which may be done more often than releases)
    a) cvs checkout teem
    b) (cd teem/html; find . -name CVS  -exec rm -rf {} \;)
    c) (cd teem; tar czvf html.tgz html)
