@@ -1,6 +1,14 @@
 (this is only a high-level description, see CHANGES.txt in
 the individual library directories)
 
+Changes from 1.5beta1 ----------------------------------------------
+
+Many big changes.  Forgot to document them.
+
+All TEEM_USABLE-related stuff nixed from GNUmakefiles.  Dumb idea.
+
+Ray tracer "echo" resurrected, and ten now depends on it.
+
 Changes from 1.5beta0 ----------------------------------------------
 
 The complete HTML documentation is now in a seperate CVS tree, called

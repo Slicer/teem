@@ -1,17 +1,18 @@
-Things to do with each teem release:
+Things for Gordon to do with each teem release:
 
--2) update airTeemVersion and airTeemReleaseDate in air/misc.c
+-1) update airTeemVersion and airTeemReleaseDate in air/misc.c
 
--1) Bring documentation up-to-date with source tree
-(in teem top-level)
+0) Bring documentation up-to-date with source tree
 make sure all the unrrdu pages agree with unu usage info
-cp README.txt ~/usr/teemdoc/html/tree/
-cp src/README.txt ~/usr/teemdoc/html/tree/src/
-cp src/CHANGES.txt ~/usr/teemdoc/html/tree/src/
-cp src/TODO.txt ~/usr/teemdoc/html/tree/src/
-cp src/LICENSE.txt ~/usr/teemdoc/html/tree/src/
+cd ~/teem
+cp README.txt ~/teemdoc/html/tree/
+cp src/README.txt ~/teemdoc/html/tree/src/
+cp src/CHANGES.txt ~/teemdoc/html/tree/src/
+cp src/TODO.txt ~/teemdoc/html/tree/src/
+cp src/LICENSE.txt ~/teemdoc/html/tree/src/
+(cd ~/teemdoc; cvs commit -m "pre-release text file update")
 
-0) Check namespace safety
+1) Check namespace safety
   a) Make sure all library symbols are properly prefixed.  On linux,
   this should return nothing:
   cd teem/linux/lib
@@ -53,12 +54,10 @@ cp src/LICENSE.txt ~/usr/teemdoc/html/tree/src/
   | grep -v " TEN" | grep -v " _TEN" \
   | grep -v " ECHO" | grep -v " _ECHO"
 
-1) Make sure it works
+2) Make sure it works
   "make teem/dev teem/install" on every supported architecture,
   and make sure Windows stuff also still works (if new files or
   libraries were added)
-
-2) Make tgz snapshot of CVS repository
 
 3) Checkout a tree into /usr/sci/projects/teem, and in this,
 "make teem/install" on all platforms that share the SCI facility.
@@ -93,6 +92,7 @@ setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
 setenv TEEM_PNG_LPATH -L/home/sci/gk/usr/irix6.64/lib
 setenv TEEM_PNG_IPATH -I/home/sci/gk/usr/irix6.64/include
 
+(options for being multi-threaded)
 setenv TEEM_PTHREAD
 setenv TEEM_LINK_SHARED
 setenv PATH ${PATH}:/home/sci/gk/usr/local/irix6.64/bin
@@ -105,6 +105,7 @@ setenv TEEM_BZIP2
 # setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/linux/lib
 # setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
 
+(options for doing valgrind)
 setenv OPT_CFLAG "-g"
 setenv TEEM_LINK_SHARED
 setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sci/gk/usr/local/linux/lib
@@ -152,20 +153,12 @@ mv teem-${VERSION}-${TEEM_ARCH}.tgz ~/rel
 7) Move all the binary builds to the web server
 
 8) update online documentation (which may be done more often than releases)
-cvs -d /usr/sci/projects/teem/cvs co teemdoc; cd teemdoc
-mv html teem-html
-tar czvf teem-html.tgz teem-html
-scp teem-html.tgz faith.cs.utah.edu:/home/gk/web
+cd ~/teemdoc
+cvs commit -m "pre-release doc update"
 
-ssh faith.cs.utah.edu
+ssh kindlmann@shell.sf.net
 
-cd web; tar xzvf teem-html.tgz
-yes | rm -rf teem; mv teem-html teem
-yes | rm -rf teem-html*
+cd teem/htdocs
+cvs update
 exit
 
-9) make tarball of documentation
-(continued from above)
-mv teem-html teem-${VERSION}-html
-tar czvf teem-${VERSION}-html.tgz teem-${VERSION}-html
-mv teem-${VERSION}-html.tgz ~/rel

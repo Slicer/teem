@@ -1,5 +1,3 @@
-update ALL copyright information in preambles (.c, .h, .mk, .txt)
-
 determine if ELL_3M_L2NORM is misnamed: find name for thing that is
 the naive L2 norm
 Actually grep for "l2" and "L2" in all *.c and *.h and fix if needed
@@ -7,7 +5,7 @@ Actually grep for "l2" and "L2" in all *.c and *.h and fix if needed
 add segprobe to teem
 
 making volume datasets
-nhdrs for meissner
+nhdrs for volvis.org
 make vtk, make DTInspect
 
 figure out shared libraries on cygwin.
@@ -23,7 +21,6 @@ library instead of the installed one.
 
 other_clean (so_locations on SGI)
 
-
 ten: finish tend, test w/ DTInspect
 ell: test double root eigenvalue sorting
 leaf: do it
@@ -36,12 +33,6 @@ mrender: deal with vectors
 air: make airOneLine return number of bytes read; current return
   of string length is entirely redundant with return of strlen()
   and then enable the ftell() check after PNG magic read
-
-------- teem 1.5 cutoff ---------
-
-Fix TEEM_USABLE
-
-figure out if parallel make will work with my pattern-specific variables
 
 ------- teem 1.6 cutoff ---------
 
