@@ -1,8 +1,3 @@
-NOTE: see the last section of the README.txt file (in the same directory
-as this file), starting with "Gordon's understanding of the LGPL", to get
-my (non-legally-binding) explanation of what the LGPL actually means for
-someone using my libraries.
-
                   GNU LESSER GENERAL PUBLIC LICENSE
                        Version 2.1, February 1999
 
