@@ -21,7 +21,8 @@
 
 int
 hoovStubRenderBegin(void **rendInfoP, void *userInfo) {
-  
+
+  *rendInfoP = NULL;
   return 0;
 }
 
@@ -29,6 +30,7 @@ int
 hoovStubThreadBegin(void **threadInfoP, void *rendInfo, void *userInfo,
 		    int whichThread) {
 
+  *threadInfoP = NULL;
   return 0;
 }
 
