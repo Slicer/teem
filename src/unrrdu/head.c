@@ -37,8 +37,11 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *err, *inS=NULL, *outS=NULL;
   NrrdIO *io;
   airArray *mop;
-  int len, magic, pret, c;
+  int len, magic, pret;
   FILE *fin, *fout;
+#ifdef WIN32
+  int c;
+#endif
 
   mop = airMopInit();
   hestOptAdd(&opt, NULL, "nin", airTypeString, 1, 1, &inS, NULL,
@@ -101,8 +104,8 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
   };
   
 #ifdef WIN32
-  /* seems that only on windows does the writing process's fwrite() to stdout fail if we
-     exit without consuming everything from stdin */
+  /* seems that only on windows does the writing process's fwrite() to
+     stdout fail if we exit without consuming everything from stdin */
   c = fgetc(fin);
   while (EOF != c) {
     c = fgetc(fin);
