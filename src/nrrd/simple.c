@@ -577,14 +577,14 @@ nrrdSanity (void) {
   int aret, type, maxsize;
   airLLong tmpLLI;
   airULLong tmpULLI;
-  static int sanity = 0;
+  static int _nrrdSanity = 0;
 
-  if (sanity) {
+  if (_nrrdSanity) {
     /* we've been through this once before and things looked okay ... */
     /* Is this thread-safe?  I think so.  If we assume that any two
        threads are going to compute the same value, isn't it the case
        that, at worse, both of them will go through all the tests and
-       then set sanity to the same thing? */
+       then set _nrrdSanity to the same thing? */
     return 1;
   }
   
@@ -734,6 +734,6 @@ nrrdSanity (void) {
 
   /* HEY: any other assumptions built into teem? */
 
-  sanity = 1;
+  _nrrdSanity = 1;
   return 1;
 }

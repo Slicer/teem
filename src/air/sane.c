@@ -32,9 +32,9 @@ airSanity(void) {
   float nanF, pinfF, ninfF;
   int tmpI, sign, exp, frac, size;
   char endian;
-  static int sanity=0;
+  static int _airSanity=0;
   
-  if (sanity) {
+  if (_airSanity) {
     return airInsane_not;
   }
 
@@ -112,7 +112,7 @@ airSanity(void) {
     return airInsane_32Bit;
   }
 
-  sanity = 1;
+  _airSanity = 1;
   return airInsane_not;
 }
 
