@@ -176,16 +176,44 @@ nrrdCCSize(Nrrd *nout, Nrrd *nin) {
 */
 int
 nrrdCCMax(Nrrd *nin) {
-  int (*lup)(void *, size_t), id, max=0;
+  int (*lup)(void *, size_t), id, max;
   size_t I, NN;
 
-  if (nrrdCCValid(nin)) {
-    lup = nrrdILookup[nin->type];
-    NN = nrrdElementNumber(nin);
-    for (I=0; I<NN; I++) {
-      id = lup(nin->data, I);
-      max = AIR_MAX(max, id);
-    }
+  if (!nrrdCCValid(nin)) {
+    return -1;
+  }
+  lup = nrrdILookup[nin->type];
+  NN = nrrdElementNumber(nin);
+  max = 0;
+  for (I=0; I<NN; I++) {
+    id = lup(nin->data, I);
+    max = AIR_MAX(max, id);
   }
   return max;
+}
+
+int
+nrrdCCNum(Nrrd *nin) {
+  int (*lup)(void *, size_t), id, max, num=-1;
+  size_t I, NN;
+  unsigned char *hist;
+  
+  if (!nrrdCCValid(nin)) {
+    return -1;
+  }
+  lup = nrrdILookup[nin->type];
+  NN = nrrdElementNumber(nin);
+  max = nrrdCCMax(nin);
+  hist = (unsigned char *)calloc(max+1, sizeof(unsigned char));
+  if (!hist) {
+    return -1;
+  }
+  for (I=0; I<NN; I++) {
+    hist[lup(nin->data, I)] = 1;
+  }
+  num = 0;
+  for (I=0; I<=max; I++) {
+    num += hist[I];
+  }
+  return num;
 }

@@ -628,12 +628,14 @@ extern int nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
 extern int nrrdCCValid(Nrrd *nin);
 extern int nrrdCCSize(Nrrd *nout, Nrrd *nin);
 extern int nrrdCCMax(Nrrd *nin);
+extern int nrrdCCNum(Nrrd *nin);
 /* cc.c */
 extern int nrrdCCFind(Nrrd *nout, Nrrd **nvalP, Nrrd *nin,
 		      int type, int conny);
 extern int nrrdCCAdjacency(Nrrd *nout, Nrrd *nin, int conny);
 extern int nrrdCCMerge(Nrrd *nout, Nrrd *nin, Nrrd *nval,
 		       int dir, int maxSize, int maxNeighbor, int conny);
+extern int nrrdCCRevalue (Nrrd *nout, Nrrd *nin, Nrrd *nval);
   
 /******** kernels (interpolation, 1st and 2nd derivatives) */
 /* tmfKernel.c

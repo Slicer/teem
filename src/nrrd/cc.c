@@ -695,7 +695,7 @@ nrrdCCMerge(Nrrd *nout, Nrrd *nin, Nrrd *_nval,
 	break;
     }
     if (j == _i)
-      continue;   /* we had no neighbors! */
+      continue;   /* we had no neighbors ?!?! */
     if (valDir && (val[bigi] - val[i])*valDir < 0 )
       continue;
     /* else all criteria for merging have been met */
@@ -714,5 +714,38 @@ nrrdCCMerge(Nrrd *nout, Nrrd *nin, Nrrd *_nval,
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   airMopOkay(mop);
+  return 0;
+}
+
+/*
+******** nrrdCCRevalue()
+**
+** assigns the original values back to the connected components
+** obviously, this could be subsumed by nrrdApply1DLut(), but this
+** is so special purpose that it seemed simpler to code from scratch
+*/
+int
+nrrdCCRevalue (Nrrd *nout, Nrrd *nin, Nrrd *nval) {
+  char me[]="nrrdCCRevalue", err[AIR_STRLEN_MED];
+  size_t I, NN;
+  int (*vlup)(void *, size_t), (*ilup)(void *, size_t),
+    (*ins)(void *, size_t, int);
+  
+  if (!( nout && nrrdCCValid(nin) && nval )) {
+    sprintf(err, "%s: invalid args", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdConvert(nout, nin, nval->type)) {
+    sprintf(err, "%s: couldn't initialize output", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  NN = nrrdElementNumber(nin);
+  vlup = nrrdILookup[nval->type];
+  ilup = nrrdILookup[nin->type];
+  ins = nrrdIInsert[nout->type];
+  for (I=0; I<NN; I++) {
+    ins(nout->data, I, vlup(nval->data, ilup(nin->data, I)));
+  }
+
   return 0;
 }
