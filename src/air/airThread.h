@@ -23,6 +23,7 @@
 #if TEEM_PTHREAD
 #include <pthread.h>
 #elif defined(_WIN32)
+/* SignalObjectAndWait supported by NT4.0 and greater only */
 #define _WIN32_WINNT 0x400
 #include <windows.h>
 #endif
