@@ -35,7 +35,6 @@ main(int argc, char *argv[]) {
   int res, axis, sphere;
   FILE *file;
 
-  mop = airMopNew();
   
   me = argv[0];
   hestOptAdd(&hopt, "sc", "scalings", airTypeFloat, 3, 3, scale, "1 1 1",
@@ -61,6 +60,7 @@ main(int argc, char *argv[]) {
 	     "output file to save OFF into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
 		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   

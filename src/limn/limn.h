@@ -248,6 +248,18 @@ typedef struct limnPart_t {
 ** the beast used to represent polygonal objects
 **
 ** Relies on many dynamically allocated arrays
+**
+** learned: I used to have an array of limnParts inside here, and that
+** array was managed by an airArray.  Inside the limnPart, are more
+** airArrays, for example the faceIdxArr which internally stores the
+** *address* of faceIdx.  When the array of limnParts is resized, the
+** limnPart's faceIdx pointer is still valid, and faceIdxArr is still
+** valid, but the faceIdxArr's internal pointer to the faceIdx pointer
+** is now bogus.  Thus: the weakness of airArrays (as long as they
+** aren't giving the data pointer anew for EACH ACCESS), is that you
+** must not confuse the airArrays by changing the address of its user
+** data pointer.  Putting user data pointers inside of a bigger
+** airArray is a fine way to create such confusion.
 */
 typedef struct {
   limnVertex *vert; int vertNum;
@@ -260,7 +272,7 @@ typedef struct {
   airArray *faceArr;
   int *faceSort;     /* indices into "face", sorted by depth */
   
-  limnPart *part; int partNum;
+  limnPart **part; int partNum;  /* double indirection, see above */
   airArray *partArr;
   
   limnLook *look; int lookNum;

@@ -30,7 +30,7 @@ limnObjectDescribe(FILE *file, limnObject *obj) {
   
   fprintf(file, "parts: %d\n", obj->partNum);
   for (partIdx=0; partIdx<obj->partNum; partIdx++) {
-    part = obj->part + partIdx;
+    part = obj->part[partIdx];
     fprintf(file, "part %d | verts: %d ========\n", partIdx, part->vertIdxNum);
     for (vii=0; vii<part->vertIdxNum; vii++) {
       vert = obj->vert + part->vertIdx[vii];
@@ -90,7 +90,7 @@ limnObjectOFFWrite(FILE *file, limnObject *obj) {
   /* write vertices */
   for (partIdx=0; partIdx<obj->partNum; partIdx++) {
     fprintf(file, "### LIMN BEGIN PART %d\n", partIdx);
-    part = obj->part + partIdx;
+    part = obj->part[partIdx];
     for (vii=0; vii<part->vertIdxNum; vii++) {
       vert = obj->vert + part->vertIdx[vii];
       fprintf(file, "%g %g %g",
@@ -111,7 +111,7 @@ limnObjectOFFWrite(FILE *file, limnObject *obj) {
   /* write faces */
   for (partIdx=0; partIdx<obj->partNum; partIdx++) {
     fprintf(file, "### LIMN BEGIN PART %d\n", partIdx);
-    part = obj->part + partIdx;
+    part = obj->part[partIdx];
     for (fii=0; fii<part->faceIdxNum; fii++) {
       face = obj->face + part->faceIdx[fii];
       fprintf(file, "%d", face->sideNum);

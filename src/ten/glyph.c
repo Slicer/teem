@@ -279,8 +279,8 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
 	}
 	ELL_3V_COPY(slcCoord, pI);
 	sliceGray = 
-	  nrrdFLookup[nslc->type](nslc->data,
-				  slcCoord[0] + nslc->axis[0].size*slcCoord[1]);
+	  nrrdFLookup[nslc->type](nslc->data, slcCoord[0] 
+				  + nslc->axis[0].size*slcCoord[1]);
       } else {
 	if (!( tdata[0] >= parm->confThresh ))
 	  continue;

@@ -70,7 +70,6 @@ limnObjectSquareAdd(limnObject *obj, int lookIdx) {
   limnObjectVertexAdd(obj, partIdx, lookIdx, 0, 1, 0);
   ELL_4V_SET(vII, vII0+0, vII0+1, vII0+2, vII0+3); 
   limnObjectFaceAdd(obj, partIdx, lookIdx, 4, vII);
-
   return partIdx;
 }
 

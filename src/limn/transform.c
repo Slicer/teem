@@ -46,7 +46,7 @@ _limnObjectNormals(limnObject *obj, int space) {
   
   for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
     face = obj->face + faceIdx;
-    part = obj->part + face->partIdx;
+    part = obj->part[face->partIdx];
     /* add up cross products at all vertices */
     ELL_3V_SET(nn, 0, 0, 0);
     for (vii=0; vii<face->sideNum; vii++) {
@@ -227,7 +227,7 @@ limnObjectPartTransform(limnObject *obj, int partIdx, float xform[16]) {
   limnVertex *vert;
   float tmp[4];
   
-  part= obj->part + partIdx;
+  part= obj->part[partIdx];
   for (vertIdxIdx=0; vertIdxIdx<part->vertIdxNum; vertIdxIdx++) {
     vert = obj->vert + part->vertIdx[vertIdxIdx];
     ELL_4MV_MUL(tmp, xform, vert->world);
@@ -256,7 +256,7 @@ limnObjectDepthSortParts(limnObject *obj) {
   int partIdx, ii;
 
   for (partIdx=0; partIdx<obj->partNum; partIdx++) {
-    part = obj->part + partIdx;
+    part = obj->part[partIdx];
     part->depth = 0;
     for (ii=0; ii<part->vertIdxNum; ii++) {
       vert = obj->vert + part->vertIdx[ii];
@@ -269,7 +269,7 @@ limnObjectDepthSortParts(limnObject *obj) {
   
   /* re-assign partIdx, post-sorting */
   for (partIdx=0; partIdx<obj->partNum; partIdx++) {
-    part = obj->part + partIdx;
+    part = obj->part[partIdx];
     for (ii=0; ii<part->vertIdxNum; ii++) {
       vert = obj->vert + part->vertIdx[ii];
       vert->partIdx = partIdx;
@@ -309,7 +309,7 @@ limnObjectDepthSortFaces(limnObject *obj) {
   obj->faceSort = (int*)calloc(obj->faceNum, sizeof(int));
   for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
     face = obj->face + faceIdx;
-    part = obj->part + face->partIdx;
+    part = obj->part[face->partIdx];
     face->depth = 0;
     for (vii=0; vii<face->sideNum; vii++) {
       vert = obj->vert + part->vertIdx[face->vertIdxIdx[vii]];

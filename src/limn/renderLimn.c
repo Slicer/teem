@@ -107,7 +107,7 @@ _limnPSDrawFace(limnObject *obj, limnFace *face,
   float *map, R, G, B;
 
   look = obj->look + face->lookIdx;
-  part = obj->part + face->partIdx;
+  part = obj->part[face->partIdx];
   for (vii=0; vii<face->sideNum; vii++) {
     vert = obj->vert + part->vertIdx[face->vertIdxIdx[vii]];
     fprintf(win->file, "%g %g %s\n", 
@@ -145,7 +145,7 @@ _limnPSDrawEdge(limnObject *obj, limnEdge *edge,
   limnVertex *vert0, *vert1;
   limnPart *part;
 
-  part = obj->part + edge->partIdx;
+  part = obj->part[edge->partIdx];
   if (win->ps.lineWidth[edge->type]) {
     vert0 = obj->vert + part->vertIdx[edge->vertIdxIdx[0]];
     vert1 = obj->vert + part->vertIdx[edge->vertIdxIdx[1]];
@@ -190,7 +190,7 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
   _limnPSPreamble(obj, cam, win);
 
   for (partIdx=0; partIdx<obj->partNum; partIdx++) {
-    part = obj->part + partIdx;
+    part = obj->part[partIdx];
 
     /* only draw the parts that are inside the field of view */
     inside = 0;
@@ -310,7 +310,7 @@ limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
   /* set every face's visibility */
   for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
     face = obj->face + faceIdx;
-    part = obj->part + face->partIdx;
+    part = obj->part[face->partIdx];
     face->visible = (cam->rightHanded 
 		     ? face->screenNormal[2] < 0
 		     : face->screenNormal[2] > 0);
@@ -325,7 +325,7 @@ limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
      at each of their two faces */
   for (edgeIdx=0; edgeIdx<obj->edgeNum; edgeIdx++) {
     edge = obj->edge + edgeIdx;
-    part = obj->part + edge->partIdx;
+    part = obj->part[edge->partIdx];
     face0 = obj->face + part->faceIdx[edge->faceIdxIdx[0]];
     face1 = (-1 == edge->faceIdxIdx[1]
 	     ? NULL
@@ -353,7 +353,7 @@ limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
      (contours, front crease, front non-crease) */
   for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
     face = obj->face + obj->faceSort[faceIdx];
-    part = obj->part + face->partIdx;
+    part = obj->part[face->partIdx];
     if (!face->visible) {
       continue;
     }
