@@ -498,7 +498,8 @@ _miteAnswerPointer(miteThread *mtt, gageItemSpec *isp) {
 
   if (!isp->kind) {
     /* we got a NULL kind (as happens with output of
-       gageItemSpecNew()); only NULL return is sensible */
+       gageItemSpecNew(), or miteVariableParse of an
+       empty string); only NULL return is sensible */
     return NULL;
   }
 
