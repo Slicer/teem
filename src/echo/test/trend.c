@@ -61,7 +61,7 @@ main(int argc, char **argv) {
   state = echoGlobalStateNew();
   airMopAdd(mop, state, (airMopper)echoGlobalStateNix, airMopAlways);
 
-  scene = echoObjectNew(echoObjectAABBox);
+  scene = echoObjectNew(echoObjectList);
   airMopAdd(mop, scene, (airMopper)echoObjectNix, airMopAlways);
   
   lightArr = airArrayNew((void**)&light, NULL, sizeof(EchoLight *), 1);
@@ -77,6 +77,8 @@ main(int argc, char **argv) {
   airMopAdd(mop, nppm, (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, npgm, (airMopper)nrrdNuke, airMopAlways);
+
+  /* create scene */
 
   E = 0;
   if (!E) E |= echoRender(nraw, cam, param, state, scene, lightArr);

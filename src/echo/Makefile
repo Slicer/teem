@@ -20,6 +20,7 @@
 
 LIB = echo
 HEADERS = echo.h
+PRIV_HEADERS = private.h
 LIB_OBJS = methods.o enum.o object.o light.o render.o ray.o
 #TEST_BINS = test/proj1 test/mod4
 TEST_BINS = test/test test/trend

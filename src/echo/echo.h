@@ -167,6 +167,9 @@ enum {
 
 typedef struct {
   ECHO_OBJECT_COMMON;
+  ECHO_OBJECT_MATERIAL;  /* ha! its not actually in every object, but in
+			    those cases were we want to access it without
+			    knowing object type, then it will be there ... */
 } EchoObject;
 
 typedef struct {
@@ -303,9 +306,10 @@ extern int echoRender(Nrrd *nraw, limnCam *cam,
 		      EchoObject *scene, airArray *lightArr);
 
 /* ray.c ------------------------------------------- */
-extern void echoRayColor(echoCol_t *chan,
-			 echoPos_t dir[3], echoPos_t near, echoPos_t far,
-			 EchoParam *param,
+extern void echoRayColor(echoCol_t *chan, int samp,
+			 echoPos_t from[3], echoPos_t dir[3],
+			 echoPos_t near, echoPos_t far,
+			 EchoParam *param, EchoThreadState *tstate,
 			 EchoObject *scene, airArray *lightArr);
 
 #endif /* ECHO_HAS_BEEN_INCLUDED */
