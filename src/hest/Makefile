@@ -20,6 +20,7 @@ HEADERS = hest.h
 PRIV_HEADERS = private.h
 LIBOBJS = defaults.o methods.o usage.o parse.o
 TEST_BINS = test/ex0 test/ex1 test/ex2 test/ex3
+TEST_BINS = test/ex4
 BINLIBS = -lhest -lair -lm
 
 include ../make/Common.mk
