@@ -66,9 +66,11 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "tensor",
   "trace",
   "frob",
+  "eigenvalues",
   "eigenvalue0",
   "eigenvalue1",
   "eigenvalue2",
+  "eigenvectors",
   "eigenvector0",
   "eigenvector1",
   "eigenvector2",
@@ -90,9 +92,11 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "reconstructed tensor",
   "tensor trace",
   "frob(tensor)",
+  "3 tensor eigenvalues",
   "tensor eigenvalue 0",
   "tensor eigenvalue 1",
   "tensor eigenvalue 2",
+  "3 tensor eigenvectors",
   "tensor eigenvector 0",
   "tensor eigenvector 1",
   "tensor eigenvector 2",
@@ -114,9 +118,11 @@ _tenGageVal[] = {
   tenGageTensor,
   tenGageTrace,
   tenGageFrobTensor,
+  tenGageEval,
   tenGageEval0,
   tenGageEval1,
   tenGageEval2,
+  tenGageEvec,
   tenGageEvec0,
   tenGageEvec1,
   tenGageEvec2,
@@ -135,9 +141,11 @@ _tenGageVal[] = {
 #define TG_T    tenGageTensor
 #define TG_TR   tenGageTrace
 #define TG_FT   tenGageFrobTensor
+#define TG_AL   tenGageEval
 #define TG_AL0   tenGageEval0
 #define TG_AL1   tenGageEval1
 #define TG_AL2   tenGageEval2
+#define TG_EC   tenGageEvec
 #define TG_EC0   tenGageEvec0
 #define TG_EC1   tenGageEvec1
 #define TG_EC2   tenGageEvec2
@@ -157,9 +165,11 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "t", "ten", "tensor",
   "tr", "trace",
   "frt", "fro", "frob", "frobt",
+  "eval", "eigenvalue",
   "eval0", "eigenvalue0",
   "eval1", "eigenvalue1",
   "eval2", "eigenvalue2",
+  "evec", "eigenvector",
   "evec0", "eigenvector0",
   "evec1", "eigenvector1",
   "evec2", "eigenvector2",
@@ -181,9 +191,11 @@ _tenGageValEqv[] = {
   TG_T, TG_T, TG_T,
   TG_TR, TG_TR,
   TG_FT, TG_FT, TG_FT, TG_FT,
+  TG_AL, TG_AL,
   TG_AL0, TG_AL0,
   TG_AL1, TG_AL1,
   TG_AL2, TG_AL2,
+  TG_EC, TG_EC,
   TG_EC0, TG_EC0,
   TG_EC1, TG_EC1,
   TG_EC2, TG_EC2,

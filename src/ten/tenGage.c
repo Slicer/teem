@@ -22,17 +22,19 @@
 #include "privateTen.h"
 
 gageItemEntry
-_tenGageTable[GAGE_SCL_ITEM_MAX+1] = {
+_tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   /* enum value              len,deriv,  prereqs,                                       parent item, index*/
   {tenGageTensor,              7,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
   {tenGageTrace,               1,  0,  {tenGageTensor, -1, -1, -1, -1},                         -1,  -1},
   {tenGageFrobTensor,          1,  0,  {tenGageTensor, -1, -1, -1, -1},                         -1,  -1},
-  {tenGageEval0,               1,  0,  {tenGageTensor, -1, -1, -1, -1},                         -1,  -1},
-  {tenGageEval1,               1,  0,  {tenGageTensor, -1, -1, -1, -1},                         -1,  -1},
-  {tenGageEval2,               1,  0,  {tenGageTensor, -1, -1, -1, -1},                         -1,  -1},
-  {tenGageEvec0,               3,  0,  {tenGageTensor, -1, -1, -1, -1},                         -1,  -1},
-  {tenGageEvec1,               3,  0,  {tenGageTensor, -1, -1, -1, -1},                         -1,  -1},
-  {tenGageEvec2,               3,  0,  {tenGageTensor, -1, -1, -1, -1},                         -1,  -1},
+  {tenGageEval,                3,  0,  {tenGageTensor, -1, -1, -1, -1},                         -1,  -1},
+  {tenGageEval0,               1,  0,  {tenGageEval, -1, -1, -1, -1},                  tenGageEval,   0},
+  {tenGageEval1,               1,  0,  {tenGageEval, -1, -1, -1, -1},                  tenGageEval,   1},
+  {tenGageEval2,               1,  0,  {tenGageEval, -1, -1, -1, -1},                  tenGageEval,   2},
+  {tenGageEvec,                9,  0,  {tenGageTensor, -1, -1, -1, -1},                         -1,  -1},
+  {tenGageEvec0,               3,  0,  {tenGageEvec, -1, -1, -1, -1},                  tenGageEvec,   0},
+  {tenGageEvec1,               3,  0,  {tenGageEvec, -1, -1, -1, -1},                  tenGageEvec,   3},
+  {tenGageEvec2,               3,  0,  {tenGageEvec, -1, -1, -1, -1},                  tenGageEvec,   6},
   {tenGageTensorGrad,         21,  1,  {-1, -1, -1, -1, -1},                                    -1,  -1},
   {tenGageQ,                   1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
   {tenGageQGradVec,            3,  1,  {tenGageTensor, tenGageTensorGrad, -1, -1, -1},          -1,  -1},
@@ -108,7 +110,6 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   /* char me[]="_tenGageAnswer"; */
   gage_t *tenAns, *tgradAns, *QgradAns, *evalAns, *evecAns, tmptmp=0,
     dtA=0, dtB=0, dtC=0, dtD=0, dtE=0, dtF=0, cbA, cbB;
-  int wantEvals, wantEvecs;
 
 #if !GAGE_TYPE_FLOAT
   int ci;
@@ -118,8 +119,8 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   tenAns = pvl->directAnswer[tenGageTensor];
   tgradAns = pvl->directAnswer[tenGageTensorGrad];
   QgradAns = pvl->directAnswer[tenGageQGradVec];
-  evalAns = pvl->directAnswer[tenGageEval0];
-  evecAns = pvl->directAnswer[tenGageEvec0];
+  evalAns = pvl->directAnswer[tenGageEval];
+  evecAns = pvl->directAnswer[tenGageEvec];
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensor)) {
     /* done if doV */
     dtA = tenAns[1];
@@ -141,13 +142,7 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
 						   + 2*dtC*dtC + dtD*dtD
 						   + 2*dtE*dtE + dtF*dtF);
   }
-  wantEvals = ((GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEval0)) || 
-	       (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEval1)) ||
-	       (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEval2)));
-  wantEvecs = ((GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEvec0)) || 
-	       (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEvec1)) ||
-	       (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEvec2)));
-  if (wantEvecs) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEvec)) {
     /* we do the longer process to get eigenvectors, and in the process
        we always find the eigenvalues, whether or not they were asked for */
 #if GAGE_TYPE_FLOAT
@@ -158,7 +153,7 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     ELL_3V_COPY(evalAns, evalAnsF);
     ELL_3M_COPY(evecAns, evecAnsF);
 #endif
-  } else if (wantEvals) {
+  } else if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEval)) {
     /* else eigenvectors are NOT needed, but eigenvalues ARE needed */
 #if GAGE_TYPE_FLOAT
     tenEigensolve(evalAns, NULL, tenAns);
