@@ -326,6 +326,7 @@ extern FILE *airFclose(FILE *file);
 extern char *airDoneStr(float start, float here, float end, char *str);
 extern double airTime();
 extern double airCbrt(double);
+extern double airSgnPow(double, double);
 extern int airSgn(double);
 extern int airLog2(float n);
 extern int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);

@@ -273,6 +273,14 @@ airTime() {
 #endif
 }
 
+double
+airSgnPow(double v, double p) {
+
+  return (v >= 0
+	  ? pow(v, p)
+	  : -pow(-v, p));
+}
+
 /*
 ******** airLog2()
 **
