@@ -124,8 +124,9 @@ main(int argc, char *argv[]) {
   fprintf(file, "[%d 0 0 -%d 0 %d]\n", sx, sy, sy);
   fprintf(file, "{currentfile linestr readhexstring pop} %s\n",
           gray ? "image" : "false 3 colorimage");
-  nio->dataFile = file;
-  nrrdEncodingHex->write(nin, nio);
+  nrrdEncodingHex->write(file, nin->data, nrrdElementNumber(nin),
+                         nin, nio);
+
   nio->dataFile = NULL;
   fprintf(file, "\n");
 
