@@ -29,7 +29,7 @@ int
 unrrdu_ccfindMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *valS;
-  Nrrd *nin, *nout, *nval;
+  Nrrd *nin, *nout, *nval=NULL;
   airArray *mop;
   int type, conny, pret;
 
@@ -65,6 +65,9 @@ unrrdu_ccfindMain(int argc, char **argv, char *me, hestParm *hparm) {
     fprintf(stderr, "%s: error doing connected components:\n%s", me, err);
     airMopError(mop);
     return 1;
+  }
+  if (nval) {
+    airMopAdd(mop, nval, (airMopper)nrrdNuke, airMopAlways);
   }
 
   if (airStrlen(valS)) {
