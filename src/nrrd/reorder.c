@@ -702,6 +702,7 @@ nrrdBlock(Nrrd *nout, Nrrd *nin) {
     sprintf(err, "%s: failed to allocate output", me);
     biffAdd(NRRD, err); return 1;
   }
+  memcpy(nout, nin, nin->num*nrrdElementSize(nin));
   if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_NONE)) {
     sprintf(err, "%s: failed to copy axes", me);
     biffAdd(NRRD, err); return 1;
@@ -724,29 +725,42 @@ nrrdBlock(Nrrd *nout, Nrrd *nin) {
 }
 
 int
-nrrdUnblock(Nrrd *nout, Nrrd *nin, int type, int size) {
+nrrdUnblock(Nrrd *nout, Nrrd *nin, int type) {
   char me[]="nrrdUnblock", err[NRRD_STRLEN_MED];
-  int d, map[NRRD_DIM_MAX];
+  int size, d, map[NRRD_DIM_MAX], outElSz;
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
+  if (nrrdTypeBlock != nin->type) {
+    sprintf(err, "%s: need input nrrd type %s", me,
+	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+    biffAdd(NRRD, err); return 1;
+  }
+  if (NRRD_DIM_MAX == nin->dim) {
+    sprintf(err, "%s: input nrrd already at dimension limit (%d)",
+	    me, NRRD_DIM_MAX);
+    biffAdd(NRRD, err); return 1;
+  }
   if (!AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast)) {
-    sprintf(err, "%s: invalid type %d", me, type);
+    sprintf(err, "%s: invalid requested type %d", me, type);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdTypeBlock == type) {
-    sprintf(err, "%s: sorry, can't unblockify to block type", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (nin->blockSize != size*nrrdTypeSize[type]) {
-    sprintf(err, "%s: size X nrrdTypeSize[%s] (%d X %d) != blockSize (%d)",
-	    me, nrrdEnumValToStr(nrrdEnumType, type), 
-	    size, nrrdTypeSize[type], nin->blockSize);
+  if (nrrdTypeBlock == type && (!(0 < nout->blockSize))) {
+    sprintf(err, "%s: for %s type, need nout->blockSize set", me,
+	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
 
+  nout->type = type;
+  outElSz = nrrdElementSize(nout);
+  if (nin->blockSize % outElSz) {
+    sprintf(err, "%s: in blockSize (%d) not multiple of out element size (%d)",
+	    me, nin->blockSize, outElSz);
+    biffAdd(NRRD, err); return 1;
+  }
+  size = nin->blockSize / outElSz;
   for (d=0; d<=nin->dim; d++) {
     map[d] = !d ? -1 : d-1;
   }

@@ -332,6 +332,7 @@ extern int nrrdFlip(Nrrd *nout, Nrrd *nin, int axis);
 extern int nrrdReshape(Nrrd *nout, Nrrd *nin, int dim, int *size);
 extern int nrrdReshape_va(Nrrd *nout, Nrrd *nin, int dim, ...);
 extern int nrrdBlock(Nrrd *nout, Nrrd *nin);
+extern int nrrdUnblock(Nrrd *nout, Nrrd *nin, int type);
 
 
 /******** measuring and projecting */

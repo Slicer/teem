@@ -23,8 +23,8 @@ char *me;
 
 void
 usage() {
-                      
-  fprintf(stderr, /* 0  1        2        3                 argc-2  argc-1*/ 
+  /*               0   1      2        3                    argc-2   argc-1  */
+  fprintf(stderr, 
 	  "usage: %s <nIn> <ax0min> <ax0max> <ax1min> ... <axN-1max> <nOut>\n",
 	  me);
   fprintf(stderr, 

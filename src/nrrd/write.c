@@ -19,9 +19,6 @@
 #include "nrrd.h"
 #include "private.h"
 
-#include <fcntl.h>
-
-
 /*
   #include <sys/types.h>
   #include <unistd.h>
@@ -151,15 +148,9 @@ _nrrdWriteDataRaw(Nrrd *nrrd, nrrdIO *io) {
   }
   else {
     if (AIR_DIO && nrrdFormatNRRD == io->format) {
-      fprintf(stderr, "with fwrite() ... "); fflush(stderr);
+      fprintf(stderr, "with fwrite()%d ... ", dio); fflush(stderr);
     }
-    fcntl( fileno(io->dataFile), F_SETFL, O_SYNC | O_DSYNC | O_RSYNC ) ; 
     ret = fwrite(nrrd->data, nrrdElementSize(nrrd), nrrd->num, io->dataFile);
-    /*
-    fprintf(stderr, "%s(%d): post-fwrite fsync(%d) returns %d\n", me,
-	    getpid(),
-	    fileno(io->dataFile), fsync(fileno(io->dataFile)));
-    */
     if (ret != nrrd->num) {
       sprintf(err, "%s: fwrite() returned " NRRD_BIG_INT_PRINTF
 	      " (not " NRRD_BIG_INT_PRINTF ")", me,
@@ -246,7 +237,7 @@ _nrrdSprintFieldInfo(char *str, Nrrd *nrrd, nrrdIO *io, int field) {
 	 && AIR_BETWEEN(nrrdField_unknown, field, nrrdField_last) )) {
     return;
   }
-
+  
   D = nrrd->dim;
   fs = nrrdEnumValToStr(nrrdEnumField, field);
   switch (field) {
@@ -324,6 +315,7 @@ _nrrdSprintFieldInfo(char *str, Nrrd *nrrd, nrrdIO *io, int field) {
     break;
   case nrrdField_block_size:
     sprintf(str, "%s: %d", fs, nrrd->blockSize);
+    break;
   case nrrdField_min:
     sprintf(str, "%s: ", fs);
     airSinglePrintf(NULL, buff, "%lg", nrrd->min);
@@ -604,6 +596,7 @@ nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
+  fprintf(stderr, "hell 0\n");
   if (!io) {
     io = nrrdIONew();
     if (!io) {
@@ -611,9 +604,7 @@ nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
       biffAdd(NRRD, err); return 1;
     }
   }
-  else {
-    
-  }
+  fprintf(stderr, "hell 1\n");
   if (nrrdEncodingUnknown == io->encoding) {
     io->encoding = nrrdDefWrtEncoding;
   }
@@ -637,11 +628,12 @@ nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
   _nrrdSplitName(io->dir, io->base, filename);
   _nrrdGuessFormat(filename, nrrd, io);
   _nrrdFixFormat(nrrd, io);
-  
+
   if (nrrdWrite(file, nrrd, io)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
+  fprintf(stderr, "hell 2\n");
   fclose(file);
   io = nrrdIONix(io);
   return 0;

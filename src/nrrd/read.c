@@ -19,9 +19,6 @@
 #include "nrrd.h"
 #include "private.h"
 
-#include <fcntl.h>
-
-
 /*
   #include <sys/types.h>
   #include <unistd.h>
@@ -115,7 +112,7 @@ _nrrdCalloc(Nrrd *nrrd) {
 int
 _nrrdReadDataRaw(Nrrd *nrrd, nrrdIO *io) {
   char me[]="_nrrdReadDataRaw", err[NRRD_STRLEN_MED];
-  int i, skipRet, ret0;
+  int i, skipRet;
   nrrdBigInt bsize;
   size_t size, ret, dio;
   
@@ -159,17 +156,17 @@ _nrrdReadDataRaw(Nrrd *nrrd, nrrdIO *io) {
     }
     if ( (nrrdMagicOldNRRD == io->magic || nrrdMagicNRRD0001 == io->magic) 
 	 && AIR_DIO ) {
-      fprintf(stderr, "with fread() ... "); fflush(stderr);
+      fprintf(stderr, "with fread()%d ... ", dio); fflush(stderr);
     }
-    /*
-    fprintf(stderr, "%s(%d): pre-fread fsync(%d) returns %d\n", me,
-	    getpid(),
-	    fileno(io->dataFile), fsync(fileno(io->dataFile)));
-    */
-    fcntl( fileno(io->dataFile), F_SETFL, O_SYNC | O_DSYNC | O_RSYNC ) ; 
     ret = fread(nrrd->data, nrrdElementSize(nrrd), nrrd->num, io->dataFile);
     if (ret != nrrd->num) {
-      /* try again */
+      sprintf(err, "%s: fread() returned " NRRD_BIG_INT_PRINTF
+	      " (not " NRRD_BIG_INT_PRINTF ")", me,
+	      (nrrdBigInt)ret, nrrd->num);
+      biffAdd(NRRD, err); return 1;
+    }
+    /*
+    if (ret != nrrd->num) {
       fprintf(stderr, "%s: 2nd fread() hack\n", me); sleep(1);
       ret0 = ret;
       ret = fread((char *)(nrrd->data) + nrrdElementSize(nrrd)*ret0, 
@@ -181,6 +178,7 @@ _nrrdReadDataRaw(Nrrd *nrrd, nrrdIO *io) {
 	biffAdd(NRRD, err); return 1;
       }
     }
+    */
   }
 
   if (airEndianUnknown != io->endian) {
