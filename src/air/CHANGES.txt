@@ -1,5 +1,7 @@
 Changes from 1.4:
 
+- API CHANGE: airEnumValidVal --> airEnumValValid
+- API CHANGE: AIR_INSIDE --> AIR_IN_CL, AIR_BETWEEN --> AIR_IN_OP
 - API CHANGE: On Windows, AIR_EXISTS expands to airExist_d(), which
 may be slow, because it uses 64-bit integer bit-masking operations,
 but we'll have to find out.  Non-Windows: use !((x)-(x)).
@@ -18,6 +20,7 @@ Basis of airExists_d().
 - API NEW: added AIR_SIZE_T_FMT which is the format string you need to
 print something of type size_t.  But you need to compile with 
 TEEM_32BIT defined to 0 or 1
+- API NEW: airEnumDesc, airEnumFmtDesc
 
 754.c:
 - NEW: _airDouble allows accessing a double as a double, as one
