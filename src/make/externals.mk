@@ -60,9 +60,10 @@ nrrd.XTERN += BZIP2
 PNG.LINK = -lpng
 nrrd.XTERN += PNG
 
-## PTHREAD: pthread-based multi-threading.  Note that Windows has its
-## multithreading, which is used if !TEEM_PTHREAD, and we are on windows
-## Header file is <pthread.h>
+## PTHREAD: use pthread-based multi-threading in airThreads.  Note
+## that Windows has its own multithreading capabilities, which is used
+## in airThread if !TEEM_PTHREAD, and we are on windows. Header file is
+## <pthread.h>
 ##
 ## Arch-specific .mk files may need to set TEEM_PTHREAD_IPATH and
 ## TEEM_PTHREAD_LPATH to "-I<path>" and "-L<path>" for the compile and
