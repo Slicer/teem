@@ -1154,10 +1154,28 @@ _nrrdKernelStrToKern(char *str) {
   return NULL;
 }
 
+/* this returns a number between -1 and max;
+   it does NOT do the increment-by-one;
+   it does NOT do range checking */
+int
+_nrrdKernelParseTMFInt(int *val, char *str) {
+  char me[]="nrrdKernelParseTMFInt", err[128];
+
+  if (!strcmp("n", str)) {
+    *val = -1;
+  } else {
+    if (1 != sscanf(str, "%d", val)) {
+      sprintf(err, "%s: couldn't parse \"%s\" as int", me, str);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  return 0;
+}
+
 int
 nrrdKernelParse(NrrdKernel **kernelP, double *parm, const char *_str) {
   char me[]="nrrdKernelParse", err[128], str[AIR_STRLEN_HUGE],
-    kstr[AIR_STRLEN_MED], *_pstr=NULL, *pstr;
+    kstr[AIR_STRLEN_MED], *_pstr=NULL, *pstr, *tmfStr[3];
   int i, j, NP, tmfD, tmfC, tmfA;
   
   if (!(kernelP && parm && _str)) {
@@ -1176,29 +1194,48 @@ nrrdKernelParse(NrrdKernel **kernelP, double *parm, const char *_str) {
   airToLower(kstr);
   /* first see if its a TMF, then try parsing it as the other stuff */
   if (kstr == strstr(kstr, "tmf")) {
-    if (3 != sscanf(pstr, "%d,%d,%d", &tmfD, &tmfC, &tmfA)) {
-      sprintf(err, "%s: TMF kernels require 3 int arguments D, C, A "
+    if (4 == airParseStrS(tmfStr, pstr, ",", 4)) {
+      /* a TMF with a parameter: D,C,A,a */
+      if (1 != sscanf(tmfStr[3], "%lg", parm)) {
+	sprintf(err, "%s: couldn't parse TMF parameter \"%s\" as double",
+		me, tmfStr[3]);
+	biffAdd(NRRD, err); return 1;
+      }
+    } else if (3 == airParseStrS(tmfStr, pstr, ",", 3)) {
+      /* a TMF without a parameter: D,C,A */
+      parm[0] = 0.0;
+    } else {
+      sprintf(err, "%s: TMF kernels require 3 arguments D, C, A "
 	      "in the form tmf:D,C,A", me);
       biffAdd(NRRD, err); return 1;
     }
-    if (!AIR_IN_CL(0, tmfD, nrrdKernelTMF_maxD)) {
-      sprintf(err, "%s: derivative value %d outside range [0,%d]",
+    if (_nrrdKernelParseTMFInt(&tmfD, tmfStr[0])
+	|| _nrrdKernelParseTMFInt(&tmfC, tmfStr[1])
+	|| _nrrdKernelParseTMFInt(&tmfA, tmfStr[2])) {
+      sprintf(err, "%s: problem parsing \"%s,%s,%s\" as D,C,A "
+	      "for TMF kernel", me, tmfStr[0], tmfStr[1], tmfStr[2]);
+      biffAdd(NRRD, err); return 1;
+    }
+    if (!AIR_IN_CL(-1, tmfD, nrrdKernelTMF_maxD)) {
+      sprintf(err, "%s: derivative value %d outside range [-1,%d]",
 	      me, tmfD, nrrdKernelTMF_maxD);
       biffAdd(NRRD, err); return 1;
     }
-    if (!AIR_IN_CL(0, tmfC, nrrdKernelTMF_maxC)) {
-      sprintf(err, "%s: continuity value %d outside range [0,%d]",
+    if (!AIR_IN_CL(-1, tmfC, nrrdKernelTMF_maxC)) {
+      sprintf(err, "%s: continuity value %d outside range [-1,%d]",
 	      me, tmfD, nrrdKernelTMF_maxC);
       biffAdd(NRRD, err); return 1;
     }
-    if (!AIR_IN_CL(0, tmfA, nrrdKernelTMF_maxA)) {
-      sprintf(err, "%s: accuracty value %d outside range [0,%d]",
+    if (!AIR_IN_CL(1, tmfA, nrrdKernelTMF_maxA)) {
+      sprintf(err, "%s: accuracty value %d outside range [1,%d]",
 	      me, tmfD, nrrdKernelTMF_maxA);
       biffAdd(NRRD, err); return 1;
     }
-    parm[0] = 1.0;
-    *kernelP = nrrdKernelTMF[tmfD][tmfC][tmfA];
+    fprintf(stderr, "%s: D,C,A = %d,%d,%d --> %d,%d,%d\n", me,
+	    tmfD, tmfC, tmfA, tmfD+1, tmfC+1, tmfA);
+    *kernelP = nrrdKernelTMF[tmfD+1][tmfC+1][tmfA];
   } else {
+    /* its not a TMF */
     if (!(*kernelP = _nrrdKernelStrToKern(kstr))) {
       sprintf(err, "%s: kernel \"%s\" not recognized", me, kstr);
       biffAdd(NRRD, err); return 1;
@@ -1208,7 +1245,8 @@ nrrdKernelParse(NrrdKernel **kernelP, double *parm, const char *_str) {
       if (!pstr)
 	break;
       if (1 != sscanf(pstr, "%lg", parm+i)) {
-	sprintf(err, "%s: trouble parsing \"%s\" (in \"%s\")", me, _pstr, _str);
+	sprintf(err, "%s: trouble parsing \"%s\" (in \"%s\")",
+		me, _pstr, _str);
 	biffAdd(NRRD, err); return 1;
       }
       if ((pstr = strchr(pstr, ','))) {

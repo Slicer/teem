@@ -625,9 +625,10 @@ extern int nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
 
 /******** kernels (interpolation, 1st and 2nd derivatives) */
 /* tmfKernel.c
-   nrrdKernelTMF[D][C][A] is d<D>_c<C>_<A>ef:
-   Dth-derivative, C-order continuous ("smooth"), A-order accurate */
-extern nrrd_export NrrdKernel *nrrdKernelTMF[3][4][5];
+   nrrdKernelTMF[D+1][C+1][A] is d<D>_c<C>_<A>ef:
+   Dth-derivative, C-order continuous ("smooth"), A-order accurate
+   (for D and C, "n" == -1) */
+extern nrrd_export NrrdKernel *nrrdKernelTMF[4][5][5];
 extern nrrd_export int nrrdKernelTMF_maxD;
 extern nrrd_export int nrrdKernelTMF_maxC;
 extern nrrd_export int nrrdKernelTMF_maxA;
