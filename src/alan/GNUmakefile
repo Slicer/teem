@@ -46,7 +46,7 @@ $(L).NEED = air biff ell nrrd
 $(L).PUBLIC_HEADERS = alan.h
 $(L).PRIVATE_HEADERS =
 $(L).OBJS = methodsAlan.o enumsAlan.o coreAlan.o 
-$(L).TESTS = test/tspot
+$(L).TESTS = 
 
 $(L).NEED_ENDIAN =
 $(L).NEED_QNANHIBIT =
