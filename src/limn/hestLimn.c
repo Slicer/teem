@@ -27,7 +27,7 @@
 ** fr: cam->from
 ** at: cam->at
 ** up: cam->up
-** rh: cam->rigthHanded
+** rh: cam->rightHanded
 ** dn: cam->neer
 ** di: cam->dist
 ** df: cam->faar

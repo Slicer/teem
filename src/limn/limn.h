@@ -108,7 +108,7 @@ typedef struct {
 } limnLight;
 
 enum {
-  plimnDeviceUnknown,
+  limnDeviceUnknown,
   limnDevicePS,
   limnDeviceOpenGL,
   limnDeviceLast
