@@ -24,26 +24,26 @@
 #include <gage.h>
 
 #define QBERT "qbert"
-#define QBERT_HIST_BINS 512     /* histogram size for v, g, and h */
+#define QBERT_HIST_BINS 1024     /* histogram size for v, g, and h */
 
-char info[]="Calculate volumes friendly to monkeys.  Each voxel in the "
-	     "output volume contains 8-bit quantized values of the data "
-	     "value, gradient magnitude, and 2nd directional derivative.";
+char info[]="Generates volume datasets for the Simian volume renderer. "
+"Each voxel in the output volume contains 8-bit quantized values of the data "
+"value, gradient magnitude, and 2nd directional derivative.";
 
 int saveall = AIR_TRUE;  /* can be used to save output of every stage */
 
 /*
-** This padding is to get axis[i]'s size >= sz[i] - 2*border.
+** This padding is to get axis[i]'s size >= sz[i].
 ** This padding is only needed if the input volume is smaller along
-** any of the axes than the desired output volume (minus the border).
+** any of the axes than the desired output volume.
 */
 int
-qbertPadStage1(Nrrd *nout, Nrrd *nin, int *sz, int border) {
+qbertPadStage1(Nrrd *nout, Nrrd *nin, int *sz) {
   char me[]="qbertPadStage1", err[AIR_STRLEN_MED];
   int i, need, padMin[3], padMax[3];
 
   for (i=0; i<=2; i++) {
-    need = sz[i] - 2*border - nin->axis[i].size;
+    need = sz[i] - nin->axis[i].size;
     fprintf(stderr, "%s: sz[%d] = %d -> need = %d --> ", 
 	    me, i, nin->axis[i].size, need);
     need = AIR_MAX(0, need);
@@ -59,16 +59,17 @@ qbertPadStage1(Nrrd *nout, Nrrd *nin, int *sz, int border) {
   }
   fprintf(stderr, "done\n");
   if (saveall) {
+    fprintf(stderr, "%s: saving pad1.nrrd\n", me);
     nrrdSave("pad1.nrrd", nout, NULL);
   }
   return 0;
 }
 
 /*
-** resampling to get axis[i]'s size down to exactly sz[i] - 2*border
+** resampling to get axis[i]'s size down to exactly sz[i]
 */
 int
-qbertResample(Nrrd *nout, Nrrd *nin, int *sz, int border,
+qbertResample(Nrrd *nout, Nrrd *nin, int *sz,
 	      NrrdKernelSpec *dk) {
   char me[]="qbertResample", err[AIR_STRLEN_MED];
   NrrdResampleInfo *rsmpInfo;
@@ -80,11 +81,11 @@ qbertResample(Nrrd *nout, Nrrd *nin, int *sz, int border,
   rsmpInfo->renormalize = AIR_TRUE;
   need = 0;
   for (i=0; i<=2; i++) {
-    if (nin->axis[i].size > sz[i] - 2*border) {
+    if (nin->axis[i].size > sz[i]) {
       need = 1;
       rsmpInfo->kernel[i] = dk->kernel;
       memcpy(rsmpInfo->parm[i], dk->parm, dk->kernel->numParm*sizeof(double));
-      rsmpInfo->samples[i] = sz[i] - 2*border;
+      rsmpInfo->samples[i] = sz[i];
       if (!AIR_EXISTS(nin->axis[i].min)) {
 	nin->axis[i].min = 0.0;
       }
@@ -117,6 +118,7 @@ qbertResample(Nrrd *nout, Nrrd *nin, int *sz, int border,
   fprintf(stderr, "done\n");
   rsmpInfo = nrrdResampleInfoNix(rsmpInfo);
   if (saveall) {
+    fprintf(stderr, "%s: saving rsmp.nrrd\n", me);
     nrrdSave("rsmp.nrrd", nout, NULL);
   }
 
@@ -124,16 +126,16 @@ qbertResample(Nrrd *nout, Nrrd *nin, int *sz, int border,
 }
 
 /*
-** padding to get axis[i]'s size up to sz[i]
+** padding to get axis[i]'s size to exactly sz[i]
 */
 int
-qbertPadStage2(Nrrd *nout, Nrrd *nin, int *sz, int border) {
+qbertPadStage2(Nrrd *nout, Nrrd *nin, int *sz) {
   char me[]="qbertPadStage2", err[AIR_STRLEN_MED];
   int i, padMin[3], padMax[3];
 
   for (i=0; i<=2; i++) {
-    padMin[i] = -border;
-    padMax[i] = sz[i] - border - 1;
+    padMin[i] = 0;
+    padMax[i] = sz[i] - 1;
   }
   fprintf(stderr, "%s: padding ... ", me); fflush(stderr);
   if (nrrdPad(nout, nin, padMin, padMax, nrrdBoundaryPad, 0.0)) {
@@ -142,6 +144,7 @@ qbertPadStage2(Nrrd *nout, Nrrd *nin, int *sz, int border) {
   }
   fprintf(stderr, "done\n");
   if (saveall) {
+    fprintf(stderr, "%s: saving pad2.nrrd\n", me);
     nrrdSave("pad2.nrrd", nout, NULL);
   }
 
@@ -223,6 +226,7 @@ qbertProbe(Nrrd *nout, Nrrd *nin, int *sz) {
 	  airDoneStr(0, 2, 1, prog), sz[0]*sz[1]*sz[2]/(1000.0*(t1-t0)));
   ctx = gageContextNix(ctx);
   if (saveall) {
+    fprintf(stderr, "%s: saving vghF.nrrd\n", me);
     nrrdSave("vghF.nrrd", nout, NULL);
   }
 
@@ -302,6 +306,7 @@ qbertMakeVghHists(Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
     vghF += 3;
   }
   if (saveall) {
+    fprintf(stderr, "%s: saving {v,g,h}hist.nrrd\n", me);
     nrrdSave("vhist.nrrd", nvhist, NULL);
     nrrdSave("ghist.nrrd", nghist, NULL);
     nrrdSave("hhist.nrrd", nhhist, NULL);
@@ -403,9 +408,9 @@ int
 main(int argc, char *argv[]) {
   char *me, *outS, *errS;
   Nrrd *nin, *npad, *nrsmp, *nvghF, *nvhist, *nghist, *nhhist, *nvgh;
-  int i, sz[3], border;
+  int i, sz[3], ups;
   float perc[3];
-  double amin[4], amax[4], spacing[4], gmax, hmax;
+  double amin[4], amax[4], spacing[4], gmax, hmax, vrange[2];
   NrrdKernelSpec *dk;
   hestParm *hparm;
   hestOpt *hopt = NULL;
@@ -414,13 +419,18 @@ main(int argc, char *argv[]) {
   hparm = hestParmNew();
   hparm->elideSingleOtherType = AIR_TRUE;
   hparm->elideSingleNonExistFloatDefault = AIR_TRUE;
+  hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
 
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
 	     "input volume, in nrrd format",
 	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "s", "sx sy sz", airTypeInt, 3, 3, sz, NULL,
 	     "dimensions of output volume");
-  hestOptAdd(&hopt, "p", "pv pg ph", airTypeFloat, 3, 3, perc, "0.0 0.1 0.2",
+  hestOptAdd(&hopt, "up", NULL, airTypeInt, 0, 0, &ups, NULL,
+	     "Instead of just padding axes up to the size given "
+	     "with \"-s\", do upsampling to artificially increase "
+	     "resolution.");
+  hestOptAdd(&hopt, "p", "pv pg ph", airTypeFloat, 3, 3, perc, "0.0 0.01 0.03",
 	     "percentiles along value, gradient, and 2nd derivative "
 	     "axes to EXCLUDE in the quantized 8-bit ranges. "
 	     "\"0 0 0\" will fit ALL values and derivatives into 8-bits, "
@@ -430,21 +440,19 @@ main(int argc, char *argv[]) {
 	     "Noisier datasets will require higher derivative exclusion "
 	     "values so as to best use the 8-bits on the significant "
 	     "range of derivative values.");
-  hestOptAdd(&hopt, "gm", "gmag max", airTypeDouble, 1, 1, &gmax, "nan",
+  hestOptAdd(&hopt, "v", "vMin vMax", airTypeDouble, 2, 2, vrange, "nan nan",
 	     "instead of percentile-based inclusion determination of "
-	     "gradient magnitude, use the range [0.0,gmm], where gmm is "
-	     "this maximum gradient magnitude.");
-  hestOptAdd(&hopt, "hm", "2nd deriv max", airTypeDouble, 1, 1, &hmax, "nan",
+	     "value range, use the range [vMin,\tvMax].");
+  hestOptAdd(&hopt, "g", "gmMax", airTypeDouble, 1, 1, &gmax, "nan",
 	     "instead of percentile-based inclusion determination of "
-	     "2nd derivative, use the range [-hmm,hmm], where hmm is "
-	     "this maximum 2nd magnitude.");
+	     "gradient magnitude, use the range [0.0,\tgmMax].");
+  hestOptAdd(&hopt, "h", "hExt", airTypeDouble, 1, 1, &hmax, "nan",
+	     "instead of percentile-based inclusion determination of "
+	     "2nd derivative, use the range [-hExt,\thExt].");
   hestOptAdd(&hopt, "dk", "downsample k", airTypeOther, 1, 1, &dk, "tent",
 	     "kernel to use when downsampling volume to fit with specified "
 	     "dimensions (ringing can be problematic here)",
 	     NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "b", "border", airTypeInt, 1, 1, &border, "0",
-	     "number of samples on boundary of output volumes which "
-	     "will be all zeroes");
   hestOptAdd(&hopt, "o", "output", airTypeString, 1, 1, &outS, NULL,
 	     "output volume in nrrd format");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
@@ -456,20 +464,20 @@ main(int argc, char *argv[]) {
   }
 
   npad = nrrdNew();
-  if (qbertPadStage1(npad, nin, sz, border)) {
+  if (qbertPadStage1(npad, nin, sz)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, errS = biffGetDone(QBERT));
     free(errS); exit(1);
   }  
 
   nrsmp = nrrdNew();
-  if (qbertResample(nrsmp, npad, sz, border, dk)) {
+  if (qbertResample(nrsmp, npad, sz, dk)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, errS = biffGetDone(QBERT));
     free(errS); exit(1);
   }
   npad = nrrdNuke(npad);
   
   npad = nrrdNew();
-  if (qbertPadStage2(npad, nrsmp, sz, border)) {
+  if (qbertPadStage2(npad, nrsmp, sz)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, errS = biffGetDone(QBERT));
     free(errS); exit(1);
   }
@@ -492,7 +500,6 @@ main(int argc, char *argv[]) {
       amax[1+i] = AIR_NAN;
   }
   
-
   nvghF = nrrdNew();
   if (qbertProbe(nvghF, npad, sz)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, errS = biffGetDone(QBERT));
