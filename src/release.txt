@@ -66,6 +66,12 @@ shot:
 setenv TEEM_ARCH linux
 setenv TEEM_BZIP2.LPATH -L/home/sci/gk/usr/linux/lib
 setenv TEEM_BZIP2.IPATH -I/home/sci/gk/usr/include
+faith:
+setenv TEEM_ARCH solaris
+setenv TEEM_BZIP2.LPATH -L/home/gk/lib
+setenv TEEM_BZIP2.IPATH -I/home/gk/include
+setenv TEEM_ZLIB.LPATH -L/home/gk/lib
+setenv TEEM_ZLIB.IPATH -I/home/gk/include
 
 4) Create source-only tgz:
    a) cvs checkout teem
