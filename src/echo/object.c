@@ -464,6 +464,8 @@ echoObjectListSplit(EchoObject *list, int axis) {
   ELL_3V_SET(hiest0, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
   ELL_3V_SET(hiest1, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
   airArraySetLen(LIST(list0)->objArr, splitIdx);
+  printf("list0 new len = %d --> %p\n",
+	 LIST(list0)->objArr->len, LIST(list0)->obj);
   for (i=0; i<splitIdx; i++) {
     o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
     LIST(list0)->obj[i] = o;
@@ -476,6 +478,8 @@ echoObjectListSplit(EchoObject *list, int axis) {
     ELL_3V_MAX(hiest0, hiest0, hi);
   }
   airArraySetLen(LIST(list1)->objArr, len-splitIdx);
+  printf("list1 new len = %d --> %p\n",
+	 LIST(list1)->objArr->len, LIST(list1)->obj);
   for (i=splitIdx; i<len; i++) {
     o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
     LIST(list1)->obj[i] = o;
