@@ -24,7 +24,7 @@
 /* ------------------------------------------------------------ */
 
 void
-_nrrdIOInit(NrrdIO *io) {
+_nrrdIOInit (NrrdIO *io) {
 
   if (io) {
     io->dir = NULL;
@@ -54,7 +54,7 @@ _nrrdIOInit(NrrdIO *io) {
 }
 
 NrrdIO *
-nrrdIONew(void) {
+nrrdIONew (void) {
   NrrdIO *io;
   
   io = calloc(1, sizeof(NrrdIO));
@@ -72,7 +72,7 @@ nrrdIONew(void) {
 ** complicated, and I haven't thought through all the possibilities...
 */
 void
-nrrdIOReset(NrrdIO *io) {
+nrrdIOReset (NrrdIO *io) {
 
   /* this started as a copy of the body of _nrrdIOInit() */
   if (io) {
@@ -100,7 +100,7 @@ nrrdIOReset(NrrdIO *io) {
 }
 
 NrrdIO *
-nrrdIONix(NrrdIO *io) {
+nrrdIONix (NrrdIO *io) {
 
   airFree(io->dir);
   airFree(io->base);
@@ -112,7 +112,7 @@ nrrdIONix(NrrdIO *io) {
 /* ------------------------------------------------------------ */
 
 void
-_nrrdResampleInfoInit(NrrdResampleInfo *info) {
+_nrrdResampleInfoInit (NrrdResampleInfo *info) {
   int i, d;
 
   for (d=0; d<NRRD_DIM_MAX; d++) {
@@ -131,7 +131,7 @@ _nrrdResampleInfoInit(NrrdResampleInfo *info) {
 }
 
 NrrdResampleInfo *
-nrrdResampleInfoNew(void) {
+nrrdResampleInfoNew (void) {
   NrrdResampleInfo *info;
 
   info = (NrrdResampleInfo*)(calloc(1, sizeof(NrrdResampleInfo)));
@@ -143,7 +143,7 @@ nrrdResampleInfoNew(void) {
 }
 
 NrrdResampleInfo *
-nrrdResampleInfoNix(NrrdResampleInfo *info) {
+nrrdResampleInfoNix (NrrdResampleInfo *info) {
   
   return airFree(info);
 }
@@ -151,7 +151,7 @@ nrrdResampleInfoNix(NrrdResampleInfo *info) {
 /* ------------------------------------------------------------ */
 
 NrrdKernelSpec *
-nrrdKernelSpecNew() {
+nrrdKernelSpecNew (void) {
   NrrdKernelSpec *ksp;
   int i;
 
@@ -166,7 +166,7 @@ nrrdKernelSpecNew() {
 }
 
 NrrdKernelSpec *
-nrrdKernelSpecNix(NrrdKernelSpec *ksp) {
+nrrdKernelSpecNix (NrrdKernelSpec *ksp) {
 
   return airFree(ksp);
 }
@@ -185,7 +185,7 @@ nrrdKernelSpecNix(NrrdKernelSpec *ksp) {
 ** just sets values to 0, NaN, "", NULL, or Unknown
 */
 void
-nrrdInit(Nrrd *nrrd) {
+nrrdInit (Nrrd *nrrd) {
   int i;
 
   if (nrrd) {
@@ -218,7 +218,7 @@ nrrdInit(Nrrd *nrrd) {
 ** this does NOT use biff
 */
 Nrrd *
-nrrdNew(void) {
+nrrdNew (void) {
   int i;
   Nrrd *nrrd;
   
@@ -258,7 +258,7 @@ nrrdNew(void) {
 ** this does NOT use biff
 */
 Nrrd *
-nrrdNix(Nrrd *nrrd) {
+nrrdNix (Nrrd *nrrd) {
   int i;
   
   if (nrrd) {
@@ -282,7 +282,7 @@ nrrdNix(Nrrd *nrrd) {
 ** any comments.
 */
 Nrrd *
-nrrdEmpty(Nrrd *nrrd) {
+nrrdEmpty (Nrrd *nrrd) {
   
   if (nrrd) {
     nrrd->data = airFree(nrrd->data);
@@ -299,7 +299,7 @@ nrrdEmpty(Nrrd *nrrd) {
 ** always returns NULL
 */
 Nrrd *
-nrrdNuke(Nrrd *nrrd) {
+nrrdNuke (Nrrd *nrrd) {
   
   if (nrrd) {
     nrrdEmpty(nrrd);
@@ -311,7 +311,7 @@ nrrdNuke(Nrrd *nrrd) {
 /* ------------------------------------------------------------ */
 
 int
-_nrrdSizeValid(int dim, int *size) {
+_nrrdSizeValid (int dim, int *size, int useBiff) {
   char me[]="_nrrdSizeValid", err[AIR_STRLEN_MED];
   int d;
   
@@ -319,7 +319,7 @@ _nrrdSizeValid(int dim, int *size) {
     if (!(size[d] > 0)) {
       sprintf(err, "%s: invalid size (%d) for axis %d (dim = %d)",
 	      me, size[d], d, dim);
-      biffAdd(NRRD, err); return AIR_FALSE;
+      biffMaybeAdd(NRRD, err, useBiff); return AIR_FALSE;
     }
   }
   return AIR_TRUE;
@@ -337,7 +337,7 @@ _nrrdSizeValid(int dim, int *size) {
 ** set nrrd->blockSize at some other time.
 */
 int
-nrrdWrap_nva(Nrrd *nrrd, void *data, int type, int dim, int *size) {
+nrrdWrap_nva (Nrrd *nrrd, void *data, int type, int dim, int *size) {
   char me[] = "nrrdWrap_nva", err[AIR_STRLEN_MED];
   int d;
   
@@ -348,7 +348,7 @@ nrrdWrap_nva(Nrrd *nrrd, void *data, int type, int dim, int *size) {
   nrrd->data = data;
   nrrd->type = type;
   nrrd->dim = dim;
-  if (!_nrrdSizeValid(dim, size)) {
+  if (!_nrrdSizeValid(dim, size, AIR_TRUE)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -371,7 +371,7 @@ nrrdWrap_nva(Nrrd *nrrd, void *data, int type, int dim, int *size) {
 ** This does use biff.
 */
 int
-nrrdWrap(Nrrd *nrrd, void *data, int type, int dim, ...) {
+nrrdWrap (Nrrd *nrrd, void *data, int type, int dim, ...) {
   char me[] = "nrrdWrap", err[AIR_STRLEN_MED];
   va_list ap;
   int d, size[NRRD_DIM_MAX];
@@ -396,14 +396,14 @@ nrrdWrap(Nrrd *nrrd, void *data, int type, int dim, ...) {
 ** a wrapper around nrrdNix()
 */
 Nrrd *
-nrrdUnwrap(Nrrd *nrrd) {
+nrrdUnwrap (Nrrd *nrrd) {
   
   return nrrdNix(nrrd);
 }
 
 /*
 void
-_nrrdTraverse(Nrrd *nrrd) {
+_nrrdTraverse (Nrrd *nrrd) {
   char *test, tval;
   size_t I, N;
   int S;
@@ -427,7 +427,7 @@ _nrrdTraverse(Nrrd *nrrd) {
 ** newly allocated.  nout->ptr is not set, nin->ptr is not read.
 */
 int
-nrrdCopy(Nrrd *nout, Nrrd *nin) {
+nrrdCopy (Nrrd *nout, Nrrd *nin) {
   char me[]="nrrdCopy", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX];
 
@@ -495,7 +495,7 @@ nrrdCopy(Nrrd *nout, Nrrd *nin) {
 ** Note: This function DOES use biff
 */
 int 
-nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
+nrrdAlloc_nva (Nrrd *nrrd, int type, int dim, int *size) {
   char me[] = "nrrdAlloc_nva", err[AIR_STRLEN_MED];
   size_t num;
   int esize;
@@ -524,7 +524,7 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
   nrrd->type = type;
   nrrd->data = airFree(nrrd->data);
   nrrd->dim = dim;
-  if (!_nrrdSizeValid(dim, size)) {
+  if (!_nrrdSizeValid(dim, size, AIR_TRUE)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -548,7 +548,7 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
 ** all the axes sizes.
 */
 int 
-nrrdAlloc(Nrrd *nrrd, int type, int dim, ...) {
+nrrdAlloc (Nrrd *nrrd, int type, int dim, ...) {
   char me[]="nrrdAlloc", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX], d;
   va_list ap;
@@ -562,7 +562,7 @@ nrrdAlloc(Nrrd *nrrd, int type, int dim, ...) {
     size[d] = va_arg(ap, int);
   }
   va_end(ap);
-  if (!_nrrdSizeValid(dim, size)) {
+  if (!_nrrdSizeValid(dim, size, AIR_TRUE)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -583,7 +583,7 @@ nrrdAlloc(Nrrd *nrrd, int type, int dim, ...) {
 ** also subscribes to the "don't mess with peripheral information" philosophy
 */
 int
-nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
+nrrdMaybeAlloc_nva (Nrrd *nrrd, int type, int dim, int *size) {
   char me[]="nrrdMaybeAlloc_nva", err[AIR_STRLEN_MED];
   size_t sizeWant, sizeHave, numWant;
   int d, need, elementSizeWant;
@@ -610,7 +610,7 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
   } else {
     elementSizeWant = nrrdTypeSize[type];
   }
-  if (!_nrrdSizeValid(dim, size)) {
+  if (!_nrrdSizeValid(dim, size, AIR_TRUE)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -660,7 +660,7 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
 ** all the axes sizes, thereby calculating the total number.
 */
 int 
-nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim, ...) {
+nrrdMaybeAlloc (Nrrd *nrrd, int type, int dim, ...) {
   char me[]="nrrdMaybeAlloc", err[AIR_STRLEN_MED];
   int d, size[NRRD_DIM_MAX];
   size_t num;
@@ -676,7 +676,7 @@ nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim, ...) {
     num *= (size[d] = va_arg(ap, int));
   }
   va_end(ap);
-  if (!_nrrdSizeValid(dim, size)) {
+  if (!_nrrdSizeValid(dim, size, AIR_TRUE)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -695,7 +695,7 @@ nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim, ...) {
 ** "don't mess with peripheral information"
 */
 int
-nrrdPPM(Nrrd *ppm, int sx, int sy) {
+nrrdPPM (Nrrd *ppm, int sx, int sy) {
   char me[]="nrrdPPM", err[AIR_STRLEN_MED];
 
   if (!(sx > 0 && sy > 0)) {
@@ -717,7 +717,7 @@ nrrdPPM(Nrrd *ppm, int sx, int sy) {
 ** "don't mess with peripheral information"
 */
 int
-nrrdPGM(Nrrd *pgm, int sx, int sy) {
+nrrdPGM (Nrrd *pgm, int sx, int sy) {
   char me[]="nrrdNewPGM", err[AIR_STRLEN_MED];
 
   if (!(sx > 0 && sy > 0)) {
@@ -741,7 +741,7 @@ nrrdPGM(Nrrd *pgm, int sx, int sy) {
 ** "don't mess with peripheral information"
 */
 int
-nrrdTable(Nrrd *table, int sx, int sy) {
+nrrdTable (Nrrd *table, int sx, int sy) {
   char me[]="nrrdTable", err[AIR_STRLEN_MED];
 
   if (!(sx > 0 && sy > 0)) {
@@ -756,4 +756,3 @@ nrrdTable(Nrrd *table, int sx, int sy) {
   }
   return 0;
 }
-

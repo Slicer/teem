@@ -356,8 +356,8 @@ extern nrrd_export double nrrdTypeNumberValues[];
 /******** things useful with hest */
 /* hestNrrd.c */
 extern nrrd_export hestCB *nrrdHestNrrd;
-extern nrrd_export hestCB *nrrdHestNrrdKernelSpec;
-extern nrrd_export hestCB *nrrdHestNrrdIter;
+extern nrrd_export hestCB *nrrdHestKernelSpec;
+extern nrrd_export hestCB *nrrdHestIter;
 
 /******** pseudo-constructors, pseudo-destructors, and such */
 /* methodsNrrd.c */

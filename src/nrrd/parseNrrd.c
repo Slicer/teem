@@ -21,7 +21,7 @@
 #include "privateNrrd.h"
 
 int 
-_nrrdReadNrrdParse_nonfield(Nrrd *nrrd, NrrdIO *io, int useBiff) { 
+_nrrdReadNrrdParse_nonfield (Nrrd *nrrd, NrrdIO *io, int useBiff) { 
   /*
   char c;
 
@@ -35,7 +35,7 @@ _nrrdReadNrrdParse_nonfield(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int 
-_nrrdReadNrrdParse_comment(Nrrd *nrrd, NrrdIO *io, int useBiff) { 
+_nrrdReadNrrdParse_comment (Nrrd *nrrd, NrrdIO *io, int useBiff) { 
   char me[]="_nrrdReadNrrdParse_comment", err[AIR_STRLEN_MED];
   char *info;
   
@@ -49,7 +49,7 @@ _nrrdReadNrrdParse_comment(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int 
-_nrrdReadNrrdParse_type(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_type (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_type", err[AIR_STRLEN_MED];
   char *info;
 
@@ -62,7 +62,7 @@ _nrrdReadNrrdParse_type(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_encoding(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_encoding (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_encoding", err[AIR_STRLEN_MED];
   char *info;
 
@@ -75,7 +75,7 @@ _nrrdReadNrrdParse_encoding(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_endian(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_endian (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_endian", err[AIR_STRLEN_MED];
   char *info;
 
@@ -94,7 +94,7 @@ _nrrdReadNrrdParse_endian(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   }
 
 int
-_nrrdReadNrrdParse_dimension(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_dimension (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_dimension", err[AIR_STRLEN_MED];
   char *info;
 
@@ -127,7 +127,7 @@ _nrrdReadNrrdParse_dimension(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   }
 
 int
-_nrrdReadNrrdParse_sizes(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_sizes (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_sizes", err[AIR_STRLEN_MED];
   int ret, val[NRRD_DIM_MAX];
   char *info;
@@ -136,12 +136,16 @@ _nrrdReadNrrdParse_sizes(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   _CHECK_HAVE_DIM;
   ret = airParseStrI(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
+  if (!_nrrdSizeValid(nrrd->dim, val, useBiff)) {
+    sprintf(err, "%s: array sizes not valid", me);
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
+  }
   nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, val);
   return 0;
 }
 
 int
-_nrrdReadNrrdParse_spacings(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_spacings (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_spacings", err[AIR_STRLEN_MED];
   int i, ret;
   double val[NRRD_DIM_MAX];
@@ -162,7 +166,7 @@ _nrrdReadNrrdParse_spacings(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_axis_mins(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_axis_mins (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_axis_mins", err[AIR_STRLEN_MED];
   int ret, i, sgn;
   double val[NRRD_DIM_MAX];
@@ -183,7 +187,7 @@ _nrrdReadNrrdParse_axis_mins(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_axis_maxs(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_axis_maxs (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_axis_maxs", err[AIR_STRLEN_MED];
   int ret, i, sgn;
   double val[NRRD_DIM_MAX];
@@ -206,7 +210,7 @@ _nrrdReadNrrdParse_axis_maxs(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 /*
 */
 int
-_nrrdReadNrrdParse_centers(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_centers (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_centers", err[AIR_STRLEN_MED];
   int i;
   char *tok;
@@ -296,7 +300,7 @@ _nrrdGetQuotedString(char **hP, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_labels(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_labels (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_labels", err[AIR_STRLEN_MED];
   char *h;  /* this is the "here" pointer which gradually progresses
 	       through all the labels (for all axes) */
@@ -321,7 +325,7 @@ _nrrdReadNrrdParse_labels(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_units(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_units (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_unitss", err[AIR_STRLEN_MED];
   char *h;
   int i;
@@ -345,7 +349,7 @@ _nrrdReadNrrdParse_units(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_number(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_number (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   /*
   char me[]="_nrrdReadNrrdParse_number", err[AIR_STRLEN_MED]; 
   char *info;
@@ -363,7 +367,7 @@ _nrrdReadNrrdParse_number(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   ** field was eliminated from the Nrrd struct some time ago, in favor of
   ** the nrrdElementNumber() function.  It may seem odd or unfortunate that
   ** 
-  **     number: Hank Hill sells propane and propane accessories
+  **   number: Hank Hill sells propane and propane accessories
   **
   ** is a valid field specification, but at least Peggy is proud ...
   */
@@ -372,7 +376,7 @@ _nrrdReadNrrdParse_number(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_content(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_content (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_content", err[AIR_STRLEN_MED];
   char *info;
 
@@ -385,7 +389,7 @@ _nrrdReadNrrdParse_content(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_block_size(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_block_size (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_block_size", err[AIR_STRLEN_MED];
   char *info;
 
@@ -399,11 +403,15 @@ _nrrdReadNrrdParse_block_size(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   }
   */
   _PARSE_ONE_VAL(nrrd->blockSize, "%d", "int");
+  if (!( nrrd->blockSize > 0 )) {
+    sprintf(err, "%s: block size %d not > 0", me, nrrd->blockSize);
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
+  }
   return 0;
 }
 
 int
-_nrrdReadNrrdParse_min(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_min (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_min", err[AIR_STRLEN_MED];
   char *info;
 
@@ -413,7 +421,7 @@ _nrrdReadNrrdParse_min(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_max(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_max (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_max", err[AIR_STRLEN_MED];
   char *info;
 
@@ -423,7 +431,7 @@ _nrrdReadNrrdParse_max(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_old_min(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_old_min (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_old_min", err[AIR_STRLEN_MED];
   char *info;
   int sgn;
@@ -438,7 +446,7 @@ _nrrdReadNrrdParse_old_min(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_old_max(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_old_max (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_old_max", err[AIR_STRLEN_MED];
   char *info;
   int sgn;
@@ -456,7 +464,7 @@ _nrrdReadNrrdParse_old_max(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 ** strerror(errno): not thread-safe
 */
 int
-_nrrdReadNrrdParse_data_file(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_data_file (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_data_file", err[AIR_STRLEN_MED], *dataName;
   char *info;
 
@@ -487,7 +495,7 @@ _nrrdReadNrrdParse_data_file(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_line_skip(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_line_skip (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_line_skip", err[AIR_STRLEN_MED];
   char *info;
 
@@ -501,7 +509,7 @@ _nrrdReadNrrdParse_line_skip(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_byte_skip(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_byte_skip (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_byte_skip", err[AIR_STRLEN_MED];
   char *info;
 
@@ -552,14 +560,14 @@ int
 ** This is for parsing the stuff BEFORE the colon
 */
 int
-_nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParseField (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParseField", err[AIR_STRLEN_MED], *next,
     *buff, *colon;
-  int i;
+  int fld;
   
   next = io->line + io->pos;
 
-  /* determining if its a comment is simple */
+  /* determining if the line is a comment is simple */
   if (NRRD_COMMENT_CHAR == next[0]) {
     return nrrdField_comment;
   }
@@ -573,7 +581,7 @@ _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIO *io, int useBiff) {
     free(buff); biffMaybeAdd(NRRD, err, useBiff); return nrrdField_unknown;
   }
   *colon = '\0';
-  if ( nrrdField_unknown == (i = airEnumVal(nrrdField, buff)) ) {
+  if ( nrrdField_unknown == (fld = airEnumVal(nrrdField, buff)) ) {
     sprintf(err, "%s: didn't recognize any field", me);
     free(buff); biffMaybeAdd(NRRD, err, useBiff); return nrrdField_unknown;
   }
@@ -587,7 +595,8 @@ _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 
   io->pos = next - io->line;
 
-  return i;
+  return fld;
 }
 
 /* kernel parsing is all in kernel.c */
+

@@ -43,7 +43,7 @@ char _nrrdTableSep[] = " ,\t";
 ** Does use biff
 */
 int
-_nrrdOneLine(int *lenP, NrrdIO *io, FILE *file) {
+_nrrdOneLine (int *lenP, NrrdIO *io, FILE *file) {
   char me[]="_nrrdOneLine", err[AIR_STRLEN_MED], **line;
   airArray *lineArr;
   int len, lineIdx;
@@ -115,15 +115,14 @@ _nrrdOneLine(int *lenP, NrrdIO *io, FILE *file) {
 }
 
 /*
-** _nrrdValidHeader
+** _nrrdValidHeader()
 **
-** consistency checks on relationship between fields of nrrd
-** 
-** ALSO, it is here that we do the courtesy setting of the
-** "num" field (to the product of the axes' sizes)
+** consistency checks on relationship between fields of nrrd, (only)
+** to be used after the headers is parsed, and before the data is read
+**
 */
 int
-_nrrdValidHeader(Nrrd *nrrd, NrrdIO *io) {
+_nrrdValidHeader (Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdValidHeader", err[AIR_STRLEN_MED];
   int i;
 
@@ -143,10 +142,13 @@ _nrrdValidHeader(Nrrd *nrrd, NrrdIO *io) {
     biffAdd(NRRD, err); return 0;
   }
   /* this shouldn't actually be necessary ... */
+  /* really? it saves all the data readers from doing it ... */
   if (!nrrdElementSize(nrrd)) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
     biffAdd(NRRD, err); return 0;
   }
+  /* _nrrdReadNrrdParse_sizes() checks axis[i].size, which completely
+     determines the return of nrrdElementNumber() */
   if (airEndianUnknown == io->endian &&
       nrrdEncodingEndianMatters[io->encoding] &&
       1 != nrrdElementSize(nrrd)) {
@@ -157,54 +159,42 @@ _nrrdValidHeader(Nrrd *nrrd, NrrdIO *io) {
     biffAdd(NRRD, err); return 0;    
   }
 
-  /* we don't really try to enforce anything with the min/max/center/size
-     information on each axis, because we only really care that we know
-     each axis size.  Past that, if the user messes it up, its not really
-     our problem ... */
+  /* we don't really try to enforce consistency with the
+     min/max/center/size information on each axis, other than the
+     value checking done by the _nrrdReadNrrdParse_* functions,
+     because we only really care that we know each axis size.  Past
+     that, if the user messes it up, its not really our problem ... */
 
   return 1;
 }
 
+/*
+** _nrrdCalloc()
+**
+** allocates the data for the array.  Only to be called by data readers,
+** since it assume the validity of size information, as enforced by
+** _nrrdValidHeader().
+*/
 int
-_nrrdCalloc(Nrrd *nrrd) {
+_nrrdCalloc (Nrrd *nrrd) {
   char me[]="_nrrdCalloc", err[AIR_STRLEN_MED];
-  size_t num;
 
   nrrd->data = airFree(nrrd->data);
-  /* this shouldn't actually be necessary ... */
-  if (!nrrdElementSize(nrrd)) {
-    sprintf(err, "%s: nrrd reports zero element size!", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  num = nrrdElementNumber(nrrd);
-  if (!num) {
-    sprintf(err, "%s: calculated number of elements to be zero!", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  nrrd->data = calloc(num, nrrdElementSize(nrrd));
+  nrrd->data = calloc(nrrdElementNumber(nrrd), nrrdElementSize(nrrd));
   if (!nrrd->data) {
     sprintf(err, "%s: couldn't calloc(" _AIR_SIZE_T_FMT
-	    ", %d)", me, num, nrrdElementSize(nrrd));
+	    ", %d)", me, nrrdElementNumber(nrrd), nrrdElementSize(nrrd));
     biffAdd(NRRD, err); return 1;
   }
   return 0;
 }
 
 int
-_nrrdReadDataRaw(Nrrd *nrrd, NrrdIO *io) {
+_nrrdReadDataRaw (Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadDataRaw", err[AIR_STRLEN_MED];
   size_t num, bsize, size, ret, dio;
   
-  /* this shouldn't actually be necessary ... */
-  if (!nrrdElementSize(nrrd)) {
-    sprintf(err, "%s: nrrd reports zero element size!", me);
-    biffAdd(NRRD, err); return 1;
-  }
   num = nrrdElementNumber(nrrd);
-  if (!num) {
-    sprintf(err, "%s: calculated number of elements to be zero!", me);
-    biffAdd(NRRD, err); return 1;
-  }
   bsize = num * nrrdElementSize(nrrd);
   size = bsize;
   if (num != bsize/nrrdElementSize(nrrd)) {
@@ -236,7 +226,8 @@ _nrrdReadDataRaw(Nrrd *nrrd, NrrdIO *io) {
     }
   } else {
     if (_nrrdCalloc(nrrd)) {
-      sprintf(err, "%s:", me); biffAdd(NRRD, err); return 1;
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
     }
     if (AIR_DIO && _nrrdFormatUsesDIO[io->format]) {
       if (3 <= nrrdStateVerboseIO) {
@@ -262,8 +253,81 @@ _nrrdReadDataRaw(Nrrd *nrrd, NrrdIO *io) {
   return 0;
 }
 
+/*
+** -2: not allowed, error
+** -1: whitespace
+** [0,15]: values
+*/
 int
-_nrrdReadDataAscii(Nrrd *nrrd, NrrdIO *io) {
+_nrrdReadHexTable[128] = {
+/* 0   1   2   3   4   5   6   7   8   9 */
+  -2, -2, -2, -2, -2, -2, -2, -2, -2, -1,  /*   0 */
+  -1, -1, -1, -1, -2, -2, -2, -2, -2, -2,  /*  10 */
+  -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,  /*  20 */
+  -2, -2, -1, -2, -2, -2, -2, -2, -2, -2,  /*  30 */
+  -2, -2, -2, -2, -2, -2, -2, -2,  0,  1,  /*  40 */
+   2,  3,  4,  5,  6,  7,  8,  9, -2, -2,  /*  50 */
+  -2, -2, -2, -2, -2, 10, 11, 12, 13, 14,  /*  60 */
+  15, -2, -2, -2, -2, -2, -2, -2, -2, -2,  /*  70 */
+  -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,  /*  80 */
+  -2, -2, -2, -2, -2, -2, -2, 10, 11, 12,  /*  90 */
+  13, 14, 15, -2, -2, -2, -2, -2, -2, -2,  /* 100 */
+  -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,  /* 110 */
+  -2, -2, -2, -2, -2, -2, -2, -2           /* 120 */
+};
+
+int
+_nrrdReadDataHex (Nrrd *nrrd, NrrdIO *io) {
+  char me[]="_nrrdReadDataHex", err[AIR_STRLEN_MED];
+  size_t nibIdx, nibNum;
+  unsigned char *data;
+  int car=0, nib;
+
+  if (_nrrdCalloc(nrrd)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  data = nrrd->data;
+  nibIdx = 0;
+  nibNum = 2*nrrdElementNumber(nrrd)*nrrdElementSize(nrrd);
+  if (nibNum/nrrdElementNumber(nrrd) != 2*nrrdElementSize(nrrd)) {
+    sprintf(err, "%s: size_t can't hold 2*(#bytes in array)\n", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  while (nibIdx < nibNum) {
+    car = fgetc(io->dataFile);
+    if (EOF == car) break;
+    nib = _nrrdReadHexTable[car & 127];
+    if (-2 == nib) {
+      /* not a valid hex character */
+      break;
+    }
+    if (-1 == nib) {
+      /* its white space */
+      continue;
+    }
+    *data += nib << (4*(1-(nibIdx & 1)));
+    data += nibIdx & 1;
+    nibIdx++;
+  }
+  if (nibIdx != nibNum) {
+    if (EOF == car) {
+      sprintf(err, "%s: hit EOF getting "
+	      "byte " _AIR_SIZE_T_FMT " of " _AIR_SIZE_T_FMT,
+	      me, nibIdx/2, nibNum/2);
+    } else {
+      sprintf(err, "%s: hit invalid character ('%c') getting "
+	      "byte " _AIR_SIZE_T_FMT " of " _AIR_SIZE_T_FMT,
+	      me, car, nibIdx/2, nibNum/2);
+    }
+    biffAdd(NRRD, err); return 1;
+  }
+  return 0;
+}
+
+
+int
+_nrrdReadDataAscii (Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadDataAscii", err[AIR_STRLEN_MED],
     numbStr[AIR_STRLEN_HUGE];  /* HEY: fix this */
   size_t I, num;
@@ -276,18 +340,9 @@ _nrrdReadDataAscii(Nrrd *nrrd, NrrdIO *io) {
     biffAdd(NRRD, err); return 1;
   }
   num = nrrdElementNumber(nrrd);
-  if (!num) {
-    sprintf(err, "%s: calculated number of elements to be zero!", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  /* this shouldn't actually be necessary ... */
-  if (!nrrdElementSize(nrrd)) {
-    sprintf(err, "%s: nrrd reports zero element size!", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  
   if (_nrrdCalloc(nrrd)) {
-    sprintf(err, "%s:", me); biffAdd(NRRD, err); return 1;
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
   }
   data = nrrd->data;
   size = nrrdElementSize(nrrd);
@@ -323,7 +378,7 @@ _nrrdReadDataAscii(Nrrd *nrrd, NrrdIO *io) {
 }
 
 int
-_nrrdReadDataGzip(Nrrd *nrrd, NrrdIO *io) {
+_nrrdReadDataGzip (Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadDataGzip", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
   size_t num, bsize, size, total_read;
@@ -331,16 +386,7 @@ _nrrdReadDataGzip(Nrrd *nrrd, NrrdIO *io) {
   char *data;
   gzFile gzfin;
   
-  /* this shouldn't actually be necessary ... */
-  if (!nrrdElementSize(nrrd)) {
-    sprintf(err, "%s: nrrd reports zero element size!", me);
-    biffAdd(NRRD, err); return 1;
-  }
   num = nrrdElementNumber(nrrd);
-  if (!num) {
-    sprintf(err, "%s: calculated number of elements to be zero!", me);
-    biffAdd(NRRD, err); return 1;
-  }
   bsize = num * nrrdElementSize(nrrd);
   size = bsize;
   if (num != bsize/nrrdElementSize(nrrd)) {
@@ -351,7 +397,8 @@ _nrrdReadDataGzip(Nrrd *nrrd, NrrdIO *io) {
 
   /* Allocate memory for the incoming data. */
   if (_nrrdCalloc(nrrd)) {
-    sprintf(err, "%s:", me); biffAdd(NRRD, err); return 1;
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
   }
 
   /* Create the gzFile for reading in the gzipped data. */
@@ -429,7 +476,7 @@ _nrrdReadDataGzip(Nrrd *nrrd, NrrdIO *io) {
 }
 
 int
-_nrrdReadDataBzip2(Nrrd *nrrd, NrrdIO *io) {
+_nrrdReadDataBzip2 (Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadDataBzip2", err[AIR_STRLEN_MED];
 #if TEEM_BZIP2
   size_t num, bsize, size, total_read;
@@ -437,16 +484,7 @@ _nrrdReadDataBzip2(Nrrd *nrrd, NrrdIO *io) {
   char *data;
   BZFILE* bzfin;
   
-  /* this shouldn't actually be necessary ... */
-  if (!nrrdElementSize(nrrd)) {
-    sprintf(err, "%s: nrrd reports zero element size!", me);
-    biffAdd(NRRD, err); return 1;
-  }
   num = nrrdElementNumber(nrrd);
-  if (!num) {
-    sprintf(err, "%s: calculated number of elements to be zero!", me);
-    biffAdd(NRRD, err); return 1;
-  }
   bsize = num * nrrdElementSize(nrrd);
   size = bsize;
   if (num != bsize/nrrdElementSize(nrrd)) {
@@ -457,7 +495,8 @@ _nrrdReadDataBzip2(Nrrd *nrrd, NrrdIO *io) {
 
   /* Allocate memory for the incoming data. */
   if (_nrrdCalloc(nrrd)) {
-    sprintf(err, "%s:", me); biffAdd(NRRD, err); return 1;
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
   }
 
   /* Create the BZFILE* for reading in the gzipped data. */
@@ -543,7 +582,7 @@ _nrrdReadDataBzip2(Nrrd *nrrd, NrrdIO *io) {
   
   return 0;
 #else
-  sprintf(err, "%s: sorry, this nrrd not compiled with bzlib enabled", me);
+  sprintf(err, "%s: sorry, this nrrd not compiled with bzip2 enabled", me);
   biffAdd(NRRD, err); return 1;
 #endif
 }
@@ -557,18 +596,20 @@ nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
   NULL,
   _nrrdReadDataRaw,
   _nrrdReadDataAscii,
+  _nrrdReadDataHex,
   _nrrdReadDataGzip,
   _nrrdReadDataBzip2
 };
 
 int
-nrrdLineSkip(NrrdIO *io) {
+nrrdLineSkip (NrrdIO *io) {
   int i, skipRet;
   char me[]="nrrdLineSkip", err[AIR_STRLEN_MED];
 
-  /* Just a note for gzipped data.  If you don't actually have ascii
-     headers on top of your gzipped data then you will get junk from
-     your data.  Quoting Gordon: "Garbage in, Garbage out." */
+  /* For compressed data: If you don't actually have ascii headers on
+     top of your gzipped data then you will potentially huge lines
+     while _nrrdOneLine looks for line terminations.  Quoting Gordon:
+     "Garbage in, Garbage out." */
   
   for (i=1; i<=io->lineSkip; i++) {
     if (_nrrdOneLine(&skipRet, io, io->dataFile)) {
@@ -584,7 +625,7 @@ nrrdLineSkip(NrrdIO *io) {
 }
 
 int
-nrrdByteSkip(NrrdIO *io) {
+nrrdByteSkip (NrrdIO *io) {
   int i, skipRet;
   char me[]="nrrdByteSkip", err[AIR_STRLEN_MED];
 
@@ -600,7 +641,7 @@ nrrdByteSkip(NrrdIO *io) {
 }
 
 int
-_nrrdReadNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
+_nrrdReadNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadNrrd", *err=NULL;
   int ret, len;
 
@@ -661,7 +702,7 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
     if ((err = (char*)malloc(AIR_STRLEN_MED))) {
       sprintf(err, "%s: %s", me, 
 	      (len ? "finished reading header, but there were problems"
-	       : "hit EOF before seeing a complete header"));
+	       : "hit EOF before seeing a complete valid header"));
       biffAdd(NRRD, err); free(err);
     }
     return 1;
@@ -710,12 +751,8 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
       if (1 < nrrdElementSize(nrrd)
 	  && nrrdEncodingEndianMatters[io->encoding]
 	  && io->endian != AIR_ENDIAN) {
-	/* endianness has been exposed, and its wrong */
+	/* endianness exposed in encoding, and its wrong */
 	if (2 <= nrrdStateVerboseIO) {
-	  /*
-	    fprintf(stderr, "!%s: io->endian = %d, AIR_ENDIAN = %d\n", 
-	    me, io->endian, AIR_ENDIAN);
-	  */
 	  fprintf(stderr, "(%s: fixing endianness ... ", me);
 	  fflush(stderr);
 	}
@@ -745,7 +782,7 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
 }
 
 int
-_nrrdReadPNM(FILE *file, Nrrd *nrrd, NrrdIO *io) {
+_nrrdReadPNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadPNM", err[AIR_STRLEN_MED];
   const char *fs;
   int i, color, got, want, len, ret, val[5], sx, sy, max;
@@ -899,7 +936,7 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, NrrdIO *io) {
 }
 
 int
-_nrrdReadTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
+_nrrdReadTable (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadTable", err[AIR_STRLEN_MED], *errS;
   const char *fs;
   int line, len, ret, sx, sy, settwo = 0, gotOnePerAxis = AIR_FALSE;
@@ -1092,7 +1129,7 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
 ** NrrdIO will be created as needed.
 */
 int
-nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *_io) {
+nrrdRead (Nrrd *nrrd, FILE *file, NrrdIO *_io) {
   char err[AIR_STRLEN_MED], me[] = "nrrdRead";
   int len;
   float oneFloat;
@@ -1187,10 +1224,12 @@ nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *_io) {
 ** ".", and the name is copied into base.
 */
 int
-_nrrdSplitName(char **dirP, char **baseP, const char *name) {
+_nrrdSplitName (char **dirP, char **baseP, const char *name) {
   int i, ret;
   
   i = strrchr(name, '/') - name;
+  *dirP = airFree(*dirP);
+  *baseP = airFree(*baseP);
   /* we found a valid break if the last directory character
      is somewhere in the string except the last character */
   if (i>=0 && i<strlen(name)-1) {
@@ -1210,7 +1249,7 @@ _nrrdSplitName(char **dirP, char **baseP, const char *name) {
 }
 
 void
-nrrdDirBaseSet(NrrdIO *io, const char *name) {
+nrrdDirBaseSet (NrrdIO *io, const char *name) {
   
   if (io && name) {
     _nrrdSplitName(&(io->dir), &(io->base), name);
@@ -1226,7 +1265,7 @@ nrrdDirBaseSet(NrrdIO *io, const char *name) {
 ** 
 */
 int
-nrrdLoad(Nrrd *nrrd, const char *filename) {
+nrrdLoad (Nrrd *nrrd, const char *filename) {
   char me[]="nrrdLoad", err[AIR_STRLEN_MED];
   NrrdIO *io;
   FILE *file;

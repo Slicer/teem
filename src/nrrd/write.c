@@ -203,6 +203,33 @@ _nrrdWriteDataRaw(Nrrd *nrrd, NrrdIO *io) {
 }
 
 int
+_nrrdWriteHexTable[16] = {
+  '0', '1', '2', '3', '4', '5', '6', '7',
+  '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
+};
+
+int
+_nrrdWriteDataHex(Nrrd *nrrd, NrrdIO *io) {
+  /* char me[]="_nrrdWriteDataAscii", err[AIR_STRLEN_MED]; */
+  unsigned char *data;
+  size_t byteIdx, byteNum;
+
+  data = nrrd->data;
+  byteNum = nrrdElementNumber(nrrd)*nrrdElementSize(nrrd);
+  for (byteIdx=0; byteIdx<byteNum; byteIdx++) {
+    fprintf(io->dataFile, "%c%c",
+	    _nrrdWriteHexTable[(*data)>>4],
+	    _nrrdWriteHexTable[(*data)&15]);
+    if (34 == byteIdx%35)
+      fprintf(io->dataFile, "\n");
+    data++;
+  }
+  
+  return 0;
+}
+
+
+int
 _nrrdWriteDataAscii(Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteDataAscii", err[AIR_STRLEN_MED], 
     buff[AIR_STRLEN_MED];
@@ -472,6 +499,7 @@ nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
   NULL,
   _nrrdWriteDataRaw,
   _nrrdWriteDataAscii,
+  _nrrdWriteDataHex,
   _nrrdWriteDataGzip,
   _nrrdWriteDataBzip2
 };

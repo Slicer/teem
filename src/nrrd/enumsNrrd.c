@@ -182,6 +182,7 @@ _nrrdEncodingStr[NRRD_ENCODING_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_encoding)",
   "raw",
   "ascii",
+  "hex",
   "gz",
   "bz2"
 };
@@ -191,6 +192,7 @@ _nrrdEncodingStrEqv[][AIR_STRLEN_SMALL] = {
   "(unknown_encoding)",
   "raw",
   "txt", "text", "ascii",
+  "hex",
   "gz", "gzip",
   "bz2", "bzip2",
   ""
@@ -201,6 +203,7 @@ _nrrdEncodingValEqv[] = {
   nrrdEncodingUnknown,
   nrrdEncodingRaw,
   nrrdEncodingAscii, nrrdEncodingAscii, nrrdEncodingAscii,
+  nrrdEncodingHex,
   nrrdEncodingGzip, nrrdEncodingGzip,
   nrrdEncodingBzip2, nrrdEncodingBzip2,
   nrrdEncodingLast

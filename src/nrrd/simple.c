@@ -29,7 +29,7 @@
 ** resets peripheral information
 */
 void
-nrrdPeripheralInit(Nrrd *nrrd) {
+nrrdPeripheralInit (Nrrd *nrrd) {
 
   if (nrrd) {
     nrrd->min = nrrd->max = AIR_NAN;
@@ -44,7 +44,7 @@ nrrdPeripheralInit(Nrrd *nrrd) {
 ** copies peripheral information
 */
 void
-nrrdPeripheralCopy(Nrrd *nout, Nrrd *nin) {
+nrrdPeripheralCopy (Nrrd *nout, Nrrd *nin) {
 
   if (nout && nin) {
     nout->min = nin->min;
@@ -56,8 +56,8 @@ nrrdPeripheralCopy(Nrrd *nout, Nrrd *nin) {
 }
 
 int
-_nrrdContentSet_nva(Nrrd *nout, const char *func,
-		    char *content, const char *format, va_list arg) {
+_nrrdContentSet_nva (Nrrd *nout, const char *func,
+		     char *content, const char *format, va_list arg) {
   char me[]="_nrrdContentSet_nva", err[AIR_STRLEN_MED], buff[AIR_STRLEN_HUGE];
   
   nout->content = airFree(nout->content);
@@ -83,8 +83,8 @@ _nrrdContentSet_nva(Nrrd *nout, const char *func,
 }
 
 int
-_nrrdContentSet(Nrrd *nout, const char *func,
-		char *content, const char *format, ...) {
+_nrrdContentSet (Nrrd *nout, const char *func,
+		 char *content, const char *format, ...) {
   char me[]="_nrrdContentSet", err[AIR_STRLEN_MED];
   va_list ap;
   
@@ -112,8 +112,8 @@ _nrrdContentSet(Nrrd *nout, const char *func,
 ** Does allow nout==nin, which requires some care.
 */
 int
-nrrdContentSet(Nrrd *nout, const char *func,
-	       Nrrd *nin, const char *format, ...) {
+nrrdContentSet (Nrrd *nout, const char *func,
+		Nrrd *nin, const char *format, ...) {
   char me[]="nrrdContentSet", err[AIR_STRLEN_MED];
   va_list ap;
   char *content;
@@ -156,7 +156,7 @@ nrrdContentSet(Nrrd *nout, const char *func,
 ** writes verbose description of nrrd to given file
 */
 void
-nrrdDescribe(FILE *file, Nrrd *nrrd) {
+nrrdDescribe (FILE *file, Nrrd *nrrd) {
   int i;
 
   if (file && nrrd) {
@@ -206,7 +206,7 @@ nrrdDescribe(FILE *file, Nrrd *nrrd) {
 ** does some consistency checks for things that can go wrong in a nrrd
 */
 int
-nrrdValid(Nrrd *nrrd) {
+nrrdValid (Nrrd *nrrd) {
   char me[] = "nrrdValid", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX], i, ret;
   double val[NRRD_DIM_MAX];
@@ -231,7 +231,7 @@ nrrdValid(Nrrd *nrrd) {
     biffAdd(NRRD, err); return 0;
   }
   nrrdAxesGet_nva(nrrd, nrrdAxesInfoSize, size);
-  if (!_nrrdSizeValid(nrrd->dim, size)) {
+  if (!_nrrdSizeValid(nrrd->dim, size, AIR_TRUE)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 0;
   }
@@ -285,7 +285,7 @@ nrrdValid(Nrrd *nrrd) {
 ** This does NOT look at the type of the elements.
 */
 int
-nrrdSameSize(Nrrd *n1, Nrrd *n2, int useBiff) {
+nrrdSameSize (Nrrd *n1, Nrrd *n2, int useBiff) {
   char me[]="nrrdSameSize", err[AIR_STRLEN_MED];
   int i;
 
@@ -326,7 +326,7 @@ nrrdSameSize(Nrrd *n1, Nrrd *n2, int useBiff) {
 ** is useful as a way of detecting an invalid blocksize on a block nrrd.
 */
 int
-nrrdElementSize(Nrrd *nrrd) {
+nrrdElementSize (Nrrd *nrrd) {
 
   if (!( nrrd && airEnumValidVal(nrrdType, nrrd->type) )) {
     return 0;
@@ -347,10 +347,13 @@ nrrdElementSize(Nrrd *nrrd) {
 ******** nrrdElementNumber()
 **
 ** takes the place of old "nrrd->num": the number of elements in the
-** nrrd, which is just the product of the axis sizes.
+** nrrd, which is just the product of the axis sizes.  A return of 0
+** means there's a problem.  Negative numbers are never returned.
+**
+** does NOT use biff
 */
 size_t
-nrrdElementNumber(Nrrd *nrrd) {
+nrrdElementNumber (Nrrd *nrrd) {
   size_t num;
   int d, size[NRRD_DIM_MAX];
 
@@ -359,13 +362,13 @@ nrrdElementNumber(Nrrd *nrrd) {
   }
   /* else */
   nrrdAxesGet_nva(nrrd, nrrdAxesInfoSize, size);
-  if (!_nrrdSizeValid(nrrd->dim, size)) {
-    /* well this is unfortunate: the nrrd's size information is invalid.
-       There's not much we can do except return 0 ("invalid") */
+  if (!_nrrdSizeValid(nrrd->dim, size, AIR_FALSE)) {
+    /* the nrrd's size information is invalid, can't proceed */
     return 0;
   }
   num = 1;
   for (d=0; d<nrrd->dim; d++) {
+    /* negative numbers caught by _nrrdSizeValid() */
     num *= size[d];
   }
   return num;
@@ -385,7 +388,7 @@ nrrdElementNumber(Nrrd *nrrd) {
 ** in this format....
 */
 int
-nrrdFitsInFormat(Nrrd *nrrd, int encoding, int format, int useBiff) {
+nrrdFitsInFormat (Nrrd *nrrd, int encoding, int format, int useBiff) {
   char me[]="nrrdFitsInFormat", err[AIR_STRLEN_MED];
   int ret=AIR_FALSE;
 
@@ -482,7 +485,7 @@ nrrdFitsInFormat(Nrrd *nrrd, int encoding, int format, int useBiff) {
 **   }
 */
 int
-nrrdHasNonExistSet(Nrrd *nrrd) {
+nrrdHasNonExistSet (Nrrd *nrrd) {
   size_t I, N;
   float val;
 
@@ -506,7 +509,7 @@ nrrdHasNonExistSet(Nrrd *nrrd) {
 }
 
 int
-_nrrdCheckEnums() {
+_nrrdCheckEnums (void) {
   char me[]="_nrrdCheckEnums", err[AIR_STRLEN_MED],
     which[AIR_STRLEN_SMALL];
 
@@ -568,7 +571,7 @@ _nrrdCheckEnums() {
 ** returns 1 if all is okay, 0 if there is a problem
 */
 int
-nrrdSanity(void) {
+nrrdSanity (void) {
   char me[]="nrrdSanity", err[AIR_STRLEN_MED];
   int aret, type, maxsize;
   airLLong tmpLLI;
@@ -733,4 +736,3 @@ nrrdSanity(void) {
   sanity = 1;
   return 1;
 }
-

@@ -60,9 +60,9 @@ nrrdHestNrrd = &_nrrdHestNrrd;
 /* ------------------------ NrrdKernelSpec -------------------------- */
 
 int
-_nrrdHestNrrdKernelSpecParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+_nrrdHestKernelSpecParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   NrrdKernelSpec **ksP;
-  char me[]="_nrrdHestNrrdKernelSpecParse", *nerr;
+  char me[]="_nrrdHestKernelSpecParse", *nerr;
 
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -80,15 +80,15 @@ _nrrdHestNrrdKernelSpecParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
 }
 
 hestCB
-_nrrdHestNrrdKernelSpec = {
+_nrrdHestKernelSpec = {
   sizeof(NrrdKernelSpec*),
   "kernel specification",
-  _nrrdHestNrrdKernelSpecParse,
+  _nrrdHestKernelSpecParse,
   (airMopper)nrrdKernelSpecNix
 };
 
 hestCB *
-nrrdHestNrrdKernelSpec = &_nrrdHestNrrdKernelSpec;
+nrrdHestKernelSpec = &_nrrdHestKernelSpec;
 
 /* --------------------------- NrrdIter ----------------------------- */
 
@@ -137,8 +137,8 @@ _nrrdLooksLikeANumber(char *str) {
 }
 
 int
-_nrrdHestNrrdIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="_nrrdHestNrrdIterParse", *nerr;
+_nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[]="_nrrdHestIterParse", *nerr;
   Nrrd *nrrd;
   NrrdIter **iterP;
   airArray *mop;
@@ -216,12 +216,12 @@ _nrrdHestNrrdIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
 }
 
 hestCB
-_nrrdHestNrrdIter = {
+_nrrdHestIter = {
   sizeof(NrrdIter *),
   "nrrd/value",
-  _nrrdHestNrrdIterParse,
+  _nrrdHestIterParse,
   (airMopper)nrrdIterNuke
 }; 
 
 hestCB *
-nrrdHestNrrdIter = &_nrrdHestNrrdIter;
+nrrdHestIter = &_nrrdHestIter;

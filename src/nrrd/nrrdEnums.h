@@ -119,11 +119,12 @@ enum {
   nrrdEncodingUnknown,
   nrrdEncodingRaw,        /* 1: same as memory layout (modulo endianness) */
   nrrdEncodingAscii,      /* 2: decimal values are spelled out in ascii */
-  nrrdEncodingGzip,       /* 3: gzip'ed raw data */
-  nrrdEncodingBzip2,      /* 4: bzip2'ed raw data */
+  nrrdEncodingHex,        /* 3: hexidecimal (two chars per byte) */
+  nrrdEncodingGzip,       /* 4: gzip'ed raw data */
+  nrrdEncodingBzip2,      /* 5: bzip2'ed raw data */
   nrrdEncodingLast
 };
-#define NRRD_ENCODING_MAX    4
+#define NRRD_ENCODING_MAX    5
 
 /*
 ******** nrrdZlibStrategy enum

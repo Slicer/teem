@@ -293,6 +293,7 @@ nrrdEncodingEndianMatters[NRRD_ENCODING_MAX+1] = {
   0,   /* unknown */
   1,   /* raw */
   0,   /* ascii */
+  1,   /* hex */
   1,   /* gzip */
   1,   /* bzip2 */
 };
@@ -308,6 +309,7 @@ nrrdEncodingIsCompression[NRRD_ENCODING_MAX+1] = {
   0,   /* unknown */
   0,   /* raw */
   0,   /* ascii */
+  0,   /* hex */
   1,   /* gzip */
   1,   /* bzip2 */
 };
@@ -320,8 +322,9 @@ nrrdEncodingIsCompression[NRRD_ENCODING_MAX+1] = {
 int 
 nrrdEncodingIsAvailable[NRRD_ENCODING_MAX+1] = {
   0,   /* unknown */
-  1,   /* raw, always */
-  1,   /* ascii, always */
+  1,   /* raw, always (required) */
+  1,   /* ascii, always (required) */
+  1,   /* hex, always (supplied by us) */
 #if TEEM_ZLIB
   1,   /* gzip */
 #else
