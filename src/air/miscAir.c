@@ -160,6 +160,33 @@ airFreeP(void *_ptrP) {
 }
 
 /*
+******** airFopen()
+**
+** encapsulates that idea that "-" is either standard in or stardard
+** out, and does McRosopht stuff required to make piping work 
+**
+** Does not error checking.  If fopen fails, then C' errno and strerror are
+** left untouched for the caller to access.
+*/
+FILE *
+airFopen(const char *name, FILE *std, const char *mode) {
+  FILE *ret;
+
+  if (!strcmp(name, "-")) {
+    ret = std;
+#ifdef _WIN32
+    if (strchr(mode, 'b')) {
+      _setmode(_fileno(ret), _O_BINARY);
+    }
+#endif
+  } else {
+    ret = fopen(name, mode);
+  }
+  return ret;
+}
+
+
+/*
 ******** airFclose()
 **
 ** just to facilitate setting a newly fclose()'d file pointer to NULL
@@ -262,6 +289,15 @@ airLog2(float n) {
   if (n < 2)
     return -1;
   return airLog2(n/2.0);
+}
+
+int
+airSgn(double v) {
+  return (v > 0
+	  ? 1
+	  : (v < 0
+	     ? -1
+	     : 0));
 }
 
 /*
