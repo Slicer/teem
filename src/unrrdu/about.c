@@ -63,15 +63,13 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
     "  | unu heq -b 2000 -s 1 \\\n "
     "  | unu quantize -b 8 -o zsum.png"
     "\n";
-  /*
   char par5[] = "\t\t\t\t"
-    "Nrrd and unu were developed to fill a gap in existing software for "
-    "handling image and volume datasets: generality of type and dimension, "
-    "minimal overhead for getting data in and out, "
+    "Nrrd and unu fill a frustrating gap in existing software for "
+    "handling image and volume datasets, offering generality of type "
+    "and dimension, minimal overhead for getting data in and out, "
     "with a file format and data structure that represents important "
     "meta-information: sample spacing, cell vs. node centering, " 
-    "per-axis text string labels, comments, etc.\n";
-  */
+    "measurement units, key/value pairs, comments, etc.\n";
   char par6[] = "\t\t\t\t"
     "If unu or nrrd repeatedly proves itself useful for your research, an "
     "acknowledgment to that effect in your publication would be greatly "
@@ -81,7 +79,10 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
     "part of the {\\tt teem} toolkit available at "
     "{\\tt\t$<$http://teem.sourceforge.net$>$}\"\n ";
   char par7[] = "\t\t\t\t"
-    "Feedback, questions, requests welcome: gk@cs.utah.edu.\n";
+    "Users are strongly encouraged to join the teem-users mailing list:\n "
+    "http://lists.sourceforge.net/lists/listinfo/teem-users\n";
+  char par8[] = "\t\t\t\t"
+    "Feedback, questions, requests welcome: gk@bwh.harvard.edu.\n";
 
   fprintf(stderr, "\n");
   sprintf(buff, "--- unu: Utah Nrrd Utilities command-line interface ---");
@@ -99,9 +100,10 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
   _hestPrintStr(stderr, 1, 0, 78, par2, AIR_FALSE);
   _hestPrintStr(stderr, 1, 0, 78, par3, AIR_FALSE);
   _hestPrintStr(stderr, 2, 0, 78, par4, AIR_FALSE);
-  /* _hestPrintStr(stderr, 1, 0, 78, par5, AIR_FALSE); */
+  _hestPrintStr(stderr, 1, 0, 78, par5, AIR_FALSE);
   _hestPrintStr(stderr, 1, 0, 78, par6, AIR_FALSE);
   _hestPrintStr(stderr, 1, 0, 78, par7, AIR_FALSE);
+  _hestPrintStr(stderr, 1, 0, 78, par8, AIR_FALSE);
 
   return 0;
 }
