@@ -556,6 +556,10 @@ nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo, ...) {
   va_start(ap, axInfo);
   for (d=0; d<nrrd->dim; d++) {
     ptr = va_arg(ap, void*);
+    /*
+    printf("!%s(%d): ptr = %lu\n", 
+           "nrrdAxisInfoGet", d, (unsigned long)ptr);
+    */
     switch (axInfo) {
     case nrrdAxisInfoSize:
       *((int*)ptr) = info.I[d];
@@ -595,7 +599,7 @@ nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo, ...) {
     }
   }
   va_end(ap);
-  
+
   return;
 }
 
