@@ -135,7 +135,7 @@ enum {
   limnEdgeTypeLone,        /* 7: attached to no other faces */
   limnEdgeTypeLast
 };
-#define LIMN_EDGE_TYPE_MAX    5
+#define LIMN_EDGE_TYPE_MAX    7
 
 typedef struct {
   float lineWidth[LIMN_EDGE_TYPE_MAX+1],

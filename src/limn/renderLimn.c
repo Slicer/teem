@@ -246,7 +246,6 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
       }
       
       /* draw ALL edges */
-      fprintf(win->file, "0 setgray\n");
       for (eii=0; eii<part->edgeIdxNum; eii++) {
 	edge = obj->edge + part->edgeIdx[eii];
 	face0 = obj->face + part->faceIdx[edge->faceIdxIdx[0]];
