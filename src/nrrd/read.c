@@ -340,10 +340,10 @@ _nrrdReadDataAscii(Nrrd *nrrd, NrrdIO *io) {
 }
 
 int
-_nrrdReadDataZlib(Nrrd *nrrd, NrrdIO *io) {
-  char me[]="_nrrdReadDataZlib", err[AIR_STRLEN_MED];
+_nrrdReadDataGzip(Nrrd *nrrd, NrrdIO *io) {
+  char me[]="_nrrdReadDataGzip", err[AIR_STRLEN_MED];
 #ifndef TEEM_ZLIB
-  sprintf(err, "%s: sorry, this nrrd not compiled with zlib enabled", me);
+  sprintf(err, "%s: sorry, this nrrd not compiled with gzip enabled", me);
   biffAdd(NRRD, err); return 1;
 #else
   size_t num, bsize, size, total_read;
@@ -477,7 +477,7 @@ nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
   NULL,
   _nrrdReadDataRaw,
   _nrrdReadDataAscii,
-  _nrrdReadDataZlib,
+  _nrrdReadDataGzip,
 };
 
 int
@@ -487,7 +487,7 @@ nrrdLineSkip(NrrdIO *io) {
 
   /* Just a note for gzipped data.  If you don't actually have ascii
      headers on top of your gzipped data then you will get junk from
-     your data.  Quoting Gordon: "Junk in, junk out." */
+     your data.  Quoting Gordon: "Garbage in, Garbage out." */
   
   for (i=1; i<=io->lineSkip; i++) {
     if (_nrrdOneLine(&skipRet, io, io->dataFile)) {

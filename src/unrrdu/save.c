@@ -50,7 +50,7 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
 	 "output file format. Possibilities include:"
 	 "\n \b\bo \"raw\": raw encoding"
 	 "\n \b\bo \"ascii\": print data in ascii");
-  if (nrrdEncodingAvailable[nrrdEncodingZlib]) {
+  if (nrrdEncodingAvailable[nrrdEncodingGzip]) {
     strcat(encInfo, 
 	   "\n \b\bo \"gz\": gzipped compressed raw format");
   }

@@ -199,7 +199,7 @@ _nrrdEncodingValEqv[] = {
   nrrdEncodingUnknown,
   nrrdEncodingRaw,
   nrrdEncodingAscii,
-  nrrdEncodingZlib, nrrdEncodingZlib,
+  nrrdEncodingGzip, nrrdEncodingGzip,
 };
 
 airEnum
