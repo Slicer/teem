@@ -41,7 +41,9 @@ unrrdu_heqMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   /* we want to facilitate saving out the mapping as a text file,
      but with the domain included */
-  nrrdDefWrtBareTable = AIR_FALSE;
+  /* this is commented out with the 8 Aug 2003 advent of nrrdDefGetenv
+  nrrdDefWriteBareTable = AIR_FALSE;
+  */
 
   hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, NULL,
 	     "# bins to use in histogram that is created in order to "
