@@ -714,8 +714,8 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
     for (L=0; L<numLines; L++) {
       /* calculate the index to get to input and output scanlines,
 	 according the coordinates of the start of the scanline */
-      NRRD_COORD_INDEX(LI, ci, sz[pass], dim);
-      NRRD_COORD_INDEX(LO, co, sz[pass+1], dim);
+      NRRD_INDEX_GEN(LI, ci, sz[pass], dim);
+      NRRD_INDEX_GEN(LO, co, sz[pass+1], dim);
       _inVec = array[pass] + LI;
       _outVec = array[pass+1] + LO;
       

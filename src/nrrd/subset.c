@@ -51,7 +51,7 @@ nrrdSample_nva(void *val, Nrrd *nrrd, int *coord) {
     }
   }
 
-  NRRD_COORD_INDEX(I, coord, size, nrrd->dim);
+  NRRD_INDEX_GEN(I, coord, size, nrrd->dim);
 
   memcpy(val, (char*)(nrrd->data) + I*typeSize, typeSize);
   return 0;
@@ -91,10 +91,6 @@ nrrdSample(void *val, Nrrd *nrrd, ...) {
 **
 ** slices a nrrd along a given axis, at a given position.
 **
-** will allocate memory for the new slice only if NULL==nout->data,
-** otherwise assumes that the pointer there is pointing to something
-** big enough to hold the slice
-** 
 ** This is a newer version of the procedure, which is simpler, faster,
 ** and requires less memory overhead than the first one.  It is based
 ** on the observation that any slice is a periodic square-wave pattern
@@ -202,7 +198,7 @@ int
 nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
   char me[]="nrrdCrop", func[] = "crop", err[AIR_STRLEN_MED],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
-  int d, dim,
+  int d,
     lineSize,                /* #bytes in one scanline to be copied */
     typeSize,                /* size of data type */
     cIn[NRRD_DIM_MAX],       /* coords for line start, in input */
@@ -223,8 +219,7 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
     sprintf(err, "%s: nout==nin disallowed", me);
     biffAdd(NRRD, err); return 1;
   }
-  dim = nin->dim;
-  for (d=0; d<dim; d++) {
+  for (d=0; d<nin->dim; d++) {
     if (!(min[d] <= max[d])) {
       sprintf(err, "%s: axis %d min (%d) not <= max (%d)", 
 	      me, d, min[d], max[d]);
@@ -246,13 +241,13 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
   /* allocate */
   nrrdAxesGet_nva(nin, nrrdAxesInfoSize, szIn);
   numLines = 1;
-  for (d=0; d<dim; d++) {
+  for (d=0; d<nin->dim; d++) {
     szOut[d] = max[d] - min[d] + 1;
     if (d)
       numLines *= szOut[d];
   }
   nout->blockSize = nin->blockSize;
-  if (nrrdMaybeAlloc_nva(nout, nin->type, dim, szOut)) {
+  if (nrrdMaybeAlloc_nva(nout, nin->type, nin->dim, szOut)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -264,7 +259,7 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
   dataOut = nout->data;
   memset(cOut, 0, NRRD_DIM_MAX*sizeof(int));
   /*
-  printf("!%s: dim = %d\n", me, dim);
+  printf("!%s: nin->dim = %d\n", me, nin->dim);
   printf("!%s: min  = %d %d %d\n", me, min[0], min[1], min[2]);
   printf("!%s: szIn = %d %d %d\n", me, szIn[0], szIn[1], szIn[2]);
   printf("!%s: szOut = %d %d %d\n", me, szOut[0], szOut[1], szOut[2]);
@@ -273,10 +268,10 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
   printf("!%s: numLines = %d\n", me, (int)numLines);
   */
   for (I=0; I<numLines; I++) {
-    for (d=0; d<dim; d++)
+    for (d=0; d<nin->dim; d++)
       cIn[d] = cOut[d] + min[d];
-    NRRD_COORD_INDEX(idxOut, cOut, szOut, dim);
-    NRRD_COORD_INDEX(idxIn, cIn, szIn, dim);
+    NRRD_INDEX_GEN(idxOut, cOut, szOut, nin->dim);
+    NRRD_INDEX_GEN(idxIn, cIn, szIn, nin->dim);
     /*
     printf("!%s: %5d: cOut=(%3d,%3d,%3d) --> idxOut = %5d\n",
 	   me, (int)I, cOut[0], cOut[1], cOut[2], (int)idxOut);
@@ -286,7 +281,7 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
     memcpy(dataOut + idxOut*typeSize, dataIn + idxIn*typeSize, lineSize);
     /* the lowest coordinate in cOut[] will stay zero, since we are 
        copying one (1-D) scanline at a time */
-    NRRD_COORD_INCR(cOut, szOut, dim, 1);
+    NRRD_COORD_INCR(cOut, szOut, nin->dim, 1);
   }
   if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE_BIT |
 				     NRRD_AXESINFO_MIN_BIT |
@@ -294,12 +289,12 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  for (d=0; d<dim; d++) {
+  for (d=0; d<nin->dim; d++) {
     nrrdAxisPosRange(&(nout->axis[d].min), &(nout->axis[d].max),
 		     nin, d, min[d], max[d]);
   }
   strcpy(buff1, "");
-  for (d=0; d<dim; d++) {
+  for (d=0; d<nin->dim; d++) {
     sprintf(buff2, "%s[%d,%d]", (d ? "x" : ""), min[d], max[d]);
     strcat(buff1, buff2);
   }

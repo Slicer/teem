@@ -119,13 +119,13 @@ do {                                           \
 } while (0)
 
 /*
-******** NRRD_COORD_INDEX
+******** NRRD_INDEX_GEN
 **
 ** Given a coordinate array "coord", as well as the array sizes "size"
 ** and dimension "dim", calculates the linear index, and stores it in
-** I.
+** "I".
 */
-#define NRRD_COORD_INDEX(I, coord, size, dim) \
+#define NRRD_INDEX_GEN(I, coord, size, dim)   \
 do {                                          \
   int d;                                      \
   for (d=(dim)-1, (I)=(coord)[d--];           \
@@ -135,6 +135,12 @@ do {                                          \
   }                                           \
 } while (0)
 
+/*
+******** NRRD_COORD_GEN
+**
+** opposite of NRRD_INDEX_GEN: going from linear index "I" to
+** coordinate array "coord".
+*/
 #define NRRD_COORD_GEN(coord, size, dim, I)   \
 do {                                          \
   int d;                                      \

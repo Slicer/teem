@@ -528,6 +528,7 @@ extern int nrrdSimpleCrop(Nrrd *nout, Nrrd *nin, int crop);
 
 /******** padding */
 /* superset.c */
+extern int nrrdSplice(Nrrd *nout, Nrrd *nin, Nrrd *nslice, int axis, int pos);
 extern int nrrdPad_nva(Nrrd *nout, Nrrd *nin, int *min, int *max,
 		       int boundary, double padValue);
 extern int nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary,

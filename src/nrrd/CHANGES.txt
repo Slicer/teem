@@ -1,3 +1,11 @@
+Changes from 1.5beta2: ---------------------------------
+
+- API NEW: nrrdSplice() and nrrdInset() are the functional
+opposites of nrrdSlice and nrrdCrop, respectively.  They are
+for modifying a larger nrrd by replacing with value from a
+smaller nrrd.
+- API CHANGE (macro): NRRD_COORD_INDEX --> NRRD_INDEX_GEN
+
 Changes from 1.5beta1: ---------------------------------
 
 - BUG FIX (read.c, parseNrrd.c): when doing detached headers

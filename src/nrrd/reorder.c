@@ -198,7 +198,7 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
        a linear index for the memcpy(), we multiply by lineSize */
     for (d=0; d<ldim; d++)
       cIn[laxes[d]] = cOut[d];
-    NRRD_COORD_INDEX(idxIn, cIn, lszIn, ldim);
+    NRRD_INDEX_GEN(idxIn, cIn, lszIn, ldim);
     memcpy(dataOut + idxOut*lineSize, dataIn + idxIn*lineSize, lineSize);
     NRRD_COORD_INCR(cOut, lszOut, ldim, 0);
   }
@@ -344,8 +344,8 @@ nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
   for (idxOut=0; idxOut<numLines; idxOut++) {
     memcpy(cIn, cOut, ldim*sizeof(int));
     cIn[0] = perm[cOut[0]];
-    NRRD_COORD_INDEX(idxIn, cIn, lsize, ldim);
-    NRRD_COORD_INDEX(idxOut, cOut, lsize, ldim);
+    NRRD_INDEX_GEN(idxIn, cIn, lsize, ldim);
+    NRRD_INDEX_GEN(idxOut, cOut, lsize, ldim);
     memcpy(dataOut + idxOut*lineSize, dataIn + idxIn*lineSize, lineSize);
     NRRD_COORD_INCR(cOut, lsize, ldim, 0);
   }

@@ -312,7 +312,7 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins, int type) {
       if (AIR_IN_CL(0, hidx, bins-1)) {
 	memcpy(coordOut, coordIn, nin->dim*sizeof(int));
 	coordOut[ax] = hidx;
-	NRRD_COORD_INDEX(hI, coordOut, szOut, nout->dim);
+	NRRD_INDEX_GEN(hI, coordOut, szOut, nout->dim);
 	count = nrrdDLookup[nout->type](nout->data, hI);
 	count = nrrdDClamp[nout->type](count + 1);
 	nrrdDInsert[nout->type](nout->data, hI, count);
@@ -451,7 +451,7 @@ nrrdHistoJoint(Nrrd *nout, Nrrd **nin,
     if (skip)
       continue;
     /* printf("\n"); */
-    NRRD_COORD_INDEX(Iout, coord, bins, numNin);
+    NRRD_INDEX_GEN(Iout, coord, bins, numNin);
     count = nrrdDLookup[nout->type](nout->data, Iout);
     count = nrrdDClamp[nout->type](count + 1);
     nrrdDInsert[nout->type](nout->data, Iout, count);
