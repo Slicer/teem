@@ -174,9 +174,8 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   fprintf(file, "[%d 0 0 -%d 0 %d]\n", sx, sy, sy);
   fprintf(file, "{currentfile linestr readhexstring pop} %s\n",
           color ? "false 3 colorimage" : "image");
-  nio->dataFile = file;
-  nrrdEncodingHex->write(nrrd, nio);
-  nio->dataFile = NULL;
+  nrrdEncodingHex->write(file, nrrd->data, nrrdElementNumber(nrrd),
+                         nrrd, nio);
   fprintf(file, "\n");
   fprintf(file, "grestore\n");
   fprintf(file, "grestore\n");

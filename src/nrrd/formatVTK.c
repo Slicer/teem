@@ -240,8 +240,8 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
             me, nio->line);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  nio->dataFile = file;
-  if (nio->encoding->read(nrrd, nio)) {
+  if (nio->encoding->read(file, nrrd->data, nrrdElementNumber(nrrd),
+                          nrrd, nio)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -259,7 +259,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 int
 _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatVTK_write", err[AIR_STRLEN_MED];
-  int i, sx, sy, sz, sax;
+  int i, sx, sy, sz, szmult, sax;
   double xs, ys, zs, xm, ym, zm;
   char type[AIR_STRLEN_MED], name[AIR_STRLEN_SMALL];
   Nrrd *nrrd;
@@ -351,13 +351,16 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   if (3 == nrrd->dim) {
     fprintf(file, "SCALARS %s %s\n", name, type);
     fprintf(file, "LOOKUP_TABLE default\n");
+    szmult = 1;
   } else {
     /* 4 == nrrd->dim */
     if (3 == nrrd->axis[0].size) {
       fprintf(file, "VECTORS %s %s\n", name, type);
+      szmult = 3;
     } else {
       fprintf(file, "TENSORS %s %s\n", name, type);
     }
+    szmult = 9;
   }
   if (1 < nrrdElementSize(nrrd)
       && nio->encoding->endianMatters
@@ -365,8 +368,8 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
     /* encoding exposes endianness, and we're not big, as req.d by VTK */
     nrrdSwapEndian(nrrd);
   }
-  nio->dataFile = file;
-  if (nio->encoding->write(nrrd, nio)) {
+  if (nio->encoding->write(file, nrrd->data, nrrdElementNumber(nrrd),
+                           nrrd, nio)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
