@@ -47,7 +47,13 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "\b\bo \"text\": plain ASCII text for 1-D and 2-D data",
 	     NULL, nrrdFormat);
   hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &encoding, "raw",
-	     "output file format. Possibilities are \"raw\" and \"ascii\"",
+	     "output file format. Possibilities include:"
+	     "\n \b\bo \"raw\": raw encoding"
+	     "\n \b\bo \"ascii\": print data in ascii"
+#ifdef TEEM_ZLIB
+	     "\n \b\bo \"gz\": gzipped compressed raw format"
+#endif
+	     ,
 	     NULL, nrrdEncoding);
   OPT_ADD_NOUT(out, "output nrrd");
 
