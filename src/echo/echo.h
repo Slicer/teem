@@ -27,7 +27,6 @@
 #include <biff.h>
 #include <ell.h>
 #include <nrrd.h>
-#include <dye.h>
 #include <limn.h>
 
 #if defined(WIN32) && !defined(TEEM_BUILD)

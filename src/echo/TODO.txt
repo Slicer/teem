@@ -1,3 +1,5 @@
+add direct support for diffusion tensor glyphs (link against ten)
+
 fix "warning: syntax error: empty declaration" errors showing
 up on solaris
 

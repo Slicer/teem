@@ -52,7 +52,7 @@ _echoRayIntxSphere(INTX_ARGS(Sphere)) {
       return AIR_FALSE;
     }
   }
-  /* else one of the intxs is in [near,far] segment */
+  /* else one of the intxs is in [neer,faar] segment */
   intx->t = t;
   ELL_3V_SCALEADD(pos, 1, ray->from, t, ray->dir);
   ELL_3V_SUB(intx->norm, pos, obj->pos);
@@ -209,7 +209,7 @@ _echoRayIntxUVCube(EchoIntx *intx) {
 ** - sets pvec, tvec, qvec (all of them if intx is not ruled out )
 ** - sets u, and rules out intx based on (u < 0.0 || u > 1.0)
 ** - sets v, and rules out intx based on COND
-** - sets t, and rules out intx based on (t < near || t > far)
+** - sets t, and rules out intx based on (t < neer || t > faar)
 */
 #define TRI_INTX(ray, origin, edge0, edge1, pvec, qvec, tvec,                \
                  det, t, u, v, COND, NOPE)                                   \
@@ -231,7 +231,7 @@ _echoRayIntxUVCube(EchoIntx *intx) {
     NOPE;                                                                    \
   }                                                                          \
   t = det * ELL_3V_DOT(qvec, edge1);                                         \
-  if (t < ray->neer || t > ray->faar) {                                       \
+  if (t < ray->neer || t > ray->faar) {                                      \
     NOPE;                                                                    \
   }
 
@@ -300,7 +300,7 @@ _echoRayIntxTriMesh(INTX_ARGS(TriMesh)) {
     }
     return AIR_FALSE;
   }
-  /* stupid linear search for now */
+  /* stupid lineer search for now */
   ret = AIR_FALSE;
   for (i=0; i<trim->numF; i++) {
     pos = trim->pos + 3*trim->vert[0 + 3*i];
