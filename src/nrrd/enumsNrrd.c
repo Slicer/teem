@@ -856,7 +856,7 @@ _nrrdBinaryOpStrEqv[][AIR_STRLEN_SMALL] = {
   "gt", ">", "greater", "greaterthan",
   "gte", ">=", "greaterthanorequal",
   "comp", "compare",
-  "eq", "==", "equal",
+  "eq", "=", "==", "equal",
   "neq", "!=", "notequal",
   "exists",
   ""
@@ -879,7 +879,7 @@ _nrrdBinaryOpValEqv[] = {
   nbGt, nbGt, nbGt, nbGt,
   nbGte, nbGte, nbGte,
   nbCmp, nbCmp,
-  nbEq, nbEq, nbEq,
+  nbEq, nbEq, nbEq, nbEq,
   nbNeq, nbNeq, nbNeq,
   nbExt
 };
