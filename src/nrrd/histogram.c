@@ -31,13 +31,14 @@
 ** this are ignored (they don't contribute to the histogram).
 */
 int
-nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type) {
+nrrdHisto(Nrrd *nout, Nrrd *nin, Nrrd *nwght, int bins, int type) {
   char me[]="nrrdHisto", func[]="histo", err[AIR_STRLEN_MED];
   int idx;
   size_t I, num;
-  double min, max, eps, val, count;
+  double min, max, eps, val, count, incr, (*lup)(void *v, size_t I);
 
   if (!(nin && nout)) {
+    /* nwght can be NULL */
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -52,6 +53,24 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type) {
   if (!( airEnumValValid(nrrdType, type) && nrrdTypeBlock != type )) {
     sprintf(err, "%s: invalid nrrd type %d", me, type);
     biffAdd(NRRD, err); return 1;
+  }
+  if (nwght) {
+    if (nout==nwght) {
+      sprintf(err, "%s: nout==nwght disallowed", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    if (nrrdTypeBlock == nwght->type) {
+      sprintf(err, "%s: nwght type %s invalid", me,
+	      airEnumStr(nrrdType, nrrdTypeBlock));
+      biffAdd(NRRD, err); return 1;
+    }
+    if (!nrrdSameSize(nin, nwght, AIR_TRUE)) {
+      sprintf(err, "%s: nwght size mismatch with nin", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    lup = nrrdDLookup[nwght->type];
+  } else {
+    lup = NULL;
   }
 
   if (nrrdMaybeAlloc(nout, type, 1, bins)) {
@@ -90,7 +109,8 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type) {
 	/* count is a double in order to simplify clamping the
 	   hit values to the representable range for nout->type */
 	count = nrrdDLookup[nout->type](nout->data, idx);
-	count = nrrdDClamp[nout->type](count + 1);
+	incr = nwght ? lup(nwght->data, I) : 1;
+	count = nrrdDClamp[nout->type](count + incr);
 	nrrdDInsert[nout->type](nout->data, idx, count);
       }
     }
@@ -342,14 +362,15 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins, int type) {
 }
 
 int 
-nrrdHistoJoint(Nrrd *nout, Nrrd **nin, 
-	       int numNin, int *bins, int type, int *clamp) {
+nrrdHistoJoint(Nrrd *nout, Nrrd **nin, int numNin,
+	       Nrrd *nwght, int *bins, int type, int *clamp) {
   char me[]="nrrdHistoJoint", func[]="jhisto", err[AIR_STRLEN_MED];
   int i, d, coord[NRRD_DIM_MAX], skip, hadContent, totalContentStrlen, len=0;
-  double val, count;
+  double val, count, incr, (*lup)(void *v, size_t I);
   size_t Iin, Iout, numEl;
 
   /* error checking */
+  /* nwght can be NULL -> weighting is constant 1.0 */
   if (!(nout && nin && bins && clamp)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
@@ -399,6 +420,26 @@ nrrdHistoJoint(Nrrd *nout, Nrrd **nin,
       sprintf(err, "%s: nin[%d] size mismatch with nin[0]", me, d);
       biffAdd(NRRD, err); return 1;
     }
+  }
+  
+  /* check nwght */
+  if (nwght) {
+    if (nout==nwght) {
+      sprintf(err, "%s: nout==nwght disallowed", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    if (nrrdTypeBlock == nwght->type) {
+      sprintf(err, "%s: nwght type %s invalid", me,
+	      airEnumStr(nrrdType, nrrdTypeBlock));
+      biffAdd(NRRD, err); return 1;
+    }
+    if (!nrrdSameSize(nin[0], nwght, AIR_TRUE)) {
+      sprintf(err, "%s: nwght size mismatch with nin[0]", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    lup = nrrdDLookup[nwght->type];
+  } else {
+    lup = NULL;
   }
 
   /* allocate output nrrd */
@@ -464,7 +505,8 @@ nrrdHistoJoint(Nrrd *nout, Nrrd **nin,
     /* printf("\n"); */
     NRRD_INDEX_GEN(Iout, coord, bins, numNin);
     count = nrrdDLookup[nout->type](nout->data, Iout);
-    count = nrrdDClamp[nout->type](count + 1);
+    incr = nwght ? lup(nwght->data, Iin) : 1.0;
+    count = nrrdDClamp[nout->type](count + incr);
     nrrdDInsert[nout->type](nout->data, Iout, count);
   }
 
