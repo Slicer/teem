@@ -22,6 +22,7 @@
 int 
 miteRenderBegin(miteRenderInfo **mrrP, miteUserInfo *muu) {
   char me[]="miteRenderBegin", err[AIR_STRLEN_MED];
+  gagePerVolume *pvl;
   int E;
  
   fprintf(stderr, "%s: hi %p %p\n", me, mrrP, muu);
@@ -34,39 +35,38 @@ miteRenderBegin(miteRenderInfo **mrrP, miteUserInfo *muu) {
     return 1;
   }
   airMopAdd(muu->mop, *mrrP, airFree, airMopAlways);
-  if (!( (*mrrP)->gsl = gageSimpleNew() )) {
-    sprintf(err, "%s: couldn't calloc gageSimple", me);
+  if (!( ((*mrrP)->gtx = gageContextNew()) &&
+	 (pvl = gagePerVolumeNew(gageKindScl)) )) {
+    sprintf(err, "%s: couldn't calloc gage structs", me);
     return 1;
   }
-  airMopAdd(muu->mop, (*mrrP)->gsl, (airMopper)gageSimpleNix, airMopAlways);
+  airMopAdd(muu->mop, (*mrrP)->gtx, (airMopper)gageContextNix, airMopAlways);
 
   fprintf(stderr, "%s: hi %p %p\n", me, muu, muu->ctx);
 
-  gageValSet((*mrrP)->gsl->ctx, gageValRenormalize, muu->renorm);
-  gageValSet((*mrrP)->gsl->ctx, gageValCheckIntegrals, AIR_TRUE);
+  gageSet((*mrrP)->gtx, gageRenormalize, muu->renorm);
+  gageSet((*mrrP)->gtx, gageCheckIntegrals, AIR_TRUE);
   E = 0;
-  if (!E) E |= gageSimpleKernelSet((*mrrP)->gsl, gageKernel00,
-				   muu->ksp00->kernel,
-				   muu->ksp00->parm);
-  if (!E) E |= gageSimpleKernelSet((*mrrP)->gsl, gageKernel11,
-				   muu->ksp11->kernel,
-				   muu->ksp11->parm);
+  if (!E) E |= gagePerVolumeAttach((*mrrP)->gtx, pvl);
+  if (!E) E |= gageKernelSet((*mrrP)->gtx, gageKernel00,
+			     muu->ksp00->kernel, muu->ksp00->parm);
+  if (!E) E |= gageKernelSet((*mrrP)->gtx, gageKernel11,
+			     muu->ksp11->kernel, muu->ksp11->parm);
   /* HEY HEY HEY this is only for value and normal */
   /*
-  if (!E) E |= gageSimpleKernelSet((*mrrP)->gsl, gageKernel22,
-				   muu->ksp22->kernel,
-				   muu->ksp22->parm);
+  if (!E) E |= gageKernelSet((*mrrP)->gtx, gageKernel22,
+			     muu->ksp22->kernel, muu->ksp22->parm);
   */
-  if (!E) E |= gageSimpleVolumeSet((*mrrP)->gsl, muu->nin, gageKindScl);
-  if (!E) E |= gageSimpleQuerySet((*mrrP)->gsl,
-				  (1<<gageSclValue)|(1<<gageSclNormal));
-  if (!E) E |= gageSimpleUpdate((*mrrP)->gsl);
+  if (!E) E |= gageVolumeSet((*mrrP)->gtx, pvl, muu->nin);
+  if (!E) E |= gageQuerySet((*mrrP)->gtx, pvl,
+			    (1<<gageSclValue)|(1<<gageSclNormal));
+  if (!E) E |= gageUpdate((*mrrP)->gtx);
   if (E) {
     sprintf(err, "%s: gage trouble", me);
     biffMove(MITE, err, GAGE);
     return 1;
   }
-  (*mrrP)->san = (gageSclAnswer*)((*mrrP)->gsl->ansStruct);
+  (*mrrP)->san = (gageSclAnswer*)((*mrrP)->gtx->pvl[0]->ansStruct);
   
   fprintf(stderr, "%s: bye %d %d \n", me,
 	  muu->ctx->imgSize[0], muu->ctx->imgSize[1]);

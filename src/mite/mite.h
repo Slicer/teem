@@ -56,7 +56,7 @@ typedef struct {
 ** non-thread-specific state relevant for mite's internal use
 */
 typedef struct {
-  gageSimple *gsl;
+  gageContext *gtx;
   gageSclAnswer *san;
   double time0, time1;
   int sx, sy;

@@ -86,10 +86,10 @@ miteSample(miteThreadInfo *mtt, miteRenderInfo *mrr, miteUserInfo *muu,
     return 0.0;
   }
 
-  if (gageSimpleProbe(mrr->gsl,
-		      samplePosIndex[0],
-		      samplePosIndex[1],
-		      samplePosIndex[2])) {
+  if (gageProbe(mrr->gtx,
+		samplePosIndex[0],
+		samplePosIndex[1],
+		samplePosIndex[2])) {
     sprintf(err, "%s: gage trouble: %s (%d)", me, gageErrStr, gageErrNum);
     biffAdd(MITE, err);
     return AIR_NAN;
