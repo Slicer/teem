@@ -67,7 +67,7 @@ _nrrdEncodingHex_read(Nrrd *nrrd, NrrdIO *nio) {
     return 0;
   }
   if (_nrrdCalloc(nrrd)) {
-    sprintf(err, "%s:", me);
+    sprintf(err, "%s: couldn't allocate sufficient memory for all data", me);
     biffAdd(NRRD, err); return 1;
   }
   data = nrrd->data;

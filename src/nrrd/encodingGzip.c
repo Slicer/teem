@@ -54,7 +54,7 @@ _nrrdEncodingGzip_read(Nrrd *nrrd, NrrdIO *nio) {
 
   /* Allocate memory for the incoming data. */
   if (_nrrdCalloc(nrrd)) {
-    sprintf(err, "%s:", me);
+    sprintf(err, "%s: couldn't allocate sufficient memory for all data", me);
     biffAdd(NRRD, err); return 1;
   }
 

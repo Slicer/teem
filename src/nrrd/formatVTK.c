@@ -54,6 +54,7 @@ _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   }
   if (!( nrrdTypeUChar == nrrd->type
 	 || nrrdTypeShort == nrrd->type
+	 || nrrdTypeUShort == nrrd->type
 	 || nrrdTypeInt == nrrd->type
 	 || nrrdTypeFloat == nrrd->type
 	 || nrrdTypeDouble == nrrd->type )) {
@@ -191,6 +192,8 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
     }
   } else if (!strcmp(three[2], "unsigned_char")) {
     nrrd->type = nrrdTypeUChar;
+  } else if (!strcmp(three[2], "unsigned_short")) {
+    nrrd->type = nrrdTypeUShort;
   } else if (!strcmp(three[2], "short")) {
     nrrd->type = nrrdTypeShort;
   } else if (!strcmp(three[2], "int")) {
@@ -288,6 +291,9 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIO *nio) {
   switch(nrrd->type) {
   case nrrdTypeUChar:
     strcpy(type, "unsigned_char");
+    break;
+  case nrrdTypeUShort:
+    strcpy(type, "unsigned_short");
     break;
   case nrrdTypeShort:
     strcpy(type, "short");
