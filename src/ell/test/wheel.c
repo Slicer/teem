@@ -232,7 +232,7 @@ main(int argc, char *argv[]) {
 	     "directly give coefficients of cubic polynomial "
 	     "(and override info from \"-t\")");
   hestOptAdd(&hopt, "g", "c rad th", airTypeDouble, 3, 3, geom, "nan nan nan",
-	     "directly give center, radius, and angle of wheel "
+	     "directly give center, radius, and angle (in degrees) of wheel "
 	     "(and override info from \"-t\" and \"-ABC\"");
   hestOptAdd(&hopt, "correct", NULL, airTypeInt, 0, 0, &correct, NULL,
 	     "when using \"-g\", be honest about what the estimated "
