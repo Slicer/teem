@@ -40,7 +40,7 @@ _nrrdSelectElements(void *dataIn, void *dataOut, int size,
 ** single element into given *val
 */
 int
-nrrdSample(Nrrd *nrrd, int *coord, void *val) {
+nrrdSample(void *val, Nrrd *nrrd, int *coord) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdSample";
   int size, dim, i, idx;
   

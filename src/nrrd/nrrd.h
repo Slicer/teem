@@ -455,9 +455,9 @@ extern float  (*nrrdFClamp[13])(float);
 extern double (*nrrdDClamp[13])(double);
 extern void   (*nrrdMinMax[13])(void *, void *, NRRD_BIG_INT, void *);
 
-/******** sampling, slicing, cropping+padding, permuting, shuffling */
+/******** sampling, slicing, cropping+padding */
 /* subset.c */
-extern int nrrdSample(Nrrd *nin, int *coord, void *val);
+extern int nrrdSample(void *val, Nrrd *nin, int *coord);
 extern int nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos);
 extern int nrrdSubvolume(Nrrd *nout, Nrrd *nin, 
 			 int *minIdx, int *maxIdx, int clamp);
