@@ -574,7 +574,7 @@ nrrdSanity(void) {
 	 && nrrdTypeSize[nrrdTypeULLong] == sizeof(unsigned long long int)
 	 && nrrdTypeSize[nrrdTypeFloat] == sizeof(float)
 	 && nrrdTypeSize[nrrdTypeDouble] == sizeof(double) )) {
-    sprintf("%s: sizeof() for nrrd types has problem: "
+    sprintf(err, "%s: sizeof() for nrrd types has problem: "
 	    "expected (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d) "
 	    "but got (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)", me,
 	    nrrdTypeSize[nrrdTypeChar],

@@ -335,15 +335,15 @@ nrrdHistoJoint(Nrrd *nout, Nrrd **nin,
 
   /* error checking */
   if (!(nout && nin && bins && clamp)) {
-    sprintf("%s: got NULL pointer", me);
+    sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
   if (!(numNin >= 1)) {
-    sprintf("%s: need numNin >= 1 (not %d)", me, numNin);
+    sprintf(err, "%s: need numNin >= 1 (not %d)", me, numNin);
     biffAdd(NRRD, err); return 1;
   }
   if (numNin > NRRD_DIM_MAX) {
-    sprintf("%s: can only deal with up to %d nrrds (not %d)", me,
+    sprintf(err, "%s: can only deal with up to %d nrrds (not %d)", me,
 	    NRRD_DIM_MAX, numNin);
     biffAdd(NRRD, err); return 1;
   }
@@ -368,26 +368,26 @@ nrrdHistoJoint(Nrrd *nout, Nrrd **nin,
   }
   for (d=0; d<numNin; d++) {
     if (!nin[d]) {
-      sprintf("%s: input nrrd[%d] NULL", me, d);
+      sprintf(err, "%s: input nrrd[%d] NULL", me, d);
       biffAdd(NRRD, err); return 1;
     }
     if (!(bins[d] >= 1)) {
-      sprintf("%s: need bins[%d] >= 1 (not %d)", me, d, bins[d]);
+      sprintf(err, "%s: need bins[%d] >= 1 (not %d)", me, d, bins[d]);
       biffAdd(NRRD, err); return 1;
     }
     if (nrrdMinMaxCleverSet(nin[d])) {
-      sprintf("%s: trouble setting min and max for nrrd %d\n", me, d);
+      sprintf(err, "%s: trouble setting min and max for nrrd %d\n", me, d);
       biffAdd(NRRD, err); return 1;
     }
     if (d && !nrrdSameSize(nin[0], nin[d], AIR_TRUE)) {
-      sprintf("%s: nin[%d] size mismatch with nin[0]", me, d);
+      sprintf(err, "%s: nin[%d] size mismatch with nin[0]", me, d);
       biffAdd(NRRD, err); return 1;
     }
   }
 
   /* allocate output nrrd */
   if (nrrdMaybeAlloc_nva(nout, type, numNin, bins)) {
-    sprintf("%s: couldn't allocate output histogram", me);
+    sprintf(err, "%s: couldn't allocate output histogram", me);
     biffAdd(NRRD, err); return 1;
   }
   hadContent = 0;
