@@ -87,15 +87,15 @@ idx2pos.need    = $(call meneed,nrrd hest air)
 pos2idx.need    = $(call meneed,nrrd hest air)
 overrgb.need    = $(call meneed,nrrd hest biff air)
 qbert.need      = $(call meneed,bane gage nrrd hest air)
-ilk.need        = $(call meneed,air hest biff ell nrrd moss)
-vprobe.need     = $(call meneed,gage nrrd biff hest air)
-pprobe.need     = $(call meneed,gage nrrd biff hest air)
+ilk.need        = $(call meneed,moss nrrd ell biff hest air)
 gkms.need       = $(call meneed,bane nrrd biff air)
 unu.need        = $(call meneed,unrrdu nrrd biff hest air)
 mrender.need    = $(call meneed,hoover limn gage nrrd biff hest air)
 miter.need      = $(call meneed,mite hoover limn nrrd ell biff air)
 ungantry.need   = $(call meneed,gage nrrd biff hest air)
 tend.need       = $(call meneed,ten limn dye unrrdu nrrd ell biff air)
+vprobe.need     = $(call meneed,ten limn gage nrrd ell biff hest air)
+pprobe.need     = $(call meneed,ten limn gage nrrd ell biff hest air)
 
 ## Old: "We need some way of expressing the fact that a given binary
 ## (install and dev) depends on the usable of its top dependency."

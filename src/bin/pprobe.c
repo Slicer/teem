@@ -23,6 +23,7 @@
 #include <hest.h>
 #include <nrrd.h>
 #include <gage.h>
+#include <ten.h>
 
 #define SPACING(spc) (AIR_EXISTS(spc) ? spc: nrrdDefSpacing)
 
@@ -50,8 +51,10 @@ probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     *kindP = gageKindScl;
   } else if (!strcmp("vector", str)) {
     *kindP = gageKindVec;
+  } else if (!strcmp("tensor", str)) {
+    *kindP = tenGageKind;
   } else {
-    sprintf(err, "%s: not \"scalar\" or \"vector\"", me);
+    sprintf(err, "%s: not \"scalar\", \"vector\", or \"tensor\"", me);
     return 1;
   }
 
@@ -103,7 +106,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
 	     "input volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
-	     "\"kind\" of volume (\"scalar\" or \"vector\")",
+	     "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")",
 	     NULL, NULL, &probeKindHestCB);
   hestOptAdd(&hopt, "p", "x y z", airTypeFloat, 3, 3, pos, NULL,
 	     "the position in index space at which to probe");
