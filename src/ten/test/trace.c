@@ -28,6 +28,7 @@ main(int argc, char *argv[]) {
   Nrrd *dtvol, *nfib;
   double start[3], step;
   tenFiberContext *tfx;
+  NrrdKernelSpec *ksp;
   
 
   me = argv[0];
@@ -39,10 +40,13 @@ main(int argc, char *argv[]) {
 	     "diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "s", "start pos", airTypeDouble, 3, 3, start, NULL,
 	     "where to start tracking, in index space");
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "filename of output nrrd");
+  hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &ksp,
+	     "cubic:0,0.5", "kernel for reconstructing tensor field",
+	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "step", "stepsize", airTypeDouble, 1, 1, &step, "0.01",
 	     "stepsize along fiber");
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
+	     "filename of output nrrd");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
 		 me, "test fiber tracking", AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -51,12 +55,16 @@ main(int argc, char *argv[]) {
   tfx = tenFiberContextNew(dtvol);
   airMopAdd(mop, tfx, (airMopper)tenFiberContextNix, airMopAlways);
   if (tenFiberTypeSet(tfx, tenFiberTypeEvec1)
+      || tenFiberKernelSet(tfx, ksp->kernel, ksp->parm)
+      || tenFiberIntgSet(tfx, tenFiberIntgRK4)
+      || tenFiberStopSet(tfx, tenFiberStopLen, 40.0)
+      || tenFiberStopSet(tfx, tenFiberStopAniso, tenAniso_Ca1, 0.5)
+      || tenFiberStopSet(tfx, tenFiberStopNumSteps, 5000)
       || tenFiberUpdate(tfx)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); exit(1);
   }
-  tfx->maxHalfLen = 10;
   tfx->stepSize = step;
 
   nfib = nrrdNew();
@@ -66,8 +74,9 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); exit(1);
   }
-  fprintf(stderr, "%s: stop[backward] = %d; stop[forward] = %d\n", 
-	  me, tfx->whyStop[0], tfx->whyStop[1]);
+  fprintf(stderr, "%s: stop[backward] = %s; stop[forward] = %s\n", me,
+	  airEnumStr(tenFiberStop, tfx->whyStop[0]),
+	  airEnumStr(tenFiberStop, tfx->whyStop[1]));
   if (nrrdSave(outS, nfib, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);

@@ -242,7 +242,28 @@ _tenFiberStopStr[][AIR_STRLEN_SMALL] = {
   "(unknown tenFiberStop)",
   "aniso",
   "length",
+  "steps",
+  "confidence",
   "bounds"
+};
+
+char
+_tenFiberStopStrEqv[][AIR_STRLEN_SMALL] = {
+  "aniso",
+  "length", "len",
+  "steps",
+  "confidence", "conf",
+  "bounds",
+  ""
+};
+
+int
+_tenFiberStopValEqv[] = {
+  tenFiberStopAniso,
+  tenFiberStopLength, tenFiberStopLength,
+  tenFiberStopNumSteps,
+  tenFiberStopConfidence, tenFiberStopConfidence,
+  tenFiberStopBounds
 };
 
 char
@@ -250,16 +271,18 @@ _tenFiberStopDesc[][AIR_STRLEN_MED] = {
   "unknown tenFiber stop",
   "anisotropy went below threshold",
   "fiber length exceeded normalcy bounds",
+  "number of steps along fiber too many",
+  "tensor \"confidence\" value too low",
   "fiber went outside bounding box"
 };
 
 airEnum
 _tenFiberStop = {
-  "tenFiberStop",
+  "fiber stopping criteria",
   TEN_FIBER_STOP_MAX,
   _tenFiberStopStr, NULL,
   _tenFiberStopDesc,
-  NULL, NULL,
+  _tenFiberStopStrEqv, _tenFiberStopValEqv, 
   AIR_FALSE
 };
 airEnum *

@@ -87,8 +87,13 @@ tenFiberContextNew(Nrrd *dtvol) {
     tfx->fiberType = tenFiberTypeUnknown;
     tfx->anisoType = tenDefFiberAnisoType;
     tfx->anisoThresh = tenDefFiberAnisoThresh;
+    tfx->confThresh = 0.5; /* why do I even bother setting these- they'll
+			      only get read if the right tenFiberStopSet has
+			      been called, in which case they'll be set... */
     tfx->stepSize = tenDefFiberStepSize;
+    tfx->outputIndexSpace = tenDefFiberOutputIndexSpace;
     tfx->maxHalfLen = tenDefFiberMaxHalfLen;
+    tfx->intg = tenDefFiberIntg;
     tfx->stop = 0;
 
     tfx->query = 0;
@@ -146,8 +151,10 @@ tenFiberTypeSet(tenFiberContext *tfx, int type) {
 ** of the use of varargs
 **
 ** valid calls:
-** tenFiberStopSet(tfx, tenFiberStopLen, double maxHalfLen)
+** tenFiberStopSet(tfx, tenFiberStopLength, double maxHalfLen)
 ** tenFiberStopSet(tfx, tenFiberStopAniso, int anisoType, double anisoThresh)
+** tenFiberStopSet(tfx, tenFiberStopNumSteps, int numSteps)
+** tenFiberStopSet(tfx, tenFiberStopConfidence, float conf)
 */
 int
 tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
@@ -161,40 +168,64 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
   }
   va_start(ap, stop);
   switch(stop) {
-  case tenFiberStopLen:
-    tfx->maxHalfLen = va_arg(ap, double);
-    if (!( AIR_EXISTS(tfx->maxHalfLen) && tfx->maxHalfLen > 0.0 )) {
-      sprintf(err, "%s: given maxHalfLen doesn't exist or isn't > 0.0", me);
-      ret = 1; goto end;
-    }
-    /* no query modifications needed */
-    break;
-  case tenFiberStopBounds:
-    /* nothing to set; always used as a stop criterion */
-    break;
   case tenFiberStopAniso:
     tfx->anisoType = va_arg(ap, int);
     tfx->anisoThresh = va_arg(ap, double);
     if (!(AIR_IN_OP(tenAnisoUnknown, tfx->anisoType, tenAnisoLast))) {
       sprintf(err, "%s: given aniso type %d not valid", me, tfx->anisoType);
-      ret = 1; goto end;
+      biffAdd(TEN, err); ret = 1; goto end;
     }
     if (!(AIR_EXISTS(tfx->anisoThresh))) {
       sprintf(err, "%s: given aniso threshold doesn't exist", me);
-      ret = 1;
-      goto end;
+      biffAdd(TEN, err); ret = 1; goto end;
     }
     tfx->query |= (1 << tenGageAniso);
     break;
+  case tenFiberStopLength:
+    tfx->maxHalfLen = va_arg(ap, double);
+    if (!( AIR_EXISTS(tfx->maxHalfLen) && tfx->maxHalfLen > 0.0 )) {
+      sprintf(err, "%s: given maxHalfLen doesn't exist or isn't > 0.0", me);
+      biffAdd(TEN, err); ret = 1; goto end;
+    }
+    /* no query modifications needed */
+    break;
+  case tenFiberStopNumSteps:
+    tfx->maxNumSteps = va_arg(ap, int);
+    if (!( tfx->maxNumSteps > 0 )) {
+      sprintf(err, "%s: given maxNumSteps isn't > 0.0", me);
+      biffAdd(TEN, err); ret = 1; goto end;
+    }
+    /* no query modifications needed */
+    break;
+  case tenFiberStopConfidence:
+    tfx->confThresh = va_arg(ap, double);
+    if (!( AIR_EXISTS(tfx->confThresh) )) {
+      sprintf(err, "%s: given confThresh doesn't exist", me);
+      biffAdd(TEN, err); ret = 1; goto end;
+    }
+    tfx->query |= (1 << tenGageTensor);
+    break;
+  case tenFiberStopBounds:
+    /* nothing to set; always used as a stop criterion */
+    break;
   default:
     sprintf(err, "%s: stop criterion %d not recognized", me, stop);
-    ret = 1; goto end;
+    biffAdd(TEN, err); ret = 1; goto end;
   }
   tfx->stop |= (1 << stop);
 
  end:
   va_end(ap);
   return ret;
+}
+
+void
+tenFiberStopReset(tenFiberContext *tfx) {
+
+  if (tfx) {
+    tfx->stop = 0;
+  }
+  return;
 }
 
 int
@@ -217,7 +248,24 @@ tenFiberKernelSet(tenFiberContext *tfx,
   return 0;
 }
 
-void
+int
+tenFiberIntgSet(tenFiberContext *tfx, int intg) {
+  char me[]="tenFiberIntTypeSet", err[AIR_STRLEN_MED];
+
+  if (!(tfx)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( AIR_IN_OP(tenFiberIntgUnknown, intg, tenFiberIntgLast) )) {
+    sprintf(err, "%s: got invalid integration type %d", me, intg);
+    biffAdd(TEN, err); return 1;
+  }
+  tfx->intg = intg;
+  
+  return 0;
+}
+
+int
 tenFiberParmSet(tenFiberContext *tfx, int parm, double val) {
 
   if (tfx) {
@@ -230,7 +278,7 @@ tenFiberParmSet(tenFiberContext *tfx, int parm, double val) {
       break;
     }
   }
-  return;
+  return 0;
 }
 
 int
@@ -243,6 +291,19 @@ tenFiberUpdate(tenFiberContext *tfx) {
   }
   if (tenFiberTypeUnknown == tfx->fiberType) {
     sprintf(err, "%s: fiber type not set", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( AIR_IN_OP(tenFiberTypeUnknown, tfx->fiberType, tenFiberTypeLast) )) {
+    sprintf(err, "%s: tfx->fiberType set to bogus value (%d)", me,
+	    tfx->fiberType);
+    biffAdd(TEN, err); return 1;
+  }
+  if (tenFiberIntgUnknown == tfx->intg) {
+    sprintf(err, "%s: integration type not set", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( AIR_IN_OP(tenFiberIntgUnknown, tfx->intg, tenFiberIntgLast) )) {
+    sprintf(err, "%s: tfx->intg set to bogus value (%d)", me, tfx->intg);
     biffAdd(TEN, err); return 1;
   }
   if (0 == tfx->stop) {

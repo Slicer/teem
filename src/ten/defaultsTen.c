@@ -26,6 +26,9 @@ tenDefFiberKernel[] = "cubic:0,0.5";
 double
 tenDefFiberStepSize = 0.01;
 
+int
+tenDefFiberOutputIndexSpace = AIR_FALSE;
+
 double
 tenDefFiberMaxHalfLen = 3;
 
@@ -34,3 +37,6 @@ tenDefFiberAnisoType = tenAniso_FA;
 
 double
 tenDefFiberAnisoThresh = 0.5;
+
+int
+tenDefFiberIntg = tenFiberIntgEuler;

@@ -168,42 +168,80 @@ enum {
 #define TEN_FIBER_TYPE_MAX   4
 
 /*
-******** tenFiberStop* enum
+******** tenFiberIntg* enum
 **
-** the different reasons why fibers stop going
+** the different integration styles supported.  Obviously, this is more
+** general purpose than fiber tracking, so this will be moved (elsewhere
+** in teem) as needed
 */
 enum {
-  tenFiberStopUnknown,  /* 0: nobody knows */
-  tenFiberStopAniso,    /* 1: specified anisotropy got below specified level */
-  tenFiberStopLen,      /* 2: fiber got too long */
-  tenFiberStopBounds,   /* 3: fiber position stepped outside volume */
+  tenFiberIntgUnknown,   /* 0: nobody knows */
+  tenFiberIntgEuler,     /* 1: dumb but fast */
+  tenFiberIntgRK4,       /* 2: 4rth order runge-kutta */
+  tenFiberIntgLast
+};
+#define TEN_FIBER_INTG_MAX  2
+
+/*
+******** tenFiberStop* enum
+**
+** the different reasons why fibers stop going (or never start)
+*/
+enum {
+  tenFiberStopUnknown,    /* 0: nobody knows */
+  tenFiberStopAniso,      /* 1: specified aniso got below specified level */
+  tenFiberStopLength,     /* 2: fiber length in world space got too long */
+  tenFiberStopNumSteps,   /* 3: took too many steps along fiber */
+  tenFiberStopConfidence, /* 4: tensor "confidence" value went too low */
+  tenFiberStopBounds,     /* 5: fiber position stepped outside volume */
   tenFiberStopLast
 };
-#define TEN_FIBER_STOP_MAX 3
+#define TEN_FIBER_STOP_MAX   5
+
+/*
+******** #define TEN_FIBER_NUM_STEPS_MAX
+**
+** whatever the stop criteria are for fiber tracing, no fiber half can
+** have more points than this- a useful sanity check against fibers
+** done amok.
+*/
+#define TEN_FIBER_NUM_STEPS_MAX 10240
 
 enum {
-  tenFiberParmUnknown,   /* 0: nobody knows */
-  tenFiberParmStepSize,  /* 1: base step size */
+  tenFiberParmUnknown,          /* 0: nobody knows */
+  tenFiberParmStepSize,         /* 1: base step size */
+  tenFiberParmOutputIndexSpace, /* 2: non-zero iff output of fiber should be in
+				   index space, instead of default world */
   tenFiberParmLast
 };
-#define TEN_FIBER_PARM_MAX  1
+#define TEN_FIBER_PARM_MAX         2
 
+/*
+******** tenFiberContext
+**
+** catch-all for input, state, and output of fiber tracing.  Luckily, like
+** in a gageContext, NOTHING in here is set directly by the user; everything
+** should be through the tenFiber* calls
+*/
 typedef struct {
   /* ---- input -------- */
   Nrrd *dtvol;          /* the volume being analyzed */
   NrrdKernelSpec *ksp;  /* how to interpolate tensor values in dtvol */
-  int fiberType,        /* from the tenFiberType* enum */
+  int fiberType,        /* from tenFiberType* enum */
+    intg,               /* from tenFiberIntg* enum */
     anisoType,          /* which aniso we do a threshold on */
     stop;               /* BITFLAG for different reasons to stop a fiber */
   double anisoThresh;   /* anisotropy threshold */
+  int maxNumSteps,      /* max # steps allowed on one fiber half */
+    outputIndexSpace;   /* output in index space, not world space */
   double stepSize,      /* step size in world space */
     maxHalfLen;         /* longest propagation (forward or backward) allowed
 			   from midpoint */
+  double confThresh;    /* confidence threshold */
   /* ---- internal ----- */
   int query,            /* query we'll send to gageQuerySet */
     dir;                /* current direction being computed (0 or 1) */
-  double wPos[3],
-    iPos[3],            /* current world and index space positions */
+  double wPos[3],       /* current world space location */
     wDir[3],            /* difference between this and last world space pos */
     lastDir[3];         /* previous value of wDir */
   gageContext *gtx;     /* wrapped around dtvol */
@@ -212,16 +250,20 @@ typedef struct {
     *aniso;             /* gageAnswerPointer(gtx->pvl[0], tenGageAniso) */
   /* ---- output ------- */
   double halfLen[2];    /* length of each fiber half in world space */
-  int whyStop[2];       /* why backward/forward (0/1) tracing stopped
+  int numSteps[2],      /* how many samples are used for each fiber half */
+    whyStop[2],         /* why backward/forward (0/1) tracing stopped
 			   (from tenFiberStop* enum) */
+    whyNowhere;         /* why fiber never got started (from tenFiberStop*) */
 } tenFiberContext;
 
 /* defaultsTen.c */
 extern ten_export const char tenDefFiberKernel[];
 extern ten_export double tenDefFiberStepSize;
+extern ten_export int tenDefFiberOutputIndexSpace;
 extern ten_export double tenDefFiberMaxHalfLen;
 extern ten_export int tenDefFiberAnisoType;
 extern ten_export double tenDefFiberAnisoThresh;
+extern ten_export int tenDefFiberIntg;
 
 /* enumsTen.c */
 extern ten_export airEnum *tenAniso;
@@ -275,8 +317,11 @@ extern int tenFiberTypeSet(tenFiberContext *tfx, int type);
 extern int tenFiberKernelSet(tenFiberContext *tfx,
 			     NrrdKernel *kern,
 			     double parm[NRRD_KERNEL_PARMS_NUM]);
+extern int tenFiberIntgSet(tenFiberContext *tfx, int intg);
 extern int tenFiberStopSet(tenFiberContext *tfx, int stop, ...);
-extern void tenFiberParmSet(tenFiberContext *tfx, int parm, double val);
+extern void tenFiberStopReset(tenFiberContext *tfx);
+extern int tenFiberIntSet(tenFiberContext *tfx, int intType);
+extern int tenFiberParmSet(tenFiberContext *tfx, int parm, double val);
 extern int tenFiberUpdate(tenFiberContext *tfx);
 extern tenFiberContext *tenFiberContextNix(tenFiberContext *tfx);
 
@@ -299,6 +344,7 @@ F(anplot) \
 F(anvol) \
 F(anhist) \
 F(point) \
+F(fiber) \
 F(eval) \
 F(evec) \
 F(evq) \
@@ -308,7 +354,7 @@ F(satin)
 TEND_MAP(TEND_DECLARE)
 extern ten_export unrrduCmd *tendCmdList[]; 
 extern void tendUsage(char *me, hestParm *hparm);
-
+extern ten_export hestCB *tendFiberStopCB;
 
 #ifdef __cplusplus
 }

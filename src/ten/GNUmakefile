@@ -42,8 +42,6 @@ ifeq (,$($(L).SEEN))
 $(L).SEEN := true
 
 #### Describe library here
-#### For time being, glyph (glyph.o, test/boxes, test/slices)
-#### stuff is nixed.
 ####
 $(L).NEED = echo limn gage dye unrrdu nrrd ell biff air
 $(L).PUBLIC_HEADERS = ten.h tenMacros.h
@@ -52,8 +50,9 @@ $(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o miscTen.o \
 	tenGage.o fiberMethods.o fiber.o defaultsTen.o \
 	tendFlotsam.o tendAnplot.o tendAnvol.o tendEval.o \
 	tendEvec.o tendCalc.o tendSten.o tendExpand.o tendEvq.o tendPoint.o \
-	tendAnhist.o tendMake.o tendSatin.o tendShrink.o tendGlyph.o
-$(L).TESTS = test/trace test/tg test/tt
+	tendAnhist.o tendMake.o tendSatin.o tendShrink.o tendGlyph.o \
+	tendFiber.o
+$(L).TESTS = test/tg test/tt
 ####
 ####
 ####
