@@ -90,12 +90,9 @@ include $(TEEM_SRC)/make/externals.mk
 #LIBS = air hest biff ell nrrd unrrdu dye moss gage bane limn hoover mite ten echo
 #NUMS =  0   1    2    3    4    5    6    7    8    9    A     B     C    D   E
 #RNUMS = E   D    C    B    A    9    8    7    6    5    4     3     2    1   0
-#LIBS = air hest biff ell nrrd unrrdu dye moss gage bane limn hoover mite ten
-#NUMS =  0   1    2    3    4    5    6    7    8    9    A     B     C    D
-#RNUMS = E   D    C    B    A    9    8    7    6    5    4     3     2    1
-LIBS = air hest biff ell nrrd unrrdu dye moss gage bane limn hoover ten
-NUMS =  0   1    2    3    4    5    6    7    8    9    A     B     C
-RNUMS = D    C    B    A    9    8    7    6    5    4     3     2    1
+LIBS = air hest biff ell nrrd unrrdu dye moss gage bane limn hoover mite ten
+NUMS =  0   1    2    3    4    5    6    7    8    9    A     B     C    D
+RNUMS = E   D    C    B    A    9    8    7    6    5    4     3     2    1
 NUM/LIBS = $(join $(NUMS),$(LIBS:%=/%))
 RNUM/LIBS = $(join $(RNUMS),$(LIBS:%=/%))
 
