@@ -20,7 +20,7 @@
 #include "ten.h"
 #include "tenPrivate.h"
 
-#define INFO "Slice a volume of 3D tensors to get an image of 2D tensors"
+#define INFO "Slice 3D tensors to get slab/image of 3D/2D  tensors"
 char *_tend_sliceInfoL =
   (INFO
    ". ");
@@ -33,13 +33,15 @@ tend_sliceMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   char *outS;
-  int axis, pos;
+  int axis, pos, dim;
   Nrrd *nin, *nout;
 
   hestOptAdd(&hopt, "a", "axis", airTypeInt, 1, 1, &axis, NULL,
 	     "axis along which to slice");
   hestOptAdd(&hopt, "p", "pos", airTypeInt, 1, 1, &pos, NULL,
 	     "position to slice at");
+  hestOptAdd(&hopt, "d", "dim", airTypeInt, 1, 1, &dim, "3",
+	     "dimension of desired tensor output, can be either 2 or 3");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
 	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
@@ -52,7 +54,7 @@ tend_sliceMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   airMopAdd(mop, nout=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
 
-  if (tenSlice(nout, nin, axis, pos)) {
+  if (tenSlice(nout, nin, axis, pos, dim)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble\n%s\n", me, err);
     airMopError(mop); return 1;

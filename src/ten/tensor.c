@@ -390,7 +390,7 @@ tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec) {
 }
 
 int
-tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos) {
+tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos, int dim) {
   Nrrd *nslice, *ncoeff[4];
   int ci[4];
   char me[]="tenSlice", err[AIR_STRLEN_MED];
@@ -402,6 +402,10 @@ tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos) {
   }
   if (tenTensorCheck(nten, nrrdTypeDefault, AIR_TRUE)) {
     sprintf(err, "%s: didn't get a valid tensor field", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!(2 == dim || 3 == dim)) {
+    sprintf(err, "%s: given dim (%d) not 2 or 3", me, dim);
     biffAdd(TEN, err); return 1;
   }
   if (!(AIR_IN_CL(0, axis, 2))) {
@@ -422,33 +426,41 @@ tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos) {
   */
   mop = airMopNew();
   airMopAdd(mop, nslice=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, ncoeff[0]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, ncoeff[1]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, ncoeff[2]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, ncoeff[3]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  switch(axis) {
-  case 0:
-    ELL_4V_SET(ci, 0, 4, 5, 6);
-    break;
-  case 1:
-    ELL_4V_SET(ci, 0, 1, 3, 6);
-    break;
-  case 2:
-    ELL_4V_SET(ci, 0, 1, 2, 4);
-    break;
-  default:
-    sprintf(err, "%s: axis %d bogus", me, axis);
-    biffAdd(TEN, err); airMopError(mop); return 1;
-    break;
-  }
-  if (nrrdSlice(nslice, nten, axis+1, pos)
-      || nrrdSlice(ncoeff[0], nslice, 0, ci[0])
-      || nrrdSlice(ncoeff[1], nslice, 0, ci[1])
-      || nrrdSlice(ncoeff[2], nslice, 0, ci[2])
-      || nrrdSlice(ncoeff[3], nslice, 0, ci[3])
-      || nrrdJoin(nout, (const Nrrd **)ncoeff, 4, 0, AIR_TRUE)) {
-    sprintf(err, "%s: trouble collecting coefficients", me);
-    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+  if (3 == dim) {
+    if (nrrdSlice(nslice, nten, axis+1, pos)
+	|| nrrdAxesInsert(nout, nslice, axis+1)) {
+      sprintf(err, "%s: trouble making slice", me);
+      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+    }
+  } else {
+    airMopAdd(mop, ncoeff[0]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+    airMopAdd(mop, ncoeff[1]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+    airMopAdd(mop, ncoeff[2]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+    airMopAdd(mop, ncoeff[3]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+    switch(axis) {
+    case 0:
+      ELL_4V_SET(ci, 0, 4, 5, 6);
+      break;
+    case 1:
+      ELL_4V_SET(ci, 0, 1, 3, 6);
+      break;
+    case 2:
+      ELL_4V_SET(ci, 0, 1, 2, 4);
+      break;
+    default:
+      sprintf(err, "%s: axis %d bogus", me, axis);
+      biffAdd(TEN, err); airMopError(mop); return 1;
+      break;
+    }
+    if (nrrdSlice(nslice, nten, axis+1, pos)
+	|| nrrdSlice(ncoeff[0], nslice, 0, ci[0])
+	|| nrrdSlice(ncoeff[1], nslice, 0, ci[1])
+	|| nrrdSlice(ncoeff[2], nslice, 0, ci[2])
+	|| nrrdSlice(ncoeff[3], nslice, 0, ci[3])
+	|| nrrdJoin(nout, (const Nrrd **)ncoeff, 4, 0, AIR_TRUE)) {
+      sprintf(err, "%s: trouble collecting coefficients", me);
+      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+    }
   }
 
   airMopOkay(mop);
