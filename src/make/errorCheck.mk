@@ -23,7 +23,8 @@
 ####
 
 # all the architectures currently supported
-KNOWN_ARCH = irix6.n32 irix6.64 linux.32 linux.64 cygwin solaris darwin aix
+KNOWN_ARCH = irix6.n32 irix6.64 linux.32 linux.64 \
+  darwin.32 darwin.64 cygwin solaris aix
 
 # there is no default architecture
 checkArchSet = $(if $(TEEM_ARCH),,\
@@ -32,6 +33,28 @@ $(warning *)\
 $(warning * Environment variable TEEM_ARCH not set.)\
 $(warning * Possible settings currently supported:)\
 $(warning * $(KNOWN_ARCH))\
+$(warning *)\
+$(warning *)\
+$(error Make quitting))
+
+# see if they were looking for linux
+checkArchLinux = $(if $(findstring $(TEEM_ARCH),linux),\
+$(warning *)\
+$(warning *)\
+$(warning * Sorry: the $(TEEM_ARCH) TEEM_ARCH has split into:)\
+$(warning * "linux.32" for 32-bit machines)\
+$(warning * "linux.64" for 64-bit machines)\
+$(warning *)\
+$(warning *)\
+$(error Make quitting))
+
+# see if they were looking for darwin
+checkArchDarwin = $(if $(findstring $(TEEM_ARCH),darwin),\
+$(warning *)\
+$(warning *)\
+$(warning * Sorry: the "darwin" TEEM_ARCH has split into:)\
+$(warning * "darwin.32" for 32-bit machines)\
+$(warning * "darwin.64" for 64-bit machines)\
 $(warning *)\
 $(warning *)\
 $(error Make quitting))

@@ -31,10 +31,12 @@ libraries in their own programs.
 1: set the environment variable TEEM_ARCH to one of the following:
    "irix6.n32": for irix in n32 mode
    "irix6.64": for irix in 64-bit mode
-   "linux": for linux boxes
+   "linux.32": for 32-bit linux boxes
+   "linux.64": for 64-bit linux boxes
    "solaris": for solaris boxes
    "cygwin": if you have cygwin (www.cygwin.com) on a windows box
-   "darwin": ona Mac OS X box
+   "darwin.32": on a 32-bit Mac OS X box
+   "darwin.64": on a 64-bit Mac OS X box
 
 2: "cd src"
 
@@ -103,10 +105,12 @@ include/
   setting of compiler variables, such as TEEM_ENDIAN.
 irix6.64/
 irix6.n32/
-linux/
+linux.32/
+linux.64/
 solaris/
 cygwin/
-darwin/
+darwin.32/
+darwin.64/
   The architecture-dependent directories, with a name which exactly
   matches valid settings for the environment variable TEEM_ARCH.
   Within these directories there are:

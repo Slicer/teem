@@ -49,6 +49,8 @@ TEEM_SRC ?= .
 ##
 include $(TEEM_SRC)/make/errorCheck.mk
 $(checkArchSet)
+$(checkArchLinux)
+$(checkArchDarwin)
 $(checkArchValid)
 
 ## the architecture name may have two parts, ARCH and SUBARCH,

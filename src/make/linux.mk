@@ -38,7 +38,7 @@ else
     ARCH_CFLAG = -Wall
     ARCH_LDFLAG = 
   else
-    $(error linux mode $(SUBARCH) not recognized)
+    $(error linux sub-architecture "$(SUBARCH)" not recognized)
   endif
 endif
 TEEM_BIGBITFIELD = 1

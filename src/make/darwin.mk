@@ -32,7 +32,19 @@ SHARED_LDFLAG =
 ARCH_CFLAG = -Wall
 ARCH_LDFLAG =
 
-TEEM_32BIT = 1
+ifeq ($(SUBARCH),64)
+  TEEM_32BIT = 0
+  ARCH_CFLAG = -Wall
+  ARCH_LDFLAG =
+else
+  ifeq ($(SUBARCH),32)
+    TEEM_32BIT = 1
+    ARCH_CFLAG = -Wall
+    ARCH_LDFLAG = 
+  else
+    $(error darwin sub-architecture "$(SUBARCH)" not recognized)
+  endif
+endif
 
 TEEM_ENDIAN = 4321
 TEEM_QNANHIBIT = 1

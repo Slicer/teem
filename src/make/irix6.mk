@@ -36,7 +36,7 @@ else
     ARCH_LDFLAG = -64
     TEEM_32BIT = 0
   else 
-    $(error irix6 mode $(SUBARCH) not recognized) 
+    $(error irix6 sub-architecture "$(SUBARCH)" not recognized) 
   endif
 endif
 
