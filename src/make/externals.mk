@@ -60,7 +60,8 @@ nrrd.XTERN += BZIP2
 PNG.LINK = -lpng
 nrrd.XTERN += PNG
 
-## PTHREAD: pthread-based multi-threading, makes hoover suck less
+## PTHREAD: pthread-based multi-threading.  Note that Windows has its
+## multithreading, which is used if !TEEM_PTHREAD, and we are on windows
 ## Header file is <pthread.h>
 ##
 ## Arch-specific .mk files may need to set TEEM_PTHREAD_IPATH and
