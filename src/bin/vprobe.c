@@ -129,13 +129,13 @@ main(int argc, char *argv[]) {
 	     "scaling factor (>1.0 : supersampling)");
   hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00,
 	     "tent", "kernel for gageKernel00",
-	     NULL, NULL, nrrdHestNrrdKernelSpec);
+	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k11", "kern11", airTypeOther, 1, 1, &k11,
 	     "fordif", "kernel for gageKernel11",
-	     NULL, NULL, nrrdHestNrrdKernelSpec);
+	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k22", "kern22", airTypeOther, 1, 1, &k22,
 	     "fordif", "kernel for gageKernel22",
-	     NULL, NULL, nrrdHestNrrdKernelSpec);
+	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "rn", NULL, airTypeInt, 0, 0, &renorm, NULL,
 	     "renormalize kernel weights at each new sample location. "
 	     "\"Accurate\" kernels don't need this; doing it always "

@@ -55,7 +55,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "\b\bo \"x<float>\": number of output samples is some scaling of "
 	     " the number samples in input, multiplied by <float>\n "
 	     "\b\bo \"<int>\": exact number of samples",
-	     &scaleLen, NULL, &unrrduScaleHestCB);
+	     &scaleLen, NULL, &unrrduHestScaleCB);
   hestOptAdd(&opt, "k", "kern", airTypeOther, 1, 1, &unuk, "quartic:0.0834",
 	     "The kernel to use for resampling.  Possibilities include:\n "
 	     "\b\bo \"box\": nearest neighbor interpolation\n "
@@ -68,7 +68,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "interpolating quartics (\"quartic:0.0834\" is most accurate)\n "
 	     "\b\bo \"gauss:S,C\": Gaussian blurring, with standard deviation "
 	     "S and cut-off at C standard deviations",
-	     NULL, NULL, nrrdHestNrrdKernelSpec);
+	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&opt, "b", "behavior", airTypeEnum, 1, 1, &bb, "bleed",
 	     "How to handle samples beyond the input bounds:\n "
 	     "\b\bo \"pad\": use some specified value\n "
@@ -80,7 +80,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "unknown",
 	     "type to save output as. By default (not using this option), "
 	     "the output type is the same as the input type.",
-             NULL, NULL, &unrrduMaybeTypeHestCB);
+             NULL, NULL, &unrrduHestMaybeTypeCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

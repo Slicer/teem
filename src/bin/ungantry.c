@@ -69,7 +69,7 @@ main(int argc, char *argv[]) {
 	     "interpolating quartics (\"quartic:0.0834\" is most accurate)\n "
 	     "\b\bo \"gauss:S,C\": Gaussian blurring, with standard deviation "
 	     "S and cut-off at C standard deviations",
-	     NULL, NULL, nrrdHestNrrdKernelSpec);
+	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "o", "output", airTypeString, 1, 1, &outS, NULL,
 	     "output volume in nrrd format");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,

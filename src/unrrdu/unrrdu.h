@@ -151,11 +151,11 @@ extern unrrdu_export int unrrduDefNumColumns;
 /* addresses of all unrrdu_xxxCmd */
 extern unrrdu_export unrrduCmd *unrrduCmdList[]; 
 extern void unrrduUsage(char *me, hestParm *hparm);
-extern unrrdu_export hestCB unrrduPosHestCB;
-extern unrrdu_export hestCB unrrduMaybeTypeHestCB;
-extern unrrdu_export hestCB unrrduScaleHestCB;
-extern unrrdu_export hestCB unrrduBitsHestCB;
-extern unrrdu_export hestCB unrrduFileHestCB;
+extern unrrdu_export hestCB unrrduHestPosCB;
+extern unrrdu_export hestCB unrrduHestMaybeTypeCB;
+extern unrrdu_export hestCB unrrduHestScaleCB;
+extern unrrdu_export hestCB unrrduHestBitsCB;
+extern unrrdu_export hestCB unrrduHestFileCB;
 
 
 #ifdef __cplusplus

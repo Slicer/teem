@@ -40,7 +40,7 @@ unrrdu_sliceMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "\b\bo <int> gives 0-based index\n "
 	     "\b\bo M-<int> give index relative "
 	     "to the last sample on the axis (M == #samples-1).",
-	     NULL, NULL, &unrrduPosHestCB);
+	     NULL, NULL, &unrrduHestPosCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

@@ -52,16 +52,16 @@ unrrdu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     NULL, nrrdBinaryOp);
   hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
 	     "First input.  Can be float or nrrd.",
-	     NULL, NULL, nrrdHestNrrdIter);
+	     NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, NULL, "in2", airTypeOther, 1, 1, &in2, NULL,
 	     "Second input.  Can be float or nrrd.",
-	     NULL, NULL, nrrdHestNrrdIter);
+	     NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "unknown",
 	     "type to convert all nrrd inputs to, prior to "
 	     "doing operation.  This also determines output type. "
 	     "By default (not using this option), the types of the input "
 	     "nrrds are left unchanged.",
-             NULL, NULL, &unrrduMaybeTypeHestCB);
+             NULL, NULL, &unrrduHestMaybeTypeCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

@@ -306,14 +306,14 @@ main(int argc, char *argv[]) {
 	     "256 256", "image dimensions");
   hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1, &(uu->ksp00),
 	     "tent", "value reconstruction kernel",
-	     NULL, NULL, nrrdHestNrrdKernelSpec);
+	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k11", "kernel", airTypeOther, 1, 1, &(uu->ksp11),
 	     "fordif", "first derivative kernel",
-	     NULL, NULL, nrrdHestNrrdKernelSpec);
+	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k22", "kernel", airTypeOther, 1, 1, &(uu->ksp22),
 	     "fordif",
 	     "second derivative kernel (if needed, DON'T use default)",
-	     NULL, NULL, nrrdHestNrrdKernelSpec);
+	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "rn", NULL, airTypeBool, 0, 0, &(uu->renorm), NULL,
 	     "renormalize kernel weights at each new sample location. "
 	     "\"Accurate\" kernels don't need this; doing it always "

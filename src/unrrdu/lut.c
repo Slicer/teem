@@ -50,7 +50,7 @@ unrrdu_lutMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "output nrrd. "
 	     "By default (not using this option), the output type "
 	     "is the lut's type.",
-             NULL, NULL, &unrrduMaybeTypeHestCB);
+             NULL, NULL, &unrrduHestMaybeTypeCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

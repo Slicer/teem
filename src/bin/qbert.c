@@ -441,7 +441,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "dk", "downsample k", airTypeOther, 1, 1, &dk, "tent",
 	     "kernel to use when downsampling volume to fit with specified "
 	     "dimensions (ringing can be problematic here)",
-	     NULL, NULL, nrrdHestNrrdKernelSpec);
+	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "b", "border", airTypeInt, 1, 1, &border, "0",
 	     "number of samples on boundary of output volumes which "
 	     "will be all zeroes");

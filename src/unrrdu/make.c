@@ -145,14 +145,14 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
     _nrrdWriteNrrd(fileOut, nrrd, io, AIR_FALSE /* don't write data */);
   } else {
-    /* we're not actually using the handy unrrduFileHestCB above,
+    /* we're not actually using the handy unrrduHestFileCB,
        since we have to open the input data file by hand */
     if (!strcmp("-", dataFileName)) {
       io->dataFile  = stdin;
     } else {
       if (!( io->dataFile = fopen(dataFileName, "rb") )) {
-	fprintf(stderr, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", 
-		me, out, strerror(errno));
+	fprintf(stderr, "%s:  couldn't fopen(\"%s\",\"rb\"): %s\n", 
+		me, dataFileName, strerror(errno));
 	airMopError(mop); return 1;
       }
       airMopAdd(mop, io->dataFile, (airMopper)airFclose, airMopAlways);

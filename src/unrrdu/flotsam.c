@@ -72,7 +72,7 @@ unrrduUsage(char *me, hestParm *hparm) {
 }
 
 /*
-******** unrrduPosHestCB
+******** unrrduHestPosCB
 **
 ** For parsing position along an axis. Can be a simple integer,
 ** or M to signify last position along axis (#samples-1), or
@@ -145,7 +145,7 @@ unrrduParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unrrduPosHestCB = {
+hestCB unrrduHestPosCB = {
   2*sizeof(int),
   "position",
   unrrduParsePos,
@@ -153,7 +153,7 @@ hestCB unrrduPosHestCB = {
 };
 
 /*
-******** unrrduMaybeTypeHestCB
+******** unrrduHestMaybeTypeCB
 **
 ** although nrrdType is an airEnum that hest already knows how
 ** to parse, we want the ability to have "unknown" be a valid
@@ -185,7 +185,7 @@ unrrduParseMaybeType(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unrrduMaybeTypeHestCB = {
+hestCB unrrduHestMaybeTypeCB = {
   sizeof(int),
   "type",
   unrrduParseMaybeType,
@@ -193,7 +193,7 @@ hestCB unrrduMaybeTypeHestCB = {
 };
 
 /*
-******** unrrduBitsHestCB
+******** unrrduHestBitsCB
 ** 
 ** for parsing an int that can be 8, 16, or 32
 */
@@ -218,7 +218,7 @@ unrrduParseBits(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unrrduBitsHestCB = {
+hestCB unrrduHestBitsCB = {
   sizeof(int),
   "quantization bits",
   unrrduParseBits,
@@ -267,7 +267,7 @@ unrrduParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unrrduScaleHestCB = {
+hestCB unrrduHestScaleCB = {
   2*sizeof(float),
   "sampling specification",
   unrrduParseScale,
@@ -275,7 +275,7 @@ hestCB unrrduScaleHestCB = {
 };
 
 /*
-******** unrrduFileHestCB
+******** unrrduHestFileCB
 **
 ** for parsing a filename, which means opening it in "rb" mode and
 ** getting a FILE *.  "-" is interpreted as stdin, which is not
@@ -316,7 +316,7 @@ unrrduParseFile(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unrrduFileHestCB = {
+hestCB unrrduHestFileCB = {
   sizeof(FILE *),
   "filename",
   unrrduParseFile,

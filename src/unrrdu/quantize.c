@@ -39,7 +39,7 @@ unrrdu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "\b\bo \"8\": unsigned char\n "
 	     "\b\bo \"16\": unsigned short\n "
 	     "\b\bo \"32\": unsigned int",
-	     NULL, NULL, &unrrduBitsHestCB);
+	     NULL, NULL, &unrrduHestBitsCB);
   hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
 	     "Value to map to zero. Defaults to lowest value found in "
 	     "input nrrd.");
