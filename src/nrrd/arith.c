@@ -107,6 +107,7 @@ nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
   if (nout != nin) {
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   }
+  /* basic info handled by nrrdCopy above */
 
   airMopOkay(mop);
   return 0;

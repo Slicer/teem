@@ -604,6 +604,17 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
+    if (nrrdBasicInfoCopy(nout, nin,
+                          NRRD_BASIC_INFO_DATA_BIT
+                          | NRRD_BASIC_INFO_TYPE_BIT
+                          | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                          | NRRD_BASIC_INFO_DIMENSION_BIT
+                          | NRRD_BASIC_INFO_CONTENT_BIT
+                          | NRRD_BASIC_INFO_COMMENTS_BIT
+                          | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
     return 0;
   }
 
@@ -799,13 +810,12 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
                     | NRRD_AXIS_INFO_MIN_BIT
                     | NRRD_AXIS_INFO_MAX_BIT
                     | NRRD_AXIS_INFO_SPACING_BIT
+                    | NRRD_AXIS_INFO_SPACEDIRECTION_BIT  /* see below */
                     | NRRD_AXIS_INFO_THICKNESS_BIT
                     | NRRD_AXIS_INFO_KIND_BIT));
   for (d=0; d<dim; d++) {
     if (info->kernel[d]) {
       /* we do resample this axis */
-      nout->axis[d].min = info->min[d];
-      nout->axis[d].max = info->max[d];
       nout->axis[d].spacing = nin->axis[d].spacing/ratios[d];
       /* no way to usefully update thickness: we could be doing blurring
          but maintaining the number of samples: thickness increases, or
@@ -814,6 +824,16 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
          no single scalar can represent it, or we could be upsampling,
          in which the notion of "skip" could be rendered meaningless */
       nout->axis[d].thickness = AIR_NAN;
+      nout->axis[d].min = info->min[d];
+      nout->axis[d].max = info->max[d];
+      /*
+        HEY: this is currently a bug: all this code was written long
+        before there were space directions, so min/max are always 
+        set, regardless of whethere there are incoming space directions
+        which then disallows output space directions on the same axes
+      _nrrdSpaceVecScale(nout->axis[d].spaceDirection,
+                         1.0/ratios[d], nin->axis[d].spaceDirection);
+      */
       nout->axis[d].kind = _nrrdKindAltered(nin->axis[d].kind);
     } else {
       /* this axis remains untouched */
@@ -857,6 +877,18 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
       tmpF = nrrdFClamp[typeOut](tmpF);
     }
     nrrdFInsert[typeOut](nout->data, I, tmpF);
+  }
+
+  if (nrrdBasicInfoCopy(nout, nin,
+                        NRRD_BASIC_INFO_DATA_BIT
+                        | NRRD_BASIC_INFO_TYPE_BIT
+                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                        | NRRD_BASIC_INFO_DIMENSION_BIT
+                        | NRRD_BASIC_INFO_CONTENT_BIT
+                        | NRRD_BASIC_INFO_COMMENTS_BIT
+                        | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
   }
 
   /* enough already */

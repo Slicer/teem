@@ -916,6 +916,8 @@ nrrdReshape_nva(Nrrd *nout, const Nrrd *nin, int dim, const int *size) {
     sprintf(buff2, "%s%d", (d ? "x" : ""), size[d]);
     strcat(buff1, buff2);
   }
+  /* basic info copied by _nrrdCopy, but probably more than we 
+     want- perhaps space dimension and origin should be nixed? */
   if (nrrdContentSet(nout, func, nin, "%s", buff1)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;

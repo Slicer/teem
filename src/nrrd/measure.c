@@ -1017,7 +1017,18 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, int axis, int measr, int type) {
     sprintf(err, "%s:", me); 
     biffAdd(NRRD, err); return 1;
   }
-  nrrdPeripheralInit(nout);
+  /* this will copy the space origin over directly, which is reasonable */
+  if (nrrdBasicInfoCopy(nout, nin,
+                        NRRD_BASIC_INFO_DATA_BIT
+                        | NRRD_BASIC_INFO_TYPE_BIT
+                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                        | NRRD_BASIC_INFO_DIMENSION_BIT
+                        | NRRD_BASIC_INFO_CONTENT_BIT
+                        | NRRD_BASIC_INFO_COMMENTS_BIT
+                        | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
 
   _line = airFree(_line);
   return 0;

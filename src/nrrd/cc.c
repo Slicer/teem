@@ -395,6 +395,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type, int conny) {
   if (nout != nin) {
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   }
+  /* basic info handled by nrrdConvert */
   
   airMopOkay(mop);
   return 0;
@@ -732,6 +733,7 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
+  /* basic info handled by nrrdCopy */
   airMopOkay(mop);
   return 0;
 }
@@ -765,6 +767,7 @@ nrrdCCRevalue (Nrrd *nout, const Nrrd *nin, const Nrrd *nval) {
   for (I=0; I<NN; I++) {
     ins(nout->data, I, vlup(nval->data, ilup(nin->data, I)));
   }
+  /* basic info handled by nrrdConvert */
 
   return 0;
 }
@@ -837,6 +840,7 @@ nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
+  /* basic info handled by nrrdCopy */
   airMopOkay(mop); 
   return 0;
 }

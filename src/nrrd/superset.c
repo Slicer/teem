@@ -130,8 +130,7 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
     biffAdd(NRRD, err); free(sliceCont); return 1;
   }
   free(sliceCont);
-
-  nrrdPeripheralInit(nout);
+  /* basic info copied by nrrdCopy above */
 
   return 0;
 }
@@ -248,8 +247,7 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const int *min) {
     biffAdd(NRRD, err); free(subCont); return 1;
   }
   free(subCont); 
-
-  nrrdPeripheralInit(nout);
+  /* basic info copied by nrrdCopy above */
 
   return 0;
 }
@@ -418,8 +416,23 @@ nrrdPad(Nrrd *nout, const Nrrd *nin,
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  nrrdPeripheralInit(nout);
-  /* leave comments alone */
+  if (nrrdBasicInfoCopy(nout, nin,
+                        NRRD_BASIC_INFO_DATA_BIT
+                        | NRRD_BASIC_INFO_TYPE_BIT
+                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                        | NRRD_BASIC_INFO_DIMENSION_BIT
+                        | NRRD_BASIC_INFO_CONTENT_BIT
+                        | NRRD_BASIC_INFO_COMMENTS_BIT
+                        | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  /* but we can set the origin more accurately */
+  for (d=0; d<nin->dim; d++) {
+    _nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
+                           1.0, nout->spaceOrigin,
+                           min[d], nin->axis[d].spaceDirection);
+  }
 
   return 0;
 }

@@ -85,6 +85,28 @@ nrrdSpaceSet(Nrrd *nrrd, int space) {
   return 0;
 }
 
+void
+_nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX], 
+                       double sclA, const double vecA[NRRD_SPACE_DIM_MAX],
+                       double sclB, const double vecB[NRRD_SPACE_DIM_MAX]) {
+  int ii;
+  
+  for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
+    sum[ii] = sclA*vecA[ii] + sclB*vecB[ii];
+  }
+}
+                       
+void
+_nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX], 
+                   double scl, const double vec[NRRD_SPACE_DIM_MAX]) {
+  int ii;
+  
+  for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
+    out[ii] = scl*vec[ii];
+  }
+}
+                       
+
 /*
 ** _nrrdContentGet
 **

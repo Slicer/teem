@@ -392,7 +392,7 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  nrrdPeripheralInit(nout);
+  /* basic info handled by nrrdCopy above */
 
   /* set _nout based on nout */
   if (pad) {
