@@ -80,11 +80,16 @@ unrrduEpsSave(char *out, NrrdIO *io, Nrrd *nout) {
     sy = nout->axis[2].size;
   }
 
-  if (!(io->dataFile = fopen(out, "w"))) {
-    sprintf(err, "%s: fopen(\"%s\", \"w\") failed: %s", me,
-	    out, strerror(errno));
-    biffAdd(UNRRDU, err); return 1;
+  if (!strcmp("-", out)) {
+    io->dataFile = stdout;
+  } else {
+    if (!(io->dataFile = fopen(out, "w"))) {
+      sprintf(err, "%s: fopen(\"%s\", \"w\") failed: %s", me,
+	      out, strerror(errno));
+      biffAdd(UNRRDU, err); return 1;
+    }
   }
+
   fprintf(io->dataFile, "%%!PS-Adobe-2.0 EPSF-2.0\n");
   fprintf(io->dataFile, "%%%%Creator: unu\n");
   fprintf(io->dataFile, "%%%%Title: %s\n",
