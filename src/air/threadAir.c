@@ -454,9 +454,6 @@ airThreadMutexNew(void) {
   airThreadMutex *mutex;
 
   mutex = (airThreadMutex *)calloc(1, sizeof(airThreadMutex));
-  if (airThreadNoopWarning) {
-    fprintf(stderr, "%s: WARNING: all mutex usage is a no-op!\n", me);
-  }
   return mutex;
 }
 
@@ -492,9 +489,6 @@ airThreadCondNew(void) {
   airThreadCond *cond;
   
   cond = (airThreadCond *)calloc(1, sizeof(airThreadCond));
-  if (airThreadNoopWarning) {
-    fprintf(stderr, "%s: WARNING: all cond usage is a no-op!\n", me);
-  }
   return cond;
 }
 
