@@ -189,7 +189,7 @@ ARFLAGS = ru
 # include directory contains C-preprocessor code to make sure that the
 # variable has been set and set to something reasonable.
 #
-# Right now X is either "ENDIAN", "QNANHIBIT", or "DIO".
+# Right now X is either "ENDIAN", "QNANHIBIT", "DIO", or "32BIT"
 #
 ifeq ($(NEED_ENDIAN),true)
   CFLAGS += -DTEEM_ENDIAN=$(TEEM_ENDIAN)
@@ -201,6 +201,10 @@ ifeq ($(NEED_QNANHIBIT),true)
 endif
 ifeq ($(NEED_DIO),true)
   CFLAGS += -DTEEM_DIO=$(TEEM_DIO)
+  SET_DIE = 1
+endif
+ifeq ($(NEED_32BIT),true)
+  CFLAGS += -DTEEM_32BIT=$(TEEM_32BIT)
   SET_DIE = 1
 endif
 
