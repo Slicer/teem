@@ -51,8 +51,12 @@ $(L).meneed := $($(L).need) $(L)
 ## want.
 ##
 $(L)/% : _L := $(L)
+
+## not sure why these are needed- version 3.78.1 on a solaris box
+## definately needed the last one, while others didn't
 $(call hdrs.inst,$(L)) : _L := $(L)
 $(call objs.dev,$(L)) : _L := $(L)
+$(call tests.dev,$(L)): _L := $(L)
 
 ## The prequisites of .$(L).usable are the .usable's of all our
 ## prerequisites, and our own libs and headers, if either:
