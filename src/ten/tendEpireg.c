@@ -42,7 +42,7 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   NrrdKernelSpec *ksp;
   Nrrd **nin, *nout, *ngrad;
-  int ref, ninLen, ccsize[2], noverbose, progress;
+  int ref, ninLen, noverbose, progress, nocc;
   float bw[2], thr[2];
   
   hestOptAdd(&hopt, "i", "b0 dwi1 dwi2", airTypeOther, 3, -1, &nin, NULL,
@@ -62,18 +62,17 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "standard devs in X and Y directions of gaussian filter used "
 	     "to blur the DWIs prior to doing registration. "
 	     "Use 0.0 to say \"no blurring\"");
-  hestOptAdd(&hopt, "t", "B0, DWI threshold", airTypeFloat, 2, 2, &thr, NULL,
+  hestOptAdd(&hopt, "t", "B0, DWI threshold", airTypeFloat, 2, 2, &thr,
+	     "nan nan",
 	     "Threshold values to use on B0 and DW images, respectively, "
-	     "to seperate brain and non-brain");
-  hestOptAdd(&hopt, "cc", "dark, bright size", airTypeInt, 2, 2, ccsize,
-	     "400 20",
-	     "when doing connected component (CC) analysis, dark CCs are "
-	     "merged with bright surround if their size is less than the "
-	     "first number, and bright CCs are merged with dark surround "
-	     "if their size is less than the second number.  The former "
-	     "includes regions of CSF and highly diffusion-weighted white "
-	     "mater; the latter includes noise and scalp.  Or, use \"0 0\" "
-	     "to bypass CC analysis.");
+	     "to do rough seperation of brain and non-brain.  By default, "
+	     "the thresholds are determined automatically by histogram "
+	     "analysis. ");
+  hestOptAdd(&hopt, "ncc", NULL, airTypeInt, 0, 0, &nocc, NULL,
+	     "do *NOT* do connected component (CC) analysis, after "
+	     "thresholding and before moment calculation.  Doing CC analysis "
+	     "should give better results because it converts the thresholding "
+	     "output into something much closer to a segmentation");
   hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &ksp, "cubic:0,0.5",
 	     "kernel for resampling DWI during registration",
 	     NULL, NULL, nrrdHestKernelSpec);
@@ -91,7 +90,7 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (tenEpiRegister(nout, nin, ninLen, ngrad,
 		     ref,
 		     bw[0], bw[1], 0.0001,
-		     thr[0], thr[1], ccsize[0], ccsize[1],
+		     thr[0], thr[1], !nocc,
 		     ksp->kernel, ksp->parm,
 		     progress, !noverbose)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);

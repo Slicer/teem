@@ -112,3 +112,54 @@ tenEvqVolume(Nrrd *nout, Nrrd *nin, int which, int aniso, int scaleByAniso) {
   
   return 0;
 }
+
+int
+tenGradCheck(Nrrd *ngrad) {
+  char me[]="tenGradCheck", err[AIR_STRLEN_MED];
+
+  if (nrrdCheck(ngrad)) {
+    sprintf(err, "%s: basic validity check failed", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  if (!( 2 == ngrad->dim && 3 == ngrad->axis[0].size )) {
+    sprintf(err, "%s: not a 3xN 2-D array", me);
+    biffAdd(TEN, err); return 1;
+  }
+  /*
+  if (!( 6 <= ngrad->axis[1].size )) {
+    sprintf(err, "%s: have only %d gradients, need at least 6",
+	    me, ngrad->axis[1].size);
+    biffAdd(TEN, err); return 1;
+  }
+  */
+
+  return 0;
+}
+
+/*
+******** tenGradNormalize
+**
+** this converts to doubles and normalizes each row (gradient vector)
+*/
+int
+tenGradNormalize(Nrrd *nout, Nrrd *nin) {
+  char me[]="tenGradNormalize", err[AIR_STRLEN_MED];
+  double len, *grad;
+  int gi;
+
+  if (!nout || tenGradCheck(nin)) {
+    sprintf(err, "%s: invalid args", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (nrrdConvert(nout, nin, nrrdTypeDouble)) {
+    sprintf(err, "%s: ", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  grad = (double*)(nout->data);
+  for (gi=0; gi<nout->axis[1].size; gi++) {
+    ELL_3V_NORM(grad, grad, len);
+    grad += 3;
+  }
+
+  return 0;
+}

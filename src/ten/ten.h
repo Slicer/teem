@@ -314,6 +314,8 @@ extern int tenAnisoHistogram(Nrrd *nout, Nrrd *nin,
 extern short tenEvqOne(float vec[3], float scl);
 extern int tenEvqVolume(Nrrd *nout, Nrrd *nin, int which,
 			int aniso, int scaleByAniso);
+extern int tenGradCheck(Nrrd *ngrad);
+extern int tenGradNormalize(Nrrd *nout, Nrrd *nin);
 
 /* fiberMethods.c */
 extern const char tenDefFiberKernel[];
@@ -339,7 +341,7 @@ extern int tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *ngrad,
 			  int reference,
 			  float bwX, float bwY, float bwP,
 			  float B0thr, float DWthr,
-			  int darkSize, int brightSize,
+			  int doCC,
 			  NrrdKernel *kern, double *kparm,
 			  int progress, int verbose);
 

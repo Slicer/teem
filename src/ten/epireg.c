@@ -32,16 +32,18 @@ _tenEpiRegCheck(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *ngrad,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
+  /* what is this for? */
   if (!( ninLen >= 3 )) {
     sprintf(err, "%s: given ninLen (%d) not >= 3", me, ninLen);
     biffAdd(TEN, err); return 1;
   }
-  if (!( 2 == ngrad->dim 
-	 && (nrrdTypeFloat == ngrad->type || nrrdTypeDouble == ngrad->type)
-	 && 3 == ngrad->axis[0].size
-	 && ninLen-1 == ngrad->axis[1].size )) {
-    sprintf(err, "%s: given gradient list not a 2-D 3-by-%d array of "
-	    "floats or doubles", me, ninLen-1);
+  if (tenGradCheck(ngrad)) {
+    sprintf(err, "%s: problem with given gradient list", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (ninLen-1 != ngrad->axis[1].size) {
+    sprintf(err, "%s: got %d DWIs, but %d gradient directions", me,
+	    ninLen-1, ngrad->axis[1].size);
     biffAdd(TEN, err); return 1;
   }
   for (ni=0; ni<ninLen; ni++) {
@@ -64,9 +66,8 @@ _tenEpiRegCheck(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *ngrad,
 	    me, reference, ninLen-1);
     biffAdd(TEN, err); return 1;
   }
-  if (!( AIR_EXISTS(bwX) && AIR_EXISTS(bwY) && 
-	 AIR_EXISTS(B0thr) && AIR_EXISTS(DWthr) )) {
-    sprintf(err, "%s: not all bwX, bwY, B0thr, DWthr exist", me);
+  if (!( AIR_EXISTS(bwX) && AIR_EXISTS(bwY) )) {
+    sprintf(err, "%s: bwX, bwY don't both exist", me);
     biffAdd(TEN, err); return 1;
   }
   if (!( bwX >= 0 && bwY >= 0 )) {
@@ -159,6 +160,119 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **nin, int ninLen,
 }
 
 int
+_tenEpiRegFindValley(int *valIdxP, Nrrd *nhist) {
+  char me[]="_tenEpiRegFindValley", err[AIR_STRLEN_MED];
+  double gparm[NRRD_KERNEL_PARMS_NUM], dparm[NRRD_KERNEL_PARMS_NUM];
+  Nrrd *ntmpA, *ntmpB, *nhistD, *nhistDD;
+  float *histD, *histDD;
+  airArray *mop;
+  int bb, bins;
+
+  mop = airMopNew();
+  airMopAdd(mop, ntmpA=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, ntmpB=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nhistD=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nhistDD=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+
+  bins = nhist->axis[0].size;
+  gparm[0] = bins/50;  /* wacky heuristic for gaussian stdev */
+  gparm[1] = 3;        /* how many stdevs to cut-off at */
+  dparm[0] = 1.0;      /* unit spacing */
+  dparm[1] = 1.0;      /* B-Spline kernel */
+  dparm[2] = 0.0;
+  if (nrrdCheapMedian(ntmpA, nhist, AIR_FALSE, 2, 1.0, 1024)
+      || nrrdSimpleResample(ntmpB, ntmpA,
+			    nrrdKernelGaussian, gparm, &bins, NULL)
+      || nrrdSimpleResample(nhistD, ntmpB,
+			    nrrdKernelBCCubicD, dparm, &bins, NULL)
+      || nrrdSimpleResample(nhistDD, ntmpB,
+			    nrrdKernelBCCubicDD, dparm, &bins, NULL)) {
+    sprintf(err, "%s: trouble processing histogram", me);
+    biffMove(TEN, err, NRRD), airMopError(mop); return 1;
+  }
+  histD = (float*)(nhistD->data);
+  histDD = (float*)(nhistDD->data);
+  for (bb=0; bb<bins-1; bb++) {
+    if (histD[bb]*histD[bb+1] < 0 && histDD[bb] > 0) {
+      /* zero-crossing in 1st deriv, positive 2nd deriv */
+      break;
+    }
+  }
+  if (bb == bins-1) {
+    sprintf(err, "%s: never saw a satisfactory zero crossing", me);
+    biffAdd(TEN, err); airMopError(mop); return 1;
+  }
+
+  *valIdxP = bb;
+  airMopOkay(mop);
+  return 0;
+}
+
+int
+_tenEpiRegFindThresh(float *B0thrP, float *DWthrP, Nrrd **nin, int ninLen) {
+  char me[]="_tenEpiRegFindThresh", err[AIR_STRLEN_MED];
+  Nrrd *nhist, *ntmp;
+  airArray *mop;
+  int ni, val, bins, E;
+  double min=0, max=0;
+
+  mop = airMopNew();
+  airMopAdd(mop, nhist=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, ntmp=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+
+  nrrdMinMaxSet(nin[0]);
+  bins = AIR_MIN(1024, nin[0]->max - nin[0]->min + 1);
+  if (nrrdHisto(nhist, nin[0], NULL, bins, nrrdTypeFloat)) {
+    sprintf(err, "%s: problem forming B0 histogram", me);
+    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+  }
+  if (_tenEpiRegFindValley(&val, nhist)) {
+    sprintf(err, "%s: problem finding B0 histogram valley", me);
+    biffAdd(TEN, err); airMopError(mop); return 1;
+  }
+  *B0thrP = nrrdAxisPos(nhist, 0, 0.85*val); /* another wacky hack */
+  fprintf(stderr, "%s: using %g for B0 threshold\n", me, *B0thrP);
+
+  for (ni=1; ni<ninLen; ni++) {
+    nrrdMinMaxSet(nin[ni]);
+    if (1 == ni) {
+      min = nin[ni]->min;
+      max = nin[ni]->max;
+    } else {
+      min = AIR_MIN(min, nin[ni]->min);
+      max = AIR_MAX(max, nin[ni]->max);
+    }
+  }
+  bins = AIR_MIN(1024, max - min + 1);
+  ntmp->axis[0].min = min;
+  ntmp->axis[0].max = max;
+  for (ni=1; ni<ninLen; ni++) {
+    if (nrrdHisto(ntmp, nin[ni], NULL, bins, nrrdTypeFloat)) {
+      sprintf(err, "%s: problem forming histogram of DWI %d", me, ni);
+      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+    }
+    if (1 == ni) {
+      E = nrrdCopy(nhist, ntmp);
+    } else {
+      E = nrrdArithBinaryOp(nhist, nrrdBinaryOpAdd, nhist, ntmp);
+    }
+    if (E) {
+      sprintf(err, "%s: problem updating histogram sum on DWI %d", me, ni);
+      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+    }
+  }
+  if (_tenEpiRegFindValley(&val, nhist)) {
+    sprintf(err, "%s: problem finding DWI histogram valley", me);
+    biffAdd(TEN, err); airMopError(mop); return 1;
+  }
+  *DWthrP = nrrdAxisPos(nhist, 0, 0.85*val); /* another wacky hack */
+  fprintf(stderr, "%s: using %g for DWI threshold\n", me, *DWthrP);
+  
+  airMopOkay(mop);
+  return 0;
+}
+
+int
 _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, int ninLen,
 		    float B0thr, float DWthr, int verb) {
   char me[]="_tenEpiRegThreshold", err[AIR_STRLEN_MED];
@@ -166,6 +280,13 @@ _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, int ninLen,
   int I, sx, sy, sz, ni;
   float val;
   unsigned char *thr;
+
+  if (!( AIR_EXISTS(B0thr) && AIR_EXISTS(DWthr) )) {
+    if (_tenEpiRegFindThresh(&B0thr, &DWthr, nblur, ninLen)) {
+      sprintf(err, "%s: trouble with automatic threshold determination", me);
+      biffAdd(TEN, err); return 1;
+    }
+  }
   
   mop = airMopNew();
   if (verb) {
@@ -197,17 +318,30 @@ _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, int ninLen,
   return 0;
 }
 
+/*
+** _tenEpiRegBB: find the biggest bright CC
+*/
 int
-_tenEpiRegCC(Nrrd **nthr, int ninLen,
-	     int conny, int darkSize, int brightSize, int verb) {
+_tenEpiRegBB(Nrrd *nval, Nrrd *nsize) {
+  unsigned char *val;
+  int ci, *size, big;
+
+  val = (unsigned char *)(nval->data);
+  size = (int *)(nsize->data);
+  big = 0;
+  for (ci=0; ci<nsize->axis[0].size; ci++) {
+    big = val[ci] ? AIR_MAX(big, size[ci]) : big;
+  }
+  return big;
+}
+
+int
+_tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
   char me[]="_tenEpiRegCC", err[AIR_STRLEN_MED];
   Nrrd *nslc, *ncc, *nval, *nsize;
   airArray *mop;
-  int ni, z, sz, *size, big;
-  unsigned char *val;
+  int ni, z, sz, big, E;
 
-  int ci, E;
-  
   if (verb) {
     fprintf(stderr, "%s:\n            ", me); fflush(stderr);
   }
@@ -225,7 +359,8 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen,
     /* within each slice, we merge to dark little pieces (smaller than
        brightSize), pieces, and merge to bright big pieces (smaller then
        darkSize) .  The problem with this is when a 3-D connected piece
-       of brain is seen as detached in a slice */
+       of brain is seen as detached in a slice, as happens at the top of
+       the cortex, and sometimes in the temporal lobes */
     for (z=0; z<sz; z++) {
       if ( nrrdSlice(nslc, nthr[ni], 2, z)
 	   || nrrdCCFind(ncc, &nval, nslc, nrrdTypeUnknown, conny)
@@ -243,20 +378,15 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen,
       }
     }
 #else
-    /* for each volume, we find the biggest bright 3-D CC, and merge to 
-       dark all smaller pieces.  Then, within each slice, we to 2-D CCs,
-       and merge to bright all bright pieces (smaller than darkSize) */
+    /* for each volume, we find the biggest bright 3-D CC, and merge
+       down (to dark) all smaller bright pieces.  Then, within each
+       slice, we do 2-D CCs, find the biggest bright CC (size == big),
+       and merge up (to bright) all small dark pieces, where
+       (currently) small is big/2 */
     E = 0;
     if (!E) E |= nrrdCCFind(ncc, &nval, nthr[ni], nrrdTypeUnknown, conny);
     if (!E) E |= nrrdCCSize(nsize, ncc);
-    if (!E) {
-      val = (unsigned char *)(nval->data);
-      size = (int *)(nsize->data);
-      big = 0;
-      for (ci=0; ci<nsize->axis[0].size; ci++) {
-	big = val[ci] ? AIR_MAX(big, size[ci]) : big;
-      }
-    }
+    if (!E) big = _tenEpiRegBB(nval, nsize);
     if (!E) E |= nrrdCCMerge(ncc, ncc, nval, -1, big-1, 0, conny);
     if (!E) E |= nrrdCCRevalue(nthr[ni], ncc, nval);
     if (E) {
@@ -266,7 +396,9 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen,
     for (z=0; z<sz; z++) {
       if ( nrrdSlice(nslc, nthr[ni], 2, z)
 	   || nrrdCCFind(ncc, &nval, nslc, nrrdTypeUnknown, conny)
-	   || nrrdCCMerge(ncc, ncc, nval, 1, darkSize, 0, conny)
+	   || nrrdCCSize(nsize, ncc)
+	   || !(big = _tenEpiRegBB(nval, nsize))
+	   || nrrdCCMerge(ncc, ncc, nval, 1, big/2, 0, conny)
 	   || nrrdCCRevalue(nslc, ncc, nval)
 	   || nrrdSplice(nthr[ni], nthr[ni], nslc, 2, z) ) {
 	sprintf(err, "%s: trouble processing slice %d of nthr[%d]", me, z, ni);
@@ -544,30 +676,31 @@ _tenEpiRegSmoothHST(Nrrd *nhst, float bwP) {
   airArray *mop;
   int sz, sp;
 
-  /* else we need to blur */
-  sp = nhst->axis[0].size;
-  sz = nhst->axis[1].size;
-  mop = airMopNew();
-  rinfo = nrrdResampleInfoNew();
-  airMopAdd(mop, rinfo, (airMopper)nrrdResampleInfoNix, airMopAlways);
-  rinfo->kernel[1] = nrrdKernelGaussian;
-  rinfo->parm[1][0] = bwP;
-  rinfo->parm[1][1] = 3.0; /* how many stnd devs do we cut-off at */
-  ELL_2V_SET(rinfo->samples, sp, sz);
-  ELL_2V_SET(rinfo->min, 0, 0);
-  ELL_2V_SET(rinfo->max, sp-1, sz-1);
-  rinfo->boundary = nrrdBoundaryBleed;
-  rinfo->type = nrrdTypeUnknown;
-  rinfo->renormalize = AIR_TRUE;
-  rinfo->clamp = AIR_TRUE;
-  
-  nhst->axis[1].min = 0;
-  nhst->axis[1].max = sz-1;
-  if (nrrdSpatialResample(nhst, nhst, rinfo)) {
-    sprintf(err, "%s: trouble blurring nhst", me);
-    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+  if (nhst->axis[1].size > 1) {
+    sp = nhst->axis[0].size;
+    sz = nhst->axis[1].size;
+    mop = airMopNew();
+    rinfo = nrrdResampleInfoNew();
+    airMopAdd(mop, rinfo, (airMopper)nrrdResampleInfoNix, airMopAlways);
+    rinfo->kernel[1] = nrrdKernelGaussian;
+    rinfo->parm[1][0] = bwP;
+    rinfo->parm[1][1] = 3.0; /* how many stnd devs do we cut-off at */
+    ELL_2V_SET(rinfo->samples, sp, sz);
+    ELL_2V_SET(rinfo->min, 0, 0);
+    ELL_2V_SET(rinfo->max, sp-1, sz-1);
+    rinfo->boundary = nrrdBoundaryBleed;
+    rinfo->type = nrrdTypeUnknown;
+    rinfo->renormalize = AIR_TRUE;
+    rinfo->clamp = AIR_TRUE;
+    
+    nhst->axis[1].min = 0;
+    nhst->axis[1].max = sz-1;
+    if (nrrdSpatialResample(nhst, nhst, rinfo)) {
+      sprintf(err, "%s: trouble blurring nhst", me);
+      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+    }
+    airMopOkay(mop);
   }
-  airMopOkay(mop);
   return 0;
 }
 
@@ -592,9 +725,11 @@ _tenEpiRegGetHST(double *hhP, double *ssP, double *ttP,
     /* we use the estimated S,M,T vectors to determine distortion
        as a function of gradient direction, and then invert this */
     hst = (double*)(nhst->data) + 0 + 9*zi;
-    grad = (ni
-	    ? (double*)(ngrad->data) + 0 + 3*(ni-1)
-	    : zero);
+    if (ni) {
+      grad = (double*)(ngrad->data) + 0 + 3*(ni-1);
+    } else {
+      grad = zero;
+    }
     *hhP = ELL_3V_DOT(grad, hst + 0*3);
     *ssP = 1 + ELL_3V_DOT(grad, hst + 1*3);
     *ttP = ELL_3V_DOT(grad, hst + 2*3);
@@ -826,7 +961,7 @@ int
 tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
 	       int reference,
 	       float bwX, float bwY, float bwP,
-	       float B0thr, float DWthr, int darkSize, int brightSize,
+	       float B0thr, float DWthr, int doCC,
 	       NrrdKernel *kern, double *kparm,
 	       int progress, int verbose) {
   char me[]="tenEpiRegister", err[AIR_STRLEN_MED];
@@ -863,8 +998,8 @@ tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
   airMopAdd(mop, nprog = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nhst = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ngrad = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdConvert(ngrad, _ngrad, nrrdTypeDouble)) {
-    sprintf(err, "%s: trouble converting gradients to doubles", me);
+  if (tenGradNormalize(ngrad, _ngrad)) {
+    sprintf(err, "%s: trouble normalizing/converting gradients", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
 
@@ -898,9 +1033,8 @@ tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
   }
 
   /* ------ connected components */
-  if (darkSize || brightSize) {
-    if (_tenEpiRegCC(nbuffB, ninLen,
-		     2, darkSize, brightSize, verbose)) {
+  if (doCC) {
+    if (_tenEpiRegCC(nbuffB, ninLen, 1, verbose)) {
       sprintf(err, "%s: trouble doing connected components", me);
       biffAdd(TEN, err); airMopError(mop); return 1;
     }
@@ -957,7 +1091,7 @@ tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
 
   /* ------ HST smoothing/fitting */
   if (_tenEpiRegSmoothHST(nhst, bwP)) {
-    sprintf(err, "%s: trouble smoothing/fetting HST", me);
+    sprintf(err, "%s: trouble smoothing/fitting HST", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
   if (progress) {
