@@ -129,7 +129,7 @@ makeSceneBVH(limnCamera *cam, echoRTParm *parm, echoObject **sceneP) {
   for (i=0; i<N; i++) {
     sphere = echoObjectNew(echoSphere);
     echoSphereSet(sphere,
-			4*airRand()-2, 4*airRand()-2, 4*airRand()-2, 0.005);
+		  4*airDrand48()-2, 4*airDrand48()-2, 4*airDrand48()-2, 0.005);
     _dyeHSVtoRGB(&r, &g, &b, AIR_AFFINE(0, i, N, 0.0, 1.0), 1.0, 1.0);
     echoMatterPhongSet(sphere, r, g, b, 1.0,
 		       1.0, 0.0, 0.0, 50);

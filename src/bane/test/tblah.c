@@ -44,14 +44,14 @@ incTest(char *me, int num, baneRange *range) {
   Nrrd *hist;
   int i, j;
 
-  airSrand();
+  airSrand48();
 
   val = (double*)malloc(num*sizeof(double));
   /* from <http://www.itl.nist.gov/div898/handbook/index.htm>:
      the standard dev of a uniform distribution between A and B is
      sqrt((B-A)^2/12) */
   for (j=0; j<num; j++) {
-    tmp = AIR_AFFINE(0.0, airRand(), 1.0, -1.0, 1.0);
+    tmp = AIR_AFFINE(0.0, airDrand48(), 1.0, -1.0, 1.0);
     /* val[j] = tmp*tmp*tmp; */
     val[j] = tmp;
   }

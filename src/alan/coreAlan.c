@@ -139,7 +139,7 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
     parmInit = (alan_t*)(nparmInit->data);
   }
 
-#define RAND AIR_AFFINE(0, airRand(), 1, -actx->randRange, actx->randRange)
+#define RAND AIR_AFFINE(0, airDrand48(), 1, -actx->randRange, actx->randRange)
 
   N = nrrdElementNumber(actx->_nlev[0])/actx->_nlev[0]->axis[0].size;
   lev0 = (alan_t*)(actx->_nlev[0]->data);
