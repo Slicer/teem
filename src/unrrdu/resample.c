@@ -40,7 +40,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int d, scaleLen, type, bb, pret;
+  int d, scaleLen, type, bb, pret, norenorm;
   airArray *mop;
   float *scale;
   double padVal;
@@ -73,6 +73,12 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
              "\b\bo \"gauss:S,C\": Gaussian blurring, with standard deviation "
              "S and cut-off at C standard deviations",
              NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&opt, "nrn", NULL, airTypeInt, 0, 0, &norenorm, NULL,
+             "don't do per-pass kernel weight renormalization. "
+             "Doing the renormalization is not a big performance hit "
+             "is necessary to avoid \"grating\" on non-integral "
+             "down-sampling.  Disabling the renormalization is needed for "
+             "correct results with artificially narrow kernels. ");
   hestOptAdd(&opt, "b", "behavior", airTypeEnum, 1, 1, &bb, "bleed",
              "How to handle samples beyond the input bounds:\n "
              "\b\bo \"pad\": use some specified value\n "
@@ -133,7 +139,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   info->boundary = bb;
   info->type = type;
   info->padValue = padVal;
-  info->renormalize = AIR_TRUE;
+  info->renormalize = !norenorm;
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
