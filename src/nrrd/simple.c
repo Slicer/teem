@@ -27,26 +27,6 @@ const char *
 nrrdBiffKey = "nrrd";
 
 /*
-******** nrrdCNPP
-**
-** As far as I can tell, a function like this is unfortunately
-** necessary to pass a <Nrrd**> to a function expecting a 
-** <const Nrrd**> (a "CNPP").  This function just creates a new
-** array of the right type and copies all the pointers into it.  
-*/
-const Nrrd **
-nrrdCNPP(Nrrd **nin, int N) {
-  const Nrrd **ret;
-  int i;
-
-  ret = (const Nrrd **)calloc(N, sizeof(Nrrd *));
-  for (i=0; i<N; i++) {
-    ret[i] = nin[i];
-  }
-  return ret;
-}
-
-/*
 ******** nrrdPeripheralInit
 **
 ** resets peripheral information

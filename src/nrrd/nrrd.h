@@ -543,7 +543,6 @@ TEEM_API void nrrdAxisInfoMinMaxSet(Nrrd *nrrd, int ax, int defCenter);
 /******** simple things */
 /* simple.c */
 TEEM_API const char *nrrdBiffKey;
-TEEM_API const Nrrd **nrrdCNPP(Nrrd **nin, int N);
 TEEM_API int nrrdPeripheralInit(Nrrd *nrrd);
 TEEM_API int nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin);
 TEEM_API int nrrdContentSet(Nrrd *nout, const char *func,
