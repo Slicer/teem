@@ -30,8 +30,9 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
   limnObj *obj;
+  limnSP *sp;
   limnWin *win;
-  int ri;
+  int ri, si;
   Nrrd *nmap;
 
   mop = airMopNew();
@@ -78,6 +79,17 @@ main(int argc, char *argv[]) {
   obj = limnObjNew(10, AIR_TRUE);
   airMopAdd(mop, obj, (airMopper)limnObjNix, airMopAlways);
 
+  /* create limnSPs for ellipsoid (#0) and for rods (#1) */
+  si = airArrayIncrLen(obj->sA, 2);
+  sp = obj->s + si + 0;
+  ELL_4V_SET(sp->rgba, 1, 1, 1, 1);
+  ELL_3V_SET(sp->k, 0.2, 0.8, 0);
+  sp->spec = 0;
+  sp = obj->s + si + 1;
+  ELL_4V_SET(sp->rgba, 0, 0, 0, 1);
+  ELL_3V_SET(sp->k, 1, 0, 0);
+  sp->spec = 0;
+
   /*
   ri = limnObjCylinderAdd(obj, 0, 0, 16);
   ELL_4M_IDENTITY_SET(matA);
@@ -110,7 +122,7 @@ main(int argc, char *argv[]) {
   limnObjPartTransform(obj, ri, matA);
   */
 
-  ri = limnObjPolarSphereAdd(obj, 0, 2, 32, 16);
+  ri = limnObjPolarSphereAdd(obj, 0, 0, 32, 16);
   ELL_4M_IDENTITY_SET(matA);
   ELL_4M_SCALE_SET(matB, sc[0], sc[1], sc[2]); ell_4m_post_mul_f(matA, matB);
   limnObjPartTransform(obj, ri, matA);
