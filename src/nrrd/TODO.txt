@@ -28,7 +28,14 @@ gzip encoding
 
 be sure to test all non-boolean state/default variables .
 
+add one-line descriptions to function declarations in nrrd.h
+
 ----- teem 1.5 cut-off -----
+
+see which of the nrrdDef* variables are actually used, but this
+is harder than just grepping through files for the nrrdDef* name;
+you have to see where the variable is used that initially is set
+to the nrrdDef* value.
 
 allow web-friendly image output: BMP, and maybe uncompressed GIF
 
