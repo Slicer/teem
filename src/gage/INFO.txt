@@ -2,15 +2,24 @@ what passes for documentation about gage:
 
 cheat sheet for using gage: --------------------------------------
 
-1) Create a context with gageContextNew().
-2) For each of the volumes to probe, create a pervolume with
-   gagePerVolumeNew(). In the standard simple case there is only one volume.
+1) Create a context (ctx) with gageContextNew().
+2) For each of the volumes to probe, create a pervolume (pvl) with
+   gagePerVolumeNew(), and pass this the volume that you want to
+   probe.  As the name implies, you use one gagePerVolume per volume.
 3) Attach the pervolume(s) to the context with gagePerVolumeAttach().
-4) Calculate the bitflag query according to the various measures you
-   care about.  If in a scalar volume you want value and gradient magnitude,
-   then your query should be (1<<gageSclValue) | (1<<gageSclGradMag).
-5) Make calls to gageVolumeSet(), gageQuerySet(), and gageKernelSet() to
-   set up the context with the volume(s) to probe, the answers to get,
+4) If you want verbose feedback, gageSet(ctx, gageParmVerbose, 1), which
+   sets the verbosity in the context and all attached pervolumes
+4) For each of the volumes, calculate the bitflag query according to the
+   various measures you care about.  If in a scalar volume you want value
+   and gradient magnitude, then your query should be:
+     (1<<gageSclValue) | (1<<gageSclGradMag)
+   or equivalently:
+      GAGE_SCL_VALUE_BIT | GAGE_SCL_GRADMAG_BIT
+5) Make calls to gageQuerySet(pvl), gageKernelSet(ctx), and gageSet(ctx), to
+   set up the context with the answers to get, the kernels to use, and
+   any other parameters to set.  There is no need in gage to directly
+   set or read the members of a struct except:
+   
    and the kernels to use.  Use gageSet() to set other int flags.
    These calls can be made in any order.  Calls with int return should
    be checked for erroneous (non-zero) return, and then biffGetDone(GAGE)
@@ -36,7 +45,7 @@ thing you should do with either a context copy, or a context that has
 been copied, is call gageProbe().  If any parameters need to be
 changed, delete the copy with gageContextNix(), make necessary
 gage*Set() calls, then gageUpdate(), then gageContextCopy() again.
-Avoiding this would require far too much cleverness.
+Avoiding this annoyance would require far too much cleverness.
 
 ------------------------------------------------------------------
 
