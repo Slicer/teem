@@ -46,11 +46,12 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   limnCamera *cam;
   limnObject *glyph;
   limnWindow *win;
+  echoObject *rect;
   echoScene *scene;
   echoRTParm *eparm;
   echoGlobalState *gstate;
   tenGlyphParm *gparm;
-  float bg[3];
+  float bg[3], buvne[5];
   int ires[2], slice[2], nobg;
 
   /* so that command-line options can be read from file */
@@ -143,6 +144,9 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "emap", "env map", airTypeOther, 1, 1, &emap, "",
 	     "environment map to use for shading glyphs.  By default, "
 	     "there is no shading", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "adsp", "phong", airTypeFloat, 4, 4, &(gparm->ADSP),
+	     "0 1 0 30", "phong ambient, diffuse, specular components, "
+	     "and specular power");
   hestOptAdd(&hopt, "bg", "background", airTypeFloat, 3, 3, bg, "1 1 1",
 	     "background RGB color; each component in range [0.0,1.0]");
 
@@ -212,6 +216,15 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	       "(* ray-traced only *) "
 	       "number of threads to be used for rendering");
   }
+  hestOptAdd(&hopt, "al", "B U V N E", airTypeFloat, 5, 5, buvne,
+	     "0 -1 -1 -4 0.7", 
+	     "(* ray-traced only *) "
+	     "brightness (B), view-space location (U V N), "
+	     "and length of edge (E) "
+	     "of a square area light source, for getting soft shadows. "
+	     "Requires lots more samples \"-ns\" to converge.  Use "
+	     "brightness 0 (the default) to turn this off, and use "
+	     "environment map-based shading (\"-emap\") instead. ");
 
   /* input/output */
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nten, "-",
@@ -234,9 +247,10 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
 
   if (npos) {
-    fprintf(stderr, "%s: hack: turning off onlyPositive\n", me);
+    fprintf(stderr, "!%s: hack: turning off onlyPositive\n", me);
     gparm->onlyPositive = AIR_FALSE;
   }
+  
   if (tenGlyphGen(doRT ? NULL : glyph, 
 		  doRT ? scene : NULL,
 		  gparm,
@@ -254,6 +268,33 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     cam->dist = 0;
     cam->faar = 2;
     cam->atRelative = AIR_TRUE;
+    if (buvne[0] > 0) {
+      float v2w[9], ldir[3], edir[3], fdir[3], corn[3], len;
+
+      if (limnCameraUpdate(cam)) {
+	airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
+	fprintf(stderr, "%s: trouble with camera:\n%s\n", me, err);
+	airMopError(mop); return 1;
+      }
+      ELL_34M_EXTRACT(v2w, cam->V2W);
+      ELL_3MV_MUL(ldir, v2w, buvne+1);
+      ell_3v_perp_f(edir, ldir);
+      ELL_3V_NORM(edir, edir, len);
+      ELL_3V_CROSS(fdir, ldir, edir);
+      ELL_3V_NORM(fdir, fdir, len);
+      ELL_3V_SCALE(edir, buvne[4]/2, edir);
+      ELL_3V_SCALE(fdir, buvne[4]/2, fdir);
+      ELL_3V_ADD4(corn, cam->at, ldir, edir, fdir);
+      rect = echoObjectNew(scene, echoTypeRectangle);
+      echoRectangleSet(rect,
+		       corn[0], corn[1], corn[2],
+		       edir[0]*2, edir[1]*2, edir[2]*2,
+		       fdir[0]*2, fdir[1]*2, fdir[2]*2);
+      echoColorSet(rect, 1, 1, 1, 1);
+      echoMatterLightSet(scene, rect, buvne[0], 0);
+      echoObjectAdd(scene, rect);
+    }
+
     eparm->imgResU = ires[0];
     eparm->imgResV = ires[1];
     eparm->jitterType = (eparm->numSamples > 1
@@ -262,17 +303,18 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     eparm->aperture = 0;
     eparm->renderBoxes = AIR_FALSE;
     eparm->seedRand = AIR_FALSE;
+    eparm->renderLights = AIR_FALSE;
     ELL_3V_COPY(scene->bkgr, bg);
     scene->envmap = emap;
     if (echoRTRender(nraw, cam, scene, eparm, gstate)) {
       airMopAdd(mop, err = biffGetDone(ECHO), airFree, airMopAlways);
-      fprintf(stderr, "%s: %s\n", me, err);
+      fprintf(stderr, "%s: trouble ray-tracing %s\n", me, err);
       airMopError(mop);
       return 1;
     }
     if (nrrdSave(outS, nraw, NULL)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: %s\n", me, err);
+      fprintf(stderr, "%s: trobule saving ray-tracing output %s\n", me, err);
       airMopError(mop);
       return 1;
     }

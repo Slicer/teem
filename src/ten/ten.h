@@ -113,7 +113,7 @@ typedef struct {
      modulated by anistropy).  Post-saturation, there is a per-channel
      gamma of colGamma. */
   int colEvec, colAnisoType;
-  float colMaxSat, colIsoGray, colGamma, colAnisoModulate;
+  float colMaxSat, colIsoGray, colGamma, colAnisoModulate, ADSP[4];
 
   /* if doSlice, a slice of anisotropy sliceAnisoType will be depicted
      in grayscale as a sheet of grayscale squares, one per sample. As

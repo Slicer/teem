@@ -45,6 +45,7 @@ tenGlyphParmNew() {
     parm->colIsoGray = 1;
     parm->colAnisoType = tenAnisoUnknown;
     parm->colAnisoModulate = 0;
+    ELL_4V_SET(parm->ADSP, 0, 1, 0, 30);
 
     parm->doSlice = AIR_FALSE;
     parm->sliceAxis = -1;
@@ -402,7 +403,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       lookIdx = limnObjectLookAdd(glyphsLimn);
       look = glyphsLimn->look + lookIdx;
       ELL_4V_SET(look->rgba, R, G, B, 1);
-      ELL_3V_SET(look->kads, 0, 1, 0);
+      ELL_3V_SET(look->kads, parm->ADSP[0], parm->ADSP[1], parm->ADSP[2]);
       look->spow = 0;
       switch(parm->glyphType) {
       case tenGlyphTypeBox:
@@ -446,7 +447,9 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
 	break;
       }
       echoColorSet(eglyph, R, G, B, 1);
-      echoMatterPhongSet(glyphsEcho, eglyph, 0, 1, 0, 40);
+      echoMatterPhongSet(glyphsEcho, eglyph, 
+			 parm->ADSP[0], parm->ADSP[1],
+			 parm->ADSP[2], parm->ADSP[3]);
       inst = echoObjectNew(glyphsEcho, echoTypeInstance);
       ELL_4M_COPY(eM, mA);
       echoInstanceSet(inst, eM, eglyph);
