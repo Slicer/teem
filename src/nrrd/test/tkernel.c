@@ -69,9 +69,8 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   if (!( min <= -k->support(parm) && max >= k->support(parm) )) {
-    fprintf(stderr, "%s: support=%g => lower min (%g) or raise max (%g)\n",
+    fprintf(stderr, "%s: WARNING: support=%g => lower min (%g) or raise max (%g)\n",
 	    me, k->support(parm), min, max);
-    exit(1);
   }
 
   /* see how many values are in the interval */

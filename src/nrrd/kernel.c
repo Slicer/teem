@@ -1139,6 +1139,8 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("gaussiandd", str)) return nrrdKernelGaussianDD;
   if (!strcmp("gaussdd", str))    return nrrdKernelGaussianDD;
   if (!strcmp("gdd", str))        return nrrdKernelGaussianDD;
+  if (!strcmp("cos", str))        return nrrdKernelCos;
+  if (!strcmp("cosd", str))       return nrrdKernelCosD;
   return NULL;
 }
 
