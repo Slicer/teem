@@ -21,32 +21,32 @@
 
 #include "../air.h"
 
+#include <sys/types.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+
 char *me;
 
 int
 main(int argc, char *argv[]) {
-  char *fname, *multS, *nwritesS, *data;
+  char *fname, *multS, *data;
   FILE *file;
-  double time0, time1, ttime;
-  int fd, align, mult, min, max, ret, nwrites, nn;
+  double time0, time1, time2;
+  int fd, align, mult, min, max, ret;
   size_t size;
   airArray *mop;
 
   me = argv[0];
-  if (4 != argc) {
-    /*                      0      1         2        3   (4) */
-    fprintf(stderr, "usage: %s <filename> <mult> <# writes>\n", me);
+  if (3 != argc) {
+    /*                      0      1         2    (3) */
+    fprintf(stderr, "usage: %s <filename> <mult>\n", me);
     return 1;
   }
   fname = argv[1];
   multS = argv[2];
-  nwritesS = argv[3];
   if (1 != sscanf(multS, "%d", &mult)) {
     fprintf(stderr, "%s: couln't parse mult %s as int\n", me, multS);
-    return 1;
-  }
-  if (1 != sscanf(nwritesS, "%d", &nwrites)) {
-    fprintf(stderr, "%s: couln't parse nwrites %s as int\n", me, nwritesS);
     return 1;
   }
 
@@ -79,73 +79,115 @@ main(int argc, char *argv[]) {
     airMopError(mop); return 1;
   }
   airMopAdd(mop, data, airFree, airMopAlways);
-  /*
-  F_SETFL   Set file status flags to the third argument, arg, taken as an
-    object of type int.  Only the following flags can be set [see
-    fcntl(5)]:  FAPPEND, FSYNC, DSYNC, RSYNC, FNDELAY, FNONBLK,
-    FLCFLUSH, FLCINVAL, FDIRECT, and FASYNC.
-  */
-
-  ttime = 0;
-  for (nn=0; nn<nwrites; nn++) {
-    time0 = airTime();
-    if (size-1 != write(fd, data+1, size-1)) {
-      fprintf(stderr, "%s: write %d failed\n", me, nn);
-      airMopError(mop); return 1;
-    }
-    ttime += airTime() - time0;
-  }
+  fprintf(stderr, "\ndata size = %g MB\n", (double)size/(1024*1024));
+  
+  /* -------------------------------------------------------------- */
+  fprintf(stderr, "(1) non-aligned memory, regular write:\n");
   time0 = airTime();
-  fsync(fd);
+  if (size-1 != write(fd, data+1, size-1)) {
+    fprintf(stderr, "%s: write failed\n", me);
+    airMopError(mop); return 1;
+  }
   time1 = airTime();
-  fprintf(stderr, "%s: time = %g + %g = %g\n", 
-          me, ttime, time1 - time0, ttime + time1 - time0);
-
+  fsync(fd);
+  time2 = airTime();
+  fprintf(stderr, "   time = %g + %g = %g (%g MB/sec)\n",
+          time1 - time0, time2 - time1, time2 - time0,
+          (size/(1024*1024)) / (time2 - time0));
   airMopSub(mop, file, (airMopper)airFclose);
   fclose(file);
+  /* -------------------------------------------------------------- */
+  /* -------------------------------------------------------------- */
+  fprintf(stderr, "(2) aligned memory, regular write:\n");
   file = fopen(fname, "w");
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
   fd = fileno(file);
 
-  ttime = 0;
-  for (nn=0; nn<nwrites; nn++) {
-    time0 = airTime();
-    if (size != write(fd, data, size)) {
-      fprintf(stderr, "%s: write %d failed\n", me, nn);
-      airMopError(mop); return 1;
-    }
-    ttime += airTime() - time0;
-  }
   time0 = airTime();
-  fsync(fd);
+  if (size != write(fd, data, size)) {
+    fprintf(stderr, "%s: write failed\n", me);
+    airMopError(mop); return 1;
+  }
   time1 = airTime();
-  fprintf(stderr, "%s: time = %g + %g = %g\n", 
-          me, ttime, time1 - time0, ttime + time1 - time0);
-
+  fsync(fd);
+  time2 = airTime();
+  fprintf(stderr, "   time = %g + %g = %g (%g MB/sec)\n",
+          time1 - time0, time2 - time1, time2 - time0,
+          (size/(1024*1024)) / (time2 - time0));
   airMopSub(mop, file, (airMopper)airFclose);
   fclose(file);
+  /* -------------------------------------------------------------- */
+  /* -------------------------------------------------------------- */
+  fprintf(stderr, "(3) aligned memory, air's direct IO:\n");
   file = fopen(fname, "w");
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
   fd = fileno(file);
 
-  ttime = 0;
-  for (nn=0; nn<nwrites; nn++) {
-    time0 = airTime();
-    if (size != airDioWrite(fd, data, size)) {
-      fprintf(stderr, "%s: write %d failed\n", me, nn);
+  time0 = airTime();
+  if (size != airDioWrite(fd, data, size)) {
+    fprintf(stderr, "%s: write failed\n", me);
+    airMopError(mop); return 1;
+  }
+  time1 = airTime();
+  fsync(fd);
+  time2 = airTime();
+  fprintf(stderr, "   time = %g + %g = %g (%g MB/sec)\n",
+          time1 - time0, time2 - time1, time2 - time0,
+          (size/(1024*1024)) / (time2 - time0));
+  airMopSub(mop, file, (airMopper)airFclose);
+  fclose(file);
+  /* -------------------------------------------------------------- */
+  /* -------------------------------------------------------------- */
+  fprintf(stderr, "(4) aligned memory, direct IO by hand:\n");
+  {
+    /* "input": fname, size, data */
+    int flags;
+    struct dioattr dio;
+    char *ptr;
+    size_t remain, totalrit, rit, part;
+
+    file = fopen(fname, "w");
+    if (-1 == (fd = fileno(file))) {
+      fprintf(stderr, "%s: couldn't get underlying descriptor\n", me);
       airMopError(mop); return 1;
     }
-    ttime += airTime() - time0;
-  }
-  time0 = airTime();
-  fsync(fd);
-  time1 = airTime();
-  fprintf(stderr, "%s: time = %g + %g = %g\n", 
-          me, ttime, time1 - time0, ttime + time1 - time0);
+    airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
 
-  /* learned: with direct I/O, the time it normally takes for fsync()
-     is basically zero, and all the time is in the write(), but all 
-     together its still faster than no using direct I/O */
+    flags = fcntl(fd, F_GETFL);
+    if (-1 == fcntl(fd, F_SETFL, flags | FDIRECT)) {
+      fprintf(stderr, "%s: couldn't turn on direct IO\n", me);
+      airMopError(mop); return 1;
+    }
+    if (0 != fcntl(fd, F_DIOINFO, &dio)) {
+      fprintf(stderr, "%s: couldn't learn direct IO specifics", me);
+      airMopError(mop); return 1;
+    }
+    
+    remain = size;
+    totalrit = 0;
+    ptr = data;
+    time0 = airTime();
+    do {
+      part = remain > dio.d_maxiosz ? dio.d_maxiosz : remain;
+      rit = write(fd, ptr, part);
+      if (rit != part) {
+        fprintf(stderr, "%s: write failed\n", me);
+        airMopError(mop); return 1;
+      }
+      totalrit += rit;
+      ptr += rit;
+      remain -= rit;
+    } while (remain);
+    time1 = airTime();
+    fsync(fd);
+    time2 = airTime();
+    fprintf(stderr, "   time = %g + %g = %g (%g MB/sec)\n",
+            time1 - time0, time2 - time1, time2 - time0,
+            (size/(1024*1024)) / (time2 - time0));
+    airMopSub(mop, file, (airMopper)airFclose);
+    fclose(file);
+  }
+  /* -------------------------------------------------------------- */
 
   airMopError(mop); 
   exit(0);
