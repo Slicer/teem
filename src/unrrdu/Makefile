@@ -21,7 +21,7 @@ LIBOBJS =
 TEST_BINS = 
 BINS = crop histo histax permute stitch join dice stitch \
 	2a arith heq median nconvert quantize project \
-	mhisto rsmp filtan filtan2
+	mhisto rsmp
 BINLIBS = -lbane -lnrrd -lbiff -lair -lm
 
 include ../make/Common.mk
