@@ -18,7 +18,6 @@
 */
 
 #include <teem/air.h>
-#include <teem/airThread.h>
 #include <teem/hest.h>
 #include <teem/biff.h>
 #include <teem/nrrd.h>
@@ -496,7 +495,7 @@ main(int argc, char *argv[]) {
 	    "multi-threading support.\n", me);
     fprintf(stderr, "%s: --> can't use %d threads; only using 1\n",
 	    me, uu->hctx->numThreads);
-    //uu->hctx->numThreads = 1;
+    uu->hctx->numThreads = 1;
   }
 
   E = hooverRender(uu->hctx, &Ecode, NULL);

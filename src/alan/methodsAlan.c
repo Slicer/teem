@@ -27,6 +27,7 @@ void
 alanContextInit(alanContext *actx) {
   if (actx) {
     actx->verbose = 0;
+    actx->wrap = AIR_FALSE;
     actx->textureType = alanTextureTypeUnknown;
     actx->dim = 0;
     ELL_3V_SET(actx->size, 0, 0, 0);
@@ -51,6 +52,7 @@ alanContextInit(alanContext *actx) {
     actx->nlev[1] = nrrdNuke(actx->nlev[1]);
     actx->nparm = nrrdNuke(actx->nparm);
     actx->nten = nrrdNuke(actx->nten);
+    actx->constFilename = AIR_FALSE;
   }
   return;
 }
@@ -247,6 +249,10 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
     parmI = parm;
     actx->maxIteration = parmI;
     break;
+  case alanParmConstantFilename:
+    parmI = parm;
+    actx->constFilename = parmI;
+    break;
   case alanParmSpeed:
     actx->speed = parm;
     break;
@@ -279,6 +285,10 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
     break;
   case alanParmBeta:
     actx->beta = parm;
+    break;
+  case alanParmWrapAround:
+    parmI = parm;
+    actx->wrap = parmI;
     break;
   default:
     sprintf(err, "%s: parameter %d invalid", me, whichParm);

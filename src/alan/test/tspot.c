@@ -46,22 +46,24 @@ main(int argc, char *argv[]) {
     free(biffGetDone(NRRD));
     npri = nrrdNuke(npri);
   }
-  airSrand();
   actx = alanContextNew();
   if (alanDimensionSet(actx, 2)
-      || alan2DSizeSet(actx, 128, 128)
+      || alan2DSizeSet(actx, 100, 100)
       || alanParmSet(actx, alanParmMaxIteration, 100000)
       || alanParmSet(actx, alanParmVerbose, 1)
       || alanParmSet(actx, alanParmTextureType, alanTextureTypeTuring)
       || alanParmSet(actx, alanParmRandRange, 4.0)
       || alanParmSet(actx, alanParmK, 0.0125)
       || alanParmSet(actx, alanParmH, 1.2)
-      || alanParmSet(actx, alanParmAlpha, 16.0)
-      || alanParmSet(actx, alanParmBeta, 12.0)
-      || alanParmSet(actx, alanParmSpeed, 1.3)
+      || alanParmSet(actx, alanParmAlpha, 16.0+0.07)
+      || alanParmSet(actx, alanParmBeta, 12.0-0.07)
+      || alanParmSet(actx, alanParmSpeed, 1.38)
       || alanParmSet(actx, alanParmMinAverageChange, 0.00002)
       || alanParmSet(actx, alanParmSaveInterval, 500)
-      || alanParmSet(actx, alanParmFrameInterval,100)
+      || alanParmSet(actx, alanParmFrameInterval,500)
+      || alanParmSet(actx, alanParmConstantFilename, AIR_TRUE)
+      || alanParmSet(actx, alanParmWrapAround, AIR_TRUE)
+      || alanParmSet(actx, alanParmNumThreads, 10)
       ) {
     err = biffGetDone(ALAN);
     fprintf(stderr, "%s: trouble: %s\n", me, err); 

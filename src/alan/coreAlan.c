@@ -24,6 +24,7 @@
 */
 
 #include "alan.h"
+#include <pthread.h>
 
 int
 _alanCheck(alanContext *actx) {
@@ -179,13 +180,13 @@ _alanPerIteration(alanContext *actx, int iter) {
   if (actx->saveInterval && !(iter % actx->saveInterval)) {
     fprintf(stderr, "%s: iter = %d, averageChange = %g\n",
 	    me, iter, actx->averageChange);
-    sprintf(fname, "%06d.nrrd", iter);
+    sprintf(fname, "%06d.nrrd", actx->constFilename ? 0 : iter);
     nrrdSave(fname, actx->nlev[iter % 2], NULL);
   }
   if (actx->frameInterval && !(iter % actx->frameInterval)) {
     nrrdSlice(nslc=nrrdNew(), actx->nlev[iter % 2], 0, 0);
     nrrdQuantize(nimg=nrrdNew(), nslc, NULL, 8);
-    sprintf(fname, "%06d.png", iter);
+    sprintf(fname, "%06d.png", actx->constFilename ? 0 : iter);
     nrrdSave(fname, nimg, NULL);
     nrrdNuke(nslc);
     nrrdNuke(nimg);
@@ -200,8 +201,10 @@ typedef struct {
   int idx;
   /* this is just a convenient place to put airThread (so that alanRun()
      doesn't have to make multiple arrays of per-thread items) */
-  airThread thread;
-  /* pointless: a pointer to this is passed to airThreadJoin */
+  airThread *thread;
+  /* pointless: a pointer to this is passed to airThreadJoin for its
+     return, and currently that will just end up pointing back to this
+     struct */
   void *me;
 } alanTask;
 
@@ -287,8 +290,8 @@ _alanTuring2DWorker(void *_task) {
     }
 
     /* add change to global sum in a threadsafe way */
-    airThreadMutexLock(&(task->actx->changeMutex));
-    task->actx->averageChange += change*(endY - startY)/(sx*sy);
+    airThreadMutexLock(task->actx->changeMutex);
+    task->actx->averageChange += change/(sx*sy);
     task->actx->changeCount += 1;
     if (task->actx->changeCount == task->actx->numThreads) {
       /* I must be the last thread to reach this point; all 
@@ -310,10 +313,10 @@ _alanTuring2DWorker(void *_task) {
       task->actx->averageChange = 0;
       task->actx->changeCount = 0;
     }
-    airThreadMutexUnlock(&(task->actx->changeMutex));
+    airThreadMutexUnlock(task->actx->changeMutex);
 
     /* force all threads to line up here, once per iteration */
-    airThreadBarrierWait(&(task->actx->iterBarrier));
+    airThreadBarrierWait(task->actx->iterBarrier);
   }
   
   if (iter == task->actx->maxIteration) {
@@ -327,7 +330,7 @@ _alanTuring2DWorker(void *_task) {
 int
 alanRun(alanContext *actx) {
   char me[]="alanRun", err[AIR_STRLEN_MED];
-  int tid, hack;
+  int tid, hack=AIR_FALSE;
   alanTask task[ALAN_THREAD_MAX];
 
   fprintf(stderr, "%s: blah 0\n", me);
@@ -345,8 +348,8 @@ alanRun(alanContext *actx) {
     hack = airThreadNoopWarning;
     airThreadNoopWarning = AIR_FALSE;
   }
-  airThreadMutexInit(&(actx->changeMutex));
-  airThreadBarrierInit(&(actx->iterBarrier), actx->numThreads);
+  actx->changeMutex = airThreadMutexNew();
+  actx->iterBarrier = airThreadBarrierNew(actx->numThreads);
   actx->averageChange = 0;
   actx->changeCount = 0;
   actx->stop = alanStopNot;
@@ -354,18 +357,16 @@ alanRun(alanContext *actx) {
   for (tid=0; tid<actx->numThreads; tid++) {
     task[tid].actx = actx;
     task[tid].idx = tid;
-    fprintf(stderr, "%s: starting thread %d ... \n", me, tid);
-    airThreadCreate(&(task[tid].thread), _alanTuring2DWorker,
-		    (void *)&(task[tid]));
-    fprintf(stderr, "                        ... done\n");
+    task[tid].thread = airThreadNew();
+    airThreadStart(task[tid].thread, _alanTuring2DWorker,
+		   (void *)&(task[tid]));
   }
   for (tid=0; tid<actx->numThreads; tid++) {
-    fprintf(stderr, "%s: ending thread %d ... \n", me, tid);
-    airThreadJoin(&(task[tid].thread), &(task[tid].me));
-    fprintf(stderr, "                        ... done\n");
+    airThreadJoin(task[tid].thread, &(task[tid].me));
+    task[tid].thread = airThreadNix(task[tid].thread);
   }
-  airThreadBarrierDone(&(actx->iterBarrier));
-  airThreadMutexDone(&(actx->changeMutex));
+  actx->iterBarrier = airThreadBarrierNix(actx->iterBarrier);
+  actx->changeMutex = airThreadMutexNix(actx->changeMutex);
 
   if (!airThreadCapable && 1 == actx->numThreads) {
     airThreadNoopWarning = hack;

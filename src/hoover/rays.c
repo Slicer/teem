@@ -18,7 +18,6 @@
 */
 
 #include "hoover.h"
-#include <teem/airThread.h>
 
 /*
 ** learned: if you're going to "simplify" code which computes some
@@ -317,7 +316,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   _hooverExtraContext *ec;
   _hooverThreadArg args[HOOVER_THREAD_MAX];
   _hooverThreadArg *errArg;
-  airThread thread[HOOVER_THREAD_MAX];
+  airThread *thread[HOOVER_THREAD_MAX];
 
   void *render;
   int ret;
@@ -351,11 +350,12 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
     args[threadIdx].whichThread = threadIdx;
     args[threadIdx].whichErr = hooverErrNone;
     args[threadIdx].errCode = 0;
+    thread[threadIdx] = airThreadNew();
   }
 
-  /* (done): call airThreadCreate() once per thread, passing the
+  /* (done): call airThreadStart() once per thread, passing the
      address of a distinct (and appropriately intialized)
-     _hooverThreadArg to each.  If return of airThreadCreate() is
+     _hooverThreadArg to each.  If return of airThreadStart() is
      non-zero, put its return in *errCodeP, the number of the
      problematic in *errThreadP, and return hooverErrThreadCreate.
      Then call airThreadJoin() on all the threads, passing &errArg as
@@ -372,8 +372,8 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   }
 
   for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
-    if ((ret = airThreadCreate(&thread[threadIdx], _hooverThreadBody, 
-                               (void *) &args[threadIdx]))) {
+    if ((ret = airThreadStart(thread[threadIdx], _hooverThreadBody, 
+			      (void *) &args[threadIdx]))) {
       *errCodeP = ret;
       *errThreadP = threadIdx;
       airMopError(mop);
@@ -382,7 +382,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   }
 
   for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
-    if ((ret = airThreadJoin(&thread[threadIdx], (void **) (&errArg)))) {
+    if ((ret = airThreadJoin(thread[threadIdx], (void **) (&errArg)))) {
       *errCodeP = ret;
       *errThreadP = threadIdx;
       airMopError(mop);
@@ -393,6 +393,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
       *errThreadP = threadIdx;
       return errArg->whichErr;
     }
+    thread[threadIdx] = airThreadNix(thread[threadIdx]);
   }
 
   if ( (ret = (ctx->renderEnd)(render, ctx->user)) ) {

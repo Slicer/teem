@@ -44,7 +44,7 @@ $(L).SEEN := true
 ####
 ####
 $(L).NEED =
-$(L).PUBLIC_HEADERS = air.h airThread.h
+$(L).PUBLIC_HEADERS = air.h
 $(L).OBJS = 754.o array.o miscAir.o parseAir.o endianAir.o \
 	dio.o mop.o enum.o sane.o string.o threadAir.o
 $(L).TESTS = test/floatprint test/doubleprint test/tok \

@@ -18,7 +18,6 @@
 */
 
 #include <teem/air.h>
-#include <teem/airThread.h>
 #include <teem/biff.h>
 #include <teem/ell.h>
 #include <teem/nrrd.h>

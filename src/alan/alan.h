@@ -24,7 +24,6 @@
 #include <math.h>
 
 #include <teem/air.h>
-#include <teem/airThread.h>
 #include <teem/biff.h>
 #include <teem/ell.h>
 #include <teem/nrrd.h>
@@ -50,24 +49,26 @@ enum {
 };
 
 enum {
-  alanParmUnknown,            /*  0 */
-  alanParmVerbose,            /*  1 */
-  alanParmTextureType,        /*  2 */
-  alanParmNumThreads,         /*  3 */
-  alanParmFrameInterval,      /*  4 */
-  alanParmSaveInterval,       /*  5 */
-  alanParmMaxIteration,       /*  6 */
-  alanParmRandRange,          /*  7 */
-  alanParmSpeed,              /*  8 */
-  alanParmDiffA,              /*  9 */
-  alanParmDiffB,              /* 10 */
-  alanParmK,                  /* 11 */
-  alanParmF,                  /* 12 */
-  alanParmH,                  /* 13 */
-  alanParmMinAverageChange,   /* 14 */
-  alanParmMaxPixelChange,     /* 15 */
-  alanParmAlpha,              /* 16 */
-  alanParmBeta,               /* 17 */
+  alanParmUnknown,
+  alanParmVerbose,
+  alanParmTextureType,
+  alanParmNumThreads,
+  alanParmFrameInterval,
+  alanParmSaveInterval,
+  alanParmMaxIteration,
+  alanParmRandRange,
+  alanParmSpeed,
+  alanParmDiffA,
+  alanParmDiffB,
+  alanParmK,
+  alanParmF,
+  alanParmH,
+  alanParmMinAverageChange,
+  alanParmMaxPixelChange,
+  alanParmAlpha,
+  alanParmBeta,
+  alanParmConstantFilename,
+  alanParmWrapAround,
   alanParmLast
 };
 
@@ -107,7 +108,8 @@ typedef struct alanContext_t {
     numThreads,       /* # of threads, if airThreadCapable */
     frameInterval,    /* # of iterations between which to an image */
     saveInterval,     /* # of iterations between which to save all state */
-    maxIteration;     /* cap on # of iterations */
+    maxIteration,     /* cap on # of iterations */
+    constFilename;    /* always use the same filename when saving frames */
   alan_t K, F,        /* simulation variables */
     H,                /* size of spatial grid discretization */
     minAverageChange, /* min worthwhile "avergageChange" value (see below),
@@ -131,10 +133,10 @@ typedef struct alanContext_t {
   alan_t 
     averageChange;    /* average amount of "change" in last iteration */
   int changeCount;    /* # of contributions to averageChange */
-  airThreadMutex 
-    changeMutex;      /* to control update of averageChange and changeCount */
-  airThreadBarrier
-    iterBarrier;      /* to synchronize seperate iterations of simulation */
+                      /* to control update of averageChange and changeCount */
+  airThreadMutex *changeMutex;  
+                      /* to synchronize seperate iterations of simulation */
+  airThreadBarrier *iterBarrier;
 
   /* OUTPUT ---------------------------- */
   int stop;          /* why we stopped */

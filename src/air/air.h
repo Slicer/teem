@@ -170,6 +170,55 @@ extern int airArrayIncrLen(airArray *a, int delta);
 extern airArray *airArrayNix(airArray *a);
 extern airArray *airArrayNuke(airArray *a);
 
+/* threadAir.c: simplistic wrapper functions for multi-threading  */
+/*
+********  airThreadCapable
+**
+** if non-zero: we have some kind of multi-threading available, either
+** via pthreads, or via Windows stuff
+*/
+extern air_export const int airThreadCapable;
+
+/*
+******** airThreadNoopWarning
+**
+** When multi-threading is not available, and hence constructs like
+** mutexes are not available, the operations on them will be
+** no-ops. When this variable is non-zero, we fprintf(stderr) a
+** warning to this effect when those constructs are used
+*/
+extern air_export int airThreadNoopWarning; 
+
+typedef struct _airThread airThread;
+typedef struct _airThreadMutex airThreadMutex;
+typedef struct _airThreadCond airThreadCond;
+typedef struct {
+  unsigned int numUsers, numDone;
+  airThreadMutex *doneMutex;
+  airThreadCond *doneCond;
+} airThreadBarrier;
+
+extern airThread *airThreadNew(void);
+extern int airThreadStart(airThread *thread, 
+			  void *(*threadBody)(void *), void *arg);
+extern int airThreadJoin(airThread *thread, void **retP);
+extern airThread *airThreadNix(airThread *thread);
+
+extern airThreadMutex *airThreadMutexNew();
+extern int airThreadMutexLock(airThreadMutex *mutex);
+extern int airThreadMutexUnlock(airThreadMutex *mutex);
+extern airThreadMutex *airThreadMutexNix(airThreadMutex *mutex);
+
+extern airThreadCond *airThreadCondNew();
+extern int airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex);
+extern int airThreadCondSignal(airThreadCond *cond);
+extern int airThreadCondBroadcast(airThreadCond *cond);
+extern airThreadCond *airThreadCondNix(airThreadCond *cond);
+
+extern airThreadBarrier *airThreadBarrierNew(unsigned numUsers);
+extern int airThreadBarrierWait(airThreadBarrier *barrier);
+extern airThreadBarrier *airThreadBarrierNix(airThreadBarrier *barrier);
+
 /*
 ******** airFP enum
 **
