@@ -49,7 +49,7 @@ int nrrdDefRsmpClamp = AIR_TRUE;
 double nrrdDefRsmpPadValue = 0.0;
 double nrrdDefKernelParm0 = 1.0; 
 /* ---- END non-NrrdIO */
-int nrrdDefCenter = nrrdCenterNode;
+int nrrdDefCenter = nrrdCenterCell;
 double nrrdDefSpacing = 1.0;
 
 /* these aren't really "defaults" because there's no other channel for
