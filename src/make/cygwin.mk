@@ -25,7 +25,7 @@ SHEXT =
 CC = gcc
 DOTEXE = .exe
 
-OPT_CFLAG = -O2
+OPT_CFLAG = -Wall -O2
 STATIC_CFLAG = -Wl,-Bstatic
 SHARED_CFLAG = -Wl,-Bdynamic
 SHARED_LDFLAG = -shared
