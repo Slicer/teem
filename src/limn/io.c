@@ -1,0 +1,36 @@
+#include "limn.h"
+
+int 
+limnWriteAsOBJ(FILE *file, limnObj *obj) {
+  char me[] = "limnWriteAsOBJ", err[128];
+  int i, j, vidx;
+
+  if (!(file && obj)) {
+    sprintf(err, "%s: got NULL pointer\n", me);
+    biffSet(LIMN, err); return 1;
+  }
+
+  if (limnNormHC(obj)) {
+    sprintf(err, "%s: trouble normalizing homog. coords", me);
+    biffSet(LIMN, err); return 1;
+  }
+
+  fprintf(file, "# %d vertices\n", obj->numP);
+  for (i=0; i<=obj->numP-1; i++) {
+    fprintf(file, "v %f %f %f\n", 
+	    obj->p[i].w[0], obj->p[i].w[1], obj->p[i].w[2]);
+  }
+  fprintf(file, "\n");
+  fprintf(file, "# %d faces\n", obj->numF);
+  for (i=0; i<=obj->numF-1; i++) {
+    fprintf(file, "f");
+    vidx = obj->f[i].vidx;
+    for (j=0; j<=obj->f[i].sides-1; j++) {
+      fprintf(file, " %d", obj->v[vidx+j] + 1);
+      if (1 == j % 15)
+	fprintf(file, "\n");
+    }
+    fprintf(file, "\n");
+  }
+  return(0);
+}
