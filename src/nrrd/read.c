@@ -536,12 +536,15 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, NrrdIO *io) {
 
 int
 _nrrdReadTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
-  char me[]="_nrrdReadTable", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadTable", err[AIR_STRLEN_MED], *errS;
   const char *fs;
-  int line, len, ret, sx, sy, settwo = 0;
+  int line, len, ret, sx, sy, settwo = 0, gotOnePerAxis = AIR_FALSE;
+  /* fl: first line, al: all lines */
   airArray *flArr, *alArr;
   float *fl, *al, oneFloat;
 
+  /* this goofiness is just to leave the nrrd as we found it
+     (specifically, nrrd->dim) when we hit an error */
 #define UNSETTWO if (settwo) nrrd->dim = settwo
 
   /* we only get here with the first line already in io->line */
@@ -576,16 +579,39 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
       ret = 0;
       goto plain;
     }
+    /* when reading a table, we simply ignore repetitions of a field */
     if (!io->seen[ret]
 	&& _nrrdReadNrrdParseInfo[ret](nrrd, io, AIR_TRUE)) {
-      fprintf(stderr, "%s: %s\n", me, biffGetDone(NRRD));
+      errS = biffGetDone(NRRD);
       if (nrrdStateVerboseIO) {
+	fprintf(stderr, "%s: %s", me, errS);
 	fprintf(stderr, "(%s: malformed field \"%s\" --> plain comment)\n",
 		me, fs);
       }
+      if (nrrdField_dimension == ret) {
+	/* "# dimension: 0" lead nrrd->dim being set to 0 */
+	nrrd->dim = 2;
+      }
+      free(errS);
       ret = 0;
       goto plain;
     }
+    if (nrrdField_dimension == ret) {
+      if (!(1 == nrrd->dim || 2 == nrrd->dim)) {
+	if (nrrdStateVerboseIO) {
+	  fprintf(stderr, "(%s: table dimension can only be 1 or 2; "
+		  "resetting to 2)\n", me);
+	}
+	nrrd->dim = 2;
+      }
+      if (1 == nrrd->dim && gotOnePerAxis) {
+	fprintf(stderr, "(%s: already parsed per-axis field, can't reset "
+		"dimension to 1; resetting to 2)\n", me);
+	nrrd->dim = 2;
+      }
+    }
+    if (_nrrdFieldOnePerAxis[ret]) 
+      gotOnePerAxis = AIR_TRUE;
     io->seen[ret] = AIR_TRUE;
   plain:
     if (!ret) {
@@ -627,6 +653,10 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
     }
   }
   flArr = airArrayNuke(flArr);
+  if (1 == nrrd->dim && 1 != sx) {
+    sprintf(err, "%s: wanted 1-D nrrd, but got %d values on 1st line", me, sx);
+    biffAdd(NRRD, err); UNSETTWO; return 1;
+  }
   
   /* now see how many more lines there are */
   alArr = airArrayNew((void**)&al, NULL, sx*sizeof(float), _NRRD_TABLE_INCR);
@@ -650,12 +680,24 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
     line++;
     len = airOneLine(file, io->line, NRRD_STRLEN_LINE);
   }
-
-  nrrd->axis[0].size = sx;
-  nrrd->axis[1].size = sy;
-  if (nrrdAlloc(nrrd, nrrdTypeFloat, 2, sx, sy)) {
-    sprintf(err, "%s: couldn't allocate table data", me);
-    biffAdd(NRRD, err); UNSETTWO; return 1;
+  
+  switch (nrrd->dim) {
+  case 2:
+    if (nrrdAlloc(nrrd, nrrdTypeFloat, 2, sx, sy)) {
+      sprintf(err, "%s: couldn't allocate table data", me);
+      biffAdd(NRRD, err); UNSETTWO; return 1;
+    }
+    break;
+  case 1:
+    if (nrrdAlloc(nrrd, nrrdTypeFloat, 1, sy)) {
+      sprintf(err, "%s: couldn't allocate table data", me);
+      biffAdd(NRRD, err); UNSETTWO; return 1;
+    }
+    break;
+  default:
+    fprintf(stderr, "%s: PANIC about to save, but dim = %d\n", me, nrrd->dim);
+    exit(1);
+    break;
   }
   memcpy(nrrd->data, al, sx*sy*sizeof(float));
   
