@@ -249,16 +249,17 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
 void
 tenEstimateOne(float *ten, float *dwi, float *emat, int NN,
 	       float thresh, float soft, float b) {
-  double v0, v[_TEN_MAX_DWI_NUM], sum;
+  double v0, v[_TEN_MAX_DWI_NUM], mean;
   int i, j;
 
   v0 = log(AIR_MAX(dwi[0], 1));
-  sum = 0;
+  mean = 0;
   for (i=1; i<=NN; i++) {
-    sum += (v[i-1] = AIR_MAX(dwi[i], 1));
+    mean += (v[i-1] = AIR_MAX(dwi[i], 1));
     v[i-1] = (v0 - log(v[i-1]))/b;
   }
-  ten[0] = AIR_AFFINE(-1, airErf((sum - thresh)/(soft + 0.0000001)), 1, 0, 1);
+  mean /= NN;
+  ten[0] = AIR_AFFINE(-1, airErf((mean - thresh)/(soft + 0.000001)), 1, 0, 1);
   for (j=1; j<=6; j++) {
     ten[j] = 0;
     for (i=0; i<NN; i++) {
@@ -275,7 +276,7 @@ tenEstimateOne(float *ten, float *dwi, float *emat, int NN,
 ** the diffusion tensor elements (nemat), compute and store diffusion tensors
 ** into nten.
 **
-** The sum of the diffusion-weighted images is thresholded at "thresh" with
+** The mean of the diffusion-weighted images is thresholded at "thresh" with
 ** softness parameter "soft".
 */
 int
