@@ -79,17 +79,16 @@ setenv TEEM_ZLIB.IPATH -I/home/gk/include
    c) mv teem teem-VERSION
    c) tar czvf teem-VERSION.tgz teem-VERSION
 
-5) Create Unix-ish binary builds (which do NOT have html tree):
+5) Create Unix-ish binary builds (without src or docs):
    for each ARCH in "irix6.n32 irix6.64 linux cygwin solaris darwin":
    a) ssh to some ARCH machine, copy teem-VERSION.tgz there if needed
    b) setenv TEEM_XXX for all the externals that it makes sense to 
       compile into the distributed statically linked binaries
    c) tar xzvf teem-VERSION.tgz
    d) cd teem-VERSION; setenv TEEM_DEST `pwd`
-   e) rm -rf html
-   f) cd src; make; make clean; cd ../..
+   e) alias GO "mv src/LICENSE.txt . ; rm -rf README.txt ; rm -rf cygwin/ ; rm -rf darwin/ ; rm -rf irix6.64/ ; rm -rf irix6.n32/ ; rm -rf linux/ ; rm -rf solaris/ ; rm -rf win32 ; rm -rf src"
+   f) cd src; make; cd ..; GO; cd ..
    g) tar czvf teem-VERSION-ARCH.tgz teem-VERSION
-   h) (cd src; make clobber)
 
 6) Create Windows binary builds.  vc6 only, "Release" only, with
 and without compression encodings.
