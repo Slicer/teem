@@ -37,7 +37,7 @@ main(int argc, char *argv[]) {
 
   char *outS;
   alanContext *actx;
-  int *size, sizeLen, fi, si, wrap, nt, cfn, ha;
+  int *size, sizeLen, fi, si, wrap, nt, cfn, ha, maxi, srnd;
   double deltaT, mch, xch, alphabeta[2], time0, time1, deltaX, react, rrange;
   Nrrd *ninit=NULL, *nten=NULL, *nparm=NULL;
 
@@ -45,6 +45,9 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "s", "sx sy", airTypeInt, 2, 3, &size, "128 128",
 	     "size of texture, and also determines its dimension", 
 	     &sizeLen);
+  hestOptAdd(&hopt, "srand", "N", airTypeInt, 1, 1, &srnd, "42",
+	     "number to seed random number generator with.  This uses "
+	     "airDrand48(), so it should be portable.");
   hestOptAdd(&hopt, "i", "tensors", airTypeOther, 1, 1, &nten, "",
 	     "diffusion tensors to use for guiding the texture generation. "
 	     "If used, over-rides the \"-s\" option, both for setting "
@@ -78,6 +81,9 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "xch", "change", airTypeDouble, 1, 1, &xch, "6",
 	     "the maximum allowable change (averaged over the whole "
 	     "texture) in the first morphogen: to signify divergence");
+  hestOptAdd(&hopt, "maxi", "# iter", airTypeInt, 1, 1, &maxi, "0",
+	     "maximum number of iterations to run for, or \"0\" to have "
+	     "no limit based on iteration count");
   hestOptAdd(&hopt, "fi", "frame inter", airTypeInt, 1, 1, &fi, "0",
 	     "the number of iterations between which to save out an 8-bit "
 	     "image of the texture, or \"0\" to disable such action");
@@ -121,6 +127,7 @@ main(int argc, char *argv[]) {
     }
   }
 
+  airSrand48(srnd);
   if (alanParmSet(actx, alanParmVerbose, 1)
       || alanParmSet(actx, alanParmTextureType, alanTextureTypeTuring)
       || alanParmSet(actx, alanParmK, 0.0125)
@@ -131,6 +138,7 @@ main(int argc, char *argv[]) {
       || alanParmSet(actx, alanParmReact, react)
       || alanParmSet(actx, alanParmMinAverageChange, mch)
       || alanParmSet(actx, alanParmMaxPixelChange, xch)
+      || alanParmSet(actx, alanParmMaxIteration, maxi)
       || alanParmSet(actx, alanParmRandRange, rrange)
       || alanParmSet(actx, alanParmSaveInterval, si)
       || alanParmSet(actx, alanParmFrameInterval, fi)

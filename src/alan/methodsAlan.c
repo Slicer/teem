@@ -36,7 +36,7 @@ alanContextInit(alanContext *actx) {
     actx->numThreads = 1;
     actx->frameInterval = 10;
     actx->saveInterval = 100;
-    actx->maxIteration = 100000;
+    actx->maxIteration = 1000000;
     actx->minAverageChange = 0.00002;
     actx->maxPixelChange = 6;
     actx->K = AIR_NAN;

@@ -149,6 +149,8 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
       lev0[0 + 2*I] = levInit[0 + 2*I];
       lev0[1 + 2*I] = levInit[1 + 2*I];
     } else {
+      /* NOTE: the random number stuff here is OUTSIDE the multi-threaded
+	 segment of the program- only the init thread does this */
       lev0[0 + 2*I] = actx->initA + RAND;
       lev0[1 + 2*I] = actx->initB + RAND;
     }
@@ -212,8 +214,8 @@ typedef struct {
 
 void *
 _alanTuringWorker(void *_task) {
-  alan_t *tendata, *ten, react, _react,
-    Dxx, Dxy, Dyy, Dxz, Dyz,
+  alan_t *tendata, *ten, react,
+    conf, Dxx, Dxy, Dyy, Dxz, Dyz,
     *tpx, *tmx, *tpy, *tmy, *tpz, *tmz,
     *lev0, *lev1, *parm, deltaT, alpha, beta, A, B,
     *v[27], lapA, lapB, corrA, corrB, 
@@ -234,7 +236,7 @@ _alanTuringWorker(void *_task) {
   startW = task->idx*sy/task->actx->numThreads;
   endW = (task->idx+1)*sy/task->actx->numThreads;
   tendata = task->actx->nten ? (alan_t *)task->actx->nten->data : NULL;
-  _react = task->actx->react;
+  react = task->actx->react;
 
   if (2 == dim) {
     startZ = 0;
@@ -249,7 +251,9 @@ _alanTuringWorker(void *_task) {
   }
 
   for (iter = 0; 
-       alanStopNot == task->actx->stop && iter < task->actx->maxIteration; 
+       (alanStopNot == task->actx->stop 
+	&& (0 == task->actx->maxIteration
+	    || iter < task->actx->maxIteration)); 
        iter++) {
 
     if (0 == task->idx) {
@@ -260,6 +264,7 @@ _alanTuringWorker(void *_task) {
     lev1 = (alan_t*)(task->actx->_nlev[(iter+1) % 2]->data);
     stop = alanStopNot;
     change = 0;
+    conf = 1;  /* if you have no data; this will stay 1 */
     for (z = startZ; z < endZ; z++) {
       if (task->actx->wrap) {
 	pz = AIR_MOD(z+1, sz);
@@ -290,6 +295,7 @@ _alanTuringWorker(void *_task) {
 	  deltaT = parm[0 + 3*idx];
 	  alpha = parm[1 + 3*idx];
 	  beta = parm[2 + 3*idx];
+	  lapA = lapB = corrA = corrB = 0;
 	  if (2 == dim) {
 	    /*
 	    **  0 1 2 ----> X
@@ -313,39 +319,40 @@ _alanTuringWorker(void *_task) {
 	      v[6] = lev0 + 2*(mx + sx*(py));
 	      v[8] = lev0 + 2*(px + sx*(py));
 	      ten = tendata + 4*idx;
-	      Dxx = ten[1];
-	      Dxy = ten[2];
-	      Dyy = ten[3];
-	      lapA = (Dxy*(v[0][0] + v[8][0] - v[2][0] - v[6][0])/2
-		      + Dxx*(v[3][0] + v[5][0]) + Dyy*(v[1][0] + v[7][0])
-		      - 2*(Dxx + Dyy)*A);
-	      lapB = (Dxy*(v[0][1] + v[8][1] - v[2][1] - v[6][1])/2
-		      + Dxx*(v[3][1] + v[5][1]) + Dyy*(v[1][1] + v[7][1])
-		      - 2*(Dxx + Dyy)*B);
-	      react = ten[0];
-	      if (task->actx->homogAniso) {
-		corrA = 0;
-		corrB = 0;
+	      conf = (AIR_CLAMP(0.3, ten[0], 1) - 0.3)/0.7;
+	      if (conf) {
+		Dxx = ten[1];
+		Dxy = ten[2];
+		Dyy = ten[3];
+		lapA = (Dxy*(v[0][0] + v[8][0] - v[2][0] - v[6][0])/2
+			+ Dxx*(v[3][0] + v[5][0]) + Dyy*(v[1][0] + v[7][0])
+			- 2*(Dxx + Dyy)*A);
+		lapB = (Dxy*(v[0][1] + v[8][1] - v[2][1] - v[6][1])/2
+			+ Dxx*(v[3][1] + v[5][1]) + Dyy*(v[1][1] + v[7][1])
+			- 2*(Dxx + Dyy)*B);
+		if (!(task->actx->homogAniso)) {
+		  tpx = tendata + 4*(px + sx*( y + sy*( z)));
+		  tmx = tendata + 4*(mx + sx*( y + sy*( z)));
+		  tpy = tendata + 4*( x + sx*(py + sy*( z)));
+		  tmy = tendata + 4*( x + sx*(my + sy*( z)));
+		  corrA = ((tpx[1] - tmx[1])*(v[5][0] - v[3][0])/4 +  /* Dxx,x * A,x */
+			   (tpx[2] - tmx[2])*(v[7][0] - v[1][0])/4 +  /* Dxy,x * A,y */
+			   (tpy[2] - tmy[2])*(v[5][0] - v[3][0])/4 +  /* Dxy,y * A,x */
+			   (tpy[3] - tmy[3])*(v[7][0] - v[1][0]));    /* Dyy,y * A,y */
+		  corrB = ((tpx[1] - tmx[1])*(v[5][1] - v[3][1])/4 +  /* Dxx,x * B,x */
+			   (tpx[2] - tmx[2])*(v[7][1] - v[1][1])/4 +  /* Dxy,x * B,y */
+			   (tpy[2] - tmy[2])*(v[5][1] - v[3][1])/4 +  /* Dxy,y * B,x */
+			   (tpy[3] - tmy[3])*(v[7][1] - v[1][1]));    /* Dyy,y * B,y */
+		}
 	      } else {
-		tpx = tendata + 4*(px + sx*( y + sy*( z)));
-		tmx = tendata + 4*(mx + sx*( y + sy*( z)));
-		tpy = tendata + 4*( x + sx*(py + sy*( z)));
-		tmy = tendata + 4*( x + sx*(my + sy*( z)));
-		corrA = ((tpx[1] - tmx[1])*(v[5][0] - v[3][0])/4 +  /* Dxx,x * A,x */
-			 (tpx[2] - tmx[2])*(v[7][0] - v[1][0])/4 +  /* Dxy,x * A,y */
-			 (tpy[2] - tmy[2])*(v[5][0] - v[3][0])/4 +  /* Dxy,y * A,x */
-			 (tpy[3] - tmy[3])*(v[7][0] - v[1][0]));    /* Dyy,y * A,y */
-		corrB = ((tpx[1] - tmx[1])*(v[5][1] - v[3][1])/4 +  /* Dxx,x * B,x */
-			 (tpx[2] - tmx[2])*(v[7][1] - v[1][1])/4 +  /* Dxy,x * B,y */
-			 (tpy[2] - tmy[2])*(v[5][1] - v[3][1])/4 +  /* Dxy,y * B,x */
-			 (tpy[3] - tmy[3])*(v[7][1] - v[1][1]));    /* Dyy,y * B,y */
+		/* no confidence; you diffuse */
+		lapA = v[1][0] + v[3][0] + v[5][0] + v[7][0] - 4*A;
+		lapB = v[1][1] + v[3][1] + v[5][1] + v[7][1] - 4*B;
 	      }
 	    } else {
+	      /* no data; you diffuse */
 	      lapA = v[1][0] + v[3][0] + v[5][0] + v[7][0] - 4*A;
 	      lapB = v[1][1] + v[3][1] + v[5][1] + v[7][1] - 4*B;
-	      corrA = 0;
-	      corrB = 0;
-	      react = 1;
 	    }
 	  } else {
 	    /* 3 == dim */
@@ -373,10 +380,7 @@ _alanTuringWorker(void *_task) {
 	    v[22] = lev0 + 2*( x + sx*( y + sy*(pz)));
 	    if (tendata) {
 
-	      if (task->actx->homogAniso) {
-		corrA = 0;
-		corrB = 0;
-	      } else {
+	      if (!(task->actx->homogAniso)) {
 		
 	      }
 	    } else {
@@ -384,20 +388,16 @@ _alanTuringWorker(void *_task) {
 		      + v[14][0] + v[16][0] + v[22][0] - 6*A);
 	      lapB = (v[ 4][1] + v[10][1] + v[12][1]
 		      + v[14][1] + v[16][1] + v[22][1] - 6*B);
-	      corrA = 0;
-	      corrB = 0;
-	      react = 1;
 	    }
 	  }
 	  
-	  react *= _react;
-	  deltaA = deltaT*(react*task->actx->K*(alpha - A*B) 
+	  deltaA = deltaT*(react*conf*task->actx->K*(alpha - A*B) 
 			   + diffA*(lapA + corrA));
 	  if (AIR_ABS(deltaA) > task->actx->maxPixelChange) {
 	    stop = alanStopDiverged;
 	  }
 	  change += AIR_ABS(deltaA);
-	  deltaB = deltaT*(react*task->actx->K*(A*B - B - beta)
+	  deltaB = deltaT*(react*conf*task->actx->K*(A*B - B - beta)
 			   + diffB*(lapB + corrB));
 	  if (!( AIR_EXISTS(deltaA) && AIR_EXISTS(deltaB) )) {
 	    stop = alanStopNonExist;

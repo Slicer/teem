@@ -105,7 +105,7 @@ typedef struct alanContext_t {
     numThreads,       /* # of threads, if airThreadCapable */
     frameInterval,    /* # of iterations between which to an image */
     saveInterval,     /* # of iterations between which to save all state */
-    maxIteration,     /* cap on # of iterations */
+    maxIteration,     /* cap on # of iterations, or 0 if there is no limit */
     constFilename;    /* always use the same filename when saving frames */
   alan_t K, F,        /* simulation variables */
     deltaX,           /* size of spatial grid discretization */
