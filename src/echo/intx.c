@@ -389,16 +389,16 @@ _echo_LogSuperquadZ_vg(echoPos_t grad[3],
 
 int
 _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
-  echoPos_t T0, T1=0, tmin, tmax, pos[3],
-    Vmin, Vmax, V0, V1=0, dV, dVmin, dVmax, grad[3], tmp,
+  echoPos_t T1=0, tmin, tmax, pos[3],
+    Vmin, Vmax, V1=0, dV, dVmin, dVmax, grad[3], tmp,
     (*vg)(echoPos_t[3],
 	  echoPos_t, echoPos_t, echoPos_t,
 	  echoPos_t, echoPos_t),
     (*lvg)(echoPos_t[3],
 	   echoPos_t, echoPos_t, echoPos_t,
 	   echoPos_t, echoPos_t);
-  echoPos_t close, cltmin, cltmax;
-  int iter, divs;
+  echoPos_t cltmin, cltmax;
+  int iter;
   
   if (!_echoRayIntx_CubeSolid(&tmin, &tmax,
 			      -1-ECHO_EPSILON, 1+ECHO_EPSILON,
@@ -458,13 +458,13 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
 
   /* either the value changed sign, or the derivative changed sign,
      or both.  If the derivative changed sign, we need to limit the
-     interval based on the minimum distance.  This is really slow!  */
+     interval based on distance to the minimum.  This is really slow!  */
   if (dVmin*dVmax < 0) {
     cltmin = tmin;
     cltmax = tmax;
     T1 = (cltmin + cltmax)/2;
     LVALGRAD(V1, grad, dV, ray->from, T1, ray->dir);
-    for (iter=1; (AIR_ABS(dV) > parm->sqTol); iter++) {
+    for (iter=1; (AIR_ABS(dV) > 10*parm->sqTol); iter++) {
       if (tstate->verbose) {
 	fprintf(stderr, "T1 = %g -> V1 = %g, dV = %g\n", T1, V1, dV);
       }
@@ -479,6 +479,7 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
       LVALGRAD(V1, grad, dV, ray->from, T1, ray->dir);
     }
     if (V1 > 0) {
+      /* the minimum is is still positive, no root */
       return AIR_FALSE;
     }
     /* minimum V1 is at T1 */
@@ -492,7 +493,7 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
   }
 
   /* now the value is monotonic between tmin and tmax, and we know that
-     there must be a root. Do some bisection, finish with newton-raphson */
+     there exactly one root. Do some bisection, finish with newton-raphson */
   iter = 0;
   T1 = (tmin + tmax)/2;
   VAL(V1, ray->from, T1, ray->dir);

@@ -340,6 +340,10 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
       imgU = NRRD_POS(nrrdCenterCell, cam->uRange[0], cam->uRange[1],
 		      parm->imgResU, imgUi);
 
+      /* initialize things on first "scanline" */
+      tstate->jitt = (echoPos_t *)tstate->njitt->data;
+      chan = tstate->chanBuff;
+
       /* tstate->verbose = ( (160 == imgUi && 160 == imgVi) ); */
       
       if (tstate->verbose) {
@@ -349,10 +353,6 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
 		imgUi, imgVi);
 	fprintf(stderr, "-----------------------------------------------\n\n");
       }
-
-      /* initialize things on first "scanline" */
-      tstate->jitt = (echoPos_t *)tstate->njitt->data;
-      chan = tstate->chanBuff;
 
       /* go through samples */
       for (samp=0; samp<parm->numSamples; samp++) {
@@ -374,13 +374,13 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
 	ELL_3V_NORM(ray.dir, ray.dir, tmp0);
 	ray.neer = 0.0;
 	ray.faar = ECHO_POS_MAX;
-#if 1
 	time0 = airTime();
-	echoRayColor(chan, &ray, scene, parm, tstate);
+	if (imgVi < 800) {
+	  memset(chan, 0, ECHO_IMG_CHANNELS*sizeof(echoCol_t));
+	} else {
+	  echoRayColor(chan, &ray, scene, parm, tstate);
+	}
 	chan[4] = airTime() - time0;
-#else
-	memset(chan, 0, ECHO_IMG_CHANNELS*sizeof(echoCol_t));
-#endif
 	
 	/* move to next "scanlines" */
 	tstate->jitt += 2*ECHO_JITTABLE_NUM;
