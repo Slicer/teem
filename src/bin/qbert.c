@@ -27,12 +27,7 @@
 #define QBERT "qbert"
 #define QBERT_HIST_BINS 1024     /* histogram size for v, g, and h */
 
-char info[]="Generates volume datasets friendly to hardware-based "
-"volume renderers. "
-"Each voxel in the output volume contains 8-bit quantized values of the data "
-"value, gradient magnitude, and 2nd directional derivative.";
-
-int qbertSaveAll = AIR_TRUE;  /* can be used to save output of every stage */
+int qbertSaveAll = AIR_FALSE;  /* can be used to save output of every stage */
 
 /*
 ** This padding/resampling is to get axis[i]'s size >= sz[i], which
@@ -77,7 +72,7 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, int *sz,
     }
     if (anyneed) {
       rsi->boundary = nrrdBoundaryBleed;
-      rsi->type = nrrdTypeUnknown;
+      rsi->type = nrrdTypeFloat;
       rsi->renormalize = AIR_TRUE;
       rsi->clamp = AIR_TRUE;
       fprintf(stderr, "%s: resampling ... ", me); fflush(stderr);
@@ -85,6 +80,7 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, int *sz,
 	sprintf(err, "%s: trouble upsampling", me);
 	biffMove(QBERT, err, NRRD); airMopError(mop); return 1;
       }
+      fprintf(stderr, "done\n");
     }
   } else {
     for (i=0; i<=2; i++) {
@@ -114,7 +110,7 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, int *sz,
   }
   if (qbertSaveAll) {
     fprintf(stderr, "%s: saving up.nrrd\n", me);
-    nrrdSave("pad1.nrrd", nout, NULL);
+    nrrdSave("up.nrrd", nout, NULL);
   }
   airMopOkay(mop);
   return 0;
@@ -174,10 +170,9 @@ qbertSizeDown(Nrrd *nout, Nrrd *nin, int *sz,
       biffMove(QBERT, err, NRRD); airMopError(mop); return 1;
     }
   }
-  rsi = nrrdResampleInfoNix(rsi);
   if (qbertSaveAll) {
-    fprintf(stderr, "%s: saving rsmp.nrrd\n", me);
-    nrrdSave("rsmp.nrrd", nout, NULL);
+    fprintf(stderr, "%s: saving down.nrrd\n", me);
+    nrrdSave("down.nrrd", nout, NULL);
   }
 
   airMopOkay(mop); 
@@ -188,22 +183,29 @@ qbertSizeDown(Nrrd *nout, Nrrd *nin, int *sz,
 ** probing to getting floating point V, G, and maybe H values
 */
 int
-qbertProbe(Nrrd *nout, Nrrd *nin, int doH, int *sz) {
+qbertProbe(Nrrd *nout, Nrrd *nin,
+	   NrrdKernelSpec *k00, NrrdKernelSpec *k11, NrrdKernelSpec *k22,
+	   int doH, int *sz) {
   char me[]="qbertProbe", err[AIR_STRLEN_MED], prog[AIR_STRLEN_SMALL];
   gageContext *ctx;
   gagePerVolume *pvl;
   gage_t *val, *gmag, *scnd;
-  double kparm[3];
   float *vghF;
   int E, i, j, k, query;
   airArray *mop;
-
+  
   doH = !!doH;
   mop = airMopNew();
   ctx = gageContextNew();
-  pvl = gagePerVolumeNew(ctx, nin, gageKindScl);
   airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
-  airMopAdd(mop, pvl, (airMopper)gagePerVolumeNix, airMopAlways);
+  
+  nin->axis[0].center = nrrdCenterNode;
+  nin->axis[1].center = nrrdCenterNode;
+  nin->axis[2].center = nrrdCenterNode;
+  if (!(pvl = gagePerVolumeNew(ctx, nin, gageKindScl))) {
+    sprintf(err, "%s: gage trouble", me);
+    biffMove(QBERT, err, GAGE); airMopError(mop); return 1;
+  }
   gageSet(ctx, gageParmVerbose, 0);
   gageSet(ctx, gageParmRenormalize, AIR_TRUE);
   gageSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
@@ -213,14 +215,9 @@ qbertProbe(Nrrd *nout, Nrrd *nin, int doH, int *sz) {
      done is ONLY on grid locations, and never in between voxels.  That 
      means that the kernels set below are really only used for creating
      discrete convolution masks at unit locations */
-  kparm[0] = 1.0;
-  if (!E) E |= gageKernelSet(ctx, gageKernel00, nrrdKernelTent, kparm);
-  /* We'll just use cendif to get central differencing */
-  kparm[0] = 1.0;
-  if (!E) E |= gageKernelSet(ctx, gageKernel11, nrrdKernelCentDiff, kparm);
-  /* 2nd derivative of B-spline generates second central differences */
-  kparm[0] = 1.0; kparm[1] = 1.0; kparm[2] = 0.0;
-  if (!E) E |= gageKernelSet(ctx, gageKernel22, nrrdKernelBCCubicDD, kparm);
+  if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
+  if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm);
+  if (!E) E |= gageKernelSet(ctx, gageKernel22, k22->kernel, k22->parm);
   query = (1 << gageSclValue) | (1 << gageSclGradMag);
   if (doH) {
     query |= (1 << gageScl2ndDD);
@@ -260,12 +257,12 @@ qbertProbe(Nrrd *nout, Nrrd *nin, int doH, int *sz) {
     }
   }
   fprintf(stderr, "%s\n", airDoneStr(0, 2, 1, prog));
-  ctx = gageContextNix(ctx);
   if (qbertSaveAll) {
     fprintf(stderr, "%s: saving vghF.nrrd\n", me);
     nrrdSave("vghF.nrrd", nout, NULL);
   }
 
+  airMopOkay(mop); 
   return 0;
 }
 
@@ -412,16 +409,18 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
   }
   maxg = AIR_AFFINE(0, i, bins-1, ming, maxg);
 
-  lose = perc[2]*sz[0]*sz[1]*sz[2]/100;
-  bins = nhhist->axis[0].size;
-  i = 0;
-  while (lose > 0) {
-    /* nibble from top and bottom at equal rates */
-    lose -= hhist[i] + hhist[bins-1-i];
-    i++;
+  if (doH) {
+    lose = perc[2]*sz[0]*sz[1]*sz[2]/100;
+    bins = nhhist->axis[0].size;
+    i = 0;
+    while (lose > 0) {
+      /* nibble from top and bottom at equal rates */
+      lose -= hhist[i] + hhist[bins-1-i];
+      i++;
+    }
+    minh = AIR_AFFINE(0, i, bins-1, minh, maxh);
+    maxh = -minh;
   }
-  minh = AIR_AFFINE(0, i, bins-1, minh, maxh);
-  maxh = -minh;
 
   fprintf(stderr, "%s: new values (ignored %5d): [%g .. %g]\n",
 	  me, (int)(perc[0]*sz[0]*sz[1]*sz[2]/100), minv, maxv);
@@ -473,18 +472,72 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
 }
   
 int
+qbertScat(Nrrd *nvgh, int pos, int size, char *name) {
+  char me[]="qbertScat", err[AIR_STRLEN_MED];
+  Nrrd *nin[2], *nv, *nx, *nscA, *nscB;
+  airArray *mop;
+  int E, bins[2], clamp[2], hack;
+
+  hack = nrrdStateClever8BitMinMax;
+  nrrdStateClever8BitMinMax = AIR_TRUE;
+  bins[0] = bins[1] = size;
+  clamp[0] = clamp[1] = AIR_FALSE;
+  mop = airMopNew();
+  airMopAdd(mop, nv=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nx=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nscA=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nscB=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  nin[0] = nv;
+  nin[1] = nx;
+  E = 0;
+  if (!E) E |= nrrdSlice(nv, nvgh, 0, 0);
+  if (!E) E |= nrrdSlice(nx, nvgh, 0, pos);
+  if (!E) E |= nrrdHistoJoint(nscA, nin, 2, NULL, bins, nrrdTypeFloat, clamp);
+  if (!E) E |= nrrdArithUnaryOp(nscB, nrrdUnaryOpLog1p, nscA);
+  if (!E) E |= nrrdHistoEq(nscA, nscB, NULL, 2048, 2, 0.45);
+  if (!E) { nrrdMinMaxSet(nscA); nscA->max *= 0.8; }
+  if (!E) E |= nrrdQuantize(nscB, nscA, 8);
+  if (!E) E |= nrrdFlip(nscA, nscB, 1);
+  if (!E) E |= nrrdSave(name, nscA, NULL);
+  if (E) {
+    sprintf(err, "%s: trouble generating/saving scatterplot", me);
+    biffMove(QBERT, err, NRRD); airMopError(mop); return 1;
+  }
+
+  nrrdStateClever8BitMinMax = hack;
+  airMopOkay(mop);
+  return 0;
+}
+
+char qbertInfo[]="Generates volume datasets friendly to hardware-based "
+"volume renderers. "
+"The main value of this is a means of combining the functions of "
+"resampling a dataset to a particular size, measuring first (and "
+"optionally second) derivatives, and doing some semi-intelligent "
+"quantization of the derivative values down to 8-bits (if quantization "
+"is desired).  The various up and down sampling, as well as the "
+"the VGH measurements, can be done with various nrrd kernels.  Also, "
+"histogram-equalized "
+"VG and VH scatterplots can be generated at a specified resolution.";
+
+int
 main(int argc, char *argv[]) {
   char *me, *outS, *errS;
   Nrrd *nin, *npad, *nrsmp, *nvghF, *nvhist, *nghist, *nhhist, *nvgh;
-  int E, i, sz[3], ups, doH, useFloat;
+  int E, i, sz[3], ups, doH, useFloat, scat;
+  NrrdKernelSpec *k00, *k11, *k22;
   double amin[4], amax[4], spacing[4];
   float vperc, gperc, hperc, perc[3];
   NrrdKernelSpec *dk, *uk;
   hestParm *hparm;
   hestOpt *hopt = NULL;
+  airArray *mop;
 
+  mop = airMopNew();
   me = argv[0];
   hparm = hestParmNew();
+  airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
+  
   hparm->elideSingleOtherType = AIR_TRUE;
   hparm->elideSingleNonExistFloatDefault = AIR_TRUE;
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
@@ -513,6 +566,19 @@ main(int argc, char *argv[]) {
 	     "kernel to use when DOWNsampling volume to fit with specified "
 	     "dimensions. NOTE: ringing can be problematic here.",
 	     NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00,
+	     "tent", "kernel for gageKernel00, used to probe values (\"V\") "
+	     "in the volume that has been padded/resampled to fit in the "
+	     "dimensions given by \"-d\"",
+	     NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "k11", "kern11", airTypeOther, 1, 1, &k11,
+	     "cubicd:1,0", "kernel for gageKernel11, used with k00 to probe "
+	     "gradient magnitudes (\"G\")",
+	     NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "k22", "kern22", airTypeOther, 1, 1, &k22,
+	     "cubicdd:1,0", "kernel for gageKernel22, used with k00,k11 to "
+	     "probe Hessian-based 2nd derivatives (\"H\")",
+	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "vp", "V excl perc", airTypeFloat, 1, 1, &vperc,
 	     "0.000",
 	     "Percent of voxels to through away in quantization (if doing "
@@ -521,27 +587,48 @@ main(int argc, char *argv[]) {
 	     "Like \"-vp\", but for gradient magnitudes. ");
   hestOptAdd(&hopt, "hp", "H perc", airTypeFloat, 1, 1, &hperc, "0.004",
 	     "Like \"-vp\", but for Hessian-based 2nd derivatives. ");
+  hestOptAdd(&hopt, "scat", "scat size", airTypeInt, 1, 1, &scat, "0",
+	     "generate VG (and VH) scatterplots with this resolution. "
+	     "Size 0 means \"no scatterplots\".  The scatterplots are "
+	     "histogram equalized, quantized, and saved out as PGM images "
+	     "named \"vg.pgm\" (and \"vh.pgm\").");
   hestOptAdd(&hopt, "o", "output", airTypeString, 1, 1, &outS, NULL,
 	     "output volume in nrrd format");
+  airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
-		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+		 me, qbertInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   if (3 != nin->dim) {
     fprintf(stderr, "%s: input nrrd is %-dimensional, not 3\n", me, nin->dim);
-    exit(1);
+    airMopError(mop); exit(1);
+  }
+  if (!AIR_EXISTS(nin->axis[0].spacing)) {
+    nrrdAxisSpacingSet(nin, 0);
+  }
+  if (!AIR_EXISTS(nin->axis[1].spacing)) {
+    nrrdAxisSpacingSet(nin, 1);
+  }
+  if (!AIR_EXISTS(nin->axis[2].spacing)) {
+    nrrdAxisSpacingSet(nin, 2);
   }
 
   npad = nrrdNew();
+  airMopAdd(mop, npad, (airMopper)nrrdNuke, airMopAlways);
   if (qbertSizeUp(npad, nin, sz, ups ? uk : NULL)) {
-    fprintf(stderr, "%s: trouble:\n%s\n", me, errS = biffGetDone(QBERT));
-    free(errS); exit(1);
+    airMopAdd(mop, errS=biffGetDone(QBERT), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble:\n%s\n", me, errS);
+    airMopError(mop); exit(1);
   }  
 
   nrsmp = nrrdNew();
+  airMopAdd(mop, nrsmp, (airMopper)nrrdNuke, airMopAlways);
   if (qbertSizeDown(nrsmp, npad, sz, dk)) {
-    fprintf(stderr, "%s: trouble:\n%s\n", me, errS = biffGetDone(QBERT));
-    free(errS); exit(1);
+    airMopAdd(mop, errS=biffGetDone(QBERT), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble:\n%s\n", me, errS);
+    airMopError(mop); exit(1);
   }
+  airMopSub(mop, npad, (airMopper)nrrdNuke);
   npad = nrrdNuke(npad);
   
   /* this axis info is being saved so that it can be re-enstated at the end */
@@ -553,7 +640,8 @@ main(int argc, char *argv[]) {
      they didn't exist before, and those shouldn't be saved in output.  But
      we can't just copy axis mins and maxs from the original input because
      padding could have changed them.  If no axis mins and maxs existed on
-     the input nrrd, these will all be nan, so they won't be saved out. */
+     the input nrrd, these will all be nan, so they won't be saved out. 
+     NOTE: we're only nixing axis min/max information, not spacing. */
   for (i=0; i<=2; i++) {
     if (!AIR_EXISTS(nin->axis[i].min))
       amin[1+i] = AIR_NAN;
@@ -562,19 +650,31 @@ main(int argc, char *argv[]) {
   }
   
   nvghF = nrrdNew();
-  if (qbertProbe(nvghF, nrsmp, doH, sz)) {
-    fprintf(stderr, "%s: trouble:\n%s\n", me, errS = biffGetDone(QBERT));
-    free(errS); exit(1);
+  airMopAdd(mop, nvghF, (airMopper)nrrdNuke, airMopAlways);
+  if (qbertProbe(nvghF, nrsmp, k00, k11, k22, doH, sz)) {
+    airMopAdd(mop, errS=biffGetDone(QBERT), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble:\n%s\n", me, errS);
+    airMopError(mop); exit(1);
   }
+  airMopSub(mop, nrsmp, (airMopper)nrrdNuke);
   nrsmp = nrrdNuke(nrsmp);
 
   if (useFloat) {
     /* we're done! */
+    if (scat && (qbertScat(nvghF, 1, scat, "vg.pgm")
+		 || (doH && qbertScat(nvghF, 2, scat, "vh.pgm")))) {
+      airMopAdd(mop, errS=biffGetDone(QBERT), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble:\n%s\n", me, errS);
+      airMopError(mop); exit(1);
+    }
     E = nrrdSave(outS, nvghF, NULL);
   } else {
     nvhist = nrrdNew();
     nghist = nrrdNew();
     nhhist = nrrdNew();
+    airMopAdd(mop, nvhist, (airMopper)nrrdNuke, airMopAlways);
+    airMopAdd(mop, nghist, (airMopper)nrrdNuke, airMopAlways);
+    airMopAdd(mop, nhhist, (airMopper)nrrdNuke, airMopAlways);
     if (qbertMakeVghHists(nvhist, nghist, nhhist,
 			  sz, QBERT_HIST_BINS,
 			  nvghF, nin)) {
@@ -583,35 +683,39 @@ main(int argc, char *argv[]) {
     }
     
     nvgh = nrrdNew();
+    airMopAdd(mop, nvgh, (airMopper)nrrdNuke, airMopAlways);
     ELL_3V_SET(perc, vperc, gperc, hperc);
     if (qbertMakeVgh(nvgh, nvhist, nghist, nhhist, sz, perc, nvghF)) {
-      fprintf(stderr, "%s: trouble:\n%s\n", me, errS = biffGetDone(QBERT));
-      free(errS); exit(1);
+      airMopAdd(mop, errS=biffGetDone(QBERT), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble:\n%s\n", me, errS);
+      airMopError(mop); exit(1);
     }
+    airMopSub(mop, nvghF, (airMopper)nrrdNuke);
     nvghF = nrrdNuke(nvghF);
-    nvhist = nrrdNuke(nvhist);
-    nghist = nrrdNuke(nghist);
-    nhhist = nrrdNuke(nhhist);
     
+    if (scat && (qbertScat(nvgh, 1, scat, "vg.pgm")
+		 || (doH && qbertScat(nvgh, 2, scat, "vh.pgm")))) {
+      airMopAdd(mop, errS=biffGetDone(QBERT), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble:\n%s\n", me, errS);
+      airMopError(mop); exit(1);
+    }
+
     /* do final decoration of axes */
     nrrdAxesSet(nvgh, nrrdAxesInfoLabel, "vgh", "x", "y", "z");
     nrrdAxesSet_nva(nvgh, nrrdAxesInfoMin, amin);
     nrrdAxesSet_nva(nvgh, nrrdAxesInfoMax, amax);
     nrrdAxesSet_nva(nvgh, nrrdAxesInfoSpacing, spacing);
     nrrdContentSet(nvgh, "qbert", nin, "");
-    nin = nrrdNuke(nin);
     
     E = nrrdSave(outS, nvgh, NULL);
-    nvgh = nrrdNuke(nvgh);
   }
   if (E) {
-    fprintf(stderr, "%s: trouble saving output:\n%s\n", me,
-	    errS = biffGetDone(NRRD));
-    free(errS); exit(1);
+    airMopAdd(mop, errS=biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble saving output:\n%s\n", me, errS);
+    airMopError(mop); exit(1);
   }
-  hparm = hestParmFree(hparm);
-  hopt = hestOptFree(hopt);
 
   /* HEY: why am I getting memory-in-use with purify? */
+  airMopOkay(mop);
   exit(0);
 }
