@@ -66,10 +66,17 @@ _nrrdSwap64Endian(void *_data, size_t N) {
       fix = ((l & 0x000000000000FF00) >> 0x08) | (fix << 0x08);
       fix = ((l & 0x0000000000FF0000) >> 0x10) | (fix << 0x08);
       fix = ((l & 0x00000000FF000000) >> 0x18) | (fix << 0x08);
+#if defined(_WIN32)
+      fix = ((l & 0x000000FF00000000i64) >> 0x20) | (fix << 0x08);
+      fix = ((l & 0x0000FF0000000000i64) >> 0x28) | (fix << 0x08);
+      fix = ((l & 0x00FF000000000000i64) >> 0x30) | (fix << 0x08);
+      fix = ((l & 0xFF00000000000000i64) >> 0x38) | (fix << 0x08);
+#else
       fix = ((l & 0x000000FF00000000LL) >> 0x20) | (fix << 0x08);
       fix = ((l & 0x0000FF0000000000LL) >> 0x28) | (fix << 0x08);
       fix = ((l & 0x00FF000000000000LL) >> 0x30) | (fix << 0x08);
       fix = ((l & 0xFF00000000000000LL) >> 0x38) | (fix << 0x08);
+#endif
       data[I] = fix;
     }
   }
