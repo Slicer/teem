@@ -33,16 +33,22 @@ _nrrdHestNrrdParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     return 1;
   }
   nrrdP = (Nrrd **)ptr;
-  mop = airMopNew();
-  *nrrdP = nrrdNew();
-  airMopAdd(mop, *nrrdP, (airMopper)nrrdNuke, airMopOnError);
-  if (nrrdLoad(*nrrdP, str)) {
-    airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
-    strncpy(err, nerr, AIR_STRLEN_HUGE-1);
-    airMopError(mop);
-    return (strstr(err, _NRRD_IMM_EOF) ? 2 : 1);
+  if (airStrlen(str)) {
+    mop = airMopNew();
+    *nrrdP = nrrdNew();
+    airMopAdd(mop, *nrrdP, (airMopper)nrrdNuke, airMopOnError);
+    if (nrrdLoad(*nrrdP, str)) {
+      airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
+      strncpy(err, nerr, AIR_STRLEN_HUGE-1);
+      airMopError(mop);
+      return (strstr(err, _NRRD_IMM_EOF) ? 2 : 1);
+    }
+    airMopOkay(mop);
+  } else {
+    /* they gave us an empty string, we give back no nrrd,
+       but its not an error condition */
+    *nrrdP = NULL;
   }
-  airMopOkay(mop);
   return 0;
 }
 
