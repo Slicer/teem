@@ -114,7 +114,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     }
     fs = airEnumStr(nrrdField, ret);
     if (!_nrrdFieldValidInText[ret]) {
-      if (nrrdStateVerboseIO) {
+      if (1 <= nrrdStateVerboseIO) {
         fprintf(stderr, "(%s: field \"%s\" not allowed in plain text "
                 "--> plain comment)\n", me, fs);
       }
@@ -125,7 +125,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     if (!nio->seen[ret]
         && nrrdFieldInfoParse[ret](file, nrrd, nio, AIR_TRUE)) {
       errS = biffGetDone(NRRD);
-      if (nrrdStateVerboseIO) {
+      if (1 <= nrrdStateVerboseIO) {
         fprintf(stderr, "%s: %s", me, errS);
         fprintf(stderr, "(%s: malformed field \"%s\" --> plain comment)\n",
                 me, fs);
@@ -140,7 +140,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     }
     if (nrrdField_dimension == ret) {
       if (!(1 == nrrd->dim || 2 == nrrd->dim)) {
-        if (nrrdStateVerboseIO) {
+        if (1 <= nrrdStateVerboseIO) {
           fprintf(stderr, "(%s: plain text dimension can only be 1 or 2; "
                   "resetting to 2)\n", me);
         }

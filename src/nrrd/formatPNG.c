@@ -322,7 +322,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
           goto plain;
         }
         if (!_nrrdFieldValidInImage[ret]) {
-          if (nrrdStateVerboseIO) {
+          if (1 <= nrrdStateVerboseIO) {
             fprintf(stderr, "(%s: field \"%s\" (not allowed in PNG) "
                     "--> plain comment)\n", me, fs);
           }
@@ -331,7 +331,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
         }
         if (!nio->seen[ret] 
             && nrrdFieldInfoParse[ret](file, nrrd, nio, AIR_FALSE)) {
-          if (nrrdStateVerboseIO) {
+          if (1 <= nrrdStateVerboseIO) {
             fprintf(stderr, "(%s: unparsable info for field \"%s\" "
                     "--> plain comment)\n", me, fs);
           }
