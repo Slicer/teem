@@ -161,14 +161,16 @@ limnCameraAspectSet(limnCamera *cam, int horz, int vert, int centering) {
 ** output: cameras at all "numFrames" frames are set in the 
 ** PRE-ALLOCATED array of output cameras, "cam".
 **
-** input: an array of keyframe cameras "keycam", and times associated
-** with the key frames "time", both arrays length "numKeys"
+** input: 
+** keycam: array of keyframe cameras
+** time: times associated with the key frames 
+** ---> both of these arrays are length "numKeys" <---
 ** trackWhat: takes values from the limnCameraPathTrack* enum
 ** quatType: spline to control camera orientations. This is needed for 
-**          tracking at or from, but not needed for limnCameraPathTrackBoth
-**          This is the only limnSplineTypeSpec* argument that can be NULL 
+**          tracking at or from, but not needed for limnCameraPathTrackBoth.
+**          This is the only limnSplineTypeSpec* argument that can be NULL.
 ** posType: spline to control whichever of from, at, and up are needed for
-**          the given style of tracking
+**          the given style of tracking.
 ** distType: spline to control neer, faar, dist: positions of near clipping,
 **          far clipping, and image plane, as well as the 
 **          distance between from and at (which is used if not doing
@@ -176,10 +178,12 @@ limnCameraAspectSet(limnCamera *cam, int horz, int vert, int centering) {
 ** viewType: spline to control fov (and aspect, if you're crazy)
 **
 ** NOTE: The "atRelative", "orthographic", and "rightHanded" fields
-** are used from keycam[0], and those fields are ignored for all other
-** keycam[i].  Also, for the sake of simplicity, this only works with
-** fov and aspect, instead of {u,v}Range, and hence both "fov" and "aspect"
-** need to set in *all* the keycams, even if neither of them ever changes!
+** are copied from keycam[0] into all output cam[i], but you still need
+** to correctly set them for all keycam[i] for limnCameraUpdate to work
+** as expected.  Also, for the sake of simplicity, this function only works
+** with fov and aspect, instead of {u,v}Range, and hence both "fov" and
+** "aspect" need to set in *all* the keycams, even if neither of them
+** ever changes!
 */
 int
 limnCameraPathMake(limnCamera *cam, int numFrames,
@@ -194,7 +198,7 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
   airArray *mop;
   Nrrd *nquat, *nfrom, *natpt, *nupvc, *ndist, *nfova, *ntime, *nsample;
   double fratVec[3], *quat, *from, *atpt, *upvc, *dist, *fova,
-    W2V[9], N[3], fratDist;
+    W2V[9], N[3], fratDist, testquat[4];
   limnSpline *timeSpline, *quatSpline, *fromSpline, *atptSpline, *upvcSpline,
     *distSpline, *fovaSpline;
   limnSplineTypeSpec *timeType;
@@ -263,14 +267,7 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
       sprintf(err, "%s: fov, aspect not both defined on keyframe %d", me, ii);
       biffAdd(LIMN, err); airMopError(mop); return 1;
     }
-    fprintf(stderr, "!%s: keycam[%d].W2V:\n", me, ii);
-    ell_4m_print_d(stderr, keycam[ii].W2V);
     ell_4m_to_q_d(quat + 4*ii, keycam[ii].W2V);
-    fprintf(stderr, "!%s: --> q = %g %g %g %g --> \n", me,
-	    (quat + 4*ii)[0], (quat + 4*ii)[1],
-	    (quat + 4*ii)[2], (quat + 4*ii)[3]);
-    ell_q_to_3m_d(W2V, quat + 4*ii);
-    ell_3m_print_d(stderr, W2V);
     if (ii) {
       if (0 > ELL_4V_DOT(quat + 4*ii, quat + 4*(ii-1))) {
 	ELL_4V_SCALE(quat + 4*ii, -1, quat + 4*ii);
@@ -281,7 +278,6 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
     ELL_3V_COPY(upvc + 3*ii, keycam[ii].up);
     ELL_3V_SUB(fratVec, keycam[ii].from, keycam[ii].at);
     fratDist = ELL_3V_LEN(fratVec);
-    fprintf(stderr, "!%s(%d): fratDist = %g\n", me, ii, fratDist);
     ELL_4V_SET(dist + 4*ii, fratDist, 
 	       keycam[ii].neer, keycam[ii].dist, keycam[ii].faar);
     ELL_2V_SET(fova + 2*ii, keycam[ii].fov, keycam[ii].aspect);
@@ -366,7 +362,6 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
       ELL_3V_COPY(cam[ii].up, upvc + 3*ii);
     } else {
       fratDist = (dist + 4*ii)[0];
-      fprintf(stderr, "!%s(%d): fratDist = %g\n", me, ii, fratDist);
       ell_q_to_3m_d(W2V, quat + 4*ii);
       ELL_3MV_ROW1_GET(cam[ii].up, W2V);
       if (cam[ii].rightHanded) {

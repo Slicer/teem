@@ -74,10 +74,10 @@ _limnReadCamanim(int imgSize[2], limnCamera **keycamP, double **timeP,
     ELL_3V_COPY((*keycamP)[ki].up, up);
     (*keycamP)[ki].fov = va;
     (*keycamP)[ki].aspect = (double)imgSize[0]/imgSize[1];
+    (*keycamP)[ki].atRelative = AIR_FALSE;
+    (*keycamP)[ki].orthographic = AIR_FALSE;
+    (*keycamP)[ki].rightHanded = AIR_TRUE;
   }
-  (*keycamP)[0].atRelative = AIR_FALSE;
-  (*keycamP)[0].orthographic = AIR_FALSE;
-  (*keycamP)[0].rightHanded = AIR_TRUE;
 
   tmp = (double*)calloc(*numKeysP, sizeof(double));
   airMopAdd(mop, tmp, airFree, airMopAlways);
@@ -176,6 +176,8 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble reading keyframe file:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
+  airMopAdd(mop, keycam, airFree, airMopAlways);
+  airMopAdd(mop, time, airFree, airMopAlways);
   cam = (limnCamera *)calloc(N, sizeof(limnCamera));
   airMopAdd(mop, cam, airFree, airMopAlways);
   if (limnCameraPathMake(cam, N, keycam, time, numKeys, trackWhat,
