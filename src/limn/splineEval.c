@@ -254,6 +254,26 @@ _limnSplineFinish_3Vec(double *out, limnSpline *spline,
 }
   
 void
+_limnSplineFinish_4Vec(double *out, limnSpline *spline,
+		       int ii, double *wght) {
+  int N, idx[4];
+  double *cpt;
+
+  N = spline->ncpt->axis[2].size;
+  cpt = (double*)(spline->ncpt->data);
+  _limnSplineIndexFind(idx, spline, ii);
+  out[0] = (  wght[0]*cpt[0 + 4*idx[0]] + wght[1]*cpt[0 + 4*idx[1]] 
+	    + wght[2]*cpt[0 + 4*idx[2]] + wght[3]*cpt[0 + 4*idx[3]]);
+  out[1] = (  wght[0]*cpt[1 + 4*idx[0]] + wght[1]*cpt[1 + 4*idx[1]] 
+	    + wght[2]*cpt[1 + 4*idx[2]] + wght[3]*cpt[1 + 4*idx[3]]);
+  out[2] = (  wght[0]*cpt[2 + 4*idx[0]] + wght[1]*cpt[2 + 4*idx[1]] 
+	    + wght[2]*cpt[2 + 4*idx[2]] + wght[3]*cpt[2 + 4*idx[3]]);
+  out[3] = (  wght[0]*cpt[3 + 4*idx[0]] + wght[1]*cpt[3 + 4*idx[1]] 
+	    + wght[2]*cpt[3 + 4*idx[2]] + wght[3]*cpt[3 + 4*idx[3]]);
+  return;
+}
+
+void
 _limnSplineFinish_Quaternion(double *out, limnSpline *spline,
 			     int ii, double *wght) {
   char me[]="_limnSplineFinish_Quaternion";
@@ -269,6 +289,7 @@ _limnSplineFinish[LIMN_SPLINE_INFO_MAX+1] = {
   _limnSplineFinish_Scalar,
   _limnSplineFinish_2Vec,
   _limnSplineFinish_3Vec,
+  _limnSplineFinish_4Vec,
   _limnSplineFinish_Quaternion
 };
   

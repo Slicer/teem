@@ -79,6 +79,7 @@ _limnSplineInfoStr[LIMN_SPLINE_INFO_MAX+1][AIR_STRLEN_SMALL] = {
   "scalar",
   "2vector",
   "3vector",
+  "4vector",
   "quaternion"
 };
 
@@ -88,7 +89,8 @@ _limnSplineInfoDesc[LIMN_SPLINE_INFO_MAX+1][AIR_STRLEN_MED] = {
   "scalar",
   "2-vector",
   "3-vector",
-  "quaternion"
+  "4-vector, interpolated in R^4",
+  "quaternion, interpolated in S^3"
 };
 
 char
@@ -96,6 +98,7 @@ _limnSplineInfoStrEqv[][AIR_STRLEN_SMALL] = {
   "scalar", "scale", "s", "t",
   "2-vector", "2vector", "2vec", "2v", "v2", "vec2", "vector2", "vector-2",
   "3-vector", "3vector", "3vec", "3v", "v3", "vec3", "vector3", "vector-3",
+  "4-vector", "4vector", "4vec", "4v", "v4", "vec4", "vector4", "vector-4",
   "quaternion", "q",
   ""
 };
@@ -103,6 +106,7 @@ _limnSplineInfoStrEqv[][AIR_STRLEN_SMALL] = {
 #define SISS limnSplineInfoScalar
 #define SI2V limnSplineInfo2Vector
 #define SI3V limnSplineInfo3Vector
+#define SI4V limnSplineInfo4Vector
 #define SIQQ limnSplineInfoQuaternion
 
 int
@@ -110,6 +114,7 @@ _limnSplineInfoValEqv[] = {
   SISS, SISS, SISS, SISS,
   SI2V, SI2V, SI2V, SI2V, SI2V, SI2V, SI2V, SI2V,
   SI3V, SI3V, SI3V, SI3V, SI3V, SI3V, SI3V, SI3V,
+  SI4V, SI4V, SI4V, SI4V, SI4V, SI4V, SI4V, SI4V,
   SIQQ, SIQQ
 };
 
@@ -136,6 +141,7 @@ limnSplineInfoSize[LIMN_SPLINE_INFO_MAX+1] = {
   1,  /* limnSplineInfoScalar */
   2,  /* limnSplineInfo2Vector */
   3,  /* limnSplineInfo3Vector */
+  4,  /* limnSplineInfo4Vector */
   4   /* limnSplineInfoQuaternion */
 };
 

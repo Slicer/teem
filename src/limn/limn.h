@@ -283,10 +283,11 @@ enum {
   limnSplineInfoScalar,     /* 1 */
   limnSplineInfo2Vector,    /* 2 */
   limnSplineInfo3Vector,    /* 3 */
-  limnSplineInfoQuaternion, /* 4 */
+  limnSplineInfo4Vector,    /* 4 */
+  limnSplineInfoQuaternion, /* 5 */
   limnSplineInfoLast
 };
-#define LIMN_SPLINE_INFO_MAX   4
+#define LIMN_SPLINE_INFO_MAX   5
 
 /*
 ******** limnSpline
