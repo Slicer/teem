@@ -345,10 +345,10 @@ _nrrdGzRead (gzFile file, voidp buf, unsigned int len) {
 				     s->file);
       }
       len -= s->stream.avail_out;
-      s->stream.total_in  += (uLong)len;
-      s->stream.total_out += (uLong)len;
+      s->stream.total_in  += len;
+      s->stream.total_out += len;
       if (len == 0) s->z_eof = 1;
-      return (int)len;
+      return len;
     }
     if (s->stream.avail_in == 0 && !s->z_eof) {
 
@@ -394,7 +394,7 @@ _nrrdGzRead (gzFile file, voidp buf, unsigned int len) {
   }
   s->crc = crc32(s->crc, start, (uInt)(s->stream.next_out - start));
 
-  return (unsigned int)(len - s->stream.avail_out);
+  return len - s->stream.avail_out;
 }
 
 /*
@@ -435,7 +435,7 @@ _nrrdGzWrite (gzFile file, const voidp buf, unsigned int len) {
   }
   s->crc = crc32(s->crc, (const Bytef *)buf, len);
 
-  return (unsigned int)(len - s->stream.avail_in);
+  return len - s->stream.avail_in;
 }
 
 /*
