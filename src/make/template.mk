@@ -27,30 +27,10 @@
 ####
 ####
 
-## Either to avoid extra calls to need, or extra uses of call
-## $(L).need: recursively expanded version of $(L).NEED
-## $(L).need.usable: X/usable for all X needed for L
-## $(L).{hdrs,libs}.inst: full path to installed headers/libs for L
-## Keep in mind that these will be set for all libraries before ANY
-##   command's rules are executed
+## To minimize calls to "need", save this once.
 ##
 $(L).need := $(call need,$(L))
 $(L).meneed := $(L) $($(L).need)
-$(L).need.usable := $(call usable,$($(L).need))
-$(L).need.hdrs.inst := $(call hdrs.inst,$($(L).need))
-$(L).need.libs.inst := $(call libs.inst,$($(L).need))
-$(L).need.links := $(call link,$($(L).need))
-$(L).hdrs.inst := $(call hdrs.inst,$(L))
-$(L).libs.inst := $(call libs.inst,$(L))
-$(L).hdrs.dev := $(call hdrs.dev,$(L))
-$(L).libs.dev := $(call libs.dev,$(L))
-$(L).objs.dev := $(call objs.dev,$(L))
-$(L).tests.dev := $(call tests.dev,$(L))
-$(L).more.cflags := $(call more.cflags,$(L))
-$(L).ext.ipath := $(call ext.ipath,$($(L).meneed))
-$(L).ext.lpath := $(call ext.lpath,$($(L).meneed))
-$(L).ext.link := $(call ext.link,$($(L).meneed))
-$(L).ext.Dflag := $(call ext.Dflag,$($(L).meneed))
 
 ## In a rule, the contexts of the target and the prerequisite are
 ## immediate, the contexts of the commands are deferred; there is no
@@ -70,8 +50,8 @@ $(L).ext.Dflag := $(call ext.Dflag,$($(L).meneed))
 ## want.
 ##
 $(L)/% : _L := $(L)
-$($(L).hdrs.inst) : _L := $(L)
-$($(L).objs.dev) : _L := $(L)
+$(call hdrs.inst,$(L)) : _L := $(L)
+$(call objs.dev,$(L)) : _L := $(L)
 
 ## The prequisites of .$(L).usable are the .usable's of all our
 ## prerequisites, and our own libs and headers, if either:
@@ -81,51 +61,54 @@ $($(L).objs.dev) : _L := $(L)
 ##
 
 ifneq (undefined,$(origin TEEM_USABLE))
-$(IDEST)/.$(L).hdr: $(call if.missing,$($(L).hdrs.inst))
-$(LDEST)/.$(L).lib: $(call newer.than,$($(L).libs.inst),$($(L).need.hdrs.inst))
+$(IDEST)/.$(L).hdr: $(call if.missing,$(call hdrs.inst,$(L)))
+$(LDEST)/.$(L).lib: $(call newer.than,$(call libs.inst,$(L)),\
+$(call hdrs.inst,$(L).need))
+$(warning -----$(L)---- $(IDEST)/.$(L).hdr: $(call if.missing,$(call hdrs.inst,$(L))))
+$(warning -----$(L)---- $(LDEST)/.$(L).lib: $(call newer.than,$(call libs.inst,$(L)),$(call hdrs.inst,$(L).need)))
 endif
 
 ## $(L)/install depends on usable prerequisite libraries and $(L)'s
 ## installed libs and headers.
 ##
 $(L)/install : $(call used,$($(L).need)) \
-  $($(L).libs.inst) $($(L).hdrs.inst)
+  $(call libs.inst,$(L)) $(call hdrs.inst,$(L))
 
 ## $(L)/dev depends on usable prerequisites and $(L)'s local
 ## development builds of the libs and tests
 ##
 $(L)/dev : $(call used,$($(L).need)) \
-  $($(L).libs.dev) $($(L).tests.dev)
+  $(call libs.dev,$(L)) $(call tests.dev,$(L))
 
 ## $(L)/clean undoes $(L)/dev.
 ##
 $(L)/clean :
-	$(RM) $($(_L).objs.dev) $($(_L).libs.dev) $($(_L).tests.dev)
+	$(RM) $(call objs.dev,$(_L)) $(call libs.dev,$(_L)) $(call tests.dev,$(_L))
 
 ## $(L)/clobber undoes $(L)/install.
 ##
 $(L)/clobber : $(L)/clean
-	$(RM) $($(_L).libs.inst) $($(_L).hdrs.inst)
+	$(RM) $(call libs.inst,$(_L)) $(call hdrs.inst,$(_L))
 	$(RM) $(IDEST)/.$(_L).hdr $(LDEST)/.$(_L).lib
 
 ## The objects of a lib depend on usable prerequisite libraries (for
 ## their headers specifically), and on our own headers.
 ##
-$($(L).objs.dev) : $(call used.hdrs,$($(L).need)) $($(L).hdrs.dev)
+$(call objs.dev,$(L)) : $(call used.hdrs,$($(L).need)) $(call hdrs.dev,$(L))
 
 ## Development tests depend on usable prerequiste libraries, and the
 ## development libs (header dep. through objects, source dep. below)
 ##
-$($(L).tests.dev) : $(call used,$($(L).need)) \
-  $($(L).hdrs.dev) $($(L).libs.dev)
+$(call tests.dev,$(L)) : $(call used,$($(L).need)) \
+  $(call hdrs.dev,$(L)) $(call libs.dev,$(L))
 
 ## How to create development static and shared libs (libs.dev) from
 ## the objects on which they depend.
 ##
-$(ODEST)/lib$(L).a : $($(L).objs.dev)
+$(ODEST)/lib$(L).a : $(call objs.dev,$(L))
 	$(AR) $(ARFLAGS) $@ $^
 ifdef TEEM_SHEXT
-$(ODEST)/lib$(L).$(TEEM_SHEXT) : $($(L).objs.dev)
+$(ODEST)/lib$(L).$(TEEM_SHEXT) : $(call objs.dev,$(L))
 	$(LD) -o $@ $(LDFLAGS) $(LPATH) $^
 endif
 
@@ -141,19 +124,19 @@ $(word 1,$($(_L).OBJS))),$(call banner,$(_L)))
 ## could use vpath to locate the sources in the library subdirectory,
 ## but why start cheating now.
 ##
-$($(L).objs.dev) : $(ODEST)/%.o : $(TEEM_SRC)/$(L)/%.c
+$(call objs.dev,$(L)) : $(ODEST)/%.o : $(TEEM_SRC)/$(L)/%.c
 	@$(call maybebanner.$(_L),$<)
-	$(P) $(CC) $(CFLAGS) $($(_L).more.cflags) \
-	  $($(_L).ext.Dflag) $($(_L).ext.ipath) $(IPATH) -c $< -o $@
+	$(P) $(CC) $(CFLAGS) $(call more.cflags,$(_L)) $(call xtern.Dflag,$(_L)) $(call xtern.ipath,$(_L)) \
+	  $(IPATH) -c $< -o $@
 
 ## How to make development tests.  It doesn't actually matter in this
 ## case where the source files are, we just put the executable in the
 ## same place.
 ##
-$($(L).tests.dev) : % : %.c
+$(call tests.dev,$(L)) : % : %.c
 	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) \
 	  $(call more.cflags,$(_L)) $(IPATH) -o $@ $< -L$(ODEST) -l$(_L) \
-	  $(LPATH) $($(_L).need.links) $($(_L).ext.lpath) $($(_L).ext.link) -lm
+	  $(LPATH) $(call link,$($(_L).need)) $(call xtern.lpath,$(_L)) $(call xtern.link,$(_L)) -lm
 
 ## How to install a libs (libs.inst), static and shared: This really
 ## should be in the top-level GNUmakefile, since there is really
@@ -183,7 +166,7 @@ endif
 ## How to install headers: another instance where vpath could simplify
 ## things, but why bother.
 ##
-$($(L).hdrs.inst) : $(IDEST)/%.h : $(TEEM_SRC)/$(L)/%.h
+$(call hdrs.inst,$(L)) : $(IDEST)/%.h : $(TEEM_SRC)/$(L)/%.h
 	$(CP) $< $@; $(CHMOD) 644 $@
 	$(if $(SIGH),$(SLEEP) $(SIGH); touch $@)
 ifneq (undefined,$(origin TEEM_USABLE))

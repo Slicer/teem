@@ -18,7 +18,7 @@
 #
 #
 
-## EXTERNALS: list of all the identifiers for the various external
+## XTERNS: list of all the identifiers for the various external
 ## libraries that we can _optionally_ link against.  Teem has no
 ## notion of depending on these in the makefile sense, and doesn't try
 ## to represent inter-external dependencies (PNG on zlib) with any
@@ -29,12 +29,12 @@
 ## If external EXT is enabled during make, then TEEM_EXT will be
 ## defined during source file compilation.
 ##
-EXTERNALS = ZLIB
+XTERNS = ZLIB
 
 ## ZLIB: for the zlib library underlying gzip and the PNG image
 ## format.  Using zlib enables the "gzip" nrrd data encoding.  Header
-## file: <zlib.h>
-TEEM_ZLIB.IPATH =
-TEEM_ZLIB.LPATH =
+## file is <zlib.h>.  Arch-specific .mk files may need to set
+## TEEM_ZLIB.IPATH and TEEM_ZLIB.LPATH to "-I<path>" and "-L<path>"
+## for the compile and link lines, respectively.
 ZLIB.LINK = -lz
-nrrd.EXT = ZLIB
+nrrd.XTERN += ZLIB

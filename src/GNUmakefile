@@ -83,12 +83,15 @@ $(checkPurify)
 include $(TEEM_SRC)/make/externals.mk
 
 ## LIBS: all the teem libraries we'll try to build
-## NUMS: "numbering" of all the libraries in reverse link order
-## NUM/LIBS: used for craziness below
+## NUMS: "numbering" of all the libraries in dependency order
+## RNUMS: in link order, and "top-dep" order needed by bin/GNUmakefile
+## {R}NUM/LIBS: used for craziness below
 ##
 LIBS = air hest biff ell nrrd unrrdu dye gage bane limn hoover mite ten echo
-NUMS =  D   C    B    A   9     8     7   6     5    4     3    2    1   0
+NUMS =  0   1    2    3   4     5     6    7   8     9    A     B    C   D
+RNUMS = D   C    B    A   9     8     7    6   5     4    3     2    1   0
 NUM/LIBS = $(join $(NUMS),$(LIBS:%=/%))
+RNUM/LIBS = $(join $(RNUMS),$(LIBS:%=/%))
 
 ## MODES: the different kinds of builds that we support.  Declaring
 ## these modes (for all libraries) as phony saves make the effort of
@@ -113,7 +116,7 @@ endif
 
 ## Top-level rules, available regardless of where make started
 ##
-teem/install : $(addsuffix /install,$(LIBS) bin)
+teem/install : $(addsuffix /install,$(LIBS) bin) megalibs
 teem/dev     : $(addsuffix /dev,$(LIBS) bin)
 teem/usable  : $(addsuffix /usable,$(LIBS))
 teem/clean   : $(addsuffix /clean,$(LIBS) bin)
@@ -190,7 +193,7 @@ endif
 ## If using purify, set P to all the purify stuff that will prefix
 ## compile and link commands
 ## 
-ifeq (true,$(TEEM_PURIFY))
+ifneq (undefined,$(origin $(TEEM_PURIFY)))
   P = $(TEEM_PURIFY_CMD) \
     -inuse-at-exit=yes -add-suppression-files=$(PCACHE)/.purify \
     -always-use-cache-dir -cache-dir=$(PCACHE)
@@ -241,12 +244,14 @@ $(call dmnl,\
 $(call dmnl,\
 $(call dmnl,\
 $($(1).NEED)))))
+linkorder = $(notdir $(sort $(foreach LIB,$(1),\
+$(filter %/$(LIB),$(RNUM/LIBS)))))
 
 ## usable(list): "LIB/usable" for all LIBs in list
 ## link(list): "-lLIB" for all LIBs in list
 ##
 usable = $(foreach LIB,$(1),$(LIB)/usable)
-link = $(foreach LIB,$(1),-l$(LIB))
+link = $(foreach LIB,$(call linkorder,$(1)),-l$(LIB))
 
 ## For XXX in (right now) "ENDIAN", "QNANHIBIT", and "DIO", TEEM_XXX
 ## is set in the architecture-specific makefile, and $(L).NEED_XXX is
@@ -288,50 +293,54 @@ else
 endif
 used = $(call used.libs,$(1)) $(call used.hdrs,$(1))
 
-## related to external optional libraries
-## wants.ext(EXT): returns EXT if TEEM_EXT has been set, otherwise nothing
-## ext.wants: list of all wanted EXTs
-## ext.{i,l}path(libs): {include,link} paths {-Iblah,-Lblah} for any
-##   wanted EXTs whose base teem dependency is within $(libs).  $(libs)
-##   should be "$(L) $(L).need" for some library L
-## ext.link(libs): like ext.{i,l}path, but for -l link flags
-## ext.Dflag(libs): for -D defines when creating .o files
+## related to external optional libraries.  Called "xtern"s to avoid
+## similarities to library "ext"s above.
 ##
-wants.ext = $(if $(findstring undefined,$(origin TEEM_$(1))),,$(1))
-ext.wants = $(foreach ext,$(EXTERNALS),$(call wants.ext,$(ext)))
-ext.ipath = $(strip $(foreach ext,$(ext.wants),$(foreach lib,$(1),\
-$(if $(filter $(ext),$($(lib).EXT)),$(TEEM_$(ext).IPATH)))))
-ext.lpath = $(strip $(foreach ext,$(ext.wants),$(foreach lib,$(1),\
-$(if $(filter $(ext),$($(lib).EXT)),$(TEEM_$(ext).LPATH)))))
-ext.link = $(strip $(foreach ext,$(ext.wants),$(foreach lib,$(1),\
-$(if $(filter $(ext),$($(lib).EXT)),$($(ext).LINK)))))
-ext.Dflag = $(strip $(foreach ext,$(ext.wants),$(foreach lib,$(1),\
-$(if $(filter $(ext),$($(lib).EXT)),-DTEEM_$(ext)))))
+## wants.xtern(XTERN): returns XTERN if TEEM_<XTERN> has been set,
+##   otherwise nothing
+## xtern.wants: list of all wanted XTERNs
+## for.xtern(libs,patt): for all xtern in xtern.wants, for all libraries
+##   in $(libs) that benefit from $(xtern),
+##   replace XXX in $(patt) with $(xtern)
+## eval(list): evaluates each element of list as a variable
+## xtern.{i,l}path(libs): {include,link} paths {-Iblah,-Lblah} for any
+##   wanted XTERNs whose base teem dependency is within $(libs).  $(libs)
+##   should be $($(L).meneed) for some library L
+## xtern.link(libs): like xtern.{i,l}path, but for -l link flags
+## xtern.Dflag(libs): for -D defines when creating .o files
+##
+wants.xtern = $(if $(findstring undefined,$(origin TEEM_$(1))),,$(1))
+xtern.wants = $(foreach xtern,$(XTERNS),$(call wants.xtern,$(xtern)))
+for.xtern = $(strip $(foreach xtern,$(xtern.wants),$(foreach lib,$(1),\
+$(if $(filter $(xtern),$($(lib).XTERN)),\
+$($(subst XXX,$(xtern),$(2)))))))
+eval = $(foreach var,$(1),$($(var)))
+xtern.ipath = $(call eval,$(call for.xtern,$(1),TEEM_XXX.IPATH))
+xtern.lpath = $(call eval,$(call for.xtern,$(1),TEEM_XXX.LPATH))
+xtern.link  = $(call eval,$(call for.xtern,$(1),XXX.LINK))
+xtern.Dflag = $(call for.xtern,$(1),-DTEEM_XXX)
+
 
 #######################################
+
 ## Read in the makefiles for all the libraries, and the bins.  In
-## order to prevent recursive inclusion, we set INCLUDED. The library
-## makefiles won't include this file if INCLUDED has been set.  If
-## make started in a library directory, then its include guards will
-## prevent us from reading its body a second time. Note: "include" is
-## a directive, not a function, which eliminates the possibility of
-## iterating through the libraries, reading the make file, and then
-## setting variables based on what was just read.
+## order to prevent run-awayrecursive inclusion, we set INCLUDED. The
+## library+bin makefiles won't include the tthis file if INCLUDED has
+## been set.  If make started in a library directory, then its include
+## guards will prevent us from reading its body a second time.
+
+## Note: "include" is a directive, not a function, which eliminates
+## the possibility of iterating through the libraries, reading the
+## make file, and then setting variables based on what was just read.
 ##
-## The L.SAVE is so that if L was set when we got to here (because it
-## was set by a library makefile that included us), then we'll
-## remember that value and set it back when we're done.  Otherwise the
-## library makefiles have to set L twice, before and after
-## (conditionally) including this makefile.
-##
-ifneq (,$(L))
-  ifeq (,$(L.SAVE))
-    L.SAVE := $(L)
-  endif
-endif
-INCLUDED = true
+INCLUDED := true
 include $(foreach LIB,$(LIBS),$(TEEM_SRC)/$(LIB)/GNUmakefile)
 include $(TEEM_SRC)/bin/GNUmakefile
-ifneq (,$(L.SAVE))
-  L := $(L.SAVE)
+
+megalibs : $(foreach ext,$(LIBEXTS),$(LDEST)/libteem.$(ext))
+$(LDEST)/libteem.a : $(foreach lib,$(LIBS),$(call objs.dev,$(lib)))
+	$(AR) $(ARFLAGS) $@ $^
+ifdef TEEM_SHEXT
+$(LDEST)/libteem.$(TEEM_SHEXT) : $(foreach lib,$(LIBS),$(call objs.dev,$(lib)))
+	$(LD) -o $@ $(LDFLAGS) $(LPATH) $^
 endif

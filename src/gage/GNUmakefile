@@ -27,21 +27,19 @@ L := gage
 ####
 
 # boilerplate: default targets and include tricks
-ifeq (,$($(L).SEEN))
-$(L).SEEN := true
 TEEM_ROOT ?= ../..
 TEEM_SRC ?= ..
 ifeq (,$(DEF_TARGETS))
+DEF_TARGETS = true
 dev     : $(L)/dev
 install : $(L)/install
 usable  : $(L)/usable
 clean   : $(L)/clean
 clobber : $(L)/clobber
-DEF_TARGETS = true
-endif
-ifeq (,$(INCLUDED))
 include ../GNUmakefile
 endif
+ifeq (,$($(L).SEEN))
+$(L).SEEN := true
 
 #### Describe library here
 ####

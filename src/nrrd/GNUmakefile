@@ -27,21 +27,19 @@ L := nrrd
 ####
 
 # boilerplate: default targets and include tricks
-ifeq (,$($(L).SEEN))
-$(L).SEEN := true
 TEEM_ROOT ?= ../..
 TEEM_SRC ?= ..
 ifeq (,$(DEF_TARGETS))
+DEF_TARGETS = true
 dev     : $(L)/dev
 install : $(L)/install
 usable  : $(L)/usable
 clean   : $(L)/clean
 clobber : $(L)/clobber
-DEF_TARGETS = true
-endif
-ifeq (,$(INCLUDED))
 include ../GNUmakefile
 endif
+ifeq (,$($(L).SEEN))
+$(L).SEEN := true
 
 #### Describe library here
 ####
@@ -59,11 +57,11 @@ $(L).OBJS = \
 	read.o       reorder.o   resampleNrrd.o simple.o         \
 	subset.o     superset.o  write.o 
 $(L).TESTS = test/trand test/ax test/io test/minmax test/tkernel \
-	test/typestest test/tline test/tread
+	test/typestest test/tline test/tread test/pete
 ####
 ####
 ####
 
-# boilerplate: declare rules for this library
+# boilerplate: declare rules for this library, do other libraries + bins
 include $(TEEM_ROOT)/src/make/template.mk
 endif

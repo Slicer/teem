@@ -27,25 +27,23 @@ L := bin
 ####
 
 # boilerplate: default targets (except usable) and include tricks
-ifeq (,$($(L).SEEN))
-$(L).SEEN := true
 TEEM_ROOT ?= ../..
 TEEM_SRC ?= ..
 ifeq (,$(DEF_TARGETS))
+DEF_TARGETS = true
 dev     : $(L)/dev
 install : $(L)/install
 clean   : $(L)/clean
 clobber : $(L)/clobber
-DEF_TARGETS = true
-endif
-ifeq (,$(INCLUDED))
 include ../GNUmakefile
 endif
+ifeq (,$($(L).SEEN))
+$(L).SEEN := true
 
 ## BINS: all the command-line executables associated with teem
 ## 
 BINS = airSanity affine cubic nrrdSanity overrgb idx2pos \
-  pos2idx vprobe unu qbert mrender miter gkms ungantry
+  pos2idx unu vprobe qbert mrender miter gkms ungantry
 
 ## _binD: list of development locations for given bins
 ## _binI: list of install locations for given bins
@@ -94,7 +92,7 @@ ungantry.NEED   = gage nrrd biff hest air
 ## top.dep(BIN) : most dependent library (furthest from air) needed for BIN
 ## top.dep.is(LIB) : which bins have TOP.DEP of LIB
 ##
-top.dep = $(word 1,$(call need,$(1)))
+top.dep = $(word 1,$(call linkorder,$(call need,$(1))))
 top.dep.is = $(foreach bin,$(BINS),$(if $(strip $(subst $(1),,$(call top.dep,$(bin)))),,$(bin)))
 
 ## We need some way of expressing the fact that a given binary
@@ -109,14 +107,14 @@ top.dep.is = $(foreach bin,$(BINS),$(if $(strip $(subst $(1),,$(call top.dep,$(b
 ## makefile is always processed after the libraries' ones, which set
 ## X.need through their inclusion of template.mk
 ##
-$(call _binDI,$(call top.dep.is,air))    : $(call used,$(call air.meneed))
-$(call _binDI,$(call top.dep.is,ell))    : $(call used,$(call ell.meneed))
-$(call _binDI,$(call top.dep.is,nrrd))   : $(call used,$(call nrrd.meneed))
-$(call _binDI,$(call top.dep.is,unrrdu)) : $(call used,$(call unrrdu.meneed))
-$(call _binDI,$(call top.dep.is,gage))   : $(call used,$(call gage.meneed))
-$(call _binDI,$(call top.dep.is,hoover)) : $(call used,$(call hoover.meneed))
-$(call _binDI,$(call top.dep.is,mite))   : $(call used,$(call mite.meneed))
-$(call _binDI,$(call top.dep.is,bane))   : $(call used,$(call bane.meneed))
+$(call _binDI,$(call top.dep.is,air))    : $(call used,$(air.meneed))
+$(call _binDI,$(call top.dep.is,ell))    : $(call used,$(ell.meneed))
+$(call _binDI,$(call top.dep.is,nrrd))   : $(call used,$(nrrd.meneed))
+$(call _binDI,$(call top.dep.is,unrrdu)) : $(call used,$(unrrdu.meneed))
+$(call _binDI,$(call top.dep.is,gage))   : $(call used,$(gage.meneed))
+$(call _binDI,$(call top.dep.is,hoover)) : $(call used,$(hoover.meneed))
+$(call _binDI,$(call top.dep.is,mite))   : $(call used,$(mite.meneed))
+$(call _binDI,$(call top.dep.is,bane))   : $(call used,$(bane.meneed))
 
 ## How to make bins.dev and bins.inst: both kinds link against the
 ## same (installed) libraries and include the same (installed)
