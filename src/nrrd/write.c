@@ -282,7 +282,7 @@ _nrrdWriteDataGzip (Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteDataGzip", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
   size_t num, bsize, size, total_written;
-  int block_size, wrote, fmt_i=0;
+  int block_size, wrote, fmt_i=0, error=0;
   char *data, fmt[4];
   gzFile gzfout;
   
@@ -322,7 +322,7 @@ _nrrdWriteDataGzip (Nrrd *nrrd, NrrdIO *io) {
   fmt[fmt_i] = 0;
 
   /* Create the gzFile for writing in the gzipped data. */
-  if (!(gzfout = _nrrdGzOpen(io->dataFile, fmt))) {
+  if ((gzfout = _nrrdGzOpen(io->dataFile, fmt)) == Z_NULL) {
     /* there was a problem */
     sprintf(err, "%s: error opening gzFile", me);
     biffAdd(NRRD, err);
@@ -346,9 +346,9 @@ _nrrdWriteDataGzip (Nrrd *nrrd, NrrdIO *io) {
   data = nrrd->data;
   
   /* Ok, now we can begin writing. */
-  while ((wrote = _nrrdGzWrite(gzfout, data, block_size))) {
+  while ((error = _nrrdGzWrite(gzfout, data, block_size, &wrote)) == 0 && wrote > 0) {
     /* Increment the data pointer to the next available spot. */
-    data += wrote; 
+    data += wrote;
     total_written += wrote;
     /* We only want to write as much data as we need, so we need to check
        to make sure that we don't write more data than is there.  This
@@ -359,6 +359,14 @@ _nrrdWriteDataGzip (Nrrd *nrrd, NrrdIO *io) {
       block_size = (unsigned int)(size - total_written);
   }
   
+  /* Check if we stopped because of an error. */
+  if (error != 0)
+  {
+    sprintf(err, "%s: error reading from gzFile", me);
+    biffAdd(NRRD, err);
+    return 1;
+  }
+
   /* Close the gzFile.  Since _nrrdGzClose does not close the FILE* we
      will not encounter problems when io->dataFile is closed later. */
   if (_nrrdGzClose(gzfout) != 0) {

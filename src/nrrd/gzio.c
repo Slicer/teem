@@ -124,8 +124,8 @@ static uLong _nrrdGzGetLong (_NrrdGzStream *s);
 
 gzFile _nrrdGzOpen (FILE* fd, const char *mode);
 int _nrrdGzClose (gzFile file);
-unsigned int _nrrdGzRead (gzFile file, voidp buf, unsigned int len);
-unsigned int _nrrdGzWrite (gzFile file, const voidp buf, unsigned int len);
+int _nrrdGzRead (gzFile file, voidp buf, unsigned int len, unsigned int* read);
+int _nrrdGzWrite (gzFile file, const voidp buf, unsigned int len, unsigned int* written);
 
 /*
 ** _nrrdGzOpen()
@@ -302,8 +302,8 @@ _nrrdGzClose (gzFile file)
 ** Reads the given number of uncompressed bytes from the compressed file.
 ** Returns the number of bytes actually read (0 for end of file).
 */
-unsigned int
-_nrrdGzRead (gzFile file, voidp buf, unsigned int len) {
+int
+_nrrdGzRead (gzFile file, voidp buf, unsigned int len, unsigned int* read) {
   char me[] = "_nrrdGzRead", err[AIR_STRLEN_MED];
   _NrrdGzStream *s = (_NrrdGzStream*)file;
   Bytef *start = (Bytef*)buf; /* starting point for crc computation */
@@ -312,15 +312,21 @@ _nrrdGzRead (gzFile file, voidp buf, unsigned int len) {
   if (s == NULL || s->mode != 'r') {
     sprintf(err, "%s: invalid stream or file mode", me);
     biffAdd(NRRD, err);
+    *read = 0;
     return 1;
   }
 
   if (s->z_err == Z_DATA_ERROR || s->z_err == Z_ERRNO) {
     sprintf(err, "%s: data read error", me);
     biffAdd(NRRD, err);
+    *read = 0;
     return 1;
   }
-  if (s->z_err == Z_STREAM_END) return 0;  /* EOF */
+
+  if (s->z_err == Z_STREAM_END) {
+    *read = 0;
+    return 0;  /* EOF */
+  }
 
   next_out = (Byte*)buf;
   s->stream.next_out = (Bytef*)buf;
@@ -348,7 +354,8 @@ _nrrdGzRead (gzFile file, voidp buf, unsigned int len) {
       s->stream.total_in  += len;
       s->stream.total_out += len;
       if (len == 0) s->z_eof = 1;
-      return len;
+      *read = len;
+      return 0;
     }
     if (s->stream.avail_in == 0 && !s->z_eof) {
 
@@ -394,7 +401,8 @@ _nrrdGzRead (gzFile file, voidp buf, unsigned int len) {
   }
   s->crc = crc32(s->crc, start, (uInt)(s->stream.next_out - start));
 
-  return len - s->stream.avail_out;
+  *read = len - s->stream.avail_out;
+  return 0;
 }
 
 /*
@@ -404,13 +412,14 @@ _nrrdGzRead (gzFile file, voidp buf, unsigned int len) {
 ** Returns the number of bytes actually written (0 in case of error).
 */
 unsigned int
-_nrrdGzWrite (gzFile file, const voidp buf, unsigned int len) {
+_nrrdGzWrite (gzFile file, const voidp buf, unsigned int len, unsigned int* written) {
   char me[] = "_nrrdGzWrite", err[AIR_STRLEN_MED];
   _NrrdGzStream *s = (_NrrdGzStream*)file;
 
   if (s == NULL || s->mode != 'w') {
     sprintf(err, "%s: invalid stream or file mode", me);
     biffAdd(NRRD, err);
+    *written = 0;
     return 1;
   }
 
@@ -418,9 +427,7 @@ _nrrdGzWrite (gzFile file, const voidp buf, unsigned int len) {
   s->stream.avail_in = len;
 
   while (s->stream.avail_in != 0) {
-
     if (s->stream.avail_out == 0) {
-
       s->stream.next_out = s->outbuf;
       if (fwrite(s->outbuf, 1, _NRRD_Z_BUFSIZE, s->file) != _NRRD_Z_BUFSIZE) {
 	s->z_err = Z_ERRNO;
@@ -435,7 +442,8 @@ _nrrdGzWrite (gzFile file, const voidp buf, unsigned int len) {
   }
   s->crc = crc32(s->crc, (const Bytef *)buf, len);
 
-  return len - s->stream.avail_in;
+  *written = len - s->stream.avail_in;
+  return 0;
 }
 
 /*

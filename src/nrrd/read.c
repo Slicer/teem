@@ -382,7 +382,7 @@ _nrrdReadDataGzip (Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadDataGzip", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
   size_t num, bsize, size, total_read;
-  int block_size, read, i;
+  int block_size, read, i, error=0;
   char *data;
   gzFile gzfin;
   
@@ -402,7 +402,7 @@ _nrrdReadDataGzip (Nrrd *nrrd, NrrdIO *io) {
   }
 
   /* Create the gzFile for reading in the gzipped data. */
-  if (!(gzfin = _nrrdGzOpen(io->dataFile, "r"))) {
+  if ((gzfin = _nrrdGzOpen(io->dataFile, "r")) == Z_NULL) {
     /* there was a problem */
     sprintf(err, "%s: error opening gzFile", me);
     biffAdd(NRRD, err);
@@ -413,7 +413,7 @@ _nrrdReadDataGzip (Nrrd *nrrd, NrrdIO *io) {
   for(i = 0; i < io->byteSkip; i++) {
     unsigned char b;
     /* Check to see if a single byte was able to be read. */
-    if (_nrrdGzRead(gzfin, &b, 1) != 1) {
+    if (_nrrdGzRead(gzfin, &b, 1, &read) != 0 || read != 1) {
       sprintf(err, "%s: hit an error skipping byte %d of %d",
 	      me, i, io->byteSkip);
       biffAdd(NRRD, err);
@@ -438,7 +438,7 @@ _nrrdReadDataGzip (Nrrd *nrrd, NrrdIO *io) {
   data = nrrd->data;
   
   /* Ok, now we can begin reading. */
-  while ((read = _nrrdGzRead(gzfin, data, block_size))) {
+  while ((error = _nrrdGzRead(gzfin, data, block_size, &read)) == 0 && read > 0) {
     /* Increment the data pointer to the next available spot. */
     data += read; 
     total_read += read;
@@ -450,7 +450,15 @@ _nrrdReadDataGzip (Nrrd *nrrd, NrrdIO *io) {
     if (size - total_read < block_size)
       block_size = (unsigned int)(size - total_read);
   }
-  
+
+  /* Check if we stopped because of an error. */
+  if (error != 0)
+  {
+    sprintf(err, "%s: error reading from gzFile", me);
+    biffAdd(NRRD, err);
+    return 1;
+  }
+
   /* Close the gzFile.  Since _nrrdGzClose does not close the FILE* we
      will not encounter problems when io->dataFile is closed later. */
   if (_nrrdGzClose(gzfin) != 0) {
