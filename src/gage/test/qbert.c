@@ -362,7 +362,8 @@ main(int argc, char *argv[]) {
   j = perc[0]*sz[0]*sz[1]*sz[2]/100;
   i = HIST_SIZE-1;
   while (j > 0) {
-    /* nibble only from top, even though min could be < 0 */
+    /* HEY: 
+       nibble only from top, even though there could be tail at low values */
     j -= vhist[i--];
   }
   maxv = AIR_AFFINE(0, i, HIST_SIZE-1, minv, maxv);
