@@ -67,7 +67,7 @@ main(int argc, char *argv[]) {
 	     "\b\bo \"rotate:ang\": rotate CCW by ang degrees\n "
 	     "\b\bo \"scale:xs,ys\": scale by xs in X, and ys in Y\n "
 	     "\b\bo \"shear:fix,amnt\": shear by amnt, keeping fixed "
-	     "the pixels along a direction <ang> degrees from the X axis\n "
+	     "the pixels along a direction <fix> degrees from the X axis\n "
 	     "\b\bo \"flip:ang\": flip along axis an angle <ang> degrees from "
 	     "the X axis\n "
 	     "\b\bo \"a,b,c,d,tx,ty\": specify the transform explicitly ",
