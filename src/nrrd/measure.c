@@ -19,7 +19,7 @@
 */
 
 #include "nrrd.h"
-
+#include "privateNrrd.h"
 
 /* the non-histogram measures assume that there will be no NaNs in data */
 void

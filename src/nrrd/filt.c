@@ -19,6 +19,7 @@
 */
 
 #include "nrrd.h"
+#include "privateNrrd.h"
 
 int
 _nrrdCM_median(const float *hist, float half) {
