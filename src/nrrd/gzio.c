@@ -117,8 +117,25 @@ int _nrrdGzWrite (gzFile file, const voidp buf, unsigned len);
 **
 ** Opens a gzip (.gz) file for reading or writing. The mode parameter
 ** is like in fopen ("r" or "w"). The file represented by the FILE* pointer
-** should be open already with the same mode.
-** 
+** should be open already with the same mode.  The mode parameter can also be 
+** used to specify the compression level "[0-9]" and strategy "[f|h]".  
+**
+** The compression level must be between 0 and 9: 1 gives best speed,
+** 9 gives best compression, 0 gives no compression at all (the input data 
+** is simply copied a block at a time). The default level is 6.
+**
+** The strategy parameter is used to tune the compression algorithm. Use
+** "f" for data produced by a filter (or predictor), or "h" to force Huffman 
+** encoding only (no string match). Filtered data consists mostly of small 
+** values with a somewhat random distribution. In this case, the compression 
+** algorithm is tuned to compress them better. The effect of "f" is to force more
+** Huffman coding and less string matching; it is somewhat intermediate
+** between the default and "h". The strategy parameter only affects the 
+** compression ratio but not the correctness of the compressed output even
+** if it is not set appropriately.
+**
+** The complete syntax for the mode parameter is: "(r|w[a])[0-9][f|h]".
+**
 ** Returns Z_NULL if the file could not be opened or if there was
 ** insufficient memory to allocate the (de)compression state; errno
 ** can be checked to distinguish the two cases (if errno is zero, the
@@ -523,12 +540,6 @@ _nrrdGzDestroy(_NrrdGzStream *s) {
 	} else if (s->mode == 'r') {
 	    error = inflateEnd(&(s->stream));
 	}
-    }
-    if (s->file != NULL && fclose(s->file)) {
-#ifdef ESPIPE
-	if (errno != ESPIPE) /* fclose is broken for pipes in HP/UX */
-#endif
-	    error = Z_ERRNO;
     }
     if (s->z_err < 0) error = s->z_err;
 
