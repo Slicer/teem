@@ -467,6 +467,7 @@ _nrrdCopyShallow (Nrrd *nout, const Nrrd *nin) {
   }
   /* Since we should never have copied the data, or allocated new meta-data,
      we want to make sure that we don't delete it here. */
+  mop = airMopNew();
   airMopAdd(mop, ntmp, airFree, airMopAlways);
   
   /* Shallow copy the contents of the nrrd.  It's OK if this is not a
