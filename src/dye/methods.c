@@ -1,18 +1,20 @@
 /*
-  The contents of this file are subject to the University of Utah Public
-  License (the "License"); you may not use this file except in
-  compliance with the License.
-  
-  Software distributed under the License is distributed on an "AS IS"
-  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
-  the License for the specific language governing rights and limitations
-  under the License.
+  teem: Gordon Kindlmann's research software
+  Copyright (C) 2002, 2001, 2000, 1999, 1998 University of Utah
 
-  The Original Source Code is "teem", released March 23, 2001.
-  
-  The Original Source Code was developed by the University of Utah.
-  Portions created by UNIVERSITY are Copyright (C) 2001, 1998 University
-  of Utah. All Rights Reserved.
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 
@@ -62,7 +64,7 @@ dyeColorInit(dyeColor *col) {
     col->xWhite = col->yWhite = AIR_NAN;
     col->spc[0] = dyeSpaceUnknown;
     col->spc[1] = dyeSpaceUnknown;
-    col->wch = 0;
+    col->ii = 0;
   }
   return col;
 }
@@ -71,19 +73,19 @@ dyeColor *
 dyeColorSet(dyeColor *col, int space, float v0, float v1, float v2) {
   
   if (col && AIR_BETWEEN(dyeSpaceUnknown, space, dyeSpaceLast)) {
-    col->wch = AIR_CLAMP(0, col->wch, 1);
+    col->ii = AIR_CLAMP(0, col->ii, 1);
 
     /* We switch to the other one if the current one seems to be used,
        but we don't switch if new and current colorspaces are the same.
        If the other one is being used too, oh well.  */
-    if (dyeSpaceUnknown != col->spc[col->wch] &&
-	AIR_EXISTS(col->val[col->wch][0]) &&
-	col->spc[col->wch] != space) {
-      col->wch = 1-col->wch;
+    if (dyeSpaceUnknown != col->spc[col->ii] &&
+	AIR_EXISTS(col->val[col->ii][0]) &&
+	col->spc[col->ii] != space) {
+      col->ii = 1 - col->ii;
     }
 
-    ELL_3V_SET(col->val[col->wch], v0, v1, v2);
-    col->spc[col->wch] = space;
+    ELL_3V_SET(col->val[col->ii], v0, v1, v2);
+    col->spc[col->ii] = space;
   }
   return col;
 }
@@ -94,9 +96,9 @@ dyeColorGet(float *v0P, float *v1P, float *v2P, dyeColor *col) {
   
   spc = dyeSpaceUnknown;
   if (v0P && v1P && v2P && col) {
-    col->wch = AIR_CLAMP(0, col->wch, 1);
-    spc = col->spc[col->wch];
-    ELL_3V_GET(*v0P, *v1P, *v2P, col->val[col->wch]);
+    col->ii = AIR_CLAMP(0, col->ii, 1);
+    spc = col->spc[col->ii];
+    ELL_3V_GET(*v0P, *v1P, *v2P, col->val[col->ii]);
   }
   return spc;
 }
@@ -148,7 +150,7 @@ dyeColorParse(dyeColor *col, char *_str) {
   int spc;
   
   if (!(col && _str)) {
-    sprintf(err, BIFF_NULL, me); biffAdd(DYE, err); return 1;
+    sprintf(err, "%s: got NULL pointer", me); biffAdd(DYE, err); return 1;
   }
   if (!(str = airStrdup(_str))) {
     sprintf(err, "%s: couldn't strdup!", me);
@@ -179,11 +181,11 @@ char *
 dyeColorSprintf(char *str, dyeColor *col) {
   
   if (str && col) {
-    col->wch = AIR_CLAMP(0, col->wch, 1);
-    sprintf(str, "%s:%g,%g,%g", dyeSpaceToStr[col->spc[col->wch]],
-	    col->val[col->wch][0], 
-	    col->val[col->wch][1], 
-	    col->val[col->wch][2]);
+    col->ii = AIR_CLAMP(0, col->ii, 1);
+    sprintf(str, "%s:%g,%g,%g", dyeSpaceToStr[col->spc[col->ii]],
+	    col->val[col->ii][0], 
+	    col->val[col->ii][1], 
+	    col->val[col->ii][2]);
   }
   return str;
 }
