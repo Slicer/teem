@@ -170,8 +170,9 @@ tenEstimateLinearSingle_f(float *ten, float *B0P, float *dwi, double *emat,
       tmp = AIR_MAX(dwi[i], 1);
       mean += tmp;
       v[i-1] = (logB0 - log(tmp))/b;
-      if (tenVerbose)
+      if (tenVerbose) {
         fprintf(stderr, "v[%d] = %f\n", i-1, v[i-1]);
+      }
     }
     mean /= DD-1;
     ten[0] = AIR_AFFINE(-1, airErf((mean - thresh)/(soft + 0.000001)), 1,
@@ -313,12 +314,13 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   airMopAdd(mop, nbmat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdConvert(nbmat, _nbmat, nrrdTypeDouble)) {
     sprintf(err, "%s: trouble converting to doubles", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
   airMopAdd(mop, nemat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+
   if (tenEMatrixCalc(nemat, nbmat, knownB0)) {
     sprintf(err, "%s: trouble computing estimation matrix", me);
-    biffAdd(TEN, err); return 1;
+    biffAdd(TEN, err); airMopError(mop); return 1;
   }
   
   DD = ndwi->axis[0].size;
@@ -349,7 +351,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   }
   if (nrrdMaybeAlloc(nten, nrrdTypeFloat, 4, 7, sx, sy, sz)) {
     sprintf(err, "%s: couldn't allocate output", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
   if (nterrP) {
     if (!(*nterrP)) {
@@ -385,8 +387,9 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     /* tenVerbose = (II == 42 + 190*(96 + 196*0)); */
     for (d=0; d<DD; d++) {
       dwi1[d] = lup(ndwi->data, d + DD*II);
-      if (tenVerbose)
+      if (tenVerbose) {
         fprintf(stderr, "%s: input dwi1[%d] = %g\n", me, d, dwi1[d]);
+      }
     }
     tenEstimateLinearSingle_f(ten, &_B0,
                               dwi1, emat, DD, knownB0, thresh, soft, b);
@@ -686,8 +689,9 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
   nrrdCommentAdd(nout, cmt);
   out = nout->data;
   for (I=0; I<=sx*sy*sz-1; I++) {
-    if (tenVerbose && !(I % (sx*sy)))
+    if (tenVerbose && !(I % (sx*sy))) {
       fprintf(stderr, "%s: z = %d of %d\n", me, ((int)I)/(sx*sy), sz-1);
+    }
     chan[0] = nrrdFLookup[nin->type](nin->data, 0 + 7*I);
     chan[1] = nrrdFLookup[nin->type](nin->data, 1 + 7*I);
     chan[2] = nrrdFLookup[nin->type](nin->data, 2 + 7*I);
