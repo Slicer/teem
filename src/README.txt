@@ -44,6 +44,9 @@ echo:   dumb ray-tracer, pay no attention
 
 Here is a full dependency matrix of the teem libraries/binaries: Use
 this to determine exactly which libraries are needed on the link line.
+However, when you do a "make" in the top-level src directory
+(teem/src), you'll get megalib libteem.a (and maybe libteem.so), and you
+can simply link against this.
 
 Key:
  L : lib to left uses functions in lib above

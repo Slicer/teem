@@ -3,12 +3,14 @@ test gageContextCopy
 add kernel flags to qbert, make them match those in mrender
 and miter.
 
+add flags for explicitly specifying gmax, hmax, vrange
+
+------- teem 1.5 cutoff ---------
+
 6pack filtering, adapt vector stuff
 
 change type of iv3Fill to take (int xi,int yi,int zi) instead of void
 *here; one step towards supporting bricking.
-
-add flags for explicitly specifying gmax, hmax, vrange
 
 tests:
 two pervolumes with different sized volumes

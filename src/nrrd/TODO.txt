@@ -1,6 +1,3 @@
-make sure that endian-specified ascii data isn't swapped, refactor
-endian-fixing of other encodings
-
 change verbosity to warning when nrrd headers in PPM and tables are botched,
 and to get indication of successful DIO reading
 
@@ -13,8 +10,6 @@ nrrdSplice, nrrdInset
 check resampler getting info with NULL kernel on each axis
 (bug that Joe and I had with qbert when no resmapling was needed)
 
-DOCUMENT FILE FORMATS!
-
 VTK file input and output!
 
 test working with nout==nin
@@ -24,9 +19,6 @@ nrrdQuantize
 nrrdUnquantize
 
 write a select() function to replace qsort() in median calculation
-
-gzip encoding: with detached headers, the data file name should be
-.raw.gz, not just .gz
 
 be sure to test all non-boolean state/default variables
 

@@ -1,11 +1,5 @@
 add -min and -max flags to unu lut, rmap, imap
 
-valgrind new unu
-
-update ../README
-
------ teem 1.5beta cut-off -----
-
 ----- teem 1.5 cut-off -----
 
 make unu check on environment variables, so that nrrdDef* and nrrdState*

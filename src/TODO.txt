@@ -1,16 +1,15 @@
-Fix TEEM_USABLE
+figure out shared libraries on cygwin.
 
-make dev on cygwin
+Test that shared libraries work everywhere they should.
 
 make sure that test programs actually link against the development
 library instead of the installed one.
 
 other_clean (so_locations on SGI)
 
-Try purify again
+Fix TEEM_USABLE
 
-figure out shared libraries on cygwin.
-Test that they work everywhere.
+get mite working more usefully
 
 DTInspect: resurrect
  - add plane of glyphs
@@ -18,10 +17,6 @@ DTInspect: resurrect
  - trouble building "anisovol" in ten/test directory
 
 lumin integration
-
-------- teem 1.5beta cutoff ---------
-
-get mite working more usefully
 
 ------- teem 1.5 cutoff ---------
 

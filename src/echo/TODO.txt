@@ -1,8 +1,5 @@
 add direct support for diffusion tensor glyphs (link against ten)
 
-fix "warning: syntax error: empty declaration" errors showing
-up on solaris
-
 z-depth to image channels
 cube/sphere glyphs
 debug glass (tri-mesh of slab vs slab as instanced cube)

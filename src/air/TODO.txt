@@ -1,7 +1,4 @@
 
-
------ teem 1.5 cut-off -----
-
 fix airSinglePrintf to not put a space before double-type special values
 ("%4s" hack has to go)
 
