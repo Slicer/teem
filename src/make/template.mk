@@ -119,13 +119,12 @@ $(ODEST)/lib$(L).a : $(call objs.dev,$(L))
 	$(if $(RANLIB),$(RANLIB) $@,)
 ifdef TEEM_SHEXT
 $(ODEST)/lib$(L).$(TEEM_SHEXT) : $(call objs.dev,$(L))
-	$(LD) -o $@ \
-	$(if $(TEEM_DEST),$(if $(SHARED_LINK_NAME),$(SHARED_LINK_NAME)$(TEEM_DEST)/lib/lib$(_L).$(TEEM_SHEXT),),) $(LDFLAGS) $(LPATH) $^ $(call link,$(call need,$(_L))) $(call xtern.Lpath,$($(_L).meneed)) $(call xtern.link,$($(_L).meneed))
+	$(LD) -o $@ $(if $(TEEM_DEST),$(if $(SHARED_INSTALL_NAME), $(SHARED_INSTALL_NAME) $(TEEM_DEST)/lib/lib$(_L).$(TEEM_SHEXT),),) $(LDFLAGS) $(LPATH) $^ $(call link,$(call need,$(_L))) $(call xtern.Lpath,$($(_L).meneed)) $(call xtern.link,$($(_L).meneed))
 endif
 
 ## comments on madness above:
-## - if both TEEM_DEST and (architecture-specific) SHARED_LINK_NAME are set,
-##   then add SHARED_LINK_NAME flag to the link command making the shared lib
+## - if both TEEM_DEST and (architecture-specific) SHARED_INSTALL_NAME are set,
+##   then add SHARED_INSTALL_NAME flag to the link command making the shared lib
 ## - ... $(LDFLAGS) $(LPATH) ...
 ## - all architectures: add "-l<lib>" for all <lib> that this lib relies on
 ## - all architectures: add -L<path> and -l<lib> for external libraries that 

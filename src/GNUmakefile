@@ -186,7 +186,9 @@ LIBEXTS += a
 ## Flags
 ##
 ifneq (undefined,$(origin TEEM_LINK_SHARED))
-  BIN_CFLAGS += $(SHARED_CFLAG)
+  # If we ever have absolutify-this-path working, then having an 
+  # absolute TEEM_DEST path is no longer a pre-requisite
+  BIN_CFLAGS += $(SHARED_CFLAG) $(if $(TEEM_DEST),$(if $(SHARED_RPATH),$(SHARED_RPATH)$(LDEST),),)
 else
   BIN_CFLAGS += $(STATIC_CFLAG)
 endif

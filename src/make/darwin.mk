@@ -31,8 +31,7 @@ OPT_CFLAG ?= -O2
 STATIC_CFLAG =
 SHARED_CFLAG =
 SHARED_LDFLAG = -dynamic -dynamiclib -fno-common
-# there is a space at the end of the following!
-SHARED_LINK_NAME = -install_name 
+SHARED_INSTALL_NAME = -install_name
 
 ARCH_CFLAG = -Wall
 ARCH_LDFLAG =

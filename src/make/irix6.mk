@@ -20,7 +20,9 @@
 
 TEEM_LITTER = so_locations
 TEEM_SHEXT = so
+SHARED_LINK_NAME = -rpath 
 TEEM_CPP_ERROR_DIE = -diag_error 1035
+SHARED_RPATH = -rpath 
 
 OPT_CFLAG ?= -O2
 STATIC_CFLAG = -Bstatic
