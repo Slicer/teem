@@ -373,6 +373,9 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
   nrrdBigInt num;
   int d, esize;
 
+  char *test, tval;
+  nrrdBigInt I;
+
   if (!(nrrd && size)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
@@ -400,15 +403,19 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
     num *= (nrrd->axis[d].size = size[d]);
   }
   esize = nrrdElementSize(nrrd);
-  nrrd->data = calloc(2*num, esize);
-  printf("%s: data at %llx is from calloc(" NRRD_BIG_INT_PRINTF ", %d)\n",
-	 me, (unsigned long long int)nrrd->data, num, esize);
+  nrrd->data = calloc(num, esize);
   if (!(nrrd->data)) {
     sprintf(err, "%s: calloc(" NRRD_BIG_INT_PRINTF ",%d) failed", 
 	    me, num, nrrdElementSize(nrrd));
     biffAdd(NRRD, err); return 1 ;
   }
   nrrd->dim = dim;
+
+  printf("!%s: data at %llx is from calloc(" NRRD_BIG_INT_PRINTF ", %d)\n",
+	 me, (unsigned long long int)nrrd->data, num, esize);
+  for (I=0,tval=0,test=nrrd->data; I<=num*esize-1; I++) {
+    tval += test[I];
+  }
 
   return 0;
 }
