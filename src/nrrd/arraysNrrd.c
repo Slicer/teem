@@ -288,7 +288,26 @@ int
 nrrdEncodingEndianMatters[NRRD_ENCODING_MAX+1] = {
   0,   /* unknown */
   1,   /* raw */
-  0    /* ascii */
+  0,   /* ascii */
+#ifdef TEEM_ZLIB
+  1,   /* gzip */
+#endif
+};
+
+/*
+******** nrrdEncodingCompresion[]
+** 
+** tells if given encoding is compression, which changes the
+** semantics of "byte skip"
+*/
+int 
+nrrdEncodingCompression[NRRD_ENCODING_MAX+1] = {
+  0,   /* unknown */
+  0,   /* raw */
+  0,   /* ascii */
+#ifdef TEEM_ZLIB
+  1,   /* gzip */
+#endif
 };
 
 /*
