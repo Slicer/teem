@@ -1,3 +1,6 @@
+nrrdHistoDraw takes a maxval argument, so that different
+histograms can be compared visually better
+
 ----- teem 1.5beta1 cut-off -----
 
 when reading raw data, make sure that after all data has been
@@ -34,7 +37,7 @@ add one-line descriptions to function declarations in nrrd.h
 
 ----- teem 1.5 cut-off -----
 
-VTK file input and output!
+axisSplit, axisMerge
 
 2D luts/rmaps
 
@@ -55,24 +58,21 @@ and how accurate they are.  Perhaps kernels don't actually belong in nrrd.
 
 split?  (reverse of join)
 
-magic death: some string that causes nrrdRead to exit(0) (or something
-else abortive) when read as magic, to fix annoyance with string of unu
-commands all complaining in cascade about input error "immediately hit
-EOF".  How about "GOOD_NIGHT_NRRD"
-
 ----- teem 1.6 cut-off -----
 
 clarify and document all IO stuff
 
 fourier+hartley transforms, integration with fftw
 
-other encodings- base 85, hex
+other encodings- base 85
 
 no other big things for nrrd planned...
 
 ----- teem 1.7 cut-off -----
 
 test suite
+
+make movies from volumes of RGB
 
 make nrrdDescribe() a little prettier
 
