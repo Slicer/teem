@@ -402,8 +402,8 @@ _nrrdMeasureSD(void *ans, int ansType,
 ** unlikely that Inf could actually be created in a floating point
 ** histogram.
 **
-** Another property that is sometimes assumed is that the values in
-** the histogram are non-negative.
+** Values in the histogram can be positive or negative, but negative
+** values are always ignored.
 **
 ** All the the  _nrrdMeasureHisto measures assume that if not both
 ** axmin and axmax are existant, then (axmin,axmax) = (-0.5,len-0.5).
@@ -421,12 +421,13 @@ void
 _nrrdMeasureHistoMedian(void *ans, int ansType,
 			const void *line, int lineType, int len, 
 			double axmin, double axmax) {
-  double sum, half, ansD;
+  double sum, tmp, half, ansD;
   int i;
   
   sum = 0;
   for (i=0; i<len; i++) {
-    sum += nrrdDLookup[lineType](line, i);
+    tmp = nrrdDLookup[lineType](line, i);
+    sum += (tmp > 0 ? tmp : 0);
   }
   if (!sum) {
     nrrdDStore[ansType](ans, AIR_NAN);
@@ -436,7 +437,8 @@ _nrrdMeasureHistoMedian(void *ans, int ansType,
   half = sum/2;
   sum = 0;
   for (i=0; i<len; i++) {
-    sum += nrrdDLookup[lineType](line, i);
+    tmp = nrrdDLookup[lineType](line, i);
+    sum += (tmp > 0 ? tmp : 0);
     if (sum >= half) {
       break;
     }
@@ -459,7 +461,7 @@ _nrrdMeasureHistoMode(void *ans, int ansType,
     val = nrrdDLookup[lineType](line, i);
     max = AIR_MAX(max, val);
   }
-  if (!max) {
+  if (0 == max) {
     nrrdDStore[ansType](ans, AIR_NAN);
     return;
   }
@@ -502,6 +504,7 @@ _nrrdMeasureHistoMean(void *ans, int ansType,
   ansD = count = 0;
   for (i=0; i<len; i++) {
     hits = nrrdDLookup[lineType](line, i);
+    hits = AIR_MAX(hits, 0);
     count += hits;
     ansD += hits*i;
   }
@@ -532,6 +535,7 @@ _nrrdMeasureHistoVariance(void *ans, int ansType,
   for (i=0; i<len; i++) {
     val = NRRD_CELL_POS(axmin, axmax, len, i);
     hits = nrrdDLookup[lineType](line, i);
+    hits = AIR_MAX(hits, 0);
     count += hits;
     S += hits*val;
     SS += hits*val*val;
@@ -572,6 +576,7 @@ _nrrdMeasureHistoProduct(void *ans, int ansType,
   for (i=0; i<len; i++) {
     val = NRRD_CELL_POS(axmin, axmax, len, i);
     hits = nrrdDLookup[lineType](line, i);
+    hits = AIR_MAX(hits, 0);
     count += hits;
     product *= pow(val, hits);
   }
@@ -597,6 +602,7 @@ _nrrdMeasureHistoSum(void *ans, int ansType,
   for (i=0; i<len; i++) {
     val = NRRD_CELL_POS(axmin, axmax, len, i);
     hits = nrrdDLookup[lineType](line, i);
+    hits = AIR_MAX(hits, 0);
     sum += hits*val;
   }
   nrrdDStore[ansType](ans, sum);
@@ -617,6 +623,7 @@ _nrrdMeasureHistoL2(void *ans, int ansType,
   for (i=0; i<len; i++) {
     val = NRRD_CELL_POS(axmin, axmax, len, i);
     hits = nrrdDLookup[lineType](line, i);
+    hits = AIR_MAX(hits, 0);
     count += hits;
     l2 += hits*val*val;
   }
@@ -639,8 +646,9 @@ _nrrdMeasureHistoMax(void *ans, int ansType,
     axmax = len-0.5;
   }
   for (i=len-1; i>=0; i--) {
-    if (nrrdDLookup[lineType](line, i))
+    if (nrrdDLookup[lineType](line, i) > 0) {
       break;
+    }
   }
   if (i==-1) {
     nrrdDStore[ansType](ans, AIR_NAN);
@@ -662,8 +670,9 @@ _nrrdMeasureHistoMin(void *ans, int ansType,
     axmax = len-0.5;
   }
   for (i=0; i<len; i++) {
-    if (nrrdDLookup[lineType](line, i))
+    if (nrrdDLookup[lineType](line, i) > 0) {
       break;
+    }
   }
   if (i==len) {
     nrrdDStore[ansType](ans, AIR_NAN);
