@@ -158,7 +158,8 @@ main(int argc, char *argv[]) {
   }
   printf("%s: padding (stage 1) ... ", me); fflush(stdout);
   npad = nrrdNew();
-  if (nrrdPad(npad, nin, padMin, padMax, nrrdBoundaryPad, 0.0)) {
+  /* if (nrrdPad(npad, nin, padMin, padMax, nrrdBoundaryPad, 0.0)) { */
+  if (nrrdPad(npad, nin, padMin, padMax, nrrdBoundaryBleed)) {
     fprintf(stderr, "%s: trouble padding:\n%s\n", me, biffGet(NRRD));
     exit(1);
   }
@@ -222,7 +223,9 @@ main(int argc, char *argv[]) {
     padMax[i] = sz[i] - border - 1;
   }
   printf("%s: padding (stage 2) ... ", me); fflush(stdout);
-  if (nrrdPad(npad=nrrdNew(), nrsmp, padMin, padMax, nrrdBoundaryPad, 0.0)) {
+  /*  if (nrrdPad(npad=nrrdNew(), nrsmp, padMin, padMax,
+      nrrdBoundaryPad, 0.0)) { */
+  if (nrrdPad(npad=nrrdNew(), nrsmp, padMin, padMax, nrrdBoundaryBleed)) {
     fprintf(stderr, "%s: trouble padding:\n%s\n", me, biffGet(NRRD));
     exit(1);
   }
@@ -285,6 +288,7 @@ main(int argc, char *argv[]) {
   ctx->c.verbose = 0;
   t0 = airTime();
   for (k=0; k<=sz[2]-1; k++) {
+    printf("%d/%d "k, sz[2]-1); fflush(stdout);
     for (j=0; j<=sz[1]-1; j++) {
       for (i=0; i<=sz[0]-1; i++) {
 	gageSclProbe(ctx, i, j, k);
