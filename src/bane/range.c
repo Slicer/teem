@@ -17,53 +17,91 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
 #include "bane.h"
 
-void
-_baneRangeUnknown(double *nminP, double *nmaxP, double min, double max) {
-  char me[]="_baneRangeUnknown";
-
-  fprintf(stderr, "%s: Need To Specify A Range Method !!!\n", me);
-}
+/* ----------------- baneRangePos -------------------- */
 
 void
-_baneRangePos(double *nminP, double *nmaxP, double min, double max) {
-  
-  *nminP = 0;
-  *nmaxP = max;
+_baneRangePos_Ans(double *ominP, double *omaxP,
+		  double imin, double imax) {
+  *ominP = 0;
+  *omaxP = imax;
 }
 
-void
-_baneRangeNeg(double *nminP, double *nmaxP, double min, double max) {
-  
-  *nminP = min;
-  *nmaxP = 0;
-}
-
-void
-_baneRangeZeroCent(double *nminP, double *nmaxP, double min, double max) {
-  double mag;
-  
-  mag = (AIR_ABS(min) + AIR_ABS(max))/2;
-  *nminP = -mag;
-  *nmaxP = mag;
-}
-
-void
-_baneRangeFloat(double *nminP, double *nmaxP, double min, double max) {
-  
-  *nminP = min;
-  *nmaxP = max;
-}
-
-baneRangeType
-baneRange[BANE_RANGE_MAX+1] = {
-  _baneRangeUnknown,
-  _baneRangePos,
-  _baneRangeNeg,
-  _baneRangeZeroCent,
-  _baneRangeFloat
+baneRange
+_baneRangePos = {
+  "positive",
+  baneRangePos_e,
+  _baneRangePos_Ans
 };
+baneRange *
+baneRangePos = &_baneRangePos;
 
+/* ----------------- baneRangeNeg -------------------- */
 
+void
+_baneRangeNeg_Ans(double *ominP, double *omaxP,
+		  double imin, double imax) {
+  
+  *ominP = imin;
+  *omaxP = 0;
+}
+
+baneRange
+_baneRangeNeg = {
+  "negative",
+  baneRangeNeg_e,
+  _baneRangeNeg_Ans
+};
+baneRange *
+baneRangeNeg = &_baneRangeNeg;
+
+/* ----------------- baneRangeCent -------------------- */
+
+void
+_baneRangeZeroCent_Ans(double *ominP, double *omaxP,
+		       double imin, double imax) {
+
+  imin = AIR_MIN(imin, 0);
+  imax = AIR_MAX(imax, 0);
+  /* now the signs of imin and imax aren't wrong */
+  *ominP = AIR_MIN(-imax, imin);
+  *omaxP = AIR_MAX(imax, -imin);
+}
+
+baneRange
+_baneRangeZeroCent = {
+  "zero-center",
+  baneRangeZeroCent_e,
+  _baneRangeZeroCent_Ans
+};
+baneRange *
+baneRangeZeroCent = &_baneRangeZeroCent;
+
+/* ----------------- baneRangeFloat -------------------- */
+
+void
+_baneRangeFloat_Ans(double *ominP, double *omaxP,
+		    double imin, double imax) {
+  *ominP = imin;
+  *omaxP = imax;
+}
+
+baneRange
+_baneRangeFloat = {
+  "float",
+  baneRangeFloat_e,
+  _baneRangeFloat_Ans
+};
+baneRange *
+baneRangeFloat = &_baneRangeFloat;
+
+/* ----------------------------------------------------- */
+
+baneRange *
+baneRangeArray[BANE_RANGE_MAX+1] = {
+  &_baneRangePos,
+  &_baneRangeNeg,
+  &_baneRangeZeroCent,
+  &_baneRangeFloat
+};
