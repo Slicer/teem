@@ -78,7 +78,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /nodefaultlib:libcmt /pdbtype:sept
-# ADD LINK32 /libpath:"../lib/static" teem_d.lib png.lib bz2.lib z.lib /nologo /subsystem:console /incremental:no /debug /machine:I386 /pdbtype:sept /out:../bin/emap_d.exe
+# ADD LINK32 /libpath:"../lib/static" teem_d.lib png.lib bz2.lib z.lib /nologo /subsystem:console /incremental:no /debug /machine:I386 /pdbtype:sept /pdb:../bin/emap_d.pdb /out:../bin/emap_d.exe
 # Begin Special Build Tool
 TargetName=emap_d
 SOURCE="$(InputPath)"
