@@ -123,12 +123,16 @@ _echoRayIntxCube(INTX_ARGS(Cube)) {
       return AIR_FALSE;
     }
   }
+  intx->obj = (EchoObject *)obj;
   intx->t = t;
   switch(ax) {
   case 0: ELL_3V_SET(intx->norm, dir, 0, 0); break;
   case 1: ELL_3V_SET(intx->norm, 0, dir, 0); break;
   case 2: ELL_3V_SET(intx->norm, 0, 0, dir); break;
   }
+  printf("%s: ax = %d --> norm = (%g,%g,%g)\n",
+	 "_echoRayIntxCube", ax,
+	 intx->norm[0], intx->norm[1], intx->norm[2]);
   /* set in intx:
      yes: t, norm, 
      no: u, v, view, pos

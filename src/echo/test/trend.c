@@ -77,6 +77,7 @@ makeSceneGlassMetal(limnCam *cam, EchoParam *param,
   echoLightAreaSet(light, rect);
   echoLightArrayAdd(lightArr, light);
 
+  return;
 }
 
 void
@@ -251,7 +252,7 @@ main(int argc, char **argv) {
   airMopAdd(mop, param, (airMopper)echoParamNix, airMopAlways);
   param->jitter = echoJitterJitter;
   param->verbose = 3;
-  param->samples = 9;
+  param->samples = 1;
   param->imgResU = 100;
   param->imgResV = 100;
   param->aperture = 0.0;
