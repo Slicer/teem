@@ -83,7 +83,8 @@ main(int argc, char **argv) {
       max = nin->max;
     fprintf(stderr, "%s: using min=%g, max=%g\n", me, min, max);
   }
-  if (!(nout = nrrdNewQuantize(nin, min, max, bits))) {
+  nout = nrrdNew();
+  if (nrrdQuantize(nout, nin, min, max, bits)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: couldn't create output nrrd:\n%s", me, err);
     free(err);

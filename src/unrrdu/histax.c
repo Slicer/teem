@@ -56,9 +56,10 @@ main(int argc, char **argv) {
     exit(1);
   }
   
-  if (!(nout = nrrdNewHistoAxis(nin, axis, bins))) {
+  nout = nrrdNew();
+  if (nrrdHistoAxis(nout, nin, axis, bins)) {
     err = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble in nrrdNewHistoAxis:\n%s\n", me, err);
+    fprintf(stderr, "%s: trouble in nrrdHistoAxis:\n%s\n", me, err);
     free(err);
     exit(1);
   }

@@ -52,7 +52,8 @@ main(int argc, char *argv[]) {
     free(err);
     exit(1);
   }
-  if (!(nout = nrrdNewMeasureAxis(nin, axis, measr))) {
+  nout = nrrdNew();
+  if (nrrdMeasureAxis(nout, nin, axis, measr)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error projecting nrrd:\n%s\n", me, err);
     free(err);

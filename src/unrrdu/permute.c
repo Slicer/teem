@@ -63,7 +63,8 @@ main(int argc, char *argv[]) {
 	    me, nin->dim, udim);
     exit(1);
   }
-  if (!(nout = nrrdNewPermuteAxes(nin, axis))) {
+  nout = nrrdNew();
+  if (nrrdPermuteAxes(nout, nin, axis)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error permuting nrrd:\n%s", me, err);
     free(err);

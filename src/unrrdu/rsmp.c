@@ -146,10 +146,6 @@ main(int argc, char *argv[]) {
 	fprintf(stderr, "%s: couldn't parse int in \"%s\"\n", me, sizeS);
 	usage();
       }
-      if (!(size > 0)) {
-	fprintf(stderr, "%s: invalid # samples (%d), axis %d\n", me, size, d);
-	usage();
-      }
       info->samples[d] = size;
     }
     info->kernel[d] = kern;

@@ -137,7 +137,8 @@ main(int argc, char *argv[]) {
 		  : j - 1));
     /* printf("   axes[%d] = %d\n", j, axes[j]); */
   }
-  if (!(nout = nrrdNewPermuteAxes(ntmp, axes))) {
+  nout = nrrdNew();
+  if (nrrdPermuteAxes(nout, ntmp, axes)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error permuting nrrd:\n%s", me, err);
     free(err);

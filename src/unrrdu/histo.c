@@ -59,13 +59,15 @@ main(int argc, char **argv) {
     free(err);
     exit(1);
   }
-  if (!(nhist = nrrdNewHisto(nin, sx))) {
+  nhist = nrrdNew();
+  if (nrrdHisto(nhist, nin, sx)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble making histogram:\n%s\n", me, err);
     free(err);
     exit(1);
   }
-  if (!(nimg = nrrdNewDrawHisto(nhist, sy))) {
+  nimg = nrrdNew();
+  if (nrrdDrawHisto(nimg, nhist, sy)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble drawing histogram:\n%s\n", me, err);
     free(err);

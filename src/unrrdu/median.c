@@ -60,7 +60,8 @@ main(int argc, char *argv[]) {
     free(err);
     exit(1);
   }
-  if (!(nout = nrrdNewMedian(nin, radius, bins))) {
+  nout = nrrdNew();
+  if (nrrdMedian(nout, nin, radius, bins)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error in median filtering:\n%s", me, err);
     free(err);

@@ -66,10 +66,11 @@ main(int argc, char *argv[]) {
     sprintf(format, "%%s%%02d.nrrd");
   else
     sprintf(format, "%%s%%01d.nrrd");
+  nout = nrrdNew();
   for (pos=0; pos<=top; pos++) {
     sprintf(out, format, base, pos);
     fprintf(stderr, "%s\n", out);
-    if (!(nout = nrrdNewSlice(nin, axis, pos))) {
+    if (nrrdSlice(nout, nin, axis, pos)) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: error slicing nrrd:%s\n", me, err);
       free(err);
@@ -82,8 +83,8 @@ main(int argc, char *argv[]) {
       free(err);
       exit(1);
     }
-    nrrdNuke(nout);
   }
+  nrrdNuke(nout);
   nrrdNuke(nin);
   exit(0);
 }

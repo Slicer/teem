@@ -112,8 +112,9 @@ main(int argc, char *argv[]) {
       max[i] = nin->size[i] - 1 + maxoffset[i];
     fprintf(stderr, "%s: axis % 2d: %d -> %d\n", me, i, min[i], max[i]);
   }
-  
-  if (!(nout = nrrdNewSubvolume(nin, min, max, 1))) {
+
+  nout = nrrdNew();
+  if (nrrdSubvolume(nout, nin, min, max, 1)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error cropping nrrd:\n%s", me, err);
     free(err);

@@ -61,7 +61,8 @@ main(int argc, char **argv) {
     exit(1);
   }
   if (file = fopen("hist0.pgm", "w")) {
-    if (!(pgm = nrrdNewDrawHisto(hist, 800))) {
+    pgm = nrrdNew();
+    if (nrrdDrawHisto(pgm, hist, 800)) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: trouble drawing data histogram:\n%s", me, err);
       free(err);
@@ -80,14 +81,16 @@ main(int argc, char **argv) {
     nrrdNuke(hist);
   }
   if (file = fopen("hist1.pgm", "w")) {
-    if (!(hist = nrrdNewHisto(nrrd, bins))) {
+    hist = nrrdNew();
+    if (nrrdHisto(hist, nrrd, bins)) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: trouble generating post-HEQ histogram:\n%s",
 	      me, err);
       free(err);
       exit(1);
     }
-    if (!(pgm = nrrdNewDrawHisto(hist, 800))) {
+    pgm = nrrdNew();
+    if (nrrdDrawHisto(pgm, hist, 800)) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: trouble drawing data histogram:\n%s", me, err);
       free(err);

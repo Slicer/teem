@@ -52,7 +52,8 @@ main(int argc, char *argv[]) {
     free(err);
     exit(1);
   }
-  if (!(nout = nrrdNewSlice(nin, axis, pos))) {
+  nout = nrrdNew();
+  if (nrrdSlice(nout, nin, axis, pos)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error slicing nrrd:\n%s\n", me, err);
     free(err);
