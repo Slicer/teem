@@ -79,7 +79,7 @@ unrrdu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
     ntmp = nin;
   }
   if (nrrdUnaryOpRand == op) {
-    airSrand();
+    airSrand48(airTime());
   }
   if (nrrdArithUnaryOp(nout, op, ntmp)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);

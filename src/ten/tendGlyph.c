@@ -206,6 +206,12 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "ns", "# samp", airTypeInt, 1, 1, &(eparm->numSamples),"4",
 	     "(* ray-traced only *) "
 	     "number of samples per pixel (must be a square number)");
+  if (airThreadCapable) {
+    hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1,
+	       &(eparm->numThreads), "1", 
+	       "(* ray-traced only *) "
+	       "number of threads to be used for rendering");
+  }
 
   /* input/output */
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nten, "-",

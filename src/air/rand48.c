@@ -20,7 +20,11 @@
 /*
 ** The contents of this file were derived from the *rand48*.c files
 ** from glibc-2.3/stdlib, which is distributed under the LGPL that
-** governs the distribution of Teem.
+** governs the distribution of Teem.  I've simplified the state struct
+** (took out the "init" flag), and made the re-entrant drand48 return
+** a double, rather than taking a double*.  Mathematically, however,
+** these functions are identical to the behavior of drand48() from 
+** glibc-2.3.  
 */
 
 #include "air.h"
