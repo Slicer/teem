@@ -25,6 +25,7 @@
 
 short
 tenEvqOne(float vec[3], float scl) {
+  char me[]="tenEvqOne";
   float tmp, L1;
   int mi, bins, base, vi, ui;
   short ret;
@@ -42,6 +43,9 @@ tenEvqOne(float vec[3], float scl) {
     case 3: bins = 48; base = 1+SQR(16)+SQR(32);                 break;
     case 4: bins = 64; base = 1+SQR(16)+SQR(32)+SQR(48);         break;
     case 5: bins = 80; base = 1+SQR(16)+SQR(32)+SQR(48)+SQR(64); break;
+    default:
+      fprintf(stderr, "%s: PANIC: mi = %d\n", me, mi);
+      exit(0);
     }
     AIR_INDEX(-1, vec[0]+vec[1], 1, bins, vi);
     AIR_INDEX(-1, vec[0]-vec[1], 1, bins, ui);
