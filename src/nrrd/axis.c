@@ -356,7 +356,7 @@ nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo, ...) {
       break;
     case nrrdAxisInfoLabel:
       /* we DO NOT do the airStrdup() here because this pointer value just
-	 came from nrrdAxisInfoGet(), which already did the airStrdup() */
+	 came from nrrdAxisInfoGet_nva(), which already did the airStrdup() */
       *((char**)ptr) = info.CP[d];
       /* printf("!%s: got char*[%d] = |%s|\n", "nrrdAxisInfoSet", d, 
        *((char**)ptr)); */
