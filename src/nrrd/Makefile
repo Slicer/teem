@@ -20,14 +20,14 @@
 
 TEEM_LIB = nrrd
 HEADERS = nrrd.h nrrdDefines.h nrrdMacros.h nrrdEnums.h
-PRIV_HEADERS = private.h
+PRIV_HEADERS = privateNrrd.h
 TEEM_LIB_OBJS = \
-	accessors.o  arith.o      arrays.o     apply1D.o    \
-	axes.o       comment.o    convert.o    defaults.o   \
-	endian.o     enums.o      filt.o       hest.o       \
-	histogram.o  iter.o       kernel.o     map.o        \
-	measure.o    methods.o    parse.o      read.o       \
-	reorder.o    resample.o   simple.o     subset.o     \
+	accessors.o  arith.o        arraysNrrd.o  apply1D.o      \
+	axes.o       comment.o      convertNrrd.o defaultsNrrd.o \
+	endianNrrd.o enumsNrrd.o    filt.o        hestNrrd.o     \
+	histogram.o  iter.o         kernel.o      map.o          \
+	measure.o    methodsNrrd.o  parseNrrd.o   read.o         \
+	reorder.o    resampleNrrd.o simpleNrrd.o  subset.o       \
 	superset.o   write.o
 
 TEST_BINS = test/trand test/shuff test/ax test/io test/minmax test/tkernel

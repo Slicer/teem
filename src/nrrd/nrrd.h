@@ -275,7 +275,7 @@ typedef struct {
 } NrrdIter;
 
 /******** defaults (nrrdDef..) and state (nrrdState..) */
-/* defaults.c */
+/* defaultsNrrd.c */
 extern int nrrdDefWrtEncoding;
 extern int nrrdDefWrtSeperateHeader;
 extern int nrrdDefWrtBareTable;
@@ -301,7 +301,7 @@ extern int nrrdStateDisallowFixedPointNonExist;
 
 /******** all the airEnums used through-out nrrd */
 /* (the actual C enums are in nrrdEnums.h) */
-/* enums.c */
+/* enumsNrrd.c */
 extern airEnum *nrrdFormat;
 extern airEnum *nrrdBoundary;
 extern airEnum *nrrdMagic;
@@ -316,7 +316,7 @@ extern airEnum *nrrdBinaryOp;
 extern airEnum *nrrdTernaryOp;
 
 /******** arrays of things (poor-man's functions/predicates) */
-/* arrays.c */
+/* arraysNrrd.c */
 extern char nrrdTypeConv[][AIR_STRLEN_SMALL];
 extern int nrrdEncodingEndianMatters[];
 extern int nrrdTypeSize[];
@@ -327,12 +327,13 @@ extern double nrrdTypeMax[];
 extern double nrrdTypeNumberValues[];
 
 /******** things useful with hest */
+/* hestNrrd.c */
 extern hestCB *nrrdHestNrrd;
 extern hestCB *nrrdHestNrrdKernelSpec;
 extern hestCB *nrrdHestNrrdIter;
 
 /******** pseudo-constructors, pseudo-destructors, and such */
-/* (methods.c) */
+/* methodsNrrd.c */
 extern NrrdIO *nrrdIONew(void);
 extern void nrrdIOReset(NrrdIO *io);
 extern NrrdIO *nrrdIONix(NrrdIO *io);
@@ -361,7 +362,7 @@ extern int nrrdPGM(Nrrd *, int sx, int sy);
 extern int nrrdTable(Nrrd *table, int sx, int sy);
 
 /******** nrrd value iterator gadget */
-/* (iter.c) */
+/* iter.c */
 extern NrrdIter *nrrdIterNew(void);
 extern void nrrdIterSetValue(NrrdIter *iter, double val);
 extern void nrrdIterSetNrrd(NrrdIter *iter, Nrrd *nrrd);
@@ -389,7 +390,7 @@ extern void nrrdAxisSpacingSet(Nrrd *nrrd, int ax);
 extern void nrrdAxisMinMaxSet(Nrrd *nrrd, int ax);
 
 /******** simple things */
-/* simple.c */
+/* simpleNrrd.c */
 extern void nrrdPeripheralInit(Nrrd *nrrd);
 extern void nrrdPeripheralCopy(Nrrd *nout, Nrrd *nin);
 extern int nrrdContentSet(Nrrd *nout, const char *func,
@@ -412,7 +413,7 @@ extern int nrrdCommentCopy(Nrrd *nout, Nrrd *nin);
 extern char *nrrdCommentScan(Nrrd *nrrd, const char *key);
 
 /******** endian related */
-/* (endian.c) */
+/* endianNrrd.c */
 extern void nrrdSwapEndian(Nrrd *nrrd);
 
 /******** getting value into and out of an array of general type, and
@@ -557,7 +558,7 @@ typedef double nrrdResample_t;
 #  define NRRD_RESAMPLE_FLOAT 0
 #endif
 
-/* resample.c */
+/* resampleNrrd.c */
 extern int nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info);
 extern int nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
 			      NrrdKernel *kernel, double *parm,

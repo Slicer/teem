@@ -17,9 +17,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
 #include "nrrd.h"
-#include "private.h"
+#include "privateNrrd.h"
 
 /*
 ** these aren't "const"s because the user should be able to change
