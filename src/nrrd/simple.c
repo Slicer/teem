@@ -161,7 +161,7 @@ nrrdDescribe(FILE *file, Nrrd *nrrd) {
 
   if (file && nrrd) {
     fprintf(file, "Nrrd at 0x%p:\n", (void*)nrrd);
-    fprintf(file, "Data at 0x%p is " NRRD_BIG_INT_PRINTF 
+    fprintf(file, "Data at 0x%p is " AIR_SIZE_T_FMT
 	    " elements of type %s.\n",
 	    nrrd->data, nrrdElementNumber(nrrd), 
 	    airEnumStr(nrrdType, nrrd->type));
@@ -309,9 +309,9 @@ nrrdElementSize(Nrrd *nrrd) {
 ** takes the place of old "nrrd->num": the number of elements in the
 ** nrrd, which is just the product of the axis sizes.
 */
-nrrdBigInt
+size_t
 nrrdElementNumber(Nrrd *nrrd) {
-  nrrdBigInt num;
+  size_t num;
   int d, size[NRRD_DIM_MAX];
 
   if (!nrrd) {
@@ -427,7 +427,7 @@ nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff) {
 */
 int
 nrrdHasNonExistSet(Nrrd *nrrd) {
-  nrrdBigInt I, N;
+  size_t I, N;
   float val;
 
   if (!nrrd || !airEnumValidVal(nrrdType, nrrd->type))
@@ -587,16 +587,16 @@ nrrdSanity(void) {
 	    nrrdTypeSize[nrrdTypeULLong],
 	    nrrdTypeSize[nrrdTypeFloat],
 	    nrrdTypeSize[nrrdTypeDouble],
-	    sizeof(char),
-	    sizeof(unsigned char),
-	    sizeof(short),
-	    sizeof(unsigned short),
-	    sizeof(int),
-	    sizeof(unsigned int),
-	    sizeof(long long int),
-	    sizeof(unsigned long long int),
-	    sizeof(float),
-	    sizeof(double));
+	    (int)sizeof(char),
+	    (int)sizeof(unsigned char),
+	    (int)sizeof(short),
+	    (int)sizeof(unsigned short),
+	    (int)sizeof(int),
+	    (int)sizeof(unsigned int),
+	    (int)sizeof(long long int),
+	    (int)sizeof(unsigned long long int),
+	    (int)sizeof(float),
+	    (int)sizeof(double));
     biffAdd(NRRD, err); return 0;
   }
 
