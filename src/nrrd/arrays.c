@@ -111,7 +111,7 @@ nrrdTypeMin[NRRD_TYPE_MAX+1] = {
   0,               /* float */
   0,               /* double */
   0                /* punt */
-};
+},
 nrrdTypeMax[NRRD_TYPE_MAX+1] = {
   0,               /* unknown */
   SCHAR_MAX,       /* char */
