@@ -100,6 +100,21 @@ typedef struct _NrrdGzStream {
 
 static int _nrrdGzMagic[2] = {0x1f, 0x8b}; /* gzip magic header */
 
+/* zlib error messages */
+static const char *_nrrdGzErrMsg[10] = {
+  "need dictionary",     /* Z_NEED_DICT       2  */
+  "stream end",          /* Z_STREAM_END      1  */
+  "",                    /* Z_OK              0  */
+  "file error",          /* Z_ERRNO         (-1) */
+  "stream error",        /* Z_STREAM_ERROR  (-2) */
+  "data error",          /* Z_DATA_ERROR    (-3) */
+  "insufficient memory", /* Z_MEM_ERROR     (-4) */
+  "buffer error",        /* Z_BUF_ERROR     (-5) */
+  "incompatible version",/* Z_VERSION_ERROR (-6) */
+  ""};
+
+#define _NRRD_GZ_ERR_MSG(err) _nrrdGzErrMsg[Z_NEED_DICT-(err)]
+
 static int  _nrrdGzGetByte (_NrrdGzStream *s);
 static void _nrrdGzCheckHeader (_NrrdGzStream *s);
 static int _nrrdGzDestroy (_NrrdGzStream *s);
@@ -109,8 +124,8 @@ static uLong _nrrdGzGetLong (_NrrdGzStream *s);
 
 gzFile _nrrdGzOpen (FILE* fd, const char *mode);
 int _nrrdGzClose (gzFile file);
-int _nrrdGzRead (gzFile file, voidp buf, unsigned len);
-int _nrrdGzWrite (gzFile file, const voidp buf, unsigned len);
+unsigned int _nrrdGzRead (gzFile file, voidp buf, unsigned int len);
+unsigned int _nrrdGzWrite (gzFile file, const voidp buf, unsigned int len);
 
 /*
 ** _nrrdGzOpen()
@@ -266,7 +281,7 @@ _nrrdGzClose (gzFile file)
   if (s == NULL) {
     sprintf(err, "%s: invalid stream", me);
     biffAdd(NRRD, err);
-    return Z_STREAM_ERROR;
+    return 1;
   }
   if (s->mode == 'w') {
     error = _nrrdGzDoFlush(file, Z_FINISH);
@@ -287,8 +302,8 @@ _nrrdGzClose (gzFile file)
 ** Reads the given number of uncompressed bytes from the compressed file.
 ** Returns the number of bytes actually read (0 for end of file).
 */
-int
-_nrrdGzRead (gzFile file, voidp buf, unsigned len) {
+unsigned int
+_nrrdGzRead (gzFile file, voidp buf, unsigned int len) {
   char me[] = "_nrrdGzRead", err[AIR_STRLEN_MED];
   _NrrdGzStream *s = (_NrrdGzStream*)file;
   Bytef *start = (Bytef*)buf; /* starting point for crc computation */
@@ -297,13 +312,13 @@ _nrrdGzRead (gzFile file, voidp buf, unsigned len) {
   if (s == NULL || s->mode != 'r') {
     sprintf(err, "%s: invalid stream or file mode", me);
     biffAdd(NRRD, err);
-    return Z_STREAM_ERROR;
+    return 1;
   }
 
   if (s->z_err == Z_DATA_ERROR || s->z_err == Z_ERRNO) {
     sprintf(err, "%s: data read error", me);
     biffAdd(NRRD, err);
-    return -1;
+    return 1;
   }
   if (s->z_err == Z_STREAM_END) return 0;  /* EOF */
 
@@ -379,7 +394,7 @@ _nrrdGzRead (gzFile file, voidp buf, unsigned len) {
   }
   s->crc = crc32(s->crc, start, (uInt)(s->stream.next_out - start));
 
-  return (int)(len - s->stream.avail_out);
+  return (unsigned int)(len - s->stream.avail_out);
 }
 
 /*
@@ -388,15 +403,15 @@ _nrrdGzRead (gzFile file, voidp buf, unsigned len) {
 ** Writes the given number of uncompressed bytes into the compressed file.
 ** Returns the number of bytes actually written (0 in case of error).
 */
-int
-_nrrdGzWrite (gzFile file, const voidp buf, unsigned len) {
+unsigned int
+_nrrdGzWrite (gzFile file, const voidp buf, unsigned int len) {
   char me[] = "_nrrdGzWrite", err[AIR_STRLEN_MED];
   _NrrdGzStream *s = (_NrrdGzStream*)file;
 
   if (s == NULL || s->mode != 'w') {
     sprintf(err, "%s: invalid stream or file mode", me);
     biffAdd(NRRD, err);
-    return Z_STREAM_ERROR;
+    return 1;
   }
 
   s->stream.next_in = (Bytef*)buf;
@@ -420,7 +435,7 @@ _nrrdGzWrite (gzFile file, const voidp buf, unsigned len) {
   }
   s->crc = crc32(s->crc, (const Bytef *)buf, len);
 
-  return (int)(len - s->stream.avail_in);
+  return (unsigned int)(len - s->stream.avail_in);
 }
 
 /*
@@ -527,14 +542,12 @@ _nrrdGzDestroy(_NrrdGzStream *s) {
   char me[] = "_nrrdGzDestroy", err[AIR_STRLEN_MED];
   int error = Z_OK;
 
-  if (!s) {
+  if (s == NULL) {
     sprintf(err, "%s: invalid stream", me);
     biffAdd(NRRD, err);
-    return Z_STREAM_ERROR;
+    return 1;
   }
-
   airFree(s->msg);
-
   if (s->stream.state != NULL) {
     if (s->mode == 'w') {
       error = deflateEnd(&(s->stream));
@@ -542,13 +555,19 @@ _nrrdGzDestroy(_NrrdGzStream *s) {
       error = inflateEnd(&(s->stream));
     }
   }
-
+  if (error != Z_OK) {
+    sprintf(err, "%s: %s", me, _NRRD_GZ_ERR_MSG(error));
+    biffAdd(NRRD, err);
+  }
   if (s->z_err < 0) error = s->z_err;
-
+  if (error != Z_OK) {
+    sprintf(err, "%s: %s", me, _NRRD_GZ_ERR_MSG(error));
+    biffAdd(NRRD, err);
+  }
   airFree(s->inbuf);
   airFree(s->outbuf);
   airFree(s);
-  return error;
+  return error != Z_OK;
 }
 
 /*

@@ -19,9 +19,6 @@
 
 #include "nrrd.h"
 #include "privateNrrd.h"
-#ifdef TEEM_ZLIB
-#  include <zlib.h> /* needed to read gzipped raw data */
-#endif
 
 #include <teem32bit.h>
 
@@ -350,7 +347,7 @@ _nrrdReadDataZlib(Nrrd *nrrd, NrrdIO *io) {
   biffAdd(NRRD, err); return 1;
 #else
   size_t num, bsize, size, total_read;
-  int block_size, read, zerrnum, i;
+  int block_size, read, i;
   char *data;
   gzFile gzfin;
   
@@ -397,17 +394,16 @@ _nrrdReadDataZlib(Nrrd *nrrd, NrrdIO *io) {
     }
   }
   
-  /* _nrrdGzRead takes an unsigned int for the number of bytes to read,
-     but it returns an int for the number that was actually read.  This is
-     really stupid, but you do what you can do.  I can't just pass in
-     the size, because it will be too large for an int.  Therefore it
-     must be read in chunks if the size is larger than INT_MAX.
+  /* zlib can handle data sizes up to UINT_MAX, so we can't just 
+     pass in the size, because it might be too large for an 
+     unsigned int.  Therefore it must be read in chunks 
+     if the size is larger than UINT_MAX.
   */
 
-  if (size <= INT_MAX) {
+  if (size <= UINT_MAX) {
     block_size = (int)size;
   } else {
-    block_size = INT_MAX;
+    block_size = UINT_MAX;
   }
 
   /* This counter will help us to make sure that we read as much data
@@ -432,20 +428,8 @@ _nrrdReadDataZlib(Nrrd *nrrd, NrrdIO *io) {
   
   /* Close the gzFile.  Since _nrrdGzClose does not close the FILE* we
      will not encounter problems when io->dataFile is closed later. */
-  zerrnum = _nrrdGzClose(gzfin);
-  if (zerrnum != 0) {
-    /* _nrrdGzClose is based on the zlib interface, so if there was an
-       error, we need to get the message corresponding to error code
-       from zlib. */
-    const char* errstring= gzerror(gzfin, &zerrnum);
-    if (zerrnum != Z_ERRNO) {
-      sprintf(err, "%s: error closing gzFile: %s",
-	      me, errstring);
-    } else {
-      /* If we wanted we could get the error from the system, but I
-	 dont' want to. :) */
-      sprintf(err, "%s: system error closing gzFile:", me);
-    }
+  if (_nrrdGzClose(gzfin) != 0) {
+    sprintf(err, "%s: error closing gzFile", me);
     biffAdd(NRRD, err);
     return 1;
   }

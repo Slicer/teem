@@ -89,8 +89,8 @@ extern void _nrrdTraverse(Nrrd *nrrd);
 /* gzio.c */
 extern gzFile _nrrdGzOpen(FILE* fd, const char *mode);
 extern int _nrrdGzClose(gzFile file);
-extern int _nrrdGzRead(gzFile file, voidp buf, unsigned len);
-extern int _nrrdGzWrite(gzFile file, const voidp buf, unsigned len);
+extern unsigned int _nrrdGzRead(gzFile file, voidp buf, unsigned int len);
+extern unsigned int _nrrdGzWrite(gzFile file, const voidp buf, unsigned int len);
 #endif
 
 #ifdef __cplusplus
