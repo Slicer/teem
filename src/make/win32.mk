@@ -40,7 +40,7 @@ teem.dsp.build:
 	@echo -n "Creating teem.dsp..."
 	@echo s/TEEMALLDOTC/$(patsubst %.o,\# Begin Source File\\n\\nSOURCE=%.c\\n\# End Source File\\n,$(foreach obj,$(sortedObjs),$(call flipSlash,$(obj))))/g > cmd.ed
 	@echo s/TEEMALLDOTH/$(patsubst %.h,\# Begin Source File\\n\\nSOURCE=%.h\\n\# End Source File\\n,$(foreach lib,$(LIBS),$(addprefix ..\\\\..\\\\src\\\\$(lib)\\\\,$($(lib).PUBLIC_HEADERS) $($(lib).PRIVATE_HEADERS))))/g >> cmd.ed
-	@echo s/TEEMALLINC/$(foreach lib,$(LIBS),\\/I \"..\\..\\/src\\/$(lib)\")/g >> cmd.ed
+	@echo s/TEEMALLINC/$(foreach lib,$(LIBS),\\/I \"..\\/..\\/src\\/$(lib)\")/g >> cmd.ed
 	@echo "s/ #/#/g" >> cmd.ed
 	@sed -f cmd.ed $(WIN32.DEST)/teem_shared.dsp.tmpl > $(WIN32.DEST)/teem_shared.dsp
 	@sed -f cmd.ed $(WIN32.DEST)/teem_static.dsp.tmpl > $(WIN32.DEST)/teem_static.dsp
@@ -74,7 +74,7 @@ teembin.%.dsp.build: BIN = $(patsubst teembin.%.dsp.build,%,$@)
 teembin.%.dsp.build:
 	@echo -n "Creating $(BIN).dsp..."
 	@echo s/TEEMBINNAME/$(BIN)/g > cmd.ed
-	@echo s/TEEMALLINC/$(foreach lib,$(LIBS),\\/I \"..\\..\\/src\\/$(lib)\")/g >> cmd.ed
+	@echo s/TEEMALLINC/$(foreach lib,$(LIBS),\\/I \"..\\/..\\/src\\/$(lib)\")/g >> cmd.ed
 	@echo s/TEEMBINDOTC/\# Begin Source File\\n\\nSOURCE=..\\\\..\\\\src\\\\bin\\\\$(BIN).c\\n\# End Source File\\n/g >> cmd.ed
 	@echo "s/ #/#/g" >> cmd.ed
 	@sed -f cmd.ed $(WIN32.DEST)/teem_bin.dsp.tmpl > $(WIN32.DEST)/$(BIN).dsp
