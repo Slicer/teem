@@ -108,7 +108,7 @@ _nrrdMedian2D(Nrrd *nout, Nrrd *nin, int radius,
       val = AIR_AFFINE(0, idx, bins-1, nin->min, nin->max);
       nrrdDInsert[nout->type](nout->data, X + sx*Y, val);
       /* probably update histogram for next iteration */
-      if (X < nin->num-radius-1) {
+      if (X < sx-radius-1) {
 	for (J=-radius; J<=radius; J++) {
 	  hist[_index(nin, X+radius+1 + sx*(J+Y), bins)]++;
 	  hist[_index(nin, X-radius + sx*(J+Y), bins)]--;
@@ -148,7 +148,7 @@ _nrrdMedian3D(Nrrd *nout, Nrrd *nin, int radius,
 	val = AIR_AFFINE(0, idx, bins-1, nin->min, nin->max);
 	nrrdDInsert[nout->type](nout->data, X + sx*(Y + sy*Z), val);
 	/* probably update histogram for next iteration */
-	if (X < nin->num-radius-1) {
+	if (X < sx-radius-1) {
 	  for (K=-radius; K<=radius; K++) {
 	    for (J=-radius; J<=radius; J++) {
 	      hist[_index(nin, X+radius+1 + sx*(J+Y + sy*(K+Z)), bins)]++;
