@@ -400,12 +400,12 @@ nrrdBasicInfoCopy (Nrrd *dest, const Nrrd *src, int bitflag) {
 */
 void
 nrrdInit (Nrrd *nrrd) {
-  int i;
+  int ii;
 
   if (nrrd) {
     nrrdBasicInfoInit(nrrd, NRRD_BASIC_INFO_NONE);
-    for (i=0; i<NRRD_DIM_MAX; i++) {
-      _nrrdAxisInfoInit(&(nrrd->axis[i]));
+    for (ii=0; ii<NRRD_DIM_MAX; ii++) {
+      _nrrdAxisInfoInit(nrrd->axis + ii);
     }
   }
   return;
@@ -428,12 +428,10 @@ nrrdNew (void) {
     return NULL;
 
   /* explicitly set pointers to NULL, since calloc isn't officially
-     guaranteed to do that.  Its unfortunate that the AxisInfo functions
-     don't handle this, but then again these are unique circumstances */
+     guaranteed to do that.  */
   nrrd->data = NULL;
   for (ii=0; ii<NRRD_DIM_MAX; ii++) {
-    nrrd->axis[ii].label = NULL;
-    nrrd->axis[ii].units = NULL;
+    _nrrdAxisInfoNewInit(nrrd->axis + ii);
   }
   for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
     nrrd->spaceUnits[ii] = NULL;
@@ -457,7 +455,7 @@ nrrdNew (void) {
   if (!nrrd->kvpArr) {
     return NULL;
   }
-  /* no airArray callbacks for now */
+  /* key/value airArray uses no callbacks for now */
   
   /* finish initializations */
   nrrdInit(nrrd);

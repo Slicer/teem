@@ -41,6 +41,17 @@ _nrrdAxisInfoInit(NrrdAxisInfo *axis) {
   }
 }
 
+void
+_nrrdAxisInfoNewInit(NrrdAxisInfo *axis) {
+  int dd;
+  
+  if (axis) {
+    axis->label = NULL;
+    axis->units = NULL;
+    _nrrdAxisInfoInit(axis);
+  }
+}
+
 /* ------------------------------------------------------------ */
 
 /*
@@ -210,18 +221,18 @@ _nrrdAxisInfoCopy(NrrdAxisInfo *dest, const NrrdAxisInfo *src, int bitflag) {
 ** permutation, which will probably be unlikely given the contexts in
 ** which this is called.  For the paranoid, the integer return value
 ** indicates error.
+**
+** Sun Feb 27 21:12:57 EST 2005: decided to allow nout==nin, so now
+** use a local array of NrrdAxisInfo as buffer.
 */
 int
 nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin, const int *axmap, int bitflag) {
+  NrrdAxisInfo axisBuffer[NRRD_DIM_MAX];
+  NrrdAxisInfo *axis;
   int d, from;
   
   if (!(nout && nin)) {
     return 1;
-  }
-  if (nout == nin) {
-    /* this is a problem because we don't want to have to deal with
-       temp variables to re-arrange the axes */
-    return 2;
   }
   if (axmap) {
     for (d=0; d<nout->dim; d++) {
@@ -233,14 +244,29 @@ nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin, const int *axmap, int bitflag) {
       }
     }
   }
-  
+  if (nout == nin) {
+    /* copy axis info to local buffer */
+    for (d=0; d<nin->dim; d++) {
+      _nrrdAxisInfoNewInit(axisBuffer + d);
+      _nrrdAxisInfoCopy(axisBuffer + d, nin->axis + d, bitflag);
+    }
+    axis = axisBuffer;
+  } else {
+    axis = nin->axis;
+  }
   for (d=0; d<nout->dim; d++) {
     from = axmap ? axmap[d] : d;
     if (-1 == from) {
       /* for this axis, we don't touch a thing */
       continue;
     }
-    _nrrdAxisInfoCopy(&(nout->axis[d]), &(nin->axis[from]), bitflag);
+    _nrrdAxisInfoCopy(nout->axis + d, axis + from, bitflag);
+  }
+  if (nout == nin) {
+    /* free dynamically allocated stuff */
+    for (d=0; d<nin->dim; d++) {
+      _nrrdAxisInfoInit(axisBuffer + d);
+    }
   }
   return 0;
 }

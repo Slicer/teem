@@ -138,6 +138,7 @@ extern int _nrrdKindAltered(int kindIn);
 extern void _nrrdAxisInfoCopy(NrrdAxisInfo *dest, const NrrdAxisInfo *src,
                               int bitflag);
 extern void _nrrdAxisInfoInit(NrrdAxisInfo *axis);
+extern void _nrrdAxisInfoNewInit(NrrdAxisInfo *axis);
 extern int _nrrdCenter(int center);
 extern int _nrrdCenter2(int center, int def);
 
