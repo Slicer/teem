@@ -20,9 +20,11 @@
 
 LIB = limn
 HEADERS = limn.h
-LIB_OBJS = qn.o light.o cam.o methods.o obj.o shapes.o io.o \
+#LIB_OBJS = qn.o light.o cam.o methods.o obj.o shapes.o io.o \
+#	transform.o render.o
+LIB_OBJS = qn.o light.o cam.o methods.o obj.o io.o \
 	transform.o render.o
-TEST_BINS = test/map test/des test/light test/cam
+TEST_BINS = test/map test/des test/light
 BINS =
 BIN_LIBS = -llimn -lell -lnrrd -lbiff -lair -lm
 
