@@ -22,8 +22,46 @@ extern "C" {
 #endif
 
 #include <stdio.h>
+#include <stddef.h>
 #include <stdarg.h>
 #include <air.h>
+
+/*
+******** hestCB struct
+**
+** for when the thing you want to parse from the command-line is not a
+** simple boolean, number, or string.  hestParse() will not allocate
+** anything to store individual things, though it may allocate an
+** array in the case of a multiple variable parameter option.  If your
+** things are actually pointers to things, then you do the allocation
+** in the parse() callback.  In this case, you set delete() to be your
+** "destructor", and it will be called on the result of derefencing the
+** argument to parse().
+*/
+typedef struct {
+  size_t size;          /* sizeof() one thing */
+  char *type;           /* used by hestGlossary() to describe the type */
+  void *(*parse)(void *ptr, char *str);
+                        /* how to parse one thing from a string.  This will
+			   be called multiple times for multiple parameter
+			   options.  Using a void* as the return value does
+			   not preclude storing an integral value in the void*
+			   (see K+R pg. 199) but its up to you to insure that
+			   the integral value fits in the void*. */
+  char *(*error)(void *ret);
+                        /* what to call if parse() has a non-zero return,
+			   so as to generate an error message.  strlen() of
+			   this string must be < AIR_STRLEN_MED, and it should
+			   not contain any carriage returns or newlines. */
+  void *(*delete)(void *ptr);
+                        /* if non-NULL, this is the destructor that will be
+			   called by hestParseFree() (or by hestParse() if
+			   there is an error midway through parsing).  The
+			   argument is NOT the same as passed to parse():
+			   it is the result of dereferencing the argument
+			   to parse() */
+  int freeErrorStr;     /* whether to free() the return of error() */
+} hestCB;
 
 /*
 ******** hestOpt struct
@@ -38,24 +76,25 @@ typedef struct {
   void *valueP;         /* storage of parsed values */
   char *dflt,           /* default value written out as string */
     *info;              /* description to be printed with "glossary" info */
-  int *sawP,            /* used ONLY for multiple variable parameter options
+  int *sawP;            /* used ONLY for multiple variable parameter options
 			   (min < max > 2): storage of # of parsed values */
+  hestCB *CB;           /* used ONLY for airTypeOther options */
 
   /* --------------------- end of user-defined fields */
 
-    kind,               /* what kind of option is this, based on min and max,
+  int kind,             /* what kind of option is this, based on min and max,
 			   set by hestParse() (actually _hestPanic()),
 			   later used by hestFree():
 			   1: min == max == 0
-			      a binary flag, no parameters
+			      stand-alone flag; no parameters
 			   2: min == max == 1
-                              one required parameter
+                              single fixed parameter
 			   3: min == max >= 2
-                              multiple required parameters
+                              multiple fixed parameters
 			   4: min == 0; max == 1;
-                              one optional parameter
+                              single variable parameter
 			   5: max - min >= 1; max >= 2 
-                              multiple optional parameter */
+                              multiple variable parameters */
     alloc;              /* information about whether flag is non-NULL, and what
 			   parameters were used, that determines whether or
 			   not memory was allocated by hestParse(); info

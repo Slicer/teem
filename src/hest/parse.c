@@ -66,7 +66,7 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
 	if (pound = strchr(line, parm->respFileComment))
 	  *pound = '\0';
 	airOneLinify(line);
-	*argcP += airStrntok(line, " ");
+	*argcP += airStrntok(line, AIR_WHITESPACE);
 	len = airOneLine(file, line, AIR_STRLEN_HUGE);
       }
       fclose(file);
@@ -80,7 +80,9 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
 /*
 ** _hestResponseFiles()
 **
-** 
+** This function is badly named.  Even if there are no response files,
+** even if response files are disabled, this is the function that
+** copies from the user's argc,argv to our local copy.
 */
 int
 _hestResponseFiles(char **newArgv, char **oldArgv, int nrf,
@@ -89,10 +91,6 @@ _hestResponseFiles(char **newArgv, char **oldArgv, int nrf,
   int len, newArgc, oldArgc, incr, ai;
   FILE *file;
   
-  if (!parm->respFileEnable) {
-    /* don't do response files; we're done */
-    return 0;
-  }
   newArgc = oldArgc = 0;
   while(oldArgv[oldArgc]) {
     if (parm->verbosity) {
@@ -100,7 +98,8 @@ _hestResponseFiles(char **newArgv, char **oldArgv, int nrf,
 	     "dammit", newArgc, oldArgc);
       _hestPrintArgv(newArgc, newArgv);
     }
-    if (parm->respFileFlag != oldArgv[oldArgc][0]) {
+    if (!parm->respFileEnable
+	|| parm->respFileFlag != oldArgv[oldArgc][0]) {
       /* nothing to do with a response file, just copy the arg over.
 	 We are not allocating new memory in this case. */
       newArgv[newArgc] = oldArgv[oldArgc];
@@ -119,11 +118,11 @@ _hestResponseFiles(char **newArgv, char **oldArgv, int nrf,
 	if (parm->verbosity)
 	  printf("_hestResponseFiles: -0-> line: |%s|\n", line);
 	airOneLinify(line);
-	incr = airStrntok(line, " ");
+	incr = airStrntok(line, AIR_WHITESPACE);
 	if (parm->verbosity)
 	  printf("_hestResponseFiles: -1-> line: |%s|, incr=%d\n",
 		 line, incr);
-	airParseStrS(newArgv + newArgc, line, " ", incr);
+	airParseStrS(newArgv + newArgc, line, AIR_WHITESPACE, incr);
 	for (ai=0; ai<=incr-1; ai++) {
 	  /* This time, we did allocate memory.  We can use airFree and
 	     not airFreeP because these will not be reset before mopping */
@@ -162,6 +161,12 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
   numvar = 0;
   for (op=0; op<=numOpts-1; op++) {
     opt[op].kind = _hestKind(opt + op);
+    if (!(AIR_BETWEEN(airTypeUnknown, opt[op].type, airTypeLast))) {
+      if (err)
+	sprintf(err, "%s!!!!!! opt[%d].type (%d) not in valid range [%d,%d]",
+		ME, op, opt[op].type, airTypeUnknown+1, airTypeLast-1);
+      return 1;
+    }
     if (-1 == opt[op].kind) {
       if (err)
 	sprintf(err, "%s!!!!!! opt[%d]'s min (%d) and max (%d) incompatible",
@@ -174,19 +179,39 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
 		"but sawP is NULL", ME);
       return 1;
     }
-    if (!(AIR_BETWEEN(airTypeUnknown, opt[op].type, airTypeLast))) {
-      if (err)
-	sprintf(err, "%s!!!!!! opt[%d].type (%d) not in valid range [%d,%d]",
-		ME, op, opt[op].type, airTypeUnknown+1, airTypeLast-1);
-      return 1;
-    }
-    if (opt[op].flag) {
-      if (!strlen(opt[op].flag)) {
+    if (airTypeOther == opt[op].type) {
+      if (!(opt[op].CB)) {
 	if (err)
-	  sprintf(err, "%s!!!!!! opt[%d].flag is non-NULL but zero length",
-		  ME, op);
+	  sprintf(err, "%s!!!!!! opt[%d] is type \"other\", but no "
+		  "callbacks given", ME, op);
 	return 1;
       }
+      if (!( opt[op].CB->size > 0 )) {
+	if (err)
+	  sprintf(err, "%s!!!!!! opt[%d]'s \"size\" (%d) invalid", 
+		  ME, op, opt[op].CB->size);
+	return 1;
+      }
+      if (!( opt[op].type )) {
+	if (err)
+	  sprintf(err, "%s!!!!!! opt[%d]'s \"type\" is NULL",
+		  ME, op);
+	return 1;
+
+      }
+      if (!( opt[op].CB->parse )) {
+	if (err)
+	  sprintf(err, "%s!!!!!! opt[%d]'s \"parse\" callback NULL", ME, op);
+	return 1;
+      }
+      if (opt[op].CB->delete && (sizeof(void*) != opt[op].CB->size)) {
+	if (err)
+	  sprintf(err, "%s!!!!!! opt[%d] has a \"delete\", but size isn't "
+		  "sizeof(void*)", ME, op);
+	return 1;
+      }
+    }
+    if (opt[op].flag) {
       strcpy(tbuff, opt[op].flag);
       if (( sep = strchr(tbuff, parm->multiFlagSep) )) {
 	*sep = '\0';
@@ -194,6 +219,26 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
 	  if (err)
 	    sprintf(err, "%s!!!!!! either short (\"%s\") or long (\"%s\") flag"
 		    " of opt[%d] is zero length", ME, tbuff, sep+1, op);
+	  return 1;
+	}
+      }
+      else {
+	if (!strlen(opt[op].flag)) {
+	  if (err)
+	    sprintf(err, "%s!!!!!! opt[%d].flag is zero length",
+		    ME, op);
+	  return 1;
+	}
+      }
+      if (4 == opt[op].kind) {
+	if (!opt[op].dflt) {
+	  sprintf(err, "%s!!!!!! flagged single variable parameter must "
+		  "specify a default", ME);
+	  return 1;
+	}
+	if (!strlen(opt[op].dflt)) {
+	  sprintf(err, "%s!!!!!! flagged single variable parameter default "
+		  "must be non-zero length", ME);
 	  return 1;
 	}
       }
@@ -241,10 +286,11 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
 
 int
 _hestErrStrlen(hestOpt *opt, int argc, char **argv) {
-  int a, numOpts, ret;
+  int a, numOpts, ret, other;
 
   ret = 0;
   numOpts = _hestNumOpts(opt);
+  other = AIR_FALSE;
   if (argv) {
     for (a=0; a<=argc-1; a++) {
       ret = AIR_MAX(ret, airStrlen(argv[a]));
@@ -253,12 +299,19 @@ _hestErrStrlen(hestOpt *opt, int argc, char **argv) {
   for (a=0; a<=numOpts-1; a++) {
     ret = AIR_MAX(ret, airStrlen(opt[a].flag));
     ret = AIR_MAX(ret, airStrlen(opt[a].name));
+    other |= opt[a].type == airTypeOther;
   }
   for (a=airTypeUnknown+1; a<=airTypeLast-1; a++) {
     ret = AIR_MAX(ret, airStrlen(airTypeStr[a]));
   }
+  if (other) {
+    /* the callback's error() function will return a string that
+       will be copied into the main error string, and hest.h says
+       that strlen() of this string should be < AIR_STRLEN_MED */
+    ret += AIR_STRLEN_MED;
+  }
   ret += 4 * 12;  /* as many as 4 ints per error message */
-  ret += 512;     /* function name and text of error message */
+  ret += 129;     /* function name and text of error message */
 
   return ret;
 }
@@ -284,7 +337,11 @@ _hestExtractFlagged(char **prms, int *nprm, int *appr,
   int a, np, flag, endflag, numOpts, op;
 
   a = 0;
+  if (parm->verbosity) 
+    printf("!%s: *argcP = %d\n", me, *argcP);
   while (a<=*argcP-1) {
+    if (parm->verbosity) 
+      printf("!%s: a = %d -> argv[a] = %s\n", me, a, argv[a]);
     flag = _hestWhichFlag(opt, argv[a], parm);
     if (parm->verbosity) 
       printf("!%s: A: a = %d -> flag = %d\n", me, a, flag);
@@ -350,7 +407,8 @@ _hestExtractFlagged(char **prms, int *nprm, int *appr,
     if (parm->verbosity) {
       _hestPrintArgv(*argcP, argv);
       printf("!%s:^^^^^^^^ *argcP = %d\n", me, *argcP);
-      printf("!%s: prms[%d] = %s\n", me, flag, prms[flag]);
+      printf("!%s: prms[%d] = %s\n", me, flag,
+	     prms[flag] ? prms[flag] : "(null)");
     }
   }
 
@@ -490,6 +548,10 @@ _hestDefaults(char **prms, int *udflt, int *nprm, int *appr,
 
   numOpts = _hestNumOpts(opt);
   for (op=0; op<=numOpts-1; op++) {
+    if (parm->verbosity) 
+      printf("%s op=%d/%d: \"%s\" --> kind=%d, nprm=%d, appr=%d\n",
+	     me, op, numOpts-1, prms[op], opt[op].kind,
+	     nprm[op], appr[op]);
     switch(opt[op].kind) {
     case 1:
       /* -------- (no-parameter) boolean flags -------- */
@@ -501,13 +563,15 @@ _hestDefaults(char **prms, int *udflt, int *nprm, int *appr,
       /* -------- one required parameter -------- */
       /* -------- multiple required parameters -------- */
       /* we'll used defaults if the flag didn't appear */
-      udflt[op] = !appr[op];
+      udflt[op] = opt[op].flag && !appr[op];
       break;
     case 4:
       /* -------- optional single variables -------- */
-      /* if the flag appeared (if there is a flag), we'll "invert" the
-	 default, if the flag didn't appear (or if there isn't a flag),
-	 we'll use the default.  In either case, nprm[op] will be zero */
+      /* if the flag appeared (if there is a flag) but the paramter didn't,
+	 we'll "invert" the default; if the flag didn't appear (or if there
+	 isn't a flag) and the parameter also didn't appear, we'll use the
+	 default.  In either case, nprm[op] will be zero, and in both cases,
+	 we need to use the default information. */
       udflt[op] = (0 == nprm[op]);
       break;
     case 5:
@@ -546,115 +610,179 @@ int
 _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	       hestOpt *opt,
 	       char *err, hestParm *parm, airArray *pmop) {
-  char ident[AIR_STRLEN_HUGE], me[]="_hestSetValues: ";
+  char ident[AIR_STRLEN_HUGE], me[]="_hestSetValues: ",
+    *cberr, *tok, *last, *prmsCopy;
   double tmpD;
   int op, type, numOpts, p;
-  void *vP;
+  void *vP, *ret;
+  char *cP;
+  size_t size;
 
   numOpts = _hestNumOpts(opt);
   for (op=0; op<=numOpts-1; op++) {
     _hestIdent(ident, opt+op, parm);
     type = opt[op].type;
-    vP = opt[op].valueP;
+    size = airTypeOther == type ? opt[op].CB->size : airTypeSize[type];
+    cP = vP = opt[op].valueP;
     if (parm->verbosity) {
-      printf("%s op=%d of (0,%d): |%s| --> kind = %d\n", 
-	     me, op, numOpts-1, ident, opt[op].kind);
+      printf("%s %d of %d: \"%s\": |%s| --> kind=%d, type=%d, size=%d\n", 
+	     me, op, numOpts-1, prms[op], ident, opt[op].kind, type, size);
     }
+    /* we may over-write these */
+    opt[op].alloc = 0;
+    if (opt[op].sawP) *(opt[op].sawP) = 0;
     switch(opt[op].kind) {
     case 1:
       /* -------- parameter-less boolean flags -------- */
       if (vP)
 	*((int*)vP) = appr[op];
-      opt[op].alloc = 0;
       break;
     case 2:
       /* -------- one required parameter -------- */
       if (prms[op] && vP) {
-	if (1 != airParseStr[type](vP, prms[op], " ", 1)) {
-	  sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", 
-		  ME, udflt[op] ? "(default) " : "", prms[op],
-		  airTypeStr[type], ident);
-	  return 1;
-	}
-	if (airTypeString == opt[op].type) {
-	  /* vP is the address of a char* (a char **), but what we
-	     manage with airMop is really the char * */
-	  opt[op].alloc = 1;
-	  airMopMem(pmop, (char**)vP, airMopOnError);
+	if (airTypeOther != type) {
+	  if (1 != airParseStr[type](vP, prms[op], " ", 1)) {
+	    sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", 
+		    ME, udflt[op] ? "(default) " : "", prms[op],
+		    airTypeStr[type], ident);
+	    return 1;
+	  }
+	  if (airTypeString == type) {
+	    /* vP is the address of a char* (a char **), but what we
+	       manage with airMop is the char * */
+	    opt[op].alloc = 1;
+	    airMopMem(pmop, vP, airMopOnError);
+	  }
 	}
 	else {
-	  /* we did parse a value, but it wasn't a string */
-	  opt[op].alloc = 0;
+	  /* we are parsing an "other" (exactly one of them) */
+	  ret = opt[op].CB->parse(vP, prms[op]);
+	  if (ret) {
+	    cberr = opt[op].CB->error ? opt[op].CB->error(ret) : NULL;
+	    sprintf(err, "%serror parsing \"%s\" as %s%s%s", 
+		    ME, prms[op], opt[op].CB->type,
+		    cberr ? ": " : "",
+		    cberr ? cberr : "");
+	    if (opt[op].CB->freeErrorStr)
+	      free(cberr);
+	    return 1;
+	  }
+	  if (opt[op].CB->delete) {
+	    /* vP is the address of a void*, we manage the void * */
+	    opt[op].alloc = 1;
+	    airMopAdd(pmop, (void**)vP, (airMopper)airSetNull, airMopOnError);
+	    airMopAdd(pmop, *((void**)vP), opt[op].CB->delete, airMopOnError);
+	  }
 	}
-      }
-      else {
-	/* either we didn't get information for this option, or we
-	   weren't supposed to save any information */
-	opt[op].alloc = 0;
       }
       break;
     case 3:
       /* -------- multiple required parameters -------- */
       if (prms[op] && vP) {
-	if (opt[op].min !=   /* min == max */
-	    airParseStr[type](vP, prms[op], " ", opt[op].min)) {
-	  sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s",
-		  ME, udflt[op] ? "(default) " : "", prms[op],
-		  opt[op].min, airTypeStr[type], 
-		  opt[op].min > 1 ? "s" : "", ident);
-	  return 1;
-	}
-	if (airTypeString == opt[op].type) {
-	  /* NOTE: this comment was written before airMopSub() existed.
-	     vP is an array of char*s, (a char**), and what we manage
-	     with airMop are the individual vP[p].  We can use airMopMem
-	     (as opposed to just airMopAdd(airFree)) because we actually
-	     "set" the values (with _hestSetValues()) exactly once, while
-	     the parameters may have been gathered by _hestExtractFlagged()
-	     or _hestExtractUnflagged() multiple times. */
-	  for (p=0; p<=opt[op].min-1; p++) {
-	    airMopMem(pmop, &(((char**)vP)[p]), airMopOnError);
+	if (airTypeOther != type) {
+	  if (opt[op].min !=   /* min == max */
+	      airParseStr[type](vP, prms[op], " ", opt[op].min)) {
+	    sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s",
+		    ME, udflt[op] ? "(default) " : "", prms[op],
+		    opt[op].min, airTypeStr[type], 
+		    opt[op].min > 1 ? "s" : "", ident);
+	    return 1;
 	  }
-	  opt[op].alloc = 2;
+	  if (airTypeString == type) {
+	    /* vP is an array of char*s, (a char**), and what we manage
+	       with airMop are the individual vP[p]. */
+	    opt[op].alloc = 2;
+	    for (p=0; p<=opt[op].min-1; p++) {
+	      airMopMem(pmop, &(((char**)vP)[p]), airMopOnError);
+	    }
+	  }
 	}
 	else {
-	  /* we parsed multiple values, none of them strings */
-	  opt[op].alloc = 0;
+	  /* we are parsing "other"s (exactly min (==max) of them) */
+	  prmsCopy = airStrdup(prms[op]);
+	  for (p=0; p<=opt[op].min-1; p++) {
+	    tok = airStrtok(!p ? prmsCopy : NULL, " ", &last);
+	    ret = opt[op].CB->parse(cP + p*size, tok);
+	    if (ret) {
+	      cberr = opt[op].CB->error ? opt[op].CB->error(ret) : NULL;
+	      sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s%s%s", 
+		      ME, tok, prms[op], opt[op].CB->type,
+		      cberr ? ": " : "",
+		      cberr ? cberr : "");
+	      if (opt[op].CB->freeErrorStr)
+		free(cberr);
+	      free(prmsCopy);
+	      return 1;
+	    }
+	  }
+	  free(prmsCopy);
+	  if (opt[op].CB->delete) {
+	    /* vP is an array of void*s, we manage the individual void*s */
+	    opt[op].alloc = 2;
+	    for (p=0; p<=opt[op].min-1; p++) {
+	      airMopAdd(pmop, ((void**)vP)+p, (airMopper)airSetNull,
+			airMopOnError);
+	      airMopAdd(pmop, *(((void**)vP)+p), opt[op].CB->delete,
+			airMopOnError);
+	    }
+	  }
 	}
-      }
-      else {
-	opt[op].alloc = 0;
       }
       break;
     case 4:
       /* -------- optional single variables -------- */
       if (prms[op] && vP) {
-	if (1 != airParseStr[type](vP, prms[op], " ", 1)) {
-	  sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s",
-		  ME, udflt[op] ? "(default) " : "", prms[op],
-		  airTypeStr[type], ident);
-	  return 1;
-	}
-	opt[op].alloc = (opt[op].type == airTypeString ? 1 : 0);
-	if (1 == _hestCase(opt, udflt, nprm, appr, op)) {
-	  /* we just parsed the default, but now we want to "invert" it */
-	  if (airTypeString == type) {
-	    *((char**)vP) = airFree(*((char**)vP));
-	    opt[op].alloc = 0;
+	if (airTypeOther != type) {
+	  if (1 != airParseStr[type](vP, prms[op], " ", 1)) {
+	    sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s",
+		    ME, udflt[op] ? "(default) " : "", prms[op],
+		    airTypeStr[type], ident);
+	    return 1;
 	  }
-	  else {
-	    tmpD = airDLoad(vP, type);
-	    airIStore(vP, type, tmpD ? 0 : 1);
+	  opt[op].alloc = (type == airTypeString ? 1 : 0);
+	  if (1 == _hestCase(opt, udflt, nprm, appr, op)) {
+	    /* we just parsed the default, but now we want to "invert" it */
+	    if (airTypeString == type) {
+	      *((char**)vP) = airFree(*((char**)vP));
+	      opt[op].alloc = 0;
+	    }
+	    else {
+	      tmpD = airDLoad(vP, type);
+	      airIStore(vP, type, tmpD ? 0 : 1);
+	    }
+	  }
+	  if (airTypeString == type && opt[op].alloc) {
+	    /* vP is the address of a char* (a char**), and what we
+	       manage with airMop is the char * */
+	    airMopMem(pmop, vP, airMopOnError);
 	  }
 	}
-	if (airTypeString == type && opt[op].alloc) {
-	  /* vP is the address of a char* (a char**), and what we
-	     manage with airMop is the char * */
-	  airMopMem(pmop, (char**)vP, airMopOnError);
+	else {
+	  /* we're parsing an "other".  We will not perform the special
+	     flagged single variable parameter games as done above, so
+	     whether this option is flagged or unflagged, we're going
+	     to treat it like an unflagged single variable parameter option:
+	     if the parameter didn't appear, we'll parse it from the default,
+	     if it did appear, we'll parse it from the command line.  Setting
+	     up prms[op] thusly has already been done by _hestDefaults() */
+	  ret = opt[op].CB->parse(vP, prms[op]);
+	  if (ret) {
+	    cberr = opt[op].CB->error ? opt[op].CB->error(ret) : NULL;
+	    sprintf(err, "%serror parsing \"%s\" as %s%s%s", 
+		    ME, prms[op], opt[op].CB->type,
+		    cberr ? ": " : "",
+		    cberr ? cberr : "");
+	    if (opt[op].CB->freeErrorStr)
+	      free(cberr);
+	    return 1;
+	  }
+	  if (opt[op].CB->delete) {
+	    /* vP is the address of a void*, we manage the void* */
+	    opt[op].alloc = 1;
+	    airMopAdd(pmop, vP, (airMopper)airSetNull, airMopOnError);
+	    airMopAdd(pmop, *((void**)vP), opt[op].CB->delete, airMopOnError);
+	  }
 	}
-      }
-      else {
-	opt[op].alloc = 0;
       }
       break;
     case 5:
@@ -662,43 +790,71 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
       if (prms[op] && vP) {
 	if (1 == _hestCase(opt, udflt, nprm, appr, op)) {
 	  *((void**)vP) = NULL;
-	  opt[op].alloc = 0;
-	  *(opt[op].sawP) = 0;
+	  /* alloc and sawP set above */
 	}
 	else {
-	  *((void**)vP) = calloc(nprm[op], airTypeSize[type]);
+	  *((void**)vP) = calloc(nprm[op], size);
 	  if (parm->verbosity) {
 	    printf("!%s: nprm[%d] = %d\n", me, op, nprm[op]);
 	    printf("!%s: new array is at 0x%lx\n", me, 
 		   (unsigned long)(*((void**)vP)));
 	  }
 	  airMopMem(pmop, vP, airMopOnError);
-	  if (nprm[op] != 
-	      airParseStr[type](*((void**)vP), prms[op], " ", nprm[op])) {
-	    sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s",
-		    ME, udflt[op] ? "(default) " : "", prms[op],
-		    nprm[op], airTypeStr[type], 
-		    nprm[op] > 1 ? "s" : "", ident);
-	    return 1;
-	  }
 	  *(opt[op].sawP) = nprm[op];
-	  opt[op].alloc = (airTypeString == opt[op].type ? 3 : 1);
-	  if (airTypeString == opt[op].type) {
-	    /* NOTE: this comment was written before airMopSub() existed.
-	       vP is the address of an array of char*s (a char ***), and
-	       what we manage with airMop is the individual (*vP)[p],
-	       as well as vP itself (above).  We can't use airMopMem()
-	       because then the airSetNull on &(*vP)[0] would clobber 
-	       the airFree on *vP. (a very hard to find bug!) */
+	  /* so far everything we've done is regardless of whether or
+	     not we're parsing "other"s */
+	  if (airTypeOther != type) {
+	    opt[op].alloc = (airTypeString == type ? 3 : 1);
+	    if (nprm[op] != 
+		airParseStr[type](*((void**)vP), prms[op], " ", nprm[op])) {
+	      sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s",
+		      ME, udflt[op] ? "(default) " : "", prms[op],
+		      nprm[op], airTypeStr[type], 
+		      nprm[op] > 1 ? "s" : "", ident);
+	      return 1;
+	    }
+	    if (airTypeString == type) {
+	      /* vP is the address of an array of char*s (a char ***), and
+		 what we manage with airMop is the individual (*vP)[p],
+		 as well as vP itself (above). */
+	      for (p=0; p<=nprm[op]-1; p++) {
+		airMopAdd(pmop, (*((char***)vP))[p], airFree, airMopOnError);
+	      }
+	    }
+	  }
+	  else {
+	    /* we're parsing nprm[op] "other"s */
+	    cP = *((void**)vP);
+	    prmsCopy = airStrdup(prms[op]);
+	    opt[op].alloc = (opt[op].CB->delete ? 3 : 1);
 	    for (p=0; p<=nprm[op]-1; p++) {
-	      airMopAdd(pmop, (*((char***)vP))[p], airFree, airMopOnError);
+	      tok = airStrtok(!p ? prmsCopy : NULL, " ", &last);
+	      ret = opt[op].CB->parse(cP + p*size, tok);
+	      if (ret) {
+		cberr = opt[op].CB->error ? opt[op].CB->error(ret) : NULL;
+		sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s%s%s", 
+			ME, tok, prms[op], opt[op].CB->type,
+			cberr ? ": " : "",
+			cberr ? cberr : "");
+		if (opt[op].CB->freeErrorStr)
+		  free(cberr);
+		free(prmsCopy);
+		return 1;
+	      }
+	    }
+	    free(prmsCopy);
+	    if (opt[op].CB->delete) {
+	      for (p=0; p<=nprm[op]-1; p++) {
+		/* avert your eyes.  vP is the address of an array of void*s.
+		   We manage the void*s */
+		airMopAdd(pmop, (*((void***)vP))+p, (airMopper)airSetNull,
+			  airMopOnError);
+		airMopAdd(pmop, *((*((void***)vP))+p), opt[op].CB->delete,
+			  airMopOnError);
+	      }
 	    }
 	  }
 	}
-      }
-      else {
-	opt[op].alloc = 0;
-	*(opt[op].sawP) = 0;
       }
       break;
     }
@@ -774,38 +930,45 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
     airMopError(mop); return 1;
   }
   argc = argr + _argc - nrf;
-  /*
-  printf("!%s: nrf = %d; argr = %d; _argc = %d --> argc = %d\n", 
-	 me, nrf, argr, _argc, argc);
-  */
+
+  if (parm->verbosity) {
+    printf("!%s: nrf = %d; argr = %d; _argc = %d --> argc = %d\n", 
+	   me, nrf, argr, _argc, argc);
+  }
   argv = calloc(argc+1, sizeof(char*));
   airMopMem(mop, &argv, airMopAlways);
 
   /* -------- process response files (if any) and set the remaining
      elements of argv */
+  if (parm->verbosity) printf("%s: #### calling hestResponseFiles\n", me);
   if (_hestResponseFiles(argv, _argv, nrf, err, parm, mop)) {
     airMopError(mop); return 1;
   }
+  if (parm->verbosity) printf("%s: #### hestResponseFiles done!\n", me);
   /*
   _hestPrintArgv(argc, argv);
   */
   /* -------- extract flags and their associated parameters from argv */
+  if (parm->verbosity) printf("%s: #### calling hestExtractFlagged\n", me);
   if (_hestExtractFlagged(prms, nprm, appr, 
 			   &argc, argv, 
 			   opt,
 			   err, parm, mop)) {
     airMopError(mop); return 1;
   }
+  if (parm->verbosity) printf("%s: #### hestExtractFlagged done!\n", me);
   /*
   _hestPrintArgv(argc, argv);
   */
   /* -------- extract args for unflagged options */
+  if (parm->verbosity) printf("%s: #### calling hestExtractUnflagged\n", me);
   if (_hestExtractUnflagged(prms, nprm,
 			    &argc, argv,
 			    opt,
 			    err, parm, mop)) {
     airMopError(mop); return 1;
   }
+  if (parm->verbosity) printf("%s: #### hestExtractUnflagged done!\n", me);
 
   /* currently, any left over arguments indicate error */
   if (argc) {
@@ -813,19 +976,24 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
     airMopError(mop); return 1;
   }
 
+
   /* -------- learn defaults */
+  if (parm->verbosity) printf("%s: #### calling hestDefaults\n", me);
   if (_hestDefaults(prms, udflt, nprm, appr,
 		    opt,
 		    err, parm, mop)) {
     airMopError(mop); return 1;
   }
+  if (parm->verbosity) printf("%s: #### hestDefaults done!\n", me);
   
   /* -------- now, the actual parsing of values */
+  if (parm->verbosity) printf("%s: #### calling hestSetValues\n", me);
   if (_hestSetValues(prms, udflt, nprm, appr,
 		     opt,
 		     err, parm, mop)) {
     airMopError(mop); return 1;
   }
+  if (parm->verbosity) printf("%s: #### hestSetValues done!\n", me);
 
   airMopOkay(mop);
   return 0;
@@ -840,12 +1008,14 @@ void
 hestParseFree(hestOpt *opt) {
   int op, i, numOpts;
   void **vP;
+  void ***vAP;
   char **str;
   char ***strP;
 
   numOpts = _hestNumOpts(opt);
   for (op=0; op<=numOpts-1; op++) {
     vP = opt[op].valueP;
+    vAP = opt[op].valueP;
     str = opt[op].valueP;
     strP = opt[op].valueP;
     switch (opt[op].alloc) {
@@ -856,15 +1026,30 @@ hestParseFree(hestOpt *opt) {
       *vP = airFree(*vP);
       break;
     case 2:
-      for (i=0; i<=opt[op].min-1; i++) {
-	str[i] = airFree(str[i]);
+      if (airTypeString == opt[op].type) {
+	for (i=0; i<=opt[op].min-1; i++) {
+	  str[i] = airFree(str[i]);
+	}
+      }
+      else {
+	for (i=0; i<=opt[op].min-1; i++) {
+	  vP[i] = opt[op].CB->delete(vP[i]);
+	}
       }
       break;
     case 3:
-      for (i=0; i<=*(opt[op].sawP)-1; i++) {
-	(*strP)[i] = airFree((*strP)[i]);
+      if (airTypeString == opt[op].type) {
+	for (i=0; i<=*(opt[op].sawP)-1; i++) {
+	  (*strP)[i] = airFree((*strP)[i]);
+	}
+	*strP = airFree(*strP);
       }
-      *strP = airFree(*strP);
+      else {
+	for (i=0; i<=*(opt[op].sawP)-1; i++) {
+	  (*vAP)[i] = airFree((*vAP)[i]);
+	}
+	*vAP = airFree(*vAP);
+      }
       break;
     }
   }

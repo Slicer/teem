@@ -98,6 +98,12 @@ hestOptAdd(hestOpt **optP,
     ret[num].sawP = va_arg(ap, int*);
     va_end(ap);
   }
+  if (airTypeOther == type) {
+    va_start(ap, info);
+    va_arg(ap, int*);  /* skip sawP */
+    ret[num].CB = va_arg(ap, hestCB*);
+    va_end(ap);
+  }
   _hestOptInit(&(ret[num+1]));
   ret[num+1].min = 1;
   if (*optP)
@@ -255,7 +261,11 @@ _hestWhichFlag(hestOpt *opt, char *flag, hestParm *parm) {
   int op, numOpts;
   
   numOpts = _hestNumOpts(opt);
+  if (parm->verbosity)
+    printf("_hestWhichFlag: flag = %s, numOpts = %d\n", flag, numOpts);
   for (op=0; op<=numOpts-1; op++) {
+    if (parm->verbosity)
+      printf("_hestWhichFlag: op = %d\n", op);
     if (!opt[op].flag)
       continue;
     if (strchr(opt[op].flag, parm->multiFlagSep) ) {
@@ -278,11 +288,17 @@ _hestWhichFlag(hestOpt *opt, char *flag, hestParm *parm) {
 	return op;
     }
   }
+  if (parm->verbosity)
+    printf("_hestWhichFlag: numOpts = %d\n", numOpts);
   if (parm->varParamStopFlag) {
     sprintf(buff, "-%c", parm->varParamStopFlag);
+    if (parm->verbosity)
+      printf("_hestWhichFlag: flag = %s, buff = %s\n", flag, buff);
     if (!strcmp(flag, buff))
       return -2;
   }
+  if (parm->verbosity)
+    printf("_hestWhichFlag: numOpts = %d\n", numOpts);
   return -1;
 }
 

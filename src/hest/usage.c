@@ -153,7 +153,7 @@ hestUsage(FILE *f, hestOpt *opt, char *argv0, hestParm *_parm) {
     strcat(buff, " ");
     if (opt[i].flag && opt[i].dflt)
       strcat(buff, "[");
-    _hestSetBuff(buff, opt + i, _parm, AIR_FALSE);
+    _hestSetBuff(buff, opt + i, parm, AIR_FALSE);
     if (opt[i].flag && opt[i].dflt)
       strcat(buff, "]");
   }
@@ -185,7 +185,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
     fprintf(f, "\n");
   for (i=0; i<=numOpts-1; i++) {
     strcpy(buff, "");
-    _hestSetBuff(buff, opt + i, _parm, AIR_TRUE);
+    _hestSetBuff(buff, opt + i, parm, AIR_TRUE);
     maxlen = AIR_MAX(strlen(buff), maxlen);
   }
   if (parm && parm->respFileEnable) {
@@ -199,7 +199,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
   }
   for (i=0; i<=numOpts-1; i++) {
     strcpy(buff, "");
-    _hestSetBuff(buff, opt + i, _parm, AIR_TRUE);
+    _hestSetBuff(buff, opt + i, parm, AIR_TRUE);
     airOneLinify(buff);
     len = strlen(buff);
     for (j=len; j<=maxlen-1; j++)
@@ -232,7 +232,10 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
 	  strcat(buff, tmpS);
 	}
       }
-      sprintf(tmpS, "%s%s", airTypeStr[opt[i].type],
+      sprintf(tmpS, "%s%s", 
+	      (airTypeOther == opt[i].type
+	       ? opt[i].CB->type
+	       : airTypeStr[opt[i].type]),
 	      _hestMax(opt[i].max) > 1 ? "s" : "");
       strcat(buff, tmpS);
       strcat(buff, ")");
