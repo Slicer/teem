@@ -386,8 +386,6 @@ extern gageContext *gageContextNew();
 extern gageContext *gageContextNix(gageContext *ctx);
 extern gagePerVolume *gagePerVolumeNew(int needPad, gageKind *kind);
 extern gagePerVolume *gagePerVolumeNix(gagePerVolume *pvl);
-extern gageSimple *gageSimpleNew();
-extern gageSimple *gageSimpleNix(gageSimple *spl);
 
 /* general.c */
 extern void gageValSet(gageContext *ctx, int which, int val);
@@ -403,10 +401,12 @@ extern int gageProbe(gageContext *ctx, gagePerVolume *pvl,
 		     gage_t x, gage_t y, gage_t z);
 
 /* simple.c */
-extern int gageSimpleUpdate(gageSimple *gsl);
-extern int gageSimpleKernelSet(gageSimple *gsl,
+extern gageSimple *gageSimpleNew();
+extern int gageSimpleUpdate(gageSimple *spl);
+extern int gageSimpleKernelSet(gageSimple *spl,
 			       int which, NrrdKernel *k, double *kparm);
-extern int gageSimpleProbe(gageSimple *gsl, gage_t x, gage_t y, gage_t z);
+extern int gageSimpleProbe(gageSimple *spl, gage_t x, gage_t y, gage_t z);
+extern gageSimple *gageSimpleNix(gageSimple *spl);
 
 #endif /* GAGE_HAS_BEEN_INCLUDED */
 #ifdef __cplusplus
