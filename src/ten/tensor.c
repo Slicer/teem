@@ -106,7 +106,8 @@ tenExpand(Nrrd *nout, Nrrd *nin, double scale, double thresh) {
     TEN_T2M(nine, seven);
     ELL_3M_SCALE(nine, scale, nine);
   }
-  if (nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_SIZE_BIT)) {
+  if (nrrdAxisInfoCopy(nout, nin, NULL,
+                       NRRD_AXIS_INFO_SIZE_BIT | NRRD_AXIS_INFO_KIND_BIT)) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
@@ -173,7 +174,8 @@ tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine) {
     seven += 7;
     nine += 9;
   }
-  if (nrrdAxisInfoCopy(tseven, tnine, NULL, NRRD_AXIS_INFO_SIZE_BIT)) {
+  if (nrrdAxisInfoCopy(tseven, tnine, NULL,
+                       NRRD_AXIS_INFO_SIZE_BIT | NRRD_AXIS_INFO_KIND_BIT)) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
