@@ -382,7 +382,6 @@ extern echoObject *echoObjectNew(echoScene *scene, signed char type);
 extern echoObject *echoObjectNix(echoObject *obj);
 
 /* model.c ---------------------------------------- */
-
 extern echoObject *echoRoughSphereNew(echoScene *scene, int theRes, int phiRes,
 				      echoPos_t *matx);
 
