@@ -714,7 +714,7 @@ doPvg(int argc, char *argv[]) {
   printf("%s: pos range: [%g,%g(%d),%g]\n", 
 	 me, min, pos[smlI], smlI, max);
   */
-  if (nrrdHistoEq(nposB=nrrdNew(), nposA, NULL, PVG_HISTEQ_BINS, 3)) {
+  if (nrrdHistoEq(nposB=nrrdNew(), nposA, NULL, PVG_HISTEQ_BINS, 3, 1.0)) {
     sprintf(err, "%s: trouble doing hist-eq on p(v,g)", me);
     biffMove(key, err, NRRD); return 1;
   }
