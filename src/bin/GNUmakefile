@@ -46,8 +46,8 @@ $(L).SEEN := true
 
 ## BINS: all the command-line executables associated with teem
 ## 
-BINS = airSanity affine cubic nrrdSanity overrgb idx2pos emap undos spots \
-  pos2idx unu pprobe vprobe qbert mrender miter gkms ungantry ilk tend
+BINS = airSanity affine cubic nrrdSanity overrgb idx2pos emap undos \
+  pos2idx unu pprobe vprobe qbert mrender miter gkms ungantry ilk tend spots
 
 ## _binD(bins): list of development locations for given bins
 ## _binI(bins): list of install locations for given bins
@@ -99,7 +99,7 @@ ungantry.need   = $(call meneed,gage nrrd biff hest air)
 tend.need       = $(call meneed,ten limn gage dye unrrdu nrrd ell biff air)
 vprobe.need     = $(call meneed,ten limn gage nrrd ell biff hest air)
 pprobe.need     = $(call meneed,ten limn gage nrrd ell biff hest air)
-spots.need      = $(call meneed,ten alan nrrd ell biff hest air)
+spots.need      = $(call meneed,alan nrrd ell biff hest air)
 
 ## Old: "We need some way of expressing the fact that a given binary
 ## (install and dev) depends on the usable of its top dependency."
