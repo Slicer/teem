@@ -389,7 +389,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   nrrdIoStateDataFileIterBegin(nio);
   if (nrrdIoStateDataFileIterNext(&dataFile, nio, AIR_TRUE)) {
     if ((err = (char*)malloc(AIR_STRLEN_MED))) {
-      sprintf(err, "%s: couldn't get the first datafile", me);
+      sprintf(err, "%s: couldn't open the first datafile", me);
       biffAdd(NRRD, err); free(err);
     }
     return 1;
@@ -570,15 +570,14 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     fprintf(file, "\n");
   }
 
-  nrrdIoStateDataFileIterBegin(nio);
-  if (nrrdIoStateDataFileIterNext(&dataFile, nio, AIR_FALSE)) {
-    sprintf(err, "%s: couldn't get the first datafile", me);
-    biffAdd(NRRD, err); free(err);
-    return 1;
-  }
-
-  valsPerPiece = nrrdElementNumber(nrrd)/_nrrdDataFNNumber(nio);
   if (!nio->skipData) {
+    nrrdIoStateDataFileIterBegin(nio);
+    if (nrrdIoStateDataFileIterNext(&dataFile, nio, AIR_FALSE)) {
+      sprintf(err, "%s: couldn't write the first datafile", me);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+    
+    valsPerPiece = nrrdElementNumber(nrrd)/_nrrdDataFNNumber(nio);
     data = (char*)nrrd->data;
     do {
       /* ---------------- write data */
@@ -603,8 +602,7 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       data += valsPerPiece*nrrdElementSize(nrrd);
       if (nrrdIoStateDataFileIterNext(&dataFile, nio, AIR_TRUE)) {
         sprintf(err, "%s: couldn't get the next datafile", me);
-        biffAdd(NRRD, err); free(err);
-        return 1;
+        biffAdd(NRRD, err); airMopError(mop); return 1;
       }
     } while (dataFile);
     data = NULL;

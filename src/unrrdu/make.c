@@ -31,19 +31,17 @@ extern int _nrrdContainsPercentDAndMore(char *str);
 char *_unrrdu_makeInfoL =
 (INFO
  ".  The data can be in one or more files, or coming from stdin. "
- "This provides an easy way of providing the bare minimum "
- "information about some data so as to wrap it in a "
- "nrrd, either to pass on for further unu processing, "
- "or to save to disk.  However, with \"-h\", this creates "
- "only a detached nrrd header file, without ever reading "
- "or writing data. "
+ "This provides an easy way of specifying the information about some "
+ "data as to wrap it in a NRRD file, either to pass on for further "
+ "unu processing, or to save to disk.  Note that with \"-h\", this creates "
+ "a detached nrrd header file, without ever reading or writing data files. "
  "\n \n "
  "When using multiple datafiles, the data from each is simply "
  "concatenated in memory (as opposed to interleaving along a faster axis). "
  "Keep in mind that all the options below refer to the finished data segment "
  "resulting from joining all the data pieces together, "
- "except for \"-ls\", \"-bs\", and \"-e\", which apply (uniformly) to "
- "every input file.  Use the \"-fd\" option when the things being joined "
+ "except for \"-ls\", \"-bs\", and \"-e\", which apply (uniformly) to the "
+ "individual data files. Use the \"-fd\" option when the things being joined "
  "together are not slices of the final result, but slabs or scanlines. "
  "It may be easier to put multiple filenames in a response file; "
  "there can be one or more filenames per line of the response file. "
@@ -554,12 +552,14 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   /* ----------------- END SETTING INFO ---------------- */
   /* -------------------- BEGIN I/O -------------------- */
 
-  /* we don't have to fopen() any input; all we care about
-     is the name of the input datafile */
   nio->lineSkip = lineSkip;
   nio->byteSkip = byteSkip;
   nio->encoding = encoding;
   nio->endian = endian;
+  /* for the sake of reading in data files, this is as good a guess
+     as any as to what the header-relative path to them is.  This 
+     assuages concerns that come up even with headerOnly */
+  nio->path = airStrdup(".");
   if (headerOnly) {
     /* we open and hand off the output FILE* to the nrrd writer, which
        will not write any data, because of nio->skipData = AIR_TRUE */
@@ -573,11 +573,12 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
        recorded in the header, and done by the next reader */
     nio->detachedHeader = AIR_TRUE;
     nio->skipData = AIR_TRUE;
-    nrrdFormatNRRD->write(fileOut, nrrd, nio);
+    if (nrrdFormatNRRD->write(fileOut, nrrd, nio)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble writing header:\n%s", me, err);
+      airMopError(mop); return 1;
+    }
   } else {
-    /* for the sake of reading in data files, this is as good a guess
-       as any as to what the header-relative path to them is */
-    nio->path = airStrdup(".");
     /* all this does is read the data from the files.  We up the verbosity
        because of all places this is probably where we really want it */
     nrrdStateVerboseIO++;
