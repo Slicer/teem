@@ -321,7 +321,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis) {
   ninperm = calloc(num, sizeof(Nrrd *));
   trs = calloc(2*num, sizeof(int));
   if (!(ninperm && trs)) {
-    sprintf(err, "%s: couldn't alloc temp arrays array!", me);
+    sprintf(err, "%s: couldn't alloc tmp arrays!", me);
     biffSet(NRRD, err); return 1;
   }
   mindim = NRRD_MAX_DIM+1;
@@ -455,6 +455,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis) {
   }
   tmpdata = nperm->data;
   for (i=0; i<=num-1; i++) {
+    /* here is where the actual joining happens */
     memcpy(tmpdata, ninperm[i]->data, 
 	   ninperm[i]->num*nrrdElementSize(ninperm[i]));
     tmpdata += ninperm[i]->num*nrrdElementSize(ninperm[i]);
@@ -498,7 +499,8 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis) {
   /* clean up */
   free(trs);
   for (i=0; i<=num-1; i++) {
-    if (ninperm[i]) {
+    /* we only nuke the nrrds we created */
+    if (ninperm[i] != nin[i]) {
       ninperm[i] = nrrdNuke(ninperm[i]);
     }
   }
