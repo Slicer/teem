@@ -249,8 +249,9 @@ typedef struct {
   double parm[NRRD_DIM_MAX][NRRD_KERNEL_PARMS_NUM], /* kernel arguments */
     min[NRRD_DIM_MAX],
     max[NRRD_DIM_MAX];              /* min[i] and max[i] are the range, in
-				       index space, along which to resample
-				       axis i */
+				       WORLD space, along which to resample
+				       axis i. axis mins and maxs are required
+				       on resampled axes. */
   int boundary,                     /* value from the nrrdBoundary enum */
     type,                           /* desired type of output, use
 				       nrrdTypeUnknown for "same as input" */
@@ -329,6 +330,7 @@ extern char nrrdTypeConv[][AIR_STRLEN_SMALL];
 extern int nrrdEncodingEndianMatters[];
 extern int nrrdTypeSize[];
 extern int nrrdTypeFixed[];
+extern int nrrdTypeUnsigned[];
 
 /******** things useful with hest */
 extern hestCB *nrrdHestNrrd;
