@@ -75,7 +75,7 @@ main(int argc, char *argv[]) {
   
   me = argv[0];
   hestOptAdd(&hopt, "n", "# samples", airTypeInt, 1, 1, &samp, "4",
-	     "number of samples along each edge of cube");
+	     "number of glyphs along each edge of triangle");
   hestOptAdd(&hopt, "p", "x y z", airTypeDouble, 3, 3, p, NULL,
 	     "location in quaternion quotient space");
   hestOptAdd(&hopt, "ca", "max ca", airTypeDouble, 1, 1, &maxca, "0.8",

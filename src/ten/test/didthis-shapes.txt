@@ -1,7 +1,7 @@
 setenv CAM "-fr 0 0 -30 -up 0 1 0 -rh"
 
 echo "1  1  1  1    3  -4  -3" \
- | emap -i - $CAM -o emap.nrrd
+ | emap -i - $CAM -amb 0.08 0.08 0.08 -o emap.nrrd
 
 test/tt -n 6 -p -0.45 0.2 -0.35 \
  | tend glyph -emap emap.nrrd -sat 0 \

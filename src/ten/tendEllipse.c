@@ -97,7 +97,7 @@ int
 tend_ellipseMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
-  char *perr, *err;
+  char *perr;
   airArray *mop;
 
   Nrrd *nten;
