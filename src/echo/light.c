@@ -19,14 +19,14 @@
 
 #include "echo.h"
 
-#define SIMPLE_NEW(TYPE)                                      \
-EchoLight##TYPE *                                             \
-_echoLight##TYPE##_new(void) {                                \
-  EchoLight##TYPE *ret;                                       \
-                                                              \
- ret = (EchoLight##TYPE *)calloc(1, sizeof(EchoLight##TYPE)); \
- ret->type = echoLight##TYPE;                                 \
- return ret;                                                  \
+#define SIMPLE_NEW(TYPE)                                       \
+EchoLight##TYPE *                                              \
+_echoLight##TYPE##_new(void) {                                 \
+  EchoLight##TYPE *ret;                                        \
+                                                               \
+  ret = (EchoLight##TYPE *)calloc(1, sizeof(EchoLight##TYPE)); \
+  ret->type = echoLight##TYPE;                                 \
+  return ret;                                                  \
 }
 
 SIMPLE_NEW(Ambient)      /* _echoLightAmbient_new */

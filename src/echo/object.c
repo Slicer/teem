@@ -19,45 +19,39 @@
 
 #include "echo.h"
 
-#define SIMPLE_NEW(TYPE)                                        \
-EchoObject##TYPE *                                              \
-_echoObject##TYPE##_new(void) {                                 \
-  EchoObject##TYPE *ret;                                        \
-                                                                \
- ret = (EchoObject##TYPE *)calloc(1, sizeof(EchoObject##TYPE)); \
- ret->type = echoObject##TYPE;                                  \
- return ret;                                                    \
+#define NEW_TMPL(TYPE, BODY)                                     \
+EchoObject##TYPE *                                               \
+_echoObject##TYPE##_new(void) {                                  \
+  EchoObject##TYPE *obj;                                         \
+                                                                 \
+  obj = (EchoObject##TYPE *)calloc(1, sizeof(EchoObject##TYPE)); \
+  obj->type = echoObject##TYPE;                                  \
+  do { BODY } while (0);                                         \
+  return obj;                                                    \
 }
 
-SIMPLE_NEW(Sphere)        /* _echoObjectSphere_new */
-SIMPLE_NEW(Cube)          /* _echoObjectCube_new */
-SIMPLE_NEW(Triangle)      /* _echoObjectTriangle_new */
-SIMPLE_NEW(Rectangle)     /* _echoObjectRectangle_new */
+/*
+  echoObjectSphere,
+  echoObjectCube,
+  echoObjectTriangle,
+  echoObjectRectangle,
+  echoObjectMesh,
+  echoObjectIsosurface,
+  echoObjectAABox,
+*/
 
-EchoObjectMesh *
-_echoObjectMesh_new(void) {
-  EchoObjectMesh *ret;
-
-  ret = (EchoObjectMesh *)calloc(1, sizeof(EchoObjectMesh));
-  ret->type = echoObjectMesh;
-  /* ??? */
-  return ret;
-}
-
-EchoObjectAABox *
-_echoObjectAABox_new(void) {
-  EchoObjectAABox *ret;
-
-  ret = (EchoObjectAABox *)calloc(1, sizeof(EchoObjectAABox));
-  ret->type = echoObjectAABox;
-  ret->obj = NULL;
-  fprintf(stderr, "!%s: ret->obj = 0x%p; &(ret->obj) = 0x%p\n", 
-	  "_echoObjectAABox_new", ret->obj, &(ret->obj));
-  ret->objArr = airArrayNew((void**)&(ret->obj), NULL, 
-			    sizeof(EchoObject *), ECHO_OBJECT_INCR);
-  /* register callbacks ... */
-  return ret;
-}
+NEW_TMPL(Sphere,)
+NEW_TMPL(Cube,)
+NEW_TMPL(Triangle,)
+NEW_TMPL(Rectangle,)
+NEW_TMPL(Mesh, /* ??? */ )
+NEW_TMPL(Isosurface, /* ??? */)
+NEW_TMPL(AABox,                                                             \
+	 obj->obj = NULL;                                                   \
+	 obj->objArr = airArrayNew((void**)&(obj->obj), NULL,               \
+				   sizeof(EchoObject *), ECHO_OBJECT_INCR); \
+	 /* register callbacks ... */                                       \
+	 )
 
 typedef EchoObject *(*echoObjectNew_t)(void);
 
@@ -69,6 +63,7 @@ _echoObjectNew[ECHO_OBJECT_MAX+1])(void) = {
   (echoObjectNew_t)_echoObjectTriangle_new,
   (echoObjectNew_t)_echoObjectRectangle_new,
   (echoObjectNew_t)_echoObjectMesh_new,
+  (echoObjectNew_t)_echoObjectIsosurface_new,
   (echoObjectNew_t)_echoObjectAABox_new
 };
 
@@ -81,21 +76,19 @@ echoObjectNew(int type) {
 
 /* ---------------------------------------------------- */
 
-EchoObjectMesh *
-_echoObjectMesh_nix(EchoObjectMesh *mesh) {
-
-  /* ??? */
-  free(mesh);
-  return NULL;
+#define NIX_TMPL(TYPE, BODY)                                     \
+EchoObject##TYPE *                                               \
+_echoObject##TYPE##_nix(EchoObject##TYPE *obj) {                 \
+                                                                 \
+  do { BODY } while (0);                                         \
+  free(obj);                                                     \
+  return NULL;                                                   \
 }
 
-EchoObjectAABox *
-_echoObjectAABox_nix(EchoObjectAABox *box) {
-  
-  box->objArr = airArrayNuke(box->objArr);
-  free(box);
-  return NULL;
-}
+NIX_TMPL(Mesh, /* ??? */)
+NIX_TMPL(AABox,                                                  \
+	 obj->objArr = airArrayNuke(obj->objArr);                \
+	 )
 
 typedef EchoObject *(*echoObjectNix_t)(EchoObject *);
 

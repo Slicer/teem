@@ -20,7 +20,7 @@
 
 LIB = echo
 HEADERS = echo.h
-LIB_OBJS = object.o light.o
+LIB_OBJS = enum.o object.o light.o render.o
 #TEST_BINS = test/proj1 test/mod4
 TEST_BINS = test/test
 BINS = 
