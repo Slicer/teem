@@ -107,6 +107,9 @@ tenAnisoCalc(float c[TEN_ANISO_MAX+1], float e[3]) {
 		    + (e0 + e2)/(FLT_EPSILON + e1))/6;
   c[tenAniso_Det] = e0*e1*e2;
   c[tenAniso_Tr] = e0 + e1 + e2;
+  c[TEN_ANISO_MAX-2] = e0;
+  c[TEN_ANISO_MAX-1] = e1;
+  c[TEN_ANISO_MAX-0] = e2;
   return;
 }
 

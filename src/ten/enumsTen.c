@@ -46,7 +46,10 @@ _tenAnisoStr[TEN_ANISO_MAX+1][AIR_STRLEN_SMALL] = {
   "Th",
   "Cz",
   "Det",
-  "Tr"
+  "Tr",
+  "hack0",
+  "hack1",
+  "hack2"
 };
 
 airEnum
