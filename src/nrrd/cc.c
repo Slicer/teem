@@ -344,13 +344,16 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, Nrrd *nin, int type, int conny) {
     fpid[I] = map[fpid[I]];
   }
   if (nvalP) {
-    if (nrrdMaybeAlloc(nval=nrrdNew(), nin->type, 1, numid)) {
+    if (!(*nvalP)) {
+      *nvalP = nrrdNew();
+    }
+    if (nrrdMaybeAlloc(*nvalP, nin->type, 1, numid)) {
       sprintf(err, "%s: couldn't allocate output value list", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     airMopAdd(mop, nvalP, (airMopper)airSetNull, airMopOnError);
-    airMopAdd(mop, nval, (airMopper)nrrdNuke, airMopOnError);
-    *nvalP = nval;
+    airMopAdd(mop, *nvalP, (airMopper)nrrdNuke, airMopOnError);
+    nval = *nvalP;
     val = nval->data;
     lup = nrrdILookup[nin->type];
     ins = nrrdIInsert[nin->type];

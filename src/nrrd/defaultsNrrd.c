@@ -60,6 +60,7 @@ int nrrdStateMeasureType = nrrdTypeFloat;
 int nrrdStateMeasureModeBins = 1024;
 int nrrdStateMeasureHistoType = nrrdTypeFloat;
 int nrrdStateAlwaysSetContent = AIR_TRUE;
+int nrrdStateDisableContent = AIR_FALSE;
 char nrrdStateUnknownContent[AIR_STRLEN_SMALL] = NRRD_UNKNOWN;
 int nrrdStateDisallowIntegerNonExist = AIR_TRUE;
 int nrrdStateGrayscaleImage3D = AIR_FALSE;

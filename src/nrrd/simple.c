@@ -135,6 +135,11 @@ nrrdContentSet (Nrrd *nout, const char *func,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
+  if (nrrdStateDisableContent) {
+    /* we kill content always */
+    AIR_FREE(nout->content);
+    return 0;
+  }
   if (!nin->content && !nrrdStateAlwaysSetContent) {
     /* there's no input content, and we're not supposed to invent any
        content, so after freeing nout's content we're done */

@@ -194,7 +194,7 @@ nrrdCCMax(Nrrd *nin) {
 
 int
 nrrdCCNum(Nrrd *nin) {
-  int (*lup)(void *, size_t), id, max, num=-1;
+  int (*lup)(void *, size_t), max, num=-1;
   size_t I, NN;
   unsigned char *hist;
   
@@ -215,5 +215,6 @@ nrrdCCNum(Nrrd *nin) {
   for (I=0; I<=max; I++) {
     num += hist[I];
   }
+  free(hist);
   return num;
 }

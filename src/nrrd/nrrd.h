@@ -333,6 +333,7 @@ extern nrrd_export int nrrdStateMeasureType;
 extern nrrd_export int nrrdStateMeasureModeBins;
 extern nrrd_export int nrrdStateMeasureHistoType;
 extern nrrd_export int nrrdStateAlwaysSetContent;
+extern nrrd_export int nrrdStateDisableContent;
 extern nrrd_export char nrrdStateUnknownContent[];
 extern nrrd_export int nrrdStateDisallowIntegerNonExist;
 extern nrrd_export int nrrdStateGrayscaleImage3D;
