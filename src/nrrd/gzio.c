@@ -555,7 +555,7 @@ _nrrdGzDestroy(_NrrdGzStream *s) {
     biffAdd(NRRD, err);
     return 1;
   }
-  airFree(s->msg);
+  AIR_FREE(s->msg);
   if (s->stream.state != NULL) {
     if (s->mode == 'w') {
       error = deflateEnd(&(s->stream));
@@ -572,9 +572,9 @@ _nrrdGzDestroy(_NrrdGzStream *s) {
     sprintf(err, "%s: %s", me, _NRRD_GZ_ERR_MSG(error));
     biffAdd(NRRD, err);
   }
-  airFree(s->inbuf);
-  airFree(s->outbuf);
-  airFree(s);
+  AIR_FREE(s->inbuf);
+  AIR_FREE(s->outbuf);
+  AIR_FREE(s);
   return error != Z_OK;
 }
 

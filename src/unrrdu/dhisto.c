@@ -30,12 +30,20 @@ unrrdu_dhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin, *nout;
   int size, pret, nolog;
   airArray *mop;
+  double max;
 
   hestOptAdd(&opt, "h", "height", airTypeInt, 1, 1, &size, NULL,
 	     "height of output image (horizontal size is determined by "
 	     "number of bins in input histogram).");
   hestOptAdd(&opt, "nolog", NULL, airTypeInt, 0, 0, &nolog, NULL,
 	     "do not show the log-scaled histogram with decade tick-marks");
+  hestOptAdd(&opt, "max", "max # hits", airTypeDouble, 1, 1, &max, "nan",
+	     "constrain the top of the drawn histogram to be at this "
+	     "number of hits.  This will either scale the drawn histogram "
+	     "downward or clip its top, depending on whether the given max "
+	     "is higher or lower than the actual maximum bin count.  By "
+	     "not using this option (the default), the actual maximum bin "
+	     "count is used");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -49,7 +57,7 @@ unrrdu_dhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdHistoDraw(nout, nin, size, !nolog)) {
+  if (nrrdHistoDraw(nout, nin, size, !nolog, max)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error drawing histogram nrrd:\n%s", me, err);
     airMopError(mop);

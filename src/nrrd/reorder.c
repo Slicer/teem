@@ -21,6 +21,7 @@
 #include "privateNrrd.h"
 
 #include <teem32bit.h>
+
 /*
 ******** nrrdInvertPerm()
 **
@@ -70,7 +71,7 @@ nrrdInvertPerm(int *invp, int *p, int n) {
 
 
 /*
-******** nrrdPermuteAxes
+******** nrrdAxesPermute
 **
 ** changes the scanline ordering of the data in a nrrd
 ** 
@@ -89,8 +90,8 @@ nrrdInvertPerm(int *invp, int *p, int n) {
 ** not "where do I put this", from the standpoint of the input)
 */
 int
-nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
-  char me[]="nrrdPermuteAxes", func[]="permute", err[AIR_STRLEN_MED],
+nrrdAxesPermute(Nrrd *nout, Nrrd *nin, int *axes) {
+  char me[]="nrrdAxesPermute", func[]="permute", err[AIR_STRLEN_MED],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   size_t idxOut, idxIn,      /* indices for input and output scanlines */
     lineSize,                /* size of block of memory which can be
@@ -207,15 +208,15 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
 }
 
 /*
-******** nrrdSwapAxes()
+******** nrrdAxesSwap()
 **
 ** for when you just want to switch the order of two axes, without
 ** going through the trouble of creating the permutation array 
-** needed to call nrrdPermuteAxes()
+** needed to call nrrdAxesPermute()
 */
 int
-nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2) {
-  char me[]="nrrdSwapAxes", func[]="swap", err[AIR_STRLEN_MED], *incontent;
+nrrdAxesSwap(Nrrd *nout, Nrrd *nin, int ax1, int ax2) {
+  char me[]="nrrdAxesSwap", func[]="swap", err[AIR_STRLEN_MED], *incontent;
   int i, axes[NRRD_DIM_MAX];
 
   if (!(nout && nin)) {
@@ -235,7 +236,7 @@ nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2) {
   axes[ax1] = ax2;
   incontent = nin->content;
   nin->content = NULL;
-  if (nrrdPermuteAxes(nout, nin, axes)) {
+  if (nrrdAxesPermute(nout, nin, axes)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); nin->content = incontent; return 1;
   }
@@ -244,7 +245,7 @@ nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  /* peripheral copied by nrrdPermuteAxes */
+  /* peripheral copied by nrrdAxesPermute */
   return 0;
 }
 
@@ -394,7 +395,7 @@ nrrdFlip(Nrrd *nout, Nrrd *nin, int axis) {
   }
   nout->axis[axis].min = nin->axis[axis].max;
   nout->axis[axis].max = nin->axis[axis].min;
-  perm = airFree(perm);
+  AIR_FREE(perm);
   return 0;
 }
 
@@ -534,7 +535,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
     } else {
       /* on this part, we permute (no need for a reshape) */
       airMopAdd(mop, ninperm[i], (airMopper)nrrdNuke, airMopAlways);
-      if (nrrdPermuteAxes(ninperm[i], nin[i], permute)) {
+      if (nrrdAxesPermute(ninperm[i], nin[i], permute)) {
 	sprintf(err, "%s: trouble permuting input part %d", me, i);
 	biffAdd(NRRD, err); airMopError(mop); return 1;
       }
@@ -608,7 +609,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
 
   /* do the permutation required to get output in right order */
   nrrdInvertPerm(ipermute, permute, outdim);
-  if (nrrdPermuteAxes(nout, ntmpperm, ipermute)) {
+  if (nrrdAxesPermute(nout, ntmpperm, ipermute)) {
     sprintf(err, "%s: error permuting temporary nrrd", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
@@ -616,6 +617,55 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
   airMopOkay(mop); 
   return 0;
 }
+
+/*
+******** nrrdAxesInsert
+**
+** like reshape, but preserves axis information on old axes, and
+** this is only for adding a "stub" axis with length 1.  All other
+** axis attributes are initialized as usual.
+*/
+int
+nrrdAxesInsert(Nrrd *nout, Nrrd *nin, int ax) {
+  char me[]="nrrdAxesInsert", func[] = "axinsert", err[AIR_STRLEN_MED];
+  int d;
+  
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!AIR_IN_CL(0, ax, nin->dim)) {
+    sprintf(err, "%s: given axis (%d) outside valid range [0, %d]",
+	    me, ax, nin->dim);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (NRRD_DIM_MAX == nin->dim) {
+    sprintf(err, "%s: given nrrd already at NRRD_DIM_MAX (%d)",
+	    me, NRRD_DIM_MAX);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nout != nin) {
+    if (nrrdCopy(nout, nin)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    /* HEY: comments have been copied, perhaps that's not appropriate */
+  }
+  nout->dim = 1 + nin->dim;
+  for (d=nin->dim-1; d>=ax; d--) {
+    _nrrdAxisCopy(&(nout->axis[d+1]), &(nin->axis[d]), NRRD_AXESINFO_NONE);
+  }
+  /* the ONLY thing we can say about the new axis is its size */
+  _nrrdAxisInit(&(nout->axis[ax]));
+  nout->axis[ax].size = 1;
+  if (nrrdContentSet(nout, func, nin, "%d", ax)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  nrrdPeripheralCopy(nout, nin);
+  return 0;
+}
+
 
 /*
 ******** nrrdReshape_nva()
@@ -627,7 +677,7 @@ nrrdReshape_nva(Nrrd *nout, Nrrd *nin, int dim, int *size) {
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   size_t numOut;
   int d;
-
+  
   if (!(nout && nin && size)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;

@@ -54,7 +54,8 @@ hestParmNew() {
 hestParm *
 hestParmFree(hestParm *parm) {
 
-  return airFree(parm);
+  AIR_FREE(parm);
+  return NULL;
 }
 
 void
@@ -147,10 +148,11 @@ hestOptAdd(hestOpt **optP,
 void
 _hestOptFree(hestOpt *opt) {
   
-  airFree(opt->flag);
-  airFree(opt->name);
-  airFree(opt->dflt);
-  airFree(opt->info);
+  AIR_FREE(opt->flag);
+  AIR_FREE(opt->name);
+  AIR_FREE(opt->dflt);
+  AIR_FREE(opt->info);
+  return;
 }
 
 hestOpt *

@@ -100,19 +100,19 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  airFree(nout->axis[0].label);
+  AIR_FREE(nout->axis[0].label);
   nout->axis[0].label = airStrdup(nout->content);
 
   return 0;
 }
 
 int
-nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy, int showLog) {
+nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy, int showLog, double max) {
   char me[]="nrrdHistoDraw", func[]="dhisto", err[AIR_STRLEN_MED],
     cmt[AIR_STRLEN_MED];
   int k, sx, x, y, maxhitidx, E,
     numticks, *Y, *logY, tick, *ticks;
-  double hits, maxhits;
+  double hits, maxhits, usemaxhits;
   unsigned char *pgmData;
   airArray *mop;
 
@@ -145,7 +145,7 @@ nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy, int showLog) {
   nout->axis[1].min = nout->axis[1].max = AIR_NAN;
   nout->axis[0].center = nout->axis[1].center = nrrdCenterCell;
   nout->axis[0].label = airStrdup(nin->axis[0].label);
-  nout->axis[1].label = airFree(nout->axis[1].label);
+  AIR_FREE(nout->axis[1].label);
   nrrdPeripheralInit(nout);
   nout->hasNonExist = nrrdNonExistFalse;
   pgmData = nout->data;
@@ -157,7 +157,12 @@ nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy, int showLog) {
       maxhitidx = x;
     }
   }
-  numticks = log10(maxhits + 1);
+  if (AIR_EXISTS(max) && max > 0) {
+    usemaxhits = max;
+  } else {
+    usemaxhits = maxhits;
+  }
+  numticks = log10(usemaxhits + 1);
   mop = airMopNew();
   ticks = (int*)calloc(numticks, sizeof(int));
   airMopMem(mop, &ticks, airMopAlways);
@@ -170,12 +175,12 @@ nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy, int showLog) {
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   for (k=0; k<numticks; k++) {
-    AIR_INDEX(0, log10(pow(10,k+1) + 1), log10(maxhits+1), sy, ticks[k]);
+    AIR_INDEX(0, log10(pow(10,k+1) + 1), log10(usemaxhits+1), sy, ticks[k]);
   }
   for (x=0; x<sx; x++) {
     hits = nrrdDLookup[nin->type](nin->data, x);
-    AIR_INDEX(0, hits, maxhits, sy, Y[x]);
-    AIR_INDEX(0, log10(hits+1), log10(maxhits+1), sy, logY[x]);
+    AIR_INDEX(0, hits, usemaxhits, sy, Y[x]);
+    AIR_INDEX(0, log10(hits+1), log10(usemaxhits+1), sy, logY[x]);
     /* printf("%d -> %d,%d", x, Y[x], logY[x]); */
   }
   for (y=0; y<sy; y++) {
@@ -417,7 +422,7 @@ nrrdHistoJoint(Nrrd *nout, Nrrd **nin,
 	biffAdd(NRRD, err); return 1;
       }
     } else {
-      nout->axis[d].label = airFree(nout->axis[d].label);
+      AIR_FREE(nout->axis[d].label);
       totalContentStrlen += 2;
     }
   }

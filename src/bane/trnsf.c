@@ -113,7 +113,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
       sprintf(err, "%s: trouble projecting (step 1) to create h(v,g)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
-    if (nrrdSwapAxes(projT=nrrdNew(), proj2, 0, 1)) {
+    if (nrrdAxesSwap(projT=nrrdNew(), proj2, 0, 1)) {
       sprintf(err, "%s: trouble projecting (step 2) to create h(v,g)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
@@ -128,7 +128,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
       sprintf(err, "%s: trouble projecting (step 1) to create #(v,g)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
-    if (nrrdSwapAxes(projT=nrrdNew(), proj2, 0, 1)) {
+    if (nrrdAxesSwap(projT=nrrdNew(), proj2, 0, 1)) {
       sprintf(err, "%s: trouble projecting (step 2) to create #(v,g)", me);
       biffMove(BANE, err, NRRD); return 1;
     }

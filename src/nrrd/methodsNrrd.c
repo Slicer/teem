@@ -77,9 +77,9 @@ nrrdIOReset (NrrdIO *io) {
   /* this started as a copy of the body of _nrrdIOInit() */
   if (io) {
     /* okay to leave buffers allocated? */
-    io->dir = airFree(io->dir);
-    io->base = airFree(io->base);
-    io->dataFN = airFree(io->dataFN);
+    AIR_FREE(io->dir);
+    AIR_FREE(io->base);
+    AIR_FREE(io->dataFN);
     /* io->line is the one thing it makes sense to recycle */
     if (io->line) strcpy(io->line, ""); 
     io->pos = 0;
@@ -102,11 +102,12 @@ nrrdIOReset (NrrdIO *io) {
 NrrdIO *
 nrrdIONix (NrrdIO *io) {
 
-  airFree(io->dir);
-  airFree(io->base);
-  airFree(io->dataFN);
-  airFree(io->line);
-  return airFree(io);
+  AIR_FREE(io->dir);
+  AIR_FREE(io->base);
+  AIR_FREE(io->dataFN);
+  AIR_FREE(io->line);
+  AIR_FREE(io);
+  return NULL;
 }
 
 /* ------------------------------------------------------------ */
@@ -145,7 +146,8 @@ nrrdResampleInfoNew (void) {
 NrrdResampleInfo *
 nrrdResampleInfoNix (NrrdResampleInfo *info) {
   
-  return airFree(info);
+  AIR_FREE(info);
+  return NULL;
 }
 
 /* ------------------------------------------------------------ */
@@ -168,7 +170,8 @@ nrrdKernelSpecNew (void) {
 NrrdKernelSpec *
 nrrdKernelSpecNix (NrrdKernelSpec *ksp) {
 
-  return airFree(ksp);
+  AIR_FREE(ksp);
+  return NULL;
 }
 
 void
@@ -215,7 +218,7 @@ nrrdInit (Nrrd *nrrd) {
   int i;
 
   if (nrrd) {
-    nrrd->data = airFree(nrrd->data);
+    AIR_FREE(nrrd->data);
     nrrd->type = nrrdTypeUnknown;
     nrrd->dim = 0;
     
@@ -223,7 +226,7 @@ nrrdInit (Nrrd *nrrd) {
       _nrrdAxisInit(&(nrrd->axis[i]));
     }
     
-    nrrd->content = airFree(nrrd->content);
+    AIR_FREE(nrrd->content);
     nrrd->blockSize = 0;
     nrrd->min = nrrd->max = AIR_NAN;
     nrrd->oldMin = nrrd->oldMax = AIR_NAN;
@@ -288,14 +291,14 @@ nrrdNix (Nrrd *nrrd) {
   int i;
   
   if (nrrd) {
-    nrrd->content = airFree(nrrd->content);
+    AIR_FREE(nrrd->content);
     /* HEY: this is a symptom of some stupidity, no? */
     for (i=0; i<NRRD_DIM_MAX; i++) {
-      nrrd->axis[i].label = airFree(nrrd->axis[i].label);
+      AIR_FREE(nrrd->axis[i].label);
     }
     nrrdCommentClear(nrrd);
     nrrd->cmtArr = airArrayNix(nrrd->cmtArr);
-    nrrd = airFree(nrrd);
+    AIR_FREE(nrrd);
   }
   return NULL;
 }
@@ -311,7 +314,7 @@ Nrrd *
 nrrdEmpty (Nrrd *nrrd) {
   
   if (nrrd) {
-    nrrd->data = airFree(nrrd->data);
+    AIR_FREE(nrrd->data);
     nrrdInit(nrrd);
   }
   return nrrd;
@@ -555,7 +558,7 @@ nrrdAlloc_nva (Nrrd *nrrd, int type, int dim, int *size) {
   }
 
   nrrd->type = type;
-  nrrd->data = airFree(nrrd->data);
+  AIR_FREE(nrrd->data);
   nrrd->dim = dim;
   if (!_nrrdSizeValid(dim, size, AIR_TRUE)) {
     sprintf(err, "%s:", me);

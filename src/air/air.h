@@ -538,6 +538,13 @@ extern void airMopDebug(airArray *arr);
                              : 0))
 
 /*
+******** AIR_FREE
+**
+** just to help you set all pointers to free'd data to NULL
+*/
+#define AIR_FREE(x) (x) = airFree((x))
+
+/*
 ******** AIR_IN_OP(a,b,c), AIR_IN_CL(a,b,c)
 **
 ** is true if the middle argument is in the open/closed interval

@@ -1025,8 +1025,10 @@ _nrrdWritePNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   /* finish writing */
   png_write_end(png, info);
   /* clean up */
-  for (i=0; i<numtxt; i++) airFree(txt[i].text);    
-  airFree(row);
+  for (i=0; i<numtxt; i++) {
+    AIR_FREE(txt[i].text);
+  }
+  AIR_FREE(row);
   png_destroy_write_struct(&png, &info);
 
   return 0;

@@ -29,8 +29,8 @@ _nrrdAxisInit(NrrdAxis *axis) {
     axis->size = 0;
     axis->spacing = AIR_NAN;
     axis->min = axis->max = AIR_NAN;
-    axis->label = airFree(axis->label);
-    axis->unit = airFree(axis->unit);
+    AIR_FREE(axis->label);
+    AIR_FREE(axis->unit);
     axis->center = nrrdCenterUnknown;
   }
 }
@@ -52,9 +52,9 @@ NrrdAxis *
 nrrdAxisNix(NrrdAxis *axis) {
 
   if (axis) {
-    axis->label = airFree(axis->label);
-    axis->unit = airFree(axis->unit);
-    airFree(axis);
+    AIR_FREE(axis->label);
+    AIR_FREE(axis->unit);
+    AIR_FREE(axis);
   }
   return NULL;
 }
@@ -62,21 +62,38 @@ nrrdAxisNix(NrrdAxis *axis) {
 
 /* ------------------------------------------------------------ */
 
-/*
 void
-nrrdAxisCopy(nrrdAxis *ax1, nrrdAxis *ax0) {
+_nrrdAxisCopy(NrrdAxis *dest, NrrdAxis *src, int bitflag) {
 
-  if (ax1 && ax0) {
-    ax1->size = ax0->size;
-    ax1->spacing = ax0->spacing;
-    ax1->min = ax0->min;
-    ax1->max = ax0->max;
-    ax1->center = ax0->center;
-    ax1->label = airStrdup(ax0->label);
-    ax1->unit = airStrdup(ax0->unit);
+  if (!(NRRD_AXESINFO_SIZE_BIT & bitflag)) {
+    dest->size = src->size;
   }
+  if (!(NRRD_AXESINFO_SPACING_BIT & bitflag)) {
+    dest->spacing = src->spacing;
+  }
+  if (!(NRRD_AXESINFO_MIN_BIT & bitflag)) {
+    dest->min = src->min;
+  }
+  if (!(NRRD_AXESINFO_MAX_BIT & bitflag)) {
+    dest->max = src->max;
+  }
+  if (!(NRRD_AXESINFO_CENTER_BIT & bitflag)) {
+    dest->center = src->center;
+  }
+  if (!(NRRD_AXESINFO_LABEL_BIT & bitflag)) {
+    if (dest->label != src->label) {
+      AIR_FREE(dest->label);
+      dest->label = airStrdup(src->label);
+    }
+  }
+  if (!(NRRD_AXESINFO_UNIT_BIT & bitflag)) {
+    if (dest->unit != src->unit) {
+      AIR_FREE(dest->unit);
+      dest->unit = airStrdup(src->unit);
+    }
+  }
+  return;
 }
-*/
 
 /*
 ******** nrrdAxesCopy()
@@ -126,29 +143,7 @@ nrrdAxesCopy(Nrrd *nout, Nrrd *nin, int *map, int bitflag) {
       /* for this axis, we don't touch a thing */
       continue;
     }
-    if (!(NRRD_AXESINFO_SIZE_BIT & bitflag)) {
-      nout->axis[d].size = nin->axis[from].size;
-    }
-    if (!(NRRD_AXESINFO_SPACING_BIT & bitflag)) {
-      nout->axis[d].spacing = nin->axis[from].spacing;
-    }
-    if (!(NRRD_AXESINFO_MIN_BIT & bitflag)) {
-      nout->axis[d].min = nin->axis[from].min;
-    }
-    if (!(NRRD_AXESINFO_MAX_BIT & bitflag)) {
-      nout->axis[d].max = nin->axis[from].max;
-    }
-    if (!(NRRD_AXESINFO_CENTER_BIT & bitflag)) {
-      nout->axis[d].center = nin->axis[from].center;
-    }
-    if (!(NRRD_AXESINFO_LABEL_BIT & bitflag)) {
-      nout->axis[d].label = airFree(nout->axis[d].label);
-      nout->axis[d].label = airStrdup(nin->axis[from].label);
-    }
-    if (!(NRRD_AXESINFO_UNIT_BIT & bitflag)) {
-      nout->axis[d].unit = airFree(nout->axis[d].unit);
-      nout->axis[d].unit = airStrdup(nin->axis[from].unit);
-    }
+    _nrrdAxisCopy(&(nout->axis[d]), &(nin->axis[from]), bitflag);
   }
   return 0;
 }
@@ -189,11 +184,11 @@ nrrdAxesSet_nva(Nrrd *nrrd, int axInfo, void *_info) {
       nrrd->axis[d].center = info.I[d];
       break;
     case nrrdAxesInfoLabel:
-      nrrd->axis[d].label = airFree(nrrd->axis[d].label);
+      AIR_FREE(nrrd->axis[d].label);
       nrrd->axis[d].label = airStrdup(info.CP[d]);
       break;
     case nrrdAxesInfoUnit:
-      nrrd->axis[d].unit = airFree(nrrd->axis[d].unit);
+      AIR_FREE(nrrd->axis[d].unit);
       nrrd->axis[d].unit = airStrdup(info.CP[d]);
       break;
     }

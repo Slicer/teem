@@ -537,18 +537,20 @@ extern int nrrdSimplePad_nva(Nrrd *nout, Nrrd *nin, int pad,
 			     int boundary, double padValue);
 extern int nrrdSimplePad(Nrrd *nout, Nrrd *nin, int pad, int boundary,
 			 ... /* if nrrdBoundaryPad, what value */);
+extern int nrrdInset(Nrrd *nout, Nrrd *nin, Nrrd *nsub, int *min);
 
-/******** permuting and shuffling */
+/******** permuting, shuffling, and all flavors of reshaping */
 /* reorder.c */
 extern int nrrdInvertPerm(int *invp, int *perm, int n);
-extern int nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes);
-extern int nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2);
+extern int nrrdAxesPermute(Nrrd *nout, Nrrd *nin, int *axes);
+extern int nrrdAxesSwap(Nrrd *nout, Nrrd *nin, int ax1, int ax2);
 extern int nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm);
 extern int nrrdFlip(Nrrd *nout, Nrrd *nin, int axis);
 extern int nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim);
 extern int nrrdReshape(Nrrd *nout, Nrrd *nin, int dim,
 		       ... /* sx, sy, .., axis(dim-1) size */ );
 extern int nrrdReshape_nva(Nrrd *nout, Nrrd *nin, int dim, int *size);
+extern int nrrdAxesInsert(Nrrd *nout, Nrrd *nin, int ax);
 extern int nrrdBlock(Nrrd *nout, Nrrd *nin);
 extern int nrrdUnblock(Nrrd *nout, Nrrd *nin, int type);
 
@@ -564,7 +566,8 @@ extern int nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr);
 /********* various kinds of histograms */
 /* histogram.c */
 extern int nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type);
-extern int nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy, int showLog);
+extern int nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy,
+			 int showLog, double max);
 extern int nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int axis, int bins, int type);
 extern int nrrdHistoJoint(Nrrd *nout, Nrrd **nin, 
 			  int numNin, int *bins, int type, int *clamp);

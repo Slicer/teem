@@ -121,14 +121,15 @@ _gagePerVolumeCopy (gagePerVolume *pvl, int fd) {
 gagePerVolume *
 gagePerVolumeNix (gagePerVolume *pvl) {
 
-  airFree(pvl->iv3);
-  airFree(pvl->iv2);
-  airFree(pvl->iv1);
+  AIR_FREE(pvl->iv3);
+  AIR_FREE(pvl->iv2);
+  AIR_FREE(pvl->iv1);
   if (!pvl->thisIsACopy && pvl->nixer) {
     pvl->nixer(pvl->npad, pvl->kind, pvl);
   }
-  airFree(pvl->ans);
-  return airFree(pvl);
+  AIR_FREE(pvl->ans);
+  AIR_FREE(pvl);
+  return NULL;
 }
 
 /*

@@ -72,6 +72,7 @@ extern int _nrrdContentSet(Nrrd *nout, const char *func,
 
 
 /* axes.c */
+extern void _nrrdAxisCopy(NrrdAxis *dest, NrrdAxis *src, int bitflag);
 extern void _nrrdAxisInit(NrrdAxis *axis);
 extern int _nrrdCenter(int center);
 extern int _nrrdCenter2(int center, int def);

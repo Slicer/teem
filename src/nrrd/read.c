@@ -185,7 +185,7 @@ int
 _nrrdCalloc (Nrrd *nrrd) {
   char me[]="_nrrdCalloc", err[AIR_STRLEN_MED];
 
-  nrrd->data = airFree(nrrd->data);
+  AIR_FREE(nrrd->data);
   nrrd->data = calloc(nrrdElementNumber(nrrd), nrrdElementSize(nrrd));
   if (!nrrd->data) {
     sprintf(err, "%s: couldn't calloc(" _AIR_SIZE_T_FMT
@@ -1170,7 +1170,7 @@ _nrrdReadPNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
 	 since in this case the text from which we parse a nrrd field
 	 descriptor did NOT come from a line of text as read by
 	 _nrrdOneLine */
-      airFree(io->line);
+      AIR_FREE(io->line);
       io->line = airStrdup(txt[i].text);
       ret = _nrrdReadNrrdParseField(nrrd, io, AIR_FALSE);
       if (ret) {
@@ -1220,7 +1220,7 @@ _nrrdReadPNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   /* finish reading */
   png_read_end(png, info);
   /* clean up */
-  airFree(row);
+  AIR_FREE(row);
   png_destroy_read_struct(&png, &info, NULL);
 
   return 0;
@@ -1694,8 +1694,8 @@ _nrrdSplitName (char **dirP, char **baseP, const char *name) {
   int i, ret;
   
   i = strrchr(name, '/') - name;
-  *dirP = airFree(*dirP);
-  *baseP = airFree(*baseP);
+  AIR_FREE(*dirP);
+  AIR_FREE(*baseP);
   /* we found a valid break if the last directory character
      is somewhere in the string except the last character */
   if (i>=0 && i<strlen(name)-1) {

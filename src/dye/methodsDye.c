@@ -50,7 +50,7 @@ dyeStrToSpace(char *_str) {
     }
     if (dyeSpaceLast == spc)
       spc = dyeSpaceUnknown;
-    str = airFree(str);
+    AIR_FREE(str);
   }
   return spc;
 }
@@ -137,7 +137,7 @@ dyeColor *
 dyeColorNix(dyeColor *col) {
 
   if (col) {
-    col = airFree(col);
+    AIR_FREE(col);
   }
   return NULL;
 }
@@ -171,7 +171,7 @@ dyeColorParse(dyeColor *col, char *_str) {
     sprintf(err, "%s: couldn't parse colorspace from \"%s\"", me, str);
     biffAdd(DYE, err); return 1;
   }
-  str = airFree(str);
+  AIR_FREE(str);
 
   dyeColorSet(col, spc, v0, v1, v2);
   return 0;

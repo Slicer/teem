@@ -335,7 +335,7 @@ nrrdCheapMedian(Nrrd *nout, Nrrd *nin, int radius, float wght, int bins) {
   }
   nrrdPeripheralInit(nout);
 
-  hist = airFree(hist);
+  AIR_FREE(hist);
   return 0;
 }
 

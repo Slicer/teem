@@ -63,8 +63,8 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
   }
 
   /* re-orient them so they look correct on the screen */
-  if (!E) E |= nrrdSwapAxes(gA, gB, 0, 1);
-  if (!E) E |= nrrdSwapAxes(hA, hB, 0, 1);
+  if (!E) E |= nrrdAxesSwap(gA, gB, 0, 1);
+  if (!E) E |= nrrdAxesSwap(hA, hB, 0, 1);
   if (!E) E |= nrrdFlip(gB, gA, 1);
   if (!E) E |= nrrdFlip(hB, hA, 1);
   if (E) {

@@ -66,7 +66,7 @@ _nrrdContentSet_nva (Nrrd *nout, const char *func,
   char me[]="_nrrdContentSet_nva", err[AIR_STRLEN_MED],
     buff[128*AIR_STRLEN_HUGE] = "";
   
-  nout->content = airFree(nout->content);
+  AIR_FREE(nout->content);
 
   /* we are currently praying that this won't overflow the "buff" array */
   /* HEY: replace with vsnprintf or whatever when its available */
@@ -132,7 +132,7 @@ nrrdContentSet (Nrrd *nout, const char *func,
   if (!nin->content && !nrrdStateAlwaysSetContent) {
     /* there's no input content, and we're not supposed to invent any
        content, so after freeing nout's content we're done */
-    nout->content = airFree(nout->content);
+    AIR_FREE(nout->content);
     return 0;
   }
   /* we copy the input nrrd content first, before blowing away the

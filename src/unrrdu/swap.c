@@ -47,7 +47,7 @@ unrrdu_swapMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdSwapAxes(nout, nin, ax[0], ax[1])) {
+  if (nrrdAxesSwap(nout, nin, ax[0], ax[1])) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error swapping nrrd:\n%s", me, err);
     airMopError(mop);

@@ -1,10 +1,18 @@
 Changes from 1.5beta2: ---------------------------------
 
+- API CHANGE : nrrdHistoDraw now takes a new final argument,
+the maximum bin count to place at the top of the drawn histogram.
+This facilitates more meaningful visual comparison between
+different histograms.
+- API RENAME (macro): NRRD_COORD_INDEX --> NRRD_INDEX_GEN
+- API RENAME: nrrdSwapAxes --> nrrdAxesSwap
+- API RENAME: nrrdPermuteAxes --> nrrdAxesPermute
 - API NEW: nrrdSplice() and nrrdInset() are the functional
 opposites of nrrdSlice and nrrdCrop, respectively.  They are
 for modifying a larger nrrd by replacing with value from a
 smaller nrrd.
-- API CHANGE (macro): NRRD_COORD_INDEX --> NRRD_INDEX_GEN
+- API NEW: nrrdAxesInsert() adds a stub axis and (unlike
+nrrdReshape) preserves the axis attributes of the other axes
 
 Changes from 1.5beta1: ---------------------------------
 

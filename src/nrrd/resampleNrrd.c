@@ -667,7 +667,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
 	}
       } else {
 	airMopSub(mop, array[pass-1], airFree);
-	array[pass-1] = airFree(array[pass-1]);
+	AIR_FREE(array[pass-1]);
 	/*
 	printf("%s: pass %d: freeing array[%d]\n", me, pass, pass-1);
 	*/
@@ -752,15 +752,15 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
     airMopSub(mop, weight, airFree);
     airMopSub(mop, index, airFree);
     airMopSub(mop, inVec, airFree);
-    weight = airFree(weight);
-    index = airFree(index);
-    inVec = airFree(inVec);
+    AIR_FREE(weight);
+    AIR_FREE(index);
+    AIR_FREE(inVec);
   }
 
   /* clean up second-to-last array and scanline buffers */
   if (passes > 1) {
     airMopSub(mop, array[passes-1], airFree);
-    array[passes-1] = airFree(array[passes-1]);
+    AIR_FREE(array[passes-1]);
     /*
     printf("%s: now freeing array[%d]\n", me, passes-1);
     */

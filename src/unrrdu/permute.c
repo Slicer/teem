@@ -58,7 +58,7 @@ unrrdu_permuteMain(int argc, char **argv, char *me, hestParm *hparm) {
     return 1;
   }
 
-  if (nrrdPermuteAxes(nout, nin, perm)) {
+  if (nrrdAxesPermute(nout, nin, perm)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error permuting nrrd:\n%s", me, err);
     airMopError(mop);

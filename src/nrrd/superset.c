@@ -95,8 +95,7 @@ nrrdSplice(Nrrd *nout, Nrrd *nin, Nrrd *nslice, int axis, int pos) {
       biffAdd(NRRD, err); return 1;
     }
   } 
-  /* else we're going to splice in place.
-     In either case, all peripheral information is preserved */
+  /* else we're going to splice in place */
 
   /* the following was copied from nrrdSlice() */
   /* set up control variables */
@@ -134,6 +133,8 @@ nrrdSplice(Nrrd *nout, Nrrd *nin, Nrrd *nslice, int axis, int pos) {
     biffAdd(NRRD, err); return 1;
   }
   free(sliceCont);
+
+  nrrdPeripheralInit(nout);
 
   return 0;
 }
@@ -212,8 +213,7 @@ nrrdInset(Nrrd *nout, Nrrd *nin, Nrrd *nsub, int *min) {
       biffAdd(NRRD, err); return 1;
     }
   } 
-  /* else we're going to inset in place.
-     In either case, all peripheral information is preserved */
+  /* else we're going to inset in place */
 
   /* WARNING: following code copied/modified from nrrdCrop(),
      so the meanings of "in"/"out", "src"/"dest" are all messed up */
@@ -260,6 +260,8 @@ nrrdInset(Nrrd *nout, Nrrd *nin, Nrrd *nsub, int *min) {
     biffAdd(NRRD, err); return 1;
   }
   free(subCont);
+
+  nrrdPeripheralInit(nout);
 
   return 0;
 }

@@ -803,6 +803,6 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   }
   nrrdPeripheralInit(nout);
 
-  airFree(_line);
+  AIR_FREE(_line);
   return 0;
 }

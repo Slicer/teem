@@ -310,9 +310,9 @@ _gageCacheSizeUpdate(gageContext *ctx) {
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
   fd = GAGE_FD(ctx);
-  airFree(ctx->fsl);
-  airFree(ctx->fw);
-  airFree(ctx->off);
+  AIR_FREE(ctx->fsl);
+  AIR_FREE(ctx->fw);
+  AIR_FREE(ctx->off);
   ctx->fsl = (gage_t *)calloc(fd*3, sizeof(gage_t));
   ctx->fw = (gage_t *)calloc(fd*3*GAGE_KERNEL_NUM, sizeof(gage_t));
   ctx->off = (unsigned int *)calloc(fd*fd*fd, sizeof(unsigned int));
@@ -322,9 +322,9 @@ _gageCacheSizeUpdate(gageContext *ctx) {
   }
   for (i=0; i<ctx->numPvl; i++) {
     pvl = ctx->pvl[i];
-    airFree(pvl->iv3);
-    airFree(pvl->iv2);
-    airFree(pvl->iv1);
+    AIR_FREE(pvl->iv3);
+    AIR_FREE(pvl->iv2);
+    AIR_FREE(pvl->iv1);
     pvl->iv3 = (gage_t *)calloc(fd*fd*fd*pvl->kind->valLen, sizeof(gage_t));
     pvl->iv2 = (gage_t *)calloc(fd*fd*pvl->kind->valLen, sizeof(gage_t));
     pvl->iv1 = (gage_t *)calloc(fd*pvl->kind->valLen, sizeof(gage_t));

@@ -27,20 +27,23 @@ extern int _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io, int writeData);
 #define INFO "Create a nrrd (or nrrd header) from scratch"
 char *_unrrdu_makeInfoL =
 (INFO
- ".  The data can be in a file or coming from stdin. "
+ ".  The data can be in one or more files, or coming from stdin. "
  "This provides an easy way of providing the bare minimum "
  "information about some data so as to wrap it in a "
  "nrrd, either to pass on for further unu processing, "
  "or to save to disk.  However, with \"-h\", this creates "
  "only a detached nrrd header file, without ever reading "
- "or writing data. ");
+ "or writing data. When reading multiple files, nearly all the options below "
+ "refer the finished nrrd resulting from getting all the data from all "
+ "the files.  The only exceptions are \"-ls\" and \"-bs\", which apply "
+ "to every input file. ");
 
 int
 unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, *dataFileName, *content, encInfo[AIR_STRLEN_LARGE];
+  char *out, *err, **dataFileNames, *content, encInfo[AIR_STRLEN_LARGE];
   Nrrd *nrrd;
-  int *size, sizeLen, spacingLen, labelLen, headerOnly, pret;
+  int *size, nameLen, sizeLen, spacingLen, labelLen, headerOnly, pret;
   double *spacing;
   airArray *mop;
   NrrdIO *io;
@@ -63,8 +66,11 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "data file is to be found relative to the header file "
 	     "(as opposed to the current working directory of whomever "
 	     "is reading the nrrd)");
-  hestOptAdd(&opt, "i", "file", airTypeString, 1, 1, &dataFileName, NULL,
-	     "Filename of data file; use \"-\" for stdin");
+  hestOptAdd(&opt, "i", "file", airTypeString, 1, -1, &dataFileNames, NULL,
+	     "Filename(s) of data file(s); use \"-\" for stdin. "
+	     "Detached headers (using \"-h\") are incompatible with "
+	     "using stdin as the data source, or using multiple data "
+	     "files", &nameLen);
   hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &(nrrd->type), NULL,
 	     "type of data (e.g. \"uchar\", \"int\", \"float\", "
 	     "\"double\", etc.)",
@@ -156,7 +162,13 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     /* we don't have to fopen() any input; all we care about
        is the name of the input datafile.  We disallow stdin here */
     if (!strcmp("-", dataFileName)) {
-      fprintf(stderr, "%s: can't store stdin as data file in header\n", me);
+      fprintf(stderr, "%s: can't use detached headers with stdin as "
+	      "data source\n", me);
+      airMopError(mop); return 1;
+    }
+    if (1 != nameLen) {
+      fprintf(stderr, "%s: can't use detached headers with multiple "
+	      "data files\n", me);
       airMopError(mop); return 1;
     }
     io->dataFN = airStrdup(dataFileName);

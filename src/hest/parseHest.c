@@ -440,7 +440,7 @@ _hestExtractFlagged(char **prms, int *nprm, int *appr,
     /* extract the args after the flag */
     if (appr[flag]) {
       airMopSub(pmop, prms[flag], airFree);
-      airFree(prms[flag]);
+      AIR_FREE(prms[flag]);
     }
     prms[flag] = _hestExtract(argcP, argv, a, nprm[flag]);
     airMopAdd(pmop, prms[flag], airFree, airMopAlways);
@@ -640,7 +640,7 @@ _hestDefaults(char **prms, int *udflt, int *nprm, int *appr,
       airOneLinify(prms[op]);
       tmpS = airStrdup(prms[op]);
       nprm[op] = airStrntok(tmpS, " ");
-      tmpS = airFree(tmpS);
+      AIR_FREE(tmpS);
       /* printf("!%s: nprm[%d] in default = %d\n", me, op, nprm[op]); */
       if (opt[op].min < _hestMax(opt[op].max)) {
 	if (!( AIR_IN_CL(opt[op].min, nprm[op], _hestMax(opt[op].max))
@@ -873,7 +873,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	  opt[op].alloc = 1;
 	  if (opt[op].flag && 1 == _hestCase(opt, udflt, nprm, appr, op)) {
 	    /* we just parsed the default, but now we want to "invert" it */
-	    *((char**)vP) = airFree(*((char**)vP));
+	    AIR_FREE(*((char**)vP));
 	    opt[op].alloc = 0;
 	  }
 	  /* vP is the address of a char* (a char**), and what we
@@ -1185,7 +1185,7 @@ hestParseFree(hestOpt *opt) {
       break;
     case 1:
       if (airTypeOther != opt[op].type) {
-	*vP = airFree(*vP);
+	AIR_FREE(*vP);
       }
       else {
 	/* alloc is one either because we parsed one thing, and we have a
@@ -1195,14 +1195,14 @@ hestParseFree(hestOpt *opt) {
 	  *vP = opt[op].CB->destroy(*vP);
 	}
 	else {
-	  *vP = airFree(*vP);
+	  AIR_FREE(*vP);
 	}
       }
       break;
     case 2:
       if (airTypeString == opt[op].type) {
 	for (i=0; i<=opt[op].min-1; i++) {
-	  str[i] = airFree(str[i]);
+	  AIR_FREE(str[i]);
 	}
       }
       else {
@@ -1214,15 +1214,15 @@ hestParseFree(hestOpt *opt) {
     case 3:
       if (airTypeString == opt[op].type) {
 	for (i=0; i<=*(opt[op].sawP)-1; i++) {
-	  (*strP)[i] = airFree((*strP)[i]);
+	  AIR_FREE((*strP)[i]);
 	}
-	*strP = airFree(*strP);
+	AIR_FREE(*strP);
       }
       else {
 	for (i=0; i<=*(opt[op].sawP)-1; i++) {
 	  (*vAP)[i] = opt[op].CB->destroy((*vAP)[i]);
 	}
-	*vAP = airFree(*vAP);
+	AIR_FREE(*vAP);
       }
       break;
     }

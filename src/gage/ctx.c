@@ -76,11 +76,12 @@ gageContextNix (gageContext *ctx) {
       gagePerVolumeNix(ctx->pvl[i]);
       /* no point in doing a detach, the whole context is going bye-bye */
     }
-    airFree(ctx->fw);
-    airFree(ctx->fsl);
-    airFree(ctx->off);
+    AIR_FREE(ctx->fw);
+    AIR_FREE(ctx->fsl);
+    AIR_FREE(ctx->off);
   }
-  return airFree(ctx);
+  AIR_FREE(ctx);
+  return NULL;
 }
 
 /*
