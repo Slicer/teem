@@ -466,6 +466,7 @@ extern int nrrdSubvolume(Nrrd *nout, Nrrd *nin,
 /* reorder.c */
 extern int nrrdInvertPerm(int *invp, int *perm, int n);
 extern int nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes);
+extern int nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2);
 extern int nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm);
 extern int nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis, int incrDim);
 extern int nrrdFlip(Nrrd *nout, Nrrd *nin, int axis);

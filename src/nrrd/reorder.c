@@ -186,6 +186,33 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
   return 0;
 }
 
+int
+nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2) {
+  char me[]="nrrdSwapAxes", err[NRRD_MED_STRLEN];
+  int i, axes[NRRD_MAX_DIM];
+
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffSet(NRRD, err); return 1;
+  }
+  if (!(AIR_INSIDE(0, ax1, nin->dim-1) 
+	&& AIR_INSIDE(0, ax2, nin->dim-1))) {
+    sprintf(err, "%s: ax1 (%d) or ax2 (%d) out of bounds [0,%d]", 
+	    me, ax1, ax2, nin->dim-1);
+    biffSet(NRRD, err); return 1;
+  }
+
+  for (i=0; i<=nin->dim-1; i++)
+    axes[i] = i;
+  axes[ax2] = ax1;
+  axes[ax1] = ax2;
+  if (nrrdPermuteAxes(nout, nin, axes)) {
+    sprintf(err, "%s: trouble swapping axes", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  return 0;
+}
+
 /*
 ******** nrrdShuffle
 **
