@@ -134,7 +134,7 @@ _biffNewEntry(char *key) {
     fprintf(stderr, "%s: couldn't make array for new key \"%s\"\n", me, key);
     exit(1);
   }
-  airArrayPointerCB(e->AA, NULL, free);
+  airArrayPointerCB(e->AA, NULL, airFree);
   return(e);
 }
 
@@ -275,6 +275,19 @@ biffAdd(char *key, char *err) {
 
   /* add the new message */
   _biffAddErr(e, err);
+}
+
+/*
+******** biffMaybeAdd()
+**
+** wrapper around biffAdd() but doesn't actually do anything of !useBiff
+*/
+void
+biffMaybeAdd(int useBiff, char *key, char *err) {
+
+  if (useBiff) {
+    biffAdd(key, err);
+  }
 }
 
 /*
