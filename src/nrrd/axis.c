@@ -43,7 +43,6 @@ _nrrdAxisInfoInit(NrrdAxisInfo *axis) {
 
 void
 _nrrdAxisInfoNewInit(NrrdAxisInfo *axis) {
-  int dd;
   
   if (axis) {
     axis->label = NULL;
@@ -228,7 +227,7 @@ _nrrdAxisInfoCopy(NrrdAxisInfo *dest, const NrrdAxisInfo *src, int bitflag) {
 int
 nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin, const int *axmap, int bitflag) {
   NrrdAxisInfo axisBuffer[NRRD_DIM_MAX];
-  NrrdAxisInfo *axis;
+  const NrrdAxisInfo *axis;
   int d, from;
   
   if (!(nout && nin)) {
