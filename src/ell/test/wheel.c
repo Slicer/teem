@@ -35,7 +35,7 @@ wheelTenToGeom(double geom[3], double a, double b, double c,
   Th = QQQ ? acos(R/sqrt(QQQ))/3 : 0;
   geom[0] = -A/3;
   geom[1] = 2*sqrt(Q);
-  geom[2] = Th;
+  geom[2] = 180.0*Th/AIR_PI;
   return;
 }
 
@@ -49,24 +49,26 @@ wheelABCToGeom(double *geom, double A, double B, double C) {
   Th = QQQ ? acos(R/sqrt(QQQ))/3 : 0;
   geom[0] = -A/3;
   geom[1] = 2*sqrt(Q);
-  geom[2] = Th;
+  geom[2] = 180.0*Th/AIR_PI;
   return;
 }
 
 void
 wheelGeomToRoot(double xroot[3], double yroot[3], double geom[3]) {
-  
-  xroot[0] = geom[0] + geom[1]*cos(geom[2]);
-  xroot[1] = geom[0] + geom[1]*cos(geom[2] - 2*AIR_PI/3);
-  xroot[2] = geom[0] + geom[1]*cos(geom[2] + 2*AIR_PI/3);
-  yroot[0] = geom[1]*sin(geom[2]);
-  yroot[1] = geom[1]*sin(geom[2] - 2*AIR_PI/3);
-  yroot[2] = geom[1]*sin(geom[2] + 2*AIR_PI/3);
+  double Th;
+
+  Th = AIR_PI*geom[2]/180.0;
+  xroot[0] = geom[0] + geom[1]*cos(Th);
+  xroot[1] = geom[0] + geom[1]*cos(Th - 2*AIR_PI/3);
+  xroot[2] = geom[0] + geom[1]*cos(Th + 2*AIR_PI/3);
+  yroot[0] = geom[1]*sin(Th);
+  yroot[1] = geom[1]*sin(Th - 2*AIR_PI/3);
+  yroot[2] = geom[1]*sin(Th + 2*AIR_PI/3);
   return;
 }
 
 void
-wheelGeomToABC(double *ABC, double center, double radius, double angle) {
+wheelGeomToABC(double ABC[3], double center, double radius, double angle) {
   double geom[3], x[3], yroot[3];
 
   ELL_3V_SET(geom, center, radius, angle);
@@ -76,6 +78,17 @@ wheelGeomToABC(double *ABC, double center, double radius, double angle) {
              x[0]*x[1] + x[1]*x[2] + x[0]*x[2],
              -x[0]*x[1]*x[2]);
   return;
+}
+
+void
+wheelGeomToRNTH(double rnth[3], double center, double radius, double angle) {
+  double mu1, mu2;
+
+  mu1 = center;
+  mu2 = radius*radius/2;
+  rnth[0] = sqrt(mu2)/(sqrt(2)*mu1);
+  rnth[1] = sqrt(3*(mu1*mu1 + mu2));
+  rnth[2] = angle;
 }
 
 typedef struct {
@@ -215,9 +228,10 @@ main(int argc, char *argv[]) {
   hestParm *hparm;
   airArray *mop;
   
-  double tval[6], ABC[3], geom[3], xroot[3], yroot[3], bbox[4], htick, psc;
+  double tval[6], ABC[3], geom[3], rnth[3], RA, norm, mu2, tmpr=0, tmpa=0,
+    xroot[3], yroot[3], bbox[4], htick, htth, psc;
   wheelPS wps;
-  int correct, labels;
+  int correct, labels, drawRA;
 
   me = argv[0];
   mop = airMopNew();
@@ -234,13 +248,21 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "g", "c rad th", airTypeDouble, 3, 3, geom, "nan nan nan",
              "directly give center, radius, and angle (in degrees) of wheel "
              "(and override info from \"-t\" and \"-ABC\"");
+  hestOptAdd(&hopt, "p", "RA norm th", airTypeDouble, 3, 3, rnth, 
+             "nan nan nan",
+             "directly give RA, norm, and angle (in degrees) of tensor "
+             "(and override info from \"-t\", \"-ABC\", and \"-geom\"");
   hestOptAdd(&hopt, "correct", NULL, airTypeInt, 0, 0, &correct, NULL,
              "when using \"-g\", be honest about what the estimated "
              "acos(sqrt(2)*skew)/3 is going to be");
   hestOptAdd(&hopt, "labels", NULL, airTypeInt, 0, 0, &labels, NULL,
              "put little labels on things; fix with psfrag in LaTeX");
+  hestOptAdd(&hopt, "RA", NULL, airTypeInt, 0, 0, &drawRA, NULL,
+             "draw extra geometry associated with RA");
   hestOptAdd(&hopt, "htick", "pos", airTypeDouble, 1, 1, &htick, "nan",
              "location of single tick mark on horizontal axis");
+  hestOptAdd(&hopt, "htth", "thick", airTypeDouble, 1, 1, &htth, "3",
+             "thickness of horizontal tick");
   hestOptAdd(&hopt, "bb", "bbox", airTypeDouble, 4, 4, bbox, 
              "nan nan nan nan", "bounding box, in world space around the "
              "region of the graph that should be drawn to EPS");
@@ -262,11 +284,16 @@ main(int argc, char *argv[]) {
   }
   airMopAdd(mop, wps.file, (airMopper)airFclose, airMopAlways);
 
-  if (AIR_EXISTS(geom[0])) {
-    geom[2] *= AIR_PI/180.0;
-  }
-  
-  if (AIR_EXISTS(geom[0])) {
+  if (AIR_EXISTS(rnth[0])) {
+    RA = rnth[0];
+    norm = rnth[1];
+    mu2 = (norm*norm/3)*(2*RA*RA/(1 + 2*RA*RA));
+    geom[0] = sqrt(mu2)/(sqrt(2)*RA);
+    geom[1] = sqrt(2*mu2);
+    geom[2] = rnth[2];
+    wheelGeomToRoot(xroot, yroot, geom);
+    wheelGeomToABC(ABC, geom[0], geom[1], geom[2]);
+  } else if (AIR_EXISTS(geom[0])) {
     wheelGeomToRoot(xroot, yroot, geom);
     if (correct) {
       tval[0] = xroot[0];
@@ -279,14 +306,18 @@ main(int argc, char *argv[]) {
       wheelGeomToRoot(xroot, yroot, geom);
     }
     wheelGeomToABC(ABC, geom[0], geom[1], geom[2]);
+    wheelGeomToRNTH(rnth, geom[0], geom[1], geom[2]);
   } else if (AIR_EXISTS(ABC[0])) {
     wheelABCToGeom(geom, ABC[0], ABC[1], ABC[2]);
+    wheelGeomToRNTH(rnth, geom[0], geom[1], geom[2]);
     wheelGeomToRoot(xroot, yroot, geom);
   } else {
     wheelTenToGeom(geom, tval[0], tval[1], tval[2], tval[3], tval[4], tval[5]);
     wheelGeomToRoot(xroot, yroot, geom);
+    wheelGeomToRNTH(rnth, geom[0], geom[1], geom[2]);
     wheelGeomToABC(ABC, geom[0], geom[1], geom[2]);
   }
+  fprintf(stderr, "%s: RNTH: %g %g %g\n", me, rnth[0], rnth[1], rnth[2]);
   fprintf(stderr, "%s: ABC: %g %g %g\n", me, ABC[0], ABC[1], ABC[2]);
   fprintf(stderr, "%s: xroot: %g %g %g\n",
           me, xroot[0], xroot[1], xroot[2]);
@@ -346,10 +377,20 @@ main(int argc, char *argv[]) {
   wheelLine(&wps, xroot[1], -0.02*geom[1], xroot[1], 0.02*geom[1]);
   wheelLine(&wps, xroot[2], -0.02*geom[1], xroot[2], 0.02*geom[1]);
   if (AIR_EXISTS(htick)) {
-    wheelWidth(&wps, 10);
+    wheelWidth(&wps, htth);
     wheelLine(&wps, htick, -0.04, htick, 0.04);
   }
 
+  /* RA angle */
+  if (drawRA) {
+    wheelWidth(&wps, 3);
+    wheelLine(&wps, 0.0, 0.0, geom[0], geom[1]);
+    wheelWidth(&wps, 2);
+    fprintf(wps.file, "gsave\n");
+    fprintf(wps.file, "[2 4] 0 setdash\n");
+    wheelLine(&wps, geom[0], geom[1], geom[0], 0);
+    fprintf(wps.file, "grestore\n");
+  }
 
   /* labels, if wanted */
   if (labels) {
@@ -358,9 +399,16 @@ main(int argc, char *argv[]) {
     wheelLine(&wps, geom[0], -0.02*geom[1], geom[0], 0.02*geom[1]);
     wheelLabel(&wps, (geom[0] + xroot[0])/1.8, yroot[0]/1.8, "radius");
     wheelWidth(&wps, 2);
-    wheelArc(&wps, geom[0], 0, geom[1]/2, 0, 180*geom[2]/AIR_PI);
-    wheelLabel(&wps, geom[1]*cos(geom[2]/2)/2.5, 
-               geom[1]*sin(geom[2]/2)/2.5, "theta");
+    wheelArc(&wps, geom[0], 0, geom[1]/2, 0, geom[2]);
+    wheelLabel(&wps, geom[0] + geom[1]*cos(AIR_PI*geom[2]/180/2)/2.5, 
+               geom[1]*sin(AIR_PI*geom[2]/180/2)/2.5, "theta");
+    if (drawRA) {
+      tmpr = sqrt(geom[0]*geom[0] + geom[1]*geom[1]);
+      tmpa = atan(2.0*rnth[0]);
+      wheelWidth(&wps, 2);
+      wheelArc(&wps, 0, 0, 0.2*tmpr, 0, 180*tmpa/AIR_PI);
+      wheelLabel(&wps, 0.2*tmpr*cos(tmpa/2), 0.2*tmpr*sin(tmpa/2), "phi");
+    }
     wheelLabel(&wps, xroot[0], yroot[0], "spoke0");
     wheelLabel(&wps, xroot[1], yroot[1], "spoke-");
     wheelLabel(&wps, xroot[2], yroot[2], "spoke+");
