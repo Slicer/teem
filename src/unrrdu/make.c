@@ -543,7 +543,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
     nio->line = NULL;
   }
-  if (_nrrdCheck(nrrd, AIR_FALSE)) {
+  if (_nrrdCheck(nrrd, AIR_FALSE, AIR_TRUE)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: problems with nrrd as set up:\n%s", me, err);
     airMopError(mop); return 1;
