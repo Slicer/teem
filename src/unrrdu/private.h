@@ -59,6 +59,7 @@ extern hestParm *hparm;
 extern hestCB unuNrrdHestCB;
 extern hestCB unuNrrdIterHestCB;
 extern hestCB unuPosHestCB;
+extern hestCB unuMaybeTypeHestCB;
 
 typedef struct {
   char *name, *info;
