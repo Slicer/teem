@@ -182,24 +182,28 @@ enum {
 */
 enum {
   nrrdKindUnknown,
-  nrrdKindDomain,    /*  1: "It makes sense to resample along here" */
-  nrrdKindList,      /*  2: "It makes NO sense to resample along here" */
-  nrrdKindStub,      /*  3: axis with one sample */
-  nrrdKindScalar,    /*  4: same as a stub */
-  nrrdKindComplex,   /*  5: real and imaginary components of a number */
-  nrrdKind3Color,    /*  6: ANY 3-component color value */
-  nrrdKind4Color,    /*  7: ANY 4-component color value */
-  nrrdKind3Vector,   /*  8: any 3-vector */
-  nrrdKind3Normal,   /*  9: 3-vectors which are assumed normalized */
-  nrrdKind4Vector,   /* 10: any 4-vector */
-  nrrdKind6Tensor,   /* 11: the 6 unique elements of a symmetric 3x3 tensor */
-  nrrdKind7Tensor,   /* 12: some scalar "confidence" or "valid" value, and
-			    the 6 unique elements of a symmetric 3x3 tensor */
-  nrrdKind9Tensor,   /* 13: all 9 elements of a 3x3 tensor */
-  nrrdKind9Matrix,   /* 14: all 9 elements of a 3x3 matrix */
+  nrrdKindDomain,            /*  1: "Yes, you can resample me" */
+  nrrdKindList,              /*  2: "No, it is goofy to resample me" */
+  nrrdKindStub,              /*  3: axis with one sample (a placeholder) */
+  nrrdKindScalar,            /*  4: effectively, same as a stub */
+  nrrdKindComplex,           /*  5: real and imaginary components */
+  nrrdKind2Vector,           /*  6: 2 component vector */
+  nrrdKind3Color,            /*  7: ANY 3-component color value */
+  nrrdKind4Color,            /*  8: ANY 4-component color value */
+  nrrdKind3Vector,           /*  9: 3 component vector */
+  nrrdKind3Normal,           /* 10: 3 component vector, assumed normalized */
+  nrrdKind4Vector,           /* 11: 4 component vector */
+  nrrdKind2DSymTensor,       /* 12: Txx Txy Tyy */
+  nrrdKind2DMaskedSymTensor, /* 13: mask Txx Txy Tyy */
+  nrrdKind2DTensor,          /* 14: Txx Txy Tyx Tyy */
+  nrrdKind2DMaskedTensor,    /* 15: mask Txx Txy Tyx Tyy */
+  nrrdKind3DSymTensor,       /* 16: Txx Txy Txz Tyy Tyz Tzz */
+  nrrdKind3DMaskedSymTensor, /* 17: mask Txx Txy Txz Tyy Tyz Tzz */
+  nrrdKind3DTensor,          /* 18: Txx Txy Txz Tyx Tyy Tyz Tzx Tzy Tzz */
+  nrrdKind3DMaskedTensor,    /* 19: mask Txx Txy Txz Tyx Tyy Tyz Tzx Tzy Tzz */
   nrrdKindLast
 };
-#define NRRD_KIND_MAX   14
+#define NRRD_KIND_MAX           19
 
 /*
 ******** nrrdAxisInfo enum

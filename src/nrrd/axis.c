@@ -90,6 +90,7 @@ nrrdKindSize(int kind) {
     ret = 1;
     break;
   case nrrdKindComplex:
+  case nrrdKind2Vector:
     ret = 2;
     break;
   case nrrdKind3Color:
@@ -101,15 +102,29 @@ nrrdKindSize(int kind) {
   case nrrdKind4Vector:
     ret = 4;
     break;
-  case nrrdKind6Tensor:
+  case nrrdKind2DSymTensor:
+    ret = 3;
+    break;
+  case nrrdKind2DMaskedSymTensor:
+    ret = 4;
+    break;
+  case nrrdKind2DTensor:
+    ret = 4;
+    break;
+  case nrrdKind2DMaskedTensor:
+    ret = 5;
+    break;
+  case nrrdKind3DSymTensor:
     ret = 6;
     break;
-  case nrrdKind7Tensor:
+  case nrrdKind3DMaskedSymTensor:
     ret = 7;
     break;
-  case nrrdKind9Tensor:
-  case nrrdKind9Matrix:
+  case nrrdKind3DTensor:
     ret = 9;
+    break;
+  case nrrdKind3DMaskedTensor:
+    ret = 10;
     break;
   default:
     fprintf(stderr, "%s: PANIC: nrrdKind %d not implemented!\n", me, kind);

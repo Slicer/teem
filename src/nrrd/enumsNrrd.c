@@ -271,6 +271,27 @@ nrrdCenter = &_nrrdCenter_enum;
 
 /* ------------------------ nrrdKind ------------------------- */
 
+/*
+  nrrdKindDomain,              1: "Yes, you can resample me" 
+  nrrdKindList,                2: "No, it is goofy to resample me" 
+  nrrdKindStub,                3: axis with one sample (a placeholder) 
+  nrrdKindScalar,              4: effectively, same as a stub 
+  nrrdKindComplex,             5: real and imaginary components 
+  nrrdKind2Vector,             6: 2 component vector 
+  nrrdKind3Color,              7: ANY 3-component color value 
+  nrrdKind4Color,              8: ANY 4-component color value 
+  nrrdKind3Vector,             9: 3 component vector 
+  nrrdKind3Normal,            10: 3 component vector, assumed normalized 
+  nrrdKind4Vector,            11: 4 component vector 
+  nrrdKind2DSymTensor,        12: Txx Txy Tyy 
+  nrrdKind2DMaskedSymTensor,  13: mask Txx Txy Tyy 
+  nrrdKind2DTensor,           14: Txx Txy Tyx Tyy 
+  nrrdKind2DMaskedTensor,     15: mask Txx Txy Tyx Tyy 
+  nrrdKind3DSymTensor,        16: Txx Txy Txz Tyy Tyz Tzz 
+  nrrdKind3DMaskedSymTensor,  17: mask Txx Txy Txz Tyy Tyz Tzz 
+  nrrdKind3DTensor,           18: Txx Txy Txz Tyx Tyy Tyz Tzx Tzy Tzz 
+  nrrdKind3DMaskedTensor,     19: mask Txx Txy Txz Tyx Tyy Tyz Tzx Tzy Tzz 
+*/
 
 char
 _nrrdKindStr[NRRD_KIND_MAX+1][AIR_STRLEN_SMALL] = {
@@ -280,33 +301,44 @@ _nrrdKindStr[NRRD_KIND_MAX+1][AIR_STRLEN_SMALL] = {
   "stub",
   "scalar",
   "complex",
+  "2-vector",
   "3-color",
   "4-color",
   "3-vector",
   "3-normal",
-  "6-tensor",
-  "7-tensor",
-  "9-tensor",
-  "9-matrix"
+  "4-vector",
+  "2D-symmetric-tensor",
+  "2D-masked-symmetric-tensor",
+  "2D-tensor",
+  "2D-masked-tensor",
+  "3D-symmetric-tensor",
+  "3D-masked-symmetric-tensor",
+  "3D-tensor",
+  "3D-masked-tensor"
 };
 
 char
 _nrrdKindDesc[NRRD_KIND_MAX+1][AIR_STRLEN_MED] = {
   "unknown kind",
   "a domain variable of the function which the nrrd samples",
-  "a list of attributes; it makes no sense to resample along these",
+  "some list of attributes; it makes no sense to resample along these",
   "a place-holder axis with a single sample",
   "axis used to indicate that the nrrd contains a scalar value",
   "real and imaginary parts of a value",
+  "a 2-component vector",
   "any 3-component color value",
   "any 4-component color value",
-  "any 3-element vector",
+  "a 3-element vector",
   "a 3-element vector which is assumed normalized",
-  "any 4-element vector",
-  "6 unique elements of a symmetric tensor",
-  "\"confidence\" plus 6 unique elements of a symmetric tensor",
-  "9 elements of a 3x3 tensor",
-  "9 elements of a 3x3 matrix"
+  "a 4-element vector",
+  "3 elements of 2D symmetric tensor: Txx Txy Tyy",
+  "mask plus 3 elements of 2D symmetric tensor: mask Txx Txy Tyy",
+  "4 elements of general 2D tensor: Txx Txy Tyx Tyy",
+  "mask plus 4 elements of general 2D tensor: mask Txx Txy Tyx Tyy",
+  "6 elements of 3D symmetric tensor: Txx Txy Txz Tyy Tyz Tzz",
+  "mask plus 6 elements of 3D symmetric tensor: mask Txx Txy Txz Tyy Tyz Tzz",
+  "9 elements of general 3D tensor: Txx Txy Txz Tyx Tyy Tyz Tzx Tzy Tzz",
+  "mask plus 9 elements of general 3D tensor: mask Txx Txy Txz Tyx Tyy Tyz Tzx Tzy Tzz"
 };
 
 char
@@ -316,14 +348,20 @@ _nrrdKindStr_Eqv[][AIR_STRLEN_SMALL] = {
   "stub",
   "scalar",
   "complex",
+  "2-vector", "2vector",
   "3-color", "3color",
   "4-color", "4color",
   "3-vector", "3vector",
   "3-normal", "3normal",
-  "6-tensor", "6tensor",
-  "7-tensor", "7tensor",
-  "9-tensor", "9tensor",
-  "9-matrix", "9matrix",
+  "4-vector", "4vector",
+  "2D-sym-tensor", "2Dsymtensor",
+  "2D-mask-sym-tensor", "2Dmasksymtensor",
+  "2D-tensor", "2Dtensor",
+  "2D-mask-tensor", "2Dmasktensor",
+  "3D-sym-tensor", "3Dsymtensor",
+  "3D-mask-sym-tensor", "3Dmasksymtensor",
+  "3D-tensor", "3Dtensor",
+  "3D-mask-tensor", "3Dmasktensor",
   ""
 };
 
@@ -334,14 +372,20 @@ _nrrdKindVal_Eqv[] = {
   nrrdKindStub,
   nrrdKindScalar,
   nrrdKindComplex,
+  nrrdKind2Vector,
   nrrdKind3Color, nrrdKind3Color,
   nrrdKind4Color, nrrdKind4Color,
   nrrdKind3Vector, nrrdKind3Vector,
   nrrdKind3Normal, nrrdKind3Normal,
-  nrrdKind6Tensor, nrrdKind6Tensor,
-  nrrdKind7Tensor, nrrdKind7Tensor,
-  nrrdKind9Tensor, nrrdKind9Tensor,
-  nrrdKind9Matrix, nrrdKind9Matrix
+  nrrdKind4Vector, nrrdKind4Vector,
+  nrrdKind2DSymTensor, nrrdKind2DSymTensor,
+  nrrdKind2DMaskedSymTensor, nrrdKind2DMaskedSymTensor,
+  nrrdKind2DTensor, nrrdKind2DTensor,
+  nrrdKind2DMaskedTensor, nrrdKind2DMaskedTensor,
+  nrrdKind3DSymTensor, nrrdKind3DSymTensor,
+  nrrdKind3DMaskedSymTensor, nrrdKind3DMaskedSymTensor,
+  nrrdKind3DTensor, nrrdKind3DTensor,
+  nrrdKind3DMaskedTensor, nrrdKind3DMaskedTensor
 };
 
 airEnum
