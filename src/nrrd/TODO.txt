@@ -1,3 +1,5 @@
+all source files: "<=X-1" --> "<X"
+
 test working with nout==nin
 nrrdContentSet
 nrrdConvert
@@ -13,6 +15,8 @@ with nrrdUnaryOp, nrrdBinaryOp, nrrdTernaryOp
 allow nrrdBlock and nrrdUnblock to have nin==nout
 
 ------- teem 1.4 cutoff ---------
+
+HEY: need to create textual representation of resampling parameters
 
 change nrrdHistoEq to use 1D regular maps, allow learning of mapping used.
 

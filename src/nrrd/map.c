@@ -279,7 +279,7 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   min = nin->min; 
   max = nin->max;
   eps = (min == max ? 1.0 : 0.0);
-  for (I=0; I<=num-1; I++) {
+  for (I=0; I<num; I++) {
     valIn = nrrdDLookup[nin->type](nin->data, I);
     valIn = AIR_CLAMP(min, valIn, max);
     switch (bits) {
@@ -383,16 +383,27 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
     sprintf(err, "%s: need # bins > 2 (not %d)", me, bins);
     biffAdd(NRRD, err); return 1;
   }
+  /* we start by simply copying, because the only thing we're 
+     changing is the values themselves, and all peripheral
+     information is intact */
+  if (nout != nin) {
+    if (nrrdCopy(nout, nin)) {
+      sprintf(err, "%s:", me); 
+      biffAdd(NRRD, err); return 1;
+    }
+  }
   mop = airMopInit();
   if (nhistP) {
     airMopAdd(mop, *nhistP, (airMopper)airSetNull, airMopOnError);
   }
+  num = nrrdElementNumber(nin);
   if (smart <= 0) {
     nhist = nrrdNew();
     if (nrrdHisto(nhist, nin, bins, nrrdTypeInt)) {
       sprintf(err, "%s: failed to create histogram", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
+    nrrdSave("hist.nrrd", nhist, NULL);
     if (nhistP) {
       airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopOnError);
     }
@@ -423,7 +434,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
       sprintf(err, "%s: couldn't allocate smart arrays", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
-    for (i=0; i<=bins-1; i++) {
+    for (i=0; i<bins; i++) {
       last[i] = AIR_NAN;
       respect[i] = 1;
       steady[1 + 2*i] = i;
@@ -436,8 +447,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
     }
     min = nin->min;
     max = nin->max;
-    num = nrrdElementNumber(nin);
-    for (I=0; I<=num-1; I++) {
+    for (I=0; I<num; I++) {
       val = nrrdDLookup[nin->type](nin->data, I);
       if (AIR_EXISTS(val)) {
 	AIR_INDEX(min, val, max, bins, idx);
@@ -457,7 +467,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
       }
     }
     /*
-    for (i=0; i<=bins-1; i++) {
+    for (i=0; i<bins; i++) {
       printf("steady(%d) = %d\n", i, steady[0 + 2*i]);
     }
     */
@@ -469,7 +479,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
     }
     */
     /* we ignore some of the bins according to "smart" arg */
-    for (i=0; i<=smart-1; i++) {
+    for (i=0; i<smart; i++) {
       respect[steady[1+2*i]] = 0;
     }
   }
@@ -499,15 +509,19 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
   }
 
   /* map the nrrd values through the normalized histogram integral */
-  for (i=0; i<=num-1; i++) {
-    val = nrrdDLookup[nin->type](nin->data, i);
+  for (I=0; I<num; I++) {
+    val = nrrdDLookup[nin->type](nin->data, I);
     if (AIR_EXISTS(val)) {
       AIR_INDEX(min, val, max, bins, idx);
+      /* fprintf(stderr, "%s: val=%g -> idx=%d -> ", me, val, idx); */
       val = AIR_AFFINE(xcoord[idx], val, xcoord[idx+1], 
 		       ycoord[idx], ycoord[idx+1]);
-      nrrdDInsert[nout->type](nout->data, i, val);
+      /* fprintf(stderr, "%g\n", val); */
     }
+    nrrdDInsert[nout->type](nout->data, I, val);
   }
+
+  nrrdSave("out.nrrd", nout, NULL);
   
   /* if user is interested, set pointer to histogram nrrd,
      otherwise it will be nixed by airMop */
