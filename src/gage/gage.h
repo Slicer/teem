@@ -146,12 +146,15 @@ enum {
 */
 
 /*
-******** gageScl... enum
+******** gageScl* enum
 **
 ** all the things that gage can measure in a scalar volume.  The query is
 ** formed by a bitwise-or of left-shifts of 1 by these values:
 **   (1<<gageSclValue)|(1<<gageSclGradMag)|(1<<gageScl2ndDD)
 ** queries for the value, gradient magnitude, and 2nd directional derivative.
+** The un-bit-shifted values are required for gage to index arrays like
+** gageSclAnsOffset[], _gageSclNeedDeriv[], _gageSclPrereq[], etc, and
+** for the gageScl airEnum.
 **
 ** NOTE: although it is currently listed that way, it is not necessary
 ** that prerequisite measurements are listed before the other measurements
@@ -182,6 +185,34 @@ enum {
 #define GAGE_SCL_MAX     14
 #define GAGE_SCL_TOTAL_ANS_LENGTH 51
 
+/*
+******** GAGE_SCL_*_BIT #defines
+** already bit-shifted for you, so that query:
+**   (1<<gageSclValue)|(1<<gageSclGradMag)|(1<<gageScl2ndDD)
+** is same as:
+**   GAGE_SCL_VALUE_BIT | GAGE_SCL_GRADMAG_BIT | GAGE_SCL_2NDDD_BIT
+*/
+#define GAGE_SCL_VALUE_BIT      (1<<0)
+#define GAGE_SCL_GRADVEC_BIT    (1<<1)
+#define GAGE_SCL_GRADMAG_BIT    (1<<2)
+#define GAGE_SCL_NORMAL_BIT     (1<<3)
+#define GAGE_SCL_HESSIAN_BIT    (1<<4)
+#define GAGE_SCL_LAPLACIAN_BIT  (1<<5)
+#define GAGE_SCL_HESSEVAL_BIT   (1<<6)
+#define GAGE_SCL_HESSEVEC_BIT   (1<<7)
+#define GAGE_SCL_2NDDD_BIT      (1<<8)
+#define GAGE_SCL_GEOMTENS_BIT   (1<<9)
+#define GAGE_SCL_CURVEDNESS_BIT (1<<10)
+#define GAGE_SCL_SHAPETRACE_BIT (1<<11)
+#define GAGE_SCL_SHAPEINDEX_BIT (1<<12)
+#define GAGE_SCL_K1K2_BIT       (1<<13)
+#define GAGE_SCL_CURVDIR_BIT    (1<<14)
+
+/*
+******** gageVec* enum
+**
+** all the things that gage knows how to measure in a 3-vector volume
+*/
 enum {
   gageVecUnknown=-1,  /* -1: nobody knows */
   gageVecVector,      /*  0: component-wise-interpolatd (CWI) vector: GT[3] */
@@ -198,7 +229,14 @@ enum {
 #define GAGE_VEC_MAX      5
 #define GAGE_VEC_TOTAL_ANS_LENGTH 20
 
-struct gageKind_t;
+#define GAGE_VEC_VECTOR_BIT     (1<<0)
+#define GAGE_VEC_LENGTH_BIT     (1<<1)
+#define GAGE_VEC_NORMALIZED_BIT (1<<2)
+#define GAGE_VEC_JACOBIAN_BIT   (1<<3)
+#define GAGE_VEC_DIVERGENCE_BIT (1<<4)
+#define GAGE_VEC_CURL_BIT       (1<<5)
+
+struct gageKind_t;  /* dumb forward declaraction, ignore */
 
 /*
 ******** gagePadder_t, gageNixer_t
