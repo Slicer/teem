@@ -25,6 +25,9 @@
 #if TEEM_BZIP2
 #include <bzlib.h>
 #endif
+#if TEEM_PNG
+#include <png.h>
+#endif
 
 /*
   #include <sys/types.h>
@@ -845,12 +848,146 @@ _nrrdWritePNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   return 0;
 }
 
+void
+_nrrdWriteErrorHandlerPNG (png_structp png, png_const_charp message)
+{
+  char me[]="_nrrdWriteErrorHandlerPNG", err[AIR_STRLEN_MED];
+  /* add PNG error message to biff */
+  sprintf(err, "%s: PNG error: %s", me, message);
+  biffAdd(NRRD, err);
+  /* longjmp back to the setjmp, return 1 */
+  longjmp(png->jmpbuf, 1);
+}
+
+void
+_nrrdWriteWarningHandlerPNG (png_structp png, png_const_charp message)
+{
+  char me[]="_nrrdWriteWarningHandlerPNG", err[AIR_STRLEN_MED];
+  /* add the png warning message to biff */
+  sprintf(err, "%s: PNG warning: %s", me, message);
+  biffAdd(NRRD, err);
+  /* no longjump, execution continues */
+}
+
 int
 _nrrdWritePNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWritePNG", err[AIR_STRLEN_MED];
 #if TEEM_PNG
-  
-  /* insert code here */
+  png_structp png;
+  png_infop info;
+  png_bytep *row;
+  png_uint_32 width, height, rowsize;
+  png_text txt[NRRD_FIELD_MAX+1];
+  int depth, type, i, numtxt=0, csize=0;
+
+  /* no need to check type and format, done in FitsInFormat */
+  /* create png struct with the error handlers above */
+  png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL,
+				_nrrdWriteErrorHandlerPNG, _nrrdWriteWarningHandlerPNG);
+  if (png == NULL) {
+    sprintf(err, "%s: failed to create PNG write struct", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  /* create image info struct */
+  info = png_create_info_struct(png);
+  if (info == NULL) {
+    png_destroy_write_struct(&png, png_infopp_NULL);
+    sprintf(err, "%s: failed to create PNG image info struct", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  /* set up error png style error handling */
+  if (setjmp(png->jmpbuf))
+  {
+    /* the error is reported inside the error handler, 
+       but we still need to clean up an return with an error */
+    png_destroy_read_struct(&png, &info, png_infopp_NULL);
+    return 1;
+  }
+  /* initialize png I/O */
+  png_init_io(png, file);
+  /* calculate depth, width, height, and row size */
+  depth = nrrd->type == nrrdTypeUChar ? 8 : 16;
+  switch (nrrd->dim) {
+    case 2: /* g only */
+    width = nrrd->axis[0].size;
+    height = nrrd->axis[1].size;
+    type = PNG_COLOR_TYPE_GRAY;
+    rowsize = width*nrrdElementSize(nrrd);
+    break;
+    case 3: /* g, ga, rgb, rgba */
+    width = nrrd->axis[1].size;
+    height = nrrd->axis[2].size;
+    rowsize = width*nrrd->axis[0].size*nrrdElementSize(nrrd);
+    switch (nrrd->axis[0].size) {
+      case 1:
+      type = PNG_COLOR_TYPE_GRAY;
+      break;
+      case 2:
+      type = PNG_COLOR_TYPE_GRAY_ALPHA;
+      break;
+      case 3:
+      type = PNG_COLOR_TYPE_RGB;
+      break;
+      case 4:
+      type = PNG_COLOR_TYPE_RGB_ALPHA;
+      break;
+      default:
+      /* we have already checked for this */
+      break;
+    }
+    break;
+    default:
+    break;
+  }
+  /* set image header info */
+  png_set_IHDR(png, info, width, height, depth, type,
+	       PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+  /* add nrrd fields to the text chunk */
+  for (i=1; i<=NRRD_FIELD_MAX; i++) {
+    if (_nrrdFieldValidInImage[i] && _nrrdFieldInteresting(nrrd, io, i)) { 
+      txt[numtxt].key = NRRD_PNG_KEY;
+      txt[numtxt].compression = PNG_TEXT_COMPRESSION_NONE;
+      _nrrdSprintFieldInfo(&(txt[numtxt].text), nrrd, io, i);      
+      numtxt++;
+    }
+  }
+  /* add nrrd comments as a single text field */
+  if (nrrd->cmtArr->len > 0)
+  {
+    txt[numtxt].key = NRRD_PNG_COMMENT_KEY;
+    txt[numtxt].compression = PNG_TEXT_COMPRESSION_NONE;
+    for (i=0; i<nrrd->cmtArr->len; i++)
+      csize += airStrlen(nrrd->cmt[i]) + 1;
+    txt[numtxt].text = (png_charp)malloc(csize + 1);
+    txt[numtxt].text[0] = 0;
+    for (i=0; i<nrrd->cmtArr->len; i++) {
+      strcat(txt[numtxt].text, nrrd->cmt[i]);
+      strcat(txt[numtxt].text, "\n");
+    }
+    numtxt++;
+  }
+  if (numtxt > 0)
+    png_set_text(png, info, txt, numtxt);
+  /* write header */
+  png_write_info(png, info);
+  /* fix endianness for 16 bit formats */
+  if (depth > 8 && airMyEndian == airEndianLittle)
+    png_set_swap(png);
+  /* set up row pointers */
+  row = (png_bytep*)malloc(sizeof(png_bytep)*height);
+  for (i=0; i<height; i++)
+    row[i] = &((png_bytep)nrrd->data)[i*rowsize];
+  png_set_rows(png, info, row);
+  /* write the entire image in one pass */
+  png_write_image(png, row);
+  /* finish writing */
+  png_write_end(png, info);
+  /* clean up */
+  for (i=0; i<numtxt; i++) airFree(txt[i].text);    
+  airFree(row);
+  png_destroy_write_struct(&png, &info);
+  /* that's it */
+  airFclose(file);
 
   return 0;
 #else
@@ -935,6 +1072,8 @@ _nrrdGuessFormat (NrrdIO *io, const char *filename) {
   } else if (airEndsWith(filename, NRRD_EXT_PGM) 
 	     || airEndsWith(filename, NRRD_EXT_PPM)) {
     io->format = nrrdFormatPNM;
+  } else if (airEndsWith(filename, NRRD_EXT_PNG)) {
+    io->format = nrrdFormatPNG;
   } else if (airEndsWith(filename, NRRD_EXT_TABLE)) {
     io->format = nrrdFormatTable;
   } else {
@@ -981,6 +1120,15 @@ _nrrdFixFormat (NrrdIO *io, Nrrd *nrrd) {
 	}
       }
       /* nrrdFormatPNM == io->format is okay, we did only a warning */
+    }
+    break;
+  case nrrdFormatPNG:
+    fits = nrrdFitsInFormat(nrrd, io->encoding, nrrdFormatPNG, AIR_FALSE);
+    if (!fits) {
+      if (nrrdStateVerboseIO) {
+	fprintf(stderr, "(%s: Can't be a PNG -> saving as NRRD)\n", me);
+      }
+      io->format = nrrdFormatNRRD;
     }
     break;
   case nrrdFormatTable:

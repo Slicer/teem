@@ -37,7 +37,7 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *err, *inS=NULL, *outS=NULL;
   NrrdIO *io;
   airArray *mop;
-  int len, magic, pret;
+  int len, magic, pret, c;
   FILE *fin, *fout;
 
   mop = airMopInit();
@@ -99,6 +99,15 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
     fprintf(fout, "%s\n", io->line);
     _nrrdOneLine(&len, io, fin);
   };
+  
+#ifdef WIN32
+  /* seems that only on windows does the writing process's fwrite() to stdout fail if we
+     exit without consuming everything from stdin */
+  c = fgetc(fin);
+  while (EOF != c) {
+    c = fgetc(fin);
+  }
+#endif
 
   airMopOkay(mop);
   return 0;

@@ -481,11 +481,13 @@ nrrdFitsInFormat (Nrrd *nrrd, int encoding, int format, int useBiff) {
 	biffMaybeAdd(NRRD, err, useBiff); 
 	return AIR_FALSE;
       }
+      ret = AIR_TRUE;
     } else {
       sprintf(err, "%s: dimension is %d, not 2 or 3", me, nrrd->dim);
       biffMaybeAdd(NRRD, err, useBiff); 
       return AIR_FALSE;
     }
+    break;
   case nrrdFormatTable:
     /* encoding ignored- always ascii */
     if (!(1  == nrrd->dim || 2 == nrrd->dim)) {

@@ -32,6 +32,7 @@ extern "C" {
 #define NRRD_EXT_HEADER ".nhdr"
 #define NRRD_EXT_PGM    ".pgm"
 #define NRRD_EXT_PPM    ".ppm"
+#define NRRD_EXT_PNG    ".png"
 #define NRRD_EXT_TABLE  ".txt"
 
 #define NRRD_KERNEL_PARMS_NUM 8    /* max # arguments to a kernel-
@@ -96,12 +97,17 @@ extern "C" {
 
 #define NRRD_COMMENT_CHAR '#'
 #define NRRD_COMMENT_INCR 16
-#define NRRD_PNM_COMMENT "# NRRD>"  /* this is designed to be robust against
-				       the mungling that xv does, but no
-				       promises for any other image programs */
-#define NRRD_UNKNOWN  "???"         /* how to represent something unknown in
-				       a field of the nrrd header, when it
-				       being unknown is not an error */
+#define NRRD_PNM_COMMENT "# NRRD>"   /* this is designed to be robust against
+				        the mungling that xv does, but no
+				        promises for any other image programs */
+#define NRRD_PNG_KEY "NRRD"          /* this is the key used for getting nrrd
+				        fields into/out of png comments */
+#define NRRD_PNG_COMMENT_KEY "NRRD#" /* this is the key used getting nrrd
+				        comments into/out of png comments */
+
+#define NRRD_UNKNOWN  "???"          /* how to represent something unknown in
+				        a field of the nrrd header, when it
+				        being unknown is not an error */
 
 #ifdef __cplusplus
 }

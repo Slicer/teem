@@ -24,6 +24,9 @@
 #if TEEM_BZIP2
 #include <bzlib.h>
 #endif
+#if TEEM_PNG
+#include <png.h>
+#endif
 
 #include <teem32bit.h>
 
@@ -959,13 +962,209 @@ _nrrdReadPNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   return 0;
 }
 
+void
+_nrrdReadErrorHandlerPNG (png_structp png, png_const_charp message)
+{
+  char me[]="_nrrdReadErrorHandlerPNG", err[AIR_STRLEN_MED];
+  /* add PNG error message to biff */
+  sprintf(err, "%s: PNG error: %s", me, message);
+  biffAdd(NRRD, err);
+  /* longjmp back to the setjmp, return 1 */
+  longjmp(png->jmpbuf, 1);
+}
+
+void
+_nrrdReadWarningHandlerPNG (png_structp png, png_const_charp message)
+{
+  char me[]="_nrrdReadWarningHandlerPNG", err[AIR_STRLEN_MED];
+  /* add the png warning message to biff */
+  sprintf(err, "%s: PNG warning: %s", me, message);
+  biffAdd(NRRD, err);
+  /* no longjump, execution continues */
+}
+
 int
 _nrrdReadPNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadPNG", err[AIR_STRLEN_MED];
 #if TEEM_PNG
+  png_structp png;
+  png_infop info;
+  png_bytep *row;
+  png_uint_32 width, height, rowsize;
+  png_text* txt;
+  int depth, type, i, channels, numtxt;
+  int ntype, ndim, nsize[3];
 
-  /* insert code here */
-
+  /* create png struct with the error handlers above */
+  png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL,
+			       _nrrdReadErrorHandlerPNG, _nrrdReadWarningHandlerPNG);
+  if (png == NULL) {
+    sprintf(err, "%s: failed to create PNG read struct", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  /* create image info struct */
+  info = png_create_info_struct(png);
+  if (info == NULL) {
+    png_destroy_read_struct(&png, png_infopp_NULL, png_infopp_NULL);
+    sprintf(err, "%s: failed to create PNG image info struct", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  /* set up png style error handling */
+  if (setjmp(png->jmpbuf)) {
+    /* the error is reported inside the handler, 
+       but we still need to clean up and return */
+    png_destroy_read_struct(&png, &info, png_infopp_NULL);
+    return 1;
+  }
+  /* initialize png I/O */
+  png_init_io(png, file);
+  /* if we are here, we have already read 6 bytes from the file */
+  png_set_sig_bytes(png, 6);
+  /* png_read_info() returns all information from the file 
+     before the first data chunk */
+  png_read_info(png, info);
+  png_get_IHDR(png, info, &width, &height, &depth, &type, 
+	       int_p_NULL, int_p_NULL, int_p_NULL);
+  /* expand paletted colors into rgb triplets */
+  if (type == PNG_COLOR_TYPE_PALETTE)
+    png_set_palette_to_rgb(png);
+  /* expand grayscale images to 8 bits from 1, 2, or 4 bits */
+  if (type == PNG_COLOR_TYPE_GRAY && depth < 8)
+    png_set_gray_1_2_4_to_8(png);
+  /* expand paletted or rgb images with transparency to full alpha
+     channels so the data will be available as rgba quartets */
+  if (png_get_valid(png, info, PNG_INFO_tRNS))
+    png_set_tRNS_to_alpha(png);
+  /* fix endianness for 16 bit formats */
+  if (depth > 8 && airMyEndian == airEndianLittle)
+    png_set_swap(png);
+#if 0
+  /* set up gamma correction */
+  /* NOTE: screen_gamma is platform dependent,
+     it can hardwired or set from a parameter/environment variable */
+  if (png_get_sRGB(png_ptr, info_ptr, &intent)) {
+    /* if the image has sRGB info, 
+       pass in standard nrrd file gamma 1.0 */
+    png_set_gamma(png_ptr, screen_gamma, 1.0);
+  } else {
+    double gamma;
+    /* set image gamma if present */
+    if (png_get_gAMA(png, info, &gamma))
+      png_set_gamma(png, screen_gamma, gamma);
+    else
+      png_set_gamma(png, screen_gamma, 1.0);
+  }
+#endif
+  /* update reader */
+  png_read_update_info(png, info);  
+  /* allocate memory for the image data */
+  ntype = depth > 8 ? nrrdTypeUShort : nrrdTypeUChar;
+  switch (type) {
+    case PNG_COLOR_TYPE_GRAY:
+    ndim = 2; nsize[0] = width; nsize[1] = height;
+    break;
+    case PNG_COLOR_TYPE_GRAY_ALPHA:
+    ndim = 3; nsize[0] = 2; nsize[1] = width; nsize[2] = height;
+    break;
+    case PNG_COLOR_TYPE_RGB:
+    ndim = 3; nsize[0] = 3; nsize[1] = width; nsize[2] = height;
+    break;
+    case PNG_COLOR_TYPE_RGB_ALPHA:
+    ndim = 3; nsize[0] = 4; nsize[1] = width; nsize[2] = height;
+    break;
+    case PNG_COLOR_TYPE_PALETTE:
+    /* TODO: merge this with the outer switch, needs to be tested */
+    channels = png_get_channels(png, info);
+    if (channels < 2) {
+      ndim = 2; nsize[0] = width; nsize[1] = height;
+    } else {
+      ndim = 3; nsize[0] = channels; nsize[1] = width; nsize[2] = height;
+    }
+    break;
+    default:
+    png_destroy_read_struct(&png, &info, png_infopp_NULL);
+    sprintf(err, "%s: unknown png type: %d", me, type);
+    biffAdd(NRRD, err); return 1;
+    break;
+  }
+  if (nrrdMaybeAlloc_nva(nrrd, ntype, ndim, nsize)) {
+    png_destroy_read_struct(&png, &info, png_infopp_NULL);
+    sprintf(err, "%s: failed to allocate nrrd", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  /* query row size */
+  rowsize = png_get_rowbytes(png, info);
+  /* check byte size */
+  if (nrrdElementNumber(nrrd)*nrrdElementSize(nrrd) != height*rowsize) {
+    png_destroy_read_struct(&png, &info, png_infopp_NULL);
+    sprintf(err, "%s: size mismatch", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  /* set up row pointers */
+  row = (png_bytep*)malloc(sizeof(png_bytep)*height);
+  for (i=0; i<height; i++)
+    row[i] = &((png_bytep)nrrd->data)[i*rowsize];
+  /* read the entire image in one pass */
+  png_read_image(png, row);
+  /* read all text fields from the text chunk */
+  numtxt = png_get_text(png, info, &txt, NULL);
+  for (i=0; i<numtxt; i++) {
+    if (!strcmp(txt[i].key, NRRD_PNG_KEY)) {
+      int ret;
+      io->pos = 0;
+      io->line = txt[i].text;
+      ret = _nrrdReadNrrdParseField(nrrd, io, AIR_FALSE);
+      if (ret) {
+	const char* fs = airEnumStr(nrrdField, ret);
+	if (nrrdField_comment == ret) {
+	  ret = 0;
+	  goto plain;
+	}
+	if (!_nrrdFieldValidInImage[ret]) {
+	  if (nrrdStateVerboseIO) {
+	    fprintf(stderr, "(%s: field \"%s\" (not allowed in PNG) "
+		    "--> plain comment)\n", me, fs);
+	  }
+	  ret = 0;
+	  goto plain;
+	}
+	if (!io->seen[ret] 
+	    && _nrrdReadNrrdParseInfo[ret](nrrd, io, AIR_FALSE)) {
+	  if (nrrdStateVerboseIO) {
+	    fprintf(stderr, "(%s: unparsable info for field \"%s\" "
+		    "--> plain comment)\n", me, fs);
+	  }
+	  ret = 0;
+	  goto plain;
+	}
+	io->seen[ret] = AIR_TRUE;	
+      plain:
+	if (!ret) {
+	  if (nrrdCommentAdd(nrrd, io->line)) {
+	    sprintf(err, "%s: couldn't add comment", me);
+	    biffAdd(NRRD, err); return 1;
+	  }
+	}
+      }
+    } else if (!strcmp(txt[i].key, NRRD_PNG_COMMENT_KEY)) {
+      char *p, *c;
+      c = airStrtok(txt[i].text, "\n", &p);
+      while (c) {
+	if (nrrdCommentAdd(nrrd, c)) {
+	  sprintf(err, "%s: couldn't add comment", me);
+	  biffAdd(NRRD, err); return 1;
+	}
+	c = airStrtok(NULL, "\n", &p);
+      }
+    }
+  }
+  /* finish reading */
+  png_read_end(png, info);
+  /* clean up */
+  airFree(row);
+  png_destroy_read_struct(&png, &info, png_infopp_NULL);
+  /* that's it */
+  airFclose(file);
   return 0;
 #else
   sprintf(err, "%s: sorry, this nrrd not compiled with PNG enabled", me);
