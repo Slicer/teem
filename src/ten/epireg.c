@@ -505,14 +505,13 @@ _tenEpiRegPairXforms(Nrrd *npxfr, Nrrd **nmom, int ninLen) {
 int
 _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
   char me[]="_tenEpiRegEstimHST", err[AIR_STRLEN_MED];
-  double *hst, *grad, *mat1, *mat2, *vec, *ans, *pxfr, *gA, *gB;
+  double *hst, *grad, *mat1, *vec, *ans, *pxfr, *gA, *gB;
   int z, sz, A, B, npairs, ri;
-  Nrrd *nmat1, *nmat2, *nvec, *ninv, *nans;
+  Nrrd *nmat1, *nvec, *ninv, *nans;
   airArray *mop;
 
   mop = airMopNew();
   airMopAdd(mop, nmat1=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nmat2=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ninv=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nvec=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nans=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
@@ -520,7 +519,6 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
   sz = npxfr->axis[1].size;
   if (nrrdMaybeAlloc(nhst, nrrdTypeDouble, 2, 9, sz)
       || nrrdMaybeAlloc(nmat1, nrrdTypeDouble, 2, 3, npairs)
-      || nrrdMaybeAlloc(nmat2, nrrdTypeDouble, 2, 5, npairs)
       || nrrdMaybeAlloc(nvec, nrrdTypeDouble, 2, 1, npairs)) {
     sprintf(err, "%s: couldn't allocate HST nrrd", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
@@ -529,7 +527,6 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
 		  "Hx,Hy,Hz,Sx,Sy,Sz,Tx,Ty,Tz", "z");
   grad = (double *)(ngrad->data);
   mat1 = (double *)(nmat1->data);
-  mat2 = (double *)(nmat2->data);
   vec = (double *)(nvec->data);
 
   /* ------ find Sx, Sy, Sz per slice */
