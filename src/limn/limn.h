@@ -85,7 +85,8 @@ typedef struct limnCam_t {
     V2W[16],          /* View to world transform */
     U[4], V[4], N[4], /* View space basis vectors (in world coords)
 			 last element always zero */
-    vspNeer, vspFaar, /* not usually user-set: neer, far dist (view space) */
+    vspNeer, vspFaar, /* not usually user-set: neer, far, and image plane
+			 distances, in view space */
     vspDist;
 } limnCam;
 
