@@ -1,3 +1,18 @@
+teem: fix bugs in teem makefile stuff: wants bin/dev and bin/install targets
+
+ell: debug SVD of things based on negative eigenvalues
+ - add flag to say: always positive sv's, or always right-handed rotations
+
+nrrd: add support for VFF file format
+
+nrrd: generalize I/O so that magic needn't be on line by itself
+
+nrrd: allow nrrd header I/O to and from strings
+
+nrrd: make nrrdMake from guts of "unu make"
+
+leaf: do it
+
 DESTROY the airType* enum! I wasted quite awhile debugging a problem caused by:
   if (nrrdAlloc(nout, airTypeFloat, 3, size[0], size[1], size[2])) { ...
 Do you see the problem?  Grrr.
@@ -12,29 +27,31 @@ Why not? I hate this crap.
 
 debug rendering of ML with windowed sinc
 
-add { } commenting to hest
+hest: add { } commenting
 
-have to add more internal types to stuff in arith.c for these:
+nrrd: have to add more internal types to stuff in arith.c for these:
 new nrrdBinaryOps: bit-wise and (&), or (|), xor (^)
 new nrrdUnaryOps: bit-wise not (^), expm1
 
 
-It would be good if per-axis field specifications failed (or at least warned) if there are more fields than there should be
+nrrd: It would be good if per-axis field specifications failed (or at
+least warned) if there are more fields than there should be
 
 SEGFAULT:  in muse/usr/sci/data/Medical/cat-array/bisti/rend
 gkms hvol -s a:-1200,6000 a:0,3100 a:-1000,1000 -i CFC.nrrd -o CFC-hvol.nrrd 
 
-speed up nrrdCCFind
+nrrd: speed up nrrdCCFind
 
-finish updating bane tutorial
-make nrrdMake from guts of "unu make"
-re-modularize gage to facilitate probing bricked data
+bane: finish updating tutorial
 
-nrrdKernel*Parse should allocate the thing and return it, instead of returning an int error code
-see if dyeColorParse should do the same
+gage: re-modularize to facilitate probing bricked data
+
+nrrd: nrrdKernel*Parse should allocate the thing and return it, instead of
+returning an int error code 
+
+dye: see if dyeColorParse should allocate the thing and return it
 
 unu jhisto works with axis[0] elements when given a single nrrd
-
 
 FAQ on teem coding standards
 Banks's policy.txt:
@@ -63,12 +80,6 @@ bin: create "segprobe" analog to vprobe and pprobe
 
 todo: figure out shared libraries on cygwin.
 todo: Test that shared libraries work everywhere they should.
-
-DTInspect:
- - add plane of glyphs
- - fix normals on isosurface
-
-leaf: do it
 
 limn: make it smarter- so that joining parts together is possible in a
 way that facilitates transformations and correct drawing.  This really
