@@ -93,7 +93,8 @@ unrrduEpsSave(char *out, NrrdIO *io, Nrrd *nout) {
   fprintf(io->dataFile, "%%%%Pages: 1\n");
   fprintf(io->dataFile, "%%%%BoundingBox: 0 0 %d %d\n", sx, sy);
   fprintf(io->dataFile, "%%%%EndComments\n");
-  fprintf(io->dataFile, "%% linestr creates an empty string to hold one scanline\n");
+  fprintf(io->dataFile, "%% linestr creates an empty string to hold "
+	  "one scanline\n");
   fprintf(io->dataFile, "/linestr %d string def\n", sx*(color ? 3 : 1));
   fprintf(io->dataFile, "%%%%EndProlog\n");
   fprintf(io->dataFile, "%%%%Page: 1 1\n");

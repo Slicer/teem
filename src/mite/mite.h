@@ -79,7 +79,8 @@ enum {
 ** interpolation other than nearest neighbor (actually, someday linear
 ** interpolation may be supported, but that's it)
 ** 2) regardless of the centerings of the axes of nxtf, the lookup table
-** axes will be treated as though they were cell centered.
+** axes will be treated as though they were cell centered (linear 
+** interpolation will always use node centering)
 ** 3) the logical dimension of the transfer function is always one less
 ** ntxf->dim, with axis 0 always for the range of the function, and axes
 ** 1 and onwards for the domain.  For instance, a univariate opacity map
