@@ -85,7 +85,7 @@ char info[]="Calculate volumes friendly to monkeys.  Each voxel in the "
 int
 main(int argc, char *argv[]) {
   unsigned char *vgh;
-  char *me, *outS, cmt[512], *herr, name[512];
+  char *me, *outS, cmt[512], *herr;
   Nrrd *nin, *npad, *npad2, *nrsmp, *nvghF, *nvgh;
   NrrdResampleInfo *rsmpInfo;
   int i, j, k, vi, gi, hi, n, ignore,
@@ -164,8 +164,7 @@ main(int argc, char *argv[]) {
   }
   printf("done\n");
   /*
-  sprintf(name, "%s-pad0.nrrd", baseStr);
-  nrrdSave(name, npad, NULL);
+  nrrdSave("pad0.nrrd", npad, NULL);
   */
 
   /* resampling; to get down to (sz[i] - 2*border) */
@@ -210,8 +209,7 @@ main(int argc, char *argv[]) {
   printf("done\n");
   rsmpInfo = nrrdResampleInfoNix(rsmpInfo);
 
-  sprintf(name, "%s-rsmp.nrrd", baseStr);
-  nrrdSave(name, nrsmp, NULL);
+  nrrdSave("rsmp.nrrd", nrsmp, NULL);
 
   
   /* padding; to get up to (sz[i]) */
@@ -226,8 +224,7 @@ main(int argc, char *argv[]) {
   }
   printf("done\n");
   /*
-  sprintf(name, "%s-pad1.nrrd", baseStr);
-  nrrdSave(name, nrsmp, NULL);
+  nrrdSave("pad1.nrrd", npad, NULL);
   */
 
   /* probing to make triple volume */
@@ -300,8 +297,7 @@ main(int argc, char *argv[]) {
   npad2 = nrrdNuke(npad2);
   printf("done (probe rate = %g/sec)\n", sz[0]*sz[1]*sz[2]/(t1-t0));
   /*
-  sprintf(name, "%s-vghF.nrrd", baseStr);
-  nrrdSave(name, nvghF);
+  nrrdSave("vghF.nrrd", nvghF);
   */
 
 
