@@ -36,7 +36,7 @@ extern "C" {
 #include <ell.h>
 #include <nrrd.h>
 
-#define LIMN_MAXLIT 20
+#define LIMN_LITE_NUM 16
 
 /*
 ****** limnCam struct
@@ -85,8 +85,26 @@ typedef struct limnCam_t {
     vspDist;
 } limnCam;
 
+/*
+******** struct limnLight
+**
+** information for directional lighting and the ambient light
+**
+** Has no dynamically allocated information or pointers
+*/
+typedef struct {
+  float amb[3],             /* RGB ambient light color */
+    _dir[LIMN_LITE_NUM][3], /* direction of light[i] (view or world space).
+			       This is what the user sets via limnLightSet */
+    dir[LIMN_LITE_NUM][3],  /* direction of light[i] (ONLY world space) 
+			       Not user-set: calculated/copied from _dir[] */
+    col[LIMN_LITE_NUM][3];  /* RGB color of light[i] */
+  int on[LIMN_LITE_NUM],    /* light[i] is on */
+    vsp[LIMN_LITE_NUM];     /* light[i] lives in view space */
+} limnLight;
+
 enum {
-  limnDeviceUnknown,
+  plimnDeviceUnknown,
   limnDevicePS,
   limnDeviceOpenGL,
   limnDeviceLast
@@ -105,28 +123,6 @@ typedef struct limnWin_t {
   int yFlip;
   FILE *file;
 } limnWin;
-
-/*
-******** struct limnLight
-**
-** information for directional lighting and the ambient light
-**
-** Has no dynamically allocated information or pointers
-*/
-typedef struct {
-  float amb[3],           /* RGB ambient light color */
-    dir[LIMN_MAXLIT][3],  /* direction of light[i] (either view or world space)
-			     This is what the user sets */
-    _dir[LIMN_MAXLIT][3], /* direction of light[i] (only world space) 
-			     Not user-set: calculated/copied from dir[] */
-    col[LIMN_MAXLIT][3];  /* RGB color of light[i] */
-  int lNum,               /* number of lights for which information is set
-			     (not all of which are necessarily "on")
-			     Really, this is 1+highest index of light who's
-			     information has been set */
-    on[LIMN_MAXLIT],      /* light[i] is on */
-    vsp[LIMN_MAXLIT];     /* light[i] lives in view space */
-} limnLight;
 
 enum {
   limnSpaceUnknown,
@@ -273,13 +269,14 @@ extern int (*limnVtoQN[LIMN_QN_MAX+1])(int *qnP, float *vec);
 typedef void (*limnEnvMapCB)(float rgb[3], float vec[3], void *data);
 extern int limnEnvMapFill(Nrrd *envMap, limnEnvMapCB cb, 
 			  void *data, int qnMethod);
-extern int limnLightSet(limnLight *lit, int vsp,
-			float r, float g, float b,
-			float x, float y, float z);
-extern int limnLightSetAmbient(limnLight *lit, float r, float g, float b);
-extern int limnLightToggle(limnLight *lit, int idx, int on);
-extern void limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit);
+extern void limnLightSet(limnLight *lit, int which, int vsp,
+			 float r, float g, float b,
+			 float x, float y, float z);
+extern void limnLightSetAmbient(limnLight *lit, float r, float g, float b);
+extern void limnLightSwitch(limnLight *lit, int which, int on);
+extern void limnLightReset(limnLight *lit);
 extern int limnLightUpdate(limnLight *lit, limnCam *cam);
+extern void limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit);
 
 /* methods.c */
 extern limnLight *limnLightNew(void);
