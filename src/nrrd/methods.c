@@ -563,20 +563,20 @@ nrrdCheck(Nrrd *nrrd) {
 
   if (!(nrrd->num >= 1)) {
     sprintf(err, "%s: number of elements is %d", me, (int)nrrd->num);
-    biffSet(NRRD, err); return(1);
+    biffSet(NRRD, err); return 1;
   }
   if (nrrdTypeUnknown == nrrd->type) {
     sprintf(err, "%s: type of array is unknown", me);
-    biffSet(NRRD, err); return(1);
+    biffSet(NRRD, err); return 1;
   }
   if (nrrdTypeBlock == nrrd->type && -1 == nrrd->blockSize) {
     sprintf(err, "%s: type is \"block\" but no blocksize given", me);
-    biffSet(NRRD, err); return(1);
+    biffSet(NRRD, err); return 1;
   }
   if (!AIR_INSIDE(1, nrrd->dim, NRRD_MAX_DIM)) {
     sprintf(err, "%s: dimension %d is outside valid range [1,%d]",
 	    me, nrrd->dim, NRRD_MAX_DIM);
-    biffSet(NRRD, err); return(1);
+    biffSet(NRRD, err); return 1;
   }
   mult = 1;
   for (i=0; i<=nrrd->dim-1; i++) {
@@ -585,64 +585,44 @@ nrrdCheck(Nrrd *nrrd) {
     else
       mult *= nrrd->size[i];
   }
-  if (mult != -1 && mult != nrrd->num) {
+  if (mult != nrrd->num) {
     sprintf(err, "%s: # elements (" NRRD_BIG_INT_PRINTF 
 	    ") != product of axes sizes (" NRRD_BIG_INT_PRINTF ")", 
 	    me, nrrd->num, mult);
-    biffSet(NRRD, err); return(1);
+    biffSet(NRRD, err); return 1;
   }
-  return(0);
+  return 0;
 }
 
 int
-nrrdRange(Nrrd *nrrd) {
+nrrdRange(double *minP, double *maxP, Nrrd *nrrd) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdRange";
-  double min, max, val;
-  NRRD_BIG_INT i;
+  char _min[NRRD_MAX_TYPE_SIZE], _max[NRRD_MAX_TYPE_SIZE];
 
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
     biffSet(NRRD, err); return(1);
   }
-  switch (nrrd->type) {
-  case nrrdTypeChar:
-    min = -128.0;
-    max = 127.0;
-    break;
-  case nrrdTypeUChar:
-    min = 0.0;
-    max = 255.0;
-    break;
-  case nrrdTypeShort:
-  case nrrdTypeUShort:
-  case nrrdTypeInt:
-  case nrrdTypeUInt:
-  case nrrdTypeLLong:
-  case nrrdTypeULLong:
-  case nrrdTypeFloat:
-  case nrrdTypeDouble:
-  case nrrdTypeLDouble:
-    min = max = airNand();
-    for (i=0; i<=nrrd->num-1; i++) {
-      val = nrrdDLookup[nrrd->type](nrrd->data, i);
-      if (!AIR_EXISTS(val))
-	continue;
-      if (AIR_EXISTS(min)) {
-	min = AIR_MIN(min, val);
-	max = AIR_MAX(max, val);
-      }
-      else {
-	min = max = val;
-      }
-    }
-    break;
-  default:
-    sprintf(err, "%s: can't determine range for type %d", me, nrrd->type);
-    biffSet(NRRD, err); return(1);
+  if (nrrdTypeUChar == nrrd->type) {
+    *minP = 0;
+    *maxP = UCHAR_MAX;
   }
-  nrrd->min = min;
-  nrrd->max = max;
-  return(0);
+  else if (nrrdTypeChar == nrrd->type) {
+    *minP = SCHAR_MIN;
+    *maxP = SCHAR_MAX;
+  }
+  else if (nrrdTypeChar < nrrd->type &&
+	   nrrd->type < nrrdTypeBlock) {
+    nrrdMinMax[nrrd->type](_min, _max, nrrd->num, nrrd->data);
+    *minP = nrrdDLoad[nrrd->type](_min);
+    *maxP = nrrdDLoad[nrrd->type](_max);
+  }
+  else {
+    sprintf(err, "%s: don't know how to find range in type %d data",
+	    me, nrrd->type);
+    biffSet(NRRD, err); return 1;
+  }
+  return 0;
 }  
 
 int
@@ -706,3 +686,26 @@ nrrdResampleInfoNix(nrrdResampleInfo *info) {
   }
   return NULL;
 }
+
+/*
+******** nrrdElementSize()
+**
+** So just how many bytes long is one element in this nrrd?
+** This is needed because some nrrds be of "block" type.
+*/
+int
+nrrdElementSize(Nrrd *nrrd) {
+
+  if (!nrrd ||
+      !(nrrd->type > nrrdTypeUnknown &&
+	nrrd->type < nrrdTypeLast)) {
+    return -1;
+  }
+  if (nrrdTypeBlock != nrrd->type) {
+    return nrrdTypeSize[nrrd->type];
+  }
+  else {
+    return nrrd->blockSize;
+  }
+}
+

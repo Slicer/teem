@@ -653,3 +653,118 @@ double (*nrrdDClamp[13])(double) = {
   nrrdDClampD,
   nrrdDClampLD,
   NULL};
+
+/* this is where Gordon admits he might have some use for C++ */
+
+#define _MM_ARGS(type) type *minP, type *maxP, NRRD_BIG_INT N, type *v
+#define _MM_FIXED(type)                                                  \
+  NRRD_BIG_INT I, T;                                                     \
+  type a, b, min, max;                                                   \
+                                                                         \
+  if (!(minP && maxP))                                                   \
+    return;                                                              \
+                                                                         \
+  /* get initial values */                                               \
+  min = max = v[0];                                                      \
+                                                                         \
+  /* run through array in pairs; by doing a compare on successive        \
+     elements, we can do three compares per pair instead of the naive    \
+     four.  In one very unexhaustive test on irix6.64, this resulted     \
+     in a 20% decrease in running time */                                \
+  T = N/2;                                                               \
+  for (I=0; I<=T; I++) {                                                 \
+    a = v[0 + 2*I];                                                      \
+    b = v[1 + 2*I];                                                      \
+    if (a < b) {                                                         \
+      min = AIR_MIN(a, min);                                             \
+      max = AIR_MAX(b, max);                                             \
+    }                                                                    \
+    else {                                                               \
+      max = AIR_MAX(a, max);                                             \
+      min = AIR_MIN(b, min);                                             \
+    }                                                                    \
+  }                                                                      \
+                                                                         \
+  /* get the very last one (may be redundant) */                         \
+  a = v[N-1];                                                            \
+  if (a < min) {                                                         \
+    min = a;                                                             \
+  }                                                                      \
+  else {                                                                 \
+    if (a > max) {                                                       \
+      max = a;                                                           \
+    }                                                                    \
+  }                                                                      \
+                                                                         \
+  /* record results */                                                   \
+  *minP = min;                                                           \
+  *maxP = max;
+
+#define _MM_FLOAT(type)                                                  \
+  NRRD_BIG_INT I;                                                        \
+  type a, min, max;                                                      \
+  int something;                                                         \
+                                                                         \
+  if (!(minP && maxP))                                                   \
+    return;                                                              \
+                                                                         \
+  /* we can't easily get initial values for min and max because we       \
+     don't know where to find non-NaN values.  So we check for NaN       \
+     at every element and assume that branch predictors will work */     \
+  something = 0;                                                         \
+  for (I=0; I<N; I++) {                                                  \
+    a = v[I];                                                            \
+    if (!AIR_EXISTS(a))                                                  \
+      continue;                                                          \
+    if (something) {                                                     \
+      if (a < min) {                                                     \
+	min = a;                                                         \
+      }                                                                  \
+      else {                                                             \
+	if (a > max) {                                                   \
+	  max = a;                                                       \
+	}                                                                \
+      }                                                                  \
+    }                                                                    \
+    else {                                                               \
+      min = max = a;                                                     \
+      something = 1;                                                     \
+    }                                                                    \
+  }                                                                      \
+                                                                         \
+  /* if we got something, then we have results, otherwise we don't */    \
+  if (something) {                                                       \
+    *minP = min;                                                         \
+    *maxP = max;                                                         \
+  }                                                                      \
+  else {                                                                 \
+    *minP = *maxP = airNanf();                                           \
+  }
+
+void nrrdMinMaxC   (_MM_ARGS(char))           { _MM_FIXED(char) }
+void nrrdMinMaxUC  (_MM_ARGS(unsigned char))  { _MM_FIXED(unsigned char) }
+void nrrdMinMaxS   (_MM_ARGS(short))          { _MM_FIXED(short) }
+void nrrdMinMaxUS  (_MM_ARGS(unsigned short)) { _MM_FIXED(unsigned short) }
+void nrrdMinMaxI   (_MM_ARGS(int))            { _MM_FIXED(int) }
+void nrrdMinMaxUI  (_MM_ARGS(unsigned int))   { _MM_FIXED(unsigned int) }
+void nrrdMinMaxLLI (_MM_ARGS(long long int))  { _MM_FIXED(long long int) }
+void nrrdMinMaxULLI(_MM_ARGS(unsigned long long int))   { 
+  _MM_FIXED(unsigned long long int) }
+void nrrdMinMaxF   (_MM_ARGS(float))          { _MM_FLOAT(float) }
+void nrrdMinMaxD   (_MM_ARGS(double))         { _MM_FLOAT(double) }
+void nrrdMinMaxLD  (_MM_ARGS(long double))    { _MM_FLOAT(long double) }
+void (*nrrdMinMax[13])(void *, void *, NRRD_BIG_INT, void *) = {
+  NULL,
+  (void (*)(void *, void *, NRRD_BIG_INT, void *))nrrdMinMaxC,
+  (void (*)(void *, void *, NRRD_BIG_INT, void *))nrrdMinMaxUC,
+  (void (*)(void *, void *, NRRD_BIG_INT, void *))nrrdMinMaxS,
+  (void (*)(void *, void *, NRRD_BIG_INT, void *))nrrdMinMaxUS,
+  (void (*)(void *, void *, NRRD_BIG_INT, void *))nrrdMinMaxI,
+  (void (*)(void *, void *, NRRD_BIG_INT, void *))nrrdMinMaxUI,
+  (void (*)(void *, void *, NRRD_BIG_INT, void *))nrrdMinMaxLLI,
+  (void (*)(void *, void *, NRRD_BIG_INT, void *))nrrdMinMaxULLI,
+  (void (*)(void *, void *, NRRD_BIG_INT, void *))nrrdMinMaxF,
+  (void (*)(void *, void *, NRRD_BIG_INT, void *))nrrdMinMaxD,
+  (void (*)(void *, void *, NRRD_BIG_INT, void *))nrrdMinMaxLD,
+  NULL
+};

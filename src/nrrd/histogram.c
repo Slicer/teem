@@ -35,7 +35,7 @@ nrrdHistoAxis(Nrrd *nin, Nrrd *nout, int axis, int bins) {
     sprintf(err, "%s: axis %d is not in range [0,%d]", me, axis, nin->dim-1);
     biffSet(NRRD, err); return 1;
   }
-  if (nrrdRange(nin)) {
+  if (nrrdRange(&nin->min, &nin->max, nin)) {
     sprintf(err, "%s: couldn't find value range", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -140,7 +140,7 @@ nrrdHisto(Nrrd *nin, Nrrd *nout, int bins) {
 
   /* we only learn the range from the data if min or max is NaN */
   if (!AIR_EXISTS(nin->min) || !AIR_EXISTS(nin->max)) {
-    if (nrrdRange(nin)) {
+    if (nrrdRange(&nin->min, &nin->max, nin)) {
       sprintf(err, "%s: couldn't determine value range", me);
       biffSet(NRRD, err); return 1;
     }
@@ -487,7 +487,7 @@ nrrdHistoEq(Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
       steady[1 + 2*i] = i;
     }
     /* now create the histogram */
-    if (nrrdRange(nin)) {
+    if (nrrdRange(&nin->min, &nin->max, nin)) {
       sprintf(err, "%s: couldn't find value range in nrrd", me);
       biffAdd(NRRD, err); return 1;
     }

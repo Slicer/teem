@@ -191,7 +191,7 @@ nrrdMedian(Nrrd *nin, Nrrd *nout, int radius, int bins) {
     }
   }
   if (!(AIR_EXISTS(nin->min) && AIR_EXISTS(nin->max))) {
-    if (nrrdRange(nin)) {
+    if (nrrdRange(&nin->min, &nin->max, nin)) {
       sprintf(err, "%s: couldn't learn value range", me);
       biffSet(NRRD, err); return 1;
     }
@@ -470,16 +470,16 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
 ** currently resampling-- the one along which we'll have to look at
 ** multiple adjecent samples-- is that resampling axis which is
 ** currently most contiguous in memory.  It may make sense to precede
-** (and follow) the resampling with an axis permutation which bubbles
-** all the resampled axes to the front (most contiguous) end of the
-** axis list, and then puts them back in place afterwards, depending
-** on the cost of such axis permutation overhead.
+** the resampling with an axis permutation which bubbles all the
+** resampled axes to the front (most contiguous) end of the axis list,
+** and then puts them back in place afterwards, depending on the cost
+** of such axis permutation overhead.
 **
 ** The above paragraph does not pertain to reality.  Ignore it.
 ** The above sentence is only partly correct.  This situation needs fixing.
 **
 ** on error, this often leaks memory like a sieve.  Fixing this will
-** have to wait until I implement the "mop" library 
+** have to wait until I implement the "mop" library
 */
 int
 nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
@@ -541,10 +541,6 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     strideBIn, strideBOut,
     numOut;                   /* # of _samples_, total, in output volume;
 				 this is for allocating the output */
-  /*
-  Nrrd *tmp;
-  */
-
   if (!(nout && nin && info)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffSet(NRRD, err); return 1;
@@ -715,21 +711,10 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
       }
     }
 
-    /*
-    */
     /* pass-specific clean up */
     free(smp);
     free(index);
     free(in);
-
-    /*
-    tmp = nrrdNewWrap(arr[p+1], numOut, nrrdTypeFloat, dim);
-    for (d=0; d<=dim-1; d++)
-      tmp->size[d] = sz[p+1][d];
-    sprintf(name, "pass%02d.nrrd", p);
-    nrrdSave(name, tmp);
-    nrrdNix(tmp);
-    */
   }
 
   /* clean up second-to-last array and scanline buffers */

@@ -214,6 +214,8 @@ typedef enum {
 ******** nrrdType enum
 **
 ** all the different types, identified by integer
+** must be in sync with NRRD_MAX_TYPE_SIZE in nrrdDefines.h
+** nrrdTypeBlock must precede nrrdTypeLast
 */
 typedef enum {
   nrrdTypeUnknown,       /*  0: nobody knows! */
@@ -228,7 +230,7 @@ typedef enum {
   nrrdTypeFloat,         /*  9:          4-byte floating point */
   nrrdTypeDouble,        /* 10:          8-byte floating point */
   nrrdTypeLDouble,       /* 11:         16-byte floating point */
-  nrrdTypeBlock,         /* 12: size is user defined at run time */
+  nrrdTypeBlock,         /* 12: size user defined at run time */
   nrrdTypeLast           /* 13: after the last valid type */
 } nrrdType;
 
@@ -389,12 +391,13 @@ extern void nrrdClearComments(Nrrd *nrrd);
 extern int nrrdScanComments(Nrrd *nrrd, char *key, char **valP);
 extern void nrrdDescribe(FILE *file, Nrrd *nrrd);
 extern int nrrdCheck(Nrrd *nrrd);
-extern int nrrdRange(Nrrd *nrrd);
+extern int nrrdRange(double *minP, double *maxP, Nrrd *nrrd);
 extern int nrrdCopy(Nrrd *nin, Nrrd *nout);
 extern Nrrd *nrrdNewCopy(Nrrd *nin);
 extern int nrrdSameSize(Nrrd *n1, Nrrd *n2);
 extern nrrdResampleInfo *nrrdResampleInfoNew(void);
 extern nrrdResampleInfo *nrrdResampleInfoNix(nrrdResampleInfo *info);
+extern int nrrdElementSize(Nrrd *nrrd);
 
 /******** getting information to and from files */
 /* io.c */
@@ -448,18 +451,20 @@ extern int    (*nrrdSprint[13])(char *, void *);
 extern int    (*nrrdFprint[13])(FILE *, void *);
 extern float  (*nrrdFClamp[13])(float);
 extern double (*nrrdDClamp[13])(double);
+extern void   (*nrrdMinMax[13])(void *, void *, NRRD_BIG_INT, void *);
 
 /******** sampling, slicing, cropping+padding, permuting, shuffling */
 /* subset.c */
-extern int nrrdElementSize(Nrrd *nrrd);
 extern int nrrdSample(Nrrd *nin, int *coord, void *val);
 extern int nrrdSlice(Nrrd *nin, Nrrd *nout, int axis, int pos);
 extern Nrrd *nrrdNewSlice(Nrrd *nin, int axis, int pos);
-extern int nrrdPermuteAxes(Nrrd *nin, Nrrd *nout, int *axes);
-extern Nrrd *nrrdNewPermuteAxes(Nrrd *nin, int *axes);
 extern int nrrdSubvolume(Nrrd *nin, Nrrd *nout, 
 			 int *minIdx, int *maxIdx, int clamp);
 extern Nrrd *nrrdNewSubvolume(Nrrd *nin, int *minIdx, int *maxIdx, int clamp);
+
+/******** permuting and shuffling */
+extern int nrrdPermuteAxes(Nrrd *nin, Nrrd *nout, int *axes);
+extern Nrrd *nrrdNewPermuteAxes(Nrrd *nin, int *axes);
 extern int nrrdShuffle(Nrrd *nin, Nrrd *nout, int axis, int *perm);
 
 /******** measuring and projecting */

@@ -34,6 +34,9 @@ extern "C" {
 				   using "int" would give a maximum pow-of-2
 				   array size of 1024x1024x1024 
 				   (really 1024x1024x2048-1) */
+
+#define NRRD_MAX_TYPE_SIZE 16   /* sizeof() largest type supported */
+
 #define NRRD_BIG_INT_PRINTF "%lld"
 
 #define NRRD_SMALL_STRLEN  129  /* single words, types and labels */
@@ -46,12 +49,13 @@ extern "C" {
 
 #define NRRD_NO_CONTENT "?"     /* to fill in for an unset "content" field */
 
-/* for the 64-bit integer types (not standard except in C9X), we try to
-   use the names for the _MIN and _MAX values which are used in C9X
+/* for the 64-bit integer types (not standard except in C9X), we try
+   to use the names for the _MIN and _MAX values which are used in C9X
    (as well as gcc) such as LLONG_MAX; if these aren't defined, we try
    the ones used on SGI such as LONGLONG_MAX, if still not defined, we
-   go wild and define something ourselves, with total disregard to
-   what the architecture and compiler actually support */
+   go wild and define something ourselves (which just happen to be the
+   values defined in C9X), with total disregard to what the
+   architecture and compiler actually support */
 
 #ifdef LLONG_MAX
 #  define NRRD_LLONG_MAX LLONG_MAX
