@@ -65,7 +65,7 @@ unrrdu_ccmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
              "result of using \"ccfind -v\", the record of which values "
              "were originally associated with each CC.  This is required "
              "for value-directed merging (with non-zero \"-d\" option), "
-             "and if the \"-revalue\" option is given, "
+             "or if the \"-revalue\" option is given, "
              "but is not needed otherwise",
              NULL, NULL, nrrdHestNrrd);
   OPT_ADD_NOUT(out, "output nrrd");
