@@ -192,7 +192,8 @@ _coilKindScalar = {
    _coilKindScalarFilterHomogeneous,
    _coilKindScalarFilterPeronaMalik,
    _coilKindScalarFilterModifiedCurvature,
-   NULL},
+   NULL,
+   _coilKindScalarFilterHomogeneous},
   _coilKindScalarUpdate
 };
 

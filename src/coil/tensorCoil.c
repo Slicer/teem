@@ -92,6 +92,24 @@ _coilKind7TensorFilterHomogeneous(coil_t *delta, coil_t **iv3,
 }
 
 void
+_coilKind7TensorFilterSelf(coil_t *delta, coil_t **iv3, 
+			   double spacing[3],
+			   double parm[COIL_PARMS_NUM]) {
+  coil_t rspX, rspY, rspZ;
+
+  rspX = 1.0/(spacing[0]*spacing[0]);
+  rspY = 1.0/(spacing[1]*spacing[1]);
+  rspZ = 1.0/(spacing[2]*spacing[2]);
+  delta[0] = 0;
+  delta[1] = parm[0]*LAPL(iv3, 1, rspX, rspY, rspZ);
+  delta[2] = parm[0]*LAPL(iv3, 2, rspX, rspY, rspZ);
+  delta[3] = parm[0]*LAPL(iv3, 3, rspX, rspY, rspZ);
+  delta[4] = parm[0]*LAPL(iv3, 4, rspX, rspY, rspZ);
+  delta[5] = parm[0]*LAPL(iv3, 5, rspX, rspY, rspZ);
+  delta[6] = parm[0]*LAPL(iv3, 6, rspX, rspY, rspZ);
+}
+
+void
 _coilKind7TensorUpdate(coil_t *val, coil_t *delta) {
   
   val[0] += delta[0]; /* WARNING: this could change confidence! */
@@ -112,7 +130,7 @@ _coilKind7Tensor = {
    _coilKind7TensorFilterHomogeneous,
    NULL,
    NULL,
-   NULL},
+   _coilKind7TensorFilterSelf},
   _coilKind7TensorUpdate
 };
 

@@ -75,9 +75,10 @@ enum {
   coilMethodTypePeronaMalik,        /* 3 */
   coilMethodTypeModifiedCurvature,  /* 4 */
   coilMethodTypeCurvatureFlow,      /* 5 */
+  coilMethodTypeSelf,               /* 6 */
   coilMethodTypeLast
 };
-#define COIL_METHOD_TYPE_MAX           5
+#define COIL_METHOD_TYPE_MAX           6
 
 /*
 ******** coilMethod struct
