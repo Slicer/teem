@@ -120,7 +120,7 @@ teem/install : $(addsuffix /install,$(LIBS) bin) megalibs
 teem/dev     : $(addsuffix /dev,$(LIBS) bin)
 teem/usable  : $(addsuffix /usable,$(LIBS))
 teem/clean   : $(addsuffix /clean,$(LIBS) bin)
-teem/clobber : $(addsuffix /clobber,$(LIBS) bin)
+teem/clobber : $(addsuffix /clobber,$(LIBS) bin) nomegalibs
 nothing : ;
 
 ## if.missing(stuff): returns a $stuff if one or more of the files
@@ -344,3 +344,6 @@ ifdef TEEM_SHEXT
 $(LDEST)/libteem.$(TEEM_SHEXT) : $(foreach lib,$(LIBS),$(call objs.dev,$(lib)))
 	$(LD) -o $@ $(LDFLAGS) $(LPATH) $^
 endif
+
+nomegalibs:
+	$(RM) $(foreach ext,$(LIBEXTS),$(LDEST)/libteem.$(ext))
