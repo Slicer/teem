@@ -41,31 +41,33 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *outS;
 
   NrrdKernelSpec *ksp;
-  Nrrd **nin, *nout;
-  int ref, ninLen, verbose, progress;
-  float bw, thresh, soft;
+  Nrrd **nin, *nout, *ngrad;
+  int ref, ninLen, maxSize, noverbose, progress;
+  float bw[2], thr[2];
   
   hestOptAdd(&hopt, "i", "b0 dwi1 dwi2", airTypeOther, 3, -1, &nin, NULL,
 	     "all the DWIs, as seperate nrrds",
 	     &ninLen, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "g", "grads", airTypeOther, 1, 1, &ngrad, NULL,
+	     "array of gradient directions", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "r", "reference", airTypeInt, 1, 1, &ref, NULL,
 	     "which of the DW volumes (one-based numbering) should be used "
 	     "as the standard, to which all other images are transformed. ");
-  hestOptAdd(&hopt, "v", NULL, airTypeInt, 0, 0, &verbose, NULL,
-	     "verbose mode; show progress through steps of processing");
+  hestOptAdd(&hopt, "nv", NULL, airTypeInt, 0, 0, &noverbose, NULL,
+	     "turn OFF verbose mode, "
+	     "have no idea what stage processing is at");
   hestOptAdd(&hopt, "p", NULL, airTypeInt, 0, 0, &progress, NULL,
 	     "save out intermediate steps of processing");
-  hestOptAdd(&hopt, "bw", "blur width", airTypeFloat, 1, 1, &bw, "2.0",
-	     "standard dev of gaussian filter used to blur the DWIs along "
-	     "the vertical (phase encoding, we assume) direction, "
-	     "prior to doing registration.  Use 0.0 to say \"no blurring\"");
-  hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, NULL,
-	     "DWI value to use as threshold between tissue and non-tissue. "
-	     "Thresholding is done after blurring");
-  hestOptAdd(&hopt, "s", "soft", airTypeFloat, 1, 1, &soft, "0.0",
-	     "how soft the boundary of thresholding output should be; this "
-	     "determines the width of the erf() function used.  By default, "
-	     "boundaries are prefectly sharp");
+  hestOptAdd(&hopt, "bw", "x, y blur width", airTypeFloat, 2, 2, bw, "0.0 2.0",
+	     "standard devs in X and Y directions of gaussian filter used "
+	     "to blur the DWIs prior to doing registration. "
+	     "Use 0.0 to say \"no blurring\"");
+  hestOptAdd(&hopt, "t", "B0, DWI threshold", airTypeFloat, 2, 2, &thr, NULL,
+	     "Threshold values to use on B0 and DW images, respectively, "
+	     "to seperate brain and non-brain");
+  hestOptAdd(&hopt, "ccs", "max cc size", airTypeInt, 1, 1, &maxSize, "0",
+	     "size of connected component that is allowed to be merged "
+	     "with its surroundings, when it has no other neighbors");
   hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &ksp, "cubic:0,0.5",
 	     "kernel for resampling DWI during registration",
 	     NULL, NULL, nrrdHestKernelSpec);
@@ -80,10 +82,11 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (tenEpiRegister(nout, nin, ninLen, ref,
-		     bw, thresh, soft,
+  if (tenEpiRegister(nout, nin, ninLen, ngrad,
+		     ref,
+		     bw[0], bw[1], thr[0], thr[1], maxSize,
 		     ksp->kernel, ksp->parm,
-		     progress, verbose)) {
+		     progress, !noverbose)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); exit(1);
