@@ -37,7 +37,7 @@ char *info = ("Converts from DOS text files to normal (converting LF-CR pairs "
 #define BAD_PERC 5.0
 
 void
-undosConvert(char *me, char *name, int reverse) {
+undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
   airArray *mop;
   FILE *fin, *fout;
   char *data=NULL;
@@ -54,8 +54,10 @@ undosConvert(char *me, char *name, int reverse) {
   /* open input file  */
   fin = airFopen(name, stdin, "rb");
   if (!fin) {
-    fprintf(stderr, "%s: couldn't open \"%s\" for reading: \"%s\"\n", 
-	    me, name, strerror(errno));
+    if (!quiet) {
+      fprintf(stderr, "%s: couldn't open \"%s\" for reading: \"%s\"\n", 
+	      me, name, strerror(errno));
+    }
     airMopError(mop); return;
   }
   airMopAdd(mop, fin, (airMopper)airFclose, airMopOnError);
@@ -64,7 +66,9 @@ undosConvert(char *me, char *name, int reverse) {
   /* create buffer */
   dataArr = airArrayNew((void**)&data, NULL, sizeof(char), AIR_STRLEN_HUGE);
   if (!dataArr) {
-    fprintf(stderr, "%s: internal allocation error #1\n", me);
+    if (!quiet) {
+      fprintf(stderr, "%s: internal allocation error #1\n", me);
+    }
     airMopError(mop); return;
   }
   airMopAdd(mop, dataArr, (airMopper)airArrayNuke, airMopAlways);
@@ -74,13 +78,17 @@ undosConvert(char *me, char *name, int reverse) {
   numBad = 0;
   car = getc(fin);
   if (EOF == car) {
-    fprintf(stderr, "%s: \"%s\" was empty, skipping ...\n", me, name);
+    if (!quiet) {
+      fprintf(stderr, "%s: \"%s\" was empty, skipping ...\n", me, name);
+    }
     airMopError(mop); return;
   }
   do {
     ci = airArrayIncrLen(dataArr, 1);
     if (-1 == ci) {
-      fprintf(stderr, "%s: internal allocation error #2\n", me);
+      if (!quiet) {
+	fprintf(stderr, "%s: internal allocation error #2\n", me);
+      }
       airMopError(mop); return;
     }
     data[ci] = car;
@@ -88,8 +96,10 @@ undosConvert(char *me, char *name, int reverse) {
     car = getc(fin);
   } while (EOF != car && BAD_PERC > 100.0*numBad/dataArr->len);
   if (EOF != car) {
-    fprintf(stderr, "%s: more than %g%% of \"%s\" is non-printing, "
-	    "skipping ...\n", me, BAD_PERC, name);
+    if (!quiet) {
+      fprintf(stderr, "%s: more than %g%% of \"%s\" is non-printing, "
+	      "skipping ...\n", me, BAD_PERC, name);
+    }
     airMopError(mop); return;    
   }
   fin = airFclose(fin);
@@ -119,16 +129,28 @@ undosConvert(char *me, char *name, int reverse) {
     airMopOkay(mop);
     return;
   } else {
-    fprintf(stderr, "%s: converting \"%s\" %s DOS ... \n", me, name,
-	    reverse ? "to" : "from");
+    if (!quiet) {
+      fprintf(stderr, "%s: %s \"%s\" %s DOS ... \n", me, 
+	      noAction ? "would convert" : "converting",
+	      name,
+	      reverse ? "to" : "from");
+    }
+  }
+  if (noAction) {
+    /* just joking, we won't actually write anything.
+       (yes, even if input was stdin) */
+    airMopOkay(mop);
+    return;
   }
 
   /* -------------------------------------------------------- */
   /* open output file */
   fout = airFopen(name, stdout, "wb");
   if (!fout) {
-    fprintf(stderr, "%s: couldn't open \"%s\" for writing: \"%s\"\n", 
-	    me, name, strerror(errno));
+    if (!quiet) {
+      fprintf(stderr, "%s: couldn't open \"%s\" for writing: \"%s\"\n", 
+	      me, name, strerror(errno));
+    }
     airMopError(mop); return;
   }
   airMopAdd(mop, fout, (airMopper)airFclose, airMopOnError);
@@ -158,7 +180,10 @@ undosConvert(char *me, char *name, int reverse) {
     }
   }
   if (EOF == car) {
-    fprintf(stderr, "%s: ERROR writing \"%s\" (sorry!)\n", me, name);
+    if (!quiet) {
+      fprintf(stderr, "%s: ERROR writing \"%s\" possible data loss !!! "
+	      "(sorry)\n", me, name);
+    }
   }
   fout = airFclose(fout);
 
@@ -169,13 +194,18 @@ undosConvert(char *me, char *name, int reverse) {
 int
 main(int argc, char *argv[]) {
   char *me, **name;
-  int lenName, ni, reverse;
+  int lenName, ni, reverse, quiet, noAction;
   hestOpt *hopt = NULL;
   airArray *mop;
 
   me = argv[0];
   hestOptAdd(&hopt, "r", NULL, airTypeInt, 0, 0, &reverse, NULL,
 	     "convert back to DOS, instead of convert from DOS to normal");
+  hestOptAdd(&hopt, "q", NULL, airTypeInt, 0, 0, &quiet, NULL,
+	     "never print anything to stderr, even for errors.");
+  hestOptAdd(&hopt, "n", NULL, airTypeInt, 0, 0, &noAction, NULL,
+	     "don't actually write converted files, just pretend to. "
+	     "This is useful to see which files WOULD be converted. ");
   hestOptAdd(&hopt, NULL, "file ", airTypeString, 1, -1, &name, NULL,
 	     "all the files to convert.  Each file will be over-written "
 	     "with its converted contents.  Use \"-\" to read from stdin "
@@ -187,7 +217,7 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   for (ni=0; ni<lenName; ni++) {
-    undosConvert(me, name[ni], reverse);
+    undosConvert(me, name[ni], reverse, quiet, noAction);
   }
   
   airMopOkay(mop);
