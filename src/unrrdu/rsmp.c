@@ -29,15 +29,15 @@ usage() {
   fprintf(stderr, "  \"box\": box filter (nearest neighbor upsampling)\n");
   fprintf(stderr, "  \"tent\": tent filter (trilinear upsampling)\n");
   fprintf(stderr, "  \"cubic:B,C\": Mitchell/Netravali BC-family of piecewise cubics\n");
-  fprintf(stderr, "     \"cubic:1.0,0.0\": B-spline w/ maximal blurring\n");
-  fprintf(stderr, "     \"cubic:0.0,0.5\": Catmull-Rom kernel\n");
-  fprintf(stderr, "    (\"cubic:0.0,C\": all interpolating cubics)\n");
+  fprintf(stderr, "     \"cubic:1,0\": B-spline w/ maximal blurring\n");
+  fprintf(stderr, "     \"cubic:0,0.5\": Catmull-Rom kernel\n");
+  fprintf(stderr, "    (\"cubic:0,C\": all interpolating cubics)\n");
   fprintf(stderr, "  \"quartic:A\": Gordon's family of interpolating quartics\n");
   fprintf(stderr, "     \"quartic:0.25\": most sinc()-like; use this!\n\n");
   fprintf(stderr, "<sizeN> is per-axis resizing info; options are:\n");
-  fprintf(stderr, "  \"!\": no resampling at all on this axis\n");
+  fprintf(stderr, "  \"=\": no resampling at all on this axis\n");
   fprintf(stderr, "  <int>: exact number of samples desired\n");
-  fprintf(stderr, "  x<float>: resize ratio; (\"x0.5\": shrink by half)\n");
+  fprintf(stderr, "  x<float>: resize ratio; (\"x0.5\": shrink by half; \"x3\": scale by three)\n\n");
   exit(1);
 }
 
@@ -124,7 +124,7 @@ main(int argc, char *argv[]) {
   */
   for (d=0; d<=nin->dim-1; d++) {
     sizeS = argv[3+d];
-    if (!strcmp("!", sizeS)) {
+    if (!strcmp("=", sizeS)) {
       /* no resampling on this axis desired */
       info->kernel[d] = NULL;
       continue;
