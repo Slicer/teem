@@ -88,6 +88,68 @@ nrrdTypeUnsigned[NRRD_TYPE_MAX+1] = {
 };
 
 /*
+******** nrrdTypeMin[]
+******** nrrdTypeMax[]
+**
+** only intended for small (<= 32 bits) fixed-point type,
+** so that we know how to "unquantize" fixed-point values.
+** A 64-bit double can correctly store the 32-bit integral
+** mins and maxs, but gets the last few places wrong in the
+** 64-bit mins and max.
+*/
+double
+nrrdTypeMin[NRRD_TYPE_MAX+1] = {
+  0,               /* unknown */
+  SCHAR_MIN,       /* char */
+  0,               /* unsigned char */
+  SHRT_MIN,        /* short */
+  0,               /* unsigned short */
+  INT_MIN,         /* int */
+  0,               /* unsigned int */
+  NRRD_LLONG_MIN,  /* long long */
+  0,               /* unsigned long long */
+  0,               /* float */
+  0,               /* double */
+  0                /* punt */
+};
+nrrdTypeMax[NRRD_TYPE_MAX+1] = {
+  0,               /* unknown */
+  SCHAR_MAX,       /* char */
+  UCHAR_MAX,       /* unsigned char */
+  SHRT_MAX,        /* short */
+  USHRT_MAX,       /* unsigned short */
+  INT_MAX,         /* int */
+  UINT_MAX,        /* unsigned int */
+  NRRD_LLONG_MAX,  /* long long */
+  NRRD_ULLONG_MAX, /* unsigned long long */
+  0,               /* float */
+  0,               /* double */
+  0                /* punt */
+};
+
+/*
+******** nrrdTypeNumberValues[]
+**
+** only meaningful for fixed point values; tells the number of
+** different integral values that can be represented by the type
+*/
+unsigned long long int
+nrrdTypeNumberValues[NRRD_TYPE_MAX+1] = {
+  0,                 /* unknown */
+  UCHAR_MAX+1,       /* char */
+  UCHAR_MAX+1,       /* unsigned char */
+  USHRT_MAX+1,       /* short */
+  USHRT_MAX+1,       /* unsigned short */
+  UINT_MAX+1,        /* int */
+  UINT_MAX+1,        /* unsigned int */
+  NRRD_ULLONG_MAX+1, /* long long */
+  NRRD_ULLONG_MAX+1, /* unsigned long long */
+  0,                 /* float */
+  0,                 /* double */
+  0                  /* punt */
+};
+
+/*
 ** _nrrdFieldValidInPNM[]
 **
 ** these fields are valid embedded in PNM comments
