@@ -458,7 +458,6 @@ TEEM_API airEnum *nrrdFormatType;
 TEEM_API airEnum *nrrdType;
 TEEM_API airEnum *nrrdEncodingType;
 TEEM_API airEnum *nrrdCenter;
-TEEM_API airEnum *nrrdAxisInfo;
 TEEM_API airEnum *nrrdField;
 /* ---- BEGIN non-NrrdIO */
 TEEM_API airEnum *nrrdBoundary;

@@ -269,44 +269,6 @@ _nrrdCenter_enum = {
 airEnum *
 nrrdCenter = &_nrrdCenter_enum;
 
-/* ------------------------ nrrdAxisInfo ------------------------- */
-
-char
-_nrrdAxisInfoStr[NRRD_AXIS_INFO_MAX+1][AIR_STRLEN_SMALL] = {
-  "(unknown_axis_info)",
-  "size",
-  "spacing",
-  "min",
-  "max",
-  "center",
-  "label",
-  "unit"
-};
-
-char
-_nrrdAxisInfoDesc[NRRD_AXIS_INFO_MAX+1][AIR_STRLEN_MED] = {
-  "unknown axis info",
-  "number of samples along axis",
-  "spacing between samples",
-  "minimum position in \"world\" space associated with axis",
-  "maximum position in \"world\" space associated with axis",
-  "centering style for samples along this axis",
-  "short description of space or value spanned by axis",
-  "units in which sample spacing is measured"
-};
-
-airEnum
-_nrrdAxisInfo = {
-  "axis_info",
-  NRRD_AXIS_INFO_MAX,
-  _nrrdAxisInfoStr, NULL,
-  _nrrdAxisInfoDesc,
-  NULL, NULL,
-  AIR_TRUE
-};
-airEnum *
-nrrdAxisInfo = &_nrrdAxisInfo;
-  
 /* ------------------------ nrrdField ------------------------- */
 
 char

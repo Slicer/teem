@@ -59,8 +59,8 @@ enum {
 */
 enum {
   nrrdFormatTypeUnknown,
-  nrrdFormatTypeNRRD,   /* 1: basic nrrd format (associated with both
-			   magic nrrdMagicOldNRRD and nrrdMagicNRRD0001 */
+  nrrdFormatTypeNRRD,   /* 1: basic nrrd format (associated with any of
+                           the magics starting with "NRRD" */
   nrrdFormatTypePNM,    /* 2: PNM image */
   nrrdFormatTypePNG,    /* 3: PNG image */
   nrrdFormatTypeVTK,    /* 4: VTK Structured Points datasets (v1.0 and 2.0) */
