@@ -175,36 +175,52 @@ enum {
 /*
 ******** nrrdKind enum
 **
-** The very cautious (and last?) step nrrd takes towards sementics.
+** The very cautious (and last) step nrrd takes towards semantics, to 
+** describe the information along one axis of an array.  This is most
+** important for clarifying the representation of non-scalar data, in
+** order to distinguish between axes that are genuine image domain axes,
+** and axes that exist just to store the multiple attributes per sample.
+** One could argue that this information should be per-array and not
+** per-axis, but you still have to indicate which one of the axes is the
+** attribute axis.  And, if you have, say, the gradient of RGB colors,
+** you want the per-pixel 3x3 array to have those two attribute axes 
+** tagged accordingly.
 **
 ** More of these may be added in the future, as when nrrd supports bricking.
 **
 ** NB: The nrrdKindSize() function returns the suggested length for these.
+**
+** Keep in sync:
+**   enumsNrrd.c: nrrdKind airEnum
+**        axis.c: nrrdKindSize()
+**        axis.c: _nrrdKindAltered()
 */
 enum {
   nrrdKindUnknown,
   nrrdKindDomain,            /*  1: "Yes, you can resample me" */
-  nrrdKindList,              /*  2: "No, it is goofy to resample me" */
-  nrrdKindStub,              /*  3: axis with one sample (a placeholder) */
-  nrrdKindScalar,            /*  4: effectively, same as a stub */
-  nrrdKindComplex,           /*  5: real and imaginary components */
-  nrrdKind2Vector,           /*  6: 2 component vector */
-  nrrdKind3Color,            /*  7: ANY 3-component color value */
-  nrrdKind4Color,            /*  8: ANY 4-component color value */
-  nrrdKind3Vector,           /*  9: 3 component vector */
-  nrrdKind3Normal,           /* 10: 3 component vector, assumed normalized */
-  nrrdKind4Vector,           /* 11: 4 component vector */
-  nrrdKind2DSymMatrix,       /* 12: Mxx Mxy Myy */
-  nrrdKind2DMaskedSymMatrix, /* 13: mask Mxx Mxy Myy */
-  nrrdKind2DMatrix,          /* 14: Mxx Mxy Myx Myy */
-  nrrdKind2DMaskedMatrix,    /* 15: mask Mxx Mxy Myx Myy */
-  nrrdKind3DSymMatrix,       /* 16: Mxx Mxy Mxz Myy Myz Mzz */
-  nrrdKind3DMaskedSymMatrix, /* 17: mask Mxx Mxy Mxz Myy Myz Mzz */
-  nrrdKind3DMatrix,          /* 18: Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz */
-  nrrdKind3DMaskedMatrix,    /* 19: mask Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz */
+  nrrdKindSpace,             /*  2: a spatial domain */
+  nrrdKindTime,              /*  3: a temporal domain */
+  nrrdKindList,              /*  4: "No, it is goofy to resample me" */
+  nrrdKindStub,              /*  5: axis with one sample (a placeholder) */
+  nrrdKindScalar,            /*  6: effectively, same as a stub */
+  nrrdKindComplex,           /*  7: real and imaginary components */
+  nrrdKind2Vector,           /*  8: 2 component vector */
+  nrrdKind3Color,            /*  9: ANY 3-component color value */
+  nrrdKind4Color,            /* 10: ANY 4-component color value */
+  nrrdKind3Vector,           /* 11: 3 component vector */
+  nrrdKind3Normal,           /* 12: 3 component vector, assumed normalized */
+  nrrdKind4Vector,           /* 13: 4 component vector */
+  nrrdKind2DSymMatrix,       /* 14: Mxx Mxy Myy */
+  nrrdKind2DMaskedSymMatrix, /* 15: mask Mxx Mxy Myy */
+  nrrdKind2DMatrix,          /* 16: Mxx Mxy Myx Myy */
+  nrrdKind2DMaskedMatrix,    /* 17: mask Mxx Mxy Myx Myy */
+  nrrdKind3DSymMatrix,       /* 18: Mxx Mxy Mxz Myy Myz Mzz */
+  nrrdKind3DMaskedSymMatrix, /* 19: mask Mxx Mxy Mxz Myy Myz Mzz */
+  nrrdKind3DMatrix,          /* 20: Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz */
+  nrrdKind3DMaskedMatrix,    /* 21: mask Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz */
   nrrdKindLast
 };
-#define NRRD_KIND_MAX           19
+#define NRRD_KIND_MAX           21
 
 /*
 ******** nrrdAxisInfo enum

@@ -272,31 +272,36 @@ nrrdCenter = &_nrrdCenter_enum;
 /* ------------------------ nrrdKind ------------------------- */
 
 /*
-  nrrdKindDomain,              1: "Yes, you can resample me" 
-  nrrdKindList,                2: "No, it is goofy to resample me" 
-  nrrdKindStub,                3: axis with one sample (a placeholder) 
-  nrrdKindScalar,              4: effectively, same as a stub 
-  nrrdKindComplex,             5: real and imaginary components 
-  nrrdKind2Vector,             6: 2 component vector 
-  nrrdKind3Color,              7: ANY 3-component color value 
-  nrrdKind4Color,              8: ANY 4-component color value 
-  nrrdKind3Vector,             9: 3 component vector 
-  nrrdKind3Normal,            10: 3 component vector, assumed normalized 
-  nrrdKind4Vector,            11: 4 component vector 
-  nrrdKind2DSymMatrix,        12: Mxx Mxy Myy 
-  nrrdKind2DMaskedSymMatrix,  13: mask Mxx Mxy Myy 
-  nrrdKind2DMatrix,           14: Mxx Mxy Myx Myy 
-  nrrdKind2DMaskedMatrix,     15: mask Mxx Mxy Myx Myy 
-  nrrdKind3DSymMatrix,        16: Mxx Mxy Mxz Myy Myz Mzz 
-  nrrdKind3DMaskedSymMatrix,  17: mask Mxx Mxy Mxz Myy Myz Mzz 
-  nrrdKind3DMatrix,           18: Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz 
-  nrrdKind3DMaskedMatrix,     19: mask Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz 
+  nrrdKindUnknown,
+  nrrdKindDomain,            *  1: "Yes, you can resample me" *
+  nrrdKindSpace,             *  2: a spatial domain *
+  nrrdKindTime,              *  3: a temporal domain *
+  nrrdKindList,              *  4: "No, it is goofy to resample me" *
+  nrrdKindStub,              *  5: axis with one sample (a placeholder) *
+  nrrdKindScalar,            *  6: effectively, same as a stub *
+  nrrdKindComplex,           *  7: real and imaginary components *
+  nrrdKind2Vector,           *  8: 2 component vector *
+  nrrdKind3Color,            *  9: ANY 3-component color value *
+  nrrdKind4Color,            * 10: ANY 4-component color value *
+  nrrdKind3Vector,           * 11: 3 component vector *
+  nrrdKind3Normal,           * 12: 3 component vector, assumed normalized *
+  nrrdKind4Vector,           * 13: 4 component vector *
+  nrrdKind2DSymMatrix,       * 14: Mxx Mxy Myy *
+  nrrdKind2DMaskedSymMatrix, * 15: mask Mxx Mxy Myy *
+  nrrdKind2DMatrix,          * 16: Mxx Mxy Myx Myy *
+  nrrdKind2DMaskedMatrix,    * 17: mask Mxx Mxy Myx Myy *
+  nrrdKind3DSymMatrix,       * 18: Mxx Mxy Mxz Myy Myz Mzz *
+  nrrdKind3DMaskedSymMatrix, * 19: mask Mxx Mxy Mxz Myy Myz Mzz *
+  nrrdKind3DMatrix,          * 20: Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz *
+  nrrdKind3DMaskedMatrix,    * 21: mask Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz *
 */
 
 char
 _nrrdKindStr[NRRD_KIND_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_kind)",
   "domain",
+  "space",
+  "time",
   "list",
   "stub",
   "scalar",
@@ -321,6 +326,8 @@ char
 _nrrdKindDesc[NRRD_KIND_MAX+1][AIR_STRLEN_MED] = {
   "unknown kind",
   "a domain variable of the function which the nrrd samples",
+  "a spatial domain, like the axes of a measured volume image",
+  "a temporal domain, as from time-varying measurements",
   "some list of attributes; it makes no sense to resample along these",
   "a place-holder axis with a single sample",
   "axis used to indicate that the nrrd contains a scalar value",
@@ -344,6 +351,8 @@ _nrrdKindDesc[NRRD_KIND_MAX+1][AIR_STRLEN_MED] = {
 char
 _nrrdKindStr_Eqv[][AIR_STRLEN_SMALL] = {
   "domain",
+  "space",
+  "time",
   "list",
   "stub",
   "scalar",
@@ -376,6 +385,8 @@ _nrrdKindStr_Eqv[][AIR_STRLEN_SMALL] = {
 int
 _nrrdKindVal_Eqv[] = {
   nrrdKindDomain,
+  nrrdKindSpace,
+  nrrdKindTime,
   nrrdKindList,
   nrrdKindStub,
   nrrdKindScalar,
