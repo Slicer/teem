@@ -139,6 +139,10 @@ typedef struct {
     elideMultipleEmptyStringDefault,
     greedySingleString, /* when parsing a single string, whether or not
 			   to be greedy (as per airParseStrS) */
+    cleverPluralizeOtherY, /* when printing the type for airTypeOther, when
+			      the min number of items is > 1, and the type
+			      string ends with "y", then pluralize with 
+			      "ies" instead of "ys" */
     columns;            /* number of printable columns in output */
   char respFileFlag,    /* the character at the beginning of an argument
 			   indicating that this is a response file name */
@@ -163,6 +167,7 @@ extern hest_export int hestElideMultipleNonExistFloatDefault;
 extern hest_export int hestElideSingleEmptyStringDefault;
 extern hest_export int hestElideMultipleEmptyStringDefault;
 extern hest_export int hestGreedySingleString;
+extern hest_export int hestCleverPluralizeOtherY;
 extern hest_export int hestColumns;
 extern hest_export char hestRespFileFlag;
 extern hest_export char hestRespFileComment;

@@ -327,7 +327,13 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
 	       : (airTypeOther == opt[i].type
 		  ? opt[i].CB->type
 		  : airTypeStr[opt[i].type])),
-	      _hestMax(opt[i].max) > 1 ? "s" : "");
+	      (_hestMax(opt[i].max) > 1 
+	       ? (airTypeOther == opt[i].type
+		  && 'y' == opt[i].CB->type[airStrlen(opt[i].CB->type)-1]
+		  && parm->cleverPluralizeOtherY
+		  ? "\bies" 
+		  : "s")
+	       : ""));
       strcat(buff, tmpS);
       strcat(buff, ")");
     }

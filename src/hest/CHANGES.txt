@@ -8,3 +8,7 @@ and exit(1).
 member of the hparm struct, elideSingleEmptyStringDefault.
 With this true, if parsing a single string, and the default
 is "", then the default will not be displayed in the glossary.
+
+from 1.5beta0:
+- added hestCleverPluralizeOtherY, which is smartness on how
+to pluralize callback objects, when their name ends with Y

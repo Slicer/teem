@@ -41,6 +41,7 @@ hestParmNew() {
       hestElideSingleEmptyStringDefault;
     parm->elideMultipleEmptyStringDefault =
       hestElideMultipleEmptyStringDefault;
+    parm->cleverPluralizeOtherY = hestCleverPluralizeOtherY;
     parm->columns = hestColumns;
     parm->respFileFlag = hestRespFileFlag;
     parm->respFileComment = hestRespFileComment;
