@@ -176,6 +176,14 @@ airFPPartsToVal_d(int sign, int exp, airULLong frac) {
 #endif
 }
 
+/*
+** Disable the 'local variable used without having been initialized'
+** warning produced by the MSVC compiler
+*/ 
+#ifdef WIN32
+#pragma warning(push)
+#pragma warning(disable : 4700)
+#endif
 void
 airFPValToParts_d(int *signP, int *expP, airULLong *fracP, double v) {
 #ifdef __sparc
@@ -189,6 +197,9 @@ airFPValToParts_d(int *signP, int *expP, airULLong *fracP, double v) {
   FP_GET(*signP, *expP, *fracP, d);
 #endif
 }
+#ifdef WIN32
+#pragma warning(pop)
+#endif
 
 /*
 ******** airFPGen_f()
@@ -381,6 +392,14 @@ airFPClass_f(float val) {
 }
 
 /*
+** Disable the 'local variable used without having been initialized'
+** warning produced by the MSVC compiler
+*/ 
+#ifdef WIN32
+#pragma warning(push)
+#pragma warning(disable : 4700)
+#endif
+/*
 ******** airFPClass_d()
 **
 ** given a double, tells which class its in
@@ -455,6 +474,9 @@ airFPClass_d(double val) {
   return ret;
 #endif
 }
+#ifdef WIN32
+#pragma warning(pop)
+#endif
 
 /*
 ******** airIsNaN()
