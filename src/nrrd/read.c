@@ -348,15 +348,19 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
       }
       else {
 	/* this PNM comment is trying to tell us something */
+	/*
 	printf("!%s: comment |%s| %d\n", me, io->line, 
 	       strncmp(io->line, NRRD_PNM_COMMENT, strlen(NRRD_PNM_COMMENT)));
+	       */
 	io->pos = strlen(NRRD_PNM_COMMENT);
 	io->pos += strspn(io->line + io->pos, _nrrdFieldSep);
-	printf("!%s: -> |%s|\n", me, io->line + io->pos);
+	/* printf("!%s: -> |%s|\n", me, io->line + io->pos); */
 	ret = _nrrdReadNrrdParseField(nrrd, io, nrrdStrictPNMComments);
+	/*
 	printf("!%s: comment |%s| %d -> ret = %d\n", me, io->line, 
 	       strncmp(io->line, NRRD_PNM_COMMENT, strlen(NRRD_PNM_COMMENT)),
 	       ret);
+	       */
 	/* could we parse anything? */
 	if (ret) {
 	  /* is this a field which belongs in a PNM? */
@@ -675,7 +679,7 @@ nrrdLoad(Nrrd *nrrd, char *filename) {
     biffAdd(NRRD, err); return 1;
   }
   _nrrdSplitName(io->dir, io->base, filename);
-  printf("!%s: |%s|%s|\n", me, io->dir, io->base);
+  /* printf("!%s: |%s|%s|\n", me, io->dir, io->base); */
 
   if (!strcmp("-", filename)) {
     file = stdin;

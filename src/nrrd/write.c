@@ -274,7 +274,7 @@ _nrrdSprintFieldInfo(char *str, Nrrd *nrrd, nrrdIO *io, int field) {
   case nrrdField_axis_maxs:
     sprintf(str, "%s:", fs);
     for (i=0; i<=D-1; i++) {
-      airSinglePrintf(NULL, str, " %lg", nrrd->axis[i].max);
+      airSinglePrintf(NULL, buff, " %lg", nrrd->axis[i].max);
       strcat(str, buff);
     }
     break;
@@ -577,7 +577,6 @@ int
 nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
   char me[]="nrrdSave", err[NRRD_STRLEN_MED];
   FILE *file;
-  int wantedFormat;
 
   if (!(nrrd && filename)) {
     sprintf(err, "%s: got NULL pointer", me);

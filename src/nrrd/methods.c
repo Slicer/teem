@@ -143,6 +143,7 @@ nrrdNew(void) {
 			     sizeof(char *), NRRD_COMMENT_INCR);
   if (!nrrd->cmtArr)
     return NULL;
+  airArrayPointerCB(nrrd->cmtArr, NULL, airFree);
   nrrdInit(nrrd);
   return nrrd;
 }
@@ -163,6 +164,7 @@ nrrdNix(Nrrd *nrrd) {
   if (nrrd) {
     nrrd->content = airFree(nrrd->content);
     nrrdCommentClear(nrrd);
+    nrrd->cmtArr = airArrayNix(nrrd->cmtArr);
     nrrd = airFree(nrrd);
   }
   return NULL;

@@ -223,7 +223,7 @@ _nrrdReadNrrdParse_labels(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   char *info;
 
   info = io->line + io->pos;
-  printf("!%s: info |%s|\n", me, info);
+  /* printf("!%s: info |%s|\n", me, info); */
   _CHECK_HAVE_DIM;
   h = info;
   for (i=0; i<=nrrd->dim-1; i++) {
@@ -268,6 +268,7 @@ _nrrdReadNrrdParse_labels(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 	      "soon enough", me, i+1, nrrd->dim);
       biffMaybeAdd(useBiff, NRRD, err); return 1;
     }
+    tmpS[len] = 0;
     nrrd->axis[i].label = airStrdup(tmpS);
     if (!nrrd->axis[i].label) {
       sprintf(err, "%s: couldn't allocate label %d", me, i);
@@ -275,7 +276,7 @@ _nrrdReadNrrdParse_labels(Nrrd *nrrd, nrrdIO *io, int useBiff) {
     }
     h += len+1;
     nrrd->axis[i].label[len] = '\0';
-    printf("!%s: out[%d] |%s|\n", me, i, nrrd->axis[i].label);
+    /* printf("!%s: out[%d] |%s|\n", me, i, nrrd->axis[i].label); */
   }
 
   return 0;
@@ -462,7 +463,7 @@ _nrrdReadNrrdParseField(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   for (i=1; i<=NRRD_FIELD_MAX; i++) {
     if (!strncmp(next, _nrrdEnumFieldStr[i], strlen(_nrrdEnumFieldStr[i]))) {
       /* we matched one of the fields */
-      printf("!%s: match: %d\n", me, i);
+      /* printf("!%s: match: %d\n", me, i); */
       break;
     }
   }

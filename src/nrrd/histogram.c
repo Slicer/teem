@@ -95,12 +95,12 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, unsigned int bins) {
   /* max set ? */
   nout->axis[ax].center = nrrdCenterCell;
   if (nin->axis[ax].label) {
-    nout->axis[ax].label = calloc(strlen("hax(,)")
+    nout->axis[ax].label = calloc(strlen("histax(,)")
 				  + strlen(nin->axis[ax].label)
 				  + 11
 				  + 1, sizeof(char));
     if (nout->axis[ax].label) {
-      sprintf(nout->axis[ax].label, "hax(%s,%d)", 
+      sprintf(nout->axis[ax].label, "histax(%s,%d)", 
 	      nin->axis[ax].label, bins);
     }
     else {
