@@ -132,7 +132,7 @@ enum {
   limnEdgeTypeFrontCrease, /* 4: front-facing crease */
   limnEdgeTypeFrontFacet,  /* 5: front-facing non-crease */
   limnEdgeTypeBorder,      /* 6: attached to only one face */
-  limnEdgeTypeLone,        /* 7: attached to no other faces */
+  limnEdgeTypeLone,        /* 7: attached to no faces */
   limnEdgeTypeLast
 };
 #define LIMN_EDGE_TYPE_MAX    7
