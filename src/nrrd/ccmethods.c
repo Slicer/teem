@@ -20,20 +20,6 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-int
-_nrrdCC_maxid(Nrrd *nin) {
-  int (*lup)(void *, size_t), id, maxid;
-  size_t I;
-
-  lup = nrrdILookup[nin->type];
-  maxid = 0;
-  for (I=0; I<nrrdElementNumber(nin); I++) {
-    id = lup(nin->data, I);
-    maxid = AIR_MAX(maxid, id);
-  }
-  return maxid;
-}
-
 /*
 ** _nrrdCC_settle()
 **
@@ -70,6 +56,14 @@ _nrrdCC_settle (int *map, int len) {
   free(hit);
   return max;
 }
+
+int
+nrrdCCSettle(Nrrd *nout, Nrrd *nin) {
+  char me[]="nrrdCCSettle", err[AIR_STRLEN_MED];
+
+  return 0;
+}
+
 
 /*
 ** _nrrdCC_eclass ()
@@ -136,6 +130,12 @@ nrrdCCValid(Nrrd *nin) {
   return 1;
 }
 
+/*
+** things we could measure on CCs: 
+** size
+** # neighbors
+*/
+
 int
 nrrdCCSize(Nrrd *nout, Nrrd *nin) {
   char me[]="nrrdCCSize", func[]="ccsize", err[AIR_STRLEN_MED];
@@ -146,7 +146,7 @@ nrrdCCSize(Nrrd *nout, Nrrd *nin) {
     sprintf(err, "%s: invalid args", me);
     biffAdd(NRRD, err); return 1;
   }
-  maxid = _nrrdCC_maxid(nin);
+  maxid = nrrdCCMax(nin);
   if (nrrdMaybeAlloc(nout, nrrdTypeInt, 1, maxid+1)) {
     sprintf(err, "%s: can't allocate output", me);
     biffAdd(NRRD, err); return 1;
@@ -162,4 +162,26 @@ nrrdCCSize(Nrrd *nout, Nrrd *nin) {
   }
   
   return 0;
+}
+
+/*
+******** nrrdCCMax
+**
+** returns the highest cc id, or 0 if there were problems
+**
+** does NOT use biff
+*/
+int
+nrrdCCMax(Nrrd *nin) {
+  int (*lup)(void *, size_t), id, max=0;
+  size_t I;
+
+  if (nrrdCCValid(nin)) {
+    lup = nrrdILookup[nin->type];
+    for (I=0; I<nrrdElementNumber(nin); I++) {
+      id = lup(nin->data, I);
+      max = AIR_MAX(max, id);
+    }
+  }
+  return max;
 }

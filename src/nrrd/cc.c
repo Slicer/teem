@@ -243,16 +243,37 @@ _nrrdCCFind_N(Nrrd *nfpid, int *maxid, airArray *eqvArr,
 
 }
 
+/*
+******** nrrdCCFind
+**
+** finds connected components (CCs) in given integral type nrrd "nin",
+** according to connectivity "conny", putting the results in "nout".
+** The "type" argument controls what type the output will be.  If
+** type == nrrdTypeUnknown, the type used will be the smallest that 
+** can contain the CC id values.  Otherwise, the specified type "type"
+** will be used, assuming that it is large enough to hold the CC ids.
+**
+** "conny": the number of coordinates that need to varied together in
+** order to reach all the samples that are to consitute the neighborhood
+** around a sample.  For 2-D, conny==1 specifies the 4 edge-connected
+** pixels, and 2 specifies the 8 edge- and corner-connected.  
+**
+** The caller can get a record of the values in each CC by passing a 
+** non-NULL nval, which will be allocated to an array of the same type
+** as nin, so that nval->data[I] is the value in nin inside CC #I.
+*/
 int
-nrrdCCFind(Nrrd *nout, Nrrd *nin, int type, int conny) {
+nrrdCCFind(Nrrd *nout, Nrrd **nvalP, Nrrd *nin, int type, int conny) {
   char me[]="nrrdCCFind", func[]="ccfind", err[AIR_STRLEN_MED];
-  Nrrd *nfpid;  /* first-pass IDs */
+  Nrrd *nfpid, *nval=NULL;  /* first-pass IDs */
   airArray *mop, *eqvArr;
-  int ret;
-  int *map, *fpid, numid, maxid;
+  int ret, *map, *fpid, numid, maxid,
+    (*lup)(void *, size_t), (*ins)(void *, size_t, int);
   size_t I;
+  void *val;
   
   if (!(nout && nin)) {
+    /* NULL nvalP okay */
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -266,15 +287,17 @@ nrrdCCFind(Nrrd *nout, Nrrd *nin, int type, int conny) {
 	    me, airEnumStr(nrrdType, nin->type));
     biffAdd(NRRD, err); return 1;
   }
-  if (!( AIR_IN_OP(nrrdTypeUnknown, type, nrrdTypeLast) )) {
-    sprintf(err, "%s: got invalid target type %d", me, type);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (!( nrrdTypeIsIntegral[type] && nrrdTypeSize[type] <= 4 )) {
-    sprintf(err, "%s: can only save connected components to 1, 2, or 4 byte "
-	    "integral values (not %s)",
-	    me, airEnumStr(nrrdType, type));
-    biffAdd(NRRD, err); return 1;
+  if (type) {
+    if (!( AIR_IN_OP(nrrdTypeUnknown, type, nrrdTypeLast) )) {
+      sprintf(err, "%s: got invalid target type %d", me, type);
+      biffAdd(NRRD, err); return 1;
+    }
+    if (!( nrrdTypeIsIntegral[type] && nrrdTypeSize[type] <= 4 )) {
+      sprintf(err, "%s: can only save connected components to 1, 2, or 4 byte "
+	      "integral values (not %s)",
+	      me, airEnumStr(nrrdType, type));
+      biffAdd(NRRD, err); return 1;
+    }
   }
   if (!( AIR_IN_CL(1, conny, nin->dim) )) {
     sprintf(err, "%s: connectivity value must be in [1..%d] for %d-D "
@@ -311,23 +334,42 @@ nrrdCCFind(Nrrd *nout, Nrrd *nin, int type, int conny) {
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 
-  if (nin->dim > 1) {
-    map = (int*)calloc(numid, sizeof(int));
-    airMopAdd(mop, map, airFree, airMopAlways);
-    maxid = _nrrdCC_eclass(map, numid, eqvArr);
-    /* convert fpid values to final id values */
-    fpid = (int*)(nfpid->data);
+  map = (int*)calloc(numid, sizeof(int));
+  airMopAdd(mop, map, airFree, airMopAlways);
+  maxid = _nrrdCC_eclass(map, numid, eqvArr);
+  /* convert fpid values to final id values */
+  fpid = (int*)(nfpid->data);
+  for (I=0; I<nrrdElementNumber(nfpid); I++) {
+    fpid[I] = map[fpid[I]];
+  }
+  if (nvalP) {
+    if (nrrdMaybeAlloc(nval=nrrdNew(), nin->type, 1, numid)) {
+      sprintf(err, "%s: couldn't allocate output value list", me);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+    airMopAdd(mop, nvalP, (airMopper)airSetNull, airMopOnError);
+    airMopAdd(mop, nval, (airMopper)nrrdNuke, airMopOnError);
+    *nvalP = nval;
+    val = nval->data;
+    lup = nrrdILookup[nin->type];
+    ins = nrrdIInsert[nin->type];
     for (I=0; I<nrrdElementNumber(nfpid); I++) {
-      fpid[I] = map[fpid[I]];
+      ins(val, fpid[I], lup(nin->data, I));
+    }
+  }
+
+  if (type) {
+    if (maxid > nrrdTypeMax[type]) {
+      sprintf(err, "%s: max cc id %d is too large to fit in output type %s",
+	      me, numid, airEnumStr(nrrdType, type));
+      biffAdd(NRRD, err); airMopError(mop); return 1;
     }
   } else {
-    maxid = numid-1;
-  }
-  
-  if (maxid > nrrdTypeMax[type]) {
-    sprintf(err, "%s: max cc id %d is too large to fit in output type %s",
-	    me, numid, airEnumStr(nrrdType, type));
-    biffAdd(NRRD, err); airMopError(mop); return 1;
+    type = (maxid <= nrrdTypeMax[nrrdTypeUChar]
+	    ? nrrdTypeUChar
+	    : (maxid <= nrrdTypeMax[nrrdTypeUShort]
+	       ? nrrdTypeUShort
+	       : nrrdTypeInt));
   }
   if (nrrdConvert(nout, nfpid, type)) {
     sprintf(err, "%s: trouble converting to final output", me);
@@ -476,7 +518,7 @@ nrrdCCAdjacency(Nrrd *nout, Nrrd *nin, int conny) {
 	    "data (not %d)", me, nin->dim, nin->dim, conny);
     biffAdd(NRRD, err); return 1;
   }
-  maxid = _nrrdCC_maxid(nin);
+  maxid = nrrdCCMax(nin);
   if (nrrdMaybeAlloc(nout, nrrdTypeUChar, 2, maxid+1, maxid+1)) {
     sprintf(err, "%s: trouble allocating output", me);
     biffAdd(NRRD, err); return 1;
@@ -501,6 +543,10 @@ nrrdCCAdjacency(Nrrd *nout, Nrrd *nin, int conny) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
+  /* this goofiness is just so that histo-based projections
+     return the sorts of values that we expect */
+  nout->axis[0].min = nout->axis[1].min = -0.5;
+  nout->axis[0].max = nout->axis[1].max = maxid + 0.5;
   if (nrrdContentSet(nout, func, nin, "%d", conny)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
@@ -510,67 +556,152 @@ nrrdCCAdjacency(Nrrd *nout, Nrrd *nin, int conny) {
 }
 
 /*
-******** nrrdCCMeld
+******** nrrdCCMerge
 **
-** for every cc which is adjacent to only one other component,
-** if that other component is larger, then the smaller component
-** gets absorbed into the larger
+** Slightly-too-multi-purpose tool for merging small connected components
+** (CCs) into larger ones, according to a number of possible different
+** constraints, as explained below.
+**
+** valDir: (value direction) uses information about the original values
+** in the CC to constrain whether darker gets merged into brighter, or vice
+** versa, or neither.  For non-zero valDir values, a non-NULL _nval (from
+** nrrdCCFind) must be passed.
+**   valDir > 0 : merge dark CCs into bright, but not vice versa
+**   valDir = 0 : merge either way, values are irrelevant
+**   valDir < 0 : merge bright CCs into dark, but not vice versa
+** When merging with multiple neighbors (maxNeighbor > 1), the value
+** of the largest neighbor is considered.
+**
+** maxSize: a cap on how large "small" is- CCs any larger than maxSize are
+** not merged, as they are deemed too significant.  Or, a maxSize of 0 says
+** size is no object for merging CCs.
+** 
+** maxNeighbor: a maximum number of neighbors that a CC can have (either 
+** bigger than the CC or not) if it is to be merged.  Use 1 to merge
+** isolated islands into their surrounds, 2 to merge CC with the larger
+** of their two neighbors, etc., or 0 to allow any number of neighbors.
+**
+** conny: passed to nrrdCCAdjacency() when determining neighbors
+**
+** In order to prevent weirdness, the merging done in one call to this
+** function is not transitive: if A is merged to B, then B will not be
+** merged to anything else, even if meets all the requirements defined
+** by the given parameters.  This is accomplished by working from the 
+** smallest CCs to the largest. Iterated calls may be needed to acheive
+** the desired effect.
+**
+** Note: the output of this is not "settled"- the CC id values are not
+** shiftward downwards to their lowest possible values, since this would
+** needlessly invalidate the nval value store.
 */
 int
-nrrdCCMeld(Nrrd *nout, Nrrd *nin, int maxSize, int conny) {
-  char me[]="nrrdCCMeld", func[]="ccmeld", err[AIR_STRLEN_MED];
-  int i, numid, *size,
+nrrdCCMerge(Nrrd *nout, Nrrd *nin, Nrrd *_nval,
+	    int valDir, int maxSize, int maxNeighbor, int conny) {
+  char me[]="nrrdCCMerge", func[]="ccmerge", err[AIR_STRLEN_MED];
+  int _i, i, j, bigi=0, numid, *size, *sizeId, *id,
     *nn,  /* number of neighbors */
-    *wn,  /* which one is our (single) neighbor */
-    *map,
+    *map, *val=NULL, *hit,
     (*lup)(void *, size_t), (*ins)(void *, size_t, int);
-  Nrrd *nadj, *nsize, *ntmp, *nnn, *nwn;
+  Nrrd *nadj, *nsize, *ntmp, *nval, *nnn;
+  unsigned char *adj;
   airArray *mop;
   size_t I;
   
+  mop = airMopNew();
   if (!( nout && nrrdCCValid(nin) )) {
+    /* _nval can be NULL */
     sprintf(err, "%s: invalid args", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
+  if (valDir) {
+    airMopAdd(mop, nval = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdConvert(nval, _nval, nrrdTypeInt)) {
+      sprintf(err, "%s: value-directed merging needs usable nval", me);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+    val = (int*)(nval->data);
   }
   if (nout != nin) {
     if (nrrdCopy(nout, nin)) {
       sprintf(err, "%s:", me);
-      biffAdd(NRRD, err); return 1;
+      biffAdd(NRRD, err); airMopError(mop); return 1;
     }
   }
-  mop = airMopNew();
   airMopAdd(mop, nadj = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nsize = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ntmp = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nnn = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nwn = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-
+  
   if (nrrdCCSize(nsize, nin)
-      || nrrdCCAdjacency(nadj, nin, conny)
-      || nrrdProject(ntmp, nadj, 0, nrrdMeasureSum)
-      || nrrdConvert(nnn, ntmp, nrrdTypeInt)
-      || nrrdProject(ntmp, nadj, 0, nrrdMeasureHistoMin)
-      || nrrdConvert(nwn, ntmp, nrrdTypeInt)) {
+      || nrrdCopy(nnn, nsize)  /* just to allocate to right size and type */
+      || nrrdCCAdjacency(nadj, nin, conny)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   size = (int*)(nsize->data);
+  adj = (unsigned char*)(nadj->data);
   nn = (int*)(nnn->data);
-  wn = (int*)(nwn->data);   /* NB: wn[i] is meaningful IFF nn[i] == 1 */
-  
   numid = nsize->axis[0].size;
-  map = (int*)calloc(numid, sizeof(int));
-  airMopAdd(mop, map, airFree, airMopAlways);
   for (i=0; i<numid; i++) {
-    if (1 == nn[i]                /* I have one neighbor, */
-	&& size[wn[i]] > size[i]  /* my neighbor is bigger than me, */
-	&& size[i] <= maxSize) {  /* and I'm no bigger than maxSize, */
-      map[i] = wn[i];             /* so I become my neighbor */
-    } else {
-      map[i] = i;                 /* or else I stay me */
+    nn[i] = 0;
+    for (j=0; j<numid; j++) {
+      nn[i] += adj[j + numid*i];
     }
   }
-  _nrrdCC_settle(map, numid);
+  map = (int*)calloc(numid, sizeof(int));
+  id = (int*)calloc(numid, sizeof(int));
+  hit = (int*)calloc(numid, sizeof(int));
+  sizeId = (int*)calloc(2*numid, sizeof(int));
+  if (!(map && id && hit && sizeId)) {
+    sprintf(err, "%s: couldn't allocate buffers", me);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
+  airMopAdd(mop, map, airFree, airMopAlways);
+  airMopAdd(mop, id, airFree, airMopAlways);
+  airMopAdd(mop, hit, airFree, airMopAlways);
+  airMopAdd(mop, sizeId, airFree, airMopAlways);
+  
+  /* store and sort size/id pairs */
+  for (i=0; i<numid; i++) {
+    sizeId[0 + 2*i] = size[i];
+    sizeId[1 + 2*i] = i;
+  }
+  qsort(sizeId, numid, 2*sizeof(int), nrrdValCompare[nrrdTypeInt]);
+  for (i=0; i<numid; i++) {
+    id[i] = sizeId[1 + 2*i];
+  }
+  
+  /* initialize arrays */
+  for (i=0; i<numid; i++) {
+    map[i] = i;
+    hit[i] = AIR_FALSE;
+  }
+  /* _i goes through 0 to numid-1, 
+     i goes through the CC ids in ascending order of size */
+  for (_i=0; _i<numid; _i++) {
+    i = id[_i];
+    if (hit[i])
+      continue;
+    if (maxSize && (size[i] > maxSize))
+      continue;
+    if (maxNeighbor && (nn[i] > maxNeighbor))
+      continue;
+    /* find biggest neighbor, exploiting the fact that we already
+       sorted CC ids on size.  j descends through indices of id[],
+       bigi goes through CC ids which are larger than CC i */
+    for (j=numid-1; j>_i; j--) {
+      bigi = id[j];
+      if (adj[bigi + numid*i]) 
+	break;
+    }
+    if (j == _i)
+      continue;   /* we had no neighbors! */
+    if (valDir && (val[bigi] - val[i])*valDir < 0 )
+      continue;
+    /* else all criteria for merging have been met */
+    map[i] = bigi;
+    hit[bigi] = AIR_TRUE;
+  }
   lup = nrrdILookup[nin->type];
   ins = nrrdIInsert[nout->type];
   for (I=0; I<nrrdElementNumber(nin); I++) {
@@ -579,7 +710,7 @@ nrrdCCMeld(Nrrd *nout, Nrrd *nin, int maxSize, int conny) {
 
   if (nrrdContentSet(nout, func, nin, "%d", conny)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   airMopOkay(mop);
   return 0;

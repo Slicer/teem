@@ -161,8 +161,9 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
     /* there's a risk of non-existant values getting converted to
        non-sensical integral values */
     if (nrrdHasNonExistSet(nin)) {
-      sprintf(err, "%s: can't convert to integral values with "
-	      "non-existant values in input nrrd", me);
+      sprintf(err, "%s: can't convert to integral values (%s) with "
+	      "non-existant values in input", me,
+	      airEnumStr(nrrdType, type));
       biffAdd(NRRD, err); return 1;
     }
   }
@@ -516,7 +517,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP,
   }
   mop = airMopNew();
   if (nmapP) {
-    airMopAdd(mop, *nmapP, (airMopper)airSetNull, airMopOnError);
+    airMopAdd(mop, nmapP, (airMopper)airSetNull, airMopOnError);
   }
   num = nrrdElementNumber(nin);
   if (smart <= 0) {

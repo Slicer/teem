@@ -116,7 +116,6 @@ extern int _nrrdGzWrite(gzFile file, const voidp buf, unsigned int len,
 #endif
 
 /* ccmethods.c */
-extern int _nrrdCC_maxid(Nrrd *nin);
 extern int _nrrdCC_settle(int *map, int len);
 extern int _nrrdCC_eclass(int *map, int len, airArray *eqvArr);
 

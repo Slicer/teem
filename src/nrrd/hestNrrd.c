@@ -22,6 +22,14 @@
 
 /* ---------------------------- Nrrd ----------------------------- */
 
+/*
+** _nrrdHestNrrdParse()
+**
+** Converts a filename into a nrrd for the sake of hest.
+** There is no HestMaybeNrrdParse because this already does that:
+** when we get an empty string, we give back a NULL pointer, and
+** that is just fine
+*/
 int
 _nrrdHestNrrdParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[] = "_nrrdHestNrrdParse", *nerr;
