@@ -1146,7 +1146,7 @@ int
 nrrdKernelParse(NrrdKernel **kernelP, double *parm, const char *_str) {
   char me[]="nrrdKernelParse", err[128], str[AIR_STRLEN_HUGE],
     kstr[AIR_STRLEN_MED], *_pstr=NULL, *pstr;
-  int i, j, NP;
+  int i, j, NP, tmfD, tmfC, tmfA;
   
   if (!(kernelP && parm && _str)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -1162,44 +1162,70 @@ nrrdKernelParse(NrrdKernel **kernelP, double *parm, const char *_str) {
   }
   strcpy(kstr, str);
   airToLower(kstr);
-  if (!(*kernelP = _nrrdKernelStrToKern(kstr))) {
-    sprintf(err, "%s: kernel \"%s\" not recognized", me, kstr);
-    biffAdd(NRRD, err); return 1;
-  }
-  NP = (*kernelP)->numParm;
-  for (i=0; i<NP; i++) {
-    if (!pstr)
-      break;
-    if (1 != sscanf(pstr, "%lg", parm+i)) {
-      sprintf(err, "%s: trouble parsing \"%s\" (in \"%s\")", me, _pstr, _str);
+  /* first see if its a TMF, then try parsing it as the other stuff */
+  if (kstr == strstr(kstr, "tmf")) {
+    if (3 != sscanf(pstr, "%d,%d,%d", &tmfD, &tmfC, &tmfA)) {
+      sprintf(err, "%s: TMF kernels require 3 int arguments D, C, A "
+	      "in the form tmf:D,C,A", me);
       biffAdd(NRRD, err); return 1;
     }
-    if ((pstr = strchr(pstr, ','))) {
-      pstr++;
-      if (!*pstr) {
-	sprintf(err, "%s: nothing after last comma in \"%s\" (in \"%s\")",
-		me, _pstr, _str);
+    if (!AIR_IN_CL(0, tmfD, nrrdKernelTMF_maxD)) {
+      sprintf(err, "%s: derivative value %d outside range [0,%d]",
+	      me, tmfD, nrrdKernelTMF_maxD);
+      biffAdd(NRRD, err); return 1;
+    }
+    if (!AIR_IN_CL(0, tmfC, nrrdKernelTMF_maxC)) {
+      sprintf(err, "%s: continuity value %d outside range [0,%d]",
+	      me, tmfD, nrrdKernelTMF_maxC);
+      biffAdd(NRRD, err); return 1;
+    }
+    if (!AIR_IN_CL(0, tmfA, nrrdKernelTMF_maxA)) {
+      sprintf(err, "%s: accuracty value %d outside range [0,%d]",
+	      me, tmfD, nrrdKernelTMF_maxA);
+      biffAdd(NRRD, err); return 1;
+    }
+    parm[0] = 1.0;
+    *kernelP = nrrdKernelTMF[tmfD][tmfC][tmfA];
+  } else {
+    if (!(*kernelP = _nrrdKernelStrToKern(kstr))) {
+      sprintf(err, "%s: kernel \"%s\" not recognized", me, kstr);
+      biffAdd(NRRD, err); return 1;
+    }
+    NP = (*kernelP)->numParm;
+    for (i=0; i<NP; i++) {
+      if (!pstr)
+	break;
+      if (1 != sscanf(pstr, "%lg", parm+i)) {
+	sprintf(err, "%s: trouble parsing \"%s\" (in \"%s\")", me, _pstr, _str);
 	biffAdd(NRRD, err); return 1;
       }
+      if ((pstr = strchr(pstr, ','))) {
+	pstr++;
+	if (!*pstr) {
+	  sprintf(err, "%s: nothing after last comma in \"%s\" (in \"%s\")",
+		  me, _pstr, _str);
+	  biffAdd(NRRD, err); return 1;
+	}
+      }
     }
-  }
-  if (i < NP-1) {
-    sprintf(err, "%s: couldn't parse needed %d doubles "
-	    "from \"%s\" (in \"%s\")",
-	    me, NP-1, _pstr, _str);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (i == NP-1) {
-    /* shift up parsed values, and set parm[0] to default */
-    for (j=NP-1; j>=1; j--) {
-      parm[j] = parm[j-1];
-    }
-    parm[0] = nrrdDefKernelParm0;
-  } else {
-    if (pstr) {
-      sprintf(err, "%s: \"%s\" (in \"%s\") has more than %d doubles",
-	      me, _pstr, _str, NP);
+    if (i < NP-1) {
+      sprintf(err, "%s: couldn't parse needed %d doubles "
+	      "from \"%s\" (in \"%s\")",
+	      me, NP-1, _pstr, _str);
       biffAdd(NRRD, err); return 1;
+    }
+    if (i == NP-1) {
+      /* shift up parsed values, and set parm[0] to default */
+      for (j=NP-1; j>=1; j--) {
+	parm[j] = parm[j-1];
+      }
+      parm[0] = nrrdDefKernelParm0;
+    } else {
+      if (pstr) {
+	sprintf(err, "%s: \"%s\" (in \"%s\") has more than %d doubles",
+		me, _pstr, _str, NP);
+	biffAdd(NRRD, err); return 1;
+      }
     }
   }
   return 0;
