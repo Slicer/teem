@@ -47,7 +47,9 @@ tenValidTensor(Nrrd *nin, int wantType, int useBiff) {
   }
   if (wantType) {
     if (nin->type != wantType) {
-      sprintf(err, "%s: wanted type %d, got type %d", me, wantType, nin->type);
+      sprintf(err, "%s: wanted type %s, got type %s", me,
+	      airEnumStr(nrrdType, wantType),
+	      airEnumStr(nrrdType, nin->type));
       if (useBiff) biffAdd(TEN, err); return 0;
     }
   }

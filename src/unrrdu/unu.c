@@ -201,8 +201,7 @@ unuLooksLikeANumber(char *str) {
       AIR_INSIDE(0, count[3], 1) &&
       count[4] == 0) {
     return AIR_TRUE;
-  }
-  else {
+  } else {
     return AIR_FALSE;
   }
 }
@@ -239,7 +238,11 @@ unuParseNrrdIter(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
      improved smarts about this matter, they need to be implemented
      below and nowhere else. */
 
-  if ((ret = nrrdLoad(nrrd = nrrdNew(), str))) {
+  ret = nrrdLoad(nrrd = nrrdNew(), str);
+  if (!ret) {
+    /* first attempt at nrrdLoad() was SUCCESSFUL */
+    nrrdIterSetNrrd(*iterP, nrrd);
+  } else {
     /* so it didn't load as a nrrd- if its because fopen() failed,
        then we'll try it as a number.  If its for another reason,
        then we complain */
@@ -248,40 +251,32 @@ unuParseNrrdIter(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
       nerr = biffGetDone(NRRD);
       strncpy(err, nerr, AIR_STRLEN_HUGE-1);
       return 1;
-    }
-    else {
+    } else {
       /* fopen() failed, so it probably wasn't meant to be a filename */
       free(biffGetDone(NRRD));
       if (unuLooksLikeANumber(str)) {
 	/* printf("|%s| looks like a number\n", str); */
 	if (1 == airSingleSscanf(str, "%lf", &val)) {
 	  nrrdIterSetValue(*iterP, val);
-	}
-	else {
+	} else {
 	  /* oh, this is bad. */
 	  fprintf(stderr, "%s: PANIC, is it a number or not?", me);
 	  exit(1);
 	}
-      }
-      else {
+      } else {
 	/* it doesn't look like a number, but the fopen failed, so
 	   we'll let it fail again and pass back the error messages */
 	if (nrrdLoad(nrrd = nrrdNew(), str)) {
 	  nerr = biffGetDone(NRRD);
 	  strncpy(err, nerr, AIR_STRLEN_HUGE-1);
 	  return 1;
-	}
-	else {
+	} else {
 	  /* what the hell? */
 	  fprintf(stderr, "%s: PANIC, is it a nrrd or not?", me);
 	  exit(1);
 	}
       }
     }
-  }
-  else {
-    /* first attempt at nrrdLoad() was SUCCESSFUL */
-    nrrdIterSetNrrd(*iterP, nrrd);
   }
   airMopAdd(mop, iterP, (airMopper)airSetNull, airMopOnError);
   airMopOkay(mop);
@@ -320,8 +315,7 @@ unuParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
       sprintf(err, "%s: can't parse \"%s\" as M+<int> or M-<int>", me, str);
       return 1;
     }
-  }
-  else {
+  } else {
     pos[0] = 0;
     if (1 != sscanf(str, "%d", pos + 1)) {
       sprintf(err, "%s: can't parse \"%s\" as int", me, str);
@@ -352,8 +346,7 @@ unuParseMaybeType(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   typeP = ptr;
   if (!strcmp("unknown", str)) {
     *typeP = nrrdTypeUnknown;
-  }
-  else {
+  } else {
     *typeP = airEnumVal(nrrdType, str);
     if (nrrdTypeUnknown == *typeP) {
       sprintf(err, "%s: can't parse \"%s\" as type", me, str);
@@ -438,8 +431,7 @@ main(int argc, char **argv) {
     /* cleanup */
     free(argv0);
     hestParmFree(hparm);
-  }
-  else {
+  } else {
     fprintf(stderr, "%s: unrecognized command: \"%s\"\n", argv[0], argv[1]);
     usage(UNU);
   }
