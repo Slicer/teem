@@ -177,8 +177,8 @@ ell_3m_2d_nullspace_d(double ans0[3], double ans1[3], double _n[9]) {
 */
 int
 ell_3m_eigenvalues_d(double _eval[3], double _m[9], int newton) {
-  double A, B, C, scale, frob, m[9], eval[3];
-  int ret;
+  double A, B, C, scale, frob, m[9], eval[3], tmp;
+  int roots;
 
   frob = ELL_3M_FROB(_m);
   scale = frob > 10 ? 10.0/frob : 1.0;
@@ -195,9 +195,13 @@ ell_3m_eigenvalues_d(double _eval[3], double _m[9], int newton) {
   C = (m[2]*m[4] - m[1]*m[5])*m[6]
     + (m[0]*m[5] - m[2]*m[3])*m[7]
     + (m[1]*m[3] - m[0]*m[4])*m[8];
-  ret = ell_cubic(eval, A, B, C, newton);
+  roots = ell_cubic(eval, A, B, C, newton);
+  if (ell_cubic_root_three == roots 
+      || ell_cubic_root_single_double == roots) {
+    ELL_SORT3(eval[0], eval[1], eval[2], tmp);
+  }
   ELL_3V_SCALE(_eval, 1.0/scale, eval);
-  return ret;
+  return roots;
 }
 
 /*
