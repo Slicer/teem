@@ -17,8 +17,8 @@
 
 
 #include <stdio.h>
-#include "air.h"
-#include "hest.h"
+#include <air.h>
+#include "../hest.h"
 
 int
 parse(void *_ptr, char *str, char *err) {
@@ -49,9 +49,9 @@ main(int argc, char **argv) {
   char *err = NULL;
 
   hestOptAdd(&opt, "A",     "x,y",               airTypeOther, 1,  1, single, 
-	     "30,50",       "testing A",         NULL,         &cbinfo);
+	     "30,50",       "testing A",         NULL,  NULL,  &cbinfo);
   hestOptAdd(&opt, "B",     "x1,y1 x2,y2 x3,y3", airTypeOther, 3,  3, triple,
-	     "1,2 3,4 5,6", "testing B",         NULL,         &cbinfo);
+	     "1,2 3,4 5,6", "testing B",         NULL,  NULL,  &cbinfo);
   hestOptAdd(&opt, "C",     "mx,my",             airTypeOther, 0,  1, maybe,
 	     "-0.1,-0.2",   "testing C. The utility of this can be better "
 	     "demonstrated in the following manner:\n "
@@ -59,9 +59,9 @@ main(int argc, char **argv) {
 	     "- put the dishes in the cupboard\n "
 	     "- watch football on TV\n "
 	     "- remember to walk the dog",
-	     NULL,         &cbinfo);
+	     NULL,  NULL,   &cbinfo);
   hestOptAdd(&opt, "D",     "nx,ny",             airTypeOther, 1, -1, &many,
-	     "8,8 7,7",     "testing D",         &howMany,     &cbinfo);
+	     "8,8 7,7",     "testing D",         &howMany,     NULL, &cbinfo);
   hestOptAdd(&opt, "int",    "N",                airTypeInt,   1,  1, &N,
 	     NULL,           "an integer");
   

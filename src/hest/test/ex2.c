@@ -17,8 +17,8 @@
 
 
 #include <stdio.h>
-#include "air.h"
-#include "hest.h"
+#include <air.h>
+#include "../hest.h"
 
 int
 main(int argc, char **argv) {
