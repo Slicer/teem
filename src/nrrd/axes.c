@@ -111,7 +111,10 @@ nrrdAxesCopy(Nrrd *nout, Nrrd *nin, int *map, int bitflag) {
   }
   if (map) {
     for (d=0; d<nout->dim; d++) {
-      if (!AIR_INSIDE(-1, map[d], nin->dim-1)) {
+      if (-1 == map[d]) {
+	continue;
+      }
+      if (!AIR_INSIDE(0, map[d], nin->dim-1)) {
 	return 3;
       }
     }
