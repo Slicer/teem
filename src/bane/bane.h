@@ -394,7 +394,8 @@ F(scat) \
 F(info) \
 F(pvg) \
 F(opac) \
-F(mite)
+F(mite) \
+F(txf)
 BANE_GKMS_MAP(BANE_GKMS_DECLARE)
 extern bane_export airEnum *baneGkmsMeasr;
 extern bane_export unrrduCmd *baneGkmsCmdList[]; 

@@ -50,7 +50,7 @@ $(L).PRIVATE_HEADERS = privateBane.h
 $(L).OBJS = defaultsBane.o range.o inc.o clip.o measr.o valid.o \
 	methodsBane.o trnsf.o scat.o hvol.o trex.o \
 	gkmsHvol.o gkmsScat.o gkmsInfo.o gkmsPvg.o gkmsOpac.o \
-	gkmsMite.o gkmsFlotsam.o
+	gkmsMite.o gkmsFlotsam.o gkmsTxf.o
 $(L).TESTS = test/tinfo test/sigma test/pos \
 	test/opac test/tblah
 ####
