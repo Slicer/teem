@@ -37,9 +37,9 @@
 ** the teem version number and release date.  Originated in version 1.5.
 */
 const char *
-airTeemVersion = "1.7";
+airTeemVersion = "1.8 pre-release";
 const char *
-airTeemReleaseDate = "17 May 2004";
+airTeemReleaseDate = "XX XXX 2004";
 
 /*
 ******** airNull()
