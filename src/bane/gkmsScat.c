@@ -37,7 +37,7 @@ baneGkms_scatMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret, E;
   double gamma;
 
-  hestOptAdd(&opt, "g", "gamma", airTypeDouble, 1, 1, &gamma, "1.4",
+  hestOptAdd(&opt, "g", "gamma", airTypeDouble, 1, 1, &gamma, "1.0",
 	     "gamma used to brighten/darken scatterplots. "
 	     "gamma > 1.0 brightens; gamma < 1.0 darkens. "
 	     "Negative gammas invert values (like in xv). ");

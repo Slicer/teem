@@ -35,10 +35,10 @@ int
 baneDefPercHistBins = 1024;
 
 int
-baneStateHistEqBins = 1024;
+baneStateHistEqBins = 4096;
 
 int
-baneStateHistEqSmart = 1;
+baneStateHistEqSmart = 2;
 
 int
 baneHack = 0;

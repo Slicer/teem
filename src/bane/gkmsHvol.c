@@ -26,7 +26,7 @@ char *_baneGkms_hvolInfoL =
    ".  The histogram volume is a three-dimensional histogram recording "
    "the relationship between data value, gradient magnitude, and the "
    "second directional derivative along the gradient direction.  Creating "
-   "it is the first step in transfer function generation.  ");
+   "it is the first step in semi-automatic transfer function generation.  ");
 
 int
 baneGkms_hvolMain(int argc, char **argv, char *me, hestParm *hparm) {
