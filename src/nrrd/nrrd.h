@@ -334,6 +334,7 @@ extern nrrd_export airEnum *nrrdTernaryOp;
 /* arraysNrrd.c */
 extern nrrd_export char nrrdTypeConv[][AIR_STRLEN_SMALL];
 extern nrrd_export int nrrdEncodingEndianMatters[];
+extern nrrd_export int nrrdEncodingCompression[];
 extern nrrd_export int nrrdTypeSize[];
 extern nrrd_export int nrrdTypeFixed[];
 extern nrrd_export int nrrdTypeUnsigned[];
@@ -418,7 +419,7 @@ extern size_t nrrdElementNumber(Nrrd *nrrd);
 extern int nrrdHasNonExistSet(Nrrd *nrrd);
 extern int nrrdSanity(void);
 extern int nrrdSameSize(Nrrd *n1, Nrrd *n2, int useBiff);
-extern int nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff);
+extern int nrrdFitsInFormat(Nrrd *nrrd, int encoding, int format, int useBiff);
 
 /******** comments related */
 /* comment.c */
