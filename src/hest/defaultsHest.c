@@ -18,7 +18,7 @@
 */
 
 #include "hest.h"
-#include "private.h"
+#include "privateHest.h"
 
 int hestVerbosity = 0;
 int hestRespFileEnable = AIR_FALSE;

@@ -45,7 +45,7 @@ enum {
   ellCubicRootLast             /* 5 */
 };
 
-/* misc.c */
+/* miscEll.c */
 extern int ellDebug;
 extern void ell3mPrint_f(FILE *f, float s[9]);
 extern void ell3vPrint_f(FILE *f, float s[3]);
@@ -56,7 +56,7 @@ extern void ell4vPrint_f(FILE *f, float s[4]);
 extern void ell4mPrint_d(FILE *f, double s[16]);
 extern void ell4vPrint_d(FILE *f, double s[4]);
 
-/* vec.c */
+/* vecEll.c */
 extern void ell3vPerp_f(float p[3], float v[3]);
 extern void ell3vPerp_d(double p[3], double v[3]);
 extern void ell3mvMul_f(float v2[3], float m[9], float v1[3]);

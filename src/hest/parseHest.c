@@ -24,7 +24,7 @@ twice with differen values
 */
 
 #include "hest.h"
-#include "private.h"
+#include "privateHest.h"
 
 #define ME ((parm && parm->verbosity) ? me : "")
 

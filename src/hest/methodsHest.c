@@ -18,7 +18,7 @@
 */
 
 #include "hest.h"
-#include "private.h"
+#include "privateHest.h"
 #include <limits.h>
 
 hestParm *

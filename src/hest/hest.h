@@ -144,7 +144,7 @@ typedef struct {
 			   behavior entirely. */
 } hestParm;
 
-/* defaults.c */
+/* defaultsHest.c */
 extern int hestVerbosity;
 extern int hestRespFileEnable;
 extern int hestElideSingleEnumType;
@@ -159,7 +159,7 @@ extern char hestRespFileComment;
 extern char hestVarParamStopFlag;
 extern char hestMultiFlagSep;
 
-/* methods.c */
+/* methodsHest.c */
 extern hestParm *hestParmNew(void);
 extern hestParm *hestParmFree(hestParm *parm);
 extern void hestOptAdd(hestOpt **optP, 
@@ -170,7 +170,7 @@ extern void hestOptAdd(hestOpt **optP,
 extern hestOpt *hestOptFree(hestOpt *opt);
 extern int hestOptCheck(hestOpt *opt, char **errP);
 
-/* parse.c */
+/* parseHest.c */
 extern int hestParse(hestOpt *opt, int argc, char **argv,
 		     char **errP, hestParm *parm);
 extern void *hestParseFree(hestOpt *opt);

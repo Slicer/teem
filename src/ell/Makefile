@@ -20,7 +20,7 @@
 
 TEEM_LIB = ell
 HEADERS = ell.h ellMacros.h
-TEEM_LIB_OBJS = cubic.o eigen.o misc.o vec.o mat.o
+TEEM_LIB_OBJS = cubic.o eigen.o miscEll.o vecEll.o mat.o
 TEST_BINS = test/sort3 test/cubic
 TEEM_BINS = 
 TEEM_BIN_LIBS = -lell -lbiff -lair -lm

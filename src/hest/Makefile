@@ -20,8 +20,8 @@
 
 TEEM_LIB = hest
 HEADERS = hest.h
-PRIV_HEADERS = private.h
-TEEM_LIB_OBJS = defaults.o methods.o usage.o parse.o
+PRIV_HEADERS = privateHest.h
+TEEM_LIB_OBJS = defaultsHest.o methodsHest.o usage.o parseHest.o
 TEST_BINS = test/ex0 test/ex1 test/ex2 test/ex3 test/ex4 test/ex5 \
 	test/strings
 TEEM_BIN_LIBS = -lhest -lair -lm
