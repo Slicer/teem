@@ -41,10 +41,14 @@ extern "C" {
 
 #define ECHO "echo"
 
-#if 0
+/* all position and transform information is kept as ...
+** 1: floats
+** 0: doubles
+*/
+#if 1
 typedef float echoPos_t;
-#define echoPos_nrrdType nrrdTypeFloat
-#define echoPos_airType airTypeFloat
+#define echoPos_nt nrrdTypeFloat
+#define echoPos_at airTypeFloat
 #define ell4mInvert_p ell4mInvert_f
 #define ell4mPrint_p ell4mPrint_f
 #define ell4mDet_p ell4mDet_f
@@ -52,8 +56,8 @@ typedef float echoPos_t;
 #define ECHO_POS_MAX FLT_MAX
 #else 
 typedef double echoPos_t;
-#define echoPos_nrrdType nrrdTypeDouble
-#define echoPos_airType airTypeDouble
+#define echoPos_nt nrrdTypeDouble
+#define echoPos_at airTypeDouble
 #define ell4mInvert_p ell4mInvert_d
 #define ell4mPrint_p ell4mPrint_d
 #define ell4mDet_p ell4mDet_d
@@ -61,12 +65,16 @@ typedef double echoPos_t;
 #define ECHO_POS_MAX DBL_MAX
 #endif
 
+/* all color information is kept as 
+** 1: floats
+** 0: doubles
+*/
 #if 1
 typedef float echoCol_t;
-#define echoCol_nrrdType nrrdTypeFloat
+#define echoCol_nt nrrdTypeFloat
 #else
 typedef double echoCol_t;
-#define echoCol_nrrdType nrrdTypeDouble
+#define echoCol_nt nrrdTypeDouble
 #endif
 
 #define ECHO_AABBOX_OBJECT_MAX 8
@@ -99,7 +107,7 @@ typedef struct {
   echoCol_t
     bgR, bgG, bgB;     /* background color */
   float gamma;         /* display device gamma */
-} EchoParm;
+} EchoRTParm;
 
 typedef struct {
   double time;         /* time to render image */
@@ -114,20 +122,33 @@ typedef struct {
   echoCol_t *chanBuff; /* for storing individual sample colors */
 } EchoThreadState;
 
+/*
+******** echoJitter* enum
+** 
+** the different jitter patterns that are supported.  This setting is
+** global- you can't have different jitter patterns on the lights versus
+** the pixels.
+*/
 enum {
   echoJitterUnknown,
   echoJitterNone,       /* 1: N samples all at the square center */
-  echoJitterGrid,       /* 2: N samples exactly on a sqrt(N) x sqrt(n) grid */
-  echoJitterJitter,     /* 3: N jittered samples on a sqrt(N) x sqrt(n) grid */
+  echoJitterGrid,       /* 2: N samples exactly on a sqrt(N) x sqrt(N) grid */
+  echoJitterJitter,     /* 3: N jittered samples on a sqrt(N) x sqrt(N) grid */
   echoJitterRandom,     /* 4: N samples randomly placed in square */
   echoJitterLast
 };
 #define ECHO_JITTER_MAX    4
 
+/*
+******** echoSample* enum
+**
+** the different quantities to which the jitter two-vector may be
+** applied.  
+*/
 enum {
   echoSampleUnknown = -1,
   echoSamplePixel,      /* 0 */
-  echoSampleAreaLight,  /* 1 */
+  echoSampleLight,      /* 1 */
   echoSampleLens,       /* 2 */
   echoSampleNormalA,    /* 3 */
   echoSampleNormalB,    /* 4 */
@@ -137,6 +158,14 @@ enum {
 };
 #define ECHO_SAMPLE_NUM    6
 
+/*
+******** echoMatter* enum
+**
+** the different materials that are supported.  This setting determines
+** the interpretation of the vector of floats/doubles that constitutes
+** the material information.  The Light material is only supported on
+** rectangles.
+*/
 enum {
   echoMatterUnknown,
   echoMatterPhong,      /* 1 */
@@ -148,29 +177,26 @@ enum {
 #define ECHO_MATTER_MAX    4
 
 enum {
-  echoMatterR,          /* 0 */
-  echoMatterG,          /* 1 */
-  echoMatterB,          /* 2 */
-  echoMatterKa,         /* 3 */
+  echoMatterPhongKa,    /* 0 */
+  echoMatterPhongKd,    /* 1 */
+  echoMatterPhongKs,    /* 2 */
+  echoMatterPhongSh,    /* 3 */
 };
 enum {
-  echoMatterPhongKd      = 4,
-  echoMatterPhongKs,    /* 5 */
-  echoMatterPhongSh,    /* 6 */
-  echoMatterPhongAlpha  /* 7 */
+  echoMatterGlassIndex, /* 0 */
+  echoMatterGlassKd,    /* 1 */
+  echoMatterGlassFuzzy  /* 2 */
 };
 enum {
-  echoMatterGlassIndex   = 4,
-  echoMatterGlassKd,    /* 5 */
-  echoMatterGlassFuzzy  /* 6 */
+  echoMatterMetalR0,    /* 0 */
+  echoMatterMetalKd,    /* 1 */
+  echoMatterMetalFuzzy  /* 2 */
 };
 enum {
-  echoMatterMetalR0      = 4,
-  echoMatterMetalKd,    /* 5 */
-  echoMatterMetalFuzzy  /* 6 */
+  echoMatterLightPower
 };
 
-#define ECHO_MATTER_VALUE_NUM 8
+#define ECHO_MATTER_VALUE_NUM 4
 
 /* enumsEcho.c ------------------------------------------ */
 extern echo_export airEnum *echoJitter_ae;
@@ -201,9 +227,11 @@ enum {
 /* function: me, k, intx --> lit color */
 
 #define ECHO_OBJECT_COMMON              \
-  int type
+  unsigned char type
+
 #define ECHO_OBJECT_MATTER              \
-  int matter;                           \
+  unsigned char matter;                 \
+  echoCol_t rgba[4];                    \
   echoCol_t mat[ECHO_MATTER_VALUE_NUM]; \
   Nrrd *ntext
 
@@ -215,28 +243,33 @@ typedef struct {
 } EchoObject;
 
 typedef struct {
-  ECHO_OBJECT_COMMON; ECHO_OBJECT_MATTER;
+  ECHO_OBJECT_COMMON;
+  ECHO_OBJECT_MATTER;
   echoPos_t pos[3], rad;
 } EchoSphere;
 
 typedef struct {
-  ECHO_OBJECT_COMMON; ECHO_OBJECT_MATTER;
+  ECHO_OBJECT_COMMON;
+  ECHO_OBJECT_MATTER;
 } EchoCube;
 
 typedef struct {
-  ECHO_OBJECT_COMMON; ECHO_OBJECT_MATTER;
+  ECHO_OBJECT_COMMON;
+  ECHO_OBJECT_MATTER;
   echoPos_t vert[3][3];  /* e0 = vert[1]-vert[0],
 			    e1 = vert[2]-vert[0],
 			    normal = e0 x e1 */
 } EchoTriangle;
 
 typedef struct {
-  ECHO_OBJECT_COMMON; ECHO_OBJECT_MATTER;
+  ECHO_OBJECT_COMMON;
+  ECHO_OBJECT_MATTER;
   echoPos_t origin[3], edge0[3], edge1[3], area;
 } EchoRectangle;
 
 typedef struct {
-  ECHO_OBJECT_COMMON; ECHO_OBJECT_MATTER;
+  ECHO_OBJECT_COMMON;
+  ECHO_OBJECT_MATTER;
   echoPos_t origin[3], min[3], max[3];
   int numV, numF;
   echoPos_t *pos;
@@ -244,7 +277,8 @@ typedef struct {
 } EchoTriMesh;
 
 typedef struct {
-  ECHO_OBJECT_COMMON; ECHO_OBJECT_MATTER;
+  ECHO_OBJECT_COMMON;
+  ECHO_OBJECT_MATTER;
   Nrrd *volume;
   float value;
 } EchoIsosurface;
@@ -278,10 +312,10 @@ typedef struct {
   EchoObject *obj;
 } EchoInstance;
 
-extern EchoObject *echoNew(int type);
+extern EchoObject *echoNew(unsigned char type);
 extern EchoObject *echoNix(EchoObject *obj);
 extern EchoObject *echoNuke(EchoObject *obj);
-extern void echoBounds(echoPos_t *lo, echoPos_t *hi, EchoObject *obj);
+extern void echoBoundsGet(echoPos_t *lo, echoPos_t *hi, EchoObject *obj);
 extern int echoIsContainer(EchoObject *obj);
 extern void echoListAdd(EchoObject *parent, EchoObject *child);
 extern EchoObject *echoListSplit(EchoObject *list, int axis);
@@ -289,67 +323,25 @@ extern EchoObject *echoListSplit3(EchoObject *list, int depth);
 extern void echoSphereSet(EchoObject *sphere,
 			  echoPos_t x, echoPos_t y,
 			  echoPos_t z, echoPos_t rad);
-extern void echoRectangleSet(EchoObject *_rect,
+extern void echoRectangleSet(EchoObject *rect,
 			     echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
 			     echoPos_t x0, echoPos_t y0, echoPos_t z0,
 			     echoPos_t x1, echoPos_t y1, echoPos_t z1);
-extern void echoTriangleSet(EchoObject *_tri,
+extern void echoTriangleSet(EchoObject *tri,
 			    echoPos_t x0, echoPos_t y0, echoPos_t z0, 
 			    echoPos_t x1, echoPos_t y1, echoPos_t z1, 
 			    echoPos_t x2, echoPos_t y2, echoPos_t z2);
-extern void echoTriMeshSet(EchoObject *_trim,
+extern void echoTriMeshSet(EchoObject *trim,
 			   int numV, echoPos_t *pos,
 			   int numF, int *vert);
-extern void echoInstanceSet(EchoObject *_inst,
+extern void echoInstanceSet(EchoObject *inst,
 			    echoPos_t *M, EchoObject *obj, int own);
 extern EchoObject *echoRoughSphere(int theRes, int phiRes,
 				   echoPos_t *matx);
 
-/* lightEcho.c ---------------------------------------- */
-
-enum {
-  echoLightUnknown,
-  echoLightDirectional, /* 1 */
-  echoLightArea,        /* 2 */
-  echoLightLast
-};
-#define ECHO_LIGHT_MAX     2
-
-#define ECHO_LIGHT_COMMON \
-  int type                \
-
-typedef struct {
-  ECHO_LIGHT_COMMON;
-} EchoLight_;
-
-typedef struct {
-  ECHO_LIGHT_COMMON;
-  echoCol_t col[3];
-  echoPos_t dir[3];          /* either the position of the light
-				relative to the origin, or the
-				direction TOWARDS the light;
-				normalized by echoLightDirectionalSet */
-} EchoLightDirectional;
-
-typedef struct {
-  ECHO_LIGHT_COMMON;
-  EchoObject *obj;
-  /* ??? */
-} EchoLightArea;
-
-extern EchoLight_ *echoLightNew(int type);
-extern EchoLight_ *echoLightNix(EchoLight_ *light);
-extern airArray *echoLightArrayNew();
-extern void echoLightArrayAdd(airArray *lightArr, EchoLight_ *light);
-extern airArray *echoLightArrayNix(airArray *lightArr);
-extern void echoLightDirectionalSet(EchoLight_ *light,
-				    echoCol_t r, echoCol_t g, echoCol_t b,
-				    echoPos_t x, echoPos_t y, echoPos_t z);
-extern void echoLightAreaSet(EchoLight_ *light, EchoObject *obj);
-
 /* methodsEcho.c --------------------------------------- */
-extern EchoParm *echoParmNew();
-extern EchoParm *echoParmNix(EchoParm *parm);
+extern EchoRTParm *echoRTParmNew();
+extern EchoRTParm *echoRTParmNix(EchoRTParm *parm);
 extern EchoGlobalState *echoGlobalStateNew();
 extern EchoGlobalState *echoGlobalStateNix(EchoGlobalState *state);
 extern EchoThreadState *echoThreadStateNew();
@@ -382,33 +374,33 @@ typedef struct {
     boxhits;            /* how many bounding boxes we hit */
 } EchoIntx;
 
-extern int echoComposite(Nrrd *nimg, Nrrd *nraw, EchoParm *parm);
-extern int echoPPM(Nrrd *nppm, Nrrd *nimg, EchoParm *parm);
+extern int echoComposite(Nrrd *nimg, Nrrd *nraw, EchoRTParm *parm);
+extern int echoPPM(Nrrd *nppm, Nrrd *nimg, EchoRTParm *parm);
 extern int echoThreadStateInit(EchoThreadState *tstate,
-			       EchoParm *parm, EchoGlobalState *gstate);
-extern void echoJitterSet(EchoParm *parm, EchoThreadState *state);
-extern int echoRender(Nrrd *nraw, limnCam *cam,
-		      EchoParm *parm, EchoGlobalState *gstate,
-		      EchoObject *scene, airArray *lightArr);
+			       EchoRTParm *parm, EchoGlobalState *gstate);
+extern void echoJitterCompute(EchoRTParm *parm, EchoThreadState *state);
+extern int echoRTRender(Nrrd *nraw, limnCam *cam,
+			EchoRTParm *parm, EchoGlobalState *gstate,
+			EchoObject *scene, airArray *lightArr);
 
 /* intx.c ------------------------------------------- */
 extern void echoRayColor(echoCol_t *chan, int samp, EchoRay *ray,
-			 EchoParm *parm, EchoThreadState *tstate,
+			 EchoRTParm *parm, EchoThreadState *tstate,
 			 EchoObject *scene, airArray *lightArr);
 
 /* color.c ------------------------------------------ */
+extern void echoMatterColorSet(EchoObject *obj,
+			       echoCol_t R, echoCol_t G, echoCol_t B,
+			       echoCol_t A);
 extern void echoMatterPhongSet(EchoObject *obj,
-			       echoCol_t r, echoCol_t g, echoCol_t b,
-			       echoCol_t a, echoCol_t ka, echoCol_t kd,
+			       echoCol_t ka, echoCol_t kd,
 			       echoCol_t ks, echoCol_t sh);
 extern void echoMatterGlassSet(EchoObject *obj,
-			       echoCol_t r, echoCol_t g, echoCol_t b,
 			       echoCol_t index, echoCol_t kd, echoCol_t fuzzy);
 extern void echoMatterMetalSet(EchoObject *obj,
-			       echoCol_t r, echoCol_t g, echoCol_t b,
 			       echoCol_t R0, echoCol_t kd, echoCol_t fuzzy);
 extern void echoMatterLightSet(EchoObject *obj,
-			       echoCol_t r, echoCol_t g, echoCol_t b);
+			       echoCol_t power);
 extern void echoMatterTextureSet(EchoObject *obj, Nrrd *ntext);
 
 #ifdef __cplusplus
@@ -416,3 +408,4 @@ extern void echoMatterTextureSet(EchoObject *obj, Nrrd *ntext);
 #endif
 
 #endif /* ECHO_HAS_BEEN_INCLUDED */
+

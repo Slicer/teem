@@ -52,7 +52,7 @@ _dyeHSVtoRGB(float *R, float *G, float *B,
 }
 
 void
-makeSceneDOF(limnCam *cam, EchoParm *parm,
+makeSceneDOF(limnCam *cam, EchoRTParm *parm,
 	     EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *scene, *rect;
   Nrrd *ntext;
@@ -121,7 +121,7 @@ makeSceneDOF(limnCam *cam, EchoParm *parm,
 
   
 void
-makeSceneAntialias(limnCam *cam, EchoParm *parm,
+makeSceneAntialias(limnCam *cam, EchoRTParm *parm,
 		   EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *scene, *rect;
   Nrrd *ntext;
@@ -165,7 +165,7 @@ makeSceneAntialias(limnCam *cam, EchoParm *parm,
 }
 
 void
-makeSceneSimple(limnCam *cam, EchoParm *parm,
+makeSceneSimple(limnCam *cam, EchoRTParm *parm,
 		EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *scene, *tri, *rect, *sphere;
   EchoLight_ *light;
@@ -264,7 +264,7 @@ makeSceneSimple(limnCam *cam, EchoParm *parm,
 }
 
 void
-makeSceneTexture(limnCam *cam, EchoParm *parm,
+makeSceneTexture(limnCam *cam, EchoRTParm *parm,
 		  EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *scene, /* *trim, */ *rect, /* *inst, */ *sphere;
   EchoLight_ *light;
@@ -342,7 +342,7 @@ makeSceneTexture(limnCam *cam, EchoParm *parm,
 }
 
 void
-makeSceneInstance(limnCam *cam, EchoParm *parm,
+makeSceneInstance(limnCam *cam, EchoRTParm *parm,
 		  EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *scene, *trim, *rect, *inst;
   EchoLight_ *light;
@@ -457,7 +457,7 @@ makeSceneInstance(limnCam *cam, EchoParm *parm,
 
 
 void
-makeSceneBVH(limnCam *cam, EchoParm *parm,
+makeSceneBVH(limnCam *cam, EchoRTParm *parm,
 	     EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *sphere;
   int i, N;
@@ -510,7 +510,7 @@ makeSceneBVH(limnCam *cam, EchoParm *parm,
 }
 
 void
-makeSceneGlass(limnCam *cam, EchoParm *parm,
+makeSceneGlass(limnCam *cam, EchoRTParm *parm,
 	       EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *cube, *rect;
   EchoLight_ *light;
@@ -570,7 +570,7 @@ makeSceneGlass(limnCam *cam, EchoParm *parm,
 }
 
 void
-makeSceneGlass2(limnCam *cam, EchoParm *parm,
+makeSceneGlass2(limnCam *cam, EchoRTParm *parm,
 		EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *cube, *rect;
   EchoLight_ *light;
@@ -635,7 +635,7 @@ makeSceneGlass2(limnCam *cam, EchoParm *parm,
 }
 
 void
-makeSceneGlassMetal(limnCam *cam, EchoParm *parm,
+makeSceneGlassMetal(limnCam *cam, EchoRTParm *parm,
 		    EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *sphere, *cube, *rect;
   EchoLight_ *light;
@@ -735,7 +735,7 @@ makeSceneGlassMetal(limnCam *cam, EchoParm *parm,
 }
 
 void
-makeSceneShadow(limnCam *cam, EchoParm *parm,
+makeSceneShadow(limnCam *cam, EchoRTParm *parm,
 		EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *sphere, *rect, *tri;
   EchoLight_ *light;
@@ -828,7 +828,7 @@ makeSceneShadow(limnCam *cam, EchoParm *parm,
 }
 
 void
-makeSceneRainLights(limnCam *cam, EchoParm *parm,
+makeSceneRainLights(limnCam *cam, EchoRTParm *parm,
 		    EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *sphere, *rect;
   EchoLight_ *light;
@@ -895,7 +895,7 @@ int
 main(int argc, char **argv) {
   Nrrd *nraw, *nimg, *nppm, *ntmp, *ntmp2, *npgm;
   limnCam *cam;
-  EchoParm *parm;
+  EchoRTParm *parm;
   EchoGlobalState *state;
   EchoObject *scene;
   airArray *lightArr, *mop;
@@ -924,8 +924,8 @@ main(int argc, char **argv) {
   cam->faar = 0;
   cam->atRel = AIR_TRUE;
 
-  parm = echoParmNew();
-  airMopAdd(mop, parm, (airMopper)echoParmNix, airMopAlways);
+  parm = echoRTParmNew();
+  airMopAdd(mop, parm, (airMopper)echoRTParmNix, airMopAlways);
 
   state = echoGlobalStateNew();
   airMopAdd(mop, state, (airMopper)echoGlobalStateNix, airMopAlways);
@@ -956,7 +956,7 @@ main(int argc, char **argv) {
   airMopAdd(mop, lightArr, (airMopper)echoLightArrayNix, airMopAlways);
 
   E = 0;
-  if (!E) E |= echoRender(nraw, cam, parm, state, scene, lightArr);
+  if (!E) E |= echoRTRender(nraw, cam, parm, state, scene, lightArr);
   if (!E) E |= echoComposite(nimg, nraw, parm);
   if (!E) E |= echoPPM(nppm, nimg, parm);
   if (E) {

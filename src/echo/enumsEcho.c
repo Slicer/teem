@@ -68,9 +68,10 @@ _echoObjectStr[ECHO_OBJECT_MAX+1][AIR_STRLEN_SMALL] = {
   "rectangle",
   "mesh",
   "isosurface",
-  "AABoundingBox"
-  "split"
-  "list"
+  "AABoundingBox",
+  "split",
+  "list",
+  "instance"
 };
 
 char
@@ -83,7 +84,8 @@ _echoObjectStrEqv[][AIR_STRLEN_SMALL] = {
   "isosurface",
   "AABoundingBox",
   "split",
-  "list"
+  "list",
+  "instance"
 };
 
 int
@@ -97,6 +99,7 @@ _echoObjectValEqv[] = {
   echoAABBox,
   echoSplit,
   echoList,
+  echoInstance
 };
 
 airEnum

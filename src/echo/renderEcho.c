@@ -28,7 +28,7 @@ int echoVerbose = 0;
 **
 */
 int
-echoComposite(Nrrd *nimg, Nrrd *nraw, EchoParm *parm) {
+echoComposite(Nrrd *nimg, Nrrd *nraw, EchoRTParm *parm) {
   char me[]="echoComposite", err[AIR_STRLEN_MED];
   echoCol_t *raw, *img, R, G, B, A;
   int i, N;
@@ -37,7 +37,7 @@ echoComposite(Nrrd *nimg, Nrrd *nraw, EchoParm *parm) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(ECHO, err); return 1;
   }
-  if (nrrdMaybeAlloc(nimg, echoCol_nrrdType, 3,
+  if (nrrdMaybeAlloc(nimg, echoCol_nt, 3,
 		     3, nraw->axis[1].size, nraw->axis[2].size)) {
     sprintf(err, "%s:", me);
     biffMove(ECHO, err, NRRD); return 1;
@@ -66,7 +66,7 @@ echoComposite(Nrrd *nimg, Nrrd *nraw, EchoParm *parm) {
 **
 */
 int
-echoPPM(Nrrd *nppm, Nrrd *nimg, EchoParm *parm) {
+echoPPM(Nrrd *nppm, Nrrd *nimg, EchoRTParm *parm) {
   char me[]="echoPPM", err[AIR_STRLEN_MED];
   echoCol_t val, *img;
   unsigned char *ppm;
@@ -100,7 +100,7 @@ echoPPM(Nrrd *nppm, Nrrd *nimg, EchoParm *parm) {
 
 int
 echoThreadStateInit(EchoThreadState *tstate,
-		    EchoParm *parm, EchoGlobalState *gstate) {
+		    EchoRTParm *parm, EchoGlobalState *gstate) {
   char me[]="echoThreadStateInit", err[AIR_STRLEN_MED];
 
   if (!(tstate && parm && gstate)) {
@@ -113,7 +113,7 @@ echoThreadStateInit(EchoThreadState *tstate,
     biffMove(ECHO, err, NRRD); return 1;
   }
   nrrdAxesSet(tstate->nperm, nrrdAxesInfoLabel, "info", "sample");
-  if (nrrdMaybeAlloc(tstate->njitt, echoPos_nrrdType, 3,
+  if (nrrdMaybeAlloc(tstate->njitt, echoPos_nt, 3,
 		     2, ECHO_SAMPLE_NUM, parm->samples)) {
     sprintf(err, "%s: couldn't allocate jitter array", me);
     biffMove(ECHO, err, NRRD); return 1;
@@ -134,12 +134,12 @@ echoThreadStateInit(EchoThreadState *tstate,
 }
 
 /*
-******** echoJitterSet()
+******** echoJitterCompute()
 **
 **
 */
 void
-echoJitterSet(EchoParm *parm, EchoThreadState *tstate) {
+echoJitterCompute(EchoRTParm *parm, EchoThreadState *tstate) {
   echoPos_t *jitt, w;
   int s, i, j, xi, yi, n, N, *perm;
 
@@ -194,7 +194,7 @@ echoJitterSet(EchoParm *parm, EchoThreadState *tstate) {
 */
 int
 echoCheck(Nrrd *nraw, limnCam *cam, 
-	  EchoParm *parm, EchoGlobalState *gstate,
+	  EchoRTParm *parm, EchoGlobalState *gstate,
 	  EchoObject *scene, airArray *lightArr) {
   char me[]="echoCheck", err[AIR_STRLEN_MED];
   int tmp;
@@ -256,7 +256,7 @@ echoCheck(Nrrd *nraw, limnCam *cam,
 
 void
 echoChannelAverage(echoCol_t *img,
-		   EchoParm *parm, EchoThreadState *tstate) {
+		   EchoRTParm *parm, EchoThreadState *tstate) {
   int s;
   echoCol_t R, G, B, A, T;
   
@@ -286,7 +286,7 @@ echoChannelAverage(echoCol_t *img,
 */
 void
 echoRayColor(echoCol_t *chan, int samp, EchoRay *ray,
-	     EchoParm *parm, EchoThreadState *tstate,
+	     EchoRTParm *parm, EchoThreadState *tstate,
 	     EchoObject *scene, airArray *lightArr) {
   float tmp;
   EchoIntx intx;
@@ -333,16 +333,17 @@ echoRayColor(echoCol_t *chan, int samp, EchoRay *ray,
 }
 
 /*
-******** echoRender
+******** echoRTRender
 **
-** top-level call to accomplish all rendering.  As much error checking
-** as possible should be done here and not in the lower-level functions.
+** top-level call to accomplish all (ray-tracing) rendering.  As much
+** error checking as possible should be done here and not in the
+** lower-level functions.
 */
 int
-echoRender(Nrrd *nraw, limnCam *cam,
-	   EchoParm *parm, EchoGlobalState *gstate,
-	   EchoObject *scene, airArray *lightArr) {
-  char me[]="echoRender", err[AIR_STRLEN_MED], done[20];
+echoRTRender(Nrrd *nraw, limnCam *cam,
+	     EchoRTParm *parm, EchoGlobalState *gstate,
+	     EchoObject *scene, airArray *lightArr) {
+  char me[]="echoRTRender", err[AIR_STRLEN_MED], done[20];
   int imgUi, imgVi,         /* integral pixel indices */
     samp;                   /* which sample are we doing */
   echoPos_t tmp0, tmp1,
@@ -362,7 +363,7 @@ echoRender(Nrrd *nraw, limnCam *cam,
     sprintf(err, "%s: problem with input", me);
     biffAdd(ECHO, err); return 1;
   }
-  if (nrrdMaybeAlloc(nraw, echoCol_nrrdType, 3,
+  if (nrrdMaybeAlloc(nraw, echoCol_nt, 3,
 		     ECHO_IMG_CHANNELS, parm->imgResU, parm->imgResV)) {
     sprintf(err, "%s: couldn't allocate output image", me);
     biffMove(ECHO, err, NRRD); return 1;
@@ -378,7 +379,7 @@ echoRender(Nrrd *nraw, limnCam *cam,
   if (parm->seedRand) {
     airSrand();
   }
-  echoJitterSet(parm, tstate);
+  echoJitterCompute(parm, tstate);
   if (echoVerbose > 2)
     nrrdSave("jitt.nrrd", tstate->njitt, NULL);
   
@@ -463,7 +464,7 @@ echoRender(Nrrd *nraw, limnCam *cam,
       echoChannelAverage(img, parm, tstate);
       img += ECHO_IMG_CHANNELS;
       if (!parm->reuseJitter) 
-	echoJitterSet(parm, tstate);
+	echoJitterCompute(parm, tstate);
     }
   }
   gstate->time = airTime() - gstate->time;

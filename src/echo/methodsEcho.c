@@ -19,11 +19,11 @@
 
 #include "echo.h"
 
-EchoParm *
-echoParmNew(void) {
-  EchoParm *parm;
+EchoRTParm *
+echoRTParmNew(void) {
+  EchoRTParm *parm;
   
-  parm = (EchoParm *)calloc(1, sizeof(EchoParm));
+  parm = (EchoRTParm *)calloc(1, sizeof(EchoRTParm));
   parm->jitter = echoJitterNone;
   parm->samples = 1;
   parm->shadow = AIR_TRUE;
@@ -53,8 +53,8 @@ echoParmNew(void) {
   return parm;
 }
 
-EchoParm *
-echoParmNix(EchoParm *parm) {
+EchoRTParm *
+echoRTParmNix(EchoRTParm *parm) {
 
   free(parm);
 

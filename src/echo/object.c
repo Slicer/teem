@@ -102,7 +102,7 @@ _echoNew[ECHO_OBJECT_MAX+1])(void) = {
 };
 
 EchoObject *
-echoNew(int type) {
+echoNew(unsigned char type) {
   
   return _echoNew[type]();
 }
@@ -314,7 +314,7 @@ BNDS_TMPL(List) {
   ELL_3V_SET(hi, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
   for (i=0; i<obj->objArr->len; i++) {
     o = obj->obj[i];
-    _echoBounds[o->type](l, h, o);
+    _echoBoundsGet[o->type](l, h, o);
     ELL_3V_MIN(lo, lo, l);
     ELL_3V_MAX(hi, hi, h);
   }
@@ -323,7 +323,7 @@ BNDS_TMPL(List) {
 BNDS_TMPL(Instance) {
   echoPos_t a[8][4], b[8][4], l[3], h[3];
 
-  _echoBounds[obj->obj->type](l, h, obj->obj);
+  _echoBoundsGet[obj->obj->type](l, h, obj->obj);
   ELL_4V_SET(a[0], l[0], l[1], l[2], 1);
   ELL_4V_SET(a[1], h[0], l[1], l[2], 1);
   ELL_4V_SET(a[2], l[0], h[1], l[2], 1);
@@ -378,24 +378,24 @@ BNDS_TMPL(Instance) {
   BNDS_FINISH;
 }
 	  
-_echoBounds_t
-_echoBounds[ECHO_OBJECT_MAX+1] = {
+_echoBoundsGet_t
+_echoBoundsGet[ECHO_OBJECT_MAX+1] = {
   NULL,
-  (_echoBounds_t)_echoSphere_bounds,
-  (_echoBounds_t)_echoCube_bounds,
-  (_echoBounds_t)_echoTriangle_bounds,
-  (_echoBounds_t)_echoRectangle_bounds,
+  (_echoBoundsGet_t)_echoSphere_bounds,
+  (_echoBoundsGet_t)_echoCube_bounds,
+  (_echoBoundsGet_t)_echoTriangle_bounds,
+  (_echoBoundsGet_t)_echoRectangle_bounds,
   NULL,
   NULL,
-  (_echoBounds_t)_echoAABBox_bounds,
-  (_echoBounds_t)_echoSplit_bounds,
-  (_echoBounds_t)_echoList_bounds,
-  (_echoBounds_t)_echoInstance_bounds,
+  (_echoBoundsGet_t)_echoAABBox_bounds,
+  (_echoBoundsGet_t)_echoSplit_bounds,
+  (_echoBoundsGet_t)_echoList_bounds,
+  (_echoBoundsGet_t)_echoInstance_bounds,
 };
 
 void
-echoBounds(echoPos_t *lo, echoPos_t *hi, EchoObject *obj) {
-  _echoBounds[obj->type](lo, hi, obj);
+echoBoundsGet(echoPos_t *lo, echoPos_t *hi, EchoObject *obj) {
+  _echoBoundsGet[obj->type](lo, hi, obj);
 }
 
 /* ---------------------------------------------------------- */
@@ -478,7 +478,7 @@ echoListSplit(EchoObject *list, int axis) {
   mids = malloc(2 * len * sizeof(double));
   for (i=0; i<len; i++) {
     o = LIST(list)->obj[i];
-    _echoBounds[o->type](lo, hi, o);
+    _echoBoundsGet[o->type](lo, hi, o);
     mids[0 + 2*i] = (lo[axis] + hi[axis])/2;
     *((unsigned int *)(mids + 1 + 2*i)) = i;
   }
@@ -501,7 +501,7 @@ echoListSplit(EchoObject *list, int axis) {
   for (i=0; i<splitIdx; i++) {
     o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
     LIST(list0)->obj[i] = o;
-    _echoBounds[o->type](lo, hi, o);
+    _echoBoundsGet[o->type](lo, hi, o);
     /*
     printf("000 lo = (%g,%g,%g), hi = (%g,%g,%g)\n",
 	   lo[0], lo[1], lo[2], hi[0], hi[1], hi[2]);
@@ -513,7 +513,7 @@ echoListSplit(EchoObject *list, int axis) {
   for (i=splitIdx; i<len; i++) {
     o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
     LIST(list1)->obj[i-splitIdx] = o;
-    _echoBounds[o->type](lo, hi, o);
+    _echoBoundsGet[o->type](lo, hi, o);
     /*
     printf("111 lo = (%g,%g,%g), hi = (%g,%g,%g)\n",
 	   lo[0], lo[1], lo[2], hi[0], hi[1], hi[2]);

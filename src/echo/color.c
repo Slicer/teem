@@ -20,55 +20,34 @@
 #include "echo.h"
 #include "privateEcho.h"
 
-#define COLDIR_ARGS(TYPE) echoCol_t lcol[3], echoPos_t ldir[3],          \
-                          echoPos_t *distP, EchoParm *parm,            \
-                          EchoLight##TYPE *light, int samp,              \
-                          EchoIntx *intx, EchoThreadState *tstate
-
 void
-_echoLightColDirDirectional(COLDIR_ARGS(Directional)) {
-  
-  ELL_3V_COPY(lcol, light->col);
-  ELL_3V_COPY(ldir, light->dir);
-  *distP = ECHO_POS_MAX;
-  return;
-}
-
-void
-_echoLightColDirArea(COLDIR_ARGS(Area)) {
-  EchoRectangle *rect;
+_echoLightColDir(echoCol_t *lcol, echoPos_t ldir[3],
+		 echoPos_t *distP, EchoRTParm *parm,
+		 EchoRectangle *light, int samp,
+		 EchoIntx *intx, EchoThreadState *tstate) {
   echoPos_t at[3], *jitt, x, y;
   float colScale;
+  int i;
 
-  /* we assume light->obj is a EchoRectangle with echoMatterLight */
-  rect = (EchoRectangle *)light->obj;
-  ELL_3V_COPY(lcol, rect->mat);
   jitt = ((echoPos_t *)tstate->njitt->data) + samp*2*ECHO_SAMPLE_NUM;
   x = jitt[0 + 2*echoSampleAreaLight] + 0.5;
   y = jitt[1 + 2*echoSampleAreaLight] + 0.5;
-  ELL_3V_SCALEADD3(at, 1.0, rect->origin, x, rect->edge0, y, rect->edge1);
+  ELL_3V_SCALEADD3(at, 1.0, light->origin, x, light->edge0, y, light->edge1);
   ELL_3V_SUB(ldir, at, intx->pos);
   *distP = ELL_3V_LEN(ldir);
-  colScale = parm->refDistance/(*distP);
-  colScale *= colScale*rect->area;
-  ELL_3V_SCALE(lcol, colScale, lcol);
   ELL_3V_SCALE(ldir, 1.0/(*distP), ldir);
+  colScale = parm->refDistance/(*distP);
+  colScale *= colScale*light->mat[echoMatterLightPower];
+  for (i=0; i<ECHO_COLOR_NUM; i++) {
+    lcol[i] = colScale * light->col[i];
+  }
   return;
 }
 
-typedef void (*_echoLightColDir_t)(COLDIR_ARGS(_));
-
-_echoLightColDir_t
-_echoLightColDir[ECHO_LIGHT_MAX+1] = {
-  (_echoLightColDir_t)NULL,
-  (_echoLightColDir_t)_echoLightColDirDirectional,
-  (_echoLightColDir_t)_echoLightColDirArea,
-};
-  
 
 /*
  define COLOR_ARGS echoCol_t *chan, EchoIntx *intx, int samp,       \
-                   EchoParm *parm, EchoThreadState *tstate,       \
+                   EchoRTParm *parm, EchoThreadState *tstate,       \
                    EchoObject *scene, airArray *lightArr
 */
 
@@ -448,7 +427,7 @@ echoMatterPhongSet(EchoObject *obj,
   obj->mat[echoMatterG] = g;
   obj->mat[echoMatterB] = b;
   obj->mat[echoMatterPhongAlpha] = a;
-  obj->mat[echoMatterKa] = ka;
+  obj->mat[echoMatterPhongKa] = ka;
   obj->mat[echoMatterPhongKd] = kd;
   obj->mat[echoMatterPhongKs] = ks;
   obj->mat[echoMatterPhongSh] = sh;
@@ -463,7 +442,6 @@ echoMatterGlassSet(EchoObject *obj,
   obj->mat[echoMatterR] = r;
   obj->mat[echoMatterG] = g;
   obj->mat[echoMatterB] = b;
-  obj->mat[echoMatterKa] = 0.0;
   obj->mat[echoMatterGlassIndex] = index;
   obj->mat[echoMatterGlassKd] = kd;
   obj->mat[echoMatterGlassFuzzy] = fuzzy;
@@ -478,7 +456,6 @@ echoMatterMetalSet(EchoObject *obj,
   obj->mat[echoMatterR] = r;
   obj->mat[echoMatterG] = g;
   obj->mat[echoMatterB] = b;
-  obj->mat[echoMatterKa] = 0.0;
   obj->mat[echoMatterMetalR0] = R0;
   obj->mat[echoMatterMetalKd] = kd;
   obj->mat[echoMatterMetalFuzzy] = fuzzy;

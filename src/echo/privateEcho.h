@@ -40,7 +40,7 @@ extern "C" {
 
 /* intx.c */
 #define INTX_ARGS(TYPE) EchoIntx *intx, EchoRay *ray,               \
-                        EchoParm *parm, Echo##TYPE *obj
+                        EchoRTParm *parm, Echo##TYPE *obj
 
 typedef int (*_echoRayIntx_t)(INTX_ARGS(Object));
 extern _echoRayIntx_t _echoRayIntx[ECHO_OBJECT_MAX+1];
@@ -50,7 +50,7 @@ extern _echoRayIntxUV_t _echoRayIntxUV[ECHO_OBJECT_MAX+1];
 
 /* color.c */
 #define COLOR_ARGS echoCol_t *chan, EchoIntx *intx, int samp,       \
-                   EchoParm *parm, EchoThreadState *tstate,       \
+                   EchoRTParm *parm, EchoThreadState *tstate,       \
                    EchoObject *scene, airArray *lightArr
 
 typedef void (*_echoIntxColor_t) (COLOR_ARGS);
@@ -64,8 +64,8 @@ extern int _echoRefract(echoPos_t T[3], echoPos_t V[3],
 #define BNDS_ARGS(TYPE) echoPos_t lo[3], echoPos_t hi[3], \
                         Echo##TYPE *obj
 
-typedef void (*_echoBounds_t)(BNDS_ARGS(Object));
-extern _echoBounds_t _echoBounds[ECHO_OBJECT_MAX+1];
+typedef void (*_echoBoundsGet_t)(BNDS_ARGS(Object));
+extern _echoBoundsGet_t _echoBoundsGet[ECHO_OBJECT_MAX+1];
 
 #ifdef __cplusplus
 }

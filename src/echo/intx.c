@@ -518,7 +518,7 @@ _echoRayIntxUV[ECHO_OBJECT_MAX+1] = {
 
 int
 echoRayIntx(EchoIntx *intx, EchoRay *ray,
-	    EchoParm *parm, EchoObject *obj) {
+	    EchoRTParm *parm, EchoObject *obj) {
 
   return _echoRayIntx[obj->type](intx, ray, parm, obj);
 }
