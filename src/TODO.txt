@@ -24,15 +24,11 @@ library instead of the installed one.
 other_clean (so_locations on SGI)
 
 
-miter: use gageContextCopy correctly
-     : generate bone images for kikinis!!
 ten: finish tend, test w/ DTInspect
 ell: test double root eigenvalue sorting
 leaf: do it
 
 echo: fix, glyphs, superquadrics
-
-valgrind new mrender
 
 unrrdu: standardize framework for doing unu/gkms/tend style programs
 nrrd: enable imagemagick-style format flagging on filenames
