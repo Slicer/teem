@@ -2,6 +2,40 @@ DESTROY the airType* enum! I wasted quite awhile debugging a problem caused by:
   if (nrrdAlloc(nout, airTypeFloat, 3, size[0], size[1], size[2])) { ...
 Do you see the problem?  Grrr.
 
+PLEASE figure out why I can't say
+
+   -t "unsigned char"
+
+to unu make, unu convert and the like.
+Does it have to do with airStrtokQuoting?
+Why not? I hate this crap.
+
+debug rendering of ML with windowed sinc
+
+add { } commenting to hest
+
+have to add more internal types to stuff in arith.c for these:
+new nrrdBinaryOps: bit-wise and (&), or (|), xor (^)
+new nrrdUnaryOps: bit-wise not (^), expm1
+
+
+It would be good if per-axis field specifications failed (or at least warned) if there are more fields than there should be
+
+SEGFAULT:  in muse/usr/sci/data/Medical/cat-array/bisti/rend
+gkms hvol -s a:-1200,6000 a:0,3100 a:-1000,1000 -i CFC.nrrd -o CFC-hvol.nrrd 
+
+speed up nrrdCCFind
+
+finish updating bane tutorial
+make nrrdMake from guts of "unu make"
+re-modularize gage to facilitate probing bricked data
+
+nrrdKernel*Parse should allocate the thing and return it, instead of returning an int error code
+see if dyeColorParse should do the same
+
+unu jhisto works with axis[0] elements when given a single nrrd
+
+
 FAQ on teem coding standards
 Banks's policy.txt:
  - documenting cross-code assumptions and dependencies
@@ -57,3 +91,4 @@ dye: hest callbacks
 
 air:  think about implementing a fabs() and dabs() with bitmasking
 
+nrrd: figure out some framework for lazy evaluation stuff
