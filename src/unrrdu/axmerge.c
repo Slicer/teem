@@ -32,12 +32,16 @@ int
 unrrdu_axmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
-  Nrrd *nin, *nout;
-  int axis, pret;
+  Nrrd *nin, *nout[2];
+  int *axes, axesLen, pret, ii, jj, ni;
   airArray *mop;
 
-  OPT_ADD_AXIS(axis, "lower of two adjacent axes to merge.  Saying \"-a 2\" "
-	       "means to merge axis 2 and axis 3 into axis 2.");
+  hestOptAdd(&opt, "a", "ax0", airTypeInt, 1, -1, &axes, NULL,
+	     "axis (or axes) to merge.  Each axis index identified is the "
+	     "lower of the pair of axes that will be merged.  Saying \"-a 2\" "
+	     "means to merge axis 2 and axis 3 into axis 2.  If multiple "
+	     "merges are to be done, the indices listed here are for "
+	     "the axes prior to any merging.", &axesLen);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -48,17 +52,29 @@ unrrdu_axmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  nout = nrrdNew();
-  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nout[0]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nout[1]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdAxesMerge(nout, nin, axis)) {
-    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: error merging axes:\n%s", me, err);
-    airMopError(mop);
-    return 1;
+  if (axesLen > 1) {
+    /* sort merge axes into ascending order */
+    qsort(axes, axesLen, sizeof(int), nrrdValCompare[nrrdTypeInt]);
   }
 
-  SAVE(out, nout, NULL);
+  ni = 0;
+  for (ii=0; ii<axesLen; ii++) {
+    if (nrrdAxesMerge(nout[ni], !ii ? nin : nout[1-ni], axes[ii])) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: error merging axes:\n%s", me, err);
+      airMopError(mop);
+      return 1;
+    }
+    for (jj=ii+1; jj<axesLen; jj++) {
+      axes[jj] -= 1;
+    }
+    ni = 1-ni;
+  }
+  
+  SAVE(out, nout[1-ni], NULL);
 
   airMopOkay(mop);
   return 0;
