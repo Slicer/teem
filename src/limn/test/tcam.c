@@ -63,12 +63,12 @@ main(int argc, char *argv[]) {
   
   printf("%s: W2V:\n", me);
   ELL_4M_COPY(mat, cam->W2V);
-  ell4mPrint_f(stdout, mat);
+  ell_4m_print_f(stdout, mat);
 
   printf("\n");
   printf("%s: V2W:\n", me);
   ELL_4M_COPY(mat, cam->V2W);
-  ell4mPrint_f(stdout, mat);
+  ell_4m_print_f(stdout, mat);
 
   airMopOkay(mop);
   return 0;

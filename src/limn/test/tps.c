@@ -78,38 +78,38 @@ main(int argc, char *argv[]) {
 
   ri = limnObjCylinderAdd(obj, 0, 0, 16);
   ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, 1, 0.2, 0.2); ell4mPostMul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 1.3, 0.0, 0.0); ell4mPostMul_f(matA, matB);
+  ELL_4M_SCALE_SET(matB, 1, 0.2, 0.2); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, 1.3, 0.0, 0.0); ell_4m_post_mul_f(matA, matB);
   limnObjPartTransform(obj, ri, matA);
 
   ri = limnObjCylinderAdd(obj, 0, 1, 16);
   ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, 0.2, 1, 0.2); ell4mPostMul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, 1.3, 0.0); ell4mPostMul_f(matA, matB);
+  ELL_4M_SCALE_SET(matB, 0.2, 1, 0.2); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, 0.0, 1.3, 0.0); ell_4m_post_mul_f(matA, matB);
   limnObjPartTransform(obj, ri, matA);
 
   ri = limnObjCylinderAdd(obj, 0, 2, 16);
   ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, 0.2, 0.2, 1); ell4mPostMul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, 1.3); ell4mPostMul_f(matA, matB);
+  ELL_4M_SCALE_SET(matB, 0.2, 0.2, 1); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, 1.3); ell_4m_post_mul_f(matA, matB);
   limnObjPartTransform(obj, ri, matA);
 
   ri = limnObjPolarSphereAdd(obj, 0, 0, 32, 16);
   ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, 0.28, 0.28, 0.28); ell4mPostMul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, 2.6, 0.0); ell4mPostMul_f(matA, matB);
+  ELL_4M_SCALE_SET(matB, 0.28, 0.28, 0.28); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, 0.0, 2.6, 0.0); ell_4m_post_mul_f(matA, matB);
   limnObjPartTransform(obj, ri, matA);
 
   ri = limnObjPolarSphereAdd(obj, 0, 1, 32, 16);
   ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, 0.28, 0.28, 0.28); ell4mPostMul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, 2.6); ell4mPostMul_f(matA, matB);
+  ELL_4M_SCALE_SET(matB, 0.28, 0.28, 0.28); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, 2.6); ell_4m_post_mul_f(matA, matB);
   limnObjPartTransform(obj, ri, matA);
 
   ri = limnObjPolarSphereAdd(obj, 0, 2, 32, 16);
   ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, 0.28, 0.28, 0.28); ell4mPostMul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, 3.2); ell4mPostMul_f(matA, matB);
+  ELL_4M_SCALE_SET(matB, 0.28, 0.28, 0.28); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, 3.2); ell_4m_post_mul_f(matA, matB);
   limnObjPartTransform(obj, ri, matA);
 
   win = limnWinNew(limnDevicePS);
