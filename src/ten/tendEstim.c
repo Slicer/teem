@@ -66,10 +66,10 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "additional b scaling factor ");
   hestOptAdd(&hopt, "i", "dwi0 dwi1", airTypeOther, 1, -1, &nin, NULL,
 	     "all the diffusion-weighted images (DWIs), as seperate 3D nrrds, "
-	     "OR: one 4D nrrd of all DWIs stacked along axis 0",
+	     "**OR**: One 4D nrrd of all DWIs stacked along axis 0",
 	     &ninLen, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output image (floating point)");
+	     "output tensor volume");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

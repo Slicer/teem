@@ -28,6 +28,10 @@
 ** matrix which weights each element of the diffusion tensor in the 
 ** manner reflected in a diffusion weighted image.  Matrix will be
 ** doubles.
+**
+** Note that the the weightings on the off-diagonal tensor coeffients
+** have been pre-multiplied by two, to mirror how these elements end
+** up contributing to diffusion-weighted images
 */
 int
 tenBMatrix(Nrrd *nbmat, Nrrd *_ngrad) {

@@ -48,7 +48,7 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   
   hestOptAdd(&hopt, "i", "dwi0 dwi1", airTypeOther, 1, -1, &nin, NULL,
 	     "all the diffusion-weighted images (DWIs), as seperate 3D nrrds, "
-	     "OR: one 4D nrrd of all DWIs stacked along axis 0",
+	     "**OR**: one 4D nrrd of all DWIs stacked along axis 0",
 	     &ninLen, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "g", "grads", airTypeOther, 1, 1, &ngrad, NULL,
 	     "array of gradient directions, in the same order as the "
@@ -102,7 +102,7 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "For seperate 3D DWI volume inputs: prefix for output filenames; "
 	     "will save out one (registered) "
 	     "DWI for each input DWI, using the same type as the input. "
-	     "For single 4D DWI input: output file name. ");
+	     "**OR**: For single 4D DWI input: output file name. ");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
