@@ -429,7 +429,7 @@ _nrrdMeasureHistoMedian(void *ans, int ansType,
   }
   ansD = i;
   if (AIR_EXISTS(axmin) && AIR_EXISTS(axmax)) 
-    ansD = NRRD_AXIS_POS(nrrdCenterCell, axmin, axmax, len, ansD);
+    ansD = NRRD_AXIS_CELL_POS(axmin, axmax, len, ansD);
   nrrdDStore[ansType](ans, ansD);
 }
 
@@ -468,7 +468,7 @@ _nrrdMeasureHistoMode(void *ans, int ansType,
 	 (float)idxsum, idxcount, ansD);
   */
   if (AIR_EXISTS(axmin) && AIR_EXISTS(axmax)) 
-    ansD = NRRD_AXIS_POS(nrrdCenterCell, axmin, axmax, len, ansD);
+    ansD = NRRD_AXIS_CELL_POS(axmin, axmax, len, ansD);
   /*
   printf("%g\n", ansD);
   */
@@ -494,7 +494,7 @@ _nrrdMeasureHistoMean(void *ans, int ansType,
   }
   ansD /= count;
   if (AIR_EXISTS(axmin) && AIR_EXISTS(axmax)) 
-    ansD = NRRD_AXIS_POS(nrrdCenterCell, axmin, axmax, len, ansD);
+    ansD = NRRD_AXIS_CELL_POS(axmin, axmax, len, ansD);
   nrrdDStore[ansType](ans, ansD);
 }
 
@@ -513,7 +513,7 @@ _nrrdMeasureHistoVariance(void *ans, int ansType,
     axmax = len-0.5;
   }
   for (i=0; i<len; i++) {
-    val = NRRD_AXIS_POS(nrrdCenterCell, axmin, axmax, len, i);
+    val = NRRD_AXIS_CELL_POS(axmin, axmax, len, i);
     hits = nrrdDLookup[lineType](line, i);
     count += hits;
     S += hits*val;
@@ -542,7 +542,7 @@ _nrrdMeasureHistoProduct(void *ans, int ansType,
   product = 1.0;
   count = 0;
   for (i=0; i<len; i++) {
-    val = NRRD_AXIS_POS(nrrdCenterCell, axmin, axmax, len, i);
+    val = NRRD_AXIS_CELL_POS(axmin, axmax, len, i);
     hits = nrrdDLookup[lineType](line, i);
     count += hits;
     product *= pow(val, hits);
@@ -567,7 +567,7 @@ _nrrdMeasureHistoSum(void *ans, int ansType,
   }
   sum = count = 0;
   for (i=0; i<len; i++) {
-    val = NRRD_AXIS_POS(nrrdCenterCell, axmin, axmax, len, i);
+    val = NRRD_AXIS_CELL_POS(axmin, axmax, len, i);
     hits = nrrdDLookup[lineType](line, i);
     count += hits;
     sum += hits*val;
@@ -598,7 +598,7 @@ _nrrdMeasureHistoMax(void *ans, int ansType,
     nrrdDStore[ansType](ans, AIR_NAN);
     return;
   }
-  val = NRRD_AXIS_POS(nrrdCenterCell, axmin, axmax, len, i);
+  val = NRRD_AXIS_CELL_POS(axmin, axmax, len, i);
   nrrdDStore[ansType](ans, val);
 }
 
@@ -621,7 +621,7 @@ _nrrdMeasureHistoMin(void *ans, int ansType,
     nrrdDStore[ansType](ans, AIR_NAN);
     return;
   }
-  val = NRRD_AXIS_POS(nrrdCenterCell, axmin, axmax, len, i);
+  val = NRRD_AXIS_CELL_POS(axmin, axmax, len, i);
   nrrdDStore[ansType](ans, val);
 }
 
