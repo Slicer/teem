@@ -27,7 +27,7 @@
 ** was freeing random stuff, but (and this is the weird part)
 ** only on some 1-D nrrds of 256 floats (pos1D info), and not others.
 */
-Nrrd *npos;
+Nrrd *baneNpos=NULL;
 
 #define TREX_LUTLEN 256
 
@@ -37,27 +37,27 @@ float *
 _baneTRexRead(char *fname) {
   char me[]="_baneTRexRead";
 
-  if (nrrdLoad(npos=nrrdNew(), fname)) {
+  if (nrrdLoad(baneNpos=nrrdNew(), fname)) {
     fprintf(stderr, "%s: !!! trouble reading \"%s\":\n%s\n", me, 
 	    fname, biffGet(NRRD));
     return NULL;
   }
-  if (!baneValidPos(npos, 1)) {
+  if (!baneValidPos(baneNpos, 1)) {
     fprintf(stderr, "%s: !!! didn't get a valid p(x) file:\n%s\n", me, 
 	    biffGet(BANE));
     return NULL;
   }
-  if (TREX_LUTLEN != npos->axis[0].size) {
+  if (TREX_LUTLEN != baneNpos->axis[0].size) {
     fprintf(stderr, "%s: !!! need a length %d p(x) (not %d)\n", me, 
-	    TREX_LUTLEN, npos->axis[0].size); 
+	    TREX_LUTLEN, baneNpos->axis[0].size); 
     return NULL;
   }
 
-  return npos->data;
+  return baneNpos->data;
 }
 
 void
 _baneTRexDone() {
 
-  nrrdNuke(npos); 
+  nrrdNuke(baneNpos); 
 }
