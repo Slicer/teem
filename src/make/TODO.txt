@@ -1,5 +1,0 @@
-have scripts (perl? sh?) for adding and removing architectures and libraries
-from the top-level directories
-
-have some program which keeps track of all the current supported
-architectures
