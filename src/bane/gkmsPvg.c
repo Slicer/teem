@@ -87,7 +87,7 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *outS, *perr, err[AIR_STRLEN_MED], *mapS;
   Nrrd *ninfo, *nposA, *nposB, *ndon, *npvg;
-  NrrdIO *nio;
+  NrrdIoState *nio;
   airArray *mop;
   int i, pret, invert, sv, sg, smlI;
   float *pos, p, min, max, sml, newsml, newmin, newmax;
@@ -114,7 +114,8 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nposA=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nposB=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, npvg=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nio=nrrdIONew(), (airMopper)nrrdIONix, airMopAlways);
+  airMopAdd(mop, nio=nrrdIoStateNew(), (airMopper)nrrdIoStateNix,
+	    airMopAlways);
 
   if (airStrlen(mapS)) {
     if (nrrdSave(mapS, ndon, NULL)) {

@@ -81,14 +81,14 @@ _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
 }
 
 int
-_nrrdFormatVTK_contentStartsLike(NrrdIO *nio) {
+_nrrdFormatVTK_contentStartsLike(NrrdIoState *nio) {
   
   return (!strcmp(MAGIC1, nio->line)
 	  || !strcmp(MAGIC2, nio->line));
 }
 
 int
-_nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
+_nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdReadVTK", err[AIR_STRLEN_MED], *three[3];
   int len, sx, sy, sz, ret, N;
   double xm=0.0, ym=0.0, zm=0.0, xs=1.0, ys=1.0, zs=1.0;
@@ -251,7 +251,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
 
 /* this strongly assumes that nrrdFitsInFormat() was true */
 int
-_nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIO *nio) {
+_nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatVTK_write", err[AIR_STRLEN_MED];
   int i, sx, sy, sz, sax;
   double xs, ys, zs, xm, ym, zm;

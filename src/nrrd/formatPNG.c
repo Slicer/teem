@@ -101,7 +101,7 @@ _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
 }
 
 int
-_nrrdFormatPNG_contentStartsLike(NrrdIO *nio) {
+_nrrdFormatPNG_contentStartsLike(NrrdIoState *nio) {
 
   return !strcmp(MAGIC, nio->line);
 }
@@ -156,7 +156,7 @@ _nrrdFlushDataPNG (png_structp png)
 #endif /* TEEM_PNG */
 
 int
-_nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
+_nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatPNG_read", err[AIR_STRLEN_MED];
 #if TEEM_PNG
   png_structp png;
@@ -369,7 +369,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
 }
 
 int
-_nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIO *nio) {
+_nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatPNG_write", err[AIR_STRLEN_MED];
 #if TEEM_PNG
   int depth, type, i, numtxt, csize;

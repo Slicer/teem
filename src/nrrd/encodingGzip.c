@@ -31,7 +31,7 @@ _nrrdEncodingGzip_available(void) {
 }
 
 int
-_nrrdEncodingGzip_read(Nrrd *nrrd, NrrdIO *nio) {
+_nrrdEncodingGzip_read(Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingGzip_read", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
   size_t num, bsize, size, total_read;
@@ -141,7 +141,7 @@ _nrrdEncodingGzip_read(Nrrd *nrrd, NrrdIO *nio) {
 }
 
 int
-_nrrdEncodingGzip_write(const Nrrd *nrrd, NrrdIO *nio) {
+_nrrdEncodingGzip_write(const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingGzip_write", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
   size_t num, bsize, size, total_written;
@@ -171,7 +171,7 @@ _nrrdEncodingGzip_write(const Nrrd *nrrd, NrrdIO *nio) {
     exit(1);
   }
 
-  /* Set format string based on the NrrdIO parameters. */
+  /* Set format string based on the NrrdIoState parameters. */
   fmt[fmt_i++] = 'w';
   if (0 <= nio->zlibLevel && nio->zlibLevel <= 9)
     fmt[fmt_i++] = '0' + nio->zlibLevel;

@@ -19,7 +19,7 @@
 
 #include "../nrrd.h"
 
-extern int _nrrdOneLine(int *lenP, NrrdIO *io, FILE *file);
+extern int _nrrdOneLine(int *lenP, NrrdIoState *io, FILE *file);
 
 FILE *
 myopen(char *name) {
@@ -46,7 +46,7 @@ main(int argc, char *argv[]) {
   char *me, *fileS;
   FILE *file;
   int len;
-  NrrdIO *io;
+  NrrdIoState *io;
 
   me = argv[0];
   if (2 != argc) {
@@ -59,7 +59,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: couldn't open \"%s\" for reading\n", me, fileS);
     exit(1);
   }
-  io = nrrdIONew();
+  io = nrrdIoStateNew();
   do {
     if (_nrrdOneLine(&len, io, file)) {
       fprintf(stderr, "%s: trouble:\n%s", me, biffGet(NRRD));
@@ -69,7 +69,7 @@ main(int argc, char *argv[]) {
       printf("%2d   |%s|\n", len, io->line);
     }
   } while(len > 0);
-  nrrdIONix(io);
+  nrrdIoStateNix(io);
   myclose(file);
 
   exit(0);

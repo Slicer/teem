@@ -35,7 +35,7 @@ _nrrdEncodingBzip2_available(void) {
 }
 
 int
-_nrrdEncodingBzip2_read(Nrrd *nrrd, NrrdIO *nio) {
+_nrrdEncodingBzip2_read(Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingBzip2_read", err[AIR_STRLEN_MED];
 #if TEEM_BZIP2
   size_t num, bsize, size, total_read;
@@ -150,7 +150,7 @@ _nrrdEncodingBzip2_read(Nrrd *nrrd, NrrdIO *nio) {
 }
 
 int
-_nrrdEncodingBzip2_write(const Nrrd *nrrd, NrrdIO *nio) {
+_nrrdEncodingBzip2_write(const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingBzip2_write", err[AIR_STRLEN_MED];
 #if TEEM_BZIP2
   size_t num, bsize, size, total_written;

@@ -27,7 +27,7 @@
 */
 
 int
-_nrrdFieldInteresting (const Nrrd *nrrd, NrrdIO *nio, int field) {
+_nrrdFieldInteresting (const Nrrd *nrrd, NrrdIoState *nio, int field) {
   int d, ret;
   
   if (!( nrrd
@@ -140,7 +140,7 @@ _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIO *nio, int field) {
 */
 void
 _nrrdSprintFieldInfo (char **strP, char *prefix,
-		      const Nrrd *nrrd, NrrdIO *nio, int field) {
+		      const Nrrd *nrrd, NrrdIoState *nio, int field) {
   char me[]="_nrrdSprintFieldInfo", buff[AIR_STRLEN_MED];
   const char *fs;
   int i, D, fslen, fdlen, endi;
@@ -328,7 +328,7 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
 */
 void
 _nrrdFprintFieldInfo (FILE *file, char *prefix,
-		      const Nrrd *nrrd, NrrdIO *nio, int field) {
+		      const Nrrd *nrrd, NrrdIoState *nio, int field) {
   char *line=NULL;
 
   _nrrdSprintFieldInfo(&line, prefix, nrrd, nio, field);
@@ -340,7 +340,7 @@ _nrrdFprintFieldInfo (FILE *file, char *prefix,
 }
 
 int
-_nrrdEncodingMaybeSet(NrrdIO *nio) {
+_nrrdEncodingMaybeSet(NrrdIoState *nio) {
   char me[]="_nrrdEncodingMaybeSet", err[AIR_STRLEN_MED];
 
   if (!nio->encoding) {
@@ -365,7 +365,7 @@ _nrrdEncodingMaybeSet(NrrdIO *nio) {
 ** we must set nio->format to something useful/non-trivial
 */
 int
-_nrrdFormatMaybeGuess (const Nrrd *nrrd, NrrdIO *nio, const char *filename) {
+_nrrdFormatMaybeGuess (const Nrrd *nrrd, NrrdIoState *nio, const char *filename) {
   char me[]="_nrrdFormatMaybeGuess", err[AIR_STRLEN_MED], mesg[AIR_STRLEN_MED];
   int fi, guessed, available, fits;
 
@@ -414,7 +414,7 @@ _nrrdFormatMaybeGuess (const Nrrd *nrrd, NrrdIO *nio, const char *filename) {
 }
 
 int
-_nrrdFormatMaybeSet(NrrdIO *nio) {
+_nrrdFormatMaybeSet(NrrdIoState *nio) {
   char me[]="_nrrdFormatMaybeSet", err[AIR_STRLEN_MED];
 
   if (!nio->format) {
@@ -440,7 +440,7 @@ _nrrdFormatMaybeSet(NrrdIO *nio) {
 ** must be given explicitly, and their appropriateness is explicitly tested
 */
 int
-nrrdWrite (FILE *file, const Nrrd *nrrd, NrrdIO *nio) {
+nrrdWrite (FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="nrrdWrite", err[AIR_STRLEN_MED];
   airArray *mop;
 
@@ -454,12 +454,12 @@ nrrdWrite (FILE *file, const Nrrd *nrrd, NrrdIO *nio) {
   }
   mop = airMopNew();
   if (!nio) {
-    nio = nrrdIONew();
+    nio = nrrdIoStateNew();
     if (!nio) {
-      sprintf(err, "%s: couldn't alloc local NrrdIO", me);
+      sprintf(err, "%s: couldn't alloc local NrrdIoState", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
-    airMopAdd(mop, nio, (airMopper)nrrdIONix, airMopAlways);
+    airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
   }
   if (_nrrdEncodingMaybeSet(nio)) {
     sprintf(err, "%s: ", me);
@@ -495,7 +495,7 @@ nrrdWrite (FILE *file, const Nrrd *nrrd, NrrdIO *nio) {
 ** game, the data file is ALWAYS header relative.
 */
 int
-nrrdSave (const char *filename, const Nrrd *nrrd, NrrdIO *nio) {
+nrrdSave (const char *filename, const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="nrrdSave", err[AIR_STRLEN_MED];
   FILE *file;
   airArray *mop;
@@ -506,12 +506,12 @@ nrrdSave (const char *filename, const Nrrd *nrrd, NrrdIO *nio) {
   }
   mop = airMopNew();
   if (!nio) {
-    nio = nrrdIONew();
+    nio = nrrdIoStateNew();
     if (!nio) {
-      sprintf(err, "%s: couldn't alloc local NrrdIO", me);
+      sprintf(err, "%s: couldn't alloc local NrrdIoState", me);
       biffAdd(NRRD, err); return 1;
     }
-    airMopAdd(mop, nio, (airMopper)nrrdIONix, airMopAlways);
+    airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
   }
   if (_nrrdEncodingMaybeSet(nio)) {
     sprintf(err, "%s: ", me);

@@ -31,13 +31,13 @@ int
 main(int argc, char **argv) {
   char *me, *err, *key="strong bad", *value;
   Nrrd *nrrd;
-  NrrdIO *io;
+  NrrdIoState *io;
 
   me = argv[0];
   if (2 != argc)
     usage(me);
 
-  io = nrrdIONew();
+  io = nrrdIoStateNew();
   nrrdStateVerboseIO = 10;
   
   if (nrrdLoad(nrrd=nrrdNew(), argv[1], NULL)) {
@@ -54,7 +54,7 @@ main(int argc, char **argv) {
     fprintf(stderr, "%s: value not found for key: %s\n", me, key);
   }
   
-  nrrdIONix(io);
+  nrrdIoStateNix(io);
   nrrdNuke(nrrd);
 
   exit(0);

@@ -78,14 +78,14 @@ _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
 }
 
 int
-_nrrdFormatEPS_contentStartsLike(NrrdIO *nio) {
+_nrrdFormatEPS_contentStartsLike(NrrdIoState *nio) {
 
   /* this is a write-only format */
   return AIR_FALSE;
 }
 
 int
-_nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
+_nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatEPS_read", err[AIR_STRLEN_MED];
 
   sprintf(err, "%s: sorry, this is a write-only format", me);
@@ -94,7 +94,7 @@ _nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
 }
 
 int
-_nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIO *nio) {
+_nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatEPS_write", err[AIR_STRLEN_MED];
   int color, sx, sy;
   Nrrd *nrrd;

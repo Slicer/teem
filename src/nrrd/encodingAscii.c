@@ -27,7 +27,7 @@ _nrrdEncodingAscii_available(void) {
 }
 
 int
-_nrrdEncodingAscii_read(Nrrd *nrrd, NrrdIO *nio) {
+_nrrdEncodingAscii_read(Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingAscii_read", err[AIR_STRLEN_MED],
     numbStr[AIR_STRLEN_HUGE];  /* HEY: fix this */
   size_t I, num;
@@ -81,7 +81,7 @@ _nrrdEncodingAscii_read(Nrrd *nrrd, NrrdIO *nio) {
 }
 
 int
-_nrrdEncodingAscii_write(const Nrrd *nrrd, NrrdIO *nio) {
+_nrrdEncodingAscii_write(const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingAscii_write", err[AIR_STRLEN_MED],
     buff[AIR_STRLEN_MED];
   int size, bufflen, linelen;

@@ -21,7 +21,7 @@
 #include "privateUnrrdu.h"
 
 /* bad bad bad Gordon */
-extern int _nrrdOneLine(int *lenP, NrrdIO *io, FILE *file);
+extern int _nrrdOneLine(int *lenP, NrrdIoState *io, FILE *file);
 
 #define INFO "Print header of one or more nrrd files"
 char *_unrrdu_headInfoL = 
@@ -32,7 +32,7 @@ char *_unrrdu_headInfoL =
  "settings, as well as be annoying.");
 
 int
-unrrdu_headDoit(char *me, NrrdIO *io, char *inS, FILE *fout) {
+unrrdu_headDoit(char *me, NrrdIoState *io, char *inS, FILE *fout) {
   char err[AIR_STRLEN_MED];
   airArray *mop;
   int len;
@@ -82,7 +82,7 @@ int
 unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, **inS;
-  NrrdIO *io;
+  NrrdIoState *io;
   airArray *mop;
   int pret, ni, ninLen;
 #ifdef _WIN32
@@ -98,8 +98,8 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  io = nrrdIONew();
-  airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
+  io = nrrdIoStateNew();
+  airMopAdd(mop, io, (airMopper)nrrdIoStateNix, airMopAlways);
 
   for (ni=0; ni<ninLen; ni++) {
     if (ninLen > 1) {

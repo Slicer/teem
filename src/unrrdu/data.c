@@ -21,7 +21,7 @@
 #include "privateUnrrdu.h"
 
 /* bad bad bad Gordon */
-extern int _nrrdOneLine(int *lenP, NrrdIO *io, FILE *file);
+extern int _nrrdOneLine(int *lenP, NrrdIoState *io, FILE *file);
 
 #define INFO "Print data segment of a nrrd file"
 char *_unrrdu_dataInfoL = 
@@ -42,7 +42,7 @@ unrrdu_dataMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, *inS=NULL;
   Nrrd *nin;
-  NrrdIO *nio;
+  NrrdIoState *nio;
   airArray *mop;
   int car, pret;
 
@@ -55,8 +55,8 @@ unrrdu_dataMain(int argc, char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  nio = nrrdIONew();
-  airMopAdd(mop, nio, (airMopper)nrrdIONix, airMopAlways);
+  nio = nrrdIoStateNew();
+  airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
   nio->skipData = AIR_TRUE;
   nio->keepNrrdDataFileOpen = AIR_TRUE;
   nin = nrrdNew();

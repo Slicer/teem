@@ -24,7 +24,7 @@
 /* ------------------------------------------------------------ */
 
 void
-nrrdIOInit (NrrdIO *nio) {
+nrrdIoStateInit (NrrdIoState *nio) {
 
   if (nio) {
     AIR_FREE(nio->path);
@@ -54,11 +54,11 @@ nrrdIOInit (NrrdIO *nio) {
   return;
 }
 
-NrrdIO *
-nrrdIONew (void) {
-  NrrdIO *nio;
+NrrdIoState *
+nrrdIoStateNew (void) {
+  NrrdIoState *nio;
   
-  nio = calloc(1, sizeof(NrrdIO));
+  nio = calloc(1, sizeof(NrrdIoState));
   if (nio) {
     nio->path = NULL;
     nio->base = NULL;
@@ -67,13 +67,13 @@ nrrdIONew (void) {
     nio->dataFile = NULL;
     nio->format = NULL;
     nio->encoding = NULL;
-    nrrdIOInit(nio);
+    nrrdIoStateInit(nio);
   }
   return nio;
 }
 
-NrrdIO *
-nrrdIONix (NrrdIO *nio) {
+NrrdIoState *
+nrrdIoStateNix (NrrdIoState *nio) {
 
   AIR_FREE(nio->path);
   AIR_FREE(nio->base);

@@ -73,7 +73,7 @@ _nrrdFormatUnknown_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
 }
 
 int
-_nrrdFormatUnknown_contentStartsLike(NrrdIO *nio) {
+_nrrdFormatUnknown_contentStartsLike(NrrdIoState *nio) {
   
   /* insert code here */
 
@@ -81,7 +81,7 @@ _nrrdFormatUnknown_contentStartsLike(NrrdIO *nio) {
 }
 
 int
-_nrrdFormatUnknown_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
+_nrrdFormatUnknown_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatUnknown_read", err[AIR_STRLEN_MED];
 
   /* insert code here, and remove error handling below */
@@ -92,7 +92,7 @@ _nrrdFormatUnknown_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
 }
 
 int
-_nrrdFormatUnknown_write(FILE *file, const Nrrd *nrrd, NrrdIO *nio) {
+_nrrdFormatUnknown_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatUnknown_write", err[AIR_STRLEN_MED];
 
   /* insert code here, and remove error handling below */

@@ -21,7 +21,7 @@
 #include "privateUnrrdu.h"
 
 /* bad bad bad Gordon */
-extern int _nrrdOneLine(int *lenP, NrrdIO *io, FILE *file);
+extern int _nrrdOneLine(int *lenP, NrrdIoState *io, FILE *file);
 
 #define INFO "Print out min and max values in one or more nrrds"
 char *_unrrdu_minmaxInfoL =

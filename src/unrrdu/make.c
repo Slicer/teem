@@ -21,7 +21,8 @@
 #include "privateUnrrdu.h"
 
 /* bad Gordon */
-extern int _nrrdReadNrrdParse_keyvalue(Nrrd *nrrd, NrrdIO *io, int useBiff);
+extern int _nrrdReadNrrdParse_keyvalue(Nrrd *nrrd, NrrdIoState *io,
+				       int useBiff);
 
 #define INFO "Create a nrrd (or nrrd header) from scratch"
 char *_unrrdu_makeInfoL =
@@ -41,11 +42,11 @@ char *_unrrdu_makeInfoL =
  "or more filenames per line of the response file. ");
 
 int
-unrrduMakeRead(char *me, Nrrd *nrrd, NrrdIO *nio, const char *fname,
+unrrduMakeRead(char *me, Nrrd *nrrd, NrrdIoState *nio, const char *fname,
 	       int lineSkip, int byteSkip, const NrrdEncoding *encoding) {
   char err[AIR_STRLEN_MED];
 
-  nrrdIOInit(nio);
+  nrrdIoStateInit(nio);
   nio->lineSkip = lineSkip;
   nio->byteSkip = byteSkip;
   nio->encoding = encoding;
@@ -83,7 +84,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     encodingType, gotSpacing;
   double *spacing;
   airArray *mop;
-  NrrdIO *nio;
+  NrrdIoState *nio;
   FILE *fileOut;
   char **label;
   const NrrdEncoding *encoding;
@@ -94,8 +95,8 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hparm->greedySingleString = AIR_TRUE;
 
   mop = airMopNew();
-  nio = nrrdIONew();
-  airMopAdd(mop, nio, (airMopper)nrrdIONix, airMopAlways);
+  nio = nrrdIoStateNew();
+  airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
   nrrd = nrrdNew();
   airMopAdd(mop, nrrd, (airMopper)nrrdNuke, airMopAlways);
   
@@ -173,7 +174,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
   encoding = nrrdEncodingArray[encodingType];
 
-  /* given the information we have, we set the fields in the nrrdIO
+  /* given the information we have, we set the fields in the nrrdIoState
      so as to simulate having read the information from a header */
   if (!( AIR_IN_CL(1, sizeLen, NRRD_DIM_MAX) )) {
     fprintf(stderr, "%s: # axis sizes (%d) not in valid nrrd dimension "
@@ -217,11 +218,11 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   if (kvpLen) {
     for (ki=0; ki<kvpLen; ki++) {
-      /* a hack: have to use NrrdIO->line as the channel to communicate
+      /* a hack: have to use NrrdIoState->line as the channel to communicate
 	 the key/value pair, since we have to emulate it having been
 	 read from a NRRD header.  But because nio doesn't own the 
 	 memory, we must be careful to unset the pointer prior to 
-	 NrrdIONuke being called by the mop. */
+	 NrrdIoStateNix being called by the mop. */
       nio->line = kvp[ki];
       if (_nrrdReadNrrdParse_keyvalue (nrrd, nio, AIR_TRUE)) {
 	airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);

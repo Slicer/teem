@@ -260,7 +260,7 @@ typedef struct {
   double (*load)(const void*); /* how to get a value out of "data" */
 } NrrdIter;
 
-struct NrrdIO_t;
+struct NrrdIoState_t;
 struct NrrdEncoding_t;
 
 /*
@@ -290,11 +290,11 @@ typedef struct {
 
   /* (for reading) returns non-zero if what has been read in so far 
      is recognized as the beginning of this format */
-  int (*contentStartsLike)(struct NrrdIO_t *nio);
+  int (*contentStartsLike)(struct NrrdIoState_t *nio);
 
   /* reader and writer */
-  int (*read)(FILE *file, Nrrd *nrrd, struct NrrdIO_t *nio);
-  int (*write)(FILE *file, const Nrrd *nrrd, struct NrrdIO_t *nio);
+  int (*read)(FILE *file, Nrrd *nrrd, struct NrrdIoState_t *nio);
+  int (*write)(FILE *file, const Nrrd *nrrd, struct NrrdIoState_t *nio);
 } NrrdFormat;
 
 /*
@@ -311,12 +311,12 @@ typedef struct NrrdEncoding_t {
   int endianMatters,
     isCompression;
   int (*available)(void);
-  int (*read)(Nrrd *nrrd, struct NrrdIO_t *nio);
-  int (*write)(const Nrrd *nrrd, struct NrrdIO_t *nio);
+  int (*read)(Nrrd *nrrd, struct NrrdIoState_t *nio);
+  int (*write)(const Nrrd *nrrd, struct NrrdIoState_t *nio);
 } NrrdEncoding;
 
 /*
-******** NrrdIO struct
+******** NrrdIoState struct
 **
 ** Everything transient relating to how the nrrd is read and written.
 ** Once the nrrd has been read or written, this information is moot,
@@ -324,7 +324,7 @@ typedef struct NrrdEncoding_t {
 ** it took to read in a nrrd, and it is the mechanism for hacks like
 ** keepNrrdDataFileOpen
 */
-typedef struct NrrdIO_t {
+typedef struct NrrdIoState_t {
   char *path,               /* allows us to remember the directory
 			       from whence this nrrd was "load"ed, or
 			       to whence this nrrd is "save"ed, MINUS the
@@ -409,7 +409,7 @@ typedef struct NrrdIO_t {
      any kind of initialization or flagging; DO NOT USE NULL */
   const NrrdFormat *format;
   const NrrdEncoding *encoding;
-} NrrdIO;
+} NrrdIoState;
 
 /******** defaults (nrrdDef..) and state (nrrdState..) */
 /* defaultsNrrd.c */
@@ -474,9 +474,9 @@ extern nrrd_export hestCB *nrrdHestIter;
 
 /******** pseudo-constructors, pseudo-destructors, and such */
 /* methodsNrrd.c */
-extern NrrdIO *nrrdIONew(void);
-extern void nrrdIOInit(NrrdIO *io);
-extern NrrdIO *nrrdIONix(NrrdIO *io);
+extern NrrdIoState *nrrdIoStateNew(void);
+extern void nrrdIoStateInit(NrrdIoState *io);
+extern NrrdIoState *nrrdIoStateNix(NrrdIoState *io);
 extern NrrdResampleInfo *nrrdResampleInfoNew(void);
 extern NrrdResampleInfo *nrrdResampleInfoNix(NrrdResampleInfo *info);
 extern NrrdKernelSpec *nrrdKernelSpecNew();
@@ -627,13 +627,13 @@ extern nrrd_export const NrrdEncoding *const nrrdEncodingUnknown;
 extern nrrd_export const NrrdEncoding *
   const nrrdEncodingArray[NRRD_ENCODING_TYPE_MAX+1];
 /* read.c */
-extern int nrrdLineSkip(NrrdIO *io);
-extern int nrrdByteSkip(Nrrd *nrrd, NrrdIO *io);
-extern int nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIO *io);
-extern int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *io);
+extern int nrrdLineSkip(NrrdIoState *io);
+extern int nrrdByteSkip(Nrrd *nrrd, NrrdIoState *io);
+extern int nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *io);
+extern int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIoState *io);
 /* write.c */
-extern int nrrdSave(const char *filename, const Nrrd *nrrd, NrrdIO *io);
-extern int nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIO *io);
+extern int nrrdSave(const char *filename, const Nrrd *nrrd, NrrdIoState *io);
+extern int nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIoState *io);
 
 /******** expressing the range of values in a nrrd */
 /* range.c */

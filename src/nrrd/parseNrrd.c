@@ -21,7 +21,7 @@
 #include "privateNrrd.h"
 
 int 
-_nrrdReadNrrdParse_nonfield (Nrrd *nrrd, NrrdIO *io, int useBiff) { 
+_nrrdReadNrrdParse_nonfield (Nrrd *nrrd, NrrdIoState *io, int useBiff) { 
   /*
   char c;
 
@@ -35,7 +35,7 @@ _nrrdReadNrrdParse_nonfield (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int 
-_nrrdReadNrrdParse_comment (Nrrd *nrrd, NrrdIO *io, int useBiff) { 
+_nrrdReadNrrdParse_comment (Nrrd *nrrd, NrrdIoState *io, int useBiff) { 
   char me[]="_nrrdReadNrrdParse_comment", err[AIR_STRLEN_MED];
   char *info;
   
@@ -49,7 +49,7 @@ _nrrdReadNrrdParse_comment (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int 
-_nrrdReadNrrdParse_type (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_type (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_type", err[AIR_STRLEN_MED];
   char *info;
 
@@ -62,7 +62,7 @@ _nrrdReadNrrdParse_type (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_encoding (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_encoding (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_encoding", err[AIR_STRLEN_MED];
   char *info;
   int etype;
@@ -78,7 +78,7 @@ _nrrdReadNrrdParse_encoding (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_endian (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_endian (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_endian", err[AIR_STRLEN_MED];
   char *info;
 
@@ -97,7 +97,7 @@ _nrrdReadNrrdParse_endian (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   }
 
 int
-_nrrdReadNrrdParse_dimension (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_dimension (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_dimension", err[AIR_STRLEN_MED];
   char *info;
 
@@ -130,7 +130,7 @@ _nrrdReadNrrdParse_dimension (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   }
 
 int
-_nrrdReadNrrdParse_sizes (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_sizes (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_sizes", err[AIR_STRLEN_MED];
   int ret, val[NRRD_DIM_MAX];
   char *info;
@@ -148,7 +148,7 @@ _nrrdReadNrrdParse_sizes (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_spacings (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_spacings (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_spacings", err[AIR_STRLEN_MED];
   int i, ret;
   double val[NRRD_DIM_MAX];
@@ -169,7 +169,7 @@ _nrrdReadNrrdParse_spacings (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_axis_mins (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_axis_mins (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_axis_mins", err[AIR_STRLEN_MED];
   int ret, i, sgn;
   double val[NRRD_DIM_MAX];
@@ -190,7 +190,7 @@ _nrrdReadNrrdParse_axis_mins (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_axis_maxs (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_axis_maxs (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_axis_maxs", err[AIR_STRLEN_MED];
   int ret, i, sgn;
   double val[NRRD_DIM_MAX];
@@ -214,7 +214,7 @@ _nrrdReadNrrdParse_axis_maxs (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 /*
 */
 int
-_nrrdReadNrrdParse_centers (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_centers (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_centers", err[AIR_STRLEN_MED];
   int i;
   char *tok;
@@ -304,7 +304,7 @@ _nrrdGetQuotedString(char **hP, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_labels (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_labels (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_labels", err[AIR_STRLEN_MED];
   char *h;  /* this is the "here" pointer which gradually progresses
 	       through all the labels (for all axes) */
@@ -329,7 +329,7 @@ _nrrdReadNrrdParse_labels (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_units (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_units (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_unitss", err[AIR_STRLEN_MED];
   char *h;
   int i;
@@ -353,7 +353,7 @@ _nrrdReadNrrdParse_units (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_number (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_number (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   /*
   char me[]="_nrrdReadNrrdParse_number", err[AIR_STRLEN_MED]; 
   char *info;
@@ -380,7 +380,7 @@ _nrrdReadNrrdParse_number (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_content (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_content (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_content", err[AIR_STRLEN_MED];
   char *info;
 
@@ -393,7 +393,7 @@ _nrrdReadNrrdParse_content (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_block_size (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_block_size (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_block_size", err[AIR_STRLEN_MED];
   char *info;
 
@@ -415,7 +415,7 @@ _nrrdReadNrrdParse_block_size (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_min (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_min (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
 
   /* This field is no longer assumed to be anything meaningful,
      because nrrd->min no longer exists with the advent of NrrdRange.
@@ -426,7 +426,7 @@ _nrrdReadNrrdParse_min (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_max (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_max (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
 
   /* nrrd->max no longer exists, see above */
 
@@ -434,7 +434,7 @@ _nrrdReadNrrdParse_max (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_old_min (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_old_min (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_old_min", err[AIR_STRLEN_MED];
   char *info;
   int sgn;
@@ -449,7 +449,7 @@ _nrrdReadNrrdParse_old_min (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_old_max (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_old_max (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_old_max", err[AIR_STRLEN_MED];
   char *info;
   int sgn;
@@ -469,7 +469,7 @@ _nrrdReadNrrdParse_old_max (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 **
 ** Note lack of thread-safety: strerror(errno) */
 int
-_nrrdReadNrrdParse_data_file (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_data_file (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_data_file", err[AIR_STRLEN_MED],
     dataName[AIR_STRLEN_HUGE];
   char *info;
@@ -498,7 +498,7 @@ _nrrdReadNrrdParse_data_file (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_line_skip (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_line_skip (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_line_skip", err[AIR_STRLEN_MED];
   char *info;
 
@@ -512,7 +512,7 @@ _nrrdReadNrrdParse_line_skip (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_byte_skip (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_byte_skip (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_byte_skip", err[AIR_STRLEN_MED];
   char *info;
 
@@ -526,7 +526,7 @@ _nrrdReadNrrdParse_byte_skip (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 int
-_nrrdReadNrrdParse_keyvalue (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParse_keyvalue (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_keyvalue", err[AIR_STRLEN_MED];
   char *keysep, *line, *key, *value;
 
@@ -563,7 +563,7 @@ _nrrdReadNrrdParse_keyvalue (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 ** These are all for parsing the stuff AFTER the colon
 */
 int
-(*_nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1])(Nrrd *, NrrdIO *, int) = {
+(*_nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1])(Nrrd *, NrrdIoState *, int) = {
   _nrrdReadNrrdParse_nonfield,
   _nrrdReadNrrdParse_comment,
   _nrrdReadNrrdParse_content,
@@ -596,7 +596,7 @@ int
 ** This is for parsing the stuff BEFORE the colon
 */
 int
-_nrrdReadNrrdParseField (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+_nrrdReadNrrdParseField (Nrrd *nrrd, NrrdIoState *io, int useBiff) {
   char me[]="_nrrdReadNrrdParseField", err[AIR_STRLEN_MED], *next,
     *buff, *colon, *keysep;
   int fld=nrrdField_unknown, noField=AIR_FALSE, badField=AIR_FALSE;

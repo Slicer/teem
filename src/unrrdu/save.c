@@ -21,7 +21,7 @@
 #include "privateUnrrdu.h"
 
 /* bad bad bad Gordon */
-extern void _nrrdGuessFormat(NrrdIO *io, const char *filename);
+extern void _nrrdGuessFormat(NrrdIoState *io, const char *filename);
 
 #define INFO "Write nrrd with specific format, encoding, or endianness"
 char *_unrrdu_saveInfoL =
@@ -39,12 +39,12 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err, encInfo[AIR_STRLEN_HUGE], fmtInfo[AIR_STRLEN_HUGE];
   Nrrd *nin, *nout;
   airArray *mop;
-  NrrdIO *nio;
+  NrrdIoState *nio;
   int pret, enc[3], formatType;
 
   mop = airMopNew();
-  nio = nrrdIONew();
-  airMopAdd(mop, nio, (airMopper)nrrdIONix, airMopAlways);
+  nio = nrrdIoStateNew();
+  airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
 
   strcpy(fmtInfo,
 	 "output file format. Possibilities include:\n "

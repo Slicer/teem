@@ -54,7 +54,7 @@ _nrrdFormatNRRD_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
 }
 
 int
-_nrrdFormatNRRD_contentStartsLike(NrrdIO *nio) {
+_nrrdFormatNRRD_contentStartsLike(NrrdIoState *nio) {
   
   return (!strcmp(MAGIC0, nio->line)
 	  || !strcmp(MAGIC1, nio->line)
@@ -70,7 +70,7 @@ _nrrdFormatNRRD_contentStartsLike(NrrdIO *nio) {
 **
 */
 int
-_nrrdHeaderCheck (Nrrd *nrrd, NrrdIO *nio) {
+_nrrdHeaderCheck (Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdHeaderCheck", err[AIR_STRLEN_MED];
   int i;
 
@@ -122,7 +122,7 @@ _nrrdHeaderCheck (Nrrd *nrrd, NrrdIO *nio) {
 ** presence of the key/value pairs is in violation of the format
 */
 int
-_nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
+_nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatNRRD_read", *err=NULL;
   /* NOTE: err has to be dynamically allocated because of the 
      arbitrary-sized input lines that it may have to copy */
@@ -297,7 +297,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
 }
 
 int
-_nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIO *nio) {
+_nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatNRRD_write", err[AIR_STRLEN_MED], 
     tmp[AIR_STRLEN_HUGE], trueDataFN[AIR_STRLEN_HUGE];
   int i, givenDFN, createDFN;

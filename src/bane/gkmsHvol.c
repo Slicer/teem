@@ -37,7 +37,7 @@ baneGkms_hvolMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret, dim[3], lapl, i, j, perm[3] = {1,2,0}, slow, gz = AIR_FALSE;
   double inc[3*(1+BANE_INC_PARM_NUM)];
   baneHVolParm *hvp;
-  NrrdIO *nio;
+  NrrdIoState *nio;
   NrrdKernelSpec *ksp00, *ksp11, *ksp22;
 
   hestOptAdd(&opt, "s", "incV incG incH", airTypeOther, 3, 3, inc, 
@@ -92,8 +92,8 @@ baneGkms_hvolMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  nio = nrrdIONew();
-  airMopAdd(mop, nio, (airMopper)nrrdIONix, airMopAlways);
+  nio = nrrdIoStateNew();
+  airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
   hvp = baneHVolParmNew();
   airMopAdd(mop, hvp, (airMopper)baneHVolParmNix, airMopAlways);
   baneHVolParmGKMSInit(hvp);

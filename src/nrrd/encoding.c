@@ -48,7 +48,7 @@ _nrrdEncodingUnknown_available(void) {
 }
 
 int
-_nrrdEncodingUnknown_read(Nrrd *nrrd, NrrdIO *nio) {
+_nrrdEncodingUnknown_read(Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingUnknown_read", err[AIR_STRLEN_MED];
 
   if (nio->skipData) {
@@ -63,7 +63,7 @@ _nrrdEncodingUnknown_read(Nrrd *nrrd, NrrdIO *nio) {
 }
 
 int
-_nrrdEncodingUnknown_write(const Nrrd *nrrd, NrrdIO *nio) {
+_nrrdEncodingUnknown_write(const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingUnknown_write", err[AIR_STRLEN_MED];
 
   if (nio->skipData) {

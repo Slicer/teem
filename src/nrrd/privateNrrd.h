@@ -86,7 +86,7 @@ extern const NrrdEncoding _nrrdEncodingGzip;
 extern const NrrdEncoding _nrrdEncodingBzip2;
 
 /* read.c */
-extern int _nrrdOneLine (int *lenP, NrrdIO *io, FILE *file);
+extern int _nrrdOneLine (int *lenP, NrrdIoState *io, FILE *file);
 extern int _nrrdCalloc (Nrrd *nrrd);
 
 /* arrays.c */
@@ -124,16 +124,20 @@ extern int _nrrdReshapeUpGrayscale(Nrrd *nimg);
 extern void _nrrdSplitName(char **dirP, char **baseP, const char *name);
 
 /* write.c */
-extern int _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIO *nio, int field);
+extern int _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIoState *nio,
+				  int field);
 extern void _nrrdSprintFieldInfo(char **strP, char *prefix,
-				 const Nrrd *nrrd, NrrdIO *nio, int field);
+				 const Nrrd *nrrd, NrrdIoState *nio,
+				 int field);
 extern void _nrrdFprintFieldInfo(FILE *file, char *prefix,
-				 const Nrrd *nrrd, NrrdIO *nio, int field);
+				 const Nrrd *nrrd, NrrdIoState *nio,
+				 int field);
 extern int _nrrdReshapeDownGrayscale(Nrrd *nimg);
 
-/* parse.c */
-extern int (*_nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1])(Nrrd *, NrrdIO *, int);
-extern int _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIO *io, int useBiff);
+/* parseNrrd.c */
+extern int (*_nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1])(Nrrd *, NrrdIoState *,
+						       int useBiff);
+extern int _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIoState *io, int useBiff);
 
 /* methods.c */
 extern int _nrrdSizeCheck(int dim, const int *size, int useBiff);

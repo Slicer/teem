@@ -55,7 +55,7 @@ _nrrdFormatText_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
 }
 
 int
-_nrrdFormatText_contentStartsLike(NrrdIO *nio) {
+_nrrdFormatText_contentStartsLike(NrrdIoState *nio) {
   float oneFloat;
 
   return (NRRD_COMMENT_CHAR == nio->line[0] 
@@ -63,7 +63,7 @@ _nrrdFormatText_contentStartsLike(NrrdIO *nio) {
 }
 
 int
-_nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
+_nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatText_read", err[AIR_STRLEN_MED], *errS;
   const char *fs;
   int line, len, ret, sx, sy, settwo = 0, gotOnePerAxis = AIR_FALSE;
@@ -250,7 +250,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
 }
 
 int
-_nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIO *nio) {
+_nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   char cmt[AIR_STRLEN_SMALL], buff[AIR_STRLEN_SMALL];
   size_t I;
   int i, x, y, sx, sy;

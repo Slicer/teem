@@ -27,7 +27,7 @@ _nrrdEncodingRaw_available(void) {
 }
 
 int
-_nrrdEncodingRaw_read(Nrrd *nrrd, NrrdIO *nio) {
+_nrrdEncodingRaw_read(Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingRaw_read", err[AIR_STRLEN_MED];
   size_t num, bsize, size, ret, dio;
   int car;
@@ -110,7 +110,7 @@ _nrrdEncodingRaw_read(Nrrd *nrrd, NrrdIO *nio) {
 }
 
 int
-_nrrdEncodingRaw_write(const Nrrd *nrrd, NrrdIO *nio) {
+_nrrdEncodingRaw_write(const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingRaw_write", err[AIR_STRLEN_MED];
   size_t size, ret, dio;
   

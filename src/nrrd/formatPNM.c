@@ -89,7 +89,7 @@ _nrrdFormatPNM_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
 }
 
 int
-_nrrdFormatPNM_contentStartsLike(NrrdIO *nio) {
+_nrrdFormatPNM_contentStartsLike(NrrdIoState *nio) {
   
   return (!strcmp(MAGIC_P6, nio->line)
 	  || !strcmp(MAGIC_P5, nio->line)
@@ -98,7 +98,7 @@ _nrrdFormatPNM_contentStartsLike(NrrdIO *nio) {
 }
 
 int
-_nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
+_nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatPNM_read", err[AIR_STRLEN_MED], *perr;
   const char *fs;
   int i, color, got, want, len, ret, val[5], sx, sy, max, magic;
@@ -271,7 +271,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
 }
 
 int
-_nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIO *nio) {
+_nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatPNM_write", err[AIR_STRLEN_MED];
   int i, color, sx, sy, magic;
   Nrrd *nrrd;

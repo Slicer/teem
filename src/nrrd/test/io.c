@@ -31,13 +31,13 @@ int
 main(int argc, char **argv) {
   char *me, *err;
   Nrrd *nrrd;
-  NrrdIO *io;
+  NrrdIoState *io;
 
   me = argv[0];
   if (3 != argc)
     usage(me);
 
-  io = nrrdIONew();
+  io = nrrdIoStateNew();
   nrrdStateVerboseIO = 10;
   
   if (nrrdLoad(nrrd=nrrdNew(), argv[1], NULL)) {
@@ -53,21 +53,21 @@ main(int argc, char **argv) {
     free(err);
     exit(1);
   }
-  nrrdIOInit(io);
+  nrrdIoStateInit(io);
   if (nrrdSave(argv[2], nrrd, io)) {
     fprintf(stderr, "%s: trouble saving \"%s\":\n%s", 
 	    me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
-  nrrdIOInit(io);
+  nrrdIoStateInit(io);
   if (nrrdSave(argv[2], nrrd, io)) {
     fprintf(stderr, "%s: trouble saving \"%s\":\n%s", 
 	    me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
-  nrrdIOInit(io);
+  nrrdIoStateInit(io);
   if (nrrdSave(argv[2], nrrd, io)) {
     fprintf(stderr, "%s: trouble saving \"%s\":\n%s", 
 	    me, argv[1], err = biffGet(NRRD));
@@ -76,7 +76,7 @@ main(int argc, char **argv) {
   }
 
   
-  nrrdIONix(io);
+  nrrdIoStateNix(io);
   nrrdNuke(nrrd);
 
   exit(0);

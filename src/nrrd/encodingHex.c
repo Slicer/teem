@@ -57,7 +57,7 @@ _nrrdEncodingHex_available(void) {
 }
 
 int
-_nrrdEncodingHex_read(Nrrd *nrrd, NrrdIO *nio) {
+_nrrdEncodingHex_read(Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingHex_read", err[AIR_STRLEN_MED];
   size_t nibIdx, nibNum;
   unsigned char *data;
@@ -109,7 +109,7 @@ _nrrdEncodingHex_read(Nrrd *nrrd, NrrdIO *nio) {
 }
 
 int
-_nrrdEncodingHex_write(const Nrrd *nrrd, NrrdIO *nio) {
+_nrrdEncodingHex_write(const Nrrd *nrrd, NrrdIoState *nio) {
   /* char me[]="_nrrdEncodingHex_write", err[AIR_STRLEN_MED]; */
   unsigned char *data;
   size_t byteIdx, byteNum;

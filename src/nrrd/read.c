@@ -35,7 +35,7 @@ char _nrrdTextSep[] = " ,\t";
 ** _nrrdOneLine
 **
 ** wrapper around airOneLine; does re-allocation of line buffer
-** ("line") in the NrrdIO if needed.  The return value semantics
+** ("line") in the NrrdIoState if needed.  The return value semantics
 ** are similar, except that what airOneLine would return, we put
 ** in *lenP.  If there is an error (airOneLine returned -1, 
 ** something couldn't be allocated), *lenP is set to 0, and 
@@ -45,7 +45,7 @@ char _nrrdTextSep[] = " ,\t";
 ** Does use biff
 */
 int
-_nrrdOneLine (int *lenP, NrrdIO *nio, FILE *file) {
+_nrrdOneLine (int *lenP, NrrdIoState *nio, FILE *file) {
   char me[]="_nrrdOneLine", err[AIR_STRLEN_MED], **line;
   airArray *lineArr;
   int len, lineIdx;
@@ -144,7 +144,7 @@ _nrrdCalloc (Nrrd *nrrd) {
 ** public for the sake of things like "unu make"
 */
 int
-nrrdLineSkip (NrrdIO *nio) {
+nrrdLineSkip (NrrdIoState *nio) {
   int i, skipRet;
   char me[]="nrrdLineSkip", err[AIR_STRLEN_MED];
 
@@ -167,7 +167,7 @@ nrrdLineSkip (NrrdIO *nio) {
 }
 
 int
-nrrdByteSkip (Nrrd *nrrd, NrrdIO *nio) {
+nrrdByteSkip (Nrrd *nrrd, NrrdIoState *nio) {
   int i, skipRet;
   char me[]="nrrdByteSkip", err[AIR_STRLEN_MED];
   size_t numbytes;
@@ -222,7 +222,7 @@ nrrdByteSkip (Nrrd *nrrd, NrrdIO *nio) {
 **
 */
 int
-nrrdRead (Nrrd *nrrd, FILE *file, NrrdIO *nio) {
+nrrdRead (Nrrd *nrrd, FILE *file, NrrdIoState *nio) {
   char err[AIR_STRLEN_MED], me[] = "nrrdRead";
   int len, fi;
   airArray *mop;
@@ -233,12 +233,12 @@ nrrdRead (Nrrd *nrrd, FILE *file, NrrdIO *nio) {
   }
   mop = airMopNew();
   if (!nio) {
-    nio = nrrdIONew();
+    nio = nrrdIoStateNew();
     if (!nio) {
       sprintf(err, "%s: couldn't alloc I/O struct", me);
       biffAdd(NRRD, err); return 1;
     }
-    airMopAdd(mop, nio, (airMopper)nrrdIONix, airMopAlways);
+    airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
   }
 
   /* clear out anything in the given nrrd */
@@ -341,7 +341,7 @@ _nrrdSplitName (char **dirP, char **baseP, const char *name) {
 ** 
 */
 int
-nrrdLoad (Nrrd *nrrd, const char *filename, NrrdIO *nio) {
+nrrdLoad (Nrrd *nrrd, const char *filename, NrrdIoState *nio) {
   char me[]="nrrdLoad", err[AIR_STRLEN_MED];
   FILE *file;
   airArray *mop;
@@ -353,12 +353,12 @@ nrrdLoad (Nrrd *nrrd, const char *filename, NrrdIO *nio) {
   }
   mop = airMopNew();
   if (!nio) {
-    nio = nrrdIONew();
+    nio = nrrdIoStateNew();
     if (!nio) {
       sprintf(err, "%s: couldn't alloc I/O struct", me);
       biffAdd(NRRD, err); return 1;
     }
-    airMopAdd(mop, nio, (airMopper)nrrdIONix, airMopAlways);
+    airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
   }
   
   /* we save the directory of the filename given to us so that if it turns
