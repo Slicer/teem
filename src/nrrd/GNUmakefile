@@ -61,7 +61,8 @@ $(L).OBJS = \
 	encodingGzip.o   encodingBzip2.o  encoding.o \
 	write.o        keyvalue.o
 $(L).TESTS = test/tread test/trand test/ax test/io test/minmax test/tkernel \
-	test/typestest test/tline test/genvol test/quadvol test/convo test/kv
+	test/typestest test/tline test/genvol test/quadvol test/convo test/kv \
+	test/reuse
 
 ####
 ####
