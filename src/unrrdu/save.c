@@ -48,7 +48,8 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   strcpy(encInfo,
 	 "output file format. Possibilities include:"
 	 "\n \b\bo \"raw\": raw encoding"
-	 "\n \b\bo \"ascii\": print data in ascii");
+	 "\n \b\bo \"ascii\": print data in ascii"
+	 "\n \b\bo \"hex\": two hex digits per byte");
   if (nrrdEncodingIsAvailable[nrrdEncodingGzip]) {
     strcat(encInfo, 
 	   "\n \b\bo \"gzip\", \"gz\": gzip compressed raw data");

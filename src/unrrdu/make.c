@@ -38,7 +38,7 @@ char *_unrrdu_makeInfoL =
 int
 unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, *dataFileName, *content;
+  char *out, *err, *dataFileName, *content, encInfo[AIR_STRLEN_LARGE];
   Nrrd *nrrd;
   int *size, sizeLen, spacingLen, headerOnly;
   double *spacing;
@@ -83,9 +83,21 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "bs", "byteskip", airTypeInt, 1, 1, &(io->byteSkip), "0",
 	     "number of bytes to skip (after skipping ascii lines, if any) "
 	     "before reading data");
+  strcpy(encInfo,
+	 "output file format. Possibilities include:"
+	 "\n \b\bo \"raw\": raw encoding"
+	 "\n \b\bo \"ascii\": print data in ascii"
+	 "\n \b\bo \"hex\": two hex digits per byte");
+  if (nrrdEncodingIsAvailable[nrrdEncodingGzip]) {
+    strcat(encInfo, 
+	   "\n \b\bo \"gzip\", \"gz\": gzip compressed raw data");
+  }
+  if (nrrdEncodingIsAvailable[nrrdEncodingBzip2]) {
+    strcat(encInfo, 
+	   "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
+  }
   hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &(io->encoding), "raw",
-	     "data encoding. Possibilities are \"raw\" and \"ascii\"",
-	     NULL, nrrdEncoding);
+	     encInfo, NULL, nrrdEncoding);
   hestOptAdd(&opt, "en", "endian", airTypeEnum, 1, 1, &(io->endian),
 	     airEnumStr(airEndian, airMyEndian),
 	     "Endianness of data; relevent for any raw data with value "
