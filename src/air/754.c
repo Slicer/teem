@@ -179,7 +179,7 @@ airFPPartsToVal_d(int sign, int exp, airULLong frac) {
 /*
 ** Disable the 'local variable used without having been initialized'
 ** warning produced by the MSVC compiler
-*/ 
+*/
 #ifdef WIN32
 #pragma warning(push)
 #pragma warning(disable : 4700)
