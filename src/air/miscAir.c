@@ -485,6 +485,58 @@ airGaussian(double x, double mean, double stdv) {
   return exp(-(x*x)/(2*stdv*stdv))/(stdv*sqrt(2*AIR_PI));
 }
 
+/*
+******** airNormalRand
+**
+** generates two numbers with normal distribution (mean 0, stdv 1)
+** using the Box-Muller transform.
+**
+** on (seemingly sound) advice of
+** <http://www.taygeta.com/random/gaussian.html>,
+** I'm using the polar form of the Box-Muller transform, instead of the
+** Cartesian one described at
+** <http://mathworld.wolfram.com/Box-MullerTransformation.html>
+**
+** this is careful to not write into given NULL pointers
+*/
+void
+airNormalRand(double *z1, double *z2) {
+  double w, x1, x2;
+
+  do {
+    x1 = 2*airDrand48() - 1;
+    x2 = 2*airDrand48() - 1;
+    w = x1*x1 + x2*x2;
+  } while ( w >= 1 );
+  w = sqrt((-2*log(w))/w);
+  if (z1) {
+    *z1 = x1*w;
+  }
+  if (z2) {
+    *z2 = x2*w;
+  }
+  return;
+}
+
+void
+airNormalRand_r(double *z1, double *z2, airDrand48State *state) {
+  double w, x1, x2;
+
+  do {
+    x1 = 2*airDrand48_r(state) - 1;
+    x2 = 2*airDrand48_r(state) - 1;
+    w = x1*x1 + x2*x2;
+  } while ( w >= 1 );
+  w = sqrt((-2*log(w))/w);
+  if (z1) {
+    *z1 = x1*w;
+  }
+  if (z2) {
+    *z2 = x2*w;
+  }
+  return;
+}
+
 const char
 airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown)",

@@ -425,6 +425,8 @@ TEEM_API int airLog2(float n);
 TEEM_API void airBinaryPrintUInt(FILE *file, int digits, unsigned int N);
 TEEM_API double airErf(double x);
 TEEM_API double airGaussian(double x, double mean, double stdv);
+TEEM_API void airNormalRand(double *z1, double *z2);
+TEEM_API void airNormalRand_r(double *z1, double *z2, airDrand48State *state);
 TEEM_API const char airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL];
 TEEM_API const int airTypeSize[AIR_TYPE_MAX+1];
 TEEM_API int airILoad(void *v, int t);
