@@ -162,7 +162,7 @@ _nrrdSscanfDouble(char *str, char *fmt, double *ptr) {
   char *c, *tmp;
 
   ret = -1;
-  if (tmp = strdup(str)) {
+  if (tmp = airStrdup(str)) {
     c = tmp;
     while (*c) {
       *c = tolower(*c);
@@ -813,8 +813,8 @@ nrrdLoad(char *name, Nrrd *nrrd) {
     biffAdd(NRRD, err); return 1;
   }
   /* this is just to allocate dir and base with some useful size */
-  dir = strdup(name);
-  base = strdup(name);
+  dir = airStrdup(name);
+  base = airStrdup(name);
   if (_nrrdSplitFilename(name, dir, base)) {
     /* the file name starts with a directory; remember it */
     strcpy(nrrd->dir, dir);
@@ -891,15 +891,15 @@ nrrdSave(char *name, Nrrd *nrrd) {
   ext = strstr(name, _nrrdHdrExt);
   if (ext && ext == name + strlen(name) - strlen(_nrrdHdrExt)) {
     /* the given name ends with _nrrdHdrExt, so we play games */
-    rawfn = strdup(name);
+    rawfn = airStrdup(name);
     strcpy(rawfn + strlen(rawfn) - strlen(_nrrdHdrExt), _nrrdRawExt);
     if (!(nrrd->dataFile = fopen(rawfn, "wb"))) {
       sprintf(err, "%s: fopen(\"%s\",\"wb\") failed: %s", me, rawfn,
 	      strerror(errno));
       biffSet(NRRD, err); return 1;
     }
-    dir = strdup(rawfn);
-    base = strdup(rawfn);
+    dir = airStrdup(rawfn);
+    base = airStrdup(rawfn);
     _nrrdSplitFilename(rawfn, dir, base);
     sprintf(nrrd->name, "%s%c%s", _nrrdRelDirFlag, _nrrdDirChars[0], base);
     free(rawfn);
@@ -1031,7 +1031,7 @@ nrrdWriteHeader(FILE *file, Nrrd *nrrd) {
   /* if chosen encoding exposes endianness, then we need to
      record endianness in the header */
   nrrd->fileEndian = nrrdMyEndian();
-  printf("%s: element size = %d\n", me, nrrdElementSize(nrrd));
+  /* printf("%s: element size = %d\n", me, nrrdElementSize(nrrd)); */
   if (nrrdEncodingEndianMatters[nrrd->encoding]
       && 1 != nrrdElementSize(nrrd)) {
     fprintf(file, "endian: %s\n", nrrdEndian2Str[nrrd->fileEndian]);

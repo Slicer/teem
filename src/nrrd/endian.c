@@ -25,7 +25,7 @@ nrrdStr2Endian(char *str) {
 
   ret = nrrdEndianUnknown;
   if (str) {
-    if (tmp = strdup(str)) {
+    if (tmp = airStrdup(str)) {
       c = tmp;
       while (*c) {
 	*c = tolower(*c);

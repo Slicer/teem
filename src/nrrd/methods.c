@@ -247,7 +247,7 @@ nrrdCopy(Nrrd *nout, Nrrd *nin) {
       biffSet(NRRD, err); return(1);
     }
     for (i=0; i<=numComments-1; i++) {
-      nout->comment[i] = strdup(nin->comment[i]);
+      nout->comment[i] = airStrdup(nin->comment[i]);
     }
     nout->comment[numComments] = NULL;
   }
@@ -312,6 +312,8 @@ nrrdAlloc(Nrrd *nrrd, NRRD_BIG_INT num, int type, int dim) {
 ******** nrrdNewAlloc()
 **
 ** creates the nrrd AND the array inside
+**
+** Note: This function DOES use biff
 */
 Nrrd *
 nrrdNewAlloc(NRRD_BIG_INT num, int type, int dim) {
@@ -393,7 +395,7 @@ nrrdAddComment(Nrrd *nrrd, char *cmt) {
   int i, len, num;
   
   if (nrrd && cmt) {
-    newcmt = strdup(cmt);
+    newcmt = airStrdup(cmt);
     len = strlen(newcmt);
     /* clean out carraige returns that would screw up reader */
     for (i=0; i<=len-1; i++) {
