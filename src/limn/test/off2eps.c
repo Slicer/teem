@@ -34,7 +34,7 @@ main(int argc, char *argv[]) {
   limnWindow *win;
   Nrrd *nmap;
   FILE *file;
-  int wire, concave;
+  int wire, concave, describe;
 
   mop = airMopNew();
   cam = limnCameraNew();
@@ -67,6 +67,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "concave", NULL, airTypeInt, 0, 0, &concave, NULL,
 	     "use slightly buggy rendering method suitable for "
 	     "concave or self-occluding objects");
+  hestOptAdd(&hopt, "describe", NULL, airTypeInt, 0, 0, &describe, NULL,
+	     "for debugging: list object definition of OFF read");
   hestOptAdd(&hopt, "wd", "5 widths", airTypeFloat, 5, 5, edgeWidth,
 	     "0.0 0.0 3.0 2.0 0.0",
 	     "width of edges drawn for five kinds of "
@@ -96,7 +98,7 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, obj, (airMopper)limnObjectNix, airMopAlways);
   if (!(file = airFopen(inS, stdin, "r"))) {
     fprintf(stderr, "%s: couldn't open \"%s\" for reading\n", me, inS);
-    return 1;
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
   lookIdx = airArrayIncrLen(obj->lookArr, 2);
@@ -109,7 +111,6 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
-
   win = limnWindowNew(limnDevicePS);
   win->ps.lineWidth[limnEdgeTypeBackFacet] = edgeWidth[0];
   win->ps.lineWidth[limnEdgeTypeBackCrease] = edgeWidth[1];
@@ -134,6 +135,10 @@ main(int argc, char *argv[]) {
   }
   fclose(win->file);
   
+  if (describe) {
+    limnObjectDescribe(stdout, obj);
+  }
+
   airMopOkay(mop);
   return 0;
 }

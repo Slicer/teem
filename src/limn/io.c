@@ -26,6 +26,7 @@ limnObjectDescribe(FILE *file, limnObject *obj) {
   limnEdge *edge; int eii;
   limnVertex *vert; int vii;
   limnPart *part; int partIdx;
+  limnLook *look;
   
   fprintf(file, "parts: %d\n", obj->partNum);
   for (partIdx=0; partIdx<obj->partNum; partIdx++) {
@@ -33,9 +34,9 @@ limnObjectDescribe(FILE *file, limnObject *obj) {
     fprintf(file, "part %d | verts: %d ========\n", partIdx, part->vertIdxNum);
     for (vii=0; vii<part->vertIdxNum; vii++) {
       vert = obj->vert + part->vertIdx[vii];
-      fprintf(file, "part %d | %d(%d): "
+      fprintf(file, "part %d==%d | %d(%d): "
 	      "w=(%g,%g,%g)\tv=(%g,%g,%g)\ts(%g,%g,%g)\n", 
-	      partIdx, vii, part->vertIdx[vii], 
+	      partIdx, vert->partIdx, vii, part->vertIdx[vii], 
 	      vert->world[0], vert->world[1], vert->world[2],
 	      vert->view[0], vert->view[1], vert->view[2],
 	      vert->screen[0], vert->screen[1], vert->screen[2]);
@@ -43,23 +44,30 @@ limnObjectDescribe(FILE *file, limnObject *obj) {
     fprintf(file, "part %d | edges: %d ========\n", partIdx, part->edgeIdxNum);
     for (eii=0; eii<part->edgeIdxNum; eii++) {
       edge = obj->edge + part->edgeIdx[eii];
-      fprintf(file, "part %d | %d(%d): "
+      fprintf(file, "part %d==%d | %d(%d): "
 	      "vert(%d,%d), face(%d,%d)\n", 
-	      partIdx, eii, part->edgeIdx[eii],
+	      partIdx, edge->partIdx, eii, part->edgeIdx[eii],
 	      edge->vertIdxIdx[0], edge->vertIdxIdx[1],
 	      edge->faceIdxIdx[0], edge->faceIdxIdx[1]);
     }
     fprintf(file, "part %d | faces: %d ========\n", partIdx, part->faceIdxNum);
     for (fii=0; fii<part->faceIdxNum; fii++) {
       face = obj->face + part->faceIdx[fii];
-      fprintf(file, "part %d | %d(%d): [", partIdx, fii, part->faceIdx[fii]);
+      fprintf(file, "part %d==%d | %d(%d): [", 
+	      partIdx, face->partIdx, fii, part->faceIdx[fii]);
       for (si=0; si<face->sideNum; si++) {
 	fprintf(file, "%d", part->vertIdx[face->vertIdxIdx[si]]);
 	if (si < face->sideNum-1)
 	  fprintf(file, ",");
       }
-      fprintf(file, "]; wn = (%g,%g,%g)\n", face->worldNormal[0],
+      fprintf(file, "]; wn = (%g,%g,%g)", face->worldNormal[0],
 	      face->worldNormal[1], face->worldNormal[2]);
+      if (face->lookIdx) {
+	look = obj->look + face->lookIdx;
+	fprintf(file, "; RGB=(%g,%g,%g)", 
+		look->rgba[0], look->rgba[1], look->rgba[2]);
+      }
+      fprintf(file, "\n");
     }
   }
 

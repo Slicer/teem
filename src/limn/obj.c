@@ -67,9 +67,37 @@ limnObjectNew(int incr, int doEdges) {
   return obj;
 }
 
+void
+_limnObjectPartEmpty(limnPart *part) {
+
+  if (part) {
+    airArrayNuke(part->vertIdxArr);
+    airArrayNuke(part->edgeIdxArr);
+    airArrayNuke(part->faceIdxArr);
+  }
+  return;
+}
+
+void
+_limnObjectFaceEmpty(limnFace *face) {
+
+  if (face) {
+    airFree(face->vertIdxIdx);
+    airFree(face->edgeIdxIdx);
+  }
+  return;
+}
+
 limnObject *
 limnObjectNix(limnObject *obj) {
+  int partIdx, faceIdx;
 
+  for (partIdx=0; partIdx<obj->partNum; partIdx++) {
+    _limnObjectPartEmpty(obj->part + partIdx);
+  }
+  for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
+    _limnObjectFaceEmpty(obj->face + faceIdx);
+  }
   airArrayNuke(obj->vertArr);
   airArrayNuke(obj->edgeArr);
   airArrayNuke(obj->faceArr);

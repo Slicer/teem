@@ -105,7 +105,7 @@ _limnPSDrawFace(limnObject *obj, limnFace *face,
   look = obj->look + face->lookIdx;
   part = obj->part + face->partIdx;
   for (vii=0; vii<face->sideNum; vii++) {
-    vert = obj->vert + part->vertIdx[vii];
+    vert = obj->vert + part->vertIdx[face->vertIdxIdx[vii]];
     fprintf(win->file, "%g %g %s\n", 
 	    vert->device[0], vert->device[1], vii ? "L" : "M");
   }
@@ -147,7 +147,7 @@ _limnPSDrawEdge(limnObject *obj, limnEdge *edge,
     vert1 = obj->vert + part->vertIdx[edge->vertIdxIdx[1]];
     fprintf(win->file, "%g %g M ", vert0->device[0], vert0->device[1]);
     fprintf(win->file, "%g %g L ", vert1->device[0], vert1->device[1]);
-    fprintf(win->file, "%g W ", win->ps.lineWidth[edge->type]);
+    fprintf(win->file, "%g W 0 Gr ", win->ps.lineWidth[edge->type]);
     fprintf(win->file, "S\n");
   }
 }
@@ -182,7 +182,7 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
   }
   
   limnObjectDepthSortParts(obj);
-
+  
   _limnPSPreamble(obj, cam, win);
 
   for (partIdx=0; partIdx<obj->partNum; partIdx++) {
@@ -221,9 +221,8 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
       win->ps.edgeWidth[e->visible] = widthTmp;
       */
     } else {
-      /* this part is either a lone face or a solid */
-
-      /* draw the front-facing, shaded faces */
+      /* this part is either a lone face or a solid:
+	 draw the front-facing, shaded faces */
       for (fii=0; fii<part->faceIdxNum; fii++) {
 	face = obj->face + part->faceIdx[fii];
 	/* The consequence of having a left-handed frame is that world-space
