@@ -34,7 +34,7 @@
 
 #include "tenMacros.h"
 
-#if defined(_WIN32) && defined(TEEM_DLL)
+#if defined(_WIN32) && !defined(TEEM_STATIC)
 #define ten_export __declspec(dllimport)
 #else
 #define ten_export

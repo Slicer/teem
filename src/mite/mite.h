@@ -28,7 +28,7 @@
 #include <teem/limn.h>
 #include <teem/hoover.h>
 
-#if defined(_WIN32) && defined(TEEM_DLL)
+#if defined(_WIN32) && !defined(TEEM_STATIC)
 #define mite_export __declspec(dllimport)
 #else
 #define mite_export

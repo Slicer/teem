@@ -37,7 +37,7 @@
 #include "nrrdMacros.h"
 #include "nrrdEnums.h"
 
-#if defined(_WIN32) && defined(TEEM_DLL)
+#if defined(_WIN32) && !defined(TEEM_STATIC)
 #define nrrd_export __declspec(dllimport)
 #else
 #define nrrd_export

@@ -25,7 +25,7 @@
 #include <teem/hest.h>
 #include <teem/nrrd.h>
 
-#if defined(_WIN32) && defined(TEEM_DLL)
+#if defined(_WIN32) && !defined(TEEM_STATIC)
 #define unrrdu_export __declspec(dllimport)
 #else
 #define unrrdu_export

@@ -29,7 +29,7 @@
 #include <teem/ell.h>
 #include <teem/nrrd.h>
 
-#if defined(_WIN32) && defined(TEEM_DLL)
+#if defined(_WIN32) && !defined(TEEM_STATIC)
 #define alan_export __declspec(dllimport)
 #else
 #define alan_export

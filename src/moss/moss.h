@@ -28,7 +28,7 @@
 #include <teem/ell.h>
 #include <teem/nrrd.h>
 
-#if defined(_WIN32) && defined(TEEM_DLL)
+#if defined(_WIN32) && !defined(TEEM_STATIC)
 #define moss_export __declspec(dllimport)
 #else
 #define moss_export

@@ -28,7 +28,7 @@
 
 #include "ellMacros.h"
 
-#if defined(_WIN32) && defined(TEEM_DLL)
+#if defined(_WIN32) && !defined(TEEM_STATIC)
 #define ell_export __declspec(dllimport)
 #else
 #define ell_export
