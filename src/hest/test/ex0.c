@@ -29,7 +29,7 @@ main(int argc, char **argv) {
      "image resolution"},
     {"v",     "level", airTypeInt,    1,  1,   &v,   "0",
      "verbosity level"},
-    {"out",   NULL /*"file"*/,  airTypeString, 1,  1,   &out, "output.ppm",
+    {"out",   "file",  airTypeString, 1,  1,   &out, "output.ppm",
      "PPM image output"},
     {NULL,    "input",  airTypeString, 1, -1,   &in,  NULL,
      "input image file(s)", &numIn},
