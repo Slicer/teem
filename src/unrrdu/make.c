@@ -33,26 +33,66 @@ char *_unrrdu_makeInfoL =
  "nrrd, either to pass on for further unu processing, "
  "or to save to disk.  However, with \"-h\", this creates "
  "only a detached nrrd header file, without ever reading "
- "or writing data. When reading multiple files, nearly all the options below "
- "refer the finished nrrd resulting from getting all the data from all "
- "the files.  The only exceptions are \"-ls\" and \"-bs\", which apply "
- "to every input file. ");
+ "or writing data. When reading multiple files, each file must contain "
+ "the data for one slice along the slowest axis.  Nearly all the options below "
+ "refer to the finished nrrd resulting from joining all the slices together, "
+ "with the exception of \"-ls\", \"-bs\", and \"-e\", which apply "
+ "to every input slice file. ");
+
+int
+unrrduMakeRead(char *me, Nrrd *nrrd, NrrdIO *nio, char *fname,
+	       int lineSkip, int byteSkip, int encoding) {
+  char err[AIR_STRLEN_MED];
+
+  nrrdIOReset(nio);
+  nio->lineSkip = lineSkip;
+  nio->byteSkip = byteSkip;
+  nio->encoding = encoding;
+  if (!strcmp("-", fname)) {
+    nio->dataFile  = stdin;
+#ifdef WIN32
+    _setmode(_fileno(nio->dataFile), _O_BINARY);
+#endif
+  } else {
+    if (!( nio->dataFile = fopen(fname, "rb") )) {
+      sprintf(err, "%s:  couldn't fopen(\"%s\",\"rb\"): %s\n", 
+	      me, fname, strerror(errno));
+      biffAdd(me, err); return 1;
+    }
+  }
+  if (nrrdLineSkip(nio)) {
+    sprintf(err, "%s: couldn't skip lines", me);
+    AIR_FCLOSE(nio->dataFile); biffMove(me, err, NRRD); return 1;
+  }
+  if (!nrrdEncodingIsCompression[nio->encoding]) {
+    if (nrrdByteSkip(nrrd, nio)) {
+      sprintf(err, "%s: couldn't skip bytes", me);
+      AIR_FCLOSE(nio->dataFile); biffMove(me, err, NRRD); return 1;
+    }
+  }
+  if (nrrdReadData[nio->encoding](nrrd, nio)) {
+    sprintf(err, "%s: error reading data", me);
+    AIR_FCLOSE(nio->dataFile); biffMove(me, err, NRRD); return 1;
+  }
+  return 0;
+}
 
 int
 unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, **dataFileNames, *content, encInfo[AIR_STRLEN_LARGE];
-  Nrrd *nrrd;
-  int *size, nameLen, sizeLen, spacingLen, labelLen, headerOnly, pret;
+  Nrrd *nrrd, **nslice;
+  int *size, nameLen, sizeLen, spacingLen, labelLen, headerOnly, pret,
+    lineSkip, byteSkip, encoding, endian, slc, type;
   double *spacing;
   airArray *mop;
-  NrrdIO *io;
+  NrrdIO *nio;
   FILE *fileOut;
   char **label;
 
   mop = airMopNew();
-  io = nrrdIONew();
-  airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
+  nio = nrrdIONew();
+  airMopAdd(mop, nio, (airMopper)nrrdIONix, airMopAlways);
   nrrd = nrrdNew();
   airMopAdd(mop, nrrd, (airMopper)nrrdNuke, airMopAlways);
   
@@ -65,31 +105,30 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "with \"./\" to indicate that the "
 	     "data file is to be found relative to the header file "
 	     "(as opposed to the current working directory of whomever "
-	     "is reading the nrrd)");
-  hestOptAdd(&opt, "i", "file", airTypeString, 1, -1, &dataFileNames, NULL,
-	     "Filename(s) of data file(s); use \"-\" for stdin. "
-	     "Detached headers (using \"-h\") are incompatible with "
+	     "is reading the nrrd).  Detached headers are incompatible with "
 	     "using stdin as the data source, or using multiple data "
-	     "files", &nameLen);
-  hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &(nrrd->type), NULL,
+	     "files");
+  hestOptAdd(&opt, "i", "file", airTypeString, 1, -1, &dataFileNames, NULL,
+	     "Filename(s) of data file(s); use \"-\" for stdin. ", &nameLen);
+  hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &type, NULL,
 	     "type of data (e.g. \"uchar\", \"int\", \"float\", "
 	     "\"double\", etc.)",
 	     NULL, nrrdType);
   hestOptAdd(&opt, "s", "sz0 sz1", airTypeInt, 1, -1, &size, NULL,
 	     "number of samples along each axis (and implicit indicator "
 	     "of dimension of nrrd)", &sizeLen);
-  hestOptAdd(&opt, "sp", "spc0 spc1", airTypeDouble, 1, -1, &spacing, "nan",
+  hestOptAdd(&opt, "sp", "sp0 sp1", airTypeDouble, 1, -1, &spacing, "nan",
 	     "spacing between samples on each axis.  Use \"nan\" for "
 	     "any non-spatial axes (e.g. spacing between red, green, and blue "
 	     "along axis 0 of interleaved RGB image data)", &spacingLen);
-  hestOptAdd(&opt, "l", "lab0 lab1", airTypeString, 1, -1, &label, "",
+  hestOptAdd(&opt, "l", "lb0 lb1", airTypeString, 1, -1, &label, "",
 	     "short string labels for each of the axes", &labelLen);
   hestOptAdd(&opt, "c", "content", airTypeString, 1, 1, &content, "",
 	     "Specifies the content string of the nrrd, which is built upon "
 	     "by many nrrd function to record a history of operations");
-  hestOptAdd(&opt, "ls", "lineskip", airTypeInt, 1, 1, &(io->lineSkip), "0",
+  hestOptAdd(&opt, "ls", "lineskip", airTypeInt, 1, 1, &lineSkip, "0",
 	     "number of ascii lines to skip before reading data");
-  hestOptAdd(&opt, "bs", "byteskip", airTypeInt, 1, 1, &(io->byteSkip), "0",
+  hestOptAdd(&opt, "bs", "byteskip", airTypeInt, 1, 1, &byteSkip, "0",
 	     "number of bytes to skip (after skipping ascii lines, if any) "
 	     "before reading data.  Can use \"-bs -1\" to skip a binary "
 	     "header of unknown length in raw-encoded data");
@@ -107,9 +146,9 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     strcat(encInfo, 
 	   "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
   }
-  hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &(io->encoding), "raw",
+  hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &encoding, "raw",
 	     encInfo, NULL, nrrdEncoding);
-  hestOptAdd(&opt, "en", "endian", airTypeEnum, 1, 1, &(io->endian),
+  hestOptAdd(&opt, "en", "endian", airTypeEnum, 1, 1, &endian,
 	     airEnumStr(airEndian, airMyEndian),
 	     "Endianness of data; relevent for any data with value "
 	     "representation bigger than 8 bits, with a non-ascii encoding: "
@@ -146,6 +185,13 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
+  if (nameLen > 1 && nameLen != size[sizeLen-1]) {
+    fprintf(stderr, "%s: got %d slice filenames but the last axis has %d "
+	    "elements\n", me, nameLen, size[sizeLen-1]);
+    airMopError(mop);
+    return 1;
+  }
+  nrrd->type = type;
   nrrd->dim = sizeLen;
   nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, size);
   if (AIR_EXISTS(spacing[0])) {
@@ -161,24 +207,27 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (headerOnly) {
     /* we don't have to fopen() any input; all we care about
        is the name of the input datafile.  We disallow stdin here */
-    if (!strcmp("-", dataFileName)) {
-      fprintf(stderr, "%s: can't use detached headers with stdin as "
-	      "data source\n", me);
-      airMopError(mop); return 1;
-    }
     if (1 != nameLen) {
       fprintf(stderr, "%s: can't use detached headers with multiple "
 	      "data files\n", me);
       airMopError(mop); return 1;
     }
-    io->dataFN = airStrdup(dataFileName);
-    io->seperateHeader = AIR_TRUE;
+    if (!strcmp("-", dataFileNames[0])) {
+      fprintf(stderr, "%s: can't use detached headers with stdin as "
+	      "data source\n", me);
+      airMopError(mop); return 1;
+    }
+    nio->lineSkip = lineSkip;
+    nio->byteSkip = byteSkip;
+    nio->encoding = encoding;
+    nio->dataFN = airStrdup(dataFileNames[0]);
+    nio->seperateHeader = AIR_TRUE;
     /* we open and hand off the output FILE* to _nrrdWriteNrrd,
        which will not write any data (because of the AIR_FALSE) */
     if (!strcmp("-", out)) {
       fileOut = stdout;
 #ifdef WIN32
-    _setmode(_fileno(fileOut), _O_BINARY);
+      _setmode(_fileno(fileOut), _O_BINARY);
 #endif
     } else {
       if (!( fileOut = fopen(out, "wb") )) {
@@ -190,43 +239,73 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
     /* whatever line and byte skipping is required will be simply
        recorded in the header, and done by the next reader */
-    _nrrdWriteNrrd(fileOut, nrrd, io, AIR_FALSE /* don't write data */);
+    _nrrdWriteNrrd(fileOut, nrrd, nio, AIR_FALSE /* don't write data */);
   } else {
     /* we're not actually using the handy unrrduHestFileCB,
        since we have to open the input data file by hand */
-    if (!strcmp("-", dataFileName)) {
-      io->dataFile  = stdin;
-#ifdef WIN32
-      _setmode(_fileno(io->dataFile), _O_BINARY);
-#endif
-
-    } else {
-      if (!( io->dataFile = fopen(dataFileName, "rb") )) {
-	fprintf(stderr, "%s:  couldn't fopen(\"%s\",\"rb\"): %s\n", 
-		me, dataFileName, strerror(errno));
+    if (1 == nameLen) {
+      if (unrrduMakeRead(me, nrrd, nio, dataFileNames[0],
+			 lineSkip, byteSkip, encoding)) {
+	airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
+	fprintf(stderr, "%s: trouble reading from \"%s\":\n%s",
+		me, dataFileNames[0], err);
 	airMopError(mop); return 1;
       }
-      airMopAdd(mop, io->dataFile, (airMopper)airFclose, airMopAlways);
-    }
-    if (nrrdLineSkip(io)) {
-      sprintf(err, "%s: couldn't skip lines", me);
-      biffAdd(NRRD, err); return 1;
-    }
-    if (!nrrdEncodingIsCompression[io->encoding]) {
-      if (nrrdByteSkip(nrrd, io)) {
-	sprintf(err, "%s: couldn't skip bytes", me);
-	biffAdd(NRRD, err); return 1;
+    } else {
+      /* create one nrrd for each slice, read them all in, then
+	 join them together */
+      nslice = (Nrrd **)calloc(nameLen, sizeof(Nrrd *));
+      slc = 0;
+      if (nslice) {
+	airMopAdd(mop, nslice, airFree, airMopAlways);
+	for (slc=0; slc<nameLen; slc++) {
+	  nslice[slc] = nrrdNew();
+	  if (nslice[slc]) {
+	    airMopAdd(mop, nslice[slc], (airMopper)nrrdNuke, airMopAlways);
+	    nslice[slc]->type = type;
+	    nslice[slc]->dim = sizeLen-1;
+	    /* the last element of size[] will be ignored */
+	    nrrdAxesSet_nva(nslice[slc], nrrdAxesInfoSize, size);
+	  } else {
+	    break;
+	  }
+	}
+      }
+      if (slc != nameLen) {
+	fprintf(stderr, "%s: couldn't allocate nslice array!\n", me);
+	airMopError(mop); return 1;
+      }
+      for (slc=0; slc<nameLen; slc++) {
+	if (unrrduMakeRead(me, nslice[slc], nio, dataFileNames[slc],
+			   lineSkip, byteSkip, encoding)) {
+	  airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
+	  fprintf(stderr, "%s: trouble reading from \"%s\" "
+		  "(file %d of %d):\n%s",
+		  me, dataFileNames[0], slc+1, nameLen, err);
+	  airMopError(mop); return 1;
+	}
+      }
+      if (nrrdJoin(nrrd, nslice, nameLen, nrrd->dim-1, AIR_TRUE)) {
+	airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+	fprintf(stderr, "%s: trouble joining slices together:\n%s",
+		me, err);
+	airMopError(mop); return 1;
+      }
+      /* unfortunately, we have to re-set some peripheral information
+	 since we never bothered to set it in any nslice[i]... */
+      if (AIR_EXISTS(spacing[0])) {
+	nrrdAxesSet_nva(nrrd, nrrdAxesInfoSpacing, spacing);
+      }
+      if (airStrlen(label[0])) {
+	nrrdAxesSet_nva(nrrd, nrrdAxesInfoLabel, label);
+      }
+      if (airStrlen(content)) {
+	nrrd->content = airStrdup(content);
       }
     }
-    if (nrrdReadData[io->encoding](nrrd, io)) {
-      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: error reading data:\n%s", me, err);
-      airMopError(mop);
-      return 1;
-    }
     if (1 < nrrdElementSize(nrrd)
-	&& nrrdEncodingEndianMatters[io->encoding]
-	&& io->endian != AIR_ENDIAN) {
+	&& nrrdEncodingEndianMatters[encoding]
+	&& endian != AIR_ENDIAN) {
       /* endianness exposed in encoding, and its wrong */
       nrrdSwapEndian(nrrd);
     }
