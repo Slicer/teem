@@ -99,7 +99,7 @@ typedef struct {
   int sense;   /* require case matching on strings */
 } airEnum;
 extern int airEnumUnknown(airEnum *enm);
-extern int airEnumValValid(airEnum *enm, int val);
+extern int airEnumValCheck(airEnum *enm, int val);
 extern char *airEnumStr(airEnum *enm, int val);
 extern char *airEnumDesc(airEnum *enm, int val);
 extern int airEnumVal(airEnum *enm, const char *str);
