@@ -1,3 +1,7 @@
+DESTROY the airType* enum!  I wasted quite awhile debugging a problem caused by:
+  if (nrrdAlloc(nout, airTypeFloat, 3, size[0], size[1], size[2])) { ...
+Do you see the problem?  Grrr.
+
 FAQ on teem coding standards
 Banks's policy.txt:
  - documenting cross-code assumptions and dependencies
