@@ -314,6 +314,7 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
 	/* if (_VV) fprintf(stderr, "\nb% 31.15f --> ", val); */
       }
       /* if (_VV) fprintf(stderr, "\nc% 31.15f --> ", val); */
+      val = AIR_CLAMP(mapMin, val, mapMax);
       mapIdxFrac = AIR_AFFINE(mapMin, val, mapMax, 0, mapLen-1);
       /* if (_VV) fprintf(stderr, "mapIdxFrac = \nd% 31.15f --> ",
 	 mapIdxFrac); */
