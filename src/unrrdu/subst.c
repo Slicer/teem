@@ -24,8 +24,11 @@
 char *_unrrdu_substInfoL =
 (INFO
  " (itself represented as a nrrd). The substitution table "
- "has to be a 2 by N table containing a list of pairs aka. "
- "substitution rules.");
+ "is a 2-by-N table: a list of pairs giving the old value (to replace) "
+ "and the the new value (to change to), in that order.  A plain text file "
+ "makes this easy.  Unlike with \"unu lut\", \"unu rmap\", and \"unu imap\", "
+ "the output type is the same as the input type, rather than the type of "
+ "the lut or map. ");
 
 int
 unrrdu_substMain(int argc, char **argv, char *me, hestParm *hparm) {

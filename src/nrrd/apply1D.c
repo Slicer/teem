@@ -858,13 +858,21 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 /*
 ******** nrrdApply1DSubstitution
 **
-** A "subst" is a substitution table, i.e. a list of pairs that describes
-** what values should be substituted with what (substitution rules).
-** The output is a copy of the input with values substituted using this table.
+** A "subst" is a substitution table, i.e. a list of pairs that
+** describes what values should be substituted with what (substitution
+** rules).  So, nsubst must be a scalar 2xN array.  The output is a
+** copy of the input with values substituted using this table.
+**
+** Unlike with lookup tables and maps (irregular and regular), we
+** aren't at liberty to change the dimensionality of the data (can't
+** substitute a grayscale with a color).  The ability to apply
+** substitutions to non-scalar data will be in a different function.
+** Also unlike lookup tables and maps, the output type is the SAME as
+** the input type; the output does NOT inherit the type of the
+** substitution
 */
 int
-nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *nsubst)
-{
+nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *nsubst) {
   char me[]="nrrdApply1DSubstitution", err[AIR_STRLEN_MED];
   double (*lup)(const void *, size_t);
   double (*slup)(const void *, size_t);
@@ -884,13 +892,13 @@ nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *nsubst)
     biffAdd(NRRD, err); return 1;
   }
   if (2 != nsubst->dim) {
-    sprintf(err, "%s: substitution table hasize to be 2 dimensional, not %d",
+    sprintf(err, "%s: substitution table has to be 2-D, not %d-D",
 	    me, nsubst->dim);
     biffAdd(NRRD, err); return 1;
   }
   nrrdAxisInfoGet(nsubst, nrrdAxisInfoSize, &asize0, &asize1);
   if (2 != asize0) {
-    sprintf(err, "%s: substitution table hasize to be 2xN, not %dxN",
+    sprintf(err, "%s: substitution table has to be 2xN, not %dxN",
 	    me, asize0);
     biffAdd(NRRD, err); return 1;
   }
@@ -908,7 +916,7 @@ nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *nsubst)
     val = lup(nout->data, ii);
     changed = AIR_FALSE;
     for (jj=0; jj<asize1; jj++) {
-      sval = slup(nsubst->data, jj*2);
+      sval = slup(nsubst->data, jj*2+0);
       if (val == sval) {
 	val = slup(nsubst->data, jj*2+1);
 	changed = AIR_TRUE;
