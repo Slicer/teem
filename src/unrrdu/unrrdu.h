@@ -108,8 +108,10 @@ F(unquantize) \
 F(project) \
 F(slice) \
 F(dice) \
+F(splice) \
 F(join) \
 F(crop) \
+F(inset) \
 F(pad) \
 F(reshape) \
 F(permute) \
