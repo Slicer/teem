@@ -65,7 +65,7 @@ SOURCE="$(InputPath)"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "bin"
+# PROP Output_Dir "../bin"
 # PROP Intermediate_Dir "static/Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
