@@ -212,11 +212,10 @@ _gageHavePadSet(gageContext *ctx) {
 int
 _gageSpacingSet(gageContext *ctx) {
   char me[]="_gageSpacingSet", err[AIR_STRLEN_MED];
-  int i, sawone, sx=0, sy=0, sz=0, bd;
+  int i, sx=0, sy=0, sz=0, bd;
   double xs=1, ys=1, zs=1;
   gagePerVolume *pvl;
 
-  sawone = AIR_FALSE;
   for (i=0; i<ctx->numPvl; i++) {
     pvl = ctx->pvl[i];
     bd = pvl->kind->baseDim;
