@@ -101,6 +101,13 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nrrdCopy(nout, nin);
   
+  io->encoding = enc[0];
+  if (nrrdEncodingGzip == enc[0]) {
+    io->zlibLevel = enc[1];
+    io->zlibStrategy = enc[2];
+  } else if (nrrdEncodingBzip2 == enc[0]) {
+    io->bzip2BlockSize = enc[1];
+  }
   if (AIR_ENDIAN != io->endian) {
     nrrdSwapEndian(nout);
   }
@@ -116,13 +123,6 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
     _nrrdGuessFormat(io, out);
   }
 
-  io->encoding = enc[0];
-  if (nrrdEncodingGzip == enc[0]) {
-    io->zlibLevel = enc[1];
-    io->zlibStrategy = enc[2];
-  } else if (nrrdEncodingBzip2 == enc[0]) {
-    io->bzip2BlockSize = enc[1];
-  }
   SAVE(out, nout, io);
 
   airMopOkay(mop);
