@@ -23,14 +23,14 @@
 void
 makeSceneTriMesh(limnCam *cam, EchoParam *param,
 	     EchoObject **sceneP, airArray **lightArrP) {
-  EchoObject *scene, *trim, *rect, *obj;
+  EchoObject *scene, *trim, *obj;
   EchoLight *light;
   airArray *lightArr;
 
   *sceneP = scene = echoObjectNew(echoObjectList);
   *lightArrP = lightArr = echoLightArrayNew();
 
-  ELL_3V_SET(cam->from, -4, 4, 1);
+  ELL_3V_SET(cam->from, 4, 4, 4);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, 0, 1);
   cam->uMin = -3;
@@ -73,15 +73,14 @@ makeSceneTriMesh(limnCam *cam, EchoParam *param,
   echoObjectListAdd(scene, obj);
   */
   
-  rect = echoObjectNew(echoObjectRectangle);
-  echoObjectRectangleSet(rect,
-			 -3, 1, 4,
-			 1, 0, 0,
-			 0, 1, 0);
-  echoMatterLightSet(rect, 0.25, 0.25, 0.25);
-  echoObjectListAdd(scene, rect);
   light = echoLightNew(echoLightArea);
-  echoLightAreaSet(light, rect);
+  echoLightDirectionalSet(light, 1, 0, 0, 1, 0, 0);
+  echoLightArrayAdd(lightArr, light);
+  light = echoLightNew(echoLightArea);
+  echoLightDirectionalSet(light, 0, 1, 0, 0, 1, 0);
+  echoLightArrayAdd(lightArr, light);
+  light = echoLightNew(echoLightArea);
+  echoLightDirectionalSet(light, 0, 0, 1, 0, 0, 1);
   echoLightArrayAdd(lightArr, light);
 
   return;
