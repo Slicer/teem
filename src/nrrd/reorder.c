@@ -458,7 +458,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
   /* figure out dimension of output (outdim) */
   if (diffdim) {
     /* case A: (example) 2D slices and 3D slabs are being joined
-     together to make a bigger 3D volume */
+       together to make a bigger 3D volume */
     outdim = maxdim;
   } else {
     /* diffdim == 0 */
