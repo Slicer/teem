@@ -130,6 +130,9 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "anisotropy (as chosen by \"-ga\").  "
 	     "If 1.0, then glyphs for zero anisotropy "
 	     "data points will have no hue. ");
+  hestOptAdd(&hopt, "gg", "gray", airTypeFloat, 1, 1, &(gparm->colIsoGray),
+	     "1.0", "desaturating glyph color due to low anisotropy "
+	     "tends towards this gray level");
   hestOptAdd(&hopt, "gam", "gamma", airTypeFloat, 1, 1, &(gparm->colGamma),
 	     "0.7", "gamma to use on color components (after saturation)");
   hestOptAdd(&hopt, "emap", "env map", airTypeOther, 1, 1, &emap, "",

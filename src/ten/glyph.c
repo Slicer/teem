@@ -28,6 +28,7 @@ tenGlyphParmNew() {
   if (parm) {
     parm->nmask = NULL;
     parm->anisoType = tenAnisoUnknown;
+    parm->onlyPositive = AIR_TRUE;
     parm->confThresh = AIR_NAN;
     parm->anisoThresh = AIR_NAN;
     parm->maskThresh = AIR_NAN;
@@ -41,6 +42,7 @@ tenGlyphParmNew() {
     parm->colEvec = 0;  /* first */
     parm->colMaxSat = 1; 
     parm->colGamma = 1;
+    parm->colIsoGray = 1;
     parm->colAnisoType = tenAnisoUnknown;
     parm->colAnisoModulate = 0;
 
@@ -215,6 +217,12 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	}
 	gageShapeUnitItoW(shape, W, I);
 	tenEigensolve(eval, evec, tdata);
+	if (parm->onlyPositive) {
+	  if (eval[2] < 0) {
+	    /* didn't have all positive eigenvalues, its outta here */
+	    continue;
+	  }
+	}
 	tenAnisoCalc(aniso, eval);
 	if (parm->doSlice
 	    && I[parm->sliceAxis] == parm->slicePos) {
@@ -286,16 +294,16 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	G = AIR_ABS(cvec[1]);
 	B = AIR_ABS(cvec[2]);
 	/* desaturate by colMaxSat */
-	R = AIR_AFFINE(0.0, parm->colMaxSat, 1.0, 1.0, R);
-	G = AIR_AFFINE(0.0, parm->colMaxSat, 1.0, 1.0, G);
-	B = AIR_AFFINE(0.0, parm->colMaxSat, 1.0, 1.0, B);
+	R = AIR_AFFINE(0.0, parm->colMaxSat, 1.0, parm->colIsoGray, R);
+	G = AIR_AFFINE(0.0, parm->colMaxSat, 1.0, parm->colIsoGray, G);
+	B = AIR_AFFINE(0.0, parm->colMaxSat, 1.0, parm->colIsoGray, B);
 	/* desaturate some by anisotropy */
 	R = AIR_AFFINE(0.0, parm->colAnisoModulate, 1.0,
-		       R, AIR_AFFINE(0.0, glyphAniso, 1.0, 1.0, R));
+		       R, AIR_AFFINE(0.0, glyphAniso, 1.0, parm->colIsoGray, R));
 	G = AIR_AFFINE(0.0, parm->colAnisoModulate, 1.0,
-		       G, AIR_AFFINE(0.0, glyphAniso, 1.0, 1.0, G));
+		       G, AIR_AFFINE(0.0, glyphAniso, 1.0, parm->colIsoGray, G));
 	B = AIR_AFFINE(0.0, parm->colAnisoModulate, 1.0,
-		       B, AIR_AFFINE(0.0, glyphAniso, 1.0, 1.0, B));
+		       B, AIR_AFFINE(0.0, glyphAniso, 1.0, parm->colIsoGray, B));
 	/* clamp and do gamma */
 	R = AIR_CLAMP(0.0, R, 1.0);
 	G = AIR_CLAMP(0.0, G, 1.0);
