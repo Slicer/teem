@@ -83,28 +83,30 @@ typedef int (hooverRenderEnd_t)(void *rend, void *user);
 ** 3) volume information
 ** 4) image information
 ** 5) opaque "user information" pointer
-** 6) the number of threads to spawn
+** 6) stuff about multi-threading
 ** 7) the callbacks
 */
 typedef struct {
 
   /******** 1) camera information */
-  limnCamera *cam;         /* camera info */
+  limnCamera *cam;           /* camera info */
 
   /******** 2) volume information: size and spacing, centering */
-  int volSize[3];          /* X,Y,Z resolution of volume */
-  double volSpacing[3];    /* distance between samples in X,Y,Z direction */
-  int volCentering;        /* either nrrdCenterNode or nrrdCenterCell */
+  int volSize[3];            /* X,Y,Z resolution of volume */
+  double volSpacing[3];      /* distance between samples in X,Y,Z direction */
+  int volCentering;          /* either nrrdCenterNode or nrrdCenterCell */
   
   /******** 3) image information: dimensions + centering */
-  int imgSize[2],          /* # samples of image along U and V axes */
-    imgCentering;          /* either nrrdCenterNode or nrrdCenterCell */
+  int imgSize[2],            /* # samples of image along U and V axes */
+    imgCentering;            /* either nrrdCenterNode or nrrdCenterCell */
   
   /******** 4) opaque "user information" pointer */
-  void *user;          /* passed to all callbacks */
+  void *user;                /* passed to all callbacks */
 
-  /******** 5) the number of threads to spawn */
-  int numThreads;          /* number of threads to spawn per rendering */
+  /******** 5) stuff about multi-threading */
+  int numThreads,            /* number of threads to spawn per rendering */
+    workIdx;                 /* next work assignment (such as a scanline) */
+  airThreadMutex *workMutex; /* mutex around work assignment */
   
   /*
   ******* 6) the callbacks 
@@ -171,13 +173,13 @@ typedef struct {
   ** somewhere accessible.
   **
   ** This is not a terribly flexible scheme (don't forget, this is
-  ** hoover) in that it enforces rather rigid constraints on how
-  ** multi-threading works: one thread can not render multiple rays
+  ** hoover) in that it imposes some constraints on how multi-threading
+  ** can work: one thread can not render multiple rays
   ** simulatenously.  If there were more args to sample() (like a
   ** ray, or an integral rayIndex), then this would be possible,
   ** but it would mean that _hooverThreadBody() would have to
-  ** implement all the smarts about which samples belong on which rays
-  ** belong with which threads.
+  ** implement all the smarts about which samples belong on which rays,
+  ** and which rays belong with which threads.
   **
   ** At some point now or in the future, an effort will be made to
   ** never call this function if the ray does not in fact intersect

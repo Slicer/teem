@@ -198,11 +198,24 @@ _hooverThreadBody(void *_arg) {
     uvScale = arg->ctx->cam->vspNeer/arg->ctx->cam->vspDist;
   }
 
-  /* for now, the load-balancing among P processors is simplistic: the
-     Nth thread (0-based numbering) gets scanlines N, N+P, N+2P, N+3P,
-     etc., until it goes beyond the last scanline */
-  vI = arg->whichThread;
-  while (vI < arg->ctx->imgSize[1]) {
+  while (1) {
+    /* the work assignment is simply the next scanline to be rendered:
+       the result of all this is setting vI */
+    if (arg->ctx->workMutex) {
+      airThreadMutexLock(arg->ctx->workMutex);
+    }
+    vI = arg->ctx->workIdx;
+    if (arg->ctx->workIdx < arg->ctx->imgSize[1]) {
+      arg->ctx->workIdx += 1;
+    }
+    if (arg->ctx->workMutex) {
+      airThreadMutexUnlock(arg->ctx->workMutex);
+    }
+    if (vI == arg->ctx->imgSize[1]) {
+      /* we're done! */
+      break;
+    }
+
     if (nrrdCenterCell == arg->ctx->imgCentering) {
       v = uvScale*AIR_AFFINE(-0.5, vI, arg->ctx->imgSize[1]-0.5,
 			     arg->ctx->cam->vRange[0],
@@ -289,8 +302,7 @@ _hooverThreadBody(void *_arg) {
 	return arg;
       }
     }  /* end this scanline */
-    vI += arg->ctx->numThreads;
-  } /* end skipping through scanlines */
+  } /* end while(1) assignment of scanlines */
 
   if ( (ret = (arg->ctx->threadEnd)(thread,
 				    arg->render,
@@ -352,6 +364,12 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
     args[threadIdx].errCode = 0;
     thread[threadIdx] = airThreadNew();
   }
+  ctx->workIdx = 0;
+  if (1 < ctx->numThreads) {
+    ctx->workMutex = airThreadMutexNew();
+  } else {
+    ctx->workMutex = NULL;
+  }
 
   /* (done): call airThreadStart() once per thread, passing the
      address of a distinct (and appropriately intialized)
@@ -365,7 +383,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
      is actually just the passed _hooverThreadArg returned to us, and
      from this copy errArg->errCode into *errCodeP, and return
      errArg->whichErr */
-
+  
   if (1 < ctx->numThreads && !airThreadCapable) {
     fprintf(stderr, "%s: WARNING: not multi-threaded; will do %d "
             "\"threads\" serially !!!\n", me, ctx->numThreads);
@@ -394,6 +412,10 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
       return errArg->whichErr;
     }
     thread[threadIdx] = airThreadNix(thread[threadIdx]);
+  }
+
+  if (1 < ctx->numThreads) {
+    ctx->workMutex = airThreadMutexNix(ctx->workMutex);
   }
 
   if ( (ret = (ctx->renderEnd)(render, ctx->user)) ) {

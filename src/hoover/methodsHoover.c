@@ -33,6 +33,8 @@ hooverContextNew() {
     ctx->imgCentering = hooverDefImgCentering;
     ctx->user = NULL;
     ctx->numThreads = 1;
+    ctx->workIdx = 0;
+    ctx->workMutex = NULL;
     ctx->renderBegin = hooverStubRenderBegin;
     ctx->threadBegin = hooverStubThreadBegin;
     ctx->rayBegin = hooverStubRayBegin;
@@ -153,6 +155,7 @@ hooverContextNix(hooverContext *ctx) {
 
   if (ctx) {
     limnCameraNix(ctx->cam);
+    /* workMutex is cleaned up at end of render */
     free(ctx);
   }
 }
