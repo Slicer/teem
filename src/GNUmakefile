@@ -70,7 +70,7 @@ SUBARCH = $(patsubst .%,%,$(suffix $(TEEM_ARCH)))
 ## defining the various programs we'll need, and some of their flags.
 ## If these are not over-written, we assume that they'll work.
 ##
-CC = cc
+CC ?= cc
 LD = ld
 AR = ar
 ARFLAGS = ru
