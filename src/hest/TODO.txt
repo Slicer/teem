@@ -1,0 +1,3 @@
+write hestExitIfParseFails()- since most of my hest usage does
+the same opt check, parse, info if problem.
+
