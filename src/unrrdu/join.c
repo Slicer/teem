@@ -22,41 +22,50 @@ char *me;
 
 void
 usage() {
-              /*  0    1    2  ...  argc-5   argc-4 argc-3  argc-2    argc-1 */
+              /*  0    1    2  ... argc-6   argc-5  argc-4  argc-3   argc-2    argc-1 */
   fprintf(stderr, 
-	  "usage: %s <n0> <n1> ... <n(n-1)> <axis> <label> <spacing> <nout>\n",
+	  "usage: %s <n0> <n1> ... <n(n-1)> <axis> <label> <spacing> <incrDim> <nout>\n",
 	  me);
   fprintf(stderr, "       <n0> <n1> ... <n(n-1)> are Nrrds to be joined\n");
-  fprintf(stderr, "       <axis> is which axis the given parts should\n");
-  fprintf(stderr, "       lie along in the new (output) nrrd, that is,\n");
-  fprintf(stderr, "       which axis along which you'd slice/crop the new\n");
-  fprintf(stderr, "       nrrd to get back the given parts\n");
+  fprintf(stderr, "       <axis> is which axis the given parts should lie along in the new (output)\n");
+  fprintf(stderr, "       nrrd, that is, which axis along which you'd slice/crop the new nrrd\n");
+  fprintf(stderr, "       to get back the given parts\n");
   fprintf(stderr, "       <label> and <spacing> are for the new axis\n");
+  fprintf(stderr, "       <incrDim> non-zero means that you really want to add a dimension to\n");
+  fprintf(stderr, "       the nrrd, as opposed to arranging them side by side\n");
   exit(1);
 }
 
 int
 main(int argc, char *argv[]) {
-  char *err, *label, *axisS, *spacingS, *out;
-  int i, axis, num;
+  char *err, *label, *axisS, *spacingS, *out, *incrS;
+  int i, axis, num, incr;
   float spacing;
   Nrrd **nin, *nout;
 
   me = argv[0];
-  num = argc-5;
+  num = argc-6;
   if (!(num >= 1))
     usage();
-  axisS = argv[argc-4];
-  label = argv[argc-3];
-  spacingS = argv[argc-2];
+  axisS = argv[argc-5];
+  label = argv[argc-4];
+  spacingS = argv[argc-3];
+  incrS = argv[argc-2];
   out = argv[argc-1];
   
   if (1 != sscanf(axisS, "%d", &axis)) {
-    fprintf(stderr, "%s: couldn't parse \"%s\" as axis\n", me, axisS);
+    fprintf(stderr, "%s: couldn't parse axis \"%s\" as int\n", 
+	    me, axisS);
     exit(1);
   }
   if (1 != sscanf(spacingS, "%f", &spacing)) {
-    fprintf(stderr, "%s: couldn't parse \"%s\" as spacing\n", me, spacingS);
+    fprintf(stderr, "%s: couldn't parse spacing \"%s\" as float\n", 
+	    me, spacingS);
+    exit(1);
+  }
+  if (1 != sscanf(incrS, "%d", &incr)) {
+    fprintf(stderr, "%s: couldn't parse incrDim \"%s\" as int\n", 
+	    me, incrS);
     exit(1);
   }
   fprintf(stderr, "%s: planning to join %d parts\n", me, num);
@@ -76,7 +85,7 @@ main(int argc, char *argv[]) {
 
   /* do the deed */
   nout = nrrdNew();
-  if (nrrdJoin(nout, nin, num, axis)) {
+  if (nrrdJoin(nout, nin, num, axis, incr)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble joining all inputs:\n%s\n", me, err);
     free(err); 
