@@ -84,7 +84,7 @@ void
 _hestPrintStr(FILE *f, int indent, int already, int width, const char *_str,
 	      int bslash) {
   char *str, *ws, *last;
-  int nwrd, wrd, pos, s;
+  int nwrd, wrd, pos, s, newed=AIR_FALSE;
 
   str = airStrdup(_str);
   nwrd = airStrntok(str, " ");
@@ -96,11 +96,11 @@ _hestPrintStr(FILE *f, int indent, int already, int width, const char *_str,
     airStrtrans(ws, '\t', ' ');
     if (pos + 1 + strlen(ws) <= width - !!bslash) {
       /* if this word would still fit on the current line */
-      if (wrd) fprintf(f, " ");
+      if (wrd && !newed) fprintf(f, " ");
       fprintf(f, "%s", ws);
       pos += 1 + strlen(ws);
-    }
-    else {
+      newed = AIR_FALSE;
+    } else {
       /* else we start a new line and print the indent */
       if (bslash) {
 	fprintf(f, " \\");
@@ -114,12 +114,13 @@ _hestPrintStr(FILE *f, int indent, int already, int width, const char *_str,
     }
     /* if the last character of the word was a newline, then indent */
     if ('\n' == ws[strlen(ws)-1]) {
-      /* we indent one character less than before, because the stupid
-	 if (wrd) fprintf(f, " "); line above will print a space for us */
-      for (s=0; s<=indent-2; s++) {
+      for (s=0; s<indent; s++) {
 	fprintf(f, " ");
       }
       pos = indent;
+      newed = AIR_TRUE;
+    } else {
+      newed = AIR_FALSE;
     }
   }
   fprintf(f, "\n");
