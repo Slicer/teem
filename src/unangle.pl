@@ -1,8 +1,7 @@
 #!/usr/bin/perl -w
 
 # GK uses this to process text output to be used in <blockquote><pre>
-# settings.  Currently, just replaces angle brackets with the their
-# equivalent character sequences.
+# settings; generally for usage information
 
 $line = 0;
 while (<>) {
