@@ -127,6 +127,14 @@ nothing : ;
 ##
 if.missing = $(if $(strip $(foreach x,$(1),$(if $(wildcard $(x)),,no))),$(1))
 
+## create.if.missing(dir): creates directory dir if it doesn't exist,
+## and gives a warning to that effect
+##
+create.if.missing = \
+  $(if $(call if.missing,$(1)),\
+    $(warning *** WARNING ***: Creating needed directory $(1)) \
+      $(shell mkdir $(1)))
+
 ## Set directory-related variables: where to install things, as well
 ## as the directories used in conjunction with the -I and -L path
 ## flags for cc and ld
@@ -136,18 +144,15 @@ ifeq (undefined,$(origin TEEM_DEST))
   LDEST = $(TEEM_ROOT)/$(TEEM_ARCH)/lib
   BDEST = $(TEEM_ROOT)/$(TEEM_ARCH)/bin
 else
+  IPATH += -I$(TEEM_ROOT)/include
   IDEST = $(TEEM_DEST)/include
   LDEST = $(TEEM_DEST)/lib
   BDEST = $(TEEM_DEST)/bin
-  ## complain if the destination directories don't exist
-  $(if $(call if.missing,$(IDEST) $(LDEST) $(BDEST)),\
-    $(error TEEM_DEST="$(TEEM_DEST)" lacks include,lib,bin subdirectories))
+  $(foreach dir,$(IDEST) $(LDEST) $(BDEST),\
+     $(call create.if.missing,$(dir)))
 endif
 ## create IDEST/teem if necessary
-$(if $(call if.missing,$(IDEST)/teem),\
-  $(shell mkdir $(IDEST)/teem))
-## out of laziness, always copy over all the teem*.h headers
-$(shell cp $(TEEM_ROOT)/include/teem*.h $(IDEST)/teem)
+$(call create.if.missing,$(IDEST)/teem)
 ODEST = $(TEEM_ROOT)/$(TEEM_ARCH)/obj
 PCACHE = $(TEEM_ROOT)/$(TEEM_ARCH)/purify
 IPATH += -I$(IDEST)
