@@ -83,17 +83,19 @@ teembin.%.dsp.build:
 	@rm -rf cmd.ed
 	@echo "done"
 
-def.build: $(WIN32.DEST)/teem.def
+def.build: #$(WIN32.DEST)/teem.def
+	@echo "Building teem.def is no longer necessary"
+	@echo "Don't forget to #define TEEM_STATIC when using the static version"
 
-$(WIN32.DEST)/teem.def: teem.dsp
-	@echo "Creating teem.def..."
-	@msdev $(WIN32.DEST)/teem_shared.dsp /make "teem_shared - Win32 Release" /clean
-	@-msdev $(WIN32.DEST)/teem_shared.dsp /make "teem_shared - Win32 Release" /build
-	@dlltool --export-all-symbols --output-def teem.def $(WIN32.DEST)/shared/release/*.obj
-	@grep -v '; dlltool' teem.def | grep -v '_real' | grep -v '??' | grep -v '_airThreadWin32Body' > $(WIN32.DEST)/teem.def
-	@rm teem.def
-	@-msdev $(WIN32.DEST)/teem_shared.dsp /make "teem_shared - Win32 Release" /clean
-	@echo "done"
+#$(WIN32.DEST)/teem.def: teem.dsp
+#	@echo "Creating teem.def..."
+#	@msdev $(WIN32.DEST)/teem_shared.dsp /make "teem_shared - Win32 Release" /clean
+#	@-msdev $(WIN32.DEST)/teem_shared.dsp /make "teem_shared - Win32 Release" /build
+#	@dlltool --export-all-symbols --output-def teem.def $(WIN32.DEST)/shared/release/*.obj
+#	@grep -v '; dlltool' teem.def | grep -v '_real' | grep -v '??' | grep -v '_airThreadWin32Body' > $(WIN32.DEST)/teem.def
+#	@rm teem.def
+#	@-msdev $(WIN32.DEST)/teem_shared.dsp /make "teem_shared - Win32 Release" /clean
+#	@echo "done"
 
 win32:
 	@-msdev $(WIN32.DEST)/teem.dsw /make all /build
