@@ -40,7 +40,6 @@ miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
   mtt->TT = 1.0;
   ELL_3V_SCALE(mtt->V, -1, rayDirWorld);
 
-  fprintf(stderr, "!%s: mtt->verbose = %d\n", "miteRayBegin", mtt->verbose);
   return 0;
 }
 
@@ -102,12 +101,8 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
   char me[]="miteSample", err[AIR_STRLEN_MED];
   mite_t R, G, B, A;
 
-  if (!inside)
+  if (!inside) {
     return mtt->rayStep;
-
-  if (mtt->verbose) {
-    fprintf(stderr, "!%s: verbose = %d\n", me, mtt->verbose);
-    exit(1);
   }
 
   if (1-mtt->TT >= muu->near1 && !muu->justSum) {
@@ -155,6 +150,10 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
     }
   }
 
+  if (mtt->verbose) {
+    exit(1);
+  }
+
   return mtt->rayStep;
 }
 
@@ -163,7 +162,6 @@ miteRayEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
   int idx;
   mite_t *imgData, A;
   
-  fprintf(stderr, "!%s: mtt->verbose = %d\n", "miteRayEnd", mtt->verbose);
   idx = mtt->ui + (muu->nout->axis[1].size)*mtt->vi;
   imgData = (mite_t*)muu->nout->data;
   A = 1 - mtt->TT;
