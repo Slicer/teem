@@ -206,7 +206,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "n", NULL, airTypeInt, 0, 0, &noAction, NULL,
 	     "don't actually write converted files, just pretend to. "
 	     "This is useful to see which files WOULD be converted. ");
-  hestOptAdd(&hopt, NULL, "file ", airTypeString, 1, -1, &name, NULL,
+  hestOptAdd(&hopt, NULL, "file", airTypeString, 1, -1, &name, NULL,
 	     "all the files to convert.  Each file will be over-written "
 	     "with its converted contents.  Use \"-\" to read from stdin "
 	     "and write to stdout", &lenName);
