@@ -23,7 +23,7 @@
 /* bad bad bad Gordon */
 extern void _nrrdGuessFormat(NrrdIO *io, const char *filename);
 
-#define INFO "Write nrrd with specific file format or encoding"
+#define INFO "Write nrrd with specific format, encoding, or endianness"
 char *_unrrdu_saveInfoL =
 (INFO
  ". Use \"unu\tsave\t-f\tpnm\t|\txv\t-\" to view PPM- or "
@@ -34,12 +34,15 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, encInfo[AIR_STRLEN_LARGE];
   Nrrd *nin, *nout;
-  int format, encoding;
   airArray *mop;
   NrrdIO *io;
 
+  mop = airMopInit();
+  io = nrrdIONew();
+  airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
+
   OPT_ADD_NIN(nin, "input nrrd");
-  hestOptAdd(&opt, "f", "format", airTypeEnum, 1, 1, &format, NULL,
+  hestOptAdd(&opt, "f", "format", airTypeEnum, 1, 1, &(io->format), NULL,
 	     "output file format. Possibilities include:\n "
 	     "\b\bo \"nrrd\": standard nrrd format\n "
 	     "\b\bo \"pnm\": PNM image; PPM for color, PGM for grayscale\n "
@@ -58,26 +61,29 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
     strcat(encInfo, 
 	   "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
   }
-  hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &encoding, "raw",
+  hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &(io->encoding), "raw",
 	     encInfo, NULL, nrrdEncoding);
+  hestOptAdd(&opt, "en", "endian", airTypeEnum, 1, 1, &(io->endian),
+	     airEnumStr(airEndian, airMyEndian),
+	     "Endianness of to save data out as; \"little\" for Intel and "
+	     "friends; \"big\" for everyone else. "
+	     "Defaults to endianness of this machine",
+	     NULL, airEndian);
   OPT_ADD_NOUT(out, "output nrrd");
 
-  mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(_unrrdu_saveInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
-
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  io = nrrdIONew();
-  airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
 
   nrrdCopy(nout, nin);
-  io->format = format;
-  io->encoding = encoding;
-
+  
+  if (AIR_ENDIAN != io->endian) {
+    nrrdSwapEndian(nout);
+  }
   if (airEndsWith(out, NRRD_EXT_HEADER)) {
     if (io->format != nrrdFormatNRRD) {
       fprintf(stderr, "%s: WARNING: will use %s format\n", me,

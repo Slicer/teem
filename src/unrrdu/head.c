@@ -24,11 +24,12 @@
 extern int _nrrdOneLine(int *lenP, NrrdIO *io, FILE *file);
 
 #define INFO "Print header of a nrrd file"
-char *_unrrdu_headInfoL = (INFO  ".  The value of this is simply to print the "
-			   "contents of a nrrd header, while avoiding the "
-			   "risk of printing raw binary data (following the "
-			   "header) to screen, as this tends to be annoying "
-			   "and clobber terminal settings.");
+char *_unrrdu_headInfoL = 
+(INFO  ".  The value of this is simply to print the contents of a nrrd "
+ "header, avoiding the use of \"head -N\", where N has to be determined "
+ "manually, and thereby avoiding the risk of printing raw binary data "
+ "(following the header) to screen, as this tends to be annoying and "
+ "clobber terminal settings.");
 
 int
 unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
