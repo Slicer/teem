@@ -112,6 +112,17 @@ nrrdNix(Nrrd *nrrd) {
 }
 
 /*
+******** nrrdUnwrap()
+**
+** calls nrrdNix
+*/
+Nrrd *
+nrrdUnwrap(Nrrd *nrrd) {
+  
+  return(nrrdNix(nrrd));
+}
+
+/*
 ******** nrrdEmpty()
 **
 ** frees data inside nrrd AND resets all its state, so its the
