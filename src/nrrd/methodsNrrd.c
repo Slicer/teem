@@ -58,29 +58,36 @@ nrrdIoStateInit (NrrdIoState *nio) {
   if (nio) {
     nio->path = airFree(nio->path);
     nio->base = airFree(nio->base);
-    nio->dataFN = airFree(nio->dataFN);
     nio->line = airFree(nio->line);
+    nio->dataFNFormat = airFree(nio->dataFNFormat);
+    airArraySetLen(nio->dataFNArr, 0);
+    /* closing this is always someone else's responsibility */
+    nio->headerFile = NULL;
+    nio->dataFile = NULL;
+    nio->dataFileDim = 0;
+    nio->dataFNMin = 0;
+    nio->dataFNMax = 0;
+    nio->dataFNStep = 0;
+    nio->dataFNIndex = -1;
     nio->lineLen = 0;
     nio->pos = 0;
-    /* closing this is always someone else's responsibility */
-    nio->dataFile = NULL;
-    nio->format = nrrdFormatUnknown;
-    nio->encoding = nrrdEncodingUnknown;
     nio->endian = airEndianUnknown;
     nio->lineSkip = 0;
     nio->byteSkip = 0;
+    memset(nio->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
     nio->detachedHeader = AIR_FALSE;
     nio->bareText = nrrdDefWriteBareText;
     nio->charsPerLine = nrrdDefWriteCharsPerLine;
     nio->valsPerLine = nrrdDefWriteValsPerLine;
+    nio->skipData = AIR_FALSE;
+    nio->keepNrrdDataFileOpen = AIR_FALSE;
     nio->zlibLevel = -1;
     nio->zlibStrategy = nrrdZlibStrategyDefault;
     nio->bzip2BlockSize = -1;
-    nio->skipData = AIR_FALSE;
-    nio->keepNrrdDataFileOpen = AIR_FALSE;
     nio->oldData = NULL;
     nio->oldDataSize = 0;
-    memset(nio->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
+    nio->format = nrrdFormatUnknown;
+    nio->encoding = nrrdEncodingUnknown;
   }
   return;
 }
@@ -93,9 +100,12 @@ nrrdIoStateNew (void) {
   if (nio) {
     nio->path = NULL;
     nio->base = NULL;
-    nio->dataFN = NULL;
     nio->line = NULL;
-    nio->dataFile = NULL;
+    nio->dataFNFormat = NULL;
+    nio->dataFN = NULL;
+    nio->dataFNArr = airArrayNew((void**)(&(nio->dataFN)), NULL, 
+                                 sizeof(char *), NRRD_FILENAME_INCR);
+    airArrayPointerCB(nio->dataFNArr, airNull, airFree);
     nio->format = nrrdFormatUnknown;
     nio->encoding = nrrdEncodingUnknown;
     nrrdIoStateInit(nio);
@@ -108,10 +118,11 @@ nrrdIoStateNix (NrrdIoState *nio) {
   
   nio->path = airFree(nio->path);
   nio->base = airFree(nio->base);
-  nio->dataFN = airFree(nio->dataFN);
   nio->line = airFree(nio->line);
-  airFree(nio);  /* no NULL assignment, else compile warnings */
+  nio->dataFNFormat = airFree(nio->dataFNFormat);
+  nio->dataFNArr = airArrayNix(nio->dataFNArr);
   /* the NrrdIoState never owned nio->oldData; we don't free it */
+  airFree(nio);  /* no NULL assignment, else compile warnings */
   return NULL;
 }
 
@@ -433,16 +444,18 @@ nrrdNew (void) {
   nrrd->cmt = NULL;
   nrrd->cmtArr = airArrayNew((void**)(&(nrrd->cmt)), NULL, 
                              sizeof(char *), NRRD_COMMENT_INCR);
-  if (!nrrd->cmtArr)
+  if (!nrrd->cmtArr) {
     return NULL;
+  }
   airArrayPointerCB(nrrd->cmtArr, airNull, airFree);
 
   /* create key/value airArray (even thought it starts empty) */
   nrrd->kvp = NULL;
   nrrd->kvpArr = airArrayNew((void**)(&(nrrd->kvp)), NULL, 
                              2*sizeof(char *), NRRD_KEYVALUE_INCR);
-  if (!nrrd->kvpArr)
+  if (!nrrd->kvpArr) {
     return NULL;
+  }
   /* no airArray callbacks for now */
   
   /* finish initializations */

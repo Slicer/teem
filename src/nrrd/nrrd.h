@@ -231,8 +231,22 @@ typedef struct NrrdEncoding_t {
   int endianMatters,
     isCompression;
   int (*available)(void);
-  int (*read)(Nrrd *nrrd, struct NrrdIoState_t *nio);
-  int (*write)(const Nrrd *nrrd, struct NrrdIoState_t *nio);
+  /* The "data" and "elementNum" values have to be passed explicitly
+     to read/wrote because they will be different from nrrd->data and
+     nrrdElementNumber(nrrd) in the case of multiple data files.  You
+     might think that the only other thing required to be passed is
+     nrrdElementSize(nrrd), but no, it is in fact best to pass the
+     whole Nrrd, instead of just certain attributes.  The stupid details:
+             nrrd->dim: needed to know whether to put one value per line
+                        in case of 1-D nrrdEncodingAscii
+    nrrd->axis[0].size: need for proper formatting of nrrdEncodingAscii
+            nrrd->type: needed for nrrdEncodingAscii, since its action is
+                        entirely parameterized by type
+       nrrd->blockSize: needed for nrrdElementSize in case of nrrdTypeBlock */
+  int (*read)(FILE *file, void *data, size_t elementNum,
+              Nrrd *nrrd, struct NrrdIoState_t *nio);
+  int (*write)(FILE *file, const void *data, size_t elementNum,
+               const Nrrd *nrrd, struct NrrdIoState_t *nio);
 } NrrdEncoding;
 
 /*
@@ -256,23 +270,39 @@ typedef struct NrrdIoState_t {
                                file (e.g. "output.nhdr") MINUS the ".nhdr".
                                This is  massaged to produce a header-
                                relative data filename.  */
-    *dataFN,                /* ON READ: no semantics 
-                               ON WRITE: name to be saved in the "data file"
-                               field of the nrrd, either verbatim from
-                               "unu make -h", or, internally, created based
-                               on detached header path and name */
-    *line;                  /* buffer for saving one line from file */
-  
-  int lineLen,              /* allocated size of line, including the
+    *line,                  /* buffer for saving one line from file */
+    *dataFNFormat,          /* if non-NULL, the format string (containing 
+                               something like "%d" as a substring) to be 
+                               used to identify multiple detached datafiles.
+                               NB: This is "format" in the sense of a printf-
+                               style format string, not in the sense of a 
+                               file format.  This may need header-relative
+                               path processing. */
+    **dataFN;               /* ON READ + WRITE: array of data filenames. These
+                               are not passed directly to fopen, they may need
+                               header-relative path processing. Like the
+                               cmtArr in the Nrrd, this array is not NULL-
+                               terminated */
+  airArray *dataFNArr;      /* for managing the above */
+
+  FILE *headerFile,         /* if non-NULL, the file from which the NRRD
+                               header is being read */
+    *dataFile;              /* this used to be a central part of how the 
+                               I/O code worked, but now it is simply the 
+                               place to store the dataFile in the case of
+                               keepNrrdDataFileOpen */
+  int dataFileDim,          /* The dimension of the data in each data file.
+                               Together with dataFNArr->len, this determines
+                               how many bytes should be in each data file */
+    dataFNMin,              /* used with dataFNFormat to identify ...*/
+    dataFNMax,              /* ... all the multiple detached datafiles */
+    dataFNStep,
+    dataFNIndex,            /* which of the data files are being read */
+    lineLen,                /* allocated size of line, including the
                                last character for \0 */
-    pos;                    /* line[pos] is beginning of stuff which
+    pos,                    /* line[pos] is beginning of stuff which
                                still has yet to be parsed */
-
-  FILE *dataFile;           /* if non-NULL, where the data is to be
-                               read from or written to.  If NULL, data
-                               will be read from current file */
-
-  int endian,               /* endian-ness of the data in file, for
+    endian,                 /* endian-ness of the data in file, for
                                those encoding/type combinations for
                                which it matters (from nrrdEndian) */
     lineSkip,               /* if dataFile non-NULL, the number of
@@ -284,8 +314,11 @@ typedef struct NrrdIoState_t {
                                instead of lines.  First the lines are
                                skipped, then the bytes */
     seen[NRRD_FIELD_MAX+1], /* for error checking in header parsing */
-    detachedHeader,         /* ON READ+WRITE: nrrd is split into distinct
-                               header and data (for nrrd format only) */
+    detachedHeader,         /* ON WRITE: request for file (NRRD format only)
+                               to be split into distinct header and data. 
+                               This only has an effect if detaching the header
+                               is not already necessary, as it is with multiple
+                               data files */
     bareText,               /* when writing a plain text file, is there any
                                effort made to record the nrrd struct
                                info in the text file */
@@ -312,7 +345,8 @@ typedef struct NrrdIoState_t {
                                datafiles).  Warning: can result in broken
                                noncomformant files.
                                (be careful with this) */
-    keepNrrdDataFileOpen,   /* ON READ: don't close nio->dataFile when
+    keepNrrdDataFileOpen,   /* ON READ: when there is only a single dataFile,
+                               don't close nio->dataFile when
                                you otherwise would, when reading the
                                nrrd format. Probably used in conjunction with
                                skipData.  (currently for "unu data")
@@ -325,10 +359,11 @@ typedef struct NrrdIoState_t {
     bzip2BlockSize;         /* block size used for compression, 
                                roughly equivalent to better but slower
                                (1-9, -1 for default[9]). */
-  void *oldData;            /* ON READ: data pointer that may have already been
-                               allocated for the right size to hold the data */
-  size_t oldDataSize;       /* ON READ: size of data pointed to by oldData */
-  /* format and encoding.  These are initialized to nrrdFormatUnknown
+  void *oldData;            /* ON READ: if non-NULL, pointer to space that 
+                               has already been allocated for oldDataSize */
+  size_t oldDataSize;       /* ON READ: size of mem pointed to by oldData */
+
+  /* The format and encoding.  These are initialized to nrrdFormatUnknown
      and nrrdEncodingUnknown, respectively. USE THESE VALUES for 
      any kind of initialization or flagging; DO NOT USE NULL */
   const NrrdFormat *format;
@@ -542,8 +577,8 @@ TEEM_API double nrrdTypeNumberOfValues[];
 /******** pseudo-constructors, pseudo-destructors, and such */
 /* methodsNrrd.c */
 TEEM_API NrrdIoState *nrrdIoStateNew(void);
-TEEM_API void nrrdIoStateInit(NrrdIoState *io);
-TEEM_API NrrdIoState *nrrdIoStateNix(NrrdIoState *io);
+TEEM_API void nrrdIoStateInit(NrrdIoState *nio);
+TEEM_API NrrdIoState *nrrdIoStateNix(NrrdIoState *nio);
 /* ---- BEGIN non-NrrdIO */
 TEEM_API NrrdResampleInfo *nrrdResampleInfoNew(void);
 TEEM_API NrrdResampleInfo *nrrdResampleInfoNix(NrrdResampleInfo *info);
@@ -660,25 +695,27 @@ TEEM_API const NrrdEncoding *const nrrdEncodingUnknown;
 TEEM_API const NrrdEncoding *
   const nrrdEncodingArray[NRRD_ENCODING_TYPE_MAX+1];
 /* parseNrrd.c */
-TEEM_API int (*nrrdFieldInfoParse[NRRD_FIELD_MAX+1])(Nrrd *nrrd,
+TEEM_API int (*nrrdFieldInfoParse[NRRD_FIELD_MAX+1])(FILE *file, Nrrd *nrrd,
                                                      NrrdIoState *nio,
                                                      int useBiff);
 /* read.c */
-TEEM_API int nrrdLineSkip(NrrdIoState *io);
-TEEM_API int nrrdByteSkip(Nrrd *nrrd, NrrdIoState *io);
-TEEM_API int nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *io);
-TEEM_API int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIoState *io);
+TEEM_API int nrrdLineSkip(FILE *dataFile, NrrdIoState *nio);
+TEEM_API int nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio);
+TEEM_API int nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *nio);
+TEEM_API int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIoState *nio);
 /* write.c */
-TEEM_API int nrrdIoStateSet(NrrdIoState *io, int parm, int value);
-TEEM_API int nrrdIoStateEncodingSet(NrrdIoState *io,
+TEEM_API int nrrdIoStateSet(NrrdIoState *nio, int parm, int value);
+TEEM_API int nrrdIoStateEncodingSet(NrrdIoState *nio,
                                     const NrrdEncoding *encoding);
-TEEM_API int nrrdIoStateFormatSet(NrrdIoState *io, 
+TEEM_API int nrrdIoStateFormatSet(NrrdIoState *nio, 
                                   const NrrdFormat *format);
-TEEM_API int nrrdIoStateGet(NrrdIoState *io, int parm);
-TEEM_API const NrrdEncoding *nrrdIoStateEncodingGet(NrrdIoState *io);
-TEEM_API const NrrdFormat *nrrdIoStateFormatGet(NrrdIoState *io);
-TEEM_API int nrrdSave(const char *filename, const Nrrd *nrrd, NrrdIoState *io);
-TEEM_API int nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIoState *io);
+TEEM_API int nrrdIoStateGet(NrrdIoState *nio, int parm);
+TEEM_API const NrrdEncoding *nrrdIoStateEncodingGet(NrrdIoState *nio);
+TEEM_API const NrrdFormat *nrrdIoStateFormatGet(NrrdIoState *nio);
+TEEM_API int nrrdSave(const char *filename, const Nrrd *nrrd, 
+                      NrrdIoState *nio);
+TEEM_API int nrrdWrite(FILE *file, const Nrrd *nrrd, 
+                       NrrdIoState *nio);
 
 /******** getting value into and out of an array of general type, and
    all other simplistic functionality pseudo-parameterized by type */

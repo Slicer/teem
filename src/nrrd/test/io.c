@@ -34,11 +34,12 @@ main(int argc, char **argv) {
   Nrrd *nrrd;
   NrrdIoState *io;
 
-  double val[NRRD_DIM_MAX][NRRD_DIM_MAX];
+  double val[NRRD_DIM_MAX][NRRD_SPACE_DIM_MAX];
 
   me = argv[0];
-  if (3 != argc)
+  if (3 != argc) {
     usage(me);
+  }
 
   io = nrrdIoStateNew();
   nrrdStateVerboseIO = 10;
@@ -50,9 +51,9 @@ main(int argc, char **argv) {
     exit(1);
   }
 
-  fprintf(stderr, "--------------------------------------\n");
+  fprintf(stderr, "0 --------------------------------------\n");
   nrrdDescribe(stderr, nrrd);
-  fprintf(stderr, "--------------------------------------\n");
+  fprintf(stderr, "1 --------------------------------------\n");
 
   nrrd->spaceDim = 3;
   val[0][0] = 1.11;
@@ -69,7 +70,7 @@ main(int argc, char **argv) {
           (unsigned long)(val[1]),
           (unsigned long)(val[2]));
   nrrdAxisInfoSet(nrrd, nrrdAxisInfoSpaceDirection, val[0], val[1], val[2]);
-
+  fprintf(stderr, "2 --------------------------------------\n");
   nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSpaceDirection, val);
   fprintf(stderr, "%s: val[0] = %g %g %g\n", me,
           val[0][0], val[0][1], val[0][2]);
@@ -77,13 +78,16 @@ main(int argc, char **argv) {
           val[1][0], val[1][1], val[1][2]);
   fprintf(stderr, "%s: val[2] = %g %g %g\n", me,
           val[2][0], val[2][1], val[2][2]);
+  fprintf(stderr, "3 --------------------------------------\n");
   nrrdAxisInfoGet(nrrd, nrrdAxisInfoSpaceDirection, val[0], val[1], val[2]);
+  fprintf(stderr, "4 --------------------------------------\n");
   fprintf(stderr, "%s: val[0] = %g %g %g\n", me,
           val[0][0], val[0][1], val[0][2]);
   fprintf(stderr, "%s: val[1] = %g %g %g\n", me,
           val[1][0], val[1][1], val[1][2]);
   fprintf(stderr, "%s: val[2] = %g %g %g\n", me,
           val[2][0], val[2][1], val[2][2]);
+  fprintf(stderr, "5 --------------------------------------\n");
 
   if (nrrdSave("out.nrrd", nrrd, io)) {
     fprintf(stderr, "%s: trouble saving \"%s\":\n%s", 

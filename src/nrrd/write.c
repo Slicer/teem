@@ -331,9 +331,6 @@ _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIoState *nio, int field) {
   case nrrdField_old_max:
     ret = AIR_EXISTS(nrrd->oldMax);
     break;
-  case nrrdField_data_file:
-    ret = nio->detachedHeader;
-    break;
   case nrrdField_endian:
     ret = nio->encoding->endianMatters && 1 < nrrdElementSize(nrrd);
     break;
@@ -362,6 +359,10 @@ _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIoState *nio, int field) {
   case nrrdField_space_origin:
     ret = nrrd->spaceDim > 0;
     break;
+  case nrrdField_data_file:
+    /* detached header was either requested or is required */
+    ret = nio->detachedHeader || _nrrdDataFNNumber(nio) > 1;
+    break;
   }
 
   return ret;
@@ -385,9 +386,9 @@ _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIoState *nio, int field) {
 void
 _nrrdSprintFieldInfo (char **strP, char *prefix,
                       const Nrrd *nrrd, NrrdIoState *nio, int field) {
-  char me[]="_nrrdSprintFieldInfo", buff[AIR_STRLEN_MED];
+  char me[]="_nrrdSprintFieldInfo", buff[AIR_STRLEN_MED], *fnb;
   const char *fs;
-  int i, fslen, fdlen, endi;
+  int i, fslen, fdlen, endi, maxl;
   
   if (!( strP && prefix
          && nrrd 
@@ -574,11 +575,6 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
     airSinglePrintf(NULL, buff, "%lg", nrrd->oldMax);
     strcat(*strP, buff);
     break;
-  case nrrdField_data_file:
-    /* error checking elsewhere */
-    *strP = malloc(fslen + strlen(nio->dataFN));
-    sprintf(*strP, "%s%s: %s", prefix, fs, nio->dataFN);
-    break;
   case nrrdField_endian:
     if (airEndianUnknown != nio->endian) {
       /* we know a specific endianness because either it was recorded as
@@ -629,6 +625,48 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
     *strP = malloc(fslen + nrrd->spaceDim*(30 + strlen("(,) ")));
     sprintf(*strP, "%s%s: ", prefix, fs);
     _nrrdStrcatSpaceVector(*strP, nrrd->spaceDim, nrrd->spaceOrigin);
+    break;
+  case nrrdField_data_file:
+    /* NOTE: this comes last (nrrdField_data_file is the highest-valued
+       member of the nrrdField* enum) because the "LIST" form of the
+       data file specification requires that the following lines be
+       the filenames */
+    /* error checking elsewhere: assumes there is data file info */
+    if (nio->dataFNFormat) {
+      *strP = malloc(fslen + strlen(nio->dataFNFormat) + 10 + 10 + 10 + 10);
+      if (nio->dataFileDim == nrrd->dim-1) {
+        sprintf(*strP, "%s%s: %s %d %d %d", prefix, fs, nio->dataFNFormat, 
+                nio->dataFNMin, nio->dataFNMax, nio->dataFNStep);
+      } else {
+        sprintf(*strP, "%s%s: %s %d %d %d %d", prefix, fs, nio->dataFNFormat, 
+                nio->dataFNMin, nio->dataFNMax, nio->dataFNStep,
+                nio->dataFileDim);
+      }
+    } else if (nio->dataFNArr->len > 1) {
+      maxl = 0;
+      for (i=0; i<nio->dataFNArr->len; i++) {
+        maxl = AIR_MAX(maxl, strlen(nio->dataFN[i]));
+      }
+      *strP = malloc(fslen + strlen(NRRD_LIST_FLAG) + 10 
+                     + nio->dataFNArr->len*maxl);
+      fnb = malloc(fslen + strlen(NRRD_LIST_FLAG) + 10 + maxl);
+      if (nio->dataFileDim == nrrd->dim-1) {
+        sprintf(*strP, "%s%s: LIST\n", prefix, fs);
+      } else {
+        sprintf(*strP, "%s%s: LIST %d\n", prefix, fs, nio->dataFileDim);
+      }
+      for (i=0; i<nio->dataFNArr->len; i++) {
+        sprintf(fnb, "%s%s", nio->dataFN[i], 
+                i<nio->dataFNArr->len-1 ? "\n" : "");
+        strcat(*strP, fnb);
+      }
+      free(fnb);
+    } else {
+      /* there is some ambiguity between a "LIST" of length one,
+         and a single explicit data filename, but that's harmless */
+      *strP = malloc(fslen + strlen(nio->dataFN[0]));
+      sprintf(*strP, "%s%s: %s", prefix, fs, nio->dataFN[0]);
+    }
     break;
   default:
     fprintf(stderr, "%s: CONFUSION: field %d unrecognized\n", me, field);
@@ -786,6 +824,8 @@ nrrdWrite (FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   if (nio->byteSkip || nio->lineSkip) {
+    /* NOTE: unu make bypasses this by calling nrrdFormatNRRD->write()
+       directly */
     sprintf(err, "%s: can't generate line or byte skips on data write", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }

@@ -80,6 +80,7 @@ extern const NrrdFormat _nrrdFormatPNG;
 extern const NrrdFormat _nrrdFormatVTK;
 extern const NrrdFormat _nrrdFormatText;
 extern const NrrdFormat _nrrdFormatEPS;
+extern int _nrrdHeaderCheck(Nrrd *nrrd, NrrdIoState *nio);
 
 /* encodingXXX.c */
 extern const NrrdEncoding _nrrdEncodingRaw;
@@ -90,7 +91,8 @@ extern const NrrdEncoding _nrrdEncodingBzip2;
 
 /* read.c */
 extern int _nrrdOneLine (int *lenP, NrrdIoState *nio, FILE *file);
-extern int _nrrdCalloc (Nrrd *nrrd, NrrdIoState *nio);
+extern int _nrrdCalloc (Nrrd *nrrd, NrrdIoState *nio, FILE *file);
+extern char _nrrdFieldSep[];
 
 /* arrays.c */
 extern int _nrrdFieldValidInImage[NRRD_FIELD_MAX+1];
@@ -109,6 +111,8 @@ extern int _nrrdContentSet(Nrrd *nout, const char *func,
 extern int _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, 
                                     int checkOrigin, int useBiff);
 extern int (*_nrrdFieldCheck[NRRD_FIELD_MAX+1])(const Nrrd *nrrd, int useBiff);
+extern void _nrrdSplitSizes(size_t *pieceSize, size_t *pieceNum, 
+                            Nrrd *nrrd, int listDim);
 
 /* axis.c */
 extern int _nrrdKindAltered(int kindIn);
@@ -143,6 +147,7 @@ extern int _nrrdReshapeDownGrayscale(Nrrd *nimg);
 
 /* parseNrrd.c */
 extern int _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIoState *nio, int useBiff);
+extern int _nrrdDataFNNumber(NrrdIoState *nio);
 
 /* methodsNrrd.c */
 extern void nrrdPeripheralInit(Nrrd *nrrd);

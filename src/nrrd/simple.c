@@ -49,6 +49,7 @@ nrrdSpaceDimension(int space) {
   case nrrdSpaceRightAnteriorSuperior:
   case nrrdSpaceLeftAnteriorSuperior:
   case nrrdSpaceLeftPosteriorSuperior:
+  case nrrdSpaceScannerXYZ:
   case nrrdSpace3DRightHanded:
   case nrrdSpace3DLeftHanded:
     ret = 3;
@@ -56,6 +57,7 @@ nrrdSpaceDimension(int space) {
   case nrrdSpaceRightAnteriorSuperiorTime:
   case nrrdSpaceLeftAnteriorSuperiorTime:
   case nrrdSpaceLeftPosteriorSuperiorTime:
+  case nrrdSpaceScannerXYZTime:
   case nrrdSpace3DRightHandedTime:
   case nrrdSpace3DLeftHandedTime:
     ret = 4;
@@ -677,7 +679,6 @@ int
   _nrrdFieldCheck_noop,           /* max */
   _nrrdFieldCheck_old_min,
   _nrrdFieldCheck_old_max,
-  _nrrdFieldCheck_noop,           /* data_file */
   _nrrdFieldCheck_noop,           /* endian */
   _nrrdFieldCheck_noop,           /* encoding */
   _nrrdFieldCheck_noop,           /* line_skip */
@@ -686,6 +687,7 @@ int
   _nrrdFieldCheck_noop,           /* sample units */
   _nrrdFieldCheck_space_units,
   _nrrdFieldCheck_space_origin,
+  _nrrdFieldCheck_noop,           /* data_file */
 };
 
 int
@@ -833,6 +835,22 @@ nrrdElementNumber (const Nrrd *nrrd) {
     num *= size[d];
   }
   return num;
+}
+
+void
+_nrrdSplitSizes(size_t *pieceSize, size_t *pieceNum, Nrrd *nrrd, int split) {
+  int dd, size[NRRD_DIM_MAX];
+
+  nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSize, size);
+  *pieceSize = 1;
+  for (dd=0; dd<split; dd++) {
+    *pieceSize *= size[dd];
+  }
+  *pieceNum = 1;
+  for (dd=split; dd<nrrd->dim; dd++) {
+    *pieceNum *= size[dd];
+  }
+  return;
 }
 
 /*
