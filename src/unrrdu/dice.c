@@ -85,7 +85,8 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
       /* See if these slices would be better saved as PNM images.
 	 Altering the file name will tell nrrdSave() to use a different
 	 file format. */
-      fit = nrrdFitsInFormat(nout, nrrdFormatPNM, AIR_FALSE);
+      fit = nrrdFitsInFormat(nout, nrrdDefWrtEncoding, nrrdFormatPNM,
+			     AIR_FALSE);
       if (2 == fit) {
 	strcpy(format + strlen(format) - 4, "pgm");
       }
