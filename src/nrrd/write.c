@@ -784,10 +784,36 @@ _nrrdWriteNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io, int writeData) {
 }
 
 int
-_nrrdWritePNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
+_nrrdReshapeDownGrayscale (Nrrd *nout, Nrrd *nin) {
+  char me[]="_nrrdReshapeDownGrayscale", err[AIR_STRLEN_MED];
+  int axmap[2] = {1, 2};
+  
+  if (nrrdReshape(nout, nin, 2, nin->axis[1].size, nin->axis[2].size)
+      || nrrdAxesCopy(nout, nin, axmap, NRRD_AXESINFO_SIZE_BIT)
+      || nrrdPeripheralCopy(nout, nin)
+      || nrrdCommentCopy(nout, nin)) {
+    sprintf(err, "%s: ", me); biffAdd(NRRD, err); return 1;
+  }
+  return 0;
+}
+
+int
+_nrrdWritePNM (FILE *file, Nrrd *_nrrd, NrrdIO *io) {
   char me[]="_nrrdWritePNM", err[AIR_STRLEN_MED], *line;
   int i, color, sx, sy, magic;
+  Nrrd *nrrd;
   
+  nrrd = _nrrd; /* bad warnings */
+  if (3 == nrrd->dim && 1 == nrrd->axis[0].size) {
+    nrrd = nrrdNew();
+    if (_nrrdReshapeDownGrayscale(nrrd, _nrrd)) {
+      sprintf(err, "%s: trouble reshaping grayscale image", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  } else {
+    /* no cleverness needed */
+    nrrd = _nrrd;
+  }
   color = (3 == nrrd->dim);
   if (!color) {
     magic = (nrrdEncodingAscii == io->encoding
@@ -818,9 +844,10 @@ _nrrdWritePNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   io->dataFile = file;
   if (nrrdWriteData[io->encoding](nrrd, io)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); if (nrrd != _nrrd) nrrdNuke(nrrd); return 1;
   }
   
+  if (nrrd != _nrrd) nrrdNuke(nrrd); 
   return 0;
 }
 

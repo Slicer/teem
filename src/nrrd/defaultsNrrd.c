@@ -61,6 +61,7 @@ int nrrdStateMeasureHistoType = nrrdTypeFloat;
 int nrrdStateAlwaysSetContent = AIR_TRUE;
 char nrrdStateUnknownContent[AIR_STRLEN_SMALL] = NRRD_UNKNOWN;
 int nrrdStateDisallowFixedPointNonExist = AIR_TRUE;
+int nrrdStateGrayscaleImage3D = AIR_FALSE;
 
 /* should the acceptance (or not) of malformed NRRD header fields 
    embedded in PNM or table comments be controlled here? */

@@ -791,10 +791,25 @@ _nrrdReadNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io) {
 }
 
 int
+_nrrdReshapeUpGrayscale (Nrrd *nout, Nrrd *nin) {
+  char me[]="_nrrdReshapeUpGrayscale", err[AIR_STRLEN_MED];
+  int axmap[3] = {-1, 0, 1};
+  
+  if (nrrdReshape(nout, nin, 3, 1, nin->axis[0].size, nin->axis[1].size)
+      || nrrdAxesCopy(nout, nin, axmap, NRRD_AXESINFO_SIZE_BIT)
+      || nrrdPeripheralCopy(nout, nin)
+      || nrrdCommentCopy(nout, nin)) {
+    sprintf(err, "%s: ", me); biffAdd(NRRD, err); return 1;
+  }
+  return 0;
+}
+
+int
 _nrrdReadPNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadPNM", err[AIR_STRLEN_MED];
   const char *fs;
   int i, color, got, want, len, ret, val[5], sx, sy, max;
+  Nrrd *ntmp;
   
   nrrd->type = nrrdTypeUChar;
   switch(io->magic) {
@@ -939,6 +954,17 @@ _nrrdReadPNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
     }
   } else {
     nrrd->data = NULL;
+  }
+
+  /* reshape up grayscales if desired */
+  if (!color && nrrdStateGrayscaleImage3D) {
+    ntmp = nrrdNew();
+    if (_nrrdReshapeUpGrayscale(ntmp, nrrd)
+	|| nrrdCopy(nrrd, ntmp)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); nrrdNuke(ntmp); return 1;
+    }
+    nrrdNuke(ntmp);
   }
   
   return 0;

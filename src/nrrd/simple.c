@@ -28,14 +28,16 @@
 **
 ** resets peripheral information
 */
-void
+int
 nrrdPeripheralInit (Nrrd *nrrd) {
 
-  if (nrrd) {
-    nrrd->min = nrrd->max = AIR_NAN;
-    nrrd->oldMin = nrrd->oldMax = AIR_NAN;
-    nrrd->hasNonExist = nrrdNonExistUnknown;
-  }
+  if (!nrrd) 
+    return 1;
+
+  nrrd->min = nrrd->max = AIR_NAN;
+  nrrd->oldMin = nrrd->oldMax = AIR_NAN;
+  nrrd->hasNonExist = nrrdNonExistUnknown;
+  return 0;
 }
 
 /*
@@ -43,16 +45,19 @@ nrrdPeripheralInit (Nrrd *nrrd) {
 **
 ** copies peripheral information
 */
-void
+int
 nrrdPeripheralCopy (Nrrd *nout, Nrrd *nin) {
 
-  if (nout && nin) {
-    nout->min = nin->min;
-    nout->max = nin->max;
-    nout->oldMin = nin->oldMin;
-    nout->oldMax = nin->oldMax;
-    nout->hasNonExist = nin->hasNonExist;
-  }
+  if (!( nout && nin ))
+    return 1;
+
+  /* HEY: who copies the content? */
+  nout->min = nin->min;
+  nout->max = nin->max;
+  nout->oldMin = nin->oldMin;
+  nout->oldMax = nin->oldMax;
+  nout->hasNonExist = nin->hasNonExist;
+  return 0;
 }
 
 int
@@ -433,14 +438,19 @@ nrrdFitsInFormat (Nrrd *nrrd, int encoding, int format, int useBiff) {
       /* its a gray-scale image */
       ret = 2;
     } else if (3 == nrrd->dim) {
-      if (3 != nrrd->axis[0].size) {
-	sprintf(err, "%s: dimension is 3, but first axis size is %d, not 3",
+      if (1 == nrrd->axis[0].size) {
+	/* its a faux-3D image, really grayscale */
+	ret = 2;
+      } else if (3 == nrrd->axis[0].size) {
+	/* its a real color image */
+	ret = 3;
+      } else {
+	/* else its no good */
+	sprintf(err, "%s: dim is 3, but 1st axis size is %d, not 1 or 3",
 		me, nrrd->axis[0].size);
 	biffMaybeAdd(NRRD, err, useBiff); 
 	return AIR_FALSE;
       }
-      /* else its an RGB image */
-      ret = 3;
     } else {
       sprintf(err, "%s: dimension is %d, not 2 or 3", me, nrrd->dim);
       biffMaybeAdd(NRRD, err, useBiff); 

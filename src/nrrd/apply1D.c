@@ -20,7 +20,7 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-/* int _VV = 0; */
+/* int _VV = 0;*/
 
 /*
 ** learned: even when using doubles, because of limited floating point
@@ -227,8 +227,7 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
   }
   fprintf(stderr, "   nout->dim = %d; nout->type = %d = %s; sizes = %d,%d\n", 
 	  nout->dim, nout->type,
-	  airEnumStr(nrrdType, nout->type),
-	  nout->axis[0].size, nout->axis[1].size);
+	  airEnumStr(nrrdType, nout->type));
   fprintf(stderr, "   typeOut = %d = %s\n", typeOut,
 	  airEnumStr(nrrdType, typeOut));
   */
@@ -237,6 +236,13 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
     biffAdd(NRRD, err); return 1;
   }
   /*
+  fprintf(stderr, "   nout->dim = %d; nout->type = %d = %s\n",
+	  nout->dim, nout->type,
+	  airEnumStr(nrrdType, nout->type),
+	  nout->axis[0].size, nout->axis[1].size);
+  for (d=0; d<nout->dim; d++) {
+    fprintf(stderr, "    size[%d] = %d\n", d, nout->axis[d].size);
+  }
   fprintf(stderr, "##%s: post maybe alloc: nout->data = %p\n", me, nout->data);
   */
   if (nrrdAxesCopy(nout, nin, axisMap, NRRD_AXESINFO_NONE)) {
@@ -679,7 +685,7 @@ nrrdApply1DIrregMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap, Nrrd *nacl,
   mapLup = nrrdDLookup[nmap->type];
   entLen = nmap->axis[0].size;    /* entLen is really 1 + entry length */
   entSize = entLen*nrrdElementSize(nmap);
-  colSize = (entLen-1)*nrrdElementSize(nmap);
+  colSize = (entLen-1)*nrrdTypeSize[typeOut];
   outData = nout->data;
   outInsert = nrrdDInsert[nout->type];
   mapMin = pos[0];
@@ -689,9 +695,11 @@ nrrdApply1DIrregMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap, Nrrd *nacl,
   for (I=0;
        I<N;
        I++, inData += inSize, outData += colSize) {
-    /* _VV = 0*(I == 23698); */
     val = inLoad(inData);
-    /* if (_VV) fprintf(stderr, "##%s: val = \n% 31.15f\n", me, val); */
+    /* _VV = ( (AIR_EXISTS(val) && (21 == (int)(-val))) 
+       || 22400 < I ); */
+    /* if (_VV)
+       fprintf(stderr, "##%s: (%d) val = % 31.15f\n", me, (int)I, val); */
     if (!AIR_EXISTS(val)) {
       /* got a non-existant value */
       if (baseI) {
@@ -730,7 +738,7 @@ nrrdApply1DIrregMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap, Nrrd *nacl,
       /* we have an existant value */
       if (rescale) {
 	val = AIR_AFFINE(nin->min, val, nin->max, mapMin, mapMax);
-	/* if (_VV) fprintf(stderr, "rescaled --> \n% 31.15f\n", val); */
+	/* if (_VV) fprintf(stderr, "   rescaled --> % 31.15f\n", val); */
       }
       val = AIR_CLAMP(mapMin, val, mapMax);
       if (acl) {
@@ -754,15 +762,16 @@ nrrdApply1DIrregMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap, Nrrd *nacl,
 		     me, val, mapIdx, mapIdxFrac); */
     entData0 = (char*)(nmap->data) + (baseI+mapIdx)*entSize;
     entData1 = (char*)(nmap->data) + (baseI+mapIdx+1)*entSize;
-    /* if (_VV) fprintf(stderr, "##%s: 2; %d/\n% 31.15f --> entLen = %d --> ",
-       me, mapIdx, mapIdxFrac, entLen); */
+    /* if (_VV) fprintf(stderr, "##%s: 2; %d/\n% 31.15f --> entLen=%d "
+		     "baseI=%d -->\n",
+		     me, mapIdx, mapIdxFrac, entLen, baseI); */
     for (i=1; i<entLen; i++) {
       val = ((1-mapIdxFrac)*mapLup(entData0, i) +
 	     mapIdxFrac*mapLup(entData1, i));
-      /* if (_VV) fprintf(stderr, "\n% 31.15f\n", val); */
+      /* if (_VV) fprintf(stderr, "% 31.15f\n", val); */
       outInsert(outData, i-1, val);
     }
-    /* fprintf(stderr, "##%s: 3\n", me); */
+    /* if (_VV) fprintf(stderr, "##%s: 3\n", me); */
   }
   free(pos);
   return 0;

@@ -171,6 +171,32 @@ nrrdKernelSpecNix (NrrdKernelSpec *ksp) {
   return airFree(ksp);
 }
 
+void
+nrrdKernelSpecSet (NrrdKernelSpec *ksp, NrrdKernel *k,
+		   double kparm[NRRD_KERNEL_PARMS_NUM]) {
+  int p;
+
+  if (ksp && k && kparm) {
+    ksp->kernel = k;
+    for (p=0; p<NRRD_KERNEL_PARMS_NUM; p++) {
+      ksp->parm[p] = kparm[p];
+    }
+  }
+}
+
+void
+nrrdKernelParmSet (NrrdKernel **kP, double kparm[NRRD_KERNEL_PARMS_NUM],
+		   NrrdKernelSpec *ksp) {
+  int p;
+
+  if (kP && kparm && ksp) {
+    *kP = ksp->kernel;
+    for (p=0; p<NRRD_KERNEL_PARMS_NUM; p++) {
+      kparm[p] = ksp->parm[p];
+    }
+  }
+}
+
 /* ------------------------------------------------------------ */
 
 /* see axes.c for axis-specific "methods" */
@@ -460,6 +486,7 @@ nrrdCopy (Nrrd *nout, Nrrd *nin) {
   }
   nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
 
+  /* HEY: shouldn't this be handled with nrrdPeripheralCopy() */
   nout->content = airStrdup(nin->content);
   if (nin->content && !nout->content) {
     sprintf(err, "%s: couldn't copy content", me);

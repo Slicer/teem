@@ -323,6 +323,7 @@ extern nrrd_export int nrrdStateMeasureHistoType;
 extern nrrd_export int nrrdStateAlwaysSetContent;
 extern nrrd_export char nrrdStateUnknownContent[];
 extern nrrd_export int nrrdStateDisallowFixedPointNonExist;
+extern nrrd_export int nrrdStateGrayscaleImage3D;
 
 /******** all the airEnums used through-out nrrd */
 /* (the actual C enums are in nrrdEnums.h) */
@@ -367,6 +368,11 @@ extern NrrdIO *nrrdIONix(NrrdIO *io);
 extern NrrdResampleInfo *nrrdResampleInfoNew(void);
 extern NrrdResampleInfo *nrrdResampleInfoNix(NrrdResampleInfo *info);
 extern NrrdKernelSpec *nrrdKernelSpecNew();
+extern void nrrdKernelSpecSet(NrrdKernelSpec *ksp, NrrdKernel *k,
+			      double kparm[NRRD_KERNEL_PARMS_NUM]);
+extern void nrrdKernelParmSet(NrrdKernel **kP,
+			      double kparm[NRRD_KERNEL_PARMS_NUM],
+			      NrrdKernelSpec *ksp);
 extern NrrdKernelSpec *nrrdKernelSpecNix(NrrdKernelSpec *ksp);
 extern void nrrdInit(Nrrd *nrrd);
 extern Nrrd *nrrdNew(void);
@@ -418,8 +424,8 @@ extern void nrrdAxisMinMaxSet(Nrrd *nrrd, int ax, int defCenter);
 
 /******** simple things */
 /* simple.c */
-extern void nrrdPeripheralInit(Nrrd *nrrd);
-extern void nrrdPeripheralCopy(Nrrd *nout, Nrrd *nin);
+extern int nrrdPeripheralInit(Nrrd *nrrd);
+extern int nrrdPeripheralCopy(Nrrd *nout, Nrrd *nin);
 extern int nrrdContentSet(Nrrd *nout, const char *func,
 			  Nrrd *nin, const char *format,
 			  ... /* printf-style arg list */ );
@@ -455,16 +461,21 @@ extern nrrd_export double (*nrrdDStore[NRRD_TYPE_MAX+1])(void *v, double d);
 extern nrrd_export int    (*nrrdILookup[NRRD_TYPE_MAX+1])(void *v, size_t I);
 extern nrrd_export float  (*nrrdFLookup[NRRD_TYPE_MAX+1])(void *v, size_t I);
 extern nrrd_export double (*nrrdDLookup[NRRD_TYPE_MAX+1])(void *v, size_t I);
-extern nrrd_export int    (*nrrdIInsert[NRRD_TYPE_MAX+1])(void *v, size_t I, int j);
-extern nrrd_export float  (*nrrdFInsert[NRRD_TYPE_MAX+1])(void *v, size_t I, float f);
-extern nrrd_export double (*nrrdDInsert[NRRD_TYPE_MAX+1])(void *v, size_t I, double d);
+extern nrrd_export int    (*nrrdIInsert[NRRD_TYPE_MAX+1])(void *v,
+							  size_t I, int j);
+extern nrrd_export float  (*nrrdFInsert[NRRD_TYPE_MAX+1])(void *v,
+							  size_t I, float f);
+extern nrrd_export double (*nrrdDInsert[NRRD_TYPE_MAX+1])(void *v,
+							  size_t I, double d);
 extern nrrd_export int    (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, void *);
 extern nrrd_export int    (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, void *);
 extern nrrd_export float  (*nrrdFClamp[NRRD_TYPE_MAX+1])(float);
 extern nrrd_export double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double);
-extern nrrd_export void (*nrrdFindMinMax[NRRD_TYPE_MAX+1])(void *minP, void *maxP,
-					       Nrrd *nrrd);
-extern nrrd_export int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *);
+extern nrrd_export void (*nrrdFindMinMax[NRRD_TYPE_MAX+1])(void *minP,
+							   void *maxP,
+							   Nrrd *nrrd);
+extern nrrd_export int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *,
+							  const void *);
 
 /******** getting information to and from files */
 /* read.c */
@@ -537,7 +548,8 @@ extern int nrrdUnblock(Nrrd *nout, Nrrd *nin, int type);
 
 /******** measuring and projecting */
 /* measure.c */
-extern nrrd_export void (*nrrdMeasureLine[NRRD_MEASURE_MAX+1])(void *ans, int ansType,
+extern nrrd_export void (*nrrdMeasureLine[NRRD_MEASURE_MAX+1])(void *ans,
+							       int ansType,
 						   void *line, int lineType,
 						   int lineLen, 
 						   double axMin, double axMax);

@@ -1,3 +1,5 @@
+----- teem 1.5beta1 cut-off -----
+
 nrrdSplice, nrrdInset
 
 test working with nout==nin
@@ -15,8 +17,6 @@ check resampler getting info with NULL kernel on each axis
 
 change verbosity to warning when nrrd headers in PPM and tables are botched,
 and to get indication of successful DIO reading
-
------ teem 1.5beta1 cut-off -----
 
 VTK file input and output!
 
