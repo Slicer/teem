@@ -451,7 +451,13 @@ nrrdCopy (Nrrd *nout, Nrrd *nin) {
     sprintf(err, "%s: couldn't allocate data", me);
     biffAdd(NRRD, err); return 1;
   }
-  memcpy(nout->data, nin->data, nrrdElementNumber(nin)*nrrdElementSize(nin));
+  if (nin->data) {
+    memcpy(nout->data, nin->data,
+	   nrrdElementNumber(nin)*nrrdElementSize(nin));
+  } else {
+    /* someone is trying to copy structs without data, fine fine fine */
+    nout->data = NULL;
+  }
   nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
 
   nout->content = airStrdup(nin->content);
