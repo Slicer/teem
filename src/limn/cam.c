@@ -263,9 +263,9 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
       sprintf(err, "%s: fov, aspect not both defined on keyframe %d", me, ii);
       biffAdd(LIMN, err); airMopError(mop); return 1;
     }
-    ell_4m_to_q_d(quat + 4*ii, keycam[ii].W2V);
     fprintf(stderr, "!%s: keycam[%d].W2V:\n", me, ii);
     ell_4m_print_d(stderr, keycam[ii].W2V);
+    ell_4m_to_q_d(quat + 4*ii, keycam[ii].W2V);
     fprintf(stderr, "!%s: --> q = %g %g %g %g --> \n", me,
 	    (quat + 4*ii)[0], (quat + 4*ii)[1],
 	    (quat + 4*ii)[2], (quat + 4*ii)[3]);
