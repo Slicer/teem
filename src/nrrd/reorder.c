@@ -439,6 +439,9 @@ nrrdFlip(Nrrd *nout, const Nrrd *nin, int axis) {
   }
   nout->axis[axis].min = nin->axis[axis].max;
   nout->axis[axis].max = nin->axis[axis].min;
+  /* HEY: doesn't it seem odd that sign of spacing isn't flipped? */
+  nout->axis[axis].spacing = nin->axis[axis].spacing;
+  nout->axis[axis].thickness = nin->axis[axis].thickness;
   perm = airFree(perm);
   return 0;
 }
