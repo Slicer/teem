@@ -40,7 +40,7 @@
 const char *
 airTeemVersion = "1.8 pre-release";
 const char *
-airTeemReleaseDate = "11 Feb 2005";
+airTeemReleaseDate = "20 Feb 2005";
 
 /*
 ******** airNull()
