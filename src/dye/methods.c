@@ -73,10 +73,12 @@ dyeColorSet(dyeColor *col, int space, float v0, float v1, float v2) {
   if (col && AIR_BETWEEN(dyeSpaceUnknown, space, dyeSpaceLast)) {
     col->wch = AIR_CLAMP(0, col->wch, 1);
 
-    /* We switch to the other one if the current one seems to be used.
+    /* We switch to the other one if the current one seems to be used,
+       but we don't switch if new and current colorspaces are the same.
        If the other one is being used too, oh well.  */
     if (dyeSpaceUnknown != col->spc[col->wch] &&
-	AIR_EXISTS(col->val[col->wch][0])) {
+	AIR_EXISTS(col->val[col->wch][0]) &&
+	col->spc[col->wch] != space) {
       col->wch = 1-col->wch;
     }
 
@@ -97,6 +99,18 @@ dyeColorGet(float *v0P, float *v1P, float *v2P, dyeColor *col) {
     ELL_3V_GET(*v0P, *v1P, *v2P, col->val[col->wch]);
   }
   return spc;
+}
+
+int
+dyeColorGetAs(float *v0P, float *v1P, float *v2P, 
+	      dyeColor *colIn, int space) {
+  dyeColor _col, *col;
+  
+  col = &_col;
+  dyeColorCopy(col, colIn);
+  /* hope for no error */
+  dyeConvert(col, space);
+  return dyeColorGet(v0P, v1P, v2P, col);
 }
 
 dyeColor *

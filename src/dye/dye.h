@@ -36,7 +36,7 @@ typedef enum {
   dyeSpaceHSV,            /* 1: single hexcone */
   dyeSpaceHSL,            /* 2: double hexcone */
   dyeSpaceRGB,            /* 3: obscure, deprecated */
-  dyeSpaceXYZ,            /* 4: */
+  dyeSpaceXYZ,            /* 4: perceptual primaries */
   dyeSpaceLAB,            /* 5: 1976 CIE (L*a*b*) (based on Munsell) */
   dyeSpaceLUV,            /* 6: 1976 CIE (L*u*v*) */
   dyeSpaceLast
@@ -60,8 +60,9 @@ extern int dyeStrToSpace(char *str);
 extern dyeColor *dyeColorInit(dyeColor *col);
 extern dyeColor *dyeColorSet(dyeColor *col, int space, 
 			     float v0, float v1, float v2);
-extern int dyeColorGet(float *v0P, float *v1P, float *v2P,
-		       dyeColor *col);
+extern int dyeColorGet(float *v0P, float *v1P, float *v2P, dyeColor *col);
+extern int dyeColorGetAs(float *v0P, float *v1P, float *v2P, 
+			 dyeColor *col, int space);
 extern dyeColor *dyeColorNew();
 extern dyeColor *dyeColorCopy(dyeColor *c1, dyeColor *c0);
 extern dyeColor *dyeColorNix(dyeColor *col);
