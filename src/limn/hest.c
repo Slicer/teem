@@ -42,11 +42,11 @@ limnHestCamOptAdd(hestOpt **hoptP, limnCam *cam,
   hestOpt *hopt;
   
   hopt = *hoptP;
-  hestOptAdd(&hopt, "fr", "eye", airTypeDouble, 3, 3, cam->from,
+  hestOptAdd(&hopt, "fr", "eye pos", airTypeDouble, 3, 3, cam->from,
 	     frDef, "camera eye point");
-  hestOptAdd(&hopt, "at", "at", airTypeDouble, 3, 3, cam->at,
+  hestOptAdd(&hopt, "at", "at pos", airTypeDouble, 3, 3, cam->at,
 	     atDef, "camera look-at point");
-  hestOptAdd(&hopt, "up", "up", airTypeDouble, 3, 3, cam->up,
+  hestOptAdd(&hopt, "up", "up dir", airTypeDouble, 3, 3, cam->up,
 	     upDef, "camera pseudo up vector");
   hestOptAdd(&hopt, "dn", "near", airTypeDouble, 1, 1, &(cam->near),
 	     dnDef, "distance to near clipping plane");
@@ -54,9 +54,9 @@ limnHestCamOptAdd(hestOpt **hoptP, limnCam *cam,
 	     diDef, "distance to image plane");
   hestOptAdd(&hopt, "df", "far", airTypeDouble, 1, 1, &(cam->faar),
 	     dfDef, "distance to far clipping plane");
-  hestOptAdd(&hopt, "ur", "U range", airTypeDouble, 2, 2, cam->uRange,
+  hestOptAdd(&hopt, "ur", "uMin uMax", airTypeDouble, 2, 2, cam->uRange,
 	     urDef, "range in U direction of image plane");
-  hestOptAdd(&hopt, "vr", "V range", airTypeDouble, 2, 2, cam->vRange,
+  hestOptAdd(&hopt, "vr", "vMin vMax", airTypeDouble, 2, 2, cam->vRange,
 	     vrDef, "range in V direction of image plane");
   hestOptAdd(&hopt, "rh", "right", airTypeInt, 0, 0, &(cam->rightHanded), NULL,
 	     "use a right-handed UVN frame (V points down)");
