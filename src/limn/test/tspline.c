@@ -19,7 +19,7 @@
 
 
 /*
-test/tspline -loop -t 300 300 -s 10 -i s.txt:bc:1,0 -m 1000 > ! out.ps 
+test/tspline -loop -t 300 300 -s 10 -i s.txt:2v:bc:1,0 -m 1000 > ! out.ps 
 */
 
 /* s.txt:

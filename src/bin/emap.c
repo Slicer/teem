@@ -103,7 +103,7 @@ main(int argc, char *argv[]) {
   cam->neer = -0.000000001;
   cam->dist = 0;
   cam->faar = 0.0000000001;
-  cam->atRel = AIR_TRUE;
+  cam->atRelative = AIR_TRUE;
   if (limnCameraUpdate(cam) || limnLightUpdate(light, cam)) {
     airMopAdd(mop, errS = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: problem with camera or lights:\n%s\n", me, errS);

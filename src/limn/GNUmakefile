@@ -49,7 +49,8 @@ $(L).PRIVATE_HEADERS =
 $(L).OBJS = defaultsLimn.o qn.o light.o env.o cam.o methodsLimn.o obj.o io.o \
 	hestLimn.o transform.o renderLimn.o shapes.o \
 	splineMisc.o splineMethods.o splineEval.o
-$(L).TESTS = test/map test/light test/tcam test/tps test/tspline test/tbc
+$(L).TESTS = test/map test/light test/tcam test/tps test/tspline test/tbc \
+	test/tcamanim
 ####
 ####
 ####

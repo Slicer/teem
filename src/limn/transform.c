@@ -109,7 +109,7 @@ _limnObjSTransform(limnObj *obj, limnCamera *cam) {
 
   for (pi=0; pi<=obj->pA->len-1; pi++) {
     p = obj->p + pi;
-    d = (cam->ortho 
+    d = (cam->orthographic 
 	 ? 1
 	 : cam->vspDist/p->v[2]);
     p->s[0] = d*p->v[0];
@@ -191,7 +191,7 @@ limnObjSpaceTransform(limnObj *obj, limnCamera *cam, limnWin *win, int space) {
   char me[]="limnObjSpaceTransform";
   int ret;
 
-  /* HEY: deal with cam->ortho */
+  /* HEY: deal with cam->orthographic */
   switch(space) {
   case limnSpaceView:
     ret = _limnObjVTransform(obj, cam);

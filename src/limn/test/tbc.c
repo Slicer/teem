@@ -55,6 +55,7 @@ main(int argc, char *argv[]) {
   int bi, ci, i, N, M, pause, loop;
   Nrrd *ncptA, *ncptB, *nout;
   double *out, minT, maxT, scale, tran[2], B, C;
+  limnSplineTypeSpec *spec;
 
   mop = airMopNew();
   
@@ -82,11 +83,11 @@ main(int argc, char *argv[]) {
     airMopError(mop);
     return 1;
   }
+  spec = limnSplineTypeSpecNew(limnSplineTypeBC, 0, 0);
   airMopAdd(mop, ncptB=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  if (limnSplineNrrdCleverFix(ncptB, ncptA, limnSplineTypeBC,
-			      limnSplineInfo2Vector)
-      || !(spline = limnSplineNew(ncptB, limnSplineTypeBC,
-				  limnSplineInfo2Vector))) {
+  if (limnSplineNrrdCleverFix(ncptB, ncptA, limnSplineInfo2Vector,
+			      limnSplineTypeBC)
+      || !(spline = limnSplineNew(ncptB, limnSplineInfo2Vector, spec))) {
     airMopAdd(mop, err=biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop);
@@ -99,7 +100,6 @@ main(int argc, char *argv[]) {
   maxT = limnSplineMaxT(spline);
   
   /* try one for error checking */
-  limnSplineBCSet(spline, 0.0, 0.0);
   if (limnSplineSample(nout, spline, minT, M, maxT)) {
     airMopAdd(mop, err=biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);

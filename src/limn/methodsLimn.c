@@ -36,15 +36,24 @@ limnLightNix(limnLight *lit) {
   return NULL;
 }
 
+void
+limnCameraInit(limnCamera *cam) {
+
+  if (cam) {
+    cam->atRelative = limnDefCameraAtRelative;
+    cam->orthographic = limnDefCameraOrthographic;
+    cam->rightHanded = limnDefCameraRightHanded;
+  }
+  return;
+}
+
 limnCamera *
 limnCameraNew(void) {
   limnCamera *cam;
 
   cam = (limnCamera *)calloc(1, sizeof(limnCamera));
   if (cam) {
-    cam->atRel = limnDefCameraAtRel;
-    cam->ortho = limnDefCameraOrtho;
-    cam->rightHanded = limnDefCameraRightHanded;
+    limnCameraInit(cam);
   }
   return cam;
 }

@@ -28,11 +28,11 @@
 ** at: cam->at
 ** up: cam->up
 ** rh: cam->rightHanded
-** or: cam->ortho
+** or: cam->orthographic
 ** dn: cam->neer
 ** di: cam->dist
 ** df: cam->faar
-** ar: cam->atRel
+** ar: cam->atRelative
 ** ur: cam->uRange
 ** vr: cam->vRange
 */
@@ -52,7 +52,7 @@ limnHestCameraOptAdd(hestOpt **hoptP, limnCamera *cam,
 	     upDef, "camera pseudo-up vector");
   hestOptAdd(&hopt, "rh", NULL, airTypeInt, 0, 0, &(cam->rightHanded), NULL,
 	     "use a right-handed UVN frame (V points down)");
-  hestOptAdd(&hopt, "or", NULL, airTypeInt, 0, 0, &(cam->ortho), NULL,
+  hestOptAdd(&hopt, "or", NULL, airTypeInt, 0, 0, &(cam->orthographic), NULL,
 	     "orthogonal (not perspective) projection");
   hestOptAdd(&hopt, "dn", "near", airTypeDouble, 1, 1, &(cam->neer),
 	     dnDef, "distance to near clipping plane");
@@ -60,7 +60,7 @@ limnHestCameraOptAdd(hestOpt **hoptP, limnCamera *cam,
 	     diDef, "distance to image plane");
   hestOptAdd(&hopt, "df", "far", airTypeDouble, 1, 1, &(cam->faar),
 	     dfDef, "distance to far clipping plane");
-  hestOptAdd(&hopt, "ar", NULL, airTypeInt, 0, 0, &(cam->atRel), NULL,
+  hestOptAdd(&hopt, "ar", NULL, airTypeInt, 0, 0, &(cam->atRelative), NULL,
 	     "near, image, and far plane distances are relative to "
 	     "the *at* point, instead of the eye point");
   hestOptAdd(&hopt, "ur", "uMin uMax", airTypeDouble, 2, 2, cam->uRange,

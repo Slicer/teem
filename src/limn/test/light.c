@@ -39,7 +39,7 @@ main(int argc, char *argv[]) {
   cam->neer = -5;
   cam->dist = 0;
   cam->faar =  5;
-  cam->atRel = AIR_TRUE;
+  cam->atRelative = AIR_TRUE;
 
   lit = limnLightNew();
   limnLightSet(lit, 0, AIR_TRUE, 1, 0, 0, 1, 0, 0);

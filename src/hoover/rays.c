@@ -206,7 +206,7 @@ _hooverThreadBody(void *_arg) {
     Mz = arg->ctx->volSize[2]-0.5;
   }
   
-  if (arg->ctx->cam->ortho) {
+  if (arg->ctx->cam->orthographic) {
     ELL_3V_COPY(rayDirW, arg->ctx->cam->N);
     rayDirI[0] = AIR_DELTA(-lx, rayDirW[0], lx, mm, Mx);
     rayDirI[1] = AIR_DELTA(-ly, rayDirW[1], ly, mm, My);
@@ -247,7 +247,7 @@ _hooverThreadBody(void *_arg) {
       rayStartI[0] = AIR_AFFINE(-lx, rayStartW[0], lx, mm, Mx);
       rayStartI[1] = AIR_AFFINE(-ly, rayStartW[1], ly, mm, My);
       rayStartI[2] = AIR_AFFINE(-lz, rayStartW[2], lz, mm, Mz);
-      if (!arg->ctx->cam->ortho) {
+      if (!arg->ctx->cam->orthographic) {
 	ELL_3V_SUB(rayDirW, rayStartW, arg->ctx->cam->from);
 	ELL_3V_NORM(rayDirW, rayDirW, tmp);
 	rayDirI[0] = AIR_DELTA(-lx, rayDirW[0], lx, mm, Mx);

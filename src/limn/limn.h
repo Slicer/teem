@@ -71,12 +71,12 @@ typedef struct limnCamera_t {
     neer, faar,       /* neer and far clipping plane distances
                          (misspelled for the sake of McRosopht) */
     dist;             /* distance to image plane */
-  int atRel,          /* if non-zero: given neer, faar, and dist
+  int atRelative,     /* if non-zero: given neer, faar, and dist
                          quantities indicate distance relative to the
 			 _at_ point, instead of the usual (in computer
 			 graphics) sense if being relative to the
 			 eye point */
-    ortho,            /* no perspective projection: just orthographic */
+    orthographic,     /* no perspective projection: just orthographic */
     rightHanded;      /* if rightHanded, V = NxU (V points "downwards"),
 			 otherwise, V = UxN (V points "upwards") */
   /* --------------------------------------------------------------------
@@ -85,7 +85,7 @@ typedef struct limnCamera_t {
   double W2V[16],     /* World to view transform. The _rows_ of this
                          matrix (its 3x3 submatrix) are the U, V, N
                          vectors which form the view-space coordinate frame.
-                         The column-major ordering of elements into the
+                         The column-major ordering of elements in the
                          matrix is from ell:
                          0   4   8  12
                          1   5   9  13
@@ -323,10 +323,15 @@ typedef struct limnSpline_t {
 			Currently, only used for limnSplineTypeTimeWarp */
 } limnSpline;
 
+typedef struct limnSplineTypeSpec_t {
+  int type;          /* from limnSplineType* enum */
+  double B, C;       /* B,C values for BC-splines */
+} limnSplineTypeSpec;
+
 /* defaultsLimn.c */
 extern limn_export const char *limnBiffKey;
-extern limn_export int limnDefCameraAtRel;
-extern limn_export int limnDefCameraOrtho;
+extern limn_export int limnDefCameraAtRelative;
+extern limn_export int limnDefCameraOrthographic;
 extern limn_export int limnDefCameraRightHanded;
 
 /* qn.c */
@@ -352,6 +357,7 @@ extern int limnEnvMapCheck(Nrrd *envMap);
 
 /* methodsLimn.c */
 extern limnLight *limnLightNew(void);
+extern void limnCameraInit(limnCamera *cam);
 extern limnLight *limnLightNix(limnLight *);
 extern limnCamera *limnCameraNew(void);
 extern limnCamera *limnCameraNix(limnCamera *cam);
@@ -366,6 +372,13 @@ extern void limnHestCameraOptAdd(hestOpt **hoptP, limnCamera *cam,
 
 /* cam.c */
 extern int limnCameraUpdate(limnCamera *cam);
+extern int limnCameraPathMake(limnCamera *cam, int numFrames,
+			      limnCamera *keycam, double *time,
+			      int numKeys, int trackFrom, 
+			      limnSplineTypeSpec *quatType,
+			      limnSplineTypeSpec *posType,
+			      limnSplineTypeSpec *distType,
+			      limnSplineTypeSpec *uvType);
 
 /* obj.c */
 extern limnObj *limnObjNew(int incr, int edges);
@@ -405,23 +418,31 @@ extern int limnObjRender(limnObj *obj, limnCamera *cam, limnWin *win);
 extern int limnObjPSDraw(limnObj *obj, limnCamera *cam,
 			 Nrrd *envMap, limnWin *win);
 
+/* splineMethods.c */
+extern limnSplineTypeSpec *limnSplineTypeSpecNew(int type, ...);
+extern limnSplineTypeSpec *limnSplineTypeSpecNix(limnSplineTypeSpec *spec);
+extern limnSpline *limnSplineNew(Nrrd *ncpt, int info,
+				 limnSplineTypeSpec *spec);
+extern limnSpline *limnSplineNix(limnSpline *spline);
+extern int limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type);
+extern limnSpline *limnSplineCleverNew(Nrrd *ncpt, int info,
+				       limnSplineTypeSpec *spec);
+extern int limnSplineUpdate(limnSpline *spline, Nrrd *ncpt);
+
 /* splineMisc.c */
 extern limn_export airEnum *limnSplineType;
 extern limn_export airEnum *limnSplineInfo;
+extern limnSpline *limnSplineParse(char *str);
+extern limnSplineTypeSpec *limnSplineTypeSpecParse(char *str);
 extern limn_export hestCB *limnHestSpline;
+extern limn_export hestCB *limnHestSplineTypeSpec;
 extern limn_export int limnSplineInfoSize[LIMN_SPLINE_INFO_MAX+1];
-extern limn_export int
-  limnSplineTypeHasImplicitTangents[LIMN_SPLINE_TYPE_MAX+1];
-extern void limnSplineBCSet(limnSpline *spline, double B, double C);
+extern limn_export
+  int limnSplineTypeHasImplicitTangents[LIMN_SPLINE_TYPE_MAX+1];
 extern int limnSplineNumPoints(limnSpline *spline);
 extern double limnSplineMinT(limnSpline *spline);
 extern double limnSplineMaxT(limnSpline *spline);
-
-/* splineMethods.c */
-extern limnSpline *limnSplineNew(Nrrd *ncpt, int type, int info);
-extern limnSpline *limnSplineNix(limnSpline *spline);
-extern int limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int type, int info);
-extern int limnSplineUpdate(limnSpline *spline, Nrrd *ncpt);
+extern void limnSplineBCSet(limnSpline *spline, double B, double C);
 
 /* splineEval.c */
 extern void limnSplineEvaluate(double *out, limnSpline *spline, double time);

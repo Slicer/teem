@@ -53,7 +53,7 @@ main(int argc, char *argv[]) {
   cam->neer = -1;
   cam->dist = 0;
   cam->faar = 1;
-  cam->atRel = AIR_TRUE;
+  cam->atRelative = AIR_TRUE;
 
   if (limnCameraUpdate(cam)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, err = biffGet(LIMN));

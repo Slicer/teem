@@ -43,7 +43,7 @@ _limnSplineTypeDesc[LIMN_SPLINE_TYPE_MAX+1][AIR_STRLEN_MED] = {
 
 char
 _limnSplineTypeStrEqv[][AIR_STRLEN_SMALL] = {
-  "linear",
+  "linear", "lin", "line", "tent",
   "timewarp", "time-warp", "warp",
   "hermite",
   "cubicbezier", "cubic-bezier", "bezier", "bez",
@@ -53,7 +53,8 @@ _limnSplineTypeStrEqv[][AIR_STRLEN_SMALL] = {
 
 int
 _limnSplineTypeValEqv[] = {
-  limnSplineTypeLinear,
+  limnSplineTypeLinear, limnSplineTypeLinear, limnSplineTypeLinear,
+      limnSplineTypeLinear,
   limnSplineTypeTimeWarp, limnSplineTypeTimeWarp, limnSplineTypeTimeWarp,
   limnSplineTypeHermite,
   limnSplineTypeCubicBezier, limnSplineTypeCubicBezier, 
@@ -102,7 +103,7 @@ _limnSplineInfoStrEqv[][AIR_STRLEN_SMALL] = {
   "3-vector", "3vector", "3vec", "3v", "v3", "vec3", "vector3", "vector-3",
   "normal", "norm", "n",
   "4-vector", "4vector", "4vec", "4v", "v4", "vec4", "vector4", "vector-4",
-  "quaternion", "q",
+  "quaternion", "quat", "q",
   ""
 };
 
@@ -120,13 +121,13 @@ _limnSplineInfoValEqv[] = {
   SI3V, SI3V, SI3V, SI3V, SI3V, SI3V, SI3V, SI3V,
   SINN, SINN, SINN, 
   SI4V, SI4V, SI4V, SI4V, SI4V, SI4V, SI4V, SI4V,
-  SIQQ, SIQQ
+  SIQQ, SIQQ, SIQQ
 };
 
 airEnum
 _limnSplineInfo = {
   "spline-info",
-  LIMN_SPLINE_TYPE_MAX,
+  LIMN_SPLINE_INFO_MAX,
   _limnSplineInfoStr,  NULL,
   _limnSplineInfoDesc,
   _limnSplineInfoStrEqv, _limnSplineInfoValEqv,
@@ -209,127 +210,209 @@ limnSplineMaxT(limnSpline *spline) {
 
 void
 limnSplineBCSet(limnSpline *spline, double B, double C) {
-
+  
   if (spline) {
     spline->B = B;
     spline->C = C;
   }
-  return;
 }
 
-/*
-** the spline command-line specification is of the form
-** <nrrdFileName>:<splineInfo>:<splineType>[:B,C]
-*/
-int
-_limnHestSplineParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "_limnHestSplineParse", *nerr, *str, *col,
-    *tmpS, *fnameS=NULL, *infoS, *typeS, *paramS=NULL;
-  limnSpline **splineP;
-  int type, info;
-  Nrrd *ninA, *ninB;
+limnSplineTypeSpec *
+limnSplineTypeSpecParse(char *_str) {
+  char me[]="limnSplineTypeSpecParse", err[AIR_STRLEN_MED];
+  limnSplineTypeSpec *spec;
+  int type;
+  double B, C;
+  char *str, *col, *bcS;
   airArray *mop;
-  double B=0, C=0;
-  
-  if (!(ptr && _str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  splineP = (limnSpline **)ptr;
-  if (!airStrlen(_str)) {
-    /* got an empty string, which for now we take as an okay way
-       to NOT ask for a spline */
-    *splineP = NULL;
-    return 0;
-  }
 
+  if (!( _str && airStrlen(_str) )) {
+    sprintf(err, "%s: got NULL or emptry string", me);
+    biffAdd(LIMN, err); return NULL;
+  }
   mop = airMopNew();
   airMopAdd(mop, str=airStrdup(_str), airFree, airMopAlways);
+  col = strchr(str, ':');
+  if (col) {
+    *col = 0;
+    bcS = col+1;
+  } else {
+    bcS = NULL;
+  }
+  if (limnSplineTypeUnknown == (type = airEnumVal(limnSplineType, str))) {
+    sprintf(err, "%s: couldn't parse \"%s\" as spline type", me, str);
+    biffAdd(LIMN, err); airMopError(mop); return NULL;
+  }
   
+  if (!( (limnSplineTypeBC == type) == !!bcS )) {
+    sprintf(err, "%s: spline type %s %s, but %s a parameter string %s%s%s", me,
+	    (limnSplineTypeBC == type) ? "is" : "is not",
+	    airEnumStr(limnSplineType, limnSplineTypeBC),
+	    !!bcS ? "got unexpected" : "did not get",
+	    !!bcS ? "\"" : "",
+	    !!bcS ? bcS : "",
+	    !!bcS ? "\"" : "");
+    biffAdd(LIMN, err); airMopError(mop); return NULL;
+  }
+  if (limnSplineTypeBC == type) {
+    if (2 != sscanf(bcS, "%lg,%lg", &B, &C)) {
+      sprintf(err, "%s: couldn't parse \"B,C\" parameters from \"%s\"", me,
+	      bcS);
+      biffAdd(LIMN, err); airMopError(mop); return NULL;
+    }
+  }
+  spec = (limnSplineTypeBC == type
+	  ? limnSplineTypeSpecNew(type, B, C)
+	  : limnSplineTypeSpecNew(type));
+  if (!spec) {
+    sprintf(err, "%s: limnSplineTypeSpec allocation failed", me);
+    biffAdd(LIMN, err); airMopError(mop); return NULL;
+  }
+  
+  airMopOkay(mop);
+  return spec;
+}
+
+limnSpline *
+limnSplineParse(char *_str) {
+  char me[]="limnSplineParse", err[AIR_STRLEN_MED];
+  char *str, *col, *fnameS, *infoS, *typeS, *tmpS;
+  int info;
+  limnSpline *spline;
+  limnSplineTypeSpec *spec;
+  Nrrd *ninA, *ninB;
+  airArray *mop;
+
+  if (!( _str && airStrlen(_str) )) {
+    sprintf(err, "%s: got NULL or empty string", me);
+    biffAdd(LIMN, err); return NULL;
+  }
+  mop = airMopNew();
+  airMopAdd(mop, str=airStrdup(_str), airFree, airMopAlways);
+
   /* find seperation between filename and "<splineInfo>:<splineType>[:B,C]" */
   col = strchr(str, ':');
   if (!col) {
     sprintf(err, "%s: saw no colon seperator (between nrrd filename and "
 	    "spline info) in \"%s\"", me, _str);
-    airMopError(mop); return 1;
+    biffAdd(LIMN, err); airMopError(mop); return NULL;
   }
   fnameS = str;
   *col = 0;
   tmpS = col+1;
   airMopAdd(mop, ninA = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdLoad(ninA, fnameS, NULL)) {
-    airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
     sprintf(err, "%s: couldn't read control point nrrd:\n", me);
-    strncat(err, nerr, AIR_STRLEN_HUGE-1-strlen(err));
-    airMopError(mop); return 1;
+    biffMove(LIMN, err, NRRD); airMopError(mop); return NULL;
   }
 
+  /* find seperation between splineInfo and "<splineType>[:B,C]" */
   col = strchr(tmpS, ':');
   if (!col) {
     sprintf(err, "%s: saw no colon seperator (between spline info "
 	    "and spline type) in \"%s\"", me, tmpS);
-    airMopError(mop); return 1;
+    biffAdd(LIMN, err); airMopError(mop); return NULL;
   }
   infoS = tmpS;
   *col = 0;
   typeS = col+1;
   if (limnSplineInfoUnknown == (info = airEnumVal(limnSplineInfo, infoS))) {
     sprintf(err, "%s: couldn't parse \"%s\" as spline info", me, infoS);
-    airMopError(mop); return 1;
+    biffAdd(LIMN, err); airMopError(mop); return NULL;
   }
   
-  col = strchr(typeS, ':');
-  if (col) {
-    *col = 0;
-    paramS = col+1;
+  /* now parse <splineType>[:B,C] */
+  if (!( spec = limnSplineTypeSpecParse(typeS) )) {
+    sprintf(err, "%s: couldn't parse spline type in \"%s\":\n", me, typeS);
+    biffAdd(LIMN, err); airMopError(mop); return NULL;
   }
-  if (limnSplineTypeUnknown == (type = airEnumVal(limnSplineType, typeS))) {
-    sprintf(err, "%s: couldn't parse \"%s\" as spline type", me, typeS);
-    airMopError(mop); return 1;
-  }
-  if (limnSplineTypeTimeWarp == type 
+  if (limnSplineTypeTimeWarp == spec->type 
       && limnSplineInfoScalar != info) {
     sprintf(err, "%s: can only time-warp %s info, not %s", me,
 	    airEnumStr(limnSplineInfo, limnSplineInfoScalar),
 	    airEnumStr(limnSplineInfo, info));
-    airMopError(mop); return 1;
-  }
-
-  if (!( (limnSplineTypeBC == type) == !!paramS )) {
-    sprintf(err, "%s: spline type %s %s, but %s a parameter string %s%s%s", me,
-	    (limnSplineTypeBC == type) ? "is" : "is not",
-	    airEnumStr(limnSplineType, limnSplineTypeBC),
-	    !!paramS ? "got" : "did not get",
-	    !!paramS ? "\"" : "",
-	    !!paramS ? paramS : "",
-	    !!paramS ? "\"" : "");
-    airMopError(mop); return 1;
-  }
-  if (limnSplineTypeBC == type) {
-    if (2 != sscanf(paramS, "%lg,%lg", &B, &C)) {
-      sprintf(err, "%s: couldn't parse \"B,C\" parameters from \"%s\"", me,
-	      paramS);
-      airMopError(mop); return 1;
-    }
+    biffAdd(LIMN, err); airMopError(mop); return NULL;
   }
 
   airMopAdd(mop, ninB = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  if (limnSplineNrrdCleverFix(ninB, ninA, type, info)) {
-    airMopAdd(mop, nerr = biffGetDone(LIMN), airFree, airMopOnError);
+  if (limnSplineNrrdCleverFix(ninB, ninA, info, spec->type)) {
     sprintf(err, "%s: couldn't reshape given nrrd:\n", me);
-    strncat(err, nerr, AIR_STRLEN_HUGE-1-strlen(err));
-    airMopError(mop); return 1;
+    biffAdd(LIMN, err); airMopError(mop); return NULL;
   }
-  if (!( *splineP = limnSplineNew(ninB, type, info) )) {
-    airMopAdd(mop, nerr = biffGetDone(LIMN), airFree, airMopOnError);
+  if (!( spline = limnSplineNew(ninB, info, spec) )) {
     sprintf(err, "%s: couldn't create spline:\n", me);
-    strncat(err, nerr, AIR_STRLEN_HUGE-1-strlen(err));
-    airMopError(mop); return 1;
+    biffAdd(LIMN, err); airMopError(mop); return NULL;
   }
-  if (limnSplineTypeBC == type) {
-    limnSplineBCSet(*splineP, B, C);
-  }  
+
   airMopOkay(mop);
+  return spline;
+}
+
+/*
+** the spline command-line spline type specification is of the form
+** <splineType>[:B,C]
+*/
+int
+_limnHestSplineTypeSpecParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[] = "_limnHestSplineTypeSpecParse", *err2;
+  limnSplineTypeSpec **specP;
+  
+  if (!(ptr && str && airStrlen(str))) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  specP = (limnSplineTypeSpec **)ptr;
+
+  if (!( *specP = limnSplineTypeSpecParse(str) )) {
+    err2 = biffGetDone(LIMN);
+    sprintf(err, "%s: couldn't parse \"%s\":\n", me, str);
+    strncat(err, err2, AIR_STRLEN_HUGE-1-strlen(err));
+    free(err2); return 1;
+  }
+
+  return 0;
+}
+
+
+hestCB
+_limnHestSplineTypeSpec = {
+  sizeof(limnSplineTypeSpec *),
+  "spline type specification",
+  _limnHestSplineTypeSpecParse,
+  (airMopper)limnSplineTypeSpecNix
+}; 
+
+hestCB *
+limnHestSplineTypeSpec = &_limnHestSplineTypeSpec;
+
+/*
+** the spline command-line specification is of the form
+** <nrrdFileName>:<splineInfo>:<splineType>[:B,C]
+*/
+int
+_limnHestSplineParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[] = "_limnHestSplineParse", *err2;
+  limnSpline **splineP;
+  
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  splineP = (limnSpline **)ptr;
+  if (!airStrlen(str)) {
+    /* got an empty string, which for now we take as an okay way
+       to ask for NO spline */
+    *splineP = NULL;
+    return 0;
+  }
+
+  if (!( *splineP = limnSplineParse(str) )) {
+    err2 = biffGetDone(LIMN);
+    sprintf(err, "%s: couldn't parse \"%s\":\n", me, str);
+    strncat(err, err2, AIR_STRLEN_HUGE-1-strlen(err));
+    free(err2); return 1;
+  }
+
   return 0;
 }
 
@@ -344,4 +427,3 @@ _limnHestSpline = {
 
 hestCB *
 limnHestSpline = &_limnHestSpline;
-

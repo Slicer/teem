@@ -162,7 +162,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "camera pseudo-up vector, used to determine view coordinates");
   hestOptAdd(&hopt, "rh", NULL, airTypeInt, 0, 0, &(cam->rightHanded), NULL,
 	     "use a right-handed UVN frame (V points down)");
-  hestOptAdd(&hopt, "or", NULL, airTypeInt, 0, 0, &(cam->ortho), NULL,
+  hestOptAdd(&hopt, "or", NULL, airTypeInt, 0, 0, &(cam->orthographic), NULL,
 	     "use orthogonal projection");
   hestOptAdd(&hopt, "ur", "uMin uMax", airTypeDouble, 2, 2, cam->uRange,
 	     "-1 1", "range in U direction of image plane");
@@ -226,7 +226,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     cam->neer = -2;
     cam->dist = 0;
     cam->faar = 2;
-    cam->atRel = AIR_TRUE;
+    cam->atRelative = AIR_TRUE;
     eparm->imgResU = ires[0];
     eparm->imgResV = ires[1];
     eparm->jitterType = (eparm->numSamples > 1
@@ -259,7 +259,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     cam->neer = -0.000000001;
     cam->dist = 0;
     cam->faar = 0.0000000001;
-    cam->atRel = AIR_TRUE;
+    cam->atRelative = AIR_TRUE;
     win->ps.edgeWidth[0] = gparm->edgeWidth[0];
     win->ps.edgeWidth[1] = gparm->edgeWidth[1];
     win->ps.edgeWidth[2] = gparm->edgeWidth[2];

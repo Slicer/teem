@@ -47,7 +47,7 @@ main(int argc, char *argv[]) {
 	     "camera pseudo-up vector, used to determine view coordinates");
   hestOptAdd(&hopt, "rh", NULL, airTypeInt, 0, 0, &(cam->rightHanded), NULL,
 	     "use a right-handed UVN frame (V points down)");
-  hestOptAdd(&hopt, "or", NULL, airTypeInt, 0, 0, &(cam->ortho), NULL,
+  hestOptAdd(&hopt, "or", NULL, airTypeInt, 0, 0, &(cam->orthographic), NULL,
 	     "use orthogonal projection");
   hestOptAdd(&hopt, "ur", "uMin uMax", airTypeDouble, 2, 2, cam->uRange,
 	     "-1 1", "range in U direction of image plane");
@@ -66,7 +66,7 @@ main(int argc, char *argv[]) {
   cam->neer = -0.000000001;
   cam->dist = 0;
   cam->faar = 0.0000000001;
-  cam->atRel = AIR_TRUE;
+  cam->atRelative = AIR_TRUE;
 
   if (limnCameraUpdate(cam)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, err = biffGet(LIMN));

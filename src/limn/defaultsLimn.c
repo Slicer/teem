@@ -23,8 +23,8 @@ const char *
 limnBiffKey = "limn";
 
 int
-limnDefCameraAtRel = AIR_FALSE;
+limnDefCameraAtRelative = AIR_FALSE;
 int
-limnDefCameraOrtho = AIR_FALSE;
+limnDefCameraOrthographic = AIR_FALSE;
 int
 limnDefCameraRightHanded = AIR_TRUE;
