@@ -28,13 +28,15 @@ unrrdu_dhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int size, pret;
+  int size, pret, nolog;
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "h", "height", airTypeInt, 1, 1, &size, NULL,
 	     "height of output image (horizontal size is determined by "
 	     "number of bins in input histogram).");
+  hestOptAdd(&opt, "nolog", NULL, airTypeInt, 0, 0, &nolog, NULL,
+	     "do not show the log-scaled histogram with decade tick-marks");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
@@ -47,7 +49,7 @@ unrrdu_dhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdHistoDraw(nout, nin, size)) {
+  if (nrrdHistoDraw(nout, nin, size, !nolog)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error drawing histogram nrrd:\n%s", me, err);
     airMopError(mop);
