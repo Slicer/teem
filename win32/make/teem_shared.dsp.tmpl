@@ -43,8 +43,8 @@ RSC=rc.exe
 # PROP Intermediate_Dir "shared/debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MD /Zi /Od /I "../../include" /I "../ext/include" TEEMALLINC /D "WIN32" /D "WIN32_MEAN_AND_LEAN" /D "TEEM_DLL" /D "TEEM_BUILD" /D TEEM_ENDIAN=1234 /D TEEM_QNANHIBIT=1 /D TEEM_DIO=0 /D TEEM_32BIT=1 /D TEEM_ZLIB=1 /D TEEM_BZIP2=1 /YX /FD /GZ /c
-# ADD CPP /nologo /MD /Zi /Od /I "../../include" /I "../ext/include" TEEMALLINC /D "WIN32_MEAN_AND_LEAN" /D "VC_EXTRALEAN" /D "TEEM_DLL" /D "TEEM_BUILD" /D TEEM_ENDIAN=1234 /D TEEM_QNANHIBIT=1 /D TEEM_DIO=0 /D TEEM_32BIT=1 /D TEEM_ZLIB=1 /D TEEM_BZIP2=1 /D TEEM_PNG=1 /D TEEM_BIGBITFIELD=1 /YX /FD /GZ /c
+# ADD BASE CPP /nologo /MD /Zi /Od /I "../../include" /I "../ext/include" TEEMALLINC /D "WIN32" /D "WIN32_MEAN_AND_LEAN" /D TEEM_ENDIAN=1234 /D TEEM_QNANHIBIT=1 /D TEEM_DIO=0 /D TEEM_32BIT=1 /D TEEM_ZLIB=1 /D TEEM_BZIP2=1 /YX /FD /GZ /c
+# ADD CPP /nologo /MD /Zi /Od /I "../../include" /I "../ext/include" TEEMALLINC /D "WIN32_MEAN_AND_LEAN" /D "VC_EXTRALEAN" /D TEEM_ENDIAN=1234 /D TEEM_QNANHIBIT=1 /D TEEM_DIO=0 /D TEEM_32BIT=1 /D TEEM_ZLIB=1 /D TEEM_BZIP2=1 /D TEEM_PNG=1 /D TEEM_BIGBITFIELD=1 /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -53,9 +53,9 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 /libpath:"../ext/lib/shared" zlib.lib libbz2.lib /nologo /dll /incremental:no /debug /machine:I386 /nodefaultlib:libcmt /def:"teem.def" /pdbtype:sept
+# ADD BASE LINK32 /libpath:"../ext/lib/shared" zlib.lib libbz2.lib /nologo /dll /incremental:no /debug /machine:I386 /nodefaultlib:libcmt /def:"teem.def" /out:"../lib/shared/debug/teem.dll" /pdbtype:sept
 # SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 /libpath:"../ext/lib/shared" libpng.lib zlib.lib libbz2.lib /nologo /dll /incremental:no /debug /machine:I386 /nodefaultlib:libcmt /def:"teem.def" /pdbtype:sept
+# ADD LINK32 /libpath:"../ext/lib/shared" libpng.lib zlib.lib libbz2.lib /nologo /dll /incremental:no /debug /machine:I386 /nodefaultlib:libcmt /def:"teem.def" /out:"../lib/shared/debug/teem.dll" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
 # Begin Special Build Tool
 TargetName=teemd
@@ -77,8 +77,8 @@ PostBuild_Cmds=call install_lib.bat $(TargetName) 'c:\Program Files\Microsoft Vi
 # PROP Intermediate_Dir "shared/release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MD /O2 /I "../../include" /I "../ext/include" TEEMALLINC /D "WIN32" /D "WIN32_MEAN_AND_LEAN" /D "TEEM_DLL" /D "TEEM_BUILD" /D TEEM_ENDIAN=1234 /D TEEM_QNANHIBIT=1 /D TEEM_DIO=0 /D TEEM_32BIT=1 /D TEEM_ZLIB=1 /D TEEM_BZIP2=1 /YX /FD /c
-# ADD CPP /nologo /MD /O2 /I "../../include" /I "../ext/include" TEEMALLINC /D "WIN32_MEAN_AND_LEAN" /D "TEEM_DLL" /D "TEEM_BUILD" /D TEEM_ENDIAN=1234 /D TEEM_QNANHIBIT=1 /D TEEM_DIO=0 /D TEEM_32BIT=1 /D TEEM_ZLIB=1 /D TEEM_BZIP2=1 /D TEEM_PNG=1 /D TEEM_BIGBITFIELD=1 /YX /FD /c
+# ADD BASE CPP /nologo /MD /O2 /I "../../include" /I "../ext/include" TEEMALLINC /D "WIN32" /D "WIN32_MEAN_AND_LEAN" /D TEEM_ENDIAN=1234 /D TEEM_QNANHIBIT=1 /D TEEM_DIO=0 /D TEEM_32BIT=1 /D TEEM_ZLIB=1 /D TEEM_BZIP2=1 /YX /FD /c
+# ADD CPP /nologo /MD /O2 /I "../../include" /I "../ext/include" TEEMALLINC /D "WIN32_MEAN_AND_LEAN" /D TEEM_ENDIAN=1234 /D TEEM_QNANHIBIT=1 /D TEEM_DIO=0 /D TEEM_32BIT=1 /D TEEM_ZLIB=1 /D TEEM_BZIP2=1 /D TEEM_PNG=1 /D TEEM_BIGBITFIELD=1 /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -87,8 +87,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 /libpath:"../ext/lib/shared" zlib.lib libbz2.lib /nologo /dll /pdb:none /machine:I386 /nodefaultlib:libcmt /def:"teem.def"
-# ADD LINK32 /libpath:"../ext/lib/shared" libpng.lib zlib.lib libbz2.lib /nologo /dll /pdb:none /machine:I386 /nodefaultlib:libcmt /def:"teem.def"
+# ADD BASE LINK32 /libpath:"../ext/lib/shared" zlib.lib libbz2.lib /nologo /dll /pdb:none /machine:I386 /nodefaultlib:libcmt /out:"../lib/shared/release/teem.dll" /def:"teem.def"
+# ADD LINK32 /libpath:"../ext/lib/shared" libpng.lib zlib.lib libbz2.lib /nologo /dll /pdb:none /machine:I386 /nodefaultlib:libcmt /out:"../lib/shared/release/teem.dll" /def:"teem.def"
 # Begin Special Build Tool
 TargetName=teem
 SOURCE="$(InputPath)"
