@@ -34,7 +34,8 @@ extern "C" {
 #define NRRD_SPACING(spc) (AIR_EXISTS(spc) ? spc: nrrdDefSpacing)
 
 /*
-******** NRRD_AXIS_POS, NRRD_AXIS_IDX
+******** NRRD_AXIS_CELL_POS, NRRD_AXIS_NODE_POS, NRRD_AXIS_POS
+******** NRRD_AXIS_CELL_IDX, NRRD_AXIS_NODE_IDX, NRRD_AXIS_IDX
 **
 ** the guts of nrrdAxisPos() and nrrdAxisIdx(), for converting
 ** between "index space" location and "position" or "world space" location,
@@ -43,15 +44,28 @@ extern "C" {
 ** Unlike nrrdAxisPos() and nrrdAxisIdx(), this assumes that center
 ** is either nrrdCenterCell or nrrdCenterNode, but not nrrdCenterUnknown.
 */
+#define NRRD_AXIS_CELL_POS(min, max, size, idx)       \
+  AIR_AFFINE(0, (idx) + 0.5, (size), (min), (max))
+
+#define NRRD_AXIS_NODE_POS(min, max, size, idx)       \
+  AIR_AFFINE(0, (idx), (size)-1, (min), (max))
+
 #define NRRD_AXIS_POS(center, min, max, size, idx)    \
   (nrrdCenterCell == (center)                         \
-   ? AIR_AFFINE(0, (idx) + 0.5, (size), (min), (max)) \
-   : AIR_AFFINE(0, (idx), (size)-1, (min), (max)))
+   ? NRRD_AXIS_CELL_POS((min), (max), (size), (idx))  \
+   : NRRD_AXIS_NODE_POS((min), (max), (size), (idx)))
+
+
+#define NRRD_AXIS_CELL_IDX(min, max, size, pos)       \
+  (AIR_AFFINE((min), (pos), (max), 0, (size)) - 0.5)
+
+#define NRRD_AXIS_NODE_IDX(min, max, size, pos)       \
+  AIR_AFFINE((min), (pos), (max), 0, (size)-1)
 
 #define NRRD_AXIS_IDX(center, min, max, size, pos)    \
   (nrrdCenterCell == (center)                         \
-   ? AIR_AFFINE((min), (pos), (max), 0, (size)) - 0.5 \
-   : AIR_AFFINE((min), (pos), (max), 0, (size)-1))
+   ? NRRD_AXIS_CELL_IDX((min), (max), (size), (pos))  \
+   : NRRD_AXIS_NODE_IDX((min), (max), (size), (pos)))
 
 /*
 ******** NRRD_AXIS_SPACING
