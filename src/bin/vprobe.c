@@ -84,10 +84,10 @@ main(int argc, char *argv[]) {
   int what, a, idx, ansLen, E=0, xi, yi, zi, otype,
     six, siy, siz, sox, soy, soz, iBaseDim, oBaseDim, renorm;
   gage_t *answer;
-  Nrrd *nin, *nout;
+  Nrrd *nin, *nout, *_nmat, *nmat;
   gageContext *ctx;
   gagePerVolume *pvl;
-  double t0, t1, gmc;
+  double t0, t1, gmc, mat[16], ipos[4], opos[4], spx, spy, spz;
   airArray *mop;
 
   mop = airMopNew();
@@ -122,6 +122,11 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc,
 	     "0.0", "For curvature-based queries, use zero when gradient "
 	     "magnitude is below this");
+  hestOptAdd(&hopt, "m", "matrix", airTypeOther, 1, 1, &_nmat, "",
+	     "transform matrix to map volume through "
+	     "(actually the probe locations are sent through "
+	     "its inverse).  By default, there is no transform",
+	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &otype, "float",
 	     "type of output volume", NULL, nrrdType);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
@@ -142,12 +147,36 @@ main(int argc, char *argv[]) {
     return 1;
   }
 
+  if (_nmat) {
+    if (!( 2 == _nmat->dim 
+	   && 4 == _nmat->axis[0].size && 4 == _nmat->axis[1].size )) {
+      fprintf(stderr, "%s: matrix needs to be a 2D 4x4 array\n", me);
+      airMopError(mop);
+      return 1;
+    }
+    nmat = nrrdNew();
+    airMopAdd(mop, nmat, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdConvert(nmat, _nmat, nrrdTypeDouble)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble:\n%s\n", me, err);
+      airMopError(mop);
+      return 1;
+    }
+    ell_4m_inv_d(mat, (double*)(nmat->data));
+    /* ell_4m_print_d(stderr, mat); */
+  } else {
+    ELL_4M_IDENTITY_SET(mat);
+  }
+
   ansLen = kind->table[what].answerLength;
   iBaseDim = kind->baseDim;
   oBaseDim = 1 == ansLen ? 0 : 1;
   six = nin->axis[0+iBaseDim].size;
   siy = nin->axis[1+iBaseDim].size;
   siz = nin->axis[2+iBaseDim].size;
+  spx = SPACING(nin->axis[0+iBaseDim].spacing);
+  spy = SPACING(nin->axis[1+iBaseDim].spacing);
+  spz = SPACING(nin->axis[2+iBaseDim].spacing);
   sox = scale[0]*six;
   soy = scale[1]*siy;
   soz = scale[2]*siz;
@@ -219,11 +248,28 @@ main(int argc, char *argv[]) {
 			   /* ((100 == xi) && (8 == yi) && (8 == zi)) */
 			   ((61 == xi) && (51 == yi) && (46 == zi))
 			   /* ((40==xi) && (30==yi) && (62==zi)) || */
-			   /* ((40==xi) && (30==yi) && (63==zi)) */ ); 
-	if (gageProbe(ctx, x, y, z)) {
+			   /* ((40==xi) && (30==yi) && (63==zi)) */ );
+	
+	ELL_4V_SET(opos, x*spx, y*spy, z*spz, 1);
+	ELL_4MV_MUL(ipos, mat, opos);
+	/*
+	fprintf(stderr, "%s: (%g,%g,%g) --> (%g,%g,%g)\n", 
+		me, opos[0], opos[1], opos[2], ipos[0], ipos[1], ipos[2]);
+	*/
+	ELL_4V_HOMOG(ipos, ipos);
+	ipos[0] = AIR_CLAMP(0, ipos[0]/spx, six-1);
+	ipos[1] = AIR_CLAMP(0, ipos[1]/spy, siy-1);
+	ipos[2] = AIR_CLAMP(0, ipos[2]/spz, siz-1);
+	/*
+	fprintf(stderr, "%s: (%g,%g,%g) --> (%g,%g,%g)\n", 
+		me, x, y, z, ipos[0], ipos[1], ipos[2]);
+	*/
+	
+	if (gageProbe(ctx, ipos[0], ipos[1], ipos[2])) {
 	  fprintf(stderr, 
 		  "%s: trouble at i=(%d,%d,%d) -> f=(%g,%g,%g):\n%s\n(%d)\n",
-		  me, xi, yi, zi, x, y, z, gageErrStr, gageErrNum);
+		  me, xi, yi, zi, ipos[0], ipos[1], ipos[2],
+		  gageErrStr, gageErrNum);
 	  airMopError(mop);
 	  return 1;
 	}
