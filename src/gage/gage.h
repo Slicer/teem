@@ -166,28 +166,31 @@ enum {
 ** that prerequisite measurements are listed before the other measurements
 ** which need them (that is represented by _gageSclPrereq)
 **
-** (in the following, GT means gage_t)
+** The description for each enum value starts with the numerical value
+** followed by a string which identifies the value in the gageScl airEnum.
+** GT means gage_t; this is used to indicate how many scalars are associated
+** with each enum value.
 */
 enum {
   gageSclUnknown=-1,  /* -1: nobody knows */
-  gageSclValue,       /*  0: data value: *GT */
-  gageSclGradVec,     /*  1: gradient vector, un-normalized: GT[3] */
-  gageSclGradMag,     /*  2: gradient magnitude: *GT */
-  gageSclNormal,      /*  3: gradient vector, normalized: GT[3] */
-  gageSclHessian,     /*  4: Hessian: GT[9] (column-order) */
-  gageSclLaplacian,   /*  5: Laplacian: Dxx + Dyy + Dzz: *GT */
-  gageSclHessEval,    /*  6: Hessian's eigenvalues: GT[3] */
-  gageSclHessEvec,    /*  7: Hessian's eigenvectors: GT[9] */
-  gageScl2ndDD,       /*  8: 2nd dir.deriv. along gradient: *GT */
-  gageSclGeomTens,    /*  9: symm. matrix w/ evals 0,K1,K2 and evecs grad,
+  gageSclValue,       /*  0: "v", data value: *GT */
+  gageSclGradVec,     /*  1: "grad", gradient vector, un-normalized: GT[3] */
+  gageSclGradMag,     /*  2: "gm", gradient magnitude: *GT */
+  gageSclNormal,      /*  3: "n", gradient vector, normalized: GT[3] */
+  gageSclHessian,     /*  4: "h", Hessian: GT[9] (column-order) */
+  gageSclLaplacian,   /*  5: "l", Laplacian: Dxx + Dyy + Dzz: *GT */
+  gageSclHessEval,    /*  6: "heval", Hessian's eigenvalues: GT[3] */
+  gageSclHessEvec,    /*  7: "hevec", Hessian's eigenvectors: GT[9] */
+  gageScl2ndDD,       /*  8: "2d", 2nd dir.deriv. along gradient: *GT */
+  gageSclGeomTens,    /*  9: "gten", symm. matrix w/ evals 0,K1,K2 and evecs grad,
 			     curvature directions: GT[9] */
-  gageSclCurvedness,  /* 10: L2 norm of K1, K2 (not Koen.'s "C"): *GT */
-  gageSclShapeTrace,  /* 11, (K1+K2)/Curvedness: *GT */
-  gageSclShapeIndex,  /* 12: Koen.'s shape index, ("S"): *GT */
-  gageSclK1K2,        /* 13: principle curvature magnitudes: GT[2] */
-  gageSclMeanCurv,    /* 14: mean curvatuve (K1 + K2)/2: *GT */
-  gageSclGaussCurv,   /* 15: gaussian curvature K1*K2: *GT */
-  gageSclCurvDir,     /* 16: principle curvature directions: GT[6] */
+  gageSclCurvedness,  /* 10: "cv", L2 norm of K1, K2 (not Koen.'s "C"): *GT */
+  gageSclShapeTrace,  /* 11, "st", (K1+K2)/Curvedness: *GT */
+  gageSclShapeIndex,  /* 12: "si", Koen.'s shape index, ("S"): *GT */
+  gageSclK1K2,        /* 13: "k1k2", principle curvature magnitudes: GT[2] */
+  gageSclMeanCurv,    /* 14: "mc", mean curvatuve (K1 + K2)/2: *GT */
+  gageSclGaussCurv,   /* 15: "gc", gaussian curvature K1*K2: *GT */
+  gageSclCurvDir,     /* 16: "cdir", principle curvature directions: GT[6] */
   gageSclLast
 };
 #define GAGE_SCL_MAX     16
@@ -222,25 +225,28 @@ enum {
 ******** gageVec* enum
 **
 ** all the things that gage knows how to measure in a 3-vector volume
+**
+** The strings gives one of the gageVec airEnum identifiers, and GT[x]
+** says how many scalars are associated with this scalar.
 */
 enum {
   gageVecUnknown=-1,  /* -1: nobody knows */
-  gageVecVector,      /*  0: component-wise-interpolatd (CWI) vector: GT[3] */
-  gageVecLength,      /*  1: length of CWI vector: *GT */
-  gageVecNormalized,  /*  2: normalized CWI vector: GT[3] */
-  gageVecJacobian,    /*  3: component-wise Jacobian: GT[9]
+  gageVecVector,      /*  0: "v", component-wise-interpolatd (CWI) vector: GT[3] */
+  gageVecLength,      /*  1: "l", length of CWI vector: *GT */
+  gageVecNormalized,  /*  2: "n", normalized CWI vector: GT[3] */
+  gageVecJacobian,    /*  3: "j", component-wise Jacobian: GT[9]
 			     0:dv_x/dx  3:dv_x/dy  6:dv_x/dz
 			     1:dv_y/dx  4:dv_y/dy  7:dv_y/dz
 			     2:dv_z/dx  5:dv_z/dy  8:dv_z/dz */
-  gageVecDivergence,  /*  4: divergence (based on Jacobian): *GT */
-  gageVecCurl,        /*  5: curl (based on Jacobian): GT[3] */
-  gageVecGradient0,   /*  6: gradient of 1st component of vector: GT[3] */
-  gageVecGradient1,   /*  7: gradient of 2nd component of vector: GT[3] */
-  gageVecGradient2,   /*  8: gradient of 3rd component of vector: GT[3] */
-  gageVecMultiGrad,   /*  9: sum of outer products of gradients: GT[9] */
-  gageVecL2MG,        /* 10: L2 norm of multi-gradient: *GT */
-  gageVecMGEval,      /* 11: eigenvalues of multi-gradient: GT[3] */
-  gageVecMGEvec,      /* 12: eigenvectors of multi-gradient: GT[9] */
+  gageVecDivergence,  /*  4: "d", divergence (based on Jacobian): *GT */
+  gageVecCurl,        /*  5: "c", curl (based on Jacobian): GT[3] */
+  gageVecGradient0,   /*  6: "g1", gradient of 1st component of vector: GT[3] */
+  gageVecGradient1,   /*  7: "g2", gradient of 2nd component of vector: GT[3] */
+  gageVecGradient2,   /*  8: "g3", gradient of 3rd component of vector: GT[3] */
+  gageVecMultiGrad,   /*  9: "mg", sum of outer products of gradients: GT[9] */
+  gageVecL2MG,        /* 10: "l2mg", L2 norm of multi-gradient: *GT */
+  gageVecMGEval,      /* 11: "mgeval", eigenvalues of multi-gradient: GT[3] */
+  gageVecMGEvec,      /* 12: "mgevec", eigenvectors of multi-gradient: GT[9] */
   gageVecLast
 };
 #define GAGE_VEC_MAX     12
