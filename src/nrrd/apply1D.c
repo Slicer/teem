@@ -151,7 +151,7 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
 				    "irregular map"};
   char verbStr[][AIR_STRLEN_SMALL]={"lut",
 				    "rmap",
-				    "cmap"};
+				    "imap"};
   int mapAxis, size[NRRD_DIM_MAX], axisMap[NRRD_DIM_MAX], d, colLen;
 
   if (nout == nin) {
@@ -211,7 +211,6 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
 	    me, nin->dim, nounStr[kind], NRRD_DIM_MAX);
     biffAdd(NRRD, err); return 1;
   }
-  
   nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size+mapAxis);
   if (mapAxis) {
     size[0] = colLen;
