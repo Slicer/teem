@@ -382,12 +382,26 @@ _hestExtract(int *argcP, char **argv, int a, int np) {
       return NULL;
     }
     len += strlen(argv[a+n]);
+    if (strstr(argv[a+n], " ")) {
+      len += 2;
+    }
   }
   len += np;
   ret = calloc(len, sizeof(char));
   strcpy(ret, "");
   for (n=0; n<=np-1; n++) {
+    /* if a single element of argv has spaces in it, someone went
+       to the trouble of putting it in quotes, and we perpetuate
+       the favor by quoting it when we concatenate all the argv
+       elements together, so that airParseStrS will recover it as a 
+       single string again */
+    if (strstr(argv[a+n], " ")) {
+      strcat(ret, "\"");
+    }
     strcat(ret, argv[a+n]);
+    if (strstr(argv[a+n], " ")) {
+      strcat(ret, "\"");
+    }
     if (n < np-1)
       strcat(ret, " ");
   }

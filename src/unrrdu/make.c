@@ -90,6 +90,8 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   /* so that long lists of filenames can be read from file */
   hparm->respFileEnable = AIR_TRUE;
+  hparm->greedySingleString = AIR_TRUE;
+  hparm->verbosity = 3;
 
   mop = airMopNew();
   nio = nrrdIONew();
@@ -215,6 +217,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   if (kvpLen) {
     for (ki=0; ki<kvpLen; ki++) {
+      fprintf(stderr, "!%s: kvp[%d] = \"%s\"\n", me, ki, kvp[ki]);
       /* a hack: use the NrrdIO has the channel to communicate the k/v pair */
       nio->line = kvp[ki];
       if (_nrrdReadNrrdParse_keyvalue (nrrd, nio, AIR_TRUE)) {
