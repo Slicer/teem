@@ -289,8 +289,9 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
        copying one (1-D) scanline at a time */
     NRRD_COORD_INCR(cOut, szOut, dim, 1);
   }
-  if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE
-				     | NRRD_AXESINFO_AMINMAX ))) {
+  if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE_BIT |
+				     NRRD_AXESINFO_MIN_BIT |
+				     NRRD_AXESINFO_MAX_BIT ))) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }

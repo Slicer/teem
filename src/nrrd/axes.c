@@ -120,22 +120,22 @@ nrrdAxesCopy(Nrrd *nout, Nrrd *nin, int *map, int bitflag) {
       /* for this axis, we don't touch a thing */
       continue;
     }
-    if (!(NRRD_AXESINFO_SIZE & bitflag)) {
+    if (!(NRRD_AXESINFO_SIZE_BIT & bitflag)) {
       nout->axis[d].size = nin->axis[from].size;
     }
-    if (!(NRRD_AXESINFO_SPACING & bitflag)) {
+    if (!(NRRD_AXESINFO_SPACING_BIT & bitflag)) {
       nout->axis[d].spacing = nin->axis[from].spacing;
     }
-    if (!(NRRD_AXESINFO_AMIN & bitflag)) {
+    if (!(NRRD_AXESINFO_MIN_BIT & bitflag)) {
       nout->axis[d].min = nin->axis[from].min;
     }
-    if (!(NRRD_AXESINFO_AMAX & bitflag)) {
+    if (!(NRRD_AXESINFO_MAX_BIT & bitflag)) {
       nout->axis[d].max = nin->axis[from].max;
     }
-    if (!(NRRD_AXESINFO_CENTER & bitflag)) {
+    if (!(NRRD_AXESINFO_CENTER_BIT & bitflag)) {
       nout->axis[d].center = nin->axis[from].center;
     }
-    if (!(NRRD_AXESINFO_LABEL & bitflag)) {
+    if (!(NRRD_AXESINFO_LABEL_BIT & bitflag)) {
       nout->axis[d].label = airFree(nout->axis[d].label);
       nout->axis[d].label = airStrdup(nin->axis[from].label);
     }

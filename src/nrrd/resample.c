@@ -772,9 +772,10 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
      dim, sz[passes][0],  sz[passes][1],  sz[passes][2]); */
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopOnError);
   nrrdAxesCopy(nout, nin, NULL, 
-	       (NRRD_AXESINFO_SIZE
-		| NRRD_AXESINFO_AMINMAX
-		| NRRD_AXESINFO_SPACING));
+	       (NRRD_AXESINFO_SIZE_BIT |
+		NRRD_AXESINFO_MIN_BIT |
+		NRRD_AXESINFO_MAX_BIT |
+		NRRD_AXESINFO_SPACING_BIT));
   for (d=0; d<dim; d++) {
     if (info->kernel[d]) {
       nout->axis[d].min = info->min[d];

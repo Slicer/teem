@@ -185,24 +185,23 @@ enum {
 */
 enum {
   nrrdAxesInfoUnknown,
-  nrrdAxesInfoSize,            /* 1: number of samples along axis */
-#define NRRD_AXESINFO_SIZE    (1<<1)
-  nrrdAxesInfoSpacing,         /* 2: spacing between samples */
-#define NRRD_AXESINFO_SPACING (1<<2)
-  nrrdAxesInfoMin,             /* 3: minimum pos. assoc. w/ first sample */
-#define NRRD_AXESINFO_AMIN    (1<<3) 
-  nrrdAxesInfoMax,             /* 4: maximum pos. assoc. w/ last sample */
-#define NRRD_AXESINFO_AMAX    (1<<4) /* _MAX would conflict with below */
-#define NRRD_AXESINFO_AMINMAX ((1<<3)|(1<<4))
-  nrrdAxesInfoCenter,          /* 5: cell vs. node */
-#define NRRD_AXESINFO_CENTER  (1<<5)
-  nrrdAxesInfoLabel,           /* 6: string describing the axis */
-#define NRRD_AXESINFO_LABEL   (1<<6)
+  nrrdAxesInfoSize,                /* 1: number of samples along axis */
+#define NRRD_AXESINFO_SIZE_BIT    (1<<1)
+  nrrdAxesInfoSpacing,             /* 2: spacing between samples */
+#define NRRD_AXESINFO_SPACING_BIT (1<<2)
+  nrrdAxesInfoMin,                 /* 3: minimum pos. assoc. w/ first sample */
+#define NRRD_AXESINFO_MIN_BIT     (1<<3) 
+  nrrdAxesInfoMax,                 /* 4: maximum pos. assoc. w/ last sample */
+#define NRRD_AXESINFO_MAX_BIT     (1<<4)
+  nrrdAxesInfoCenter,              /* 5: cell vs. node */
+#define NRRD_AXESINFO_CENTER_BIT  (1<<5)
+  nrrdAxesInfoLabel,               /* 6: string describing the axis */
+#define NRRD_AXESINFO_LABEL_BIT   (1<<6)
   nrrdAxesInfoLast
 };
-#define NRRD_AXESINFO_MAX         6
-#define NRRD_AXESINFO_ALL         ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6))
-#define NRRD_AXESINFO_NONE        0
+#define NRRD_AXESINFO_MAX             6
+#define NRRD_AXESINFO_ALL  ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6))
+#define NRRD_AXESINFO_NONE 0
 
 /*
 ** the "endian" enum is actually in the air library, but it is very
