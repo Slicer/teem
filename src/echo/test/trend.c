@@ -707,9 +707,9 @@ makeSceneSimple(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   cam->vRange[1] = 3.6;
 
   parm->jitterType = echoJitterJitter;
-  parm->numSamples = 25;
-  parm->imgResU = 300;
-  parm->imgResV = 300;
+  parm->numSamples = 4;
+  parm->imgResU = 200;
+  parm->imgResV = 200;
   parm->aperture = 0.0;
   parm->textureNN = AIR_FALSE;
   parm->renderLights = AIR_TRUE;
@@ -876,6 +876,7 @@ main(int argc, char **argv) {
   /* makeSceneShadow(cam, parm, scene); */
   /* makeSceneDOF(cam, parm, scene); */
 
+  parm->numThreads = 1;
   E = 0;
   if (!E) E |= echoRTRender(nraw, cam, scene, parm, state);
   if (E) {

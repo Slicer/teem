@@ -66,6 +66,8 @@ typedef double echoCol_t;
 #define ECHO_NEAR0 0.004          /* used for comparing transparency to zero */
 #define ECHO_LEN_SMALL_ENOUGH 5   /* to control splitting for split objects */
 
+#define ECHO_THREAD_MAX 512       /* max number of threads */
+
 typedef struct {
   int jitterType,      /* from echoJitter* enum below */
     reuseJitter,       /* don't recompute jitter offsets per pixel */
@@ -79,8 +81,9 @@ typedef struct {
     renderLights,      /* render the area lights */
     renderBoxes,       /* faintly render bounding boxes */
     seedRand,          /* call airSrand() (don't if repeatability wanted) */
-    sqNRI;             /* how many iterations of newton-raphson we allow for
+    sqNRI,             /* how many iterations of newton-raphson we allow for
 			  finding superquadric root (within tolorance sqTol) */
+    numThreads;        /* number of threads to spawn per rendering */
   echoPos_t
     sqTol;             /* how close newtwon-raphson must get to zero */
   echoCol_t
@@ -93,13 +96,24 @@ typedef struct {
     maxRecCol[3];      /* color of max recursion depth being hit */
 } echoRTParm;
 
+struct echoScene_t;
+
 typedef struct {
   int verbose;
   double time;         /* time it took to render image */
+  Nrrd *nraw;          /* copies of arguments to echoRTRender */
+  limnCamera *cam;
+  struct echoScene_t *scene;
+  echoRTParm *parm;
+  int workIdx;         /* next work assignment (such as a scanline) */
+  airThreadMutex *workMutex; /* mutex around work assignment */
 } echoGlobalState;
 
 typedef struct {
-  int verbose,
+  airThread *thread;   /* my thread */
+  echoGlobalState *gstate;
+  int verbose,         /* blah blah blah */
+    threadIdx,         /* my thread index */
     depth;             /* how many recursion levels are we at */
   Nrrd *nperm,         /* ECHO_JITTABLE_NUM x parm->numSamples array 
 			  of ints, each column is a (different) random
@@ -114,6 +128,7 @@ typedef struct {
   echoPos_t *jitt;     /* pointer into njitt, good for current sample */
   echoCol_t *chanBuff; /* for storing ray color and other parameters for each
 			  of the parm->numSamples rays in current pixel */
+  void *returnPtr;     /* for airThreadJoin */
 } echoThreadState;
 
 /*
@@ -337,7 +352,7 @@ typedef struct {
 ** the objects it points to, so that nixing it will cause all objects
 ** and nrrds to be nixed and nuked, respectively.
 */
-typedef struct {
+typedef struct echoScene_t {
   echoObject **cat;    /* array of ALL objects and all lights */
   airArray *catArr;
   echoObject **rend;   /* array of top-level objects to be rendered */
@@ -488,7 +503,7 @@ TEEM_API void echoIntxColor(echoCol_t rgba[4], echoIntx *intx,
 			    echoThreadState *tstate);
 
 /* renderEcho.c ---------------------------------------- */
-TEEM_API int echoThreadStateInit(echoThreadState *tstate,
+TEEM_API int echoThreadStateInit(int threadIdx, echoThreadState *tstate,
 				 echoRTParm *parm, echoGlobalState *gstate);
 TEEM_API void echoJitterCompute(echoRTParm *parm, echoThreadState *state);
 TEEM_API void echoRayColor(echoCol_t rgba[4], echoRay *ray,

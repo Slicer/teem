@@ -38,7 +38,7 @@ _echo##TYPE##_nix(echo##TYPE *obj) {                 \
                                                      \
   if (obj) {                                         \
     do { BODY dummy=dummy;} while (0);               \
-    free(obj);                                       \
+    airFree(obj);                                    \
   }                                                  \
   return NULL;                                       \
 }

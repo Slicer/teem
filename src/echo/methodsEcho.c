@@ -40,6 +40,7 @@ echoRTParmNew(void) {
     parm->renderBoxes = AIR_FALSE;
     parm->seedRand = AIR_TRUE;
     parm->sqNRI = 15;
+    parm->numThreads = 1;
     parm->sqTol = 0.0001;
     parm->aperture = 0.0;     /* pinhole camera by default */
     parm->timeGamma = 6.0;
@@ -66,6 +67,12 @@ echoGlobalStateNew(void) {
   if (state) {
     state->verbose = 0;
     state->time = 0;
+    state->nraw = NULL;
+    state->cam = NULL;
+    state->scene = NULL;
+    state->parm = NULL;
+    state->workIdx = 0;
+    state->workMutex = NULL;
   }
   return state;
 }
@@ -74,6 +81,7 @@ echoGlobalState *
 echoGlobalStateNix(echoGlobalState *state) {
 
   state = airFree(state);
+  /* mutex freed at end of echoRTRender() */
   return NULL;
 }
 
@@ -83,12 +91,16 @@ echoThreadStateNew(void) {
   
   state = (echoThreadState *)calloc(1, sizeof(echoThreadState));
   if (state) {
+    state->thread = airThreadNew();
     state->verbose = 0;
+    state->threadIdx = -1;
+    state->depth = -1;
     state->njitt = nrrdNew();
     state->nperm = nrrdNew();
     state->permBuff = NULL;
     state->jitt = NULL;
     state->chanBuff = NULL;
+    state->returnPtr = NULL;
   }
   return state;
 }
@@ -97,6 +109,7 @@ echoThreadState *
 echoThreadStateNix(echoThreadState *state) {
 
   if (state) {
+    state->thread = airThreadNix(state->thread);
     nrrdNuke(state->njitt);
     nrrdNuke(state->nperm);
     state->permBuff = airFree(state->permBuff);

@@ -21,7 +21,7 @@
 #include "privateEcho.h"
 
 int
-echoThreadStateInit(echoThreadState *tstate,
+echoThreadStateInit(int threadIdx, echoThreadState *tstate,
 		    echoRTParm *parm, echoGlobalState *gstate) {
   char me[]="echoThreadStateInit", err[AIR_STRLEN_MED];
 
@@ -29,10 +29,11 @@ echoThreadStateInit(echoThreadState *tstate,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(ECHO, err); return 1;
   }
-
+  /* tstate->thread set by echoThreadStateNew() */
+  tstate->gstate = gstate;
   /* this will probably be over-written */
   tstate->verbose = gstate->verbose;
-
+  tstate->threadIdx = threadIdx;
   if (nrrdMaybeAlloc(tstate->nperm, nrrdTypeInt, 2,
 		     ECHO_JITTABLE_NUM, parm->numSamples)) {
     sprintf(err, "%s: couldn't allocate jitter permutation array", me);
@@ -54,7 +55,6 @@ echoThreadStateInit(echoThreadState *tstate,
     sprintf(err, "%s: couldn't allocate permutation buffer", me);
     biffAdd(ECHO, err); return 1;
   }
-
   tstate->chanBuff = airFree(tstate->chanBuff);
   if (!( tstate->chanBuff =
 	 (echoCol_t*)calloc(ECHO_IMG_CHANNELS * parm->numSamples,
@@ -62,6 +62,8 @@ echoThreadStateInit(echoThreadState *tstate,
     sprintf(err, "%s: couldn't allocate img channel sample buffer", me);
     biffAdd(ECHO, err); return 1;
   }
+
+  tstate->returnPtr = NULL;
   
   return 0;
 }
@@ -263,63 +265,41 @@ echoRayColor(echoCol_t *chan, echoRay *ray,
   return;
 }
 
-/*
-******** echoRTRender
-**
-** top-level call to accomplish all (ray-tracing) rendering.  As much
-** error checking as possible should be done here and not in the
-** lower-level functions.
-*/
-int
-echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
-	     echoRTParm *parm, echoGlobalState *gstate) {
-  char me[]="echoRTRender", err[AIR_STRLEN_MED], done[20];
+void *
+_echoRTRenderThreadBody(void *_arg) {
+  char done[20];
   int imgUi, imgVi,         /* integral pixel indices */
     samp;                   /* which sample are we doing */
   echoPos_t tmp0, tmp1,
+    *jitt,
+    pixUsz, pixVsz,         /* U and V dimensions of a pixel */
+    U[4], V[4], N[4],       /* view space basis (only first 3 elements used) */
+    imgU, imgV,             /* floating point pixel center locations */
     eye[3],                 /* eye center before jittering */
     at[3],                  /* ray destination (pixel center post-jittering) */
-    U[4], V[4], N[4],       /* view space basis (only first 3 elements used) */
-    pixUsz, pixVsz,         /* U and V dimensions of a pixel */
-    imgU, imgV,             /* floating point pixel center locations */
     imgOrig[3];             /* image origin */
-  echoThreadState *tstate;  /* only one thread for now */
-  echoCol_t *img, *chan;    /* current scanline of channel buffer array */
-  echoRay ray;              /* (not a pointer) */
   double time0;
+  echoRay ray;              /* (not a pointer) */
+  echoThreadState *arg;
+  echoCol_t *img, *chan;    /* current scanline of channel buffer array */
+  Nrrd *nraw;               /* copies of arguments to echoRTRender ... */
+  limnCamera *cam;
+  echoScene *scene;
+  echoRTParm *parm;
 
-  if (echoRTRenderCheck(nraw, cam, scene, parm, gstate)) {
-    sprintf(err, "%s: problem with input", me);
-    biffAdd(ECHO, err); return 1;
-  }
-  if (nrrdMaybeAlloc(nraw, echoCol_nt, 3,
-		     ECHO_IMG_CHANNELS, parm->imgResU, parm->imgResV)) {
-    sprintf(err, "%s: couldn't allocate output image", me);
-    biffMove(ECHO, err, NRRD); return 1;
-  }
-  nrrdAxisInfoSet(nraw, nrrdAxisInfoLabel,
-		  "r,g,b,a,t", "x", "y");
-  nrrdAxisInfoSet(nraw, nrrdAxisInfoMin,
-		  AIR_NAN, cam->uRange[0], cam->vRange[0]);
-  nrrdAxisInfoSet(nraw, nrrdAxisInfoMax,
-		  AIR_NAN, cam->uRange[1], cam->vRange[1]);
-  tstate = echoThreadStateNew();
-  if (echoThreadStateInit(tstate, parm, gstate)) {
-    sprintf(err, "%s:", me);
-    biffAdd(ECHO, err); return 1;
-  }
-
-  gstate->time = airTime();
-  if (parm->seedRand) {
-    airSrand();
-  }
-  echoJitterCompute(parm, tstate);
-  if (gstate->verbose > 2) {
-    nrrdSave("jitt.nrrd", tstate->njitt, NULL);
+  arg = (echoThreadState *)_arg;
+  nraw = arg->gstate->nraw;
+  cam = arg->gstate->cam;
+  scene = arg->gstate->scene;
+  parm = arg->gstate->parm;
+  
+  echoJitterCompute(arg->gstate->parm, arg);
+  if (arg->gstate->verbose > 2) {
+    nrrdSave("jitt.nrrd", arg->njitt, NULL);
   }
   
   /* set eye, U, V, N, imgOrig */
-  ELL_3V_COPY(eye, cam->from);
+  ELL_3V_COPY(eye, arg->gstate->cam->from);
   ELL_4MV_ROW0_GET(U, cam->W2V);
   ELL_4MV_ROW1_GET(V, cam->W2V);
   ELL_4MV_ROW2_GET(N, cam->W2V);
@@ -329,29 +309,47 @@ echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
   pixUsz = (cam->uRange[1] - cam->uRange[0])/(parm->imgResU);
   pixVsz = (cam->vRange[1] - cam->vRange[0])/(parm->imgResV);
 
-  tstate->depth = 0;
+  arg->depth = 0;
   ray.shadow = AIR_FALSE;
-  img = (echoCol_t *)nraw->data;
-  fprintf(stderr, "%s:       ", me);  /* prep for printing airDoneStr */
-  tstate->verbose = AIR_FALSE;
-  for (imgVi=0; imgVi<parm->imgResV; imgVi++) {
-    imgV = NRRD_POS(nrrdCenterCell, cam->vRange[0], cam->vRange[1],
-		    parm->imgResV, imgVi);
+  arg->verbose = AIR_FALSE;
+  while (1) {
+    if (arg->gstate->workMutex) {
+      airThreadMutexLock(arg->gstate->workMutex);
+    }
+    imgVi = arg->gstate->workIdx;
+    if (arg->gstate->workIdx < parm->imgResV) {
+      arg->gstate->workIdx += 1;
+    }
+    /*
     if (!(imgVi % 5)) {
       fprintf(stderr, "%s", airDoneStr(0, imgVi, parm->imgResV-1, done));
       fflush(stderr);
     }
+    */
+    fprintf(stderr, "%d : %d\n", arg->threadIdx, imgVi);
+    if (arg->gstate->workMutex) {
+      airThreadMutexUnlock(arg->gstate->workMutex);
+    }
+    if (imgVi == parm->imgResV) {
+      /* we're done! */
+      break;
+    }
+    
+    imgV = NRRD_POS(nrrdCenterCell, cam->vRange[0], cam->vRange[1],
+		    parm->imgResV, imgVi);
     for (imgUi=0; imgUi<parm->imgResU; imgUi++) {
       imgU = NRRD_POS(nrrdCenterCell, cam->uRange[0], cam->uRange[1],
 		      parm->imgResU, imgUi);
-
-      /* initialize things on first "scanline" */
-      tstate->jitt = (echoPos_t *)tstate->njitt->data;
-      chan = tstate->chanBuff;
-
-      /* tstate->verbose = ( (160 == imgUi && 160 == imgVi) ); */
+      img = ((echoCol_t *)nraw->data 
+	     + ECHO_IMG_CHANNELS*(imgUi + parm->imgResU*imgVi));
       
-      if (tstate->verbose) {
+      /* initialize things on first "scanline" */
+      jitt = (echoPos_t *)arg->njitt->data;
+      chan = arg->chanBuff;
+
+      /* arg->verbose = ( (160 == imgUi && 160 == imgVi) ); */
+      
+      if (arg->verbose) {
 	fprintf(stderr, "\n");
 	fprintf(stderr, "-----------------------------------------------\n");
 	fprintf(stderr, "----------------- (%3d, %3d) ------------------\n",
@@ -364,14 +362,14 @@ echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
 	/* set ray.from[] */
 	ELL_3V_COPY(ray.from, eye);
 	if (parm->aperture) {
-	  tmp0 = parm->aperture*(tstate->jitt[0 + 2*echoJittableLens]);
-	  tmp1 = parm->aperture*(tstate->jitt[1 + 2*echoJittableLens]);
+	  tmp0 = parm->aperture*(jitt[0 + 2*echoJittableLens]);
+	  tmp1 = parm->aperture*(jitt[1 + 2*echoJittableLens]);
 	  ELL_3V_SCALE_ADD3(ray.from, 1, ray.from, tmp0, U, tmp1, V);
 	}
 	
 	/* set at[] */
-	tmp0 = imgU + pixUsz*(tstate->jitt[0 + 2*echoJittablePixel]);
-	tmp1 = imgV + pixVsz*(tstate->jitt[1 + 2*echoJittablePixel]);
+	tmp0 = imgU + pixUsz*(jitt[0 + 2*echoJittablePixel]);
+	tmp1 = imgV + pixVsz*(jitt[1 + 2*echoJittablePixel]);
 	ELL_3V_SCALE_ADD3(at, 1, imgOrig, tmp0, U, tmp1, V);
 
 	/* do it! */
@@ -383,25 +381,106 @@ echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
 	if (0) {
 	  memset(chan, 0, ECHO_IMG_CHANNELS*sizeof(echoCol_t));
 	} else {
-	  echoRayColor(chan, &ray, scene, parm, tstate);
+	  echoRayColor(chan, &ray, scene, parm, arg);
 	}
 	chan[4] = airTime() - time0;
 	
-	/* move to next "scanlines" */
-	tstate->jitt += 2*ECHO_JITTABLE_NUM;
+	/* move to next "scanline" */
+	jitt += 2*ECHO_JITTABLE_NUM;
 	chan += ECHO_IMG_CHANNELS;
       }
-      echoChannelAverage(img, parm, tstate);
+      echoChannelAverage(img, parm, arg);
+      img[0] = arg->threadIdx;
       img += ECHO_IMG_CHANNELS;
       if (!parm->reuseJitter) {
-	echoJitterCompute(parm, tstate);
+	echoJitterCompute(parm, arg);
       }
     }
   }
+
+  return _arg;
+}
+
+
+/*
+******** echoRTRender
+**
+** top-level call to accomplish all (ray-tracing) rendering.  As much
+** error checking as possible should be done here and not in the
+** lower-level functions.
+*/
+int
+echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
+	     echoRTParm *parm, echoGlobalState *gstate) {
+  char me[]="echoRTRender", err[AIR_STRLEN_MED];
+  int tid, ret;
+  airArray *mop;
+  echoThreadState *tstate[ECHO_THREAD_MAX];
+
+  if (echoRTRenderCheck(nraw, cam, scene, parm, gstate)) {
+    sprintf(err, "%s: problem with input", me);
+    biffAdd(ECHO, err); return 1;
+  }
+  gstate->nraw = nraw;
+  gstate->cam = cam;
+  gstate->scene = scene;
+  gstate->parm = parm;
+  mop = airMopNew();
+  if (nrrdMaybeAlloc(nraw, echoCol_nt, 3,
+		     ECHO_IMG_CHANNELS, parm->imgResU, parm->imgResV)) {
+    sprintf(err, "%s: couldn't allocate output image", me);
+    biffMove(ECHO, err, NRRD); airMopError(mop); return 1;
+  }
+  airMopAdd(mop, nraw, (airMopper)nrrdNix, airMopOnError);
+  nrrdAxisInfoSet(nraw, nrrdAxisInfoLabel,
+		  "r,g,b,a,t", "x", "y");
+  nrrdAxisInfoSet(nraw, nrrdAxisInfoMin,
+		  AIR_NAN, cam->uRange[0], cam->vRange[0]);
+  nrrdAxisInfoSet(nraw, nrrdAxisInfoMax,
+		  AIR_NAN, cam->uRange[1], cam->vRange[1]);
+  gstate->time = airTime();
+  if (parm->seedRand) {
+    airSrand();
+  }
+
+  if (parm->numThreads > 1) {
+    gstate->workMutex = airThreadMutexNew();
+    airMopAdd(mop, gstate->workMutex,
+	      (airMopper)airThreadMutexNix, airMopAlways);
+  } else {
+    gstate->workMutex = NULL;
+  }
+  for (tid=0; tid<parm->numThreads; tid++) {
+    if (!( tstate[tid] = echoThreadStateNew() )) {
+      sprintf(err, "%s: failed to create thread state %d", me, tid);
+      biffAdd(ECHO, err); airMopError(mop); return 1;
+    }
+    if (echoThreadStateInit(tid, tstate[tid], parm, gstate)) {
+      sprintf(err, "%s: failed to initialized thread state %d", me, tid);
+      biffAdd(ECHO, err); airMopError(mop); return 1;
+    }
+    airMopAdd(mop, tstate[tid], (airMopper)echoThreadStateNix, airMopAlways);
+  }
+  fprintf(stderr, "%s:       ", me);  /* prep for printing airDoneStr */
+  gstate->workIdx = 0;
+  for (tid=0; tid<parm->numThreads; tid++) {
+    if (( ret = airThreadStart(tstate[tid]->thread, _echoRTRenderThreadBody,
+			       (void *)(tstate[tid])) )) {
+      sprintf(err, "%s: thread[%d] failed to start: %d", me, tid, ret);
+      biffAdd(ECHO, err); airMopError(mop); return 1;
+    }
+  }
+  for (tid=0; tid<parm->numThreads; tid++) {
+    if (( ret = airThreadJoin(tstate[tid]->thread,
+			      (void **)(&(tstate[tid]->returnPtr))) )) {
+      sprintf(err, "%s: thread[%d] failed to join: %d", me, tid, ret);
+      biffAdd(ECHO, err); airMopError(mop); return 1;
+    }
+  }
+
   gstate->time = airTime() - gstate->time;
   fprintf(stderr, "\n%s: time = %g\n", me, gstate->time);
   
-  tstate = echoThreadStateNix(tstate);
-
+  airMopOkay(mop);
   return 0;
 }

@@ -135,7 +135,7 @@ echoListSplit(echoScene *scene, echoObject *list, int axis) {
   /* we can't delete the list object here, we just gut it so 
      that there's nothing substantial left of it */
   airArraySetLen(LIST(list)->objArr, 0);
-  free(mids);
+  mids = airFree(mids);
   return split;
 }
 
