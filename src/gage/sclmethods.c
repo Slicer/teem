@@ -36,6 +36,12 @@ gageSclContextNew() {
   ctx = malloc(sizeof(gageSclContext));
   if (ctx) {
     ctx->query = 0;
+    ctx->iv3 = ctx->iv2 = ctx->iv1 = NULL;
+    ctx->fsl = NULL;
+    ctx->fw00 = NULL;
+    ctx->fw10 = ctx->fw11 = NULL;
+    ctx->fw20 = ctx->fw21 = ctx->fw22 = NULL;
+    ctx->off = NULL;
     gageSclResetKernels(ctx);
     ctx->npad = NULL;
     ctx->verbose = gageDefVerbose;
