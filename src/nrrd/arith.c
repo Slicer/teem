@@ -324,19 +324,19 @@ double _nrrdTernaryOpLerp(double a, double b, double c) {
 double _nrrdTernaryOpExists(double a, double b, double c) {
   return (AIR_EXISTS(a) ? b : c);
 }
-double _nrrdTernaryOpIn_Cl(double a, double b, double c) {
-  return (AIR_IN_CL(a, b, c));
-}
-double _nrrdTernaryOpIn_Op(double a, double b, double c) {
+double _nrrdTernaryOpInOpen(double a, double b, double c) {
   return (AIR_IN_OP(a, b, c));
+}
+double _nrrdTernaryOpInClosed(double a, double b, double c) {
+  return (AIR_IN_CL(a, b, c));
 }
 double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
   NULL,
   _nrrdTernaryOpClamp,
   _nrrdTernaryOpLerp,
   _nrrdTernaryOpExists,
-  _nrrdTernaryOpIn_Cl,
-  _nrrdTernaryOpIn_Op
+  _nrrdTernaryOpInOpen,
+  _nrrdTernaryOpInClosed
 };
 
 int

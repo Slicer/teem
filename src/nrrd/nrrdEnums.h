@@ -375,8 +375,8 @@ enum {
   nrrdTernaryOpClamp,     /* 1 */
   nrrdTernaryOpLerp,      /* 2 */
   nrrdTernaryOpExists,    /* 3 */
-  nrrdTernaryOpInside,    /* 4 */
-  nrrdTernaryOpBetween,   /* 5 */
+  nrrdTernaryOpInOpen,    /* 4 */
+  nrrdTernaryOpInClosed,  /* 5 */
   nrrdTernaryOpLast
 };
 #define NRRD_TERNARY_OP_MAX  5
