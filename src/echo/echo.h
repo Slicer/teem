@@ -57,6 +57,7 @@ typedef float echoPos_t;
 #define ell4mPOSTMUL ell4mPostMul_f
 #define ECHO_POS_MIN (-FLT_MAX)
 #define ECHO_POS_MAX FLT_MAX
+#define ECHO_POS_EPS FLT_EPSILON
 #else 
 typedef double echoPos_t;
 #define ECHO_POS_FLOAT 0
@@ -69,6 +70,7 @@ typedef double echoPos_t;
 #define ell4mPOSTMUL ell4mPostMul_d
 #define ECHO_POS_MIN (-DBL_MAX)
 #define ECHO_POS_MAX DBL_MAX
+#define ECHO_POS_EPS DBL_EPSILON
 #endif
 
 /* all color information is kept as 
@@ -102,8 +104,6 @@ typedef struct {
     renderLights,      /* render the area lights */
     renderBoxes,       /* faintly render bounding boxes */
     seedRand,          /* call airSrand() (don't if repeatability wanted) */
-    sqDiv,             /* how many intervals to brute-force test when
-			  doing the superquadric root-finding */
     sqNRI;             /* how many iterations of newton-raphson we allow for
 			  finding superquadric root (within tolorance sqTol) */
   echoPos_t

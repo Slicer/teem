@@ -39,7 +39,6 @@ echoRTParmNew(void) {
     parm->renderLights = AIR_TRUE;
     parm->renderBoxes = AIR_FALSE;
     parm->seedRand = AIR_TRUE;
-    parm->sqDiv = 10;
     parm->sqNRI = 15;
     parm->sqTol = 0.0001;
     parm->aperture = 0.0;     /* pinhole camera by default */

@@ -136,8 +136,9 @@ _echo_SuperquadZ_lvg(echoPos_t grad[3],
 
 int
 _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
-  echoPos_t TT=0, Tmin, Tmax, t0, t1, t2, t3, v1, v2,
-    Vmin, Vmax, VV=0, dV, dVmin, dVmax, tmp,
+  char me[]="_echoRayIntx_Superquad";
+  echoPos_t TT=0, Tmin, Tmax, t0, t1, t2, t3, v1, v2, diff, tol,
+    saveTmin, Vmin, Vmax, VV=0, dV, dVmin, dVmax, tmp,
     (*v)(echoPos_t, echoPos_t, echoPos_t,
 	 echoPos_t, echoPos_t),
     (*vg)(echoPos_t[3],
@@ -146,7 +147,7 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
     (*lvg)(echoPos_t[3],
 	   echoPos_t, echoPos_t, echoPos_t,
 	   echoPos_t, echoPos_t),
-    grad[3], pos[3];  /* these two used only by macros */
+    from[3], grad[3], pos[3];  /* these two used only by macros */
   int iter;
   
   if (!_echoRayIntx_CubeSolid(&Tmin, &Tmax,
@@ -173,26 +174,38 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
       break;
   }
   if (tstate->verbose) {
-    fprintf(stderr, "Tmin, Tmax = %g, %g, ax = %d\n", Tmin, Tmax, obj->axis);
+    fprintf(stderr, "%s%s: Tmin, Tmax = %g, %g, ax = %d\n",
+	    _echoDot(tstate->depth), me, Tmin, Tmax, obj->axis);
   }
 
-#define VAL(TT)                                        \
-  (ELL_3V_SCALEADD(pos, 1, ray->from, (TT), ray->dir), \
+#define VAL(TT)                               \
+  (ELL_3V_SCALEADD(pos, 1, from, (TT), ray->dir),  \
    v(pos[0], pos[1], pos[2], obj->A, obj->B))
 
 #define VALGRAD(VV, DV, TT)                                \
-  ELL_3V_SCALEADD(pos, 1, ray->from, (TT), ray->dir);      \
+  ELL_3V_SCALEADD(pos, 1, from, (TT), ray->dir);                \
   (VV) = vg(grad, pos[0], pos[1], pos[2], obj->A, obj->B); \
   (DV) = ELL_3V_DOT(grad, ray->dir)
 
 #define LVALGRAD(VV, DV, TT)                                \
-  ELL_3V_SCALEADD(pos, 1, ray->from, (TT), ray->dir);       \
+  ELL_3V_SCALEADD(pos, 1, from, (TT), ray->dir);                 \
   (VV) = lvg(grad, pos[0], pos[1], pos[2], obj->A, obj->B); \
   (DV) = ELL_3V_DOT(grad, ray->dir)
 
 #define RR 0.61803399
 #define CC (1.0-RR)
-#define SHIFT3(a,b,c,d) (a)=(b);(b)=(c);(c)=(d)
+#define SHIFT3(a,b,c,d) (a)=(b); (b)=(c); (c)=(d)
+#define SHIFT2(a,b,c)   (a)=(b); (b)=(c)
+
+  /* testing */
+  ELL_3V_SCALEADD(from, 1, ray->from, Tmin, ray->dir);
+  saveTmin = Tmin;
+  Tmin = 0;
+  Tmax -= saveTmin;
+  /*
+  ELL_3V_COPY(from, ray->from);
+  saveTmin = 0;
+  */
 
   /* evaluate value and derivatives at Tmin and Tmax */
   VALGRAD(Vmin, dVmin, Tmin);
@@ -207,8 +220,8 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
     return AIR_FALSE;
   }
   if (tstate->verbose) {
-    fprintf(stderr, "Vmin*Vmax = %g, dVmin*dVmax = %g, Vmin = %g, Vmax = %g\n",
-	    Vmin*Vmax, dVmin*dVmax, Vmin, Vmax);
+    fprintf(stderr, "%s%s: dVmin = %g, dVmax = %g, Vmin = %g, Vmax = %g\n",
+	    _echoDot(tstate->depth), me, dVmin, dVmax, Vmin, Vmax);
   }
 
   /* either the value changed sign, or the derivative changed sign, or
@@ -224,28 +237,50 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
     t3 = Tmax;
     v1 = VAL(t1);
     v2 = VAL(t2);
-    /* HEY: see if fabs are needed */
-    while ( (t3-t0 > parm->sqTol*(fabs(t1)+fabs(t2)))  /* haven't converged */
-	    && (v1 > 0 && v2 > 0) ) {                  /* both positive */
+    if (tstate->verbose) {
+      fprintf(stderr, "%s%s: \n"
+	      "     t0 = % 31.15f\n"
+	      "     t1 = % 31.15f  -> v1 = % 31.15f\n"
+	      "     t2 = % 31.15f  -> v2 = % 31.15f\n"
+	      "     t3 = % 31.15f\n",
+	      _echoDot(tstate->depth), me,
+	      t0, t1, v1, t2, v2, t3);
+    }
+    tol = sqrt(ECHO_POS_EPS);
+    while ( (t3-t0 > tol*(t1+t2))         /* still haven't converged */
+	    && (v1 > 0 && v2 > 0) ) {     /* v1 and v2 both positive */
+      diff = v2 - v1;
       if (v1 < v2) {
-	t3 = t2;
-	t2 = RR*t2 + CC*t0;
-	v2 = VAL(t2);
+	SHIFT3(t3, t2, t1, CC*t0 + RR*t2);
+	SHIFT2(v2, v1, VAL(t1));
       } else {
-	t0 = t1;
-	t1 = RR*t1 + CC*t3;
-	v1 = VAL(t1);
+	SHIFT3(t0, t1, t2, RR*t1 + CC*t3);
+	SHIFT2(v1, v2, VAL(t2));
+      }
+      if (tstate->verbose) {
+	fprintf(stderr, "%s%s: %s ---> \n"
+		"     t0 = % 31.15f\n"
+		"     t1 = % 31.15f  -> v1 = % 31.15f\n"
+		"     t2 = % 31.15f  -> v2 = % 31.15f\n"
+		"     t3 = % 31.15f\n",
+		_echoDot(tstate->depth), me,
+		diff > 0 ? "v1 < v2" : "v1 > v2",
+		t0, t1, v1, t2, v2, t3);
       }
     }
     if (v1 > 0 && v2 > 0) {
       /* the minimization stopped, yet both v1 and v2 are still positive,
 	 so there's no way we can have a root */
+      if (tstate->verbose) {
+	fprintf(stderr, "%s%s: minimization found no root\n",
+		_echoDot(tstate->depth), me);
+      }
       return AIR_FALSE;
     }
     /* else either v1 or v2 <= 0, so there is a root (actually two).
-       By construction, both f(t0) and f(t3) are positive, so we
-       can now bracket the root between t0 and t1 or t2, whichever
-       one is associated with a smaller value */
+       By construction, f(t0) is positive, so we can now bracket the
+       root between t0 and t1 or t2, whichever one is associated with
+       a smaller value */
     Tmin = t0;
     Tmax = v1 < v2 ? t1 : t2;
     Vmin = VAL(Tmin);
@@ -260,12 +295,13 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
   LVALGRAD(VV, dV, TT);
   while (iter < parm->sqNRI && AIR_ABS(VV) > parm->sqTol) {
     if (tstate->verbose) {
-      fprintf(stderr, "iter = %d: TT = %g, VV = %g, dV = %g\n",
-	      iter, TT, VV, dV);
+      fprintf(stderr, "%s%s: iter = %d: TT = %g, VV = %g, dV = %g\n",
+	      _echoDot(tstate->depth), me, iter, TT, VV, dV);
     }
     TT -= VV/dV;
     if (!AIR_IN_OP(Tmin, TT, Tmax)) {
-      /* newton-raphson sent us flying, find a tighter bracket w/ bisection */
+      /* newton-raphson sent us flying out of bounds; find a tighter
+	 [Tmin,Tmax] bracket with bisection and try again */
       TT = (Tmin + Tmax)/2;
       VV = VAL(TT);
       if (Vmin*VV < 0) {
@@ -281,7 +317,7 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
     iter++;
   }
 
-  intx->t = TT;
+  intx->t = TT + saveTmin;
   VALGRAD(VV, dV, TT);   /* puts gradient into grad */
   ELL_3V_NORM(intx->norm, grad, tmp);
   intx->obj = OBJECT(obj);
