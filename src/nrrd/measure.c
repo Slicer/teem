@@ -196,7 +196,7 @@ _nrrdMeasureMode(void *ans, int ansType,
     return;
   }
   nhist = nrrdNew();
-  if (nrrdHisto(nhist, nline, nrrdStateMeasureModeBins, nrrdTypeInt)) {
+  if (nrrdHisto(nhist, nline, NULL, nrrdStateMeasureModeBins, nrrdTypeInt)) {
     free(biffGetDone(NRRD));
     nrrdNuke(nhist);
     nrrdNix(nline);
@@ -579,6 +579,31 @@ _nrrdMeasureHistoSum(void *ans, int ansType,
 }
 
 void
+_nrrdMeasureHistoL2(void *ans, int ansType,
+		    void *line, int lineType, int len, 
+		    double axmin, double axmax) {
+  double l2, count, hits, val;
+  int i;
+  
+  if (!(AIR_EXISTS(axmin) && AIR_EXISTS(axmax))) {
+    axmin = -0.5;
+    axmax = len-0.5;
+  }
+  l2 = count = 0;
+  for (i=0; i<len; i++) {
+    val = NRRD_CELL_POS(axmin, axmax, len, i);
+    hits = nrrdDLookup[lineType](line, i);
+    count += hits;
+    l2 += hits*val*val;
+  }
+  if (!count) {
+    nrrdDStore[ansType](ans, AIR_NAN);
+    return;
+  }
+  nrrdDStore[ansType](ans, l2);
+}
+
+void
 _nrrdMeasureHistoMax(void *ans, int ansType,
 		     void *line, int lineType, int len, 
 		     double axmin, double axmax) {
@@ -648,6 +673,7 @@ nrrdMeasureLine[NRRD_MEASURE_MAX+1])(void *, int,
   _nrrdMeasureHistoMode,
   _nrrdMeasureHistoProduct,
   _nrrdMeasureHistoSum,
+  _nrrdMeasureHistoL2,
   _nrrdMeasureHistoVariance
 };
 
@@ -683,6 +709,7 @@ _nrrdMeasureType(Nrrd *nin, int measr) {
   case nrrdMeasureHistoMax:
   case nrrdMeasureHistoProduct:
   case nrrdMeasureHistoSum:
+  case nrrdMeasureHistoL2:
   case nrrdMeasureHistoMean:
   case nrrdMeasureHistoMedian:
   case nrrdMeasureHistoMode:
