@@ -14,4 +14,6 @@ parameters after gageProbe(), then call gageUpdate(), and then go back
 to probing.  A new flag in the gageContext, noRepadWhenSmaller, does
 what it says, so that one padding can be used for queries requiring
 different amounts of padding.
-
+- API NEW: there are now GAGE_SCL_*_BIT and GAGE_VEC_*_BIT #defines
+which are the bit-shifted enum values, ready to by |'ed together to
+make a query
