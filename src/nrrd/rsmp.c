@@ -758,7 +758,8 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
 
   /* copy the resampling final result into the output nrrd, clamping
      as we go to insure that fixed point results don't have unexpected
-     wrap-around.  Last value of numOut is still good. */
+     wrap-around.  */
+  numOut = nrrdElementNumber(nout);
   for (I=0; I<=numOut-1; I++) {
     tmpF = nrrdFClamp[typeOut](arr[passes][I]);
     nrrdFInsert[typeOut](nout->data, I, tmpF);
