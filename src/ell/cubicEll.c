@@ -43,23 +43,23 @@
 int
 ell_cubic(double root[3], double A, double B, double C, int newton) {
   char me[]="ell_cubic";
-  double epsilon = 1.0E-11, sq_A, p, q, cb_p, D, sqrt_D, der,
-    u, v, x, phi, t, sub;
+  double epsilon = 1.0E-11, AA, Q, R, QQQ, D, sqrt_D, der,
+    u, v, x, theta, t, sub;
 
-  sub = 1.0/3.0*A;
-  sq_A = A*A;
-  p = 1.0/3.0*(-1.0/3.0*sq_A + B);
-  q = 1.0/2.0*(2.0/27.0*A*sq_A - 1.0/3.0*A*B + C);
-  cb_p = p*p*p;
-  D = q*q + cb_p;
+  sub = A/3.0;
+  AA = A*A;
+  Q = (AA/3.0 - B)/3.0;
+  R = (-2.0*A*AA/27.0 + A*B/3.0 - C)/2.0;
+  QQQ = Q*Q*Q;
+  D = R*R - QQQ;
   if (D < -epsilon) {
     /* three distinct roots- this is the most common case, it has 
        been tested the most, its code should go first */
-    phi = 1.0/3.0*acos(-q/sqrt(-cb_p));
-    t = 2*sqrt(-p);
-    root[0] = t*cos(phi) - sub;
-    root[1] = t*cos(phi + 2*AIR_PI/3.0) - sub;
-    root[2] = t*cos(phi - 2*AIR_PI/3.0) - sub;
+    theta = acos(R/sqrt(QQQ))/3.0;
+    t = 2*sqrt(Q);
+    root[0] = t*cos(theta) - sub;
+    root[1] = t*cos(theta + 2*AIR_PI/3.0) - sub;
+    root[2] = t*cos(theta - 2*AIR_PI/3.0) - sub;
     /*
     if (!AIR_EXISTS(root[0])) {
       fprintf(stderr, "%s: %g %g %g --> nan!!!\n", me, A, B, C);
@@ -71,8 +71,8 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
     double nr, fnr;
     /* one real solution, except maybe also a "rescued" double root */
     sqrt_D = sqrt(D);
-    u = airCbrt(sqrt_D-q);
-    v = -airCbrt(sqrt_D+q);
+    u = airCbrt(sqrt_D+R);
+    v = -airCbrt(sqrt_D-R);
     x = u+v - sub;
     if (!newton) {
       root[0] = x;
@@ -114,9 +114,9 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
   } 
   else {
     /* else D is in the interval [-epsilon, +epsilon] */
-    if (q < -epsilon || q > epsilon) {
+    if (R < -epsilon || epsilon < R) {
       /* one double root and one single root */
-      u = airCbrt(-q);
+      u = airCbrt(R);
       root[0] = 2*u - sub;
       root[1] = -u - sub;
       root[2] = -u - sub;
