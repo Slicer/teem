@@ -86,6 +86,7 @@ echoThreadStateNix(EchoThreadState *state) {
   nrrdNuke(state->njitt);
   nrrdNuke(state->nperm);
   free(state->permBuff);
+  free(state->chanBuff);
   free(state);
   return NULL;
 }

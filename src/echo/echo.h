@@ -52,7 +52,7 @@ typedef double echoCol_t;
 
 #define ECHO_AABBOX_OBJECT_MAX 8
 #define ECHO_LIST_OBJECT_INCR 8
-#define ECHO_MATTER_VALUE_NUM 8
+#define ECHO_IMG_CHANNELS 5
 
 typedef struct {
   /* ray-tracing parameters */
@@ -82,6 +82,7 @@ typedef struct {
     *njitt;            /* 2 x ECHO_JITTER_NUM x param->samples values of 
 			  type echoPos_t in [-1/2,1/2] */
   int *permBuff;       /* temp array for creating permutations */
+  echoCol_t *chanBuff; /* for storing individual sample colors */
 } EchoThreadState;
 
 enum {
@@ -114,6 +115,27 @@ enum {
 };
 #define ECHO_MATTER_MAX    4
 
+enum {
+  echoMatterR,          /* 0 */
+  echoMatterG,          /* 1 */
+  echoMatterB,          /* 2 */
+  echoMatterKa,         /* 3 */
+};
+enum {
+  echoMatterPhongKd      = 4,
+  echoMatterPhongKs,    /* 5 */
+  echoMatterPhongSh,    /* 6 */
+  echoMatterPhongAlpha  /* 7 */
+};
+enum {
+  echoMatterGlassFuzzy   = 4
+};
+enum {
+  echoMatterMetalFuzzy   = 4
+};
+
+#define ECHO_MATTER_VALUE_NUM 8
+
 /* enum.c ------------------------------------------ */
 extern airEnum echoJitter;
 extern airEnum echoObject;
@@ -130,15 +152,17 @@ enum {
   echoObjectIsosurface, /* 6 */
   echoObjectAABBox,     /* 7 */
   echoObjectList,       /* 8 */
+  echoObjectInstance,   /* 9 */
   echoObjectLast
 };
-#define ECHO_OBJECT_MAX    8
+#define ECHO_OBJECT_MAX    9
 
 /* function: me, k, intx --> lit color */
 
-#define ECHO_OBJECT_COMMON \
+#define ECHO_OBJECT_COMMON              \
   int type
-#define ECHO_OBJECT_MATERIAL \
+#define ECHO_OBJECT_MATERIAL            \
+  int matter;                           \
   echoCol_t mat[ECHO_MATTER_VALUE_NUM]
 
 typedef struct {
@@ -196,10 +220,17 @@ typedef struct {
   airArray *objArr;
 } EchoObjectList;  
 
+typedef struct {
+  ECHO_OBJECT_COMMON;
+  echoPos_t matx[16];
+  int own;
+  EchoObject *obj;
+} EchoObjectInstance;  
+
 extern EchoObject *echoObjectNew(int type);
 extern EchoObject *echoObjectNix(EchoObject *obj);
 extern int echoObjectIsContainer(EchoObject *obj);
-extern void echoObjectAdd(EchoObject *parent, EchoObject *child);
+extern void echoObjectListAdd(EchoObject *parent, EchoObject *child);
 
 /* light.c ---------------------------------------- */
 
@@ -259,7 +290,7 @@ typedef struct {
   echoPos_t t;
   echoPos_t norm[3], pos[3];
   EchoObject *obj;
-  /* ??? */
+  /* ??? extra information for where in tri mesh it hit? */
 } EchoIntx;
 
 extern int echoComposite(Nrrd *nimg, Nrrd *nraw, EchoParam *param);
@@ -271,5 +302,10 @@ extern int echoRender(Nrrd *nraw, limnCam *cam,
 		      EchoParam *param, EchoGlobalState *state,
 		      EchoObject *scene, airArray *lightArr);
 
+/* ray.c ------------------------------------------- */
+extern void echoRayColor(echoCol_t *chan,
+			 echoPos_t dir[3], echoPos_t near, echoPos_t far,
+			 EchoParam *param,
+			 EchoObject *scene, airArray *lightArr);
 
 #endif /* ECHO_HAS_BEEN_INCLUDED */

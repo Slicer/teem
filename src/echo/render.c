@@ -120,6 +120,12 @@ echoThreadStateInit(EchoThreadState *tstate,
     sprintf(err, "%s: couldn't allocate permutation buffer", me);
     biffAdd(ECHO, err); return 1;
   }
+  if (!( tstate->chanBuff =
+	 (echoCol_t*)calloc(ECHO_IMG_CHANNELS * param->samples,
+			    sizeof(echoCol_t)) )) {
+    sprintf(err, "%s: couldn't allocate img channel sample buffer", me);
+    biffAdd(ECHO, err); return 1;
+  }
   
   return 0;
 }
@@ -235,9 +241,38 @@ echoCheck(Nrrd *nraw, limnCam *cam,
     break;
   }
   
+  if (ECHO_IMG_CHANNELS != 5) {
+    fprintf(stderr, "%s: ECHO_IMG_CHANNELS != 5\n", me);
+    biffAdd(ECHO, err); return 1;
+  }
+  
   /* all is well */
   return 0;
 }
+
+void
+echoChannelAverage(echoCol_t *img,
+		   EchoParam *param, EchoThreadState *tstate) {
+  int s;
+  echoCol_t R, G, B, A, T;
+  
+  R = G = B = A = T = 0;
+  for (s=0; s<param->samples; s++) {
+    R += tstate->chanBuff[0 + ECHO_IMG_CHANNELS*s];
+    G += tstate->chanBuff[1 + ECHO_IMG_CHANNELS*s];
+    B += tstate->chanBuff[2 + ECHO_IMG_CHANNELS*s];
+    A += tstate->chanBuff[3 + ECHO_IMG_CHANNELS*s];
+    T += tstate->chanBuff[4 + ECHO_IMG_CHANNELS*s];
+  }
+  img[0] = R / param->samples;
+  img[1] = G / param->samples;
+  img[2] = B / param->samples;
+  img[3] = A / param->samples;
+  img[4] = T;
+  
+  return;
+}
+
 
 /*
 ******** echoRender
@@ -257,23 +292,26 @@ echoRender(Nrrd *nraw, limnCam *cam,
     from[3],                /* ray origination (eye after jittering */
     at[3],                  /* ray destination (pixel center post-jittering) */
     dir[3],                 /* ray direction */
+    near, far,              /* ray segment */
     U[4], V[4], N[4],       /* view space basis (only first 3 elements used) */
     pixUsz, pixVsz,         /* U and V dimensions of a pixel */
     imgU, imgV,             /* floating point pixel center locations */
     imgOrig[3],             /* image origin */
     *jitt;                  /* current scanline of master jitter array */
   EchoThreadState *tstate;  /* only one thread for now */
+  echoCol_t *img, *chan;    /* current scanline of channel buffer array */
+
 
   if (echoCheck(nraw, cam, param, gstate, scene, lightArr)) {
     sprintf(err, "%s: problem with input", me);
     biffAdd(ECHO, err); return 1;
   }
   if (nrrdMaybeAlloc(nraw, echoCol_nrrdType, 3,
-		     5, param->imgResU, param->imgResV)) {
+		     ECHO_IMG_CHANNELS, param->imgResU, param->imgResV)) {
     sprintf(err, "%s: couldn't allocate output image", me);
     biffMove(ECHO, err, NRRD); return 1;
   }
-  nrrdAxesSet(nraw, nrrdAxesInfoLabel, "channels", "x", "y");
+  nrrdAxesSet(nraw, nrrdAxesInfoLabel, "r,g,b,a,t", "x", "y");
   tstate = echoThreadStateNew();
   if (echoThreadStateInit(tstate, param, gstate)) {
     sprintf(err, "%s:", me);
@@ -298,14 +336,17 @@ echoRender(Nrrd *nraw, limnCam *cam,
   pixUsz = (cam->uMax - cam->uMin)/(param->imgResU);
   pixVsz = (cam->vMax - cam->vMin)/(param->imgResV);
 
+  img = (echoCol_t *)nraw->data;
   for (imgVi=0; imgVi<param->imgResV; imgVi++) {
     imgV = NRRD_AXIS_POS(nrrdCenterCell, cam->vMin, cam->vMax,
 			 param->imgResV, imgVi);
     for (imgUi=0; imgUi<param->imgResU; imgUi++) {
       imgU = NRRD_AXIS_POS(nrrdCenterCell, cam->uMin, cam->uMax,
 			   param->imgResU, imgUi);
-      /* initialize jitt on first "scanline" */
+
+      /* initialize things on first "scanline" */
       jitt = (echoPos_t *)tstate->njitt->data;
+      chan = tstate->chanBuff;
 
       /* go through samples */
       for (samp=0; samp<param->samples; samp++) {
@@ -323,11 +364,18 @@ echoRender(Nrrd *nraw, limnCam *cam,
 	tmp = imgV + pixVsz*jitt[1 + 2*echoSamplePixel];
 	ELL_3V_SCALEADD(at, V, tmp);
 
+	/* do it! */
 	ELL_3V_SUB(dir, from, at);
+	near = 0.0;
+	far = POS_MAX;
+	echoRayColor(chan, dir, near, far,
+		     param, scene, lightArr);
 	
-	/* move jitt to next "scanline" */
+	/* move to next "scanlines" */
 	jitt += 2*ECHO_SAMPLE_NUM;
+	chan += ECHO_IMG_CHANNELS;
       }
+      echoChannelAverage(img, param, tstate);
       if (!param->reuseJitter) 
 	echoJitterSet(param, tstate);
     }

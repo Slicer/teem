@@ -39,6 +39,7 @@ _echoObject##TYPE##_new(void) {                                  \
   echoObjectIsosurface,
   echoObjectAABBox,
   echoObjectList,
+  echoObjectInstance,
 */
 
 NEW_TMPL(Sphere,);
@@ -63,6 +64,10 @@ NEW_TMPL(List,
 			   airNull,
 			   (void *(*)(void *))echoObjectNix);
 	 );
+NEW_TMPL(Instance,
+	 obj->own = AIR_FALSE;
+	 obj->obj = NULL;
+	 );
 
 EchoObject *(*
 _echoObjectNew[ECHO_OBJECT_MAX+1])(void) = {
@@ -74,7 +79,8 @@ _echoObjectNew[ECHO_OBJECT_MAX+1])(void) = {
   (EchoObject *(*)(void))_echoObjectTriMesh_new,
   (EchoObject *(*)(void))_echoObjectIsosurface_new,
   (EchoObject *(*)(void))_echoObjectAABBox_new,
-  (EchoObject *(*)(void))_echoObjectList_new
+  (EchoObject *(*)(void))_echoObjectList_new,
+  (EchoObject *(*)(void))_echoObjectInstance_new
 };
 
 EchoObject *
@@ -106,6 +112,11 @@ NIX_TMPL(List,
 	 /* due to airArray callbacks, this will nuke all kids */
 	 airArrayNuke(obj->objArr);
 	 );
+NIX_TMPL(Instance,
+	 if (obj->own) {
+	   echoObjectNix(obj->obj);
+	 }
+	 );
 
 EchoObject *(*
 _echoObjectNix[ECHO_OBJECT_MAX+1])(EchoObject *) = {
@@ -117,7 +128,8 @@ _echoObjectNix[ECHO_OBJECT_MAX+1])(EchoObject *) = {
   (EchoObject *(*)(EchoObject *))_echoObjectTriMesh_nix,
   (EchoObject *(*)(EchoObject *))_echoObjectIsosurface_nix,
   (EchoObject *(*)(EchoObject *))_echoObjectAABBox_nix,
-  (EchoObject *(*)(EchoObject *))_echoObjectList_nix
+  (EchoObject *(*)(EchoObject *))_echoObjectList_nix,
+  (EchoObject *(*)(EchoObject *))_echoObjectInstance_nix
 };
 
 EchoObject *
@@ -133,6 +145,7 @@ echoObjectIsContainer(EchoObject *obj) {
     return AIR_FALSE;
 
   if (echoObjectAABBox == obj->type ||
+      echoObjectInstance == obj->type ||
       echoObjectList == obj->type) {
     return AIR_TRUE;
   }
@@ -142,25 +155,14 @@ echoObjectIsContainer(EchoObject *obj) {
 }
 
 void
-echoObjectAdd(EchoObject *parent, EchoObject *child) {
-  char me[]="echoObjectAdd";
+echoObjectListAdd(EchoObject *parent, EchoObject *child) {
   EchoObjectList *list;
   int idx;
   
-  if (!(parent && child))
+  if (!(parent && child &&
+	echoObjectList == parent->type))
     return;
 
-  if (!echoObjectIsContainer(parent)) {
-    fprintf(stderr, "%s: can only add to a container object", me);
-    return;
-  }
-
-  if (!(echoObjectList == parent->type)) {
-    fprintf(stderr, "%s: sorry, can only add to %s objects now\n",
-	    me, airEnumStr(echoObject, echoObjectList));
-    return;
-  }
-  
   list = (EchoObjectList *)parent;
   idx = airArrayIncrLen(list->objArr, 1);
   list->obj[idx] = child;
