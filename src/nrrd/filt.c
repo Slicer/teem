@@ -32,7 +32,7 @@ _median(unsigned char *hist, int half) {
 }
 
 int
-_index(Nrrd *nin, NRRD_BIG_INT I, int bins) {
+_index(Nrrd *nin, nrrdBigInt I, int bins) {
   double val;
   int idx;
   
@@ -57,7 +57,7 @@ void
 _nrrdMedian1D(Nrrd *nout, Nrrd *nin, int radius, 
 	      int bins, unsigned char *hist) {
   /* char me[] = "_nrrdMedian1D"; */
-  NRRD_BIG_INT X;
+  nrrdBigInt X;
   int idx, diam, half;
   double val;
 
@@ -86,14 +86,14 @@ void
 _nrrdMedian2D(Nrrd *nout, Nrrd *nin, int radius, 
 	      int bins, unsigned char *hist) {
   /* char me[] = "_nrrdMedian2D"; */
-  NRRD_BIG_INT X, Y, I, J;
+  nrrdBigInt X, Y, I, J;
   int sx, sy, idx, diam, half;
   double val;
 
   diam = 2*radius + 1;
   half = diam*diam/2 + 1;
-  sx = nin->size[0];
-  sy = nin->size[1];
+  sx = nin->axis[0].size;
+  sy = nin->axis[1].size;
   for (Y=radius; Y<=sy-radius-1; Y++) {
     /* initialize histogram */
     memset(hist, 0, bins*sizeof(unsigned char));
@@ -122,15 +122,15 @@ void
 _nrrdMedian3D(Nrrd *nout, Nrrd *nin, int radius, 
 	      int bins, unsigned char *hist) {
   /* char me[] = "_nrrdMedian3D"; */
-  NRRD_BIG_INT X, Y, Z, I, J, K;
+  nrrdBigInt X, Y, Z, I, J, K;
   int sx, sy, sz, idx, diam, half;
   double val;
 
   diam = 2*radius + 1;
   half = diam*diam*diam/2 + 1;
-  sx = nin->size[0];
-  sy = nin->size[1];
-  sz = nin->size[2];
+  sx = nin->axis[0].size;
+  sy = nin->axis[1].size;
+  sz = nin->axis[2].size;
   for (Z=radius; Z<=sz-radius-1; Z++) {
     for (Y=radius; Y<=sy-radius-1; Y++) {
       /* initialize histogram */
@@ -164,9 +164,8 @@ _nrrdMedian3D(Nrrd *nout, Nrrd *nin, int radius,
 
 int
 nrrdMedian(Nrrd *nout, Nrrd *nin, int radius, int bins) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdMedian";
+  char err[NRRD_STRLEN_MED], me[] = "nrrdMedian";
   unsigned char *hist;
-  int d;
 
   if (!(nin && nout)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -214,21 +213,31 @@ nrrdMedian(Nrrd *nout, Nrrd *nin, int radius, int bins) {
     biffSet(NRRD, err); return 1;
   }
 
-  for (d=0; d<=nin->dim-1; d++) {
-    nout->size[d] = nin->size[d];
-    nout->spacing[d] = nin->spacing[d];
-    nout->axisMin[d] = nin->axisMin[d];
-    nout->axisMax[d] = nin->axisMax[d];
-    strcpy(nout->label[d], nin->label[d]);
+  nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+  nout->content = airFree(nout->content);
+  if (nin->content) {
+    nout->content = calloc(strlen("median(,,)")
+			   + strlen(nin->content)
+			   + 11
+			   + 11
+			   + 1, sizeof(char));
+    if (nout->content) {
+      sprintf(nout->content, "median(%s,%d,%d)", 
+	      nin->content, radius, bins);
+    }
+    else {
+      sprintf(err, "%s: couldn't allocate output content", me);
+      biffAdd(NRRD, err); return 1;
+    }
   }
-  sprintf(nout->content, "median(%s,%d,%d)", nin->content, radius, bins);
+
   hist = airFree(hist);
-  return(0);
+  return 0;
 }
 
 int
 _nrrdResampleCheckInfo(Nrrd *nin, nrrdResampleInfo *info) {
-  char me[] = "_nrrdResampleCheckInfo", err[NRRD_BIG_STRLEN];
+  char me[] = "_nrrdResampleCheckInfo", err[NRRD_STRLEN_MED];
   nrrdKernel *k;
   int p, d, np;
 
@@ -280,8 +289,8 @@ _nrrdResampleCheckInfo(Nrrd *nin, nrrdResampleInfo *info) {
 */
 void
 _nrrdResampleComputePermute(int permute[], 
-			    int ax[NRRD_MAX_DIM][NRRD_MAX_DIM], 
-			    int sz[NRRD_MAX_DIM][NRRD_MAX_DIM], 
+			    int ax[NRRD_DIM_MAX][NRRD_DIM_MAX], 
+			    int sz[NRRD_DIM_MAX][NRRD_DIM_MAX], 
 			    int *topRax, int *botRax, int *passes,
 			    Nrrd *nin,
 			    nrrdResampleInfo *info) {
@@ -337,7 +346,7 @@ _nrrdResampleComputePermute(int permute[],
      axis sizes described in sz[i] */
   for (d=0; d<=dim-1; d++) {
     ax[0][d] = d;
-    sz[0][d] = nin->size[d];
+    sz[0][d] = nin->axis[d].size;
   }
   for (p=0; p<=*passes-1; p++) {
     for (d=0; d<=dim-1; d++) {
@@ -381,7 +390,7 @@ _nrrdResampleComputePermute(int permute[],
 int
 _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
 			  Nrrd *nin, nrrdResampleInfo *info, int d) {
-  char me[]="_nrrdResampleFillSmpIndex", err[NRRD_BIG_STRLEN];
+  char me[]="_nrrdResampleFillSmpIndex", err[NRRD_STRLEN_MED];
   float smpRatio, suppF, *smp, tmpF, p0, integral;
   int e, i, ind, lengthIn, lengthOut, dotLen, *index;
   
@@ -390,7 +399,7 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
     biffAdd(NRRD, err); return 0;
   }
 
-  lengthIn = nin->size[d];
+  lengthIn = nin->axis[d].size;
   lengthOut = info->samples[d];
   smpRatio = (lengthOut-1)/(info->max[d] - info->min[d]);
   suppF = info->kernel[d]->support(info->param[d]);
@@ -470,7 +479,7 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
     p0 = info->param[d][0];
     info->param[d][0] = p0/smpRatio;
   }
-  info->kernel[d]->evalVec(smp, smp, dotLen*lengthOut, info->param[d]);
+  info->kernel[d]->evalVec_f(smp, smp, dotLen*lengthOut, info->param[d]);
   if (smpRatio < 1) {
     info->param[d][0] = p0;
   }
@@ -537,8 +546,8 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
 */
 int
 nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
-  char me[]="nrrdSpatialResample", err[NRRD_BIG_STRLEN];
-  float *arr[NRRD_MAX_DIM],   /* intermediate copies of the array; we don't
+  char me[]="nrrdSpatialResample", err[NRRD_STRLEN_MED];
+  float *arr[NRRD_DIM_MAX],   /* intermediate copies of the array; we don't
 				 need a full-fledged nrrd for these.  Only
 				 about two of these arrays will be allocated
 				 at a time; intermediate results will be
@@ -550,7 +559,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     *_out,                    /* output vector in context of volume;
 				 never contiguous */
     smpRatio,                 
-    smpRatios[NRRD_MAX_DIM],  /* record of smpRatios for all resampled axes */
+    smpRatios[NRRD_DIM_MAX],  /* record of smpRatios for all resampled axes */
     tmpF;           
   Nrrd *floatNin = NULL;      /* if the input nrrd is not of type float,
 				 then we make a copy here */
@@ -565,10 +574,10 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     dim,                      /* dimension of thing we're resampling */
     typeIn, typeOut,          /* types of input and output of resampling */
     passes,                   /* # of passes needed to resample all axes */
-    permute[NRRD_MAX_DIM],    /* how to permute axes of last pass to get
+    permute[NRRD_DIM_MAX],    /* how to permute axes of last pass to get
 				 axes for current pass */
-    ax[NRRD_MAX_DIM][NRRD_MAX_DIM],  /* axis ordering on each pass */
-    sz[NRRD_MAX_DIM][NRRD_MAX_DIM];  /* how many samples along each
+    ax[NRRD_DIM_MAX][NRRD_DIM_MAX],  /* axis ordering on each pass */
+    sz[NRRD_DIM_MAX][NRRD_DIM_MAX];  /* how many samples along each
 					axis, changing on each pass */
 
   /* all these variables have to do with the spacing of elements in
@@ -578,13 +587,13 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     *smp;                     /* initially, sample locations (in kernel space),
 				 then overwritten with sample weights */
   int 
-    ci[NRRD_MAX_DIM+1],
-    co[NRRD_MAX_DIM+1],
+    ci[NRRD_DIM_MAX+1],
+    co[NRRD_DIM_MAX+1],
     lengthIn, lengthOut,      /* lengths of input and output vectors */
     dotLen,                   /* # input samples to dot with weights to get
 				 one output sample */
     *index;                   /* dotLen*lengthOut 2D array of input indices */
-  NRRD_BIG_INT 
+  nrrdBigInt 
     I,                        /* swiss-army int */
     strideIn,                 /* the stride between samples in the input
 				 "scanline" being resampled */
@@ -647,7 +656,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   strideIn = 1;
   for (d=0; d<=dim-1; d++) {
     if (!info->kernel[d]) {
-      strideIn *= nin->size[d];
+      strideIn *= nin->axis[d].size;
     }
     else {
       break;
@@ -736,8 +745,8 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     /* the real tofu of it: resample all the scanlines */
     _in = arr[p];
     _out = arr[p+1];
-    memset(ci, 0, (NRRD_MAX_DIM+1)*sizeof(int));
-    memset(co, 0, (NRRD_MAX_DIM+1)*sizeof(int));
+    memset(ci, 0, (NRRD_DIM_MAX+1)*sizeof(int));
+    memset(co, 0, (NRRD_DIM_MAX+1)*sizeof(int));
     for (L=0; L<numLines; L++) {
       /* calculate the index to get to input and output scanlines,
 	 according the coordinates of the start of the scanline */
@@ -800,22 +809,25 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     sprintf(err, "%s: couldn't allocate final output nrrd", me);
     biffAdd(NRRD, err); return 1;
   }
+  nrrdAxesCopy(nout, nin, NULL, 
+	       (NRRD_AXESINFO_SIZE
+		| NRRD_AXESINFO_MINMAX
+		| NRRD_AXESINFO_SPACING));
   for (d=0; d<=dim-1; d++) {
     if (info->kernel[d]) {
-      nout->size[d] = info->samples[d];
-      nout->axisMin[d] = AIR_AFFINE(0, info->min[d], nin->size[d]-1,
-				    nin->axisMin[d], nin->axisMax[d]);
-      nout->axisMax[d] = AIR_AFFINE(0, info->max[d], nin->size[d]-1,
-				    nin->axisMin[d], nin->axisMax[d]);
-      nout->spacing[d] = nin->spacing[d]/smpRatios[d];
+      nout->axis[d].size = info->samples[d];
+      nout->axis[d].min = AIR_AFFINE(0, info->min[d], nin->axis[d].size-1,
+				     nin->axis[d].min, nin->axis[d].max);
+      nout->axis[d].max = AIR_AFFINE(0, info->max[d], nin->axis[d].size-1,
+				     nin->axis[d].min, nin->axis[d].max);
+      nout->axis[d].spacing = nin->axis[d].spacing/smpRatios[d];
     }
     else {
-      nout->size[d] = nin->size[d];
-      nout->axisMin[d] = nin->axisMin[d];
-      nout->axisMax[d] = nin->axisMax[d];
-      nout->spacing[d] = nin->spacing[d];
+      nout->axis[d].size = nin->axis[d].size;
+      nout->axis[d].min = nin->axis[d].min;
+      nout->axis[d].max = nin->axis[d].max;
+      nout->axis[d].spacing = nin->axis[d].spacing;
     }
-    strcpy(nout->label[d], nin->label[d]);
   }
 
   /* copy the resampling final result into the output nrrd, clamping

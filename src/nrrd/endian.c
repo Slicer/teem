@@ -19,9 +19,9 @@
 #include "nrrd.h"
 
 void
-_nrrdSwapShortEndian(void *_data, NRRD_BIG_INT N) {
+_nrrdSwap16Endian(void *_data, nrrdBigInt N) {
   short *data, s, fix;
-  NRRD_BIG_INT I;
+  nrrdBigInt I;
   
   if (_data) {
     data = (short *)_data;
@@ -35,9 +35,9 @@ _nrrdSwapShortEndian(void *_data, NRRD_BIG_INT N) {
 }
 
 void
-_nrrdSwapWordEndian(void *_data, NRRD_BIG_INT N) {
+_nrrdSwap32Endian(void *_data, nrrdBigInt N) {
   int *data, w, fix;
-  NRRD_BIG_INT I;
+  nrrdBigInt I;
 
   if (_data) {
     data = (int *)_data;
@@ -53,9 +53,9 @@ _nrrdSwapWordEndian(void *_data, NRRD_BIG_INT N) {
 }
 
 void
-_nrrdSwapLongLongWordEndian(void *_data, NRRD_BIG_INT N) {
+_nrrdSwap64Endian(void *_data, nrrdBigInt N) {
   unsigned long long *data, l, fix;
-  NRRD_BIG_INT I;
+  nrrdBigInt I;
 
   if (_data) {
     data = (unsigned long long  *)_data;
@@ -75,30 +75,30 @@ _nrrdSwapLongLongWordEndian(void *_data, NRRD_BIG_INT N) {
 }
 
 void
-_nrrdNoopEndian(void *_data, NRRD_BIG_INT N) {
+_nrrdNoopEndian(void *_data, nrrdBigInt N) {
   
 }
 
 void
-(*_nrrdSwapEndian[])(void *, NRRD_BIG_INT) = {
+(*_nrrdSwapEndian[])(void *, nrrdBigInt) = {
   _nrrdNoopEndian,         /*  0: nobody knows! */
   _nrrdNoopEndian,         /*  1:   signed 1-byte integer */
   _nrrdNoopEndian,         /*  2: unsigned 1-byte integer */
-  _nrrdSwapShortEndian,    /*  3:   signed 2-byte integer */
-  _nrrdSwapShortEndian,    /*  4: unsigned 2-byte integer */
-  _nrrdSwapWordEndian,     /*  5:   signed 4-byte integer */
-  _nrrdSwapWordEndian,     /*  6: unsigned 4-byte integer */
-  _nrrdSwapLongLongWordEndian, /*  7:   signed 8-byte integer */
-  _nrrdSwapLongLongWordEndian, /*  8: unsigned 8-byte integer */
-  _nrrdSwapWordEndian,     /*  9:          4-byte floating point */
-  _nrrdSwapLongLongWordEndian, /* 10:          8-byte floating point */
-  _nrrdNoopEndian,         /* HEY! PUNT: 11:        16-byte floating point */
-  _nrrdNoopEndian          /* HEY! PUNT: 12: size user defined at run time */
+  _nrrdSwap16Endian,       /*  3:   signed 2-byte integer */
+  _nrrdSwap16Endian,       /*  4: unsigned 2-byte integer */
+  _nrrdSwap32Endian,       /*  5:   signed 4-byte integer */
+  _nrrdSwap32Endian,       /*  6: unsigned 4-byte integer */
+  _nrrdSwap64Endian,       /*  7:   signed 8-byte integer */
+  _nrrdSwap64Endian,       /*  8: unsigned 8-byte integer */
+  _nrrdSwap32Endian,       /*  9:          4-byte floating point */
+  _nrrdSwap64Endian,       /* 10:          8-byte floating point */
+  /* _nrrdNoopEndian,    HEY! PUNT: 11:        16-byte floating point */
+  _nrrdNoopEndian          /* HEY! PUNT: 11: size user defined at run time */
 };
 
 void
 nrrdSwapEndian(Nrrd *nrrd) {
-  void (*swapper)(void *, NRRD_BIG_INT);
+  void (*swapper)(void *, nrrdBigInt);
   
   if (nrrd 
       && nrrd->data 
@@ -106,6 +106,7 @@ nrrdSwapEndian(Nrrd *nrrd) {
     swapper = _nrrdSwapEndian[nrrd->type];
     swapper(nrrd->data, nrrd->num);
   }
+  return;
 }
 
 

@@ -28,8 +28,11 @@ resampling, blurring,  <-- document setting the float param[] vector
 
 better regular median filtering, weighted median filter
 
+make sure blockSize (and maybe any other non-per-axis information??)
+is copied in all basic nrrd functions
+
 a function call to take a block nrrd, and a callback, 
-and create a new one nrrd... (but that will be it as far as block stuff)
+and create a new one nrrd... (but that will be ALL as far as block stuff)
 
 For everything in reorder.c, whenever possible, 
 make them friendly to the input and output nrrds being the _same_

@@ -19,12 +19,13 @@
 #include "nrrd.h"
 
 int
-nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, int minmax) {
-  char me[]="nrrdArithGamma", err[NRRD_MED_STRLEN];
-  double min, max, val;
-  NRRD_BIG_INT I;
-  double (*lup)(void *, NRRD_BIG_INT);
-  double (*ins)(void *, NRRD_BIG_INT, double);
+nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, int minmax, ...) {
+  char me[]="nrrdArithGamma", err[NRRD_STRLEN_MED];
+  double min, max, val, insteadMin, insteadMax;
+  nrrdBigInt I;
+  double (*lup)(void *, nrrdBigInt);
+  double (*ins)(void *, nrrdBigInt, double);
+  va_list ap;
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -40,7 +41,16 @@ nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, int minmax) {
     sprintf(err, "%s: minmax behavior (%d) invalid", me, minmax);
     biffSet(NRRD, err); return 1;
   }
-  if (nrrdMinMaxDo(&min, &max, nin, AIR_NAN, AIR_NAN, minmax)) {
+  if (nrrdMinMaxInsteadUse == minmax) {
+    va_start(ap, minmax);
+    insteadMin = va_arg(ap, double);
+    insteadMax = va_arg(ap, double);
+    va_end(ap);
+  }
+  else {
+    insteadMin = insteadMax = AIR_NAN;
+  }
+  if (nrrdMinMaxDo(&min, &max, nin, insteadMin, insteadMax, minmax)) {
     sprintf(err, "%s: trouble setting min, max", me);
     biffAdd(NRRD, err); return 1;
   }

@@ -24,35 +24,42 @@ extern "C" {
 
 #include <limits.h>
 
-#define NRRD_MAX_DIM 12         /* The maximum dimension which we can handle */
+#define NRRD_EXT_HEADER ".nhdr"
+#define NRRD_EXT_RAW    ".raw"
+#define NRRD_EXT_PGM    ".pgm"
+#define NRRD_EXT_PPM    ".ppm"
+#define NRRD_EXT_TABLE  ".txt"
 
-#define NRRD_BIG_INT long long  /* biggest integral type allowed on system; 
-				   used to hold number of items in array 
-				   (MUST be a signed type, even though as a 
-				   store for # of things, could be unsigned)
-				   using "int" would give a maximum pow-of-2
-				   array size of 1024x1024x1024 
-				   (really 1024x1024x2048-1) */
+#define NRRD_DIM_MAX 10            /* Maximum dimension which we can handle */
 
-#define NRRD_BIG_INT_PRINTF "%lld"
+#define NRRD_BIG_INT_PRINTF "%llu"
 
-#define NRRD_SMALL_STRLEN  129  /* single words, types and labels */
-#define NRRD_MED_STRLEN    257  /* phrases, single line of error message */
-#define NRRD_BIG_STRLEN    513  /* lines, ascii header lines from file */
-#define NRRD_HUGE_STRLEN  1025  /* sentences */
-#define NRRD_ERR_STRLEN   2049  /* error message accumulation */
+#define NRRD_STRLEN_SMALL   65
+#define NRRD_STRLEN_MED    129
+#define NRRD_STRLEN_BIG    257
+#define NRRD_STRLEN_HUGE   513
 
-#define NRRD_MAX_KERNEL_PARAMS 5  /* max # arguments to a resampling kernel */
+#define NRRD_STRLEN_LINE 8*1024+1  /* length of lines from a file.  Needs to
+				      be big because of possibility of bare
+				      ascii tables with lots of data */
+#define NRRD_STRLEN_COMMENT 129    /* longest comment strings allowed */
 
-#define NRRD_NO_CONTENT "?"     /* to fill in for an unset "content" field */
+#define NRRD_KERNEL_PARAMS_MAX 5   /* max # arguments to a kernel */
 
-/* for the 64-bit integer types (not standard except in C9X), we try
-   to use the names for the _MIN and _MAX values which are used in C9X
-   (as well as gcc) such as LLONG_MAX; if these aren't defined, we try
-   the ones used on SGI such as LONGLONG_MAX, if still not defined, we
-   go wild and define something ourselves (which just happen to be the
-   values defined in C9X), with total disregard to what the
-   architecture and compiler actually support */
+
+/* 
+** For the 64-bit integer types (not standard except in C9X), we try
+** to use the names for the _MIN and _MAX values which are used in C9X
+** (as well as gcc) such as LLONG_MAX.
+** 
+** If these aren't defined, we try the ones used on SGI such as
+** LONGLONG_MAX.
+**
+** If these aren't defined either, we go wild and define something
+** ourselves (which just happen to be the values defined in C9X), with
+** total disregard to what the architecture and compiler actually
+** support 
+*/
 
 #ifdef LLONG_MAX
 #  define NRRD_LLONG_MAX LLONG_MAX
@@ -84,12 +91,13 @@ extern "C" {
 #  endif
 #endif
 
-/* -------------------------------------------------------- */
-/* ----------- END of user-alterable defines -------------- */
-/* -------------------------------------------------------- */
+/*
+** Chances are, you shouldn't mess with these
+*/
 
 #define NRRD_HEADER "NRRD00.01"
-#define NRRD_COMMENT_CHAR '#'
+#define NRRD_COMMENT_INCR 16
+#define NRRD_PNM_COMMENT "#NRRD: "
 
 /* extern C */
 #ifdef __cplusplus

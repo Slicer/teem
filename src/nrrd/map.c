@@ -17,6 +17,7 @@
 
 
 #include "nrrd.h"
+#include "private.h"
 
 /*
 ******** nrrdConvert()
@@ -26,17 +27,17 @@
 */
 int
 nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdConvert";
-  int d;
-  void (*conv)(void *, void *, NRRD_BIG_INT);
+  char me[] = "nrrdConvert", err[NRRD_STRLEN_MED];
 
-  if (!(nin && nout && AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast))) {
+  if (!( nin && nout 
+	 && AIR_BETWEEN(nrrdTypeUnknown, nin->type, nrrdTypeLast)
+	 && AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast) )) {
     sprintf(err, "%s: invalid args", me);
     biffSet(NRRD, err); return 1;
   }
   if (nin->type == nrrdTypeBlock
       || type == nrrdTypeBlock) {
-    sprintf(err, "%s: can't deal with type block now, sorry", me);
+    sprintf(err, "%s: sorry, can't deal with type block now", me);
     biffSet(NRRD, err); return 1;
   }
 
@@ -54,27 +55,28 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
     sprintf(err, "%s: failed to create slice", me);
     biffSet(NRRD, err); return 1;
   }
-  nout->type = type;
 
   /* call the appropriate converter */
-  conv = _nrrdConv[nout->type][nin->type];
-  if (!conv) {
-    sprintf(err, "%s: converter (%d <-- %d) is NULL!!", 
-	    me, nout->type, nin->type);
-    biffSet(NRRD, err); return 1;
-  }
-  conv(nout->data, nin->data, nin->num);
+  _nrrdConv[nout->type][nin->type](nout->data, nin->data, nin->num);
 
-  /* set information in new volume */
-  for (d=0; d<=nin->dim-1; d++) {
-    nout->size[d] = nin->size[d];
-    nout->spacing[d] = nin->spacing[d];
-    nout->axisMin[d] = nin->axisMin[d];
-    nout->axisMax[d] = nin->axisMax[d];
-    strcpy(nout->label[d], nin->label[d]);
+  /* copy peripheral information */
+  nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+  nout->content = airFree(nout->content);
+  if (nin->content) {
+    nout->content = calloc(strlen("()()")
+			   + strlen(nrrdEnumValToStr(nrrdEnumType, nout->type))
+			   + strlen(nin->content)
+			   + 1, sizeof(char));
+    if (nout->content) {
+      sprintf(nout->content, "(%s)(%s)",
+	      nrrdEnumValToStr(nrrdEnumType, nout->type),
+	      nin->content);
+    }
   }
-  sprintf(nout->content, "(%s)(%s)", nrrdType2Str[nout->type], 
-	  strlen(nin->content) ? nin->content : NRRD_NO_CONTENT);
+  else {
+    sprintf(err, "%s: couldn't allocate output content", me);
+    biffAdd(NRRD, err); return 1;
+  }
 
   /* bye */
   return 0;
@@ -82,8 +84,8 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
 
 int
 nrrdMinMaxFind(double *minP, double *maxP, Nrrd *nrrd) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdMinMaxFind";
-  char _min[NRRD_MAX_TYPE_SIZE], _max[NRRD_MAX_TYPE_SIZE];
+  char me[] = "nrrdMinMaxFind", err[NRRD_STRLEN_MED];
+  char _min[NRRD_TYPE_SIZE_MAX], _max[NRRD_TYPE_SIZE_MAX];
 
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -114,7 +116,7 @@ nrrdMinMaxFind(double *minP, double *maxP, Nrrd *nrrd) {
 int
 nrrdMinMaxDo(double *minP, double *maxP, Nrrd *nrrd, 
 	     double min, double max, int minmax) {
-  char me[]="nrrdMinMaxDo", err[NRRD_MED_STRLEN];
+  char me[]="nrrdMinMaxDo", err[NRRD_STRLEN_MED];
   int E;
   
   if (!AIR_BETWEEN(nrrdMinMaxUnknown, minmax, nrrdMinMaxLast)) {
@@ -123,10 +125,10 @@ nrrdMinMaxDo(double *minP, double *maxP, Nrrd *nrrd,
   }
   E = 0;
   switch (minmax) {
-  case nrrdMinMaxCalc:
+  case nrrdMinMaxSearch:
     E = nrrdMinMaxFind(minP, maxP, nrrd);
     break;
-  case nrrdMinMaxCalcSet:
+  case nrrdMinMaxSearchSet:
     E = nrrdMinMaxFind(&nrrd->min, &nrrd->max, nrrd);
     *minP = nrrd->min;
     *maxP = nrrd->max;
@@ -168,12 +170,12 @@ nrrdMinMaxDo(double *minP, double *maxP, Nrrd *nrrd,
 */
 int
 nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits, int minmax) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdQuantize";
+  char me[] = "nrrdQuantize", err[NRRD_STRLEN_MED];
   double valIn, min, max;
   int valOut;
   long long valOutll;
-  NRRD_BIG_INT I;
-  int type, d;
+  nrrdBigInt I;
+  int type;
 
   if (!(nin && nout)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -231,20 +233,27 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits, int minmax) {
   }
 
   /* set information in new volume */
-  for (d=0; d<=nin->dim-1; d++) {
-    nout->size[d] = nin->size[d];
-    nout->spacing[d] = nin->spacing[d];
-    nout->axisMin[d] = nin->axisMin[d];
-    nout->axisMax[d] = nin->axisMax[d];
-    strcpy(nout->label[d], nin->label[d]);
-  }
+  nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
   nout->oldMin = min;
   nout->oldMax = max;
-  sprintf(nout->content, "quantize(%s,%d)", 
-	  strlen(nin->content) ? nin->content : NRRD_NO_CONTENT, bits);
+  nout->content = airFree(nout->content);
+  if (nin->content) {
+    nout->content = calloc(strlen("quantize(,)")
+			   + strlen(nin->content)
+			   + 11
+			   + 1, sizeof(char));
+    if (nout->content) {
+      sprintf(nout->content, "quantize(%s,%d)",
+	      nin->content, bits);
+    }
+    else {
+      sprintf(err, "%s: couldn't allocate output content", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
 
   /* bye */
-  return(0);
+  return 0;
 }
 
 
@@ -294,12 +303,12 @@ _nrrdHistoEqCompare(const void *a, const void *b) {
 */
 int
 nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdHistoEq";
+  char me[]="nrrdHistoEq", err[NRRD_STRLEN_MED];
   Nrrd *nhist;
   double val, min, max, *xcoord = NULL, *ycoord = NULL, *last = NULL;
   int i, idx, *respect = NULL, *steady = NULL;
   unsigned int *hist;
-  NRRD_BIG_INT I;
+  nrrdBigInt I;
 
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -316,18 +325,18 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
       biffAdd(NRRD, err); return 1;
     }
     hist = nhist->data;
-    min = nhist->axisMin[0];
-    max = nhist->axisMax[0];
+    min = nhist->axis[0].min;
+    max = nhist->axis[0].max;
   }
   else {
     /* for "smart" mode, we have to some extra work in creating
        the histogram to look for bins always hit with the same value */
-    if (!(nhist = nrrdNewAlloc(bins, nrrdTypeUInt, 1))) {
+    if (nrrdAlloc(nhist=nrrdNew(), bins, nrrdTypeUInt, 1)) {
       sprintf(err, "%s: failed to allocate histogram", me);
       biffAdd(NRRD, err); return 1;
     }
     hist = nhist->data;
-    nhist->size[0] = bins;
+    nhist->axis[0].size = bins;
     /* allocate the respect, steady, and last arrays */
     if ( !(respect = calloc(bins, sizeof(int))) ||
 	 !(steady = calloc(bins*2, sizeof(int))) ||

@@ -17,428 +17,157 @@
 
 
 #include "nrrd.h"
-#include "limits.h"
-
-/*
-** general info on these arrays of functions:
-** 
-** nrrdXLoadY: dereference given pointer (of type *) and cast to type X
-** nrrdXStoreY: cast given value (type X) and store at given address (type Y)
-** nrrdXLookupY: find particular array (type Y) value and cast to type X
-** nrrdXInsertY: cast given value (of type X) to array type (Y) and store
-*/
-
-
-/*
-******** nrrdILoad
-** 
-** Dereference pointer v, cast that value to a integer, return it.  */
-int _nrrdILoadC(char *v)                         {return(*v);}
-int _nrrdILoadUC(unsigned char *v)               {return(*v);}
-int _nrrdILoadS(short *v)                        {return(*v);}
-int _nrrdILoadUS(unsigned short *v)              {return(*v);}
-int _nrrdILoadI(int *v)                          {return(*v);}
-int _nrrdILoadUI(unsigned int *v)                {return(*v);}
-int _nrrdILoadLLI(long long int *v)              {return(*v);}
-int _nrrdILoadULLI(unsigned long long int *v)    {return(*v);}
-int _nrrdILoadF(float *v)                        {return(*v);}
-int _nrrdILoadD(double *v)                       {return(*v);}
-int _nrrdILoadLD(long double *v)                 {return(*v);}
-int (*nrrdILoad[NRRD_MAX_TYPE+1])(void *) = {
-  NULL,
-  (int (*)(void*))_nrrdILoadC,
-  (int (*)(void*))_nrrdILoadUC,
-  (int (*)(void*))_nrrdILoadS,
-  (int (*)(void*))_nrrdILoadUS,
-  (int (*)(void*))_nrrdILoadI,
-  (int (*)(void*))_nrrdILoadUI,
-  (int (*)(void*))_nrrdILoadLLI,
-  (int (*)(void*))_nrrdILoadULLI,
-  (int (*)(void*))_nrrdILoadF,
-  (int (*)(void*))_nrrdILoadD,
-  (int (*)(void*))_nrrdILoadLD,
-  NULL};
-
-/*
-******** nrrdFLoad
-** 
-** Dereference pointer v, cast that value to a float, return it.
-*/
-float _nrrdFLoadC(char *v)                       {return(*v);}
-float _nrrdFLoadUC(unsigned char *v)             {return(*v);}
-float _nrrdFLoadS(short *v)                      {return(*v);}
-float _nrrdFLoadUS(unsigned short *v)            {return(*v);}
-float _nrrdFLoadI(int *v)                        {return(*v);}
-float _nrrdFLoadUI(unsigned int *v)              {return(*v);}
-float _nrrdFLoadLLI(long long int *v)            {return(*v);}
-float _nrrdFLoadULLI(unsigned long long int *v)  {return(*v);}
-float _nrrdFLoadF(float *v)                      {return(*v);}
-float _nrrdFLoadD(double *v)                     {return(*v);}
-float _nrrdFLoadLD(long double *v)               {return(*v);}
-float (*nrrdFLoad[NRRD_MAX_TYPE+1])(void *) = {
-  NULL,
-  (float (*)(void*))_nrrdFLoadC,
-  (float (*)(void*))_nrrdFLoadUC,
-  (float (*)(void*))_nrrdFLoadS,
-  (float (*)(void*))_nrrdFLoadUS,
-  (float (*)(void*))_nrrdFLoadI,
-  (float (*)(void*))_nrrdFLoadUI,
-  (float (*)(void*))_nrrdFLoadLLI,
-  (float (*)(void*))_nrrdFLoadULLI,
-  (float (*)(void*))_nrrdFLoadF,
-  (float (*)(void*))_nrrdFLoadD,
-  (float (*)(void*))_nrrdFLoadLD,
-  NULL};
-
-/*
-******** nrrdDLoad
-**
-** Dereference pointer v, cast that value to a double, return it.
-*/
-double _nrrdDLoadC(char *v)                      {return(*v);}
-double _nrrdDLoadUC(unsigned char *v)            {return(*v);}
-double _nrrdDLoadS(short *v)                     {return(*v);}
-double _nrrdDLoadUS(unsigned short *v)           {return(*v);}
-double _nrrdDLoadI(int *v)                       {return(*v);}
-double _nrrdDLoadUI(unsigned int *v)             {return(*v);}
-double _nrrdDLoadLLI(long long int *v)           {return(*v);}
-double _nrrdDLoadULLI(unsigned long long int *v) {return(*v);}
-double _nrrdDLoadF(float *v)                     {return(*v);}
-double _nrrdDLoadD(double *v)                    {return(*v);}
-double _nrrdDLoadLD(long double *v)              {return(*v);}
-double (*nrrdDLoad[NRRD_MAX_TYPE+1])(void *) = {
-  NULL,
-  (double (*)(void*))_nrrdDLoadC,
-  (double (*)(void*))_nrrdDLoadUC,
-  (double (*)(void*))_nrrdDLoadS,
-  (double (*)(void*))_nrrdDLoadUS,
-  (double (*)(void*))_nrrdDLoadI,
-  (double (*)(void*))_nrrdDLoadUI,
-  (double (*)(void*))_nrrdDLoadLLI,
-  (double (*)(void*))_nrrdDLoadULLI,
-  (double (*)(void*))_nrrdDLoadF,
-  (double (*)(void*))_nrrdDLoadD,
-  (double (*)(void*))_nrrdDLoadLD,
-  NULL};
+#include "private.h"
 
 /* 
-******** nrrdIStore
-**
-** Cast given integer j to correct type, and store it at pointer address v.
-** Returns the result of the assignment.
+** making these typedefs here allows us to used one token for both
+** constructing function names, and for specifying argument types
 */
-int _nrrdIStoreC(char *v, int j)                      {return(*v = j);}
-int _nrrdIStoreUC(unsigned char *v, int j)            {return(*v = j);}
-int _nrrdIStoreS(short *v, int j)                     {return(*v = j);}
-int _nrrdIStoreUS(unsigned short *v, int j)           {return(*v = j);}
-int _nrrdIStoreI(int *v, int j)                       {return(*v = j);}
-int _nrrdIStoreUI(unsigned int *v, int j)             {return(*v = j);}
-int _nrrdIStoreLLI(long long int *v, int j)           {return(*v = j);}
-int _nrrdIStoreULLI(unsigned long long int *v, int j) {return(*v = j);}
-int _nrrdIStoreF(float *v, int j)                     {return(*v = j);}
-int _nrrdIStoreD(double *v, int j)                    {return(*v = j);}
-int _nrrdIStoreLD(long double *v, int j)              {return(*v = j);}
-int (*nrrdIStore[NRRD_MAX_TYPE+1])(void *, int) = {
-  NULL,
-  (int (*)(void*, int))_nrrdIStoreC,
-  (int (*)(void*, int))_nrrdIStoreUC,
-  (int (*)(void*, int))_nrrdIStoreS,
-  (int (*)(void*, int))_nrrdIStoreUS,
-  (int (*)(void*, int))_nrrdIStoreI,
-  (int (*)(void*, int))_nrrdIStoreUI,
-  (int (*)(void*, int))_nrrdIStoreLLI,
-  (int (*)(void*, int))_nrrdIStoreULLI,
-  (int (*)(void*, int))_nrrdIStoreF,
-  (int (*)(void*, int))_nrrdIStoreD,
-  (int (*)(void*, int))_nrrdIStoreLD,
-  NULL};
+typedef signed char CH;
+typedef unsigned char UC;
+typedef signed short SH;
+typedef unsigned short US;
+typedef signed int IN;
+typedef unsigned int UI;
+typedef signed long long int LL;
+typedef unsigned long long int UL;
+typedef float FL;
+typedef double DB;
+typedef nrrdBigInt BI;
+/* typedef long double LD; */
 
-/*
-******** nrrdFStore
+#define MAP(F, A) \
+F(A, CH) \
+F(A, UC) \
+F(A, SH) \
+F(A, US) \
+F(A, IN) \
+F(A, UI) \
+F(A, LL) \
+F(A, UL) \
+F(A, FL) \
+F(A, DB)
+/* F(A, LD) */
+
+/* 
+** _nrrdLoad<TA><TB>(<TB> *v)
 **
-** Cast given float f to correct type, and store it at pointer address v.
-** Returns the result of the assignment.
+** Dereferences v as TB*, casts it to TA, returns it.
 */
-float _nrrdFStoreC(char *v, float f)                      {return(*v = f);}
-float _nrrdFStoreUC(unsigned char *v, float f)            {return(*v = f);}
-float _nrrdFStoreS(short *v, float f)                     {return(*v = f);}
-float _nrrdFStoreUS(unsigned short *v, float f)           {return(*v = f);}
-float _nrrdFStoreI(int *v, float f)                       {return(*v = f);}
-float _nrrdFStoreUI(unsigned int *v, float f)             {return(*v = f);}
-float _nrrdFStoreLLI(long long int *v, float f)           {return(*v = f);}
-float _nrrdFStoreULLI(unsigned long long int *v, float f) {return(*v = f);}
-float _nrrdFStoreF(float *v, float f)                     {return(*v = f);}
-float _nrrdFStoreD(double *v, float f)                    {return(*v = f);}
-float _nrrdFStoreLD(long double *v, float f)              {return(*v = f);}
-float (*nrrdFStore[NRRD_MAX_TYPE+1])(void *, float) = {
-  NULL,
-  (float (*)(void*, float))_nrrdFStoreC,
-  (float (*)(void*, float))_nrrdFStoreUC,
-  (float (*)(void*, float))_nrrdFStoreS,
-  (float (*)(void*, float))_nrrdFStoreUS,
-  (float (*)(void*, float))_nrrdFStoreI,
-  (float (*)(void*, float))_nrrdFStoreUI,
-  (float (*)(void*, float))_nrrdFStoreLLI,
-  (float (*)(void*, float))_nrrdFStoreULLI,
-  (float (*)(void*, float))_nrrdFStoreF,
-  (float (*)(void*, float))_nrrdFStoreD,
-  (float (*)(void*, float))_nrrdFStoreLD,
-  NULL};
+#define LOAD_DEF(TA, TB)                    \
+TA                                          \
+_nrrdLoad##TA##TB(TB *v) {                  \
+  return *v;                                \
+}
+#define LOAD_LIST(TA, TB)                   \
+  (TA (*)(void *))_nrrdLoad##TA##TB,
+
+MAP(LOAD_DEF, IN)
+MAP(LOAD_DEF, FL)
+MAP(LOAD_DEF, DB)
+
+int (*nrrdILoad[NRRD_TYPE_MAX+1])(void*) = {
+  NULL, MAP(LOAD_LIST, IN) NULL
+};
+float (*nrrdFLoad[NRRD_TYPE_MAX+1])(void*) = {
+  NULL, MAP(LOAD_LIST, FL) NULL
+};
+double (*nrrdDLoad[NRRD_TYPE_MAX+1])(void*) = {
+  NULL, MAP(LOAD_LIST, DB) NULL
+};
+
 
 
 /*
-******** nrrdDStore
+** _nrrdStore<TA><TB>(<TB> *v, <TA> j)
 **
-** Cast given double d to correct type, and store it at pointer address v.
-** Returns the result of the assignment.
+** Takes a TA j, and stores it in *v, thereby implicitly casting it to TB.
+** Returns the result of the assignment, which may not be the same as
+** the value that was passed in.
 */
-double _nrrdDStoreC(char *v, double d)                      {return(*v = d);}
-double _nrrdDStoreUC(unsigned char *v, double d)            {return(*v = d);}
-double _nrrdDStoreS(short *v, double d)                     {return(*v = d);}
-double _nrrdDStoreUS(unsigned short *v, double d)           {return(*v = d);}
-double _nrrdDStoreI(int *v, double d)                       {return(*v = d);}
-double _nrrdDStoreUI(unsigned int *v, double d)             {return(*v = d);}
-double _nrrdDStoreLLI(long long int *v, double d)           {return(*v = d);}
-double _nrrdDStoreULLI(unsigned long long int *v, double d) {return(*v = d);}
-double _nrrdDStoreF(float *v, double d)                     {return(*v = d);}
-double _nrrdDStoreD(double *v, double d)                    {return(*v = d);}
-double _nrrdDStoreLD(long double *v, double d)              {return(*v = d);}
-double (*nrrdDStore[NRRD_MAX_TYPE+1])(void *, double) = {
-  NULL,
-  (double (*)(void*, double))_nrrdDStoreC,
-  (double (*)(void*, double))_nrrdDStoreUC,
-  (double (*)(void*, double))_nrrdDStoreS,
-  (double (*)(void*, double))_nrrdDStoreUS,
-  (double (*)(void*, double))_nrrdDStoreI,
-  (double (*)(void*, double))_nrrdDStoreUI,
-  (double (*)(void*, double))_nrrdDStoreLLI,
-  (double (*)(void*, double))_nrrdDStoreULLI,
-  (double (*)(void*, double))_nrrdDStoreF,
-  (double (*)(void*, double))_nrrdDStoreD,
-  (double (*)(void*, double))_nrrdDStoreLD,
-  NULL};
+#define STORE_DEF(TA, TB)                   \
+TA                                          \
+_nrrdStore##TA##TB(TB *v, TA j) {           \
+  return (*v = j);                          \
+}
+#define STORE_LIST(TA, TB)                  \
+  (TA (*)(void *, TA))_nrrdStore##TA##TB,
 
-/*
-******** nrrdILookup
-**
-** Casts v[I] to an integer and returns it.
-*/
-int _nrrdILookupC(char *v, NRRD_BIG_INT I)                      {return(v[I]);}
-int _nrrdILookupUC(unsigned char *v, NRRD_BIG_INT I)            {return(v[I]);}
-int _nrrdILookupS(short *v, NRRD_BIG_INT I)                     {return(v[I]);}
-int _nrrdILookupUS(unsigned short *v, NRRD_BIG_INT I)           {return(v[I]);}
-int _nrrdILookupI(int *v, NRRD_BIG_INT I)                       {return(v[I]);}
-int _nrrdILookupUI(unsigned int *v, NRRD_BIG_INT I)             {return(v[I]);}
-int _nrrdILookupLLI(long long int *v, NRRD_BIG_INT I)           {return(v[I]);}
-int _nrrdILookupULLI(unsigned long long int *v, NRRD_BIG_INT I) {return(v[I]);}
-int _nrrdILookupF(float *v, NRRD_BIG_INT I)                     {return(v[I]);}
-int _nrrdILookupD(double *v, NRRD_BIG_INT I)                    {return(v[I]);}
-int _nrrdILookupLD(long double *v, NRRD_BIG_INT I)              {return(v[I]);}
-int (*nrrdILookup[NRRD_MAX_TYPE+1])(void *, NRRD_BIG_INT) = {
-  NULL,
-  (int (*)(void*, NRRD_BIG_INT))_nrrdILookupC,
-  (int (*)(void*, NRRD_BIG_INT))_nrrdILookupUC,
-  (int (*)(void*, NRRD_BIG_INT))_nrrdILookupS,
-  (int (*)(void*, NRRD_BIG_INT))_nrrdILookupUS,
-  (int (*)(void*, NRRD_BIG_INT))_nrrdILookupI,
-  (int (*)(void*, NRRD_BIG_INT))_nrrdILookupUI,
-  (int (*)(void*, NRRD_BIG_INT))_nrrdILookupLLI,
-  (int (*)(void*, NRRD_BIG_INT))_nrrdILookupULLI,
-  (int (*)(void*, NRRD_BIG_INT))_nrrdILookupF,
-  (int (*)(void*, NRRD_BIG_INT))_nrrdILookupD,
-  (int (*)(void*, NRRD_BIG_INT))_nrrdILookupLD,
-  NULL};
+MAP(STORE_DEF, IN)
+MAP(STORE_DEF, FL)
+MAP(STORE_DEF, DB)
 
-/*
-******** nrrdFLookup
-**
-** Casts v[I] to a float and returns it.
-*/
-float _nrrdFLookupC(char *v, NRRD_BIG_INT I)                   {return(v[I]);}
-float _nrrdFLookupUC(unsigned char *v, NRRD_BIG_INT I)         {return(v[I]);}
-float _nrrdFLookupS(short *v, NRRD_BIG_INT I)                  {return(v[I]);}
-float _nrrdFLookupUS(unsigned short *v, NRRD_BIG_INT I)        {return(v[I]);}
-float _nrrdFLookupI(int *v, NRRD_BIG_INT I)                    {return(v[I]);}
-float _nrrdFLookupUI(unsigned int *v, NRRD_BIG_INT I)          {return(v[I]);}
-float _nrrdFLookupLLI(long long int *v, NRRD_BIG_INT I)        {return(v[I]);}
-float _nrrdFLookupULLI(unsigned long long int *v, NRRD_BIG_INT I) {
-  return(v[I]);}
-float _nrrdFLookupF(float *v, NRRD_BIG_INT I)                  {return(v[I]);}
-float _nrrdFLookupD(double *v, NRRD_BIG_INT I)                 {return(v[I]);}
-float _nrrdFLookupLD(long double *v, NRRD_BIG_INT I)           {return(v[I]);}
-float (*nrrdFLookup[NRRD_MAX_TYPE+1])(void *, NRRD_BIG_INT) = {
-  NULL,
-  (float (*)(void*, NRRD_BIG_INT))_nrrdFLookupC,
-  (float (*)(void*, NRRD_BIG_INT))_nrrdFLookupUC,
-  (float (*)(void*, NRRD_BIG_INT))_nrrdFLookupS,
-  (float (*)(void*, NRRD_BIG_INT))_nrrdFLookupUS,
-  (float (*)(void*, NRRD_BIG_INT))_nrrdFLookupI,
-  (float (*)(void*, NRRD_BIG_INT))_nrrdFLookupUI,
-  (float (*)(void*, NRRD_BIG_INT))_nrrdFLookupLLI,
-  (float (*)(void*, NRRD_BIG_INT))_nrrdFLookupULLI,
-  (float (*)(void*, NRRD_BIG_INT))_nrrdFLookupF,
-  (float (*)(void*, NRRD_BIG_INT))_nrrdFLookupD,
-  (float (*)(void*, NRRD_BIG_INT))_nrrdFLookupLD,
-  NULL};
+int (*nrrdIStore[NRRD_TYPE_MAX+1])(void *, int) = {
+  NULL, MAP(STORE_LIST, IN) NULL
+};
+float (*nrrdFStore[NRRD_TYPE_MAX+1])(void *, float) = {
+  NULL, MAP(STORE_LIST, FL) NULL
+};
+double (*nrrdDStore[NRRD_TYPE_MAX+1])(void *, double) = {
+  NULL, MAP(STORE_LIST, DB) NULL
+};
+
 
 
 /*
-******** nrrdDLookup
+** _nrrdLookup<TA><TB>(<TB> *v, nrrdBigInt I)
 **
-** Casts v[I] to a double and returns it.
+** Looks up element I of TB array v, and returns it cast to a TA.
 */
-double _nrrdDLookupC(char *v, NRRD_BIG_INT I)                   {return(v[I]);}
-double _nrrdDLookupUC(unsigned char *v, NRRD_BIG_INT I)         {return(v[I]);}
-double _nrrdDLookupS(short *v, NRRD_BIG_INT I)                  {return(v[I]);}
-double _nrrdDLookupUS(unsigned short *v, NRRD_BIG_INT I)        {return(v[I]);}
-double _nrrdDLookupI(int *v, NRRD_BIG_INT I)                    {return(v[I]);}
-double _nrrdDLookupUI(unsigned int *v, NRRD_BIG_INT I)          {return(v[I]);}
-double _nrrdDLookupLLI(long long int *v, NRRD_BIG_INT I)        {return(v[I]);}
-double _nrrdDLookupULLI(unsigned long long int *v, NRRD_BIG_INT I) {
-  return(v[I]);}
-double _nrrdDLookupF(float *v, NRRD_BIG_INT I)                  {return(v[I]);}
-double _nrrdDLookupD(double *v, NRRD_BIG_INT I)                 {return(v[I]);}
-double _nrrdDLookupLD(long double *v, NRRD_BIG_INT I)           {return(v[I]);}
-double (*nrrdDLookup[NRRD_MAX_TYPE+1])(void *, NRRD_BIG_INT) = {
-  NULL,
-  (double (*)(void*, NRRD_BIG_INT))_nrrdDLookupC,
-  (double (*)(void*, NRRD_BIG_INT))_nrrdDLookupUC,
-  (double (*)(void*, NRRD_BIG_INT))_nrrdDLookupS,
-  (double (*)(void*, NRRD_BIG_INT))_nrrdDLookupUS,
-  (double (*)(void*, NRRD_BIG_INT))_nrrdDLookupI,
-  (double (*)(void*, NRRD_BIG_INT))_nrrdDLookupUI,
-  (double (*)(void*, NRRD_BIG_INT))_nrrdDLookupLLI,
-  (double (*)(void*, NRRD_BIG_INT))_nrrdDLookupULLI,
-  (double (*)(void*, NRRD_BIG_INT))_nrrdDLookupF,
-  (double (*)(void*, NRRD_BIG_INT))_nrrdDLookupD,
-  (double (*)(void*, NRRD_BIG_INT))_nrrdDLookupLD,
-  NULL};
+#define LOOKUP_DEF(TA, TB)                    \
+TA                                            \
+_nrrdLookup##TA##TB(TB *v, nrrdBigInt I) {    \
+  return v[I];                                \
+}
+#define LOOKUP_LIST(TA, TB)                   \
+  (TA (*)(void*, nrrdBigInt))_nrrdLookup##TA##TB,
+
+MAP(LOOKUP_DEF, IN)
+MAP(LOOKUP_DEF, FL)
+MAP(LOOKUP_DEF, DB)
+
+int (*nrrdILookup[NRRD_TYPE_MAX+1])(void *, nrrdBigInt) = {
+  NULL, MAP(LOOKUP_LIST, IN) NULL
+};
+float (*nrrdFLookup[NRRD_TYPE_MAX+1])(void *, nrrdBigInt) = {
+  NULL, MAP(LOOKUP_LIST, FL) NULL
+};
+double (*nrrdDLookup[NRRD_TYPE_MAX+1])(void *, nrrdBigInt) = {
+  NULL, MAP(LOOKUP_LIST, DB) NULL
+};
+
+
 
 /*
-******** nrrdIInsert
+** _nrrdInsert<TA><TB>(<TB> *v, nrrdBigInt I, <TA> j)
 **
-** Stores given integer j at v[I], and returns j.
+** Given TA j, stores it in v[i] (implicitly casting to TB).
+** Returns the result of the assignment, which may not be the same as
+** the value that was passed in.
 */
-int _nrrdIInsertC(char *v, NRRD_BIG_INT I, int j) {
-  return(v[I] = j);}
-int _nrrdIInsertUC(unsigned char *v, NRRD_BIG_INT I, int j) {
-  return(v[I] = j);}
-int _nrrdIInsertS(short *v, NRRD_BIG_INT I, int j) {
-  return(v[I] = j);}
-int _nrrdIInsertUS(unsigned short *v, NRRD_BIG_INT I, int j) {
-  return(v[I] = j);}
-int _nrrdIInsertI(int *v, NRRD_BIG_INT I, int j) {
-  return(v[I] = j);}
-int _nrrdIInsertUI(unsigned int *v, NRRD_BIG_INT I, int j) {
-  return(v[I] = j);}
-int _nrrdIInsertLLI(long long int *v, NRRD_BIG_INT I, int j) {
-  return(v[I] = j);}
-int _nrrdIInsertULLI(unsigned long long *v, NRRD_BIG_INT I, int j) {
-  return(v[I] = j);}
-int _nrrdIInsertF(float *v, NRRD_BIG_INT I, int j) {
-  return(v[I] = j);}
-int _nrrdIInsertD(double *v, NRRD_BIG_INT I, int j) {
-  return(v[I] = j);}
-int _nrrdIInsertLD(long double *v, NRRD_BIG_INT I, int j) {
-  return(v[I] = j);}
-int (*nrrdIInsert[NRRD_MAX_TYPE+1])(void *, NRRD_BIG_INT, int) = {
-  NULL,
-  (int (*)(void*, NRRD_BIG_INT, int))_nrrdIInsertC,
-  (int (*)(void*, NRRD_BIG_INT, int))_nrrdIInsertUC,
-  (int (*)(void*, NRRD_BIG_INT, int))_nrrdIInsertS,
-  (int (*)(void*, NRRD_BIG_INT, int))_nrrdIInsertUS,
-  (int (*)(void*, NRRD_BIG_INT, int))_nrrdIInsertI,
-  (int (*)(void*, NRRD_BIG_INT, int))_nrrdIInsertUI,
-  (int (*)(void*, NRRD_BIG_INT, int))_nrrdIInsertLLI,
-  (int (*)(void*, NRRD_BIG_INT, int))_nrrdIInsertULLI,
-  (int (*)(void*, NRRD_BIG_INT, int))_nrrdIInsertF,
-  (int (*)(void*, NRRD_BIG_INT, int))_nrrdIInsertD,
-  (int (*)(void*, NRRD_BIG_INT, int))_nrrdIInsertLD,
-  NULL};
+#define INSERT_DEF(TA, TB)                         \
+TA                                                 \
+_nrrdInsert##TA##TB(TB *v, nrrdBigInt I, TA j) {   \
+  return (v[I] = j);                               \
+}
+#define INSERT_LIST(TA, TB)                        \
+  (TA (*)(void*, nrrdBigInt, TA))_nrrdInsert##TA##TB,
 
-/*
-******** nrrdFInsert
-**
-** Stores given float f at v[I], and returns f.
-*/
-float _nrrdFInsertC(char *v, NRRD_BIG_INT I, float f) {
-  return(v[I]=f);}
-float _nrrdFInsertUC(unsigned char *v, NRRD_BIG_INT I, float f) {
-  return(v[I]=f);}
-float _nrrdFInsertS(short *v, NRRD_BIG_INT I, float f) {
-  return(v[I]=f);}
-float _nrrdFInsertUS(unsigned short *v, NRRD_BIG_INT I, float f) {
-  return(v[I]=f);}
-float _nrrdFInsertI(int *v, NRRD_BIG_INT I, float f) {
-  return(v[I]=f);}
-float _nrrdFInsertUI(unsigned int *v, NRRD_BIG_INT I, float f) {
-  return(v[I]=f);}
-float _nrrdFInsertLLI(long long int *v, NRRD_BIG_INT I, float f) {
-  return(v[I]=f);}
-float _nrrdFInsertULLI(unsigned long long *v, NRRD_BIG_INT I, float f) {
-  return(v[I]=f);}
-float _nrrdFInsertF(float *v, NRRD_BIG_INT I, float f) {
-  return(v[I]=f);}
-float _nrrdFInsertD(double *v, NRRD_BIG_INT I, float f) {
-  return(v[I]=f);}
-float _nrrdFInsertLD(long double *v, NRRD_BIG_INT I, float f) {
-  return(v[I]=f);}
-float (*nrrdFInsert[NRRD_MAX_TYPE+1])(void *, NRRD_BIG_INT, float) = {
-  NULL,
-  (float (*)(void*, NRRD_BIG_INT, float))_nrrdFInsertC,
-  (float (*)(void*, NRRD_BIG_INT, float))_nrrdFInsertUC,
-  (float (*)(void*, NRRD_BIG_INT, float))_nrrdFInsertS,
-  (float (*)(void*, NRRD_BIG_INT, float))_nrrdFInsertUS,
-  (float (*)(void*, NRRD_BIG_INT, float))_nrrdFInsertI,
-  (float (*)(void*, NRRD_BIG_INT, float))_nrrdFInsertUI,
-  (float (*)(void*, NRRD_BIG_INT, float))_nrrdFInsertLLI,
-  (float (*)(void*, NRRD_BIG_INT, float))_nrrdFInsertULLI,
-  (float (*)(void*, NRRD_BIG_INT, float))_nrrdFInsertF,
-  (float (*)(void*, NRRD_BIG_INT, float))_nrrdFInsertD,
-  (float (*)(void*, NRRD_BIG_INT, float))_nrrdFInsertLD,
-  NULL};
+MAP(INSERT_DEF, IN)
+MAP(INSERT_DEF, FL)
+MAP(INSERT_DEF, DB)
 
-/*
-******** nrrdDInsert
-**
-** Stores given double d at v[I], and returns d.
-*/
-double _nrrdDInsertC(char *v, NRRD_BIG_INT I, double d) {
-  return(v[I]=d);}
-double _nrrdDInsertUC(unsigned char *v, NRRD_BIG_INT I, double d) {
-  return(v[I]=d);}
-double _nrrdDInsertS(short *v, NRRD_BIG_INT I, double d) {
-  return(v[I]=d);}
-double _nrrdDInsertUS(unsigned short *v, NRRD_BIG_INT I, double d) {
-  return(v[I]=d);}
-double _nrrdDInsertI(int *v, NRRD_BIG_INT I, double d) {
-  return(v[I]=d);}
-double _nrrdDInsertUI(unsigned int *v, NRRD_BIG_INT I, double d) {
-  return(v[I]=d);}
-double _nrrdDInsertLLI(long long int *v, NRRD_BIG_INT I, double d) {
-  return(v[I]=d);}
-double _nrrdDInsertULLI(unsigned long long *v, NRRD_BIG_INT I, double d) {
-  return(v[I]=d);}
-double _nrrdDInsertF(float *v, NRRD_BIG_INT I, double d) {
-  return(v[I]=d);}
-double _nrrdDInsertD(double *v, NRRD_BIG_INT I, double d) {
-  return(v[I]=d);}
-double _nrrdDInsertLD(long double *v, NRRD_BIG_INT I, double d) {
-  return(v[I]=d);}
-double (*nrrdDInsert[NRRD_MAX_TYPE+1])(void *, NRRD_BIG_INT, double) = {
-  NULL,
-  (double (*)(void*, NRRD_BIG_INT, double))_nrrdDInsertC,
-  (double (*)(void*, NRRD_BIG_INT, double))_nrrdDInsertUC,
-  (double (*)(void*, NRRD_BIG_INT, double))_nrrdDInsertS,
-  (double (*)(void*, NRRD_BIG_INT, double))_nrrdDInsertUS,
-  (double (*)(void*, NRRD_BIG_INT, double))_nrrdDInsertI,
-  (double (*)(void*, NRRD_BIG_INT, double))_nrrdDInsertUI,
-  (double (*)(void*, NRRD_BIG_INT, double))_nrrdDInsertLLI,
-  (double (*)(void*, NRRD_BIG_INT, double))_nrrdDInsertULLI,
-  (double (*)(void*, NRRD_BIG_INT, double))_nrrdDInsertF,
-  (double (*)(void*, NRRD_BIG_INT, double))_nrrdDInsertD,
-  (double (*)(void*, NRRD_BIG_INT, double))_nrrdDInsertLD,
-  NULL};
+int (*nrrdIInsert[NRRD_TYPE_MAX+1])(void *, nrrdBigInt, int) = {
+  NULL, MAP(INSERT_LIST, IN) NULL
+};
+float (*nrrdFInsert[NRRD_TYPE_MAX+1])(void *, nrrdBigInt, float) = {
+  NULL, MAP(INSERT_LIST, FL) NULL
+};
+double (*nrrdDInsert[NRRD_TYPE_MAX+1])(void *, nrrdBigInt, double) = {
+  NULL, MAP(INSERT_LIST, DB) NULL
+};
+
+
 
 /*
 ******** nrrdSprint
@@ -463,12 +192,14 @@ int _nrrdSprintLLI(char *s, long long int *v) {
 int _nrrdSprintULLI(char *s, unsigned long long *v) {
   return(sprintf(s, "%llu", *v)); }
 int _nrrdSprintF(char *s, float *v) {
-  return(sprintf(s, "%f", *v)); }
+  return(airSinglePrintf(NULL, s, "%f", *v)); }
 int _nrrdSprintD(char *s, double *v) {
-  return(sprintf(s, "%f", *v)); }
+  return(airSinglePrintf(NULL, s, "%lf", *v)); }
+/*
 int _nrrdSprintLD(char *s, long double *v) {
   return(sprintf(s, "%Lf", *v)); }
-int (*nrrdSprint[NRRD_MAX_TYPE+1])(char *, void *) = {
+*/
+int (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, void *) = {
   NULL,
   (int (*)(char *, void *))_nrrdSprintC,
   (int (*)(char *, void *))_nrrdSprintUC,
@@ -480,7 +211,7 @@ int (*nrrdSprint[NRRD_MAX_TYPE+1])(char *, void *) = {
   (int (*)(char *, void *))_nrrdSprintULLI,
   (int (*)(char *, void *))_nrrdSprintF,
   (int (*)(char *, void *))_nrrdSprintD,
-  (int (*)(char *, void *))_nrrdSprintLD,
+  /* (int (*)(char *, void *))_nrrdSprintLD, */
   NULL};
 
 /*
@@ -506,12 +237,12 @@ int _nrrdFprintLLI(FILE *f, long long int *v) {
 int _nrrdFprintULLI(FILE *f, unsigned long long *v) {
   return(fprintf(f, "%llu", *v)); }
 int _nrrdFprintF(FILE *f, float *v) {
-  return(fprintf(f, "%f", *v)); }
+  return(airSinglePrintf(f, NULL, "%f", *v)); }
 int _nrrdFprintD(FILE *f, double *v) {
-  return(fprintf(f, "%f", *v)); }
-int _nrrdFprintLD(FILE *f, long double *v) {
-  return(fprintf(f, "%Lf", *v)); }
-int (*nrrdFprint[NRRD_MAX_TYPE+1])(FILE *, void *) = {
+  return(airSinglePrintf(f, NULL, "%lf", *v)); }
+/* int _nrrdFprintLD(FILE *f, long double *v) {
+   return(fprintf(f, "%Lf", *v)); } */
+int (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, void *) = {
   NULL,
   (int (*)(FILE *, void *))_nrrdFprintC,
   (int (*)(FILE *, void *))_nrrdFprintUC,
@@ -523,7 +254,7 @@ int (*nrrdFprint[NRRD_MAX_TYPE+1])(FILE *, void *) = {
   (int (*)(FILE *, void *))_nrrdFprintULLI,
   (int (*)(FILE *, void *))_nrrdFprintF,
   (int (*)(FILE *, void *))_nrrdFprintD,
-  (int (*)(FILE *, void *))_nrrdFprintLD,
+  /*   (int (*)(FILE *, void *))_nrrdFprintLD, */
   NULL};
 
 /*
@@ -575,8 +306,8 @@ float _nrrdFClampULLI(float v) {
 }
 float _nrrdFClampF(float v) { return v; }
 float _nrrdFClampD(float v) { return v; }
-float _nrrdFClampLD(float v) { return v; }
-float (*nrrdFClamp[NRRD_MAX_TYPE+1])(float) = {
+/* float _nrrdFClampLD(float v) { return v; } */
+float (*nrrdFClamp[NRRD_TYPE_MAX+1])(float) = {
   NULL,
   _nrrdFClampC,
   _nrrdFClampUC,
@@ -588,7 +319,7 @@ float (*nrrdFClamp[NRRD_MAX_TYPE+1])(float) = {
   _nrrdFClampULLI,
   _nrrdFClampF,
   _nrrdFClampD,
-  _nrrdFClampLD,
+  /*   _nrrdFClampLD, */
   NULL};
 
 /*
@@ -638,8 +369,8 @@ double _nrrdDClampULLI(double v) {
 }
 double _nrrdDClampF(double v) { return v; }
 double _nrrdDClampD(double v) { return v; }
-double _nrrdDClampLD(double v) { return v; }
-double (*nrrdDClamp[NRRD_MAX_TYPE+1])(double) = {
+/* double _nrrdDClampLD(double v) { return v; } */
+double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double) = {
   NULL,
   _nrrdDClampC,
   _nrrdDClampUC,
@@ -651,15 +382,15 @@ double (*nrrdDClamp[NRRD_MAX_TYPE+1])(double) = {
   _nrrdDClampULLI,
   _nrrdDClampF,
   _nrrdDClampD,
-  _nrrdDClampLD,
+  /*   _nrrdDClampLD, */
   NULL};
 
 /* about here is where Gordon admits he might have some use for C++ */
 
-#define _MM_ARGS(type) type *minP, type *maxP, NRRD_BIG_INT N, type *v
+#define _MM_ARGS(type) type *minP, type *maxP, nrrdBigInt N, type *v
 
 #define _MM_FIXED(type)                                                  \
-  NRRD_BIG_INT I, T;                                                     \
+  nrrdBigInt I, T;                                                       \
   type a, b, min, max;                                                   \
                                                                          \
   if (!(minP && maxP))                                                   \
@@ -671,7 +402,9 @@ double (*nrrdDClamp[NRRD_MAX_TYPE+1])(double) = {
   /* run through array in pairs; by doing a compare on successive        \
      elements, we can do three compares per pair instead of the naive    \
      four.  In one very unexhaustive test on irix6.64, this resulted     \
-     in a 20% decrease in running time */                                \
+     in a 20% decrease in running time.  I learned this from Numerical   \
+     Recipes in C, long time ago, but I can't find it anywhere in the    \
+     book now ... */                                                     \
   T = N/2;                                                               \
   for (I=0; I<=T; I++) {                                                 \
     a = v[0 + 2*I];                                                      \
@@ -702,7 +435,7 @@ double (*nrrdDClamp[NRRD_MAX_TYPE+1])(double) = {
   *maxP = max;
 
 #define _MM_FLOAT(type)                                                  \
-  NRRD_BIG_INT I;                                                        \
+  nrrdBigInt I;                                                          \
   type a, min, max;                                                      \
   int something;                                                         \
                                                                          \
@@ -753,20 +486,20 @@ void _nrrdMinMaxULLI(_MM_ARGS(unsigned long long int))   {
   _MM_FIXED(unsigned long long int) }
 void _nrrdMinMaxF   (_MM_ARGS(float))          { _MM_FLOAT(float) }
 void _nrrdMinMaxD   (_MM_ARGS(double))         { _MM_FLOAT(double) }
-void _nrrdMinMaxLD  (_MM_ARGS(long double))    { _MM_FLOAT(long double) }
-void (*_nrrdMinMaxFind[NRRD_MAX_TYPE+1])(void *, void *, 
-					 NRRD_BIG_INT, void *) = {
+/* void _nrrdMinMaxLD  (_MM_ARGS(long double))    { _MM_FLOAT(long double) } */
+void (*_nrrdMinMaxFind[NRRD_TYPE_MAX+1])(void *, void *, 
+					 nrrdBigInt, void *) = {
   NULL,
-  (void (*)(void *, void *, NRRD_BIG_INT, void *))_nrrdMinMaxC,
-  (void (*)(void *, void *, NRRD_BIG_INT, void *))_nrrdMinMaxUC,
-  (void (*)(void *, void *, NRRD_BIG_INT, void *))_nrrdMinMaxS,
-  (void (*)(void *, void *, NRRD_BIG_INT, void *))_nrrdMinMaxUS,
-  (void (*)(void *, void *, NRRD_BIG_INT, void *))_nrrdMinMaxI,
-  (void (*)(void *, void *, NRRD_BIG_INT, void *))_nrrdMinMaxUI,
-  (void (*)(void *, void *, NRRD_BIG_INT, void *))_nrrdMinMaxLLI,
-  (void (*)(void *, void *, NRRD_BIG_INT, void *))_nrrdMinMaxULLI,
-  (void (*)(void *, void *, NRRD_BIG_INT, void *))_nrrdMinMaxF,
-  (void (*)(void *, void *, NRRD_BIG_INT, void *))_nrrdMinMaxD,
-  (void (*)(void *, void *, NRRD_BIG_INT, void *))_nrrdMinMaxLD,
+  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxC,
+  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxUC,
+  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxS,
+  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxUS,
+  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxI,
+  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxUI,
+  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxLLI,
+  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxULLI,
+  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxF,
+  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxD,
+  /* (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxLD, */
   NULL
 };

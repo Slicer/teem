@@ -22,17 +22,18 @@
 ** making these typedefs here allows us to used one token for both
 ** constructing function names, and for specifying argument types
 */
-typedef signed char Char;
-typedef unsigned char UChar;
-typedef signed short Short;
-typedef unsigned short UShort;
-typedef signed int Int;
-typedef unsigned int UInt;
-typedef signed long long int LLong;
-typedef unsigned long long int ULLong;
-typedef float Float;
-typedef double Double;
-typedef long double LDouble;
+typedef signed char CH;
+typedef unsigned char UC;
+typedef signed short SH;
+typedef unsigned short US;
+typedef signed int IN;
+typedef unsigned int UI;
+typedef signed long long int LL;
+typedef unsigned long long int UL;
+typedef float FL;
+typedef double DB;
+typedef nrrdBigInt BI;
+/* typedef long double LD; */
 
 /*
 ** I don't think that I can get out of defining this macro twice.
@@ -41,33 +42,33 @@ typedef long double LDouble;
 */
 
 #define MAP1(F, A) \
-F(A, Char)   \
-F(A, UChar)  \
-F(A, Short)  \
-F(A, UShort) \
-F(A, Int)    \
-F(A, UInt)   \
-F(A, LLong)  \
-F(A, ULLong) \
-F(A, Float)  \
-F(A, Double) \
-F(A, LDouble)
+F(A, CH) \
+F(A, UC) \
+F(A, SH) \
+F(A, US) \
+F(A, IN) \
+F(A, UI) \
+F(A, LL) \
+F(A, UL) \
+F(A, FL) \
+F(A, DB)
+/* F(A, LD) */
 
 #define MAP2(F, A) \
-F(A, Char)   \
-F(A, UChar)  \
-F(A, Short)  \
-F(A, UShort) \
-F(A, Int)    \
-F(A, UInt)   \
-F(A, LLong)  \
-F(A, ULLong) \
-F(A, Float)  \
-F(A, Double) \
-F(A, LDouble)
+F(A, CH) \
+F(A, UC) \
+F(A, SH) \
+F(A, US) \
+F(A, IN) \
+F(A, UI) \
+F(A, LL) \
+F(A, UL) \
+F(A, FL) \
+F(A, DB)
+/* F(A, LD) */
 
 /* 
-** _nrrdConvTaTb()
+** _nrrdConv<Ta><Tb>()
 ** 
 ** given two arrays, a and b, of different types (Ta and Tb) but equal
 ** size N, _nrrdConvTaTb(a, b, N) will copy all the values from b into
@@ -78,12 +79,8 @@ F(A, LDouble)
 ** to make available on arrays all the same behavior you can get from
 ** scalars 
 */
-#define CONV_DEF(TA, TB)                          \
-void                                              \
-_nrrdConv##TA##TB(TA *a, TB *b, NRRD_BIG_INT N) { \
-  for (N--;N>=0;N--)                              \
-    a[N]=b[N];                                    \
-}
+#define CONV_DEF(TA, TB) \
+void _nrrdConv##TA##TB(TA *a, TB *b, BI N) { while (N--) a[N]=b[N]; }
 
 /* 
 ** the individual converter's appearance in the array initialization,
@@ -107,17 +104,17 @@ _nrrdConv##TA##TB(TA *a, TB *b, NRRD_BIG_INT N) { \
 /*
 ** This typedef makes the definition of _nrrdConv[][] shorter
 */
-typedef void (*CF)(void *, void *, NRRD_BIG_INT);
+typedef void (*CF)(void *, void *, BI);
 
 /* 
-** Define all 121 of the individual converters. 
+** Define all 100 of the individual converters. 
 */
 MAP1(MAP2, CONV_DEF)
 
 /* 
 ** Initialize the whole converter array.
 */
-CF _nrrdConv[NRRD_MAX_TYPE+1][NRRD_MAX_TYPE+1] = {
+CF _nrrdConv[NRRD_TYPE_MAX+1][NRRD_TYPE_MAX+1] = {
 {NULL}, 
 MAP1(CONVTO_LIST, _dummy_)
 {NULL}

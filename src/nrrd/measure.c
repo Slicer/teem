@@ -469,9 +469,10 @@ _nrrdMeasureType(Nrrd *nin, int measr) {
 
 int
 nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdMeasureAxis";
+  char me[] = "nrrdMeasureAxis", err[NRRD_STRLEN_MED];
   int type;
-  int i, j, length, numperiod, lambda, period, inElSize, outElSize;
+  int i, j, length, numperiod, lambda, period, inElSize, outElSize, 
+    map[NRRD_DIM_MAX];
   char *line, *src, *dest, *lineSrc, *lineDest;
   float axmin, axmax;
   
@@ -494,16 +495,16 @@ nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   length = numperiod = 1;
   for (i=0; i<=nin->dim-1; i++) {
     if (i < axis) {
-      length *= nin->size[i];
+      length *= nin->axis[i].size;
     }
     else if (i > axis) {
-      numperiod *= nin->size[i];
+      numperiod *= nin->axis[i].size;
     }
   }
-  lambda = length*nin->size[axis];
+  lambda = length*nin->axis[axis].size;
   
   /* allocate space if necessary */
-  if (nrrdMaybeAlloc(nout, nin->num/nin->size[axis], type, nin->dim-1)) {
+  if (nrrdMaybeAlloc(nout, nin->num/nin->axis[axis].size, type, nin->dim-1)) {
     sprintf(err, "%s: failed to create output", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -511,29 +512,30 @@ nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   /* allocate a scanline buffer */
   inElSize = nrrdTypeSize[nin->type];
   outElSize = nrrdTypeSize[type];
-  if (!(line = calloc(nin->size[axis], inElSize))) {
+  if (!(line = calloc(nin->axis[axis].size, inElSize))) {
     sprintf(err, "%s: couldn't calloc(%d,%d) scanline buffer",
-	    me, nin->size[axis], nrrdElementSize(nin));
+	    me, nin->axis[axis].size, nrrdElementSize(nin));
     biffSet(NRRD, err); return 1;
   }
 
   /* here's the skinny */
   src = nin->data;
   dest = nout->data;
-  axmin = nin->axisMin[axis];
-  axmax = nin->axisMax[axis];
+  axmin = nin->axis[axis].min;
+  axmax = nin->axis[axis].max;
   for (period=0; period<=numperiod-1; period++) {
     /* printf("%s: period = %d of %d\n", me, period, numperiod-1); */
     /* within each period of the square wave, we traverse the successive
        elements, copy the scanline starting at each element, and perform
        the measurement */
     for (j=0; j<=length-1; j++) {
-      for (i=0; i<=nin->size[axis]-1; i++) {
+      for (i=0; i<=nin->axis[axis].size-1; i++) {
 	lineDest = line + inElSize*i;
 	lineSrc = src + inElSize*(period*lambda + length*i + j);
 	AIR_MEMCPY(lineDest, lineSrc, inElSize);
       }
-      _nrrdMeasureAxis[measr](line, nin->type, nin->size[axis], axmin, axmax,
+      _nrrdMeasureAxis[measr](line, nin->type, nin->axis[axis].size, 
+			      axmin, axmax,
 			      dest, nout->type);
       dest += outElSize;
     }
@@ -541,14 +543,29 @@ nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   
   /* copy the peripheral information */
   for (i=0; i<=nout->dim-1; i++) {
-    nout->size[i] = nin->size[i + (i >= axis)];
-    nout->spacing[i] = nin->spacing[i + (i >= axis)];
-    nout->axisMin[i] = nin->axisMin[i + (i >= axis)];
-    nout->axisMax[i] = nin->axisMax[i + (i >= axis)];
-    strcpy(nout->label[i], nin->label[i + (i >= axis)]);
+    map[i] = i + (i >= axis);
   }
-  sprintf(nout->content, "measr(%s,%d,%d)", 
-	  nin->content, axis, measr);
+  if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_NONE)) {
+    sprintf(err, "%s: trouble", me); 
+    biffAdd(NRRD, err); return 1;
+  }
+  nout->content = airFree(nout->content);
+  if (nin->content) {
+    nout->content = calloc(strlen("measure(,,)")
+			   + strlen(nin->content)
+			   + 11
+			   + strlen(nrrdEnumValToStr(nrrdEnumMeasure, measr))
+			   + 1, sizeof(char));
+    if (nout->content) {
+      sprintf(nout->content, "measure(%s,%d,%s)", 
+	      nin->content, axis,
+	      nrrdEnumValToStr(nrrdEnumMeasure, measr));
+    }
+    else {
+      sprintf(err, "%s: couldn't allocate output content", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
 
   /* bye */
   line = airFree(line);

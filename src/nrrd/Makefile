@@ -16,12 +16,17 @@
 #
 #
 LIB = nrrd
-HEADERS = nrrd.h nrrdDefines.h
-LIBOBJS = types.o arrays.o accessors.o io.o methods.o \
-	subset.o reorder.o measure.o histogram.o filt.o \
-	endian.o kernel.o map.o convert.o arith.o
-#TEST_BINS = test/subtest test/iotest test/typestest
-TEST_BINS = test/ktest test/shuff test/subtest
+HEADERS = nrrd.h nrrdDefines.h nrrdMacros.h nrrdEnums.h
+PRIV_HEADERS = private.h
+LIBOBJS = \
+	accessors.o  arith.o      arrays.o     axes.o       \
+        comment.o    convert.o    endian.o     filt.o       \
+	histogram.o  kernel.o     map.o        measure.o    \
+	methods.o    parse.o      read.o       reorder.o    \
+	simple.o     subset.o     write.o
+
+#TEST_BINS = test/enum2str test/str2enum test/tio
+TEST_BINS = test/tio
 BINS = 
 BINLIBS = -lnrrd -lbiff -lair -lm
 
