@@ -46,8 +46,9 @@ main(int argc, char *argv[]) {
   hparm->elideSingleOtherType = AIR_TRUE;
   hparm->elideSingleOtherDefault = AIR_FALSE;
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
+  hparm->respFileEnable = AIR_TRUE;
   
-  hestOptAdd(&hopt, "i", "image", airTypeOther, 1, 1, &nin, NULL,
+  hestOptAdd(&hopt, "i", "image", airTypeOther, 1, 1, &nin, "-",
 	     "input image", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "0", "origin", airTypeOther, 1, 1, &origInfo, "p:0,0",
 	     "where to location (0,0) prior to applying transforms.\n "
@@ -56,14 +57,15 @@ main(int argc, char *argv[]) {
 	     "\b\bo \"p:<float>,<float>\" locate origin at a particular "
 	     "pixel location, in the index space of the image",
 	     NULL, NULL, mossHestOrigin);
-  hestOptAdd(&hopt, "t", "xform0", airTypeOther, 1, -1, &matList, "identity",
+  hestOptAdd(&hopt, "t", "xform0", airTypeOther, 1, -1, &matList, NULL,
 	     "transform(s) to apply to image.  Transforms "
 	     "are applied in the order in which they appear.\n "
+	     "\b\bo \"identity\": no geometric transform, just resampling\n "
 	     "\b\bo \"translate:x,y\": shift image by vector (x,y), as "
 	     "measured in pixels\n "
 	     "\b\bo \"rotate:ang\": rotate CCW by ang degrees\n "
 	     "\b\bo \"scale:xs,ys\": scale by xs in X, and ys in Y\n "
-	     "\b\bo \"shear:fix,ang\": shear by ang degrees, keeping fixed "
+	     "\b\bo \"shear:fix,amnt\": shear by amnt, keeping fixed "
 	     "the pixels along a direction <ang> degrees from the X axis\n "
 	     "\b\bo \"flip:ang\": flip along axis an angle <ang> degrees from "
 	     "the X axis\n "
@@ -94,7 +96,7 @@ main(int argc, char *argv[]) {
 	     " the number input samples; multiplied by <float>\n "
 	     "\b\bo \"<int>\": specify exact number of samples",
 	     NULL, NULL, &unrrduHestScaleCB);
-  hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, NULL,
+  hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
 	     "file to write output nrrd to");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
 		 me, ilxInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
