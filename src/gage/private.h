@@ -45,7 +45,7 @@ extern unsigned int _gageSclPrereq[GAGE_SCL_MAX+1];
 /* methods.c */
 extern void _gageContextInit(gageContext *ctx);
 extern void _gageContextDone(gageContext *ctx);
-extern void _gageResetKernels(gageContext *ctx);
+extern void _gageKernelReset(gageContext *ctx);
 extern int _gageKernelSet(gageContext *ctx, 
 			 int which, NrrdKernel *k, double *kparm);
 extern int _gageKernelDependentSet(gageContext *ctx);

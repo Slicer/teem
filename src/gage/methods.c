@@ -21,7 +21,7 @@
 #include "private.h"
 
 /*
-** _gageResetKernels()
+** _gageKernelReset()
 **
 ** reset kernels and the things that depend on them:
 ** k[], kparm, needPad, fr, fsl, fw[], off
@@ -29,7 +29,7 @@
 ** are specific to scalar, vector, etc, probing
 */
 void
-_gageResetKernels(gageContext *ctx) {
+_gageKernelReset(gageContext *ctx) {
   int i, j;
 
   if (ctx) {
@@ -66,7 +66,7 @@ _gageContextInit(gageContext *ctx) {
     for(i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       ctx->fw[i] = NULL;
     }
-    _gageResetKernels(ctx);
+    _gageKernelReset(ctx);
     ctx->havePad = -1;
     ctx->sx = ctx->sy = ctx->sz = 0;
     ctx->xs = ctx->ys = ctx->zs = AIR_NAN;
@@ -85,7 +85,7 @@ void
 _gageContextDone(gageContext *ctx) {
 
   if (ctx) {
-    _gageResetKernels(ctx);
+    _gageKernelReset(ctx);
   }
 }
 

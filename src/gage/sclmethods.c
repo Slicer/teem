@@ -141,6 +141,21 @@ _gageSclKernelDependentSet(gageSclContext *sctx) {
 }
 
 /*
+******** gageSclKernelReset()
+**
+** reset all kernels associated with a scalar context, and everything
+** associated with them
+*/
+void
+gageSclKernelReset(gageSclContext *sctx) {
+
+  _gageKernelReset(&sctx->c);
+  RESET(sctx->iv3);
+  RESET(sctx->iv2);
+  RESET(sctx->iv1);
+}
+
+/*
 ******** gageSclQuerySet()
 **
 ** sets query (either the first one, or a new one) for probing.  However,

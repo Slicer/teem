@@ -267,6 +267,7 @@ extern gageSclContext *gageSclContextNew();
 extern gageSclContext *gageSclContextNix(gageSclContext *sctx);
 extern int gageSclKernelSet(gageSclContext *sctx,
 			    int which, NrrdKernel *k, double *kparm);
+extern void gageSclKernelReset(gageSclContext *sctx);
 extern int gageSclNeedPadGet(gageSclContext *sctx);
 extern int gageSclVolumeSet(gageSclContext *sctx, int pad, Nrrd *npad);
 extern int gageSclQuerySet(gageSclContext *sctx, unsigned int query);

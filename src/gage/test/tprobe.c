@@ -112,6 +112,13 @@ main(int argc, char *argv[]) {
   ctx->c.checkIntegrals = AIR_FALSE;
   E = 0;
   if (!E) E |= gageSclKernelSet(ctx, gageKernel00, k0, param[0]);
+  if (!E) E |= gageSclKernelSet(ctx, gageKernel10, k1, param[1]);
+  if (!E) E |= gageSclKernelSet(ctx, gageKernel11, k1, param[1]);
+  if (!E) E |= gageSclKernelSet(ctx, gageKernel20, k2, param[2]);
+  if (!E) E |= gageSclKernelSet(ctx, gageKernel21, k2, param[2]);
+  if (!E) E |= gageSclKernelSet(ctx, gageKernel22, k2, param[2]);
+  gageSclKernelReset(ctx);
+  if (!E) E |= gageSclKernelSet(ctx, gageKernel00, k0, param[0]);
   if (!E) E |= gageSclKernelSet(ctx, gageKernel11, k1, param[1]);
   if (!E) E |= gageSclKernelSet(ctx, gageKernel22, k2, param[2]);
   if (!E) E |= gageSclQuerySet(ctx, 1<<what);
