@@ -19,9 +19,6 @@
 
 #ifndef ELL_HAS_BEEN_INCLUDED
 #define ELL_HAS_BEEN_INCLUDED
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define ELL "ell"
 
@@ -35,14 +32,14 @@ extern "C" {
 **
 ** return values for ellCubic
 */
-typedef enum {
+enum {
   ellCubicRootUnknown,         /* 0 */
   ellCubicRootSingle,          /* 1 */
   ellCubicRootTriple,          /* 2 */
   ellCubicRootSingleDouble,    /* 3 */
   ellCubicRootThree,           /* 4 */
   ellCubicRootLast             /* 5 */
-} ellCubicRoot;
+};
 
 /* misc.c */
 extern int ellDebug;
@@ -70,9 +67,4 @@ extern int ell3mEigenvalues(double eval[3], double m[9],
 extern int ell3mEigensolve(double eval[3], double evec[9], double m[9],
 			   int polish);
 
-
-
-#ifdef __cplusplus
-}
-#endif
 #endif /* ELL_HAS_BEEN_INCLUDED */

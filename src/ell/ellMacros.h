@@ -19,9 +19,6 @@
 
 #ifndef ELLMACROS_HAS_BEEN_INCLUDED
 #define ELLMACROS_HAS_BEEN_INCLUDED
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 /*
@@ -476,7 +473,4 @@ extern "C" {
 #define ELL_5V_SET(v, a, b, c, d, e) \
   ((v)[0]=(a), (v)[1]=(b), (v)[2]=(c), (v)[3]=(d), (v)[4]=(e))
 
-#ifdef __cplusplus
-}
-#endif
 #endif /* ELLMACROS_HAS_BEEN_INCLUDED */
