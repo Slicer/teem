@@ -30,6 +30,12 @@
 #include <ell.h>
 #include <nrrd.h>
 
+#if defined(WIN32) && !defined(TEEM_BUILD)
+#define gage_export __declspec(dllimport)
+#else
+#define gage_export
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -59,15 +65,15 @@ extern "C" {
 ** set of lines below.
 */
 
+/*
 typedef float gage_t;
 #define gage_nrrdType nrrdTypeFloat
 #define GAGE_TYPE_FLOAT 1
+*/
 
-/*
 typedef double gage_t;
 #define gage_nrrdType nrrdTypeDouble
 #define GAGE_TYPE_FLOAT 0
-*/
 
 /*
 ******** GAGE_PERVOLUME_NUM
@@ -448,36 +454,36 @@ typedef struct {
 } gageVecAnswer;
 
 /* defaultsGage.c */
-extern int gageDefVerbose;
-extern gage_t gageDefGradMagMin;
-extern int gageDefRenormalize;
-extern int gageDefCheckIntegrals;
-extern int gageDefNoRepadWhenSmaller;
-extern int gageDefK3Pack;
-extern double gageDefIntegralNearZero;
+extern gage_export int gageDefVerbose;
+extern gage_export gage_t gageDefGradMagMin;
+extern gage_export int gageDefRenormalize;
+extern gage_export int gageDefCheckIntegrals;
+extern gage_export int gageDefNoRepadWhenSmaller;
+extern gage_export int gageDefK3Pack;
+extern gage_export double gageDefIntegralNearZero;
 
 /* miscGage.c */
 /* gageErrStr and gageErrNum are for describing errors that happen in
    gageProbe(): using biff is too heavy-weight for this, and the idea is
    that no ill should occur if the error is repeatedly ignored */
-extern char gageErrStr[AIR_STRLEN_LARGE];
-extern int gageErrNum;
-extern gage_t gageZeroNormal[3];
-extern airEnum *gageKernel;
+extern gage_export char gageErrStr[AIR_STRLEN_LARGE];
+extern gage_export int gageErrNum;
+extern gage_export gage_t gageZeroNormal[3];
+extern gage_export airEnum *gageKernel;
 
 /* scl.c */
-extern int gageSclAnsLength[GAGE_SCL_MAX+1];
-extern int gageSclAnsOffset[GAGE_SCL_MAX+1];
-extern airEnum *gageScl;
-extern gageKind *gageKindScl;
+extern gage_export int gageSclAnsLength[GAGE_SCL_MAX+1];
+extern gage_export int gageSclAnsOffset[GAGE_SCL_MAX+1];
+extern gage_export airEnum *gageScl;
+extern gage_export gageKind *gageKindScl;
 
 /* vecGage.c (together with vecprint.c, these contain everything to
    implement the "vec" kind, and could be used as examples of what it
    takes to create a new gageKind) */
-extern int gageVecAnsLength[GAGE_VEC_MAX+1];
-extern int gageVecAnsOffset[GAGE_VEC_MAX+1];
-extern airEnum *gageVec;
-extern gageKind *gageKindVec;
+extern gage_export int gageVecAnsLength[GAGE_VEC_MAX+1];
+extern gage_export int gageVecAnsOffset[GAGE_VEC_MAX+1];
+extern gage_export airEnum *gageVec;
+extern gage_export gageKind *gageKindVec;
 
 /* methodsGage.c */
 extern gageContext *gageContextNew();

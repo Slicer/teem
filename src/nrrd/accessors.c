@@ -29,10 +29,11 @@ typedef signed char CH;
 typedef unsigned char UC;
 typedef signed short SH;
 typedef unsigned short US;
-typedef signed int IN;
+/* Microsoft apparently uses 'IN' as a keyword, so we changed 'IN' to 'JN'. */
+typedef signed int JN;
 typedef unsigned int UI;
-typedef signed long long int LL;
-typedef unsigned long long int UL;
+typedef airLLong LL;
+typedef airULLong UL;
 typedef float FL;
 typedef double DB;
 
@@ -41,7 +42,7 @@ F(A, CH) \
 F(A, UC) \
 F(A, SH) \
 F(A, US) \
-F(A, IN) \
+F(A, JN) \
 F(A, UI) \
 F(A, LL) \
 F(A, UL) \
@@ -61,13 +62,13 @@ _nrrdLoad##TA##TB(TB *v) {                  \
 #define LOAD_LIST(TA, TB)                   \
   (TA (*)(void *))_nrrdLoad##TA##TB,
 
-MAP(LOAD_DEF, IN)
+MAP(LOAD_DEF, JN)
 MAP(LOAD_DEF, FL)
 MAP(LOAD_DEF, DB)
 
 int (*
 nrrdILoad[NRRD_TYPE_MAX+1])(void*) = {
-  NULL, MAP(LOAD_LIST, IN) NULL
+  NULL, MAP(LOAD_LIST, JN) NULL
 };
 float (*
 nrrdFLoad[NRRD_TYPE_MAX+1])(void*) = {
@@ -94,13 +95,13 @@ _nrrdStore##TA##TB(TB *v, TA j) {           \
 #define STORE_LIST(TA, TB)                  \
   (TA (*)(void *, TA))_nrrdStore##TA##TB,
 
-MAP(STORE_DEF, IN)
+MAP(STORE_DEF, JN)
 MAP(STORE_DEF, FL)
 MAP(STORE_DEF, DB)
 
 int (*
 nrrdIStore[NRRD_TYPE_MAX+1])(void *, int) = {
-  NULL, MAP(STORE_LIST, IN) NULL
+  NULL, MAP(STORE_LIST, JN) NULL
 };
 float (*
 nrrdFStore[NRRD_TYPE_MAX+1])(void *, float) = {
@@ -125,13 +126,13 @@ _nrrdLookup##TA##TB(TB *v, size_t I) {        \
 #define LOOKUP_LIST(TA, TB)                   \
   (TA (*)(void*, size_t))_nrrdLookup##TA##TB,
 
-MAP(LOOKUP_DEF, IN)
+MAP(LOOKUP_DEF, JN)
 MAP(LOOKUP_DEF, FL)
 MAP(LOOKUP_DEF, DB)
 
 int (*
 nrrdILookup[NRRD_TYPE_MAX+1])(void *, size_t) = {
-  NULL, MAP(LOOKUP_LIST, IN) NULL
+  NULL, MAP(LOOKUP_LIST, JN) NULL
 };
 float (*
 nrrdFLookup[NRRD_TYPE_MAX+1])(void *, size_t) = {
@@ -158,13 +159,13 @@ _nrrdInsert##TA##TB(TB *v, size_t I, TA j) {       \
 #define INSERT_LIST(TA, TB)                        \
   (TA (*)(void*, size_t, TA))_nrrdInsert##TA##TB,
 
-MAP(INSERT_DEF, IN)
+MAP(INSERT_DEF, JN)
 MAP(INSERT_DEF, FL)
 MAP(INSERT_DEF, DB)
 
 int (*
 nrrdIInsert[NRRD_TYPE_MAX+1])(void *, size_t, int) = {
-  NULL, MAP(INSERT_LIST, IN) NULL
+  NULL, MAP(INSERT_LIST, JN) NULL
 };
 float (*
 nrrdFInsert[NRRD_TYPE_MAX+1])(void *, size_t, float) = {
@@ -186,10 +187,10 @@ int _nrrdSprintCH(char *s, CH *v) { return sprintf(s, "%d", *v); }
 int _nrrdSprintUC(char *s, UC *v) { return sprintf(s, "%u", *v); }
 int _nrrdSprintSH(char *s, SH *v) { return sprintf(s, "%d", *v); }
 int _nrrdSprintUS(char *s, US *v) { return sprintf(s, "%u", *v); }
-int _nrrdSprintIN(char *s, IN *v) { return sprintf(s, "%d", *v); }
+int _nrrdSprintIN(char *s, JN *v) { return sprintf(s, "%d", *v); }
 int _nrrdSprintUI(char *s, UI *v) { return sprintf(s, "%u", *v); }
-int _nrrdSprintLL(char *s, LL *v) { return sprintf(s, "%lld", *v); }
-int _nrrdSprintUL(char *s, UL *v) { return sprintf(s, "%llu", *v); }
+int _nrrdSprintLL(char *s, LL *v) { return sprintf(s, AIR_LLONG_FMT, *v); }
+int _nrrdSprintUL(char *s, UL *v) { return sprintf(s, AIR_ULLONG_FMT, *v); }
 /* HEY: sizeof(float) and sizeof(double) assumed here, since we're 
    basing "8" and "17" on 6 == FLT_DIG and 15 == DBL_DIG, which are 
    digits of precision for floats and doubles, respectively */
@@ -222,10 +223,10 @@ int _nrrdFprintCH(FILE *f, CH *v) { return fprintf(f, "%d", *v); }
 int _nrrdFprintUC(FILE *f, UC *v) { return fprintf(f, "%u", *v); }
 int _nrrdFprintSH(FILE *f, SH *v) { return fprintf(f, "%d", *v); }
 int _nrrdFprintUS(FILE *f, US *v) { return fprintf(f, "%u", *v); }
-int _nrrdFprintIN(FILE *f, IN *v) { return fprintf(f, "%d", *v); }
+int _nrrdFprintIN(FILE *f, JN *v) { return fprintf(f, "%d", *v); }
 int _nrrdFprintUI(FILE *f, UI *v) { return fprintf(f, "%u", *v); }
-int _nrrdFprintLL(FILE *f, LL *v) { return fprintf(f, "%lld", *v); }
-int _nrrdFprintUL(FILE *f, UL *v) { return fprintf(f, "%llu", *v); }
+int _nrrdFprintLL(FILE *f, LL *v) { return fprintf(f, AIR_LLONG_FMT, *v); }
+int _nrrdFprintUL(FILE *f, UL *v) { return fprintf(f, AIR_ULLONG_FMT, *v); }
 int _nrrdFprintFL(FILE *f, FL *v) {
   return airSinglePrintf(f, NULL, "%.8g", (double)(*v)); }
 int _nrrdFprintDB(FILE *f, DB *v) {
@@ -409,7 +410,7 @@ void _nrrdMinMaxCH (_MM_ARGS(CH)) {_MM_FIXED(CH)}
 void _nrrdMinMaxUC (_MM_ARGS(UC)) {_MM_FIXED(UC)}
 void _nrrdMinMaxSH (_MM_ARGS(SH)) {_MM_FIXED(SH)}
 void _nrrdMinMaxUS (_MM_ARGS(US)) {_MM_FIXED(US)}
-void _nrrdMinMaxIN (_MM_ARGS(IN)) {_MM_FIXED(IN)}
+void _nrrdMinMaxIN (_MM_ARGS(JN)) {_MM_FIXED(JN)}
 void _nrrdMinMaxUI (_MM_ARGS(UI)) {_MM_FIXED(UI)}
 void _nrrdMinMaxLL (_MM_ARGS(LL)) {_MM_FIXED(LL)}
 void _nrrdMinMaxUL (_MM_ARGS(UL)) {_MM_FIXED(UL)}
@@ -476,7 +477,7 @@ int _nrrdValCompareCH (_VC_ARGS(CH)) {return _VC_FIXED;}
 int _nrrdValCompareUC (_VC_ARGS(UC)) {return _VC_FIXED;}
 int _nrrdValCompareSH (_VC_ARGS(SH)) {return _VC_FIXED;}
 int _nrrdValCompareUS (_VC_ARGS(US)) {return _VC_FIXED;}
-int _nrrdValCompareIN (_VC_ARGS(IN)) {return _VC_FIXED;}
+int _nrrdValCompareIN (_VC_ARGS(JN)) {return _VC_FIXED;}
 int _nrrdValCompareUI (_VC_ARGS(UI)) {return _VC_FIXED;}
 int _nrrdValCompareLL (_VC_ARGS(LL)) {return _VC_FIXED;}
 int _nrrdValCompareUL (_VC_ARGS(UL)) {return _VC_FIXED;}

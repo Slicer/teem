@@ -546,8 +546,8 @@ int
 nrrdSanity(void) {
   char me[]="nrrdSanity", err[AIR_STRLEN_MED];
   int aret, type, maxsize;
-  long long int tmpLLI;
-  unsigned long long int tmpULLI;
+  airLLong tmpLLI;
+  airULLong tmpULLI;
   static int sanity = 0;
 
   if (sanity) {
@@ -610,8 +610,8 @@ nrrdSanity(void) {
 	 && nrrdTypeSize[nrrdTypeUShort] == sizeof(unsigned short)
 	 && nrrdTypeSize[nrrdTypeInt] == sizeof(int)
 	 && nrrdTypeSize[nrrdTypeUInt] == sizeof(unsigned int)
-	 && nrrdTypeSize[nrrdTypeLLong] == sizeof(long long int)
-	 && nrrdTypeSize[nrrdTypeULLong] == sizeof(unsigned long long int)
+	 && nrrdTypeSize[nrrdTypeLLong] == sizeof(airLLong)
+	 && nrrdTypeSize[nrrdTypeULLong] == sizeof(airULLong)
 	 && nrrdTypeSize[nrrdTypeFloat] == sizeof(float)
 	 && nrrdTypeSize[nrrdTypeDouble] == sizeof(double) )) {
     sprintf(err, "%s: sizeof() for nrrd types has problem: "
@@ -633,8 +633,8 @@ nrrdSanity(void) {
 	    (int)sizeof(unsigned short),
 	    (int)sizeof(int),
 	    (int)sizeof(unsigned int),
-	    (int)sizeof(long long int),
-	    (int)sizeof(unsigned long long int),
+	    (int)sizeof(airLLong),
+	    (int)sizeof(airULLong),
 	    (int)sizeof(float),
 	    (int)sizeof(double));
     biffAdd(NRRD, err); return 0;
@@ -662,26 +662,26 @@ nrrdSanity(void) {
   /* nrrd-defined type min/max values */
   tmpLLI = NRRD_LLONG_MAX;
   if (tmpLLI != NRRD_LLONG_MAX) {
-    sprintf(err, "%s: long long int can't hold NRRD_LLONG_MAX (%lld)", me,
+    sprintf(err, "%s: long long int can't hold NRRD_LLONG_MAX (" AIR_ULLONG_FMT ")", me,
 	    NRRD_LLONG_MAX);
     biffAdd(NRRD, err); return 0;
   }
   tmpLLI += 1;
   if (NRRD_LLONG_MIN != tmpLLI) {
-    sprintf(err, "%s: long long int min (%lld) or max (%lld) incorrect", me,
+    sprintf(err, "%s: long long int min (" AIR_LLONG_FMT ") or max (" AIR_LLONG_FMT ") incorrect", me,
 	    NRRD_LLONG_MIN, NRRD_LLONG_MAX);
     biffAdd(NRRD, err); return 0;
   }
   tmpULLI = NRRD_ULLONG_MAX;
   if (tmpULLI != NRRD_ULLONG_MAX) {
     sprintf(err, 
-	    "%s: unsigned long long int can't hold NRRD_ULLONG_MAX (%llu)",
+	    "%s: unsigned long long int can't hold NRRD_ULLONG_MAX (" AIR_ULLONG_FMT ")",
 	    me, NRRD_ULLONG_MAX);
     biffAdd(NRRD, err); return 0;
   }
   tmpULLI += 1;
   if (tmpULLI != 0) {
-    sprintf(err, "%s: unsigned long long int max (%llu) incorrect", me,
+    sprintf(err, "%s: unsigned long long int max (" AIR_ULLONG_FMT ") incorrect", me,
 	    NRRD_ULLONG_MAX);
     biffAdd(NRRD, err); return 0;
   }

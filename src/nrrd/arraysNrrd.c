@@ -28,8 +28,8 @@ nrrdTypeConv[NRRD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "%hu",
   "%d",
   "%u",
-  "%lld",
-  "%llu",
+  AIR_LLONG_FMT,
+  AIR_ULLONG_FMT,
   "%f",
   "%lf",
   "%*d"  /* what else? */

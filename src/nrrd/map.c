@@ -230,7 +230,7 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   char me[] = "nrrdQuantize", func[]="quantize", err[AIR_STRLEN_MED];
   double valIn, minIn, maxIn, eps;
   int valOut, type=nrrdTypeUnknown, size[NRRD_DIM_MAX];
-  unsigned long long int valOutll;
+  airLLong valOutll;
   size_t I, num;
   unsigned char *outUC;
   unsigned short *outUS;
@@ -306,7 +306,7 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
     for (I=0; I<num; I++) {
       valIn = nrrdDLookup[nin->type](nin->data, I);
       valIn = AIR_CLAMP(minIn, valIn, maxIn);
-      AIR_INDEX(minIn, valIn, maxIn+eps, 1LLU << 32, valOutll);
+      AIR_INDEX(minIn, valIn, maxIn+eps, AIR_ULLONG(1) << 32, valOutll);
       outUI[I] = valOutll;
     }
     break;

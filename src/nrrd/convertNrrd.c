@@ -28,10 +28,11 @@ typedef signed char CH;
 typedef unsigned char UC;
 typedef signed short SH;
 typedef unsigned short US;
-typedef signed int IN;
+/* Microsoft apparently uses 'IN' as a keyword, so we changed 'IN' to 'JN'. */
+typedef signed int JN;
 typedef unsigned int UI;
-typedef signed long long int LL;
-typedef unsigned long long int UL;
+typedef airLLong LL;
+typedef airULLong UL;
 typedef float FL;
 typedef double DB;
 typedef size_t IT;
@@ -51,7 +52,7 @@ F(A, CH) \
 F(A, UC) \
 F(A, SH) \
 F(A, US) \
-F(A, IN) \
+F(A, JN) \
 F(A, UI) \
 F(A, LL) \
 F(A, UL) \
@@ -64,7 +65,7 @@ F(A, CH) \
 F(A, UC) \
 F(A, SH) \
 F(A, US) \
-F(A, IN) \
+F(A, JN) \
 F(A, UI) \
 F(A, LL) \
 F(A, UL) \

@@ -38,7 +38,7 @@ tenCalcOneTensor(float tens[7], float chan[7],
   c[5] = AIR_MAX(chan[5], 1);
   c[6] = AIR_MAX(chan[6], 1);
   sum = c[1] + c[2] + c[3] + c[4] + c[5] + c[6];
-  tens[0] = (1 + erf(slope*(sum - thresh)))/2.0;
+  tens[0] = (1 + airErf(slope*(sum - thresh)))/2.0;
   d1 = (log(c[0]) - log(c[1]))/b;
   d2 = (log(c[0]) - log(c[2]))/b;
   d3 = (log(c[0]) - log(c[3]))/b;

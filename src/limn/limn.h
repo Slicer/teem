@@ -29,6 +29,12 @@
 #include <ell.h>
 #include <nrrd.h>
 
+#if defined(WIN32) && !defined(TEEM_BUILD)
+#define limn_export __declspec(dllimport)
+#else
+#define limn_export
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -53,10 +59,10 @@ typedef struct limnCam_t {
                          to the "true" up) */
     uRange[2],        /* range of U values to put on horiz. image axis */
     vRange[2],        /* range of V values to put on vert. image axis */
-    near, faar,       /* near and far clipping plane distances
+    neer, faar,       /* neer and far clipping plane distances
                          (misspelled for the sake of McRosopht) */
     dist;             /* distance to image plane */
-  int atRel,          /* if non-zero: given near, faar, and dist
+  int atRel,          /* if non-zero: given neer, faar, and dist
                          quantities indicate distance relative to the
 			 _at_ point, instead of the usual (in computer
 			 graphics) sense if being relative to the
@@ -79,7 +85,7 @@ typedef struct limnCam_t {
     V2W[16],          /* View to world transform */
     U[4], V[4], N[4], /* View space basis vectors (in world coords)
 			 last element always zero */
-    vspNear, vspFaar, /* not usually user-set: near, far dist (view space) */
+    vspNeer, vspFaar, /* not usually user-set: neer, far dist (view space) */
     vspDist;
 } limnCam;
 
@@ -254,14 +260,14 @@ enum {
 #define LIMN_QN_MAX      4
 
 /* defaultsLimn.c */
-extern int limnDefCamAtRel;
-extern int limnDefCamOrtho;
-extern int limnDefCamRightHanded;
+extern limn_export int limnDefCamAtRel;
+extern limn_export int limnDefCamOrtho;
+extern limn_export int limnDefCamRightHanded;
 
 /* qn.c */
-extern int limnQNBytes[LIMN_QN_MAX+1];
-extern void (*limnQNtoV[LIMN_QN_MAX+1])(float *vec, int qn, int doNorm);
-extern int (*limnVtoQN[LIMN_QN_MAX+1])(int *qnP, float *vec);
+extern limn_export int limnQNBytes[LIMN_QN_MAX+1];
+extern limn_export void (*limnQNtoV[LIMN_QN_MAX+1])(float *vec, int qn, int doNorm);
+extern limn_export int (*limnVtoQN[LIMN_QN_MAX+1])(int *qnP, float *vec);
 
 /* light.c */
 typedef void (*limnEnvMapCB)(float rgb[3], float vec[3], void *data);

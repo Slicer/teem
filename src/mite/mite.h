@@ -27,6 +27,12 @@
 #include <limn.h>
 #include <hoover.h>
 
+#if defined(WIN32) && !defined(TEEM_BUILD)
+#define mite_export __declspec(dllimport)
+#else
+#define mite_export
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -78,9 +84,9 @@ typedef struct {
 } miteThreadInfo;
 
 /* defaultsMite.c */
-extern double miteDefRefStep;
-extern int miteDefRenorm;
-extern double miteDefNear1;
+extern mite_export double miteDefRefStep;
+extern mite_export int miteDefRenorm;
+extern mite_export double miteDefNear1;
 
 /* user.c */
 extern miteUserInfo *miteUserInfoNew(hoovContext *ctx);

@@ -23,7 +23,7 @@
 /*
 ******** limnCamUpdate()
 **
-** sets in cam: W2V matrix, vspNear, vspFaar, vspDist
+** sets in cam: W2V matrix, vspNeer, vspFaar, vspDist
 **
 ** This does use biff to describe problems with camera settings
 */
@@ -46,25 +46,25 @@ limnCamUpdate(limnCam *cam) {
     biffAdd(LIMN, err); return 1;
   }
   if (cam->atRel) {
-    /* ctx->cam->{near,dist} are "at" relative */
-    cam->vspNear = cam->near + len;
+    /* ctx->cam->{neer,dist} are "at" relative */
+    cam->vspNeer = cam->neer + len;
     cam->vspFaar = cam->faar + len;
     cam->vspDist = cam->dist + len;
   }
   else {
-    /* ctx->cam->{near,dist} are eye relative */
-    cam->vspNear = cam->near;
+    /* ctx->cam->{neer,dist} are eye relative */
+    cam->vspNeer = cam->neer;
     cam->vspFaar = cam->faar;
     cam->vspDist = cam->dist;
   }
-  if (!(cam->vspNear > 0 && cam->vspDist > 0 && cam->vspFaar > 0)) {
+  if (!(cam->vspNeer > 0 && cam->vspDist > 0 && cam->vspFaar > 0)) {
     sprintf(err, "%s: eye-relative near (%g), dist (%g), or far (%g) <= 0\n",
-	    me, cam->vspNear, cam->vspDist, cam->vspFaar);
+	    me, cam->vspNeer, cam->vspDist, cam->vspFaar);
     biffAdd(LIMN, err); return 1;
   }
-  if (!(cam->vspNear <= cam->vspFaar)) {
+  if (!(cam->vspNeer <= cam->vspFaar)) {
     sprintf(err, "%s: eye-relative near (%g) further than far (%g)\n",
-	    me, cam->vspNear, cam->vspFaar);
+	    me, cam->vspNeer, cam->vspFaar);
     biffAdd(LIMN, err); return 1 ;
   }
   ELL_3V_SCALE(n, 1.0/len, n);

@@ -55,11 +55,11 @@ _nrrdSwap32Endian(void *_data, size_t N) {
 
 void
 _nrrdSwap64Endian(void *_data, size_t N) {
-  unsigned long long *data, l, fix;
+  airLLong *data, l, fix;
   size_t I;
 
   if (_data) {
-    data = (unsigned long long  *)_data;
+    data = (airLLong *)_data;
     for (I=0; I<N; I++) {
       l = data[I];
       fix =  (l & 0x00000000000000FF);

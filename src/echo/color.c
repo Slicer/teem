@@ -144,7 +144,7 @@ _echoIntxColorPhong(COLOR_ARGS) {
   d[2] = ka*parm->amG;
   s[0] = s[1] = s[2] = 0.0;
   ELL_3V_COPY(shRay.from, intx->pos);
-  shRay.near = ECHO_EPSILON;
+  shRay.neer = ECHO_EPSILON;
   for (lt=0; lt<lightArr->len; lt++) {
     light = ((EchoLight **)lightArr->data)[lt];
     _echoLightColDir[light->type](lcol, ldir, &ldist, parm,
@@ -154,12 +154,12 @@ _echoIntxColorPhong(COLOR_ARGS) {
       continue;
     if (parm->shadow) {
       ELL_3V_COPY(shRay.dir, ldir);
-      shRay.far = ldist;
+      shRay.faar = ldist;
       if (echoVerbose) {
 	printf("%d: from (%g,%g,%g) to (%g,%g,%g) for [%g,%g] (scene %d)\n",
 	       lt, shRay.from[0], shRay.from[1], shRay.from[2],
 	       shRay.dir[0], shRay.dir[1], shRay.dir[2],
-	       shRay.near, shRay.far, scene->type);
+	       shRay.neer, shRay.faar, scene->type);
       }
       if (_echoRayIntx[scene->type](&shIntx, &shRay, parm, scene)) {
 	/* the shadow ray hit something, nevermind */
@@ -243,8 +243,8 @@ _echoIntxColorMetal(COLOR_ARGS) {
   ELL_3V_NORM(view, intx->view, tmp);
   ELL_3V_COPY(norm, intx->norm);
   ELL_3V_COPY(rfRay.from, intx->pos);
-  rfRay.near = ECHO_EPSILON;
-  rfRay.far = ECHO_POS_MAX;
+  rfRay.neer = ECHO_EPSILON;
+  rfRay.faar = ECHO_POS_MAX;
   rfRay.depth = intx->depth + 1;
   rfRay.shadow = AIR_FALSE;
   fuzz = mat[echoMatterMetalFuzzy];
@@ -266,7 +266,7 @@ _echoIntxColorMetal(COLOR_ARGS) {
   if (RD) {
     /* compute the diffuse component */
     ELL_3V_COPY(shRay.from, intx->pos);
-    shRay.near = ECHO_EPSILON;
+    shRay.neer = ECHO_EPSILON;
     for (lt=0; lt<lightArr->len; lt++) {
       light = ((EchoLight **)lightArr->data)[lt];
       _echoLightColDir[light->type](lcol, ldir, &ldist, parm,
@@ -279,7 +279,7 @@ _echoIntxColorMetal(COLOR_ARGS) {
       }
       if (parm->shadow) {
 	ELL_3V_COPY(shRay.dir, ldir);
-	shRay.far = ldist;
+	shRay.faar = ldist;
 	if (_echoRayIntx[scene->type](&shIntx, &shRay, parm, scene)) {
 	  /* the shadow ray hit something, nevermind */
 	  continue;
@@ -340,8 +340,8 @@ _echoIntxColorGlass(COLOR_ARGS) {
   ELL_3V_NORM(view, intx->view, tmp);
   ELL_3V_COPY(trRay.from, intx->pos);
   ELL_3V_COPY(rfRay.from, intx->pos);
-  trRay.near = rfRay.near = ECHO_EPSILON;
-  trRay.far = rfRay.far = ECHO_POS_MAX;
+  trRay.neer = rfRay.neer = ECHO_EPSILON;
+  trRay.faar = rfRay.faar = ECHO_POS_MAX;
   trRay.depth = rfRay.depth = intx->depth + 1;
   trRay.shadow = rfRay.shadow = AIR_FALSE;
   fuzz = mat[echoMatterGlassFuzzy];

@@ -30,6 +30,12 @@
 #include <dye.h>
 #include <limn.h>
 
+#if defined(WIN32) && !defined(TEEM_BUILD)
+#define echo_export __declspec(dllimport)
+#else
+#define echo_export
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -168,8 +174,8 @@ enum {
 #define ECHO_MATTER_VALUE_NUM 8
 
 /* enumsEcho.c ------------------------------------------ */
-extern airEnum *echoJitter;
-extern airEnum *echoObject;
+extern echo_export airEnum *echoJitter;
+extern echo_export airEnum *echoObject;
 
 /* object.c ---------------------------------------- */
 
@@ -349,13 +355,13 @@ extern limnCam *echoLimnCamNew();
 
 /* renderEcho.c ---------------------------------------- */
 
-extern int echoVerbose;
+extern echo_export int echoVerbose;
 
 typedef struct {
   echoPos_t from[3],    /* ray comes from this point */
     dir[3],             /* ray goes in this (not normalized) direction */
-    near, far;          /* look for intx in this interval */
-  int depth,            /* recursion depth */
+    neer, faar;         /* look for intx in this interval */
+    int depth,          /* recursion depth */
     shadow;             /* this is a shadow ray */
   echoCol_t transp;     /* for shadow rays, the transparency so far; starts
 			   at 1.0, goes down to 0.0 */

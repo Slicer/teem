@@ -31,6 +31,12 @@
 extern "C" {
 #endif
 
+#if defined(WIN32) && !defined(TEEM_BUILD)
+#define hest_export __declspec(dllimport)
+#else
+#define hest_export
+#endif
+
 /*
 ******** hestCB struct
 **
@@ -145,19 +151,19 @@ typedef struct {
 } hestParm;
 
 /* defaultsHest.c */
-extern int hestVerbosity;
-extern int hestRespFileEnable;
-extern int hestElideSingleEnumType;
-extern int hestElideSingleOtherType;
-extern int hestElideSingleOtherDefault;
-extern int hestElideSingleNonExistFloatDefault;
-extern int hestElideSingleEmptyStringDefault;
-extern int hestGreedySingleString;
-extern int hestColumns;
-extern char hestRespFileFlag;
-extern char hestRespFileComment;
-extern char hestVarParamStopFlag;
-extern char hestMultiFlagSep;
+extern hest_export int hestVerbosity;
+extern hest_export int hestRespFileEnable;
+extern hest_export int hestElideSingleEnumType;
+extern hest_export int hestElideSingleOtherType;
+extern hest_export int hestElideSingleOtherDefault;
+extern hest_export int hestElideSingleNonExistFloatDefault;
+extern hest_export int hestElideSingleEmptyStringDefault;
+extern hest_export int hestGreedySingleString;
+extern hest_export int hestColumns;
+extern hest_export char hestRespFileFlag;
+extern hest_export char hestRespFileComment;
+extern hest_export char hestVarParamStopFlag;
+extern hest_export char hestMultiFlagSep;
 
 /* methodsHest.c */
 extern hestParm *hestParmNew(void);

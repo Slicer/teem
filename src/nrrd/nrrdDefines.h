@@ -66,7 +66,7 @@ extern "C" {
 #  ifdef LONGLONG_MAX
 #    define NRRD_LLONG_MAX LONGLONG_MAX
 #  else
-#    define NRRD_LLONG_MAX 9223372036854775807LL
+#    define NRRD_LLONG_MAX AIR_LLONG(9223372036854775807)
 #  endif
 #endif
 
@@ -76,7 +76,7 @@ extern "C" {
 #  ifdef LONGLONG_MIN
 #    define NRRD_LLONG_MIN LONGLONG_MIN
 #  else
-#    define NRRD_LLONG_MIN (-NRRD_LLONG_MAX-1LL)
+#    define NRRD_LLONG_MIN (-NRRD_LLONG_MAX-AIR_LLONG(1))
 #  endif
 #endif
 
@@ -86,7 +86,7 @@ extern "C" {
 #  ifdef ULONGLONG_MAX
 #    define NRRD_ULLONG_MAX ULONGLONG_MAX
 #  else
-#    define NRRD_ULLONG_MAX 18446744073709551615LLU
+#    define NRRD_ULLONG_MAX AIR_ULLONG(18446744073709551615)
 #  endif
 #endif
 

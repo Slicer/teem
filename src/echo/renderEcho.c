@@ -439,8 +439,8 @@ echoRender(Nrrd *nraw, limnCam *cam,
 
 	/* do it! */
 	ELL_3V_SUB(ray.dir, at, ray.from);
-	ray.near = 0.0;
-	ray.far = ECHO_POS_MAX;
+	ray.neer = 0.0;
+	ray.faar = ECHO_POS_MAX;
 	/*
 	printf("!%s:(%d,%d): from=(%g,%g,%g); at=(%g,%g,%g); dir=(%g,%g,%g)\n",
 	       me, imgUi, imgVi, from[0], from[1], from[2],

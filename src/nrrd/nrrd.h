@@ -37,6 +37,12 @@
 #include "nrrdMacros.h"
 #include "nrrdEnums.h"
 
+#if defined(WIN32) && !defined(TEEM_BUILD)
+#define nrrd_export __declspec(dllimport)
+#else
+#define nrrd_export
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -285,61 +291,61 @@ typedef struct {
 
 /******** defaults (nrrdDef..) and state (nrrdState..) */
 /* defaultsNrrd.c */
-extern int nrrdDefWrtEncoding;
-extern int nrrdDefWrtSeperateHeader;
-extern int nrrdDefWrtBareTable;
-extern int nrrdDefWrtCharsPerLine;
-extern int nrrdDefWrtValsPerLine;
-extern int nrrdDefRsmpBoundary;
-extern int nrrdDefRsmpType;
-extern double nrrdDefRsmpScale;
-extern int nrrdDefRsmpRenormalize;
-extern int nrrdDefRsmpClamp;
-extern double nrrdDefRsmpPadValue;
-extern int nrrdDefCenter;
-extern double nrrdDefSpacing;
-extern double nrrdDefKernelParm0;
-extern int nrrdStateVerboseIO;
-extern int nrrdStateClever8BitMinMax;
-extern int nrrdStateMeasureType;
-extern int nrrdStateMeasureModeBins;
-extern int nrrdStateMeasureHistoType;
-extern int nrrdStateAlwaysSetContent;
-extern char nrrdStateUnknownContent[];
-extern int nrrdStateDisallowFixedPointNonExist;
+extern nrrd_export int nrrdDefWrtEncoding;
+extern nrrd_export int nrrdDefWrtSeperateHeader;
+extern nrrd_export int nrrdDefWrtBareTable;
+extern nrrd_export int nrrdDefWrtCharsPerLine;
+extern nrrd_export int nrrdDefWrtValsPerLine;
+extern nrrd_export int nrrdDefRsmpBoundary;
+extern nrrd_export int nrrdDefRsmpType;
+extern nrrd_export double nrrdDefRsmpScale;
+extern nrrd_export int nrrdDefRsmpRenormalize;
+extern nrrd_export int nrrdDefRsmpClamp;
+extern nrrd_export double nrrdDefRsmpPadValue;
+extern nrrd_export int nrrdDefCenter;
+extern nrrd_export double nrrdDefSpacing;
+extern nrrd_export double nrrdDefKernelParm0;
+extern nrrd_export int nrrdStateVerboseIO;
+extern nrrd_export int nrrdStateClever8BitMinMax;
+extern nrrd_export int nrrdStateMeasureType;
+extern nrrd_export int nrrdStateMeasureModeBins;
+extern nrrd_export int nrrdStateMeasureHistoType;
+extern nrrd_export int nrrdStateAlwaysSetContent;
+extern nrrd_export char nrrdStateUnknownContent[];
+extern nrrd_export int nrrdStateDisallowFixedPointNonExist;
 
 /******** all the airEnums used through-out nrrd */
 /* (the actual C enums are in nrrdEnums.h) */
 /* enumsNrrd.c */
-extern airEnum *nrrdFormat;
-extern airEnum *nrrdBoundary;
-extern airEnum *nrrdMagic;
-extern airEnum *nrrdType;
-extern airEnum *nrrdEncoding;
-extern airEnum *nrrdMeasure;
-extern airEnum *nrrdCenter;
-extern airEnum *nrrdAxesInfo;
-extern airEnum *nrrdField;
-extern airEnum *nrrdUnaryOp;
-extern airEnum *nrrdBinaryOp;
-extern airEnum *nrrdTernaryOp;
+extern nrrd_export airEnum *nrrdFormat;
+extern nrrd_export airEnum *nrrdBoundary;
+extern nrrd_export airEnum *nrrdMagic;
+extern nrrd_export airEnum *nrrdType;
+extern nrrd_export airEnum *nrrdEncoding;
+extern nrrd_export airEnum *nrrdMeasure;
+extern nrrd_export airEnum *nrrdCenter;
+extern nrrd_export airEnum *nrrdAxesInfo;
+extern nrrd_export airEnum *nrrdField;
+extern nrrd_export airEnum *nrrdUnaryOp;
+extern nrrd_export airEnum *nrrdBinaryOp;
+extern nrrd_export airEnum *nrrdTernaryOp;
 
 /******** arrays of things (poor-man's functions/predicates) */
 /* arraysNrrd.c */
-extern char nrrdTypeConv[][AIR_STRLEN_SMALL];
-extern int nrrdEncodingEndianMatters[];
-extern int nrrdTypeSize[];
-extern int nrrdTypeFixed[];
-extern int nrrdTypeUnsigned[];
-extern double nrrdTypeMin[];
-extern double nrrdTypeMax[];
-extern double nrrdTypeNumberValues[];
+extern nrrd_export char nrrdTypeConv[][AIR_STRLEN_SMALL];
+extern nrrd_export int nrrdEncodingEndianMatters[];
+extern nrrd_export int nrrdTypeSize[];
+extern nrrd_export int nrrdTypeFixed[];
+extern nrrd_export int nrrdTypeUnsigned[];
+extern nrrd_export double nrrdTypeMin[];
+extern nrrd_export double nrrdTypeMax[];
+extern nrrd_export double nrrdTypeNumberValues[];
 
 /******** things useful with hest */
 /* hestNrrd.c */
-extern hestCB *nrrdHestNrrd;
-extern hestCB *nrrdHestNrrdKernelSpec;
-extern hestCB *nrrdHestNrrdIter;
+extern nrrd_export hestCB *nrrdHestNrrd;
+extern nrrd_export hestCB *nrrdHestNrrdKernelSpec;
+extern nrrd_export hestCB *nrrdHestNrrdIter;
 
 /******** pseudo-constructors, pseudo-destructors, and such */
 /* methodsNrrd.c */
@@ -428,35 +434,35 @@ extern void nrrdSwapEndian(Nrrd *nrrd);
 /******** getting value into and out of an array of general type, and
    all other simplistic functionality pseudo-parameterized by type */
 /* accessors.c */
-extern int    (*nrrdILoad[NRRD_TYPE_MAX+1])(void *v);
-extern float  (*nrrdFLoad[NRRD_TYPE_MAX+1])(void *v);
-extern double (*nrrdDLoad[NRRD_TYPE_MAX+1])(void *v);
-extern int    (*nrrdIStore[NRRD_TYPE_MAX+1])(void *v, int j);
-extern float  (*nrrdFStore[NRRD_TYPE_MAX+1])(void *v, float f);
-extern double (*nrrdDStore[NRRD_TYPE_MAX+1])(void *v, double d);
-extern int    (*nrrdILookup[NRRD_TYPE_MAX+1])(void *v, size_t I);
-extern float  (*nrrdFLookup[NRRD_TYPE_MAX+1])(void *v, size_t I);
-extern double (*nrrdDLookup[NRRD_TYPE_MAX+1])(void *v, size_t I);
-extern int    (*nrrdIInsert[NRRD_TYPE_MAX+1])(void *v, size_t I, int j);
-extern float  (*nrrdFInsert[NRRD_TYPE_MAX+1])(void *v, size_t I, float f);
-extern double (*nrrdDInsert[NRRD_TYPE_MAX+1])(void *v, size_t I, double d);
-extern int    (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, void *);
-extern int    (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, void *);
-extern float  (*nrrdFClamp[NRRD_TYPE_MAX+1])(float);
-extern double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double);
-extern void (*nrrdFindMinMax[NRRD_TYPE_MAX+1])(void *minP, void *maxP,
+extern nrrd_export int    (*nrrdILoad[NRRD_TYPE_MAX+1])(void *v);
+extern nrrd_export float  (*nrrdFLoad[NRRD_TYPE_MAX+1])(void *v);
+extern nrrd_export double (*nrrdDLoad[NRRD_TYPE_MAX+1])(void *v);
+extern nrrd_export int    (*nrrdIStore[NRRD_TYPE_MAX+1])(void *v, int j);
+extern nrrd_export float  (*nrrdFStore[NRRD_TYPE_MAX+1])(void *v, float f);
+extern nrrd_export double (*nrrdDStore[NRRD_TYPE_MAX+1])(void *v, double d);
+extern nrrd_export int    (*nrrdILookup[NRRD_TYPE_MAX+1])(void *v, size_t I);
+extern nrrd_export float  (*nrrdFLookup[NRRD_TYPE_MAX+1])(void *v, size_t I);
+extern nrrd_export double (*nrrdDLookup[NRRD_TYPE_MAX+1])(void *v, size_t I);
+extern nrrd_export int    (*nrrdIInsert[NRRD_TYPE_MAX+1])(void *v, size_t I, int j);
+extern nrrd_export float  (*nrrdFInsert[NRRD_TYPE_MAX+1])(void *v, size_t I, float f);
+extern nrrd_export double (*nrrdDInsert[NRRD_TYPE_MAX+1])(void *v, size_t I, double d);
+extern nrrd_export int    (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, void *);
+extern nrrd_export int    (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, void *);
+extern nrrd_export float  (*nrrdFClamp[NRRD_TYPE_MAX+1])(float);
+extern nrrd_export double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double);
+extern nrrd_export void (*nrrdFindMinMax[NRRD_TYPE_MAX+1])(void *minP, void *maxP,
 					       Nrrd *nrrd);
-extern int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *);
+extern nrrd_export int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *);
 
 /******** getting information to and from files */
 /* read.c */
-extern int (*nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *);
+extern nrrd_export int (*nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *);
 extern int nrrdLineSkip(NrrdIO *io);
 extern int nrrdByteSkip(NrrdIO *io);
 extern int nrrdLoad(Nrrd *nrrd, const char *filename);
 extern int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *io);
 /* write.c */
-extern int (*nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *);
+extern nrrd_export int (*nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *);
 extern int nrrdSave(const char *filename, Nrrd *nrrd, NrrdIO *io);
 extern int nrrdWrite(FILE *file, Nrrd *nrrd, NrrdIO *io);
 
@@ -518,7 +524,7 @@ extern int nrrdUnblock(Nrrd *nout, Nrrd *nin, int type);
 
 /******** measuring and projecting */
 /* measure.c */
-extern void (*nrrdMeasureLine[NRRD_MEASURE_MAX+1])(void *ans, int ansType,
+extern nrrd_export void (*nrrdMeasureLine[NRRD_MEASURE_MAX+1])(void *ans, int ansType,
 						   void *line, int lineType,
 						   int lineLen, 
 						   double axMin, double axMax);
@@ -575,7 +581,7 @@ extern int nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
 
 /******** kernels (interpolation, 1st and 2nd derivatives) */
 /* kernel.c */
-extern NrrdKernel *nrrdKernelZero, /* zero everywhere */
+extern nrrd_export NrrdKernel *nrrdKernelZero, /* zero everywhere */
   *nrrdKernelBox,                  /* box filter (nearest neighbor) */
   *nrrdKernelTent,                 /* tent filter (linear interpolation) */
   *nrrdKernelForwDiff,             /* forward-difference-ish 1st deriv. */

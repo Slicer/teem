@@ -83,7 +83,7 @@ _hoovExtraContextNew(hoovContext *ctx) {
     _hoovLearnLengths(ec->volHLen, ec->voxLen, ctx);
     ELL_3V_SCALEADD(ec->rayZero,
 		    1.0, ctx->cam->from,
-		    ctx->cam->vspNear, ctx->cam->N);
+		    ctx->cam->vspNeer, ctx->cam->N);
   }
   return ec;
 }
@@ -171,10 +171,10 @@ _hoovThreadBody(void *_arg) {
     rayDirI[0] = AIR_DELTA(-lx, rayDirW[0], lx, 0, mx);
     rayDirI[1] = AIR_DELTA(-ly, rayDirW[1], ly, 0, my);
     rayDirI[2] = AIR_DELTA(-lz, rayDirW[2], lz, 0, mz);
-    rayLen = arg->ctx->cam->vspFaar - arg->ctx->cam->vspNear;
+    rayLen = arg->ctx->cam->vspFaar - arg->ctx->cam->vspNeer;
     uvScale = 1.0;
   } else {
-    uvScale = arg->ctx->cam->vspNear/arg->ctx->cam->vspDist;
+    uvScale = arg->ctx->cam->vspNeer/arg->ctx->cam->vspDist;
   }
 
   /* for now, the load-balancing among P processors is simplistic: the
@@ -201,7 +201,7 @@ _hoovThreadBody(void *_arg) {
 	rayDirI[0] = AIR_DELTA(-lx, rayDirW[0], lx, 0, mx);
 	rayDirI[1] = AIR_DELTA(-ly, rayDirW[1], ly, 0, my);
 	rayDirI[2] = AIR_DELTA(-lz, rayDirW[2], lz, 0, mz);
-	rayLen = ((arg->ctx->cam->vspFaar - arg->ctx->cam->vspNear)/
+	rayLen = ((arg->ctx->cam->vspFaar - arg->ctx->cam->vspNeer)/
 		  ELL_3V_DOT(rayDirW, arg->ctx->cam->N));
       }
       if ( (ret = (arg->ctx->rayBegin)(threadInfo,

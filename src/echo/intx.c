@@ -46,9 +46,9 @@ _echoRayIntxSphere(INTX_ARGS(Sphere)) {
   /* else */
   dscr = sqrt(dscr);
   t = (-B - dscr)/(2*A);
-  if (!AIR_INSIDE(ray->near, t, ray->far)) {
+  if (!AIR_INSIDE(ray->neer, t, ray->faar)) {
     t = (-B + dscr)/(2*A);
-    if (!AIR_INSIDE(ray->near, t, ray->far)) {
+    if (!AIR_INSIDE(ray->neer, t, ray->faar)) {
       return AIR_FALSE;
     }
   }
@@ -139,11 +139,11 @@ _echoRayIntxCubeTest(echoPos_t *tP, int *axP, int *dirP,
   *tP = tmin;
   *axP = axmin;
   *dirP = sgn[axmin];
-  if (!AIR_INSIDE(ray->near, *tP, ray->far)) {
+  if (!AIR_INSIDE(ray->neer, *tP, ray->faar)) {
     *tP = tmax;
     *axP = axmax;
     *dirP = sgn[axmax];
-    if (!AIR_INSIDE(ray->near, *tP, ray->far)) {
+    if (!AIR_INSIDE(ray->neer, *tP, ray->faar)) {
       return AIR_FALSE;
     }
   }
@@ -231,7 +231,7 @@ _echoRayIntxUVCube(EchoIntx *intx) {
     NOPE;                                                                    \
   }                                                                          \
   t = det * ELL_3V_DOT(qvec, edge1);                                         \
-  if (t < ray->near || t > ray->far) {                                       \
+  if (t < ray->neer || t > ray->faar) {                                       \
     NOPE;                                                                    \
   }
 
@@ -315,7 +315,7 @@ _echoRayIntxTriMesh(INTX_ARGS(TriMesh)) {
     if (ray->shadow) {
       return AIR_TRUE;
     }
-    intx->t = ray->far = t;
+    intx->t = ray->faar = t;
     intx->u = u;
     intx->v = v;
     ELL_3V_CROSS(intx->norm, edge0, edge1);
@@ -369,7 +369,7 @@ _echoRayIntxSplit(INTX_ARGS(Split)) {
       if (ray->shadow) {
 	return AIR_TRUE;
       }
-      ray->far = intx->t;
+      ray->faar = intx->t;
       ret = AIR_TRUE;
     }
   }
@@ -379,7 +379,7 @@ _echoRayIntxSplit(INTX_ARGS(Split)) {
 			   minb[2], maxb[2], ray)) {
     intx->boxhits++;
     if (_echoRayIntx[b->type](intx, ray, parm, b)) {
-      ray->far = intx->t;
+      ray->faar = intx->t;
       ret = AIR_TRUE;
     }
   }
@@ -420,7 +420,7 @@ _echoRayIntxList(INTX_ARGS(List)) {
       printf("_echoRayIntxList: testing a %d ... ", kid->type);
     }
     if (_echoRayIntx[kid->type](intx, ray, parm, kid)) {
-      ray->far = intx->t;
+      ray->faar = intx->t;
       ret = AIR_TRUE;
       if (0 && echoVerbose) {
 	printf("YES\n");
@@ -463,8 +463,8 @@ _echoRayIntxInstance(INTX_ARGS(Instance)) {
 	   iray.dir[0], iray.dir[1], iray.dir[2]);
   }
   
-  iray.near = ray->near;
-  iray.far = ray->far;
+  iray.neer = ray->neer;
+  iray.faar = ray->faar;
   iray.depth = ray->depth;
   iray.shadow = ray->shadow;
   

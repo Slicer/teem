@@ -30,6 +30,12 @@
 #include <nrrd.h>
 #include <gage.h>
 
+#if defined(WIN32) && !defined(TEEM_BUILD)
+#define bane_export __declspec(dllimport)
+#else
+#define bane_export
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -288,46 +294,46 @@ typedef struct {
 } baneHVolParm;
 
 /* defaultsBane.c */
-extern int baneDefVerbose;
-extern float baneDefIncLimit;
-extern int baneDefRenormalize;
-extern int baneStateHistEqBins;
-extern int baneStateHistEqSmart;
-extern int baneHack;
+extern bane_export int baneDefVerbose;
+extern bane_export float baneDefIncLimit;
+extern bane_export int baneDefRenormalize;
+extern bane_export int baneStateHistEqBins;
+extern bane_export int baneStateHistEqSmart;
+extern bane_export int baneHack;
 
 /* range.c */
-extern baneRange *baneRangeUnknown;
-extern baneRange *baneRangePos;
-extern baneRange *baneRangeNeg;
-extern baneRange *baneRangeZeroCent;
-extern baneRange *baneRangeFloat;
-extern baneRange *baneRangeArray[BANE_RANGE_MAX+1]; 
+extern bane_export baneRange *baneRangeUnknown;
+extern bane_export baneRange *baneRangePos;
+extern bane_export baneRange *baneRangeNeg;
+extern bane_export baneRange *baneRangeZeroCent;
+extern bane_export baneRange *baneRangeFloat;
+extern bane_export baneRange *baneRangeArray[BANE_RANGE_MAX+1]; 
 
 /* inc.c */
-extern baneInc *baneIncUnknown;
-extern baneInc *baneIncAbsolute;
-extern baneInc *baneIncRangeRatio;
-extern baneInc *baneIncPercentile;
-extern baneInc *baneIncStdv;
-extern baneInc *baneIncArray[BANE_INC_MAX+1];
+extern bane_export baneInc *baneIncUnknown;
+extern bane_export baneInc *baneIncAbsolute;
+extern bane_export baneInc *baneIncRangeRatio;
+extern bane_export baneInc *baneIncPercentile;
+extern bane_export baneInc *baneIncStdv;
+extern bane_export baneInc *baneIncArray[BANE_INC_MAX+1];
 
 /* measr.c */
-extern baneMeasr *baneMeasrUnknown;
-extern baneMeasr *baneMeasrVal;
-extern baneMeasr *baneMeasrGradMag;
-extern baneMeasr *baneMeasrLapl;
-extern baneMeasr *baneMeasrHess;
-extern baneMeasr *baneMeasrCurvedness;
-extern baneMeasr *baneMeasrShadeTrace;
-extern baneMeasr *baneMeasrArray[BANE_MEASR_MAX+1];
+extern bane_export baneMeasr *baneMeasrUnknown;
+extern bane_export baneMeasr *baneMeasrVal;
+extern bane_export baneMeasr *baneMeasrGradMag;
+extern bane_export baneMeasr *baneMeasrLapl;
+extern bane_export baneMeasr *baneMeasrHess;
+extern bane_export baneMeasr *baneMeasrCurvedness;
+extern bane_export baneMeasr *baneMeasrShadeTrace;
+extern bane_export baneMeasr *baneMeasrArray[BANE_MEASR_MAX+1];
 
 /* clip.c */
-extern baneClip *baneClipUnknown;
-extern baneClip *baneClipAbsolute;
-extern baneClip *baneClipPeakRatio;
-extern baneClip *baneClipPercentile;
-extern baneClip *baneClipTopN;
-extern baneClip *baneClipArray[BANE_CLIP_MAX+1];
+extern bane_export baneClip *baneClipUnknown;
+extern bane_export baneClip *baneClipAbsolute;
+extern bane_export baneClip *baneClipPeakRatio;
+extern bane_export baneClip *baneClipPercentile;
+extern bane_export baneClip *baneClipTopN;
+extern bane_export baneClip *baneClipArray[BANE_CLIP_MAX+1];
 
 /* methodsBane.c */
 extern baneHVolParm *baneHVolParmNew();

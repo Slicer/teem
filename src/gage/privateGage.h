@@ -17,6 +17,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifndef GAGE_PRIVATE_HAS_BEEN_INCLUDED
+#define GAGE_PRIVATE_HAS_BEEN_INCLUDED
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -89,3 +92,5 @@ extern void _gageStandardNixer(Nrrd *npad, gageKind *kind, void *_info);
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* GAGE_PRIVATE_HAS_BEEN_INCLUDED */

@@ -30,6 +30,12 @@
 
 #include "tenMacros.h"
 
+#if defined(WIN32) && !defined(TEEM_BUILD)
+#define ten_export __declspec(dllimport)
+#else
+#define ten_export
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -61,7 +67,7 @@ typedef struct {
 } tenGlyphParm;
 
 /* arraysTen.c */
-extern airEnum *tenAniso;
+extern ten_export airEnum *tenAniso;
 
 /* methodsTen.c */
 extern tenGlyphParm *tenGlyphParmNew();
