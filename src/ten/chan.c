@@ -294,7 +294,7 @@ tenEstimate4D(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *_nbmat,
     }
     ten += 7;
   }
-  /* tenEigenvalueMin(nten, nten, 0); */
+  /* tenEigenvalueClamp(nten, nten, 0, AIR_NAN); */
 
   airMopOkay(mop);
   return 0;
