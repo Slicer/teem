@@ -1,10 +1,16 @@
 unu: jhisto works with axis[0] elements when given a single nrrd
 
-nrrd: copy MetaIO methods for multiple detached data files
+gage: avoid padding and re-allocation!
+gage: re-modularize to facilitate probing bricked data
+ apparent problem w/ gage probing (0,0,0) in a cell-centered thickness-1 volume
+gageIv3Fill: padded size = (258,258,3);
+    fd = 4; point (pad: 1) coord = (1,1,0) --> bidx = -66564
+
+gage: consider changing gageProbe() to take position both in index and
+unit world space, since many programs only care about unit world space
+
 nrrd: generalize I/O so that magic needn't be on line by itself
 nrrd: allow nrrd header I/O to and from strings
-nrrd: make nrrdMake from guts of "unu make"
-nrrd: add orientation fields and information
 nrrd: add support for VFF file format
 
 fix "gkms pvg": try to reproduce problem with mouse data
@@ -73,8 +79,6 @@ nrrd: speed up nrrdCCFind
 
 bane: finish updating tutorial
 
-gage: re-modularize to facilitate probing bricked data
-
 nrrd: nrrdKernel*Parse should allocate the thing and return it, instead of
 returning an int error code 
 
@@ -86,10 +90,6 @@ Banks's policy.txt:
 
 image registration tool for small translational errors
 
-apparent problem w/ gage probing (0,0,0) in a cell-centered thickness-1 volume
-gageIv3Fill: padded size = (258,258,3);
-    fd = 4; point (pad: 1) coord = (1,1,0) --> bidx = -66564
-
 air: make floating point stuff more like C++: lots of per-arch #defines
 
 bin/unu: valgrid parsing of encoding stuff
@@ -99,9 +99,6 @@ echo: test textured lights
 bin/emap: allow generating envmaps useful for specular highlights
 
 mite: add diffuse and specular envmap
-
-gage: consider changing gageProbe() to take position both in index and
-unit world space, since many programs only care about unit world space
 
 bin: create "segprobe" analog to vprobe and pprobe
 
