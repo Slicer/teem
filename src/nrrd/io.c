@@ -22,6 +22,8 @@ char _nrrdDirChars[]="/\\";
 char _nrrdRelDirFlag[]=".";
 char _nrrdHdrExt[]=".nhdr";
 char _nrrdRawExt[]=".raw";
+char _nrrdPGMExt[]=".pgm";
+char _nrrdPPMExt[]=".ppm";
 
 /* Ernesto "Che" Guevara  */
 
@@ -866,6 +868,7 @@ int
 nrrdSave(char *name, Nrrd *nrrd) {
   char err[NRRD_MED_STRLEN], me[]="nrrdNewOpen", *ext, *dir, *base, *rawfn;
   FILE *file;
+  int (*writer)(FILE *, Nrrd *);
   
   if (!(name && nrrd)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -882,6 +885,7 @@ nrrdSave(char *name, Nrrd *nrrd) {
 	    me, name, strerror(errno));
     biffSet(NRRD, err); return 1;
   }
+  writer = nrrdWrite;
   ext = strstr(name, _nrrdHdrExt);
   if (ext && ext == name + strlen(name) - strlen(_nrrdHdrExt)) {
     /* the given name ends with _nrrdHdrExt, so we play games */
@@ -899,9 +903,27 @@ nrrdSave(char *name, Nrrd *nrrd) {
     free(rawfn);
     free(dir);
     free(base);
+    goto write;
   }
-  if (nrrdWrite(file, nrrd)) {
-    sprintf(err, "%s: nrrdWrite() failed", me);
+  ext = strstr(name, _nrrdPGMExt);
+  if (ext && ext == name + strlen(name) - strlen(_nrrdPGMExt)) {
+    if (1 == nrrdValidPNM(nrrd, AIR_FALSE)) {
+      writer = nrrdWritePNM;
+      goto write;
+    }
+    fprintf(stderr, "(%s: type doesn't match PGM, saving as NRRD)\n", me);
+  }
+  ext = strstr(name, _nrrdPPMExt);
+  if (ext && ext == name + strlen(name) - strlen(_nrrdPPMExt)) {
+    if (2 == nrrdValidPNM(nrrd, AIR_FALSE)) {
+      writer = nrrdWritePNM;
+      goto write;
+    }
+    fprintf(stderr, "(%s: type doesn't match PPM, saving as NRRD)\n", me);
+  }
+ write:
+  if (writer(file, nrrd)) {
+    sprintf(err, "%s: write failed", me);
     biffAdd(NRRD, err); return 1;
   }
   if (file != stdout)
@@ -1292,33 +1314,41 @@ nrrdReadPNMHeader(FILE *file, Nrrd *nrrd, int magic) {
 ** HEY!! should probably allow something larger that 8-bit values
 **     if the user wants ASCII encoding; PNM does support that
 **
-** This DOES USE BIFF to describe how the given nrrd can't be a PNM
+** whether or not this function uses biff is determined by the useBiff arg
 */
 int
-nrrdValidPNM(Nrrd *pnm) {
+nrrdValidPNM(Nrrd *pnm, int useBiff) {
   char me[]="nrrdValidPPM", err[NRRD_MED_STRLEN];
   int color;
 
   if (!pnm) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err);
+    if (useBiff) {
+      sprintf(err, "%s: got NULL pointer", me);
+      biffSet(NRRD, err);
+    }
     return 0;
   }
   if (nrrdTypeUChar != pnm->type) {
-    sprintf(err, "%s: isn't of type unsigned char", me);
-    biffSet(NRRD, err);
+    if (useBiff) {
+      sprintf(err, "%s: isn't of type unsigned char", me);
+      biffSet(NRRD, err);
+    }
     return 0;
   }
   if (!( 2 == pnm->dim || 3 == pnm->dim )) {
-    sprintf(err, "%s: dimension is %d, not 2 or 3", me, pnm->dim);
-    biffSet(NRRD, err);
+    if (useBiff) {
+      sprintf(err, "%s: dimension is %d, not 2 or 3", me, pnm->dim);
+      biffSet(NRRD, err);
+    }
     return 0;
   }
   color = (3 == pnm->dim);
   if (color && 3 != pnm->size[0]) {
-    sprintf(err, "%s: is 3-D, but first axis size is %d, not 3", 
-	    me, pnm->size[0]);
-    biffSet(NRRD, err);
+    if (useBiff) {
+      sprintf(err, "%s: is 3-D, but first axis size is %d, not 3", 
+	      me, pnm->size[0]);
+      biffSet(NRRD, err);
+    }
     return 0;
   }
   return color ? 2 : 1;
@@ -1333,7 +1363,7 @@ nrrdWritePNM(FILE *file, Nrrd *nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
     biffSet(NRRD, err); return 1;
   }
-  imgtype = nrrdValidPNM(nrrd);
+  imgtype = nrrdValidPNM(nrrd, AIR_TRUE);
   if (!imgtype) {
     sprintf(err, "%s: didn't get a PNM", me);
     biffAdd(NRRD, err); return 1;

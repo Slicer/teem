@@ -428,7 +428,7 @@ extern int nrrdWriteDataAscii(FILE *file, Nrrd *nrrd);
 extern int nrrdWriteDataHex(FILE *file, Nrrd *nrrd);
 extern int nrrdWriteDataBase85(FILE *file, Nrrd *nrrd);
 extern int (*nrrdWriteDataFptr[])(FILE *, Nrrd *);
-extern int nrrdValidPNM(Nrrd *pnm);
+extern int nrrdValidPNM(Nrrd *pnm, int useBiff);
 extern int nrrdReadPNMHeader(FILE *file, Nrrd *nrrd, int magic);
 extern int nrrdWritePNM(FILE *file, Nrrd *nrrd);
 
