@@ -41,7 +41,7 @@ nrrd.XTERN += ZLIB
 
 ## BZIP2: for the bzip2 library.  Using bzip2 enables the "bzip2" 
 ## nrrd data encoding.  Header file is <bzlib.h>.  Arch-specific 
-## .mk files may need to set TEEM_BZIP2.IPATH and TEEM_BZIP2.LPATH 
+## .mk files may need to set TEEM_BZIP2_IPATH and TEEM_BZIP2_LPATH 
 ## to "-I<path>" and "-L<path>" for the compile and link lines, 
 ## respectively.
 BZIP2.LINK = -lbz2

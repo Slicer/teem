@@ -318,9 +318,9 @@ for.xtern = $(strip $(foreach xtern,$(xterns),$(foreach lib,$(1),\
   $(if $(filter $(xtern),$($(lib).XTERN)),\
   $(subst XXX,$(xtern),$(2))))))
 evallist = $(foreach var,$(1),$($(var)))
-xtern.Ipath = $(call evallist,$(call for.xtern,$(1),TEEM_XXX.IPATH))
+xtern.Ipath = $(call evallist,$(call for.xtern,$(1),TEEM_XXX_IPATH))
 xtern.Dflag = $(call for.xtern,$(1),-DTEEM_XXX=1)
-xtern.Lpath = $(call evallist,$(call for.xtern,$(1),TEEM_XXX.LPATH))
+xtern.Lpath = $(call evallist,$(call for.xtern,$(1),TEEM_XXX_LPATH))
 xtern.link  = $(call evallist,$(call for.xtern,$(1),XXX.LINK))
 
 
