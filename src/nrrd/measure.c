@@ -214,7 +214,7 @@ _nrrdMeasureMedian(void *line, int lineType, int len,
   double M;
   int i, mid;
   
-  /* we're allowed to reorder the given line because we copied */
+  /* yes, I know, this is not the fastest median.  I'll get to it ... */
   qsort(line, len, nrrdTypeSize[lineType], nrrdValCompare[lineType]);
   M = AIR_NAN;
   for (i=0; !AIR_EXISTS(M) && i<len; i++)

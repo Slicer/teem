@@ -272,10 +272,10 @@ _nrrdEnumFieldStrToVal(char *str) {
     "old min", "oldmin",
     "old max", "oldmax",
     "data file", "datafile",
-    "endian",
+    "endian", "endianness",
     "encoding",
-    "lineskip", "lineskip",
-    "byteskip", "byteskip"};
+    "line skip", "lineskip",
+    "byte skip", "byteskip"};
   int value[] = {
     nfComment,
     nfContent,
@@ -294,12 +294,12 @@ _nrrdEnumFieldStrToVal(char *str) {
     nfOMin,
     nfOMax,
     nfDataFile, nfDataFile,
-    nfEndian,
+    nfEndian, nfEndian,
     nfEncoding, 
     nfLineSkip, nfLineSkip,
     nfByteSkip, nfByteSkip,
     0};  /* a sentinel for for-loop below */
-
+  
   int i;
 
   for (i=0; value[i]; i++) {

@@ -111,9 +111,17 @@ nrrdSetMinMax(Nrrd *nrrd) {
     nrrd->min = nrrdDLoad[nrrd->type](&_min);
     nrrd->max = nrrdDLoad[nrrd->type](&_max);
   }
-  else {
+  else if (nrrdTypeBlock == nrrd->type) {
     sprintf(err, "%s: don't know how to find range for nrrd type %s", me,
 	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+    biffAdd(NRRD, err); return 1;
+  }
+  else if (nrrdTypeUnknown == nrrd->type) {
+    sprintf(err, "%s: input type is unknown!", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  else {
+    sprintf(err, "%s: nrrd type %d not recognized", me, nrrd->type);
     biffAdd(NRRD, err); return 1;
   }
   return 0;
@@ -354,6 +362,7 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
   if (nrrdTypeBlock == nrrd->type) {
     sprintf(err, "%s: can't histogram equalize type %s", me,
 	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+    biffAdd(NRRD, err); return 1;
   }
   num = nrrdElementNumber(nrrd);
   if (!(bins > 2)) {

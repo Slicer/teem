@@ -47,6 +47,15 @@ nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, double min, double max) {
       biffAdd(NRRD, err); return 1;
     }
   }
+  if (!( AIR_EXISTS(gamma) && AIR_EXISTS(min) && AIR_EXISTS(max) )) {
+    sprintf(err, "%s: not all of gamma, min, max exist", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!( nrrdTypeBlock != nin->type && nrrdTypeBlock != nout->type )) {
+    sprintf(err, "%s: can't deal with %s type", me,
+	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+    biffAdd(NRRD, err); return 1;
+  }
 
   lup = nrrdDLookup[nin->type];
   ins = nrrdDInsert[nout->type];

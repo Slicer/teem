@@ -543,18 +543,22 @@ nrrdAxisSetSpacing(Nrrd *nrrd, int ax) {
 void
 nrrdAxisSetMinMax(Nrrd *nrrd, int ax) {
   int center;
+  double spacing;
 
   if (!( nrrd && AIR_INSIDE(0, ax, nrrd->dim-1) ))
     return;
   
   center = _nrrdCenter(nrrd->axis[ax].center);
+  spacing = nrrd->axis[ax].spacing;
+  if (!AIR_EXISTS(spacing))
+    spacing = nrrdDefSpacing;
   if (nrrdCenterCell == center) {
     nrrd->axis[ax].min = 0;
-    nrrd->axis[ax].max = nrrd->axis[ax].size;
+    nrrd->axis[ax].max = spacing*nrrd->axis[ax].size;
   }
   else {
     nrrd->axis[ax].min = 0;
-    nrrd->axis[ax].max = nrrd->axis[ax].size - 1;
+    nrrd->axis[ax].max = spacing*(nrrd->axis[ax].size - 1);
   }
   
   return;

@@ -141,9 +141,12 @@ nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy) {
     sprintf(err, "%s: invalid args", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(1 == nin->dim && nrrdTypeBlock != nin->type)) {
-    sprintf(err, "%s: given nrrd can\'t be a histogram (dim %d, type %s)", 
-	    me, nin->dim, nrrdEnumValToStr(nrrdEnumType, nin->type));
+  if (!nrrdValid(nin)) {
+    sprintf(err, "%s: ", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (1 != nin->dim) {
+    sprintf(err, "%s: nrrd can\'t be a histogram (dim %d)", me, nin->dim);
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdHasNonExist(nin)) {
