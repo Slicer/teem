@@ -15,24 +15,96 @@
   of Utah. All Rights Reserved.
 */
 
+/* the output of this can be read into matlab with:
+ [d,f] = textread('outfile', '%f %f')
+ where d is the vector of domain positions, and f is the value of the function
+*/
+
+char *me;
 
 #include <nrrd.h>
 
 void
-main() {
+usage() {
+  /*                       0    1    2      3     (4) */
+  fprintf(stderr, "usage: %s <kern> <N> <outfile>\n", me);
+  exit(1);
+}
+
+void
+main(int argc, char *argv[]) {
+  char *kernS, *NS, *out, tkS[512];
   int i, N;
   double bound, x, f;
-  float arg[3];
+  float param[NRRD_MAX_KERNEL_PARAMS];
+  nrrdKernel *kern;
+  FILE *file;
 
-  arg[0] = 1.0;
-  arg[1] = 0.25;
-  N = 100;
-  bound = 3;
-  printf("v = [\n");
+  me = argv[0];
+  if (argc != 4) 
+    usage();
+  kernS = argv[1];
+  NS = argv[2];
+  out = argv[3];
+
+  if (1 != sscanf(NS, "%d", &N)) {
+    fprintf(stderr, "%s: couldn't parse \"%s\" as int\n", me, NS);
+    usage();
+  }
+  
+  /* parse the kernel */
+  param[0] = 1.0;
+  strcpy(tkS, "box");
+  if (!strcmp(tkS, kernS)) {
+    kern = nrrdKernelBox;
+    goto kparsed;
+  }
+
+  strcpy(tkS, "tent");
+  if (!strcmp(tkS, kernS)) {
+    kern = nrrdKernelTent;
+    goto kparsed;
+  }
+
+  strcpy(tkS, "cubic");
+  if (!strncmp(tkS, kernS, strlen(tkS))) {
+    kern = nrrdKernelBCCubic;
+    if (2 != sscanf(kernS+strlen(tkS), ":%f,%f", param+1, param+2)) {
+      fprintf(stderr, "%s: couldn't parameters \"%s\" for %s kernel\n", 
+	      me, kernS+strlen(tkS), tkS);
+      usage();
+    }
+    goto kparsed;
+  }
+
+  strcpy(tkS, "quartic");
+  if (!strncmp(tkS, kernS, strlen(tkS))) {
+    kern = nrrdKernelAQuartic;
+    if (1 != sscanf(kernS+strlen(tkS), ":%f", param+1)) {
+      fprintf(stderr, "%s: couldn't parameters \"%s\" for %s kernel\n", 
+	      me, kernS+strlen(tkS), tkS);
+      usage();
+    }
+    goto kparsed;
+  }
+
+  fprintf(stderr, "%s: couldn't parse kernel \"%s\"\n", me, kernS);
+  usage();
+  
+ kparsed:
+
+  if (!(file = fopen(out, "w"))) {
+    fprintf(stderr, "%s: couldn't open \"%s\" for writing\n", me, out);
+    exit(1);
+  }
+
+  bound = kern->support(param);
   for (i=0; i<=N-1; i++) {
     x = AIR_AFFINE(0, i, N-1, -bound, bound);
-    f = nrrdKernelAQuarticDD->eval(x, arg);
-    printf("%g %g;\n", x, f);
+    f = kern->eval(x, param);
+    fprintf(file, "%g %g\n", x, f);
   }
-  printf("]\n");
+
+  fclose(file);
+  exit(0);
 }
