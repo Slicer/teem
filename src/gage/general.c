@@ -224,7 +224,7 @@ _gageLocationSet(gageContext *ctx, int *newBidxP,
   xi = x; xi -= xi == tx; xf = x - xi;
   yi = y; yi -= yi == ty; yf = y - yi;
   zi = z; zi -= zi == tz; zf = z - zi;
-  dif = ctx->havePad - ctx->fr;
+  dif = ctx->havePad - ctx->fr + 1;
   bidx = xi + dif + ctx->sx*(yi + dif + ctx->sy*(zi + dif));
   if (ctx->verbose > 1) {
     fprintf(stderr, 

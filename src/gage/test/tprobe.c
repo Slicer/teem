@@ -117,7 +117,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));
     exit(1);
   }
-  pad = 0 + gageSclNeedPadGet(ctx);
+  pad = 3 + gageSclNeedPadGet(ctx);
   printf("%s: kernel set requires padding by %d, we'll use %d\n",
 	 me, gageSclNeedPadGet(ctx), pad);
   /* we pad with something other than needed pad for stress testing */

@@ -33,7 +33,7 @@ _gageSclAnswer(gageSclContext *sctx) {
   if (1 & (query >> gageSclValue)) {
     /* done if doV */
     if (sctx->c.verbose) {
-      printf("val = % 15.7f", (float)(sctx->val[0]));
+      printf("val = % 15.7f\n", (float)(sctx->val[0]));
     }
   }
   if (1 & (query >> gageSclGradVec)) {
@@ -133,7 +133,7 @@ _gageSclAnswer(gageSclContext *sctx) {
 int
 gageSclProbe(gageSclContext *sctx, gage_t x, gage_t y, gage_t z) {
   char me[]="gageSclProbe";
-  int i, newBidx;
+  int i, fd, newBidx;
   char *here;                /* points somewhere into sctx->npad->data */
 
   if (_gageLocationSet(&sctx->c, &newBidx, x, y, z)) {
@@ -142,21 +142,22 @@ gageSclProbe(gageSclContext *sctx, gage_t x, gage_t y, gage_t z) {
     return 1;
   }
   
+  fd = sctx->c.fd;
   /* if necessary, refill the iv3 cache */
   if (newBidx) {
     here = ((char*)(sctx->npad->data)
 	    + sctx->c.bidx*nrrdTypeSize[sctx->npad->type]);
-    for (i=0; i<sctx->c.fd*sctx->c.fd*sctx->c.fd; i++)
+    for (i=0; i<fd*fd*fd; i++)
       sctx->iv3[i] = sctx->lup(here, sctx->c.off[i]);
     if (sctx->c.verbose > 1) {
-      printf("%s: set the value cache:\n", me);
+      printf("%s: set the value cache with bidx = %d:\n", me, sctx->c.bidx);
       _gageSclPrint_iv3(sctx);
     }
   }
 
   /* perform the filtering */
   if (sctx->k3pack) {
-    switch (sctx->c.fd) {
+    switch (fd) {
     case 2:
       _gageScl3PFilter2(sctx->iv3, sctx->iv2, sctx->iv1, 
 			sctx->c.fw[gageKernel00],
@@ -165,13 +166,15 @@ gageSclProbe(gageSclContext *sctx, gage_t x, gage_t y, gage_t z) {
 			sctx->val, sctx->gvec, sctx->hess,
 			sctx->doV, sctx->doD1, sctx->doD2);
       break;
-      /*
     case 4:
-      _gageScl3PFilter4(ctx->iv3, ctx->iv2, ctx->iv1,
-			ctx->fw00, ctx->fw11, ctx->fw22,
-			ctx->val, ctx->gvec, ctx->hess,
-			doD1, doD2);
+      _gageScl3PFilter4(sctx->iv3, sctx->iv2, sctx->iv1, 
+			sctx->c.fw[gageKernel00],
+			sctx->c.fw[gageKernel11],
+			sctx->c.fw[gageKernel22],
+			sctx->val, sctx->gvec, sctx->hess,
+			sctx->doV, sctx->doD1, sctx->doD2);
       break;
+      /*
     default:
       _gageScl3PFilterN(sctx->c.fd,
 			ctx->iv3, ctx->iv2, ctx->iv1,
