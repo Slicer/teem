@@ -350,9 +350,9 @@ extern ten_export airEnum *tenGlyphType;
 /* glyph.c */
 extern tenGlyphParm *tenGlyphParmNew();
 extern tenGlyphParm *tenGlyphParmNix(tenGlyphParm *parm);
-extern int tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten);
+extern int tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten, Nrrd *npos);
 extern int tenGlyphGen(limnObj *glyphs, echoScene *scene,
-		       Nrrd *nten, tenGlyphParm *parm);
+		       Nrrd *nten, Nrrd *npos, tenGlyphParm *parm);
 
 /* tensor.c */
 extern ten_export int tenVerbose;

@@ -214,7 +214,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   if (tenGlyphGen(doRT ? NULL : glyph, 
 		  doRT ? scene : NULL,
-		  nten, gparm)) {
+		  nten, NULL, gparm)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble generating glyphs:\n%s\n", me, err);
     airMopError(mop); return 1;
