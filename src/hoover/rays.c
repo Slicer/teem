@@ -18,6 +18,9 @@
 */
 
 #include "hoover.h"
+#if TEEM_PTHREAD
+#include <pthread.h>
+#endif
 
 /*
 ** learned: if you're going to "simplify" code which computes some
@@ -282,10 +285,15 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   _hooverExtraContext *ec;
   _hooverThreadArg args[HOOVER_THREAD_MAX];
   _hooverThreadArg *errArg;
+#if TEEM_PTHREAD
+  pthread_t thread[HOOVER_THREAD_MAX];
+#endif
+
   void *renderInfo;
   int ret;
   airArray *mop;
-
+  int threadIdx;
+  
   /* this calls limnCamUpdate() */
   if (hooverContextCheck(ctx)) {
     sprintf(err, "%s: problem detected in given context", me);
@@ -306,36 +314,65 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
     return hooverErrRenderBegin;
   }
 
+  for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
+    args[threadIdx].ctx = ctx;
+    args[threadIdx].ec = ec;
+    args[threadIdx].renderInfo = renderInfo;
+    args[threadIdx].whichThread = threadIdx;
+    args[threadIdx].whichErr = hooverErrNone;
+    args[threadIdx].errCode = 0;
+  }
+
+  /* TODO: call pthread_create() once per thread, passing the
+     address of a distinct (and appropriately intialized)
+     _hooverThreadArg to each.  If return of pthread_create() is
+     non-zero, put its return in *errCodeP, the number of the
+     problematic in *errThreadP, and return hooverErrThreadCreate.
+     Then call pthread_join() on all the threads, passing &errArg as
+     "retval". On non-zero return, set *errCodeP and *errThreadP,
+     and return hooverErrThreadJoin. If return of pthread_join() is
+     zero, but the errArg is non-NULL, then assume that this errArg
+     is actually just the passed _hooverThreadArg returned to us, and
+     from this copy errArg->errCode into *errCodeP, and return
+     errArg->whichErr */
+
+#ifdef TEEM_PTHREAD
+  for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
+    if (ret = pthread_create(&thread[threadIdx], NULL, _hooverThreadBody, 
+			     (void *) &args[threadIdx])) {
+      *errCodeP = ret;
+      *errThreadP = threadIdx;
+      airMopError(mop);
+      return hooverErrThreadCreate;
+    }
+  }
+  for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
+    if (ret = pthread_join(thread[threadIdx], (void **) (&errArg))) {
+      *errCodeP = ret;
+      *errThreadP = threadIdx;
+      airMopError(mop);
+      return hooverErrThreadJoin;
+    }
+    if (errArg != NULL) {
+      *errCodeP = errArg->errCode;
+      *errThreadP = threadIdx;
+      return errArg->whichErr;
+    }
+  }
+#else
+  /* old code -- before multi-threading */
   if (1 == ctx->numThreads) {
-    args[0].ctx = ctx;
-    args[0].ec = ec;
-    args[0].renderInfo = renderInfo;
-    args[0].whichThread = 0;
-    args[0].whichErr = hooverErrNone;
-    args[0].errCode = 0;
     errArg = _hooverThreadBody(&(args[0]));
     if (errArg) {
       *errCodeP = errArg->errCode;
       airMopError(mop);
       return errArg->whichErr;
     }
+  } else {
+    sprintf(err, "%s: sorry, not compiled with TEEM_PTHREAD enabled", me);
+    biffAdd(HOOVER, err); return hooverErrInit; 
   }
-  else {
-    sprintf(err, "%s: sorry, multi-threading under construction", me);
-    biffAdd(HOOVER, err); return hooverErrInit;
-    /* TODO: call pthread_create() once per thread, passing the
-       address of a distinct (and appropriately intialized)
-       _hooverThreadArg to each.  If return of pthread_create() is
-       non-zero, put its return in *errCodeP, the number of the
-       problematic in *errThreadP, and return hooverErrCreateThread.
-       Then call pthread_join() on all the threads, passing &errArg as
-       "retval". On non-zero return, set *errCodeP and *errThreadP,
-       and return hooverErrJoinThread. If return of pthread_join() is
-       zero, but the errArg is non-NULL, then assume that this errArg
-       is actually just the passed _hooverThreadArg returned to us, and
-       from this copy errArg->errCode into *errCodeP, and return
-       errArg->whichErr */
-  }
+#endif
 
   if ( (ret = (ctx->renderEnd)(renderInfo, ctx->userInfo)) ) {
     *errCodeP = ret;
