@@ -344,7 +344,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     /* have to allocate line then pass it to parsing */
     buflen = 0;
     for (ii=0; ii<sizeLen; ii++) {
-      buflen += (!ii ? 0 : airStrlen(" ")) + airStrlen(kinds[ii]);
+      buflen += airStrlen(" ") + airStrlen(kinds[ii]);
     }
     buflen += 1;
     parseBuf = calloc(buflen, sizeof(char));
@@ -370,7 +370,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     /* have to allocate line then pass it to parsing */
     buflen = 0;
     for (ii=0; ii<sizeLen; ii++) {
-      buflen += (!ii ? 0 : airStrlen(" ")) + airStrlen(centerings[ii]);
+      buflen += airStrlen(" ") + airStrlen(centerings[ii]);
     }
     buflen += 1;
     parseBuf = calloc(buflen, sizeof(char));
@@ -474,8 +474,8 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
     /* have to allocate line then pass it to parsing */
     buflen = 0;
-    for (ii=0; ii<sizeLen; ii++) {
-      buflen += (!ii ? 0 : airStrlen("\"\" ")) + airStrlen(spunits[ii]);
+    for (ii=0; ii<nrrd->spaceDim; ii++) {
+      buflen += airStrlen(" ") + airStrlen("\"\"") + airStrlen(spunits[ii]);
     }
     buflen += 1;
     parseBuf = calloc(buflen, sizeof(char));
