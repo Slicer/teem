@@ -500,6 +500,7 @@ nrrdCopy (Nrrd *nout, Nrrd *nin) {
   nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
 
   /* HEY: shouldn't this be handled with nrrdPeripheralCopy() */
+  AIR_FREE(nout->content);
   nout->content = airStrdup(nin->content);
   if (nin->content && !nout->content) {
     sprintf(err, "%s: couldn't copy content", me);
