@@ -376,7 +376,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
 #ifdef TEEM_PTHREAD
   pthread_attr_init(&attr);
 #  ifdef __sgi
-  pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
+  pthread_attr_setscope(&attr, PTHREAD_SCOPE_BOUND_NP);
 #  endif
   for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
     if ((ret = pthread_create(&thread[threadIdx], &attr, _hooverThreadBody, 
