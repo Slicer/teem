@@ -109,14 +109,14 @@ top.dep.is = $(foreach bin,$(BINS),$(if $(strip $(subst $(1),,$(call top.dep,$(b
 ## makefile is always processed after the libraries' ones, which set
 ## X.need through their inclusion of template.mk
 ##
-$(call _BINDI,$(call TOP.DEP.IS,air))    : $(TEEM_SRC)/.air.usable
-$(call _BINDI,$(call TOP.DEP.IS,ell))    : $(TEEM_SRC)/.ell.usable
-$(call _BINDI,$(call TOP.DEP.IS,nrrd))   : $(TEEM_SRC)/.nrrd.usable
-$(call _BINDI,$(call TOP.DEP.IS,unrrdu)) : $(TEEM_SRC)/.unrrdu.usable
-$(call _BINDI,$(call TOP.DEP.IS,gage))   : $(TEEM_SRC)/.gage.usable
-$(call _BINDI,$(call TOP.DEP.IS,hoover)) : $(TEEM_SRC)/.hoover.usable
-$(call _BINDI,$(call TOP.DEP.IS,mite))   : $(TEEM_SRC)/.mite.usable
-$(call _BINDI,$(call TOP.DEP.IS,bane))   : $(TEEM_SRC)/.bane.usable
+$(call _binDI,$(call top.dep.is,air))    : $(call used,$(call air.meneed))
+$(call _binDI,$(call top.dep.is,ell))    : $(call used,$(call ell.meneed))
+$(call _binDI,$(call top.dep.is,nrrd))   : $(call used,$(call nrrd.meneed))
+$(call _binDI,$(call top.dep.is,unrrdu)) : $(call used,$(call unrrdu.meneed))
+$(call _binDI,$(call top.dep.is,gage))   : $(call used,$(call gage.meneed))
+$(call _binDI,$(call top.dep.is,hoover)) : $(call used,$(call hoover.meneed))
+$(call _binDI,$(call top.dep.is,mite))   : $(call used,$(call mite.meneed))
+$(call _binDI,$(call top.dep.is,bane))   : $(call used,$(call bane.meneed))
 
 ## How to make bins.dev and bins.inst: both kinds link against the
 ## same (installed) libraries and include the same (installed)

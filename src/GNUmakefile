@@ -113,16 +113,11 @@ endif
 
 ## Top-level rules, available regardless of where make started
 ##
-#teem/install : $(addsuffix /install,$(LIBS) bin)
-#teem/dev     : $(addsuffix /dev,$(LIBS) bin)
-#teem/usable  : $(addsuffix /usable,$(LIBS))
-#teem/clean   : $(addsuffix /clean,$(LIBS) bin)
-#teem/clobber : $(addsuffix /clobber,$(LIBS) bin)
-teem/install : $(addsuffix /install,$(LIBS))
-teem/dev     : $(addsuffix /dev,$(LIBS))
+teem/install : $(addsuffix /install,$(LIBS) bin)
+teem/dev     : $(addsuffix /dev,$(LIBS) bin)
 teem/usable  : $(addsuffix /usable,$(LIBS))
-teem/clean   : $(addsuffix /clean,$(LIBS))
-teem/clobber : $(addsuffix /clobber,$(LIBS))
+teem/clean   : $(addsuffix /clean,$(LIBS) bin)
+teem/clobber : $(addsuffix /clobber,$(LIBS) bin)
 nothing : ;
 
 ## if.missing(stuff): returns a $stuff if one or more of the files
