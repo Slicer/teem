@@ -21,7 +21,10 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Quantize floating-point values to 8, 16, or 32 bits"
-char *_unrrdu_quantizeInfoL = INFO;
+char *_unrrdu_quantizeInfoL = 
+(INFO ". Values are clamped to the min and max before they are "
+ "quantized, so there is no risk of getting 255 where you expect 0 "
+ "(with unsigned char output, for example)");
 
 int
 unrrdu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {

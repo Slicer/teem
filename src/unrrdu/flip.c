@@ -33,7 +33,7 @@ unrrdu_flipMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input nrrd");
-  OPT_ADD_AXIS(axis, "axis to slice along");
+  OPT_ADD_AXIS(axis, "axis to flip along");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
