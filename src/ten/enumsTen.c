@@ -67,6 +67,8 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "(unknown tenGage)",
 
   "tensor",
+  "confidence",
+  
   "trace",
   "B",
   "det",
@@ -126,6 +128,7 @@ char
 _tenGageDesc[][AIR_STRLEN_MED] = {
   "(unknown tenGage item)",
   "tensor",
+  "confidence",
   "trace",
   "B",
   "determinant",
@@ -174,6 +177,7 @@ int
 _tenGageVal[] = {
   tenGageUnknown,
   tenGageTensor,        /* "t", the reconstructed tensor: GT[7] */
+  tenGageConfidence,    /* "c", first of seven tensor values: GT[1] */
   tenGageTrace,         /* "tr", trace of tensor: GT[1] */
   tenGageB,             /* "b": GT[1] */
   tenGageDet,           /* "det", determinant of tensor: GT[1] */
@@ -221,6 +225,7 @@ _tenGageVal[] = {
 char
 _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "t", "tensor",
+  "c", "conf",
   "tr", "trace",
   "b",
   "det",
@@ -269,6 +274,7 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
 int
 _tenGageValEqv[] = {
   tenGageTensor, tenGageTensor,
+  tenGageConfidence, tenGageConfidence,
   tenGageTrace, tenGageTrace,
   tenGageB,
   tenGageDet,
@@ -391,7 +397,7 @@ _tenFiberStopStrEqv[][AIR_STRLEN_SMALL] = {
   "aniso",
   "length", "len",
   "steps",
-  "confidence", "conf",
+  "confidence", "conf", "c",
   "bounds",
   ""
 };
@@ -401,7 +407,7 @@ _tenFiberStopValEqv[] = {
   tenFiberStopAniso,
   tenFiberStopLength, tenFiberStopLength,
   tenFiberStopNumSteps,
-  tenFiberStopConfidence, tenFiberStopConfidence,
+  tenFiberStopConfidence, tenFiberStopConfidence, tenFiberStopConfidence,
   tenFiberStopBounds
 };
 

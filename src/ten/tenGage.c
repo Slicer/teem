@@ -25,6 +25,7 @@ gageItemEntry
 _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   /* enum value              len,deriv,  prereqs,                                                                     parent item, index*/
   {tenGageTensor,              7,  0,  {-1, -1, -1, -1, -1},                                                                  -1,  -1},
+  {tenGageConfidence,          1,  0,  {tenGageTensor, -1, -1, -1, -1},                                            tenGageTensor,   0},
 
   {tenGageTrace,               1,  0,  {tenGageTensor, -1, -1, -1, -1},                                                       -1,  -1},
   {tenGageB,                   1,  0,  {tenGageTensor, -1, -1, -1, -1},                                                       -1,  -1},
@@ -172,6 +173,9 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
       fprintf(stderr, "tensor = (%g) %g %g %g   %g %g   %g\n", tenAns[0],
 	      dtA, dtB, dtC, dtD, dtE, dtF);
     }
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageConfidence)) {
+    pvl->directAnswer[tenGageConfidence][0] = tenAns[0];
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTrace)) {
     cbA = -(pvl->directAnswer[tenGageTrace][0] = dtA + dtD + dtF);
