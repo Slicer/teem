@@ -40,8 +40,6 @@ tenSizeNormalize(Nrrd *nout, Nrrd *nin, float _weight[3],
     sprintf(err, "%s: couldn't allocate output", me);
     biffMove(TEN, err, NRRD); return 1;
   }
-  tin = (float*)(nin->data);
-  tout = (float*)(nout->data);
 
   ELL_3V_COPY(weight, _weight);
   size = weight[0] + weight[1] + weight[2];
@@ -52,6 +50,8 @@ tenSizeNormalize(Nrrd *nout, Nrrd *nin, float _weight[3],
   weight[0] /= size;
   weight[1] /= size;
   weight[2] /= size;
+  tin = (float*)(nin->data);
+  tout = (float*)(nout->data);
   N = nrrdElementNumber(nin)/7;
   for (I=0; I<=N-1; I++) {
     tenEigensolve(eval, evec, tin);
