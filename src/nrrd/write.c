@@ -41,8 +41,9 @@ _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIO *nio, int field) {
   ret = 0;
   switch (field) {
   case nrrdField_comment:
-    /* comments are always handled differently (by being printed
-       explicity), so they are never "interesting" */
+  case nrrdField_keyvalue:
+    /* comments and key/value pairs are always handled differently (by
+       being printed explicity), so they are never "interesting" */
     break;
   case nrrdField_number:
     /* "number" is entirely redundant with "sizes", which is a
@@ -140,7 +141,7 @@ _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIO *nio, int field) {
 void
 _nrrdSprintFieldInfo (char **strP, char *prefix,
 		      const Nrrd *nrrd, NrrdIO *nio, int field) {
-  char buff[AIR_STRLEN_MED];
+  char me[]="_nrrdSprintFieldInfo", buff[AIR_STRLEN_MED];
   const char *fs;
   int i, D, fslen, fdlen, endi;
 
@@ -159,7 +160,9 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
   fslen = strlen(prefix) + strlen(fs) + strlen(": ") + 1;
   switch (field) {
   case nrrdField_comment:
-    /* we shouldn't be called on this field anyway */
+  case nrrdField_keyvalue:
+    fprintf(stderr, "%s: CONFUSION: why are you calling me on \"%s\"?\n", me,
+	    airEnumStr(nrrdField, nrrdField_comment));
     *strP = airStrdup("");
     break;
   case nrrdField_type:
@@ -308,6 +311,9 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
   case nrrdField_byte_skip:
     *strP = malloc(fslen + 20);
     sprintf(*strP, "%s%s: %d", prefix, fs, nio->byteSkip);
+    break;
+  default:
+    fprintf(stderr, "%s: CONFUSION: field %d unrecognized\n", me, field);
     break;
   }
 
