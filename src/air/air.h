@@ -28,12 +28,14 @@
 #include <stdarg.h>
 #include <float.h>
 
+/* NrrdIO-hack-000 */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* define TEEM_API */
-/* NrrdIO-hack-000 */
+/* NrrdIO-hack-001 */
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
 #  if defined(TEEM_BUILD)
 #    define TEEM_API extern __declspec(dllexport)
@@ -575,7 +577,7 @@ TEEM_API void airMopDebug(airArray *arr);
 ** The reason for using airExists_d and not airExists_f is for
 ** doubles > FLT_MAX: airExists_f would say these are infinity.
 */
-#if defined(_WIN32) || defined(__ECC) /* NrrdIO-hack-001 */
+#if defined(_WIN32) || defined(__ECC) /* NrrdIO-hack-002 */
 #define AIR_EXISTS(x) (airExists_d(x))
 #else
 #define AIR_EXISTS(x) (!((x) - (x)))
