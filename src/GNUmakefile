@@ -220,29 +220,34 @@ hdrs.dev = $(addprefix $(TEEM_SRC)/$(1)/,\
 ## need(L): pseudo-recursive expansion of all the libraries which
 ## library L depends on, either directly or indirectly.  Because make
 ## doesn't allow recursive functions, and because I can't figure out
-## how to do fixed-point determination, I'm only doing a few levels of
-## prerequisite expansion, each level is done by "dmnl" (discover more
-## needed libs).  The number of levels is more than enough for the
-## current teem; and adding more levels later is easy.
+## how to do fixed-point determination in gmake, I'm only doing a few
+## levels of prerequisite expansion. Each level is done by "dmnl"
+## (discover more needed libs).  The number of levels is more than
+## enough for the current teem; and adding more levels later is
+## trivial.
 ## 
 ## Since we rely on $(sort) to remove redundancies, we need a way of
 ## putting the libraries back in dependency order (!= lexical order).
 ## So, we prefix the needed library names with [0..D] (via $(join)) to
 ## create NUM/LIBS (above), re-sort them, and then lose the prefix
-## with $(notdir).  This is done by "order".
+## with $(notdir).  This is done by "deporder". On the link line,
+## however, the ordering needs to be reversed, this is done by
+## "linkorder".
 ## 
 dmnl = $(sort $(foreach LIB,$(1),$(LIB) $($(LIB).NEED)))
-order = $(notdir $(sort $(foreach LIB,$(1),$(filter %/$(LIB),$(NUM/LIBS)))))
-need = $(call order,\
-$(call dmnl,\
-$(call dmnl,\
-$(call dmnl,\
-$($(1).NEED)))))
+deporder = $(notdir $(sort $(foreach LIB,$(1),\
+  $(filter %/$(LIB),$(NUM/LIBS)))))
 linkorder = $(notdir $(sort $(foreach LIB,$(1),\
-$(filter %/$(LIB),$(RNUM/LIBS)))))
+  $(filter %/$(LIB),$(RNUM/LIBS)))))
+need = $(call deporder,\
+$(call dmnl,\
+$(call dmnl,\
+$(call dmnl,\
+$(foreach LIB,$(1),$($(LIB).NEED))))))
+meneed = $(call deporder,$(1) $(call need,$(1)))
 
-## usable(list): "LIB/usable" for all LIBs in list
-## link(list): "-lLIB" for all LIBs in list
+## usable(libs): "LIB/usable" for all LIBs in libs
+## link(libs): "-lLIB" for all LIBs in libs, in correct link order
 ##
 usable = $(foreach LIB,$(1),$(LIB)/usable)
 link = $(foreach LIB,$(call linkorder,$(1)),-l$(LIB))
@@ -297,32 +302,32 @@ used = $(call used.libs,$(1)) $(call used.hdrs,$(1))
 ##   in $(libs) that benefit from $(xtern),
 ##   replace XXX in $(patt) with $(xtern)
 ## evallist(list): evaluates each element of list as a variable
-## xtern.{i,l}path(libs): {include,link} paths {-Iblah,-Lblah} for any
-##   wanted XTERNs whose base teem dependency is within $(libs).  $(libs)
-##   should be $($(L).meneed) for some library L
-## xtern.link(libs): like xtern.{i,l}path, but for -l link flags
-## xtern.Dflag(libs): for -D defines when creating .o files
+## xtern.Ipath(LIB): the external-specific -I flags needed for compiling
+##   objects in library LIB
+## xtern.Dflag(LIB): the -D flags turned on for library LIB in order to
+##   enable the desired externals
+## xtern.Lpath(libs): paths -Lblah for any wanted xterns whose base
+##   teem dependency is within libs.  libs should probably be $($(L).meneed)
+##   for some library L
+## xtern.link(libs): -l link flags for any wanted externals whose base
+##   teem dependency is within libs.
 ##
 wants.xtern = $(if $(findstring undefined,$(origin TEEM_$(1))),,$(1))
 xterns = $(foreach xtern,$(XTERNS),$(call wants.xtern,$(xtern)))
 for.xtern = $(strip $(foreach xtern,$(xterns),$(foreach lib,$(1),\
-$(if $(filter $(xtern),$($(lib).XTERN)),\
-$(subst XXX,$(xtern),$(2))))))
+  $(if $(filter $(xtern),$($(lib).XTERN)),\
+  $(subst XXX,$(xtern),$(2))))))
 evallist = $(foreach var,$(1),$($(var)))
-xtern.ipath = $(call evallist,$(call for.xtern,$(1),TEEM_XXX.IPATH))
-xtern.lpath = $(call evallist,$(call for.xtern,$(1),TEEM_XXX.LPATH))
-xtern.link  = $(call evallist,$(call for.xtern,$(1),XXX.LINK))
+xtern.Ipath = $(call evallist,$(call for.xtern,$(1),TEEM_XXX.IPATH))
 xtern.Dflag = $(call for.xtern,$(1),-DTEEM_XXX=1)
+xtern.Lpath = $(call evallist,$(call for.xtern,$(1),TEEM_XXX.LPATH))
+xtern.link  = $(call evallist,$(call for.xtern,$(1),XXX.LINK))
 
 
 #######################################
 
-## Read in the makefiles for all the libraries, and the bins.  In
-## order to prevent run-awayrecursive inclusion, we set INCLUDED. The
-## library+bin makefiles won't include the tthis file if INCLUDED has
-## been set.  If make started in a library directory, then its include
-## guards will prevent us from reading its body a second time.
-
+## Read in the makefiles for all the libraries, and the bins.  Run-away
+## recursive inclusion is prevented by having set DEF_TARGETS. 
 ## Note: "include" is a directive, not a function, which eliminates
 ## the possibility of iterating through the libraries, reading the
 ## make file, and then setting variables based on what was just read.
@@ -332,14 +337,19 @@ xtern.Dflag = $(call for.xtern,$(1),-DTEEM_XXX=1)
 ## L back the way it was, L would have to be set twice in the lower level
 ## makefiles
 ##
-INCLUDED := true
-ifeq (undefined,$(origin Lsave))
-  Lsave := $(L)
+ifneq (,$(L))
+  ifeq (undefined,$(origin Lsave))
+    Lsave := $(L)
+  endif
 endif
 include $(foreach LIB,$(LIBS),$(TEEM_SRC)/$(LIB)/GNUmakefile)
-include $(TEEM_SRC)/bin/GNUmakefile
 ifneq (,$(Lsave))
   L := $(Lsave)
+else
+  # Lsave wasn't set, which means that make was invoked on this file,
+  # which means that the library make files did not include the bin
+  # makefile, which means we have to do so here
+  include $(TEEM_SRC)/bin/GNUmakefile
 endif
 
 ## megalibs: libteem.a and libteem.$(TEEM_SHEXT)

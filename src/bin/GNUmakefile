@@ -40,14 +40,18 @@ endif
 ifeq (,$($(L).SEEN))
 $(L).SEEN := true
 
+#### By the ordering and guarding of includes, this will ALWAYS be the 
+#### last "library" makefile to be parsed, regardless of the directory
+#### in which make started.
+
 ## BINS: all the command-line executables associated with teem
 ## 
 BINS = airSanity affine cubic nrrdSanity overrgb idx2pos \
   pos2idx unu vprobe qbert mrender miter gkms ungantry
 
-## _binD: list of development locations for given bins
-## _binI: list of install locations for given bins
-## _binDI: list of install and development locations for given bins
+## _binD(bins): list of development locations for given bins
+## _binI(bins): list of install locations for given bins
+## _binDI(bins): list of install and development locations for given bins
 ##
 _binD = $(foreach bin,$(1),$(TEEM_SRC)/bin/$(bin))
 _binI = $(foreach bin,$(1),$(BDEST)/$(bin))
@@ -69,30 +73,31 @@ bin/clean:
 bin/clobber: bin/clean
 	$(RM) $(BINS.INST)
 
-## All the prerequisite usables of the bins, but needn't be
-## recursively expanded.  These include things they only need the
-## header of (for macros, like with ell), as well as the things to
-## link against.
+## All the prerequisite usables of the bins, recursivly expanded.  The
+## calls to need() will work correctly because we've gotten here only
+## after going through all the other library makesfiles.  The
+## arguments to need() are libraries for which we need a header and/or
+## libraries we need to link against.
 ##
-airSanity.NEED  = air
-affine.NEED     = air
-cubic.NEED      = ell
-nrrdSanity.NEED = nrrd biff
-idx2pos.NEED    = nrrd hest air
-pos2idx.NEED    = nrrd hest air
-overrgb.NEED    = nrrd hest biff air
-qbert.NEED      = gage nrrd hest air
-vprobe.NEED     = gage nrrd biff hest air
-gkms.NEED       = bane nrrd biff air
-unu.NEED        = unrrdu nrrd biff hest air
-mrender.NEED    = hoover limn gage nrrd biff hest air
-miter.NEED      = mite hoover limn nrrd ell biff air
-ungantry.NEED   = gage nrrd biff hest air
+airSanity.need  = $(call meneed,air)
+affine.need     = $(call meneed,air)
+cubic.need      = $(call meneed,ell)
+nrrdSanity.need = $(call meneed,nrrd biff)
+idx2pos.need    = $(call meneed,nrrd hest air)
+pos2idx.need    = $(call meneed,nrrd hest air)
+overrgb.need    = $(call meneed,nrrd hest biff air)
+qbert.need      = $(call meneed,gage nrrd hest air)
+vprobe.need     = $(call meneed,gage nrrd biff hest air)
+gkms.need       = $(call meneed,bane nrrd biff air)
+unu.need        = $(call meneed,unrrdu nrrd biff hest air)
+mrender.need    = $(call meneed,hoover limn gage nrrd biff hest air)
+miter.need      = $(call meneed,mite hoover limn nrrd ell biff air)
+ungantry.need   = $(call meneed,gage nrrd biff hest air)
 
 ## top.dep(BIN) : most dependent library (furthest from air) needed for BIN
 ## top.dep.is(LIB) : which bins have TOP.DEP of LIB
 ##
-top.dep = $(word 1,$(call linkorder,$(call need,$(1))))
+top.dep = $(word 1,$(call linkorder,$($(1).need)))
 top.dep.is = $(foreach bin,$(BINS),$(if $(strip $(subst $(1),,$(call top.dep,$(bin)))),,$(bin)))
 
 ## We need some way of expressing the fact that a given binary
@@ -103,9 +108,7 @@ top.dep.is = $(foreach bin,$(BINS),$(if $(strip $(subst $(1),,$(call top.dep,$(b
 ## require supplementing these rules!!!  (do "make clobber; make
 ## bin/install" from teem/src to see)
 ##
-## We know that X.need will be set for all libraries X because this
-## makefile is always processed after the libraries' ones, which set
-## X.need through their inclusion of template.mk
+## L.meneed is set by template.mk by inclusion from L/GNUmakefile
 ##
 $(call _binDI,$(call top.dep.is,air))    : $(call used,$(air.meneed))
 $(call _binDI,$(call top.dep.is,ell))    : $(call used,$(ell.meneed))
@@ -122,7 +125,8 @@ $(call _binDI,$(call top.dep.is,bane))   : $(call used,$(bane.meneed))
 ## 
 $(TEEM_SRC)/bin/% $(BDEST)/% : $(TEEM_SRC)/bin/%.c
 	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) -o $@ $< \
-	  $(LPATH) $(call link,$(call need,$(notdir $@))) -lz -lm
+	  $(LPATH) $(call link,$($(notdir $@).need)) \
+	  $(call xtern.Lpath,$($(notdir $@).need)) $(call xtern.link,$($(notdir $@).need)) -lm
 
 # we're not a library; template.mk doesn't apply to us
 endif

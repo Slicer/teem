@@ -18,7 +18,7 @@
 #
 #
 
-#### Name of the library goes here
+#### Library name
 ####
 ####
 L := air
@@ -44,7 +44,7 @@ $(L).SEEN := true
 #### Describe library here
 ####
 ####
-$(L).NEED = 
+$(L).NEED =
 $(L).PUBLIC_HEADERS = air.h
 $(L).OBJS = 754.o array.o miscAir.o parseAir.o endianAir.o \
 	dio.o mop.o enum.o sane.o string.o
@@ -59,5 +59,8 @@ $(L).NEED_DIO = true
 ####
 
 # boilerplate: declare rules for this library
-include $(TEEM_ROOT)/src/make/template.mk
+include $(TEEM_SRC)/make/template.mk
+ifeq ($(L),$(Lsave))
+  include $(TEEM_SRC)/bin/GNUmakefile
+endif
 endif

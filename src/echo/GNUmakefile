@@ -18,7 +18,7 @@
 #
 #
 
-#### Name of the library goes here
+#### Library name
 ####
 ####
 L := echo
@@ -55,5 +55,8 @@ $(L).TESTS = test/trend
 ####
 
 # boilerplate: declare rules for this library
-include $(TEEM_ROOT)/src/make/template.mk
+include $(TEEM_SRC)/make/template.mk
+ifeq ($(L),$(Lsave))
+  include $(TEEM_SRC)/bin/GNUmakefile
+endif
 endif

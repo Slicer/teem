@@ -18,7 +18,7 @@
 #
 #
 
-#### Name of the library goes here
+#### Library name
 ####
 ####
 L := bane
@@ -56,5 +56,8 @@ $(L).TESTS = test/tinfo test/sigma test/pos \
 ####
 
 # boilerplate: declare rules for this library
-include $(TEEM_ROOT)/src/make/template.mk
+include $(TEEM_SRC)/make/template.mk
+ifeq ($(L),$(Lsave))
+  include $(TEEM_SRC)/bin/GNUmakefile
+endif
 endif

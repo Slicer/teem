@@ -24,10 +24,10 @@
 ## to represent inter-external dependencies (PNG on zlib) with any
 ## generality.
 ##
-## Extern EXT is enabled during make by setting the environment variable
-## TEEM_EXT (just set it, not to anything in particular).
-## If external EXT is enabled during make, then TEEM_EXT will be
-## defined during source file compilation.
+## Extern EXT is enabled during make by setting the environment
+## variable TEEM_EXT (just set it, not to anything in particular).  If
+## external EXT is enabled during make, then TEEM_EXT will be defined
+## as "1" during source file compilation.
 ##
 XTERNS = ZLIB BZIP2
 

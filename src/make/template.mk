@@ -21,16 +21,17 @@
 #### 
 #### template.mk: Defines rules which have the same structure for each
 #### library, but which refer to the specific consituents and
-#### prerequisites of the library.  The variable L is assumed to
-#### contain the name of the library for which we're creating rules;
-#### L is an immediate set by the library GNUmakefile.
-####
+#### prerequisites of the library.  The rules defined here are
+#### effectively templated on the name of the library.  The variable L
+#### is assumed to contain the name of the library for which we're
+#### creating rules; L is an immediate set by the library GNUmakefile.
 ####
 
 ## To minimize calls to "need", save this once.
 ##
 $(L).need := $(call need,$(L))
-$(L).meneed := $(L) $($(L).need)
+$(L).meneed := $($(L).need) $(L)
+#$(warning $(L).need = |$($(L).need)|, $(L).meneed = |$($(L).meneed)|)
 
 ## In a rule, the contexts of the target and the prerequisite are
 ## immediate, the contexts of the commands are deferred; there is no
@@ -83,21 +84,24 @@ $(L)/dev : $(call used,$($(L).need)) \
 ## $(L)/clean undoes $(L)/dev.
 ##
 $(L)/clean :
-	$(RM) $(call objs.dev,$(_L)) $(call libs.dev,$(_L)) $(call tests.dev,$(_L))
+	$(RM) $(call objs.dev,$(_L)) $(call libs.dev,$(_L)) \
+	  $(call tests.dev,$(_L))
 
 ## $(L)/clobber undoes $(L)/install.
 ##
 $(L)/clobber : $(L)/clean
-	$(RM) $(call libs.inst,$(_L)) $(call hdrs.inst,$(_L))
-	$(RM) $(IDEST)/.$(_L).hdr $(LDEST)/.$(_L).lib
+	$(RM) $(call libs.inst,$(_L)) $(call hdrs.inst,$(_L)) \
+	  $(IDEST)/.$(_L).hdr $(LDEST)/.$(_L).lib
 
-## The objects of a lib depend on usable prerequisite libraries (for
-## their headers specifically), and on our own headers.
+## The objects of a lib depend on the headers of the libraries we
+## depend on, and on our own headers.
 ##
 $(call objs.dev,$(L)) : $(call used.hdrs,$($(L).need)) $(call hdrs.dev,$(L))
 
-## Development tests depend on usable prerequiste libraries, and the
-## development libs (header dep. through objects, source dep. below)
+## Development tests depend on usable prerequiste libraries (headers
+## and libraries), and the development libs.  Dev tests also
+## indirectly depend on our own headers (through the objects, below)
+## and on the source file for the test (below)
 ##
 $(call tests.dev,$(L)) : $(call used,$($(L).need)) \
   $(call hdrs.dev,$(L)) $(call libs.dev,$(L))
@@ -112,7 +116,7 @@ $(ODEST)/lib$(L).$(TEEM_SHEXT) : $(call objs.dev,$(L))
 	$(LD) -o $@ $(LDFLAGS) $(LPATH) $^
 endif
 
-## maybebanner(L)(obj) returns "echo ..." to show a library banner 
+## maybebanner.(L)(obj) returns "echo ..." to show a library banner 
 ## progress indicator, but only if obj is the first object in $(L).OBJS.
 ## This mimics the behavior under the old recursive teem makefile.
 ##
@@ -126,8 +130,8 @@ $(word 1,$($(_L).OBJS))),$(call banner,$(_L)))
 ##
 $(call objs.dev,$(L)) : $(ODEST)/%.o : $(TEEM_SRC)/$(L)/%.c
 	@$(call maybebanner.$(_L),$<)
-	$(P) $(CC) $(CFLAGS) $(call more.cflags,$(_L)) $(call xtern.Dflag,$(_L)) $(call xtern.ipath,$(_L)) \
-	  $(IPATH) -c $< -o $@
+	$(P) $(CC) $(CFLAGS) $(call more.cflags,$(_L)) $(IPATH) \
+	  $(call xtern.Dflag,$(_L)) $(call xtern.Ipath,$(_L)) -c $< -o $@
 
 ## How to make development tests.  It doesn't actually matter in this
 ## case where the source files are, we just put the executable in the
@@ -136,7 +140,8 @@ $(call objs.dev,$(L)) : $(ODEST)/%.o : $(TEEM_SRC)/$(L)/%.c
 $(call tests.dev,$(L)) : % : %.c
 	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) \
 	  $(call more.cflags,$(_L)) $(IPATH) -o $@ $< -L$(ODEST) -l$(_L) \
-	  $(LPATH) $(call link,$($(_L).need)) $(call xtern.lpath,$(_L)) $(call xtern.link,$(_L)) -lm
+	  $(LPATH) $(call link,$($(_L).need)) \
+	  $(call xtern.Lpath,$($(_L).meneed)) $(call xtern.link,$($(_L).meneed)) -lm
 
 ## How to install a libs (libs.inst), static and shared: This really
 ## should be in the top-level GNUmakefile, since there is really

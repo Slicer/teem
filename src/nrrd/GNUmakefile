@@ -18,7 +18,7 @@
 #
 #
 
-#### Name of the library goes here
+#### Library name
 ####
 ####
 L := nrrd
@@ -44,8 +44,7 @@ $(L).SEEN := true
 #### Describe library here
 ####
 ####
-# (hest needed for callback declaration)
-$(L).NEED = biff hest air
+$(L).NEED = biff hest air   # hest needed for callback declaration
 $(L).PUBLIC_HEADERS = nrrd.h nrrdDefines.h nrrdMacros.h nrrdEnums.h
 $(L).PRIVATE_HEADERS = privateNrrd.h
 $(L).OBJS = \
@@ -63,5 +62,8 @@ $(L).TESTS = test/trand test/ax test/io test/minmax test/tkernel \
 ####
 
 # boilerplate: declare rules for this library, do other libraries + bins
-include $(TEEM_ROOT)/src/make/template.mk
+include $(TEEM_SRC)/make/template.mk
+ifeq ($(L),$(Lsave))
+  include $(TEEM_SRC)/bin/GNUmakefile
+endif
 endif

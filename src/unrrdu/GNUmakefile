@@ -18,7 +18,7 @@
 #
 #
 
-#### Name of the library goes here
+#### Library name
 ####
 ####
 L := unrrdu
@@ -62,5 +62,8 @@ $(L).OBJS  += flip.o slice.o convert.o crop.o pad.o permute.o histo.o \
 ####
 
 # boilerplate: declare rules for this library
-include $(TEEM_ROOT)/src/make/template.mk
+include $(TEEM_SRC)/make/template.mk
+ifeq ($(L),$(Lsave))
+  include $(TEEM_SRC)/bin/GNUmakefile
+endif
 endif
