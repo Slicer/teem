@@ -618,6 +618,10 @@ _hestDefaults(char **prms, int *udflt, int *nprm, int *appr,
 	 default.  In either case, nprm[op] will be zero, and in both cases,
 	 we need to use the default information. */
       udflt[op] = (0 == nprm[op]);
+      /*
+      fprintf(stderr, "%s nprm[%d] = %d --> udflt[%d] = %d\n", me,
+	      op, nprm[op], op, udflt[op]);
+      */
       break;
     case 5:
       /* -------- multiple optional parameters -------- */
@@ -630,6 +634,7 @@ _hestDefaults(char **prms, int *udflt, int *nprm, int *appr,
     if (!udflt[op])
       continue;
     prms[op] = airStrdup(opt[op].dflt);
+    /* fprintf(stderr, "%s: prms[%d] = |%s|\n", me, op, prms[op]); */
     if (prms[op]) {
       airMopAdd(mop, prms[op], airFree, airMopAlways);
       airOneLinify(prms[op]);
@@ -864,7 +869,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	    return 1;
 	  }
 	  opt[op].alloc = 1;
-	  if (1 == _hestCase(opt, udflt, nprm, appr, op)) {
+	  if (opt[op].flag && 1 == _hestCase(opt, udflt, nprm, appr, op)) {
 	    /* we just parsed the default, but now we want to "invert" it */
 	    *((char**)vP) = airFree(*((char**)vP));
 	    opt[op].alloc = 0;
