@@ -37,7 +37,7 @@ histaxMain(int argc, char **argv, char *me) {
   OPT_ADD_AXIS(axis, "axis to histogram along");
   hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, NULL,
 	     "# of bins in histogram");
-  OPT_ADD_TYPE(type, "output type");
+  OPT_ADD_TYPE(type, "output type", "uchar");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

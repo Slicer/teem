@@ -31,7 +31,7 @@ convertMain(int argc, char **argv, char *me) {
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input nrrd");
-  OPT_ADD_TYPE(type, "type to convert to");
+  OPT_ADD_TYPE(type, "type to convert to", NULL);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

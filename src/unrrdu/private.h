@@ -57,8 +57,8 @@ extern "C" {
 	     &(saw), NULL, &unuPosHestCB)
 
 /* int var */
-#define OPT_ADD_TYPE(var, desc) \
-  hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &(var), NULL, desc, \
+#define OPT_ADD_TYPE(var, desc, dflt) \
+  hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &(var), dflt, desc, \
              NULL, nrrdType)
 
 extern hestParm *hparm;
