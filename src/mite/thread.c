@@ -43,7 +43,7 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
       biffMove(MITE, err, GAGE); return 1;
     }
   }
-  (*mttP)->ans = (*mttP)->gctx->pvl[0]->ans;
+  (*mttP)->ansScl = (*mttP)->gctx->pvl[0]->ans;
   (*mttP)->norm = (*mttP)->ans + gageKindScl->ansOffset[gageSclNormal];
   (*mttP)->nPerp = (*mttP)->ans + gageKindScl->ansOffset[gageSclNPerp];
   (*mttP)->gten = (*mttP)->ans + gageKindScl->ansOffset[gageSclGeomTens];

@@ -24,11 +24,18 @@
 extern "C" {
 #endif
 
+#if GAGE_TYPE_FLOAT
+#define limnVtoQN_GT limnVtoQN_f
+#else
+#define limnVtoQN_GT limnVtoQN_d
+#endif
+
 /* txf.c */
-extern int _miteDomainParse(char *label, gageKind *kind);
-extern unsigned int _miteNtxfQuery(Nrrd *ntxf, gageKind *kind);
+extern void _miteQuery(unsigned int *queryScl, 
+		       unsigned int *queryVec, 
+		       unsigned int *queryTen, gageQuerySpec *qsp);
 extern int _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu);
-extern int _miteStageSet(miteThread *mtt, miteRender *mrr, gageKind *kind);
+extern int _miteStageSet(miteThread *mtt, miteRender *mrr);
 extern void _miteStageRun(miteThread *mtt);
 
 /* user.c */

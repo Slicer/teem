@@ -35,7 +35,7 @@ miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
     fprintf(stderr, "%d/%d ", vIndex, muu->hctx->imgSize[1]);
     fflush(stderr);
   }
-  mtt->verbose = 0*(uIndex == 35 && vIndex == 42);
+  mtt->verbose = (uIndex == muu->verbUi && vIndex == muu->verbVi);
   mtt->RR = mtt->GG = mtt->BB = 0.0;
   mtt->TT = 1.0;
   ELL_3V_SCALE(mtt->V, -1, rayDirWorld);
@@ -61,34 +61,42 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
   kd = mtt->range[miteRangeKd];
   ks = mtt->range[miteRangeKs];
   ELL_3V_SCALE(ad, ka, muu->lit->amb);
-  if (!muu->noDirLight && (kd || ks)) {
-    if (muu->normalSide) {
-      ELL_3V_SCALE(N, -muu->normalSide, mtt->norm);
-    } else {
-      ELL_3V_COPY(N, mtt->norm);
+  if (miteShadeMethodPhong == mrr->shpec->shadeMethod) {
+    if (kd || ks) {
+      if (muu->normalSide) {
+	ELL_3V_SCALE(N, -muu->normalSide, mtt->vec0);
+      } else {
+	ELL_3V_COPY(N, mtt->vec0);
+      }
+      if (kd) {
+	LdotN = ELL_3V_DOT(muu->lit->dir[0], N);
+	if (!muu->normalSide) {
+	  LdotN = AIR_ABS(LdotN);
+	}
+	if (LdotN > 0) {
+	  ELL_3V_SCALE_ADD2(ad, 1.0, ad, LdotN*kd, muu->lit->col[0]);
+	}
+      }
+      if (ks) {
+	sp = mtt->range[miteRangeSP];
+	ELL_3V_ADD2(H, muu->lit->dir[0], mtt->V);
+	ELL_3V_NORM(H, H, tmp);
+	HdotN = ELL_3V_DOT(H, N);
+	if (!muu->normalSide) {
+	  HdotN = AIR_ABS(HdotN);
+	}
+	if (HdotN > 0) {
+	  HdotN = pow(HdotN, sp);
+	  ELL_3V_SCALE(s, HdotN*ks, muu->lit->col[0]);
+	}
+      }
     }
-    if (kd) {
-      LdotN = ELL_3V_DOT(muu->lit->dir[0], N);
-      if (!muu->normalSide) {
-	LdotN = AIR_ABS(LdotN);
-      }
-      if (LdotN > 0) {
-	ELL_3V_SCALE_ADD2(ad, 1.0, ad, LdotN*kd, muu->lit->col[0]);
-      }
-    }
-    if (ks) {
-      sp = mtt->range[miteRangeSP];
-      ELL_3V_ADD2(H, muu->lit->dir[0], mtt->V);
-      ELL_3V_NORM(H, H, tmp);
-      HdotN = ELL_3V_DOT(H, N);
-      if (!muu->normalSide) {
-	HdotN = AIR_ABS(HdotN);
-      }
-      if (HdotN > 0) {
-	HdotN = pow(HdotN, sp);
-	ELL_3V_SCALE(s, HdotN*ks, muu->lit->col[0]);
-      }
-    }
+  } else if (miteShadeMethodLitTen == mrr->shpec->shadeMethod) {
+
+  } else {
+    fprintf(stderr, "!%s: PANIC, shadeMethod %d unimplemented\n", 
+	    me, mrr->shpec->shadeMethod);
+    exit(1);
   }
   *R = (E - 1 + ad[0])*col[0] + s[0];
   *G = (E - 1 + ad[1])*col[1] + s[1];
@@ -120,7 +128,7 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
     return mtt->rayStep;
   }
 
-  if (1-mtt->TT >= muu->near1 && !muu->justSum) {
+  if (1-mtt->TT >= muu->opacNear1) {
     /* early ray termination */
     mtt->TT = 0.0;
     return 0.0;
@@ -131,26 +139,26 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
     sprintf(err, "%s: gage trouble: %s (%d)", me, gageErrStr, gageErrNum);
     biffAdd(MITE, err); return AIR_NAN;
   }
-  /* HEY: NONE of this should be done if the txfs don't need any miteScl */
-  mtt->mscl[miteSclXw] = samplePosWorld[0];
-  mtt->mscl[miteSclXi] = samplePosIndex[0];
-  mtt->mscl[miteSclYw] = samplePosWorld[1];
-  mtt->mscl[miteSclYi] = samplePosIndex[1];
-  mtt->mscl[miteSclZw] = samplePosWorld[2];
-  mtt->mscl[miteSclZi] = samplePosIndex[2];
-  mtt->mscl[miteSclTw] = rayT;
-  mtt->mscl[miteSclTi] = num;
-  mtt->mscl[miteSclNdotV] = -muu->normalSide*ELL_3V_DOT(mtt->V, mtt->norm);
-  mtt->mscl[miteSclNdotL] = -muu->normalSide*ELL_3V_DOT(mtt->norm,
-							muu->lit->dir[0]);
+  /* HEY: NONE of this should be done if the txfs don't need any miteVal */
+  mtt->ansMiteVal[miteValXw] = samplePosWorld[0];
+  mtt->ansMiteVal[miteValXi] = samplePosIndex[0];
+  mtt->ansMiteVal[miteValYw] = samplePosWorld[1];
+  mtt->ansMiteVal[miteValYi] = samplePosIndex[1];
+  mtt->ansMiteVal[miteValZw] = samplePosWorld[2];
+  mtt->ansMiteVal[miteValZi] = samplePosIndex[2];
+  mtt->ansMiteVal[miteValTw] = rayT;
+  mtt->ansMiteVal[miteValTi] = num;
+  mtt->ansMiteVal[miteValNdotV] = -muu->normalSide*ELL_3V_DOT(mtt->V, mtt->vec0);
+  mtt->ansMiteVal[miteValNdotL] = -muu->normalSide*ELL_3V_DOT(mtt->vec0,
+							      muu->lit->dir[0]);
   if (!muu->normalSide) {
-    mtt->mscl[miteSclNdotV] = AIR_ABS(mtt->mscl[miteSclNdotV]);
-    mtt->mscl[miteSclNdotL] = AIR_ABS(mtt->mscl[miteSclNdotL]);
+    mtt->ansMiteVal[miteValNdotV] = AIR_ABS(mtt->ansMiteVal[miteValNdotV]);
+    mtt->ansMiteVal[miteValNdotL] = AIR_ABS(mtt->ansMiteVal[miteValNdotL]);
   }
   ELL_3MV_MUL(kn, mtt->nPerp, mtt->V);
   ELL_3V_NORM(kn, kn, len);
   ELL_3MV_MUL(knd, mtt->gten, kn);
-  mtt->mscl[miteSclGTdotV] = ELL_3V_DOT(knd, kn);
+  mtt->ansMiteVal[miteValGTdotV] = ELL_3V_DOT(knd, kn);
   
   memcpy(mtt->range, muu->rangeInit, MITE_RANGE_NUM*sizeof(mite_t));
   _miteStageRun(mtt);
@@ -161,17 +169,10 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
 	      me, mtt->RR, mtt->GG, mtt->BB, mtt->TT);
     }
     _miteRGBACalc(&R, &G, &B, &A, mtt, mrr, muu);
-    if (muu->justSum) {
-      mtt->RR += A*R;
-      mtt->GG += A*G;
-      mtt->BB += A*B;
-      mtt->TT += A;
-    } else {
-      mtt->RR += mtt->TT*A*R;
-      mtt->GG += mtt->TT*A*G;
-      mtt->BB += mtt->TT*A*B;
-      mtt->TT *= 1-A;
-    }
+    mtt->RR += mtt->TT*A*R;
+    mtt->GG += mtt->TT*A*G;
+    mtt->BB += mtt->TT*A*B;
+    mtt->TT *= 1-A;
     if (mtt->verbose) {
       fprintf(stderr, "%s: after compositing: RGBT = %g,%g,%g,%g\n",
 	      me, mtt->RR, mtt->GG, mtt->BB, mtt->TT);

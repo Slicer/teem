@@ -33,4 +33,7 @@ int
 miteDefNormalSide = 1;
 
 double
-miteDefNear1 = 0.99;
+miteDefOpacNear1 = 0.98;
+
+double
+miteDefOpacMatters = 0.05;

@@ -30,10 +30,13 @@ miteUserNew() {
     return NULL;
 
   muu->umop = airMopNew();
-  muu->nin = NULL;
+  muu->nsin = NULL;
+  muu->nvin = NULL;
+  muu->ntin = NULL;
   muu->ntxf = NULL;              /* managed by user (with miter: hest) */
   muu->nout = NULL;              /* managed by user (with miter: hest) */
   muu->ntxfNum = 0;
+  muu->shadeStr[0] = 0;
   for (i=0; i<MITE_RANGE_NUM; i++) {
     muu->rangeInit[i] = 1.0;
   }
@@ -51,8 +54,8 @@ miteUserNew() {
   gageParmSet(muu->gctx0, gageParmRequireAllSpacings, AIR_FALSE);
   muu->lit = limnLightNew();
   airMopAdd(muu->umop, muu->lit, (airMopper)limnLightNix, airMopAlways);
-  muu->justSum = AIR_FALSE;
-  muu->noDirLight = AIR_FALSE;
+  muu->normalSide = miteDefNormalSide;
+  muu->verbUi = muu->verbVi = -1;
   muu->rendTime = 0;
   muu->sampRate = 0;
   return muu;
@@ -83,7 +86,7 @@ _miteUserCheck(miteUser *muu) {
   }
   gotOpac = AIR_FALSE;
   for (T=0; T<muu->ntxfNum; T++) {
-    if (miteNtxfCheck(muu->ntxf[T], gageKindScl)) {
+    if (miteNtxfCheck(muu->ntxf[T])) {
       sprintf(err, "%s: ntxf[%d] (%d of %d) can't be used as a txf",
 	      me, T, T+1, muu->ntxfNum);
       biffAdd(MITE, err); return 1;
@@ -91,16 +94,31 @@ _miteUserCheck(miteUser *muu) {
     gotOpac |= !!strchr(muu->ntxf[T]->axis[0].label, 'A');
   }
   if (!gotOpac) {
-    fprintf(stderr, "\n\n%s: !!! WARNING !!! opacity (\"A\") not set "
-	    "by any transfer function\n\n", me);
+    fprintf(stderr, "\n\n%s: ****************************************"
+	    "************************\n", me);
+    fprintf(stderr, "%s: !!! WARNING !!! opacity (\"A\") not set "
+	    "by any transfer function\n", me);
+    fprintf(stderr, "%s: ****************************************"
+	    "************************\n\n\n", me);
   }
   if (!muu->nout) {
     sprintf(err, "%s: rendered image nrrd is NULL", me);
     biffAdd(MITE, err); return 1;
   }
-  if (gageVolumeCheck(muu->gctx0, muu->nin, gageKindScl)) {
-    sprintf(err, "%s: trouble with input volume", me);
-    biffMove(MITE, err, GAGE); return 1;
+  if (!(muu->nsin || muu->ntin)) {
+    sprintf(err, "%s: got neither scalar nor tensor volume", me);
+    biffAdd(MITE, err); return 1;
+  }
+  if (muu->nsin) {
+    if (gageVolumeCheck(muu->gctx0, muu->nsin, gageKindScl)) {
+      sprintf(err, "%s: trouble with input scalar volume", me);
+      biffMove(MITE, err, GAGE); return 1;
+    }
+  } else {
+    if (gageVolumeCheck(muu->gctx0, muu->ntin, tenGageKind)) {
+      sprintf(err, "%s: trouble with input tensor volume", me);
+      biffMove(MITE, err, GAGE); return 1;
+    }
   }
 
   return 0;

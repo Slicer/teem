@@ -43,10 +43,10 @@ $(L).SEEN := true
 #### Describe library here
 #### (ell for macros)
 ####
-$(L).NEED = hoover limn gage ell nrrd biff air
+$(L).NEED = ten hoover limn gage ell nrrd biff air
 $(L).PUBLIC_HEADERS = mite.h
 $(L).PRIVATE_HEADERS = privateMite.h
-$(L).OBJS = defaultsMite.o user.o txf.o renderMite.o thread.o ray.o
+$(L).OBJS = defaultsMite.o kindnot.o renderMite.o thread.o ray.o txf.o user.o
 ####
 ####
 ####
