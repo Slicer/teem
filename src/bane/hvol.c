@@ -69,9 +69,9 @@ _baneValidAxis(baneAxis *ax) {
 }
 
 void
-_baneProbe(double val[3],
-	   Nrrd *nin, baneHVolParm *hvp, gageContext *ctx,
-	   int x, int y, int z) {
+baneProbe(double val[3],
+	  Nrrd *nin, baneHVolParm *hvp, gageContext *ctx,
+	  int x, int y, int z) {
   gageSclAnswer *san;
   float *data=NULL;
 
@@ -99,9 +99,9 @@ _baneProbe(double val[3],
 }
 
 int
-_baneFindInclusion(double min[3], double max[3], 
-		   Nrrd *nin, baneHVolParm *hvp, gageContext *ctx) {
-  char me[]="_baneFindInclusion", err[AIR_STRLEN_MED], prog[13],
+baneFindInclusion(double min[3], double max[3], 
+		  Nrrd *nin, baneHVolParm *hvp, gageContext *ctx) {
+  char me[]="baneFindInclusion", err[AIR_STRLEN_MED], prog[13],
     aname[3][AIR_STRLEN_SMALL] = {"grad-mag", "2nd deriv", "data value"};
   int sx, sy, sz, x, y, z, E, ai;
   baneInc *inc[3];
@@ -179,7 +179,7 @@ _baneFindInclusion(double min[3], double max[3],
 	  fflush(stderr);
 	}
 	for (x=0; x<sx; x++) {
-	  _baneProbe(val, nin, hvp, ctx, x, y, z);
+	  baneProbe(val, nin, hvp, ctx, x, y, z);
 	  if (inc[0]->passA) inc[0]->passA(hist[0], val[0],
 					   hvp->ax[0].incParm);
 	  if (inc[1]->passA) inc[1]->passA(hist[1], val[1],
@@ -224,7 +224,7 @@ _baneFindInclusion(double min[3], double max[3],
 	  fflush(stderr);
 	}
 	for (x=0; x<sx; x++) {
-	  _baneProbe(val, nin, hvp, ctx, x, y, z);
+	  baneProbe(val, nin, hvp, ctx, x, y, z);
 	  if (inc[0]->passB) inc[0]->passB(hist[0], val[0],
 					   hvp->ax[0].incParm);
 	  if (inc[1]->passB) inc[1]->passB(hist[1], val[1],
@@ -341,7 +341,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   }
   pad = ctx->fr;
   
-  if (_baneFindInclusion(min, max, nin, hvp, ctx)) {
+  if (baneFindInclusion(min, max, nin, hvp, ctx)) {
     sprintf(err, "%s: trouble finding inclusion ranges", me);
     biffAdd(BANE, err); return 1;
   }
@@ -391,7 +391,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
 	fflush(stderr);
       }
       for (x=pad; x<sx-pad; x++) {
-	_baneProbe(val, nin, hvp, ctx, x, y, z);
+	baneProbe(val, nin, hvp, ctx, x, y, z);
 	if (!( AIR_INSIDE(min[0], val[0], max[0]) &&
 	       AIR_INSIDE(min[1], val[1], max[1]) &&
 	       AIR_INSIDE(min[2], val[2], max[2]) )) {

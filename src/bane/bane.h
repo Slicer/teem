@@ -357,6 +357,11 @@ extern int baneValidPos(Nrrd *pos, int wantDim);
 extern int baneValidBcpts(Nrrd *Bcpts);
 
 /* hvol.c */
+extern void baneProbe(double val[3],
+		      Nrrd *nin, baneHVolParm *hvp, gageContext *ctx,
+		      int x, int y, int z);
+extern int baneFindInclusion(double min[3], double max[3], 
+			     Nrrd *nin, baneHVolParm *hvp, gageContext *ctx);
 extern int baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp);
 extern Nrrd *baneGKMSHVol(Nrrd *nin, float gradPerc, float hessPerc);
 
