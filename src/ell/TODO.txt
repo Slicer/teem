@@ -1,4 +1,0 @@
-make the returned eigenframe always right-handed
-
-debug the eigensystem stuff to make sure that its reported eigenvectors
-are really perpendicular

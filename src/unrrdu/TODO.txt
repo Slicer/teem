@@ -1,4 +1,4 @@
-unu minmax, unu head takes multiple arguments
+unu minmax takes multiple arguments
 
 enable the unu 2op and 3op operations that output integers to save
 the output as, say, signed char, instead of float.  This is different

@@ -1,8 +1,6 @@
 unu heq should not DIE if min==max, it should just be a no-op.
 unu heq -s 2 shouldn't DIE if there are only 2 bins with any hits
 
-strip min,max,hasNonExist from nrrd struct
-
 when reading raw data, make sure that after all data has been
 accounted for by nrrdReadDataRaw(), make sure that a subsequent
 fgetc() returns EOF.  If not, warning to stderr. But not if
@@ -24,17 +22,11 @@ purify unu {lut, rmap, imap} with scalar and nonscalar,
 check resampler getting info with NULL kernel on each axis
 (bug that Joe and I had with qbert when no resmapling was needed)
 
-change IO verbosity to get indication of successful DIO reading
-
 write a select() function to replace qsort() in median calculation
 
 be sure to test all non-boolean state/default variables
 
 add one-line descriptions to function declarations in nrrd.h
-
------ teem 1.5 cut-off -----
-
-axisSplit, axisMerge
 
 2D luts/rmaps
 
@@ -52,8 +44,6 @@ kernels: teach them their derivatives, or if they are derivatives,
 and how accurate they are.  Perhaps kernels don't actually belong in nrrd.
 
 split?  (reverse of join)
-
------ teem 1.6 cut-off -----
 
 clarify and document all IO stuff
 

@@ -1,9 +1,4 @@
-check curvature calculations being off by a factor of two
-
 test gageContextCopy
-
-add kernel flags to qbert, make them match those in mrender
-and miter.
 
 add flags for explicitly specifying gmax, hmax, vrange
 
@@ -14,9 +9,8 @@ add flags for explicitly specifying gmax, hmax, vrange
 change type of iv3Fill to take (int xi,int yi,int zi) instead of void
 *here; one step towards supporting bricking.
 
-tests:
-two pervolumes with different sized volumes
-NRWS doing its job
+test: two pervolumes with different sized volumes
+test: NRWS doing its job
 
 retest comparison of upsampling by probing and by unu resample
 

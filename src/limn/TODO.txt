@@ -1,5 +1,5 @@
 pnm2eps
 
-limn: postscript generation of 1D data plots
-      camera paths!, and general animation stuff
+postscript generation of 1D data plots
 
+camera paths, and other general animation stuff

@@ -1,11 +1,4 @@
-add direct support for diffusion tensor glyphs (link against ten)
-
 z-depth to image channels
-cube/sphere glyphs
 debug glass (tri-mesh of slab vs slab as instanced cube)
 motion blur
 alpha in image texture maps
-
-see if the parm struct should not be an arg to any of the functions,
-now that global echoVerbose exists
-
