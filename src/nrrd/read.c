@@ -779,7 +779,7 @@ _nrrdReadNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io) {
     fprintf(stderr, "done)\n");
   }
   if (io->seperateHeader && stdin != io->dataFile) {
-    if (!io->keepSeperateDataFileOpen) {
+    if (!io->keepSeperateDataFileOpen && !io->skipData) {
       io->dataFile = airFclose(io->dataFile);
     }
   } else {

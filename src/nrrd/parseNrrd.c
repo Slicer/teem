@@ -468,29 +468,31 @@ _nrrdReadNrrdParse_data_file (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_data_file", err[AIR_STRLEN_MED], *dataName;
   char *info;
 
-  info = io->line + io->pos;
-  if (!strncmp(info, _nrrdRelDirFlag, strlen(_nrrdRelDirFlag))) {
-    /* data file directory is relative to header directory */
-    if (!io->dir) {
-      sprintf(err, "%s: want header-relative data file, but don't know "
-	      "directory of header", me);
+  if (!io->skipData) {
+    info = io->line + io->pos;
+    if (!strncmp(info, _nrrdRelDirFlag, strlen(_nrrdRelDirFlag))) {
+      /* data file directory is relative to header directory */
+      if (!io->dir) {
+	sprintf(err, "%s: want header-relative data file, but don't know "
+		"directory of header", me);
+	biffMaybeAdd(NRRD, err, useBiff); return 1;
+      }
+      info += strlen(_nrrdRelDirFlag);
+      dataName = malloc(strlen(io->dir) + strlen(info) + 2);
+      sprintf(dataName, "%s/%s", io->dir, info);
+    } else {
+      /* data file's name is absolute (not header-relative) */
+      dataName = airStrdup(info);
+    }
+    if (!(io->dataFile = fopen(dataName, "rb"))) {
+      sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s",
+	      me, dataName, strerror(errno));
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
-    info += strlen(_nrrdRelDirFlag);
-    dataName = malloc(strlen(io->dir) + strlen(info) + 2);
-    sprintf(dataName, "%s/%s", io->dir, info);
-  } else {
-    /* data file's name is absolute (not header-relative) */
-    dataName = airStrdup(info);
-  }
-  if (!(io->dataFile = fopen(dataName, "rb"))) {
-    sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s",
-	    me, dataName, strerror(errno));
-    biffMaybeAdd(NRRD, err, useBiff); return 1;
+    /* the seperate data file will be closed in _nrrdReadNrrd() */
+    free(dataName);
   }
   io->seperateHeader = AIR_TRUE;
-  /* the seperate data file will be closed in _nrrdReadNrrd() */
-  free(dataName);
   return 0;
 }
 
