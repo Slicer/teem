@@ -64,7 +64,7 @@ gageShapeNix (gageShape *shape) {
 ** we are serving two masters here.  If ctx is non-NULL, we are being called
 ** from within gage, and we are to be lax or strict according to the settings
 ** of ctx->parm.requireAllSpacings and ctx->parm.requireEqualCenters.  If
-** ctx is non-NULL, gageShapeSet was called, in which case we go with lax
+** ctx is NULL, gageShapeSet was called, in which case we go with lax
 ** behavior (nothing "required")
 **
 ** This function has subsumed the old gageVolumeCheck.

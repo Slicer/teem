@@ -134,7 +134,7 @@ gageStructureTensor (Nrrd *nout, Nrrd *nin,
   ik0->parm[0] = 1.0;       /* this is more complicated ... */
   ctx = gageContextNew();
   airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
-  gageSet(ctx, gageParmRenormalize, AIR_TRUE);
+  gageParmSet(ctx, gageParmRenormalize, AIR_TRUE);
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, gageKindScl));
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);

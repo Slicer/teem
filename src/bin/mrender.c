@@ -463,8 +463,8 @@ main(int argc, char *argv[]) {
     airMopError(mop);
     return 1;
   }
-  gageSet(uu->gctx0, gageParmGradMagCurvMin, gmc);
-  gageSet(uu->gctx0, gageParmRenormalize, renorm);
+  gageParmSet(uu->gctx0, gageParmGradMagCurvMin, gmc);
+  gageParmSet(uu->gctx0, gageParmRenormalize, renorm);
   fprintf(stderr, "%s: will render %s of %s\n", me,
 	  airEnumStr(nrrdMeasure, uu->measr),
 	  airEnumStr(gageKindScl->enm, uu->whatq));

@@ -102,7 +102,7 @@ typedef double gage_t;
 ** - gageParm* enum
 ** - fields of gageParm struct
 ** - analagous gageDef* defaults (their declaration and setting)
-** - action of gageSet
+** - action of gageParmSet
 ** - action of gageParmReset
 */
 enum {
@@ -645,7 +645,7 @@ extern int gageQuerySet(gageContext *ctx,
 extern gageContext *gageContextNew();
 extern gageContext *gageContextCopy(gageContext *ctx);
 extern gageContext *gageContextNix(gageContext *ctx);
-extern void gageSet(gageContext *ctx, int which, gage_t val);
+extern void gageParmSet(gageContext *ctx, int which, gage_t val);
 extern int gagePerVolumeIsAttached(gageContext *ctx, gagePerVolume *pvl);
 extern int gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl);
 extern int gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl);

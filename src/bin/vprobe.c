@@ -162,10 +162,10 @@ main(int argc, char *argv[]) {
   ***/
   ctx = gageContextNew();
   airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
-  gageSet(ctx, gageParmGradMagCurvMin, gmc);
-  gageSet(ctx, gageParmVerbose, 1);
-  gageSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
-  gageSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
+  gageParmSet(ctx, gageParmGradMagCurvMin, gmc);
+  gageParmSet(ctx, gageParmVerbose, 1);
+  gageParmSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
+  gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
@@ -181,7 +181,7 @@ main(int argc, char *argv[]) {
     return 1;
   }
   answer = gageAnswerPointer(ctx, pvl, what);
-  gageSet(ctx, gageParmVerbose, 0);
+  gageParmSet(ctx, gageParmVerbose, 0);
   /***
   **** end gage setup.
   ***/
