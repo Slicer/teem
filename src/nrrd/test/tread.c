@@ -22,25 +22,24 @@
 
 int
 main(int argc, char *argv[]) {
-  char *me, *ninS, *noutS, *err;
+  char *me, *ninName, *noutName, *err;
   Nrrd *nin;
 
   me = argv[0];
-  if (2 != argc) {
+  if (3 != argc) {
     /*                       0   1     2   (3) */
     fprintf(stderr, "usage: %s <nin> <nout>\n", me);
     exit(1);
   }
-  ninS = argv[1];
-  noutS = argv[2];
-  nin = nrrdNew();
-  if (nrrdLoad(nin, ninS)) {
-    fprintf(stderr, "%s: couldn't open nrrd \"%s\":\n%s", me, ninS,
+  ninName = argv[1];
+  noutName = argv[2];
+  if (nrrdLoad(nin=nrrdNew(), ninName)) {
+    fprintf(stderr, "%s: couldn't open nrrd \"%s\":\n%s", me, ninName,
 	    err = biffGetDone(NRRD));
     free(err); exit(1);
   }
-  if (nrrdSave(noutS, nin, NULL)) {
-    fprintf(stderr, "%s: trouble saving nrrd to \"%s\":\n%s", me, noutS,
+  if (nrrdSave(noutName, nin, NULL)) {
+    fprintf(stderr, "%s: trouble saving nrrd to \"%s\":\n%s", me, noutName,
 	    err = biffGetDone(NRRD));
     free(err); exit(1);
   }
