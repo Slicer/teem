@@ -84,12 +84,12 @@ bopMain(int argc, char **argv, char *me) {
     E = 0;
     if (in1->nrrd) {
       if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in1->nrrd, type);
-      if (!E) { nrrdNuke(in1->nrrd); in1->nrrd = ntmp; }
+      if (!E) { nrrdNuke(in1->nrrd); nrrdIterSetNrrd(in1, ntmp); }
       /* nrrdSave("in1.nrrd", in1->nrrd, NULL); */
     }
     if (in2->nrrd) {
       if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in2->nrrd, type);
-      if (!E) { nrrdNuke(in2->nrrd); in2->nrrd = ntmp; }
+      if (!E) { nrrdNuke(in2->nrrd); nrrdIterSetNrrd(in2, ntmp); }
       /* nrrdSave("in2.nrrd", in1->nrrd, NULL); */
     }
     if (E) {

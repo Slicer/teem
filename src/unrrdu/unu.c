@@ -174,10 +174,11 @@ unuParseNrrdIter(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   }
   iterP = ptr;
   mop = airMopInit();
+  *iterP = nrrdIterNew();
+  airMopAdd(mop, *iterP, (airMopper)nrrdIterNuke, airMopOnError);
   if (1 == airSingleSscanf(str, "%lf", &val)) {
     /* printf("%s: parsed single value %g\n", me, val); */
-    *iterP = nrrdIterFromValue(val);
-    /* mopped below */
+    nrrdIterSetValue(*iterP, val);
   }
   else {
     if (nrrdLoad(nrrd = nrrdNew(), str)) {
@@ -185,11 +186,8 @@ unuParseNrrdIter(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
       strncpy(err, nerr, AIR_STRLEN_HUGE-1);
       return 1;
     }
-    airMopAdd(mop, nrrd, (airMopper)nrrdNuke, airMopOnError);
-    *iterP = nrrdIterFromNrrd(nrrd);
-    /* mopped below */
+    nrrdIterSetNrrd(*iterP, nrrd);
   }
-  airMopAdd(mop, *iterP, (airMopper)nrrdIterNix, airMopOnError);
   airMopAdd(mop, iterP, (airMopper)airSetNull, airMopOnError);
   airMopOkay(mop);
   return 0;

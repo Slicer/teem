@@ -25,9 +25,10 @@ LIB_OBJS = \
 	accessors.o  arith.o      arrays.o     apply.o      \
 	axes.o       comment.o    convert.o    defaults.o   \
 	endian.o     enums.o      filt.o       histogram.o  \
-        kernel.o     map.o        measure.o    methods.o    \
-	parse.o      read.o       reorder.o    rsmp.o       \
-	simple.o     subset.o     superset.o   write.o
+        iter.o       kernel.o     map.o        measure.o    \
+	methods.o    parse.o      read.o       reorder.o    \
+	rsmp.o       simple.o     subset.o     superset.o   \
+	write.o
 
 #TEST_BINS = test/enum2str test/str2enum 
 TEST_BINS = test/shuff test/ax test/io test/minmax test/tkernel

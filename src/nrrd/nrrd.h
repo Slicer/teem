@@ -322,8 +322,12 @@ extern int nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim, ...);
 extern int nrrdPPM(Nrrd *, int sx, int sy);
 extern int nrrdPGM(Nrrd *, int sx, int sy);
 extern int nrrdTable(Nrrd *table, int sx, int sy);
-extern NrrdIter *nrrdIterFromNrrd(Nrrd *nrrd);
-extern NrrdIter *nrrdIterFromValue(double val);
+
+/******** nrrd value iterator gadget */
+/* (iter.c) */
+extern NrrdIter *nrrdIterNew(void);
+extern void nrrdIterSetValue(NrrdIter *iter, double val);
+extern void nrrdIterSetNrrd(NrrdIter *iter, Nrrd *nrrd);
 extern double nrrdIterValue(NrrdIter *iter);
 extern NrrdIter *nrrdIterNix(NrrdIter *iter);
 extern NrrdIter *nrrdIterNuke(NrrdIter *iter);
