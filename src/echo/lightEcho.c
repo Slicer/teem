@@ -22,6 +22,7 @@
 #define NEW_TMPL(TYPE, BODY)                                     \
 EchoLight##TYPE *                                                \
 _echoLight##TYPE##_new(void) {                                   \
+  int dummy=0;                                                   \
   EchoLight##TYPE *light;                                        \
                                                                  \
   light = (EchoLight##TYPE *)calloc(1, sizeof(EchoLight##TYPE)); \
@@ -30,19 +31,19 @@ _echoLight##TYPE##_new(void) {                                   \
   return light;                                                  \
 }
 
-NEW_TMPL(Directional,)            /* _echoLightDirectional_new */
-NEW_TMPL(Area,                    /* _echoLightArea_new */
+NEW_TMPL(Directional,dummy=dummy;) /* _echoLightDirectional_new */
+NEW_TMPL(Area,                     /* _echoLightArea_new */
 	 light->obj = NULL;
 	 );
 
-EchoLight *(*
+EchoLight_ *(*
 _echoLightNew[ECHO_LIGHT_MAX+1])(void) = {
   NULL,
-  (EchoLight *(*)(void))_echoLightDirectional_new,
-  (EchoLight *(*)(void))_echoLightArea_new
+  (EchoLight_ *(*)(void))_echoLightDirectional_new,
+  (EchoLight_ *(*)(void))_echoLightArea_new
 };
 
-EchoLight *
+EchoLight_ *
 echoLightNew(int type) {
   
   return _echoLightNew[type]();
@@ -58,15 +59,15 @@ _echoLightArea_nix(EchoLightArea *area) {
   return NULL;
 }
 
-EchoLight *(*
-_echoLightNix[ECHO_LIGHT_MAX+1])(EchoLight *) = {
+EchoLight_ *(*
+_echoLightNix[ECHO_LIGHT_MAX+1])(EchoLight_ *) = {
   NULL,
-  (EchoLight *(*)(EchoLight *))airFree,
-  (EchoLight *(*)(EchoLight *))_echoLightArea_nix
+  (EchoLight_ *(*)(EchoLight_ *))airFree,
+  (EchoLight_ *(*)(EchoLight_ *))_echoLightArea_nix
 };
 
-EchoLight *
-echoLightNix(EchoLight *light) {
+EchoLight_ *
+echoLightNix(EchoLight_ *light) {
 
   return _echoLightNix[light->type](light);
 }
@@ -75,20 +76,20 @@ airArray *
 echoLightArrayNew() {
   airArray *ret;
 
-  ret = airArrayNew(NULL, NULL, sizeof(EchoLight *), 1);
+  ret = airArrayNew(NULL, NULL, sizeof(EchoLight_ *), 1);
   airArrayPointerCB(ret, airNull, (void *(*)(void *))echoLightNix);
   return ret;
 }
 
 void
-echoLightArrayAdd(airArray *lightArr, EchoLight *light) {
+echoLightArrayAdd(airArray *lightArr, EchoLight_ *light) {
   int idx;
   
   if (!(lightArr && light))
     return;
 
   idx = airArrayIncrLen(lightArr, 1);
-  ((EchoLight **)lightArr->data)[idx] = light;
+  ((EchoLight_ **)lightArr->data)[idx] = light;
 }
 
 airArray *
@@ -101,7 +102,7 @@ echoLightArrayNix(airArray *lightArr) {
 }
 
 void
-echoLightDirectionalSet(EchoLight *_light,
+echoLightDirectionalSet(EchoLight_ *_light,
 			echoCol_t r, echoCol_t g, echoCol_t b,
 			echoPos_t x, echoPos_t y, echoPos_t z) {
   EchoLightDirectional *light;
@@ -116,7 +117,7 @@ echoLightDirectionalSet(EchoLight *_light,
 }
   
 void
-echoLightAreaSet(EchoLight *_light, EchoObject *obj) {
+echoLightAreaSet(EchoLight_ *_light, EchoObject *obj) {
   EchoLightArea *light;
 
   if (_light && echoLightArea == _light->type) {

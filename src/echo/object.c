@@ -117,8 +117,9 @@ echoNew(int type) {
 #define NIX_TMPL(TYPE, BODY)                         \
 Echo##TYPE *                                         \
 _echo##TYPE##_nix(Echo##TYPE *obj) {                 \
+  int dummy=0;                                       \
                                                      \
-  do { BODY } while (0);                             \
+  do { BODY dummy=dummy;} while (0);                 \
   free(obj);                                         \
   return NULL;                                       \
 }
@@ -127,7 +128,7 @@ NIX_TMPL(TriMesh,
 	 free(obj->pos);
 	 free(obj->vert);
 	 );
-NIX_TMPL(Isosurface, /* ??? */);
+NIX_TMPL(Isosurface, dummy=dummy;);
 NIX_TMPL(AABBox,
 	 /* unset callbacks */
 	 airArrayPointerCB(obj->objArr, NULL, NULL);
@@ -142,7 +143,7 @@ NIX_TMPL(List,
 	 airArrayPointerCB(obj->objArr, NULL, NULL);
 	 airArrayNuke(obj->objArr);
 	 );
-NIX_TMPL(Instance, /* ??? */);
+NIX_TMPL(Instance, dummy=dummy;);
 
 EchoObject *(*
 _echoNix[ECHO_OBJECT_MAX+1])(EchoObject *) = {
@@ -179,8 +180,9 @@ echoNix(EchoObject *obj) {
 #define NUK_TMPL(TYPE, BODY)                         \
 Echo##TYPE *                                         \
 _echo##TYPE##_nuke(Echo##TYPE *obj) {                \
+  int dummy=0;                                       \
                                                      \
-  do { BODY } while (0);                             \
+  do { BODY dummy=dummy;} while (0);                 \
   free(obj);                                         \
   return NULL;                                       \
 }
@@ -189,7 +191,7 @@ NUK_TMPL(TriMesh,
 	 free(obj->pos);
 	 free(obj->vert);
 	 );
-NUK_TMPL(Isosurface, /* ??? */);
+NUK_TMPL(Isosurface, dummy=dummy;);
 NUK_TMPL(AABBox,
 	 /* due to airArray callbacks, this will nuke all kids */
 	 airArrayNuke(obj->objArr);

@@ -320,7 +320,7 @@ enum {
 
 typedef struct {
   ECHO_LIGHT_COMMON;
-} EchoLight;
+} EchoLight_;
 
 typedef struct {
   ECHO_LIGHT_COMMON;
@@ -337,15 +337,15 @@ typedef struct {
   /* ??? */
 } EchoLightArea;
 
-extern EchoLight *echoLightNew(int type);
-extern EchoLight *echoLightNix(EchoLight *light);
+extern EchoLight_ *echoLightNew(int type);
+extern EchoLight_ *echoLightNix(EchoLight_ *light);
 extern airArray *echoLightArrayNew();
-extern void echoLightArrayAdd(airArray *lightArr, EchoLight *light);
+extern void echoLightArrayAdd(airArray *lightArr, EchoLight_ *light);
 extern airArray *echoLightArrayNix(airArray *lightArr);
-extern void echoLightDirectionalSet(EchoLight *light,
+extern void echoLightDirectionalSet(EchoLight_ *light,
 				    echoCol_t r, echoCol_t g, echoCol_t b,
 				    echoPos_t x, echoPos_t y, echoPos_t z);
-extern void echoLightAreaSet(EchoLight *light, EchoObject *obj);
+extern void echoLightAreaSet(EchoLight_ *light, EchoObject *obj);
 
 /* methodsEcho.c --------------------------------------- */
 extern EchoParm *echoParmNew();

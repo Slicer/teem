@@ -56,7 +56,7 @@ _echoLightColDirArea(COLDIR_ARGS(Area)) {
   return;
 }
 
-typedef void (*_echoLightColDir_t)(COLDIR_ARGS( ));
+typedef void (*_echoLightColDir_t)(COLDIR_ARGS(_));
 
 _echoLightColDir_t
 _echoLightColDir[ECHO_LIGHT_MAX+1] = {
@@ -120,7 +120,7 @@ _echoIntxColorPhong(COLOR_ARGS) {
     refl[3],             /* unit-length reflection vector */
     ldist;               /* distance to light */
   int lt;
-  EchoLight *light;
+  EchoLight_ *light;
   EchoRay shRay;
   EchoIntx shIntx;
 
@@ -146,7 +146,7 @@ _echoIntxColorPhong(COLOR_ARGS) {
   ELL_3V_COPY(shRay.from, intx->pos);
   shRay.neer = ECHO_EPSILON;
   for (lt=0; lt<lightArr->len; lt++) {
-    light = ((EchoLight **)lightArr->data)[lt];
+    light = ((EchoLight_ **)lightArr->data)[lt];
     _echoLightColDir[light->type](lcol, ldir, &ldist, parm,
 				  light, samp, intx, tstate);
     tmp = ELL_3V_DOT(ldir, norm);
@@ -232,7 +232,7 @@ _echoIntxColorMetal(COLOR_ARGS) {
   EchoRay rfRay, shRay;
   EchoIntx shIntx;
   int lt;
-  EchoLight *light;
+  EchoLight_ *light;
 
   mat = intx->obj->mat;
 
@@ -268,7 +268,7 @@ _echoIntxColorMetal(COLOR_ARGS) {
     ELL_3V_COPY(shRay.from, intx->pos);
     shRay.neer = ECHO_EPSILON;
     for (lt=0; lt<lightArr->len; lt++) {
-      light = ((EchoLight **)lightArr->data)[lt];
+      light = ((EchoLight_ **)lightArr->data)[lt];
       _echoLightColDir[light->type](lcol, ldir, &ldist, parm,
 				    light, samp, intx, tstate);
       tmp = ELL_3V_DOT(ldir, norm);

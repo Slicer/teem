@@ -168,7 +168,7 @@ void
 makeSceneSimple(limnCam *cam, EchoParm *parm,
 		EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *scene, *tri, *rect, *sphere;
-  EchoLight *light;
+  EchoLight_ *light;
   airArray *lightArr;
 
   *sceneP = scene = echoNew(echoList);
@@ -184,9 +184,9 @@ makeSceneSimple(limnCam *cam, EchoParm *parm,
 
   parm->jitter = echoJitterJitter;
   echoVerbose = 0;
-  parm->samples = 36;
-  parm->imgResU = 400;
-  parm->imgResV = 400;
+  parm->samples = 4;
+  parm->imgResU = 200;
+  parm->imgResV = 200;
   parm->aperture = 0.0;
   parm->gamma = 2.0;
   parm->renderLights = AIR_FALSE;
@@ -267,7 +267,7 @@ void
 makeSceneTexture(limnCam *cam, EchoParm *parm,
 		  EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *scene, /* *trim, */ *rect, /* *inst, */ *sphere;
-  EchoLight *light;
+  EchoLight_ *light;
   airArray *lightArr;
   Nrrd *ntext;
 
@@ -345,7 +345,7 @@ void
 makeSceneInstance(limnCam *cam, EchoParm *parm,
 		  EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *scene, *trim, *rect, *inst;
-  EchoLight *light;
+  EchoLight_ *light;
   airArray *lightArr;
   echoPos_t matx[16], A[16], B[16];
   
@@ -513,7 +513,7 @@ void
 makeSceneGlass(limnCam *cam, EchoParm *parm,
 	       EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *cube, *rect;
-  EchoLight *light;
+  EchoLight_ *light;
   EchoObject *scene; airArray *lightArr;
   Nrrd *ntext;
   
@@ -573,7 +573,7 @@ void
 makeSceneGlass2(limnCam *cam, EchoParm *parm,
 		EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *cube, *rect;
-  EchoLight *light;
+  EchoLight_ *light;
   EchoObject *scene; airArray *lightArr;
   Nrrd *ntext;
   echoPos_t matx[16];
@@ -638,7 +638,7 @@ void
 makeSceneGlassMetal(limnCam *cam, EchoParm *parm,
 		    EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *sphere, *cube, *rect;
-  EchoLight *light;
+  EchoLight_ *light;
   EchoObject *scene; airArray *lightArr;
   
   *sceneP = scene = echoNew(echoList);
@@ -738,7 +738,7 @@ void
 makeSceneShadow(limnCam *cam, EchoParm *parm,
 		EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *sphere, *rect, *tri;
-  EchoLight *light;
+  EchoLight_ *light;
   EchoObject *scene; airArray *lightArr;
 
   *sceneP = scene = echoNew(echoList);
@@ -831,7 +831,7 @@ void
 makeSceneRainLights(limnCam *cam, EchoParm *parm,
 		    EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *sphere, *rect;
-  EchoLight *light;
+  EchoLight_ *light;
   int i, N;
   echoPos_t w;
   float r, g, b;
@@ -942,14 +942,14 @@ main(int argc, char **argv) {
   airMopAdd(mop, npgm, (airMopper)nrrdNuke, airMopAlways);
 
   /* makeSceneRainLights(cam, parm, &scene, &lightArr); */
-  makeSceneShadow(cam, parm, &scene, &lightArr);
+  /* makeSceneShadow(cam, parm, &scene, &lightArr); */
   /* makeSceneGlass(cam, parm, &scene, &lightArr); */
   /* makeSceneGlass2(cam, parm, &scene, &lightArr); */
   /* makeSceneGlassMetal(cam, parm, &scene, &lightArr); */
   /* makeSceneBVH(cam, parm, &scene, &lightArr); */
   /* makeSceneInstance(cam, parm, &scene, &lightArr); */
   /* makeSceneTexture(cam, parm, &scene, &lightArr); */
-  /* makeSceneSimple(cam, parm, &scene, &lightArr); */
+  makeSceneSimple(cam, parm, &scene, &lightArr);
   /* makeSceneAntialias(cam, parm, &scene, &lightArr); */
   /* makeSceneDOF(cam, parm, &scene, &lightArr); */
   airMopAdd(mop, scene, (airMopper)echoNuke, airMopAlways);
