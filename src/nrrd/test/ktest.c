@@ -70,7 +70,7 @@ main(int argc, char *argv[]) {
   if (!strncmp(tkS, kernS, strlen(tkS))) {
     kern = nrrdKernelBCCubic;
     if (2 != sscanf(kernS+strlen(tkS), ":%f,%f", param+1, param+2)) {
-      fprintf(stderr, "%s: couldn't parameters \"%s\" for %s kernel\n", 
+      fprintf(stderr, "%s: couldn't parse parameters \"%s\" for %s kernel\n", 
 	      me, kernS+strlen(tkS), tkS);
       usage();
     }
@@ -81,7 +81,7 @@ main(int argc, char *argv[]) {
   if (!strncmp(tkS, kernS, strlen(tkS))) {
     kern = nrrdKernelAQuartic;
     if (1 != sscanf(kernS+strlen(tkS), ":%f", param+1)) {
-      fprintf(stderr, "%s: couldn't parameters \"%s\" for %s kernel\n", 
+      fprintf(stderr, "%s: couldn't parse parameters \"%s\" for %s kernel\n", 
 	      me, kernS+strlen(tkS), tkS);
       usage();
     }
