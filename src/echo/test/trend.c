@@ -73,13 +73,13 @@ makeSceneTriMesh(limnCam *cam, EchoParam *param,
   echoObjectListAdd(scene, obj);
   */
   
-  light = echoLightNew(echoLightArea);
+  light = echoLightNew(echoLightDirectional);
   echoLightDirectionalSet(light, 1, 0, 0, 1, 0, 0);
   echoLightArrayAdd(lightArr, light);
-  light = echoLightNew(echoLightArea);
+  light = echoLightNew(echoLightDirectional);
   echoLightDirectionalSet(light, 0, 1, 0, 0, 1, 0);
   echoLightArrayAdd(lightArr, light);
-  light = echoLightNew(echoLightArea);
+  light = echoLightNew(echoLightDirectional);
   echoLightDirectionalSet(light, 0, 0, 1, 0, 0, 1);
   echoLightArrayAdd(lightArr, light);
 
