@@ -258,6 +258,17 @@ nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
       co[d]++; 
     }
   }
+
+  /* peripheral information */
+  for (d=0; d<=dim-1; d++) {
+    nout->size[d] = nin->size[d];
+    nout->spacing[d] = nin->spacing[d];
+    if (d != axis) {
+      nout->axisMin[d] = nin->axisMin[d];
+      nout->axisMax[d] = nin->axisMax[d];
+    }
+    strcpy(nout->label[d], nin->label[d]);
+  }
   return 0;
 }
 
@@ -487,5 +498,42 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis) {
   free(ninperm);
   nperm = nrrdNuke(nperm);
 
+  return 0;
+}
+
+/*
+******** nrrdFlip()
+**
+** reverse the order of slices along the given axis.
+** Actually, just a wrapper around nrrdShuffle()
+*/
+int
+nrrdFlip(Nrrd *nout, Nrrd *nin, int axis) {
+  char me[]="nrrdFlip", err[512];
+  int i, *perm;
+
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffSet(NRRD, err); return 1;
+  }
+  if (!(AIR_INSIDE(0, axis, nin->dim-1))) {
+    sprintf(err, "%s: given axis (%d) is outside valid range ([0,%d])", 
+	    me, axis, nin->dim-1);
+    biffSet(NRRD, err); return 1;
+  }
+  if (!(perm = calloc(nin->size[axis], sizeof(int)))) {
+    sprintf(err, "%s: couldn't alloc permutation array", me);
+    biffSet(NRRD, err); return 1;
+  }
+  for (i=0; i<=nin->size[axis]-1; i++) {
+    perm[i] = nin->size[axis]-1-i;
+  }
+  if (nrrdShuffle(nout, nin, axis, perm)) {
+    sprintf(err, "%s: trouble doing shuffle", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  nout->axisMin[axis] = nin->axisMax[axis];
+  nout->axisMax[axis] = nin->axisMin[axis];
+  free(perm);
   return 0;
 }
