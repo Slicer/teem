@@ -549,7 +549,7 @@ nrrdFitsInFormat (Nrrd *nrrd, int encoding, int format, int useBiff) {
 ** nrrd->hasNonExist to either nrrdNonExistTrue or nrrdNonExistFalse,
 ** and it will return that value.  For lack of a more sophisticated
 ** policy, blocks are currently always considered to be existant
-** values (because nrrdTypeFixed[nrrdTypeBlock] is currently true).
+** values (because nrrdTypeInteger[nrrdTypeBlock] is currently true).
 ** This function will ALWAYS determine the correct answer and set the
 ** value of nrrd->hasNonExist: it ignores the value of
 ** nrrd->hasNonExist on the input nrrd.  Exception: if nrrd is null or
@@ -573,7 +573,7 @@ nrrdHasNonExistSet (Nrrd *nrrd) {
   if (!nrrd || !airEnumValValid(nrrdType, nrrd->type))
     return nrrdNonExistUnknown;
 
-  if (nrrdTypeFixed[nrrd->type]) {
+  if (nrrdTypeInteger[nrrd->type]) {
     nrrd->hasNonExist = nrrdNonExistFalse;
   } else {
     nrrd->hasNonExist = nrrdNonExistFalse;
@@ -806,8 +806,8 @@ nrrdSanity (void) {
     biffAdd(NRRD, err); return 0;
   }
 
-  if (!nrrdTypeFixed[nrrdTypeBlock]) {
-    sprintf(err, "%s: nrrdTypeFixed[nrrdTypeBlock] is not true, things "
+  if (!nrrdTypeInteger[nrrdTypeBlock]) {
+    sprintf(err, "%s: nrrdTypeInteger[nrrdTypeBlock] is not true, things "
 	    "could get wacky", me);
     biffAdd(NRRD, err); return 0;
   }

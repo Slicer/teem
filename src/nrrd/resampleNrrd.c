@@ -802,22 +802,29 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
   }
 
   /* copy the resampling final result into the output nrrd, maybe
-     clamping as we go to insure that fixed point results don't have
-     unexpected wrap-around. 
-     NOTE, HOWEVER!!! that the difference between the last round of
-     resampling (in floating point), and the result of assigning to
-     a fixed point output volume can be as high as 0.99999... because
-     nrrdFInsert does not round!!! */
+     rounding as we go to make sure that 254.9999 is saved as 255
+     in uchar output, and maybe clamping as we go to insure that
+     fixed point results don't have unexpected wrap-around. */
+  if (info->round) {
+    if (nrrdTypeInt == typeOut ||
+	nrrdTypeUInt == typeOut ||
+	nrrdTypeLLong == typeOut ||
+	nrrdTypeULLong == typeOut) {
+      fprintf(stderr, "%s: WARNING: possible erroneous output with "
+	      "rounding of %s output type due to int-based implementation "
+	      "of rounding\n", me, airEnumStr(nrrdType, typeOut));
+    }
+  }
   numOut = nrrdElementNumber(nout);
-  if (info->clamp) {
-    for (I=0; I<numOut; I++) {
-      tmpF = nrrdFClamp[typeOut](array[passes][I]);
-      nrrdFInsert[typeOut](nout->data, I, tmpF);
+  for (I=0; I<numOut; I++) {
+    tmpF = array[passes][I];
+    if (info->round) {
+      tmpF = AIR_ROUNDUP(tmpF);
     }
-  } else {
-    for (I=0; I<numOut; I++) {
-      nrrdFInsert[typeOut](nout->data, I, array[passes][I]);
+    if (info->clamp) {
+      tmpF = nrrdFClamp[typeOut](tmpF);
     }
+    nrrdFInsert[typeOut](nout->data, I, tmpF);
   }
 
   /* enough already */

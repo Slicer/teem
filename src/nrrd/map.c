@@ -156,12 +156,12 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
     sprintf(err, "%s: nout==nin but input,output type sizes unequal", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdStateDisallowFixedPointNonExist 
-      && !nrrdTypeFixed[nin->type] && nrrdTypeFixed[type]) {
+  if (nrrdStateDisallowIntegerNonExist 
+      && !nrrdTypeInteger[nin->type] && nrrdTypeInteger[type]) {
     /* there's a risk of non-existant values getting converted to
-       non-sensical fixed point values */
+       non-sensical integral values */
     if (nrrdHasNonExistSet(nin)) {
-      sprintf(err, "%s: can't convert to fixed point with "
+      sprintf(err, "%s: can't convert to integral values with "
 	      "non-existant values in input nrrd", me);
       biffAdd(NRRD, err); return 1;
     }
@@ -204,10 +204,10 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
     biffAdd(NRRD, err); return 1;
   }
   /* the min and max have probably changed if there was a conversion
-     to fixed point, or to a lower precision representation */
+     to integral values, or to a lower precision representation */
   nrrdPeripheralInit(nout);
   nout->blockSize = 0;
-  nout->hasNonExist = (nrrdTypeFixed[nout->type]
+  nout->hasNonExist = (nrrdTypeInteger[nout->type]
 		       ? nrrdNonExistFalse
 		       : nin->hasNonExist);
 
@@ -263,7 +263,7 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
     sprintf(err, "%s: trouble setting min, max", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdStateDisallowFixedPointNonExist && nin->hasNonExist) {
+  if (nrrdStateDisallowIntegerNonExist && nin->hasNonExist) {
     sprintf(err, "%s: can't quantize non-existent values (NaN, +/-inf)", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -375,8 +375,8 @@ nrrdUnquantize(Nrrd *nout, Nrrd *nin, int type) {
 	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
-  if (!nrrdTypeFixed[nin->type]) {
-    sprintf(err, "%s: can only unquantize fixed-point types, not %s", me,
+  if (!nrrdTypeInteger[nin->type]) {
+    sprintf(err, "%s: can only unquantize integral types, not %s", me,
 	    airEnumStr(nrrdType, nin->type));
     biffAdd(NRRD, err); return 1;
   }

@@ -55,7 +55,7 @@ nrrdTypeSize[NRRD_TYPE_MAX+1] = {
 };
 
 int 
-nrrdTypeFixed[NRRD_TYPE_MAX+1] = {
+nrrdTypeInteger[NRRD_TYPE_MAX+1] = {
   0,  /* unknown */
   1,  /* char */
   1,  /* unsigned char */
@@ -67,7 +67,7 @@ nrrdTypeFixed[NRRD_TYPE_MAX+1] = {
   1,  /* unsigned long long */
   0,  /* float */
   0,  /* double */
-  1   /* for some reason we pretend that blocks are fixed point */
+  1   /* for some reason we pretend that blocks are integers */
 };
 
 int 
@@ -90,8 +90,8 @@ nrrdTypeUnsigned[NRRD_TYPE_MAX+1] = {
 ******** nrrdTypeMin[]
 ******** nrrdTypeMax[]
 **
-** only intended for small (<= 32 bits) fixed-point type,
-** so that we know how to "unquantize" fixed-point values.
+** only intended for small (<= 32 bits) integral types,
+** so that we know how to "unquantize" integral values.
 ** A 64-bit double can correctly store the 32-bit integral
 ** mins and maxs, but gets the last few places wrong in the
 ** 64-bit mins and max.
@@ -129,7 +129,7 @@ nrrdTypeMax[NRRD_TYPE_MAX+1] = {
 /*
 ******** nrrdTypeNumberValues[]
 **
-** only meaningful for fixed point values, and only correct for
+** only meaningful for integral values, and only correct for
 ** 32-bit values; tells the number of different integral values that
 ** can be represented by the type
 */

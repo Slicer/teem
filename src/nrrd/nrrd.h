@@ -278,11 +278,19 @@ typedef struct {
 		   		       non-zero integral, should we renormalize
 				       the weights to match the kernel integral
 				       so as to remove annoying ripple */
+    round,                          /* when copying from the last intermediate
+				       (floating point) result to the output
+				       nrrd, for integer outputs, do we round
+				       to the nearest integer first, before
+				       clamping and assigning.  Enabling this
+				       fixed the mystery of downsampling large
+				       constant regions of 255 (uchar), and
+				       ending up with 254 */
     clamp;                          /* when copying from the last intermediate
 				       (floating point) result to the output
 				       nrrd, should we clamp the values to the
 				       range of values for the output type, a
-				       concern only for fixed-point outputs */
+				       concern only for integer outputs */
   double padValue;                  /* if padding, what value to pad with */
 } NrrdResampleInfo;
 
@@ -313,6 +321,7 @@ extern nrrd_export int nrrdDefRsmpBoundary;
 extern nrrd_export int nrrdDefRsmpType;
 extern nrrd_export double nrrdDefRsmpScale;
 extern nrrd_export int nrrdDefRsmpRenormalize;
+extern nrrd_export int nrrdDefRsmpRound;
 extern nrrd_export int nrrdDefRsmpClamp;
 extern nrrd_export double nrrdDefRsmpPadValue;
 extern nrrd_export int nrrdDefCenter;
@@ -325,7 +334,7 @@ extern nrrd_export int nrrdStateMeasureModeBins;
 extern nrrd_export int nrrdStateMeasureHistoType;
 extern nrrd_export int nrrdStateAlwaysSetContent;
 extern nrrd_export char nrrdStateUnknownContent[];
-extern nrrd_export int nrrdStateDisallowFixedPointNonExist;
+extern nrrd_export int nrrdStateDisallowIntegerNonExist;
 extern nrrd_export int nrrdStateGrayscaleImage3D;
 
 /******** all the airEnums used through-out nrrd */
@@ -353,7 +362,7 @@ extern nrrd_export int nrrdEncodingEndianMatters[];
 extern nrrd_export int nrrdEncodingIsCompression[];
 extern nrrd_export int nrrdEncodingIsAvailable[];
 extern nrrd_export int nrrdTypeSize[];
-extern nrrd_export int nrrdTypeFixed[];
+extern nrrd_export int nrrdTypeInteger[];
 extern nrrd_export int nrrdTypeUnsigned[];
 extern nrrd_export double nrrdTypeMin[];
 extern nrrd_export double nrrdTypeMax[];

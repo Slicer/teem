@@ -32,7 +32,7 @@ main(int argc, char *argv[]) {
     printf(" ----- %s -----\n", airEnumStr(nrrdType, tt));
     printf("nrrdTypeSize: %d\n", nrrdTypeSize[tt]);
     printf("nrrdTypeUnsigned: %d\n", nrrdTypeUnsigned[tt]);
-    printf("nrrdTypeFixed: %d\n", nrrdTypeFixed[tt]);
+    printf("nrrdTypeInteger: %d\n", nrrdTypeInteger[tt]);
     printf("nrrdTypeMin: % 31.15f\n", nrrdTypeMin[tt]);
     printf("nrrdTypeMax: % 31.15f\n", nrrdTypeMax[tt]);
     printf("nrrdTypeNumberValues: % 31.15f\n", nrrdTypeNumberValues[tt]);

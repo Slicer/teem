@@ -44,6 +44,7 @@ int nrrdDefRsmpType = nrrdTypeUnknown;  /* sometimes means "same as input" */
 double nrrdDefRsmpScale = 1.0;    /* these two should probably be the same */
 double nrrdDefKernelParm0 = 1.0; 
 int nrrdDefRsmpRenormalize = AIR_TRUE;
+int nrrdDefRsmpRound = AIR_TRUE;
 int nrrdDefRsmpClamp = AIR_TRUE;
 double nrrdDefRsmpPadValue = 0.0;
 int nrrdDefCenter = nrrdCenterNode;
@@ -60,7 +61,7 @@ int nrrdStateMeasureModeBins = 1024;
 int nrrdStateMeasureHistoType = nrrdTypeFloat;
 int nrrdStateAlwaysSetContent = AIR_TRUE;
 char nrrdStateUnknownContent[AIR_STRLEN_SMALL] = NRRD_UNKNOWN;
-int nrrdStateDisallowFixedPointNonExist = AIR_TRUE;
+int nrrdStateDisallowIntegerNonExist = AIR_TRUE;
 int nrrdStateGrayscaleImage3D = AIR_FALSE;
 
 /* should the acceptance (or not) of malformed NRRD header fields 
