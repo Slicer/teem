@@ -29,10 +29,10 @@ main(int argc, char *argv[]) {
   float matA[16], matB[16];
   hestOpt *hopt=NULL;
   airArray *mop;
-  limnObj *obj;
-  limnSP *sp;
-  limnWin *win;
-  int ri, si;
+  limnObject *obj;
+  limnLook *look; int lookIdx;
+  limnWindow *win;
+  int partIdx;
   Nrrd *nmap;
 
   mop = airMopNew();
@@ -74,63 +74,63 @@ main(int argc, char *argv[]) {
     free(err);
     return 1;
   }
-  obj = limnObjNew(10, AIR_TRUE);
-  airMopAdd(mop, obj, (airMopper)limnObjNix, airMopAlways);
+  obj = limnObjectNew(10, AIR_TRUE);
+  airMopAdd(mop, obj, (airMopper)limnObjectNix, airMopAlways);
 
-  /* create limnSPs for diffuse (#0) and flat (#1) shading */
-  si = airArrayIncrLen(obj->sA, 2);
-  sp = obj->s + si + 0;
-  ELL_4V_SET(sp->rgba, 1, 1, 1, 1);
-  ELL_3V_SET(sp->k, 0, 1, 0);
-  sp->spec = 0;
-  sp = obj->s + si + 1;
-  ELL_4V_SET(sp->rgba, 1, 1, 1, 1);
-  ELL_3V_SET(sp->k, 1, 0, 0);
-  sp->spec = 0;
+  /* create limnLooks for diffuse (#0) and flat (#1) shading */
+  lookIdx = airArrayIncrLen(obj->lookArr, 2);
+  look = obj->look + lookIdx + 0;
+  ELL_4V_SET(look->rgba, 1, 1, 1, 1);
+  ELL_3V_SET(look->kads, 0, 1, 0);
+  look->spow = 0;
+  look = obj->look + lookIdx + 1;
+  ELL_4V_SET(look->rgba, 1, 1, 1, 1);
+  ELL_3V_SET(look->kads, 1, 0, 0);
+  look->spow = 0;
 
-  ri = limnObjCylinderAdd(obj, 0, 0, 16);
+  partIdx = limnObjectCylinderAdd(obj, 0, 0, 16);
   ELL_4M_IDENTITY_SET(matA);
   ELL_4M_SCALE_SET(matB, 1, 0.2, 0.2); ell_4m_post_mul_f(matA, matB);
   ELL_4M_TRANSLATE_SET(matB, 1.3, 0.0, 0.0); ell_4m_post_mul_f(matA, matB);
-  limnObjPartTransform(obj, ri, matA);
+  limnObjectPartTransform(obj, partIdx, matA);
 
-  ri = limnObjCylinderAdd(obj, 0, 1, 16);
+  partIdx = limnObjectCylinderAdd(obj, 0, 1, 16);
   ELL_4M_IDENTITY_SET(matA);
   ELL_4M_SCALE_SET(matB, 0.2, 1, 0.2); ell_4m_post_mul_f(matA, matB);
   ELL_4M_TRANSLATE_SET(matB, 0.0, 1.3, 0.0); ell_4m_post_mul_f(matA, matB);
-  limnObjPartTransform(obj, ri, matA);
+  limnObjectPartTransform(obj, partIdx, matA);
 
-  ri = limnObjCylinderAdd(obj, 0, 2, 16);
+  partIdx = limnObjectCylinderAdd(obj, 0, 2, 16);
   ELL_4M_IDENTITY_SET(matA);
   ELL_4M_SCALE_SET(matB, 0.2, 0.2, 1); ell_4m_post_mul_f(matA, matB);
   ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, 1.3); ell_4m_post_mul_f(matA, matB);
-  limnObjPartTransform(obj, ri, matA);
+  limnObjectPartTransform(obj, partIdx, matA);
 
-  ri = limnObjPolarSphereAdd(obj, 0, 0, 32, 16);
+  partIdx = limnObjectPolarSphereAdd(obj, 0, 0, 32, 16);
   ELL_4M_IDENTITY_SET(matA);
   ELL_4M_SCALE_SET(matB, 0.28, 0.28, 0.28); ell_4m_post_mul_f(matA, matB);
   ELL_4M_TRANSLATE_SET(matB, 0.0, 2.6, 0.0); ell_4m_post_mul_f(matA, matB);
-  limnObjPartTransform(obj, ri, matA);
+  limnObjectPartTransform(obj, partIdx, matA);
 
-  ri = limnObjPolarSphereAdd(obj, 0, 1, 32, 16);
+  partIdx = limnObjectPolarSphereAdd(obj, 0, 1, 32, 16);
   ELL_4M_IDENTITY_SET(matA);
   ELL_4M_SCALE_SET(matB, 0.28, 0.28, 0.28); ell_4m_post_mul_f(matA, matB);
   ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, 2.6); ell_4m_post_mul_f(matA, matB);
-  limnObjPartTransform(obj, ri, matA);
+  limnObjectPartTransform(obj, partIdx, matA);
 
-  ri = limnObjPolarSphereAdd(obj, 0, 2, 32, 16);
+  partIdx = limnObjectPolarSphereAdd(obj, 0, 2, 32, 16);
   ELL_4M_IDENTITY_SET(matA);
   ELL_4M_SCALE_SET(matB, 0.28, 0.28, 0.28); ell_4m_post_mul_f(matA, matB);
   ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, 3.2); ell_4m_post_mul_f(matA, matB);
-  limnObjPartTransform(obj, ri, matA);
+  limnObjectPartTransform(obj, partIdx, matA);
 
-  win = limnWinNew(limnDevicePS);
+  win = limnWindowNew(limnDevicePS);
 
   win->file = fopen(outS, "w");
-  airMopAdd(mop, win, (airMopper)limnWinNix, airMopAlways);
+  airMopAdd(mop, win, (airMopper)limnWindowNix, airMopAlways);
 
-  if (limnObjRender(obj, cam, win)
-      || limnObjPSDraw(obj, cam, nmap, win)) {
+  if (limnObjectRender(obj, cam, win)
+      || limnObjectPSDraw(obj, cam, nmap, win)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;

@@ -21,59 +21,63 @@
 #include "limn.h"
 
 int
-_limnObjWHomog(limnObj *obj) {
-  int pi;
-  limnPoint *p;
+_limnObjectWHomog(limnObject *obj) {
+  int vertIdx;
+  limnVertex *vert;
   float h;
   
-  for (pi=0; pi<=obj->pA->len-1; pi++) {
-    p = obj->p + pi;
-    h = 1.0/p->w[3];
-    ELL_3V_SCALE(p->w, h, p->w);
-    p->w[3] = 1.0;
+  for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
+    vert = obj->vert + vertIdx;
+    h = 1.0/vert->world[3];
+    ELL_3V_SCALE(vert->world, h, vert->world);
+    vert->world[3] = 1.0;
   }
   
   return 0;
 }
 
 int
-_limnObjNormals(limnObj *obj, int space) {
-  int vn, vi, vb, fi;
-  limnFace *f;
-  limnPoint *p0, *p1, *p2;
-  float e1[3], e2[3], x[3], n[3], norm;
+_limnObjectNormals(limnObject *obj, int space) {
+  int vii, faceIdx;
+  limnFace *face;
+  limnPart *part;
+  limnVertex *vert0, *vert1, *vert2;
+  float vec1[3], vec2[3], cross[3], nn[3], norm;
   
-  for (fi=0; fi<=obj->fA->len-1; fi++) {
-    f = obj->f + fi;
-    vn = f->vNum;
-    vb = f->vBase;
-    ELL_3V_SET(n, 0, 0, 0);
-    for (vi=0; vi<vn; vi++) {
-      p0 = obj->p + obj->v[vb + vi];
-      p1 = obj->p + obj->v[vb + AIR_MOD(vi+1,vn)];
-      p2 = obj->p + obj->v[vb + AIR_MOD(vi-1,vn)];
+  for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
+    face = obj->face + faceIdx;
+    part = obj->part + face->partIdx;
+    /* add up cross products at all vertices */
+    ELL_3V_SET(nn, 0, 0, 0);
+    for (vii=0; vii<face->sideNum; vii++) {
+      vert0 = obj->vert 
+	+ part->vertIdx[face->vertIdxIdx[vii]];
+      vert1 = obj->vert 
+	+ part->vertIdx[face->vertIdxIdx[AIR_MOD(vii+1, face->sideNum)]];
+      vert2 = obj->vert
+	+ part->vertIdx[face->vertIdxIdx[AIR_MOD(vii-1, face->sideNum)]];
       if (limnSpaceWorld == space) {
-	ELL_3V_SUB(e1, p1->w, p0->w);
-	ELL_3V_SUB(e2, p2->w, p0->w);
+	ELL_3V_SUB(vec1, vert1->world, vert0->world);
+	ELL_3V_SUB(vec2, vert2->world, vert0->world);
       }
       else {
-	ELL_3V_SUB(e1, p1->s, p0->s);
-	ELL_3V_SUB(e2, p2->s, p0->s);
+	ELL_3V_SUB(vec1, vert1->screen, vert0->screen);
+	ELL_3V_SUB(vec2, vert2->screen, vert0->screen);
       }
-      ELL_3V_CROSS(x, e1, e2);
-      ELL_3V_ADD2(n, n, x);
+      ELL_3V_CROSS(cross, vec1, vec2);
+      ELL_3V_ADD2(nn, nn, cross);
     }
     if (limnSpaceWorld == space) {
-      ELL_3V_NORM(f->wn, n, norm);
+      ELL_3V_NORM(face->worldNormal, nn, norm);
       /*
-      printf("%s: wn[%d] = %g %g %g\n", "_limnObjNormals", fi,
+      printf("%s: wn[%d] = %g %g %g\n", "_limnObjectNormals", faceIdx,
 	     f->wn[0], f->wn[1], f->wn[2]);
       */
     }
     else {
-      ELL_3V_NORM(f->sn, n, norm);
+      ELL_3V_NORM(face->screenNormal, nn, norm);
       /*
-      printf("%s: sn[%d] = %g %g %g\n", "_limnObjNormals", fi,
+      printf("%s: sn[%d] = %g %g %g\n", "_limnObjectNormals", faceIdx,
 	     f->sn[0], f->sn[1], f->sn[2]);
       */
     }
@@ -83,40 +87,41 @@ _limnObjNormals(limnObj *obj, int space) {
 }
 
 int
-_limnObjVTransform(limnObj *obj, limnCamera *cam) {
-  int pi;
-  limnPoint *p;
+_limnObjectVTransform(limnObject *obj, limnCamera *cam) {
+  int vertIdx;
+  limnVertex *vert;
   float d;
 
-  for (pi=0; pi<=obj->pA->len-1; pi++) {
-    p = obj->p + pi;
-    ELL_4MV_MUL(p->v, cam->W2V, p->w);
-    d = 1.0/p->w[3];
-    ELL_4V_SCALE(p->v, d, p->v);
+  for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
+    vert = obj->vert + vertIdx;
+    ELL_4MV_MUL(vert->view, cam->W2V, vert->world);
+    d = 1.0/vert->world[3];
+    ELL_4V_SCALE(vert->view, d, vert->view);
     /*
-    printf("%s: w[%d] = %g %g %g %g --> v = %g %g %g\n", "_limnObjVTransform",
-	  pi, p->w[0], p->w[1], p->w[2], p->w[3], p->v[0], p->v[1], p->v[2]);
+    printf("%s: w[%d] = %g %g %g %g --> v = %g %g %g\n", 
+	   "_limnObjectVTransform",
+	   pi, p->w[0], p->w[1], p->w[2], p->w[3], p->v[0], p->v[1], p->v[2]);
     */
   }
   return 0;
 }
 
 int
-_limnObjSTransform(limnObj *obj, limnCamera *cam) {
-  int pi;
-  limnPoint *p;
+_limnObjectSTransform(limnObject *obj, limnCamera *cam) {
+  int vertIdx;
+  limnVertex *vert;
   float d;
 
-  for (pi=0; pi<=obj->pA->len-1; pi++) {
-    p = obj->p + pi;
+  for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
+    vert = obj->vert + vertIdx;
     d = (cam->orthographic 
 	 ? 1
-	 : cam->vspDist/p->v[2]);
-    p->s[0] = d*p->v[0];
-    p->s[1] = d*p->v[1];
-    p->s[2] = p->v[2];
+	 : cam->vspDist/vert->view[2]);
+    vert->screen[0] = d*vert->view[0];
+    vert->screen[1] = d*vert->view[1];
+    vert->screen[2] = vert->view[2];
     /*
-    printf("%s: v[%d] = %g %g %g --> s = %g %g %g\n", "_limnObjSTransform",
+    printf("%s: v[%d] = %g %g %g --> s = %g %g %g\n", "_limnObjectSTransform",
 	   pi, p->v[0], p->v[1], p->v[2], p->s[0], p->s[1], p->s[2]);
     */
   }
@@ -124,9 +129,9 @@ _limnObjSTransform(limnObj *obj, limnCamera *cam) {
 }
 
 int
-_limnObjDTransform(limnObj *obj, limnCamera *cam, limnWin *win) {
-  int pi;
-  limnPoint *p;
+_limnObjectDTransform(limnObject *obj, limnCamera *cam, limnWindow *win) {
+  int vertIdx;
+  limnVertex *vert;
   float wy0, wy1, wx0, wx1, t;
   
   wx0 = 0;
@@ -137,12 +142,14 @@ _limnObjDTransform(limnObj *obj, limnCamera *cam, limnWin *win) {
   if (win->yFlip) {
     ELL_SWAP2(wy0, wy1, t);
   }
-  for (pi=0; pi<=obj->pA->len-1; pi++) {
-    p = obj->p + pi;
-    p->d[0] = AIR_AFFINE(cam->uRange[0], p->s[0], cam->uRange[1], wx0, wx1);
-    p->d[1] = AIR_AFFINE(cam->vRange[0], p->s[1], cam->vRange[1], wy0, wy1);
+  for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
+    vert = obj->vert + vertIdx;
+    vert->device[0] = AIR_AFFINE(cam->uRange[0], vert->screen[0],
+				  cam->uRange[1], wx0, wx1);
+    vert->device[1] = AIR_AFFINE(cam->vRange[0], vert->screen[1],
+				  cam->vRange[1], wy0, wy1);
     /*
-    printf("%s: s[%d] = %g %g --> s = %g %g\n", "_limnObjDTransform",
+    printf("%s: s[%d] = %g %g --> s = %g %g\n", "_limnObjectDTransform",
 	   pi, p->s[0], p->s[1], p->d[0], p->d[1]);
     */
   }
@@ -150,13 +157,13 @@ _limnObjDTransform(limnObj *obj, limnCamera *cam, limnWin *win) {
 }
 
 int
-limnObjHomog(limnObj *obj, int space) {
-  char me[]="limnObjHomog";
+limnObjectHomog(limnObject *obj, int space) {
+  char me[]="limnObjectHomog";
   int ret;
 
   switch(space) {
   case limnSpaceWorld:
-    ret = _limnObjWHomog(obj);
+    ret = _limnObjectWHomog(obj);
     break;
   default:
     fprintf(stderr, "%s: space %d unknown or unimplemented\n", me, space);
@@ -168,14 +175,14 @@ limnObjHomog(limnObj *obj, int space) {
 }
 
 int
-limnObjNormals(limnObj *obj, int space) {
-  char me[]="limnObjNormals";
+limnObjectNormals(limnObject *obj, int space) {
+  char me[]="limnObjectNormals";
   int ret;
   
   switch(space) {
   case limnSpaceWorld:
   case limnSpaceScreen:
-    ret = _limnObjNormals(obj, space);
+    ret = _limnObjectNormals(obj, space);
     break;
   default:
     fprintf(stderr, "%s: space %d unknown or unimplemented\n", me, space);
@@ -187,20 +194,21 @@ limnObjNormals(limnObj *obj, int space) {
 }
 
 int
-limnObjSpaceTransform(limnObj *obj, limnCamera *cam, limnWin *win, int space) {
-  char me[]="limnObjSpaceTransform";
+limnObjectSpaceTransform(limnObject *obj, limnCamera *cam,
+		      limnWindow *win, int space) {
+  char me[]="limnObjectSpaceTransform";
   int ret;
 
   /* HEY: deal with cam->orthographic */
   switch(space) {
   case limnSpaceView:
-    ret = _limnObjVTransform(obj, cam);
+    ret = _limnObjectVTransform(obj, cam);
     break;
   case limnSpaceScreen:
-    ret = _limnObjSTransform(obj, cam);
+    ret = _limnObjectSTransform(obj, cam);
     break;
   case limnSpaceDevice:
-    ret = _limnObjDTransform(obj, cam, win);
+    ret = _limnObjectDTransform(obj, cam, win);
     break;
   default:
     fprintf(stderr, "%s: space %d unknown or unimplemented\n", me, space);
@@ -212,19 +220,17 @@ limnObjSpaceTransform(limnObj *obj, limnCamera *cam, limnWin *win, int space) {
 }
 
 int
-limnObjPartTransform(limnObj *obj, int ri, float tx[16]) {
-  int pi, pn, pb;
-  limnPart *r;
-  limnPoint *p;
+limnObjectPartTransform(limnObject *obj, int partIdx, float xform[16]) {
+  int vertIdxIdx;
+  limnPart *part;
+  limnVertex *vert;
   float tmp[4];
   
-  r = obj->r + ri;
-  pb = r->pBase;
-  pn = r->pNum;
-  for (pi=pb; pi<=pb+pn-1; pi++) {
-    p = obj->p + pi;
-    ELL_4MV_MUL(tmp, tx, p->w);
-    ELL_4V_COPY(p->w, tmp);
+  part= obj->part + partIdx;
+  for (vertIdxIdx=0; vertIdxIdx<part->vertIdxNum; vertIdxIdx++) {
+    vert = obj->vert + part->vertIdx[vertIdxIdx];
+    ELL_4MV_MUL(tmp, xform, vert->world);
+    ELL_4V_COPY(vert->world, tmp);
   }
 
   return 0;
@@ -237,31 +243,45 @@ _limnPartDepthCompare(const void *_a, const void *_b) {
 
   a = (limnPart *)_a;
   b = (limnPart *)_b;
-  return AIR_COMPARE(b->z, a->z);
+  return AIR_COMPARE(b->depth, a->depth);
 }
 
 int
-limnObjDepthSortParts(limnObj *obj) {
-  limnPart *r;
-  limnPoint *p;
-  int pi, ri, rNum;
-  /* double t0, t1; */
+limnObjectDepthSortParts(limnObject *obj) {
+  limnPart *part;
+  limnVertex *vert;
+  limnFace *face;
+  limnEdge *edge;
+  int partIdx, ii;
 
-  rNum = obj->rA->len;
-  for (ri=0; ri<rNum; ri++) {
-    r = obj->r + ri;
-    r->z = 0;
-    for (pi=0; pi<r->pNum; pi++) {
-      p = obj->p + r->pBase + pi;
-      r->z += p->s[2];
+  for (partIdx=0; partIdx<obj->partNum; partIdx++) {
+    part = obj->part + partIdx;
+    part->depth = 0;
+    for (ii=0; ii<part->vertIdxNum; ii++) {
+      vert = obj->vert + part->vertIdx[ii];
+      part->depth += vert->screen[2];
     }
-    r->z /= r->pNum;
+    part->depth /= part->vertIdxNum;
   }
   
-  /* t0 = airTime(); */
-  qsort(obj->r, rNum, sizeof(limnPart), _limnPartDepthCompare);
-  /* t1 = airTime(); */
-  /* printf("limnObjDepthSortParts: qsort took %g seconds\n", t1-t0); */
+  qsort(obj->part, obj->partNum, sizeof(limnPart), _limnPartDepthCompare);
+  
+  /* re-assign partIdx, post-sorting */
+  for (partIdx=0; partIdx<obj->partNum; partIdx++) {
+    part = obj->part + partIdx;
+    for (ii=0; ii<part->vertIdxNum; ii++) {
+      vert = obj->vert + part->vertIdx[ii];
+      vert->partIdx = partIdx;
+    }
+    for (ii=0; ii<part->edgeIdxNum; ii++) {
+      edge = obj->edge + part->edgeIdx[ii];
+      edge->partIdx = partIdx;
+    }
+    for (ii=0; ii<part->faceIdxNum; ii++) {
+      face = obj->face + part->faceIdx[ii];
+      face->partIdx = partIdx;
+    }
+  }
 
   return 0;
 }
@@ -275,29 +295,31 @@ _limnFaceDepthCompare(const void *_a, const void *_b) {
 
   a = (int *)_a;
   b = (int *)_b;
-  return -AIR_COMPARE(_limnFaceHack[*a].z, _limnFaceHack[*b].z);
+  return -AIR_COMPARE(_limnFaceHack[*a].depth, _limnFaceHack[*b].depth);
 }
 
 int
-limnObjDepthSortFaces(limnObj *obj) {
-  limnFace *f;
-  limnPoint *p;
-  int fi, vi;
+limnObjectDepthSortFaces(limnObject *obj) {
+  limnFace *face;
+  limnVertex *vert;
+  limnPart *part;
+  int faceIdx, vii;
 
-  obj->fSort = (int*)calloc(obj->fA->len, sizeof(int));
-  for (fi=0; fi<obj->fA->len; fi++) {
-    f =  obj->f + fi;
-    f->z = 0;
-    for (vi=f->vBase; vi<f->vBase+f->vNum; vi++) {
-      p = obj->p + obj->v[vi];
-      f->z += p->s[2];
+  obj->faceSort = (int*)calloc(obj->faceNum, sizeof(int));
+  for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
+    face =  obj->face + faceIdx;
+    part = obj->part + face->partIdx;
+    face->depth = 0;
+    for (vii=0; vii<face->sideNum; vii++) {
+      vert = obj->vert + part->vertIdx[vii];
+      face->depth += vert->screen[2];
     }
-    f->z /= f->vNum;
-    obj->fSort[fi] = fi;
+    face->depth /= face->sideNum;
+    obj->faceSort[faceIdx] = faceIdx;
   }
 
-  _limnFaceHack = obj->f;
-  qsort(obj->fSort, obj->fA->len, sizeof(int), _limnFaceDepthCompare);
+  _limnFaceHack = obj->face;
+  qsort(obj->faceSort, obj->faceNum, sizeof(int), _limnFaceDepthCompare);
 
   return 0;
 }

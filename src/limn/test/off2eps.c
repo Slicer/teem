@@ -29,12 +29,12 @@ main(int argc, char *argv[]) {
   float winscale, edgeWidth[5], creaseAngle;
   hestOpt *hopt=NULL;
   airArray *mop;
-  limnObj *obj;
-  limnSP *sp;
-  limnWin *win;
+  limnObject *obj;
+  limnLook *look; int lookIdx;
+  limnWindow *win;
   Nrrd *nmap;
   FILE *file;
-  int si, wire;
+  int wire, concave;
 
   mop = airMopNew();
   cam = limnCameraNew();
@@ -64,6 +64,9 @@ main(int argc, char *argv[]) {
 	     "200", "world to points (PostScript) scaling");
   hestOptAdd(&hopt, "wire", NULL, airTypeInt, 0, 0, &wire, NULL,
 	     "just do wire-frame rendering");
+  hestOptAdd(&hopt, "concave", NULL, airTypeInt, 0, 0, &concave, NULL,
+	     "use slightly buggy rendering method suitable for "
+	     "concave or self-occluding objects");
   hestOptAdd(&hopt, "wd", "5 widths", airTypeFloat, 5, 5, edgeWidth,
 	     "0.0 0.0 3.0 2.0 0.0",
 	     "width of edges drawn for five kinds of "
@@ -89,25 +92,25 @@ main(int argc, char *argv[]) {
     return 1;
   }
 
-  obj = limnObjNew(10, AIR_TRUE);
-  airMopAdd(mop, obj, (airMopper)limnObjNix, airMopAlways);
+  obj = limnObjectNew(10, AIR_TRUE);
+  airMopAdd(mop, obj, (airMopper)limnObjectNix, airMopAlways);
   if (!(file = airFopen(inS, stdin, "r"))) {
     fprintf(stderr, "%s: couldn't open \"%s\" for reading\n", me, inS);
     return 1;
   }
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
-  si = airArrayIncrLen(obj->sA, 2);
-  sp = obj->s + si + 0;
-  ELL_4V_SET(sp->rgba, 1, 1, 1, 1);  /* this is kind of silly */
-  ELL_3V_SET(sp->k, 0.2, 0.8, 0);
-  sp->spec = 0;
-  if (limnObjOFFRead(obj, file)) {
+  lookIdx = airArrayIncrLen(obj->lookArr, 2);
+  look = obj->look + lookIdx + 0;
+  ELL_4V_SET(look->rgba, 1, 1, 1, 1);  /* this is kind of silly */
+  ELL_3V_SET(look->kads, 0.2, 0.8, 0);
+  look->spow = 0;
+  if (limnObjectOFFRead(obj, file)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
 
-  win = limnWinNew(limnDevicePS);
+  win = limnWindowNew(limnDevicePS);
   win->ps.lineWidth[limnEdgeTypeBackFacet] = edgeWidth[0];
   win->ps.lineWidth[limnEdgeTypeBackCrease] = edgeWidth[1];
   win->ps.lineWidth[limnEdgeTypeContour] = edgeWidth[2];
@@ -118,11 +121,13 @@ main(int argc, char *argv[]) {
   win->ps.creaseAngle = creaseAngle;
 
   win->file = airFopen(outS, stdout, "w");
-  airMopAdd(mop, win, (airMopper)limnWinNix, airMopAlways);
+  airMopAdd(mop, win, (airMopper)limnWindowNix, airMopAlways);
   win->scale = winscale;
 
-  if (limnObjRender(obj, cam, win)
-      || limnObjPSDraw(obj, cam, nmap, win)) {
+  if (limnObjectRender(obj, cam, win)
+      || (concave
+	  ? limnObjectPSDrawConcave(obj, cam, nmap, win)
+	  : limnObjectPSDraw(obj, cam, nmap, win))) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;

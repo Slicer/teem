@@ -20,178 +20,189 @@
 
 #include "limn.h"
 
-limnObj *
-limnObjNew(int incr, int edges) {
-  limnObj *obj;
+int
+limnObjectLookAdd(limnObject *obj) {
+  int lookIdx;
+  limnLook *look;
 
-  obj = (limnObj *)calloc(1, sizeof(limnObj));
-  obj->p = NULL;
-  obj->v = NULL;
-  obj->e = NULL;
-  obj->f = NULL;
-  obj->fSort = NULL;
-  obj->r = NULL;
-  obj->s = NULL;
+  lookIdx = airArrayIncrLen(obj->lookArr, 1);
+  look = &(obj->look[lookIdx]);
+  ELL_4V_SET(look->rgba, 1, 1, 1, 1);
+  ELL_3V_SET(look->kads, 0.5, 0.5, 0.0);
+  look->spow = 50;
+  return lookIdx;
+}
+
+
+limnObject *
+limnObjectNew(int incr, int doEdges) {
+  limnObject *obj;
+
+  obj = (limnObject *)calloc(1, sizeof(limnObject));
+  obj->vert = NULL;
+  obj->edge = NULL;
+  obj->face = NULL;
+  obj->faceSort = NULL;
+  obj->part = NULL;
+  obj->look = NULL;
 
   /* create all various airArrays */
-  obj->pA = airArrayNew((void**)&(obj->p), NULL, 
-			sizeof(limnPoint), incr);
-  obj->vA = airArrayNew((void**)&(obj->v), NULL,
-			sizeof(int), incr);
-  obj->eA = airArrayNew((void**)&(obj->e), NULL,
-			sizeof(limnEdge), incr);
-  obj->fA = airArrayNew((void**)&(obj->f), NULL,
-			sizeof(limnFace), incr);
-  obj->rA = airArrayNew((void**)&(obj->r), NULL,
-			sizeof(limnPart), incr);
-  obj->sA = airArrayNew((void**)&(obj->s), NULL,
-			sizeof(limnSP), incr);
-  obj->rCurr = NULL;
+  obj->vertArr = airArrayNew((void**)&(obj->vert), &(obj->vertNum), 
+			     sizeof(limnVertex), incr);
+  obj->edgeArr = airArrayNew((void**)&(obj->edge), &(obj->edgeNum),
+			     sizeof(limnEdge), incr);
+  obj->faceArr = airArrayNew((void**)&(obj->face), &(obj->faceNum),
+			     sizeof(limnFace), incr);
+  obj->partArr = airArrayNew((void**)&(obj->part), &(obj->partNum),
+			     sizeof(limnPart), incr);
+  obj->lookArr = airArrayNew((void**)&(obj->look), &(obj->lookNum),
+			     sizeof(limnLook), incr);
 
-  obj->edges = edges;
+  /* create (default) look 0 */
+  limnObjectLookAdd(obj);
+
+  obj->doEdges = doEdges;
+  obj->incr = incr;
     
   return obj;
 }
 
-limnObj *
-limnObjNix(limnObj *obj) {
+limnObject *
+limnObjectNix(limnObject *obj) {
 
-  airArrayNuke(obj->pA);
-  airArrayNuke(obj->vA);
-  airArrayNuke(obj->eA);
-  airArrayNuke(obj->fA);
-  airFree(obj->fSort);
-  airArrayNuke(obj->rA);
-  airArrayNuke(obj->sA);
+  airArrayNuke(obj->vertArr);
+  airArrayNuke(obj->edgeArr);
+  airArrayNuke(obj->faceArr);
+  airFree(obj->faceSort);
+  airArrayNuke(obj->partArr);
+  airArrayNuke(obj->lookArr);
   free(obj);
   return NULL;
 }
 
 int
-limnObjPartStart(limnObj *obj) {
-  int rBase;
-  limnPart *r;
+limnObjectPartAdd(limnObject *obj) {
+  int partIdx;
+  limnPart *part;
 
-  rBase = airArrayIncrLen(obj->rA, 1);
-  r = &(obj->r[rBase]);
-  r->fBase = obj->fA->len;  r->fNum = 0;
-  r->eBase = obj->eA->len;  r->eNum = 0;
-  r->pBase = obj->pA->len;  r->pNum = 0;
-  r->origIdx = rBase;
-  r->sp = 0;
-  obj->rCurr = r;
+  partIdx = airArrayIncrLen(obj->partArr, 1);
+  part = obj->part + partIdx;
 
-  return rBase;
+  part->vertIdx = NULL;
+  part->edgeIdx = NULL;
+  part->faceIdx = NULL;
+  part->vertIdxArr = airArrayNew((void**)&(part->vertIdx), &(part->vertIdxNum),
+				 sizeof(int), obj->incr);
+  part->edgeIdxArr = airArrayNew((void**)&(part->edgeIdx), &(part->edgeIdxNum),
+				 sizeof(int), obj->incr);
+  part->faceIdxArr = airArrayNew((void**)&(part->faceIdx), &(part->faceIdxNum),
+				 sizeof(int), obj->incr);
+  part->lookIdx = 0;  
+  part->depth = AIR_NAN;
+  
+  return partIdx;
 }
 
 int
-limnObjPointAdd(limnObj *obj, int sp, float x, float y, float z) {
-  limnPoint *p;
-  int pBase;
+limnObjectVertexAdd(limnObject *obj, int partIdx, int lookIdx,
+		    float x, float y, float z) {
+  limnPart *part;
+  limnVertex *vert;
+  int vertIdx, vertIdxIdx;
 
-  pBase = airArrayIncrLen(obj->pA, 1);
-  p = &(obj->p[pBase]);
-  ELL_4V_SET(p->w, x, y, z, 1);
-  ELL_3V_SET(p->v, AIR_NAN, AIR_NAN, AIR_NAN);
-  ELL_3V_SET(p->s, AIR_NAN, AIR_NAN, AIR_NAN);
-  ELL_3V_SET(p->n, AIR_NAN, AIR_NAN, AIR_NAN);
-  p->d[0] = p->d[1] = AIR_NAN;
-  p->sp = sp;
-  obj->rCurr->pNum++;
+  part = obj->part + partIdx;
+  vertIdx = airArrayIncrLen(obj->vertArr, 1);
+  vert = obj->vert + vertIdx;
+  vertIdxIdx = airArrayIncrLen(part->vertIdxArr, 1);
+  part->vertIdx[vertIdxIdx] = vertIdx;
+  ELL_4V_SET(vert->world, x, y, z, 1);
+  ELL_3V_SET(vert->view, AIR_NAN, AIR_NAN, AIR_NAN);
+  ELL_3V_SET(vert->screen, AIR_NAN, AIR_NAN, AIR_NAN);
+  ELL_3V_SET(vert->worldNormal, AIR_NAN, AIR_NAN, AIR_NAN);
+  vert->device[0] = vert->device[1] = AIR_NAN;
+  vert->partIdx = partIdx;
+  vert->lookIdx = lookIdx;
 
-  return pBase;
-}
-
-void
-_limnEdgeInit(limnEdge *e, int sp, int face, int v0, int v1) {
-  
-  e->v0 = v0;
-  e->v1 = v1;
-  e->f0 = face;
-  e->f1 = -1;
-  e->sp = sp;
-  e->type = limnEdgeTypeUnknown;
+  return vertIdxIdx;
 }
 
 int
-limnObjEdgeAdd(limnObj *obj, int sp, int face, int v0, int v1) {
-  int ret, t, i, eNum, eBase;
-  limnEdge *e=NULL;
+limnObjectEdgeAdd(limnObject *obj, int partIdx, int lookIdx,
+		  int faceIdxIdx, int vertIdxIdx0, int vertIdxIdx1) {
+  int tmp, edgeIdx, edgeIdxIdx;
+  limnEdge *edge=NULL;
+  limnPart *part;
   
-  eBase = obj->rCurr->eBase;
-  eNum = obj->rCurr->eNum;
-  
-  if (v0 > v1) {
-    ELL_SWAP2(v0, v1, t);
+  part = obj->part + partIdx;
+  if (vertIdxIdx0 > vertIdxIdx1) {
+    ELL_SWAP2(vertIdxIdx0, vertIdxIdx1, tmp);
   }
-  
-  /* do a linear search through this part's edges */
-  for (i=0; i<=eNum-1; i++) {
-    e = &(obj->e[eBase+i]);
-    if (e->v0 == v0 && e->v1 == v1) {
+
+  /* do a linear search through this part's existing edges */
+  for (edgeIdxIdx=0; edgeIdxIdx<part->edgeIdxNum; edgeIdxIdx++) {
+    edgeIdx = part->edgeIdx[edgeIdxIdx];
+    edge = &(obj->edge[edgeIdx]);
+    if (edge->vertIdxIdx[0] == vertIdxIdx0
+	&& edge->vertIdxIdx[1] == vertIdxIdx1) {
       break;
     }
   }
-  if (i == eNum) {
-    /* edge not found */
-    eBase = airArrayIncrLen(obj->eA, 1);
-    e = &(obj->e[eBase]);
-    _limnEdgeInit(e, sp, face, v0, v1);
-    ret = eBase;
-    obj->rCurr->eNum++;
-  }
-  else {
-    /* edge already exists */
-    e->f1 = face;
-    ret = eBase+i;
+  if (edgeIdxIdx == part->edgeIdxNum) {
+    /* edge not found, add it */
+    edgeIdx = airArrayIncrLen(obj->edgeArr, 1);
+    edge = &(obj->edge[edgeIdx]);
+    edgeIdxIdx = airArrayIncrLen(part->edgeIdxArr, 1);
+    part->edgeIdx[edgeIdxIdx] = edgeIdx;
+    edge->vertIdxIdx[0] = vertIdxIdx0;
+    edge->vertIdxIdx[1] = vertIdxIdx1;
+    edge->faceIdxIdx[0] = faceIdxIdx;
+    edge->faceIdxIdx[1] = -1;
+    edge->lookIdx = lookIdx;
+    edge->partIdx = partIdx;
+    edge->type = limnEdgeTypeUnknown;
+    edge->once = AIR_FALSE;
+  } else {
+    /* edge already exists; "edge", "edgeIdx", and "edgeIdxIdx" are all set */
+    edge->faceIdxIdx[1] = faceIdxIdx;
   }
 
-  return ret;
+  return edgeIdxIdx;
 }
 
 int
-limnObjFaceAdd(limnObj *obj, int sp, int numVert, int *vert) {
-  int i, vBase, fBase;
-  limnFace *f;
+limnObjectFaceAdd(limnObject *obj, int partIdx,
+		  int lookIdx, int sideNum, int *vertIdxIdx) {
+  limnFace *face;
+  limnPart *part;
+  int faceIdx, faceIdxIdx, sideIdx;
 
-  fBase = airArrayIncrLen(obj->fA, 1);
-  vBase = airArrayIncrLen(obj->vA, numVert);
+  part = obj->part + partIdx;
+  faceIdx = airArrayIncrLen(obj->faceArr, 1);
+  face = &(obj->face[faceIdx]);
+  faceIdxIdx = airArrayIncrLen(part->faceIdxArr, 1);
+  part->faceIdx[faceIdxIdx] = faceIdx;
   
-  f = &(obj->f[fBase]);
-  ELL_3V_SET(f->wn, AIR_NAN, AIR_NAN, AIR_NAN);
-  ELL_3V_SET(f->sn, AIR_NAN, AIR_NAN, AIR_NAN);
-  f->vBase = vBase;
-  f->vNum = numVert;
-  for (i=0; i<=numVert-1; i++) {
-    obj->v[vBase + i] = vert[i];
-    if (obj->edges) {
-      limnObjEdgeAdd(obj, 1, fBase, vert[i], vert[AIR_MOD(i+1, numVert)]);
+  face->vertIdxIdx = (int*)calloc(sideNum, sizeof(int));
+  if (obj->doEdges) {
+    face->edgeIdxIdx = (int*)calloc(sideNum, sizeof(int));
+  }
+  face->sideNum = sideNum;
+  for (sideIdx=0; sideIdx<sideNum; sideIdx++) {
+    face->vertIdxIdx[sideIdx] = vertIdxIdx[sideIdx];
+    if (obj->doEdges) {
+      face->edgeIdxIdx[sideIdx] = 
+	limnObjectEdgeAdd(obj, partIdx, 0, faceIdxIdx,
+			  vertIdxIdx[sideIdx],
+			  vertIdxIdx[AIR_MOD(sideIdx+1, sideNum)]);
     }
   }
-  f->sp = sp;
-  f->visib = AIR_FALSE;
-  obj->rCurr->fNum++;
+  ELL_3V_SET(face->worldNormal, AIR_NAN, AIR_NAN, AIR_NAN);
+  ELL_3V_SET(face->screenNormal, AIR_NAN, AIR_NAN, AIR_NAN);
+  face->lookIdx = lookIdx;
+  face->partIdx = partIdx;
+  face->visible = AIR_FALSE;
+  face->depth = AIR_NAN;
   
-  return fBase;
+  return faceIdx;
 }
 
-int
-limnObjPartFinish(limnObj *obj) {
-  
-  obj->rCurr = NULL;
-  
-  return 0;
-}
-
-int
-limnObjSPAdd(limnObj *obj) {
-  int sBase;
-  limnSP *s;
-
-  sBase = airArrayIncrLen(obj->sA, 1);
-  s = &(obj->s[sBase]);
-  ELL_4V_SET(s->rgba, 1, 1, 1, 1);
-  ELL_3V_SET(s->k, 0.5, 0.5, 0.0);
-  s->spec = 50;
-  return sBase;
-}

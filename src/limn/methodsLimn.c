@@ -78,25 +78,17 @@ _limnOptsPSDefaults(limnOptsPS *ps) {
   ps->lineWidth[limnEdgeTypeFrontFacet] = 0.0;
   ps->lineWidth[limnEdgeTypeBorder] = 1.0;
   ps->lineWidth[limnEdgeTypeLone] = 1.0;
-  ps->haloWidth[limnEdgeTypeUnknown] = AIR_NAN;
-  ps->haloWidth[limnEdgeTypeBackFacet] = 0.0;
-  ps->haloWidth[limnEdgeTypeBackCrease] = 0.0;
-  ps->haloWidth[limnEdgeTypeContour] = 0.0;
-  ps->haloWidth[limnEdgeTypeFrontCrease] = 0.0;
-  ps->haloWidth[limnEdgeTypeFrontFacet] = 0.0;
-  ps->haloWidth[limnEdgeTypeBorder] = 0.0;
-  ps->haloWidth[limnEdgeTypeLone] = 0.0;
   ps->creaseAngle = 46;
   ps->showpage = AIR_FALSE;
   ps->wireFrame = AIR_FALSE;
   ELL_3V_SET(ps->bg, 1, 1, 1);
 }
 
-limnWin *
-limnWinNew(int device) {
-  limnWin *win;
+limnWindow *
+limnWindowNew(int device) {
+  limnWindow *win;
 
-  win = (limnWin *)calloc(1, sizeof(limnWin));
+  win = (limnWindow *)calloc(1, sizeof(limnWindow));
   if (win) {
     win->device = device;
     switch(device) {
@@ -111,8 +103,8 @@ limnWinNew(int device) {
   return win;
 }
 
-limnWin *
-limnWinNix(limnWin *win) {
+limnWindow *
+limnWindowNix(limnWindow *win) {
 
   if (win) {
     free(win);

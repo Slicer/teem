@@ -21,41 +21,45 @@
 #include "limn.h"
 
 int
-limnObjDescribe(FILE *file, limnObj *obj) {
-  int j, i, vi;
-  limnFace *f;
-  limnEdge *e;
-  limnPoint *p;
-  limnPart *r;
+limnObjectDescribe(FILE *file, limnObject *obj) {
+  limnFace *face; int si, fii;
+  limnEdge *edge; int eii;
+  limnVertex *vert; int vii;
+  limnPart *part; int partIdx;
   
-  fprintf(file, "parts: %d\n", obj->rA->len);
-  for (j=0; j<=obj->rA->len-1; j++) {
-    r = &(obj->r[j]);
-    fprintf(file, "%d | points: %d\n", j, r->pNum);
-    for (i=0; i<=r->pNum-1; i++) {
-      p = &(obj->p[r->pBase + i]);
-      fprintf(file, "%d | %d(%d): w=(%g,%g,%g)\tv=(%g,%g,%g)\ts(%g,%g,%g)\n", 
-	      j, i, r->pBase + i, 
-	      p->w[0], p->w[1], p->w[2],
-	      p->v[0], p->v[1], p->v[2],
-	      p->s[0], p->s[1], p->s[2]);
+  fprintf(file, "parts: %d\n", obj->partNum);
+  for (partIdx=0; partIdx<obj->partNum; partIdx++) {
+    part = obj->part + partIdx;
+    fprintf(file, "part %d | verts: %d ========\n", partIdx, part->vertIdxNum);
+    for (vii=0; vii<part->vertIdxNum; vii++) {
+      vert = obj->vert + part->vertIdx[vii];
+      fprintf(file, "part %d | %d(%d): "
+	      "w=(%g,%g,%g)\tv=(%g,%g,%g)\ts(%g,%g,%g)\n", 
+	      partIdx, vii, part->vertIdx[vii], 
+	      vert->world[0], vert->world[1], vert->world[2],
+	      vert->view[0], vert->view[1], vert->view[2],
+	      vert->screen[0], vert->screen[1], vert->screen[2]);
     }
-    fprintf(file, "%d | edges: %d\n", j, r->eNum);
-    for (i=0; i<=r->eNum-1; i++) {
-      e = &(obj->e[r->eBase + i]);
-      fprintf(file, "%d | %d(%d): vert(%d,%d), face(%d,%d)\n", 
-	      j, i, r->eBase + i, e->v0, e->v1, e->f0, e->f1);
+    fprintf(file, "part %d | edges: %d ========\n", partIdx, part->edgeIdxNum);
+    for (eii=0; eii<part->edgeIdxNum; eii++) {
+      edge = obj->edge + part->edgeIdx[eii];
+      fprintf(file, "part %d | %d(%d): "
+	      "vert(%d,%d), face(%d,%d)\n", 
+	      partIdx, eii, part->edgeIdx[eii],
+	      edge->vertIdxIdx[0], edge->vertIdxIdx[1],
+	      edge->faceIdxIdx[0], edge->faceIdxIdx[1]);
     }
-    fprintf(file, "%d | faces: %d\n", j, r->fNum);
-    for (i=0; i<=r->fNum-1; i++) {
-      f = &(obj->f[r->fBase + i]);
-      fprintf(file, "%d | %d(%d): [", j, i, r->fBase + i);
-      for (vi=0; vi<=f->vNum-1; vi++) {
-	fprintf(file, "%d", obj->v[f->vBase + vi]);
-	if (vi < f->vNum-1)
+    fprintf(file, "part %d | faces: %d ========\n", partIdx, part->faceIdxNum);
+    for (fii=0; fii<part->faceIdxNum; fii++) {
+      face = obj->face + part->faceIdx[fii];
+      fprintf(file, "part %d | %d(%d): [", partIdx, fii, part->faceIdx[fii]);
+      for (si=0; si<face->sideNum; si++) {
+	fprintf(file, "%d", part->vertIdx[face->vertIdxIdx[si]]);
+	if (si < face->sideNum-1)
 	  fprintf(file, ",");
       }
-      fprintf(file, "]; wn = (%g,%g,%g)\n", f->wn[0], f->wn[1], f->wn[2]);
+      fprintf(file, "]; wn = (%g,%g,%g)\n", face->worldNormal[0],
+	      face->worldNormal[1], face->worldNormal[2]);
     }
   }
 
@@ -63,26 +67,77 @@ limnObjDescribe(FILE *file, limnObj *obj) {
 }
 
 int
-limnObjOFFWrite(FILE *file, limnObj *obj) {
-  char me[]="limnObjOFFWrite", err[AIR_STRLEN_MED];
-  int ii, vi;
-  limnPoint *p;
-  limnFace *f;
+limnObjectOFFWrite(FILE *file, limnObject *obj) {
+  char me[]="limnObjectOFFWrite", err[AIR_STRLEN_MED];
+  int si;
+  limnVertex *vert; int vii;
+  limnFace *face; int fii;
+  limnPart *part; int partIdx;
   
   if (!( obj && file )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(LIMN, err); return 1;
   }
-  fprintf(file, "OFF\n");
-  fprintf(file, "%d %d -1\n", obj->pA->len, obj->fA->len);
+  fprintf(file, "OFF # created by teem/limn\n");
+  /* there will be (obj->partNum - 1) dummy vertices marking
+     the boundary between different parts */
+  fprintf(file, "%d %d %d\n", obj->vertNum + obj->partNum - 1,
+	  obj->faceNum, obj->edgeNum);
+
+  /* write vertices */
+  for (partIdx=0; partIdx<obj->partNum; partIdx++) {
+    part = obj->part + partIdx;
+    for (vii=0; vii<part->vertIdxNum; vii++) {
+      vert = obj->vert + part->vertIdx[vii];
+      fprintf(file, "%g %g %g",
+	      vert->world[0]/vert->world[3],
+	      vert->world[1]/vert->world[3],
+	      vert->world[2]/vert->world[3]);
+      if (vert->lookIdx) {
+	/* its a non-default color */
+	fprintf(file, " %g %g %g",
+		obj->look[vert->lookIdx].rgba[0],
+		obj->look[vert->lookIdx].rgba[1],
+		obj->look[vert->lookIdx].rgba[2]);
+      }
+      fprintf(file, "\n");
+    }
+    /* dummy vertex, but not after last part */
+    if (partIdx<obj->partNum-1) {
+      fprintf(file, "666 666 666  # end part %d\n", partIdx);
+    }
+  }
+
+  /* write faces */
+  for (partIdx=0; partIdx<obj->partNum; partIdx++) {
+    part = obj->part + partIdx;
+    for (fii=0; fii<part->faceIdxNum; fii++) {
+      face = obj->face + part->faceIdx[fii];
+      fprintf(file, "%d", face->sideNum);
+      for (si=0; si<face->sideNum; si++) {
+	fprintf(file, " %d", part->vertIdx[face->vertIdxIdx[si]] + partIdx);
+      }
+      if (face->lookIdx) {
+	fprintf(file, " %g %g %g",
+		obj->look[face->lookIdx].rgba[0],
+		obj->look[face->lookIdx].rgba[1],
+		obj->look[face->lookIdx].rgba[2]);
+      }
+      fprintf(file, "\n");
+    }
+  }
+
+#if 0  /* before the OFF vertex hijack to delineate parts */
   for (ii=0; ii<obj->pA->len; ii++) {
     p = obj->p + ii;
     fprintf(file, "%g %g %g",
 	    p->w[0]/p->w[3], p->w[1]/p->w[3], p->w[2]/p->w[3]);
-    if (p->sp) {
+    if (p->lookIdx) {
       /* its a non-default color */
-      fprintf(file, " %g %g %g", obj->s[p->sp].rgba[0],
-	      obj->s[p->sp].rgba[1], obj->s[p->sp].rgba[2]);
+      fprintf(file, " %g %g %g",
+	      obj->look[p->lookIdx].rgba[0],
+	      obj->look[p->lookIdx].rgba[1],
+	      obj->look[p->lookIdx].rgba[2]);
     }
     fprintf(file, "\n");
   }
@@ -93,21 +148,28 @@ limnObjOFFWrite(FILE *file, limnObj *obj) {
       fprintf(file, " %d", obj->v[vi + f->vBase]);
     }
     if (f->sp) {
-      fprintf(file, " %g %g %g", obj->s[f->sp].rgba[0],
-	      obj->s[f->sp].rgba[1], obj->s[f->sp].rgba[2]);
+      fprintf(file, " %g %g %g",
+	      obj->look[f->lookIdx].rgba[0],
+	      obj->look[f->lookIdx].rgba[1],
+	      obj->look[f->lookIdx].rgba[2]);
     }
     fprintf(file, "\n");
   }
+#endif
+
   return 0;
 }
 
 int
-limnObjOFFRead(limnObj *obj, FILE *file) {
-  char me[]="limnObjOFFRead", err[AIR_STRLEN_MED];
+limnObjectOFFRead(limnObject *obj, FILE *file) {
+  char me[]="limnObjectOFFRead", err[AIR_STRLEN_MED];
   double vert[6];
-  char line[AIR_STRLEN_LARGE];  /* HEY: bad bad Gordon */
-  int si, lret, nvert, nface, ii, got, ibuff[512];  /* HEY: bad bad Gordon */
+  char line[AIR_STRLEN_LARGE];  /* HEY: bad Gordon */
+  int lookIdx, ri, lret, nvert, nface, ii, got;
+  int ibuff[512]; /* HEY: bad Gordon */
   float fbuff[512];  /* HEY: bad bad Gordon */
+  int *rlut;
+  airArray *mop;
 
   if (!( obj && file )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -123,7 +185,11 @@ limnObjOFFRead(limnObj *obj, FILE *file) {
   } while (3 != got);
   nvert = ibuff[0];
   nface = ibuff[1];
-  limnObjPartStart(obj);
+  
+  mop = airMopNew();
+  rlut = (int*)calloc(nvert, sizeof(int));
+  airMopAdd(mop, rlut, airFree, airMopAlways);
+  ri = -1; /* ssh */
   for (ii=0; ii<nvert; ii++) {
     do {
       lret = airOneLine(file, line, AIR_STRLEN_LARGE);
@@ -131,22 +197,26 @@ limnObjOFFRead(limnObj *obj, FILE *file) {
     if (!lret) {
       sprintf(err, "%s: hit EOF trying to read vert %d (of %d)",
 	      me, ii, nvert);
-      biffAdd(LIMN, err); return 1;
+      biffAdd(LIMN, err); airMopError(mop); return 1;
     }
     if (3 != airParseStrD(vert, line, AIR_WHITESPACE, 3)) {
       sprintf(err, "%s: couldn't parse 3 doubles from \"%s\" "
 	      "for vert %d (of %d)",
 	      me, line, ii, nvert);
-      biffAdd(LIMN, err); return 1;
+      biffAdd(LIMN, err); airMopError(mop); return 1;
     }
+    if (!ii || (666 == vert[0] && 666 == vert[1] && 666 == vert[2])) {
+      ri = limnObjectPartAdd(obj);
+    }
+    rlut[ii] = ri;
     if (6 == airParseStrD(vert, line, AIR_WHITESPACE, 6)) {
       /* we could also parse an RGB color */
-      si = limnObjSPAdd(obj);
-      ELL_4V_SET(obj->s[si].rgba, vert[3], vert[4], vert[5], 1);
+      lookIdx = limnObjectLookAdd(obj);
+      ELL_4V_SET(obj->look[lookIdx].rgba, vert[3], vert[4], vert[5], 1);
     } else {
-      si = 0;
+      lookIdx = 0;
     }
-    limnObjPointAdd(obj, si,  vert[0], vert[1], vert[2]);
+    limnObjectVertexAdd(obj, ri, lookIdx, vert[0], vert[1], vert[2]);
   }
   for (ii=0; ii<nface; ii++) {
     do {
@@ -155,32 +225,32 @@ limnObjOFFRead(limnObj *obj, FILE *file) {
     if (!lret) {
       sprintf(err, "%s: hit EOF trying to read face %d (of %d)",
 	      me, ii, nface);
-      biffAdd(LIMN, err); return 1;
+      biffAdd(LIMN, err); airMopError(mop); return 1;
     }
     if (1 != sscanf(line, "%d", &nvert)) {
       sprintf(err, "%s: can't get first int (#verts) from \"%s\" "
 	      "for face %d (of %d)",
 	      me, line, ii, nface);
-      biffAdd(LIMN, err); return 1;
+      biffAdd(LIMN, err); airMopError(mop); return 1;
     }
     if (nvert+1 != airParseStrI(ibuff, line, AIR_WHITESPACE, nvert+1)) {
       sprintf(err, "%s: couldn't parse %d ints from \"%s\" "
 	      "for face %d (of %d)",
 	      me, nvert+1, line, ii, nface);
-      biffAdd(LIMN, err); return 1;
+      biffAdd(LIMN, err); airMopError(mop); return 1;
     }
     if (nvert+1+3 == airParseStrF(fbuff, line, AIR_WHITESPACE, nvert+1+3)) {
       /* could also parse color */
-      si = limnObjSPAdd(obj);
-      ELL_4V_SET(obj->s[si].rgba,
+      lookIdx = limnObjectLookAdd(obj);
+      ELL_4V_SET(obj->look[lookIdx].rgba,
 		 fbuff[nvert+1+0], fbuff[nvert+1+1], fbuff[nvert+1+2], 1);
     } else {
-      si = 0;
+      lookIdx = 0;
     }
-    limnObjFaceAdd(obj, si, nvert, ibuff+1);
+    limnObjectFaceAdd(obj, rlut[ibuff[1]], lookIdx, nvert, ibuff+1);
   }
-  limnObjPartFinish(obj);
   
+  airMopOkay(mop);
   return 0;
 }
 

@@ -139,20 +139,19 @@ enum {
 
 typedef struct {
   float lineWidth[LIMN_EDGE_TYPE_MAX+1],
-    haloWidth[LIMN_EDGE_TYPE_MAX+1],
     creaseAngle,      /* difference between crease and facet, in *degrees* */
     bg[3];            /* background color */
   int showpage,       /* finish with "showpage" */
     wireFrame;          /* just render wire-frame */
 } limnOptsPS;
 
-typedef struct limnWin_t {
+typedef struct {
   limnOptsPS ps;
   int device;
   float scale, bbox[4];
   int yFlip;
   FILE *file;
-} limnWin;
+} limnWindow;
 
 enum {
   limnSpaceUnknown,
@@ -164,20 +163,33 @@ enum {
 };
 
 /*
-******** struct limnPoint
+******** struct limnLook
+**
+** surface properties: pretty much anything having to do with 
+** appearance, for points, edges, faces, etc.
+*/
+typedef struct {
+  float rgba[4];
+  float kads[3],   /* phong: ka, kd, ks */
+    spow;          /* specular power */
+} limnLook;
+
+/*
+******** struct limnVertex
 **
 ** all the information you might want for a point
 **
 ** Has no dynamically allocated information or pointers
 */
-typedef struct limnPoint_t {
-  float w[4],        /* world coordinates (homogeneous) */
-    v[4],            /* view coordinates */
-    s[3],            /* screen coordinates (device independant) */
-    d[2],            /* device coordinates */
-    n[3];            /* vertex normal (world coords only) */
-  int sp;            /* index into parent's SP list */
-} limnPoint;
+typedef struct {
+  float world[4],        /* world coordinates (homogeneous) */
+    view[4],            /* view coordinates */
+    screen[3],            /* screen coordinates (device independant) */
+    device[2],            /* device coordinates */
+    worldNormal[3];        /* vertex normal (world coords only) */
+  int lookIdx,            /* index into parent's look array */
+    partIdx;
+} limnVertex;
 
 /*
 ******** struct limnEdge
@@ -187,11 +199,11 @@ typedef struct limnPoint_t {
 ** Has no dynamically allocated information or pointers
 */
 typedef struct limnEdge_t {
-  int v0, v1,        /* two point indices (in parent's point list) */
-    f0, f1,          /* two face indices (in parent's face list) */
-    sp;              /* index into parent's SP list */
-  
-  int type;          /* from the limnEdgeType enum */
+  int vertIdxIdx[2], faceIdxIdx[2],
+    lookIdx,         /* index into parent's look array */
+    partIdx;
+  int type,          /* from the limnEdgeType enum */
+    once;            /* flag used for certain kinds of rendering */
 } limnEdge;
 
 /*
@@ -202,13 +214,16 @@ typedef struct limnEdge_t {
 ** Has no dynamically allocated information or pointers
 */
 typedef struct limnFace_t {
-  float wn[3],       /* normal in world space */
-    sn[3];           /* normal in screen space (post-perspective-divide) */
-  int vBase, vNum,   /* start and length in parent's vertex array, "v" */
-    sp;              /* index into parent's SP list, "s" */
-  
-  int visib;         /* is face currently visible (AIR_TRUE or AIR_FALSE) */
-  float z;           /* for depth ordering */
+  float worldNormal[3],
+    screenNormal[3];
+  int *vertIdxIdx,   /* normal array (not airArray) of indices (in part's
+			vertIdx) vertex indices (in object's vert) */
+    *edgeIdxIdx,     /* likewise for edges */
+    sideNum;      /* number of sides (allocated length of {vert,edge}IdxIdx */
+  int lookIdx,
+    partIdx;
+  int visible;         /* is face currently visible (AIR_TRUE or AIR_FALSE) */
+  float depth;
 } limnFace;
 
 /*
@@ -217,60 +232,41 @@ typedef struct limnFace_t {
 ** one connected part of an object
 */
 typedef struct limnPart_t {
-  int fBase, fNum,   /* start and length in parent's limnFace array, "f" */
-    eBase, eNum,     /* start and length in parent's limnEdge array, "e" */
-    pBase, pNum,     /* start and length in parent's limnPoint array, "p" */
-    origIdx;         /* initial part index of this part */
-  
-  float z;           /* assuming that the occlusion graph between
-			whole parts is acyclic, one depth value is
-			good enough for painter's algorithm ordering
-			of drawing */
-  int sp;            /* index into parent's SP list, "s" */
+  int *vertIdx, vertIdxNum,
+    *edgeIdx, edgeIdxNum,
+    *faceIdx, faceIdxNum;
+  airArray *vertIdxArr, *edgeIdxArr, *faceIdxArr;
+  int lookIdx;
+  float depth;
 } limnPart;
 
 /*
-******** struct limnSP
-**
-** "surface" properties: pretty much anything having to do with 
-** appearance, for points, edges, faces, etc.
-*/
-typedef struct limnSP_t {
-  float rgba[4];
-  float k[3], spec;
-} limnSP;
-
-/*
-******** struct limnObj
+******** struct limnObject
 **
 ** the beast used to represent polygonal objects
 **
 ** Relies on many dynamically allocated arrays
 */
-typedef struct limnObj_t {
-  limnPoint *p;      /* array of point structs */
-  airArray *pA;      /* airArray around "p" */
+typedef struct {
+  limnVertex *vert; int vertNum;
+  airArray *vertArr;
 
-  int *v;            /* array of vertex indices for all faces */
-  airArray *vA;      /* airArray around "v" */
+  limnEdge *edge; int edgeNum;
+  airArray *edgeArr;
 
-  limnEdge *e;       /* array of edge structs */
-  airArray *eA;      /* airArray around "e" */
-
-  limnFace *f;       /* array of face structs */
-  airArray *fA;      /* airArray around "f" */
-  int *fSort;        /* indices into "f", sorted by depth */
+  limnFace *face; int faceNum;
+  airArray *faceArr;
+  int *faceSort;     /* indices into "face", sorted by depth */
   
-  limnPart *r;       /* array of part structs */
-  airArray *rA;      /* arrArray around "r" */
+  limnPart *part; int partNum;
+  airArray *partArr;
   
-  limnSP *s;         /* array of surface properties */
-  airArray *sA;      /* airArray around "s" */
+  limnLook *look; int lookNum;
+  airArray *lookArr;
 
-  limnPart *rCurr;   /* pointer to part under construction */
-
-  int edges;         /* if non-zero, build edges as faces are added */
-} limnObj;
+  int doEdges,       /* if non-zero, build edges as faces are added */
+    incr;            /* increment to use with airArrays */
+} limnObject;
 
 /*
 ******** limnQN enum
@@ -389,8 +385,8 @@ extern void limnCameraInit(limnCamera *cam);
 extern limnLight *limnLightNix(limnLight *);
 extern limnCamera *limnCameraNew(void);
 extern limnCamera *limnCameraNix(limnCamera *cam);
-extern limnWin *limnWinNew(int device);
-extern limnWin *limnWinNix(limnWin *win);
+extern limnWindow *limnWindowNew(int device);
+extern limnWindow *limnWindowNix(limnWindow *win);
 
 /* hestLimn.c */
 extern void limnHestCameraOptAdd(hestOpt **hoptP, limnCamera *cam,
@@ -409,47 +405,50 @@ extern int limnCameraPathMake(limnCamera *cam, int numFrames,
 			      limnSplineTypeSpec *uvType);
 
 /* obj.c */
-extern limnObj *limnObjNew(int incr, int edges);
-extern limnObj *limnObjNix(limnObj *obj);
-extern int limnObjPointAdd(limnObj *obj, int sp, float x, float y, float z);
-extern int limnObjEdgeAdd(limnObj *obj, int sp, int face, int v0, int v1);
-extern int limnObjFaceAdd(limnObj *obj, int sp, int numVert, int *vert);
-extern int limnObjSPAdd(limnObj *obj);
-extern int limnObjPartStart(limnObj *obj);
-extern int limnObjPartFinish(limnObj *obj);
+extern int limnObjectLookAdd(limnObject *obj);
+extern limnObject *limnObjectNew(int incr, int doEdges);
+extern limnObject *limnObjectNix(limnObject *obj);
+extern int limnObjectPartAdd(limnObject *obj);
+extern int limnObjectVertexAdd(limnObject *obj, int partIdx, int lookIdx,
+			       float x, float y, float z);
+extern int limnObjectEdgeAdd(limnObject *obj, int partIdx, int lookIdx,
+			     int faceIdxIdx, int vertIdxIdx0, int vertIdxIdx1);
+extern int limnObjectFaceAdd(limnObject *obj, int partIdx,
+			     int lookIdx, int sideNum, int *vertIdxIdx);
 
 /* io.c */
-extern int limnObjDescribe(FILE *file, limnObj *obj);
-extern int limnObjOFFRead(limnObj *obj, FILE *file);
-extern int limnObjOFFWrite(FILE *file, limnObj *obj);
+extern int limnObjectDescribe(FILE *file, limnObject *obj);
+extern int limnObjectOFFRead(limnObject *obj, FILE *file);
+extern int limnObjectOFFWrite(FILE *file, limnObject *obj);
 
 /* shapes.c */
-extern int limnObjCubeAdd(limnObj *obj, int sp);
-extern int limnObjSquareAdd(limnObj *obj, int sp);
-extern int limnObjLoneEdgeAdd(limnObj *obj, int sp);
-extern int limnObjCylinderAdd(limnObj *obj, int sp, int axis,int res);
-extern int limnObjPolarSphereAdd(limnObj *obj, int sp, int axis,
-				 int thetaRes, int phiRes);
-extern int limnObjConeAdd(limnObj *obj, int sp, int axis, int res);
-extern int limnObjPolarSuperquadAdd(limnObj *obj, int sp, int axis,
-				    float A, float B,
+extern int limnObjectCubeAdd(limnObject *obj, int lookIdx);
+extern int limnObjectSquareAdd(limnObject *obj, int lookIdx);
+extern int limnObjectLoneEdgeAdd(limnObject *obj, int lookIdx);
+extern int limnObjectCylinderAdd(limnObject *obj, int lookIdx,
+				 int axis,int res);
+extern int limnObjectPolarSphereAdd(limnObject *obj, int lookIdx, int axis,
 				    int thetaRes, int phiRes);
+extern int limnObjectConeAdd(limnObject *obj, int lookIdx, int axis, int res);
+extern int limnObjectPolarSuperquadAdd(limnObject *obj, int lookIdx, int axis,
+				       float A, float B,
+				       int thetaRes, int phiRes);
 
 /* transform.c */
-extern int limnObjHomog(limnObj *obj, int space);
-extern int limnObjNormals(limnObj *obj, int space);
-extern int limnObjSpaceTransform(limnObj *obj, limnCamera *cam, limnWin *win,
-				 int space);
-extern int limnObjPartTransform(limnObj *obj, int ri, float tx[16]);
-extern int limnObjDepthSortParts(limnObj *obj);
-extern int limnObjDepthSortFaces(limnObj *obj);
+extern int limnObjectHomog(limnObject *obj, int space);
+extern int limnObjectNormals(limnObject *obj, int space);
+extern int limnObjectSpaceTransform(limnObject *obj, limnCamera *cam,
+				    limnWindow *win, int space);
+extern int limnObjectPartTransform(limnObject *obj, int ri, float tx[16]);
+extern int limnObjectDepthSortParts(limnObject *obj);
+extern int limnObjectDepthSortFaces(limnObject *obj);
 
 /* renderLimn.c */
-extern int limnObjRender(limnObj *obj, limnCamera *cam, limnWin *win);
-extern int limnObjPSDrawOld(limnObj *obj, limnCamera *cam,
-			    Nrrd *envMap, limnWin *win);
-extern int limnObjPSDraw(limnObj *obj, limnCamera *cam,
-			 Nrrd *envMap, limnWin *win);
+extern int limnObjectRender(limnObject *obj, limnCamera *cam, limnWindow *win);
+extern int limnObjectPSDraw(limnObject *obj, limnCamera *cam,
+			    Nrrd *envMap, limnWindow *win);
+extern int limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
+				   Nrrd *envMap, limnWindow *win);
 
 /* splineMethods.c */
 extern limnSplineTypeSpec *limnSplineTypeSpecNew(int type, ...);
