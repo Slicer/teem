@@ -714,7 +714,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	    else 
 	      sprintf(err, "%serror parsing \"%s\" as %s for %s: returned %d", 
 		      ME, prms[op], opt[op].CB->type, ident, ret);
-	    return 1;
+	    return ret;
 	  }
 	  if (opt[op].CB->destroy) {
 	    /* vP is the address of a void*, we manage the void * */
@@ -1015,7 +1015,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
 	  char **_errP, hestParm *_parm) {
   char me[]="hestParse: ";
   char **argv, **prms, *err;
-  int a, argc, argr, *nprm, *appr, *udflt, nrf, numOpts, big;
+  int a, argc, argr, *nprm, *appr, *udflt, nrf, numOpts, big, ret;
   airArray *mop;
   hestParm *parm;
   
@@ -1139,10 +1139,11 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
   
   /* -------- now, the actual parsing of values */
   if (parm->verbosity) printf("%s: #### calling hestSetValues\n", me);
-  if (_hestSetValues(prms, udflt, nprm, appr,
-		     opt,
-		     err, parm, mop)) {
-    airMopError(mop); return 1;
+  ret = _hestSetValues(prms, udflt, nprm, appr,
+		       opt,
+		       err, parm, mop);
+  if (ret) {
+    airMopError(mop); return ret;
   }
   if (parm->verbosity) printf("%s: #### hestSetValues done!\n", me);
 
