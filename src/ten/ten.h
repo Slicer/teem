@@ -152,7 +152,7 @@ typedef struct {
 ** FA = 3*sqrt(Q/S)
 ** R = (9*A*B - 2*A^3 - 27*C)/54 
      = (5*A*B - 2*A*S - 27*C)/54 = thirdmoment({v1,v2,v3})/2
-** P = arccos(R/sqrt(Q)^3) = phase angle of cubic solution
+** P = arccos(R/sqrt(Q)^3)/3 = phase angle of cubic solution
 **
 ** !!! Changes to this list need to be propogated to tenGage.c's
 ** !!! _tenGageTable[] and _tenGageAnswer(), 
@@ -170,7 +170,7 @@ enum {
   tenGageQ,             /*  6: "q", (S - B)/9: GT[1] */
   tenGageFA,            /*  7: "fa", fractional anisotropy: GT[1] */
   tenGageR,             /*  8: "r", 9*A*B - 2*A^3 - 27*C: GT[1] */
-  tenGageP,             /*  9: "p", arccos(R/sqrt(Q^3)): GT[1] */
+  tenGageTheta,         /*  9: "th", arccos(R/sqrt(Q^3))/3: GT[1] */
 
   tenGageEval,          /* 10: "eval", all eigenvalues of tensor : GT[3] */
   tenGageEval0,         /* 11: "eval0", major eigenvalue of tensor : GT[1] */
@@ -212,9 +212,9 @@ enum {
   tenGageRGradMag,      /* 38: "rgm", gradient magnitude of Q: GT[1] */
   tenGageRNormal,       /* 39: "rn", normalized gradient of Q: GT[3] */
 
-  tenGagePGradVec,      /* 40: "pgv", gradient vector of P: GT[3] */
-  tenGagePGradMag,      /* 41: "pgm", gradient magnitude of P: GT[1] */
-  tenGagePNormal,       /* 42: "pn", normalized gradient of P: GT[3] */
+  tenGageThetaGradVec,  /* 40: "thgv", gradient vector of Th: GT[3] */
+  tenGageThetaGradMag,  /* 41: "thgm", gradient magnitude of Th: GT[1] */
+  tenGageThetaNormal,   /* 42: "thn", normalized gradient of Th: GT[3] */
 
   tenGageAniso,         /* 43: "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
   tenGageLast

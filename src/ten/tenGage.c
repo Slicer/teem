@@ -34,7 +34,7 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageQ,                   1,  0,  {tenGageS, tenGageB, -1, -1, -1},                                                      -1,  -1},
   {tenGageFA,                  1,  0,  {tenGageQ, tenGageS, -1, -1, -1},                                                      -1,  -1},
   {tenGageR,                   1,  0,  {tenGageTrace, tenGageB, tenGageDet, tenGageS, -1},                                    -1,  -1},
-  {tenGageP,                   1,  0,  {tenGageR, tenGageQ, -1, -1, -1},                                                      -1,  -1},
+  {tenGageTheta,               1,  0,  {tenGageR, tenGageQ, -1, -1, -1},                                                      -1,  -1},
 
   {tenGageEval,                3,  0,  {tenGageTensor, -1, -1, -1, -1},                                                       -1,  -1},
   {tenGageEval0,               1,  0,  {tenGageEval, -1, -1, -1, -1},                                                tenGageEval,   0},
@@ -75,9 +75,9 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageRGradMag,            1,  1,  {tenGageRGradVec, -1, -1, -1, -1},                                                     -1,  -1},
   {tenGageRNormal,             3,  1,  {tenGageRGradVec, tenGageRGradMag, -1, -1, -1},                                        -1,  -1},
 
-  {tenGagePGradVec,            3,  1,  {tenGageRGradVec, tenGageQGradVec, tenGageP, -1, -1},                                  -1,  -1},
-  {tenGagePGradMag,            1,  1,  {tenGagePGradVec, -1, -1, -1, -1},                                                     -1,  -1},
-  {tenGagePNormal,             3,  1,  {tenGagePGradVec, tenGagePGradMag, -1, -1, -1},                                        -1,  -1},
+  {tenGageThetaGradVec,        3,  1,  {tenGageRGradVec, tenGageQGradVec, tenGageTheta, -1, -1},                              -1,  -1},
+  {tenGageThetaGradMag,        1,  1,  {tenGageThetaGradVec, -1, -1, -1, -1},                                                 -1,  -1},
+  {tenGageThetaNormal,         3,  1,  {tenGageThetaGradVec, tenGageThetaGradMag, -1, -1, -1},                                -1,  -1},
 
   {tenGageAniso, TEN_ANISO_MAX+1,  0,  {tenGageEval0, tenGageEval1, tenGageEval2, -1, -1},                                    -1,  -1}
 };
@@ -174,9 +174,10 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
 	      dtA, dtB, dtC, dtD, dtE, dtF);
     }
   }
+  /* done if doV 
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageConfidence)) {
-    pvl->directAnswer[tenGageConfidence][0] = tenAns[0];
   }
+  */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTrace)) {
     cbA = -(pvl->directAnswer[tenGageTrace][0] = dtA + dtD + dtF);
   }
@@ -202,11 +203,11 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageR)) {
     cbR = pvl->directAnswer[tenGageR][0] = (5*cbA*cbB - 27*cbC - 2*cbA*cbS)/54;
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageP)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTheta)) {
     cbQQQ = cbQ*cbQ*cbQ;
     tmp0 = cbR/(epsilon + sqrt(cbQQQ));
-    tmp0 = AIR_CLAMP(0.0, tmp0, 1.0);
-    pvl->directAnswer[tenGageP][0] = acos(tmp0);
+    tmp0 = AIR_CLAMP(-1.0, tmp0, 1.0);
+    pvl->directAnswer[tenGageTheta][0] = acos(tmp0)/3;
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEvec)) {
     /* we do the longer process to get eigenvectors, and in the process
@@ -355,9 +356,9 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     ELL_3V_SCALE(pvl->directAnswer[tenGageRNormal],
 		 1.0/(epsilon + magTmp), vecTmp);
   }
-  /* --- P --- */
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGagePGradVec)) {
-    vecTmp = pvl->directAnswer[tenGagePGradVec];
+  /* --- Theta --- */
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageThetaGradVec)) {
+    vecTmp = pvl->directAnswer[tenGageThetaGradVec];
     tmp1 = cbQ*cbQ*cbQ;
     tmp1 = sqrt(tmp1)*sqrt(1.0 - cbR*cbR/(epsilon + tmp1));
     tmp1 = 1.0/(epsilon + tmp1);
@@ -366,11 +367,11 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
 		      tmp0, gradCbQ,
 		      -tmp1, gradCbR);
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGagePGradMag)) {
-    magTmp = pvl->directAnswer[tenGagePGradMag][0] = ELL_3V_LEN(vecTmp);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageThetaGradMag)) {
+    magTmp = pvl->directAnswer[tenGageThetaGradMag][0] = ELL_3V_LEN(vecTmp);
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGagePNormal)) {
-    ELL_3V_SCALE(pvl->directAnswer[tenGagePNormal],
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageThetaNormal)) {
+    ELL_3V_SCALE(pvl->directAnswer[tenGageThetaNormal],
 		 1.0/(epsilon + magTmp), vecTmp);
   }
   /* --- Aniso --- */

@@ -188,7 +188,7 @@ _tenGageVal[] = {
   tenGageQ,             /* "q", (S - B)/9: GT[1] */
   tenGageFA,            /* "fa", fractional anisotropy: GT[1] */
   tenGageR,             /* "r", 9*A*B - 2*A^3 - 27*C: GT[1] */
-  tenGageP,             /* "p", arccos(R/sqrt(Q^3)): GT[1] */
+  tenGageTheta,         /* "th", arccos(R/sqrt(Q^3))/3: GT[1] */
   tenGageEval,          /* "eval", all eigenvalues of tensor : GT[3] */
   tenGageEval0,         /* "eval0", major eigenvalue of tensor : GT[1] */
   tenGageEval1,         /* "eval1", medium eigenvalue of tensor : GT[1] */
@@ -219,9 +219,9 @@ _tenGageVal[] = {
   tenGageRGradVec,      /* "rgv", gradient vector of Q: GT[3] */
   tenGageRGradMag,      /* "rgm", gradient magnitude of Q: GT[1] */
   tenGageRNormal,       /* "rn", normalized gradient of Q: GT[3] */
-  tenGagePGradVec,      /* "pgv", gradient vector of P: GT[3] */
-  tenGagePGradMag,      /* "pgm", gradient magnitude of P: GT[1] */
-  tenGagePNormal,       /* "pn", normalized gradient of P: GT[3] */
+  tenGageThetaGradVec,  /* "thgv", gradient vector of P: GT[3] */
+  tenGageThetaGradMag,  /* "thgm", gradient magnitude of P: GT[1] */
+  tenGageThetaNormal,   /* "thn", normalized gradient of P: GT[3] */
   tenGageAniso          /* "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
 };
 
@@ -236,7 +236,7 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "q",
   "fa",
   "r",
-  "p",
+  "th", "theta",
   "eval",
   "eval0",
   "eval1",
@@ -267,9 +267,9 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "rgv", "r grad vec",
   "rgm", "r grad mag",
   "rn", "r normal",
-  "pgv", "p grad vec",
-  "pgm", "p grad mag",
-  "pn", "p normal",
+  "thgv", "th grad vec",
+  "thgm", "th grad mag",
+  "thn", "th normal",
   "an", "aniso", "anisotropies",
   ""
 };
@@ -285,7 +285,7 @@ _tenGageValEqv[] = {
   tenGageQ,
   tenGageFA,
   tenGageR,
-  tenGageP,
+  tenGageTheta, tenGageTheta,
   tenGageEval,
   tenGageEval0,
   tenGageEval1,
@@ -316,9 +316,9 @@ _tenGageValEqv[] = {
   tenGageRGradVec, tenGageRGradVec,
   tenGageRGradMag, tenGageRGradMag,
   tenGageRNormal, tenGageRNormal,
-  tenGagePGradVec, tenGagePGradVec,
-  tenGagePGradMag, tenGagePGradMag,
-  tenGagePNormal, tenGagePNormal,
+  tenGageThetaGradVec, tenGageThetaGradVec,
+  tenGageThetaGradMag, tenGageThetaGradMag,
+  tenGageThetaNormal, tenGageThetaNormal,
   tenGageAniso, tenGageAniso, tenGageAniso
 };
 
