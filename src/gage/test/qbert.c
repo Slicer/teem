@@ -288,7 +288,7 @@ main(int argc, char *argv[]) {
   ctx->c.verbose = 0;
   t0 = airTime();
   for (k=0; k<=sz[2]-1; k++) {
-    printf("%d/%d "k, sz[2]-1); fflush(stdout);
+    printf("%d/%d ", k, sz[2]-1); fflush(stdout);
     for (j=0; j<=sz[1]-1; j++) {
       for (i=0; i<=sz[0]-1; i++) {
 	gageSclProbe(ctx, i, j, k);
