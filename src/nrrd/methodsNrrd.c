@@ -22,6 +22,34 @@
 #include "privateNrrd.h"
 #include <teem32bit.h>
 
+void
+nrrdPeripheralInit(Nrrd *nrrd) {
+
+  nrrdBasicInfoInit(nrrd,
+                    NRRD_BASIC_INFO_DATA_BIT
+                    | NRRD_BASIC_INFO_TYPE_BIT
+                    | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                    | NRRD_BASIC_INFO_DIMENSION_BIT
+                    | NRRD_BASIC_INFO_CONTENT_BIT
+                    | NRRD_BASIC_INFO_COMMENTS_BIT
+                    | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT);
+  return;
+}
+
+int
+nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin) {
+
+  nrrdBasicInfoCopy(nout, nin,
+                    NRRD_BASIC_INFO_DATA_BIT
+                    | NRRD_BASIC_INFO_TYPE_BIT
+                    | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                    | NRRD_BASIC_INFO_DIMENSION_BIT
+                    | NRRD_BASIC_INFO_CONTENT_BIT
+                    | NRRD_BASIC_INFO_COMMENTS_BIT
+                    | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT);
+  return 0;
+}
+  
 /* ------------------------------------------------------------ */
 
 void
@@ -189,6 +217,169 @@ nrrdKernelParmSet (const NrrdKernel **kP, double kparm[NRRD_KERNEL_PARMS_NUM],
 /* ------------------------------------------------------------ */
 
 /*
+******** nrrdBasicInfoInit
+**
+** resets "basic" (per-array) information
+** formerly nrrdPeripheralInit
+**
+** the bitflag communicates which fields should *not* be initialized
+*/
+void
+nrrdBasicInfoInit (Nrrd *nrrd, int bitflag) {
+  int dd;
+
+  if (!nrrd) {
+    return;
+  }
+
+  if (!(NRRD_BASIC_INFO_DATA_BIT & bitflag)) {
+    nrrd->data = airFree(nrrd->data);
+  }
+  if (!(NRRD_BASIC_INFO_TYPE_BIT & bitflag)) {
+    nrrd->type = nrrdTypeUnknown;
+  }
+  if (!(NRRD_BASIC_INFO_BLOCKSIZE_BIT & bitflag)) {
+    nrrd->blockSize = 0;
+  }
+  if (!(NRRD_BASIC_INFO_DIMENSION_BIT & bitflag)) {
+    nrrd->dim = 0;
+  }
+  if (!(NRRD_BASIC_INFO_CONTENT_BIT & bitflag)) {
+    nrrd->content = airFree(nrrd->content); 
+  }
+  if (!(NRRD_BASIC_INFO_SAMPLEUNITS_BIT & bitflag)) {
+    nrrd->sampleUnits = airFree(nrrd->sampleUnits); 
+  }
+  if (!(NRRD_BASIC_INFO_SPACE_BIT & bitflag)) {
+    nrrd->space = nrrdSpaceUnknown;
+    nrrd->spaceDim = 0;
+  }
+  if (!(NRRD_BASIC_INFO_SPACEDIMENSION_BIT & bitflag)) {
+    nrrd->space = nrrdSpaceUnknown;
+    nrrd->spaceDim = 0;
+  }
+  if (!(NRRD_BASIC_INFO_SPACEUNITS_BIT & bitflag)) {
+    for (dd=0; dd<NRRD_DIM_MAX; dd++) {
+      nrrd->spaceUnits[dd] = airFree(nrrd->spaceUnits[dd]);
+    }
+  }
+  if (!(NRRD_BASIC_INFO_SPACEORIGIN_BIT & bitflag)) {
+    for (dd=0; dd<NRRD_DIM_MAX; dd++) {
+      nrrd->spaceOrigin[dd] = AIR_NAN;
+    }
+  }
+  if (!(NRRD_BASIC_INFO_OLDMIN_BIT & bitflag)) {
+    nrrd->oldMin = AIR_NAN;
+  }
+  if (!(NRRD_BASIC_INFO_OLDMAX_BIT & bitflag)) {
+    nrrd->oldMax = AIR_NAN;
+  }
+  if (!(NRRD_BASIC_INFO_COMMENTS_BIT & bitflag)) {
+    nrrdCommentClear(nrrd);
+  }
+  if (!(NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT & bitflag)) {
+    nrrdKeyValueClear(nrrd);
+  }
+  return;
+}
+
+/*
+******** nrrdBasicInfoCopy
+**
+** copies "basic" (per-array) information
+** formerly known as nrrdPeripheralCopy, which was not used consistently
+**
+** the bitflag communicates which fields should *not* be copied
+*/
+int
+nrrdBasicInfoCopy (Nrrd *dest, const Nrrd *src, int bitflag) {
+  char me[]="nrrdBasicInfoCopy", err[AIR_STRLEN_MED];
+  int dd;
+
+  if (!( dest && src ))
+    return 0;
+  if (dest == src) {
+    /* nothing to do */
+    return 0;
+  }
+
+  if (!(NRRD_BASIC_INFO_DATA_BIT & bitflag)) {
+    dest->data = src->data;
+  }
+  if (!(NRRD_BASIC_INFO_TYPE_BIT & bitflag)) {
+    dest->type = src->type;
+  }
+  if (!(NRRD_BASIC_INFO_BLOCKSIZE_BIT & bitflag)) {
+    dest->blockSize = src->blockSize;
+  }
+  if (!(NRRD_BASIC_INFO_DIMENSION_BIT & bitflag)) {
+    dest->dim = src->dim;
+  }
+  if (!(NRRD_BASIC_INFO_CONTENT_BIT & bitflag)) {
+    dest->content = airFree(dest->content);
+    dest->content = airStrdup(src->content);
+    if (src->content && !dest->content) {
+      sprintf(err, "%s: couldn't copy content", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  if (!(NRRD_BASIC_INFO_SAMPLEUNITS_BIT & bitflag)) {
+    dest->sampleUnits = airFree(dest->sampleUnits);
+    dest->sampleUnits = airStrdup(src->sampleUnits);
+    if (src->sampleUnits && !dest->sampleUnits) {
+      sprintf(err, "%s: couldn't copy sampleUnits", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  if (!(NRRD_BASIC_INFO_SPACE_BIT & bitflag)) {
+    dest->space = src->space;
+  }
+  if (!(NRRD_BASIC_INFO_SPACEDIMENSION_BIT & bitflag)) {
+    dest->spaceDim = src->spaceDim;
+  }
+  if (!(NRRD_BASIC_INFO_SPACEUNITS_BIT & bitflag)) {
+    for (dd=0; dd<src->spaceDim; dd++) {
+      dest->spaceUnits[dd] = airFree(dest->spaceUnits[dd]);
+      dest->spaceUnits[dd] = airStrdup(src->spaceUnits[dd]);
+      if (src->spaceUnits[dd] && !dest->spaceUnits[dd]) {
+        sprintf(err, "%s: couldn't copy spaceUnits[%d]", me, dd);
+        biffAdd(NRRD, err); return 1;
+      }
+    }
+    for (dd=src->spaceDim; dd<NRRD_DIM_MAX; dd++) {
+      dest->spaceUnits[dd] = airFree(dest->spaceUnits[dd]);
+    }
+  }
+  if (!(NRRD_BASIC_INFO_SPACEORIGIN_BIT & bitflag)) {
+    for (dd=0; dd<src->spaceDim; dd++) {
+      dest->spaceOrigin[dd] = src->spaceOrigin[dd];
+    }
+    for (dd=src->spaceDim; dd<NRRD_DIM_MAX; dd++) {
+      dest->spaceOrigin[dd] = AIR_NAN;
+    }
+  }
+  if (!(NRRD_BASIC_INFO_OLDMIN_BIT & bitflag)) {
+    dest->oldMin = src->oldMin;
+  }
+  if (!(NRRD_BASIC_INFO_OLDMAX_BIT & bitflag)) {
+    dest->oldMax = src->oldMax;
+  }
+  if (!(NRRD_BASIC_INFO_COMMENTS_BIT & bitflag)) {
+    if (nrrdCommentCopy(dest, src)) {
+      sprintf(err, "%s: trouble copying comments", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  if (!(NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT & bitflag)) {
+    if (nrrdKeyValueCopy(dest, src)) {
+      sprintf(err, "%s: trouble copying key/value pairs", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  return 0;
+}
+
+/*
 ******* nrrdInit
 **
 ** initializes a nrrd to default state.  All nrrd functions in the
@@ -200,26 +391,12 @@ nrrdInit (Nrrd *nrrd) {
   int i;
 
   if (nrrd) {
-    nrrd->data = airFree(nrrd->data);
-    nrrd->type = nrrdTypeUnknown;
-    nrrd->dim = 0;
-    
+    nrrdBasicInfoInit(nrrd, NRRD_BASIC_INFO_NONE);
     for (i=0; i<NRRD_DIM_MAX; i++) {
       _nrrdAxisInfoInit(&(nrrd->axis[i]));
     }
-    
-    nrrd->content = airFree(nrrd->content);
-    nrrd->blockSize = 0;
-    nrrd->oldMin = nrrd->oldMax = AIR_NAN;
-    /* nrrd->ptr = NULL; */
-    
-    /* the comment airArray should be already been allocated, 
-       though perhaps empty */
-    nrrdCommentClear(nrrd);
-
-    /* likewise for key/value pairs */
-    nrrdKeyValueClear(nrrd);
   }
+  return;
 }
 
 /*
@@ -231,20 +408,24 @@ nrrdInit (Nrrd *nrrd) {
 */
 Nrrd *
 nrrdNew (void) {
-  int i;
+  int ii;
   Nrrd *nrrd;
   
   nrrd = (Nrrd*)(calloc(1, sizeof(Nrrd)));
   if (!nrrd)
     return NULL;
 
-  /* explicitly set pointers to NULL */
+  /* explicitly set pointers to NULL, since calloc isn't officially
+     guaranteed to do that.  Its unfortunate that the AxisInfo functions
+     don't handle this, but then again these are unique circumstances */
   nrrd->data = NULL;
-  nrrd->content = NULL;
-  /* HEY: this is a symptom of some stupidity, no? */
-  for (i=0; i<NRRD_DIM_MAX; i++) {
-    nrrd->axis[i].label = NULL;
+  for (ii=0; ii<NRRD_DIM_MAX; ii++) {
+    nrrd->axis[ii].label = NULL;
+    nrrd->axis[ii].units = NULL;
+    nrrd->spaceUnits[ii] = NULL;
   }
+  nrrd->content = NULL;
+  nrrd->sampleUnits = NULL;
 
   /* create comment airArray (even though it starts empty) */
   nrrd->cmt = NULL;
@@ -262,7 +443,6 @@ nrrdNew (void) {
     return NULL;
   /* no airArray callbacks for now */
   
-
   /* finish initializations */
   nrrdInit(nrrd);
 
@@ -272,7 +452,7 @@ nrrdNew (void) {
 /*
 ******** nrrdNix()
 **
-** does nothing with the array, just does whatever is needed
+** does nothing with the array data inside, just does whatever is needed
 ** to free the nrrd itself
 **
 ** returns NULL
@@ -281,19 +461,20 @@ nrrdNew (void) {
 */
 Nrrd *
 nrrdNix (Nrrd *nrrd) {
-  int i;
+  int ii;
   
   if (nrrd) {
-    nrrd->content = airFree(nrrd->content);
-    /* HEY: this is a symptom of some stupidity, no? */
-    for (i=0; i<NRRD_DIM_MAX; i++) {
-      nrrd->axis[i].label = airFree(nrrd->axis[i].label);
+    for (ii=0; ii<NRRD_DIM_MAX; ii++) {
+      _nrrdAxisInfoInit(&(nrrd->axis[ii]));
+      nrrd->spaceUnits[ii] = airFree(nrrd->spaceUnits[ii]);
     }
+    nrrd->content = airFree(nrrd->content);
+    nrrd->sampleUnits = airFree(nrrd->sampleUnits);
     nrrdCommentClear(nrrd);
     nrrd->cmtArr = airArrayNix(nrrd->cmtArr);
     nrrdKeyValueClear(nrrd);
     nrrd->kvpArr = airArrayNix(nrrd->kvpArr);
-    airFree(nrrd);  /* no NULL assignment, else compile warnings */
+    airFree(nrrd);
   }
   return NULL;
 }
@@ -372,7 +553,6 @@ _nrrdSizeCheck (int dim, const int *size, int useBiff) {
 int
 nrrdWrap_nva (Nrrd *nrrd, void *data, int type, int dim, const int *size) {
   char me[] = "nrrdWrap_nva", err[AIR_STRLEN_MED];
-  int d;
   
   if (!(nrrd && size)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -385,9 +565,7 @@ nrrdWrap_nva (Nrrd *nrrd, void *data, int type, int dim, const int *size) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  for (d=0; d<dim; d++) {
-    nrrd->axis[d].size = size[d];
-  }
+  nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSize, size);
   return 0;
 }
 
@@ -444,8 +622,10 @@ _nrrdTraverse (Nrrd *nrrd) {
 **
 ** Similar to nrrdCopy, but the data itself is not copied.  nout->data
 ** and nout->data will share a pointer to the data.  This should be
-** used with extreem caution, because there is no pointer magic to
+** used with extreme caution, because there is no pointer magic to
 ** make sure the data is not freed twice.
+**
+** HEY: I have a bad feeling there's a memory leak in here ...
 */
 int
 _nrrdCopyShallow (Nrrd *nout, const Nrrd *nin) {
@@ -494,17 +674,9 @@ _nrrdCopyShallow (Nrrd *nout, const Nrrd *nin) {
   return 0;
 }
 
-/*
-******** nrrdCopy
-**
-** copy method for nrrds.  nout will end up as an "exact" copy of nin.
-** New space for data is allocated here, and output nrrd points to it.
-** Comments from old are added to comments for new, so these are also
-** newly allocated.  nout->ptr is not set, nin->ptr is not read.
-*/
 int
-nrrdCopy (Nrrd *nout, const Nrrd *nin) {
-  char me[]="nrrdCopy", err[AIR_STRLEN_MED];
+_nrrdCopy (Nrrd *nout, const Nrrd *nin, int bitflag) {
+  char me[]="_nrrdCopy", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX];
 
   if (!(nin && nout)) {
@@ -513,7 +685,7 @@ nrrdCopy (Nrrd *nout, const Nrrd *nin) {
   }
   if (nout == nin) {
     /* its not the case that we have nothing to do- the semantics of
-       copying can not be achieved if the input and output nrrd are
+       copying cannot be achieved if the input and output nrrd are
        the same; this is an error */
     sprintf(err, "%s: nout==nin disallowed", me);
     biffAdd(NRRD, err); return 1;
@@ -532,41 +704,42 @@ nrrdCopy (Nrrd *nout, const Nrrd *nin) {
            nrrdElementNumber(nin)*nrrdElementSize(nin));
   } else {
     /* someone is trying to copy structs without data, fine fine fine */
-    nout->data = NULL;
-    /* We need to make sure to copy important stuff like type, dim,
-       and sizes, as this information is not copied elsewhere.  If we
-       did have non-NULL data, this information would be set in 
-       nrrdAlloc_nva() called by nrrdMaybeAlloc_nva() above. */
-    nout->type = nin->type;
-    nout->dim = nin->dim;
-    nrrdAxisInfoSet_nva(nout, nrrdAxisInfoSize, size);
+    if (nrrdWrap_nva(nout, NULL, nin->type, nin->dim, size)) {
+      sprintf(err, "%s: couldn't allocate data", me);
+      biffAdd(NRRD, err); return 1;
+    }
   }
-  nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
-
-  /* HEY: shouldn't this be handled with nrrdPeripheralCopy() */
-  nout->content = airFree(nout->content);
-  nout->content = airStrdup(nin->content);
-  if (nin->content && !nout->content) {
-    sprintf(err, "%s: couldn't copy content", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  nout->blockSize = nin->blockSize;
-  nout->oldMin = nin->oldMin;
-  nout->oldMax = nin->oldMax;
-  /* nout->ptr = nin->ptr; */
-    
-  if (nrrdCommentCopy(nout, nin)) {
-    sprintf(err, "%s: trouble copying comments", me);
-    biffAdd(NRRD, err); return 1;
-  }
-
-  if (nrrdKeyValueCopy(nout, nin)) {
-    sprintf(err, "%s: trouble copying key/value pairs", me);
+  nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_SIZE_BIT);
+  /* if nin->data non-NULL (second branch above), this will 
+     harmlessly unset and set type and dim */
+  nrrdBasicInfoInit(nout, NRRD_BASIC_INFO_DATA_BIT | bitflag);
+  if (nrrdBasicInfoCopy(nout, nin, NRRD_BASIC_INFO_DATA_BIT | bitflag)) {
+    sprintf(err, "%s: trouble copying basic info", me);
     biffAdd(NRRD, err); return 1;
   }
 
   return 0;
 }
+
+/*
+******** nrrdCopy
+**
+** copy method for nrrds.  nout will end up as an "exact" copy of nin.
+** New space for data is allocated here, and output nrrd points to it.
+** Comments from old are added to comments for new, so these are also
+** newly allocated.  nout->ptr is not set, nin->ptr is not read.
+*/
+int
+nrrdCopy(Nrrd *nout, const Nrrd *nin) {
+  char me[]="nrrdCopy", err[AIR_STRLEN_MED];
+
+  if (_nrrdCopy(nout, nin, NRRD_BASIC_INFO_NONE)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  return 0;
+}
+
 
 /*
 ******** nrrdAlloc_nva()
@@ -614,20 +787,17 @@ nrrdAlloc_nva (Nrrd *nrrd, int type, int dim, const int *size) {
     biffAdd(NRRD, err); return 1;
   }
 
-  nrrd->type = type;
   nrrd->data = airFree(nrrd->data);
-  nrrd->dim = dim;
-  if (_nrrdSizeCheck(dim, size, AIR_TRUE)) {
+  if (nrrdWrap_nva(nrrd, NULL, type, dim, size)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1 ;
   }
-  nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSize, size);
   num = nrrdElementNumber(nrrd);
   esize = nrrdElementSize(nrrd);
   nrrd->data = calloc(num, esize);
   if (!(nrrd->data)) {
-    sprintf(err, "%s: calloc(" _AIR_SIZE_T_FMT ",%d) failed", 
-            me, num, nrrdElementSize(nrrd));
+    sprintf(err, "%s: calloc(" _AIR_SIZE_T_FMT ",%d) failed",
+            me, num, esize);
     biffAdd(NRRD, err); return 1 ;
   }
 
@@ -655,10 +825,6 @@ nrrdAlloc (Nrrd *nrrd, int type, int dim, ...) {
     size[d] = va_arg(ap, int);
   }
   va_end(ap);
-  if (_nrrdSizeCheck(dim, size, AIR_TRUE)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
-  }
   if (nrrdAlloc_nva(nrrd, type, dim, size)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
@@ -736,10 +902,10 @@ nrrdMaybeAlloc_nva (Nrrd *nrrd, int type, int dim, const int *size) {
       biffAdd(NRRD, err); return 1;
     }
   } else {
-    /* this is essentially a reshape, or maybe not even that */
-    nrrd->type = type;
-    nrrd->dim = dim;
-    nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSize, size);
+    if (nrrdWrap_nva(nrrd, nrrd->data, type, dim, size)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
     /* but we do have to initialize memory! */
     memset(nrrd->data, 0, nrrdElementNumber(nrrd)*nrrdElementSize(nrrd));
   }
@@ -768,10 +934,6 @@ nrrdMaybeAlloc (Nrrd *nrrd, int type, int dim, ...) {
     size[d] = va_arg(ap, int);
   }
   va_end(ap);
-  if (_nrrdSizeCheck(dim, size, AIR_TRUE)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
-  }
   if (nrrdMaybeAlloc_nva(nrrd, type, dim, size)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;

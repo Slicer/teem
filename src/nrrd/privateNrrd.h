@@ -57,6 +57,7 @@ typedef union {
   unsigned int *UI;
   double *D;
   const void *P;
+  double (*V)[NRRD_DIM_MAX];
 } _nrrdAxisInfoSetPtrs;
 
 typedef union {
@@ -65,6 +66,7 @@ typedef union {
   unsigned int *UI;
   double *D;
   void *P;
+  double (*V)[NRRD_DIM_MAX];
 } _nrrdAxisInfoGetPtrs;
 
 /* keyvalue.c */
@@ -104,7 +106,9 @@ extern int _nrrdContentSet_nva(Nrrd *nout, const char *func,
                                va_list arg);
 extern int _nrrdContentSet(Nrrd *nout, const char *func,
                            char *content, const char *format, ...);
-
+extern int _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, 
+                                    int checkOrigin, int useBiff);
+extern int (*_nrrdFieldCheck[NRRD_FIELD_MAX+1])(const Nrrd *nrrd, int useBiff);
 
 /* axis.c */
 extern int _nrrdKindAltered(int kindIn);
@@ -121,6 +125,7 @@ extern void (*_nrrdConv[][NRRD_TYPE_MAX+1])(void *, const void *, size_t);
 extern char _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL];
 extern char _nrrdRelativePathFlag[];
 extern char _nrrdFieldSep[];
+extern char _nrrdNoSpaceVector[];
 extern char _nrrdTextSep[];
 extern int _nrrdReshapeUpGrayscale(Nrrd *nimg);
 extern void _nrrdSplitName(char **dirP, char **baseP, const char *name);
@@ -142,7 +147,10 @@ extern int (*_nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1])(Nrrd *nrrd,
                                                        int useBiff);
 extern int _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIoState *nio, int useBiff);
 
-/* methods.c */
+/* methodsNrrd.c */
+extern void nrrdPeripheralInit(Nrrd *nrrd);
+extern int nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin);
+extern int _nrrdCopy(Nrrd *nout, const Nrrd *nin, int bitflag);
 extern int _nrrdSizeCheck(int dim, const int *size, int useBiff);
 extern void _nrrdTraverse(Nrrd *nrrd);
 extern int _nrrdCopyShallow (Nrrd *nout, const Nrrd *nin);

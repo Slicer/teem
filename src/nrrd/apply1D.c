@@ -77,7 +77,7 @@ _nrrdApply1DDomainMax(const Nrrd *nmap, int ramps, int mapAxis) {
 ** there is no need for any further error checking.
 **
 ** The only thing this function DOES is allocate the output nrrd,
-** and set peripheral information.  The rest is just error checking.
+** and set basic information.  The rest is just error checking.
 **
 ** The given NrrdRange has to be fleshed out by the caller: it can't
 ** be NULL, and both range->min and range->max must exist.
@@ -228,7 +228,7 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     biffAdd(NRRD, err); free(mapcnt); return 1;
   }
   free(mapcnt); 
-  nrrdPeripheralInit(nout);
+  nrrdBasicInfoInit(nout, NRRD_BASIC_INFO_NONE);
   return 0;
 }
 

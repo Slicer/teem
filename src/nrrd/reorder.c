@@ -50,11 +50,11 @@ nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax) {
     biffAdd(NRRD, err); return 1;
   }
   if (nout != nin) {
-    if (nrrdCopy(nout, nin)) {
+    if (_nrrdCopy(nout, nin, (NRRD_BASIC_INFO_COMMENTS_BIT
+                              | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
-    /* HEY: comments have been copied, perhaps that's not appropriate */
   }
   nout->dim = 1 + nin->dim;
   for (d=nin->dim-1; d>=ax; d--) {
@@ -72,7 +72,7 @@ nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  nrrdPeripheralCopy(nout, nin);
+  /* all basic info has already been copied by nrrdCopy() above */
   return 0;
 }
 
@@ -198,68 +198,75 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes) {
       sprintf(err, "%s: trouble copying input", me);
       biffAdd(NRRD, err); return 1;      
     }
-    return 0;
-  }
-  
-  /* else lowPax < dim (actually, lowPax < dim-1) */
-  /* printf("!%s: lowPax = %d\n", me, lowPax); */
-  
-  /* allocate output */
-  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, szIn);
-  nout->blockSize = nin->blockSize;
-  for (d=0; d<dim; d++) {
-    szOut[d] = szIn[axes[d]];
-  }
-  if (nrrdMaybeAlloc_nva(nout, nin->type, nin->dim, szOut)) {
-    sprintf(err, "%s: failed to allocate output", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  
-  /* peripheral info */
-  if (nrrdAxisInfoCopy(nout, nin, axes, NRRD_AXIS_INFO_NONE)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  strcpy(buff1, "");
-  for (d=0; d<dim; d++) {
-    sprintf(buff2, "%s%d", (d ? "," : ""), axes[d]);
-    strcat(buff1, buff2);
-  }
-  if (nrrdContentSet(nout, func, nin, "%s", buff1)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  nrrdPeripheralCopy(nout, nin);
-
-  /* the skinny */
-  lineSize = 1;
-  for (d=0; d<lowPax; d++) {
-    lineSize *= nin->axis[d].size;
-  }
-  numLines = nrrdElementNumber(nin)/lineSize;
-  lineSize *= nrrdElementSize(nin);
-  lszIn = szIn + lowPax;
-  lszOut = szOut + lowPax;
-  ldim = dim - lowPax;
-  memset(laxes, 0, NRRD_DIM_MAX*sizeof(int));
-  for (d=0; d<ldim; d++)
-    laxes[d] = axes[d+lowPax]-lowPax;
-  dataIn = nin->data;
-  dataOut = nout->data;
-  memset(cIn, 0, NRRD_DIM_MAX*sizeof(int));
-  memset(cOut, 0, NRRD_DIM_MAX*sizeof(int));
-  for (idxOut=0; idxOut<numLines; idxOut++) {
-    /* in our representation of the coordinates of the start of the
-       scanlines that we're copying, we are not even storing all the
-       zeros in the coordinates prior to lowPax, and when we go to
-       a linear index for the memcpy(), we multiply by lineSize */
+  } else {
+    /* else lowPax < dim (actually, lowPax < dim-1) */
+    /* printf("!%s: lowPax = %d\n", me, lowPax); */
+    
+    /* allocate output */
+    nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, szIn);
+    nout->blockSize = nin->blockSize;
+    for (d=0; d<dim; d++) {
+      szOut[d] = szIn[axes[d]];
+    }
+    if (nrrdMaybeAlloc_nva(nout, nin->type, nin->dim, szOut)) {
+      sprintf(err, "%s: failed to allocate output", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    /* copy axis info */
+    if (nrrdAxisInfoCopy(nout, nin, axes, NRRD_AXIS_INFO_NONE)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    /* the skinny */
+    lineSize = 1;
+    for (d=0; d<lowPax; d++) {
+      lineSize *= nin->axis[d].size;
+    }
+    numLines = nrrdElementNumber(nin)/lineSize;
+    lineSize *= nrrdElementSize(nin);
+    lszIn = szIn + lowPax;
+    lszOut = szOut + lowPax;
+    ldim = dim - lowPax;
+    memset(laxes, 0, NRRD_DIM_MAX*sizeof(int));
     for (d=0; d<ldim; d++)
-      cIn[laxes[d]] = cOut[d];
-    NRRD_INDEX_GEN(idxIn, cIn, lszIn, ldim);
-    memcpy(dataOut + idxOut*lineSize, dataIn + idxIn*lineSize, lineSize);
-    NRRD_COORD_INCR(cOut, lszOut, ldim, 0);
+      laxes[d] = axes[d+lowPax]-lowPax;
+    dataIn = nin->data;
+    dataOut = nout->data;
+    memset(cIn, 0, NRRD_DIM_MAX*sizeof(int));
+    memset(cOut, 0, NRRD_DIM_MAX*sizeof(int));
+    for (idxOut=0; idxOut<numLines; idxOut++) {
+      /* in our representation of the coordinates of the start of the
+         scanlines that we're copying, we are not even storing all the
+         zeros in the coordinates prior to lowPax, and when we go to
+         a linear index for the memcpy(), we multiply by lineSize */
+      for (d=0; d<ldim; d++)
+        cIn[laxes[d]] = cOut[d];
+      NRRD_INDEX_GEN(idxIn, cIn, lszIn, ldim);
+      memcpy(dataOut + idxOut*lineSize, dataIn + idxIn*lineSize, lineSize);
+      NRRD_COORD_INCR(cOut, lszOut, ldim, 0);
+    }
+    /* set content */
+    strcpy(buff1, "");
+    for (d=0; d<dim; d++) {
+      sprintf(buff2, "%s%d", (d ? "," : ""), axes[d]);
+      strcat(buff1, buff2);
+    }
+    if (nrrdContentSet(nout, func, nin, "%s", buff1)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    if (nrrdBasicInfoCopy(nout, nin,
+                          NRRD_BASIC_INFO_DATA_BIT
+                          | NRRD_BASIC_INFO_TYPE_BIT
+                          | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                          | NRRD_BASIC_INFO_DIMENSION_BIT
+                          | NRRD_BASIC_INFO_CONTENT_BIT
+                          | NRRD_BASIC_INFO_COMMENTS_BIT
+                          | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
   }
-
   return 0;
 }
 
@@ -286,8 +293,9 @@ nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, int ax1, int ax2) {
     biffAdd(NRRD, err); return 1;
   }
 
-  for (i=0; i<nin->dim; i++)
+  for (i=0; i<nin->dim; i++) {
     axes[i] = i;
+  }
   axes[ax2] = ax1;
   axes[ax1] = ax2;
   if (nrrdAxesPermute(nout, nin, axes)
@@ -295,7 +303,7 @@ nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, int ax1, int ax2) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  /* peripheral copied by nrrdAxesPermute */
+  /* basic info already copied by nrrdAxesPermute */
   return 0;
 }
 
@@ -354,7 +362,6 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, int axis, const int *perm) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
     biffAdd(NRRD, err); return 1;
   }
-
   /* set information in new volume */
   nout->blockSize = nin->blockSize;
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
@@ -369,17 +376,6 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, int axis, const int *perm) {
   /* the min and max along the shuffled axis are now meaningless */
   nout->axis[axis].min = nout->axis[axis].max = AIR_NAN;
   nout->axis[axis].kind = _nrrdKindAltered(nin->axis[axis].kind);
-  nrrdPeripheralCopy(nout, nin);
-  strcpy(buff1, "");
-  for (d=0; d<nin->dim; d++) {
-    sprintf(buff2, "%s%d", (d ? "," : ""), perm[d]);
-    strcat(buff1, buff2);
-  }
-  if (nrrdContentSet(nout, func, nin, "%s", buff1)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
-  }
-
   /* the skinny */
   lineSize = 1;
   for (d=0; d<axis; d++) {
@@ -401,6 +397,27 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, int axis, const int *perm) {
     memcpy(dataOut + idxOut*lineSize, dataIn + idxIn*lineSize, lineSize);
     NRRD_COORD_INCR(cOut, lsize, ldim, 0);
   }
+  /* content */
+  strcpy(buff1, "");
+  for (d=0; d<nin->dim; d++) {
+    sprintf(buff2, "%s%d", (d ? "," : ""), perm[d]);
+    strcat(buff1, buff2);
+  }
+  if (nrrdContentSet(nout, func, nin, "%s", buff1)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdBasicInfoCopy(nout, nin,
+                        NRRD_BASIC_INFO_DATA_BIT
+                        | NRRD_BASIC_INFO_TYPE_BIT
+                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                        | NRRD_BASIC_INFO_DIMENSION_BIT
+                        | NRRD_BASIC_INFO_CONTENT_BIT
+                        | NRRD_BASIC_INFO_COMMENTS_BIT
+                        | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
 
   return 0;
 }
@@ -416,34 +433,52 @@ int
 nrrdFlip(Nrrd *nout, const Nrrd *nin, int axis) {
   char me[]="nrrdFlip", func[]="flip", err[AIR_STRLEN_MED];
   int i, *perm;
+  airArray *mop;
 
+  mop = airMopNew();
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   if (!(AIR_IN_CL(0, axis, nin->dim-1))) {
     sprintf(err, "%s: given axis (%d) is outside valid range ([0,%d])", 
             me, axis, nin->dim-1);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   if (!(perm = calloc(nin->axis[axis].size, sizeof(int)))) {
     sprintf(err, "%s: couldn't alloc permutation array", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
+  airMopAdd(mop, perm, airFree, airMopAlways);
   for (i=0; i<nin->axis[axis].size; i++) {
     perm[i] = nin->axis[axis].size-1-i;
   }
+  /* nrrdBasicInfoCopy called by nrrdShuffle() */
   if (nrrdShuffle(nout, nin, axis, perm)
       || nrrdContentSet(nout, func, nin, "%d", axis)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
+  _nrrdAxisInfoCopy(&(nout->axis[axis]), &(nin->axis[axis]),
+                    NRRD_AXIS_INFO_SIZE_BIT
+                    | NRRD_AXIS_INFO_KIND_BIT);
+  /* HEY: (Tue Jan 18 00:28:26 EST 2005) there's a basic question to
+     be answered here: do we want to keep the "location" of the
+     samples fixed, while changing their ordering, or do want to flip
+     the location of the samples?  In the former, the position
+     information has to be flipped to cancel the flipping of the the
+     sample order, so that samples maintain location.  In the latter,
+     the position information is copied verbatim from the original.  */
   nout->axis[axis].min = nin->axis[axis].max;
   nout->axis[axis].max = nin->axis[axis].min;
-  /* HEY: doesn't it seem odd that sign of spacing isn't flipped? */
-  nout->axis[axis].spacing = nin->axis[axis].spacing;
+  /* HEY: Fri Jan 14 02:53:30 EST 2005: isn't spacing supposed to be
+     the step from one sample to the next?  So its a signed quantity.
+     If min and max can be flipped (so min > max), then spacing can
+     be negative, right?  */
+  nout->axis[axis].spacing = -nin->axis[axis].spacing;
+  /* HEY: Fri Jan 14 02:53:30 EST 2005: but not thickness */
   nout->axis[axis].thickness = nin->axis[axis].thickness;
-  perm = airFree(perm);
+  airMopOkay(mop); 
   return 0;
 }
 
@@ -515,8 +550,8 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin,
     if (axis == maxdim) {
       /* case B: this is like the old "stitch": a bunch of equal-sized
          slices of dimension N are being stacked together to make an
-         N+1 dimensional volume, which in terms memory, is essentially
-         just the result of concatenating the memory of individual inputs */
+         N+1 dimensional volume, which is essentially just the result of
+         concatenating the memory of individual inputs */
       outdim = maxdim + 1;
     } else {
       /* case C: axis < maxdim; maxdim == mindim */
@@ -663,8 +698,9 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin,
     sprintf(err, "%s: error permuting temporary nrrd", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
+  /* basic info is either already set or invalidated by joining */
 
-  /* HEY: set content on output, right? */
+  /* HEY: set content on output! */
 
   airMopOkay(mop); 
   return 0;
@@ -703,11 +739,11 @@ nrrdAxesSplit(Nrrd *nout, const Nrrd *nin,
     biffAdd(NRRD, err); return 1;
   }
   if (nout != nin) {
-    if (nrrdCopy(nout, nin)) {
+    if (_nrrdCopy(nout, nin, (NRRD_BASIC_INFO_COMMENTS_BIT
+                              | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
-    /* HEY: comments have been copied, perhaps that's not appropriate */
   }
   nout->dim = 1 + nin->dim;
   for (d=nin->dim-1; d>=ax+1; d--) {
@@ -723,7 +759,7 @@ nrrdAxesSplit(Nrrd *nout, const Nrrd *nin,
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  nrrdPeripheralCopy(nout, nin);
+  /* all basic information already copied by nrrdCopy */
   return 0;
 }
 
@@ -757,11 +793,11 @@ nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, int ax) {
     biffAdd(NRRD, err); return 1;
   }
   if (nout != nin) {
-    if (nrrdCopy(nout, nin)) {
+    if (_nrrdCopy(nout, nin, (NRRD_BASIC_INFO_COMMENTS_BIT
+                              | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
-    /* HEY: comments have been copied, perhaps that's not appropriate */
   }
   nout->dim = nin->dim - 1;
   for (d=ax; d<=nin->dim-2; d++) {
@@ -772,7 +808,7 @@ nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, int ax) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  nrrdPeripheralCopy(nout, nin);
+  /* all basic information already copied by nrrdCopy */
   return 0;
 }
 
@@ -801,11 +837,11 @@ nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, int ax) {
     biffAdd(NRRD, err); return 1;
   }
   if (nout != nin) {
-    if (nrrdCopy(nout, nin)) {
+    if (_nrrdCopy(nout, nin, (NRRD_BASIC_INFO_COMMENTS_BIT
+                              | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
-    /* HEY: comments have been copied, perhaps that's not appropriate */
   }
   sizeFast = nin->axis[ax].size;
   sizeSlow = nin->axis[ax+1].size;
@@ -821,7 +857,7 @@ nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, int ax) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  nrrdPeripheralCopy(nout, nin);
+  /* all basic information already copied by nrrdCopy */
   return 0;
 }
 
@@ -862,11 +898,11 @@ nrrdReshape_nva(Nrrd *nout, const Nrrd *nin, int dim, const int *size) {
   }
 
   if (nout != nin) {
-    if (nrrdCopy(nout, nin)) {
+    if (_nrrdCopy(nout, nin, (NRRD_BASIC_INFO_COMMENTS_BIT
+                              | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
-    /* HEY: comments have been copied, perhaps that's not appropriate */
   }
   nout->dim = dim;
   for (d=0; d<dim; d++) {
@@ -884,7 +920,6 @@ nrrdReshape_nva(Nrrd *nout, const Nrrd *nin, int dim, const int *size) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  nrrdPeripheralCopy(nout, nin);
   return 0;
 }
 
@@ -913,7 +948,7 @@ nrrdReshape(Nrrd *nout, const Nrrd *nin, int dim, ...) {
     size[d] = va_arg(ap, int);
   }
   va_end(ap);
-
+  /* basic info copied (indirectly) by nrrdReshape_nva() */
   if (nrrdReshape_nva(nout, nin, dim, size)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
@@ -974,6 +1009,17 @@ nrrdBlock(Nrrd *nout, const Nrrd *nin) {
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdContentSet(nout, func, nin, "")) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdBasicInfoCopy(nout, nin,
+                        NRRD_BASIC_INFO_DATA_BIT
+                        | NRRD_BASIC_INFO_TYPE_BIT
+                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                        | NRRD_BASIC_INFO_DIMENSION_BIT
+                        | NRRD_BASIC_INFO_CONTENT_BIT
+                        | NRRD_BASIC_INFO_COMMENTS_BIT
+                        | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -1047,6 +1093,17 @@ nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type) {
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdContentSet(nout, func, nin, "")) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdBasicInfoCopy(nout, nin,
+                        NRRD_BASIC_INFO_DATA_BIT
+                        | NRRD_BASIC_INFO_TYPE_BIT
+                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                        | NRRD_BASIC_INFO_DIMENSION_BIT
+                        | NRRD_BASIC_INFO_CONTENT_BIT
+                        | NRRD_BASIC_INFO_COMMENTS_BIT
+                        | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -1186,11 +1243,20 @@ nrrdTile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
 
   if (E) {
     sprintf(err, "%s: trouble", me);
-    biffAdd(NRRD, err);
-    airMopError(mop);
-    return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-
+  /* HEY: set content */
+  if (nrrdBasicInfoCopy(nout, nin,
+                        NRRD_BASIC_INFO_DATA_BIT
+                        | NRRD_BASIC_INFO_TYPE_BIT
+                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                        | NRRD_BASIC_INFO_DIMENSION_BIT
+                        | NRRD_BASIC_INFO_CONTENT_BIT
+                        | NRRD_BASIC_INFO_COMMENTS_BIT
+                        | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
   airMopOkay(mop);
   return 0;
 }
@@ -1336,6 +1402,18 @@ int nrrdUntile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   
+  if (nrrdBasicInfoCopy(nout, nin,
+                        NRRD_BASIC_INFO_DATA_BIT
+                        | NRRD_BASIC_INFO_TYPE_BIT
+                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                        | NRRD_BASIC_INFO_DIMENSION_BIT
+                        | NRRD_BASIC_INFO_CONTENT_BIT
+                        | NRRD_BASIC_INFO_COMMENTS_BIT
+                        | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
+  airMopOkay(mop);
   return 0;
 }
                         

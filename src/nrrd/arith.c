@@ -205,7 +205,6 @@ nrrdArithUnaryOp(Nrrd *nout, int op, const Nrrd *nin) {
     }
   }
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
-  nrrdPeripheralInit(nout);
   uop = _nrrdUnaryOp[op];
 
   N = nrrdElementNumber(nin);
@@ -219,6 +218,9 @@ nrrdArithUnaryOp(Nrrd *nout, int op, const Nrrd *nin) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
+  nrrdBasicInfoInit(nout,
+                    NRRD_BASIC_INFO_ALL ^ (NRRD_BASIC_INFO_OLDMIN_BIT
+                                           | NRRD_BASIC_INFO_OLDMAX_BIT));
   return 0;
 }
 
@@ -290,6 +292,11 @@ nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
     sprintf(err, "%s: NULL pointer or invalid args", me);
     biffAdd(NRRD, err); return 1;
   }
+  if (nrrdTypeBlock == ninA->type || nrrdTypeBlock == ninB->type) {
+    sprintf(err, "%s: can't operate on type %s", me,
+            airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAdd(NRRD, err); return 1;
+  }
   if (!nrrdSameSize(ninA, ninB, AIR_TRUE)) {
     sprintf(err, "%s: size mismatch between arguments", me);
     biffAdd(NRRD, err); return 1;
@@ -309,8 +316,16 @@ nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
-    nrrdPeripheralCopy(nout, ninA);
+    nrrdBasicInfoCopy(nout, ninA, (NRRD_BASIC_INFO_DATA_BIT
+                                   | NRRD_BASIC_INFO_TYPE_BIT
+                                   | NRRD_BASIC_INFO_DIMENSION_BIT
+                                   | NRRD_BASIC_INFO_CONTENT_BIT
+                                   | NRRD_BASIC_INFO_COMMENTS_BIT
+                                   | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT));
   }
+  nrrdBasicInfoInit(nout,
+                    NRRD_BASIC_INFO_ALL ^ (NRRD_BASIC_INFO_OLDMIN_BIT
+                                           | NRRD_BASIC_INFO_OLDMAX_BIT));
   bop = _nrrdBinaryOp[op];
 
   N = nrrdElementNumber(ninA);
@@ -366,11 +381,19 @@ nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
     sprintf(err, "%s: couldn't allocate output nrrd", me);
     biffAdd(NRRD, err); return 1;
   }
-  nrrdPeripheralInit(nout);
+  nrrdBasicInfoCopy(nout, nin, (NRRD_BASIC_INFO_DATA_BIT
+                                | NRRD_BASIC_INFO_TYPE_BIT
+                                | NRRD_BASIC_INFO_DIMENSION_BIT
+                                | NRRD_BASIC_INFO_CONTENT_BIT
+                                | NRRD_BASIC_INFO_COMMENTS_BIT
+                                | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT));
+  nrrdBasicInfoInit(nout,
+                    NRRD_BASIC_INFO_ALL ^ (NRRD_BASIC_INFO_OLDMIN_BIT
+                                           | NRRD_BASIC_INFO_OLDMAX_BIT));
   bop = _nrrdBinaryOp[op];
 
   /*
-  fprintf(stderr, "!%s: inA->left = %d, inB->left = %d\n", me, 
+  fprintf(stderr, "%s: inA->left = %d, inB->left = %d\n", me, 
           (int)(inA->left), (int)(inB->left));
   */
   N = nrrdElementNumber(nin);
@@ -498,8 +521,16 @@ nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA,
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
-    nrrdPeripheralCopy(nout, ninA);
+    nrrdBasicInfoCopy(nout, ninA, (NRRD_BASIC_INFO_DATA_BIT
+                                   | NRRD_BASIC_INFO_TYPE_BIT
+                                   | NRRD_BASIC_INFO_DIMENSION_BIT
+                                   | NRRD_BASIC_INFO_CONTENT_BIT
+                                   | NRRD_BASIC_INFO_COMMENTS_BIT
+                                   | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT));
   }
+  nrrdBasicInfoInit(nout,
+                    NRRD_BASIC_INFO_ALL ^ (NRRD_BASIC_INFO_OLDMIN_BIT
+                                           | NRRD_BASIC_INFO_OLDMAX_BIT));
   top = _nrrdTernaryOp[op];
 
   N = nrrdElementNumber(ninA);
@@ -563,7 +594,15 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
     sprintf(err, "%s: couldn't allocate output nrrd", me);
     biffAdd(NRRD, err); return 1;
   }
-  nrrdPeripheralInit(nout);
+  nrrdBasicInfoCopy(nout, nin, (NRRD_BASIC_INFO_DATA_BIT
+                                | NRRD_BASIC_INFO_TYPE_BIT
+                                | NRRD_BASIC_INFO_DIMENSION_BIT
+                                | NRRD_BASIC_INFO_CONTENT_BIT
+                                | NRRD_BASIC_INFO_COMMENTS_BIT
+                                | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT));
+  nrrdBasicInfoInit(nout,
+                    NRRD_BASIC_INFO_ALL ^ (NRRD_BASIC_INFO_OLDMIN_BIT
+                                           | NRRD_BASIC_INFO_OLDMAX_BIT));
   top = _nrrdTernaryOp[op];
 
   /*

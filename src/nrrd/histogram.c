@@ -19,6 +19,7 @@
 */
 
 #include "nrrd.h"
+#include "privateNrrd.h"
 
 /*
 ******** nrrdHisto()
@@ -184,6 +185,7 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin, int sy, int showLog, double max) {
     biffAdd(NRRD, err); return 1;
   }
   sx = nin->axis[0].size;
+  nrrdBasicInfoInit(nout, NRRD_BASIC_INFO_DATA_BIT);
   if (nrrdPGM(nout, sx, sy)) {
     sprintf(err, "%s: failed to allocate histogram image", me);
     biffAdd(NRRD, err); return 1;
@@ -196,7 +198,6 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin, int sy, int showLog, double max) {
   nout->axis[0].center = nout->axis[1].center = nrrdCenterCell;
   nout->axis[0].label = airStrdup(nin->axis[0].label);
   nout->axis[1].label = airFree(nout->axis[1].label);
-  nrrdPeripheralInit(nout);
   pgmData = nout->data;
   maxhits = maxhitidx = 0;
   for (x=0; x<sx; x++) {
@@ -392,7 +393,10 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  nrrdPeripheralInit(nout);
+  nrrdBasicInfoInit(nout, (NRRD_BASIC_INFO_DATA_BIT
+                           | NRRD_BASIC_INFO_TYPE_BIT
+                           | NRRD_BASIC_INFO_DIMENSION_BIT
+                           | 0 /* what? */ ));
   airMopOkay(mop); 
   return 0;
 }

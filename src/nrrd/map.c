@@ -184,34 +184,42 @@ nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
         biffAdd(NRRD, err); return 1;
       }
     }
-    return 0;
+  } else {
+    /* allocate space if necessary */
+    nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
+    /* MUST be nrrdMaybeAlloc_nva (not nrrd Alloc_nva) because we allow
+       nout==nin if type sizes match */
+    if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
+      sprintf(err, "%s: failed to allocate output", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    
+    /* call the appropriate converter */
+    num = nrrdElementNumber(nin);
+    _nrrdConv[nout->type][nin->type](nout->data, nin->data, num);
+    nout->blockSize = 0;
+    
+    /* copy peripheral information */
+    nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
+    sprintf(typeS, "(%s)", airEnumStr(nrrdType, nout->type));
+    if (nrrdContentSet(nout, typeS, nin, "")) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    /* the min and max have probably changed if there was a conversion
+       to integral values, or to a lower precision representation */
+    if (nrrdBasicInfoCopy(nout, nin,
+                          NRRD_BASIC_INFO_DATA_BIT
+                          | NRRD_BASIC_INFO_TYPE_BIT
+                          | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                          | NRRD_BASIC_INFO_DIMENSION_BIT
+                          | NRRD_BASIC_INFO_CONTENT_BIT
+                          | NRRD_BASIC_INFO_COMMENTS_BIT
+                          | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
   }
-
-  /* allocate space if necessary */
-  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
-  /* MUST be nrrdMaybeAlloc_nva (not nrrd Alloc_nva) because we allow
-     nout==nin if type sizes match */
-  if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
-    sprintf(err, "%s: failed to allocate output", me);
-    biffAdd(NRRD, err); return 1;
-  }
-
-  /* call the appropriate converter */
-  num = nrrdElementNumber(nin);
-  _nrrdConv[nout->type][nin->type](nout->data, nin->data, num);
-
-  /* copy peripheral information */
-  nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
-  sprintf(typeS, "(%s)", airEnumStr(nrrdType, nout->type));
-  if (nrrdContentSet(nout, typeS, nin, "")) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  /* the min and max have probably changed if there was a conversion
-     to integral values, or to a lower precision representation */
-  nrrdPeripheralInit(nout);
-  nout->blockSize = 0;
-  /* bye */
   return 0;
 }
 
@@ -245,6 +253,7 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, int bits) {
   if (nrrdTypeBlock == nin->type) {
     sprintf(err, "%s: can't quantize type %s", me,
             airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAdd(NRRD, err); return 1;
   }
 
   /* determine nrrd type from number of bits */
@@ -316,18 +325,30 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, int bits) {
     }
     break;
   }
-
+  
   /* set information in new volume */
-  /* nrrdPeripheralInit(nout); nout==nin qualms */
   if (nout != nin) {
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   }
-  nout->oldMin = minIn;
-  nout->oldMax = maxIn;
   if (nrrdContentSet(nout, func, nin, "%d", bits)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
+  if (nrrdBasicInfoCopy(nout, nin,
+                        NRRD_BASIC_INFO_DATA_BIT
+                        | NRRD_BASIC_INFO_TYPE_BIT
+                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                        | NRRD_BASIC_INFO_DIMENSION_BIT
+                        | NRRD_BASIC_INFO_CONTENT_BIT
+                        | NRRD_BASIC_INFO_OLDMIN_BIT
+                        | NRRD_BASIC_INFO_OLDMAX_BIT
+                        | NRRD_BASIC_INFO_COMMENTS_BIT
+                        | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
+  nout->oldMin = minIn;
+  nout->oldMax = maxIn;
   nout->blockSize = 0;
 
   airMopOkay(mop); 
@@ -422,15 +443,27 @@ nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
   }
 
   /* set information in new volume */
-  /* nrrdPeripheralInit(nout); nout==nin qualms */
   if (nout != nin) {
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   }
-  nout->oldMin = nout->oldMax = AIR_NAN;
   if (nrrdContentSet(nout, func, nin, "")) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
+  if (nrrdBasicInfoCopy(nout, nin,
+                        NRRD_BASIC_INFO_DATA_BIT
+                        | NRRD_BASIC_INFO_TYPE_BIT
+                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                        | NRRD_BASIC_INFO_DIMENSION_BIT
+                        | NRRD_BASIC_INFO_CONTENT_BIT
+                        | NRRD_BASIC_INFO_OLDMIN_BIT
+                        | NRRD_BASIC_INFO_OLDMAX_BIT
+                        | NRRD_BASIC_INFO_COMMENTS_BIT
+                        | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  nout->oldMin = nout->oldMax = AIR_NAN;
   nout->blockSize = 0;
   return 0;
 }
@@ -680,6 +713,17 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
 
   /* fiddling with content is the only thing we'll do */
   if (nrrdContentSet(nout, func, nin, "%d,%d", bins, smart)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
+  if (nrrdBasicInfoCopy(nout, nin,
+                        NRRD_BASIC_INFO_DATA_BIT
+                        | NRRD_BASIC_INFO_TYPE_BIT
+                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                        | NRRD_BASIC_INFO_DIMENSION_BIT
+                        | NRRD_BASIC_INFO_CONTENT_BIT
+                        | NRRD_BASIC_INFO_COMMENTS_BIT
+                        | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
