@@ -806,7 +806,7 @@ nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, int ax) {
   sizeFast = nin->axis[ax].size;
   sizeSlow = nin->axis[ax+1].size;
   nout->dim = nin->dim - 1;
-  for (d=ax+1; d<=nin->dim-2; d++) {
+  for (d=ax+1; d<nout->dim; d++) {
     _nrrdAxisInfoCopy(&(nout->axis[d]), &(nin->axis[d+1]),
 		      NRRD_AXIS_INFO_NONE);
   }
@@ -1052,14 +1052,160 @@ nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type) {
 /* for nrrdTile...
 
 will require that # slices be <= number of images: won't crop for you,
-but will happy pad with black
+but will happy pad with black.  This will be handled in another
+function.  Probably unu tile.
 
-pick which axis to slice along
+*/
 
-pick which two axis (in order) will be tiled into
+/*
+******** nrrdTile()
+**
+** Splits axis axSplit into two pieces of size sizeFast and sizeSlow.
+** The data from the fast partition is juxtaposed following ax1, the
+** slow after ax2.  nrrdAxesMerge is then called to join ax1 and ax2
+** with their respective newly permuted data.  There should be one
+** fewer dimensions in the output nrrd than in the input nrrd.
+*/
 
-then write nrrdUntile
+int
+nrrdTile(Nrrd *nout, const Nrrd *nin, int ax1, int ax2,
+         int axSplit, int sizeFast, int sizeSlow) {
+  char me[]="nrrdTile", err[AIR_STRLEN_MED];
+  Nrrd *temp;
+  int E, axis[NRRD_DIM_MAX], i, pindex, ax1merge, ax2merge;
 
- */
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
 
+  /* I'm not sure how to handle if ax2 == ax1.  I think for now, I
+     will prohibit it as it doesn't make sense to tile to the same
+     axis. */
+  if (ax1 == ax2) {
+    sprintf(err, "%s: ax1(%d) cannot equal ax2(%d)", me, ax1, ax2);
+    biffAdd(NRRD, err); return 1;
+  }
+  
+  /* This is the temporary nrrd used for intermediate values. */
+  temp = nrrdNew();
+  if (!temp) {
+    sprintf(err, "%s: failed to allocate temporary nrrd", me);
+    biffAdd(NRRD, err);
+    return 1;
+  }
+  /* Use _nrrdCopyShallow to just copy the header information without
+     copying the data. */
+  E = _nrrdCopyShallow(temp, nin);
+
+  /* Split the axis we will tile */
+  if (!E) E |= nrrdAxesSplit(temp, temp, axSplit, sizeFast, sizeSlow);
+
+  /* We'll go ahead not and check for errors now as there is a lot of
+     computation before the next nrrd call. */
+  if (E) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err);
+    nrrdNix(temp);
+    return 1;
+  }
+  
+  /* update ax1 and ax2.  If the split axis was below ax1 or ax2 we
+     need to increment them */
+  if (axSplit < ax1)
+    ax1++;
+  if (axSplit < ax2)
+    ax2++;
+  
+  /******************************************************/
+  /* Permute the axis.  This is the tricky part. */
+
+  /* This is the index used to write into axis.  pindex is set to the
+     next available spot in axis.  After writing to it you need to
+     increment it. */
+  pindex = 0;
+  /* These are place holders for which axis needs merging.  These are
+     the indicies where ax1 and ax2 are placed into axis.  For now
+     initialize these to -1 to make sure they get set. */
+  ax1merge = -1;
+  ax2merge = -1;
+  /* The idea here is to loop over the input indicies.  If the index
+     is one of either ax1 or ax2 copy that index. */
+  for(i = 0; i < temp->dim; i++) {
+    if (i == ax1) {
+      axis[pindex] = i;
+      /* Cache this position for merging later */
+      ax1merge = pindex;
+      pindex++;
+      /* Set the next axis to the fast part of our split axis */
+      axis[pindex] = axSplit;
+      pindex++;
+    } else if (i == ax2) {
+      axis[pindex] = i;
+      ax2merge = pindex;
+      pindex++;
+      axis[pindex] = axSplit+1;
+      pindex++;
+    } else if (i == axSplit || i == axSplit+1) {
+      /* Ignore these as they will get incorporated above.  Do not
+	 increment pindex. */
+    } else {
+      axis[pindex] = i;
+      pindex++;
+    }
+  }
+  /*
+  for(i = 0; i < temp->dim; i++) {
+    fprintf(stderr, "%s:axis[%d] = %d\n", me, i, axis[i]);
+  }
+  */
+
+  E = nrrdAxesPermute(nout, temp, axis);
+  temp = nrrdNix(temp);
+
+  /* Join the axis */
+  if (!E) {
+    /* It's easier for bookkeeping if we merge the slower axis first. */
+    if (ax1merge > ax2merge) {
+      int axSwap = ax1merge;
+      ax1merge = ax2merge;
+      ax2merge = axSwap;
+    }
+    E |= nrrdAxesMerge(nout, nout, ax2merge);    
+  }
+  if (!E) E |= nrrdAxesMerge(nout, nout, ax1merge);
+
+  if (E) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err);
+    return 1;
+  }
+
+  return 0;
+}
+
+/*
+******** nrrdUntile()
+**
+** This will split ax1 into nin->axis[ax1].size/sizeFast and sizeFast
+** sizes.  ax2 will then be split into nin->axis[ax2].size/sizeSlow
+** and sizeSlow sizes.  The axes corresponding to sizeFast and
+** sizeSlow will be permuted and merged such that
+** nout->axis[axMerge].size == sizeFast*sizeSlow.
+*/
+
+int nrrdUntile(Nrrd *nout, const Nrrd *nin, int ax1, int ax2,
+               int axMerge, int sizeFast, int sizeSlow) {
+  char me[]="nrrdUntile", err[AIR_STRLEN_MED];
+
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  nrrdCopy(nout, nin);
+  
+  return 0;
+}
+                        
 /* ---- END non-NrrdIO */
