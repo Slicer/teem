@@ -120,9 +120,9 @@ main(int argc, char *argv[]) {
 	ELL_3M_TRANSPOSE(mRI, mRF);
 	
 	ELL_3M_IDENTITY_SET(mT);
-	ell3mPostMul_d(mT, mRI);
-	ell3mPostMul_d(mT, mD);
-	ell3mPostMul_d(mT, mRF);
+	ell_3m_post_mul_d(mT, mRI);
+	ell_3m_post_mul_d(mT, mD);
+	ell_3m_post_mul_d(mT, mRF);
 
 	tdata[0] = 1.0;
 	TEN_MAT2LIST(tdata, mT);
