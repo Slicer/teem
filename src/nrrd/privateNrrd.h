@@ -66,6 +66,10 @@ typedef union {
   void *P;
 } _nrrdAxisInfoGetPtrs;
 
+/* keyvalue.c */
+extern int _nrrdKeyValueFwrite(FILE *file, char *prefix,
+			       char *key, char *value);
+
 /* formatXXX.c */
 extern const NrrdFormat _nrrdFormatNRRD;
 extern const NrrdFormat _nrrdFormatPNM;
