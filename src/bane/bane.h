@@ -175,7 +175,7 @@ typedef struct {
 #define BANE_DEF_INCLIMIT 0.8
 
 typedef struct {
-  int k0, k1, k2;
+  nrrdKernelMethods *k0, *k1, *k2;
   float param0[NRRD_MAX_KERNEL_PARAMS],
     param1[NRRD_MAX_KERNEL_PARAMS],
     param2[NRRD_MAX_KERNEL_PARAMS];
@@ -208,8 +208,8 @@ typedef enum {
   baneProbeGradMag,      /* 2: gradient magnitude (*float) */
   baneProbeNormal,       /* 3: gradient vector, normalized (float[3]) */
   baneProbeHess,         /* 4: Hessian (float[9]) */
-  baneProbeHessEvec,     /* 5: Hessian's eigenvectors (float[9]) */
-  baneProbeHessEval,     /* 6: Hessian's eigenvalues (float[3]) */
+  baneProbeHessEval,     /* 5: Hessian's eigenvalues (float[3]) */
+  baneProbeHessEvec,     /* 6: Hessian's eigenvectors (float[9]) */
   baneProbe2ndDD,        /* 7: 2nd dir.deriv. along gradient (*float) */
   baneProbeCurvVecs,     /* 8: principle curvature directions (float[6]) */
   baneProbeK1K2,         /* 9: principle curvature magnitudes (float[2]) */
@@ -221,8 +221,8 @@ typedef enum {
 #define BANE_PROBE_GRADMAG    (1<<2)
 #define BANE_PROBE_NORMAL     (1<<3)
 #define BANE_PROBE_HESS       (1<<4)
-#define BANE_PROBE_HESSEVEC   (1<<5)
-#define BANE_PROBE_HESSEVAL   (1<<6)
+#define BANE_PROBE_HESSEVAL   (1<<5)
+#define BANE_PROBE_HESSEVEC   (1<<6)
 #define BANE_PROBE_2NDDD      (1<<7)
 #define BANE_PROBE_CURVVECS   (1<<8)
 #define BANE_PROBE_K1K2       (1<<9)

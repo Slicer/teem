@@ -28,12 +28,13 @@ main(int argc, char *argv[]) {
 
   baneProbeDebug = 0;
 
-
   pack = baneProbeK3PackNew();
-  pack->k0 = nrrdKernelBCCubic;
-  pack->k1 = nrrdKernelBCCubicD;
+  pack->k0 = nrrdKernel + nrrdKernelBCCubic;
+  pack->k1 = nrrdKernel + nrrdKernelBCCubicD;
+  pack->k2 = nrrdKernel + nrrdKernelBCCubicDD;
   pack->param0[0] = 1.0; pack->param0[1] = 1.0; pack->param0[2] = 0;
   pack->param1[0] = 1.0; pack->param1[1] = 1.0; pack->param1[2] = 0;
+  pack->param2[0] = 1.0; pack->param2[1] = 1.0; pack->param2[2] = 0;
 
   printf("v = [\n");
   for (xi=0; xi<=30; xi++) {
@@ -46,12 +47,12 @@ main(int argc, char *argv[]) {
 
   /*
   pack = baneProbeK3PackNew();
-  pack->k0 = nrrdKernelTent;
-  pack->k1 = nrrdKernelForwDiff;
+  pack->k0 = nrrdKernel + nrrdKernelTent;
+  pack->k1 = nrrdKernel + nrrdKernelForwDiff;
   */
 
   nin = nrrdNewOpen("engine-crop.nrrd");
-  query = BANE_PROBE_GRADMAG;
+  query = BANE_PROBE_GRADMAG | BANE_PROBE_2NDDD;
 
   bx = 30;
   by = 80;
@@ -69,7 +70,8 @@ main(int argc, char *argv[]) {
       for (xi=0; xi<=size-1; xi++) {
 	x = AIR_AFFINE(0, xi, size-1, bz, bz+50);
 	baneProbe(ans, nin, query, pack, x, y, z);
-	data[xi + size*(yi + size*zi)] = ans[baneProbeAnsOffset[baneProbeGradMag]];
+	data[xi + size*(yi + size*zi)] = 
+	  ans[baneProbeAnsOffset[baneProbeGradMag]];
 	/* data[xi + size*(yi + size*zi)] = *ans; */
       }
     }

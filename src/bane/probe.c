@@ -26,8 +26,8 @@ int baneProbeDebug = 0;
   baneProbeGradMag,         2: gradient magnitude (*float)
   baneProbeNormal,          3: gradient vector, normalized (float[3])
   baneProbeHess,            4: Hessian (float[9])
-  baneProbeHessEvec,        5: Hessian's eigenvectors (float[9])
-  baneProbeHessEval,        6: Hessian's eigenvalues (float[3])
+  baneProbeHessEval,        5: Hessian's eigenvalues (float[3])
+  baneProbeHessEvec,        6: Hessian's eigenvectors (float[9])
   baneProbe2ndDD,           7: 2nd dir.deriv along gradient (*float)
   baneProbeCurvVecs,        8: principle curvature directions (float[6])
   baneProbeK1K2,            9: principle curvature magnitudes (float[2])
@@ -39,8 +39,8 @@ int baneProbeDebug = 0;
  #define BANE_PROBE_GRADMAG    (1<<2)
  #define BANE_PROBE_NORMAL     (1<<3)
  #define BANE_PROBE_HESS       (1<<4)
- #define BANE_PROBE_HESSEVEC   (1<<5)
- #define BANE_PROBE_HESSEVAL   (1<<6)
+ #define BANE_PROBE_HESSEVAL   (1<<5)
+ #define BANE_PROBE_HESSEVEC   (1<<6)
  #define BANE_PROBE_2NDDD      (1<<7)
  #define BANE_PROBE_CURVVECS   (1<<8)
  #define BANE_PROBE_K1K2       (1<<9)
@@ -50,12 +50,12 @@ int baneProbeDebug = 0;
 
 int
 baneProbeAnsLen[BANE_PROBE_MAX+1] = {
-  1, 3, 1, 3, 9,  9,  3,  1,  6,  2,  1,  1
+  1, 3, 1, 3, 9,  3,  9,  1,  6,  2,  1,  1
 };
 
 int
 baneProbeAnsOffset[BANE_PROBE_MAX+1] = {
-  0, 1, 4, 5, 8, 17, 26, 29, 30, 36, 38, 39
+  0, 1, 4, 5, 8, 17, 20, 29, 30, 36, 38, 39
 };
 
 int
@@ -66,8 +66,8 @@ baneProbePrereq[BANE_PROBE_MAX+1] = {
   BANE_PROBE_GRADVEC | BANE_PROBE_GRADMAG,
   0,
   BANE_PROBE_HESS,
-  BANE_PROBE_HESS,
-  BANE_PROBE_GRADVEC | BANE_PROBE_GRADMAG | BANE_PROBE_HESS,
+  BANE_PROBE_HESS | BANE_PROBE_HESSEVAL,
+  BANE_PROBE_GRADVEC | BANE_PROBE_GRADMAG | BANE_PROBE_NORMAL| BANE_PROBE_HESS,
   BANE_PROBE_GRADVEC | BANE_PROBE_GRADMAG | BANE_PROBE_HESS,
   BANE_PROBE_GRADVEC | BANE_PROBE_GRADMAG | BANE_PROBE_HESS,
   BANE_PROBE_GRADVEC | BANE_PROBE_GRADMAG | BANE_PROBE_HESS,
@@ -80,6 +80,11 @@ _baneProbeDeriv[BANE_PROBE_MAX+1] = {
 };
 
 #define DITCH(ptr) if ((ptr)) free((ptr)), (ptr)=NULL
+
+#define _baneZeroNudge(g) (g < 0.0001 ? 0 : g)
+
+#define _baneOneClamp(g) (g < 1 ? g : 1)
+
   
 /*
 ******** baneProbe()
@@ -100,7 +105,7 @@ baneProbe(float *_ans, Nrrd *nin, int query,
   int i, j, k,                  /* swiss-army ints */
     tmpI,                       /* a temporary integer */
     xi, yi, zi;                 /* indices of current voxels lowest corner */
-  float tmpF, xf, yf, zf;
+  float tmpF, tmpG, xf, yf, zf;
 
   static float *ans=NULL,       /* last value of _ans, also the thing which
 				   controls caching of values */
@@ -113,6 +118,7 @@ baneProbe(float *_ans, Nrrd *nin, int query,
     *fw1x, *fw1y, *fw1z,        /* pointers into fw1 */
     *fw2x, *fw2y, *fw2z,        /* pointers info fw2 */
     *grad, *hess,               /* madness */
+    *tmpP, *tmpQ,               /* bad gordon */
     xs, ys, zs,                 /* scaling along the axis */
     (*lup)(void *v, NRRD_BIG_INT I);  /* nrrdFLookup[] element */
   static int 
@@ -172,9 +178,9 @@ baneProbe(float *_ans, Nrrd *nin, int query,
 	tquery |= (1 << i) | baneProbePrereq[i];
       }
     }
-    tmpF = nrrdKernel[pack->k0].support(pack->param0); 
-    tmpF = AIR_MAX(tmpF, nrrdKernel[pack->k1].support(pack->param1));
-    tmpF = AIR_MAX(tmpF, nrrdKernel[pack->k2].support(pack->param2));
+    tmpF = pack->k0->support(pack->param0); 
+    tmpF = AIR_MAX(tmpF, pack->k1->support(pack->param1));
+    tmpF = AIR_MAX(tmpF, pack->k2->support(pack->param2));
     fr = AIR_ROUNDUP(tmpF);
     if (baneProbeDebug) {
       printf("%s: tmpF=%g --> fr = %d\n", me, tmpF, fr);
@@ -323,9 +329,9 @@ baneProbe(float *_ans, Nrrd *nin, int query,
     break;
   }
   /* does evaluations for x, y, z all at once to minimize calling overhead */
-  nrrdKernel[pack->k0].evalVec(fw0, fsl, 3*fd, pack->param0);
-  nrrdKernel[pack->k1].evalVec(fw1, fsl, 3*fd, pack->param1);
-  nrrdKernel[pack->k2].evalVec(fw2, fsl, 3*fd, pack->param2);
+  pack->k0->evalVec(fw0, fsl, 3*fd, pack->param0);
+  pack->k1->evalVec(fw1, fsl, 3*fd, pack->param1);
+  pack->k2->evalVec(fw2, fsl, 3*fd, pack->param2);
   /* fix scalings for anisotropic voxels */
   for (i=0; i<=fd-1; i++) {
     fw1x[i] /= xs;  fw2x[i] /= xs*xs;
@@ -475,29 +481,63 @@ baneProbe(float *_ans, Nrrd *nin, int query,
   tmpI >>= 1;
   /* 2: ??? baneProbeGradMag */
   if (tmpI & 1) {
-    tmpF = grad[0]*grad[0] + grad[1]*grad[1] + grad[2]*grad[2];
-    ans[baneProbeAnsOffset[baneProbeGradMag]] = sqrt(tmpF);
+    tmpF = sqrt(grad[0]*grad[0] + grad[1]*grad[1] + grad[2]*grad[2]);
+    ans[baneProbeAnsOffset[baneProbeGradMag]] = tmpF;
   }
   tmpI >>= 1;
   /* 3: ??? baneProbeNormal */
   if (tmpI & 1) {
-    
+    /* hack: from baneProbePrereq we know that tmpF is still grad mag */
+    tmpG = _baneZeroNudge(tmpF);
+    tmpP = ans + baneProbeAnsOffset[baneProbeNormal];
+    if (tmpG) {
+      *tmpP++ = grad[0]/tmpG;
+      *tmpP++ = grad[1]/tmpG;
+      *tmpP++ = grad[2]/tmpG;
+    }
+    else {
+      *tmpP++ = 0;
+      *tmpP++ = 0;
+      *tmpP++ = 0;
+    }
+  }
+  tmpI >>= 1;
+  /* 4: always do baneProbeHess */
+  tmpI >>= 1;
+  /* 5: ??? baneProbeHessEval */
+  if (tmpI & 1) {
+
+  }
+  tmpI >>= 1;
+  /* 6: ??? baneProbeHessEvec */
+  if (tmpI & 1) {
+
+  }
+  tmpI >>= 1;
+  /* 7: ??? baneProbe2ndDD */
+  if (tmpI & 1) {
+    /* hack: from baneProbePrereq we know that tmpF is still grad mag */
+    tmpP = ans + baneProbeAnsOffset[baneProbeNormal];
+    ans[baneProbeAnsOffset[baneProbe2ndDD]] = _baneOneClamp(tmpF)*
+      (tmpP[0]*(tmpP[0]*hess[0] + tmpP[1]*hess[1] + tmpP[2]*hess[2]) +
+       tmpP[1]*(tmpP[0]*hess[3] + tmpP[1]*hess[4] + tmpP[2]*hess[5]) +
+       tmpP[2]*(tmpP[0]*hess[6] + tmpP[1]*hess[7] + tmpP[2]*hess[8]));
   }
 }
 
 
 /*
-  baneProbeVal,             f
-  baneProbeGradVec,         dx, dy, dz
-  baneProbeGradMag,         
-  baneProbeNormal,          
-  baneProbeHess,            dxx, dxy, dxz, dyy, dyz, dzz
-  baneProbeHessEvec,        
-  baneProbeHessEval,        
-  baneProbe2ndDD,           
-  baneProbeCurvVecs,        
-  baneProbeK1K2,            
-  baneProbeShapeIndex,      
-  baneProbeCurvedness       
+  baneProbeVal,            0 f
+  baneProbeGradVec,        1 dx, dy, dz
+  baneProbeGradMag,        2 
+  baneProbeNormal,         3 
+  baneProbeHess,           4 dxx, dxy, dxz, dyy, dyz, dzz
+  baneProbeHessEval,       5
+  baneProbeHessEvec,       6 
+  baneProbe2ndDD,          7
+  baneProbeCurvVecs,       8
+  baneProbeK1K2,           9
+  baneProbeShapeIndex,     10
+  baneProbeCurvedness      11
 
 */

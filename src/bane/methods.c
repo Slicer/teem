@@ -97,7 +97,7 @@ baneProbeK3PackNew() {
 
   pack = (baneProbeK3Pack *)calloc(1, sizeof(baneProbeK3Pack));
   if (pack) {
-    pack->k0 = pack->k1 = pack->k2 = nrrdKernelZero;
+    pack->k0 = pack->k1 = pack->k2 = &(nrrdKernel[nrrdKernelZero]);
     pack->param0[0] = pack->param1[0] = pack->param2[0] = 1.0;
     for (i=1; i<=NRRD_MAX_KERNEL_PARAMS-1; i++) {
       pack->param0[i] = pack->param1[i] = pack->param2[i] = 0;
