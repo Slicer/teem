@@ -40,7 +40,7 @@ char *_tend_helixInfoL =
 
 void
 tend_helixDoit(Nrrd *nout, float bnd,
-	       float r, float R, float S, float angle) {
+	       float r, float R, float S, float angle, float ev[3]) {
   int sx, sy, sz, xi, yi, zi, idx;
   double th, t0, t1, t2, t3, v1, v2,
     wpos[3], vpos[3],
@@ -112,9 +112,9 @@ tend_helixDoit(Nrrd *nout, float bnd,
 	ELL_3M_ROTATE_Y_SET(H2C, th);
 	ELL_3M_TRANSPOSE(C2H, H2C);
 	ELL_3M_SCALE_SET(mA,
-			 AIR_LERP(inside, 0.5, 0.4),
-			 AIR_LERP(inside, 0.5, 0.2),
-			 AIR_LERP(inside, 0.5, 0.9));
+			 AIR_LERP(inside, 0.5, ev[1]),
+			 AIR_LERP(inside, 0.5, ev[2]),
+			 AIR_LERP(inside, 0.5, ev[0]));
 	ELL_3M_MUL(mB, mA, H2C);
 	ELL_3M_MUL(mA, mB, W2H);
 	ELL_3M_MUL(mB, C2H, mA);
@@ -137,7 +137,7 @@ tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   int size[3];
   Nrrd *nout;
-  float R, r, S, bnd, angle;
+  float R, r, S, bnd, angle, ev[3];
   double min[4], max[4];
   char *outS;
 
@@ -166,6 +166,9 @@ tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "with radius around this path.  Positive twist angle with "
 	     "positive spacing resulting in a right-handed twist around a "
 	     "right-handed helix. ");
+  hestOptAdd(&hopt, "ev", "eigenvalues", airTypeFloat, 3, 3, ev, "0.9 0.4 0.2",
+	     "eigenvalues of tensors (in order) along direction of coil, "
+	     "circumferential around coil, and radial around coil. ");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
 	     "output file");
 
@@ -186,7 +189,7 @@ tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
   nrrdAxisInfoSet_nva(nout, nrrdAxisInfoMin, min);
   nrrdAxisInfoSet_nva(nout, nrrdAxisInfoMax, max);
 
-  tend_helixDoit(nout, bnd, r, R, S, angle);
+  tend_helixDoit(nout, bnd, r, R, S, angle, ev);
 
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);

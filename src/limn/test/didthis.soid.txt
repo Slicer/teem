@@ -11,3 +11,4 @@ SOID -sc 0.8 0.8 0.18 -o demo-planar.eps
 SOID -sc 0.7 0.7 0.7 -o demo-sphere.eps 
 
 rm -f emap.nrrd
+

@@ -280,7 +280,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     win->ps.edgeWidth[2] = gparm->edgeWidth[2];
     win->ps.edgeWidth[3] = gparm->edgeWidth[3];
     win->ps.edgeWidth[4] = gparm->edgeWidth[4];
-    win->ps.creaseAngle = 33;
+    win->ps.creaseAngle = 70;
     ELL_3V_COPY(win->ps.bg, bg);
     if (limnObjRender(glyph, cam, win)
 	|| limnObjPSDraw(glyph, cam, emap, win)) {
