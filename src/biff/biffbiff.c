@@ -310,7 +310,7 @@ biffMaybeAdd(const char *key, const char *err, int useBiff) {
 char *
 biffGet(const char *key) {
   int i, max, len, sum;
-  char me[] = "biffGet", *ret = NULL, *buf;
+  char me[] = "biffGet", *ret, *buf;
   _biffEntry *e;
 
   _biffInit();
@@ -344,7 +344,7 @@ biffGet(const char *key) {
     sprintf(buf, "[%s] %s\n", key, e->err[i]);
     strcat(ret, buf);
   }
-  free(buf);
+  free(buf); /* no NULL assignment, else compile warnings */
 
   return(ret);
 }

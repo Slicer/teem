@@ -81,7 +81,7 @@ nrrdIoStateNix (NrrdIoState *nio) {
   nio->base = airFree(nio->base);
   nio->dataFN = airFree(nio->dataFN);
   nio->line = airFree(nio->line);
-  nio = airFree(nio);
+  airFree(nio);  /* no NULL assignment, else compile warnings */
   /* the NrrdIoState never owned nio->oldData; we don't free it */
   return NULL;
 }
@@ -292,7 +292,7 @@ nrrdNix (Nrrd *nrrd) {
     nrrd->cmtArr = airArrayNix(nrrd->cmtArr);
     nrrdKeyValueClear(nrrd);
     nrrd->kvpArr = airArrayNix(nrrd->kvpArr);
-    nrrd = airFree(nrrd);
+    airFree(nrrd);  /* no NULL assignment, else compile warnings */
   }
   return NULL;
 }

@@ -68,7 +68,7 @@ airEnumValCheck(airEnum *enm, int val) {
 
 char *
 airEnumStr(airEnum *enm, int val) {
-  int idx = 0;
+  int idx;
 
   idx = _airEnumIndex(enm, val);
   return enm->str[idx];
@@ -76,7 +76,7 @@ airEnumStr(airEnum *enm, int val) {
 
 char *
 airEnumDesc(airEnum *enm, int val) {
-  int idx = 0;
+  int idx;
 
   idx = _airEnumIndex(enm, val);
   return enm->desc[idx];

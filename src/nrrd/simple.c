@@ -117,7 +117,7 @@ _nrrdContentSet_nva (Nrrd *nout, const char *func,
   }
   sprintf(nout->content, "%s(%s%s%s)", func, content,
 	  airStrlen(buff) ? "," : "", buff);
-  buff = airFree(buff);
+  airFree(buff);  /* no NULL assignment, else compile warnings */
   return 0;
 }
 

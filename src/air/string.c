@@ -131,7 +131,7 @@ airStrntok(const char *_s, const char *ct) {
       n++;
       t = airStrtok(NULL, ct, &l);
     }
-    s = airFree(s);
+    airFree(s);  /* no NULL assignment to s, else compile warnings */
   }
   return n;
 }
