@@ -38,19 +38,8 @@ unrrdu_projectMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   OPT_ADD_AXIS(axis, "axis to project along");
   hestOptAdd(&opt, "m", "measr", airTypeEnum, 1, 1, &measr, NULL,
-	     "How to \"measure\" a scanline.  Possibilities include:\n "
-	     "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", "
-	     "\"variance\"\n "
-	     "(self-explanatory)\n "
-	     "\b\bo \"SD\": standard deviation\n "
-	     "\b\bo \"product\", \"sum\": product or sum of all values along "
-	     "scanline\n "
-	     "\b\bo \"L1\", \"L2\", \"Linf\": different norms\n "
-	     "\b\bo \"histo-min\",  \"histo-max\", \"histo-mean\", "
-	     "\"histo-median\", \"histo-mode\", \"histo-product\", "
-	     "\"histo-sum\", \"histo-variance\": same measures, but for when "
-	     "the scanlines are histograms of values, not the values "
-	     "themselves.", 
+	     "How to \"measure\" a scanline, by summarizing all its values "
+	     "with a single scalar. " NRRD_MEASURE_DESC,
 	     NULL, nrrdMeasure);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");

@@ -120,7 +120,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   /* given the information we have, we set the fields in the nrrdIO
      so as to simulate having read the information from a header */
-  if (!( AIR_INSIDE(1, sizeLen, NRRD_DIM_MAX) )) {
+  if (!( AIR_IN_CL(1, sizeLen, NRRD_DIM_MAX) )) {
     fprintf(stderr, "%s: # axis sizes (%d) not in valid nrrd dimension "
 	    "range ([1,%d])\n", me, sizeLen, NRRD_DIM_MAX);
     airMopError(mop);
@@ -176,6 +176,8 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
       }
       airMopAdd(mop, fileOut, (airMopper)airFclose, airMopAlways);
     }
+    /* whatever line and byte skipping is required will be simply
+       recorded in the header, and done by the next reader */
     _nrrdWriteNrrd(fileOut, nrrd, io, AIR_FALSE /* don't write data */);
   } else {
     /* we're not actually using the handy unrrduHestFileCB,

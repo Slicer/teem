@@ -49,7 +49,7 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!(AIR_INSIDE(0, axis, nin->dim-1))) {
+  if (!(AIR_IN_CL(0, axis, nin->dim-1))) {
     fprintf(stderr, "%s: given axis (%d) outside range [0,%d]\n",
 	    me, axis, nin->dim-1);
     airMopError(mop);

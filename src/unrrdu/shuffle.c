@@ -65,7 +65,7 @@ unrrdu_shuffleMain(int argc, char **argv, char *me, hestParm *hparm) {
   
   /* we have to do error checking on axis in order to do error
      checking on length of permutation */
-  if (!( AIR_INSIDE(0, axis, nin->dim-1) )) {
+  if (!( AIR_IN_CL(0, axis, nin->dim-1) )) {
     fprintf(stderr, "%s: axis %d not in valid range [%d,%d]\n", 
 	    me, axis, 0, nin->dim-1);
     airMopError(mop);
