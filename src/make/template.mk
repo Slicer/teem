@@ -52,6 +52,13 @@ $(L).meneed := $($(L).need) $(L)
 ##
 $(L)/% : _L := $(L)
 
+## added this to enable _L when the target is not explicitly a library
+## but, for example, an individually named binary.  This may subsume the
+## the definition above, but it doesn't hurt to have both.
+##
+$(call libs.inst,$(L)) : _L := $(L)
+
+
 ## not sure why these are needed- version 3.78.1 on a solaris box
 ## definately needed the last one, while others didn't
 $(call hdrs.inst,$(L)) : _L := $(L)
@@ -112,8 +119,17 @@ $(ODEST)/lib$(L).a : $(call objs.dev,$(L))
 	$(if $(RANLIB),$(RANLIB) $@,)
 ifdef TEEM_SHEXT
 $(ODEST)/lib$(L).$(TEEM_SHEXT) : $(call objs.dev,$(L))
-	$(LD) -o $@ $(LDFLAGS) $(LPATH) $^
+	$(LD) -o $@ \
+	$(if $(TEEM_DEST),$(if $(SHARED_LINK_NAME),$(SHARED_LINK_NAME)$(TEEM_DEST)/lib/lib$(_L).$(TEEM_SHEXT),),) $(LDFLAGS) $(LPATH) $^ $(call link,$(call need,$(_L))) $(call xtern.Lpath,$($(_L).meneed)) $(call xtern.link,$($(_L).meneed))
 endif
+
+## comments on madness above:
+## - if both TEEM_DEST and (architecture-specific) SHARED_LINK_NAME are set,
+##   then add SHARED_LINK_NAME flag to the link command making the shared lib
+## - ... $(LDFLAGS) $(LPATH) ...
+## - all architectures: add "-l<lib>" for all <lib> that this lib relies on
+## - all architectures: add -L<path> and -l<lib> for external libraries that 
+##   this library could depend on
 
 ## maybebanner.(L)(obj) returns "echo ..." to show a library banner 
 ## progress indicator, but only if obj is the first object in $(L).OBJS.
@@ -157,7 +173,6 @@ $(LDEST)/lib$(L).a : $(LDEST)/% : $(ODEST)/%
 ifdef TEEM_SHEXT
   $(LDEST)/lib$(L).$(TEEM_SHEXT) : $(LDEST)/% : $(ODEST)/%
 	$(CP) $< $@; $(CHMOD) 755 $@
-	$(if $(RANLIB),$(RANLIB) $@,)
 	$(if $(SIGH),$(SLEEP) $(SIGH); touch $@)
 endif
 
