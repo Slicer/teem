@@ -102,7 +102,7 @@ enum {
 **
 ** organizes all the dependendies within a context and between a
 ** context and pervolumes.  Basically, all of this complexity is to
-** the handle the fact that different kernels have diferrent supports,
+** the handle the fact that different kernels have different supports,
 ** which requires different amounts of padding around volumes.  The
 ** user should not have to be concerned about any of this; it should
 ** be useful only to gageUpdate().  The flags pertaining to state 
@@ -182,7 +182,7 @@ enum {
   gageSclHessEval,    /*  6: "heval", Hessian's eigenvalues: GT[3] */
   gageSclHessEvec,    /*  7: "hevec", Hessian's eigenvectors: GT[9] */
   gageScl2ndDD,       /*  8: "2d", 2nd dir.deriv. along gradient: *GT */
-  gageSclGeomTens,    /*  9: "gten", symm. matrix w/ evals 0,K1,K2 and evecs grad,
+  gageSclGeomTens,    /*  9: "gten", sym. matx w/ evals 0,K1,K2 and evecs grad,
 			     curvature directions: GT[9] */
   gageSclCurvedness,  /* 10: "cv", L2 norm of K1, K2 (not Koen.'s "C"): *GT */
   gageSclShapeTrace,  /* 11, "st", (K1+K2)/Curvedness: *GT */
@@ -217,8 +217,8 @@ enum {
 #define GAGE_SCL_SHAPETRACE_BIT (1<<11)
 #define GAGE_SCL_SHAPEINDEX_BIT (1<<12)
 #define GAGE_SCL_K1K2_BIT       (1<<13)
-#define GAGE_SCL_MEANCURV_BIT  (1<<14)
-#define GAGE_SCL_GAUSSCURV_BIT (1<<15)
+#define GAGE_SCL_MEANCURV_BIT   (1<<14)
+#define GAGE_SCL_GAUSSCURV_BIT  (1<<15)
 #define GAGE_SCL_CURVDIR_BIT    (1<<16)
 
 /*
@@ -230,23 +230,23 @@ enum {
 ** says how many scalars are associated with this scalar.
 */
 enum {
-  gageVecUnknown=-1,  /* -1: nobody knows */
-  gageVecVector,      /*  0: "v", component-wise-interpolatd (CWI) vector: GT[3] */
-  gageVecLength,      /*  1: "l", length of CWI vector: *GT */
-  gageVecNormalized,  /*  2: "n", normalized CWI vector: GT[3] */
-  gageVecJacobian,    /*  3: "j", component-wise Jacobian: GT[9]
-			     0:dv_x/dx  3:dv_x/dy  6:dv_x/dz
-			     1:dv_y/dx  4:dv_y/dy  7:dv_y/dz
-			     2:dv_z/dx  5:dv_z/dy  8:dv_z/dz */
-  gageVecDivergence,  /*  4: "d", divergence (based on Jacobian): *GT */
-  gageVecCurl,        /*  5: "c", curl (based on Jacobian): GT[3] */
-  gageVecGradient0,   /*  6: "g1", gradient of 1st component of vector: GT[3] */
-  gageVecGradient1,   /*  7: "g2", gradient of 2nd component of vector: GT[3] */
-  gageVecGradient2,   /*  8: "g3", gradient of 3rd component of vector: GT[3] */
-  gageVecMultiGrad,   /*  9: "mg", sum of outer products of gradients: GT[9] */
-  gageVecL2MG,        /* 10: "l2mg", L2 norm of multi-gradient: *GT */
-  gageVecMGEval,      /* 11: "mgeval", eigenvalues of multi-gradient: GT[3] */
-  gageVecMGEvec,      /* 12: "mgevec", eigenvectors of multi-gradient: GT[9] */
+  gageVecUnknown=-1, /* -1: nobody knows */
+  gageVecVector,     /*  0: "v", component-wise-intrpolatd (CWI) vec: GT[3] */
+  gageVecLength,     /*  1: "l", length of CWI vector: *GT */
+  gageVecNormalized, /*  2: "n", normalized CWI vector: GT[3] */
+  gageVecJacobian,   /*  3: "j", component-wise Jacobian: GT[9]
+			    0:dv_x/dx  3:dv_x/dy  6:dv_x/dz
+			    1:dv_y/dx  4:dv_y/dy  7:dv_y/dz
+			    2:dv_z/dx  5:dv_z/dy  8:dv_z/dz */
+  gageVecDivergence, /*  4: "d", divergence (based on Jacobian): *GT */
+  gageVecCurl,       /*  5: "c", curl (based on Jacobian): GT[3] */
+  gageVecGradient0,  /*  6: "g1", gradient of 1st component of vector: GT[3] */
+  gageVecGradient1,  /*  7: "g2", gradient of 2nd component of vector: GT[3] */
+  gageVecGradient2,  /*  8: "g3", gradient of 3rd component of vector: GT[3] */
+  gageVecMultiGrad,  /*  9: "mg", sum of outer products of gradients: GT[9] */
+  gageVecL2MG,       /* 10: "l2mg", L2 norm of multi-gradient: *GT */
+  gageVecMGEval,     /* 11: "mgeval", eigenvalues of multi-gradient: GT[3] */
+  gageVecMGEvec,     /* 12: "mgevec", eigenvectors of multi-gradient: GT[9] */
   gageVecLast
 };
 #define GAGE_VEC_MAX     12
@@ -302,7 +302,7 @@ typedef struct gageContext_t {
 				 appropriate for the task for which
 				 the kernel is being set:
 				 reconstruction: 1.0, derivatives: 0.0 */
-  int noRepadWhenSmaller;     /* if a change in parameters leads a newer and
+  int noRepadWhenSmaller;     /* if a change in parameters leads to a newer and
 				 smaller amount of padding, don't generate a
 				 new padded volume, use the somewhat overly
 				 padded volume */
