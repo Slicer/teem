@@ -117,9 +117,11 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));
     exit(1);
   }
-  pad = 1 + gageSclNeedPadGet(ctx);
+  pad = 0 + gageSclNeedPadGet(ctx);
+  printf("%s: kernel set requires padding by %d, we'll use %d\n",
+	 me, gageSclNeedPadGet(ctx), pad);
   /* we pad with something other than needed pad for stress testing */
-  if (nrrdSimplePad(npad=nrrdNew(), nin, pad, nrrdBoundaryBleed)) {
+  if (nrrdSimplePad(npad=nrrdNew(), nin, pad, nrrdBoundaryPad, 111.0)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(NRRD));
     exit(1);
   }
@@ -165,10 +167,17 @@ main(int argc, char *argv[]) {
 	x = AIR_AFFINE(0, xi, sox-1, 0, six-1);
 	idx = xi + sox*(yi + soy*zi);
 
-	ctx->c.verbose = 2*( ((40 == xi) && (30 == yi) && (62 == zi)) ||
+	ctx->c.verbose = 2*( !xi && !yi && !zi ||
+			     ((sox-1 == xi) && (30 == yi) && (10 == zi)) ||
+			     ((40 == xi) && (30 == yi) && (62 == zi)) ||
 			     ((40 == xi) && (30 == yi) && (63 == zi)) );
 
-	gageSclProbe(ctx, x, y, z);
+	if (gageSclProbe(ctx, x, y, z)) {
+	  fprintf(stderr, 
+		  "%s: trouble at i=(%d,%d,%d) -> f=(%g,%g,%g):\n%s\n(%d)\n",
+		  me, xi, yi, zi, x, y, z, gageErrStr, gageErrNum);
+	  exit(1);
+	}
 	switch (what) {
 	case gageSclHessian:
 	  TEN_MAT2LIST(out + 7*idx, ctx->hess);

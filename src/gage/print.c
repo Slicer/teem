@@ -20,6 +20,47 @@
 #include "gage.h"
 #include "private.h"
 
+void
+_gagePrint_off(gageContext *ctx) {
+  int i, fd, *off;
+
+  fd = ctx->fd;
+  off = ctx->off;
+  printf("off[]:\n");
+  switch(fd) {
+  case 2:
+    printf("% 6d   % 6d\n", off[6], off[7]);
+    printf("   % 6d   % 6d\n\n", off[4], off[5]);
+    printf("% 6d   % 6d\n", off[2], off[3]);
+    printf("   % 6d   % 6d\n", off[0], off[1]);
+    break;
+  case 4:
+    for (i=3; i>=0; i--) {
+      printf("% 6d   % 6d   % 6d   % 6d\n", 
+	     off[12+16*i], off[13+16*i], 
+	     off[14+16*i], off[15+16*i]);
+      printf("   % 6d  %c% 6d   % 6d%c   % 6d\n", 
+	     off[ 8+16*i], (i==1||i==2)?'\\':' ',
+	     off[ 9+16*i], off[10+16*i], (i==1||i==2)?'\\':' ',
+	     off[11+16*i]);
+      printf("      % 6d  %c% 6d   % 6d%c   % 6d\n", 
+	     off[ 4+16*i], (i==1||i==2)?'\\':' ',
+	     off[ 5+16*i], off[ 6+16*i], (i==1||i==2)?'\\':' ',
+	     off[ 7+16*i]);
+      printf("         % 6d   % 6d   % 6d   % 6d\n", 
+	     off[ 0+16*i], off[ 1+16*i],
+	     off[ 2+16*i], off[ 3+16*i]);
+      if (i) printf("\n");
+    }
+    break;
+  default:
+    for (i=0; i<fd*fd*fd; i++) {
+      printf("  off[% 4d] = % 6d\n", i, off[i]);
+    }
+    break;
+  }
+}
+
 #define PRINT2(N,C)                                     \
    fw = fw##N##C;                                       \
    printf("   -" #N "->% 15.7f   % 15.7f\n",            \

@@ -233,9 +233,9 @@ nrrdKernelTent = &_nrrdKernelTent;
 
 /* ------------------------------------------------------------ */
 
-#define _FORDIF(x) (x <= -1 ?  0 :        \
-                   (x <=  0 ?  1 :        \
-                   (x <=  1 ? -1 : 0 )))
+#define _FORDIF(x) (x < -1 ?  0 :        \
+                   (x <  0 ?  1 :        \
+                   (x <  1 ? -1 : 0 )))
 
 double
 _nrrdFDInt(double *parm) {

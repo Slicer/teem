@@ -42,8 +42,8 @@ _gageFslSet(gageContext *ctx) {
     break;
   case 2:
     T = ctx->xf+1; fslx[0]=T--; fslx[1]=T--; fslx[2]=T--; fslx[3]=T;
-    T = ctx->yf+1; fsly[0]=T--; fsly[1]=T--; fsly[2]=T--; fslx[3]=T;
-    T = ctx->zf+1; fslz[0]=T--; fslz[1]=T--; fslz[2]=T--; fslx[3]=T;
+    T = ctx->yf+1; fsly[0]=T--; fsly[1]=T--; fsly[2]=T--; fsly[3]=T;
+    T = ctx->zf+1; fslz[0]=T--; fslz[1]=T--; fslz[2]=T--; fslz[3]=T;
     break;
   default:
     /* filter radius bigger than 2 */
@@ -125,6 +125,7 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
 
 void
 _gageFwSet(gageContext *ctx) {
+  char me[]="_gageFwSet";
   int i, j, fd;
   gage_t *fwX, *fwY, *fwZ;
 
@@ -141,6 +142,10 @@ _gageFwSet(gageContext *ctx) {
     ctx->k[i]->EVALN(ctx->fw[i], ctx->fsl, 3*ctx->fd, ctx->kparm[i]);
   }
 
+  if (ctx->verbose) {
+    printf("%s: filter weights immediately after evaluation:\n", me);
+    _gagePrint_fslw(ctx);
+  }
   if (ctx->renormalize) {
     for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       if (!ctx->fw[i])
@@ -156,6 +161,10 @@ _gageFwSet(gageContext *ctx) {
 	break;
       }
     }
+  }
+  if (ctx->verbose) {
+    printf("%s: filter weights after renormalization:\n", me);
+    _gagePrint_fslw(ctx);
   }
 
   /* fix weightings for non-unit-spacing samples */
@@ -176,6 +185,10 @@ _gageFwSet(gageContext *ctx) {
       }
     }
   }
+  if (ctx->verbose) {
+    printf("%s: filter weights after non-unit fix:\n", me);
+    _gagePrint_fslw(ctx);
+  }
 }
 
 /*
@@ -193,7 +206,7 @@ int
 _gageLocationSet(gageContext *ctx, int *newBidxP,
 		 gage_t x, gage_t y, gage_t z) {
   char me[]="_gageProbeLocationSet";
-  int tx, ty, tz, xi, yi, zi, bidx;
+  int tx, ty, tz, xi, yi, zi, bidx, dif;
   gage_t xf, yf, zf;
   
   tx = ctx->sx - 2*ctx->havePad - 1;
@@ -201,7 +214,7 @@ _gageLocationSet(gageContext *ctx, int *newBidxP,
   tz = ctx->sz - 2*ctx->havePad - 1;
   if (!( AIR_INSIDE(0,x,tx) && AIR_INSIDE(0,y,ty) && AIR_INSIDE(0,z,tz) )) {
     sprintf(gageErrStr, "%s: position (%g,%g,%g) outside bounds "
-	    "[0..%d,0..%d,0..%d]\n",
+	    "[0..%d,0..%d,0..%d]",
 	    me, (float)x, (float)y, (float)z, tx, ty, tz);
     gageErrNum = 0;
     return 1;
@@ -211,7 +224,8 @@ _gageLocationSet(gageContext *ctx, int *newBidxP,
   xi = x; xi -= xi == tx; xf = x - xi;
   yi = y; yi -= yi == ty; yf = y - yi;
   zi = z; zi -= zi == tz; zf = z - zi;
-  bidx = xi + ctx->sx*(yi + ctx->sy*zi);
+  dif = ctx->havePad - ctx->fr;
+  bidx = xi + dif + ctx->sx*(yi + dif + ctx->sy*(zi + dif));
   if (ctx->verbose > 1) {
     fprintf(stderr, 
 	    "%s: \n"

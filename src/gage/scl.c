@@ -148,8 +148,10 @@ gageSclProbe(gageSclContext *sctx, gage_t x, gage_t y, gage_t z) {
 	    + sctx->c.bidx*nrrdTypeSize[sctx->npad->type]);
     for (i=0; i<sctx->c.fd*sctx->c.fd*sctx->c.fd; i++)
       sctx->iv3[i] = sctx->lup(here, sctx->c.off[i]);
-    if (sctx->c.verbose > 1)
+    if (sctx->c.verbose > 1) {
+      printf("%s: set the value cache:\n", me);
       _gageSclPrint_iv3(sctx);
+    }
   }
 
   /* perform the filtering */

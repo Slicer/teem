@@ -21,7 +21,6 @@
 extern "C" {
 #endif
 
-
 #ifndef GAGE_HAS_BEEN_INCLUDED
 #define GAGE_HAS_BEEN_INCLUDED
 
@@ -38,8 +37,6 @@ extern "C" {
 #include <ell.h>
 
 /*
-** general notes:
-**
 ** the only extent to which gage treats different axes differently is
 ** the spacing between samples along the axis.  To have different
 ** filters for the same function, but along different axes, would be
@@ -62,12 +59,10 @@ extern "C" {
 ** unfortunate but greatly simplifying restriction that this type
 ** is used for all types of probing (scalar, vector, etc).
 */
-/* chose this: ... */
 
 typedef float gage_t;
 #define GAGE_TYPE_FLOAT 1
 
-/* ... or this: */
 /*
 typedef double gage_t;
 #define GAGE_TYPE_FLOAT 0
@@ -193,8 +188,9 @@ typedef struct {
 				 query, used to short-circuit
 				 calculation of filter sample
 				 locations and weights */
-  int bidx;                   /* base-index: lowest (linear) index of
-				 samples currrently in 3D value cache */
+  int bidx;                   /* base-index: lowest (linear) index, in
+				 the PADDED volume, of the samples
+				 currrently in 3D value cache */
 } gageContext;
 
 /*
@@ -270,7 +266,6 @@ extern gageSclContext *gageSclContextCopy(gageSclContext *sctx);
 extern int gageSclProbe(gageSclContext *sctx, gage_t x, gage_t y, gage_t z);
 
 #endif /* GAGE_HAS_BEEN_INCLUDED */
-
 #ifdef __cplusplus
 }
 #endif

@@ -328,13 +328,16 @@ extern Nrrd *nrrdNix(Nrrd *nrrd);
 extern Nrrd *nrrdEmpty(Nrrd *nrrd);
 extern Nrrd *nrrdNuke(Nrrd *nrrd);
 extern int nrrdWrap_nva(Nrrd *nrrd, void *data, int type, int dim, int *size);
-extern int nrrdWrap(Nrrd *nrrd, void *data, int type, int dim, ...);
+extern int nrrdWrap(Nrrd *nrrd, void *data, int type, int dim,
+		    ... /* sx, sy, .., axis(dim-1) size */);
 extern Nrrd *nrrdUnwrap(Nrrd *nrrd);
 extern int nrrdCopy(Nrrd *nout, Nrrd *nin);
 extern int nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size);
-extern int nrrdAlloc(Nrrd *nrrd, int type, int dim, ...);
+extern int nrrdAlloc(Nrrd *nrrd, int type, int dim,
+		     ... /* sx, sy, .., axis(dim-1) size */);
 extern int nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size);
-extern int nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim, ...);
+extern int nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim,
+			  ... /* sx, sy, .., axis(dim-1) size */);
 extern int nrrdPPM(Nrrd *, int sx, int sy);
 extern int nrrdPGM(Nrrd *, int sx, int sy);
 extern int nrrdTable(Nrrd *table, int sx, int sy);
@@ -353,9 +356,11 @@ extern NrrdIter *nrrdIterNuke(NrrdIter *iter);
 /* axes.c */
 extern int nrrdAxesCopy(Nrrd *nout, Nrrd *nin, int *map, int bitflag);
 extern void nrrdAxesSet_nva(Nrrd *nin, int axInfo, void *info);
-extern void nrrdAxesSet(Nrrd *nin, int axInfo, ...);
+extern void nrrdAxesSet(Nrrd *nin, int axInfo,
+			... /* void * */);
 extern void nrrdAxesGet_nva(Nrrd *nrrd, int axInfo, void *info);
-extern void nrrdAxesGet(Nrrd *nrrd, int axInfo, ...);
+extern void nrrdAxesGet(Nrrd *nrrd, int axInfo,
+			... /* void * */);
 extern double nrrdAxisPos(Nrrd *nrrd, int ax, double idx);
 extern double nrrdAxisIdx(Nrrd *nrrd, int ax, double pos);
 extern void nrrdAxisPosRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
@@ -370,7 +375,8 @@ extern void nrrdAxisMinMaxSet(Nrrd *nrrd, int ax);
 extern void nrrdPeripheralInit(Nrrd *nrrd);
 extern void nrrdPeripheralCopy(Nrrd *nout, Nrrd *nin);
 extern int nrrdContentSet(Nrrd *nout, const char *func,
-			  Nrrd *nin, const char *format, ...);
+			  Nrrd *nin, const char *format,
+			  ... /* printf-style arg list */ );
 extern void nrrdDescribe(FILE *file, Nrrd *nrrd);
 extern int nrrdValid(Nrrd *nrrd);
 extern int nrrdElementSize(Nrrd *nrrd);
@@ -442,16 +448,18 @@ extern int nrrdApply1DRegMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
 /******** sampling, slicing, cropping */
 /* subset.c */
 extern int nrrdSample_nva(void *val, Nrrd *nin, int *coord);
-extern int nrrdSample(void *val, Nrrd *nin, ...);
+extern int nrrdSample(void *val, Nrrd *nin,
+		      ... /* coord0, coord1, .., coord(dim-1) */ );
 extern int nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos);
 extern int nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max);
 extern int nrrdSimpleCrop(Nrrd *nout, Nrrd *nin, int crop);
 
 /******** padding */
 /* superset.c */
-extern int nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, 
-		   int boundary, ...);
-extern int nrrdSimplePad(Nrrd *nout, Nrrd *nin, int pad, int boundary, ...);
+extern int nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary,
+		   ... /* if nrrdBoundaryPad, what value */);
+extern int nrrdSimplePad(Nrrd *nout, Nrrd *nin, int pad, int boundary,
+			 ... /* if nrrdBoundaryPad, what value */);
 
 /******** permuting and shuffling */
 /* reorder.c */
@@ -461,7 +469,8 @@ extern int nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2);
 extern int nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm);
 extern int nrrdFlip(Nrrd *nout, Nrrd *nin, int axis);
 extern int nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim);
-extern int nrrdReshape(Nrrd *nout, Nrrd *nin, int dim, ...);
+extern int nrrdReshape(Nrrd *nout, Nrrd *nin, int dim,
+		       ... /* sx, sy, .., axis(dim-1) size */ );
 extern int nrrdReshape_nva(Nrrd *nout, Nrrd *nin, int dim, int *size);
 extern int nrrdBlock(Nrrd *nout, Nrrd *nin);
 extern int nrrdUnblock(Nrrd *nout, Nrrd *nin, int type);

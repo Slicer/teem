@@ -258,6 +258,11 @@ _gageVolumeDependentSet(gageContext *ctx, Nrrd *npad, int baseDim) {
   ctx->xs = AIR_EXISTS(ctx->xs) ? ctx->xs : nrrdDefSpacing;
   ctx->ys = AIR_EXISTS(ctx->ys) ? ctx->ys : nrrdDefSpacing;
   ctx->zs = AIR_EXISTS(ctx->zs) ? ctx->zs : nrrdDefSpacing;
+  if (ctx->verbose) {
+    printf("%s: padded (%d) volume: sizes (%d,%d,%d) spacings (%g,%g,%g)\n",
+	   me, ctx->havePad, ctx->sx, ctx->sy, ctx->sz,
+	   ctx->xs, ctx->ys, ctx->zs);
+  }
   for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
     switch (i) {
     case gageKernel00:
@@ -290,6 +295,10 @@ _gageVolumeDependentSet(gageContext *ctx, Nrrd *npad, int baseDim) {
     for (j=0; j<fd; j++)
       for (i=0; i<fd; i++)
 	ctx->off[i + fd*(j + fd*k)] = i + ctx->sx*(j + ctx->sy*k);
+  if (ctx->verbose) {
+    printf("%s: newly calculated offset array\n", me);
+    _gagePrint_off(ctx);
+  }
 
   return 0;
 }
