@@ -106,7 +106,18 @@ double _nrrdUnaryOpAtan(double a)       {return atan(a);}
 double _nrrdUnaryOpExp(double a)        {return exp(a);}
 double _nrrdUnaryOpLog(double a)        {return log(a);}
 double _nrrdUnaryOpLog10(double a)      {return log10(a);}
+double _nrrdUnaryOpLog1p(double a)      {
+  double b;
+
+  b = 1 + a;
+  if (b == 1) {
+    return a;
+  } else {
+    return log(b)*a/(b-1);
+  }
+}
 double _nrrdUnaryOpSqrt(double a)       {return sqrt(a);}
+double _nrrdUnaryOpCbrt(double a)       {return airCbrt(a);}
 double _nrrdUnaryOpErf(double a)        {return airErf(a);}
 double _nrrdUnaryOpCeil(double a)       {return ceil(a);}
 double _nrrdUnaryOpFloor(double a)      {return floor(a);}
@@ -130,7 +141,9 @@ double (*_nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
   _nrrdUnaryOpExp,
   _nrrdUnaryOpLog,
   _nrrdUnaryOpLog10,
+  _nrrdUnaryOpLog1p,
   _nrrdUnaryOpSqrt,
+  _nrrdUnaryOpCbrt,
   _nrrdUnaryOpErf,
   _nrrdUnaryOpCeil,
   _nrrdUnaryOpFloor,
