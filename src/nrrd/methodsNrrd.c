@@ -414,18 +414,6 @@ nrrdWrap (Nrrd *nrrd, void *data, int type, int dim, ...) {
   return nrrdWrap_nva(nrrd, data, type, dim, size);
 }
 
-
-/*
-******** nrrdUnwrap()
-**
-** a wrapper around nrrdNix()
-*/
-Nrrd *
-nrrdUnwrap (Nrrd *nrrd) {
-  
-  return nrrdNix(nrrd);
-}
-
 /*
 void
 _nrrdTraverse (Nrrd *nrrd) {

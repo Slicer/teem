@@ -495,7 +495,6 @@ extern int nrrdWrap_nva(Nrrd *nrrd, void *data, int type,
 			int dim, const int *size);
 extern int nrrdWrap(Nrrd *nrrd, void *data, int type, int dim,
 		    ... /* sx, sy, .., axis(dim-1) size */);
-extern Nrrd *nrrdUnwrap(Nrrd *nrrd);
 extern int nrrdCopy(Nrrd *nout, const Nrrd *nin);
 extern int nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, const int *size);
 extern int nrrdAlloc(Nrrd *nrrd, int type, int dim,

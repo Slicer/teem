@@ -298,6 +298,17 @@ enum {
 };
 #define LIMN_SPLINE_INFO_MAX   6
 
+enum {
+  limnCameraPathTrackUnknown, /* 0 */
+  limnCameraPathTrackFrom,    /* 1: 3-D spline for *from* points, quaternion
+				 spline for camera directions towards at */
+  limnCameraPathTrackAt,      /* 2: 3-D spline for *at* points, quaternion 
+				 spline for directions back to camera */
+  limnCameraPathTrackBoth,    /* 3: 2 3-D splines: one for from, one for at */
+  limnCameraPathTrackLast
+};
+#define LIMN_CAMERA_PATH_TRACK_MAX 3
+
 /*
 ******** limnSpline
 **

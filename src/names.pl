@@ -1,4 +1,3 @@
-#!/usr/bin/perl -w
 
 # GK uses this to make sure that there are no filename clashes between
 # different libraries, a constraint introduced with the Windows port.
@@ -8,10 +7,11 @@
 # Usage is:
 #
 # cd src
-# ls -1 {air,hest,biff,ell,nrrd,unrrdu,dye,moss,gage,bane,limn,hoover,mite,ten,echo}/*.c | ./names.pl | sort | more
+# ls -1 {air,hest,biff,ell,nrrd,unrrdu,dye,moss,gage,bane,limn,hoover,mite,alan,ten,echo}/*.c | perl names.pl | sort | wc -l
+# ls -1 {air,hest,biff,ell,nrrd,unrrdu,dye,moss,gage,bane,limn,hoover,mite,alan,ten,echo}/*.c | perl names.pl | sort | uniq | wc -l
 
 while (<>) {
     chomp;
     ($dir, $name) = split '/', $_, 2;
-    print "$name $dir\n";
+    print "$name\n";
 }
