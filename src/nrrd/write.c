@@ -491,7 +491,13 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
     }
     break;
   case nrrdField_centers:
-    *strP = malloc(fslen + nrrd->dim*10);
+    fdlen = 0;
+    for (i=0; i<nrrd->dim; i++) {
+      fdlen += 1 + airStrlen(nrrd->axis[i].center 
+                             ? airEnumStr(nrrdCenter, nrrd->axis[i].center)
+                             : NRRD_UNKNOWN);
+    }
+    *strP = malloc(fslen + fdlen);
     sprintf(*strP, "%s%s:", prefix, fs);
     for (i=0; i<nrrd->dim; i++) {
       sprintf(buff, " %s",
@@ -502,7 +508,13 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
     }
     break;
   case nrrdField_kinds:
-    *strP = malloc(fslen + nrrd->dim*10);
+    fdlen = 0;
+    for (i=0; i<nrrd->dim; i++) {
+      fdlen += 1 + airStrlen(nrrd->axis[i].kind
+                             ? airEnumStr(nrrdKind, nrrd->axis[i].kind)
+                             : NRRD_UNKNOWN);
+    }
+    *strP = malloc(fslen + fdlen);
     sprintf(*strP, "%s%s:", prefix, fs);
     for (i=0; i<nrrd->dim; i++) {
       sprintf(buff, " %s",
