@@ -606,24 +606,24 @@ extern nrrd_export int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *,
 
 /******** getting information to and from files */
 /* formatXXX.c */
-extern const NrrdFormat *const nrrdFormatNRRD;
-extern const NrrdFormat *const nrrdFormatPNM;
-extern const NrrdFormat *const nrrdFormatPNG;
-extern const NrrdFormat *const nrrdFormatVTK;
-extern const NrrdFormat *const nrrdFormatText;
-extern const NrrdFormat *const nrrdFormatEPS;
+extern nrrd_export const NrrdFormat *const nrrdFormatNRRD;
+extern nrrd_export const NrrdFormat *const nrrdFormatPNM;
+extern nrrd_export const NrrdFormat *const nrrdFormatPNG;
+extern nrrd_export const NrrdFormat *const nrrdFormatVTK;
+extern nrrd_export const NrrdFormat *const nrrdFormatText;
+extern nrrd_export const NrrdFormat *const nrrdFormatEPS;
 /* format.c */
-extern const NrrdFormat *const nrrdFormatUnknown;
+extern nrrd_export const NrrdFormat *const nrrdFormatUnknown;
 extern nrrd_export const NrrdFormat *
   const nrrdFormatArray[NRRD_FORMAT_TYPE_MAX+1];
 /* encodingXXX.c */
-extern const NrrdEncoding *const nrrdEncodingRaw;
-extern const NrrdEncoding *const nrrdEncodingAscii;
-extern const NrrdEncoding *const nrrdEncodingHex;
-extern const NrrdEncoding *const nrrdEncodingGzip;
-extern const NrrdEncoding *const nrrdEncodingBzip2;
+extern nrrd_export const NrrdEncoding *const nrrdEncodingRaw;
+extern nrrd_export const NrrdEncoding *const nrrdEncodingAscii;
+extern nrrd_export const NrrdEncoding *const nrrdEncodingHex;
+extern nrrd_export const NrrdEncoding *const nrrdEncodingGzip;
+extern nrrd_export const NrrdEncoding *const nrrdEncodingBzip2;
 /* encoding.c */
-extern const NrrdEncoding *const nrrdEncodingUnknown;
+extern nrrd_export const NrrdEncoding *const nrrdEncodingUnknown;
 extern nrrd_export const NrrdEncoding *
   const nrrdEncodingArray[NRRD_ENCODING_TYPE_MAX+1];
 /* read.c */
