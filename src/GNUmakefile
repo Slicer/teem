@@ -141,10 +141,10 @@ else
   ## complain if the destination directories don't exist
   $(if $(call if.missing,$(IDEST) $(LDEST) $(BDEST)),\
     $(error TEEM_DEST="$(TEEM_DEST)" lacks include,lib,bin subdirectories))
-  ## create IDEST/teem if necessary
-  $(if $(call if.missing,$(IDEST)/teem),\
-    $(shell mkdir $(IDEST)/teem))
 endif
+## create IDEST/teem if necessary
+$(if $(call if.missing,$(IDEST)/teem),\
+  $(shell mkdir $(IDEST)/teem))
 ## out of laziness, always copy over all the teem*.h headers
 $(shell cp $(TEEM_ROOT)/include/teem*.h $(IDEST)/teem)
 ODEST = $(TEEM_ROOT)/$(TEEM_ARCH)/obj
