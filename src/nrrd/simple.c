@@ -481,7 +481,7 @@ nrrdSanity(void) {
   if (maxsize != sizeof(NRRD_TYPE_BIGGEST)) {
     sprintf(err, "%s: actual max type size is %d != "
 	    "%d == sizeof(NRRD_TYPE_BIGGEST)",
-	    me, maxsize, sizeof(NRRD_TYPE_BIGGEST));
+	    me, maxsize, (int)sizeof(NRRD_TYPE_BIGGEST));
     biffAdd(NRRD, err); return 0;
   }
   

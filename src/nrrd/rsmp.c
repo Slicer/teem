@@ -735,6 +735,8 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     sprintf(err, "%s: couldn't allocate final output nrrd", me);
     biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
   }
+  printf("!%s: nout: dim = %d; sz[] = %d %d %d\n", me,
+	 dim, sz[passes][0],  sz[passes][1],  sz[passes][2]);
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopOnError);
   nrrdAxesCopy(nout, nin, NULL, 
 	       (NRRD_AXESINFO_SIZE
@@ -766,5 +768,3 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   airMopDone(mop, AIR_FALSE);
   return 0;
 }
-
-
