@@ -33,6 +33,26 @@ extern "C" {
 *******/
 
 /*
+******** nrrdIoState* enum
+** 
+** the various things it makes sense to get and set in nrrdIoState struct
+** via nrrdIoStateGet and nrrdIoStateSet
+*/
+enum {
+  nrrdIoStateUnknown,
+  nrrdIoStateDetachedHeader,
+  nrrdIoStateBareText,
+  nrrdIoStateCharsPerLine,
+  nrrdIoStateValsPerLine,
+  nrrdIoStateSkipData,
+  nrrdIoStateKeepNrrdDataFileOpen,
+  nrrdIoStateZlibLevel,
+  nrrdIoStateZlibStrategy,
+  nrrdIoStateBzip2BlockSize,
+  nrrdIoStateLast
+};
+
+/*
 ******** nrrdFormatType enum
 **
 ** the different file formats which nrrd supports
@@ -131,59 +151,6 @@ enum {
   nrrdZlibStrategyLast
 };
 #define NRRD_ZLIB_STRATEGY_MAX  3
-
-/*
-******** nrrdMeasure enum
-**
-** ways to "measure" some portion of the array
-** NEEDS TO BE IN SYNC WITH:
-** - nrrdMeasure airEnum in enumsNrrd.c
-** - nrrdMeasureLine function array in measure.c
-*/
-enum {
-  nrrdMeasureUnknown,
-  nrrdMeasureMin,            /* 1: smallest value */
-  nrrdMeasureMax,            /* 2: biggest value */
-  nrrdMeasureMean,           /* 3: average of values */
-  nrrdMeasureMedian,         /* 4: value at 50th percentile */
-  nrrdMeasureMode,           /* 5: most common value */
-  nrrdMeasureProduct,        /* 6: product of all values */
-  nrrdMeasureSum,            /* 7: sum of all values */
-  nrrdMeasureL1,             /* 8 */
-  nrrdMeasureL2,             /* 9 */
-  nrrdMeasureLinf,           /* 10 */
-  nrrdMeasureVariance,       /* 11 */
-  nrrdMeasureSD,             /* 12: standard deviation */
-  /* 
-  ** the nrrduMeasureHisto... measures interpret the array as a
-  ** histogram of some implied value distribution
-  */
-  nrrdMeasureHistoMin,       /* 13 */
-  nrrdMeasureHistoMax,       /* 14 */
-  nrrdMeasureHistoMean,      /* 15 */
-  nrrdMeasureHistoMedian,    /* 16 */
-  nrrdMeasureHistoMode,      /* 17 */
-  nrrdMeasureHistoProduct,   /* 18 */
-  nrrdMeasureHistoSum,       /* 19 */
-  nrrdMeasureHistoL2,        /* 20 */
-  nrrdMeasureHistoVariance,  /* 21 */
-  nrrdMeasureHistoSD,        /* 22 */
-  nrrdMeasureLast
-};
-#define NRRD_MEASURE_MAX        22
-#define NRRD_MEASURE_DESC \
-   "Possibilities include:\n " \
-   "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", \"variance\"\n " \
-     "(self-explanatory)\n " \
-   "\b\bo \"sd\": standard deviation\n " \
-   "\b\bo \"product\", \"sum\": product or sum of all values\n " \
-   "\b\bo \"L1\", \"L2\", \"Linf\": different norms\n " \
-   "\b\bo \"histo-min\",  \"histo-max\", \"histo-mean\", " \
-     "\"histo-median\", \"histo-mode\", \"histo-product\", \"histo-l2\", " \
-     "\"histo-sum\", \"histo-variance\", \"histo-sd\": same measures, " \
-     "but for situations " \
-     "where we're given not the original values, but a histogram of them."
-  
 
 /*
 ******** nrrdCenter enum
@@ -296,6 +263,61 @@ enum {
 };
 #define NRRD_HAS_NON_EXIST_MAX 3
 
+/* ---- BEGIN non-NrrdIO */
+
+/*
+******** nrrdMeasure enum
+**
+** ways to "measure" some portion of the array
+** NEEDS TO BE IN SYNC WITH:
+** - nrrdMeasure airEnum in enumsNrrd.c
+** - nrrdMeasureLine function array in measure.c
+*/
+enum {
+  nrrdMeasureUnknown,
+  nrrdMeasureMin,            /* 1: smallest value */
+  nrrdMeasureMax,            /* 2: biggest value */
+  nrrdMeasureMean,           /* 3: average of values */
+  nrrdMeasureMedian,         /* 4: value at 50th percentile */
+  nrrdMeasureMode,           /* 5: most common value */
+  nrrdMeasureProduct,        /* 6: product of all values */
+  nrrdMeasureSum,            /* 7: sum of all values */
+  nrrdMeasureL1,             /* 8 */
+  nrrdMeasureL2,             /* 9 */
+  nrrdMeasureLinf,           /* 10 */
+  nrrdMeasureVariance,       /* 11 */
+  nrrdMeasureSD,             /* 12: standard deviation */
+  /* 
+  ** the nrrduMeasureHisto... measures interpret the array as a
+  ** histogram of some implied value distribution
+  */
+  nrrdMeasureHistoMin,       /* 13 */
+  nrrdMeasureHistoMax,       /* 14 */
+  nrrdMeasureHistoMean,      /* 15 */
+  nrrdMeasureHistoMedian,    /* 16 */
+  nrrdMeasureHistoMode,      /* 17 */
+  nrrdMeasureHistoProduct,   /* 18 */
+  nrrdMeasureHistoSum,       /* 19 */
+  nrrdMeasureHistoL2,        /* 20 */
+  nrrdMeasureHistoVariance,  /* 21 */
+  nrrdMeasureHistoSD,        /* 22 */
+  nrrdMeasureLast
+};
+#define NRRD_MEASURE_MAX        22
+#define NRRD_MEASURE_DESC \
+   "Possibilities include:\n " \
+   "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", \"variance\"\n " \
+     "(self-explanatory)\n " \
+   "\b\bo \"sd\": standard deviation\n " \
+   "\b\bo \"product\", \"sum\": product or sum of all values\n " \
+   "\b\bo \"L1\", \"L2\", \"Linf\": different norms\n " \
+   "\b\bo \"histo-min\",  \"histo-max\", \"histo-mean\", " \
+     "\"histo-median\", \"histo-mode\", \"histo-product\", \"histo-l2\", " \
+     "\"histo-sum\", \"histo-variance\", \"histo-sd\": same measures, " \
+     "but for situations " \
+     "where we're given not the original values, but a histogram of them."
+  
+
 /*
 ******** nrrdBlind8BitRange
 **
@@ -347,7 +369,6 @@ enum {
 };
 #define NRRD_UNARY_OP_MAX   23
 
-
 /*
 ******** nrrdBinaryOp enum
 **
@@ -397,6 +418,8 @@ enum {
   nrrdTernaryOpLast
 };
 #define NRRD_TERNARY_OP_MAX 10
+
+/* ---- END non-NrrdIO */
 
 #ifdef __cplusplus
 }

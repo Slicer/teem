@@ -30,7 +30,9 @@
 #include <float.h>
 
 #include <teem/air.h>
+/* ---- BEGIN non-NrrdIO */
 #include <teem/hest.h>
+/* ---- END non-NrrdIO */
 #include <teem/biff.h>
 
 #include "nrrdDefines.h"
@@ -76,28 +78,6 @@ typedef struct {
   char *label;                   /* short info string for each axis */
   char *unit;                    /* short string for identifying units */
 } NrrdAxis;
-
-/*
-******** NrrdRange
-**
-** information about a range of values, used as both a description
-** of an existing nrrd, or as input to functions like nrrdQuantize
-** (in which case the given min,max may not correspond to the actual
-** min,max of the nrrd in question).
-**
-** This information has been removed from the Nrrd struct (as of teem1.6) 
-** and put into this seperate entity because:
-** 1) when intended to be descriptive of a nrrd, it can't be guaranteed
-** to be true across nrrd calls
-** 2) when used as input parameters (e.g. to nrrdQuantize), its not
-** data-flow friendly (you can't modify input)
-*/
-typedef struct {
-  double min, max;  /* if non-NaN, nominally: extremal values for array, but
-		       practically: the min and max values to use for nrrd
-		       calls for which a min and max values are used */
-  int hasNonExist;  /* from the nrrdHasNonExist* enum values */
-} NrrdRange;
 
 /*
 ******** Nrrd struct
@@ -150,115 +130,6 @@ typedef struct {
   char **kvp;
   airArray *kvpArr;
 } Nrrd;
-
-/*
-******** NrrdKernel struct
-**
-** these are essentially the methods of the various kernels implemented.
-**
-** Nrrd's use of this sort of kernel always assumes support symmetric
-** around zero, but does not assume anything about even- or oddness
-**
-** It is a strong but very simplifying assumption that the paramater
-** array ("parm") is always type double.  There is essentially no
-** value in allowing flexibility between float and double, and much
-** teem code assumes that it will always be type double.
-*/
-typedef struct {
-  /* terse string representation of kernel function, irrespective of
-     the parameter vector */
-  char name[AIR_STRLEN_SMALL];
-  
-  /* number of parameters needed (# elements in parm[] used) */
-  int numParm;  
-
-  /* smallest x (x > 0) such that k(y) = 0 for all y > x, y < -x */
-  double (*support)(const double *parm); 
-
-  /* integral of kernel from -support to +support */
-  double (*integral)(const double *parm);
-
-  /* evaluate once, single precision */
-  float (*eval1_f)(float x, const double *parm);
-  
-  /* evaluate N times, single precision */
-  void (*evalN_f)(float *f, const float *x, size_t N, const double *parm);   
-
-  /* evaluate once, double precision */
-  double (*eval1_d)(double x, const double *parm);
-
-  /* eval. N times, double precision */
-  void (*evalN_d)(double *f, const double *x, size_t N, const double *parm);
-} NrrdKernel;
-
-/*
-******** NrrdKernelSpec struct
-** 
-** for those times when it makes most sense to directly associate a
-** NrrdKernel with its parameter vector (that is, a full kernel
-** "spec"ification), basically: using hest.
-*/
-typedef struct {
-  NrrdKernel *kernel;
-  double parm[NRRD_KERNEL_PARMS_NUM];
-} NrrdKernelSpec;
-
-/*
-******** NrrdResampleInfo struct
-**
-** a struct to contain the many parameters needed for nrrdSpatialResample()
-*/
-typedef struct {
-  const NrrdKernel 
-    *kernel[NRRD_DIM_MAX];   /* which kernel to use on each axis; use NULL to
-				say no resampling whatsoever on this axis */
-  int samples[NRRD_DIM_MAX]; /* number of samples per axis */
-  double parm[NRRD_DIM_MAX][NRRD_KERNEL_PARMS_NUM], /* kernel arguments */
-    min[NRRD_DIM_MAX],
-    max[NRRD_DIM_MAX];       /* min[i] and max[i] are the range, in WORLD
-				space, along which to resample
-				       axis i. axis mins and maxs are required
-				       on resampled axes. */
-  int boundary,                     /* value from the nrrdBoundary enum */
-    type,                           /* desired type of output, use
-				       nrrdTypeUnknown for "same as input" */
-    renormalize,                    /* when downsampling with a kernel with
-		   		       non-zero integral, should we renormalize
-				       the weights to match the kernel integral
-				       so as to remove annoying ripple */
-    round,                          /* when copying from the last intermediate
-				       (floating point) result to the output
-				       nrrd, for integer outputs, do we round
-				       to the nearest integer first, before
-				       clamping and assigning.  Enabling this
-				       fixed the mystery of downsampling large
-				       constant regions of 255 (uchar), and
-				       ending up with 254 */
-    clamp;                          /* when copying from the last intermediate
-				       (floating point) result to the output
-				       nrrd, should we clamp the values to the
-				       range of values for the output type, a
-				       concern only for integer outputs */
-  double padValue;                  /* if padding, what value to pad with */
-} NrrdResampleInfo;
-
-/*
-******** NrrdIter struct
-**
-** To hold values: either a single value, or a whole nrrd of values.
-** Also, this facilitates iterating through those values
-*/
-typedef struct {
-  const Nrrd *nrrd;            /* read-only nrrd to get values from */
-  Nrrd *ownNrrd;               /* another nrrd to get values from, which we
-			          do "own", and do delete on nrrdIterNix */
-  double val;                  /* single fixed value */
-  int size;                    /* type size */
-  char *data;                  /* where to get the next value */
-  size_t left;                 /* number of values beyond what "data"
-				  currently points to */
-  double (*load)(const void*); /* how to get a value out of "data" */
-} NrrdIter;
 
 struct NrrdIoState_t;
 struct NrrdEncoding_t;
@@ -411,25 +282,140 @@ typedef struct NrrdIoState_t {
   const NrrdEncoding *encoding;
 } NrrdIoState;
 
+/* ---- BEGIN non-NrrdIO */
+
 /*
-******** nrrdIoState* enum
-** 
-** the various things it makes sense to get and set in nrrdIoState struct
-** via nrrdIoStateGet and nrrdIoStateSet
+******** NrrdRange
+**
+** information about a range of values, used as both a description
+** of an existing nrrd, or as input to functions like nrrdQuantize
+** (in which case the given min,max may not correspond to the actual
+** min,max of the nrrd in question).
+**
+** This information has been removed from the Nrrd struct (as of teem1.6) 
+** and put into this seperate entity because:
+** 1) when intended to be descriptive of a nrrd, it can't be guaranteed
+** to be true across nrrd calls
+** 2) when used as input parameters (e.g. to nrrdQuantize), its not
+** data-flow friendly (you can't modify input)
 */
-enum {
-  nrrdIoStateUnknown,
-  nrrdIoStateDetachedHeader,
-  nrrdIoStateBareText,
-  nrrdIoStateCharsPerLine,
-  nrrdIoStateValsPerLine,
-  nrrdIoStateSkipData,
-  nrrdIoStateKeepNrrdDataFileOpen,
-  nrrdIoStateZlibLevel,
-  nrrdIoStateZlibStrategy,
-  nrrdIoStateBzip2BlockSize,
-  nrrdIoStateLast
-};
+typedef struct {
+  double min, max;  /* if non-NaN, nominally: extremal values for array, but
+		       practically: the min and max values to use for nrrd
+		       calls for which a min and max values are used */
+  int hasNonExist;  /* from the nrrdHasNonExist* enum values */
+} NrrdRange;
+
+/*
+******** NrrdKernel struct
+**
+** these are essentially the methods of the various kernels implemented.
+**
+** Nrrd's use of this sort of kernel always assumes support symmetric
+** around zero, but does not assume anything about even- or oddness
+**
+** It is a strong but very simplifying assumption that the paramater
+** array ("parm") is always type double.  There is essentially no
+** value in allowing flexibility between float and double, and much
+** teem code assumes that it will always be type double.
+*/
+typedef struct {
+  /* terse string representation of kernel function, irrespective of
+     the parameter vector */
+  char name[AIR_STRLEN_SMALL];
+  
+  /* number of parameters needed (# elements in parm[] used) */
+  int numParm;  
+
+  /* smallest x (x > 0) such that k(y) = 0 for all y > x, y < -x */
+  double (*support)(const double *parm); 
+
+  /* integral of kernel from -support to +support */
+  double (*integral)(const double *parm);
+
+  /* evaluate once, single precision */
+  float (*eval1_f)(float x, const double *parm);
+  
+  /* evaluate N times, single precision */
+  void (*evalN_f)(float *f, const float *x, size_t N, const double *parm);   
+
+  /* evaluate once, double precision */
+  double (*eval1_d)(double x, const double *parm);
+
+  /* eval. N times, double precision */
+  void (*evalN_d)(double *f, const double *x, size_t N, const double *parm);
+} NrrdKernel;
+
+/*
+******** NrrdKernelSpec struct
+** 
+** for those times when it makes most sense to directly associate a
+** NrrdKernel with its parameter vector (that is, a full kernel
+** "spec"ification), basically: using hest.
+*/
+typedef struct {
+  NrrdKernel *kernel;
+  double parm[NRRD_KERNEL_PARMS_NUM];
+} NrrdKernelSpec;
+
+/*
+******** NrrdResampleInfo struct
+**
+** a struct to contain the many parameters needed for nrrdSpatialResample()
+*/
+typedef struct {
+  const NrrdKernel 
+    *kernel[NRRD_DIM_MAX];   /* which kernel to use on each axis; use NULL to
+				say no resampling whatsoever on this axis */
+  int samples[NRRD_DIM_MAX]; /* number of samples per axis */
+  double parm[NRRD_DIM_MAX][NRRD_KERNEL_PARMS_NUM], /* kernel arguments */
+    min[NRRD_DIM_MAX],
+    max[NRRD_DIM_MAX];       /* min[i] and max[i] are the range, in WORLD
+				space, along which to resample
+				       axis i. axis mins and maxs are required
+				       on resampled axes. */
+  int boundary,                     /* value from the nrrdBoundary enum */
+    type,                           /* desired type of output, use
+				       nrrdTypeUnknown for "same as input" */
+    renormalize,                    /* when downsampling with a kernel with
+		   		       non-zero integral, should we renormalize
+				       the weights to match the kernel integral
+				       so as to remove annoying ripple */
+    round,                          /* when copying from the last intermediate
+				       (floating point) result to the output
+				       nrrd, for integer outputs, do we round
+				       to the nearest integer first, before
+				       clamping and assigning.  Enabling this
+				       fixed the mystery of downsampling large
+				       constant regions of 255 (uchar), and
+				       ending up with 254 */
+    clamp;                          /* when copying from the last intermediate
+				       (floating point) result to the output
+				       nrrd, should we clamp the values to the
+				       range of values for the output type, a
+				       concern only for integer outputs */
+  double padValue;                  /* if padding, what value to pad with */
+} NrrdResampleInfo;
+
+/*
+******** NrrdIter struct
+**
+** To hold values: either a single value, or a whole nrrd of values.
+** Also, this facilitates iterating through those values
+*/
+typedef struct {
+  const Nrrd *nrrd;            /* read-only nrrd to get values from */
+  Nrrd *ownNrrd;               /* another nrrd to get values from, which we
+			          do "own", and do delete on nrrdIterNix */
+  double val;                  /* single fixed value */
+  int size;                    /* type size */
+  char *data;                  /* where to get the next value */
+  size_t left;                 /* number of values beyond what "data"
+				  currently points to */
+  double (*load)(const void*); /* how to get a value out of "data" */
+} NrrdIter;
+
+/* ---- END non-NrrdIO */
 
 /******** defaults (nrrdDef..) and state (nrrdState..) */
 /* defaultsNrrd.c */
@@ -465,16 +451,18 @@ extern void nrrdStateGetenv(void);
 /* (the actual C enums are in nrrdEnums.h) */
 /* enumsNrrd.c */
 extern nrrd_export airEnum *nrrdFormatType;
-extern nrrd_export airEnum *nrrdBoundary;
 extern nrrd_export airEnum *nrrdType;
 extern nrrd_export airEnum *nrrdEncodingType;
-extern nrrd_export airEnum *nrrdMeasure;
 extern nrrd_export airEnum *nrrdCenter;
 extern nrrd_export airEnum *nrrdAxisInfo;
 extern nrrd_export airEnum *nrrdField;
+/* ---- BEGIN non-NrrdIO */
+extern nrrd_export airEnum *nrrdBoundary;
+extern nrrd_export airEnum *nrrdMeasure;
 extern nrrd_export airEnum *nrrdUnaryOp;
 extern nrrd_export airEnum *nrrdBinaryOp;
 extern nrrd_export airEnum *nrrdTernaryOp;
+/* ---- END non-NrrdIO */
 
 /******** arrays of things (poor-man's functions/predicates) */
 /* arraysNrrd.c */
@@ -486,17 +474,12 @@ extern nrrd_export int nrrdTypeIsIntegral[];
 extern nrrd_export int nrrdTypeIsUnsigned[];
 extern nrrd_export double nrrdTypeNumberOfValues[];
 
-/******** things useful with hest */
-/* hestNrrd.c */
-extern nrrd_export hestCB *nrrdHestNrrd;
-extern nrrd_export hestCB *nrrdHestKernelSpec;
-extern nrrd_export hestCB *nrrdHestIter;
-
 /******** pseudo-constructors, pseudo-destructors, and such */
 /* methodsNrrd.c */
 extern NrrdIoState *nrrdIoStateNew(void);
 extern void nrrdIoStateInit(NrrdIoState *io);
 extern NrrdIoState *nrrdIoStateNix(NrrdIoState *io);
+/* ---- BEGIN non-NrrdIO */
 extern NrrdResampleInfo *nrrdResampleInfoNew(void);
 extern NrrdResampleInfo *nrrdResampleInfoNix(NrrdResampleInfo *info);
 extern NrrdKernelSpec *nrrdKernelSpecNew();
@@ -506,6 +489,7 @@ extern void nrrdKernelParmSet(NrrdKernel **kP,
 			      double kparm[NRRD_KERNEL_PARMS_NUM],
 			      NrrdKernelSpec *ksp);
 extern NrrdKernelSpec *nrrdKernelSpecNix(NrrdKernelSpec *ksp);
+/* ---- END non-NrrdIO */
 extern void nrrdInit(Nrrd *nrrd);
 extern Nrrd *nrrdNew(void);
 extern Nrrd *nrrdNix(Nrrd *nrrd);
@@ -524,16 +508,6 @@ extern int nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim,
 			  ... /* sx, sy, .., axis(dim-1) size */);
 extern int nrrdPPM(Nrrd *, int sx, int sy);
 extern int nrrdPGM(Nrrd *, int sx, int sy);
-
-/******** nrrd value iterator gadget */
-/* iter.c */
-extern NrrdIter *nrrdIterNew(void);
-extern void nrrdIterSetValue(NrrdIter *iter, double val);
-extern void nrrdIterSetNrrd(NrrdIter *iter, const Nrrd *nrrd);
-extern void nrrdIterSetOwnNrrd(NrrdIter *iter, Nrrd *nrrd);
-extern double nrrdIterValue(NrrdIter *iter);
-extern char *nrrdIterContent(NrrdIter *iter);
-extern NrrdIter *nrrdIterNix(NrrdIter *iter);
 
 /******** axis info related */
 /* axis.c */
@@ -593,37 +567,6 @@ extern int nrrdKeyValueCopy(Nrrd *nout, const Nrrd *nin);
 /* endianNrrd.c */
 extern void nrrdSwapEndian(Nrrd *nrrd);
 
-/******** getting value into and out of an array of general type, and
-   all other simplistic functionality pseudo-parameterized by type */
-/* accessors.c */
-extern nrrd_export int    (*nrrdILoad[NRRD_TYPE_MAX+1])(const void *v);
-extern nrrd_export float  (*nrrdFLoad[NRRD_TYPE_MAX+1])(const void *v);
-extern nrrd_export double (*nrrdDLoad[NRRD_TYPE_MAX+1])(const void *v);
-extern nrrd_export int    (*nrrdIStore[NRRD_TYPE_MAX+1])(void *v, int j);
-extern nrrd_export float  (*nrrdFStore[NRRD_TYPE_MAX+1])(void *v, float f);
-extern nrrd_export double (*nrrdDStore[NRRD_TYPE_MAX+1])(void *v, double d);
-extern nrrd_export int    (*nrrdILookup[NRRD_TYPE_MAX+1])(const void *v, 
-							  size_t I);
-extern nrrd_export float  (*nrrdFLookup[NRRD_TYPE_MAX+1])(const void *v, 
-							  size_t I);
-extern nrrd_export double (*nrrdDLookup[NRRD_TYPE_MAX+1])(const void *v, 
-							  size_t I);
-extern nrrd_export int    (*nrrdIInsert[NRRD_TYPE_MAX+1])(void *v,
-							  size_t I, int j);
-extern nrrd_export float  (*nrrdFInsert[NRRD_TYPE_MAX+1])(void *v,
-							  size_t I, float f);
-extern nrrd_export double (*nrrdDInsert[NRRD_TYPE_MAX+1])(void *v,
-							  size_t I, double d);
-extern nrrd_export int    (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, const void *);
-extern nrrd_export int    (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, const void *);
-extern nrrd_export float  (*nrrdFClamp[NRRD_TYPE_MAX+1])(float);
-extern nrrd_export double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double);
-extern nrrd_export void 
-  (*nrrdMinMaxExactFind[NRRD_TYPE_MAX+1])(void *minP, void *maxP,
-					  int *hasNonExistP, const Nrrd *nrrd);
-extern nrrd_export int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *,
-							  const void *);
-
 /******** getting information to and from files */
 /* formatXXX.c */
 extern nrrd_export const NrrdFormat *const nrrdFormatNRRD;
@@ -662,6 +605,75 @@ extern const NrrdEncoding *nrrdIoStateGetEncoding(NrrdIoState *io);
 extern const NrrdFormat *nrrdIoStateBetFormat(NrrdIoState *io);
 extern int nrrdSave(const char *filename, const Nrrd *nrrd, NrrdIoState *io);
 extern int nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIoState *io);
+
+/******** getting value into and out of an array of general type, and
+   all other simplistic functionality pseudo-parameterized by type */
+/* accessors.c */
+extern nrrd_export int    (*nrrdILoad[NRRD_TYPE_MAX+1])(const void *v);
+extern nrrd_export float  (*nrrdFLoad[NRRD_TYPE_MAX+1])(const void *v);
+extern nrrd_export double (*nrrdDLoad[NRRD_TYPE_MAX+1])(const void *v);
+extern nrrd_export int    (*nrrdIStore[NRRD_TYPE_MAX+1])(void *v, int j);
+extern nrrd_export float  (*nrrdFStore[NRRD_TYPE_MAX+1])(void *v, float f);
+extern nrrd_export double (*nrrdDStore[NRRD_TYPE_MAX+1])(void *v, double d);
+extern nrrd_export int    (*nrrdILookup[NRRD_TYPE_MAX+1])(const void *v, 
+							  size_t I);
+extern nrrd_export float  (*nrrdFLookup[NRRD_TYPE_MAX+1])(const void *v, 
+							  size_t I);
+extern nrrd_export double (*nrrdDLookup[NRRD_TYPE_MAX+1])(const void *v, 
+							  size_t I);
+extern nrrd_export int    (*nrrdIInsert[NRRD_TYPE_MAX+1])(void *v,
+							  size_t I, int j);
+extern nrrd_export float  (*nrrdFInsert[NRRD_TYPE_MAX+1])(void *v,
+							  size_t I, float f);
+extern nrrd_export double (*nrrdDInsert[NRRD_TYPE_MAX+1])(void *v,
+							  size_t I, double d);
+extern nrrd_export int    (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, const void *);
+extern nrrd_export int    (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, const void *);
+extern nrrd_export float  (*nrrdFClamp[NRRD_TYPE_MAX+1])(float);
+extern nrrd_export double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double);
+extern nrrd_export void 
+  (*nrrdMinMaxExactFind[NRRD_TYPE_MAX+1])(void *minP, void *maxP,
+					  int *hasNonExistP, const Nrrd *nrrd);
+extern nrrd_export int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *,
+							  const void *);
+
+/******** permuting, shuffling, and all flavors of reshaping */
+/* reorder.c */
+extern int nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax);
+/* ---- BEGIN non-NrrdIO */
+extern int nrrdInvertPerm(int *invp, const int *perm, int n);
+extern int nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes);
+extern int nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, int ax1, int ax2);
+extern int nrrdShuffle(Nrrd *nout, const Nrrd *nin, int axis, const int *perm);
+extern int nrrdFlip(Nrrd *nout, const Nrrd *nin, int axis);
+extern int nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin, 
+		    int axis, int incrDim);
+extern int nrrdReshape(Nrrd *nout, const Nrrd *nin, int dim,
+		       ... /* sx, sy, .., axis(dim-1) size */ );
+extern int nrrdReshape_nva(Nrrd *nout, const Nrrd *nin,
+			   int dim, const int *size);
+extern int nrrdAxesSplit(Nrrd *nout, const Nrrd *nin, int ax,
+			 int sizeFast, int sizeSlow);
+extern int nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, int ax);
+extern int nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, int ax);
+extern int nrrdBlock(Nrrd *nout, const Nrrd *nin);
+extern int nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type);
+
+/******** things useful with hest */
+/* hestNrrd.c */
+extern nrrd_export hestCB *nrrdHestNrrd;
+extern nrrd_export hestCB *nrrdHestKernelSpec;
+extern nrrd_export hestCB *nrrdHestIter;
+
+/******** nrrd value iterator gadget */
+/* iter.c */
+extern NrrdIter *nrrdIterNew(void);
+extern void nrrdIterSetValue(NrrdIter *iter, double val);
+extern void nrrdIterSetNrrd(NrrdIter *iter, const Nrrd *nrrd);
+extern void nrrdIterSetOwnNrrd(NrrdIter *iter, Nrrd *nrrd);
+extern double nrrdIterValue(NrrdIter *iter);
+extern char *nrrdIterContent(NrrdIter *iter);
+extern NrrdIter *nrrdIterNix(NrrdIter *iter);
 
 /******** expressing the range of values in a nrrd */
 /* range.c */
@@ -727,27 +739,6 @@ extern int nrrdSimplePad(Nrrd *nout, const Nrrd *nin, int pad, int boundary,
 			 ... /* if nrrdBoundaryPad, what value */);
 extern int nrrdInset(Nrrd *nout, const Nrrd *nin,
 		     const Nrrd *nsub, const int *min);
-
-/******** permuting, shuffling, and all flavors of reshaping */
-/* reorder.c */
-extern int nrrdInvertPerm(int *invp, const int *perm, int n);
-extern int nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes);
-extern int nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, int ax1, int ax2);
-extern int nrrdShuffle(Nrrd *nout, const Nrrd *nin, int axis, const int *perm);
-extern int nrrdFlip(Nrrd *nout, const Nrrd *nin, int axis);
-extern int nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin, 
-		    int axis, int incrDim);
-extern int nrrdReshape(Nrrd *nout, const Nrrd *nin, int dim,
-		       ... /* sx, sy, .., axis(dim-1) size */ );
-extern int nrrdReshape_nva(Nrrd *nout, const Nrrd *nin,
-			   int dim, const int *size);
-extern int nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax);
-extern int nrrdAxesSplit(Nrrd *nout, const Nrrd *nin, int ax,
-			 int sizeFast, int sizeSlow);
-extern int nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, int ax);
-extern int nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, int ax);
-extern int nrrdBlock(Nrrd *nout, const Nrrd *nin);
-extern int nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type);
 
 /******** measuring and projecting */
 /* measure.c */
@@ -873,6 +864,8 @@ extern int nrrdKernelParse(NrrdKernel **kernelP,
 			   double *parm,
 			   const char *str);
 extern int nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str);
+
+/* ---- END non-NrrdIO */
 
 #ifdef __cplusplus
 }

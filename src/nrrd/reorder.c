@@ -23,6 +23,57 @@
 #include <teem32bit.h>
 
 /*
+******** nrrdAxesInsert
+**
+** like reshape, but preserves axis information on old axes, and
+** this is only for adding a "stub" axis with length 1.  All other
+** axis attributes are initialized as usual.
+*/
+int
+nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax) {
+  char me[]="nrrdAxesInsert", func[]="axinsert", err[AIR_STRLEN_MED];
+  int d;
+  
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!AIR_IN_CL(0, ax, nin->dim)) {
+    sprintf(err, "%s: given axis (%d) outside valid range [0, %d]",
+	    me, ax, nin->dim);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (NRRD_DIM_MAX == nin->dim) {
+    sprintf(err, "%s: given nrrd already at NRRD_DIM_MAX (%d)",
+	    me, NRRD_DIM_MAX);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nout != nin) {
+    if (nrrdCopy(nout, nin)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    /* HEY: comments have been copied, perhaps that's not appropriate */
+  }
+  nout->dim = 1 + nin->dim;
+  for (d=nin->dim-1; d>=ax; d--) {
+    _nrrdAxisInfoCopy(&(nout->axis[d+1]), &(nin->axis[d]),
+		      NRRD_AXIS_INFO_NONE);
+  }
+  /* the ONLY thing we can say about the new axis is its size */
+  _nrrdAxisInfoInit(&(nout->axis[ax]));
+  nout->axis[ax].size = 1;
+  if (nrrdContentSet(nout, func, nin, "%d", ax)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  nrrdPeripheralCopy(nout, nin);
+  return 0;
+}
+
+/* ---- BEGIN non-NrrdIO */
+
+/*
 ******** nrrdInvertPerm()
 **
 ** given an array (p) which represents a permutation of n elements,
@@ -611,55 +662,6 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin,
 }
 
 /*
-******** nrrdAxesInsert
-**
-** like reshape, but preserves axis information on old axes, and
-** this is only for adding a "stub" axis with length 1.  All other
-** axis attributes are initialized as usual.
-*/
-int
-nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax) {
-  char me[]="nrrdAxesInsert", func[]="axinsert", err[AIR_STRLEN_MED];
-  int d;
-  
-  if (!(nout && nin)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (!AIR_IN_CL(0, ax, nin->dim)) {
-    sprintf(err, "%s: given axis (%d) outside valid range [0, %d]",
-	    me, ax, nin->dim);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (NRRD_DIM_MAX == nin->dim) {
-    sprintf(err, "%s: given nrrd already at NRRD_DIM_MAX (%d)",
-	    me, NRRD_DIM_MAX);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (nout != nin) {
-    if (nrrdCopy(nout, nin)) {
-      sprintf(err, "%s:", me);
-      biffAdd(NRRD, err); return 1;
-    }
-    /* HEY: comments have been copied, perhaps that's not appropriate */
-  }
-  nout->dim = 1 + nin->dim;
-  for (d=nin->dim-1; d>=ax; d--) {
-    _nrrdAxisInfoCopy(&(nout->axis[d+1]), &(nin->axis[d]),
-		      NRRD_AXIS_INFO_NONE);
-  }
-  /* the ONLY thing we can say about the new axis is its size */
-  _nrrdAxisInfoInit(&(nout->axis[ax]));
-  nout->axis[ax].size = 1;
-  if (nrrdContentSet(nout, func, nin, "%d", ax)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  nrrdPeripheralCopy(nout, nin);
-  return 0;
-}
-
-/*
 ******** nrrdAxesSplit
 **
 ** like reshape, but only for splitting one axis into a fast and slow part.
@@ -1042,3 +1044,4 @@ nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type) {
   return 0;
 }
 
+/* ---- END non-NrrdIO */

@@ -77,6 +77,8 @@ extern "C" {
    ? ((max) - (min))/(size)                        \
    : ((max) - (min))/((size) - 1))                 \
 
+/* ---- BEGIN non-NrrdIO */
+
 /*
 ******** NRRD_COORD_UPDATE
 **
@@ -153,6 +155,8 @@ do {                                          \
     I /= (size)[d];                           \
   }                                           \
 } while (0)
+
+/* ---- END non-NrrdIO */
 
 #ifdef __cplusplus
 }

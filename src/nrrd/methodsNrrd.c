@@ -83,6 +83,8 @@ nrrdIoStateNix (NrrdIoState *nio) {
   return NULL;
 }
 
+/* ---- BEGIN non-NrrdIO */
+
 /* ------------------------------------------------------------ */
 
 void
@@ -173,6 +175,8 @@ nrrdKernelParmSet (NrrdKernel **kP, double kparm[NRRD_KERNEL_PARMS_NUM],
     }
   }
 }
+
+/* ---- END non-NrrdIO */
 
 /* ------------------------------------------------------------ */
 

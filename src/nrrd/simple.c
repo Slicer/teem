@@ -495,17 +495,11 @@ _nrrdCheckEnums (void) {
   if (nrrdFormatTypeLast-1 != NRRD_FORMAT_TYPE_MAX) {
     strcpy(which, "nrrdFormat"); goto err;
   }
-  if (nrrdBoundaryLast-1 != NRRD_BOUNDARY_MAX) {
-    strcpy(which, "nrrdBoundary"); goto err;
-  }
   if (nrrdTypeLast-1 != NRRD_TYPE_MAX) {
     strcpy(which, "nrrdType"); goto err;
   }
   if (nrrdEncodingTypeLast-1 != NRRD_ENCODING_TYPE_MAX) {
     strcpy(which, "nrrdEncodingType"); goto err;
-  }
-  if (nrrdMeasureLast-1 != NRRD_MEASURE_MAX) {
-    strcpy(which, "nrrdMeasure"); goto err;
   }
   if (nrrdCenterLast-1 != NRRD_CENTER_MAX) {
     strcpy(which, "nrrdCenter"); goto err;
@@ -520,6 +514,13 @@ _nrrdCheckEnums (void) {
   if (nrrdHasNonExistLast-1 != NRRD_HAS_NON_EXIST_MAX) {
     strcpy(which, "nrrdHasNonExist"); goto err;
   }
+  /* ---- BEGIN non-NrrdIO */
+  if (nrrdBoundaryLast-1 != NRRD_BOUNDARY_MAX) {
+    strcpy(which, "nrrdBoundary"); goto err;
+  }
+  if (nrrdMeasureLast-1 != NRRD_MEASURE_MAX) {
+    strcpy(which, "nrrdMeasure"); goto err;
+  }
   if (nrrdUnaryOpLast-1 != NRRD_UNARY_OP_MAX) {
     strcpy(which, "nrrdUnaryOp"); goto err;
   }
@@ -529,6 +530,7 @@ _nrrdCheckEnums (void) {
   if (nrrdTernaryOpLast-1 != NRRD_TERNARY_OP_MAX) {
     strcpy(which, "nrrdTernaryOp"); goto err;
   }
+  /* ---- END non-NrrdIO */
   
   /* no errors so far */
   return 0;
@@ -573,12 +575,6 @@ nrrdSanity (void) {
     sprintf(err, "%s: nrrdDefWriteEncoding is NULL", me);
     biffAdd(NRRD, err); return 0;
   }
-  if (airEnumValCheck(nrrdBoundary, nrrdDefRsmpBoundary)) {
-    sprintf(err, "%s: nrrdDefRsmpBoundary (%d) not in valid range [%d,%d]",
-	    me, nrrdDefRsmpBoundary,
-	    nrrdBoundaryUnknown+1, nrrdBoundaryLast-1);
-    biffAdd(NRRD, err); return 0;
-  }
   if (airEnumValCheck(nrrdCenter, nrrdDefCenter)) {
     sprintf(err, "%s: nrrdDefCenter (%d) not in valid range [%d,%d]",
 	    me, nrrdDefCenter,
@@ -590,6 +586,13 @@ nrrdSanity (void) {
     sprintf(err, "%s: nrrdDefRsmpType (%d) not in valid range [%d,%d]",
 	    me, nrrdDefRsmpType,
 	    nrrdTypeUnknown, nrrdTypeLast-1);
+    biffAdd(NRRD, err); return 0;
+  }
+  /* ---- BEGIN non-NrrdIO */
+  if (airEnumValCheck(nrrdBoundary, nrrdDefRsmpBoundary)) {
+    sprintf(err, "%s: nrrdDefRsmpBoundary (%d) not in valid range [%d,%d]",
+	    me, nrrdDefRsmpBoundary,
+	    nrrdBoundaryUnknown+1, nrrdBoundaryLast-1);
     biffAdd(NRRD, err); return 0;
   }
   if (airEnumValCheck(nrrdType, nrrdStateMeasureType)) {
@@ -605,6 +608,7 @@ nrrdSanity (void) {
 	    nrrdTypeUnknown+1, nrrdTypeLast-1);
     biffAdd(NRRD, err); return 0;
   }
+  /* ---- END non-NrrdIO */
 
   if (!( nrrdTypeSize[nrrdTypeChar] == sizeof(char)
 	 && nrrdTypeSize[nrrdTypeUChar] == sizeof(unsigned char)
@@ -664,26 +668,30 @@ nrrdSanity (void) {
   /* nrrd-defined type min/max values */
   tmpLLI = NRRD_LLONG_MAX;
   if (tmpLLI != NRRD_LLONG_MAX) {
-    sprintf(err, "%s: long long int can't hold NRRD_LLONG_MAX (" AIR_ULLONG_FMT ")", me,
+    sprintf(err, "%s: long long int can't hold NRRD_LLONG_MAX ("
+	    AIR_ULLONG_FMT ")", me,
 	    NRRD_LLONG_MAX);
     biffAdd(NRRD, err); return 0;
   }
   tmpLLI += 1;
   if (NRRD_LLONG_MIN != tmpLLI) {
-    sprintf(err, "%s: long long int min (" AIR_LLONG_FMT ") or max (" AIR_LLONG_FMT ") incorrect", me,
+    sprintf(err, "%s: long long int min (" AIR_LLONG_FMT ") or max ("
+	    AIR_LLONG_FMT ") incorrect", me,
 	    NRRD_LLONG_MIN, NRRD_LLONG_MAX);
     biffAdd(NRRD, err); return 0;
   }
   tmpULLI = NRRD_ULLONG_MAX;
   if (tmpULLI != NRRD_ULLONG_MAX) {
     sprintf(err, 
-	    "%s: unsigned long long int can't hold NRRD_ULLONG_MAX (" AIR_ULLONG_FMT ")",
+	    "%s: unsigned long long int can't hold NRRD_ULLONG_MAX ("
+	    AIR_ULLONG_FMT ")",
 	    me, NRRD_ULLONG_MAX);
     biffAdd(NRRD, err); return 0;
   }
   tmpULLI += 1;
   if (tmpULLI != 0) {
-    sprintf(err, "%s: unsigned long long int max (" AIR_ULLONG_FMT ") incorrect", me,
+    sprintf(err, "%s: unsigned long long int max (" AIR_ULLONG_FMT 
+	    ") incorrect", me,
 	    NRRD_ULLONG_MAX);
     biffAdd(NRRD, err); return 0;
   }

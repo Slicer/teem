@@ -94,38 +94,6 @@ _nrrdFormatType = {
 airEnum *
 nrrdFormatType = &_nrrdFormatType;
 
-/* ------------------------ nrrdBoundary ------------------------- */
-
-char
-_nrrdBoundaryStr[NRRD_BOUNDARY_MAX+1][AIR_STRLEN_SMALL] = {
-  "(unknown_boundary)",
-  "pad",
-  "bleed",
-  "wrap",
-  "weight"
-};
-
-char
-_nrrdBoundaryDesc[NRRD_BOUNDARY_MAX+1][AIR_STRLEN_MED] = {
-  "unknown boundary behavior",
-  "pad with some specified value",
-  "copy values from edge outward as needed",
-  "wrap around to other end of axis",
-  "re-weight (by normalization) samples within axis range"
-};
-
-airEnum
-_nrrdBoundary = {
-  "boundary behavior",
-  NRRD_BOUNDARY_MAX,
-  _nrrdBoundaryStr, NULL,
-  _nrrdBoundaryDesc,
-  NULL, NULL,
-  AIR_FALSE
-};
-airEnum *
-nrrdBoundary = &_nrrdBoundary;
-
 /* ------------------------ nrrdType ------------------------- */
 
 char 
@@ -272,128 +240,6 @@ _nrrdEncodingType = {
 };
 airEnum *
 nrrdEncodingType = &_nrrdEncodingType;
-
-/* ------------------------ nrrdMeasure ------------------------- */
-
-char
-_nrrdMeasureStr[NRRD_MEASURE_MAX+1][AIR_STRLEN_SMALL] = {
-  "(unknown_measure)",
-  "min",
-  "max",
-  "mean",
-  "median",
-  "mode",
-  "product",
-  "sum",
-  "L1",
-  "L2",
-  "Linf",
-  "variance",
-  "SD",
-  "histo-min",
-  "histo-max",
-  "histo-mean",
-  "histo-median",
-  "histo-mode",
-  "histo-product",
-  "histo-sum",
-  "histo-L2",
-  "histo-variance",
-  "histo-SD"
-};
-
-char
-_nrrdMeasureDesc[NRRD_MEASURE_MAX+1][AIR_STRLEN_MED] = {
-  "unknown measure",
-  "minimum of values",
-  "maximum of values",
-  "mean of values",
-  "median of values",
-  "mode of values",
-  "product of values",
-  "sum of values",
-  "L1 norm of values",
-  "L2 norm of values",
-  "Linf norm of values",
-  "variance of values",
-  "standard deviation of values",
-  "minimum of histogrammed values",
-  "maximum of histogrammed values",
-  "mean of histogrammed values",
-  "median of histogrammed values",
-  "mode of histogrammed values",
-  "product of histogrammed values",
-  "sum of histogrammed values",
-  "L2 norm of histogrammed values",
-  "variance of histogrammed values",
-  "standard deviation of histogrammed values"
-};
-
-char
-_nrrdMeasureStrEqv[][AIR_STRLEN_SMALL] = {
-  "(unknown_measure)",
-  "min",
-  "max",
-  "mean",
-  "median",
-  "mode",
-  "product", "prod",
-  "sum",
-  "L1",
-  "L2",
-  "Linf",
-  "variance", "var",
-  "SD",
-  "histo-min",
-  "histo-max",
-  "histo-mean",
-  "histo-median",
-  "histo-mode",
-  "histo-product",
-  "histo-sum",
-  "histo-l2",
-  "histo-variance", "histo-var",
-  "histo-sd"
-};
-
-int
-_nrrdMeasureValEqv[] = {
-  nrrdMeasureUnknown,
-  nrrdMeasureMin,
-  nrrdMeasureMax,
-  nrrdMeasureMean,
-  nrrdMeasureMedian,
-  nrrdMeasureMode,
-  nrrdMeasureProduct, nrrdMeasureProduct,
-  nrrdMeasureSum,
-  nrrdMeasureL1,
-  nrrdMeasureL2,
-  nrrdMeasureLinf,
-  nrrdMeasureVariance, nrrdMeasureVariance,
-  nrrdMeasureSD,
-  nrrdMeasureHistoMin,
-  nrrdMeasureHistoMax,
-  nrrdMeasureHistoMean,
-  nrrdMeasureHistoMedian,
-  nrrdMeasureHistoMode,
-  nrrdMeasureHistoProduct,
-  nrrdMeasureHistoSum,
-  nrrdMeasureHistoL2,
-  nrrdMeasureHistoVariance, nrrdMeasureHistoVariance,
-  nrrdMeasureHistoSD
-};
-
-airEnum
-_nrrdMeasure = {
-  "measure",
-  NRRD_MEASURE_MAX,
-  _nrrdMeasureStr, NULL,
-  _nrrdMeasureDesc,
-  _nrrdMeasureStrEqv, _nrrdMeasureValEqv, 
-  AIR_FALSE
-};
-airEnum *
-nrrdMeasure = &_nrrdMeasure;
 
 /* ------------------------ nrrdCenter ------------------------- */
 
@@ -585,6 +431,162 @@ _nrrdField = {
 };
 airEnum *
 nrrdField = &_nrrdField;
+
+/* ---- BEGIN non-NrrdIO */
+
+/* ------------------------ nrrdBoundary ------------------------- */
+
+char
+_nrrdBoundaryStr[NRRD_BOUNDARY_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown_boundary)",
+  "pad",
+  "bleed",
+  "wrap",
+  "weight"
+};
+
+char
+_nrrdBoundaryDesc[NRRD_BOUNDARY_MAX+1][AIR_STRLEN_MED] = {
+  "unknown boundary behavior",
+  "pad with some specified value",
+  "copy values from edge outward as needed",
+  "wrap around to other end of axis",
+  "re-weight (by normalization) samples within axis range"
+};
+
+airEnum
+_nrrdBoundary = {
+  "boundary behavior",
+  NRRD_BOUNDARY_MAX,
+  _nrrdBoundaryStr, NULL,
+  _nrrdBoundaryDesc,
+  NULL, NULL,
+  AIR_FALSE
+};
+airEnum *
+nrrdBoundary = &_nrrdBoundary;
+
+/* ------------------------ nrrdMeasure ------------------------- */
+
+char
+_nrrdMeasureStr[NRRD_MEASURE_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown_measure)",
+  "min",
+  "max",
+  "mean",
+  "median",
+  "mode",
+  "product",
+  "sum",
+  "L1",
+  "L2",
+  "Linf",
+  "variance",
+  "SD",
+  "histo-min",
+  "histo-max",
+  "histo-mean",
+  "histo-median",
+  "histo-mode",
+  "histo-product",
+  "histo-sum",
+  "histo-L2",
+  "histo-variance",
+  "histo-SD"
+};
+
+char
+_nrrdMeasureDesc[NRRD_MEASURE_MAX+1][AIR_STRLEN_MED] = {
+  "unknown measure",
+  "minimum of values",
+  "maximum of values",
+  "mean of values",
+  "median of values",
+  "mode of values",
+  "product of values",
+  "sum of values",
+  "L1 norm of values",
+  "L2 norm of values",
+  "Linf norm of values",
+  "variance of values",
+  "standard deviation of values",
+  "minimum of histogrammed values",
+  "maximum of histogrammed values",
+  "mean of histogrammed values",
+  "median of histogrammed values",
+  "mode of histogrammed values",
+  "product of histogrammed values",
+  "sum of histogrammed values",
+  "L2 norm of histogrammed values",
+  "variance of histogrammed values",
+  "standard deviation of histogrammed values"
+};
+
+char
+_nrrdMeasureStrEqv[][AIR_STRLEN_SMALL] = {
+  "(unknown_measure)",
+  "min",
+  "max",
+  "mean",
+  "median",
+  "mode",
+  "product", "prod",
+  "sum",
+  "L1",
+  "L2",
+  "Linf",
+  "variance", "var",
+  "SD",
+  "histo-min",
+  "histo-max",
+  "histo-mean",
+  "histo-median",
+  "histo-mode",
+  "histo-product",
+  "histo-sum",
+  "histo-l2",
+  "histo-variance", "histo-var",
+  "histo-sd"
+};
+
+int
+_nrrdMeasureValEqv[] = {
+  nrrdMeasureUnknown,
+  nrrdMeasureMin,
+  nrrdMeasureMax,
+  nrrdMeasureMean,
+  nrrdMeasureMedian,
+  nrrdMeasureMode,
+  nrrdMeasureProduct, nrrdMeasureProduct,
+  nrrdMeasureSum,
+  nrrdMeasureL1,
+  nrrdMeasureL2,
+  nrrdMeasureLinf,
+  nrrdMeasureVariance, nrrdMeasureVariance,
+  nrrdMeasureSD,
+  nrrdMeasureHistoMin,
+  nrrdMeasureHistoMax,
+  nrrdMeasureHistoMean,
+  nrrdMeasureHistoMedian,
+  nrrdMeasureHistoMode,
+  nrrdMeasureHistoProduct,
+  nrrdMeasureHistoSum,
+  nrrdMeasureHistoL2,
+  nrrdMeasureHistoVariance, nrrdMeasureHistoVariance,
+  nrrdMeasureHistoSD
+};
+
+airEnum
+_nrrdMeasure = {
+  "measure",
+  NRRD_MEASURE_MAX,
+  _nrrdMeasureStr, NULL,
+  _nrrdMeasureDesc,
+  _nrrdMeasureStrEqv, _nrrdMeasureValEqv, 
+  AIR_FALSE
+};
+airEnum *
+nrrdMeasure = &_nrrdMeasure;
 
 /* ------------------------ nrrdUnaryOp ---------------------- */
 
@@ -935,3 +937,4 @@ _nrrdTernaryOp_enum = {
 airEnum *
 nrrdTernaryOp = &_nrrdTernaryOp_enum;
 
+/* ---- END non-NrrdIO */
