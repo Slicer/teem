@@ -56,6 +56,7 @@ typedef union {
 
 typedef union {
   airULLong i;
+#ifndef __sparc
   struct {
 #if TEEM_ENDIAN == 1234
     airULLong frac : 52;
@@ -64,9 +65,10 @@ typedef union {
 #else
     unsigned int sign : 1;
     unsigned int exp : 11;
-    airULLong frac : 52;
+    long long frac : 52;
 #endif
   } c;
+#endif
   /* these next two members are used for printing in airFPFprintf_d */
   struct { /* access to whole double as two unsigned ints */
 #if TEEM_ENDIAN == 1234
@@ -239,8 +241,10 @@ airFPGen_f(int cls) {
 */
 double
 airFPGen_d(int cls) {
+#ifdef __sparc
+  return airFPGen_f(cls);
+#else
   _airDouble f;
-  
   switch(cls) {
   case airFP_SNAN:
     /* sgn: anything, frc: anything non-zero with high bit !TEEM_QNANHIBIT */
@@ -292,6 +296,7 @@ airFPGen_d(int cls) {
     break;
   }
   return f.v;
+#endif
 }
 
 /*
@@ -371,6 +376,9 @@ airFPClass_f(float val) {
 */
 int
 airFPClass_d(double val) {
+#ifdef __sparc
+  return airFPClass_f(val);
+#else
   _airDouble f;
   int sign, exp, index, ret = 0;
   airULLong frac;
@@ -433,6 +441,7 @@ airFPClass_d(double val) {
     break;
   }
   return ret;
+#endif
 }
 
 /*
