@@ -413,8 +413,9 @@ main(int argc, char *argv[]) {
   sprintf(cmt, "maxh: %g", maxh);  nrrdCommentAdd(nvgh, cmt);
   nrrdSave(outS, nvgh, NULL);
 
-  nrsmp =  nrrdNuke(nrsmp);
-  nvgh =  nrrdNuke(nvgh);
+  nrsmp = nrrdNuke(nrsmp);
+  nvgh = nrrdNuke(nvgh);
+  ctx = gageSclContextNix(ctx);
 
   exit(0);
 }
