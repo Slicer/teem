@@ -21,7 +21,9 @@
 
 See above.  This preamble appears on all .c, .h, and .mk files. Full
 text of the GNU Lesser General Public License should be in the file
-"LICENSE.txt" in the same directory as this file.
+"LICENSE.txt" in the same directory as this file.  See the end of this
+file for my understanding of exactly what the LGPL means for people
+wishing to use any of the teem libraries in their own programs.
 
 =============== How to compile
 
@@ -162,3 +164,112 @@ other:
 - always use "biff" for error handling stuff
 - if a pointer should be initialized to NULL, then set it to NULL;
   Don't assume that a pointer in a struct will be NULL following a calloc.
+
+=============== Gordon's understanding of the LGPL
+
+I'm using the space here to record my understanding of the LGPL and
+its consequences, after a careful reading of it.  This is as much for
+my own good as for others interested in using my libraries.
+
+The notion of a "derived work" is central to copyright law, because
+copyright concerns itself not just with a work, but with anything
+which is a modified version of the original work, or a translated
+version of the work, or which is (or contains) a significant portion
+of the work, and so on.
+
+If you link my library with your program, the resulting binary is
+derived from my library, in the copyright sense, because the binary
+contains translated portions of my code.  Interestingly, the GNU folks
+make no distinction between static and dynamic linking INSOFSAR AS THE
+DEFINITION OF A DERIVED WORK (as applied to software) IS CONCERNED.
+From the Preamble of the LGPL: "When a program is linked with a
+library, whether statically or using a shared library, the combination
+of the two is legally speaking a combined work, a derivative of the
+oringal library."
+
+The reason that the LGPL is a longer and more complicated document
+than the GPL is that the LGPL makes a distinction between different
+kinds of derived works that the GPL does not make.  Section 2(b) of
+the GPL kicks in for ANY derived work that you distribute or publish,
+requiring that the derived work be licensed under the GPL.  Read the
+GPL for exactly what that entails; it involves distribution of your
+program's source code.  The LGPL also says that it applies to all
+derived works, but in a way that depends on what the derived work is:
+
+1) If the derived work involves a modification of the source of my
+library, then Section 2(c) of the LGPL kicks in as soon as you
+distribute the derived work, requiring that the derived
+work be licensed under the LGPL.
+
+2) If the derived work is a binary created by linking against my
+library, then Section 6 of the LGPL kicks in, saying that the derived
+work can be distributed "under the terms of your choice, provided that
+...", and goes on to describe the responsibilities of someone
+distributing the derived work.
+
+The point of all this is that those responsibilities, which I'll
+describe below, amount to something LESS than the full LGPL.  Those
+responsibilities are mandated and defined by the LGPL (since the LGPL
+governs the distribution of any derived work), but they are not the
+same as the LGPL, in contrast to what is required when the derived
+work involves modification of my source.
+
+So, if you distribute a program that links against teem, without
+modifying teem, (I believe) Section 6 of the LGPL requires you to do
+four things:
+
+1) Give "prominant notice" that your program uses teem, and that teem
+is covered by LGPL.  I'm not sure, but I take this to mean that you
+have to mention teem and LGPL somewhere relatively soon in any
+high-level description of your program which occurs in a central
+README or similar documentation.
+
+2) Supply a copy of the LGPL.  That's the LICENSE.txt file in the
+same directory as this file.
+
+3) If your program displays any copyright notices, then you need to
+include teem's copyright notice as well, which (I belive) is simply:
+  Copyright (C) 2002, 2001, 2000, 1999, 1998 University of Utah
+
+4) This is the interesting one.  You need to make it possible for
+users of your program to modify my teem libraries, and use those
+modified teem libraries in your program.  The five possible ways to
+facilitate this, listed in Section 6, can (I believe) be summarized
+as two alternatives:
+
+  A) If you statically link against teem libraries, you need to
+  accompany the distribution of your program with:
+  - all source files for the required teem libraries, and
+  - all the OBJECT files (or source files) for YOUR program.
+  This way someone could re-link your various object files together
+  with modified teem libraries to produce their own version of your
+  program.  You don't have to release any source for your program if
+  you don't want to.  (This much is from Section 6(a).)  If you don't
+  supply these materials alongside the distribution of your program,
+  then they need to be conveyed or made available by some other means.
+  (This is Sections 6(c)-6(e))
+
+  B) If you only dynamically link against teem shared libraries,
+  you're done!  The nature of shared libraries means that your program
+  will slurp up the teem libraries (original or modified) at run-time.
+  Section 6(b) doesn't even mention that you need to supply the source
+  for my teem libraries, but it would probably be a good idea.  (This
+  is Section 6(b); perhaps something else I missed mandates teem
+  source redistribution.)
+
+I mentioned above that the LGPL does not distinguish between static and
+dynamic linking insofar as the definition of a derivative work is
+concerned.  Section 6 of LGPL says that the distinction between static
+and dynamic DOES matter in the context of how to comply with LGPL when
+you're releasing a program that uses teem without modifying teem.  And
+this is how I imagine most everyone will use teem-- just linking
+against teem as I've distributed it.  It seems to me that the linking
+had better be with the shared library versions of teem, since 4(A)
+seems pretty cumbersome and annoying.  Of course, you should read the
+license itself in order to make sure of all these details.
+
+I feel that the four points of compliance, described above, are
+entirely fair and easy to deal with, especially if you take the shared
+library route.  An explanation of why I chose a copyleft-style (GNU)
+license instead of non-copyleft-style (X11, "BSD-style") will wait for
+another time.
