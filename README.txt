@@ -233,9 +233,10 @@ include teem's copyright notice as well, which (I belive) is simply:
 
 4) This is the interesting one.  You need to make it possible for
 users of your program to modify my teem libraries, and use those
-modified teem libraries in your program.  The five possible ways to
-facilitate this, listed in Section 6, can (I believe) be summarized
-as two alternatives:
+modified teem libraries in your program.  The principle of copyleft is
+that you pass on to others the same freedoms as were available to you.
+The five possible ways to facilitate this, listed in Section 6, can (I
+believe) be summarized as two alternatives:
 
   A) If you statically link against teem libraries, you need to
   accompany the distribution of your program with:
@@ -257,19 +258,19 @@ as two alternatives:
   is Section 6(b); perhaps something else I missed mandates teem
   source redistribution.)
 
-I mentioned above that the LGPL does not distinguish between static and
-dynamic linking insofar as the definition of a derivative work is
+I mentioned above that the LGPL does not distinguish between static
+and dynamic linking insofar as the definition of a derivative work is
 concerned.  Section 6 of LGPL says that the distinction between static
 and dynamic DOES matter in the context of how to comply with LGPL when
 you're releasing a program that uses teem without modifying teem.  And
 this is how I imagine most everyone will use teem-- just linking
 against teem as I've distributed it.  It seems to me that the linking
-had better be with the shared library versions of teem, since 4(A)
-seems pretty cumbersome and annoying.  Of course, you should read the
-license itself in order to make sure of all these details.
+had better be with the shared library versions of teem, since it will
+probably be easier than taking the route described in 4(A) above.  Of
+course, you should read the license itself in order to make sure of
+all these details.
 
 I feel that the four points of compliance, described above, are
 entirely fair and easy to deal with, especially if you take the shared
-library route.  An explanation of why I chose a copyleft-style (GNU)
-license instead of non-copyleft-style (X11, "BSD-style") will wait for
-another time.
+library route.  An explanation of why I chose a copyleft (GNU) license
+instead of non-copyleft (X11, "BSD-style") will wait for another time.
