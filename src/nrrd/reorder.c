@@ -1066,13 +1066,13 @@ function.  Probably unu tile.
 ** with their respective newly permuted data.  There should be one
 ** fewer dimensions in the output nrrd than in the input nrrd.
 */
-
 int
 nrrdTile(Nrrd *nout, const Nrrd *nin, int ax1, int ax2,
          int axSplit, int sizeFast, int sizeSlow) {
   char me[]="nrrdTile", err[AIR_STRLEN_MED];
-  Nrrd *temp;
+  Nrrd *ntmp;
   int E, axis[NRRD_DIM_MAX], i, pindex, ax1merge, ax2merge;
+  airArray *mop;
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -1083,43 +1083,49 @@ nrrdTile(Nrrd *nout, const Nrrd *nin, int ax1, int ax2,
      will prohibit it as it doesn't make sense to tile to the same
      axis. */
   if (ax1 == ax2) {
-    sprintf(err, "%s: ax1(%d) cannot equal ax2(%d)", me, ax1, ax2);
+    sprintf(err, "%s: ax1 (%d) cannot equal ax2 (%d)", me, ax1, ax2);
     biffAdd(NRRD, err); return 1;
   }
   
   /* This is the temporary nrrd used for intermediate values. */
-  temp = nrrdNew();
-  if (!temp) {
+  ntmp = nrrdNew();
+  if (!ntmp) {
     sprintf(err, "%s: failed to allocate temporary nrrd", me);
     biffAdd(NRRD, err);
     return 1;
   }
+  mop = airMopNew();
+  airMopAdd(mop, ntmp, (airMopper)nrrdNix, airMopAlways);
+
   /* Use _nrrdCopyShallow to just copy the header information without
      copying the data. */
-  E = _nrrdCopyShallow(temp, nin);
+  E = AIR_FALSE;
+  if (!E) E |= _nrrdCopyShallow(ntmp, nin);
 
   /* Split the axis we will tile */
-  if (!E) E |= nrrdAxesSplit(temp, temp, axSplit, sizeFast, sizeSlow);
+  if (!E) E |= nrrdAxesSplit(ntmp, ntmp, axSplit, sizeFast, sizeSlow);
 
   /* We'll go ahead not and check for errors now as there is a lot of
      computation before the next nrrd call. */
   if (E) {
-    sprintf(err, "%s:", me);
+    sprintf(err, "%s: trouble with initial set-up", me);
     biffAdd(NRRD, err);
-    nrrdNix(temp);
+    airMopError(mop);
     return 1;
   }
   
   /* update ax1 and ax2.  If the split axis was below ax1 or ax2 we
      need to increment them */
-  if (axSplit < ax1)
+  if (axSplit < ax1) {
     ax1++;
-  if (axSplit < ax2)
+  }
+  if (axSplit < ax2) {
     ax2++;
+  }
   
   /******************************************************/
   /* Permute the axis.  This is the tricky part. */
-
+  
   /* This is the index used to write into axis.  pindex is set to the
      next available spot in axis.  After writing to it you need to
      increment it. */
@@ -1131,7 +1137,7 @@ nrrdTile(Nrrd *nout, const Nrrd *nin, int ax1, int ax2,
   ax2merge = -1;
   /* The idea here is to loop over the input indicies.  If the index
      is one of either ax1 or ax2 copy that index. */
-  for(i = 0; i < temp->dim; i++) {
+  for (i=0; i<ntmp->dim; i++) {
     if (i == ax1) {
       axis[pindex] = i;
       /* Cache this position for merging later */
@@ -1155,14 +1161,13 @@ nrrdTile(Nrrd *nout, const Nrrd *nin, int ax1, int ax2,
     }
   }
   /*
-  for(i = 0; i < temp->dim; i++) {
+  for (i=0; i<ntmp->dim; i++) {
     fprintf(stderr, "%s:axis[%d] = %d\n", me, i, axis[i]);
   }
   */
 
-  E = nrrdAxesPermute(nout, temp, axis);
-  temp = nrrdNix(temp);
-
+  if (!E) E |= nrrdAxesPermute(nout, ntmp, axis);
+  
   /* Join the axis */
   if (!E) {
     /* It's easier for bookkeeping if we merge the slower axis first. */
@@ -1176,11 +1181,13 @@ nrrdTile(Nrrd *nout, const Nrrd *nin, int ax1, int ax2,
   if (!E) E |= nrrdAxesMerge(nout, nout, ax1merge);
 
   if (E) {
-    sprintf(err, "%s:", me);
+    sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err);
+    airMopError(mop);
     return 1;
   }
 
+  airMopOkay(mop);
   return 0;
 }
 
@@ -1193,59 +1200,66 @@ nrrdTile(Nrrd *nout, const Nrrd *nin, int ax1, int ax2,
 ** sizeSlow will be permuted and merged such that
 ** nout->axis[axMerge].size == sizeFast*sizeSlow.
 */
-
 int nrrdUntile(Nrrd *nout, const Nrrd *nin, int ax1, int ax2,
                int axMerge, int sizeFast, int sizeSlow) {
   char me[]="nrrdUntile", err[AIR_STRLEN_MED];
   int E, axis[NRRD_DIM_MAX], i, pindex, ax1sizeFast, ax2sizeFast;
-  Nrrd *temp;
+  Nrrd *ntmp;
+  airArray *mop;
   
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
   /* Check to make sure the values of ax1, ax2, and axMerge are valid. */
-  E = 0;
+  E = AIR_FALSE;
   if (ax1 >= nin->dim) {
-    sprintf(err, "%s: ax1(%d) needs to be less than the number of dimensions (%d)", me, ax1, nin->dim);
+    sprintf(err, "%s: ax1 (%d) needs to be < than # dimensions (%d)", 
+	    me, ax1, nin->dim);
     biffAdd(NRRD, err);
-    E |= 1;
+    E |= AIR_TRUE;
   }
   if (ax2 >= nin->dim) {
-    sprintf(err, "%s: ax2(%d) needs to be less than the number of dimensions (%d)", me, ax2, nin->dim);
+    sprintf(err, "%s: ax2 (%d) needs to be < than # dimensions (%d)", 
+	    me, ax2, nin->dim);
     biffAdd(NRRD, err);
-    E |= 1;
+    E |= AIR_TRUE;
   }
   if (axMerge > nin->dim) {
-    sprintf(err, "%s: axMerge(%d) needs to be less than the number of dimensions + 1 (%d)", me, axMerge, nin->dim + 1);
+    sprintf(err, "%s: axMerge (%d) needs to be < than # dimensions + 1 (%d)", 
+	    me, axMerge, nin->dim + 1);
     biffAdd(NRRD, err);
-    E |= 1;
+    E |= AIR_TRUE;
   }
-  if (E) return 1;
+  if (E) {
+    return 1;
+  }
   
   /* Check the sizes of sizeFast and sizeSlow divide into ax1
      and ax2 evenly. */
   {
     int ax1size = nin->axis[ax1].size;
     int ax2size = nin->axis[ax2].size;
-    E = 0;
+
+    E = AIR_FALSE;
     ax1sizeFast = ax1size/sizeFast;
     if (ax1size != (sizeFast*ax1sizeFast)) {
       sprintf(err, "%s: sizeFast(%d) is not a multiple of ax1.size(%d)",
               me, sizeFast, ax1size);
       biffAdd(NRRD, err);
-      E |= 1;
+      E |= AIR_TRUE;
     }
     ax2sizeFast = ax2size/sizeSlow;
     if (ax2size != (ax2sizeFast*sizeSlow)) {
       sprintf(err, "%s: sizeSlow(%d) is not a multiple of ax2.size(%d)",
               me, sizeSlow, ax2size);
       biffAdd(NRRD, err);
-      E |= 1;
+      E |= AIR_TRUE;
     }
-    if (E) return 1;
+    if (E) {
+      return 1;
+    }
   }
-  
   
   /* ax1 and ax2 must not be equal. */
   if (ax1 == ax2) {
@@ -1254,35 +1268,39 @@ int nrrdUntile(Nrrd *nout, const Nrrd *nin, int ax1, int ax2,
   }
 
   /* Make a shallow copy we can use to change axis information. */
-  temp = nrrdNew();
-  if (!temp) {
+  ntmp = nrrdNew();
+  if (!ntmp) {
     sprintf(err, "%s: Error allocating temp nrrd", me);
     biffAdd(NRRD, err); return 1;
   }
-  E = _nrrdCopyShallow(temp, nin);
+  mop = airMopNew();
+  airMopAdd(mop, ntmp, (airMopper)nrrdNix, airMopAlways);
+
+  E = AIR_FALSE;
+  if (!E) E |= _nrrdCopyShallow(ntmp, nin);
 
   /* Now split the axes.  Do the larger one first. */
   if (ax1 < ax2) {
-    if (!E) E |= nrrdAxesSplit(temp, temp, ax2, ax2sizeFast, sizeSlow);
-    if (!E) E |= nrrdAxesSplit(temp, temp, ax1, ax1sizeFast, sizeFast);
+    if (!E) E |= nrrdAxesSplit(ntmp, ntmp, ax2, ax2sizeFast, sizeSlow);
+    if (!E) E |= nrrdAxesSplit(ntmp, ntmp, ax1, ax1sizeFast, sizeFast);
     /* Increment the larger value as it will get shifted by the lower
        split. */
     ax2++;
   } else {
-    if (!E) E |= nrrdAxesSplit(temp, temp, ax1, ax1sizeFast, sizeFast);
-    if (!E) E |= nrrdAxesSplit(temp, temp, ax2, ax2sizeFast, sizeSlow);
+    if (!E) E |= nrrdAxesSplit(ntmp, ntmp, ax1, ax1sizeFast, sizeFast);
+    if (!E) E |= nrrdAxesSplit(ntmp, ntmp, ax2, ax2sizeFast, sizeSlow);
     ax1++;
   }
 
   /* Bail if something went wrong. */
   if (E) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    sprintf(err, "%s: trouble with initial splitting", me);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 
   /* Now determine the permutation of the axes. */
   pindex = 0;
-  for(i = 0; i < temp->dim; i++) {
+  for (i=0; i<ntmp->dim; i++) {
     if (pindex == axMerge) {
       /* Insert the permuted axes. */
       axis[pindex++] = ax1+1;
@@ -1297,21 +1315,21 @@ int nrrdUntile(Nrrd *nout, const Nrrd *nin, int ax1, int ax2,
   }
 
   /*
-  for(i = 0; i < temp->dim; i++) {
+  for (i=0; i<ntmp->dim; i++) {
     fprintf(stderr, "%s:axis[%d] = %d\n", me, i, axis[i]);
   }
   */
 
-  E = nrrdAxesPermute(nout, temp, axis);
-  temp = nrrdNix(temp);
+  E = AIR_FALSE;
+  if (!E) E |= nrrdAxesPermute(nout, ntmp, axis);
+  ntmp = nrrdNix(ntmp);
 
   /* Join the axis */
   if (!E) E |= nrrdAxesMerge(nout, nout, axMerge);    
 
   if (E) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err);
-    return 1;
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   
   return 0;
