@@ -19,6 +19,7 @@
 
 
 #include "ten.h"
+#include "tenPrivate.h"
 
 int
 tenGlyphGen(limnObj *obj, Nrrd *nin, tenGlyphParm *parm) {

@@ -45,11 +45,13 @@ $(L).SEEN := true
 #### For time being, glyph (glyph.o, test/boxes, test/slices)
 #### stuff is nixed.
 ####
-$(L).NEED = limn dye nrrd ell biff air
+$(L).NEED = limn dye unrrdu nrrd ell biff air
 $(L).PUBLIC_HEADERS = ten.h tenMacros.h
-$(L).PRIVATE_HEADERS =
-$(L).OBJS = tensor.o chan.o aniso.o methodsTen.o arraysTen.o
-$(L).TESTS = test/chan2tens test/anisos
+$(L).PRIVATE_HEADERS = tenPrivate.h
+$(L).OBJS = tensor.o chan.o aniso.o methodsTen.o arraysTen.o \
+	tendFlotsam.o tendAnplot.o tendAnvol.o tendEval.o \
+	tendEvec.o tendCalc.o
+$(L).TESTS = test/chan2tens 
 ####
 ####
 ####
@@ -60,3 +62,9 @@ endif
 ifeq (,$(INCLUDED))
   include $(TEEM_SRC)/bin/GNUmakefile
 endif
+
+
+
+
+
+

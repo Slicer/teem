@@ -19,6 +19,7 @@
 
 
 #include "ten.h"
+#include "tenPrivate.h"
 
 int tenVerbose = 0;
 
@@ -70,6 +71,49 @@ tenValidTensor(Nrrd *nin, int wantType, int useBiff) {
   return 1;
 }
 
+int
+tenExpand(Nrrd *nout, Nrrd *nin, float thresh) {
+  char me[]="tenExpand", err[AIR_STRLEN_MED];
+  size_t N, I;
+  int sx, sy, sz;
+  float *seven, *nine;
+
+  if (!( nout && nin && AIR_EXISTS(thresh) )) {
+    sprintf(err, "%s: got NULL pointer or non-existant threshold", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!tenValidTensor(nin, nrrdTypeFloat, AIR_TRUE)) {
+    sprintf(err, "%s: ", me);
+    biffAdd(TEN, err); return 1;
+  }
+
+  sx = nin->axis[1].size;
+  sy = nin->axis[2].size;
+  sz = nin->axis[3].size;
+  N = sx*sy*sz;
+  if (nrrdMaybeAlloc(nout, nrrdTypeFloat, 4, 9, sx, sy, sz)) {
+    sprintf(err, "%s: trouble", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  for (I=0; I<=N-1; I++) {
+    seven = (float*)(nin->data) + I*7;
+    nine = (float*)(nout->data) + I*9;
+    if (seven[0] < thresh) {
+      ELL_3M_SET_ZERO(nine);
+      continue;
+    }
+    TEN_LIST2MAT(nine, seven);
+  }
+  if (nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE)) {
+    sprintf(err, "%s: trouble", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  
+
+  return 0;
+}
+
+
 /*
 ******** tenEigensolve
 **
@@ -88,6 +132,15 @@ tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
   ret = ell3mEigensolve(eval, evec, m, AIR_FALSE);
   ELL_3V_COPY(_eval, eval);
   ELL_3M_COPY(_evec, evec);
+  if (_eval[2] < 0) {
+    fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
+	    t[1], t[2], t[3]);
+    fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
+	    t[2], t[4], t[5]);
+    fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
+	    t[3], t[5], t[6]);
+    fprintf(stderr, " --> % 15.7f % 15.7f % 15.7f\n",
+	    _eval[0], _eval[1], _eval[2]);
+  }
   return ret;
 }
-

@@ -19,6 +19,7 @@
 
 
 #include "ten.h"
+#include "tenPrivate.h"
 
 tenGlyphParm *
 tenGlyphParmNew() {

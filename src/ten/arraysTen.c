@@ -18,15 +18,21 @@
 */
 
 #include "ten.h"
+#include "tenPrivate.h"
 
 char
 _tenAnisoStr[TEN_ANISO_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown aniso)",
-  "Cl",
-  "Cp",
-  "Ca",
-  "Cs",
-  "Ct",
+  "Cl1",
+  "Cp1",
+  "Ca1",
+  "Cs1",
+  "Ct1",
+  "Cl2",
+  "Cp2",
+  "Ca2",
+  "Cs2",
+  "Ct2",
   "RA",
   "FA",
   "VF"
@@ -34,7 +40,7 @@ _tenAnisoStr[TEN_ANISO_MAX+1][AIR_STRLEN_SMALL] = {
 
 airEnum
 _tenAniso = {
-  "aniso",
+  "anisotropy metric",
   TEN_ANISO_MAX,
   _tenAnisoStr,  NULL,
   NULL, NULL,
@@ -42,3 +48,4 @@ _tenAniso = {
 };
 airEnum *
 tenAniso = &_tenAniso;
+
