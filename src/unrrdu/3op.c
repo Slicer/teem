@@ -44,7 +44,7 @@ topMain(int argc, char **argv, char *me) {
 	     "\b\bo \"lerp\": linear interpolation between the second and "
 	     "third values, as the first value varies between 0.0 and 1.0, "
 	     "respectively",
-	     NULL, &nrrdTernaryOp);
+	     NULL, nrrdTernaryOp);
   hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
 	     "First input.  Can be float or nrrd.",
 	     NULL, NULL, &unuNrrdIterHestCB);

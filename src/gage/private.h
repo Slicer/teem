@@ -50,6 +50,10 @@ extern unsigned int _gageVecPrereq[GAGE_VEC_MAX+1];
 extern int _gageSclNeedDeriv[GAGE_SCL_MAX+1];
 extern int _gageVecNeedDeriv[GAGE_VEC_MAX+1];
 
+/* enums.c */
+extern airEnum _gageScl;
+extern airEnum _gageVec;
+
 /* print.c */
 extern void _gagePrint_off(gageContext *ctx);
   /*

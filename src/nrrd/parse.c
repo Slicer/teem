@@ -500,7 +500,7 @@ _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 
   /* else we have some field to parse */
   for (i=nrrdField_unknown+1; i<=NRRD_FIELD_MAX; i++) {
-    if (!strncmp(next, nrrdField.str[i], strlen(nrrdField.str[i]))) {
+    if (!strncmp(next, nrrdField->str[i], strlen(nrrdField->str[i]))) {
       /* we matched one of the fields */
       /* printf("!%s: match: %d\n", me, i); */
       break;
@@ -512,13 +512,13 @@ _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   }
   
   /* make sure there's a colon */
-  next += strlen(nrrdField.str[i]);
+  next += strlen(nrrdField->str[i]);
   /* skip whitespace ... */
   next += strspn(next, _nrrdFieldSep);
   /* see colon ? */
   if (':' != *next) {
     sprintf(err, "%s: didn't see \":\" after \"%s\"", 
-	    me, nrrdField.str[i]);
+	    me, nrrdField->str[i]);
     biffMaybeAdd(NRRD, err, useBiff); return nrrdField_unknown;
   }
   next++;

@@ -93,7 +93,7 @@ makeMain(int argc, char **argv, char *me) {
 	     "of dimension of nrrd)", &sizeLen);
   hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &(io->encoding), "raw",
 	     "data encoding. Possibilities are \"raw\" and \"ascii\".",
-	     NULL, &nrrdEncoding);
+	     NULL, nrrdEncoding);
   hestOptAdd(&opt, "endian", "endian", airTypeEnum, 1, 1, &(io->endian),
 	     airEnumStr(airEndian, airMyEndian),
 	     "Endianness of data; relevent for any raw data with value "
@@ -101,7 +101,7 @@ makeMain(int argc, char **argv, char *me) {
 	     "\b\bo \"little\": Intel and friends\n "
 	     "\b\bo \"big\": everyone else\n "
 	     "Defaults to endianness of this machine.",
-	     NULL, &airEndian);
+	     NULL, airEndian);
   OPT_ADD_NOUT(out, "output nrrd");
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 

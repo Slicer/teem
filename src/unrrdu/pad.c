@@ -45,7 +45,7 @@ padMain(int argc, char **argv, char *me) {
 	     "\b\bo \"pad\": use some specified value\n "
 	     "\b\bo \"bleed\": extend border values outward\n "
 	     "\b\bo \"wrap\": wrap-around to other side", 
-	     NULL, &nrrdBoundary);
+	     NULL, nrrdBoundary);
   hestOptAdd(&opt, "v", "value", airTypeDouble, 1, 1, &padVal, "0.0",
 	     "for \"pad\" boundary behavior, pad with this value");
   OPT_ADD_NOUT(out, "output nrrd");

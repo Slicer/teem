@@ -53,7 +53,7 @@ projectMain(int argc, char **argv, char *me) {
 	     "\"histo-sum\", \"histo-variance\": same measures, but for when "
 	     "the scanlines are histograms of values, not the values "
 	     "themselves.", 
-	     NULL, &nrrdMeasure);
+	     NULL, nrrdMeasure);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

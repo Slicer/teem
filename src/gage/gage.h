@@ -362,9 +362,9 @@ extern int gageDefCheckIntegrals;
 extern int gageDefK3Pack;
 
 /* enums.c */
-extern airEnum gageKernel;
-extern airEnum gageScl;
-extern airEnum gageVec;
+extern airEnum *gageKernel;
+extern airEnum *gageScl;
+extern airEnum *gageVec;
 
 /* arrays.c */
 extern gage_t gageZeroNormal[3];

@@ -64,13 +64,15 @@ _gageKernelValEqv[] = {
 };
 
 airEnum
-gageKernel = {
+_gageKernel = {
   "kernel",
   GAGE_KERNEL_NUM,
   _gageKernelStr, _gageKernelVal,
   _gageKernelStrEqv, _gageKernelValEqv,
   AIR_FALSE
 };
+airEnum *
+gageKernel = &_gageKernel;
 
 
 /* ---------------------------- scl ------------------------- */
@@ -193,13 +195,15 @@ _gageSclValEqv[] = {
 };
 
 airEnum
-gageScl = {
+_gageScl = {
   "gageScl",
   GAGE_SCL_MAX+1,
   _gageSclStr, _gageSclVal,
   _gageSclStrEqv, _gageSclValEqv,
   AIR_FALSE
 };
+airEnum *
+gageScl = &_gageScl;
 
 /* ---------------------------- vec ------------------------- */
 
@@ -254,11 +258,12 @@ _gageVecValEqv[] = {
 };
 
 airEnum
-gageVec = {
+_gageVec = {
   "gageVec",
   GAGE_VEC_MAX+1,
   _gageVecStr, _gageVecVal,
   _gageVecStrEqv, _gageVecValEqv,
   AIR_FALSE
 };
-
+airEnum *
+gageVec = &_gageVec;

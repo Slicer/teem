@@ -45,13 +45,15 @@ _nrrdFormatValEqv[] = {
 };
 
 airEnum
-nrrdFormat = {
+_nrrdFormat = {
   "format",
   NRRD_FORMAT_MAX,
   _nrrdFormatStr,  NULL,
   _nrrdFormatStrEqv, _nrrdFormatValEqv,
   AIR_FALSE
 };
+airEnum *
+nrrdFormat = &_nrrdFormat;
 
 /* ------------------------ nrrdBoundary ------------------------- */
 
@@ -65,13 +67,15 @@ _nrrdBoundaryStr[NRRD_BOUNDARY_MAX+1][AIR_STRLEN_SMALL] = {
 };
 
 airEnum
-nrrdBoundary = {
+_nrrdBoundary = {
   "boundary behavior",
   NRRD_BOUNDARY_MAX,
   _nrrdBoundaryStr, NULL,
   NULL, NULL,
   AIR_FALSE
 };
+airEnum *
+nrrdBoundary = &_nrrdBoundary;
 
 /* ------------------------ nrrdMagic ------------------------- */
 
@@ -87,13 +91,15 @@ _nrrdMagicStr[NRRD_MAGIC_MAX+1][AIR_STRLEN_SMALL] = {
 };
 
 airEnum
-nrrdMagic = {
+_nrrdMagic = {
   "magic",
   NRRD_MAGIC_MAX+1,
   _nrrdMagicStr, NULL,
   NULL, NULL,
   AIR_TRUE
 };
+airEnum *
+nrrdMagic = &_nrrdMagic;
 
 /* ------------------------ nrrdType ------------------------- */
 
@@ -158,13 +164,15 @@ _nrrdTypeValEqv[] = {
 };
 
 airEnum
-nrrdType = {
+_nrrdType = {
   "type",
   NRRD_TYPE_MAX,
   _nrrdTypeStr, NULL,
   _nrrdTypeStrEqv, _nrrdTypeValEqv,
   AIR_TRUE
 };
+airEnum *
+nrrdType = &_nrrdType;
 
 /* ------------------------ nrrdEncoding ------------------------- */
 
@@ -176,13 +184,15 @@ _nrrdEncodingStr[NRRD_ENCODING_MAX+1][AIR_STRLEN_SMALL] = {
 };
 
 airEnum
-nrrdEncoding = {
+_nrrdEncoding = {
   "encoding",
   NRRD_ENCODING_MAX,
   _nrrdEncodingStr, NULL,
   NULL, NULL,
   AIR_FALSE
 };
+airEnum *
+nrrdEncoding = &_nrrdEncoding;
 
 /* ------------------------ nrrdMeasure ------------------------- */
 
@@ -212,13 +222,15 @@ _nrrdMeasureStr[NRRD_MEASURE_MAX+1][AIR_STRLEN_SMALL] = {
 };
 
 airEnum
-nrrdMeasure = {
+_nrrdMeasure = {
   "measure",
   NRRD_MEASURE_MAX,
   _nrrdMeasureStr, NULL,
   NULL, NULL,
   AIR_FALSE
 };
+airEnum *
+nrrdMeasure = &_nrrdMeasure;
 
 /* ------------------------ nrrdCenter ------------------------- */
 
@@ -230,13 +242,15 @@ _nrrdCenterStr[NRRD_CENTER_MAX+1][AIR_STRLEN_SMALL] = {
 };
 
 airEnum
-nrrdCenter = {
+_nrrdCenter_enum = {
   "centering",
   NRRD_CENTER_MAX,
   _nrrdCenterStr, NULL,
   NULL, NULL,
   AIR_FALSE
 };
+airEnum *
+nrrdCenter = &_nrrdCenter_enum;
 
 /* ------------------------ nrrdAxisInfo ------------------------- */
 
@@ -252,13 +266,15 @@ _nrrdAxesInfoStr[NRRD_AXESINFO_MAX+1][AIR_STRLEN_SMALL] = {
 };
 
 airEnum
-nrrdAxesInfo = {
+_nrrdAxesInfo = {
   "axes_info",
   NRRD_AXESINFO_MAX,
   _nrrdAxesInfoStr, NULL,
   NULL, NULL,
   AIR_TRUE
 };
+airEnum *
+nrrdAxesInfo = &_nrrdAxesInfo;
   
 /* ------------------------ nrrdField ------------------------- */
 
@@ -362,13 +378,15 @@ _nrrdFieldValEqv[] = {
 };
 
 airEnum
-nrrdField = {
+_nrrdField = {
   "nrrd_field",
   NRRD_FIELD_MAX,
   _nrrdFieldStr, NULL,
   _nrrdFieldStrEqv, _nrrdFieldValEqv, 
   AIR_TRUE
 };
+airEnum *
+nrrdField = &_nrrdField;
 
 /* ------------------------ nrrdNonExist ------------------------- */
 
@@ -476,14 +494,15 @@ _nrrdUnaryOpValEqv[] = {
 };
 
 airEnum
-nrrdUnaryOp = {
+_nrrdUnaryOp_enum = {
   "unary op",
   NRRD_UNARY_OP_MAX,
   _nrrdUnaryOpStr, NULL,
   _nrrdUnaryOpStrEqv, _nrrdUnaryOpValEqv,
   AIR_FALSE
 };
-
+airEnum *
+nrrdUnaryOp = &_nrrdUnaryOp_enum;
 
 /* ------------------------ nrrdBinaryOp ---------------------- */
 
@@ -550,13 +569,15 @@ _nrrdBinaryOpValEqv[] = {
 };
 
 airEnum
-nrrdBinaryOp = {
+_nrrdBinaryOp_enum = {
   "binary op",
   NRRD_BINARY_OP_MAX,
   _nrrdBinaryOpStr, NULL,
   _nrrdBinaryOpStrEqv, _nrrdBinaryOpValEqv,
   AIR_FALSE
 };
+airEnum *
+nrrdBinaryOp = &_nrrdBinaryOp_enum;
 
 /* ------------------------ nrrdTernaryOp ---------------------- */
 
@@ -581,11 +602,13 @@ _nrrdTernaryOpValEqv[] = {
 };
 
 airEnum
-nrrdTernaryOp = {
+_nrrdTernaryOp_enum = {
   "ternary op",
   NRRD_TERNARY_OP_MAX,
   _nrrdTernaryOpStr, NULL,
   _nrrdTernaryOpStrEqv, _nrrdTernaryOpValEqv,
   AIR_FALSE
 };
+airEnum *
+nrrdTernaryOp = &_nrrdTernaryOp_enum;
 

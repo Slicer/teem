@@ -295,18 +295,18 @@ extern int nrrdStateDisallowFixedPointNonExist;
 /******** all the airEnums used through-out nrrd */
 /* (the actual C enums are in nrrdEnums.h) */
 /* enums.c */
-extern airEnum nrrdFormat;
-extern airEnum nrrdBoundary;
-extern airEnum nrrdMagic;
-extern airEnum nrrdType;
-extern airEnum nrrdEncoding;
-extern airEnum nrrdMeasure;
-extern airEnum nrrdCenter;
-extern airEnum nrrdAxesInfo;
-extern airEnum nrrdField;
-extern airEnum nrrdUnaryOp;
-extern airEnum nrrdBinaryOp;
-extern airEnum nrrdTernaryOp;
+extern airEnum *nrrdFormat;
+extern airEnum *nrrdBoundary;
+extern airEnum *nrrdMagic;
+extern airEnum *nrrdType;
+extern airEnum *nrrdEncoding;
+extern airEnum *nrrdMeasure;
+extern airEnum *nrrdCenter;
+extern airEnum *nrrdAxesInfo;
+extern airEnum *nrrdField;
+extern airEnum *nrrdUnaryOp;
+extern airEnum *nrrdBinaryOp;
+extern airEnum *nrrdTernaryOp;
 
 /******** arrays of things (poor-man's functions/predicates) */
 /* arrays.c */

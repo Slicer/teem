@@ -80,7 +80,7 @@ tenGlyphGen(limnObj *obj, Nrrd *nin, tenGlyphParm *parm) {
 	  goto nextiter;
 	*/
 
-	tenAnisotropy(c, eval);
+	tenAnisoCalc(c, eval);
 	if (vThreshVol) {
 	  if (vThreshVol[idx] < parm->vThresh) {
 	    goto nextiter;

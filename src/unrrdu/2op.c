@@ -49,7 +49,7 @@ bopMain(int argc, char **argv, char *me) {
 	     "\b\bo \"lt\": 1 if 1st value less than 2nd value, otherwise 0\n "
 	     "\b\bo \"comp\": -1, 0, or 1 if 1st value is less than,"
              "equal to, or greater than 2nd value",
-	     NULL, &nrrdBinaryOp);
+	     NULL, nrrdBinaryOp);
   hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
 	     "First input.  Can be float or nrrd.",
 	     NULL, NULL, &unuNrrdIterHestCB);

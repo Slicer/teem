@@ -51,7 +51,7 @@ main() {
 	 "too, on "
 	 "his students.  Sayles based his idea for the film, shot in Mexico, "
 	 "on the 36-year long civil war in Guatemala, which began in 1960.");
-  printf("strlen(line) = %d\n", strlen(line));
+  printf("airStrlen(line) = %d\n", (int)airStrlen(line));
 
   fprintf(stdout, "This was found on my desk: ");
   _hestPrintStr(stdout, 10, strlen("This was found on my desk: "),

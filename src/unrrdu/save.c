@@ -41,10 +41,10 @@ saveMain(int argc, char **argv, char *me) {
 	     "\b\bo \"nrrd\": standard nrrd format\n "
 	     "\b\bo \"pnm\": PNM image; PPM for color, PGM for grayscale\n "
 	     "\b\bo \"table\": plain ASCII table for 2-D data",
-	     NULL, &nrrdFormat);
+	     NULL, nrrdFormat);
   hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &encoding, "raw",
 	     "output file format. Possibilities are \"raw\" and \"ascii\"",
-	     NULL, &nrrdEncoding);
+	     NULL, nrrdEncoding);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

@@ -44,7 +44,7 @@ uopMain(int argc, char **argv, char *me) {
 	     "\b\bo \"abs\": absolute value\n "
 	     "\b\bo \"sgn\": -1, 0, 1 if value is <0, ==0, or >0\n "
 	     "\b\bo \"exists\": 1 iff not NaN or +/-Inf, 0 otherwise",
-	     NULL, &nrrdUnaryOp);
+	     NULL, nrrdUnaryOp);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
