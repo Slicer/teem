@@ -49,7 +49,7 @@ limnEnvMapFill(Nrrd *map, limnEnvMapCB cb, void *data, int qnMethod) {
     }
     break;
   default:
-    sprintf("%s: sorry, QN method %d not implemented", me, qnMethod);
+    sprintf(err, "%s: sorry, QN method %d not implemented", me, qnMethod);
     biffAdd(LIMN, err); return 1;
   }
 
