@@ -421,11 +421,11 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
 	  wght += weight[e + dotLen*i];
 	}
 	if (wght) {
-	  for (e=0; e<dotLen; e++) {
+ 	  for (e=0; e<dotLen; e++) {
 	    /* this used to normalize the weights so that they summed
 	       to integral ("*= integral/wght"), which meant that if
 	       you use a very truncated Gaussian, then your over-all
-	       image brightness goes down.  This seems very contrrary
+	       image brightness goes down.  This seems very contrary
 	       to the whole point of renormalization. */
 	    weight[e + dotLen*i] *= 1.0/wght;
 	  }
