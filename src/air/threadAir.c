@@ -450,7 +450,6 @@ airThreadNix(airThread *thread) {
 
 airThreadMutex *
 airThreadMutexNew(void) {
-  char me[]="airThreadMutexInit";
   airThreadMutex *mutex;
 
   mutex = (airThreadMutex *)calloc(1, sizeof(airThreadMutex));
@@ -485,7 +484,6 @@ airThreadMutexNix(airThreadMutex *mutex) {
 
 airThreadCond *
 airThreadCondNew(void) {
-  char me[]="airThreadCondInit";
   airThreadCond *cond;
   
   cond = (airThreadCond *)calloc(1, sizeof(airThreadCond));
