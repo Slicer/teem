@@ -207,7 +207,7 @@ nrrdIoStateFormatGet (NrrdIoState *nio) {
 
 void
 _nrrdStrcatSpaceVector(char *str, int spaceDim,
-                       const double val[NRRD_DIM_MAX]) {
+                       const double val[NRRD_SPACE_DIM_MAX]) {
   char buff[AIR_STRLEN_MED];  /* bad Gordon */
   int dd;
 

@@ -259,12 +259,12 @@ nrrdBasicInfoInit (Nrrd *nrrd, int bitflag) {
     nrrd->spaceDim = 0;
   }
   if (!(NRRD_BASIC_INFO_SPACEUNITS_BIT & bitflag)) {
-    for (dd=0; dd<NRRD_DIM_MAX; dd++) {
+    for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
       nrrd->spaceUnits[dd] = airFree(nrrd->spaceUnits[dd]);
     }
   }
   if (!(NRRD_BASIC_INFO_SPACEORIGIN_BIT & bitflag)) {
-    for (dd=0; dd<NRRD_DIM_MAX; dd++) {
+    for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
       nrrd->spaceOrigin[dd] = AIR_NAN;
     }
   }
@@ -346,7 +346,7 @@ nrrdBasicInfoCopy (Nrrd *dest, const Nrrd *src, int bitflag) {
         biffAdd(NRRD, err); return 1;
       }
     }
-    for (dd=src->spaceDim; dd<NRRD_DIM_MAX; dd++) {
+    for (dd=src->spaceDim; dd<NRRD_SPACE_DIM_MAX; dd++) {
       dest->spaceUnits[dd] = airFree(dest->spaceUnits[dd]);
     }
   }
@@ -354,7 +354,7 @@ nrrdBasicInfoCopy (Nrrd *dest, const Nrrd *src, int bitflag) {
     for (dd=0; dd<src->spaceDim; dd++) {
       dest->spaceOrigin[dd] = src->spaceOrigin[dd];
     }
-    for (dd=src->spaceDim; dd<NRRD_DIM_MAX; dd++) {
+    for (dd=src->spaceDim; dd<NRRD_SPACE_DIM_MAX; dd++) {
       dest->spaceOrigin[dd] = AIR_NAN;
     }
   }
@@ -422,6 +422,8 @@ nrrdNew (void) {
   for (ii=0; ii<NRRD_DIM_MAX; ii++) {
     nrrd->axis[ii].label = NULL;
     nrrd->axis[ii].units = NULL;
+  }
+  for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
     nrrd->spaceUnits[ii] = NULL;
   }
   nrrd->content = NULL;
@@ -466,6 +468,8 @@ nrrdNix (Nrrd *nrrd) {
   if (nrrd) {
     for (ii=0; ii<NRRD_DIM_MAX; ii++) {
       _nrrdAxisInfoInit(&(nrrd->axis[ii]));
+    }
+    for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
       nrrd->spaceUnits[ii] = airFree(nrrd->spaceUnits[ii]);
     }
     nrrd->content = airFree(nrrd->content);

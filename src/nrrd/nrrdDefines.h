@@ -27,8 +27,10 @@
 extern "C" {
 #endif
 
-
-#define NRRD_DIM_MAX 16            /* Maximum dimension which we can handle */
+/* feel free to set these to higher values and recompile */
+#define NRRD_DIM_MAX 16            /* Max array dimension (nrrd->dim) */
+#define NRRD_SPACE_DIM_MAX 8       /* Max dimension of "space" around array 
+                                      (nrrd->spaceDim) */
 
 #define NRRD_EXT_NRRD   ".nrrd"
 #define NRRD_EXT_NHDR   ".nhdr"

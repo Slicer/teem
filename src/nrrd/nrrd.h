@@ -87,7 +87,7 @@ typedef struct {
                                and max: the idea is that only one (min and
                                max, or spacing) should be taken to be
                                significant at any time. */
-  double spaceDirection[NRRD_DIM_MAX]; 
+  double spaceDirection[NRRD_SPACE_DIM_MAX]; 
                             /* the vector, in "space" (as described by
                                nrrd->space and/or nrrd->spaceDim), from one
                                sample to the next sample along this axis.  It
@@ -152,8 +152,10 @@ typedef struct {
                                        This identifies the number of entries in
                                        "origin" and the per-axis "direction"
                                        vectors that are taken as meaningful */
-  char *spaceUnits[NRRD_DIM_MAX];   /* units for coordinates of space */
-  double spaceOrigin[NRRD_DIM_MAX]; /* the location of the center the first
+  char *spaceUnits[NRRD_SPACE_DIM_MAX];   
+                                    /* units for coordinates of space */
+  double spaceOrigin[NRRD_SPACE_DIM_MAX]; 
+                                    /* the location of the center the first
                                        (lowest memory address) array sample,
                                        regardless of node-vs-cell centering */
   int blockSize;                    /* for nrrdTypeBlock:, block byte size */

@@ -264,6 +264,9 @@ nrrdDescribe (FILE *file, const Nrrd *nrrd) {
 
 /*
 ** asserts all the properties associated with orientation information
+**
+** The most important part of this is asserting the per-axis mutual 
+** exclusion of min/max/spacing/units versus using spaceDirection.
 */
 int
 _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int checkOrigin, int useBiff) {
@@ -274,9 +277,10 @@ _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int checkOrigin, int useBiff) {
     sprintf(err, "%s: space %d invalid", me, nrrd->space);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
-  if (!AIR_IN_CL(0, nrrd->spaceDim, NRRD_DIM_MAX)) {
-    sprintf(err, "%s: space dimension %d is outside valid range [0,%d]",
-            me, nrrd->dim, NRRD_DIM_MAX);
+  if (!AIR_IN_CL(0, nrrd->spaceDim, NRRD_SPACE_DIM_MAX)) {
+    sprintf(err, "%s: space dimension %d is outside valid range "
+            "[0,NRRD_SPACE_DIM_MAX] = [0,%d]",
+            me, nrrd->dim, NRRD_SPACE_DIM_MAX);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   if (nrrd->spaceDim) {
@@ -326,11 +330,11 @@ _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int checkOrigin, int useBiff) {
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
     exists = AIR_FALSE;
-    for (dd=0; dd<NRRD_DIM_MAX; dd++) {
+    for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
       exists |= airStrlen(nrrd->spaceUnits[dd]);
       exists |= AIR_EXISTS(nrrd->spaceOrigin[dd]);
       for (ii=0; ii<NRRD_DIM_MAX; ii++) {
-        exists |= AIR_EXISTS(nrrd->axis[dd].spaceDirection[ii]);
+        exists |= AIR_EXISTS(nrrd->axis[ii].spaceDirection[dd]);
       }
     }
     if (exists) {
@@ -348,7 +352,7 @@ _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int checkOrigin, int useBiff) {
 ** to a potentially incomplete nrrd in the process of being read, so
 ** the NrrdIoState stuff is not an issue.  This limits the utility of
 ** these to the field parsers for handling the more complex state 
-** involved in parsing some of the NRRD fields (like unitss).
+** involved in parsing some of the NRRD fields (like units).
 **
 ** return 0 if it is valid, and 1 if there is an error
 */

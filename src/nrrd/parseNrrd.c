@@ -299,7 +299,7 @@ _nrrdReadNrrdParse_axis_maxs (Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
 }
 
 int
-_nrrdGetSpaceVector(double val[NRRD_DIM_MAX],
+_nrrdGetSpaceVector(double val[NRRD_SPACE_DIM_MAX],
                     char **hhP, int spaceDim, int useBiff) {
   char me[]="_nrrdGetSpaceVector", err[AIR_STRLEN_MED], *hh, *buff, sep[]=",)";
   airArray *mop;
@@ -377,7 +377,7 @@ _nrrdGetSpaceVector(double val[NRRD_DIM_MAX],
     }
   }
   /* probably not useful */
-  for (dd=spaceDim; dd<NRRD_DIM_MAX; dd++) {
+  for (dd=spaceDim; dd<NRRD_SPACE_DIM_MAX; dd++) {
     val[dd] = AIR_NAN;
   }
   /* make sure all coefficients exist or not together */
