@@ -439,7 +439,9 @@ airSgn(double v) {
 double
 airCbrt(double v) {
 #ifdef _WIN32
-  return pow(v,1.0/3.0);
+  /* msvc does not know how to take powers of small negative numbers,
+   * so we have to tell it to do it right */
+  return (v < 0.0 ? -pow(-v,1.0/3.0) : pow(v,1.0/3.0));
 #else
   return cbrt(v);
 #endif
