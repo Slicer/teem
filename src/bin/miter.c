@@ -55,7 +55,7 @@ main(int argc, char *argv[]) {
   limnHestCamOptAdd(&hopt, muu->hctx->cam,
 		    NULL, "0 0 0", "0 0 1",
 		    NULL, NULL, NULL,
-		    NULL, NULL);
+		    "-1 1", "-1 1");
   hestOptAdd(&hopt, "am", "ambient", airTypeFloat, 3, 3, muu->lit->amb,
 	     "1 1 1", "ambient light color");
   hestOptAdd(&hopt, "ld", "light pos", airTypeFloat, 3, 3, muu->lit->_dir[0],
