@@ -83,10 +83,10 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nrrd;
   Nrrd **nslice;
   int *size, sizeLen,
-    nameLen, kvpLen, ki, spacingLen, labelLen, unitLen,
+    nameLen, kvpLen, ki, spacingLen, thicknessLen, labelLen, unitLen,
     headerOnly, pret, lineSkip, byteSkip, endian, slc, type,
-    encodingType, gotSpacing;
-  double *spacing;
+    encodingType, gotSpacing, gotThickness;
+  double *spacing, *thickness;
   airArray *mop;
   NrrdIoState *nio;
   FILE *fileOut;
@@ -128,6 +128,10 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
              "spacing between samples on each axis.  Use \"nan\" for "
              "any non-spatial axes (e.g. spacing between red, green, and blue "
              "along axis 0 of interleaved RGB image data)", &spacingLen);
+  hestOptAdd(&opt, "th", "th0 th1", airTypeDouble, 1, -1, &thickness, "nan",
+             "thickness of region represented by one sample along each axis. "
+	     "  As with spacing, use \"nan\" for "
+             "any non-spatial axes.", &thicknessLen);
   hestOptAdd(&opt, "l", "lb0 lb1", airTypeString, 1, -1, &label, "",
              "short string labels for each of the axes", &labelLen);
   hestOptAdd(&opt, "u", "un0 un1", airTypeString, 1, -1, &unit, "",
@@ -198,6 +202,15 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
+  gotThickness = (thicknessLen > 1 ||
+		  (sizeLen == 1 && AIR_EXISTS(thickness[0])));
+  if (gotThickness && thicknessLen != sizeLen) {
+    fprintf(stderr,
+            "%s: got different numbers of sizes (%d) and thicknesses (%d)\n",
+            me, sizeLen, thicknessLen);
+    airMopError(mop);
+    return 1;
+  }
   if (airStrlen(label[0]) && sizeLen != labelLen) {
     fprintf(stderr,
             "%s: got different numbers of sizes (%d) and labels (%d)\n",
@@ -223,6 +236,9 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSize, size);
   if (gotSpacing) {
     nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSpacing, spacing);
+  }
+  if (gotThickness) {
+    nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoThickness, thickness);
   }
   if (airStrlen(label[0])) {
     nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoLabel, label);
@@ -338,6 +354,9 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
          since we never bothered to set it in any nslice[i]... */
       if (gotSpacing) {
         nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSpacing, spacing);
+      }
+      if (gotThickness) {
+        nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoThickness, thickness);
       }
       if (airStrlen(label[0])) {
         nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoLabel, label);
