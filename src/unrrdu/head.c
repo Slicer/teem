@@ -73,7 +73,6 @@ unrrdu_headDoit(char *me, NrrdIO *io, char *inS, FILE *fout) {
       c = getc(fin);
     }
   }
-  /* #endif */
 
   airMopOkay(mop);
   return 0;
