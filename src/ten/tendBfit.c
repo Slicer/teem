@@ -45,7 +45,7 @@ tend_bfitMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   hparm->respFileEnable = AIR_TRUE;
 
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
              "Input nrrd.  List of DWIs from different b-values must "
              "be along axis 0", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "b", "b1 b2", airTypeDouble, 2, -1, &bb, NULL,
