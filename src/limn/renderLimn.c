@@ -20,6 +20,26 @@
 
 #include "limn.h"
 
+int
+limnObjRender(limnObj *obj, limnCam *cam, limnWin *win) {
+  char me[]="limnObjRender", err[AIR_STRLEN_MED];
+  int E;
+  
+  E = 0;
+  if (!E) E |= limnCamUpdate(cam);
+  if (!E) E |= limnObjHomog(obj, limnSpaceWorld);
+  if (!E) E |= limnObjNormals(obj, limnSpaceWorld);
+  if (!E) E |= limnObjSpaceTransform(obj, cam, win, limnSpaceView);
+  if (!E) E |= limnObjSpaceTransform(obj, cam, win, limnSpaceScreen);
+  if (!E) E |= limnObjSpaceTransform(obj, cam, win, limnSpaceDevice);
+  if (!E) E |= limnObjNormals(obj, limnSpaceScreen);
+  if (E) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  return 0;
+}
+
 void
 _limnPSPreamble(limnObj *obj, limnCam *cam, limnWin *win) {
   
@@ -78,9 +98,9 @@ _limnPSDrawFace(limnObj *obj, limnPart *r, limnFace *f,
     fprintf(win->file, "%g %g %s\n", 
 	    p->d[0], p->d[1], vi ? "L" : "M");
   }
-  R = r->rgba[0]/255.0;
-  G = r->rgba[1]/255.0;
-  B = r->rgba[2]/255.0;
+  R = r->rgba[0];
+  G = r->rgba[1];
+  B = r->rgba[2];
   if (nmap) {
     qn = limnVtoQN[limnQN_16checker](f->wn);
     map = nmap->data;
@@ -115,9 +135,10 @@ _limnPSDrawEdge(limnObj *obj, limnPart *r, limnEdge *e,
 }
 
 /*
-******** limnObjPSRender
+******** limnObjPSDraw
 **
-** renders limn objects to postscript.
+** draws a "rendered" limn object to postscript.
+** limnObjRender MUST be called first.
 **
 ** The current (feeble) justification for using an environment map is
 ** that its an expressive way of shading things based on surface
@@ -125,14 +146,24 @@ _limnPSDrawEdge(limnObj *obj, limnPart *r, limnEdge *e,
 ** correct specular lighting is not possible
 */
 int
-limnObjPSRender(limnObj *obj, limnCam *cam, Nrrd *map, limnWin *win) {
+limnObjPSDraw(limnObj *obj, limnCam *cam, Nrrd *nmap, limnWin *win) {
+  char me[]="limnObjPSDraw", err[AIR_STRLEN_MED];
   int vis0, vis1, inside;
   float angle, widthTmp;
   limnFace *f, *f0, *f1; int fi;
   limnEdge *e; int ei;
   limnPart *r; int ri;
   limnPoint *p; int pi;
+
+  if (nmap) {
+    if (limnEnvMapCheck(nmap)) {
+      sprintf(err, "%s: trouble", me); 
+      biffAdd(LIMN, err); return 1;
+    }
+  }
   
+  limnObjDepthSortParts(obj);
+
   _limnPSPreamble(obj, cam, win);
 
   for (ri=0; ri<obj->rA->len; ri++) {
@@ -178,8 +209,9 @@ limnObjPSRender(limnObj *obj, limnCam *cam, Nrrd *map, limnWin *win) {
 	f->visib = (cam->rightHanded 
 		    ? f->sn[2] < 0
 		    : f->sn[2] > 0);
-	if (f->visib)
-	  _limnPSDrawFace(obj, r, f, cam, map, win);
+	if (f->visib) {
+	  _limnPSDrawFace(obj, r, f, cam, nmap, win);
+	}
       }
       
       fprintf(win->file, "0 setgray\n");

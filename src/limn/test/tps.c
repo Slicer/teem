@@ -39,10 +39,20 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, cam, (airMopper)limnCamNix, airMopAlways);
   
   me = argv[0];
-  limnHestCamOptAdd(&hopt, cam,
-		    NULL, "0 0 0", "0 0 1",
-		    NULL, NULL, NULL,
-		    "-1 1", "-1 1");
+  hestOptAdd(&hopt, "fr", "from point", airTypeDouble, 3, 3, cam->from,"4 4 4",
+	     "position of camera, used to determine view vector");
+  hestOptAdd(&hopt, "at", "at point", airTypeDouble, 3, 3, cam->at, "0 0 0",
+	     "camera look-at point, used to determine view vector");
+  hestOptAdd(&hopt, "up", "up vector", airTypeDouble, 3, 3, cam->up, "0 0 1",
+	     "camera pseudo-up vector, used to determine view coordinates");
+  hestOptAdd(&hopt, "rh", NULL, airTypeInt, 0, 0, &(cam->rightHanded), NULL,
+	     "use a right-handed UVN frame (V points down)");
+  hestOptAdd(&hopt, "or", NULL, airTypeInt, 0, 0, &(cam->ortho), NULL,
+	     "use orthogonal projection");
+  hestOptAdd(&hopt, "ur", "uMin uMax", airTypeDouble, 2, 2, cam->uRange,
+	     "-1 1", "range in U direction of image plane");
+  hestOptAdd(&hopt, "vr", "vMin vMax", airTypeDouble, 2, 2, cam->vRange,
+	     "-1 1", "range in V direction of image plane");
   hestOptAdd(&hopt, "e", "envmap", airTypeOther, 1, 1, &nmap, NULL,
 	     "16checker-based environment map",
 	     NULL, NULL, nrrdHestNrrd);
@@ -53,9 +63,9 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   
-  cam->neer = -1;
+  cam->neer = -0.000000001;
   cam->dist = 0;
-  cam->faar = 1;
+  cam->faar = 0.0000000001;
   cam->atRel = AIR_TRUE;
 
   if (limnCamUpdate(cam)) {
@@ -105,18 +115,12 @@ main(int argc, char *argv[]) {
   limnObjPartTransform(obj, ri, matA);
 
   win = limnWinNew(limnDevicePS);
-  limnObjHomog(obj, limnSpaceWorld);
-  limnObjNormals(obj, limnSpaceWorld);
-  limnObjSpaceTransform(obj, cam, win, limnSpaceView);
-  limnObjSpaceTransform(obj, cam, win, limnSpaceScreen);
-  limnObjSpaceTransform(obj, cam, win, limnSpaceDevice);
-  limnObjDepthSortParts(obj);
-  limnObjNormals(obj, limnSpaceScreen);
 
   win->file = fopen(outS, "w");
   airMopAdd(mop, win, (airMopper)limnWinNix, airMopAlways);
 
-  if (limnObjPSRender(obj, cam, nmap, win)) {
+  if (limnObjRender(obj, cam, win)
+      || limnObjPSDraw(obj, cam, nmap, win)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;

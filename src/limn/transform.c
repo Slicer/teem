@@ -245,7 +245,7 @@ limnObjDepthSortParts(limnObj *obj) {
   limnPart *r;
   limnPoint *p;
   int pi, ri, rNum;
-  double t0, t1;
+  /* double t0, t1; */
 
   rNum = obj->rA->len;
   for (ri=0; ri<rNum; ri++) {
@@ -258,10 +258,10 @@ limnObjDepthSortParts(limnObj *obj) {
     r->z /= r->pNum;
   }
   
-  t0 = airTime();
+  /* t0 = airTime(); */
   qsort(obj->r, rNum, sizeof(limnPart), _limnPartDepthCompare);
-  t1 = airTime();
-  printf("limnObjDepthSortParts: qsort took %g seconds\n", t1-t0);
+  /* t1 = airTime(); */
+  /* printf("limnObjDepthSortParts: qsort took %g seconds\n", t1-t0); */
 
   return 0;
 }

@@ -111,7 +111,7 @@ typedef struct {
 enum {
   limnDeviceUnknown,
   limnDevicePS,
-  limnDeviceOpenGL,
+  limnDeviceGL,
   limnDeviceLast
 };
 
@@ -206,7 +206,7 @@ typedef struct limnPart_t {
 			whole parts is acyclic, one depth value is
 			good enough for painter's algorithm ordering
 			of drawing */
-  unsigned char rgba[4];
+  float rgba[4];
 } limnPart;
 
 /*
@@ -290,6 +290,7 @@ typedef void (*limnEnvMapCB)(float rgb[3], float vec[3], void *data);
 extern int limnEnvMapFill(Nrrd *envMap, limnEnvMapCB cb, 
 			  int qnMethod, void *data);
 extern void limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit);
+extern int limnEnvMapCheck(Nrrd *envMap);
 
 /* methodsLimn.c */
 extern limnLight *limnLightNew(void);
@@ -339,8 +340,9 @@ extern int limnObjPartTransform(limnObj *obj, int ri, float tx[16]);
 extern int limnObjDepthSortParts(limnObj *obj);
 
 /* renderLimn.c */
-extern int limnObjPSRender(limnObj *obj, limnCam *cam, 
-			   Nrrd *envMap, limnWin *win);
+extern int limnObjRender(limnObj *obj, limnCam *cam, limnWin *win);
+extern int limnObjPSDraw(limnObj *obj, limnCam *cam,
+			 Nrrd *envMap, limnWin *win);
 
 #ifdef __cplusplus
 }
