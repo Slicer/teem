@@ -645,8 +645,8 @@ _nrrdUnaryOpStr[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
 char 
 _nrrdUnaryOpDesc[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_MED] = {
   "unknown unary op",
-  "negative, additive inverse",
-  "reciprocal, multiplicative inverse",
+  "negative; additive inverse",
+  "reciprocal; multiplicative inverse",
   "sin",
   "cos",
   "tan",
@@ -822,7 +822,7 @@ _nrrdBinaryOpStrEqv[][AIR_STRLEN_SMALL] = {
   "gte", ">=", "greaterthanorequal",
   "comp", "compare",
   "eq", "=", "==", "equal",
-  "neq", "!=", "notequal",
+  "neq", "ne", "!=", "notequal",
   "exists",
   ""
 };
@@ -845,7 +845,7 @@ _nrrdBinaryOpValEqv[] = {
   nbGte, nbGte, nbGte,
   nbCmp, nbCmp,
   nbEq, nbEq, nbEq, nbEq,
-  nbNeq, nbNeq, nbNeq,
+  nbNeq, nbNeq, nbNeq, nbNeq,
   nbExt
 };
 
