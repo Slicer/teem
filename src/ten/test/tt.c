@@ -20,14 +20,15 @@
 
 #include "../ten.h"
 
-char *info = ("Sample space of tensor orientation.");
+char *info = ("Sample space of tensor shape.");
 
 void
-_cap2xyz(double xyz[3], double ca, double cp, int version) {
-  double cl, cs;
+_cap2xyz(double xyz[3], double ca, double cp, int version, int whole) {
+  double cl, cs, mean;
   
   cs = 1 - ca;
   cl = 1 - cs - cp;
+  mean = (cs + cp + cl)/3;
   /*
   xyz[0] = cs*0.333 + cl*1.0 + cp*0.5;
   xyz[1] = cs*0.333 + cl*0.0 + cp*0.5;
@@ -36,14 +37,20 @@ _cap2xyz(double xyz[3], double ca, double cp, int version) {
   xyz[1] = AIR_AFFINE(0, ca, 1, 1.1*xyz[1], 0.86*xyz[1]);
   xyz[2] = AIR_AFFINE(0, ca, 1, 1.1*xyz[2], 0.86*xyz[2]);
   */
-  if (1 == version) {
-    xyz[0] = (3 + 3*cl - cs)/6;
-    xyz[1] = (2 - 2*cl + cp)/6;
-    xyz[2] = 2*cs/6;
+  if (whole) {
+    ELL_3V_SET(xyz,
+	       AIR_AFFINE(0.0, 0.9, 1.0, mean, cl),
+	       AIR_AFFINE(0.0, 0.9, 1.0, mean, cp),
+	       AIR_AFFINE(0.0, 0.9, 1.0, mean, cs));
   } else {
-    xyz[0] = 1;
-    xyz[1] = 1 - cl;
-    xyz[2] = cs;
+    if (1 == version) {
+      ELL_3V_SET(xyz,
+		 (3 + 3*cl - cs)/6,
+		 (2 - 2*cl + cp)/6,
+		 2*cs/6);
+    } else {
+      ELL_3V_SET(xyz, 1, 1 - cl, cs);
+    }
   }
 }
 
@@ -80,9 +87,9 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
   
-  int xi, yi, samp, version;
+  int xi, yi, samp, version, whole;
   float *tdata;
-  double p[3], xyz[3], q[4], len, hackcp, maxca;
+  double p[3], xyz[3], q[4], len, hackcp=0, maxca;
   double ca, cp, mD[9], mRF[9], mRI[9], mT[9], hack;
   Nrrd *nten;
   mop = airMopNew();
@@ -94,6 +101,11 @@ main(int argc, char *argv[]) {
 	     "location in quaternion quotient space");
   hestOptAdd(&hopt, "ca", "max ca", airTypeDouble, 1, 1, &maxca, "0.8",
 	     "maximum ca to use at bottom edge of triangle");
+  hestOptAdd(&hopt, "w", NULL, airTypeInt, 0, 0, &whole, NULL,
+	     "sample the whole triangle of constant trace, "
+	     "instead of just the "
+	     "sixth of it in which the eigenvalues have the "
+	     "traditional sorted order. ");
   hestOptAdd(&hopt, "hack", "hack", airTypeDouble, 1, 1, &hack, "0.04",
 	     "this is a hack");
   hestOptAdd(&hopt, "v", "version", airTypeInt, 1, 1, &version, "1",
@@ -130,11 +142,19 @@ main(int argc, char *argv[]) {
   washQtoM3(mRF, q);
   ELL_3M_TRANSPOSE(mRI, mRF);
   for (yi=0; yi<samp; yi++) {
-    ca = AIR_AFFINE(0, yi, samp-1, hack, maxca);
-    hackcp = AIR_AFFINE(0, yi, samp-1, hack, 0);
+    if (whole) {
+      ca = AIR_AFFINE(0, yi, samp-1, 0.0, 1.0);
+    } else {
+      ca = AIR_AFFINE(0, yi, samp-1, hack, maxca);
+      hackcp = AIR_AFFINE(0, yi, samp-1, hack, 0);
+    }
     for (xi=0; xi<=yi; xi++) {
-      cp = AIR_AFFINE(0, xi, samp-1, hackcp, maxca-hack/2.0);
-      _cap2xyz(xyz, ca, cp, version);
+      if (whole) {
+	cp = AIR_AFFINE(0, xi, samp-1, 0.0, 1.0);
+      } else {
+	cp = AIR_AFFINE(0, xi, samp-1, hackcp, maxca-hack/2.0);
+      }
+      _cap2xyz(xyz, ca, cp, version, whole);
       /*
       fprintf(stderr, "%s: (%d,%d) -> (%g,%g) -> %g %g %g\n", me,
 	      yi, xi, ca, cp, xyz[0], xyz[1], xyz[2]);
