@@ -45,6 +45,8 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
   }
   (*mttP)->ans = (*mttP)->gctx->pvl[0]->ans;
   (*mttP)->norm = (*mttP)->ans + gageKindScl->ansOffset[gageSclNormal];
+  (*mttP)->nPerp = (*mttP)->ans + gageKindScl->ansOffset[gageSclNPerp];
+  (*mttP)->gten = (*mttP)->ans + gageKindScl->ansOffset[gageSclGeomTens];
   for (msi=0; msi<=MITE_SCL_MAX; msi++) {
     (*mttP)->mscl[msi] = 0.0;
   }

@@ -196,9 +196,12 @@ enum {
   miteSclTi,            /*  7: "Ti", ray index (ray sample #) */
   miteSclNdotV,         /*  8: "NdotV", surface normal dotted w/ view vector
 			        (towards eye) */
+  miteSclNdotL,         /*  9: "NdotL", surface normal dotted w/ light vector
+			        (towards the light source) */
+  miteSclGTdotV,        /* 10: "GTdotV", normal curvature in view direction */
   miteSclLast
 };
-#define MITE_SCL_MAX        8
+#define MITE_SCL_MAX       10
 
 /*
 ******** miteThread
@@ -208,7 +211,9 @@ enum {
 typedef struct miteThread_t {
   gageContext *gctx;            /* per-thread context */
   gage_t *ans,                  /* shortcut to gctx->pvl[0]->ans */
-    *norm,                      /* shortcut to ans[...normal...] */
+    *norm,                      /* shortcut to ans[gageSclNormal] */
+    *nPerp,                     /* shortcut to ans[gageSclNPerp] */
+    *gten,                      /* shortcut to ans[gageSclGeomTens] */
     mscl[MITE_SCL_MAX+1];       /* all the miteScl */
   int verbose,                  /* blah blah blah */
     thrid,                      /* thread ID */

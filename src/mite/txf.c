@@ -39,7 +39,9 @@ _miteSclStr[][AIR_STRLEN_SMALL] = {
   "Zi",
   "Tw",
   "Ti",
-  "NdotV"
+  "NdotV",
+  "NdotL",
+  "GTdotV"
 };
 
 int
@@ -53,7 +55,9 @@ _miteSclVal[] = {
   miteSclZi,
   miteSclTw,
   miteSclTi,
-  miteSclNdotV
+  miteSclNdotV,
+  miteSclNdotL,
+  miteSclGTdotV,
 };
 
 char
@@ -67,6 +71,8 @@ _miteSclStrEqv[][AIR_STRLEN_SMALL] = {
   "t", "tw",
   "ti",
   "ndotv",
+  "ndotl",
+  "gtdotv",
   ""
 };
 
@@ -80,7 +86,9 @@ _miteSclValEqv[] = {
   miteSclZi,
   miteSclTw, miteSclTw,
   miteSclTi,
-  miteSclNdotV
+  miteSclNdotV,
+  miteSclNdotL,
+  miteSclGTdotV
 };
 
 airEnum
@@ -132,7 +140,8 @@ _miteDomainParse(char *label, gageKind *kind) {
     /* txf domain variable is not directly measured by gage */
     domI = airEnumVal(miteScl, label);
     if (miteSclUnknown == domI) {
-      sprintf(err, "%s: couldn't parse \"%s\" as a miteScl variable", me, label);
+      sprintf(err, "%s: couldn't parse \"%s\" as a miteScl variable",
+	      me, label);
       biffAdd(MITE, err); return -1;
     }
     /* this signifies that its a miteScl, not a gageScl */
@@ -231,6 +240,15 @@ _miteNtxfQuery(Nrrd *ntxf, gageKind *kind) {
     dom = _miteDomainParse(ntxf->axis[i].label, kind);
     if (AIR_IN_OP(gageSclUnknown, dom, gageSclLast)) {
       query |= 1 << dom;
+    } else {
+      /* of all places, this is where we set gage queries that
+	 are required for miteScl txf domain variables */
+      dom -= GAGE_SCL_MAX+1;
+      switch(dom) {
+      case miteSclNdotV: query |= 1 << gageSclNormal; break;
+      case miteSclNdotL: query |= 1 << gageSclNormal; break;
+      case miteSclGTdotV: query |= 1 << gageSclGeomTens; break;
+      }
     }
   }
   return query;

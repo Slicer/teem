@@ -101,6 +101,7 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
 	   double samplePosIndex[3]) {
   char me[]="miteSample", err[AIR_STRLEN_MED];
   mite_t R, G, B, A;
+  double kn[3], knd[3], len;
 
   if (!inside) {
     return mtt->rayStep;
@@ -117,6 +118,7 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
     sprintf(err, "%s: gage trouble: %s (%d)", me, gageErrStr, gageErrNum);
     biffAdd(MITE, err); return AIR_NAN;
   }
+  /* HEY: NONE of this should be done if the txfs don't need any miteScl */
   mtt->mscl[miteSclXw] = samplePosWorld[0];
   mtt->mscl[miteSclXi] = samplePosIndex[0];
   mtt->mscl[miteSclYw] = samplePosWorld[1];
@@ -126,6 +128,13 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
   mtt->mscl[miteSclTw] = rayT;
   mtt->mscl[miteSclTi] = num;
   mtt->mscl[miteSclNdotV] = -muu->normalSide*ELL_3V_DOT(mtt->V, mtt->norm);
+  mtt->mscl[miteSclNdotL] = -muu->normalSide*ELL_3V_DOT(mtt->V,
+							muu->lit->dir[0]);
+  ELL_3MV_MUL(kn, mtt->nPerp, mtt->V);
+  ELL_3V_NORM(kn, kn, len);
+  ELL_3MV_MUL(knd, mtt->gten, kn);
+  mtt->mscl[miteSclGTdotV] = ELL_3V_DOT(knd, kn);
+  
   memcpy(mtt->range, muu->rangeInit, MITE_RANGE_NUM*sizeof(mite_t));
   _miteStageRun(mtt);
   if (mtt->range[miteRangeAlpha]) {
