@@ -47,7 +47,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   NrrdKernelSpec *unuk;
 
   hparm->elideSingleOtherDefault = AIR_FALSE;
-  hestOptAdd(&opt, "s", "s0 ", airTypeOther, 1, -1, &scale, NULL,
+  hestOptAdd(&opt, "s", "sz0", airTypeOther, 1, -1, &scale, NULL,
 	     "For each axis, information about how many samples in output:\n "
 	     "\b\bo \"=\": leave this axis completely untouched: no "
 	     "resampling whatsoever\n "

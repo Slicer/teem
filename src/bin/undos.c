@@ -200,7 +200,7 @@ main(int argc, char *argv[]) {
 
   me = argv[0];
   hestOptAdd(&hopt, "r", NULL, airTypeInt, 0, 0, &reverse, NULL,
-	     "convert back to DOS, instead of convert from DOS to normal");
+	     "convert back to DOS, instead of converting from DOS to normal");
   hestOptAdd(&hopt, "q", NULL, airTypeInt, 0, 0, &quiet, NULL,
 	     "never print anything to stderr, even for errors.");
   hestOptAdd(&hopt, "n", NULL, airTypeInt, 0, 0, &noAction, NULL,
