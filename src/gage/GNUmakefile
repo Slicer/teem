@@ -50,7 +50,7 @@ $(L).OBJS = defaultsGage.o miscGage.o scl.o kind.o \
         shape.o pvl.o ctx.o update.o filter.o \
 	print.o sclanswer.o sclprint.o sclfilter.o \
 	vecGage.o vecprint.o st.o
-$(L).TESTS = 
+$(L).TESTS = test/ctfix
 ####
 ####
 ####
