@@ -487,7 +487,7 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
 */
 int
 nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
-  char me[]="nrrdSpatialResample", err[AIR_STRLEN_MED];
+  char me[]="nrrdSpatialResample", func[]="resample", err[AIR_STRLEN_MED];
   float *arr[NRRD_DIM_MAX],   /* intermediate copies of the input data
 				 undergoing resampling; we don't need a full-
 				 fledged nrrd for these.  Only about two of
@@ -583,6 +583,11 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
       tmpF = nrrdFLookup[nin->type](nin->data, I);
       tmpF = nrrdFClamp[typeOut](tmpF);
       nrrdFInsert[typeOut](nout->data, I, tmpF);
+    }
+    nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+    if (nrrdContentSet(nout, func, nin, "")) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
     }
     return 0;
   }
