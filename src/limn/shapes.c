@@ -289,8 +289,8 @@ limnObjPolarSuperquadAdd(limnObj *obj, int sp, int axis,
 	z = airSgnPow(cos(t),A) * airSgnPow(sin(p),B);
 	break;
       case 1:
-	x = airSgnPow(cos(p),B);
-	y = airSgnPow(sin(t),A) * airSgnPow(sin(p),B);
+	x = airSgnPow(sin(t),A) * airSgnPow(sin(p),B);
+	y = airSgnPow(cos(p),B);
 	z = airSgnPow(cos(t),A) * airSgnPow(sin(p),B);
 	break;
       case 2: default:
