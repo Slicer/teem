@@ -1157,7 +1157,7 @@ _nrrdWriteTable (FILE *file, Nrrd *nrrd, NrrdIO *io) {
 void
 _nrrdGuessFormat (NrrdIO *io, const char *filename) {
   int strpos;
-  char suffix[AIR_STRLEN_SMALL];
+  char suffix[AIR_STRLEN_SMALL], *tmp;
 
   /* currently, we play the detached header game whenever the filename
      ends in NRRD_EXT_HEADER, and when we play this game, the data file
@@ -1168,7 +1168,12 @@ _nrrdGuessFormat (NrrdIO *io, const char *filename) {
      be a real drag). */
   strpos = strlen(io->base) - strlen(NRRD_EXT_HEADER);
   if (airEndsWith(filename, NRRD_EXT_HEADER)) {
-    /* HEY: isn't this an out-of-allocated-bounds error? */
+    /* HEY: this stupidity is to avoid an out-of-bounds write */
+    tmp = airStrdup(io->base);
+    AIR_FREE(io->base);
+    io->base = calloc(5*strlen(tmp), sizeof(char));
+    strcpy(io->base, tmp);
+    AIR_FREE(tmp);
     io->base[strpos++] = '.';
     if (nrrdEncodingIsCompression[io->encoding]) {
       sprintf(suffix, "raw.%s", airEnumStr(nrrdEncoding, io->encoding));
