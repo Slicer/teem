@@ -181,7 +181,7 @@ nrrdKernelSpecNew (void) {
   if (ksp) {
     ksp->kernel = NULL;
     for (i=0; i<NRRD_KERNEL_PARMS_NUM; i++) {
-      ksp->parm[i] = airNaN();  /* valgrind complained about AIR_NAN at -02 */
+      ksp->parm[i] = airNaN();  /* valgrind complained about AIR_NAN at -O2 */
     }
   }
   return ksp;
