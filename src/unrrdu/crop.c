@@ -32,9 +32,8 @@ usage() {
   fprintf(stderr, 
 	  "       \"M\", \"M+n\", or \"M-n\", where M signifies top\n");
   fprintf(stderr, 
-	  "       position along its respective axis, and +n/-n is an\n");
-  fprintf(stderr,
-	  "       offset from that position\n");
+	  "       position along its respective axis (#samples - 1),\n");
+  fprintf(stderr, "and +n/-n is an offset from that position\n");
   exit(1);
 }
 
