@@ -242,6 +242,7 @@ airFPGen_f(int cls) {
 double
 airFPGen_d(int cls) {
 #ifdef __sparc
+  fprintf(stderr, "airFPGen_d: WARNING: using floats, not doubles\n");
   return airFPGen_f(cls);
 #else
   _airDouble f;
@@ -377,6 +378,7 @@ airFPClass_f(float val) {
 int
 airFPClass_d(double val) {
 #ifdef __sparc
+  fprintf(stderr, "airFPClass_d: WARNING: using floats, not doubles\n");
   return airFPClass_f(val);
 #else
   _airDouble f;
@@ -447,7 +449,11 @@ airFPClass_d(double val) {
 /*
 ******** airIsNaN()
 **
-** returns 1 if input is either kind of NaN, 0 otherwise
+** returns 1 if input is either kind of NaN, 0 otherwise.  It is okay
+** to only have a a float version of this function, as opposed to
+** having one for float and one for double, because Section 6.2 of the
+** 754 spec tells us that that NaN s to be preserved across precision
+** changes.
 */
 int
 airIsNaN(float g) {
