@@ -383,7 +383,7 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
     parm0 = info->parm[d][0];
     info->parm[d][0] = parm0/ratio;
   }
-  info->kernel[d]->evalN_f(weight, weight, dotLen*sizeOut, info->parm[d]);
+  info->kernel[d]->EVALN(weight, weight, dotLen*sizeOut, info->parm[d]);
   if (ratio < 1) {
     info->parm[d][0] = parm0;
   }
