@@ -26,7 +26,7 @@
 ** returns the number of key/value pairs in a nrrd
 */
 int
-nrrdKeyValueSize(Nrrd *nrrd) {
+nrrdKeyValueSize(const Nrrd *nrrd) {
   
   if (!nrrd) {
     return -1;
@@ -44,7 +44,7 @@ nrrdKeyValueSize(Nrrd *nrrd) {
 ** INTERNAL to the nrrd struct.  DO NOT FREE THEM.
 */
 void
-nrrdKeyValueIndex(Nrrd *nrrd, char **keyP, char **valueP, int ki) {
+nrrdKeyValueIndex(const Nrrd *nrrd, char **keyP, char **valueP, int ki) {
   
   if (!( nrrd && keyP && valueP 
 	 && AIR_IN_CL(0, ki, nrrd->kvpArr->len-1) )) {
@@ -58,7 +58,7 @@ nrrdKeyValueIndex(Nrrd *nrrd, char **keyP, char **valueP, int ki) {
 }
 
 int
-_nrrdKeyValueIdxFind(Nrrd *nrrd, const char *key) {
+_nrrdKeyValueIdxFind(const Nrrd *nrrd, const char *key) {
   int nk, ki;
 
   nk = nrrd->kvpArr->len;
@@ -149,7 +149,7 @@ nrrdKeyValueAdd(Nrrd *nrrd, const char *key, const char *value) {
 ** convenience, not perfect safety (obviously)
 */
 char *
-nrrdKeyValueGet(Nrrd *nrrd, const char *key) {
+nrrdKeyValueGet(const Nrrd *nrrd, const char *key) {
   char *ret;
   int ki;
   
@@ -166,7 +166,7 @@ nrrdKeyValueGet(Nrrd *nrrd, const char *key) {
 }
 
 void
-_nrrdFwriteEscaped(FILE *file, char *str) {
+_nrrdFwriteEscaped(FILE *file, const char *str) {
   int ci;
 
   for (ci=0; ci<strlen(str); ci++) {
@@ -192,7 +192,8 @@ _nrrdFwriteEscaped(FILE *file, char *str) {
 ** prefix (if non-NULL), and ending with "\n"
 */
 int
-_nrrdKeyValueFwrite(FILE *file, char *prefix, char *key, char *value) {
+_nrrdKeyValueFwrite(FILE *file, const char *prefix, 
+		    const char *key, const char *value) {
   
   if (!( file && key && value )) {
     return 1;

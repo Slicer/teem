@@ -561,10 +561,11 @@ extern char *nrrdCommentScan(Nrrd *nrrd, const char *key);
 
 /******** key/value pairs */
 /* keyvalue.c */
-extern int nrrdKeyValueSize(Nrrd *nrrd);
+extern int nrrdKeyValueSize(const Nrrd *nrrd);
 extern int nrrdKeyValueAdd(Nrrd *nrrd, const char *key, const char *value);
-extern char *nrrdKeyValueGet(Nrrd *nrrd, const char *key);
-extern void nrrdKeyValueIndex(Nrrd *nrrd, char **keyP, char **valueP, int ki);
+extern char *nrrdKeyValueGet(const Nrrd *nrrd, const char *key);
+extern void nrrdKeyValueIndex(const Nrrd *nrrd, 
+			      char **keyP, char **valueP, int ki);
 extern int nrrdKeyValueErase(Nrrd *nrrd, const char *key);
 extern void nrrdKeyValueClear(Nrrd *nrrd);
 
