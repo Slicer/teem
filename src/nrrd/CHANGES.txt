@@ -9,6 +9,9 @@ take two final int arguments:
   rescale: values from input nrrd should be affine-rescaled
            from nrrd range to lut/map domain.
 nrrdApply1DIrregMap() uses the same two arguments.
+- API CHANGE: nrrdHistoEq() can no longer allow nin==nout,
+because of restrictions in nrrdApply1DRegMap().  This may
+be fixed some day.
 - API CHANGE: (but no one should notice): added dataFN[]
 (data filename) to NrrdIO struct, basically so that
 "unu make -h" can subvert _nrrdWriteNrrd().
@@ -71,7 +74,10 @@ histogram.c:
 map.c:
 - changed nrrdHistoEq() to use nrrdApply1DRegMap(), 
 changed type of "steady" array to uint, changed type
-of non-smart histogram to uint
+of non-smart histogram to uint.  One result of this is
+that current limitations in nrrdApply1DRegMap() disallow
+nin == nout, which also imposes this (new) restriction
+on nrrdHistoEq(), alas.
 - nrrdMinMaxClever() renamed to nrrdMinMaxCleverSet()
 
 measure.c:
