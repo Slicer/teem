@@ -34,11 +34,10 @@ usage() {
   fprintf(stderr, "    (\"cubic:0.0,C\": all interpolating cubics)\n");
   fprintf(stderr, "  \"quartic:A\": Gordon's family of interpolating quartics\n");
   fprintf(stderr, "     \"quartic:0.25\": most sinc()-like; use this!\n\n");
-  fprintf(stderr, "<size0>, <size1>, ... are sizes along each axis of output\n");
-  fprintf(stderr, "  These can be either less than or greater than original axis size\n");
-  fprintf(stderr, "  size = \"x\": don't resampling along this axis at all\n");
-  fprintf(stderr, "  For non-interpolating kernels, this is different than having\n");
-  fprintf(stderr, "  old size == new size\n\n");
+  fprintf(stderr, "<sizeN> is per-axis resizing info; options are:\n");
+  fprintf(stderr, "  \"!\": no resampling at all on this axis\n");
+  fprintf(stderr, "  <int>: exact number of samples desired\n");
+  fprintf(stderr, "  x<float>: resize ratio; (\"x0.5\": shrink by half)\n");
   exit(1);
 }
 
@@ -48,7 +47,7 @@ main(int argc, char *argv[]) {
   Nrrd *nin, *nout;
   nrrdResampleInfo *info;
   nrrdKernel *kern;
-  float param[NRRD_MAX_KERNEL_PARAMS];
+  float param[NRRD_MAX_KERNEL_PARAMS], ratio;
   int d, size;
 
   info = nrrdResampleInfoNew();
@@ -125,27 +124,38 @@ main(int argc, char *argv[]) {
   */
   for (d=0; d<=nin->dim-1; d++) {
     sizeS = argv[3+d];
-    if (!strcmp("x", sizeS)) {
+    if (!strcmp("!", sizeS)) {
       /* no resampling on this axis desired */
       info->kernel[d] = NULL;
+      continue;
+    }
+    if ('x' == sizeS[0]) {
+      if (1 != sscanf(sizeS+1, "%g", &ratio)) {
+	fprintf(stderr, "%s: couldn't parse float in \"%s\"\n",	me, sizeS);
+	usage();
+      }
+      info->samples[d] = nin->size[d]*ratio;
+      if (!(info->samples[d] > 0)) {
+	fprintf(stderr, "%s: invalid # samples (%d), axis %d (ratio=%g)\n", 
+		me, info->samples[d], d, ratio);
+	usage();
+      }
     }
     else {
       if (1 != sscanf(sizeS, "%d", &size)) {
-	fprintf(stderr, "%s: couldn't parse size %d \"%s\" as int\n", me,
-		d, sizeS);
+	fprintf(stderr, "%s: couldn't parse int in \"%s\"\n", me, sizeS);
 	usage();
       }
       if (!(size > 0)) {
-	fprintf(stderr, "%s: invalid # samples (%d) for axis %d\n", 
-		me, size, d);
+	fprintf(stderr, "%s: invalid # samples (%d), axis %d\n", me, size, d);
 	usage();
       }
-      info->kernel[d] = kern;
-      memcpy(info->param[d], param, NRRD_MAX_KERNEL_PARAMS*sizeof(float));
-      info->min[d] = 0;
-      info->max[d] = nin->size[d]-1;
       info->samples[d] = size;
     }
+    info->kernel[d] = kern;
+    memcpy(info->param[d], param, NRRD_MAX_KERNEL_PARAMS*sizeof(float));
+    info->min[d] = 0;
+    info->max[d] = nin->size[d]-1;
   }
   info->boundary = nrrdBoundaryBleed;
   info->type = nin->type;
