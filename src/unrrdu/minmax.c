@@ -45,8 +45,8 @@ unrrdu_minmaxDoit(char *me, char *inS, FILE *fout) {
 
   range = nrrdRangeNewSet(nrrd, nrrdBlind8BitRangeFalse);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-  airSinglePrintf(stderr, NULL, "min: %f\n", range->min);
-  airSinglePrintf(stderr, NULL, "max: %f\n", range->max);
+  airSinglePrintf(stderr, NULL, "min: %lg\n", range->min);
+  airSinglePrintf(stderr, NULL, "max: %lg\n", range->max);
   if (range->hasNonExist) {
     fprintf(stderr, "# has non-existent values\n");
   }
