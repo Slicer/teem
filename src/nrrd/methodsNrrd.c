@@ -44,6 +44,8 @@ _nrrdIOInit(NrrdIO *io) {
     io->bareTable = nrrdDefWrtBareTable;
     io->charsPerLine = nrrdDefWrtCharsPerLine;
     io->valsPerLine = nrrdDefWrtValsPerLine;
+    io->zlibLevel = -1;
+    io->zlibStrategy = nrrdZlibStrategyDefault;
     io->skipData = AIR_FALSE;
     memset(io->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
   }

@@ -125,6 +125,20 @@ enum {
 #define NRRD_ENCODING_MAX    3
 
 /*
+******** nrrdZlibStrategy enum
+**
+** how gzipped data is compressed
+*/
+enum {
+  nrrdZlibStrategyUnknown,
+  nrrdZlibStrategyDefault,   /* 1: default (Huffman + string match) */
+  nrrdZlibStrategyHuffman,   /* 2: Huffman only */
+  nrrdZlibStrategyFiltered,  /* 3: specialized for filtered data */
+  nrrdZlibStrategyLast
+};
+#define NRRD_ZLIB_STRATEGY_MAX    3
+
+/*
 ******** nrrdMeasure enum
 **
 ** ways to "measure" some portion of the array

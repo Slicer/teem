@@ -245,8 +245,8 @@ _nrrdWriteDataGzip(Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteDataGzip", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
   size_t num, bsize, size, total_written;
-  int block_size, wrote;
-  char *data;
+  int block_size, wrote, fmt_i=0;
+  char *data, fmt[4];
   gzFile gzfout;
   
   /* this shouldn't actually be necessary ... */
@@ -267,8 +267,25 @@ _nrrdWriteDataGzip(Nrrd *nrrd, NrrdIO *io) {
     exit(1);
   }
 
+  /* Set format string based on the NrrdIO parameters. */
+  fmt[fmt_i++] = 'w';
+  if (0 <= io->zlibLevel && io->zlibLevel <= 9)
+    fmt[fmt_i++] = '0' + io->zlibLevel;
+  switch (io->zlibStrategy) {
+  case nrrdZlibStrategyHuffman:
+    fmt[fmt_i++] = 'h';
+    break;
+  case nrrdZlibStrategyFiltered:
+    fmt[fmt_i++] = 'f';
+    break;
+  case nrrdZlibStrategyDefault:
+  default:
+    break;
+  }
+  fmt[fmt_i] = 0;
+
   /* Create the gzFile for writing in the gzipped data. */
-  if (!(gzfout = _nrrdGzOpen(io->dataFile, "w"))) {
+  if (!(gzfout = _nrrdGzOpen(io->dataFile, fmt))) {
     /* there was a problem */
     sprintf(err, "%s: error opening gzFile", me);
     biffAdd(NRRD, err);

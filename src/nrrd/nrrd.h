@@ -117,6 +117,11 @@ typedef struct {
 			       data, instead setting nrrd->data to
 			       NULL.  This results in a broken Nrrd,
 			       so be careful. */
+    zlibLevel,              /* zlib compression level (0-9, -1 for
+			       default). */
+    zlibStrategy,           /* zlib compression strategy, can be one
+			       of the nrrdZlibStrategy enums, default is
+			       nrrdZlibStrategyDefault. */
     seen[NRRD_FIELD_MAX+1]; /* for error checking in header parsing */
 } NrrdIO;
 
