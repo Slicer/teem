@@ -1,6 +1,6 @@
 test regular and irregular colormaps with only 2 points
 
-1D irregular maps, 2D luts/rmaps
+2D luts/rmaps
 
 check resampler getting info with NULL kernel on each axis
 (bug that Joe and I had with qbert when no resmapling was needed)
@@ -14,20 +14,22 @@ nrrdContentSet
 nrrdConvert
 nrrdQuantize
 
-change nrrdHistoEq to use 1D regular maps, allow learning of mapping used.
-
 write a select() function to replace qsort() in median calculation
 
 gzip encoding
 
+change verbosity to get back the "reading data ..." messages.
+
 ----- teem 1.5 cut-off -----
+
+allow web-friendly image output: BMP, and maybe uncompressed GIF
 
 Bricking!
 
 kernels: teach them their derivatives, or if they are derivatives,
 and how accurate they are.  Perhaps kernels don't actually belong in nrrd.
 
-split ?
+split?  (reverse of join)
 
 magic death: some string that causes nrrdRead to exit(0) (or something
 else abortive) when read as magic, to fix annoyance with string of unu
