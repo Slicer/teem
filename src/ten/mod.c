@@ -55,7 +55,9 @@ tenSizeNormalize(Nrrd *nout, Nrrd *nin, float _weight[3],
   N = nrrdElementNumber(nin)/7;
   for (I=0; I<=N-1; I++) {
     tenEigensolve(eval, evec, tin);
-    size = ELL_3V_DOT(weight, eval);
+    size = (weight[0]*AIR_ABS(eval[0])
+	    + weight[1]*AIR_ABS(eval[1])
+	    + weight[2]*AIR_ABS(eval[2]));
     eval[0] = AIR_AFFINE(0, amount, 1, eval[0], eval[0]/size);
     eval[1] = AIR_AFFINE(0, amount, 1, eval[1], eval[1]/size);
     eval[2] = AIR_AFFINE(0, amount, 1, eval[2], eval[2]/size);
