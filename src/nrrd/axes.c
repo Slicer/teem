@@ -580,6 +580,7 @@ nrrdAxisSpacingSet(Nrrd *nrrd, int ax) {
   /* the skinny */
   nrrd->axis[ax].spacing = NRRD_SPACING(_nrrdCenter(nrrd->axis[ax].center),
 					min, max, nrrd->axis[ax].size);
+  nrrd->axis[ax].spacing *= sign;
 
   return;
 }
