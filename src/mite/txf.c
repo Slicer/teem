@@ -299,7 +299,7 @@ _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
 int
 _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu) {
   char me[]="_miteNtxfAlphaAdjust", err[AIR_STRLEN_MED];
-  int ni, ei, ri, enum, rnum;
+  int ni, ei, ri, nnum, rnum;
   Nrrd *ntxf;
   mite_t *data, alpha, frac;
   
@@ -315,8 +315,8 @@ _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu) {
     /* else this txf sets opacity */
     data = ntxf->data;
     rnum = ntxf->axis[0].size;
-    enum = nrrdElementNumber(ntxf)/rnum;
-    for (ei=0; ei<enum; ei++) {
+    nnum = nrrdElementNumber(ntxf)/rnum;
+    for (ei=0; ei<nnum; ei++) {
       for (ri=0; ri<rnum; ri++) {
 	if (ntxf->axis[0].label[ri] == miteRangeChar[miteRangeAlpha]) {
 	  alpha = data[ri + rnum*ei];
