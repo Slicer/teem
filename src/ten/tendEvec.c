@@ -29,7 +29,7 @@ int
 tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
-  char *perr, *err;
+  char *perr, *err, errbuff[AIR_STRLEN_MED];
   airArray *mop;
 
   int ret, *comp, compLen, cc, sx, sy, sz;
@@ -105,8 +105,8 @@ tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
   }
   if (nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_SIZE_BIT)) {
-    sprintf(err, "%s: trouble", me);
-    biffMove(TEN, err, NRRD); return 1;
+    sprintf(errbuff, "%s: trouble", me);
+    biffMove(TEN, errbuff, NRRD); return 1;
   }
   AIR_FREE(nout->axis[0].label);
 
