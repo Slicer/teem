@@ -53,7 +53,7 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   fclose(fin);
-  if (!(NRRD_INSIDE(0, axis, nin->dim-1))) {
+  if (!(AIR_INSIDE(0, axis, nin->dim-1))) {
     fprintf(stderr, "%s: given axis (%d) outside range [0,%d]\n",
 	    me, axis, nin->dim-1);
     exit(1);
