@@ -58,9 +58,10 @@ _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
 	 || nrrdTypeInt == nrrd->type
 	 || nrrdTypeFloat == nrrd->type
 	 || nrrdTypeDouble == nrrd->type )) {
-    sprintf(err, "%s: type must be %s, %s, %s, %s, or %s (not %s)", me,
+    sprintf(err, "%s: type must be %s, %s, %s, %s, %s, or %s (not %s)", me,
 	    airEnumStr(nrrdType, nrrdTypeUChar),
 	    airEnumStr(nrrdType, nrrdTypeShort),
+	    airEnumStr(nrrdType, nrrdTypeUShort),
 	    airEnumStr(nrrdType, nrrdTypeInt),
 	    airEnumStr(nrrdType, nrrdTypeFloat),
 	    airEnumStr(nrrdType, nrrdTypeDouble),
