@@ -29,7 +29,7 @@
 ## If external EXT is enabled during make, then TEEM_EXT will be
 ## defined during source file compilation.
 ##
-XTERNS = ZLIB
+XTERNS = ZLIB BZIP2
 
 ## ZLIB: for the zlib library underlying gzip and the PNG image
 ## format.  Using zlib enables the "gzip" nrrd data encoding.  Header
@@ -38,3 +38,11 @@ XTERNS = ZLIB
 ## for the compile and link lines, respectively.
 ZLIB.LINK = -lz
 nrrd.XTERN += ZLIB
+
+## BZIP2: for the bzip2 library.  Using bzip2 enables the "bzip2" 
+## nrrd data encoding.  Header file is <bzlib.h>.  Arch-specific 
+## .mk files may need to set TEEM_BZIP2.IPATH and TEEM_BZIP2.LPATH 
+## to "-I<path>" and "-L<path>" for the compile and link lines, 
+## respectively.
+BZIP2.LINK = -lbz2
+nrrd.XTERN += BZIP2

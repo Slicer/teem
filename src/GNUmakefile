@@ -184,12 +184,6 @@ CFLAGS += -DTEEM_32BIT=$(TEEM_32BIT)
 ##
 CFLAGS += $(TEEM_CPP_ERROR_DIE)
 
-## if the customer wishes to use gzip compressed nrrd data
-##
-ifeq (true,$(TEEM_ZLIB))
-  CFLAGS += -DTEEM_ZLIB
-endif
-
 ## If using purify, set P to all the purify stuff that will prefix
 ## compile and link commands
 ## 

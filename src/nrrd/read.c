@@ -20,7 +20,7 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-#if TEEM_BZLIB
+#if TEEM_BZIP2
 #include <bzlib.h>
 #endif
 
@@ -473,7 +473,7 @@ _nrrdReadDataGzip(Nrrd *nrrd, NrrdIO *io) {
 int
 _nrrdReadDataBzip2(Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadDataBzip2", err[AIR_STRLEN_MED];
-#if TEEM_BZLIB
+#if TEEM_BZIP2
   size_t num, bsize, size, total_read;
   int block_size, read, i, bzerror=BZ_OK;
   char *data;

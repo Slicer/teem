@@ -46,7 +46,7 @@ _nrrdIOInit(NrrdIO *io) {
     io->valsPerLine = nrrdDefWrtValsPerLine;
     io->zlibLevel = -1;
     io->zlibStrategy = nrrdZlibStrategyDefault;
-    io->bzlibBlockSize = -1;
+    io->bzip2BlockSize = -1;
     io->skipData = AIR_FALSE;
     memset(io->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
   }

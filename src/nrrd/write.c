@@ -21,7 +21,7 @@
 #include "privateNrrd.h"
 #include <teem32bit.h>
 
-#if TEEM_BZLIB
+#if TEEM_BZIP2
 #include <bzlib.h>
 #endif
 
@@ -353,9 +353,9 @@ _nrrdWriteDataGzip(Nrrd *nrrd, NrrdIO *io) {
 int
 _nrrdWriteDataBzip2(Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteDataBzip2", err[AIR_STRLEN_MED];
-#if TEEM_BZLIB
+#if TEEM_BZIP2
   size_t num, bsize, size, total_written;
-  int block_size, wrote, bs, bzerror=BZ_OK;
+  int block_size, bs, bzerror=BZ_OK;
   char *data;
   BZFILE* bzfout;
 
@@ -378,8 +378,8 @@ _nrrdWriteDataBzip2(Nrrd *nrrd, NrrdIO *io) {
   }
 
   /* Set compression block size. */
-  if (1 <= io->bzlibBlockSize && io->bzlibBlockSize <= 9) {
-    bs = io->bzlibBlockSize;
+  if (1 <= io->bzip2BlockSize && io->bzip2BlockSize <= 9) {
+    bs = io->bzip2BlockSize;
   } else {
     bs = 9;
   }
@@ -432,7 +432,7 @@ _nrrdWriteDataBzip2(Nrrd *nrrd, NrrdIO *io) {
   /* Close the BZFILE. */
   BZ2_bzWriteClose(&bzerror, bzfout, 0, NULL, NULL);
   if (bzerror != BZ_OK) {
-    sprintf(err, "%s: error closing BZFILE", me,
+    sprintf(err, "%s: error closing BZFILE: %s", me,
 	    BZ2_bzerror(bzfout, &bzerror));
     biffAdd(NRRD, err);
     return 1;

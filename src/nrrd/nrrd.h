@@ -122,8 +122,8 @@ typedef struct {
     zlibStrategy,           /* zlib compression strategy, can be one
 			       of the nrrdZlibStrategy enums, default is
 			       nrrdZlibStrategyDefault. */
-    bzlibBlockSize,         /* bzlib block size, roughly equivalent
-			       to better but slower compression
+    bzip2BlockSize,         /* block size used for compression, 
+			       roughly equivalent to better but slower
 			       (1-9, -1 for default[9]). */
     seen[NRRD_FIELD_MAX+1]; /* for error checking in header parsing */
 } NrrdIO;
