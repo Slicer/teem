@@ -177,19 +177,25 @@ _alanPerIteration(alanContext *actx, int iter) {
   char me[]="_alanPerIteration", fname[AIR_STRLEN_MED];
   Nrrd *nslc, *nimg;
 
-  if (actx->verbose && !(iter % 100)) {
-    fprintf(stderr, "%s: iter = %d, averageChange = %g\n",
-	    me, iter, actx->averageChange);
+  if (!(actx->saveInterval || actx->frameInterval)) {
+    if (actx->verbose && !(iter % 100)) {
+      fprintf(stderr, "%s: iter = %d, averageChange = %g\n",
+	      me, iter, actx->averageChange);
+    }
   }
   if (actx->saveInterval && !(iter % actx->saveInterval)) {
     sprintf(fname, "%06d.nrrd", actx->constFilename ? 0 : iter);
     nrrdSave(fname, actx->_nlev[(iter+1) % 2], NULL);
+    fprintf(stderr, "%s: iter = %d, averageChange = %g, saved %s\n",
+	    me, iter, actx->averageChange, fname);
   }
   if (actx->frameInterval && !(iter % actx->frameInterval)) {
     nrrdSlice(nslc=nrrdNew(), actx->_nlev[(iter+1) % 2], 0, 0);
     nrrdQuantize(nimg=nrrdNew(), nslc, NULL, 8);
     sprintf(fname, "%06d.png", actx->constFilename ? 0 : iter);
     nrrdSave(fname, nimg, NULL);
+    fprintf(stderr, "%s: iter = %d, averageChange = %g, saved %s\n",
+	    me, iter, actx->averageChange, fname);
     nrrdNuke(nslc);
     nrrdNuke(nimg);
   }
@@ -271,18 +277,18 @@ _alanTuring2DWorker(void *_task) {
 	lapA = v[1][0] + v[3][0] + v[5][0] + v[7][0] - 4*A;
 	lapB = v[1][1] + v[3][1] + v[5][1] + v[7][1] - 4*B;
 	
-	deltaA = task->actx->K*(alpha - A*B) + diffA*lapA;
+	deltaA = speed*(task->actx->K*(alpha - A*B) + diffA*lapA);
 	if (AIR_ABS(deltaA) > task->actx->maxPixelChange) {
 	  stop = alanStopDiverged;
 	}
 	change += AIR_ABS(deltaA);
-	deltaB = task->actx->K*(A*B - B - beta) + diffB*lapB;
+	deltaB = speed*(task->actx->K*(A*B - B - beta) + diffB*lapB);
 	if (!( AIR_EXISTS(deltaA) && AIR_EXISTS(deltaB) )) {
 	  stop = alanStopNonExist;
 	}
 	
-	A += speed*deltaA;
-	B += speed*deltaB;  
+	A += deltaA;
+	B += deltaB;  
 	B = AIR_MAX(0, B);
 	lev1[0 + 2*idx] = A;
 	lev1[1 + 2*idx] = B; 

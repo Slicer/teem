@@ -47,7 +47,7 @@ alanContextInit(alanContext *actx) {
     actx->initA = actx->initB = 0;
     actx->diffA = actx->diffB = 0;
     actx->perIteration = NULL;
-    actx->randRange = 0.01;
+    actx->randRange = 3;
     actx->_nlev[0] = nrrdNuke(actx->_nlev[0]);
     actx->_nlev[1] = nrrdNuke(actx->_nlev[1]);
     actx->nlev = actx->_nlev[0];

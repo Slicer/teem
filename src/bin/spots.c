@@ -37,7 +37,7 @@ main(int argc, char *argv[]) {
   char *outS;
   alanContext *actx;
   int *size, sizeLen, fi, si, wrap, nt, cfn;
-  double speed, mch, alphabeta[2], time0, time1;
+  double speed, mch, alphabeta[2], time0, time1, H;
   Nrrd *ninit=NULL, *nparm=NULL;
 
   me = argv[0];
@@ -52,9 +52,11 @@ main(int argc, char *argv[]) {
 	     "the growth and decay parameters appearing in the reaction "
 	     "terms of the reaction-diffusion equations.  The default "
 	     "values were the ones published by Turing.");
-  hestOptAdd(&hopt, "speed", "speed", airTypeDouble, 1, 1, &speed, "1.0",
+  hestOptAdd(&hopt, "dt", "time", airTypeDouble, 1, 1, &speed, "1.0",
 	     "time-step size in Euler integration.  Can be larger, at "
 	     "risk of hitting divergent instability.");
+  hestOptAdd(&hopt, "dx", "size", airTypeDouble, 1, 1, &H, "1.0",
+	     "nominal size of simulation grid element.");
   hestOptAdd(&hopt, "mch", "change", airTypeDouble, 1, 1, &mch, "0.00001",
 	     "the minimum change, averaged over the whole texture, in the "
 	     "first morphogen, that signifies convergence");
@@ -99,6 +101,7 @@ main(int argc, char *argv[]) {
       || alanParmSet(actx, alanParmAlpha, alphabeta[0])
       || alanParmSet(actx, alanParmBeta, alphabeta[1])
       || alanParmSet(actx, alanParmSpeed, speed)
+      || alanParmSet(actx, alanParmH, H)
       || alanParmSet(actx, alanParmMinAverageChange, mch)
       || alanParmSet(actx, alanParmSaveInterval, si)
       || alanParmSet(actx, alanParmFrameInterval, fi)
