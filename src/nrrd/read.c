@@ -821,7 +821,7 @@ _nrrdReadNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io) {
 
 int
 _nrrdReadPNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
-  char me[]="_nrrdReadPNM", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadPNM", err[AIR_STRLEN_MED], *perr;
   const char *fs;
   int i, color, got, want, len, ret, val[5], sx, sy, max;
   
@@ -897,12 +897,13 @@ _nrrdReadPNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
 	goto plain;
       }
       if (!io->seen[ret] 
-	  && _nrrdReadNrrdParseInfo[ret](nrrd, io, AIR_FALSE)) {
+	  && _nrrdReadNrrdParseInfo[ret](nrrd, io, AIR_TRUE)) {
+	perr = biffGetDone(NRRD);
 	if (nrrdStateVerboseIO) {
-	  fprintf(stderr,
-		  "(%s: unparsable info for field \"%s\" --> plain comment)\n",
-		  me, fs);
+	  fprintf(stderr, "(%s: unparsable info for field \"%s\" "
+		  "--> plain comment:\n%s)\n", me, fs, perr);
 	}
+	free(perr);
 	ret = 0;
 	goto plain;
       }
