@@ -53,14 +53,12 @@ main(int argc, char *argv[]) {
     free(err);
     exit(1);
   }
-  fprintf(stderr, "bingo 2\n");
   if (nrrdSave(outStr, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error writing nrrd:\n%s", me, err);
     free(err);
     exit(1);
   }
-  fprintf(stderr, "bingo 3\n");
 
   nrrdNuke(nin);
   nrrdNuke(nout);

@@ -694,6 +694,8 @@ nrrdBlock(Nrrd *nout, Nrrd *nin) {
 
   numEl = nin->axis[0].size;;
   nout->blockSize = numEl*nrrdElementSize(nin);
+  fprintf(stderr, "%s: nout->blockSize = %d * %d = %d\n", me,
+	  numEl, nrrdElementSize(nin), nout->blockSize);
   for (d=0; d<=nin->dim-2; d++) {
     map[d] = d+1;
   }
@@ -768,6 +770,7 @@ nrrdUnblock(Nrrd *nout, Nrrd *nin, int type) {
     sprintf(err, "%s: failed to allocate output", me);
     biffAdd(NRRD, err); return 1;
   }
+  memcpy(nout->data, nin->data, nin->num*nrrdElementSize(nin));
   if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_NONE)) {
     sprintf(err, "%s: failed to copy axes", me);
     biffAdd(NRRD, err); return 1;

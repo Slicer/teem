@@ -211,24 +211,24 @@ nrrdAxesSet_va(Nrrd *nrrd, int axInfo, ...) {
     switch (axInfo) {
     case nrrdAxesInfoSize:
       info.I[d] = va_arg(ap, int);
-      printf("!%s: got int[%d] = %d\n", "nrrdAxesSet_va", d, info.I[d]);
+      /* printf("!%s: got int[%d] = %d\n", "nrrdAxesSet_va", d, info.I[d]); */
       break;
     case nrrdAxesInfoCenter:
       info.I[d] = va_arg(ap, int);
-      printf("!%s: got int[%d] = %d\n", "nrrdAxesSet_va", d, info.I[d]);
+      /* printf("!%s: got int[%d] = %d\n", "nrrdAxesSet_va", d, info.I[d]); */
       break;
     case nrrdAxesInfoSpacing:
     case nrrdAxesInfoMin:
     case nrrdAxesInfoMax:
       info.D[d] = va_arg(ap, double);
-      printf("!%s: got double[%d] = %lg\n", "nrrdAxesSet_va", d, info.D[d]);
+      /* printf("!%s: got double[%d] = %lg\n", "nrrdAxesSet_va", d, info.D[d]); */
       break;
     case nrrdAxesInfoLabel:
       /* we DO NOT do the airStrdup() here because this pointer value is
 	 just going to be handed to nrrdAxesSet(), which WILL do the
 	 airStrdup(); we're not violating the rules for axis labels */
       info.CP[d] = va_arg(ap, char *);
-      printf("!%s: got char*[%d] = |%s|\n", "nrrdAxesSet_va", d, info.CP[d]);
+      /* printf("!%s: got char*[%d] = |%s|\n", "nrrdAxesSet_va", d, info.CP[d]); */
       break;
     }
   }
@@ -287,7 +287,6 @@ nrrdAxesGet(Nrrd *nrrd, int axInfo, void *_info) {
 
   return;
 }
-
 void
 nrrdAxesGet_va(Nrrd *nrrd, int axInfo, ...) {
   void *space[NRRD_DIM_MAX], *ptr;
@@ -310,25 +309,25 @@ nrrdAxesGet_va(Nrrd *nrrd, int axInfo, ...) {
     switch (axInfo) {
     case nrrdAxesInfoSize:
       *((int*)ptr) = info.I[d];
-      printf("!%s: got int[%d] = %d\n", "nrrdAxesGet_va", d, *((int*)ptr));
+      /* printf("!%s: got int[%d] = %d\n", "nrrdAxesGet_va", d, *((int*)ptr)); */
       break;
     case nrrdAxesInfoCenter:
       *((int*)ptr) = info.I[d];
-      printf("!%s: got int[%d] = %d\n", "nrrdAxesGet_va", d, *((int*)ptr));
+      /* printf("!%s: got int[%d] = %d\n", "nrrdAxesGet_va", d, *((int*)ptr)); */
       break;
     case nrrdAxesInfoSpacing:
     case nrrdAxesInfoMin:
     case nrrdAxesInfoMax:
       *((double*)ptr) = info.D[d];
-      printf("!%s: got double[%d] = %lg\n", "nrrdAxesGet_va", d, 
-	     *((double*)ptr));
+      /* printf("!%s: got double[%d] = %lg\n", "nrrdAxesGet_va", d,
+       *((double*)ptr)); */
       break;
     case nrrdAxesInfoLabel:
       /* we DO NOT do the airStrdup() here because this pointer value just
 	 came from nrrdAxesGet(), which already did the airStrdup() */
       *((char**)ptr) = info.CP[d];
-      printf("!%s: got char*[%d] = |%s|\n", "nrrdAxesSet_va", d, 
-	     *((char**)ptr));
+      /* printf("!%s: got char*[%d] = |%s|\n", "nrrdAxesSet_va", d, 
+       *((char**)ptr)); */
       break;
     }
   }

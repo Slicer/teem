@@ -114,6 +114,7 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
   period = length*nin->axis[axis].size;
 
   /* allocate space if necessary */
+  nout->blockSize = nin->blockSize;
   if (nrrdMaybeAlloc(nout, nin->num/nin->axis[axis].size, 
 		     nin->type, nin->dim-1)) {
     sprintf(err, "%s: failed to create slice", me);
@@ -217,6 +218,7 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
     nrrdAxisRange(&(nout->axis[d].min), &(nout->axis[d].max),
 		  nout, d, min[d], max[d]);
   }
+  nout->blockSize = nin->blockSize;
   if (nrrdMaybeAlloc(nout, numOut, nin->type, dim)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;

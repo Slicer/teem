@@ -148,7 +148,7 @@ _nrrdWriteDataRaw(Nrrd *nrrd, nrrdIO *io) {
   }
   else {
     if (AIR_DIO && nrrdFormatNRRD == io->format) {
-      fprintf(stderr, "with fwrite()%d ... ", dio); fflush(stderr);
+      fprintf(stderr, "with fwrite()%d ... ", (int)dio); fflush(stderr);
     }
     ret = fwrite(nrrd->data, nrrdElementSize(nrrd), nrrd->num, io->dataFile);
     if (ret != nrrd->num) {
