@@ -31,7 +31,7 @@
 int
 nrrdCommentAdd(Nrrd *nrrd, const char *_str) {
   char /* me[]="nrrdCommentAdd", err[512], */ *str;
-  int i, len;
+  int i;
   
   if (!(nrrd && _str)) {
     /*
@@ -49,15 +49,6 @@ nrrdCommentAdd(Nrrd *nrrd, const char *_str) {
   if (!str) {
     /*
     sprintf(err, "%s: couldn't strdup given string", me);
-    biffMaybeAdd(NRRD, err, useBiff);
-    */
-    return 1;
-  }
-  len = strlen(str);
-  if (len >= NRRD_STRLEN_COMMENT) {
-    /*
-    sprintf(err, "%s: cmt's length (%d) exceeds max (%d)", 
-	    me, len, NRRD_STRLEN_COMMENT);
     biffMaybeAdd(NRRD, err, useBiff);
     */
     return 1;
