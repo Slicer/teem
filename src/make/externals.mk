@@ -23,14 +23,14 @@
 ## notion of depending on these in the makefile sense.  Teem doesn't
 ## try to represent inter-external dependencies (e.g. PNG on zlib)
 ## explicitly, but the ordering of the xterns below has to reflect
-## the ordering on the link line (e.g. PNG precides ZLIB)
+## the ordering on the link line (e.g. PNG preceeds ZLIB)
 ##
 ## Extern EXT is enabled during make by setting the environment
 ## variable TEEM_EXT (just set it, not to anything in particular).  If
 ## external EXT is enabled during make, then TEEM_EXT will be defined
 ## as "1" during source file compilation.
 ##
-XTERNS = PNG ZLIB BZIP2
+XTERNS = PNG ZLIB BZIP2 PTHREAD
 
 ## ZLIB: for the zlib library underlying gzip and the PNG image
 ## format.  Using zlib enables the "gzip" nrrd data encoding.  Header
@@ -59,3 +59,12 @@ nrrd.XTERN += BZIP2
 ## link lines, respectively.
 PNG.LINK = -lpng
 nrrd.XTERN += PNG
+
+## PTHREAD: pthread-based multi-threading, makes hoover suck less
+## Header file is <pthread.h>
+##
+## Arch-specific .mk files may need to set TEEM_PTHREAD_IPATH and
+## TEEM_PTHREAD_LPATH to "-I<path>" and "-L<path>" for the compile and
+## link lines, respectively.
+PTHREAD.LINK = -lpthread
+hoover.XTERN += PTHREAD
