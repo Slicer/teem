@@ -226,71 +226,12 @@ nrrdNewMedian(Nrrd *nin, int radius, int bins) {
   return nout;
 }
 
-double
-nrrdBCCubicKernel(double x, double *arg) {
-  double B, C;
-  
-  if (!AIR_EXISTS(x))
-    return 2.0;
-
-  B = arg[0];
-  C = arg[1];
-  x = x < 0 ? -x : x;
-  if (x >= 2.0)
-    return 0;
-  if (x >= 1.0)
-    return (((-B/6 - C)*x + B + 5*C)*x -2*B - 8*C)*x + 4*B/3 + 4*C;
-  /* else */
-  return ((2 - 3*B/2 - C)*x + (-3 + 2*B + C))*x*x + 1 - B/3;
-}
-
-double
-nrrdACubicKernel(double x, double *arg) {
-
-  if (!AIR_EXISTS(x))
-    return 2.0;
-
-  return 0;
-}
-
-double
-nrrdGaussianKernel(double x, double *arg) {
-
-  return 0;
-}
-
-double
-nrrdTentKernel(double x, double *arg) {
-
-  if (!AIR_EXISTS(x))
-    return 1.0;
-
-  x = x < 0 ? -x : x;
-  if (x >= 1.0)
-    return 0;
-  /* else */
-  return 1 - x;
-}
-
-double
-nrrdBoxKernel(double x, double *arg) {
-
-  if (!AIR_EXISTS(x))
-    return 0.5;
-
-  x = x < 0 ? -x : x;
-  if (x > 0.5)
-    return 0.0;
-  /* else */
-  return 1.0;
-}
-
 /*
 void
 _nrrdSpatialResampleF(float *in, NRRD_BIG_INT lengthIn,
 		      float *out, NRRD_BIG_INT lengthOut,
 		      float min, float max, int clamp,
-		      NrrdResampleInfo *info) {
+		      nrrdResampleInfo *info) {
 
 }
 */
@@ -299,13 +240,9 @@ _nrrdSpatialResampleF(float *in, NRRD_BIG_INT lengthIn,
 ******** nrrdSpatialResample()
 **
 ** general-purpose array-resampler
-**
-** output Nrrd will be of same type as input
 */
 int
-nrrdSpatialResample(Nrrd *nout, Nrrd *nin, 
-		    NrrdResampleInfo **info,
-		    int clamp) {
+nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   char me[]="nrrdSpatialResample", err[NRRD_BIG_STRLEN];
   float *arr[NRRD_MAX_DIM],   /* intermediate copies of the array; we don't
 				 need a full-fledged nrrd for these.  Only
@@ -329,7 +266,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin,
 				 resampled, but "y" is, then topRax is 1 */
     botRax,                   /* index of highest axis being resampled */
     dim,                      /* dimension of thing we're resampling */
-    type,                     /* type of thing we're resampling */
+    typeIn, typeOut,          /* types of input and output of resampling */
     passes,                   /* # of passes needed to resample all axes */
     permute[NRRD_MAX_DIM],    /* how to permute axes of last pass to get
 				 axes for current pass */
@@ -360,7 +297,8 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin,
     biffSet(NRRD, err); return 1;
   }
   dim = nin->dim;
-  type = nin->type;
+  typeIn = nin->type;
+  typeOut = nrrdTypeUnknown == info->type ? typeIn : info->type;
 
   /* compute the cyclic permutation among axes that each pass should
      effect (store this in "permute[]"), and determine the number of
@@ -380,18 +318,18 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin,
   topRax = -1;
   maxLenIn = maxLenOut = 0;
   for (d=0; d<=dim-1; d++) {
-    if (info[d]) {
+    if (info->kernel[d]) {
       if (topRax < 0) {
 	topRax = d;
       }
       botRax = d;
       do {
 	a = AIR_MOD(a+1, dim);
-      } while (!info[a]);
+      } while (nrrdKernelUnknown == info->kernel[a]);
       permute[d] = a;
       passes += 1;
-      spacing[d] = nin->spacing[d]*nin->size[d]/info[d]->samples;
-      maxLenOut = AIR_MAX(maxLenOut, info[d]->samples);
+      spacing[d] = nin->spacing[d]*nin->size[d]/info->samples[d];
+      maxLenOut = AIR_MAX(maxLenOut, info->samples[d]);
     }
     else {
       permute[d] = d;
@@ -402,7 +340,9 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin,
   }
   if (0 == passes) {
     /* actually, no resampling was desired.  Copy input to output */
-    if (nrrdCopy(nout, nin)) {
+    /* HEY! this could mean that fixed-point output types suffer
+       wrap-around.  Should this be clamped? */
+    if (nrrdConvert(nin, nout, typeOut)) {
       sprintf(err, "%s: couldn't copy input to output", me);
       biffAdd(NRRD, err); return 1;
     }
@@ -435,7 +375,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin,
       if (topRax == permute[d]) {
 	/* this is the axis which is getting resampled, 
 	   so the number of samples is changing */
-	sz[p+1][d] = info[ax[p][topRax]]->samples;
+	sz[p+1][d] = info->samples[ax[p][topRax]];
       }
       else {
 	/* this axis is just a shuffled version of the
@@ -453,7 +393,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin,
   }
   
   /* convert input nrrd to float if necessary */
-  if (nrrdTypeFloat != type) {
+  if (nrrdTypeFloat != typeIn) {
     floatNin = nrrdNewConvert(nin, nrrdTypeFloat);
     if (!floatNin) {
       sprintf(err, "%s: couldn't create float copy of input", me);
@@ -469,7 +409,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin,
   /* compute strideIn */
   strideIn = 1;
   for (d=0; d<=dim-1; d++) {
-    if (!info[d]) {
+    if (nrrdKernelUnknown == info->kernel[d]) {
       strideIn *= nin->size[d];
     }
     else {
@@ -547,17 +487,17 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin,
   free(out);
   
   /* create output nrrd and set axis info */
-  if (nrrdAlloc(nout, numOut, type, dim)) {
+  if (nrrdAlloc(nout, numOut, typeOut, dim)) {
     sprintf(err, "%s: couldn't allocate final output nrrd", me);
     free(arr[passes]);
     biffAdd(NRRD, err); return 1;
   }
   for (d=0; d<=dim-1; d++) {
-    if (info[d]) {
-      nout->size[d] = info[d]->samples;
-      nout->axisMin[d] = AIR_AFFINE(0, info[d]->min, nin->size[d]-1,
+    if (nrrdKernelUnknown != info->kernel[d]) {
+      nout->size[d] = info->samples[d];
+      nout->axisMin[d] = AIR_AFFINE(0, info->min[d], nin->size[d]-1,
 				    nin->axisMin[d], nin->axisMax[d]);
-      nout->axisMax[d] = AIR_AFFINE(0, info[d]->max, nin->size[d]-1,
+      nout->axisMax[d] = AIR_AFFINE(0, info->max[d], nin->size[d]-1,
 				    nin->axisMin[d], nin->axisMax[d]);
     }
     else {
@@ -572,7 +512,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin,
      as we go to insure that fixed point results don't have unexpected
      wrap-around.  Last value of numOut is still good. */
   for (I=0; I<=numOut-1; I++) {
-    nrrdFInsert[type](nout->data, I, nrrdFClamp[type](arr[passes][I]));
+    nrrdFInsert[typeOut](nout->data, I, nrrdFClamp[typeOut](arr[passes][I]));
   }
 
   /* final cleanup */
