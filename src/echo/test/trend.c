@@ -125,7 +125,6 @@ makeSceneBVH(limnCamera *cam, echoRTParm *parm, echoObject **sceneP) {
   parm->doShadows = AIR_FALSE;
 
   N = 1000000;
-  /* airSrand(); */
   airArraySetLen(LIST(scene)->objArr, N);
   for (i=0; i<N; i++) {
     sphere = echoObjectNew(echoSphere);
@@ -707,14 +706,14 @@ makeSceneSimple(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   cam->vRange[1] = 3.6;
 
   parm->jitterType = echoJitterJitter;
-  parm->numSamples = 4;
-  parm->imgResU = 200;
-  parm->imgResV = 200;
+  parm->numSamples = 25;
+  parm->imgResU = 300;
+  parm->imgResV = 300;
   parm->aperture = 0.0;
   parm->textureNN = AIR_FALSE;
   parm->renderLights = AIR_TRUE;
   parm->renderBoxes = AIR_FALSE;
-  parm->seedRand = AIR_FALSE;
+  parm->seedRand = AIR_TRUE;
   parm->maxRecDepth = 10;
   ELL_3V_SET(parm->maxRecCol, 0, 0, 0);
   parm->doShadows = AIR_TRUE;
@@ -726,8 +725,13 @@ makeSceneSimple(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
 		   0, 10, 0);
   echoColorSet(rect, 1, 1, 1, 1.0);
   echoMatterPhongSet(scene, rect, 0.1, 0.5, 0.6, 50);
-  nrrdLoad(ntext=nrrdNew(), "pot.png", NULL);
-  echoMatterTextureSet(scene, rect, ntext);
+  if (nrrdLoad(ntext=nrrdNew(), "pot.png", NULL)) {
+    /* oops, no pot */
+    airFree(biffGetDone(NRRD));
+    nrrdNuke(ntext);
+  } else {
+    echoMatterTextureSet(scene, rect, ntext);
+  }
   echoObjectAdd(scene, rect);
 
   sphere = echoObjectNew(scene, echoTypeSphere);
@@ -835,8 +839,8 @@ main(int argc, char **argv) {
   echoGlobalState *state;
   echoScene *scene;
   airArray *mop;
-  char *me, *err;
-  int E;
+  char *me, *err, *env;
+  int E, tmp;
   
   me = argv[0];
 
@@ -876,7 +880,14 @@ main(int argc, char **argv) {
   /* makeSceneShadow(cam, parm, scene); */
   /* makeSceneDOF(cam, parm, scene); */
 
-  parm->numThreads = 1;
+  if ((env = getenv("NT"))) {
+    if (1 == sscanf(env, "%d", &tmp)) {
+      parm->numThreads = tmp;
+    }
+  } else {
+    parm->numThreads = 1;
+  }
+
   E = 0;
   if (!E) E |= echoRTRender(nraw, cam, scene, parm, state);
   if (E) {

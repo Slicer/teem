@@ -100,6 +100,7 @@ echoThreadStateNew(void) {
     state->permBuff = NULL;
     state->jitt = NULL;
     state->chanBuff = NULL;
+    state->rst = airDrand48StateNew(0);
     state->returnPtr = NULL;
   }
   return state;

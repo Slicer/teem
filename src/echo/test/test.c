@@ -39,9 +39,9 @@ main(int argc, char **argv) {
   list = echoObjectNew(scene, echoTypeList);
   for (I=0; I<30; I++) {
     sph = echoObjectNew(scene, echoTypeSphere);
-    R = airRand();
-    G = airRand();
-    B = airRand();
+    R = airDrand48();
+    G = airDrand48();
+    B = airDrand48();
     echoSphereSet(sph,
 		  AIR_AFFINE(0, R, 1, -1, 1),
 		  AIR_AFFINE(0, G, 1, -1, 1),

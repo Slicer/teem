@@ -63,6 +63,7 @@ echoThreadStateInit(int threadIdx, echoThreadState *tstate,
     biffAdd(ECHO, err); return 1;
   }
 
+  airSrand48_r(tstate->rst, parm->seedRand ? airTime() : threadIdx);
   tstate->returnPtr = NULL;
   
   return 0;
@@ -85,7 +86,8 @@ echoJitterCompute(echoRTParm *parm, echoThreadState *tstate) {
      each column is a different permutation of [0..parm->numSamples-1] */
   perm = (int *)tstate->nperm->data;
   for (j=0; j<ECHO_JITTABLE_NUM; j++) {
-    airShuffle(tstate->permBuff, parm->numSamples, parm->permuteJitter);
+    airShuffle_r(tstate->rst, tstate->permBuff,
+		 parm->numSamples, parm->permuteJitter);
     for (s=0; s<N; s++) {
       perm[j + ECHO_JITTABLE_NUM*s] = tstate->permBuff[s];
     }
@@ -107,13 +109,13 @@ echoJitterCompute(echoRTParm *parm, echoThreadState *tstate) {
 	break;
       case echoJitterJitter:
 	jitt[0 + 2*j] = (NRRD_POS(nrrdCenterCell, -0.5, 0.5, n, xi)
-			 + AIR_AFFINE(0.0, airRand(), 1.0, -w/2, w/2));
+			 + w*(airDrand48_r(tstate->rst) - 0.5));
 	jitt[1 + 2*j] = (NRRD_POS(nrrdCenterCell, -0.5, 0.5, n, yi)
-			 + AIR_AFFINE(0.0, airRand(), 1.0, -w/2, w/2));
+			 + w*(airDrand48_r(tstate->rst) - 0.5));
 	break;
       case echoJitterRandom:
-	jitt[0 + 2*j] = airRand() - 0.5;
-	jitt[1 + 2*j] = airRand() - 0.5;
+	jitt[0 + 2*j] = airDrand48_r(tstate->rst) - 0.5;
+	jitt[1 + 2*j] = airDrand48_r(tstate->rst) - 0.5;
 	break;
       }
     }
@@ -271,7 +273,6 @@ _echoRTRenderThreadBody(void *_arg) {
   int imgUi, imgVi,         /* integral pixel indices */
     samp;                   /* which sample are we doing */
   echoPos_t tmp0, tmp1,
-    *jitt,
     pixUsz, pixVsz,         /* U and V dimensions of a pixel */
     U[4], V[4], N[4],       /* view space basis (only first 3 elements used) */
     imgU, imgV,             /* floating point pixel center locations */
@@ -292,7 +293,7 @@ _echoRTRenderThreadBody(void *_arg) {
   cam = arg->gstate->cam;
   scene = arg->gstate->scene;
   parm = arg->gstate->parm;
-  
+
   echoJitterCompute(arg->gstate->parm, arg);
   if (arg->gstate->verbose > 2) {
     nrrdSave("jitt.nrrd", arg->njitt, NULL);
@@ -312,6 +313,7 @@ _echoRTRenderThreadBody(void *_arg) {
   arg->depth = 0;
   ray.shadow = AIR_FALSE;
   arg->verbose = AIR_FALSE;
+
   while (1) {
     if (arg->gstate->workMutex) {
       airThreadMutexLock(arg->gstate->workMutex);
@@ -320,13 +322,10 @@ _echoRTRenderThreadBody(void *_arg) {
     if (arg->gstate->workIdx < parm->imgResV) {
       arg->gstate->workIdx += 1;
     }
-    /*
     if (!(imgVi % 5)) {
       fprintf(stderr, "%s", airDoneStr(0, imgVi, parm->imgResV-1, done));
       fflush(stderr);
     }
-    */
-    fprintf(stderr, "%d : %d\n", arg->threadIdx, imgVi);
     if (arg->gstate->workMutex) {
       airThreadMutexUnlock(arg->gstate->workMutex);
     }
@@ -334,7 +333,7 @@ _echoRTRenderThreadBody(void *_arg) {
       /* we're done! */
       break;
     }
-    
+
     imgV = NRRD_POS(nrrdCenterCell, cam->vRange[0], cam->vRange[1],
 		    parm->imgResV, imgVi);
     for (imgUi=0; imgUi<parm->imgResU; imgUi++) {
@@ -344,7 +343,7 @@ _echoRTRenderThreadBody(void *_arg) {
 	     + ECHO_IMG_CHANNELS*(imgUi + parm->imgResU*imgVi));
       
       /* initialize things on first "scanline" */
-      jitt = (echoPos_t *)arg->njitt->data;
+      arg->jitt = (echoPos_t *)arg->njitt->data;
       chan = arg->chanBuff;
 
       /* arg->verbose = ( (160 == imgUi && 160 == imgVi) ); */
@@ -362,14 +361,14 @@ _echoRTRenderThreadBody(void *_arg) {
 	/* set ray.from[] */
 	ELL_3V_COPY(ray.from, eye);
 	if (parm->aperture) {
-	  tmp0 = parm->aperture*(jitt[0 + 2*echoJittableLens]);
-	  tmp1 = parm->aperture*(jitt[1 + 2*echoJittableLens]);
+	  tmp0 = parm->aperture*(arg->jitt[0 + 2*echoJittableLens]);
+	  tmp1 = parm->aperture*(arg->jitt[1 + 2*echoJittableLens]);
 	  ELL_3V_SCALE_ADD3(ray.from, 1, ray.from, tmp0, U, tmp1, V);
 	}
 	
 	/* set at[] */
-	tmp0 = imgU + pixUsz*(jitt[0 + 2*echoJittablePixel]);
-	tmp1 = imgV + pixVsz*(jitt[1 + 2*echoJittablePixel]);
+	tmp0 = imgU + pixUsz*(arg->jitt[0 + 2*echoJittablePixel]);
+	tmp1 = imgV + pixVsz*(arg->jitt[1 + 2*echoJittablePixel]);
 	ELL_3V_SCALE_ADD3(at, 1, imgOrig, tmp0, U, tmp1, V);
 
 	/* do it! */
@@ -386,11 +385,10 @@ _echoRTRenderThreadBody(void *_arg) {
 	chan[4] = airTime() - time0;
 	
 	/* move to next "scanline" */
-	jitt += 2*ECHO_JITTABLE_NUM;
+	arg->jitt += 2*ECHO_JITTABLE_NUM;
 	chan += ECHO_IMG_CHANNELS;
       }
       echoChannelAverage(img, parm, arg);
-      img[0] = arg->threadIdx;
       img += ECHO_IMG_CHANNELS;
       if (!parm->reuseJitter) {
 	echoJitterCompute(parm, arg);
@@ -439,9 +437,6 @@ echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
   nrrdAxisInfoSet(nraw, nrrdAxisInfoMax,
 		  AIR_NAN, cam->uRange[1], cam->vRange[1]);
   gstate->time = airTime();
-  if (parm->seedRand) {
-    airSrand();
-  }
 
   if (parm->numThreads > 1) {
     gstate->workMutex = airThreadMutexNew();

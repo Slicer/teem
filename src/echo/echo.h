@@ -110,25 +110,26 @@ typedef struct {
 } echoGlobalState;
 
 typedef struct {
-  airThread *thread;   /* my thread */
+  airThread *thread;    /* my thread */
   echoGlobalState *gstate;
-  int verbose,         /* blah blah blah */
-    threadIdx,         /* my thread index */
-    depth;             /* how many recursion levels are we at */
-  Nrrd *nperm,         /* ECHO_JITTABLE_NUM x parm->numSamples array 
-			  of ints, each column is a (different) random
-			  permutation of [0 .. parm->numSamples-1], each
-			  row corresponds to the different jittables for
-			  a single sample */
-    *njitt;            /* 2 x ECHO_JITTABLE_NUM x parm->numSamples array
-			  of echoPos_t's in domain [-1/2,1/2]; like the nperm
-			  array, each row is comprised of the jitter vectors
-			  (for all possible jittables) to use for one sample */
-  int *permBuff;       /* temp array for creating permutations */
-  echoPos_t *jitt;     /* pointer into njitt, good for current sample */
-  echoCol_t *chanBuff; /* for storing ray color and other parameters for each
-			  of the parm->numSamples rays in current pixel */
-  void *returnPtr;     /* for airThreadJoin */
+  int verbose,          /* blah blah blah */
+    threadIdx,          /* my thread index */
+    depth;              /* how many recursion levels are we at */
+  Nrrd *nperm,          /* ECHO_JITTABLE_NUM x parm->numSamples array 
+			   of ints, each column is a (different) random
+			   permutation of [0 .. parm->numSamples-1], each
+			   row corresponds to the different jittables for
+			   a single sample */
+    *njitt;             /* 2 x ECHO_JITTABLE_NUM x parm->numSamples array
+			   of echoPos_t's in domain [-1/2,1/2]; like the nperm
+			   array, each row is comprised of the jitter vectors
+			   (for all possible jittables) to use for 1 sample */
+  int *permBuff;        /* temp array for creating permutations */
+  echoPos_t *jitt;      /* pointer into njitt, good for current sample */
+  echoCol_t *chanBuff;  /* for storing ray color and other parameters for each
+			   of the parm->numSamples rays in current pixel */
+  airDrand48State *rst; /* random number state */
+  void *returnPtr;      /* for airThreadJoin */
 } echoThreadState;
 
 /*
