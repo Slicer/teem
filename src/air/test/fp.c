@@ -26,8 +26,8 @@ char *me;
 int
 main(int argc, char *argv[]) {
   int c, hibit, ret;
-  float f, g, parsed;
-  double d;
+  float f, g, parsed_f;
+  double d, parsed_d;
   char str[128];
   
   me = argv[0];
@@ -50,14 +50,15 @@ main(int argc, char *argv[]) {
   }    
 
   printf(" - - - - - - - - - - - - - - - -\n");
+  printf(" - - - - -  FLOATS - - - - - - -\n");
   printf(" - - - - - - - - - - - - - - - -\n");
 
   for(c=airFP_Unknown+1; c<airFP_Last; c++) {
     f = airFPGen_f(c);
     sprintf(str, "%f", f);
-    ret = airSingleSscanf(str, "%f", &parsed);
+    ret = airSingleSscanf(str, "%d", &parsed_f);
     printf("********** airFPGen_f(%d) = %f (-> %f(%d)) (AIR_EXISTS = %d)\n", 
-           c, f, parsed, ret, AIR_EXISTS(f));
+           c, f, parsed_f, ret, AIR_EXISTS(f));
     airSinglePrintf(stdout, NULL, "--<%f>--\n", f);
     if (c != airFPClass_f(f)) {
       printf("\n\n%s: Silly hardware!!!\n", me);
@@ -70,8 +71,25 @@ main(int argc, char *argv[]) {
     printf("to double and back:\n");
     airFPFprintf_f(stdout, d);
     printf("AIR_ISNAN_F = %d\n", AIR_ISNAN_F(f));
-    /* starting with double */
+  }
+
+  printf(" - - - - - - - - - - - - - - - -\n");
+  printf(" - - - - - DOUBLES - - - - - - -\n");
+  printf(" - - - - - - - - - - - - - - - -\n");
+
+  for(c=airFP_Unknown+1; c<airFP_Last; c++) {
     d = airFPGen_d(c);
+    sprintf(str, "%f", d);
+    ret = airSingleSscanf(str, "%lf", &parsed_d);
+    printf("********** airFPGen_d(%d) = %f (-> %f(%d)) (AIR_EXISTS = %d)\n", 
+           c, d, parsed_d, ret, AIR_EXISTS(d));
+    airSinglePrintf(stdout, NULL, "--<%f>--\n", d);
+    if (c != airFPClass_d(d)) {
+      printf("\n\n%s: Silly hardware!!!\n", me);
+      printf("%s: can't return a double of class %d %sfrom a function\n\n\n",
+             me, c, airFP_SNAN == c ? "(signaling NaN) " : "");
+    }
+    airFPFprintf_d(stdout, d);
   }
 
   printf(" - - - - - - - - - - - - - - - -\n");
