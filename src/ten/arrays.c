@@ -33,10 +33,12 @@ _tenAnisoStr[TEN_ANISO_MAX+1][AIR_STRLEN_SMALL] = {
 };
 
 airEnum
-tenAniso = {
+_tenAniso = {
   "aniso",
   TEN_ANISO_MAX,
   _tenAnisoStr,  NULL,
   NULL, NULL,
   AIR_FALSE
 };
+airEnum *
+tenAniso = &_tenAniso;

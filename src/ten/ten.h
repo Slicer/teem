@@ -61,7 +61,7 @@ typedef struct {
 } tenGlyphParm;
 
 /* arrays.c */
-extern airEnum tenAniso;
+extern airEnum *tenAniso;
 
 /* methods.c */
 extern tenGlyphParm *tenGlyphParmNew();
