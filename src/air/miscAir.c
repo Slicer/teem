@@ -82,7 +82,8 @@ airRandInt(int N) {
 /*
 ******** airShuffle()
 **
-** generates a random permutation of N elements.
+** generates a random permutation of integers [0..N-1] if perm is non-zero,
+** otherwise, just fills buff with [0..N-1] in order
 */
 void
 airShuffle(int *buff, int N, int perm) {
