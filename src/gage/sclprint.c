@@ -40,36 +40,36 @@ _gageSclPrint_iv3(gageSclContext *ctx) {
   int i;
 
   iv3 = ctx->iv3;
-  printf("iv3[]:\n");
+  fprintf(stderr, "iv3[]:\n");
   switch(ctx->c.fd) {
   case 2:
-    printf("% 10.4f   % 10.4f\n", (float)iv3[6], (float)iv3[7]);
-    printf("   % 10.4f   % 10.4f\n\n", (float)iv3[4], (float)iv3[5]);
-    printf("% 10.4f   % 10.4f\n", (float)iv3[2], (float)iv3[3]);
-    printf("   % 10.4f   % 10.4f\n", (float)iv3[0], (float)iv3[1]);
+    fprintf(stderr, "% 10.4f   % 10.4f\n", (float)iv3[6], (float)iv3[7]);
+    fprintf(stderr, "   % 10.4f   % 10.4f\n\n", (float)iv3[4], (float)iv3[5]);
+    fprintf(stderr, "% 10.4f   % 10.4f\n", (float)iv3[2], (float)iv3[3]);
+    fprintf(stderr, "   % 10.4f   % 10.4f\n", (float)iv3[0], (float)iv3[1]);
     break;
   case 4:
     for (i=3; i>=0; i--) {
-      printf("% 10.4f   % 10.4f   % 10.4f   % 10.4f\n", 
-	     (float)iv3[12+16*i], (float)iv3[13+16*i], 
-	     (float)iv3[14+16*i], (float)iv3[15+16*i]);
-      printf("   % 10.4f  %c% 10.4f   % 10.4f%c   % 10.4f\n", 
-	     (float)iv3[ 8+16*i], (i==1||i==2)?'\\':' ',
-	     (float)iv3[ 9+16*i], (float)iv3[10+16*i], (i==1||i==2)?'\\':' ',
-	     (float)iv3[11+16*i]);
-      printf("      % 10.4f  %c% 10.4f   % 10.4f%c   % 10.4f\n", 
-	     (float)iv3[ 4+16*i], (i==1||i==2)?'\\':' ',
-	     (float)iv3[ 5+16*i], (float)iv3[ 6+16*i], (i==1||i==2)?'\\':' ',
-	     (float)iv3[ 7+16*i]);
-      printf("         % 10.4f   % 10.4f   % 10.4f   % 10.4f\n", 
-	     (float)iv3[ 0+16*i], (float)iv3[ 1+16*i],
-	     (float)iv3[ 2+16*i], (float)iv3[ 3+16*i]);
-      if (i) printf("\n");
+      fprintf(stderr, "% 10.4f   % 10.4f   % 10.4f   % 10.4f\n", 
+	      (float)iv3[12+16*i], (float)iv3[13+16*i], 
+	      (float)iv3[14+16*i], (float)iv3[15+16*i]);
+      fprintf(stderr, "   % 10.4f  %c% 10.4f   % 10.4f%c   % 10.4f\n", 
+	      (float)iv3[ 8+16*i], (i==1||i==2)?'\\':' ',
+	      (float)iv3[ 9+16*i], (float)iv3[10+16*i], (i==1||i==2)?'\\':' ',
+	      (float)iv3[11+16*i]);
+      fprintf(stderr, "      % 10.4f  %c% 10.4f   % 10.4f%c   % 10.4f\n", 
+	      (float)iv3[ 4+16*i], (i==1||i==2)?'\\':' ',
+	      (float)iv3[ 5+16*i], (float)iv3[ 6+16*i], (i==1||i==2)?'\\':' ',
+	      (float)iv3[ 7+16*i]);
+      fprintf(stderr, "         % 10.4f   % 10.4f   % 10.4f   % 10.4f\n", 
+	      (float)iv3[ 0+16*i], (float)iv3[ 1+16*i],
+	      (float)iv3[ 2+16*i], (float)iv3[ 3+16*i]);
+      if (i) fprintf(stderr, "\n");
     }
     break;
   default:
     for (i=0; i<ctx->c.fd*ctx->c.fd*ctx->c.fd; i++) {
-      printf("  iv3[% 5d] = % 10.4f\n", i, (float)iv3[i]);
+      fprintf(stderr, "  iv3[% 5d] = % 10.4f\n", i, (float)iv3[i]);
     }
     break;
   }

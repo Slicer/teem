@@ -107,7 +107,7 @@ main(int argc, char *argv[]) {
 
   ctx = gageSclContextNew();
   ctx->c.verbose = 1;   /* but this is reset when we start traversing */
-  ctx->c.renormalize = AIR_TRUE;
+  ctx->c.renormalize = AIR_FALSE;
   E = 0;
   if (!E) E |= gageSclKernelSet(ctx, gageKernel00, k0, param[0]);
   if (!E) E |= gageSclKernelSet(ctx, gageKernel11, k1, param[1]);
@@ -121,7 +121,7 @@ main(int argc, char *argv[]) {
   printf("%s: kernel set requires padding by %d, we'll use %d\n",
 	 me, gageSclNeedPadGet(ctx), pad);
   /* we pad with something other than needed pad for stress testing */
-  if (nrrdSimplePad(npad=nrrdNew(), nin, pad, nrrdBoundaryPad, 111.0)) {
+  if (nrrdSimplePad(npad=nrrdNew(), nin, pad, nrrdBoundaryBleed)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(NRRD));
     exit(1);
   }
@@ -143,8 +143,7 @@ main(int argc, char *argv[]) {
 	   me, ansLen, sox, soy, soz);
     if (!E) E != nrrdAlloc(nout=nrrdNew(), nrrdTypeFloat, 
 			      4, ansLen, sox, soy, soz);
-  }
-  else {
+  } else {
     printf("%s: creating %d x %d x %d output\n", me, sox, soy, soz);
     if (!E) E != nrrdAlloc(nout=nrrdNew(), nrrdTypeFloat, 
 			   3, sox, soy, soz);
@@ -190,8 +189,7 @@ main(int argc, char *argv[]) {
 	default:
 	  if (1 == ansLen) {
 	    out[ansLen*idx] = ctx->ans[offset];
-	  }
-	  else {
+	  } else {
 	    for (a=0; a<=ansLen-1; a++) {
 	      out[a + ansLen*idx] = ctx->ans[a + offset];
 	    }

@@ -26,36 +26,36 @@ _gagePrint_off(gageContext *ctx) {
 
   fd = ctx->fd;
   off = ctx->off;
-  printf("off[]:\n");
+  fprintf(stderr, "off[]:\n");
   switch(fd) {
   case 2:
-    printf("% 6d   % 6d\n", off[6], off[7]);
-    printf("   % 6d   % 6d\n\n", off[4], off[5]);
-    printf("% 6d   % 6d\n", off[2], off[3]);
-    printf("   % 6d   % 6d\n", off[0], off[1]);
+    fprintf(stderr, "% 6d   % 6d\n", off[6], off[7]);
+    fprintf(stderr, "   % 6d   % 6d\n\n", off[4], off[5]);
+    fprintf(stderr, "% 6d   % 6d\n", off[2], off[3]);
+    fprintf(stderr, "   % 6d   % 6d\n", off[0], off[1]);
     break;
   case 4:
     for (i=3; i>=0; i--) {
-      printf("% 6d   % 6d   % 6d   % 6d\n", 
-	     off[12+16*i], off[13+16*i], 
-	     off[14+16*i], off[15+16*i]);
-      printf("   % 6d  %c% 6d   % 6d%c   % 6d\n", 
-	     off[ 8+16*i], (i==1||i==2)?'\\':' ',
-	     off[ 9+16*i], off[10+16*i], (i==1||i==2)?'\\':' ',
-	     off[11+16*i]);
-      printf("      % 6d  %c% 6d   % 6d%c   % 6d\n", 
-	     off[ 4+16*i], (i==1||i==2)?'\\':' ',
-	     off[ 5+16*i], off[ 6+16*i], (i==1||i==2)?'\\':' ',
-	     off[ 7+16*i]);
-      printf("         % 6d   % 6d   % 6d   % 6d\n", 
-	     off[ 0+16*i], off[ 1+16*i],
-	     off[ 2+16*i], off[ 3+16*i]);
-      if (i) printf("\n");
+      fprintf(stderr, "% 6d   % 6d   % 6d   % 6d\n", 
+	      off[12+16*i], off[13+16*i], 
+	      off[14+16*i], off[15+16*i]);
+      fprintf(stderr, "   % 6d  %c% 6d   % 6d%c   % 6d\n", 
+	      off[ 8+16*i], (i==1||i==2)?'\\':' ',
+	      off[ 9+16*i], off[10+16*i], (i==1||i==2)?'\\':' ',
+	      off[11+16*i]);
+      fprintf(stderr, "      % 6d  %c% 6d   % 6d%c   % 6d\n", 
+	      off[ 4+16*i], (i==1||i==2)?'\\':' ',
+	      off[ 5+16*i], off[ 6+16*i], (i==1||i==2)?'\\':' ',
+	      off[ 7+16*i]);
+      fprintf(stderr, "         % 6d   % 6d   % 6d   % 6d\n", 
+	      off[ 0+16*i], off[ 1+16*i],
+	      off[ 2+16*i], off[ 3+16*i]);
+      if (i) fprintf(stderr, "\n");
     }
     break;
   default:
     for (i=0; i<fd*fd*fd; i++) {
-      printf("  off[% 4d] = % 6d\n", i, off[i]);
+      fprintf(stderr, "  off[% 4d] = % 6d\n", i, off[i]);
     }
     break;
   }
@@ -63,11 +63,11 @@ _gagePrint_off(gageContext *ctx) {
 
 #define PRINT2(N,C)                                     \
    fw = fw##N##C;                                       \
-   printf("   -" #N "->% 15.7f   % 15.7f\n",            \
+   fprintf(stderr, "   -" #N "->% 15.7f   % 15.7f\n",            \
 	  (float)fw[0], (float)fw[1])
 #define PRINT4(N,C)                                              \
    fw = fw##N##C;                                                \
-   printf("   -" #N "->% 15.7f   % 15.7f   % 15.7f   % 15.7f\n", \
+   fprintf(stderr, "   -" #N "->% 15.7f   % 15.7f   % 15.7f   % 15.7f\n", \
 	  (float)fw[0], (float)fw[1], (float)fw[2], (float)fw[3])
 #define PRINTALL(HOW,C)                                 \
    if (fw000) { HOW(00,C); }                            \
@@ -113,48 +113,51 @@ _gagePrint_fslw(gageContext *ctx, int doD1, int doD2) {
   fw221 = ctx->fw[gageKernel22] + fd*1;
   fw222 = ctx->fw[gageKernel22] + fd*2;
 
-  printf("fsl -> fw: \n");
+  fprintf(stderr, "fsl -> fw: \n");
   switch(fd) {
   case 2:
-    printf("x[]: % 15.7f   % 15.7f\n",
-	   (float)fslx[0], (float)fslx[1]);
+    fprintf(stderr, "x[]: % 15.7f   % 15.7f\n",
+	    (float)fslx[0], (float)fslx[1]);
     PRINTALL(PRINT2, 0);
-    printf("y[]: % 15.7f   % 15.7f\n",
-	   (float)fsly[0], (float)fsly[1]);
+    fprintf(stderr, "y[]: % 15.7f   % 15.7f\n",
+	    (float)fsly[0], (float)fsly[1]);
     PRINTALL(PRINT2, 1);
-    printf("z[]: % 15.7f   % 15.7f\n",
-	   (float)fslz[0], (float)fslz[1]);
+    fprintf(stderr, "z[]: % 15.7f   % 15.7f\n",
+	    (float)fslz[0], (float)fslz[1]);
     PRINTALL(PRINT2, 2);
     break;
   case 4:
-    printf("x[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", 
-	   (float)fslx[0], (float)fslx[1], (float)fslx[2], (float)fslx[3]);
+    fprintf(stderr, "x[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", 
+	    (float)fslx[0], (float)fslx[1], (float)fslx[2], (float)fslx[3]);
     PRINTALL(PRINT4, 0);
-    printf("y[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", 
-	   (float)fsly[0], (float)fsly[1], (float)fsly[2], (float)fsly[3]);
+    fprintf(stderr, "y[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", 
+	    (float)fsly[0], (float)fsly[1], (float)fsly[2], (float)fsly[3]);
     PRINTALL(PRINT4, 1);
-    printf("z[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", 
-	   (float)fslz[0], (float)fslz[1], (float)fslz[2], (float)fslz[3]);
+    fprintf(stderr, "z[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", 
+	    (float)fslz[0], (float)fslz[1], (float)fslz[2], (float)fslz[3]);
     PRINTALL(PRINT4, 2);
     break;
   default:
-    printf("x[]:\n");
+    fprintf(stderr, "x[]:\n");
     for (i=0; i<fd; i++) {
-      printf("     % 5d : % 15.7f -0,1,2-> % 15.7f, % 15.7f, % 15.7f\n",
-	     i, (float)fslx[i],
-	     (float)fw000[i], (float)fw110[i], (float)fw220[i]);
+      fprintf(stderr,
+	      "     % 5d : % 15.7f -0,1,2-> % 15.7f, % 15.7f, % 15.7f\n",
+	      i, (float)fslx[i],
+	      (float)fw000[i], (float)fw110[i], (float)fw220[i]);
     }
-    printf("y[]:\n");
+    fprintf(stderr, "y[]:\n");
     for (i=0; i<fd; i++) {
-      printf("     % 5d : % 15.7f -0,1,2-> % 15.7f, % 15.7f, % 15.7f\n",
-	     i, (float)fsly[i],
-	     (float)fw001[i], (float)fw111[i], (float)fw221[i]);
+      fprintf(stderr,
+	      "     % 5d : % 15.7f -0,1,2-> % 15.7f, % 15.7f, % 15.7f\n",
+	      i, (float)fsly[i],
+	      (float)fw001[i], (float)fw111[i], (float)fw221[i]);
     }
-    printf("z[]:\n");
+    fprintf(stderr, "z[]:\n");
     for (i=0; i<fd; i++) {
-      printf("     % 5d : % 15.7f -0,1,2-> % 15.7f, % 15.7f, % 15.7f\n",
-	     i, (float)fslz[i],
-	     (float)fw002[i], (float)fw112[i], (float)fw222[i]);
+      fprintf(stderr,
+	      "     % 5d : % 15.7f -0,1,2-> % 15.7f, % 15.7f, % 15.7f\n",
+	      i, (float)fslz[i],
+	      (float)fw002[i], (float)fw112[i], (float)fw222[i]);
     }
     break;
   }

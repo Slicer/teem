@@ -180,8 +180,10 @@ _gageKernelDependentSet(gageContext *ctx) {
   ctx->fr = AIR_ROUNDUP(maxRad);
   ctx->fd = 2*ctx->fr;
   ctx->needPad = ctx->fr-1;
-  fprintf(stderr, "!%s: fr = %d, needPad = %d, fd = %d\n",
-	  me, ctx->fr, ctx->needPad, ctx->fd);
+  if (ctx->verbose) {
+    fprintf(stderr, "%s: fr = %d, fd = %d, needPad = %d\n",
+	    me, ctx->fr, ctx->fd, ctx->needPad);
+  }
 	  
   airFree(ctx->fsl);
   airFree(ctx->off);
@@ -259,9 +261,10 @@ _gageVolumeDependentSet(gageContext *ctx, Nrrd *npad, int baseDim) {
   ctx->ys = AIR_EXISTS(ctx->ys) ? ctx->ys : nrrdDefSpacing;
   ctx->zs = AIR_EXISTS(ctx->zs) ? ctx->zs : nrrdDefSpacing;
   if (ctx->verbose) {
-    printf("%s: padded (%d) volume: sizes (%d,%d,%d) spacings (%g,%g,%g)\n",
-	   me, ctx->havePad, ctx->sx, ctx->sy, ctx->sz,
-	   ctx->xs, ctx->ys, ctx->zs);
+    fprintf(stderr, 
+	    "%s: padded (%d) volume: sizes (%d,%d,%d) spacings (%g,%g,%g)\n",
+	    me, ctx->havePad, ctx->sx, ctx->sy, ctx->sz,
+	    ctx->xs, ctx->ys, ctx->zs);
   }
   for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
     switch (i) {
@@ -296,7 +299,7 @@ _gageVolumeDependentSet(gageContext *ctx, Nrrd *npad, int baseDim) {
       for (i=0; i<fd; i++)
 	ctx->off[i + fd*(j + fd*k)] = i + ctx->sx*(j + ctx->sy*k);
   if (ctx->verbose) {
-    printf("%s: newly calculated offset array\n", me);
+    fprintf(stderr, "%s: newly calculated offset array\n", me);
     _gagePrint_off(ctx);
   }
 

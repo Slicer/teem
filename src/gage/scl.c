@@ -33,14 +33,14 @@ _gageSclAnswer(gageSclContext *sctx) {
   if (1 & (query >> gageSclValue)) {
     /* done if doV */
     if (sctx->c.verbose) {
-      printf("val = % 15.7f\n", (float)(sctx->val[0]));
+      fprintf(stderr, "val = % 15.7f\n", (float)(sctx->val[0]));
     }
   }
   if (1 & (query >> gageSclGradVec)) {
     /* done if doD1 */
     if (sctx->c.verbose) {
-      printf("gvec = ");
-      ell3vPRINT(stdout, sctx->gvec);
+      fprintf(stderr, "gvec = ");
+      ell3vPRINT(stderr, sctx->gvec);
     }
   }
   if (1 & (query >> gageSclGradMag)) {
@@ -52,8 +52,7 @@ _gageSclAnswer(gageSclContext *sctx) {
     len = sqrt(ELL_3V_DOT(sctx->norm, sctx->norm));
     if (len) {
       ELL_3V_SCALE(sctx->norm, 1.0/len, sctx->norm);
-    }
-    else {
+    } else {
       ELL_3V_COPY(sctx->norm, gageSclZeroNormal);
     }
   }
@@ -61,7 +60,7 @@ _gageSclAnswer(gageSclContext *sctx) {
     /* done if doD2 */
     if (sctx->c.verbose) {
       fprintf(stderr, "%s: hess = \n", me);
-      ell3mPRINT(stdout, sctx->hess);
+      ell3mPRINT(stderr, sctx->hess);
     }
   }
   if (1 & (query >> gageSclLaplacian)) {
@@ -96,13 +95,13 @@ _gageSclAnswer(gageSclContext *sctx) {
 
     if (sctx->c.verbose) {
       ELL_3MV_MUL(tmpVec, sctx->gten, sctx->norm); len = ELL_3V_LEN(tmpVec);
-      printf("should be small: %30.15lf\n", len);
+      fprintf(stderr, "should be small: %30.15lf\n", len);
       ell3vPERP(gp1, sctx->norm);
       ELL_3MV_MUL(tmpVec, sctx->gten, gp1); len = ELL_3V_LEN(tmpVec);
-      printf("should be bigger: %30.15lf\n", len);
+      fprintf(stderr, "should be bigger: %30.15lf\n", len);
       ELL_3V_CROSS(gp2, gp1, sctx->norm);
       ELL_3MV_MUL(tmpVec, sctx->gten, gp2); len = ELL_3V_LEN(tmpVec);
-      printf("should be bigger: %30.15lf\n", len);
+      fprintf(stderr, "should be bigger: %30.15lf\n", len);
     }
   }
   if (1 && (query >> gageSclK1K2)) {
@@ -150,7 +149,8 @@ gageSclProbe(gageSclContext *sctx, gage_t x, gage_t y, gage_t z) {
     for (i=0; i<fd*fd*fd; i++)
       sctx->iv3[i] = sctx->lup(here, sctx->c.off[i]);
     if (sctx->c.verbose > 1) {
-      printf("%s: set the value cache with bidx = %d:\n", me, sctx->c.bidx);
+      fprintf(stderr,
+	      "%s: set the value cache with bidx = %d:\n", me, sctx->c.bidx);
       _gageSclPrint_iv3(sctx);
     }
   }
@@ -174,19 +174,18 @@ gageSclProbe(gageSclContext *sctx, gage_t x, gage_t y, gage_t z) {
 			sctx->val, sctx->gvec, sctx->hess,
 			sctx->doV, sctx->doD1, sctx->doD2);
       break;
-      /*
     default:
       _gageScl3PFilterN(sctx->c.fd,
-			ctx->iv3, ctx->iv2, ctx->iv1,
-			ctx->fw00, ctx->fw11, ctx->fw22,
-			ctx->val, ctx->gvec, ctx->hess,
-			doD1, doD2);
+			sctx->iv3, sctx->iv2, sctx->iv1, 
+			sctx->c.fw[gageKernel00],
+			sctx->c.fw[gageKernel11],
+			sctx->c.fw[gageKernel22],
+			sctx->val, sctx->gvec, sctx->hess,
+			sctx->doV, sctx->doD1, sctx->doD2);
       break;
-      */
     }
-  }
-  else {
-    fprintf(stderr, "!%s: non-3pack filtering unimplemented!!\n", me);
+  } else {
+    fprintf(stderr, "!%s: sorry, 6pack filtering not implemented\n", me);
   }
 
   /* now do all the computations to answer the query */
