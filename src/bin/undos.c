@@ -17,35 +17,145 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include <ctype.h>
+#include <errno.h>
+
 #include <teem/air.h>
 #include <teem/hest.h>
 
-char *info = ("Converts from DOS text files to unix (converting CR-LF pairs "
-	      "to just LF).  Note: there is no capability to convert to DOS "
-	      "text files, because there is no legitimate or rational "
-	      "reason for ever doing this. ");
+char *info = ("Converts from DOS text files to normal (converting CR-LF pairs "
+	      "to just LF), or, with the \"-r\" option, convert back to DOS, "
+	      "for whatever sick and twisted reason you'd have to do that. ");
+
+#define CR 10
+#define LF 13
+#define BAD_PERC 5.0
+
+void
+undosConvert(char *me, char *name, int reverse) {
+  airArray *mop;
+  FILE *fin, *fout;
+  char *data=NULL;
+  airArray *dataArr;
+  int ci, car, numBad;
+
+  mop = airMopNew();
+  if (!airStrlen(name)) {
+    fprintf(stderr, "%s: empty filename\n", me);
+    airMopError(mop); return;
+  }
+
+  /* open input file */
+  fin = airFopen(name, stdin, "rb");
+  if (!fin) {
+    fprintf(stderr, "%s: couldn't open \"%s\" for reading: \"%s\"\n", 
+	    me, name, strerror(errno));
+    airMopError(mop); return;
+  }
+  airMopAdd(mop, fin, (airMopper)airFclose, airMopOnError);
+
+  /* create buffer */
+  dataArr = airArrayNew((void**)&data, NULL, sizeof(char), AIR_STRLEN_LARGE);
+  if (!dataArr) {
+    fprintf(stderr, "%s: internal allocation error #1\n", me);
+    airMopError(mop); return;
+  }
+  airMopAdd(mop, dataArr, (airMopper)airArrayNuke, airMopAlways);
+
+  /* read input file */
+  car = getc(fin);
+  if (EOF == car) {
+    fprintf(stderr, "%s: \"%s\" was empty, skipping ...\n", me, name);
+    airMopError(mop); return;
+  }
+  do {
+    ci = airArrayIncrLen(dataArr, 1);
+    if (-1 == ci) {
+      fprintf(stderr, "%s: internal allocation error #2\n", me);
+      airMopError(mop); return;
+    }
+    data[ci] = car;
+    car = getc(fin);
+  } while (EOF != car);
+  fin = airFclose(fin);
+
+  /* test for binary-ness */
+  numBad = 0;
+  for (ci=0; ci<dataArr->len; ci++) {
+    numBad += !(isprint(data[ci]) || isspace(data[ci]));
+  }
+  if (BAD_PERC < 100*(double)numBad/dataArr->len) {
+    fprintf(stderr, "%s: more than %g%% of \"%s\" is non-printing, "
+	    "skipping ...\n", me, BAD_PERC, name);
+    airMopError(mop); return;    
+  }
+  fprintf(stderr, "!%s: numBad = %d\n", me, numBad);
+
+  /* open output file */
+  fout = airFopen(name, stdin, "wb");
+  if (!fout) {
+    fprintf(stderr, "%s: couldn't open \"%s\" for writing: \"%s\"\n", 
+	    me, name, strerror(errno));
+    airMopError(mop); return;
+  }
+  airMopAdd(mop, fout, (airMopper)airFclose, airMopOnError);
+
+  /* write output file */
+  car = 'a';
+  if (reverse) {
+    for (ci=0; ci<dataArr->len; ci++) {
+      if (CR == data[ci]) {
+	car = putc(LF, fout);
+	if (EOF != car) {
+	  car = putc(CR, fout);
+	}
+      } else {
+	car = putc(data[ci], fout);
+      }
+    }
+  } else {
+    for (ci=0; EOF != car && ci<dataArr->len; ci++) {
+      if (LF == data[ci] && (ci+1<dataArr->len && CR == data[ci+1])) {
+	car = putc(CR, fout);
+	ci++;
+      } else {
+	car = putc(data[ci], fout);
+      }
+    }
+  }
+  if (EOF == car) {
+    fprintf(stderr, "%s: ERROR writing \"%s\" (sorry!)\n", me, name);
+  }
+  fout = airFclose(fout);
+
+  airMopOkay(mop);
+  return;
+}
 
 int
 main(int argc, char *argv[]) {
-  char *me, **names;
-  int lenNames, ni;
+  char *me, **name, prefix[AIR_STRLEN_MED];
+  int lenName, ni, reverse;
   hestOpt *hopt = NULL;
   airArray *mop;
 
   me = argv[0];
-  hestOptAdd(&hopt, NULL, "file1 ", airTypeString, 1, -1, &names, NULL,
+  hestOptAdd(&hopt, "r", NULL, airTypeInt, 0, 0, &reverse, NULL,
+	     "convert back to DOS, instead of convert from DOS to normal");
+  hestOptAdd(&hopt, NULL, "file1 ", airTypeString, 1, -1, &name, NULL,
 	     "all the files to convert.  Each file will be over-written "
 	     "with its converted contents.  Makes an effort to not meddle "
 	     "with binary files.  Use \"-\" to read from stdin "
-	     "and write to stdout", &lenNames);
+	     "and write to stdout", &lenName);
   hestParseOrDie(hopt, argc-1, argv+1, NULL, me, info,
 		 AIR_TRUE, AIR_TRUE, AIR_TRUE);
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  for (ni=0; ni<lenNames; ni++) {
-    fprintf(stderr, "%d: \"%s\"\n", ni, names[ni]);
+  for (ni=0; ni<lenName; ni++) {
+    sprintf(prefix, "%s: (input file #%d of %d)", me, ni+1, lenName);
+    undosConvert(prefix, name[ni], reverse);
   }
   
   airMopOkay(mop);
