@@ -875,12 +875,11 @@ int
 nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *nsubst) {
   char me[]="nrrdApply1DSubstitution", err[AIR_STRLEN_MED];
   double (*lup)(const void *, size_t);
-  double (*slup)(const void *, size_t);
   double (*ins)(void *, size_t, double);
-  double val, sval;
+  Nrrd *dsubst;
+  double val, sval, *d;
   size_t ii, num;
-  int jj, asize0, asize1;
-  int changed;
+  int jj, asize0, asize1, changed;
 
   if (!(nout && nsubst && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -908,17 +907,21 @@ nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *nsubst) {
       biffAdd(NRRD, err); return 1;
     }
   }
+  if (nrrdConvert(dsubst = nrrdNew(), nsubst, nrrdTypeDouble)) {
+    sprintf(err, "%s: couldn't create double copy of substitution table", me);
+    biffAdd(NRRD, err); dsubst = nrrdNuke(dsubst); return 1;
+  }
   lup = nrrdDLookup[nout->type];
-  slup = nrrdDLookup[nsubst->type];
   ins = nrrdDInsert[nout->type];
   num = nrrdElementNumber(nout);
+  d = (double *)dsubst->data;
   for (ii=0; ii<num; ii++) {
     val = lup(nout->data, ii);
     changed = AIR_FALSE;
     for (jj=0; jj<asize1; jj++) {
-      sval = slup(nsubst->data, jj*2+0);
+      sval = d[jj*2+0];
       if (val == sval) {
-	val = slup(nsubst->data, jj*2+1);
+	val = d[jj*2+1];
 	changed = AIR_TRUE;
       }
     }
@@ -926,5 +929,6 @@ nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *nsubst) {
       ins(nout->data, ii, val);
     }
   }
+  dsubst = nrrdNuke(dsubst);
   return 0;
 }
