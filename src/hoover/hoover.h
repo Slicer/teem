@@ -1,0 +1,226 @@
+/*
+  teem: Gordon Kindlmann's research software
+  Copyright (C) 2002, 2001, 2000, 1999, 1998 University of Utah
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef HOOV_HAS_BEEN_INCLUDED
+#define HOOV_HAS_BEEN_INCLUDED
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+#include <air.h>
+#include <biff.h>
+#include <ell.h>
+#include <limn.h>
+
+#define HOOVER "hoover"
+
+#define HOOV_THREAD_MAX 128
+
+/*
+******** hoovContext struct
+**
+** Everything that hoovRender() needs to do its thing, and no more.
+** This is all read-only informaiton.
+** 1) camera information
+** 3) volume information
+** 4) image information
+** 5) opaque "user information" pointer
+** 6) the number of threads to spawn
+** 7) the callbacks
+**
+** For the sake of some simplicity, the centering of both the image
+** and the volume is assumed to be node-centering
+*/
+typedef struct {
+
+  /******** 1) camera information */
+  limnCam *cam;            /* camera info */
+
+  /******** 2) volume information: size and spacing, voxel vs. cell, scaling */
+  int volSize[3];          /* X,Y,Z resolution of volume */
+  double volSpacing[3];    /* distance between samples in X,Y,Z direction */
+  
+  /******** 3) image information: dimensions, pixels inside vs. on-edge */
+  int imgUSize, imgVSize;  /* # samples of image along U and V axes */
+  
+  /******** 4) opaque "user information" pointer */
+  void *userInfo;          /* passed to all callbacks */
+
+  /******** 5) the number of threads to spawn */
+  int numThreads;          /* number of threads to spawn per rendering */
+  
+  /*
+  ******* 6) the callbacks 
+  **
+  ** The conceptual ordering of these callbacks is as they are listed
+  ** below.  For example, rayBegin and rayEnd are called multiple
+  ** times between threadBegin and threadEnd, and so on.  All of these
+  ** are initialized to one of the stub functions provided by hoover.  
+  **
+  ** A non-zero return of any of these indicates error. Which callback
+  ** failed is represented by the return value of hoovRender(), the
+  ** return value from the callback is stored in *errCodeP by
+  ** hoovRender(), and the problem thread number is stored in
+  ** *errThreadP.
+  */
+
+  /* 
+  ** renderBegin()
+  **
+  ** called once at beginning of whole rendering, and
+  ** *rendInfoP is passed to all following calls as "rendInfo".  Any
+  ** mechanisms for inter-thread communication go nicely in rendInfo.
+  */
+  int (*renderBegin)(void **rendInfoP, void *userInfo);
+  
+  /* 
+  ** threadBegin() 
+  **
+  ** called once per thread, and *threadInfoP is passed to all
+  ** following calls as "threadInfo".
+  */
+  int (*threadBegin)(void **threadInfoP, 
+		     void *rendInfo, void *userInfo, int whichThread);
+  
+  /*
+  ** rayBegin()
+  **
+  ** called once at the beginning of each ray.  This function will be
+  ** called regardless of whether the ray actually intersects the
+  ** volume
+  */
+  int (*rayBegin)(void *threadInfo,
+		  void *rendInfo,
+		  void *userInfo,
+		  int uIndex,          /* image coordinates of current ray */
+		  int vIndex, 
+		  double dirWorld[3],  /* unit ray direction, world space */
+		  double dirIndex[3]); /* unit ray direction, index space */
+
+  /* 
+  ** sample()
+  **
+  ** called once per sample along the ray, and the return value is
+  ** used to indicate how far to increment the ray position for the
+  ** next sample.  A return of 0.0 is taken to mean a non-erroneous
+  ** ray termination, a return of NaN is taken to mean an error
+  ** condition.  It is the user's responsibility to store the type of
+  ** this error somewhere accessible.
+  **
+  ** This is not a terribly flexible scheme (don't forget, this is
+  ** hoover): it enforces rather rigid constraints on how
+  ** multi-threading works: one thread can not render multiple rays in
+  ** parallel.  If there were more args to cbSample (like a rayInfo,
+  ** or an integral rayIndex), then this would be possible, but it
+  ** would mean that _hoovThreadBody() would have to implement all the
+  ** smarts about which samples belong on which rays belong with which
+  ** threads.
+  **
+  ** At some point now or in the future, an effort will be made to
+  ** never call this function if the ray does not in fact intersect
+  ** the volume at all.
+  */
+  double (*sample)(void *threadInfo,
+		   void *rendInfo,  
+		   void *userInfo,
+		   int in,             /* this sample is inside the volume */
+		   double pos[3]);     /* position in INDEX space  */
+
+  /*
+  ** rayEnd()
+  ** 
+  ** called at the end of the ray.  The end of a ray is:
+  ** 1) sample returns 0.0, or,
+  ** 2) when the sample location goes behind far plane
+  */
+  int (*rayEnd)(void *threadInfo,
+		void *rendInfo, 
+		void *userInfo);
+
+  /* 
+  ** threadEnd()
+  **
+  ** called at end of thread
+  */
+  int (*threadEnd)(void *threadInfo, void *rendInfo, void *userInfo);
+  
+  /* 
+  ** renderEnd()
+  ** 
+  ** called once at end of whole rendering
+  */
+  int (*renderEnd)(void *rendInfo, void *userInfo);
+
+} hoovContext;
+
+/*
+******** hoovErr... enum
+**
+** possible returns from hoovRender.
+** hoovErrNone: no error, all is well: 
+** hoovErrInit: error detected in hoover, call biffGet(HOOVER)
+** otherwise, return indicates which call-back had trouble
+*/
+enum {
+  hoovErrNone,
+  hoovErrInit,           /* call biffGet(HOOVER) */
+  hoovErrRenderBegin,
+  hoovErrThreadCreate,
+  hoovErrThreadBegin,
+  hoovErrRayBegin,
+  hoovErrSample,
+  hoovErrRayEnd,
+  hoovErrThreadEnd,
+  hoovErrThreadJoin,
+  hoovErrRenderEnd,
+  hoovErrLast
+};
+  
+/* methods.c */
+extern hoovContext *hoovContextNew();
+extern int hoovContextCheck(hoovContext *ctx);
+extern void hoovContextNix(hoovContext *ctx);
+
+/* rays.c */
+extern int hoovRender(hoovContext *ctx, int *errCodeP, int *errThreadP);
+
+/* stub.c */
+extern int hoovStubRenderBegin(void **rendInfoP, void *userInfo);
+extern int hoovStubThreadBegin(void **threadInfoP, 
+			       void *rendInfo, void *userInfo,
+			       int whichThread);
+extern int hoovStubRayBegin(void *threadInfo, void *rendInfo, void *userInfo,
+			    int uIndex, int vIndex, 
+			    double dirWorld[3], double dirIndex[3]);
+extern double hoovStubSample(void *threadInfo, void *rendInfo, void *userInfo,
+			     int in, double pos[3]);
+extern int hoovStubRayEnd(void *threadInfo, void *rendInfo, void *userInfo);
+extern int hoovStubThreadEnd(void *threadInfo, void *rendInfo, void *userInfo);
+extern int hoovStubRenderEnd(void *rendInfo, void *userInfo);
+
+#endif /* HOOV_HAS_BEEN_INCLUDED */
+
+#ifdef __cplusplus
+}
+#endif
