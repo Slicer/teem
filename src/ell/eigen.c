@@ -49,7 +49,7 @@
   */
 
 void
-_ellAlign3(double v[9]) {
+_ell_align3_d(double v[9]) {
   double d0, d1, d2;
   int Mi, ai, bi;
   
@@ -71,7 +71,7 @@ _ellAlign3(double v[9]) {
 }
 
 void
-_ellFixerUpper(double v[9]) {
+_ell_make_right_handed_d(double v[9]) {
   double x[3];
   
   ELL_3V_CROSS(x, v+3*0, v+3*1);
@@ -99,7 +99,7 @@ _ellFixerUpper(double v[9]) {
 */
 
 /*
-******** ell3mNullspace1()
+******** ell_3m_1d_nullspace_d()
 **
 ** the given matrix is assumed to have a nullspace of dimension one.
 ** The COLUMNS of the matrix are n+0, n+3, n+6.  A normalized vector
@@ -110,7 +110,7 @@ _ellFixerUpper(double v[9]) {
 ** This does NOT use biff
 */
 void
-ell3mNullspace1(double ans[3], double n[9]) {
+ell_3m_1d_nullspace_d(double ans[3], double n[9]) {
   double t[9], norm;
   
   /* find the three cross-products of pairs of column vectors of n */
@@ -118,7 +118,7 @@ ell3mNullspace1(double ans[3], double n[9]) {
   ELL_3V_CROSS(t+3, n+0, n+6);
   ELL_3V_CROSS(t+6, n+3, n+6);
   /* lop A */
-  _ellAlign3(t);
+  _ell_align3_d(t);
   /* lop B */
   /* add them up (longer, hence more accurate, should dominate) */
   ELL_3V_ADD3(ans, t+0, t+3, t+6);
@@ -130,7 +130,7 @@ ell3mNullspace1(double ans[3], double n[9]) {
 }
 
 /*
-******** ell3mNullspace2()
+******** ell_3m_2d_nullspace_d()
 **
 ** the given matrix is assumed to have a nullspace of dimension two.
 ** The COLUMNS of the matrix are n+0, n+3, n+6
@@ -140,17 +140,17 @@ ell3mNullspace1(double ans[3], double n[9]) {
 ** This does NOT use biff
 */
 void
-ell3mNullspace2(double ans0[3], double ans1[3], double _n[9]) {
+ell_3m_2d_nullspace_d(double ans0[3], double ans1[3], double _n[9]) {
   double n[9], tmp[3], norm;
 
   ELL_3M_COPY(n, _n);
-  _ellAlign3(n);
+  _ell_align3_d(n);
   ELL_3V_ADD3(tmp, n+0, n+3, n+6);
   ELL_3V_NORM(tmp, tmp, norm);
   
   /* any two vectors which are perpendicular to the (supposedly 1D)
      span of the column vectors span the nullspace */
-  ell3vPerp_d(ans0, tmp);
+  ell_3v_perp_d(ans0, tmp);
   ELL_3V_NORM(ans0, ans0, norm);
   ELL_3V_CROSS(ans1, tmp, ans0);
 
@@ -158,7 +158,7 @@ ell3mNullspace2(double ans0[3], double ans1[3], double _n[9]) {
 }
 
 /*
-******** ell3mEigenvalues()
+******** ell_3m_eigenvalues_d()
 **
 ** finds eigenvalues of given matrix.
 **
@@ -172,7 +172,7 @@ ell3mNullspace2(double ans0[3], double ans1[3], double _n[9]) {
 ** This does NOT use biff
 */
 int
-ell3mEigenvalues(double eval[3], double m[9], int newton) {
+ell_3m_eigenvalues_d(double eval[3], double m[9], int newton) {
   double A, B, C;
 
   /* 
@@ -187,11 +187,11 @@ ell3mEigenvalues(double eval[3], double m[9], int newton) {
   C = (m[2]*m[4] - m[1]*m[5])*m[6]
     + (m[0]*m[5] - m[2]*m[3])*m[7]
     + (m[1]*m[3] - m[0]*m[4])*m[8];
-  return ellCubic(eval, A, B, C, newton);
+  return ell_cubic(eval, A, B, C, newton);
 }
 
 /*
-******** ell3mEigensolve()
+******** ell_3m_eigensolve_d()
 **
 ** finds eigenvalues and eigenvectors of given matrix m,
 ** m+0, m+3, m+6, are the COLUMNS of the matrix.
@@ -207,79 +207,79 @@ ell3mEigenvalues(double eval[3], double m[9], int newton) {
 ** This does NOT use biff
 */
 int
-ell3mEigensolve(double eval[3], double evec[9], double m[9], int newton) {
+ell_3m_eigensolve_d(double eval[3], double evec[9], double m[9], int newton) {
   double n[9], e0, e1, e2, t /* , tmpv[3] */ ;
   int roots;
 
-  /* if (ellDebug) {
-    printf("ell3Eigensolve: input matrix:\n");
+  /* if (ell_debug) {
+    printf("ell_3m_eigensolve: input matrix:\n");
     printf("{{%20.15f,\t%20.15f,\t%20.15f},\n", m[0], m[3], m[6]);
     printf(" {%20.15f,\t%20.15f,\t%20.15f},\n", m[1], m[4], m[7]);
     printf(" {%20.15f,\t%20.15f,\t%20.15f}};\n",m[2], m[5], m[8]);
     } */
   
-  roots = ell3mEigenvalues(eval, m, newton);
+  roots = ell_3m_eigenvalues_d(eval, m, newton);
   ELL_3V_GET(e0, e1, e2, eval);
-  /* if (ellDebug) {
-    printf("ell3Eigensolve: numroots = %d\n", numroots);
+  /* if (ell_debug) {
+    printf("ell_3m_eigensolve: numroots = %d\n", numroots);
     } */
 
   /* we form m - lambda*I by doing a memcpy from m, and then
      (repeatedly) over-writing the diagonal elements */
   ELL_3M_COPY(n, m);
   switch (roots) {
-  case ellCubicRootThree:
+  case ell_cubic_root_three:
     ELL_SORT3(e0, e1, e2, t);
-    /* if (ellDebug) {
-      printf("ell3Eigensolve: evals: %20.15f %20.15f %20.15f\n", 
+    /* if (ell_debug) {
+      printf("ell_3m_eigensolve: evals: %20.15f %20.15f %20.15f\n", 
 	     eval[0], eval[1], eval[2]);
 	     } */
     ELL_3M_DIAG_SET(n, m[0]-e0, m[4]-e0, m[8]-e0);
-    ell3mNullspace1(evec+0, n);
+    ell_3m_1d_nullspace_d(evec+0, n);
     ELL_3M_DIAG_SET(n, m[0]-e1, m[4]-e1, m[8]-e1);
-    ell3mNullspace1(evec+3, n);
+    ell_3m_1d_nullspace_d(evec+3, n);
     ELL_3M_DIAG_SET(n, m[0]-e2, m[4]-e2, m[8]-e2);
-    ell3mNullspace1(evec+6, n);
-    _ellFixerUpper(evec);
+    ell_3m_1d_nullspace_d(evec+6, n);
+    _ell_make_right_handed_d(evec);
     ELL_3V_SET(eval, e0, e1, e2);
     break;
-  case ellCubicRootSingleDouble:
+  case ell_cubic_root_single_double:
     ELL_SORT3(e0, e1, e2, t);
     if (e0 > e1) {
       /* one big (e0) , two small (e1, e2) : more like a cigar */
       ELL_3M_DIAG_SET(n, m[0]-e0, m[4]-e0, m[8]-e0);
-      ell3mNullspace1(evec+0, n);
+      ell_3m_1d_nullspace_d(evec+0, n);
       ELL_3M_DIAG_SET(n, m[0]-e1, m[4]-e1, m[8]-e1);
-      ell3mNullspace2(evec+3, evec+6, n);
+      ell_3m_2d_nullspace_d(evec+3, evec+6, n);
     }
     else {
       /* two big (e0, e1), one small (e2): more like a pancake */
       ELL_3M_DIAG_SET(n, m[0]-e0, m[4]-e0, m[8]-e0);
-      ell3mNullspace2(evec+0, evec+3, n);
+      ell_3m_2d_nullspace_d(evec+0, evec+3, n);
       ELL_3M_DIAG_SET(n, m[0]-e2, m[4]-e2, m[8]-e2);
-      ell3mNullspace1(evec+6, n);
+      ell_3m_1d_nullspace_d(evec+6, n);
     }
-    _ellFixerUpper(evec);
+    _ell_make_right_handed_d(evec);
     ELL_3V_SET(eval, e0, e1, e2);
     break;
-  case ellCubicRootTriple:
+  case ell_cubic_root_triple:
     /* one triple root; use any basis as the eigenvectors */
     ELL_3V_SET(evec+0, 1, 0, 0);
     ELL_3V_SET(evec+3, 0, 1, 0);
     ELL_3V_SET(evec+6, 0, 0, 1);
     ELL_3V_SET(eval, e0, e1, e2);
     break;
-  case ellCubicRootSingle:
+  case ell_cubic_root_single:
     /* only one real root */
     ELL_3M_DIAG_SET(n, m[0]-e0, m[4]-e0, m[8]-e0);
-    ell3mNullspace1(evec+0, n);
+    ell_3m_1d_nullspace_d(evec+0, n);
     ELL_3V_SET(evec+3, AIR_NAN, AIR_NAN, AIR_NAN);
     ELL_3V_SET(evec+6, AIR_NAN, AIR_NAN, AIR_NAN);
     ELL_3V_SET(eval, e0, AIR_NAN, AIR_NAN);
     break;
   }
-  /* if (ellDebug) {
-    printf("ell3Eigensolve (numroots = %d): evecs: \n", numroots);
+  /* if (ell_debug) {
+    printf("ell_3m_eigensolve (numroots = %d): evecs: \n", numroots);
     ELL_3MV_MUL(tmpv, m, evec[0]);
     printf(" (%g:%g): %20.15f %20.15f %20.15f\n", 
 	   eval[0], ELL_3V_DOT(evec[0], tmpv), 

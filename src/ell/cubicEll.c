@@ -23,7 +23,7 @@
 
 
 /*
-******** ellCubic(): 
+******** ell_cubic(): 
 **
 ** finds real roots of x^3 + A*x^2 + B*x + C.
 **
@@ -41,7 +41,8 @@
 ** This does NOT use biff
 */
 int
-ellCubic(double root[3], double A, double B, double C, int newton) {
+ell_cubic(double root[3], double A, double B, double C, int newton) {
+  char me[]="ell_cubic";
   double epsilon = 1.0E-11, sq_A, p, q, cb_p, D, sqrt_D, der,
     u, v, x, phi, t, sub;
 
@@ -61,10 +62,10 @@ ellCubic(double root[3], double A, double B, double C, int newton) {
     root[2] = t*cos(phi - 2*M_PI/3.0) - sub;
     /*
     if (!AIR_EXISTS(root[0])) {
-      fprintf(stderr, "ellCubic: %g %g %g --> nan!!!\n", A, B, C);
+      fprintf(stderr, "%s: %g %g %g --> nan!!!\n", me, A, B, C);
     }
     */
-    return ellCubicRootThree;
+    return ell_cubic_root_three;
   }
   else if (D > epsilon) {
     double nr, fnr;
@@ -76,7 +77,7 @@ ellCubic(double root[3], double A, double B, double C, int newton) {
     if (!newton) {
       root[0] = x;
       root[1] = root[2] = AIR_NAN;
-      return ellCubicRootSingle;
+      return ell_cubic_root_single;
     }
 
     /* else refine x, the known root, with newton-raphson, so as to get the 
@@ -90,25 +91,25 @@ ellCubic(double root[3], double A, double B, double C, int newton) {
     nr = -(A + x)/2.0;
     fnr = ((nr + A)*nr + B)*nr + C;  /* the polynomial evaluated at nr */
     /*
-    if (ellDebug) {
-      fprintf(stderr, "ellCubic(): root = %g -> %g, nr=% 20.15f\n"
-	      "   fnr=% 20.15f\n", 
+    if (ell_debug) {
+      fprintf(stderr, "%s: root = %g -> %g, nr=% 20.15f\n"
+	      "   fnr=% 20.15f\n", me,
 	      x, (((x + A)*x + B)*x + C), nr, fnr);
     }
     */
     if (fnr < -epsilon || fnr > epsilon) {
       root[0] = x;
       root[1] = root[2] = AIR_NAN;
-      return ellCubicRootSingle;
+      return ell_cubic_root_single;
     }
     else {
-      if (ellDebug) {
-	fprintf(stderr, "ellCubic(): rescued double root:% 20.15f\n", nr);
+      if (ell_debug) {
+	fprintf(stderr, "%s: rescued double root:% 20.15f\n", me, nr);
       } 
       root[0] = x;
       root[1] = nr;
       root[2] = nr;
-      return ellCubicRootSingleDouble;
+      return ell_cubic_root_single_double;
     }
   } 
   else {
@@ -119,16 +120,16 @@ ellCubic(double root[3], double A, double B, double C, int newton) {
       root[0] = 2*u - sub;
       root[1] = -u - sub;
       root[2] = -u - sub;
-      return ellCubicRootSingleDouble;
+      return ell_cubic_root_single_double;
     } 
     else {
       /* one triple root */
       root[0] = root[1] = root[2] = -sub;
-      return ellCubicRootTriple;
+      return ell_cubic_root_triple;
     }
   }
   /* shouldn't ever get here */
-  return ellCubicRootUnknown;
+  return ell_cubic_root_unknown;
 }
 
 

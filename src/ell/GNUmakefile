@@ -46,8 +46,8 @@ $(L).SEEN := true
 $(L).NEED = nrrd biff air 
 $(L).PUBLIC_HEADERS = ell.h ellMacros.h
 $(L).PRIVATE_HEADERS =
-$(L).OBJS = cubicEll.o eigen.o miscEll.o vecEll.o mat.o genmat.o
-$(L).TESTS = test/sort3 test/invert
+$(L).OBJS = cubicEll.o eigen.o miscEll.o vecEll.o mat.o quat.o genmat.o
+$(L).TESTS = test/sort3 test/invert test/tq
 ####
 ####
 ####

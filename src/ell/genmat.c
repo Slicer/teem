@@ -41,8 +41,8 @@
 */
 
 int
-ellNmValid(Nrrd *mat) {
-  char me[]="_ellNmValid", err[AIR_STRLEN_MED];
+ell_Nm_valid(Nrrd *mat) {
+  char me[]="ell_Nm_valid", err[AIR_STRLEN_MED];
 
   if (!mat) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -64,10 +64,10 @@ ellNmValid(Nrrd *mat) {
 }
 
 int
-ellNmTranspose (Nrrd *ntrn, Nrrd *nmat) {
-  char me[]="ellNmTranspose", err[AIR_STRLEN_MED];
+ell_Nm_tran (Nrrd *ntrn, Nrrd *nmat) {
+  char me[]="ell_Nm_tran", err[AIR_STRLEN_MED];
 
-  if (!( ntrn && ellNmValid(nmat) )) {
+  if (!( ntrn && ell_Nm_valid(nmat) )) {
     sprintf(err, "%s: NULL or invalid args", me);
     biffAdd(ELL, err); return 1;
   }
@@ -84,7 +84,7 @@ ellNmTranspose (Nrrd *ntrn, Nrrd *nmat) {
 }
 
 /*
-******** ellNmMultiply
+******** ell_Nm_mul
 **
 ** Currently, only useful for matrix-matrix multiplication
 **
@@ -92,12 +92,12 @@ ellNmTranspose (Nrrd *ntrn, Nrrd *nmat) {
 **                  L [A] . M [B]
 */
 int
-ellNmMultiply (Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
-  char me[]="ellNmMultiply", err[AIR_STRLEN_MED];
+ell_Nm_mul (Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
+  char me[]="ell_Nm_mul", err[AIR_STRLEN_MED];
   double *A, *B, *AB, tmp;
   int LL, MM, NN, ll, mm, nn;
   
-  if (!( nAB && ellNmValid(nA) && ellNmValid(nB) )) {
+  if (!( nAB && ell_Nm_valid(nA) && ell_Nm_valid(nB) )) {
     sprintf(err, "%s: NULL or invalid args", me);
     biffAdd(ELL, err); return 1;
   }
@@ -134,13 +134,13 @@ ellNmMultiply (Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
 }
 
 /*
-** _ellLUDecomp()
+** _ell_LU_decomp()
 **
 ** in-place LU decomposition
 */
 int
-_ellLUDecomp (double *a, int *indx, int NN)  {
-  char me[]="_ellLUDecomp", err[AIR_STRLEN_MED];
+_ell_LU_decomp (double *a, int *indx, int NN)  {
+  char me[]="_ell_LU_decomp", err[AIR_STRLEN_MED];
   int ret=0, i, imax=0, j, k;
   double big, sum, tmp;
   double *vv;
@@ -225,14 +225,14 @@ _ellLUDecomp (double *a, int *indx, int NN)  {
 }
 
 /*
-** _ellLUBackSub
+** _ell_LU_back_sub
 **
 ** given the matrix and index array from _ellLUDecomp generated from
 ** some matrix M, solves for x in the linear equation Mx = b, and 
 ** puts the result back into b
 */
 void
-_ellLUBackSub (double *a, int *indx, double *b, int NN) {
+_ell_LU_back_sub (double *a, int *indx, double *b, int NN) {
   int i, j;
   double sum;
 
@@ -256,7 +256,7 @@ _ellLUBackSub (double *a, int *indx, double *b, int NN) {
 }
 
 /*
-** _ellInverse
+** _ell_inv
 **
 ** Invert NNxNN matrix based on LU-decomposition
 **
@@ -265,8 +265,8 @@ _ellLUBackSub (double *a, int *indx, double *b, int NN) {
 ** the inverse.
 */
 int
-_ellInverse (double *inv, double *_mat, int NN) {
-  char me[]="_ellInverse", err[AIR_STRLEN_MED];
+_ell_inv (double *inv, double *_mat, int NN) {
+  char me[]="_ell_inv", err[AIR_STRLEN_MED];
   int i, j;
   double *col=NULL, *mat=NULL;
   int *indx=NULL, ret=0;
@@ -280,7 +280,7 @@ _ellInverse (double *inv, double *_mat, int NN) {
 
   memcpy(mat, _mat, NN*NN*sizeof(double));
 
-  if (_ellLUDecomp(mat, indx, NN)) {
+  if (_ell_LU_decomp(mat, indx, NN)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(ELL, err); ret = 1; goto seeya;
   }
@@ -288,7 +288,7 @@ _ellInverse (double *inv, double *_mat, int NN) {
   for (j=0; j<NN; j++) {
     memset(col, 0, NN*sizeof(double));
     col[j] = 1.0;
-    _ellLUBackSub(mat, indx, col, NN);
+    _ell_LU_back_sub(mat, indx, col, NN);
     /* set column j of inv to result of backsub */
     for (i=0; i<NN; i++) {
       inv[i*NN + j] = col[i];
@@ -300,19 +300,19 @@ _ellInverse (double *inv, double *_mat, int NN) {
 }
 
 /*
-******** ellNmInverse
+******** ell_Nm_inv
 **
 ** computes the inverse of given matrix in nmat, and puts the 
 ** inverse in the (maybe allocated) ninv.  Does not touch the
 ** values in nmat.
 */
 int
-ellNmInverse (Nrrd *ninv, Nrrd *nmat) {
-  char me[]="ellNmInverse", err[AIR_STRLEN_MED];
+ell_Nm_inv (Nrrd *ninv, Nrrd *nmat) {
+  char me[]="ell_Nm_inv", err[AIR_STRLEN_MED];
   double *mat, *inv;
   int NN;
 
-  if (!( ninv && ellNmValid(nmat) )) {
+  if (!( ninv && ell_Nm_valid(nmat) )) {
     sprintf(err, "%s: NULL or invalid args", me);
     biffAdd(ELL, err); return 1;
   }
@@ -329,7 +329,7 @@ ellNmInverse (Nrrd *ninv, Nrrd *nmat) {
   }
   inv = (double*)(ninv->data);
   mat = (double*)(nmat->data);
-  if (_ellInverse(inv, mat, NN)) {
+  if (_ell_inv(inv, mat, NN)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(ELL, err); return 1;
   }
@@ -338,7 +338,7 @@ ellNmInverse (Nrrd *ninv, Nrrd *nmat) {
 }
 
 /*
-******** ellNmPseudoInverse()
+******** ell_Nm_pseudo_inv()
 **
 ** determines the pseudoinverse of the given matrix M by using the formula
 ** P = (M^T * M)^(-1) * M^T
@@ -347,22 +347,22 @@ ellNmInverse (Nrrd *ninv, Nrrd *nmat) {
 ** general solution
 */
 int
-ellNmPseudoInverse (Nrrd *ninv, Nrrd *nA) {
-  char me[]="ellNmPseudoInverse", err[AIR_STRLEN_MED];
+ell_Nm_pseudo_inv (Nrrd *ninv, Nrrd *nA) {
+  char me[]="ell_Nm_pseudo_inv", err[AIR_STRLEN_MED];
   Nrrd *nAt, *nAtA, *nAtAi;
   int ret=0;
   
-  if (!( ninv && ellNmValid(nA) )) {
+  if (!( ninv && ell_Nm_valid(nA) )) {
     sprintf(err, "%s: NULL or invalid args", me);
     biffAdd(ELL, err); return 1;
   }
   nAt = nrrdNew();
   nAtA = nrrdNew();
   nAtAi = nrrdNew();
-  if (ellNmTranspose(nAt, nA)
-      || ellNmMultiply(nAtA, nAt, nA)
-      || ellNmInverse(nAtAi, nAtA)
-      || ellNmMultiply(ninv, nAtAi, nAt)) {
+  if (ell_Nm_tran(nAt, nA)
+      || ell_Nm_mul(nAtA, nAt, nA)
+      || ell_Nm_inv(nAtAi, nAtA)
+      || ell_Nm_mul(ninv, nAtAi, nAt)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(ELL, err); ret = 1; goto seeya;
   }

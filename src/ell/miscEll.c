@@ -21,19 +21,19 @@
 #include "ell.h"
 
 const char *
-ellBiffKey = "ell";
+ell_biff_key = "ell";
 
 /*
-******** ellDebug
+******** ell_debug
 **
 ** some functions may use this value to control printing of
 ** verbose debugging information
 */
-int ellDebug = 0;
+int ell_debug = 0;
 
 
 void
-ell3mPrint_f(FILE *f, float s[9]) {
+ell_3m_print_f(FILE *f, float s[9]) {
 
   fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
 	  s[0], s[3], s[6]);
@@ -44,14 +44,14 @@ ell3mPrint_f(FILE *f, float s[9]) {
 }
 
 void
-ell3vPrint_f(FILE *f, float s[3]) {
+ell_3v_print_f(FILE *f, float s[3]) {
 
   fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
 	  s[0], s[1], s[2]);
 }
 
 void
-ell3mPrint_d(FILE *f, double s[9]) {
+ell_3m_print_d(FILE *f, double s[9]) {
 
   fprintf(f, "% 31.15f % 31.15f % 31.15f\n", 
 	  s[0], s[3], s[6]);
@@ -62,14 +62,14 @@ ell3mPrint_d(FILE *f, double s[9]) {
 }
 
 void
-ell3vPrint_d(FILE *f, double s[3]) {
+ell_3v_print_d(FILE *f, double s[3]) {
 
   fprintf(f, "% 31.15f % 31.15f % 31.15f\n",
 	  s[0], s[1], s[2]);
 }
 
 void
-ell4mPrint_f(FILE *f, float s[16]) {
+ell_4m_print_f(FILE *f, float s[16]) {
 
   fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n", 
 	  s[0], s[4], s[8], s[12]);
@@ -82,14 +82,14 @@ ell4mPrint_f(FILE *f, float s[16]) {
 }
 
 void
-ell4vPrint_f(FILE *f, float s[4]) {
+ell_4v_print_f(FILE *f, float s[4]) {
 
   fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n", 
 	  s[0], s[1], s[2], s[3]);
 }
 
 void
-ell4mPrint_d(FILE *f, double s[16]) {
+ell_4m_print_d(FILE *f, double s[16]) {
 
   fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n", 
 	  s[0], s[4], s[8], s[12]);
@@ -102,9 +102,8 @@ ell4mPrint_d(FILE *f, double s[16]) {
 }
 
 void
-ell4vPrint_d(FILE *f, double s[4]) {
+ell_4v_print_d(FILE *f, double s[4]) {
 
   fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n", 
 	  s[0], s[1], s[2], s[3]);
 }
-

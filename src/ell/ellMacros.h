@@ -132,23 +132,22 @@ extern "C" {
    (v2)[1] = (a)*(v1)[1],       \
    (v2)[2] = (a)*(v1)[2])
 
-#define ELL_3V_SCALEADD(v2, s0, v0, s1, v1) \
-  ((v2)[0] = (s0)*(v0)[0] + (s1)*(v1)[0],   \
-   (v2)[1] = (s0)*(v0)[1] + (s1)*(v1)[1],   \
+#define ELL_3V_SCALE_ADD(v2, s0, v0, s1, v1) \
+  ((v2)[0] = (s0)*(v0)[0] + (s1)*(v1)[0],    \
+   (v2)[1] = (s0)*(v0)[1] + (s1)*(v1)[1],    \
    (v2)[2] = (s0)*(v0)[2] + (s1)*(v1)[2])
 
-#define ELL_3V_SCALEINCR(v2, s0, v0) \
+#define ELL_3V_SCALE_INCR(v2, s0, v0) \
   ((v2)[0] += (s0)*(v0)[0], \
    (v2)[1] += (s0)*(v0)[1], \
    (v2)[2] += (s0)*(v0)[2])
 
-#define ELL_3V_SCALEADD3(v3, s0, v0, s1, v1, s2, v2)        \
+#define ELL_3V_SCALE_ADD3(v3, s0, v0, s1, v1, s2, v2)        \
   ((v3)[0] = (s0)*(v0)[0] + (s1)*(v1)[0] + (s2)*(v2)[0],    \
    (v3)[1] = (s0)*(v0)[1] + (s1)*(v1)[1] + (s2)*(v2)[1],    \
    (v3)[2] = (s0)*(v0)[2] + (s1)*(v1)[2] + (s2)*(v2)[2])
 
-#define ELL_3V_LEN(v) \
-  (sqrt((v)[0]*(v)[0] + (v)[1]*(v)[1] + (v)[2]*(v)[2]))
+#define ELL_3V_LEN(v) (sqrt(ELL_3V_DOT((v),(v))))
 
 #define ELL_3V_NORM(v2, v1, length) \
   (length = ELL_3V_LEN(v1), ELL_3V_SCALE(v2, 1.0/length, v1))
@@ -183,10 +182,10 @@ extern "C" {
    ELL_3V_SCALE((m2)+3, (s), (m1)+3), \
    ELL_3V_SCALE((m2)+6, (s), (m1)+6))
 
-#define ELL_3M_SCALEADD(m2, s0, m0, s1, m1) \
-  (ELL_3V_SCALEADD((m2)+0, (s0), (m0)+0, (s1), (m1)+0), \
-   ELL_3V_SCALEADD((m2)+3, (s0), (m0)+3, (s1), (m1)+3), \
-   ELL_3V_SCALEADD((m2)+6, (s0), (m0)+6, (s1), (m1)+6))
+#define ELL_3M_SCALE_ADD(m2, s0, m0, s1, m1) \
+  (ELL_3V_SCALE_ADD((m2)+0, (s0), (m0)+0, (s1), (m1)+0), \
+   ELL_3V_SCALE_ADD((m2)+3, (s0), (m0)+3, (s1), (m1)+3), \
+   ELL_3V_SCALE_ADD((m2)+6, (s0), (m0)+6, (s1), (m1)+6))
 
 #define ELL_3M_ADD(m3, m1, m2) \
   ((m3)[0] = (m1)[0] + (m2)[0],  \
@@ -228,7 +227,7 @@ extern "C" {
 #define ELL_3M_DIAG_SET(m, a, b, c) \
   ((m)[0] = (a), (m)[4] = (b), (m)[8] = (c))
 
-#define ELL_3M_TRANSPOSE(m2, m1) \
+#define ELL_3M_TRAN(m2, m1) \
   ((m2)[0] = (m1)[0],            \
    (m2)[1] = (m1)[3],            \
    (m2)[2] = (m1)[6],            \
@@ -239,14 +238,14 @@ extern "C" {
    (m2)[7] = (m1)[5],            \
    (m2)[8] = (m1)[8])
 
-#define ELL_3M_TRANSPOSE_IP(m, t) \
+#define ELL_3M_TRAN_IP(m, t) \
   (ELL_SWAP2((m)[1],(m)[3],(t)),  \
    ELL_SWAP2((m)[2],(m)[6],(t)),  \
    ELL_SWAP2((m)[5],(m)[7],(t)))
 
 #define ELL_3M_TRACE(m) ((m)[0] + (m)[4] + (m)[8])
 
-#define ELL_3M_FROBNORM(m) \
+#define ELL_3M_FROB(m) \
   (sqrt((m)[0]*(m)[0] + (m)[1]*(m)[1] + (m)[2]*(m)[2] + \
         (m)[3]*(m)[3] + (m)[4]*(m)[4] + (m)[5]*(m)[5] + \
         (m)[6]*(m)[6] + (m)[7]*(m)[7] + (m)[8]*(m)[8]))
@@ -304,10 +303,10 @@ extern "C" {
    ELL_3V_SCALE((m)+3, (v2)[1], (v1)), \
    ELL_3V_SCALE((m)+6, (v2)[2], (v1)))
 
-#define ELL_3MV_OUTERADD(m, v1, v2) \
-  (ELL_3V_SCALEADD((m)+0, 1, (m)+0, (v2)[0], (v1)), \
-   ELL_3V_SCALEADD((m)+3, 1, (m)+3, (v2)[1], (v1)), \
-   ELL_3V_SCALEADD((m)+6, 1, (m)+6, (v2)[2], (v1)))
+#define ELL_3MV_OUTER_ADD(m, v1, v2) \
+  (ELL_3V_SCALE_ADD((m)+0, 1, (m)+0, (v2)[0], (v1)), \
+   ELL_3V_SCALE_ADD((m)+3, 1, (m)+3, (v2)[1], (v1)), \
+   ELL_3V_SCALE_ADD((m)+6, 1, (m)+6, (v2)[2], (v1)))
 
 #define ELL_3MV_MUL(v2, m, v1) \
   ((v2)[0] = (m)[0]*(v1)[0] + (m)[3]*(v1)[1] + (m)[6]*(v1)[2], \
@@ -373,8 +372,10 @@ extern "C" {
   ((v2)[0] = (v1)[0]*a, (v2)[1] = (v1)[1]*a, \
    (v2)[2] = (v1)[2]*a, (v2)[3] = (v1)[3]*a)
 
-#define ELL_4V_LEN(v) \
-  (sqrt((v)[0]*(v)[0] + (v)[1]*(v)[1] + (v)[2]*(v)[2] + (v)[3]*(v)[3]))
+#define ELL_4V_LEN(v) (sqrt(ELL_4V_DOT((v),(v))))
+
+#define ELL_4V_NORM(v2, v1, length) \
+  (length = ELL_4V_LEN(v1), ELL_4V_SCALE(v2, 1.0/length, v1))
 
 #define ELL_4M_COPY(m2, m1)     \
   (ELL_4V_COPY((m2)+ 0, (m1)+ 0), \
@@ -382,7 +383,7 @@ extern "C" {
    ELL_4V_COPY((m2)+ 8, (m1)+ 8), \
    ELL_4V_COPY((m2)+12, (m1)+12))
 
-#define ELL_4M_TRANSPOSE(m2, m1) \
+#define ELL_4M_TRAN(m2, m1) \
   ((m2)[ 0] = (m1)[ 0],          \
    (m2)[ 1] = (m1)[ 4],          \
    (m2)[ 2] = (m1)[ 8],          \
@@ -400,7 +401,7 @@ extern "C" {
    (m2)[14] = (m1)[11],          \
    (m2)[15] = (m1)[15])
 
-#define ELL_4M_TRANSPOSE_IP(m, t)   \
+#define ELL_4M_TRAN_IP(m, t)   \
   (ELL_SWAP2((m)[ 1],(m)[ 4],(t)),  \
    ELL_SWAP2((m)[ 2],(m)[ 8],(t)),  \
    ELL_SWAP2((m)[ 3],(m)[12],(t)),  \
@@ -585,6 +586,52 @@ extern "C" {
    - (m)[12] * _ELL_3M_DET((m)[ 1], (m)[ 2], (m)[ 3], \
                            (m)[ 5], (m)[ 6], (m)[ 7], \
                            (m)[ 9], (m)[10], (m)[11]))
+
+#define ELL_Q_MUL(q3, q1, q2)                                            \
+  ELL_4V_SET((q3),                                                       \
+  (q1)[0]*(q2)[0] - (q1)[1]*(q2)[1] - (q1)[2]*(q2)[2] - (q1)[3]*(q2)[3], \
+  (q1)[0]*(q2)[1] + (q1)[1]*(q2)[0] + (q1)[2]*(q2)[3] - (q1)[3]*(q2)[2], \
+  (q1)[0]*(q2)[2] - (q1)[1]*(q2)[3] + (q1)[2]*(q2)[0] + (q1)[3]*(q2)[1], \
+  (q1)[0]*(q2)[3] + (q1)[1]*(q2)[2] - (q1)[2]*(q2)[1] + (q1)[3]*(q2)[0])
+
+#define ELL_Q_CONJ(q2, q1) \
+  ELL_4V_SET((q2), (q1)[0], -(q1)[1], -(q1)[2], -(q1)[3])
+
+#define ELL_Q_INV(i, q, n)                                            \
+ (n = ELL_4V_DOT(q, q),                                               \
+  ELL_4V_SET((i), (q)[0]/(n), -(q)[1]/(n), -(q)[2]/(n), -(q)[3]/(n)))
+
+#define ELL_Q_TO_3M(m, q)                                                   \
+  (ELL_3V_SET((m)+0,                                                        \
+             (q)[0]*(q)[0] + (q)[1]*(q)[1] - (q)[2]*(q)[2] - (q)[3]*(q)[3], \
+             2*((q)[1]*(q)[2] + (q)[0]*(q)[3]),                             \
+             2*((q)[1]*(q)[3] - (q)[0]*(q)[2])),                            \
+  ELL_3V_SET((m)+3,                                                         \
+             2*((q)[1]*(q)[2] - (q)[0]*(q)[3]),                             \
+             (q)[0]*(q)[0] - (q)[1]*(q)[1] + (q)[2]*(q)[2] - (q)[3]*(q)[3], \
+             2*((q)[2]*(q)[3] + (q)[0]*(q)[1])),                            \
+  ELL_3V_SET((m)+6,                                                         \
+             2*((q)[1]*(q)[3] + (q)[0]*(q)[2]),                             \
+             2*((q)[2]*(q)[3] - (q)[0]*(q)[1]),                             \
+             (q)[0]*(q)[0] - (q)[1]*(q)[1] - (q)[2]*(q)[2] + (q)[3]*(q)[3]))
+
+#define ELL_Q_TO_4M(m, q)                                                   \
+  (ELL_4V_SET((m)+0,                                                        \
+             (q)[0]*(q)[0] + (q)[1]*(q)[1] - (q)[2]*(q)[2] - (q)[3]*(q)[3], \
+             2*((q)[1]*(q)[2] + (q)[0]*(q)[3]),                             \
+             2*((q)[1]*(q)[3] - (q)[0]*(q)[2]),                             \
+             0),                                                            \
+  ELL_4V_SET((m)+4,                                                         \
+             2*((q)[1]*(q)[2] - (q)[0]*(q)[3]),                             \
+             (q)[0]*(q)[0] - (q)[1]*(q)[1] + (q)[2]*(q)[2] - (q)[3]*(q)[3], \
+             2*((q)[2]*(q)[3] + (q)[0]*(q)[1]),                             \
+             0),                                                            \
+  ELL_4V_SET((m)+8,                                                         \
+             2*((q)[1]*(q)[3] + (q)[0]*(q)[2]),                             \
+             2*((q)[2]*(q)[3] - (q)[0]*(q)[1]),                             \
+             (q)[0]*(q)[0] - (q)[1]*(q)[1] - (q)[2]*(q)[2] + (q)[3]*(q)[3], \
+             0),                                                            \
+  ELL_4V_SET((m)+12, 0, 0, 0, 1))
 
 #define ELL_2V_SET(v, a, b) \
   ((v)[0]=(a), (v)[1]=(b))

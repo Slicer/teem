@@ -19,7 +19,7 @@
 
 #include "../ell.h"
 
-char *invInfo = "Tests ellInverse and ellPseudoInverse";
+char *invInfo = "Tests ell_Nm_inv and ell_Nm_pseudo_inv";
 
 int
 main(int argc, char *argv[]) {
@@ -54,8 +54,8 @@ main(int argc, char *argv[]) {
   
   nrrdConvert(nmat, nin, nrrdTypeDouble);
   func = (nmat->axis[0].size == nmat->axis[1].size
-	  ? ellNmInverse
-	  : ellNmPseudoInverse);
+	  ? ell_Nm_inv
+	  : ell_Nm_pseudo_inv);
   if (func(ninv, nmat)) {
     airMopAdd(mop, err = biffGetDone(ELL), airFree, airMopAlways);
     fprintf(stderr, "%s: problem inverting:\n%s\n", me, err);

@@ -22,9 +22,9 @@
 
 #define PERP \
   idx = 0; \
-  if (AIR_ABS(b[0]) < AIR_ABS(b[1])) \
+  if (b[0]*b[0] < b[1]*b[1]) \
     idx = 1; \
-  if (AIR_ABS(b[idx]) < AIR_ABS(b[2])) \
+  if (b[idx]*b[idx] < b[2]*b[2]) \
     idx = 2; \
   switch (idx) { \
   case 0: \
@@ -39,7 +39,7 @@
   }
 
 /*
-******** ell3vPerp_f()
+******** ell_3v_perp_f()
 **
 ** Given a 3-vector, produce one which is perpendicular.
 ** Output length won't be same as input length, but it will always
@@ -47,39 +47,38 @@
 ** a unit-length vector if the input is unit length.
 */
 void
-ell3vPerp_f(float a[3], float b[3]) {
+ell_3v_perp_f(float a[3], float b[3]) {
   int idx;
   PERP;
 }
 
 /*
-******** ell3vPerp_d()
+******** ell_3v_perp_d()
 **
 ** same as above, but for doubles
 */
 void
-ell3vPerp_d(double a[3], double b[3]) {
+ell_3v_perp_d(double a[3], double b[3]) {
   int idx;
   PERP;
 }
 
 void
-ell3mvMul_f(float v2[3], float m[9], float v1[3]) {
+ell_3mv_mul_f(float v2[3], float m[9], float v1[3]) {
   ELL_3MV_MUL(v2, m, v1);
 }
 
 void
-ell3mvMul_d(double v2[3], double m[9], double v1[3]) {
+ell_3mv_mul_d(double v2[3], double m[9], double v1[3]) {
   ELL_3MV_MUL(v2, m, v1);
 }
 
 void
-ell4mvMul_f(float v2[4], float m[16], float v1[4]) {
+ell_4mv_mul_f(float v2[4], float m[16], float v1[4]) {
   ELL_4MV_MUL(v2, m, v1);
 }
 
 void
-ell4mvMul_d(double v2[4], double m[16], double v1[4]) {
+ell_4mv_mul_d(double v2[4], double m[16], double v1[4]) {
   ELL_4MV_MUL(v2, m, v1);
 }
-
