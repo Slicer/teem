@@ -19,6 +19,10 @@
 
 #include "privateUnrrdu.h"
 
+/* bad bad bad */
+extern int _nrrdSplitName(char **dirP, char **baseP, const char *name);
+extern void _nrrdGuessFormat(NrrdIO *io, const char *filename);
+
 char *saveName = "save";
 #define INFO "Write nrrd with specific file format or encoding"
 char *saveInfo = INFO;
@@ -40,7 +44,7 @@ saveMain(int argc, char **argv, char *me) {
 	     "output file format. Possibilities include:\n "
 	     "\b\bo \"nrrd\": standard nrrd format\n "
 	     "\b\bo \"pnm\": PNM image; PPM for color, PGM for grayscale\n "
-	     "\b\bo \"table\": plain ASCII table for 2-D data",
+	     "\b\bo \"text\": plain ASCII text for 1-D and 2-D data",
 	     NULL, nrrdFormat);
   hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &encoding, "raw",
 	     "output file format. Possibilities are \"raw\" and \"ascii\"",
@@ -62,7 +66,19 @@ saveMain(int argc, char **argv, char *me) {
   nrrdCopy(nout, nin);
   io->format = format;
   io->encoding = encoding;
-  
+
+  if (airEndsWith(out, NRRD_EXT_HEADER)) {
+    if (io->format != nrrdFormatNRRD) {
+      fprintf(stderr, "%s: WARNING: will use %s format\n", me,
+	      airEnumStr(nrrdFormat, nrrdFormatNRRD));
+      io->format = nrrdFormatNRRD;
+    }
+    _nrrdSplitName(&(io->dir), &(io->base), out);
+    /* we know exactly what part of this function (since we know
+       airEndsWith()) run, so we could copy the code, but let's not */
+    _nrrdGuessFormat(io, out);
+  }
+
   SAVE(out, nout, io);
 
   airMopOkay(mop);
