@@ -147,7 +147,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
              "before reading data.  Can use \"-bs -1\" to skip a binary "
              "header of unknown length in raw-encoded data");
   strcpy(encInfo,
-         "output file format. Possibilities include:"
+         "encoding of input data. Possibilities include:"
          "\n \b\bo \"raw\": raw encoding"
          "\n \b\bo \"ascii\": ascii values, one scanline per line of text, "
          "values within line are delimited by space, tab, or comma"
