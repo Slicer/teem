@@ -76,9 +76,9 @@ alanContext *
 alanContextNix(alanContext *actx) {
 
   if (actx) {
-    nrrdNuke(actx->nlev[0]);
-    nrrdNuke(actx->nlev[1]);
-    nrrdNuke(actx->nten);
+    actx->nlev[0] = nrrdNuke(actx->nlev[0]);
+    actx->nlev[1] = nrrdNuke(actx->nlev[1]);
+    actx->nten = nrrdNuke(actx->nten);
     free(actx);
   }
   return NULL;
