@@ -20,6 +20,10 @@ encodings: level and strategy.
 
 Various "unu" commands' usage information expanded.
 
+New measures have been added to gage's gageVec kind, enabling
+multi-gradient measures in volumes of RGB, for instance.  These are
+accessible from the "vprobe" binary as well.
+
 Changes from 1.4 ---------------------------------------------------
 
 The complete HTML documentation for teem is now included with the
