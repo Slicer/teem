@@ -347,7 +347,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, Nrrd *nin, int type, int conny) {
     if (!(*nvalP)) {
       *nvalP = nrrdNew();
     }
-    if (nrrdMaybeAlloc(*nvalP, nin->type, 1, numid)) {
+    if (nrrdMaybeAlloc(*nvalP, nin->type, 1, maxid+1)) {
       sprintf(err, "%s: couldn't allocate output value list", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
@@ -357,6 +357,8 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, Nrrd *nin, int type, int conny) {
     val = nval->data;
     lup = nrrdILookup[nin->type];
     ins = nrrdIInsert[nin->type];
+    /* I'm not sure if its more work to do all the redundant assignments
+       or to check whether or not to do them */
     for (I=0; I<NN; I++) {
       ins(val, fpid[I], lup(nin->data, I));
     }
