@@ -83,7 +83,7 @@ typedef struct {
     oldMin, oldMax;              /* if non-NaN, and if nrrd is of integral
 				    type, extremal values for the array
 				    BEFORE it was quantized */
-  void *ptr;                     /* generic pointer which is never read or
+  void *ptr;                     /* generic pointer which is NEVER read or
 				    set by nrrd library, but which may come
 				    in handy for the user; obviously its
 				    maintainence is completely up to user */
@@ -138,6 +138,8 @@ typedef struct {
 ** around zero, but does not assume anything about even- or oddness
 */
 typedef struct {
+  int (*numParam)(void);                  /* number of parameters needed
+					     (# elements in param[] used) */
   float (*support)(float *param);         /* smallest x (>0) such that
 					     k(y) = 0 for all y>x, y<-x */
   float (*integral)(float *param);        /* integral of kernel from -support
@@ -173,7 +175,7 @@ typedef struct {
 } nrrdResampleInfo;
 
 /*
-******** nrrdBoundary struct
+******** nrrdBoundary enum
 **
 ** when resampling, how to deal with the ends of a scanline
 */
@@ -256,31 +258,32 @@ typedef enum {
 ** ways to "measure" some portion of the array
 ** NEEDS TO BE IN SYNC WITH nrrdMeasr array in measr.c
 */
-#define NRRD_MEASR_MAX 18
+#define NRRD_MEASR_MAX 19
 typedef enum {
   nrrdMeasrUnknown,          /* 0: nobody knows */
   nrrdMeasrMin,              /* 1: smallest value */
   nrrdMeasrMax,              /* 2: biggest value */
-  nrrdMeasrProduct,          /* 3: product of all values */
-  nrrdMeasrSum,              /* 4: sum of all values */
-  nrrdMeasrMean,             /* 5: average of values */
-  nrrdMeasrMedian,           /* 6: value at 50th percentile */
-  nrrdMeasrMode,             /* 7: most common value */
-  nrrdMeasrL1,               /* 8 */
-  nrrdMeasrL2,               /* 9 */
-  nrrdMeasrLinf,             /* 10 */
+  nrrdMeasrAbsMax,           /* 3: take your abs to the max */
+  nrrdMeasrProduct,          /* 4: product of all values */
+  nrrdMeasrSum,              /* 5: sum of all values */
+  nrrdMeasrMean,             /* 6: average of values */
+  nrrdMeasrMedian,           /* 7: value at 50th percentile */
+  nrrdMeasrMode,             /* 8: most common value */
+  nrrdMeasrL1,               /* 9 */
+  nrrdMeasrL2,               /* 10 */
+  nrrdMeasrLinf,             /* 11 */
   /* 
   ** these nrrdMeasrHisto* measures interpret the array as a histogram
   ** of some implied value distribution
   */
-  nrrdMeasrHistoMin,         /* 11 */
-  nrrdMeasrHistoMax,         /* 12 */
-  nrrdMeasrHistoProduct,     /* 13 */
-  nrrdMeasrHistoSum,         /* 14 */
-  nrrdMeasrHistoMean,        /* 15 */
-  nrrdMeasrHistoMedian,      /* 16 */
-  nrrdMeasrHistoMode,        /* 17 */
-  nrrdMeasrHistoVariance,    /* 18 */
+  nrrdMeasrHistoMin,         /* 12 */
+  nrrdMeasrHistoMax,         /* 13 */
+  nrrdMeasrHistoProduct,     /* 14 */
+  nrrdMeasrHistoSum,         /* 15 */
+  nrrdMeasrHistoMean,        /* 16 */
+  nrrdMeasrHistoMedian,      /* 17 */
+  nrrdMeasrHistoMode,        /* 18 */
+  nrrdMeasrHistoVariance,    /* 19 */
   nrrdMeasrLast
 } nrrdMeasrs;
 
@@ -463,9 +466,12 @@ extern int nrrdSubvolume(Nrrd *nin, Nrrd *nout,
 extern Nrrd *nrrdNewSubvolume(Nrrd *nin, int *minIdx, int *maxIdx, int clamp);
 
 /******** permuting and shuffling */
+/* reorder.c */
+extern int nrrdInvertPerm(int *invp, int *perm, int n);
 extern int nrrdPermuteAxes(Nrrd *nin, Nrrd *nout, int *axes);
 extern Nrrd *nrrdNewPermuteAxes(Nrrd *nin, int *axes);
 extern int nrrdShuffle(Nrrd *nin, Nrrd *nout, int axis, int *perm);
+extern int nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis);
 
 /******** measuring and projecting */
 /* measr.c */
