@@ -36,8 +36,8 @@ main(int argc, char *argv[]) {
   mossSampler *msp;
   double mat[6], **matList, *origInfo, origMat[6], origInvMat[6], ox, oy,
     min[2], max[2];
-  int d, bound, matListLen, i, ax0, size[2], bgLen;
-  float *bg, scale[4];
+  int d, bound, matListLen, i, ax0, size[2], _bkgLen;
+  float *bkg, *_bkg, scale[4];
   
   me = argv[0];
   mop = airMopNew();
@@ -88,10 +88,10 @@ main(int argc, char *argv[]) {
 	     "\b\bo \"wrap\": do wrap-around on image locations\n "
 	     "\b\bo \"pad\": use a given background value (via \"-bg\")",
 	     NULL, nrrdBoundary);
-  hestOptAdd(&hopt, "bg", "bg0 bg1", airTypeFloat, 1, -1, &bg, "nan",
+  hestOptAdd(&hopt, "bg", "bg0 bg1", airTypeFloat, 1, -1, &_bkg, "nan",
 	     "background color to use with boundary behavior \"pad\". "
 	     "Defaults to all zeroes.",
-	     &bgLen);
+	     &_bkgLen);
   hestOptAdd(&hopt, "s", "xSize ySize", airTypeOther, 2, 2, scale, "x1 x1",
 	     "For each axis, information about how many samples in output:\n "
 	     "\b\bo \"x<float>\": number of output samples is some scaling of "
@@ -115,10 +115,19 @@ main(int argc, char *argv[]) {
 	    me, errS = biffGetDone(MOSS)); free(errS);
     airMopError(mop); return 1;
   }
-  if (AIR_EXISTS(bg[0]) && bgLen != MOSS_NCOL(nin)) {
-    fprintf(stderr, "%s: got %d background colors, image has %d colors\n", 
-	    me, bgLen, MOSS_NCOL(nin));
-    airMopError(mop); return 1;
+  if (nrrdBoundaryPad == bound) {
+    if (_bkgLen != MOSS_NCOL(nin)) {
+      fprintf(stderr, "%s: got %d background colors, image has %d colors\n", 
+	      me, _bkgLen, MOSS_NCOL(nin));
+      airMopError(mop); return 1;
+    } else {
+      bkg = _bkg;
+    }
+  } else {
+    /* maybe warn user if they gave a background that won't be used? */
+    /* No- because hest is stupid, and right now we always parse the
+       single (default) "nan" for this argument! */
+    bkg = NULL;
   }
 
   ax0 = MOSS_AXIS0(nin);
@@ -178,7 +187,7 @@ main(int argc, char *argv[]) {
   if (!AIR_EXISTS(nin->axis[ax0+1].min) || !AIR_EXISTS(nin->axis[ax0+1].max)) {
     nrrdAxisMinMaxSet(nin, ax0+1, mossDefCenter);
   }
-  if (mossLinearTransform(nout, nin, AIR_EXISTS(bg[0]) ? bg : NULL,
+  if (mossLinearTransform(nout, nin, bkg,
 			  mat, msp,
 			  min[0], max[0], min[1], max[1],
 			  size[0], size[1])) {

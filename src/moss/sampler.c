@@ -94,6 +94,11 @@ mossSamplerUpdate (mossSampler *smplr) {
       biffAdd(MOSS, err); return 1;
     }
   }
+  if (nrrdBoundaryPad == smplr->boundary && !smplr->bg) {
+    sprintf(err, "%s: want %s boundary behavior, but bg vector is NULL",
+	    me, airEnumStr(nrrdBoundary, nrrdBoundaryPad));
+    biffAdd(MOSS, err); return 1;
+  }
 
   return 0;
 }
