@@ -45,7 +45,7 @@ extern "C" {
 #endif
 #endif
 
-#ifdef _WIN32 && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 typedef signed __int64 airLLong;
 typedef unsigned __int64 airULLong;
 #define AIR_LLONG_FMT "%I64d"
