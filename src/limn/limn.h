@@ -44,6 +44,14 @@ extern "C" {
 #define LIMN_LIGHT_NUM 16
 
 /*
+******** #define LIMN_SPLINE_Q_AVG_EPS
+**
+** The convergence tolerance used for Buss/Fillmore quaternion
+** averaging
+*/
+#define LIMN_SPLINE_Q_AVG_EPS 0.00001
+
+/*
 ****** limnCam struct
 **
 ** for all standard graphics camera parameters.  Image plane is
@@ -283,11 +291,12 @@ enum {
   limnSplineInfoScalar,     /* 1 */
   limnSplineInfo2Vector,    /* 2 */
   limnSplineInfo3Vector,    /* 3 */
-  limnSplineInfo4Vector,    /* 4 */
-  limnSplineInfoQuaternion, /* 5 */
+  limnSplineInfoNormal,     /* 4 */
+  limnSplineInfo4Vector,    /* 5 */
+  limnSplineInfoQuaternion, /* 6 */
   limnSplineInfoLast
 };
-#define LIMN_SPLINE_INFO_MAX   5
+#define LIMN_SPLINE_INFO_MAX   6
 
 /*
 ******** limnSpline

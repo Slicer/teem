@@ -74,7 +74,6 @@ _limnSplineIntervalFind[LIMN_SPLINE_TYPE_MAX+1] = {
   _limnSplineIntervalFind_NonWarp
 };
 
-
 void
 _limnSplineWeightsFind_Unknown(double *wght, limnSpline *spline, double f) {
   char me[]="_limnSplineWeights_Unknown";
@@ -134,10 +133,10 @@ _limnSplineWeightsFind_BC(double *wght, limnSpline *spline, double f) {
   
   B = spline->B;
   C = spline->C;
-  f0 = AIR_ABS(-1-f);
-  f1 = AIR_ABS(-f);
-  f2 = 1-f;
-  f3 = 2-f;
+  f0 = f+1;
+  f1 = f;
+  f2 = AIR_ABS(f-1);
+  f3 = AIR_ABS(f-2);
   ELL_4V_SET(wght,
 	     _BCCUBIC(f0, B, C),
 	     _BCCUBIC(f1, B, C),
@@ -254,6 +253,14 @@ _limnSplineFinish_3Vec(double *out, limnSpline *spline,
 }
   
 void
+_limnSplineFinish_Normal(double *out, limnSpline *spline,
+			 int ii, double *wght) {
+
+  fprintf(stderr, "%s: NOT IMPLEMENTED\n", "_limnSplineFinish_Normal");
+  return;
+}
+  
+void
 _limnSplineFinish_4Vec(double *out, limnSpline *spline,
 		       int ii, double *wght) {
   int N, idx[4];
@@ -273,12 +280,21 @@ _limnSplineFinish_4Vec(double *out, limnSpline *spline,
   return;
 }
 
+/*
+** HEY: I have no whether Hermite splines work with this
+*/
 void
 _limnSplineFinish_Quaternion(double *out, limnSpline *spline,
 			     int ii, double *wght) {
-  char me[]="_limnSplineFinish_Quaternion";
+  int N, idx[4];
+  double *cpt;
 
-  fprintf(stderr, "%s: NOT IMPLEMENTED\n", me);
+  N = spline->ncpt->axis[2].size;
+  cpt = (double*)(spline->ncpt->data);
+  _limnSplineIndexFind(idx, spline, ii);
+  ell_q_avg4_d(out, LIMN_SPLINE_Q_AVG_EPS, wght, 
+	       cpt + 4*idx[0], cpt + 4*idx[1], 
+	       cpt + 4*idx[2], cpt + 4*idx[3]);
   return;
 }
 
@@ -289,6 +305,7 @@ _limnSplineFinish[LIMN_SPLINE_INFO_MAX+1] = {
   _limnSplineFinish_Scalar,
   _limnSplineFinish_2Vec,
   _limnSplineFinish_3Vec,
+  _limnSplineFinish_Normal,
   _limnSplineFinish_4Vec,
   _limnSplineFinish_Quaternion
 };

@@ -79,6 +79,7 @@ _limnSplineInfoStr[LIMN_SPLINE_INFO_MAX+1][AIR_STRLEN_SMALL] = {
   "scalar",
   "2vector",
   "3vector",
+  "normal",
   "4vector",
   "quaternion"
 };
@@ -89,6 +90,7 @@ _limnSplineInfoDesc[LIMN_SPLINE_INFO_MAX+1][AIR_STRLEN_MED] = {
   "scalar",
   "2-vector",
   "3-vector",
+  "surface normal, interpolated in S^2",
   "4-vector, interpolated in R^4",
   "quaternion, interpolated in S^3"
 };
@@ -98,6 +100,7 @@ _limnSplineInfoStrEqv[][AIR_STRLEN_SMALL] = {
   "scalar", "scale", "s", "t",
   "2-vector", "2vector", "2vec", "2v", "v2", "vec2", "vector2", "vector-2",
   "3-vector", "3vector", "3vec", "3v", "v3", "vec3", "vector3", "vector-3",
+  "normal", "norm", "n",
   "4-vector", "4vector", "4vec", "4v", "v4", "vec4", "vector4", "vector-4",
   "quaternion", "q",
   ""
@@ -106,6 +109,7 @@ _limnSplineInfoStrEqv[][AIR_STRLEN_SMALL] = {
 #define SISS limnSplineInfoScalar
 #define SI2V limnSplineInfo2Vector
 #define SI3V limnSplineInfo3Vector
+#define SINN limnSplineInfoNormal
 #define SI4V limnSplineInfo4Vector
 #define SIQQ limnSplineInfoQuaternion
 
@@ -114,6 +118,7 @@ _limnSplineInfoValEqv[] = {
   SISS, SISS, SISS, SISS,
   SI2V, SI2V, SI2V, SI2V, SI2V, SI2V, SI2V, SI2V,
   SI3V, SI3V, SI3V, SI3V, SI3V, SI3V, SI3V, SI3V,
+  SINN, SINN, SINN, 
   SI4V, SI4V, SI4V, SI4V, SI4V, SI4V, SI4V, SI4V,
   SIQQ, SIQQ
 };
@@ -141,6 +146,7 @@ limnSplineInfoSize[LIMN_SPLINE_INFO_MAX+1] = {
   1,  /* limnSplineInfoScalar */
   2,  /* limnSplineInfo2Vector */
   3,  /* limnSplineInfo3Vector */
+  3,  /* limnSplineInfoNormal */
   4,  /* limnSplineInfo4Vector */
   4   /* limnSplineInfoQuaternion */
 };
@@ -212,16 +218,13 @@ limnSplineBCSet(limnSpline *spline, double B, double C) {
 }
 
 /*
-** the spline command-line specification is of the form 
-** <nrrdFileName>:<splineType>[:B,C]
-**
-** for the time being, there is no way to explicitly give
-** the spline info; it is determined from the nrrd dimensions.
+** the spline command-line specification is of the form
+** <nrrdFileName>:<splineInfo>:<splineType>[:B,C]
 */
 int
 _limnHestSplineParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "_limnHestSplineParse", *nerr, *str, *col, *typeS,
-    *fnameS=NULL, *paramS=NULL;
+  char me[] = "_limnHestSplineParse", *nerr, *str, *col,
+    *tmpS, *fnameS=NULL, *infoS, *typeS, *paramS=NULL;
   limnSpline **splineP;
   int type, info;
   Nrrd *ninA, *ninB;
@@ -243,16 +246,16 @@ _limnHestSplineParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
   mop = airMopNew();
   airMopAdd(mop, str=airStrdup(_str), airFree, airMopAlways);
   
-  /* find seperation between nrrd filename and "type[:B,C] */
+  /* find seperation between filename and "<splineInfo>:<splineType>[:B,C]" */
   col = strchr(str, ':');
   if (!col) {
-    sprintf(err, "%s: saw no colon seperator in \"%s\"", me, _str);
+    sprintf(err, "%s: saw no colon seperator (between nrrd filename and "
+	    "spline info) in \"%s\"", me, _str);
     airMopError(mop); return 1;
   }
   fnameS = str;
   *col = 0;
-  typeS = col+1;
-
+  tmpS = col+1;
   airMopAdd(mop, ninA = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdLoad(ninA, fnameS, NULL)) {
     airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
@@ -260,24 +263,21 @@ _limnHestSplineParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     strncat(err, nerr, AIR_STRLEN_HUGE-1-strlen(err));
     airMopError(mop); return 1;
   }
-  if (1 == ninA->dim) {
-    info = limnSplineInfoScalar;
-  } else {
-    for (info = limnSplineInfoUnknown+1;
-	 info < limnSplineInfoLast;
-	 info++) {
-      if (ninA->axis[0].size == limnSplineInfoSize[info]) {
-	break;
-      }
-    }
-    if (limnSplineInfoLast == info) {
-      sprintf(err, "%s: nin->axis[0].size %d doesn't match that "
-	      "of any known limnSplineInfo", me, ninA->axis[0].size);
-      airMopError(mop); return 1;
-    }
-    /* else we've set info okay */
-  }
 
+  col = strchr(tmpS, ':');
+  if (!col) {
+    sprintf(err, "%s: saw no colon seperator (between spline info "
+	    "and spline type) in \"%s\"", me, tmpS);
+    airMopError(mop); return 1;
+  }
+  infoS = tmpS;
+  *col = 0;
+  typeS = col+1;
+  if (limnSplineInfoUnknown == (info = airEnumVal(limnSplineInfo, infoS))) {
+    sprintf(err, "%s: couldn't parse \"%s\" as spline info", me, infoS);
+    airMopError(mop); return 1;
+  }
+  
   col = strchr(typeS, ':');
   if (col) {
     *col = 0;
