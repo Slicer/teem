@@ -41,16 +41,16 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W1 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MT /O2 /I "../../include" TEEMALLINC /D "WIN32_MEAN_AND_LEAN" /D "VC_EXTRALEAN" /D "TEEM_BUILD" /D "TEEM_ENDIAN=1234" /D "TEEM_QNANHIBIT=1" /D "TEEM_DIO=0" /D "TEEM_32BIT=1" /YX /FD /c
+# ADD BASE CPP /nologo /MD /W1 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /MD /O2 /I "../../include" TEEMALLINC /D "WIN32_MEAN_AND_LEAN" /D "VC_EXTRALEAN" /D "TEEM_BUILD" /D "TEEM_ENDIAN=1234" /D "TEEM_QNANHIBIT=1" /D "TEEM_DIO=0" /D "TEEM_32BIT=1" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 ../lib/teem_s.lib ../ext/lib/libpng_s.lib ../ext/lib/libbz2_s.lib ../ext/lib/zlib_s.lib /nologo /subsystem:console /pdb:none /machine:I386
+# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386 /nodefaultlib:libcmt
+# ADD LINK32 ../lib/teem_s.lib ../ext/lib/libpng_s.lib ../ext/lib/libbz2_s.lib ../ext/lib/zlib_s.lib /nologo /subsystem:console /pdb:none /machine:I386 /nodefaultlib:libcmt
 # Begin Special Build Tool
 TargetName=TEEMBINNAME
 SOURCE="$(InputPath)"
@@ -70,7 +70,7 @@ PostBuild_Cmds=call install_bin.bat $(TargetName)
 # PROP Intermediate_Dir "Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W1 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
+# ADD BASE CPP /nologo /MD /W1 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
 # ADD CPP /nologo /MD /Zi /Od /I "../../include" TEEMALLINC /D "WIN32" /D "WIN32_MEAN_AND_LEAN" /D "VC_EXTRALEAN" /D "TEEM_BUILD" /D "TEEM_ENDIAN=1234" /D "TEEM_QNANHIBIT=1" /D "TEEM_DIO=0" /D "TEEM_32BIT=1" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
@@ -78,8 +78,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 ../lib/teem_sd.lib ../ext/lib/libpng_s.lib ../ext/lib/libbz2_s.lib ../ext/lib/zlib_s.lib /nologo /subsystem:console /incremental:no /debug /machine:I386 /out:"../../bin/TEEMBINNAMEd.exe" /pdbtype:sept
+# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /nodefaultlib:libcmt /pdbtype:sept
+# ADD LINK32 ../lib/teem_sd.lib ../ext/lib/libpng_s.lib ../ext/lib/libbz2_s.lib ../ext/lib/zlib_s.lib /nologo /subsystem:console /incremental:no /debug /machine:I386 /nodefaultlib:libcmt /out:"../../bin/TEEMBINNAMEd.exe" /pdbtype:sept
 # Begin Special Build Tool
 TargetName=TEEMBINNAMEd
 SOURCE="$(InputPath)"
