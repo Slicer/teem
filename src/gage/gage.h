@@ -77,7 +77,7 @@ typedef double gage_t;
 */
 enum {
   gageKernelUnknown=-1, /*-1: nobody knows */
-  gageKernel00,         /* 0: reconstructing values */
+  gageKernel00,         /* 0: measuring values */
   gageKernel10,         /* 1: reconstructing 1st derivatives */
   gageKernel11,         /* 2: measuring 1st derivatives */
   gageKernel20,         /* 3: reconstructing 1st partials and 2nd deriv.s */
@@ -212,13 +212,16 @@ typedef struct {
   gage_t *fsl,                /* filter sample locations (all axes) */
     *fw;                      /* filter weights (all axes, all kernels):
 				 logically a fd x 3 x GAGE_KERNEL_NUM array */
-  int *off;                   /* offsets to other fd^3 samples needed
+  unsigned int *off;          /* offsets to other fd^3 samples needed
 				 to fill 3D intermediate value
 				 cache. Allocated size is dependent on
 				 kernels (hence consideration as
 				 kernel-dependent), values inside are
 				 dependent on the dimensions of the
-				 volume */
+				 volume.  It may be more correct to be using
+				 nrrdBigInt instead of uint, but the X and Y
+				 dimensions of the volume would have to be
+				 super-outrageous for that to be a problem */
   /*  ------------ volume-dependent */
   int havePad;                /* amount of boundary margin associated
 				 with current volume (may be greater

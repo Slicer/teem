@@ -22,7 +22,8 @@
 
 void
 _gagePrint_off(FILE *file, gageContext *ctx) {
-  int i, fd, *off;
+  int i, fd;
+  unsigned int *off;
 
   fd = ctx->fd;
   off = ctx->off;
