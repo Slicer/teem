@@ -390,7 +390,7 @@ nrrdUnwrap(Nrrd *nrrd) {
 void
 _nrrdTraverse(Nrrd *nrrd) {
   char *test, tval;
-  nrrdBigInt I, N;
+  size_t I, N;
   int S;
   
   N = nrrdElementNumber(nrrd);
@@ -482,7 +482,7 @@ nrrdCopy(Nrrd *nout, Nrrd *nin) {
 int 
 nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
   char me[] = "nrrdAlloc_nva", err[AIR_STRLEN_MED];
-  nrrdBigInt num;
+  size_t num;
   int esize;
 
   if (!(nrrd && size)) {
@@ -518,7 +518,7 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
   esize = nrrdElementSize(nrrd);
   nrrd->data = calloc(num, esize);
   if (!(nrrd->data)) {
-    sprintf(err, "%s: calloc(" NRRD_BIG_INT_PRINTF ",%d) failed", 
+    sprintf(err, "%s: calloc(" AIR_SIZE_T_FMT ",%d) failed", 
 	    me, num, nrrdElementSize(nrrd));
     biffAdd(NRRD, err); return 1 ;
   }
@@ -570,7 +570,7 @@ nrrdAlloc(Nrrd *nrrd, int type, int dim, ...) {
 int
 nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
   char me[]="nrrdMaybeAlloc_nva", err[AIR_STRLEN_MED];
-  nrrdBigInt sizeWant, sizeHave, numWant;
+  size_t sizeWant, sizeHave, numWant;
   int d, need, elementSizeWant;
 
   if (!nrrd) {
@@ -648,7 +648,7 @@ int
 nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim, ...) {
   char me[]="nrrdMaybeAlloc", err[AIR_STRLEN_MED];
   int d, size[NRRD_DIM_MAX];
-  nrrdBigInt num;
+  size_t num;
   va_list ap;
   
   if (!nrrd) {

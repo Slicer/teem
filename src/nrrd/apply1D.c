@@ -61,7 +61,7 @@ enum {
 int
 nrrd1DIrregMapValid(Nrrd *nmap) {
   char me[]="nrrd1DIrregMapValid", err[AIR_STRLEN_MED];
-  double (*mapLup)(void *v, nrrdBigInt I);
+  double (*mapLup)(void *v, size_t I);
   int i, entLen, mapLen, baseI, min[2], max[2];
   Nrrd *nrange;
 
@@ -275,9 +275,9 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
 			int interp, int rescale) {
   /* char me[]="nrrdApply1DLutOrRegMap" , err[AIR_STRLEN_MED] ;  */
   char *inData, *outData, *mapData, *entData0, *entData1;
-  nrrdBigInt N, I;
-  double (*inLoad)(void *v), (*mapLup)(void *v, nrrdBigInt I),
-    (*outInsert)(void *v, nrrdBigInt I, double d),
+  size_t N, I;
+  double (*inLoad)(void *v), (*mapLup)(void *v, size_t I),
+    (*outInsert)(void *v, size_t I, double d),
     val, mapIdxFrac, mapMin, mapMax;
   int i, mapAxis, mapLen, mapIdx, entSize, entLen, inSize, outSize;
 
@@ -483,7 +483,7 @@ double *
 _nrrd1DIrregMapDomain(int *posLenP, int *baseIP, Nrrd *nmap) {
   char me[]="_nrrd1DIrregMapDomain", err[AIR_STRLEN_MED];
   int i, entLen, baseI, posLen;
-  double *pos, (*mapLup)(void *v, nrrdBigInt I);
+  double *pos, (*mapLup)(void *v, size_t I);
 
   mapLup = nrrdDLookup[nmap->type];
   baseI = AIR_EXISTS(mapLup(nmap->data, 0)) ? 0 : 3;
@@ -635,12 +635,12 @@ int
 nrrdApply1DIrregMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap, Nrrd *nacl,
 		    int typeOut, int rescale) {
   char me[]="nrrdApply1DIrregMap", err[AIR_STRLEN_MED];
-  nrrdBigInt N, I;
+  size_t N, I;
   int i, *acl, entLen, posLen, aclLen, mapIdx, aclIdx,
     entSize, colSize, inSize, lo, hi, baseI;
   double val, *pos, mapMin, mapMax, mapIdxFrac,
-    (*mapLup)(void *v, nrrdBigInt I),
-    (*inLoad)(void *v), (*outInsert)(void *v, nrrdBigInt I, double d);
+    (*mapLup)(void *v, size_t I),
+    (*inLoad)(void *v), (*outInsert)(void *v, size_t I, double d);
   char *inData, *outData, *entData0, *entData1;
 
   if (!(nout && nmap && nin)) {

@@ -81,10 +81,10 @@ void
 _nrrdCheapMedian1D(Nrrd *nout, Nrrd *nin, int radius, float wght,
 		   int bins, float *hist) {
   /* char me[]="_nrrdCheapMedian1D"; */
-  nrrdBigInt num;
+  size_t num;
   int X, I, idx, diam;
   float half, *wt;
-  double val, (*lup)(void *, nrrdBigInt);
+  double val, (*lup)(void *, size_t);
 
   diam = 2*radius + 1;
   lup = nrrdDLookup[nin->type];
@@ -135,7 +135,7 @@ _nrrdCheapMedian2D(Nrrd *nout, Nrrd *nin, int radius, float wght,
   int X, Y, I, J;
   int sx, sy, idx, diam;
   float half, *wt;
-  double val, (*lup)(void *, nrrdBigInt);
+  double val, (*lup)(void *, size_t);
 
   diam = 2*radius + 1;
   sx = nin->axis[0].size;
@@ -197,7 +197,7 @@ _nrrdCheapMedian3D(Nrrd *nout, Nrrd *nin, int radius, float wght,
   int X, Y, Z, I, J, K;
   int sx, sy, sz, idx, diam;
   float half, *wt;
-  double val, (*lup)(void *, nrrdBigInt);
+  double val, (*lup)(void *, size_t);
 
   diam = 2*radius + 1;
   sx = nin->axis[0].size;

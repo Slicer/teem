@@ -36,7 +36,6 @@ typedef signed long long int LL;
 typedef unsigned long long int UL;
 typedef float FL;
 typedef double DB;
-typedef nrrdBigInt BI;
 
 #define MAP(F, A) \
 F(A, CH) \
@@ -115,38 +114,38 @@ nrrdDStore[NRRD_TYPE_MAX+1])(void *, double) = {
 
 
 /*
-** _nrrdLookup<TA><TB>(<TB> *v, nrrdBigInt I)
+** _nrrdLookup<TA><TB>(<TB> *v, size_t I)
 **
 ** Looks up element I of TB array v, and returns it cast to a TA.
 */
 #define LOOKUP_DEF(TA, TB)                    \
 TA                                            \
-_nrrdLookup##TA##TB(TB *v, nrrdBigInt I) {    \
+_nrrdLookup##TA##TB(TB *v, size_t I) {        \
   return v[I];                                \
 }
 #define LOOKUP_LIST(TA, TB)                   \
-  (TA (*)(void*, nrrdBigInt))_nrrdLookup##TA##TB,
+  (TA (*)(void*, size_t))_nrrdLookup##TA##TB,
 
 MAP(LOOKUP_DEF, IN)
 MAP(LOOKUP_DEF, FL)
 MAP(LOOKUP_DEF, DB)
 
 int (*
-nrrdILookup[NRRD_TYPE_MAX+1])(void *, nrrdBigInt) = {
+nrrdILookup[NRRD_TYPE_MAX+1])(void *, size_t) = {
   NULL, MAP(LOOKUP_LIST, IN) NULL
 };
 float (*
-nrrdFLookup[NRRD_TYPE_MAX+1])(void *, nrrdBigInt) = {
+nrrdFLookup[NRRD_TYPE_MAX+1])(void *, size_t) = {
   NULL, MAP(LOOKUP_LIST, FL) NULL
 };
 double (*
-nrrdDLookup[NRRD_TYPE_MAX+1])(void *, nrrdBigInt) = {
+nrrdDLookup[NRRD_TYPE_MAX+1])(void *, size_t) = {
   NULL, MAP(LOOKUP_LIST, DB) NULL
 };
 
 
 /*
-** _nrrdInsert<TA><TB>(<TB> *v, nrrdBigInt I, <TA> j)
+** _nrrdInsert<TA><TB>(<TB> *v, size_t I, <TA> j)
 **
 ** Given TA j, stores it in v[i] (implicitly casting to TB).
 ** Returns the result of the assignment, which may not be the same as
@@ -154,26 +153,26 @@ nrrdDLookup[NRRD_TYPE_MAX+1])(void *, nrrdBigInt) = {
 */
 #define INSERT_DEF(TA, TB)                         \
 TA                                                 \
-_nrrdInsert##TA##TB(TB *v, nrrdBigInt I, TA j) {   \
+_nrrdInsert##TA##TB(TB *v, size_t I, TA j) {       \
   return (v[I] = j);                               \
 }
 #define INSERT_LIST(TA, TB)                        \
-  (TA (*)(void*, nrrdBigInt, TA))_nrrdInsert##TA##TB,
+  (TA (*)(void*, size_t, TA))_nrrdInsert##TA##TB,
 
 MAP(INSERT_DEF, IN)
 MAP(INSERT_DEF, FL)
 MAP(INSERT_DEF, DB)
 
 int (*
-nrrdIInsert[NRRD_TYPE_MAX+1])(void *, nrrdBigInt, int) = {
+nrrdIInsert[NRRD_TYPE_MAX+1])(void *, size_t, int) = {
   NULL, MAP(INSERT_LIST, IN) NULL
 };
 float (*
-nrrdFInsert[NRRD_TYPE_MAX+1])(void *, nrrdBigInt, float) = {
+nrrdFInsert[NRRD_TYPE_MAX+1])(void *, size_t, float) = {
   NULL, MAP(INSERT_LIST, FL) NULL
 };
 double (*
-nrrdDInsert[NRRD_TYPE_MAX+1])(void *, nrrdBigInt, double) = {
+nrrdDInsert[NRRD_TYPE_MAX+1])(void *, size_t, double) = {
   NULL, MAP(INSERT_LIST, DB) NULL
 };
 
@@ -317,7 +316,7 @@ nrrdDClamp[NRRD_TYPE_MAX+1])(DB) = {
 #define _MM_ARGS(type) type *minP, type *maxP, Nrrd *nrrd
 
 #define _MM_FIXED(type)                                                  \
-  nrrdBigInt I, N;                                                       \
+  size_t I, N;                                                           \
   type a, b, min, max, *v;                                               \
                                                                          \
   if (!(minP && maxP))                                                   \
@@ -361,7 +360,7 @@ nrrdDClamp[NRRD_TYPE_MAX+1])(DB) = {
   *maxP = max;
 
 #define _MM_FLOAT(type)                                                  \
-  nrrdBigInt I, N;                                                       \
+  size_t I, N;                                                           \
   type a, min, max, *v;                                                  \
                                                                          \
   if (!(minP && maxP))                                                   \

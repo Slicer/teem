@@ -34,7 +34,7 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
     cOut[NRRD_DIM_MAX],      /* coords for line start, in output */
     szIn[NRRD_DIM_MAX],
     szOut[NRRD_DIM_MAX];
-  nrrdBigInt
+  size_t
     idxIn, idxOut,           /* linear indices for input and output */
     numOut;                  /* number of elements in output nrrd */
   va_list ap;

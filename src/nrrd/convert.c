@@ -34,7 +34,7 @@ typedef signed long long int LL;
 typedef unsigned long long int UL;
 typedef float FL;
 typedef double DB;
-typedef nrrdBigInt BI;
+typedef size_t IT;
 /* typedef long double LD; */
 
 /*
@@ -85,7 +85,7 @@ F(A, DB)
 ** get from scalars.
 */
 #define CONV_DEF(TA, TB) \
-void _nrrdConv##TA##TB(TA *a, TB *b, BI N) { while (N--) a[N]=b[N]; }
+void _nrrdConv##TA##TB(TA *a, TB *b, IT N) { while (N--) a[N]=b[N]; }
 
 /* 
 ** the individual converter's appearance in the array initialization,
@@ -109,7 +109,7 @@ void _nrrdConv##TA##TB(TA *a, TB *b, BI N) { while (N--) a[N]=b[N]; }
 /*
 ** This typedef makes the definition of _nrrdConv[][] shorter
 */
-typedef void (*CF)(void *, void *, BI);
+typedef void (*CF)(void *, void *, IT);
 
 /* 
 ** Define all 100 of the individual converters. 

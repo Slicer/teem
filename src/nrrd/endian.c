@@ -21,9 +21,9 @@
 #include "nrrd.h"
 
 void
-_nrrdSwap16Endian(void *_data, nrrdBigInt N) {
+_nrrdSwap16Endian(void *_data, size_t N) {
   short *data, s, fix;
-  nrrdBigInt I;
+  size_t I;
   
   if (_data) {
     data = (short *)_data;
@@ -37,9 +37,9 @@ _nrrdSwap16Endian(void *_data, nrrdBigInt N) {
 }
 
 void
-_nrrdSwap32Endian(void *_data, nrrdBigInt N) {
+_nrrdSwap32Endian(void *_data, size_t N) {
   int *data, w, fix;
-  nrrdBigInt I;
+  size_t I;
 
   if (_data) {
     data = (int *)_data;
@@ -55,9 +55,9 @@ _nrrdSwap32Endian(void *_data, nrrdBigInt N) {
 }
 
 void
-_nrrdSwap64Endian(void *_data, nrrdBigInt N) {
+_nrrdSwap64Endian(void *_data, size_t N) {
   unsigned long long *data, l, fix;
-  nrrdBigInt I;
+  size_t I;
 
   if (_data) {
     data = (unsigned long long  *)_data;
@@ -77,12 +77,12 @@ _nrrdSwap64Endian(void *_data, nrrdBigInt N) {
 }
 
 void
-_nrrdNoopEndian(void *_data, nrrdBigInt N) {
+_nrrdNoopEndian(void *_data, size_t N) {
   
 }
 
 void
-_nrrdBlockEndian(void *_data, nrrdBigInt N) {
+_nrrdBlockEndian(void *_data, size_t N) {
   char me[]="_nrrdBlockEndian";
   
   fprintf(stderr, "%s: WARNING: can't fix endiannes of nrrd type %s\n", me,
@@ -90,7 +90,7 @@ _nrrdBlockEndian(void *_data, nrrdBigInt N) {
 }
 
 void
-(*_nrrdSwapEndian[])(void *, nrrdBigInt) = {
+(*_nrrdSwapEndian[])(void *, size_t) = {
   _nrrdNoopEndian,         /*  0: nobody knows! */
   _nrrdNoopEndian,         /*  1:   signed 1-byte integer */
   _nrrdNoopEndian,         /*  2: unsigned 1-byte integer */

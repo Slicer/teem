@@ -127,7 +127,6 @@ _nrrdFieldInteresting(Nrrd *nrrd, NrrdIO *io, int field) {
 int
 _nrrdWriteDataRaw(Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteDataRaw", err[AIR_STRLEN_MED];
-  nrrdBigInt bsize;
   size_t size, ret, dio;
   
   /* this shouldn't actually be necessary ... */
@@ -135,9 +134,8 @@ _nrrdWriteDataRaw(Nrrd *nrrd, NrrdIO *io) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
     biffAdd(NRRD, err); return 1;
   }
-  bsize = nrrdElementNumber(nrrd) * nrrdElementSize(nrrd);
-  size = bsize;
-  if (size != bsize) {
+  size = nrrdElementNumber(nrrd) * nrrdElementSize(nrrd);
+  if (nrrdElementNumber(nrrd) != size/nrrdElementSize(nrrd)) {
     sprintf(err, "%s: \"size_t\" can't represent byte-size of data.", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -178,9 +176,9 @@ _nrrdWriteDataRaw(Nrrd *nrrd, NrrdIO *io) {
     ret = fwrite(nrrd->data, nrrdElementSize(nrrd),
 		 nrrdElementNumber(nrrd), io->dataFile);
     if (ret != nrrdElementNumber(nrrd)) {
-      sprintf(err, "%s: fwrite() returned " NRRD_BIG_INT_PRINTF
-	      " (not " NRRD_BIG_INT_PRINTF ")", me,
-	      (nrrdBigInt)ret, nrrdElementNumber(nrrd));
+      sprintf(err, "%s: fwrite() returned " AIR_SIZE_T_FMT
+	      " (not " AIR_SIZE_T_FMT ")", me,
+	      ret, nrrdElementNumber(nrrd));
       biffAdd(NRRD, err); return 1;
     }
     fflush(io->dataFile);
@@ -200,7 +198,7 @@ _nrrdWriteDataAscii(Nrrd *nrrd, NrrdIO *io) {
     buff[AIR_STRLEN_MED];
   int size, bufflen, linelen;
   char *data;
-  nrrdBigInt I, num;
+  size_t I, num;
   
   if (nrrdTypeBlock == nrrd->type) {
     sprintf(err, "%s: can't write nrrd type %s to ascii", me,
@@ -343,7 +341,7 @@ _nrrdSprintFieldInfo(char *str, Nrrd *nrrd, NrrdIO *io, int field) {
     break;
     /* ---- end per-axis fields ---- */
   case nrrdField_number:
-    sprintf(str, "%s: " NRRD_BIG_INT_PRINTF, fs, nrrdElementNumber(nrrd));
+    sprintf(str, "%s: " AIR_SIZE_T_FMT, fs, nrrdElementNumber(nrrd));
     break;
   case nrrdField_content:
     sprintf(str, "%s: %s", fs, airOneLinify(nrrd->content));
@@ -505,7 +503,7 @@ int
 _nrrdWriteTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char cmt[AIR_STRLEN_SMALL], line[NRRD_STRLEN_LINE],
     buff[AIR_STRLEN_SMALL];
-  nrrdBigInt I;
+  size_t I;
   int i, x, y, sx, sy;
   void *data;
   float val;

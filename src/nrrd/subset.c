@@ -30,7 +30,7 @@ int
 nrrdSample_nva(void *val, Nrrd *nrrd, int *coord) {
   char me[]="nrrdSample_nva", err[AIR_STRLEN_MED];
   int typeSize, size[NRRD_DIM_MAX], d;
-  nrrdBigInt I;
+  size_t I;
   
   if (!(nrrd && coord && val)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -107,7 +107,7 @@ nrrdSample(void *val, Nrrd *nrrd, ...) {
 int
 nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
   char me[]="nrrdSlice", func[]="slice", err[AIR_STRLEN_MED];
-  nrrdBigInt 
+  size_t 
     I, 
     rowLen,                  /* length of segment */
     colStep,                 /* distance between start of each segment */
@@ -210,7 +210,7 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
     cOut[NRRD_DIM_MAX],      /* coords for line start, in output */
     szIn[NRRD_DIM_MAX],
     szOut[NRRD_DIM_MAX];
-  nrrdBigInt I,
+  size_t I,
     idxIn, idxOut,           /* linear indices for input and output */
     numLines;                /* number of scanlines in output nrrd */
   char *dataIn, *dataOut;

@@ -35,7 +35,7 @@ int
 nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type) {
   char me[]="nrrdHisto", func[]="histo", err[AIR_STRLEN_MED];
   int idx;
-  nrrdBigInt I, num;
+  size_t I, num;
   double min, max, eps, val, count;
 
   if (!(nin && nout)) {
@@ -232,7 +232,7 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins, int type) {
   int hidx, d, map[NRRD_DIM_MAX], size[NRRD_DIM_MAX];
   unsigned int szIn[NRRD_DIM_MAX], szOut[NRRD_DIM_MAX],
     coordIn[NRRD_DIM_MAX], coordOut[NRRD_DIM_MAX];
-  nrrdBigInt I, hI, num;
+  size_t I, hI, num;
   double val, count;
 
   if (!(nin && nout)) {
@@ -331,7 +331,7 @@ nrrdHistoJoint(Nrrd *nout, Nrrd **nin,
   char me[]="nrrdHistoJoint", func[]="jhisto", err[AIR_STRLEN_MED];
   int i, d, coord[NRRD_DIM_MAX], skip, hadContent, totalContentStrlen, len=0;
   double val, count;
-  nrrdBigInt Iin, Iout, numEl;
+  size_t Iin, Iout, numEl;
 
   /* error checking */
   if (!(nout && nin && bins && clamp)) {
