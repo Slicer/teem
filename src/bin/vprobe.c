@@ -166,6 +166,18 @@ main(int argc, char *argv[]) {
   ansLen = kind->ansLength[what];
   iBaseDim = gageKindScl == kind ? 0 : 1;
   oBaseDim = 1 == ansLen ? 0 : 1;
+  six = nin->axis[0+iBaseDim].size;
+  siy = nin->axis[1+iBaseDim].size;
+  siz = nin->axis[2+iBaseDim].size;
+  sox = scale*six;
+  soy = scale*siy;
+  soz = scale*siz;
+  nin->axis[0+iBaseDim].spacing = (AIR_EXISTS(nin->axis[0+iBaseDim].spacing)
+				   ? nin->axis[0+iBaseDim].size : 1.0);
+  nin->axis[1+iBaseDim].spacing = (AIR_EXISTS(nin->axis[1+iBaseDim].spacing)
+				   ? nin->axis[1+iBaseDim].size : 1.0);
+  nin->axis[2+iBaseDim].spacing = (AIR_EXISTS(nin->axis[2+iBaseDim].spacing)
+				   ? nin->axis[2+iBaseDim].size : 1.0);
   /*
   fprintf(stderr, "##%s: ansLen = %d; iBaseDim = %d; oBaseDim = %d\n",
 	  me, ansLen, iBaseDim, oBaseDim);
@@ -200,12 +212,6 @@ main(int argc, char *argv[]) {
   **** end gage setup.
   ***/
 
-  six = nin->axis[0+iBaseDim].size;
-  siy = nin->axis[1+iBaseDim].size;
-  siz = nin->axis[2+iBaseDim].size;
-  sox = scale*six;
-  soy = scale*siy;
-  soz = scale*siz;
   fprintf(stderr, "%s: kernel support = %d^3 samples\n", me, ctx->fd);
   if (ansLen > 1) {
     fprintf(stderr, "%s: creating %d x %d x %d x %d output\n", 
