@@ -45,21 +45,50 @@
 TEEM_ROOT ?= ..
 TEEM_SRC ?= .
 
-## Including errorCheck.mk:
-## - Ensures that TEEM_ARCH is set, and is set to something known
-## - Sets ARCH and SUBARCH.
-## - Ensures that SHEXT is set if TEEM_LINK_SHARED was requested
-## - Ensures that PURIFY is set if TEEM_PURIFY was requested
+## read in the check* functions, and check on TEEM_ARCH
 ##
 include $(TEEM_SRC)/make/errorCheck.mk
+$(checkArchSet)
+$(checkArchValid)
+
+## the architecture name may have two parts, ARCH and SUBARCH,
+## seperated by one period
+##
+ARCH = $(basename $(TEEM_ARCH))
+SUBARCH = $(patsubst .%,%,$(suffix $(TEEM_ARCH)))
+
+## Before we read in the architecture-dependent stuff, take a stab at
+## defining the various programs we'll need, and some of their flags.
+## If these are not over-written, we assume that they'll work.
+##
+CC = cc
+LD = ld
+AR = ar
+ARFLAGS = ru
+RM = rm -f
+CP = cp
+CHMOD = chmod
+SLEEP = sleep
+
+## Enstate the architecture-dependent settings by reading through the
+## file specific to the chosen architecture, then check the things that
+## are set there.
+##
+include $(TEEM_SRC)/make/$(ARCH).mk
+$(checkShext)
+$(checkPurify)
+
+## information about optional external libraries to link with
+##
+include $(TEEM_SRC)/make/externals.mk
 
 ## LIBS: all the teem libraries we'll try to build
-## NUMS: "numbering" of all the libraries in link order
-## NUM.LIBS: used for craziness below
+## NUMS: "numbering" of all the libraries in reverse link order
+## NUM/LIBS: used for craziness below
 ##
 LIBS = air hest biff ell nrrd unrrdu dye gage bane limn hoover mite ten echo
 NUMS =  D   C    B    A   9     8     7   6     5    4     3    2    1   0
-NUM.LIBS = $(join $(NUMS),$(LIBS:%=.%))
+NUM/LIBS = $(join $(NUMS),$(LIBS:%=/%))
 
 ## MODES: the different kinds of builds that we support.  Declaring
 ## these modes (for all libraries) as phony saves make the effort of
@@ -70,7 +99,7 @@ MODES = install usable dev clean clobber
 
 ## Top-level/default rules.  If make started with this file, then
 ## these will be the first rules that make sees, so that "make"
-## defaults to "make X.install" for *every* library X.  If make
+## defaults to "make X/install" for *every* library X.  If make
 ## started in a library subdirectory, these won't be seen at all.
 ##
 ifeq (,$(DEF_TARGETS))
@@ -86,7 +115,7 @@ endif
 ##
 teem/install : $(addsuffix /install,$(LIBS) bin)
 teem/dev     : $(addsuffix /dev,$(LIBS) bin)
-teem/usable  : $(addsuffix /usable,$(LIBS) bin)
+teem/usable  : $(addsuffix /usable,$(LIBS))
 teem/clean   : $(addsuffix /clean,$(LIBS) bin)
 teem/clobber : $(addsuffix /clobber,$(LIBS) bin)
 nothing : ;
@@ -103,37 +132,19 @@ PCACHE = $(TEEM_ROOT)/$(TEEM_ARCH)/purify
 IPATH += -I$(IDEST)
 LPATH += -L$(LDEST)
 
-## Before we read in the architecture-dependent stuff, take a stab at
-## defining the various programs we'll need, and some of their flags.
-## If these are not over-written, we assume that they'll work.
-##
-CC = cc
-LD = ld
-AR = ar
-ARFLAGS = ru
-RM = rm -f
-CP = cp
-CHMOD = chmod
-SLEEP = sleep
-
-## Enstate the architecture-dependent settings by reading through the
-## file specific to the chosen architecture
-##
-include $(TEEM_SRC)/make/$(ARCH).mk
-
 ## By giving a list of library extensions we care about, LIBEXTS determines
 ## what kinds of libraries are build (just static, or both static and
 ## shared)
 ## 
-ifdef SHEXT
-  LIBEXTS = $(SHEXT)
+ifdef TEEM_SHEXT
+  LIBEXTS = $(TEEM_SHEXT)
 endif
 LIBEXTS += a
 
 #######################################
 ## Flags
 ##
-ifeq (true,$(TEEM_LINK_SHARED))
+ifneq (undefined,$(origin TEEM_LINK_SHARED))
   BIN_CFLAGS += $(SHARED_CFLAG)
 else
   BIN_CFLAGS += $(STATIC_CFLAG)
@@ -148,7 +159,7 @@ LDFLAGS += $(ARCH_LDFLAG) $(SHARED_LDFLAG)
 ##
 CFLAGS += -DTEEM_32BIT=$(TEEM_32BIT)
 
-## SGI's C pre-processor errors aren't fatal by defailt
+## SGI's C pre-processor errors aren't fatal by default
 ##
 CFLAGS += $(TEEM_CPP_ERROR_DIE)
 
@@ -162,7 +173,7 @@ endif
 ## compile and link commands
 ## 
 ifeq (true,$(TEEM_PURIFY))
-  P = $(PURIFY) \
+  P = $(TEEM_PURIFY_CMD) \
     -inuse-at-exit=yes -add-suppression-files=$(PCACHE)/.purify \
     -always-use-cache-dir -cache-dir=$(PCACHE)
 endif
@@ -171,101 +182,125 @@ endif
 ## "Functions"
 ## The bread and butter of how template.mk works.
 
-## Each of these can be $(call)ed with a library name as the only
-## argument, in order to get a list of files or flags related to
+## Each of these can be $(call)ed with a library name, as the one
+## and only argument, in order to get a list of files or flags related to
 ## library.  
 ##
-## {LIBS,HDRS}.INST: installed librs and headers
-## USED.INST: whats "used" in a library, installed libraries and headers
-## {LIBS,OBJS}.DEV: libraries and object files for non-install linking
-## TESTS.DEV: tests built in-place, for debugging
-## HDRS.DEV : the local (original) copies of public and private headers
+## {libs,hdrs}.inst(L): installed libs and headers for library L
+## hdrs.dev(L): the local (original) copies of public and private headers
+## tests.dev(L): library L tests for debugging, built in-place
+## {libs,objs}.dev(L): object files for library L, and the libs used
+##   when compiling the tests
 ##
-LIBS.INST = $(foreach ext,$(LIBEXTS),$(LDEST)/lib$(1).$(ext))
-USED.INST = $(call LIBS.INST,$(1)) $(call HDRS.INST,$(1))
-HDRS.INST = $(addprefix $(IDEST)/,$($(1).PUBLIC_HEADERS))
-LIBS.DEV = $(foreach ext,$(LIBEXTS),$(ODEST)/lib$(1).$(ext))
-OBJS.DEV = $(addprefix $(ODEST)/,$($(1).OBJS))
-TESTS.DEV = $(addprefix $(TEEM_SRC)/$(1)/,$($(1).TESTS))
-HDRS.DEV = $(addprefix $(TEEM_SRC)/$(1)/,$($(1).PUBLIC_HEADERS)) \
-  $(addprefix $(TEEM_SRC)/$(1)/,$($(1).PRIVATE_HEADERS))
+libs.inst = $(foreach ext,$(LIBEXTS),$(LDEST)/lib$(1).$(ext))
+hdrs.inst = $(addprefix $(IDEST)/,$($(1).PUBLIC_HEADERS))
+hdrs.dev = $(addprefix $(TEEM_SRC)/$(1)/,\
+  $($(1).PUBLIC_HEADERS) $($(1).PRIVATE_HEADERS))
+tests.dev = $(addprefix $(TEEM_SRC)/$(1)/,$($(1).TESTS))
+libs.dev = $(foreach ext,$(LIBEXTS),$(ODEST)/lib$(1).$(ext))
+objs.dev = $(addprefix $(ODEST)/,$($(1).OBJS))
+hdrs.dev = $(addprefix $(TEEM_SRC)/$(1)/,\
+  $($(1).PUBLIC_HEADERS) $($(1).PRIVATE_HEADERS))
 
-## $(call NEED.LIBS,L): pseudo-recursive expansion of all the
-## libraries L depends on, either directly or indirectly.  9 levels
-## deep of recursion is about 7 levels overkill for current teem, and
-## is apt to be plenty for any future teem.  make won't allow direct
-## or indirect recursion in variable names.
+## need(L): pseudo-recursive expansion of all the libraries which
+## library L depends on, either directly or indirectly.  Because make
+## doesn't allow recursive functions, and because I can't figure out
+## how to do fixed-point determination, I'm only doing a few levels of
+## prerequisite expansion, each level is done by "dmnl" (discover more
+## needed libs).  The number of levels is more than enough for the
+## current teem; and adding more levels later is easy.
 ## 
 ## Since we rely on $(sort) to remove redundancies, we need a way of
 ## putting the libraries back in dependency order (!= lexical order).
-## So, we prefix the library names with [0..D] (via $(join), to create
-## NUM.LIBS, and finally _ND.NLS), re-sort them, and then lose the
-## prefix (to create NEED.LIBS).
+## So, we prefix the needed library names with [0..D] (via $(join)) to
+## create NUM/LIBS (above), re-sort them, and then lose the prefix
+## with $(notdir).  This is done by "order".
 ## 
-_ND.0 = $($(1).NEED)
-_ND.1 = $(sort $(foreach LIB,$(call _ND.0,$(1)),$(LIB) $(call _ND.0,$(LIB))))
-_ND.2 = $(sort $(foreach LIB,$(call _ND.1,$(1)),$(LIB) $(call _ND.0,$(LIB))))
-_ND.3 = $(sort $(foreach LIB,$(call _ND.2,$(1)),$(LIB) $(call _ND.0,$(LIB))))
-_ND.4 = $(sort $(foreach LIB,$(call _ND.3,$(1)),$(LIB) $(call _ND.0,$(LIB))))
-_ND.5 = $(sort $(foreach LIB,$(call _ND.4,$(1)),$(LIB) $(call _ND.0,$(LIB))))
-_ND.6 = $(sort $(foreach LIB,$(call _ND.5,$(1)),$(LIB) $(call _ND.0,$(LIB))))
-_ND.7 = $(sort $(foreach LIB,$(call _ND.6,$(1)),$(LIB) $(call _ND.0,$(LIB))))
-_ND.8 = $(sort $(foreach LIB,$(call _ND.7,$(1)),$(LIB) $(call _ND.0,$(LIB))))
-_ND.9 = $(sort $(foreach LIB,$(call _ND.8,$(1)),$(LIB) $(call _ND.0,$(LIB))))
-_ND.NLS = $(foreach LIB,$(call _ND.9,$(1)),$(filter %.$(LIB),$(NUM.LIBS)))
-NEED.LIBS = $(patsubst .%,%,$(suffix $(sort $(call _ND.NLS,$(1)))))
+dmnl = $(sort $(foreach LIB,$(1),$(LIB) $($(LIB).NEED)))
+order = $(notdir $(sort $(foreach LIB,$(1),$(filter %/$(LIB),$(NUM/LIBS)))))
+need = $(call order,\
+$(call dmnl,\
+$(call dmnl,\
+$(call dmnl,\
+$($(1).NEED)))))
 
-## NEED.USABLE: .X.usable for all needed X
-## NEED.LIBLINKS: -lX for all needed X
+## usable(list): "LIB/usable" for all LIBs in list
+## link(list): "-lLIB" for all LIBs in list
 ##
-NEED.USABLE = $(foreach LIB,$(call NEED.LIBS,$(1)),$(TEEM_SRC)/.$(LIB).usable)
-NEED.LIBLINKS = $(foreach lib,$(call NEED.LIBS,$(1)),-l$(lib))
+usable = $(foreach LIB,$(1),$(LIB)/usable)
+link = $(foreach LIB,$(1),-l$(LIB))
 
-## For XXX things like endianness, TEEM_XXX is set in the
-## architecture-specific makefile, and $(L).NEED_XXX is set in the
-## Makefile for the library which needs that info.  Meanwhile,
-## teemXxx.h in teem's top-level include directory contains
+## For XXX in (right now) "ENDIAN", "QNANHIBIT", and "DIO", TEEM_XXX
+## is set in the architecture-specific makefile, and $(L).NEED_XXX is
+## set in the Makefile for the library which needs that info.
+## Meanwhile, teemXxx.h in teem's top-level include directory contains
 ## C-preprocessor code to make sure that the variable has been set,
-## and set to something reasonable.
+## and set to something reasonable. more.cflags(L) is the list of -D
+## flags for all required XXX.
 ##
-## Right now XXX is either "ENDIAN", "QNANHIBIT", "DIO"
-##
-MORE_CFLAGS = $(if $($(1).NEED_ENDIAN),-DTEEM_ENDIAN=$(TEEM_ENDIAN))\
+more.cflags = $(if $($(1).NEED_ENDIAN),-DTEEM_ENDIAN=$(TEEM_ENDIAN))\
  $(if $($(1).NEED_DIO),-DTEEM_DIO=$(TEEM_DIO))\
  $(if $($(1).NEED_QNANHIBIT),-DTEEM_QNANHIBIT=$(TEEM_QNANHIBIT))
 
-## For progress indication; see template.mk.  The double colon rules
-## previously used to print this fatally confused parallel builds
+## banner(L) is progress indication for compiling library L; see
+## template.mk.  The double colon rules previously used to print this
+## fatally confused parallel builds
 ##
-BANNER = echo "--------------------" $(1) "--------------------"
+banner = echo "--------------------" $(1) "--------------------"
 
-## MISSING(stuff) : returns non-empty string iff one or more of the
-## files in "stuff" doesn't exist
+## if.missing(stuff): returns a $stuff if one or more of the files
+## listed in stuff don't exist
 ##
-MISSING = $(strip $(foreach x,$(1),$(if $(wildcard $(x)),,gone)))
+if.missing = $(if $(strip $(foreach x,$(1),$(if $(wildcard $(x)),,no))),$(1))
 
 ##             1   2
-## NEWER.THAN(me,need) : returns non-empty string iff any if the files
-## named in $(need) either don't exist, or are newer than $(me). See
-## comments in compare.sh for more info.
+## newer.than(mes,needs) : returns $mes if any of the files in $mes
+## don't exist, or if any of the files in $needs don't exist or are
+## newer than anything in $mes. See comments in compare.sh for info.
 ##
-NEWER.THAN = $(if $(strip $(2)),$(shell me=$(1) ; need='$(2)' ; \
+newer.than = $(if $(strip $(2)),$(shell mes=$(1) ; needs='$(2)' ; \
   . $(TEEM_SRC)/make/compare.sh))
 
-#SRC2LIB = $(notdir $(patsubst %/,%,$(dir $(1:.c=))))
+#src2lib = $(notdir $(patsubst %/,%,$(dir $(1:.c=))))
 #HDR2LIB = $(notdir $(patsubst %/,%,$(dir $(1:.h=))))
 #STL2LIB = $(patsubst lib%,%,$(notdir $(1:.a=)))
-#SHL2LIB = $(patsubst lib%,%,$(notdir $(1:.$(SHEXT)=)))
+#SHL2LIB = $(patsubst lib%,%,$(notdir $(1:.$(TEEM_SHEXT)=)))
+
+ifneq (undefined,$(origin TEEM_USABLE))
+  used.hdrs = $(foreach lib,$(1),$(IDEST)/.$(lib).hdr)
+  used.libs = $(foreach lib,$(1),$(LDEST)/.$(lib).lib)
+else
+  used.hdrs = $(foreach lib,$(1),$(call hdrs.inst,$(lib)))
+  used.libs = $(foreach lib,$(1),$(call libs.inst,$(lib)))
+endif
+used = $(call used.hdrs,$(1)) $(call used.libs,$(1))
+
+## related to external optional libraries
+## wants.ext(EXT): returns EXT if TEEM_EXT has been set, otherwise nothing
+## ext.wants: list of all wanted EXTs
+## ext.{i,l}path(libs): {include,link} paths {-Iblah,-Lblah} for any
+##   wanted EXTs whose base teem dependency is within $(libs).  $(libs)
+##   should be "$(L) $(L).need" for some library L
+## ext.link(libs): like ext.{i,l}path, but for -l link flags
+##
+wants.ext = $(if $(findstring undefined,$(origin TEEM_$(1))),,$(1))
+ext.wants = $(foreach ext,$(EXTERNALS),$(call wants.ext,$(ext)))
+ext.ipath = $(strip $(foreach ext,$(ext.wants),$(foreach lib,$(1),\
+$(if $(filter $(ext),$($(lib).EXT)),$(TEEM_$(ext).IPATH)))))
+ext.lpath = $(strip $(foreach ext,$(ext.wants),$(foreach lib,$(1),\
+$(if $(filter $(ext),$($(lib).EXT)),$(TEEM_$(ext).LPATH)))))
+ext.link = $(strip $(foreach ext,$(ext.wants),$(foreach lib,$(1),\
+$(if $(filter $(ext),$($(lib).EXT)),$($(ext).LINK)))))
 
 #######################################
-## Read in the makefiles for all the libraries.  In order to prevent
-## recursive inclusion, we set INCLUDED. The library makefiles won't
-## include this file if INCLUDED has been set.  If make started in a
-## library directory, then its include guards will prevent us from
-## reading its body a second time. Note: "include" is a directive, not
-## a function, which eliminates the possibility of iterating through
-## the libraries, reading the make file, and then setting variables
-## based on what was just read.
+## Read in the makefiles for all the libraries, and the bins.  In
+## order to prevent recursive inclusion, we set INCLUDED. The library
+## makefiles won't include this file if INCLUDED has been set.  If
+## make started in a library directory, then its include guards will
+## prevent us from reading its body a second time. Note: "include" is
+## a directive, not a function, which eliminates the possibility of
+## iterating through the libraries, reading the make file, and then
+## setting variables based on what was just read.
 ##
 ## The L.SAVE is so that if L was set when we got to here (because it
 ## was set by a library makefile that included us), then we'll

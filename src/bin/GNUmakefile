@@ -47,18 +47,18 @@ endif
 BINS = airSanity affine cubic nrrdSanity overrgb idx2pos \
   pos2idx vprobe unu qbert mrender miter gkms ungantry
 
-## _BIND: list of development locations for given bins
-## _BINI: list of install locations for given bins
-## _BINDI: list of install and development locations for given bins
+## _binD: list of development locations for given bins
+## _binI: list of install locations for given bins
+## _binDI: list of install and development locations for given bins
 ##
-_BIND = $(foreach bin,$(1),$(TEEM_SRC)/bin/$(bin))
-_BINI = $(foreach bin,$(1),$(BDEST)/$(bin))
-_BINDI = $(foreach bin,$(1),$(TEEM_SRC)/bin/$(bin) $(BDEST)/$(bin))
+_binD = $(foreach bin,$(1),$(TEEM_SRC)/bin/$(bin))
+_binI = $(foreach bin,$(1),$(BDEST)/$(bin))
+_binDI = $(foreach bin,$(1),$(TEEM_SRC)/bin/$(bin) $(BDEST)/$(bin))
 
 ## BINS.{DEV,INST}: full paths to development and install versions
 ## 
-BINS.DEV = $(call _BIND,$(BINS))
-BINS.INST = $(call _BINI,$(BINS))
+BINS.DEV := $(call _binD,$(BINS))
+BINS.INST := $(call _binI,$(BINS))
 
 
 ## Entry-point targets for binaries.  There is no "usable" for
@@ -91,36 +91,40 @@ mrender.NEED    = hoover limn gage nrrd biff hest air
 miter.NEED      = mite hoover limn nrrd ell biff air
 ungantry.NEED   = gage nrrd biff hest air
 
-## TOP.DEP(BIN) : most dependent library (furthest from air) needed for BIN
-## TOP.DEP.IS(LIB) : which bins have TOP.DEP of LIB
+## top.dep(BIN) : most dependent library (furthest from air) needed for BIN
+## top.dep.is(LIB) : which bins have TOP.DEP of LIB
 ##
-TOP.DEP = $(word 1,$(call NEED.LIBS,$(1)))
-TOP.DEP.IS = $(foreach bin,$(BINS),$(if $(strip $(subst $(1),,$(call TOP.DEP,$(bin)))),,$(bin)))
+top.dep = $(word 1,$(call need,$(1)))
+top.dep.is = $(foreach bin,$(BINS),$(if $(strip $(subst $(1),,$(call top.dep,$(bin)))),,$(bin)))
 
 ## We need some way of expressing the fact that a given binary
 ## (install and dev) depends on the usable of its top dependency.
 ## Rather than going bin by bin, we can make a shorter list by doing
-## this in terms of the libraries which are TOP.DEPs for one or more
-## bins.  The addition of new bins with different TOP.DEPs will
+## this in terms of the libraries which are top.deps for one or more
+## bins.  The addition of new bins with different top.deps will
 ## require supplementing these rules!!!  (do "make clobber; make
 ## bin/install" from teem/src to see)
 ##
-$(call _BINDI,$(call TOP.DEP.IS,air))    : $(TEEM_SRC)/.air.usable
-$(call _BINDI,$(call TOP.DEP.IS,ell))    : $(TEEM_SRC)/.ell.usable
-$(call _BINDI,$(call TOP.DEP.IS,nrrd))   : $(TEEM_SRC)/.nrrd.usable
-$(call _BINDI,$(call TOP.DEP.IS,unrrdu)) : $(TEEM_SRC)/.unrrdu.usable
-$(call _BINDI,$(call TOP.DEP.IS,gage))   : $(TEEM_SRC)/.gage.usable
-$(call _BINDI,$(call TOP.DEP.IS,hoover)) : $(TEEM_SRC)/.hoover.usable
-$(call _BINDI,$(call TOP.DEP.IS,mite))   : $(TEEM_SRC)/.mite.usable
-$(call _BINDI,$(call TOP.DEP.IS,bane))   : $(TEEM_SRC)/.bane.usable
+## We know that X.need will be set for all libraries X because this
+## makefile is always processed after the libraries' ones, which set
+## X.need through their inclusion of template.mk
+##
+$(call _binDI,$(call top.dep.is,air))    : $(call used,$(call air.meneed))
+$(call _binDI,$(call top.dep.is,ell))    : $(call used,$(call ell.meneed))
+$(call _binDI,$(call top.dep.is,nrrd))   : $(call used,$(call nrrd.meneed))
+$(call _binDI,$(call top.dep.is,unrrdu)) : $(call used,$(call unrrdu.meneed))
+$(call _binDI,$(call top.dep.is,gage))   : $(call used,$(call gage.meneed))
+$(call _binDI,$(call top.dep.is,hoover)) : $(call used,$(call hoover.meneed))
+$(call _binDI,$(call top.dep.is,mite))   : $(call used,$(call mite.meneed))
+$(call _binDI,$(call top.dep.is,bane))   : $(call used,$(call bane.meneed))
 
-## How to make BINS.DEV and BINS.INST: both kinds link against the
+## How to make bins.dev and bins.inst: both kinds link against the
 ## same (installed) libraries and include the same (installed)
 ## headers, so the commands aren't actually any different ...
 ## 
 $(TEEM_SRC)/bin/% $(BDEST)/% : $(TEEM_SRC)/bin/%.c
 	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) -o $@ $< \
-	  $(LPATH) $(call NEED.LIBLINKS,$(notdir $@)) -lz -lm
+	  $(LPATH) $(call link,$(call need,$(notdir $@))) -lz -lm
 
 # we're not a library; template.mk doesn't apply to us
 endif

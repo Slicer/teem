@@ -44,8 +44,9 @@ include ../GNUmakefile
 endif
 
 #### Describe library here
-#### (hest needed for callback declaration)
-#### 
+####
+####
+# (hest needed for callback declaration)
 $(L).NEED = biff hest air
 $(L).PUBLIC_HEADERS = nrrd.h nrrdDefines.h nrrdMacros.h nrrdEnums.h
 $(L).PRIVATE_HEADERS = privateNrrd.h
