@@ -145,8 +145,8 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   fprintf(file, "%%!PS-Adobe-3.0 EPSF-3.0\n");
   fprintf(file, "%%%%Creator: Nrrd Utilities From the "
           "Great Nation of Deseret\n");
-  fprintf(file, "%%%%Title: %s\n",
-          nrrd->content ? nrrd->content : NRRD_UNKNOWN);
+  fprintf(file, "%%%%Title: %s\n", 
+          nrrd->content ? nrrd->content : "A lovely little image");
   fprintf(file, "%%%%Pages: 1\n");
   fprintf(file, "%%%%BoundingBox: %d %d %d %d\n",
           (int)floor(minX), (int)floor(minY),
