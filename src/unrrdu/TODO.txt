@@ -4,15 +4,10 @@ figure out why I was getting a MIO (memory in use) error with
 unu resample when I had the bug in nrrdAlloc_nva (where the
 axes sizes were never actually set, so they were both zero).
 
-add -min and -max options to lut and rmap (copy from quantize)
-
-make "splice": to replace one slice of a nrrd
-
 add new options to "pad"
 
 add unrrdu funtionality:
 - paint by number
-- generate nrrd headers by command-line arguments
 
 standardize and document use of special single characters
 for meaning as unrrdu arguments:
