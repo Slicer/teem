@@ -252,31 +252,24 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
 
   /* allocate */
   nrrdAxesGet_nva(nin, nrrdAxesInfoSize, szIn);
-  printf("!%s: szIn = %d %d %d\n", me, szIn[0], szIn[1], szIn[2]);
   numLines = 1;
   for (d=0; d<=dim-1; d++) {
     szOut[d] = max[d] - min[d] + 1;
     if (d)
-      numLines *= szIn[d];
+      numLines *= szOut[d];
   }
-  printf("!%s: numLines = " NRRD_BIG_INT_PRINTF "\n", me, numLines);
   nout->blockSize = nin->blockSize;
   if (nrrdMaybeAlloc_nva(nout, nin->type, dim, szOut)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
-  printf("!%s: nout->sizes = %d %d %d\n", me, 
-	 nout->axis[0].size, nout->axis[1].size, nout->axis[2].size);
   lineSize = szOut[0]*nrrdElementSize(nin);
-  printf("!%s: lineSize = %d = %d*%d\n", me, 
-	 (int)lineSize, szOut[0], nrrdElementSize(nin));
   
   /* the skinny */
   typeSize = nrrdElementSize(nin);
   dataIn = nin->data;
   dataOut = nout->data;
   memset(cOut, 0, NRRD_DIM_MAX*sizeof(int));
-  printf("!%s: here we go\n", me);
   for (I=0; I<=numLines-1; I++) {
     for (d=0; d<=dim-1; d++)
       cIn[d] = cOut[d] + min[d];
@@ -287,9 +280,7 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
        copying one scanline at a time */
     cOut[1]++; 
     NRRD_COORD_UPDATE(cOut+1, szOut+1, dim-1, d);
-    printf("!%s: done I = " NRRD_BIG_INT_PRINTF "\n", me, I);
   }
-  printf("!%s: done\n", me);
   if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE
 				     | NRRD_AXESINFO_AMINMAX ))) {
     sprintf(err, "%s: trouble", me);

@@ -220,6 +220,96 @@ nrrdEnumValToStr(int whichEnum, int val) {
   return enstr[val];
 }
 
+#define nfComment  nrrdField_comment
+#define nfContent  nrrdField_content
+#define nfNumber   nrrdField_number
+#define nfType     nrrdField_type
+#define nfBsize    nrrdField_block_size
+#define nfDim      nrrdField_dimension
+#define nfSizes    nrrdField_sizes
+#define nfSpacings nrrdField_spacings
+#define nfAMins    nrrdField_axis_mins
+#define nfAMaxs    nrrdField_axis_maxs
+#define nfCenters  nrrdField_centers
+#define nfLabels   nrrdField_labels
+#define nfMin      nrrdField_min
+#define nfMax      nrrdField_max
+#define nfOMin     nrrdField_old_min
+#define nfOMax     nrrdField_old_max
+#define nfDataFile nrrdField_data_file
+#define nfEndian   nrrdField_endian
+#define nfEncoding nrrdField_encoding
+#define nfLineSkip nrrdField_line_skip
+#define nfByteSkip nrrdField_byte_skip
+
+/*
+** _nrrdEnumFieldStrToVal
+**
+** takes a given string and returns the integral enum value for the 
+** field in a nrrd header
+**
+** note that as called by nrrdEnumStrToVal(), the given string has
+** already been sent through airToLower()
+*/
+int
+_nrrdEnumFieldStrToVal(char *str) {
+  char field[][NRRD_STRLEN_SMALL]  = {
+    "Ernesto \"Che\" Guevara",
+    "#",
+    "content",
+    "number",
+    "type",
+    "block size", "blocksize",
+    "dimension", "dim",
+    "sizes",
+    "spacings",
+    "axis mins", "axismins",
+    "axis maxs", "axismaxs",
+    "centers",
+    "labels",
+    "min",
+    "max",
+    "old min", "oldmin",
+    "old max", "oldmax",
+    "data file", "datafile",
+    "endian",
+    "encoding",
+    "lineskip", "lineskip",
+    "byteskip", "byteskip"};
+  int value[] = {
+    nfComment,
+    nfContent,
+    nfNumber,
+    nfType,
+    nfBsize, nfBsize,
+    nfDim, nfDim,
+    nfSizes,
+    nfSpacings,
+    nfAMins, nfAMins,
+    nfAMaxs, nfAMaxs,
+    nfCenters,
+    nfLabels,
+    nfMin,
+    nfMax,
+    nfOMin,
+    nfOMax,
+    nfDataFile, nfDataFile,
+    nfEndian,
+    nfEncoding, 
+    nfLineSkip, nfLineSkip,
+    nfByteSkip, nfByteSkip,
+    0};  /* a sentinel for for-loop below */
+
+  int i;
+
+  for (i=0; value[i]; i++) {
+    if (!strcmp(field[i], str)) {
+      return value[i];
+    }
+  }
+  return nrrdField_unknown;
+}
+
 #define ntC   nrrdTypeChar
 #define ntUC  nrrdTypeUChar
 #define ntS   nrrdTypeShort
@@ -306,9 +396,8 @@ nrrdEnumStrToVal(int whichEnum, char *_str) {
   case nrrdEnumCenter:
     airToLower(str);
 
-    /* then, all the case-insensitive enums */
+    /* then, all the case-sensitive enums */
   case nrrdEnumMagic:
-  case nrrdEnumField:
     /* if the loop goes to completion, we return 0 */
     for (ret=max; ret>=0; ret--) {
       if (!strcmp(str, enstr[ret])) {
@@ -318,7 +407,11 @@ nrrdEnumStrToVal(int whichEnum, char *_str) {
     ret = AIR_MAX(0, ret);
     break;
 
-    /* then, the special-case enums */
+    /* then, the special-case enums (both case sensitive and not) */
+  case nrrdEnumField:
+    airToLower(str);
+    ret = _nrrdEnumFieldStrToVal(str);
+    break;
   case nrrdEnumType:
     airToLower(str);
     ret = _nrrdEnumTypeStrToVal(str);

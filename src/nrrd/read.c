@@ -115,18 +115,13 @@ _nrrdReadDataRaw(Nrrd *nrrd, nrrdIO *io) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
     biffAdd(NRRD, err); return 1;
   }
-  printf("!%s: nrrd->axis[0].size = %d\n", me, nrrd->axis[0].size);
   num = nrrdElementNumber(nrrd);
   if (!num) {
     sprintf(err, "%s: calculated number of elements to be zero!", me);
     biffAdd(NRRD, err); return 1;
   }
-  printf("!%s: num = " NRRD_BIG_INT_PRINTF "\n", me, num);
-  printf("!%s: element size = %d\n", me, nrrdElementSize(nrrd));
   bsize = num * nrrdElementSize(nrrd);
   size = bsize;
-  printf("!%s: bsize = " NRRD_BIG_INT_PRINTF "\n", me, bsize);
-  printf("!%s: size = " NRRD_BIG_INT_PRINTF "\n", me, (nrrdBigInt)size);
   if (size != bsize) {
     fprintf(stderr,
 	    "%s: PANIC: \"size_t\" can't represent byte-size of data.\n", me);

@@ -395,7 +395,7 @@ double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double) = {
 #define _MM_ARGS(type) type *minP, type *maxP, Nrrd *nrrd
 
 #define _MM_FIXED(type)                                                  \
-  nrrdBigInt I, N, T;                                                    \
+  nrrdBigInt I, N;                                                       \
   type a, b, min, max, *v;                                               \
                                                                          \
   if (!(minP && maxP))                                                   \
@@ -417,10 +417,9 @@ double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double) = {
      in a 20% decrease in running time.  I learned this trick from       \
      Numerical Recipes in C, long time ago, but I can't find it          \
      anywhere in the book now ... */                                     \
-  T = N/2;                                                               \
-  for (I=0; I<=T; I++) {                                                 \
-    a = v[0 + 2*I];                                                      \
-    b = v[1 + 2*I];                                                      \
+  for (I=0; I<=N-2; I+=2) {                                              \
+    a = v[0 + I];                                                        \
+    b = v[1 + I];                                                        \
     if (a < b) {                                                         \
       min = AIR_MIN(a, min);                                             \
       max = AIR_MAX(b, max);                                             \
@@ -431,16 +430,10 @@ double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double) = {
     }                                                                    \
   }                                                                      \
                                                                          \
-  /* get the very last one (may be redundant) */                         \
+  /* get the very last one (may be redundant) */    /*                   \
   a = v[N-1];                                                            \
-  if (a < min) {                                                         \
-    min = a;                                                             \
-  }                                                                      \
-  else {                                                                 \
-    if (a > max) {                                                       \
-      max = a;                                                           \
-    }                                                                    \
-  }                                                                      \
+  min = AIR_MIN(a, min);                                                 \
+  max = AIR_MAX(a, max);                              */                 \
                                                                          \
   /* record results */                                                   \
   *minP = min;                                                           \
@@ -501,7 +494,7 @@ void _nrrdMinMaxUC  (_MM_ARGS(unsigned char))  { _MM_FIXED(unsigned char) }
 void _nrrdMinMaxS   (_MM_ARGS(short))          { _MM_FIXED(short) }
 void _nrrdMinMaxUS  (_MM_ARGS(unsigned short)) { _MM_FIXED(unsigned short) }
 void _nrrdMinMaxI   (_MM_ARGS(int))            { _MM_FIXED(int) }
-void _nrrdMinMaxUI  (_MM_ARGS(unsigned int))   { _MM_FLOAT(unsigned int) }
+void _nrrdMinMaxUI  (_MM_ARGS(unsigned int))   { _MM_FIXED(unsigned int) }
 void _nrrdMinMaxLLI (_MM_ARGS(long long int))  { _MM_FIXED(long long int) }
 void _nrrdMinMaxULLI(_MM_ARGS(unsigned long long int))   { 
   _MM_FIXED(unsigned long long int) }

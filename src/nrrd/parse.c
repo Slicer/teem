@@ -137,9 +137,7 @@ _nrrdReadNrrdParse_sizes(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   _CHECK_HAVE_DIM;
   ret = airParseStrI(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
-  printf("!%s: val[0] = %d\n", me, val[0]);
   nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, val);
-  printf("!%s: nrrd->axis[0].size = %d\n", me, nrrd->axis[0].size);
   return 0;
 }
 

@@ -671,17 +671,22 @@ int
 nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
   char me[]="nrrdSave", err[NRRD_STRLEN_MED];
   FILE *file;
+  int nullio;
 
   if (!(nrrd && filename)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
   if (!io) {
+    nullio = AIR_TRUE;
     io = nrrdIONew();
     if (!io) {
       sprintf(err, "%s: couldn't alloc something", me);
       biffAdd(NRRD, err); return 1;
     }
+  }
+  else {
+    nullio = AIR_FALSE;
   }
   if (nrrdEncodingUnknown == io->encoding) {
     io->encoding = nrrdDefWrtEncoding;
@@ -712,6 +717,9 @@ nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
     biffAdd(NRRD, err); return 1;
   }
   fclose(file);
+  if (nullio) {
+    nrrdIONix(io);
+  }
   return 0;
 }
 
