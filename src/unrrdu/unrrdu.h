@@ -102,6 +102,7 @@ F(data) \
 F(convert) \
 F(resample) \
 F(cmedian) \
+F(minmax) \
 F(quantize) \
 F(unquantize) \
 F(project) \
