@@ -47,7 +47,7 @@ hestParm *hparm;
 ** to have all the command's information be held in one array 
 ** of unuCmds.  Unfortunately, declaring this is not possible unless
 ** all the unuCmds and their fields are IN THIS SOURCE FILE, because
-** otherwise they're no constant expressions, so they can't initialize
+** otherwise they're not constant expressions, so they can't initialize
 ** an aggregate data type.  So, we instead make an array of unuCmd 
 ** POINTERS, which can be initialized with the addresses of individual
 ** unuCmd structs, declared and defined (but not initialized) in the
@@ -96,6 +96,9 @@ F(jhist) \
 F(histax) \
 F(heq) \
 F(gamma) \
+F(uop) \
+F(bop) \
+F(top) \
 F(save)
 /*********************************************************/
 
@@ -139,9 +142,7 @@ unuParseNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   airMopAdd(mop, *nrrdP, (airMopper)nrrdNuke, airMopOnError);
   if (nrrdLoad(*nrrdP, str)) {
     airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
-    if (strlen(nerr) > AIR_STRLEN_HUGE - 1)
-      nerr[AIR_STRLEN_HUGE - 1] = '\0';
-    strcpy(err, nerr);
+    strncpy(err, nerr, AIR_STRLEN_HUGE-1);
     airMopError(mop);
     return 1;
   }
@@ -154,6 +155,48 @@ hestCB unuNrrdHestCB = {
   "nrrd",
   unuParseNrrd,
   (airMopper)nrrdNuke
+}; 
+
+int
+unuParseNrrdIter(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[]="unuParseNrrdIter", *nerr;
+  Nrrd *nrrd;
+  NrrdIter **iterP;
+  airArray *mop;
+  double val;
+  
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  iterP = ptr;
+  mop = airMopInit();
+  if (1 == airSingleSscanf(str, "%lf", &val)) {
+    /* printf("%s: parsed single value %g\n", me, val); */
+    *iterP = nrrdIterFromValue(val);
+    /* mopped below */
+  }
+  else {
+    if (nrrdLoad(nrrd = nrrdNew(), str)) {
+      nerr = biffGetDone(NRRD);
+      strncpy(err, nerr, AIR_STRLEN_HUGE-1);
+      return 1;
+    }
+    airMopAdd(mop, nrrd, (airMopper)nrrdNuke, airMopOnError);
+    *iterP = nrrdIterFromNrrd(nrrd);
+    /* mopped below */
+  }
+  airMopAdd(mop, *iterP, (airMopper)nrrdIterNix, airMopOnError);
+  airMopAdd(mop, iterP, (airMopper)airSetNull, airMopOnError);
+  airMopOkay(mop);
+  return 0;
+}
+
+hestCB unuNrrdIterHestCB = {
+  sizeof(NrrdIter *),
+  "nrrd/value",
+  unuParseNrrdIter,
+  (airMopper)nrrdIterNix
 }; 
 
 int

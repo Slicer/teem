@@ -41,7 +41,7 @@ char *resampleInfoL = (INFO
 ** parameter list
 */
 typedef struct {
-  nrrdKernel *kernel;
+  NrrdKernel *kernel;
   double param[NRRD_KERNEL_PARAMS_MAX];
 } unuNrrdKernel;
 
@@ -57,9 +57,7 @@ unuParseKernel(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   ker = ptr;
   if (nrrdKernelParse(&(ker->kernel), ker->param, str)) {
     nerr = biffGetDone(NRRD);
-    if (strlen(nerr) > AIR_STRLEN_HUGE - 1)
-      nerr[AIR_STRLEN_HUGE - 1] = '\0';
-    strcpy(err, nerr);
+    strncpy(err, nerr, AIR_STRLEN_HUGE-1);
     free(nerr);
     return 1;
   }
@@ -131,7 +129,7 @@ resampleMain(int argc, char **argv, char *me) {
   airArray *mop;
   float *scale;
   double padVal;
-  nrrdResampleInfo *info;
+  NrrdResampleInfo *info;
   unuNrrdKernel unuk;
 
   OPT_ADD_NIN(nin, "input nrrd");

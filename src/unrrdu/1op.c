@@ -19,51 +19,53 @@
 
 #include "private.h"
 
-char *saveName = "save";
-#define INFO "Write nrrd with specific file format or encoding"
-char *saveInfo = INFO;
-char *saveInfoL = (INFO
-		   ". Use \"unu\tsave\t-f\tpnm\t|\txv\t-\" to view PPM- or "
-		   "PGM-compatible nrrds");
+char *uopName = "1op";
+#define INFO "Unary operation on a nrrd"
+char *uopInfo = INFO;
+char *uopInfoL = (INFO);
 
 int
-saveMain(int argc, char **argv, char *me) {
+uopMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int format, encoding;
+  int op;
   airArray *mop;
-  NrrdIO *io;
 
+  hestOptAdd(&opt, NULL, "operator", airTypeEnum, 1, 1, &op, NULL,
+	     "Unary operator. Possibilities include:\n "
+	     "\b\bo \"-\": negative (multiply by -1.0)\n "
+	     "\b\bo \"r\": reciprocal (1.0/value)\n "
+	     "\b\bo \"sin\", \"cos\", \"tan\", \"asin\", \"acos\", \"atan\": "
+	     "same as in C\n "
+	     "\b\bo \"exp\", \"log\", \"log10\": same as in C\n "
+	     "\b\bo \"sqrt\", \"ceil\", \"floor\": same as in C\n "
+	     "\b\bo \"abs\": absolute value\n "
+	     "\b\bo \"sgn\": -1, 0, 1 if value is <0, ==0, or >0\n "
+	     "\b\bo \"exists\": 1 iff not NaN or +/-Inf, 0 otherwise",
+	     NULL, &nrrdUnaryOp);
   OPT_ADD_NIN(nin, "input nrrd");
-  hestOptAdd(&opt, "f", "format", airTypeEnum, 1, 1, &format, "nrrd",
-	     "output file format. Possibilities include:\n "
-	     "\b\bo \"nrrd\": standard nrrd format\n "
-	     "\b\bo \"pnm\": PNM image; PPM for color, PGM for grayscale\n "
-	     "\b\bo \"table\": plain ASCII table for 2-D data",
-	     NULL, &nrrdFormat);
-  hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &encoding, "raw",
-	     "output file format. Possibilities are \"raw\" and \"ascii\"",
-	     NULL, &nrrdEncoding);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(saveInfoL);
+  USAGE(uopInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  io = nrrdIONew();
-  airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
 
-  nrrdCopy(nout, nin);
-  io->format = format;
-  io->encoding = encoding;
+  fprintf(stderr, "%s: op = %d\n", me, op);
+  if (nrrdArithUnaryOp(nout, op, nin)) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: error doing unary operation:\n%s", me, err);
+    airMopError(mop);
+    return 1;
+  }
   
-  SAVE(nout, io);
+  SAVE(nout, NULL);
 
   airMopOkay(mop);
   return 0;

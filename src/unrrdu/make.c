@@ -76,7 +76,7 @@ makeMain(int argc, char **argv, char *me) {
   Nrrd *nrrd;
   int *size, sizeLen;
   airArray *mop;
-  nrrdIO *io;
+  NrrdIO *io;
 
   mop = airMopInit();
   io = nrrdIONew();
