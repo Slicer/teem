@@ -1,0 +1,193 @@
+/*
+  The contents of this file are subject to the University of Utah Public
+  License (the "License"); you may not use this file except in
+  compliance with the License.
+  
+  Software distributed under the License is distributed on an "AS IS"
+  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
+  the License for the specific language governing rights and limitations
+  under the License.
+
+  The Original Source Code is "teem", released March 23, 2001.
+  
+  The Original Source Code was developed by the University of Utah.
+  Portions created by UNIVERSITY are Copyright (C) 2001, 1998 University
+  of Utah. All Rights Reserved.
+*/
+
+#include <air.h>
+#include <biff.h>
+#include <hest.h>
+#include <nrrd.h>
+
+#include "private.h"
+
+/* how we expect this program to identify itself */
+#define UNU "unu"
+
+/* used to allow over-riding of defaults in hestParse() */
+hestParm *hparm;
+
+/*
+** DECLARE, LIST, ADD, MAP
+** 
+** Stupid C-preprocessor tricks.  The idea is to make it as simple
+** as possible to add new commands to unu, so that the new commands
+** have to be added to only one thing in this source file, and
+** the Makefile.
+** 
+** Associated with each unu command are some pieces of information:
+** the single word command (e.g. "slice") that is used by invoke it,
+** the short (approx. one-line) description of its function, and
+** the "main" function to call with the appropriate argc, argv. 
+** It would be nice to use a struct to hold this information: the
+** unuCmd struct is defined in private.h.  It would also be nice 
+** to have all the command's information be held in one array 
+** of unuCmds.  Unfortunately, declaring this is not possible unless
+** all the unuCmds and their fields are IN THIS SOURCE FILE, because
+** otherwise they're no constant expressions, so they can't initialize
+** an aggregate data type.  So, we instead make an array of unuCmd 
+** POINTERS, which can be initialized with the addresses of individual
+** unuCmd structs, declared and defined (but not initialized) in the
+** global scope.  Then, in main(), we set the fields of the structs
+** to point to right things (the name, info, and main as defined by
+** each source file).
+**
+** We use three macros for each of these: 
+** DECLARE: declares xxxName, xsxInfo, xxsMain as externs, and defines
+**          xxxCmd as a unuCmd struct, where xxx is the command name.
+** LIST:    the address of xxCmd, for listing in the array of unuCmd structs
+** ADD:     sets the field of xxxCmd to xxxName, xsxInfo, xxsMain
+**
+** Then, to facilitate running these macros on each of the different
+** commands, there is a MAP macro which essentially maps the macros
+** above over the list of commands.  Therefore ...
+*/
+
+/*********************************************************
+    You add commands to unu by:
+    1) adjusting the definition of MAP()
+    2) listing the appropriate object in Makefile
+    That's it.
+**********************************************************/
+#define MAP(F) \
+F(slice) \
+F(flip)
+/*********************************************************/
+
+#define DECLARE(C) \
+  extern char *C##Name; \
+  extern char *C##Info; \
+  extern int (C##Main)(int, char **, char*); \
+  unuCmd C##Cmd;
+
+#define LIST(C) &C##Cmd,
+
+#define ADD(C) \
+  C##Cmd.name = C##Name; \
+  C##Cmd.info = C##Info; \
+  C##Cmd.main = C##Main;
+
+/* declare externs, define unuCmd structs */  
+MAP(DECLARE)
+
+/* create the array of unuCmd struct pointers */
+unuCmd *cmdList[] = {
+  MAP(LIST)
+  NULL
+};
+
+/* set up hestCB structs for common non-trivial things */
+
+int
+parseNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[] = "parseNrrd", *nerr;
+  Nrrd **nrrdP;
+  
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  nrrdP = ptr;
+  if (nrrdLoad(*nrrdP = nrrdNew(), str)) {
+    nerr = biffGet(NRRD);
+    if (strlen(nerr) > AIR_STRLEN_HUGE - 1)
+      nerr[AIR_STRLEN_HUGE - 1] = '\0';
+    strcpy(err, nerr);
+    free(nerr);
+    return 1;
+  }
+  return 0;
+}
+
+hestCB hestNrrdCB = {
+  sizeof(Nrrd *),
+  "nrrd",
+  parseNrrd,
+  (airMopper)nrrdNuke
+}; 
+
+void
+usage(char *me) {
+  int i, maxlen, len, c;
+  char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
+
+  maxlen = 0;
+  for (i=0; cmdList[i]; i++) {
+    maxlen = AIR_MAX(maxlen, strlen(cmdList[i]->name));
+  }
+
+  sprintf(buff, "--- %s: command-line nrrd interface ---", me);
+  sprintf(fmt, "%%%ds\n", (80-strlen(buff))/2 + strlen(buff) - 1);
+  fprintf(stderr, fmt, buff);
+  
+  for (i=0; cmdList[i]; i++) {
+    len = strlen(cmdList[i]->name);
+    strcpy(buff, "");
+    for (c=len; c<maxlen; c++)
+      strcat(buff, " ");
+    strcat(buff, me);
+    strcat(buff, " ");
+    strcat(buff, cmdList[i]->name);
+    strcat(buff, " ... ");
+    len = strlen(buff);
+    fprintf(stderr, "%s", buff);
+    _hestPrintStr(stderr, len, len, 80, cmdList[i]->info, AIR_FALSE);
+  }
+}
+
+int
+main(int argc, char **argv) {
+  int i, ret;
+  char *argv0 = NULL;
+
+  /* set the fields in all the unuCmd structs */
+  MAP(ADD)
+
+  /* initialize variables used by the various commands */
+  hparm = hestParmNew();
+
+  /* if there are no arguments, then we give general usage information */
+  if (1 >= argc) {
+    usage(UNU);
+    return 1;
+  }
+
+  /* else, we should see if they're asking for a command we know about */  
+  for (i=0; cmdList[i]; i++) {
+    if (!strcmp(argv[1], cmdList[i]->name))
+      break;
+  }
+  if (cmdList[i]) {
+    argv0 = malloc(strlen(UNU) + strlen(argv[1]) + 2);
+    sprintf(argv0, "%s %s", UNU, argv[1]);
+    ret = cmdList[i]->main(argc-2, argv+2, argv0);
+    free(argv0);
+  }
+  else {
+    fprintf(stderr, "%s: unrecognized command: \"%s\"\n", argv[0], argv[1]);
+    usage(UNU);
+  }
+
+  exit(ret);
+}
