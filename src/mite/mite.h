@@ -118,6 +118,10 @@ typedef struct {
                             and put it in here, but we won't nrrdNuke(nout),
                             just like we won't nrrdNuke nsin, nvin, ntin, or
                             any of the ntxf[i] */
+  double *debug;         /* data for verbose pixel (verbUi, verbVi) debug */
+  airArray *debugArr;    /* airArray around debug */
+  Nrrd *ndebug;          /* nrrd re-allocation of debug data */
+  int debugIdx;          /* index into debug data */
   int ntxfNum;           /* allocated and valid length of ntxf[] */
   /* the issue of regular shading, txf-based shading, and surface normals:
      phong and lit-tensor shading ("regular shading") methods need to specify
@@ -301,6 +305,8 @@ typedef struct {
                                    we know which quantities to update */
     rangeNum;                   /* number of range variables set by the txf
                                    == number of pointers in range[] to use */
+  char *label;                  /* pointer into axis label identifying txf
+                                   domain variable, NOT COPIED */
 } miteStage;
 
 /*
@@ -370,9 +376,18 @@ typedef struct miteThread_t {
     *shadeVec0, *shadeVec1, 
     *shadeScl0, *shadeScl1;     /* pointers into the ans* arrays above,
                                    used for shading */
-  int verbose,                  /* blah, blah, blah */
+  int verbose,                  /* non-zero if 
+                                   (ui,vi) = (muu->verbUi,muu->verbVi) 
+                                   Because of the actions associated with 
+                                   recording values in muu->ndebug, it is
+                                   currently reasonable for verbose to be
+                                   non-zero for at most *ONE* pixel: it has 
+                                   to be one pixel because only one thread
+                                   should be creating and storing this per-
+                                   pixel information in the miteUser */
     thrid,                      /* thread ID */
     ui, vi,                     /* image coords of current ray */
+    raySample,                  /* number of samples finished in this ray */
     samples;                    /* number of samples handled so far by
                                    this thread */
   miteStage *stage;             /* array of stages for txf computation */

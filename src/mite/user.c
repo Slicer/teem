@@ -35,6 +35,10 @@ miteUserNew() {
   muu->ntin = NULL;
   muu->ntxf = NULL;              /* managed by user (with miter: hest) */
   muu->nout = NULL;              /* managed by user (with miter: hest) */
+  muu->debug = NULL;
+  muu->debugArr = NULL;
+  muu->ndebug = NULL;            /* not allocated until the debug pixel
+                                    is rendered, see miteRayBegin */
   muu->ntxfNum = 0;
   muu->shadeStr[0] = 0;
   muu->normalStr[0] = 0;

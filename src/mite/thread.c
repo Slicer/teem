@@ -57,6 +57,7 @@ miteThreadNew() {
   mtt->verbose = 0;
   mtt->thrid = -1;
   mtt->ui = mtt->vi = -1;
+  mtt->raySample = 0;
   mtt->samples = 0;
   mtt->stage = NULL;
   /* mtt->range[], rayStep, V, RR, GG, BB, TT  initialized in 
@@ -117,6 +118,7 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
                      ? (*mttP)->gctx->pvl[mrr->tenPvlIdx]->answer
                      : NULL);
   (*mttP)->thrid = whichThread;
+  (*mttP)->raySample = 0;
   (*mttP)->samples = 0;
   (*mttP)->verbose = 0;
   (*mttP)->_normal = _miteAnswerPointer(*mttP, mrr->normalSpec);

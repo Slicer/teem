@@ -488,6 +488,7 @@ _miteStageInit(miteStage *stage) {
     stage->rangeIdx[rii] = -1;
   }
   stage->rangeNum = -1;
+  stage->label = NULL;
   return;
 }
 
@@ -550,6 +551,7 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
       _miteStageInit(stage);
       miteVariableParse(&isp, ntxf->axis[di].label);
       stage->val = _miteAnswerPointer(mtt, &isp);
+      stage->label = ntxf->axis[di].label;
       /*
       fprintf(stderr, "!%s: ans=%p + offset[%d]=%d == %p\n", me,
               mtt->ans, dom, kind->ansOffset[dom], stage->val);
@@ -615,22 +617,33 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
 }
 
 void
-_miteStageRun(miteThread *mtt) {
+_miteStageRun(miteThread *mtt, miteUser *muu) {
   int stageIdx, ri, rii, txfIdx, finalIdx;
   miteStage *stage;
   mite_t *rangeData;
+  double *dbg=NULL;
 
   finalIdx = 0;
+  if (mtt->verbose) {
+    dbg = muu->debug + muu->debugIdx;
+  }
   for (stageIdx=0; stageIdx<mtt->stageNum; stageIdx++) {
     stage = &(mtt->stage[stageIdx]);
     if (stage->qn) {
       /* its a vector-valued txf domain variable */
       txfIdx = stage->qn(stage->val);
+      /* right now, we can't store vector-valued txf domain variables */
     } else {
       /* its a scalar txf domain variable */
       AIR_INDEX(stage->min, *(stage->val), stage->max, stage->size, txfIdx);
+      if (mtt->verbose) {
+        dbg[0 + 2*stageIdx] = *(stage->val);
+      }
     }
     txfIdx = AIR_CLAMP(0, txfIdx, stage->size-1);
+    if (mtt->verbose) {
+      dbg[1 + 2*stageIdx] = txfIdx;
+    }
     finalIdx = stage->size*finalIdx + txfIdx;
     if (stage->data) {
       rangeData = stage->data + stage->rangeNum*finalIdx;

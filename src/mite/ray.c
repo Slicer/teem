@@ -36,6 +36,21 @@ miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
     fflush(stderr);
   }
   mtt->verbose = (uIndex == muu->verbUi && vIndex == muu->verbVi);
+  if (mtt->verbose) {
+    /* create muu->ndebug */
+    muu->ndebug = nrrdNew();
+    /* we want to store the value and index for each txf domain variable,
+       plus the RGBAZ computed for that sample */
+    muu->ndebug->axis[0].size = 2*mtt->stageNum + 5;
+    /* we really do want to associate ndebug with the miteUser's mop,
+       because the information stored in it has to persist for as long as
+       the user wants: mite itself doesn't call miteUserNix */
+    airMopAdd(muu->umop, muu->ndebug, (airMopper)nrrdNuke, airMopAlways);
+    /* but the scope of the debug array allocation is within this ray */
+    muu->debugArr = airArrayNew((void**)(&(muu->debug)),
+                                NULL, sizeof(double), 128);
+  }
+  mtt->raySample = 0;
   mtt->RR = mtt->GG = mtt->BB = 0.0;
   mtt->TT = 1.0;
   mtt->ZZ = AIR_NAN;
@@ -132,7 +147,7 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
   char me[]="miteSample", err[AIR_STRLEN_MED];
   mite_t R, G, B, A;
   gage_t *NN;
-  double NdotV, kn[3], knd[3], ref[3], len;
+  double NdotV, kn[3], knd[3], ref[3], len, *dbg=NULL;
 
   if (!inside) {
     return mtt->rayStep;
@@ -152,7 +167,6 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
 
   /* do probing at this location to determine values of everything
      that might appear in the txf domain */
-  mtt->samples += 1;
   if (gageProbe(mtt->gctx,
                 samplePosIndex[0], samplePosIndex[1], samplePosIndex[2])) {
     sprintf(err, "%s: gage trouble: %s (%d)", me, gageErrStr, gageErrNum);
@@ -209,8 +223,11 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
   }
   
   /* initialize txf range quantities, and apply all txfs */
+  if (mtt->verbose) {
+    muu->debugIdx = airArrayIncrLen(muu->debugArr, muu->ndebug->axis[0].size);
+  }
   memcpy(mtt->range, muu->rangeInit, MITE_RANGE_NUM*sizeof(mite_t));
-  _miteStageRun(mtt);
+  _miteStageRun(mtt, muu);
 
   /* if there's opacity, do shading and compositing */
   if (mtt->range[miteRangeAlpha]) {
@@ -229,6 +246,16 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
               me, mtt->RR, mtt->GG, mtt->BB, mtt->TT);
     }
     /* fprintf(stderr, "%s: mtt->TT = %g\n", me, mtt->TT); */
+  } else {
+    R = G = B = A = 0;
+  }
+  if (mtt->verbose) {
+    dbg = muu->debug + muu->debugIdx;
+    dbg[0 + 2*mtt->stageNum] = R;
+    dbg[1 + 2*mtt->stageNum] = G;
+    dbg[2 + 2*mtt->stageNum] = B;
+    dbg[3 + 2*mtt->stageNum] = A;
+    dbg[4 + 2*mtt->stageNum] = rayT;
   }
 
   /* set Z if it hasn't been set already */
@@ -236,15 +263,19 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
     mtt->ZZ = rayT;
   }
 
+  /* this is used to index mtt->debug */
+  mtt->raySample += 1;
+
   return mtt->rayStep;
 }
 
 int 
 miteRayEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
-  int idx;
+  int idx, slen, stageIdx;
   mite_t *imgData;
   double A;
   
+  mtt->samples += mtt->raySample;
   idx = mtt->ui + (muu->nout->axis[1].size)*mtt->vi;
   imgData = (mite_t*)muu->nout->data;
   A = 1 - mtt->TT;
@@ -253,6 +284,24 @@ miteRayEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
                A, mtt->ZZ);
   } else {
     ELL_5V_SET(imgData + 5*idx, 0, 0, 0, 0, AIR_NAN);
+  }
+  if (mtt->verbose) {
+    /* muu->debug may be over-allocated, but that's harmless */
+    muu->ndebug->axis[1].size = mtt->raySample;
+    nrrdWrap(muu->ndebug, muu->debug, nrrdTypeDouble, 2,
+             muu->ndebug->axis[0].size, mtt->raySample);
+    airArrayNix(muu->debugArr);
+    slen = 0;
+    for (stageIdx=0; stageIdx<mtt->stageNum; stageIdx++) {
+      slen += strlen(mtt->stage[stageIdx].label) + 2;
+    }
+    slen += strlen("R,G,B,A,Z") + 1;
+    muu->ndebug->axis[0].label = calloc(slen, sizeof(char));
+    for (stageIdx=0; stageIdx<mtt->stageNum; stageIdx++) {
+      strcat(muu->ndebug->axis[0].label, mtt->stage[stageIdx].label);
+      strcat(muu->ndebug->axis[0].label, ",,");
+    }      
+    strcat(muu->ndebug->axis[0].label, "R,G,B,A,Z");
   }
   return 0;
 }

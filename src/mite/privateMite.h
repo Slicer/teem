@@ -34,7 +34,7 @@ extern "C" {
 extern gage_t *_miteAnswerPointer(miteThread *mtt, gageItemSpec *isp);
 extern int _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu);
 extern int _miteStageSet(miteThread *mtt, miteRender *mrr);
-extern void _miteStageRun(miteThread *mtt);
+extern void _miteStageRun(miteThread *mtt, miteUser *muu);
 
 /* user.c */
 extern int _miteUserCheck(miteUser *muu);
