@@ -109,7 +109,7 @@ extern double *mossMatTranslateSet(double mat[6], double tx, double ty);
 extern double *mossMatRotateSet(double mat[6], double angle);
 extern double *mossMatFlipSet(double mat[6], double angle);
 extern double *mossMatShearSet(double mat[6], double angleFixed,
-			       double angleShear);
+			       double amount);
 extern double *mossMatScaleSet(double mat[6], double sx, double sy);
 extern void mossMatApply(double *ox, double *oy, double mat[6],
 			 double ix, double iy);

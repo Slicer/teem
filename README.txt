@@ -21,7 +21,7 @@
 
 See above.  This preamble appears on all .c, .h, and .mk files. Full
 text of the GNU Lesser General Public License should be in the file
-"LICENSE.txt" in the same directory as this file.  See the web page at
+"LICENSE.txt" in the "src" directory.  See the web page at
 "html/lgpl.html" relative to this file for my understanding of exactly
 what the LGPL means for people wishing to use any of the teem
 libraries in their own programs.
@@ -34,6 +34,7 @@ libraries in their own programs.
    "linux": for linux boxes
    "solaris": for solaris boxes
    "cygwin": if you have cygwin (www.cygwin.com) on a windows box
+   "darwin": ona Mac OS X box
 
 2: "cd src"
 
@@ -45,9 +46,9 @@ libraries in their own programs.
 4: "../${TEEM_ARCH}/bin/nrrdSanity"
    This runs a little program which performs a sanity-check on the
    nrrd library; specifically, all the assumptions about type sizes,
-   endienness, and such that are set at compile time.  If it doesn't
-   say "nrrd sanity check passed", then email me; there are serious
-   problems.
+   endianness, and such that are set at compile time.  If it doesn't
+   start by saying "nrrd sanity check passed", then email me; there
+   are serious problems.
 
 If you want only the nrrd library and the related utilities (unrrdu)
 then type: "make just-nrrd".
@@ -56,12 +57,13 @@ What?  No configure or auto-conf script?  That's right.  Because the
 architecture specific stuff is all set with a file in the "src/make"
 directory, and because this never "installs" anything to a location
 outside this directory tree, and because this is nearly all very
-vanilla ANSI C, I don't consider those tools necessary.
+vanilla ANSI C, these tools don't seem very necessary.  If you want
+to write such scripts, I'll happily add them to the distribution.
 
 However, you may need to alter the appropriate architecture-specific
 ".mk" file in the "src/make" directory.  This is unlikely.  If you
 feel there is a bug in those files, please email me at
-gk_AT_cs.utah.edu
+gk@cs.utah.edu
 
 =============== General Info
 
@@ -96,15 +98,15 @@ src/
   directory which is just for makefile (.mk) files.
 include/
   the include (.h) files for all the libraries (such as nrrd.h)
-  get put here (but don't originate from here)
-    include/teem
-      include/teem/need: header files which help verifying that 
-      certain compiler variables are set
+  get put here (but don't originate from here).  There are also
+  some short header files that are used to verify the correct
+  setting of compiler variables, such as TEEM_ENDIAN.
 irix6.64/
 irix6.n32/
 linux/
 solaris/
 cygwin/
+darwin/
   The architecture-dependent directories, with a name which exactly
   matches valid settings for the environment variable TEEM_ARCH.
   Within these directories there are:
@@ -112,19 +114,9 @@ cygwin/
           shared/dynamic (.so) library files here (such as libnrrd.a)
     bin/  all libraries put their binaries here, hopefully in a way which
           doesn't cause name clashes
-    obj/  this has further subdirectories for each library, into which 
-          "make" puts all the .o files.  The object files in these
-          directories (such as "obj/nrrd") are assumed to be suitable
-          for making both .a archive libraries as well as .so (or such)
-          shared libraries.  This may mean that all object files will
-          be compiled as position-independent code, even if that incurs
-          a slight performance penalty.
-
----> After you have untarred the teem tree, the ONLY directory which
----> should contain anything is the "src" directory (except for "teem"
----> in include)- the compilations of the various libraries will put
----> header, library, and object files as needed in all the
----> appropriate directories.
+    obj/  make puts all the .o files in here, for all libraries. When
+          compiling "dev", it also puts libraries here, so that "tests"
+          can link against them there
 
 See the README.txt in the "src" directory for library-specific
 information.
@@ -144,8 +136,7 @@ aspects of GNU style (http://www.gnu.org/prep/standards.html) which I like:
   and reporting.
 - check every single malloc/calloc for NULL return
 - make sure all symbols visible in the library
-  start with "<lib>" or "_<lib>" where <lib> is the library name or
-  some obvious but non-trivial shortening of it
+  start with "<lib>" or "_<lib>" where <lib> is the library name
 - for expressions split on multiple lines, split before an operator, not after
 - use parens on multi-line expressions to make them tidy
 - Function comments should be in complete sentences, with two spaces after "."
