@@ -180,7 +180,7 @@
    ELL_3V_SET((m)+3,  0 ,  1 ,  0), \
    ELL_3V_SET((m)+9,  0 ,  0 ,  1))
 
-#define ELL_3M_SETDIAG(m, a, b, c) \
+#define ELL_3M_SET_DIAG(m, a, b, c) \
   ((m)[0] = (a), (m)[4] = (b), (m)[8] = (c))
 
 #define ELL_3M_TRANSPOSE(m2, m1) \
