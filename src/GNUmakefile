@@ -298,11 +298,11 @@ used = $(call used.libs,$(1)) $(call used.hdrs,$(1))
 ##
 ## wants.xtern(XTERN): returns XTERN if TEEM_<XTERN> has been set,
 ##   otherwise nothing
-## xtern.wants: list of all wanted XTERNs
-## for.xtern(libs,patt): for all xtern in xtern.wants, for all libraries
+## xterns: list of all wanted XTERNs (a subset of $(XTERNS))
+## for.xtern(libs,patt): for all xtern in xterns, for all libraries
 ##   in $(libs) that benefit from $(xtern),
 ##   replace XXX in $(patt) with $(xtern)
-## eval(list): evaluates each element of list as a variable
+## evallist(list): evaluates each element of list as a variable
 ## xtern.{i,l}path(libs): {include,link} paths {-Iblah,-Lblah} for any
 ##   wanted XTERNs whose base teem dependency is within $(libs).  $(libs)
 ##   should be $($(L).meneed) for some library L
@@ -310,15 +310,15 @@ used = $(call used.libs,$(1)) $(call used.hdrs,$(1))
 ## xtern.Dflag(libs): for -D defines when creating .o files
 ##
 wants.xtern = $(if $(findstring undefined,$(origin TEEM_$(1))),,$(1))
-xtern.wants = $(foreach xtern,$(XTERNS),$(call wants.xtern,$(xtern)))
-for.xtern = $(strip $(foreach xtern,$(xtern.wants),$(foreach lib,$(1),\
+xterns = $(foreach xtern,$(XTERNS),$(call wants.xtern,$(xtern)))
+for.xtern = $(strip $(foreach xtern,$(xterns),$(foreach lib,$(1),\
 $(if $(filter $(xtern),$($(lib).XTERN)),\
-$($(subst XXX,$(xtern),$(2)))))))
-eval = $(foreach var,$(1),$($(var)))
-xtern.ipath = $(call eval,$(call for.xtern,$(1),TEEM_XXX.IPATH))
-xtern.lpath = $(call eval,$(call for.xtern,$(1),TEEM_XXX.LPATH))
-xtern.link  = $(call eval,$(call for.xtern,$(1),XXX.LINK))
-xtern.Dflag = $(call for.xtern,$(1),-DTEEM_XXX)
+$(subst XXX,$(xtern),$(2))))))
+evallist = $(foreach var,$(1),$($(var)))
+xtern.ipath = $(call evallist,$(call for.xtern,$(1),TEEM_XXX.IPATH))
+xtern.lpath = $(call evallist,$(call for.xtern,$(1),TEEM_XXX.LPATH))
+xtern.link  = $(call evallist,$(call for.xtern,$(1),XXX.LINK))
+xtern.Dflag = $(call for.xtern,$(1),-DTEEM_XXX=1)
 
 
 #######################################
@@ -337,6 +337,8 @@ INCLUDED := true
 include $(foreach LIB,$(LIBS),$(TEEM_SRC)/$(LIB)/GNUmakefile)
 include $(TEEM_SRC)/bin/GNUmakefile
 
+## megalibs: libteem.a and libteem.$(TEEM_SHEXT)
+##
 megalibs : $(foreach ext,$(LIBEXTS),$(LDEST)/libteem.$(ext))
 $(LDEST)/libteem.a : $(foreach lib,$(LIBS),$(call objs.dev,$(lib)))
 	$(AR) $(ARFLAGS) $@ $^
@@ -344,6 +346,5 @@ ifdef TEEM_SHEXT
 $(LDEST)/libteem.$(TEEM_SHEXT) : $(foreach lib,$(LIBS),$(call objs.dev,$(lib)))
 	$(LD) -o $@ $(LDFLAGS) $(LPATH) $^
 endif
-
 nomegalibs:
 	$(RM) $(foreach ext,$(LIBEXTS),$(LDEST)/libteem.$(ext))

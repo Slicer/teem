@@ -33,7 +33,7 @@ char *_unrrdu_saveInfoL =
 int
 unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, encInfo[AIR_STRLEN_HUGE];
+  char *out, *err, encInfo[AIR_STRLEN_LARGE];
   Nrrd *nin, *nout;
   int format, encoding;
   airArray *mop;
@@ -52,7 +52,7 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
 	 "\n \b\bo \"ascii\": print data in ascii");
   if (nrrdEncodingAvailable[nrrdEncodingGzip]) {
     strcat(encInfo, 
-	   "\n \b\bo \"gz\": gzipped compressed raw format");
+	   "\n \b\bo \"gzip\", \"gz\": gzip compressed raw data");
   }
   hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &encoding, "raw",
 	     encInfo, NULL, nrrdEncoding);

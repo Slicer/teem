@@ -342,10 +342,7 @@ _nrrdReadDataAscii(Nrrd *nrrd, NrrdIO *io) {
 int
 _nrrdReadDataGzip(Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadDataGzip", err[AIR_STRLEN_MED];
-#ifndef TEEM_ZLIB
-  sprintf(err, "%s: sorry, this nrrd not compiled with gzip enabled", me);
-  biffAdd(NRRD, err); return 1;
-#else
+#if TEEM_ZLIB
   size_t num, bsize, size, total_read;
   int block_size, read, i;
   char *data;
@@ -465,6 +462,9 @@ _nrrdReadDataGzip(Nrrd *nrrd, NrrdIO *io) {
   }
   
   return 0;
+#else
+  sprintf(err, "%s: sorry, this nrrd not compiled with gzip enabled", me);
+  biffAdd(NRRD, err); return 1;
 #endif
 }
 

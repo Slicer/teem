@@ -316,7 +316,7 @@ nrrdEncodingAvailable[NRRD_ENCODING_MAX+1] = {
   0,   /* unknown */
   1,   /* raw, always */
   1,   /* ascii, always */
-#ifdef TEEM_ZLIB
+#if TEEM_ZLIB
   1,   /* gzip */
 #else
   0,   /* gzip */

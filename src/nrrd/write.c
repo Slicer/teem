@@ -243,10 +243,7 @@ _nrrdWriteDataAscii(Nrrd *nrrd, NrrdIO *io) {
 int
 _nrrdWriteDataGzip(Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteDataGzip", err[AIR_STRLEN_MED];
-#ifndef TEEM_ZLIB
-  sprintf(err, "%s: sorry, this nrrd not compiled with gzip enabled", me);
-  biffAdd(NRRD, err); return 1;
-#else
+#if TEEM_ZLIB
   size_t num, bsize, size, total_written;
   int block_size, wrote;
   char *data;
@@ -328,6 +325,9 @@ _nrrdWriteDataGzip(Nrrd *nrrd, NrrdIO *io) {
   }
   
   return 0;
+#else
+  sprintf(err, "%s: sorry, this nrrd not compiled with gzip enabled", me);
+  biffAdd(NRRD, err); return 1;
 #endif
 }
 

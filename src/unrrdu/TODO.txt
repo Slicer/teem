@@ -6,6 +6,10 @@ update ../README
 
 ----- teem 1.5beta cut-off -----
 
+----- teem 1.5 cut-off -----
+
+unu head, unu data
+
 make unu check on environment variables, so that nrrdDef* and nrrdState*
 variables can be set that way
 
@@ -14,8 +18,6 @@ unu resample when I had the bug in nrrdAlloc_nva (where the
 axes sizes were never actually set, so they were both zero).
 
 make darn sure that nobody uses printf(), only fprintf()
-
------ teem 1.5 cut-off -----
 
 standardize and document use of special single characters
 for meaning as unrrdu arguments:

@@ -49,7 +49,7 @@
   (zlib format), rfc1951.txt (deflate format) and rfc1952.txt (gzip format).
 */
 
-#ifdef TEEM_ZLIB
+#if TEEM_ZLIB
 
 #include "nrrd.h"
 #include "privateNrrd.h"
