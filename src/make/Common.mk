@@ -184,7 +184,9 @@ ifeq ($(TEEM_PURIFY),true)
     $(warning *)
     $(error Make quitting)
   endif
-  P = $(PURIFY) -always-use-cache-dir -cache-dir=$(PCACHE)
+  POPTS = -inuse-at-exit=yes -chain-length=12 -static-checking-guardzone=128 \
+	-free-queue-length=256
+  P = $(PURIFY) $(POPTS) -always-use-cache-dir -cache-dir=$(PCACHE)
 endif
 
 #
@@ -214,7 +216,8 @@ clean:
 # "make uninstall" removes what's created by "make install"
 uninstall:
 	$(if $(HEADERS), $(RM) $(foreach h, $(HEADERS), $(IDEST)/$(h)))
-	$(if $(LIB), $(RM) $(LDEST)/$(_LIB.A) $(LDEST)/$(_LIB.S))
+	$(if $(LIB), $(RM) $(LDEST)/$(_LIB.A))
+	$(if $(LIB.S), $(RM) $(LDEST)/$(_LIB.S))
 	$(if $(BINS), $(RM) $(foreach b, $(BINS), $(BDEST)/$(b)))
 
 # "make destroy" does as you'd expect
@@ -267,5 +270,5 @@ $(LDEST)/%: $(OBJ_PREF)/%
 $(BDEST)/%: %.c $(INSTALL_LIBS) $(INSTALL_HDRS)
 	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) -o $@ $< \
 	   $(LPATH) $(BINLIBS)
-	$(CHMOD) 755 $@
+	$(CHMOD) 755 $@$(DOTEXE)
 
