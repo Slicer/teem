@@ -547,7 +547,6 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
 				 this is for allocating the output */
   airArray *mop;              /* for cleaning up */
   
-  printf("%s: (A) nin->axis[0].min = %g\n", me, nin->axis[0].min);
   if (!(nout && nin && info)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
@@ -601,7 +600,6 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
-    printf("%s: (B) nin->axis[0].min = %g\n", me, nin->axis[0].min);
     return 0;
   }
 

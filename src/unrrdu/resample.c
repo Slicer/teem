@@ -197,7 +197,8 @@ resampleMain(int argc, char **argv, char *me) {
       break;
     }
     memcpy(info->param[d], unuk.param, NRRD_KERNEL_PARAMS_MAX*sizeof(double));
-    if (!( AIR_EXISTS(nin->axis[d].min) && AIR_EXISTS(nin->axis[d].max) )) {
+    if (info->kernel[d] &&
+	(!( AIR_EXISTS(nin->axis[d].min) && AIR_EXISTS(nin->axis[d].max))) ) {
       nrrdAxisMinMaxSet(nin, d);
     }
     info->min[d] = nin->axis[d].min;
