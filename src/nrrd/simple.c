@@ -208,39 +208,39 @@ nrrdDescribe (FILE *file, Nrrd *nrrd) {
 }
 
 /*
-******** nrrdValid()
+******** nrrdCheck()
 **
 ** does some consistency checks for things that can go wrong in a nrrd
 */
 int
-nrrdValid (Nrrd *nrrd) {
-  char me[] = "nrrdValid", err[AIR_STRLEN_MED];
+nrrdCheck (Nrrd *nrrd) {
+  char me[] = "nrrdCheck", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX], i, ret;
   double val[NRRD_DIM_MAX];
 
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 1;
   }
   if (!airEnumValValid(nrrdType, nrrd->type)) {
     sprintf(err, "%s: type (%d) of array is invalid", me, nrrd->type);
-    biffAdd(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 1;
   }
   if (nrrdTypeBlock == nrrd->type && (!(0 < nrrd->blockSize)) ) {
     sprintf(err, "%s: nrrd type is %s but nrrd->blockSize (%d) invalid", me,
 	    airEnumStr(nrrdType, nrrdTypeBlock),
 	    nrrd->blockSize);
-    biffAdd(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 1;
   }
   if (!AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX)) {
     sprintf(err, "%s: dimension %d is outside valid range [1,%d]",
 	    me, nrrd->dim, NRRD_DIM_MAX);
-    biffAdd(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 1;
   }
   nrrdAxesGet_nva(nrrd, nrrdAxesInfoSize, size);
-  if (!_nrrdSizeValid(nrrd->dim, size, AIR_TRUE)) {
+  if (_nrrdSizeCheck(nrrd->dim, size, AIR_TRUE)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 1;
   }
 
   /* these checks basically cut/paste from validity checks in 
@@ -282,7 +282,7 @@ nrrdValid (Nrrd *nrrd) {
     sprintf(err, "%s: max %sinf invalid", me, 1==ret ? "+" : "-");
     biffAdd(NRRD, err); return 1;
   }
-  return 1;
+  return 0;
 }
 
 /*
@@ -369,13 +369,13 @@ nrrdElementNumber (Nrrd *nrrd) {
   }
   /* else */
   nrrdAxesGet_nva(nrrd, nrrdAxesInfoSize, size);
-  if (!_nrrdSizeValid(nrrd->dim, size, AIR_FALSE)) {
+  if (_nrrdSizeCheck(nrrd->dim, size, AIR_FALSE)) {
     /* the nrrd's size information is invalid, can't proceed */
     return 0;
   }
   num = 1;
   for (d=0; d<nrrd->dim; d++) {
-    /* negative numbers caught by _nrrdSizeValid() */
+    /* negative numbers were caught by _nrrdSizeCheck() */
     num *= size[d];
   }
   return num;

@@ -78,7 +78,7 @@ miteNtxfCheck(Nrrd *ntxf, gageKind *kind) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(MITE, err); return 1;
   }
-  if (!nrrdValid(ntxf)) {
+  if (nrrdCheck(ntxf)) {
     sprintf(err, "%s: basic nrrd validity check failed", me);
     biffMove(MITE, err, NRRD); return 1;
   }

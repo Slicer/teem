@@ -58,7 +58,7 @@ nrrdSplice(Nrrd *nout, Nrrd *nin, Nrrd *nslice, int axis, int pos) {
   }
 
   /* check that slice will fit in nin */
-  if (!( nrrdValid(nslice) && nrrdValid(nin) )) {
+  if (nrrdCheck(nslice) || nrrdCheck(nin)) {
     sprintf(err, "%s: input or slice not valid nrrd", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -174,7 +174,7 @@ nrrdInset(Nrrd *nout, Nrrd *nin, Nrrd *nsub, int *min) {
     sprintf(err, "%s: nout==nsub disallowed", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!( nrrdValid(nsub) && nrrdValid(nin) )) {
+  if (nrrdCheck(nsub) || nrrdCheck(nin)) {
     sprintf(err, "%s: input or subvolume not valid nrrd", me);
     biffAdd(NRRD, err); return 1;
   }

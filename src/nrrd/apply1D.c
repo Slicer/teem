@@ -48,9 +48,9 @@ enum {
 };
 
 /*
-******** nrrd1DIrregMapValid()
+******** nrrd1DIrregMapCheck()
 **
-** return non-zero only for the valid forms of 1D irregular map.
+** return zero only for the valid forms of 1D irregular map.
 ** imap must be 2D, both sizes >= 2, non-block-type, no non-existant
 ** values in range.  If the first point's position is non-existant,
 ** than the first three points positions must be -inf, NaN, and +inf,
@@ -59,37 +59,41 @@ enum {
 ** points with existant positions.
 */
 int
-nrrd1DIrregMapValid(Nrrd *nmap) {
-  char me[]="nrrd1DIrregMapValid", err[AIR_STRLEN_MED];
+nrrd1DIrregMapCheck(Nrrd *nmap) {
+  char me[]="nrrd1DIrregMapCheck", err[AIR_STRLEN_MED];
   double (*mapLup)(void *v, size_t I);
   int i, entLen, mapLen, baseI, min[2], max[2];
   Nrrd *nrange;
 
   if (!nmap) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdCheck(nmap)) {
+    sprintf(err, "%s: ", me);
+    biffAdd(NRRD, err); return 1;
   }
   if (nrrdTypeBlock == nmap->type) {
     sprintf(err, "%s: map is %s type, need scalar", 
 	    me, airEnumStr(nrrdType, nrrdTypeBlock));
-    biffAdd(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 1;
   }
   if (2 != nmap->dim) {
     sprintf(err, "%s: map needs to have dimension 2, not %d", me, nmap->dim);
-    biffAdd(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 1;
   }
   entLen = nmap->axis[0].size;
   mapLen = nmap->axis[1].size;
   if (!( entLen >= 2 && mapLen >= 2 )) {
     sprintf(err, "%s: both map's axes sizes should be >= 2 (not %d,%d)",
 	    me, entLen, mapLen);
-    biffAdd(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 1;
   }
   min[0] = 1; max[0] = nmap->axis[0].size-1;
   min[1] = 0; max[1] = nmap->axis[1].size-1;
   if (nrrdCrop(nrange=nrrdNew(), nmap, min, max)) {
     sprintf(err, "%s: couldn't crop to isolate range of map", me);
-    biffAdd(NRRD, err); nrrdNuke(nrange); return 0;
+    biffAdd(NRRD, err); nrrdNuke(nrange); return 1;
   }
   if (nrrdHasNonExistSet(nrange)) {
     sprintf(err, "%s: map has non-existent values in its range", me);
@@ -104,20 +108,20 @@ nrrd1DIrregMapValid(Nrrd *nmap) {
     if (!( mapLen >= 5 )) {
       sprintf(err, "%s: length of map w/ non-existant locations must "
 	      "be >= 5 (not %d)", me, mapLen);
-      biffAdd(NRRD, err); return 0;
+      biffAdd(NRRD, err); return 1;
     }
     if (!( airFP_NEG_INF == airFPClass_f(mapLup(nmap->data, 0*entLen)) &&
 	   airFP_QNAN    == airFPClass_f(mapLup(nmap->data, 1*entLen)) &&
 	   airFP_POS_INF == airFPClass_f(mapLup(nmap->data, 2*entLen)) )) {
       sprintf(err, "%s: 1st entry's position non-existant, but position "
 	      "of 1st three entries not -inf, NaN, and +inf", me);
-      biffAdd(NRRD, err); return 0;
+      biffAdd(NRRD, err); return 1;
     }
   }
   for (i=baseI; i<mapLen; i++) {
     if (!AIR_EXISTS(mapLup(nmap->data, i*entLen))) {
       sprintf(err, "%s: entry %d has non-existant position", me, i);
-      biffAdd(NRRD, err); return 0;
+      biffAdd(NRRD, err); return 1;
     }
   }
   for (i=baseI; i<mapLen-1; i++) {
@@ -125,11 +129,10 @@ nrrd1DIrregMapValid(Nrrd *nmap) {
       sprintf(err, "%s: map entry %d pos (%g) not < entry %d pos (%g)",
 	      me, i, mapLup(nmap->data, i*entLen),
 	      i+1, mapLup(nmap->data, (i+1)*entLen));
-      biffAdd(NRRD, err); return 0;
+      biffAdd(NRRD, err); return 1;
     }
   }
-  
-  return 1;
+  return 0;
 }
 
 /*
@@ -197,7 +200,7 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
     colLen = mapAxis ? nmap->axis[0].size : 1;
   } else {
     /* its an irregular map */
-    if (!nrrd1DIrregMapValid(nmap)) {
+    if (nrrd1DIrregMapCheck(nmap)) {
       sprintf(err, "%s: problem with irregular map", me);
       biffAdd(NRRD, err); return 1;
     }
@@ -447,35 +450,39 @@ nrrdApply1DRegMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
 }
 
 /*
-******** nrrd1DIrregAclValid()
+******** nrrd1DIrregAclCheck()
 **
-** returns non-zero only on valid accelerators for 1D irregular mappings
+** returns zero only on valid accelerators for 1D irregular mappings
 */
 int
-nrrd1DIrregAclValid(Nrrd *nacl) {
-  char me[]="nrrd1DIrregAclValid", err[AIR_STRLEN_MED];
+nrrd1DIrregAclCheck(Nrrd *nacl) {
+  char me[]="nrrd1DIrregAclCheck", err[AIR_STRLEN_MED];
 
   if (!nacl) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdCheck(nacl)) {
+    sprintf(err, "%s: ", me);
+    biffAdd(NRRD, err); return 1;
   }
   if (nrrdTypeUShort != nacl->type) {
     sprintf(err, "%s: type should be %s, not %s", me,
 	    airEnumStr(nrrdType, nrrdTypeUShort),
 	    airEnumStr(nrrdType, nacl->type));
-    biffAdd(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 1;
   }
   if (2 != nacl->dim) {
     sprintf(err, "%s: dimension should be 2, not %d", me, nacl->dim);
-    biffAdd(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 1;
   }
   if (!( nacl->axis[0].size == 2 && nacl->axis[1].size >= 2 )) {
     sprintf(err, "%s: sizes (%d,%d) not (2,>=2)", me,
 	    nacl->axis[0].size, nacl->axis[1].size);
-    biffAdd(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 1;
   }
 
-  return 1;
+  return 0;
 }
 
 /*
@@ -485,7 +492,7 @@ nrrd1DIrregAclValid(Nrrd *nacl) {
 ** locations, and sets its length in *poslenP.  If there are the three
 ** points with non-existant locations, these are ignored.
 **
-** Assumes that nrrd1DIrregMapValid has been called on "nmap".
+** Assumes that nrrd1DIrregMapCheck has been called on "nmap".
 */
 double *
 _nrrd1DIrregMapDomain(int *posLenP, int *baseIP, Nrrd *nmap) {
@@ -576,7 +583,7 @@ _nrrd1DIrregFindInterval(double *pos, double p, int loI, int hiI) {
 ** either obviates or speeds up the task of finding which
 ** interval contains a given value.
 **
-** Assumes that nrrd1DIrregMapValid has been called on "nmap".
+** Assumes that nrrd1DIrregMapCheck has been called on "nmap".
 */
 int
 nrrd1DIrregAclGenerate(Nrrd *nacl, Nrrd *nmap, int aclLen) {
@@ -635,8 +642,8 @@ nrrd1DIrregAclGenerate(Nrrd *nacl, Nrrd *nmap, int aclLen) {
 ** Doing this makes everything slower, however, because airFPClass_f()
 ** is called on every single value.
 **
-** This assumes that nrrd1DIrregMapValid has been called on "nmap",
-** and that nrrd1DIrregAclValid has been called on "nacl" (if it is
+** This assumes that nrrd1DIrregMapCheck has been called on "nmap",
+** and that nrrd1DIrregAclCheck has been called on "nacl" (if it is
 ** non-NULL).
 */
 int
@@ -659,7 +666,7 @@ nrrdApply1DIrregMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap, Nrrd *nacl,
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nacl && !nrrd1DIrregAclValid(nacl)) {
+  if (nacl && nrrd1DIrregAclCheck(nacl)) {
     sprintf(err, "%s: given acl isn't valid", me);
     biffAdd(NRRD, err); return 1;
   }

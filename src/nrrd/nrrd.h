@@ -435,7 +435,7 @@ extern int nrrdContentSet(Nrrd *nout, const char *func,
 			  Nrrd *nin, const char *format,
 			  ... /* printf-style arg list */ );
 extern void nrrdDescribe(FILE *file, Nrrd *nrrd);
-extern int nrrdValid(Nrrd *nrrd);
+extern int nrrdCheck(Nrrd *nrrd);
 extern int nrrdElementSize(Nrrd *nrrd);
 extern size_t nrrdElementNumber(Nrrd *nrrd);
 extern int nrrdHasNonExistSet(Nrrd *nrrd);
@@ -511,9 +511,9 @@ extern int nrrdApply1DLut(Nrrd *nout, Nrrd *nin, Nrrd *nlut,
 			  int typeOut, int rescale);
 extern int nrrdApply1DRegMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
 			     int typeOut, int rescale);
-extern int nrrd1DIrregMapValid(Nrrd *nmap);
+extern int nrrd1DIrregMapCheck(Nrrd *nmap);
 extern int nrrd1DIrregAclGenerate(Nrrd *nacl, Nrrd *nmap, int aclLen);
-extern int nrrd1DIrregAclValid(Nrrd *nacl);
+extern int nrrd1DIrregAclCheck(Nrrd *nacl);
 extern int nrrdApply1DIrregMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap, Nrrd *nacl,
 			       int typeOut, int rescale);
 

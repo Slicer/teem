@@ -735,7 +735,7 @@ nrrdReshape_nva(Nrrd *nout, Nrrd *nin, int dim, int *size) {
 	    me, dim, NRRD_DIM_MAX);
     biffAdd(NRRD, err); return 1;
   }
-  if (!_nrrdSizeValid(dim, size, AIR_TRUE)) {
+  if (_nrrdSizeCheck(dim, size, AIR_TRUE)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }

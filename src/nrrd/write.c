@@ -1291,7 +1291,7 @@ nrrdWrite (FILE *file, Nrrd *nrrd, NrrdIO *io) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!nrrdValid(nrrd)) {
+  if (nrrdCheck(nrrd)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }

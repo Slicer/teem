@@ -136,7 +136,7 @@ _nrrdReadNrrdParse_sizes (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   _CHECK_HAVE_DIM;
   ret = airParseStrI(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
-  if (!_nrrdSizeValid(nrrd->dim, val, useBiff)) {
+  if (_nrrdSizeCheck(nrrd->dim, val, useBiff)) {
     sprintf(err, "%s: array sizes not valid", me);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }

@@ -100,7 +100,7 @@ int
 mossImageCheck (Nrrd *image) {
   char me[]="mossImageCheck", err[AIR_STRLEN_MED];
 
-  if (!nrrdValid(image)) {
+  if (nrrdCheck(image)) {
     sprintf(err, "%s: given nrrd invalid", me);
     biffMove(MOSS, err, NRRD); return 1;
   }

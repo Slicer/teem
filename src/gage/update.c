@@ -270,7 +270,7 @@ _gageNpadUpdate (gageContext *ctx) {
 	sprintf(err, "%s: trouble in padder callback", me);
 	biffAdd(GAGE, err); return 1;
       }
-      if (!nrrdValid(pvl->npad)) {
+      if (nrrdCheck(pvl->npad)) {
 	sprintf(err, "%s: padder generated bad nrrd", me);
 	biffMove(GAGE, err, NRRD); return 1;
       }

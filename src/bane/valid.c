@@ -26,7 +26,7 @@ baneInputCheck (Nrrd *nin, baneHVolParm *hvp) {
   char me[]="baneInputCheck", err[AIR_STRLEN_MED];
   int i;
 
-  if (!nrrdValid(nin)) {
+  if (nrrdCheck(nin)) {
     sprintf(err, "%s: basic nrrd validity check failed", me);
     biffMove(BANE, err, NRRD); return 1;
   }

@@ -340,18 +340,18 @@ nrrdNuke (Nrrd *nrrd) {
 /* ------------------------------------------------------------ */
 
 int
-_nrrdSizeValid (int dim, int *size, int useBiff) {
-  char me[]="_nrrdSizeValid", err[AIR_STRLEN_MED];
+_nrrdSizeCheck (int dim, int *size, int useBiff) {
+  char me[]="_nrrdSizeCheck", err[AIR_STRLEN_MED];
   int d;
   
   for (d=0; d<dim; d++) {
     if (!(size[d] > 0)) {
       sprintf(err, "%s: invalid size (%d) for axis %d (dim = %d)",
 	      me, size[d], d, dim);
-      biffMaybeAdd(NRRD, err, useBiff); return AIR_FALSE;
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
   }
-  return AIR_TRUE;
+  return 0;
 }
 
 /*
@@ -377,7 +377,7 @@ nrrdWrap_nva (Nrrd *nrrd, void *data, int type, int dim, int *size) {
   nrrd->data = data;
   nrrd->type = type;
   nrrd->dim = dim;
-  if (!_nrrdSizeValid(dim, size, AIR_TRUE)) {
+  if (_nrrdSizeCheck(dim, size, AIR_TRUE)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -560,7 +560,7 @@ nrrdAlloc_nva (Nrrd *nrrd, int type, int dim, int *size) {
   nrrd->type = type;
   AIR_FREE(nrrd->data);
   nrrd->dim = dim;
-  if (!_nrrdSizeValid(dim, size, AIR_TRUE)) {
+  if (_nrrdSizeCheck(dim, size, AIR_TRUE)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -598,7 +598,7 @@ nrrdAlloc (Nrrd *nrrd, int type, int dim, ...) {
     size[d] = va_arg(ap, int);
   }
   va_end(ap);
-  if (!_nrrdSizeValid(dim, size, AIR_TRUE)) {
+  if (_nrrdSizeCheck(dim, size, AIR_TRUE)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -646,7 +646,7 @@ nrrdMaybeAlloc_nva (Nrrd *nrrd, int type, int dim, int *size) {
   } else {
     elementSizeWant = nrrdTypeSize[type];
   }
-  if (!_nrrdSizeValid(dim, size, AIR_TRUE)) {
+  if (_nrrdSizeCheck(dim, size, AIR_TRUE)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -712,7 +712,7 @@ nrrdMaybeAlloc (Nrrd *nrrd, int type, int dim, ...) {
     num *= (size[d] = va_arg(ap, int));
   }
   va_end(ap);
-  if (!_nrrdSizeValid(dim, size, AIR_TRUE)) {
+  if (_nrrdSizeCheck(dim, size, AIR_TRUE)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }

@@ -121,15 +121,15 @@ _nrrdOneLine (int *lenP, NrrdIO *io, FILE *file) {
 }
 
 /*
-** _nrrdValidHeader()
+** _nrrdHeaderCheck()
 **
 ** consistency checks on relationship between fields of nrrd, (only)
 ** to be used after the headers is parsed, and before the data is read
 **
 */
 int
-_nrrdValidHeader (Nrrd *nrrd, NrrdIO *io) {
-  char me[]="_nrrdValidHeader", err[AIR_STRLEN_MED];
+_nrrdHeaderCheck (Nrrd *nrrd, NrrdIO *io) {
+  char me[]="_nrrdHeaderCheck", err[AIR_STRLEN_MED];
   int i;
 
   for (i=1; i<=NRRD_FIELD_MAX; i++) {
@@ -138,20 +138,20 @@ _nrrdValidHeader (Nrrd *nrrd, NrrdIO *io) {
     if (!io->seen[i]) {
       sprintf(err, "%s: didn't see required field: %s",
 	      me, airEnumStr(nrrdField, i));
-      biffAdd(NRRD, err); return 0;
+      biffAdd(NRRD, err); return 1;
     }
   }
   if (nrrdTypeBlock == nrrd->type && 0 == nrrd->blockSize) {
     sprintf(err, "%s: type is %s, but missing field: %s", me,
 	    airEnumStr(nrrdType, nrrdTypeBlock),
 	    airEnumStr(nrrdField, nrrdField_block_size));
-    biffAdd(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 1;
   }
   /* this shouldn't actually be necessary ... */
   /* really? it saves all the data readers from doing it ... */
   if (!nrrdElementSize(nrrd)) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
-    biffAdd(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 1;
   }
   /* _nrrdReadNrrdParse_sizes() checks axis[i].size, which completely
      determines the return of nrrdElementNumber() */
@@ -162,7 +162,7 @@ _nrrdValidHeader (Nrrd *nrrd, NrrdIO *io) {
 	    airEnumStr(nrrdType, nrrd->type),
 	    airEnumStr(nrrdEncoding, io->encoding),
 	    airEnumStr(nrrdField, nrrdField_endian));
-    biffAdd(NRRD, err); return 0;    
+    biffAdd(NRRD, err); return 1;    
   }
 
   /* we don't really try to enforce consistency with the
@@ -171,7 +171,7 @@ _nrrdValidHeader (Nrrd *nrrd, NrrdIO *io) {
      because we only really care that we know each axis size.  Past
      that, if the user messes it up, its not really our problem ... */
 
-  return 1;
+  return 0;
 }
 
 /*
@@ -179,7 +179,7 @@ _nrrdValidHeader (Nrrd *nrrd, NrrdIO *io) {
 **
 ** allocates the data for the array.  Only to be called by data readers,
 ** since it assume the validity of size information, as enforced by
-** _nrrdValidHeader().
+** _nrrdHeaderCheck().
 */
 int
 _nrrdCalloc (Nrrd *nrrd) {
@@ -736,7 +736,7 @@ _nrrdReadNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io) {
     return 1;
   }
   
-  if (!_nrrdValidHeader(nrrd, io)) {
+  if (_nrrdHeaderCheck(nrrd, io)) {
     if ((err = (char*)malloc(AIR_STRLEN_MED))) {
       sprintf(err, "%s: %s", me, 
 	      (len ? "finished reading header, but there were problems"

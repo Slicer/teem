@@ -129,7 +129,7 @@ gageVolumeCheck (Nrrd *nin, gageKind *kind) {
   double xs, ys, zs;
   int bd;
 
-  if (!nrrdValid(nin)) {
+  if (nrrdCheck(nin)) {
     sprintf(err, "%s: basic nrrd validity check failed", me);
     biffMove(GAGE, err, NRRD); return 1;
   }

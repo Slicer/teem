@@ -100,7 +100,7 @@ extern int (*_nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1])(Nrrd *, NrrdIO *, int);
 extern int _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIO *io, int useBiff);
 
 /* methods.c */
-extern int _nrrdSizeValid(int dim, int *size, int useBiff);
+extern int _nrrdSizeCheck(int dim, int *size, int useBiff);
 extern void _nrrdTraverse(Nrrd *nrrd);
 
 #if TEEM_ZLIB
