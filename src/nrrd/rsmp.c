@@ -31,7 +31,20 @@ mopped up, then you'll be confused with the original registered free
 goes into effect and mops it up for you, even though YOU NEVER
 REGISTERED a free for the second malloc.  If you want simple stupid
 tools, you have to treat them accordingly (be extremely careful with
-fire).  */
+fire).  
+
+learned: well, duh.  The reason to use:
+
+    for (I=0; I<numOut; I++) {
+
+instead of
+
+    for (I=0; I<=numOut-1; I++) {
+
+is that if numOut is of an unsigned type and has value 0, then these
+two will have very different results!
+
+*/
 
 int
 nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
@@ -51,7 +64,7 @@ nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
   }
 
   np = kernel->numParam;
-  for (d=0; d<=nin->dim-1; d++) {
+  for (d=0; d<nin->dim; d++) {
     info->kernel[d] = kernel;
     if (samples) {
       info->samples[d] = samples[d];
@@ -63,7 +76,7 @@ nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
       else
 	info->samples[d] = (nin->axis[d].size - 1)*scalings[d] + 1;
     }
-    for (p=0; p<=np-1; p++)
+    for (p=0; p<np; p++)
       info->param[d][p] = param[p];
     /* set the min/max for this axis if not already set to something */
     if (!( AIR_EXISTS(nin->axis[d].min) && AIR_EXISTS(nin->axis[d].max) ))
@@ -108,7 +121,7 @@ _nrrdResampleCheckInfo(Nrrd *nin, NrrdResampleInfo *info) {
     sprintf(err, "%s: asked for boundary padding, but no pad value set\n", me);
     biffAdd(NRRD, err); return 1;
   }
-  for (d=0; d<=nin->dim-1; d++) {
+  for (d=0; d<nin->dim; d++) {
     k = info->kernel[d];
     /* we only care about the axes being resampled */
     if (!k)
@@ -128,7 +141,7 @@ _nrrdResampleCheckInfo(Nrrd *nin, NrrdResampleInfo *info) {
       biffAdd(NRRD, err); return 1;
     }
     np = k->numParam;
-    for (p=0; p<=np-1; p++) {
+    for (p=0; p<np; p++) {
       if (!AIR_EXISTS(info->param[d][p])) {
 	sprintf(err, "%s: didn't set parameter %d (of %d) for axis %d\n",
 		me, p, np, d);
@@ -168,7 +181,7 @@ _nrrdResampleComputePermute(int permute[],
   
   /* what are the first (top) and last (bottom) axes being resampled? */
   *topRax = *botRax = -1;
-  for (d=0; d<=dim-1; d++) {
+  for (d=0; d<dim; d++) {
     if (info->kernel[d]) {
       if (*topRax < 0) {
 	*topRax = d;
@@ -183,7 +196,7 @@ _nrrdResampleComputePermute(int permute[],
      (permute[] answers "where do I put this", not "what do I put here").
   */
   *passes = a = 0;
-  for (d=0; d<=dim-1; d++) {
+  for (d=0; d<dim; d++) {
     if (info->kernel[d]) {
       do {
 	a = AIR_MOD(a+1, dim);
@@ -204,7 +217,7 @@ _nrrdResampleComputePermute(int permute[],
   
   /*
   printf("%s: permute:\n", me);
-  for (d=0; d<=dim-1; d++) {
+  for (d=0; d<dim; d++) {
     printf("   permute[%d] = %d\n", d, permute[d]);
   }
   */
@@ -213,12 +226,12 @@ _nrrdResampleComputePermute(int permute[],
      and create array of how big each axes is in each pass ("sz").
      The input to pass i will have axis layout described in ax[i] and
      axis sizes described in sz[i] */
-  for (d=0; d<=dim-1; d++) {
+  for (d=0; d<dim; d++) {
     ax[0][d] = d;
     sz[0][d] = nin->axis[d].size;
   }
-  for (p=0; p<=*passes-1; p++) {
-    for (d=0; d<=dim-1; d++) {
+  for (p=0; p<*passes; p++) {
+    for (d=0; d<dim; d++) {
       ax[p+1][permute[d]] = ax[p][d];
       if (d == *topRax) {
 	/* this is the axis which is getting resampled, 
@@ -238,9 +251,9 @@ _nrrdResampleComputePermute(int permute[],
   }
   /*
   printf("%s: axis arrangements for %d passes:\n", me, *passes);
-  for (p=0; p<=*passes; p++) {
+  for (p=0; p<*passes-1; p++) {
     printf("%s: %d:", me, p);
-    for (d=0; d<=dim-1; d++) {
+    for (d=0; d<dim; d++) {
       printf("\t%d(%d)", ax[p][d], sz[p][d]); 
     }
     printf("\n");
@@ -315,11 +328,11 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
 
   /* calculate sample locations and do first pass on indices */
   halfLen = dotLen/2;
-  for (i=0; i<=sizeOut-1; i++) {
+  for (i=0; i<sizeOut; i++) {
     pos = NRRD_AXIS_POS(center, minOut, maxOut, sizeOut, i);
     idxF = NRRD_AXIS_IDX(center, minIn, maxIn, sizeIn, pos);
     base = floor(idxF) - halfLen + 1;
-    for (e=0; e<=dotLen-1; e++) {
+    for (e=0; e<dotLen; e++) {
       index[e + dotLen*i] = base + e;
       weight[e + dotLen*i] = idxF - index[e + dotLen*i];
     }
@@ -327,7 +340,7 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
     if (!i)
       printf("%s: sample locations:\n", me);
     printf("%s: %d\n        ", me, i);
-    for (e=0; e<=dotLen-1; e++)
+    for (e=0; e<dotLen; e++)
       printf("%d/%g ", index[e + dotLen*i], weight[e + dotLen*i]);
     printf("\n");
     */
@@ -343,7 +356,7 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
   */
 
   /* figure out what to do with the out-of-range indices */
-  for (i=0; i<=dotLen*sizeOut-1; i++) {
+  for (i=0; i<dotLen*sizeOut; i++) {
     idx = index[i];
     if (!AIR_INSIDE(0, idx, sizeIn-1)) {
       switch(info->boundary) {
@@ -390,14 +403,14 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
       /* above, we set to sizeIn all the indices that were out of 
 	 range.  We now use that to determine the sum of the weights
 	 for the indices that were in-range */
-      for (i=0; i<=sizeOut-1; i++) {
+      for (i=0; i<sizeOut; i++) {
 	wght = 0;
-	for (e=0; e<=dotLen-1; e++) {
+	for (e=0; e<dotLen; e++) {
 	  if (sizeIn != index[e + dotLen*i]) {
 	    wght += weight[e + dotLen*i];
 	  }
 	}
-	for (e=0; e<=dotLen-1; e++) {
+	for (e=0; e<dotLen; e++) {
 	  idx = index[e + dotLen*i];
 	  if (sizeIn != idx) {
 	    weight[e + dotLen*i] *= integral/wght;
@@ -412,13 +425,13 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
   else {
     /* try to remove ripple/grating on downsampling */
     if (ratio < 1 && info->renormalize && integral) {
-      for (i=0; i<=sizeOut-1; i++) {
+      for (i=0; i<sizeOut; i++) {
 	wght = 0;
-	for (e=0; e<=dotLen-1; e++) {
+	for (e=0; e<dotLen; e++) {
 	  wght += weight[e + dotLen*i];
 	}
 	if (wght) {
-	  for (e=0; e<=dotLen-1; e++) {
+	  for (e=0; e<dotLen; e++) {
 	    weight[e + dotLen*i] *= integral/wght;
 	  }
 	}
@@ -427,10 +440,10 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
   }
   /*
   printf("%s: sample weights:\n", me);
-  for (i=0; i<=sizeOut-1; i++) {
+  for (i=0; i<sizeOut; i++) {
     printf("%s: %d\n        ", me, i);
     wght = 0;
-    for (e=0; e<=dotLen-1; e++) {
+    for (e=0; e<dotLen; e++) {
       printf("%d/%g ", index[e + dotLen*i], weight[e + dotLen*i]);
       wght += weight[e + dotLen*i];
     }
@@ -566,10 +579,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
       biffAdd(NRRD, err); return 1;
     }
     numOut = nrrdElementNumber(nout);
-    printf("%s: numOut = %d\n", me, (int)numOut);
     for (I=0; I<numOut; I++) {
-      printf("%s: ... I = %d; I<=numOut-1 = %d\n", me,
-	     (int)I, (int)(I<=numOut-1));
       tmpF = nrrdFLookup[nin->type](nin->data, I);
       tmpF = nrrdFClamp[typeOut](tmpF);
       nrrdFInsert[typeOut](nout->data, I, tmpF);
@@ -604,12 +614,12 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
   */
 
   /* go! */
-  for (pass=0; pass<=passes-1; pass++) {
+  for (pass=0; pass<passes; pass++) {
     /*
     printf("%s: --- pass %d --- \n", me, pass);
     */
     numLines = strideOut = 1;
-    for (d=0; d<=dim-1; d++) {
+    for (d=0; d<dim; d++) {
       if (d < botRax)
 	strideOut *= sz[pass+1][d];
       if (d != topRax)
@@ -762,7 +772,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
 	       (NRRD_AXESINFO_SIZE
 		| NRRD_AXESINFO_AMINMAX
 		| NRRD_AXESINFO_SPACING));
-  for (d=0; d<=dim-1; d++) {
+  for (d=0; d<dim; d++) {
     if (info->kernel[d]) {
       nout->axis[d].min = info->min[d];
       nout->axis[d].max = info->max[d];
@@ -780,13 +790,13 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
      unexpected wrap-around.  */
   numOut = nrrdElementNumber(nout);
   if (info->clamp) {
-    for (I=0; I<=numOut-1; I++) {
+    for (I=0; I<numOut; I++) {
       tmpF = nrrdFClamp[typeOut](arr[passes][I]);
       nrrdFInsert[typeOut](nout->data, I, tmpF);
     }
   }
   else {
-    for (I=0; I<=numOut-1; I++) {
+    for (I=0; I<numOut; I++) {
       nrrdFInsert[typeOut](nout->data, I, arr[passes][I]);
     }
   }
