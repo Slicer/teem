@@ -41,7 +41,7 @@ main(int argc, char *argv[]) {
   int sx, sy, sz, E, xi, yi, zi;
   NrrdKernelSpec *gantric;
   void *out;
-  double (*insert)(void *v, nrrdBigInt I, double d);
+  double (*insert)(void *v, size_t I, double d);
   
   me = argv[0];
   hparm = hestParmNew();
