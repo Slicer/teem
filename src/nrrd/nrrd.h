@@ -366,6 +366,7 @@ extern void nrrdSwapEndian();
 extern Nrrd *nrrdNew(void);
 extern void nrrdInit(Nrrd *nrrd);
 extern Nrrd *nrrdNix(Nrrd *nrrd);
+extern Nrrd *nrrdUnwrap(Nrrd *nrrd);  /* same as nrrdNix() */
 extern void nrrdEmpty(Nrrd *nrrd);
 extern Nrrd *nrrdNuke(Nrrd *nrrd);
 extern void nrrdWrap(Nrrd *nrrd, void *data, 
