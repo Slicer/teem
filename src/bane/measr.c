@@ -23,7 +23,7 @@
 /* ----------------- baneMeasrUnknown -------------------- */
 
 float
-_baneMeasrUnknown_Ans(gageSclAnswer *san, double *measrParm) {
+_baneMeasrUnknown_Ans(gage_t *san, double *measrParm) {
   char me[]="_baneMeasrUnknown_Ans";
   fprintf(stderr, "%s: a baneMeasr is unset somewhere ...\n", me);
   return AIR_NAN;
@@ -44,10 +44,10 @@ baneMeasrUnknown = &_baneMeasrUnknown;
 /* ----------------- baneMeasrVal -------------------- */
 
 float
-_baneMeasrVal_Ans(gageSclAnswer *san, double *measrParm) {
+_baneMeasrVal_Ans(gage_t *san, double *measrParm) {
 
   /* fprintf(stderr, "## _baneMeasrVal_Ans: %g\n", san->val[0]); */
-  return san->val[0];
+  return san[gageKindScl->ansOffset[gageSclValue]];
 }
 
 /*
@@ -107,10 +107,10 @@ baneMeasrVal = &_baneMeasrValFloat;
 /* ----------------- baneMeasrGradMag -------------------- */
 
 float
-_baneMeasrGradMag_Ans(gageSclAnswer *san, double *measrParm) {
+_baneMeasrGradMag_Ans(gage_t *san, double *measrParm) {
 
   /* fprintf(stderr, "## _baneMeasrGradMag_Ans: %g\n", san->gmag[0]); */
-  return san->gmag[0];
+  return san[gageKindScl->ansOffset[gageSclGradMag]];
 }
 
 baneMeasr
@@ -128,9 +128,9 @@ baneMeasrGradMag = &_baneMeasrGradMag;
 /* ----------------- baneMeasrLapl -------------------- */
 
 float
-_baneMeasrLapl_Ans(gageSclAnswer *san, double *measrParm) {
+_baneMeasrLapl_Ans(gage_t *san, double *measrParm) {
 
-  return san->lapl[0];
+  return san[gageKindScl->ansOffset[gageSclLaplacian]];
 }
 
 baneMeasr
@@ -148,10 +148,10 @@ baneMeasrLapl = &_baneMeasrLapl;
 /* ----------------- baneMeasrHess -------------------- */
 
 float
-_baneMeasrHess_Ans(gageSclAnswer *san, double *measrParm) {
+_baneMeasrHess_Ans(gage_t *san, double *measrParm) {
   
   /* fprintf(stderr, "## _baneMeasrHess_Ans: %g\n", san->scnd[0]); */
-  return san->scnd[0];
+  return san[gageKindScl->ansOffset[gageScl2ndDD]];
 }
 
 baneMeasr
@@ -169,9 +169,9 @@ baneMeasrHess = &_baneMeasrHess;
 /* ----------------- baneMeasrCurvedness -------------------- */
 
 float
-_baneMeasrCurvedness_Ans(gageSclAnswer *san, double *measrParm) {
+_baneMeasrCurvedness_Ans(gage_t *san, double *measrParm) {
 
-  return san->C[0];
+  return san[gageKindScl->ansOffset[gageSclCurvedness]];
 }
 
 baneMeasr
@@ -189,9 +189,9 @@ baneMeasrCurvedness = &_baneMeasrCurvedness;
 /* ----------------- baneMeasrShapeTrace -------------------- */
 
 float
-_baneMeasrShapeTrace_Ans(gageSclAnswer *san, double *measrParm) {
+_baneMeasrShapeTrace_Ans(gage_t *san, double *measrParm) {
 
-  return san->St[0];
+  return san[gageKindScl->ansOffset[gageSclShapeTrace]];
 }
 
 baneMeasr

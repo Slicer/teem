@@ -72,10 +72,10 @@ void
 baneProbe(double val[3],
 	  Nrrd *nin, baneHVolParm *hvp, gageContext *ctx,
 	  int x, int y, int z) {
-  gageSclAnswer *san;
+  gage_t *san;
   float *data=NULL;
 
-  san = (gageSclAnswer *)(ctx->pvl[0]->ansStruct);
+  san = ctx->pvl[0]->ans;
   if (hvp->makeMeasrVol) {
     data = ( (float*)(hvp->measrVol->data) 
 	     + 3*(x + nin->axis[0].size*(y + nin->axis[1].size*z)) );
@@ -313,15 +313,15 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
 
   /* create the gageSimple and initialize it */
   ctx = gageContextNew();
-  pvl = gagePerVolumeNew(gageKindScl);
-  gageSet(ctx, gageVerbose, 0);
-  gageSet(ctx, gageRenormalize, hvp->renormalize);
-  gageSet(ctx, gageCheckIntegrals, AIR_TRUE);
+  pvl = gagePerVolumeNew(nin, gageKindScl);
+  gageSet(ctx, gageParmVerbose, 0);
+  gageSet(ctx, gageParmRenormalize, hvp->renormalize);
+  gageSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   if (!hvp->k3pack) {
     sprintf(err, "%s: code currently assumes k3pack", me);
     biffAdd(BANE, err); return 1;
   }
-  gageSet(ctx, gageK3Pack, hvp->k3pack);
+  gageSet(ctx, gageParmK3Pack, hvp->k3pack);
   E = 0;
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   if (!E) E |= gageKernelSet(ctx, gageKernel00, hvp->k[gageKernel00],
@@ -330,16 +330,15 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
 			     hvp->kparm[gageKernel11]);
   if (!E) E |= gageKernelSet(ctx, gageKernel22, hvp->k[gageKernel22],
 			     hvp->kparm[gageKernel22]);
-  if (!E) E |= gageVolumeSet(ctx, pvl, nin);
-  if (!E) E |= gageQuerySet(ctx, pvl, (hvp->ax[0].measr->query |
-				       hvp->ax[1].measr->query |
-				       hvp->ax[2].measr->query));
+  if (!E) E |= gageQuerySet(pvl, (hvp->ax[0].measr->query |
+				  hvp->ax[1].measr->query |
+				  hvp->ax[2].measr->query));
   if (!E) E |= gageUpdate(ctx);
   if (E) {
     sprintf(err, "%s: trouble setting up gage", me);
     biffMove(BANE, err, GAGE); return 1;
   }
-  pad = ctx->fr;
+  pad = GAGE_FR(ctx);
   
   if (baneFindInclusion(min, max, nin, hvp, ctx)) {
     sprintf(err, "%s: trouble finding inclusion ranges", me);
@@ -392,9 +391,9 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
       }
       for (x=pad; x<sx-pad; x++) {
 	baneProbe(val, nin, hvp, ctx, x, y, z);
-	if (!( AIR_INSIDE(min[0], val[0], max[0]) &&
-	       AIR_INSIDE(min[1], val[1], max[1]) &&
-	       AIR_INSIDE(min[2], val[2], max[2]) )) {
+	if (!( AIR_IN_CL(min[0], val[0], max[0]) &&
+	       AIR_IN_CL(min[1], val[1], max[1]) &&
+	       AIR_IN_CL(min[2], val[2], max[2]) )) {
 	  continue;
 	}
 	/* else this voxel will contribute to the histovol */
@@ -505,7 +504,7 @@ baneApplyMeasr(Nrrd *nout, Nrrd *nin, int measr) {
     sprintf(err, "%s: need a 3-dimensional nrrd (not %d)", me, nin->dim);
     biffAdd(BANE, err); return 1;
   }
-  if (!( AIR_BETWEEN(nrrdTypeUnknown, nin->type, nrrdTypeLast) &&
+  if (!( AIR_IN_OP(nrrdTypeUnknown, nin->type, nrrdTypeLast) &&
 	 nin->type != nrrdTypeBlock )) {
     sprintf(err, "%s: must have a scalar type nrrd", me);
     biffAdd(BANE, err); return 1;

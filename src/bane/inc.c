@@ -69,7 +69,7 @@ _baneInc_HistFill(Nrrd *n, double val, double *incParm) {
   fprintf(stderr, "## _baneInc_HistFill: (%g,%g,%g) %d ---> %d\n",
 	  n->axis[0].min, val, n->axis[0].max, n->axis[0].size, idx);
   */
-  if (AIR_INSIDE(0, idx, n->axis[0].size-1)) {
+  if (AIR_IN_CL(0, idx, n->axis[0].size-1)) {
     hist = (int*)n->data;
     hist[idx]++;
   }
@@ -256,10 +256,10 @@ _baneIncPercentile_Ans(double *minP, double *maxP,
 		      0, histSize-1);
   outsofar = 0;
   while (outsofar < out) {
-    if (AIR_INSIDE(0, minIdx, histSize-1)) {
+    if (AIR_IN_CL(0, minIdx, histSize-1)) {
       outsofar += minIncr*hist[AIR_ROUNDUP(minIdx)];
     }
-    if (AIR_INSIDE(0, maxIdx, histSize-1)) {
+    if (AIR_IN_CL(0, maxIdx, histSize-1)) {
       outsofar += maxIncr*hist[AIR_ROUNDUP(maxIdx)];
     }
     minIdx += minIncr;

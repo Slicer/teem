@@ -251,7 +251,7 @@ typedef struct {
 			    Does not need to be the recursive
 			    prerequisite expansion). */
   baneRange *range;
-  float (*ans)(gageSclAnswer *, double *measrParm);
+  float (*ans)(gage_t *, double *measrParm);
 } baneMeasr;
 
 /* -------------------- histogram volumes, etc. ---------------------- */
