@@ -21,16 +21,22 @@
 
 #include "../air.h"
 
+#if TEEM_DIO == 0
+#else
+/* HEY: these may be SGI-specific */
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
-
-
-char *me;
+#endif
 
 int
 main(int argc, char *argv[]) {
-  char *fname, *multS, *data;
+#if TEEM_DIO == 0
+
+  fprintf(stderr, "%s: no direct-io testing for you\n", argv[0]);
+  return 1;
+#else 
+  char *me, *fname, *multS, *data;
   FILE *file;
   double time0, time1, time2;
   int fd, align, mult, min, max, ret;
@@ -191,4 +197,5 @@ main(int argc, char *argv[]) {
 
   airMopError(mop); 
   exit(0);
+#endif
 }
