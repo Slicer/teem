@@ -332,11 +332,16 @@ enum {
   nrrdBinaryOpAtan2,      /*  8 */
   nrrdBinaryOpMin,        /*  9 */
   nrrdBinaryOpMax,        /* 10 */
-  nrrdBinaryOpLessThan,   /* 11 */
-  nrrdBinaryOpCompare,    /* 12 */
+  nrrdBinaryOpLT,         /* 11 */
+  nrrdBinaryOpLTE,        /* 12 */
+  nrrdBinaryOpGT,         /* 13 */
+  nrrdBinaryOpGTE,        /* 14 */
+  nrrdBinaryOpCompare,    /* 15 */
+  nrrdBinaryOpEqual,      /* 16 */
+  nrrdBinaryOpNotEqual,   /* 17 */
   nrrdBinaryOpLast
 };
-#define NRRD_BINARY_OP_MAX   12
+#define NRRD_BINARY_OP_MAX   17
 
 /*
 ******** nrrdTernaryOp
@@ -348,10 +353,11 @@ enum {
   nrrdTernaryOpClamp,     /* 1 */
   nrrdTernaryOpLerp,      /* 2 */
   nrrdTernaryOpExists,    /* 3 */
-  nrrdTernaryOpBetween,   /* 4 */
+  nrrdTernaryOpInside,    /* 4 */
+  nrrdTernaryOpBetween,   /* 5 */
   nrrdTernaryOpLast
 };
-#define NRRD_TERNARY_OP_MAX  4
+#define NRRD_TERNARY_OP_MAX  5
 
 #ifdef __cplusplus
 }

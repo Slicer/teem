@@ -197,9 +197,14 @@ double _nrrdBinaryOpFmod(double a, double b)      {return fmod(a,b);}
 double _nrrdBinaryOpAtan2(double a, double b)     {return atan2(a,b);}
 double _nrrdBinaryOpMin(double a, double b)       {return AIR_MIN(a,b);}
 double _nrrdBinaryOpMax(double a, double b)       {return AIR_MAX(a,b);}
-double _nrrdBinaryOpLessThan(double a, double b)  {return (a < b ? 1 : 0);}
+double _nrrdBinaryOpLT(double a, double b)        {return (a < b);}
+double _nrrdBinaryOpLTE(double a, double b)       {return (a <= b);}
+double _nrrdBinaryOpGT(double a, double b)        {return (a > b);}
+double _nrrdBinaryOpGTE(double a, double b)       {return (a >= b);}
 double _nrrdBinaryOpCompare(double a, double b) {
   return (a < b ? -1 : (a > b ? 1 : 0));}
+double _nrrdBinaryOpEqual(double a, double b)     {return (a == b);}
+double _nrrdBinaryOpNotEqual(double a, double b)  {return (a != b);}
 
 double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
   NULL,
@@ -213,8 +218,13 @@ double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
   _nrrdBinaryOpAtan2,
   _nrrdBinaryOpMin,
   _nrrdBinaryOpMax,
-  _nrrdBinaryOpLessThan,
-  _nrrdBinaryOpCompare
+  _nrrdBinaryOpLT,
+  _nrrdBinaryOpLTE,
+  _nrrdBinaryOpGT,
+  _nrrdBinaryOpGTE,
+  _nrrdBinaryOpCompare,
+  _nrrdBinaryOpEqual,
+  _nrrdBinaryOpNotEqual
 };
 
 int
@@ -282,8 +292,8 @@ double _nrrdTernaryOpClamp(double a, double b, double c) {
 double _nrrdTernaryOpLerp(double a, double b, double c) {
   /* we do something more than the simple lerp here because
      we want to facilitate usage as something which can get around
-     non-existant values (NaNs and Infs) without getting polluted
-     by them. */
+     non-existant values (b and c as NaN or Inf) without
+     getting polluted by them. */
 
   if (0.0 == a) {
     return b;
@@ -296,14 +306,18 @@ double _nrrdTernaryOpLerp(double a, double b, double c) {
 double _nrrdTernaryOpExists(double a, double b, double c) {
   return (AIR_EXISTS(a) ? b : c);
 }
+double _nrrdTernaryOpInside(double a, double b, double c) {
+  return (AIR_INSIDE(a, b, c));
+}
 double _nrrdTernaryOpBetween(double a, double b, double c) {
-  return (a <= b && b <= c);
+  return (AIR_BETWEEN(a, b, c));
 }
 double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
   NULL,
   _nrrdTernaryOpClamp,
   _nrrdTernaryOpLerp,
   _nrrdTernaryOpExists,
+  _nrrdTernaryOpInside,
   _nrrdTernaryOpBetween
 };
 

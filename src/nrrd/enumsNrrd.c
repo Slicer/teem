@@ -19,6 +19,24 @@
 
 #include "nrrd.h"
 
+/*
+** Rules of thumb for editing these things.  The airEnum definitions are
+** unfortunately EXTREMELY sensitive to small typo errors, and there is
+** no good way to detect the errors.  So:
+**
+** 1) Be awake and undistracted.  Turn down the music.
+** 2) When editing the char arrays, make sure that you put commas
+**    where you mean them to be.  C's automatic string concatenation 
+**    is not your friend here.
+** 3) When editing the *StrEqv and *ValEqv arrays, make absolutely
+**    sure that both are changed in parallel.  Use only one enum value
+**    per line; putting all equivalents on that line, and make sure that
+**    there is one line in both *StrEqv and *ValEqv for all the possible
+**    enum values, and that there are as many elements in each line.
+** 4) Make sure that additions here are reflected in nrrdEnums.h and
+**    vice versa.
+*/
+
 /* ------------------------ nrrdFormat ------------------------- */
 
 char
@@ -531,7 +549,12 @@ _nrrdBinaryOpStr[NRRD_BINARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "min",
   "max",
   "lt",
-  "comp"
+  "lte",
+  "gt",
+  "gte",
+  "comp",
+  "eq",
+  "neq"
 };
 
 #define nbAdd nrrdBinaryOpAdd
@@ -544,8 +567,13 @@ _nrrdBinaryOpStr[NRRD_BINARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
 #define nbAtn nrrdBinaryOpAtan2
 #define nbMin nrrdBinaryOpMin
 #define nbMax nrrdBinaryOpMax
-#define nbLet nrrdBinaryOpLessThan
+#define nbLt  nrrdBinaryOpLT
+#define nbLte nrrdBinaryOpLTE
+#define nbGt  nrrdBinaryOpGT
+#define nbGte nrrdBinaryOpGTE
 #define nbCmp nrrdBinaryOpCompare
+#define nbEq  nrrdBinaryOpEqual
+#define nbNeq nrrdBinaryOpNotEqual
 
 char
 _nrrdBinaryOpStrEqv[][AIR_STRLEN_SMALL] = {
@@ -559,8 +587,13 @@ _nrrdBinaryOpStrEqv[][AIR_STRLEN_SMALL] = {
   "atan2", 
   "min", "minimum",
   "max", "maximum",
-  "lt", "less", "lessthan",
+  "lt", "<", "less", "lessthan",
+  "lte", "<=", "lessthanorequal",
+  "gt", ">", "greater", "greaterthan",
+  "gte", ">=", "greaterthanorequal",
   "comp", "compare",
+  "eq", "==", "equal",
+  "neq", "!=", "notequal",
   ""
 };
 
@@ -576,8 +609,13 @@ _nrrdBinaryOpValEqv[] = {
   nbAtn,
   nbMin, nbMin,
   nbMax, nbMax,
-  nbLet, nbLet, nbLet,
-  nbCmp, nbCmp
+  nbLt, nbLt, nbLt, nbLt,
+  nbLte, nbLte, nbLte,
+  nbGt, nbGt, nbGt, nbGt,
+  nbGte, nbGte, nbGte,
+  nbCmp, nbCmp,
+  nbEq, nbEq, nbEq,
+  nbNeq, nbNeq, nbNeq
 };
 
 airEnum
@@ -599,6 +637,7 @@ _nrrdTernaryOpStr[NRRD_TERNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "clamp",
   "lerp",
   "exists",
+  "inside",
   "between"
 };
 
@@ -607,6 +646,7 @@ _nrrdTernaryOpStrEqv[][AIR_STRLEN_SMALL] = {
   "clamp",
   "lerp",
   "exists",
+  "inside",
   "between", "tween", "btw",
   ""
 };
@@ -616,6 +656,7 @@ _nrrdTernaryOpValEqv[] = {
   nrrdTernaryOpClamp,
   nrrdTernaryOpLerp,
   nrrdTernaryOpExists,
+  nrrdTernaryOpInside,
   nrrdTernaryOpBetween, nrrdTernaryOpBetween, nrrdTernaryOpBetween
 };
 
