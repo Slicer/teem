@@ -51,7 +51,8 @@ main(int argc, char *argv[]) {
     usage();
   }
   
-  printf("%g %g %g --> ", a, b, c);
+  printf("%g %g %g (max idx %d; min idx %d) --> ", a, b, c,
+ 	 ELL_MAX3_IDX(a, b, c), ELL_MIN3_IDX(a, b, c));
   ELL_SORT3(a, b, c, t);
   printf("%g %g %g\n", a, b, c);
 
