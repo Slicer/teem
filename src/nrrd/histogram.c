@@ -151,10 +151,10 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins) {
 }
 
 int 
-nrrdMultiHisto(Nrrd *nout, Nrrd **nin, 
+nrrdHistoMulti(Nrrd *nout, Nrrd **nin, 
 	       int num, int *bin, 
 	       float *min, float *max, int *clamp) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdMultiHisto";
+  char err[NRRD_MED_STRLEN], me[] = "nrrdHistoMulti";
   int i, d, size, coord[NRRD_MAX_DIM], idx, *out, skip;
   float val;
 
@@ -251,8 +251,8 @@ nrrdMultiHisto(Nrrd *nout, Nrrd **nin,
 }
 
 int
-nrrdDrawHisto(Nrrd *nout, Nrrd *nin, int sy) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdDrawHisto", cmt[NRRD_MED_STRLEN];
+nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy) {
+  char err[NRRD_MED_STRLEN], me[] = "nrrdHistoDraw", cmt[NRRD_MED_STRLEN];
   int *hist, k, sx, x, y, maxhits, maxhitidx,
     numticks, *Y, *logY, tick, *ticks;
   unsigned char *idata;
@@ -489,10 +489,12 @@ nrrdHistoEq(Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
   /* map the nrrd values through the normalized histogram integral */
   for (i=0; i<=nin->num-1; i++) {
     val = nrrdDLookup[nin->type](nin->data, i);
-    AIR_INDEX(min, val, max, bins, idx);
-    val = AIR_AFFINE(xcoord[idx], val, xcoord[idx+1], 
-		      ycoord[idx], ycoord[idx+1]);
-    nrrdDInsert[nin->type](nin->data, i, val);
+    if (AIR_EXISTS(val)) {
+      AIR_INDEX(min, val, max, bins, idx);
+      val = AIR_AFFINE(xcoord[idx], val, xcoord[idx+1], 
+		       ycoord[idx], ycoord[idx+1]);
+      nrrdDInsert[nin->type](nin->data, i, val);
+    }
   }
   
   /* if user is interested, set pointer to histogram nrrd,

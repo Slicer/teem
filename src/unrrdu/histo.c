@@ -67,7 +67,7 @@ main(int argc, char **argv) {
     exit(1);
   }
   nimg = nrrdNew();
-  if (nrrdDrawHisto(nimg, nhist, sy)) {
+  if (nrrdHistoDraw(nimg, nhist, sy)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble drawing histogram:\n%s\n", me, err);
     free(err);

@@ -76,7 +76,7 @@ main(int argc, char **argv) {
   
   fprintf(stderr, "%s: computing multi-histogram ... ", me); fflush(stdout);
   nout = nrrdNew();
-  if (nrrdMultiHisto(nout, nin, n, bin, min, max, clamp)) {
+  if (nrrdHistoMulti(nout, nin, n, bin, min, max, clamp)) {
     fprintf(stderr, "%s: trouble doing multi-histogram:\n%s\n", 
 	    me, biffGet(NRRD));
     exit(1);

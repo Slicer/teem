@@ -479,11 +479,11 @@ extern int nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr);
 /********* HISTOGRAMS!!! */
 /* histogram.c */
 extern int nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int axis, int bins);
-extern int nrrdMultiHisto(Nrrd *nout, Nrrd **nin, 
+extern int nrrdHistoMulti(Nrrd *nout, Nrrd **nin, 
 			  int num, int *bin, 
 			  float *min, float *max, int *clamp);
 extern int nrrdHisto(Nrrd *nout, Nrrd *nin, int bins);
-extern int nrrdDrawHisto(Nrrd *nout, Nrrd *nin, int sy);
+extern int nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy);
 extern int nrrdHistoEq(Nrrd *nin, Nrrd **nhistP, int bins, int smart);
 
 /******** filtering and re-sampling */

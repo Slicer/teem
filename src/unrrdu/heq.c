@@ -60,9 +60,10 @@ main(int argc, char **argv) {
     free(err);
     exit(1);
   }
+  /*
   if (file = fopen("hist0.pgm", "w")) {
     pgm = nrrdNew();
-    if (nrrdDrawHisto(pgm, hist, 800)) {
+    if (nrrdHistoDraw(pgm, hist, 800)) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: trouble drawing data histogram:\n%s", me, err);
       free(err);
@@ -90,7 +91,7 @@ main(int argc, char **argv) {
       exit(1);
     }
     pgm = nrrdNew();
-    if (nrrdDrawHisto(pgm, hist, 800)) {
+    if (nrrdHistoDraw(pgm, hist, 800)) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: trouble drawing data histogram:\n%s", me, err);
       free(err);
@@ -107,7 +108,8 @@ main(int argc, char **argv) {
     fclose(file);
     nrrdNuke(pgm);
     nrrdNuke(hist);
-  }    
+  } 
+  */   
   
   if (strstr(argv[4], ".pgm")) {
     if (!(file = fopen(argv[4], "w"))) {
