@@ -320,6 +320,13 @@ main(int argc, char *argv[]) {
   printf("%s: value  range: %g -> %g\n", me, minv, maxv);
   printf("%s:  grad  range: %g -> %g\n", me, ming, maxg);
   printf("%s: 2nd DD range: %g -> %g\n", me, minh, maxh);
+  if (nrrdTypeUChar == nin->type ||
+      nrrdTypeUShort == nin->type ||
+      nrrdTypeUInt == nin->type ||
+      nrrdTypeULLong == nin->type) {
+    printf("%s: !!!! dictating that min value = 0\n", me);
+    minv = 0;
+  }
   printf("%s: !!!! dictating that min grad = 0\n", me);
   ming = 0;
   printf("%s: !!!! dictating that min h = -(max h)\n", me);
@@ -342,7 +349,6 @@ main(int argc, char *argv[]) {
 	AIR_INDEX(minv, v, maxv, HIST_SIZE, vi);
 	AIR_INDEX(ming, g, maxg, HIST_SIZE, gi);
 	AIR_INDEX(minh, h, maxh, HIST_SIZE, hi);
-	
 	vhist[vi]++;
 	ghist[gi]++;
 	hhist[hi]++;
@@ -356,20 +362,21 @@ main(int argc, char *argv[]) {
   j = perc[0]*sz[0]*sz[1]*sz[2]/100;
   i = HIST_SIZE-1;
   while (j > 0) {
-    j -= vhist[i];
-    i--;
+    /* nibble only from top, even though min could be < 0 */
+    j -= vhist[i--];
   }
   maxv = AIR_AFFINE(0, i, HIST_SIZE-1, minv, maxv);
   j = perc[1]*sz[0]*sz[1]*sz[2]/100;
   i = HIST_SIZE-1;
   while (j > 0) {
-    j -= ghist[i];
-    i--;
+    /* nibble from top */
+    j -= ghist[i--];
   }
   maxg = AIR_AFFINE(0, i, HIST_SIZE-1, ming, maxg);
   j = perc[2]*sz[0]*sz[1]*sz[2]/100;
   i = 0;
   while (j > 0) {
+    /* nibble from top and bottom at equal rates */
     j -= hhist[i] + hhist[HIST_SIZE-1-i];
     i++;
   }
