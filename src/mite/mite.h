@@ -17,9 +17,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 #ifndef MITE_HAS_BEEN_INCLUDED
 #define MITE_HAS_BEEN_INCLUDED
 
@@ -29,6 +26,10 @@ extern "C" {
 #include <gage.h>
 #include <limn.h>
 #include <hoover.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define MITE "mite"
 
@@ -120,7 +121,8 @@ extern double miteSample(miteThreadInfo *mtt, miteRenderInfo *mrr,
 extern int miteRayEnd(miteThreadInfo *mtt, miteRenderInfo *mrr,
 		      miteUserInfo *muu);
 
-#endif /* MITE_HAS_BEEN_INCLUDED */
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* MITE_HAS_BEEN_INCLUDED */

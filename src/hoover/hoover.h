@@ -17,10 +17,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef HOOV_HAS_BEEN_INCLUDED
 #define HOOV_HAS_BEEN_INCLUDED
 
@@ -32,6 +28,10 @@ extern "C" {
 #include <biff.h>
 #include <ell.h>
 #include <limn.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define HOOVER "hoover"
 
@@ -262,8 +262,8 @@ extern hoovRayEnd_t hoovStubRayEnd;
 extern hoovThreadEnd_t hoovStubThreadEnd;
 extern hoovRenderEnd_t hoovStubRenderEnd;
 
-#endif /* HOOV_HAS_BEEN_INCLUDED */
-
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* HOOV_HAS_BEEN_INCLUDED */

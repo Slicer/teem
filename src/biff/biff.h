@@ -17,11 +17,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 #ifndef BIFF_HAS_BEEN_INCLUDED
 #define BIFF_HAS_BEEN_INCLUDED
 
@@ -29,6 +24,10 @@ extern "C" {
 #include <string.h>
 
 #include <air.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define BIFF_MAXKEYLEN 128  /* maximum allowed key length (not counting 
 			       the null termination) */
@@ -42,8 +41,8 @@ extern void biffMove(char *destKey, char *err, char *srcKey);
 extern char *biffGet(char *key);
 extern char *biffGetDone(char *key);
 
-#endif /* BIFF_HAS_BEEN_INCLUDED */
-
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* BIFF_HAS_BEEN_INCLUDED */

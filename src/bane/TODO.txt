@@ -1,3 +1,6 @@
+allow creation of a float VGH volume, so that you don't have to
+probe through the volume over and over again.  
+
 use hest for gkms, and make all the constants that GKMSInit sets
 be global defaults, so that gkms can see them too.
 

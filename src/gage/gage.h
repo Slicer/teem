@@ -17,14 +17,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef GAGE_HAS_BEEN_INCLUDED
 #define GAGE_HAS_BEEN_INCLUDED
-
-#define GAGE "gage"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,6 +29,12 @@ extern "C" {
 #include <biff.h>
 #include <ell.h>
 #include <nrrd.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define GAGE "gage"
 
 /*
 ** the only extent to which gage treats different axes differently is
@@ -505,7 +505,8 @@ extern int gageProbe(gageContext *ctx, gage_t x, gage_t y, gage_t z);
 /* update.c */
 extern int gageUpdate(gageContext *ctx);
 
-#endif /* GAGE_HAS_BEEN_INCLUDED */
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* GAGE_HAS_BEEN_INCLUDED */

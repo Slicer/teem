@@ -17,12 +17,12 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifndef BANE_PRIVATE_HAS_BEEN_INCLUDED
+#define BANE_PRIVATE_HAS_BEEN_INCLUDED
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef BANE_PRIVATE_HAS_BEEN_INCLUDED
-#define BANE_PRIVATE_HAS_BEEN_INCLUDED
 
 /* range.c */
 extern baneRange _baneRangePos;
@@ -54,8 +54,8 @@ extern baneClip _baneClipTopN;
 /* hvol.c */
 extern int _baneValidAxis(baneAxis *ax);
 
-#endif /* BANE_PRIVATE_HAS_BEEN_INCLUDED */
-
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* BANE_PRIVATE_HAS_BEEN_INCLUDED */

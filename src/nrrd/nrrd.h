@@ -17,15 +17,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 #ifndef NRRD_HAS_BEEN_INCLUDED
 #define NRRD_HAS_BEEN_INCLUDED
-
-#define NRRD "nrrd"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,6 +36,12 @@ extern "C" {
 #include "nrrdDefines.h"
 #include "nrrdMacros.h"
 #include "nrrdEnums.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define NRRD "nrrd"
 
 /*
 ******** NrrdIO struct
@@ -583,8 +582,8 @@ extern NrrdKernel *nrrdKernelZero, /* zero everywhere */
 extern int nrrdKernelParse(NrrdKernel **kernelP, double *parm,
 			   const char *str);
 
-#endif /* NRRD_HAS_BEEN_INCLUDED */
-
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* NRRD_HAS_BEEN_INCLUDED */

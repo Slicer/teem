@@ -31,7 +31,7 @@ TEEM_LIB_OBJS = \
 	superset.o   write.o
 
 TEST_BINS = test/trand test/shuff test/ax test/io test/minmax test/tkernel
-TEST_BINS = 
+TEST_BINS = test/typestest
 TEEM_BINS = bin/nrrdSanity bin/overrgb bin/idx2pos bin/pos2idx
 TEEM_BIN_LIBS = -lnrrd -lbiff -lhest -lair -lm
 

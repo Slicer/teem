@@ -17,13 +17,12 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifndef NRRD_PRIVATE_HAS_BEEN_INCLUDED
+#define NRRD_PRIVATE_HAS_BEEN_INCLUDED
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-
-#ifndef NRRD_PRIVATE_HAS_BEEN_INCLUDED
-#define NRRD_PRIVATE_HAS_BEEN_INCLUDED
 
 #if NRRD_RESAMPLE_FLOAT
 #  define nrrdResample_nrrdType nrrdTypeFloat
@@ -32,7 +31,6 @@ extern "C" {
 #  define nrrdResample_nrrdType nrrdTypeDouble
 #  define EVALN evalN_d               /* NrrdKernel method */
 #endif
-
 
 #define _NRRD_COMMENT_CHAR '#'
 #define _NRRD_TABLE_INCR 256
@@ -86,8 +84,8 @@ extern int _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIO *io, int useBiff);
 extern int _nrrdSizeValid(int dim, int *size);
 extern void _nrrdTraverse(Nrrd *nrrd);
 
-#endif /* NRRD_PRIVATE_HAS_BEEN_INCLUDED */
-
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* NRRD_PRIVATE_HAS_BEEN_INCLUDED */

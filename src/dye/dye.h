@@ -17,14 +17,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef DYE_HAS_BEEN_INCLUDED
 #define DYE_HAS_BEEN_INCLUDED
-
-#define DYE "dye"
 
 #include <stdio.h>
 #include <math.h>
@@ -33,6 +27,12 @@ extern "C" {
 #include <air.h>
 #include <biff.h>
 #include <ell.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define DYE "dye"
 
 enum {
   dyeSpaceUnknown,        /* 0: nobody knows */
@@ -97,8 +97,8 @@ extern void dyeLUVtoXYZ(float *X, float *Y, float *Z,
 extern dyeConverter dyeSimpleConvert[DYE_MAX_SPACE+1][DYE_MAX_SPACE+1];
 extern int dyeConvert(dyeColor *col, int space);
 
-#endif /* DYE_HAS_BEEN_INCLUDED */
-
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* DYE_HAS_BEEN_INCLUDED */

@@ -17,12 +17,12 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifndef TENMACROS_HAS_BEEN_INCLUDED
+#define TENMACROS_HAS_BEEN_INCLUDED
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef TENMACROS_HAS_BEEN_INCLUDED
-#define TENMACROS_HAS_BEEN_INCLUDED
 
 /* 
 ******** TEN_LIST2MAT, TEN_MAT2LIST
@@ -65,10 +65,8 @@ extern "C" {
    (l)[5] = (m)[7],          \
    (l)[6] = (m)[8] )
 
-
-
-#endif /* TENMACROS_HAS_BEEN_INCLUDED */
-
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* TENMACROS_HAS_BEEN_INCLUDED */

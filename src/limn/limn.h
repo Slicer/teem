@@ -17,15 +17,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 #ifndef LIMN_HAS_BEEN_INCLUDED
 #define LIMN_HAS_BEEN_INCLUDED
-
-#define LIMN "limn"
 
 #include <stdlib.h>
 
@@ -36,6 +29,11 @@ extern "C" {
 #include <ell.h>
 #include <nrrd.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define LIMN "limn"
 #define LIMN_LITE_NUM 16
 
 /*
@@ -327,9 +325,8 @@ extern int limnObjPartTransform(limnObj *obj, int ri, float tx[16]);
 extern int limnObjPSRender(limnObj *obj, limnCam *cam, 
 			   Nrrd *envMap, limnWin *win);
 
-
-#endif /* LIMN_HAS_BEEN_INCLUDED */
-
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* LIMN_HAS_BEEN_INCLUDED */

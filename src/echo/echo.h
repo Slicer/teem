@@ -17,14 +17,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef ECHO_HAS_BEEN_INCLUDED
 #define ECHO_HAS_BEEN_INCLUDED
-
-#define ECHO "echo"
 
 #include <stdio.h>
 #include <math.h>
@@ -34,6 +28,12 @@ extern "C" {
 #include <ell.h>
 #include <nrrd.h>
 #include <limn.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define ECHO "echo"
 
 #if 0
 typedef float echoPos_t;
@@ -401,10 +401,8 @@ extern void echoMatterLightSet(EchoObject *obj,
 			       echoCol_t r, echoCol_t g, echoCol_t b);
 extern void echoMatterTextureSet(EchoObject *obj, Nrrd *ntext);
 
-
-#endif /* ECHO_HAS_BEEN_INCLUDED */
-
-
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* ECHO_HAS_BEEN_INCLUDED */

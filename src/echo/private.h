@@ -17,12 +17,12 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifndef ECHO_PRIVATE_HAS_BEEN_INCLUDED
+#define ECHO_PRIVATE_HAS_BEEN_INCLUDED
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef ECHO_PRIVATE_HAS_BEEN_INCLUDED
-#define ECHO_PRIVATE_HAS_BEEN_INCLUDED
 
 #define OBJECT(obj)   ((EchoObject*)obj)
 #define SPLIT(obj)    ((EchoObjectSplit*)obj)
@@ -66,10 +66,8 @@ extern int _echoRefract(echoPos_t T[3], echoPos_t V[3],
 typedef void (*_echoObjectBounds_t)(BNDS_ARGS( ));
 extern _echoObjectBounds_t _echoObjectBounds[ECHO_OBJECT_MAX+1];
 
-
-#endif /*  ECHO_PRIVATE_HAS_BEEN_INCLUDED */
-
-
 #ifdef __cplusplus
 }
 #endif
+
+#endif /*  ECHO_PRIVATE_HAS_BEEN_INCLUDED */

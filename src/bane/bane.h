@@ -17,15 +17,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 #ifndef BANE_HAS_BEEN_INCLUDED
 #define BANE_HAS_BEEN_INCLUDED
-
-#define BANE "bane"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,6 +29,12 @@ extern "C" {
 #include <biff.h>
 #include <nrrd.h>
 #include <gage.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define BANE "bane"
 
 /*
 ** The idea is that the baneRange, baneInc, baneClip, and baneMeasr,
@@ -366,8 +365,8 @@ extern void _baneTRexDone();
 /* scat.c */
 extern int baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq);
 
-#endif /* BANE_HAS_BEEN_INCLUDED */
-
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* BANE_HAS_BEEN_INCLUDED */

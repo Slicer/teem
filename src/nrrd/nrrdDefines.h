@@ -17,15 +17,15 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 #ifndef NRRD_DEFINES_HAS_BEEN_INCLUDED
 #define NRRD_DEFINES_HAS_BEEN_INCLUDED
 
 #include <limits.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #define NRRD_DIM_MAX 10            /* Maximum dimension which we can handle */
 
@@ -107,8 +107,8 @@ extern "C" {
 				       a field of the nrrd header, when it
 				       being unknown is not an error */
 
-#endif /* NRRD_DEFINES_HAS_BEEN_INCLUDED */
-
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* NRRD_DEFINES_HAS_BEEN_INCLUDED */

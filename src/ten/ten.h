@@ -17,14 +17,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef TEN_HAS_BEEN_INCLUDED
 #define TEN_HAS_BEEN_INCLUDED
-
-#define TEN "ten"
 
 #include <math.h>
 #include <air.h>
@@ -35,6 +29,12 @@ extern "C" {
 #include <limn.h>
 
 #include "tenMacros.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define TEN "ten"
 
 enum {
   tenAnisoUnknown,    /* 0: nobody knows */
@@ -85,10 +85,8 @@ extern int tenAnisoVolume(Nrrd *nout, Nrrd *nin, float anis);
 /* glyph.c */
 extern int tenGlyphGen(limnObj *obj, Nrrd *nin, tenGlyphParm *parm);
 
-
-#endif /* TEN_HAS_BEEN_INCLUDED */
-
-
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* TEN_HAS_BEEN_INCLUDED */

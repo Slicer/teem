@@ -17,14 +17,14 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <air.h>
 #include <biff.h>
 #include <hest.h>
 #include <nrrd.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define UNRRDU_COLUMNS 78
 
