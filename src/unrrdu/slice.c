@@ -57,17 +57,15 @@ sliceMain(int argc, char **argv, char *me) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdSlice(nout, nin, axis, pos)) {
-    err = biffGetDone(NRRD);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error slicing nrrd:\n%s", me, err);
-    free(err);
     airMopError(mop);
     return 1;
   }
 
   if (nrrdSave(out, nout, NULL)) {
-    err = biffGetDone(NRRD);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s\n", me, out, err);
-    free(err);
     airMopError(mop);
     return 1;
   }

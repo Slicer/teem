@@ -1033,7 +1033,6 @@ hestParseFree(hestOpt *opt) {
 
   numOpts = _hestNumOpts(opt);
   for (op=0; op<=numOpts-1; op++) {
-    printf("!hestParseFree: op = %d/%d\n", op, numOpts-1);
     vP = opt[op].valueP;
     vAP = opt[op].valueP;
     str = opt[op].valueP;

@@ -55,17 +55,15 @@ flipMain(int argc, char **argv, char *me) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdFlip(nout, nin, axis)) {
-    err = biffGetDone(NRRD);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error flipping nrrd:\n%s", me, err);
-    free(err);
     airMopError(mop);
     return 1;
   }
 
   if (nrrdSave(out, nout, NULL)) {
-    err = biffGetDone(NRRD);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s\n", me, out, err);
-    free(err);
     airMopError(mop);
     return 1;
   }
