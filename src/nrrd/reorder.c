@@ -95,7 +95,7 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
     numLines;                /* how many "scanlines" there are to permute */
   char *src, *dest;
   int coord[NRRD_MAX_DIM+1], /* coordinates in output nrrd */
-    ip[NRRD_MAX_DIM+1],      /* inverse of permutation in "axes */
+    ip[NRRD_MAX_DIM+1],      /* inverse of permutation in "axes" */
     topFax,                  /* highest axis which is fixed in permutation */
     d,                       /* running index along dimensions */
     dim;                     /* copy of nin->dim */
@@ -165,7 +165,8 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
     coord[ip[d]]++;
     while (d <= dim-1 && coord[ip[d]] == nout->size[ip[d]]) {
       coord[ip[d]] = 0;
-      coord[ip[++d]]++; 
+      if (++d <= dim-1) 
+	coord[ip[d]]++; 
     }
   }
 
