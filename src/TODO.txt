@@ -1,3 +1,7 @@
+FAQ on teem coding standards
+Banks's policy.txt:
+ - documenting cross-code assumptions and dependencies
+
 image registration tool for small translational errors
 
 apparent problem w/ gage probing (0,0,0) in a cell-centered thickness-1 volume
