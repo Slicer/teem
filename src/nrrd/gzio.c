@@ -411,7 +411,7 @@ _nrrdGzRead (gzFile file, voidp buf, unsigned int len, unsigned int* read) {
 ** Writes the given number of uncompressed bytes into the compressed file.
 ** Returns the number of bytes actually written (0 in case of error).
 */
-unsigned int
+int
 _nrrdGzWrite (gzFile file, const voidp buf, unsigned int len, unsigned int* written) {
   char me[] = "_nrrdGzWrite", err[AIR_STRLEN_MED];
   _NrrdGzStream *s = (_NrrdGzStream*)file;
