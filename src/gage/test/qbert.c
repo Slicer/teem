@@ -415,7 +415,9 @@ main(int argc, char *argv[]) {
 
   nrsmp = nrrdNuke(nrsmp);
   nvgh = nrrdNuke(nvgh);
+  npad = nrrdNuke(npad);
   ctx = gageSclContextNix(ctx);
+  hparm = hestParmFree(hparm);
 
   exit(0);
 }
