@@ -40,7 +40,7 @@ makeSceneGlass(limnCam *cam, EchoParam *param,
   param->samples = 36;
   param->imgResU = 400;
   param->imgResV = 400;
-  param->samples = 1;
+  param->samples = 16;
   param->imgResU = 200;
   param->imgResV = 200;
   param->aperture = 0.0;
