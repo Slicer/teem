@@ -128,10 +128,13 @@ CFLAGS += $(OPT_CFLAG) $(ARCH_CFLAG)
 LDFLAGS += $(ARCH_LDFLAG) $(SHARED_LDFLAG)
 ARFLAGS = ru
 
+# for things like endianness, TEEM_X is set in the archicture-specific
+# makefile, and NEED_X is set in the library which needs that info.
+# Meanwhile, teem/need/x.h in teem's top-level include directory
+# contains C-preprocessor code to make sure that the variable has been
+# set and set correctly. 
 #
-# for things like endianness, TEEM_x is set in the archicture-specific
-# makefile, and NEED_x is set in the library which needs that info.
-# Right now x is either "ENDIAN" or "QNANHIBIT".
+# Right now X is either "ENDIAN", "QNANHIBIT", or "DIO".
 #
 ifeq ($(NEED_ENDIAN),true)
   CFLAGS += -DTEEM_ENDIAN=$(TEEM_ENDIAN)
@@ -141,6 +144,14 @@ ifeq ($(NEED_QNANHIBIT),true)
   CFLAGS += -DTEEM_QNANHIBIT=$(TEEM_QNANHIBIT)
   SET_DIE = 1
 endif
+ifeq ($(NEED_DIO),true)
+  CFLAGS += -DTEEM_DIO=$(TEEM_DIO)
+  SET_DIE = 1
+endif
+
+# because on some architectures (SGI), C-preprocessor "error"s aren't
+# fatal unless you specifically ask them to be
+#
 ifeq ($(SET_DIE),1)
   CFLAGS += $(CPP_ERROR_DIE)
 endif
@@ -199,8 +210,7 @@ $(OBJS): $(HEADERS) $(PRIV_HEADERS)
 
 # NB: .o files are NEVER created in the same directory as the source
 $(OBJ_PREF)/%.o: %.c
-	$(P) $(CC) $(CFLAGS) -I. $(IPATH) -c $< \
-	   -o $@
+	$(P) $(CC) $(CFLAGS) -I. $(IPATH) -c $< -o $@
 
 # the libraries are dependent on the respective object files
 $(LIB.A): $(OBJS)
@@ -221,8 +231,7 @@ $(LIB.S): $(OBJS)
 # NB: This creates the executable in the same directory as the .c file
 #
 %: %.c $(THISLIB)
-	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) -I. $(IPATH) \
-	   -o $@ $< \
+	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) -I. $(IPATH) -o $@ $< \
 	   $(THISLIB_LPATH) $(LPATH) \
 	   $(BINLIBS)
 
@@ -241,8 +250,7 @@ $(LDEST)/%: $(OBJ_PREF)/%
 # NB: VPATH is used to locate the prerequisite %.c in a subdirectory
 #
 $(BDEST)/%: %.c $(INSTALL_LIBS) $(INSTALL_HDRS)
-	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) \
-	   -o $@ $< \
+	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) -o $@ $< \
 	   $(LPATH) $(BINLIBS)
 	$(CHMOD) 755 $@
 
