@@ -167,24 +167,22 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes) {
     d,                       /* running index along dimensions */
     dim,                     /* copy of nin->dim */
     ldim;                    /* dim - lowPax */
+  airArray *mop;
 
+  mop = airMopNew();
   if (!(nin && nout && axes)) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (nout == nin) {
-    sprintf(err, "%s: nout==nin disallowed", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   /* we don't actually need ip[], computing it is for error checking */
   if (nrrdInvertPerm(ip, axes, nin->dim)) {
     sprintf(err, "%s: couldn't compute axis permutation inverse", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   /* this shouldn't actually be necessary ... */
   if (!nrrdElementSize(nin)) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   
   dim = nin->dim;
@@ -192,30 +190,32 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes) {
     ;
   lowPax = d;
 
-  if (lowPax == dim) {
-    /* we were given the identity permutation, just copy whole thing */
+  /* allocate output by initial copy */
+  if (nout != nin) {
     if (nrrdCopy(nout, nin)) {
       sprintf(err, "%s: trouble copying input", me);
-      biffAdd(NRRD, err); return 1;      
+      biffAdd(NRRD, err); airMopError(mop); return 1;      
     }
+    dataIn = (char*)nin->data;
   } else {
-    /* else lowPax < dim (actually, lowPax < dim-1) */
+    dataIn = (char*)calloc(nrrdElementNumber(nin), nrrdElementSize(nin));
+    if (!dataIn) {
+      sprintf(err, "%s: couldn't create local copy of data", me);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+    airMopAdd(mop, dataIn, airFree, airMopAlways);
+    memcpy(dataIn, nin->data, nrrdElementNumber(nin)*nrrdElementSize(nin));
+  }
+  if (lowPax < dim) {
+    /* if lowPax == dim, then we were given the identity permutation, so
+       there's nothing to do other than the copy already done.  Otherwise,
+       here we are (actually, lowPax < dim-1) */
     /* printf("!%s: lowPax = %d\n", me, lowPax); */
     
-    /* allocate output */
-    nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, szIn);
-    nout->blockSize = nin->blockSize;
-    for (d=0; d<dim; d++) {
-      szOut[d] = szIn[axes[d]];
-    }
-    if (nrrdMaybeAlloc_nva(nout, nin->type, nin->dim, szOut)) {
-      sprintf(err, "%s: failed to allocate output", me);
-      biffAdd(NRRD, err); return 1;
-    }
     /* copy axis info */
     if (nrrdAxisInfoCopy(nout, nin, axes, NRRD_AXIS_INFO_NONE)) {
       sprintf(err, "%s:", me);
-      biffAdd(NRRD, err); return 1;
+      biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     /* the skinny */
     lineSize = 1;
@@ -228,9 +228,9 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes) {
     lszOut = szOut + lowPax;
     ldim = dim - lowPax;
     memset(laxes, 0, NRRD_DIM_MAX*sizeof(int));
-    for (d=0; d<ldim; d++)
+    for (d=0; d<ldim; d++) {
       laxes[d] = axes[d+lowPax]-lowPax;
-    dataIn = nin->data;
+    }
     dataOut = nout->data;
     memset(cIn, 0, NRRD_DIM_MAX*sizeof(int));
     memset(cOut, 0, NRRD_DIM_MAX*sizeof(int));
@@ -239,8 +239,9 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes) {
          scanlines that we're copying, we are not even storing all the
          zeros in the coordinates prior to lowPax, and when we go to
          a linear index for the memcpy(), we multiply by lineSize */
-      for (d=0; d<ldim; d++)
+      for (d=0; d<ldim; d++) {
         cIn[laxes[d]] = cOut[d];
+      }
       NRRD_INDEX_GEN(idxIn, cIn, lszIn, ldim);
       memcpy(dataOut + idxOut*lineSize, dataIn + idxIn*lineSize, lineSize);
       NRRD_COORD_INCR(cOut, lszOut, ldim, 0);
@@ -253,7 +254,7 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes) {
     }
     if (nrrdContentSet(nout, func, nin, "%s", buff1)) {
       sprintf(err, "%s:", me);
-      biffAdd(NRRD, err); return 1;
+      biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     if (nrrdBasicInfoCopy(nout, nin,
                           NRRD_BASIC_INFO_DATA_BIT
@@ -264,9 +265,10 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes) {
                           | NRRD_BASIC_INFO_COMMENTS_BIT
                           | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
       sprintf(err, "%s:", me);
-      biffAdd(NRRD, err); return 1;
+      biffAdd(NRRD, err); airMopError(mop); return 1;
     }
   }
+  airMopOkay(mop); 
   return 0;
 }
 
@@ -1168,21 +1170,30 @@ nrrdTile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
   ntmp = nrrdNew();
   if (!ntmp) {
     sprintf(err, "%s: failed to allocate temporary nrrd", me);
-    biffAdd(NRRD, err);
-    return 1;
+    biffAdd(NRRD, err); return 1;
   }
   mop = airMopNew();
   airMopAdd(mop, ntmp, (airMopper)nrrdNix, airMopAlways);
 
   /* Use _nrrdCopyShallow to just copy the header information without
      copying the data. */
+  if (nout != nin) {
+    if (_nrrdCopy(nout, nin, (NRRD_BASIC_INFO_COMMENTS_BIT
+                              | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
   E = AIR_FALSE;
+  /*
   if (!E) E |= _nrrdCopyShallow(ntmp, nin);
+  */
 
   /* Split the axis we will tile */
-  if (!E) E |= nrrdAxesSplit(ntmp, ntmp, axSplit, sizeFast, sizeSlow);
+  /* if (!E) E |= nrrdAxesSplit(ntmp, ntmp, axSplit, sizeFast, sizeSlow); */
+  if (!E) E |= nrrdAxesSplit(nout, nout, axSplit, sizeFast, sizeSlow);
 
-  /* We'll go ahead not and check for errors now as there is a lot of
+  /* We'll go ahead now and check for errors now as there is a lot of
      computation before the next nrrd call. */
   if (E) {
     sprintf(err, "%s: trouble with initial set-up", me);
@@ -1212,9 +1223,10 @@ nrrdTile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
      initialize these to -1 to make sure they get set. */
   ax0merge = -1;
   ax1merge = -1;
-  /* The idea here is to loop over the input indicies.  If the index
+  /* The idea here is to loop over the input indices.  If the index
      is one of either ax0 or ax1 copy that index. */
-  for (i=0; i<ntmp->dim; i++) {
+  /* for (i=0; i<ntmp->dim; i++) { */
+  for (i=0; i<nout->dim; i++) {
     if (i == ax0) {
       axis[pindex] = i;
       /* Cache this position for merging later */
@@ -1237,13 +1249,17 @@ nrrdTile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
       pindex++;
     }
   }
-  /*
-  for (i=0; i<ntmp->dim; i++) {
-    fprintf(stderr, "%s:axis[%d] = %d\n", me, i, axis[i]);
+  /* */
+  fprintf(stderr, "%s: axis =", me); 
+  /* for (i=0; i<ntmp->dim; i++) { */
+  for (i=0; i<nout->dim; i++) {
+    fprintf(stderr, " %d", axis[i]);
   }
-  */
+  fprintf(stderr, "; ax{0,1}merge = %d, %d\n", ax0merge, ax1merge);
+  /* */
 
-  if (!E) E |= nrrdAxesPermute(nout, ntmp, axis);
+  /* if (!E) E |= nrrdAxesPermute(nout, ntmp, axis); */
+  if (!E) E |= nrrdAxesPermute(nout, nout, axis);
   
   /* Join the axis */
   if (!E) {
