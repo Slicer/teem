@@ -375,7 +375,7 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
 	ray.neer = 0.0;
 	ray.faar = ECHO_POS_MAX;
 	time0 = airTime();
-	if (imgVi < 800) {
+	if (0) {
 	  memset(chan, 0, ECHO_IMG_CHANNELS*sizeof(echoCol_t));
 	} else {
 	  echoRayColor(chan, &ray, scene, parm, tstate);
