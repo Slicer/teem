@@ -1,6 +1,6 @@
 
 ASAP!!: 
-
+save and retreive peripheral information in PNM comments
 gaussian kernel,
 sinc kernel,
 pow2pad super function,
