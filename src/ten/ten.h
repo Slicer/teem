@@ -493,7 +493,8 @@ TEEM_API int tenAnisoHistogram(Nrrd *nout, Nrrd *nin,
 
 /* miscTen.c */
 TEEM_API int tenEvecRGB(Nrrd *nout, Nrrd *nin, int which, int aniso,
-			double gamma, double bgGray, double isoGray);
+			double cthresh, double gamma,
+			double bgGray, double isoGray);
 TEEM_API short tenEvqOne_f(float vec[3], float scl);
 TEEM_API int tenEvqVolume(Nrrd *nout, Nrrd *nin, int which,
 			  int aniso, int scaleByAniso);

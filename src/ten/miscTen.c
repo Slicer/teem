@@ -23,10 +23,11 @@
 
 int
 tenEvecRGB(Nrrd *nout, Nrrd *nin, int which, int aniso,
-	   double gamma, double bgGray, double isoGray) {
+	   double cthresh, double gamma,
+	   double bgGray, double isoGray) {
   char me[]="tenEvecRGB", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX];
-  float *tdata, *cdata, eval[3], evec[9], R, G, B, an[TEN_ANISO_MAX+1], conf;
+  float *tdata, *cdata, eval[3], evec[9], R, G, B, an[TEN_ANISO_MAX+1];
   size_t II, NN;
 
   if (!(nout && nin)) {
@@ -73,10 +74,9 @@ tenEvecRGB(Nrrd *nout, Nrrd *nin, int which, int aniso,
     R = AIR_LERP(an[aniso], isoGray, R);
     G = AIR_LERP(an[aniso], isoGray, G);
     B = AIR_LERP(an[aniso], isoGray, B);
-    conf = AIR_CLAMP(0, tdata[0], 1);
-    R = AIR_LERP(conf, bgGray, R);
-    G = AIR_LERP(conf, bgGray, G);
-    B = AIR_LERP(conf, bgGray, B);
+    R = tdata[0] > cthresh ? R : bgGray;
+    G = tdata[0] > cthresh ? G : bgGray;
+    B = tdata[0] > cthresh ? B : bgGray;
     ELL_3V_SET(cdata, R, G, B);
     cdata += 3;
     tdata += 7;

@@ -35,7 +35,7 @@ tend_evecrgbMain(int argc, char **argv, char *me, hestParm *hparm) {
   int aniso, cc;
   Nrrd *nin, *nout;
   char *outS;
-  float bg, gray, gamma;
+  float bg, gray, gamma, thresh;
 
   hestOptAdd(&hopt, "c", "evec index", airTypeInt, 1, 1, &cc, NULL,
 	     "which eigenvector will be colored. \"0\" for the "
@@ -44,6 +44,8 @@ tend_evecrgbMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "Which anisotropy to use for modulating the saturation "
 	     "of the colors.  " TEN_ANISO_DESC,
 	     NULL, tenAniso);
+  hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "0.5",
+	     "confidence threshold");
   hestOptAdd(&hopt, "bg", "background", airTypeFloat, 1, 1, &bg, "0",
 	     "gray level to use for voxels who's confidence is zero ");
   hestOptAdd(&hopt, "gr", "gray", airTypeFloat, 1, 1, &gray, "0",
@@ -64,7 +66,7 @@ tend_evecrgbMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (tenEvecRGB(nout, nin, cc, aniso, gamma, bg, gray)) {
+  if (tenEvecRGB(nout, nin, cc, aniso, thresh, gamma, bg, gray)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble doing colormapping:\n%s\n", me, err);
     airMopError(mop); return 1;
