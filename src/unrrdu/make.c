@@ -171,7 +171,7 @@ makeMain(int argc, char **argv, char *me) {
       fprintf(stderr, "%s: can't store stdin as data file in header\n", me);
       airMopError(mop); return 1;
     }
-    strcpy(io->dataFN, dataFileName);
+    io->dataFN = airStrdup(dataFileName);
     io->seperateHeader = AIR_TRUE;
     /* we open and hand off the output FILE* to _nrrdWriteNrrd,
        which not write any data (because of the AIR_FALSE) */
@@ -185,7 +185,7 @@ makeMain(int argc, char **argv, char *me) {
       }
       airMopAdd(mop, fileOut, (airMopper)airFclose, airMopAlways);
     }
-    _nrrdWriteNrrd(fileOut, nrrd, io, AIR_FALSE);
+    _nrrdWriteNrrd(fileOut, nrrd, io, AIR_FALSE /* don't write data */);
   } else {
     /* we're not actually using the handy unuFileHestCB above,
        since we have to open the input data file by hand */
