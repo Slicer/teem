@@ -23,8 +23,8 @@
 #include <teem/air.h>
 #include <teem/hest.h>
 
-char *info = ("Converts from DOS text files to normal (converting CR-LF pairs "
-	      "to just LF), or, with the \"-r\" option, convert back to DOS, "
+char *info = ("Converts from DOS text files to normal (converting LF-CR pairs "
+	      "to just CR), or, with the \"-r\" option, convert back to DOS, "
 	      "for whatever sick and twisted reason you'd have to do that. ");
 
 #define CR 10
