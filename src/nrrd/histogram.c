@@ -49,7 +49,7 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type) {
     sprintf(err, "%s: bins value (%d) invalid", me, bins);
     biffAdd(NRRD, err); return 1;
   }
-  if (!( airEnumValidVal(nrrdType, type) && nrrdTypeBlock != type )) {
+  if (!( airEnumValValid(nrrdType, type) && nrrdTypeBlock != type )) {
     sprintf(err, "%s: invalid nrrd type %d", me, type);
     biffAdd(NRRD, err); return 1;
   }
@@ -81,7 +81,7 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type) {
 	/* value is outside range; ignore it */
 	continue;
       }
-      if (AIR_INSIDE(min, val, max)) {
+      if (AIR_IN_CL(min, val, max)) {
 	AIR_INDEX(min, val, max+eps, bins, idx);
 	/*
 	printf("!%s: %d: index(%g, %g, %g, %d) = %d\n", 
@@ -252,11 +252,11 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins, int type) {
     sprintf(err, "%s: bins value (%d) invalid", me, bins);
     biffAdd(NRRD, err); return 1;
   }
-  if (!( airEnumValidVal(nrrdType, type) && nrrdTypeBlock != type )) {
+  if (!( airEnumValValid(nrrdType, type) && nrrdTypeBlock != type )) {
     sprintf(err, "%s: invalid nrrd type %d", me, type);
     biffAdd(NRRD, err); return 1;
   }
-  if (!AIR_INSIDE(0, ax, nin->dim-1)) {
+  if (!AIR_IN_CL(0, ax, nin->dim-1)) {
     sprintf(err, "%s: axis %d is not in range [0,%d]", me, ax, nin->dim-1);
     biffAdd(NRRD, err); return 1;
   }
@@ -309,7 +309,7 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins, int type) {
     val = nrrdDLookup[nin->type](nin->data, I);
     if (AIR_EXISTS(val)) {
       AIR_INDEX(nin->min, val, nin->max, bins, hidx);
-      if (AIR_INSIDE(0, hidx, bins-1)) {
+      if (AIR_IN_CL(0, hidx, bins-1)) {
 	memcpy(coordOut, coordIn, nin->dim*sizeof(int));
 	coordOut[ax] = hidx;
 	NRRD_COORD_INDEX(hI, coordOut, szOut, nout->dim);
@@ -367,7 +367,7 @@ nrrdHistoJoint(Nrrd *nout, Nrrd **nin,
       biffAdd(NRRD, err); return 1;
     }
   }
-  if (!( airEnumValidVal(nrrdType, type) && nrrdTypeBlock != type )) {
+  if (!( airEnumValValid(nrrdType, type) && nrrdTypeBlock != type )) {
     sprintf(err, "%s: invalid nrrd type %d", me, type);
     biffAdd(NRRD, err); return 1;
   }
@@ -437,7 +437,7 @@ nrrdHistoJoint(Nrrd *nout, Nrrd **nin,
 	   if nin[d] has a non-existent value here */
 	break;
       }
-      if (!AIR_INSIDE(nin[d]->min, val, nin[d]->max)) {
+      if (!AIR_IN_CL(nin[d]->min, val, nin[d]->max)) {
 	if (clamp[d]) {
 	  val = AIR_CLAMP(nin[d]->min, val, nin[d]->max);
 	} else {

@@ -537,7 +537,7 @@ nrrdAlloc_nva (Nrrd *nrrd, int type, int dim, int *size) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValidVal(nrrdType, type)) {
+  if (!airEnumValValid(nrrdType, type)) {
     sprintf(err, "%s: type (%d) is invalid", me, type);
     biffAdd(NRRD, err); return 1;
   }
@@ -548,7 +548,7 @@ nrrdAlloc_nva (Nrrd *nrrd, int type, int dim, int *size) {
       biffAdd(NRRD, err); return 1;
     }
   }
-  if (!AIR_INSIDE(1, dim, NRRD_DIM_MAX)) {
+  if (!AIR_IN_CL(1, dim, NRRD_DIM_MAX)) {
     sprintf(err, "%s: dim (%d) not in valid range [1,%d]",
 	    me, dim, NRRD_DIM_MAX);
     biffAdd(NRRD, err); return 1;
@@ -625,7 +625,7 @@ nrrdMaybeAlloc_nva (Nrrd *nrrd, int type, int dim, int *size) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValidVal(nrrdType, type)) {
+  if (!airEnumValValid(nrrdType, type)) {
     sprintf(err, "%s: type (%d) is invalid", me, type);
     biffAdd(NRRD, err); return 1;
   }

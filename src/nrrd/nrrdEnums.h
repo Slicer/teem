@@ -180,6 +180,18 @@ enum {
   nrrdMeasureLast
 };
 #define NRRD_MEASURE_MAX        20
+#define NRRD_MEASURE_DESC \
+   "Possibilities include:\n " \
+   "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", \"variance\"\n " \
+     "(self-explanatory)\n " \
+   "\b\bo \"SD\": standard deviation\n " \
+   "\b\bo \"product\", \"sum\": product or sum of all values\n " \
+   "\b\bo \"L1\", \"L2\", \"Linf\": different norms\n " \
+   "\b\bo \"histo-min\",  \"histo-max\", \"histo-mean\", " \
+     "\"histo-median\", \"histo-mode\", \"histo-product\", " \
+     "\"histo-sum\", \"histo-variance\": same measures, but for situations " \
+     "where we're given not the original values but a histogram of them."
+  
 
 /*
 ******** nrrdCenter enum
@@ -306,16 +318,17 @@ enum {
   nrrdUnaryOpLog,        /* 10 */
   nrrdUnaryOpLog10,      /* 11 */
   nrrdUnaryOpSqrt,       /* 12 */
-  nrrdUnaryOpCeil,       /* 13 */
-  nrrdUnaryOpFloor,      /* 14 */
-  nrrdUnaryOpRoundUp,    /* 15 */
-  nrrdUnaryOpRoundDown,  /* 16 */
-  nrrdUnaryOpAbs,        /* 17 */
-  nrrdUnaryOpSgn,        /* 18 */
-  nrrdUnaryOpExists,     /* 19 */
+  nrrdUnaryOpErf,        /* 13 */
+  nrrdUnaryOpCeil,       /* 14 */
+  nrrdUnaryOpFloor,      /* 15 */
+  nrrdUnaryOpRoundUp,    /* 16 */
+  nrrdUnaryOpRoundDown,  /* 17 */
+  nrrdUnaryOpAbs,        /* 18 */
+  nrrdUnaryOpSgn,        /* 19 */
+  nrrdUnaryOpExists,     /* 20 */
   nrrdUnaryOpLast
 };
-#define NRRD_UNARY_OP_MAX   19
+#define NRRD_UNARY_OP_MAX   20
 
 
 /*

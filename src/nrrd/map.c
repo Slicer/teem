@@ -37,7 +37,7 @@ nrrdMinMaxSet(Nrrd *nrrd) {
   NRRD_TYPE_BIGGEST _min, _max;
 
   if (nrrd) {
-    if (airEnumValidVal(nrrdType, nrrd->type)
+    if (airEnumValValid(nrrdType, nrrd->type)
 	&& nrrdTypeBlock != nrrd->type) {
       nrrdFindMinMax[nrrd->type](&_min, &_max, nrrd);
       nrrd->min = nrrdDLoad[nrrd->type](&_min);
@@ -75,7 +75,7 @@ nrrdMinMaxCleverSet(Nrrd *nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValidVal(nrrdType, nrrd->type)) {
+  if (!airEnumValValid(nrrdType, nrrd->type)) {
     sprintf(err, "%s: input nrrd has invalid type (%d)", me, nrrd->type);
     biffAdd(NRRD, err); return 1;
   }
@@ -142,8 +142,8 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
   size_t num;
 
   if (!( nin && nout 
-	 && airEnumValidVal(nrrdType, nin->type)
-	 && airEnumValidVal(nrrdType, type) )) {
+	 && airEnumValValid(nrrdType, nin->type)
+	 && airEnumValValid(nrrdType, type) )) {
     sprintf(err, "%s: invalid args", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -359,7 +359,7 @@ nrrdUnquantize(Nrrd *nout, Nrrd *nin, int type) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValidVal(nrrdType, type)) {
+  if (!airEnumValValid(nrrdType, type)) {
     sprintf(err, "%s: don't recognize type %d\n", me, type);
     biffAdd(NRRD, err); return 1;
   }

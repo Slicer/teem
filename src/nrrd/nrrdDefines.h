@@ -47,7 +47,6 @@ extern "C" {
 				      Enforcing one global max
 				      simplifies implementation. */
 
-
 /* 
 ** For the 64-bit integer types (not standard except in C99), we try
 ** to use the names for the _MIN and _MAX values which are used in C99

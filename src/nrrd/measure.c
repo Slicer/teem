@@ -720,11 +720,11 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
 	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
-  if (!AIR_BETWEEN(nrrdMeasureUnknown, measr, nrrdMeasureLast)) {
+  if (!AIR_IN_OP(nrrdMeasureUnknown, measr, nrrdMeasureLast)) {
     sprintf(err, "%s: measure %d not recognized", me, measr);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(AIR_INSIDE(0, axis, nin->dim-1))) {
+  if (!(AIR_IN_CL(0, axis, nin->dim-1))) {
     sprintf(err, "%s: axis %d not in range [0,%d]", me, axis, nin->dim-1);
     biffAdd(NRRD, err); return 1;
   }

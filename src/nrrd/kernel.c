@@ -84,6 +84,7 @@ _nrrdZeroN_f(float *f, float *x, size_t len, double *parm) {
 
 NrrdKernel
 _nrrdKernelZero = {
+  "zero",
   1, _nrrdZeroSup, _nrrdZeroInt,
   _nrrdZero1_f, _nrrdZeroN_f, _nrrdZero1_d, _nrrdZeroN_d
 };
@@ -155,6 +156,7 @@ _nrrdBoxN_f(float *f, float *x, size_t len, double *parm) {
 
 NrrdKernel
 _nrrdKernelBox = {
+  "box",
   1, _nrrdBoxSup, _nrrdBoxInt,  
   _nrrdBox1_f,  _nrrdBoxN_f,  _nrrdBox1_d,  _nrrdBoxN_d
 };
@@ -224,6 +226,7 @@ _nrrdTentN_f(float *f, float *x, size_t len, double *parm) {
 
 NrrdKernel
 _nrrdKernelTent = {
+  "tent",
   1, _nrrdTentSup,_nrrdTentInt, 
   _nrrdTent1_f, _nrrdTentN_f, _nrrdTent1_d, _nrrdTentN_d
 };
@@ -295,6 +298,7 @@ _nrrdFDN_f(float *f, float *x, size_t len, double *parm) {
 
 NrrdKernel
 _nrrdKernelFD = {
+  "fordif",
   1, _nrrdFDSup,  _nrrdFDInt,   
   _nrrdFD1_f,   _nrrdFDN_f,   _nrrdFD1_d,   _nrrdFDN_d
 };
@@ -367,6 +371,7 @@ _nrrdCDN_f(float *f, float *x, size_t len, double *parm) {
 
 NrrdKernel
 _nrrdKernelCD = {
+  "cendif",
   1, _nrrdCDSup,  _nrrdCDInt,   
   _nrrdCD1_f,   _nrrdCDN_f,   _nrrdCD1_d,   _nrrdCDN_d
 };
@@ -443,6 +448,7 @@ _nrrdBCN_f(float *f, float *x, size_t len, double *parm) {
 
 NrrdKernel
 _nrrdKernelBC = {
+  "BCcubic",
   3, _nrrdBCSup,  _nrrdBCInt,   
   _nrrdBC1_f,   _nrrdBCN_f,   _nrrdBC1_d,   _nrrdBCN_d
 };
@@ -524,6 +530,7 @@ _nrrdDBCN_f(float *f, float *x, size_t len, double *parm) {
 
 NrrdKernel
 _nrrdKernelDBC = {
+  "BCcubicD",
   3, _nrrdDBCSup, _nrrdDBCInt,  
   _nrrdDBC1_f,  _nrrdDBCN_f,  _nrrdDBC1_d,  _nrrdDBCN_d
 };
@@ -600,6 +607,7 @@ _nrrdDDBCN_f(float *f, float *x, size_t len, double *parm) {
 
 NrrdKernel
 _nrrdKernelDDBC = {
+  "BCcubicDD",
   3, _nrrdDDBCSup,_nrrdDDBCInt, 
   _nrrdDDBC1_f, _nrrdDDBCN_f, _nrrdDDBC1_d, _nrrdDDBCN_d
 };
@@ -679,6 +687,7 @@ _nrrdA4N_f(float *f, float *x, size_t len, double *parm) {
 
 NrrdKernel
 _nrrdKernelA4 = {
+  "Aquartic",
   2, _nrrdA4Sup,  _nrrdA4Int,   
   _nrrdA41_f,   _nrrdA4N_f,   _nrrdA41_d,   _nrrdA4N_d
 };
@@ -763,6 +772,7 @@ _nrrdDA4N_f(float *f, float *x, size_t len, double *parm) {
 
 NrrdKernel
 _nrrdKernelDA4 = {
+  "AquarticD",
   2, _nrrdDA4Sup, _nrrdDA4Int,  
   _nrrdDA41_f,  _nrrdDA4N_f,  _nrrdDA41_d,  _nrrdDA4N_d
 };
@@ -841,6 +851,7 @@ _nrrdDDA4N_f(float *f, float *x, size_t len, double *parm) {
 
 NrrdKernel
 _nrrdKernelDDA4 = {
+  "AquarticDD",
   2, _nrrdDDA4Sup,_nrrdDDA4Int, 
   _nrrdDDA41_f, _nrrdDDA4N_f, _nrrdDDA41_d, _nrrdDDA4N_d
 };
@@ -920,6 +931,7 @@ _nrrdGN_f(float *f, float *x, size_t len, double *parm) {
 
 NrrdKernel
 _nrrdKernelG = {
+  "gauss",
   2, _nrrdGSup,  _nrrdGInt,   
   _nrrdG1_f,   _nrrdGN_f,   _nrrdG1_d,   _nrrdGN_d
 };
@@ -1001,6 +1013,7 @@ _nrrdDGN_f(float *f, float *x, size_t len, double *parm) {
 
 NrrdKernel
 _nrrdKernelDG = {
+  "gaussD",
   2, _nrrdDGSup,  _nrrdDGInt,   
   _nrrdDG1_f,   _nrrdDGN_f,   _nrrdDG1_d,   _nrrdDGN_d
 };
@@ -1082,6 +1095,7 @@ _nrrdDDGN_f(float *f, float *x, size_t len, double *parm) {
 
 NrrdKernel
 _nrrdKernelDDG = {
+  "gaussDD",
   2, _nrrdDDGSup,  _nrrdDDGInt,   
   _nrrdDDG1_f,   _nrrdDDGN_f,   _nrrdDDG1_d,   _nrrdDDGN_d
 };

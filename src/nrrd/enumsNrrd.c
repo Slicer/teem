@@ -50,6 +50,16 @@ _nrrdFormatStr[NRRD_FORMAT_MAX+1][AIR_STRLEN_SMALL] = {
 };
 
 char
+_nrrdFormatDesc[NRRD_FORMAT_MAX+1][AIR_STRLEN_MED] = {
+  "unknown_format",
+  "native format for nearly raw raster data",
+  "Portable aNy Map: includes PGM for grayscale and PPM for color",
+  "Portable Network Graphics: lossless compression of 8- and 16-bit data",
+  "Visualization ToolKit STRUCTURED_POINTS data",
+  "white-space-delimited ascii encoding of floats"
+};
+
+char
 _nrrdFormatStrEqv[][AIR_STRLEN_SMALL] = {
   "nrrd",
   "pnm",
@@ -73,6 +83,7 @@ _nrrdFormat = {
   "format",
   NRRD_FORMAT_MAX,
   _nrrdFormatStr,  NULL,
+  _nrrdFormatDesc,
   _nrrdFormatStrEqv, _nrrdFormatValEqv,
   AIR_FALSE
 };
@@ -90,11 +101,21 @@ _nrrdBoundaryStr[NRRD_BOUNDARY_MAX+1][AIR_STRLEN_SMALL] = {
   "weight"
 };
 
+char
+_nrrdBoundaryDesc[NRRD_BOUNDARY_MAX+1][AIR_STRLEN_MED] = {
+  "unknown boundary behavior",
+  "pad with some specified value",
+  "copy values from edge outward as needed",
+  "wrap around to other end of axis",
+  "re-weight (by normalization) samples within axis range"
+};
+
 airEnum
 _nrrdBoundary = {
   "boundary behavior",
   NRRD_BOUNDARY_MAX,
   _nrrdBoundaryStr, NULL,
+  _nrrdBoundaryDesc,
   NULL, NULL,
   AIR_FALSE
 };
@@ -117,11 +138,26 @@ _nrrdMagicStr[NRRD_MAGIC_MAX+1][AIR_STRLEN_SMALL] = {
   "# vtk DataFile Version 2.0",
 };
 
+char
+_nrrdMagicDesc[NRRD_MAGIC_MAX+1][AIR_STRLEN_MED] = {
+  "unknown magic",
+  "old style of NRRD magic",
+  "NRRD magic, version 1",
+  "ascii grayscale (PGM) image",
+  "ascii color (PPM) image",
+  "binary grayscale (PGM) image",
+  "binary color (PPM) image",
+  "Portable Network Graphics (PNG)",
+  "VTK magic, version 1.0",
+  "VTK magic, version 2.0"
+};
+
 airEnum
 _nrrdMagic = {
   "magic",
   NRRD_MAGIC_MAX+1,
   _nrrdMagicStr, NULL,
+  _nrrdMagicDesc,
   NULL, NULL,
   AIR_TRUE
 };
@@ -144,6 +180,22 @@ _nrrdTypeStr[NRRD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "float",
   "double",
   "block"
+};
+
+char 
+_nrrdTypeDesc[NRRD_TYPE_MAX+1][AIR_STRLEN_MED] = {
+  "unknown type",
+  "signed 1-byte integer",
+  "unsigned 1-byte integer",
+  "signed 2-byte integer",
+  "unsigned 2-byte integer",
+  "signed 4-byte integer",
+  "unsigned 4-byte integer",
+  "signed 8-byte integer",
+  "unsigned 8-byte integer",
+  "4-byte floating point",
+  "8-byte floating point",
+  "size user-defined at run-time"
 };
 
 #define ntCH nrrdTypeChar
@@ -196,6 +248,7 @@ _nrrdType = {
   "type",
   NRRD_TYPE_MAX,
   _nrrdTypeStr, NULL,
+  _nrrdTypeDesc,
   _nrrdTypeStrEqv, _nrrdTypeValEqv,
   AIR_FALSE
 };
@@ -212,6 +265,16 @@ _nrrdEncodingStr[NRRD_ENCODING_MAX+1][AIR_STRLEN_SMALL] = {
   "hex",
   "gz",
   "bz2"
+};
+
+char
+_nrrdEncodingDesc[NRRD_ENCODING_MAX+1][AIR_STRLEN_MED] = {
+  "unknown encoding",
+  "file is byte-for-byte same as memory representation",
+  "values written out in ASCII",
+  "case-insenstive hexadecimal encoding (2 chars / byte)",
+  "gzip compression of binary encoding",
+  "bzip2 compression of binary encoding"
 };
 
 char
@@ -241,6 +304,7 @@ _nrrdEncoding = {
   "encoding",
   NRRD_ENCODING_MAX,
   _nrrdEncodingStr, NULL,
+  _nrrdEncodingDesc,
   _nrrdEncodingStrEqv, _nrrdEncodingValEqv,
   AIR_FALSE
 };
@@ -274,12 +338,88 @@ _nrrdMeasureStr[NRRD_MEASURE_MAX+1][AIR_STRLEN_SMALL] = {
   "histo-variance"
 };
 
+char
+_nrrdMeasureDesc[NRRD_MEASURE_MAX+1][AIR_STRLEN_MED] = {
+  "unknown measure",
+  "minimum of values",
+  "maximum of values",
+  "mean of values",
+  "median of values",
+  "mode of values",
+  "product of values",
+  "sum of values",
+  "L1 of values",
+  "L2 of values",
+  "Linf of values",
+  "variance of values",
+  "SD of values",
+  "minimum of histogrammed values",
+  "maximum of histogrammed values",
+  "mean of histogrammed values",
+  "median of histogrammed values",
+  "mode of histogrammed values",
+  "product of histogrammed values",
+  "sum of histogrammed values",
+  "variance of histogrammed values"
+};
+
+char
+_nrrdMeasureStrEqv[][AIR_STRLEN_SMALL] = {
+  "(unknown_measure)",
+  "min",
+  "max",
+  "mean",
+  "median",
+  "mode",
+  "product", "prod",
+  "sum",
+  "L1",
+  "L2",
+  "Linf",
+  "variance", "var",
+  "SD",
+  "histo-min",
+  "histo-max",
+  "histo-mean",
+  "histo-median",
+  "histo-mode",
+  "histo-product",
+  "histo-sum",
+  "histo-variance"
+};
+
+int
+_nrrdMeasureValEqv[] = {
+  nrrdMeasureUnknown,
+  nrrdMeasureMin,
+  nrrdMeasureMax,
+  nrrdMeasureMean,
+  nrrdMeasureMedian,
+  nrrdMeasureMode,
+  nrrdMeasureProduct, nrrdMeasureProduct,
+  nrrdMeasureSum,
+  nrrdMeasureL1,
+  nrrdMeasureL2,
+  nrrdMeasureLinf,
+  nrrdMeasureVariance, nrrdMeasureVariance,
+  nrrdMeasureSD,
+  nrrdMeasureHistoMin,
+  nrrdMeasureHistoMax,
+  nrrdMeasureHistoMean,
+  nrrdMeasureHistoMedian,
+  nrrdMeasureHistoMode,
+  nrrdMeasureHistoProduct,
+  nrrdMeasureHistoSum,
+  nrrdMeasureHistoVariance
+};
+
 airEnum
 _nrrdMeasure = {
   "measure",
   NRRD_MEASURE_MAX,
   _nrrdMeasureStr, NULL,
-  NULL, NULL,
+  _nrrdMeasureDesc,
+  _nrrdMeasureStrEqv, _nrrdMeasureValEqv, 
   AIR_FALSE
 };
 airEnum *
@@ -294,11 +434,19 @@ _nrrdCenterStr[NRRD_CENTER_MAX+1][AIR_STRLEN_SMALL] = {
   "cell"
 };
 
+char
+_nrrdCenterDesc[NRRD_CENTER_MAX+1][AIR_STRLEN_MED] = {
+  "unknown centering",
+  "samples are at boundaries between elements along axis",
+  "samples are at centers of elements along axis",
+};
+
 airEnum
 _nrrdCenter_enum = {
   "centering",
   NRRD_CENTER_MAX,
   _nrrdCenterStr, NULL,
+  _nrrdCenterDesc,
   NULL, NULL,
   AIR_FALSE
 };
@@ -315,7 +463,20 @@ _nrrdAxesInfoStr[NRRD_AXESINFO_MAX+1][AIR_STRLEN_SMALL] = {
   "min",
   "max",
   "center",
-  "label"
+  "label",
+  "unit"
+};
+
+char
+_nrrdAxesInfoDesc[NRRD_AXESINFO_MAX+1][AIR_STRLEN_MED] = {
+  "unknown axes info",
+  "number of samples along axis",
+  "spacing between samples",
+  "minimum position in \"world\" space associated with axis",
+  "maximum position in \"world\" space associated with axis",
+  "centering style for samples along this axis",
+  "short description of space or value spanned by axis",
+  "units in which sample spacing is measured"
 };
 
 airEnum
@@ -323,6 +484,7 @@ _nrrdAxesInfo = {
   "axes_info",
   NRRD_AXESINFO_MAX,
   _nrrdAxesInfoStr, NULL,
+  _nrrdAxesInfoDesc,
   NULL, NULL,
   AIR_TRUE
 };
@@ -356,6 +518,33 @@ _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL] = {
   "encoding",
   "line skip",
   "byte skip"
+};
+
+char
+_nrrdFieldDesc[NRRD_FIELD_MAX+1][AIR_STRLEN_MED] = {
+  "unknown field identifier",
+  "comment",
+  "short description of whole array and/or its provinance",
+  "total number of samples in array",
+  "type of sample value",
+  "number of bytes in one block (for block-type)",
+  "number of axes in array",
+  "list of number of samples along each axis, aka \"dimensions\" of the array",
+  "list of sample spacings along each axis",
+  "list of minimum positions associated with each axis",
+  "list of maximum positions associated with each axis",
+  "list of sample centerings for each axis",
+  "list of short descriptions for each axis",
+  "list of units in which each axes' spacing is measured",
+  "known global minimum value in whole array",
+  "known global maximum value in whole array",
+  "minimum array value prior to quantization",
+  "maximum array value prior to quantization",
+  "with detached headers, where is data to be found",
+  "endiannes of data as written in file",
+  "encoding of data written in file",
+  "number of lines to skip prior to byte skip and reading data",
+  "number of bytes to skip after line skip and prior to reading data"
 };
 
 char
@@ -416,6 +605,7 @@ _nrrdField = {
   "nrrd_field",
   NRRD_FIELD_MAX,
   _nrrdFieldStr, NULL,
+  _nrrdFieldDesc,
   _nrrdFieldStrEqv, _nrrdFieldValEqv, 
   AIR_FALSE
 };
@@ -448,6 +638,7 @@ _nrrdNonExistStr[NRRD_NON_EXIST_MAX+1][AIR_STRLEN_SMALL] = {
 #define nuLge nrrdUnaryOpLog
 #define nuLgt nrrdUnaryOpLog10
 #define nuSqt nrrdUnaryOpSqrt
+#define nuErf nrrdUnaryOpErf
 #define nuCil nrrdUnaryOpCeil
 #define nuFlr nrrdUnaryOpFloor
 #define nuRup nrrdUnaryOpRoundUp
@@ -471,6 +662,7 @@ _nrrdUnaryOpStr[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "log",
   "log10",
   "sqrt",
+  "erf",
   "ceil",
   "floor",
   "roundup",
@@ -478,6 +670,31 @@ _nrrdUnaryOpStr[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "abs",
   "sgn",
   "exists"
+};
+
+char 
+_nrrdUnaryOpDesc[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_MED] = {
+  "unknown unary op",
+  "negative, additive inverse",
+  "reciprocal, multiplicative inverse",
+  "sin",
+  "cos",
+  "tan",
+  "arcsin",
+  "arccos",
+  "arctan",
+  "e raised to something",
+  "natural (base e) logarithm",
+  "base 10 logarithm",
+  "square root",
+  "error function (integral of gaussian)",
+  "smallest integer greater than or equal",
+  "largest integer less than or equal",
+  "round to closest integer (0.5 rounded to 1)",
+  "round to closest integer (0.5 rounded to 0)",
+  "absolute value",
+  "sign of value (-1, 0, or 1)",
+  "value is not infinity or NaN"
 };
 
 char
@@ -494,6 +711,7 @@ _nrrdUnaryOpStrEqv[][AIR_STRLEN_SMALL] = {
   "ln", "log",
   "log10",
   "sqrt",
+  "erf",
   "ceil",
   "floor",
   "roundup", "rup",
@@ -518,6 +736,7 @@ _nrrdUnaryOpValEqv[] = {
   nuLge, nuLge,
   nuLgt,
   nuSqt,
+  nuErf,
   nuCil,
   nuFlr,
   nuRup, nuRup,
@@ -532,6 +751,7 @@ _nrrdUnaryOp_enum = {
   "unary op",
   NRRD_UNARY_OP_MAX,
   _nrrdUnaryOpStr, NULL,
+  _nrrdUnaryOpDesc,
   _nrrdUnaryOpStrEqv, _nrrdUnaryOpValEqv,
   AIR_FALSE
 };
@@ -560,6 +780,28 @@ _nrrdBinaryOpStr[NRRD_BINARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "comp",
   "eq",
   "neq"
+};
+
+char 
+_nrrdBinaryOpDesc[NRRD_BINARY_OP_MAX+1][AIR_STRLEN_MED] = {
+  "unknown binary op",
+  "add",
+  "subtract",
+  "multiply",
+  "divide",
+  "power",
+  "integer modulo",
+  "fractional modulo",
+  "two-argment arctangent based on atan2()",
+  "miniumum",
+  "maximum",
+  "less then",
+  "less then or equal",
+  "greater than",
+  "greater than or equal",
+  "compare (resulting in -1, 0, or 1)",
+  "equal",
+  "not equal"
 };
 
 #define nbAdd nrrdBinaryOpAdd
@@ -628,6 +870,7 @@ _nrrdBinaryOp_enum = {
   "binary op",
   NRRD_BINARY_OP_MAX,
   _nrrdBinaryOpStr, NULL,
+  _nrrdBinaryOpDesc,
   _nrrdBinaryOpStrEqv, _nrrdBinaryOpValEqv,
   AIR_FALSE
 };
@@ -642,27 +885,18 @@ _nrrdTernaryOpStr[NRRD_TERNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "clamp",
   "lerp",
   "exists",
-  "inside",
-  "between"
+  "in_op",
+  "in_cl"
 };
 
-char
-_nrrdTernaryOpStrEqv[][AIR_STRLEN_SMALL] = {
-  "clamp",
-  "lerp",
-  "exists",
-  "inside",
-  "between", "tween", "btw",
-  ""
-};
-
-int
-_nrrdTernaryOpValEqv[] = {
-  nrrdTernaryOpClamp,
-  nrrdTernaryOpLerp,
-  nrrdTernaryOpExists,
-  nrrdTernaryOpInside,
-  nrrdTernaryOpBetween, nrrdTernaryOpBetween, nrrdTernaryOpBetween
+char 
+_nrrdTernaryOpDesc[NRRD_TERNARY_OP_MAX+1][AIR_STRLEN_MED] = {
+  "unknown ternary op",
+  "clamp 2nd value to closed interval between 1st and 3rd",
+  "linearly interpolate between 2nd value (1st = 0.0) and 3rd (1st = 1.0)",
+  "if 1st value exists, the 2nd value, else the 3rd",
+  "2nd value is inside OPEN interval range between 1st and 3rd",
+  "2nd value is inside CLOSED interval range between 1st and 3rd"
 };
 
 airEnum
@@ -670,7 +904,8 @@ _nrrdTernaryOp_enum = {
   "ternary op",
   NRRD_TERNARY_OP_MAX,
   _nrrdTernaryOpStr, NULL,
-  _nrrdTernaryOpStrEqv, _nrrdTernaryOpValEqv,
+  _nrrdTernaryOpDesc,
+  NULL, NULL,
   AIR_FALSE
 };
 airEnum *

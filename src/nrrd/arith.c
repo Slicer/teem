@@ -107,6 +107,7 @@ double _nrrdUnaryOpExp(double a)        {return exp(a);}
 double _nrrdUnaryOpLog(double a)        {return log(a);}
 double _nrrdUnaryOpLog10(double a)      {return log10(a);}
 double _nrrdUnaryOpSqrt(double a)       {return sqrt(a);}
+double _nrrdUnaryOpErf(double a)        {return airErf(a);}
 double _nrrdUnaryOpCeil(double a)       {return ceil(a);}
 double _nrrdUnaryOpFloor(double a)      {return floor(a);}
 double _nrrdUnaryOpRoundUp(double a)    {return AIR_ROUNDUP(a);}
@@ -130,6 +131,7 @@ double (*_nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
   _nrrdUnaryOpLog,
   _nrrdUnaryOpLog10,
   _nrrdUnaryOpSqrt,
+  _nrrdUnaryOpErf,
   _nrrdUnaryOpCeil,
   _nrrdUnaryOpFloor,
   _nrrdUnaryOpRoundUp,
@@ -156,7 +158,7 @@ nrrdArithUnaryOp(Nrrd *nout, int op, Nrrd *nin) {
 	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValidVal(nrrdUnaryOp, op)) {
+  if (!airEnumValValid(nrrdUnaryOp, op)) {
     sprintf(err, "%s: unary op %d invalid", me, op);
     biffAdd(NRRD, err); return 1;
   }
@@ -240,7 +242,7 @@ nrrdArithBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValidVal(nrrdBinaryOp, op)) {
+  if (!airEnumValValid(nrrdBinaryOp, op)) {
     sprintf(err, "%s: binary op %d invalid", me, op);
     biffAdd(NRRD, err); return 1;
   }
@@ -306,19 +308,19 @@ double _nrrdTernaryOpLerp(double a, double b, double c) {
 double _nrrdTernaryOpExists(double a, double b, double c) {
   return (AIR_EXISTS(a) ? b : c);
 }
-double _nrrdTernaryOpInside(double a, double b, double c) {
-  return (AIR_INSIDE(a, b, c));
+double _nrrdTernaryOpIn_Cl(double a, double b, double c) {
+  return (AIR_IN_CL(a, b, c));
 }
-double _nrrdTernaryOpBetween(double a, double b, double c) {
-  return (AIR_BETWEEN(a, b, c));
+double _nrrdTernaryOpIn_Op(double a, double b, double c) {
+  return (AIR_IN_OP(a, b, c));
 }
 double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
   NULL,
   _nrrdTernaryOpClamp,
   _nrrdTernaryOpLerp,
   _nrrdTernaryOpExists,
-  _nrrdTernaryOpInside,
-  _nrrdTernaryOpBetween
+  _nrrdTernaryOpIn_Cl,
+  _nrrdTernaryOpIn_Op
 };
 
 int
@@ -336,7 +338,7 @@ nrrdArithTernaryOp(Nrrd *nout, int op,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValidVal(nrrdTernaryOp, op)) {
+  if (!airEnumValValid(nrrdTernaryOp, op)) {
     sprintf(err, "%s: ternary op %d invalid", me, op);
     biffAdd(NRRD, err); return 1;
   }

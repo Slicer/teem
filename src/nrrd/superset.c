@@ -27,7 +27,7 @@
 int
 nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
   char me[]="nrrdPad", func[]="pad", err[AIR_STRLEN_MED],
-    buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
+    buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_MED];
   double padValue=AIR_NAN;
   int d, outside, dim, typeSize,
     cIn[NRRD_DIM_MAX],       /* coords for line start, in input */
@@ -48,7 +48,7 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
     sprintf(err, "%s: nout==nin disallowed", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!AIR_BETWEEN(nrrdBoundaryUnknown, boundary, nrrdBoundaryLast)) {
+  if (!AIR_IN_OP(nrrdBoundaryUnknown, boundary, nrrdBoundaryLast)) {
     sprintf(err, "%s: boundary behavior %d invalid", me, boundary);
     biffAdd(NRRD, err); return 1;
   }
@@ -124,13 +124,13 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
       switch(boundary) {
       case nrrdBoundaryPad:
       case nrrdBoundaryBleed:
-	if (!AIR_INSIDE(0, cIn[d], szIn[d]-1)) {
+	if (!AIR_IN_CL(0, cIn[d], szIn[d]-1)) {
 	  cIn[d] = AIR_CLAMP(0, cIn[d], szIn[d]-1);
 	  outside = 1;
 	}
 	break;
       case nrrdBoundaryWrap:
-	if (!AIR_INSIDE(0, cIn[d], szIn[d]-1)) {
+	if (!AIR_IN_CL(0, cIn[d], szIn[d]-1)) {
 	  cIn[d] = AIR_MOD(cIn[d], szIn[d]);
 	  outside = 1;
 	}
@@ -171,7 +171,13 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
     sprintf(buff2, "%s[%d,%d]", (d ? "x" : ""), min[d], max[d]);
     strcat(buff1, buff2);
   }
-  if (nrrdContentSet(nout, func, nin, "%s", buff1)) {
+  if (nrrdBoundaryPad == boundary) {
+    sprintf(buff2, "%s(%g)", airEnumStr(nrrdBoundary, nrrdBoundaryPad), 
+	    padValue);
+  } else {
+    strcpy(buff2, airEnumStr(nrrdBoundary, boundary));
+  }
+  if (nrrdContentSet(nout, func, nin, "%s,%s", buff1, buff2)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -193,7 +199,7 @@ nrrdPad_nva(Nrrd *nout, Nrrd *nin, int *min, int *max,
   char me[]="nrrdPad_nva", err[AIR_STRLEN_MED];
   int E;
 
-  if (!AIR_BETWEEN(nrrdBoundaryUnknown, boundary, nrrdBoundaryLast)) {
+  if (!AIR_IN_OP(nrrdBoundaryUnknown, boundary, nrrdBoundaryLast)) {
     sprintf(err, "%s: boundary behavior %d invalid", me, boundary);
     biffAdd(NRRD, err); return 1;
   }
@@ -257,7 +263,7 @@ nrrdSimplePad_nva(Nrrd *nout, Nrrd *nin, int pad,
   char me[]="nrrdSimplePad_nva", err[AIR_STRLEN_MED];
   int E;
 
-  if (!AIR_BETWEEN(nrrdBoundaryUnknown, boundary, nrrdBoundaryLast)) {
+  if (!AIR_IN_OP(nrrdBoundaryUnknown, boundary, nrrdBoundaryLast)) {
     sprintf(err, "%s: boundary behavior %d invalid", me, boundary);
     biffAdd(NRRD, err); return 1;
   }

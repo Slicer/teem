@@ -158,7 +158,7 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
     sprintf(err, "%s: due to laziness, nout==nin always disallowed", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValidVal(nrrdType, typeOut)) {
+  if (!airEnumValValid(nrrdType, typeOut)) {
     sprintf(err, "%s: invalid requested output type %d", me, typeOut);
     biffAdd(NRRD, err); return 1;
   }

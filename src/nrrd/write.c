@@ -39,10 +39,10 @@ _nrrdFieldInteresting (Nrrd *nrrd, NrrdIO *io, int field) {
   int d, ret=0;
   
   if (!( nrrd
-	 && AIR_INSIDE(1, nrrd->dim, NRRD_DIM_MAX)
+	 && AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX)
 	 && io
-	 && AIR_BETWEEN(nrrdEncodingUnknown, io->encoding, nrrdEncodingLast)
-	 && AIR_BETWEEN(nrrdField_unknown, field, nrrdField_last) )) {
+	 && AIR_IN_OP(nrrdEncodingUnknown, io->encoding, nrrdEncodingLast)
+	 && AIR_IN_OP(nrrdField_unknown, field, nrrdField_last) )) {
     return 0;
   }
   
@@ -131,7 +131,7 @@ _nrrdFieldInteresting (Nrrd *nrrd, NrrdIO *io, int field) {
     ret = io->lineSkip > 0;
     break;
   case nrrdField_byte_skip:
-    ret = io->byteSkip > 0;
+    ret = io->byteSkip != 0;
     break;
   }
 
@@ -538,8 +538,8 @@ _nrrdSprintFieldInfo (char **strP, Nrrd *nrrd, NrrdIO *io, int field) {
 
   if (!( strP
 	 && nrrd 
-	 && AIR_INSIDE(1, nrrd->dim, NRRD_DIM_MAX)
-	 && AIR_BETWEEN(nrrdField_unknown, field, nrrdField_last) )) {
+	 && AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX)
+	 && AIR_IN_OP(nrrdField_unknown, field, nrrdField_last) )) {
     return;
   }
   
@@ -1303,18 +1303,18 @@ nrrdWrite (FILE *file, Nrrd *nrrd, NrrdIO *io) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!AIR_BETWEEN(nrrdEncodingUnknown, io->encoding, nrrdEncodingLast)) {
+  if (!AIR_IN_OP(nrrdEncodingUnknown, io->encoding, nrrdEncodingLast)) {
     sprintf(err, "%s: invalid encoding %d", me, io->encoding);
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdEncodingUnknown == io->encoding) {
     io->encoding = nrrdDefWrtEncoding;
-  } else if (!AIR_BETWEEN(nrrdEncodingUnknown, io->encoding, 
+  } else if (!AIR_IN_OP(nrrdEncodingUnknown, io->encoding, 
 			  nrrdEncodingLast)) {
     sprintf(err, "%s: invalid encoding %d\n", me, io->encoding);
     biffAdd(NRRD, err); return 1;
   }
-  if (!AIR_BETWEEN(nrrdFormatUnknown, io->format, nrrdFormatLast)) {
+  if (!AIR_IN_OP(nrrdFormatUnknown, io->format, nrrdFormatLast)) {
     sprintf(err, "%s: invalid format %d", me, io->format);
     biffAdd(NRRD, err); return 1;
   }
@@ -1377,7 +1377,7 @@ nrrdSave (const char *filename, Nrrd *nrrd, NrrdIO *io) {
   }
   if (nrrdEncodingUnknown == io->encoding) {
     io->encoding = nrrdDefWrtEncoding;
-  } else if (!AIR_BETWEEN(nrrdEncodingUnknown, io->encoding, 
+  } else if (!AIR_IN_OP(nrrdEncodingUnknown, io->encoding, 
 			  nrrdEncodingLast)) {
     sprintf(err, "%s: invalid encoding %d\n", me, io->encoding);
     biffAdd(NRRD, err); airMopError(mop); return 1;
@@ -1388,7 +1388,7 @@ nrrdSave (const char *filename, Nrrd *nrrd, NrrdIO *io) {
     _nrrdGuessFormat(io, filename);
     _nrrdFixFormat(io, nrrd);
   }
-  if (!( AIR_INSIDE(nrrdFormatUnknown, io->format, nrrdFormatLast) )) {
+  if (!( AIR_IN_OP(nrrdFormatUnknown, io->format, nrrdFormatLast) )) {
     sprintf(err, "%s: invalid format %d\n", me, io->format);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }

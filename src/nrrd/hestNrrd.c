@@ -127,8 +127,8 @@ _nrrdLooksLikeANumber(char *str) {
     str++;
   }
   if (count[1] > 0 &&
-      AIR_INSIDE(0, count[2], 1) &&
-      AIR_INSIDE(0, count[3], 1) &&
+      AIR_IN_CL(0, count[2], 1) &&
+      AIR_IN_CL(0, count[3], 1) &&
       count[4] == 0) {
     return AIR_TRUE;
   } else {

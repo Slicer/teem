@@ -283,7 +283,7 @@ nrrdCheapMedian(Nrrd *nout, Nrrd *nin, int radius, float wght, int bins) {
     sprintf(err, "%s: need bins >= 1 (got %d)", me, bins);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(AIR_INSIDE(1, nin->dim, 3))) {
+  if (!(AIR_IN_CL(1, nin->dim, 3))) {
     sprintf(err, "%s: sorry, can only handle dim 1, 2, 3 (not %d)", 
 	    me, nin->dim);
     biffAdd(NRRD, err); return 1;    

@@ -224,6 +224,9 @@ typedef struct {
 ** teem code assumes that it will always be type double.
 */
 typedef struct {
+  char name[AIR_STRLEN_SMALL];           /* terse string representation of
+					    kernel function, irrespective of
+					    the parameter vector */
   int numParm;                           /* number of parameters needed
 					    (# elements in parm[] used) */
   double (*support)(double *parm);       /* smallest x (x > 0) such that

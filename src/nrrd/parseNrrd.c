@@ -100,7 +100,7 @@ _nrrdReadNrrdParse_dimension (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 
   info = io->line + io->pos;
   _PARSE_ONE_VAL(nrrd->dim, "%d", "int");
-  if (!AIR_INSIDE(1, nrrd->dim, NRRD_DIM_MAX)) {
+  if (!AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX)) {
     sprintf(err, "%s: dimension %d outside valid range [1,%d]",
 	    me, nrrd->dim, NRRD_DIM_MAX);
     biffMaybeAdd(NRRD, err, useBiff); return 1;

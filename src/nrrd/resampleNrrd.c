@@ -357,7 +357,7 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
   /* figure out what to do with the out-of-range indices */
   for (i=0; i<dotLen*sizeOut; i++) {
     idx = index[i];
-    if (!AIR_INSIDE(0, idx, sizeIn-1)) {
+    if (!AIR_IN_CL(0, idx, sizeIn-1)) {
       switch(info->boundary) {
       case nrrdBoundaryPad:
       case nrrdBoundaryWeight:  /* this will be further handled later */

@@ -42,7 +42,7 @@ nrrdInvertPerm(int *invp, int *p, int n) {
   /* use the given array "invp" as a temp buffer for validity checking */
   memset(invp, 0, n*sizeof(int));
   for (i=0; i<n; i++) {
-    if (!(AIR_INSIDE(0, p[i], n-1))) {
+    if (!(AIR_IN_CL(0, p[i], n-1))) {
       sprintf(err, "%s: permutation element #%d == %d out of bounds [0,%d]",
 	      me, i, p[i], n-1);
       biffAdd(NRRD, err); return 1;
@@ -222,8 +222,8 @@ nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(AIR_INSIDE(0, ax1, nin->dim-1) 
-	&& AIR_INSIDE(0, ax2, nin->dim-1))) {
+  if (!(AIR_IN_CL(0, ax1, nin->dim-1) 
+	&& AIR_IN_CL(0, ax2, nin->dim-1))) {
     sprintf(err, "%s: ax1 (%d) or ax2 (%d) out of bounds [0,%d]", 
 	    me, ax1, ax2, nin->dim-1);
     biffAdd(NRRD, err); return 1;
@@ -285,14 +285,14 @@ nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
     sprintf(err, "%s: nout==nin disallowed", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!AIR_INSIDE(0, axis, nin->dim-1)) {
+  if (!AIR_IN_CL(0, axis, nin->dim-1)) {
     sprintf(err, "%s: axis %d outside valid range [0,%d]", 
 	    me, axis, nin->dim-1);
     biffAdd(NRRD, err); return 1;
   }
   len = nin->axis[axis].size;
   for (d=0; d<len; d++) {
-    if (!AIR_INSIDE(0, perm[d], len-1)) {
+    if (!AIR_IN_CL(0, perm[d], len-1)) {
       sprintf(err, "%s: perm[%d] (%d) outside valid range [0,%d]", me,
 	      d, perm[d], len-1);
       biffAdd(NRRD, err); return 1;
@@ -369,7 +369,7 @@ nrrdFlip(Nrrd *nout, Nrrd *nin, int axis) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(AIR_INSIDE(0, axis, nin->dim-1))) {
+  if (!(AIR_IN_CL(0, axis, nin->dim-1))) {
     sprintf(err, "%s: given axis (%d) is outside valid range ([0,%d])", 
 	    me, axis, nin->dim-1);
     biffAdd(NRRD, err); return 1;
@@ -632,7 +632,7 @@ nrrdReshape_nva(Nrrd *nout, Nrrd *nin, int dim, int *size) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(AIR_INSIDE(1, dim, NRRD_DIM_MAX))) {
+  if (!(AIR_IN_CL(1, dim, NRRD_DIM_MAX))) {
     sprintf(err, "%s: given dimension (%d) outside valid range [1,%d]",
 	    me, dim, NRRD_DIM_MAX);
     biffAdd(NRRD, err); return 1;
@@ -694,7 +694,7 @@ nrrdReshape(Nrrd *nout, Nrrd *nin, int dim, ...) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(AIR_INSIDE(1, dim, NRRD_DIM_MAX))) {
+  if (!(AIR_IN_CL(1, dim, NRRD_DIM_MAX))) {
     sprintf(err, "%s: given dimension (%d) outside valid range [1,%d]",
 	    me, dim, NRRD_DIM_MAX);
     biffAdd(NRRD, err); return 1;
@@ -800,7 +800,7 @@ nrrdUnblock(Nrrd *nout, Nrrd *nin, int type) {
 	    me, NRRD_DIM_MAX);
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValidVal(nrrdType, type)) {
+  if (!airEnumValValid(nrrdType, type)) {
     sprintf(err, "%s: invalid requested type %d", me, type);
     biffAdd(NRRD, err); return 1;
   }

@@ -44,7 +44,7 @@ nrrdSample_nva(void *val, Nrrd *nrrd, int *coord) {
   typeSize = nrrdElementSize(nrrd);
   nrrdAxesGet_nva(nrrd, nrrdAxesInfoSize, size);
   for (d=0; d<nrrd->dim; d++) {
-    if (!(AIR_INSIDE(0, coord[d], size[d]-1))) {
+    if (!(AIR_IN_CL(0, coord[d], size[d]-1))) {
       sprintf(err, "%s: coordinate %d on axis %d out of bounds (0 to %d)", 
 	      me, coord[d], d, size[d]-1);
       biffAdd(NRRD, err); return 1;
@@ -126,12 +126,12 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
     sprintf(err, "%s: can't slice a 1-D nrrd; use nrrd{I,F,D}Lookup[]", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(AIR_INSIDE(0, axis, nin->dim-1))) {
+  if (!(AIR_IN_CL(0, axis, nin->dim-1))) {
     sprintf(err, "%s: slice axis %d out of bounds (0 to %d)", 
 	    me, axis, nin->dim-1);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(AIR_INSIDE(0, pos, nin->axis[axis].size-1) )) {
+  if (!(AIR_IN_CL(0, pos, nin->axis[axis].size-1) )) {
     sprintf(err, "%s: position %d out of bounds (0 to %d)", 
 	    me, pos, nin->axis[axis].size-1);
     biffAdd(NRRD, err); return 1;
@@ -230,8 +230,8 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
 	      me, d, min[d], max[d]);
       biffAdd(NRRD, err); return 1;
     }
-    if (!(AIR_INSIDE(0, min[d], nin->axis[d].size-1) &&
-	  AIR_INSIDE(0, max[d], nin->axis[d].size-1))) {
+    if (!(AIR_IN_CL(0, min[d], nin->axis[d].size-1) &&
+	  AIR_IN_CL(0, max[d], nin->axis[d].size-1))) {
       sprintf(err, "%s: axis %d min (%d) or max (%d) out of bounds [0,%d]",
 	      me, d, min[d], max[d], nin->axis[d].size-1);
       biffAdd(NRRD, err); return 1;

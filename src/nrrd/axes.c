@@ -114,7 +114,7 @@ nrrdAxesCopy(Nrrd *nout, Nrrd *nin, int *map, int bitflag) {
       if (-1 == map[d]) {
 	continue;
       }
-      if (!AIR_INSIDE(0, map[d], nin->dim-1)) {
+      if (!AIR_IN_CL(0, map[d], nin->dim-1)) {
 	return 3;
       }
     }
@@ -164,8 +164,8 @@ nrrdAxesSet_nva(Nrrd *nrrd, int axInfo, void *_info) {
   int d;
   
   if (!( nrrd 
-	 && AIR_INSIDE(1, nrrd->dim, NRRD_DIM_MAX) 
-	 && AIR_BETWEEN(nrrdAxesInfoUnknown, axInfo, nrrdAxesInfoLast) 
+	 && AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX) 
+	 && AIR_IN_OP(nrrdAxesInfoUnknown, axInfo, nrrdAxesInfoLast) 
 	 && _info )) {
     return;
   }
@@ -214,8 +214,8 @@ nrrdAxesSet(Nrrd *nrrd, int axInfo, ...) {
   va_list ap;
 
   if (!( nrrd 
-	 && AIR_INSIDE(1, nrrd->dim, NRRD_DIM_MAX) 
-	 && AIR_BETWEEN(nrrdAxesInfoUnknown, axInfo, nrrdAxesInfoLast) )) {
+	 && AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX) 
+	 && AIR_IN_OP(nrrdAxesInfoUnknown, axInfo, nrrdAxesInfoLast) )) {
     return;
   }
 
@@ -285,8 +285,8 @@ nrrdAxesGet_nva(Nrrd *nrrd, int axInfo, void *_info) {
   int d;
   
   if (!( nrrd 
-	 && AIR_INSIDE(1, nrrd->dim, NRRD_DIM_MAX) 
-	 && AIR_BETWEEN(nrrdAxesInfoUnknown, axInfo, nrrdAxesInfoLast) )) {
+	 && AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX) 
+	 && AIR_IN_OP(nrrdAxesInfoUnknown, axInfo, nrrdAxesInfoLast) )) {
     return;
   }
   
@@ -330,8 +330,8 @@ nrrdAxesGet(Nrrd *nrrd, int axInfo, ...) {
   va_list ap;
 
   if (!( nrrd 
-	 && AIR_INSIDE(1, nrrd->dim, NRRD_DIM_MAX) 
-	 && AIR_BETWEEN(nrrdAxesInfoUnknown, axInfo, nrrdAxesInfoLast) )) {
+	 && AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX) 
+	 && AIR_IN_OP(nrrdAxesInfoUnknown, axInfo, nrrdAxesInfoLast) )) {
     return;
   }
 
@@ -422,7 +422,7 @@ nrrdAxisPos(Nrrd *nrrd, int ax, double idx) {
   int center, size;
   double min, max;
   
-  if (!( nrrd && AIR_INSIDE(0, ax, nrrd->dim-1) )) {
+  if (!( nrrd && AIR_IN_CL(0, ax, nrrd->dim-1) )) {
     return AIR_NAN;
   }
   center = _nrrdCenter(nrrd->axis[ax].center);
@@ -447,7 +447,7 @@ nrrdAxisIdx(Nrrd *nrrd, int ax, double pos) {
   int center, size;
   double min, max;
   
-  if (!( nrrd && AIR_INSIDE(0, ax, nrrd->dim-1) )) {
+  if (!( nrrd && AIR_IN_CL(0, ax, nrrd->dim-1) )) {
     return AIR_NAN;
   }
   center = _nrrdCenter(nrrd->axis[ax].center);
@@ -471,7 +471,7 @@ nrrdAxisPosRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
   int center, size, flip = 0;
   double min, max, tmp;
 
-  if (!( loP && hiP && nrrd && AIR_INSIDE(0, ax, nrrd->dim-1) )) {
+  if (!( loP && hiP && nrrd && AIR_IN_CL(0, ax, nrrd->dim-1) )) {
     *loP = *hiP = AIR_NAN;
     return;
   }
@@ -521,7 +521,7 @@ nrrdAxisIdxRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
   int center, size, flip = 0;
   double min, max, tmp;
 
-  if (!( loP && hiP && nrrd && AIR_INSIDE(0, ax, nrrd->dim-1) )) {
+  if (!( loP && hiP && nrrd && AIR_IN_CL(0, ax, nrrd->dim-1) )) {
     *loP = *hiP = AIR_NAN;
     return;
   }
@@ -555,20 +555,14 @@ nrrdAxisIdxRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
 
 void
 nrrdAxisSpacingSet(Nrrd *nrrd, int ax) {
-  int center, size;
+  int sign;
   double min, max, tmp;
 
-  if (!( nrrd && AIR_INSIDE(0, ax, nrrd->dim-1) ))
+  if (!( nrrd && AIR_IN_CL(0, ax, nrrd->dim-1) ))
     return;
   
   min = nrrd->axis[ax].min;
   max = nrrd->axis[ax].max;
-  if (min < max) {
-    tmp = min; min = max; max = tmp;
-  }
-  center = _nrrdCenter(nrrd->axis[ax].center);
-  size = nrrd->axis[ax].size;
-
   if (!( AIR_EXISTS(min) && AIR_EXISTS(max) )) {
     /* there's no actual basis on which to set the spacing information,
        but we have to set it something, so here goes ... */
@@ -576,8 +570,16 @@ nrrdAxisSpacingSet(Nrrd *nrrd, int ax) {
     return;
   }
 
+  if (min > max) {
+    tmp = min; min = max; max = tmp;
+    sign = -1;
+  } else {
+    sign = 1;
+  }
+
   /* the skinny */
-  nrrd->axis[ax].spacing = NRRD_SPACING(center, min, max, size);
+  nrrd->axis[ax].spacing = NRRD_SPACING(_nrrdCenter(nrrd->axis[ax].center),
+					min, max, nrrd->axis[ax].size);
 
   return;
 }
@@ -587,7 +589,7 @@ nrrdAxisMinMaxSet(Nrrd *nrrd, int ax, int defCenter) {
   int center;
   double spacing;
 
-  if (!( nrrd && AIR_INSIDE(0, ax, nrrd->dim-1) ))
+  if (!( nrrd && AIR_IN_CL(0, ax, nrrd->dim-1) ))
     return;
   
   center = _nrrdCenter2(nrrd->axis[ax].center, defCenter);

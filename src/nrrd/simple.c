@@ -222,7 +222,7 @@ nrrdValid (Nrrd *nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 0;
   }
-  if (!airEnumValidVal(nrrdType, nrrd->type)) {
+  if (!airEnumValValid(nrrdType, nrrd->type)) {
     sprintf(err, "%s: type (%d) of array is invalid", me, nrrd->type);
     biffAdd(NRRD, err); return 0;
   }
@@ -232,7 +232,7 @@ nrrdValid (Nrrd *nrrd) {
 	    nrrd->blockSize);
     biffAdd(NRRD, err); return 0;
   }
-  if (!AIR_INSIDE(1, nrrd->dim, NRRD_DIM_MAX)) {
+  if (!AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX)) {
     sprintf(err, "%s: dimension %d is outside valid range [1,%d]",
 	    me, nrrd->dim, NRRD_DIM_MAX);
     biffAdd(NRRD, err); return 0;
@@ -335,7 +335,7 @@ nrrdSameSize (Nrrd *n1, Nrrd *n2, int useBiff) {
 int
 nrrdElementSize (Nrrd *nrrd) {
 
-  if (!( nrrd && airEnumValidVal(nrrdType, nrrd->type) )) {
+  if (!( nrrd && airEnumValValid(nrrdType, nrrd->type) )) {
     return 0;
   }
   if (nrrdTypeBlock != nrrd->type) {
@@ -404,12 +404,12 @@ nrrdFitsInFormat (Nrrd *nrrd, int encoding, int format, int useBiff) {
     biffMaybeAdd(NRRD, err, useBiff); 
     return AIR_FALSE;
   }
-  if (!airEnumValidVal(nrrdEncoding, encoding)) {
+  if (!airEnumValValid(nrrdEncoding, encoding)) {
     sprintf(err, "%s: encoding %d invalid", me, encoding);
     biffMaybeAdd(NRRD, err, useBiff); 
     return AIR_FALSE;
   }
-  if (!airEnumValidVal(nrrdFormat, format)) {
+  if (!airEnumValValid(nrrdFormat, format)) {
     sprintf(err, "%s: format %d invalid", me, format);
     biffMaybeAdd(NRRD, err, useBiff); 
     return AIR_FALSE;
@@ -570,7 +570,7 @@ nrrdHasNonExistSet (Nrrd *nrrd) {
   size_t I, N;
   float val;
 
-  if (!nrrd || !airEnumValidVal(nrrdType, nrrd->type))
+  if (!nrrd || !airEnumValValid(nrrdType, nrrd->type))
     return nrrdNonExistUnknown;
 
   if (nrrdTypeFixed[nrrd->type]) {
@@ -674,38 +674,38 @@ nrrdSanity (void) {
     biffAdd(NRRD, err); return 0;
   }
 
-  if (!airEnumValidVal(nrrdEncoding, nrrdDefWrtEncoding)) {
+  if (!airEnumValValid(nrrdEncoding, nrrdDefWrtEncoding)) {
     sprintf(err, "%s: nrrdDefWrtEncoding (%d) not in valid range [%d,%d]",
 	    me, nrrdDefWrtEncoding,
 	    nrrdEncodingUnknown+1, nrrdEncodingLast-1);
     biffAdd(NRRD, err); return 0;
   }
-  if (!airEnumValidVal(nrrdBoundary, nrrdDefRsmpBoundary)) {
+  if (!airEnumValValid(nrrdBoundary, nrrdDefRsmpBoundary)) {
     sprintf(err, "%s: nrrdDefRsmpBoundary (%d) not in valid range [%d,%d]",
 	    me, nrrdDefRsmpBoundary,
 	    nrrdBoundaryUnknown+1, nrrdBoundaryLast-1);
     biffAdd(NRRD, err); return 0;
   }
-  if (!airEnumValidVal(nrrdCenter, nrrdDefCenter)) {
+  if (!airEnumValValid(nrrdCenter, nrrdDefCenter)) {
     sprintf(err, "%s: nrrdDefCenter (%d) not in valid range [%d,%d]",
 	    me, nrrdDefCenter,
 	    nrrdCenterUnknown+1, nrrdCenterLast-1);
     biffAdd(NRRD, err); return 0;
   }
   if (!( nrrdTypeUnknown == nrrdDefRsmpType
-	 || airEnumValidVal(nrrdType, nrrdDefRsmpType) )) {
+	 || airEnumValValid(nrrdType, nrrdDefRsmpType) )) {
     sprintf(err, "%s: nrrdDefRsmpType (%d) not in valid range [%d,%d]",
 	    me, nrrdDefRsmpType,
 	    nrrdTypeUnknown, nrrdTypeLast-1);
     biffAdd(NRRD, err); return 0;
   }
-  if (!airEnumValidVal(nrrdType, nrrdStateMeasureType)) {
+  if (!airEnumValValid(nrrdType, nrrdStateMeasureType)) {
     sprintf(err, "%s: nrrdStateMeasureType (%d) not in valid range [%d,%d]",
 	    me, nrrdStateMeasureType,
 	    nrrdTypeUnknown+1, nrrdTypeLast-1);
     biffAdd(NRRD, err); return 0;
   }
-  if (!airEnumValidVal(nrrdType, nrrdStateMeasureHistoType)) {
+  if (!airEnumValValid(nrrdType, nrrdStateMeasureHistoType)) {
     sprintf(err,
 	    "%s: nrrdStateMeasureHistoType (%d) not in valid range [%d,%d]",
 	    me, nrrdStateMeasureType,
