@@ -79,8 +79,36 @@ _echoIntxColorNone(COLOR_ARGS) {
 }
 
 void
+_echoIntxUVColor(echoCol_t *chan, EchoIntx *intx) {
+  int ui, vi, su, sv;
+  unsigned char *tdata;
+  echoCol_t *mat;
+
+  mat = intx->obj->mat;
+  if (intx->obj->ntext) {
+    _echoRayIntxUV[intx->obj->type](intx);
+    su = intx->obj->ntext->axis[1].size;
+    sv = intx->obj->ntext->axis[2].size;
+    AIR_INDEX(0.0, intx->u, 1.0, su, ui); ui = AIR_CLAMP(0, ui, su-1);
+    AIR_INDEX(0.0, intx->v, 1.0, sv, vi); vi = AIR_CLAMP(0, vi, sv-1);
+    tdata = intx->obj->ntext->data;
+    chan[0] = mat[echoMatterR]*(tdata[0 + 4*(ui + su*vi)]/255.0);
+    chan[1] = mat[echoMatterG]*(tdata[1 + 4*(ui + su*vi)]/255.0);
+    chan[2] = mat[echoMatterB]*(tdata[2 + 4*(ui + su*vi)]/255.0);
+    chan[3] = 1.0;
+  }
+  else {
+    chan[0] = mat[echoMatterR];
+    chan[1] = mat[echoMatterG];
+    chan[2] = mat[echoMatterB];
+    chan[3] = 1.0;
+  }
+}
+
+void
 _echoIntxColorPhong(COLOR_ARGS) {
   echoCol_t *mat,        /* pointer to object's material info */
+    icol[4],             /* "intersection color" */
     oa,                  /* object opacity */
     d[3], s[3],          /* ambient + diffuse, specular */
     ka, kd, ks, sh,      /* phong parameters */
@@ -127,9 +155,21 @@ _echoIntxColorPhong(COLOR_ARGS) {
     if (param->shadow) {
       ELL_3V_COPY(shRay.dir, ldir);
       shRay.far = ldist;
+      if (param->verbose) {
+	printf("%d: from (%g,%g,%g) to (%g,%g,%g) for [%g,%g] (scene %d)\n",
+	       lt, shRay.from[0], shRay.from[1], shRay.from[2],
+	       shRay.dir[0], shRay.dir[1], shRay.dir[2],
+	       shRay.near, shRay.far, scene->type);
+      }
       if (_echoRayIntx[scene->type](&shIntx, &shRay, param, scene)) {
 	/* the shadow ray hit something, nevermind */
+	if (param->verbose) {
+	  printf("       SHADOWED\n");
+	}
 	continue;
+      }
+      if (param->verbose) {
+	printf(" I see the light\n");
       }
     }
     tmp *= kd;
@@ -145,11 +185,12 @@ _echoIntxColorPhong(COLOR_ARGS) {
       }
     }
   }
-  
-  chan[0] = mat[echoMatterR]*d[0] + s[0];
-  chan[1] = mat[echoMatterG]*d[1] + s[1];
-  chan[2] = mat[echoMatterB]*d[2] + s[2];
-  chan[3] = oa;
+
+  _echoIntxUVColor(icol, intx);
+  chan[0] = icol[0]*d[0] + s[0];
+  chan[1] = icol[1]*d[1] + s[1];
+  chan[2] = icol[2]*d[2] + s[2];
+  chan[3] = icol[3]*oa;
 }
 
 void
@@ -448,4 +489,14 @@ echoMatterLightSet(EchoObject *obj,
   obj->mat[echoMatterG] = g;
   obj->mat[echoMatterB] = b;
 }
-		   
+
+void
+echoMatterTextureSet(EchoObject *obj, Nrrd *ntext) {
+  
+  if (obj && ntext && 
+      3 == ntext->dim && 
+      nrrdTypeUChar == ntext->type &&
+      4 == ntext->axis[0].size) {
+    obj->ntext = ntext;
+  }
+}

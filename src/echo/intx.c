@@ -32,7 +32,7 @@
   
 int
 _echoRayIntxSphere(INTX_ARGS(Sphere)) {
-  echoPos_t t, A, B, C, r[3], dscr;
+  echoPos_t t, A, B, C, r[3], dscr, pos[3];
 
   ELL_3V_SUB(r, ray->from, obj->pos);
   A = ELL_3V_DOT(ray->dir, ray->dir);
@@ -54,32 +54,50 @@ _echoRayIntxSphere(INTX_ARGS(Sphere)) {
   }
   /* else one of the intxs is in [near,far] segment */
   intx->t = t;
-  intx->pos[0] = ray->from[0] + t*ray->dir[0];
-  intx->pos[1] = ray->from[1] + t*ray->dir[1];
-  intx->pos[2] = ray->from[2] + t*ray->dir[2];
-  ELL_3V_SUB(intx->norm, intx->pos, obj->pos);
+  ELL_3V_SCALEADD(pos, 1, ray->from, t, ray->dir);
+  ELL_3V_SUB(intx->norm, pos, obj->pos);
   intx->obj = (EchoObject *)obj;
   /* set in intx:
-     yes: t, norm, pos
-     no: u, v, view
+     yes: t, norm
+     no: u, v, view, pos
   */
   return AIR_TRUE;
 }
 
 void
-_echoRayIntxUVSphere(EchoIntx *intx, EchoRay *ray) {
+_echoRayIntxUVSphere(EchoIntx *intx) {
   echoPos_t len, u, v;
 
   ELL_3V_NORM(intx->norm, intx->norm, len);
   if (intx->norm[0] || intx->norm[1]) {
     u = atan2(intx->norm[1], intx->norm[0]);
     intx->u = AIR_AFFINE(-M_PI, u, M_PI, 0.0, 1.0);
-    v = asin(intx->norm[2]);
+    v = -asin(intx->norm[2]);
     intx->v = AIR_AFFINE(-M_PI/2, v, M_PI/2, 0.0, 1.0);
   }
   else {
     intx->u = 0;
-    intx->v = AIR_AFFINE(-1.0, intx->norm[2], 1.0, 0.0, 1.0);
+    intx->v = AIR_AFFINE(1.0, intx->norm[2], -1.0, 0.0, 1.0);
+  }
+}
+
+void
+_echoRayIntxUVTriMesh(EchoIntx *intx) {
+  echoPos_t u, v, norm[3], len;
+  EchoObjectTriMesh *trim;
+
+  trim = TRIM(intx->obj);
+  ELL_3V_SUB(norm, intx->pos, trim->origin);
+  ELL_3V_NORM(norm, norm, len);
+  if (norm[0] || norm[1]) {
+    u = atan2(norm[1], norm[0]);
+    intx->u = AIR_AFFINE(-M_PI, u, M_PI, 0.0, 1.0);
+    v = -asin(norm[2]);
+    intx->v = AIR_AFFINE(-M_PI/2, v, M_PI/2, 0.0, 1.0);
+  }
+  else {
+    intx->u = 0;
+    intx->v = AIR_AFFINE(1.0, norm[2], -1.0, 0.0, 1.0);
   }
 }
 
@@ -95,18 +113,22 @@ _echoRayIntxCubeTest(echoPos_t *tP, int *axP, int *dirP,
 
   ELL_3V_GET(dx, dy, dz, ray->dir);
   ELL_3V_GET(ox, oy, oz, ray->from);
-  if (dx > 0) { txmin = (xmin - ox)/dx; txmax = (xmax - ox)/dx; }
-  else {        txmin = (xmax - ox)/dx; txmax = (xmin - ox)/dx; }
-  if (dy > 0) { tymin = (ymin - oy)/dy; tymax = (ymax - oy)/dy; }
-  else {        tymin = (ymax - oy)/dy; tymax = (ymin - oy)/dy; }
-  if (dz > 0) { tzmin = (zmin - oz)/dz; tzmax = (zmax - oz)/dz; }
-  else {        tzmin = (zmax - oz)/dz; tzmax = (zmin - oz)/dz; }
+  if (dx >= 0) { txmin = (xmin - ox)/dx; txmax = (xmax - ox)/dx; }
+  else {         txmin = (xmax - ox)/dx; txmax = (xmin - ox)/dx; }
+  if (dy >= 0) { tymin = (ymin - oy)/dy; tymax = (ymax - oy)/dy; }
+  else {         tymin = (ymax - oy)/dy; tymax = (ymin - oy)/dy; }
+  if (dz >= 0) { tzmin = (zmin - oz)/dz; tzmax = (zmax - oz)/dz; }
+  else {         tzmin = (zmax - oz)/dz; tzmax = (zmin - oz)/dz; }
   if (txmin > tymin) { tmin = txmin; axmin = 0; }
   else {               tmin = tymin; axmin = 1; }
   if (tzmin > tmin) {  tmin = tzmin; axmin = 2; }
   if (txmax < tymax) { tmax = txmax; axmax = 0; }
   else {               tmax = tymax; axmax = 1; }
   if (tzmax < tmax) {  tmax = tzmax; axmax = 2; }
+  /*
+  printf("tx: %g,%g ; ty: %g,%g ; tz: %g,%g  ---> %g,%g (%d)\n",
+	 txmin, txmax, tymin, tymax, tzmin, tzmax, tmin, tmax, tmin >= tmax);
+  */
   if (tmin >= tmax)
     return AIR_FALSE;
   *tP = tmin;
@@ -154,7 +176,7 @@ _echoRayIntxCube(INTX_ARGS(Cube)) {
 }
 
 void
-_echoRayIntxUVCube(EchoIntx *intx, EchoRay *ray) {
+_echoRayIntxUVCube(EchoIntx *intx) {
   echoPos_t x, y, z;
 
   ELL_3V_GET(x, y, z, intx->pos);
@@ -266,6 +288,11 @@ _echoRayIntxTriMesh(INTX_ARGS(TriMesh)) {
 			    trim->min[0], trim->max[0],
 			    trim->min[1], trim->max[1],
 			    trim->min[2], trim->max[2], ray)) {
+    if (param->verbose) {
+      printf("(trimesh bbox (%g,%g,%g) --> (%g,%g,%g) not hit)\n",
+	     trim->min[0], trim->min[1], trim->min[2],
+	     trim->max[0], trim->max[1], trim->max[2]);
+    }
     return AIR_FALSE;
   }
   /* stupid linear search for now */
@@ -280,6 +307,9 @@ _echoRayIntxTriMesh(INTX_ARGS(TriMesh)) {
     TRI_INTX(ray, vert0, edge0, edge1,
 	     pvec, qvec, tvec, det, t, u, v,
 	     (v < 0.0 || u + v > 1.0), continue);
+    if (ray->shadow) {
+      return AIR_TRUE;
+    }
     intx->t = ray->far = t;
     intx->u = u;
     intx->v = v;
@@ -289,25 +319,6 @@ _echoRayIntxTriMesh(INTX_ARGS(TriMesh)) {
     ret = AIR_TRUE;
   }
   return ret;
-}
-
-void
-_echoRayIntxUVTriMesh(EchoIntx *intx, EchoRay *ray) {
-  echoPos_t u, v, norm[3];
-  EchoObjectTriMesh *trim;
-
-  trim = TRIM(intx->obj);
-  ELL_3V_SUB(norm, intx->pos, trim->origin);
-  if (norm[0] || norm[1]) {
-    u = atan2(norm[1], norm[0]);
-    intx->u = AIR_AFFINE(-M_PI, u, M_PI, 0.0, 1.0);
-    v = asin(norm[2]);
-    intx->v = AIR_AFFINE(-M_PI/2, v, M_PI/2, 0.0, 1.0);
-  }
-  else {
-    intx->u = 0;
-    intx->v = AIR_AFFINE(-1.0, norm[2], 1.0, 0.0, 1.0);
-  }
 }
 
 int
@@ -396,8 +407,50 @@ _echoRayIntxList(INTX_ARGS(List)) {
   return ret;
 }
 
+int
+_echoRayIntxInstance(INTX_ARGS(Instance)) {
+  echoPos_t a[4], b[4];
+  EchoRay iray;
+
+  /*
+  ELL_3V_COPY(iray.from, ray->from);
+  ELL_3V_COPY(iray.dir, ray->dir);
+  */
+  ELL_4V_SET(a, ray->from[0], ray->from[1], ray->from[2], 1);
+  ELL_4MV_MUL(b, obj->M, a);  ELL_34V_HOMOG(iray.from, b);
+  if (0 && param->verbose) {
+    ell4mPrint_f(stdout, obj->M);
+    printf("from (%g,%g,%g)\n   -- M --> (%g,%g,%g,%g)\n   --> (%g,%g,%g)\n",
+	   a[0], a[1], a[2],
+	   b[0], b[1], b[2], b[3], 
+	   iray.from[0], iray.from[1], iray.from[2]);
+  }
+  ELL_4V_SET(a, ray->dir[0], ray->dir[1], ray->dir[2], 0);
+  ELL_4MV_MUL(b, obj->M, a);   ELL_3V_COPY(iray.dir, b);
+  if (0 && param->verbose) {
+    printf("dir (%g,%g,%g)\n   -- M --> (%g,%g,%g,%g)\n   --> (%g,%g,%g)\n",
+	   a[0], a[1], a[2],
+	   b[0], b[1], b[2], b[3], 
+	   iray.dir[0], iray.dir[1], iray.dir[2]);
+  }
+  
+  iray.near = ray->near;
+  iray.far = ray->far;
+  iray.depth = ray->depth;
+  iray.shadow = ray->shadow;
+  
+  if (_echoRayIntx[obj->obj->type](intx, &iray, param, obj->obj)) {
+    ELL_4V_SET(a, intx->norm[0], intx->norm[1], intx->norm[2], 0);
+    ELL_4MV_TMUL(b, obj->M, a);
+    ELL_3V_COPY(intx->norm, b);
+    return AIR_TRUE;
+  }
+  /* else */
+  return AIR_FALSE;
+}
+
 void
-_echoRayIntxUVNoop(EchoIntx *intx, EchoRay *ray) {
+_echoRayIntxUVNoop(EchoIntx *intx) {
 
 }
 	      
@@ -414,7 +467,7 @@ _echoRayIntx[ECHO_OBJECT_MAX+1] = {
   (_echoRayIntx_t)_echoRayIntxList,  /* trickery */
   (_echoRayIntx_t)_echoRayIntxSplit,
   (_echoRayIntx_t)_echoRayIntxList,
-  (_echoRayIntx_t)NULL
+  (_echoRayIntx_t)_echoRayIntxInstance,
 };
 
 _echoRayIntxUV_t

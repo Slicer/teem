@@ -20,12 +20,14 @@
 #ifndef ECHO_PRIVATE_HAS_BEEN_INCLUDED
 #define ECHO_PRIVATE_HAS_BEEN_INCLUDED
 
-#define SPLIT(obj)   ((EchoObjectSplit*)obj)
-#define LIST(obj)    ((EchoObjectList*)obj)
-#define SPHERE(obj)  ((EchoObjectSphere*)obj)
-#define AABBOX(obj)  ((EchoObjectAABBox*)obj)
-#define TRIMESH(obj) ((EchoObjectTriMesh*)obj)
-#define TRIM(obj)    ((EchoObjectTriMesh*)obj)
+#define SPLIT(obj)    ((EchoObjectSplit*)obj)
+#define LIST(obj)     ((EchoObjectList*)obj)
+#define SPHERE(obj)   ((EchoObjectSphere*)obj)
+#define RECT(obj)     ((EchoObjectRectangle*)obj)
+#define AABBOX(obj)   ((EchoObjectAABBox*)obj)
+#define TRIMESH(obj)  ((EchoObjectTriMesh*)obj)
+#define TRIM(obj)     ((EchoObjectTriMesh*)obj)
+#define INSTANCE(obj) ((EchoObjectInstance*)obj)
 
 /* intx.c */
 #define INTX_ARGS(TYPE) EchoIntx *intx, EchoRay *ray,               \
@@ -34,7 +36,7 @@
 typedef int (*_echoRayIntx_t)(INTX_ARGS( ));
 extern _echoRayIntx_t _echoRayIntx[ECHO_OBJECT_MAX+1];
 
-typedef void (*_echoRayIntxUV_t)(EchoIntx *intx, EchoRay *ray);
+typedef void (*_echoRayIntxUV_t)(EchoIntx *intx);
 extern _echoRayIntxUV_t _echoRayIntxUV[ECHO_OBJECT_MAX+1];
 
 /* color.c */

@@ -47,21 +47,21 @@ _echoObject##TYPE##_new(void) {                                  \
 */
 
 NEW_TMPL(Sphere,
-	 obj->text = NULL;
+	 obj->ntext = NULL;
 	 );
 NEW_TMPL(Cube,
-	 obj->text = NULL;
+	 obj->ntext = NULL;
 	 );
 NEW_TMPL(Triangle,
-	 obj->text = NULL;
+	 obj->ntext = NULL;
 	 );
 NEW_TMPL(Rectangle,
-	 obj->text = NULL;
+	 obj->ntext = NULL;
 	 );
 NEW_TMPL(TriMesh,
 	 ELL_3V_SET(obj->min, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
 	 ELL_3V_SET(obj->max, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
-	 obj->text = NULL;
+	 obj->ntext = NULL;
 	 obj->numV = obj->numF = 0;
 	 obj->pos = NULL;
 	 obj->vert = NULL;
@@ -95,8 +95,8 @@ NEW_TMPL(List,
 			   (void *(*)(void *))echoObjectNix);
 	 );
 NEW_TMPL(Instance,
-	 ELL_4M_SET_IDENT(obj->matx);
-	 ELL_3M_SET_IDENT(obj->mot);
+	 ELL_4M_SET_IDENTITY(obj->M);
+	 ELL_3M_SET_IDENTITY(obj->mot);
 	 obj->own = AIR_FALSE;
 	 obj->motion = AIR_FALSE;
 	 obj->obj = NULL;
@@ -580,11 +580,12 @@ echoObjectListSplit3(EchoObject *list, int depth) {
 
 void
 _echoSetPos(echoPos_t *p3, echoPos_t *matx, echoPos_t *p4) {
-  echoPos_t tmp[4];
+  echoPos_t a[4], b[4];
   
   if (matx) {
-    ELL_4MV_MUL(tmp, matx, p4);
-    ELL_34V_HOMOG(p3, tmp);
+    ELL_4V_SET(a, p4[0], p4[1], p4[2], 1);
+    ELL_4MV_MUL(b, matx, a);
+    ELL_34V_HOMOG(p3, b);
   }
   else {
     ELL_3V_COPY(p3, p4);
@@ -595,7 +596,7 @@ EchoObject *
 echoObjectRoughSphere(int theRes, int phiRes, echoPos_t *matx) {
   EchoObject *ret;
   EchoObjectTriMesh *trim;
-  echoPos_t *_pos, *pos, tmp[4];
+  echoPos_t *_pos, *pos, tmp[3];
   int *_vert, *vert, thidx, phidx, n;
   echoPos_t th, ph;
 
@@ -603,21 +604,16 @@ echoObjectRoughSphere(int theRes, int phiRes, echoPos_t *matx) {
   trim = TRIM(ret);
   trim->numV = 2 + (phiRes-1)*theRes;
   trim->numF = (2 + 2*(phiRes-2))*theRes;
-  printf("echoObjectRoughSphere: numV = %d, numF = %d\n",
-	 trim->numV, trim->numF);
 
   _pos = pos = calloc(3*trim->numV, sizeof(echoPos_t));
   _vert = vert = calloc(3*trim->numF, sizeof(int));
-  tmp[3] = 1.0;
 
   ELL_3V_SET(tmp, 0, 0, 1); _echoSetPos(pos, matx, tmp); pos += 3;
   for (phidx=1; phidx<phiRes; phidx++) {
     ph = AIR_AFFINE(0, phidx, phiRes, 0.0, M_PI);
-    printf("phidx = %d -> ph = %g -> sin(ph) = %g\n", phidx, ph, sin(ph));
     for (thidx=0; thidx<theRes; thidx++) {
       th = AIR_AFFINE(0, thidx, theRes, 0.0, 2*M_PI);
       ELL_3V_SET(tmp, cos(th)*sin(ph), sin(th)*sin(ph), cos(ph));
-      printf("tmp = %g,%g,%g\n", tmp[0], tmp[1], tmp[2]);
       _echoSetPos(pos, matx, tmp); pos += 3;
     }
   }
@@ -626,7 +622,6 @@ echoObjectRoughSphere(int theRes, int phiRes, echoPos_t *matx) {
   for (thidx=0; thidx<theRes; thidx++) {
     n = AIR_MOD(thidx+1, theRes);
     ELL_3V_SET(vert, 0, 1+thidx, 1+n); vert += 3;
-    printf("face: %d %d %d\n", 0, 1+thidx, 1+n);
   }
   for (phidx=0; phidx<phiRes-2; phidx++) {
     for (thidx=0; thidx<theRes; thidx++) {
@@ -641,7 +636,6 @@ echoObjectRoughSphere(int theRes, int phiRes, echoPos_t *matx) {
     n = AIR_MOD(thidx+1, theRes);
     ELL_3V_SET(vert, 1+(phiRes-2)*theRes+thidx, trim->numV-1,
 	       1+(phiRes-2)*theRes+n); 
-    printf("face: %d, %d, %d\n", vert[0], vert[1], vert[2]);
     vert += 3;
   }
 
@@ -721,6 +715,38 @@ echoObjectTriMeshSet(EchoObject *_trim,
   }
   return;
 }
+
+void
+echoObjectInstanceSet(EchoObject *_inst,
+		      echoPos_t *M, echoPos_t *mot,
+		      EchoObject *obj, int own) {
+  EchoObjectInstance *inst;
+  
+  if (_inst && echoObjectInstance == _inst->type) {
+    inst = INSTANCE(_inst);
+    if (M) {
+#if nrrdTypeFloat == echoPos_nrrdType
+      ell4mInvert_f(inst->M, M);
+#else
+      ell4mInvert_d(inst->M, M);
+#endif  
+    }
+    else {
+      ELL_4M_SET_IDENTITY(inst->M);
+    }
+    if (mot) {
+      ELL_3M_COPY(inst->mot, mot);
+      inst->motion = AIR_TRUE;
+    }
+    else {
+      ELL_3M_SET_IDENTITY(inst->mot);
+      inst->motion = AIR_FALSE;
+    }
+    inst->obj = obj;
+    inst->own = own;
+  }
+}
+
 
 /*		       
   echoObjectUnknown,

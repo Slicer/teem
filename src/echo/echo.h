@@ -186,7 +186,7 @@ enum {
 #define ECHO_OBJECT_MATTER              \
   int matter;                           \
   echoCol_t mat[ECHO_MATTER_VALUE_NUM]; \
-  Nrrd *text
+  Nrrd *ntext
 
 typedef struct {
   ECHO_OBJECT_COMMON;
@@ -261,7 +261,7 @@ typedef struct {
 
 typedef struct {
   ECHO_OBJECT_COMMON;
-  echoPos_t matx[16], mot[9];
+  echoPos_t M[16], mot[9];
   int own, motion;
   EchoObject *obj;
 } EchoObjectInstance;  
@@ -292,6 +292,9 @@ extern void echoObjectTriMeshSet(EchoObject *_trim,
 				 int numF, int *vert);
 extern EchoObject *echoObjectRoughSphere(int theRes, int phiRes,
 					 echoPos_t *matx);
+extern void echoObjectInstanceSet(EchoObject *_inst,
+				  echoPos_t *M, echoPos_t *mot,
+				  EchoObject *obj, int own);
 
 /* light.c ---------------------------------------- */
 
@@ -392,7 +395,7 @@ extern void echoMatterMetalSet(EchoObject *obj,
 			       echoCol_t R0, echoCol_t kd, echoCol_t fuzzy);
 extern void echoMatterLightSet(EchoObject *obj,
 			       echoCol_t r, echoCol_t g, echoCol_t b);
-
+extern void echoMatterTextureSet(EchoObject *obj, Nrrd *ntext);
 
 
 #endif /* ECHO_HAS_BEEN_INCLUDED */

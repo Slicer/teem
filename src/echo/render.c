@@ -316,10 +316,6 @@ echoRayColor(echoCol_t *chan, int samp, EchoRay *ray,
   ELL_3V_SCALE(intx.view, -1, ray->dir);
   ELL_3V_SCALEADD(intx.pos, 1, ray->from, intx.t, ray->dir);
   intx.depth = ray->depth;
-  /* it seems that the only other information that might be needed
-     about the intersection is (u,v) location, which be generated
-     on an as-needed basis, so this should be migrated somewhere ... */
-  /* _echoRayIntxUV[intx.obj->type](&intx, ray, AIR_FALSE); */
   _echoIntxColor[intx.obj->matter](chan, &intx, samp, param,
 				   tstate, scene, lightArr);
 
@@ -397,7 +393,7 @@ echoRender(Nrrd *nraw, limnCam *cam,
       imgU = NRRD_AXIS_POS(nrrdCenterCell, cam->uMin, cam->uMax,
 			   param->imgResU, imgUi);
 
-      param->verbose = ( (264 == imgUi && 160 == imgVi) ||
+      param->verbose = ( (100 == imgUi && 156 == imgVi) ||
 			 (263 == imgUi && 160 == imgVi) );
 
       /* initialize things on first "scanline" */
