@@ -18,12 +18,11 @@
 
 #ifndef NRRD_DEFINES_HAS_BEEN_INCLUDED
 #define NRRD_DEFINES_HAS_BEEN_INCLUDED
-
-#include <limits.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <limits.h>
 
 #define NRRD_MAX_DIM 12         /* The maximum dimension which we can handle */
 
@@ -34,8 +33,6 @@ extern "C" {
 				   using "int" would give a maximum pow-of-2
 				   array size of 1024x1024x1024 
 				   (really 1024x1024x2048-1) */
-
-#define NRRD_MAX_TYPE_SIZE 16   /* sizeof() largest type supported */
 
 #define NRRD_BIG_INT_PRINTF "%lld"
 
@@ -98,5 +95,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
 #endif /* NRRD_DEFINES_HAS_BEEN_INCLUDED */
