@@ -86,11 +86,11 @@ unrrdu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (nrrdTypeDefault != type) {
     /* they wanted to convert nrrds to some other type first */
     E = 0;
-    if (in1->nrrd) {
+    if (in1->ownNrrd) {
       if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in1->ownNrrd, type);
       if (!E) nrrdIterSetOwnNrrd(in1, ntmp);
     }
-    if (in2->nrrd) {
+    if (in2->ownNrrd) {
       if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in2->ownNrrd, type);
       if (!E) nrrdIterSetOwnNrrd(in2, ntmp);
     }
