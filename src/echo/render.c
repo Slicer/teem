@@ -39,6 +39,7 @@ echoComposite(Nrrd *nimg, Nrrd *nraw, EchoParam *param) {
     sprintf(err, "%s:", me);
     biffMove(ECHO, err, NRRD); return 1;
   }
+  nrrdAxesSet(nimg, nrrdAxesInfoLabel, "rgb", "x", "y");
   
   raw = nraw->data;
   img = nimg->data;
@@ -77,6 +78,7 @@ echoPPM(Nrrd *nppm, Nrrd *nimg, EchoParam *param) {
     sprintf(err, "%s:", me);
     biffMove(ECHO, err, NRRD); return 1;
   }
+  nrrdAxesSet(nimg, nrrdAxesInfoLabel, "rgb", "x", "y");
   
   img = nimg->data;
   ppm = nppm->data;
@@ -107,11 +109,13 @@ echoThreadStateInit(EchoThreadState *tstate,
     sprintf(err, "%s: couldn't allocate jitter permutation array", me);
     biffMove(ECHO, err, NRRD); return 1;
   }
+  nrrdAxesSet(tstate->nperm, nrrdAxesInfoLabel, "info", "sample");
   if (nrrdMaybeAlloc(tstate->njitt, echoPos_nrrdType, 3,
 		     2, ECHO_SAMPLE_NUM, param->samples)) {
     sprintf(err, "%s: couldn't allocate jitter array", me);
     biffMove(ECHO, err, NRRD); return 1;
   }
+  nrrdAxesSet(tstate->njitt, nrrdAxesInfoLabel, "x,y", "info", "sample");
   if (!( tstate->permBuff = (int*)calloc(param->samples, sizeof(int)) )) {
     sprintf(err, "%s: couldn't allocate permutation buffer", me);
     biffAdd(ECHO, err); return 1;
@@ -269,6 +273,7 @@ echoRender(Nrrd *nraw, limnCam *cam,
     sprintf(err, "%s: couldn't allocate output image", me);
     biffMove(ECHO, err, NRRD); return 1;
   }
+  nrrdAxesSet(nraw, nrrdAxesInfoLabel, "channels", "x", "y");
   tstate = echoThreadStateNew();
   if (echoThreadStateInit(tstate, param, gstate)) {
     sprintf(err, "%s:", me);
