@@ -153,10 +153,10 @@ main(int argc, char *argv[]) {
 
   ctx = gageContextNew();
   airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
-  gageSet(ctx, gageParmGradMagMin, gmc);
-  gageSet(ctx, gageParmVerbose, 30);
-  gageSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
-  gageSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
+  gageParmSet(ctx, gageParmGradMagMin, gmc);
+  gageParmSet(ctx, gageParmVerbose, 30);
+  gageParmSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
+  gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);

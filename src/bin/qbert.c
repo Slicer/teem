@@ -206,9 +206,9 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
     sprintf(err, "%s: gage trouble", me);
     biffMove(QBERT, err, GAGE); airMopError(mop); return 1;
   }
-  gageSet(ctx, gageParmVerbose, 0);
-  gageSet(ctx, gageParmRenormalize, AIR_TRUE);
-  gageSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
+  gageParmSet(ctx, gageParmVerbose, 0);
+  gageParmSet(ctx, gageParmRenormalize, AIR_TRUE);
+  gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   /* about kernel setting for probing: currently, the way that probing is
@@ -228,7 +228,7 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
     sprintf(err, "%s: gage trouble", me);
     biffMove(QBERT, err, GAGE); airMopError(mop); return 1;
   }
-  gageSet(ctx, gageParmVerbose, 0);
+  gageParmSet(ctx, gageParmVerbose, 0);
   val = gageAnswerPointer(ctx, pvl, gageSclValue);
   gmag = gageAnswerPointer(ctx, pvl, gageSclGradMag);
   scnd = gageAnswerPointer(ctx, pvl, gageScl2ndDD);

@@ -95,10 +95,13 @@ main(int argc, char *argv[]) {
 	     "0.01", "\"reference\" step size (world space) for doing "
 	     "opacity correction in compositing");
   hestOptAdd(&hopt, "n1", "near1", airTypeDouble, 1, 1, &(muu->near1),
-	     "0.99", "close enough to 1.0 to terminate ray");
+	     "0.99", "opacity close enough to 1.0 to terminate ray");
   hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1,
-	     &(muu->hctx->numThreads),
-	     "1", "number of threads hoover should use");
+	     &(muu->hctx->numThreads), "1", 
+	     (hooverMyPthread
+	      ? "number of threads hoover should use"
+	      : "if pthreads where enabled in this teem build, this is how "
+	      "you would control the number of threads hoover should use"));
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS,
 	     NULL, "file to write output nrrd to");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
@@ -110,18 +113,21 @@ main(int argc, char *argv[]) {
   muu->rangeInit[miteRangeKa] = ads[0];
   muu->rangeInit[miteRangeKd] = ads[1];
   muu->rangeInit[miteRangeKs] = ads[2];
-  gageSet(muu->gctx0, gageParmGradMagCurvMin, gmc);
-  gageSet(muu->gctx0, gageParmRenormalize, renorm);
+  gageParmSet(muu->gctx0, gageParmGradMagCurvMin, gmc);
+  gageParmSet(muu->gctx0, gageParmRenormalize, renorm);
 
   muu->nout = nrrdNew();  
   airMopAdd(mop, muu->nout, (airMopper)nrrdNuke, airMopAlways);
   ELL_3V_SET(muu->lit->col[0], 1, 1, 1);
   muu->lit->on[0] = AIR_TRUE;
   muu->lit->vsp[0] = AIR_TRUE;
-  limnCamUpdate(muu->hctx->cam);
-  limnLightUpdate(muu->lit, muu->hctx->cam);
-  fprintf(stderr, "%s: light dir: %g %g %g\n", me,
-	  muu->lit->dir[0][0], muu->lit->dir[0][1], muu->lit->dir[0][2]);
+  if (limnCamUpdate(muu->hctx->cam)
+      || limnLightUpdate(muu->lit, muu->hctx->cam)) {
+    airMopAdd(mop, errS = biffGetDone(LIMN), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble setting camera:\n%s\n", me, errS);
+    airMopError(mop);
+    return 1;
+  }
 
   nrrdAxisInfoGet_nva(muu->nin, nrrdAxisInfoSize, muu->hctx->volSize);
   nrrdAxisInfoGet_nva(muu->nin, nrrdAxisInfoSpacing, muu->hctx->volSpacing);
@@ -136,7 +142,7 @@ main(int argc, char *argv[]) {
 
   if (!hooverMyPthread) {
     fprintf(stderr, "%s: This teem not compiled with pthread support.\n", me);
-    fprintf(stderr, "%s: --> can't use %d threads; only using 1\n",
+    fprintf(stderr, "%s: ==> can't use %d threads; only using 1\n",
 	    me, muu->hctx->numThreads);
     muu->hctx->numThreads = 1;
   }
