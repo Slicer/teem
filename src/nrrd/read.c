@@ -136,7 +136,7 @@ _nrrdCalloc (Nrrd *nrrd, NrrdIoState *nio) {
     /* make the data look like it came from calloc() */
     memset(nrrd->data, 0, needDataSize);
   } else {
-    AIR_FREE(nrrd->data);
+    nrrd->data = airFree(nrrd->data);
     nrrd->data = calloc(nrrdElementNumber(nrrd), nrrdElementSize(nrrd));
     if (!nrrd->data) {
       sprintf(err, "%s: couldn't calloc(" _AIR_SIZE_T_FMT
@@ -311,7 +311,7 @@ nrrdRead (Nrrd *nrrd, FILE *file, NrrdIoState *nio) {
 
   /* free prior memory if we didn't end up using it */
   if (nio->oldData != nrrd->data) {
-    AIR_FREE(nio->oldData);
+    nio->oldData = airFree(nio->oldData);
     nio->oldDataSize = 0;
   }
 
@@ -335,10 +335,10 @@ _nrrdSplitName (char **dirP, char **baseP, const char *name) {
   char *where;
   
   if (dirP) {
-    AIR_FREE(*dirP);
+    *dirP = airFree(*dirP);
   }
   if (baseP) {
-    AIR_FREE(*baseP);
+    *baseP = airFree(*baseP);
   }
   where = strrchr(name, '/');
   /* we found a valid break if the last directory character

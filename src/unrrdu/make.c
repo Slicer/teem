@@ -57,19 +57,22 @@ unrrduMakeRead(char *me, Nrrd *nrrd, NrrdIoState *nio, const char *fname,
   }
   if (nrrdLineSkip(nio)) {
     sprintf(err, "%s: couldn't skip lines", me);
-    AIR_FCLOSE(nio->dataFile); biffMove(me, err, NRRD); return 1;
+    nio->dataFile = airFclose(nio->dataFile);
+    biffMove(me, err, NRRD); return 1;
   }
   if (!nio->encoding->isCompression) {
     if (nrrdByteSkip(nrrd, nio)) {
       sprintf(err, "%s: couldn't skip bytes", me);
-      AIR_FCLOSE(nio->dataFile); biffMove(me, err, NRRD); return 1;
+      nio->dataFile = airFclose(nio->dataFile);
+      biffMove(me, err, NRRD); return 1;
     }
   }
   if (nio->encoding->read(nrrd, nio)) {
     sprintf(err, "%s: error reading data", me);
-    AIR_FCLOSE(nio->dataFile); biffMove(me, err, NRRD); return 1;
+    nio->dataFile = airFclose(nio->dataFile);
+    biffMove(me, err, NRRD); return 1;
   }
-  AIR_FCLOSE(nio->dataFile);
+  nio->dataFile = airFclose(nio->dataFile);
   return 0;
 }
 

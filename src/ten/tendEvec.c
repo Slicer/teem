@@ -109,7 +109,7 @@ tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
-  AIR_FREE(nout->axis[0].label);
+  nout->axis[0].label = airFree(nout->axis[0].label);
 
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);

@@ -620,15 +620,6 @@ TEEM_API void airMopDebug(airArray *arr);
                              : 0))
 
 /*
-******** AIR_FREE, AIR_FCLOSE
-**
-** just to help you set all pointers to free'd data and fclose'd files to NULL
-*/
-#define AIR_FREE(x) (x) = airFree((x))
-#define AIR_FCLOSE(f) (f) = airFclose((f))
-
-
-/*
 ******** AIR_IN_OP(a,b,c), AIR_IN_CL(a,b,c)
 **
 ** is true if the middle argument is in the open/closed interval

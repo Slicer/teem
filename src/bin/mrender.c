@@ -124,7 +124,7 @@ mrendUserNix(mrendUser *uu) {
 
   if (uu) {
     airMopOkay(uu->mrmop);
-    AIR_FREE(uu);
+    uu = airFree(uu);
   }
   return NULL;
 }
@@ -300,7 +300,7 @@ mrendThreadBegin(mrendThread **ttP,
 int
 mrendThreadEnd(mrendThread *tt, mrendRender *rr, mrendUser *uu) {
   
-  AIR_FREE(tt->val);
+  tt->val = airFree(tt->val);
 
   return 0;
 }
@@ -332,7 +332,7 @@ mrendRayBegin(mrendThread *tt, mrendRender *rr, mrendUser *uu,
 		 (uu->hctx->cam->vspFaar - uu->hctx->cam->vspNeer));
   newLen = AIR_ROUNDUP(rayLen/tt->rayStep) + 1;
   if (!tt->val || newLen > tt->valLen) {
-    AIR_FREE(tt->val);
+    tt->val = airFree(tt->val);
     tt->valLen = newLen;
     tt->val = (float*)calloc(newLen, sizeof(float));
   }

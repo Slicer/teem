@@ -97,8 +97,8 @@ NEW_TMPL(TriMesh,
 	 obj->vert = NULL;
 	 )
 NIX_TMPL(TriMesh,
-	 AIR_FREE(obj->pos);
-	 AIR_FREE(obj->vert);
+	 obj->pos = airFree(obj->pos);
+	 obj->vert = airFree(obj->vert);
 	 )
 
 NEW_TMPL(Isosurface,

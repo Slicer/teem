@@ -29,8 +29,8 @@ _nrrdAxisInfoInit(NrrdAxis *axis) {
     axis->size = 0;
     axis->spacing = AIR_NAN;
     axis->min = axis->max = AIR_NAN;
-    AIR_FREE(axis->label);
-    AIR_FREE(axis->unit);
+    axis->label = airFree(axis->label);
+    axis->unit = airFree(axis->unit);
     axis->center = nrrdCenterUnknown;
   }
 }
@@ -52,9 +52,9 @@ NrrdAxis *
 nrrdAxisInfoNix(NrrdAxis *axis) {
 
   if (axis) {
-    AIR_FREE(axis->label);
-    AIR_FREE(axis->unit);
-    AIR_FREE(axis);
+    axis->label = airFree(axis->label);
+    axis->unit = airFree(axis->unit);
+    axis = airFree(axis);
   }
   return NULL;
 }
@@ -82,13 +82,13 @@ _nrrdAxisInfoCopy(NrrdAxis *dest, const NrrdAxis *src, int bitflag) {
   }
   if (!(NRRD_AXIS_INFO_LABEL_BIT & bitflag)) {
     if (dest->label != src->label) {
-      AIR_FREE(dest->label);
+      dest->label = airFree(dest->label);
       dest->label = airStrdup(src->label);
     }
   }
   if (!(NRRD_AXIS_INFO_UNIT_BIT & bitflag)) {
     if (dest->unit != src->unit) {
-      AIR_FREE(dest->unit);
+      dest->unit = airFree(dest->unit);
       dest->unit = airStrdup(src->unit);
     }
   }
@@ -184,11 +184,11 @@ nrrdAxisInfoSet_nva(Nrrd *nrrd, int axInfo, const void *_info) {
       nrrd->axis[d].center = info.I[d];
       break;
     case nrrdAxisInfoLabel:
-      AIR_FREE(nrrd->axis[d].label);
+      nrrd->axis[d].label = airFree(nrrd->axis[d].label);
       nrrd->axis[d].label = airStrdup(info.CP[d]);
       break;
     case nrrdAxisInfoUnit:
-      AIR_FREE(nrrd->axis[d].unit);
+      nrrd->axis[d].unit = airFree(nrrd->axis[d].unit);
       nrrd->axis[d].unit = airStrdup(info.CP[d]);
       break;
     }

@@ -77,10 +77,10 @@ tkwbSlideNew(char *title, char *image, char *text) {
 tkwbSlide *
 tkwbSlideNix(tkwbSlide *slide) {
 
-  AIR_FREE(slide->title);
-  AIR_FREE(slide->image);
-  AIR_FREE(slide->text);
-  AIR_FREE(slide);
+  slide->title = airFree(slide->title);
+  slide->image = airFree(slide->image);
+  slide->text = airFree(slide->text);
+  slide = airFree(slide);
   return NULL;
 }
 

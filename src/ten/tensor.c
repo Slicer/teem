@@ -109,7 +109,7 @@ tenExpand(Nrrd *nout, Nrrd *nin, float scale, float thresh) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
-  AIR_FREE(nout->axis[0].label);
+  nout->axis[0].label = airFree(nout->axis[0].label);
   nout->axis[0].label = airStrdup("matrix");
 
   return 0;
@@ -171,7 +171,7 @@ tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
-  AIR_FREE(tseven->axis[0].label);
+  tseven->axis[0].label = airFree(tseven->axis[0].label);
   tseven->axis[0].label = airStrdup("tensor");
 
   return 0;
@@ -388,7 +388,7 @@ tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
-  AIR_FREE(nout->axis[0].label);
+  nout->axis[0].label = airFree(nout->axis[0].label);
   nout->axis[0].label = airStrdup("tensor");
 
   return 0;

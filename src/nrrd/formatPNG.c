@@ -310,7 +310,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 	 since in this case the text from which we parse a nrrd field
 	 descriptor did NOT come from a line of text as read by
 	 _nrrdOneLine */
-      AIR_FREE(nio->line);
+      nio->line = airFree(nio->line);
       nio->line = airStrdup(txt[i].text);
       ret = _nrrdReadNrrdParseField(nrrd, nio, AIR_FALSE);
       if (ret) {
@@ -365,7 +365,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   /* finish reading */
   png_read_end(png, info);
   /* clean up */
-  AIR_FREE(row);
+  row = airFree(row);
   png_destroy_read_struct(&png, &info, NULL);
 
   return 0;
@@ -514,9 +514,9 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   png_write_end(png, info);
   /* clean up */
   for (i=0; i<numtxt; i++) {
-    AIR_FREE(txt[i].text);
+    txt[i].text = airFree(txt[i].text);
   }
-  AIR_FREE(row);
+  row = airFree(row);
   png_destroy_write_struct(&png, &info);
 
   return 0;

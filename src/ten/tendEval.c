@@ -112,7 +112,7 @@ tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop); return 1;
   }
   if (1 != compLen) {
-    AIR_FREE(nout->axis[0].label);
+    nout->axis[0].label = airFree(nout->axis[0].label);
   }
 
   if (nrrdSave(outS, nout, NULL)) {

@@ -74,11 +74,11 @@ void
 mossSamplerEmpty (mossSampler *smplr) {
 
   if (smplr) {
-    AIR_FREE(smplr->ivc);
-    AIR_FREE(smplr->xFslw);
-    AIR_FREE(smplr->yFslw);
-    AIR_FREE(smplr->xIdx);
-    AIR_FREE(smplr->yIdx);
+    smplr->ivc = airFree(smplr->ivc);
+    smplr->xFslw = airFree(smplr->xFslw);
+    smplr->yFslw = airFree(smplr->yFslw);
+    smplr->xIdx = airFree(smplr->xIdx);
+    smplr->yIdx = airFree(smplr->yIdx);
     smplr->fdiam = 0;
     smplr->ncol = 0;
   }
@@ -90,7 +90,7 @@ mossSamplerNix (mossSampler *smplr) {
 
   if (smplr) {
     mossSamplerEmpty(smplr);
-    AIR_FREE(smplr->bg);
+    smplr->bg = airFree(smplr->bg);
     free(smplr);
   }
   return NULL;

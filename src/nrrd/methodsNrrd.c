@@ -27,10 +27,10 @@ void
 nrrdIoStateInit (NrrdIoState *nio) {
 
   if (nio) {
-    AIR_FREE(nio->path);
-    AIR_FREE(nio->base);
-    AIR_FREE(nio->dataFN);
-    AIR_FREE(nio->line);
+    nio->path = airFree(nio->path);
+    nio->base = airFree(nio->base);
+    nio->dataFN = airFree(nio->dataFN);
+    nio->line = airFree(nio->line);
     nio->lineLen = 0;
     nio->pos = 0;
     /* closing this is always someone else's responsibility */
@@ -76,12 +76,12 @@ nrrdIoStateNew (void) {
 
 NrrdIoState *
 nrrdIoStateNix (NrrdIoState *nio) {
-
-  AIR_FREE(nio->path);
-  AIR_FREE(nio->base);
-  AIR_FREE(nio->dataFN);
-  AIR_FREE(nio->line);
-  AIR_FREE(nio);
+  
+  nio->path = airFree(nio->path);
+  nio->base = airFree(nio->base);
+  nio->dataFN = airFree(nio->dataFN);
+  nio->line = airFree(nio->line);
+  nio = airFree(nio);
   /* the NrrdIoState never owned nio->oldData; we don't free it */
   return NULL;
 }
@@ -125,7 +125,7 @@ nrrdResampleInfoNew (void) {
 NrrdResampleInfo *
 nrrdResampleInfoNix (NrrdResampleInfo *info) {
   
-  AIR_FREE(info);
+  info = airFree(info);
   return NULL;
 }
 
@@ -149,7 +149,7 @@ nrrdKernelSpecNew (void) {
 NrrdKernelSpec *
 nrrdKernelSpecNix (NrrdKernelSpec *ksp) {
 
-  AIR_FREE(ksp);
+  ksp = airFree(ksp);
   return NULL;
 }
 
@@ -199,7 +199,7 @@ nrrdInit (Nrrd *nrrd) {
   int i;
 
   if (nrrd) {
-    AIR_FREE(nrrd->data);
+    nrrd->data = airFree(nrrd->data);
     nrrd->type = nrrdTypeUnknown;
     nrrd->dim = 0;
     
@@ -207,7 +207,7 @@ nrrdInit (Nrrd *nrrd) {
       _nrrdAxisInfoInit(&(nrrd->axis[i]));
     }
     
-    AIR_FREE(nrrd->content);
+    nrrd->content = airFree(nrrd->content);
     nrrd->blockSize = 0;
     nrrd->oldMin = nrrd->oldMax = AIR_NAN;
     /* nrrd->ptr = NULL; */
@@ -283,16 +283,16 @@ nrrdNix (Nrrd *nrrd) {
   int i;
   
   if (nrrd) {
-    AIR_FREE(nrrd->content);
+    nrrd->content = airFree(nrrd->content);
     /* HEY: this is a symptom of some stupidity, no? */
     for (i=0; i<NRRD_DIM_MAX; i++) {
-      AIR_FREE(nrrd->axis[i].label);
+      nrrd->axis[i].label = airFree(nrrd->axis[i].label);
     }
     nrrdCommentClear(nrrd);
     nrrd->cmtArr = airArrayNix(nrrd->cmtArr);
     nrrdKeyValueClear(nrrd);
     nrrd->kvpArr = airArrayNix(nrrd->kvpArr);
-    AIR_FREE(nrrd);
+    nrrd = airFree(nrrd);
   }
   return NULL;
 }
@@ -308,7 +308,7 @@ Nrrd *
 nrrdEmpty (Nrrd *nrrd) {
   
   if (nrrd) {
-    AIR_FREE(nrrd->data);
+    nrrd->data = airFree(nrrd->data);
     nrrdInit(nrrd);
   }
   return nrrd;
@@ -481,7 +481,7 @@ nrrdCopy (Nrrd *nout, const Nrrd *nin) {
   nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
 
   /* HEY: shouldn't this be handled with nrrdPeripheralCopy() */
-  AIR_FREE(nout->content);
+  nout->content = airFree(nout->content);
   nout->content = airStrdup(nin->content);
   if (nin->content && !nout->content) {
     sprintf(err, "%s: couldn't copy content", me);
@@ -552,7 +552,7 @@ nrrdAlloc_nva (Nrrd *nrrd, int type, int dim, const int *size) {
   }
 
   nrrd->type = type;
-  AIR_FREE(nrrd->data);
+  nrrd->data = airFree(nrrd->data);
   nrrd->dim = dim;
   if (_nrrdSizeCheck(dim, size, AIR_TRUE)) {
     sprintf(err, "%s:", me);

@@ -68,7 +68,7 @@ miteUserNix(miteUser *muu) {
 
   if (muu) {
     airMopOkay(muu->umop);
-    AIR_FREE(muu);
+    muu = airFree(muu);
   }
   return NULL;
 }

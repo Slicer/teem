@@ -137,7 +137,7 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  AIR_FREE(nout->axis[0].label);
+  nout->axis[0].label = airFree(nout->axis[0].label);
   nout->axis[0].label = airStrdup(nout->content);
 
   airMopOkay(mop);
@@ -187,7 +187,7 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin, int sy, int showLog, double max) {
   nout->axis[0].max = nin->axis[0].max;
   nout->axis[0].center = nout->axis[1].center = nrrdCenterCell;
   nout->axis[0].label = airStrdup(nin->axis[0].label);
-  AIR_FREE(nout->axis[1].label);
+  nout->axis[1].label = airFree(nout->axis[1].label);
   nrrdPeripheralInit(nout);
   pgmData = nout->data;
   maxhits = maxhitidx = 0;
@@ -505,7 +505,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
 	biffAdd(NRRD, err); return 1;
       }
     } else {
-      AIR_FREE(nout->axis[d].label);
+      nout->axis[d].label = airFree(nout->axis[d].label);
       totalContentStrlen += 2;
     }
   }

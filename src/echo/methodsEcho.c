@@ -53,7 +53,7 @@ echoRTParmNew(void) {
 echoRTParm *
 echoRTParmNix(echoRTParm *parm) {
 
-  AIR_FREE(parm);
+  parm = airFree(parm);
 
   return NULL;
 }
@@ -73,7 +73,7 @@ echoGlobalStateNew(void) {
 echoGlobalState *
 echoGlobalStateNix(echoGlobalState *state) {
 
-  AIR_FREE(state);
+  state = airFree(state);
   return NULL;
 }
 
@@ -99,9 +99,9 @@ echoThreadStateNix(echoThreadState *state) {
   if (state) {
     nrrdNuke(state->njitt);
     nrrdNuke(state->nperm);
-    AIR_FREE(state->permBuff);
-    AIR_FREE(state->chanBuff);
-    AIR_FREE(state);
+    state->permBuff = airFree(state->permBuff);
+    state->chanBuff = airFree(state->chanBuff);
+    state = airFree(state);
   }
   return NULL;
 }
@@ -182,7 +182,7 @@ echoSceneNix(echoScene *scene) {
     airArrayNuke(scene->lightArr);
     airArrayNuke(scene->nrrdArr);
     /* don't touch envmap nrrd */
-    AIR_FREE(scene);
+    scene = airFree(scene);
   }
   return NULL;
 }

@@ -68,9 +68,9 @@ miteThreadNew() {
 miteThread *
 miteThreadNix(miteThread *mtt) {
 
-  AIR_FREE(mtt->ansMiteVal);
-  AIR_FREE(mtt->directAnsMiteVal);
-  AIR_FREE(mtt);
+  mtt->ansMiteVal = airFree(mtt->ansMiteVal);
+  mtt->directAnsMiteVal = airFree(mtt->directAnsMiteVal);
+  mtt = airFree(mtt);
   return NULL;
 }
 

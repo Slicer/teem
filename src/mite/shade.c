@@ -47,7 +47,7 @@ miteShadeSpecNix(miteShadeSpec *shpec) {
     shpec->vec1 = gageItemSpecNix(shpec->vec1);
     shpec->scl0 = gageItemSpecNix(shpec->scl0);
     shpec->scl1 = gageItemSpecNix(shpec->scl1);
-    AIR_FREE(shpec);
+    shpec = airFree(shpec);
   }
   return NULL;
 }

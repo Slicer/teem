@@ -434,7 +434,7 @@ nrrdFlip(Nrrd *nout, const Nrrd *nin, int axis) {
   }
   nout->axis[axis].min = nin->axis[axis].max;
   nout->axis[axis].max = nin->axis[axis].min;
-  AIR_FREE(perm);
+  perm = airFree(perm);
   return 0;
 }
 

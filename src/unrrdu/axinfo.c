@@ -80,7 +80,7 @@ unrrdu_axinfoMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   
   if (strlen(label)) {
-    AIR_FREE(nout->axis[axis].label);
+    nout->axis[axis].label = airFree(nout->axis[axis].label);
     nout->axis[axis].label = airStrdup(label);
   }
   if (AIR_EXISTS(mm[0])) {

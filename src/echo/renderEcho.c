@@ -49,13 +49,13 @@ echoThreadStateInit(echoThreadState *tstate,
   nrrdAxisInfoSet(tstate->njitt, nrrdAxisInfoLabel,
 		  "x,y", "jittable", "sample");
 
-  AIR_FREE(tstate->permBuff);
+  tstate->permBuff = airFree(tstate->permBuff);
   if (!( tstate->permBuff = (int*)calloc(parm->numSamples, sizeof(int)) )) {
     sprintf(err, "%s: couldn't allocate permutation buffer", me);
     biffAdd(ECHO, err); return 1;
   }
 
-  AIR_FREE(tstate->chanBuff);
+  tstate->chanBuff = airFree(tstate->chanBuff);
   if (!( tstate->chanBuff =
 	 (echoCol_t*)calloc(ECHO_IMG_CHANNELS * parm->numSamples,
 			    sizeof(echoCol_t)) )) {

@@ -230,7 +230,7 @@ gageItemSpec *
 gageItemSpecNix(gageItemSpec *isp) {
 
   if (isp) {
-    AIR_FREE(isp);
+    isp = airFree(isp);
   }
   return NULL;
 }

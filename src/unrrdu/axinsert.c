@@ -58,7 +58,7 @@ unrrdu_axinsertMain(int argc, char **argv, char *me, hestParm *hparm) {
     return 1;
   }
   if (strlen(label)) {
-    AIR_FREE(nout->axis[axis].label);
+    nout->axis[axis].label = airFree(nout->axis[axis].label);
     nout->axis[axis].label = airStrdup(label);
   }
 

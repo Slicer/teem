@@ -46,9 +46,9 @@ tenEMBimodalParm*
 tenEMBimodalParmNix(tenEMBimodalParm *biparm) {
 
   if (biparm) {
-    AIR_FREE(biparm->histo);
-    AIR_FREE(biparm->pp1);
-    AIR_FREE(biparm->pp2);
+    biparm->histo = airFree(biparm->histo);
+    biparm->pp1 = airFree(biparm->pp1);
+    biparm->pp2 = airFree(biparm->pp2);
   }
   return airFree(biparm);
 }

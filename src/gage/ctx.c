@@ -77,11 +77,11 @@ gageContextNix (gageContext *ctx) {
       /* no point in doing a detach, the whole context is going bye-bye */
     }
     ctx->shape = gageShapeNix(ctx->shape);
-    AIR_FREE(ctx->fw);
-    AIR_FREE(ctx->fsl);
-    AIR_FREE(ctx->off);
+    ctx->fw = airFree(ctx->fw);
+    ctx->fsl = airFree(ctx->fsl);
+    ctx->off = airFree(ctx->off);
   }
-  AIR_FREE(ctx);
+  ctx = airFree(ctx);
   return NULL;
 }
 

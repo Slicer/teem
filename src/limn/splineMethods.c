@@ -213,8 +213,8 @@ limnSplineNix(limnSpline *spline) {
 
   if (spline) {
     spline->ncpt = nrrdNuke(spline->ncpt);
-    AIR_FREE(spline->time);
-    AIR_FREE(spline);
+    spline->time = airFree(spline->time);
+    spline = airFree(spline);
   }
   return NULL;
 }

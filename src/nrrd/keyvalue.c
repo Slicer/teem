@@ -92,8 +92,8 @@ nrrdKeyValueClear(Nrrd *nrrd) {
 
   nk = nrrd->kvpArr->len;
   for (ki=0; ki<nk; ki++) {
-    AIR_FREE(nrrd->kvp[0 + 2*ki]);
-    AIR_FREE(nrrd->kvp[1 + 2*ki]);
+    nrrd->kvp[0 + 2*ki] = airFree(nrrd->kvp[0 + 2*ki]);
+    nrrd->kvp[1 + 2*ki] = airFree(nrrd->kvp[1 + 2*ki]);
   }
   airArraySetLen(nrrd->kvpArr, 0);
   
@@ -112,8 +112,8 @@ nrrdKeyValueErase(Nrrd *nrrd, const char *key) {
   if (-1 == ki) {
     return 0;
   }
-  AIR_FREE(nrrd->kvp[0 + 2*ki]);
-  AIR_FREE(nrrd->kvp[1 + 2*ki]);
+  nrrd->kvp[0 + 2*ki] = airFree(nrrd->kvp[0 + 2*ki]);
+  nrrd->kvp[1 + 2*ki] = airFree(nrrd->kvp[1 + 2*ki]);
   nk = nrrd->kvpArr->len;
   for (; ki<nk-1; ki++) {
     nrrd->kvp[0 + 2*ki] = nrrd->kvp[0 + 2*(ki+1)];
@@ -143,7 +143,7 @@ nrrdKeyValueAdd(Nrrd *nrrd, const char *key, const char *value) {
     return 1;
   }
   if (-1 != (ki = _nrrdKeyValueIdxFind(nrrd, key))) {
-    AIR_FREE(nrrd->kvp[1 + 2*ki]);
+    nrrd->kvp[1 + 2*ki] = airFree(nrrd->kvp[1 + 2*ki]);
     nrrd->kvp[1 + 2*ki] = airStrdup(value);
   } else {
     ki = airArrayIncrLen(nrrd->kvpArr, 1);

@@ -28,7 +28,7 @@ _miteRenderNew(void) {
   if (mrr) {
     mrr->rmop = airMopNew();
     if (!mrr->rmop) {
-      AIR_FREE(mrr);
+      mrr = airFree(mrr);
       return mrr;
     }
     mrr->ntxf = NULL;
@@ -54,7 +54,7 @@ _miteRenderNix(miteRender *mrr) {
   
   if (mrr) {
     airMopOkay(mrr->rmop);
-    AIR_FREE(mrr);
+    mrr = airFree(mrr);
   }
   return NULL;
 }

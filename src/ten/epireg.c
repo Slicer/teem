@@ -587,16 +587,12 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
 		     gB[0] - pxfr[SCALE]*gA[0],
 		     gB[1] - pxfr[SCALE]*gA[1],
 		     gB[2] - pxfr[SCALE]*gA[2],
-		     gB[0] - pxfr[SCALE]*gA[0],
-		     gB[1] - pxfr[SCALE]*gA[1],
-		     gB[2] - pxfr[SCALE]*gA[2],
-		     gB[0] - pxfr[SCALE]*gA[0],
-		     gB[1] - pxfr[SCALE]*gA[1],
-		     gB[2] - pxfr[SCALE]*gA[2]);
-		     /*
-		     gB[0]*gB[0] - pxfr[SCALE]*gA[0]*gA[0],
-		     gB[1]*gB[1] - pxfr[SCALE]*gA[1]*gA[1],
-		     gB[2]*gB[2] - pxfr[SCALE]*gA[2]*gA[2],
+		     gB[0]*gB[0]*gB[0] - pxfr[SCALE]*gA[0]*gA[0]*gA[0],
+		     gB[1]*gB[1]*gB[1] - pxfr[SCALE]*gA[1]*gA[1]*gA[1],
+		     gB[2]*gB[2]*gB[2] - pxfr[SCALE]*gA[2]*gA[2]*gA[2],
+		     gB[0]*gB[1]*gB[2] - pxfr[SCALE]*gA[0]*gA[1]*gA[2],
+		     1, 1);
+	  /*
 		     gB[0]*gB[1] - pxfr[SCALE]*gA[0]*gA[1],
 		     gB[0]*gB[2] - pxfr[SCALE]*gA[0]*gA[2],
 		     gB[1]*gB[2] - pxfr[SCALE]*gA[1]*gA[2]);
@@ -623,36 +619,7 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
       }
     }
   }
-
-  /* ------ find Hx, Hy, Hz per slice */
   vec = (double *)(nvec->data);
-  for (z=0; z<sz; z++) {
-    if (nrrdHasNonExist(nmat[z])) {
-      /* we've already zero-ed out this row in the HST nrrd */
-      continue;
-    }
-    hst = (double *)(nhst->data) + (1 == order ? 9 : 27)*z;
-    ri = 0;
-    for (A=0; A<ninLen; A++) {
-      for (B=0; B<ninLen; B++) {
-	if (A == B) continue;
-	pxfr = (double *)(npxfr->data) + 0 + 5*(z + sz*(A + ninLen*B));
-	vec[ri] = pxfr[SHEAR];
-	ri += 1;
-      }
-    }
-    if (ell_Nm_mul(nans, ninv[z], nvec)) {
-      sprintf(err, "%s: trouble estimating model (slice %d): Hx, Hy, Hz",
-	      me, z);
-      biffMove(TEN, err, ELL); airMopError(mop); return 1;
-    }
-    ans = (double *)(nans->data);
-    if (1 == order) {
-      ELL_3V_COPY(hst + 0*3, ans);
-    } else {
-      ELL_9V_COPY(hst + 0*9, ans);
-    }
-  }
 
   /* ------ find Sx, Sy, Sz per slice */
   for (z=0; z<sz; z++) {
@@ -680,6 +647,35 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
       ELL_3V_COPY(hst + 1*3, ans);
     } else {
       ELL_9V_COPY(hst + 1*9, ans);
+    }
+  }
+
+  /* ------ find Hx, Hy, Hz per slice */
+  for (z=0; z<sz; z++) {
+    if (nrrdHasNonExist(nmat[z])) {
+      /* we've already zero-ed out this row in the HST nrrd */
+      continue;
+    }
+    hst = (double *)(nhst->data) + (1 == order ? 9 : 27)*z;
+    ri = 0;
+    for (A=0; A<ninLen; A++) {
+      for (B=0; B<ninLen; B++) {
+	if (A == B) continue;
+	pxfr = (double *)(npxfr->data) + 0 + 5*(z + sz*(A + ninLen*B));
+	vec[ri] = pxfr[SHEAR];
+	ri += 1;
+      }
+    }
+    if (ell_Nm_mul(nans, ninv[z], nvec)) {
+      sprintf(err, "%s: trouble estimating model (slice %d): Hx, Hy, Hz",
+	      me, z);
+      biffMove(TEN, err, ELL); airMopError(mop); return 1;
+    }
+    ans = (double *)(nans->data);
+    if (1 == order) {
+      ELL_3V_COPY(hst + 0*3, ans);
+    } else {
+      ELL_9V_COPY(hst + 0*9, ans);
     }
   }
 
@@ -828,7 +824,7 @@ int
 _tenEpiRegGetHST(double *hhP, double *ssP, double *ttP,
 		 int reference, int ni, int zi,
 		 Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad) {
-  double *xfr, *hst, *_grad, grad[9]; /* big enough for 2nd order */
+  double *xfr, *hst, *_g, grad[9]; /* big enough for 2nd order */
   int sz, ninLen;
 
   int order;
@@ -842,20 +838,20 @@ _tenEpiRegGetHST(double *hhP, double *ssP, double *ttP,
   if (-1 == reference) {
     /* we use the estimated H,S,T vectors to determine distortion
        as a function of gradient direction, and then invert this */
-    _grad = (double*)(ngrad->data) + 0 + 3*ni;
+    _g = (double*)(ngrad->data) + 0 + 3*ni;
     if (1 == order) {
       hst = (double*)(nhst->data) + 0 + 9*zi;
-      *hhP = ELL_3V_DOT(_grad, hst + 0*3);
-      *ssP = 1 + ELL_3V_DOT(_grad, hst + 1*3);
-      *ttP = ELL_3V_DOT(_grad, hst + 2*3);
+      *hhP = ELL_3V_DOT(_g, hst + 0*3);
+      *ssP = 1 + ELL_3V_DOT(_g, hst + 1*3);
+      *ttP = ELL_3V_DOT(_g, hst + 2*3);
     } else {
       hst = (double*)(nhst->data) + 0 + 27*zi;
-      ELL_9V_SET(grad, _grad[0], _grad[1], _grad[2],
-		 _grad[0], _grad[1], _grad[2],
-		 _grad[0], _grad[1], _grad[2]);
+      ELL_9V_SET(grad, _g[0], _g[1], _g[2],
+		 _g[0]*_g[0]*_g[0], _g[1]*_g[1]*_g[1], _g[2]*_g[2]*_g[2],
+		 _g[0]*_g[1]*_g[2],
+		 0, 0);
 		 /*
-		 _grad[0]*_grad[0], _grad[1]*_grad[1], _grad[2]*_grad[2],
-		 _grad[0]*_grad[1], _grad[0]*_grad[2], _grad[1]*_grad[2]);
+		 _g[0]*_g[1], _g[0]*_g[2], _g[1]*_g[2]);
 		 */
       *hhP = ELL_9V_DOT(grad, hst + 0*9);
       *ssP = 1 + ELL_9V_DOT(grad, hst + 1*9);

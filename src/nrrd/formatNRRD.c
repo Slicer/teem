@@ -284,7 +284,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     */
   } else {
     if (nio->detachedHeader) {
-      AIR_FCLOSE(nio->dataFile);
+      nio->dataFile = airFclose(nio->dataFile);
       /* fprintf(stderr, "!%s: nio->dataFile = %p\n", me, nio->dataFile); */
     } else {
       /* we set nio->dataFile to "file" above; set it back; but don't
@@ -379,7 +379,7 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       fprintf(stderr, "done)\n");
     }
     if (nio->detachedHeader) {
-      AIR_FCLOSE(nio->dataFile);
+      nio->dataFile = airFclose(nio->dataFile);
     } else {
       nio->dataFile = NULL;
     }
