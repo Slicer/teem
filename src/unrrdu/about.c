@@ -29,9 +29,9 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
   char par1[] = "\t\t\t\t"
     "\"unu\" is a command-line interface to much of the functionality "
     "in \"nrrd\", a C library for raster data processing. Nrrd is one "
-    "library in the \"teem\" group of libraries, which is the software "
+    "library in the \"Teem\" group of libraries, which is the software "
     "Gordon Kindlmann writes in support of his research.  More information "
-    "about teem and all its constituent libraries is at "
+    "about Teem and all its constituent libraries is at "
     "<http://teem.sourceforge.net>.\n";
   char par2[] = "\t\t\t\t"
     "The utility of unu is mainly as a pre-processing tool for getting "
@@ -76,7 +76,7 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
     "appreciated, such as (for LaTeX): "
     "\"Dataset processing performed with the {\\tt unu} tool "
     "(or the {\\tt nrrd} library), "
-    "part of the {\\tt teem} toolkit available at "
+    "part of the {\\tt Teem} toolkit available at "
     "{\\tt\t$<$http://teem.sourceforge.net$>$}\"\n ";
   char par7[] = "\t\t\t\t"
     "Users are strongly encouraged to join the teem-users mailing list:\n "
@@ -89,7 +89,7 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
   sprintf(fmt, "%%%ds\n",
           (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
-  sprintf(buff, "(teem version %s, %s)",
+  sprintf(buff, "(Teem version %s, %s)",
           airTeemVersion, airTeemReleaseDate);
   sprintf(fmt, "%%%ds\n",
           (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
