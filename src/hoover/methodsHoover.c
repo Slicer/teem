@@ -47,6 +47,7 @@ hooverContextNew() {
 int
 hooverContextCheck(hooverContext *ctx) {
   char me[]="hooverContextCheck", err[AIR_STRLEN_MED];
+  int sxe, sye, sze;
 
   if (!ctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -57,7 +58,7 @@ hooverContextCheck(hooverContext *ctx) {
     biffMove(HOOVER, err, LIMN); return 1;
   }
   if (airEnumValCheck(nrrdCenter, ctx->volCentering)) {
-    sprintf(err, "%s: voxelcentering (%d) invalid", me, ctx->volCentering);
+    sprintf(err, "%s: voxel centering (%d) invalid", me, ctx->volCentering);
     biffAdd(HOOVER, err); return 1;
   }
   if (airEnumValCheck(nrrdCenter, ctx->imgCentering)) {
@@ -71,10 +72,31 @@ hooverContextCheck(hooverContext *ctx) {
 	    ctx->volSize[0], ctx->volSize[1], ctx->volSize[2]);
     biffAdd(HOOVER, err); return 1;
   }
-  if (!(ctx->volSpacing[0] > 0.0
-	&& ctx->volSpacing[1] > 0.0
-	&& ctx->volSpacing[2] > 0.0)) {
-    sprintf(err, "%s: volume spacing (%gx%gx%g) invalid", me,
+  sxe = AIR_EXISTS(ctx->volSpacing[0]);
+  sye = AIR_EXISTS(ctx->volSpacing[1]);
+  sze = AIR_EXISTS(ctx->volSpacing[2]);
+  if (!sxe && !sye && !sze) {
+    /* none of the incoming spacings existed, we'll go out on a limb
+       and assume unit spacing */
+    ctx->volSpacing[0] = nrrdDefSpacing;
+    ctx->volSpacing[1] = ctx->volSpacing[2] = ctx->volSpacing[0];
+    fprintf(stderr, "%s: WARNING: assuming spacing %g for all axes\n",
+	    me, ctx->volSpacing[0]);
+    /* HEY : nrrdDefSpacing need not be the same as gageParm's 
+       defaultSpacing, but we don't know anything about gage here,
+       so what else can we do? */
+  } else if (sxe && sye && sze) {
+    /* all existed */
+    if (!(ctx->volSpacing[0] > 0.0
+	  && ctx->volSpacing[1] > 0.0
+	  && ctx->volSpacing[2] > 0.0)) {
+      sprintf(err, "%s: volume spacing (%gx%gx%g) invalid", me,
+	      ctx->volSpacing[0], ctx->volSpacing[1], ctx->volSpacing[2]);
+      biffAdd(HOOVER, err); return 1;
+    }
+  } else {
+    /* some existed, some didn't */
+    sprintf(err, "%s: spacings %g, %g, %g don't all exist or not", me,
 	    ctx->volSpacing[0], ctx->volSpacing[1], ctx->volSpacing[2]);
     biffAdd(HOOVER, err); return 1;
   }
