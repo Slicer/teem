@@ -60,7 +60,7 @@ main(int argc, char **argv) {
 
   /* else we got something, see if we can parse it */
   if (hestParse(opt, argc-1, argv+1, &err, parm)) {
-    fprintf(stderr, "ERROR: %s\n", err);
+    fprintf(stderr, "ERROR: %s\n", err); free(err);
     hestUsage(stderr, opt, argv[0], parm);
     hestGlossary(stderr, opt, parm);
     parm = hestParmFree(parm);

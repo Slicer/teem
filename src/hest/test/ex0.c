@@ -38,8 +38,7 @@ main(int argc, char **argv) {
   char *err = NULL;
 
   if (hestOptCheck(opt, &err)) {
-    fprintf(stderr, "ERROR: %s\n", err);
-    free(err); 
+    fprintf(stderr, "ERROR: %s\n", err); free(err); 
     exit(1);
   }
   printf("hestOpt array looks fine.\n");
