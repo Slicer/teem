@@ -25,7 +25,7 @@ main(int argc, char **argv) {
   echoScene *scene;
   echoObject *sph, *rect, *list, *split;
   Nrrd *nraw;
-  limnCam *cam;
+  limnCamera *cam;
   echoRTParm *parm;
   echoGlobalState *gstate;
   airArray *mop;
@@ -71,11 +71,11 @@ main(int argc, char **argv) {
   
 
   nraw = nrrdNew();
-  cam = limnCamNew();
+  cam = limnCameraNew();
   parm = echoRTParmNew();
   gstate = echoGlobalStateNew();
   airMopAdd(mop, nraw, (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, cam, (airMopper)limnCamNix, airMopAlways);
+  airMopAdd(mop, cam, (airMopper)limnCameraNix, airMopAlways);
   airMopAdd(mop, parm, (airMopper)echoRTParmNix, airMopAlways);
   airMopAdd(mop, gstate, (airMopper)echoGlobalStateNix, airMopAlways);
 
@@ -85,7 +85,7 @@ main(int argc, char **argv) {
   cam->neer = -2;
   cam->dist = 0;
   cam->faar = 2;
-  cam->atRel = AIR_TRUE;
+  cam->atRelative = AIR_TRUE;
   cam->rightHanded = AIR_TRUE;
   cam->uRange[0] = -1.4;  cam->vRange[0] = -1.4;
   cam->uRange[1] =  1.4;  cam->vRange[1] =  1.4;

@@ -54,7 +54,7 @@ _dyeHSVtoRGB(float *R, float *G, float *B,
 #if 0  
 
 void
-makeSceneAntialias(limnCam *cam, echoRTParm *parm,
+makeSceneAntialias(limnCamera *cam, echoRTParm *parm,
 		   echoObject **sceneP, airArray **lightArrP) {
   echoObject *scene, *rect;
   Nrrd *ntext;
@@ -96,7 +96,7 @@ makeSceneAntialias(limnCam *cam, echoRTParm *parm,
 }
 
 void
-makeSceneBVH(limnCam *cam, echoRTParm *parm, echoObject **sceneP) {
+makeSceneBVH(limnCamera *cam, echoRTParm *parm, echoObject **sceneP) {
   echoObject *sphere;
   int i, N;
   float r, g, b;
@@ -144,7 +144,7 @@ makeSceneBVH(limnCam *cam, echoRTParm *parm, echoObject **sceneP) {
 }
 
 void
-makeSceneGlass(limnCam *cam, echoRTParm *parm, echoObject **sceneP) {
+makeSceneGlass(limnCamera *cam, echoRTParm *parm, echoObject **sceneP) {
   echoObject *cube, *rect;
   echoObject *scene;
   Nrrd *ntext;
@@ -200,7 +200,7 @@ makeSceneGlass(limnCam *cam, echoRTParm *parm, echoObject **sceneP) {
 }
 
 void
-makeSceneGlass2(limnCam *cam, echoRTParm *parm, echoObject **sceneP) {
+makeSceneGlass2(limnCamera *cam, echoRTParm *parm, echoObject **sceneP) {
   echoObject *cube, *rect;
   echoObject *scene;
   Nrrd *ntext;
@@ -263,7 +263,7 @@ makeSceneGlass2(limnCam *cam, echoRTParm *parm, echoObject **sceneP) {
 #endif
 
 void
-makeSceneInstance(limnCam *cam, echoRTParm *parm, echoScene *scene) {
+makeSceneInstance(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   echoObject *trim, *rect, *inst;
   echoPos_t matx[16], A[16], B[16];
   
@@ -369,7 +369,7 @@ makeSceneInstance(limnCam *cam, echoRTParm *parm, echoScene *scene) {
 }
 
 void
-makeSceneGlassTest(limnCam *cam, echoRTParm *parm, echoScene *scene) {
+makeSceneGlassTest(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   echoObject *cube, *rect, *inst;
   echoCol_t r, g, b;
   Nrrd *ntext;
@@ -436,7 +436,7 @@ makeSceneGlassTest(limnCam *cam, echoRTParm *parm, echoScene *scene) {
 }
 
 void
-makeSceneGlassMetal(limnCam *cam, echoRTParm *parm, echoScene *scene) {
+makeSceneGlassMetal(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   echoObject *sphere, *rect;
   
   ELL_3V_SET(cam->from, 4, 0, 5);
@@ -506,7 +506,7 @@ makeSceneGlassMetal(limnCam *cam, echoRTParm *parm, echoScene *scene) {
 }
 
 void
-makeSceneTexture(limnCam *cam, echoRTParm *parm, echoScene *scene) {
+makeSceneTexture(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   echoObject /* *trim, */ *rect, /* *inst, */ *sphere;
   Nrrd *ntext;
   
@@ -569,7 +569,7 @@ makeSceneTexture(limnCam *cam, echoRTParm *parm, echoScene *scene) {
 }
 
 void
-makeSceneDOF(limnCam *cam, echoRTParm *parm, echoScene *scene) {
+makeSceneDOF(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   echoObject *rect;
   Nrrd *ntext;
   
@@ -628,7 +628,7 @@ makeSceneDOF(limnCam *cam, echoRTParm *parm, echoScene *scene) {
 }
 
 void
-makeSceneShadow(limnCam *cam, echoRTParm *parm, echoScene *scene) {
+makeSceneShadow(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   echoObject *sphere, *rect, *tri;
 
   ELL_3V_SET(cam->from, 2, 0, 20);
@@ -694,7 +694,7 @@ makeSceneShadow(limnCam *cam, echoRTParm *parm, echoScene *scene) {
 }
 
 void
-makeSceneSimple(limnCam *cam, echoRTParm *parm, echoScene *scene) {
+makeSceneSimple(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   echoObject *tri, *rect, *sphere;
   Nrrd *ntext;
 
@@ -777,7 +777,7 @@ makeSceneSimple(limnCam *cam, echoRTParm *parm, echoScene *scene) {
 }
 
 void
-makeSceneRainLights(limnCam *cam, echoRTParm *parm, echoScene *scene) {
+makeSceneRainLights(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   echoObject *sphere, *rect;
   int i, N;
   echoPos_t w;
@@ -830,7 +830,7 @@ makeSceneRainLights(limnCam *cam, echoRTParm *parm, echoScene *scene) {
 int
 main(int argc, char **argv) {
   Nrrd *nraw;
-  limnCam *cam;
+  limnCamera *cam;
   echoRTParm *parm;
   echoGlobalState *state;
   echoScene *scene;
@@ -842,12 +842,12 @@ main(int argc, char **argv) {
 
   mop = airMopNew();
 
-  cam = limnCamNew();
-  airMopAdd(mop, cam, (airMopper)limnCamNix, airMopAlways);
+  cam = limnCameraNew();
+  airMopAdd(mop, cam, (airMopper)limnCameraNix, airMopAlways);
   cam->neer = 0;
   cam->dist = 0;
   cam->faar = 0;
-  cam->atRel = AIR_TRUE;
+  cam->atRelative = AIR_TRUE;
   cam->dist = 0;
   cam->rightHanded = AIR_TRUE;
 
