@@ -57,10 +57,8 @@ $(L)/% : _L := $(L)
 ## teem makefiles, giving some progress indication in terms of what
 ## library we're working on.  Since we want this to be printed out
 ## before we do the work of making the target, we need a double colon
-## rule preceeding all the others.
+## rule preceeding all the others.  But it 
 ##
-$(L)/install ::
-	@echo ">>>>>>>>>>>>>>>>>>>>" $(_L) "<<<<<<<<<<<<<<<<<<<<"
 
 ## $(L)/usable are the things that other teem libraries may rely on
 ##
@@ -72,7 +70,7 @@ $(L)/usable : .$(L).usable
 ## $(L)/install depends on usable prerequisite libraries and $(L)'s
 ## installed libs and headers.
 ##
-$(L)/install :: $(call NEED.USABLE,$(L)) \
+$(L)/install : $(call NEED.USABLE,$(L)) \
   $(call LIBS.INST,$(L)) $(call HDRS.INST,$(L))
 
 ## $(L)/dev depends on usable prerequisites and $(L)'s local
@@ -114,12 +112,19 @@ $(ODEST)/lib$(L).$(SHEXT) : $(call OBJS.DEV,$(L))
 	$(LD) -o $@ $(LDFLAGS) $(LPATH) $^
 endif
 
+## MAYBEBANNER(L)(obj) returns "echo ..." to show a library banner 
+## progress indicator, but only if obj is the first object in $(L).OBJS.
+## This mimics the behavior under the old recursive teem makefile.
+##
+MAYBEBANNER.$(L) = $(if $(filter $(notdir $(1:.c=.o)),$(word 1,$($(_L).OBJS))),$(call BANNER,$(_L)))
+
 ## How to compile a .o file. We're giving a pattern rule constrained
 ## to the objects we know we need to make for this library.  Or, we
 ## could use vpath to locate the sources in the library subdirectory,
 ## but why start cheating now.
 ##
 $(call OBJS.DEV,$(L)) : $(ODEST)/%.o : $(TEEM_SRC)/$(L)/%.c
+	@$(call MAYBEBANNER.$(_L),$<)
 	$(P) $(CC) $(CFLAGS) $(call MORE_CFLAGS,$(_L)) $(IPATH) -c $< -o $@
 
 ## How to make development tests.  It doesn't actually matter in this
@@ -147,13 +152,13 @@ $(LDEST)/lib$(L).a : $(LDEST)/%.a : $(ODEST)/%.a
 	$(CP) $< $@; $(CHMOD) 644 $@
 	$(if $(SIGH),$(SLEEP) $(SIGH); touch $@)
 	$(if $(SIGH),$(SLEEP) $(SIGH))
-	@touch $(TEEM_SRC)/.$(_L).usable
+	touch $(TEEM_SRC)/.$(_L).usable
 ifdef SHEXT
 $(LDEST)/lib$(L).$SHEXT) : $(LDEST)/%.$(SHEXT) : $(ODEST)/%.$(SHEXT)
 	$(CP) $< $@; $(CHMOD) 755 $@
 	$(if $(SIGH),$(SLEEP) $(SIGH); touch $@)
 	$(if $(SIGH),$(SLEEP) $(SIGH))
-	@touch $(TEEM_SRC)/.$(_L).usable
+	touch $(TEEM_SRC)/.$(_L).usable
 endif
 
 ## How to install headers: another instance where vpath could simplify
@@ -163,4 +168,4 @@ $(call HDRS.INST,$(L)) : $(IDEST)/%.h : $(TEEM_SRC)/$(L)/%.h
 	$(CP) $< $@; $(CHMOD) 644 $@
 	$(if $(SIGH),$(SLEEP) $(SIGH); touch $@)
 	$(if $(SIGH),$(SLEEP) $(SIGH))
-	@touch $(TEEM_SRC)/.$(_L).usable
+	touch $(TEEM_SRC)/.$(_L).usable

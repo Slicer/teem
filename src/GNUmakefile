@@ -150,7 +150,7 @@ CFLAGS += -DTEEM_32BIT=$(TEEM_32BIT)
 
 ## SGI's C pre-processor errors aren't fatal by defailt
 ##
-CFLAGS += $(CPP_ERROR_DIE)
+CFLAGS += $(TEEM_CPP_ERROR_DIE)
 
 ## if the customer wishes to use gzip compressed nrrd data
 ##
@@ -236,6 +236,16 @@ MORE_CFLAGS = $(if $($(1).NEED_ENDIAN),-DTEEM_ENDIAN=$(TEEM_ENDIAN))\
 
 WHATS.USED.EXISTS = \
 $(if $(strip $(foreach x,$(call USED.INST,$(1)),$(if $(wildcard $(x)),,no))),$(call USED.INST,$(1)))
+
+## For progress indication; see template.mk.  The double colon rules
+## previously used to print this fatally confused parallel builds
+##
+BANNER = echo ">>>>>>>>>>>>>>>>>>>>" $(1) "<<<<<<<<<<<<<<<<<<<<"
+
+#SRC2LIB = $(notdir $(patsubst %/,%,$(dir $(1:.c=))))
+#HDR2LIB = $(notdir $(patsubst %/,%,$(dir $(1:.h=))))
+#STL2LIB = $(patsubst lib%,%,$(notdir $(1:.a=)))
+#SHL2LIB = $(patsubst lib%,%,$(notdir $(1:.$(SHEXT)=)))
 
 #######################################
 ## Read in the makefiles for all the libraries.  In order to prevent
