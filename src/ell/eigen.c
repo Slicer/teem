@@ -193,10 +193,7 @@ ell_3m_eigenvalues_d(double _eval[3], double _m[9], int newton) {
     + (m[0]*m[7] - m[6]*m[1])*m[5]
     + (m[3]*m[1] - m[0]*m[4])*m[8];
   roots = ell_cubic(eval, A, B, C, newton);
-  if (ell_cubic_root_three == roots 
-      || ell_cubic_root_single_double == roots) {
-    ELL_SORT3(eval[0], eval[1], eval[2], tmp);
-  }
+  /* no longer need to sort here */
   ELL_3V_SCALE(_eval, 1.0/scale, eval);
   return roots;
 }
@@ -244,7 +241,6 @@ ell_3m_eigensolve_d(double eval[3], double evec[9], double m[9], int newton) {
   ELL_3M_COPY(n, m);
   switch (roots) {
   case ell_cubic_root_three:
-    ELL_SORT3(e0, e1, e2, t);
     /* if (ell_debug) {
       printf("ell_3m_eigensolve: evals: %20.15f %20.15f %20.15f\n", 
 	     eval[0], eval[1], eval[2]);

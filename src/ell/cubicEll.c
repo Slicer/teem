@@ -34,9 +34,11 @@
 **   ellCubicRootSingle: root[0], root[1] == root[2] == AIR_NAN
 **   ellCubicRootTriple: root[0] == root[1] == root[2]
 **   ellCubicRootSingleDouble: single root[0]; double root[1] == root[2]
+**                          or double root[0] == root[1], single root[2]
 **   ellCubicRootThree: root[0], root[1], root[2]
 **
-** The values stored in root[] are NOT SORTED in anyway.
+** The values stored in root[] are, in a change from the past, sorted
+** in descending order!  No need to sort them any more!
 **
 ** This does NOT use biff
 */
@@ -57,9 +59,11 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
        been tested the most, its code should go first */
     theta = acos(R/sqrt(QQQ))/3.0;
     t = 2*sqrt(Q);
+    /* yes, these are sorted, because the C definition of acos says
+       that it returns values in in [0, pi] */
     root[0] = t*cos(theta) - sub;
-    root[1] = t*cos(theta + 2*AIR_PI/3.0) - sub;
-    root[2] = t*cos(theta - 2*AIR_PI/3.0) - sub;
+    root[1] = t*cos(theta - 2*AIR_PI/3.0) - sub;
+    root[2] = t*cos(theta + 2*AIR_PI/3.0) - sub;
     /*
     if (!AIR_EXISTS(root[0])) {
       fprintf(stderr, "%s: %g %g %g --> nan!!!\n", me, A, B, C);
@@ -106,9 +110,15 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
       if (ell_debug) {
 	fprintf(stderr, "%s: rescued double root:% 20.15f\n", me, nr);
       } 
-      root[0] = x;
-      root[1] = nr;
-      root[2] = nr;
+      if (x > nr) {
+	root[0] = x;
+	root[1] = nr;
+	root[2] = nr;
+      } else {
+	root[0] = nr;
+	root[1] = nr;
+	root[2] = x;
+      }
       return ell_cubic_root_single_double;
     }
   } 
@@ -117,9 +127,15 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
     if (R < -epsilon || epsilon < R) {
       /* one double root and one single root */
       u = airCbrt(R);
-      root[0] = 2*u - sub;
-      root[1] = -u - sub;
-      root[2] = -u - sub;
+      if (u > 0) {
+	root[0] = 2*u - sub;
+	root[1] = -u - sub;
+	root[2] = -u - sub;
+      } else {
+	root[0] = -u - sub;
+	root[1] = -u - sub;
+	root[2] = 2*u - sub;
+      }
       return ell_cubic_root_single_double;
     } 
     else {
@@ -131,10 +147,6 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
   /* shouldn't ever get here */
   return ell_cubic_root_unknown;
 }
-
-
-
-
 
 
 
