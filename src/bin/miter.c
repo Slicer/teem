@@ -61,7 +61,7 @@ main(int argc, char *argv[]) {
   limnHestCameraOptAdd(&hopt, muu->hctx->cam,
 		       NULL, "0 0 0", "0 0 1",
 		       NULL, NULL, NULL,
-		       "-1 1", "-1 1");
+		       "nan nan", "nan nan", "20");
   hestOptAdd(&hopt, "ffr", "fake from", airTypeDouble, 3, 3,
 	     &(muu->fakeFrom), "nan nan nan",
 	     "eye point to use for view-dependent transfer functions. "
@@ -159,7 +159,20 @@ main(int argc, char *argv[]) {
   ELL_3V_SET(muu->lit->col[0], 1, 1, 1);
   muu->lit->on[0] = AIR_TRUE;
   muu->lit->vsp[0] = AIR_TRUE;
-  if (limnCameraUpdate(muu->hctx->cam)
+  if (AIR_EXISTS(muu->hctx->cam->uRange[0])
+      && AIR_EXISTS(muu->hctx->cam->uRange[1])
+      && AIR_EXISTS(muu->hctx->cam->vRange[0])
+      && AIR_EXISTS(muu->hctx->cam->vRange[1])) {
+    /* someone went to the trouble of setting the U,V minmax, which
+       means they probably don't want the "fov"-based view window,
+       whether or not the "fov" value came from the command-line or
+       from the (unavoidable) default */
+    muu->hctx->cam->fov = AIR_NAN;
+  }
+  if (limnCameraAspectSet(muu->hctx->cam, 
+			  muu->hctx->imgSize[0], muu->hctx->imgSize[1],
+			  nrrdCenterCell)
+      || limnCameraUpdate(muu->hctx->cam)
       || limnLightUpdate(muu->lit, muu->hctx->cam)) {
     airMopAdd(mop, errS = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble setting camera:\n%s\n", me, errS);

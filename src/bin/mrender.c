@@ -464,7 +464,7 @@ main(int argc, char *argv[]) {
   limnHestCameraOptAdd(&hopt, uu->hctx->cam,
 		       NULL, "0 0 0", "0 0 1",
 		       NULL, NULL, NULL,
-		       "-1 1", "-1 1");
+		       "nan nan", "nan nan", "20");
   hestOptAdd(&hopt, "is", "image size", airTypeInt, 2, 2, uu->hctx->imgSize,
 	     "256 256", "image dimensions");
   hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1,
@@ -535,6 +535,16 @@ main(int argc, char *argv[]) {
 	  airEnumStr(nrrdMeasure, uu->measr),
 	  airEnumStr(uu->kind->enm, uu->whatq), uu->kind->name);
   
+  if (limnCameraAspectSet(uu->hctx->cam, 
+			  uu->hctx->imgSize[0], uu->hctx->imgSize[1],
+			  nrrdCenterCell)
+      || limnCameraUpdate(uu->hctx->cam)) {
+    airMopAdd(mop, errS = biffGetDone(LIMN), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble setting camera:\n%s\n", me, errS);
+    airMopError(mop);
+    return 1;
+  }
+
   /* set remaining fields of hoover context */
   base = uu->kind->baseDim;
   uu->hctx->volSize[0] = uu->nin->axis[base+0].size;
