@@ -88,7 +88,7 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   ansLen = gageSclAnsLength[what];
-  printf("ansLen = %d --> ", ansLen);
+  printf("%s: ansLen = %d --> ", me, ansLen);
   if ((gageSclHessian == what) || (gageSclGeomTens == what)) {
     ansLen = 7;
   }
@@ -108,6 +108,7 @@ main(int argc, char *argv[]) {
 
   ctx = gageSclContextNew();
   ctx->c.verbose = 1;   /* but this is reset when we start traversing */
+  ctx->c.verbose = 0;
   ctx->c.renormalize = AIR_FALSE;
   ctx->c.checkIntegrals = AIR_FALSE;
   E = 0;
@@ -126,7 +127,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));
     exit(1);
   }
-  pad = 3 + gageSclNeedPadGet(ctx);
+  pad = 0 + gageSclNeedPadGet(ctx);
   printf("%s: kernel set requires padding by %d, we'll use %d\n",
 	 me, gageSclNeedPadGet(ctx), pad);
   /* we pad with something other than needed pad for stress testing */
@@ -175,7 +176,7 @@ main(int argc, char *argv[]) {
 	x = AIR_AFFINE(0, xi, sox-1, 0, six-1);
 	idx = xi + sox*(yi + soy*zi);
 
-	ctx->c.verbose = 2*( /* !xi && !yi && !zi || */
+	ctx->c.verbose = 0*( /* !xi && !yi && !zi || */
 			    /* ((100 == xi) && (8 == yi) && (8 == zi)) */
 			    ((61 == xi) && (51 == yi) && (46 == zi))
 			     /* ((40 == xi) && (30 == yi) && (62 == zi)) || */

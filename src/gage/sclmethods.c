@@ -192,8 +192,10 @@ gageSclQuerySet(gageSclContext *sctx, unsigned int query) {
   /* do recursive expansion of pre-requisites */
   /* HEY: this functionality is (eventually) not scalar-specific */
   sctx->query = query;
-  fprintf(stderr, "!%s: original query = %u ...\n", me, sctx->query);
-  _gageSclPrint_query(sctx->query);
+  if (sctx->c.verbose) {
+    fprintf(stderr, "%s: original query = %u ...\n", me, sctx->query);
+    _gageSclPrint_query(sctx->query);
+  }
   do {
     lastq = sctx->query;
     q = GAGE_SCL_MAX+1;
@@ -203,9 +205,10 @@ gageSclQuerySet(gageSclContext *sctx, unsigned int query) {
 	sctx->query |= _gageSclPrereq[q];
     } while (q);
   } while (sctx->query != lastq);
-  fprintf(stderr, "!%s: expanded query = %u ...\n", me, sctx->query);
-  _gageSclPrint_query(sctx->query);
-
+  if (sctx->c.verbose) {
+    fprintf(stderr, "!%s: expanded query = %u ...\n", me, sctx->query);
+    _gageSclPrint_query(sctx->query);
+  }
   if (_gageSclQueryDependentSet(sctx)) {
     sprintf(err, "%s:", me);
     biffAdd(GAGE, err); return 1;
@@ -260,14 +263,16 @@ _gageSclQueryDependentSet(gageSclContext *sctx) {
       }
     }
   } while (q);
-  fprintf(stderr, "!%s: needK = %d ; %d %d ; %d %d %d\n",
-	  "_gageSclQueryDependentSet",
-	  sctx->needK[gageKernel00],
-	  sctx->needK[gageKernel10],
-	  sctx->needK[gageKernel11],
-	  sctx->needK[gageKernel20],
-	  sctx->needK[gageKernel21],
-	  sctx->needK[gageKernel22]);
+  if (sctx->c.verbose) {
+    fprintf(stderr, "!%s: needK = %d ; %d %d ; %d %d %d\n",
+	    "_gageSclQueryDependentSet",
+	    sctx->needK[gageKernel00],
+	    sctx->needK[gageKernel10],
+	    sctx->needK[gageKernel11],
+	    sctx->needK[gageKernel20],
+	    sctx->needK[gageKernel21],
+	    sctx->needK[gageKernel22]);
+  }
 
   return 0;
 }
