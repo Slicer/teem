@@ -584,8 +584,9 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
      memory for the current pass of resampling, and they (except
      strideIn) are re-set at the beginning of each pass */
   float
-    *smp;                     /* initially, sample locations (in kernel space),
-				 then overwritten with sample weights */
+    *smp;                     /* initially, sample locations (in kernel 
+				 space), then overwritten with sample 
+				 weights */
   int 
     ci[NRRD_DIM_MAX+1],
     co[NRRD_DIM_MAX+1],
@@ -722,8 +723,8 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     /* allocate output volume */
     arr[p+1] = (float*)calloc(numOut, sizeof(float));
     if (!arr[p+1]) {
-      sprintf(err, "%s: couldn't create array of "NRRD_BIG_INT_PRINTF" floats "
-	      "for output of pass %d", me, numOut, p);
+      sprintf(err, "%s: couldn't create array of "NRRD_BIG_INT_PRINTF" floats"
+	      " for output of pass %d", me, numOut, p);
       biffAdd(NRRD, err); return 1;
     }
     /*

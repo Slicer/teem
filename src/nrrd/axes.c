@@ -72,7 +72,8 @@ nrrdAxisCopy(nrrdAxis *ax1, nrrdAxis *ax0) {
 ** output axis d should copy its information.  The length of this
 ** permutation array is nout->dim.  If map is NULL, the identity permutation
 ** is assumed.  The "flags" field controls which per-axis fields will
-** NOT be copied; if flags==0, then all fields are copied
+** NOT be copied; if flags==0, then all fields are copied.  If map[i]==-1
+** for any i in [0,dim-1], then nothing for that dimension is copied.
 **
 ** Decided to Not use Biff, since many times map will be NULL, in
 ** which case the only error is getting a NULL nrrd, which will
@@ -180,6 +181,7 @@ nrrdAxesSet(Nrrd *nrrd, int axInfo, void *_info) {
 */
 void
 nrrdAxesSet_va(Nrrd *nrrd, int axInfo, ...) {
+  char *labelTmp;
   void *space[NRRD_DIM_MAX];
   _nrrdAxesInfoPtrs info;
   int d;
@@ -198,17 +200,22 @@ nrrdAxesSet_va(Nrrd *nrrd, int axInfo, ...) {
     case nrrdAxesInfoSize:
     case nrrdAxesInfoCenter:
       info.I[d] = va_arg(ap, int);
-      printf("!%s: got int[%d] = %d\n", "nrrdAxesSet_va", d, info.I[d]);
+      /* printf("!%s: got int[%d] = %d\n", "nrrdAxesSet_va", d, info.I[d]); */
       break;
     case nrrdAxesInfoSpacing:
     case nrrdAxesInfoMin:
     case nrrdAxesInfoMax:
       info.D[d] = va_arg(ap, double);
+      /*
       printf("!%s: got double[%d] = %lg\n", "nrrdAxesSet_va", d, info.D[d]);
+      */
       break;
     case nrrdAxesInfoLabel:
-      info.C[d] = va_arg(ap, char *);
+      labelTmp = va_arg(ap, char *);
+      info.C[d] = airStrdup(labelTmp);
+      /*
       printf("!%s: got char*[%d] = |%s|\n", "nrrdAxesSet_va", d, info.C[d]);
+      */
       break;
     }
   }

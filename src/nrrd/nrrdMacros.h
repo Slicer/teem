@@ -46,6 +46,19 @@ for ((d)=0;                                        \
 }
 
 /*
+******** NRRD_COORD_INCR
+**
+** same as NRRD_COORD_UPDATE, but starts by incrementing coord[0]
+*/
+#define NRRD_COORD_INCR(coord, size, dim, d)       \
+for ((coord)[0]++, (d)=0;                          \
+     (d) < (dim)-1 && (coord)[(d)] == (size)[(d)]; \
+     (d)++) {                                      \
+  (coord)[(d)] = 0;                                \
+  (coord)[(d)+1]++;                                \
+}
+
+/*
 ******** NRRD_COORD_INDEX
 **
 ** Given a coordinate array "coord", as well as the array sizes "size"

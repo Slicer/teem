@@ -26,6 +26,7 @@ nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, int minmax, ...) {
   double (*lup)(void *, nrrdBigInt);
   double (*ins)(void *, nrrdBigInt, double);
   va_list ap;
+  int E = 0;
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -46,11 +47,13 @@ nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, int minmax, ...) {
     insteadMin = va_arg(ap, double);
     insteadMax = va_arg(ap, double);
     va_end(ap);
+    E = nrrdMinMaxDo(&min, &max, nin, nrrdMinMaxInsteadUse, 
+		     insteadMin, insteadMax);
   }
   else {
-    insteadMin = insteadMax = AIR_NAN;
+    E = nrrdMinMaxDo(&min, &max, nin, minmax);
   }
-  if (nrrdMinMaxDo(&min, &max, nin, insteadMin, insteadMax, minmax)) {
+  if (E) {
     sprintf(err, "%s: trouble setting min, max", me);
     biffAdd(NRRD, err); return 1;
   }

@@ -313,7 +313,7 @@ extern int nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr);
 
 /********* HISTOGRAMS!!! */
 /* histogram.c */
-extern int nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int axis, int bins);
+extern int nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int axis, unsigned int bins);
 extern int nrrdHistoMulti(Nrrd *nout, Nrrd **nin, 
 			  int num, int *bin, 
 			  float *min, float *max, int *clamp);
@@ -322,8 +322,8 @@ extern int nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy);
 
 /******** point-wise value remapping, conversion, and such */
 /* map.c */
-extern int nrrdMinMaxDo(double *minP, double *maxP, Nrrd *nrrd, 
-			double min, double max, int minmax);
+extern int nrrdMinMaxDo(double *minP, double *maxP, 
+			Nrrd *nrrd, int minmax, ...);
 extern int nrrdMinMaxFind(double *minP, double *maxP, Nrrd *nrrd);
 extern int nrrdConvert(Nrrd *nout, Nrrd *nin, int type);
 extern int nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits, int minmax);

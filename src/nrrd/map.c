@@ -114,10 +114,10 @@ nrrdMinMaxFind(double *minP, double *maxP, Nrrd *nrrd) {
 }  
 
 int
-nrrdMinMaxDo(double *minP, double *maxP, Nrrd *nrrd, 
-	     double min, double max, int minmax) {
+nrrdMinMaxDo(double *minP, double *maxP, Nrrd *nrrd, int minmax, ...) {
   char me[]="nrrdMinMaxDo", err[NRRD_STRLEN_MED];
   int E;
+  va_list ap;
   
   if (!AIR_BETWEEN(nrrdMinMaxUnknown, minmax, nrrdMinMaxLast)) {
     sprintf(err, "%s: minmax behavior %d invalid", me, minmax);
@@ -138,8 +138,10 @@ nrrdMinMaxDo(double *minP, double *maxP, Nrrd *nrrd,
     *maxP = nrrd->max;
     break;
   case nrrdMinMaxInsteadUse:
-    *minP = min;
-    *maxP = max;
+    va_start(ap, minmax);
+    *minP = va_arg(ap, double);
+    *maxP = va_arg(ap, double);
+    va_end(ap);
     break;
   default:
     sprintf(err, "%s: sorry, minmax behavior %d not implemented", me, minmax);

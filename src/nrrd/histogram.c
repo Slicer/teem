@@ -18,11 +18,21 @@
 
 #include "nrrd.h"
 
+/*
+******** nrrdHistoAxis
+**
+** replace scanlines along one scanline with a histogram of the scanline
+**
+** By its very nature, and by the simplicity of this implemention,
+** this can be a slow process due to terrible memory locality.  User
+** may want to permute axes before and after this, but that can be
+** slow too...  */
 int
-nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins) {
+nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, unsigned int bins) {
   char err[NRRD_STRLEN_MED], me[] = "nrrdHistoAxis";
-  int coord[NRRD_DIM_MAX], hcoord[NRRD_DIM_MAX], hidx, d, map[NRRD_DIM_MAX],
-    size[NRRD_DIM_MAX];
+  int hidx, d, map[NRRD_DIM_MAX];
+  unsigned int szIn[NRRD_DIM_MAX], szOut[NRRD_DIM_MAX],
+    coordIn[NRRD_DIM_MAX], coordOut[NRRD_DIM_MAX];
   nrrdBigInt I, hI;
   float val;
   unsigned char *hdata;
@@ -44,42 +54,33 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins) {
     sprintf(err, "%s: failed to alloc output nrrd", me);
     biffAdd(NRRD, err); return 1;
   }
-  
-  nrrdAxesGet(nin, nrrdAxesInfoSize, size);
-  nrrdAxesSet(nout, nrrdAxesInfoSize, size);
+  nrrdAxesGet(nin, nrrdAxesInfoSize, szIn);
+  memcpy(szOut, szIn, nin->dim*sizeof(unsigned int));
+  szOut[ax] = bins;
+  nrrdAxesSet(nout, nrrdAxesInfoSize, szOut);
   nout->axis[ax].min = nin->min;
   nout->axis[ax].max = nin->max;
   hdata = nout->data;
 
-  /* Memory locality?  Cache hits?  Who? */
-  memset(coord, 0, NRRD_DIM_MAX*sizeof(int));
-  for (I=0; I<=nin->num-1; I++) {
-    /* update coord[] to be coordinates in input nrrd */
-    coord[0]++;
-    for (d=0; d<=nin->dim-1; d++) {
-      if (coord[d] == nin->axis[d].size) {
-	coord[d] = 0;
-	coord[d+1]++;
-      }
-      else {
-	break;
-      }
-    }
+  /* the coordinates of the first input samples are all zeroes */
+  memset(coordIn, 0, NRRD_DIM_MAX*sizeof(unsigned int));
 
+  /* we traverse the input samples in linear order, and increment
+     the bin in the histogram for the scanline we're in.  This
+     is not terribly clever */
+  for (I=0; I<=nin->num-1; I++) {
     /* get input nrrd value and compute its histogram index */
     val = nrrdFLookup[nin->type](nin->data, I);
     AIR_INDEX(nin->min, val, nin->max, bins, hidx);
 
     /* determine coordinate in output nrrd, update bin count */
-    memcpy(hcoord, coord, nin->dim*sizeof(int));
-    hcoord[ax] = hidx;
-    hI = 0;
-    for (d=nin->dim-1; d>=0; d--) {
-      hI = hcoord[d] + nout->axis[d].size*hI;
-    }
+    memcpy(coordOut, coordIn, nin->dim*sizeof(int));
+    coordOut[ax] = hidx;
+    NRRD_COORD_INDEX(coordOut, szOut, nout->dim, d, hI);
     if (hdata[hI] < 255) {
       hdata[hI]++;
     }
+    NRRD_COORD_INCR(coordIn, szIn, nin->dim, d);
   }
 
   /* set information in output */
@@ -157,6 +158,21 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins) {
     }
   }
 
+  if (nin->content) {
+    nout->content = calloc(strlen("histo(,)")
+			   + strlen(nin->content)
+			   + 11
+			   + 1, sizeof(char));
+    if (nout->content) {
+      sprintf(nout->content, "histo(%s,%d)",
+	      nin->content, bins);
+    }
+    else {
+      sprintf(err, "%s: couldn't allocate output content", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  
   return 0;
 }
 
@@ -215,6 +231,7 @@ nrrdHistoMulti(Nrrd *nout, Nrrd **nin,
     nout->axis[d].size = bin[d];
     nout->axis[d].min = min[d];
     nout->axis[d].max = max[d];
+    /* HEY: don't make this fixed-size */
     sprintf(tmpS, "histo(%s,%d)", nin[d]->content, bin[d]);
     nout->axis[d].label = airStrdup(tmpS);
   }
@@ -255,6 +272,8 @@ nrrdHistoMulti(Nrrd *nout, Nrrd **nin,
     */
     ++out[idx];
   }
+
+  /* content? */
 
   return 0;
 }
