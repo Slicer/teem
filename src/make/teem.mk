@@ -18,48 +18,15 @@
 #
 #
 
-# learned: you get very confusing errors if one the filenames in 
-# $(TEEM_LIB_OBJS) ends with ".c"
-
-
+# including this ensures that TEEM_ARCH is set, and is set to something
+# known, as well as setting ARCH and SUBARCH
+include ../make/testArch.mk
 
 #
 # Common makefile variables and rules for all teem libraries
 #
 # This is included by all the individual library/utility Makefiles,
 # at the *end* of that Makefile.
-
-# all the architectures currently supported
-KNOWN_ARCH = irix6.n32 irix6.64 linux cygwin solaris
-
-# there is no default architecture
-ifndef TEEM_ARCH
-  $(warning *)
-  $(warning *)
-  $(warning *    Environment variable TEEM_ARCH not set.)
-  $(warning *    Possible settings currently supported:)
-  $(warning *    $(KNOWN_ARCH))
-  $(warning *)
-  $(warning *)
-  $(error Make quitting)
-endif
-
-# the architecture name may have two parts, ARCH and SUBARCH,
-# seperated by one period
-ARCH = $(basename $(TEEM_ARCH))
-SUBARCH = $(patsubst .%,%,$(suffix $(TEEM_ARCH)))
-
-# verify that we can recognize the architecture setting
-ifeq (,$(strip $(findstring $(TEEM_ARCH),$(KNOWN_ARCH))))
-  $(warning *)
-  $(warning *)
-  $(warning *    Environment variable TEEM_ARCH = "$(TEEM_ARCH)" unknown)
-  $(warning *    Possible settings currently supported:)
-  $(warning *    $(KNOWN_ARCH))
-  $(warning *)
-  $(warning *)
-  $(error Make quitting)
-endif
 
 # The root of the teem tree, as seen from the library subdirectories
 # of the the "src" directory.  TEEM_ROOT is the directory which
@@ -163,8 +130,8 @@ ifeq ($(TEEM_LINK_SHARED),true)
     ifndef SHEXT
       $(warning *)
       $(warning *)
-      $(warning *    Can't do shared library linking with SHEXT unset)
-      $(warning *    See architecture-specific .mk file.)
+      $(warning * Can't do shared library linking with SHEXT unset)
+      $(warning * See architecture-specific .mk file.)
       $(warning *)
       $(warning *)
       $(error Make quitting)
@@ -223,8 +190,8 @@ ifeq ($(TEEM_PURIFY),true)
   ifndef PURIFY
     $(warning *)
     $(warning *)
-    $(warning *    Purification requested, but env variable PURIFY not set)
-    $(warning *    Edit make/$(ARCH).mk in teem root directory)
+    $(warning * Purification requested, but env variable PURIFY not set)
+    $(warning * Edit make/$(ARCH).mk in teem root directory)
     $(warning *)
     $(warning *)
     $(error Make quitting)
