@@ -381,7 +381,7 @@ unrrduParseEncoding(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     /* we're done; encoding was simple: "raw" or "gz" */
     return 0;
   }
-  mop = airMopInit();
+  mop = airMopNew();
   str = airStrdup(_str);
   airMopMem(mop, &str, airMopAlways);
   opt = strchr(str, ':');

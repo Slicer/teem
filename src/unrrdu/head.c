@@ -43,7 +43,7 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
   int c;
 #endif
 
-  mop = airMopInit();
+  mop = airMopNew();
   hestOptAdd(&opt, NULL, "nin", airTypeString, 1, 1, &inS, NULL,
 	     "input nrrd");
   hestOptAdd(&opt, NULL, "out", airTypeString, 0, 1, &outS, "-",

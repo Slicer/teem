@@ -50,7 +50,7 @@ main(int argc, char *argv[]) {
   double crct;
   
   me = argv[0];
-  mop = airMopInit();
+  mop = airMopNew();
   hestOptAdd(&hopt, "N", "days", airTypeInt, 1, 1, &N, "365",
 	     "# of days in year");
   /* E != P */

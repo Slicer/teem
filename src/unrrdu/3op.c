@@ -66,7 +66,7 @@ unrrdu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
              NULL, NULL, &unrrduHestMaybeTypeCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
-  mop = airMopInit();
+  mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(_unrrdu_3opInfoL);

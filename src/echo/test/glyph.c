@@ -190,7 +190,7 @@ echoParseTenNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     return 1;
   }
   nrrdP = ptr;
-  mop = airMopInit();
+  mop = airMopNew();
   *nrrdP = nrrdNew();
   airMopAdd(mop, *nrrdP, (airMopper)nrrdNuke, airMopOnError);
   if (nrrdLoad(*nrrdP, str)) {
@@ -247,7 +247,7 @@ main(int argc, char *argv[]) {
   EchoGlyphParm gparm;
 
   me = argv[0];
-  mop = airMopInit();
+  mop = airMopNew();
 
   hparm = hestParmNew();
   hparm->respFileEnable = AIR_TRUE;

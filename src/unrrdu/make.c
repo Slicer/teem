@@ -47,7 +47,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   FILE *fileOut;
   char **label;
 
-  mop = airMopInit();
+  mop = airMopNew();
   io = nrrdIONew();
   airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
   nrrd = nrrdNew();

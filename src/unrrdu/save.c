@@ -38,7 +38,7 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   NrrdIO *io;
   int pret, enc[3];
 
-  mop = airMopInit();
+  mop = airMopNew();
   io = nrrdIONew();
   airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
 

@@ -31,7 +31,7 @@ _mossHestTransformParse (void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     return 1;
   }
   matP = (double **)ptr;
-  mop = airMopInit();
+  mop = airMopNew();
   *matP = calloc(6, sizeof(double));
   airMopMem(mop, matP, airMopOnError);
   str = airToLower(airStrdup(_str));
@@ -101,7 +101,7 @@ _mossHestOriginParse (void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   airArray *mop;
 
   valP = (double **)ptr;
-  mop = airMopInit();
+  mop = airMopNew();
   *valP = (double *)calloc(3, sizeof(double));
   airMopMem(mop, valP, airMopOnError);
   if (2 == sscanf(str, "p:%lf,%lf", *valP + 1, *valP + 2)) {

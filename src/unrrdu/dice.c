@@ -42,7 +42,7 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "<prefix>00.nrrd, <prefix>01.nrrd, and so on. If this is a "
 	     "directory name, you probably want to end it with a \"/\".");
 
-  mop = airMopInit();
+  mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(_unrrdu_diceInfoL);

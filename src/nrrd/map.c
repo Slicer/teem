@@ -514,7 +514,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP,
       biffAdd(NRRD, err); return 1;
     }
   }
-  mop = airMopInit();
+  mop = airMopNew();
   if (nmapP) {
     airMopAdd(mop, *nmapP, (airMopper)airSetNull, airMopOnError);
   }

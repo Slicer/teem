@@ -48,7 +48,7 @@ main(int argc, char **argv) {
     return 1;
   }
 
-  mop = airMopInit();
+  mop = airMopNew();
   hparm = hestParmNew();
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hparm->elideSingleEnumType = AIR_TRUE;

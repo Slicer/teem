@@ -342,7 +342,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
     biffAdd(HOOVER, err);
     return hooverErrInit;
   }
-  mop = airMopInit();
+  mop = airMopNew();
   airMopAdd(mop, ec, (airMopper)_hooverExtraContextNix, airMopAlways);
   if ( (ret = (ctx->renderBegin)(&renderInfo, ctx->userInfo)) ) {
     *errCodeP = ret;

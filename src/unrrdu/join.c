@@ -51,7 +51,7 @@ unrrdu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "nrrds are joined side-by-side, along an existing axis.");
   OPT_ADD_NOUT(out, "output nrrd");
 
-  mop = airMopInit();
+  mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(_unrrdu_joinInfoL);

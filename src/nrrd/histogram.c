@@ -158,7 +158,7 @@ nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy, int showLog) {
     }
   }
   numticks = log10(maxhits + 1);
-  mop = airMopInit();
+  mop = airMopNew();
   ticks = (int*)calloc(numticks, sizeof(int));
   airMopMem(mop, &ticks, airMopAlways);
   Y = (int*)calloc(sx, sizeof(int));

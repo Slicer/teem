@@ -601,7 +601,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
     return 0;
   }
 
-  mop = airMopInit();
+  mop = airMopNew();
   /* convert input nrrd to nrrdResample_t if necessary */
   if (nrrdResample_nrrdType != typeIn) {
     if (nrrdConvert(floatNin = nrrdNew(), nin, nrrdResample_nrrdType)) {

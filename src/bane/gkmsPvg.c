@@ -103,7 +103,7 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "o", "imageOut", airTypeString, 1, 1, &outS, NULL,
 	     "output image, in PPM format");
 
-  mop = airMopInit();
+  mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_baneGkms_pvgInfoL);
   PARSE();

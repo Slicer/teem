@@ -1366,7 +1366,7 @@ nrrdSave (const char *filename, Nrrd *nrrd, NrrdIO *io) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  mop = airMopInit();
+  mop = airMopNew();
   if (!io) {
     io = nrrdIONew();
     if (!io) {

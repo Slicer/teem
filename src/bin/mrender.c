@@ -75,7 +75,7 @@ mrendUserInfoNew() {
   uu->gctx0 = gageContextNew();
   uu->hctx = hooverContextNew();
   uu->outS = NULL;
-  uu->mrmop = airMopInit();
+  uu->mrmop = airMopNew();
   airMopAdd(uu->mrmop, uu->gctx0, (airMopper)gageContextNix, airMopAlways);
   airMopAdd(uu->mrmop, uu->hctx, (airMopper)hooverContextNix, airMopAlways);
   return uu;
@@ -387,7 +387,7 @@ main(int argc, char *argv[]) {
   double gmc;
 
   me = argv[0];
-  mop = airMopInit();
+  mop = airMopNew();
   hparm = hestParmNew();
   hparm->respFileEnable = AIR_TRUE;
   uu = mrendUserInfoNew();

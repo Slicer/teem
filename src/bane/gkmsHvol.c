@@ -85,7 +85,7 @@ baneGkms_hvolMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "output histogram volume, used by \"gkms scat\" and "
 	     "\"gkms info\"");
 
-  mop = airMopInit();
+  mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_baneGkms_hvolInfoL);
   PARSE();

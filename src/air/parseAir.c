@@ -255,7 +255,7 @@ airParseStrS(char **out, const char *_s, const char *ct, int n, ...) {
   if (!(out && _s && ct))
     return 0;
 
-  mop = airMopInit();
+  mop = airMopNew();
   /* copy the input so that we don't change it */
   s = airStrdup(_s);
   airMopMem(mop, &s, airMopAlways);
@@ -304,7 +304,7 @@ airParseStrE(int *out, const char *_s, const char *ct, int n, ...) {
     return 0;
   }
 
-  mop = airMopInit();
+  mop = airMopNew();
   /* copy the input so that we don't change it */
   s = airStrdup(_s);
   airMopMem(mop, &s, airMopAlways);

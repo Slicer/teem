@@ -38,7 +38,7 @@ main(int argc, char *argv[]) {
   int E, Ecode;
 
   me = argv[0];
-  mop = airMopInit();
+  mop = airMopNew();
   ctx = hooverContextNew();
   fprintf(stderr, "%s: hoover ctx = %p\n", me, ctx);
   airMopAdd(mop, ctx, (airMopper)hooverContextNix, airMopAlways);

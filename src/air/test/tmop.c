@@ -39,7 +39,7 @@ main(int argc, char *argv[]) {
   me = argv[0];
   printf("%s: -------------------------------------\n", me);
 
-  mop = airMopInit();
+  mop = airMopNew();
   str = airStrdup("this is just a test");
   printf("%s: str = \"%s\", str = 0x%p, &str = 0x%p\n", me,
 	 str, str, &str);
@@ -50,7 +50,7 @@ main(int argc, char *argv[]) {
 
   printf("%s: -------------------------------------\n", me);
 
-  mop = airMopInit();
+  mop = airMopNew();
   ptr = calloc(1024, sizeof(char));
   airMopMem(mop, &ptr, airMopAlways);
   airMopAdd(mop, &i, print, airMopNever);
@@ -64,7 +64,7 @@ main(int argc, char *argv[]) {
 
   printf("%s: -------------------------------------\n", me);
 
-  mop = airMopInit();
+  mop = airMopNew();
   ptr = calloc(1024, sizeof(char));
   airMopMem(mop, &ptr, airMopAlways);
   airMopAdd(mop, &i, print, airMopNever);
@@ -78,7 +78,7 @@ main(int argc, char *argv[]) {
 
   printf("%s: -------------------------------------\n", me);
 
-  mop = airMopInit();
+  mop = airMopNew();
   ptr = calloc(1024, sizeof(char));
   airMopMem(mop, &ptr, airMopAlways);
   free(ptr);

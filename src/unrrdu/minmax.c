@@ -34,7 +34,7 @@ unrrdu_minmaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
   int pret;
 
-  mop = airMopInit();
+  mop = airMopNew();
   hestOptAdd(&opt, NULL, "nin", airTypeOther, 1, 1, &nin, NULL,
 	     "input nrrd",
 	     NULL, NULL, nrrdHestNrrd);

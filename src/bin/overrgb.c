@@ -45,7 +45,7 @@ main(int argc, char *argv[]) {
   unsigned char *outUC;
 
   me = argv[0];
-  mop = airMopInit();
+  mop = airMopNew();
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
 	     "input nrrd to composite", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "g", "gamma", airTypeDouble, 1, 1, &gamma, "1.0",

@@ -48,7 +48,7 @@ unrrdu_blockMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     NULL, NULL, nrrdHestNrrd);
   OPT_ADD_NOUT(out, "output nrrd");
 
-  mop = airMopInit();
+  mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(_unrrdu_blockInfoL);

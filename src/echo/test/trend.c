@@ -915,7 +915,7 @@ main(int argc, char **argv) {
 
   me = argv[0];
 
-  mop = airMopInit();
+  mop = airMopNew();
 
   cam = echoLimnCamNew();
   airMopAdd(mop, cam, (airMopper)limnCamNix, airMopAlways);

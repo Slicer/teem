@@ -33,7 +33,7 @@ _nrrdHestNrrdParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     return 1;
   }
   nrrdP = (Nrrd **)ptr;
-  mop = airMopInit();
+  mop = airMopNew();
   *nrrdP = nrrdNew();
   airMopAdd(mop, *nrrdP, (airMopper)nrrdNuke, airMopOnError);
   if (nrrdLoad(*nrrdP, str)) {
@@ -150,7 +150,7 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     return 1;
   }
   iterP = (NrrdIter **)ptr;
-  mop = airMopInit();
+  mop = airMopNew();
   *iterP = nrrdIterNew();
   airMopAdd(mop, *iterP, (airMopper)nrrdIterNuke, airMopOnError);
 

@@ -50,7 +50,7 @@ baneGkms_infoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "o", "infoOut", airTypeString, 1, 1, &outS, NULL,
 	     "output info file, used by \"gkms pvg\" and \"gkms opac\"");
   
-  mop = airMopInit();
+  mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_baneGkms_infoInfoL);
   PARSE();

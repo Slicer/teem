@@ -42,7 +42,7 @@ unrrdu_unblockMain(int argc, char **argv, char *me, hestParm *hparm) {
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
-  mop = airMopInit();
+  mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(_unrrdu_unblockInfoL);

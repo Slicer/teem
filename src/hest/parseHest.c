@@ -1024,7 +1024,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
   numOpts = _hestNumOpts(opt);
 
   /* -------- initialize the mop! */
-  mop = airMopInit();
+  mop = airMopNew();
 
   /* -------- either copy given _parm, or allocate one */
   if (_parm) {

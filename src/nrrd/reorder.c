@@ -430,7 +430,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
     }
   }
 
-  mop = airMopInit();
+  mop = airMopNew();
   ninperm = calloc(numNin, sizeof(Nrrd *));
   if (!(ninperm)) {
     sprintf(err, "%s: couldn't calloc() temp nrrd array", me);

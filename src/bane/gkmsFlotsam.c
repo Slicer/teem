@@ -102,7 +102,7 @@ baneGkmsParseBEF(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  mop = airMopInit();
+  mop = airMopNew();
   nrrdP = (Nrrd **)ptr;
   airMopAdd(mop, *nrrdP=nrrdNew(), (airMopper)nrrdNuke, airMopOnError);
   if (4 == sscanf(str, "%g,%g,%g,%g", &shape, &width, &cent, &alpha)) {

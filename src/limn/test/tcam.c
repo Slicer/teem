@@ -32,7 +32,7 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
 
-  mop = airMopInit();
+  mop = airMopNew();
   cam = limnCamNew();
   airMopAdd(mop, cam, (airMopper)limnCamNix, airMopAlways);
   

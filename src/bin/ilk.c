@@ -39,7 +39,7 @@ main(int argc, char *argv[]) {
   float *bg, scale[4];
   
   me = argv[0];
-  mop = airMopInit();
+  mop = airMopNew();
   hparm = hestParmNew();
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hparm->elideSingleEnumType = AIR_TRUE;

@@ -45,7 +45,7 @@ unrrdu_unquantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "Use double for output type, instead of float");
   OPT_ADD_NOUT(out, "output nrrd");
   
-  mop = airMopInit();
+  mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(_unrrdu_unquantizeInfoL);

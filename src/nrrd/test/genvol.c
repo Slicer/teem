@@ -41,7 +41,7 @@ main(int argc, char *argv[]) {
   Nrrd *nout;
   
   me = argv[0];
-  mop = airMopInit();
+  mop = airMopNew();
   hparm = hestParmNew();
   hopt = NULL;
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);

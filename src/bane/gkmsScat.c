@@ -49,7 +49,7 @@ baneGkms_scatMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "magnitude versus value, and 2nd derivative versus value), "
 	     "saved as PGM images");
 
-  mop = airMopInit();
+  mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_baneGkms_scatInfoL);
   PARSE();

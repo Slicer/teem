@@ -45,7 +45,7 @@ miteUserInfoNew() {
     muu->justSum = AIR_FALSE;
     muu->noDirLight = AIR_FALSE;
     muu->outS = NULL;  /* managed by hest */
-    muu->mop = airMopInit();
+    muu->mop = airMopNew();
     airMopAdd(muu->mop, muu->hctx, (airMopper)hooverContextNix, airMopAlways);
     airMopAdd(muu->mop, muu->gctx0, (airMopper)gageContextNix, airMopAlways);
     airMopAdd(muu->mop, muu->gctx0, (airMopper)limnLightNix, airMopAlways);

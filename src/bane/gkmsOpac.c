@@ -74,7 +74,7 @@ baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "o", "opacOut", airTypeString, 1, 1, &outS, NULL,
 	     "output 1D or 2D opacity function");
 
-  mop = airMopInit();
+  mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_baneGkms_opacInfoL);
   PARSE();

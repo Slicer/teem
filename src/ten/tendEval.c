@@ -50,7 +50,7 @@ tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
 	     "output image (floating point)");
 
-  mop = airMopInit();
+  mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_tend_evalInfoL);
   PARSE();

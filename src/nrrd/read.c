@@ -1301,7 +1301,7 @@ _nrrdReadVTK (FILE *file, Nrrd *nrrd, NrrdIO *io) {
     biffAdd(NRRD, err); return 1;
   }
   GETLINE(attribute declaration);
-  mop = airMopInit();
+  mop = airMopNew();
   if (3 != airParseStrS(three, io->line, AIR_WHITESPACE, 3, AIR_FALSE)) {
     sprintf(err, "%s: didn't see three words in attribute declaration \"%s\"",
 	    me, io->line);
@@ -1582,7 +1582,7 @@ nrrdRead (Nrrd *nrrd, FILE *file, NrrdIO *_io) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  mop = airMopInit();
+  mop = airMopNew();
   if (_io) {
     io = _io;
   } else {
@@ -1747,7 +1747,7 @@ nrrdLoad (Nrrd *nrrd, const char *filename) {
     sprintf(err, "%s: couldn't alloc I/O struct", me);
     biffAdd(NRRD, err); return 1;
   }
-  mop = airMopInit();
+  mop = airMopNew();
   airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
 
   /* we save the directory of the filename given to us so

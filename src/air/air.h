@@ -381,7 +381,7 @@ typedef struct {
   airMopper mop;     /* the function to which does the processing */
   int when;          /* from the airMopWhen enum */
 } airMop;
-extern airArray *airMopInit(void);
+extern airArray *airMopNew(void);
 extern void airMopAdd(airArray *arr,
 		      void *ptr, airMopper mop, int when);
 extern void airMopSub(airArray *arr, void *ptr, airMopper mop);
