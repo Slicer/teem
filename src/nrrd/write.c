@@ -596,7 +596,6 @@ nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  fprintf(stderr, "hell 0\n");
   if (!io) {
     io = nrrdIONew();
     if (!io) {
@@ -604,7 +603,6 @@ nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
       biffAdd(NRRD, err); return 1;
     }
   }
-  fprintf(stderr, "hell 1\n");
   if (nrrdEncodingUnknown == io->encoding) {
     io->encoding = nrrdDefWrtEncoding;
   }
@@ -633,7 +631,6 @@ nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
-  fprintf(stderr, "hell 2\n");
   fclose(file);
   io = nrrdIONix(io);
   return 0;

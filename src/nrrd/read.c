@@ -392,10 +392,8 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 	       */
 	/* could we parse anything, and does it belong in a PNM? */
 	if (ret && _nrrdFieldValidInPNM[ret]) {
-	  printf("bingo\n");
 	  /* can we make sense of it? */
 	  if (!_nrrdReadNrrdParseInfo[ret](nrrd, io, AIR_FALSE)) {
-	    printf("BINGO!!\n");
 	    io->seen[ret] = AIR_TRUE;
 	  }
 	}

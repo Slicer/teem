@@ -702,7 +702,7 @@ nrrdBlock(Nrrd *nout, Nrrd *nin) {
     sprintf(err, "%s: failed to allocate output", me);
     biffAdd(NRRD, err); return 1;
   }
-  memcpy(nout, nin, nin->num*nrrdElementSize(nin));
+  memcpy(nout->data, nin->data, nin->num*nrrdElementSize(nin));
   if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_NONE)) {
     sprintf(err, "%s: failed to copy axes", me);
     biffAdd(NRRD, err); return 1;
