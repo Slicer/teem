@@ -94,7 +94,7 @@ baneHVolParmGKMSInit(baneHVolParm *hvp) {
     hvp->ax[1].measr = baneMeasrHess;
     hvp->ax[1].inc = baneIncPercentile;
     hvp->ax[1].incParm[0] = 1024;
-    hvp->ax[1].incParm[1] = 0.2;
+    hvp->ax[1].incParm[1] = 0.25;
     /*
     hvp->ax[1].inc = baneIncRangeRatio;
     hvp->ax[1].incParm[0] = 1.0;
@@ -110,10 +110,10 @@ baneHVolParmGKMSInit(baneHVolParm *hvp) {
     hvp->clipParm[0] = 256;
     
     nrrdKernelParse(&(hvp->k[gageKernel00]), hvp->kparm[gageKernel00],
-		    "cubic:0,0.5");
+		    "cubic:0,0.5");  /* catmull-rom */
     nrrdKernelParse(&(hvp->k[gageKernel11]), hvp->kparm[gageKernel11],
-		    "cubicd:0,0.5");
+		    "cubicd:1,0");   /* b-spline */
     nrrdKernelParse(&(hvp->k[gageKernel22]), hvp->kparm[gageKernel22],
-		    "cubicdd:1,0");
+		    "cubicdd:1,0");  /* b-spline */
   }
 }

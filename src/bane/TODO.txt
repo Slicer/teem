@@ -1,8 +1,9 @@
+use hest for gkms, and make all the constants that GKMSInit sets
+be global defaults, so that gkms can see them too.
+
 make sure that the NUM_PARM_MAX values are correct
 
 when 6pack filtering is in gage, support it in bane
-
-use hest for gkms
 
 use airMop
 
