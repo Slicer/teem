@@ -62,9 +62,16 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
   ks = mtt->range[miteRangeKs];
   ELL_3V_SCALE(ad, ka, muu->lit->amb);
   if (!muu->noDirLight && (kd || ks)) {
-    ELL_3V_SCALE(N, -muu->normalSide, mtt->norm);
+    if (muu->normalSide) {
+      ELL_3V_SCALE(N, -muu->normalSide, mtt->norm);
+    } else {
+      ELL_3V_COPY(N, mtt->norm);
+    }
     if (kd) {
       LdotN = ELL_3V_DOT(muu->lit->dir[0], N);
+      if (!muu->normalSide) {
+	LdotN = AIR_ABS(LdotN);
+      }
       if (LdotN > 0) {
 	ELL_3V_SCALE_ADD2(ad, 1.0, ad, LdotN*kd, muu->lit->col[0]);
       }
@@ -74,6 +81,9 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
       ELL_3V_ADD2(H, muu->lit->dir[0], mtt->V);
       ELL_3V_NORM(H, H, tmp);
       HdotN = ELL_3V_DOT(H, N);
+      if (!muu->normalSide) {
+	HdotN = AIR_ABS(HdotN);
+      }
       if (HdotN > 0) {
 	HdotN = pow(HdotN, sp);
 	ELL_3V_SCALE(s, HdotN*ks, muu->lit->col[0]);
@@ -133,6 +143,10 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
   mtt->mscl[miteSclNdotV] = -muu->normalSide*ELL_3V_DOT(mtt->V, mtt->norm);
   mtt->mscl[miteSclNdotL] = -muu->normalSide*ELL_3V_DOT(mtt->norm,
 							muu->lit->dir[0]);
+  if (!muu->normalSide) {
+    mtt->mscl[miteSclNdotV] = AIR_ABS(mtt->mscl[miteSclNdotV]);
+    mtt->mscl[miteSclNdotL] = AIR_ABS(mtt->mscl[miteSclNdotL]);
+  }
   ELL_3MV_MUL(kn, mtt->nPerp, mtt->V);
   ELL_3V_NORM(kn, kn, len);
   ELL_3MV_MUL(knd, mtt->gten, kn);

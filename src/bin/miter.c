@@ -78,6 +78,13 @@ main(int argc, char *argv[]) {
 	     &(muu->ksp[gageKernel22]),
 	     "cubicdd:1,0",  "second derivative kernel",
 	     NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "ns", "normal side", airTypeInt, 1, 1, &(muu->normalSide),
+	     "1", "how to interpret gradients as normals:\n "
+	     "\b\bo \"1\": normal points to lower values (higher == "
+	     "more \"inside\")\n "
+	     "\b\bo \"0\": \"two-sided\": dot-products are abs()'d\n "
+	     "\b\bo \"-1\": normal points to higher values (lower == "
+	     "more \"inside\")");
   hestOptAdd(&hopt, "rn", NULL, airTypeBool, 0, 0, &renorm, NULL,
 	     "renormalize kernel weights at each new sample location. "
 	     "\"Accurate\" kernels don't need this; doing it always "

@@ -127,10 +127,11 @@ typedef struct {
   limnLight *lit;        /* a struct for all lighting info */
   int normalSide,        /* determines direction of gradient that is used
 			    as normal for shading:
-			    1 for normal pointing to lower values (higher
-			    values are more "inside"); -1 for normal
-			    pointing to higher values (low values more
-			    "inside") */
+			    1: normal points to lower values
+                               (higher values are more "inside"); 
+                            0: "two-sided": dot-products are abs()'d
+                            -1: normal points to higher values
+                               (lower values more "inside") */
     justSum,             /* don't use opacity: just sum colors */
     noDirLight;          /* forget directional phong lighting, using only
 			    the ambient component */
