@@ -136,7 +136,8 @@ F(lut) \
 F(rmap) \
 F(imap) \
 F(ccfind) \
-F(ccmeld) \
+F(ccadj) \
+F(ccmerge) \
 F(save)
 
 /*

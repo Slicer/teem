@@ -21,7 +21,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Merge islands into their surrounding"
-char *_unrrdu_ccmeldInfoL =
+char *_unrrdu_ccmergeInfoL =
 (INFO
  ".  This operates on the output of \"ccfind\". "
  "Connected components (CCs) with only one adjacent CC (that is, islands) "
@@ -29,7 +29,7 @@ char *_unrrdu_ccmeldInfoL =
  "surround, and are smaller then some given maximum significant size. ");
 
 int
-unrrdu_ccmeldMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_ccmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -50,16 +50,16 @@ unrrdu_ccmeldMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unrrdu_ccmeldInfoL);
+  USAGE(_unrrdu_ccmergeInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdCCMeld(nout, nin, maxSize, conny)) {
+  if (nrrdCCMerge(nout, nin, maxSize, conny)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: error doing melding:\n%s", me, err);
+    fprintf(stderr, "%s: error doing merging:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
@@ -70,4 +70,4 @@ unrrdu_ccmeldMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNRRDU_CMD(ccmeld, INFO);
+UNRRDU_CMD(ccmerge, INFO);
