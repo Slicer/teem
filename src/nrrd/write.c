@@ -745,7 +745,6 @@ _nrrdWriteNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io, int writeData) {
   }
 
   fprintf(file, "%s\n", airEnumStr(nrrdMagic, nrrdMagicNRRD0001));
-  /* fprintf(file, "%s\n", airEnumStr(nrrdMagic, nrrdMagicOldNRRD)); */
 
   /* this is where the majority of the header printing happens */
   for (i=1; i<=NRRD_FIELD_MAX; i++) {
@@ -1361,7 +1360,11 @@ nrrdSave (const char *filename, Nrrd *nrrd, NrrdIO *io) {
     sprintf(err, "%s: invalid encoding %d\n", me, io->encoding);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-
+  /* HEY: this is a mess: because _nrrdGuessFormat is the place where
+     the detached data file name is determined, we need to call it
+     even when we DO know the format, as done in "unu save -f nrrd"...
+     But for the time being we directly call _nrrdGuessFormat()
+     from there!!! */
   if (nrrdFormatUnknown == io->format) {
     _nrrdSplitName(&(io->dir), &(io->base), filename);
     _nrrdGuessFormat(io, filename);
