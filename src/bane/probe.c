@@ -283,7 +283,7 @@ baneProbe(float *_ans, Nrrd *nin, int query,
       for (k=0; k<=fd-1; k++) {
 	for (j=0; j<=fd-1; j++) {
 	  for (i=0; i<=fd-1; i++) {
-	    val[i] = lup(ptr, i + sx*(j + sy*k));
+	    val[i+fd*(j+fd*k)] = lup(ptr, i + sx*(j + sy*k));
 	  }
 	}
       }
@@ -470,7 +470,102 @@ baneProbe(float *_ans, Nrrd *nin, int query,
     hess[0] = D4(fw0z, fi1);                /* h_xx */
     break;
   default:
-    printf("%s: NOT IMPLEMENTED\n", me);
+    /* x0 */
+    for (k=0; k<=fd-1; k++)
+      for (j=0; j<=fd-1; j++) {
+	for (tmpF=i=0; i<=fd-1; i++)
+	  tmpF += fw0x[i]*val[i + fd*(j + fd*k)];
+	fi2[j + fd*k] = tmpF;
+      }
+    /* x0y0 */
+    for (k=0; k<=fd-1; k++) {
+      for (tmpF=j=0; j<=fd-1; j++)
+	tmpF += fw0y[j]*fi2[j + fd*k];
+      fi1[k] = tmpF;
+    }
+    /* f */
+    for (tmpF=i=0; i<=fd-1; i++)
+      tmpF += fw0z[i]*fi1[i];
+    *ans = tmpF;
+    /* g_z */
+    for (tmpF=i=0; i<=fd-1; i++)
+      tmpF += fw1z[i]*fi1[i];
+    grad[2] = tmpF;
+    /* h_zz */
+    for (tmpF=i=0; i<=fd-1; i++)
+      tmpF += fw2z[i]*fi1[i];
+    hess[8] = tmpF;
+    /* x0y1 */
+    for (k=0; k<=fd-1; k++) {
+      for (tmpF=j=0; j<=fd-1; j++)
+	tmpF += fw1y[j]*fi2[j + fd*k];
+      fi1[k] = tmpF;
+    }
+    /* g_y */
+    for (tmpF=i=0; i<=fd-1; i++)
+      tmpF += fw0z[i]*fi1[i];
+    grad[1] = tmpF;
+    /* h_yz */
+    for (tmpF=i=0; i<=fd-1; i++)
+      tmpF += fw1z[i]*fi1[i];
+    hess[7] = hess[5] = tmpF;
+    /* x0y2 */
+    for (k=0; k<=fd-1; k++) {
+      for (tmpF=j=0; j<=fd-1; j++)
+	tmpF += fw2y[j]*fi2[j + fd*k];
+      fi1[k] = tmpF;
+    }
+    /* h_yy */
+    for (tmpF=i=0; i<=fd-1; i++)
+      tmpF += fw0z[i]*fi1[i];
+    /* x1 */
+    for (k=0; k<=fd-1; k++)
+      for (j=0; j<=fd-1; j++) {
+	for (tmpF=i=0; i<=fd-1; i++)
+	  tmpF += fw1x[i]*val[i + fd*(j + fd*k)];
+	fi2[j + fd*k] = tmpF;
+      }
+    /* x1y0 */
+    for (k=0; k<=fd-1; k++) {
+      for (tmpF=j=0; j<=fd-1; j++)
+	tmpF += fw0y[j]*fi2[j + fd*k];
+      fi1[k] = tmpF;
+    }
+    /* g_x */
+    for (tmpF=i=0; i<=fd-1; i++)
+      tmpF += fw0z[i]*fi1[i];
+    grad[0] = tmpF;
+    /* h_xz */
+    for (tmpF=i=0; i<=fd-1; i++)
+      tmpF += fw1z[i]*fi1[i];
+    hess[2] = hess[6] = tmpF;
+    /* x1y1 */
+    for (k=0; k<=fd-1; k++) {
+      for (tmpF=j=0; j<=fd-1; j++)
+	tmpF += fw1y[j]*fi2[j + fd*k];
+      fi1[k] = tmpF;
+    }
+    /* h_xy */
+    for (tmpF=i=0; i<=fd-1; i++)
+      tmpF += fw0z[i]*fi1[i];
+    hess[1] = hess[3] = tmpF;
+    /* x2 (damn h_xx) */
+    for (k=0; k<=fd-1; k++)
+      for (j=0; j<=fd-1; j++) {
+	for (tmpF=i=0; i<=fd-1; i++)
+	  tmpF += fw2x[i]*val[i + fd*(j + fd*k)];
+	fi2[j + fd*k] = tmpF;
+      }
+    /* x2y0 */
+    for (k=0; k<=fd-1; k++) {
+      for (tmpF=j=0; j<=fd-1; j++)
+	tmpF += fw0y[j]*fi2[j + fd*k];
+      fi1[k] = tmpF;
+    }
+    /* h_xx */
+    for (tmpF=i=0; i<=fd-1; i++)
+      tmpF += fw0z[i]*fi1[i];
+    hess[0] = tmpF;
     break;
   }
 
