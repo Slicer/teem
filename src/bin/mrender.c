@@ -446,13 +446,9 @@ main(int argc, char *argv[]) {
 	     "gradient magnitude is below this");
   hestOptAdd(&hopt, "step", "size", airTypeDouble, 1, 1, &(uu->rayStep),
 	     "0.01", "step size along ray in world space");
-  if (hooverMyPthread) {
-    hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1,
-	       &(uu->hctx->numThreads),
-	       "1", "number of threads hoover should use");
-  } else {
-    uu->hctx->numThreads = 1;
-  }
+  hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1,
+	     &(uu->hctx->numThreads),
+	     "1", "number of threads hoover should use");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &(uu->outS),
 	     NULL, "file to write output nrrd to");
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -491,6 +487,13 @@ main(int argc, char *argv[]) {
   uu->hctx->rayEnd = (hooverRayEnd_t *)mrendRayEnd;
   uu->hctx->threadEnd = (hooverThreadEnd_t *)mrendThreadEnd;
   uu->hctx->renderEnd = (hooverRenderEnd_t *)mrendRenderEnd;
+
+  if (!hooverMyPthread) {
+    fprintf(stderr, "%s: This teem not compiled with pthread support.\n", me);
+    fprintf(stderr, "%s: --> can't use %d threads; only using 1\n",
+	    me, uu->hctx->numThreads);
+    uu->hctx->numThreads = 1;
+  }
 
   E = hooverRender(uu->hctx, &Ecode, NULL);
   if (E) {

@@ -96,13 +96,9 @@ main(int argc, char *argv[]) {
 	     "opacity correction in compositing");
   hestOptAdd(&hopt, "n1", "near1", airTypeDouble, 1, 1, &(muu->near1),
 	     "0.99", "close enough to 1.0 to terminate ray");
-  if (hooverMyPthread) {
-    hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1,
-	       &(muu->hctx->numThreads),
-	       "1", "number of threads hoover should use");
-  } else {
-    muu->hctx->numThreads = 1;
-  }
+  hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1,
+	     &(muu->hctx->numThreads),
+	     "1", "number of threads hoover should use");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS,
 	     NULL, "file to write output nrrd to");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
@@ -137,6 +133,13 @@ main(int argc, char *argv[]) {
   muu->hctx->rayEnd = (hooverRayEnd_t *)miteRayEnd;
   muu->hctx->threadEnd = (hooverThreadEnd_t *)miteThreadEnd;
   muu->hctx->renderEnd = (hooverRenderEnd_t *)miteRenderEnd;
+
+  if (!hooverMyPthread) {
+    fprintf(stderr, "%s: This teem not compiled with pthread support.\n", me);
+    fprintf(stderr, "%s: --> can't use %d threads; only using 1\n",
+	    me, muu->hctx->numThreads);
+    muu->hctx->numThreads = 1;
+  }
 
   fprintf(stderr, "%s: rendering ... ", me); fflush(stderr);
 
