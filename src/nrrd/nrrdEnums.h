@@ -189,20 +189,22 @@ enum {
   nrrdMeasureHistoSum,       /* 19 */
   nrrdMeasureHistoL2,        /* 20 */
   nrrdMeasureHistoVariance,  /* 21 */
+  nrrdMeasureHistoSD,        /* 22 */
   nrrdMeasureLast
 };
-#define NRRD_MEASURE_MAX        21
+#define NRRD_MEASURE_MAX        22
 #define NRRD_MEASURE_DESC \
    "Possibilities include:\n " \
    "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", \"variance\"\n " \
      "(self-explanatory)\n " \
-   "\b\bo \"SD\": standard deviation\n " \
+   "\b\bo \"sd\": standard deviation\n " \
    "\b\bo \"product\", \"sum\": product or sum of all values\n " \
    "\b\bo \"L1\", \"L2\", \"Linf\": different norms\n " \
    "\b\bo \"histo-min\",  \"histo-max\", \"histo-mean\", " \
      "\"histo-median\", \"histo-mode\", \"histo-product\", \"histo-l2\", " \
-     "\"histo-sum\", \"histo-variance\": same measures, but for situations " \
-     "where we're given not the original values but a histogram of them."
+     "\"histo-sum\", \"histo-variance\", \"histo-sd\": same measures, " \
+     "but for situations " \
+     "where we're given not the original values, but a histogram of them."
   
 
 /*

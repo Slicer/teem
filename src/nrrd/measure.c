@@ -534,7 +534,7 @@ _nrrdMeasureHistoVariance(void *ans, int ansType,
     hits = nrrdDLookup[lineType](line, i);
     count += hits;
     S += hits*val;
-    SS += hits*hits*val*val;
+    SS += hits*val*val;
   }
   if (!count) {
     nrrdDStore[ansType](ans, AIR_NAN);
@@ -543,6 +543,17 @@ _nrrdMeasureHistoVariance(void *ans, int ansType,
   S /= count;
   SS /= count;
   nrrdDStore[ansType](ans, SS - S*S);
+}
+
+void
+_nrrdMeasureHistoSD(void *ans, int ansType,
+		    const void *line, int lineType, int len, 
+		    double axmin, double axmax) {
+  double var;
+
+  _nrrdMeasureHistoVariance(ans, ansType, line, lineType, len, axmin, axmax);
+  var = nrrdDLoad[ansType](ans);
+  nrrdDStore[ansType](ans, sqrt(var));
 }
 
 void
@@ -687,7 +698,8 @@ nrrdMeasureLine[NRRD_MEASURE_MAX+1])(void *, int,
   _nrrdMeasureHistoProduct,
   _nrrdMeasureHistoSum,
   _nrrdMeasureHistoL2,
-  _nrrdMeasureHistoVariance
+  _nrrdMeasureHistoVariance,
+  _nrrdMeasureHistoSD
 };
 
 int
@@ -728,6 +740,7 @@ _nrrdMeasureType(const Nrrd *nin, int measr) {
   case nrrdMeasureHistoMedian:
   case nrrdMeasureHistoMode:
   case nrrdMeasureHistoVariance:
+  case nrrdMeasureHistoSD:
     /* We (currently) don't keep track of the type of the original
        values which generated the histogram, and we may not even
        have access to that information.  So we end up choosing one

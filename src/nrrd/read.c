@@ -1557,11 +1557,10 @@ _nrrdReadTable (FILE *file, Nrrd *nrrd, NrrdIO *io) {
 ** NrrdIO will be created as needed.
 */
 int
-nrrdRead (Nrrd *nrrd, FILE *file, NrrdIO *_io) {
+nrrdRead (Nrrd *nrrd, FILE *file, NrrdIO *io) {
   char err[AIR_STRLEN_MED], me[] = "nrrdRead";
   int len;
   float oneFloat;
-  NrrdIO *io;
   airArray *mop;
 
   if (!(file && nrrd)) {
@@ -1569,9 +1568,7 @@ nrrdRead (Nrrd *nrrd, FILE *file, NrrdIO *_io) {
     biffAdd(NRRD, err); return 1;
   }
   mop = airMopNew();
-  if (_io) {
-    io = _io;
-  } else {
+  if (!io) {
     io = nrrdIONew();
     if (!io) {
       sprintf(err, "%s: couldn't alloc I/O struct", me);
@@ -1655,9 +1652,10 @@ nrrdRead (Nrrd *nrrd, FILE *file, NrrdIO *_io) {
     }
   }
   
-  if (_io) {
-    /* reset the given NrrdIO so that it can be used again */
-    nrrdIOReset(_io);
+  if (io) {
+    /* reset the NrrdIO so that it can be used again (actually, this
+       is also done stupidly on NrrdIOs that were allocated here */
+    nrrdIOReset(io);
   }
 
   airMopOkay(mop);
@@ -1679,9 +1677,9 @@ int
 _nrrdSplitName (char **dirP, char **baseP, const char *name) {
   int i, ret;
   
-  i = strrchr(name, '/') - name;
   AIR_FREE(*dirP);
   AIR_FREE(*baseP);
+  i = strrchr(name, '/') - name;
   /* we found a valid break if the last directory character
      is somewhere in the string except the last character */
   if (i>=0 && i<strlen(name)-1) {
@@ -1717,9 +1715,8 @@ nrrdDirBaseSet (NrrdIO *io, const char *name) {
 ** 
 */
 int
-nrrdLoad (Nrrd *nrrd, const char *filename, NrrdIO *_io) {
+nrrdLoad (Nrrd *nrrd, const char *filename, NrrdIO *io) {
   char me[]="nrrdLoad", err[AIR_STRLEN_MED];
-  NrrdIO *io;
   FILE *file;
   airArray *mop;
 
@@ -1729,9 +1726,7 @@ nrrdLoad (Nrrd *nrrd, const char *filename, NrrdIO *_io) {
     biffAdd(NRRD, err); return 1;
   }
   mop = airMopNew();
-  if (_io) {
-    io = _io;
-  } else {
+  if (!io) {
     io = nrrdIONew();
     if (!io) {
       sprintf(err, "%s: couldn't alloc I/O struct", me);

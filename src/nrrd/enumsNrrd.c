@@ -335,8 +335,9 @@ _nrrdMeasureStr[NRRD_MEASURE_MAX+1][AIR_STRLEN_SMALL] = {
   "histo-mode",
   "histo-product",
   "histo-sum",
-  "histo-l2",
-  "histo-variance"
+  "histo-L2",
+  "histo-variance",
+  "histo-SD"
 };
 
 char
@@ -353,7 +354,7 @@ _nrrdMeasureDesc[NRRD_MEASURE_MAX+1][AIR_STRLEN_MED] = {
   "L2 norm of values",
   "Linf norm of values",
   "variance of values",
-  "SD of values",
+  "standard deviation of values",
   "minimum of histogrammed values",
   "maximum of histogrammed values",
   "mean of histogrammed values",
@@ -362,7 +363,8 @@ _nrrdMeasureDesc[NRRD_MEASURE_MAX+1][AIR_STRLEN_MED] = {
   "product of histogrammed values",
   "sum of histogrammed values",
   "L2 norm of histogrammed values",
-  "variance of histogrammed values"
+  "variance of histogrammed values",
+  "standard deviation of histogrammed values"
 };
 
 char
@@ -388,7 +390,8 @@ _nrrdMeasureStrEqv[][AIR_STRLEN_SMALL] = {
   "histo-product",
   "histo-sum",
   "histo-l2",
-  "histo-variance", "histo-var"
+  "histo-variance", "histo-var",
+  "histo-sd"
 };
 
 int
@@ -414,7 +417,8 @@ _nrrdMeasureValEqv[] = {
   nrrdMeasureHistoProduct,
   nrrdMeasureHistoSum,
   nrrdMeasureHistoL2,
-  nrrdMeasureHistoVariance, nrrdMeasureHistoVariance
+  nrrdMeasureHistoVariance, nrrdMeasureHistoVariance,
+  nrrdMeasureHistoSD
 };
 
 airEnum
