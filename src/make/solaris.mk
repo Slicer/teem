@@ -18,9 +18,6 @@
 #
 #
 
-
-#INSTALL = /usr/local/gnu/bin/install
-
 SHEXT = so
 OPT_CFLAG = -xO2
 STATIC_CFLAG = -Bstatic
@@ -32,4 +29,4 @@ ARCH_LDFLAG =
 TEEM_ENDIAN = 4321
 TEEM_QNANHIBIT = 1
 TEEM_DIO = 0
-TEEM_32BIT = 0
+TEEM_32BIT = 1
