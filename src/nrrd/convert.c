@@ -27,6 +27,15 @@ nrrdConvert(Nrrd *nin, Nrrd *nout, int type) {
     biffSet(NRRD, err); return 1;
   }
 
+  /* if we're actually converting to the same type, just do a copy */
+  if (type == nin->type) {
+    if (nrrdCopy(nin, nout)) {
+      sprintf(err, "%s: couldn't copy input to output", me);
+      biffSet(NRRD, err); return 1;
+    }
+    return 0;
+  }
+
   /* allocate space if necessary */
   if (!(nout->data)) {
     if (nrrdAlloc(nout, nin->num, type, nin->dim)) {
@@ -50,7 +59,8 @@ nrrdConvert(Nrrd *nin, Nrrd *nout, int type) {
     nout->axisMax[d] = nin->axisMax[d];
     strcpy(nout->label[d], nin->label[d]);
   }
-  sprintf(nout->content, "(%s)(%s)", nrrdType2Str[nout->type], nin->content);
+  sprintf(nout->content, "(%s)(%s)", nrrdType2Str[nout->type], 
+	  strlen(nin->content) ? nin->content : NRRD_NO_CONTENT);
 
   /* bye */
   return 0;
@@ -89,7 +99,7 @@ nrrdQuantize(Nrrd *nin, Nrrd *nout, float min, float max, int bits) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdQuantize";
   double valIn;
   int valOut;
-  NRRD_LLONG valOutll;
+  unsigned long long valOutll;
   NRRD_BIG_INT I;
   int type, d;
 
@@ -138,9 +148,9 @@ nrrdQuantize(Nrrd *nin, Nrrd *nout, float min, float max, int bits) {
       nrrdDInsert[nout->type](nout->data, I, valOut);
       break;
     case 32:
-      NRRD_INDEX(min, valIn, max, (long long int)1 << 32, valOutll);
+      NRRD_INDEX(min, valIn, max, 1LLU << 32, valOutll);
       /* this line isn't compiling on my intel laptop */
-      valOut = NRRD_CLAMP(0, valOut, ((long long int)1 << 32)-1);
+      valOut = NRRD_CLAMP(0, valOut, (1LLU << 32)-1);
       nrrdDInsert[nout->type](nout->data, I, valOutll);
       break;
     }
@@ -156,7 +166,8 @@ nrrdQuantize(Nrrd *nin, Nrrd *nout, float min, float max, int bits) {
   }
   nout->oldMin = min;
   nout->oldMax = max;
-  sprintf(nout->content, "quantize(%s,%d)", nin->content, bits);
+  sprintf(nout->content, "quantize(%s,%d)", 
+	  strlen(nin->content) ? nin->content : NRRD_NO_CONTENT, bits);
 
   /* bye */
   return(0);
