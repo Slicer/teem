@@ -762,7 +762,8 @@ extern int nrrdArithIterTernaryOp(Nrrd *nout, int op,
 /******** filtering and re-sampling */
 /* filt.c */
 extern int nrrdCheapMedian(Nrrd *nout, const Nrrd *nin,
-			   int mode, int radius, float wght, int bins);
+			   int pad, int mode,
+			   int radius, float wght, int bins);
 
 /*
 ******** nrrdResample_t typedef

@@ -1,3 +1,5 @@
+examples of usage with the important unu commands
+
 make "unu make" into a nrrd function
 
 unu minmax takes multiple arguments

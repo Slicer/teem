@@ -303,13 +303,16 @@ _nrrdCheapMedian3D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
 ** mode: mode filtering
 */
 int
-nrrdCheapMedian(Nrrd *nout, const Nrrd *nin,
-		int mode, int radius, float wght, int bins) {
+nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
+		int pad, int mode,
+		int radius, float wght, int bins) {
   char me[]="nrrdCheapMedian", func[]="cmedian", err[AIR_STRLEN_MED];
   NrrdRange *range;
   float *hist;
+  Nrrd *nout, *nin;
+  airArray *mop;
 
-  if (!(nin && nout)) {
+  if (!(_nin && _nout)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -321,30 +324,47 @@ nrrdCheapMedian(Nrrd *nout, const Nrrd *nin,
     sprintf(err, "%s: need bins >= 1 (got %d)", me, bins);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(AIR_IN_CL(1, nin->dim, 3))) {
+  if (!(AIR_IN_CL(1, _nin->dim, 3))) {
     sprintf(err, "%s: sorry, can only handle dim 1, 2, 3 (not %d)", 
-	    me, nin->dim);
+	    me, _nin->dim);
     biffAdd(NRRD, err); return 1;    
   }
-  if (nout == nin) {
+  if (_nout == _nin) {
     sprintf(err, "%s: nout==nin disallowed", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdTypeBlock == nin->type) {
+  if (nrrdTypeBlock == _nin->type) {
     sprintf(err, "%s: can't filter nrrd type %s", me,
 	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
 
+  mop = airMopNew();
+  /* set nin based on _nin */
+  airMopAdd(mop, nin=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  if (pad) {
+    airMopAdd(mop, nout=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdSimplePad(nin, _nin, radius, nrrdBoundaryBleed)) {
+      sprintf(err, "%s: trouble padding input", me);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+  } else {
+    if (nrrdCopy(nin, _nin)) {
+      sprintf(err, "%s: trouble copying input", me);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+    nout = _nout;
+  }
   if (nrrdCopy(nout, nin)) {
-    sprintf(err, "%s: failed to create copy of input", me);
-    biffAdd(NRRD, err); return 1;
+    sprintf(err, "%s: failed to create initial copy of input", me);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   range = nrrdRangeNewSet(nin, nrrdBlind8BitRangeFalse);
   if (!(hist = (float*)calloc(bins, sizeof(float)))) {
     sprintf(err, "%s: couldn't allocate histogram (%d bins)", me, bins);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
+  airMopAdd(mop, hist, airFree, airMopAlways);
   if (!AIR_EXISTS(wght))
     wght = 1.0;
   switch (nin->dim) {
@@ -360,18 +380,28 @@ nrrdCheapMedian(Nrrd *nout, const Nrrd *nin,
   default:
     sprintf(err, "%s: sorry, %d-dimensional median unimplemented",
 	    me, nin->dim);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 
   nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   if (nrrdContentSet(nout, func, nin, "%d,%d,%g,%d",
 		     mode, radius, wght, bins)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   nrrdPeripheralInit(nout);
 
-  AIR_FREE(hist);
+  /* set _nout based on nout */
+  if (pad) {
+    if (nrrdSimpleCrop(_nout, nout, radius)) {
+      sprintf(err, "%s: trouble cropping output", me);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+  } else {
+    /* we've already set output in _nout == nout */
+  }
+
+  airMopOkay(mop); 
   return 0;
 }
 

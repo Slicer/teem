@@ -37,8 +37,8 @@ int
 unrrdu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
-  Nrrd *nin, *ntmp, *nout;
-  int bins, radius, pad, pret, mode;
+  Nrrd *nin, *nout, *ntmp, **mnout;
+  int bins, radius, pad, pret, mode, chan, ni, nsize;
   airArray *mop;
   float wght;
 
@@ -63,6 +63,10 @@ unrrdu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "and crop the output, so as to "
 	     "overcome our cheapness and correctly "
 	     "handle the border.  Obviously, this takes more memory.");
+  hestOptAdd(&opt, "c", NULL, airTypeInt, 0, 0, &chan, NULL,
+	     "Slice the input along axis 0, run filtering on all slices, "
+	     "and join the results back together.  This is the way you'd "
+	     "want to process color (multi-channel) images or volumes.");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -76,44 +80,44 @@ unrrdu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (pad) {
-    ntmp=nrrdNew();
+  if (chan) {
+    nsize = nin->axis[0].size;
+    mnout = (Nrrd **)calloc(nsize, sizeof(Nrrd));
+    airMopAdd(mop, mnout, airFree, airMopAlways);
+    ntmp = nrrdNew();
     airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
-    if (nrrdSimplePad(ntmp, nin, radius, nrrdBoundaryBleed)) {
+    for (ni=0; ni<nsize; ni++) {
+      if (nrrdSlice(ntmp, nin, 0, ni)) {
+	airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+	fprintf(stderr, "%s: error slicing input at pos = %d:\n%s",
+		me, ni, err);
+	airMopError(mop);
+	return 1;
+      }
+      airMopAdd(mop, mnout[ni] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+      if (nrrdCheapMedian(mnout[ni], ntmp, pad, mode, radius, wght, bins)) {
+	airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+	fprintf(stderr, "%s: error doing cheap median:\n%s", me, err);
+	airMopError(mop);
+	return 1;
+      }
+    }
+    if (nrrdJoin(nout, (const Nrrd**)mnout, nsize, 0, AIR_TRUE)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: error padding:\n%s", me, err);
+      fprintf(stderr, "%s: error doing final join:\n%s", me, err);
       airMopError(mop);
       return 1;
     }
-    /* We want to free up memory now that we have a padded copy of the
-       input.  We can't nuke the input because that will be a memory
-       error with nrrdNuke() called by hestParseFree() called by
-       airMopOkay(), but we can empty it without any harm */
-    nrrdEmpty(nin);
-  }
-  else {
-    ntmp = nin;
-  }
-
-  if (nrrdCheapMedian(nout, ntmp, mode, radius, wght, bins)) {
-    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: error doing cheap median:\n%s", me, err);
-    airMopError(mop);
-    return 1;
-  }
-
-  if (pad) {
-    if (nrrdSimpleCrop(ntmp, nout, radius)) {
+  } else {
+    if (nrrdCheapMedian(nout, nin, pad, mode, radius, wght, bins)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: error cropping:\n%s", me, err);
+      fprintf(stderr, "%s: error doing cheap median:\n%s", me, err);
       airMopError(mop);
       return 1;
     }
-    SAVE(out, ntmp, NULL);
   }
-  else {
-    SAVE(out, nout, NULL);
-  }
+
+  SAVE(out, nout, NULL);
 
   airMopOkay(mop);
   return 0;

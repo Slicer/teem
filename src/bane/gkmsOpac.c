@@ -30,7 +30,7 @@ int
 baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *outS, *perr, err[AIR_STRLEN_MED], *befS;
-  Nrrd *ninfo, *nbef, *nout, *nmax, *npos, *nopac, *npadopac, *nmedpadopac;
+  Nrrd *ninfo, *nbef, *nout, *nmax, *npos, *nopac;
   airArray *mop;
   int pret, radius, idim;
   float sigma, gthrInfo[2], gthresh;
@@ -82,8 +82,6 @@ baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nmax=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, npos=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nopac=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, npadopac=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nmedpadopac=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nout=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
 
   if (baneInfoCheck(ninfo, AIR_FALSE)) {
@@ -125,10 +123,8 @@ baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
     biffAdd(BANE, err); airMopError(mop); return 1;
   }
   if (radius) {
-    if (nrrdSimplePad(npadopac, nopac, radius, nrrdBoundaryBleed) 
-	|| nrrdCheapMedian(nmedpadopac, npadopac, AIR_FALSE, radius, 1.0, 2048)
-	|| nrrdSimpleCrop(nout, nmedpadopac, radius)) {
-      sprintf(err, "%s: error in padding, median filtering, or cropping", me);
+    if (nrrdCheapMedian(nout, nopac, AIR_TRUE, AIR_FALSE, radius, 1.0, 2048)) {
+      sprintf(err, "%s: error in median filtering", me);
       biffMove(BANE, err, NRRD); airMopError(mop); return 1;
     }
   } else {
