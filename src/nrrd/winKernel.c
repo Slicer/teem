@@ -21,8 +21,9 @@
 
 #define _SINC(x) (sin(M_PI*x)/(M_PI*x))
 
-#define _COS(x, R) (x > R ? 0 : (x < -R ? 0 : \
-                    (x == 0 ? 1.0 : (1 + cos(M_PI*x/R))*_SINC(x)/2)))
+#define _COS(x, R) \
+   (x > R ? 0 : (x < -R ? 0 : (x == 0 ? 1.0 : \
+    (1 + cos(M_PI*x/R))*_SINC(x)/2)))
 
 double
 _nrrdCosInt(double *parm) {
@@ -94,9 +95,9 @@ nrrdKernelCos = &_nrrdKernelCos;
 /* ------------------------------------------------------------ */
 
 #define _DCOS(x, R)                                            \
-   (x > R ? 0.0 : (x < -R ? 0.0 :                              \
+   (x > R ? 0.0 : (x < -R ? 0.0 : (x == 0 ? 0.0 :              \
     (R*(1 + cos(M_PI*x/R))*(M_PI*x*cos(M_PI*x) - sin(M_PI*x))  \
-       - M_PI*x*sin(M_PI*x)*sin(M_PI*x/R))/(2*R*M_PI*x*x)))
+       - M_PI*x*sin(M_PI*x)*sin(M_PI*x/R))/(2*R*M_PI*x*x))))
 double
 _nrrdDCosInt(double *parm) {
 
@@ -162,3 +163,82 @@ _nrrdKernelDCos = {
 };
 NrrdKernel *
 nrrdKernelCosD = &_nrrdKernelDCos;
+
+/* ------------------------------------------------------------ */
+
+#define _DDCOS_A(x, R) \
+  (-2*M_PI*R*x*cos(M_PI*x)*(R + R*cos(M_PI*x/R) + M_PI*x*sin(M_PI*x/R)))
+#define _DDCOS_B(x, R) \
+  (-(-2*R*R + M_PI*M_PI*(1 + R*R)*x*x)*cos(M_PI*x/R) + \
+   R*(2*R - M_PI*M_PI*R*x*x + 2*M_PI*x*sin(M_PI*x/R)))
+
+#define _DDCOS(x, R)                                                        \
+   (x > R ? 0 : (x < -R ? 0 : (x == 0 ? -M_PI*M_PI*(3 + 2*R*R)/(6*R*R) :    \
+    (_DDCOS_A(x,R) + sin(M_PI*x)*_DDCOS_B(x,R))/(2*M_PI*R*R*x*x*x)          \
+    )))
+
+double
+_nrrdDDCosInt(double *parm) {
+
+  /* again, not correct */
+  return 0.0;
+}
+
+double
+_nrrdDDCosSup(double *parm) {
+  double S;
+
+  S = parm[0];
+  return parm[1]*S;
+}
+
+double
+_nrrdDDCos1_d(double x, double *parm) {
+  double R, S;
+  
+  S = parm[0]; R = parm[1];
+  x /= S;
+  return _DDCOS(x, R)/(S*S*S);
+}
+
+float
+_nrrdDDCos1_f(float x, double *parm) {
+  float R, S;
+  
+  S = parm[0]; R = parm[1];
+  x /= S;
+  return _DDCOS(x, R)/(S*S*S);
+}
+
+void
+_nrrdDDCosN_d(double *f, double *x, size_t len, double *parm) {
+  double t, S, R;
+  size_t i;
+  
+  S = parm[0]; R = parm[1];
+  for (i=0; i<len; i++) {
+    t = x[i]/S;
+    f[i] = _DDCOS(t, R)/(S*S*S);
+  }
+}
+
+void
+_nrrdDDCosN_f(float *f, float *x, size_t len, double *parm) {
+  float t, S, R;
+  size_t i;
+  
+  S = parm[0]; R = parm[1];
+  for (i=0; i<len; i++) {
+    t = x[i]/S;
+    f[i] = _DDCOS(t, R)/(S*S*S);
+  }
+}
+
+NrrdKernel
+_nrrdKernelDDCos = {
+  "cosDD",
+  2, _nrrdDDCosSup,_nrrdDDCosInt, 
+  _nrrdDDCos1_f, _nrrdDDCosN_f, _nrrdDDCos1_d, _nrrdDDCosN_d
+};
+NrrdKernel *
+nrrdKernelCosDD = &_nrrdKernelDDCos;
