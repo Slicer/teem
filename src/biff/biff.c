@@ -211,7 +211,7 @@ _biffAddErr(_biffEntry *e, char *err) {
     exit(1);
   }
   /* printf("%s: HEY(after): err[%s]->num = %d\n", me, e->key, e->num); */
-  buf = strdup(err);
+  buf = airStrdup(err);
   len = strlen(buf);
   for (i=0; i<=len-1; i++) {
     if (isspace(buf[i]))
@@ -303,7 +303,7 @@ biffGet(char *key) {
   }
   if (!e->num) {
     /* there's a key, but no error messages.  Odd */
-    return(strdup(""));
+    return(airStrdup(""));
   }
 
   max = sum = 0;
