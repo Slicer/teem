@@ -31,10 +31,8 @@ nrrdCommentAdd(Nrrd *nrrd, char *_str, int useBiff) {
   int i, len;
   
   if (!(nrrd && _str)) {
-    if (useBiff) {
-      sprintf(err, "%s: got NULL pointer", me);
-      biffSet(NRRD, err);
-    }
+    sprintf(err, "%s: got NULL pointer", me);
+    biffMaybeAdd(NRRD, err, useBiff);
     return 1;
   }
   _str += strspn(_str, " #");
@@ -44,29 +42,23 @@ nrrdCommentAdd(Nrrd *nrrd, char *_str, int useBiff) {
   }
   str = airStrdup(_str);
   if (!str) {
-    if (useBiff) {
-      sprintf(err, "%s: couldn't strdup given string", me);
-      biffSet(NRRD, err);
-    }
+    sprintf(err, "%s: couldn't strdup given string", me);
+    biffMaybeAdd(NRRD, err, useBiff);
     return 1;
   }
   len = strlen(str);
   if (len >= NRRD_STRLEN_COMMENT) {
-    if (useBiff) {
-      sprintf(err, "%s: cmt's length (%d) exceeds max (%d)", 
-	      me, len, NRRD_STRLEN_COMMENT);
-      biffSet(NRRD, err);
-    }
+    sprintf(err, "%s: cmt's length (%d) exceeds max (%d)", 
+	    me, len, NRRD_STRLEN_COMMENT);
+    biffMaybeAdd(NRRD, err, useBiff);
     return 1;
   }
   /* clean out carraige returns that would screw up reader */
   airOneLinify(str);
   i = airArrayIncrLen(nrrd->cmtArr, 1);
   if (-1 == i) {
-    if (useBiff) {
-      sprintf(err, "%s: couldn't lengthen comment array", me);
-      biffSet(NRRD, err);
-    }
+    sprintf(err, "%s: couldn't lengthen comment array", me);
+    biffMaybeAdd(NRRD, err, useBiff);
     return 1;
   }
   nrrd->cmt[i] = str;
@@ -92,33 +84,31 @@ nrrdCommentClear(Nrrd *nrrd) {
 ** looks through comments of nrrd for something of the form
 ** " <key> : <val>"
 ** There can be whitespace anywhere it appears in the format above.
-** Returns 1 on error, 0 if okay, BUT DOES NOT USE BIFF for errors.
-** This is because an error here is probably not a big deal.
-**
 ** The division between key and val is the first colon which appears.
-** "*valP" is set to the first non-whitespace character after the colon
-** No (non-temporary) string is allocated; *valP points into data 
-** already pointed to by "nrrd"
+** A colon may not appear in the key. Returns a pointer to the beginning
+** of "val", as it occurs in the string pointed to by the nrrd struct:
+** No new memory is allocated.
 **
-** This function does not use biff.
+** If there is an error (including the key is not found), returns NULL,
+** but DOES NOT USE BIFF for errors (since such "errors" are more often
+** than not actually problems).
 */
-int
-nrrdCommentScan(Nrrd *nrrd, char *key, char **valP) {
+char *
+nrrdCommentScan(Nrrd *nrrd, char *key) {
   /* char me[]="nrrdCommentScan";  */
   int i;
-  char *cmt, *k, *c, *t;
+  char *cmt, *k, *c, *t, *ret;
 
-  if (!(nrrd && airStrlen(key) && valP))
-    return 1;
+  if (!(nrrd && airStrlen(key)))
+    return NULL;
 
-  *valP = NULL;
   if (!nrrd->cmt) {
     /* no comments to scan */
-    return 1;
+    return NULL;
   }
   if (strchr(key, ':')) {
     /* key contains colon- would confuse later steps */
-    return 1;
+    return NULL;
   }
   for (i=0; i<=nrrd->cmtArr->len-1; i++) {
     cmt = nrrd->cmt[i];
@@ -149,17 +139,14 @@ nrrdCommentScan(Nrrd *nrrd, char *key, char **valP) {
       if (!*t)
 	goto nope;
       /* t now points to beginning of "value" string; we're done */
-      *valP = t;
+      ret = t;
       /* printf("%s: found \"%s\"\n", me, t); */
       break;
     }
   nope:
-    *valP = NULL;
+    ret = NULL;
   }
-  if (*valP)
-    return 0;
-  else 
-    return 1;
+  return ret;
 }
 
 int
@@ -168,10 +155,8 @@ nrrdCommentCopy(Nrrd *nout, Nrrd *nin, int useBiff) {
   int numc, i, E;
 
   if (!(nout && nin)) {
-    if (useBiff) {
-      sprintf(err, "%s: got NULL pointer", me);
-      biffSet(NRRD, err);
-    }
+    sprintf(err, "%s: got NULL pointer", me);
+    biffMaybeAdd(NRRD, err, useBiff);
     return 1;
   }
   nrrdCommentClear(nout);
@@ -181,10 +166,8 @@ nrrdCommentCopy(Nrrd *nout, Nrrd *nin, int useBiff) {
     if (!E) E |= nrrdCommentAdd(nout, nin->cmt[i], useBiff);
   }
   if (E) {
-    if (useBiff) {
-      sprintf(err, "%s: couldn't add all comments", me);
-      biffSet(NRRD, err);
-    }
+    sprintf(err, "%s: couldn't add all comments", me);
+    biffMaybeAdd(NRRD, err, useBiff);
     return 1;
   }
   return 0;

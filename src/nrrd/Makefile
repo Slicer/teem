@@ -25,9 +25,9 @@ LIBOBJS = \
 	measure.o    methods.o    parse.o      read.o       \
 	reorder.o    simple.o     subset.o     write.o
 
-#TEST_BINS = test/enum2str test/str2enum test/tio
-TEST_BINS = test/tio
-BINS = 
+#TEST_BINS = test/enum2str test/str2enum 
+TEST_BINS = test/shuff test/ax test/io test/minmax
+BINS = bin/sanity
 BINLIBS = -lnrrd -lbiff -lair -lm
 
 include ../make/Common.mk

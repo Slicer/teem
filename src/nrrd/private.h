@@ -23,6 +23,7 @@ extern "C" {
 #endif
 
 #define _NRRD_COMMENT_CHAR '#'
+#define _NRRD_TABLE_INCR 256
 
 typedef union {
   char **CP;
@@ -37,6 +38,7 @@ extern int _nrrdFieldValidInPNM[NRRD_FIELD_MAX+1];
 extern int _nrrdFieldValidInTable[NRRD_FIELD_MAX+1];
 extern char _nrrdEnumFieldStr[NRRD_FIELD_MAX+1][NRRD_STRLEN_SMALL];
 extern int _nrrdFieldRequired[NRRD_FIELD_MAX+1];
+extern int _nrrdFormatUsesDIO[NRRD_FORMAT_MAX+1];
 
 /* axes.c */
 extern void _nrrdAxisInit(nrrdAxis *axis);

@@ -83,7 +83,7 @@ nrrdAxisCopy(nrrdAxis *ax1, nrrdAxis *ax0) {
 ** permutation array is nout->dim.  If map is NULL, the identity
 ** permutation is assumed.  The "bitflag" field controls which
 ** per-axis fields will NOT be copied; if bitflag==0, then all fields
-** are copied.  The value of bitflag should be ||'s of NRRD_AXESINFO_*
+** are copied.  The value of bitflag should be |'s of NRRD_AXESINFO_*
 ** defines. If map[i]==-1 for any i in [0,dim-1], then nothing for
 ** that dimension is copied.
 **
@@ -211,24 +211,28 @@ nrrdAxesSet_va(Nrrd *nrrd, int axInfo, ...) {
     switch (axInfo) {
     case nrrdAxesInfoSize:
       info.I[d] = va_arg(ap, int);
-      /* printf("!%s: got int[%d] = %d\n", "nrrdAxesSet_va", d, info.I[d]); */
+      /* printf("!%s: got int[%d] = %d\n", 
+	 "nrrdAxesSet_va", d, info.I[d]); */
       break;
     case nrrdAxesInfoCenter:
       info.I[d] = va_arg(ap, int);
-      /* printf("!%s: got int[%d] = %d\n", "nrrdAxesSet_va", d, info.I[d]); */
+      /* printf("!%s: got int[%d] = %d\n", 
+	 "nrrdAxesSet_va", d, info.I[d]); */
       break;
     case nrrdAxesInfoSpacing:
     case nrrdAxesInfoMin:
     case nrrdAxesInfoMax:
       info.D[d] = va_arg(ap, double);
-      /* printf("!%s: got double[%d] = %lg\n", "nrrdAxesSet_va", d, info.D[d]); */
+      /* printf("!%s: got double[%d] = %lg\n", 
+	 "nrrdAxesSet_va", d, info.D[d]); */
       break;
     case nrrdAxesInfoLabel:
       /* we DO NOT do the airStrdup() here because this pointer value is
 	 just going to be handed to nrrdAxesSet(), which WILL do the
 	 airStrdup(); we're not violating the rules for axis labels */
       info.CP[d] = va_arg(ap, char *);
-      /* printf("!%s: got char*[%d] = |%s|\n", "nrrdAxesSet_va", d, info.CP[d]); */
+      /* printf("!%s: got char*[%d] = |%s|\n", 
+	 "nrrdAxesSet_va", d, info.CP[d]); */
       break;
     }
   }
@@ -247,7 +251,7 @@ nrrdAxesSet_va(Nrrd *nrrd, int axInfo, ...) {
 **
 ** Note that getting axes labels involves implicitly allocating space
 ** for them, due to the action of airStrdup().  The user is
-** responsible for freeing these strings when done with them.  
+** responsible for free()ing these strings when done with them.  
 */
 void
 nrrdAxesGet(Nrrd *nrrd, int axInfo, void *_info) {
@@ -287,6 +291,7 @@ nrrdAxesGet(Nrrd *nrrd, int axInfo, void *_info) {
 
   return;
 }
+
 void
 nrrdAxesGet_va(Nrrd *nrrd, int axInfo, ...) {
   void *space[NRRD_DIM_MAX], *ptr;
@@ -309,11 +314,8 @@ nrrdAxesGet_va(Nrrd *nrrd, int axInfo, ...) {
     switch (axInfo) {
     case nrrdAxesInfoSize:
       *((int*)ptr) = info.I[d];
-      /* printf("!%s: got int[%d] = %d\n", "nrrdAxesGet_va", d, *((int*)ptr)); */
-      break;
-    case nrrdAxesInfoCenter:
-      *((int*)ptr) = info.I[d];
-      /* printf("!%s: got int[%d] = %d\n", "nrrdAxesGet_va", d, *((int*)ptr)); */
+      /* printf("!%s: got int[%d] = %d\n", 
+	 "nrrdAxesGet_va", d, *((int*)ptr)); */
       break;
     case nrrdAxesInfoSpacing:
     case nrrdAxesInfoMin:
@@ -321,6 +323,11 @@ nrrdAxesGet_va(Nrrd *nrrd, int axInfo, ...) {
       *((double*)ptr) = info.D[d];
       /* printf("!%s: got double[%d] = %lg\n", "nrrdAxesGet_va", d,
        *((double*)ptr)); */
+      break;
+    case nrrdAxesInfoCenter:
+      *((int*)ptr) = info.I[d];
+      /* printf("!%s: got int[%d] = %d\n", 
+	 "nrrdAxesGet_va", d, *((int*)ptr)); */
       break;
     case nrrdAxesInfoLabel:
       /* we DO NOT do the airStrdup() here because this pointer value just
@@ -342,7 +349,6 @@ _nrrdAxisMinMaxHelp(double *minIdxP, double *maxIdxP, int *centerP,
   char me[]="_nrrdAxisMinMaxHelp";
   int center;
   int size;
-  double tmp;
 
   /* bail on invalid input */
   if (!( nrrd 
@@ -379,14 +385,16 @@ _nrrdAxisMinMaxHelp(double *minIdxP, double *maxIdxP, int *centerP,
   }
   
   /* flip minIdx and maxIdx if axis min > axis max */
+  /*
   if (nrrd->axis[ax].min > nrrd->axis[ax].max) {
     tmp = *minIdxP; *minIdxP = *maxIdxP; *maxIdxP = tmp;
   }
+  */
   return 0;
 }
 
 double
-nrrdAxisLocation(Nrrd *nrrd, int ax, double idx) {
+nrrdAxisPosition(Nrrd *nrrd, int ax, double idx) {
   int center;
   double minIdx, maxIdx;
   
@@ -405,9 +413,14 @@ void
 nrrdAxisRange(double *loP, double *hiP,
 	      Nrrd *nrrd, int ax, 
 	      double loIdx, double hiIdx) {
-  int center;
+  int center, flip;
   double min, max, minIdx, maxIdx, half;
-  
+
+  if (!( loP && hiP )) {
+    /* idiots */
+    return;
+  }
+
   if (_nrrdAxisMinMaxHelp(&minIdx, &maxIdx, &center, nrrd, ax)
       || !AIR_EXISTS(loIdx)
       || !AIR_EXISTS(hiIdx)) {
@@ -417,12 +430,14 @@ nrrdAxisRange(double *loP, double *hiP,
 
   min = nrrd->axis[ax].min;
   max = nrrd->axis[ax].max;
+  flip = max < min;
   *loP = AIR_AFFINE(minIdx, loIdx, maxIdx, min, max);
   *hiP = AIR_AFFINE(minIdx, hiIdx, maxIdx, min, max);
   
   if (nrrdCenterCell == center) {
-    half = (max - min)/nrrd->axis[ax].size;
-    if (*loP <= *hiP) {
+    half = 0.5*(max - min)/nrrd->axis[ax].size;
+    half = AIR_ABS(half);
+    if ( (!flip && *loP <= *hiP) || (flip && *loP < *hiP) ) {
       *loP -= half;
       *hiP += half;
     }

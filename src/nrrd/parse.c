@@ -36,11 +36,11 @@ int
 _nrrdReadNrrdParse_comment(Nrrd *nrrd, nrrdIO *io, int useBiff) { 
   char me[]="_nrrdReadNrrdParse_comment", err[NRRD_STRLEN_MED];
   char *info;
-
+  
   info = io->line + io->pos;
   if (nrrdCommentAdd(nrrd, info, AIR_TRUE)) {
     sprintf(err, "%s: trouble", me);
-    biffMaybeAdd(useBiff, NRRD, err); return 1;
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   return 0;
 }
@@ -53,7 +53,7 @@ _nrrdReadNrrdParse_type(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   info = io->line + io->pos;
   if (!(nrrd->type = nrrdEnumStrToVal(nrrdEnumType, info))) {
     sprintf(err, "%s: couldn't parse type \"%s\"", me, info);
-    biffMaybeAdd(useBiff, NRRD, err); return 1;
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   return 0;
 }
@@ -66,7 +66,7 @@ _nrrdReadNrrdParse_encoding(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   info = io->line + io->pos;
   if (!(io->encoding = nrrdEnumStrToVal(nrrdEnumEncoding, info))) {
     sprintf(err, "%s: couldn't parse encoding \"%s\"", me, info);
-    biffMaybeAdd(useBiff, NRRD, err); return 1;
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   return 0;
 }
@@ -79,17 +79,21 @@ _nrrdReadNrrdParse_endian(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   info = io->line + io->pos;
   if (!(io->endian = nrrdEnumStrToVal(nrrdEnumEndian, info))) {
     sprintf(err, "%s: couldn't parse endian \"%s\"", me, info);
-    biffMaybeAdd(useBiff, NRRD, err); return 1;
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   return 0;
 }
 
-#define _PARSE_ONE_VAL(field, conv, type) \
-  if (1 != sscanf(info, conv, &(field))) { \
-    sprintf(err, "%s: couldn't parse " type " from \"%s\"", me, info); \
-    biffMaybeAdd(useBiff, NRRD, err); return 1; \
+#define _PARSE_ONE_VAL(FIELD, CONV, TYPE) \
+  if (1 != sscanf(info, CONV, &(FIELD))) { \
+    sprintf(err, "%s: couldn't parse " TYPE " from \"%s\"", me, info); \
+    biffMaybeAdd(NRRD, err, useBiff); return 1; \
   }
 
+/*
+** NOTE: everything which calls any airParseStrX() function is
+** NOT THREAD-SAFE
+*/
 int
 _nrrdReadNrrdParse_dimension(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_dimension", err[NRRD_STRLEN_MED];
@@ -100,33 +104,38 @@ _nrrdReadNrrdParse_dimension(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   if (!AIR_INSIDE(1, nrrd->dim, NRRD_DIM_MAX)) {
     sprintf(err, "%s: dimension %d outside valid range [1,%d]",
 	    me, nrrd->dim, NRRD_DIM_MAX);
-    biffMaybeAdd(useBiff, NRRD, err); return 1;
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   return 0;
 }
 
+/* 
+** checking nrrd->dim against zero is valid because it is initialized
+** to zero, and, _nrrdReadNrrdParse_dimension() won't allow it to be
+** set to anything outside the range [1, NRRD_DIM_MAX] 
+*/
 #define _CHECK_HAVE_DIM \
-  if (!AIR_INSIDE(1, nrrd->dim, NRRD_DIM_MAX)) { \
+  if (0 == nrrd->dim) { \
     sprintf(err, "%s: don't yet have a valid dimension", me); \
-    biffMaybeAdd(useBiff, NRRD, err); return 1; \
+    biffMaybeAdd(NRRD, err, useBiff); return 1; \
   }
 
 #define _CHECK_GOT_ALL_VALUES \
   if (nrrd->dim != ret) { \
     sprintf(err, "%s: could parse only %d (not %d) values",  \
 	    me, ret, nrrd->dim); \
-    biffMaybeAdd(useBiff, NRRD, err); return 1; \
+    biffMaybeAdd(NRRD, err, useBiff); return 1; \
   }
 
 int
 _nrrdReadNrrdParse_sizes(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_sizes", err[NRRD_STRLEN_MED];
-  int i, ret, val[NRRD_DIM_MAX];
+  int ret, val[NRRD_DIM_MAX];
   char *info;
 
   info = io->line + io->pos;
   _CHECK_HAVE_DIM;
-  ret = airParseStrUI(val, info, _nrrdFieldSep, nrrd->dim);
+  ret = airParseStrI(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
   nrrdAxesSet(nrrd, nrrdAxesInfoSize, val);
   return 0;
@@ -146,7 +155,7 @@ _nrrdReadNrrdParse_spacings(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   for (i=0; i<=nrrd->dim-1; i++) {
     if ( airIsInf(val[i]) || (AIR_EXISTS(val[i]) && !val[i]) ) {
       sprintf(err, "%s: spacing %d (%lg) invalid", me, i, val[i]);
-      biffMaybeAdd(useBiff, NRRD, err); return 1;
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
   }
   nrrdAxesSet(nrrd, nrrdAxesInfoSpacing, val);
@@ -183,6 +192,9 @@ _nrrdReadNrrdParse_axis_maxs(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   return 0;
 }
 
+/*
+** strtok: not thread-safe
+*/
 int
 _nrrdReadNrrdParse_centers(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_centers", err[NRRD_STRLEN_MED];
@@ -197,13 +209,29 @@ _nrrdReadNrrdParse_centers(Nrrd *nrrd, nrrdIO *io, int useBiff) {
     if (!tok) {
       sprintf(err, "%s: couldn't parse center %d of %d",
 	      me, i+1, nrrd->dim);
-      biffSet(NRRD, err); return 1;
+      /*
+      fprintf(stderr, "!%s: couldn't parse center %d of %d",
+	      me, i+1, nrrd->dim);
+      */
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
+    }
+    if (!strcmp(tok, NRRD_UNKNOWN)) {
+      nrrd->axis[i].center = nrrdCenterUnknown;
+      continue;
     }
     if (!(nrrd->axis[i].center = nrrdEnumStrToVal(nrrdEnumCenter, tok))) {
       sprintf(err, "%s: couldn't parse \"%s\" center %d of %d",
 	      me, tok, i+1, nrrd->dim);
-      biffSet(NRRD, err); return 1;
+      /*
+      fprintf(stderr, "!%s: couldn't parse \"%s\" center %d of %d",
+	      me, tok, i+1, nrrd->dim);
+      */
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
+    /*
+    fprintf(stderr, "!%s: nrrd->axis[%d].center = %d\n",
+	    me, i, nrrd->axis[i].center);
+    */
   }
   return 0;
 }
@@ -229,14 +257,14 @@ _nrrdReadNrrdParse_labels(Nrrd *nrrd, nrrdIO *io, int useBiff) {
     if (!*h) {
       sprintf(err, "%s: saw end of input before label %d of %d", 
 	      me, i+1, nrrd->dim);
-      biffMaybeAdd(useBiff, NRRD, err); return 1;
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
 
     /* make sure we have a starting quote */
     if ('"' != *h) {
       sprintf(err, "%s: parsing label %d of %d, didn't see start \"",
 	      me, i+1, nrrd->dim);
-      biffMaybeAdd(useBiff, NRRD, err); return 1;
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
     h++;
     
@@ -260,13 +288,13 @@ _nrrdReadNrrdParse_labels(Nrrd *nrrd, nrrdIO *io, int useBiff) {
     if ('\"' != h[len]) {
       sprintf(err, "%s: parsing label %d of %d, didn't see ending \" "
 	      "soon enough", me, i+1, nrrd->dim);
-      biffMaybeAdd(useBiff, NRRD, err); return 1;
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
     tmpS[len] = 0;
     nrrd->axis[i].label = airStrdup(tmpS);
     if (!nrrd->axis[i].label) {
       sprintf(err, "%s: couldn't allocate label %d", me, i);
-      biffMaybeAdd(useBiff, NRRD, err); return 1;
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
     h += len+1;
     nrrd->axis[i].label[len] = '\0';
@@ -285,15 +313,15 @@ _nrrdReadNrrdParse_number(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   info = io->line + io->pos;
   if (1 != sscanf(info, NRRD_BIG_INT_PRINTF, &(nrrd->num))) {
     sprintf(err, "%s: couldn't parse number \"%s\"", me, info);
-    biffMaybeAdd(useBiff, NRRD, err); return 1;
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
   } 
   */
 
   /* It was decided to just completely ignore this field.  "number" is
   ** entirely redundant with with (required) sizes field, and there no
   ** need to save it to, or learn it from, the header.  It may seem
-  ** strange that "number: hank is a redneck" is a valid field, but
-  ** whatever ...
+  ** strange that "number: Uncle Hank is a total redneck" is a valid
+  ** field, but whatever ...
   */
 
   return 0;
@@ -305,9 +333,9 @@ _nrrdReadNrrdParse_content(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   char *info;
 
   info = io->line + io->pos;
-  if (info && strlen(info) && !(nrrd->content = airStrdup(info))) {
+  if (strlen(info) && !(nrrd->content = airStrdup(info))) {
     sprintf(err, "%s: couldn't strdup() content", me);
-    biffMaybeAdd(useBiff, NRRD, err); return 1;
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   return 0;
 }
@@ -322,7 +350,7 @@ _nrrdReadNrrdParse_block_size(Nrrd *nrrd, nrrdIO *io, int useBiff) {
     sprintf(err, "%s: known type (%s) is not (%s)", me,
 	    nrrdEnumValToStr(nrrdEnumType, nrrd->type),
 	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
-    biffMaybeAdd(useBiff, NRRD, err); return 1;
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   _PARSE_ONE_VAL(nrrd->blockSize, "%d", "int");
   return 0;
@@ -368,6 +396,9 @@ _nrrdReadNrrdParse_old_max(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   return 0;
 }
 
+/*
+** strerror(errno): not thread-safe
+*/
 int
 _nrrdReadNrrdParse_data_file(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_data_file", err[NRRD_STRLEN_MED],
@@ -378,9 +409,9 @@ _nrrdReadNrrdParse_data_file(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   if (!strncmp(info, _nrrdRelDirFlag, strlen(_nrrdRelDirFlag))) {
     /* data file directory is relative to header directory */
     if (!strlen(io->dir)) {
-      sprintf(err, "%s: want header-relative data file, but know no "
-	      "directory for header", me);
-      biffMaybeAdd(useBiff, NRRD, err); return 1;
+      sprintf(err, "%s: want header-relative data file, but don't know "
+	      "directory of header", me);
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
     info += strlen(_nrrdRelDirFlag);
     sprintf(dataName, "%s/%s", io->dir, info);
@@ -392,7 +423,7 @@ _nrrdReadNrrdParse_data_file(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   if (!(io->dataFile = fopen(dataName, "rb"))) {
     sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s",
 	    me, dataName, strerror(errno));
-    biffMaybeAdd(useBiff, NRRD, err); return 1;
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   io->seperateHeader = AIR_TRUE;
   /* the seperate data file will be closed in _nrrdReadNrrd() */
@@ -406,6 +437,10 @@ _nrrdReadNrrdParse_line_skip(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
   info = io->line + io->pos;
   _PARSE_ONE_VAL(io->lineSkip, "%d", "int");
+  if (!(0 <= io->lineSkip)) {
+    sprintf(err, "%s: lineSkip value %d invalid", me, io->lineSkip);
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
+  }
   return 0;
 }
 
@@ -416,9 +451,18 @@ _nrrdReadNrrdParse_byte_skip(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
   info = io->line + io->pos;
   _PARSE_ONE_VAL(io->byteSkip, "%d", "int");
+  if (!(0 <= io->byteSkip)) {
+    sprintf(err, "%s: byteSkip value %d invalid", me, io->byteSkip);
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
+  }
   return 0;
 }
 
+/*
+** _nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1]()
+**
+** These are all for parsing the stuff AFTER the colon
+*/
 int
 (*_nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1])(Nrrd *, nrrdIO *, int) = {
   _nrrdReadNrrdParse_nonfield,
@@ -445,6 +489,11 @@ int
   _nrrdReadNrrdParse_byte_skip
 };
 
+/*
+** _nrrdReadNrrdParseField()
+**
+** This is for parsing the stuff BEFORE the colon
+*/
 int
 _nrrdReadNrrdParseField(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParseField", err[NRRD_STRLEN_MED], *next;
@@ -458,7 +507,7 @@ _nrrdReadNrrdParseField(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   }
 
   /* else we have some field to parse */
-  for (i=1; i<=NRRD_FIELD_MAX; i++) {
+  for (i=nrrdField_unknown+1; i<=NRRD_FIELD_MAX; i++) {
     if (!strncmp(next, _nrrdEnumFieldStr[i], strlen(_nrrdEnumFieldStr[i]))) {
       /* we matched one of the fields */
       /* printf("!%s: match: %d\n", me, i); */
@@ -467,7 +516,7 @@ _nrrdReadNrrdParseField(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   }
   if (i > NRRD_FIELD_MAX) {
     sprintf(err, "%s: didn't recognize any field", me);
-    biffMaybeAdd(useBiff, NRRD, err); return nrrdField_unknown;
+    biffMaybeAdd(NRRD, err, useBiff); return nrrdField_unknown;
   }
   
   /* make sure there's a colon */
@@ -478,7 +527,7 @@ _nrrdReadNrrdParseField(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   if (':' != *next) {
     sprintf(err, "%s: didn't see \":\" after \"%s\"", 
 	    me, _nrrdEnumFieldStr[i]);
-    biffMaybeAdd(useBiff, NRRD, err); return nrrdField_unknown;
+    biffMaybeAdd(NRRD, err, useBiff); return nrrdField_unknown;
   }
   next++;
   /* skip whitespace ... */

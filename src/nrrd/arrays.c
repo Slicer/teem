@@ -22,7 +22,7 @@
 
 char
 _nrrdEnumFormatStr[NRRD_FORMAT_MAX+1][NRRD_STRLEN_SMALL] = {
-  "(unknown format)",
+  "(unknown_format)",
   "nrrd",
   "pnm",
   "table"
@@ -30,7 +30,7 @@ _nrrdEnumFormatStr[NRRD_FORMAT_MAX+1][NRRD_STRLEN_SMALL] = {
 
 char
 _nrrdEnumBoundaryStr[NRRD_BOUNDARY_MAX+1][NRRD_STRLEN_SMALL] = {
-  "(unknown boundary)",
+  "(unknown_boundary)",
   "pad",
   "bleed",
   "wrap",
@@ -39,10 +39,10 @@ _nrrdEnumBoundaryStr[NRRD_BOUNDARY_MAX+1][NRRD_STRLEN_SMALL] = {
 
 char
 _nrrdEnumMagicStr[NRRD_MAGIC_MAX+1][NRRD_STRLEN_SMALL] = {
-  "(unknown magic)",
+  "(unknown_magic)",
   "NRRD00.01",
   /* "NRRD0001", */
-  "NRRD0001",
+  "NRRD00.01",
   "P2",
   "P3",
   "P5",
@@ -51,7 +51,7 @@ _nrrdEnumMagicStr[NRRD_MAGIC_MAX+1][NRRD_STRLEN_SMALL] = {
 
 char 
 _nrrdEnumTypeStr[NRRD_TYPE_MAX+1][NRRD_STRLEN_SMALL] = {
-  "(unknown type)",
+  "(unknown_type)",
   "signed char",
   "unsigned char",
   "short",
@@ -68,14 +68,14 @@ _nrrdEnumTypeStr[NRRD_TYPE_MAX+1][NRRD_STRLEN_SMALL] = {
 
 char
 _nrrdEnumEncodingStr[NRRD_ENCODING_MAX+1][NRRD_STRLEN_SMALL] = {
-  "(unknown encoding)",
+  "(unknown_encoding)",
   "raw",
   "ascii"
 };
 
 char
 _nrrdEnumMeasureStr[NRRD_MEASURE_MAX+1][NRRD_STRLEN_SMALL] = {
-  "(unknown measure)",
+  "(unknown_measure)",
   "min",
   "max",
   "mean",
@@ -98,7 +98,7 @@ _nrrdEnumMeasureStr[NRRD_MEASURE_MAX+1][NRRD_STRLEN_SMALL] = {
 
 char
 _nrrdEnumMinMaxStr[NRRD_MINMAX_MAX+1][NRRD_STRLEN_SMALL] = {
-  "(unknown minmax)",
+  "(unknown_minmax)",
   "search",
   "search+set",
   "use",
@@ -107,14 +107,14 @@ _nrrdEnumMinMaxStr[NRRD_MINMAX_MAX+1][NRRD_STRLEN_SMALL] = {
 
 char
 _nrrdEnumCenterStr[NRRD_CENTER_MAX+1][NRRD_STRLEN_SMALL] = {
-  "(unknown center)",
+  "(unknown_center)",
   "node",
   "cell"
 };
 
 char
 _nrrdEnumAxesInfoStr[NRRD_AXESINFO_MAX+1][NRRD_STRLEN_SMALL] = {
-  "(unknown axes info)",
+  "(unknown_axes_info)",
   "size",
   "spacing",
   "min",
@@ -157,7 +157,7 @@ _nrrdEnumFieldStr[NRRD_FIELD_MAX+1][NRRD_STRLEN_SMALL] = {
 
 char
 _nrrdEnumEnumStr[NRRD_ENUM_MAX+1][NRRD_STRLEN_SMALL] = {
-  "(unknown enum)",
+  "(unknown_enum)",
   "format",
   "boundary",
   "magic",
@@ -199,7 +199,7 @@ _nrrdEnumAllStr[NRRD_ENUM_MAX+1] = {
   _nrrdEnumMinMaxStr,
   _nrrdEnumCenterStr,
   _nrrdEnumAxesInfoStr,
-  NULL,  /* _nrrdEnumEndianStr, */
+  NULL,  /* _nrrdEnumEndianStr, alors, il n'existe pas */
   _nrrdEnumFieldStr
 };
 
@@ -222,40 +222,54 @@ nrrdEnumValToStr(int whichEnum, int val) {
   return enstr[val];
 }
 
+#define ntC   nrrdTypeChar
+#define ntUC  nrrdTypeUChar
+#define ntS   nrrdTypeShort
+#define ntUS  nrrdTypeUShort
+#define ntI   nrrdTypeInt
+#define ntUI  nrrdTypeUInt
+#define ntLL  nrrdTypeLLong
+#define ntULL nrrdTypeULLong
+#define ntF   nrrdTypeFloat
+#define ntD   nrrdTypeDouble
+#define ntB   nrrdTypeBlock
+
 /*
 ** _nrrdEnumTypeStrToVal
 **
 ** takes a given string and returns the integral type
+**
+** note that as called by nrrdEnumStrToVal(), the given string has
+** already been sent through airToLower()
 */
 int
 _nrrdEnumTypeStrToVal(char *str) {
   char type[][NRRD_STRLEN_SMALL]  = {
-    "char", "signed char",
-    "uchar", "unsigned char",
-    "short", "short int", "signed short", "signed short int",
-    "ushort", "unsigned short", "unsigned short int",
-    "int", "signed int",
-    "unsigned int",
-    "long long", "long long int", "signed long long", "signed long long int",
-    "unsigned long long", "unsigned long long int",
+    "char", "signed char", "int8", "int8_t",
+    "uchar", "unsigned char", "uint8", "uint8_t", 
+    "short", "short int", "signed short", "signed short int", "int16", "int16_t",
+    "ushort", "unsigned short", "unsigned short int", "uint16", "uint16_t", 
+    "int", "signed int", "int32", "int32_t", 
+    "uint", "unsigned int", "uint32", "uint32_t",
+    "long long", "long long int", "signed long long", "signed long long int", "int64", "int64_t", 
+    "unsigned long long", "unsigned long long int", "uint64", "uint64_t", 
     "float",
     "double",
     /* "long double", */
     "block"};
   int value[] = {
-    1, 1,
-    2, 2,
-    3, 3, 3, 3,
-    4, 4, 4,
-    5, 5,
-    6,
-    7, 7, 7, 7,
-    8, 8,
-    9,
-    10,
-    /* 11,  12, 0}; */
-    11,
-    0};
+    ntC, ntC, ntC, ntC, 
+    ntUC, ntUC, ntUC, ntUC,
+    ntS, ntS, ntS, ntS, ntS, ntS, 
+    ntUS, ntUS, ntUS, ntUS, ntUS,
+    ntI, ntI, ntI, ntI, 
+    ntUI, ntUI, ntUI, ntUI, 
+    ntLL, ntLL, ntLL, ntLL, ntLL, ntLL, 
+    ntULL, ntULL, ntULL, ntULL, 
+    ntF,
+    ntD,
+    ntB,
+    0};  /* a sentinel for for-loop below */
 
   int i;
 
@@ -280,10 +294,13 @@ nrrdEnumStrToVal(int whichEnum, char *_str) {
     return 0;
 
   str = airStrdup(_str);
+  if (!str)
+    return 0;
 
   enstr = (char (*)[NRRD_STRLEN_SMALL])(_nrrdEnumAllStr[whichEnum]);
   max = _nrrdEnumAllMax[whichEnum];
   switch (whichEnum) {
+    /* first, all the case-insensitive enums */
   case nrrdEnumFormat:
   case nrrdEnumBoundary:
   case nrrdEnumEncoding:
@@ -291,6 +308,8 @@ nrrdEnumStrToVal(int whichEnum, char *_str) {
   case nrrdEnumMinMax:
   case nrrdEnumCenter:
     airToLower(str);
+
+    /* then, all the case-insensitive enums */
   case nrrdEnumMagic:
   case nrrdEnumField:
     /* if the loop goes to completion, we return 0 */
@@ -299,8 +318,12 @@ nrrdEnumStrToVal(int whichEnum, char *_str) {
 	break;
       }
     }
+    ret = AIR_MAX(0, ret);
     break;
+
+    /* then, the special-case enums */
   case nrrdEnumType:
+    airToLower(str);
     ret = _nrrdEnumTypeStrToVal(str);
     break;
   default:
@@ -330,9 +353,12 @@ nrrdTypeConv[NRRD_TYPE_MAX+1][NRRD_STRLEN_SMALL] = {
   "%*d"  /* what else? */
 };
 
+/*
+** the setting of NRRD_BIGGEST_TYPE has to be in accordance with this
+*/
 int 
 nrrdTypeSize[NRRD_TYPE_MAX+1] = {
-  -1, /* unknown */
+  0, /* unknown */
   1,  /* char */
   1,  /* unsigned char */
   2,  /* short */
@@ -344,16 +370,17 @@ nrrdTypeSize[NRRD_TYPE_MAX+1] = {
   4,  /* float */
   8,  /* double */
   /* 16,  long double */
-  -1  /* effectively unknown; user has to set explicitly */
+  0  /* effectively unknown; user has to set explicitly */
 };
 
-int 
-nrrdEncodingEndianMatters[NRRD_ENCODING_MAX+1] = {
-  0,
-  1,
-  0
-};
 
+/*
+** _nrrdFieldValidInPNM[]
+**
+** these fields are valid embedded in PNM comments
+** This does NOT include the fields who's values are constrained
+** the PNM format/magic itself.
+*/
 int
 _nrrdFieldValidInPNM[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_unknown */
@@ -380,13 +407,20 @@ _nrrdFieldValidInPNM[NRRD_FIELD_MAX+1] = {
   0  /* nrrdField_byte_skip */
 };
 
+/*
+** _nrrdFieldValidInTable[]
+** 
+** these fields are valid embedded in table comments
+** This does NOT include the fields who's values are constrained
+** the table format itself.
+*/
 int
 _nrrdFieldValidInTable[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_unknown */
   1, /* nrrdField_comment */
   1, /* nrrdField_content */
   0, /* nrrdField_number */
-  1, /* nrrdField_type */
+  0, /* nrrdField_type: decided AGAINST table holding general type */
   0, /* nrrdField_block_size */
   0, /* nrrdField_dimension */
   0, /* nrrdField_sizes */
@@ -406,6 +440,12 @@ _nrrdFieldValidInTable[NRRD_FIELD_MAX+1] = {
   0  /* nrrdField_byte_skip */
 };
 
+/*
+** _nrrdFieldRequired[]
+**
+** regardless of whether its a nrrd, PNM, or table, these things
+** need to be conveyed, either explicity or implicitly
+*/
 int
 _nrrdFieldRequired[NRRD_FIELD_MAX+1] = {
   0, /* "Ernesto \"Che\" Guevara" */
@@ -432,3 +472,27 @@ _nrrdFieldRequired[NRRD_FIELD_MAX+1] = {
   0  /* "byte skip" */
 };
 
+/*
+******** nrrdEncodingEndianMatters[]
+** 
+** tells if given encoding exposes endianness of architecture
+*/
+int 
+nrrdEncodingEndianMatters[NRRD_ENCODING_MAX+1] = {
+  0,   /* unknown */
+  1,   /* raw */
+  0    /* ascii */
+};
+
+/*
+** _nrrdFormatUsesDIO[]
+**
+** whether or not try using direct I/O for a given format
+*/
+int
+_nrrdFormatUsesDIO[NRRD_FORMAT_MAX+1] = {
+  0,   /* nrrdFormatUnknown */
+  1,   /* nrrdFormatNRRD */
+  0,   /* nrrdFormatPNM */
+  0    /* nrrdFormatTable */
+};

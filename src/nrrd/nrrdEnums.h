@@ -35,7 +35,6 @@ typedef enum {
   nrrdFormatLast
 } nrrdFormat;
 #define NRRD_FORMAT_MAX    3
-extern int nrrdFormatDefault; /*  = nrrdFormatNRRD; write.c */
 
 /*
 ******** nrrdBoundary enum
@@ -57,12 +56,10 @@ typedef enum {
 /*
 ******** nrrdMagic enum
 **
-** the different "magic numbers" that nrrd knows about.  Not as useful
-** as you might want- the readers (io.c) can (currently) only deal
-** with a magic which is on a line on its own, with a carraige return.
-** This is the case for the nrrd magic, and for the PNMs written by xv
-** and every other paint program I've run into.
-** (HOWEVER: PNMs do not _require_ a carriage return after the magic) 
+** the different "magic numbers" that nrrd knows about.  Can only deal
+** with a magic on a line of its own, with a carraige return.  
+** WARNING: the PNM format does not _require_ a carraige return after
+** the magic, but everything seems to do it anyway
 */
 typedef enum {
   nrrdMagicUnknown,
@@ -80,8 +77,6 @@ typedef enum {
 ******** nrrdType enum
 **
 ** all the different types, identified by integer
-**
-** nrrdTypeBlock must precede nrrdTypeLast
 */
 typedef enum {
   nrrdTypeUnknown,
@@ -99,8 +94,7 @@ typedef enum {
   nrrdTypeLast
 } nrrdType;
 #define NRRD_TYPE_MAX       11 /* this has to agree with nrrdTypeBlock */
-#define NRRD_TYPE_SIZE_MAX 8   /* sizeof() for largest scalar type supported */
-
+#define NRRD_TYPE_SIZE_MAX   8 /* sizeof() for largest scalar type supported */
 
 /*
 ******** nrrdEncoding enum
@@ -109,12 +103,11 @@ typedef enum {
 */
 typedef enum {
   nrrdEncodingUnknown,
-  nrrdEncodingRaw,        /* 1: same as memory layout (module endian) */
+  nrrdEncodingRaw,        /* 1: same as memory layout (modulo endianness) */
   nrrdEncodingAscii,      /* 2: decimal values are spelled out in ascii */
   nrrdEncodingLast
 } nrrdEncoding;
 #define NRRD_ENCODING_MAX    2
-extern int nrrdEncodingDefault; /* = nrrdEncodingRaw; write.c */
 
 /*
 ******** nrrdMeasr enum
@@ -135,8 +128,8 @@ typedef enum {
   nrrdMeasureL2,             /* 9 */
   nrrdMeasureLinf,           /* 10 */
   /* 
-  ** these nrrduMeasureHisto* measures interpret the array as a histogram
-  ** of some implied value distribution
+  ** the nrrduMeasureHisto... measures interpret the array as a
+  ** histogram of some implied value distribution
   */
   nrrdMeasureHistoMin,       /* 11 */
   nrrdMeasureHistoMax,       /* 12 */
@@ -154,7 +147,7 @@ typedef enum {
 ******** nrrdMinMax enum
 ** 
 ** behaviors for dealing with the "min" and "max" fields in the nrrd,
-** and the min and max values in a nrrd
+** and the min and max values measured in the data of the nrrd
 */
 typedef enum {
   nrrdMinMaxUnknown,
@@ -165,7 +158,7 @@ typedef enum {
 				the min/max in the nrrd */
   nrrdMinMaxUse,             /* 3: trust and use the min/max values 
 				already stored in the nrrd */
-  nrrdMinMaxInsteadUse,      /* 4: trust and use the min/max values
+  nrrdMinMaxInsteadUse,      /* 4: use (instead) the min/max values
 				specified by some alternate means */
   nrrdMinMaxLast
 } nrrdMinMax;
@@ -190,6 +183,11 @@ typedef enum {
 } nrrdCenter;
 #define NRRD_CENTER_MAX         2
 
+/*
+******** nrrdAxesInfo enum
+**
+** the different pieces of per-axis information recorded in a nrrd
+*/
 typedef enum {
   nrrdAxesInfoUnknown,
   nrrdAxesInfoSize,            /* 1: number of samples along axis */
@@ -200,7 +198,7 @@ typedef enum {
 #define NRRD_AXESINFO_AMIN    (1<<3) 
   nrrdAxesInfoMax,             /* 4: maximum pos. assoc. w/ last sample */
 #define NRRD_AXESINFO_AMAX    (1<<4) /* _MAX would conflict with below */
-#define NRRD_AXESINFO_MINMAX ((1<<3)|(1<<4))
+#define NRRD_AXESINFO_AMINMAX ((1<<3)|(1<<4))
   nrrdAxesInfoCenter,          /* 5: cell vs. node */
 #define NRRD_AXESINFO_CENTER  (1<<5)
   nrrdAxesInfoLabel,           /* 6: string describing the axis */
@@ -208,13 +206,12 @@ typedef enum {
   nrrdAxesInfoLast
 } nrrdAxesInfo;
 #define NRRD_AXESINFO_MAX         6
-#define NRRD_AXESINFO_NONE        0
 #define NRRD_AXESINFO_ALL         ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6))
+#define NRRD_AXESINFO_NONE        0
 
 /*
-** This is somewhat silly- the "endian" enum is actually in the air
-** library but its very convenient to have it incorporated into the
-** nrrd enum framework
+** the "endian" enum is actually in the air library, but its very
+** convenient to have it incorporated into the nrrd enum framework 
 */
 #define NRRD_ENDIAN_MAX 2
 
@@ -277,6 +274,3 @@ typedef enum {
 }
 #endif
 #endif /* NRRD_ENUMS_HAS_BEEN_INCLUDED */
-
-
-

@@ -44,7 +44,8 @@ typedef enum {
 
 /* misc.c */
 extern int ellDebug;
-extern void ell4mPrint(FILE *f, float s[16]);
+extern void ell4mPrint_f(FILE *f, float s[16]);
+extern void ell4mPrint_d(FILE *f, double s[16]);
 
 /* cubic.c */
 extern int ellCubic(double root[3], double A, double B, double C, int polish);

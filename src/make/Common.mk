@@ -16,6 +16,8 @@
 #
 #
 
+# learned: you get very confusing errors if one the filenames in 
+# $(LIBOBJS) ends with ".c"
 
 #
 # Common makefile variables and rules for all teem libraries
@@ -55,8 +57,9 @@ ifeq (,$(strip $(findstring $(TEEM_ARCH),$(KNOWN_ARCH))))
   $(error Make quitting)
 endif
 
-# the root of the teem tree, as seen from the library subdirectories
-# of the the "src" directory
+# The root of the teem tree, as seen from the library subdirectories
+# of the the "src" directory.  TEEM_ROOT is the directory which
+# contains the "src", "lib", "bin", "include", and so on.
 ifndef TEEM_ROOT
   PREFIX = ../..
 else
@@ -77,7 +80,7 @@ LPATH += -L$(LDEST)
 ### effect the architecture-dependent settings by reading through the
 ### file specific to the chosen architecture
 ###
-include ../make/$(ARCH).mk
+include $(PREFIX)/src/make/$(ARCH).mk
 ###
 ###
 ###
@@ -202,7 +205,7 @@ bins: $(BINS)
 
 # "make install" installs the headers, libraries, and binaries, but
 # does not build the bins or test bins in the current directory
-install: $(INSTALL_HDRS) $(INSTALL_LIBS) $(INSTALL_BINS)
+install: $(INSTALL_LIBS) $(INSTALL_BINS) $(INSTALL_HDRS)
 
 # "make clean" removes what's created by "make" ("make all")
 clean:

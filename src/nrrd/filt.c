@@ -404,10 +404,10 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
   smpRatio = (lengthOut-1)/(info->max[d] - info->min[d]);
   suppF = info->kernel[d]->support(info->param[d]);
   integral = info->kernel[d]->integral(info->param[d]);
-  /*
+
   fprintf(stderr, "%s(%d): suppF = %g; smpRatio = %g\n", 
 	  me, d, suppF, smpRatio);
-  */
+
   if (smpRatio > 1) {
     /* if upsampling, we need only as many samples as needed for
        interpolation with the given kernel */
@@ -418,6 +418,9 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
        the stretched out version of the kernel */
     dotLen = 2*AIR_ROUNDUP(suppF/smpRatio);
   }
+
+  fprintf(stderr, "%s: dotLen = %d\n", me, dotLen);
+
   smp = (float *)calloc(lengthOut*dotLen, sizeof(float));
   index = (int *)calloc(lengthOut*dotLen, sizeof(int));
   if (!(smp && index)) {
@@ -515,6 +518,7 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
   *smpP = smp;
   *indexP = index;
   *smpRatioP = smpRatio;
+  fprintf(stderr, "%s: dotLen = %d\n", me, dotLen);
   return dotLen;
 }
 
@@ -812,7 +816,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   }
   nrrdAxesCopy(nout, nin, NULL, 
 	       (NRRD_AXESINFO_SIZE
-		| NRRD_AXESINFO_MINMAX
+		| NRRD_AXESINFO_AMINMAX
 		| NRRD_AXESINFO_SPACING));
   for (d=0; d<=dim-1; d++) {
     if (info->kernel[d]) {

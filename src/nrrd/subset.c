@@ -30,11 +30,16 @@ nrrdSample(void *val, Nrrd *nrrd, int *coord) {
   int typeSize, size[NRRD_DIM_MAX], d;
   nrrdBigInt I;
   
-  if (!(nrrd && coord && val && 
-	AIR_BETWEEN(nrrdTypeUnknown, nrrd->type, nrrdTypeLast))) {
-    sprintf(err, "%s: invalid args", me);
+  if (!(nrrd && coord && val)) {
+    sprintf(err, "%s: got NULL pointer", me);
     biffSet(NRRD, err); return 1;
   }
+  /* this shouldn't actually be necessary ... */
+  if (!nrrdElementSize(nrrd)) {
+    sprintf(err, "%s: nrrd reports zero element size!", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  
   typeSize = nrrdElementSize(nrrd);
   nrrdAxesGet(nrrd, nrrdAxesInfoSize, size);
   for (d=0; d<=nrrd->dim-1; d++) {
@@ -48,6 +53,35 @@ nrrdSample(void *val, Nrrd *nrrd, int *coord) {
   NRRD_COORD_INDEX(I, coord, size, nrrd->dim, d);
 
   memcpy(val, (char*)(nrrd->data) + I*typeSize, typeSize);
+  return 0;
+}
+
+/*
+******** nrrdSample_va()
+**
+** var-args version of nrrdSample()
+*/
+int
+nrrdSample_va(void *val, Nrrd *nrrd, ...) {
+  char me[]="nrrdSample", err[NRRD_STRLEN_MED];
+  int d, coord[NRRD_DIM_MAX];
+  va_list ap;
+  
+  if (!(nrrd && val)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffSet(NRRD, err); return 1;
+  }
+
+  va_start(ap, nrrd);
+  for (d=0; d<=nrrd->dim-1; d++) {
+    coord[d] = va_arg(ap, int);
+  }
+  va_end(ap);
+  
+  if (nrrdSample(val, nrrd, coord)) {
+    sprintf(err, "%s: trouble", me);
+    biffSet(NRRD, err); return 1;
+  }
   return 0;
 }
 
@@ -98,6 +132,11 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
 	    me, axis, nin->axis[axis].size-1);
     biffSet(NRRD, err); return 1;
   }
+  /* this shouldn't actually be necessary ... */
+  if (!nrrdElementSize(nin)) {
+    sprintf(err, "%s: nrrd reports zero element size!", me);
+    biffAdd(NRRD, err); return 1;
+  }
 
   /* set up control variables */
   length = numper = 1;
@@ -126,7 +165,7 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
   dest = nout->data;
   src += offset;
   for (I=1; I<=numper; I++) {
-    /* perhaps replace with AIR_MEMCPY() */
+    /* HEY: replace with AIR_MEMCPY() or similar, when applicable */
     memcpy(dest, src, length);
     src += period;
     dest += length;
@@ -205,6 +244,11 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
       biffSet(NRRD, err); return 1;
     }
   }
+  /* this shouldn't actually be necessary ... */
+  if (!nrrdElementSize(nin)) {
+    sprintf(err, "%s: nrrd reports zero element size!", me);
+    biffAdd(NRRD, err); return 1;
+  }
 
   /* allocate */
   numOut = numLines = 1;
@@ -216,7 +260,7 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
       numLines *= nout->axis[d].size;
     nout->axis[d].center = nin->axis[d].center;
     nrrdAxisRange(&(nout->axis[d].min), &(nout->axis[d].max),
-		  nout, d, min[d], max[d]);
+		  nin, d, min[d], max[d]);
   }
   nout->blockSize = nin->blockSize;
   if (nrrdMaybeAlloc(nout, numOut, nin->type, dim)) {
@@ -234,7 +278,6 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
   nrrdAxesGet(nin, nrrdAxesInfoSize, szIn);
   nrrdAxesGet(nout, nrrdAxesInfoSize, szOut);
   memset(cOut, 0, NRRD_DIM_MAX*sizeof(int));
-  fprintf(stderr, "%s: hell 0\n", me);
   for (I=0; I<=numLines-1; I++) {
     for (d=0; d<=dim-1; d++)
       cIn[d] = cOut[d] + min[d];
@@ -244,15 +287,13 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
     cOut[1]++; 
     NRRD_COORD_UPDATE(cOut+1, szOut+1, dim-1, d);
   }
-  fprintf(stderr, "%s: hell 1\n", me);
   
   if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE
 				     | NRRD_AXESINFO_CENTER
-				     | NRRD_AXESINFO_MINMAX ))) {
+				     | NRRD_AXESINFO_AMINMAX ))) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
-  fprintf(stderr, "%s: hell\n", me);
   nout->content = airFree(nout->content);
   if (nin->content) {
     nout->content = calloc(strlen("crop(,)")
@@ -281,6 +322,11 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
   return 0;
 }
 
+/*
+******** nrrdPad()
+**
+** strictly for padding
+*/
 int
 nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
   char me[]="nrrdPad", err[NRRD_STRLEN_MED], buff[NRRD_STRLEN_SMALL];
@@ -320,7 +366,6 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
     va_start(ap, boundary);
     padValue = va_arg(ap, double);
     va_end(ap);
-    printf("!%s: padValue = %lg\n", me, padValue);
   }
   switch(boundary) {
   case nrrdBoundaryPad: case nrrdBoundaryBleed: case nrrdBoundaryWrap:
@@ -342,6 +387,11 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
       biffSet(NRRD, err); return 1;
     }
   }
+  /* this shouldn't actually be necessary ... */
+  if (!nrrdElementSize(nin)) {
+    sprintf(err, "%s: nrrd reports zero element size!", me);
+    biffAdd(NRRD, err); return 1;
+  }
 
   /* allocate */
   numOut = 1;
@@ -351,7 +401,7 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
     numOut *= nout->axis[d].size;
     nout->axis[d].center = nin->axis[d].center;
     nrrdAxisRange(&(nout->axis[d].min), &(nout->axis[d].max),
-		  nout, d, min[d], max[d]);
+		  nin, d, min[d], max[d]);
   }
   nout->blockSize = nin->blockSize;
   if (nrrdMaybeAlloc(nout, numOut, nin->type, dim)) {
@@ -408,7 +458,7 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
   }
   if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE
 				     | NRRD_AXESINFO_CENTER
-				     | NRRD_AXESINFO_MINMAX ))) {
+				     | NRRD_AXESINFO_AMINMAX ))) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -499,6 +549,11 @@ nrrdSubvolume(Nrrd *nout, Nrrd *nin, int *min, int *max, int clamp) {
     biffAdd(NRRD, err); return 1;
   }
   dataOut = nout->data;
+  /* this shouldn't actually be necessary ... */
+  if (!nrrdElementSize(nin)) {
+    sprintf(err, "%s: nrrd reports zero element size!", me);
+    biffAdd(NRRD, err); return 1;
+  }
   elSize = nrrdElementSize(nin);
 
   /* produce array of coordinates inside original array of the
@@ -545,7 +600,7 @@ nrrdSubvolume(Nrrd *nout, Nrrd *nin, int *min, int *max, int clamp) {
   }
 
   /* set information in subvolume */
-  nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_MINMAX | NRRD_AXESINFO_SIZE);
+  nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_AMINMAX | NRRD_AXESINFO_SIZE);
   for (d=0; d<=dim-1; d++) {
     amin = nin->axis[d].min;
     amax = nin->axis[d].max;

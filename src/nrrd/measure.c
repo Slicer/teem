@@ -434,11 +434,11 @@ _nrrdMeasureType(Nrrd *nin, int measr) {
     type = nin->type;
     break;
   case nrrdMeasureMean:
-    /* the rational for this is that if you're after the average
-       value along a scanline, you probably want it in the same
-       format as what you started with, and if you really want
-       an exact answer than you can always use nrrdMeasrSum.
-       This may well be bone-headed, so is subject to change */
+    /* the rational for this is that if you're after the average value
+       along a scanline, you probably want it in the same format as
+       what you started with, and if you really want an exact answer
+       than you can always use nrrdMeasrSum and then devide.  This may
+       well be bone-headed, so is subject to change */
     type = nin->type;
     break;
   case nrrdMeasureProduct:
@@ -446,7 +446,7 @@ _nrrdMeasureType(Nrrd *nin, int measr) {
   case nrrdMeasureL1:
   case nrrdMeasureL2:
   case nrrdMeasureLinf:
-    type = nrrdTypeFloat;
+    type = nrrdStateMeasureType;
     break;
   case nrrdMeasureHistoMin:
   case nrrdMeasureHistoMax:
@@ -460,7 +460,7 @@ _nrrdMeasureType(Nrrd *nin, int measr) {
        values which generated the histogram, and we may not even
        have access to that information.  Float is a defensible 
        default choice, no? */
-    type = nrrdTypeFloat;
+    type = nrrdStateMeasureHistoType;
     break;
   }
 
@@ -521,7 +521,7 @@ nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   outElSize = nrrdTypeSize[type];
   if (!(line = calloc(nin->axis[axis].size, inElSize))) {
     sprintf(err, "%s: couldn't calloc(%d,%d) scanline buffer",
-	    me, nin->axis[axis].size, nrrdElementSize(nin));
+	    me, nin->axis[axis].size, inElSize);
     biffSet(NRRD, err); return 1;
   }
 

@@ -191,10 +191,13 @@ int _nrrdSprintLLI(char *s, long long int *v) {
   return(sprintf(s, "%lld", *v)); }
 int _nrrdSprintULLI(char *s, unsigned long long *v) {
   return(sprintf(s, "%llu", *v)); }
+/* HEY: sizeof(float) and sizeof(double) assumed here, since we're 
+   basing "8" and "17" on 6 == FLT_DIG and 15 == DBL_DIG, which are 
+   digits of precision for floats and doubles, respectively */
 int _nrrdSprintF(char *s, float *v) {
-  return(airSinglePrintf(NULL, s, "%f", *v)); }
+  return(airSinglePrintf(NULL, s, "%.8g", *v)); }
 int _nrrdSprintD(char *s, double *v) {
-  return(airSinglePrintf(NULL, s, "%lf", *v)); }
+  return(airSinglePrintf(NULL, s, "%.17lg", *v)); }
 /*
 int _nrrdSprintLD(char *s, long double *v) {
   return(sprintf(s, "%Lf", *v)); }
@@ -237,9 +240,9 @@ int _nrrdFprintLLI(FILE *f, long long int *v) {
 int _nrrdFprintULLI(FILE *f, unsigned long long *v) {
   return(fprintf(f, "%llu", *v)); }
 int _nrrdFprintF(FILE *f, float *v) {
-  return(airSinglePrintf(f, NULL, "%f", *v)); }
+  return(airSinglePrintf(f, NULL, "%.8g", *v)); }
 int _nrrdFprintD(FILE *f, double *v) {
-  return(airSinglePrintf(f, NULL, "%lf", *v)); }
+  return(airSinglePrintf(f, NULL, "%.17lg", *v)); }
 /* int _nrrdFprintLD(FILE *f, long double *v) {
    return(fprintf(f, "%Lf", *v)); } */
 int (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, void *) = {
@@ -260,9 +263,11 @@ int (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, void *) = {
 /*
 ******** nrrdFClamp
 **
-** clamps a given float to the range to the range representable
-** by the given fixed-point type; for floating point types we
-** just return the given number.
+** clamps a given float to the range to the range representable by the
+** given integral type; for floating point types we just return the
+** given number, even if that number is infinity or nan or something
+** else which creates random nonsense when assigned to the integral
+** type.  This is the only defensibly policy.
 */
 float _nrrdFClampC(float v) {
   if (v < SCHAR_MIN) return SCHAR_MIN;
@@ -402,9 +407,9 @@ double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double) = {
   /* run through array in pairs; by doing a compare on successive        \
      elements, we can do three compares per pair instead of the naive    \
      four.  In one very unexhaustive test on irix6.64, this resulted     \
-     in a 20% decrease in running time.  I learned this from Numerical   \
-     Recipes in C, long time ago, but I can't find it anywhere in the    \
-     book now ... */                                                     \
+     in a 20% decrease in running time.  I learned this trick from       \
+     Numerical Recipes in C, long time ago, but I can't find it          \
+     anywhere in the book now ... */                                     \
   T = N/2;                                                               \
   for (I=0; I<=T; I++) {                                                 \
     a = v[0 + 2*I];                                                      \
@@ -437,43 +442,45 @@ double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double) = {
 #define _MM_FLOAT(type)                                                  \
   nrrdBigInt I;                                                          \
   type a, min, max;                                                      \
-  int something;                                                         \
                                                                          \
   if (!(minP && maxP))                                                   \
     return;                                                              \
                                                                          \
-  /* we can't easily get initial values for min and max because we       \
-     don't know where to find non-NaN values.  So we check for NaN       \
-     at every element and assume that branch predictors will work */     \
-  something = 0;                                                         \
+  /* we have to explicitly search for the first non-NaN value */         \
+  min = min = AIR_NAN;                                                   \
   for (I=0; I<N; I++) {                                                  \
     a = v[I];                                                            \
-    if (!AIR_EXISTS(a))                                                  \
-      continue;                                                          \
-    if (something) {                                                     \
+    if (AIR_EXISTS(a)) {                                                 \
+      min = max = a;                                                     \
+      break;                                                             \
+    }                                                                    \
+    else {                                                               \
+      nrrdHackHasNonExist = AIR_TRUE;                                    \
+    }                                                                    \
+  }                                                                      \
+  /* we continue searching knowing something to compare against, but     \
+     still checking AIR_EXISTS at each value.  We don't want an          \
+     infinity to corrupt min or max, since this is the stated behavior   \
+     of nrrdMinMaxFind() */                                              \
+  for (I=I+1; I<N; I++) {                                                \
+    a = v[I];                                                            \
+    if (AIR_EXISTS(a)) {                                                 \
       if (a < min) {                                                     \
-	min = a;                                                         \
+        min = a;                                                         \
       }                                                                  \
       else {                                                             \
-	if (a > max) {                                                   \
-	  max = a;                                                       \
-	}                                                                \
+        if (a > max) {                                                   \
+          max = a;                                                       \
+        }                                                                \
       }                                                                  \
     }                                                                    \
     else {                                                               \
-      min = max = a;                                                     \
-      something = 1;                                                     \
+      nrrdHackHasNonExist = AIR_TRUE;                                    \
     }                                                                    \
   }                                                                      \
                                                                          \
-  /* if we got something, then we have results, otherwise we don't */    \
-  if (something) {                                                       \
-    *minP = min;                                                         \
-    *maxP = max;                                                         \
-  }                                                                      \
-  else {                                                                 \
-    *minP = *maxP = AIR_NAN;                                             \
-  }
+  *minP = min;                                                           \
+  *maxP = max;                                                           \
 
 void _nrrdMinMaxC   (_MM_ARGS(char))           { _MM_FIXED(char) }
 void _nrrdMinMaxUC  (_MM_ARGS(unsigned char))  { _MM_FIXED(unsigned char) }

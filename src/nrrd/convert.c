@@ -19,7 +19,7 @@
 #include "nrrd.h"
 
 /* 
-** making these typedefs here allows us to used one token for both
+** making these typedefs here allows us to use one token for both
 ** constructing function names, and for specifying argument types
 */
 typedef signed char CH;
@@ -36,7 +36,10 @@ typedef nrrdBigInt BI;
 /* typedef long double LD; */
 
 /*
-** I don't think that I can get out of defining this macro twice.
+** I don't think that I can get out of defining this macro twice,
+** because of the rules off C preprocessor macro expansion.  If
+** you can figure out a way to not use two identical macros, then
+** email me (gk_at_cs.utah.edu) and I'll send you money for dinner.
 **
 ** >>> MAP1 and MAP2 need to be identical <<<
 */
@@ -113,6 +116,9 @@ MAP1(MAP2, CONV_DEF)
 
 /* 
 ** Initialize the whole converter array.
+** 
+** This generates an incredibly long line of text, which hopefully will not
+** break a stupid compiler with assumptions about line-length...
 */
 CF _nrrdConv[NRRD_TYPE_MAX+1][NRRD_TYPE_MAX+1] = {
 {NULL}, 

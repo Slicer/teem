@@ -128,17 +128,33 @@ _nrrdWriteDataRaw(Nrrd *nrrd, nrrdIO *io) {
   nrrdBigInt bsize;
   size_t size, ret, dio;
   
+  /* this shouldn't actually be necessary ... */
+  if (!nrrdElementSize(nrrd)) {
+    sprintf(err, "%s: nrrd reports zero element size!", me);
+    biffAdd(NRRD, err); return 1;
+  }
   bsize = nrrd->num * nrrdElementSize(nrrd);
   size = bsize;
   if (size != bsize) {
-    fprintf(stderr, "%s: PANIC: nrrdBigInt can't hold byte size of data.", me);
-    exit(1);
+    sprintf(err, "%s: \"size_t\" can't represent byte-size of data.", me);
+    biffAdd(NRRD, err); return 1;
   }
 
-  dio = airDioTest(size, io->dataFile, nrrd->data);
+  if (_nrrdFormatUsesDIO[io->format]) {
+    dio = airDioTest(size, io->dataFile, nrrd->data);
+  }
+  else {
+    dio = airNoDio_format;
+  }
   if (airNoDio_okay == dio) {
-    if (nrrdFormatNRRD == io->format) {
-      fprintf(stderr, "with direct I/O ... "); fflush(stderr);
+    if (_nrrdFormatUsesDIO[io->format]) {
+      if (3 <= nrrdStateVerboseIO) {
+	fprintf(stderr, "with direct I/O ");
+      }
+      if (2 <= nrrdStateVerboseIO) {
+	fprintf(stderr, "... ");
+	fflush(stderr);
+      }
     }
     ret = airDioWrite(io->dataFile, nrrd->data, size);
     if (size != ret) {
@@ -147,8 +163,17 @@ _nrrdWriteDataRaw(Nrrd *nrrd, nrrdIO *io) {
     }
   }
   else {
-    if (AIR_DIO && nrrdFormatNRRD == io->format) {
-      fprintf(stderr, "with fwrite()%d ... ", (int)dio); fflush(stderr);
+    if (AIR_DIO && _nrrdFormatUsesDIO[io->format]) {
+      if (3 <= nrrdStateVerboseIO) {
+	fprintf(stderr, "with fwrite()");
+	if (4 <= nrrdStateVerboseIO) {
+	  fprintf(stderr, " (why no DIO: %s)", airNoDioErr(dio));
+	}
+      }
+      if (2 <= nrrdStateVerboseIO) {
+	fprintf(stderr, " ... ");
+	fflush(stderr);
+      }
     }
     ret = fwrite(nrrd->data, nrrdElementSize(nrrd), nrrd->num, io->dataFile);
     if (ret != nrrd->num) {
@@ -181,6 +206,11 @@ _nrrdWriteDataAscii(Nrrd *nrrd, nrrdIO *io) {
 	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
+  /* this shouldn't actually be necessary ... */
+  if (!nrrdElementSize(nrrd)) {
+    sprintf(err, "%s: nrrd reports zero element size!", me);
+    biffAdd(NRRD, err); return 1;
+  }
   data = nrrd->data;
   size = nrrdElementSize(nrrd);
   linelen = 0;
@@ -189,24 +219,26 @@ _nrrdWriteDataAscii(Nrrd *nrrd, nrrdIO *io) {
     if (1 == nrrd->dim) {
       fprintf(io->dataFile, "%s\n", buff);
     }
-    else if (nrrd->dim == 2 && nrrd->axis[0].size <= nrrdDefIOValsPerLine) {
+    else if (nrrd->dim == 2 
+	     && nrrd->axis[0].size <= io->valsPerLine) {
       fprintf(io->dataFile, "%s%c", buff,
 	      (I+1)%(nrrd->axis[0].size) ? ' ' : '\n');
     }
     else {
       bufflen = strlen(buff);
-      if (linelen < nrrdDefIOCharsPerLine
-	  && linelen+bufflen+1 >= nrrdDefIOCharsPerLine) {
-	fprintf(io->dataFile, "%s\n", buff);
-	linelen = 0;
+      if (linelen+bufflen+1 <= io->charsPerLine) {
+	fprintf(io->dataFile, "%s%s", I ? " " : "", buff);
+	linelen += (I ? 1 : 0) + bufflen;
       }
       else {
-	fprintf(io->dataFile, "%s ", buff);
-	linelen += bufflen + 1;
+	fprintf(io->dataFile, "\n%s", buff);
+	linelen = bufflen;
       }
     }
     data += size;
   }
+  /* just to be sure, we always end with a carraige return */
+  fprintf(io->dataFile, "\n");
   
   return 0;
 }
@@ -223,8 +255,9 @@ int
 **
 ** this prints "<field>: <info>" into given string "str", in a form
 ** suitable to be written to NRRD or PNM headers.  This will always
-** print something, even stupid <info>s like "(unknown endian)".
-** It is up to the caller to decide which fields are worth writing.
+** print something (for valid inputs), even stupid <info>s like
+** "(unknown endian)".  It is up to the caller to decide which fields
+** are worth writing.
 */
 void
 _nrrdSprintFieldInfo(char *str, Nrrd *nrrd, nrrdIO *io, int field) {
@@ -293,8 +326,10 @@ _nrrdSprintFieldInfo(char *str, Nrrd *nrrd, nrrdIO *io, int field) {
   case nrrdField_centers:
     sprintf(str, "%s:", fs);
     for (i=0; i<=D-1; i++) {
-      sprintf(buff, " %s", 
-	      nrrdEnumValToStr(nrrdEnumCenter, nrrd->axis[i].center));
+      sprintf(buff, " %s",
+	      (nrrd->axis[i].center 
+	       ? nrrdEnumValToStr(nrrdEnumCenter, nrrd->axis[i].center)
+	       : NRRD_UNKNOWN));
       strcat(str, buff);
     }
     break;
@@ -333,7 +368,7 @@ _nrrdSprintFieldInfo(char *str, Nrrd *nrrd, nrrdIO *io, int field) {
     break;
   case nrrdField_old_max:
     sprintf(str, "%s: ", fs);
-    airSinglePrintf(NULL, buff, "%lg", nrrd->oldMin);
+    airSinglePrintf(NULL, buff, "%lg", nrrd->oldMax);
     strcat(str, buff);
     break;
   case nrrdField_data_file:
@@ -389,18 +424,27 @@ _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     fprintf(file, "\n");
   }
 
-  fprintf(stderr, "(%s: writing %s data ", me, 
-	  nrrdEnumValToStr(nrrdEnumEncoding, io->encoding));
-  fflush(stderr);
+  if (2 <= nrrdStateVerboseIO) {
+    fprintf(stderr, "(%s: writing %s data ", me, 
+	    nrrdEnumValToStr(nrrdEnumEncoding, io->encoding));
+    fflush(stderr);
+  }
   if (_nrrdWriteData[io->encoding](nrrd, io)) {
-    fprintf(stderr, "error!\n");
+    if (2 <= nrrdStateVerboseIO) {
+      fprintf(stderr, "error!\n");
+    }
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
-  fprintf(stderr, "done)\n");
+  if (2 <= nrrdStateVerboseIO) {
+    fprintf(stderr, "done)\n");
+  }
 
   if (io->seperateHeader) {
     io->dataFile = airFclose(io->dataFile);
+  }
+  else {
+    io->dataFile = NULL;
   }
 
   return 0;
@@ -431,8 +475,8 @@ _nrrdWritePNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
   fprintf(file, "%s\n", nrrdEnumValToStr(nrrdEnumMagic, magic));
   fprintf(file, "%d %d\n", sx, sy);
   for (i=1; i<=NRRD_FIELD_MAX; i++) {
-    if (_nrrdFieldValidInPNM[i]) {
-      _PRINT_FIELD(NRRD_PNM_COMMENT, i);
+    if (_nrrdFieldValidInPNM[i]) { 
+      _PRINT_FIELD(NRRD_PNM_COMMENT, i); 
     }
   }
   for (i=0; i<=nrrd->cmtArr->len-1; i++) {
@@ -442,7 +486,6 @@ _nrrdWritePNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 
   io->dataFile = file;
   if (_nrrdWriteData[io->encoding](nrrd, io)) {
-    fprintf(stderr, "error!\n");
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -452,11 +495,13 @@ _nrrdWritePNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 
 int
 _nrrdWriteTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
-  char cmt[NRRD_STRLEN_SMALL], line[NRRD_STRLEN_LINE];
+  char cmt[NRRD_STRLEN_SMALL], line[NRRD_STRLEN_LINE],
+    buff[NRRD_STRLEN_SMALL];
   nrrdBigInt I;
   int i, x, y, sx, sy;
   void *data;
-  
+  float val;
+
   sprintf(cmt, "%c ", _NRRD_COMMENT_CHAR);
   if (!io->bareTable) {
     for (i=1; i<=NRRD_FIELD_MAX; i++) {
@@ -472,8 +517,10 @@ _nrrdWriteTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
   I = 0;
   for (y=0; y<=sy-1; y++) {
     for (x=0; x<=sx-1; x++) {
+      val = nrrdFLookup[nrrd->type](data, I);
+      nrrdSprint[nrrdTypeFloat](buff, &val);
       if (x) fprintf(file, " ");
-      airSinglePrintf(file, NULL, "%g", nrrdFLookup[nrrd->type](data, I));
+      fprintf(file, "%s", buff);
       I++;
     }
     fprintf(file, "\n");
@@ -482,28 +529,38 @@ _nrrdWriteTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
   return 0;
 }
 
+/*
+** HEY: this is where the filename of a seperate datafile is determined
+*/
 void
-_nrrdGuessFormat(char *filename, Nrrd *nrrd, nrrdIO *io) {
+_nrrdGuessFormat(char *filename, nrrdIO *io) {
+  int strpos;
 
   /* currently, we play the detached header game whenever the filename
      ends in NRRD_EXT_HEADER, and when we play this game, the data file
      is ALWAYS header relative. */
-  if (2 <= airEndsWith(filename, NRRD_EXT_HEADER)) {
-    strcpy(io->base + strlen(io->base) - strlen(NRRD_EXT_HEADER),
-	   NRRD_EXT_RAW);
+  /* we assume that that io->encoding is valid at this point: the
+     seperate datafile will have an extension determined by 
+     the encoding (and having extension "(unknown encoding)" would
+     be a real drag). */
+  strpos = strlen(io->base) - strlen(NRRD_EXT_HEADER);
+  if (airEndsWith(filename, NRRD_EXT_HEADER)) {
+    io->base[strpos++] = '.';
+    strcpy(io->base + strpos,
+	   nrrdEnumValToStr(nrrdEnumEncoding, io->encoding));
     io->seperateHeader = AIR_TRUE;
     io->format = nrrdFormatNRRD;
   }
-  else if (2 <= airEndsWith(filename, NRRD_EXT_PGM)
-	   || 1 <= airEndsWith(filename, NRRD_EXT_PPM)) {
+  else if (airEndsWith(filename, NRRD_EXT_PGM) 
+	   || airEndsWith(filename, NRRD_EXT_PPM)) {
     io->format = nrrdFormatPNM;
   }
-  else if (2 <= airEndsWith(filename, NRRD_EXT_TABLE)) {
+  else if (airEndsWith(filename, NRRD_EXT_TABLE)) {
     io->format = nrrdFormatTable;
   }
   else {
-    /* filename does not suggest any particular format */
-    io->format = nrrdDefWrtFormat;
+    /* nothing obvious */
+    io->format = nrrdFormatUnknown;
   }
 }
 
@@ -513,29 +570,46 @@ _nrrdFixFormat(Nrrd *nrrd, nrrdIO *io) {
   int fits;
 
   switch(io->format) {
+  case nrrdFormatUnknown:
+    /* if they still don't know what format to use, then enforce NRRD */
+    io->format = nrrdFormatNRRD;
+    break;
   case nrrdFormatNRRD:
     /* everything fits in a nrrd */
     break;
   case nrrdFormatPNM:
     fits = nrrdFitsInFormat(nrrd, nrrdFormatPNM, AIR_FALSE);
     if (!fits) {
-      fprintf(stderr, "(%s: Can't be a PNM image; saving as NRRD)\n", me); 
+      if (nrrdStateVerboseIO) {
+	fprintf(stderr, "(%s: Can't be a PNM image -> saving as NRRD)\n", me); 
+      }
       io->format = nrrdFormatNRRD;
     }
     else {
       if (2 == fits && airEndsWith(io->base, NRRD_EXT_PPM)) {
-	fprintf(stderr, "(%s: Image is grayscale; saving as PGM)\n", me); 
+	if (nrrdStateVerboseIO) {
+	  fprintf(stderr, "(%s: Image is grayscale; saving as PGM)\n", me); 
+	}
       }
       if (3 == fits && airEndsWith(io->base, NRRD_EXT_PGM)) {
-	fprintf(stderr,	"(%s: Image is color; saving as PPM)\n", me); 
+	if (nrrdStateVerboseIO) {
+	  fprintf(stderr, "(%s: Image is color -> saving as PPM)\n", me); 
+	}
       }
+      /* nrrdFormatPNM == io->format is okay, we did only a warning */
     }
     break;
   case nrrdFormatTable:
     if (!nrrdFitsInFormat(nrrd, nrrdFormatTable, AIR_FALSE)) {
-      fprintf(stderr, "(%s: Can't be a table; saving as NRRD)\n", me);
+      if (nrrdStateVerboseIO) {
+	fprintf(stderr, "(%s: Can't be a table -> saving as NRRD)\n", me);
+      }
       io->format = nrrdFormatNRRD;
     }
+    break;
+  default:
+    fprintf(stderr, "%s: PANIC: don't know about format %d\n", me, io->format);
+    exit(1);
     break;
   }
   
@@ -584,6 +658,10 @@ nrrdWrite(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
+  
+  /* reset the nrrdIO so that it can be used again */
+  nrrdIOReset(io);
+
   return 0;
 }
 
@@ -624,7 +702,7 @@ nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
   }
 
   _nrrdSplitName(io->dir, io->base, filename);
-  _nrrdGuessFormat(filename, nrrd, io);
+  _nrrdGuessFormat(filename, io);
   _nrrdFixFormat(nrrd, io);
 
   if (nrrdWrite(file, nrrd, io)) {
@@ -632,7 +710,6 @@ nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
     biffAdd(NRRD, err); return 1;
   }
   fclose(file);
-  io = nrrdIONix(io);
   return 0;
 }
 

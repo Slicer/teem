@@ -51,27 +51,32 @@ _nrrdValidHeader(Nrrd *nrrd, nrrdIO *io) {
       biffAdd(NRRD, err); return 0;
     }
   }
-  if (nrrdTypeBlock == nrrd->type && -1 == nrrd->blockSize) {
+  if (nrrdTypeBlock == nrrd->type && 0 == nrrd->blockSize) {
     sprintf(err, "%s: type is %s, but missing field: %s", me,
 	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock),
 	    nrrdEnumValToStr(nrrdEnumField, nrrdField_block_size));
     biffAdd(NRRD, err); return 0;
   }
+  /* this shouldn't actually be necessary ... */
+  if (!nrrdElementSize(nrrd)) {
+    sprintf(err, "%s: nrrd reports zero element size!", me);
+    biffAdd(NRRD, err); return 0;
+  }
   if (airEndianUnknown == io->endian &&
       nrrdEncodingEndianMatters[io->encoding] &&
       1 != nrrdElementSize(nrrd)) {
-    sprintf(err, "%s: type (%s) and encoding (%s) require field: %s", me,
+    sprintf(err, "%s: type (%s) and encoding (%s) require %s info", me,
 	    nrrdEnumValToStr(nrrdEnumType, nrrd->type),
 	    nrrdEnumValToStr(nrrdEnumEncoding, io->encoding),
 	    nrrdEnumValToStr(nrrdEnumField, nrrdField_endian));
     biffAdd(NRRD, err); return 0;    
   }
-
+  
   /* we don't really try to enforce anything with the min/max/center/size
      information on each axis, because we only really care that we know
      each axis size.  Past that, if the user messes it up, its not really
      our problem ... */
-  
+
   num = 1;
   for (i=0; i<=nrrd->dim-1; i++) {
     num *= nrrd->axis[i].size;
@@ -100,6 +105,11 @@ _nrrdCalloc(Nrrd *nrrd) {
   char me[]="_nrrdCalloc", err[NRRD_STRLEN_MED];
 
   nrrd->data = airFree(nrrd->data);
+  /* this shouldn't actually be necessary ... */
+  if (!nrrdElementSize(nrrd)) {
+    sprintf(err, "%s: nrrd reports zero element size!", me);
+    biffAdd(NRRD, err); return 1;
+  }
   nrrd->data = calloc(nrrd->num, nrrdElementSize(nrrd));
   if (!nrrd->data) {
     sprintf(err, "%s: couldn't calloc(" NRRD_BIG_INT_PRINTF
@@ -112,41 +122,42 @@ _nrrdCalloc(Nrrd *nrrd) {
 int
 _nrrdReadDataRaw(Nrrd *nrrd, nrrdIO *io) {
   char me[]="_nrrdReadDataRaw", err[NRRD_STRLEN_MED];
-  int i, skipRet;
   nrrdBigInt bsize;
   size_t size, ret, dio;
   
+  /* this shouldn't actually be necessary ... */
+  if (!nrrdElementSize(nrrd)) {
+    sprintf(err, "%s: nrrd reports zero element size!", me);
+    biffAdd(NRRD, err); return 1;
+  }
   bsize = nrrd->num * nrrdElementSize(nrrd);
   size = bsize;
   if (size != bsize) {
-    fprintf(stderr, "%s: PANIC: nrrdBigInt can't hold byte size of data.", me);
+    fprintf(stderr,
+	    "%s: PANIC: \"size_t\" can't represent byte-size of data.\n", me);
     exit(1);
   }
 
-  for (i=1; i<=io->lineSkip; i++) {
-    skipRet = airOneLine(io->dataFile, io->line, NRRD_STRLEN_LINE);
-    if (!skipRet) {
-      sprintf(err, "%s: hit EOF skipping line %d of %d", me, i, io->lineSkip);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (_nrrdFormatUsesDIO[io->format]) {
+    dio = airDioTest(size, io->dataFile, NULL);
   }
-  for (i=1; i<=io->byteSkip; i++) {
-    skipRet = fgetc(io->dataFile);
-    if (EOF == skipRet) {
-      sprintf(err, "%s: hit EOF skipping byte %d of %d", me, i, io->byteSkip);
-      biffAdd(NRRD, err); return 1;
-    }
+  else {
+    dio = airNoDio_format;
   }
-
-  dio = airDioTest(size, io->dataFile, NULL);
   if (airNoDio_okay == dio) {
-    if (nrrdMagicNRRD0001 == io->magic) {
-      fprintf(stderr, "with direct I/O ... "); fflush(stderr);
+    if (_nrrdFormatUsesDIO[io->format]) {
+      if (3 <= nrrdStateVerboseIO) {
+	fprintf(stderr, "with direct I/O ");
+      }
+      if (2 <= nrrdStateVerboseIO) {
+	fprintf(stderr, "... ");
+	fflush(stderr);
+      }
     }
     /* airDioRead includes the memory allocation */
     ret = airDioRead(io->dataFile, &(nrrd->data), size);
     if (size != ret) {
-      sprintf(err, "%s: airDioRead failed", me);
+      sprintf(err, "%s: airDioRead() failed", me);
       biffAdd(NRRD, err); return 1;
     }
   }
@@ -154,9 +165,17 @@ _nrrdReadDataRaw(Nrrd *nrrd, nrrdIO *io) {
     if (_nrrdCalloc(nrrd)) {
       sprintf(err, "%s: trouble", me); biffAdd(NRRD, err); return 1;
     }
-    if ( (nrrdMagicOldNRRD == io->magic || nrrdMagicNRRD0001 == io->magic) 
-	 && AIR_DIO ) {
-      fprintf(stderr, "with fread()%d ... ", dio); fflush(stderr);
+    if (AIR_DIO && _nrrdFormatUsesDIO[io->format]) {
+      if (3 <= nrrdStateVerboseIO) {
+	fprintf(stderr, "with fread()");
+	if (4 <= nrrdStateVerboseIO) {
+	  fprintf(stderr, " (why no DIO: %s)", airNoDioErr(dio));
+	}
+      }
+      if (2 <= nrrdStateVerboseIO) {
+	fprintf(stderr, "... ");
+	fflush(stderr);
+      }
     }
     ret = fread(nrrd->data, nrrdElementSize(nrrd), nrrd->num, io->dataFile);
     if (ret != nrrd->num) {
@@ -165,29 +184,19 @@ _nrrdReadDataRaw(Nrrd *nrrd, nrrdIO *io) {
 	      (nrrdBigInt)ret, nrrd->num);
       biffAdd(NRRD, err); return 1;
     }
-    /*
-    if (ret != nrrd->num) {
-      fprintf(stderr, "%s: 2nd fread() hack\n", me); sleep(1);
-      ret0 = ret;
-      ret = fread((char *)(nrrd->data) + nrrdElementSize(nrrd)*ret0, 
-		  nrrdElementSize(nrrd), nrrd->num - ret0, io->dataFile);
-      if (ret != nrrd->num - ret0) {
-	sprintf(err, "%s: fread() returned " NRRD_BIG_INT_PRINTF
-		" (not " NRRD_BIG_INT_PRINTF ")", me,
-		(nrrdBigInt)ret, nrrd->num - ret0);
-	biffAdd(NRRD, err); return 1;
-      }
-    }
-    */
   }
 
   if (airEndianUnknown != io->endian) {
     /* we positively know the endianness of data just read */
-    if (io->endian != AIR_ENDIAN) {
-      if (1 < nrrdElementSize(nrrd)) {
+    if (io->endian != AIR_ENDIAN && 1 < nrrdElementSize(nrrd)) {
+      /* the endiannesses of the data and the architecture are different,
+	 and, the size of the data elements is bigger than a byte */
+      if (2 <= nrrdStateVerboseIO) {
 	fprintf(stderr, "(%s: fixing endianness ... ", me);
 	fflush(stderr);
-	nrrdSwapEndian(nrrd);
+      }
+      nrrdSwapEndian(nrrd);
+      if (2 <= nrrdStateVerboseIO) {
 	fprintf(stderr, "done)");
 	fflush(stderr);
       }
@@ -210,7 +219,12 @@ _nrrdReadDataAscii(Nrrd *nrrd, nrrdIO *io) {
 	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
-
+  /* this shouldn't actually be necessary ... */
+  if (!nrrdElementSize(nrrd)) {
+    sprintf(err, "%s: nrrd reports zero element size!", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  
   if (_nrrdCalloc(nrrd)) {
     sprintf(err, "%s: trouble", me); biffAdd(NRRD, err); return 1;
   }
@@ -227,9 +241,9 @@ _nrrdReadDataAscii(Nrrd *nrrd, nrrdIO *io) {
       if (1 != airSingleSscanf(numStr, nrrdTypeConv[nrrd->type], 
 			       (void*)(data + I*size))) {
 	sprintf(err, "%s: couln't parse %s "NRRD_BIG_INT_PRINTF
-		" of "NRRD_BIG_INT_PRINTF, me,
+		" of " NRRD_BIG_INT_PRINTF " (\"%s\")", me,
 		nrrdEnumValToStr(nrrdEnumType, nrrd->type),
-		I+1, nrrd->num);
+		I+1, nrrd->num, numStr);
 	biffAdd(NRRD, err); return 1;
       }
     }
@@ -237,7 +251,8 @@ _nrrdReadDataAscii(Nrrd *nrrd, nrrdIO *io) {
       /* sscanf value into an int first */
       if (1 != airSingleSscanf(numStr, "%d", &tmp)) {
 	sprintf(err, "%s: couln't parse element "NRRD_BIG_INT_PRINTF
-		" of "NRRD_BIG_INT_PRINTF, me, I+1, nrrd->num);
+		" of " NRRD_BIG_INT_PRINTF  " (\"%s\")",
+		me, I+1, nrrd->num, numStr);
 	biffAdd(NRRD, err); return 1;
       }
       nrrdIInsert[nrrd->type](data, I, tmp);
@@ -261,7 +276,7 @@ int
 int
 _nrrdReadNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
   char me[]="_nrrdReadNrrd", err[NRRD_STRLEN_LINE+NRRD_STRLEN_MED];
-  int ret, len;
+  int i, skipRet, ret, len;
 
   /* parse header lines */
   while (1) {
@@ -273,13 +288,14 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 	sprintf(err, "%s: trouble parsing field in \"%s\"", me, io->line);
 	biffAdd(NRRD, err); return 1;
       }
+      /* the comment is the one field allowed more than once */
       if (ret != nrrdField_comment && io->seen[ret]) {
 	sprintf(err, "%s: already set field %s", me, 
 		nrrdEnumValToStr(nrrdEnumField, ret));
 	biffAdd(NRRD, err); return 1;
       }
       if (_nrrdReadNrrdParseInfo[ret](nrrd, io, AIR_TRUE)) {
-	sprintf(err, "%s: trouble parsing %s information \"%s\"", me,
+	sprintf(err, "%s: trouble parsing %s info \"%s\"", me,
 		nrrdEnumValToStr(nrrdEnumField, ret), io->line+io->pos);
 	biffAdd(NRRD, err); return 1;
       }
@@ -309,16 +325,43 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
   if (!io->seperateHeader) {
     io->dataFile = file;
   }
-  fprintf(stderr, "(%s: reading %s data ", me, 
-	  nrrdEnumValToStr(nrrdEnumEncoding, io->encoding));
+  if (2 <= nrrdStateVerboseIO) {
+    fprintf(stderr, "(%s: reading %s data ", me, 
+	    nrrdEnumValToStr(nrrdEnumEncoding, io->encoding));
+    fflush(stderr);
+  }
+
+  for (i=1; i<=io->lineSkip; i++) {
+    skipRet = airOneLine(io->dataFile, io->line, NRRD_STRLEN_LINE);
+    if (!skipRet) {
+      sprintf(err, "%s: hit EOF skipping line %d of %d", me, i, io->lineSkip);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  for (i=1; i<=io->byteSkip; i++) {
+    skipRet = fgetc(io->dataFile);
+    if (EOF == skipRet) {
+      sprintf(err, "%s: hit EOF skipping byte %d of %d", me, i, io->byteSkip);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+
   if (_nrrdReadData[io->encoding](nrrd, io)) {
-    fprintf(stderr, "error!\n");
+    if (2 <= nrrdStateVerboseIO) {
+      fprintf(stderr, "error!\n");
+    }
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
-  fprintf(stderr, "done)\n");
+  if (2 <= nrrdStateVerboseIO) {
+    fprintf(stderr, "done)\n");
+  }
   if (io->seperateHeader) {
     io->dataFile = airFclose(io->dataFile);
+  }
+  else {
+    /* put things back the way we found them */
+    io->dataFile = NULL;
   }
   
   return 0;
@@ -326,8 +369,8 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 
 int
 _nrrdReadPNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
-  char me[]="_nrrdReadPNM", err[NRRD_STRLEN_MED];
-  int color, got, want, len, ret, val[5], sx, sy, max;
+  char me[]="_nrrdReadPNM", err[NRRD_STRLEN_MED], *fs;
+  int i, color, got, want, len, ret, val[5], sx, sy, max;
   
   nrrd->type = nrrdTypeUChar;
   switch(io->magic) {
@@ -370,36 +413,54 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     if ('#' == io->line[0]) {
       if (strncmp(io->line, NRRD_PNM_COMMENT, strlen(NRRD_PNM_COMMENT))) {
 	/* this is a generic comment */
+	ret = 0;
+	goto plain;
+      }
+      /* else this PNM comment is trying to tell us something */
+      io->pos = strlen(NRRD_PNM_COMMENT);
+      io->pos += strspn(io->line + io->pos, _nrrdFieldSep);
+      ret = _nrrdReadNrrdParseField(nrrd, io, AIR_FALSE);
+      if (!ret) {
+	if (nrrdStateVerboseIO) {
+	  fprintf(stderr, "(%s: unparsable field \"%s\" --> plain comment)\n",
+		  me, io->line);
+	}
+	goto plain;
+      }
+      if (nrrdField_comment == ret) {
+	ret = 0;
+	goto plain;
+      }
+      fs = nrrdEnumValToStr(nrrdEnumField, ret);
+      if (!_nrrdFieldValidInPNM[ret]) {
+	if (nrrdStateVerboseIO) {
+	  fprintf(stderr, "(%s: field \"%s\" (not allowed in PNM) "
+		  "--> plain comment)\n", me, fs);
+	}
+	ret = 0;
+	goto plain;
+      }
+      if (!io->seen[ret] 
+	  && _nrrdReadNrrdParseInfo[ret](nrrd, io, AIR_FALSE)) {
+	if (nrrdStateVerboseIO) {
+	  fprintf(stderr,
+		  "(%s: unparsable info for field \"%s\" --> plain comment)\n",
+		  me, fs);
+	}
+	ret = 0;
+	goto plain;
+      }
+      io->seen[ret] = AIR_TRUE;
+    plain:
+      if (!ret) {
 	if (nrrdCommentAdd(nrrd, io->line+1, AIR_TRUE)) {
 	  sprintf(err, "%s: couldn't add comment", me);
 	  biffAdd(NRRD, err); return 1;
 	}
       }
-      else {
-	/* this PNM comment is trying to tell us something */
-	/*
-	printf("!%s: comment |%s| %d\n", me, io->line, 
-	       strncmp(io->line, NRRD_PNM_COMMENT, strlen(NRRD_PNM_COMMENT)));
-	       */
-	io->pos = strlen(NRRD_PNM_COMMENT);
-	io->pos += strspn(io->line + io->pos, _nrrdFieldSep);
-	/* printf("!%s: -> |%s|\n", me, io->line + io->pos); */
-	ret = _nrrdReadNrrdParseField(nrrd, io, AIR_FALSE);
-	/*
-	printf("!%s: comment |%s| %d -> ret = %d\n", me, io->line, 
-	       strncmp(io->line, NRRD_PNM_COMMENT, strlen(NRRD_PNM_COMMENT)),
-	       ret);
-	       */
-	/* could we parse anything, and does it belong in a PNM? */
-	if (ret && _nrrdFieldValidInPNM[ret]) {
-	  /* can we make sense of it? */
-	  if (!_nrrdReadNrrdParseInfo[ret](nrrd, io, AIR_FALSE)) {
-	    io->seen[ret] = AIR_TRUE;
-	  }
-	}
-      }
       continue;
     }
+    
     if (3 == sscanf(io->line, "%d%d%d", val+got+0, val+got+1, val+got+2)) {
       got += 3;
       continue;
@@ -411,6 +472,16 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     if (1 == sscanf(io->line, "%d", val+got+0)) {
       got += 1;
       continue;
+    }
+
+    /* else, we couldn't parse ANY numbers on this line, which is okay
+       as long as the line contains nothing but white space */
+    for (i=0; i<=strlen(io->line)-1 && isspace(io->line[i]); i++)
+      ;
+    if (i != strlen(io->line)) {
+      sprintf(err, "%s: \"%s\" has no integers but isn't just whitespace", 
+	      me, io->line);
+      biffAdd(NRRD, err); return 1;
     }
   }
   /* this assumes 3 == want */
@@ -427,13 +498,11 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     biffAdd(NRRD, err); return 1;
   }
 
-  /* we know what we need to set nrrd fields and read data */
+  /* we know what we need in order to set nrrd fields and read data */
   if (color) {
-    nrrd->num = sx*sy*3;
     nrrdAxesSet_va(nrrd, nrrdAxesInfoSize, 3, sx, sy);
   }
   else {
-    nrrd->num = sx*sy;
     nrrdAxesSet_va(nrrd, nrrdAxesInfoSize, sx, sy);
   }
   io->dataFile = file;
@@ -444,8 +513,6 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
   
   return 0;
 }
-
-#define _NRRD_TABLE_INCR 32
 
 int
 _nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
@@ -464,29 +531,37 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     io->pos += strspn(io->line + io->pos, _nrrdFieldSep);
     ret = _nrrdReadNrrdParseField(nrrd, io, AIR_FALSE);
     /* could we parse anything? */
-    if (!ret)
+    if (!ret) {
+      /* being unable to parse a comment as a nrrd field is not 
+	 any kind of error */
       goto plain;
+    }
     if (nrrdField_comment == ret) {
       ret = 0;
       goto plain;
     }
-    fs =  nrrdEnumValToStr(nrrdEnumField, ret);
+    fs = nrrdEnumValToStr(nrrdEnumField, ret);
     if (!_nrrdFieldValidInTable[ret]) {
-      fprintf(stderr, "(%s: field %s (not allowed in table) "
-	      "parsed as plain comment)\n", me, fs);
+      if (nrrdStateVerboseIO) {
+	fprintf(stderr, "(%s: field \"%s\" (not allowed in table) "
+		"--> plain comment)\n", me, fs);
+      }
       ret = 0;
       goto plain;
     }
-    if (!io->seen[ret] && _nrrdReadNrrdParseInfo[ret](nrrd, io, AIR_FALSE)) {
-      fprintf(stderr, "(%s: malformed field %s parsed as plain comment)\n",
-	      me, fs);
+    if (!io->seen[ret]
+	&& _nrrdReadNrrdParseInfo[ret](nrrd, io, AIR_FALSE)) {
+      if (nrrdStateVerboseIO) {
+	fprintf(stderr, "(%s: malformed field \"%s\" --> plain comment)\n",
+		me, fs);
+      }
       ret = 0;
       goto plain;
     }
     io->seen[ret] = AIR_TRUE;
   plain:
     if (!ret) {
-      if (nrrdCommentAdd(nrrd, io->line + io->pos, AIR_TRUE)) {
+      if (nrrdCommentAdd(nrrd, io->line + 1, AIR_TRUE)) {
 	sprintf(err, "%s: couldn't add comment", me);
 	biffAdd(NRRD, err); return 1;
       }
@@ -498,7 +573,6 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     }
     line++;
   }
-  printf("line = %d\n", line);
 
   /* we supposedly have a line of numbers, see how many there are */
   if (!airParseStrF(&oneFloat, io->line, _nrrdTableSep, 1)) {
@@ -552,7 +626,7 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
   nrrd->axis[0].size = sx;
   nrrd->axis[1].size = sy;
   if (nrrdAlloc(nrrd, sx*sy, nrrdTypeFloat, 2)) {
-    sprintf(err, "%s: couldn't allocate output data", me);
+    sprintf(err, "%s: couldn't allocate table data", me);
     biffAdd(NRRD, err); return 1;
   }
   memcpy(nrrd->data, al, sx*sy*sizeof(float));
@@ -563,18 +637,36 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 }
 
 /*
-** if we have a file name for the header file ("file") being read,
-** it must be placed in io->dir, with no trailing "/"
+******** nrrdRead()
+**
+** read in nrrd from a given file.  We don't yet know the format or
+** anythign else about how the data is written.  The only use for the
+** nrrdIO struct "_io" here is to contain the base directory in which
+** we'll look for a seperate data file, if that's desired.  Currently
+** no other communication to us is done via the nrrdIO, so _io can be
+** passed as NULL (if no header-relative datafiles are desired), and a
+** nrrdIO will be created as needed.
 */
 int
-nrrdRead(Nrrd *nrrd, FILE *file, nrrdIO *io) {
+nrrdRead(Nrrd *nrrd, FILE *file, nrrdIO *_io) {
   char err[NRRD_STRLEN_MED], me[] = "nrrdRead";
   int len;
   float oneFloat;
+  nrrdIO *io;
 
-  if (!(file && nrrd && io)) {
+  if (!(file && nrrd)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
+  }
+  if (_io) {
+    io = _io;
+  }
+  else {
+    io = nrrdIONew();
+    if (!io) {
+      sprintf(err, "%s: couldn't alloc I/O struct", me);
+      biffAdd(NRRD, err); return 1;
+    }
   }
 
   /* clear out anything in the given nrrd */
@@ -591,31 +683,31 @@ nrrdRead(Nrrd *nrrd, FILE *file, nrrdIO *io) {
   switch (io->magic) {
   case nrrdMagicOldNRRD:
   case nrrdMagicNRRD0001:
-    if (_nrrdReadNrrd(file, nrrd, io)) {
+    io->format = nrrdFormatNRRD;
+     if (_nrrdReadNrrd(file, nrrd, io)) {
       sprintf(err, "%s: trouble reading NRRD", me);
       biffAdd(NRRD, err); return 1;
     }
-    io->format = nrrdFormatNRRD;
     break;
   case nrrdMagicP2:
   case nrrdMagicP3:
   case nrrdMagicP5:
   case nrrdMagicP6:
+    io->format = nrrdFormatPNM;
     if (_nrrdReadPNM(file, nrrd, io)) {
       sprintf(err, "%s: trouble reading PNM", me);
       biffAdd(NRRD, err); return 1;
     }
-    io->format = nrrdFormatPNM;
     break;
   default:
     /* see if line is a comment, which implies its a table */
     if (_NRRD_COMMENT_CHAR == io->line[0] 
 	|| airParseStrF(&oneFloat, io->line, _nrrdTableSep, 1)) {
+      io->format = nrrdFormatTable;
       if (_nrrdReadTable(file, nrrd, io)) {
 	sprintf(err, "%s: trouble reading table", me);
 	biffAdd(NRRD, err); return 1;
       }
-      io->format = nrrdFormatTable;
     }
     else {
       /* there's no hope */
@@ -624,6 +716,15 @@ nrrdRead(Nrrd *nrrd, FILE *file, nrrdIO *io) {
     }
     break;
   }
+
+  if (!_io) {
+    io = nrrdIONix(io);
+  }
+  else {
+    /* reset the given nrrdIO so that it can be used again */
+    nrrdIOReset(_io);
+  }
+
   return 0;
 }
 
@@ -644,6 +745,9 @@ _nrrdSplitName(char *dir, char *base, char *name) {
     ret = 1;
   }
   else {
+    /* if the name had no slash, its in the current directory, which
+       means that we need to explicitly store "." as the header
+       directory in case we have header-relative data. */
     strcpy(dir, ".");
     strcpy(base, name);
     ret = 0;
@@ -661,16 +765,16 @@ nrrdLoad(Nrrd *nrrd, char *filename) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
+  io = nrrdIONew();
+  if (!io) {
+    sprintf(err, "%s: couldn't alloc I/O struct", me);
+    biffAdd(NRRD, err); return 1;
+  }
 
   /* we save the directory of the filename given to us so
      that if it turns out that its just a nhdr file, with
      a header-relative data file, then we will know how
      to find the data file */
-  io = nrrdIONew();
-  if (!io) {
-    sprintf(err, "%s: couldn't alloc something", me);
-    biffAdd(NRRD, err); return 1;
-  }
   _nrrdSplitName(io->dir, io->base, filename);
   /* printf("!%s: |%s|%s|\n", me, io->dir, io->base); */
 
@@ -685,6 +789,11 @@ nrrdLoad(Nrrd *nrrd, char *filename) {
       biffAdd(NRRD, err); return 1;
     }
   }
+
+  /* YOOHOO */
+  io->endian = airEndianBig;
+  /* YOOHOO */
+
   if (nrrdRead(nrrd, file, io)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;

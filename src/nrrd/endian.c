@@ -106,13 +106,11 @@ void
 
 void
 nrrdSwapEndian(Nrrd *nrrd) {
-  void (*swapper)(void *, nrrdBigInt);
   
   if (nrrd 
       && nrrd->data 
       && AIR_BETWEEN(nrrdTypeUnknown, nrrd->type, nrrdTypeLast)) {
-    swapper = _nrrdSwapEndian[nrrd->type];
-    swapper(nrrd->data, nrrd->num);
+    _nrrdSwapEndian[nrrd->type](nrrd->data, nrrd->num);
   }
   return;
 }

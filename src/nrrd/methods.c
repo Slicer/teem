@@ -31,13 +31,15 @@ _nrrdIOInit(nrrdIO *io) {
     io->pos = 0;
     io->dataFile = NULL;
     io->magic = nrrdMagicUnknown;
-    io->format = nrrdDefWrtFormat;
+    io->format = nrrdFormatUnknown;
     io->encoding = nrrdDefWrtEncoding;
     io->endian = airEndianUnknown;
     io->lineSkip = 0;
     io->byteSkip = 0;
     io->seperateHeader = nrrdDefWrtSeperateHeader;
     io->bareTable = nrrdDefWrtBareTable;
+    io->charsPerLine = nrrdDefWrtCharsPerLine;
+    io->valsPerLine = nrrdDefWrtValsPerLine;
     memset(io->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
   }
 }
@@ -52,6 +54,35 @@ nrrdIONew(void) {
     _nrrdIOInit(io);
   }
   return io;
+}
+
+/*
+******** nrrdIOReset
+**
+** an attempt at resetting all but those things which it makes sense
+** to re-use across multiple nrrd reads or writes.  This is somewhat
+** complicated, and I haven't thought through all the possibilities...
+*/
+void
+nrrdIOReset(nrrdIO *io) {
+
+  /* this started as a copy of the body of _nrrdIOInit() */
+  if (io) {
+    strcpy(io->dir, "");
+    strcpy(io->base, "");
+    strcpy(io->line, "");
+    io->pos = 0;
+    io->dataFile = NULL;
+    io->magic = nrrdMagicUnknown;
+    /* io->format = nrrdDefWrtFormat; */
+    /* io->encoding = nrrdDefWrtEncoding; */
+    io->endian = airEndianUnknown;
+    io->lineSkip = 0;
+    io->byteSkip = 0;
+    /* io->seperateHeader = nrrdDefWrtSeperateHeader; */
+    /* io->bareTable = nrrdDefWrtBareTable; */
+    memset(io->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
+  }
 }
 
 nrrdIO *
@@ -108,7 +139,7 @@ nrrdResampleInfoNix(nrrdResampleInfo *info) {
 ******* nrrdInit
 **
 ** initializes a nrrd to default state.  Mostly just sets values to 
-** -1, NaN, "", NULL, or Unknown
+** 0, NaN, "", NULL, or Unknown
 */
 void
 nrrdInit(Nrrd *nrrd) {
@@ -145,6 +176,7 @@ nrrdInit(Nrrd *nrrd) {
 */
 Nrrd *
 nrrdNew(void) {
+  int i;
   Nrrd *nrrd;
   
   nrrd = (Nrrd*)(calloc(1, sizeof(Nrrd)));
@@ -154,6 +186,10 @@ nrrdNew(void) {
   /* explicitly set pointers to NULL */
   nrrd->data = NULL;
   nrrd->content = NULL;
+  /* HEY: this is a symptom of some stupidity, no? */
+  for (i=0; i<=NRRD_DIM_MAX-1; i++) {
+    nrrd->axis[i].label = NULL;
+  }
 
   /* create comment airArray (even though it starts empty) */
   nrrd->cmtArr = airArrayNew((void**)(&(nrrd->cmt)), NULL, 
@@ -178,9 +214,14 @@ nrrdNew(void) {
 */
 Nrrd *
 nrrdNix(Nrrd *nrrd) {
+  int i;
   
   if (nrrd) {
     nrrd->content = airFree(nrrd->content);
+    /* HEY: this is a symptom of some stupidity, no? */
+    for (i=0; i<=NRRD_DIM_MAX-1; i++) {
+      nrrd->axis[i].label = airFree(nrrd->axis[i].label);
+    }
     nrrdCommentClear(nrrd);
     nrrd->cmtArr = airArrayNix(nrrd->cmtArr);
     nrrd = airFree(nrrd);
@@ -324,8 +365,8 @@ nrrdAlloc(Nrrd *nrrd, nrrdBigInt num, int type, int dim) {
     biffAdd(NRRD, err); return 1;
   }
 
-  nrrd->data = airFree(nrrd->data);
   nrrd->type = type;
+  nrrd->data = airFree(nrrd->data);
   nrrd->data = calloc(num, nrrdElementSize(nrrd));
   if (!(nrrd->data)) {
     sprintf(err, "%s: calloc(" NRRD_BIG_INT_PRINTF ",%d) failed", 
@@ -407,11 +448,14 @@ nrrdMaybeAlloc(Nrrd *nrrd, nrrdBigInt num, int type, int dim) {
     need = 1;
   }
   else {
+    /* this shouldn't actually be necessary ... */
+    if (!nrrdElementSize(nrrd)) {
+      sprintf(err, "%s: nrrd reports zero element size!", me);
+      biffAdd(NRRD, err); return 1;
+    }
     sizeHave = nrrd->num * nrrdElementSize(nrrd);
     sizeWant = num * nrrdElementSize(nrrd);
     need = sizeHave != sizeWant;
-    fprintf(stderr, "%s: need = %d != %d = %d\n", me,
-	    (int)sizeHave, (int)sizeWant, need);
   }
   if (need) {
     if (nrrdAlloc(nrrd, num, type, dim)) {
@@ -467,7 +511,7 @@ nrrdMaybeAlloc_va(Nrrd *nrrd, int type, int dim, ...) {
 ** copy method for nrrds.  nout will end up as an "exact" copy of nin.
 ** New space for data is allocated here, and output nrrd points to it.
 ** Comments from old are added to comments for new, so these are also
-** newly allocated.
+** newly allocated.  nout->ptr is not set, nin->ptr is not read.
 */
 int
 nrrdCopy(Nrrd *nout, Nrrd *nin) {
@@ -480,6 +524,11 @@ nrrdCopy(Nrrd *nout, Nrrd *nin) {
   if (nout == nin) {
     /* I guess there's nothing to do! */
     return 0;
+  }
+  /* this shouldn't actually be necessary ... */
+  if (!nrrdElementSize(nin)) {
+    sprintf(err, "%s: input nrrd reports zero element size!", me);
+    biffAdd(NRRD, err); return 1;
   }
   if (nrrdMaybeAlloc(nout, nin->num, nin->type, nin->dim)) {
     sprintf(err, "%s: couldn't allocate data", me);
@@ -498,7 +547,7 @@ nrrdCopy(Nrrd *nout, Nrrd *nin) {
   nout->max = nin->max;
   nout->oldMin = nin->oldMin;
   nout->oldMax = nin->oldMax;
-  nout->ptr = nin->ptr;
+  /* nout->ptr = nin->ptr; */
     
   if (nrrdCommentCopy(nout, nin, AIR_TRUE)) {
     sprintf(err, "%s: trouble copying comments", me);
@@ -515,14 +564,14 @@ nrrdCopy(Nrrd *nout, Nrrd *nin) {
 */
 int
 nrrdPPM(Nrrd *ppm, int sx, int sy) {
-  char err[NRRD_STRLEN_MED], me[] = "nrrdNewPPM";
+  char me[]="nrrdPPM", err[NRRD_STRLEN_MED];
 
   if (!(sx > 0 && sy > 0)) {
     sprintf(err, "%s: got invalid sizes (%d,%d)", me, sx, sy);
     biffAdd(NRRD, err);
     return 1;
   }
-  if (nrrdAlloc_va(ppm, nrrdTypeUChar, 3, 3, sx, sy)) {
+  if (nrrdMaybeAlloc_va(ppm, nrrdTypeUChar, 3, 3, sx, sy)) {
     sprintf(err, "%s: couldn't allocate %d x %d 24-bit image", me, sx, sy);
     biffAdd(NRRD, err);
     return 1;
@@ -537,14 +586,14 @@ nrrdPPM(Nrrd *ppm, int sx, int sy) {
 */
 int
 nrrdPGM(Nrrd *pgm, int sx, int sy) {
-  char err[NRRD_STRLEN_MED], me[] = "nrrdNewPGM";
+  char me[]="nrrdNewPGM", err[NRRD_STRLEN_MED];
 
   if (!(sx > 0 && sy > 0)) {
     sprintf(err, "%s: got invalid sizes (%d,%d)", me, sx, sy);
     biffAdd(NRRD, err);
     return 1;
   }
-  if (nrrdAlloc_va(pgm, nrrdTypeUChar, 2, sx, sy)) {
+  if (nrrdMaybeAlloc_va(pgm, nrrdTypeUChar, 2, sx, sy)) {
     sprintf(err, "%s: couldn't allocate %d x %d 8-bit image", me, sx, sy);
     biffAdd(NRRD, err);
     return 1;
@@ -566,7 +615,7 @@ nrrdTable(Nrrd *table, int sx, int sy) {
     biffAdd(NRRD, err);
     return 1;
   }
-  if (nrrdAlloc_va(table, nrrdTypeFloat, 2, sx, sy)) {
+  if (nrrdMaybeAlloc_va(table, nrrdTypeFloat, 2, sx, sy)) {
     sprintf(err, "%s: couldn't allocate %d x %d table of floats", me, sx, sy);
     biffAdd(NRRD, err);
     return 1;

@@ -24,13 +24,12 @@ extern "C" {
 
 #include <limits.h>
 
+#define NRRD_DIM_MAX 10            /* Maximum dimension which we can handle */
+
 #define NRRD_EXT_HEADER ".nhdr"
-#define NRRD_EXT_RAW    ".raw"
 #define NRRD_EXT_PGM    ".pgm"
 #define NRRD_EXT_PPM    ".ppm"
 #define NRRD_EXT_TABLE  ".txt"
-
-#define NRRD_DIM_MAX 10            /* Maximum dimension which we can handle */
 
 #define NRRD_BIG_INT_PRINTF "%llu"
 
@@ -58,7 +57,7 @@ extern "C" {
 ** If these aren't defined either, we go wild and define something
 ** ourselves (which just happen to be the values defined in C9X), with
 ** total disregard to what the architecture and compiler actually
-** support 
+** support.
 */
 
 #ifdef LLONG_MAX
@@ -95,8 +94,14 @@ extern "C" {
 ** Chances are, you shouldn't mess with these
 */
 
+#define NRRD_BIGGEST_TYPE double
 #define NRRD_COMMENT_INCR 16
-#define NRRD_PNM_COMMENT "#NRRD: "
+#define NRRD_PNM_COMMENT "# NRRD>"  /* this is designed to be robust against
+				       the mungling that xv does, but no
+				       promises for any other image programs */
+#define NRRD_UNKNOWN  "???"         /* how to represent something unknown in
+				       a field of the nrrd header, when it
+				       being unknown is not an error */
 
 /* extern C */
 #ifdef __cplusplus

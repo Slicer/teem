@@ -22,8 +22,10 @@
 /*
 ******** nrrdConvert()
 **
-** copies values from one type of nrrd to another, without
-** any transformation, except what you get with a cast
+** copies values from one type of nrrd to another, without any
+** transformation, except what you get with a cast.  The point is to
+** make available on Nrrds the exact same behavior as you have in C
+** with casts and assignments.
 */
 int
 nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
@@ -82,11 +84,31 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
   return 0;
 }
 
+/*
+******** nrrdMinMaxFind()
+**
+** search for the min and max values in the nrrd, and return them 
+** in *minP and *maxP.  This will NOT set nrrd->min and nrrd->max,
+** though you are welcome to pass in &(nrrd->min) and &(nrrd->max)
+** as the first two arguments.
+**
+** NOTE: for floating point nrrds, this will only look at values
+** for which AIR_EXISTS() succeeds, which means that even if 
+** positive infinity occurs in the nrrd, it will not be recorded
+** as the max.  If you want to be alerted to the fact that there
+** were NaNs or infinities in the values, then check out the value
+** of nrrdHackHasNonExist after this call.  Yes, this is a hack! (HEY)
+**
+** If there are no values in the nrrd for which AIR_EXISTS(), then
+** this will set *minP and *maxP to AIR_NAN, but this is not treated
+** as a biffable error here, but this may change. (HEY)
+*/
 int
 nrrdMinMaxFind(double *minP, double *maxP, Nrrd *nrrd) {
   char me[] = "nrrdMinMaxFind", err[NRRD_STRLEN_MED];
-  char _min[NRRD_TYPE_SIZE_MAX], _max[NRRD_TYPE_SIZE_MAX];
+  NRRD_BIGGEST_TYPE _min, _max;
 
+  nrrdHackHasNonExist = AIR_FALSE;
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
     biffSet(NRRD, err); return 1;
@@ -101,9 +123,9 @@ nrrdMinMaxFind(double *minP, double *maxP, Nrrd *nrrd) {
   }
   else if (nrrdTypeChar < nrrd->type &&
 	   nrrd->type < nrrdTypeBlock) {
-    _nrrdMinMaxFind[nrrd->type](_min, _max, nrrd->num, nrrd->data);
-    *minP = nrrdDLoad[nrrd->type](_min);
-    *maxP = nrrdDLoad[nrrd->type](_max);
+    _nrrdMinMaxFind[nrrd->type](&_min, &_max, nrrd->num, nrrd->data);
+    *minP = nrrdDLoad[nrrd->type](&_min);
+    *maxP = nrrdDLoad[nrrd->type](&_max);
   }
   else {
     sprintf(err, "%s: don't know how to find range for nrrd type %s", me,
@@ -113,12 +135,24 @@ nrrdMinMaxFind(double *minP, double *maxP, Nrrd *nrrd) {
   return 0;
 }  
 
+/*
+******** nrrdMinMaxDo()
+**
+** execute the min/max policy indicated by "minmax", and save the
+** results in *minP and *maxP.  If minmax is nrrdMinMaxInsteadUse,
+** then two va_args are sought and copied into *minP and *maxP.
+** 
+** NOTE: Unlike nrrdMinMaxFind, here we do make a biff error out of
+** not being able to find AIR_EXISTS() values in the nrrd, but this
+** too is subject to change. (HEY)
+*/
 int
 nrrdMinMaxDo(double *minP, double *maxP, Nrrd *nrrd, int minmax, ...) {
   char me[]="nrrdMinMaxDo", err[NRRD_STRLEN_MED];
   int E;
   va_list ap;
   
+  nrrdHackHasNonExist = AIR_FALSE;
   if (!AIR_BETWEEN(nrrdMinMaxUnknown, minmax, nrrdMinMaxLast)) {
     sprintf(err, "%s: minmax behavior %d invalid", me, minmax);
     biffSet(NRRD, err); return 1;
@@ -161,7 +195,7 @@ nrrdMinMaxDo(double *minP, double *maxP, Nrrd *nrrd, int minmax, ...) {
 }
 
 /*
-******** nrrdQuantize
+******** nrrdQuantize()
 **
 ** convert values to 8, 16, or 32 bit unsigned quantities
 ** by mapping the value range delimited by the nrrd's min
@@ -172,7 +206,7 @@ nrrdMinMaxDo(double *minP, double *maxP, Nrrd *nrrd, int minmax, ...) {
 */
 int
 nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits, int minmax) {
-  char me[] = "nrrdQuantize", err[NRRD_STRLEN_MED];
+  char me[] = "nrrdQuantize", err[NRRD_STRLEN_MED], buff[NRRD_STRLEN_SMALL];
   double valIn, min, max;
   int valOut;
   long long valOutll;
@@ -218,6 +252,12 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits, int minmax) {
   /* copy the values */
   for (I=0; I<=nin->num-1; I++) {
     valIn = nrrdDLookup[nin->type](nin->data, I);
+    if (!AIR_EXISTS(valIn)) {
+      airSinglePrintf(NULL, buff, "%f", valIn);
+      sprintf(err, "%s: can't quantize non-existent value[" 
+	      NRRD_BIG_INT_PRINTF "] = %s", me, I, buff);
+      biffSet(NRRD, err); return 1;
+    }
     switch (bits) {
     case 8:
     case 16:
@@ -322,7 +362,7 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
   }
   if (smart <= 0) {
     nhist = nrrdNew();
-    if (nrrdHisto(nhist, nrrd, bins)) {
+    if (nrrdHisto(nhist, nrrd, bins, nrrdTypeInt)) {
       sprintf(err, "%s: failed to create histogram", me);
       biffAdd(NRRD, err); return 1;
     }

@@ -32,7 +32,7 @@ extern "C" {
 
 extern void biffSet(char *key, char *err);
 extern void biffAdd(char *key, char *err);
-extern void biffMaybeAdd(int useBiff, char *key, char *err);
+extern void biffMaybeAdd(char *key, char *err, int useBiff);
 extern int biffCheck(char *key);
 extern void biffDone(char *key);
 extern void biffMove(char *destKey, char *err, char *srcKey);

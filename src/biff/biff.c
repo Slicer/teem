@@ -289,7 +289,7 @@ biffAdd(char *key, char *err) {
 ** wrapper around biffAdd() but doesn't actually do anything if !useBiff
 */
 void
-biffMaybeAdd(int useBiff, char *key, char *err) {
+biffMaybeAdd(char *key, char *err, int useBiff) {
 
   if (useBiff) {
     biffAdd(key, err);

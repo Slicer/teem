@@ -41,31 +41,13 @@ extern "C" {
 #include "nrrdEnums.h"
 
 /*
-******** nrrdBigInt typedef biggest unsigned integral type allowed on
-** system; used to hold number of elements in a nrrd.  Value 0 is used
-** to represent "don't know" or "unset", since nrrds can't hold a zero
-** number of items.
+******** nrrdBigInt typedef 
+**
+** biggest unsigned integral type allowed on system; used to hold
+** number of elements in a nrrd.  Value 0 is used to represent "don't
+** know" or "unset", since nrrds can't hold a zero number of items.  
 */
 typedef unsigned long long int nrrdBigInt;
-
-/*
-******** nrrdAxis struct
-**
-** all the information which can sensibly be associated with
-** one axis of a nrrd
-*/
-typedef struct {
-  int size;                      /* number of elements along each axis */
-  double spacing;                /* if non-NaN, distance between samples */
-  double min, max;               /* if non-NaN, values associated with
-                                    lowest and highest indices. Obviously, one
-				    can set "spacing" to something incompatible
-				    with axisMin, axisMax.  The idea is that
-				    only one (min/max, or spacing) should be
-				    taken to be significant at any time. */
-  int center;                    /* cell vs. node */
-  char *label;                   /* short info string for each axis */
-} nrrdAxis;
 
 /*
 ******** nrrdIO struct
@@ -81,7 +63,9 @@ typedef struct {
     base[NRRD_STRLEN_LINE],      /* when "save"ing a nrrd into seperate 
                                     header and data, the name of the 
 				    header file (massaged to produce
-				    header-relative data filename) */
+				    header-relative data filename).  This
+				    filename includes the extension; "base"
+				    just signifies "not full path" */
     line[NRRD_STRLEN_LINE];      /* buffer for saving one line from file */
   int pos;                       /* line[pos] is beginning of stuff which
 				    still has yet to be parsed */
@@ -109,8 +93,37 @@ typedef struct {
     bareTable,                   /* when writing a table, is there any
 				    effort made to record the nrrd struct
 				    info in the text file */
+    charsPerLine,                /* when writing ASCII data in which we intend
+				    only to write a huge long list of numbers
+				    whose text formatting implies nothing, then
+				    how many characters do we limit ourselves
+				    to per line */
+    valsPerLine,                 /* when writing ASCII data in which we DO
+				    intend to sigify (or at least hint at)
+				    something with the formatting, then what
+				    is the max number of values to write on
+				    a line */
     seen[NRRD_FIELD_MAX+1];      /* for error checking in header parsing */
 } nrrdIO;
+
+/*
+******** nrrdAxis struct
+**
+** all the information which can sensibly be associated with
+** one axis of a nrrd
+*/
+typedef struct {
+  int size;                      /* number of elements along each axis */
+  double spacing;                /* if non-NaN, distance between samples */
+  double min, max;               /* if non-NaN, values associated with
+                                    lowest and highest indices. Obviously, one
+				    can set "spacing" to something incompatible
+				    with axisMin, axisMax.  The idea is that
+				    only one (min/max, or spacing) should be
+				    taken to be significant at any time. */
+  int center;                    /* cell vs. node */
+  char *label;                   /* short info string for each axis */
+} nrrdAxis;
 
 /*
 ******** Nrrd struct
@@ -121,7 +134,7 @@ typedef struct {
   /* 
   ** NECESSARY information describing the main array.  This is
   ** generally set at the same time that either the nrrd is created,
-  ** or at the time that an existing nrrd is wrapped around an array 
+  ** or at the time that the nrrd is wrapped around an existing array 
   */
   void *data;                    /* the data in memory */
   nrrdBigInt num;                /* number of elements */
@@ -144,9 +157,8 @@ typedef struct {
     oldMin, oldMax;              /* if non-NaN, and if nrrd is of integral
 				    type, extremal values for the array
 				    BEFORE it was quantized */
-  void *ptr;                     /* generic pointer which is not read or
-				    set by nrrd library, except nrrdCopy(). 
-				    Use as you see fit. */
+  void *ptr;                     /* generic pointer which is NEVER read or
+				    set by nrrd library. Use as you see fit. */
 
   /* 
   ** Comments.  Read from, and written to, header.
@@ -174,11 +186,11 @@ typedef struct {
 					    to +support */
   float (*eval1_f)(float x, 
 		   double *param);       /* evaluate once, single precision */
-  void (*evalN_f)(float *f, float *x,    /* evaluate many times */
+  void (*evalN_f)(float *f, float *x,    /* evaluate N times, single prec. */
 		  int N, double *param);   
   double (*eval1_d)(double x, 
 		    double *param);      /* evaluate once, double precision */
-  void (*evalN_d)(double *f, double *x,  /* evaluate many times, double */
+  void (*evalN_d)(double *f, double *x,  /* evaluate N times, double prec. */
 		  int N, double *param);
 } nrrdKernel;
 
@@ -200,24 +212,27 @@ typedef struct {
     renormalize;                 /* when downsampling with a kernel with
 				    non-zero integral, should we renormalize
 				    the weights to match the kernel integral
-				    so as to remove ripple */
+				    so as to remove annoying ripple */
   double padValue;               /* if padding, what value to pad with */
 } nrrdResampleInfo;
 
 /******** defaults all kinds */
 /* defaults.c */
-extern int nrrdDefWrtFormat;
 extern int nrrdDefWrtEncoding;
 extern int nrrdDefWrtSeperateHeader;
 extern int nrrdDefWrtBareTable;
+extern int nrrdDefWrtCharsPerLine;
+extern int nrrdDefWrtValsPerLine;
 extern int nrrdDefRsmpBoundary;
 extern int nrrdDefRsmpType;
 extern double nrrdDefRsmpScale;
 extern int nrrdDefRsmpRenormalize;
 extern double nrrdDefRsmpPadValue;
 extern int nrrdDefCenter;
-extern int nrrdDefIOCharsPerLine;
-extern int nrrdDefIOValsPerLine;
+extern int nrrdStateVerboseIO;
+extern int nrrdStateMeasureType;
+extern int nrrdStateMeasureHistoType;
+extern int nrrdHackHasNonExist;
 
 /******** going between the enums' values and strings */
 /* arrays.c */
@@ -229,6 +244,7 @@ extern int nrrdTypeSize[];
 
 /******** pseudo-constructors, pseudo-destructors, and such */
 /* (methods.c) */
+extern void nrrdIOReset(nrrdIO *io);
 extern nrrdIO *nrrdIONew(void);
 extern nrrdIO *nrrdIONix(nrrdIO *io);
 extern nrrdResampleInfo *nrrdResampleInfoNew(void);
@@ -258,6 +274,9 @@ extern int nrrdCheck(Nrrd *nrrd);
 extern int nrrdSameSize(Nrrd *n1, Nrrd *n2, int useBiff);
 extern int nrrdElementSize(Nrrd *nrrd);
 extern int nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff);
+extern int nrrdFixedType(Nrrd *nrrd);
+extern int nrrdFloatingType(Nrrd *nrrd);
+extern int nrrdSanity(void);
 
 /******** axes related */
 /* axes.c */
@@ -268,7 +287,7 @@ extern void nrrdAxesSet(Nrrd *nin, int axInfo, void *info);
 extern void nrrdAxesSet_va(Nrrd *nin, int axInfo, ...);
 extern void nrrdAxesGet(Nrrd *nrrd, int axInfo, void *info);
 extern void nrrdAxesGet_va(Nrrd *nrrd, int axInfo, ...);
-extern double nrrdAxisLocation(Nrrd *nrrd, int ax, double idx);
+extern double nrrdAxisPosition(Nrrd *nrrd, int ax, double idx);
 extern void nrrdAxisRange(double *loP, double *hiP,
 			  Nrrd *nrrd, int ax, double loIdx, double hiIdx);
 
@@ -277,7 +296,7 @@ extern void nrrdAxisRange(double *loP, double *hiP,
 extern int nrrdCommentAdd(Nrrd *nrrd, char *_str, int useBiff);
 extern void nrrdCommentClear(Nrrd *nrrd);
 extern int nrrdCommentCopy(Nrrd *nout, Nrrd *nin, int useBiff);
-extern int nrrdCommentScan(Nrrd *nrrd, char *key, char **valP);
+extern char *nrrdCommentScan(Nrrd *nrrd, char *key);
 
 /******** endian related */
 /* (endian.c) */
@@ -296,10 +315,8 @@ extern int    (*nrrdILookup[NRRD_TYPE_MAX+1])(void *v, nrrdBigInt I);
 extern float  (*nrrdFLookup[NRRD_TYPE_MAX+1])(void *v, nrrdBigInt I);
 extern double (*nrrdDLookup[NRRD_TYPE_MAX+1])(void *v, nrrdBigInt I);
 extern int    (*nrrdIInsert[NRRD_TYPE_MAX+1])(void *v, nrrdBigInt I, int j);
-extern float  (*nrrdFInsert[NRRD_TYPE_MAX+1])(void *v, 
-					      nrrdBigInt I, float f);
-extern double (*nrrdDInsert[NRRD_TYPE_MAX+1])(void *v, 
-					      nrrdBigInt I, double d);
+extern float  (*nrrdFInsert[NRRD_TYPE_MAX+1])(void *v, nrrdBigInt I, float f);
+extern double (*nrrdDInsert[NRRD_TYPE_MAX+1])(void *v, nrrdBigInt I, double d);
 extern int    (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, void *);
 extern int    (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, void *);
 extern float  (*nrrdFClamp[NRRD_TYPE_MAX+1])(float);
@@ -316,6 +333,7 @@ extern int nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io);
 /******** sampling, slicing, cropping+padding */
 /* subset.c */
 extern int nrrdSample(void *val, Nrrd *nin, int *coord);
+extern int nrrdSample_va(void *val, Nrrd *nin, ...);
 extern int nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos);
 extern int nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max);
 extern int nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, 
@@ -327,13 +345,12 @@ extern int nrrdInvertPerm(int *invp, int *perm, int n);
 extern int nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes);
 extern int nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2);
 extern int nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm);
-extern int nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis, int incrDim);
 extern int nrrdFlip(Nrrd *nout, Nrrd *nin, int axis);
+extern int nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis, int incrDim);
 extern int nrrdReshape(Nrrd *nout, Nrrd *nin, int dim, int *size);
 extern int nrrdReshape_va(Nrrd *nout, Nrrd *nin, int dim, ...);
 extern int nrrdBlock(Nrrd *nout, Nrrd *nin);
 extern int nrrdUnblock(Nrrd *nout, Nrrd *nin, int type);
-
 
 /******** measuring and projecting */
 /* measr.c */
@@ -341,11 +358,11 @@ extern int nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr);
 
 /********* HISTOGRAMS!!! */
 /* histogram.c */
-extern int nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int axis, unsigned int bins);
+extern int nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int axis, int bins, int type);
+extern int nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type);
 extern int nrrdHistoMulti(Nrrd *nout, Nrrd **nin, 
-			  int num, int *bin, 
-			  float *min, float *max, int *clamp);
-extern int nrrdHisto(Nrrd *nout, Nrrd *nin, int bins);
+			  int num, int *bin, int type,
+			  double *min, double *max, int *clamp);
 extern int nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy);
 
 /******** point-wise value remapping, conversion, and such */
