@@ -1,3 +1,6 @@
+ten/fiber.c memory leak
+unu save -f nrrd -e text produces a text file that does not end w/ newline
+
 unu: jhisto works with axis[0] elements when given a single nrrd
 
 gage: avoid padding and re-allocation!
@@ -9,9 +12,15 @@ gageIv3Fill: padded size = (258,258,3);
 gage: consider changing gageProbe() to take position both in index and
 unit world space, since many programs only care about unit world space
 
+air: make airOneLine return number of bytes read; current return
+  of string length is entirely redundant with return of strlen()
+  and then enable the ftell() check after PNG magic read
+
 nrrd: generalize I/O so that magic needn't be on line by itself
 nrrd: allow nrrd header I/O to and from strings
 nrrd: add support for VFF file format
+
+bin/unu: valgrid parsing of encoding stuff
 
 fix "gkms pvg": try to reproduce problem with mouse data
 
@@ -69,9 +78,6 @@ new nrrdBinaryOps: bit-wise and (&), or (|), xor (^)
 new nrrdUnaryOps: bit-wise not (^), expm1
 
 
-nrrd: It would be good if per-axis field specifications failed (or at
-least warned) if there are more fields than there should be
-
 SEGFAULT:  in muse/usr/sci/data/Medical/cat-array/bisti/rend
 gkms hvol -s a:-1200,6000 a:0,3100 a:-1000,1000 -i CFC.nrrd -o CFC-hvol.nrrd 
 
@@ -92,33 +98,22 @@ image registration tool for small translational errors
 
 air: make floating point stuff more like C++: lots of per-arch #defines
 
-bin/unu: valgrid parsing of encoding stuff
-
 echo: test textured lights
 
 bin/emap: allow generating envmaps useful for specular highlights
 
 mite: add diffuse and specular envmap
 
-bin: create "segprobe" analog to vprobe and pprobe
-
-todo: figure out shared libraries on cygwin.
-todo: Test that shared libraries work everywhere they should.
+make: figure out shared libraries on cygwin.
+make: Test that shared libraries work everywhere they should.
 
 limn: make it smarter- so that joining parts together is possible in a
 way that facilitates transformations and correct drawing.  This really
 requires general data structures for 2-D graphics primatives...
 
-make: make sure that test programs actually link against the development
-      library instead of the installed one.
-
 make: finish documenting how GNUMake works for teem
 
 unrrdu: standardize hest framework for doing unu/gkms/tend style programs
-
-air: make airOneLine return number of bytes read; current return
-  of string length is entirely redundant with return of strlen()
-  and then enable the ftell() check after PNG magic read
 
 dye: colormaps
 
