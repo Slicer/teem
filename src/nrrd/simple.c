@@ -95,8 +95,8 @@ _nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX],
   double A, B;
   
   for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
-    A = AIR_EXISTS(vecA[ii] ? vecA[ii] : 0);
-    B = AIR_EXISTS(vecB[ii] ? vecB[ii] : 0);
+    A = AIR_EXISTS(vecA[ii]) ? vecA[ii] : 0;
+    B = AIR_EXISTS(vecB[ii]) ? vecB[ii] : 0;
     sum[ii] = sclA*A + sclB*B;
   }
 }
@@ -108,7 +108,7 @@ _nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX],
   double v;
   
   for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
-    v = AIR_EXISTS(vec[ii] ? vec[ii] : 0);
+    v = AIR_EXISTS(vec[ii]) ? vec[ii] : 0;
     out[ii] = scl*v;
   }
 }
@@ -365,17 +365,33 @@ _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int checkOrigin, int useBiff) {
               me, airEnumStr(nrrdSpace, nrrd->space), nrrd->spaceDim);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
+    /* -------- */
     exists = AIR_FALSE;
     for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
       exists |= airStrlen(nrrd->spaceUnits[dd]);
+    }
+    if (exists) {
+      sprintf(err, "%s: spaceDim is 0, but space units is set", me);
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
+    }
+    /* -------- */
+    exists = AIR_FALSE;
+    for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
       exists |= AIR_EXISTS(nrrd->spaceOrigin[dd]);
+    }
+    if (exists) {
+      sprintf(err, "%s: spaceDim is 0, but space origin is set", me);
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
+    }
+    /* -------- */
+    exists = AIR_FALSE;
+    for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
       for (ii=0; ii<NRRD_DIM_MAX; ii++) {
         exists |= AIR_EXISTS(nrrd->axis[ii].spaceDirection[dd]);
       }
     }
     if (exists) {
-      sprintf(err, "%s: spaceDim is 0, but space units, origin, or direction "
-              "is set", me);
+      sprintf(err, "%s: spaceDim is 0, but space directions are set", me);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
   }
