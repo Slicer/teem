@@ -1,3 +1,21 @@
+Changes from 1.5beta0: ---------------------------------
+
+- BUG FIX (apply1D.c): in setting colSize for 1D maps, when output
+type and map type are different sizes
+- API CHANGE (nrrd.h, map.c): nrrdHistoEq() now takes a new final
+argument, "amount", which tell the extent to which the equalizing
+correction should be applied.
+- API CHANGE (simple.c, write.c): 3D grayscale images
+(dimensions=(1,X,Y)) now "fit" in PGM, and are silently reshaped on
+write
+- API CHANGE (simple.c): nrrdPeripheralInit() and nrrdPeripheralCopy()
+now return an int instead of void.
+- API NEW (nrrd.h, defaultsNrrd.c): added nrrdStateGrayscaleImage3D,
+which causes reshape of grayscale images to 3D (1,X,Y) on read
+- API NEW (nrrd.h, methodsNrrd.c): nrrdKernelSpecSet() and
+nrrdKernelParmSet() are ways of setting a kernel/parm pair and a
+nrrdKernelSpec from one another
+
 Changes from 1.4: ----------------------------------------
 
 nrrd.h (and nrrd as a whole):
@@ -163,17 +181,3 @@ for teem-1.4: normal nrrd magic is "NRRD0001", instead of
 test/minmax.c:
 - nrrdMinMaxClever() renamed to nrrdMinMaxCleverSet()
 
-Changes from 1.5beta0: ---------------------------------
-
-- BUG FIX (apply1D.c): in setting colSize for 1D maps, when output
-type and map type are different sizes
-- API CHANGE (simple.c, write.c): 3D grayscale images
-(dimensions=(1,X,Y)) now "fit" in PGM, and are silently reshaped on
-write
-- API CHANGE (simple.c): nrrdPeripheralInit() and nrrdPeripheralCopy()
-now return an int instead of void.
-- API NEW (nrrd.h, defaultsNrrd.c): added nrrdStateGrayscaleImage3D,
-which causes reshape of grayscale images to 3D (1,X,Y) on read
-- API NEW (nrrd.h, methodsNrrd.c): nrrdKernelSpecSet() and
-nrrdKernelParmSet() are ways of setting a kernel/parm pair and a
-nrrdKernelSpec from one another
