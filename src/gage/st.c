@@ -88,6 +88,7 @@ gageStructureTensor (Nrrd *nout, Nrrd *nin,
   int E, rad, diam, osx, osy, osz, oxi, oyi, ozi,
     _ixi, _iyi, _izi, ixi, iyi, izi, wi, *coordCache;
   gageContext *ctx;
+  gageQuery query;
   gagePerVolume *pvl;
   airArray *mop;
   gage_t *grad, *ixw, *iyw, *izw, wght, sten[6], *gradCache, *out;
@@ -140,7 +141,9 @@ gageStructureTensor (Nrrd *nout, Nrrd *nin,
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   if (!E) E |= gageKernelSet(ctx, gageKernel00, gk0->kernel, gk0->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel11, gk1->kernel, gk1->parm);
-  if (!E) E |= gageQuerySet(ctx, pvl, 1 << gageSclGradVec);
+  if (!E) GAGE_QUERY_RESET(query);
+  if (!E) GAGE_QUERY_ITEM_ON(query, gageSclGradVec);
+  if (!E) E |= gageQuerySet(ctx, pvl, query);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
     sprintf(err, "%s: ", me);

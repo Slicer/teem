@@ -213,3 +213,24 @@ gagePointReset (gagePoint *point) {
   }
   return;
 }
+
+gageItemSpec *
+gageItemSpecNew(void) {
+  gageItemSpec *isp;
+
+  isp = (gageItemSpec *)calloc(1, sizeof(gageItemSpec));
+  if (isp) {
+    isp->item = -1;
+    isp->kind = NULL;
+  }
+  return isp;
+}
+
+gageItemSpec *
+gageItemSpecNix(gageItemSpec *isp) {
+
+  if (isp) {
+    AIR_FREE(isp);
+  }
+  return NULL;
+}

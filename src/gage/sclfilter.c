@@ -396,12 +396,10 @@ gageScl3PFilterN (int fd,
 void
 _gageSclFilter (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageSclFilter";
-  int fd, *offset;
-  gage_t *fw00, *fw11, *fw22, *ans;
+  int fd;
+  gage_t *fw00, *fw11, *fw22;
 
   fd = GAGE_FD(ctx);
-  offset = gageKindScl->ansOffset;
-  ans = pvl->ans;
   if (!ctx->parm.k3pack) {
     fprintf(stderr, "!%s: sorry, 6-pack filtering not implemented\n", me);
     return;
@@ -414,26 +412,26 @@ _gageSclFilter (gageContext *ctx, gagePerVolume *pvl) {
   case 2:
     gageScl3PFilter2(pvl->iv3, pvl->iv2, pvl->iv1, 
 		     fw00, fw11, fw22,
-		     ans + offset[gageSclValue],
-		     ans + offset[gageSclGradVec],
-		     ans + offset[gageSclHessian],
+		     pvl->directAnswer[gageSclValue],
+		     pvl->directAnswer[gageSclGradVec],
+		     pvl->directAnswer[gageSclHessian],
 		     pvl->needD[0], pvl->needD[1], pvl->needD[2]);
     break;
   case 4:
     gageScl3PFilter4(pvl->iv3, pvl->iv2, pvl->iv1, 
 		     fw00, fw11, fw22,
-		     ans + offset[gageSclValue],
-		     ans + offset[gageSclGradVec],
-		     ans + offset[gageSclHessian],
+		     pvl->directAnswer[gageSclValue],
+		     pvl->directAnswer[gageSclGradVec],
+		     pvl->directAnswer[gageSclHessian],
 		     pvl->needD[0], pvl->needD[1], pvl->needD[2]);
     break;
   default:
     gageScl3PFilterN(fd,
 		     pvl->iv3, pvl->iv2, pvl->iv1, 
 		     fw00, fw11, fw22,
-		     ans + offset[gageSclValue],
-		     ans + offset[gageSclGradVec],
-		     ans + offset[gageSclHessian],
+		     pvl->directAnswer[gageSclValue],
+		     pvl->directAnswer[gageSclGradVec],
+		     pvl->directAnswer[gageSclHessian],
 		     pvl->needD[0], pvl->needD[1], pvl->needD[2]);
     break;
   }

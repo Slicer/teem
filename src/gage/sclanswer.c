@@ -23,48 +23,44 @@
 void
 _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageSclAnswer";
-  unsigned int query;
   gage_t *ans, gmag=0, *hess, *norm, *gvec, *gten, *k1, *k2, sHess[9], curv=0;
   double tmpMat[9], tmpVec[3], hevec[9], heval[3];
-  int *offset;
 
   gage_t len, gp1[3], gp2[3], *nPerp, nProj[9], ncTen[9];
   double T, N, D;
 
-  query = pvl->query;
-  ans = pvl->ans;
+  ans = pvl->answer;
   /* convenience pointers for work below */
-  offset = gageKindScl->ansOffset;
-  hess = ans + offset[gageSclHessian];
-  gvec = ans + offset[gageSclGradVec];
-  norm = ans + offset[gageSclNormal];
-  nPerp = ans + offset[gageSclNPerp];
-  gten = ans + offset[gageSclGeomTens];
-  k1 = ans + offset[gageSclK1];
-  k2 = ans + offset[gageSclK2];
+  hess = pvl->directAnswer[gageSclHessian];
+  gvec = pvl->directAnswer[gageSclGradVec];
+  norm = pvl->directAnswer[gageSclNormal];
+  nPerp = pvl->directAnswer[gageSclNPerp];
+  gten = pvl->directAnswer[gageSclGeomTens];
+  k1 = pvl->directAnswer[gageSclK1];
+  k2 = pvl->directAnswer[gageSclK2];
   
-  if (1 & (query >> gageSclValue)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclValue)) {
     /* done if doV */
     if (ctx->verbose) {
       fprintf(stderr, "%s: val = % 15.7f\n", me, 
-	      (double)(ans[offset[gageSclValue]]));
+	      (double)(pvl->directAnswer[gageSclValue][0]));
     }
   }
-  if (1 & (query >> gageSclGradVec)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclGradVec)) {
     /* done if doD1 */
     if (ctx->verbose) {
       fprintf(stderr, "%s: gvec = ", me);
       ell_3v_PRINT(stderr, gvec);
     }
   }
-  if (1 & (query >> gageSclGradMag)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclGradMag)) {
     /* this is the true value of gradient magnitude */
-    gmag = ans[offset[gageSclGradMag]] = sqrt(ELL_3V_DOT(gvec, gvec));
+    gmag = pvl->directAnswer[gageSclGradMag][0] = sqrt(ELL_3V_DOT(gvec, gvec));
   }
 
   /* NB: it would seem that gageParmGradMagMin is completely ignored ... */
 
-  if (1 & (query >> gageSclNormal)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclNormal)) {
     if (gmag) {
       ELL_3V_SCALE(norm, 1.0/gmag, gvec);
       /* polishing ... 
@@ -75,7 +71,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
       ELL_3V_COPY(norm, gageZeroNormal);
     }
   }
-  if (1 & (query >> gageSclNPerp)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclNPerp)) {
     /* nPerp = I - outer(norm, norm) */
     /* NB: this sets both nPerp and nProj */
     ELL_3MV_OUTER(nProj, norm, norm);
@@ -84,36 +80,37 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     nPerp[4] += 1;
     nPerp[8] += 1;
   }
-  if (1 & (query >> gageSclHessian)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessian)) {
     /* done if doD2 */
     if (ctx->verbose) {
       fprintf(stderr, "%s: hess = \n", me);
       ell_3m_PRINT(stderr, hess);
     }
   }
-  if (1 & (query >> gageSclLaplacian)) {
-    ans[offset[gageSclLaplacian]] = hess[0] + hess[4] + hess[8];
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclLaplacian)) {
+    pvl->directAnswer[gageSclLaplacian][0] = hess[0] + hess[4] + hess[8];
     if (ctx->verbose) {
       fprintf(stderr, "%s: lapl = %g + %g + %g  = %g\n", me,
-	      hess[0], hess[4], hess[8], ans[offset[gageSclLaplacian]]);
+	      hess[0], hess[4], hess[8], 
+	      pvl->directAnswer[gageSclLaplacian][0]);
     }
   }
-  if (1 & (query >> gageSclHessEval)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessEval)) {
     ELL_3M_COPY(tmpMat, hess);
     /* HEY: look at the return value for root multiplicity? */
     /* NB: we have solve and then copy because of possible type
        mismatch between double and gage_t */
     ell_3m_eigensolve_d(heval, hevec, tmpMat, AIR_TRUE);
-    ELL_3V_COPY(ans+offset[gageSclHessEval], heval);
+    ELL_3V_COPY(pvl->directAnswer[gageSclHessEval], heval);
   }
-  if (1 & (query >> gageSclHessEvec)) {
-    ELL_3M_COPY(ans+offset[gageSclHessEvec], hevec);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessEvec)) {
+    ELL_3M_COPY(pvl->directAnswer[gageSclHessEvec], hevec);
   }
-  if (1 & (query >> gageScl2ndDD)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageScl2ndDD)) {
     ELL_3MV_MUL(tmpVec, hess, norm);
-    ans[offset[gageScl2ndDD]] = ELL_3V_DOT(norm, tmpVec);
+    pvl->directAnswer[gageScl2ndDD][0] = ELL_3V_DOT(norm, tmpVec);
   }
-  if (1 & (query >> gageSclGeomTens)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclGeomTens)) {
     if (gmag > ctx->parm.gradMagCurvMin) {
       /* parm.curvNormalSide applied here to determine the sense of the
 	 normal when doing all curvature calculations */
@@ -143,16 +140,16 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
       ELL_3M_ZERO_SET(gten);
     }
   }
-  if (1 && (query >> gageSclCurvedness)) {
-    curv = ans[offset[gageSclCurvedness]] = ELL_3M_FROB(gten);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclCurvedness)) {
+    curv = pvl->directAnswer[gageSclCurvedness][0] = ELL_3M_FROB(gten);
   }
-  if (1 && (query >> gageSclShapeTrace)) {
-    ans[offset[gageSclShapeTrace]] = (curv
-				      ? ELL_3M_TRACE(gten)/curv
-				      : 0);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclShapeTrace)) {
+    pvl->directAnswer[gageSclShapeTrace][0] = (curv
+					       ? ELL_3M_TRACE(gten)/curv
+					       : 0);
   }
-  if ( (1 && (query >> gageSclK1)) ||
-       (1 && (query >> gageSclK2)) ){
+  if ( (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclK1)) ||
+       (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclK2)) ){
     T = ELL_3M_TRACE(gten);
     N = curv;
     D = 2*N*N - T*T;
@@ -169,28 +166,35 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     k1[0] = 0.5*(T + D);
     k2[0] = 0.5*(T - D);
   }
-  if (1 && (query >> gageSclMeanCurv)) {
-    ans[offset[gageSclMeanCurv]] = (*k1 + *k2)/2;
+  if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclMeanCurv)) {
+    pvl->directAnswer[gageSclMeanCurv][0] = (*k1 + *k2)/2;
   }
-  if (1 && (query >> gageSclGaussCurv)) {
-    ans[offset[gageSclGaussCurv]] = (*k1)*(*k2);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclGaussCurv)) {
+    pvl->directAnswer[gageSclGaussCurv][0] = (*k1)*(*k2);
   }
-  if (1 && (query >> gageSclShapeIndex)) {
-    ans[offset[gageSclShapeIndex]] = -(2/M_PI)*atan2(*k1 + *k2, *k1 - *k2);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclShapeIndex)) {
+    pvl->directAnswer[gageSclShapeIndex][0] = 
+      -(2/M_PI)*atan2(*k1 + *k2, *k1 - *k2);
   }
-  if (1 & (query >> gageSclCurvDir)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclCurvDir1)) {
     /* HEY: this only works when K1, K2, 0 are all well mutually distinct,
        since these are the eigenvalues of the geometry tensor, and this
        code assumes that the eigenspaces are all one-dimensional */
     ELL_3M_COPY(tmpMat, gten);
     ELL_3M_DIAG_SET(tmpMat, gten[0] - *k1, gten[4]- *k1, gten[8] - *k1);
     ell_3m_1d_nullspace_d(tmpVec, tmpMat);
-    ELL_3V_COPY(ans+offset[gageSclCurvDir]+0, tmpVec);
+    ELL_3V_COPY(pvl->directAnswer[gageSclCurvDir1], tmpVec);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclCurvDir2)) {
+    /* HEY: this only works when K1, K2, 0 are all well mutually distinct,
+       since these are the eigenvalues of the geometry tensor, and this
+       code assumes that the eigenspaces are all one-dimensional */
+    ELL_3M_COPY(tmpMat, gten);
     ELL_3M_DIAG_SET(tmpMat, gten[0] - *k2, gten[4] - *k2, gten[8] - *k2);
     ell_3m_1d_nullspace_d(tmpVec, tmpMat);
-    ELL_3V_COPY(ans+offset[gageSclCurvDir]+3, tmpVec);
+    ELL_3V_COPY(pvl->directAnswer[gageSclCurvDir2], tmpVec);
   }
-  if (1 & (query >> gageSclFlowlineCurv)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclFlowlineCurv)) {
     if (gmag >= ctx->parm.gradMagCurvMin) {
       /* because of the gageSclGeomTens prerequisite, sHess, nPerp, and
 	 nProj are all already set */
@@ -200,7 +204,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     } else {
       ELL_3M_ZERO_SET(ncTen);
     }
-    ans[offset[gageSclFlowlineCurv]] = sqrt(ELL_3M_FROB(ncTen));
+    pvl->directAnswer[gageSclFlowlineCurv][0] = sqrt(ELL_3M_FROB(ncTen));
   }
   return;
 }

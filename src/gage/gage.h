@@ -54,6 +54,13 @@ extern "C" {
 */
 
 /*
+** terminology: gage is intended to measure multiple things at one
+** point in a volume.  The SET of ALL the things that you want
+** gage to measure is called the "QUERY".  Each of the many quantities
+** comprising the query are called "ITEM"s.  
+*/
+
+/*
 ******** gage_t
 ** 
 ** this is the very crude means by which you can control the type
@@ -180,22 +187,47 @@ enum {
 };
 #define GAGE_KERNEL_NUM     6
 
+#define GAGE_ITEM_PREREQ_NUM 5
+/*
+******** gageItemEntry struct
+**
+** necessary information about each item supported by the kind, which 
+** is defined at compile-time in a per-kind table (at least it is for
+** the scalar, vector, and tensor kinds)
+*/
+typedef struct {
+  int enumVal,          /* the item's enum value */
+    answerLength,       /* how many gage_t's are needed to store the answer */
+    needDeriv,          /* what kind of derivative info is immediately needed
+			   for this item (not recursively expanded). This is
+			   NO LONGER a bitvector: values are 0, 1, 2, ... */
+    prereq[GAGE_ITEM_PREREQ_NUM],
+                        /* what are the other items this item depends on
+			   (not recusively expanded).  The move away from
+			   bit-vectors based on primitive types is what
+			   necessitates conveying this with a stupid little
+			   array. */
+    parentItem,         /* the enum value of an item (answerLength > 1)
+			   containing the smaller value for which we are
+			   merely an alias
+			   OR: -1 if there's no parent */
+    parentIndex;        /* where our value starts in parents value
+			   OR: -1 if there's no parent */
+} gageItemEntry;
+
 /*
 ** modifying the enums below (scalar, vector, etc query quantities)
-** necesitates modifying the associated arrays in arrays.c, the arrays
-** in enums.c, and obviously the "answer" method itself.
+** necesitates modifying:
+** - the central item table 
+** - the associated arrays in arrays.c
+** - the arrays in enums.c, 
+** - the "answer" method itself.
 */
 
 /*
 ******** gageScl* enum
 **
-** all the things that gage can measure in a scalar volume.  The query is
-** formed by a bitwise-or of left-shifts of 1 by these values:
-**   (1<<gageSclValue)|(1<<gageSclGradMag)|(1<<gageScl2ndDD)
-** queries for the value, gradient magnitude, and 2nd directional derivative.
-** The un-bit-shifted values are required for gage to index arrays like
-** gageSclAnsOffset[], _gageSclNeedDeriv[], _gageSclPrereq[], etc, and
-** for the gageScl airEnum.
+** all the "items" that gage can measure in a scalar volume.
 **
 ** NOTE: although it is currently listed that way, it is not necessary
 ** that prerequisite measurements are listed before the other measurements
@@ -208,64 +240,42 @@ enum {
 */
 enum {
   gageSclUnknown=-1,  /* -1: nobody knows */
-  gageSclValue,       /*  0: "v", data value: *GT */
+  gageSclValue,       /*  0: "v", data value: GT[1] */
   gageSclGradVec,     /*  1: "grad", gradient vector, un-normalized: GT[3] */
-  gageSclGradMag,     /*  2: "gm", gradient magnitude: *GT */
+  gageSclGradMag,     /*  2: "gm", gradient magnitude: GT[1] */
   gageSclNormal,      /*  3: "n", gradient vector, normalized: GT[3] */
   gageSclNPerp,       /*  4: "np", projection onto tangent plane: GT[9] */
   gageSclHessian,     /*  5: "h", Hessian: GT[9] (column-order) */
-  gageSclLaplacian,   /*  6: "l", Laplacian: Dxx + Dyy + Dzz: *GT */
+  gageSclLaplacian,   /*  6: "l", Laplacian: Dxx + Dyy + Dzz: GT[1] */
   gageSclHessEval,    /*  7: "heval", Hessian's eigenvalues: GT[3] */
-  gageSclHessEvec,    /*  8: "hevec", Hessian's eigenvectors: GT[9] */
-  gageScl2ndDD,       /*  9: "2d", 2nd dir.deriv. along gradient: *GT */
-  gageSclGeomTens,    /* 10: "gten", sym. matx w/ evals 0,K1,K2 and evecs grad,
-			     curvature directions: GT[9] */
-  gageSclK1,          /* 11: "k1", 1st principle curvature: *GT */
-  gageSclK2,          /* 12: "k2", 2nd principle curvature (k2 <= k1): *GT */
-  gageSclCurvedness,  /* 13: "cv", L2 norm of K1, K2 (not Koen.'s "C"): *GT */
-  gageSclShapeTrace,  /* 14, "st", (K1+K2)/Curvedness: *GT */
-  gageSclShapeIndex,  /* 15: "si", Koen.'s shape index, ("S"): *GT */
-  gageSclMeanCurv,    /* 16: "mc", mean curvature (K1 + K2)/2: *GT */
-  gageSclGaussCurv,   /* 17: "gc", gaussian curvature K1*K2: *GT */
-  gageSclCurvDir,     /* 18: "cdir", principle curvature directions: GT[6] */
-  gageSclFlowlineCurv,/* 19: "fc", curvature of normal streamline: *GT */
+  gageSclHessEval0,   /*  8: "heval0", Hessian's 1st eigenvalue: GT[1] */
+  gageSclHessEval1,   /*  9: "heval1", Hessian's 2nd eigenvalue: GT[1] */
+  gageSclHessEval2,   /* 10: "heval2", Hessian's 3rd eigenvalue: GT[1] */
+  gageSclHessEvec,    /* 11: "hevec", Hessian's eigenvectors: GT[9] */
+  gageSclHessEvec0,   /* 12: "hevec0", Hessian's 1st eigenvector: GT[3] */
+  gageSclHessEvec1,   /* 13: "hevec1", Hessian's 2nd eigenvector: GT[3] */
+  gageSclHessEvec2,   /* 14: "hevec2", Hessian's 3rd eigenvector: GT[3] */
+  gageScl2ndDD,       /* 15: "2d", 2nd dir.deriv. along gradient: GT[1] */
+  gageSclGeomTens,    /* 16: "gten", sym. matx w/ evals {0, K1, K2} and
+			     evecs {grad, cdir0, cdir1}: GT[9] */
+  gageSclK1,          /* 17: "k1", 1st principle curvature: GT[1] */
+  gageSclK2,          /* 18: "k2", 2nd principle curvature (k2 <= k1): GT[1] */
+  gageSclCurvedness,  /* 19: "cv", L2 norm(K1,K2) (not Koen.'s "C"): GT[1] */
+  gageSclShapeTrace,  /* 20, "st", (K1+K2)/Curvedness: GT[1] */
+  gageSclShapeIndex,  /* 21: "si", Koen.'s shape index, ("S"): GT[1] */
+  gageSclMeanCurv,    /* 22: "mc", mean curvature (K1 + K2)/2: GT[1] */
+  gageSclGaussCurv,   /* 23: "gc", gaussian curvature K1*K2: GT[1] */
+  gageSclCurvDir1,    /* 24: "cdir1", 1st principle curv direction: GT[3] */
+  gageSclCurvDir2,    /* 25: "cdir2", 2nd principle curv direction: GT[3] */
+  gageSclFlowlineCurv,/* 26: "fc", curvature of normal streamline: GT[1] */
   gageSclLast
 };
-#define GAGE_SCL_MAX     19
-#define GAGE_SCL_TOTAL_ANS_LENGTH 63
-
-/*
-******** GAGE_SCL_*_BIT #defines
-** already bit-shifted for you, so that query:
-**   (1<<gageSclValue)|(1<<gageSclGradMag)|(1<<gageScl2ndDD)
-** is same as:
-**   GAGE_SCL_VALUE_BIT | GAGE_SCL_GRADMAG_BIT | GAGE_SCL_2NDDD_BIT
-*/
-#define GAGE_SCL_VALUE_BIT        (1<<0)
-#define GAGE_SCL_GRADVEC_BIT      (1<<1)
-#define GAGE_SCL_GRADMAG_BIT      (1<<2)
-#define GAGE_SCL_NORMAL_BIT       (1<<3)
-#define GAGE_SCL_NPERP_BIT        (1<<4)
-#define GAGE_SCL_HESSIAN_BIT      (1<<5)
-#define GAGE_SCL_LAPLACIAN_BIT    (1<<6)
-#define GAGE_SCL_HESSEVAL_BIT     (1<<7)
-#define GAGE_SCL_HESSEVEC_BIT     (1<<8)
-#define GAGE_SCL_2NDDD_BIT        (1<<9)
-#define GAGE_SCL_GEOMTENS_BIT     (1<<10)
-#define GAGE_SCL_K1_BIT           (1<<11)
-#define GAGE_SCL_K2_BIT           (1<<12)
-#define GAGE_SCL_CURVEDNESS_BIT   (1<<13)
-#define GAGE_SCL_SHAPETRACE_BIT   (1<<14)
-#define GAGE_SCL_SHAPEINDEX_BIT   (1<<15)
-#define GAGE_SCL_MEANCURV_BIT     (1<<16)
-#define GAGE_SCL_GAUSSCURV_BIT    (1<<17)
-#define GAGE_SCL_CURVDIR_BIT      (1<<18)
-#define GAGE_SCL_FLOWLINECURV_BIT (1<<19)
+#define GAGE_SCL_ITEM_MAX     26
 
 /*
 ******** gageVec* enum
 **
-** all the things that gage knows how to measure in a 3-vector volume
+** all the "items" that gage knows how to measure in a 3-vector volume
 **
 ** The strings gives one of the gageVec airEnum identifiers, and GT[x]
 ** says how many scalars are associated with this scalar.
@@ -273,39 +283,24 @@ enum {
 enum {
   gageVecUnknown=-1, /* -1: nobody knows */
   gageVecVector,     /*  0: "v", component-wise-intrpolated (CWI) vec: GT[3] */
-  gageVecLength,     /*  1: "l", length of CWI vector: *GT */
+  gageVecLength,     /*  1: "l", length of CWI vector: GT[1] */
   gageVecNormalized, /*  2: "n", normalized CWI vector: GT[3] */
   gageVecJacobian,   /*  3: "j", component-wise Jacobian: GT[9]
 			    0:dv_x/dx  3:dv_x/dy  6:dv_x/dz
 			    1:dv_y/dx  4:dv_y/dy  7:dv_y/dz
 			    2:dv_z/dx  5:dv_z/dy  8:dv_z/dz */
-  gageVecDivergence, /*  4: "d", divergence (based on Jacobian): *GT */
+  gageVecDivergence, /*  4: "d", divergence (based on Jacobian): GT[1] */
   gageVecCurl,       /*  5: "c", curl (based on Jacobian): GT[3] */
-  gageVecGradient0,  /*  6: "g1", gradient of 1st component of vector: GT[3] */
-  gageVecGradient1,  /*  7: "g2", gradient of 2nd component of vector: GT[3] */
-  gageVecGradient2,  /*  8: "g3", gradient of 3rd component of vector: GT[3] */
+  gageVecGradient0,  /*  6: "g0", gradient of 1st component of vector: GT[3] */
+  gageVecGradient1,  /*  7: "g1", gradient of 2nd component of vector: GT[3] */
+  gageVecGradient2,  /*  8: "g2", gradient of 3rd component of vector: GT[3] */
   gageVecMultiGrad,  /*  9: "mg", sum of outer products of gradients: GT[9] */
-  gageVecMGFrob,     /* 10: "mgfrob", frob norm of multi-gradient: *GT */
+  gageVecMGFrob,     /* 10: "mgfrob", frob norm of multi-gradient: GT[1] */
   gageVecMGEval,     /* 11: "mgeval", eigenvalues of multi-gradient: GT[3] */
   gageVecMGEvec,     /* 12: "mgevec", eigenvectors of multi-gradient: GT[9] */
   gageVecLast
 };
-#define GAGE_VEC_MAX     12
-#define GAGE_VEC_TOTAL_ANS_LENGTH 51
-
-#define GAGE_VEC_VECTOR_BIT     (1<<0)
-#define GAGE_VEC_LENGTH_BIT     (1<<1)
-#define GAGE_VEC_NORMALIZED_BIT (1<<2)
-#define GAGE_VEC_JACOBIAN_BIT   (1<<3)
-#define GAGE_VEC_DIVERGENCE_BIT (1<<4)
-#define GAGE_VEC_CURL_BIT       (1<<5)
-#define GAGE_VEC_GRADIENT0_BIT  (1<<6)
-#define GAGE_VEC_GRADIENT1_BIT  (1<<7)
-#define GAGE_VEC_GRADIENT2_BIT  (1<<8)
-#define GAGE_VEC_MULTIGRAD_BIT  (1<<9)
-#define GAGE_VEC_MGFROB_BIT     (1<<10)
-#define GAGE_VEC_MGEVAL_BIT     (1<<11)
-#define GAGE_VEC_MGEVEC_BIT     (1<<12)
+#define GAGE_VEC_ITEM_MAX     12
 
 struct gageKind_t;       /* dumb forward declaraction, ignore */
 struct gagePerVolume_t;  /* dumb forward declaraction, ignore */
@@ -422,6 +417,45 @@ typedef struct gagePoint_t {
 } gagePoint;
 
 /*
+******** gageQuery typedef
+** 
+** this short, fixed-length array is used as a bit-vector to store
+** all the items that comprise a query.  Its length sets an upper
+** bound on the maximum item value that a gageKind may use.
+**
+** The important thing to keep in mind is that a variable of type
+** gageKind ends up being passed by reference, even though the
+** syntax of its usage doesn't immediately announce that.
+**
+** gageKindCheck currently has the role of verifying that a gageKind's
+** maximum item value is within the bounds set here. Using
+** GAGE_QUERY_BYTES_NUM == 8 gives a max item value of 63, which is 
+** far above anything being used now.
+*/
+#define GAGE_QUERY_BYTES_NUM 8
+#define GAGE_ITEM_MAX ((8*GAGE_QUERY_BYTES_NUM)-1)
+typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
+
+/*
+******** GAGE_QUERY_RESET, GAGE_QUERY_TEST
+******** GAGE_QUERY_ON, GAGE_QUERY_OFF
+**
+** Macros for manipulating a gageQuery.
+**
+** airSanity ensures that an unsigned char is in fact 8 bits
+*/
+#define GAGE_QUERY_RESET(q) (q[0]=q[1]=q[2]=q[3]=q[4]=q[5]=q[6]=q[7]=0)
+#define GAGE_QUERY_COPY(p, q) \
+  p[0] = q[0]; p[1] = q[1]; p[2] = q[2]; p[3] = q[3]; \
+  p[4] = q[4]; p[5] = q[5]; p[6] = q[6]; p[7] = q[7]
+#define GAGE_QUERY_EQUAL(p, q) \
+  (p[0] == q[0] && p[1] == q[1] && p[2] == q[2] && p[3] == q[3] \
+   && p[4] == q[4] && p[5] == q[5] && p[6] == q[6] && p[7] == q[7])
+#define GAGE_QUERY_ITEM_TEST(q, i) (q[i/8] & (1 << (i % 8)))
+#define GAGE_QUERY_ITEM_ON(q, i) (q[i/8] |= (1 << (i % 8)))
+#define GAGE_QUERY_ITEM_OFF(q, i) (q[i/8] &= ^(1 << (i % 8)))
+
+/*
 ******** gageContext struct
 **
 ** The information here is specific to the dimensions, scalings, and
@@ -481,7 +515,7 @@ typedef struct gagePerVolume_t {
   int verbose,                /* verbosity */
     thisIsACopy;              /* I'm a copy */
   struct gageKind_t *kind;    /* what kind of volume is this pervolume for */
-  unsigned int query;         /* the query, recursively expanded */
+  gageQuery query;            /* the query, recursively expanded */
   int needD[3];               /* which derivatives need to be calculated for
 				 the query (above) in this volume */
   Nrrd *nin;                  /* the original, unpadded volume, passed to the
@@ -507,8 +541,8 @@ typedef struct gagePerVolume_t {
   gage_t (*lup)(const void *ptr, size_t I); 
                               /* nrrd{F,D}Lookup[] element, according to
 				 npad->type and gage_t */
-  gage_t *ans;                /* array of length kind->totalAnsLen, to hold
-				 all answers */
+  gage_t *answer;             /* main buffer to hold all the answers */
+  gage_t **directAnswer;      /* array of pointers into answer */
 } gagePerVolume;
 
 /*
@@ -525,13 +559,9 @@ typedef struct gageKind_t {
   int baseDim,                      /* dimension that x,y,z axes start on
 				       (0 for scalars, 1 for vectors) */
     valLen,                         /* number of scalars per data point */
-    queryMax,                       /* such as GAGE_SCL_MAX */
-    *ansLength,                     /* such as gageSclAnsLength */
-    *ansOffset,                     /* such as gageSclAnsOffset */
-    totalAnsLen,                    /* such as GAGE_SCL_TOTAL_ANS_LENGTH */
-    *needDeriv;                     /* such as _gageSclNeedDeriv */
-  unsigned int *queryPrereq;        /* such as _gageSclPrereq; */
-
+    itemMax;                        /* such as GAGE_SCL_ITEM_MAX */
+  gageItemEntry *table;             /* array of gageItemEntry's, indexed
+				       by the item value */
   void (*iv3Print)(FILE *,          /* such as _gageSclIv3Print() */
 		   gageContext *,
 		   gagePerVolume *),
@@ -541,17 +571,15 @@ typedef struct gageKind_t {
 	      gagePerVolume *);
 } gageKind;
 
-
-/* the "answer structs" are gone- now we're just using the bare array
-   "ans" in the gagePerVolume, more easily used with help from
-   gageAnswerPointer() or ... */
-
 /*
-******** #define GAGE_ANSWER_POINTER()
+******** gageItemSpec struct
 **
-** a non-error-checking version of gageAnswerPointer()
+** dumb little way to store an item/kind pair
 */
-#define GAGE_ANSWER_POINTER(pvl, m) ((pvl)->ans + (pvl)->kind->ansOffset[(m)])
+typedef struct {
+  int item;                   /* the quantity we care about */
+  gageKind *kind;             /* what kind it comes from */
+} gageItemSpec;
 
 /* defaultsGage.c */
 extern gage_export const char *gageBiffKey;
@@ -579,9 +607,16 @@ extern gage_export gage_t gageZeroNormal[3];
 extern gage_export airEnum *gageKernel;
 extern void gageParmReset(gageParm *parm);
 extern void gagePointReset(gagePoint *point);
+extern gageItemSpec *gageItemSpecNew(void);
+extern gageItemSpec *gageItemSpecNix(gageItemSpec *isp);
+
+/* kind.c */
+extern int gageKindCheck(gageKind *kind);
+extern int gageKindTotalAnswerLength(gageKind *kind);
+extern int gageKindAnswerOffset(gageKind *kind, int item);
 
 /* print.c */
-extern void gageQueryPrint(FILE *file, gageKind *kind, unsigned int query);
+extern void gageQueryPrint(FILE *file, gageKind *kind, gageQuery query);
 
 /* sclfilter.c */
 extern void gageScl3PFilter2(gage_t *iv3, gage_t *iv2, gage_t *iv1,
@@ -599,16 +634,12 @@ extern void gageScl3PFilterN(int fd,
 			     int doV, int doD1, int doD2);
 
 /* scl.c */
-extern gage_export int gageSclAnsLength[GAGE_SCL_MAX+1];
-extern gage_export int gageSclAnsOffset[GAGE_SCL_MAX+1];
 extern gage_export airEnum *gageScl;
 extern gage_export gageKind *gageKindScl;
 
 /* vecGage.c (together with vecprint.c, these contain everything to
    implement the "vec" kind, and could be used as examples of what it
    takes to create a new gageKind) */
-extern gage_export int gageVecAnsLength[GAGE_VEC_MAX+1];
-extern gage_export int gageVecAnsOffset[GAGE_VEC_MAX+1];
 extern gage_export airEnum *gageVec;
 extern gage_export gageKind *gageKindVec;
 
@@ -637,9 +668,10 @@ extern void gagePadderSet(gageContext *ctx,
 extern void gageNixerSet(gageContext *ctx, 
 			 gagePerVolume *pvl, gageNixer_t *nixer);
 extern gage_t *gageAnswerPointer(gageContext *ctx, 
-				 gagePerVolume *pvl, int measure);
-extern int gageQuerySet(gageContext *ctx, 
-			gagePerVolume *pvl, unsigned int query);
+				 gagePerVolume *pvl, int item);
+extern int gageQueryReset(gageContext *ctx, gagePerVolume *pvl);
+extern int gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query);
+extern int gageQueryItemOn(gageContext *ctx, gagePerVolume *pvl, int item);
 
 /* ctx.c */
 extern gageContext *gageContextNew();

@@ -54,20 +54,18 @@ void
 _gagePvlNeedDUpdate (gageContext *ctx) {
   char me[]="_gagePvlNeedDUpdate";
   gagePerVolume *pvl;
-  int i, q, d, needD[3];
+  int i, q, needD[3];
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
   for (i=0; i<ctx->numPvl; i++) {
     pvl = ctx->pvl[i];
     if (pvl->flag[gagePvlFlagQuery]) {
       ELL_3V_SET(needD, 0, 0, 0);
-      q = pvl->kind->queryMax+1;
+      q = pvl->kind->itemMax+1;
       do {
 	q--;
-	if (pvl->query & (1 << q)) {
-	  for (d=0; d<=2; d++) {
-	    needD[d]  |= (pvl->kind->needDeriv[q] & (1 << d));
-	  }
+	if (GAGE_QUERY_ITEM_TEST(pvl->query, q)) {
+	  needD[pvl->kind->table[q].needDeriv] = 1;
 	}
       } while (q);
       if (!ELL_3V_EQUAL(needD, pvl->needD)) {

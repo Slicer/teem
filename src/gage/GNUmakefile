@@ -46,11 +46,9 @@ $(L).SEEN := true
 $(L).NEED = ell nrrd biff air
 $(L).PUBLIC_HEADERS = gage.h
 $(L).PRIVATE_HEADERS = privateGage.h
-$(L).OBJS = defaultsGage.o miscGage.o print.o filter.o update.o \
-	scl.o sclfilter.o sclprint.o sclanswer.o \
-	vecGage.o vecprint.o
-$(L).OBJS = defaultsGage.o miscGage.o shape.o pvl.o ctx.o update.o filter.o \
-	print.o scl.o sclanswer.o sclprint.o sclfilter.o \
+$(L).OBJS = defaultsGage.o miscGage.o scl.o kind.o \
+        shape.o pvl.o ctx.o update.o filter.o \
+	print.o sclanswer.o sclprint.o sclfilter.o \
 	vecGage.o vecprint.o st.o
 $(L).TESTS = 
 ####

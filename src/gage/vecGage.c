@@ -20,106 +20,23 @@
 #include "gage.h"
 #include "privateGage.h"
 
-/*
-  gageVecVector,       0: "v", component-wise-intrpolated (CWI) vec: GT[3] 
-  gageVecLength,       1: "l", length of CWI vector: *GT 
-  gageVecNormalized,   2: "n", normalized CWI vector: GT[3] 
-  gageVecJacobian,     3: "j", component-wise Jacobian: GT[9]
-  gageVecDivergence,   4: "d", divergence (based on Jacobian): *GT 
-  gageVecCurl,         5: "c", curl (based on Jacobian): GT[3] 
-  gageVecGradient0,    6: "g1", gradient of 1st component of vector: GT[3] 
-  gageVecGradient1,    7: "g2", gradient of 2nd component of vector: GT[3] 
-  gageVecGradient2,    8: "g3", gradient of 3rd component of vector: GT[3] 
-  gageVecMultiGrad,    9: "mg", sum of outer products of gradients: GT[9] 
-  gageVecMGFrob,      10: "mgfrob", frob norm of multi-gradient: *GT 
-  gageVecMGEval,      11: "mgeval", eigenvalues of multi-gradient: GT[3] 
-  gageVecMGEvec,      12: "mgevec", eigenvectors of multi-gradient: GT[9] 
-
-  0   1   2   3   4   5   6   7   8   9  10  11  12
-*/
-
-/*
-******** gageVecAnsLength[]
-**
-** the number of gage_t used for each answer
-*/
-int
-gageVecAnsLength[GAGE_VEC_MAX+1] = {
-  3,  1,  3,  9,  1,  3,  3,  3,  3,  9,  1,  3,  9
-};
-
-/*
-******** gageVecAnsOffset[]
-**
-** the index into the answer array of the first element of the answer
-*/
-int
-gageVecAnsOffset[GAGE_VEC_MAX+1] = {
-  0,  3,  4,  7, 16, 17, 20, 23, 26, 29, 38, 39, 42  /* 51 */
-};
-
-/*
-** _gageVecNeedDeriv[]
-**
-** each value is a BIT FLAG representing the different value/derivatives
-** that are needed to calculate the quantity.  
-**
-** 1: need value interpolation reconstruction (as with k00)
-** 2: need first derivatives (as with k11)
-** 4: need second derivatives (as with k22)
-*/
-int
-_gageVecNeedDeriv[GAGE_VEC_MAX+1] = {
-  1,  1,  1,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2
-};
-
-/*
-** _gageVecPrereq[]
-** 
-** this records the measurements which are needed as ingredients for any
-** given measurement, but it is not necessarily the recursive expansion of
-** that requirement.
-*/
-unsigned int
-_gageVecPrereq[GAGE_VEC_MAX+1] = {
-  /* gageVecVector */
-  0,
-
-  /* gageVecLength */
-  (1<<gageVecVector),
-
-  /* gageVecNormalized */
-  (1<<gageVecVector) | (1<<gageVecLength),
-
-  /* gageVecJacobian */
-  0,
-
-  /* gageVecDivergence */
-  (1<<gageVecJacobian),
-
-  /* gageVecCurl */
-  (1<<gageVecJacobian),
-
-  /* gageVecGradient0 */
-  (1<<gageVecJacobian),
-
-  /* gageVecGradient1 */
-  (1<<gageVecJacobian),
-
-  /* gageVecGradient2 */
-  (1<<gageVecJacobian),
-
-  /* gageVecMultiGrad */
-  (1<<gageVecGradient0) | (1<<gageVecGradient1) | (1<<gageVecGradient2),
-
-  /* gageVecMGFrob */
-  (1<<gageVecMultiGrad),
-
-  /* gageVecMGEval */
-  (1<<gageVecMultiGrad),
-
-  /* gageVecMGEvec */
-  (1<<gageVecMultiGrad) | (1<<gageVecMGEval)
+gageItemEntry
+_gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
+  /* enum value        len,deriv,  prereqs,                                             parent item, index*/
+  {gageVecVector,        3,  0,  {-1, -1, -1, -1, -1},                                           -1,  -1},
+  {gageVecLength,        1,  0,  {gageVecVector, -1, -1, -1, -1},                                -1,  -1},
+  {gageVecNormalized,    3,  0,  {gageVecVector, gageVecLength, -1, -1, -1},                     -1,  -1},
+  {gageVecJacobian,      9,  1,  {-1, -1, -1, -1, -1},                                           -1,  -1},
+  {gageVecDivergence,    1,  1,  {gageVecJacobian, -1, -1, -1, -1},                              -1,  -1},
+  {gageVecCurl,          3,  1,  {gageVecJacobian, -1, -1, -1, -1},                              -1,  -1},
+  /* HEY: if teem matrices go to row-major, these will change to sub-items */
+  {gageVecGradient0,     3,  1,  {gageVecJacobian, -1, -1, -1, -1},                              -1,  -1},
+  {gageVecGradient1,     3,  1,  {gageVecJacobian, -1, -1, -1, -1},                              -1,  -1},
+  {gageVecGradient2,     3,  1,  {gageVecJacobian, -1, -1, -1, -1},                              -1,  -1},
+  {gageVecMultiGrad,     9,  1,  {gageVecGradient0, gageVecGradient1, gageVecGradient2, -1, -1}, -1,  -1},
+  {gageVecMGFrob,        1,  1,  {gageVecMultiGrad, -1, -1, -1, -1},                             -1,  -1},
+  {gageVecMGEval,        3,  1,  {gageVecMultiGrad, -1, -1, -1, -1},                             -1,  -1},
+  {gageVecMGEvec,        9,  1,  {gageVecMultiGrad, gageVecMGEval, -1, -1, -1},                  -1,  -1}
 };
 
 void
@@ -129,8 +46,8 @@ _gageVecFilter (gageContext *ctx, gagePerVolume *pvl) {
   int fd;
 
   fd = GAGE_FD(ctx);
-  vec = GAGE_ANSWER_POINTER(pvl, gageVecVector);
-  jac = GAGE_ANSWER_POINTER(pvl, gageVecJacobian);
+  vec = pvl->directAnswer[gageVecVector];
+  jac = pvl->directAnswer[gageVecJacobian];
   if (!ctx->parm.k3pack) {
     fprintf(stderr, "!%s: sorry, 6pack filtering not implemented\n", me);
     return;
@@ -182,52 +99,31 @@ _gageVecFilter (gageContext *ctx, gagePerVolume *pvl) {
 void
 _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageVecAnswer";
-  unsigned int query;
   double tmpMat[9], mgevec[9], mgeval[3];
   gage_t *ans, *vecAns, *normAns, *jacAns;
-  int *offset;
 
-  /*
-  gageVecVector,      *  0: component-wise-interpolatd (CWI) vector: GT[3] *
-  gageVecLength,      *  1: length of CWI vector: *GT *
-  gageVecNormalized,  *  2: normalized CWI vector: GT[3] *
-  gageVecJacobian,    *  3: component-wise Jacobian: GT[9] *
-  gageVecDivergence,  *  4: divergence (based on Jacobian): *GT *
-  gageVecCurl,        *  5: curl (based on Jacobian): GT[3] *
-  gageVecGradient0,   *  6: gradient of 1st component of vector: GT[3] *
-  gageVecGradient1,   *  7: gradient of 2nd component of vector: GT[3] *
-  gageVecGradient2,   *  8: gradient of 3rd component of vector: GT[3] *
-  gageVecMultiGrad,   *  9: sum of outer products of gradients: GT[9] *
-  gageVecMGFrob,      * 10: Frob norm of multi-gradient: *GT *
-  gageVecMGEval,      * 11: eigenvalues of multi-gradient: GT[3] *
-  gageVecMGEvec,      * 12: eigenvectors of multi-gradient: GT[9] *
-  gageVecLast
-  */
-
-  query = pvl->query;
-  ans = pvl->ans;
-  offset = gageKindVec->ansOffset;
-  vecAns = ans + offset[gageVecVector];
-  jacAns = ans + offset[gageVecJacobian];
-  normAns = ans + offset[gageVecNormalized];
-  if (1 & (query >> gageVecVector)) {
+  ans = pvl->answer;
+  vecAns = pvl->directAnswer[gageVecVector];
+  jacAns = pvl->directAnswer[gageVecJacobian];
+  normAns = pvl->directAnswer[gageVecNormalized];
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecVector)) {
     /* done if doV */
     if (ctx->verbose) {
       fprintf(stderr, "vec = ");
       ell_3v_PRINT(stderr, vecAns);
     }
   }
-  if (1 & (query >> gageVecLength)) {
-    ans[offset[gageVecLength]] = ELL_3V_LEN(vecAns);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecLength)) {
+    pvl->directAnswer[gageVecLength][0] = ELL_3V_LEN(vecAns);
   }
-  if (1 & (query >> gageVecNormalized)) {
-    if (ans[offset[gageVecLength]]) {
-      ELL_3V_SCALE(normAns, 1.0/ans[offset[gageVecLength]], vecAns);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecNormalized)) {
+    if (pvl->directAnswer[gageVecLength]) {
+      ELL_3V_SCALE(normAns, 1.0/pvl->directAnswer[gageVecLength][0], vecAns);
     } else {
       ELL_3V_COPY(normAns, gageZeroNormal);
     }
   }
-  if (1 & (query >> gageVecJacobian)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecJacobian)) {
     /* done if doV1 */
     /*
       0:dv_x/dx  3:dv_x/dy  6:dv_x/dz
@@ -239,58 +135,62 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
       ell_3m_PRINT(stderr, jacAns);
     }
   }
-  if (1 & (query >> gageVecDivergence)) {
-    ans[offset[gageVecDivergence]] = jacAns[0] + jacAns[4] + jacAns[8];
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecDivergence)) {
+    pvl->directAnswer[gageVecDivergence][0] = jacAns[0] + jacAns[4] + jacAns[8];
     if (ctx->verbose) {
       fprintf(stderr, "%s: div = %g + %g + %g  = %g\n", me,
 	      jacAns[0], jacAns[4], jacAns[8],
-	      ans[offset[gageVecDivergence]]);
+	      pvl->directAnswer[gageVecDivergence][0]);
     }
   }
-  if (1 & (query >> gageVecCurl)) {
-    (ans + offset[gageVecCurl])[0] = jacAns[5] - jacAns[7];
-    (ans + offset[gageVecCurl])[1] = jacAns[6] - jacAns[2];
-    (ans + offset[gageVecCurl])[2] = jacAns[1] - jacAns[3];
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecCurl)) {
+    ELL_3V_SET(pvl->directAnswer[gageVecCurl],
+	       jacAns[5] - jacAns[7],
+	       jacAns[6] - jacAns[2],
+	       jacAns[1] - jacAns[3]);
   }
-  if (1 & (query >> gageVecGradient0)) {
-    (ans + offset[gageVecGradient0])[0] = jacAns[0];
-    (ans + offset[gageVecGradient0])[1] = jacAns[3];
-    (ans + offset[gageVecGradient0])[2] = jacAns[6];
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecGradient0)) {
+    ELL_3V_SET(pvl->directAnswer[gageVecGradient0],
+	       jacAns[0],
+	       jacAns[3],
+	       jacAns[6]);
   }
-  if (1 & (query >> gageVecGradient1)) {
-    (ans + offset[gageVecGradient1])[0] = jacAns[1];
-    (ans + offset[gageVecGradient1])[1] = jacAns[4];
-    (ans + offset[gageVecGradient1])[2] = jacAns[7];
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecGradient1)) {
+    ELL_3V_SET(pvl->directAnswer[gageVecGradient1],
+	       jacAns[1],
+	       jacAns[4],
+	       jacAns[7]);
   }
-  if (1 & (query >> gageVecGradient2)) {
-    (ans + offset[gageVecGradient2])[0] = jacAns[2];
-    (ans + offset[gageVecGradient2])[1] = jacAns[5];
-    (ans + offset[gageVecGradient2])[2] = jacAns[8];
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecGradient2)) {
+    ELL_3V_SET(pvl->directAnswer[gageVecGradient2],
+	       jacAns[2],
+	       jacAns[5],
+	       jacAns[8]);
   }
-  if (1 & (query >> gageVecMultiGrad)) {
-    ELL_3M_IDENTITY_SET(ans + offset[gageVecMultiGrad]);
-    ELL_3MV_OUTER_ADD(ans + offset[gageVecMultiGrad],
-		      ans + offset[gageVecGradient0],
-		      ans + offset[gageVecGradient0]);
-    ELL_3MV_OUTER_ADD(ans + offset[gageVecMultiGrad],
-		      ans + offset[gageVecGradient1],
-		      ans + offset[gageVecGradient1]);
-    ELL_3MV_OUTER_ADD(ans + offset[gageVecMultiGrad],
-		      ans + offset[gageVecGradient2],
-		      ans + offset[gageVecGradient2]);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecMultiGrad)) {
+    ELL_3M_IDENTITY_SET(pvl->directAnswer[gageVecMultiGrad]);
+    ELL_3MV_OUTER_ADD(pvl->directAnswer[gageVecMultiGrad],
+		      pvl->directAnswer[gageVecGradient0],
+		      pvl->directAnswer[gageVecGradient0]);
+    ELL_3MV_OUTER_ADD(pvl->directAnswer[gageVecMultiGrad],
+		      pvl->directAnswer[gageVecGradient1],
+		      pvl->directAnswer[gageVecGradient1]);
+    ELL_3MV_OUTER_ADD(pvl->directAnswer[gageVecMultiGrad],
+		      pvl->directAnswer[gageVecGradient2],
+		      pvl->directAnswer[gageVecGradient2]);
   }
-  if (1 & (query >> gageVecMGFrob)) {
-    ans[offset[gageVecMGFrob]] 
-      = ELL_3M_FROB(ans + offset[gageVecMultiGrad]);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecMGFrob)) {
+    pvl->directAnswer[gageVecMGFrob][0] 
+      = ELL_3M_FROB(pvl->directAnswer[gageVecMultiGrad]);
   }
-  if (1 & (query >> gageVecMGEval)) {
-    ELL_3M_COPY(tmpMat, ans + offset[gageVecMultiGrad]);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecMGEval)) {
+    ELL_3M_COPY(tmpMat, pvl->directAnswer[gageVecMultiGrad]);
     /* HEY: look at the return value for root multiplicity? */
     ell_3m_eigensolve_d(mgeval, mgevec, tmpMat, AIR_TRUE);
-    ELL_3V_COPY(ans + offset[gageVecMGEval], mgeval);
+    ELL_3V_COPY(pvl->directAnswer[gageVecMGEval], mgeval);
   }
-  if (1 & (query >> gageVecMGEvec)) {
-    ELL_3M_COPY(ans + offset[gageVecMGEvec], mgevec);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecMGEvec)) {
+    ELL_3M_COPY(pvl->directAnswer[gageVecMGEvec], mgevec);
   }
 
   return;
@@ -402,7 +302,7 @@ _gageVecValEqv[] = {
 airEnum
 _gageVec = {
   "gageVec",
-  GAGE_VEC_MAX+1,
+  GAGE_VEC_ITEM_MAX+1,
   _gageVecStr, _gageVecVal,
   _gageVecDesc,
   _gageVecStrEqv, _gageVecValEqv,
@@ -417,12 +317,8 @@ _gageKindVec = {
   &_gageVec,
   1,
   3,
-  GAGE_VEC_MAX,
-  gageVecAnsLength,
-  gageVecAnsOffset,
-  GAGE_VEC_TOTAL_ANS_LENGTH,
-  _gageVecNeedDeriv,
-  _gageVecPrereq,
+  GAGE_VEC_ITEM_MAX,
+  _gageVecTable,
   _gageVecIv3Print,
   _gageVecFilter,
   _gageVecAnswer

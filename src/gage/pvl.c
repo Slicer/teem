@@ -51,7 +51,7 @@ gagePerVolume *
 gagePerVolumeNew (gageContext *ctx, Nrrd *nin, gageKind *kind) {
   char me[]="gagePerVolumeNew", err[AIR_STRLEN_MED];
   gagePerVolume *pvl;
-  int i;
+  int ii;
 
   if (!( nin && kind )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -69,22 +69,27 @@ gagePerVolumeNew (gageContext *ctx, Nrrd *nin, gageKind *kind) {
   pvl->thisIsACopy = AIR_FALSE;
   pvl->verbose = gageDefVerbose;
   pvl->kind = kind;
-  pvl->query = 0;
+  GAGE_QUERY_RESET(pvl->query);
   pvl->needD[0] = pvl->needD[1] = pvl->needD[2] = AIR_FALSE;
   pvl->nin = nin;
   pvl->padder = _gageStandardPadder;
   pvl->nixer = _gageStandardNixer;
   pvl->padInfo = NULL;
   pvl->npad = NULL;
-  for (i=0; i<GAGE_PVL_FLAG_NUM; i++) {
-    pvl->flag[i] = AIR_FALSE;
+  for (ii=0; ii<GAGE_PVL_FLAG_NUM; ii++) {
+    pvl->flag[ii] = AIR_FALSE;
   }
   pvl->iv3 = pvl->iv2 = pvl->iv1 = NULL;
   pvl->lup = nrrdLOOKUP[nin->type];
-  pvl->ans = (gage_t *)calloc(kind->totalAnsLen, sizeof(gage_t));
-  if (!pvl->ans) {
-    sprintf(err, "%s: couldn't alloc answer array", me);
+  pvl->answer = (gage_t *)calloc(gageKindTotalAnswerLength(kind),
+				 sizeof(gage_t));
+  pvl->directAnswer = (gage_t **)calloc(kind->itemMax+1, sizeof(gage_t*));
+  if (!(pvl->answer && pvl->directAnswer)) {
+    sprintf(err, "%s: couldn't alloc answer and directAnswer arrays", me);
     biffAdd(GAGE, err); return NULL;
+  }
+  for (ii=0; ii<=kind->itemMax; ii++) {
+    pvl->directAnswer[ii] = pvl->answer + gageKindAnswerOffset(kind, ii);
   }
   pvl->flag[gagePvlFlagVolume] = AIR_TRUE;
 
@@ -101,6 +106,7 @@ gagePerVolume *
 _gagePerVolumeCopy (gagePerVolume *pvl, int fd) {
   char me[]="gagePerVolumeCopy", err[AIR_STRLEN_MED];
   gagePerVolume *nvl;
+  int ii;
   
   nvl = (gagePerVolume *)calloc(1, sizeof(gagePerVolume));
   if (!nvl) {
@@ -121,10 +127,17 @@ _gagePerVolumeCopy (gagePerVolume *pvl, int fd) {
   nvl->iv3 = (gage_t *)calloc(fd*fd*fd*nvl->kind->valLen, sizeof(gage_t));
   nvl->iv2 = (gage_t *)calloc(fd*fd*nvl->kind->valLen, sizeof(gage_t));
   nvl->iv1 = (gage_t *)calloc(fd*nvl->kind->valLen, sizeof(gage_t));
-  nvl->ans = (gage_t *)calloc(nvl->kind->totalAnsLen, sizeof(gage_t));
-  if (!( nvl->iv3 && nvl->iv2 && nvl->iv1 && nvl->ans )) {
+  nvl->answer = (gage_t *)calloc(gageKindTotalAnswerLength(nvl->kind),
+				 sizeof(gage_t));
+  nvl->directAnswer = (gage_t **)calloc(nvl->kind->itemMax+1,
+					sizeof(gage_t*));
+  if (!( nvl->iv3 && nvl->iv2 && nvl->iv1
+	 && nvl->answer && nvl->directAnswer )) {
     sprintf(err, "%s: couldn't allocate all caches", me);
     biffAdd(GAGE, err); return NULL;
+  }
+  for (ii=0; ii<=pvl->kind->itemMax; ii++) {
+    nvl->directAnswer[ii] = nvl->answer + gageKindAnswerOffset(pvl->kind, ii);
   }
   
   return nvl;
@@ -147,7 +160,8 @@ gagePerVolumeNix (gagePerVolume *pvl) {
   if (!pvl->thisIsACopy && pvl->nixer) {
     pvl->nixer(pvl->npad, pvl->kind, pvl);
   }
-  AIR_FREE(pvl->ans);
+  AIR_FREE(pvl->answer);
+  AIR_FREE(pvl->directAnswer);
   AIR_FREE(pvl);
   return NULL;
 }
@@ -182,19 +196,37 @@ gageNixerSet (gageContext *ctx, gagePerVolume *pvl, gageNixer_t *nixer) {
 **
 ** way of getting a pointer to a specific answer in a pervolume's ans array
 **
-** Basically just a wrapper around GAGE_ANSWER_POINTER with error checking
 */
 gage_t *
-gageAnswerPointer (gageContext *ctx, gagePerVolume *pvl, int measure) {
+gageAnswerPointer (gageContext *ctx, gagePerVolume *pvl, int item) {
   gage_t *ret;
 
-  if (pvl && !airEnumValCheck(pvl->kind->enm, measure)) {
-    ret = GAGE_ANSWER_POINTER(pvl, measure);
+  if (pvl && !airEnumValCheck(pvl->kind->enm, item)) {
+    ret = pvl->answer + gageKindAnswerOffset(pvl->kind, item);
   } else {
     ret = NULL;
   }
   return ret;
 }
+
+int
+gageQueryReset(gageContext *ctx, gagePerVolume *pvl) {
+  char me[]="gageQueryReset", err[AIR_STRLEN_MED];
+
+  if (!( pvl )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  if (pvl->thisIsACopy) {
+    sprintf(err, "%s: can't operate on a pervolume copy", me);
+    biffAdd(GAGE, err); return 1;
+  }
+
+  GAGE_QUERY_RESET(pvl->query);
+
+  return 0;
+}
+
 
 /*
 ******** gageQuerySet()
@@ -203,11 +235,15 @@ gageAnswerPointer (gageContext *ctx, gagePerVolume *pvl, int measure) {
 ** to cover all prerequisite measures.  
 **
 ** Sets: pvl->query
+**
+** the gageContext is not actually used here, but I'm cautiously
+** including it in case its used in the future.
 */
 int
-gageQuerySet (gageContext *ctx, gagePerVolume *pvl, unsigned int query) {
+gageQuerySet (gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
   char me[]="gageQuerySet", err[AIR_STRLEN_MED];
-  unsigned int mask, lastq, q;
+  gageQuery lastQuery;
+  int pi, ii;
   
   if (!( pvl )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -217,26 +253,26 @@ gageQuerySet (gageContext *ctx, gagePerVolume *pvl, unsigned int query) {
     sprintf(err, "%s: can't operate on a pervolume copy", me);
     biffAdd(GAGE, err); return 1;
   }
-  mask = (1U << (pvl->kind->queryMax+1)) - 1;
-  if (query != (query & mask)) {
-    sprintf(err, "%s: invalid bits set in query", me);
-    biffAdd(GAGE, err); return 1;
-  }
-  pvl->query = query;
+  GAGE_QUERY_COPY(pvl->query, query);
   if (pvl->verbose) {
     fprintf(stderr, "%s: original ", me);
     gageQueryPrint(stderr, pvl->kind, pvl->query);
   }
   /* recursive expansion of prerequisites */
   do {
-    lastq = pvl->query;
-    q = pvl->kind->queryMax+1;
+    GAGE_QUERY_COPY(lastQuery, pvl->query);
+    ii = pvl->kind->itemMax+1;
     do {
-      q--;
-      if ((1<<q) & pvl->query)
-	pvl->query |= pvl->kind->queryPrereq[q];
-    } while (q);
-  } while (pvl->query != lastq);
+      ii--;
+      if (GAGE_QUERY_ITEM_TEST(pvl->query, ii)) {
+	for (pi=0; pi<GAGE_ITEM_PREREQ_NUM; pi++) {
+	  if (-1 != pvl->kind->table[ii].prereq[pi]) {
+	    GAGE_QUERY_ITEM_ON(pvl->query, pvl->kind->table[ii].prereq[pi]);
+	  }
+	}
+      }
+    } while (ii);
+  } while (!GAGE_QUERY_EQUAL(pvl->query, lastQuery));
   if (pvl->verbose) {
     fprintf(stderr, "%s: expanded ", me);
     gageQueryPrint(stderr, pvl->kind, pvl->query);
@@ -245,3 +281,26 @@ gageQuerySet (gageContext *ctx, gagePerVolume *pvl, unsigned int query) {
 
   return 0;
 }
+
+int
+gageQueryItemOn(gageContext *ctx, gagePerVolume *pvl, int item) {
+  char me[]="gageQueryItemOn", err[AIR_STRLEN_MED];
+
+  if (!( pvl )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  if (pvl->thisIsACopy) {
+    sprintf(err, "%s: can't operate on a pervolume copy", me);
+    biffAdd(GAGE, err); return 1;
+  }
+
+  GAGE_QUERY_ITEM_ON(pvl->query, item);
+  if (gageQuerySet(ctx, pvl, pvl->query)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(GAGE, err); return 1;
+  }
+
+  return 0;
+}
+
