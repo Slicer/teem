@@ -26,8 +26,14 @@
 ** int is used for CC id representation and manipulation
 */
 
+/*
+** learned: if you have globals, such as _nrrdCC_verb, which are 
+** defined and declared here, but which are NOT initialized, then
+** C++ apps which are linking against teem will have problems!!!
+** This was first seen on the mac.
+*/
 int _nrrdCC_EqvIncr = 128;
-int _nrrdCC_verb;
+int _nrrdCC_verb = 0;
 
 int
 _nrrdCCFind_1(Nrrd *nout, int *numid, const Nrrd *nin) {
