@@ -20,7 +20,9 @@
 
 #include "../limn.h"
 
-char *info = ("Save a triangular piece of an image to an EPS file.");
+char *info = ("Save a triangular piece of an image to an EPS file. "
+	      "You might want to ilk -t 1,-0.5,0,0,0.866,0 -k tent "
+	      "-0 u:0,1 -b pad -bg 0 before you use this. ");
 
 int
 main(int argc, char *argv[]) {
