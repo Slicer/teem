@@ -103,6 +103,9 @@ extern "C" {
 #define ELL_3V_GET(a, b, c, v) \
   ((a) = (v)[0], (b) = (v)[1], (c) = (v)[2])
 
+#define ELL_3V_EQUAL(a, b) \
+  ((a)[0] == (b)[0] && (a)[1] == (b)[1] && (a)[2] == (b)[2])
+
 #define ELL_3V_COPY(v2, v1) \
   ((v2)[0] = (v1)[0], (v2)[1] = (v1)[1], (v2)[2] = (v1)[2])
 
