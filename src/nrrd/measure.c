@@ -404,21 +404,21 @@ void (*_nrrdMeasureAxis[NRRD_MEASURE_MAX+1])(void *, int, int,
   _nrrdMeasureUnknown,
   _nrrdMeasureMin,
   _nrrdMeasureMax,
-  _nrrdMeasureProduct,
-  _nrrdMeasureSum,
   _nrrdMeasureMean,
   _nrrdMeasureMedian,
   _nrrdMeasureMode,
+  _nrrdMeasureProduct,
+  _nrrdMeasureSum,
   _nrrdMeasureL1,
   _nrrdMeasureL2,
   _nrrdMeasureLinf,
   _nrrdMeasureHistoMin,
   _nrrdMeasureHistoMax,
-  _nrrdMeasureHistoProduct,
-  _nrrdMeasureHistoSum,
   _nrrdMeasureHistoMean,
   _nrrdMeasureHistoMedian,
   _nrrdMeasureHistoMode,
+  _nrrdMeasureHistoProduct,
+  _nrrdMeasureHistoSum,
   _nrrdMeasureHistoVariance
 };
 
@@ -531,7 +531,7 @@ nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr) {
       for (i=0; i<=nin->size[axis]-1; i++) {
 	lineDest = line + inElSize*i;
 	lineSrc = src + inElSize*(period*lambda + length*i + j);
-	memcpy(lineDest, lineSrc, inElSize);
+	AIR_MEMCPY(lineDest, lineSrc, inElSize);
       }
       _nrrdMeasureAxis[measr](line, nin->type, nin->size[axis], axmin, axmax,
 			      dest, nout->type);
