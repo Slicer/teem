@@ -20,13 +20,14 @@
 #include "private.h"
 
 char *lutName = "lut";
-#define INFO "Map a nrrd through a univariate lookup table"
+#define INFO "Map nrrd through univariate lookup table"
 char *lutInfo = INFO;
 char *lutInfoL = (INFO
 		  ". The lookup table can be 1D, in which case the output "
 		  "has the same dimension as the input, or 2D, in which case "
 		  "the output has one more dimension than the input, and each "
-		  "value is replaced by a scanline from the lookup table.");
+		  "value is mapped to a scanline (along axis 0) from the "
+		  "lookup table.");
 
 int
 lutMain(int argc, char **argv, char *me) {
@@ -37,7 +38,7 @@ lutMain(int argc, char **argv, char *me) {
   int lutax;
 
   OPT_ADD_NIN(nin, "input nrrd");
-  hestOptAdd(&opt, "l", "lut", airTypeOther, 1, 1, &nlut, NULL,
+  hestOptAdd(&opt, "m", "lut", airTypeOther, 1, 1, &nlut, NULL,
 	     "lookup table to map input nrrd through",
 	     NULL, NULL, nrrdHestNrrd);
   OPT_ADD_NOUT(out, "output nrrd");
@@ -55,12 +56,12 @@ lutMain(int argc, char **argv, char *me) {
   lutax = nlut->dim - 1;
   if (!(AIR_EXISTS(nlut->axis[lutax].min) &&
 	AIR_EXISTS(nlut->axis[lutax].max))) {
-    /* set the lut min and max to the data range */
-    nrrdMinMaxClever(nin);
+    /* gracelessly set the lut min and max to the data range */
+    nrrdMinMaxCleverSet(nin);
     nlut->axis[lutax].min = nin->min;
     nlut->axis[lutax].max = nin->max;
   }
-  if (nrrdApply1DLut(nout, nin, nlut)) {
+  if (nrrdApply1DLut(nout, nin, nlut, AIR_FALSE)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble applying LUT:\n%s", me, err);
     airMopError(mop);
