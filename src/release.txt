@@ -107,7 +107,8 @@ setenv OPT_CFLAG "-g"
 setenv TEEM_LINK_SHARED
 setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sci/gk/usr/local/linux/lib
 setenv PATH ${PATH}:/home/sci/gk/usr/local/linux/bin
-alias valgrind /home/sci/gk/usr/linux/bin/valgrind
+alias valgrind /home/sci/gk/usr/linux/bin/valgrind \
+  --show-reachable=yes --leak-check=yes 
 
 faith:
 setenv TEEM_ARCH solaris
