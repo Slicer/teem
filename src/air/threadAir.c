@@ -22,6 +22,12 @@
 
 #include "airThread.h"
 
+#if TEEM_PTHREAD || defined(_WIN32)
+const int airMultiThreaded = 1;
+#else
+const int airMultiThreaded = 0;
+#endif
+
 /* ------------------------------------------------------------------ */
 #if TEEM_PTHREADS /* --------------------------------------- PTHREADS */
 /* ------------------------------------------------------------------ */

@@ -26,7 +26,18 @@
 #include <windows.h>
 #endif
 
+#if defined(_WIN32) && defined(TEEM_DLL)
+#define air_export __declspec(dllimport)
+#else
+#define air_export
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* thread.c: general threading functions */
+
 typedef struct {
 #if TEEM_PTHREAD
   pthread_t id;
@@ -54,5 +65,11 @@ extern int airThreadCreate(airThread *thread, void *(*threadBody)(void *), void 
 extern int airThreadJoin(airThread *thread, void **retP);
 extern int airThreadBarrierInit(airThreadBarrier *barrier, unsigned int count);
 extern int airThreadBarrierWait(airThreadBarrier *barrier);
+
+extern air_export const int airMultiThreaded;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* AIR_THREAD_HAS_BEEN_INCLUDED */
