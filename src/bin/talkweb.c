@@ -182,9 +182,6 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
       biffAdd(TKWB, err); airMopError(mop); return 1;
     }
     slide[slideIdx] = tkwbSlideNew(title, image, text);
-    AIR_FREE(title);
-    AIR_FREE(image);
-    AIR_FREE(text);
     airMopAdd(pmop, slide[slideIdx], (airMopper)tkwbSlideNix, airMopAlways);
   }
   if (!hitEOF && !notReally) {
