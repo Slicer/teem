@@ -34,7 +34,7 @@ baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nout;
   airArray *mop;
   int pret, E, res[2], vi, gi, step;
-  float min[2], max[2], top[2], v0, g0, *data, v, g, width,
+  float min[2], max[2], top[2], v0, g0, *data, v, g, gwidth, width,
     tvl, tvr, vl, vr, tmp, maxa;
 
   hestOptAdd(&opt, "r", "Vres Gres", airTypeInt, 2, 2, res, "256 256",
@@ -48,6 +48,9 @@ baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "data value at which to position bottom of triangle");
   hestOptAdd(&opt, "g", "gthresh", airTypeFloat, 1, 1, &g0, "0.0",
 	     "lowest grad mag to receive opacity");
+  hestOptAdd(&opt, "gw", "gwidth", airTypeFloat, 1, 1, &gwidth, "0.0",
+	     "range of grad mag values over which to apply threshold "
+	     "at low gradient magnitudes");
   hestOptAdd(&opt, "top", "Vtop Gtop", airTypeFloat, 2, 2, top, NULL,
 	     "data value and grad mag at center of top of triangle");
   hestOptAdd(&opt, "w", "value width", airTypeFloat, 1, 1, &width, NULL,
@@ -91,7 +94,7 @@ baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
       v = NRRD_CELL_POS(min[0], max[0], res[0], vi);
       vl = AIR_AFFINE(0, g, top[1], v0, tvl);
       vr = AIR_AFFINE(0, g, top[1], v0, tvr);
-      if (g < g0 || g > top[1]) {
+      if (g > top[1]) {
 	data[vi + res[0]*gi] = 0;
 	continue;
       }
@@ -102,6 +105,9 @@ baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
       }
       tmp = AIR_MAX(0, tmp);
       data[vi + res[0]*gi] = tmp*maxa;
+      tmp = AIR_AFFINE(g0 - gwidth/2, g, g0 + gwidth/2, 0.0, 1.0);
+      tmp = AIR_CLAMP(0, tmp, 1);
+      data[vi + res[0]*gi] *= tmp;
     }
   }
   if (nrrdSave(out, nout, NULL)) {
