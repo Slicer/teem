@@ -904,7 +904,8 @@ _nrrdWritePNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   /* no need to check type and format, done in FitsInFormat */
   /* create png struct with the error handlers above */
   png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL,
-				_nrrdWriteErrorHandlerPNG, _nrrdWriteWarningHandlerPNG);
+				_nrrdWriteErrorHandlerPNG,
+				_nrrdWriteWarningHandlerPNG);
   if (png == NULL) {
     sprintf(err, "%s: failed to create PNG write struct", me);
     biffAdd(NRRD, err); return 1;
@@ -957,7 +958,8 @@ _nrrdWritePNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
       type = PNG_COLOR_TYPE_RGB_ALPHA;
       break;
       default:
-      sprintf(err, "%s: nrrd->axis[0].size (%d) not compatible with PNG", me, nrrd->axis[0].size);
+      sprintf(err, "%s: nrrd->axis[0].size (%d) not compatible with PNG",
+	      me, nrrd->axis[0].size);
       biffAdd(NRRD, err); return 1;
       break;
     }
@@ -969,7 +971,8 @@ _nrrdWritePNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   }
   /* set image header info */
   png_set_IHDR(png, info, width, height, depth, type,
-	       PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+	       PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
+	       PNG_FILTER_TYPE_BASE);
   /* add nrrd fields to the text chunk */
   numtxt = 0;
   csize = 0;

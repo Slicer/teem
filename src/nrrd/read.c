@@ -1035,7 +1035,8 @@ _nrrdReadPNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
 
   /* create png struct with the error handlers above */
   png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL,
-			       _nrrdReadErrorHandlerPNG, _nrrdReadWarningHandlerPNG);
+			       _nrrdReadErrorHandlerPNG,
+			       _nrrdReadWarningHandlerPNG);
   if (png == NULL) {
     sprintf(err, "%s: failed to create PNG read struct", me);
     biffAdd(NRRD, err); return 1;
