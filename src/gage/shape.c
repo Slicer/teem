@@ -26,6 +26,7 @@ gageShapeReset(gageShape *shape) {
   
   if (shape) {
     ELL_3V_SET(shape->size, -1, -1, -1);
+    shape->defCenter = gageDefCenter;
     shape->center = nrrdCenterUnknown;
     ELL_3V_SET(shape->spacing, AIR_NAN, AIR_NAN, AIR_NAN);
     for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
@@ -85,11 +86,11 @@ gageShapeSet(gageShape *shape, Nrrd *nin, int baseDim) {
      we do something more here for same reasons as above */
   if (ax[0]->center == ax[1]->center && ax[1]->center == ax[2]->center) {
     shape->center = (nrrdCenterUnknown == ax[0]->center
-		     ? gageDefCenter
+		     ? shape->defCenter
 		     : ax[0]->center);
   } else {
-    /* regular gage use wouldn't allow this ... */
-    shape->center = gageDefCenter;
+    /* regular gage use wouldn't allow this ... but it should */
+    shape->center = shape->defCenter;
   }
   ms = (nrrdCenterCell == shape->center ? 1 : 2);
   if (!(ax[0]->size >= ms && ax[0]->size >= ms && ax[0]->size >= ms )) {

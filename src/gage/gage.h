@@ -319,6 +319,8 @@ typedef void (gageNixer_t)(Nrrd *npad, struct gageKind_t *kind,
 */
 typedef struct gageShape_t {
   int size[3],                /* dimensions of UNPADDED volume */
+    defCenter,                /* default centering to use when given volume
+				 has no centering set */
     center;                   /* the sample centering of the volume(s)- this
 				 is an issue for determing the extent of the
 				 volume, and in cell centering, an extra
