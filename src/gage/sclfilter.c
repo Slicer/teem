@@ -148,6 +148,7 @@ _gageScl3PFilter4(gage_t *ivX, gage_t *ivY, gage_t *ivZ,
 #define D2_4(i, axis) (DOT4(fw2 + (axis)*4, iv##axis + i*4))
 
   /* x0 */
+  printf("fw0 = %p; ivX = %p\n", fw0, ivX);
   ivY[ 0] = VL_4( 0,X);
   ivY[ 1] = VL_4( 1,X);
   ivY[ 2] = VL_4( 2,X);

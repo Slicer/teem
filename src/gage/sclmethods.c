@@ -225,14 +225,19 @@ _gageSclQueryDependentSet(gageSclContext *sctx) {
       case 1:
 	sctx->doD1 = AIR_TRUE;
 	sctx->needK[gageKernel11] = AIR_TRUE;
-	if (!sctx->k3pack) {
-	  sctx->needK[gageKernel11] = AIR_TRUE;
+	if (sctx->k3pack) {
+	  sctx->needK[gageKernel00] = AIR_TRUE;
+	} else {
+	  sctx->needK[gageKernel10] = AIR_TRUE;
 	}
 	break;
       case 2:
 	sctx->doD2 = AIR_TRUE;
 	sctx->needK[gageKernel22] = AIR_TRUE;
-	if (!sctx->k3pack) {
+	if (sctx->k3pack) {
+	  sctx->needK[gageKernel00] = AIR_TRUE;
+	  sctx->needK[gageKernel11] = AIR_TRUE;
+	} else {
 	  sctx->needK[gageKernel20] = AIR_TRUE;
 	  sctx->needK[gageKernel21] = AIR_TRUE;
 	}

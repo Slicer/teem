@@ -23,6 +23,12 @@
 /*
 ** sets the filter sample location (fsl) array based
 ** on probe location (xf,yf,zf)
+**
+** One possible rare surpise: if a filter is not continuous with 0
+** at the end of its support, and if the sample location is at the
+** highest possible point (xi == N-2, xf = 1.0), then the filter
+** weights may not be the desired ones.  Forward differencing is a
+** good example of this.
 */
 void
 _gageFslSet(gageContext *ctx) {
@@ -106,9 +112,9 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
   negX = negY = negZ = 0;
   posX = posY = posZ = 0;
   for (i=0; i<fd; i++) {
-    if (fwX[i] < 0) { negX += fwX[i]; } else { posX += fwX[i]; }
-    if (fwY[i] < 0) { negY += fwY[i]; } else { posY += fwY[i]; }
-    if (fwZ[i] < 0) { negZ += fwZ[i]; } else { posZ += fwZ[i]; }
+    if (fwX[i] <= 0) { negX += fwX[i]; } else { posX += fwX[i]; }
+    if (fwY[i] <= 0) { negY += fwY[i]; } else { posY += fwY[i]; }
+    if (fwZ[i] <= 0) { negZ += fwZ[i]; } else { posZ += fwZ[i]; }
   }
   /* fix is the sqrt() of factor by which the positive values
      are too big.  negative values are scaled up by this;
@@ -117,9 +123,13 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
   fixY = sqrt(-posY/negY);
   fixZ = sqrt(-posZ/negZ);
   for (i=0; i<fd; i++) {
-    if (fwX[i] < 0) { fwX[i] *= fixX; } else { fwX[i] /= fixX; }
-    if (fwY[i] < 0) { fwY[i] *= fixY; } else { fwY[i] /= fixY; }
-    if (fwZ[i] < 0) { fwZ[i] *= fixZ; } else { fwZ[i] /= fixZ; }
+    if (fwX[i] <= 0) { fwX[i] *= fixX; } else { fwX[i] /= fixX; }
+    if (!AIR_EXISTS(fwX[i])) {
+      printf("!%s: posX = %g, negX = %g -> fixX = %g\n",
+	     "_gageFwDerivRenormalize", posX, negX, fixX);
+    }
+    if (fwY[i] <= 0) { fwY[i] *= fixY; } else { fwY[i] /= fixY; }
+    if (fwZ[i] <= 0) { fwZ[i] *= fixZ; } else { fwZ[i] /= fixZ; }
   }
 }
 
