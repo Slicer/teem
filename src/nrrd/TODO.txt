@@ -1,6 +1,6 @@
 verbose message to confirm directIO success
 
-gamma
+add gamma to struct, fileformat
 
 key/value pairs
 
