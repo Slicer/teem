@@ -47,11 +47,11 @@ $(L).NEED = echo limn gage dye unrrdu nrrd ell biff air
 $(L).PUBLIC_HEADERS = ten.h tenMacros.h
 $(L).PRIVATE_HEADERS = tenPrivate.h
 $(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o miscTen.o \
-	tenGage.o fiberMethods.o fiber.o reg.o defaultsTen.o \
+	tenGage.o fiberMethods.o fiber.o epireg.o defaultsTen.o \
 	tendFlotsam.o tendAnplot.o tendAnvol.o tendEval.o \
 	tendEvec.o tendCalc.o tendSten.o tendExpand.o tendEvq.o tendPoint.o \
 	tendAnhist.o tendMake.o tendSatin.o tendShrink.o tendGlyph.o \
-	tendFiber.o tendReg.o
+	tendFiber.o tendEpireg.o
 $(L).TESTS = test/tg test/tt
 ####
 ####

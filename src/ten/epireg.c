@@ -21,10 +21,10 @@
 #include "tenPrivate.h"
 
 int
-_tenRegisterCheck(Nrrd *nout, Nrrd **nin, int ninLen, int reference,
+_tenEpiRegisterCheck(Nrrd *nout, Nrrd **nin, int ninLen, int reference,
 		  float bw, float thresh, float soft,
 		  NrrdKernel *kern, double *kparm) {
-  char me[]="_tenRegisterCheck", err[AIR_STRLEN_MED];
+  char me[]="_tenEpiRegisterCheck", err[AIR_STRLEN_MED];
   int ni;
 
   if (!( nout && nin && kern && kparm )) {
@@ -72,8 +72,8 @@ _tenRegisterCheck(Nrrd *nout, Nrrd **nin, int ninLen, int reference,
 ** to manage them
 */
 int
-_tenRegisterBlur(Nrrd **nblur, Nrrd **nin, int ninLen, float bw, int verb) {
-  char me[]="_tenRegisterBlur", err[AIR_STRLEN_MED];
+_tenEpiRegisterBlur(Nrrd **nblur, Nrrd **nin, int ninLen, float bw, int verb) {
+  char me[]="_tenEpiRegisterBlur", err[AIR_STRLEN_MED];
   NrrdResampleInfo *rinfo;
   airArray *mop;
   int ni, sx, sy, sz;
@@ -140,9 +140,9 @@ _tenRegisterBlur(Nrrd **nblur, Nrrd **nin, int ninLen, float bw, int verb) {
 }
 
 int
-_tenRegisterThreshold(Nrrd **nthresh, Nrrd **nblur, int ninLen,
+_tenEpiRegisterThreshold(Nrrd **nthresh, Nrrd **nblur, int ninLen,
 		      float thresh, float soft, int verb) {
-  char me[]="_tenRegisterThreshold", err[AIR_STRLEN_MED];
+  char me[]="_tenEpiRegisterThreshold", err[AIR_STRLEN_MED];
   airArray *mop;
   int I, sx, sy, sz, ni;
   float val, *thr;
@@ -184,7 +184,7 @@ _tenRegisterThreshold(Nrrd **nthresh, Nrrd **nblur, int ninLen,
 #define M_20   4
 
 /*
-** _tenRegisterMoments()
+** _tenEpiRegisterMoments()
 **
 ** the moments are stored in (of course) a nrrd, one scanline per slice,
 ** with each scanline containing:
@@ -193,8 +193,8 @@ _tenRegisterThreshold(Nrrd **nthresh, Nrrd **nblur, int ninLen,
 **   mean(x)  mean(y)  M_02    M_11    M_20
 */
 int
-_tenRegisterMoments(Nrrd **nmom, Nrrd **nthresh, int ninLen, int verb) {
-  char me[]="_tenRegisterMoments", err[AIR_STRLEN_MED];
+_tenEpiRegisterMoments(Nrrd **nmom, Nrrd **nthresh, int ninLen, int verb) {
+  char me[]="_tenEpiRegisterMoments", err[AIR_STRLEN_MED];
   int sx, sy, sz, xi, yi, zi, ni;
   double N, mx, my, x, y, M02, M11, M20, *mom;
   float *thr, val;
@@ -268,7 +268,7 @@ _tenRegisterMoments(Nrrd **nmom, Nrrd **nthresh, int ninLen, int verb) {
 }
 
 /*
-** _tenRegisterPairXforms
+** _tenEpiRegisterPairXforms
 **
 ** uses moment information to compute all pair-wise transforms, which are
 ** stored in the 3 x ninLen x ninLen x sizeZ output.  If xfr = npxfr->data,
@@ -278,8 +278,8 @@ _tenRegisterMoments(Nrrd **nmom, Nrrd **nthresh, int ninLen, int verb) {
 ** that maps slice zi from volume A to volume B.
 */
 int
-_tenRegisterPairXforms(Nrrd *npxfr, Nrrd **nmom, int ninLen) {
-  char me[]="_tenRegisterPairXforms", err[AIR_STRLEN_MED];
+_tenEpiRegisterPairXforms(Nrrd *npxfr, Nrrd **nmom, int ninLen) {
+  char me[]="_tenEpiRegisterPairXforms", err[AIR_STRLEN_MED];
   double *xfr, *A, *B, hh, ss, tt;
   int ai, bi, zi, sz;
   
@@ -309,10 +309,10 @@ _tenRegisterPairXforms(Nrrd *npxfr, Nrrd **nmom, int ninLen) {
 }
 
 int
-_tenRegisterDoit(Nrrd **ndone, Nrrd *npxfr, Nrrd **nin, int ninLen,
+_tenEpiRegisterDoit(Nrrd **ndone, Nrrd *npxfr, Nrrd **nin, int ninLen,
 		 int ref, NrrdKernel *kern, double *kparm,
 		 int verb) {
-  char me[]="_tenRegisterDoit", err[AIR_STRLEN_MED];
+  char me[]="_tenEpiRegisterDoit", err[AIR_STRLEN_MED];
   gageContext *gtx;
   gagePerVolume *pvl;
   airArray *mop;
@@ -399,17 +399,17 @@ _tenRegisterDoit(Nrrd **ndone, Nrrd *npxfr, Nrrd **nin, int ninLen,
 }
 
 int
-tenRegister(Nrrd *nout, Nrrd **nin, int ninLen, int reference,
+tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, int reference,
 	    float bw, float thresh, float soft,
 	    NrrdKernel *kern, double *kparm,
 	    int progress, int verbose) {
-  char me[]="tenRegister", err[AIR_STRLEN_MED];
+  char me[]="tenEpiRegister", err[AIR_STRLEN_MED];
   airArray *mop;
   Nrrd **nbuffA, **nbuffB, *npxfr, *nprog;
   int i;
 
   mop = airMopNew();
-  if (_tenRegisterCheck(nout, nin, ninLen, reference,
+  if (_tenEpiRegisterCheck(nout, nin, ninLen, reference,
 			bw, thresh, soft,
 			kern, kparm)) {
     sprintf(err, "%s: trouble with input", me);
@@ -435,7 +435,7 @@ tenRegister(Nrrd *nout, Nrrd **nin, int ninLen, int reference,
   airMopAdd(mop, nprog, (airMopper)nrrdNuke, airMopAlways);
 
   /* ------ blur */
-  if (_tenRegisterBlur(nbuffA, nin, ninLen, bw, verbose)) {
+  if (_tenEpiRegisterBlur(nbuffA, nin, ninLen, bw, verbose)) {
     sprintf(err, "%s: trouble %s", me, bw ? "blurring" : "copying");
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
@@ -449,7 +449,7 @@ tenRegister(Nrrd *nout, Nrrd **nin, int ninLen, int reference,
   }
 
   /* ------ threshold */
-  if (_tenRegisterThreshold(nbuffB, nbuffA, ninLen, thresh, soft, verbose)) {
+  if (_tenEpiRegisterThreshold(nbuffB, nbuffA, ninLen, thresh, soft, verbose)) {
     sprintf(err, "%s: trouble thresholding", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
@@ -463,7 +463,7 @@ tenRegister(Nrrd *nout, Nrrd **nin, int ninLen, int reference,
   }
 
   /* ------ moments */
-  if (_tenRegisterMoments(nbuffA, nbuffB, ninLen, verbose)) {
+  if (_tenEpiRegisterMoments(nbuffA, nbuffB, ninLen, verbose)) {
     sprintf(err, "%s: trouble finding moments", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
@@ -477,7 +477,7 @@ tenRegister(Nrrd *nout, Nrrd **nin, int ninLen, int reference,
   }
 
   /* ------ transforms */
-  if (_tenRegisterPairXforms(npxfr, nbuffA, ninLen)) {
+  if (_tenEpiRegisterPairXforms(npxfr, nbuffA, ninLen)) {
     sprintf(err, "%s: trouble calculating transforms", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
@@ -491,7 +491,7 @@ tenRegister(Nrrd *nout, Nrrd **nin, int ninLen, int reference,
 
   /* ------ doit */
   /* filter/regularize transforms? */
-  if (_tenRegisterDoit(nbuffB, npxfr, nin, ninLen,
+  if (_tenEpiRegisterDoit(nbuffB, npxfr, nin, ninLen,
 		       reference, kern, kparm, verbose)) {
     sprintf(err, "%s: trouble performing final registration", me);
     biffAdd(TEN, err); airMopError(mop); return 1;

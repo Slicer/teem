@@ -21,7 +21,7 @@
 #include "tenPrivate.h"
 
 #define INFO "Register diffusion-weighted echo-planar images"
-char *_tend_regInfoL =
+char *_tend_epiregInfoL =
   (INFO
    ".  Registration is based on moments of thresholded images. The "
    "images may be optionally blurred, prior to thresholding, but this is "
@@ -33,7 +33,7 @@ char *_tend_regInfoL =
    "chosen kernel, with the seperate DWIs stacked along axis 0.");
 
 int
-tend_regMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -74,16 +74,16 @@ tend_regMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_regInfoL);
+  USAGE(_tend_epiregInfoL);
   PARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (tenRegister(nout, nin, ninLen, ref,
-		  bw, thresh, soft,
-		  ksp->kernel, ksp->parm,
-		  progress, verbose)) {
+  if (tenEpiRegister(nout, nin, ninLen, ref,
+		     bw, thresh, soft,
+		     ksp->kernel, ksp->parm,
+		     progress, verbose)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); exit(1);
@@ -97,5 +97,5 @@ tend_regMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopOkay(mop);
   return 0;
 }
-/* TEND_CMD(reg, INFO); */
-unrrduCmd tend_regCmd = { "reg", INFO, tend_regMain };
+/* TEND_CMD(epireg, INFO); */
+unrrduCmd tend_epiregCmd = { "epireg", INFO, tend_epiregMain };
