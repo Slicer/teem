@@ -223,8 +223,8 @@ baneProbe(float *_ans, Nrrd *nin, int query,
   /* have we changed which voxel we're inside? */
   if (idx != tmpI) {
     /* are we still within the volume minus margins? */
-    if (xi < fr-1  || yi < fr-1  || zi < fr-1 ||
-	xi > sx-fr || yi > sy-fr || zi > sz-fr) {
+    if (xi < fr || yi < fr || zi < fr
+	|| xi > sx-fr-1 || yi > sy-fr-1 || zi > sz-fr-1) {
       if (baneProbeDebug) {
 	fprintf(stderr, "%s: location (%g,%g,%g) -> index (%d,%d,%d) "
 		"not within %d-margin of %dx%dx%d volume\n",
