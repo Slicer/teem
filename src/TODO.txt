@@ -1,34 +1,51 @@
+update ALL copyright information in preambles (.c, .h, .mk, .txt)
+
+determine if ELL_3M_L2NORM is misnamed: find name for thing that is
+the naive L2 norm
+Actually grep for "l2" and "L2" in all *.c and *.h and fix if needed
+
+add segprobe to teem
+
 making volume datasets
+nhdrs for meissner
+make vtk, make DTInspect
 
 figure out shared libraries on cygwin.
 
 DTInspect: resurrect
  - add plane of glyphs
  - fix normals on isosurface
- - trouble building "anisovol" in ten/test directory
-
-lumin integration
 
 Test that shared libraries work everywhere they should.
 
 make sure that test programs actually link against the development
 library instead of the installed one.
 
-get mite working more usefully
-
 other_clean (so_locations on SGI)
 
-make airOneLine return number of bytes read; current return
-of string length is entirely redundant with return of strlen()
-and then enable the ftell() check after PNG magic read
+
+miter: use gageContextCopy correctly
+     : generate bone images for kikinis!!
+ten: finish tend, test w/ DTInspect
+ell: test double root eigenvalue sorting
+leaf: do it
+
+echo: fix, glyphs, superquadrics
+
+valgrind new mrender
+
+unrrdu: standardize framework for doing unu/gkms/tend style programs
+nrrd: enable imagemagick-style format flagging on filenames
+mrender: deal with vectors
+air: make airOneLine return number of bytes read; current return
+  of string length is entirely redundant with return of strlen()
+  and then enable the ftell() check after PNG magic read
 
 ------- teem 1.5 cutoff ---------
 
 Fix TEEM_USABLE
 
 figure out if parallel make will work with my pattern-specific variables
-
-leaf: the new newslicer brains
 
 ------- teem 1.6 cutoff ---------
 
