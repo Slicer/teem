@@ -94,8 +94,6 @@ makeMain(int argc, char **argv, char *me) {
   nrrd = nrrdNew();
   airMopAdd(mop, nrrd, (airMopper)nrrdNuke, airMopAlways);
   
-  hestOptAdd(&opt, "i", "file", airTypeString, 1, 1, &dataFileName, NULL,
-	     "Filename of data file; use \"-\" for stdin");
   hestOptAdd(&opt, "h", NULL, airTypeBool, 0, 0, &headerOnly, NULL,
 	     "Generate header ONLY: don't write out the whole nrrd, "
 	     "don't even bother reading the input data, just output the "
@@ -106,6 +104,8 @@ makeMain(int argc, char **argv, char *me) {
 	     "data file is to be found relative to the header file "
 	     "(as opposed to the current working directory of whomever "
 	     "is reading the nrrd)");
+  hestOptAdd(&opt, "i", "file", airTypeString, 1, 1, &dataFileName, NULL,
+	     "Filename of data file; use \"-\" for stdin");
   hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &(nrrd->type),
 	     NULL, "type of data (e.g. \"uchar\", \"int\", \"float\", "
 	     "\"double\", etc.)",
