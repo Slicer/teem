@@ -194,7 +194,7 @@ enum {
   echoMatterPhongKa,    /* 0 */
   echoMatterPhongKd,    /* 1 */
   echoMatterPhongKs,    /* 2 */
-  echoMatterPhongSp,    /* 3 */
+  echoMatterPhongSp     /* 3 */
 };
 enum {
   echoMatterGlassIndex, /* 0 */
