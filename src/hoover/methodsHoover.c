@@ -19,11 +19,11 @@
 
 #include "hoover.h"
 
-hoovContext *
-hoovContextNew() {
-  hoovContext *ctx;
+hooverContext *
+hooverContextNew() {
+  hooverContext *ctx;
 
-  ctx = (hoovContext *)calloc(1, sizeof(hoovContext));
+  ctx = (hooverContext *)calloc(1, sizeof(hooverContext));
   if (ctx) {
     ctx->cam = limnCamNew();
     ELL_3V_SET(ctx->volSize, 0, 0, 0);
@@ -31,20 +31,20 @@ hoovContextNew() {
     ctx->imgSize[0] = ctx->imgSize[1] = 0;
     ctx->userInfo = NULL;
     ctx->numThreads = 1;
-    ctx->renderBegin = hoovStubRenderBegin;
-    ctx->threadBegin = hoovStubThreadBegin;
-    ctx->rayBegin = hoovStubRayBegin;
-    ctx->sample = hoovStubSample;
-    ctx->rayEnd = hoovStubRayEnd;
-    ctx->threadEnd = hoovStubThreadEnd;
-    ctx->renderEnd = hoovStubRenderEnd;
+    ctx->renderBegin = hooverStubRenderBegin;
+    ctx->threadBegin = hooverStubThreadBegin;
+    ctx->rayBegin = hooverStubRayBegin;
+    ctx->sample = hooverStubSample;
+    ctx->rayEnd = hooverStubRayEnd;
+    ctx->threadEnd = hooverStubThreadEnd;
+    ctx->renderEnd = hooverStubRenderEnd;
   }
   return(ctx);
 }
 
 int
-hoovContextCheck(hoovContext *ctx) {
-  char me[]="hoovContextCheck", err[AIR_STRLEN_MED];
+hooverContextCheck(hooverContext *ctx) {
+  char me[]="hooverContextCheck", err[AIR_STRLEN_MED];
 
   if (!ctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -77,9 +77,9 @@ hoovContextCheck(hoovContext *ctx) {
     sprintf(err, "%s: number threads (%d) invalid", me, ctx->numThreads);
     biffAdd(HOOVER, err); return 1;
   }
-  if (!(ctx->numThreads <= HOOV_THREAD_MAX)) {
+  if (!(ctx->numThreads <= HOOVER_THREAD_MAX)) {
     sprintf(err, "%s: sorry, number threads (%d) > max (%d)", me, 
-	    ctx->numThreads, HOOV_THREAD_MAX);
+	    ctx->numThreads, HOOVER_THREAD_MAX);
     biffAdd(HOOVER, err); return 1;
   }
   if (!ctx->renderBegin) {
@@ -115,7 +115,7 @@ hoovContextCheck(hoovContext *ctx) {
 }
 
 void
-hoovContextNix(hoovContext *ctx) {
+hooverContextNix(hooverContext *ctx) {
 
   if (ctx) {
     limnCamNix(ctx->cam);

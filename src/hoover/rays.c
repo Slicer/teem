@@ -18,7 +18,6 @@
 */
 
 #include "hoover.h"
-/* #include "hoovThreads.h" */
 
 /*
 ** learned: if you're going to "simplify" code which computes some
@@ -30,7 +29,7 @@
 */
 
 /*
-** _hoovLearnLengths()
+** _hooverLearnLengths()
 **
 ** This is where we enforce the constraint that the volume always fit
 ** inside a cube with edge length 2, centered at the origin.
@@ -38,7 +37,7 @@
 ** volHLen[i] is the HALF the length of the volume along axis i
 */
 void
-_hoovLearnLengths(double volHLen[3], double voxLen[3], hoovContext *ctx) {
+_hooverLearnLengths(double volHLen[3], double voxLen[3], hooverContext *ctx) {
   double maxLen;
   int numSamples[3];
 
@@ -57,12 +56,12 @@ _hoovLearnLengths(double volHLen[3], double voxLen[3], hoovContext *ctx) {
 }
 
 /*
-** _hoovExtraContext struct
+** _hooverExtraContext struct
 **
-** Like hoovContext, this is READ-ONLY information which is not specific
+** Like hooverContext, this is READ-ONLY information which is not specific
 ** to any thread.
-** Unlike hoovContext, it is solely for the benefit of the calculations
-** done in _hoovThreadBody.
+** Unlike hooverContext, it is solely for the benefit of the calculations
+** done in _hooverThreadBody.
 **
 ** No one outside hoover should need to know about this.
 */
@@ -72,15 +71,15 @@ typedef struct {
     uBase, uCap,         /* uMin and uMax as seen on the near cutting plane */
     vBase, vCap,         /* analogous to uBase and uCap */
     rayZero[3];          /* location of near plane, line of sight interxion */
-} _hoovExtraContext;
+} _hooverExtraContext;
 
-_hoovExtraContext *
-_hoovExtraContextNew(hoovContext *ctx) {
-  _hoovExtraContext *ec;
+_hooverExtraContext *
+_hooverExtraContextNew(hooverContext *ctx) {
+  _hooverExtraContext *ec;
   
-  ec = calloc(1, sizeof(_hoovExtraContext));
+  ec = calloc(1, sizeof(_hooverExtraContext));
   if (ec) {
-    _hoovLearnLengths(ec->volHLen, ec->voxLen, ctx);
+    _hooverLearnLengths(ec->volHLen, ec->voxLen, ctx);
     ELL_3V_SCALEADD(ec->rayZero,
 		    1.0, ctx->cam->from,
 		    ctx->cam->vspNeer, ctx->cam->N);
@@ -88,8 +87,8 @@ _hoovExtraContextNew(hoovContext *ctx) {
   return ec;
 }
 
-_hoovExtraContext *
-_hoovExtraContextNix(_hoovExtraContext *ec) {
+_hooverExtraContext *
+_hooverExtraContextNix(_hooverExtraContext *ec) {
   
   if (ec) {
     free(ec);
@@ -98,31 +97,31 @@ _hoovExtraContextNix(_hoovExtraContext *ec) {
 }
 
 /*
-** _hoovThreadArg struct
+** _hooverThreadArg struct
 **
-** A pointer to this is passed to _hoovThreadBody.  It contains all the
+** A pointer to this is passed to _hooverThreadBody.  It contains all the
 ** information which is not thread-specific, and all the thread-specific
-** information known at the level of hoovRender.
+** information known at the level of hooverRender.
 **
 ** For simplicity sake, a pointer to a struct of this type is also
-** returned from _hoovThreadBody, so this is where we store an
+** returned from _hooverThreadBody, so this is where we store an
 ** error-signaling return value (errCode), and what function had
 ** trouble (whichErr).
 */
 typedef struct {
   /* ----------------------- intput */
-  hoovContext *ctx;
-  _hoovExtraContext *ec;
+  hooverContext *ctx;
+  _hooverExtraContext *ec;
   void *renderInfo;
   int whichThread;
   /* ----------------------- output */
   int whichErr;
   int errCode;
-} _hoovThreadArg;
+} _hooverThreadArg;
 
 void *
-_hoovThreadBody(void *_arg) {
-  _hoovThreadArg *arg;
+_hooverThreadBody(void *_arg) {
+  _hooverThreadArg *arg;
   void *threadInfo;
   int ret,               /* to catch return values from callbacks */
     sampleI,             /* which sample we're on */
@@ -150,13 +149,13 @@ _hoovThreadBody(void *_arg) {
     vOff[3], uOff[3];    /* offsets in arg->ec->wU and arg->ec->wV
 			    directions towards start of ray */
 
-  arg = (_hoovThreadArg *)_arg;
+  arg = (_hooverThreadArg *)_arg;
   if ( (ret = (arg->ctx->threadBegin)(&threadInfo, 
 				      arg->renderInfo, 
 				      arg->ctx->userInfo,
 				      arg->whichThread)) ) {
     arg->errCode = ret;
-    arg->whichErr = hoovErrThreadBegin;
+    arg->whichErr = hooverErrThreadBegin;
     return arg;
   }
   lx = arg->ec->volHLen[0];
@@ -211,7 +210,7 @@ _hoovThreadBody(void *_arg) {
 				       rayStartW, rayStartI,
 				       rayDirW, rayDirI)) ) {
 	arg->errCode = ret;
-	arg->whichErr = hoovErrRayBegin;
+	arg->whichErr = hooverErrRayBegin;
 	return arg;
       }
       
@@ -232,7 +231,7 @@ _hoovThreadBody(void *_arg) {
 	if (!AIR_EXISTS(rayStep)) {
 	  /* sampling failed */
 	  arg->errCode = 0;
-	  arg->whichErr = hoovErrSample;
+	  arg->whichErr = hooverErrSample;
 	  return arg;
 	}
 	if (!rayStep) {
@@ -252,7 +251,7 @@ _hoovThreadBody(void *_arg) {
 				     arg->renderInfo,
 				     arg->ctx->userInfo)) ) {
 	arg->errCode = ret;
-	arg->whichErr = hoovErrRayEnd;
+	arg->whichErr = hooverErrRayEnd;
 	return arg;
       }
     }  /* end this scanline */
@@ -263,7 +262,7 @@ _hoovThreadBody(void *_arg) {
 				    arg->renderInfo,
 				    arg->ctx->userInfo)) ) {
     arg->errCode = ret;
-    arg->whichErr = hoovErrThreadEnd;
+    arg->whichErr = hooverErrThreadEnd;
     return arg;
   }
   
@@ -272,39 +271,39 @@ _hoovThreadBody(void *_arg) {
 }
 
 /*
-******** hoovRender()
+******** hooverRender()
 **
-** because of the biff usage(), only one thread can call hoovRender(),
+** because of the biff usage(), only one thread can call hooverRender(),
 ** and no promises if the threads themselves call biff...
 */
 int
-hoovRender(hoovContext *ctx, int *errCodeP, int *errThreadP) {
-  char me[]="hoovRender", err[AIR_STRLEN_MED];
-  _hoovExtraContext *ec;
-  _hoovThreadArg args[HOOV_THREAD_MAX];
-  _hoovThreadArg *errArg;
+hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
+  char me[]="hooverRender", err[AIR_STRLEN_MED];
+  _hooverExtraContext *ec;
+  _hooverThreadArg args[HOOVER_THREAD_MAX];
+  _hooverThreadArg *errArg;
   void *renderInfo;
   int ret;
   airArray *mop;
 
   /* this calls limnCamUpdate() */
-  if (hoovContextCheck(ctx)) {
+  if (hooverContextCheck(ctx)) {
     sprintf(err, "%s: problem detected in given context", me);
     biffAdd(HOOVER, err);
-    return hoovErrInit;
+    return hooverErrInit;
   }
 
-  if (!(ec = _hoovExtraContextNew(ctx))) {
+  if (!(ec = _hooverExtraContextNew(ctx))) {
     sprintf(err, "%s: problem creating thread context", me);
     biffAdd(HOOVER, err);
-    return hoovErrInit;
+    return hooverErrInit;
   }
   mop = airMopInit();
-  airMopAdd(mop, ec, (airMopper)_hoovExtraContextNix, airMopAlways);
+  airMopAdd(mop, ec, (airMopper)_hooverExtraContextNix, airMopAlways);
   if ( (ret = (ctx->renderBegin)(&renderInfo, ctx->userInfo)) ) {
     *errCodeP = ret;
     airMopError(mop);
-    return hoovErrRenderBegin;
+    return hooverErrRenderBegin;
   }
 
   if (1 == ctx->numThreads) {
@@ -312,9 +311,9 @@ hoovRender(hoovContext *ctx, int *errCodeP, int *errThreadP) {
     args[0].ec = ec;
     args[0].renderInfo = renderInfo;
     args[0].whichThread = 0;
-    args[0].whichErr = hoovErrNone;
+    args[0].whichErr = hooverErrNone;
     args[0].errCode = 0;
-    errArg = _hoovThreadBody(&(args[0]));
+    errArg = _hooverThreadBody(&(args[0]));
     if (errArg) {
       *errCodeP = errArg->errCode;
       airMopError(mop);
@@ -323,27 +322,27 @@ hoovRender(hoovContext *ctx, int *errCodeP, int *errThreadP) {
   }
   else {
     sprintf(err, "%s: sorry, multi-threading under construction", me);
-    biffAdd(HOOVER, err); return hoovErrInit;
+    biffAdd(HOOVER, err); return hooverErrInit;
     /* TODO: call pthread_create() once per thread, passing the
        address of a distinct (and appropriately intialized)
-       _hoovThreadArg to each.  If return of pthread_create() is
+       _hooverThreadArg to each.  If return of pthread_create() is
        non-zero, put its return in *errCodeP, the number of the
-       problematic in *errThreadP, and return hoovErrCreateThread.
+       problematic in *errThreadP, and return hooverErrCreateThread.
        Then call pthread_join() on all the threads, passing &errArg as
        "retval". On non-zero return, set *errCodeP and *errThreadP,
-       and return hoovErrJoinThread. If return of pthread_join() is
+       and return hooverErrJoinThread. If return of pthread_join() is
        zero, but the errArg is non-NULL, then assume that this errArg
-       is actually just the passed _hoovThreadArg returned to us, and
+       is actually just the passed _hooverThreadArg returned to us, and
        from this copy errArg->errCode into *errCodeP, and return
        errArg->whichErr */
   }
 
   if ( (ret = (ctx->renderEnd)(renderInfo, ctx->userInfo)) ) {
     *errCodeP = ret;
-    return hoovErrRenderEnd;
+    return hooverErrRenderEnd;
   }
   renderInfo = NULL;
   airMopOkay(mop);
 
-  return hoovErrNone;
+  return hooverErrNone;
 }

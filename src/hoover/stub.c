@@ -20,31 +20,31 @@
 #include "hoover.h"
 
 int
-hoovStubRenderBegin(void **rendInfoP, void *userInfo) {
+hooverStubRenderBegin(void **rendInfoP, void *userInfo) {
 
   *rendInfoP = NULL;
   return 0;
 }
 
 int
-hoovStubThreadBegin(void **threadInfoP, void *rendInfo, void *userInfo,
-		    int whichThread) {
+hooverStubThreadBegin(void **threadInfoP, void *rendInfo, void *userInfo,
+		      int whichThread) {
 
   *threadInfoP = NULL;
   return 0;
 }
 
 int 
-hoovStubRayBegin(void *threadInfo, void *renderInfo, void *userInfo,
-		 int uIndex,
-		 int vIndex, 
-		 double rayLen,
-		 double rayStartWorld[3],
-		 double rayStartIndex[3],
-		 double rayDirWorld[3],
-		 double rayDirIndex[3]) {
+hooverStubRayBegin(void *threadInfo, void *renderInfo, void *userInfo,
+		   int uIndex,
+		   int vIndex, 
+		   double rayLen,
+		   double rayStartWorld[3],
+		   double rayStartIndex[3],
+		   double rayDirWorld[3],
+		   double rayDirIndex[3]) {
   /*
-  char me[]="hoovStubRayBegin";
+  char me[]="hooverStubRayBegin";
   fprintf(stderr, "%s: ray(%d,%d), len=%g\n"
 	  "  start=(%g,%g,%g)\n"
 	  "  dir=(%g,%g,%g)\n",
@@ -57,13 +57,13 @@ hoovStubRayBegin(void *threadInfo, void *renderInfo, void *userInfo,
 }
 
 double
-hoovStubSample(void *threadInfo, void *renderInfo, void *userInfo,
-	       int num, double rayT,
-	       int inside,
-	       double samplePosWorld[3],
-	       double samplePosIndex[3]) {
+hooverStubSample(void *threadInfo, void *renderInfo, void *userInfo,
+		 int num, double rayT,
+		 int inside,
+		 double samplePosWorld[3],
+		 double samplePosIndex[3]) {
   /*
-  char me[]="hoovStubSample";
+  char me[]="hooverStubSample";
   fprintf(stderr, "%s:      sample(%g,%g,%g)\n", me,
 	  samplePosWorld[0], samplePosWorld[1], samplePosWorld[2]);
   */
@@ -73,19 +73,19 @@ hoovStubSample(void *threadInfo, void *renderInfo, void *userInfo,
 }
 
 int
-hoovStubRayEnd(void *threadInfo, void *rendInfo, void *userInfo) {
+hooverStubRayEnd(void *threadInfo, void *rendInfo, void *userInfo) {
 
   return 0;
 }
 
 int
-hoovStubThreadEnd(void *threadInfo, void *rendInfo, void *userInfo) {
+hooverStubThreadEnd(void *threadInfo, void *rendInfo, void *userInfo) {
 
   return 0;
 }
 
 int
-hoovStubRenderEnd(void *rendInfo, void *userInfo) {
+hooverStubRenderEnd(void *rendInfo, void *userInfo) {
 
   return 0;
 }

@@ -49,7 +49,7 @@ typedef struct {
   Nrrd *nin, *ntf;
   double refStep, rayStep, near1;
   NrrdKernelSpec *ksp00, *ksp11, *ksp22;
-  hoovContext *ctx;
+  hooverContext *ctx;
   limnLight *lit;
   int renorm, sum;
   char *outS;
@@ -89,7 +89,7 @@ extern mite_export int miteDefRenorm;
 extern mite_export double miteDefNear1;
 
 /* user.c */
-extern miteUserInfo *miteUserInfoNew(hoovContext *ctx);
+extern miteUserInfo *miteUserInfoNew(hooverContext *ctx);
 extern miteUserInfo *miteUserInfoNix(miteUserInfo *muu);
 
 /* renderMite.c */
@@ -101,16 +101,6 @@ extern int miteThreadBegin(miteThreadInfo **mttP, miteRenderInfo *mrr,
 			   miteUserInfo *muu, int whichThread);
 extern int miteThreadEnd(miteThreadInfo *mtt, miteRenderInfo *mrr,
 			 miteUserInfo *muu);
-
-/* ray.c */
-extern int miteRayBegin(miteThreadInfo *mtt, miteRenderInfo *mrr,
-			miteUserInfo *muu,
-			int uIndex, int vIndex, 
-			double rayLen,
-			double rayStartWorld[3], double rayStartIndex[3],
-			double rayDirWorld[3], double rayDirIndex[3]);
-extern int miteRayEnd(miteThreadInfo *mtt, miteRenderInfo *mrr,
-		      miteUserInfo *muu);
 
 /* ray.c */
 extern int miteRayBegin(miteThreadInfo *mtt, miteRenderInfo *mrr,

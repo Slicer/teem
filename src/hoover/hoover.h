@@ -17,8 +17,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef HOOV_HAS_BEEN_INCLUDED
-#define HOOV_HAS_BEEN_INCLUDED
+#ifndef HOOVER_HAS_BEEN_INCLUDED
+#define HOOVER_HAS_BEEN_INCLUDED
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,61 +33,50 @@
 extern "C" {
 #endif
 
-/*
-** On what is shorted to "hoov" and what stays "hoover":
-** The library name stays libhoover.a
-** The include file stays hoover.h
-** Source files which require the library name as suffix use "hoover".
-** The biff key is HOOVER --> "hoover"
-** Everything else is shortened: prefix on:
-** #defines (including #include guards), functions and global variables,
-** struct type names, enum values, typedefs
-*/
-
 #define HOOVER "hoover"
 
-#define HOOV_THREAD_MAX 128
+#define HOOVER_THREAD_MAX 128
 
 /* 
 ******** the mess of typedefs for callbacks used below
 */
-typedef int (hoovRenderBegin_t)(void **renderInfoP,
-				void *userInfo);
-typedef int (hoovThreadBegin_t)(void **threadInfoP,
+typedef int (hooverRenderBegin_t)(void **renderInfoP,
+				  void *userInfo);
+typedef int (hooverThreadBegin_t)(void **threadInfoP,
+				  void *renderInfo,
+				  void *userInfo,
+				  int whichThread);
+typedef int (hooverRayBegin_t)(void *threadInfo,
+			       void *renderInfo,
+			       void *userInfo,
+			       int uIndex,    /* img coords of current ray */
+			       int vIndex, 
+			       double rayLen, /* length of ray segment between
+						 near and far planes,  */
+			       double rayStartWorld[3],
+			       double rayStartIndex[3],
+			       double rayDirWorld[3],
+			       double rayDirIndex[3]);
+typedef double (hooverSample_t)(void *threadInfo,
 				void *renderInfo,
 				void *userInfo,
-				int whichThread);
-typedef int (hoovRayBegin_t)(void *threadInfo,
+				int num,    /* which sample this is, 0-based */
+				double rayT,/* position along ray */
+				int inside, /* sample is inside the volume */
+				double samplePosWorld[3],
+				double samplePosIndex[3]);
+typedef int (hooverRayEnd_t)(void *threadInfo,
 			     void *renderInfo,
-			     void *userInfo,
-			     int uIndex,    /* img coords of current ray */
-			     int vIndex, 
-			     double rayLen, /* length of ray segment between
-					       near and far planes,  */
-			     double rayStartWorld[3],
-			     double rayStartIndex[3],
-			     double rayDirWorld[3],
-			     double rayDirIndex[3]);
-typedef double (hoovSample_t)(void *threadInfo,
-			      void *renderInfo,
-			      void *userInfo,
-			      int num,     /* which sample this is, 0-based */
-			      double rayT, /* position along ray */
-			      int inside,  /* sample is inside the volume */
-			      double samplePosWorld[3],
-			      double samplePosIndex[3]);
-typedef int (hoovRayEnd_t)(void *threadInfo,
-			   void *renderInfo,
-			   void *userInfo);
-typedef int (hoovThreadEnd_t)(void *threadInfo,
-			      void *renderInfo,
-			      void *userInfo);
-typedef int (hoovRenderEnd_t)(void *rendInfo, void *userInfo);
+			     void *userInfo);
+typedef int (hooverThreadEnd_t)(void *threadInfo,
+				void *renderInfo,
+				void *userInfo);
+typedef int (hooverRenderEnd_t)(void *rendInfo, void *userInfo);
 
 /*
-******** hoovContext struct
+******** hooverContext struct
 **
-** Everything that hoovRender() needs to do its thing, and no more.
+** Everything that hooverRender() needs to do its thing, and no more.
 ** This is all read-only informaiton.
 ** 1) camera information
 ** 3) volume information
@@ -127,9 +116,9 @@ typedef struct {
   ** are initialized to one of the stub functions provided by hoover.  
   **
   ** A non-zero return of any of these indicates error. Which callback
-  ** failed is represented by the return value of hoovRender(), the
+  ** failed is represented by the return value of hooverRender(), the
   ** return value from the callback is stored in *errCodeP by
-  ** hoovRender(), and the problem thread number is stored in
+  ** hooverRender(), and the problem thread number is stored in
   ** *errThreadP.
   */
 
@@ -143,7 +132,7 @@ typedef struct {
   **
   ** int (*renderBegin)(void **renderInfoP, void *userInfo);
   */
-  hoovRenderBegin_t *renderBegin;
+  hooverRenderBegin_t *renderBegin;
   
   /* 
   ** threadBegin() 
@@ -154,7 +143,7 @@ typedef struct {
   ** int (*threadBegin)(void **threadInfoP, void *renderInfo, void *userInfo,
   **                    int whichThread);
   */
-  hoovThreadBegin_t *threadBegin;
+  hooverThreadBegin_t *threadBegin;
   
   /*
   ** rayBegin()
@@ -169,7 +158,7 @@ typedef struct {
   **                 double rayStartWorld[3], double rayStartIndex[3],
   **                 double rayDirWorld[3], double rayDirIndex[3]);
   */
-  hoovRayBegin_t *rayBegin;
+  hooverRayBegin_t *rayBegin;
 
   /* 
   ** sample()
@@ -187,7 +176,7 @@ typedef struct {
   ** multi-threading works: one thread can not render multiple rays
   ** simulatenously.  If there were more args to cbSample (like a
   ** rayInfo, or an integral rayIndex), then this would be possible,
-  ** but it would mean that _hoovThreadBody() would have to implement
+  ** but it would mean that _hooverThreadBody() would have to implement
   ** all the smarts about which samples belong on which rays belong
   ** with which threads.
   **
@@ -200,18 +189,18 @@ typedef struct {
   **                  double samplePosWorld[3],
   **                  double samplePosIndex[3]);
   */
-  hoovSample_t *sample;
+  hooverSample_t *sample;
 
   /*
   ** rayEnd()
   ** 
-  ** called at the end of the ray.  The end of a ray is:
+  ** called at the end of the ray.  The end of a ray is when:
   ** 1) sample returns 0.0, or,
-  ** 2) when the sample location goes behind far plane
+  ** 2) the sample location goes behind far plane
   **
   ** int (*rayEnd)(void *threadInfo, void *renderInfo, void *userInfo);
   */
-  hoovRayEnd_t *rayEnd;
+  hooverRayEnd_t *rayEnd;
 
   /* 
   ** threadEnd()
@@ -220,7 +209,7 @@ typedef struct {
   **
   ** int (*threadEnd)(void *threadInfo, void *renderInfo, void *userInfo);
   */
-  hoovThreadEnd_t *threadEnd;
+  hooverThreadEnd_t *threadEnd;
   
   /* 
   ** renderEnd()
@@ -229,52 +218,52 @@ typedef struct {
   **
   ** int (*renderEnd)(void *rendInfo, void *userInfo);
   */
-  hoovRenderEnd_t *renderEnd;
+  hooverRenderEnd_t *renderEnd;
 
-} hoovContext;
+} hooverContext;
 
 /*
-******** hoovErr... enum
+******** hooverErr... enum
 **
-** possible returns from hoovRender.
-** hoovErrNone: no error, all is well: 
-** hoovErrInit: error detected in hoover, call biffGet(HOOVER)
+** possible returns from hooverRender.
+** hooverErrNone: no error, all is well: 
+** hooverErrInit: error detected in hoover, call biffGet(HOOVER)
 ** otherwise, return indicates which call-back had trouble
 */
 enum {
-  hoovErrNone,
-  hoovErrInit,           /* call biffGet(HOOVER) */
-  hoovErrRenderBegin,
-  hoovErrThreadCreate,
-  hoovErrThreadBegin,
-  hoovErrRayBegin,
-  hoovErrSample,
-  hoovErrRayEnd,
-  hoovErrThreadEnd,
-  hoovErrThreadJoin,
-  hoovErrRenderEnd,
-  hoovErrLast
+  hooverErrNone,
+  hooverErrInit,           /* call biffGet(HOOVER) */
+  hooverErrRenderBegin,
+  hooverErrThreadCreate,
+  hooverErrThreadBegin,
+  hooverErrRayBegin,
+  hooverErrSample,
+  hooverErrRayEnd,
+  hooverErrThreadEnd,
+  hooverErrThreadJoin,
+  hooverErrRenderEnd,
+  hooverErrLast
 };
   
 /* methodsHoover.c */
-extern hoovContext *hoovContextNew();
-extern int hoovContextCheck(hoovContext *ctx);
-extern void hoovContextNix(hoovContext *ctx);
+extern hooverContext *hooverContextNew();
+extern int hooverContextCheck(hooverContext *ctx);
+extern void hooverContextNix(hooverContext *ctx);
 
 /* rays.c */
-extern int hoovRender(hoovContext *ctx, int *errCodeP, int *errThreadP);
+extern int hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP);
 
 /* stub.c */
-extern hoovRenderBegin_t hoovStubRenderBegin;
-extern hoovThreadBegin_t hoovStubThreadBegin;
-extern hoovRayBegin_t hoovStubRayBegin;
-extern hoovSample_t hoovStubSample;
-extern hoovRayEnd_t hoovStubRayEnd;
-extern hoovThreadEnd_t hoovStubThreadEnd;
-extern hoovRenderEnd_t hoovStubRenderEnd;
+extern hooverRenderBegin_t hooverStubRenderBegin;
+extern hooverThreadBegin_t hooverStubThreadBegin;
+extern hooverRayBegin_t hooverStubRayBegin;
+extern hooverSample_t hooverStubSample;
+extern hooverRayEnd_t hooverStubRayEnd;
+extern hooverThreadEnd_t hooverStubThreadEnd;
+extern hooverRenderEnd_t hooverStubRenderEnd;
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* HOOV_HAS_BEEN_INCLUDED */
+#endif /* HOOVER_HAS_BEEN_INCLUDED */

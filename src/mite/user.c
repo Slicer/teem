@@ -20,7 +20,7 @@
 #include "mite.h"
 
 miteUserInfo *
-miteUserInfoNew(hoovContext *ctx) {
+miteUserInfoNew(hooverContext *ctx) {
   miteUserInfo *muu;
 
   fprintf(stderr, "%s: ctx = %p\n", "miteUserInfoNew", ctx);
