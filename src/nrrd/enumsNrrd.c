@@ -26,7 +26,7 @@ _nrrdFormatStr[NRRD_FORMAT_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_format)",
   "nrrd",
   "pnm",
-  "table"
+  "text"
 };
 
 char
@@ -139,9 +139,10 @@ _nrrdTypeStrEqv[][AIR_STRLEN_SMALL] = {
   "ushort", "unsigned short", "unsigned short int", "uint16", "uint16_t", 
   "int", "signed int", "int32", "int32_t", 
   "uint", "unsigned int", "uint32", "uint32_t",
-  "long long", "long long int", "signed long long",
+  "longlong", "long long", "long long int", "signed long long",
                "signed long long int", "int64", "int64_t", 
-  "unsigned long long", "unsigned long long int", "uint64", "uint64_t", 
+  "ulonglong", "unsigned long long", "unsigned long long int",
+               "uint64", "uint64_t", 
   "float",
   "double",
   "block",
@@ -156,8 +157,8 @@ _nrrdTypeValEqv[] = {
   ntUS, ntUS, ntUS, ntUS, ntUS,
   ntIN, ntIN, ntIN, ntIN,
   ntUI, ntUI, ntUI, ntUI, 
-  ntLL, ntLL, ntLL, ntLL, ntLL, ntLL, 
-  ntUL, ntUL, ntUL, ntUL, 
+  ntLL, ntLL, ntLL, ntLL, ntLL, ntLL, ntLL, 
+  ntUL, ntUL, ntUL, ntUL, ntUL, 
   ntFL,
   ntDB,
   ntBL
@@ -169,7 +170,7 @@ _nrrdType = {
   NRRD_TYPE_MAX,
   _nrrdTypeStr, NULL,
   _nrrdTypeStrEqv, _nrrdTypeValEqv,
-  AIR_TRUE
+  AIR_FALSE
 };
 airEnum *
 nrrdType = &_nrrdType;
@@ -252,7 +253,7 @@ _nrrdCenter_enum = {
 airEnum *
 nrrdCenter = &_nrrdCenter_enum;
 
-/* ------------------------ nrrdAxisInfo ------------------------- */
+/* ------------------------ nrrdAxesInfo ------------------------- */
 
 char
 _nrrdAxesInfoStr[NRRD_AXESINFO_MAX+1][AIR_STRLEN_SMALL] = {
@@ -333,7 +334,7 @@ _nrrdFieldStrEqv[][AIR_STRLEN_SMALL]  = {
   "number",
   "type",
   "block size", "blocksize",
-  "dimension", "dim",
+  "dimension",
   "sizes",
   "spacings",
   "axis mins", "axismins",
@@ -345,7 +346,7 @@ _nrrdFieldStrEqv[][AIR_STRLEN_SMALL]  = {
   "old min", "oldmin",
   "old max", "oldmax",
   "data file", "datafile",
-  "endian", "endianness",
+  "endian",
   "encoding",
   "line skip", "lineskip",
   "byte skip", "byteskip",
@@ -359,7 +360,7 @@ _nrrdFieldValEqv[] = {
   nfNumber,
   nfType,
   nfBsize, nfBsize,
-  nfDim, nfDim,
+  nfDim,
   nfSizes,
   nfSpacings,
   nfAMins, nfAMins,
@@ -371,7 +372,7 @@ _nrrdFieldValEqv[] = {
   nfOMin,
   nfOMax,
   nfDataFile, nfDataFile,
-  nfEndian, nfEndian,
+  nfEndian,
   nfEncoding, 
   nfLineSkip, nfLineSkip,
   nfByteSkip, nfByteSkip,
@@ -383,7 +384,7 @@ _nrrdField = {
   NRRD_FIELD_MAX,
   _nrrdFieldStr, NULL,
   _nrrdFieldStrEqv, _nrrdFieldValEqv, 
-  AIR_TRUE
+  AIR_FALSE
 };
 airEnum *
 nrrdField = &_nrrdField;
@@ -516,6 +517,7 @@ _nrrdBinaryOpStr[NRRD_BINARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "^",
   "%",
   "fmod",
+  "atan2",
   "min",
   "max",
   "lt",
@@ -547,7 +549,7 @@ _nrrdBinaryOpStrEqv[][AIR_STRLEN_SMALL] = {
   "atan2", 
   "min", "minimum",
   "max", "maximum",
-  "LT", "less", "lessthan",
+  "lt", "less", "lessthan",
   "comp", "compare",
   ""
 };
