@@ -27,6 +27,9 @@ hestParmNew() {
   if (parm) {
     parm->verbosity = hestVerbosity;
     parm->respFileEnable = hestRespFileEnable;
+    parm->elideSingleOtherType = hestElideSingleOtherType;
+    parm->elideSingleNonExistFloatDefault = 
+      hestElideSingleNonExistFloatDefault;
     parm->columns = hestColumns;
     parm->respFileFlag = hestRespFileFlag;
     parm->respFileComment = hestRespFileComment;
@@ -180,14 +183,17 @@ hestOptCheck(hestOpt *opt, char **errP) {
 ** how to identify an option in error and usage messages
 */
 char *
-_hestIdent(char *ident, hestOpt *opt, hestParm *parm) {
+_hestIdent(char *ident, hestOpt *opt, hestParm *parm, int brief) {
   char copy[AIR_STRLEN_HUGE], *sep;
 
   if (opt->flag && (sep = strchr(opt->flag, parm->multiFlagSep))) {
     strcpy(copy, opt->flag);
     sep = strchr(copy, parm->multiFlagSep);
     *sep = '\0';
-    sprintf(ident, "-%s%c--%s option", copy, parm->multiFlagSep, sep+1);
+    if (brief) 
+      sprintf(ident, "-%s%c--%s option", copy, parm->multiFlagSep, sep+1);
+    else 
+      sprintf(ident, "-%s option", copy);
   }
   else {
     sprintf(ident, "%s%s%s option", 

@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 /* methods.c */
-extern char *_hestIdent(char *ident, hestOpt *opt, hestParm *parm);
+extern char *_hestIdent(char *ident, hestOpt *opt, hestParm *parm, int brief);
 extern int _hestKind(hestOpt *opt);
 extern void _hestPrintArgv(int argc, char **argv);
 extern int _hestWhichFlag(hestOpt *opt, char *flag, hestParm *parm);

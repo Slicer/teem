@@ -373,13 +373,13 @@ _hestExtractFlagged(char **prms, int *nprm, int *appr,
 	sprintf(err, "%shit end of line before getting %d parameter%s "
 		"for %s (got %d)",
 		ME, opt[flag].min, opt[flag].min > 1 ? "s" : "",
-		_hestIdent(ident1, opt+flag, parm), np);
+		_hestIdent(ident1, opt+flag, parm, AIR_TRUE), np);
       }
       else {
 	sprintf(err, "%shit %s before getting %d parameter%s for %s (got %d)",
-		ME, _hestIdent(ident1, opt+endflag, parm),
+		ME, _hestIdent(ident1, opt+endflag, parm, AIR_FALSE),
 		opt[flag].min, opt[flag].min > 1 ? "s" : "",
-		_hestIdent(ident2, opt+flag, parm), np);
+		_hestIdent(ident2, opt+flag, parm, AIR_FALSE), np);
       }
       return 1;
     }
@@ -414,9 +414,9 @@ _hestExtractFlagged(char **prms, int *nprm, int *appr,
   /* make sure that flagged options without default were given */
   numOpts = _hestNumOpts(opt);
   for (op=0; op<=numOpts-1; op++) {
-    if (opt[op].flag && !opt[op].dflt && !appr[op]) {
+    if (1 != opt[op].kind && opt[op].flag && !opt[op].dflt && !appr[op]) {
       sprintf(err, "%sdidn't get required %s",
-	      ME, _hestIdent(ident1, opt+op, parm));
+	      ME, _hestIdent(ident1, opt+op, parm, AIR_FALSE));
       return 1;
     }
   }
@@ -470,7 +470,7 @@ _hestExtractUnflagged(char **prms, int *nprm,
 	      argv[0] ? "starting at \"" : "",
 	      argv[0] ? argv[0] : "",
 	      argv[0] ? "\" " : "",
-	      _hestIdent(ident, opt+op, parm));
+	      _hestIdent(ident, opt+op, parm, AIR_TRUE));
       return 1;
     }
     prms[op] = _hestExtract(argcP, argv, 0, np);
@@ -495,7 +495,7 @@ _hestExtractUnflagged(char **prms, int *nprm,
     np = opt[op].min;
     sprintf(err, "%sdon't have %d parameter%s for %s", 
 	    ME, np, np > 1 ? "s" : "", 
-	    _hestIdent(ident, opt+op, parm));
+	    _hestIdent(ident, opt+op, parm, AIR_FALSE));
     return 1;
   }
   /* else we had enough args for all the unflagged options following
@@ -522,7 +522,7 @@ _hestExtractUnflagged(char **prms, int *nprm,
       sprintf(err, "%sdidn't get minimum of %d arg%s for %s (got %d)",
 	      ME, opt[unflagVar].min, 
 	      opt[unflagVar].min > 1 ? "s" : "",
-	      _hestIdent(ident, opt+unflagVar, parm), nvp);
+	      _hestIdent(ident, opt+unflagVar, parm, AIR_TRUE), nvp);
       return 1;
     }
     if (nvp) {
@@ -595,7 +595,7 @@ _hestDefaults(char **prms, int *udflt, int *nprm, int *appr,
 	if (!( AIR_INSIDE(opt[op].min, nprm[op], _hestMax(opt[op].max)) )) {
 	  sprintf(err, "%s# parameters (in default) for %s is %d, "
 		  "but need between %d and %d", 
-		  ME, _hestIdent(ident, opt+op, parm), nprm[op],
+		  ME, _hestIdent(ident, opt+op, parm, AIR_TRUE), nprm[op],
 		  opt[op].min, _hestMax(opt[op].max));
 	  return 1;
 	}
@@ -619,7 +619,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 
   numOpts = _hestNumOpts(opt);
   for (op=0; op<=numOpts-1; op++) {
-    _hestIdent(ident, opt+op, parm);
+    _hestIdent(ident, opt+op, parm, AIR_TRUE);
     type = opt[op].type;
     size = airTypeOther == type ? opt[op].CB->size : airTypeSize[type];
     cP = vP = opt[op].valueP;

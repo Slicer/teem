@@ -112,6 +112,13 @@ typedef struct {
 typedef struct {
   int verbosity,        /* verbose diagnostic messages to stdout */
     respFileEnable,     /* whether or not to use response files */
+    elideSingleOtherType, /* if type is "other" (based on callbacks),
+			   and if its a single fixed parameter option, then
+			   don't bother printing the type information as
+			   part of hestGlossary() */
+    elideSingleNonExistFloatDefault, /* if default for a single fixed
+			   floating point (float or double) parameter doesn't
+			   AIR_EXIST, then don't display the default */
     columns;            /* number of printable columns in output */
   char respFileFlag,    /* the character at the beginning of an argument
 			   indicating that this is a response file name */
@@ -128,6 +135,8 @@ typedef struct {
 /* defaults.c */
 extern int hestVerbosity;
 extern int hestRespFileEnable;
+extern int hestElideSingleOtherType;
+extern int hestElideSingleNonExistFloatDefault;
 extern int hestColumns;
 extern char hestRespFileFlag;
 extern char hestRespFileComment;
