@@ -778,7 +778,7 @@ _nrrdWriteNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io, int writeData) {
     }
 
     if (io->seperateHeader) {
-      io->dataFile = airFclose(io->dataFile);
+      AIR_FCLOSE(io->dataFile);
     } else {
       io->dataFile = NULL;
     }

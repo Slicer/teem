@@ -809,7 +809,7 @@ _nrrdReadNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   }
   if (io->seperateHeader && stdin != io->dataFile) {
     if (!io->keepSeperateDataFileOpen && !io->skipData) {
-      io->dataFile = airFclose(io->dataFile);
+      AIR_FCLOSE(io->dataFile);
     }
   } else {
     /* put things back the way we found them */

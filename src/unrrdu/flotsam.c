@@ -310,7 +310,7 @@ unrrduMaybeFclose(void *_file) {
   
   file = _file;
   if (stdin != file) {
-    return airFclose(file);
+    AIR_FCLOSE(file);
   }
   return NULL;
 }
