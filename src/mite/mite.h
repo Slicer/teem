@@ -149,6 +149,10 @@ typedef struct {
 			    doing early ray termination */
   hooverContext *hctx;   /* context and input for all hoover-related things,
 			    including camera and image parameters */
+  double fakeFrom[3],    /* if non-NaN, then the "V"-dependent miteVal's will
+			    use this as the nominal eye point, instead of what
+			    is actually being used in the hooverContext */
+    vectorD[3];          /* some vector to use for something */
   /* local initial copies of kernels, later passed to gageKernelSet */
   NrrdKernelSpec *ksp[GAGE_KERNEL_NUM];
   gageContext *gctx0;    /* context and input for all gage-related things,
@@ -186,7 +190,7 @@ enum {
   miteShadeMethodUnknown,
   miteShadeMethodNone,        /* 1: no direction shading based on anything
 				 in the miteShadeSpec: just ambient, though
-				 things are still compositited with the over
+				 things are still composited with the over
 				 operator, and transfer functions are free
 				 to implement whatever shading they can */
   miteShadeMethodPhong,       /* 2: what mite has been doing all along */
@@ -332,15 +336,17 @@ enum {
 			       (gage_t[3]) */
   miteValGTdotV,        /* 13: "GTdotV", normal curvature in view direction,
 			       the contraction of the geometry tensor along
-				he view vector (gage_t[1]) */
+			       the view vector (gage_t[1]) */
   miteValVdefT,         /* 14: "defT", view direction, deflected by tensor,
 			       then normalized (gage_t[3]) */
   miteValVdefTdotV,     /* 15: "VdefTdotV", VdefT dotted back with V, not the
 			       same as the tensor contraction along V,
 			       (gage_t[1]) */
+  miteValWdotD,         /* 16: "WdotD", world space position dotted with
+			       muu->vectorD */
   miteValLast
 };
-#define MITE_VAL_ITEM_MAX  15
+#define MITE_VAL_ITEM_MAX  16
 
 /*
 ******** miteThread

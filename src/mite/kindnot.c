@@ -38,7 +38,8 @@ _miteValStr[][AIR_STRLEN_SMALL] = {
   "VrefN",
   "GTdotV",
   "VdefT",
-  "VdefTdotV"
+  "VdefTdotV",
+  "WdotD"
 };
 
 int
@@ -59,7 +60,8 @@ _miteValVal[] = {
   miteValVrefN,
   miteValGTdotV,
   miteValVdefT,
-  miteValVdefTdotV
+  miteValVdefTdotV,
+  miteValWdotD,
 };
 
 char
@@ -79,7 +81,8 @@ _miteValStrEqv[][AIR_STRLEN_SMALL] = {
   "vrefn",
   "gtdotv",
   "vdeft",
-  "vdeftdotv"
+  "vdeftdotv",
+  "wdotd",
   ""
 };
 
@@ -100,7 +103,8 @@ _miteValValEqv[] = {
   miteValVrefN,
   miteValGTdotV,
   miteValVdefT,
-  miteValVdefTdotV
+  miteValVdefTdotV,
+  miteValWdotD
 };
 
 airEnum
@@ -139,7 +143,8 @@ _miteValTable[MITE_VAL_ITEM_MAX+1] = {
   {miteValVrefN,         3,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
   {miteValGTdotV,        1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
   {miteValVdefT,         3,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValVdefTdotV,     1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1}
+  {miteValVdefTdotV,     1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
+  {miteValWdotD,         1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1}
 };
 
 

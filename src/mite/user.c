@@ -47,6 +47,8 @@ miteUserNew() {
   muu->opacMatters = miteDefOpacMatters;
   muu->opacNear1 = miteDefOpacNear1;
   muu->hctx = hooverContextNew();
+  ELL_3V_SET(muu->fakeFrom, AIR_NAN, AIR_NAN, AIR_NAN);
+  ELL_3V_SET(muu->vectorD, 0, 0, 0);
   airMopAdd(muu->umop, muu->hctx, (airMopper)hooverContextNix, airMopAlways);
   for (i=0; i<GAGE_KERNEL_NUM; i++) {
     muu->ksp[i] = NULL;

@@ -144,6 +144,12 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
     return 0.0;
   }
 
+  /* set (fake) view based on fake from */
+  if (AIR_EXISTS(muu->fakeFrom[0])) {
+    ELL_3V_SUB(mtt->V, samplePosWorld, muu->fakeFrom);
+    ELL_3V_NORM(mtt->V, mtt->V, len);
+  }
+
   /* do probing at this location to determine values of everything
      that might appear in the txf domain */
   mtt->samples += 1;
