@@ -32,14 +32,14 @@ extern "C" {
 #define BIFF_MAXKEYLEN 128  /* maximum allowed key length (not counting 
 			       the null termination) */
 
-extern void biffSet(char *key, char *err);
-extern void biffAdd(char *key, char *err);
-extern void biffMaybeAdd(char *key, char *err, int useBiff);
-extern int biffCheck(char *key);
-extern void biffDone(char *key);
-extern void biffMove(char *destKey, char *err, char *srcKey);
-extern char *biffGet(char *key);
-extern char *biffGetDone(char *key);
+extern void biffSet(const char *key, const char *err);
+extern void biffAdd(const char *key, const char *err);
+extern void biffMaybeAdd(const char *key, const char *err, int useBiff);
+extern int biffCheck(const char *key);
+extern void biffDone(const char *key);
+extern void biffMove(const char *destKey, const char *err, const char *srcKey);
+extern char *biffGet(const char *key);
+extern char *biffGetDone(const char *key);
 
 #ifdef __cplusplus
 }
