@@ -45,7 +45,7 @@ typedef size_t IT;
 
 /*
 ** I don't think that I can get out of defining this macro twice,
-** because of the rules off C preprocessor macro expansion.  If
+** because of the rules of C preprocessor macro expansion.  If
 ** you can figure out a way to not use two identical macros, then
 ** email me (gk@cs.utah.edu) and I'll send you money for dinner.
 **
