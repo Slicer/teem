@@ -332,27 +332,28 @@ enum {
   nrrdMeasureLinf,           /* 10 */
   nrrdMeasureVariance,       /* 11 */
   nrrdMeasureSD,             /* 12: standard deviation */
+  nrrdMeasureSkew,           /* 13: skew */
   /* 
   ** the nrrduMeasureHisto... measures interpret the array as a
   ** histogram of some implied value distribution
   */
-  nrrdMeasureHistoMin,       /* 13 */
-  nrrdMeasureHistoMax,       /* 14 */
-  nrrdMeasureHistoMean,      /* 15 */
-  nrrdMeasureHistoMedian,    /* 16 */
-  nrrdMeasureHistoMode,      /* 17 */
-  nrrdMeasureHistoProduct,   /* 18 */
-  nrrdMeasureHistoSum,       /* 19 */
-  nrrdMeasureHistoL2,        /* 20 */
-  nrrdMeasureHistoVariance,  /* 21 */
-  nrrdMeasureHistoSD,        /* 22 */
+  nrrdMeasureHistoMin,       /* 14 */
+  nrrdMeasureHistoMax,       /* 15 */
+  nrrdMeasureHistoMean,      /* 16 */
+  nrrdMeasureHistoMedian,    /* 17 */
+  nrrdMeasureHistoMode,      /* 18 */
+  nrrdMeasureHistoProduct,   /* 19 */
+  nrrdMeasureHistoSum,       /* 20 */
+  nrrdMeasureHistoL2,        /* 21 */
+  nrrdMeasureHistoVariance,  /* 22 */
+  nrrdMeasureHistoSD,        /* 23 */
   nrrdMeasureLast
 };
-#define NRRD_MEASURE_MAX        22
+#define NRRD_MEASURE_MAX        23
 #define NRRD_MEASURE_DESC \
    "Possibilities include:\n " \
-   "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", \"variance\"\n " \
-     "(self-explanatory)\n " \
+   "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", \"variance\", " \
+     "\"skew\"\n (self-explanatory)\n " \
    "\b\bo \"sd\": standard deviation\n " \
    "\b\bo \"product\", \"sum\": product or sum of all values\n " \
    "\b\bo \"L1\", \"L2\", \"Linf\": different norms\n " \

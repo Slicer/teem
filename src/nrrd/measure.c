@@ -393,6 +393,68 @@ _nrrdMeasureSD(void *ans, int ansType,
   nrrdDStore[ansType](ans, sqrt(var));
 }
 
+void
+_nrrdMeasureSkew(void *ans, int ansType,
+		 const void *line, int lineType, int len, 
+		 double axmin, double axmax) {
+  double val, diff, mean, vari, third;
+  int i, count;
+  
+  /* we don't try to do any one-pass short-cuts */
+
+  /* find the mean */
+  mean = 0;
+  if (nrrdTypeIsIntegral[lineType]) {
+    count = len;
+    for (i=0; i<len; i++) {
+      val = nrrdDLookup[lineType](line, i);
+      mean += val;
+    }
+  } else {
+    count = 0;
+    for (i=0; i<len; i++) {
+      val = nrrdDLookup[lineType](line, i);
+      if (AIR_EXISTS(val)) {
+	count++;
+	mean += val;
+      }
+    }
+  }
+  if (0 == count) {
+    nrrdDStore[ansType](ans, AIR_NAN);
+    return;
+  }
+  mean /= count;
+
+  /* find the variance and third moment */
+  vari = third = 0;
+  if (nrrdTypeIsIntegral[lineType]) {
+    for (i=0; i<len; i++) {
+      diff = nrrdDLookup[lineType](line, i) - mean;
+      vari += diff*diff;
+      third += diff*diff*diff;
+    }
+  } else {
+    for (i=0; i<len; i++) {
+      val = nrrdDLookup[lineType](line, i);
+      if (AIR_EXISTS(val)) {
+	diff = val - mean;
+	vari += diff*diff;
+	third += diff*diff*diff;
+      }
+    }
+  }
+  if (0 == vari) {
+    /* why not have an existant value ... */
+    nrrdDStore[ansType](ans, 0);
+    return;
+  }
+  vari /= count;
+  third /= count;
+
+  nrrdDStore[ansType](ans, third/(vari*sqrt(vari)));
+}
+
 /*
 ** one thing which ALL the _nrrdMeasureHisto measures assume is that,
 ** being a histogram, the input array will not have any non-existant
@@ -699,6 +761,7 @@ nrrdMeasureLine[NRRD_MEASURE_MAX+1])(void *, int,
   _nrrdMeasureLinf,
   _nrrdMeasureVariance,
   _nrrdMeasureSD,
+  _nrrdMeasureSkew,
   _nrrdMeasureHistoMin,
   _nrrdMeasureHistoMax,
   _nrrdMeasureHistoMean,
@@ -738,6 +801,7 @@ _nrrdMeasureType(const Nrrd *nin, int measr) {
   case nrrdMeasureLinf:
   case nrrdMeasureVariance:
   case nrrdMeasureSD:
+  case nrrdMeasureSkew:
     type = nrrdStateMeasureType;
     break;
   case nrrdMeasureHistoMin:
