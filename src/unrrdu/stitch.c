@@ -22,9 +22,6 @@ char *me;
 
 void
 usage() {
-              /*  0      1        2          argc-3  argc-2  argc-1  (argc) */
-  fprintf(stderr, 
-	  "usage: %s <NameIn0> <NameIn1> ... <axis> <label> <NameOut>\n", me);
               /*  0    1      2       3      4          argc-2  argc-1 (argc)*/
   fprintf(stderr, 
 	  "usage: %s <axis> <label> <nin0> <nin1> ... <nin(n-1)> <NameOut>\n",
@@ -65,7 +62,7 @@ main(int argc, char *argv[]) {
   /* the first nrrd we read in sets the standard for dimension,
      number, type, and axis sizes that all subsequent nrrds have to
      match */
-  if (!(nin[0] = nrrdNewOpen(argv[3]))) {
+  if (!(nin[0] = nrrdNewLoad(argv[3]))) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error reading nrrd from \"%s\":\n%s\n", 
 	    me, argv[3], err);
@@ -73,7 +70,7 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   for (pos=1; pos<=size-1; pos++) {
-    if (!(nin[pos] = nrrdNewOpen(argv[3+pos]))) {
+    if (!(nin[pos] = nrrdNewLoad(argv[3+pos]))) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: error reading nrrd from \"%s\":\n%s\n", 
 	      me, argv[3+pos], err);

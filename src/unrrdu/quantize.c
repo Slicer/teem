@@ -63,7 +63,7 @@ main(int argc, char **argv) {
     fprintf(stderr, "%s: didn't recognize \"%s\" as an int\n", me, bitStr);
     exit(1);
   }
-  if (!(nin = nrrdNewOpen(ninStr))) {
+  if (!(nin = nrrdNewLoad(ninStr))) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble reading nrrd from \"%s\":\n%s\n", 
 	    me, ninStr, err);

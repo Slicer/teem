@@ -47,7 +47,7 @@ main(int argc, char **argv) {
     fprintf(stderr, "%s: couldn't parse \"%s\" as int\n", me, argv[3]);
     exit(1);
   }
-  if (!(nrrd = nrrdNewOpen(argv[1]))) {
+  if (!(nrrd = nrrdNewLoad(argv[1]))) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble reading nrrd from %s:\n%s", 
 	    me, argv[1], err);
@@ -74,7 +74,7 @@ main(int argc, char **argv) {
       free(err);
       exit(1);
     }
-    printf("%s: wrote \"BEFORE\" histogram image in hist0.pgm\n", me);
+    fprintf(stderr, "%s: wrote \"BEFORE\" histogram image in hist0.pgm\n", me);
     fclose(file);
     nrrdNuke(pgm);
     nrrdNuke(hist);
@@ -100,7 +100,7 @@ main(int argc, char **argv) {
       free(err);
       exit(1);
     }
-    printf("%s: wrote \"AFTER\" histogram image in hist1.pgm\n", me);
+    fprintf(stderr, "%s: wrote \"AFTER\" histogram image in hist1.pgm\n", me);
     fclose(file);
     nrrdNuke(pgm);
     nrrdNuke(hist);

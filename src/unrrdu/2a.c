@@ -36,7 +36,7 @@ main(int argc, char **argv) {
   me = argv[0];
   if (3 != argc)
     usage();
-  if (!(nin = nrrdNewOpen(argv[1]))) {
+  if (!(nin = nrrdNewLoad(argv[1]))) {
     err = biffGet(NRRD);
     fprintf(stderr, 
 	    "%s: trouble reading nrrd from \"%s\":\n%s\n", me, argv[1], err);

@@ -46,7 +46,7 @@ main(int argc, char *argv[]) {
   in = argv[1];
   out = argv[4];
 
-  if (!(nin = nrrdNewOpen(in))) {
+  if (!(nin = nrrdNewLoad(in))) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: couldn't get nrrd from %s:\n%s\n", me, in, err);
     free(err);

@@ -52,7 +52,7 @@ main(int argc, char *argv[]) {
     }
     axis[i] = ax;
   }
-  if (!(nin = nrrdNewOpen(in))) {
+  if (!(nin = nrrdNewLoad(in))) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error reading nrrd from \"%s\":\n%s\n", me, in, err);
     free(err);
@@ -69,6 +69,7 @@ main(int argc, char *argv[]) {
     free(err);
     exit(1);
   }
+
   nout->encoding = nin->encoding;
   if (nrrdSave(out, nout)) {
     err = biffGet(NRRD);

@@ -32,8 +32,8 @@ usage() {
   fprintf(stderr, "     \"cubic:1,0\": B-spline w/ maximal blurring\n");
   fprintf(stderr, "     \"cubic:0,0.5\": Catmull-Rom kernel\n");
   fprintf(stderr, "    (\"cubic:0,C\": all interpolating cubics)\n");
-  fprintf(stderr, "  \"quartic:A\": Gordon's family of interpolating quartics\n");
-  fprintf(stderr, "     \"quartic:0.25\": most sinc()-like; use this!\n\n");
+  fprintf(stderr, "  \"quartic:A\": 1-parameter family of interpolating quartics\n");
+  fprintf(stderr, "     \"quartic:0.0834\": minimizes aliasing (in one sense)\n");
   fprintf(stderr, "<sizeN> is per-axis resizing info; options are:\n");
   fprintf(stderr, "  \"=\": no resampling at all on this axis\n");
   fprintf(stderr, "  <int>: exact number of samples desired\n");
@@ -59,7 +59,7 @@ main(int argc, char *argv[]) {
   in = argv[1];
   kernS = argv[2];
   out = argv[argc-1];
-  if (!(nin = nrrdNewOpen(in))) {
+  if (!(nin = nrrdNewLoad(in))) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble reading nrrd from \"%s\":%s\n", me, in, err);
     free(err);

@@ -53,7 +53,7 @@ main(int argc, char **argv) {
     fprintf(stderr, "%s: sorry, can't write PNMs to stdout yet\n", me);
     exit(1);
   }
-  if (!(nin = nrrdNewOpen(inStr))) {
+  if (!(nin = nrrdNewLoad(inStr))) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: can't read nrrd from \"%s\":\n%s", me, inStr, err);
     free(err);

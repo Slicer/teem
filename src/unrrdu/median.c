@@ -54,7 +54,7 @@ main(int argc, char *argv[]) {
     exit(1);
   }
 
-  if (!(nin = nrrdNewOpen(inStr))) {
+  if (!(nin = nrrdNewLoad(inStr))) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error reading nrrd from \"%s\":%s\n", me, inStr, err);
     free(err);

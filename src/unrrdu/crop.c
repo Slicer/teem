@@ -95,7 +95,7 @@ main(int argc, char *argv[]) {
       usage();
     }
   }
-  if (!(nin = nrrdNewOpen(inStr))) {
+  if (!(nin = nrrdNewLoad(inStr))) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble reading input:%s\n", me, err);
     free(err);

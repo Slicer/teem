@@ -59,7 +59,7 @@ main(int argc, char *argv[]) {
   }
   if (fin = fopen(in1Str, "r")) {
     fclose(fin);
-    if (!(nin1 = nrrdNewOpen(in1Str))) {
+    if (!(nin1 = nrrdNewLoad(in1Str))) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: error reading first nrrd:%s\n", me, err);
       free(err);
@@ -76,7 +76,7 @@ main(int argc, char *argv[]) {
 
   if (fin = fopen(in2Str, "r")) {
     fclose(fin);
-    if (!(nin2 = nrrdNewOpen(in2Str))) {
+    if (!(nin2 = nrrdNewLoad(in2Str))) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: error reading second nrrd:%s\n", me, err);
       free(err);
