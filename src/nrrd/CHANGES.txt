@@ -24,9 +24,15 @@ nrrdApply1DIrregMap() uses the same two arguments.
 - API CHANGE: nrrdHistoEq() can no longer allow nin==nout,
 because of restrictions in nrrdApply1DRegMap().  This may
 be fixed some day.
+- API CHANGE: "longlong" new name for nrrdTypeLLong; 
+"ulonglong" new name for nrrdTypeULLong
 - API CHANGE: (but no one should notice): added dataFN[]
 (data filename) to NrrdIO struct, basically so that
 "unu make -h" can subvert _nrrdWriteNrrd().
+- API CHANGE: (but no one should notice): there are no
+more statically allocated strings in the NrrdIO, and 
+no more NRRD_STRLEN_LINE.  Everything is dynamically 
+allocated to allow arbitrarily long lines.  
 - API NEW: added nrrdPad_nva, and nrrdSimplePad_nva
 - API NEW: added nrrdUnquantize(), which provides a way of
 approximating floating point data prior to a quantization.
