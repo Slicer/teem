@@ -51,7 +51,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   echoGlobalState *gstate;
   tenGlyphParm *gparm;
   float bg[3];
-  int ires[2], slice[2];
+  int ires[2], slice[2], nobg;
 
   /* so that command-line options can be read from file */
   hparm->respFileEnable = AIR_TRUE;
@@ -192,6 +192,9 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	      "(* postscript only *) "
 	     "scaling from screen space units to postscript units "
 	     "(in points)");
+  hestOptAdd(&hopt, "nobg", NULL, airTypeInt, 0, 0, &nobg, NULL,
+	      "(* postscript only *) "
+	     "don't initially fill with background color");
 
   /* ray-traced-specific options */
   hestOptAdd(&hopt, "is", "nx ny", airTypeInt, 2, 2, ires, "256 256",
@@ -281,6 +284,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     win->ps.lineWidth[limnEdgeTypeFrontCrease] = gparm->edgeWidth[1];
     win->ps.lineWidth[limnEdgeTypeFrontFacet] = gparm->edgeWidth[2];
     win->ps.creaseAngle = 70;
+    win->ps.noBackground = nobg;
     ELL_3V_COPY(win->ps.bg, bg);
     if (limnObjectRender(glyph, cam, win)
 	|| limnObjectPSDraw(glyph, cam, emap, win)) {
