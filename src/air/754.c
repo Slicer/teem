@@ -167,11 +167,11 @@ airFPGen_f(int cls) {
     FP_SET_F(f, 1, 0xff, 0);
     break;
   case airFP_POS_NORM:
-    /* exp: anything non-zero but < 255, mant: anything */
+    /* exp: anything non-zero but < 0xff, mant: anything */
     FP_SET_F(f, 0, 0x80, 0x7ff000);     
     break;
   case airFP_NEG_NORM:
-    /* exp: anything non-zero but < 255, mant: anything */
+    /* exp: anything non-zero but < 0xff, mant: anything */
     FP_SET_F(f, 1, 0x80, 0x7ff000);     
     break;
   case airFP_POS_DENORM:
@@ -204,6 +204,7 @@ airFPGen_f(int cls) {
 double
 airFPGen_d(int cls) {
   _airDouble f;
+
   switch(cls) {
   case airFP_SNAN:
     /* sgn: anything, mant: anything non-zero with high bit !TEEM_QNANHIBIT */
@@ -220,11 +221,11 @@ airFPGen_d(int cls) {
     FP_SET_D(f, 1, 0x7ff, 0, 0);
     break;
   case airFP_POS_NORM:
-    /* exp: anything non-zero but < 255, mant: anything */
+    /* exp: anything non-zero but < 0xff, mant: anything */
     FP_SET_D(f, 0, 0x400, 0x7ff000, 0);     
     break;
   case airFP_NEG_NORM:
-    /* exp: anything non-zero but < 255, mant: anything */
+    /* exp: anything non-zero but < 0xff, mant: anything */
     FP_SET_D(f, 1, 0x400, 0x7ff000, 0);     
     break;
   case airFP_POS_DENORM:
@@ -274,20 +275,22 @@ airFPClass_f(float val) {
     break;
   case 2: 
     /* only exponent field is non-zero */
-    if (255 > exp)
-      ret = airFP_POS_NORM;
-    else
+    if (0xff == exp) {
       ret = airFP_POS_INF;
+    } else {
+      ret = airFP_POS_NORM;
+    }
     break;
   case 3:
     /* exponent and mantissa fields are non-zero */
-    if (255 > exp)
-      ret = airFP_POS_NORM;
-    else {
-      if (TEEM_QNANHIBIT == mant >> 22)
+    if (0xff == exp) {
+      if (TEEM_QNANHIBIT == mant >> 22) {
         ret = airFP_QNAN;
-      else
+      } else {
         ret = airFP_SNAN;
+      }
+    } else {
+      ret = airFP_POS_NORM;
     }
     break;
   case 4: 
@@ -300,20 +303,22 @@ airFPClass_f(float val) {
     break;
   case 6:
     /* sign and exponent fields are non-zero */
-    if (0xff > exp)
+    if (0xff > exp) {
       ret = airFP_NEG_NORM;
-    else
+    } else {
       ret = airFP_NEG_INF;
+    }
     break;
   case 7:
     /* all fields are non-zero */
-    if (0xff > exp)
+    if (0xff > exp) {
       ret = airFP_NEG_NORM;
-    else {
-      if (TEEM_QNANHIBIT == mant >> 22)
+    } else {
+      if (TEEM_QNANHIBIT == mant >> 22) {
         ret = airFP_QNAN;
-      else
+      } else {
         ret = airFP_SNAN;
+      }
     }
     break;
   }
@@ -428,7 +433,7 @@ airIsNaN(float g) {
   _airFloat f;
   
   f.v = g;
-  return (255 == f.c.expo && f.c.mant);
+  return (0xff == f.c.expo && f.c.mant);
 }
 
 /*
@@ -446,12 +451,13 @@ airIsInf_f(float f) {
   int c, ret;
   
   c = airFPClass_f(f);
-  if (airFP_POS_INF == c)
+  if (airFP_POS_INF == c) {
     ret = 1;
-  else if (airFP_NEG_INF == c)
+  } else if (airFP_NEG_INF == c) {
     ret = -1;
-  else 
+  } else {
     ret = 0;
+  }
   return ret;
 }
 int
@@ -459,51 +465,30 @@ airIsInf_d(double d) {
   int c, ret;
   
   c = airFPClass_d(d);
-  if (airFP_POS_INF == c)
+  if (airFP_POS_INF == c) {
     ret = 1;
-  else if (airFP_NEG_INF == c)
+  } else if (airFP_NEG_INF == c) {
     ret = -1;
-  else 
+  } else {
     ret = 0;
+  }
   return ret;
 }
 
-/*
-******** airExists_f(), airExists_d()
-**
-** returns 1 iff given float/double is not NaN and is not an infinity,
-** otherwize 0.
-*/
-/* #ifndef __BORLANDC__ */
-/* #ifdef _WIN32 */
-/* __inline */
-/* #endif */
-/* #endif */
-int
-airExists_f(float f) { return AIR_EXISTS_F(f); }
-
-/* #ifndef __BORLANDC__ */
-/* #ifdef _WIN32 */
-/* __inline */
-/* #endif */
-/* #endif */
-int
-airExists_d(double d) { return AIR_EXISTS_D(d); }
+/* airExists_f() airExists_d() were nixed because they weren't used- 
+  you can just use AIR_EXISTS_F and AIR_EXISTS_D directly */
 
 /*
 ******** airExists()
 **
-** should be completely reliable and obvious, no attempts at inlining
+** an optimization-proof alternative to AIR_EXISTS
 */
 int
-airExists(double d) {
-  int cls;
+airExists(double val) {
+  _airDouble d;
 
-  cls = airFPClass_d(d);
-  return (cls != airFP_SNAN
-          && cls != airFP_QNAN
-          && cls != airFP_POS_INF
-          && cls != airFP_NEG_INF);
+  d.v = val;
+  return 0x7ff != d.c.expo;
 }
 
 /*

@@ -311,8 +311,6 @@ TEEM_API float airNaN(void);
 TEEM_API int airIsNaN(float f);
 TEEM_API int airIsInf_f(float f);
 TEEM_API int airIsInf_d(double d);
-TEEM_API int airExists_f(float f);
-TEEM_API int airExists_d(double d);
 TEEM_API int airExists(double d);
 
 /* ---- BEGIN non-NrrdIO */
@@ -594,6 +592,8 @@ TEEM_API void airMopDebug(airArray *arr);
 #define AIR_EXISTS(x) (!((x) - (x)))
 #endif
 
+/* ---- BEGIN non-NrrdIO */
+
 /*
 ******** AIR_EXISTS_F(x)
 **
@@ -634,6 +634,8 @@ TEEM_API void airMopDebug(airArray *arr);
 */
 #define AIR_ISNAN_F(x) (((*(unsigned int*)&(x) & 0x7f800000)==0x7f800000) && \
                          (*(unsigned int*)&(x) & 0x007fffff))
+
+/* ---- END non-NrrdIO */
 
 /*
 ******** AIR_MAX(a,b), AIR_MIN(a,b), AIR_ABS(a)
