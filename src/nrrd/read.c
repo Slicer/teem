@@ -1043,7 +1043,7 @@ _nrrdReadPNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   /* create image info struct */
   info = png_create_info_struct(png);
   if (info == NULL) {
-    png_destroy_read_struct(&png, png_infopp_NULL, png_infopp_NULL);
+    png_destroy_read_struct(&png, NULL, NULL);
     sprintf(err, "%s: failed to create PNG image info struct", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -1051,7 +1051,7 @@ _nrrdReadPNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   if (setjmp(png->jmpbuf)) {
     /* the error is reported inside the handler, 
        but we still need to clean up and return */
-    png_destroy_read_struct(&png, &info, png_infopp_NULL);
+    png_destroy_read_struct(&png, &info, NULL);
     return 1;
   }
   /* initialize png I/O */
@@ -1066,7 +1066,7 @@ _nrrdReadPNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
      before the first data chunk */
   png_read_info(png, info);
   png_get_IHDR(png, info, &width, &height, &depth, &type, 
-	       int_p_NULL, int_p_NULL, int_p_NULL);
+	       NULL, NULL, NULL);
   /* expand paletted colors into rgb triplets */
   if (type == PNG_COLOR_TYPE_PALETTE)
     png_set_palette_to_rgb(png);
@@ -1124,13 +1124,13 @@ _nrrdReadPNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
     }
     break;
     default:
-    png_destroy_read_struct(&png, &info, png_infopp_NULL);
+    png_destroy_read_struct(&png, &info, NULL);
     sprintf(err, "%s: unknown png type: %d", me, type);
     biffAdd(NRRD, err); return 1;
     break;
   }
   if (nrrdMaybeAlloc_nva(nrrd, ntype, ndim, nsize)) {
-    png_destroy_read_struct(&png, &info, png_infopp_NULL);
+    png_destroy_read_struct(&png, &info, NULL);
     sprintf(err, "%s: failed to allocate nrrd", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -1138,7 +1138,7 @@ _nrrdReadPNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   rowsize = png_get_rowbytes(png, info);
   /* check byte size */
   if (nrrdElementNumber(nrrd)*nrrdElementSize(nrrd) != height*rowsize) {
-    png_destroy_read_struct(&png, &info, png_infopp_NULL);
+    png_destroy_read_struct(&png, &info, NULL);
     sprintf(err, "%s: size mismatch", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -1210,7 +1210,7 @@ _nrrdReadPNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   png_read_end(png, info);
   /* clean up */
   airFree(row);
-  png_destroy_read_struct(&png, &info, png_infopp_NULL);
+  png_destroy_read_struct(&png, &info, NULL);
 
   return 0;
 #else

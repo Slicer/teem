@@ -912,7 +912,7 @@ _nrrdWritePNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   /* create image info struct */
   info = png_create_info_struct(png);
   if (info == NULL) {
-    png_destroy_write_struct(&png, png_infopp_NULL);
+    png_destroy_write_struct(&png, NULL);
     sprintf(err, "%s: failed to create PNG image info struct", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -921,7 +921,7 @@ _nrrdWritePNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   {
     /* the error is reported inside the error handler, 
        but we still need to clean up an return with an error */
-    png_destroy_read_struct(&png, &info, png_infopp_NULL);
+    png_destroy_read_struct(&png, &info, NULL);
     return 1;
   }
   /* initialize png I/O */
