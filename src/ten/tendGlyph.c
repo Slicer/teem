@@ -106,7 +106,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "0.5", "Glyphs will be drawn only for tensors with mask "
 	     "value greater than this threshold");
 
-  /* how glyphs will be shaped and colored */
+  /* how glyphs will be shaped */
   hestOptAdd(&hopt, "g", "glyph shape", airTypeEnum, 1, 1,
 	     &(gparm->glyphType), "box",
 	     "shape of glyph to use for display.  Possibilities "
@@ -119,9 +119,19 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "mean that edges form more easily");
   hestOptAdd(&hopt, "gsc", "scale", airTypeFloat, 1, 1, &(gparm->glyphScale),
 	     "0.01", "over-all glyph size in world-space");
+
+  /* how glyphs will be colored */
+  hestOptAdd(&hopt, "v", "evector #", airTypeInt, 1, 1, &(gparm->colEvec), "0",
+	     "which eigenvector should determine coloring. "
+	     "\"0\", \"1\", \"2\" are principal, medium, and minor");
   hestOptAdd(&hopt, "sat", "saturation", airTypeFloat, 1, 1,
 	     &(gparm->colMaxSat), "1.0",
 	     "maximal saturation to use on glyph colors (use 0.0 for B+W)");
+  hestOptAdd(&hopt, "am", "aniso mod", airTypeFloat, 1, 1,
+	     &(gparm->anisoModulate),
+	     "0.0", "How much to modulate saturation by anisotropy (as "
+	     "chosen by \"-a\").  If 1.0, then glyphs for zero anisotropy "
+	     "data points will have no hue. ");
   hestOptAdd(&hopt, "gam", "gamma", airTypeFloat, 1, 1, &(gparm->colGamma),
 	     "0.7", "gamma to use on color components (after saturation)");
   hestOptAdd(&hopt, "emap", "env map", airTypeOther, 1, 1, &emap, "",
@@ -139,6 +149,9 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     &(gparm->sliceOffset), "0.0",
 	     "Offset from slice position to render slice at (so that it "
 	     "doesn't occlude glyphs).");
+  hestOptAdd(&hopt, "sg", "slice gamma", airTypeFloat, 1, 1, 
+	     &(gparm->sliceAnisoGamma), "1.7",
+	     "Gamma to apply to anisotropy values on slice.");
 
   /* camera */
   hestOptAdd(&hopt, "fr", "from point", airTypeDouble, 3, 3, cam->from, NULL,

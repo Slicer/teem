@@ -43,7 +43,7 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   NrrdKernelSpec *ksp;
   Nrrd **nin, **nout, *ngrad;
-  int ref, ninLen, noverbose, progress, nocc, ni;
+  int ref, ninLen, noverbose, progress, nocc, ni, baseNum;
   float bw[2], thr, fitFrac;
   
   hestOptAdd(&hopt, "i", "dwi0 dwi1", airTypeOther, 3, -1, &nin, NULL,
@@ -95,6 +95,8 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "kernel for resampling DWIs along the phase-encoding "
 	     "direction during final registration stage",
 	     NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "bn", "base #", airTypeInt, 1, 1, &baseNum, "1",
+	     "first number to use in numbered sequence of output files.");
   hestOptAdd(&hopt, "o", "prefix", airTypeString, 1, 1, &outS, NULL,
 	     "prefix for output filenames.  Will save out one (registered) "
 	     "DWI for each input DWI, using the same type as the input.");
@@ -126,12 +128,12 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop); exit(1);
   }
   for (ni=0; ni<ninLen; ni++) {
-    if (ninLen > 99) {
-      sprintf(buff, "%s%05d.nrrd", outS, ni);
-    } else if (ninLen > 9) {
-      sprintf(buff, "%s%02d.nrrd", outS, ni);
+    if (ninLen+baseNum > 99) {
+      sprintf(buff, "%s%05d.nrrd", outS, ni+baseNum);
+    } else if (ninLen+baseNum > 9) {
+      sprintf(buff, "%s%02d.nrrd", outS, ni+baseNum);
     } else {
-      sprintf(buff, "%s%d.nrrd", outS, ni);
+      sprintf(buff, "%s%d.nrrd", outS, ni+baseNum);
     }
     if (nrrdSave(buff, nout[ni], NULL)) {
       airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
