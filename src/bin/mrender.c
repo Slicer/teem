@@ -422,7 +422,7 @@ main(int argc, char *argv[]) {
 	     "value reconstruction kernel",
 	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k11", "kernel", airTypeOther, 1, 1,
-	     &(uu->ksp[gageKernel11]), "fordif",
+	     &(uu->ksp[gageKernel11]), "cubicd:1,0",
 	     "first derivative kernel",
 	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k22", "kernel", airTypeOther, 1, 1,

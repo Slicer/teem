@@ -72,7 +72,7 @@ main(int argc, char *argv[]) {
 	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k11", "kernel", airTypeOther, 1, 1,
 	     &(muu->ksp[gageKernel11]),
-	     "fordif", "first derivative kernel",
+	     "cubicd:1,0", "first derivative kernel",
 	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k22", "kernel", airTypeOther, 1, 1,
 	     &(muu->ksp[gageKernel22]),

@@ -113,10 +113,10 @@ main(int argc, char *argv[]) {
 	     "tent", "kernel for gageKernel00",
 	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k11", "kern11", airTypeOther, 1, 1, &k11,
-	     "fordif", "kernel for gageKernel11",
+	     "cubicd:1,0", "kernel for gageKernel11",
 	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k22", "kern22", airTypeOther, 1, 1, &k22,
-	     "fordif", "kernel for gageKernel22",
+	     "cubicdd:1,0", "kernel for gageKernel22",
 	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "rn", NULL, airTypeInt, 0, 0, &renorm, NULL,
 	     "renormalize kernel weights at each new sample location. "
