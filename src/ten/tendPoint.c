@@ -32,7 +32,7 @@ tend_pointMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int loc[3], sx, sy, sz, i;
+  int loc[3], idx, sx, sy, sz, i;
   Nrrd *nin;
   float *tdata, eval[3], evec[9], c[TEN_ANISO_MAX+1],
     angle, axis[3], mat[9];
@@ -66,8 +66,9 @@ tend_pointMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop); return 1;
   }
 
-  tdata = (float*)(nin->data) + 7*(loc[0] + sx*(loc[1] + sy*loc[2]));
-  fprintf(stderr, "location = (%d,%d,%d)\n", loc[0], loc[1], loc[2]);
+  idx = loc[0] + sx*(loc[1] + sy*loc[2]);
+  tdata = (float*)(nin->data) + 7*idx;
+  fprintf(stderr, "location = (%d,%d,%d) = %d\n", loc[0], loc[1], loc[2], idx);
   fprintf(stderr, "confidence = %g\n", tdata[0]);
   fprintf(stderr, "tensor =\n");
   fprintf(stderr, "{%.7f,%.7f,%.7f,%.7f,%.7f,%.7f} = \n",

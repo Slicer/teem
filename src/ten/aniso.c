@@ -171,9 +171,9 @@ tenAnisoPlot(Nrrd *nout, int aniso, int res, int whole, int nanout) {
 int
 tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, float thresh) {
   char me[]="tenAnisoVolume", err[AIR_STRLEN_MED];
-  size_t N, I;
+  size_t N, I, _I;
   float *out, *in, *tensor, eval[3], evec[9], c[TEN_ANISO_MAX+1];
-  int sx, sy, sz, map[NRRD_DIM_MAX];
+  int sx, sy, sz, size[3], coord[3], map[NRRD_DIM_MAX];
 
   if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
     sprintf(err, "%s: didn't get a tensor nrrd", me);
@@ -185,9 +185,9 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, float thresh) {
   }
   thresh = AIR_CLAMP(0.0, thresh, 1.0);
 
-  sx = nin->axis[1].size;
-  sy = nin->axis[2].size;
-  sz = nin->axis[3].size;
+  size[0] = sx = nin->axis[1].size;
+  size[1] = sy = nin->axis[2].size;
+  size[2] = sz = nin->axis[3].size;
   N = sx*sy*sz;
   if (nrrdMaybeAlloc(nout, nrrdTypeFloat, 3, sx, sy, sz)) {
     sprintf(err, "%s: trouble", me);
@@ -204,8 +204,12 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, float thresh) {
     }
     tenEigensolve(eval, evec, tensor);
     if (!(AIR_EXISTS(eval[0]) && AIR_EXISTS(eval[1]) && AIR_EXISTS(eval[2]))) {
-      sprintf(err, "%s: not all eigenvalues exist (%g,%g,%g) at sample %d",
-	      me, eval[0], eval[1], eval[2], (int)I);
+      _I = I;
+      NRRD_COORD_GEN(coord, size, 3, _I);
+      sprintf(err, "%s: not all eigenvalues exist (%g,%g,%g) at sample "
+	      "%d = (%d,%d,%d)",
+	      me, eval[0], eval[1], eval[2], (int)I,
+	      coord[0], coord[1], coord[2]);
       biffAdd(TEN, err); return 1;
     }
     tenAnisoCalc(c, eval);
