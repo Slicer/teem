@@ -688,3 +688,16 @@ tenRotationTangents_d(double phi1[7],
   return;
 }
 
+void
+tenInv_f(float inv[7], float ten[7]) {
+  float det;
+
+  TEN_T_INV(inv, ten, det);
+}
+
+void
+tenInv_d(double inv[7], double ten[7]) {
+  double det;
+
+  TEN_T_INV(inv, ten, det);
+}

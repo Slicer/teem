@@ -466,6 +466,8 @@ TEEM_API void tenRotationTangents_d(double phi1[7],
                                     double phi2[7],
                                     double phi3[7],
                                     double evec[9]);
+TEEM_API void tenInv_f(float inv[7], float ten[7]);
+TEEM_API void tenInv_d(double inv[7], double ten[7]);
 
 /* chan.c */
 /* old tenCalc* functions replaced by tenEstimate* */
