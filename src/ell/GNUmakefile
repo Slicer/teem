@@ -47,7 +47,7 @@ $(L).SEEN := true
 $(L).NEED = air
 $(L).PUBLIC_HEADERS = ell.h ellMacros.h
 $(L).PRIVATE_HEADERS =
-$(L).OBJS = cubic.o eigen.o miscEll.o vecEll.o mat.o
+$(L).OBJS = cubicEll.o eigen.o miscEll.o vecEll.o mat.o
 $(L).TESTS = test/sort3
 ####
 ####
