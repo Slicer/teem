@@ -28,8 +28,8 @@ histoMain(int argc, char **argv, char *me) {
   int size[2];
   airArray *mop;
 
-  OPT_ADD_NIN(nin, "input");
-  hestOptAdd(&opt, "s|size", "sizeX sizeY", airTypeInt, 2, 2, size, NULL,
+  OPT_ADD_NIN(nin, "input nrrd");
+  hestOptAdd(&opt, "s", "sizeX sizeY", airTypeInt, 2, 2, size, NULL,
 	     "size of output image");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -38,6 +38,7 @@ histoMain(int argc, char **argv, char *me) {
 
   USAGE(histoInfo);
   PARSE();
+  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nhist = nrrdNew();
   airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
@@ -59,7 +60,7 @@ histoMain(int argc, char **argv, char *me) {
     return 1;
   }
 
-  SAVE();
+  SAVE(NULL);
 
   airMopOkay(mop);
   return 0;

@@ -258,6 +258,7 @@ extern double nrrdDefKernelParam0;
 extern int nrrdStateVerboseIO;
 extern int nrrdStateClever8BitMinMax;
 extern int nrrdStateMeasureType;
+extern int nrrdStateMeasureModeBins;
 extern int nrrdStateMeasureHistoType;
 
 /******** going between the enums' values and strings */
@@ -267,6 +268,7 @@ extern int nrrdEnumStrToVal(int whichEnum, char *str);
 extern char nrrdTypeConv[][NRRD_STRLEN_SMALL];
 extern int nrrdEncodingEndianMatters[];
 extern int nrrdTypeSize[];
+extern int nrrdTypeFixed[];
 
 /******** pseudo-constructors, pseudo-destructors, and such */
 /* (methods.c) */
@@ -280,9 +282,8 @@ extern Nrrd *nrrdNew(void);
 extern Nrrd *nrrdNix(Nrrd *nrrd);
 extern Nrrd *nrrdEmpty(Nrrd *nrrd);
 extern Nrrd *nrrdNuke(Nrrd *nrrd);
-extern Nrrd *nrrdWrap(Nrrd *nrrd, void *data, int type, int dim, ...);
-extern Nrrd *nrrdWrap_nva(Nrrd *nrrd, void *data, int type,
-			  int dim, int *size);
+extern int nrrdWrap(Nrrd *nrrd, void *data, int type, int dim, ...);
+extern int nrrdWrap_nva(Nrrd *nrrd, void *data, int type, int dim, int *size);
 extern Nrrd *nrrdUnwrap(Nrrd *nrrd);
 extern int nrrdCopy(Nrrd *nout, Nrrd *nin);
 extern int nrrdAlloc(Nrrd *nrrd, int type, int dim, ...);
@@ -315,8 +316,6 @@ extern void nrrdDescribe(FILE *file, Nrrd *nrrd);
 extern int nrrdValid(Nrrd *nrrd);
 extern int nrrdElementSize(Nrrd *nrrd);
 extern nrrdBigInt nrrdElementNumber(Nrrd *nrrd);
-extern int nrrdTypeFixed(Nrrd *nrrd);
-extern int nrrdTypeFloating(Nrrd *nrrd);
 extern int nrrdHasNonExist(Nrrd *nrrd);
 extern int nrrdSanity(void);
 extern int nrrdSameSize(Nrrd *n1, Nrrd *n2, int useBiff);
@@ -352,8 +351,9 @@ extern int    (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, void *);
 extern int    (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, void *);
 extern float  (*nrrdFClamp[NRRD_TYPE_MAX+1])(float);
 extern double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double);
-extern void   (*nrrdMinMaxFind[NRRD_TYPE_MAX+1])(void *minP, void *maxP,
-						 Nrrd *nrrd);
+extern void (*nrrdMinMaxFind[NRRD_TYPE_MAX+1])(void *minP, void *maxP,
+					       Nrrd *nrrd);
+extern int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *);
 
 /******** getting information to and from files */
 /* read.c */

@@ -28,6 +28,9 @@ extern "C" {
 ** the guts of nrrdAxisPos() and nrrdAxisIdx(), for converting
 ** between "index space" location and "position" or "world space" location,
 ** given the centering, min and max "position", and number of samples.
+**
+** Unlike nrrdAxisPos() and nrrdAxisIdx(), this assumes that center
+** is either nrrdCenterCell or nrrdCenterNode, but not nrrdCenterUnknown.
 */
 #define NRRD_AXIS_POS(center, min, max, size, idx)    \
   (nrrdCenterCell == (center)                         \
@@ -44,6 +47,9 @@ extern "C" {
 **
 ** the guts of nrrdAxisSpacing(), determines the inter-sample
 ** spacing, given centering, min and max "position", and number of samples
+**
+** Unlike nrrdAxisSpacing, this assumes that center is either
+** nrrdCenterCell or nrrdCenterNode, but not nrrdCenterUnknown.
 */
 #define NRRD_AXIS_SPACING(center, min, max, size)  \
   (nrrdCenterCell == center                        \

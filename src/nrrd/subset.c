@@ -79,7 +79,7 @@ nrrdSample(void *val, Nrrd *nrrd, ...) {
   va_end(ap);
   
   if (nrrdSample_nva(val, nrrd, coord)) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   return 0;
@@ -177,7 +177,7 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
 
   /* copy the peripheral information */
   if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_NONE)) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   nout->content = airFree(nout->content);
@@ -259,7 +259,7 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
   }
   nout->blockSize = nin->blockSize;
   if (nrrdMaybeAlloc_nva(nout, nin->type, dim, szOut)) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   lineSize = szOut[0]*nrrdElementSize(nin);
@@ -296,7 +296,7 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
   }
   if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE
 				     | NRRD_AXESINFO_AMINMAX ))) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   for (d=0; d<=dim-1; d++) {
@@ -414,7 +414,7 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
   }
   nout->blockSize = nin->blockSize;
   if (nrrdMaybeAlloc_nva(nout, nin->type, dim, szOut)) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   
@@ -466,7 +466,7 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
   }
   if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE
 				     | NRRD_AXESINFO_AMINMAX ))) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   for (d=0; d<=dim-1; d++) {

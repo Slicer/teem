@@ -85,6 +85,7 @@ _nrrdEnumMeasureStr[NRRD_MEASURE_MAX+1][NRRD_STRLEN_SMALL] = {
   "L1",
   "L2",
   "Linf",
+  "variance",
   "histo-min",
   "histo-max",
   "histo-mean",
@@ -309,17 +310,17 @@ _nrrdEnumFieldStrToVal(char *str) {
   return nrrdField_unknown;
 }
 
-#define ntC   nrrdTypeChar
-#define ntUC  nrrdTypeUChar
-#define ntS   nrrdTypeShort
-#define ntUS  nrrdTypeUShort
-#define ntI   nrrdTypeInt
-#define ntUI  nrrdTypeUInt
-#define ntLL  nrrdTypeLLong
-#define ntULL nrrdTypeULLong
-#define ntF   nrrdTypeFloat
-#define ntD   nrrdTypeDouble
-#define ntB   nrrdTypeBlock
+#define ntCH nrrdTypeChar
+#define ntUC nrrdTypeUChar
+#define ntSH nrrdTypeShort
+#define ntUS nrrdTypeUShort
+#define ntIN nrrdTypeInt
+#define ntUI nrrdTypeUInt
+#define ntLL nrrdTypeLLong
+#define ntUL nrrdTypeULLong
+#define ntFL nrrdTypeFloat
+#define ntDB nrrdTypeDouble
+#define ntBL nrrdTypeBlock
 
 /*
 ** _nrrdEnumTypeStrToVal
@@ -345,17 +346,17 @@ _nrrdEnumTypeStrToVal(char *str) {
     /* "long double", */
     "block"};
   int value[] = {
-    ntC, ntC, ntC, ntC, 
+    ntCH, ntCH, ntCH, ntCH,
     ntUC, ntUC, ntUC, ntUC,
-    ntS, ntS, ntS, ntS, ntS, ntS, 
+    ntSH, ntSH, ntSH, ntSH, ntSH, ntSH,
     ntUS, ntUS, ntUS, ntUS, ntUS,
-    ntI, ntI, ntI, ntI, 
+    ntIN, ntIN, ntIN, ntIN,
     ntUI, ntUI, ntUI, ntUI, 
     ntLL, ntLL, ntLL, ntLL, ntLL, ntLL, 
-    ntULL, ntULL, ntULL, ntULL, 
-    ntF,
-    ntD,
-    ntB,
+    ntUL, ntUL, ntUL, ntUL, 
+    ntFL,
+    ntDB,
+    ntBL,
     0};  /* a sentinel for for-loop below */
 
   int i;
@@ -438,7 +439,6 @@ nrrdTypeConv[NRRD_TYPE_MAX+1][NRRD_STRLEN_SMALL] = {
   "%llu",
   "%f",
   "%lf",
-  /* "%Lf", */
   "%*d"  /* what else? */
 };
 
@@ -458,10 +458,24 @@ nrrdTypeSize[NRRD_TYPE_MAX+1] = {
   8,  /* unsigned long long */
   4,  /* float */
   8,  /* double */
-  /* 16,  long double */
   0  /* effectively unknown; user has to set explicitly */
 };
 
+int 
+nrrdTypeFixed[NRRD_TYPE_MAX+1] = {
+  0,  /* unknown */
+  1,  /* char */
+  1,  /* unsigned char */
+  1,  /* short */
+  1,  /* unsigned short */
+  1,  /* int */
+  1,  /* unsigned int */
+  1,  /* long long */
+  1,  /* unsigned long long */
+  0,  /* float */
+  0,  /* double */
+  1   /* for some reasone we pretent that blocks are fixed point */
+};
 
 /*
 ** _nrrdFieldValidInPNM[]

@@ -153,7 +153,7 @@ _nrrdReadDataRaw(Nrrd *nrrd, nrrdIO *io) {
   }
   else {
     if (_nrrdCalloc(nrrd)) {
-      sprintf(err, "%s: trouble", me); biffAdd(NRRD, err); return 1;
+      sprintf(err, "%s:", me); biffAdd(NRRD, err); return 1;
     }
     if (AIR_DIO && _nrrdFormatUsesDIO[io->format]) {
       if (3 <= nrrdStateVerboseIO) {
@@ -221,7 +221,7 @@ _nrrdReadDataAscii(Nrrd *nrrd, nrrdIO *io) {
   }
   
   if (_nrrdCalloc(nrrd)) {
-    sprintf(err, "%s: trouble", me); biffAdd(NRRD, err); return 1;
+    sprintf(err, "%s:", me); biffAdd(NRRD, err); return 1;
   }
   data = nrrd->data;
   size = nrrdElementSize(nrrd);
@@ -345,7 +345,7 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     if (2 <= nrrdStateVerboseIO) {
       fprintf(stderr, "error!\n");
     }
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   if (2 <= nrrdStateVerboseIO) {
@@ -503,7 +503,7 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
   }
   io->dataFile = file;
   if (_nrrdReadData[io->encoding](nrrd, io)) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   
@@ -514,14 +514,20 @@ int
 _nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
   char me[]="_nrrdReadTable", err[NRRD_STRLEN_MED];
   const char *fs;
-  int line, len, ret, sx, sy;
+  int line, len, ret, sx, sy, settwo = 0;
   airArray *flArr, *alArr;
   float *fl, *al, oneFloat;
+
+#define UNSETTWO if (settwo) nrrd->dim = settwo
 
   /* we only get here with the first line already in io->line */
   line = 1;
   len = strlen(io->line);
   
+  if (0 == nrrd->dim) {
+    settwo = nrrd->dim;
+    nrrd->dim = 2;
+  }
   /* first, we get through comments */
   while (_NRRD_COMMENT_CHAR == io->line[0]) {
     io->pos = 1;
@@ -540,14 +546,15 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     fs = nrrdEnumValToStr(nrrdEnumField, ret);
     if (!_nrrdFieldValidInTable[ret]) {
       if (nrrdStateVerboseIO) {
-	fprintf(stderr, "(%s: field \"%s\" (not allowed in table) "
+	fprintf(stderr, "(%s: field \"%s\" not allowed in table "
 		"--> plain comment)\n", me, fs);
       }
       ret = 0;
       goto plain;
     }
     if (!io->seen[ret]
-	&& _nrrdReadNrrdParseInfo[ret](nrrd, io, AIR_FALSE)) {
+	&& _nrrdReadNrrdParseInfo[ret](nrrd, io, AIR_TRUE)) {
+      fprintf(stderr, "%s: %s\n", me, biffGetDone(NRRD));
       if (nrrdStateVerboseIO) {
 	fprintf(stderr, "(%s: malformed field \"%s\" --> plain comment)\n",
 		me, fs);
@@ -560,33 +567,33 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     if (!ret) {
       if (nrrdCommentAdd(nrrd, io->line + 1)) {
 	sprintf(err, "%s: couldn't add comment", me);
-	biffAdd(NRRD, err); return 1;
+	biffAdd(NRRD, err); UNSETTWO; return 1;
       }
     }
     len = airOneLine(file, io->line, NRRD_STRLEN_LINE);
     if (!len) {
       sprintf(err, "%s: hit EOF before any numbers parsed", me);
-      biffAdd(NRRD, err); return 1;
+      biffAdd(NRRD, err); UNSETTWO; return 1;
     }
     line++;
   }
 
   /* we supposedly have a line of numbers, see how many there are */
   if (!airParseStrF(&oneFloat, io->line, _nrrdTableSep, 1)) {
-    sprintf(err, "%s: couldn't parse any numbers on line %d", me, line);
-    biffAdd(NRRD, err); return 1;
+    sprintf(err, "%s: couldn't parse a single number on line %d", me, line);
+    biffAdd(NRRD, err); UNSETTWO; return 1;
   }
   flArr = airArrayNew((void**)&fl, NULL, sizeof(float), _NRRD_TABLE_INCR);
   if (!flArr) {
     sprintf(err, "%s: couldn't create array for first line values", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); UNSETTWO; return 1;
   }
   for (sx=1; 1; sx++) {
     /* there is obviously a limit to the number of numbers that can 
        be parsed from a single finite line of input text */
     if (airArraySetLen(flArr, sx)) {
       sprintf(err, "%s: couldn't alloc space for %d values", me, sx);
-      biffAdd(NRRD, err); return 1;
+      biffAdd(NRRD, err); UNSETTWO; return 1;
     }
     if (sx > airParseStrF(fl, io->line, _nrrdTableSep, sx)) {
       /* We asked for sx ints and got less.  We know that we successfully
@@ -601,19 +608,19 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
   alArr = airArrayNew((void**)&al, NULL, sx*sizeof(float), _NRRD_TABLE_INCR);
   if (!alArr) {
     sprintf(err, "%s: couldn't create data buffer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); UNSETTWO; return 1;
   }
   sy = 0;
   while (len) {
     if (-1 == airArrayIncrLen(alArr, 1)) {
       sprintf(err, "%s: couldn't create scanline of %d values", me, sx);
-      biffAdd(NRRD, err); return 1;
+      biffAdd(NRRD, err); UNSETTWO; return 1;
     }
     ret = airParseStrF(al + sy*sx, io->line, _nrrdTableSep, sx);
     if (sx > ret) {
       sprintf(err, "%s: could only parse %d values (not %d) on line %d",
 	      me, ret, sx, line);
-      biffAdd(NRRD, err); return 1;
+      biffAdd(NRRD, err); UNSETTWO; return 1;
     }
     sy++;
     line++;
@@ -624,7 +631,7 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
   nrrd->axis[1].size = sy;
   if (nrrdAlloc(nrrd, nrrdTypeFloat, 2, sx, sy)) {
     sprintf(err, "%s: couldn't allocate table data", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); UNSETTWO; return 1;
   }
   memcpy(nrrd->data, al, sx*sy*sizeof(float));
   
@@ -809,7 +816,7 @@ nrrdLoad(Nrrd *nrrd, char *filename) {
   /* YOOHOO */
 
   if (nrrdRead(nrrd, file, io)) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 

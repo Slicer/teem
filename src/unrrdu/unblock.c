@@ -15,58 +15,52 @@
   of Utah. All Rights Reserved.
 */
 
+#include "private.h"
 
-#include <nrrd.h>
-#include <limits.h>
-
-char *me; 
-
-int
-usage() {
-  /*              0    1     2      3     (4) */
-  fprintf(stderr, 
-	  "usage: %s <nIn> <type> <nOut>\n",
-	  me);
-  return 1;
-}
+char *unblockName = "unblock";
+#define INFO "Expand \"blocks\" into scanlines on axis 0"
+char *unblockInfo = INFO;
+char *unblockInfoL = (INFO
+		      ". Based on the requested output type, the number of "
+		      "samples along axis 0 will be determined automatically. "
+		      "Axis N information will be bumped up to axis N+1. "
+		      "Underlying data is unchanged.");
 
 int
-main(int argc, char *argv[]) {
-  char *inStr, *outStr, *err;
-  int type;
+unblockMain(int argc, char **argv, char *me) {
+  hestOpt *opt = NULL;
+  char *out, *err;
   Nrrd *nin, *nout;
+  int type, blockSize;
+  airArray *mop;
 
-  me = argv[0];
-  if (4 != argc) {
-    return usage();
-  }
-  inStr = argv[1];
-  outStr = argv[3];
-  type = nrrdEnumStrToVal(nrrdEnumType, argv[2]);
-  if (!AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast)) {
-    fprintf(stderr, "%s: couldn't parse \"%s\" as type\n", me, argv[2]);
-    return 1;
-  }
-  if (nrrdLoad(nin=nrrdNew(), inStr)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble reading input:%s\n", me, err);
-    free(err);
-    return 1;
-  }
-  if (nrrdUnblock(nout = nrrdNew(), nin, type)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: error unblockifying nrrd:\n%s", me, err);
-    free(err);
-    return 1;
-  }
-  if (nrrdSave(outStr, nout, NULL)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: error writing nrrd:\n%s", me, err);
-    free(err);
+  OPT_ADD_NIN(nin, "input nrrd");
+  OPT_ADD_TYPE(type, "type to unblock to");
+  hestOptAdd(&opt, "bs", "blocksize", airTypeInt, 1, 1, &blockSize, "0",
+	     "Useful only if _output_ type is also block: the size of "
+	     "blocks in output nrrd");
+  OPT_ADD_NOUT(out, "output nrrd");
+
+  mop = airMopInit();
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+
+  USAGE(unblockInfo);
+  PARSE();
+  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
+
+  nout = nrrdNew();
+  nout->blockSize = blockSize;
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+
+  if (nrrdUnblock(nout, nin, type)) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: error unblocking nrrd:\n%s", me, err);
+    airMopError(mop);
     return 1;
   }
 
-  nrrdNuke(nin);
-  nrrdNuke(nout);
+  SAVE(NULL);
+
+  airMopOkay(mop);
   return 0;
 }

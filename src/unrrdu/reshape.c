@@ -15,63 +15,49 @@
   of Utah. All Rights Reserved.
 */
 
+#include "private.h"
 
-#include <nrrd.h>
-#include <limits.h>
-
-char *me; 
-
-int
-usage() {
-  /*              0    1      2      3        4        argc-1 */ 
-  fprintf(stderr, 
-	  "usage: %s <nIn> <size0> <size1> <size2> ... <nOut>\n",
-	  me);
-  return 1;
-}
+char *reshapeName = "reshape";
+#define INFO "Superficially change dimension and/or axes sizes"
+char *reshapeInfo = INFO;
+char *reshapeInfoL = (INFO
+		      ". The underlying linear ordering of the samples is "
+		      "unchanged, but the reported dimension or axes sizes "
+		      "are changed.  Identical in concept to Matlab's "
+		      "\"reshape\" command.");
 
 int
-main(int argc, char *argv[]) {
-  char *inStr, *outStr, *err;
-  int d, size[NRRD_DIM_MAX], dim;
+reshapeMain(int argc, char **argv, char *me) {
+  hestOpt *opt = NULL;
+  char *out, *err;
   Nrrd *nin, *nout;
-  
-  me = argv[0];
-  if (!( argc >= 4 ))
-    return usage();
-  inStr = argv[1];
-  outStr = argv[argc-1];
+  int *size, sizeLen;
+  airArray *mop;
 
-  dim = argc - 3;
-  for (d=0; d<=dim-1; d++) {
-    if (1 != sscanf(argv[d+2], "%d", &(size[d]))) {
-      fprintf(stderr, "%s: can't parse \"%s\" as int\n", me, argv[d+2]);
-      return usage();
-    }
-  }
+  OPT_ADD_NIN(nin, "input nrrd");
+  hestOptAdd(&opt, "s", "sz0 sz1 ", airTypeInt, 1, -1, &size, NULL,
+	     "new axes sizes", &sizeLen);
+  OPT_ADD_NOUT(out, "output nrrd");
 
-  if (nrrdLoad(nin=nrrdNew(), inStr)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble reading input:%s\n", me, err);
-    free(err);
-    return 1;
-  }
+  mop = airMopInit();
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  if (nrrdReshape_nva(nout=nrrdNew(), nin, dim, size)) {
-    err = biffGet(NRRD);
+  USAGE(reshapeInfoL);
+  PARSE();
+  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
+
+  nout = nrrdNew();
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+
+  if (nrrdReshape_nva(nout, nin, sizeLen, size)) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error reshaping nrrd:\n%s", me, err);
-    free(err);
+    airMopError(mop);
     return 1;
   }
 
-  if (nrrdSave(outStr, nout, NULL)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: error writing nrrd:\n%s", me, err);
-    free(err);
-    return 1;
-  }
+  SAVE(NULL);
 
-  nrrdNuke(nin);
-  nrrdNuke(nout);
+  airMopOkay(mop);
   return 0;
 }

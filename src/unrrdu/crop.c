@@ -29,8 +29,13 @@ cropMain(int argc, char **argv, char *me) {
     min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
   airArray *mop;
 
-  OPT_ADD_NIN(nin, "input");
-  OPT_ADD_BOUND("min", minOff, "low corner of bounding box", minLen);
+  OPT_ADD_NIN(nin, "input nrrd");
+  OPT_ADD_BOUND("min", minOff,
+		"low corner of bounding box.\n "
+		"\b\bo <int> gives 0-based index\n "
+		"\b\bo M+<int>, M-<int> give index relative "
+		"to the last sample on the axis (M == #samples-1).",
+		minLen);
   OPT_ADD_BOUND("max", maxOff, "high corner of bounding box", maxLen);
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -39,6 +44,7 @@ cropMain(int argc, char **argv, char *me) {
 
   USAGE(cropInfo);
   PARSE();
+  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   if (!( minLen == nin->dim && maxLen == nin->dim )) {
     fprintf(stderr,
@@ -64,7 +70,7 @@ cropMain(int argc, char **argv, char *me) {
     return 1;
   }
 
-  SAVE();
+  SAVE(NULL);
 
   airMopOkay(mop);
   return 0;

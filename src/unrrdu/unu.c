@@ -71,13 +71,23 @@ hestParm *hparm;
     That's it.
 **********************************************************/
 #define MAP(F) \
+F(resample) \
+F(convert) \
+F(quantize) \
+F(project) \
 F(slice) \
+F(join) \
 F(crop) \
 F(pad) \
+F(reshape) \
 F(permute) \
+F(swap) \
+F(shuffle) \
 F(flip) \
-F(convert) \
-F(histo)
+F(block) \
+F(unblock) \
+F(histo) \
+F(save)
 /*********************************************************/
 
 #define DECLARE(C) \
@@ -205,6 +215,31 @@ hestCB unuPosHestCB = {
   NULL
 };
 
+int
+unuParseBoundary(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[]="unuParseBoundary";
+  int *typeP;
+
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  typeP = ptr;
+  *typeP = nrrdEnumStrToVal(nrrdEnumBoundary, str);
+  if (nrrdTypeUnknown == *typeP) {
+    sprintf(err, "%s: \"%s\" is not a recognized boundary behavior", me, str);
+    return 1;
+  }
+  return 0;
+}
+
+hestCB unuBoundaryHestCB = {
+  sizeof(int),
+  "boundary behavior",
+  unuParseBoundary,
+  NULL
+};
+
 void
 usage(char *me) {
   int i, maxlen, len, c;
@@ -215,7 +250,7 @@ usage(char *me) {
     maxlen = AIR_MAX(maxlen, strlen(cmdList[i]->name));
   }
 
-  sprintf(buff, "--- %s: command-line nrrd interface ---", me);
+  sprintf(buff, "--- %s: Utah nrrd utilities (unrrdu) command-line interface ---", me);
   sprintf(fmt, "%%%ds\n", (int)((80-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
   
@@ -256,6 +291,8 @@ main(int argc, char **argv) {
   if (cmdList[i]) {
     /* initialize variables used by the various commands */
     hparm = hestParmNew();
+    hparm->elideSingleOtherType = AIR_TRUE;
+    hparm->elideSingleNonExistFloatDefault = AIR_TRUE;
     argv0 = malloc(strlen(UNU) + strlen(argv[1]) + 2);
     sprintf(argv0, "%s %s", UNU, argv[1]);
     ret = cmdList[i]->main(argc-2, argv+2, argv0);

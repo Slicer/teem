@@ -176,7 +176,7 @@ nrrdCleverMinMax(Nrrd *nrrd) {
   max = nrrd->max;
   /* this will set hasNonExist */
   if (nrrdSetMinMax(nrrd)) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   if (!( AIR_EXISTS(nrrd->min) && AIR_EXISTS(nrrd->max) )) {

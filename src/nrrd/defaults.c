@@ -52,9 +52,10 @@ double nrrdDefSpacing = 1.0;
    specifying this information.  It is just global state.  Obviously,
    like defaults, they are not thread-safe if different threads ever
    set them differently. */
-int nrrdStateVerboseIO = 4;
+int nrrdStateVerboseIO = 1;
 int nrrdStateClever8BitMinMax = AIR_TRUE;
 int nrrdStateMeasureType = nrrdTypeFloat;
+int nrrdStateMeasureModeBins = 1024;
 int nrrdStateMeasureHistoType = nrrdTypeFloat;
 
 /* should the acceptance (or not) of malformed NRRD header fields 

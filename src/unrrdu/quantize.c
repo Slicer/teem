@@ -15,84 +15,85 @@
   of Utah. All Rights Reserved.
 */
 
+#include "private.h"
 
-#include <air.h>
-#include <nrrd.h>
-
-char *me;
+char *quantizeName = "quantize";
+char *quantizeInfo = "Quantize floating-point values to 8, 16, or 32 bits";
 
 int
-usage() {
-  /*                      0     1        2     3     4       5  */
-  fprintf(stderr, "usage: %s <nrrdIn> <min> <max> <bits> <nrrdOut>\n", me);
-  fprintf(stderr, "     <min> and/or <max> can be given as \"#\" so as to\n");
-  fprintf(stderr, "     to use the min and/or max value within the data\n");
-  return 1;
+unuParseBits(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[]="unuParseBits";
+  int *bitsP;
+
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  bitsP = ptr;
+  if (1 != sscanf(str, "%d", bitsP)) {
+    sprintf(err, "%s: can't parse \"%s\" as int", me, str);
+    return 1;
+  }
+  if (!( 8 == *bitsP || 16 == *bitsP || 32 == *bitsP )) {
+    sprintf(err, "%s: bits (%d) not 8, 16, or 32", me, *bitsP);
+    return 1;
+  }
+  return 0;
 }
 
+hestCB unuBitsHestCB = {
+  sizeof(int),
+  "quantization bits",
+  unuParseBits,
+  NULL
+};
+
 int
-main(int argc, char **argv) {
+quantizeMain(int argc, char **argv, char *me) {
+  hestOpt *opt = NULL;
+  char *out, *err;
   Nrrd *nin, *nout;
-  double min, max;
   int bits;
-  char *err, *minStr, *maxStr, *bitStr, *ninStr, *noutStr;
+  double min, max;
+  airArray *mop;
 
-  me = argv[0];
-  if (6 != argc)
-    return usage();
-  ninStr = argv[1];
-  minStr = argv[2];
-  maxStr = argv[3];
-  bitStr = argv[4];
-  noutStr = argv[5];
+  OPT_ADD_NIN(nin, "input nrrd");
+  hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
+	     "Value to map to zero. Defaults to lowest value found in "
+	     "input nrrd.");
+  hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
+	     "Value to map to highest unsigned integral value. "
+	     "Defaults to highest value found in input nrrd.");
+  hestOptAdd(&opt, "b", "bits", airTypeOther, 1, 1, &bits, NULL,
+	     "Number of bits to quantize down to; determines the type "
+	     "of the output nrrd:\n "
+	     "\b\bo \"8\": unsigned char\n "
+	     "\b\bo \"16\": unsigned short\n "
+	     "\b\bo \"32\": unsigned int",
+	     NULL, &unuBitsHestCB);
+  OPT_ADD_NOUT(out, "output nrrd");
 
-  min = max = AIR_NAN;
-  if (strcmp(minStr, "#")) {
-    if (1 != sscanf(minStr, "%lg", &min)) {
-      fprintf(stderr, "%s: can't parse %s as a double\n", me, minStr);
-      return 1;
-    }
-  }
-  if (strcmp(maxStr, "#")) {
-    if (1 != sscanf(maxStr, "%lg", &max)) {
-      fprintf(stderr, "%s: can't parse %s as a double\n", me, maxStr);
-      return 1;
-    }
-  }
-  if (1 != sscanf(bitStr, "%d", &bits)) {
-    fprintf(stderr, "%s: didn't recognize \"%s\" as an int\n", me, bitStr);
-    return 1;
-  }
-  if (nrrdLoad(nin=nrrdNew(), ninStr)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble reading nrrd from \"%s\":\n%s\n", 
-	    me, ninStr, err);
-    free(err);
-    return 1;
-  }
+  mop = airMopInit();
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+
+  USAGE(quantizeInfo);
+  PARSE();
+  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
+
+  nout = nrrdNew();
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+
   nin->min = min;
   nin->max = max;
-  if (nrrdCleverMinMax(nin)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble:\n%s", me, err);
-    free(err);
-    return 1;
-  }
-  if (nrrdQuantize(nout=nrrdNew(), nin, bits)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: couldn't create output nrrd:\n%s", me, err);
-    free(err);
-    return 1;
-  }
-  if (nrrdSave(noutStr, nout, NULL)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble writing nrrd to \"%s\":\n%s\n",
-	    me, noutStr, err);
-    free(err);
+  if (nrrdQuantize(nout, nin, bits)) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: error quantizing nrrd:\n%s", me, err);
+    airMopError(mop);
     return 1;
   }
 
-  nrrdNuke(nin);
-  nrrdNuke(nout);
+  SAVE(NULL);
+
+  airMopOkay(mop);
   return 0;
 }

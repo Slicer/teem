@@ -101,7 +101,7 @@ nrrdValid(Nrrd *nrrd) {
   }
   nrrdAxesGet_nva(nrrd, nrrdAxesInfoSize, size);
   if (!_nrrdSizeValid(nrrd->dim, size)) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 0;
   }
   return 1;
@@ -265,68 +265,14 @@ nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff) {
 }
 
 /*
-******** nrrdTypeFixed()
-**
-** returns non-zero iff type is a fixed-point scalar
-*/
-int
-nrrdTypeFixed(Nrrd *nrrd) {
-  int t, ret;
-  
-  if (!nrrd)
-    return AIR_FALSE;
-
-  t = nrrd->type;
-  if (nrrdTypeChar == t
-      || nrrdTypeUChar == t
-      || nrrdTypeShort == t
-      || nrrdTypeUShort == t
-      || nrrdTypeInt == t
-      || nrrdTypeUInt == t
-      || nrrdTypeLLong == t
-      || nrrdTypeULLong == t) {
-    ret = AIR_TRUE;
-  }
-  else {
-    ret = AIR_FALSE;
-  }
-  
-  return ret;
-}
-
-/*
-******** nrrdTypeFloating()
-**
-** returns non-zero iff type is a floating-point scalar
-*/
-int
-nrrdTypeFloating(Nrrd *nrrd) {
-  int t, ret;
-  
-  if (!nrrd)
-    return AIR_FALSE;
-
-  t = nrrd->type;
-  if (nrrdTypeFloat == t
-      || nrrdTypeDouble == t) {
-    ret = AIR_TRUE;
-  }
-  else {
-    ret = AIR_FALSE;
-  }
-  
-  return ret;
-}
-
-/*
 ******** nrrdHasNonExist()
 **
-** This function will always set the value of nrrd->hasNonExist to
-** either nrrdNonExistTrue or nrrdNonExistFalse, and it will return
-** that value.  This function will ALWAYS determine the correct answer
-** and set the value of nrrd->hasNonExist: it ignores the value of
-** nrrd->hasNonExist on the input nrrd.
-*/
+** This function will always (assuming type is valid) set the value of
+** nrrd->hasNonExist to either nrrdNonExistTrue or nrrdNonExistFalse,
+** and it will return that value.  Blocks are considered to be
+** existant values.  This function will ALWAYS determine the correct
+** answer and set the value of nrrd->hasNonExist: it ignores the value
+** of nrrd->hasNonExist on the input nrrd.  */
 int
 nrrdHasNonExist(Nrrd *nrrd) {
   nrrdBigInt I, N;
@@ -334,7 +280,9 @@ nrrdHasNonExist(Nrrd *nrrd) {
 
   if (!nrrd)
     return nrrdNonExistUnknown;
-  if (nrrdTypeFixed(nrrd)) {
+  if (!( AIR_BETWEEN(nrrdTypeUnknown, nrrd->type, nrrdTypeLast) ))
+    return nrrdNonExistUnknown;
+  if (nrrdTypeFixed[nrrd->type]) {
     nrrd->hasNonExist = nrrdNonExistFalse;
   }
   else {
@@ -427,6 +375,56 @@ nrrdSanity(void) {
   aret = airSanity();
   if (aret != airInsane_not) {
     sprintf(err, "%s: airSanity() failed: %s", me, airInsaneErr(aret));
+    biffAdd(NRRD, err); return 0;
+  }
+
+  if (!( AIR_BETWEEN(nrrdEncodingUnknown, 
+		     nrrdDefWrtEncoding,
+		     nrrdEncodingLast) )) {
+    sprintf(err, "%s: nrrdDefWrtEncoding (%d) not in valid range [%d,%d]",
+	    me, nrrdDefWrtEncoding,
+	    nrrdEncodingUnknown+1, nrrdEncodingLast-1);
+    biffAdd(NRRD, err); return 0;
+  }
+  if (!( AIR_BETWEEN(nrrdBoundaryUnknown,
+		     nrrdDefRsmpBoundary,
+		     nrrdBoundaryLast) )) {
+    sprintf(err, "%s: nrrdDefRsmpBoundary (%d) not in valid range [%d,%d]",
+	    me, nrrdDefRsmpBoundary,
+	    nrrdBoundaryUnknown+1, nrrdBoundaryLast-1);
+    biffAdd(NRRD, err); return 0;
+  }
+  if (!( AIR_BETWEEN(nrrdCenterUnknown,
+		     nrrdDefCenter,
+		     nrrdCenterLast) )) {
+    sprintf(err, "%s: nrrdDefCenter (%d) not in valid range [%d,%d]",
+	    me, nrrdDefCenter,
+	    nrrdCenterUnknown+1, nrrdCenterLast-1);
+    biffAdd(NRRD, err); return 0;
+  }
+  if (!( AIR_BETWEEN(nrrdTypeUnknown-1,
+		     nrrdDefRsmpType,
+		     nrrdTypeLast) )) {
+    sprintf(err, "%s: nrrdDefRsmpType (%d) not in valid range [%d,%d]",
+	    me, nrrdDefRsmpType,
+	    nrrdTypeUnknown, nrrdTypeLast-1);
+    biffAdd(NRRD, err); return 0;
+  }
+  if (!( AIR_BETWEEN(nrrdTypeUnknown,
+		     nrrdStateMeasureType,
+		     nrrdTypeLast) )) {
+    sprintf(err, "%s: nrrdStateMeasureType (%d) not in valid range [%d,%d]",
+	    me, nrrdStateMeasureType,
+	    nrrdTypeUnknown+1, nrrdTypeLast-1);
+    biffAdd(NRRD, err); return 0;
+  }
+  if (!( AIR_BETWEEN(nrrdTypeUnknown,
+		     nrrdStateMeasureHistoType,
+		     nrrdTypeLast) )) {
+    sprintf(err,
+	    "%s: nrrdStateMeasureHistoType (%d) not in valid range [%d,%d]",
+	    me, nrrdStateMeasureType,
+	    nrrdTypeUnknown+1, nrrdTypeLast-1);
     biffAdd(NRRD, err); return 0;
   }
 

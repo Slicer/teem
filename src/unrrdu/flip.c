@@ -18,7 +18,10 @@
 #include "private.h"
 
 char *flipName = "flip";
-char *flipInfo = "Reverse order of samples along one axis";
+#define INFO "Reverse order of samples along one axis"
+char *flipInfo = INFO;
+char *flipInfoL = (INFO
+		   ". Special case of \"unu\tshuffle\".");
 
 int
 flipMain(int argc, char **argv, char *me) {
@@ -28,15 +31,16 @@ flipMain(int argc, char **argv, char *me) {
   int axis;
   airArray *mop;
 
-  OPT_ADD_NIN(nin, "input");
+  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_AXIS(axis, "axis to slice along");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(flipInfo);
+  USAGE(flipInfoL);
   PARSE();
+  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
@@ -48,7 +52,7 @@ flipMain(int argc, char **argv, char *me) {
     return 1;
   }
 
-  SAVE();
+  SAVE(NULL);
 
   airMopOkay(mop);
   return 0;

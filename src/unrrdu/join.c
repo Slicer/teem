@@ -15,97 +15,53 @@
   of Utah. All Rights Reserved.
 */
 
+#include "private.h"
 
-#include <nrrd.h>
-
-int
-usage(char *me) {
-              /*  0    1    2  ... argc-6   argc-5  argc-4  argc-3   argc-2    argc-1 */
-  fprintf(stderr, 
-	  "usage: %s <n0> <n1> ... <n(n-1)> <axis> <label> <spacing> <incrDim> <nout>\n",
-	  me);
-  fprintf(stderr, "       <n0> <n1> ... <n(n-1)> are Nrrds to be joined\n");
-  fprintf(stderr, "       <axis> is which axis the given parts should lie along in the new (output)\n");
-  fprintf(stderr, "       nrrd, that is, which axis along which you'd slice/crop the new nrrd\n");
-  fprintf(stderr, "       to get back the given parts\n");
-  fprintf(stderr, "       <label> and <spacing> are for the new axis\n");
-  fprintf(stderr, "       <incrDim> non-zero means that you really want to add a dimension to\n");
-  fprintf(stderr, "       the nrrd, as opposed to arranging them side by side\n");
-  return 1;
-}
+char *joinName = "join";
+#define INFO "Connect slices and/or slabs into a bigger nrrd"
+char *joinInfo = INFO;
+char *joinInfoL = (INFO
+		   ". ");
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err, *label, *axisS, *spacingS, *out, *incrS;
-  int i, axis, num, incr;
-  float spacing;
+joinMain(int argc, char **argv, char *me) {
+  hestOpt *opt = NULL;
+  char *out, *err;
   Nrrd **nin, *nout;
+  int ninLen, axis, incrDim;
+  airArray *mop;
 
-  me = argv[0];
-  num = argc-6;
-  if (!(num >= 1))
-    return usage(me);
-  axisS = argv[argc-5];
-  label = argv[argc-4];
-  spacingS = argv[argc-3];
-  incrS = argv[argc-2];
-  out = argv[argc-1];
-  
-  if (1 != sscanf(axisS, "%d", &axis)) {
-    fprintf(stderr, "%s: couldn't parse axis \"%s\" as int\n", 
-	    me, axisS);
-    return 1;
-  }
-  if (1 != sscanf(spacingS, "%f", &spacing)) {
-    fprintf(stderr, "%s: couldn't parse spacing \"%s\" as float\n", 
-	    me, spacingS);
-    return 1;
-  }
-  if (1 != sscanf(incrS, "%d", &incr)) {
-    fprintf(stderr, "%s: couldn't parse incrDim \"%s\" as int\n", 
-	    me, incrS);
-    return 1;
-  }
-  fprintf(stderr, "%s: planning to join %d parts\n", me, num);
-  if (!(nin = (Nrrd **)calloc(num, sizeof(Nrrd *)))) {
-    fprintf(stderr, "%s: couldn't alloc array of input Nrrd pointers\n", me);
-    return 1;
-  }
-  for (i=0; i<=num-1; i++) {
-    if (nrrdLoad(nin[i]=nrrdNew(), argv[1+i])) {
-      err = biffGet(NRRD);
-      fprintf(stderr, "%s: error loading nrrd #%d from \"%s\":\n%s\n",
-	      me, i, argv[1+i], err);
-      free(err); 
-      return 1;
-    }
-  }
+  hestOptAdd(&opt, "i", "nin0", airTypeOther, 1, -1, &nin, NULL,
+	     "everything to be joined together",
+	     &ninLen, &unuNrrdHestCB);
+  OPT_ADD_AXIS(axis, "axis to join along");
+  hestOptAdd(&opt, "incr", NULL, airTypeInt, 0, 0, &incrDim, NULL,
+	     "in situations where the join axis is among the axes of "
+	     "the input nrrds, then this flag signifies that the join "
+	     "axis should be *inserted*, and the output dimension should "
+	     "be one greater than input dimension.  Without this flag, the "
+	     "nrrds are joined side-by-side, along an existing axis.");
+  OPT_ADD_NOUT(out, "output nrrd");
 
-  /* do the deed */
+  mop = airMopInit();
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+
+  USAGE(joinInfoL);
+  PARSE();
+  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
+
   nout = nrrdNew();
-  if (nrrdJoin(nout, nin, num, axis, incr)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble joining all inputs:\n%s\n", me, err);
-    free(err); 
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+
+  if (nrrdJoin(nout, nin, ninLen, axis, incrDim)) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: error joining nrrds:\n%s", me, err);
+    airMopError(mop);
     return 1;
   }
-  nout->axis[axis].spacing = spacing;
-  nout->axis[axis].label = airStrdup(label);
 
-  /* nuke all the inputs */
-  for (i=0; i<=num-1; i++) {
-    nin[i] = nrrdNuke(nin[i]);
-  }
-  free(nin);
+  SAVE(NULL);
 
-  /* save the output */
-  if (nrrdSave(out, nout, NULL)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s", me, out, err);
-    free(err);
-    return 1;
-  }
-  nout = nrrdNuke(nout);
-  
+  airMopOkay(mop);
   return 0;
 }

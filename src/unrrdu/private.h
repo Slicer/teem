@@ -32,16 +32,16 @@
 */
 /* Nrrd *var */
 #define OPT_ADD_NIN(var, desc) \
-  hestOptAdd(&opt, "i|input", "nin", airTypeOther, 1, 1, &(var), "-", desc, \
+  hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &(var), "-", desc, \
 	     NULL, &unuNrrdHestCB)
 
 /* char *var */
 #define OPT_ADD_NOUT(var, desc) \
-  hestOptAdd(&opt, "o|output", "nout", airTypeString, 1, 1, &(var), "-", desc)
+  hestOptAdd(&opt, "o", "nout", airTypeString, 1, 1, &(var), "-", desc)
 
 /* int var */
 #define OPT_ADD_AXIS(var, desc) \
-  hestOptAdd(&opt, "a|axis", "axis", airTypeInt, 1, 1, &(var), NULL, desc)
+  hestOptAdd(&opt, "a", "axis", airTypeInt, 1, 1, &(var), NULL, desc)
 
 /* int *var; int saw */
 #define OPT_ADD_BOUND(name, var, desc, saw) \
@@ -50,13 +50,14 @@
 
 /* int var */
 #define OPT_ADD_TYPE(var, desc) \
-  hestOptAdd(&opt, "t|type", "type", airTypeOther, 1, 1, &(var), NULL, desc, \
+  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &(var), NULL, desc, \
              NULL, &unuTypeHestCB)
 
 extern hestParm *hparm;
 extern hestCB unuNrrdHestCB;
 extern hestCB unuTypeHestCB;
 extern hestCB unuPosHestCB;
+extern hestCB unuBoundaryHestCB;
 
 typedef struct {
   char *name, *info;
@@ -64,7 +65,13 @@ typedef struct {
 } unuCmd;
 
 /*
+** USAGE, PARSE, SAVE
 **
+** These are macros at their worst.  This code is basically the same,
+** verbatim, across all the different unrrdu functions, and having them
+** as macros just shortens (without necessarily clarifying) their code.
+**
+** They all assume many many variables.
 */
 #define USAGE(info) \
   if (!argc) { \
@@ -82,11 +89,10 @@ typedef struct {
     hestGlossary(stderr, opt, hparm); \
     airMopError(mop); \
     return 1; \
-  } \
-  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways)
+  }
 
-#define SAVE() \
-  if (nrrdSave(out, nout, NULL)) { \
+#define SAVE(io) \
+  if (nrrdSave(out, nout, (io))) { \
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways); \
     fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s\n", me, out, err); \
     airMopError(mop); \

@@ -40,7 +40,7 @@ _nrrdReadNrrdParse_comment(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   
   info = io->line + io->pos;
   if (nrrdCommentAdd(nrrd, info)) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s: trouble adding comment", me);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   return 0;

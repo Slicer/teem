@@ -28,7 +28,7 @@ convertMain(int argc, char **argv, char *me) {
   int type;
   airArray *mop;
 
-  OPT_ADD_NIN(nin, "input");
+  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_TYPE(type, "type to convert to");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -37,6 +37,7 @@ convertMain(int argc, char **argv, char *me) {
 
   USAGE(convertInfo);
   PARSE();
+  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
@@ -48,7 +49,7 @@ convertMain(int argc, char **argv, char *me) {
     return 1;
   }
 
-  SAVE();
+  SAVE(NULL);
 
   airMopOkay(mop);
   return 0;

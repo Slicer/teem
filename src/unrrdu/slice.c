@@ -19,7 +19,11 @@
 
 /* NB: not the same as char sliceName[] = "slice"; Read your C FAQs */
 char *sliceName = "slice";
-char *sliceInfo = "Slice at a position along an axis";
+#define INFO "Slice at a position along an axis"
+char *sliceInfo = INFO;
+char *sliceInfoL = (INFO
+		    ". Output nrrd dimension is one less than input nrrd "
+		    "dimension.  Per-axis information is preserved.");
 
 int
 sliceMain(int argc, char **argv, char *me) {
@@ -29,17 +33,18 @@ sliceMain(int argc, char **argv, char *me) {
   int axis, pos;
   airArray *mop;
 
-  OPT_ADD_NIN(nin, "input");
+  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_AXIS(axis, "axis to slice along");
-  hestOptAdd(&opt, "p|position", "pos", airTypeInt, 1, 1, &pos, NULL,
+  hestOptAdd(&opt, "p", "pos", airTypeInt, 1, 1, &pos, NULL,
 	     "position (in index space) to slice at");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(sliceInfo);
+  USAGE(sliceInfoL);
   PARSE();
+  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
@@ -51,7 +56,7 @@ sliceMain(int argc, char **argv, char *me) {
     return 1;
   }
 
-  SAVE();
+  SAVE(NULL);
 
   airMopOkay(mop);
   return 0;

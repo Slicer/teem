@@ -72,7 +72,7 @@ nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
      for all the remaining fields */
 
   if (nrrdSpatialResample(nout, nin, info)) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
 
@@ -158,7 +158,7 @@ _nrrdResampleComputePermute(int permute[],
 			    int *topRax, int *botRax, int *passes,
 			    Nrrd *nin,
 			    nrrdResampleInfo *info) {
-  char me[]="_nrrdResampleComputePermute";
+  /* char me[]="_nrrdResampleComputePermute"; */
   int a, p, d, dim;
   
   dim = nin->dim;
@@ -199,12 +199,12 @@ _nrrdResampleComputePermute(int permute[],
     return;
   }
   
-  /* */
+  /*
   printf("%s: permute:\n", me);
   for (d=0; d<=dim-1; d++) {
     printf("   permute[%d] = %d\n", d, permute[d]);
   }
-  /* */
+  */
 
   /* create array of how the axes will be arranged in each pass ("ax"), 
      and create array of how big each axes is in each pass ("sz").
@@ -233,7 +233,7 @@ _nrrdResampleComputePermute(int permute[],
       }
     }
   }
-  /* */
+  /*
   printf("%s: axis arrangements for %d passes:\n", me, *passes);
   for (p=0; p<=*passes; p++) {
     printf("%s: %d:", me, p);
@@ -242,7 +242,7 @@ _nrrdResampleComputePermute(int permute[],
     }
     printf("\n");
   }
-  /* */
+  */
   return;
 }
 
@@ -284,10 +284,11 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
   *ratioP = ratio = spcIn/spcOut;
   support = info->kernel[d]->support(info->param[d]);
   integral = info->kernel[d]->integral(info->param[d]);
+  /*
   fprintf(stderr, 
 	  "%s(%d): size{In,Out} = %d, %d, support = %f; ratio = %f\n", 
 	  me, d, sizeIn, sizeOut, support, ratio);
-  
+  */
   if (ratio > 1) {
     /* if upsampling, we need only as many samples as needed for
        interpolation with the given kernel */
@@ -298,7 +299,9 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
        the stretched out version of the kernel */
     dotLen = 2*ceil(support/ratio);
   }
+  /*
   fprintf(stderr, "%s(%d): dotLen = %d\n", me, d, dotLen);
+  */
 
   weight = calloc(sizeOut*dotLen, sizeof(float));
   index = calloc(sizeOut*dotLen, sizeof(int));
@@ -434,20 +437,10 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
 
   *weightP = weight;
   *indexP = index;
+  /*
   fprintf(stderr, "%s: dotLen = %d\n", me, dotLen);
+  */
   return dotLen;
-}
-
-int TEST[1] = {666};
-void *
-TESTPRINT(void *_iP) {
-  int *iP;
-
-  iP = _iP;
-  printf("HELLO!!\n");
-  printf("HELLO!!  i = %d\n", *iP);
-  printf("HELLO!!\n");
-  return NULL;
 }
 
 /*
@@ -606,9 +599,9 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
 
   /* go! */
   for (pass=0; pass<=passes-1; pass++) {
-    /* */
+    /*
     printf("%s: --- pass %d --- \n", me, pass);
-    /* */
+    */
     numLines = strideOut = 1;
     for (d=0; d<=dim-1; d++) {
       if (d < botRax)
@@ -622,14 +615,14 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     /* for the rest of the loop body, d is the original "dimension"
        for the axis being resampled */
     d = ax[pass][topRax];
-    /* */
+    /*
     printf("%s(%d): numOut = "NRRD_BIG_INT_PRINTF"\n", me, pass, numOut);
     printf("%s(%d): numLines = "NRRD_BIG_INT_PRINTF"\n", me, pass, numLines);
     printf("%s(%d): stride: In=%d, Out=%d\n", me, pass, 
 	   (int)strideIn, (int)strideOut);
     printf("%s(%d): sizeIn = %d\n", me, pass, sizeIn);
     printf("%s(%d): sizeOut = %d\n", me, pass, sizeOut);
-    /* */
+    */
 
     /* we can free the input to the previous pass 
        (if its not the given data) */

@@ -15,61 +15,88 @@
   of Utah. All Rights Reserved.
 */
 
+#include "private.h"
 
-#include <nrrd.h>
-
-char *me; 
+char *projectName = "project";
+#define INFO "Collapse scanlines to scalars along some axis"
+char *projectInfo = INFO;
+char *projectInfoL = (INFO
+		      ". The scanline is reduced to a single scalar by "
+		      "\"measuring\" all the values in the scanline "
+		      "with some measure.  The output nrrd has dimension "
+		      "one less than input; the output type depends on "
+		      "the measure.");
 
 int
-usage() {
-                      /*  0     1       2       3       4    (5) */
-  fprintf(stderr, "usage: %s <nrrdIn> <axis> <measr> <nrrdOut>\n", me);
-  return 1;
+unuParseMeasure(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[]="unuParseMeasure";
+  int *measrP;
+
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  measrP = ptr;
+  *measrP = nrrdEnumStrToVal(nrrdEnumMeasure, str);
+  if (nrrdMeasureUnknown == *measrP) {
+    sprintf(err, "%s: \"%s\" is not a recognized measure", me, str);
+    return 1;
+  }
+  return 0;
 }
 
+hestCB unuMeasureHestCB = {
+  sizeof(int),
+  "measure",
+  unuParseMeasure,
+  NULL
+};
+
 int
-main(int argc, char *argv[]) {
-  char *in, *out, *err;
-  int axis, measr;
+projectMain(int argc, char **argv, char *me) {
+  hestOpt *opt = NULL;
+  char *out, *err;
   Nrrd *nin, *nout;
-  double t1, t2;
+  int axis, measr;
+  airArray *mop;
 
-  me = argv[0];
-  if (5 != argc)
-    return usage();
+  OPT_ADD_NIN(nin, "input nrrd");
+  OPT_ADD_AXIS(axis, "axis to project along");
+  hestOptAdd(&opt, "m", "measr", airTypeOther, 1, 1, &measr, NULL,
+	     "How to \"measure\" a scanline.  Possibilities include:\n "
+	     "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\": "
+	     "(self-explanatory)\n "
+	     "\b\bo \"product\", \"sum\": product or sum of all values along "
+	     "scanline\n "
+	     "\b\bo \"L1\", \"L2\", \"Linf\": different norms\n "
+	     "\b\bo \"histo-min\",  \"histo-max\", \"histo-mean\", "
+	     "\"histo-median\", \"histo-mode\", \"histo-product\", "
+	     "\"histo-sum\", \"histo-variance\": same measures, but for when "
+	     "the scanlines are histograms of values, not the values "
+	     "themselves.", 
+	     NULL, &unuMeasureHestCB);
+  OPT_ADD_NOUT(out, "output nrrd");
 
-  if (2 != (sscanf(argv[2], "%d", &axis) + 
-	    sscanf(argv[3], "%d", &measr))) {
-    fprintf(stderr, "%s: couldn't parse (%s,%s) as (axis,measr)\n", 
-	    me, argv[2], argv[3]);
+  mop = airMopInit();
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+
+  USAGE(projectInfoL);
+  PARSE();
+  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
+
+  nout = nrrdNew();
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+
+  printf("%s: axis = %d, measr = %d\n", me, axis, measr);
+  if (nrrdProject(nout, nin, axis, measr)) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: error projecting nrrd:\n%s", me, err);
+    airMopError(mop);
     return 1;
   }
-  in = argv[1];
-  out = argv[4];
 
-  if (nrrdLoad(nin=nrrdNew(), in)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: error reading nrrd from \"%s\":\n%s\n", me, in, err);
-    free(err);
-    return 1;
-  }
-  t1 = airTime();
-  if (nrrdProject(nout = nrrdNew(), nin, axis, measr)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: error projecting nrrd:\n%s\n", me, err);
-    free(err);
-    return 1;
-  }
-  t2 = airTime();
-  printf("%s: projection took %g seconds\n", me, t2-t1);
-  if (nrrdSave(out, nout, NULL)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: error writing nrrd:\n%s\n", me, err);
-    free(err);
-    return 1;
-  }
+  SAVE(NULL);
 
-  nrrdNuke(nin);
-  nrrdNuke(nout);
+  airMopOkay(mop);
   return 0;
 }

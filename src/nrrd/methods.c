@@ -289,26 +289,26 @@ _nrrdSizeValid(int dim, int *size) {
 **
 ** wraps a given Nrrd around a given array
 */
-Nrrd *
+int
 nrrdWrap_nva(Nrrd *nrrd, void *data, int type, int dim, int *size) {
   char me[] = "nrrdWrap_nva", err[NRRD_STRLEN_MED];
   int d;
   
   if (!(nrrd && size)) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return NULL;
+    biffAdd(NRRD, err); return 1;
   }
   nrrd->data = data;
   nrrd->type = type;
   nrrd->dim = dim;
   if (!_nrrdSizeValid(dim, size)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(NRRD, err); return NULL;
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
   }
   for (d=0; d<=dim-1; d++) {
     nrrd->axis[d].size = size[d];
   }
-  return nrrd;
+  return 0;
 }
 
 /*
@@ -319,15 +319,19 @@ nrrdWrap_nva(Nrrd *nrrd, void *data, int type, int dim, int *size) {
 **
 ** This is THE BEST WAY to wrap a nrrd around existing raster data,
 ** assuming that the dimension is known at compile time.
+**
+** If successful, returns 0, otherwise, 1.
+** This does use biff.
 */
-Nrrd *
+int
 nrrdWrap(Nrrd *nrrd, void *data, int type, int dim, ...) {
   char me[] = "nrrdWrap", err[NRRD_STRLEN_MED];
   va_list ap;
   int d, size[NRRD_DIM_MAX];
   
-  if (!nrrd) {
-    return NULL;
+  if (!(nrrd && data)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
   }
   va_start(ap, dim);
   for (d=0; d<=dim-1; d++) {
@@ -335,8 +339,8 @@ nrrdWrap(Nrrd *nrrd, void *data, int type, int dim, ...) {
   }
   va_end(ap);
   if (!_nrrdSizeValid(dim, size)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(NRRD, err); return NULL;
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
   }
   
   return nrrdWrap_nva(nrrd, data, type, dim, size);
@@ -449,11 +453,11 @@ nrrdAlloc(Nrrd *nrrd, int type, int dim, ...) {
   }
   va_end(ap);
   if (!_nrrdSizeValid(dim, size)) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdAlloc_nva(nrrd, type, dim, size)) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   return 0;
@@ -488,7 +492,7 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
     }
   }
   if (!_nrrdSizeValid(dim, size)) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
 
@@ -511,7 +515,7 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
   }
   if (need) {
     if (nrrdAlloc_nva(nrrd, type, dim, size)) {
-      sprintf(err, "%s: trouble", me);
+      sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
   }
@@ -550,12 +554,12 @@ nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim, ...) {
   }
   va_end(ap);
   if (!_nrrdSizeValid(dim, size)) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   nrrdAxesGet_nva(nrrd, nrrdAxesInfoSize, size);
   if (nrrdMaybeAlloc_nva(nrrd, type, dim, size)) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   return 0;

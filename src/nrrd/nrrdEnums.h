@@ -121,7 +121,7 @@ typedef enum {
 #define NRRD_ENCODING_MAX    2
 
 /*
-******** nrrdMeasr enum
+******** nrrdMeasure enum
 **
 ** ways to "measure" some portion of the array
 ** NEEDS TO BE IN SYNC WITH nrrdMeasr array in measr.c
@@ -138,21 +138,22 @@ typedef enum {
   nrrdMeasureL1,             /* 8 */
   nrrdMeasureL2,             /* 9 */
   nrrdMeasureLinf,           /* 10 */
+  nrrdMeasureVariance,       /* 11 */
   /* 
   ** the nrrduMeasureHisto... measures interpret the array as a
   ** histogram of some implied value distribution
   */
-  nrrdMeasureHistoMin,       /* 11 */
-  nrrdMeasureHistoMax,       /* 12 */
-  nrrdMeasureHistoMean,      /* 13 */
-  nrrdMeasureHistoMedian,    /* 14 */
-  nrrdMeasureHistoMode,      /* 15 */
-  nrrdMeasureHistoProduct,   /* 16 */
-  nrrdMeasureHistoSum,       /* 17 */
-  nrrdMeasureHistoVariance,  /* 18 */
+  nrrdMeasureHistoMin,       /* 12 */
+  nrrdMeasureHistoMax,       /* 13 */
+  nrrdMeasureHistoMean,      /* 14 */
+  nrrdMeasureHistoMedian,    /* 15 */
+  nrrdMeasureHistoMode,      /* 16 */
+  nrrdMeasureHistoProduct,   /* 17 */
+  nrrdMeasureHistoSum,       /* 18 */
+  nrrdMeasureHistoVariance,  /* 19 */
   nrrdMeasureLast
 } nrrdMeasure;
-#define NRRD_MEASURE_MAX        18
+#define NRRD_MEASURE_MAX        19
 
 /*
 ******** nrrdCenter enum

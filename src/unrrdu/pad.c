@@ -21,31 +21,6 @@ char *padName = "pad";
 char *padInfo = "Pad along each axis to make a bigger nrrd";
 
 int
-unuParseBoundary(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unuParseBoundary";
-  int *typeP;
-
-  if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  typeP = ptr;
-  *typeP = nrrdEnumStrToVal(nrrdEnumBoundary, str);
-  if (nrrdTypeUnknown == *typeP) {
-    sprintf(err, "%s: \"%s\" is not a recognized boundary behavior", me, str);
-    return 1;
-  }
-  return 0;
-}
-
-hestCB unuBoundaryHestCB = {
-  sizeof(int),
-  "boundary behavior",
-  unuParseBoundary,
-  NULL
-};
-
-int
 padMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
@@ -55,12 +30,21 @@ padMain(int argc, char **argv, char *me) {
   double padVal;
   airArray *mop;
 
-  OPT_ADD_NIN(nin, "input");
-  OPT_ADD_BOUND("min", minOff, "low corner of bounding box", minLen);
+  OPT_ADD_NIN(nin, "input nrrd");
+  OPT_ADD_BOUND("min", minOff,
+		"low corner of bounding box.\n "
+		"\b\bo <int> gives 0-based index\n "
+		"\b\bo M+<int>, M-<int> give index relative "
+		"to the last sample on the axis (M == #samples-1).",
+		minLen);
   OPT_ADD_BOUND("max", maxOff, "high corner of bounding box", maxLen);
-  hestOptAdd(&opt, "b|boundary", "bb", airTypeOther, 1, 1, &bb, "bleed",
-	     "\"pad\", \"bleed\", or \"wrap\"", NULL, &unuBoundaryHestCB);
-  hestOptAdd(&opt, "v|value", "val", airTypeDouble, 1, 1, &padVal, "0.0",
+  hestOptAdd(&opt, "b", "behavior", airTypeOther, 1, 1, &bb, "bleed",
+	     "How to handle samples beyond the input bounds:\n "
+	     "\b\bo \"pad\": use some specified value\n "
+	     "\b\bo \"bleed\": extend border values outward\n "
+	     "\b\bo \"wrap\": wrap-around to other side", 
+	     NULL, &unuBoundaryHestCB);
+  hestOptAdd(&opt, "v", "value", airTypeDouble, 1, 1, &padVal, "0.0",
 	     "for \"pad\" boundary behavior, pad with this value");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -69,6 +53,7 @@ padMain(int argc, char **argv, char *me) {
 
   USAGE(padInfo);
   PARSE();
+  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   if (!( minLen == nin->dim && maxLen == nin->dim )) {
     fprintf(stderr,
@@ -88,11 +73,9 @@ padMain(int argc, char **argv, char *me) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (nrrdBoundaryPad == bb) {
-    printf("!%s: bb = nrrdBoundaryPad, padVal = %g\n", me, padVal);
     ret = nrrdPad(nout, nin, min, max, bb, padVal);
   }
   else {
-    printf("!%s: bb = %d\n", me, bb);
     ret = nrrdPad(nout, nin, min, max, bb);
   }
   if (ret) {
@@ -102,7 +85,7 @@ padMain(int argc, char **argv, char *me) {
     return 1;
   }
 
-  SAVE();
+  SAVE(NULL);
 
   airMopOkay(mop);
   return 0;

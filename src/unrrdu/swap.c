@@ -17,48 +17,38 @@
 
 #include "private.h"
 
-char *permuteName = "permute";
-#define INFO "Permute scan-line ordering of axes"
-char *permuteInfo = INFO;
-char *permuteInfoL = (INFO
-		      ". The permutation gives the new ordering of the old "
-		      "axes (in 0-based numbering). For example, the "
-		      "permutation 0->1,\t1->2,\t2->0 would be \"2 0 1\".");
+char *swapName = "swap";
+#define INFO "Interchange scan-line ordering of two axes"
+char *swapInfo = INFO;
+char *swapInfoL = (INFO
+		   ". Special case of \"unu\tpermute\".");
 
 int
-permuteMain(int argc, char **argv, char *me) {
+swapMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int *perm, permLen;
+  int ax[2];
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input nrrd");
-  hestOptAdd(&opt, "p", "ax0 ax1", airTypeInt, 1, -1, &perm, NULL,
-	     "new axis ordering", &permLen);
+  hestOptAdd(&opt, NULL, "axisA axisB", airTypeInt, 2, 2, ax, NULL,
+	     "the two axes to switch (0-based numbering)");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(permuteInfoL);
+  USAGE(swapInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (!( permLen == nin->dim )) {
-    fprintf(stderr,
-	    "%s: # axes in permutation (%d) != nrrd dim (%d)\n",
-	    me, permLen, nin->dim);
-    airMopError(mop);
-    return 1;
-  }
-
-  if (nrrdPermuteAxes(nout, nin, perm)) {
+  if (nrrdSwapAxes(nout, nin, ax[0], ax[1])) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: error permuting nrrd:\n%s", me, err);
+    fprintf(stderr, "%s: error swapping nrrd:\n%s", me, err);
     airMopError(mop);
     return 1;
   }

@@ -437,7 +437,7 @@ _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     if (2 <= nrrdStateVerboseIO) {
       fprintf(stderr, "error!\n");
     }
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   if (2 <= nrrdStateVerboseIO) {
@@ -490,7 +490,7 @@ _nrrdWritePNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 
   io->dataFile = file;
   if (_nrrdWriteData[io->encoding](nrrd, io)) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   
@@ -537,7 +537,7 @@ _nrrdWriteTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 ** HEY: this is where the filename of a seperate datafile is determined
 */
 void
-_nrrdGuessFormat(char *filename, nrrdIO *io) {
+_nrrdGuessFormat(nrrdIO *io, char *filename) {
   int strpos;
 
   /* currently, we play the detached header game whenever the filename
@@ -569,17 +569,23 @@ _nrrdGuessFormat(char *filename, nrrdIO *io) {
 }
 
 void
-_nrrdFixFormat(Nrrd *nrrd, nrrdIO *io) {
+_nrrdFixFormat(nrrdIO *io, Nrrd *nrrd) {
   char me[]="_nrrdFixFormat";
   int fits;
 
   switch(io->format) {
   case nrrdFormatUnknown:
-    /* if they still don't know what format to use, then enforce NRRD */
+    /* if they still don't know what format to use, then enforce NRRD.
+       There is no point in having a "default" format (which would be
+       called nrrdDefWrtFormat) because the point of nrrd is that it is
+       the mother of all nearly raw raster data file formats */
     io->format = nrrdFormatNRRD;
     break;
   case nrrdFormatNRRD:
     /* everything fits in a nrrd */
+    /* Actually, invalid nrrds can't fit in a nrrd file format, but we can't
+       do error reporting here because we have a void return; besides, 
+       invalid nrrds will get caught sooner or later ... */
     break;
   case nrrdFormatPNM:
     fits = nrrdFitsInFormat(nrrd, nrrdFormatPNM, AIR_FALSE);
@@ -630,7 +636,7 @@ nrrdWrite(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     biffAdd(NRRD, err); return 1;
   }
   if (!nrrdValid(nrrd)) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   if (!AIR_BETWEEN(nrrdEncodingUnknown, io->encoding, nrrdEncodingLast)) {
@@ -659,7 +665,7 @@ nrrdWrite(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     break;
   }
   if (ret) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   
@@ -697,6 +703,16 @@ nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 
+  if (nrrdFormatUnknown == io->format) {
+    _nrrdSplitName(io->dir, io->base, filename);
+    _nrrdGuessFormat(io, filename);
+    _nrrdFixFormat(io, nrrd);
+  }
+  if (!( AIR_INSIDE(nrrdFormatUnknown, io->format, nrrdFormatLast) )) {
+    sprintf(err, "%s: invalid format %d\n", me, io->format);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
+
   if (!strcmp("-", filename)) {
     file = stdout;
   }
@@ -709,12 +725,8 @@ nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
     airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
   }
 
-  _nrrdSplitName(io->dir, io->base, filename);
-  _nrrdGuessFormat(filename, io);
-  _nrrdFixFormat(nrrd, io);
-
   if (nrrdWrite(file, nrrd, io)) {
-    sprintf(err, "%s: trouble", me);
+    sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 
