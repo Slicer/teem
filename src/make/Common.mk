@@ -119,6 +119,8 @@ ARFLAGS = ru
 # not "make; make install", while someone debugging/developing a
 # library can say "make".
 all: $(LIB.A) $(LIB.S) $(TEST_BINS) $(BINS)
+testbins: $(TEST_BINS)
+bins: $(BINS)
 
 # "make install" installs the headers, libraries, and binaries, but
 # does not build the bins or test bins in the current directory
