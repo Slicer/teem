@@ -368,8 +368,12 @@ echoRender(Nrrd *nraw, limnCam *cam,
 	ELL_3V_SUB(dir, from, at);
 	near = 0.0;
 	far = POS_MAX;
+#if 1
 	echoRayColor(chan, dir, near, far,
 		     param, scene, lightArr);
+#else
+	memset(chan, ECHO_IMG_CHANNELS*sizeof(echoCol_t));
+#endif
 	
 	/* move to next "scanlines" */
 	jitt += 2*ECHO_SAMPLE_NUM;

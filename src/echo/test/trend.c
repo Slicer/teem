@@ -21,7 +21,7 @@
 
 int
 main(int argc, char **argv) {
-  Nrrd *nraw, *nimg, *nppm;
+  Nrrd *nraw, *nimg, *nppm, *ntmp, *npgm;
   limnCam *cam;
   EchoParam *param;
   EchoGlobalState *state;
@@ -52,7 +52,7 @@ main(int argc, char **argv) {
   airMopAdd(mop, param, (airMopper)echoParamNix, airMopAlways);
   param->jitter = echoJitterGrid;
   param->verbose = 3;
-  param->samples = 16;
+  param->samples = 4;
   param->imgResU = 256;
   param->imgResV = 256;
   param->epsilon = 0.000001;
@@ -70,9 +70,13 @@ main(int argc, char **argv) {
   nraw = nrrdNew();
   nimg = nrrdNew();
   nppm = nrrdNew();
+  ntmp = nrrdNew();
+  npgm = nrrdNew();
   airMopAdd(mop, nraw, (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nimg, (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nppm, (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, npgm, (airMopper)nrrdNuke, airMopAlways);
 
   E = 0;
   if (!E) E |= echoRender(nraw, cam, param, state, scene, lightArr);
@@ -84,6 +88,12 @@ main(int argc, char **argv) {
     airMopError(mop); return 1;
   }
   if (!E) E |= nrrdSave("out.ppm", nppm, NULL);
+  if (!E) E |= nrrdSlice(ntmp, nraw, 0, 3);
+  if (!E) E |= nrrdQuantize(npgm, ntmp, 8);
+  if (!E) E |= nrrdSave("alpha.pgm", npgm, NULL);
+  if (!E) E |= nrrdSlice(ntmp, nraw, 0, 4);
+  if (!E) E |= nrrdQuantize(npgm, ntmp, 8);
+  if (!E) E |= nrrdSave("time.pgm", npgm, NULL);
   if (E) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);

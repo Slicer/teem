@@ -19,16 +19,38 @@
 
 #include "echo.h"
 
+int
+echoRayIntx(EchoIntx *intx, 
+	    echoPos_t dir[3], echoPos_t near, echoPos_t far,
+	    EchoParam *param, EchoObject *scene) {
+  
+  return AIR_FALSE;
+}
+
 void
 echoRayColor(echoCol_t *chan,
 	     echoPos_t dir[3], echoPos_t near, echoPos_t far,
 	     EchoParam *param, EchoObject *scene, airArray *lightArr) {
   
-  chan[0] = 0.0;
-  chan[1] = 0.0;
-  chan[2] = 0.0;
-  chan[3] = 0.0;
-  chan[4] = 0.0;
+  EchoIntx intx;  /* NOT a pointer */
+
+  chan[4] = airTime();
+  if (echoRayIntx(&intx, dir, near, far, param, scene)) {
+    chan[0] = 1.0;
+    chan[1] = 0.0;
+    chan[2] = 0.0;
+    chan[3] = 1.0;
+  }
+  else {
+    /* ray hits nothing in scene */
+    chan[0] = 0.0;
+    chan[1] = 0.0;
+    chan[2] = 0.0;
+    chan[3] = 0.0;
+  }
+  chan[4] = airTime() - chan[4];
+
+  return;
 }
 
 	
