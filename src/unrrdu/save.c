@@ -27,7 +27,7 @@ extern void _nrrdGuessFormat(NrrdIO *io, const char *filename);
 char *_unrrdu_saveInfoL =
 (INFO
  ". Use \"unu\tsave\t-f\tpnm\t|\txv\t-\" to view PPM- or "
- "PGM-compatible nrrds");
+ "PGM-compatible nrrds on unix.");
 
 int
 unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
