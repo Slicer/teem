@@ -116,6 +116,8 @@ extern "C" {
 #define NRRD_UNKNOWN  "???"           /* how to represent something unknown in
                                          a field of the nrrd header, when it
                                          being unknown is not an error */
+#define NRRD_NONE "none"              /* like NRRD_UNKNOWN, but with an air
+                                         of certainty */
 
 #ifdef __cplusplus
 }

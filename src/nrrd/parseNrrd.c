@@ -452,6 +452,10 @@ _nrrdReadNrrdParse_centers (Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
       nrrd->axis[i].center = nrrdCenterUnknown;
       continue;
     }
+    if (!strcmp(tok, NRRD_NONE)) {
+      nrrd->axis[i].center = nrrdCenterUnknown;
+      continue;
+    }
     if (!(nrrd->axis[i].center = airEnumVal(nrrdCenter, tok))) {
       sprintf(err, "%s: couldn't parse center \"%s\" for axis %d",
               me, tok, i);
@@ -491,6 +495,10 @@ _nrrdReadNrrdParse_kinds (Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
     }
     if (!strcmp(tok, NRRD_UNKNOWN)) {
       nrrd->axis[i].kind = nrrdKindUnknown;
+      continue;
+    }
+    if (!strcmp(tok, NRRD_NONE)) {
+      nrrd->axis[i].center = nrrdKindUnknown;
       continue;
     }
     if (!(nrrd->axis[i].kind = airEnumVal(nrrdKind, tok))) {
