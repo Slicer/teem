@@ -23,7 +23,7 @@
 #define INFO "Estimate tensors from a set of DW images"
 char *_tend_estimInfoL =
   (INFO
-   ".  The various DWI volumes must be stacked along axis 0 (as with the "
+   ". The various DWI volumes must be stacked along axis 0 (as with the "
    "output of \"tend epireg\").  The tensor coefficient weightings associated "
    "with "
    "each of the DWIs, the B matrix, is given as a seperate array, "
@@ -64,8 +64,8 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "b", "b", airTypeFloat, 1, 1, &b, "1",
 	     "additional b scaling factor ");
   hestOptAdd(&hopt, "i", "dwi", airTypeOther, 1, 1, &ndwi, "-",
-	     "4-D volume of all DWIs, stacked along axis 0, starting with "
-	     "the B=0 image", NULL, NULL, nrrdHestNrrd);
+	     "4-D volume of all volumes, joined along axis 0, starting with "
+	     "the non-diffusion-weighted image", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
 	     "output image (floating point)");
 
