@@ -34,6 +34,8 @@ _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
   {gageVecLambda2,       1,  1,  {gageVecJacobian, -1, -1, -1, -1},                              -1,  -1},
   {gageVecHessian,      27,  2,  {-1, -1, -1, -1, -1},                                           -1,  -1},
   {gageVecCurlGradient,  9,  2,  {gageVecHessian, -1, -1, -1, -1},                               -1,  -1},
+  {gageVecCurlNormGrad,  3,  2,  {gageVecHessian, gageVecCurl, -1, -1, -1},                      -1,  -1},
+  {gageVecNCurlNormGrad, 3,  2,  {gageVecCurlNormGrad, -1, -1, -1, -1},                          -1,  -1},
   {gageVecHelGradient,   3,  2,  {gageVecVector, gageVecJacobian, gageVecCurl, 
 				  gageVecCurlGradient, -1},                                      -1,  -1},
   {gageVecDirHelDeriv,   1,  2,  {gageVecNormalized, gageVecHelGradient, -1, -1, -1},            -1,  -1},
@@ -104,19 +106,20 @@ void
 _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageVecAnswer";
   double cmag, tmpMat[9], mgevec[9], mgeval[3];
-  double symm[9], asym[9], tran[9], eval[3];
+  double symm[9], asym[9], tran[9], eval[3], tmpVec[3], norm;
   gage_t *vecAns, *normAns, *jacAns, *curlAns, *hesAns, *curlGradAns, 
-         *helGradAns, *dirHelDirAns;
+         *helGradAns, *dirHelDirAns, *curlnormgradAns;
   int asw;
 
-  vecAns       = pvl->directAnswer[gageVecVector];
-  normAns      = pvl->directAnswer[gageVecNormalized];
-  jacAns       = pvl->directAnswer[gageVecJacobian];
-  curlAns      = pvl->directAnswer[gageVecCurl];
-  hesAns       = pvl->directAnswer[gageVecHessian];
-  curlGradAns  = pvl->directAnswer[gageVecCurlGradient];
-  helGradAns   = pvl->directAnswer[gageVecHelGradient];
-  dirHelDirAns = pvl->directAnswer[gageVecDirHelDeriv];
+  vecAns          = pvl->directAnswer[gageVecVector];
+  normAns         = pvl->directAnswer[gageVecNormalized];
+  jacAns          = pvl->directAnswer[gageVecJacobian];
+  curlAns         = pvl->directAnswer[gageVecCurl];
+  hesAns          = pvl->directAnswer[gageVecHessian];
+  curlGradAns     = pvl->directAnswer[gageVecCurlGradient];
+  curlnormgradAns = pvl->directAnswer[gageVecCurlNormGrad];
+  helGradAns      = pvl->directAnswer[gageVecHelGradient];
+  dirHelDirAns    = pvl->directAnswer[gageVecDirHelDeriv];
 
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecVector)) {
     /* done if doV */
@@ -172,41 +175,20 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecLambda2)) {
       ELL_3M_TRANSPOSE(tran, jacAns);
-      // symmetric part
+      /* symmetric part */
       ELL_3M_SCALE_ADD2(symm, 0.5, jacAns,  0.5, tran);
-      // antisymmetric part
+      /* antisymmetric part */
       ELL_3M_SCALE_ADD2(asym, 0.5, jacAns, -0.5, tran);
-      // square symmetric part
+      /* square symmetric part */
       ELL_3M_MUL(tmpMat, symm, symm);
       ELL_3M_COPY(symm, tmpMat);
-      // square antisymmetric part
+      /* square antisymmetric part */
       ELL_3M_MUL(tmpMat, asym, asym);
-      // sum of both
+      /* sum of both */
       ELL_3M_ADD2(symm, symm, tmpMat);
+      /* get eigenvalues in sorted order */
       asw = ell_3m_eigenvalues_d(eval, symm, AIR_TRUE);
-      if (asw == ell_cubic_root_triple)
-	  pvl->directAnswer[gageVecLambda2][0] = eval[0];
-      else if (asw == ell_cubic_root_single_double)
-	  pvl->directAnswer[gageVecLambda2][0] = eval[1];
-      else if (asw == ell_cubic_root_three)
-      {
-	  if (eval[0]<=eval[1])
-	      if (eval[1]<=eval[2])
-		  pvl->directAnswer[gageVecLambda2][0] = eval[1];
-	      else 
-		  if (eval[0]<=eval[2])
-		      pvl->directAnswer[gageVecLambda2][0] = eval[2];
-		  else
-		      pvl->directAnswer[gageVecLambda2][0] = eval[0];
-	  else
-	      if (eval[2]<=eval[1])
-		  pvl->directAnswer[gageVecLambda2][0] = eval[1];
-	      else
-		  if (eval[0]<=eval[2])
-		      pvl->directAnswer[gageVecLambda2][0] = eval[0];
-		  else
-		      pvl->directAnswer[gageVecLambda2][0] = eval[2];
-      }
+      pvl->directAnswer[gageVecLambda2][0] = eval[1];
   }
   /* 2nd order vector derivative continued */ 
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecHessian)) {
@@ -234,6 +216,32 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
       pvl->directAnswer[gageVecCurlGradient][6] = hesAns[ 9]-hesAns[ 1];
       pvl->directAnswer[gageVecCurlGradient][7] = hesAns[10]-hesAns[ 2];
       pvl->directAnswer[gageVecCurlGradient][8] = hesAns[11]-hesAns[ 3];
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecCurlNormGrad)) {
+      norm = 1./ELL_3V_LEN(curlAns);
+
+      tmpVec[0] = hesAns[21] - hesAns[15];
+      tmpVec[1] = hesAns[ 6] - hesAns[18];
+      tmpVec[2] = hesAns[ 9] - hesAns[ 3];      
+      pvl->directAnswer[gageVecCurlNormGrad][0]=
+	  norm*ELL_3V_DOT(tmpVec, curlAns);
+
+      tmpVec[0] = hesAns[22] - hesAns[16];
+      tmpVec[1] = hesAns[ 7] - hesAns[19];
+      tmpVec[2] = hesAns[10] - hesAns[ 4];      
+      pvl->directAnswer[gageVecCurlNormGrad][1]=
+	  norm*ELL_3V_DOT(tmpVec, curlAns);
+
+      tmpVec[0] = hesAns[23] - hesAns[17];
+      tmpVec[1] = hesAns[ 8] - hesAns[20];
+      tmpVec[2] = hesAns[11] - hesAns[ 5];      
+      pvl->directAnswer[gageVecCurlNormGrad][2]=
+	  norm*ELL_3V_DOT(tmpVec, curlAns);      
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecNCurlNormGrad)) {
+      norm = 1./ELL_3V_LEN(curlnormgradAns);
+      ELL_3V_SCALE(pvl->directAnswer[gageVecNCurlNormGrad],
+		   norm, pvl->directAnswer[gageVecCurlNormGrad]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecHelGradient)) {
       pvl->directAnswer[gageVecHelGradient][0] = 
@@ -331,6 +339,8 @@ _gageVecStr[][AIR_STRLEN_SMALL] = {
   "lambda2",
   "vector hessian",
   "curl gradient",
+  "curl norm gradient",
+  "normalized curl norm gradient",
   "helicity gradient",
   "directional helicity derivative",
   "projected helicity gradient",
@@ -357,6 +367,8 @@ _gageVecDesc[][AIR_STRLEN_MED] = {
   "lambda2 value for vortex characterization",
   "3x3x3 second-order vector derivative",
   "3x3 derivative of curl",
+  "gradient of curl norm",
+  "normalized gradient of curl norm",
   "gradient of helicity",
   "directional derivative of helicity along flow",
   "projection of the helicity gradient onto plane orthogonal to flow",
@@ -383,6 +395,8 @@ _gageVecVal[] = {
   gageVecLambda2,
   gageVecHessian,
   gageVecCurlGradient,
+  gageVecCurlNormGrad,
+  gageVecNCurlNormGrad,
   gageVecHelGradient,
   gageVecDirHelDeriv,
   gageVecProjHelGradient,
@@ -395,27 +409,29 @@ _gageVecVal[] = {
   gageVecMGEvec,
 };
 
-#define GV_V gageVecVector
-#define GV_L gageVecLength
-#define GV_N gageVecNormalized
-#define GV_J gageVecJacobian
-#define GV_D gageVecDivergence
-#define GV_C gageVecCurl
-#define GV_H  gageVecHelicity
-#define GV_NH gageVecNormHelicity
-#define GV_LB gageVecLambda2
-#define GV_VH gageVecHessian
-#define GV_CG gageVecCurlGradient
-#define GV_HG gageVecHelGradient
-#define GV_DH gageVecDirHelDeriv
-#define GV_PH gageVecProjHelGradient
-#define GV_G0 gageVecGradient0
-#define GV_G1 gageVecGradient1
-#define GV_G2 gageVecGradient2
-#define GV_MG gageVecMultiGrad
-#define GV_MF gageVecMGFrob
-#define GV_ML gageVecMGEval
-#define GV_MC gageVecMGEvec
+#define GV_V   gageVecVector
+#define GV_L   gageVecLength
+#define GV_N   gageVecNormalized
+#define GV_J   gageVecJacobian
+#define GV_D   gageVecDivergence
+#define GV_C   gageVecCurl
+#define GV_H   gageVecHelicity
+#define GV_NH  gageVecNormHelicity
+#define GV_LB  gageVecLambda2
+#define GV_VH  gageVecHessian
+#define GV_CG  gageVecCurlGradient
+#define GV_CNG gageVecCurlNormGrad
+#define GV_NCG gageVecNCurlNormGrad
+#define GV_HG  gageVecHelGradient
+#define GV_DH  gageVecDirHelDeriv
+#define GV_PH  gageVecProjHelGradient
+#define GV_G0  gageVecGradient0
+#define GV_G1  gageVecGradient1
+#define GV_G2  gageVecGradient2
+#define GV_MG  gageVecMultiGrad
+#define GV_MF  gageVecMGFrob
+#define GV_ML  gageVecMGEval
+#define GV_MC  gageVecMGEvec
 
 char
 _gageVecStrEqv[][AIR_STRLEN_SMALL] = {
@@ -430,6 +446,8 @@ _gageVecStrEqv[][AIR_STRLEN_SMALL] = {
   "lbda2", "lambda2",
   "vh", "vhes", "vhessian", "vector hessian",
   "cg", "curlgrad", "curlg", "curljac", "curl gradient",
+  "cng", "curl norm gradient",
+  "ncng", "norm curl norm gradient",
   "hg", "helg", "helgrad", "helicity gradient",
   "dirhelderiv", "dhd", "ddh", "directional helicity derivative",
   "phg", "projhel", "projhelgrad", "projected helicity gradient",
@@ -456,6 +474,8 @@ _gageVecValEqv[] = {
   GV_LB, GV_LB,
   GV_VH, GV_VH, GV_VH, GV_VH,
   GV_CG, GV_CG, GV_CG, GV_CG, GV_CG,
+  GV_CNG, GV_CNG,
+  GV_NCG, GV_NCG,
   GV_HG, GV_HG, GV_HG, GV_HG,
   GV_DH, GV_DH, GV_DH, GV_DH, 
   GV_PH, GV_PH, GV_PH, GV_PH, 

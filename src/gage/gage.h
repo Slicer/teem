@@ -289,21 +289,29 @@ enum {
   gageVecHelicity,   /*  6: "h", helicity: vec . curl: GT[1] */
   gageVecNormHelicity,/* 7: "nh", normalized helicity: GT[1] */
   gageVecLambda2,    /*  8: "lmabda2", lambda2 criterion: GT[1] */
-  gageVecHessian,    /*  9: "vh", second-order derivative: GT[27] */
+  gageVecHessian,    /*  9: "vh", second-order derivative: GT[27] 
+			    0:d2v_x/dxdx   1:d2v_x/dxdy   2:d2v_x/dxdz
+	                    3:d2v_x/dydx   4:d2v_x/dydy   5:d2v_x/dydz
+			    6:d2v_x/dzdx   7:d2v_x/dzdy   8:d2v_x/dzdz
+			    9:d2v_y/dxdx       [...]
+			        [...]
+			   24:dv2_z/dzdx  25:d2v_z/dzdy  26:d2v_z/dzdz */
   gageVecCurlGradient,/*10: "cg", curl gradient: GT[9] */
-  gageVecHelGradient,/* 11: "hg", helicity gradient: GT[3] */
-  gageVecDirHelDeriv,/* 12: "dhd", directional derivative of helicity: GT[1] */ 
-  gageVecProjHelGradient,/* 13: "phg", projected helicity gradient: GT[3] */
-  gageVecGradient0,  /* 14: "g0", gradient of 1st component of vector: GT[3] */
-  gageVecGradient1,  /* 15: "g1", gradient of 2nd component of vector: GT[3] */
-  gageVecGradient2,  /* 16: "g2", gradient of 3rd component of vector: GT[3] */
-  gageVecMultiGrad,  /* 17: "mg", sum of outer products of gradients: GT[9] */
-  gageVecMGFrob,     /* 18: "mgfrob", frob norm of multi-gradient: GT[1] */
-  gageVecMGEval,     /* 19: "mgeval", eigenvalues of multi-gradient: GT[3] */
-  gageVecMGEvec,     /* 20: "mgevec", eigenvectors of multi-gradient: GT[9] */
+  gageVecCurlNormGrad,/*11: "cng", curl norm gradient: GT[3] */
+  gageVecNCurlNormGrad, /* 12: "ncng", normalized curl norm gradient: GT[3] */
+  gageVecHelGradient,/* 13: "hg", helicity gradient: GT[3] */
+  gageVecDirHelDeriv,/* 14: "dhd", directional derivative of helicity: GT[1] */ 
+  gageVecProjHelGradient, /* 15: "phg", projected helicity gradient: GT[3] */
+  gageVecGradient0,  /* 16: "g0", gradient of 1st component of vector: GT[3] */
+  gageVecGradient1,  /* 17: "g1", gradient of 2nd component of vector: GT[3] */
+  gageVecGradient2,  /* 18: "g2", gradient of 3rd component of vector: GT[3] */
+  gageVecMultiGrad,  /* 19: "mg", sum of outer products of gradients: GT[9] */
+  gageVecMGFrob,     /* 20: "mgfrob", frob norm of multi-gradient: GT[1] */
+  gageVecMGEval,     /* 21: "mgeval", eigenvalues of multi-gradient: GT[3] */
+  gageVecMGEvec,     /* 22: "mgevec", eigenvectors of multi-gradient: GT[9] */
   gageVecLast
 };
-#define GAGE_VEC_ITEM_MAX     20
+#define GAGE_VEC_ITEM_MAX     22
 
 struct gageKind_t;       /* dumb forward declaraction, ignore */
 struct gagePerVolume_t;  /* dumb forward declaraction, ignore */
