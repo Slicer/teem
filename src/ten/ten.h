@@ -101,19 +101,21 @@ enum {
   tenGageEval,          /*  3: "eval", eigenvalues of tensor
 			       (sorted descending) : GT[3] */
   tenGageEvec,          /*  4: "evec", eigenvectors of tensor: GT[9] */
-  tenGageTensorGrad,    /*  5: "tg", all tensor component gradients, starting with
-			        the confidence value gradient: GT[21] */
-  tenGageRR,            /*  6: "rr", rr anisotropy: *GT */
-  tenGageRRGradVec,     /*  7: "rrv", gradient of rr anisotropy: GT[3] */
-  tenGageRRGradMag,     /*  8: "rrg", grad mag of rr anisotropy: *GT */
-  tenGageRRNormal,      /*  9: "rrn", normalized gradient of rr anisotropy: GT[3] */
+  tenGageTensorGrad,    /*  5: "tg", all tensor component gradients, starting
+			       with the confidence value gradient: GT[21] */
+  tenGageQ,             /*  6: "q", Q anisotropy (or 9 times it): *GT */
+  tenGageQGradVec,      /*  7: "qv", gradient of Q anisotropy: GT[3] */
+  tenGageQGradMag,      /*  8: "qg", grad mag of Q anisotropy: *GT */
+  tenGageQNormal,       /*  9: "qn", normalized gradient of Q
+			       anisotropy: GT[3] */
   tenGageMultiGrad,     /* 10: "mg", sum of outer products of the tensor 
-			       matrix elements, correctly counting the off-diagonal
-			       entries twice, but not counting the confidence
-			       value: GT[9] */
+			       matrix elements, correctly counting the
+			       off-diagonal entries twice, but not counting
+			       the confidence value: GT[9] */
   tenGageFrobMG,        /* 11: "frmg", frobenius norm of multi gradient: *GT */
-  tenGageMGEval,        /* 12: "mgeval", eigenvalues of multi gradient: GT[3] */
-  tenGageMGEvec,        /* 13: "mgevec", eigenvectors of multi gradient: GT[9] */
+  tenGageMGEval,        /* 12: "mgeval", eigenvalues of multi gradient: GT[3]*/
+  tenGageMGEvec,        /* 13: "mgevec", eigenvectors of multi
+			       gradient: GT[9] */
   tenGageAniso,         /* 14: "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
   tenGageLast
 };

@@ -66,10 +66,10 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "eigenvalues",
   "eigenvectors",
   "tensor gradient",
-  "rr anisotropy",
-  "rr gradient vector",
-  "rr gradient magnitude",
-  "normalized rr gradient",
+  "Q anisotropy",
+  "Q gradient vector",
+  "Q gradient magnitude",
+  "normalized Q gradient",
   "multigrad",
   "fro(multigrad)",
   "multigrad eigenvalues",
@@ -86,10 +86,10 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "tensor eigenvalues",
   "tensor eigenvectors",
   "tensor gradient",
-  "rr anisotropy",
-  "rr gradient vector",
-  "rr gradient magnitude",
-  "normalized rr gradient",
+  "Q anisotropy",
+  "Q gradient vector",
+  "Q gradient magnitude",
+  "normalized Q gradient",
   "multigrad",
   "frob(multigrad)",
   "multigrad eigenvalues",
@@ -106,10 +106,10 @@ _tenGageVal[] = {
   tenGageEval,
   tenGageEvec,
   tenGageTensorGrad,
-  tenGageRR,
-  tenGageRRGradVec,
-  tenGageRRGradMag,
-  tenGageRRNormal,
+  tenGageQ,
+  tenGageQGradVec,
+  tenGageQGradMag,
+  tenGageQNormal,
   tenGageMultiGrad,
   tenGageFrobMG,
   tenGageMGEval,
@@ -123,10 +123,10 @@ _tenGageVal[] = {
 #define TG_AL   tenGageEval
 #define TG_EC   tenGageEvec
 #define TG_TG   tenGageTensorGrad
-#define TG_RR   tenGageRR
-#define TG_RGV  tenGageRRGradVec
-#define TG_RGM  tenGageRRGradMag
-#define TG_RGN  tenGageRRNormal
+#define TG_Q    tenGageQ
+#define TG_QGV  tenGageQGradVec
+#define TG_QGM  tenGageQGradMag
+#define TG_QGN  tenGageQNormal
 #define TG_MG   tenGageMultiGrad
 #define TG_FMG  tenGageFrobMG
 #define TG_MGA  tenGageMGEval
@@ -141,10 +141,10 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "eval", "eigenvalues",
   "evec", "eigenvectors",
   "tg", "tgrad", "t grad", "tensor gradient",
-  "rr",
-  "rrv", "rrgrad", "rr grad", "rr gradient vector",
-  "rrg", "rrgmag", "rr gmag", "rr gradient magnitude",
-  "rrn", "rrnorm", "rr norm", "normalized rr gradient",
+  "q",
+  "qv", "qgrad", "q grad", "q gradient vector",
+  "qg", "qgmag", "q gmag", "q gradient magnitude",
+  "qn", "qnorm", "q norm", "normalized q gradient",
   "mg", "multigrad",
   "frmg", "frobmg", "frob mg",
   "mgeval", "mg eval", "multigrad eigenvalues",
@@ -161,10 +161,10 @@ _tenGageValEqv[] = {
   TG_AL, TG_AL,
   TG_EC, TG_EC,
   TG_TG, TG_TG, TG_TG, TG_TG,
-  TG_RR,
-  TG_RGV, TG_RGV, TG_RGV, TG_RGV,
-  TG_RGM, TG_RGM, TG_RGM, TG_RGM,
-  TG_RGN, TG_RGN, TG_RGN, TG_RGN,
+  TG_Q,
+  TG_QGV, TG_QGV, TG_QGV, TG_QGV,
+  TG_QGM, TG_QGM, TG_QGM, TG_QGM,
+  TG_QGN, TG_QGN, TG_QGN, TG_QGN,
   TG_MG, TG_MG,
   TG_FMG, TG_FMG, TG_FMG,
   TG_MGA, TG_MGA, TG_MGA,
