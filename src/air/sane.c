@@ -28,7 +28,7 @@
 */
 int
 airSanity(void) {
-  double nan, pinf, ninf;
+  double nan, pinf, ninf, pzero;
   float nanF, pinfF, ninfF;
   int tmpI, sign, exp, frac, size;
   char endian;
@@ -78,7 +78,8 @@ airSanity(void) {
   if (AIR_EXISTS(ninf)) {
     return airInsane_nInfExists;
   }
-  nan = pinf/pinf;
+  pzero = 0.0;
+  nan = pzero/pzero;
   if (AIR_EXISTS(nan)) {
     return airInsane_NaNExists;
   }
