@@ -100,7 +100,7 @@ setenv TEEM_BZIP2
 # setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/linux/lib
 # setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
 
-setenv OPT_CFLAG "-g -O2"
+setenv OPT_CFLAG "-g"
 setenv TEEM_LINK_SHARED
 setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sci/gk/usr/local/linux/lib
 setenv PATH ${PATH}:/home/sci/gk/usr/local/linux/bin
