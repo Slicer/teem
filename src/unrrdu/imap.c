@@ -36,17 +36,28 @@ int
 imapMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
-  Nrrd *nin, *nmap, *nout;
+  Nrrd *nin, *nmap, *nacl, *nout;
   airArray *mop;
-  int rescale;
+  int typeOut, rescale, aclLen;
 
   OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "m", "map", airTypeOther, 1, 1, &nmap, NULL,
 	     "regular map to map input nrrd through",
 	     NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&opt, "l", "aclLen", airTypeInt, 1, 1, &aclLen, "0",
+	     "length of accelerator array, used to try to speed-up "
+	     "task of finding between which pair of control points "
+	     "a given value lies.  Not terribly useful for small maps "
+	     "(about 10 points or less).  Use 0 to turn accelorator off. ");
   hestOptAdd(&opt, "r", NULL, airTypeInt, 0, 0, &rescale, NULL,
 	     "rescale the input values from the input range to the "
 	     "map domain");
+  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &typeOut, "unknown",
+	     "specify the type (\"int\", \"float\", etc.) of the "
+	     "output nrrd. "
+	     "By default (not using this option), the output type "
+	     "is the map's type.",
+             NULL, NULL, &unuMaybeTypeHestCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
@@ -59,17 +70,38 @@ imapMain(int argc, char **argv, char *me) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
+  if (aclLen) {
+    nacl = nrrdNew();
+    airMopAdd(mop, nacl, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrd1DIrregAclGenerate(nacl, nmap, aclLen)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble generating accelerator:\n%s", me, err);
+      airMopError(mop);
+      return 1;
+    }
+  } else {
+    nacl = NULL;
+  }
   if (rescale) {
     nrrdMinMaxCleverSet(nin);
   }
-  if (nrrdApply1DIrregMap(nout, nin, nmap, NULL, rescale)) {
+  if (nrrdTypeUnknown == typeOut) {
+    typeOut = nmap->type;
+  }
+  /* some very non-exhaustive tests seemed to indicate that the
+     accelerator does not in fact reliably speed anything up.
+     This of course depends on the size of the imap (# points),
+     but chances are most will have only a handful of points,
+     in which case the binary search in _nrrd1DIrregFindInterval()
+     will finish quickly ... */
+  if (nrrdApply1DIrregMap(nout, nin, nmap, nacl, typeOut, rescale)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble applying map:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
 
-  SAVE(nout, NULL);
+  SAVE(out, nout, NULL);
 
   airMopOkay(mop);
   return 0;

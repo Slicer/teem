@@ -27,9 +27,10 @@ char *rmapInfoL = (INFO
 		   "spaced along the domain, and hence their position isn't "
 		   "explicitly represented in the map; the axis min, axis "
 		   "max, and number of points determine their location. "
-		   "The map can be 1D (\"grayscale\"), in which case the "
+		   "The map can be a 1D nrrd (for \"grayscale\"), "
+		   "in which case the "
 		   "output has the same dimension as the input, "
-		   "or 2D (\"color\"), in which case "
+		   "or a 2D nrrd (for \"color\"), in which case "
 		   "the output has one more dimension than the input.  In "
 		   "either case, the output is the result of linearly "
 		   "interpolating between map points, either scalar values "
@@ -42,12 +43,21 @@ rmapMain(int argc, char **argv, char *me) {
   char *out, *err;
   Nrrd *nin, *nmap, *nout;
   airArray *mop;
-  int mapax;
+  int mapax, typeOut, rescale;
 
   OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "m", "map", airTypeOther, 1, 1, &nmap, NULL,
 	     "regular map to map input nrrd through",
 	     NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&opt, "r", NULL, airTypeInt, 0, 0, &rescale, NULL,
+	     "rescale the input values from the input range to the "
+	     "map domain, assuming it is explicitly defined");
+  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &typeOut, "unknown",
+	     "specify the type (\"int\", \"float\", etc.) of the "
+	     "output nrrd. "
+	     "By default (not using this option), the output type "
+	     "is the map's type.",
+             NULL, NULL, &unuMaybeTypeHestCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
@@ -63,19 +73,33 @@ rmapMain(int argc, char **argv, char *me) {
   mapax = nmap->dim - 1;
   if (!(AIR_EXISTS(nmap->axis[mapax].min) &&
 	AIR_EXISTS(nmap->axis[mapax].max))) {
-    /* gracelessly set the map min and max to the data range */
-    nrrdMinMaxCleverSet(nin);
-    nmap->axis[mapax].min = nin->min;
-    nmap->axis[mapax].max = nin->max;
+    if (rescale) {
+      fprintf(stderr, "%s: can't rescale to non-existant rmap domain\n", me);
+      airMopError(mop);
+      return 1;
+    } else {
+      /* set the map domain to the data range */
+      nrrdMinMaxCleverSet(nin);
+      nmap->axis[mapax].min = nin->min;
+      nmap->axis[mapax].max = nin->max;
+      fprintf(stderr, "%s: setting rmap domain to (%g,%g)\n",
+	      me, nin->min, nin->max);
+    }
   }
-  if (nrrdApply1DRegMap(nout, nin, nmap, AIR_FALSE)) {
+  if (rescale) {
+    nrrdMinMaxCleverSet(nin);
+  }
+  if (nrrdTypeUnknown == typeOut) {
+    typeOut = nmap->type;
+  }
+  if (nrrdApply1DRegMap(nout, nin, nmap, typeOut, rescale)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble applying map:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
 
-  SAVE(nout, NULL);
+  SAVE(out, nout, NULL);
 
   airMopOkay(mop);
   return 0;

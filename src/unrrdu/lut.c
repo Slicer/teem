@@ -23,7 +23,8 @@ char *lutName = "lut";
 #define INFO "Map nrrd through univariate lookup table"
 char *lutInfo = INFO;
 char *lutInfoL = (INFO
-		  ". The lookup table can be 1D, in which case the output "
+		  " (itself represented as a nrrd). The lookup table "
+		  "can be 1D, in which case the output "
 		  "has the same dimension as the input, or 2D, in which case "
 		  "the output has one more dimension than the input, and each "
 		  "value is mapped to a scanline (along axis 0) from the "
@@ -35,12 +36,21 @@ lutMain(int argc, char **argv, char *me) {
   char *out, *err;
   Nrrd *nin, *nlut, *nout;
   airArray *mop;
-  int lutax;
+  int lutax, typeOut, rescale;
 
   OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "m", "lut", airTypeOther, 1, 1, &nlut, NULL,
 	     "lookup table to map input nrrd through",
 	     NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&opt, "r", NULL, airTypeInt, 0, 0, &rescale, NULL,
+	     "rescale the input values from the input range to the "
+	     "lut domain, assuming it is explicitly defined");
+  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &typeOut, "unknown",
+	     "specify the type (\"int\", \"float\", etc.) of the "
+	     "output nrrd. "
+	     "By default (not using this option), the output type "
+	     "is the lut's type.",
+             NULL, NULL, &unuMaybeTypeHestCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
@@ -54,21 +64,35 @@ lutMain(int argc, char **argv, char *me) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   lutax = nlut->dim - 1;
-  if (!(AIR_EXISTS(nlut->axis[lutax].min) &&
-	AIR_EXISTS(nlut->axis[lutax].max))) {
-    /* gracelessly set the lut min and max to the data range */
-    nrrdMinMaxCleverSet(nin);
-    nlut->axis[lutax].min = nin->min;
-    nlut->axis[lutax].max = nin->max;
+  if (!( AIR_EXISTS(nlut->axis[lutax].min) &&
+	 AIR_EXISTS(nlut->axis[lutax].max) )) {
+    if (rescale) {
+      fprintf(stderr, "%s: can't rescale to non-existant lut domain\n", me);
+      airMopError(mop);
+      return 1;
+    } else {
+      /* set the lut domain to the data range */
+      nrrdMinMaxCleverSet(nin);
+      nlut->axis[lutax].min = nin->min;
+      nlut->axis[lutax].max = nin->max;
+      fprintf(stderr, "%s: setting lut domain to (%g,%g)\n",
+	      me, nin->min, nin->max);
+    }
   }
-  if (nrrdApply1DLut(nout, nin, nlut, AIR_FALSE)) {
+  if (rescale) {
+    nrrdMinMaxCleverSet(nin);
+  }
+  if (nrrdTypeUnknown == typeOut) {
+    typeOut = nlut->type;
+  }
+  if (nrrdApply1DLut(nout, nin, nlut, typeOut, rescale)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble applying LUT:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
 
-  SAVE(nout, NULL);
+  SAVE(out, nout, NULL);
 
   airMopOkay(mop);
   return 0;
