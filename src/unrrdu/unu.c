@@ -164,9 +164,6 @@ main(int argc, char **argv) {
   /* set the fields in all the unuCmd structs */
   MAP(ADD)
 
-  /* initialize variables used by the various commands */
-  hparm = hestParmNew();
-
   /* if there are no arguments, then we give general usage information */
   if (1 >= argc) {
     usage(UNU);
@@ -179,10 +176,13 @@ main(int argc, char **argv) {
       break;
   }
   if (cmdList[i]) {
+    /* initialize variables used by the various commands */
+    hparm = hestParmNew();
     argv0 = malloc(strlen(UNU) + strlen(argv[1]) + 2);
     sprintf(argv0, "%s %s", UNU, argv[1]);
     ret = cmdList[i]->main(argc-2, argv+2, argv0);
     free(argv0);
+    hestParmFree(hparm);
   }
   else {
     fprintf(stderr, "%s: unrecognized command: \"%s\"\n", argv[0], argv[1]);
