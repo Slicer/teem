@@ -27,7 +27,7 @@ _echoLight##TYPE##_new(void) {                                   \
                                                                  \
   light = (EchoLight##TYPE *)calloc(1, sizeof(EchoLight##TYPE)); \
   light->type = echoLight##TYPE;                                 \
-  do { BODY } while (0);                                         \
+  do { BODY dummy=dummy; } while (0);                            \
   return light;                                                  \
 }
 
