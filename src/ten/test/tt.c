@@ -31,6 +31,9 @@ _cap2xyz(double xyz[3], double ca, double cp) {
   xyz[0] = cs*0.333 + cl*1.0 + cp*0.5;
   xyz[1] = cs*0.333 + cl*0.0 + cp*0.5;
   xyz[2] = cs*0.333 + cl*0.0 + cp*0.0;
+  xyz[0] = AIR_AFFINE(0, ca, 1, 1.1*xyz[0], 0.86*xyz[0]);
+  xyz[1] = AIR_AFFINE(0, ca, 1, 1.1*xyz[1], 0.86*xyz[1]);
+  xyz[2] = AIR_AFFINE(0, ca, 1, 1.1*xyz[2], 0.86*xyz[2]);
 }
 
 void
