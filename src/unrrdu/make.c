@@ -281,7 +281,8 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
 	  airMopError(mop); return 1;
 	}
       }
-      if (nrrdJoin(nrrd, nslice, nameLen, nrrd->dim-1, AIR_TRUE)) {
+      if (nrrdJoin(nrrd, (const Nrrd**)nslice,
+		   nameLen, nrrd->dim-1, AIR_TRUE)) {
 	airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
 	fprintf(stderr, "%s: trouble joining slices together:\n%s",
 		me, err);
