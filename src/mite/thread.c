@@ -68,6 +68,7 @@ miteThread *
 miteThreadNix(miteThread *mtt) {
 
   AIR_FREE(mtt->ansMiteVal);
+  AIR_FREE(mtt->directAnsMiteVal);
   AIR_FREE(mtt);
   return NULL;
 }
