@@ -76,6 +76,7 @@ include $(PREFIX)/src/make/$(ARCH).mk
 #
 ifdef TEEM_LIB
   OBJ_PREF = $(ODEST)/$(TEEM_LIB)
+  OBJ_PREF = $(ODEST)
   OBJS = $(addprefix $(OBJ_PREF)/,$(TEEM_LIB_OBJS))
   TEEM_LIB_BASENAME ?= lib$(TEEM_LIB)
   _TEEM_LIB.A = $(TEEM_LIB_BASENAME).a
@@ -91,12 +92,18 @@ endif
 ifdef TEEM_BIN
   _TEEM_BIN = $(notdir $(TEEM_BIN))
   _B_TEEM_LIB = $(patsubst %/,%,$(dir $(TEEM_BIN)))
+#  ifdef OBJ_PREF
+#    ifneq ($(OBJ_PREF),$(ODEST)/$(_B_TEEM_LIB))
+#      $(error TEEM_BIN $(TEEM_BIN) must be in same path as TEEM_LIB $(TEEM_LIB))
+#    endif
+#  endif
   ifdef OBJ_PREF
-    ifneq ($(OBJ_PREF),$(ODEST)/$(_B_TEEM_LIB))
+    ifneq ($(OBJ_PREF),$(ODEST))
       $(error TEEM_BIN $(TEEM_BIN) must be in same path as TEEM_LIB $(TEEM_LIB))
     endif
   endif
   OBJ_PREF = $(ODEST)/$(_B_TEEM_LIB)
+  OBJ_PREF = $(ODEST)
   OBJS = $(addprefix $(OBJ_PREF)/,$(TEEM_BIN_OBJS))
   # The non-installed binary will be called $(_TEEM_BIN) and will be in the
   # main source directory (wherever this .mk file was sourced from).
