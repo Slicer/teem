@@ -23,7 +23,12 @@ char *heqName = "heq";
 #define INFO "Perform histogram equalization"
 char *heqInfo = INFO;
 char *heqInfoL = (INFO
-		  ". ");
+		  ". If this seems to be doing nothing, try increasing the "
+		  "number of histograms bins by an order of magnitude or "
+		  "two (or more).  Or, use \"unu gamma\" to warp the values "
+		  "in the direction you know they need to go.  Either of "
+		  "these might work because extremely tall and narrow peaks "
+		  "in the equalization histogram will produce poor results.");
 
 int
 heqMain(int argc, char **argv, char *me) {
