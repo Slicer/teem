@@ -81,7 +81,7 @@ main(int argc, char *argv[]) {
   if (!strcmp("-", inS)) {
     fin = stdin;
   } else {
-    fin = fopen(inS, "rb");
+    fin = fopen(inS, "r");
     if (!fin) {
       fprintf(stderr, "\n%s: couldn't fopen(\"%s\",\"rb\"): %s\n\n",
 	      me, inS, strerror(errno));
@@ -94,6 +94,9 @@ main(int argc, char *argv[]) {
     outS = argv[2];
     if (!strcmp("-", outS)) {
       fout = stdout;
+#ifdef _WIN32
+      _setmode(_fileno(fout), _O_BINARY);
+#endif
     } else {
       fout = fopen(outS, "w");
       if (!fout) {

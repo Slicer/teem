@@ -72,6 +72,9 @@ main(int argc, char *argv[]) {
   inS = argv[1];
   if (!strcmp("-", inS)) {
     fin = stdin;
+#ifdef _WIN32
+    _setmode(_fileno(fin), _O_BINARY);
+#endif
   } else {
     fin = fopen(inS, "rb");
     if (!fin) {
