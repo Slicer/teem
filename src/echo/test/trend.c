@@ -545,6 +545,7 @@ makeSceneGlass2(limnCam *cam, EchoParm *parm,
   EchoLight *light;
   EchoObject *scene; airArray *lightArr;
   Nrrd *ntext;
+  echoPos_t matx[16];
   
   *sceneP = scene = echoObjectNew(echoObjectList);
   *lightArrP = lightArr = echoLightArrayNew();
@@ -573,8 +574,12 @@ makeSceneGlass2(limnCam *cam, EchoParm *parm,
   parm->mrG = 0.0;
   parm->mrB = 1.0;
 
+  ELL_4M_SET_SCALE(matx, 0.5, 0.5, 0.5);
+  cube = echoObjectRoughSphere(80, 40, matx);
+  /*
   cube = echoObjectNew(echoObjectSphere);
   echoObjectSphereSet(cube, 0, 0, 0, 0.5);
+  */
   echoMatterGlassSet(cube,
 		     1.0, 1.0, 1.0,
 		     1.33333, 0.0, 0.0);
