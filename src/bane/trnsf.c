@@ -291,7 +291,7 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
 	p = -sigma*sigma*h/AIR_MAX(0, g-gthresh);
       else
 	p = AIR_NAN;
-      p = airIsInf(p) ? 10000 : p;
+      p = airIsInf_f(p) ? 10000 : p;
       posData[i] = p;
     }
   }
@@ -320,7 +320,7 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
 	else {
 	  p = AIR_NAN;
 	}
-	p = airIsInf(p) ? AIR_NAN : p;
+	p = airIsInf_f(p) ? AIR_NAN : p;
 	posData[vi + sv*gi] = p;
       }
     }
