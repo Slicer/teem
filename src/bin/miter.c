@@ -34,10 +34,11 @@ main(int argc, char *argv[]) {
   hestParm *hparm=NULL;
   miteUser *muu;
   char *me, *errS, *outS, *shadeStr;
-  int renorm;
+  int renorm, baseDim;
   int E, Ecode;
   float ads[3];
   double gmc;
+  Nrrd *nin;
 
   me = argv[0];
   mop = airMopNew();
@@ -118,6 +119,21 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
+  if (muu->nsin) {
+    nin = muu->nsin;
+    baseDim = 0;
+  } else if (muu->nvin) {
+    nin = muu->nvin;
+    baseDim = 1;
+  } else if (muu->ntin) {
+    nin = muu->ntin;
+    baseDim = 1;
+  } else {
+    fprintf(stderr, "%s: didn't get any volumes to render!\n", me);
+    airMopError(mop);
+    return 1;
+  }
+
   /* finish processing command-line args */
   muu->rangeInit[miteRangeKa] = ads[0];
   muu->rangeInit[miteRangeKd] = ads[1];
@@ -139,8 +155,12 @@ main(int argc, char *argv[]) {
   }
   strncpy(muu->shadeStr, shadeStr, AIR_STRLEN_MED-1);
   muu->shadeStr[AIR_STRLEN_MED-1] = 0;
-  nrrdAxisInfoGet_nva(muu->nsin, nrrdAxisInfoSize, muu->hctx->volSize);
-  nrrdAxisInfoGet_nva(muu->nsin, nrrdAxisInfoSpacing, muu->hctx->volSpacing);
+  muu->hctx->volSize[0] = nin->axis[baseDim+0].size;
+  muu->hctx->volSize[1] = nin->axis[baseDim+1].size;
+  muu->hctx->volSize[2] = nin->axis[baseDim+2].size;
+  muu->hctx->volSpacing[0] = nin->axis[baseDim+0].spacing;
+  muu->hctx->volSpacing[1] = nin->axis[baseDim+1].spacing;
+  muu->hctx->volSpacing[2] = nin->axis[baseDim+2].spacing;
   muu->hctx->user = muu;
   muu->hctx->renderBegin = (hooverRenderBegin_t *)miteRenderBegin;
   muu->hctx->threadBegin = (hooverThreadBegin_t *)miteThreadBegin;
