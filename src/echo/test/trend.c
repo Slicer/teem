@@ -32,7 +32,7 @@ makeSceneBVH(limnCam *cam, EchoParam *param,
   *sceneP = scene = echoObjectNew(echoObjectList);
   *lightArrP = lightArr = echoLightArrayNew();
 
-  ELL_3V_SET(cam->from, 10, 20, 30);
+  ELL_3V_SET(cam->from, 10, 0, 0);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, 0, 1);
   cam->uMin = -3;
@@ -53,12 +53,12 @@ makeSceneBVH(limnCam *cam, EchoParam *param,
   param->maxRecDepth = 10;
   param->shadow = AIR_FALSE;
 
-  N = 6;
-  airSrand();
+  N = 300;
+  /* airSrand(); */
   for (i=0; i<N; i++) {
     sphere = echoObjectNew(echoObjectSphere);
     echoObjectSphereSet(sphere,
-			4*airRand()-2, 4*airRand()-2, 4*airRand()-2, 0.2);
+			4*airRand()-2, 4*airRand()-2, 4*airRand()-2, 0.1);
     dyeHSVtoRGB(&r, &g, &b, AIR_AFFINE(0, i, N, 0.0, 1.0), 1.0, 1.0);
     echoMatterPhongSet(sphere, r, g, b, 1.0,
 		       0.1, 0.6, 0.3, 50);
@@ -76,7 +76,7 @@ makeSceneBVH(limnCam *cam, EchoParam *param,
   echoLightAreaSet(light, rect);
   echoLightArrayAdd(lightArr, light);
 
-  *sceneP = scene = echoObjectListSplit(scene, 0);
+  *sceneP = scene = echoObjectListSplit3(scene, 1);
   printf("scene type = %d\n", scene->type);
 
 }
