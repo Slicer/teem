@@ -18,7 +18,7 @@
 */
 
 #include <teem/air.h>
-#include <teem/teem32bit.h>
+#include <teem32bit.h>
 
 int
 main(int argc, char *argv[]) {
