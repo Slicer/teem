@@ -27,6 +27,7 @@
 #include <air.h>
 #include <biff.h>
 #include <ell.h>
+#include <nrrd.h>
 #include <limn.h>
 
 #if defined(WIN32) && !defined(TEEM_BUILD)
@@ -100,12 +101,14 @@ typedef struct {
   /******** 1) camera information */
   limnCam *cam;            /* camera info */
 
-  /******** 2) volume information: size and spacing, voxel vs. cell, scaling */
+  /******** 2) volume information: size and spacing, centering */
   int volSize[3];          /* X,Y,Z resolution of volume */
   double volSpacing[3];    /* distance between samples in X,Y,Z direction */
+  int volCentering;        /* either nrrdCenterNode or nrrdCenterCell */
   
-  /******** 3) image information: dimensions, pixels inside vs. on-edge */
-  int imgSize[2];          /* # samples of image along U and V axes */
+  /******** 3) image information: dimensions + centering */
+  int imgSize[2],          /* # samples of image along U and V axes */
+    imgCentering;          /* either nrrdCenterNode or nrrdCenterCell */
   
   /******** 4) opaque "user information" pointer */
   void *userInfo;          /* passed to all callbacks */
@@ -178,13 +181,13 @@ typedef struct {
   ** somewhere accessible.
   **
   ** This is not a terribly flexible scheme (don't forget, this is
-  ** hoover): it enforces rather rigid constraints on how
+  ** hoover) in that it enforces rather rigid constraints on how
   ** multi-threading works: one thread can not render multiple rays
-  ** simulatenously.  If there were more args to cbSample (like a
+  ** simulatenously.  If there were more args to sample() (like a
   ** rayInfo, or an integral rayIndex), then this would be possible,
-  ** but it would mean that _hooverThreadBody() would have to implement
-  ** all the smarts about which samples belong on which rays belong
-  ** with which threads.
+  ** but it would mean that _hooverThreadBody() would have to
+  ** implement all the smarts about which samples belong on which rays
+  ** belong with which threads.
   **
   ** At some point now or in the future, an effort will be made to
   ** never call this function if the ray does not in fact intersect
@@ -250,13 +253,18 @@ enum {
   hooverErrRenderEnd,
   hooverErrLast
 };
-  
+
+/* defaultsHoover.c */
+extern hoover_export int hooverDefVolCentering;
+extern hoover_export int hooverDefImgCentering;
+
 /* methodsHoover.c */
 extern hooverContext *hooverContextNew();
 extern int hooverContextCheck(hooverContext *ctx);
 extern void hooverContextNix(hooverContext *ctx);
 
 /* rays.c */
+extern hoover_export const int hooverMyPthread;
 extern int hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP);
 
 /* stub.c */

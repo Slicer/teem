@@ -22,6 +22,12 @@
 #include <pthread.h>
 #endif
 
+#if TEEM_PTHREAD
+const int hooverMyPthread = 1;
+#else
+const int hooverMyPthread = 0;
+#endif
+
 /*
 ** learned: if you're going to "simplify" code which computes some
 ** floating point value within a loop using AFFINE() on the loop
@@ -42,20 +48,29 @@
 void
 _hooverLearnLengths(double volHLen[3], double voxLen[3], hooverContext *ctx) {
   double maxLen;
-  int numSamples[3];
+  int numSamples[3], numElements[3];
 
   ELL_3V_COPY(numSamples, ctx->volSize);
-  volHLen[0] = (numSamples[0]-1)*ctx->volSpacing[0];
-  volHLen[1] = (numSamples[1]-1)*ctx->volSpacing[1];
-  volHLen[2] = (numSamples[2]-1)*ctx->volSpacing[2];
+  if (nrrdCenterNode == ctx->volCentering) {
+    numElements[0] = numSamples[0]-1;
+    numElements[1] = numSamples[1]-1;
+    numElements[2] = numSamples[2]-1;
+  } else {
+    numElements[0] = numSamples[0];
+    numElements[1] = numSamples[1];
+    numElements[2] = numSamples[2];
+  }
+  volHLen[0] = numElements[0]*ctx->volSpacing[0];
+  volHLen[1] = numElements[1]*ctx->volSpacing[1];
+  volHLen[2] = numElements[2]*ctx->volSpacing[2];
   maxLen = AIR_MAX(volHLen[0], volHLen[1]);
   maxLen = AIR_MAX(volHLen[2], maxLen);
   volHLen[0] /= maxLen;
   volHLen[1] /= maxLen;
   volHLen[2] /= maxLen;
-  voxLen[0] = 2*volHLen[0]/(numSamples[0]-1);
-  voxLen[1] = 2*volHLen[1]/(numSamples[1]-1);
-  voxLen[2] = 2*volHLen[2]/(numSamples[2]-1);
+  voxLen[0] = 2*volHLen[0]/numElements[0];
+  voxLen[1] = 2*volHLen[1]/numElements[1];
+  voxLen[2] = 2*volHLen[2]/numElements[2];
 }
 
 /*
@@ -129,9 +144,10 @@ _hooverThreadBody(void *_arg) {
   int ret,               /* to catch return values from callbacks */
     sampleI,             /* which sample we're on */
     inside,              /* we're inside the volume */
-    mx, my, mz,          /* highest index on each axis */
     vI, uI;              /* integral coords in image */
   double tmp,
+    mm,                  /* lowest position in index space, for all axes */
+    Mx, My, Mz,          /* highest position in index space on each axis */
     u, v,                /* floating-point coords in image */
     uvScale,             /* how to scale (u,v) to go from image to 
 			    near plane, according to ortho or perspective */
@@ -164,15 +180,23 @@ _hooverThreadBody(void *_arg) {
   lx = arg->ec->volHLen[0];
   ly = arg->ec->volHLen[1];
   lz = arg->ec->volHLen[2];
-  mx = arg->ctx->volSize[0]-1;
-  my = arg->ctx->volSize[1]-1;
-  mz = arg->ctx->volSize[2]-1;
+  if (nrrdCenterNode == arg->ctx->volCentering) {
+    mm = 0;
+    Mx = arg->ctx->volSize[0]-1;
+    My = arg->ctx->volSize[1]-1;
+    Mz = arg->ctx->volSize[2]-1;
+  } else {
+    mm = -0.5;
+    Mx = arg->ctx->volSize[0]-0.5;
+    My = arg->ctx->volSize[1]-0.5;
+    Mz = arg->ctx->volSize[2]-0.5;
+  }
   
   if (arg->ctx->cam->ortho) {
     ELL_3V_COPY(rayDirW, arg->ctx->cam->N);
-    rayDirI[0] = AIR_DELTA(-lx, rayDirW[0], lx, 0, mx);
-    rayDirI[1] = AIR_DELTA(-ly, rayDirW[1], ly, 0, my);
-    rayDirI[2] = AIR_DELTA(-lz, rayDirW[2], lz, 0, mz);
+    rayDirI[0] = AIR_DELTA(-lx, rayDirW[0], lx, mm, Mx);
+    rayDirI[1] = AIR_DELTA(-ly, rayDirW[1], ly, mm, My);
+    rayDirI[2] = AIR_DELTA(-lz, rayDirW[2], lz, mm, Mz);
     rayLen = arg->ctx->cam->vspFaar - arg->ctx->cam->vspNeer;
     uvScale = 1.0;
   } else {
@@ -184,25 +208,37 @@ _hooverThreadBody(void *_arg) {
      etc., until it goes beyond the last scanline */
   vI = arg->whichThread;
   while (vI < arg->ctx->imgSize[1]) {
-    v = uvScale*AIR_AFFINE(-0.5, vI, arg->ctx->imgSize[1]-0.5,
-			   arg->ctx->cam->vRange[0],
-			   arg->ctx->cam->vRange[1]);
+    if (nrrdCenterCell == arg->ctx->imgCentering) {
+      v = uvScale*AIR_AFFINE(-0.5, vI, arg->ctx->imgSize[1]-0.5,
+			     arg->ctx->cam->vRange[0],
+			     arg->ctx->cam->vRange[1]);
+    } else {
+      v = uvScale*AIR_AFFINE(0.0, vI, arg->ctx->imgSize[1]-1.0,
+			     arg->ctx->cam->vRange[0],
+			     arg->ctx->cam->vRange[1]);
+    }
     ELL_3V_SCALE(vOff, v, arg->ctx->cam->V);
     for (uI=0; uI<arg->ctx->imgSize[0]; uI++) {
-      u = uvScale*AIR_AFFINE(-0.5, uI, arg->ctx->imgSize[0]-0.5,
-			     arg->ctx->cam->uRange[0],
-			     arg->ctx->cam->uRange[1]);
+      if (nrrdCenterCell == arg->ctx->imgCentering) {
+	u = uvScale*AIR_AFFINE(-0.5, uI, arg->ctx->imgSize[0]-0.5,
+			       arg->ctx->cam->uRange[0],
+			       arg->ctx->cam->uRange[1]);
+      } else {
+	u = uvScale*AIR_AFFINE(0.0, uI, arg->ctx->imgSize[0]-1.0,
+			       arg->ctx->cam->uRange[0],
+			       arg->ctx->cam->uRange[1]);
+      }
       ELL_3V_SCALE(uOff, u, arg->ctx->cam->U);
       ELL_3V_ADD3(rayStartW, uOff, vOff, arg->ec->rayZero);
-      rayStartI[0] = AIR_AFFINE(-lx, rayStartW[0], lx, 0, mx);
-      rayStartI[1] = AIR_AFFINE(-ly, rayStartW[1], ly, 0, my);
-      rayStartI[2] = AIR_AFFINE(-lz, rayStartW[2], lz, 0, mz);
+      rayStartI[0] = AIR_AFFINE(-lx, rayStartW[0], lx, mm, Mx);
+      rayStartI[1] = AIR_AFFINE(-ly, rayStartW[1], ly, mm, My);
+      rayStartI[2] = AIR_AFFINE(-lz, rayStartW[2], lz, mm, Mz);
       if (!arg->ctx->cam->ortho) {
 	ELL_3V_SUB(rayDirW, rayStartW, arg->ctx->cam->from);
 	ELL_3V_NORM(rayDirW, rayDirW, tmp);
-	rayDirI[0] = AIR_DELTA(-lx, rayDirW[0], lx, 0, mx);
-	rayDirI[1] = AIR_DELTA(-ly, rayDirW[1], ly, 0, my);
-	rayDirI[2] = AIR_DELTA(-lz, rayDirW[2], lz, 0, mz);
+	rayDirI[0] = AIR_DELTA(-lx, rayDirW[0], lx, mm, Mx);
+	rayDirI[1] = AIR_DELTA(-ly, rayDirW[1], ly, mm, My);
+	rayDirI[2] = AIR_DELTA(-lz, rayDirW[2], lz, mm, Mz);
 	rayLen = ((arg->ctx->cam->vspFaar - arg->ctx->cam->vspNeer)/
 		  ELL_3V_DOT(rayDirW, arg->ctx->cam->N));
       }
@@ -222,9 +258,9 @@ _hooverThreadBody(void *_arg) {
       while (1) {
 	ELL_3V_SCALEADD(rayPosW, 1.0, rayStartW, rayT, rayDirW);
 	ELL_3V_SCALEADD(rayPosI, 1.0, rayStartI, rayT, rayDirI);
-	inside = (AIR_INSIDE(0, rayPosI[0], mx) &&
-		  AIR_INSIDE(0, rayPosI[1], my) &&
-		  AIR_INSIDE(0, rayPosI[2], mz));
+	inside = (AIR_IN_CL(mm, rayPosI[0], Mx) &&
+		  AIR_IN_CL(mm, rayPosI[1], My) &&
+		  AIR_IN_CL(mm, rayPosI[2], Mz));
 	rayStep = (arg->ctx->sample)(threadInfo,
 				     arg->renderInfo,
 				     arg->ctx->userInfo,
@@ -243,7 +279,7 @@ _hooverThreadBody(void *_arg) {
 	} 
 	/* else we moved to a new location along the ray */
 	rayT += rayStep;
-	if (!AIR_INSIDE(0, rayT, rayLen)) {
+	if (!AIR_IN_CL(0, rayT, rayLen)) {
 	  /* ray stepped outside near-far clipping region, its done. */
 	  break;
 	}
@@ -323,7 +359,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
     args[threadIdx].errCode = 0;
   }
 
-  /* TODO: call pthread_create() once per thread, passing the
+  /* (done): call pthread_create() once per thread, passing the
      address of a distinct (and appropriately intialized)
      _hooverThreadArg to each.  If return of pthread_create() is
      non-zero, put its return in *errCodeP, the number of the
@@ -338,8 +374,8 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
 
 #ifdef TEEM_PTHREAD
   for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
-    if (ret = pthread_create(&thread[threadIdx], NULL, _hooverThreadBody, 
-			     (void *) &args[threadIdx])) {
+    if ((ret = pthread_create(&thread[threadIdx], NULL, _hooverThreadBody, 
+			      (void *) &args[threadIdx]))) {
       *errCodeP = ret;
       *errThreadP = threadIdx;
       airMopError(mop);
@@ -347,7 +383,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
     }
   }
   for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
-    if (ret = pthread_join(thread[threadIdx], (void **) (&errArg))) {
+    if ((ret = pthread_join(thread[threadIdx], (void **) (&errArg)))) {
       *errCodeP = ret;
       *errThreadP = threadIdx;
       airMopError(mop);

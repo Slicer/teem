@@ -28,7 +28,9 @@ hooverContextNew() {
     ctx->cam = limnCamNew();
     ELL_3V_SET(ctx->volSize, 0, 0, 0);
     ELL_3V_SET(ctx->volSpacing, AIR_NAN, AIR_NAN, AIR_NAN);
+    ctx->volCentering = hooverDefVolCentering;
     ctx->imgSize[0] = ctx->imgSize[1] = 0;
+    ctx->imgCentering = hooverDefImgCentering;
     ctx->userInfo = NULL;
     ctx->numThreads = 1;
     ctx->renderBegin = hooverStubRenderBegin;
@@ -53,6 +55,14 @@ hooverContextCheck(hooverContext *ctx) {
   if (limnCamUpdate(ctx->cam)) {
     sprintf(err, "%s: trouble learning view transform matrix", me);
     biffMove(HOOVER, err, LIMN); return 1;
+  }
+  if (!airEnumValValid(nrrdCenter, ctx->volCentering)) {
+    sprintf(err, "%s: voxelcentering (%d) invalid", me, ctx->volCentering);
+    biffAdd(HOOVER, err); return 1;
+  }
+  if (!airEnumValValid(nrrdCenter, ctx->imgCentering)) {
+    sprintf(err, "%s: pixel centering (%d) invalid", me, ctx->imgCentering);
+    biffAdd(HOOVER, err); return 1;
   }
   if (!(ctx->volSize[0] > 1 
 	&& ctx->volSize[1] > 1 
