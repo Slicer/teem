@@ -1,3 +1,4 @@
+
 /*
   teem: Gordon Kindlmann's research software
   Copyright (C) 2002, 2001, 2000, 1999, 1998 University of Utah
@@ -223,6 +224,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     nio->encoding = encoding;
     nio->dataFN = airStrdup(dataFileNames[0]);
     nio->seperateHeader = AIR_TRUE;
+    nio->endian = endian;
     /* we open and hand off the output FILE* to _nrrdWriteNrrd,
        which will not write any data (because of the AIR_FALSE) */
     if (!strcmp("-", out)) {
