@@ -17,21 +17,21 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-/* bad bad bad */
+/* bad bad bad Gordon */
 extern int _nrrdSplitName(char **dirP, char **baseP, const char *name);
 extern void _nrrdGuessFormat(NrrdIO *io, const char *filename);
 
-char *saveName = "save";
 #define INFO "Write nrrd with specific file format or encoding"
-char *saveInfo = INFO;
-char *saveInfoL = (INFO
-		   ". Use \"unu\tsave\t-f\tpnm\t|\txv\t-\" to view PPM- or "
-		   "PGM-compatible nrrds");
+char *_unu_saveInfoL =
+(INFO
+ ". Use \"unu\tsave\t-f\tpnm\t|\txv\t-\" to view PPM- or "
+ "PGM-compatible nrrds");
 
 int
-saveMain(int argc, char **argv, char *me) {
+unu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -54,7 +54,7 @@ saveMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(saveInfoL);
+  USAGE(_unu_saveInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -84,3 +84,5 @@ saveMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(save, INFO);

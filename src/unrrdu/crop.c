@@ -17,13 +17,14 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *cropName = "crop";
-char *cropInfo = "Crop along each axis to make a smaller nrrd";
+#define INFO "Crop along each axis to make a smaller nrrd"
+char *_unu_cropInfoL = INFO;
 
 int
-cropMain(int argc, char **argv, char *me) {
+unu_cropMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -44,7 +45,7 @@ cropMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(cropInfo);
+  USAGE(_unu_cropInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -77,3 +78,5 @@ cropMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(crop, INFO);

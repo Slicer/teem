@@ -17,17 +17,17 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *joinName = "join";
 #define INFO "Connect slices and/or slabs into a bigger nrrd"
-char *joinInfo = INFO;
-char *joinInfoL = (INFO
-		   ". Can stich images into volumes, or tile images side "
-		   "by side, or attach images onto volumes.");
+char *_unu_joinInfoL =
+(INFO
+ ". Can stich images into volumes, or tile images side "
+ "by side, or attach images onto volumes.");
 
 int
-joinMain(int argc, char **argv, char *me) {
+unu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd **nin, *nout;
@@ -49,7 +49,7 @@ joinMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(joinInfoL);
+  USAGE(_unu_joinInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -68,3 +68,5 @@ joinMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(join, INFO);

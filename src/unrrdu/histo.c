@@ -17,13 +17,14 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *histoName = "histo";
-char *histoInfo = "Create 1-D histogram of values in a nrrd";
+#define INFO "Create 1-D histogram of values in a nrrd"
+char *_unu_histoInfoL = INFO;
 
 int
-histoMain(int argc, char **argv, char *me) {
+unu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -46,7 +47,7 @@ histoMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(histoInfo);
+  USAGE(_unu_histoInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -73,3 +74,5 @@ histoMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(histo, INFO);

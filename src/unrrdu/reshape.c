@@ -17,19 +17,19 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *reshapeName = "reshape";
 #define INFO "Superficially change dimension and/or axes sizes"
-char *reshapeInfo = INFO;
-char *reshapeInfoL = (INFO
-		      ". The underlying linear ordering of the samples is "
-		      "unchanged, but the reported dimension or axes sizes "
-		      "are changed.  Identical in concept to Matlab's "
-		      "\"reshape\" command.");
+char *_unu_reshapeInfoL =
+(INFO
+ ". The underlying linear ordering of the samples is "
+ "unchanged, but the reported dimension or axes sizes "
+ "are changed.  Identical in concept to Matlab's "
+ "\"reshape\" command.");
 
 int
-reshapeMain(int argc, char **argv, char *me) {
+unu_reshapeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -44,7 +44,7 @@ reshapeMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(reshapeInfoL);
+  USAGE(_unu_reshapeInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -63,3 +63,5 @@ reshapeMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(reshape, INFO);

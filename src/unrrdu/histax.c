@@ -17,16 +17,15 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *histaxName = "histax";
 #define INFO "Replace each scanline along an axis with its histogram"
-char *histaxInfo = INFO;
-char *histaxInfoL = (INFO
-		   ". ");
+char *_unu_histaxInfoL = (INFO
+			 ". ");
 
 int
-histaxMain(int argc, char **argv, char *me) {
+unu_histaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -43,7 +42,7 @@ histaxMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(histaxInfoL);
+  USAGE(_unu_histaxInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -63,3 +62,5 @@ histaxMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(histax, INFO);

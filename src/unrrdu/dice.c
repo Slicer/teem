@@ -17,18 +17,18 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *diceName = "dice";
 #define INFO "Slice *everywhere* along one axis"
-char *diceInfo = INFO;
-char *diceInfoL = (INFO
-		   ". Calls \"unu slice\" for each position "
-		   "along the indicated axis, and saves out a different "
-		   "nrrd for each position. ");
+char *_unu_diceInfoL = 
+(INFO
+ ". Calls \"unu slice\" for each position "
+ "along the indicated axis, and saves out a different "
+ "nrrd for each position. ");
 
 int
-diceMain(int argc, char **argv, char *me) {
+unu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *base, out[512], *err, format[512];
   Nrrd *nin, *nout;
@@ -45,7 +45,7 @@ diceMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(diceInfoL);
+  USAGE(_unu_diceInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -106,3 +106,5 @@ diceMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(dice, INFO);

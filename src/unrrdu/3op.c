@@ -17,19 +17,19 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *topName = "3op";
 #define INFO "Ternary operation on three nrrds or constants"
-char *topInfo = INFO;
-char *topInfoL = (INFO
-		  ". Can have one, two, or three nrrds, but not zero. "
-		  "Use \"-\" for an operand to signify "
-		  "a nrrd to be read from stdin (a pipe).  Note, however, "
-		  "that \"-\" can probably only be used once (reliably).");
+char *_unu_3opInfoL =
+(INFO
+ ". Can have one, two, or three nrrds, but not zero. "
+ "Use \"-\" for an operand to signify "
+ "a nrrd to be read from stdin (a pipe).  Note, however, "
+ "that \"-\" can probably only be used once (reliably).");
 
 int
-topMain(int argc, char **argv, char *me) {
+unu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   NrrdIter *in1, *in2, *in3;
@@ -69,7 +69,7 @@ topMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(topInfoL);
+  USAGE(_unu_3opInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -117,3 +117,6 @@ topMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(3op, INFO);
+

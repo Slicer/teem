@@ -17,19 +17,19 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *bopName = "2op";
 #define INFO "Binary operation on two nrrds, or on a nrrd and a constant"
-char *bopInfo = INFO;
-char *bopInfoL = (INFO
-		  ". Either the first or second operand can be a float, "
-		  "but not both.  Use \"-\" for an operand to signify "
-		  "a nrrd to be read from stdin (a pipe).  Note, however, "
-		  "that \"-\" can probably only be used once (reliably).");
+char *_unu_2opInfoL =
+(INFO
+ ". Either the first or second operand can be a float, "
+ "but not both.  Use \"-\" for an operand to signify "
+ "a nrrd to be read from stdin (a pipe).  Note, however, "
+ "that \"-\" can probably only be used once (reliably).");
 
 int
-bopMain(int argc, char **argv, char *me) {
+unu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   NrrdIter *in1, *in2;
@@ -67,7 +67,7 @@ bopMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(bopInfoL);
+  USAGE(_unu_2opInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -111,3 +111,5 @@ bopMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(2op, INFO);

@@ -1,8 +1,12 @@
-----> add -min and -max flags to unu lut, rmap, imap
-
+libunrrdu
 add nrrdSanity check to unu
+add -min and -max flags to unu lut, rmap, imap
 
------ teem 1.5 cut-off -----
+valgrind new unu
+
+update ../README
+
+----- teem 1.5beta cut-off -----
 
 make unu check on environment variables, so that nrrdDef* and nrrdState*
 variables can be set that way
@@ -13,7 +17,7 @@ axes sizes were never actually set, so they were both zero).
 
 make darn sure that nobody uses printf(), only fprintf()
 
------ teem 1.6 cut-off -----
+----- teem 1.5 cut-off -----
 
 standardize and document use of special single characters
 for meaning as unrrdu arguments:

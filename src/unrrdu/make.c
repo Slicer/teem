@@ -17,68 +17,26 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-/* bad bad bad */
+/* bad bad bad Gordon */
 extern int _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io, int writeData);
 
 
-void *
-unuMaybeFclose(void *_file) {
-  FILE *file;
-  
-  file = _file;
-  if (stdin != file) {
-    return airFclose(file);
-  }
-  return NULL;
-}
-
-int
-unuParseFile(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unuParseFile";
-  FILE **fileP;
-
-  if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  fileP = ptr;
-  if (!strcmp("-", str)) {
-    *fileP = stdin;
-  }
-  else {
-    *fileP = fopen(str, "rb");
-    if (!*fileP) {
-      sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s",
-	      me, str, strerror(errno));
-      return 1;
-    }
-  }
-  return 0;
-}
-
-hestCB unuFileHestCB = {
-  sizeof(FILE *),
-  "filename",
-  unuParseFile,
-  unuMaybeFclose,
-};
-
-char *makeName = "make";
 #define INFO "Create a nrrd (or nrrd header) from scratch"
-char *makeInfo = INFO;
-char *makeInfoL = (INFO
-		   ".  The data can be in a file or coming from stdin. "
-		   "This provides an easy way of providing the bare minimum "
-		   "information about some data so as to wrap it in a "
-		   "nrrd, either to pass on for further unu processing, "
-		   "or to save to disk.  However, with \"-h\", this creates "
-		   "only a detached nrrd header file, without ever reading "
-		   "or writing data. ");
+char *_unu_makeInfoL =
+(INFO
+ ".  The data can be in a file or coming from stdin. "
+ "This provides an easy way of providing the bare minimum "
+ "information about some data so as to wrap it in a "
+ "nrrd, either to pass on for further unu processing, "
+ "or to save to disk.  However, with \"-h\", this creates "
+ "only a detached nrrd header file, without ever reading "
+ "or writing data. ");
 
 int
-makeMain(int argc, char **argv, char *me) {
+unu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *dataFileName, *content;
   Nrrd *nrrd;
@@ -138,7 +96,7 @@ makeMain(int argc, char **argv, char *me) {
   OPT_ADD_NOUT(out, "output filename");
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(makeInfoL);
+  USAGE(_unu_makeInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -221,3 +179,5 @@ makeMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(make, INFO);

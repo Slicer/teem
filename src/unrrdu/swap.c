@@ -17,16 +17,15 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *swapName = "swap";
 #define INFO "Interchange scan-line ordering of two axes"
-char *swapInfo = INFO;
-char *swapInfoL = (INFO
-		   ". Special case of \"unu\tpermute\".");
+char *_unu_swapInfoL = (INFO
+		       ". Special case of \"unu\tpermute\".");
 
 int
-swapMain(int argc, char **argv, char *me) {
+unu_swapMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -41,7 +40,7 @@ swapMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(swapInfoL);
+  USAGE(_unu_swapInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -60,3 +59,5 @@ swapMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(swap, INFO);

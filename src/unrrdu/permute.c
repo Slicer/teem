@@ -17,18 +17,18 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *permuteName = "permute";
 #define INFO "Permute scan-line ordering of axes"
-char *permuteInfo = INFO;
-char *permuteInfoL = (INFO
-		      ". The permutation gives the new ordering of the old "
-		      "axes (in 0-based numbering). For example, the "
-		      "permutation 0->1,\t1->2,\t2->0 would be \"2 0 1\".");
+char *_unu_permuteInfoL =
+(INFO
+ ". The permutation gives the new ordering of the old "
+ "axes (in 0-based numbering). For example, the "
+ "permutation 0->1,\t1->2,\t2->0 would be \"2 0 1\".");
 
 int
-permuteMain(int argc, char **argv, char *me) {
+unu_permuteMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -43,7 +43,7 @@ permuteMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(permuteInfoL);
+  USAGE(_unu_permuteInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -70,3 +70,5 @@ permuteMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(permute, INFO);

@@ -17,13 +17,14 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *padName = "pad";
-char *padInfo = "Pad along each axis to make a bigger nrrd";
+#define INFO "Pad along each axis to make a bigger nrrd"
+char *_unu_padInfoL = INFO;
 
 int
-padMain(int argc, char **argv, char *me) {
+unu_padMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -53,7 +54,7 @@ padMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(padInfo);
+  USAGE(_unu_padInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -86,3 +87,5 @@ padMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(pad, INFO);

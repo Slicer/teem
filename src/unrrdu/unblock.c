@@ -17,19 +17,18 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *unblockName = "unblock";
 #define INFO "Expand \"blocks\" into scanlines on axis 0"
-char *unblockInfo = INFO;
-char *unblockInfoL = (INFO
+char *_unu_unblockInfoL = (INFO
 		      ". Based on the requested output type, the number of "
 		      "samples along axis 0 will be determined automatically. "
 		      "Axis N information will be bumped up to axis N+1. "
 		      "Underlying data is unchanged.");
 
 int
-unblockMain(int argc, char **argv, char *me) {
+unu_unblockMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -46,7 +45,7 @@ unblockMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(unblockInfo);
+  USAGE(_unu_unblockInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -66,3 +65,5 @@ unblockMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(unblock, INFO);

@@ -17,24 +17,24 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *shuffleName = "shuffle";
 #define INFO "Permute samples along one axis"
-char *shuffleInfo = INFO;
-char *shuffleInfoL = (INFO
-		      ". Slices along one axis are re-arranged as units "
-		      "according to the given permutation (or its inverse). "
-		      "The permutation tells which old slice to put at each "
-		      "new position.  For example, the shuffle "
-		      "0->1,\t1->2,\t2->0 would be \"2 0 1\".  Obviously, "
-		      "if you have to rearrange the many slices of a large "
-		      "dataset, you should probably store the permutation "
-		      "in a plain text file and use it as a "
-		      "\"response file\".");
+char *_unu_shuffleInfoL = 
+(INFO
+ ". Slices along one axis are re-arranged as units "
+ "according to the given permutation (or its inverse). "
+ "The permutation tells which old slice to put at each "
+ "new position.  For example, the shuffle "
+ "0->1,\t1->2,\t2->0 would be \"2 0 1\".  Obviously, "
+ "if you have to rearrange the many slices of a large "
+ "dataset, you should probably store the permutation "
+ "in a plain text file and use it as a "
+ "\"response file\".");
 
 int
-shuffleMain(int argc, char **argv, char *me) {
+unu_shuffleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -56,7 +56,7 @@ shuffleMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(shuffleInfoL);
+  USAGE(_unu_shuffleInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -104,3 +104,5 @@ shuffleMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(shuffle, INFO);

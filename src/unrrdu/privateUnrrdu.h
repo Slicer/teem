@@ -17,16 +17,12 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include <air.h>
-#include <biff.h>
-#include <hest.h>
-#include <nrrd.h>
+#ifndef UNU_PRIVATE_HAS_BEEN_INCLUDED
+#define UNU_PRIVATE_HAS_BEEN_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define UNRRDU_COLUMNS 78
 
 /*
 ** OPT_ADD_...
@@ -60,15 +56,6 @@ extern "C" {
 #define OPT_ADD_TYPE(var, desc, dflt) \
   hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &(var), dflt, desc, \
              NULL, nrrdType)
-
-extern hestParm *hparm;
-extern hestCB unuPosHestCB;
-extern hestCB unuMaybeTypeHestCB;
-
-typedef struct {
-  char *name, *info;
-  int (*main)(int, char **, char*);
-} unuCmd;
 
 /*
 ** USAGE, PARSE, SAVE
@@ -115,3 +102,5 @@ typedef struct {
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* UNU_PRIVATE_HAS_BEEN_INCLUDED */

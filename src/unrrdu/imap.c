@@ -17,23 +17,23 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *imapName = "imap";
 #define INFO "Map nrrd through *irregular* univariate map (\"colormap\")"
-char *imapInfo = INFO;
-char *imapInfoL = (INFO
-		   ". A map is irregular if the control points are not evenly "
-		   "spaced along the domain, and hence their position must be "
-		   "explicitly represented in the map.  As nrrds, these maps "
-		   "are necessarily 2D.  Along axis 0, the first value is the "
-		   "location of the control point, and the remaining values "
-		   "give are the range of the map for that control point. "
-		   "The output value(s) is the result of linearly "
-		   "interpolating between value(s) from the map.");
+char *_unu_imapInfoL =
+(INFO
+ ". A map is irregular if the control points are not evenly "
+ "spaced along the domain, and hence their position must be "
+ "explicitly represented in the map.  As nrrds, these maps "
+ "are necessarily 2D.  Along axis 0, the first value is the "
+ "location of the control point, and the remaining values "
+ "give are the range of the map for that control point. "
+ "The output value(s) is the result of linearly "
+ "interpolating between value(s) from the map.");
 
 int
-imapMain(int argc, char **argv, char *me) {
+unu_imapMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nmap, *nacl, *nout;
@@ -63,7 +63,7 @@ imapMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(imapInfoL);
+  USAGE(_unu_imapInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -106,3 +106,6 @@ imapMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(imap, INFO);
+

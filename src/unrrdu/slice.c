@@ -17,18 +17,16 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-/* NB: not the same as char sliceName[] = "slice"; Read your C FAQs */
-char *sliceName = "slice";
 #define INFO "Slice at a position along an axis"
-char *sliceInfo = INFO;
-char *sliceInfoL = (INFO
-		    ". Output nrrd dimension is one less than input nrrd "
-		    "dimension.  Per-axis information is preserved.");
+char *_unu_sliceInfoL = (INFO
+			". Output nrrd dimension is one less than input nrrd "
+			"dimension.  Per-axis information is preserved.");
 
 int
-sliceMain(int argc, char **argv, char *me) {
+unu_sliceMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -48,7 +46,7 @@ sliceMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(sliceInfoL);
+  USAGE(_unu_sliceInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
   if (!( AIR_INSIDE(0, axis, nin->dim-1) )) {
@@ -72,3 +70,5 @@ sliceMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(slice, INFO);

@@ -17,20 +17,20 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *jhistoName = "jhisto";
 #define INFO "Create joint histogram of two or more nrrds"
-char *jhistoInfo = INFO;
-char *jhistoInfoL = (INFO
-		    ". Each axis of the output corresponds to one of the "
-		    "input nrrds, and each bin in the output records the "
-		    "number of corresponding positions in the inputs with "
-		    "a combination of values represented by the coordinates "
-		    "of the bin.");
+char *_unu_jhistoInfoL =
+(INFO
+ ". Each axis of the output corresponds to one of the "
+ "input nrrds, and each bin in the output records the "
+ "number of corresponding positions in the inputs with "
+ "a combination of values represented by the coordinates "
+ "of the bin.");
 
 int
-jhistoMain(int argc, char **argv, char *me) {
+unu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd **nin, *nout;
@@ -53,7 +53,7 @@ jhistoMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(jhistoInfo);
+  USAGE(_unu_jhistoInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -89,3 +89,5 @@ jhistoMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(jhisto, INFO);

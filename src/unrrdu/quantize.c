@@ -17,41 +17,14 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *quantizeName = "quantize";
-char *quantizeInfo = "Quantize floating-point values to 8, 16, or 32 bits";
+#define INFO "Quantize floating-point values to 8, 16, or 32 bits"
+char *_unu_quantizeInfoL = INFO;
 
 int
-unuParseBits(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unuParseBits";
-  int *bitsP;
-
-  if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  bitsP = ptr;
-  if (1 != sscanf(str, "%d", bitsP)) {
-    sprintf(err, "%s: can't parse \"%s\" as int", me, str);
-    return 1;
-  }
-  if (!( 8 == *bitsP || 16 == *bitsP || 32 == *bitsP )) {
-    sprintf(err, "%s: bits (%d) not 8, 16, or 32", me, *bitsP);
-    return 1;
-  }
-  return 0;
-}
-
-hestCB unuBitsHestCB = {
-  sizeof(int),
-  "quantization bits",
-  unuParseBits,
-  NULL
-};
-
-int
-quantizeMain(int argc, char **argv, char *me) {
+unu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -78,7 +51,7 @@ quantizeMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(quantizeInfo);
+  USAGE(_unu_quantizeInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -105,3 +78,5 @@ quantizeMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(quantize, INFO);

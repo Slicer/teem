@@ -17,28 +17,28 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *rmapName = "rmap";
 #define INFO "Map nrrd through *regular* univariate map (\"colormap\")"
-char *rmapInfo = INFO;
-char *rmapInfoL = (INFO
-		   ". A map is regular if the control points are evenly "
-		   "spaced along the domain, and hence their position isn't "
-		   "explicitly represented in the map; the axis min, axis "
-		   "max, and number of points determine their location. "
-		   "The map can be a 1D nrrd (for \"grayscale\"), "
-		   "in which case the "
-		   "output has the same dimension as the input, "
-		   "or a 2D nrrd (for \"color\"), in which case "
-		   "the output has one more dimension than the input.  In "
-		   "either case, the output is the result of linearly "
-		   "interpolating between map points, either scalar values "
-		   "(\"grayscale\"), or scanlines along axis 0 "
-		   "(\"color\").");
+char *_unu_rmapInfoL =
+(INFO
+ ". A map is regular if the control points are evenly "
+ "spaced along the domain, and hence their position isn't "
+ "explicitly represented in the map; the axis min, axis "
+ "max, and number of points determine their location. "
+ "The map can be a 1D nrrd (for \"grayscale\"), "
+ "in which case the "
+ "output has the same dimension as the input, "
+ "or a 2D nrrd (for \"color\"), in which case "
+ "the output has one more dimension than the input.  In "
+ "either case, the output is the result of linearly "
+ "interpolating between map points, either scalar values "
+ "(\"grayscale\"), or scanlines along axis 0 "
+ "(\"color\").");
 
 int
-rmapMain(int argc, char **argv, char *me) {
+unu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nmap, *nout;
@@ -63,7 +63,7 @@ rmapMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(rmapInfoL);
+  USAGE(_unu_rmapInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -104,3 +104,5 @@ rmapMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(rmap, INFO);

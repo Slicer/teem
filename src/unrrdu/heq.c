@@ -17,21 +17,21 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *heqName = "heq";
 #define INFO "Perform histogram equalization"
-char *heqInfo = INFO;
-char *heqInfoL = (INFO
-		  ". If this seems to be doing nothing, try increasing the "
-		  "number of histograms bins by an order of magnitude or "
-		  "two (or more).  Or, use \"unu gamma\" to warp the values "
-		  "in the direction you know they need to go.  Either of "
-		  "these might work because extremely tall and narrow peaks "
-		  "in the equalization histogram will produce poor results.");
+char *_unu_heqInfoL =
+(INFO
+ ". If this seems to be doing nothing, try increasing the "
+ "number of histograms bins by an order of magnitude or "
+ "two (or more).  Or, use \"unu gamma\" to warp the values "
+ "in the direction you know they need to go.  Either of "
+ "these might work because extremely tall and narrow peaks "
+ "in the equalization histogram will produce poor results.");
 
 int
-heqMain(int argc, char **argv, char *me) {
+unu_heqMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *mapS;
   Nrrd *nin, *nout, *nmap;
@@ -58,7 +58,7 @@ heqMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(heqInfoL);
+  USAGE(_unu_heqInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -80,3 +80,5 @@ heqMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(heq, INFO);

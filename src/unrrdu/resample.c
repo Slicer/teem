@@ -17,74 +17,25 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *resampleName = "resample";
 #define INFO "Filtering and {up,down}sampling with a seperable kernel"
-char *resampleInfo = INFO;
-char *resampleInfoL = (INFO
-		       ". Provides simplified access to nrrdSpatialResample() "
-		       "by assuming (among other things) that the same kernel "
-		       "is used for resampling "
-		       "every axis (every axis which is being resampled), and "
-		       "by assuming that the whole axis is being resampled "
-		       "(no cropping or padding).  Chances are, you should "
-		       "use defaults for \"-b\" and \"-v\" and worry only "
-		       "about the \"-s\" and \"-k\" options.  This resampling "
-		       "respects the difference between cell- and "
-		       "node-centered data.");
-
-/*
-** unuParseScale
-**
-** parse "=", "x<float>", and "<int>".  These possibilities are represented
-** for axis i by setting scale[0 + 2*i] to 0, 1, or 2, respectively.
-*/
-int
-unuParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unuParseScale";
-  float *scale;
-  int num;
-  
-  if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  scale = ptr;
-  if (!strcmp("=", str)) {
-    scale[0] = 0.0;
-    scale[1] = 0.0;
-    return 0;
-  }
-
-  /* else */
-  if ('x' == str[0]) {
-    if (1 != sscanf(str+1, "%f", scale+1)) {
-      sprintf(err, "%s: can't parse \"%s\" as x<float>", me, str);
-      return 1;
-    }
-    scale[0] = 1.0;
-  }
-  else {
-    if (1 != sscanf(str, "%d", &num)) {
-      sprintf(err, "%s: can't parse \"%s\" as int", me, str);
-      return 1;
-    }
-    scale[0] = 2.0;
-    scale[1] = num;
-  }
-  return 0;
-}
-
-hestCB unuScaleHestCB = {
-  2*sizeof(float),
-  "sampling specification",
-  unuParseScale,
-  NULL
-};
+char *_unu_resampleInfoL =
+(INFO
+ ". Provides simplified access to nrrdSpatialResample() "
+ "by assuming (among other things) that the same kernel "
+ "is used for resampling "
+ "every axis (every axis which is being resampled), and "
+ "by assuming that the whole axis is being resampled "
+ "(no cropping or padding).  Chances are, you should "
+ "use defaults for \"-b\" and \"-v\" and worry only "
+ "about the \"-s\" and \"-k\" options.  This resampling "
+ "respects the difference between cell- and "
+ "node-centered data.");
 
 int
-resampleMain(int argc, char **argv, char *me) {
+unu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -137,7 +88,7 @@ resampleMain(int argc, char **argv, char *me) {
   info = nrrdResampleInfoNew();
   airMopAdd(mop, info, (airMopper)nrrdResampleInfoNix, airMopAlways);
   
-  USAGE(resampleInfoL);
+  USAGE(_unu_resampleInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -191,3 +142,5 @@ resampleMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(resample, INFO);

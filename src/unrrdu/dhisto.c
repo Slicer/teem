@@ -17,13 +17,14 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *dhistoName = "dhisto";
-char *dhistoInfo = "Create (PGM) image of 1-D value histogram";
+#define INFO "Create (PGM) image of 1-D value histogram"
+char *_unu_dhistoInfoL = INFO;
 
 int
-dhistoMain(int argc, char **argv, char *me) {
+unu_dhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -39,7 +40,7 @@ dhistoMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(dhistoInfo);
+  USAGE(_unu_dhistoInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -58,3 +59,5 @@ dhistoMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(dhisto, INFO);

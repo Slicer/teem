@@ -18,9 +18,10 @@
 #
 #
 
-TEEM_BIN = unrrdu/unu
+TEEM_LIB = unrrdu
+HEADERS = unrrdu.h
 PRIV_HEADERS = privateUnrrdu.h
-TEEM_BIN_OBJS = unu.o
+TEEM_LIB_OBJS = flotsam.o
 #
 # every unu command source file must define:
 # char *xxxName
@@ -31,11 +32,12 @@ TEEM_BIN_OBJS = unu.o
 #      the function to call to do the command
 # This applies to every .o file below!
 #
-TEEM_BIN_OBJS += flip.o slice.o convert.o crop.o pad.o permute.o histo.o \
-	resample.o cmedian.o reshape.o shuffle.o quantize.o block.o \
-	unblock.o project.o swap.o join.o dhisto.o jhisto.o dice.o heq.o \
-	histax.o gamma.o make.o 1op.o 2op.o 3op.o lut.o rmap.o imap.o \
-	save.o unquantize.o
-TEEM_BIN_LIBS = -lnrrd -lbiff -lhest -lair -lm
+TEEM_LIB_OBJS += flip.o slice.o convert.o crop.o pad.o permute.o histo.o \
+	resample.o cmedian.o reshape.o shuffle.o quantize.o unquantize.o \
+	block.o unblock.o project.o swap.o join.o dhisto.o jhisto.o dice.o \
+	heq.o histax.o gamma.o make.o 1op.o 2op.o 3op.o lut.o rmap.o imap.o \
+	save.o 
+TEEM_BINS = bin/unu
+TEEM_BIN_LIBS = -lunrrdu -lnrrd -lbiff -lhest -lair -lm
 
 include ../make/teem.mk

@@ -17,21 +17,21 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *lutName = "lut";
 #define INFO "Map nrrd through univariate lookup table"
-char *lutInfo = INFO;
-char *lutInfoL = (INFO
-		  " (itself represented as a nrrd). The lookup table "
-		  "can be 1D, in which case the output "
-		  "has the same dimension as the input, or 2D, in which case "
-		  "the output has one more dimension than the input, and each "
-		  "value is mapped to a scanline (along axis 0) from the "
-		  "lookup table.");
+char *_unu_lutInfoL =
+(INFO
+ " (itself represented as a nrrd). The lookup table "
+ "can be 1D, in which case the output "
+ "has the same dimension as the input, or 2D, in which case "
+ "the output has one more dimension than the input, and each "
+ "value is mapped to a scanline (along axis 0) from the "
+ "lookup table.");
 
 int
-lutMain(int argc, char **argv, char *me) {
+unu_lutMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nlut, *nout;
@@ -56,7 +56,7 @@ lutMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(lutInfoL);
+  USAGE(_unu_lutInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -97,3 +97,5 @@ lutMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(lut, INFO);

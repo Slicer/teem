@@ -17,24 +17,24 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *blockName = "block";
 #define INFO "Condense axis-0 scanlines into \"blocks\""
-char *blockInfo = INFO;
-char *blockInfoL = (INFO
-		    ". Output nrrd will be of type \"block\": the type "
-		    "for an opaque chunk of "
-		    "memory.  Block samples can be sliced, cropped, shuffled, "
-		    "permuted, etc., but there is no scalar value associated "
-		    "with them, so they can not be histogrammed, quantized, "
-		    "resampled, converted, etc.  The output nrrd will have "
-		    "one less dimension than input; axis N information will "
-		    "be shifted down to axis N-1.  Underlying data "
-		    "is unchanged.");
+char *_unu_blockInfoL = 
+(INFO
+ ". Output nrrd will be of type \"block\": the type "
+ "for an opaque chunk of "
+ "memory.  Block samples can be sliced, cropped, shuffled, "
+ "permuted, etc., but there is no scalar value associated "
+ "with them, so they can not be histogrammed, quantized, "
+ "resampled, converted, etc.  The output nrrd will have "
+ "one less dimension than input; axis N information will "
+ "be shifted down to axis N-1.  Underlying data "
+ "is unchanged.");
 
 int
-blockMain(int argc, char **argv, char *me) {
+unu_blockMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -50,7 +50,7 @@ blockMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(blockInfoL);
+  USAGE(_unu_blockInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -69,3 +69,5 @@ blockMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(block, INFO);

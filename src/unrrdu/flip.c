@@ -17,16 +17,15 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *flipName = "flip";
 #define INFO "Reverse order of samples along one axis"
-char *flipInfo = INFO;
-char *flipInfoL = (INFO
-		   ". Special case of \"unu\tshuffle\".");
+char *_unu_flipInfoL = (INFO
+		       ". Special case of \"unu\tshuffle\".");
 
 int
-flipMain(int argc, char **argv, char *me) {
+unu_flipMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -40,7 +39,7 @@ flipMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(flipInfoL);
+  USAGE(_unu_flipInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -59,3 +58,5 @@ flipMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(flip, INFO);

@@ -17,18 +17,18 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *gammaName = "gamma";
 #define INFO "Brighten or darken values with a gamma"
-char *gammaInfo = INFO;
-char *gammaInfoL = (INFO
-		    ". Just as in xv, the gamma value here is actually the "
-		    "reciprocal of the exponent actually used to transform "
-		    "the values.");
+char *_unu_gammaInfoL =
+(INFO
+ ". Just as in xv, the gamma value here is actually the "
+ "reciprocal of the exponent actually used to transform "
+ "the values.");
 
 int
-gammaMain(int argc, char **argv, char *me) {
+unu_gammaMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -50,7 +50,7 @@ gammaMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(gammaInfoL);
+  USAGE(_unu_gammaInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -77,3 +77,5 @@ gammaMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(gamma, INFO);

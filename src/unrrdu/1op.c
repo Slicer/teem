@@ -17,15 +17,14 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *uopName = "1op";
 #define INFO "Unary operation on a nrrd"
-char *uopInfo = INFO;
-char *uopInfoL = (INFO);
+char *_unu_1opInfoL = (INFO);
 
 int
-uopMain(int argc, char **argv, char *me) {
+unu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -51,7 +50,7 @@ uopMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(uopInfoL);
+  USAGE(_unu_1opInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -70,3 +69,5 @@ uopMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(1op, INFO);

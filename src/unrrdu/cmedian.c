@@ -17,27 +17,27 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *cmedianName = "cmedian";
 #define INFO "Cheap histogram-based median filtering"
-char *cmedianInfo = INFO;
-char *cmedianInfoL = (INFO
-		      ". Only works on 1, 2, or 3 dimensions.  The window "
-		      "over which filtering is done is always square, and "
-		      "only a simplistic weighting scheme is available. "
-		      "The filtering works "
-		      "by forming a histogram of the values in "
-		      "the window, and updating it as the window slides "
-		      "through the volume.  Because of this histogramming, "
-		      "precision will be lost on anything other than "
-		      "8-bit data (assuming a sane # bins \"-b\").  Also, "
-		      "this is \"cheap\" because it doesn't do any filtering "
-		      "on the border (as defined by radius \"-r\"); values at "
-		      "these locations are simply copied from input.");
+char *_unu_cmedianInfoL =
+(INFO
+ ". Only works on 1, 2, or 3 dimensions.  The window "
+ "over which filtering is done is always square, and "
+ "only a simplistic weighting scheme is available. "
+ "The filtering works "
+ "by forming a histogram of the values in "
+ "the window, and updating it as the window slides "
+ "through the volume.  Because of this histogramming, "
+ "precision will be lost on anything other than "
+ "8-bit data (assuming a sane # bins \"-b\").  Also, "
+ "this is \"cheap\" because it doesn't do any filtering "
+ "on the border (as defined by radius \"-r\"); values at "
+ "these locations are simply copied from input.");
 
 int
-cmedianMain(int argc, char **argv, char *me) {
+unu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *ntmp, *nout;
@@ -66,7 +66,7 @@ cmedianMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(cmedianInfoL);
+  USAGE(_unu_cmedianInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -115,3 +115,5 @@ cmedianMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(cmedian, INFO);

@@ -17,13 +17,14 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *unquantizeName = "unquantize";
-char *unquantizeInfo = "Recover floating point values from quantized data";
+#define INFO "Recover floating point values from quantized data"
+char *_unu_unquantizeInfoL = INFO;
 
 int
-unquantizeMain(int argc, char **argv, char *me) {
+unu_unquantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -48,7 +49,7 @@ unquantizeMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(unquantizeInfo);
+  USAGE(_unu_unquantizeInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -71,3 +72,5 @@ unquantizeMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(unquantize, INFO);

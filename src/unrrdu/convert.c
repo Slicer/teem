@@ -17,13 +17,14 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-char *convertName = "convert";
-char *convertInfo = "Convert nrrd to another type (as if by per-value cast)";
+#define INFO "Convert nrrd to another type (as if by per-value cast)"
+char *_unu_convertInfoL = INFO;
 
 int
-convertMain(int argc, char **argv, char *me) {
+unu_convertMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -37,7 +38,7 @@ convertMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(convertInfo);
+  USAGE(_unu_convertInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -56,3 +57,5 @@ convertMain(int argc, char **argv, char *me) {
   airMopOkay(mop);
   return 0;
 }
+
+UNU_CMD(convert, INFO);
