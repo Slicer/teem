@@ -17,12 +17,12 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifndef NRRD_ENUMS_HAS_BEEN_INCLUDED
+#define NRRD_ENUMS_HAS_BEEN_INCLUDED
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef NRRD_ENUMS_HAS_BEEN_INCLUDED
-#define NRRD_ENUMS_HAS_BEEN_INCLUDED
 
 /*******
 ******** NONE of these enums should have values set explicitly in their
@@ -325,13 +325,14 @@ enum {
   nrrdTernaryOpUnknown,
   nrrdTernaryOpClamp,     /* 1 */
   nrrdTernaryOpLerp,      /* 2 */
+  nrrdTernaryOpExists,    /* 3 */
+  nrrdTernaryOpBetween,   /* 4 */
   nrrdTernaryOpLast
 };
-#define NRRD_TERNARY_OP_MAX  2
-
-#endif /* NRRD_ENUMS_HAS_BEEN_INCLUDED */
-
+#define NRRD_TERNARY_OP_MAX  4
 
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* NRRD_ENUMS_HAS_BEEN_INCLUDED */
