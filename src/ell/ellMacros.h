@@ -228,6 +228,11 @@ extern "C" {
   (v2)[1] = AIR_ABS((v1)[1]), \
   (v2)[2] = AIR_ABS((v1)[2]))
 
+#define ELL_3M_SCALE_SET(m, x, y, z)  \
+  (ELL_3V_SET((m)+ 0, (x),  0 ,  0 ), \
+   ELL_3V_SET((m)+ 3,  0 , (y),  0 ), \
+   ELL_3V_SET((m)+ 6,  0 ,  0 , (z)))
+
 #define ELL_3M_SCALE(m2, s, m1) \
   (ELL_3V_SCALE((m2)+0, (s), (m1)+0), \
    ELL_3V_SCALE((m2)+3, (s), (m1)+3), \
