@@ -418,7 +418,7 @@ airThreadNew(void) {
   airThread *thread;
 
   thread = (airThread *)calloc(1, sizeof(airThread));
-  thread->read = NULL;
+  thread->ret = NULL;
   return thread;
 }
 
@@ -525,7 +525,7 @@ airThreadCondBroadcast(airThreadCond *cond) {
 }
 
 airThreadCond *
-airThreadCondDone(airThreadCond *cond) {
+airThreadCondNix(airThreadCond *cond) {
 
   return airFree(cond);
 }
