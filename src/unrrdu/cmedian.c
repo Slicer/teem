@@ -69,12 +69,14 @@ unrrdu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
   USAGE(_unrrdu_cmedianInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
-
+  
   nout = nrrdNew();
-  /* airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways); */
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (pad) {
-    if (nrrdSimplePad(ntmp=nrrdNew(), nin, radius, nrrdBoundaryBleed)) {
+    ntmp=nrrdNew();
+    airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdSimplePad(ntmp, nin, radius, nrrdBoundaryBleed)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: error padding:\n%s", me, err);
       airMopError(mop);
@@ -98,15 +100,13 @@ unrrdu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
 
   if (pad) {
-    ntmp = nrrdNuke(ntmp);
-    if (nrrdSimpleCrop(ntmp=nrrdNew(), nout, radius)) {
+    if (nrrdSimpleCrop(ntmp, nout, radius)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: error cropping:\n%s", me, err);
       airMopError(mop);
       return 1;
     }
     SAVE(out, ntmp, NULL);
-    ntmp = nrrdNuke(ntmp);
   }
   else {
     SAVE(out, nout, NULL);
