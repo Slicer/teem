@@ -33,7 +33,12 @@ typedef unsigned short US;
 typedef signed int JN;
 typedef unsigned int UI;
 typedef airLLong LL;
+/* ui64 to double conversion is not implemented, sorry */
+#ifdef TEEM_VC6
+typedef airLLong UL;
+#else
 typedef airULLong UL;
+#endif
 typedef float FL;
 typedef double DB;
 
