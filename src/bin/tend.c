@@ -83,13 +83,6 @@ main(int argc, char **argv) {
 
     /* run the individual unu program, saving its exit status */
     ret = tendCmdList[i]->main(argc-2, argv+2, argv0, hparm);
-    if (1 == ret) {
-      airMopAdd(mop, err=biffGetDone(TEND), airFree, airMopAlways);
-      fprintf(stderr, "%s: error:\n%s", argv0, err);
-    } else if (2 == ret) {
-      /* tend command has already handled printing error messages */
-      ret = 1;
-    }
   } else {
     fprintf(stderr, "%s: unrecognized command: \"%s\"; type \"%s\" for "
 	    "complete list\n", me, argv[1], me);
