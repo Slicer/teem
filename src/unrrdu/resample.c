@@ -121,7 +121,10 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
     memcpy(info->parm[d], unuk->parm, NRRD_KERNEL_PARMS_NUM*sizeof(double));
     if (info->kernel[d] &&
 	(!( AIR_EXISTS(nin->axis[d].min) && AIR_EXISTS(nin->axis[d].max))) ) {
-      nrrdAxisMinMaxSet(nin, d, nrrdDefCenter);
+       nrrdAxisMinMaxSet(nin, d, 
+			 (nin->axis[d].center
+			  ? nin->axis[d].center 
+			  : nrrdDefCenter));
     }
     info->min[d] = nin->axis[d].min;
     info->max[d] = nin->axis[d].max;
