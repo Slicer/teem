@@ -116,7 +116,7 @@ _hestResponseFiles(char **newArgv, char **oldArgv, int nrf,
 	  for (ai=0; ai<=numArgs-1; ai++) {
 	    /* This time, we did allocate memory.  We can use airFree and
 	       not airFreeP because these will not be reset before mopping */
-	    airMopAdd(pmop, newArgv[newArgc+ai], airFree, AIR_FALSE);
+	    airMopAdd(pmop, newArgv[newArgc+ai], airFree, airMopAlways);
 	  }
 	  newArgc += numArgs;
 	}
@@ -283,7 +283,7 @@ _hestExtractFlagged(char **prms, int *nprm, int *appr,
     if (!appr[flag]) {
       /* add this only once.  We used airFreeP because prms[flag]
 	 may be free()d and set (a few times) before mopping */
-      airMopAdd(pmop, &(prms[flag]), airFreeP, AIR_FALSE);
+      airMopAdd(pmop, &(prms[flag]), airFreeP, airMopAlways);
     }
     appr[flag] = AIR_TRUE;
     /*
@@ -356,7 +356,7 @@ _hestExtractUnflagged(char **prms, int *nprm,
       return 1;
     }
     prms[op] = _hestExtract(argcP, argv, 0, np);
-    airMopMem(pmop, &(prms[op]), AIR_FALSE);
+    airMopMem(pmop, &(prms[op]), airMopAlways);
     nprm[op] = np;
   }
   /*
@@ -387,7 +387,7 @@ _hestExtractUnflagged(char **prms, int *nprm,
        op = _hestNextUnflagged(op+1, opt, numOpts)) {
     np = opt[op].min;
     prms[op] = _hestExtract(argcP, argv, nvp, np);
-    airMopMem(pmop, &(prms[op]), AIR_FALSE);
+    airMopMem(pmop, &(prms[op]), airMopAlways);
     nprm[op] = np;
   }
 
@@ -409,7 +409,7 @@ _hestExtractUnflagged(char **prms, int *nprm,
     }
     if (nvp) {
       prms[unflagVar] = _hestExtract(argcP, argv, 0, nvp);
-      airMopMem(pmop, &(prms[unflagVar]), AIR_FALSE);
+      airMopMem(pmop, &(prms[unflagVar]), airMopAlways);
       nprm[unflagVar] = nvp;
     }
     else {
@@ -461,7 +461,7 @@ _hestDefaults(char **prms, int *udflt, int *nprm, int *appr,
       continue;
     prms[op] = airStrdup(opt[op].dflt);
     if (prms[op]) {
-      airMopMem(mop, &(prms[op]), AIR_FALSE);
+      airMopMem(mop, &(prms[op]), airMopAlways);
       airOneLinify(prms[op]);
       tmpS = airStrdup(prms[op]);
       nprm[op] = airStrntok(tmpS, " ");
@@ -613,7 +613,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
   }
   else {
     parm = hestParmNew();
-    airMopAdd(mop, parm, (airMopper)hestParmNix, AIR_FALSE);
+    airMopAdd(mop, parm, (airMopper)hestParmNix, airMopAlways);
   }
 
   /* -------- allocate the err string.  To determine its size with total
@@ -637,9 +637,9 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
 	    "buffer (size %d)\n", me, big);
     exit(1);
   }
-  /* the error message buffer _is_ a keeper */
-  airMopAdd(mop, err, airFree, AIR_TRUE);
-  /* if turns out that there was no error, we'll reset *_errP */
+  /* the error string is mopped only when there _wasn't_ an error */
+  airMopAdd(mop, _errP, (airMopper)airSetNull, airMopOnOkay);
+  airMopAdd(mop, err, airFree, airMopOnOkay);
   if (_errP)
     *_errP = err;
 
@@ -650,10 +650,10 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
 
   /* -------- Create all the local arrays used to save state during
      the processing of all the different options */
-  nprm = calloc(numOpts, sizeof(int));   airMopMem(mop, &nprm, AIR_FALSE);
-  appr = calloc(numOpts, sizeof(int));   airMopMem(mop, &appr, AIR_FALSE);
-  udflt = calloc(numOpts, sizeof(int));  airMopMem(mop, &udflt, AIR_FALSE);
-  prms = calloc(numOpts, sizeof(char*)); airMopMem(mop, &prms, AIR_FALSE);
+  nprm = calloc(numOpts, sizeof(int));   airMopMem(mop, &nprm, airMopAlways);
+  appr = calloc(numOpts, sizeof(int));   airMopMem(mop, &appr, airMopAlways);
+  udflt = calloc(numOpts, sizeof(int));  airMopMem(mop, &udflt, airMopAlways);
+  prms = calloc(numOpts, sizeof(char*)); airMopMem(mop, &prms, airMopAlways);
   for (a=0; a<=numOpts-1; a++) {
     prms[a] = NULL;
   }
@@ -671,7 +671,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
 	 me, nrf, argr, _argc, argc);
   */
   argv = calloc(argc+1, sizeof(char*));
-  airMopMem(mop, &argv, AIR_FALSE);
+  airMopMem(mop, &argv, airMopAlways);
 
   /* -------- process response file and set the remaining elements of argv */
   if (_hestResponseFiles(argv, _argv, nrf, err, parm, mop)) {
@@ -719,8 +719,6 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
   }
 
   airMopDone(mop, AIR_FALSE);
-  if (_errP)
-    *_errP = NULL;
   return 0;
 }
 

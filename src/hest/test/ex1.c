@@ -63,7 +63,8 @@ main(int argc, char **argv) {
     parm = hestParmNix(parm);
     exit(1);
   }
-
+  
+  printf("(err = %s)\n", err);
   printf("res = %d %d\n", res[0], res[1]);
   printf("  v = %d\n", v);
   printf("out = \"%s\"\n", out);
