@@ -19,7 +19,9 @@ CC ?= /usr/bin/cc
 LD = /usr/bin/ld 
 AR = /usr/bin/ar
 RM = /usr/bin/rm -f
-INSTALL ?= /usr/local/gnu/bin/install
+#broke with purify on rapture
+#INSTALL ?= /usr/local/gnu/bin/install
+INSTALL = /usr/local/gnu/bin/install
 CHMOD = /usr/bin/chmod
 
 OTHER_CLEAN = so_locations
