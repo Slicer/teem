@@ -71,7 +71,7 @@ baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   E = 0;
   if (!E) E |= nrrdMaybeAlloc(nout, nrrdTypeFloat, 3, 1, res[0], res[1]);
-  if (!E) E != !(nout->axis[0].label = airStrdup("A"));
+  if (!E) E |= !(nout->axis[0].label = airStrdup("A"));
   if (!E) E |= !(nout->axis[1].label = airStrdup("gage(v)"));
   if (!E) nrrdAxesSet(nout, nrrdAxesInfoMin,
 		      AIR_NAN, (double)min[0], (double)min[1]);
