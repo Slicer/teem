@@ -19,7 +19,7 @@
 
 #include <moss.h>
 
-char *ilxInfo = ("(I)mage (L)inear Trans(X)forms. "
+char *ilkInfo = ("(I)mage (L)inear Trans(X-->K)forms. "
 		 "Applies linear (homogenous coordinate) transforms "
 		 "to a given image, using the given kernel for "
 		 "resampling. ");
@@ -99,7 +99,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
 	     "file to write output nrrd to");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
-		 me, ilxInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+		 me, ilkInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 

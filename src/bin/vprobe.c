@@ -85,7 +85,7 @@ probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     sprintf(err, "%s: not \"scalar\" or \"vector\"", me);
     return 1;
   }
-    
+
   return 0;
 }
 
@@ -178,12 +178,11 @@ main(int argc, char *argv[]) {
   ***/
   ctx = gageContextNew();
   ctx->gradMagCurvMin = gmc;
-  pvl = gagePerVolumeNew(gageKindScl);
   gageSet(ctx, gageVerbose, 1);
   gageSet(ctx, gageRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
   gageSet(ctx, gageCheckIntegrals, AIR_TRUE);
   E = 0;
-  if (!E) E |= !(pvl = gagePerVolumeNew(gageKindScl));
+  if (!E) E |= !(pvl = gagePerVolumeNew(kind));
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm); 
