@@ -27,6 +27,7 @@
 **
 */
 
+/*
 char 
 baneRangeStr[BANE_RANGE_MAX+1][BANE_SMALL_STRLEN] = {
   "unknown",
@@ -35,6 +36,7 @@ baneRangeStr[BANE_RANGE_MAX+1][BANE_SMALL_STRLEN] = {
   "zero-centered",
   "anywhere"
 };
+*/
 
 char
 baneMeasrStr[BANE_MEASR_MAX+1][BANE_SMALL_STRLEN] = {
@@ -45,7 +47,6 @@ baneMeasrStr[BANE_MEASR_MAX+1][BANE_SMALL_STRLEN] = {
   "Hessian-2dd_cd",
   "grad-mag-grad_cd"
 };
-
 int
 baneMeasrRange[BANE_MEASR_MAX+1] = {
   baneRangeUnknown,

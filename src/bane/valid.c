@@ -30,7 +30,7 @@ baneValidHVol(Nrrd *hvol) {
   }
   if (nrrdTypeUChar != hvol->type) {
     sprintf(err, "%s: need type to be unsigned char (not %s)", 
-	    me, nrrdEnumValToStr(nrrdEnumType, hvol->type));
+	    me, airEnumStr(nrrdType, hvol->type));
     biffSet(BANE, err); return 0;
   }
   if (!( AIR_EXISTS(hvol->axis[0].min) && AIR_EXISTS(hvol->axis[0].max) && 

@@ -23,9 +23,9 @@ cb(float rgb[3], float vec[3], void *blah) {
   float r, g, b;
   
   ELL_3V_GET(r, g, b, vec);
-  r = AIR_ABS(r);
-  g = AIR_ABS(g);
-  b = AIR_ABS(b);
+  r = AIR_MAX(0, r);
+  g = AIR_MAX(0, g);
+  b = AIR_MAX(0, b);
   ELL_3V_SET(rgb, r, g, b);
   return;
 }
@@ -38,17 +38,17 @@ main(int argc, char *argv[]) {
 
   me = argv[0];
 
-  if (limnEnvMapFill(map=nrrdNew(), cb, NULL, limnQN16)) {
+  if (limnEnvMapFill(map=nrrdNew(), cb, NULL, limnQN_16checker)) {
     fprintf(stderr, "%s: trouble:\n%s", me, biffGet(LIMN));
     exit(1);
   }
   map->min = 0;
   map->max = 1;
-  if (nrrdQuantize(ppm=nrrdNew(), map, 8, nrrdMinMaxUse)) {
+  if (nrrdQuantize(ppm=nrrdNew(), map, 8)) {
     fprintf(stderr, "%s: trouble:\n%s", me, biffGet(NRRD));
     exit(1);
   }
-  if (nrrdSave("map.ppm", ppm)) {
+  if (nrrdSave("map.ppm", ppm, NULL)) {
     fprintf(stderr, "%s: trouble:\n%s", me, biffGet(NRRD));
     exit(1);
   }

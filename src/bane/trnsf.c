@@ -217,7 +217,10 @@ _baneSigmaCalc1D(float *sP, Nrrd *info1D) {
   }
 
   /* here's the actual calculation: from page 54 of GK's MS */
-  *sP = 2*sqrt(M_E)*maxg/(maxh - minh);
+  /* This is after the typo report by Fernando Vega Higuera;
+     the previous version of the code had a bug caused by
+     mindless transcription of the erroneous equation 5.8 */
+  *sP = 2*maxg/(sqrt(M_E)*(maxh - minh));
 
   return 0;
 }

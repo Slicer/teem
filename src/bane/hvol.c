@@ -449,7 +449,7 @@ baneApplyMeasr(Nrrd *nout, Nrrd *nin, int measr) {
     sprintf(err, "%s: need a 3-dimensional nrrd (not %d)", me, nin->dim);
     biffSet(BANE, err); return 1;
   }
-  if (!( AIR_OPINSIDE(nrrdTypeUnknown, nin->type, nrrdTypeLast) &&
+  if (!( AIR_BETWEEN(nrrdTypeUnknown, nin->type, nrrdTypeLast) &&
 	 nin->type != nrrdTypeBlock )) {
     sprintf(err, "%s: must have a scalar type nrrd", me);
     biffSet(BANE, err); return 1;

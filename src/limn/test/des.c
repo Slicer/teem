@@ -51,7 +51,7 @@ main(int argc, char *argv[]) {
   limnLightSet(lit, AIR_FALSE, 0, 0, 1, 0, 0, 1);
   */
   limnLightUpdate(lit, cam);
-  limnEnvMapFill(map=nrrdNew(), limnLightDiffuseCB, lit, limnQN16);
+  limnEnvMapFill(map=nrrdNew(), limnLightDiffuseCB, lit, limnQN_16checker);
   
   win = limnWinNew(limnDevicePS);
   win->file = fopen("out.ps", "w");

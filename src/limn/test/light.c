@@ -47,17 +47,17 @@ main(int argc, char *argv[]) {
   
   if (limnEnvMapFill(map=nrrdNew(), 
 		     limnLightDiffuseCB, lit,
-		     limnQN16)) {
+		     limnQN_16checker)) {
     fprintf(stderr, "%s: trouble:\n%s", me, biffGet(LIMN));
     exit(1);
   }
   map->min = 0;
   map->max = 1;
-  if (nrrdQuantize(ppm=nrrdNew(), map, 8, nrrdMinMaxUse)) {
+  if (nrrdQuantize(ppm=nrrdNew(), map, 8)) {
     fprintf(stderr, "%s: trouble:\n%s", me, biffGet(NRRD));
     exit(1);
   }
-  if (nrrdSave("map.ppm", ppm)) {
+  if (nrrdSave("map.ppm", ppm, NULL)) {
     fprintf(stderr, "%s: trouble:\n%s", me, biffGet(NRRD));
     exit(1);
   }
