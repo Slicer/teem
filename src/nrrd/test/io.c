@@ -53,18 +53,21 @@ main(int argc, char **argv) {
     free(err);
     exit(1);
   }
+  nrrdIOInit(io);
   if (nrrdSave(argv[2], nrrd, io)) {
     fprintf(stderr, "%s: trouble saving \"%s\":\n%s", 
 	    me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
+  nrrdIOInit(io);
   if (nrrdSave(argv[2], nrrd, io)) {
     fprintf(stderr, "%s: trouble saving \"%s\":\n%s", 
 	    me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
+  nrrdIOInit(io);
   if (nrrdSave(argv[2], nrrd, io)) {
     fprintf(stderr, "%s: trouble saving \"%s\":\n%s", 
 	    me, argv[1], err = biffGet(NRRD));
