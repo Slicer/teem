@@ -41,7 +41,7 @@ unrrdu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "Binary operator. Possibilities include:\n "
 	     "\b\bo \"+\", \"-\", \"x\", \"/\": "
 	     "add, subtract, multiply, divide\n "
-	     "\b\bo \"^\": exponentiation\n "
+	     "\b\bo \"^\": exponentiation (pow)\n "
 	     "\b\bo \"%\": integer modulo\n "
 	     "\b\bo \"fmod\": same as fmod() in C\n "
 	     "\b\bo \"atan2\": same as atan2() in C\n "
@@ -49,7 +49,9 @@ unrrdu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "\b\bo \"lt\", \"lte\", \"gt\", \"gte\": same as C's <, <=, >, <=\n "
 	     "\b\bo \"eq\", \"neq\": same as C's == and !=\n "
 	     "\b\bo \"comp\": -1, 0, or 1 if 1st value is less than, "
-             "equal to, or greater than 2nd value",
+             "equal to, or greater than 2nd value\n "
+	     "\b\bo \"exists\": if 1st value exists, use it, "
+	     "else use 2nd value",
 	     NULL, nrrdBinaryOp);
   hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
 	     "First input.  Can be float or nrrd.",
