@@ -18,7 +18,7 @@
 */
 
 #include "gage.h"
-#include "private.h"
+#include "privateGage.h"
 
 /*
 ** sets the filter sample location (fsl) array based

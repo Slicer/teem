@@ -20,10 +20,8 @@
 
 TEEM_LIB = limn
 HEADERS = limn.h
-#TEEM_LIB_OBJS = qn.o light.o cam.o methods.o obj.o shapes.o io.o \
-#	transform.o render.o
-TEEM_LIB_OBJS = defaults.o qn.o light.o cam.o methods.o obj.o io.o \
-	hest.o transform.o render.o
+TEEM_LIB_OBJS = defaultsLimn.o qn.o light.o cam.o methodsLimn.o obj.o io.o \
+	hestLimn.o transform.o renderLimn.o
 TEST_BINS = test/map test/light test/tcam
 TEEM_BIN_LIBS = -llimn -lell -lnrrd -lbiff -lhest -lair -lm
 

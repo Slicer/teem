@@ -19,7 +19,7 @@
 
 
 #include "bane.h"
-#include "private.h"
+#include "privateBane.h"
 
 /* ----------------- baneClipUnknown -------------------- */
 

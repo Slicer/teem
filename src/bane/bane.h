@@ -287,7 +287,7 @@ typedef struct {
 					  has been determined */
 } baneHVolParm;
 
-/* defaults.c */
+/* defaultsBane.c */
 extern int baneDefVerbose;
 extern float baneDefIncLimit;
 extern int baneDefRenormalize;
@@ -329,7 +329,7 @@ extern baneClip *baneClipPercentile;
 extern baneClip *baneClipTopN;
 extern baneClip *baneClipArray[BANE_CLIP_MAX+1];
 
-/* methods.c */
+/* methodsBane.c */
 extern baneHVolParm *baneHVolParmNew();
 extern void baneHVolParmGKMSInit(baneHVolParm *hvp);
 extern baneHVolParm *baneHVolParmNix(baneHVolParm *hvp);

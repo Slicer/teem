@@ -20,7 +20,7 @@
 
 TEEM_LIB = mite
 HEADERS = mite.h
-TEEM_LIB_OBJS = defaults.o user.o render.o thread.o ray.o
+TEEM_LIB_OBJS = defaultsMite.o user.o renderMite.o thread.o ray.o
 TEEM_BINS = bin/miter
 TEEM_BIN_LIBS = -lmite -lhoover -llimn -lgage -lnrrd -lell \
 	-lhest -lbiff -lair -lm

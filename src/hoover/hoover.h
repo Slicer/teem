@@ -245,7 +245,7 @@ enum {
   hoovErrLast
 };
   
-/* methods.c */
+/* methodsHoover.c */
 extern hoovContext *hoovContextNew();
 extern int hoovContextCheck(hoovContext *ctx);
 extern void hoovContextNix(hoovContext *ctx);

@@ -17,7 +17,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "private.h"
+#include "privateUnrrdu.h"
 
 char *shuffleName = "shuffle";
 #define INFO "Permute samples along one axis"

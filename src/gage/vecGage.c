@@ -18,7 +18,7 @@
 */
 
 #include "gage.h"
-#include "private.h"
+#include "privateGage.h"
 
 /*
   gageVecVector,      *  0: component-wise-interpolatd (CWI) vector: GT[3] *

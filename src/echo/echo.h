@@ -166,7 +166,7 @@ enum {
 
 #define ECHO_MATTER_VALUE_NUM 8
 
-/* enum.c ------------------------------------------ */
+/* enumsEcho.c ------------------------------------------ */
 extern airEnum *echoJitter;
 extern airEnum *echoObject;
 
@@ -295,7 +295,7 @@ extern EchoObject *echoObjectRoughSphere(int theRes, int phiRes,
 extern void echoObjectInstanceSet(EchoObject *_inst,
 				  echoPos_t *M, EchoObject *obj, int own);
 
-/* light.c ---------------------------------------- */
+/* lightEcho.c ---------------------------------------- */
 
 enum {
   echoLightUnknown,
@@ -337,7 +337,7 @@ extern void echoLightDirectionalSet(EchoLight *light,
 				    echoPos_t x, echoPos_t y, echoPos_t z);
 extern void echoLightAreaSet(EchoLight *light, EchoObject *obj);
 
-/* methods.c --------------------------------------- */
+/* methodsEcho.c --------------------------------------- */
 extern EchoParm *echoParmNew();
 extern EchoParm *echoParmNix(EchoParm *parm);
 extern EchoGlobalState *echoGlobalStateNew();
@@ -346,7 +346,7 @@ extern EchoThreadState *echoThreadStateNew();
 extern EchoThreadState *echoThreadStateNix(EchoThreadState *state);
 extern limnCam *echoLimnCamNew();
 
-/* render.c ---------------------------------------- */
+/* renderEcho.c ---------------------------------------- */
 
 extern int echoVerbose;
 

@@ -17,7 +17,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "private.h"
+#include "privateUnrrdu.h"
 
 char *resampleName = "resample";
 #define INFO "Filtering and {up,down}sampling with a seperable kernel"

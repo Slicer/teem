@@ -18,7 +18,7 @@
 */
 
 #include "gage.h"
-#include "private.h"
+#include "privateGage.h"
 
 void
 _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {

@@ -20,9 +20,9 @@
 
 TEEM_LIB = bane
 HEADERS = bane.h
-PRIV_HEADERS = private.h
-TEEM_LIB_OBJS = defaults.o range.o inc.o clip.o measr.o valid.o \
-	methods.o trnsf.o scat.o hvol.o trex.o
+PRIV_HEADERS = privateBane.h
+TEEM_LIB_OBJS = defaultsBane.o range.o inc.o clip.o measr.o valid.o \
+	methodsBane.o trnsf.o scat.o hvol.o trex.o
 #TEST_BINS = test/apply test/tinfo test/sigma test/pos \
 #	test/opac
 TEST_BINS = test/tblah

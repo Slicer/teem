@@ -390,7 +390,7 @@ extern void nrrdAxisSpacingSet(Nrrd *nrrd, int ax);
 extern void nrrdAxisMinMaxSet(Nrrd *nrrd, int ax);
 
 /******** simple things */
-/* simpleNrrd.c */
+/* simple.c */
 extern void nrrdPeripheralInit(Nrrd *nrrd);
 extern void nrrdPeripheralCopy(Nrrd *nout, Nrrd *nin);
 extern int nrrdContentSet(Nrrd *nout, const char *func,

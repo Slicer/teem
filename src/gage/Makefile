@@ -20,11 +20,12 @@
 
 TEEM_LIB = gage
 HEADERS = gage.h
-PRIV_HEADERS = private.h
+PRIV_HEADERS = privateGage.h
 TEEM_LIB_OBJS = \
-	defaults.o misc.o print.o filter.o methods.o general.o update.o \
+	defaultsGage.o miscGage.o print.o filter.o methodsGage.o \
+	general.o update.o \
 	scl.o sclfilter.o sclprint.o sclanswer.o \
-	vec.o vecprint.o
+	vecGage.o vecprint.o
 TEST_BINS = test/gantry test/copy
 TEST_BINS = test/gantry
 TEEM_BINS = bin/vprobe bin/qbert 

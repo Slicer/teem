@@ -17,13 +17,13 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "bane.h"
+#include "privateBane.h"
+
 /*
 ** learned: don't ever count on interleaved printfs to stdout
 ** and stderr to appear in the right order
 */
-
-#include "bane.h"
-#include "private.h"
 
 int
 _baneValidAxis(baneAxis *ax) {

@@ -17,7 +17,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "private.h"
+#include "privateUnrrdu.h"
 
 char *quantizeName = "quantize";
 char *quantizeInfo = "Quantize floating-point values to 8, 16, or 32 bits";

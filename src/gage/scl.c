@@ -18,7 +18,7 @@
 */
 
 #include "gage.h"
-#include "private.h"
+#include "privateGage.h"
 
 /*
   gageSclUnknown=-1,  * -1: nobody knows *

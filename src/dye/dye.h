@@ -57,7 +57,7 @@ typedef struct {
 } dyeColor;
 
 
-/* methods.c */
+/* methodsDye.c */
 extern char dyeSpaceToStr[][AIR_STRLEN_SMALL];
 extern int dyeStrToSpace(char *str);
 extern dyeColor *dyeColorInit(dyeColor *col);
@@ -72,7 +72,7 @@ extern dyeColor *dyeColorNix(dyeColor *col);
 extern int dyeColorParse(dyeColor *col, char *str);
 extern char *dyeColorSprintf(char *str, dyeColor *col);
 
-/* convert.c */
+/* convertDye.c */
 typedef void (*dyeConverter)(float*, float*, float*, float, float, float);
 extern void dyeRGBtoHSV(float *H, float *S, float *V,
 			float  R, float  G, float  B);

@@ -18,7 +18,7 @@
 */
 
 #include "gage.h"
-#include "private.h"
+#include "privateGage.h"
 
 /*
 ** _gageNeedDSet()

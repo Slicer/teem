@@ -17,7 +17,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "private.h"
+#include "privateUnrrdu.h"
 
 /* NB: not the same as char sliceName[] = "slice"; Read your C FAQs */
 char *sliceName = "slice";

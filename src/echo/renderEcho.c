@@ -18,7 +18,7 @@
 */
 
 #include "echo.h"
-#include "private.h"
+#include "privateEcho.h"
 
 int echoVerbose = 0;
 

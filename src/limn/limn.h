@@ -253,7 +253,7 @@ enum {
 };
 #define LIMN_QN_MAX      4
 
-/* defaults.c */
+/* defaultsLimn.c */
 extern int limnDefCamAtRel;
 extern int limnDefCamOrtho;
 extern int limnDefCamRightHanded;
@@ -276,7 +276,7 @@ extern void limnLightReset(limnLight *lit);
 extern int limnLightUpdate(limnLight *lit, limnCam *cam);
 extern void limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit);
 
-/* methods.c */
+/* methodsLimn.c */
 extern limnLight *limnLightNew(void);
 extern limnLight *limnLightNix(limnLight *);
 extern limnCam *limnCamNew(void);
@@ -284,7 +284,7 @@ extern limnCam *limnCamNix(limnCam *cam);
 extern limnWin *limnWinNew(int device);
 extern limnWin *limnWinNix(limnWin *win);
 
-/* hest.c */
+/* hestLimn.c */
 extern void limnHestCamOptAdd(hestOpt **hoptP, limnCam *cam,
 			      char *frDef, char *atDef, char *upDef,
 			      char *dnDef, char *diDef, char *dfDef,
@@ -321,7 +321,7 @@ extern int limnObjSpaceTransform(limnObj *obj, limnCam *cam, limnWin *win,
 				 int space);
 extern int limnObjPartTransform(limnObj *obj, int ri, float tx[16]);
 
-/* render.c */
+/* renderLimn.c */
 extern int limnObjPSRender(limnObj *obj, limnCam *cam, 
 			   Nrrd *envMap, limnWin *win);
 

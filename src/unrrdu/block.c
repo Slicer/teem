@@ -17,7 +17,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "private.h"
+#include "privateUnrrdu.h"
 
 char *blockName = "block";
 #define INFO "Condense axis-0 scanlines into \"blocks\""

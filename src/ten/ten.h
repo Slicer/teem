@@ -60,10 +60,10 @@ typedef struct {
   int dim;
 } tenGlyphParm;
 
-/* arrays.c */
+/* arraysTen.c */
 extern airEnum *tenAniso;
 
-/* methods.c */
+/* methodsTen.c */
 extern tenGlyphParm *tenGlyphParmNew();
 extern tenGlyphParm *tenGlyphParmNix(tenGlyphParm *parm);
 

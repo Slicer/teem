@@ -17,13 +17,26 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "bane.h"
+#include "gage.h"
+#include "privateGage.h"
 
-int baneDefVerbose = 0;
-float baneDefIncLimit = 0.80;  /* throwing away more than 20% is too much */
-int baneDefRenormalize = AIR_FALSE;
+int
+gageDefVerbose = 0;
 
-int baneStateHistEqBins = 1024;
-int baneStateHistEqSmart = 1;
+gage_t
+gageDefGradMagMin = 0.00001;
 
-int baneHack = 0;
+int
+gageDefRenormalize = AIR_FALSE;
+
+int
+gageDefCheckIntegrals = AIR_TRUE;
+
+int
+gageDefNoRepadWhenSmaller = AIR_FALSE;
+
+int
+gageDefK3Pack = AIR_TRUE;
+
+double
+gageDefIntegralNearZero = 0.0001;

@@ -24,7 +24,7 @@
 
 #include <ctype.h>
 
-#include "private.h"
+#include "privateUnrrdu.h"
 
 /* how we expect this program to identify itself */
 #define UNU "unu"

@@ -19,7 +19,7 @@
 #
 
 TEEM_BIN = unrrdu/unu
-PRIV_HEADERS = private.h
+PRIV_HEADERS = privateUnrrdu.h
 TEEM_BIN_OBJS = unu.o
 #
 # every unu command source file must define:

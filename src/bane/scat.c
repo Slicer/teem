@@ -19,7 +19,7 @@
 
 
 #include "bane.h"
-#include "private.h"
+#include "privateBane.h"
 
 int
 baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {

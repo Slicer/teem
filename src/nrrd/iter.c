@@ -18,7 +18,7 @@
 */
 
 #include "nrrd.h"
-#include "private.h"
+#include "privateNrrd.h"
 
 NrrdIter *
 nrrdIterNew() {

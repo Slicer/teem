@@ -19,7 +19,7 @@
 
 
 #include "bane.h"
-#include "private.h"
+#include "privateBane.h"
 
 #define BIFF_NULL "%s: got NULL pointer"
 #define BIFF_NRRDALLOC "%s: couldn't allocate output nrrd"

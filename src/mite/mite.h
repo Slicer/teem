@@ -77,7 +77,7 @@ typedef struct {
     ui, vi;  /* image coords */
 } miteThreadInfo;
 
-/* defaults.c */
+/* defaultsMite.c */
 extern double miteDefRefStep;
 extern int miteDefRenorm;
 extern double miteDefNear1;
@@ -86,7 +86,7 @@ extern double miteDefNear1;
 extern miteUserInfo *miteUserInfoNew(hoovContext *ctx);
 extern miteUserInfo *miteUserInfoNix(miteUserInfo *muu);
 
-/* render.c */
+/* renderMite.c */
 extern int miteRenderBegin(miteRenderInfo **mrrP, miteUserInfo *muu);
 extern int miteRenderEnd(miteRenderInfo *mrr, miteUserInfo *muu);
 

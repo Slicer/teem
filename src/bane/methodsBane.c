@@ -19,7 +19,7 @@
 
 
 #include "bane.h"
-#include "private.h"
+#include "privateBane.h"
 
 void
 _baneAxisInit(baneAxis *ax) {

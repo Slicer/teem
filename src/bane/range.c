@@ -18,7 +18,7 @@
 */
 
 #include "bane.h"
-#include "private.h"
+#include "privateBane.h"
 
 /* ----------------- baneUnknown -------------------- */
 

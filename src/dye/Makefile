@@ -20,7 +20,7 @@
 
 TEEM_LIB = dye
 HEADERS = dye.h
-TEEM_LIB_OBJS = methods.o convert.o
+TEEM_LIB_OBJS = methodsDye.o convertDye.o
 TEST_BINS = test/conv test/bow
 TEEM_BINS =
 TEEM_BIN_LIBS = -ldye -lbiff -lair -lm

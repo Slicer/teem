@@ -17,7 +17,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "private.h"
+#include "privateUnrrdu.h"
 
 char *cropName = "crop";
 char *cropInfo = "Crop along each axis to make a smaller nrrd";

@@ -447,7 +447,7 @@ typedef struct {
     *div, *curl;
 } gageVecAnswer;
 
-/* defaults.c */
+/* defaultsGage.c */
 extern int gageDefVerbose;
 extern gage_t gageDefGradMagMin;
 extern int gageDefRenormalize;
@@ -456,7 +456,7 @@ extern int gageDefNoRepadWhenSmaller;
 extern int gageDefK3Pack;
 extern double gageDefIntegralNearZero;
 
-/* misc.c */
+/* miscGage.c */
 /* gageErrStr and gageErrNum are for describing errors that happen in
    gageProbe(): using biff is too heavy-weight for this, and the idea is
    that no ill should occur if the error is repeatedly ignored */
@@ -471,7 +471,7 @@ extern int gageSclAnsOffset[GAGE_SCL_MAX+1];
 extern airEnum *gageScl;
 extern gageKind *gageKindScl;
 
-/* vec.c (together with vecprint.c, these contain everything to
+/* vecGage.c (together with vecprint.c, these contain everything to
    implement the "vec" kind, and could be used as examples of what it
    takes to create a new gageKind) */
 extern int gageVecAnsLength[GAGE_VEC_MAX+1];
@@ -479,7 +479,7 @@ extern int gageVecAnsOffset[GAGE_VEC_MAX+1];
 extern airEnum *gageVec;
 extern gageKind *gageKindVec;
 
-/* methods.c */
+/* methodsGage.c */
 extern gageContext *gageContextNew();
 extern gageContext *gageContextCopy(gageContext *ctx);
 extern gageContext *gageContextNix(gageContext *ctx);
