@@ -973,7 +973,7 @@ main(int argc, char **argv) {
   if (!E) E |= nrrdQuantize(npgm, ntmp, 8);
   if (!E) E |= nrrdSave("alpha.pgm", npgm, NULL);
   if (!E) E |= nrrdSlice(ntmp, nraw, 0, 4);
-  if (!E) E |= nrrdHistoEq(ntmp2=nrrdNew(), ntmp, NULL, 2048, 2);
+  if (!E) E |= nrrdHistoEq(ntmp2=nrrdNew(), ntmp, NULL, 2048, 2, 1.0);
   if (!E) E |= nrrdQuantize(npgm, ntmp2, 8);
   if (!E) E |= nrrdSave("time.pgm", npgm, NULL);
   if (E) {
