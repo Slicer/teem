@@ -5,8 +5,6 @@ and miter.
 
 add flags for explicitly specifying gmax, hmax, vrange
 
-------- teem 1.5beta1 cutoff ---------
-
 ------- teem 1.5 cutoff ---------
 
 6pack filtering, adapt vector stuff
