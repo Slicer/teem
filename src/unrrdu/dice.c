@@ -32,7 +32,7 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *base, out[512], *err, format[512];
   Nrrd *nin, *nout;
-  int pos, axis, top, pret, start;
+  int pos, axis, top, pret, start, fit;
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "axis to slice along");
@@ -92,11 +92,18 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
       return 1;
     }
     if (0 == pos) {
-      /* See if these slices would be better saved as PNG images.
+      /* See if these slices would be better saved as PNG or PNM images.
 	 Altering the file name will tell nrrdSave() to use a different
 	 file format. */
       if (nrrdFormatPNG->fitsInto(nout, nrrdEncodingRaw, AIR_FALSE)) {
 	strcpy(format + strlen(format) - 4, "png");
+      } else {
+	fit = nrrdFormatPNM->fitsInto(nout, nrrdEncodingRaw, AIR_FALSE);
+	if (2 == fit) {
+	  strcpy(format + strlen(format) - 4, "pgm");
+	} else if (3 == fit) {
+	  strcpy(format + strlen(format) - 4, "ppm");
+	}
       }
     }
     sprintf(out, format, base, pos+start);
