@@ -65,25 +65,34 @@ hestCB probeKindHestCB = {
   NULL
 }; 
 
-char *probeInfo = ("Shows off the functionality of the gage library. "
-		   "Uses gageProbe() to query scalar or vector volumes "
-		   "to learn various measured or derived quantities. ");
+void
+printans(FILE *file, gage_t *ans, int len) {
+  int a;
+
+  for (a=0; a<=len-1; a++) {
+    if (a)
+      printf(", ");
+    printf("%g", ans[a]);
+  }
+}
+
+char *probeInfo = ("Uses gageProbe() to query scalar or vector volumes "
+		   "at a single probe location.");
 
 int
 main(int argc, char *argv[]) {
   gageKind *kind;
-  char *me, *outS, *whatS, *err;
+  char *me, *whatS, *err;
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22;
-  float x, y, z, scale;
-  int what, a, idx, ansLen, E=0, xi, yi, zi, otype,
-    six, siy, siz, sox, soy, soz, iBaseDim, oBaseDim, renorm;
-  gage_t *answer;
-  Nrrd *nin, *nout;
-  gageContext *ctx;
+  float pos[3];
+  int what, ansLen, E=0, iBaseDim, oBaseDim, renorm;
+  gage_t *answer, *answer2;
+  Nrrd *nin;
+  gageContext *ctx, *ctx2;
   gagePerVolume *pvl;
-  double t0, t1, gmc;
+  double gmc;
   airArray *mop;
 
   mop = airMopNew();
@@ -96,10 +105,10 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
 	     "\"kind\" of volume (\"scalar\" or \"vector\")",
 	     NULL, NULL, &probeKindHestCB);
+  hestOptAdd(&hopt, "p", "x y z", airTypeFloat, 3, 3, pos, NULL,
+	     "the position in index space at which to probe");
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
 	     "the quantity (scalar, vector, or matrix) to learn by probing");
-  hestOptAdd(&hopt, "s", "scale", airTypeFloat, 1, 1, &scale, "1.0",
-	     "scaling factor (>1.0 : supersampling)");
   hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00,
 	     "tent", "kernel for gageKernel00",
 	     NULL, NULL, nrrdHestKernelSpec);
@@ -116,10 +125,6 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc,
 	     "0.0", "For curvature-based queries, use zero when gradient "
 	     "magnitude is below this");
-  hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &otype, "float",
-	     "type of output volume", NULL, nrrdType);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
-	     "output volume");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
 		 me, probeInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -139,25 +144,14 @@ main(int argc, char *argv[]) {
   ansLen = kind->ansLength[what];
   iBaseDim = gageKindScl == kind ? 0 : 1;
   oBaseDim = 1 == ansLen ? 0 : 1;
-  six = nin->axis[0+iBaseDim].size;
-  siy = nin->axis[1+iBaseDim].size;
-  siz = nin->axis[2+iBaseDim].size;
-  sox = scale*six;
-  soy = scale*siy;
-  soz = scale*siz;
   nin->axis[0+iBaseDim].spacing = SPACING(nin->axis[0+iBaseDim].spacing);
   nin->axis[1+iBaseDim].spacing = SPACING(nin->axis[1+iBaseDim].spacing);
   nin->axis[2+iBaseDim].spacing = SPACING(nin->axis[2+iBaseDim].spacing);
 
-  /***
-  **** Except for the gageProbe() call in the inner loop below,
-  **** and the gageContextNix() call at the very end, all the gage
-  **** calls which set up the context and state are here.
-  ***/
   ctx = gageContextNew();
   airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
-  gageSet(ctx, gageParmGradMagCurvMin, gmc);
-  gageSet(ctx, gageParmVerbose, 1);
+  gageSet(ctx, gageParmGradMagMin, gmc);
+  gageSet(ctx, gageParmVerbose, 3);
   gageSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
   gageSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
@@ -174,80 +168,70 @@ main(int argc, char *argv[]) {
     airMopError(mop);
     return 1;
   }
-  answer = gageAnswerPointer(pvl, what);
-  gageSet(ctx, gageParmVerbose, 0);
-  /***
-  **** end gage setup.
-  ***/
 
-  fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
-	  2*(ctx->havePad + 1));
-  if (ansLen > 1) {
-    fprintf(stderr, "%s: creating %d x %d x %d x %d output\n", 
-	   me, ansLen, sox, soy, soz);
-    if (!E) E |= nrrdAlloc(nout=nrrdNew(), otype, 4, ansLen, sox, soy, soz);
-  } else {
-    fprintf(stderr, "%s: creating %d x %d x %d output\n", me, sox, soy, soz);
-    if (!E) E |= nrrdAlloc(nout=nrrdNew(), otype, 3, sox, soy, soz);
-  }
-  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (E) {
-    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble:\n%s\n", me, err);
+  /* test with original context */
+  answer = gageAnswerPointer(ctx->pvl[0], what);
+  if (gageProbe(ctx, pos[0], pos[1], pos[2])) {
+    fprintf(stderr, "%s: trouble:\n%s\n(%d)\n", me, gageErrStr, gageErrNum);
     airMopError(mop);
     return 1;
   }
-  t0 = airTime();
-  for (zi=0; zi<=soz-1; zi++) {
-    fprintf(stderr, "%d/%d ", zi, soz-1); fflush(stderr);
-    z = AIR_AFFINE(0, zi, soz-1, 0, siz-1);
-    for (yi=0; yi<=soy-1; yi++) {
-      y = AIR_AFFINE(0, yi, soy-1, 0, siy-1);
-      for (xi=0; xi<=sox-1; xi++) {
-	x = AIR_AFFINE(0, xi, sox-1, 0, six-1);
-	idx = xi + sox*(yi + soy*zi);
-	ctx->verbose = 0*( (!xi && !yi && !zi) ||
-			   /* ((100 == xi) && (8 == yi) && (8 == zi)) */
-			   ((61 == xi) && (51 == yi) && (46 == zi))
-			   /* ((40==xi) && (30==yi) && (62==zi)) || */
-			   /* ((40==xi) && (30==yi) && (63==zi)) */ ); 
-	if (gageProbe(ctx, x, y, z)) {
-	  fprintf(stderr, 
-		  "%s: trouble at i=(%d,%d,%d) -> f=(%g,%g,%g):\n%s\n(%d)\n",
-		  me, xi, yi, zi, x, y, z, gageErrStr, gageErrNum);
-	  airMopError(mop);
-	  return 1;
-	}
-	if (1 == ansLen) {
-	  nrrdFInsert[nout->type](nout->data, idx,
-				  nrrdFClamp[nout->type](*answer));
-	} else {
-	  for (a=0; a<=ansLen-1; a++) {
-	    nrrdFInsert[nout->type](nout->data, a + ansLen*idx, 
-				    nrrdFClamp[nout->type](answer[a]));
-	  }
-	}
-      }
+  printf("%s: %s(%g,%g,%g) = ", me,
+	 airEnumStr(kind->enm, what), pos[0], pos[1], pos[2]);
+  printans(stdout, answer, ansLen);
+  printf("\n");
+
+
+  if (0) {
+    /* test with copied context */
+    if (!(ctx2 = gageContextCopy(ctx))) {
+      airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble:\n%s\n", me, err);
+      airMopError(mop);
+      return 1;
     }
+    airMopAdd(mop, ctx2, (airMopper)gageContextNix, airMopAlways);
+    answer2 = gageAnswerPointer(ctx2->pvl[0], what);
+    if (gageProbe(ctx2, pos[0], pos[1], pos[2])) {
+      fprintf(stderr, "%s: trouble:\n%s\n(%d)\n", me, gageErrStr, gageErrNum);
+      airMopError(mop);
+      return 1;
+    }
+    printf("====== B %s: %s(%g,%g,%g) = ", me,
+	   airEnumStr(kind->enm, what), pos[0], pos[1], pos[2]);
+    printans(stdout, answer2, ansLen);
+    printf("\n");
+    
+    /* random testing */
+    ELL_3V_SET(pos, 1.2, 2.3, 3.4);
+    gageProbe(ctx2, pos[0], pos[1], pos[2]);
+    printf("====== C %s: %s(%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
+	   pos[0], pos[1], pos[2]);
+    printans(stdout, answer2, ansLen);
+    printf("\n");
+    
+    ELL_3V_SET(pos, 4.4, 5.5, 6.6);
+    gageProbe(ctx, pos[0], pos[1], pos[2]);
+    printf("====== D %s: %s(%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
+	   pos[0], pos[1], pos[2]);
+    printans(stdout, answer, ansLen);
+    printf("\n");
+    
+    ELL_3V_SET(pos, 1.2, 2.3, 3.4);
+    gageProbe(ctx, pos[0], pos[1], pos[2]);
+    printf("====== E %s: %s(%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
+	   pos[0], pos[1], pos[2]);
+    printans(stdout, answer, ansLen);
+    printf("\n");
+    
+    ELL_3V_SET(pos, 1.2, 2.3, 3.4);
+    gageProbe(ctx2, pos[0], pos[1], pos[2]);
+    printf("====== F %s: %s(%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
+	   pos[0], pos[1], pos[2]);
+    printans(stdout, answer2, ansLen);
+    printf("\n");
+    
   }
-
-  /* HEY: this isn't actually correct in general, but is true
-     for gageKindScl and gageKindVec */
-  nrrdContentSet(nout, "probe", nin, "%s", airEnumStr(kind->enm, what));
-  nout->axis[0+oBaseDim].spacing = 
-    ((double)six/sox)*SPACING(nin->axis[0+iBaseDim].spacing);
-  nout->axis[0+oBaseDim].label = airStrdup(nin->axis[0+iBaseDim].label);
-  nout->axis[1+oBaseDim].spacing = 
-    ((double)six/sox)*SPACING(nin->axis[1+iBaseDim].spacing);
-  nout->axis[1+oBaseDim].label = airStrdup(nin->axis[1+iBaseDim].label);
-  nout->axis[2+oBaseDim].spacing = 
-    ((double)six/sox)*SPACING(nin->axis[2+iBaseDim].spacing);
-  nout->axis[2+oBaseDim].label = airStrdup(nin->axis[2+iBaseDim].label);
-
-  fprintf(stderr, "\n");
-  t1 = airTime();
-  fprintf(stderr, "probe rate = %g KHz\n", sox*soy*soz/(1000.0*(t1-t0)));
-  nrrdSave(outS, nout, NULL);
 
   airMopOkay(mop);
   return 0;
