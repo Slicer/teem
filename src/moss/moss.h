@@ -75,9 +75,9 @@ typedef struct {
 } mossSampler;
 
 /* defaultsMoss.c */
-extern int mossDefBoundary;
-extern int mossDefCenter;
-extern int mossVerbose;
+extern moss_export int mossDefBoundary;
+extern moss_export int mossDefCenter;
+extern moss_export int mossVerbose;
 
 /* methodsMoss.c */
 extern mossSampler *mossSamplerNew();
@@ -96,8 +96,8 @@ extern int mossSamplerSample(float *val, mossSampler *smplr,
 			     double xPos, double yPos);
 
 /* hestMoss.c */
-extern hestCB *mossHestTransform;
-extern hestCB *mossHestOrigin;
+extern moss_export hestCB *mossHestTransform;
+extern moss_export hestCB *mossHestOrigin;
 
 /* xform.c */
 extern void mossMatPrint(FILE *f, double mat[6]);
