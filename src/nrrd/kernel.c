@@ -20,6 +20,24 @@
 
 #include "nrrd.h"
 
+/*   
+** summary of information about how the kernel parameter vector is set:
+
+                        numParm  parm[0]   parm[1]   parm[2]
+        nrrdKernelHann     2      scale    cut-off
+    nrrdKernelBlackman     2      scale    cut-off
+        nrrdKernelZero     1      scale
+         nrrdKernelBox     1      scale
+        nrrdKernelTent     1      scale
+    nrrdKernelForwDiff     1      scale
+    nrrdKernelCentDiff     1      scale
+     nrrdKernelBCCubic     3      scale       B        C
+    nrrdKernelAQuartic     2      scale       A
+    nrrdKernelGaussian     2      sigma    cut-off
+   nrrdKernelTMF[][][]     1       a
+  
+*/
+
 /* ------------------------------------------------------------ */
 
 /* the "zero" kernel is here more as a template than for anything else */
