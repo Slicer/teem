@@ -124,7 +124,7 @@ F(eval) \
 F(evec)
 TEND_MAP(TEND_DECLARE)
 extern ten_export unrrduCmd *tendCmdList[]; 
-extern void Usage(char *me, hestParm *hparm);
+extern void tendUsage(char *me, hestParm *hparm);
 
 
 #ifdef __cplusplus

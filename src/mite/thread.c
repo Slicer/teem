@@ -23,8 +23,15 @@ int
 miteThreadBegin(miteThreadInfo **mttP, miteRenderInfo *mrr,
 		miteUserInfo *muu, int whichThread) {
 
-  (*mttP) = (miteThreadInfo *)calloc(1, sizeof(miteThreadInfo));
-  airMopAdd(muu->mop, *mttP, airFree, airMopAlways);
+  (*mttP) = mrr->tt[whichThread];
+  if (!whichThread) {
+    /* this is the first thread- it just points to the parent gageContext */
+    (*mttP)->gtx = mrr->gtx0;
+  } else {
+    /* we have to generate a new gageContext */
+    (*mttP)->gtx = gageContextCopy(mrr->gtx0);
+  }
+  (*mttP)->san = (*mttP)->gtx->pvl[0]->ans;
 
   (*mttP)->thrid = whichThread;
   return 0;

@@ -23,8 +23,8 @@
 #define INFO "Calculate tensors from DW images"
 char *_tend_calcInfoL =
   (INFO
-   ".  The anisotropy value will be zero in the locations which "
-   "don't meet the given confidence threshold.");
+   ".  The tensors are calculated everwhere but the threshold and slope "
+   "arguments determine what the confidence values are.");
 
 int
 tend_calcMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -33,16 +33,16 @@ tend_calcMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int aniso;
   Nrrd *nin, *nout;
   char *outS;
-  float thresh;
+  float thresh, slope, b;
 
-  hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &aniso, NULL,
-	     "Which anisotropy metric to plot.  " TEN_ANISO_DESC,
-	     NULL, tenAniso);
-  hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "0.5",
+  hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, NULL,
 	     "confidence threshold");
+  hestOptAdd(&hopt, "s", "slope", airTypeFloat, 1, 1, &slope, "0.01",
+	     "d(confidence)/dv at threshold");
+  hestOptAdd(&hopt, "b", "b", airTypeFloat, 1, 1, &b, "1",
+	     "b value from scan");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
 	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
@@ -56,10 +56,9 @@ tend_calcMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (tenAnisoVolume(nout, nin, aniso, thresh)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble making plot:\n%s\n", me, err);
-    airMopError(mop); exit(1);
+  if (tenCalcTensor(nout, nin, thresh, slope, b)) {
+    fprintf(stderr, "%s: tenCalcTensor failed:\n%s", me, biffGet(TEN));
+    exit(1);
   }
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);

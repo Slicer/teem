@@ -57,7 +57,7 @@ tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   for (cc=0; cc<compLen; cc++) {
-    if (!AIR_INSIDE(0, comp[cc], 2)) {
+    if (!AIR_IN_CL(0, comp[cc], 2)) {
       fprintf(stderr, "%s: requested component %d (%d of 3) not in [0..2]\n",
 	      me, comp[cc], cc+1);
       airMopError(mop); exit(1);

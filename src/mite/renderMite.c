@@ -23,7 +23,7 @@ int
 miteRenderBegin(miteRenderInfo **mrrP, miteUserInfo *muu) {
   char me[]="miteRenderBegin", err[AIR_STRLEN_MED];
   gagePerVolume *pvl;
-  int E;
+  int E, thr;
  
   fprintf(stderr, "%s: hi %p %p\n", me, mrrP, muu);
   if (!(mrrP && muu)) {
@@ -35,38 +35,27 @@ miteRenderBegin(miteRenderInfo **mrrP, miteUserInfo *muu) {
     return 1;
   }
   airMopAdd(muu->mop, *mrrP, airFree, airMopAlways);
-  if (!( ((*mrrP)->gtx = gageContextNew()) &&
-	 (pvl = gagePerVolumeNew(gageKindScl)) )) {
-    sprintf(err, "%s: couldn't calloc gage structs", me);
-    return 1;
-  }
-  airMopAdd(muu->mop, (*mrrP)->gtx, (airMopper)gageContextNix, airMopAlways);
+  pvl = gagePerVolumeNew(muu->nin, gageKindScl);
 
-  fprintf(stderr, "%s: hi %p %p\n", me, muu, muu->ctx);
-
-  gageSet((*mrrP)->gtx, gageRenormalize, muu->renorm);
-  gageSet((*mrrP)->gtx, gageCheckIntegrals, AIR_TRUE);
   E = 0;
-  if (!E) E |= gagePerVolumeAttach((*mrrP)->gtx, pvl);
-  if (!E) E |= gageKernelSet((*mrrP)->gtx, gageKernel00,
-			     muu->ksp00->kernel, muu->ksp00->parm);
-  if (!E) E |= gageKernelSet((*mrrP)->gtx, gageKernel11,
-			     muu->ksp11->kernel, muu->ksp11->parm);
+  if (!E) E |= gageKernelSet(muu->gctx0, gageKernel00,
+			     muu->ksp[gageKernel00]->kernel,
+			     muu->ksp[gageKernel00]->parm);
+  if (!E) E |= gageKernelSet(muu->gctx0, gageKernel11,
+			     muu->ksp[gageKernel11]->kernel,
+			     muu->ksp[gageKernel11]->parm);
   /* HEY HEY HEY this is only for value and normal */
   /*
-  if (!E) E |= gageKernelSet((*mrrP)->gtx, gageKernel22,
+  if (!E) E |= gageKernelSet((*mrrP)->gtx0, gageKernel22,
 			     muu->ksp22->kernel, muu->ksp22->parm);
   */
-  if (!E) E |= gageVolumeSet((*mrrP)->gtx, pvl, muu->nin);
-  if (!E) E |= gageQuerySet((*mrrP)->gtx, pvl,
-			    (1<<gageSclValue)|(1<<gageSclNormal));
-  if (!E) E |= gageUpdate((*mrrP)->gtx);
+  if (!E) E |= gageQuerySet(pvl, (1<<gageSclValue)|(1<<gageSclNormal));
+  if (!E) E |= gageUpdate((*mrrP)->gtx0);
   if (E) {
     sprintf(err, "%s: gage trouble", me);
     biffMove(MITE, err, GAGE);
     return 1;
   }
-  (*mrrP)->san = (gageSclAnswer*)((*mrrP)->gtx->pvl[0]->ansStruct);
   
   fprintf(stderr, "%s: bye %d %d \n", me,
 	  muu->ctx->imgSize[0], muu->ctx->imgSize[1]);
@@ -86,6 +75,11 @@ miteRenderBegin(miteRenderInfo **mrrP, miteUserInfo *muu) {
   (*mrrP)->nout->axis[1].min = muu->ctx->cam->vRange[0];
   (*mrrP)->nout->axis[1].max = muu->ctx->cam->vRange[1];
   (*mrrP)->imgData = (*mrrP)->nout->data;
+
+  for (thr=0; thr<muu->ctx->numThreads; thr++) {
+    (*mrrP)->tt[thr] = (miteThreadInfo *)calloc(1, sizeof(miteThreadInfo));
+    airMopAdd(muu->mop, (*mrrP)->tt[thr], airFree, airMopAlways);
+  }
 
   return 0;
 }

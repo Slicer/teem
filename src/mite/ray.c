@@ -26,18 +26,20 @@ _miteRGBACalc(double *rr, double *gg, double *bb, double *aa,
   double val, lr, lg, lb;
   int tfi;
   float *tf, min, max, dot;
+  gage_t *norm;
 
-  dot = ELL_3V_DOT(mrr->san->norm, muu->lit->dir[0]);
+  norm = mtt->san + gageKindScl->ansOffset[gageSclNormal];
+  dot = ELL_3V_DOT(norm, muu->lit->dir[0]);
   dot = AIR_ABS(dot);
   lr = muu->lit->amb[0] + 0.0*dot;
   lg = muu->lit->amb[1] + 0.0*dot;
   lb = muu->lit->amb[2] + 0.0*dot;
 
-  min = muu->ntf->axis[1].min;
-  max = muu->ntf->axis[1].max;
-  val = AIR_CLAMP(min, mrr->san->val[0], max);
-  tf = muu->ntf->data;
-  AIR_INDEX(min, val, max, muu->ntf->axis[1].size, tfi);
+  min = muu->ntxf->axis[1].min;
+  max = muu->ntxf->axis[1].max;
+  val = AIR_CLAMP(min, mtt->san[gageKindScl->ansOffset[gageSclValue]], max);
+  tf = muu->ntxf->data;
+  AIR_INDEX(min, val, max, muu->ntxf->axis[1].size, tfi);
   
   *rr = lr*tf[0 + 4*tfi];
   *gg = lg*tf[1 + 4*tfi];
@@ -86,7 +88,7 @@ miteSample(miteThreadInfo *mtt, miteRenderInfo *mrr, miteUserInfo *muu,
     return 0.0;
   }
 
-  if (gageProbe(mrr->gtx,
+  if (gageProbe(mtt->gtx,
 		samplePosIndex[0],
 		samplePosIndex[1],
 		samplePosIndex[2])) {

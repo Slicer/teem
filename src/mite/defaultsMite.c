@@ -19,6 +19,11 @@
 
 #include "mite.h"
 
-double miteDefRefStep = 0.01;
-int miteDefRenorm = AIR_FALSE;
-double miteDefNear1 = 0.99;
+double
+miteDefRefStep = 0.01;
+
+int
+miteDefRenorm = AIR_FALSE;
+
+double
+miteDefNear1 = 0.99;

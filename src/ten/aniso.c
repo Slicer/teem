@@ -99,7 +99,7 @@ tenAnisoPlot(Nrrd *nout, int aniso, int res) {
 					 (cl,cp,cs) align with the 
 					 barycentric coordinates */
 
-  if (!airEnumValidVal(tenAniso, aniso)) {
+  if (!airEnumValValid(tenAniso, aniso)) {
     sprintf(err, "%s: invalid aniso (%d)", me, aniso);
     biffAdd(TEN, err); return 1;
   }
@@ -143,7 +143,7 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, float thresh) {
     sprintf(err, "%s: didn't get a tensor nrrd", me);
     biffAdd(TEN, err); return 1;
   }
-  if (!airEnumValidVal(tenAniso, aniso)) {
+  if (!airEnumValValid(tenAniso, aniso)) {
     sprintf(err, "%s: invalid aniso (%d)", me, aniso);
     biffAdd(TEN, err); return 1;
   }
