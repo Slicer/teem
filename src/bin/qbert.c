@@ -474,8 +474,7 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
 int
 qbertScat(Nrrd *nvgh, int pos, int size, char *name) {
   char me[]="qbertScat", err[AIR_STRLEN_MED];
-  Nrrd *nin[2];
-  Nrrd *nv, *nx, *nscA, *nscB;
+  Nrrd *nin[2], *nv, *nx, *nscA, *nscB;
   airArray *mop;
   int E, bins[2], clamp[2];
   NrrdRange *range;
@@ -492,7 +491,7 @@ qbertScat(Nrrd *nvgh, int pos, int size, char *name) {
   E = 0;
   if (!E) E |= nrrdSlice(nv, nvgh, 0, 0);
   if (!E) E |= nrrdSlice(nx, nvgh, 0, pos);
-  if (!E) E |= nrrdHistoJoint(nscA, nin, NULL, 2,
+  if (!E) E |= nrrdHistoJoint(nscA, (const Nrrd**)nin, NULL, 2,
 			      NULL, bins, nrrdTypeFloat, clamp);
   if (!E) E |= nrrdArithUnaryOp(nscB, nrrdUnaryOpLog1p, nscA);
   if (!E) E |= nrrdHistoEq(nscA, nscB, NULL, 2048, 2, 0.45);

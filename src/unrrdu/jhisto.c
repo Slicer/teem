@@ -114,7 +114,8 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdHistoJoint(nout, nin, range, ninLen, nwght, bin, type, clamp)) {
+  if (nrrdHistoJoint(nout, (const Nrrd**)nin, (const NrrdRange**)range,
+		     ninLen, nwght, bin, type, clamp)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing joint histogram:\n%s", me, err);
     airMopError(mop);
