@@ -22,33 +22,6 @@
 
 char *info = ("Save a single ellipsoid or superquadric into an OFF file.");
 
-void
-washQtoM3(float m[9], float q[4]) {
-  float p[4], w, x, y, z, len;
-
-  ELL_4V_COPY(p, q);
-  len = ELL_4V_LEN(p);
-  ELL_4V_SCALE(p, 1.0/len, p);
-  w = p[0];
-  x = p[1];
-  y = p[2];
-  z = p[3];
-  /* mathematica work implies that we should be 
-     setting ROW vectors here */
-  ELL_3V_SET(m+0, 
-	     1 - 2*(y*y + z*z),
-	     2*(x*y - w*z),
-	     2*(x*z + w*y));
-  ELL_3V_SET(m+3,
-	     2*(x*y + w*z),
-	     1 - 2*(x*x + z*z),
-	     2*(y*z - w*x));
-  ELL_3V_SET(m+6,
-	     2*(x*z - w*y),
-	     2*(y*z + w*x),
-	     1 - 2*(x*x + y*y));
-}
-
 int
 main(int argc, char *argv[]) {
   char *me, *err, *outS;
@@ -108,13 +81,9 @@ main(int argc, char *argv[]) {
   ELL_3V_SET(look->kads, 1, 0, 0);
   look->spow = 0;
 
-  q[0] = 1.0;
-  q[1] = p[0];
-  q[2] = p[1];
-  q[3] = p[2];
-  len = ELL_4V_LEN(q);
-  ELL_4V_SCALE(q, 1.0/len, q);
-  washQtoM3(mR, q);
+  ELL_4V_SET(q, 1, p[0], p[1], p[2]);
+  ELL_4V_NORM(q, q, len);
+  ell_q_to_3m_f(mR, q);
 
   if (AIR_EXISTS(AB[0]) && AIR_EXISTS(AB[1])) {
     qA = AB[0];

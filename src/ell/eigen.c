@@ -211,6 +211,11 @@ ell_3m_eigenvalues_d(double _eval[3], double _m[9], int newton) {
 ** is set to a corresponding eigenvector.  The eigenvectors are
 ** (evec+0)[], (evec+3)[], and (evec+6)[]
 **
+** NOTE: Even in the post-teem-1.7 switch from column-major to 
+** row-major- its still the case that the eigenvectors are at
+** evec+0, evec+3, evec+6: this means that they USED to be the
+** "columns" of the matrix, and NOW they're the rows.  
+**
 ** The eigenvalues (and associated eigenvectors) are sorted in
 ** descending order.
 **

@@ -185,6 +185,11 @@ tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine) {
 **
 ** return is same as ell_3m_eigensolve_d, which is same as ell_cubic
 **
+** NOTE: Even in the post-teem-1.7 switch from column-major to 
+** row-major- its still the case that the eigenvectors are at
+** evec+0, evec+3, evec+6: this means that they USED to be the
+** "columns" of the matrix, and NOW they're the rows.  
+**
 ** This does NOT use biff
 */
 int
@@ -289,8 +294,8 @@ tenMakeOne(float ten[7], float conf, float eval[3], float evec[9]) {
   ELL_3M_ZERO_SET(diag);
   ELL_3M_DIAG_SET(diag, eval[0], eval[1], eval[2]);
   ELL_3M_TRANSPOSE(evecT, evec);
-  ELL_3M_MUL(tmpMat1, diag, evecT);
-  ELL_3M_MUL(tmpMat2, evec, tmpMat1);
+  ELL_3M_MUL(tmpMat1, diag, evec);
+  ELL_3M_MUL(tmpMat2, evecT, tmpMat1);
   ten[0] = conf;
   TEN_MAT2LIST(ten, tmpMat2);
   return;

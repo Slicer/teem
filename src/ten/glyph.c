@@ -164,7 +164,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   gageShape *shape;
   airArray *mop;
   double pI[3], pW[3];
-  float cl, cp, *tdata, evec[9], eval[3], *cvec,
+  float cl, cp, *tdata, evec[9], rotEvec[9], eval[3], *cvec,
     aniso[TEN_ANISO_MAX+1], sRot[16], mA[16], mB[16],
     R, G, B, qA, qB, glyphAniso, sliceGray;
   int slcCoord[3], idx, _idx=0, glyphIdx, axis, numGlyphs, duh;
@@ -264,6 +264,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       }
     }
     tenEigensolve(eval, evec, tdata);
+    ELL_3M_TRANSPOSE(rotEvec, evec);
     tenAnisoCalc(aniso, eval);
     if (parm->doSlice
 	&& pI[parm->sliceAxis] == parm->slicePos) {
@@ -354,7 +355,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
     ELL_3V_SCALE(eval, parm->glyphScale, eval);     /* scale by evals */
     ELL_4M_SCALE_SET(mB, eval[0], eval[1], eval[2]);
     ell_4m_post_mul_f(mA, mB);
-    ELL_43M_INSET(mB, evec);                        /* rotate by evecs */
+    ELL_43M_INSET(mB, rotEvec);                     /* rotate by evecs */
     ell_4m_post_mul_f(mA, mB);
     ELL_4M_TRANSLATE_SET(mB, pW[0], pW[1], pW[2]);  /* translate */
     ell_4m_post_mul_f(mA, mB);
