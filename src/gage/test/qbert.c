@@ -419,7 +419,7 @@ main(int argc, char *argv[]) {
   nvgh = nrrdNuke(nvgh);
   npad = nrrdNuke(npad);
   ctx = gageSclContextNix(ctx);
-  hestParseFree(hopt);
+  hopt = hestOptFree(hopt);
   hparm = hestParmFree(hparm);
 
   exit(0);
