@@ -19,8 +19,8 @@ LIB = hest
 HEADERS = hest.h
 PRIV_HEADERS = private.h
 LIBOBJS = defaults.o methods.o usage.o parse.o
-TEST_BINS = test/arg test/ex1 test/ex2
-TEST_BINS = test/arg test/ex1
+TEST_BINS = test/ex1 test/ex2
+TEST_BINS = test/ex1
 BINLIBS = -lhest -lair -lm
 
 include ../make/Common.mk
