@@ -148,7 +148,6 @@ main(int argc, char *argv[]) {
   sox = scale[0]*six;
   soy = scale[1]*siy;
   soz = scale[2]*siz;
-  fprintf(stderr, "%s: output will be %d x %d x %d\n", me, sox, soy, soz);
   nin->axis[0+iBaseDim].spacing = SPACING(nin->axis[0+iBaseDim].spacing);
   nin->axis[1+iBaseDim].spacing = SPACING(nin->axis[1+iBaseDim].spacing);
   nin->axis[2+iBaseDim].spacing = SPACING(nin->axis[2+iBaseDim].spacing);
@@ -186,6 +185,8 @@ main(int argc, char *argv[]) {
 
   fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
 	  2*(ctx->havePad + 1));
+  fprintf(stderr, "%s: effective scaling is %g %g %g\n", me,
+	  (float)sox/six, (float)soy/siy, (float)soz/siz);
   if (ansLen > 1) {
     fprintf(stderr, "%s: creating %d x %d x %d x %d output\n", 
 	   me, ansLen, sox, soy, soz);
