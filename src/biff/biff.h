@@ -16,6 +16,12 @@
 */
 
 
+#ifndef BIFF_HAS_BEEN_INCLUDED
+#define BIFF_HAS_BEEN_INCLUDED
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
@@ -35,3 +41,9 @@ extern char *biffGetDone(char *key);
 #define BIFF_NULL "%s: got NULL pointer"
 #define BIFF_NRRDNEW "%s: couldn't create output nrrd struct"
 #define BIFF_NRRDALLOC "%s: couldn't allocate space for output nrrd data"
+
+/* extern C */
+#ifdef __cplusplus
+}
+#endif
+#endif /* BIFF_HAS_BEEN_INCLUDED */
