@@ -332,15 +332,23 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
        slice, we do 2-D CCs, find the biggest bright CC (size == big),
        and merge up (to bright) all small dark pieces, where
        (currently) small is big/2 */
+    big = -1;
     if (nrrdCCFind(ncc, &nval, nthr[ni], nrrdTypeDefault, conny)
 	|| nrrdCCSize(nsize, ncc)
 	|| !(big = _tenEpiRegBB(nval, nsize)) 
 	|| nrrdCCMerge(ncc, ncc, nval, -1, big-1, 0, conny)
 	|| nrrdCCRevalue(nthr[ni], ncc, nval)) {
-      sprintf(err, "%s: trouble with 3-D processing nthr[%d]", me, ni);
-      biffMove(TEN, err, NRRD); return 1;
+      if (big) {
+	sprintf(err, "%s: trouble with 3-D processing nthr[%d]", me, ni);
+	biffMove(TEN, err, NRRD); return 1;
+      } else {
+	sprintf(err, "%s: got size 0 for biggest bright CC of nthr[%d]",
+		me, ni);
+	biffAdd(TEN, err); return 1;
+      }
     }
     for (z=0; z<sz; z++) {
+      big = -1;
       if ( nrrdSlice(nslc, nthr[ni], 2, z)
 	   || nrrdCCFind(ncc, &nval, nslc, nrrdTypeDefault, conny)
 	   || nrrdCCSize(nsize, ncc)
@@ -348,8 +356,14 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
 	   || nrrdCCMerge(ncc, ncc, nval, 1, big/2, 0, conny)
 	   || nrrdCCRevalue(nslc, ncc, nval)
 	   || nrrdSplice(nthr[ni], nthr[ni], nslc, 2, z) ) {
-	sprintf(err, "%s: trouble processing slice %d of nthr[%d]", me, z, ni);
-	biffMove(TEN, err, NRRD); return 1;
+	if (big) {
+	  sprintf(err, "%s: trouble processing slice %d of nthr[%d]",
+		  me, z, ni);
+	  biffMove(TEN, err, NRRD); return 1;
+	} else {
+	  /* biggest bright CC on this slice had size 0
+	     <==> there was no bright CC on this slice, move on */
+	}
       }
     }
   }
@@ -413,41 +427,46 @@ _tenEpiRegMoments(Nrrd **nmom, Nrrd **nthresh, int ninLen, int verb) {
 	  my += yi*val;
 	}
       }
-      if (!N) {
-	sprintf(err, "%s: saw no non-zero pixels in nthresh[%d]; "
-		"DWI threshold too high?", me, ni);
-	biffAdd(TEN, err); return 1;
-      }
       if (N == sx*sy) {
 	sprintf(err, "%s: saw only non-zero pixels in nthresh[%d]; "
 		"DWI hreshold too low?", me, ni);
 	biffAdd(TEN, err); return 1;
       }
-      mx /= N;
-      my /= N;
-      cx = sx/2.0;
-      cy = sy/2.0;
-      /* ------ find M02, M11, M20 */
-      M02 = M11 = M20 = 0.0;
-      for (yi=0; yi<sy; yi++) {
-	for (xi=0; xi<sx; xi++) {
-	  val = thr[xi + sx*yi];
-	  x = xi - cx;
-	  y = yi - cy;
-	  M02 += y*y*val;
-	  M11 += x*y*val;
-	  M20 += x*x*val;
+      if (N) {
+	/* there were non-zero pixels */
+	mx /= N;
+	my /= N;
+	cx = sx/2.0;
+	cy = sy/2.0;
+	/* ------ find M02, M11, M20 */
+	M02 = M11 = M20 = 0.0;
+	for (yi=0; yi<sy; yi++) {
+	  for (xi=0; xi<sx; xi++) {
+	    val = thr[xi + sx*yi];
+	    x = xi - cx;
+	    y = yi - cy;
+	    M02 += y*y*val;
+	    M11 += x*y*val;
+	    M20 += x*x*val;
+	  }
 	}
+	M02 /= N;
+	M11 /= N;
+	M20 /= N;
+	/* ------ set output */
+	mom[MEAN_X] = mx;
+	mom[MEAN_Y] = my;
+	mom[M_02] = M02;
+	mom[M_11] = M11;
+	mom[M_20] = M20;
+      } else {
+	/* there were no non-zero pixels */
+	mom[MEAN_X] = 0;
+	mom[MEAN_Y] = 0;
+	mom[M_02] = 0;
+	mom[M_11] = 0;
+	mom[M_20] = 0;
       }
-      M02 /= N;
-      M11 /= N;
-      M20 /= N;
-      /* ------ set output */
-      mom[MEAN_X] = mx;
-      mom[MEAN_Y] = my;
-      mom[M_02] = M02;
-      mom[M_11] = M11;
-      mom[M_20] = M20;
       thr += sx*sy;
       mom += 5;
     }
@@ -508,33 +527,49 @@ _tenEpiRegPairXforms(Nrrd *npxfr, Nrrd **nmom, int ninLen) {
 int
 _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
   char me[]="_tenEpiRegEstimHST", err[AIR_STRLEN_MED];
-  double *hst, *grad, *mat1, *vec, *ans, *pxfr, *gA, *gB;
+  double *hst, *grad, *mat, *vec, *ans, *pxfr, *gA, *gB;
   int z, sz, A, B, npairs, ri;
-  Nrrd *nmat1, *nvec, *ninv, *nans;
+  Nrrd **nmat, *nvec, **ninv, *nans;
   airArray *mop;
+  int order;
+
+  order = 1;
+
+  sz = npxfr->axis[1].size;
+  npairs = ninLen*(ninLen-1);
 
   mop = airMopNew();
-  airMopAdd(mop, nmat1=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, ninv=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  nmat = (Nrrd**)calloc(sz, sizeof(Nrrd*));
+  ninv = (Nrrd**)calloc(sz, sizeof(Nrrd*));
+  airMopAdd(mop, nmat, airFree, airMopAlways);
+  airMopAdd(mop, ninv, airFree, airMopAlways);
+  for (z=0; z<sz; z++) {
+    airMopAdd(mop, nmat[z]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdMaybeAlloc(nmat[z], nrrdTypeDouble, 2,
+		       (1 == order ? 3 : 9), npairs)) {
+      sprintf(err, "%s: couldn't allocate fitting matrices", me);
+      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+    }
+    airMopAdd(mop, ninv[z]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  }
   airMopAdd(mop, nvec=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nans=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  npairs = ninLen*(ninLen-1);
-  sz = npxfr->axis[1].size;
-  if (nrrdMaybeAlloc(nhst, nrrdTypeDouble, 2, 9, sz)
-      || nrrdMaybeAlloc(nmat1, nrrdTypeDouble, 2, 3, npairs)
+  if (nrrdMaybeAlloc(nhst, nrrdTypeDouble, 2,
+		     (1 == order ? 9 : 27), sz)
       || nrrdMaybeAlloc(nvec, nrrdTypeDouble, 2, 1, npairs)) {
     sprintf(err, "%s: couldn't allocate HST nrrd", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
   nrrdAxisInfoSet(nhst, nrrdAxisInfoLabel,
-		  "Hx,Hy,Hz,Sx,Sy,Sz,Tx,Ty,Tz", "z");
-  grad = (double *)(ngrad->data);
-  mat1 = (double *)(nmat1->data);
-  vec = (double *)(nvec->data);
+		  (1 == order 
+		   ? "Hx,Hy,Hz,Sx,Sy,Sz,Tx,Ty,Tz"
+		   : "HST parms"), "z");
 
-  /* ------ find Sx, Sy, Sz per slice */
+  /* ------ per-slice: compute model fitting matrix and its pseudo-inverse */
+  grad = (double *)(ngrad->data);
   for (z=0; z<sz; z++) {
-    hst = (double *)(nhst->data) + 0 + 9*z;
+    hst = (double *)(nhst->data) + (1 == order ? 9 : 27)*z;
+    mat = (double *)(nmat[z]->data);
     ri = 0;
     for (A=0; A<ninLen; A++) {
       for (B=0; B<ninLen; B++) {
@@ -542,72 +577,139 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
 	pxfr = (double *)(npxfr->data) + 0 + 5*(z + sz*(A + ninLen*B));
 	gA = grad + 0 + 3*A;
 	gB = grad + 0 + 3*B;
-	ELL_3V_SET(mat1 + 3*ri,
-		   pxfr[SCALE]*gA[0] - gB[0],
-		   pxfr[SCALE]*gA[1] - gB[1],
-		   pxfr[SCALE]*gA[2] - gB[2]);
-	vec[ri] = 1 - pxfr[SCALE];
+	if (1 == order) {
+	  ELL_3V_SET(mat + 3*ri,
+		     gB[0] - pxfr[SCALE]*gA[0],
+		     gB[1] - pxfr[SCALE]*gA[1],
+		     gB[2] - pxfr[SCALE]*gA[2]);
+	} else {
+	  ELL_9V_SET(mat + 9*ri,
+		     gB[0] - pxfr[SCALE]*gA[0],
+		     gB[1] - pxfr[SCALE]*gA[1],
+		     gB[2] - pxfr[SCALE]*gA[2],
+		     gB[0] - pxfr[SCALE]*gA[0],
+		     gB[1] - pxfr[SCALE]*gA[1],
+		     gB[2] - pxfr[SCALE]*gA[2],
+		     gB[0] - pxfr[SCALE]*gA[0],
+		     gB[1] - pxfr[SCALE]*gA[1],
+		     gB[2] - pxfr[SCALE]*gA[2]);
+		     /*
+		     gB[0]*gB[0] - pxfr[SCALE]*gA[0]*gA[0],
+		     gB[1]*gB[1] - pxfr[SCALE]*gA[1]*gA[1],
+		     gB[2]*gB[2] - pxfr[SCALE]*gA[2]*gA[2],
+		     gB[0]*gB[1] - pxfr[SCALE]*gA[0]*gA[1],
+		     gB[0]*gB[2] - pxfr[SCALE]*gA[0]*gA[2],
+		     gB[1]*gB[2] - pxfr[SCALE]*gA[1]*gA[2]);
+		     */
+	}
 	ri += 1;
       }
     }
-    ell_Nm_pseudo_inv(ninv, nmat1);
-    ell_Nm_mul(nans, ninv, nvec);
-    ans = (double *)(nans->data);
-    hst[3] = ans[0];
-    hst[4] = ans[1];
-    hst[5] = ans[2];
+    if (nrrdHasNonExist(nmat[z])) {
+      /* as happens if there were zero slices in the segmentation output */
+      if (1 == order) {
+	ELL_3V_SET(hst + 0*3, 0, 0, 0);
+	ELL_3V_SET(hst + 1*3, 0, 0, 0);
+	ELL_3V_SET(hst + 2*3, 0, 0, 0);
+      } else {
+	ELL_9V_SET(hst + 0*9, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+	ELL_9V_SET(hst + 1*9, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+	ELL_9V_SET(hst + 2*9, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+      }
+    } else {
+      if (ell_Nm_pseudo_inv(ninv[z], nmat[z])) {
+	sprintf(err, "%s: trouble estimating model (slice %d)", me, z);
+	biffMove(TEN, err, ELL); airMopError(mop); return 1;
+      }
+    }
   }
 
   /* ------ find Hx, Hy, Hz per slice */
+  vec = (double *)(nvec->data);
   for (z=0; z<sz; z++) {
-    hst = (double *)(nhst->data) + 0 + 9*z;
+    if (nrrdHasNonExist(nmat[z])) {
+      /* we've already zero-ed out this row in the HST nrrd */
+      continue;
+    }
+    hst = (double *)(nhst->data) + (1 == order ? 9 : 27)*z;
     ri = 0;
     for (A=0; A<ninLen; A++) {
       for (B=0; B<ninLen; B++) {
 	if (A == B) continue;
 	pxfr = (double *)(npxfr->data) + 0 + 5*(z + sz*(A + ninLen*B));
-	gA = grad + 0 + 3*A;
-	gB = grad + 0 + 3*B;
-	ELL_3V_SET(mat1 + 3*ri,
-		   gB[0] - pxfr[SCALE]*gA[0],
-		   gB[1] - pxfr[SCALE]*gA[1],
-		   gB[2] - pxfr[SCALE]*gA[2]);
 	vec[ri] = pxfr[SHEAR];
 	ri += 1;
       }
     }
-    ell_Nm_pseudo_inv(ninv, nmat1);
-    ell_Nm_mul(nans, ninv, nvec);
+    if (ell_Nm_mul(nans, ninv[z], nvec)) {
+      sprintf(err, "%s: trouble estimating model (slice %d): Hx, Hy, Hz",
+	      me, z);
+      biffMove(TEN, err, ELL); airMopError(mop); return 1;
+    }
     ans = (double *)(nans->data);
-    hst[0] = ans[0];
-    hst[1] = ans[1];
-    hst[2] = ans[2];
+    if (1 == order) {
+      ELL_3V_COPY(hst + 0*3, ans);
+    } else {
+      ELL_9V_COPY(hst + 0*9, ans);
+    }
   }
 
-  /* ------ find Tx, Ty, Tz per slice */
+  /* ------ find Sx, Sy, Sz per slice */
   for (z=0; z<sz; z++) {
-    hst = (double *)(nhst->data) + 0 + 9*z;
+    if (nrrdHasNonExist(nmat[z])) {
+      /* we've already zero-ed out this row in the HST nrrd */
+      continue;
+    }
+    hst = (double *)(nhst->data) + (1 == order ? 9 : 27)*z;
     ri = 0;
     for (A=0; A<ninLen; A++) {
       for (B=0; B<ninLen; B++) {
 	if (A == B) continue;
 	pxfr = (double *)(npxfr->data) + 0 + 5*(z + sz*(A + ninLen*B));
-	gA = grad + 0 + 3*A;
-	gB = grad + 0 + 3*B;
-	ELL_3V_SET(mat1 + 3*ri,
-		   gB[0] - pxfr[SCALE]*gA[0],
-		   gB[1] - pxfr[SCALE]*gA[1],
-		   gB[2] - pxfr[SCALE]*gA[2]);
+	vec[ri] = pxfr[SCALE] - 1;
+	ri += 1;
+      }
+    }
+    if (ell_Nm_mul(nans, ninv[z], nvec)) {
+      sprintf(err, "%s: trouble estimating model (slice %d): Sx, Sy, Sz",
+	      me, z);
+      biffMove(TEN, err, ELL); airMopError(mop); return 1;
+    }
+    ans = (double *)(nans->data);
+    if (1 == order) {
+      ELL_3V_COPY(hst + 1*3, ans);
+    } else {
+      ELL_9V_COPY(hst + 1*9, ans);
+    }
+  }
+
+  /* ------ find Tx, Ty, Tz per slice */
+  for (z=0; z<sz; z++) {
+    if (nrrdHasNonExist(nmat[z])) {
+      /* we've already zero-ed out this row in the HST nrrd */
+      continue;
+    }
+    hst = (double *)(nhst->data) + (1 == order ? 9 : 27)*z;
+    ri = 0;
+    for (A=0; A<ninLen; A++) {
+      for (B=0; B<ninLen; B++) {
+	if (A == B) continue;
+	pxfr = (double *)(npxfr->data) + 0 + 5*(z + sz*(A + ninLen*B));
 	vec[ri] = pxfr[TRAN];
 	ri += 1;
       }
     }
-    ell_Nm_pseudo_inv(ninv, nmat1);
-    ell_Nm_mul(nans, ninv, nvec);
+    if (ell_Nm_mul(nans, ninv[z], nvec)) {
+      sprintf(err, "%s: trouble estimating model (slice %d): Tx, Ty, Tz",
+	      me, z);
+      biffMove(TEN, err, ELL); airMopError(mop); return 1;
+    }
     ans = (double *)(nans->data);
-    hst[6] = ans[0];
-    hst[7] = ans[1];
-    hst[8] = ans[2];
+    if (1 == order) {
+      ELL_3V_COPY(hst + 2*3, ans);
+    } else {
+      ELL_9V_COPY(hst + 2*9, ans);
+    }
   }
 
   airMopOkay(mop);
@@ -669,7 +771,9 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
   airMopAdd(mop, two, airFree, airMopAlways);
   /* initial ordering: messiness, slice index */
   for (zi=0; zi<sz; zi++) {
-    two[0 + 2*zi] = mess[zi];
+    two[0 + 2*zi] = (AIR_EXISTS(mess[zi])
+		     ? mess[zi]
+		     : 666);  /* don't use empty slices */
     two[1 + 2*zi] = zi;
   }
   /* sort into ascending messiness */
@@ -692,7 +796,8 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
     fprintf(stderr, " for fitting\n");
   }
 
-  /* perform fitting for each column in hst */
+  /* perform fitting for each column in hst (regardless of 
+     whether we're using a 1st or 2nd order model */
   hst = (double*)(nhst->data);
   sh = nhst->axis[0].size;
   for (hi=0; hi<sh; hi++) {
@@ -723,8 +828,12 @@ int
 _tenEpiRegGetHST(double *hhP, double *ssP, double *ttP,
 		 int reference, int ni, int zi,
 		 Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad) {
-  double *xfr, *hst, *grad;
+  double *xfr, *hst, *_grad, grad[9]; /* big enough for 2nd order */
   int sz, ninLen;
+
+  int order;
+  
+  order = 1;
 
   /* these could also have been passed to us, but we can also discover them */
   sz = npxfr->axis[1].size;
@@ -733,11 +842,25 @@ _tenEpiRegGetHST(double *hhP, double *ssP, double *ttP,
   if (-1 == reference) {
     /* we use the estimated H,S,T vectors to determine distortion
        as a function of gradient direction, and then invert this */
-    hst = (double*)(nhst->data) + 0 + 9*zi;
-    grad = (double*)(ngrad->data) + 0 + 3*ni;
-    *hhP = ELL_3V_DOT(grad, hst + 0*3);
-    *ssP = 1 + ELL_3V_DOT(grad, hst + 1*3);
-    *ttP = ELL_3V_DOT(grad, hst + 2*3);
+    _grad = (double*)(ngrad->data) + 0 + 3*ni;
+    if (1 == order) {
+      hst = (double*)(nhst->data) + 0 + 9*zi;
+      *hhP = ELL_3V_DOT(_grad, hst + 0*3);
+      *ssP = 1 + ELL_3V_DOT(_grad, hst + 1*3);
+      *ttP = ELL_3V_DOT(_grad, hst + 2*3);
+    } else {
+      hst = (double*)(nhst->data) + 0 + 27*zi;
+      ELL_9V_SET(grad, _grad[0], _grad[1], _grad[2],
+		 _grad[0], _grad[1], _grad[2],
+		 _grad[0], _grad[1], _grad[2]);
+		 /*
+		 _grad[0]*_grad[0], _grad[1]*_grad[1], _grad[2]*_grad[2],
+		 _grad[0]*_grad[1], _grad[0]*_grad[2], _grad[1]*_grad[2]);
+		 */
+      *hhP = ELL_9V_DOT(grad, hst + 0*9);
+      *ssP = 1 + ELL_9V_DOT(grad, hst + 1*9);
+      *ttP = ELL_9V_DOT(grad, hst + 2*9);
+    }
   } else {
     /* we register against a specific DWI */
     xfr = (double*)(npxfr->data) + 0 + 5*(zi + sz*(reference + ninLen*ni));

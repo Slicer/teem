@@ -139,7 +139,7 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   if (rret) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble doing epireg \"%s\":\n%s\n", me, buff, err);
+    fprintf(stderr, "%s: trouble doing epireg:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
 
