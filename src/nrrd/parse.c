@@ -121,7 +121,7 @@ _nrrdReadNrrdParse_dimension(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 
 #define _CHECK_GOT_ALL_VALUES \
   if (nrrd->dim != ret) { \
-    sprintf(err, "%s: could parse only %d (not %d) values",  \
+    sprintf(err, "%s: parsed %d values, but dimension is %d",  \
 	    me, ret, nrrd->dim); \
     biffMaybeAdd(NRRD, err, useBiff); return 1; \
   }
