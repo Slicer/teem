@@ -22,7 +22,7 @@
 #include "privateUnrrdu.h"
 
 /* bad bad bad Gordon */
-extern int _nrrdOneLine(int *lenP, NrrdIoState *io, FILE *file);
+extern int _nrrdOneLine(int *lenP, NrrdIoState *nio, FILE *file);
 
 #define INFO "Print header of one or more nrrd files"
 char *_unrrdu_headInfoL = 
@@ -33,7 +33,7 @@ char *_unrrdu_headInfoL =
  "settings, as well as be annoying.");
 
 int
-unrrdu_headDoit(char *me, NrrdIoState *io, char *inS, FILE *fout) {
+unrrdu_headDoit(char *me, NrrdIoState *nio, char *inS, FILE *fout) {
   char err[AIR_STRLEN_MED];
   airArray *mop;
   int len;
@@ -47,7 +47,7 @@ unrrdu_headDoit(char *me, NrrdIoState *io, char *inS, FILE *fout) {
   }
   airMopAdd(mop, fin, (airMopper)airFclose, airMopAlways);
 
-  if (_nrrdOneLine(&len, io, fin)) {
+  if (_nrrdOneLine(&len, nio, fin)) {
     sprintf(err, "%s: error getting first line of file \"%s\"", me, inS);
     biffAdd(me, err); airMopError(mop); return 1;
   }
@@ -55,14 +55,14 @@ unrrdu_headDoit(char *me, NrrdIoState *io, char *inS, FILE *fout) {
     sprintf(err, "%s: immediately hit EOF\n", me);
     biffAdd(me, err); airMopError(mop); return 1;
   }
-  if (!( nrrdFormatNRRD->contentStartsLike(io) )) {
+  if (!( nrrdFormatNRRD->contentStartsLike(nio) )) {
     sprintf(err, "%s: first line (\"%s\") isn't a nrrd magic\n", 
-            me, io->line);
+            me, nio->line);
     biffAdd(me, err); airMopError(mop); return 1;
   }
   while (len > 1) {
-    fprintf(fout, "%s\n", io->line);
-    _nrrdOneLine(&len, io, fin);
+    fprintf(fout, "%s\n", nio->line);
+    _nrrdOneLine(&len, nio, fin);
   };
   
   /* experience has shown that on at least windows and darwin, the writing
@@ -83,7 +83,7 @@ int
 unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, **inS;
-  NrrdIoState *io;
+  NrrdIoState *nio;
   airArray *mop;
   int pret, ni, ninLen;
 #ifdef _WIN32
@@ -99,14 +99,14 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  io = nrrdIoStateNew();
-  airMopAdd(mop, io, (airMopper)nrrdIoStateNix, airMopAlways);
+  nio = nrrdIoStateNew();
+  airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
 
   for (ni=0; ni<ninLen; ni++) {
     if (ninLen > 1) {
       fprintf(stdout, "==> %s <==\n", inS[ni]);
     }
-    if (unrrdu_headDoit(me, io, inS[ni], stdout)) {
+    if (unrrdu_headDoit(me, nio, inS[ni], stdout)) {
       airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble reading from \"%s\":\n%s",
               me, inS[ni], err);
