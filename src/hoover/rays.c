@@ -151,14 +151,24 @@ _hoovThreadBody(void *_arg) {
 			    directions towards start of ray */
 
   nrrdBigInt tmptmp;
+  int iii;
+
+#define PAUSE for (iii=0; iii<10; iii++) printf("\n")
 
   arg = (_hoovThreadArg *)_arg;
+  PAUSE;
   tmptmp = (nrrdBigInt)(arg->ctx->threadBegin);
+  PAUSE;
   tmptmp += (nrrdBigInt)(&threadInfo);
+  PAUSE;
   tmptmp += (nrrdBigInt)(arg->renderInfo);
+  PAUSE;
   tmptmp += (nrrdBigInt)(arg->ctx->userInfo);
+  PAUSE;
   tmptmp += (nrrdBigInt)(arg->whichThread);
+  PAUSE;
   printf("%d\n", (int)tmptmp);
+  PAUSE;
   if ( (ret = (arg->ctx->threadBegin)(&threadInfo, 
 				      arg->renderInfo, 
 				      arg->ctx->userInfo,
@@ -167,6 +177,7 @@ _hoovThreadBody(void *_arg) {
     arg->whichErr = hoovErrThreadBegin;
     return arg;
   }
+  PAUSE;
   lx = arg->ec->volHLen[0];
   ly = arg->ec->volHLen[1];
   lz = arg->ec->volHLen[2];
