@@ -439,179 +439,6 @@ nrrdElementNumber (const Nrrd *nrrd) {
 }
 
 /*
-******** nrrdFitsInFormat()
-**
-** Indicates if the given nrrd can be saved in the given format:
-** returns AIR_TRUE if it could fit, AIR_FALSE otherwise.  Mostly.
-** nrrdFormatPNM covers PPM and PGM, so there is some slop here
-** stating whether or not a nrrd would fit.  To help with this,
-** instead of returning AIR_TRUE, we return 2 if given nrrd would fit
-** in a PGM image, and 3 if it would fit in a PPM image.
-**
-** Recently added encoding as a variable that determines if it fits
-** in this format....
-*/
-int
-nrrdFitsInFormat (const Nrrd *nrrd, int encoding, int format, int useBiff) {
-  char me[]="nrrdFitsInFormat", err[AIR_STRLEN_MED];
-  int ret=AIR_FALSE;
-
-  if (!(nrrd)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffMaybeAdd(NRRD, err, useBiff); 
-    return AIR_FALSE;
-  }
-  if (airEnumValCheck(nrrdEncoding, encoding)) {
-    sprintf(err, "%s: encoding %d invalid", me, encoding);
-    biffMaybeAdd(NRRD, err, useBiff); 
-    return AIR_FALSE;
-  }
-  if (airEnumValCheck(nrrdFormat, format)) {
-    sprintf(err, "%s: format %d invalid", me, format);
-    biffMaybeAdd(NRRD, err, useBiff); 
-    return AIR_FALSE;
-  }
-  switch (format) {
-  case nrrdFormatNRRD:
-    /* everything fits in a nrrd */
-    ret = AIR_TRUE;
-    break;
-  case nrrdFormatPNM:
-    if (nrrdTypeUChar != nrrd->type) {
-      sprintf(err, "%s: type must be %s (not %s)", me,
-	      airEnumStr(nrrdType, nrrdTypeUChar),
-	      airEnumStr(nrrdType, nrrd->type));
-      biffMaybeAdd(NRRD, err, useBiff); 
-      return AIR_FALSE;
-    }
-    if (!( nrrdEncodingRaw == encoding || nrrdEncodingAscii == encoding)) {
-      sprintf(err, "%s: encoding can only be %s or %s", me,
-	      airEnumStr(nrrdEncoding, nrrdEncodingRaw),
-	      airEnumStr(nrrdEncoding, nrrdEncodingAscii));
-      biffMaybeAdd(NRRD, err, useBiff); 
-      return AIR_FALSE;
-    }
-    /* else */
-    if (2 == nrrd->dim) {
-      /* its a gray-scale image */
-      ret = 2;
-    } else if (3 == nrrd->dim) {
-      if (1 == nrrd->axis[0].size) {
-	/* its a faux-3D image, really grayscale */
-	ret = 2;
-      } else if (3 == nrrd->axis[0].size) {
-	/* its a real color image */
-	ret = 3;
-      } else {
-	/* else its no good */
-	sprintf(err, "%s: dim is 3, but 1st axis size is %d, not 1 or 3",
-		me, nrrd->axis[0].size);
-	biffMaybeAdd(NRRD, err, useBiff); 
-	return AIR_FALSE;
-      }
-    } else {
-      sprintf(err, "%s: dimension is %d, not 2 or 3", me, nrrd->dim);
-      biffMaybeAdd(NRRD, err, useBiff); 
-      return AIR_FALSE;
-    }
-    break;
-  case nrrdFormatPNG:
-    if (!nrrdFormatIsAvailable[nrrdFormatPNG]) {
-      sprintf(err, "%s: %s format not available in this teem build", me,
-	      airEnumStr(nrrdFormat, nrrdFormatPNG));
-      biffMaybeAdd(NRRD, err, useBiff); 
-      return AIR_FALSE;
-    }
-    if (!( nrrdTypeUChar == nrrd->type || nrrdTypeUShort == nrrd->type )) {
-      sprintf(err, "%s: type must be %s or %s (not %s)", me,
-	      airEnumStr(nrrdType, nrrdTypeUChar),
-	      airEnumStr(nrrdType, nrrdTypeUShort),
-	      airEnumStr(nrrdType, nrrd->type));
-      biffMaybeAdd(NRRD, err, useBiff); 
-      return AIR_FALSE;
-    }
-    /* encoding ignored- always gzip */
-    /* else */
-    if (2 == nrrd->dim) {
-      /* its a gray-scale image */
-      ret = AIR_TRUE;
-    } else if (3 == nrrd->dim) {
-      if (!( 1 == nrrd->axis[0].size
-	     || 2 == nrrd->axis[0].size
-	     || 3 == nrrd->axis[0].size
-	     || 4 == nrrd->axis[0].size )) {
-	sprintf(err, "%s: 1st axis size is %d, not 1, 2, 3, or 4",
-		me, nrrd->axis[0].size);
-	biffMaybeAdd(NRRD, err, useBiff); 
-	return AIR_FALSE;
-      }
-      ret = AIR_TRUE;
-    } else {
-      sprintf(err, "%s: dimension is %d, not 2 or 3", me, nrrd->dim);
-      biffMaybeAdd(NRRD, err, useBiff); 
-      return AIR_FALSE;
-    }
-    break;
-  case nrrdFormatVTK:
-    if (!nrrdFormatIsAvailable[nrrdFormatVTK]) {
-      sprintf(err, "%s: %s format not available in this teem build", me,
-	      airEnumStr(nrrdFormat, nrrdFormatVTK));
-      biffMaybeAdd(NRRD, err, useBiff); 
-      return AIR_FALSE;
-    }
-    if (!( nrrdEncodingRaw == encoding || nrrdEncodingAscii == encoding)) {
-      sprintf(err, "%s: encoding can only be %s or %s", me,
-	      airEnumStr(nrrdEncoding, nrrdEncodingRaw),
-	      airEnumStr(nrrdEncoding, nrrdEncodingAscii));
-      biffMaybeAdd(NRRD, err, useBiff); 
-      return AIR_FALSE;
-    }
-    if (!( nrrdTypeUChar == nrrd->type
-	   || nrrdTypeShort == nrrd->type
-	   || nrrdTypeInt == nrrd->type
-	   || nrrdTypeFloat == nrrd->type
-	   || nrrdTypeDouble == nrrd->type )) {
-      sprintf(err, "%s: type must be %s, %s, %s, %s, or %s (not %s)", me,
-	      airEnumStr(nrrdType, nrrdTypeUChar),
-	      airEnumStr(nrrdType, nrrdTypeShort),
-	      airEnumStr(nrrdType, nrrdTypeInt),
-	      airEnumStr(nrrdType, nrrdTypeFloat),
-	      airEnumStr(nrrdType, nrrdTypeDouble),
-	      airEnumStr(nrrdType, nrrd->type));
-      biffMaybeAdd(NRRD, err, useBiff); 
-      return AIR_FALSE;
-    }
-    if (!( 3 == nrrd->dim
-	   || (4 == nrrd->dim && 3 == nrrd->axis[0].size)
-	   || (4 == nrrd->dim && 9 == nrrd->axis[0].size) )) {
-      sprintf(err, "%s: nrrd didn't look like a volume of scalars, "
-	      "vectors, or tensors", me);
-      biffMaybeAdd(NRRD, err, useBiff); 
-      return AIR_FALSE;
-    }
-    ret = AIR_TRUE;
-    break;
-  case nrrdFormatTable:
-    /* encoding ignored- always ascii */
-    if (!(1  == nrrd->dim || 2 == nrrd->dim)) {
-      sprintf(err, "%s: dimension is %d, not 1 or 2", me, nrrd->dim);
-      biffMaybeAdd(NRRD, err, useBiff); 
-      return AIR_FALSE;
-    }
-    if (nrrdTypeBlock == nrrd->type) {
-      sprintf(err, "%s: can't save blocks to a table", me);
-      biffMaybeAdd(NRRD, err, useBiff); 
-      return AIR_FALSE;
-    }
-    /* any non-block type is good for writing to a table, but it will
-       always be read back in as floats */
-    ret = AIR_TRUE;
-    break;
-  }
-  return ret; /* ret is never AIR_FALSE; its different flavors of non-zero */
-}
-
-/*
 ******** nrrdHasNonExistSet()
 **
 ** This function will always (assuming type is valid) set the value of
@@ -665,7 +492,7 @@ _nrrdCheckEnums (void) {
   char me[]="_nrrdCheckEnums", err[AIR_STRLEN_MED],
     which[AIR_STRLEN_SMALL];
 
-  if (nrrdFormatLast-1 != NRRD_FORMAT_MAX) {
+  if (nrrdFormatTypeLast-1 != NRRD_FORMAT_TYPE_MAX) {
     strcpy(which, "nrrdFormat"); goto err;
   }
   if (nrrdBoundaryLast-1 != NRRD_BOUNDARY_MAX) {
@@ -677,8 +504,8 @@ _nrrdCheckEnums (void) {
   if (nrrdTypeLast-1 != NRRD_TYPE_MAX) {
     strcpy(which, "nrrdType"); goto err;
   }
-  if (nrrdEncodingLast-1 != NRRD_ENCODING_MAX) {
-    strcpy(which, "nrrdEncoding"); goto err;
+  if (nrrdEncodingTypeLast-1 != NRRD_ENCODING_TYPE_MAX) {
+    strcpy(which, "nrrdEncodingType"); goto err;
   }
   if (nrrdMeasureLast-1 != NRRD_MEASURE_MAX) {
     strcpy(which, "nrrdMeasure"); goto err;
@@ -745,10 +572,8 @@ nrrdSanity (void) {
     biffAdd(NRRD, err); return 0;
   }
 
-  if (airEnumValCheck(nrrdEncoding, nrrdDefWriteEncoding)) {
-    sprintf(err, "%s: nrrdDefWriteEncoding (%d) not in valid range [%d,%d]",
-	    me, nrrdDefWriteEncoding,
-	    nrrdEncodingUnknown+1, nrrdEncodingLast-1);
+  if (!nrrdDefWriteEncoding) {
+    sprintf(err, "%s: nrrdDefWriteEncoding is NULL", me);
     biffAdd(NRRD, err); return 0;
   }
   if (airEnumValCheck(nrrdBoundary, nrrdDefRsmpBoundary)) {

@@ -40,12 +40,11 @@ char *_unrrdu_dataInfoL =
 int
 unrrdu_dataMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *err, *inS=NULL, *outS="-";
+  char *err, *inS=NULL;
   Nrrd *nin;
-  NrrdIO *io;
+  NrrdIO *nio;
   airArray *mop;
   int car, pret;
-  FILE *fin, *fout, *dataFile;
 
   mop = airMopNew();
   hestOptAdd(&opt, NULL, "nin", airTypeString, 1, 1, &inS, NULL,
@@ -56,47 +55,27 @@ unrrdu_dataMain(int argc, char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  io = nrrdIONew();
-  airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
-
-  if (!( fin = airFopen(inS, stdin, "rb") )) {
-    fprintf(stderr, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", 
-	    me, inS, strerror(errno));
-    airMopError(mop); return 1;
-  }
-  nrrdDirBaseSet(io, inS);
-  if (!( fout = airFopen(outS, stdout, "wb") )) {
-    fprintf(stderr, "%s: couldn't fopen(\"%s\",\"wb\"): %s\n", 
-	    me, inS, strerror(errno));
-    airMopError(mop); return 1;
-  }
-  airMopAdd(mop, fin, (airMopper)airFclose, airMopAlways);
-  airMopAdd(mop, fout, (airMopper)airFclose, airMopAlways);
+  nio = nrrdIONew();
+  airMopAdd(mop, nio, (airMopper)nrrdIONix, airMopAlways);
+  nio->skipData = AIR_TRUE;
+  nio->keepNrrdDataFileOpen = AIR_TRUE;
   nin = nrrdNew();
   airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
 
-  io->skipData = AIR_TRUE;
-  io->keepSeperateDataFileOpen = AIR_TRUE;
-  if (nrrdRead(nin, fin, io)) {
+  if (nrrdLoad(nin, inS, nio)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error reading header:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
-  if (!( nrrdMagicOldNRRD == io->magic || nrrdMagicNRRD0001 == io->magic )) {
+  if (!( nrrdFormatNRRD == nio->format )) {
     fprintf(stderr, "%s: can only print data of NRRD format files\n", me);
     airMopError(mop); return 1;
   }
-  if (io->seperateHeader) {
-    dataFile = io->dataFile;
-    airMopAdd(mop, dataFile, (airMopper)airFclose, airMopAlways);
-  } else {
-    dataFile = fin;
-  }
-  car = fgetc(dataFile);
+  car = fgetc(nio->dataFile);
   while (EOF != car) {
-    fputc(car, fout);
-    car = fgetc(dataFile);
+    fputc(car, stdout);
+    car = fgetc(nio->dataFile);
   }
   
   airMopOkay(mop);

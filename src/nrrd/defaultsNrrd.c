@@ -34,9 +34,8 @@
 ** explicitly.
 */
 
-int nrrdDefWriteEncoding = nrrdEncodingRaw;
-int nrrdDefWriteSeperateHeader = AIR_FALSE;
-int nrrdDefWriteBareTable = AIR_TRUE;
+const NrrdEncoding *nrrdDefWriteEncoding = &_nrrdEncodingRaw;
+int nrrdDefWriteBareText = AIR_TRUE;
 int nrrdDefWriteCharsPerLine = 75;
 int nrrdDefWriteValsPerLine = 8;
 int nrrdDefRsmpBoundary = nrrdBoundaryBleed;
@@ -66,7 +65,7 @@ int nrrdStateDisallowIntegerNonExist = AIR_TRUE;
 int nrrdStateGrayscaleImage3D = AIR_FALSE;
 
 /* should the acceptance (or not) of malformed NRRD header fields 
-   embedded in PNM or table comments be controlled here? */
+   embedded in PNM or text comments be controlled here? */
 
 /* Are there other assumptions currently built into nrrd which could
    stand to be user-controllable? */
@@ -80,9 +79,9 @@ nrrdDefGetenv(void) {
       && (valI = airEnumVal(nrrdCenter, envS))) {
     nrrdDefCenter = valI;
   }
-  if ((envS = getenv("NRRD_DEF_WRITE_BARE_TABLE"))
+  if ((envS = getenv("NRRD_DEF_WRITE_BARE_TEXT"))
       && (valI = airEnumVal(airBool, envS))) {
-    nrrdDefWriteBareTable = valI;
+    nrrdDefWriteBareText = valI;
   }
   return;
 }

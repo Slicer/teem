@@ -50,86 +50,6 @@ extern "C" {
 #define NRRD nrrdBiffKey
 
 /*
-******** NrrdIO struct
-**
-** Everything transient relating to how the nrrd is read and written.
-** Once the nrrd has been read or written, this information is moot.
-*/
-typedef struct {
-  char *dir,                /* allows us to remember the directory
-			       from whence this nrrd was "load"ed, or
-			       to whence this nrrd is "save"ed, so as
-			       to facilitate games with data files
-			       relative to header files */
-    *base,                  /* when "save"ing a nrrd into seperate
-			       header and data, the name of the header
-			       file (e.g. "output.nhdr"); this is
-			       massaged to produce a header-relative
-			       data filename.  This filename includes
-			       the extension; "base" just signifies
-			       "not full path" */
-    *dataFN,                /* for "unu make -h" only: the exact name
-			       of the data file.  In fact, we use the
-			       non-NULL-ity of this as the flag indicating
-			       that we're doing the unu make -h game */
-    *line;                  /* buffer for saving one line from file */
-  
-  int lineLen,              /* allocated size of line, including the
-			       last character for \0 */
-    pos;                    /* line[pos] is beginning of stuff which
-			       still has yet to be parsed */
-
-  FILE *dataFile;           /* if non-NULL, where the data is to be
-			       read from or written to.  If NULL, data
-			       will be read from current file */
-
-  int magic,                /* on input, magic of file read */
-    format,                 /* which format (from nrrdFormat) */
-    encoding,               /* which encoding (from nrrdEncoding) */
-    endian,                 /* endian-ness of the data in file, for
-			       those encoding/type combinations for
-			       which it matters (from nrrdEndian) */
-    lineSkip,               /* if dataFile non-NULL, the number of
-			       lines in dataFile that should be
-			       skipped over (so as to bypass another
-			       form of ASCII header preceeding raw
-			       data) */
-    byteSkip,               /* exactly like lineSkip, but bytes
-			       instead of lines.  First the lines are
-			       skipped, then the bytes */
-    seperateHeader,         /* nrrd is split into distinct header and
-			       data (in either reading or writing) */
-    bareTable,              /* when writing a table, is there any
-			       effort made to record the nrrd struct
-			       info in the text file */
-    charsPerLine,           /* when writing ASCII data in which we
-			       intend only to write a huge long list
-			       of numbers whose text formatting
-			       implies nothing, then how many
-			       characters do we limit ourselves to per
-			       line */
-    valsPerLine,            /* when writing ASCII data in which we DO
-			       intend to sigify (or at least hint at)
-			       something with the formatting, then
-			       what is the max number of values to
-			       write on a line */
-    skipData,               /* if non-zero, on input, we don't read
-			       data, instead setting nrrd->data to
-			       NULL.  This results in a broken Nrrd,
-			       so be careful. */
-    keepSeperateDataFileOpen, /* this hack for the sake of unu data */
-    zlibLevel,              /* zlib compression level (0-9, -1 for
-			       default[6], 0 for no compression). */
-    zlibStrategy,           /* zlib compression strategy, can be one
-			       of the nrrdZlibStrategy enums, default is
-			       nrrdZlibStrategyDefault. */
-    bzip2BlockSize,         /* block size used for compression, 
-			       roughly equivalent to better but slower
-			       (1-9, -1 for default[9]). */
-    seen[NRRD_FIELD_MAX+1]; /* for error checking in header parsing */
-} NrrdIO;
-
-/*
 ******** NrrdAxis struct
 **
 ** all the information which can sensibly be associated with
@@ -241,7 +161,7 @@ typedef struct {
 typedef struct {
   /* terse string representation of kernel function, irrespective of
      the parameter vector */
-  char name[AIR_STRLEN_SMALL];           
+  char name[AIR_STRLEN_SMALL];
   
   /* number of parameters needed (# elements in parm[] used) */
   int numParm;  
@@ -334,11 +254,161 @@ typedef struct {
   double (*load)(const void*); /* how to get a value out of "data" */
 } NrrdIter;
 
+struct NrrdIO_t;
+struct NrrdEncoding_t;
+
+/*
+******** NrrdFormat
+**
+** All information and behavior relevent to one datafile format
+*/
+typedef struct {
+  char name[AIR_STRLEN_SMALL];    /* short identifying string */
+  int isImage,    /* this format is intended solely for "2D" images, which
+		     controls the invocation of _nrrdReshapeUpGrayscale()
+		     if nrrdStateGrayscaleImage3D */
+    readable,     /* we can read as well as write this format */
+    usesDIO;      /* this format can use Direct IO */
+
+  /* tests if this format is currently available in this build */
+  int (*available)(void);
+
+  /* (for writing) returns non-zero if a given filename could likely be
+     represented by this format */
+  int (*nameLooksLike)(const char *filename);
+
+  /* (for writing) returns non-zero if a given nrrd/encoding pair will fit
+     in this format */
+  int (*fitsInto)(const Nrrd *nrrd, const struct NrrdEncoding_t *encoding, 
+		   int useBiff);
+
+  /* (for reading) returns non-zero if what has been read in so far 
+     is recognized as the beginning of this format */
+  int (*contentStartsLike)(struct NrrdIO_t *nio);
+
+  /* reader and writer */
+  int (*read)(FILE *file, Nrrd *nrrd, struct NrrdIO_t *nio);
+  int (*write)(FILE *file, const Nrrd *nrrd, struct NrrdIO_t *nio);
+} NrrdFormat;
+
+/*
+******** NrrdEncoding
+**
+** All information and behavior relevent to one way of encoding data
+**
+** The data readers are responsible for memory allocation.
+** This is necessitated by the memory restrictions of direct I/O
+*/
+typedef struct NrrdEncoding_t {
+  char name[AIR_STRLEN_SMALL],    /* short identifying string */
+    suffix[AIR_STRLEN_SMALL];     /* costumary filename suffix */
+  int endianMatters,
+    isCompression;
+  int (*available)(void);
+  int (*read)(Nrrd *nrrd, struct NrrdIO_t *nio);
+  int (*write)(const Nrrd *nrrd, struct NrrdIO_t *nio);
+} NrrdEncoding;
+
+/*
+******** NrrdIO struct
+**
+** Everything transient relating to how the nrrd is read and written.
+** Once the nrrd has been read or written, this information is moot,
+** except that after reading, it is a potentially useful record of what
+** it took to read in a nrrd, and it is the mechanism for hacks like
+** keepNrrdDataFileOpen
+*/
+typedef struct NrrdIO_t {
+  char *path,               /* allows us to remember the directory
+			       from whence this nrrd was "load"ed, or
+			       to whence this nrrd is "save"ed, MINUS the
+			       trailing "/", so as to facilitate games with
+			       header-relative data files */
+    *base,                  /* when "save"ing a nrrd into seperate
+			       header and data, the name of the header
+			       file (e.g. "output.nhdr") MINUS the ".nhdr".
+			       This is  massaged to produce a header-
+			       relative data filename.  */
+    *dataFN,                /* ON READ: no semantics 
+			       ON WRITE: name to be saved in the "data file"
+			       field of the nrrd, either verbatim from
+			       "unu make -h", or, internally, created based
+			       on detached header path and name */
+    *line;                  /* buffer for saving one line from file */
+  
+  int lineLen,              /* allocated size of line, including the
+			       last character for \0 */
+    pos;                    /* line[pos] is beginning of stuff which
+			       still has yet to be parsed */
+
+  FILE *dataFile;           /* if non-NULL, where the data is to be
+			       read from or written to.  If NULL, data
+			       will be read from current file */
+
+  int endian,               /* endian-ness of the data in file, for
+			       those encoding/type combinations for
+			       which it matters (from nrrdEndian) */
+    lineSkip,               /* if dataFile non-NULL, the number of
+			       lines in dataFile that should be
+			       skipped over (so as to bypass another
+			       form of ASCII header preceeding raw
+			       data) */
+    byteSkip,               /* exactly like lineSkip, but bytes
+			       instead of lines.  First the lines are
+			       skipped, then the bytes */
+    detachedHeader,         /* ON READ+WRITE: nrrd is split into distinct
+			       header and data (for nrrd format only) */
+    bareText,               /* when writing a plain text file, is there any
+			       effort made to record the nrrd struct
+			       info in the text file */
+    charsPerLine,           /* when writing ASCII data in which we
+			       intend only to write a huge long list
+			       of numbers whose text formatting
+			       implies nothing, then how many
+			       characters do we limit ourselves to per
+			       line */
+    valsPerLine,            /* when writing ASCII data in which we DO
+			       intend to sigify (or at least hint at)
+			       something with the formatting, then
+			       what is the max number of values to
+			       write on a line */
+    skipData,               /* if non-zero (all formats):
+			       ON READ: don't allocate memory for, and don't
+			       read in, the data portion of the file (but we
+			       do verify that for nrrds, detached datafiles
+			       can be opened).  Note: Does NOT imply 
+			       keepNrrdDataFileOpen.  Warning: resulting
+			       nrrd struct will have "data" pointer NULL.
+			       ON WRITE: don't write data portion of file
+			       (for nrrds, don't even try to open detached
+			       datafiles).  Warning: can result in broken
+			       noncomformant files.
+			       (be careful with this) */
+    keepNrrdDataFileOpen,   /* ON READ: don't close nio->dataFile when
+			       you otherwise would, when reading the
+			       nrrd format Probably used in conjunction with
+			       skipData.  (currently for "unu data")
+			       ON WRITE: no semantics */
+    zlibLevel,              /* zlib compression level (0-9, -1 for
+			       default[6], 0 for no compression). */
+    zlibStrategy,           /* zlib compression strategy, can be one
+			       of the nrrdZlibStrategy enums, default is
+			       nrrdZlibStrategyDefault. */
+    bzip2BlockSize,         /* block size used for compression, 
+			       roughly equivalent to better but slower
+			       (1-9, -1 for default[9]). */
+    seen[NRRD_FIELD_MAX+1]; /* for error checking in header parsing */
+  /* format and encoding.  These are initialized to nrrdFormatUnknown
+     and nrrdEncodingUnknown, respectively. USE THESE VALUES for 
+     any kind of initialization or flagging; DO NOT USE NULL */
+  const NrrdFormat *format;
+  const NrrdEncoding *encoding;
+} NrrdIO;
+
 /******** defaults (nrrdDef..) and state (nrrdState..) */
 /* defaultsNrrd.c */
-extern nrrd_export int nrrdDefWriteEncoding;
-extern nrrd_export int nrrdDefWriteSeperateHeader;
-extern nrrd_export int nrrdDefWriteBareTable;
+extern nrrd_export const NrrdEncoding *nrrdDefWriteEncoding;
+extern nrrd_export int nrrdDefWriteBareText;
 extern nrrd_export int nrrdDefWriteCharsPerLine;
 extern nrrd_export int nrrdDefWriteValsPerLine;
 extern nrrd_export int nrrdDefRsmpBoundary;
@@ -367,11 +437,10 @@ extern void nrrdStateGetenv(void);
 /******** all the airEnums used through-out nrrd */
 /* (the actual C enums are in nrrdEnums.h) */
 /* enumsNrrd.c */
-extern nrrd_export airEnum *nrrdFormat;
+extern nrrd_export airEnum *nrrdFormatType;
 extern nrrd_export airEnum *nrrdBoundary;
-extern nrrd_export airEnum *nrrdMagic;
 extern nrrd_export airEnum *nrrdType;
-extern nrrd_export airEnum *nrrdEncoding;
+extern nrrd_export airEnum *nrrdEncodingType;
 extern nrrd_export airEnum *nrrdMeasure;
 extern nrrd_export airEnum *nrrdCenter;
 extern nrrd_export airEnum *nrrdAxisInfo;
@@ -382,11 +451,6 @@ extern nrrd_export airEnum *nrrdTernaryOp;
 
 /******** arrays of things (poor-man's functions/predicates) */
 /* arraysNrrd.c */
-extern nrrd_export int nrrdFormatIsAvailable[];
-extern nrrd_export int nrrdFormatIsImage[];
-extern nrrd_export int nrrdEncodingEndianMatters[];
-extern nrrd_export int nrrdEncodingIsCompression[];
-extern nrrd_export int nrrdEncodingIsAvailable[];
 extern nrrd_export char nrrdTypePrintfStr[][AIR_STRLEN_SMALL];
 extern nrrd_export int nrrdTypeSize[];
 extern nrrd_export double nrrdTypeMin[];
@@ -404,7 +468,7 @@ extern nrrd_export hestCB *nrrdHestIter;
 /******** pseudo-constructors, pseudo-destructors, and such */
 /* methodsNrrd.c */
 extern NrrdIO *nrrdIONew(void);
-extern void nrrdIOReset(NrrdIO *io);
+extern void nrrdIOInit(NrrdIO *io);
 extern NrrdIO *nrrdIONix(NrrdIO *io);
 extern NrrdResampleInfo *nrrdResampleInfoNew(void);
 extern NrrdResampleInfo *nrrdResampleInfoNix(NrrdResampleInfo *info);
@@ -434,7 +498,6 @@ extern int nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim,
 			  ... /* sx, sy, .., axis(dim-1) size */);
 extern int nrrdPPM(Nrrd *, int sx, int sy);
 extern int nrrdPGM(Nrrd *, int sx, int sy);
-extern int nrrdTable(Nrrd *table, int sx, int sy);
 
 /******** nrrd value iterator gadget */
 /* iter.c */
@@ -482,8 +545,6 @@ extern int nrrdElementSize(const Nrrd *nrrd);
 extern size_t nrrdElementNumber(const Nrrd *nrrd);
 extern int nrrdSanity(void);
 extern int nrrdSameSize(const Nrrd *n1, const Nrrd *n2, int useBiff);
-extern int nrrdFitsInFormat(const Nrrd *nrrd,
-			    int encoding, int format, int useBiff);
 
 /******** comments related */
 /* comment.c */
@@ -528,16 +589,33 @@ extern nrrd_export int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *,
 							  const void *);
 
 /******** getting information to and from files */
+/* formatXXX.c */
+extern const NrrdFormat *const nrrdFormatNRRD;
+extern const NrrdFormat *const nrrdFormatPNM;
+extern const NrrdFormat *const nrrdFormatPNG;
+extern const NrrdFormat *const nrrdFormatVTK;
+extern const NrrdFormat *const nrrdFormatText;
+extern const NrrdFormat *const nrrdFormatEPS;
+/* format.c */
+extern const NrrdFormat *const nrrdFormatUnknown;
+extern nrrd_export const NrrdFormat *
+  const nrrdFormatArray[NRRD_FORMAT_TYPE_MAX+1];
+/* encodingXXX.c */
+extern const NrrdEncoding *const nrrdEncodingRaw;
+extern const NrrdEncoding *const nrrdEncodingAscii;
+extern const NrrdEncoding *const nrrdEncodingHex;
+extern const NrrdEncoding *const nrrdEncodingGzip;
+extern const NrrdEncoding *const nrrdEncodingBzip2;
+/* encoding.c */
+extern const NrrdEncoding *const nrrdEncodingUnknown;
+extern nrrd_export const NrrdEncoding *
+  const nrrdEncodingArray[NRRD_ENCODING_TYPE_MAX+1];
 /* read.c */
-extern nrrd_export int (*nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *);
 extern int nrrdLineSkip(NrrdIO *io);
 extern int nrrdByteSkip(Nrrd *nrrd, NrrdIO *io);
 extern int nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIO *io);
 extern int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *io);
-extern void nrrdDirBaseSet(NrrdIO *io, const char *name);
 /* write.c */
-extern nrrd_export int (*nrrdWriteData[NRRD_ENCODING_MAX+1])(const Nrrd *,
-							     NrrdIO *);
 extern int nrrdSave(const char *filename, const Nrrd *nrrd, NrrdIO *io);
 extern int nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIO *io);
 

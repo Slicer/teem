@@ -29,12 +29,14 @@ extern "C" {
 
 #define NRRD_DIM_MAX 10            /* Maximum dimension which we can handle */
 
-#define NRRD_EXT_HEADER ".nhdr"
+#define NRRD_EXT_NRRD   ".nrrd"
+#define NRRD_EXT_NHDR   ".nhdr"
 #define NRRD_EXT_PGM    ".pgm"
 #define NRRD_EXT_PPM    ".ppm"
 #define NRRD_EXT_PNG    ".png"
 #define NRRD_EXT_VTK    ".vtk"
-#define NRRD_EXT_TABLE  ".txt"
+#define NRRD_EXT_TEXT   ".txt"
+#define NRRD_EXT_EPS    ".eps"
 
 #define NRRD_KERNEL_PARMS_NUM 8    /* max # arguments to a kernel-
 				      this is weird: it isn't the max

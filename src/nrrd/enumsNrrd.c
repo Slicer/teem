@@ -40,55 +40,59 @@
 /* ------------------------ nrrdFormat ------------------------- */
 
 char
-_nrrdFormatStr[NRRD_FORMAT_MAX+1][AIR_STRLEN_SMALL] = {
+_nrrdFormatTypeStr[NRRD_FORMAT_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_format)",
   "nrrd",
   "pnm",
   "png",
   "vtk",
-  "text"
+  "text",
+  "eps"
 };
 
 char
-_nrrdFormatDesc[NRRD_FORMAT_MAX+1][AIR_STRLEN_MED] = {
+_nrrdFormatTypeDesc[NRRD_FORMAT_TYPE_MAX+1][AIR_STRLEN_MED] = {
   "unknown_format",
   "native format for nearly raw raster data",
   "Portable aNy Map: includes PGM for grayscale and PPM for color",
   "Portable Network Graphics: lossless compression of 8- and 16-bit data",
   "Visualization ToolKit STRUCTURED_POINTS data",
-  "white-space-delimited ascii encoding of floats"
+  "white-space-delimited plain text encoding of 2-D float array",
+  "Encapsulated PostScript images"
 };
 
 char
-_nrrdFormatStrEqv[][AIR_STRLEN_SMALL] = {
+_nrrdFormatTypeStrEqv[][AIR_STRLEN_SMALL] = {
   "nrrd",
   "pnm",
   "png",
   "vtk",
   "table", "text", "txt",
+  "eps",
   ""
 };
 
 int
-_nrrdFormatValEqv[] = {
-  nrrdFormatNRRD,
-  nrrdFormatPNM,
-  nrrdFormatPNG,
-  nrrdFormatVTK,
-  nrrdFormatTable, nrrdFormatTable, nrrdFormatTable
+_nrrdFormatTypeValEqv[] = {
+  nrrdFormatTypeNRRD,
+  nrrdFormatTypePNM,
+  nrrdFormatTypePNG,
+  nrrdFormatTypeVTK,
+  nrrdFormatTypeText, nrrdFormatTypeText, nrrdFormatTypeText,
+  nrrdFormatTypeEPS
 };
 
 airEnum
-_nrrdFormat = {
+_nrrdFormatType = {
   "format",
-  NRRD_FORMAT_MAX,
-  _nrrdFormatStr,  NULL,
-  _nrrdFormatDesc,
-  _nrrdFormatStrEqv, _nrrdFormatValEqv,
+  NRRD_FORMAT_TYPE_MAX,
+  _nrrdFormatTypeStr,  NULL,
+  _nrrdFormatTypeDesc,
+  _nrrdFormatTypeStrEqv, _nrrdFormatTypeValEqv,
   AIR_FALSE
 };
 airEnum *
-nrrdFormat = &_nrrdFormat;
+nrrdFormatType = &_nrrdFormatType;
 
 /* ------------------------ nrrdBoundary ------------------------- */
 
@@ -121,48 +125,6 @@ _nrrdBoundary = {
 };
 airEnum *
 nrrdBoundary = &_nrrdBoundary;
-
-/* ------------------------ nrrdMagic ------------------------- */
-
-char
-_nrrdMagicStr[NRRD_MAGIC_MAX+1][AIR_STRLEN_SMALL] = {
-  "(unknown_magic)",
-  "NRRD00.01",
-  "NRRD0001",
-  "P2",
-  "P3",
-  "P5",
-  "P6",
-  "\211PNG",
-  "# vtk DataFile Version 1.0",
-  "# vtk DataFile Version 2.0",
-};
-
-char
-_nrrdMagicDesc[NRRD_MAGIC_MAX+1][AIR_STRLEN_MED] = {
-  "unknown magic",
-  "old style of NRRD magic",
-  "NRRD magic, version 1",
-  "ascii grayscale (PGM) image",
-  "ascii color (PPM) image",
-  "binary grayscale (PGM) image",
-  "binary color (PPM) image",
-  "Portable Network Graphics (PNG)",
-  "VTK magic, version 1.0",
-  "VTK magic, version 2.0"
-};
-
-airEnum
-_nrrdMagic = {
-  "magic",
-  NRRD_MAGIC_MAX+1,
-  _nrrdMagicStr, NULL,
-  _nrrdMagicDesc,
-  NULL, NULL,
-  AIR_TRUE
-};
-airEnum *
-nrrdMagic = &_nrrdMagic;
 
 /* ------------------------ nrrdType ------------------------- */
 
@@ -255,10 +217,10 @@ _nrrdType = {
 airEnum *
 nrrdType = &_nrrdType;
 
-/* ------------------------ nrrdEncoding ------------------------- */
+/* ------------------------ nrrdEncodingType ------------------------- */
 
 char
-_nrrdEncodingStr[NRRD_ENCODING_MAX+1][AIR_STRLEN_SMALL] = {
+_nrrdEncodingTypeStr[NRRD_ENCODING_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_encoding)",
   "raw",
   "ascii",
@@ -268,7 +230,7 @@ _nrrdEncodingStr[NRRD_ENCODING_MAX+1][AIR_STRLEN_SMALL] = {
 };
 
 char
-_nrrdEncodingDesc[NRRD_ENCODING_MAX+1][AIR_STRLEN_MED] = {
+_nrrdEncodingTypeDesc[NRRD_ENCODING_TYPE_MAX+1][AIR_STRLEN_MED] = {
   "unknown encoding",
   "file is byte-for-byte same as memory representation",
   "values written out in ASCII",
@@ -278,7 +240,7 @@ _nrrdEncodingDesc[NRRD_ENCODING_MAX+1][AIR_STRLEN_MED] = {
 };
 
 char
-_nrrdEncodingStrEqv[][AIR_STRLEN_SMALL] = {
+_nrrdEncodingTypeStrEqv[][AIR_STRLEN_SMALL] = {
   "(unknown_encoding)",
   "raw",
   "txt", "text", "ascii",
@@ -289,27 +251,27 @@ _nrrdEncodingStrEqv[][AIR_STRLEN_SMALL] = {
 };
 
 int
-_nrrdEncodingValEqv[] = {
-  nrrdEncodingUnknown,
-  nrrdEncodingRaw,
-  nrrdEncodingAscii, nrrdEncodingAscii, nrrdEncodingAscii,
-  nrrdEncodingHex,
-  nrrdEncodingGzip, nrrdEncodingGzip,
-  nrrdEncodingBzip2, nrrdEncodingBzip2,
-  nrrdEncodingLast
+_nrrdEncodingTypeValEqv[] = {
+  nrrdEncodingTypeUnknown,
+  nrrdEncodingTypeRaw,
+  nrrdEncodingTypeAscii, nrrdEncodingTypeAscii, nrrdEncodingTypeAscii,
+  nrrdEncodingTypeHex,
+  nrrdEncodingTypeGzip, nrrdEncodingTypeGzip,
+  nrrdEncodingTypeBzip2, nrrdEncodingTypeBzip2,
+  nrrdEncodingTypeLast
 };
 
 airEnum
-_nrrdEncoding = {
+_nrrdEncodingType = {
   "encoding",
-  NRRD_ENCODING_MAX,
-  _nrrdEncodingStr, NULL,
-  _nrrdEncodingDesc,
-  _nrrdEncodingStrEqv, _nrrdEncodingValEqv,
+  NRRD_ENCODING_TYPE_MAX,
+  _nrrdEncodingTypeStr, NULL,
+  _nrrdEncodingTypeDesc,
+  _nrrdEncodingTypeStrEqv, _nrrdEncodingTypeValEqv,
   AIR_FALSE
 };
 airEnum *
-nrrdEncoding = &_nrrdEncoding;
+nrrdEncodingType = &_nrrdEncodingType;
 
 /* ------------------------ nrrdMeasure ------------------------- */
 
@@ -544,8 +506,8 @@ _nrrdFieldDesc[NRRD_FIELD_MAX+1][AIR_STRLEN_MED] = {
   "list of sample centerings for each axis",
   "list of short descriptions for each axis",
   "list of units in which each axes' spacing is measured",
-  "known global minimum value in whole array",
-  "known global maximum value in whole array",
+  "supposed minimum array value",
+  "supposed maximum array value",
   "minimum array value prior to quantization",
   "maximum array value prior to quantization",
   "with detached headers, where is data to be found",
@@ -619,18 +581,6 @@ _nrrdField = {
 };
 airEnum *
 nrrdField = &_nrrdField;
-
-/* ------------------------ nrrdNonExist ------------------------- */
-
-/*
-char
-_nrrdNonExistStr[NRRD_NON_EXIST_MAX+1][AIR_STRLEN_SMALL] = {
-  "(unknown)",
-  "true",
-  "false"
-};
-*/
-
 
 /* ------------------------ nrrdUnaryOp ---------------------- */
 

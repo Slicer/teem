@@ -361,7 +361,7 @@ hestCB unrrduHestFileCB = {
 ******** unrrduHestEncodingCB
 ** 
 ** for parsing output encoding, including compression flags
-** enc[0]: which encoding, from nrrdEncoding* enum
+** enc[0]: which encoding, from nrrdEncodingType* enum
 ** enc[1]: for compressions: zlib "level" and bzip2 "blocksize"
 ** enc[2]: for zlib: strategy, from nrrdZlibStrategy* enum
 */
@@ -380,8 +380,8 @@ unrrduParseEncoding(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
   enc[1] = -1;
   enc[2] = nrrdZlibStrategyDefault;
 
-  enc[0] = airEnumVal(nrrdEncoding, _str);
-  if (nrrdEncodingUnknown != enc[0]) {
+  enc[0] = airEnumVal(nrrdEncodingType, _str);
+  if (nrrdEncodingTypeUnknown != enc[0]) {
     /* we're done; encoding was simple: "raw" or "gz" */
     return 0;
   }
@@ -390,20 +390,18 @@ unrrduParseEncoding(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
   airMopMem(mop, &str, airMopAlways);
   opt = strchr(str, ':');
   if (!opt) {
-    /* couldn't parse string as nrrdEncoding, but there wasn't a colon */
-    sprintf(err, "%s: didn't recognize \"%s\" as %s",
-	    me, str, nrrdEncoding->name);
+    /* couldn't parse string as nrrdEncodingType, but there wasn't a colon */
+    sprintf(err, "%s: didn't recognize \"%s\" as an encoding", me, str);
     airMopError(mop); return 1;
   } else {
     *opt = '\0';
     opt++;
-    enc[0] = airEnumVal(nrrdEncoding, str);
-    if (nrrdEncodingUnknown == enc[0]) {
-      sprintf(err, "%s: didn't recognize \"%s\" as %s",
-	      me, str, nrrdEncoding->name);
+    enc[0] = airEnumVal(nrrdEncodingType, str);
+    if (nrrdEncodingTypeUnknown == enc[0]) {
+      sprintf(err, "%s: didn't recognize \"%s\" as an encoding", me, str);
       airMopError(mop); return 1;
     }
-    if (!nrrdEncodingIsCompression[enc[0]]) {
+    if (!nrrdEncodingArray[enc[0]]->isCompression) {
       sprintf(err, "%s: only compression encodings have parameters", me);
       airMopError(mop); return 1;
     }

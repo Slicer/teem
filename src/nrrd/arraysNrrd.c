@@ -172,8 +172,8 @@ _nrrdFieldValidInImage[NRRD_FIELD_MAX+1] = {
   1, /* nrrdField_centers */
   1, /* nrrdField_labels */
   1, /* nrrdField_units */
-  1, /* nrrdField_min */
-  1, /* nrrdField_max */
+  0, /* nrrdField_min */
+  0, /* nrrdField_max */
   1, /* nrrdField_old_min */
   1, /* nrrdField_old_max */
   0, /* nrrdField_data_file */
@@ -216,19 +216,19 @@ _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1] = {
 };
 
 /*
-** _nrrdFieldValidInTable[]
+** _nrrdFieldValidInText[]
 ** 
-** these fields are valid embedded in table comments
+** these fields are valid embedded in plain text comments
 ** This does NOT include the fields who's values are constrained
-** the table format itself.
+** the plain text format itself.
 */
 int
-_nrrdFieldValidInTable[NRRD_FIELD_MAX+1] = {
+_nrrdFieldValidInText[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_unknown */
   1, /* nrrdField_comment */
   1, /* nrrdField_content */
   0, /* nrrdField_number */
-  0, /* nrrdField_type: decided AGAINST table holding general type 
+  0, /* nrrdField_type: decided AGAINST plain text holding general type 
 	(but I forget why ...) */
   0, /* nrrdField_block_size */
   1, /* nrrdField_dimension: but can only be 1 or 2 */
@@ -239,8 +239,8 @@ _nrrdFieldValidInTable[NRRD_FIELD_MAX+1] = {
   1, /* nrrdField_centers */
   1, /* nrrdField_labels */
   1, /* nrrdField_units */
-  1, /* nrrdField_min */
-  1, /* nrrdField_max */
+  0, /* nrrdField_min */
+  0, /* nrrdField_max */
   1, /* nrrdField_old_min */
   1, /* nrrdField_old_max */
   0, /* nrrdField_data_file */
@@ -253,137 +253,33 @@ _nrrdFieldValidInTable[NRRD_FIELD_MAX+1] = {
 /*
 ** _nrrdFieldRequired[]
 **
-** regardless of whether its a nrrd, PNM, or table, these things
+** regardless of whether its a nrrd, PNM, or plain text, these things
 ** need to be conveyed, either explicity or implicitly
 */
 int
 _nrrdFieldRequired[NRRD_FIELD_MAX+1] = {
   0, /* "Ernesto \"Che\" Guevara" */
   0, /* "#" */
-  0, /* "content" */
-  0, /* "number" */
-  1, /* "type" */
-  0, /* "block size" */
-  1, /* "dimension" */
-  1, /* "sizes" */
-  0, /* "spacings" */
-  0, /* "axis mins" */
-  0, /* "axis maxs" */
-  0, /* "centers" */
-  0, /* "labels" */
-  0, /* "units" */
-  0, /* "min" */
-  0, /* "max" */
-  0, /* "old min" */
-  0, /* "old max" */
-  0, /* "data file" */
-  0, /* "endian" */
-  1, /* "encoding" */
-  0, /* "line skip" */
-  0  /* "byte skip" */
+  0, /* nrrdField_content */
+  0, /* nrrdField_number */
+  1, /* nrrdField_type */
+  0, /* nrrdField_block size */
+  1, /* nrrdField_dimension */
+  1, /* nrrdField_sizes */
+  0, /* nrrdField_spacings */
+  0, /* nrrdField_axis mins */
+  0, /* nrrdField_axis maxs */
+  0, /* nrrdField_centers */
+  0, /* nrrdField_labels */
+  0, /* nrrdField_units */
+  0, /* nrrdField_min */
+  0, /* nrrdField_max */
+  0, /* nrrdField_old min */
+  0, /* nrrdField_old max */
+  0, /* nrrdField_data file */
+  0, /* nrrdField_endian */
+  1, /* nrrdField_encoding */
+  0, /* nrrdField_line skip */
+  0  /* nrrdField_byte skip */
 };
 
-/*
-******** nrrdFormatIsAvailable[]
-**
-** tells if a given format has been compiled in
-*/
-int
-nrrdFormatIsAvailable[NRRD_FORMAT_MAX+1] = {
-  0, /* 0: nrrdFormatUnknown */
-  1, /* 1: nrrdFormatNRRD */
-  1, /* 2: nrrdFormatPNM */
-#if TEEM_PNG
-  1, /* 3: nrrdFormatPNG */
-#else
-  0, /* 3: nrrdFormatPNG */
-#endif
-  1, /* 4: nrrdFormatVTK */
-  1  /* 5: nrrdFormatTable */
-};
-
-/*
-******** nrrdFormatIsImage[]
-**
-** tells if a given format is for images, which currently is
-** only used to control invocation of _nrrdReshapeUpGrayscale()
-** if nrrdStateGrayscaleImage3D
-*/
-int
-nrrdFormatIsImage[NRRD_FORMAT_MAX+1] = {
-  0, /* 0: nrrdFormatUnknown */
-  0, /* 1: nrrdFormatNRRD */
-  1, /* 2: nrrdFormatPNM */
-  1, /* 3: nrrdFormatPNG */
-  0, /* 4: nrrdFormatVTK */
-  0  /* 5: nrrdFormatTable */
-};
-
-/*
-******** nrrdEncodingEndianMatters[]
-** 
-** tells if given encoding exposes endianness of architecture
-*/
-int 
-nrrdEncodingEndianMatters[NRRD_ENCODING_MAX+1] = {
-  0,   /* unknown */
-  1,   /* raw */
-  0,   /* ascii */
-  1,   /* hex */
-  1,   /* gzip */
-  1,   /* bzip2 */
-};
-
-/*
-******** nrrdEncodingIsCompresion[]
-** 
-** tells if given encoding is compression, which changes the
-** semantics of "byte skip"
-*/
-int 
-nrrdEncodingIsCompression[NRRD_ENCODING_MAX+1] = {
-  0,   /* unknown */
-  0,   /* raw */
-  0,   /* ascii */
-  0,   /* hex */
-  1,   /* gzip */
-  1,   /* bzip2 */
-};
-
-/*
-******** nrrdEncodingIsAvailable[]
-** 
-** tells which encodings are supported for this build
-*/
-int 
-nrrdEncodingIsAvailable[NRRD_ENCODING_MAX+1] = {
-  0,   /* unknown */
-  1,   /* raw, always (required) */
-  1,   /* ascii, always (required) */
-  1,   /* hex, always (supplied by us) */
-#if TEEM_ZLIB
-  1,   /* gzip */
-#else
-  0,   /* gzip */
-#endif
-#if TEEM_BZIP2
-  1,   /* bzip2 */
-#else
-  0,   /* bzip2 */
-#endif
-};
-
-/*
-** _nrrdFormatUsesDIO[]
-**
-** whether or not try using direct I/O for a given format
-*/
-int
-_nrrdFormatUsesDIO[NRRD_FORMAT_MAX+1] = {
-  0,   /* nrrdFormatUnknown */
-  1,   /* nrrdFormatNRRD */
-  0,   /* nrrdFormatPNM */
-  0,   /* nrrdFormatPNG */
-  0,   /* nrrdFormatVTK */
-  0    /* nrrdFormatTable */
-};

@@ -73,7 +73,7 @@ baneGkms_hvolMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "Instead of allocating a floating point VGH volume and measuring "
 	     "V,G,H once, measure V,G,H multiple times on seperate passes "
 	     "(slower, but needs less memory)");
-  if (nrrdEncodingIsAvailable[nrrdEncodingGzip]) {
+  if (nrrdEncodingGzip->available()) {
     hestOptAdd(&opt, "gz", NULL, airTypeInt, 0, 0, &gz, NULL,
 	       "Use gzip compression for output histo-volume; "
 	       "much less disk space, slightly slower to read/write");

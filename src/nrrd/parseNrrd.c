@@ -65,12 +65,14 @@ int
 _nrrdReadNrrdParse_encoding (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_encoding", err[AIR_STRLEN_MED];
   char *info;
+  int etype;
 
   info = io->line + io->pos;
-  if (!(io->encoding = airEnumVal(nrrdEncoding, info))) {
+  if (!(etype = airEnumVal(nrrdEncodingType, info))) {
     sprintf(err, "%s: couldn't parse encoding \"%s\"", me, info);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
+  io->encoding = nrrdEncodingArray[etype];
   return 0;
 }
 
@@ -411,29 +413,22 @@ _nrrdReadNrrdParse_block_size (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   return 0;
 }
 
-/*
-** HEY: these two are severly useless with the advent of NrrdRange
-*/
 int
 _nrrdReadNrrdParse_min (Nrrd *nrrd, NrrdIO *io, int useBiff) {
-  /*
-  char me[]="_nrrdReadNrrdParse_min", err[AIR_STRLEN_MED];
-  char *info;
 
-  info = io->line + io->pos;
-  _PARSE_ONE_VAL(nrrd->min, "%lg", "double");
-  */
+  /* This field is no longer assumed to be anything meaningful,
+     because nrrd->min no longer exists with the advent of NrrdRange.
+     But, having the field is not an error, to not trip on older
+     NRRD00.01 and NRRD0001 files which (legitimately) usd it */
+
   return 0;
 }
+
 int
 _nrrdReadNrrdParse_max (Nrrd *nrrd, NrrdIO *io, int useBiff) {
-  /*
-  char me[]="_nrrdReadNrrdParse_max", err[AIR_STRLEN_MED];
-  char *info;
 
-  info = io->line + io->pos;
-  _PARSE_ONE_VAL(nrrd->max, "%lg", "double");
-  */
+  /* nrrd->max no longer exists, see above */
+
   return 0;
 }
 
@@ -468,43 +463,36 @@ _nrrdReadNrrdParse_old_max (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 }
 
 /*
-** strerror(errno): not thread-safe
-*/
+** opens seperate datafile and stores FILE* in nio->dataFile,
+** which otherwise will stay NULL
+**
+** Note lack of thread-safety: strerror(errno) */
 int
 _nrrdReadNrrdParse_data_file (Nrrd *nrrd, NrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_data_file", err[AIR_STRLEN_MED], *dataName;
+  char me[]="_nrrdReadNrrdParse_data_file", err[AIR_STRLEN_MED],
+    dataName[AIR_STRLEN_HUGE];
   char *info;
 
-  /* 17 Sept 2003: removed the check on io->skipData, because it meant
-     that "unu data" didn't work on detached header nrrds: we do want
-     to skip data (because reading the data is unu data's job, but that
-     doesn't mean that we can avoid opening the data file */
-  /* if (!io->skipData) { */
   info = io->line + io->pos;
-  if (!strncmp(info, _nrrdRelDirFlag, strlen(_nrrdRelDirFlag))) {
+  if (!strncmp(info, _nrrdRelativePathFlag, strlen(_nrrdRelativePathFlag))) {
     /* data file directory is relative to header directory */
-    if (!io->dir) {
-      sprintf(err, "%s: want header-relative data file, but don't know "
-	      "directory of header", me);
+    if (!io->path) {
+      sprintf(err, "%s: nrrd file refers to header-relative data file "
+	      "\"%s\", but don't know path of header", me, info);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
-    info += strlen(_nrrdRelDirFlag);
-    dataName = malloc(strlen(io->dir) + strlen(info) + 2);
-    sprintf(dataName, "%s/%s", io->dir, info);
+    info += strlen(_nrrdRelativePathFlag);
+    sprintf(dataName, "%s/%s", io->path, info);
   } else {
     /* data file's name is absolute (not header-relative) */
-    dataName = airStrdup(info);
+    strcpy(dataName, info);
   }
   if (!(io->dataFile = fopen(dataName, "rb"))) {
     sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s",
 	    me, dataName, strerror(errno));
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
-  /* the seperate data file will be closed in _nrrdReadNrrd() */
-  free(dataName);
-  /* fprintf(stderr, "!%s: io->dataFile = %p\n", me, io->dataFile); */
-  /* } if (!io->skipData) */
-  io->seperateHeader = AIR_TRUE;
+  /* the seperate data file will be closed elsewhere */
   return 0;
 }
 

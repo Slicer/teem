@@ -22,131 +22,16 @@
 
 /* bad bad bad Gordon */
 extern void _nrrdGuessFormat(NrrdIO *io, const char *filename);
-extern int _nrrdWriteDataHex (Nrrd *nrrd, NrrdIO *io);
-
-int
-unrrduFormatPlusParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unrrduParsePos";
-  int *pos;
-
-  if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  pos = ptr;
-  airToLower(str);
-  if (!strcmp("eps", str)) {
-    /* invent some unused value */
-    pos[0] = 2*nrrdFormatLast;
-  } else {
-    pos[0] = airEnumVal(nrrdFormat, str);
-    if (nrrdFormatUnknown == pos[0]) {
-      sprintf(err, "%s: couldn't parse \"%s\" as format", me, str);
-      return 1;
-    }
-  }
-  return 0;
-}
-
-hestCB unrrduFormatPlusCB = {
-  sizeof(int),
-  "format",
-  unrrduFormatPlusParse,
-  NULL
-};
-
-int
-unrrduEpsSave(char *out, NrrdIO *io, Nrrd *nout) {
-  char me[]="unrrduEpsSave", err[AIR_STRLEN_MED];
-  int color, sx, sy, fit;
-  float aspect, minX, minY, maxX, maxY, scale;
-
-  fit = nrrdFitsInFormat(nout, nrrdEncodingAscii, nrrdFormatPNM, AIR_TRUE);
-  if (!fit) {
-    sprintf(err, "%s: can't save image into EPS", me);
-    biffMove(UNRRDU, err, NRRD); return 1;
-  }
-  color = (3 == fit);
-  
-  if (!( nrrdTypeUChar == nout->type )) {
-    sprintf(err, "%s: can only save type %s data to EPS", me,
-	    airEnumStr(nrrdType, nrrdTypeUChar));
-    biffAdd(UNRRDU, err); return 1;
-  }
-  if (color) {
-    sx = nout->axis[1].size;
-    sy = nout->axis[2].size;
-  } else {
-    sx = nout->axis[0].size;
-    sy = nout->axis[1].size;
-  }
-  aspect = sx/sy;
-  if (aspect > 7.5/10) {
-    /* image has a wider aspect ratio than safely printable page area */
-    minX = 0.5;
-    maxX = 8.0;
-    minY = 5.50 - 7.5*sy/sx/2;
-    maxY = 5.50 + 7.5*sy/sx/2;
-    scale = 7.5/sx;
-  } else {
-    /* image is taller ... */
-    minX = 4.25 - 10.0*sx/sy/2;
-    maxX = 4.25 + 10.0*sx/sy/2;
-    minY = 0.5;
-    maxY = 10.5;
-    scale = 10.0/sy;
-  }
-  minX *= 72; minY *= 72;
-  maxX *= 72; maxY *= 72;
-  scale *= 72;
-
-  if (!( io->dataFile = airFopen(out, stdout, "w") )) {
-    sprintf(err, "%s: fopen(\"%s\", \"w\") failed: %s", me,
-	    out, strerror(errno));
-    biffAdd(UNRRDU, err); return 1;
-  }
-
-  fprintf(io->dataFile, "%%!PS-Adobe-3.0 EPSF-3.0\n");
-  fprintf(io->dataFile, "%%%%Creator: Nrrd Utilities From the "
-	  "Great Nation of Deseret\n");
-  fprintf(io->dataFile, "%%%%Title: %s\n",
-	  nout->content ? nout->content : NRRD_UNKNOWN);
-  fprintf(io->dataFile, "%%%%Pages: 1\n");
-  fprintf(io->dataFile, "%%%%BoundingBox: %d %d %d %d\n",
-	  (int)floor(minX), (int)floor(minY),
-	  (int)ceil(maxX), (int)ceil(maxY));
-  fprintf(io->dataFile, "%%%%HiResBoundingBox: %g %g %g %g\n", 
-	  minX, minY, maxX, maxY);
-  fprintf(io->dataFile, "%%%%EndComments\n");
-  fprintf(io->dataFile, "%%%%BeginProlog\n");
-  fprintf(io->dataFile, "%% linestr creates an empty string to hold "
-	  "one scanline\n");
-  fprintf(io->dataFile, "/linestr %d string def\n", sx*(color ? 3 : 1));
-  fprintf(io->dataFile, "%%%%EndProlog\n");
-  fprintf(io->dataFile, "%%%%Page: 1 1\n");
-  fprintf(io->dataFile, "gsave\n");
-  fprintf(io->dataFile, "%g %g translate\n", minX, minY);
-  fprintf(io->dataFile, "%g %g scale\n", sx*scale, sy*scale);
-  fprintf(io->dataFile, "%d %d 8\n", sx, sy);
-  fprintf(io->dataFile, "[%d 0 0 -%d 0 %d]\n", sx, sy, sy);
-  fprintf(io->dataFile, "{currentfile linestr readhexstring pop} %s\n",
-	  color ? "false 3 colorimage" : "image");
-  _nrrdWriteDataHex(nout, io);
-  fprintf(io->dataFile, "\n");
-  fprintf(io->dataFile, "grestore\n");
-
-  return 0;
-}
 
 #define INFO "Write nrrd with specific format, encoding, or endianness"
 char *_unrrdu_saveInfoL =
 (INFO
  ". Use \"unu\tsave\t-f\tpnm\t|\txv\t-\" to view PPM- or "
- "PGM-compatible nrrds on unix.  Support for the EPS format is limited "
- "to this unu command only.  EPS output is a EPSF-3.0 file with BoundingBox "
- "and HiResBoundingBox DSC comments, and is suitable for inclusion into "
- "other PostScript documents.  As a stand-alone file, the image is "
- "conveniently centered on an 8.5x11 inch page, with 0.5 inch margins.");
+ "PGM-compatible nrrds on unix.  EPS output is a EPSF-3.0 file with "
+ "BoundingBox and HiResBoundingBox DSC comments, and is suitable for "
+ "inclusion into other PostScript documents.  As a stand-alone file, the "
+ "image is conveniently centered on an 8.5x11 inch page, with 0.5 "
+ "inch margins.");
 
 int
 unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -154,12 +39,12 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err, encInfo[AIR_STRLEN_HUGE], fmtInfo[AIR_STRLEN_HUGE];
   Nrrd *nin, *nout;
   airArray *mop;
-  NrrdIO *io;
-  int pret, enc[3];
+  NrrdIO *nio;
+  int pret, enc[3], formatType;
 
   mop = airMopNew();
-  io = nrrdIONew();
-  airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
+  nio = nrrdIONew();
+  airMopAdd(mop, nio, (airMopper)nrrdIONix, airMopAlways);
 
   strcpy(fmtInfo,
 	 "output file format. Possibilities include:\n "
@@ -167,30 +52,29 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
 	 "\b\bo \"pnm\": PNM image; PPM for color, PGM for grayscale\n "
 	 "\b\bo \"text\": plain ASCII text for 1-D and 2-D data\n "
 	 "\b\bo \"vtk\": VTK \"STRUCTURED_POINTS\" dataset");
-  if (nrrdFormatIsAvailable[nrrdFormatPNG]) {
+  if (nrrdFormatPNG->available()) {
     strcat(fmtInfo,
 	   "\n \b\bo \"png\": PNG image");
   }
   strcat(fmtInfo,
 	 "\n \b\bo \"eps\": EPS file");
-  hestOptAdd(&opt, "f", "format", airTypeOther, 1, 1, &(io->format), NULL,
-	     fmtInfo, NULL, NULL, &unrrduFormatPlusCB);
+  hestOptAdd(&opt, "f", "format", airTypeEnum, 1, 1, &formatType, NULL,
+	     fmtInfo, NULL, nrrdFormatType);
   strcpy(encInfo,
 	 "encoding of data in file.  Not all encodings are supported in "
 	 "a given format. Possibilities include:"
 	 "\n \b\bo \"raw\": raw encoding"
 	 "\n \b\bo \"ascii\": print data in ascii"
 	 "\n \b\bo \"hex\": two hex digits per byte");
-  if (nrrdEncodingIsAvailable[nrrdEncodingGzip]) {
+  if (nrrdEncodingGzip->available()) {
     strcat(encInfo, 
 	   "\n \b\bo \"gzip\", \"gz\": gzip compressed raw data");
   }
-  if (nrrdEncodingIsAvailable[nrrdEncodingBzip2]) {
+  if (nrrdEncodingBzip2->available()) {
     strcat(encInfo, 
 	   "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
   }
-  if (nrrdEncodingIsAvailable[nrrdEncodingGzip]
-      || nrrdEncodingIsAvailable[nrrdEncodingBzip2]) {
+  if (nrrdEncodingGzip->available() || nrrdEncodingBzip2->available()) {
     strcat(encInfo,
 	   "\n The specifiers for compressions may be followed by a colon "
 	   "\":\", followed by an optional digit giving compression \"level\" "
@@ -203,7 +87,7 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   hestOptAdd(&opt, "e", "encoding", airTypeOther, 1, 1, enc, "raw",
 	     encInfo, NULL, NULL, &unrrduHestEncodingCB);
-  hestOptAdd(&opt, "en", "endian", airTypeEnum, 1, 1, &(io->endian),
+  hestOptAdd(&opt, "en", "endian", airTypeEnum, 1, 1, &(nio->endian),
 	     airEnumStr(airEndian, airMyEndian),
 	     "Endianness to save data out as; \"little\" for Intel and "
 	     "friends; \"big\" for everyone else. "
@@ -220,46 +104,31 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (2*nrrdFormatLast == io->format) {
-    if (unrrduEpsSave(out, io, nin)) {
-      airMopAdd(mop, err = biffGetDone(UNRRDU), airFree, airMopAlways);
-      fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s\n", me, out, err);
-      airMopError(mop);
-      return 1;
-    }
-    airMopOkay(mop);
-    return 0;
-  }
-
   nrrdCopy(nout, nin);
   
-  io->encoding = enc[0];
-  if (nrrdEncodingGzip == enc[0]) {
-    io->zlibLevel = enc[1];
-    io->zlibStrategy = enc[2];
-  } else if (nrrdEncodingBzip2 == enc[0]) {
-    io->bzip2BlockSize = enc[1];
+  nio->encoding = nrrdEncodingArray[enc[0]];
+  nio->format = nrrdFormatArray[formatType];
+  if (nrrdEncodingTypeGzip == enc[0]) {
+    nio->zlibLevel = enc[1];
+    nio->zlibStrategy = enc[2];
+  } else if (nrrdEncodingTypeBzip2 == enc[0]) {
+    nio->bzip2BlockSize = enc[1];
   }
-  if (AIR_ENDIAN != io->endian) {
+  if (AIR_ENDIAN != nio->endian) {
     nrrdSwapEndian(nout);
   }
-  if (airEndsWith(out, NRRD_EXT_HEADER)) {
-    if (io->format != nrrdFormatNRRD) {
+  if (airEndsWith(out, NRRD_EXT_NHDR)) {
+    if (nio->format != nrrdFormatNRRD) {
       fprintf(stderr, "%s: WARNING: will use %s format\n", me,
-	      airEnumStr(nrrdFormat, nrrdFormatNRRD));
-      io->format = nrrdFormatNRRD;
+	      nrrdFormatNRRD->name);
+      nio->format = nrrdFormatNRRD;
     }
-    nrrdDirBaseSet(io, out);
-    /* we know exactly what part of this function will run (since we
-       know airEndsWith()), so we could copy the code, but let's not */
-    _nrrdGuessFormat(io, out);
   }
 
-  SAVE(out, nout, io);
+  SAVE(out, nout, nio);
 
   airMopOkay(mop);
   return 0;
 }
 
 UNRRDU_CMD(save, INFO);
-

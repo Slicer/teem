@@ -13,6 +13,18 @@ support TIFF format
 support Analyze format
 support FITS format
 
+to expand multiple-format handling: in nrrdRead(), generalize
+_nrrdOneLine to some more generation _nrrdReadStart, which puts some
+portion of the read file into nio.  Th various formats' readTest()
+methods need to look at that content, possibly reading in more of the
+file, in order to see if they will accept the file one of their own.
+The nrrdFormatAll array (or whatever its been renamed to) may need some
+care in how the formats are ordered, so that if a given filename could
+belong to more than one format (for writing) or if the initial content
+of a filename could be in more than one format (for reading), then 
+perhaps the ordering of nrrdFormatAll would impose some preferential
+ordering on the formats.
+
 unu heq should not DIE if min==max, it should just be a no-op.
 unu heq -s 2 shouldn't DIE if there are only 2 bins with any hits
 

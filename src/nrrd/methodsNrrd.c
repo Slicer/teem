@@ -24,89 +24,62 @@
 /* ------------------------------------------------------------ */
 
 void
-_nrrdIOInit (NrrdIO *io) {
+nrrdIOInit (NrrdIO *nio) {
 
-  if (io) {
-    io->dir = NULL;
-    io->base = NULL;
-    io->dataFN = NULL;
-    io->line = NULL;
-    io->lineLen = 0;
-    io->pos = 0;
-    io->dataFile = NULL;
-    io->magic = nrrdMagicUnknown;
-    io->format = nrrdFormatUnknown;
-    io->encoding = nrrdDefWriteEncoding;
-    io->endian = airEndianUnknown;
-    io->lineSkip = 0;
-    io->byteSkip = 0;
-    io->seperateHeader = nrrdDefWriteSeperateHeader;
-    io->bareTable = nrrdDefWriteBareTable;
-    io->charsPerLine = nrrdDefWriteCharsPerLine;
-    io->valsPerLine = nrrdDefWriteValsPerLine;
-    io->zlibLevel = -1;
-    io->zlibStrategy = nrrdZlibStrategyDefault;
-    io->bzip2BlockSize = -1;
-    io->skipData = AIR_FALSE;
-    io->keepSeperateDataFileOpen = AIR_FALSE;
-    memset(io->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
+  if (nio) {
+    AIR_FREE(nio->path);
+    AIR_FREE(nio->base);
+    AIR_FREE(nio->dataFN);
+    AIR_FREE(nio->line);
+    nio->lineLen = 0;
+    nio->pos = 0;
+    /* closing this is always someone else's responsibility */
+    nio->dataFile = NULL;
+    nio->format = nrrdFormatUnknown;
+    nio->encoding = nrrdEncodingUnknown;
+    nio->endian = airEndianUnknown;
+    nio->lineSkip = 0;
+    nio->byteSkip = 0;
+    nio->detachedHeader = AIR_FALSE;
+    nio->bareText = nrrdDefWriteBareText;
+    nio->charsPerLine = nrrdDefWriteCharsPerLine;
+    nio->valsPerLine = nrrdDefWriteValsPerLine;
+    nio->zlibLevel = -1;
+    nio->zlibStrategy = nrrdZlibStrategyDefault;
+    nio->bzip2BlockSize = -1;
+    nio->skipData = AIR_FALSE;
+    nio->keepNrrdDataFileOpen = AIR_FALSE;
+    memset(nio->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
   }
+  return;
 }
 
 NrrdIO *
 nrrdIONew (void) {
-  NrrdIO *io;
+  NrrdIO *nio;
   
-  io = calloc(1, sizeof(NrrdIO));
-  if (io) {
-    _nrrdIOInit(io);
+  nio = calloc(1, sizeof(NrrdIO));
+  if (nio) {
+    nio->path = NULL;
+    nio->base = NULL;
+    nio->dataFN = NULL;
+    nio->line = NULL;
+    nio->dataFile = NULL;
+    nio->format = NULL;
+    nio->encoding = NULL;
+    nrrdIOInit(nio);
   }
-  return io;
-}
-
-/*
-******** nrrdIOReset
-**
-** an attempt at resetting all but those things which it makes sense
-** to re-use across multiple nrrd reads or writes.  This is somewhat
-** complicated, and I haven't thought through all the possibilities...
-*/
-void
-nrrdIOReset (NrrdIO *io) {
-
-  /* this started as a copy of the body of _nrrdIOInit() */
-  if (io) {
-    /* okay to leave buffers allocated? */
-    AIR_FREE(io->dir);
-    AIR_FREE(io->base);
-    AIR_FREE(io->dataFN);
-    /* io->line is the one thing it makes sense to recycle */
-    if (io->line) strcpy(io->line, ""); 
-    io->pos = 0;
-    if (!io->keepSeperateDataFileOpen) {
-      /* basically a hack for the sake of unu data */
-      io->dataFile = NULL;
-      io->magic = nrrdMagicUnknown;
-    }
-    /* io->format = nrrdDefWriteFormat; */
-    /* io->encoding = nrrdDefWriteEncoding; */
-    io->endian = airEndianUnknown;
-    io->lineSkip = 0;
-    io->byteSkip = 0;
-    /* io->seperateHeader = nrrdDefWriteSeperateHeader; */
-    /* io->bareTable = nrrdDefWriteBareTable; */
-    memset(io->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
-  }
+  return nio;
 }
 
 NrrdIO *
-nrrdIONix (NrrdIO *io) {
+nrrdIONix (NrrdIO *nio) {
 
-  AIR_FREE(io->dir);
-  AIR_FREE(io->base);
-  AIR_FREE(io->dataFN);
-  AIR_FREE(io->line);
-  AIR_FREE(io);
+  AIR_FREE(nio->path);
+  AIR_FREE(nio->base);
+  AIR_FREE(nio->dataFN);
+  AIR_FREE(nio->line);
+  AIR_FREE(nio);
   return NULL;
 }
 
@@ -774,26 +747,3 @@ nrrdPGM (Nrrd *pgm, int sx, int sy) {
   return 0;
 }
 
-/*
-******** nrrdTable()
-**
-** for making a nrrd suitable for holding "table" data
-**
-** "don't mess with peripheral information"
-*/
-int
-nrrdTable (Nrrd *table, int sx, int sy) {
-  char me[]="nrrdTable", err[AIR_STRLEN_MED];
-
-  if (!(sx > 0 && sy > 0)) {
-    sprintf(err, "%s: got invalid sizes (%d,%d)", me, sx, sy);
-    biffAdd(NRRD, err);
-    return 1;
-  }
-  if (nrrdMaybeAlloc(table, nrrdTypeFloat, 2, sx, sy)) {
-    sprintf(err, "%s: couldn't allocate %d x %d table of floats", me, sx, sy);
-    biffAdd(NRRD, err);
-    return 1;
-  }
-  return 0;
-}

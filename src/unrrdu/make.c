@@ -20,10 +20,6 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-/* bad bad bad Gordon */
-extern int _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io, int writeData);
-
-
 #define INFO "Create a nrrd (or nrrd header) from scratch"
 char *_unrrdu_makeInfoL =
 (INFO
@@ -43,10 +39,10 @@ char *_unrrdu_makeInfoL =
 
 int
 unrrduMakeRead(char *me, Nrrd *nrrd, NrrdIO *nio, const char *fname,
-	       int lineSkip, int byteSkip, int encoding) {
+	       int lineSkip, int byteSkip, const NrrdEncoding *encoding) {
   char err[AIR_STRLEN_MED];
 
-  nrrdIOReset(nio);
+  nrrdIOInit(nio);
   nio->lineSkip = lineSkip;
   nio->byteSkip = byteSkip;
   nio->encoding = encoding;
@@ -59,13 +55,13 @@ unrrduMakeRead(char *me, Nrrd *nrrd, NrrdIO *nio, const char *fname,
     sprintf(err, "%s: couldn't skip lines", me);
     AIR_FCLOSE(nio->dataFile); biffMove(me, err, NRRD); return 1;
   }
-  if (!nrrdEncodingIsCompression[nio->encoding]) {
+  if (!nio->encoding->isCompression) {
     if (nrrdByteSkip(nrrd, nio)) {
       sprintf(err, "%s: couldn't skip bytes", me);
       AIR_FCLOSE(nio->dataFile); biffMove(me, err, NRRD); return 1;
     }
   }
-  if (nrrdReadData[nio->encoding](nrrd, nio)) {
+  if (nio->encoding->read(nrrd, nio)) {
     sprintf(err, "%s: error reading data", me);
     AIR_FCLOSE(nio->dataFile); biffMove(me, err, NRRD); return 1;
   }
@@ -80,12 +76,13 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nrrd;
   Nrrd **nslice;
   int *size, nameLen, sizeLen, spacingLen, labelLen, headerOnly, pret,
-    lineSkip, byteSkip, encoding, endian, slc, type, gotSpacing;
+    lineSkip, byteSkip, endian, slc, type, encodingType, gotSpacing;
   double *spacing;
   airArray *mop;
   NrrdIO *nio;
   FILE *fileOut;
   char **label;
+  const NrrdEncoding *encoding;
 
   /* so that long lists of filenames can be read from file */
   hparm->respFileEnable = AIR_TRUE;
@@ -138,16 +135,16 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
 	 "\n \b\bo \"ascii\": ascii values, one scanline per line of text, "
 	 "values within line are delimited by space, tab, or comma"
 	 "\n \b\bo \"hex\": two hex digits per byte");
-  if (nrrdEncodingIsAvailable[nrrdEncodingGzip]) {
+  if (nrrdEncodingGzip->available()) {
     strcat(encInfo, 
 	   "\n \b\bo \"gzip\", \"gz\": gzip compressed raw data");
   }
-  if (nrrdEncodingIsAvailable[nrrdEncodingBzip2]) {
+  if (nrrdEncodingBzip2->available()) {
     strcat(encInfo, 
 	   "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
   }
-  hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &encoding, "raw",
-	     encInfo, NULL, nrrdEncoding);
+  hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &encodingType, "raw",
+	     encInfo, NULL, nrrdEncodingType);
   hestOptAdd(&opt, "en", "endian", airTypeEnum, 1, 1, &endian,
 	     airEnumStr(airEndian, airMyEndian),
 	     "Endianness of data; relevent for any data with value "
@@ -162,6 +159,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   USAGE(_unrrdu_makeInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
+  encoding = nrrdEncodingArray[encodingType];
 
   /* given the information we have, we set the fields in the nrrdIO
      so as to simulate having read the information from a header */
@@ -223,10 +221,11 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     nio->byteSkip = byteSkip;
     nio->encoding = encoding;
     nio->dataFN = airStrdup(dataFileNames[0]);
-    nio->seperateHeader = AIR_TRUE;
+    nio->detachedHeader = AIR_TRUE;
+    nio->skipData = AIR_TRUE;
     nio->endian = endian;
-    /* we open and hand off the output FILE* to _nrrdWriteNrrd,
-       which will not write any data (because of the AIR_FALSE) */
+    /* we open and hand off the output FILE* to the nrrd writer, which
+       will not write any data, because of nio->skipData = AIR_TRUE */
     if (!( fileOut = airFopen(out, stdout, "wb") )) {
       fprintf(stderr, "%s: couldn't fopen(\"%s\",\"wb\"): %s\n", 
 	      me, out, strerror(errno));
@@ -235,7 +234,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopAdd(mop, fileOut, (airMopper)airFclose, airMopAlways);
     /* whatever line and byte skipping is required will be simply
        recorded in the header, and done by the next reader */
-    _nrrdWriteNrrd(fileOut, nrrd, nio, AIR_FALSE /* don't write data */);
+    nrrdFormatNRRD->write(fileOut, nrrd, nio);
   } else {
     /* we're not actually using the handy unrrduHestFileCB,
        since we have to open the input data file by hand */
@@ -301,7 +300,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
       }
     }
     if (1 < nrrdElementSize(nrrd)
-	&& nrrdEncodingEndianMatters[encoding]
+	&& encoding->endianMatters
 	&& endian != AIR_ENDIAN) {
       /* endianness exposed in encoding, and its wrong */
       nrrdSwapEndian(nrrd);

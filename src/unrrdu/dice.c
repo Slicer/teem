@@ -95,7 +95,7 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
       /* See if these slices would be better saved as PNG images.
 	 Altering the file name will tell nrrdSave() to use a different
 	 file format. */
-      if (nrrdFitsInFormat(nout, nrrdEncodingRaw, nrrdFormatPNG, AIR_FALSE)) {
+      if (nrrdFormatPNG->fitsInto(nout, nrrdEncodingRaw, AIR_FALSE)) {
 	strcpy(format + strlen(format) - 4, "png");
       }
     }

@@ -33,21 +33,22 @@ extern "C" {
 *******/
 
 /*
-******** nrrdFormat enum
+******** nrrdFormatType enum
 **
 ** the different file formats which nrrd supports
 */
 enum {
-  nrrdFormatUnknown,
-  nrrdFormatNRRD,       /* 1: basic nrrd format (associated with both
+  nrrdFormatTypeUnknown,
+  nrrdFormatTypeNRRD,   /* 1: basic nrrd format (associated with both
 			   magic nrrdMagicOldNRRD and nrrdMagicNRRD0001 */
-  nrrdFormatPNM,        /* 2: PNM image */
-  nrrdFormatPNG,        /* 3: PNG image */
-  nrrdFormatVTK,        /* 4: VTK Structured Points datasets (v1.0 and 2.0) */
-  nrrdFormatTable,      /* 5: bare ASCII table */
-  nrrdFormatLast
+  nrrdFormatTypePNM,    /* 2: PNM image */
+  nrrdFormatTypePNG,    /* 3: PNG image */
+  nrrdFormatTypeVTK,    /* 4: VTK Structured Points datasets (v1.0 and 2.0) */
+  nrrdFormatTypeText,   /* 5: bare ASCII text for 2D arrays */
+  nrrdFormatTypeEPS,    /* 6: Encapsulated PostScript (write-only) */
+  nrrdFormatTypeLast
 };
-#define NRRD_FORMAT_MAX    5
+#define NRRD_FORMAT_TYPE_MAX    6
 
 /*
 ******** nrrdBoundary enum
@@ -125,20 +126,20 @@ enum {
 				     of all the basic C types */
 
 /*
-******** nrrdEncoding enum
+******** nrrdEncodingType enum
 **
 ** how data might be encoded into a bytestream
 */
 enum {
-  nrrdEncodingUnknown,
-  nrrdEncodingRaw,        /* 1: same as memory layout (modulo endianness) */
-  nrrdEncodingAscii,      /* 2: decimal values are spelled out in ascii */
-  nrrdEncodingHex,        /* 3: hexidecimal (two chars per byte) */
-  nrrdEncodingGzip,       /* 4: gzip'ed raw data */
-  nrrdEncodingBzip2,      /* 5: bzip2'ed raw data */
-  nrrdEncodingLast
+  nrrdEncodingTypeUnknown,
+  nrrdEncodingTypeRaw,      /* 1: same as memory layout (modulo endianness) */
+  nrrdEncodingTypeAscii,    /* 2: decimal values are spelled out in ascii */
+  nrrdEncodingTypeHex,      /* 3: hexidecimal (two chars per byte) */
+  nrrdEncodingTypeGzip,     /* 4: gzip'ed raw data */
+  nrrdEncodingTypeBzip2,    /* 5: bzip2'ed raw data */
+  nrrdEncodingTypeLast
 };
-#define NRRD_ENCODING_MAX    5
+#define NRRD_ENCODING_TYPE_MAX 5
 
 /*
 ******** nrrdZlibStrategy enum

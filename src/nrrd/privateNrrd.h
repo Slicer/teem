@@ -37,7 +37,7 @@ extern "C" {
 #  define EVALN evalN_d               /* NrrdKernel method */
 #endif
 
-#define _NRRD_TABLE_INCR 1024
+#define _NRRD_TEXT_INCR 1024
 
 /* to access whatever nrrd there may be in in a NrrdIter */
 #define _NRRD_ITER_NRRD(iter) ((iter)->nrrd ? (iter)->nrrd : (iter)->ownNrrd)
@@ -66,13 +66,31 @@ typedef union {
   void *P;
 } _nrrdAxisInfoGetPtrs;
 
+/* formatXXX.c */
+extern const NrrdFormat _nrrdFormatNRRD;
+extern const NrrdFormat _nrrdFormatPNM;
+extern const NrrdFormat _nrrdFormatPNG;
+extern const NrrdFormat _nrrdFormatVTK;
+extern const NrrdFormat _nrrdFormatText;
+extern const NrrdFormat _nrrdFormatEPS;
+
+/* encodingXXX.c */
+extern const NrrdEncoding _nrrdEncodingRaw;
+extern const NrrdEncoding _nrrdEncodingAscii;
+extern const NrrdEncoding _nrrdEncodingHex;
+extern const NrrdEncoding _nrrdEncodingGzip;
+extern const NrrdEncoding _nrrdEncodingBzip2;
+
+/* read.c */
+extern int _nrrdOneLine (int *lenP, NrrdIO *io, FILE *file);
+extern int _nrrdCalloc (Nrrd *nrrd);
+
 /* arrays.c */
 extern int _nrrdFieldValidInImage[NRRD_FIELD_MAX+1];
-extern int _nrrdFieldValidInTable[NRRD_FIELD_MAX+1];
+extern int _nrrdFieldValidInText[NRRD_FIELD_MAX+1];
 extern int _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1];
 extern char _nrrdEnumFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL];
 extern int _nrrdFieldRequired[NRRD_FIELD_MAX+1];
-extern int _nrrdFormatUsesDIO[NRRD_FORMAT_MAX+1];
 
 /* simple.c */
 extern char *_nrrdContentGet(const Nrrd *nin);
@@ -94,15 +112,19 @@ extern int _nrrdCenter2(int center, int def);
 extern void (*_nrrdConv[][NRRD_TYPE_MAX+1])(void *, const void *, size_t);
 
 /* read.c */
-#define _NRRD_IMM_EOF "immediately hit EOF"
 extern char _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL];
-extern char _nrrdRelDirFlag[];
+extern char _nrrdRelativePathFlag[];
 extern char _nrrdFieldSep[];
-extern char _nrrdTableSep[];
+extern char _nrrdTextSep[];
 extern int _nrrdReshapeUpGrayscale(Nrrd *nimg);
-extern int _nrrdSplitName(char **dirP, char **baseP, const char *name);
+extern void _nrrdSplitName(char **dirP, char **baseP, const char *name);
 
 /* write.c */
+extern int _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIO *nio, int field);
+extern void _nrrdSprintFieldInfo(char **strP, char *prefix,
+				 const Nrrd *nrrd, NrrdIO *nio, int field);
+extern void _nrrdFprintFieldInfo(FILE *file, char *prefix,
+				 const Nrrd *nrrd, NrrdIO *nio, int field);
 extern int _nrrdReshapeDownGrayscale(Nrrd *nimg);
 
 /* parse.c */

@@ -39,12 +39,12 @@ unrrdu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   hestOptAdd(&opt, NULL, "operator", airTypeEnum, 1, 1, &op, NULL,
 	     "Ternary operator. Possibilities include:\n "
-	     "\b\bo \"+\", \"x\": sum or product of three values\n"
+	     "\b\bo \"+\", \"x\": sum or product of three values\n "
 	     "\b\bo \"min\", \"max\": minimum, maximum\n "
 	     "\b\bo \"clamp\": second value is clamped to range between "
 	     "the first and the third\n "
 	     "\b\bo \"ifelse\": if 1st value non-zero, then 2nd value, else "
-	     "3rd value"
+	     "3rd value\n "
 	     "\b\bo \"lerp\": linear interpolation between the 2nd and "
 	     "3rd values, as the 1st value varies between 0.0 and 1.0, "
 	     "respectively\n "

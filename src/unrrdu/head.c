@@ -35,7 +35,7 @@ int
 unrrdu_headDoit(char *me, NrrdIO *io, char *inS, FILE *fout) {
   char err[AIR_STRLEN_MED];
   airArray *mop;
-  int len, magic;
+  int len;
   FILE *fin;
 
   mop = airMopNew();
@@ -54,8 +54,7 @@ unrrdu_headDoit(char *me, NrrdIO *io, char *inS, FILE *fout) {
     sprintf(err, "%s: immediately hit EOF\n", me);
     biffAdd(me, err); airMopError(mop); return 1;
   }
-  magic = airEnumVal(nrrdMagic, io->line);
-  if (!( nrrdMagicOldNRRD == magic || nrrdMagicNRRD0001 == magic )) {
+  if (!( nrrdFormatNRRD->contentStartsLike(io) )) {
     sprintf(err, "%s: first line (\"%s\") isn't a nrrd magic\n", 
 	    me, io->line);
     biffAdd(me, err); airMopError(mop); return 1;
