@@ -34,7 +34,7 @@ main(int argc, char *argv[]) {
   gageContext *ctx;
   gagePerVolume *pvl;
   Nrrd *nin, *nout;
-  char *me, *herr, *outS;
+  char *me, *outS;
   float angle;
   double xs, ys, zs, y, z;
   gage_t *val;
@@ -71,22 +71,8 @@ main(int argc, char *argv[]) {
 	     NULL, NULL, nrrdHestNrrdKernelSpec);
   hestOptAdd(&hopt, "o", "output", airTypeString, 1, 1, &outS, NULL,
 	     "output volume in nrrd format");
-  if (hestOptCheck(hopt, &herr)) { printf("%s\n", herr); exit(1); }
-
-  E = 0;
-  if ( (1 == argc) ||
-       (E = hestParse(hopt, argc-1, argv+1, &herr, hparm)) ) {
-    if (E) {
-      fprintf(stderr, "ERROR: %s\n", herr); free(herr);
-    } else {
-      hestInfo(stderr, me, info, hparm);
-    }
-    hestUsage(stderr, hopt, me, hparm);
-    hestGlossary(stderr, hopt, hparm);
-    hparm = hestParmFree(hparm);
-    hopt = hestOptFree(hopt);
-    exit(1);
-  }
+  hestParseOrDie(hopt, argc-1, argv+1, hparm,
+		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
 
   sx = nin->axis[0].size;
   sy = nin->axis[1].size;
@@ -95,7 +81,7 @@ main(int argc, char *argv[]) {
   ys = nin->axis[1].spacing;
   zs = nin->axis[2].spacing;
   if (!(AIR_EXISTS(xs) && AIR_EXISTS(ys) && AIR_EXISTS(zs))) {
-    fprintf(stderr, "%s: all axis spacings must exist in input nrrd", me);
+    fprintf(stderr, "%s: all axis spacings must exist in input nrrd\n", me);
     exit(1);
   }
   printf("%s: input and output have dimensions %d %d %d\n",

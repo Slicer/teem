@@ -30,7 +30,6 @@ main(int argc, char *argv[]) {
   float mat[16];
   hestOpt *hopt=NULL;
   airArray *mop;
-  int E;
 
   mop = airMopInit();
   cam = limnCamNew();
@@ -45,27 +44,9 @@ main(int argc, char *argv[]) {
 	     "0 0 1", "camera pseudo up vector");
   hestOptAdd(&hopt, "rh", "right", airTypeInt, 0, 0, &(cam->rightHanded), NULL,
 	     "use a right-handed UVN frame (V points down)");
-  
-  if (hestOptCheck(hopt, &err)) {
-    printf("%s\n", err);
-    airMopError(mop);
-    exit(1);
-  }
+  hestParseOrDie(hopt, argc-1, argv+1, NULL,
+		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-
-  E = 0;
-  if ( (1 == argc) ||
-       (E = hestParse(hopt, argc-1, argv+1, &err, NULL)) ) {
-    if (E) {
-      fprintf(stderr, "ERROR: %s\n", err); free(err);
-    } else {
-      hestInfo(stderr, argv[0], info, NULL);
-    }
-    hestUsage(stderr, hopt, me, NULL);
-    hestGlossary(stderr, hopt, NULL);
-    airMopError(mop);
-    return 1;
-  }
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   
   cam->near = -1;
