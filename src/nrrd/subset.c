@@ -19,21 +19,6 @@
 #include "nrrd.h"
 
 /*
-** this isn't used any more.  Thank God.  Terrible, terrible idea.
-*/
-void
-_nrrdSelectElements(void *dataIn, void *dataOut, int size,
-	       NRRD_BIG_INT *idx, NRRD_BIG_INT num) {
-  NRRD_BIG_INT i, o;
-
-  o = 0;
-  for (i=0; i<=num-1; i++) {
-    memcpy((char*)dataOut + (o++)*size, 
-	   (char*)dataIn + idx[i]*size, size);
-  }
-}
-
-/*
 ******** nrrdSample()
 **
 ** given coordinates within a nrrd, copies the 
@@ -45,8 +30,7 @@ nrrdSample(void *val, Nrrd *nrrd, int *coord) {
   int size, dim, i, idx;
   
   if (!(nrrd && coord && val && 
-	nrrd->type > nrrdTypeUnknown &&
-	nrrd->type < nrrdTypeLast)) {
+	AIR_BETWEEN(nrrdTypeUnknown, nrrd->type, nrrdTypeLast))) {
     sprintf(err, "%s: invalid args", me);
     biffSet(NRRD, err); return 1;
   }
@@ -126,12 +110,10 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
   period = length*nin->size[axis];
 
   /* allocate space if necessary */
-  if (!(nout->data)) {
-    if (nrrdAlloc(nout, nin->num/nin->size[axis], 
-		  nin->type, nin->dim-1)) {
-      sprintf(err, "%s: nrrdAlloc() failed to create slice", me);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (nrrdMaybeAlloc(nout, nin->num/nin->size[axis], 
+		     nin->type, nin->dim-1)) {
+    sprintf(err, "%s: failed to create slice", me);
+    biffAdd(NRRD, err); return 1;
   }
 
   /* here's the skinny: copy the data */
@@ -155,8 +137,8 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
   sprintf(nout->content, "slice(%s,%d,%d)", 
 	  nin->content, axis, pos);
   nout->blockSize = nin->blockSize;
-  nin->min = airNand();
-  nin->max = airNand();
+  nin->min = AIR_NAN;
+  nin->max = AIR_NAN;
 
   return(0);
 }
@@ -206,11 +188,9 @@ nrrdSubvolume(Nrrd *nout, Nrrd *nin, int *min, int *max, int clamp) {
     len[d] = AIR_ABS(max[d] - min[d]) + 1;
     num *= len[d];
   }
-  if (!(nout->data)) {
-    if (nrrdAlloc(nout, num, nin->type, dim)) {
-      sprintf(err, "%s: nrrdAlloc() failed to create slice", me);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (nrrdMaybeAlloc(nout, num, nin->type, dim)) {
+    sprintf(err, "%s: failed to create slice", me);
+    biffAdd(NRRD, err); return 1;
   }
   dataOut = nout->data;
   elSize = nrrdElementSize(nin);
@@ -253,6 +233,7 @@ nrrdSubvolume(Nrrd *nout, Nrrd *nin, int *min, int *max, int clamp) {
       nrrdFInsert[nin->type](dataOut, i, 0.0);
     }
     else {
+      /* calling memcpy vs. AIR_MEMCPY won't make a significant difference */
       memcpy(dataOut + i*elSize, dataIn + idx*elSize, elSize);
     }
   }
@@ -273,8 +254,8 @@ nrrdSubvolume(Nrrd *nout, Nrrd *nin, int *min, int *max, int clamp) {
     strcat(nout->content, tmpstr);
   }
   nout->blockSize = nin->blockSize;
-  nin->min = airNand();
-  nin->max = airNand();
+  nin->min = AIR_NAN;
+  nin->max = AIR_NAN;
 
   return 0;
 }
