@@ -130,7 +130,7 @@ int _nrrdGzWrite (gzFile file, const voidp buf, unsigned len);
 ** values with a somewhat random distribution. In this case, the compression 
 ** algorithm is tuned to compress them better. The effect of "f" is to force more
 ** Huffman coding and less string matching; it is somewhat intermediate
-** between the default and "h". The strategy parameter only affects the 
+** between the default and Huffman. The strategy parameter only affects the 
 ** compression ratio but not the correctness of the compressed output even
 ** if it is not set appropriately.
 **
