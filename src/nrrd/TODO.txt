@@ -1,5 +1,8 @@
 ----- teem 1.5beta1 cut-off -----
 
+follow heq with clamp so that there's no value wrap-around
+(noticed this with unu heq -a -1)
+
 nrrdSplice, nrrdInset
 
 test working with nout==nin
@@ -18,8 +21,6 @@ check resampler getting info with NULL kernel on each axis
 change verbosity to warning when nrrd headers in PPM and tables are botched,
 and to get indication of successful DIO reading
 
-VTK file input and output!
-
 write a select() function to replace qsort() in median calculation
 
 be sure to test all non-boolean state/default variables
@@ -27,6 +28,8 @@ be sure to test all non-boolean state/default variables
 add one-line descriptions to function declarations in nrrd.h
 
 ----- teem 1.5 cut-off -----
+
+VTK file input and output!
 
 2D luts/rmaps
 
