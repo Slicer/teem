@@ -36,43 +36,99 @@
 extern "C" {
 #endif
 
-/* thread.c: general threading functions */
+/* threadAir.c: simplistic wrapper functions for multi-threading  */
+
+/* ------------------------------------------------------------------ */
+#if TEEM_PTHREAD /* ----------------------------------------- PTHREAD */
+/* ------------------------------------------------------------------ */
+
+/* perhaps these should be direct typedef's, without a wrapping struct */
 
 typedef struct {
-#if TEEM_PTHREAD
   pthread_t id;
-#elif defined(_WIN32)
+} airThread;
+
+typedef struct {
+  pthread_mutex_t id;
+} airThreadMutex;
+
+typedef struct {
+  pthread_cond_t id;
+} airThreadCond;
+
+/* ------------------------------------------------------------------ */
+#elif defined(_WIN32) /* ------------------------------------- WIN 32 */
+/* ------------------------------------------------------------------ */
+
+typedef struct {
   HANDLE id;
   void *(*body)(void *);
   void *arg;
   void *ret;
-#else
-  void *ret;
-#endif
 } airThread;
 
-#if 0
 typedef struct {
-#if _WIN32
-/* STRONGBAD */
-#elif TEEM_PTHREAD
-/* HOMESTARRUNNER.NET */
-#else
-/* POOPSMITH */
-#endif
+  int strongbad;
+} airThreadMutex;
+
+typedef struct {
+  int strongbad;
+} airThreadCond;
+
+/* ------------------------------------------------------------------ */
+#else /* --------------------------------------- (no multi-threading) */
+/* ------------------------------------------------------------------ */
+
+typedef struct {
+  void *ret;
+} airThread;
+
+typedef struct {
+  int dummy;
+} airThreadMutex;
+
+typedef struct {
+  int dummy;
+} airThreadCond;
+
+/* ------------------------------------------------------------------ */
+#endif /* ----------------------------------------------------------- */
+/* ------------------------------------------------------------------ */
+
+typedef struct {
+  unsigned int numUsers, numDone;
+  airThreadMutex doneMutex;
+  airThreadCond doneCond;
 } airThreadBarrier;
-#endif
+
+/* if non-zero: we have some kind of multi-threading available, either
+   via pthreads, or via Windows stuff */
+extern air_export const int airThreadCapable;
+
+/* When multi-threading is not available, and hence constructs like
+   mutexes are not available, the operations on them will be no-ops. When
+   this variable is non-zero, we fprintf(stderr) a warning to this effect
+   when those constructs are used */
+extern air_export int airThreadNoopWarning; 
 
 extern int airThreadCreate(airThread *thread, void *(*threadBody)(void *),
 			   void *arg);
 extern int airThreadJoin(airThread *thread, void **retP);
 
-#if 0
-extern int airThreadBarrierInit(airThreadBarrier *barrier, unsigned int count);
-extern int airThreadBarrierWait(airThreadBarrier *barrier);
-#endif
+extern int airThreadMutexInit(airThreadMutex *mutex);
+extern int airThreadMutexLock(airThreadMutex *mutex);
+extern int airThreadMutexUnlock(airThreadMutex *mutex);
+extern int airThreadMutexDone(airThreadMutex *mutex);
 
-extern air_export const int airMultiThreaded;
+extern int airThreadCondInit(airThreadCond *cond);
+extern int airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex);
+extern int airThreadCondSignal(airThreadCond *cond);
+extern int airThreadCondBroadcast(airThreadCond *cond);
+extern int airThreadCondDone(airThreadCond *cond);
+
+extern int airThreadBarrierInit(airThreadBarrier *barrier, unsigned numUsers);
+extern int airThreadBarrierWait(airThreadBarrier *barrier);
+extern int airThreadBarrierDone(airThreadBarrier *barrier);
 
 #ifdef __cplusplus
 }

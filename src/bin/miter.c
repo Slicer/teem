@@ -99,7 +99,7 @@ main(int argc, char *argv[]) {
 	     "0.99", "opacity close enough to 1.0 to terminate ray");
   hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1,
 	     &(muu->hctx->numThreads), "1", 
-	     (airMultiThreaded
+	     (airThreadCapable
 	      ? "number of threads hoover should use"
 	      : "if pthreads where enabled in this teem build, this is how "
 	      "you would control the number of threads hoover should use"));
@@ -141,8 +141,9 @@ main(int argc, char *argv[]) {
   muu->hctx->threadEnd = (hooverThreadEnd_t *)miteThreadEnd;
   muu->hctx->renderEnd = (hooverRenderEnd_t *)miteRenderEnd;
 
-  if (!airMultiThreaded) {
-    fprintf(stderr, "%s: This teem not compiled with multi-threading support.\n", me);
+  if (!airThreadCapable) {
+    fprintf(stderr, "%s: This teem not compiled with "
+	    "multi-threading support.\n", me);
     fprintf(stderr, "%s: ==> can't use %d threads; only using 1\n",
 	    me, muu->hctx->numThreads);
     muu->hctx->numThreads = 1;
