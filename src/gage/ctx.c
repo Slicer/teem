@@ -36,9 +36,13 @@ gageContextNew () {
     ctx->verbose = gageDefVerbose;
     ctx->thisIsACopy = AIR_FALSE;
     gageParmReset(&ctx->parm);
+    for(i=gageKernelUnknown+1; i<gageKernelLast; i++) {
+      ctx->ksp[i] = NULL;
+    }
     gageKernelReset(ctx);
-    for (i=0; i<GAGE_PERVOLUME_NUM; i++)
+    for (i=0; i<GAGE_PERVOLUME_NUM; i++) {
       ctx->pvl[i] = NULL;
+    }
     ctx->numPvl = 0;
     ctx->shape = gageShapeNew();
     for (i=0; i<GAGE_CTX_FLAG_NUM; i++) {
@@ -70,14 +74,16 @@ gageContextNix (gageContext *ctx) {
   int i;
 
   if (ctx) {
-    for (i=0; i<GAGE_KERNEL_NUM; i++) {
-      nrrdKernelSpecNix(ctx->ksp[i]);
+    if (!ctx->thisIsACopy) {
+      gageKernelReset(ctx);
     }
     for (i=0; i<ctx->numPvl; i++) {
       gagePerVolumeNix(ctx->pvl[i]);
       /* no point in doing a detach, the whole context is going bye-bye */
     }
-    ctx->shape = gageShapeNix(ctx->shape);
+    if (!ctx->thisIsACopy) {
+      ctx->shape = gageShapeNix(ctx->shape);
+    }
     ctx->fw = airFree(ctx->fw);
     ctx->fsl = airFree(ctx->fsl);
     ctx->off = airFree(ctx->off);
@@ -236,8 +242,9 @@ gageKernelReset (gageContext *ctx) {
       fprintf(stderr, "\n%s: can't operate on a context copy!\n\n", me);
       return;
     }
-    for(i=gageKernelUnknown+1; i<gageKernelLast; i++)
+    for(i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       ctx->ksp[i] = nrrdKernelSpecNix(ctx->ksp[i]);
+    }
     ctx->flag[gageCtxFlagKernel] = AIR_TRUE;
   }
   return;
