@@ -43,8 +43,8 @@
 **
 ** Given a 3-vector, produce one which is perpendicular.
 ** Output length won't be same as input length, but it will always
-** be non-zero, if input length is non-zero.   This will NOT produce
-** a unit-length vector if the input is unit length.
+** be non-zero, if input length is non-zero.   This does NOT try to
+** produce a unit-length vector, regardless of the length of the input.
 */
 void
 ell_3v_perp_f(float a[3], float b[3]) {
