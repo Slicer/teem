@@ -1044,9 +1044,20 @@ hestParseFree(hestOpt *opt) {
       /* nothing was allocated */
       break;
     case 1:
-      /* whether this was just a string, or an array of structs (but not
-	 struct pointers), all we do is free this */
-      *vP = airFree(*vP);
+      if (airTypeString == opt[op].type) {
+	*vP = airFree(*vP);
+      }
+      else {
+	/* alloc is one either because we parsed one thing, and we have a
+	   delete callback, or, because we parsed a dynamically-created array
+	   of things, and we don't have a delete callback */
+	if (opt[op].CB->delete) {
+	  *vP = opt[op].CB->delete(*vP);
+	}
+	else {
+	  *vP = airFree(*vP);
+	}
+      }
       break;
     case 2:
       if (airTypeString == opt[op].type) {
