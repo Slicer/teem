@@ -37,13 +37,13 @@ main(int argc, char *argv[]) {
   int renorm;
   int E, Ecode;
   float ads[3];
+  double gmc;
 
   me = argv[0];
   mop = airMopNew();
   hparm = hestParmNew();
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   muu = miteUserNew();
-  fprintf(stderr, "%s: muu = %p, muu->hctx = %p\n", me, muu, muu->hctx);
   airMopAdd(mop, muu, (airMopper)miteUserNix, airMopAlways);
   
   hparm->respFileEnable = AIR_TRUE;
@@ -86,6 +86,9 @@ main(int argc, char *argv[]) {
 	     "Ignore opacity and composite simply by summing");
   hestOptAdd(&hopt, "nolight", NULL, airTypeBool, 0, 0, &(muu->noDirLight),
 	     NULL, "Ignore directional lights, use ambient only");
+  hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc, "0.0",
+	     "For curvature-based transfer functions, set curvature to "
+	     "zero when gradient magnitude is below this");
   hestOptAdd(&hopt, "step", "size", airTypeDouble, 1, 1, &(muu->rayStep),
 	     "0.01", "step size along ray in world space");
   hestOptAdd(&hopt, "ref", "size", airTypeDouble, 1, 1, &(muu->refStep),
@@ -111,6 +114,7 @@ main(int argc, char *argv[]) {
   muu->rangeInit[miteRangeKa] = ads[0];
   muu->rangeInit[miteRangeKd] = ads[1];
   muu->rangeInit[miteRangeKs] = ads[2];
+  gageSet(muu->gctx0, gageParmGradMagCurvMin, gmc);
   gageSet(muu->gctx0, gageParmRenormalize, renorm);
 
   muu->nout = nrrdNew();  
@@ -118,8 +122,6 @@ main(int argc, char *argv[]) {
   ELL_3V_SET(muu->lit->col[0], 1, 1, 1);
   muu->lit->on[0] = AIR_TRUE;
   muu->lit->vsp[0] = AIR_TRUE;
-  fprintf(stderr, "%s: muu = %p, muu->ctx->cam = %p\n",
-	  me, muu, muu->hctx->cam);
   limnCamUpdate(muu->hctx->cam);
   limnLightUpdate(muu->lit, muu->hctx->cam);
   fprintf(stderr, "%s: light dir: %g %g %g\n", me,
