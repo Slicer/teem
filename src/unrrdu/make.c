@@ -39,13 +39,20 @@ char *_unrrdu_makeInfoL =
  "or writing data. "
  "\n \n "
  "When using multiple datafiles, the data from each is simply "
- "concatenated in memory (as opposed to some other interleaving). "
+ "concatenated in memory (as opposed to interleaving along a faster axis). "
  "Keep in mind that all the options below refer to the finished data segment "
  "resulting from joining all the data pieces together, "
- "except for \"-ls\", \"-bs\", and \"-e\", which apply "
- "to every input slice file.  When reading data from many seperate files, it "
- "may be easier to put their filenames in a response file; there can be one "
- "or more filenames per line of the response file. "
+ "except for \"-ls\", \"-bs\", and \"-e\", which apply (uniformly) to "
+ "every input file.  Use the \"-fd\" option when the things being joined "
+ "together are not slices of the final result, but slabs or scanlines. "
+ "It may be easier to put multiple filenames in a response file; "
+ "there can be one or more filenames per line of the response file. "
+ "You can also use a sprintf-style format to identify a numbered "
+ "range of files, so for example \"-i I.%03d 1 90 1\" "
+ "refers to I.001, I.002, ... I.090, using the inclusive range from the first "
+ "to the second integer (following the sprintf-style format), in steps of "
+ "the third.  Can optionally give a fourth integer to serve same role as "
+ "\"-fd\"."
  "\n \n "
  "NOTE: for the \"-l\" (labels), \"-u\" (units), and \"-spu\" (space units) "
  "options below, you can use a single unquoted period (\".\") to signify "
@@ -87,7 +94,9 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
              "constraint is that detached headers are incompatible with "
              "using stdin as the data source.");
   hestOptAdd(&opt, "i", "file", airTypeString, 1, -1, &dataFileNames, "-",
-             "Filename(s) of data file(s); use \"-\" for stdin. ", &nameLen);
+             "Filename(s) of data file(s); use \"-\" for stdin. *OR*, can "
+             "use sprintf-style format for identifying a range of numbered "
+             "files, see above for details.", &nameLen);
   hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &type, NULL,
              "type of data (e.g. \"uchar\", \"int\", \"float\", "
              "\"double\", etc.)",
