@@ -407,11 +407,6 @@ nrrdFlip(Nrrd *nout, Nrrd *nin, int axis) {
   return 0;
 }
 
-/*
-******** nrrdJoin()
-**
-** HEY: decide if spacing stuff needs setting
-*/
 int
 nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
   char me[]="nrrdJoin", err[NRRD_STRLEN_MED];

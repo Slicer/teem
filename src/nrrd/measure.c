@@ -23,7 +23,7 @@
 
 void
 _nrrdMeasureUnknown(void *line, int lineType, int len, 
-		    float axmin, float axmax, 
+		    double axmin, double axmax, 
 		    void *ans, int ansType) {
   char me[]="_nrrdMeasureUnknown";
   
@@ -33,7 +33,7 @@ _nrrdMeasureUnknown(void *line, int lineType, int len,
 
 void
 _nrrdMeasureMin(void *line, int lineType, int len,
-		float axmin, float axmax, 
+		double axmin, double axmax, 
 		void *ans, int ansType) {
   double val, M;
   int i;
@@ -61,7 +61,7 @@ _nrrdMeasureMin(void *line, int lineType, int len,
 
 void
 _nrrdMeasureMax(void *line, int lineType, int len, 
-		float axmin, float axmax, 
+		double axmin, double axmax, 
 		void *ans, int ansType) {
   double val, M;
   int i;
@@ -89,7 +89,7 @@ _nrrdMeasureMax(void *line, int lineType, int len,
 
 void
 _nrrdMeasureProduct(void *line, int lineType, int len, 
-		    float axmin, float axmax,
+		    double axmin, double axmax,
 		    void *ans, int ansType) {
   double val, P;
   int i;
@@ -118,7 +118,7 @@ _nrrdMeasureProduct(void *line, int lineType, int len,
 
 void
 _nrrdMeasureSum(void *line, int lineType, int len, 
-		float axmin, float axmax,
+		double axmin, double axmax,
 		void *ans, int ansType) {
   double val, S;
   int i;
@@ -145,7 +145,7 @@ _nrrdMeasureSum(void *line, int lineType, int len,
 
 void
 _nrrdMeasureMean(void *line, int lineType, int len, 
-		 float axmin, float axmax,
+		 double axmin, double axmax,
 		 void *ans, int ansType) {
   double val, S;
   int i;
@@ -173,12 +173,12 @@ _nrrdMeasureMean(void *line, int lineType, int len,
 /* stupid little forward declaration */
 void
 _nrrdMeasureHistoMode(void *line, int lineType, int len, 
-		      float axmin, float axmax, 
+		      double axmin, double axmax, 
 		      void *ans, int ansType);
 
 void
 _nrrdMeasureMode(void *line, int lineType, int len, 
-		 float axmin, float axmax,
+		 double axmin, double axmax,
 		 void *ans, int ansType) {
   Nrrd *nline, *nhist;
   airArray *mop;
@@ -211,7 +211,7 @@ _nrrdMeasureMode(void *line, int lineType, int len,
 
 void
 _nrrdMeasureMedian(void *line, int lineType, int len, 
-		   float axmin, float axmax,
+		   double axmin, double axmax,
 		   void *ans, int ansType) {
   double M;
   int i, mid;
@@ -241,7 +241,7 @@ _nrrdMeasureMedian(void *line, int lineType, int len,
 
 void
 _nrrdMeasureL1(void *line, int lineType, int len, 
-	       float axmin, float axmax,
+	       double axmin, double axmax,
 	       void *ans, int ansType) {
   double val, S;
   int i;
@@ -269,7 +269,7 @@ _nrrdMeasureL1(void *line, int lineType, int len,
 
 void
 _nrrdMeasureL2(void *line, int lineType, int len, 
-	       float axmin, float axmax,
+	       double axmin, double axmax,
 	       void *ans, int ansType) {
   double val, S;
   int i;
@@ -297,7 +297,7 @@ _nrrdMeasureL2(void *line, int lineType, int len,
 
 void
 _nrrdMeasureLinf(void *line, int lineType, int len, 
-		 float axmin, float axmax,
+		 double axmin, double axmax,
 		 void *ans, int ansType) {
   double val, M;
   int i;
@@ -329,7 +329,7 @@ _nrrdMeasureLinf(void *line, int lineType, int len,
 
 void
 _nrrdMeasureVariance(void *line, int lineType, int len, 
-		     float axmin, float axmax,
+		     double axmin, double axmax,
 		     void *ans, int ansType) {
   double val, S, SS;
   int i, count;
@@ -386,7 +386,7 @@ _nrrdMeasureVariance(void *line, int lineType, int len,
 
 void
 _nrrdMeasureHistoMedian(void *line, int lineType, int len, 
-			float axmin, float axmax, 
+			double axmin, double axmax, 
 			void *ans, int ansType) {
   double sum, half, ansD;
   int i;
@@ -416,7 +416,7 @@ _nrrdMeasureHistoMedian(void *line, int lineType, int len,
 
 void
 _nrrdMeasureHistoMode(void *line, int lineType, int len, 
-		      float axmin, float axmax, 
+		      double axmin, double axmax, 
 		      void *ans, int ansType) {
   double val, max, idxsum, ansD;
   int i, idxcount;
@@ -458,7 +458,7 @@ _nrrdMeasureHistoMode(void *line, int lineType, int len,
 
 void
 _nrrdMeasureHistoMean(void *line, int lineType, int len, 
-		      float axmin, float axmax,
+		      double axmin, double axmax,
 		      void *ans, int ansType) {
   double count, hits, ansD;
   int i;
@@ -481,7 +481,7 @@ _nrrdMeasureHistoMean(void *line, int lineType, int len,
 
 void
 _nrrdMeasureHistoVariance(void *line, int lineType, int len, 
-			  float axmin, float axmax,
+			  double axmin, double axmax,
 			  void *ans, int ansType) {
   double S, SS, count, hits, val;
   int i;
@@ -511,7 +511,7 @@ _nrrdMeasureHistoVariance(void *line, int lineType, int len,
 
 void
 _nrrdMeasureHistoProduct(void *line, int lineType, int len, 
-			 float axmin, float axmax,
+			 double axmin, double axmax,
 			 void *ans, int ansType) {
   double val, product, count, hits;
   int i;
@@ -536,7 +536,7 @@ _nrrdMeasureHistoProduct(void *line, int lineType, int len,
 
 void
 _nrrdMeasureHistoSum(void *line, int lineType, int len, 
-		     float axmin, float axmax,
+		     double axmin, double axmax,
 		     void *ans, int ansType) {
   double sum, count, hits, val;
   int i;
@@ -561,7 +561,7 @@ _nrrdMeasureHistoSum(void *line, int lineType, int len,
 
 void
 _nrrdMeasureHistoMax(void *line, int lineType, int len, 
-		     float axmin, float axmax,
+		     double axmin, double axmax,
 		     void *ans, int ansType) {
   int i;
   double val;
@@ -584,7 +584,7 @@ _nrrdMeasureHistoMax(void *line, int lineType, int len,
 
 void
 _nrrdMeasureHistoMin(void *line, int lineType, int len, 
-		     float axmin, float axmax,
+		     double axmin, double axmax,
 		     void *ans, int ansType) {
   int i;
   double val;
@@ -606,7 +606,7 @@ _nrrdMeasureHistoMin(void *line, int lineType, int len,
 }
 
 void (*_nrrdMeasureAxis[NRRD_MEASURE_MAX+1])(void *, int, int, 
-					     float, float, 
+					     double, double,
 					     void *, int) = {
   _nrrdMeasureUnknown,
   _nrrdMeasureMin,
@@ -679,11 +679,11 @@ _nrrdMeasureType(Nrrd *nin, int measr) {
 int
 nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   char me[] = "nrrdProject", err[NRRD_STRLEN_MED];
-  int type;
-  int i, j, length, numperiod, lambda, period, inElSize, outElSize, 
-    map[NRRD_DIM_MAX], size[NRRD_DIM_MAX];
-  char *line, *src, *dest, *lineSrc, *lineDest;
-  float axmin, axmax;
+  int d, i, iType, oType, row, rowNum, col, colNum, colStep, 
+    linLen, iElSz, oElSz,
+    map[NRRD_DIM_MAX], iSize[NRRD_DIM_MAX], oSize[NRRD_DIM_MAX];
+  char *_line, *line, *ptr, *iData, *oData;
+  double axmin, axmax;
   
   if (!(nin && nout)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -703,68 +703,73 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
     biffAdd(NRRD, err); return 1;
   }
   
-  type = _nrrdMeasureType(nin, measr);
-
-  /* set up control variables */
-  length = numperiod = 1;
-  for (i=0; i<=nin->dim-1; i++) {
-    if (i < axis) {
-      length *= nin->axis[i].size;
+  iType = nin->type;
+  oType = _nrrdMeasureType(nin, measr);
+  iElSz = nrrdTypeSize[iType];
+  oElSz = nrrdTypeSize[oType];
+  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, iSize);
+  colNum = rowNum = 1;
+  for (d=0; d<=nin->dim-1; d++) {
+    if (d < axis) {
+      colNum *= iSize[d];
     }
-    else if (i > axis) {
-      numperiod *= nin->axis[i].size;
+    else if (d > axis) {
+      rowNum *= iSize[d];
     }
   }
-  lambda = length*nin->axis[axis].size;
+  linLen = iSize[axis];
+  colStep = linLen*colNum;
+  fprintf(stderr, "!%s: {i,o}Type = %d, %d\n", me, iType, oType);
+  fprintf(stderr, "!%s: {i,o}ElSz = %d, %d\n", me, iElSz, oElSz);
+  fprintf(stderr, "!%s: {col,row}Num = %d, %d\n", me, colNum, rowNum);
+  fprintf(stderr, "!%s: linLen = %d\n", me, linLen);
+  fprintf(stderr, "!%s: colStep = %d\n", me, colStep);
+  fprintf(stderr, "!%s: iSize = %d %d %d\n", me, iSize[0], iSize[1], iSize[2]);
+  fprintf(stderr, "!%s: axis = %d\n", me, axis); 
   
-  /* allocate space if necessary */
-  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
-  for (i=0; i<=nout->dim-1; i++) {
-    size[i] = size[i + (i >= axis)];
+  for (d=0; d<=nin->dim-2; d++) {
+    map[d] = d + (d >= axis);
   }
-  if (nrrdMaybeAlloc_nva(nout, type, nin->dim-1, size)) {
+  for (d=0; d<=nin->dim-2; d++) {
+    oSize[d] = iSize[map[d]];
+    fprintf(stderr, "!%s: iSize[map[%d]] = iSize[%d] = %d\n",
+	    me, d, map[d], iSize[map[d]]);
+  }
+  fprintf(stderr, "!%s: oSize = %d %d %d\n", me, oSize[0], oSize[1], oSize[2]);
+  if (nrrdMaybeAlloc_nva(nout, oType, nin->dim-1, oSize)) {
     sprintf(err, "%s: failed to create output", me);
     biffAdd(NRRD, err); return 1;
   }
 
   /* allocate a scanline buffer */
-  /* using nrrdTypeSize[] instead of nrrdElementSize() here is 
-     justified by the above prohibition on using the block type */
-  inElSize = nrrdTypeSize[nin->type];
-  outElSize = nrrdTypeSize[type];
-  if (!(line = calloc(nin->axis[axis].size, inElSize))) {
+  if (!(_line = calloc(linLen, iElSz))) {
     sprintf(err, "%s: couldn't calloc(%d,%d) scanline buffer",
-	    me, nin->axis[axis].size, inElSize);
+	    me, linLen, iElSz);
     biffAdd(NRRD, err); return 1;
   }
 
   /* the skinny */
-  src = nin->data;
-  dest = nout->data;
   axmin = nin->axis[axis].min;
   axmax = nin->axis[axis].max;
-  for (period=0; period<=numperiod-1; period++) {
-    /* printf("%s: period = %d of %d\n", me, period, numperiod-1); */
-    /* within each period of the square wave, we traverse the successive
-       elements, copy the scanline starting at each element, and perform
-       the measurement */
-    for (j=0; j<=length-1; j++) {
-      for (i=0; i<=nin->axis[axis].size-1; i++) {
-	lineDest = line + inElSize*i;
-	lineSrc = src + inElSize*(period*lambda + length*i + j);
-	memcpy(lineDest, lineSrc, inElSize);
+  iData = nin->data;
+  oData = nout->data;
+  /*
+  for (row=0; row<rowNum; row++) {
+    for (col=0; col<colNum; col++) {
+      line = _line;
+      ptr = iData + iElSz*(col + row*colStep);
+      for (i=0; i<=linLen-1; i++) {
+	memcpy(line, ptr, iElSz);
+	ptr += iElSz*colNum;
+	line += iElSz;
       }
-      _nrrdMeasureAxis[measr](line, nin->type, nin->axis[axis].size, 
-			      axmin, axmax,
-			      dest, nout->type);
-      dest += outElSize;
+      _nrrdMeasureAxis[measr](line, iType, linLen, axmin, axmax, oData, oType);
+      oData += oElSz;
     }
   }
+  */
   
   /* copy the peripheral information */
-  for (i=0; i<=nout->dim-1; i++) {
-    map[i] = i + (i >= axis);
-  }
   if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_NONE)) {
     sprintf(err, "%s:", me); 
     biffAdd(NRRD, err); return 1;
