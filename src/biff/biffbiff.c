@@ -54,7 +54,7 @@ airArray *_biffAA=NULL;       /* air array of _biffErr and _biffNum */
 ** anything goes wrong.  Can be harmlessly called multiple times.
 */
 void
-_biffInit() {
+_biffInit(void) {
   char me[]="_biffInit";
 
   if (!_biffAA) {
@@ -69,7 +69,7 @@ _biffInit() {
 }
 
 void
-_biffNuke() {
+_biffNuke(void) {
 
   if (_biffAA) {
     airArrayNuke(_biffAA);
