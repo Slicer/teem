@@ -40,7 +40,7 @@
 extern "C" {
 #endif
 
-#define LIMN "limn"
+#define LIMN limnBiffKey
 #define LIMN_LIGHT_NUM 16
 
 /*
@@ -268,6 +268,7 @@ enum {
 #define LIMN_QN_MAX      4
 
 /* defaultsLimn.c */
+extern limn_export const char *limnBiffKey;
 extern limn_export int limnDefCamAtRel;
 extern limn_export int limnDefCamOrtho;
 extern limn_export int limnDefCamRightHanded;

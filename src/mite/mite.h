@@ -38,7 +38,7 @@
 extern "C" {
 #endif
 
-#define MITE "mite"
+#define MITE miteBiffKey
 
 /*
 ******** mite_t
@@ -233,6 +233,7 @@ typedef struct miteThread_t {
 } miteThread;
 
 /* defaultsMite.c */
+extern mite_export const char *miteBiffKey;
 extern mite_export double miteDefRefStep;
 extern mite_export int miteDefRenorm;
 extern mite_export int miteDefNormalSide;

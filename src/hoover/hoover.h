@@ -40,7 +40,7 @@
 extern "C" {
 #endif
 
-#define HOOVER "hoover"
+#define HOOVER hooverBiffKey
 
 #define HOOVER_THREAD_MAX 128
 
@@ -251,6 +251,7 @@ enum {
 };
 
 /* defaultsHoover.c */
+extern hoover_export const char *hooverBiffKey;
 extern hoover_export int hooverDefVolCentering;
 extern hoover_export int hooverDefImgCentering;
 

@@ -38,7 +38,7 @@
 extern "C" {
 #endif
 
-#define ELL "ell"
+#define ELL ellBiffKey
 #define ELL_EPS 1.0e-10
 
 /*
@@ -56,6 +56,7 @@ enum {
 };
 
 /* miscEll.c */
+extern ell_export const char *ellBiffKey;
 extern ell_export int ellDebug;
 extern void ell3mPrint_f(FILE *f, float s[9]);
 extern void ell3vPrint_f(FILE *f, float s[3]);

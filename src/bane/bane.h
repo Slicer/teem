@@ -41,7 +41,7 @@
 extern "C" {
 #endif
 
-#define BANE "bane"
+#define BANE baneBiffKey
 
 /*
 ** The idea is that the baneRange, baneInc, baneClip, and baneMeasr,
@@ -301,6 +301,7 @@ typedef struct {
 } baneHVolParm;
 
 /* defaultsBane.c */
+extern bane_export const char *baneBiffKey;
 extern bane_export int baneDefVerbose;
 extern bane_export int baneDefMakeMeasrVol;
 extern bane_export float baneDefIncLimit;

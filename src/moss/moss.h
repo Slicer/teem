@@ -38,7 +38,7 @@
 extern "C" {
 #endif
 
-#define MOSS "moss"
+#define MOSS mossBiffKey
 
 #define MOSS_NCOL(img) (3 == (img)->dim ? (img)->axis[0].size : 1)
 #define MOSS_AXIS0(img) (3 == (img)->dim ? 1 : 0)
@@ -74,6 +74,7 @@ typedef struct {
 } mossSampler;
 
 /* defaultsMoss.c */
+extern moss_export const char *mossBiffKey;
 extern moss_export int mossDefBoundary;
 extern moss_export int mossDefCenter;
 extern moss_export int mossVerbose;

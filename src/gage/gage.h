@@ -40,7 +40,7 @@
 extern "C" {
 #endif
 
-#define GAGE "gage"
+#define GAGE gageBiffKey
 
 /*
 ** the only extent to which gage treats different axes differently is
@@ -554,6 +554,7 @@ typedef struct gageKind_t {
 #define GAGE_ANSWER_POINTER(pvl, m) ((pvl)->ans + (pvl)->kind->ansOffset[(m)])
 
 /* defaultsGage.c */
+extern gage_export const char *gageBiffKey;
 extern gage_export int gageDefVerbose;
 extern gage_export gage_t gageDefGradMagMin;
 extern gage_export gage_t gageDefGradMagCurvMin;

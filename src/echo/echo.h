@@ -39,7 +39,7 @@
 extern "C" {
 #endif
 
-#define ECHO "echo"
+#define ECHO echoBiffKey
 
 /* all position and transform information is kept as ...
 ** 1: floats
@@ -415,6 +415,7 @@ extern echo_export airEnum *echoType;
 extern echo_export airEnum *echoMatter;
 
 /* methodsEcho.c --------------------------------------- */
+extern echo_export const char *echoBiffKey;
 extern echoRTParm *echoRTParmNew();
 extern echoRTParm *echoRTParmNix(echoRTParm *parm);
 extern echoGlobalState *echoGlobalStateNew();
