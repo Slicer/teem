@@ -289,9 +289,7 @@ nrrdEncodingEndianMatters[NRRD_ENCODING_MAX+1] = {
   0,   /* unknown */
   1,   /* raw */
   0,   /* ascii */
-#ifdef TEEM_ZLIB
   1,   /* gzip */
-#endif
 };
 
 /*
@@ -305,8 +303,23 @@ nrrdEncodingCompression[NRRD_ENCODING_MAX+1] = {
   0,   /* unknown */
   0,   /* raw */
   0,   /* ascii */
+  1,   /* gzip */
+};
+
+/*
+******** nrrdEncodingAvailable[]
+** 
+** tells which encodings are supported for this build
+*/
+int 
+nrrdEncodingAvailable[NRRD_ENCODING_MAX+1] = {
+  0,   /* unknown */
+  1,   /* raw, always */
+  1,   /* ascii, always */
 #ifdef TEEM_ZLIB
   1,   /* gzip */
+#else
+  0,   /* gzip */
 #endif
 };
 

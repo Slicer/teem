@@ -242,10 +242,13 @@ _nrrdWriteDataAscii(Nrrd *nrrd, NrrdIO *io) {
   return 0;
 }
 
-#ifdef TEEM_ZLIB
 int
-_nrrdWriteDataGzip(Nrrd *nrrd, NrrdIO *io) {
-  char me[]="_nrrdWriteDataGzip", err[AIR_STRLEN_MED];
+_nrrdWriteDataZlib(Nrrd *nrrd, NrrdIO *io) {
+  char me[]="_nrrdWriteDataZlib", err[AIR_STRLEN_MED];
+#ifndef TEEM_ZLIB
+  sprintf(err, "%s: sorry, this nrrd not compiled with zlib enabled", me);
+  biffAdd(NRRD, err); return 1;
+#else
   size_t num, bsize, size, total_written;
   int block_size, wrote, zerrnum;
   char *data;
@@ -340,17 +343,16 @@ _nrrdWriteDataGzip(Nrrd *nrrd, NrrdIO *io) {
   }
   
   return 0;
-}
 #endif
+}
+
 
 int (*
 nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
   NULL,
   _nrrdWriteDataRaw,
   _nrrdWriteDataAscii,
-#ifdef TEEM_ZLIB
-  _nrrdWriteDataGzip,
-#endif
+  _nrrdWriteDataZlib,
 };
 
 /*

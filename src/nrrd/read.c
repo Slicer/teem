@@ -340,10 +340,13 @@ _nrrdReadDataAscii(Nrrd *nrrd, NrrdIO *io) {
   return 0;
 }
 
-#ifdef TEEM_ZLIB
 int
-_nrrdReadDataZip(Nrrd *nrrd, NrrdIO *io) {
-  char me[]="_nrrdReadDataZip", err[AIR_STRLEN_MED];
+_nrrdReadDataZlib(Nrrd *nrrd, NrrdIO *io) {
+  char me[]="_nrrdReadDataZlib", err[AIR_STRLEN_MED];
+#ifndef TEEM_ZLIB
+  sprintf(err, "%s: sorry, this nrrd not compiled with zlib enabled", me);
+  biffAdd(NRRD, err); return 1;
+#else
   size_t num, bsize, size, total_read;
   int block_size, read, zerrnum, i;
   char *data;
@@ -476,8 +479,8 @@ _nrrdReadDataZip(Nrrd *nrrd, NrrdIO *io) {
   }
   
   return 0;
-}
 #endif
+}
 
 /*
 ** The data readers are responsible for memory allocation.
@@ -488,9 +491,7 @@ nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
   NULL,
   _nrrdReadDataRaw,
   _nrrdReadDataAscii,
-#ifdef TEEM_ZLIB
-  _nrrdReadDataZip,
-#endif
+  _nrrdReadDataZlib,
 };
 
 int

@@ -182,9 +182,7 @@ _nrrdEncodingStr[NRRD_ENCODING_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_encoding)",
   "raw",
   "ascii",
-#ifdef TEEM_ZLIB
   "gz",
-#endif
 };
 
 char
@@ -192,9 +190,7 @@ _nrrdEncodingStrEqv[][AIR_STRLEN_SMALL] = {
   "(unknown_encoding)",
   "raw",
   "ascii",
-#ifdef TEEM_ZLIB
   "gz", "gzip",
-#endif
   ""
 };
 
@@ -203,9 +199,7 @@ _nrrdEncodingValEqv[] = {
   nrrdEncodingUnknown,
   nrrdEncodingRaw,
   nrrdEncodingAscii,
-#ifdef TEEM_ZLIB
   nrrdEncodingGzip, nrrdEncodingGzip,
-#endif
 };
 
 airEnum
