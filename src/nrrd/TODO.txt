@@ -21,6 +21,16 @@ of a filename could be in more than one format (for reading), then
 perhaps the ordering of nrrdFormatAll would impose some preferential
 ordering on the formats.
 
+in nrrd/formatNRRD.c, the error message for parsing per-axis fields is a 
+little lame:
+
+  [nrrd] _nrrdFormatNRRD_read: trouble parsing centers info "node"
+
+when really it should be:
+
+  [nrrd] _nrrdFormatNRRD_read: trouble parsing centers info "node blah node"
+
+
 unu heq should not DIE if min==max, it should just be a no-op.
 unu heq -s 2 shouldn't DIE if there are only 2 bins with any hits
 
