@@ -24,7 +24,7 @@
 int
 main(int argc, char *argv[]) {
   char *me, *err;
-  int enc;
+  int enc, form;
 
   me = argv[0];
   if (!nrrdSanity()) {
@@ -39,6 +39,11 @@ main(int argc, char *argv[]) {
     for (enc=nrrdEncodingTypeUnknown+1; enc<nrrdEncodingTypeLast; enc++) {
       printf("%s: %s\n", airEnumStr(nrrdEncodingType, enc),
 	     nrrdEncodingArray[enc]->available() ? "yes" : "not available");
+    }
+    printf("%s: formats supported in this build:\n", me);
+    for (form=nrrdFormatTypeUnknown+1; form<nrrdFormatTypeLast; form++) {
+      printf("%s: %s\n", airEnumStr(nrrdFormatType, form),
+	     nrrdFormatArray[form]->available() ? "yes" : "not available");
     }
   }
 
