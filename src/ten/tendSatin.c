@@ -156,7 +156,7 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
     }
   }
 
-  if (tenTensorMake(nout, nconf, neval, nevec)) {
+  if (tenMake(nout, nconf, neval, nevec)) {
     sprintf(err, "%s: trouble generating output", me);
     biffAdd(TEN, err); return 1;
   }

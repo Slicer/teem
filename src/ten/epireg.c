@@ -160,60 +160,11 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **nin, int ninLen,
 }
 
 int
-_tenEpiRegFindValley(int *valIdxP, Nrrd *nhist) {
-  char me[]="_tenEpiRegFindValley", err[AIR_STRLEN_MED];
-  double gparm[NRRD_KERNEL_PARMS_NUM], dparm[NRRD_KERNEL_PARMS_NUM];
-  Nrrd *ntmpA, *ntmpB, *nhistD, *nhistDD;
-  float *histD, *histDD;
-  airArray *mop;
-  int bb, bins;
-
-  mop = airMopNew();
-  airMopAdd(mop, ntmpA=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, ntmpB=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nhistD=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nhistDD=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-
-  bins = nhist->axis[0].size;
-  gparm[0] = bins/50;  /* wacky heuristic for gaussian stdev */
-  gparm[1] = 3;        /* how many stdevs to cut-off at */
-  dparm[0] = 1.0;      /* unit spacing */
-  dparm[1] = 1.0;      /* B-Spline kernel */
-  dparm[2] = 0.0;
-  if (nrrdCheapMedian(ntmpA, nhist, AIR_FALSE, 2, 1.0, 1024)
-      || nrrdSimpleResample(ntmpB, ntmpA,
-			    nrrdKernelGaussian, gparm, &bins, NULL)
-      || nrrdSimpleResample(nhistD, ntmpB,
-			    nrrdKernelBCCubicD, dparm, &bins, NULL)
-      || nrrdSimpleResample(nhistDD, ntmpB,
-			    nrrdKernelBCCubicDD, dparm, &bins, NULL)) {
-    sprintf(err, "%s: trouble processing histogram", me);
-    biffMove(TEN, err, NRRD), airMopError(mop); return 1;
-  }
-  histD = (float*)(nhistD->data);
-  histDD = (float*)(nhistDD->data);
-  for (bb=0; bb<bins-1; bb++) {
-    if (histD[bb]*histD[bb+1] < 0 && histDD[bb] > 0) {
-      /* zero-crossing in 1st deriv, positive 2nd deriv */
-      break;
-    }
-  }
-  if (bb == bins-1) {
-    sprintf(err, "%s: never saw a satisfactory zero crossing", me);
-    biffAdd(TEN, err); airMopError(mop); return 1;
-  }
-
-  *valIdxP = bb;
-  airMopOkay(mop);
-  return 0;
-}
-
-int
 _tenEpiRegFindThresh(float *B0thrP, float *DWthrP, Nrrd **nin, int ninLen) {
   char me[]="_tenEpiRegFindThresh", err[AIR_STRLEN_MED];
   Nrrd *nhist, *ntmp;
   airArray *mop;
-  int ni, val, bins, E;
+  int ni, bins, E;
   double min=0, max=0;
 
   mop = airMopNew();
@@ -226,11 +177,10 @@ _tenEpiRegFindThresh(float *B0thrP, float *DWthrP, Nrrd **nin, int ninLen) {
     sprintf(err, "%s: problem forming B0 histogram", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
-  if (_tenEpiRegFindValley(&val, nhist)) {
+  if (_tenFindValley(B0thrP, nhist, 0.8)) {
     sprintf(err, "%s: problem finding B0 histogram valley", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
-  *B0thrP = nrrdAxisPos(nhist, 0, 0.85*val); /* another wacky hack */
   fprintf(stderr, "%s: using %g for B0 threshold\n", me, *B0thrP);
 
   for (ni=1; ni<ninLen; ni++) {
@@ -261,11 +211,10 @@ _tenEpiRegFindThresh(float *B0thrP, float *DWthrP, Nrrd **nin, int ninLen) {
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
   }
-  if (_tenEpiRegFindValley(&val, nhist)) {
+  if (_tenFindValley(DWthrP, nhist, 0.85)) {
     sprintf(err, "%s: problem finding DWI histogram valley", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
-  *DWthrP = nrrdAxisPos(nhist, 0, 0.85*val); /* another wacky hack */
   fprintf(stderr, "%s: using %g for DWI threshold\n", me, *DWthrP);
   
   airMopOkay(mop);
@@ -555,7 +504,7 @@ _tenEpiRegPairXforms(Nrrd *npxfr, Nrrd **nmom, int ninLen) {
 }
 
 #define SHEAR  2
-#define MAG    3
+#define SCALE  3
 #define TRAN   4
 
 int
@@ -598,10 +547,10 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
 	gA = grad + 0 + 3*(A-1);
 	gB = grad + 0 + 3*(B-1);
 	ELL_3V_SET(mat1 + 3*ri,
-		   pxfr[MAG]*gA[0] - gB[0],
-		   pxfr[MAG]*gA[1] - gB[1],
-		   pxfr[MAG]*gA[2] - gB[2]);
-	vec[ri] = 1 - pxfr[MAG];
+		   pxfr[SCALE]*gA[0] - gB[0],
+		   pxfr[SCALE]*gA[1] - gB[1],
+		   pxfr[SCALE]*gA[2] - gB[2]);
+	vec[ri] = 1 - pxfr[SCALE];
 	ri += 1;
       }
     }
@@ -624,9 +573,9 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
 	gA = grad + 0 + 3*(A-1);
 	gB = grad + 0 + 3*(B-1);
 	ELL_3V_SET(mat1 + 3*ri,
-		   gB[0] - pxfr[MAG]*gA[0],
-		   gB[1] - pxfr[MAG]*gA[1],
-		   gB[2] - pxfr[MAG]*gA[2]);
+		   gB[0] - pxfr[SCALE]*gA[0],
+		   gB[1] - pxfr[SCALE]*gA[1],
+		   gB[2] - pxfr[SCALE]*gA[2]);
 	vec[ri] = pxfr[SHEAR];
 	ri += 1;
       }
@@ -650,9 +599,9 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
 	gA = grad + 0 + 3*(A-1);
 	gB = grad + 0 + 3*(B-1);
 	ELL_3V_SET(mat1 + 3*ri,
-		   gB[0] - pxfr[MAG]*gA[0],
-		   gB[1] - pxfr[MAG]*gA[1],
-		   gB[2] - pxfr[MAG]*gA[2]);
+		   gB[0] - pxfr[SCALE]*gA[0],
+		   gB[1] - pxfr[SCALE]*gA[1],
+		   gB[2] - pxfr[SCALE]*gA[2]);
 	vec[ri] = pxfr[TRAN];
 	ri += 1;
       }
@@ -738,11 +687,11 @@ _tenEpiRegGetHST(double *hhP, double *ssP, double *ttP,
 }
 
 int
-_tenEpiRegDoit1(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
+_tenEpiRegWarp1(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
 		Nrrd **nin, int ninLen,
 		int ref, NrrdKernel *kern, double *kparm,
 		int verb) {
-  char me[]="_tenEpiRegDoit1", err[AIR_STRLEN_MED];
+  char me[]="_tenEpiRegWarp1", err[AIR_STRLEN_MED];
   gageContext *gtx;
   gagePerVolume *pvl=NULL;
   airArray *mop;
@@ -841,7 +790,6 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
   float *wght, *in, pp, pf, tmp;
   int *idx, supp, sx, sy, xi, yi, pb, pi;
   double (*ins)(void *, size_t, double), (*clamp)(double);
-
   
   sy = nin->axis[0].size;
   sx = nin->axis[1].size;
@@ -870,7 +818,7 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
     for (yi=0; yi<sy; yi++) {
       tmp = 0;
       for (pi=0; pi<2*supp; pi++) {
-	tmp += idx[pi] >= 0 ? in[idx[pi]]*wght[pi] : 0;
+	tmp += idx[pi] >= 0 ? in[idx[pi]]*wght[pi] : 1;
       }
       ins(nout->data, xi + sx*yi, clamp(ss*tmp));
       idx += 2*supp;
@@ -883,18 +831,18 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
 }
 
 /*
-** _tenEpiRegDoit2()
+** _tenEpiRegWarp2()
 **
-** an optimized version of _tenEpiRegDoit1(), which is MUCH faster because
+** an optimized version of _tenEpiRegWarp1(), which is MUCH faster because
 ** it doesn't use gage, which is appropriate, since the resampling is really
 ** only happening along one dimension.
 */
 int
-_tenEpiRegDoit2(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
+_tenEpiRegWarp2(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
 		Nrrd **nin, int ninLen,
 		int ref, NrrdKernel *kern, double *kparm,
 		int verb) {
-  char me[]="_tenEpiRegDoit2", err[AIR_STRLEN_MED];
+  char me[]="_tenEpiRegWarp2", err[AIR_STRLEN_MED];
   Nrrd *ntmp, *nfin, *nslcA, *nslcB, *nwght, *nidx;
   airArray *mop;
   int sx, sy, sz, ni, zi, supp;
@@ -998,8 +946,8 @@ tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
   airMopAdd(mop, nprog = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nhst = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ngrad = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  if (tenGradNormalize(ngrad, _ngrad)) {
-    sprintf(err, "%s: trouble normalizing/converting gradients", me);
+  if (nrrdConvert(ngrad, _ngrad, nrrdTypeDouble)) {
+    sprintf(err, "%s: trouble converting gradients to doubles", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
 
@@ -1103,7 +1051,7 @@ tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
   }
 
   /* ------ doit */
-  if (_tenEpiRegDoit2(nbuffB, npxfr, nhst, ngrad, nin, ninLen,
+  if (_tenEpiRegWarp2(nbuffB, npxfr, nhst, ngrad, nin, ninLen,
 		      reference, kern, kparm, verbose)) {
     sprintf(err, "%s: trouble performing final registration", me);
     biffAdd(TEN, err); airMopError(mop); return 1;

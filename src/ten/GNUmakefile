@@ -42,15 +42,16 @@ $(L).SEEN := true
 
 #### Describe library here
 ####
+#### tendCalc.o nixed
 $(L).NEED = echo limn gage dye unrrdu ell nrrd biff air
 $(L).PUBLIC_HEADERS = ten.h tenMacros.h
 $(L).PRIVATE_HEADERS = tenPrivate.h
 $(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o miscTen.o \
 	tenGage.o fiberMethods.o fiber.o epireg.o defaultsTen.o \
 	tendFlotsam.o tendAnplot.o tendAnvol.o tendEval.o \
-	tendEvec.o tendCalc.o tendSten.o tendExpand.o tendEvq.o tendPoint.o \
+	tendEvec.o tendSten.o tendExpand.o tendEvq.o tendPoint.o \
 	tendAnhist.o tendMake.o tendSatin.o tendShrink.o tendGlyph.o \
-	tendFiber.o tendEpireg.o tendEmat.o tendEstim.o
+	tendFiber.o tendEpireg.o tendEmat.o tendEstim.o tendSim.o
 $(L).TESTS = test/tg test/tt
 ####
 ####

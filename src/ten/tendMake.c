@@ -50,7 +50,7 @@ tend_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (tenTensorMake(nout, nin[0], nin[1], nin[2])) {
+  if (tenMake(nout, nin[0], nin[1], nin[2])) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making tensor volume:\n%s\n", me, err);
     airMopError(mop); return 1;

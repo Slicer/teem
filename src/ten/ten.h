@@ -285,21 +285,22 @@ extern ten_export int tenVerbose;
 extern int tenTensorCheck(Nrrd *nin, int wantType, int useBiff);
 extern int tenExpand(Nrrd *tnine, Nrrd *tseven, float scale, float thresh);
 extern int tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine);
-extern int tenEigensolve(float eval[3], float evec[9], float t[7]);
-extern int tenTensorMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec);
+extern int tenEigensolve(float eval[3], float evec[9], float ten[7]);
+extern void tenMakeOne(float ten[7], float conf, float eval[3], float evec[9]);
+extern int tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec);
 
 /* chan.c */
+/* old tenCalc* functions replaced by tenEstimate* */
 extern int tenEstimationMatrix(Nrrd *nemat, Nrrd *ngrad);
-extern void tenCalcOneTensor1(float tens[7], float chan[7], 
-			      float thresh, float slope, float b);
-extern void tenCalcOneTensor2(float tens[7], float chan[7], 
-			      float thresh, float slope, float b);
-extern int tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
-			 float thresh, float slope, float b);
-extern void tenEstimateOne(float *ten, float *dwi, float *emat, int NN,
+extern int tenWeightingMatrix(Nrrd *nwmat, Nrrd *ngrad);
+extern void tenEstimateOne(float *ten, float *dwi, double *emat, int NN,
 			   float thresh, float soft, float b);
-extern int tenEstimate(Nrrd *nten, Nrrd *ndwi, Nrrd *_nemat,
+extern int tenEstimate(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *nemat,
 		       float thresh, float soft, float b);
+extern void tenSimulateOne(float *dwi, float B0, float *ten,
+			   double *wmat, int DD, float b);
+extern int tenSimulate(Nrrd *ndwi, Nrrd *nT2, Nrrd *nten,
+		       Nrrd *ngrad, float b);
 
 /* aniso.c */
 extern ten_export float tenAnisoSigma;  /* added to denominator
@@ -315,7 +316,8 @@ extern short tenEvqOne(float vec[3], float scl);
 extern int tenEvqVolume(Nrrd *nout, Nrrd *nin, int which,
 			int aniso, int scaleByAniso);
 extern int tenGradCheck(Nrrd *ngrad);
-extern int tenGradNormalize(Nrrd *nout, Nrrd *nin);
+extern int _tenFindValley(float *valP, Nrrd *nhist, float tweak);
+extern int tenEigenvalueMin(Nrrd *nout, Nrrd *nin, float mineval);
 
 /* fiberMethods.c */
 extern const char tenDefFiberKernel[];
@@ -356,6 +358,7 @@ extern ten_export gageKind *tenGageKind;
 F(epireg) \
 F(emat) \
 F(estim) \
+F(sim) \
 F(make) \
 F(sten) \
 F(glyph) \

@@ -34,26 +34,34 @@ int
 tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
-  char *perr, *err;
+  char *perr, *err, *terrS;
   airArray *mop;
 
-  Nrrd *ndwi, *nemat, *ngrad, *nout;
+  Nrrd *ndwi, *ngrad, *nterr=NULL, *nout;
   char *outS;
   float thresh, soft, b;
 
-  hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, NULL,
+  hestOptAdd(&hopt, "e", "filename", airTypeString, 1, 1, &terrS, "",
+	     "Giving a filename here allows you to save out the tensor "
+	     "error: a value which measures how much error there is between "
+	     "the tensor model and the given diffusion weighted measurements "
+	     "for each sample.  By default, no such error calculation is "
+	     "saved.");
+  hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "nan",
 	     "value at which to threshold the mean DWI value per pixel "
-	     "in order to generate the \"confidence\" mask");
+	     "in order to generate the \"confidence\" mask.  By default, "
+	     "the threshold value is calculated automatically, based on "
+	     "histogram analysis.");
   hestOptAdd(&hopt, "s", "soft", airTypeFloat, 1, 1, &soft, "0",
 	     "how fuzzy confidence boundary should be.  By default, "
 	     "confidence boundary is perfectly sharp");
   hestOptAdd(&hopt, "b", "b", airTypeFloat, 1, 1, &b, "1",
 	     "b value from scan");
+  hestOptAdd(&hopt, "g", "grads", airTypeOther, 1, 1, &ngrad, NULL,
+	     "array of gradient directions", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "i", "dwi", airTypeOther, 1, 1, &ndwi, "-",
 	     "4-D volume of all DWIs, stacked along axis 0, starting with "
 	     "the B=0 image", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "g", "grads", airTypeOther, 1, 1, &ngrad, NULL,
-	     "array of gradient directions", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
 	     "output image (floating point)");
 
@@ -65,16 +73,20 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  nemat = nrrdNew();
-  airMopAdd(mop, nemat, (airMopper)nrrdNuke, airMopAlways);
 
-  if (tenEstimationMatrix(nemat, ngrad)
-      || tenEstimate(nout, ndwi, nemat, thresh, soft, b)) {
+  if (tenEstimate(nout, airStrlen(terrS) ? &nterr : NULL, 
+		  ndwi, ngrad, thresh, soft, b)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making tensor volume:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
-
+  if (nterr) {
+    if (nrrdSave(terrS, nterr, NULL)) {
+      airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
+  }
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);

@@ -121,45 +121,124 @@ tenGradCheck(Nrrd *ngrad) {
     sprintf(err, "%s: basic validity check failed", me);
     biffMove(TEN, err, NRRD); return 1;
   }
-  if (!( 2 == ngrad->dim && 3 == ngrad->axis[0].size )) {
-    sprintf(err, "%s: not a 3xN 2-D array", me);
+  if (!( 3 == ngrad->axis[0].size && 2 == ngrad->dim )) {
+    sprintf(err, "%s: need a 3xN 2-D array (not a %dxN %d-D array)",
+	    me, ngrad->axis[0].size, ngrad->dim);
     biffAdd(TEN, err); return 1;
   }
-  /*
   if (!( 6 <= ngrad->axis[1].size )) {
     sprintf(err, "%s: have only %d gradients, need at least 6",
 	    me, ngrad->axis[1].size);
     biffAdd(TEN, err); return 1;
   }
-  */
 
   return 0;
 }
 
 /*
-******** tenGradNormalize
+******** _tenFindValley
 **
-** this converts to doubles and normalizes each row (gradient vector)
+** This is not a general purpose function, and it will take some
+** work to make it that way.
+**
+** the tweak argument implements a cheesy heuristic: threshold should be
+** on low side of histogram valley, since stdev for background is much
+** narrower then stdev for brain
 */
 int
-tenGradNormalize(Nrrd *nout, Nrrd *nin) {
-  char me[]="tenGradNormalize", err[AIR_STRLEN_MED];
-  double len, *grad;
-  int gi;
+_tenFindValley(float *valP, Nrrd *nhist, float tweak) {
+  char me[]="_tenFindValley", err[AIR_STRLEN_MED];
+  double gparm[NRRD_KERNEL_PARMS_NUM], dparm[NRRD_KERNEL_PARMS_NUM];
+  Nrrd *ntmpA, *ntmpB, *nhistD, *nhistDD;
+  float *hist, *histD, *histDD;
+  airArray *mop;
+  int bb, bins;
 
-  if (!nout || tenGradCheck(nin)) {
-    sprintf(err, "%s: invalid args", me);
+  mop = airMopNew();
+  airMopAdd(mop, ntmpA=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, ntmpB=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nhistD=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nhistDD=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+
+  bins = nhist->axis[0].size;
+  gparm[0] = bins/50;  /* wacky heuristic for gaussian stdev */
+  gparm[1] = 3;        /* how many stdevs to cut-off at */
+  dparm[0] = 1.0;      /* unit spacing */
+  dparm[1] = 1.0;      /* B-Spline kernel */
+  dparm[2] = 0.0;
+  if (nrrdCheapMedian(ntmpA, nhist, AIR_FALSE, 2, 1.0, 1024)
+      || nrrdSimpleResample(ntmpB, ntmpA,
+			    nrrdKernelGaussian, gparm, &bins, NULL)
+      || nrrdSimpleResample(nhistD, ntmpB,
+			    nrrdKernelBCCubicD, dparm, &bins, NULL)
+      || nrrdSimpleResample(nhistDD, ntmpB,
+			    nrrdKernelBCCubicDD, dparm, &bins, NULL)) {
+    sprintf(err, "%s: trouble processing histogram", me);
+    biffMove(TEN, err, NRRD), airMopError(mop); return 1;
+  }
+  hist = (float*)(ntmpB->data);
+  histD = (float*)(nhistD->data);
+  histDD = (float*)(nhistDD->data);
+  nrrdMinMaxSet(ntmpB);
+  for (bb=0; bb<bins-1; bb++) {
+    if (hist[bb] == ntmpB->max) {
+      /* first seek to max in histogram */
+      break;
+    }
+  }
+  for (; bb<bins-1; bb++) {
+    if (histD[bb]*histD[bb+1] < 0 && histDD[bb] > 0) {
+      /* zero-crossing in 1st deriv, positive 2nd deriv */
+      break;
+    }
+  }
+  if (bb == bins-1) {
+    sprintf(err, "%s: never saw a satisfactory zero crossing", me);
+    biffAdd(TEN, err); airMopError(mop); return 1;
+  }
+
+  *valP = nrrdAxisPos(nhist, 0, tweak*bb);
+
+  airMopOkay(mop);
+  return 0;
+}
+
+/*
+******** tenEigenvalueMin
+**
+** enstates the given value as the lowest eigenvalue
+*/
+int
+tenEigenvalueMin(Nrrd *nout, Nrrd *nin, float mineval) {
+  char me[]="tenEigenvalueMin", err[AIR_STRLEN_MED];
+  int sx, sy, sz;
+  size_t II;
+  float *tin, *tout, eval[3], evec[9];
+
+  if (!nout || !nin || tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE)) {
+    sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  if (nrrdConvert(nout, nin, nrrdTypeDouble)) {
-    sprintf(err, "%s: ", me);
-    biffMove(TEN, err, NRRD); return 1;
+  sx = nin->axis[1].size;
+  sy = nin->axis[2].size;
+  sz = nin->axis[3].size;
+  if (nout != nin) {
+    if (nrrdMaybeAlloc(nout, nrrdTypeFloat, 4, 7, sx, sy, sz)) {
+      sprintf(err, "%s: couldn't allocate output", me);
+      biffMove(TEN, err, NRRD); return 1;
+    }
   }
-  grad = (double*)(nout->data);
-  for (gi=0; gi<nout->axis[1].size; gi++) {
-    ELL_3V_NORM(grad, grad, len);
-    grad += 3;
+  tin = (float *)(nin->data);
+  tout = (float *)(nout->data);
+  for (II=0; II<sx*sy*sz; II++) {
+    tenEigensolve(eval, evec, tin);
+    eval[0] = AIR_MAX(eval[0], mineval);
+    eval[1] = AIR_MAX(eval[1], mineval);
+    eval[2] = AIR_MAX(eval[2], mineval);
+    tenMakeOne(tout, tin[0], eval, evec);
+    ELL_7V_COPY(tout, tin);
+    tin += 7;
+    tout += 7;
   }
-
   return 0;
 }

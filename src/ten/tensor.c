@@ -282,18 +282,32 @@ tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
     }
 */
 
+void
+tenMakeOne(float ten[7], float conf, float eval[3], float evec[9]) {
+  double tmpMat1[9], tmpMat2[9], diag[9], evecT[9];
+
+  ELL_3M_ZERO_SET(diag);
+  ELL_3M_DIAG_SET(diag, eval[0], eval[1], eval[2]);
+  ELL_3M_TRANSPOSE(evecT, evec);
+  ELL_3M_MUL(tmpMat1, diag, evecT);
+  ELL_3M_MUL(tmpMat2, evec, tmpMat1);
+  ten[0] = conf;
+  TEN_MAT2LIST(ten, tmpMat2);
+  return;
+}
+
 /*
-******** tenTensorMake
+******** tenMake
 **
 ** create a tensor nrrd from nrrds of confidence, eigenvalues, and
 ** eigenvectors
 */
 int
-tenTensorMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec) {
+tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec) {
   char me[]="tenTensorMake", err[AIR_STRLEN_MED];
   int sx, sy, sz;
   size_t I, N;
-  float *out, *conf, tmpMat1[9], tmpMat2[9], diag[9], *eval, *evec, evecT[9];
+  float *out, *conf, *eval, *evec;
   int map[4];
   /* float teval[3], tevec[9], tmp1[3], tmp2[3]; */
 
@@ -353,18 +367,12 @@ tenTensorMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec) {
     biffMove(TEN, err, NRRD); return 1;
   }
   N = sx*sy*sz;
-  conf = nconf->data;
-  eval = neval->data;
-  evec = nevec->data;
-  out = nout->data;
+  conf = (float *)(nconf->data);
+  eval = (float *)neval->data;
+  evec = (float *)nevec->data;
+  out = (float *)nout->data;
   for (I=0; I<N; I++) {
-    ELL_3M_ZERO_SET(diag);
-    ELL_3M_DIAG_SET(diag, eval[0], eval[1], eval[2]);
-    ELL_3M_TRANSPOSE(evecT, evec);
-    ELL_3M_MUL(tmpMat1, diag, evecT);
-    ELL_3M_MUL(tmpMat2, evec, tmpMat1);
-    out[0] = conf[I];
-    TEN_MAT2LIST(out, tmpMat2);
+    tenMakeOne(out, conf[I], eval, evec);
     /* lop A */
     out += 7;
     eval += 3;

@@ -27,9 +27,11 @@ char *_tend_ematInfoL =
    "one of the gradient directions used for diffusion-weighted imaging. "
    "A plain text file with one gradient per line, no punctuation, is an "
    "easy way to specify this information. "
-   "The gradient directions do not need to be normalized.  The output is "
+   "The gradient vector coefficients are used as is, without normalization "
+   "(since different gradient strengths are sometimes desired). "
+   "The output is "
    "a matrix suitable for least-squares estimation of the six tensor "
-   "components, in order Dxx, Dxy, Dxz, Dyy, Dyz, Dzz.");
+   "components, in the order Dxx, Dxy, Dxz, Dyy, Dyz, Dzz.");
 
 int
 tend_ematMain(int argc, char **argv, char *me, hestParm *hparm) {
