@@ -46,7 +46,8 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
 	 "output file format. Possibilities include:\n "
 	 "\b\bo \"nrrd\": standard nrrd format\n "
 	 "\b\bo \"pnm\": PNM image; PPM for color, PGM for grayscale\n "
-	 "\b\bo \"text\": plain ASCII text for 1-D and 2-D data");
+	 "\b\bo \"text\": plain ASCII text for 1-D and 2-D data\n "
+	 "\b\bo \"vtk\": VTK \"STRUCTURED_POINTS\" dataset");
   if (nrrdFormatIsAvailable[nrrdFormatPNG]) {
     strcat(fmtInfo,
 	   "\n \b\bo \"png\": PNG image");
@@ -54,7 +55,8 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "f", "format", airTypeEnum, 1, 1, &(io->format), NULL,
 	     fmtInfo, NULL, nrrdFormat);
   strcpy(encInfo,
-	 "output file format. Possibilities include:"
+	 "encoding of data in file.  Not all encodings are supported in "
+	 "a given format. Possibilities include:"
 	 "\n \b\bo \"raw\": raw encoding"
 	 "\n \b\bo \"ascii\": print data in ascii"
 	 "\n \b\bo \"hex\": two hex digits per byte");
@@ -82,7 +84,7 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     encInfo, NULL, NULL, &unrrduHestEncodingCB);
   hestOptAdd(&opt, "en", "endian", airTypeEnum, 1, 1, &(io->endian),
 	     airEnumStr(airEndian, airMyEndian),
-	     "Endianness of to save data out as; \"little\" for Intel and "
+	     "Endianness to save data out as; \"little\" for Intel and "
 	     "friends; \"big\" for everyone else. "
 	     "Defaults to endianness of this machine",
 	     NULL, airEndian);
