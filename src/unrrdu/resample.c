@@ -35,43 +35,6 @@ char *resampleInfoL = (INFO
 		       "node-centered data.");
 
 /*
-** unuNrrdKernel
-** 
-** this is what will be parsed from the command-line: a kernel and its
-** parameter list
-*/
-typedef struct {
-  NrrdKernel *kernel;
-  double parm[NRRD_KERNEL_PARMS_NUM];
-} unuNrrdKernel;
-
-int
-unuParseKernel(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  unuNrrdKernel *ker;
-  char me[]="unuParseKernel", *nerr;
-
-  if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  ker = ptr;
-  if (nrrdKernelParse(&(ker->kernel), ker->parm, str)) {
-    nerr = biffGetDone(NRRD);
-    strncpy(err, nerr, AIR_STRLEN_HUGE-1);
-    free(nerr);
-    return 1;
-  }
-  return 0;
-}
-
-hestCB unuKernelHestCB = {
-  sizeof(unuNrrdKernel),
-  "kernel specification",
-  unuParseKernel,
-  NULL
-};
-
-/*
 ** unuParseScale
 **
 ** parse "=", "x<float>", and "<int>".  These possibilities are represented
@@ -130,7 +93,7 @@ resampleMain(int argc, char **argv, char *me) {
   float *scale;
   double padVal;
   NrrdResampleInfo *info;
-  unuNrrdKernel unuk;
+  NrrdKernelSpec *unuk;
 
   OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "s", "s0 ", airTypeOther, 1, -1, &scale, NULL,
@@ -154,7 +117,7 @@ resampleMain(int argc, char **argv, char *me) {
 	     "interpolating quartics (\"quartic:0.0834\" is most accurate)\n "
 	     "\b\bo \"gauss:S,C\": Gaussian blurring, with standard deviation "
 	     "S and cut-off at C standard deviations",
-	     NULL, NULL, &unuKernelHestCB);
+	     NULL, NULL, nrrdHestNrrdKernelSpec);
   hestOptAdd(&opt, "b", "behavior", airTypeEnum, 1, 1, &bb, "bleed",
 	     "How to handle samples beyond the input bounds:\n "
 	     "\b\bo \"pad\": use some specified value\n "
@@ -185,7 +148,7 @@ resampleMain(int argc, char **argv, char *me) {
   }
   for (d=0; d<=nin->dim-1; d++) {
     /* this may be over-written below */
-    info->kernel[d] = unuk.kernel;
+    info->kernel[d] = unuk->kernel;
     switch((int)scale[0 + 2*d]) {
     case 0:
       /* no resampling */
@@ -200,7 +163,7 @@ resampleMain(int argc, char **argv, char *me) {
       info->samples[d] = scale[1 + 2*d];
       break;
     }
-    memcpy(info->parm[d], unuk.parm, NRRD_KERNEL_PARMS_NUM*sizeof(double));
+    memcpy(info->parm[d], unuk->parm, NRRD_KERNEL_PARMS_NUM*sizeof(double));
     if (info->kernel[d] &&
 	(!( AIR_EXISTS(nin->axis[d].min) && AIR_EXISTS(nin->axis[d].max))) ) {
       nrrdAxisMinMaxSet(nin, d);

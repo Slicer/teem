@@ -33,16 +33,43 @@ hoovStubThreadBegin(void **threadInfoP, void *rendInfo, void *userInfo,
 }
 
 int 
-hoovStubRayBegin(void *threadInfo, void *rendInfo, void *userInfo,
-		 int uIndex, int vIndex, 
-		 double dirWorld[3], double dirIndex[3]) {
+hoovStubRayBegin(void *threadInfo, void *renderInfo, void *userInfo,
+		 int uIndex,
+		 int vIndex, 
+		 double rayLen,
+		 double rayStartWorld[3],
+		 double rayStartIndex[3],
+		 double rayDirWorld[3],
+		 double rayDirIndex[3]) {
+  char me[]="hoovStubRayBegin";
+
+  /*
+  fprintf(stderr, "%s: ray(%d,%d), len=%g\n"
+	  "  start=(%g,%g,%g)\n"
+	  "  dir=(%g,%g,%g)\n",
+	  me, uIndex, vIndex, rayLen,
+	  rayStartWorld[0], rayStartWorld[1], rayStartWorld[2],
+	  rayDirWorld[0], rayDirWorld[1], rayDirWorld[2]);
+  */
+
   return 0;
 }
 
 double
-hoovStubSample(void *threadInfo, void *rendInfo, void *userInfo,
-	       int in, double pos[3]) {
-  return 0;
+hoovStubSample(void *threadInfo, void *renderInfo, void *userInfo,
+	       int num, double rayT,
+	       int inside,
+	       double samplePosWorld[3],
+	       double samplePosIndex[3]) {
+  char me[]="hoovStubSample";
+
+  /*
+  fprintf(stderr, "%s:      sample(%g,%g,%g)\n", me,
+	  samplePosWorld[0], samplePosWorld[1], samplePosWorld[2]);
+  */
+
+  /* we want the stub renderer to actually finish */
+  return 1.0;  
 }
 
 int

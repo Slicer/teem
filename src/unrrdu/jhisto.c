@@ -39,7 +39,7 @@ jhistoMain(int argc, char **argv, char *me) {
 
   hestOptAdd(&opt, "i", "nin0 nin1", airTypeOther, 2, -1, &nin, NULL,
 	     "All input nrrds",
-	     &ninLen, NULL, &unuNrrdHestCB);
+	     &ninLen, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "b", "bins0 bins1", airTypeInt, 2, -1, &bin, NULL,
 	     "bins<i> is the number of bins to use along axis i (of joint "
 	     "histogram), which represents the values of nin<i> ",

@@ -104,8 +104,8 @@ echoLimnCamNew(void) {
   limnCam *cam;
 
   cam = limnCamNew();
-  cam->eyeRel = AIR_FALSE;
-  cam->leftHanded = AIR_FALSE;
+  cam->atRel = AIR_TRUE;
+  cam->rightHanded = AIR_TRUE;
 
   return cam;
 }

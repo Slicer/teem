@@ -41,7 +41,7 @@ extern "C" {
 /* Nrrd *var */
 #define OPT_ADD_NIN(var, desc) \
   hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &(var), "-", desc, \
-	     NULL, NULL, &unuNrrdHestCB)
+             NULL, NULL, nrrdHestNrrd)
 
 /* char *var */
 #define OPT_ADD_NOUT(var, desc) \
@@ -62,8 +62,6 @@ extern "C" {
              NULL, nrrdType)
 
 extern hestParm *hparm;
-extern hestCB unuNrrdHestCB;
-extern hestCB unuNrrdIterHestCB;
 extern hestCB unuPosHestCB;
 extern hestCB unuMaybeTypeHestCB;
 

@@ -390,19 +390,19 @@ echoRender(Nrrd *nraw, limnCam *cam,
   ELL_3V_SCALEADD(imgOrig, 1.0, eye, cam->vspDist, N);
   
   /* determine pixel dimensions */
-  pixUsz = (cam->uMax - cam->uMin)/(parm->imgResU);
-  pixVsz = (cam->vMax - cam->vMin)/(parm->imgResV);
+  pixUsz = (cam->uRange[1] - cam->uRange[0])/(parm->imgResU);
+  pixVsz = (cam->vRange[1] - cam->vRange[0])/(parm->imgResV);
 
   ray.depth = 0;
   ray.shadow = AIR_FALSE;
   img = (echoCol_t *)nraw->data;
   printf("      ");
   for (imgVi=0; imgVi<parm->imgResV; imgVi++) {
-    imgV = NRRD_AXIS_POS(nrrdCenterCell, cam->vMin, cam->vMax,
+    imgV = NRRD_AXIS_POS(nrrdCenterCell, cam->vRange[0], cam->vRange[1],
 			 parm->imgResV, imgVi);
     printf("%s", airDoneStr(0, imgVi, parm->imgResV-1, done)); fflush(stdout);
     for (imgUi=0; imgUi<parm->imgResU; imgUi++) {
-      imgU = NRRD_AXIS_POS(nrrdCenterCell, cam->uMin, cam->uMax,
+      imgU = NRRD_AXIS_POS(nrrdCenterCell, cam->uRange[0], cam->uRange[1],
 			   parm->imgResU, imgUi);
 
       echoVerbose = ( (205 == imgUi && 103 == imgVi) ||

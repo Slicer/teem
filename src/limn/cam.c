@@ -45,17 +45,17 @@ limnCamUpdate(limnCam *cam) {
 	    cam->from[0], cam->from[1], cam->from[2]);
     biffAdd(LIMN, err); return 1;
   }
-  if (cam->eyeRel) {
+  if (cam->atRel) {
+    /* ctx->cam->{near,dist} are "at" relative */
+    cam->vspNear = cam->near + len;
+    cam->vspFaar = cam->faar + len;
+    cam->vspDist = cam->dist + len;
+  }
+  else {
     /* ctx->cam->{near,dist} are eye relative */
     cam->vspNear = cam->near;
     cam->vspFaar = cam->faar;
     cam->vspDist = cam->dist;
-  }
-  else {
-    /* ctx->cam->{near,dist} are "at" relative */
-    cam->vspNear = cam->near + len;
-    cam->vspFaar = cam->faar + len;
-    cam->vspDist = cam->dist +len;
   }
   if (!(cam->vspNear > 0 && cam->vspDist > 0 && cam->vspFaar > 0)) {
     sprintf(err, "%s: eye-relative near (%g), dist (%g), or far (%g) <= 0\n",
@@ -76,17 +76,21 @@ limnCamUpdate(limnCam *cam) {
   }
   ELL_3V_SCALE(u, 1.0/len, u);
 
-  if (cam->leftHanded) {
-    ELL_3V_CROSS(v, u, n);
-  }
-  else {
+  if (cam->rightHanded) {
     ELL_3V_CROSS(v, n, u);
   }
+  else {
+    ELL_3V_CROSS(v, u, n);
+  }
 
+  ELL_4V_COPY(cam->U, u);
+  ELL_4V_COPY(cam->V, v);
+  ELL_4V_COPY(cam->N, n);
   ELL_4M_SET_TRANSLATE(T, -cam->from[0], -cam->from[1], -cam->from[2]);
   ELL_4M_SET_ROWS(R, u, v, n, l);
   ELL_4M_MUL(cam->W2V, R, T);
+  ELL_4M_COPY(T, cam->W2V);
+  ell4mInvert_d(cam->V2W, T);
 
   return 0;
 }
-

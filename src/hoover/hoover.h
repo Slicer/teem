@@ -49,8 +49,9 @@ extern "C" {
 ** 6) the number of threads to spawn
 ** 7) the callbacks
 **
-** For the sake of some simplicity, the centering of both the image
-** and the volume is assumed to be node-centering
+** For the sake of some simplicity, the of both the volume is always
+** assumed to be node-centered, and the image is always assumed to
+** be cell-centered.
 */
 typedef struct {
 
@@ -62,7 +63,7 @@ typedef struct {
   double volSpacing[3];    /* distance between samples in X,Y,Z direction */
   
   /******** 3) image information: dimensions, pixels inside vs. on-edge */
-  int imgUSize, imgVSize;  /* # samples of image along U and V axes */
+  int imgSize[2];          /* # samples of image along U and V axes */
   
   /******** 4) opaque "user information" pointer */
   void *userInfo;          /* passed to all callbacks */
@@ -89,10 +90,11 @@ typedef struct {
   ** renderBegin()
   **
   ** called once at beginning of whole rendering, and
-  ** *rendInfoP is passed to all following calls as "rendInfo".  Any
-  ** mechanisms for inter-thread communication go nicely in rendInfo.
+  ** *renderInfoP is passed to all following calls as "renderInfo".
+  ** Any mechanisms for inter-thread communication go nicely in 
+  ** the renderInfo.
   */
-  int (*renderBegin)(void **rendInfoP, void *userInfo);
+  int (*renderBegin)(void **renderInfoP, void *userInfo);
   
   /* 
   ** threadBegin() 
@@ -101,51 +103,55 @@ typedef struct {
   ** following calls as "threadInfo".
   */
   int (*threadBegin)(void **threadInfoP, 
-		     void *rendInfo, void *userInfo, int whichThread);
+		     void *renderInfo, void *userInfo, int whichThread);
   
   /*
   ** rayBegin()
   **
   ** called once at the beginning of each ray.  This function will be
   ** called regardless of whether the ray actually intersects the
-  ** volume
+  ** volume, but this will change in the future.
   */
-  int (*rayBegin)(void *threadInfo,
-		  void *rendInfo,
-		  void *userInfo,
+  int (*rayBegin)(void *threadInfo, void *renderInfo, void *userInfo,
 		  int uIndex,          /* image coordinates of current ray */
 		  int vIndex, 
-		  double dirWorld[3],  /* unit ray direction, world space */
-		  double dirIndex[3]); /* unit ray direction, index space */
+		  double rayLen,       /* length of ray segment between near
+					  and far planes, in world space */
+		  double rayStartWorld[3],
+		  double rayStartIndex[3],
+		  double rayDirWorld[3],
+		  double rayDirIndex[3]);
 
   /* 
   ** sample()
   **
   ** called once per sample along the ray, and the return value is
   ** used to indicate how far to increment the ray position for the
-  ** next sample.  A return of 0.0 is taken to mean a non-erroneous
-  ** ray termination, a return of NaN is taken to mean an error
-  ** condition.  It is the user's responsibility to store the type of
-  ** this error somewhere accessible.
+  ** next sample.  Negative values back you up.  A return of 0.0 is
+  ** taken to mean a non-erroneous ray termination, a return of NaN is
+  ** taken to mean an error condition.  It is the user's
+  ** responsibility to store an error code or whatever they want
+  ** somewhere accessible.
   **
   ** This is not a terribly flexible scheme (don't forget, this is
   ** hoover): it enforces rather rigid constraints on how
-  ** multi-threading works: one thread can not render multiple rays in
-  ** parallel.  If there were more args to cbSample (like a rayInfo,
-  ** or an integral rayIndex), then this would be possible, but it
-  ** would mean that _hoovThreadBody() would have to implement all the
-  ** smarts about which samples belong on which rays belong with which
-  ** threads.
+  ** multi-threading works: one thread can not render multiple rays
+  ** simulatenously.  If there were more args to cbSample (like a
+  ** rayInfo, or an integral rayIndex), then this would be possible,
+  ** but it would mean that _hoovThreadBody() would have to implement
+  ** all the smarts about which samples belong on which rays belong
+  ** with which threads.
   **
   ** At some point now or in the future, an effort will be made to
   ** never call this function if the ray does not in fact intersect
   ** the volume at all.
   */
-  double (*sample)(void *threadInfo,
-		   void *rendInfo,  
-		   void *userInfo,
-		   int in,             /* this sample is inside the volume */
-		   double pos[3]);     /* position in INDEX space  */
+  double (*sample)(void *threadInfo, void *renderInfo, void *userInfo,
+		   int num,               /* which sample this is (0-based) */
+		   double rayT,           /* position along ray */
+		   int inside,            /* sample is inside the volume */
+		   double samplePosWorld[3],
+		   double samplePosIndex[3]);
 
   /*
   ** rayEnd()
@@ -154,16 +160,14 @@ typedef struct {
   ** 1) sample returns 0.0, or,
   ** 2) when the sample location goes behind far plane
   */
-  int (*rayEnd)(void *threadInfo,
-		void *rendInfo, 
-		void *userInfo);
+  int (*rayEnd)(void *threadInfo,void *renderInfo, void *userInfo);
 
   /* 
   ** threadEnd()
   **
   ** called at end of thread
   */
-  int (*threadEnd)(void *threadInfo, void *rendInfo, void *userInfo);
+  int (*threadEnd)(void *threadInfo, void *renderInfo, void *userInfo);
   
   /* 
   ** renderEnd()
@@ -206,18 +210,28 @@ extern void hoovContextNix(hoovContext *ctx);
 extern int hoovRender(hoovContext *ctx, int *errCodeP, int *errThreadP);
 
 /* stub.c */
-extern int hoovStubRenderBegin(void **rendInfoP, void *userInfo);
+extern int hoovStubRenderBegin(void **renderInfoP, void *userInfo);
 extern int hoovStubThreadBegin(void **threadInfoP, 
-			       void *rendInfo, void *userInfo,
+			       void *renderInfo, void *userInfo,
 			       int whichThread);
-extern int hoovStubRayBegin(void *threadInfo, void *rendInfo, void *userInfo,
-			    int uIndex, int vIndex, 
-			    double dirWorld[3], double dirIndex[3]);
-extern double hoovStubSample(void *threadInfo, void *rendInfo, void *userInfo,
-			     int in, double pos[3]);
-extern int hoovStubRayEnd(void *threadInfo, void *rendInfo, void *userInfo);
-extern int hoovStubThreadEnd(void *threadInfo, void *rendInfo, void *userInfo);
-extern int hoovStubRenderEnd(void *rendInfo, void *userInfo);
+extern int hoovStubRayBegin(void *threadInfo, void *renderInfo, void *userInfo,
+			    int uIndex,
+			    int vIndex, 
+			    double rayLen,
+			    double rayStartWorld[3],
+			    double rayStartIndex[3],
+			    double rayDirWorld[3],
+			    double rayDirIndex[3]);
+extern double hoovStubSample(void *threadInfo, void *renderInfo,
+			     void *userInfo,
+			     int num, double rayT,
+			     int inside,
+			     double samplePosWorld[3],
+			     double samplePosIndex[3]);
+extern int hoovStubRayEnd(void *threadInfo, void *renderInfo, void *userInfo);
+extern int hoovStubThreadEnd(void *threadInfo, void *renderInfo,
+			     void *userInfo);
+extern int hoovStubRenderEnd(void *renderInfo, void *userInfo);
 
 #endif /* HOOV_HAS_BEEN_INCLUDED */
 

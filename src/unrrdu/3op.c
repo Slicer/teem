@@ -47,13 +47,13 @@ topMain(int argc, char **argv, char *me) {
 	     NULL, nrrdTernaryOp);
   hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
 	     "First input.  Can be float or nrrd.",
-	     NULL, NULL, &unuNrrdIterHestCB);
+	     NULL, NULL, nrrdHestNrrdIter);
   hestOptAdd(&opt, NULL, "in2", airTypeOther, 1, 1, &in2, NULL,
 	     "Second input.  Can be float or nrrd.",
-	     NULL, NULL, &unuNrrdIterHestCB);
+	     NULL, NULL, nrrdHestNrrdIter);
   hestOptAdd(&opt, NULL, "in3", airTypeOther, 1, 1, &in3, NULL,
 	     "Third input.  Can be float or nrrd.",
-	     NULL, NULL, &unuNrrdIterHestCB);
+	     NULL, NULL, nrrdHestNrrdIter);
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "unknown",
 	     "type to convert all nrrd inputs to, prior to "
 	     "doing operation.  This also determines output type. "

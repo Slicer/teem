@@ -28,7 +28,7 @@ hoovContextNew() {
     ctx->cam = limnCamNew();
     ELL_3V_SET(ctx->volSize, 0, 0, 0);
     ELL_3V_SET(ctx->volSpacing, AIR_NAN, AIR_NAN, AIR_NAN);
-    ctx->imgUSize = ctx->imgVSize = 0;
+    ctx->imgSize[0] = ctx->imgSize[1] = 0;
     ctx->userInfo = NULL;
     ctx->numThreads = 1;
     ctx->renderBegin = hoovStubRenderBegin;
@@ -43,8 +43,8 @@ hoovContextNew() {
 }
 
 int
-hoovContentCheck(hoovContext *ctx) {
-  char me[] = "hoovContentCheck", err[AIR_STRLEN_MED];
+hoovContextCheck(hoovContext *ctx) {
+  char me[]="hoovContextCheck", err[AIR_STRLEN_MED];
 
   if (!ctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -68,9 +68,9 @@ hoovContentCheck(hoovContext *ctx) {
 	    ctx->volSpacing[0], ctx->volSpacing[1], ctx->volSpacing[2]);
     biffAdd(HOOVER, err); return 1;
   }
-  if (!(ctx->imgUSize > 1 && ctx->imgVSize > 1)) {
+  if (!(ctx->imgSize[0] > 0 && ctx->imgSize[1] > 0)) {
     sprintf(err, "%s: image dimensions (%dx%d) invalid", me,
-	    ctx->imgUSize, ctx->imgVSize);
+	    ctx->imgSize[0], ctx->imgSize[1]);
     biffAdd(HOOVER, err); return 1;
   }
   if (!(ctx->numThreads >= 1)) {

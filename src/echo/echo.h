@@ -32,9 +32,8 @@ extern "C" {
 #include <air.h>
 #include <biff.h>
 #include <ell.h>
-#include <limn.h>
 #include <nrrd.h>
-#include <dye.h>
+#include <limn.h>
 
 #if 0
 typedef float echoPos_t;

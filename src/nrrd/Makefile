@@ -24,11 +24,11 @@ PRIV_HEADERS = private.h
 TEEM_LIB_OBJS = \
 	accessors.o  arith.o      arrays.o     apply.o      \
 	axes.o       comment.o    convert.o    defaults.o   \
-	endian.o     enums.o      filt.o       histogram.o  \
-        iter.o       kernel.o     map.o        measure.o    \
-	methods.o    parse.o      read.o       reorder.o    \
-	resample.o   simple.o     subset.o     superset.o   \
-	write.o
+	endian.o     enums.o      filt.o       hest.o       \
+	histogram.o  iter.o       kernel.o     map.o        \
+	measure.o    methods.o    parse.o      read.o       \
+	reorder.o    resample.o   simple.o     subset.o     \
+	superset.o   write.o
 
 #TEST_BINS = test/enum2str test/str2enum 
 TEST_BINS = test/trand test/shuff test/ax test/io test/minmax test/tkernel

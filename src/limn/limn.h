@@ -32,47 +32,57 @@ extern "C" {
 #include <math.h>
 #include <air.h>
 #include <biff.h>
+#include <hest.h>
 #include <ell.h>
 #include <nrrd.h>
 
 #define LIMN_MAXLIT 20
 
 /*
-****** struct limnCam
+****** limnCam struct
 **
-** for all standard graphics camera parameters
+** for all standard graphics camera parameters.  Image plane is
+** spanned by U and V; N always points away from the viewer.  V can
+** point up or down, if the camera is left- or right-handed,
+** respectively.
 **
-** Has no dynamically allocated information or pointers
+** Has no dynamically allocated information or pointers.
 */
 typedef struct limnCam_t {
-  float from[3],      /* location of eyepoint */
+  double from[3],     /* location of eyepoint */
     at[3],            /* what eye is looking at */
     up[3],            /* what is up direction for eye (this is not updated
-			 to the "true" up) */
-    uMin, uMax,       /* range of U values to put on horiz. image axis */
-    vMin, vMax,       /* range of V values to put on vert. image axis */
+                         to the "true" up) */
+    uRange[2],        /* range of U values to put on horiz. image axis */
+    vRange[2],        /* range of V values to put on vert. image axis */
     near, faar,       /* near and far clipping plane distances
-		 	(misspelled for the sake of McRosopht) */
-    dist;             /* distance to view plane */
-  int eyeRel,         /* if true: near, far, and dist quantities
-			 measure distance from the eyepoint towards the
-			 at point.  if false: near, far, and dist
-			 quantities measure distance from the _at_
-			 point, but with the same sense (sign) as above */
+                         (misspelled for the sake of McRosopht) */
+    dist;             /* distance to image plane */
+  int atRel,          /* if non-zero: given near, faar, and dist
+                         quantities indicate distance relative to the
+			 _at_ point, instead of the usual (in computer
+			 graphics) sense if being relative to the
+			 eye point */
     ortho,            /* no perspective projection: just orthographic */
-    leftHanded;       /* if leftHanded, then V = UxN (V points "upwards"),
-			 otherwise V = NxU (V points "downwards") */
-  float W2V[16],      /* not usually user-set: the world to view
-			 transform.  The _rows_ of this matrix (its
-			 3x3 submatrix) are the U, V, N vectors which
-			 form the view-space coordinate frame.  The
-			 ordering of elements into the matrix is from ell:
-			 0   4   8  12
-			 1   5   9  13
-			 2   6  10  14
-			 3   7  11  15 */
+    rightHanded;      /* if rightHanded, V = NxU (V points "downwards"),
+			 otherwise, V = UxN (V points "upwards") */
+  /* --------------------------------------------------------------------
+     End of user-set parameters.  Things below are set by limnCamUpdate
+     -------------------------------------------------------------------- */
+  double W2V[16],     /* World to view transform. The _rows_ of this
+                         matrix (its 3x3 submatrix) are the U, V, N
+                         vectors which form the view-space coordinate frame.
+                         The column-major ordering of elements into the
+                         matrix is from ell:
+                         0   4   8  12
+                         1   5   9  13
+                         2   6  10  14
+                         3   7  11  15 */
+    V2W[16],          /* View to world transform */
+    U[4], V[4], N[4], /* View space basis vectors (in world coords)
+			 last element always zero */
     vspNear, vspFaar, /* not usually user-set: near, far dist (view space) */
-    vspDist;         
+    vspDist;
 } limnCam;
 
 enum {
@@ -249,6 +259,11 @@ enum {
 };
 #define LIMN_QN_MAX      4
 
+/* defaults.c */
+extern int limnDefCamAtRel;
+extern int limnDefCamOrtho;
+extern int limnDefCamRightHanded;
+
 /* qn.c */
 extern int limnQNBytes[LIMN_QN_MAX+1];
 extern void (*limnQNtoV[LIMN_QN_MAX+1])(float *vec, int qn, int doNorm);
@@ -273,6 +288,12 @@ extern limnCam *limnCamNew(void);
 extern limnCam *limnCamNix(limnCam *cam);
 extern limnWin *limnWinNew(int device);
 extern limnWin *limnWinNix(limnWin *win);
+
+/* hest.c */
+extern void limnHestCamOptAdd(hestOpt **hoptP, limnCam *cam,
+			      char *frDef, char *atDef, char *upDef,
+			      char *dnDef, char *diDef, char *dfDef,
+			      char *urDef, char *vrDef);
 
 /* cam.c */
 extern int limnCamUpdate(limnCam *cam);

@@ -36,6 +36,7 @@ extern "C" {
 #include <errno.h>
 
 #include <air.h>
+#include <hest.h>
 #include <biff.h>
 
 #include "nrrdDefines.h"
@@ -222,6 +223,18 @@ typedef struct {
 } NrrdKernel;
 
 /*
+******** NrrdKernelSpec struct
+** 
+** for those times when it makes most sense to directly associate a
+** NrrdKernel with its parameter vector (that is, a full kernel
+** "spec"ification), basically: using hest.
+*/
+typedef struct {
+  NrrdKernel *kernel;
+  double parm[NRRD_KERNEL_PARMS_NUM];
+} NrrdKernelSpec;
+
+/*
 ******** NrrdResampleInfo struct
 **
 ** a struct to contain the many parameters needed for nrrdSpatialResample()
@@ -315,6 +328,11 @@ extern int nrrdEncodingEndianMatters[];
 extern int nrrdTypeSize[];
 extern int nrrdTypeFixed[];
 
+/******** things useful with hest */
+extern hestCB *nrrdHestNrrd;
+extern hestCB *nrrdHestNrrdKernelSpec;
+extern hestCB *nrrdHestNrrdIter;
+
 /******** pseudo-constructors, pseudo-destructors, and such */
 /* (methods.c) */
 extern NrrdIO *nrrdIONew(void);
@@ -322,6 +340,8 @@ extern void nrrdIOReset(NrrdIO *io);
 extern NrrdIO *nrrdIONix(NrrdIO *io);
 extern NrrdResampleInfo *nrrdResampleInfoNew(void);
 extern NrrdResampleInfo *nrrdResampleInfoNix(NrrdResampleInfo *info);
+extern NrrdKernelSpec *nrrdKernelSpecNew();
+extern NrrdKernelSpec *nrrdKernelSpecNix(NrrdKernelSpec *ksp);
 extern void nrrdInit(Nrrd *nrrd);
 extern Nrrd *nrrdNew(void);
 extern Nrrd *nrrdNix(Nrrd *nrrd);

@@ -45,7 +45,7 @@ rmapMain(int argc, char **argv, char *me) {
   OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "m", "map", airTypeOther, 1, 1, &nmap, NULL,
 	     "regular map to map input nrrd through",
-	     NULL, NULL, &unuNrrdHestCB);
+	     NULL, NULL, nrrdHestNrrd);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

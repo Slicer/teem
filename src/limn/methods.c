@@ -42,9 +42,9 @@ limnCamNew(void) {
 
   cam = (limnCam *)calloc(1, sizeof(limnCam));
   if (cam) {
-    cam->eyeRel = AIR_TRUE;
-    cam->ortho = AIR_FALSE;
-    cam->leftHanded = AIR_FALSE;
+    cam->atRel = limnDefCamAtRel;
+    cam->ortho = limnDefCamOrtho;
+    cam->rightHanded = limnDefCamRightHanded;
   }
   return cam;
 }

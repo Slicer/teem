@@ -39,7 +39,7 @@ lutMain(int argc, char **argv, char *me) {
   OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "l", "lut", airTypeOther, 1, 1, &nlut, NULL,
 	     "lookup table to map input nrrd through",
-	     NULL, NULL, &unuNrrdHestCB);
+	     NULL, NULL, nrrdHestNrrd);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

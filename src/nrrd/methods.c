@@ -134,6 +134,29 @@ nrrdResampleInfoNix(NrrdResampleInfo *info) {
 
 /* ------------------------------------------------------------ */
 
+NrrdKernelSpec *
+nrrdKernelSpecNew() {
+  NrrdKernelSpec *ksp;
+  int i;
+
+  ksp = (NrrdKernelSpec *)calloc(1, sizeof(NrrdKernelSpec));
+  if (ksp) {
+    ksp->kernel = NULL;
+    for (i=0; i<=NRRD_KERNEL_PARMS_NUM; i++) {
+      ksp->parm[i] = AIR_NAN;
+    }
+  }
+  return ksp;
+}
+
+NrrdKernelSpec *
+nrrdKernelSpecNix(NrrdKernelSpec *ksp) {
+
+  return airFree(ksp);
+}
+
+/* ------------------------------------------------------------ */
+
 /* see axes.c for axis-specific "methods" */
 
 /* ------------------------------------------------------------ */
