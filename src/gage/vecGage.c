@@ -42,7 +42,7 @@ _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
 void
 _gageVecFilter (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageVecFilter";
-  gage_t *fw00, *fw11, *fw22, *vec, *jac, tmp;
+  gage_t *fw00, *fw11, *fw22, *vec, *jac;
   int fd;
 
   fd = GAGE_FD(ctx);
