@@ -15,12 +15,6 @@
 # of Utah. All Rights Reserved.
 #
 #
-CC = /usr/bin/gcc
-LD = /usr/bin/ld 
-AR = /usr/bin/ar
-RM = /bin/rm -f
-INSTALL = /usr/bin/install
-CHMOD = /bin/chmod
 
 # this will stay unset until I figure out gcc creation of Windows DLLs
 SHEXT = 

@@ -15,16 +15,10 @@
 # of Utah. All Rights Reserved.
 #
 #
-CC ?= /usr/bin/cc
-LD = /usr/bin/ld 
-AR = /usr/bin/ar
-RM = /usr/bin/rm -f
-#INSTALL ?= /usr/local/gnu/bin/install
-INSTALL = /usr/local/gnu/bin/install
-CHMOD = /usr/bin/chmod
-OTHER_CLEAN = so_locations
-PURIFY = purify
 
+#INSTALL = /usr/local/gnu/bin/install
+
+OTHER_CLEAN = so_locations
 SHEXT = so
 CFLAGS =
 CPP_ERROR_DIE = -diag_error 1035

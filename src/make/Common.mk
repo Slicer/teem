@@ -17,13 +17,15 @@
 #
 
 # learned: you get very confusing errors if one the filenames in 
-# $(LIBOBJS) ends with ".c"
+# $(LIB_OBJS) ends with ".c"
+
+
 
 #
 # Common makefile variables and rules for all teem libraries
 #
 # This is included by all the individual library/utility Makefiles,
-# at the *end* of the Makefile.
+# at the *end* of that Makefile.
 
 # all the architectures currently supported
 KNOWN_ARCH = irix6.n32 irix6.64 linux cygwin solaris
@@ -59,7 +61,8 @@ endif
 
 # The root of the teem tree, as seen from the library subdirectories
 # of the the "src" directory.  TEEM_ROOT is the directory which
-# contains the "src", "lib", "bin", "include", and so on.
+# contains the "src", "include", and all the architecture-specific
+# directories (which in turn contain "bin", "lib", "obj", and "purify")
 ifndef TEEM_ROOT
   PREFIX = ../..
 else
@@ -67,7 +70,8 @@ else
 endif
 
 # set directory-related variables: where to install things, as well as
-# the -I and -L path flags
+# the directories used in conjunction with the -I and -L path flags
+# for cc and ld
 IDEST = $(PREFIX)/include
 LDEST = $(PREFIX)/$(TEEM_ARCH)/lib
 BDEST = $(PREFIX)/$(TEEM_ARCH)/bin
@@ -75,6 +79,18 @@ ODEST = $(PREFIX)/$(TEEM_ARCH)/obj
 PCACHE = $(PREFIX)/$(TEEM_ARCH)/purify
 IPATH += -I$(IDEST)
 LPATH += -L$(LDEST)
+
+# before we read in the architecture-dependent stuff, take a stab at
+# defining the various programs we'll need, by assuming that they're
+# already in the path AND (and this is a huge assumption) that they
+# are the correct make and model
+CC = cc
+LD = ld
+AR = ar
+RM = rm -f
+INSTALL = install
+CHMOD = chmod
+PURIFY = purify
 
 ###
 ### effect the architecture-dependent settings by reading through the
@@ -85,9 +101,13 @@ include $(PREFIX)/src/make/$(ARCH).mk
 ###
 ###
 
+# if we need to create a new library, then we set up some variables
+# relating to the library name, location, and required objects:
+# OBJ_PREF OBJS LIB.A _LIB.A LIB.S _LIB.S
+#
 ifdef LIB
   OBJ_PREF = $(ODEST)/$(LIB)
-  OBJS = $(addprefix $(OBJ_PREF)/,$(LIBOBJS))
+  OBJS = $(addprefix $(OBJ_PREF)/,$(LIB_OBJS))
   LIB_BASENAME ?= lib$(LIB)
   _LIB.A = $(LIB_BASENAME).a
   LIB.A = $(OBJ_PREF)/$(_LIB.A)
@@ -99,16 +119,34 @@ ifdef LIB
   endif
 endif
 
-# the complete path names for headers and libraries to be installed
+ifdef BIN
+  _BIN = $(notdir $(BIN))
+  _BLIB = $(patsubst %/,%,$(dir $(BIN)))
+  ifdef OBJ_PREF
+    ifneq ($(OBJ_PREF),$(ODEST)/$(_BLIB))
+      $(error BIN $(BIN) must be in same path as LIB $(LIB))
+    endif
+  endif
+  OBJ_PREF = $(ODEST)/$(_BLIB)
+  OBJS = $(addprefix $(OBJ_PREF)/,$(BIN_OBJS))
+  # The non-installed binary will be called $(BIN) and will be in the
+  # main source directory (wherever this .mk file was sourced from).
+  # The installed binary goes in the usual place (BDEST)
+endif
+
+# the complete path names for installed headers and libraries
 INSTALL_HDRS = $(addprefix $(IDEST)/,$(HEADERS))
 INSTALL_LIBS = $(addprefix $(LDEST)/,$(_LIB.A) $(_LIB.S))
+
+# the complete path name for the "single" binary
+INSTALL_BIN = $(addprefix $(BDEST)/,$(_BIN))
 
 # the complete path names of the binaries to be installed.
 # The fanciness here is that we want to allow the sources for the binaries
 # to be in subdirectories of where the library's sources are, but those
 # subdirectories can't be part of the installed binary name ...
 INSTALL_BINS = $(addprefix $(BDEST)/,$(notdir $(BINS)))
-# ... however, we need to set VPATH in order to help make find the 
+# ... however, we need to set VPATH in order to help "make" find the 
 # sources for the binaries in their subdirectories
 VPATH = $(sort $(dir $(BINS)))
 # Thus, bane can have its single binary "gkms" built from "bane/bin/gkms.c",
@@ -144,10 +182,10 @@ LDFLAGS += $(ARCH_LDFLAG) $(SHARED_LDFLAG)
 ARFLAGS = ru
 
 # for things like endianness, TEEM_X is set in the archicture-specific
-# makefile, and NEED_X is set in the library which needs that info.
-# Meanwhile, teem/need/x.h in teem's top-level include directory
-# contains C-preprocessor code to make sure that the variable has been
-# set and set correctly. 
+# makefile, and NEED_X is set in the Makefile for the library which
+# needs that info.  Meanwhile, teem/need/x.h in teem's top-level
+# include directory contains C-preprocessor code to make sure that the
+# variable has been set and set to something reasonable.
 #
 # Right now X is either "ENDIAN", "QNANHIBIT", or "DIO".
 #
@@ -164,8 +202,9 @@ ifeq ($(NEED_DIO),true)
   SET_DIE = 1
 endif
 
-# because on some architectures (SGI), C-preprocessor "error"s aren't
-# fatal unless you specifically ask them to be
+# the SET_DIE silliness is because with some cc compilers (cough, SGI),
+# C-preprocessor "error"s aren't fatal unless you specifically ask
+# them to be.  Please.
 #
 ifeq ($(SET_DIE),1)
   CFLAGS += $(CPP_ERROR_DIE)
@@ -184,8 +223,7 @@ ifeq ($(TEEM_PURIFY),true)
     $(warning *)
     $(error Make quitting)
   endif
-  POPTS = -inuse-at-exit=yes -chain-length=12 -static-checking-guardzone=128 \
-	-free-queue-length=256
+  POPTS = -inuse-at-exit=yes -chain-length=12
   P = $(PURIFY) $(POPTS) -always-use-cache-dir -cache-dir=$(PCACHE)
 endif
 
@@ -198,20 +236,21 @@ endif
 # "make install" DOES NOT create the bins and test bins here and then
 # install them, it just creates them where they belong.  The
 # assumption here is that someone who wants to install the
-# install-able things from this library can say "make install", and
-# not "make; make install", while someone debugging/developing a
-# library can say "make".
-all: $(LIB.A) $(LIB.S) $(TEST_BINS) $(BINS)
+# install-able things from this library can say "make install" (and
+# not "make; make install") while someone debugging/developing a
+# library can say "make"
+all: $(LIB.A) $(LIB.S) $(TEST_BINS) $(BINS) $(_BIN)
 testbins: $(TEST_BINS)
 bins: $(BINS)
 
 # "make install" installs the headers, libraries, and binaries, but
 # does not build the bins or test bins in the current directory
-install: $(INSTALL_LIBS) $(INSTALL_BINS) $(INSTALL_HDRS)
+install: $(INSTALL_LIBS) $(INSTALL_BINS) $(INSTALL_HDRS) $(INSTALL_BIN)
 
 # "make clean" removes what's created by "make" ("make all")
 clean:
-	$(RM) $(OBJS) $(LIB.A) $(LIB.S) $(TEST_BINS) $(BINS) $(OTHER_CLEAN)
+	$(RM) $(OBJS) $(LIB.A) $(LIB.S) $(TEST_BINS) $(BINS) \
+	  $(OTHER_CLEAN) $(BIN)
 
 # "make uninstall" removes what's created by "make install"
 uninstall:
@@ -219,6 +258,7 @@ uninstall:
 	$(if $(LIB), $(RM) $(LDEST)/$(_LIB.A))
 	$(if $(LIB.S), $(RM) $(LDEST)/$(_LIB.S))
 	$(if $(BINS), $(RM) $(foreach b, $(BINS), $(BDEST)/$(b)))
+	$(if $(BIN), $(RM) $(BDEST)/$(BIN))
 
 # "make destroy" does as you'd expect
 destroy: clean uninstall
@@ -251,7 +291,11 @@ $(LIB.S): $(OBJS)
 %: %.c $(THISLIB)
 	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) -I. $(IPATH) -o $@ $< \
 	   $(THISLIB_LPATH) $(LPATH) \
-	   $(BINLIBS)
+	   $(BIN_LIBS)
+
+$(_BIN): $(OBJS)
+	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) -I. $(IPATH) -o $@ $(OBJS) \
+	   $(LPATH) $(BIN_LIBS)
 
 # This rule is to satisfy the target $(INSTALL_HDRS)
 $(IDEST)/%: %
@@ -261,6 +305,10 @@ $(IDEST)/%: %
 $(LDEST)/%: $(OBJ_PREF)/%
 	$(INSTALL) -m 755 $< $(LDEST)
 
+# This rule is to satisfy the target $(INSTALL_BIN)
+$(BDEST)/$(_BIN): $(_BIN)
+	$(INSTALL) -m 755 $(_BIN) $(BDEST)
+
 # This rule is to satisfy the target $(INSTALL_BINS)
 # The binaries which are to be installed should link against the
 # already-installed libraries, and use the already installed headers.
@@ -269,6 +317,6 @@ $(LDEST)/%: $(OBJ_PREF)/%
 #
 $(BDEST)/%: %.c $(INSTALL_LIBS) $(INSTALL_HDRS)
 	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) -o $@ $< \
-	   $(LPATH) $(BINLIBS)
+	   $(LPATH) $(BIN_LIBS)
 	$(CHMOD) 755 $@$(DOTEXE)
 

@@ -15,12 +15,8 @@
 # of Utah. All Rights Reserved.
 #
 #
-CC = /opt/SUNWspro/bin/cc
-LD = /usr/ccs/bin/ld
-AR = /usr/ccs/bin/ar
-RM = /usr/bin/rm -f
-INSTALL = /usr/local/gnu/bin/install
-CHMOD = /usr/bin/chmod
+
+#INSTALL = /usr/local/gnu/bin/install
 
 SHEXT = so
 OPT_CFLAG = -xO2
