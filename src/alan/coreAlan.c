@@ -327,7 +327,7 @@ _alanTuring2DWorker(void *_task) {
 int
 alanRun(alanContext *actx) {
   char me[]="alanRun", err[AIR_STRLEN_MED];
-  int tid;
+  int tid, hack;
   alanTask task[ALAN_THREAD_MAX];
 
   fprintf(stderr, "%s: blah 0\n", me);
@@ -341,6 +341,10 @@ alanRun(alanContext *actx) {
     biffAdd(ALAN, err); return 1;
   }
 
+  if (!airThreadCapable && 1 == actx->numThreads) {
+    hack = airThreadNoopWarning;
+    airThreadNoopWarning = AIR_FALSE;
+  }
   airThreadMutexInit(&(actx->changeMutex));
   airThreadBarrierInit(&(actx->iterBarrier), actx->numThreads);
   actx->averageChange = 0;
@@ -362,6 +366,10 @@ alanRun(alanContext *actx) {
   }
   airThreadBarrierDone(&(actx->iterBarrier));
   airThreadMutexDone(&(actx->changeMutex));
+
+  if (!airThreadCapable && 1 == actx->numThreads) {
+    airThreadNoopWarning = hack;
+  }
 
   /* we assume that someone set actx->stop */
   return 0;

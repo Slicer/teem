@@ -17,17 +17,18 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "air.h"
 #include "airThread.h"
 
 /* HEY: the whole matter of function returns has to be standardized ... */
 
-int airThreadNoopWarning = 1;
+int airThreadNoopWarning = AIR_TRUE;
 
 /* ------------------------------------------------------------------ */
 #if TEEM_PTHREAD /* ----------------------------------------- PTHREAD */
 /* ------------------------------------------------------------------ */
 
-const int airThreadCapable = 1;
+const int airThreadCapable = AIR_TRUE;
 
 int
 airThreadCreate(airThread* thread, void *(*threadBody)(void *), void *arg) {
@@ -94,7 +95,7 @@ airThreadCondDone(airThreadCond *cond) {
 #elif defined(_WIN32) /* ------------------------------------- WIN 32 */
 /* ------------------------------------------------------------------ */
 
-const int airThreadCapable = 1;
+const int airThreadCapable = AIR_TRUE;
 
 int WINAPI airThreadWin32Body(void *arg) {
   airThread *t;
@@ -189,72 +190,81 @@ int
 airThreadMutexInit(airThreadMutex *mutex) {
   char me[]="airThreadMutexInit";
   if (airThreadNoopWarning) {
-    fprintf(stderr, "%s: WARNING: without threads, this is a noop!\n");
+    fprintf(stderr, "%s: WARNING: without threads, this is a noop!\n", me);
   }
+  return 0;
 }
 
 int
 airThreadMutexLock(airThreadMutex *mutex) {
   char me[]="airThreadMutexLock";
   if (airThreadNoopWarning) {
-    fprintf(stderr, "%s: WARNING: without threads, this is a noop!\n");
+    fprintf(stderr, "%s: WARNING: without threads, this is a noop!\n", me);
   }
+  return 0;
 }
 
 int
 airThreadMutexUnlock(airThreadMutex *mutex) {
   char me[]="airThreadMutexUnlock";
   if (airThreadNoopWarning) {
-    fprintf(stderr, "%s: WARNING: without threads, this is a noop!\n");
+    fprintf(stderr, "%s: WARNING: without threads, this is a noop!\n", me);
   }
+  return 0;
 }
 
 int
 airThreadMutexDone(airThreadMutex *mutex) {
   char me[]="airThreadMutexDone";
   if (airThreadNoopWarning) {
-    fprintf(stderr, "%s: WARNING: without threads, this is a noop!\n");
+    fprintf(stderr, "%s: WARNING: without threads, this is a noop!\n", me);
   }
+  return 0;
 }
 
 int
 airThreadCondInit(airThreadCond *cond) {
   char me[]="airThreadCondInit";
   if (airThreadNoopWarning) {
-    fprintf(stderr, "%s: WARNING: without threads, this is a noop!\n");
+    fprintf(stderr, "%s: WARNING: without threads, this is a noop!\n", me);
   }
+  return 0;
 }
 
 int
 airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex) {
   char me[]="airThreadCondWait";
   if (airThreadNoopWarning) {
-    fprintf(stderr, "%s: WARNING: without threads, this is a noop!\n");
+    fprintf(stderr, "%s: WARNING: without threads, this is a noop!\n", me);
   }
+  return 0;
 }
 
 int
 airThreadCondSignal(airThreadCond *cond) {
   char me[]="airThreadCondSignal";
   if (airThreadNoopWarning) {
-    fprintf(stderr, "%s: WARNING: without threads, this is a noop!\n");
+    fprintf(stderr, "%s: WARNING: without threads, this is a noop!\n", me);
   }
+  return 0;
 }
 
 int
 airThreadCondBroadcast(airThreadCond *cond) {
   char me[]="airThreadCondBroadcast";
   if (airThreadNoopWarning) {
-    fprintf(stderr, "%s: WARNING: without threads, this is a noop!\n");
+    fprintf(stderr, "%s: WARNING: without threads, this is a noop!\n", me);
   }
+  return 0;
 }
 
 int
 airThreadCondDone(airThreadCond *cond) {
   char me[]="airThreadCondDone";
   if (airThreadNoopWarning) {
-    fprintf(stderr, "%s: WARNING: without threads, this is a noop!\n");
+    fprintf(stderr, "%s: WARNING: without threads, this is a noop!\n", me);
   }
+  return 0;
 }
 
 /* ------------------------------------------------------------------ */

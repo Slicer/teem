@@ -50,24 +50,24 @@ enum {
 };
 
 enum {
-  alanParmUnknown,
-  alanParmVerbose,
-  alanParmTextureType,
-  alanParmNumThreads,
-  alanParmFrameInterval,
-  alanParmSaveInterval,
-  alanParmMaxIteration,
-  alanParmRandRange,
-  alanParmSpeed,
-  alanParmDiffA,
-  alanParmDiffB,
-  alanParmK,
-  alanParmF,
-  alanParmH,
-  alanParmMinAverageChange,
-  alanParmMaxPixelChange,
-  alanParmAlpha,
-  alanParmBeta,
+  alanParmUnknown,            /*  0 */
+  alanParmVerbose,            /*  1 */
+  alanParmTextureType,        /*  2 */
+  alanParmNumThreads,         /*  3 */
+  alanParmFrameInterval,      /*  4 */
+  alanParmSaveInterval,       /*  5 */
+  alanParmMaxIteration,       /*  6 */
+  alanParmRandRange,          /*  7 */
+  alanParmSpeed,              /*  8 */
+  alanParmDiffA,              /*  9 */
+  alanParmDiffB,              /* 10 */
+  alanParmK,                  /* 11 */
+  alanParmF,                  /* 12 */
+  alanParmH,                  /* 13 */
+  alanParmMinAverageChange,   /* 14 */
+  alanParmMaxPixelChange,     /* 15 */
+  alanParmAlpha,              /* 16 */
+  alanParmBeta,               /* 17 */
   alanParmLast
 };
 
