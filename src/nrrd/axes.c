@@ -71,9 +71,9 @@ nrrdAxisCopy(nrrdAxis *ax1, nrrdAxis *ax0) {
     ax1->spacing = ax0->spacing;
     ax1->min = ax0->min;
     ax1->max = ax0->max;
+    ax1->center = ax0->center;
     ax1->label = airStrdup(ax0->label);
     ax1->unit = airStrdup(ax0->unit);
-    ax1->center = ax0->center;
   }
 }
 */
@@ -85,8 +85,8 @@ nrrdAxisCopy(nrrdAxis *ax1, nrrdAxis *ax0) {
 ** permutation "map"; map[d] tells from which axis in input should the
 ** output axis d copy its information.  The length of this permutation
 ** array is nout->dim.  If map is NULL, the identity permutation is
-** assumed.  If map[i]==-1 for any i in [0,dim-1], then nothing for
-** that dimension is copied.  The "bitflag" field controls which
+** assumed.  If map[i]==-1 for any i in [0,dim-1], then nothing is
+** copied into axis i of output.  The "bitflag" field controls which
 ** per-axis fields will NOT be copied; if bitflag==0, then all fields
 ** are copied.  The value of bitflag should be |'s of NRRD_AXESINFO_*
 ** defines.
