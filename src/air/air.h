@@ -334,6 +334,7 @@ extern int airLog2(float n);
 extern int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
 extern void airBinaryPrintUInt(FILE *file, int digits, unsigned int N);
 extern double airErf(double x);
+extern double airGaussian(double x, double mean, double stdv);
 extern air_export const char airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL];
 extern air_export const int airTypeSize[AIR_TYPE_MAX+1];
 extern int airILoad(void *v, int t);

@@ -458,9 +458,8 @@ airErf(double x) {
    * your GPA?".  I was confused.  If programming ability is the real
    * question at hand, this was about as sensible as asking "How much
    * do you weigh?"  As soon as I admitted to getting a B+ in a
-   * previous physics class, he simply waved me away and turned back
-   * to his computer.  If he was writing this bit of code, I'm very
-   * happy to have lifted it.
+   * previous physics class, he literally just waved me away and
+   * turned back to his computer.  
    */
   double t,z,ans;
 
@@ -470,6 +469,13 @@ airErf(double x) {
             t*(-0.18628806+t*(0.27886807+t*(-1.13520398+t*(1.48851587+
             t*(-0.82215223+t*0.17087277)))))))));
   return (x >= 0.0 ? 1.0 - ans : ans - 1.0);
+}
+
+double
+airGaussian(double x, double mean, double stdv) {
+  
+  x = x - mean;
+  return exp(-0.5*(x*x)/(stdv*stdv))/sqrt(2*M_PI*stdv);
 }
 
 const char
