@@ -637,7 +637,7 @@ TEEM_API void nrrdAxisInfoIdxRange(double *loP, double *hiP,
 TEEM_API void nrrdAxisInfoSpacingSet(Nrrd *nrrd, int ax);
 TEEM_API void nrrdAxisInfoMinMaxSet(Nrrd *nrrd, int ax, int defCenter);
 TEEM_API int nrrdSpacingCalculate(const Nrrd *nrrd, int ax,
-                                  double *spacing, int *sdim,
+                                  double *spacing, int *spaceDim,
                                   double vector[NRRD_SPACE_DIM_MAX]);
 
 /******** simple things */
@@ -645,6 +645,13 @@ TEEM_API int nrrdSpacingCalculate(const Nrrd *nrrd, int ax,
 TEEM_API const char *nrrdBiffKey;
 TEEM_API int nrrdSpaceDimension(int space);
 TEEM_API int nrrdSpaceSet(Nrrd *nrrd, int space);
+TEEM_API int nrrdSpaceDimensionSet(Nrrd *nrrd, int spaceDim);
+TEEM_API int nrrdSpaceKnown(const Nrrd *nrrd);
+TEEM_API void nrrdSpaceGet(const Nrrd *nrrd, int *space, int *spaceDim);
+TEEM_API void nrrdSpaceOriginGet(const Nrrd *nrrd, int *spaceDim,
+                                 double vector[NRRD_SPACE_DIM_MAX]);
+TEEM_API int nrrdOriginCalculate3D(const Nrrd *nrrd, int ax0, int ax1, int ax2,
+                                   int defaultCenter, double origin[3]);
 TEEM_API int nrrdContentSet(Nrrd *nout, const char *func,
                             const Nrrd *nin, const char *format,
                             ... /* printf-style arg list */ );

@@ -848,26 +848,33 @@ nrrdAxisInfoMinMaxSet(Nrrd *nrrd, int ax, int defCenter) {
 ** the return value, which takes values from the nrrdSpacingStatus*
 ** enum, as follows:
 **
-** returned status value:            what is set:
+** returned status value:            what it means, and what it set
 ** ---------------------------------------------------------------------------
-** nrrdSpacingStatusUnknown          nothing set, because args were invalid
+** nrrdSpacingStatusUnknown          Something about the given arguments is
+**                                   invalid.
+**                                   *spacing = NaN,
+**                                   *sdim = 0, vector = all NaNs
 **
-** nrrdSpacingStatusNone             nothing set, because there is no
-**                                   spacing info.
+** nrrdSpacingStatusNone             There is no spacing info at all:
+**                                   *spacing = NaN,
+**                                   *sdim = 0, vector = all NaNs
 **
-** nrrdSpacingStatusScalarNoSpace    *spacing set from axis->spacing (because
-**                                   there is no surrounding space).
+** nrrdSpacingStatusScalarNoSpace    There is no surrounding space, but the
+**                                   axis's spacing was known.
+**                                   *spacing = axis->spacing,
+**                                   *sdim = 0, vector = all NaNs
 **
-** nrrdSpacingStatusScalarWithSpace  *spacing set from axis->spacing, but be
-**                                   warned that surrounding space info *is* 
-**                                   set, which this axis-aligned spacing is
-**                                   independent of.
+** nrrdSpacingStatusScalarWithSpace  There *is* a surrounding space, but the
+**                                   given axis does not live in that space,
+**                                   because it has no space direction.  Caller
+**                                   may want to think about what's going on.
+**                                   *spacing = axis->spacing,
+**                                   *sdim = 0, vector = all NaNs
 **
-** nrrdSpacingStatusVector           *spacing set from norm of
-**                                   axis->spaceDirection, *sdim set, and
-**                                   vector[0] through vector[*sdim-1] is
-**                                   normalized (unit-length)
-**                                   axis->spaceDirection.
+** nrrdSpacingStatusDirection        There is a surrounding space, in which
+**                                   this axis has a direction V:
+**                                   *spacing = |V|
+**                                   *sdim = spaceDim, vector = V/|V|
 */
 int
 nrrdSpacingCalculate(const Nrrd *nrrd, int ax,
@@ -880,8 +887,16 @@ nrrdSpacingCalculate(const Nrrd *nrrd, int ax,
          && !_nrrdCheck(nrrd, AIR_FALSE, AIR_FALSE) )) {
     /* there's a problem with the arguments.  Note: the _nrrdCheck()
        call does not check on non-NULL-ity of nrrd->data */
-    *spacing = AIR_NAN;
     ret = nrrdSpacingStatusUnknown;
+    if (spacing) { 
+      *spacing = AIR_NAN;
+    }
+    if (sdim) {
+      *sdim = 0;
+    }
+    if (vector) {
+      _nrrdSpaceVecSetNaN(vector);
+    }
   } else {
     if (AIR_EXISTS(nrrd->axis[ax].spacing)) {
       if (nrrd->spaceDim > 0) {
@@ -890,9 +905,11 @@ nrrdSpacingCalculate(const Nrrd *nrrd, int ax,
         ret = nrrdSpacingStatusScalarNoSpace;
       }
       *spacing = nrrd->axis[ax].spacing;
+      *sdim = 0;
+      _nrrdSpaceVecSetNaN(vector);      
     } else {
       if (nrrd->spaceDim > 0) {
-        ret = nrrdSpacingStatusVector;
+        ret = nrrdSpacingStatusDirection;
         *spacing = _nrrdSpaceVecNorm(nrrd->spaceDim, 
                                      nrrd->axis[ax].spaceDirection);
         *sdim = nrrd->spaceDim;
@@ -901,7 +918,9 @@ nrrdSpacingCalculate(const Nrrd *nrrd, int ax,
       } else {
         ret = nrrdSpacingStatusNone;
         *spacing = AIR_NAN;
-      }      
+        *sdim = 0;
+        _nrrdSpaceVecSetNaN(vector);
+      }
     }
   }
   return ret;

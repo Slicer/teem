@@ -469,10 +469,24 @@ enum {
                                          space info, which means the spacing
                                          does *not* live in the surrounding
                                          space */
-  nrrdSpacingStatusVector,            /* 4: axis->spaceDirection set, and 
+  nrrdSpacingStatusDirection,         /* 4: axis->spaceDirection set, and 
                                          measured according to surrounding
                                          space */
   nrrdSpacingStatusLast
+};
+
+/*
+******** nrrdOriginStatus* enum
+**
+** how origin information was or was not computed by nrrdOriginCalculate
+*/
+enum {
+  nrrdOriginStatusUnknown,        /* 0: nobody knows, or invalid parms */
+  nrrdOriginStatusDirection,      /* 1: chosen axes have spaceDirections */
+  nrrdOriginStatusNoMin,          /* 2: axis->min doesn't exist */
+  nrrdOriginStatusNoMaxOrSpacing, /* 3: axis->max or ->spacing doesn't exist */
+  nrrdOriginStatusOkay,           /* 4: all is well */
+  nrrdOriginStatusLast
 };
 
 /* ---- BEGIN non-NrrdIO */

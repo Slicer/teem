@@ -130,6 +130,8 @@ extern void _nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX],
                                const double vec[NRRD_SPACE_DIM_MAX]);
 extern double _nrrdSpaceVecNorm(int sdim,
                                 const double vec[NRRD_SPACE_DIM_MAX]);
+extern void _nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]);
+
 
 /* axis.c */
 extern int _nrrdKindAltered(int kindIn);

@@ -70,10 +70,19 @@ nrrdSpaceDimension(int space) {
   return ret;
 }
 
+/*
+******** nrrdSpaceSet
+**
+** What to use to set space, when a value from nrrdSpace enum is known
+*/
 int
 nrrdSpaceSet(Nrrd *nrrd, int space) {
   char me[]="nrrdSpaceSet", err[AIR_STRLEN_MED];
   
+  if (!nrrd) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
   if (nrrdSpaceUnknown != space) {
     if (airEnumValCheck(nrrdSpace, space)) {
       sprintf(err, "%s: given space (%d) not valid", me, space);
@@ -83,6 +92,169 @@ nrrdSpaceSet(Nrrd *nrrd, int space) {
   nrrd->space = space;
   nrrd->spaceDim = nrrdSpaceDimension(space);
   return 0;
+}
+
+/*
+******** nrrdSpaceDimensionSet
+**
+** What to use to set space, based on spaceDim alone (nrrd->space set to
+** nrrdSpaceUnknown)
+*/
+int
+nrrdSpaceDimensionSet(Nrrd *nrrd, int spaceDim) {
+  char me[]="nrrdSpaceDimensionSet", err[AIR_STRLEN_MED];
+  
+  if (!nrrd) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!( spaceDim > 0 )) {
+    sprintf(err, "%s: given spaceDim (%d) not valid", me, spaceDim);
+    biffAdd(NRRD, err); return 1;
+  }
+  nrrd->space = nrrdSpaceUnknown;
+  nrrd->spaceDim = spaceDim;
+  return 0;
+}
+
+/*
+******** nrrdSpaceKnown
+**
+** boolean test to see if given nrrd is said to live in some surrounding space 
+*/
+int
+nrrdSpaceKnown(const Nrrd *nrrd) {
+
+  return (nrrd && nrrd->spaceDim > 0);
+}
+
+/*
+******** nrrdSpaceGet
+**
+** retrieves the space and spaceDim from given nrrd.
+*/
+void
+nrrdSpaceGet(const Nrrd *nrrd, int *space, int *spaceDim) {
+  
+  if (nrrd && space && spaceDim) {
+    *space = nrrd->space;
+    if (nrrdSpaceUnknown != *space) {
+      *spaceDim = nrrd->spaceDim;
+    } else {
+      *spaceDim = 0;
+    }
+  }
+  return;
+}
+
+/*
+******** nrrdSpaceOriginGet
+**
+** retrieves the spaceOrigin (and spaceDim) from given nrrd
+*/
+void
+nrrdSpaceOriginGet(const Nrrd *nrrd, int *spaceDim,
+                   double vector[NRRD_SPACE_DIM_MAX]) {
+  int sdi;
+
+  if (nrrd && spaceDim && vector) {
+    *spaceDim = nrrd->spaceDim;
+    if (*spaceDim > 0) {
+      for (sdi=0; sdi<*spaceDim; sdi++) {
+        vector[sdi] = nrrd->spaceOrigin[sdi];
+      }
+    }
+  }
+  return;
+}
+
+/*
+******** nrrdOriginCalculate3D
+**
+** makes an effort to calculate something like an "origin" (as in
+** nrrd->spaceOrigin) from the per-axis min, max, or spacing, when
+** there is no real space information.  To avoid making assumptions
+** about the nrrd or the caller, a default sample centering (defaultCenter)
+** has to be provided (use either nrrdCenterNode or nrrdCenterCell).
+** Also, the three axes (ax0, ax1, ax2) that are to be used for the
+** origin calculation have to be given explicitly- this puts the burden
+** of figuring out the semantics of nrrdKinds and such on the caller.
+**
+** The computed origin is put into the given vector (origin).  The return
+** value takes on values from the nrrdOriginStatus* enum:
+**
+** nrrdOriginStatusUnknown:        invalid arguments (e.g. NULL pointer, or 
+**                                 axis values out of range)
+**
+** nrrdOriginStatusDirection:      the chosen axes have spaceDirection set, 
+**                                 which means caller should be instead using
+**                                 nrrdSpaceOriginGet
+**
+** nrrdOriginStatusNoMin:          can't compute "origin" without axis->min
+**
+** nrrdOriginStatusNoMaxOrSpacing: can't compute origin without either
+**                                 axis->max or axis->spacing
+**
+** nrrdOriginStatusOkay:           all is well
+*/
+int
+nrrdOriginCalculate3D(const Nrrd *nrrd, int ax0, int ax1, int ax2,
+                      int defaultCenter, double origin[3]) {
+  const NrrdAxisInfo *axis[0];
+  int ai, center, size;
+  double min, spacing;
+
+  if (!( nrrd 
+         && AIR_IN_CL(0, ax0, nrrd->dim-1)
+         && AIR_IN_CL(0, ax1, nrrd->dim-1)
+         && AIR_IN_CL(0, ax2, nrrd->dim-1)
+         && (nrrdCenterCell == defaultCenter
+             || nrrdCenterNode == defaultCenter)
+         && origin )) {
+    if (origin) {
+      origin[0] = origin[1] = origin[2] = AIR_NAN;
+    }
+    return nrrdOriginStatusUnknown;
+  }
+
+  axis[0] = nrrd->axis + ax0;
+  axis[1] = nrrd->axis + ax1;
+  axis[2] = nrrd->axis + ax2;
+  if (nrrd->spaceDim > 0 
+      && (AIR_EXISTS(axis[0]->spaceDirection[0])
+          || AIR_EXISTS(axis[1]->spaceDirection[0])
+          || AIR_EXISTS(axis[2]->spaceDirection[0]))) {
+    origin[0] = origin[1] = origin[2] = AIR_NAN;
+    return nrrdOriginStatusDirection;
+  }
+
+  if (!( AIR_EXISTS(axis[0]->min)
+         && AIR_EXISTS(axis[1]->min)
+         && AIR_EXISTS(axis[2]->min) )) {
+    origin[0] = origin[1] = origin[2] = AIR_NAN;
+    return nrrdOriginStatusNoMin;
+  }
+
+  if (!( (AIR_EXISTS(axis[0]->max) || AIR_EXISTS(axis[0]->spacing))
+         && (AIR_EXISTS(axis[1]->max) || AIR_EXISTS(axis[1]->spacing))
+         && (AIR_EXISTS(axis[2]->max) || AIR_EXISTS(axis[2]->spacing)) )) {
+    origin[0] = origin[1] = origin[2] = AIR_NAN;
+    return nrrdOriginStatusNoMaxOrSpacing;
+  }
+
+  for (ai=0; ai<3; ai++) {
+    size = axis[ai]->size;
+    min = axis[ai]->min;
+    center = (nrrdCenterUnknown != axis[ai]->center
+              ? axis[ai]->center
+              : defaultCenter);
+    spacing = (AIR_EXISTS(axis[ai]->spacing)
+               ? axis[ai]->spacing
+               : ((axis[ai]->max - min)
+                  /(nrrdCenterCell == center ? size : size-1)));
+    origin[ai] = min + (nrrdCenterCell == center ? spacing/2 : 0);
+  }
+  return nrrdOriginStatusOkay;
 }
 
 /* ---- BEGIN non-NrrdIO */
@@ -125,6 +297,16 @@ _nrrdSpaceVecNorm(int sdim, const double vec[NRRD_SPACE_DIM_MAX]) {
     nn += vec[di]*vec[di];
   }
   return sqrt(nn);
+}
+
+void
+_nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]) {
+  int di;
+
+  for (di=0; di<NRRD_SPACE_DIM_MAX; di++) {
+    vec[di] = AIR_NAN;
+  }
+  return;
 }
 
 /*
