@@ -22,7 +22,7 @@ int
 main(int argc, char **argv) {
   char *err;
   Nrrd *nin, *nout;
-  int i, axis, *perm;
+  int axis, *perm;
 
   if (3 != argc) {
     printf("gimme something\n");
