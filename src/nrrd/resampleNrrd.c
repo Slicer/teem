@@ -804,7 +804,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
   /* copy the resampling final result into the output nrrd, maybe
      rounding as we go to make sure that 254.9999 is saved as 255
      in uchar output, and maybe clamping as we go to insure that
-     fixed point results don't have unexpected wrap-around. */
+     integral results don't have unexpected wrap-around. */
   if (info->round) {
     if (nrrdTypeInt == typeOut ||
 	nrrdTypeUInt == typeOut ||

@@ -327,7 +327,7 @@ nrrdDClamp[NRRD_TYPE_MAX+1])(DB) = {
   if (!(minP && maxP))                                                   \
     return;                                                              \
                                                                          \
-  /* all fixed-point values exist */                                     \
+  /* all integer values exist */                                         \
   nrrd->hasNonExist = nrrdNonExistFalse;                                 \
                                                                          \
   /* set the local data pointer */                                       \
