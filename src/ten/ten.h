@@ -280,20 +280,26 @@ typedef struct {
 /*
 ******** struct tenEmBimodalParm
 **
-** input and output parameters for tenEMBimodal.  currently, all
-** fields are directly set/read, as opposed to having some API.
+** input and output parameters for tenEMBimodal (for fitting two
+** gaussians to a histogram).  Currently, all fields are directly
+** set/read; no API help here.
+**
+** "fraction" means prior probability
 **
 ** In the output, material #1 is the one with the lower mean
 */
 typedef struct {
   /* ----- input -------- */
   double minProb,        /* threshold for negligible posterior prob. values */
+    minProb2,            /* minProb for 2nd stage fitting */
     minDelta,            /* convergence test for maximization */
     minFraction,         /* smallest fraction (in 0.0 to 1.0) that material
 		 	    1 or 2 can legitimately have */
     minConfidence;       /* smallest confidence value that the model fitting
 			    is allowed to have */
-  int maxIterations;     /* cap on # of non-convergent iterations allowed */
+  int maxIteration,      /* cap on # of non-convergent iterations allowed */
+    twoStage,            /* wacky two-stage fitting */
+    verbose;             /* output messages and/or progress images */
   /* ----- internal ----- */
   double *histo,         /* double version of histogram */
     *pp1, *pp2,          /* pre-computed posterior probabilities for the
@@ -304,11 +310,13 @@ typedef struct {
 			    any intermediate histogram calculations, all of
 			    which are done entirely in index space */
     delta;               /* some measure of model change between iters */
-  int N;                 /* number of bins in histogram */
+  int N,                 /* number of bins in histogram */
+    stage,               /* current stage (1 or 2) */
+    iteration;           /* current iteration */
   /* ----- output ------- */
   double mean1, stdv1,   /* material 1 mean and  standard dev */
     mean2, stdv2,        /* same for material 2 */
-    fraction1,           /* fraction of material 1 (== 1 - fracion2) */
+    fraction1,           /* fraction of material 1 (== 1 - fraction2) */
     confidence,          /* (mean2 - mean1)/(stdv1 + stdv2) */
     threshold;           /* minimum-error threshold */
 } tenEMBimodalParm;

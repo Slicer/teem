@@ -32,7 +32,7 @@ _tenEpiRegSave(char *fname, Nrrd *nsingle, Nrrd **nmulti,
     nout = nsingle;
   } else {
     airMopAdd(mop, nout=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-    if (nrrdJoin(nout, nmulti, len, 0, AIR_TRUE)) {
+    if (nrrdJoin(nout, (const Nrrd**)nmulti, len, 0, AIR_TRUE)) {
       sprintf(err, "%s: couldn't join %s for output", me, desc);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
@@ -635,7 +635,7 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
     fprintf(stderr, "%s: measuring segmentation uncertainty ... ", me);
     fflush(stderr);
   }
-  if (nrrdJoin(ncc, _ncc, ninLen, 0, AIR_TRUE)
+  if (nrrdJoin(ncc, (const Nrrd**)_ncc, ninLen, 0, AIR_TRUE)
       || nrrdProject(ntA, ncc, 0, nrrdMeasureSD, nrrdTypeFloat)
       || nrrdProject(ntB, ntA, 0, nrrdMeasureSum, nrrdTypeFloat)
       || nrrdProject(nsd, ntB, 0, nrrdMeasureSum, nrrdTypeFloat)

@@ -177,10 +177,12 @@ _tenFindValley(float *valP, Nrrd *nhist, float tweak) {
   int maxbb, bb, bins;
   NrrdRange *range;
 
+  /*
   tenEMBimodalParm *biparm;
   biparm = tenEMBimodalParmNew();
   tenEMBimodal(biparm, nhist);
   biparm = tenEMBimodalParmNix(biparm);
+  */
   
   mop = airMopNew();
   airMopAdd(mop, ntmpA=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
