@@ -21,8 +21,9 @@
 #include "privateMoss.h"
 
 int 
-mossSamplerImageSet (mossSampler *smplr, Nrrd *image) {
+mossSamplerImageSet (mossSampler *smplr, Nrrd *image, float *bg) {
   char me[]="mossSamplerImageSet", err[AIR_STRLEN_MED];
+  int ci, ncol;
   
   if (!(smplr && image)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -33,6 +34,14 @@ mossSamplerImageSet (mossSampler *smplr, Nrrd *image) {
   }
   smplr->image = image;
   smplr->flag[mossFlagImage] = AIR_TRUE;
+  ncol = MOSS_NCOL(image);
+  smplr->bg = airFree(smplr->bg);
+  smplr->bg = (float*)calloc(ncol, sizeof(float));
+  if (bg) {
+    for (ci=0; ci<ncol; ci++) {
+      smplr->bg[ci] = bg[ci];
+    }
+  }
   return 0;
 }
 
@@ -64,7 +73,7 @@ mossSamplerUpdate (mossSampler *smplr) {
   }
   
   if (smplr->flag[mossFlagImage]) {
-    ncol = (2 == smplr->image->dim ? 1 : smplr->image->axis[0].size);
+    ncol = MOSS_NCOL(smplr->image);
     if (ncol != smplr->ncol) {
       mossSamplerEmpty(smplr);
       smplr->ncol = ncol;
@@ -77,7 +86,7 @@ mossSamplerUpdate (mossSampler *smplr) {
       smplr->fdiam = fdiam;
     }
   }
-  if (!(smplr->ivc2)) {
+  if (!(smplr->ivc)) {
     if (mossSamplerFill(smplr, fdiam, ncol)) {
       sprintf(err, "%s: ", me);
       biffAdd(MOSS, err); return 1;
@@ -98,23 +107,34 @@ mossSamplerSample (float *val, mossSampler *smplr, double xPos, double yPos) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(MOSS, err); return 1;
   }
-  if (!(smplr->ivc2)) {
+  if (!(smplr->ivc)) {
     sprintf(err, "%s: given sampler not ready (no caches)", me);
     biffAdd(MOSS, err); return 1;
   }
 
   /* set {x,y}Idx, set {x,y}Fslw to sample locations */
+  if (mossVerbose) {
+    fprintf(stderr, "%s: pos = %g %g\n", me, xPos, yPos);
+  }
   sx = MOSS_SX(smplr->image);
   sy = MOSS_SY(smplr->image);
-  xi = xPos; xf = xPos - xi;
-  yi = yPos; yf = yPos - yi;
+  xi = floor(xPos); xf = xPos - xi;
+  yi = floor(yPos); yf = yPos - yi;
   fdiam = smplr->fdiam;
   frad = fdiam/2;
   for (i=0; i<fdiam; i++) {
     smplr->xIdx[i] = xi + i - frad + 1;
     smplr->yIdx[i] = yi + i - frad + 1;
-    smplr->xFslw[i] = xf + i - frad + 1;
-    smplr->yFslw[i] = yf + i - frad + 1;
+    smplr->xFslw[i] = xf - i + frad - 1;
+    smplr->yFslw[i] = yf - i + frad - 1;
+  }
+  if (mossVerbose) {
+    fprintf(stderr, " --> xIdx: %d %d ; xFsl %g %g\n",
+	    smplr->xIdx[0], smplr->xIdx[1],
+	    smplr->xFslw[0], smplr->xFslw[1]);
+    fprintf(stderr, "     yIdx: %d %d ; yFsl %g %g\n",
+	    smplr->yIdx[0], smplr->yIdx[1],
+	    smplr->yFslw[0], smplr->yFslw[1]);
   }
   switch(smplr->boundary) {
   case nrrdBoundaryBleed:
@@ -129,21 +149,48 @@ mossSamplerSample (float *val, mossSampler *smplr, double xPos, double yPos) {
       smplr->yIdx[i] = AIR_MOD(smplr->yIdx[i], sy);
     }
     break;
+  case nrrdBoundaryPad:
+    /* this is handled later */
+    break;
   default:
     sprintf(err, "%s: sorry, %s boundary not implemented", me,
 	    airEnumStr(nrrdBoundary, smplr->boundary));
     biffAdd(MOSS, err); return 1;
   }
+  if (mossVerbose) {
+    fprintf(stderr, " --> xIdx: %d %d ; xFsl %g %g\n",
+	    smplr->xIdx[0], smplr->xIdx[1],
+	    smplr->xFslw[0], smplr->xFslw[1]);
+  }
 
-  /* copy values to ivc2, set {x,y}Fslw to filter sample weights */
+  /* copy values to ivc, set {x,y}Fslw to filter sample weights */
   lup = nrrdFLookup[smplr->image->type];
   ncol = smplr->ncol;
-  for (yi=0; yi<fdiam; yi++) {
-    for (xi=0; xi<fdiam; xi++) {
-      for (ci=0; ci<ncol; ci++) {
-	smplr->ivc2[xi + fdiam*(yi + fdiam*ci)] =
-	  lup(smplr->image->data,
-	      ci + ncol*(smplr->xIdx[xi] + sx*smplr->yIdx[yi]));
+  if (nrrdBoundaryPad == smplr->boundary) {
+    for (yi=0; yi<fdiam; yi++) {
+      for (xi=0; xi<fdiam; xi++) {
+	if (AIR_INSIDE(0, smplr->xIdx[xi], sx-1)
+	    && AIR_INSIDE(0, smplr->yIdx[yi], sy-1)) {
+	  for (ci=0; ci<ncol; ci++) {
+	    smplr->ivc[xi + fdiam*(yi + fdiam*ci)] =
+	      lup(smplr->image->data,
+		  ci + ncol*(smplr->xIdx[xi] + sx*smplr->yIdx[yi]));
+	  }
+	} else {
+	  for (ci=0; ci<ncol; ci++) {
+	    smplr->ivc[xi + fdiam*(yi + fdiam*ci)] = smplr->bg[ci];
+	  }
+	}
+      }
+    }
+  } else {
+    for (yi=0; yi<fdiam; yi++) {
+      for (xi=0; xi<fdiam; xi++) {
+	for (ci=0; ci<ncol; ci++) {
+	  smplr->ivc[xi + fdiam*(yi + fdiam*ci)] =
+	    lup(smplr->image->data,
+		ci + ncol*(smplr->xIdx[xi] + sx*smplr->yIdx[yi]));
+	}
       }
     }
   }
@@ -156,7 +203,7 @@ mossSamplerSample (float *val, mossSampler *smplr, double xPos, double yPos) {
     for (yi=0; yi<fdiam; yi++) {
       tmp = 0;
       for (xi=0; xi<fdiam; xi++) {
-	tmp += smplr->xFslw[xi]*smplr->ivc2[xi + fdiam*(yi + fdiam*ci)];
+	tmp += smplr->xFslw[xi]*smplr->ivc[xi + fdiam*(yi + fdiam*ci)];
       }
       val[ci] += smplr->yFslw[yi]*tmp;
     }

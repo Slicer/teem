@@ -60,15 +60,14 @@ typedef struct {
   Nrrd *image;                         /* the image to sample */
   NrrdKernel *kernel;                  /* which kernel to use on both axes */
   double kparm[NRRD_KERNEL_PARMS_NUM]; /* kernel arguments */
-  float *ivc2, *ivc1;                  /* intermediate value caches, 2 and 1
-					  dimensional */
+  float *ivc;                          /* intermediate value cache */
   double *xFslw, *yFslw;               /* filter sample locations->weights */
-  int fdiam, ncol;                     /* filter diameter; ivc2 is allocated
-					  for fdiam x fdiam x ncol
-					  doubles, ivc1 is fdiam x ncol
-					  w/ those axis orderings */
+  int fdiam, ncol;                     /* filter diameter; ivc is allocated
+					  for (fdiam+1) x (fdiam+1) x ncol
+					  doubles, with that axis ordering */
   int *xIdx, *yIdx;                    /* arrays for x and y coordinates,
 					  both allocated for fdiam */
+  float *bg;                           /* background color */
   int boundary;                        /* from nrrdBoundary* enum */
   int flag[MOSS_FLAG_NUM];             /* I'm a flag-waving struct */
 } mossSampler;
@@ -76,6 +75,7 @@ typedef struct {
 /* defaultsMoss.c */
 extern int mossDefBoundary;
 extern int mossDefCenter;
+extern int mossVerbose;
 
 /* methodsMoss.c */
 extern mossSampler *mossSamplerNew();
@@ -86,7 +86,7 @@ extern int mossImageValid(Nrrd *image);
 extern int mossImageAlloc(Nrrd *image, int type, int sx, int sy, int ncol);
 
 /* sampler.c */
-extern int mossSamplerImageSet(mossSampler *smplr, Nrrd *image);
+extern int mossSamplerImageSet(mossSampler *smplr, Nrrd *image, float *bg);
 extern int mossSamplerKernelSet(mossSampler *smplr,
 				NrrdKernel *kernel, double *kparm);
 extern int mossSamplerUpdate(mossSampler *smplr);
@@ -106,8 +106,13 @@ extern double *mossMatIdentitySet(double mat[6]);
 extern double *mossMatTranslateSet(double mat[6], double tx, double ty);
 extern double *mossMatRotateSet(double mat[6], double angle);
 extern double *mossMatFlipSet(double mat[6], double angle);
+extern double *mossMatShearSet(double mat[6], double angleFixed,
+			       double angleShear);
 extern double *mossMatScaleSet(double mat[6], double sx, double sy);
-extern int mossLinearTransform(Nrrd *nout, Nrrd *nin, double mat[6],
+extern void mossMatApply(double *ox, double *oy, double mat[6],
+			 double ix, double iy);
+extern int mossLinearTransform(Nrrd *nout, Nrrd *nin, float *bg,
+			       double mat[6],
 			       mossSampler *msp,
 			       double xMin, double xMax,
 			       double yMin, double yMax,

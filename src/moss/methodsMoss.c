@@ -35,9 +35,10 @@ mossSamplerNew (void) {
     smplr->kernel = NULL;
     for (i=0; i<NRRD_KERNEL_PARMS_NUM; i++)
       smplr->kparm[i] = AIR_NAN;
-    smplr->ivc2 = smplr->ivc1 = NULL;
+    smplr->ivc = NULL;
     smplr->xFslw = smplr->yFslw = NULL;
     smplr->xIdx = smplr->yIdx = NULL;
+    smplr->bg = NULL;
     smplr->fdiam = smplr->ncol = 0;
     smplr->boundary = mossDefBoundary;
     for (i=0; i<MOSS_FLAG_NUM; i++)
@@ -54,13 +55,13 @@ mossSamplerFill (mossSampler *smplr, int fdiam, int ncol) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(MOSS, err); return 1;
   }
-  smplr->ivc2 = (float*)calloc(fdiam*fdiam*ncol, sizeof(float));
-  smplr->ivc1 = (float*)calloc(fdiam*ncol, sizeof(float));
+  smplr->ivc = (float*)calloc(fdiam*fdiam*ncol, sizeof(float));
   smplr->xFslw = (double*)calloc(fdiam, sizeof(double));
   smplr->yFslw = (double*)calloc(fdiam, sizeof(double));
   smplr->xIdx = (int*)calloc(fdiam, sizeof(int));
   smplr->yIdx = (int*)calloc(fdiam, sizeof(int));
-  if (!( smplr->ivc2 && smplr->ivc1 && smplr->xIdx && smplr->yIdx )) {
+  if (!( smplr->ivc && smplr->xFslw && smplr->yFslw 
+	 && smplr->xIdx && smplr->yIdx )) {
     sprintf(err, "%s: couldn't allocate buffers", me);
     biffAdd(MOSS, err); return 1;
   }
@@ -73,8 +74,7 @@ void
 mossSamplerEmpty (mossSampler *smplr) {
 
   if (smplr) {
-    smplr->ivc2 = airFree(smplr->ivc2);
-    smplr->ivc1 = airFree(smplr->ivc1);
+    smplr->ivc = airFree(smplr->ivc);
     smplr->xFslw = airFree(smplr->xFslw);
     smplr->yFslw = airFree(smplr->yFslw);
     smplr->xIdx = airFree(smplr->xIdx);
@@ -90,6 +90,7 @@ mossSamplerNix (mossSampler *smplr) {
 
   if (smplr) {
     mossSamplerEmpty(smplr);
+    smplr->bg = airFree(smplr->bg);
     free(smplr);
   }
   return NULL;

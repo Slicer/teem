@@ -23,7 +23,7 @@
 int
 _mossHestTransformParse (void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
   char me[]="_mossHestTransformParse", *str;
-  double **matP, tx, ty, sx, sy, angle, mat[6];
+  double **matP, tx, ty, sx, sy, angle, mat[6], shf, sha;
   airArray *mop;
 
   if (!(ptr && _str)) {
@@ -57,6 +57,9 @@ _mossHestTransformParse (void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     mossMatScaleSet(*matP, sx, sy);
   } else if (2 == sscanf(str, "s:%lf,%lf", &sx, &sy)) {
     mossMatScaleSet(*matP, sx, sy);
+
+  } else if (2 == sscanf(str, "shear:%lf,%lf", &shf, &sha)) {
+    mossMatShearSet(*matP, shf, sha);
 
   } else if (6 == sscanf(str, "%lf,%lf,%lf,%lf,%lf,%lf",
 			 mat+0, mat+1, mat+2, mat+3, mat+4, mat+5)) {

@@ -111,28 +111,49 @@ mossMatFlipSet (double mat[6], double angle) {
 }
 
 double *
+mossMatShearSet (double mat[6], double angleFixed, double angleShear) {
+  double rot[6], shear[6];
+
+  angleFixed *= M_PI/180.0;
+  angleShear *= M_PI/180.0;
+  MOSS_MAT_SET(shear, 1, -sin(angleShear), 0, 1, 0, 0);
+  mossMatIdentitySet(mat);
+  mossMatPostMultiply(mat, mossMatRotateSet(rot, -angleFixed));
+  mossMatPostMultiply(mat, shear);
+  mossMatPostMultiply(mat, mossMatRotateSet(rot, angleFixed));
+  return mat;
+}
+
+double *
 mossMatScaleSet (double mat[6], double sx, double sy) {
 
   MOSS_MAT_SET(mat, sx, 0, 0, sy, 0, 0);
   return mat;
 }
 
+void
+mossMatApply (double *ox, double *oy, double mat[6], double ix, double iy) {
+  
+  *ox = mat[0]*ix + mat[2]*iy + mat[4];
+  *oy = mat[1]*ix + mat[3]*iy + mat[5];
+}
+
 int
-mossLinearTransform (Nrrd *nout, Nrrd *nin, double mat[6], mossSampler *msp,
+mossLinearTransform (Nrrd *nout, Nrrd *nin, float *bg,
+		     double mat[6], mossSampler *msp,
 		     double xMin, double xMax,
 		     double yMin, double yMax,
 		     int xSize, int ySize) {
   char me[]="mossLinearTransform", err[AIR_STRLEN_MED];
-  int ncol, xi, yi, xo, yo, ci, sx, sy, ax0;
-  float val, (*lup)(void *v, size_t I),
-    (*ins)(void *v, size_t I, float f), (*clamp)(float val);
-  double inv[6];
+  int ncol, xi, yi, ci, ax0, xCent, yCent;
+  float *val, (*ins)(void *v, size_t I, float f), (*clamp)(float val);
+  double inv[6], xInPos, xOutPos, yInPos, yOutPos;
 
   if (!(nout && nin && mat && msp && mossImageValid(nin))) {
     sprintf(err, "%s: got NULL pointer or bad image", me);
     biffAdd(MOSS, err); return 1;
   }
-  if (mossSamplerImageSet(msp, nin) || mossSamplerUpdate(msp)) {
+  if (mossSamplerImageSet(msp, nin, bg) || mossSamplerUpdate(msp)) {
     sprintf(err, "%s: trouble with sampler", me);
     biffAdd(MOSS, err); return 1;
   }
@@ -148,36 +169,50 @@ mossLinearTransform (Nrrd *nout, Nrrd *nin, double mat[6], mossSampler *msp,
     sprintf(err, "%s: input axis min,max not set on axes %d and %d", me,
 	    ax0+0, ax0+1); biffAdd(MOSS, err); return 1;
   }
+
   ncol = MOSS_NCOL(nin);
   if (mossImageAlloc(nout, nin->type, xSize, ySize, ncol)) {
     sprintf(err, "%s: ", me); biffAdd(MOSS, err); return 1;
   }
-  nout->axis[ax0+0].center = _mossCenter(nin->axis[ax0+0].center);
-  nout->axis[ax0+1].center = _mossCenter(nin->axis[ax0+1].center);
+  val = (float*)calloc(ncol, sizeof(float));
+  if (nrrdCenterUnknown == nout->axis[ax0+0].center)
+    xCent = nout->axis[ax0+0].center = _mossCenter(nin->axis[ax0+0].center);
+  if (nrrdCenterUnknown == nout->axis[ax0+1].center)
+    yCent = nout->axis[ax0+1].center = _mossCenter(nin->axis[ax0+1].center);
   nout->axis[ax0+0].min = xMin;
   nout->axis[ax0+0].max = xMax;
   nout->axis[ax0+1].min = yMin;
   nout->axis[ax0+1].max = yMax;
-  lup = nrrdFLookup[nin->type];
   ins = nrrdFInsert[nin->type];
   clamp = nrrdFClamp[nin->type];
   
-  sx = MOSS_SX(nin);
-  sy = MOSS_SY(nin);
+  if (mossSamplerSample(val, msp, 0, 0)) {
+    sprintf(err, "%s: trouble in sampler", me);
+    free(val); biffAdd(MOSS, err); return 1;
+  }
+
   mossMatInvert(inv, mat);
-  for (yi=0; yi<sy; yi++) {
-    for (xi=0; xi<sx; xi++) {
-      xo = mat[0]*xi + mat[2]*yi + mat[4];
-      yo = mat[1]*xi + mat[3]*yi + mat[5];
-      if (AIR_INSIDE(0, xo, sx-1) && AIR_INSIDE(0, yo, sy-1)) {
-	for (ci=0; ci<ncol; ci++) {
-	  val = lup(nin->data, ci + ncol*(xi + sx*yi));
-	  val = clamp(val);
-	  ins(nout->data, ci + ncol*(xo + sx*yo), val);
-	}
+  for (yi=0; yi<ySize; yi++) {
+    yOutPos = NRRD_POS(yCent, yMin, yMax, ySize, yi);
+    for (xi=0; xi<xSize; xi++) {
+      /*
+      mossVerbose = ( (36 == xi && 72 == yi) ||
+		      (37 == xi && 73 == yi) ||
+		      (105 == xi && 175 == yi) );
+      */
+      xOutPos = NRRD_POS(xCent, xMin, xMax, xSize, xi);
+      mossMatApply(&xInPos, &yInPos, inv, xOutPos, yOutPos);
+      xInPos = NRRD_IDX(xCent, nin->axis[ax0+0].min, nin->axis[ax0+0].max,
+			nin->axis[ax0+0].size, xInPos);
+      yInPos = NRRD_IDX(yCent, nin->axis[ax0+1].min, nin->axis[ax0+1].max,
+			nin->axis[ax0+1].size, yInPos);
+      mossSamplerSample(val, msp, xInPos, yInPos);
+      for (ci=0; ci<ncol; ci++) {
+	ins(nout->data, ci + ncol*(xi + xSize*yi), clamp(val[ci]));
       }
     }
   }
 
+  free(val);
   return 0;
 }

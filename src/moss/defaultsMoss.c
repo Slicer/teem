@@ -25,3 +25,6 @@ mossDefBoundary = nrrdBoundaryBleed;
 
 int
 mossDefCenter = nrrdCenterCell;
+
+int
+mossVerbose = 0;
