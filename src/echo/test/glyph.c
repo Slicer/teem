@@ -216,7 +216,6 @@ echoParseTenNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
 	 AIR_EXISTS((*nrrdP)->axis[2].spacing) &&
 	 AIR_EXISTS((*nrrdP)->axis[3].spacing) )) {
     sprintf(err, "%s: need existant spacings on x,y,z axes", me);
-    strcpy(err, nerr);
     airMopError(mop);
     return 1;
   }
