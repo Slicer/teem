@@ -36,6 +36,9 @@ char *info = ("A demonstration of nrrd measures, with hoover and gage. "
 
 /* -------------------------------------------------------------- */
 
+/* parsed by hest in main(), used by mrendRenderBegin() */
+double mrendGmc;
+
 typedef struct {
   Nrrd *nin;
   double rayStep;
@@ -90,6 +93,7 @@ mrendRenderBegin(mrendRenderInfo **rrP, mrendUserInfo *uu) {
 
   *rrP = (mrendRenderInfo *)calloc(1, sizeof(mrendRenderInfo));
   (*rrP)->gtx = gtx = gageContextNew();
+  gtx->gradMagCurvMin = mrendGmc;
   pvl = gagePerVolumeNew(gageKindScl);
 
   uu->rmop = airMopInit();
@@ -115,7 +119,7 @@ mrendRenderBegin(mrendRenderInfo **rrP, mrendUserInfo *uu) {
     biffMove(MREND, err, GAGE);
     return 1;
   }
-  fprintf(stderr, "%s: kernel support = %d samples\n", me, gtx->fd);
+  fprintf(stderr, "%s: kernel support = %d^3 samples\n", me, gtx->fd);
   (*rrP)->answer = gageAnswerPointer(pvl, uu->whatq);
 
   if (nrrdAlloc((*rrP)->nout=nrrdNew(), nrrdTypeFloat, 2,
@@ -324,6 +328,9 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "m", "measure", airTypeEnum, 1, 1, &(uu->measr), NULL,
 	     "how to collapse ray samples into one scalar",
 	     NULL, nrrdMeasure);
+  hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &mrendGmc,
+	     "0.0", "For curvature-based queries, use zero when gradient "
+	     "magnitude is below this");
   hestOptAdd(&hopt, "step", "size", airTypeDouble, 1, 1, &(uu->rayStep),
 	     "0.01", "step size along ray in world space");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &(uu->outS),

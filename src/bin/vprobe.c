@@ -24,6 +24,8 @@
 #include <nrrd.h>
 #include <gage.h>
 
+#define SPACING(spc) (AIR_EXISTS(spc) ? spc: nrrdDefSpacing)
+
 /* copied this from ten.h; I don't want gage to depend on ten */
 #define PROBE_MAT2LIST(l, m) ( \
    (l)[1] = (m)[0],          \
@@ -112,7 +114,7 @@ main(int argc, char *argv[]) {
   Nrrd *nin, *nout;
   gageContext *ctx;
   gagePerVolume *pvl;
-  double t0, t1;
+  double t0, t1, gmc;
 
   me = argv[0];
   hparm = hestParmNew();
@@ -140,6 +142,9 @@ main(int argc, char *argv[]) {
 	     "renormalize kernel weights at each new sample location. "
 	     "\"Accurate\" kernels don't need this; doing it always "
 	     "makes things go slower");
+  hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc,
+	     "0.0", "For curvature-based queries, use zero when gradient "
+	     "magnitude is below this");
   hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &otype, "float",
 	     "type of output volume", NULL, nrrdType);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
@@ -172,6 +177,7 @@ main(int argc, char *argv[]) {
   **** calls which set up the context and state are here.
   ***/
   ctx = gageContextNew();
+  ctx->gradMagCurvMin = gmc;
   pvl = gagePerVolumeNew(gageKindScl);
   gageSet(ctx, gageVerbose, 1);
   gageSet(ctx, gageRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
@@ -201,6 +207,7 @@ main(int argc, char *argv[]) {
   sox = scale*six;
   soy = scale*siy;
   soz = scale*siz;
+  fprintf(stderr, "%s: kernel support = %d^3 samples\n", me, ctx->fd);
   if (ansLen > 1) {
     fprintf(stderr, "%s: creating %d x %d x %d x %d output\n", 
 	   me, ansLen, sox, soy, soz);
@@ -250,13 +257,13 @@ main(int argc, char *argv[]) {
      for gageKindScl and gageKindVec */
   nrrdContentSet(nout, "probe", nin, "%s", airEnumStr(kind->enm, what));
   nout->axis[0+oBaseDim].spacing = 
-    ((double)six/sox)*NRRD_SPACING(nin->axis[0+iBaseDim].spacing);
+    ((double)six/sox)*SPACING(nin->axis[0+iBaseDim].spacing);
   nout->axis[0+oBaseDim].label = airStrdup(nin->axis[0+iBaseDim].label);
   nout->axis[1+oBaseDim].spacing = 
-    ((double)six/sox)*NRRD_SPACING(nin->axis[1+iBaseDim].spacing);
+    ((double)six/sox)*SPACING(nin->axis[1+iBaseDim].spacing);
   nout->axis[1+oBaseDim].label = airStrdup(nin->axis[1+iBaseDim].label);
   nout->axis[2+oBaseDim].spacing = 
-    ((double)six/sox)*NRRD_SPACING(nin->axis[2+iBaseDim].spacing);
+    ((double)six/sox)*SPACING(nin->axis[2+iBaseDim].spacing);
   nout->axis[2+oBaseDim].label = airStrdup(nin->axis[2+iBaseDim].label);
 
   fprintf(stderr, "\n");

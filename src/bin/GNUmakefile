@@ -47,7 +47,7 @@ $(L).SEEN := true
 ## BINS: all the command-line executables associated with teem
 ## 
 BINS = airSanity affine cubic nrrdSanity overrgb idx2pos \
-  pos2idx unu vprobe qbert mrender miter gkms ungantry
+  pos2idx unu vprobe qbert mrender miter gkms ungantry ilx
 
 ## _binD(bins): list of development locations for given bins
 ## _binI(bins): list of install locations for given bins
@@ -78,7 +78,7 @@ bin/clobber: bin/clean
 ## after going through all the other library makesfiles.  The
 ## arguments to need() are libraries for which we need a header and/or
 ## libraries we need to link against.
-##
+##	
 airSanity.need  = $(call meneed,air)
 affine.need     = $(call meneed,air)
 cubic.need      = $(call meneed,ell)
@@ -87,6 +87,7 @@ idx2pos.need    = $(call meneed,nrrd hest air)
 pos2idx.need    = $(call meneed,nrrd hest air)
 overrgb.need    = $(call meneed,nrrd hest biff air)
 qbert.need      = $(call meneed,gage nrrd hest air)
+ilx.need        = $(call meneed,air hest biff ell nrrd moss)
 vprobe.need     = $(call meneed,gage nrrd biff hest air)
 gkms.need       = $(call meneed,bane nrrd biff air)
 unu.need        = $(call meneed,unrrdu nrrd biff hest air)
@@ -94,30 +95,28 @@ mrender.need    = $(call meneed,hoover limn gage nrrd biff hest air)
 miter.need      = $(call meneed,mite hoover limn nrrd ell biff air)
 ungantry.need   = $(call meneed,gage nrrd biff hest air)
 
-## top.dep(BIN) : most dependent library (furthest from air) needed for BIN
-## top.dep.is(LIB) : which bins have TOP.DEP of LIB
+## Old: "We need some way of expressing the fact that a given binary
+## (install and dev) depends on the usable of its top dependency."
+## Problem: Its not sufficient to use the "top dependency" because the
+## dependencies are not strict subsets/supersets: mrender's "top"
+## dependency is hoover, but hoover doesn't depend on gage, which
+## mrender needs
 ##
-top.dep = $(word 1,$(call linkorder,$($(1).need)))
-top.dep.is = $(foreach bin,$(BINS),$(if $(strip $(subst $(1),,$(call top.dep,$(bin)))),,$(bin)))
-
-## We need some way of expressing the fact that a given binary
-## (install and dev) depends on the usable of its top dependency.
-## Rather than going bin by bin, we can make a shorter list by doing
-## this in terms of the libraries which are top.deps for one or more
-## bins.  The addition of new bins with different top.deps will
-## require supplementing these rules!!!  (do "make clobber; make
-## bin/install" from teem/src to see)
-##
-## L.meneed is set by template.mk by inclusion from L/GNUmakefile
-##
-$(call _binDI,$(call top.dep.is,air))    : $(call used,$(air.meneed))
-$(call _binDI,$(call top.dep.is,ell))    : $(call used,$(ell.meneed))
-$(call _binDI,$(call top.dep.is,nrrd))   : $(call used,$(nrrd.meneed))
-$(call _binDI,$(call top.dep.is,unrrdu)) : $(call used,$(unrrdu.meneed))
-$(call _binDI,$(call top.dep.is,gage))   : $(call used,$(gage.meneed))
-$(call _binDI,$(call top.dep.is,hoover)) : $(call used,$(hoover.meneed))
-$(call _binDI,$(call top.dep.is,mite))   : $(call used,$(mite.meneed))
-$(call _binDI,$(call top.dep.is,bane))   : $(call used,$(bane.meneed))
+$(call _binDI,airSanity)  : $(call used,$(airSanity.need))
+$(call _binDI,affine)     : $(call used,$(affine.need))
+$(call _binDI,cubic)      : $(call used,$(cubic.need))
+$(call _binDI,nrrdSanity) : $(call used,$(nrrdSanity.need))
+$(call _binDI,idx2pos)    : $(call used,$(idx2pos.need))
+$(call _binDI,pos2idx)    : $(call used,$(pos2idx.need))
+$(call _binDI,overrgb)    : $(call used,$(overrgb.need))
+$(call _binDI,qbert)      : $(call used,$(qbert.need))
+$(call _binDI,ilx)        : $(call used,$(ilx.need))
+$(call _binDI,vprobe)     : $(call used,$(vprobe.need))
+$(call _binDI,gkms)       : $(call used,$(gkms.need))
+$(call _binDI,unu)        : $(call used,$(unu.need))
+$(call _binDI,mrender)    : $(call used,$(mrender.need))
+$(call _binDI,miter)      : $(call used,$(miter.need))
+$(call _binDI,ungantry)   : $(call used,$(ungantry.need))
 
 ## How to make bins.dev and bins.inst: both kinds link against the
 ## same (installed) libraries and include the same (installed)

@@ -52,7 +52,7 @@ main(int argc, char *argv[]) {
   hestParseOrDie(hopt, argc-1, argv+1, NULL, me, info,
 		 AIR_TRUE, AIR_TRUE, AIR_TRUE);
 
-  index = NRRD_AXIS_IDX(center, minPos, maxPos, size, pos);
+  index = NRRD_IDX(center, minPos, maxPos, size, pos);
   printf("%g\n", index);
   
   hestParseFree(hopt);

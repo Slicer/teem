@@ -17,8 +17,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-/* HEY: change this when this becomes a bin!! */
-#include "../moss.h"
+#include <moss.h>
 
 char *ilxInfo = ("Applies linear (homogenous coordinate) transforms "
 		 "to a given image, using the given kernel for "
