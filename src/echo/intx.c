@@ -41,9 +41,9 @@ _echoRayIntxSphere(INTX_ARGS(Sphere)) {
   /* else */
   dscr = sqrt(dscr);
   t = (-B - dscr)/(2*A);
-  if (!AIR_INSIDE(ray->neer, t, ray->faar)) {
+  if (!AIR_IN_CL(ray->neer, t, ray->faar)) {
     t = (-B + dscr)/(2*A);
-    if (!AIR_INSIDE(ray->neer, t, ray->faar)) {
+    if (!AIR_IN_CL(ray->neer, t, ray->faar)) {
       return AIR_FALSE;
     }
   }
@@ -134,11 +134,11 @@ _echoRayIntxCubeTest(echoPos_t *tP, int *axP, int *dirP,
   *tP = tmin;
   *axP = axmin;
   *dirP = sgn[axmin];
-  if (!AIR_INSIDE(ray->neer, *tP, ray->faar)) {
+  if (!AIR_IN_CL(ray->neer, *tP, ray->faar)) {
     *tP = tmax;
     *axP = axmax;
     *dirP = sgn[axmax];
-    if (!AIR_INSIDE(ray->neer, *tP, ray->faar)) {
+    if (!AIR_IN_CL(ray->neer, *tP, ray->faar)) {
       return AIR_FALSE;
     }
   }
