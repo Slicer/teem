@@ -61,18 +61,22 @@ typedef struct {
 /* ------------------------------------------------------------------ */
 
 typedef struct {
-  HANDLE id;
+  HANDLE handle;
   void *(*body)(void *);
   void *arg;
   void *ret;
 } airThread;
 
 typedef struct {
-  int strongbad;
+  HANDLE handle;
 } airThreadMutex;
 
 typedef struct {
-  int strongbad;
+  int count;
+  CRITICAL_SECTION lock;
+  HANDLE sema;
+  HANDLE done;
+  size_t broadcast;
 } airThreadCond;
 
 /* ------------------------------------------------------------------ */

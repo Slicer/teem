@@ -110,62 +110,146 @@ airThreadCreate(airThread *thread, void *(*threadBody)(void *), void *arg) {
 
   thread->body = threadBody;
   thread->arg = arg;
-  thread->id = CreateThread(0, 0, airThreadWin32Body, (void *)&thread, 0, 0);
-  return NULL == thread0->id;
+  thread->handle = CreateThread(0, 0, airThreadWin32Body, (void *)&thread, 0, 0);
+  return NULL == thread->handle;
 }
 
 int
 airThreadJoin(airThread *thread, void **retP) {
   int err;
 
-  err = (WAIT_FAILED == WaitForSingleObject(thread->id, INFINITE));
+  err = (WAIT_FAILED == WaitForSingleObject(thread->handle, INFINITE));
   *retP = thread->ret;
   return err;
 }
 
 int
 airThreadMutexInit(airThreadMutex *mutex) {
-
+  mutex->handle = CreateMutex(NULL, TRUE, NULL);
+  return NULL == mutex->handle;
 }
 
 int
 airThreadMutexLock(airThreadMutex *mutex) {
-
+  return WAIT_FAILED == WaitForSingleObject(mutex->handle, INFINITE);
 }
 
 int
 airThreadMutexUnlock(airThreadMutex *mutex) {
-
+  return 0 == ReleaseMutex(mutex->handle);
 }
 
 int
 airThreadMutexDone(airThreadMutex *mutex) {
-
+  return 0 == CloseHandle(mutex->handle);
 }
 
 int
 airThreadCondInit(airThreadCond *cond) {
-
+  cond->count = 0;
+  cond->broadcast = 0;
+  cond->sema = CreateSemaphore(NULL, 0, 0x7fffffff, NULL);
+  if (NULL == cond->sema) return 1;
+  InitializeCriticalSection(&(cond->lock));
+  cond->done = CreateEvent(NULL, FALSE, FALSE, NULL);
+  if (NULL == cond->done) {
+    CloseHandle(cond->sema);
+    return 1;
+  }
+  return 0;
 }
 
 int
 airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex) {
+  int last;
 
+  /* increment count */
+  EnterCriticalSection(&(cond->lock)); /* avoid race conditions */
+  cond->count++;
+  LeaveCriticalSection(&(cond->lock));
+  /* atomically release the mutex and wait on the
+     semaphore until airThreadCondSignal or airThreadCondBroadcast
+     are called by another thread */
+  if (WAIT_FAILED == SignalObjectAndWait(mutex->handle, cond->sema, INFINITE, FALSE))
+    return 1;
+  /* reacquire lock to avoid race conditions */
+  EnterCriticalSection(&(cond->lock));
+  /* we're no longer waiting... */
+  cond->count--;
+  /* check to see if we're the last waiter after airThreadCondBroadcast */
+  last = (cond->broadcast && 0 == cond->count);
+  LeaveCriticalSection(&(cond->lock));
+  /* if we're the last waiter thread during this particular broadcast
+     then let all the other threads proceed */
+  if (last) {
+    /* atomically signal the done event and waits until
+       we can acquire the mutex (this is required to ensure fairness) */
+    if (WAIT_FAILED == SignalObjectAndWait(cond->done, mutex->handle, INFINITE, FALSE))
+      return 1;
+  } else {
+    /* regain the external mutex since that's the guarantee to our callers */
+    if (WAIT_FAILED == WaitForSingleObject(mutex->handle, INFINITE))
+      return 1;
+  }
+  return 0;
 }
 
 int
 airThreadCondSignal(airThreadCond *cond) {
-
+  int waiters;
+  
+  EnterCriticalSection(&(cond->lock));
+  waiters = cond->count > 0;
+  LeaveCriticalSection(&(cond->lock));
+  /* if there aren't any waiters, then this is a no-op */
+  if (waiters) {
+    if (0 == ReleaseSemaphore(cond->sema, 1, NULL))
+      return 1;
+  }
+  return 0;
 }
 
 int
 airThreadCondBroadcast(airThreadCond *cond) {
+  int waiters;
 
+  /* need to ensure that cond->count and cond->broadcast are consistent */
+  EnterCriticalSection(&(cond->lock));
+  waiters = 0;
+  if (cond->count > 0) {
+    /* we are broadcasting, even if there is just one waiter...
+       record that we are broadcasting, which helps optimize
+       airThreadCondWait for the non-broadcast case */
+    cond->broadcast = 1;
+    waiters = 1;
+  }
+  if (waiters) {
+    /* wake up all the waiters atomically */
+    if (0 == ReleaseSemaphore(cond->sema, cond->count, 0))
+      return 1;
+    LeaveCriticalSection(&(cond->lock));
+    /* wait for all the awakened threads to acquire the counting semaphore */ 
+    if (WAIT_FAILED == WaitForSingleObject(cond->done, INFINITE))
+      return 1;
+    /* this assignment is okay, even without the lock held 
+       because no other waiter threads can wake up to access it */
+    cond->broadcast = 0;
+  } else {
+    LeaveCriticalSection(&(cond->lock));
+  }
+  return 0;
 }
 
 int
 airThreadCondDone(airThreadCond *cond) {
-
+  cond->count = 0;
+  cond->broadcast = 0;
+  if (0 == CloseHandle(cond->done))
+    return 1;
+  DeleteCriticalSection(&(cond->lock));
+  if (0 == CloseHandle(cond->sema))
+    return 1;
+  return 0;
 }
 
 /* ------------------------------------------------------------------ */
