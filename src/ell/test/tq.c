@@ -139,7 +139,7 @@ main(int argc, char *argv[]) {
     ell_q_to_3m_f(mat3A_f, qA_f);
     det = ELL_3M_DET(mat3A_f);
     frob = ELL_3M_FROB(mat3A_f);
-    ELL_3M_TRAN(mat3B_f, mat3A_f);
+    ELL_3M_TRANSPOSE(mat3B_f, mat3A_f);
     ell_3m_inv_f(mat3C_f, mat3A_f);
     ELL_3M_SUB(mat3C_f, mat3B_f, mat3C_f);
     printf("      det = %g; size = %g; err = %g\n", det, frob*frob/3,
