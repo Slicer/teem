@@ -117,8 +117,8 @@ airSingleSscanf(const char *str, const char *fmt, void *ptr) {
 ** int airParseStrF(float *out, const char *s, const char *ct, int n, ...)
 ** int airParseStrD(double *out, const char *s, const char *ct, int n, ...)
 ** int airParseStrC(char *out, const char *s, const char *ct, int n, ...)
-** int airParseStrS(char *out, const char *s, const char *ct, int n, ...)
-** int airParseStrE(char *out, const char *s, const char *ct, int n, ...)
+** int airParseStrS(char **out, const char *s, const char *ct, int n, ...)
+** int airParseStrE(int *out, const char *s, const char *ct, int n, ...)
 **
 ** The embarrassing reason for the var-args ("...") is that I want the
 ** type signature of all these functions to be the same, and I have a function
