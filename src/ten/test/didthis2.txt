@@ -1,0 +1,5 @@
+alias DOIT "tend glyph -sat 0 -wd 0.3 0.1 0 -gsc 0.13 -psc 220 -fr 0 0 -1 -up 0 1 0 -rh -ur -1.2 1.2 -vr -1.2 1.2 -or -emap emap.nrrd -atr 0 -gr 20"
+
+test/tt -n 8 -p 0.9 0.4 -0.2 | DOIT -g b -o box.ps
+test/tt -n 8 -p 0.9 0.4 -0.2 | DOIT -g s -o sph.ps
+test/tt -n 8 -p 0.9 0.4 -0.2 | DOIT -g q -o sqd.ps
