@@ -1064,6 +1064,9 @@ nrrdSave (const char *filename, Nrrd *nrrd, NrrdIO *io) {
 
   if (!strcmp("-", filename)) {
     file = stdout;
+#ifdef WIN32
+    _setmode(_fileno(file), _O_BINARY);
+#endif
   } else {
     if (!(file = fopen(filename, "wb"))) {
       sprintf(err, "%s: couldn't fopen(\"%s\",\"wb\"): %s", 

@@ -20,6 +20,11 @@
 #ifndef NRRD_PRIVATE_HAS_BEEN_INCLUDED
 #define NRRD_PRIVATE_HAS_BEEN_INCLUDED
 
+#ifdef WIN32
+#include <io.h>
+#include <fcntl.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

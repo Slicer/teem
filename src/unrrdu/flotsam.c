@@ -18,6 +18,7 @@
 */
 
 #include "unrrdu.h"
+#include "privateUnrrdu.h"
 
 /* number of columns that hest will used */
 int
@@ -304,6 +305,9 @@ unrrduParseFile(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   fileP = ptr;
   if (!strcmp("-", str)) {
     *fileP = stdin;
+#ifdef WIN32
+    _setmode(_fileno(*fileP), _O_BINARY);
+#endif
   }
   else {
     *fileP = fopen(str, "rb");

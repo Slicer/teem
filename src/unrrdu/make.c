@@ -150,6 +150,9 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
        which not write any data (because of the AIR_FALSE) */
     if (!strcmp("-", out)) {
       fileOut = stdout;
+#ifdef WIN32
+    _setmode(_fileno(fileOut), _O_BINARY);
+#endif
     } else {
       if (!( fileOut = fopen(out, "wb") )) {
 	fprintf(stderr, "%s: couldn't fopen(\"%s\",\"wb\"): %s\n", 
@@ -164,6 +167,10 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
        since we have to open the input data file by hand */
     if (!strcmp("-", dataFileName)) {
       io->dataFile  = stdin;
+#ifdef WIN32
+      _setmode(_fileno(io->dataFile), _O_BINARY);
+#endif
+
     } else {
       if (!( io->dataFile = fopen(dataFileName, "rb") )) {
 	fprintf(stderr, "%s:  couldn't fopen(\"%s\",\"rb\"): %s\n", 

@@ -56,6 +56,9 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   if (!strcmp("-", inS)) {
     fin = stdin;
+#ifdef WIN32
+    _setmode(_fileno(fin), _O_BINARY);
+#endif
   } else {
     if (!( fin = fopen(inS, "rb") )) {
       fprintf(stderr, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", 
@@ -65,6 +68,9 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   if (!strcmp("-", outS)) {
     fout = stdout;
+#ifdef WIN32
+    _setmode(_fileno(fout), _O_BINARY);
+#endif
   } else {
     if (!( fout = fopen(outS, "wb") )) {
       fprintf(stderr, "%s: couldn't fopen(\"%s\",\"wb\"): %s\n", 

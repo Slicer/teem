@@ -382,7 +382,8 @@ _nrrdReadDataGzip (Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadDataGzip", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
   size_t num, bsize, size, total_read;
-  int block_size, read, i, error=0;
+  int block_size, i, error=0;
+  unsigned int read;
   char *data;
   gzFile gzfin;
   
@@ -1301,6 +1302,9 @@ nrrdLoad (Nrrd *nrrd, const char *filename) {
 
   if (!strcmp("-", filename)) {
     file = stdin;
+#ifdef WIN32
+    _setmode(_fileno(file), _O_BINARY);
+#endif
   } else {
     file = fopen(filename, "rb");
     if (!file) {
