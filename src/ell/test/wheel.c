@@ -315,11 +315,11 @@ main(int argc, char *argv[]) {
   wheelLine(&wps, bbox[0], 0, bbox[2], 0);
 
   /* circle */
-  wheelWidth(&wps, 4);
+  wheelWidth(&wps, 3);
   wheelCircle(&wps, geom[0], 0, geom[1]);
 
   /* spokes */
-  wheelWidth(&wps, 2);
+  wheelWidth(&wps, 4);
   wheelLine(&wps, geom[0], 0, xroot[0], yroot[0]);
   wheelLine(&wps, geom[0], 0, xroot[1], yroot[1]);
   wheelLine(&wps, geom[0], 0, xroot[2], yroot[2]);
