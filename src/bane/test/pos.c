@@ -61,14 +61,14 @@ main(int argc, char *argv[]) {
   }
   fclose(file);
   if (2 == info->dim) {
-    if (!(pos = baneNewPosCalc1D(sigma, gthresh, info))) {
+    if (banePosCalc1D(pos = nrrdNew(), sigma, gthresh, info)) {
       fprintf(stderr, "%s: trouble calculating p(v):\n%s\n", me,
 	      biffGet(BANE));
       exit(1);
     }
   }
   else {
-    if (!(pos = baneNewPosCalc2D(sigma, gthresh, info))) {
+    if (banePosCalc2D(pos = nrrdNew(), sigma, gthresh, info)) {
       fprintf(stderr, "%s: trouble calculating p(v,g):\n%s\n", me,
 	      biffGet(BANE));
       exit(1);

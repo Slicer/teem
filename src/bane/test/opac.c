@@ -59,13 +59,13 @@ main(int argc, char *argv[]) {
   fclose(file);
 
   if (1 == p->dim) {
-    if (!(o = baneNewOpacCalc1Dcpts(b, p))) {
+    if (baneOpacCalc1Dcpts(o = nrrdNew(), b, p)) {
       fprintf(stderr, "%s: trouble calculating opac:\n%s", me, biffGet(BANE));
       exit(1);
     }
   }
   else {
-    if (!(o = baneNewOpacCalc2Dcpts(b, p))) {
+    if (baneOpacCalc2Dcpts(o = nrrdNew(), b, p)) {
       fprintf(stderr, "%s: trouble calculating opac:\n%s", me, biffGet(BANE));
       exit(1);
     }

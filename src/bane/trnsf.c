@@ -93,24 +93,6 @@ bane2DOpacInfo(Nrrd *info2D, Nrrd *hvol) {
   return 0;
 }
 
-Nrrd *
-baneNew2DOpacInfo(Nrrd *hvol) {
-  char me[]="baneNew2DOpacInfo", err[128];
-  Nrrd *info2D;
-
-  if (!(info2D = nrrdNew())) {
-    sprintf(err, BIFF_NRRDNEW, me);
-    biffSet(BANE, err); return NULL;
-  }
-
-  if (bane2DOpacInfo(info2D, hvol)) {
-    sprintf(err, "%s: trouble creating 2D opacity function info", me);
-    biffAdd(BANE, err); return NULL;
-  }
-  
-  return info2D;
-}
-
 int
 bane1DOpacInfo(Nrrd *info1D, Nrrd *hvol) {
   char me[]="bane1DOpacInfo", err[128];
@@ -182,22 +164,6 @@ bane1DOpacInfo(Nrrd *info1D, Nrrd *hvol) {
   return 0;
 }
 
-Nrrd *
-baneNew1DOpacInfo(Nrrd *hvol) {
-  char me[]="baneNew1DOpacInfo", err[128];
-  Nrrd *info1D;
-
-  if (!(info1D = nrrdNew())) {
-    sprintf(err, BIFF_NRRDNEW, me);
-    biffSet(BANE, err); return NULL;
-  }
-  if (bane1DOpacInfo(info1D, hvol)) {
-    sprintf(err, "%s: trouble creating 1D opacity function information", me);
-    biffSet(BANE, err); return NULL;
-  }
-  return info1D;
-}
-
 int
 bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
   char me[]="bane1DOpacInfoFrom2D", err[128];
@@ -251,21 +217,6 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
   return 0;
 }
 
-Nrrd *
-baneNew1DOpacInfoFrom2D(Nrrd *info2D) {
-  char me[]="baneNew1DOpacInfoFrom2D", err[128];
-  Nrrd *info1D;
-
-  if (!(info1D = nrrdNew())) {
-    sprintf(err, BIFF_NRRDNEW, me); biffSet(BANE, err); return NULL;
-  }
-  if (bane1DOpacInfoFrom2D(info1D, info2D)) {
-    sprintf(err, "%s: trouble deriving 1D info from 2D info", me);
-    biffAdd(BANE, err); return NULL;
-  }
-  return info1D;
-}
-
 int
 baneSigmaCalc1D(float *sP, Nrrd *info1D) {
   char me[]="baneSigmaCalc", err[128];
@@ -309,7 +260,8 @@ baneSigmaCalc2D(float *sP, Nrrd *info2D) {
   char me[]="baneSigmaCalc2D", err[128];
   Nrrd *info1D;
 
-  if (!(info1D = baneNew1DOpacInfoFrom2D(info2D))) {
+  info1D = nrrdNew();
+  if (bane1DOpacInfoFrom2D(info1D, info2D)) {
     sprintf(err, "%s: couldn't create 1D opac info from 2d", me);
     biffAdd(BANE, err); return 1;
   }
@@ -360,21 +312,6 @@ banePosCalc1D(Nrrd *pos1D, float sigma, float gthresh, Nrrd *info1D) {
   return 0;
 }
 
-Nrrd *
-baneNewPosCalc1D(float sigma, float gthresh, Nrrd *info1D) {
-  char me[]="baneNewPosCalc1D", err[128];
-  Nrrd *pos1D;
-
-  if (!(pos1D = nrrdNew())) {
-    sprintf(err, BIFF_NULL, me); biffSet(BANE, err); return NULL;
-  }
-  if (banePosCalc1D(pos1D, sigma, gthresh, info1D)) {
-    sprintf(err, "%s: trouble calculating position", me);
-    biffAdd(BANE, err); return NULL;
-  }
-  return pos1D;
-}
-
 int
 banePosCalc2D(Nrrd *pos2D, float sigma, float gthresh, Nrrd *info2D) {
   char me[]="banePosCalc2D", err[128];
@@ -401,8 +338,6 @@ banePosCalc2D(Nrrd *pos2D, float sigma, float gthresh, Nrrd *info2D) {
   pos2D->axisMax[0] = info2D->axisMax[1];
   pos2D->axisMin[1] = info2D->axisMin[2];
   pos2D->axisMax[1] = info2D->axisMax[2];
-  printf("%s: g range: %g - %g\n", me, 
-	 info2D->axisMin[2], info2D->axisMax[2]);
   posData = pos2D->data;
   for (gi=0; gi<=sg-1; gi++) {
     g = AIR_AFFINE(0, gi, sg-1, info2D->axisMin[2], info2D->axisMax[2]);
@@ -421,21 +356,6 @@ banePosCalc2D(Nrrd *pos2D, float sigma, float gthresh, Nrrd *info2D) {
     }
   }
   return 0;
-}
-
-Nrrd *
-baneNewPosCalc2D(float sigma, float gthresh, Nrrd *info2D) {
-  char me[]="baneNewPosCalc2D", err[128];
-  Nrrd *pos2D;
-
-  if (!(pos2D = nrrdNew())) {
-    sprintf(err, BIFF_NULL, me); biffSet(BANE, err); return NULL;
-  }
-  if (banePosCalc2D(pos2D, sigma, gthresh, info2D)) {
-    sprintf(err, "%s: trouble calculating position", me);
-    biffAdd(BANE, err); return NULL;
-  }
-  return pos2D;
 }
 
 void
@@ -477,7 +397,7 @@ void
 _baneOpacCalcB(int lutLen, float *opacLut, 
 	       int numCpts, float *x, float *o,
 	       float *pos) {
-  char me[]="_baneOpacCalcB";
+  /* char me[]="_baneOpacCalcB"; */
   int i, j;
   float p, op;
 
@@ -559,22 +479,6 @@ baneOpacCalc1Dcpts(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos1D) {
   return 0;
 }
 
-Nrrd *
-baneNewOpacCalc1Dcpts(Nrrd *Bcpts, Nrrd *pos1D) {
-  char me[]="baneNewOpacCalc1Dcpts", err[128];
-  Nrrd *opac;
-
-  opac = nrrdNew();
-  if (!opac) {
-    sprintf(err, BIFF_NRRDNEW, me); biffSet(BANE, err); return NULL;
-  }
-  if (baneOpacCalc1Dcpts(opac, Bcpts, pos1D)) {
-    sprintf(err, "%s: trouble calculating opacity", me);
-    biffAdd(BANE, err); nrrdNuke(opac); return NULL;
-  }
-  return opac;
-}
-
 int
 baneOpacCalc2Dcpts(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos2D) {
   char me[]="baneOpacCalc2Dcpts", err[128];
@@ -612,20 +516,3 @@ baneOpacCalc2Dcpts(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos2D) {
   _baneOpacCalcA(sv*sg, odata, npts, bdata, pdata);
   return 0;
 }
-
-Nrrd *
-baneNewOpacCalc2Dcpts(Nrrd *Bcpts, Nrrd *pos2D) {
-  char me[]="baneNewOpacCalc2Dcpts", err[128];
-  Nrrd *opac;
-
-  opac = nrrdNew();
-  if (!opac) {
-    sprintf(err, BIFF_NRRDNEW, me); biffSet(BANE, err); return NULL;
-  }
-  if (baneOpacCalc2Dcpts(opac, Bcpts, pos2D)) {
-    sprintf(err, "%s: trouble calculating opacity", me);
-    biffAdd(BANE, err); nrrdNuke(opac); return NULL;
-  }
-  return opac;
-}
-

@@ -34,7 +34,7 @@ main(int argc, char *argv[]) {
   Nrrd *pos, *ppm;
   float *posData, p, min, max, sml, cwght, cidxf;
   unsigned char *ppmData, *rgb;
-  int v, g, sv, sg, idx, smlIdx, donLen = 23, cidx;
+  int v, g, sv, sg, idx, smlIdx, /* donLen = 23, */ cidx;
   unsigned char don[] = {0, 0, 0,       /* background: black */
 			 /* 1 */ 0, 107, 255,   /* start: blue */
 			 51, 104, 255,

@@ -52,7 +52,7 @@ main(int argc, char *argv[]) {
     usage();
   }
   
-  if (!(nout = baneNewApplyMeasr(nin, measr))) {
+  if (baneApplyMeasr(nout = nrrdNew(), nin, measr)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(BANE));
     exit(1);
   }

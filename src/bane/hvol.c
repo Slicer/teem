@@ -421,22 +421,6 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
 }
 
 Nrrd *
-baneNewMakeHVol(Nrrd *nin, baneHVolParm *hvp) {
-  char me[]="baneNewMakeHVol", err[128];
-  Nrrd *hvol;
-
-  if (!(hvol = nrrdNew())) {
-    sprintf(err, "%s: couldn't create nrrd struct", me);
-    biffMove(BANE, err, NRRD); return NULL;
-  }
-  if (baneMakeHVol(hvol, nin, hvp)) {
-    sprintf(err, "%s: trouble creating histogram volume", me);
-    biffAdd(BANE, err); nrrdNuke(hvol); return NULL;
-  }
-  return hvol;
-}
-
-Nrrd *
 baneGKMSHVol(Nrrd *nin, float perc) {
   char me[]="baneGKMSHVol", err[128];
   baneHVolParm *hvp;
@@ -449,7 +433,8 @@ baneGKMSHVol(Nrrd *nin, float perc) {
   baneHVolParmGKMSInit(hvp);
   hvp->axp[0].incParm[1] = perc;
   hvp->axp[1].incParm[1] = perc;
-  if (!(hvol = baneNewMakeHVol(nin, hvp))) {
+  hvol = nrrdNew();
+  if (baneMakeHVol(hvol, nin, hvp)) {
     sprintf(err, "%s: trouble making GKMS histogram volume", me);
     biffAdd(BANE, err); free(hvp); return NULL;
   }
@@ -508,21 +493,4 @@ baneApplyMeasr(Nrrd *nout, Nrrd *nin, int measr) {
     }
   }
   return 0;
-}
-
-Nrrd *
-baneNewApplyMeasr(Nrrd *nin, int measr) {
-  char me[]="baneNewApplyMeasr", err[128];
-  Nrrd *nout;
-
-  nout = nrrdNew();
-  if (!nout) {
-    sprintf(err, "%s: couldn't alloc output nrrd struct", me);
-    biffSet(BANE, err); return NULL;
-  }
-  if (baneApplyMeasr(nout, nin, measr)) {
-    sprintf(err, "%s: trouble performing measurement", me);
-    biffAdd(BANE, err); nrrdNuke(nout); return NULL;
-  }
-  return nout;
 }

@@ -199,7 +199,6 @@ extern baneProbeK3Pack *baneProbeK3PackNix(baneProbeK3Pack *);
 /* hvol.c */
 extern int baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp);
 extern int baneApplyMeasr(Nrrd *nout, Nrrd *nin, int measr);
-extern Nrrd *baneNewApplyMeasr(Nrrd *nin, int measr);
 extern Nrrd *baneGKMSHVol(Nrrd *nin, float perc);
 
 /* probe.c */
@@ -253,21 +252,15 @@ extern int baneValidBcpts(Nrrd *Bcpts);
 
 /* trnsf.c */
 extern int bane2DOpacInfo(Nrrd *info2D, Nrrd *hvol);
-extern Nrrd *baneNew2DOpacInfo(Nrrd *hvol);
 extern int bane1DOpacInfo(Nrrd *info1D, Nrrd *hvol);
-extern Nrrd *baneNew1DOpacInfo(Nrrd *hvol);
 extern int bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D);
-extern Nrrd * baneNew1DOpacInfoFrom2D(Nrrd *info2D);
 extern int baneSigmaCalc1D(float *sP, Nrrd *info1D);
 extern int baneSigmaCalc2D(float *sP, Nrrd *info2D);
 extern int banePosCalc1D(Nrrd *pos1D, 
 			 float sigma, float gthresh, Nrrd *info1D);
-extern Nrrd *baneNewPosCalc1D(float sigma, float gthresh, Nrrd *info1D);
 extern int banePosCalc2D(Nrrd *pos2D, 
 			 float sigma, float gthresh, Nrrd *info2D);
-extern Nrrd *baneNewPosCalc2D(float sigma, float gthresh, Nrrd *info2D);
 extern int baneOpacCalc1Dcpts(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos1D);
-extern Nrrd *baneNewOpacCalc1Dcpts(Nrrd *Bcpts, Nrrd *pos1D);
 extern void _baneOpacCalcA(int lutLen, float *opacLut, 
 			   int numCpts, float *xo,
 			   float *pos);
@@ -275,7 +268,6 @@ extern void _baneOpacCalcB(int lutLen, float *opacLut,
 			   int numCpts, float *x, float *o,
 			   float *pos);
 extern int baneOpacCalc2Dcpts(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos2D);
-extern Nrrd *baneNewOpacCalc2Dcpts(Nrrd *Bcpts, Nrrd *pos2D);
 
 /* trex.c */
 extern float *_baneTRexRead(char *fname);
