@@ -145,7 +145,7 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
     sprintf(err, "%s: couldn't allocate buffer nrrds", me);
     biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
   }
-  quat = (double*)(npos->data);
+  quat = (double*)(nquat->data);
   pos = (double*)(npos->data);
   dist = (double*)(ndist->data);
   uv = (double*)(nuv->data);
