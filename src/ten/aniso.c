@@ -139,7 +139,7 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, float thresh) {
   float *out, *in, *tensor, eval[3], evec[9], c[TEN_ANISO_MAX+1];
   int d, sx, sy, sz, map[NRRD_DIM_MAX];
 
-  if (!tenValidTensor(nin, nrrdTypeFloat, AIR_TRUE)) {
+  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE)) {
     sprintf(err, "%s: didn't get a tensor nrrd", me);
     biffAdd(TEN, err); return 1;
   }

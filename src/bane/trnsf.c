@@ -47,7 +47,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
 	    me, dim);
     biffAdd(BANE, err); return 1;
   }
-  if (!baneValidHVol(hvol)) {
+  if (baneHVolCheck(hvol)) {
     sprintf(err, "%s: given nrrd doesn't seem to be a histogram volume", me);
     biffAdd(BANE, err); return 1;
   }
@@ -151,7 +151,7 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
   if (!(info1D && info2D)) {
     sprintf(err, BIFF_NULL, me); biffAdd(BANE, err); return 1;
   }
-  if (!baneValidInfo(info2D, 2)) {
+  if (baneInfoCheck(info2D, 2)) {
     sprintf(err, "%s: didn't get valid 2D info", me);
     biffAdd(BANE, err); return 1;
   }
@@ -228,7 +228,7 @@ baneSigmaCalc(float *sP, Nrrd *_info) {
   if (!(sP && _info)) { 
     sprintf(err, BIFF_NULL, me); biffAdd(BANE, err); return 1;
   }
-  if (!baneValidInfo(_info, 0)) {
+  if (baneInfoCheck(_info, 0)) {
     sprintf(err, "%s: didn't get a valid info", me);
     biffAdd(BANE, err); return 1;
   }
@@ -260,7 +260,7 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
   if (!(pos && info)) {
     sprintf(err, BIFF_NULL, me); biffAdd(BANE, err); return 1;
   }
-  if (!baneValidInfo(info, 0)) {
+  if (baneInfoCheck(info, 0)) {
     sprintf(err, "%s: didn't get a valid info", me);
     biffAdd(BANE, err); return 1;
   }
@@ -414,11 +414,11 @@ baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos) {
   if (!(opac && Bcpts && pos)) {
     sprintf(err, BIFF_NULL, me); biffAdd(BANE, err); return 1;
   }
-  if (!baneValidBcpts(Bcpts)) {
+  if (baneBcptsCheck(Bcpts)) {
     sprintf(err, "%s: didn't get valid control points for b(x)", me);
     biffAdd(BANE, err); return 1;
   }
-  if (!baneValidPos(pos, 0)) {
+  if (banePosCheck(pos, 0)) {
     sprintf(err, "%s: didn't get valid position data", me);
     biffAdd(BANE, err); return 1;
   }

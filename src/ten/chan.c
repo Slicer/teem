@@ -72,7 +72,7 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  if (!tenValidTensor(nin, nrrdTypeUnknown, AIR_TRUE)) {
+  if (tenTensorCheck(nin, nrrdTypeUnknown, AIR_TRUE)) {
     sprintf(err, "%s: wasn't given valid tensor nrrd", me);
     biffAdd(TEN, err); return 1;
   }

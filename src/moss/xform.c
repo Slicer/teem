@@ -147,7 +147,7 @@ mossLinearTransform (Nrrd *nout, Nrrd *nin, float *bg,
   float *val, (*ins)(void *v, size_t I, float f), (*clamp)(float val);
   double inv[6], xInPos, xOutPos, yInPos, yOutPos;
 
-  if (!(nout && nin && mat && msp && mossImageValid(nin))) {
+  if (!(nout && nin && mat && msp && !mossImageCheck(nin))) {
     sprintf(err, "%s: got NULL pointer or bad image", me);
     biffAdd(MOSS, err); return 1;
   }

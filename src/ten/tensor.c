@@ -24,7 +24,7 @@
 int tenVerbose = 0;
 
 /*
-******** tenValidTensor()
+******** tenTensorCheck()
 **
 ** describes if the given nrrd could be a diffusion tensor dataset,
 ** either the measured DWI data or the calculated tensor data.
@@ -39,36 +39,36 @@ int tenVerbose = 0;
 ** useBiff controls if biff is used to describe the problem
 */
 int
-tenValidTensor(Nrrd *nin, int wantType, int useBiff) {
-  char me[]="tenValidTensor", err[256];
+tenTensorCheck(Nrrd *nin, int wantType, int useBiff) {
+  char me[]="tenTensorCheck", err[256];
   
   if (!nin) {
     sprintf(err, "%s: got NULL pointer", me);
-    if (useBiff) biffAdd(TEN, err); return 0;
+    if (useBiff) biffAdd(TEN, err); return 1;
   }
   if (wantType) {
     if (nin->type != wantType) {
       sprintf(err, "%s: wanted type %s, got type %s", me,
 	      airEnumStr(nrrdType, wantType),
 	      airEnumStr(nrrdType, nin->type));
-      if (useBiff) biffAdd(TEN, err); return 0;
+      if (useBiff) biffAdd(TEN, err); return 1;
     }
   }
   else {
     if (!(nin->type == nrrdTypeFloat || nin->type == nrrdTypeShort)) {
       sprintf(err, "%s: need data of type float or short", me);
-      if (useBiff) biffAdd(TEN, err); return 0;
+      if (useBiff) biffAdd(TEN, err); return 1;
     }
   }
   if (!(4 == nin->dim)) {
     sprintf(err, "%s: given dimension is %d, not 4", me, nin->dim);
-    if (useBiff) biffAdd(TEN, err); return 0;
+    if (useBiff) biffAdd(TEN, err); return 1;
   }
   if (!(7 == nin->axis[0].size)) {
     sprintf(err, "%s: axis 0 has size %d, not 7", me, nin->axis[0].size);
-    if (useBiff) biffAdd(TEN, err); return 0;
+    if (useBiff) biffAdd(TEN, err); return 1;
   }
-  return 1;
+  return 0;
 }
 
 int
@@ -82,7 +82,7 @@ tenExpand(Nrrd *nout, Nrrd *nin, float thresh) {
     sprintf(err, "%s: got NULL pointer or non-existant threshold", me);
     biffAdd(TEN, err); return 1;
   }
-  if (!tenValidTensor(nin, nrrdTypeFloat, AIR_TRUE)) {
+  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE)) {
     sprintf(err, "%s: ", me);
     biffAdd(TEN, err); return 1;
   }

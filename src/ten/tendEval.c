@@ -63,7 +63,7 @@ tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
       airMopError(mop); exit(1);
     }
   }
-  if (!tenValidTensor(nin, nrrdTypeFloat, AIR_TRUE)) {
+  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: didn't get a valid DT volume:\n%s\n", me, err);
     airMopError(mop); exit(1);

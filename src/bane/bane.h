@@ -350,11 +350,11 @@ extern void baneHVolParmGKMSInit(baneHVolParm *hvp);
 extern baneHVolParm *baneHVolParmNix(baneHVolParm *hvp);
 
 /* valid.c */
-extern int baneValidInput(Nrrd *nin, baneHVolParm *hvp);
-extern int baneValidHVol(Nrrd *hvol);
-extern int baneValidInfo(Nrrd *info2D, int wantDim);
-extern int baneValidPos(Nrrd *pos, int wantDim);
-extern int baneValidBcpts(Nrrd *Bcpts);
+extern int baneInputCheck(Nrrd *nin, baneHVolParm *hvp);
+extern int baneHVolCheck(Nrrd *hvol);
+extern int baneInfoCheck(Nrrd *info2D, int wantDim);
+extern int banePosCheck(Nrrd *pos, int wantDim);
+extern int baneBcptsCheck(Nrrd *Bcpts);
 
 /* hvol.c */
 extern void baneProbe(double val[3],

@@ -26,34 +26,34 @@
 */
 
 int
-_baneValidAxis(baneAxis *ax) {
-  char me[]="_baneValidAxis", err[AIR_STRLEN_MED];
+_baneAxisCheck (baneAxis *ax) {
+  char me[]="_baneAxisCheck", err[AIR_STRLEN_MED];
   int i;
   
   if (!(ax->res >= 2)) {
     sprintf(err, "%s: need resolution at least 2 (not %d)", me, ax->res);
-    biffAdd(BANE, err); return 0;
+    biffAdd(BANE, err); return 1;
   }
   if (!ax->measr) {
     sprintf(err, "%s: have NULL baneMeasr", me);
-    biffAdd(BANE, err); return 0;
+    biffAdd(BANE, err); return 1;
   }
   for (i=0; i<ax->measr->numParm; i++) {
     if (!AIR_EXISTS(ax->measrParm[i])) {
       sprintf(err, "%s: didn't get %d parms for %s measurement",
 	      me, ax->measr->numParm, ax->measr->name);
-      biffAdd(BANE, err); return 0;
+      biffAdd(BANE, err); return 1;
     }
   }
   if (!ax->inc) {
     sprintf(err, "%s: have NULL baneInc", me);
-    biffAdd(BANE, err); return 0;
+    biffAdd(BANE, err); return 1;
   }
   for (i=0; i<ax->inc->numParm; i++) {
     if (!AIR_EXISTS(ax->incParm[i])) {
       sprintf(err, "%s: didn't get %d parms for %s inclusion",
 	      me, ax->inc->numParm, ax->inc->name);
-      biffAdd(BANE, err); return 0;
+      biffAdd(BANE, err); return 1;
     }
   }
   if (_baneInc_HistNew == ax->inc->histNew) {
@@ -61,11 +61,12 @@ _baneValidAxis(baneAxis *ax) {
     if (!( 3 < ax->incParm[0] )) {
       sprintf(err, "%s: won't make a size-%d histogram for %s inclusion",
 	      me, (int)(ax->incParm[0]), ax->inc->name);
+      biffAdd(BANE, err); return 1;
     }
   }
 
   /* all okay */
-  return 1;
+  return 0;
 }
 
 void
@@ -301,7 +302,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(BANE, err); return 1;
   }
-  if (!baneValidInput(nin, hvp)) {
+  if (baneInputCheck(nin, hvp)) {
     sprintf(err, "%s: something wrong with input volume or parameters", me);
     biffAdd(BANE, err); return 1;
   }

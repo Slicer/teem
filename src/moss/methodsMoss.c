@@ -97,21 +97,21 @@ mossSamplerNix (mossSampler *smplr) {
 }
 
 int
-mossImageValid (Nrrd *image) {
-  char me[]="mossImageValid", err[AIR_STRLEN_MED];
+mossImageCheck (Nrrd *image) {
+  char me[]="mossImageCheck", err[AIR_STRLEN_MED];
 
   if (!nrrdValid(image)) {
     sprintf(err, "%s: given nrrd invalid", me);
-    biffMove(MOSS, err, NRRD); return 0;
+    biffMove(MOSS, err, NRRD); return 1;
   }
   if (!( (2 == image->dim || 3 == image->dim)
 	 && nrrdTypeBlock != image->type )) {
     sprintf(err, "%s: image has invalid dimension (%d) or type (%s)", me,
 	    image->dim, airEnumStr(nrrdType, image->type));
-    biffAdd(MOSS, err); return 0;
+    biffAdd(MOSS, err); return 1;
   }
   
-  return 1;
+  return 0;
 }
 
 int

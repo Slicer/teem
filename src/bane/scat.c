@@ -31,7 +31,7 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(BANE, err); return 1;
   }
-  if (!baneValidHVol(hvol)) {
+  if (baneHVolCheck(hvol)) {
     sprintf(err, "%s: didn't get a valid histogram volume", me);
     biffAdd(BANE, err); return 1;
   }

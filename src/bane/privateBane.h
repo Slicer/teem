@@ -52,7 +52,7 @@ extern baneClip _baneClipPercentile;
 extern baneClip _baneClipTopN;
 
 /* hvol.c */
-extern int _baneValidAxis(baneAxis *ax);
+extern int _baneAxisCheck(baneAxis *ax);
 
 #define BANE_GKMS_CMD(name, info) \
 unrrduCmd baneGkms_##name##Cmd = { #name, info, baneGkms_##name##Main }

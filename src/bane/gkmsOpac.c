@@ -86,11 +86,11 @@ baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nmedpadopac=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nout=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
 
-  idim = baneValidInfo(ninfo, AIR_FALSE);
-  if (!idim) {
+  if (baneInfoCheck(ninfo, AIR_FALSE)) {
     sprintf(err, "%s: didn't get a valid histogram info file", me);
     biffAdd(BANE, err); airMopError(mop); return 1;
   }
+  idim = ninfo->dim-1;
   if (nbef->ptr && airStrlen(befS)) {
     if (nrrdSave(befS, nbef, NULL)) {
       sprintf(err, "%s: trouble saving boundary emphasis", me);

@@ -29,8 +29,9 @@ mossSamplerImageSet (mossSampler *smplr, Nrrd *image, float *bg) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(MOSS, err); return 1;
   }
-  if (!mossImageValid(image)) {
-    sprintf(err, "%s: ", me); biffAdd(MOSS, err); return 1;
+  if (mossImageCheck(image)) {
+    sprintf(err, "%s: ", me);
+    biffAdd(MOSS, err); return 1;
   }
   smplr->image = image;
   smplr->flag[mossFlagImage] = AIR_TRUE;

@@ -84,7 +84,7 @@ extern mossSampler *mossSamplerNew();
 extern int mossSamplerFill(mossSampler *smplr, int fdiam, int ncol);
 extern void mossSamplerEmpty(mossSampler *smplr);
 extern mossSampler *mossSamplerNix(mossSampler *smplr);
-extern int mossImageValid(Nrrd *image);
+extern int mossImageCheck(Nrrd *image);
 extern int mossImageAlloc(Nrrd *image, int type, int sx, int sy, int ncol);
 
 /* sampler.c */

@@ -93,7 +93,7 @@ extern tenGlyphParm *tenGlyphParmNix(tenGlyphParm *parm);
 
 /* tensor.c */
 extern ten_export int tenVerbose;
-extern int tenValidTensor(Nrrd *nin, int wantType, int useBiff);
+extern int tenTensorCheck(Nrrd *nin, int wantType, int useBiff);
 extern int tenExpand(Nrrd *tnine, Nrrd *tseven, float thresh);
 extern int tenEigensolve(float eval[3], float evec[9], float t[7]);
 
