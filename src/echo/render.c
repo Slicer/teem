@@ -255,7 +255,7 @@ echoRender(Nrrd *nraw, limnCam *cam,
       jitt = (echoPos_t *)state->njitt->data;
 
       /* go through samples */
-      for (samp=0; samp<=param->samples; samp++) {
+      for (samp=0; samp<param->samples; samp++) {
 	/* set from[] */
 	ELL_3V_COPY(from, eye);
 	tmp = param->aperture*jitt[0 + 2*echoSampleLens];
