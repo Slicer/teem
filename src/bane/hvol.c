@@ -455,18 +455,18 @@ baneApplyMeasr(Nrrd *nout, Nrrd *nin, int measr) {
   
   if (3 != nin->dim) {
     sprintf(err, "%s: need a 3-dimensional nrrd (not %d)", me, nin->dim);
-    biffSet(BANE, err); return 0;
+    biffSet(BANE, err); return 1;
   }
   if (!( AIR_OPINSIDE(nrrdTypeUnknown, nin->type, nrrdTypeLast) &&
 	 nin->type != nrrdTypeBlock )) {
     sprintf(err, "%s: must have a scalar type nrrd", me);
-    biffSet(BANE, err); return 0;
+    biffSet(BANE, err); return 1;
   }
   if (!( AIR_EXISTS(nin->spacing[0]) && nin->spacing[0] > 0 &&
 	 AIR_EXISTS(nin->spacing[1]) && nin->spacing[1] > 0 &&
 	 AIR_EXISTS(nin->spacing[2]) && nin->spacing[2] > 0 )) {
     sprintf(err, "%s: must have positive spacing for all three axes", me);
-    biffSet(BANE, err); return 0;
+    biffSet(BANE, err); return 1;
   }
 
   sx = nin->size[0];
@@ -483,6 +483,9 @@ baneApplyMeasr(Nrrd *nout, Nrrd *nin, int measr) {
   nout->size[0] = sx;
   nout->size[1] = sy;
   nout->size[2] = sz;
+  nout->spacing[0] = nin->spacing[0];
+  nout->spacing[1] = nin->spacing[1];
+  nout->spacing[2] = nin->spacing[2];
   insert = nrrdFInsert[nrrdTypeFloat];
   for (z=marg; z<=sz-marg-1; z++) {
     for (y=marg; y<=sy-marg-1; y++) {
