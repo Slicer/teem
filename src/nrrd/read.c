@@ -1211,7 +1211,7 @@ int
 _nrrdReadVTK (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadVTK", err[AIR_STRLEN_MED], *three[3];
   int len, sx, sy, sz, ret, N;
-  double xm, ym, zm, xs, ys, zs;
+  double xm=0.0, ym=0.0, zm=0.0, xs=1.0, ys=1.0, zs=1.0;
   airArray *mop;
 
 #define GETLINE(what) \
@@ -1225,9 +1225,11 @@ _nrrdReadVTK (FILE *file, Nrrd *nrrd, NrrdIO *io) {
 
   /* read in content */
   GETLINE(content);
-  if (!(nrrd->content = airStrdup(io->line))) {
-    sprintf(err, "%s: couldn't read or copy content string", me);
-    biffAdd(NRRD, err); return 1;
+  if (strcmp(NRRD_UNKNOWN, io->line)) {
+    if (!(nrrd->content = airStrdup(io->line))) {
+      sprintf(err, "%s: couldn't read or copy content string", me);
+      biffAdd(NRRD, err); return 1;
+    }
   }
   GETLINE(encoding); airToUpper(io->line);
   if (!strcmp("ASCII", io->line)) {
@@ -1250,24 +1252,30 @@ _nrrdReadVTK (FILE *file, Nrrd *nrrd, NrrdIO *io) {
     sprintf(err, "%s: couldn't parse DIMENSIONS line (\"%s\")", me, io->line);
     biffAdd(NRRD, err); return 1;
   }
-  GETLINE(ORIGIN); airToUpper(io->line);
-  if (!strstr(io->line, "ORIGIN")
-      || 3 != sscanf(io->line, "ORIGIN %lf %lf %lf", &xm, &ym, &zm)) {
-    sprintf(err, "%s: couldn't parse  ORIGIN line (\"%s\")", me, io->line);
-    biffAdd(NRRD, err); return 1;
+  GETLINE(next); airToUpper(io->line);
+  while (!strstr(io->line, "POINT_DATA")) {
+    if (strstr(io->line, "ORIGIN")) {
+      if (3 != sscanf(io->line, "ORIGIN %lf %lf %lf", &xm, &ym, &zm)) {
+	sprintf(err, "%s: couldn't parse ORIGIN line (\"%s\")", me, io->line);
+	biffAdd(NRRD, err); return 1;
+      }
+    } else if (strstr(io->line, "SPACING")) {
+      if (3 != sscanf(io->line, "SPACING %lf %lf %lf",
+		      &xs, &ys, &zs)) {
+	sprintf(err, "%s: couldn't parse SPACING line (\"%s\")",
+		me, io->line);
+	biffAdd(NRRD, err); return 1;
+      }      
+    } else if (strstr(io->line, "ASPECT_RATIO")) {
+      if (3 != sscanf(io->line, "ASPECT_RATIO %lf %lf %lf",
+		      &xs, &ys, &zs)) {
+	sprintf(err, "%s: couldn't parse ASPECT_RATIO line (\"%s\")",
+		me, io->line);
+	biffAdd(NRRD, err); return 1;
+      }      
+    }
+    GETLINE(next); airToUpper(io->line);
   }
-  GETLINE(SPACING/ASPECT); airToUpper(io->line);
-  if (!( (strstr(io->line, "SPACING")
-	  && 3 == sscanf(io->line, "SPACING %lf %lf %lf", &xs, &ys, &zs))
-	 ||
-	 (strstr(io->line, "ASPECT_RATIO")
-	  && 3 == sscanf(io->line, "ASPECT_RATIO %lf %lf %lf", &xs, &ys, &zs))
-	 )) {
-    sprintf(err, "%s: couldn't parse SPACING/ASPECT_RATIO line (\"%s\")",
-	    me, io->line);
-    biffAdd(NRRD, err); return 1;
-  }
-  GETLINE(POINT_DATA); airToUpper(io->line);
   if (1 != sscanf(io->line, "POINT_DATA %d", &N)) {
     sprintf(err, "%s: couldn't parse POINT_DATA line (\"%s\")", me, io->line);
     biffAdd(NRRD, err); return 1;

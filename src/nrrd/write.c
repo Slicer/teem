@@ -1022,6 +1022,12 @@ _nrrdWriteVTK (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   double xs, ys, zs, xm, ym, zm;
   char type[AIR_STRLEN_MED], name[AIR_STRLEN_SMALL];
 
+  if (!( 3 == nrrd->dim || 
+	 (4 == nrrd->dim && (3 == nrrd->axis[0].size ||
+			     9 == nrrd->axis[0].size)) )) {
+    sprintf(err, "%s: doesn't seem to be scalar, vector, or tensor", me);
+    biffAdd(NRRD, err); return 1;
+  }
   sax = nrrd->dim - 3;
   xs = nrrd->axis[sax+0].spacing;
   ys = nrrd->axis[sax+1].spacing;
@@ -1061,11 +1067,14 @@ _nrrdWriteVTK (FILE *file, Nrrd *nrrd, NrrdIO *io) {
     biffAdd(NRRD, err); return 1;
   }
   fprintf(file, "%s\n", airEnumStr(nrrdMagic, nrrdMagicVTK20));
+  /* there is a file-format-imposed limit on the length of the "content" */
   if (nrrd->content) {
     for (i=0; i<=255 && nrrd->content[i]; i++) {
       fputc(nrrd->content[i], file);
     }
     fputc('\n', file);
+  } else {
+    fprintf(file, NRRD_UNKNOWN "\n");
   }
   if (nrrdEncodingRaw == io->encoding) {
     fprintf(file, "BINARY\n");
