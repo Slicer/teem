@@ -1068,7 +1068,8 @@ _nrrdWriteVTK (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   fprintf(file, "%s\n", airEnumStr(nrrdMagic, nrrdMagicVTK20));
   /* there is a file-format-imposed limit on the length of the "content" */
   if (nrrd->content) {
-    for (i=0; i<=255 && nrrd->content[i]; i++) {
+    /* when the "250" below was previously "255", vtk didn't deal */
+    for (i=0; i<=250 && nrrd->content[i]; i++) {
       fputc(nrrd->content[i], file);
     }
     fputc('\n', file);
