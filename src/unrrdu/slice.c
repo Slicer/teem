@@ -30,13 +30,17 @@ sliceMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int axis, pos;
+  int axis, _pos[2], pos;
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_AXIS(axis, "axis to slice along");
-  hestOptAdd(&opt, "p", "pos", airTypeInt, 1, 1, &pos, NULL,
-	     "position (in index space) to slice at");
+  hestOptAdd(&opt, "p", "pos", airTypeOther, 1, 1, _pos, NULL,
+	     "position to slice at:\n "
+	     "\b\bo <int> gives 0-based index\n "
+	     "\b\bo M-<int> give index relative "
+	     "to the last sample on the axis (M == #samples-1).",
+	     NULL, &unuPosHestCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
@@ -45,6 +49,11 @@ sliceMain(int argc, char **argv, char *me) {
   USAGE(sliceInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
+  if (!( AIR_INSIDE(0, axis, nin->dim-1) )) {
+    fprintf(stderr, "%s: axis %d not in range [0,%d]\n", me, axis, nin->dim-1);
+    return 1;
+  }
+  pos = _pos[0]*nin->axis[axis].size + _pos[1];
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);

@@ -117,7 +117,7 @@ makeMain(int argc, char **argv, char *me) {
   hestOptAdd(&opt, "e", "encoding", airTypeOther, 1, 1, &(io->encoding), "raw",
 	     "data encoding. Possibilities are \"raw\" and \"ascii\".",
 	     NULL, &unuEncodingHestCB);
-  hestOptAdd(&opt, "b", "endian", airTypeOther, 1, 1, &(io->endian),
+  hestOptAdd(&opt, "endian", "endian", airTypeOther, 1, 1, &(io->endian),
 	     nrrdEnumValToStr(nrrdEnumEndian, airMyEndian),
 	     "Endianness of data; relevent for any raw data with value "
 	     "representation bigger than 8 bits. Defaults to endianness "
