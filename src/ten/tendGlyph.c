@@ -141,6 +141,9 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "rt", NULL, airTypeFloat, 0, 0, &doRT, NULL,
              "generate ray-traced output.  By default (not using this "
              "option), postscript output is generated.");
+
+  hestOptAdd(&hopt, "v", "level", airTypeInt, 1, 1, &(gparm->verbose), "0",
+             "verbosity level");
   
   /* which points will rendered */
   hestOptAdd(&hopt, "ctr", "conf thresh", airTypeFloat, 1, 1,
@@ -184,8 +187,9 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
              "0.01", "over-all glyph size in world-space");
 
   /* how glyphs will be colored */
-  hestOptAdd(&hopt, "v", "evector #", airTypeInt, 1, 1, &(gparm->colEvec), "0",
+  hestOptAdd(&hopt, "c", "evector #", airTypeInt, 1, 1, &(gparm->colEvec), "0",
              "which eigenvector should determine coloring. "
+             "(formally \"v\") "
              "\"0\", \"1\", \"2\" are principal, medium, and minor");
   hestOptAdd(&hopt, "sat", "saturation", airTypeFloat, 1, 1,
              &(gparm->colMaxSat), "1.0",
@@ -320,6 +324,9 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     gparm->onlyPositive = AIR_FALSE;
   }
   
+  if (gparm->verbose) {
+    fprintf(stderr, "%s: verbose = %d\n", me, gparm->verbose);
+  }
   if (tenGlyphGen(doRT ? NULL : glyph, 
                   doRT ? scene : NULL,
                   gparm,
@@ -469,8 +476,8 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     win->ps.lineWidth[limnEdgeTypeContour] = gparm->edgeWidth[0];
     win->ps.lineWidth[limnEdgeTypeFrontCrease] = gparm->edgeWidth[1];
     win->ps.lineWidth[limnEdgeTypeFrontFacet] = gparm->edgeWidth[2];
-    win->ps.lineWidth[limnEdgeTypeBorder] = 
-      win->ps.lineWidth[limnEdgeTypeFrontCrease];
+    win->ps.lineWidth[limnEdgeTypeBorder] = 0;
+      /* win->ps.lineWidth[limnEdgeTypeFrontCrease]; */
     win->ps.creaseAngle = 70;
     win->ps.noBackground = nobg;
     ELL_3V_COPY(win->ps.bg, bg);
