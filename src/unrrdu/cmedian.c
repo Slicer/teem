@@ -53,7 +53,7 @@ cmedianMain(int argc, char **argv, char *me) {
 	     "closer to the center of the window.  \"1.0\" weight means that "
 	     "all samples are uniformly weighted over the window, which "
 	     "facilitates a simple speed-up. ");
-  hestOptAdd(&opt, "r", "radius", airTypeInt, 1, 1, &radius, "1",
+  hestOptAdd(&opt, "r", "radius", airTypeInt, 1, 1, &radius, NULL,
 	     "how big a window to filter over. \"-r 1\" leads to a "
 	     "3x3 window in an image, and a 3x3x3 window in a volume");
   hestOptAdd(&opt, "p", NULL, airTypeInt, 0, 0, &pad, NULL,

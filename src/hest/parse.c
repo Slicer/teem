@@ -108,7 +108,7 @@ _hestResponseFiles(char **newArgv, char **oldArgv, int nrf,
       newArgc += 1;
     }
     else {
-      /* It is a response file.  Error checking on being able to open it
+      /* It is a response file.  Error checking on open-ability
 	 should have been done by _hestArgsInResponseFiles() */
       file = fopen(oldArgv[oldArgc]+1, "rb");
       len = airOneLine(file, line, AIR_STRLEN_HUGE);
@@ -124,7 +124,7 @@ _hestResponseFiles(char **newArgv, char **oldArgv, int nrf,
 	if (parm->verbosity)
 	  printf("_hestResponseFiles: -1-> line: |%s|, incr=%d\n",
 		 line, incr);
-	airParseStrS(newArgv + newArgc, line, AIR_WHITESPACE, incr);
+	airParseStrS(newArgv + newArgc, line, AIR_WHITESPACE, incr, AIR_FALSE);
 	for (ai=0; ai<=incr-1; ai++) {
 	  /* This time, we did allocate memory.  We can use airFree and
 	     not airFreeP because these will not be reset before mopping */
@@ -718,18 +718,26 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	    airMopAdd(pmop, *((void**)vP), opt[op].CB->destroy, airMopOnError);
 	  }
 	  break;
-	default:
-	  if (1 != airParseStr[type](vP, prms[op], " ", 1)) {
+	case airTypeString:
+	  if (1 != airParseStrS(vP, prms[op], " ", 1,
+				parm->greedySingleString)) {
 	    sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", 
 		    ME, udflt[op] ? "(default) " : "", prms[op],
 		    airTypeStr[type], ident);
 	    return 1;
 	  }
-	  if (airTypeString == type) {
-	    /* vP is the address of a char* (a char **), but what we
-	       manage with airMop is the char * */
-	    opt[op].alloc = 1;
-	    airMopMem(pmop, vP, airMopOnError);
+	  /* vP is the address of a char* (a char **), but what we
+	     manage with airMop is the char * */
+	  opt[op].alloc = 1;
+	  airMopMem(pmop, vP, airMopOnError);
+	  break;
+	default:
+	  /* type isn't string or enum, so no last arg to airParseStr[type] */
+	  if (1 != airParseStr[type](vP, prms[op], " ", 1)) {
+	    sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", 
+		    ME, udflt[op] ? "(default) " : "", prms[op],
+		    airTypeStr[type], ident);
+	    return 1;
 	  }
 	  break;
 	}
@@ -780,6 +788,22 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	    }
 	  }
 	  break;
+	case airTypeString:
+	  if (opt[op].min !=   /* min == max */
+	      airParseStr[type](vP, prms[op], " ", opt[op].min, AIR_FALSE)) {
+	    sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s",
+		    ME, udflt[op] ? "(default) " : "", prms[op],
+		    opt[op].min, airTypeStr[type], 
+		    opt[op].min > 1 ? "s" : "", ident);
+	    return 1;
+	  }
+	  /* vP is an array of char*s, (a char**), and what we manage
+	     with airMop are the individual vP[p]. */
+	  opt[op].alloc = 2;
+	  for (p=0; p<=opt[op].min-1; p++) {
+	    airMopMem(pmop, &(((char**)vP)[p]), airMopOnError);
+	  }
+	  break;
 	default:
 	  if (opt[op].min !=   /* min == max */
 	      airParseStr[type](vP, prms[op], " ", opt[op].min)) {
@@ -788,14 +812,6 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 		    opt[op].min, airTypeStr[type], 
 		    opt[op].min > 1 ? "s" : "", ident);
 	    return 1;
-	  }
-	  if (airTypeString == type) {
-	    /* vP is an array of char*s, (a char**), and what we manage
-	       with airMop are the individual vP[p]. */
-	    opt[op].alloc = 2;
-	    for (p=0; p<=opt[op].min-1; p++) {
-	      airMopMem(pmop, &(((char**)vP)[p]), airMopOnError);
-	    }
 	  }
 	  break;
 	}
@@ -839,6 +855,24 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	    airMopAdd(pmop, *((void**)vP), opt[op].CB->destroy, airMopOnError);
 	  }
 	  break;
+	case airTypeString:
+	  if (1 != airParseStr[type](vP, prms[op], " ", 1,
+				     parm->greedySingleString)) {
+	    sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s",
+		    ME, udflt[op] ? "(default) " : "", prms[op],
+		    airTypeStr[type], ident);
+	    return 1;
+	  }
+	  opt[op].alloc = 1;
+	  if (1 == _hestCase(opt, udflt, nprm, appr, op)) {
+	    /* we just parsed the default, but now we want to "invert" it */
+	    *((char**)vP) = airFree(*((char**)vP));
+	    opt[op].alloc = 0;
+	  }
+	  /* vP is the address of a char* (a char**), and what we
+	     manage with airMop is the char * */
+	  airMopMem(pmop, vP, airMopOnError);
+	  break;
 	default:
 	  if (1 != airParseStr[type](vP, prms[op], " ", 1)) {
 	    sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s",
@@ -846,22 +880,11 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 		    airTypeStr[type], ident);
 	    return 1;
 	  }
-	  opt[op].alloc = (type == airTypeString ? 1 : 0);
+	  opt[op].alloc = 0;
 	  if (1 == _hestCase(opt, udflt, nprm, appr, op)) {
 	    /* we just parsed the default, but now we want to "invert" it */
-	    if (airTypeString == type) {
-	      *((char**)vP) = airFree(*((char**)vP));
-	      opt[op].alloc = 0;
-	    }
-	    else {
-	      tmpD = airDLoad(vP, type);
-	      airIStore(vP, type, tmpD ? 0 : 1);
-	    }
-	  }
-	  if (airTypeString == type && opt[op].alloc) {
-	    /* vP is the address of a char* (a char**), and what we
-	       manage with airMop is the char * */
-	    airMopMem(pmop, vP, airMopOnError);
+	    tmpD = airDLoad(vP, type);
+	    airIStore(vP, type, tmpD ? 0 : 1);
 	  }
 	  break;
 	}
@@ -938,8 +961,28 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	      }
 	    }
 	    break;
+	  case airTypeString:
+	    opt[op].alloc = 3;
+	    if (nprm[op] != 
+		airParseStrS(*((void**)vP), prms[op], " ", nprm[op],
+			     AIR_FALSE)) {
+	      sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s",
+		      ME, udflt[op] ? "(default) " : "", prms[op],
+		      nprm[op], airTypeStr[type], 
+		      nprm[op] > 1 ? "s" : "", ident);
+	      return 1;
+	    }
+	    /* vP is the address of an array of char*s (a char ***), and
+	       what we manage with airMop is the individual (*vP)[p],
+	       as well as vP itself (above). */
+	    for (p=0; p<=nprm[op]-1; p++) {
+	      airMopAdd(pmop, (*((char***)vP))[p], airFree, airMopOnError);
+	    }
+	    /* do the NULL-termination described above */
+	    (*((char***)vP))[nprm[op]] = NULL;
+	    break;
 	  default:
-	    opt[op].alloc = (airTypeString == type ? 3 : 1);
+	    opt[op].alloc = 1;
 	    if (nprm[op] != 
 		airParseStr[type](*((void**)vP), prms[op], " ", nprm[op])) {
 	      sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s",
@@ -947,16 +990,6 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 		      nprm[op], airTypeStr[type], 
 		      nprm[op] > 1 ? "s" : "", ident);
 	      return 1;
-	    }
-	    if (airTypeString == type) {
-	      /* vP is the address of an array of char*s (a char ***), and
-		 what we manage with airMop is the individual (*vP)[p],
-		 as well as vP itself (above). */
-	      for (p=0; p<=nprm[op]-1; p++) {
-		airMopAdd(pmop, (*((char***)vP))[p], airFree, airMopOnError);
-	      }
-	      /* do the NULL-termination described above */
-	      (*((char***)vP))[nprm[op]] = NULL;
 	    }
 	    break;
 	  }
@@ -968,6 +1001,11 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
   return 0;
 }
 
+/*
+******** hestParse()
+**
+** documentation?
+*/
 int
 hestParse(hestOpt *opt, int _argc, char **_argv,
 	  char **_errP, hestParm *_parm) {

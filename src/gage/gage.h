@@ -155,13 +155,13 @@ enum {
 ** that can be got (via gageValGet()) or set (via gageValSet())
 */
 enum {
-  gageValUnknown=-1,     /* -1: nobody knows */
-  gageValVerbose,        /*  0: verbosity */
-  gageValRenormalize,    /*  1: make mask weights' sum = continuous integral */
-  gageValCheckIntegrals, /*  2: verify integrals of kernels */
-  gageValK3Pack,         /*  3: use only three kernels (00, 11, and 22) */
-  gageValNeedPad,        /*  4: given kernels chosen, the padding needed */
-  gageValHavePad,        /*  5: the padding of the volume used */
+  gageValUnknown,        /* 0: nobody knows */
+  gageValVerbose,        /* 1: verbosity */
+  gageValRenormalize,    /* 2: make mask weights' sum = continuous integral */
+  gageValCheckIntegrals, /* 3: verify integrals of kernels */
+  gageValK3Pack,         /* 4: use only three kernels (00, 11, and 22) */
+  gageValNeedPad,        /* 5: given kernels chosen, the padding needed */
+  gageValHavePad,        /* 6: the padding of the volume used */
   gageValLast
 };
 
@@ -282,8 +282,10 @@ typedef struct {
 ** kind of volume (such as scalar, vector, etc.)
 */
 typedef struct gageKind_t {
-  char str[AIR_STRLEN_SMALL];       /* short identifying string for kind */
-  airEnum *enm;                     /* such as gageScl (NB: not a pointer) */
+  char name[AIR_STRLEN_SMALL];      /* short identifying string for kind */
+  airEnum *enm;                     /* such as gageScl.  NB: the "unknown"
+				       value in the enum MUST be -1 (since
+				       queries are formed as bitflags) */
   int baseDim,                      /* dimension that x,y,z axes start on */
     valLen,                         /* number of scalars per data point */
     queryMax,                       /* such as GAGE_SCL_MAX */

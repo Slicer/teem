@@ -27,8 +27,11 @@ char *shuffleInfoL = (INFO
 		      "according to the given permutation (or its inverse). "
 		      "The permutation tells which old slice to put at each "
 		      "new position.  For example, the shuffle "
-		      "0->1,\t1->2,\t2->0 would be \"2 0 1\".");
-		      
+		      "0->1,\t1->2,\t2->0 would be \"2 0 1\".  Obviously, "
+		      "if you have to rearrange the many slices of a large "
+		      "dataset, you should probably store the permutation "
+		      "in a plain text file and use it as a "
+		      "\"response file\".");
 
 int
 shuffleMain(int argc, char **argv, char *me) {

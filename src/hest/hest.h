@@ -34,13 +34,13 @@ extern "C" {
 ******** hestCB struct
 **
 ** for when the thing you want to parse from the command-line is not a
-** simple boolean, number, or string.  hestParse() will not allocate
-** anything to store individual things, though it may allocate an
-** array in the case of a multiple variable parameter option.  If your
-** things are actually pointers to things, then you do the allocation
-** in the parse() callback.  In this case, you set destroy() to be your
-** "destructor", and it will be called on the result of derefencing the
-** argument to parse().
+** simple boolean, number, airEnum, or string.  hestParse() will not
+** allocate anything to store individual things, though it may
+** allocate an array in the case of a multiple variable parameter
+** option.  If your things are actually pointers to things, then you
+** do the allocation in the parse() callback.  In this case, you set
+** destroy() to be your "destructor", and it will be called on the
+** result of derefencing the argument to parse().
 */
 typedef struct {
   size_t size;          /* sizeof() one thing */
@@ -126,6 +126,8 @@ typedef struct {
 					point (float or double) parameter
 					doesn't AIR_EXIST, then don't display
 					the default */
+    greedySingleString, /* when parsing a single string, whether or not
+			   to be greedy (as per airParseStrS) */
     columns;            /* number of printable columns in output */
   char respFileFlag,    /* the character at the beginning of an argument
 			   indicating that this is a response file name */
@@ -146,6 +148,7 @@ extern int hestElideSingleEnumType;
 extern int hestElideSingleOtherType;
 extern int hestElideSingleOtherDefault;
 extern int hestElideSingleNonExistFloatDefault;
+extern int hestGreedySingleString;
 extern int hestColumns;
 extern char hestRespFileFlag;
 extern char hestRespFileComment;
@@ -171,6 +174,7 @@ extern void *hestParseFree(hestOpt *opt);
 /* usage.c */
 extern void _hestPrintStr(FILE *f, int indent, int already, int width,
 			  char *_str, int bslash);
+extern int hestMinNumArgs(hestOpt *opt);
 extern void hestUsage(FILE *file, hestOpt *opt, char *argv0, hestParm *parm);
 extern void hestGlossary(FILE *file, hestOpt *opt, hestParm *parm);
 extern void hestInfo(FILE *file, char *argv0, char *info, hestParm *parm);

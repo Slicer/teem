@@ -23,33 +23,14 @@
 #include <nrrd.h>
 #include "../gage.h"
 
-#define TEN_LIST2MAT(m, l) ( \
-   (m)[0] = (l)[1],          \
-   (m)[1] = (l)[2],          \
-   (m)[2] = (l)[3],          \
-   (m)[3] = (l)[2],          \
-   (m)[4] = (l)[4],          \
-   (m)[5] = (l)[5],          \
-   (m)[6] = (l)[3],          \
-   (m)[7] = (l)[5],          \
-   (m)[8] = (l)[6] )
-
-#define TEN_MAT2LIST(l, m) ( \
+/* I'm cheating here: I don't want gage to depend on ten */
+#define PROBE_MAT2LIST(l, m) ( \
    (l)[1] = (m)[0],          \
    (l)[2] = (m)[3],          \
    (l)[3] = (m)[6],          \
    (l)[4] = (m)[4],          \
    (l)[5] = (m)[7],          \
    (l)[6] = (m)[8] )
-
-
-void
-usage(char *me) {
-  /*               0   1      2      3     4    5    6     7    (8) */
-  fprintf(stderr, 
-	  "usage: %s <nin> <what> <scale> <k0> <k1> <k2> <nout>\n", me);
-  exit(1);
-}
 
 int
 probeParseNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
@@ -98,7 +79,7 @@ probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   } else if (!strcmp("vector", str)) {
     *kindP = gageKindVec;
   } else {
-    sprintf(err, "%s: not recognized", me);
+    sprintf(err, "%s: not \"scalar\" or \"vector\"", me);
     return 1;
   }
     
@@ -112,23 +93,63 @@ hestCB probeKindHestCB = {
   NULL
 }; 
 
+/*
+** probeNrrdKernel
+** 
+** this is what will be parsed from the command-line: a kernel and its
+** parameter list
+*/
+typedef struct {
+  NrrdKernel *k;
+  double kparm[NRRD_KERNEL_PARMS_NUM];
+} probeNrrdKernel;
+
+int
+probeParseKernel(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  probeNrrdKernel *ker;
+  char me[]="probeParseKernel", *nerr;
+
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  ker = ptr;
+  if (nrrdKernelParse(&(ker->k), ker->kparm, str)) {
+    nerr = biffGetDone(NRRD);
+    strncpy(err, nerr, AIR_STRLEN_HUGE-1);
+    free(nerr);
+    return 1;
+  }
+  return 0;
+}
+
+hestCB probeKernelHestCB = {
+  sizeof(probeNrrdKernel),
+  "kernel specification",
+  probeParseKernel,
+  NULL
+};
+
+char *probeInfo = ("Shows off the functionality of the gage library. "
+		   "Uses gageProbe() to query scalar or vector volumes "
+		   "to learn various measured or derived quantities. ");
+
 int
 main(int argc, char *argv[]) {
-  char *me;
+  gageKind *kind;
+  char *me, *outS, *whatS, *herr;
   hestParm *hparm;
   hestOpt *hopt = NULL;
-  gageKind *kind;
-
-  char *whatS, *scaleS, *k0S, *k1S, *k2S, *noutS;
+  probeNrrdKernel k00, k11, k22;
   float x, y, z, scale;
-  gage_t *out;
-  int a, idx, what, ansLen, offset, E, xi, yi, zi,
+  int what, a, idx, ansLen, E, xi, yi, zi,
     six, siy, siz, sox, soy, soz;
-  double t0, t1, kparm[3][NRRD_KERNEL_PARMS_NUM];
+  gage_t *out, *answer;
   Nrrd *nin, *nout;
-  NrrdKernel *k0, *k1, *k2;
-  gageSclAnswer *san;
   gageSimple *gsl;
+  gageSclAnswer *san;
+  gageVecAnswer *van;
+  double t0, t1;
 
   me = argv[0];
   hparm = hestParmNew();
@@ -139,43 +160,50 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
 	     "\"kind\" of volume (\"scalar\" or \"vector\")",
 	     NULL, NULL, &probeKindHestCB);
+  hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
+	     "the quantity (scalar, vector, or matrix) to learn by probing");
+  hestOptAdd(&hopt, "s", "scale", airTypeFloat, 1, 1, &scale, "1.0",
+	     "scaling factor (>1.0 : supersampling)");
+  hestOptAdd(&hopt, "00", "kern00", airTypeOther, 1, 1, &k00,
+	     "tent", "kernel for gageKernel00",
+	     NULL, NULL, &probeKernelHestCB);
+  hestOptAdd(&hopt, "11", "kern11", airTypeOther, 1, 1, &k11,
+	     "fordif", "kernel for gageKernel11",
+	     NULL, NULL, &probeKernelHestCB);
+  hestOptAdd(&hopt, "22", "kern22", airTypeOther, 1, 1, &k22,
+	     "fordif", "kernel for gageKernel22",
+	     NULL, NULL, &probeKernelHestCB);
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
+	     "output volume");
 
-  if (8 != argc) 
-    usage(me);
-  whatS = argv[2];
-  scaleS = argv[3];
-  k0S = argv[4];
-  k1S = argv[5];
-  k2S = argv[6];
-  noutS = argv[7];
+  if (argc-1 < hestMinNumArgs(hopt)) {
+    hestInfo(stderr, me, probeInfo, hparm);
+    hestUsage(stderr, hopt, me, hparm);
+    hestGlossary(stderr, hopt, hparm);
+    hestOptFree(hopt);
+    return 1;
+  }
+  if (hestParse(hopt, argc-1, argv+1, &herr, hparm)) {
+    fprintf(stderr, "%s: %s\n", me, herr); free(herr);
+    hestUsage(stderr, hopt, me, hparm);
+    hestGlossary(stderr, hopt, hparm);
+    hestOptFree(hopt);
+    return 1;
+  }
+  printf("|%s|\n", whatS);
+  what = airEnumVal(kind->enm, whatS);
+  if (-1 == what) {
+    /* -1 indeed always means "unknown" for any gageKind */
+    fprintf(stderr, "%s: couldn't parse \"%s\" as measure of \"%s\" volume\n",
+	    me, whatS, kind->name);
+    hestUsage(stderr, hopt, me, hparm);
+    hestGlossary(stderr, hopt, hparm);
+    hestOptFree(hopt);
+    return 1;
+  }
 
-  if (gageSclUnknown == (what = airEnumVal(gageScl, whatS))) {
-    fprintf(stderr, "%s: couldn't parse \"%s\" as gageScl\n", me, whatS);
-    exit(1);
-  }
-  if (!( AIR_BETWEEN(gageSclUnknown, what, gageSclLast) )) {
-    fprintf(stderr, "%s: what %d out of range [%d,%d]\n", me,
-	    what, gageSclUnknown+1, gageSclLast-1);
-    exit(1);
-  }
   ansLen = gageSclAnsLength[what];
-  printf("%s: ansLen = %d --> ", me, ansLen);
-  if ((gageSclHessian == what) || (gageSclGeomTens == what)) {
-    ansLen = 7;
-  }
-  printf("%d\n", ansLen);
-  if (1 != sscanf(scaleS, "%f", &scale)) {
-    fprintf(stderr, "%s: couldn't parse \"%s\" as float\n", me, scaleS);
-    exit(1);
-  }
-  E = 0;
-  if (!E) E |= nrrdKernelParse(&k0, kparm[0], k0S);
-  if (!E) E |= nrrdKernelParse(&k1, kparm[1], k1S);
-  if (!E) E |= nrrdKernelParse(&k2, kparm[2], k2S);
-  if (E) {
-    fprintf(stderr, "%s: problem parsing kernels:\n%s\n", me, biffGet(NRRD));
-    exit(1);
-  }
+  printf("%s: ansLen = %d\n", me, ansLen);
 
   /***
   **** Except for the gageSimpleProbe() call in the inner loop below,
@@ -187,15 +215,15 @@ main(int argc, char *argv[]) {
   gageValSet(gsl->ctx, gageValRenormalize, AIR_TRUE);
   gageValSet(gsl->ctx, gageValCheckIntegrals, AIR_TRUE);
   E = 0;
-  if (!E) E |= gageSimpleKernelSet(gsl, gageKernel00, k0, kparm[0]);
-  if (!E) E |= gageSimpleKernelSet(gsl, gageKernel11, k1, kparm[1]);
-  if (!E) E |= gageSimpleKernelSet(gsl, gageKernel22, k2, kparm[2]);
+  if (!E) E |= gageSimpleKernelSet(gsl, gageKernel00, k00.k, k00.kparm);
+  if (!E) E |= gageSimpleKernelSet(gsl, gageKernel11, k11.k, k11.kparm);
+  if (!E) E |= gageSimpleKernelSet(gsl, gageKernel22, k22.k, k22.kparm);
   if (E) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));
     exit(1);
   }
   gsl->nin = nin;
-  gsl->kind = gageKindScl;
+  gsl->kind = kind;
   gsl->query = 1<<what;
   if (gageSimpleUpdate(gsl)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));
@@ -203,6 +231,12 @@ main(int argc, char *argv[]) {
   }
   gsl->pvl->verbose = gageValGet(gsl->ctx, gageValVerbose);
   san = (gageSclAnswer *)(gsl->pvl->ans);
+  van = (gageVecAnswer *)(gsl->pvl->ans);
+  if (gageKindScl == kind) {
+    answer = san->ans + gageSclAnsOffset[what];
+  } else if (gageKindVec == kind) {
+    answer = van->ans + gageVecAnsOffset[what];
+  }
   /***
   **** end gage setup.
   ***/
@@ -228,7 +262,6 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   out = nout->data;
-  offset = gageSclAnsOffset[what];
   t0 = airTime();
   fprintf(stderr, "%s: si{x,y,z} = %d, %d, %d\n", me, six, siy, siz);
   fprintf(stderr, "%s: so{x,y,z} = %d, %d, %d\n", me, sox, soy, soz);
@@ -253,24 +286,12 @@ main(int argc, char *argv[]) {
 		  me, xi, yi, zi, x, y, z, gageErrStr, gageErrNum);
 	  exit(1);
 	}
-	switch (what) {
-	case gageSclHessian:
-	  TEN_MAT2LIST(out + 7*idx, san->hess);
-	  out[0 + 7*idx] = 1.0;
-	  break;
-	case gageSclGeomTens:
-	  TEN_MAT2LIST(out + 7*idx, san->gten);
-	  out[0 + 7*idx] = 1.0;
-	  break;
-	default:
-	  if (1 == ansLen) {
-	    out[ansLen*idx] = san->ans[offset];
-	  } else {
-	    for (a=0; a<=ansLen-1; a++) {
-	      out[a + ansLen*idx] = san->ans[a + offset];
-	    }
+	if (1 == ansLen) {
+	  out[ansLen*idx] = *answer;
+	} else {
+	  for (a=0; a<=ansLen-1; a++) {
+	    out[a + ansLen*idx] = answer[a];
 	  }
-	  break;
 	}
       }
     }
@@ -278,7 +299,7 @@ main(int argc, char *argv[]) {
   printf("\n");
   t1 = airTime();
   printf("probe rate = %g/sec\n", sox*soy*soz/(t1-t0));
-  nrrdSave(noutS, nout, NULL);
+  nrrdSave(outS, nout, NULL);
 
   nrrdNuke(nin);
   nrrdNuke(nout);

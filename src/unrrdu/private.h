@@ -75,14 +75,17 @@ typedef struct {
 /*
 ** USAGE, PARSE, SAVE
 **
-** These are macros at their worst.  This code is basically the same,
-** verbatim, across all the different unrrdu functions, and having them
-** as macros just shortens (without necessarily clarifying) their code.
+** These are macros at their very worst.  Shudder.  This code is
+** basically the same, verbatim, across all the different unrrdu
+** functions, and having them as macros just shortens (without
+** necessarily clarifying) their code.
 **
 ** They all assume many many variables.
+**
+** NB: below is an unidiomatic use of hestMinNumArgs()
 */
 #define USAGE(info) \
-  if (!argc) { \
+  if (argc < hestMinNumArgs(opt)) { \
     hestInfo(stderr, me, (info), hparm); \
     hestUsage(stderr, opt, me, hparm); \
     hestGlossary(stderr, opt, hparm); \

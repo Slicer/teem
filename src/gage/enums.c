@@ -157,7 +157,7 @@ _gageSclVal[] = {
 char
 _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
   "v", "val", "value", 
-  "gvec", "gradvec", "grad vec", "gradient vector",
+  "grad", "gvec", "gradvec", "grad vec", "gradient vector",
   "g", "gm", "gmag", "gradmag", "grad mag", "gradient magnitude",
   "n", "normal", "gnorm", "normg", "norm", "normgrad", \
        "norm grad", "normalized gradient",
@@ -178,7 +178,7 @@ _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
 int
 _gageSclValEqv[] = {
   GS_V, GS_V, GS_V,
-  GS_GV, GS_GV, GS_GV, GS_GV, 
+  GS_GV, GS_GV, GS_GV, GS_GV, GS_GV, 
   GS_GM, GS_GM, GS_GM, GS_GM, GS_GM, GS_GM,
   GS_N, GS_N, GS_N, GS_N, GS_N, GS_N, GS_N, GS_N,
   GS_H, GS_H, GS_H, 

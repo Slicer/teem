@@ -272,9 +272,39 @@ nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
 };
 
 int
+nrrdLineSkip(NrrdIO *io) {
+  int i, skipRet;
+  char me[]="nrrdLineSkip", err[AIR_STRLEN_MED];
+  
+  for (i=1; i<=io->lineSkip; i++) {
+    skipRet = airOneLine(io->dataFile, io->line, NRRD_STRLEN_LINE);
+    if (!skipRet) {
+      sprintf(err, "%s: hit EOF skipping line %d of %d", me, i, io->lineSkip);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  return 0;
+}
+
+int
+nrrdByteSkip(NrrdIO *io) {
+  int i, skipRet;
+  char me[]="nrrdByteSkip", err[AIR_STRLEN_MED];
+
+  for (i=1; i<=io->byteSkip; i++) {
+    skipRet = fgetc(io->dataFile);
+    if (EOF == skipRet) {
+      sprintf(err, "%s: hit EOF skipping byte %d of %d", me, i, io->byteSkip);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  return 0;
+}
+
+int
 _nrrdReadNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadNrrd", err[NRRD_STRLEN_LINE+AIR_STRLEN_MED];
-  int i, skipRet, ret, len;
+  int ret, len;
 
   /* parse header lines */
   while (1) {
@@ -328,19 +358,13 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
     fflush(stderr);
   }
 
-  for (i=1; i<=io->lineSkip; i++) {
-    skipRet = airOneLine(io->dataFile, io->line, NRRD_STRLEN_LINE);
-    if (!skipRet) {
-      sprintf(err, "%s: hit EOF skipping line %d of %d", me, i, io->lineSkip);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (nrrdLineSkip(io)) {
+    sprintf(err, "%s: couldn't skip lines", me);
+    biffAdd(NRRD, err); return 1;
   }
-  for (i=1; i<=io->byteSkip; i++) {
-    skipRet = fgetc(io->dataFile);
-    if (EOF == skipRet) {
-      sprintf(err, "%s: hit EOF skipping byte %d of %d", me, i, io->byteSkip);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (nrrdByteSkip(io)) {
+    sprintf(err, "%s: couldn't skip bytes", me);
+    biffAdd(NRRD, err); return 1;
   }
 
   if (nrrdReadData[io->encoding](nrrd, io)) {

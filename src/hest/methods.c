@@ -32,6 +32,7 @@ hestParmNew() {
     parm->elideSingleEnumType = hestElideSingleEnumType;
     parm->elideSingleOtherType = hestElideSingleOtherType;
     parm->elideSingleOtherDefault = hestElideSingleOtherDefault;
+    parm->greedySingleString = hestGreedySingleString;
     /*
     fprintf(stderr, "!%s: parm->elideSingleOtherDefault = %d\n",
 	    "hestParmNew", parm->elideSingleOtherDefault);

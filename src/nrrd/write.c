@@ -45,11 +45,11 @@ _nrrdFieldInteresting(Nrrd *nrrd, NrrdIO *io, int field) {
     ret = 0;
     break;
   case nrrdField_number:
-    /* This may be somewhat surprising.  The truth is, "number" is
-       entirely redundant with "sizes", which is a required field.
-       Absolutely nothing is lost in eliding "number" from the header.
-       Should this judgement later be found in error, this is the one
-       place where the policy change can be implemented */
+    /* "number" is entirely redundant with "sizes", which is a
+       required field.  Absolutely nothing is lost in eliding "number"
+       from the header.  Should this judgement later be found in
+       error, this is the one place where the policy change can be
+       implemented */
     ret = 0;
     break;
   case nrrdField_type:

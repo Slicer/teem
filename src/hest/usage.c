@@ -126,6 +126,57 @@ _hestPrintStr(FILE *f, int indent, int already, int width, char *_str,
   free(str);
 }
 
+/*
+******** hestMinNumArgs
+**
+** The idea is that this helps quickly determine if the options given
+** on the command line are insufficient, in order to produce general
+** usage information instead of some specific parse error.
+**
+** Because hest is strictly agnostic with respect to how many command-line
+** arguments actually constitute the command itself ("rmdir": one argument,
+** "cvs checkout": two arguments), it only concerns itself with the 
+** command-line arguments following the command.
+**
+** Thus, hestMinMinArgs() returns the minimum number of command-line
+** arguments (following the command) that could be valid.  If your 
+** command is only one argument (like "rmdir"), then you might use
+** the true argc passed by the OS to main() as such:
+**
+**   if (argc-1 < hestMinNumArgs(opt)) {
+**     ... usage ...
+**   }
+**
+** But if your command is two arguments (like "cvs checkout"):
+**
+**   if (argc-2 < hestMinNumArgs(opt)) {
+**     ... usage ...
+**   }
+*/
+int
+hestMinNumArgs(hestOpt *opt) {
+  hestParm *parm;
+  int i, count, numOpts;
+
+  parm = hestParmNew();
+  if (_hestPanic(opt, NULL, parm)) {
+    parm = hestParmFree(parm);
+    return _hestMax(-1);
+  }
+  count = 0;
+  numOpts = _hestNumOpts(opt);
+  for (i=0; i<=numOpts-1; i++) {
+    if (!opt[i].dflt) {
+      count += opt[i].min;
+      if (!(0 == opt[i].min && 0 == opt[i].max)) {
+	count += !!opt[i].flag;
+      }
+    }
+  }  
+  parm = hestParmFree(parm);
+  return count;
+}
+
 void
 hestInfo(FILE *file, char *argv0, char *info, hestParm *_parm) {
   hestParm *parm;
@@ -200,7 +251,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
     maxlen = AIR_MAX(strlen(buff), maxlen);
   }
   if (parm && parm->respFileEnable) {
-    sprintf(buff, "%cfile\t...", parm->respFileFlag);
+    sprintf(buff, "%cfile ...", parm->respFileFlag);
     len = strlen(buff);
     for (j=len; j<=maxlen-1; j++)
       fprintf(f, " ");

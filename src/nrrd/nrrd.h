@@ -423,6 +423,8 @@ extern int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *);
 /******** getting information to and from files */
 /* read.c */
 extern int (*nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *);
+extern int nrrdLineSkip(NrrdIO *io);
+extern int nrrdByteSkip(NrrdIO *io);
 extern int nrrdLoad(Nrrd *nrrd, const char *filename);
 extern int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *io);
 /* write.c */

@@ -62,12 +62,14 @@ hestCB unuFileHestCB = {
 };
 
 char *makeName = "make";
-#define INFO "Create a nrrd from scratch, starting with raw data"
+#define INFO "Create a nrrd from scratch, starting with raw or ascii data"
 char *makeInfo = INFO;
 char *makeInfoL = (INFO
-		   ". This provides a way of providing the bare minimum "
-		   "information about raw data so as to wrap it in a "
-		   "nrrd. ");
+		   ". The data can be in a file or coming from stdin. "
+		   "This provides an easy way of providing the bare minimum "
+		   "information about some data so as to wrap it in a "
+		   "nrrd, either to pass on for further unu processing, "
+		   "or to save to disk.");
 
 int
 makeMain(int argc, char **argv, char *me) {
@@ -88,6 +90,11 @@ makeMain(int argc, char **argv, char *me) {
 	     "File to read data from; use \"-\" for stdin",
 	     NULL, NULL, &unuFileHestCB);
   OPT_ADD_TYPE(nrrd->type, "type of data");
+  hestOptAdd(&opt, "lineskip", "skip", airTypeInt, 1, 1, &(io->lineSkip), "0",
+	     "number of ascii lines to skip before reading data");
+  hestOptAdd(&opt, "byteskip", "skip", airTypeInt, 1, 1, &(io->byteSkip), "0",
+	     "number of bytes to skip (after skipping ascii lines, if any) "
+	     "before reading data");
   hestOptAdd(&opt, "s", "size0 size1 ", airTypeInt, 1, -1, &size, NULL,
 	     "number of samples along each axis (and implicit indicator "
 	     "of dimension of nrrd)", &sizeLen);
@@ -120,6 +127,14 @@ makeMain(int argc, char **argv, char *me) {
   nrrd->dim = sizeLen;
   nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, size);
   
+  if (nrrdLineSkip(io)) {
+    sprintf(err, "%s: couldn't skip lines", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdByteSkip(io)) {
+    sprintf(err, "%s: couldn't skip bytes", me);
+    biffAdd(NRRD, err); return 1;
+  }
   if (nrrdReadData[io->encoding](nrrd, io)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error reading data:\n%s", me, err);

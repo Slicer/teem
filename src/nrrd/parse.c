@@ -93,10 +93,6 @@ _nrrdReadNrrdParse_endian(Nrrd *nrrd, NrrdIO *io, int useBiff) {
     biffMaybeAdd(NRRD, err, useBiff); return 1; \
   }
 
-/*
-** NOTE: everything which calls any airParseStrX() function is
-** NOT THREAD-SAFE
-*/
 int
 _nrrdReadNrrdParse_dimension(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_dimension", err[AIR_STRLEN_MED];
@@ -238,6 +234,8 @@ _nrrdReadNrrdParse_labels(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   int i, len;
   char *info;
 
+  /* because we have to correctly interpret quote marks, we
+     can't simply rely on airParseStrS */
   info = io->line + io->pos;
   /* printf("!%s: info |%s|\n", me, info); */
   _CHECK_HAVE_DIM;
