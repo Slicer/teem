@@ -31,7 +31,8 @@ convoFunc(Nrrd *nout, Nrrd *_nimg, Nrrd *_nmask, int renorm, int crop) {
   Nrrd *nimg, *nmask, *npad;
   airArray *mop;
   int E;
-  int i, x, y,
+  unsigned int i;
+  int x, y,
     ix, iy,         /* image coordinates */
     isx, isy,       /* input image size */
     osx, osy,       /* output image size */
