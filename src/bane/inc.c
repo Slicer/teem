@@ -145,12 +145,16 @@ void
 _baneIncRangeRatio(double *minP, double *maxP, 
 		   Nrrd *n, double *parm, int range) {
   double mid;
-  
+
+  /*
   printf("_baneIncRangeRatio, minP=%lu, maxP=%lu\n", 
 	 (unsigned long)minP, (unsigned long)maxP);
+  */
   baneRange[range](minP, maxP, n->axisMin[0], n->axisMax[0]);
+  /*
   printf("_baneIncRangeRatio: [%g,%g] -> [%g,%g]\n",
 	 n->axisMin[0], n->axisMax[0], *minP, *maxP);
+  */
   if (baneRangeFloat == range) {
     mid = (*minP + *maxP)/2;
     *minP = AIR_AFFINE(-1, -parm[0], 0, *minP, mid);
@@ -221,21 +225,25 @@ _baneIncStdv(double *minP, double *maxP,
 	     Nrrd *n, double *parm, int range) {
   int *hist, i;
   double val, mean, stdv;
-  NRRD_BIG_INT sum = 0;
-
+  NRRD_BIG_INT sum;
+  
   hist = n->data;
+  sum = 0;
+  mean = 0;
   for (i=0; i<=n->size[0]-1; i++) {
     val = AIR_AFFINE(0, i, n->size[0]-1, n->axisMin[0], n->axisMax[0]);
     sum += hist[i];
     mean += val*hist[i];
   }
   mean /= sum;
+  /* printf("%s: HEY sum = %d, mean = %g\n", "_baneIncStdv",(int)sum,mean); */
   stdv = 0;
   for (i=0; i<=n->size[0]-1; i++) {
     val = AIR_AFFINE(0, i, n->size[0]-1, n->axisMin[0], n->axisMax[0]);
-    stdv = (mean-val)*(mean-val);
+    stdv += (mean-val)*(mean-val);
   }
   stdv /= sum;
+  /* printf("%s: HEY stdv = %g\n", "_baneIncStdv", stdv); */
   switch (range) {
   case baneRangePos:
     *minP = 0;
@@ -257,6 +265,7 @@ _baneIncStdv(double *minP, double *maxP,
     *minP = *maxP = airNand();
     break;
   }
+  /* printf("%s: HEY min, max = %g, %g\n", "_baneIncStdv", *minP, *maxP); */
 }
 
 baneIncType

@@ -172,7 +172,17 @@ typedef struct {
 					  data remaining after new inclusion
 					  has been determined */
 } baneHVolParm;
-#define BANE_DEF_INCLIMIT 0.8
+
+/*
+******** BANE_DEF_INCLIMIT
+**
+** the default minimum percentage of voxels which must be included in
+** the histogram volume volume (baneHVolParm's incLimit is set to 100
+** times this by default).  If the inclusion is set such that that you
+** get less than this percentage of hits, then baneMakeHVol() will
+** fail 
+*/
+#define BANE_DEF_INCLIMIT 80
 
 typedef struct {
   nrrdKernel *k[3];
@@ -180,9 +190,9 @@ typedef struct {
 } baneProbeK3Pack;
 
 /* methods.c */
-extern baneHVolParm *baneNewHVolParm();
-extern void baneNixHVolParm(baneHVolParm *hvp);
-extern void baneGKMSInitHVolParm(baneHVolParm *hvp);
+extern baneHVolParm *baneHVolParmNew();
+extern void baneHVolParmNix(baneHVolParm *hvp);
+extern void baneHVolParmGKMSInit(baneHVolParm *hvp);
 extern baneProbeK3Pack *baneProbeK3PackNew();
 extern baneProbeK3Pack *baneProbeK3PackNix(baneProbeK3Pack *);
 
@@ -233,6 +243,14 @@ extern void baneProbe(float *ans, Nrrd *nin, int query,
 		      float x, float y, float z);
 extern int baneProbeDebug;
 
+/* valid.c */
+extern int baneValidHVol(Nrrd *hvol);
+extern int baneValidInfo2D(Nrrd *info2D);
+extern int baneValidInfo1D(Nrrd *info1D);
+extern int baneValidPos1D(Nrrd *pos1D);
+extern int baneValidPos2D(Nrrd *pos2D);
+extern int baneValidBcpts(Nrrd *Bcpts);
+
 /* trnsf.c */
 extern int bane2DOpacInfo(Nrrd *info2D, Nrrd *hvol);
 extern Nrrd *baneNew2DOpacInfo(Nrrd *hvol);
@@ -248,7 +266,6 @@ extern Nrrd *baneNewPosCalc1D(float sigma, float gthresh, Nrrd *info1D);
 extern int banePosCalc2D(Nrrd *pos2D, 
 			 float sigma, float gthresh, Nrrd *info2D);
 extern Nrrd *baneNewPosCalc2D(float sigma, float gthresh, Nrrd *info2D);
-extern int _baneValidPos2D(Nrrd *pos2D);
 extern int baneOpacCalc1Dcpts(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos1D);
 extern Nrrd *baneNewOpacCalc1Dcpts(Nrrd *Bcpts, Nrrd *pos1D);
 extern void _baneOpacCalcA(int lutLen, float *opacLut, 

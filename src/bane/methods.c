@@ -31,7 +31,7 @@ _baneInitMeasrParm(baneMeasrParm *axp) {
 }
 
 baneHVolParm *
-baneNewHVolParm() {
+baneHVolParmNew() {
   baneHVolParm *hvp;
   int i;
   
@@ -45,13 +45,13 @@ baneNewHVolParm() {
     for (i=0; i<=BANE_CLIP_NUM_PARM-1; i++) {
       hvp->clipParm[i] = airNanf();
     }
-    hvp->incLimit = BANE_DEF_INCLIMIT;
+    hvp->incLimit = BANE_DEF_INCLIMIT/100.0;
   }
   return hvp;
 }
 
 void
-baneNixHVolParm(baneHVolParm *hvp) {
+baneHVolParmNix(baneHVolParm *hvp) {
   
   if (hvp) {
     free(hvp);
@@ -59,14 +59,14 @@ baneNixHVolParm(baneHVolParm *hvp) {
 }
 
 void
-baneGKMSInitHVolParm(baneHVolParm *hvp) {
+baneHVolParmGKMSInit(baneHVolParm *hvp) {
 
   if (hvp) {
     hvp->verb = 1;
     hvp->axp[0].res = 256;
     hvp->axp[0].measr = baneMeasrGradMag_cd;
     hvp->axp[0].inc = baneIncPercentile;
-    hvp->axp[0].incParm[0] = 512;
+    hvp->axp[0].incParm[0] = 1024;
     hvp->axp[0].incParm[1] = 0.15;
     /*
     hvp->axp[0].inc = baneIncRangeRatio;
@@ -75,7 +75,7 @@ baneGKMSInitHVolParm(baneHVolParm *hvp) {
     hvp->axp[1].res = 256;
     hvp->axp[1].measr = baneMeasrHess_cd;
     hvp->axp[1].inc = baneIncPercentile;
-    hvp->axp[1].incParm[0] = 512;
+    hvp->axp[1].incParm[0] = 1024;
     hvp->axp[1].incParm[1] = 0.15;
     /*
     hvp->axp[1].inc = baneIncRangeRatio;

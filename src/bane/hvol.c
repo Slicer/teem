@@ -35,7 +35,7 @@ _baneValidMeasrParm(baneMeasrParm *mp) {
   int i;
   
   if (!(mp->res >= 2)) {
-    sprintf("%s: need resolution at least 2 (not %d)", me, mp->res);
+    sprintf(err, "%s: need resolution at least 2 (not %d)", me, mp->res);
     biffSet(BANE, err); return 0;
   }
   if (!( AIR_INSIDE(baneMeasrUnknown+1, mp->measr, baneMeasrLast-1) )) {
@@ -55,6 +55,12 @@ _baneValidMeasrParm(baneMeasrParm *mp) {
   if (i != baneIncNumParm[mp->inc]) {
     sprintf(err, "%s: got only %d parms for %s inclusion (not %d)", me, i,
 	    baneIncStr[mp->inc], baneIncNumParm[mp->inc]);
+    biffSet(BANE, err); return 0;
+  }
+  if ( (baneIncStdv == mp->inc || baneIncPercentile == mp->inc)
+       && !(2 <= mp->incParm[0]) ) {
+    sprintf(err, "%s: can't make histogram size %d for %s inclusion", me,
+	    (int)mp->incParm[0], baneIncStr[mp->inc]);
     biffSet(BANE, err); return 0;
   }
   return 1;
@@ -129,6 +135,7 @@ _baneFindInclusion(double min[3], double max[3],
   incIdx0 = hvp->axp[0].inc;
   incIdx1 = hvp->axp[1].inc;
   incIdx2 = hvp->axp[2].inc;
+  /* printf("%s: HEY %d %d %d\n", me, incIdx0, incIdx1, incIdx2); */
   incParm0 = hvp->axp[0].incParm;
   incParm1 = hvp->axp[1].incParm;
   incParm2 = hvp->axp[2].incParm;
@@ -178,10 +185,12 @@ _baneFindInclusion(double min[3], double max[3],
   }
   if (hvp->verb)
     fprintf(stderr, "\b\b\b\b\b\b  done\n");
-  printf("%s: HEY ranges: [%g,%g] [%g,%g] [%g,%g]\n", me,
-	 n0->axisMin[0], n0->axisMax[0], 
-	 n1->axisMin[0], n1->axisMax[0], 
-	 n2->axisMin[0], n2->axisMax[0]);
+  if (hvp->verb > 1) {
+    printf("%s: after initA; ranges: [%g,%g] [%g,%g] [%g,%g]\n", me,
+	   n0->axisMin[0], n0->axisMax[0], 
+	   n1->axisMin[0], n1->axisMax[0], 
+	   n2->axisMin[0], n2->axisMax[0]);
+  }
 
   /* second stage of initialization, includes creating histograms */
   if (hvp->verb) {
@@ -212,10 +221,12 @@ _baneFindInclusion(double min[3], double max[3],
   }
   if (hvp->verb)
     fprintf(stderr, "\b\b\b\b\b\b  done\n");
-  printf("%s: HEY ranges: [%g,%g] [%g,%g] [%g,%g]\n", me,
-	 n0->axisMin[0], n0->axisMax[0], 
-	 n1->axisMin[0], n1->axisMax[0], 
-	 n2->axisMin[0], n2->axisMax[0]);
+  if (hvp->verb > 1) {
+    printf("%s: after initB; ranges: [%g,%g] [%g,%g] [%g,%g]\n", me,
+	   n0->axisMin[0], n0->axisMax[0], 
+	   n1->axisMin[0], n1->axisMax[0], 
+	   n2->axisMin[0], n2->axisMax[0]);
+  }
 
   /* now the real work of determining the inclusion */
   if (hvp->verb) {
@@ -258,6 +269,8 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   unsigned char *nhvdata;
   Nrrd *rawhvol;
 
+  /* printf("%s: HEY %g %g\n", me, 
+     hvp->axp[1].incParm[0], hvp->axp[1].incParm[1]); */
   if (!(hvol && nin && hvp)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffSet(BANE, err); return 1;
@@ -358,7 +371,6 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
 	    fracIncluded*100);
   }
   
-  
   /* determine the clipping value and produce the final histogram volume */
   clipVal = baneClip[hvp->clip](rawhvol, hvp->clipParm);
   if (hvp->verb)
@@ -430,18 +442,18 @@ baneGKMSHVol(Nrrd *nin, float perc) {
   baneHVolParm *hvp;
   Nrrd *hvol;
   
-  if (!(hvp = baneNewHVolParm())) {
+  if (!(hvp = baneHVolParmNew())) {
     sprintf(err, "%s: couldn't get hvol parm struct", me);
     biffAdd(BANE, err); return NULL;
   }
-  baneGKMSInitHVolParm(hvp);
+  baneHVolParmGKMSInit(hvp);
   hvp->axp[0].incParm[1] = perc;
   hvp->axp[1].incParm[1] = perc;
   if (!(hvol = baneNewMakeHVol(nin, hvp))) {
     sprintf(err, "%s: trouble making GKMS histogram volume", me);
     biffAdd(BANE, err); free(hvp); return NULL;
   }
-  baneNixHVolParm(hvp);
+  baneHVolParmNix(hvp);
   return hvol;
 }
 
