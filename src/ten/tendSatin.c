@@ -23,7 +23,7 @@
 #define INFO "Generate a pretty synthetic DT volume"
 char *_tend_satinInfoL =
   (INFO
-   ".  The surface of a sphere is covered with either linear or "
+   ".  The surface of a sphere or tous is covered with either linear or "
    "planar anisotropic tensors, or somewhere in between.");
 
 void
