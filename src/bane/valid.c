@@ -23,7 +23,7 @@
 
 int
 baneValidInput(Nrrd *nin, baneHVolParm *hvp) {
-  char me[]="baneValidVolume", err[AIR_STRLEN_MED];
+  char me[]="baneValidInput", err[AIR_STRLEN_MED];
   int i;
 
   if (!nrrdValid(nin)) {

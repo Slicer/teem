@@ -53,23 +53,21 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
   }
   if (1 == dim) {
     len = hvol->axis[2].size;
-    if (!info->data) {
-      if (nrrdAlloc(info, nrrdTypeFloat, 2, 2, len)) {
-	sprintf(err, BIFF_NRRDALLOC, me);
-	biffMove(BANE, err, NRRD); return 1;
-      }
+    if (nrrdMaybeAlloc(info, nrrdTypeFloat, 2, 2, len)) {
+      sprintf(err, BIFF_NRRDALLOC, me);
+      biffMove(BANE, err, NRRD); return 1;
     }
     info->axis[1].min = hvol->axis[2].min;
     info->axis[1].max = hvol->axis[2].max;
     data1D = info->data;
 
     /* sum up along 2nd deriv for each data value, grad mag */
-    if (nrrdProject(proj2 = nrrdNew(), hvol, 1, nrrdMeasureSum)) {
+    if (nrrdProject(proj2=nrrdNew(), hvol, 1, nrrdMeasureSum)) {
       sprintf(err, "%s: trouble projecting out 2nd deriv. for g(v)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
     /* now determine average gradient at each value (0: grad, 1: value) */
-    if (nrrdProject(proj1 = nrrdNew(), proj2, 0, measr)) {
+    if (nrrdProject(proj1=nrrdNew(), proj2, 0, measr)) {
       sprintf(err, "%s: trouble projecting along gradient for g(v)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
@@ -100,11 +98,9 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
     /* hvol axes: 0: grad, 1: 2nd deriv: 2: data value */
     sv = hvol->axis[2].size;
     sg = hvol->axis[0].size;
-    if (!info->data) {
-      if (nrrdAlloc(info, nrrdTypeFloat, 3, 2, sv, sg)) {
-	sprintf(err, BIFF_NRRDALLOC, me);
-	biffMove(BANE, err, NRRD); return 1;
-      }
+    if (nrrdMaybeAlloc(info, nrrdTypeFloat, 3, 2, sv, sg)) {
+      sprintf(err, BIFF_NRRDALLOC, me);
+      biffMove(BANE, err, NRRD); return 1;
     }
     info->axis[1].min = hvol->axis[2].min;
     info->axis[1].max = hvol->axis[2].max;
@@ -113,11 +109,11 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
     data2D = info->data;
 
     /* first create h(v,g) */
-    if (nrrdProject(proj2 = nrrdNew(), hvol, 1, measr)) {
+    if (nrrdProject(proj2=nrrdNew(), hvol, 1, measr)) {
       sprintf(err, "%s: trouble projecting (step 1) to create h(v,g)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
-    if (nrrdSwapAxes(projT = nrrdNew(), proj2, 0, 1)) {
+    if (nrrdSwapAxes(projT=nrrdNew(), proj2, 0, 1)) {
       sprintf(err, "%s: trouble projecting (step 2) to create h(v,g)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
@@ -128,11 +124,11 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
     nrrdNuke(projT);
 
     /* then create #hits(v,g) */
-    if (nrrdProject(proj2 = nrrdNew(), hvol, 1, nrrdMeasureSum)) {
+    if (nrrdProject(proj2=nrrdNew(), hvol, 1, nrrdMeasureSum)) {
       sprintf(err, "%s: trouble projecting (step 1) to create #(v,g)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
-    if (nrrdSwapAxes(projT = nrrdNew(), proj2, 0, 1)) {
+    if (nrrdSwapAxes(projT=nrrdNew(), proj2, 0, 1)) {
       sprintf(err, "%s: trouble projecting (step 2) to create #(v,g)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
@@ -171,11 +167,9 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
     biffAdd(BANE, err); return 1;
   }
   
-  if (!info1D->data) {
-    if (nrrdAlloc(info1D, nrrdTypeFloat, 2, 2, len)) {
-      sprintf(err, BIFF_NRRDALLOC, me);
-      biffMove(BANE, err, NRRD); return 1;
-    }
+  if (nrrdMaybeAlloc(info1D, nrrdTypeFloat, 2, 2, len)) {
+    sprintf(err, BIFF_NRRDALLOC, me);
+    biffMove(BANE, err, NRRD); return 1;
   }
   info1D->axis[1].min = info2D->axis[1].min;
   info1D->axis[1].max = info2D->axis[1].max;
@@ -273,11 +267,9 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
   d = info->dim-1;
   if (1 == d) {
     len = info->axis[1].size;
-    if (!pos->data) {
-      if (nrrdAlloc(pos,  nrrdTypeFloat, 1, len)) {
-	sprintf(err, BIFF_NRRDALLOC, me); 
-	biffMove(BANE, err, NRRD); return 1;
-      }
+    if (nrrdMaybeAlloc(pos,  nrrdTypeFloat, 1, len)) {
+      sprintf(err, BIFF_NRRDALLOC, me); 
+      biffMove(BANE, err, NRRD); return 1;
     }
     pos->axis[0].min = info->axis[1].min;
     pos->axis[0].max = info->axis[1].max;
@@ -299,10 +291,8 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
     /* 2 == d */
     sv = info->axis[1].size;
     sg = info->axis[2].size;
-    if (!pos->data) {
-      if (nrrdAlloc(pos, nrrdTypeFloat, 2, sv, sg)) {
-	sprintf(err, BIFF_NRRDALLOC, me); biffMove(BANE, err, NRRD); return 1;
-      }
+    if (nrrdMaybeAlloc(pos, nrrdTypeFloat, 2, sv, sg)) {
+      sprintf(err, BIFF_NRRDALLOC, me); biffMove(BANE, err, NRRD); return 1;
     }
     pos->axis[0].min = info->axis[1].min;
     pos->axis[0].max = info->axis[1].max;
@@ -435,10 +425,8 @@ baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos) {
   dim = pos->dim;
   if (1 == dim) {
     len = pos->axis[0].size;
-    if (!opac->data) {
-      if (nrrdAlloc(opac, nrrdTypeFloat, 1, len)) {
-	sprintf(err, BIFF_NRRDALLOC, me); biffMove(BANE, err, NRRD); return 1;
-      }
+    if (nrrdMaybeAlloc(opac, nrrdTypeFloat, 1, len)) {
+      sprintf(err, BIFF_NRRDALLOC, me); biffMove(BANE, err, NRRD); return 1;
     }
     opac->axis[0].min = pos->axis[0].min;
     opac->axis[0].max = pos->axis[0].max;
@@ -451,10 +439,8 @@ baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos) {
   else {
     sv = pos->axis[0].size;
     sg = pos->axis[1].size;
-    if (!opac->data) {
-      if (nrrdAlloc(opac, nrrdTypeFloat, 2, sv, sg)) {
-	sprintf(err, BIFF_NRRDALLOC, me); biffMove(BANE, err, NRRD); return 1;
-      }
+    if (nrrdMaybeAlloc(opac, nrrdTypeFloat, 2, sv, sg)) {
+      sprintf(err, BIFF_NRRDALLOC, me); biffMove(BANE, err, NRRD); return 1;
     }
     opac->axis[0].min = pos->axis[0].min;
     opac->axis[0].max = pos->axis[0].max;

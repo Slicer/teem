@@ -22,11 +22,17 @@
 int
 baneDefVerbose = 0;
 
+int
+baneDefMakeMeasrVol = AIR_TRUE;
+
 float
 baneDefIncLimit = 0.80;  /* throwing away more than 20% is too much */
 
 int
 baneDefRenormalize = AIR_FALSE;
+
+int
+baneDefPercHistBins = 1024;
 
 int
 baneStateHistEqBins = 1024;

@@ -28,6 +28,7 @@
 #include <air.h>
 #include <biff.h>
 #include <nrrd.h>
+#include <unrrdu.h>
 #include <gage.h>
 
 #if defined(WIN32) && !defined(TEEM_BUILD)
@@ -89,8 +90,8 @@ enum {
 typedef struct {
   char name[AIR_STRLEN_SMALL];
   int which;
-  void (*ans)(double *ominP, double *omaxP,
-	      double imin, double imax);
+  int (*ans)(double *ominP, double *omaxP,
+	     double imin, double imax);
 } baneRange;
 
 /* -------------------------- inc -------------------------- */
@@ -100,7 +101,7 @@ typedef struct {
 **
 ** Inc: methods for determing what range of measured values deserves
 ** to be included along one axes of a histogram volume.  Each
-** inclusion method has some parameters (at most BANE_INC_NUM_PARM)
+** inclusion method has some parameters (at most BANE_INC_PARM_NUM)
 ** which are (or can be harmlessly cast to) floats.  Some of them need
 ** a histogram (a Nrrd) in order to determine the new min and max,
 ** some just use a Nrrd as a place to store some information.
@@ -162,9 +163,9 @@ typedef struct {
   Nrrd *(*histNew)(double *incParm);
   baneIncPass *passA;
   baneIncPass *passB;
-  void (*ans)(double *minP, double *maxP,
-	      Nrrd *hist, double *incParm,
-	      baneRange *range);
+  int (*ans)(double *minP, double *maxP,
+	     Nrrd *hist, double *incParm,
+	     baneRange *range);
 } baneInc;
 
 /* -------------------------- clip -------------------------- */
@@ -207,7 +208,7 @@ typedef struct {
 ** Measr: one of the kind of measurement which determines location along
 ** one of the axes of the histogram volume.
 **
-** In this latest version of bane, I nixed the "gradient of magnitude
+** In this latest version of bane (1.4), I nixed the "gradient of magnitude
 ** of gradient" (GMG) based measure of the second directional
 ** derivative.  I felt that the benefits of using gage for value and
 ** derivative measurement (allowing arbitrary kernels), combined with
@@ -282,10 +283,16 @@ typedef struct {
 */
 typedef struct {
   int verbose;                         /* status messages to stderr */
+  int makeMeasrVol;                    /* create a 3 x X x Y x Z volume of
+					  measurements, so that they aren't
+					  measured (as many as) three times */
+  Nrrd *measrVol;
+  int measrVolDone;                    /* values in measrVol are filled */
   baneAxis ax[3];                      /* NB: not pointers to baneAxis */
+  int k3pack;
+  int renormalize;                     /* use gage's mask renormalization */
   NrrdKernel *k[GAGE_KERNEL_NUM];
   double kparm[GAGE_KERNEL_NUM][NRRD_KERNEL_PARMS_NUM];
-  int renormalize;                     /* use gage's mask renormalization */
   baneClip *clip;
   double clipParm[BANE_CLIP_PARM_NUM];
   double incLimit;                     /* lowest permissible fraction of the
@@ -295,8 +302,10 @@ typedef struct {
 
 /* defaultsBane.c */
 extern bane_export int baneDefVerbose;
+extern bane_export int baneDefMakeMeasrVol;
 extern bane_export float baneDefIncLimit;
 extern bane_export int baneDefRenormalize;
+extern bane_export int baneDefPercHistBins;
 extern bane_export int baneStateHistEqBins;
 extern bane_export int baneStateHistEqSmart;
 extern bane_export int baneHack;
@@ -370,6 +379,23 @@ extern void _baneTRexDone();
 
 /* scat.c */
 extern int baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq);
+
+/* gkms*.c */
+#define BANE_GKMS_DECLARE(C) extern bane_export unrrduCmd baneGkms_##C##Cmd;
+#define BANE_GKMS_LIST(C) &baneGkms_##C##Cmd,
+#define BANE_GKMS_MAP(F) \
+F(hvol) \
+F(scat) \
+F(info) \
+F(pvg) \
+F(opac)
+BANE_GKMS_MAP(BANE_GKMS_DECLARE)
+extern bane_export airEnum *baneGkmsMeasr;
+extern bane_export unrrduCmd *baneGkmsCmdList[]; 
+extern void baneGkmsUsage(char *me, hestParm *hparm);
+extern hestCB *baneGkmsHestIncStrategy;
+extern hestCB *baneGkmsHestBEF;
+extern hestCB *baneGkmsHestGthresh;
 
 #ifdef __cplusplus
 }

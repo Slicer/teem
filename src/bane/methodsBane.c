@@ -44,9 +44,13 @@ baneHVolParmNew() {
   hvp = calloc(1, sizeof(baneHVolParm));
   if (hvp) {
     hvp->verbose = baneDefVerbose;
+    hvp->makeMeasrVol = baneDefMakeMeasrVol;
+    hvp->measrVol = NULL;
+    hvp->measrVolDone = AIR_FALSE;
     _baneAxisInit(hvp->ax + 0);
     _baneAxisInit(hvp->ax + 1);
     _baneAxisInit(hvp->ax + 2);
+    hvp->k3pack = AIR_TRUE;
     for(i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       hvp->k[i] = NULL;
       for (j=0; j<NRRD_KERNEL_PARMS_NUM; j++)
@@ -66,6 +70,9 @@ baneHVolParm *
 baneHVolParmNix(baneHVolParm *hvp) {
   
   if (hvp) {
+    if (hvp->measrVol) {
+      nrrdNuke(hvp->measrVol);
+    }
     free(hvp);
   }
   return NULL;

@@ -54,6 +54,33 @@ extern baneClip _baneClipTopN;
 /* hvol.c */
 extern int _baneValidAxis(baneAxis *ax);
 
+#define BANE_GKMS_CMD(name, info) \
+unrrduCmd baneGkms_##name##Cmd = { #name, info, baneGkms_##name##Main }
+
+/* USAGE, PARSE
+   all copied from unrrdu/privateUnrrdu.h */
+#define USAGE(info) \
+  if (!argc) { \
+    hestInfo(stderr, me, (info), hparm); \
+    hestUsage(stderr, opt, me, hparm); \
+    hestGlossary(stderr, opt, hparm); \
+    airMopError(mop); \
+    return 2; \
+  }
+
+#define PARSE() \
+  if ((pret=hestParse(opt, argc, argv, &perr, hparm))) { \
+    if (1 == pret) { \
+      fprintf(stderr, "%s: %s\n", me, perr); free(perr); \
+      hestUsage(stderr, opt, me, hparm); \
+      airMopError(mop); \
+      return 2; \
+    } else { \
+      /* ... like tears ... in rain. Time ... to die. */ \
+      exit(1); \
+    } \
+  }
+
 #ifdef __cplusplus
 }
 #endif

@@ -44,11 +44,13 @@ $(L).SEEN := true
 #### Describe library here
 ####
 ####
-$(L).NEED = gage nrrd biff air
+$(L).NEED = gage unrrdu nrrd biff air
 $(L).PUBLIC_HEADERS = bane.h
 $(L).PRIVATE_HEADERS = privateBane.h
 $(L).OBJS = defaultsBane.o range.o inc.o clip.o measr.o valid.o \
-	methodsBane.o trnsf.o scat.o hvol.o trex.o
+	methodsBane.o trnsf.o scat.o hvol.o trex.o \
+	gkmsHvol.o gkmsScat.o gkmsInfo.o gkmsPvg.o gkmsOpac.o \
+	gkmsFlotsam.o
 $(L).TESTS = test/tinfo test/sigma test/pos \
 	test/opac test/tblah
 ####

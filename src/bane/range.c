@@ -20,13 +20,16 @@
 #include "bane.h"
 #include "privateBane.h"
 
-/* ----------------- baneUnknown -------------------- */
+/* ----------------- baneRangeUnknown -------------------- */
 
-void
+int
 _baneRangeUnknown_Ans(double *ominP, double *omaxP,
 		      double imin, double imax) {
-  char me[]="_baneRangeUnknown_Ans";
-  fprintf(stderr, "%s: a baneRange is unset somewhere ...\n", me);
+  char me[]="_baneRangeUnknown_Ans", err[AIR_STRLEN_MED];
+
+  sprintf(err, "%s: a baneRange is unset", me);
+  biffAdd(BANE, err);
+  return 1;
 }
 
 baneRange
@@ -40,11 +43,18 @@ baneRangeUnknown = &_baneRangeUnknown;
 
 /* ----------------- baneRangePos -------------------- */
 
-void
+int
 _baneRangePos_Ans(double *ominP, double *omaxP,
 		  double imin, double imax) {
+  char me[]="_baneRangePos_Ans", err[AIR_STRLEN_MED];
+
+  if (!( AIR_EXISTS(imin) && AIR_EXISTS(imax) )) {
+    sprintf(err, "%s: imin and imax don't both exist", me);
+    biffAdd(BANE, err); return 1;
+  }
   *ominP = 0;
   *omaxP = imax;
+  return 0;
 }
 
 baneRange
@@ -58,12 +68,18 @@ baneRangePos = &_baneRangePos;
 
 /* ----------------- baneRangeNeg -------------------- */
 
-void
+int
 _baneRangeNeg_Ans(double *ominP, double *omaxP,
 		  double imin, double imax) {
+  char me[]="_baneRangeNeg_Ans", err[AIR_STRLEN_MED];
   
+  if (!( AIR_EXISTS(imin) && AIR_EXISTS(imax) )) {
+    sprintf(err, "%s: imin and imax don't both exist", me);
+    biffAdd(BANE, err); return 1;
+  }
   *ominP = imin;
   *omaxP = 0;
+  return 0;
 }
 
 baneRange
@@ -85,15 +101,21 @@ baneRangeNeg = &_baneRangeNeg;
 ** min and max.  Previously the average of the min and max magnitude
 ** were used.
 */
-void
+int
 _baneRangeZeroCent_Ans(double *ominP, double *omaxP,
 		       double imin, double imax) {
+  char me[]="_baneRangeZeroCent_Ans", err[AIR_STRLEN_MED];
 
+  if (!( AIR_EXISTS(imin) && AIR_EXISTS(imax) )) {
+    sprintf(err, "%s: imin and imax don't both exist", me);
+    biffAdd(BANE, err); return 1;
+  }
   imin = AIR_MIN(imin, 0);
   imax = AIR_MAX(imax, 0);
   /* now the signs of imin and imax aren't wrong */
   *ominP = AIR_MIN(-imax, imin);
   *omaxP = AIR_MAX(imax, -imin);
+  return 0;
 }
 
 baneRange
@@ -107,11 +129,18 @@ baneRangeZeroCent = &_baneRangeZeroCent;
 
 /* ----------------- baneRangeFloat -------------------- */
 
-void
+int
 _baneRangeFloat_Ans(double *ominP, double *omaxP,
 		    double imin, double imax) {
+  char me[]="_baneRangeFloat_Ans", err[AIR_STRLEN_MED];
+
+  if (!( AIR_EXISTS(imin) && AIR_EXISTS(imax) )) {
+    sprintf(err, "%s: imin and imax don't both exist", me);
+    biffAdd(BANE, err); return 1;
+  }
   *ominP = imin;
   *omaxP = imax;
+  return 0;
 }
 
 baneRange
