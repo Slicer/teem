@@ -27,8 +27,8 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
   char buff[AIR_STRLEN_MED], fmt[AIR_STRLEN_MED];
   char par1[] = 
     ("\t\t\t\t"
-     "\"unu\" is a command-line interface for much of the functionality "
-     "in the \"nrrd\" library for raster data processing. Nrrd is one "
+     "\"unu\" is a command-line interface to much of the functionality "
+     "in \"nrrd\", a C library for raster data processing. Nrrd is one "
      "library in the \"teem\" group of libraries, which is the software "
      "Gordon Kindlmann writes in support of his research.  More information "
      "about teem and all its constituent libraries is at "
@@ -49,13 +49,13 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
      "plain text files (2-D float arrays), "
      "NRRD, VTK structured points, and PNG and PNM images.  "
      "\"unu make -bs -1\" can read from DICOM files.  "
-     "\"unu save \" can generate EPS files. "
+     "\"unu save\" can generate EPS files. "
      "Supported encodings are raw, ascii, hex, gzip, and bzip2.\n"
      );
   char par3[] = 
     ("\t\t\t\t"
      "Much of the functionality of unu derives from chaining multiple "
-     "invocations of unu together with pipes (\"|\"), minimizing the "
+     "invocations together with pipes (\"|\"), minimizing the "
      "need to save out intermediate files. For example, if "
      "\"data.raw.gz\" is a gzip'ed 256\tx\t256\tx\t80 volume of raw floats "
      "written from a PC, "
@@ -84,7 +84,7 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
   char par6[] =
     ("\t\t\t\t"
      "If unu or nrrd repeatedly proves itself useful for your research, an "
-     "acknowlegement to that effect in your publication would be greatly "
+     "acknowledgment to that effect in your publication would be greatly "
      "appreciated, such as (for LaTeX): "
      "\"Dataset processing performed with the {\\tt unu} tool "
      "(or the {\\tt nrrd} library), "
