@@ -29,7 +29,10 @@ genvolFunc(float x, float y, float z) {
 
   A = 1;
   B = 1;
+  /*
   return A*x*x + B*y*y - z;
+  */
+  return x*x + y*y + z*z - x*x*x*x - y*y*y*y - z*z*z*z;
   /*
   A = sqrt(x*x + y*y) - 0.5;
   return 2 - sqrt(A*A + z*z);

@@ -215,9 +215,9 @@ _nrrdResampleComputePermute(int permute[],
   }
   
   /*
-  printf("%s: permute:\n", me);
+  fprintf(stderr, "%s: permute:\n", me);
   for (d=0; d<dim; d++) {
-    printf("   permute[%d] = %d\n", d, permute[d]);
+    fprintf(stderr, "   permute[%d] = %d\n", d, permute[d]);
   }
   */
 
@@ -247,16 +247,18 @@ _nrrdResampleComputePermute(int permute[],
       }
     }
   }
+
   /*
-  printf("%s: axis arrangements for %d passes:\n", me, *passes);
-  for (p=0; p<*passes-1; p++) {
-    printf("%s: %d:", me, p);
+  fprintf(stderr, "%s: axis arrangements for %d passes:\n", me, *passes);
+  for (p=0; p<*passes; p++) {
+    fprintf(stderr, "%s: %d:", me, p);
     for (d=0; d<dim; d++) {
-      printf("\t%d(%d)", ax[p][d], sz[p][d]); 
+      fprintf(stderr, "\t%d(%d)", ax[p][d], sz[p][d]); 
     }
-    printf("\n");
+    fprintf(stderr, "\n");
   }
   */
+
   return;
 }
 
@@ -335,14 +337,14 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
       index[e + dotLen*i] = base + e;
       weight[e + dotLen*i] = idxD - index[e + dotLen*i];
     }
-    /*
+    /* ********
     if (!i)
-      printf("%s: sample locations:\n", me);
-    printf("%s: %d\n        ", me, i);
+      fprintf(stderr, "%s: sample locations:\n", me);
+    fprintf(stderr, "%s: %d\n        ", me, i);
     for (e=0; e<dotLen; e++)
-      printf("%d/%g ", index[e + dotLen*i], weight[e + dotLen*i]);
-    printf("\n");
-    */
+      fprintf(stderr, "%d/%g ", index[e + dotLen*i], weight[e + dotLen*i]);
+    fprintf(stderr, "\n");
+    ******** */
   }
 
   /*
@@ -433,18 +435,18 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
       }
     }
   }
-  /*
-  printf("%s: sample weights:\n", me);
+  /* ********
+  fprintf(stderr, "%s: sample weights:\n", me);
   for (i=0; i<sizeOut; i++) {
-    printf("%s: %d\n        ", me, i);
+    fprintf(stderr, "%s: %d\n        ", me, i);
     wght = 0;
     for (e=0; e<dotLen; e++) {
-      printf("%d/%g ", index[e + dotLen*i], weight[e + dotLen*i]);
+      fprintf(stderr, "%d/%g ", index[e + dotLen*i], weight[e + dotLen*i]);
       wght += weight[e + dotLen*i];
     }
-    printf(" (sum = %g)\n", wght);
+    fprintf(stderr, " (sum = %g)\n", wght);
   }
-  */
+  ******** */
 
   *weightP = weight;
   *indexP = index;
@@ -532,6 +534,9 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
     sizeIn, sizeOut,          /* lengths of input and output vectors */
     dotLen,                   /* # input samples to dot with weights to get
 				 one output sample */
+    doRound,                  /* actually do rounding on output: we DO NOT
+				 round when info->round but the output 
+				 type is not integral */
     *index;                   /* dotLen*sizeOut 2D array of input indices */
   size_t 
     I,                        /* swiss-army int */
@@ -727,9 +732,21 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
       /* do the weighting */
       for (i=0; i<sizeOut; i++) {
 	tmpF = 0.0;
-	for (s=0; s<dotLen; s++)
+	/*
+	fprintf(stderr, "%s: i = %d (tmpF=0)\n", me, (int)i);
+	*/
+	for (s=0; s<dotLen; s++) {
 	  tmpF += inVec[index[s + dotLen*i]]*weight[s + dotLen*i];
+	  /*
+	  fprintf(stderr, "  tmpF += %g*%g == %g\n",
+		  inVec[index[s + dotLen*i]], weight[s + dotLen*i], tmpF);
+	  */
+	}
 	_outVec[i*strideOut] = tmpF;
+	/*
+	fprintf(stderr, "--> out[%d] = %g\n",
+		i*strideOut, _outVec[i*strideOut]);
+	*/
       }
  
       /* update the coordinates for the scanline starts.  We don't
@@ -775,8 +792,6 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
     sprintf(err, "%s: couldn't allocate final output nrrd", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  /* printf("!%s: nout: dim = %d; sz[] = %d %d %d\n", me,
-     dim, sz[passes][0],  sz[passes][1],  sz[passes][2]); */
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopOnError);
   nrrdAxesCopy(nout, nin, NULL, 
 	       (NRRD_AXESINFO_SIZE_BIT |
@@ -814,11 +829,14 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
 	      "rounding of %s output type due to int-based implementation "
 	      "of rounding\n", me, airEnumStr(nrrdType, typeOut));
     }
+    doRound = nrrdTypeInteger[typeOut];
+  } else {
+    doRound = AIR_FALSE;
   }
   numOut = nrrdElementNumber(nout);
   for (I=0; I<numOut; I++) {
     tmpF = array[passes][I];
-    if (info->round) {
+    if (doRound) {
       tmpF = AIR_ROUNDUP(tmpF);
     }
     if (info->clamp) {
