@@ -21,6 +21,7 @@ cd html; cvs commit -m blah
   | grep -v " nrrd" | grep -v " _nrrd" \
   | grep -v " unrrdu" | grep -v " _unrrdu" \
   | grep -v " dye" | grep -v " _dye" \
+  | grep -v " moss" | grep -v " _moss" \
   | grep -v " gage" | grep -v " _gage" \
   | grep -v " bane" | grep -v " _bane" \
   | grep -v " limn" | grep -v " _limn" \
@@ -39,6 +40,7 @@ cd html; cvs commit -m blah
   | grep -v " NRRD" | grep -v " _NRRD" \
   | grep -v " UNRRDU" | grep -v " _UNRRDU" \
   | grep -v " DYE" | grep -v " _DYE" \
+  | grep -v " MOSS" | grep -v " _MOSS" \
   | grep -v " GAGE" | grep -v " _GAGE" \
   | grep -v " BANE" | grep -v " _BANE" \
   | grep -v " LIMN" | grep -v " _LIMN" \
@@ -111,8 +113,7 @@ cd src; make; cd ..; GO; cd ..
 mv teem-${VERSION} teem-${VERSION}-${TEEM_ARCH}
 tar czvf teem-${VERSION}-${TEEM_ARCH}.tgz teem-${VERSION}-${TEEM_ARCH}
 
-6) Create Windows binary builds.  vc6 only, "Release" only, with
-and without compression encodings.
+6) Create Windows binary builds.
 
 7) Move all the binary builds to the web server
 

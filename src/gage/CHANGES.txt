@@ -1,4 +1,16 @@
-Changes from 1.4:
+Changes from 1.5beta0: ------------------------------------------
+
+- API NEW: added new measures to the gageVec kind for dealing with
+3-scalar datasets, such as RGB color volumes:
+  gageVecGradient0,   /*  6: gradient of 1st component of vector: GT[3] */
+  gageVecGradient1,   /*  7: gradient of 2nd component of vector: GT[3] */
+  gageVecGradient2,   /*  8: gradient of 3rd component of vector: GT[3] */
+  gageVecMultiGrad,   /*  9: sum of outer products of gradients: GT[9] */
+  gageVecL2MG,        /* 10: L2 norm of multi-gradient: *GT */
+  gageVecMGEval,      /* 11: eigenvalues of multi-gradient: GT[3] */
+  gageVecMGEvec,      /* 12: eigenvectors of multi-gradient: GT[9] */
+
+Changes from 1.4: -----------------------------------------------
 
 - TOTAL API CHANGE: All but the low-level filtering code has been
 re-written.  Basically, whereas before I refused to have gage do any
