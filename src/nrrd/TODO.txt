@@ -1,5 +1,10 @@
 ----- teem 1.5beta1 cut-off -----
 
+when reading raw data, make sure that after all data has been
+accounted for by nrrdReadDataRaw(), make sure that a subsequent
+fgetc() returns EOF.  If not, warning to stderr. But not if
+NrrdIO->thinkofosomething is enabled
+
 follow heq with clamp so that there's no value wrap-around
 (noticed this with unu heq -a -1)
 

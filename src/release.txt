@@ -77,7 +77,7 @@ setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/irix6.n32/lib
 setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
 setenv TEEM_PNG_LPATH -L/home/sci/gk/usr/irix6.n32/lib
 setenv TEEM_PNG_IPATH -I/home/sci/gk/usr/irix6.n32/include
-rapture:
+rapture/ray/muse:
 setenv TEEM_ARCH irix6.64
 setenv TEEM_PNG
 setenv TEEM_ZLIB
