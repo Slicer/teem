@@ -79,7 +79,7 @@ main(int argc, char *argv[]) {
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22;
-  float x, y, z, scale;
+  float x, y, z, scale[3];
   int what, a, idx, ansLen, E=0, xi, yi, zi, otype,
     six, siy, siz, sox, soy, soz, iBaseDim, oBaseDim, renorm;
   gage_t *answer;
@@ -101,8 +101,8 @@ main(int argc, char *argv[]) {
 	     NULL, NULL, &probeKindHestCB);
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
 	     "the quantity (scalar, vector, or matrix) to learn by probing");
-  hestOptAdd(&hopt, "s", "scale", airTypeFloat, 1, 1, &scale, "1.0",
-	     "scaling factor (>1.0 : supersampling)");
+  hestOptAdd(&hopt, "s", "sclX sclY sxlZ", airTypeFloat, 3, 3, scale, "1.0 1.0 1.0",
+	     "scaling factor for resampling on each axis (>1.0 : supersampling)");
   hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00,
 	     "tent", "kernel for gageKernel00",
 	     NULL, NULL, nrrdHestKernelSpec);
@@ -145,9 +145,10 @@ main(int argc, char *argv[]) {
   six = nin->axis[0+iBaseDim].size;
   siy = nin->axis[1+iBaseDim].size;
   siz = nin->axis[2+iBaseDim].size;
-  sox = scale*six;
-  soy = scale*siy;
-  soz = scale*siz;
+  sox = scale[0]*six;
+  soy = scale[1]*siy;
+  soz = scale[2]*siz;
+  fprintf(stderr, "%s: output will be %d x %d x %d\n", me, sox, soy, soz);
   nin->axis[0+iBaseDim].spacing = SPACING(nin->axis[0+iBaseDim].spacing);
   nin->axis[1+iBaseDim].spacing = SPACING(nin->axis[1+iBaseDim].spacing);
   nin->axis[2+iBaseDim].spacing = SPACING(nin->axis[2+iBaseDim].spacing);
