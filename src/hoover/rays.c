@@ -158,6 +158,8 @@ _hoovThreadBody(void *_arg) {
   arg = (_hoovThreadArg *)_arg;
   PAUSE;
   tmptmp = (nrrdBigInt)(arg->ctx->threadBegin);
+  printf("hoovStubThreadBegin = %p\n", (void*)(hoovStubThreadBegin));
+  printf("arg->ctx->threadBegin = %p\n", (void*)(arg->ctx->threadBegin));
   PAUSE;
   tmptmp += (nrrdBigInt)(&threadInfo);
   PAUSE;
