@@ -143,7 +143,7 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
   float lastRGB[3]; int lastLook;
   
   int *vertBase;
-  airArray *vertBaseArr;
+  airArray *vertBaseArr, *mop;
 
   if (!( obj && file )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -152,12 +152,14 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
   vertBase = NULL;
   vertBaseArr = airArrayNew((void**)&vertBase, NULL,
 			    sizeof(int), 128);
+  mop = airMopNew();
+  airMopAdd(mop, vertBaseArr, (airMopper)airArrayNuke, airMopAlways);
   got = 0;
   lineCount = 0;
   do {
     if (!airOneLine(file, line, AIR_STRLEN_LARGE)) {
       sprintf(err, "%s: hit EOF before getting #vert #face #edge line", me);
-      biffAdd(LIMN, err); return 1;
+      biffAdd(LIMN, err); airMopError(mop); return 1;
     }
     lineCount++;
     got = airParseStrI(ibuff, line, AIR_WHITESPACE, 3);
@@ -179,7 +181,7 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
     if (!lret) {
       sprintf(err, "%s: (near line %d) hit EOF trying to read vert %d (of %d)",
 	      me, lineCount, vertGot, vertNum);
-      biffAdd(LIMN, err); return 1;
+      biffAdd(LIMN, err); airMopError(mop); return 1;
     }
     if (1 == sscanf(line, "### LIMN BEGIN PART %d", &idxTmp)) {
       if (idxTmp != 0) {
@@ -187,7 +189,7 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
 	if (idxTmp != partIdx) {
 	  sprintf(err, "%s: got signal to start part %d, not %d", 
 		  me, idxTmp, partIdx);
-	  biffAdd(LIMN, err); return 1;
+	  biffAdd(LIMN, err); airMopError(mop); return 1;
 	}
 	airArrayIncrLen(vertBaseArr, 1);
 	vertBase[partIdx] = vertGot;
@@ -198,7 +200,7 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
       sprintf(err, "%s: couldn't parse 3 doubles from \"%s\" "
 	      "for vert %d (of %d)",
 	      me, line, vertGot, vertNum);
-      biffAdd(LIMN, err); return 1;
+      biffAdd(LIMN, err); airMopError(mop); return 1;
     }
     if (6 == airParseStrD(vert, line, AIR_WHITESPACE, 6)) {
       /* we could also parse an RGB color */
@@ -231,7 +233,7 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
     if (!lret) {
       sprintf(err, "%s: (near line %d) hit EOF trying to read face %d (of %d)",
 	      me, lineCount, faceGot, faceNum);
-      biffAdd(LIMN, err); return 1;
+      biffAdd(LIMN, err); airMopError(mop); return 1;
     }
     if (1 == sscanf(line, "### LIMN BEGIN PART %d", &idxTmp)) {
       if (idxTmp != 0) {
@@ -240,7 +242,7 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
 	  sprintf(err, "%s: (near line %d) got signal to start "
 		  "part %d, not %d", 
 		  me, lineCount, idxTmp, partIdx);
-	  biffAdd(LIMN, err); return 1;
+	  biffAdd(LIMN, err); airMopError(mop); return 1;
 	}
       }
       continue;
@@ -249,13 +251,13 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
       sprintf(err, "%s: (near line %d) can't get first int "
 	      "(#verts) from \"%s\" for face %d (of %d)",
 	      me, lineCount, line, faceGot, faceNum);
-      biffAdd(LIMN, err); return 1;
+      biffAdd(LIMN, err); airMopError(mop); return 1;
     }
     if (vertNum+1 != airParseStrI(ibuff, line, AIR_WHITESPACE, vertNum+1)) {
       sprintf(err, "%s: (near line %d) couldn't parse %d ints from \"%s\" "
 	      "for face %d (of %d)",
 	      me, lineCount, vertNum+1, line, faceGot, faceNum);
-      biffAdd(LIMN, err); return 1;
+      biffAdd(LIMN, err); airMopError(mop); return 1;
     }
     if (vertNum+1+3 == airParseStrF(fbuff, line,
 				    AIR_WHITESPACE, vertNum+1+3)) {
@@ -282,6 +284,7 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
     limnObjectFaceAdd(obj, partIdx, lookIdx, vertNum, ibuff+1);
     faceGot++;
   }
-  
+
+  airMopOkay(mop); 
   return 0;
 }
