@@ -1,5 +1,8 @@
 
-ASAP!!: gaussian kernel,
+ASAP!!: gaussian kernel, sinc kernel,
+        pow2pad super function,
+        revisit slicer,
+        stitch, revisit pad unrrdu interface,
         join, split, reshape,
 	resampling, blurring,  <-- document setting the float param[] vector
 	weighted median filter
