@@ -21,7 +21,7 @@
 LIB = dye
 HEADERS = dye.h
 LIB_OBJS = methods.o convert.o
-TEST_BINS = test/conv
+TEST_BINS = test/conv test/bow
 BINS =
 BIN_LIBS = -ldye -lbiff -lair -lm
 
