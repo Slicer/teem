@@ -30,11 +30,24 @@ directory as this file.
    "irix6.n32": for irix in n32 mode
    "irix6.64": for irix in 64-bit mode
    "linux": for linux boxes
-   (cygwin support is not currently complete)
+   "solarix": for solarix boxes
+   (cygwin and hpux support are in the works)
 
-2: cd src
+2: "cd src"
 
-3: make (actually, gmake: this MUST be GNU make)
+3: "make" 
+   Or more accurately, "gmake", or "/usr/local/gnu/bin/make".
+   This MUST be GNU make.  I am in fact using features unique to GNU make.
+
+What?  No configure or auto-conf script?  That's right.  Because the
+architecture specific stuff is all set with a file in the "src/make"
+directory, and because this never "installs" anything to a location
+outside this directory tree, and because this is all very vanilla ANSI
+C, I don't consider those tools necessary.
+
+However, you may need to alter the appropriate architecture-specific
+".mk" file in the "src/make" directory.  If you feel there is a bug
+in those files, please email me at gk@cs.utah.edu
 
 =============== General Info
 
@@ -45,15 +58,15 @@ I'm using CVS so that I have more discipline about how I write my own
 code, and also to facilitate other people getting it and contributing
 bug fixes.
 
-The software in this CVS tree is stable and well-tested.  There are
-plenty of libraries I'm working on which are either completely in
-flux, or which are so embryonic, that are not in a distributable
-state, and are thus not in the CVS tree.  New wrappers or extensions
-to my software can be added after I've made sure that they are
-consistent with the design ideas I've had in mind for my software.  I
-want to encourage the usage and extension of my code, but as long as
-this CVS tree is for the software I consider "mine", then new
-libraries and directories will be added here at my discretion.
+I consider the software in this CVS tree to be relatively stable and
+well-tested, unlike the many other libraries which I'm currently
+working on.  While I am open to the idea of adding new wrappers,
+extensions, or libraries to teem, please keep in mind that they will
+undergo my scrutiny before they will be added to the official CVS
+tree.
+
+I'm not averse to C++, I just think its a disaster.  Bill Joy agrees
+with me on this one.  As do other people I respect.
 
 =============== Directory Structure
 
@@ -66,6 +79,7 @@ include/
 irix6.64/
 irix6.n32/
 linux/
+solaris/
 cygwin/
   The architecture-dependent directories, with a name which exactly
   matches valid settings for the environment variable TEEM_ARCH.
@@ -79,29 +93,34 @@ cygwin/
           directories (such as "obj/nrrd") are assumed to be suitable
           for making both .a archive libraries as well as .so (or such)
           shared libraries.  This may mean that all object files will
-          be compiled as position-independent code.
+          be compiled as position-independent code, even if that incurs
+          a slight performance penalty.
 
-Upon getting a copy of the CVS tree, the only directory which should
-contain anything is the "src" directory- the compiles of the libraries
-will put files as needed in all the other directories.
+---> Upon getting a copy of the CVS tree, the ONLY directory which
+---> should contain anything is the "src" directory- the compilations
+---> of the various libraries will put header, library, and object
+---> files as needed in all the appropriate directories.
 
-See the README.txt in the "src" directory for library-specific information.
+See the README.txt in the "src" directory for library-specific
+information.
 
 =============== Code aesthetics
 
 There are some matters of coding style which I try to hold myself too.
 They are listed here primarily for my benefit, but I would hope that 
-other people follow them as well.
+other people follow them as well if they contribute to teem.
 
 aspects of GNU style (http://www.gnu.org/prep/standards.html) which I like:
-- avoid arbitrary limits on (memory) sizes of things
+(but don't necessarily always follow)
+- avoid arbitrary limits on (memory) sizes of things (this is hard)
 - be robust about handling of non-ASCII input where ASCII is expected
 - be super careful about handling of erroneous system call return,
   and always err on the side of being anal in matters of error detection
   and reporting.
 - check every single malloc, calloc for NULL return
 - make sure all symbols visible in the library
-  start with "<lib>" or "_<lib>"; <lib> = library name
+  start with "<lib>" or "_<lib>" where <lib> is the library name or
+  some obvious but non-trivial shortening of it
 - for expressions split on multiple lines, split before an operator, not after
 - use parens on multi-line expressions to make them tidy
 - Function comments should be in complete sentences, with two spaces after "."
@@ -118,7 +137,6 @@ other:
   the scope of the function.
 - use "return" correctly: no parens!
 - don't give biff carriage returns
-- migrate general utility things from nrrd to air
 - always use "biff" for error handling stuff
 - if a pointer should be initialized to NULL, then set it to NULL;
   Don't assume that a pointer in a struct will be NULL following a calloc.
