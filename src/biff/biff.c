@@ -70,9 +70,10 @@ _biffInit() {
 ** _biffCheckKey()
 **
 ** makes sure given key is kosher.  Panics and exit(1)s if given a NULL key
+** or if key is too long
 */
 void
-_biffCheckKey(char *key) {
+_biffCheckKey(const char *key) {
   char me[] = "_biffCheckKey";
 
   if (!key) {
@@ -80,9 +81,9 @@ _biffCheckKey(char *key) {
     exit(1);
   }
   if (strlen(key) > BIFF_MAXKEYLEN) {
-    fprintf(stderr, "%s: WARNING: truncating key \"%s\" to %d chars\n",
+    fprintf(stderr, "%s: PANIC: key \"%s\" exceeds %d chars\n",
 	    me, key, BIFF_MAXKEYLEN);
-    key[BIFF_MAXKEYLEN] = 0;
+    exit(1);
   }
 }
 
@@ -93,7 +94,7 @@ _biffCheckKey(char *key) {
 ** NULL if it was not found
 */
 _biffEntry *
-_biffFindKey(char *key) {
+_biffFindKey(const char *key) {
   int i = -1;
   _biffEntry *e;
 
@@ -127,7 +128,7 @@ _biffFindKey(char *key) {
 ** panics and exit(1)s if there is a problem.
 */
 _biffEntry *
-_biffNewEntry(char *key) {
+_biffNewEntry(const char *key) {
   char me[]="_biffInitEntry";
   _biffEntry *e;
 
@@ -169,7 +170,7 @@ _biffNukeEntry(_biffEntry *e) {
 ** panics and exit(1)s if there is a problem
 */
 _biffEntry *
-_biffAddKey(char *key) {
+_biffAddKey(const char *key) {
   char me[]="_biffAddKey";
   int i, newIdx;
   _biffEntry *e;
@@ -208,7 +209,7 @@ _biffAddKey(char *key) {
 ** panics and exit(1)s if there is a problem
 */
 void
-_biffAddErr(_biffEntry *e, char *err) {
+_biffAddErr(_biffEntry *e, const char *err) {
   char *buf, me[]="_biffAddErr";
   int i, len;
 
@@ -245,7 +246,7 @@ _biffAddErr(_biffEntry *e, char *err) {
 ** messages at that key are lost
 */
 void
-biffSet(char *key, char *err) {
+biffSet(const char *key, const char *err) {
   _biffEntry *e;
 
   _biffInit();
@@ -270,7 +271,7 @@ biffSet(char *key, char *err) {
 ** just like biffSet(), but doesn't delete existing messages
 */
 void
-biffAdd(char *key, char *err) {
+biffAdd(const char *key, const char *err) {
   _biffEntry *e;
 
   _biffInit();
@@ -291,7 +292,7 @@ biffAdd(char *key, char *err) {
 ** wrapper around biffAdd() but doesn't actually do anything if !useBiff
 */
 void
-biffMaybeAdd(char *key, char *err, int useBiff) {
+biffMaybeAdd(const char *key, const char *err, int useBiff) {
 
   if (useBiff) {
     biffAdd(key, err);
@@ -307,7 +308,7 @@ biffMaybeAdd(char *key, char *err, int useBiff) {
 ** to free this string later
 */
 char *
-biffGet(char *key) {
+biffGet(const char *key) {
   int i, max, len, sum;
   char me[] = "biffGet", *ret = NULL, *buf;
   _biffEntry *e;
@@ -355,7 +356,7 @@ biffGet(char *key) {
 ** returns 0 if the key doesn't exist.
 */
 int
-biffCheck(char *key) {
+biffCheck(const char *key) {
   _biffEntry *e;
 
   _biffInit();
@@ -375,7 +376,7 @@ biffCheck(char *key) {
 ** frees everything associated with given key, and shrinks list of keys
 */
 void
-biffDone(char *key) {
+biffDone(const char *key) {
   char me[]="biffDone";
   int i, idx;
   _biffEntry *e;
@@ -398,7 +399,7 @@ biffDone(char *key) {
 }
 
 void
-biffMove(char *destKey, char *err, char *srcKey) {
+biffMove(const char *destKey, const char *err, const char *srcKey) {
   int i, len, max;
   char me[] = "biffMove", *buf;
   _biffEntry *dest, *src;
@@ -448,7 +449,7 @@ biffMove(char *destKey, char *err, char *srcKey) {
 }
 
 char *
-biffGetDone(char *key) {
+biffGetDone(const char *key) {
   char *ret;
 
   _biffInit();
