@@ -1,7 +1,7 @@
 =============== 
 
   teem: Gordon Kindlmann's research software
-  Copyright (C) 2002, 2001, 2000, 1999, 1998 University of Utah
+  Copyright (C) 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -27,6 +27,9 @@ what the LGPL means for people wishing to use any of the teem
 libraries in their own programs.
 
 =============== How to compile
+
+For Windows: Look at win32/README.txt.
+For everyone else: See below.
 
 1: set the environment variable TEEM_ARCH to one of the following:
    "irix6.n32": for irix in n32 mode
