@@ -31,7 +31,6 @@ int
 baneGkms_scatMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out[2], *perr, err[AIR_STRLEN_MED];
-  NrrdIO *nio;
   Nrrd *hvol, *nvgRaw, *nvhRaw, *nvgQuant, *nvhQuant;
   airArray *mop;
   int pret, E;
@@ -46,8 +45,8 @@ baneGkms_scatMain(int argc, char **argv, char *me, hestParm *hparm) {
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "o", "vgOut vhOut", airTypeString, 2, 2, out, NULL,
 	     "Filenames to use for two output scatterplots, (gradient "
-	     "magnitude versus value, and 2nd derivative versus value), "
-	     "saved as PGM images");
+	     "magnitude versus value, and 2nd derivative versus value); "
+	     "can use PGM or PNG format");
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
@@ -79,13 +78,8 @@ baneGkms_scatMain(int argc, char **argv, char *me, hestParm *hparm) {
     biffMove(BANE, err, NRRD); airMopError(mop); return 1;
   }
 
-  nio = nrrdIONew();
-  airMopAdd(mop, nio, (airMopper)nrrdIONix, airMopAlways);
-  nio->format = nrrdFormatPNM;
-  if (!E) E |= nrrdSave(out[0], nvgQuant, nio);
-  nrrdIOReset(nio);
-  nio->format = nrrdFormatPNM;
-  if (!E) E |= nrrdSave(out[1], nvhQuant, nio);
+  if (!E) E |= nrrdSave(out[0], nvgQuant, NULL);
+  if (!E) E |= nrrdSave(out[1], nvhQuant, NULL);
   if (E) {
     sprintf(err, "%s: trouble saving scatterplot images", me);
     biffMove(BANE, err, NRRD); airMopError(mop); return 1;
