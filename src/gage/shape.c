@@ -21,149 +21,201 @@
 #include "privateGage.h"
 
 void
-gageShapeSet(gageShape *shp, Nrrd *nin, gageKind *kind) {
-  int i, bd;
+gageShapeReset(gageShape *shape) {
+  int i, ai;
+  
+  if (shape) {
+    ELL_3V_SET(shape->size, -1, -1, -1);
+    shape->center = nrrdCenterUnknown;
+    ELL_3V_SET(shape->spacing, AIR_NAN, AIR_NAN, AIR_NAN);
+    for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
+      /* valgrind complained about AIR_NAN at -O2 */
+      for (ai=0; ai<=2; ai++) {
+	shape->fwScale[i][ai] = airNaN();
+      }
+    }
+    ELL_3V_SET(shape->volHalfLen, AIR_NAN, AIR_NAN, AIR_NAN);
+    ELL_3V_SET(shape->voxLen, AIR_NAN, AIR_NAN, AIR_NAN);
+  }
+  return;
+}
+
+gageShape *
+gageShapeNew() {
+  gageShape *shape;
+  
+  shape = (gageShape *)calloc(1, sizeof(gageShape));
+  if (shape) {
+    gageShapeReset(shape);
+  }
+  return shape;
+}
+
+gageShape *
+gageShapeNix(gageShape *shape) {
+  
+  return airFree(shape);
+}
+
+
+int
+gageShapeSet(gageShape *shape, Nrrd *nin, int baseDim) {
+  char me[]="gageShapeSet", err[AIR_STRLEN_MED];
+  int i, ai, ms, num[3];
   NrrdAxis *ax[3];
+  double maxLen;
 
-  if (!( shp && nin && kind ))
-    return;
+  if (!( shape && nin )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(GAGE, err);  if (shape) { gageShapeReset(shape); }
+    return 1;
+  }
 
-  bd = kind->baseDim;
-  ax[0] = &(nin->axis[bd+0]);
-  ax[1] = &(nin->axis[bd+1]);
-  ax[2] = &(nin->axis[bd+2]);
+  if (!(nin->dim == 3 + baseDim)) {
+    sprintf(err, "%s: nrrd should be %d-D, not %d-D",
+	    me, 3 + baseDim, nin->dim);
+    biffAdd(GAGE, err); gageShapeReset(shape);
+    return 1;
+  }
+  for (ai=0; ai<=2; ai++) {
+    ax[ai] = &(nin->axis[baseDim+ai]);
+  }
 
-  shp->sx = ax[0]->size;
-  shp->sy = ax[1]->size;
-  shp->sz = ax[2]->size;
-  shp->xs = ax[0]->spacing;
-  shp->ys = ax[1]->spacing;
-  shp->zs = ax[2]->spacing;
+  /* equality of axis centers is checked by gageVolumeCheck(), but
+     we do something more here for same reasons as above */
+  if (ax[0]->center == ax[1]->center && ax[1]->center == ax[2]->center) {
+    shape->center = (nrrdCenterUnknown == ax[0]->center
+		     ? gageDefCenter
+		     : ax[0]->center);
+  } else {
+    /* regular gage use wouldn't allow this ... */
+    shape->center = gageDefCenter;
+  }
+  ms = (nrrdCenterCell == shape->center ? 1 : 2);
+  if (!(ax[0]->size >= ms && ax[0]->size >= ms && ax[0]->size >= ms )) {
+    sprintf(err, "%s: sizes (%d,%d,%d) must all be greater than %d "
+	    "(minimum # of %s-centered samples)", me, 
+	    ax[0]->size, ax[1]->size, ax[2]->size, ms,
+	    airEnumStr(nrrdCenter, shape->center));
+    biffAdd(GAGE, err); gageShapeReset(shape);
+    return 1;
+  }
+  for (ai=0; ai<=2; ai++) {
+    shape->size[ai] = ax[ai]->size;
+  }
+  /* regular gage usage would require all spacings to exist, we do this
+     to allow gageShapeSet to be used on other contexts */
+  for (ai=0; ai<=2; ai++) {
+    shape->spacing[ai] = (AIR_EXISTS(ax[ai]->spacing) 
+			  ? ax[ai]->spacing 
+			  : nrrdDefSpacing);
+  }
   for (i=0; i<GAGE_KERNEL_NUM; i++) {
     switch (i) {
     case gageKernel00:
     case gageKernel10:
     case gageKernel20:
       /* interpolation requires no re-weighting for non-unit spacing */
-      shp->fwScale[i][0] = 1.0;
-      shp->fwScale[i][1] = 1.0;
-      shp->fwScale[i][2] = 1.0;
+      for (ai=0; ai<=2; ai++) {
+	shape->fwScale[i][ai] = 1.0;
+      }
       break;
     case gageKernel11:
     case gageKernel21:
-      shp->fwScale[i][0] = 1.0/(shp->xs);
-      shp->fwScale[i][1] = 1.0/(shp->ys);
-      shp->fwScale[i][2] = 1.0/(shp->zs);
+      for (ai=0; ai<=2; ai++) {
+	shape->fwScale[i][ai] = 1.0/(shape->spacing[ai]);
+      }
       break;
     case gageKernel22:
-      shp->fwScale[i][0] = 1.0/((shp->xs)*(shp->xs));
-      shp->fwScale[i][1] = 1.0/((shp->ys)*(shp->ys));
-      shp->fwScale[i][2] = 1.0/((shp->zs)*(shp->zs));
+      for (ai=0; ai<=2; ai++) {
+	shape->fwScale[i][ai] = 
+	  1.0/((shape->spacing[ai])*(shape->spacing[ai]));
+      }
       break;
     }
   }
 
-  /* equality of axis centers is checked by gageVolumeCheck() */
-  shp->center = (nrrdCenterUnknown == ax[0]->center
-		 ? gageDefCenter
-		 : ax[0]->center);
+  /* learn lengths for bounding nrrd in bi-unit cube */
+  maxLen = 0.0;
+  for (ai=0; ai<=2; ai++) {
+    num[ai] = (nrrdCenterNode == shape->center
+	       ? shape->size[ai]-1
+	       : shape->size[ai]);
+    shape->volHalfLen[ai] = num[ai]*shape->spacing[ai];
+    maxLen = AIR_MAX(maxLen, shape->volHalfLen[ai]);
+  }
+  for (ai=0; ai<=2; ai++) {
+    shape->volHalfLen[ai] /= maxLen;
+    shape->voxLen[ai] = 2*shape->volHalfLen[ai]/num[ai];
+  }
 
-  return;
+  return 0;
 }
 
 void
-gageShapeReset(gageShape *shp) {
+gageShapeUnitWtoI(gageShape *shape, double index[3], double world[3]) {
   int i;
   
-  if (!shp)
-    return;
-
-  shp->sx = shp->sy = shp->sz = -1;
-  shp->center = nrrdCenterUnknown;
-  shp->xs = shp->ys = shp->zs = AIR_NAN;
-  for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-    /* valgrind complained about AIR_NAN at -O2 */
-    shp->fwScale[i][0] = shp->fwScale[i][1] = shp->fwScale[i][2] = airNaN();
+  if (nrrdCenterNode == shape->center) {
+    for (i=0; i<=2; i++) {
+      index[i] = NRRD_NODE_IDX(-shape->volHalfLen[i], shape->volHalfLen[i],
+			       shape->size[i], world[i]);
+    }
+  } else {
+    for (i=0; i<=2; i++) {
+      index[i] = NRRD_CELL_IDX(-shape->volHalfLen[i], shape->volHalfLen[i],
+			       shape->size[i], world[i]);
+    }
   }
+}
 
-  return;
+void
+gageShapeUnitItoW(gageShape *shape, double world[3], double index[3]) {
+  int i;
+  
+  if (nrrdCenterNode == shape->center) {
+    for (i=0; i<=2; i++) {
+      world[i] = NRRD_NODE_POS(-shape->volHalfLen[i], shape->volHalfLen[i],
+			       shape->size[i], index[i]);
+    }
+  } else {
+    for (i=0; i<=2; i++) {
+      world[i] = NRRD_CELL_POS(-shape->volHalfLen[i], shape->volHalfLen[i],
+			       shape->size[i], index[i]);
+    }
+  }
 }
 
 int
-gageShapeEqual(gageShape *shp1, char *_name1,
-	       gageShape *shp2, char *_name2) {
+gageShapeEqual(gageShape *shape1, char *_name1,
+	       gageShape *shape2, char *_name2) {
   char me[]="_gageShapeEqual", err[AIR_STRLEN_MED],
     *name1, *name2, what[] = "???";
 
   name1 = _name1 ? _name1 : what;
   name2 = _name2 ? _name2 : what;
-  if (!( shp1->sx == shp2->sx &&
-	 shp1->sy == shp2->sy &&
-	 shp1->sz == shp2->sz )) {
+  if (!( shape1->size[0] == shape2->size[0] &&
+	 shape1->size[1] == shape2->size[1] &&
+	 shape1->size[2] == shape2->size[2] )) {
     sprintf(err, "%s: dimensions of %s (%d,%d,%d) != %s's (%d,%d,%d)", me,
-	    name1, shp1->sx, shp1->sy, shp1->sz,
-	    name2, shp2->sx, shp2->sy, shp2->sz);
+	    name1, shape1->size[0], shape1->size[1], shape1->size[2],
+	    name2, shape2->size[0], shape2->size[1], shape2->size[2]);
     biffAdd(GAGE, err); return 0;
   }
-  if (!( shp1->xs == shp2->xs &&
-	 shp1->ys == shp2->ys &&
-	 shp1->zs == shp2->zs )) {
+  if (!( shape1->spacing[0] == shape2->spacing[0] &&
+	 shape1->spacing[1] == shape2->spacing[1] &&
+	 shape1->spacing[2] == shape2->spacing[2] )) {
     sprintf(err, "%s: spacings of %s (%g,%g,%g) != %s's (%g,%g,%g)", me,
-	    name1, shp1->xs, shp1->ys, shp1->zs,
-	    name2, shp2->xs, shp2->ys, shp2->zs);
+	    name1, shape1->spacing[0], shape1->spacing[1], shape1->spacing[2],
+	    name2, shape2->spacing[0], shape2->spacing[1], shape2->spacing[2]);
     biffAdd(GAGE, err); return 0;
   }
-  if (!( shp1->center == shp2->center )) {
+  if (!( shape1->center == shape2->center )) {
     sprintf(err, "%s: centering of %s (%s) != %s's (%s)", me,
-	    name1, airEnumStr(nrrdCenter, shp1->center),
-	    name2, airEnumStr(nrrdCenter, shp2->center));
+	    name1, airEnumStr(nrrdCenter, shape1->center),
+	    name2, airEnumStr(nrrdCenter, shape2->center));
     biffAdd(GAGE, err); return 0;
   }
 
   return 1;
-}
-
-int
-gageVolumeCheck (Nrrd *nin, gageKind *kind) {
-  char me[]="gageVolumeCheck", err[AIR_STRLEN_MED];
-  double xs, ys, zs;
-  int bd;
-
-  if (nrrdCheck(nin)) {
-    sprintf(err, "%s: basic nrrd validity check failed", me);
-    biffMove(GAGE, err, NRRD); return 1;
-  }
-  if (nrrdTypeBlock == nin->type) {
-    sprintf(err, "%s: need a non-block type nrrd", me);
-    biffAdd(GAGE, err); return 1;
-  }
-  bd = kind->baseDim;
-  if (3 + bd != nin->dim) {
-    sprintf(err, "%s: nrrd should have dimension %d, not %d",
-	    me, 3 + bd, nin->dim);
-    biffAdd(GAGE, err); return 1;
-  }
-  xs = nin->axis[bd+0].spacing;
-  ys = nin->axis[bd+1].spacing;
-  zs = nin->axis[bd+2].spacing;
-  if (!( AIR_EXISTS(xs) && AIR_EXISTS(ys) && AIR_EXISTS(zs) )) {
-    sprintf(err, "%s: spacings for axes %d,%d,%d don't all exist",
-	    me, bd+0, bd+1, bd+2);
-    biffAdd(GAGE, err); return 1;
-  }
-  if (!( xs != 0 && ys != 0 && zs != 0 )) {
-    sprintf(err, "%s: spacings (%g,%g,%g) for axes %d,%d,%d not all non-zero",
-	    me, xs, ys, zs, bd+0, bd+1, bd+2);
-    biffAdd(GAGE, err); return 1;
-  }
-  if (!( nin->axis[bd+0].center == nin->axis[bd+1].center &&
-	 nin->axis[bd+0].center == nin->axis[bd+2].center )) {
-    sprintf(err, "%s: axes %d,%d,%d centerings (%s,%s,%s) not equal", me,
-	    bd+0, bd+1, bd+2,
-	    airEnumStr(nrrdCenter, nin->axis[bd+0].center),
-	    airEnumStr(nrrdCenter, nin->axis[bd+1].center),
-	    airEnumStr(nrrdCenter, nin->axis[bd+2].center));
-    biffAdd(GAGE, err); return 1;
-  }
-  return 0;
 }

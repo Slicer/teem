@@ -318,16 +318,20 @@ typedef void (gageNixer_t)(Nrrd *npad, struct gageKind_t *kind,
 ** of all the volumes associated with a context
 */
 typedef struct gageShape_t {
-  int sx, sy, sz,             /* dimensions of UNPADDED volume */
+  int size[3],                /* dimensions of UNPADDED volume */
     center;                   /* the sample centering of the volume(s)- this
 				 is an issue for determing the extent of the
 				 volume, and in cell centering, an extra
 				 sample of padding */
-  gage_t xs, ys, zs,          /* spacings for each axis */
+  gage_t spacing[3],          /* spacings for each axis */
     fwScale[GAGE_KERNEL_NUM][3];
                               /* how to rescale weights for each of the
 				 kernels according to non-unity-ness of
 				 sample spacing (0=X, 1=Y, 2=Z) */
+  double volHalfLen[3],       /* half the lengths along each axis in order
+				 to bound the volume in a bi-unit cube */
+    voxLen[3];                /* when bound in bi-unit cube, the dimensions
+				 of a single voxel */
 } gageShape;
 
 /*
@@ -405,7 +409,8 @@ typedef struct gageContext_t {
   struct gagePerVolume_t *pvl[GAGE_PERVOLUME_NUM];
                               /* the pervolumes attached to this context */
   int numPvl;                 /* number of pervolumes currently attached */
-  gageShape shape;            /* sizes, spacings, centering of volume */
+  gageShape *shape;           /* sizes, spacings, centering, and other 
+				 geometric aspects of the volume */
   int flag[GAGE_CTX_FLAG_NUM];/* all the flags used by gageUpdate() used to
 				 describe what changed in this context */
   int needD[3];               /* which value/derivatives need to be calculated
@@ -576,15 +581,21 @@ extern gage_export airEnum *gageVec;
 extern gage_export gageKind *gageKindVec;
 
 /* shape.c */
-extern void gageShapeSet(gageShape *shp, Nrrd *nin, gageKind *kind);
 extern void gageShapeReset(gageShape *shp);
+extern gageShape *gageShapeNew();
+extern gageShape *gageShapeNix(gageShape *shape);
+extern int gageShapeSet(gageShape *shp, Nrrd *nin, int baseDim);
+extern void gageShapeUnitWtoI(gageShape *shape,
+			      double index[3], double world[3]);
+extern void gageShapeUnitItoW(gageShape *shape,
+			      double world[3], double index[3]);
 extern int gageShapeEqual(gageShape *shp1, char *name1,
 			  gageShape *shp2, char *name2);
-extern int gageVolumeCheck(Nrrd *nin, gageKind *kind);
 
 /* the organization of the next two files is according to what
    the first argument is, not what appears in the function name */
 /* pvl.c */
+extern int gageVolumeCheck(Nrrd *nin, gageKind *kind);
 extern gagePerVolume *gagePerVolumeNew(Nrrd *nin, gageKind *kind);
 extern gagePerVolume *gagePerVolumeNix(gagePerVolume *pvl);
 extern void gagePadderSet(gagePerVolume *pvl, gagePadder_t *padder);

@@ -208,7 +208,7 @@ _gageHavePadUpdate (gageContext *ctx) {
      we in fact don't need any kernels, then we need to do this to 
      ensure that we generate a valid (trivial) padding */
   fr = AIR_MAX(fr, 1);
-  needPad = fr - 1 + (nrrdCenterCell == ctx->shape.center);
+  needPad = fr - 1 + (nrrdCenterCell == ctx->shape->center);
   if (needPad != ctx->needPad) {
     if (ctx->verbose) {
       fprintf(stderr, "%s: changing needPad from %d to %d\n",
@@ -237,9 +237,11 @@ int
 _gageNpadUpdate (gageContext *ctx) {
   char me[]="_gageNpadUpdate", err[AIR_STRLEN_MED];
   gagePerVolume *pvl;
-  gageShape shp1, shp2;
+  gageShape *shape1, *shape2;
   int i;
+  airArray *mop;
 
+  mop = airMopNew();
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
   for (i=0; i<ctx->numPvl; i++) {
     pvl = ctx->pvl[i];
@@ -280,15 +282,20 @@ _gageNpadUpdate (gageContext *ctx) {
 	biffAdd(GAGE, err); return 1;
       }
       /* the only that should have changed was the size */
-      gageShapeSet(&shp1, pvl->nin, pvl->kind);
-      shp1.sx += 2*ctx->havePad;
-      shp1.sy += 2*ctx->havePad;
-      shp1.sz += 2*ctx->havePad;
-      gageShapeSet(&shp2, pvl->npad, pvl->kind);
-      if (!gageShapeEqual(&shp1, "padding target", &shp2, "padding result")) {
+      shape1 = gageShapeNew();
+      shape2 = gageShapeNew();
+      airMopAdd(mop, shape1, (airMopper)gageShapeNix, airMopAlways);
+      airMopAdd(mop, shape2, (airMopper)gageShapeNix, airMopAlways);
+      gageShapeSet(shape1, pvl->nin, pvl->kind->baseDim);
+      shape1->size[0] += 2*ctx->havePad;
+      shape1->size[1] += 2*ctx->havePad;
+      shape1->size[2] += 2*ctx->havePad;
+      gageShapeSet(shape2, pvl->npad, pvl->kind->baseDim);
+      if (!gageShapeEqual(shape1, "padding target",
+			  shape2, "padding result")) {
 	sprintf(err, "%s: padder didn't comply with havePad = %d",
 		me, ctx->havePad);
-	biffAdd(GAGE, err); return 1;
+	biffAdd(GAGE, err); airMopError(mop); return 1;
       }
       /* it seems that padder did all the right things. Having done
 	 the padding, there are no more flags to set here */
@@ -299,6 +306,7 @@ _gageNpadUpdate (gageContext *ctx) {
   }
   if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
 
+  airMopOkay(mop);
   return 0;
 }
 

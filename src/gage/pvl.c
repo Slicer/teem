@@ -20,6 +20,51 @@
 #include "gage.h"
 #include "privateGage.h"
 
+int
+gageVolumeCheck (Nrrd *nin, gageKind *kind) {
+  char me[]="gageVolumeCheck", err[AIR_STRLEN_MED];
+  double xs, ys, zs;
+  int baseDim;
+
+  if (nrrdCheck(nin)) {
+    sprintf(err, "%s: basic nrrd validity check failed", me);
+    biffMove(GAGE, err, NRRD); return 1;
+  }
+  if (nrrdTypeBlock == nin->type) {
+    sprintf(err, "%s: need a non-block type nrrd", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  baseDim = kind->baseDim;
+  if (3 + baseDim != nin->dim) {
+    sprintf(err, "%s: nrrd should have dimension %d, not %d",
+	    me, 3 + baseDim, nin->dim);
+    biffAdd(GAGE, err); return 1;
+  }
+  xs = nin->axis[baseDim+0].spacing;
+  ys = nin->axis[baseDim+1].spacing;
+  zs = nin->axis[baseDim+2].spacing;
+  if (!( AIR_EXISTS(xs) && AIR_EXISTS(ys) && AIR_EXISTS(zs) )) {
+    sprintf(err, "%s: spacings for axes %d,%d,%d don't all exist",
+	    me, baseDim+0, baseDim+1, baseDim+2);
+    biffAdd(GAGE, err); return 1;
+  }
+  if (!( xs != 0 && ys != 0 && zs != 0 )) {
+    sprintf(err, "%s: spacings (%g,%g,%g) for axes %d,%d,%d not all non-zero",
+	    me, xs, ys, zs, baseDim+0, baseDim+1, baseDim+2);
+    biffAdd(GAGE, err); return 1;
+  }
+  if (!( nin->axis[baseDim+0].center == nin->axis[baseDim+1].center &&
+	 nin->axis[baseDim+0].center == nin->axis[baseDim+2].center )) {
+    sprintf(err, "%s: axes %d,%d,%d centerings (%s,%s,%s) not equal", me,
+	    baseDim+0, baseDim+1, baseDim+2,
+	    airEnumStr(nrrdCenter, nin->axis[baseDim+0].center),
+	    airEnumStr(nrrdCenter, nin->axis[baseDim+1].center),
+	    airEnumStr(nrrdCenter, nin->axis[baseDim+2].center));
+    biffAdd(GAGE, err); return 1;
+  }
+  return 0;
+}
+
 /*
 ******** gagePerVolumeNew()
 **

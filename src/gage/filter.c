@@ -177,9 +177,9 @@ _gageFwSet (gageContext *ctx) {
   }
 
   /* fix weightings for non-unit-spacing samples */
-  if (!( 1.0 == ctx->shape.xs &&
-	 1.0 == ctx->shape.ys &&
-	 1.0 == ctx->shape.zs )) {
+  if (!( 1.0 == ctx->shape->spacing[0] &&
+	 1.0 == ctx->shape->spacing[1] &&
+	 1.0 == ctx->shape->spacing[2] )) {
     for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       if (!ctx->needK[i])
 	continue;
@@ -189,9 +189,9 @@ _gageFwSet (gageContext *ctx) {
       fwY = ctx->fw + 0 + fd*(1 + 3*i);
       fwZ = ctx->fw + 0 + fd*(2 + 3*i);
       for (j=0; j<fd; j++) {
-	fwX[j] *= ctx->shape.fwScale[i][0];
-	fwY[j] *= ctx->shape.fwScale[i][1];
-	fwZ[j] *= ctx->shape.fwScale[i][2];
+	fwX[j] *= ctx->shape->fwScale[i][0];
+	fwY[j] *= ctx->shape->fwScale[i][1];
+	fwZ[j] *= ctx->shape->fwScale[i][2];
       }
     }
     if (ctx->verbose > 1) {
@@ -208,7 +208,7 @@ _gageFwSet (gageContext *ctx) {
 ** depend on it:
 ** fsl, fw
 **
-** (x,y,z) is in the unpadded volume
+** (x,y,z) is index space position in the unpadded volume
 **
 ** does NOT use biff, but returns 1 on error and 0 if all okay
 ** Currently only error is probing outside volume, which sets
@@ -221,14 +221,14 @@ _gageLocationSet (gageContext *ctx, gage_t x, gage_t y, gage_t z) {
     xi, yi, zi;    /* computed integral positions in PADDED volume */
   gage_t xf, yf, zf;
 
-  tx = ctx->shape.sx - 1;
-  ty = ctx->shape.sy - 1;
-  tz = ctx->shape.sz - 1;
+  tx = ctx->shape->size[0] - 1;
+  ty = ctx->shape->size[1] - 1;
+  tz = ctx->shape->size[2] - 1;
   /* 
   ** the {x,y,z}i integral positions are first computed in unpadded
   ** space (as are the {x,y,z}f fractional positions) ... 
   */
-  if (nrrdCenterNode == ctx->shape.center) {
+  if (nrrdCenterNode == ctx->shape->center) {
     if (!( AIR_IN_CL(0,x,tx) && 
 	   AIR_IN_CL(0,y,ty) && 
 	   AIR_IN_CL(0,z,tz) )) {

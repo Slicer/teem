@@ -39,7 +39,7 @@ gageContextNew () {
     for (i=0; i<GAGE_PERVOLUME_NUM; i++)
       ctx->pvl[i] = NULL;
     ctx->numPvl = 0;
-    gageShapeReset(&ctx->shape);
+    ctx->shape = gageShapeNew();
     for (i=0; i<GAGE_CTX_FLAG_NUM; i++) {
       ctx->flag[i] = AIR_FALSE;
     }
@@ -333,7 +333,7 @@ gagePerVolumeIsAttached (gageContext *ctx, gagePerVolume *pvl) {
 int
 gagePerVolumeAttach (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="gagePerVolumeAttach", err[AIR_STRLEN_MED];
-  gageShape shape;
+  gageShape *shape;
 
   if (!( ctx && pvl )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -357,18 +357,19 @@ gagePerVolumeAttach (gageContext *ctx, gagePerVolume *pvl) {
     /* the volume "shape" is context state that we set now, because unlike 
        everything else (handled by gageUpdate()), it does not effect
        the kind or amount of padding done */
-    gageShapeSet(&ctx->shape, pvl->nin, pvl->kind);
+    gageShapeSet(ctx->shape, pvl->nin, pvl->kind->baseDim);
     ctx->flag[gageCtxFlagShape] = AIR_TRUE;
   } else {
     /* have to check to that new pvl matches first one.  Since all
        attached pvls were at some point the "new" one, they all
        should match each other */
-    gageShapeSet(&shape, pvl->nin, pvl->kind);
-    if (!gageShapeEqual(&ctx->shape, "existing context",
-			&shape, "new volume")) {
+    shape = gageShapeNew();
+    gageShapeSet(shape, pvl->nin, pvl->kind->baseDim);
+    if (!gageShapeEqual(ctx->shape, "existing context", shape, "new volume")) {
       sprintf(err, "%s: trouble", me);
-      biffAdd(GAGE, err); return 1;
+      biffAdd(GAGE, err); gageShapeNix(shape); return 1;
     }
+    gageShapeNix(shape); 
   }
   /* here we go */
   ctx->pvl[ctx->numPvl++] = pvl;
@@ -412,7 +413,7 @@ gagePerVolumeDetach (gageContext *ctx, gagePerVolume *pvl) {
   ctx->pvl[ctx->numPvl--] = NULL;
   if (0 == ctx->numPvl) {
     /* leave things the way that started */
-    gageShapeReset(&ctx->shape);
+    gageShapeReset(ctx->shape);
     ctx->flag[gageCtxFlagShape] = AIR_TRUE;
   }
   return 0;
@@ -480,7 +481,8 @@ gageIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
   default:
     for (i=0; i<fddd; i++) {
       for (tup=0; tup<pvl->kind->valLen; tup++) {
-	pvl->iv3[i + fddd*tup] = pvl->lup(here, 0 + pvl->kind->valLen*ctx->off[i]);
+	pvl->iv3[i + fddd*tup] = 
+	  pvl->lup(here, 0 + pvl->kind->valLen*ctx->off[i]);
       }
     }
     break;

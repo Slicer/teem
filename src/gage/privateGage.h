@@ -40,9 +40,9 @@ extern "C" {
 #  define EVALN evalN_d               /* NrrdKernel method */
 #endif
 
-#define PADSIZE_X(ctx) ((ctx)->shape.sx + 2*((ctx)->havePad))
-#define PADSIZE_Y(ctx) ((ctx)->shape.sy + 2*((ctx)->havePad))
-#define PADSIZE_Z(ctx) ((ctx)->shape.sz + 2*((ctx)->havePad))
+#define PADSIZE_X(ctx) ((ctx)->shape->size[0] + 2*((ctx)->havePad))
+#define PADSIZE_Y(ctx) ((ctx)->shape->size[1] + 2*((ctx)->havePad))
+#define PADSIZE_Z(ctx) ((ctx)->shape->size[2] + 2*((ctx)->havePad))
 
 /* pvl.c */
 extern gagePerVolume *_gagePerVolumeCopy(gagePerVolume *pvl, int fd);
