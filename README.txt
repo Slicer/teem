@@ -1,28 +1,27 @@
-teem: "To be, one day, a powerful swarm of useful libraries and utilities"
-http://www.cs.utah.edu/~gk/teem
-
 =============== 
 
-  The contents of this file are subject to the University of Utah Public
-  License (the "License"); you may not use this file except in
-  compliance with the License.
-  
-  Software distributed under the License is distributed on an "AS IS"
-  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
-  the License for the specific language governing rights and limitations
-  under the License.
+  teem: Gordon Kindlmann's research software
+  Copyright (C) 2002, 2001, 2000, 1999, 1998 University of Utah
 
-  The Original Source Code is "teem", released March 23, 2001.
-  
-  The Original Source Code was developed by the University of Utah.
-  Portions created by UNIVERSITY are Copyright (C) 2001, 1998 University
-  of Utah. All Rights Reserved.
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 =============== License information
 
 See above.  This preamble appears on all .c, .h, and .mk files. Full
-text of the License should be in the file "LICENSE.txt" in the same
-directory as this file.
+text of the GNU Lesser General Public License should be in the file
+"LICENSE.txt" in the same directory as this file.
 
 =============== How to compile
 
@@ -36,8 +35,9 @@ directory as this file.
 2: "cd src"
 
 3: "make" 
-   Or more accurately, "gmake", or "/usr/local/gnu/bin/make".
-   This MUST be GNU make.  I am in fact using features unique to GNU make.
+   Or more accurately, "gmake", or "/usr/local/gnu/bin/make", or
+   however it is that you invoke a GNU make.  This MUST be GNU make.
+   I am in fact using features unique to GNU make.
 
 What?  No configure or auto-conf script?  That's right.  Because the
 architecture specific stuff is all set with a file in the "src/make"
@@ -46,8 +46,9 @@ outside this directory tree, and because this is all very vanilla ANSI
 C, I don't consider those tools necessary.
 
 However, you may need to alter the appropriate architecture-specific
-".mk" file in the "src/make" directory.  If you feel there is a bug
-in those files, please email me at gk_AT_cs.utah.edu
+".mk" file in the "src/make" directory.  This is unlikely.  If you
+feel there is a bug in those files, please email me at
+gk_AT_cs.utah.edu
 
 =============== General Info
 
@@ -65,10 +66,14 @@ extensions, or libraries to teem, please keep in mind that they will
 undergo my scrutiny before they will be added to the official CVS
 tree.
 
-I'm not especially averse to C++, I just think its a bit of a
-disaster.  Bill Joy agrees with me on this one, as do other people I
-respect.  C++ has its time and place, no doubt.  I'm just generally
-not in those times or places.  My loss, I'm sure.
+Much of teem would be better re-written in C++.  But not the majority
+of it.  C is a small language, and a simple language, and I know
+exactly what I'm doing with it.  Lots of teem is either so simple
+(like bane) or so low-level-ish (like nrrd), that the benefits of
+using a much more powerful language like C++ do not outweigh the
+benefits of me writing the software I need, now, in a way that I
+understand, now, so that I can graduate, soon.  C++ has its time and
+place.  In later times, I may find myself in those places.
 
 =============== Directory Structure
 
