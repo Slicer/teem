@@ -30,7 +30,7 @@ makeSceneTriMesh(limnCam *cam, EchoParam *param,
   *sceneP = scene = echoObjectNew(echoObjectList);
   *lightArrP = lightArr = echoLightArrayNew();
 
-  ELL_3V_SET(cam->from, -3, 3, 3);
+  ELL_3V_SET(cam->from, -4, 4, 1);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, 0, 1);
   cam->uMin = -3;
@@ -52,7 +52,7 @@ makeSceneTriMesh(limnCam *cam, EchoParam *param,
   param->maxRecDepth = 10;
   param->shadow = AIR_FALSE;
 
-  trim = echoObjectRoughSphere(6, 3, NULL);
+  trim = echoObjectRoughSphere(60, 30, NULL);
   echoMatterPhongSet(trim, 1, 1, 1, 1.0,
 		     0.1, 0.3, 0.7, 50);
   echoObjectListAdd(scene, trim);

@@ -602,7 +602,7 @@ echoObjectRoughSphere(int theRes, int phiRes, echoPos_t *matx) {
   ret = echoObjectNew(echoObjectTriMesh);
   trim = TRIM(ret);
   trim->numV = 2 + (phiRes-1)*theRes;
-  trim->numF = 2*theRes + 2*(phiRes-2)*theRes;
+  trim->numF = (2 + 2*(phiRes-2))*theRes;
   printf("echoObjectRoughSphere: numV = %d, numF = %d\n",
 	 trim->numV, trim->numF);
 
@@ -637,16 +637,15 @@ echoObjectRoughSphere(int theRes, int phiRes, echoPos_t *matx) {
 		 1+phidx*theRes+n); vert += 3;
     }
   }
-  /*
   for (thidx=0; thidx<theRes; thidx++) {
     n = AIR_MOD(thidx+1, theRes);
-    ELL_3V_SET(vert, 1+(phiRes-1)*theRes+thidx, trim->numV-1,
-	       1+(phiRes-1)*theRes+n); vert += 3;
+    ELL_3V_SET(vert, 1+(phiRes-2)*theRes+thidx, trim->numV-1,
+	       1+(phiRes-2)*theRes+n); 
+    printf("face: %d, %d, %d\n", vert[0], vert[1], vert[2]);
+    vert += 3;
   }
-  */
 
-  echoObjectTriMeshSet(ret, trim->numV, _pos, trim->numF-theRes, _vert);
-  /* echoObjectTriMeshSet(ret, trim->numV, _pos, trim->numF, _vert); */
+  echoObjectTriMeshSet(ret, trim->numV, _pos, trim->numF, _vert);
   
   return(ret);
 }
