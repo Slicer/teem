@@ -19,9 +19,9 @@ LIB =
 HEADERS = 
 LIBOBJS = 
 TEST_BINS = 
-BINS = crop histo histax permute slice dice stitch \
+BINS = crop histo histax permute stitch join dice stitch \
 	2a arith heq median nconvert quantize project \
-	mhisto rsmp
-BINLIBS = -lnrrd -lbiff -lair -lm
+	mhisto rsmp filtan filtan2
+BINLIBS = -lbane -lnrrd -lbiff -lair -lm
 
 include ../make/Common.mk
