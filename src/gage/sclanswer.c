@@ -151,12 +151,14 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     T = ELL_3M_TRACE(gten);
     N = curv;
     D = 2*N*N - T*T;
+    /*
     if (D < -0.0000001) {
       fprintf(stderr, "%s: %g %g\n", me, T, N);
       fprintf(stderr, "%s: !!! D curv determinant % 22.10f < 0.0\n", me, D);
       fprintf(stderr, "gten: \n");
       ell3mPRINT(stderr, gten);
     }
+    */
     D = AIR_MAX(D, 0);
     D = sqrt(D);
     k1[0] = 0.5*(T + D);
