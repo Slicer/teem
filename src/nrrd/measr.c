@@ -39,7 +39,7 @@ _nrrdMeasrMin(void *line, int lineType, int len, float axmin, float axmax,
   min = nrrdDLookup[lineType](line, 0);
   for (i=1; i<=len-1; i++) {
     val = nrrdDLookup[lineType](line, i);
-    min = NRRD_MIN(min, val);
+    min = AIR_MIN(min, val);
   }
   nrrdDStore[ansType](ans, min);
 }
@@ -53,7 +53,7 @@ _nrrdMeasrMax(void *line, int lineType, int len, float axmin, float axmax,
   max = nrrdDLookup[lineType](line, 0);
   for (i=1; i<=len-1; i++) {
     val = nrrdDLookup[lineType](line, i);
-    max = NRRD_MAX(max, val);
+    max = AIR_MAX(max, val);
   }
   nrrdDStore[ansType](ans, max);
 }
@@ -208,7 +208,7 @@ _nrrdMeasrHistoMode(void *line, int lineType, int len,
   max = 0;
   for (i=0; i<=len-1; i++) {
     val = nrrdDLookup[lineType](line, i);
-    max = NRRD_MAX(max, val);
+    max = AIR_MAX(max, val);
   }
   if (!max) {
     nrrdDStore[ansType](ans, airNand());
@@ -471,7 +471,7 @@ nrrdMeasureAxis(Nrrd *nin, Nrrd *nout, int axis, int measr) {
     sprintf(err, "%s: measure %d not recognized", me, measr);
     biffSet(NRRD, err); return 1;
   }
-  if (!(NRRD_INSIDE(0, axis, nin->dim-1))) {
+  if (!(AIR_INSIDE(0, axis, nin->dim-1))) {
     sprintf(err, "%s: axis %d not in range [0,%d]", me, axis, nin->dim-1);
     biffSet(NRRD, err); return 1;
   }

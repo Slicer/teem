@@ -1,9 +1,11 @@
 
 ASAP!!: gaussian kernel,
-        shuffle, 
         join, split, reshape,
 	resampling, blurring,  <-- document setting the float param[] vector
 	weighted median filter
+
+try to reproduce Trace/BPT/blah/trap error by setting samples[i]
+to 0 for some axis i- Purify was blind to this
 
 create a new nrrdNewAlloc() which supports taking the axis sizes as
 the last arguments, using var args.  This would be very convenient.
