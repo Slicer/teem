@@ -790,14 +790,23 @@ _nrrdWriteNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io, int writeData) {
 int
 _nrrdReshapeDownGrayscale (Nrrd *nimg) {
   char me[]="_nrrdReshapeDownGrayscale", err[AIR_STRLEN_MED];
-  int axmap[2] = {1, 2};
+  int axmap[2] = {1, 2}, ret;
   Nrrd *ntmp;  /* just a holder for axis information */
   
   ntmp = nrrdNew();
-  if (nrrdAxesCopy(ntmp, nimg, NULL, NRRD_AXESINFO_NONE)
-      || nrrdAxesCopy(nimg, ntmp, axmap, NRRD_AXESINFO_NONE)) {
-    sprintf(err, "%s: ", me); biffAdd(NRRD, err); return 1;
+  ntmp->dim = 3;
+  if ( (ret = nrrdAxesCopy(ntmp, nimg, NULL, NRRD_AXESINFO_NONE)) ) {
+    sprintf(err, "%s: nrrdAxesCopy() returned %d", me, ret);
+    biffAdd(NRRD, err);
+    nrrdNuke(ntmp); return 1;
   }
+  nimg->dim = 2;
+  if ( (ret = nrrdAxesCopy(nimg, ntmp, axmap, NRRD_AXESINFO_NONE)) ) {
+    sprintf(err, "%s: nrrdAxesCopy() returned %d", me, ret);
+    biffAdd(NRRD, err);
+    nrrdNuke(ntmp); return 1;
+  }
+  nrrdNuke(ntmp);
   return 0;
 }
 
@@ -1027,6 +1036,97 @@ _nrrdWritePNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
 #endif
 }
 
+/* this strongly assumes that nrrdFitsInFormat() was true */
+int
+_nrrdWriteVTK (FILE *file, Nrrd *nrrd, NrrdIO *io) {
+  char me[]="_nrrdWriteVTK", err[AIR_STRLEN_MED];
+  int i, sx, sy, sz, sax;
+  double xs, ys, zs, xm, ym, zm;
+  char type[AIR_STRLEN_MED], name[AIR_STRLEN_SMALL];
+
+  sax = nrrd->dim - 3;
+  xs = nrrd->axis[sax+0].spacing;
+  ys = nrrd->axis[sax+1].spacing;
+  zs = nrrd->axis[sax+2].spacing;
+  if (!( AIR_EXISTS(xs) && AIR_EXISTS(ys) && AIR_EXISTS(zs) )) {
+    xs = ys = zs = 1.0;
+  }
+  xm = nrrd->axis[sax+0].min;
+  ym = nrrd->axis[sax+1].min;
+  zm = nrrd->axis[sax+2].min;
+  if (!( AIR_EXISTS(xm) && AIR_EXISTS(ym) && AIR_EXISTS(zm) )) {
+    xm = ym = zm = 0.0;
+  }
+  sx = nrrd->axis[sax+0].size;
+  sy = nrrd->axis[sax+1].size;
+  sz = nrrd->axis[sax+2].size;
+
+  switch(nrrd->type) {
+  case nrrdTypeUChar:
+    strcpy(type, "unsigned_char");
+    break;
+  case nrrdTypeShort:
+    strcpy(type, "short");
+    break;
+  case nrrdTypeInt:
+    strcpy(type, "int");
+    break;
+  case nrrdTypeFloat:
+    strcpy(type, "float");
+    break;
+  case nrrdTypeDouble:
+    strcpy(type, "double");
+    break;
+  default:
+    sprintf(err, "%s: can't put %s-type nrrd into VTK", me, 
+	    airEnumStr(nrrdType, nrrd->type));
+    biffAdd(NRRD, err); return 1;
+  }
+  fprintf(file, "%s\n", airEnumStr(nrrdMagic, nrrdMagicVTK20));
+  if (nrrd->content) {
+    for (i=0; i<=255 && nrrd->content[i]; i++) {
+      fputc(nrrd->content[i], file);
+    }
+    fputc('\n', file);
+  }
+  if (nrrdEncodingRaw == io->encoding) {
+    fprintf(file, "BINARY\n");
+  } else {
+    fprintf(file, "ASCII\n");
+  }
+  fprintf(file, "DATASET STRUCTURED_POINTS\n");
+  fprintf(file, "DIMENSIONS %d %d %d\n", sx, sy, sz);
+  fprintf(file, "ORIGIN %g %g %g\n", xm, ym, zm);
+  fprintf(file, "SPACING %g %g %g\n", xs, ys, zs);
+  fprintf(file, "POINT_DATA %d\n", sx*sy*sz);
+  airSrand();
+  sprintf(name, "nrrd%05d", airRandInt(100000));
+  if (3 == nrrd->dim) {
+    fprintf(file, "SCALARS %s %s\n", name, type);
+    fprintf(file, "LOOKUP_TABLE default\n");
+  } else {
+    /* 4 == nrrd->dim */
+    if (3 == nrrd->axis[0].size) {
+      fprintf(file, "VECTORS %s %s\n", name, type);
+    } else {
+      fprintf(file, "TENSORS %s %s\n", name, type);
+    }
+  }
+  if (1 < nrrdElementSize(nrrd)
+      && nrrdEncodingEndianMatters[io->encoding]
+      && airMyEndian != airEndianBig) {
+    /* encoding exposes endianness, and we're not big, as req.d by VTK */
+    nrrdSwapEndian(nrrd);
+  }
+  io->dataFile = file;
+  if (nrrdWriteData[io->encoding](nrrd, io)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  return 0;
+}
+
 int
 _nrrdWriteTable (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char cmt[AIR_STRLEN_SMALL], *line, buff[AIR_STRLEN_SMALL];
@@ -1107,6 +1207,8 @@ _nrrdGuessFormat (NrrdIO *io, const char *filename) {
     io->format = nrrdFormatPNG;
   } else if (airEndsWith(filename, NRRD_EXT_TABLE)) {
     io->format = nrrdFormatTable;
+  } else if (airEndsWith(filename, NRRD_EXT_VTK)) {
+    io->format = nrrdFormatVTK;
   } else {
     /* nothing obvious */
     io->format = nrrdFormatUnknown;
@@ -1158,6 +1260,15 @@ _nrrdFixFormat (NrrdIO *io, Nrrd *nrrd) {
     if (!fits) {
       if (nrrdStateVerboseIO) {
 	fprintf(stderr, "(%s: Can't be a PNG -> saving as NRRD)\n", me);
+      }
+      io->format = nrrdFormatNRRD;
+    }
+    break;
+  case nrrdFormatVTK:
+    fits = nrrdFitsInFormat(nrrd, io->encoding, nrrdFormatVTK, AIR_FALSE);
+    if (!fits) {
+      if (nrrdStateVerboseIO) {
+	fprintf(stderr, "(%s: Can't save as VTK -> saving as NRRD)\n", me);
       }
       io->format = nrrdFormatNRRD;
     }
@@ -1226,6 +1337,9 @@ nrrdWrite (FILE *file, Nrrd *nrrd, NrrdIO *io) {
     break;
   case nrrdFormatPNG:
     ret = _nrrdWritePNG(file, nrrd, io);
+    break;
+  case nrrdFormatVTK:
+    ret = _nrrdWriteVTK(file, nrrd, io);
     break;
   case nrrdFormatTable:
     ret = _nrrdWriteTable(file, nrrd, io);

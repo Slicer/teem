@@ -33,6 +33,7 @@ extern "C" {
 #define NRRD_EXT_PGM    ".pgm"
 #define NRRD_EXT_PPM    ".ppm"
 #define NRRD_EXT_PNG    ".png"
+#define NRRD_EXT_VTK    ".vtk"
 #define NRRD_EXT_TABLE  ".txt"
 
 #define NRRD_KERNEL_PARMS_NUM 8    /* max # arguments to a kernel-

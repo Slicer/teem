@@ -43,7 +43,8 @@ char _nrrdTableSep[] = " ,\t";
 ** are similar, except that what airOneLine would return, we put
 ** in *lenP.  If there is an error (airOneLine returned -1, 
 ** something couldn't be allocated), *lenP is set to 0, and 
-** we return 1.  Otherwise 0.
+** we return 1.  HITTING EOF IS NOT ACTUALLY AN ERROR, see code
+** below.  Otherwise we return 0.
 **
 ** Does use biff
 */
@@ -821,14 +822,23 @@ _nrrdReadNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io) {
 int
 _nrrdReshapeUpGrayscale (Nrrd *nimg) {
   char me[]="_nrrdReshapeUpGrayscale", err[AIR_STRLEN_MED];
-  int axmap[3] = {-1, 0, 1};
+  int axmap[3] = {-1, 0, 1}, ret;
   Nrrd *ntmp;  /* just a holder for axis information */
   
   ntmp = nrrdNew();
-  if (nrrdAxesCopy(ntmp, nimg, NULL, NRRD_AXESINFO_NONE)
-      || nrrdAxesCopy(nimg, ntmp, axmap, NRRD_AXESINFO_NONE)) {
-    sprintf(err, "%s: ", me); biffAdd(NRRD, err); return 1;
+  ntmp->dim = 2;
+  if ( (ret = nrrdAxesCopy(ntmp, nimg, NULL, NRRD_AXESINFO_NONE)) ) {
+    sprintf(err, "%s: nrrdAxesCopy() returned %d", me, ret);
+    biffAdd(NRRD, err);
+    nrrdNuke(ntmp); return 1;
   }
+  nimg->dim = 3;
+  if ( (ret = nrrdAxesCopy(nimg, ntmp, axmap, NRRD_AXESINFO_NONE)) ) {
+    sprintf(err, "%s: nrrdAxesCopy() returned %d", me, ret);
+    biffAdd(NRRD, err);
+    nrrdNuke(ntmp); return 1;
+  }
+  nrrdNuke(ntmp);
   return 0;
 }
 
@@ -1221,6 +1231,153 @@ _nrrdReadPNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
 }
 
 int
+_nrrdReadVTK (FILE *file, Nrrd *nrrd, NrrdIO *io) {
+  char me[]="_nrrdReadVTK", err[AIR_STRLEN_MED], *three[3];
+  int len, sx, sy, sz, ret, N;
+  double xm, ym, zm, xs, ys, zs;
+  airArray *mop;
+
+#define GETLINE(what) \
+  do { \
+    ret = _nrrdOneLine(&len, io, file); \
+  } while (!ret && (1 == len)); \
+  if (ret || !len) { \
+    sprintf(err, "%s: couldn't get " #what " line", me); \
+    biffAdd(NRRD, err); return 1; \
+  }
+
+  /* read in content */
+  GETLINE(content);
+  if (!(nrrd->content = airStrdup(io->line))) {
+    sprintf(err, "%s: couldn't read or copy content string", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  GETLINE(encoding); airToUpper(io->line);
+  if (!strcmp("ASCII", io->line)) {
+    io->encoding = nrrdEncodingAscii;
+  } else if (!strcmp("BINARY", io->line)) {
+    io->encoding = nrrdEncodingRaw;
+  } else {
+    sprintf(err, "%s: encoding \"%s\" wasn't \"ASCII\" or \"BINARY\"",
+	    me, io->line);
+    biffAdd(NRRD, err); return 1;
+  }
+  GETLINE(DATASET); airToUpper(io->line);
+  if (!strstr(io->line, "STRUCTURED_POINTS")) {
+    sprintf(err, "%s: sorry, only STRUCTURED_POINTS data is nrrd-ready", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  GETLINE(DIMENSIONS); airToUpper(io->line);
+  if (!strstr(io->line, "DIMENSIONS")
+      || 3 != sscanf(io->line, "DIMENSIONS %d %d %d", &sx, &sy, &sz)) {
+    sprintf(err, "%s: couldn't parse DIMENSIONS line (\"%s\")", me, io->line);
+    biffAdd(NRRD, err); return 1;
+  }
+  GETLINE(ORIGIN); airToUpper(io->line);
+  if (!strstr(io->line, "ORIGIN")
+      || 3 != sscanf(io->line, "ORIGIN %lf %lf %lf", &xm, &ym, &zm)) {
+    sprintf(err, "%s: couldn't parse  ORIGIN line (\"%s\")", me, io->line);
+    biffAdd(NRRD, err); return 1;
+  }
+  GETLINE(SPACING/ASPECT); airToUpper(io->line);
+  if (!( (strstr(io->line, "SPACING")
+	  && 3 == sscanf(io->line, "SPACING %lf %lf %lf", &xs, &ys, &zs))
+	 ||
+	 (strstr(io->line, "ASPECT_RATIO")
+	  && 3 == sscanf(io->line, "ASPECT_RATIO %lf %lf %lf", &xs, &ys, &zs))
+	 )) {
+    sprintf(err, "%s: couldn't parse SPACING/ASPECT_RATIO line (\"%s\")",
+	    me, io->line);
+    biffAdd(NRRD, err); return 1;
+  }
+  GETLINE(POINT_DATA); airToUpper(io->line);
+  if (1 != sscanf(io->line, "POINT_DATA %d", &N)) {
+    sprintf(err, "%s: couldn't parse POINT_DATA line (\"%s\")", me, io->line);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (N != sx*sy*sz) {
+    sprintf(err, "%s: product of sizes (%d*%d*%d == %d) != # elements (%d)", 
+	    me, sx, sy, sz, sx*sy*sz, N);
+    biffAdd(NRRD, err); return 1;
+  }
+  GETLINE(attribute declaration);
+  mop = airMopInit();
+  if (3 != airParseStrS(three, io->line, AIR_WHITESPACE, 3, AIR_FALSE)) {
+    sprintf(err, "%s: didn't see three words in attribute declaration \"%s\"",
+	    me, io->line);
+    biffAdd(NRRD, err); return 1;
+  }
+  airMopAdd(mop, three[0], airFree, airMopAlways);
+  airMopAdd(mop, three[1], airFree, airMopAlways);
+  airMopAdd(mop, three[2], airFree, airMopAlways);
+  airToLower(three[2]);
+  if (!strcmp(three[2], "bit")) {
+    if (nrrdEncodingAscii == io->encoding) {
+      fprintf(stderr, "%s: WARNING: \"bit\"-type data will be read in as "
+	      "unsigned char\n", me);
+      nrrd->type = nrrdTypeUChar;
+    } else {
+      sprintf(err, "%s: can't read in \"bit\"-type data as BINARY", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  } else if (!strcmp(three[2], "unsigned_char")) {
+    nrrd->type = nrrdTypeUChar;
+  } else if (!strcmp(three[2], "short")) {
+    nrrd->type = nrrdTypeShort;
+  } else if (!strcmp(three[2], "int")) {
+    nrrd->type = nrrdTypeInt;
+  } else if (!strcmp(three[2], "float")) {
+    nrrd->type = nrrdTypeFloat;
+  } else if (!strcmp(three[2], "double")) {
+    nrrd->type = nrrdTypeDouble;
+  } else {
+    sprintf(err, "%s: type \"%s\" not recognized", me, three[2]);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
+  airToUpper(three[0]);
+  if (!strncmp("SCALARS", three[0], strlen("SCALARS"))) {
+    GETLINE(LOOKUP_TABLE); airToUpper(io->line);
+    if (strcmp(io->line, "LOOKUP_TABLE DEFAULT")) {
+      sprintf(err, "%s: sorry, can only deal with default LOOKUP_TABLE", me);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+    nrrd->dim = 3;
+    nrrdAxesSet(nrrd, nrrdAxesInfoSize, sx, sy, sz);
+    nrrdAxesSet(nrrd, nrrdAxesInfoSpacing, xs, ys, zs);
+    nrrdAxesSet(nrrd, nrrdAxesInfoMin, xm, ym, zm);
+  } else if (!strncmp("VECTORS", three[0], strlen("VECTORS"))) {
+    nrrd->dim = 4;
+    nrrdAxesSet(nrrd, nrrdAxesInfoSize, 3, sx, sy, sz);
+    nrrdAxesSet(nrrd, nrrdAxesInfoSpacing, AIR_NAN, xs, ys, zs);
+    nrrdAxesSet(nrrd, nrrdAxesInfoMin, AIR_NAN, xm, ym, zm);
+  } else if (!strncmp("TENSORS", three[0], strlen("TENSORS"))) {
+    nrrd->dim = 4;
+    nrrdAxesSet(nrrd, nrrdAxesInfoSize, 9, sx, sy, sz);
+    nrrdAxesSet(nrrd, nrrdAxesInfoSpacing, AIR_NAN, xs, ys, zs);
+    nrrdAxesSet(nrrd, nrrdAxesInfoMin, AIR_NAN, xm, ym, zm);
+  } else {
+    sprintf(err, "%s: sorry, can only deal with SCALARS, VECTORS, and TENSORS "
+	    "currently, so couldn't parse attribute declaration \"%s\"",
+	    me, io->line);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
+  io->dataFile = file;
+  if (nrrdReadData[io->encoding](nrrd, io)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (1 < nrrdElementSize(nrrd)
+      && nrrdEncodingEndianMatters[io->encoding]
+      && airMyEndian != airEndianBig) {
+    /* encoding exposes endianness, and its big, but we aren't */
+    nrrdSwapEndian(nrrd);
+  }
+  airMopOkay(mop);
+  return 0;
+}
+
+
+int
 _nrrdReadTable (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadTable", err[AIR_STRLEN_MED], *errS;
   const char *fs;
@@ -1456,7 +1613,7 @@ nrrdRead (Nrrd *nrrd, FILE *file, NrrdIO *_io) {
   case nrrdMagicNRRD0001:
     io->format = nrrdFormatNRRD;
     if (_nrrdReadNrrd(file, nrrd, io)) {
-      sprintf(err, "%s: trouble reading NRRD", me);
+      sprintf(err, "%s: trouble reading NRRD file", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     break;
@@ -1466,14 +1623,22 @@ nrrdRead (Nrrd *nrrd, FILE *file, NrrdIO *_io) {
   case nrrdMagicP6:
     io->format = nrrdFormatPNM;
     if (_nrrdReadPNM(file, nrrd, io)) {
-      sprintf(err, "%s: trouble reading PNM", me);
+      sprintf(err, "%s: trouble reading PNM image", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     break;
   case nrrdMagicPNG:
     io->format = nrrdFormatPNG;
     if (_nrrdReadPNG(file, nrrd, io)) {
-      sprintf(err, "%s: trouble reading PNG", me);
+      sprintf(err, "%s: trouble reading PNG image", me);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+    break;
+  case nrrdMagicVTK10:
+  case nrrdMagicVTK20:
+    io->format = nrrdFormatVTK;
+    if (_nrrdReadVTK(file, nrrd, io)) {
+      sprintf(err, "%s: trouble reading VTK file", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     break;

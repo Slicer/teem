@@ -298,7 +298,8 @@ nrrdFormatIsAvailable[NRRD_FORMAT_MAX+1] = {
 #else
   0, /* 3: nrrdFormatPNG */
 #endif
-  1  /* 4: nrrdFormatTable */
+  1, /* 4: nrrdFormatVTK */
+  1  /* 5: nrrdFormatTable */
 };
 
 /*
@@ -314,7 +315,8 @@ nrrdFormatIsImage[NRRD_FORMAT_MAX+1] = {
   0, /* 1: nrrdFormatNRRD */
   1, /* 2: nrrdFormatPNM */
   1, /* 3: nrrdFormatPNG */
-  0  /* 4: nrrdFormatTable */
+  0, /* 4: nrrdFormatVTK */
+  0  /* 5: nrrdFormatTable */
 };
 
 /*
@@ -382,5 +384,6 @@ _nrrdFormatUsesDIO[NRRD_FORMAT_MAX+1] = {
   1,   /* nrrdFormatNRRD */
   0,   /* nrrdFormatPNM */
   0,   /* nrrdFormatPNG */
+  0,   /* nrrdFormatVTK */
   0    /* nrrdFormatTable */
 };

@@ -45,6 +45,7 @@ _nrrdFormatStr[NRRD_FORMAT_MAX+1][AIR_STRLEN_SMALL] = {
   "nrrd",
   "pnm",
   "png",
+  "vtk",
   "text"
 };
 
@@ -53,6 +54,7 @@ _nrrdFormatStrEqv[][AIR_STRLEN_SMALL] = {
   "nrrd",
   "pnm",
   "png",
+  "vtk",
   "table", "text", "txt",
   ""
 };
@@ -62,6 +64,7 @@ _nrrdFormatValEqv[] = {
   nrrdFormatNRRD,
   nrrdFormatPNM,
   nrrdFormatPNG,
+  nrrdFormatVTK,
   nrrdFormatTable, nrrdFormatTable, nrrdFormatTable
 };
 
@@ -110,6 +113,8 @@ _nrrdMagicStr[NRRD_MAGIC_MAX+1][AIR_STRLEN_SMALL] = {
   "P5",
   "P6",
   "\211PNG",
+  "# vtk DataFile Version 1.0",
+  "# vtk DataFile Version 2.0",
 };
 
 airEnum

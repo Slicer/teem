@@ -421,9 +421,9 @@ nrrdFitsInFormat (Nrrd *nrrd, int encoding, int format, int useBiff) {
     break;
   case nrrdFormatPNM:
     if (nrrdTypeUChar != nrrd->type) {
-      sprintf(err, "%s: type is %s, not %s", me,
-	      airEnumStr(nrrdType, nrrd->type),
-	      airEnumStr(nrrdType, nrrdTypeUChar));
+      sprintf(err, "%s: type must be %s (not %s)", me,
+	      airEnumStr(nrrdType, nrrdTypeUChar),
+	      airEnumStr(nrrdType, nrrd->type));
       biffMaybeAdd(NRRD, err, useBiff); 
       return AIR_FALSE;
     }
@@ -460,10 +460,10 @@ nrrdFitsInFormat (Nrrd *nrrd, int encoding, int format, int useBiff) {
     break;
   case nrrdFormatPNG:
     if (!( nrrdTypeUChar == nrrd->type || nrrdTypeUShort == nrrd->type )) {
-      sprintf(err, "%s: type is %s, not %s or %s", me,
-	      airEnumStr(nrrdType, nrrd->type),
+      sprintf(err, "%s: type must be %s or %s (not %s)", me,
 	      airEnumStr(nrrdType, nrrdTypeUChar),
-	      airEnumStr(nrrdType, nrrdTypeUShort));
+	      airEnumStr(nrrdType, nrrdTypeUShort),
+	      airEnumStr(nrrdType, nrrd->type));
       biffMaybeAdd(NRRD, err, useBiff); 
       return AIR_FALSE;
     }
@@ -488,6 +488,39 @@ nrrdFitsInFormat (Nrrd *nrrd, int encoding, int format, int useBiff) {
       biffMaybeAdd(NRRD, err, useBiff); 
       return AIR_FALSE;
     }
+    break;
+  case nrrdFormatVTK:
+    if (!( nrrdEncodingRaw == encoding || nrrdEncodingAscii == encoding)) {
+      sprintf(err, "%s: encoding can only be %s or %s", me,
+	      airEnumStr(nrrdEncoding, nrrdEncodingRaw),
+	      airEnumStr(nrrdEncoding, nrrdEncodingAscii));
+      biffMaybeAdd(NRRD, err, useBiff); 
+      return AIR_FALSE;
+    }
+    if (!( nrrdTypeUChar == nrrd->type
+	   || nrrdTypeShort == nrrd->type
+	   || nrrdTypeInt == nrrd->type
+	   || nrrdTypeFloat == nrrd->type
+	   || nrrdTypeDouble == nrrd->type )) {
+      sprintf(err, "%s: type must be %s, %s, %s, %s, or %s (not %s)", me,
+	      airEnumStr(nrrdType, nrrdTypeUChar),
+	      airEnumStr(nrrdType, nrrdTypeShort),
+	      airEnumStr(nrrdType, nrrdTypeInt),
+	      airEnumStr(nrrdType, nrrdTypeFloat),
+	      airEnumStr(nrrdType, nrrdTypeDouble),
+	      airEnumStr(nrrdType, nrrd->type));
+      biffMaybeAdd(NRRD, err, useBiff); 
+      return AIR_FALSE;
+    }
+    if (!( 3 == nrrd->dim
+	   || (4 == nrrd->dim && 3 == nrrd->axis[0].size)
+	   || (4 == nrrd->dim && 9 == nrrd->axis[0].size) )) {
+      sprintf(err, "%s: nrrd didn't look like a volume of scalars, "
+	      "vectors, or tensors", me);
+      biffMaybeAdd(NRRD, err, useBiff); 
+      return AIR_FALSE;
+    }
+    ret = AIR_TRUE;
     break;
   case nrrdFormatTable:
     /* encoding ignored- always ascii */
@@ -659,8 +692,8 @@ nrrdSanity (void) {
 	    nrrdCenterUnknown+1, nrrdCenterLast-1);
     biffAdd(NRRD, err); return 0;
   }
-  if (!( nrrdTypeUnknown == nrrdDefRsmpType ||
-	 airEnumValidVal(nrrdType, nrrdDefRsmpType) )) {
+  if (!( nrrdTypeUnknown == nrrdDefRsmpType
+	 || airEnumValidVal(nrrdType, nrrdDefRsmpType) )) {
     sprintf(err, "%s: nrrdDefRsmpType (%d) not in valid range [%d,%d]",
 	    me, nrrdDefRsmpType,
 	    nrrdTypeUnknown, nrrdTypeLast-1);

@@ -43,10 +43,11 @@ enum {
 			   magic nrrdMagicOldNRRD and nrrdMagicNRRD0001 */
   nrrdFormatPNM,        /* 2: PNM image */
   nrrdFormatPNG,        /* 3: PNG image */
-  nrrdFormatTable,      /* 4: bare ASCII table */
+  nrrdFormatVTK,        /* 4: VTK Structured Points datasets (v1.0 and 2.0) */
+  nrrdFormatTable,      /* 5: bare ASCII table */
   nrrdFormatLast
 };
-#define NRRD_FORMAT_MAX    4
+#define NRRD_FORMAT_MAX    5
 
 /*
 ******** nrrdBoundary enum
@@ -82,9 +83,11 @@ enum {
   nrrdMagicP5,           /* 5: "P5": binary PGM */
   nrrdMagicP6,           /* 6: "P6": binary PPM */
   nrrdMagicPNG,          /* 7: "\211PNG": PNG */
+  nrrdMagicVTK10,        /* 8: "# vtk DataFile Version 1.0" */
+  nrrdMagicVTK20,        /* 9: "# vtk DataFile Version 2.0" */
   nrrdMagicLast
 };
-#define NRRD_MAGIC_MAX      7
+#define NRRD_MAGIC_MAX      9
 
 /*
 ******** nrrdType enum
