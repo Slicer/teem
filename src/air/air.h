@@ -40,8 +40,12 @@ extern "C" {
 
 #ifdef _WIN32
 #if _MSC_VER < 1300 || !defined(_USE_MATH_DEFINES)
+#ifndef M_PI
 #define M_PI 3.14159265358979323846
+#endif
+#ifndef M_E
 #define M_E  2.71828182845904523536
+#endif
 #endif
 #endif
 
@@ -372,25 +376,26 @@ extern int airSanity();
 /* miscAir.c */
 extern air_export const char *airTeemVersion;
 extern air_export const char *airTeemReleaseDate;
-extern air_export const char airMyFmt_size_t[];
-extern air_export const int airMy32Bit;
-extern void airSrand(void);
-extern double airRand(void);
-extern int airRandInt(int N);
-extern void airShuffle(int *buff, int N, int perm);
 extern void *airNull(void);
 extern void *airSetNull(void **ptrP);
 extern void *airFree(void *ptr);
 extern void *airFreeP(void *_ptrP);
 extern FILE *airFopen(const char *name, FILE *std, const char *mode);
 extern FILE *airFclose(FILE *file);
+extern int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
+extern air_export const int airMy32Bit;
+/* ---- BEGIN non-NrrdIO */
+extern air_export const char airMyFmt_size_t[];
+extern void airSrand(void);
+extern double airRand(void);
+extern int airRandInt(int N);
+extern void airShuffle(int *buff, int N, int perm);
 extern char *airDoneStr(float start, float here, float end, char *str);
 extern double airTime();
 extern double airCbrt(double);
 extern double airSgnPow(double, double);
 extern int airSgn(double);
 extern int airLog2(float n);
-extern int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
 extern void airBinaryPrintUInt(FILE *file, int digits, unsigned int N);
 extern double airErf(double x);
 extern double airGaussian(double x, double mean, double stdv);
@@ -402,6 +407,7 @@ extern double airDLoad(void *v, int t);
 extern int airIStore(void *v, int t, int i);
 extern float airFStore(void *v, int t, float f);
 extern double airDStore(void *v, int t, double d);
+/* ---- END non-NrrdIO */
 
 /* dio.c */
 /*
@@ -779,38 +785,6 @@ extern void airMopDebug(airArray *arr);
 #    define _AIR_SIZE_T_FMT "(no _AIR_SIZE_T_FMT w/out TEEM_32BIT %*d)"
 #  endif
 #endif
-
-/*
-******** AIR_MEMCPY1, AIR_MEMCPY2, AIR_MEMCPY4, AIR_MEMCPY8, AIR_MEMCPY
-**
-** THESE ARE NOT GENERALY PURPOSE memcpy() REPLACEMENTS!
-**
-** They offer a speed-up over memcpy() by eliminating calls to in on
-** very small lengths of memory, BUT ONLY when the addresses involved
-** are a multiple of the number of bytes to be copied.
-** AIR_MEMCPY{1,2,4,8} will (like memcpy) return the first argument, but
-** AIR_MEMCPY does not.
-**
-** Using these macros is, more than other macros, playing with fire!
-** You can very very easily get a (fatal) bus error by trying to
-** dereference a pointer as say, an int, just because 4 bytes need to
-** be copied, even when the pointer has nothing to do with ints, and
-** is therefore holding an address which is NOT a multiple of four.
-** Hence the warnings above.
-*/
-#define AIR_MEMCPY1(a, b)      (*((char*)(a)) =      *((char*)(b)))
-#define AIR_MEMCPY2(a, b)     (*((short*)(a)) =     *((short*)(b)))
-#define AIR_MEMCPY4(a, b)       (*((int*)(a)) =       *((int*)(b)))
-#define AIR_MEMCPY8(a, b) (*((long long*)(a)) = *((long long*)(b)))
-#define AIR_MEMCPY(a, b, sz)                  \
-switch (sz) {                                 \
-  case 1: AIR_MEMCPY1(a, b); break;           \
-  case 2: AIR_MEMCPY2(a, b); break;           \
-  case 4: AIR_MEMCPY4(a, b); break;           \
-  case 8: AIR_MEMCPY8(a, b); break;           \
-  default: memcpy((a), (b), (sz)); break;     \
-}
-
 
 #ifdef __cplusplus
 }
