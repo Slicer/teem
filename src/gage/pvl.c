@@ -26,7 +26,7 @@
 ** creates a new pervolume of a known kind, but nothing besides the
 ** answer array is allocated
 **
-** uses biff primarily because of the error checking in gageVolumeValid()
+** uses biff primarily because of the error checking in gageVolumeCheck()
 */
 gagePerVolume *
 gagePerVolumeNew (Nrrd *nin, gageKind *kind) {
@@ -38,7 +38,7 @@ gagePerVolumeNew (Nrrd *nin, gageKind *kind) {
     sprintf(err, "%s: got NULL pointer", me);
     return NULL;
   }
-  if (!gageVolumeValid(nin, kind)) {
+  if (gageVolumeCheck(nin, kind)) {
     sprintf(err, "%s: problem with given volume", me);
     biffAdd(GAGE, err); return NULL;
   }

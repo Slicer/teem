@@ -63,7 +63,7 @@ gageShapeSet(gageShape *shp, Nrrd *nin, gageKind *kind) {
     }
   }
 
-  /* equality of axis centers is checked by _gageNinCheck() */
+  /* equality of axis centers is checked by gageVolumeCheck() */
   shp->center = (nrrdCenterUnknown == ax[0]->center
 		 ? gageDefCenter
 		 : ax[0]->center);
@@ -124,24 +124,24 @@ gageShapeEqual(gageShape *shp1, char *_name1,
 }
 
 int
-gageVolumeValid (Nrrd *nin, gageKind *kind) {
-  char me[]="gageVolumeValid", err[AIR_STRLEN_MED];
+gageVolumeCheck (Nrrd *nin, gageKind *kind) {
+  char me[]="gageVolumeCheck", err[AIR_STRLEN_MED];
   double xs, ys, zs;
   int bd;
 
   if (!nrrdValid(nin)) {
     sprintf(err, "%s: basic nrrd validity check failed", me);
-    biffMove(GAGE, err, NRRD); return 0;
+    biffMove(GAGE, err, NRRD); return 1;
   }
   if (nrrdTypeBlock == nin->type) {
     sprintf(err, "%s: need a non-block type nrrd", me);
-    biffAdd(GAGE, err); return 0;
+    biffAdd(GAGE, err); return 1;
   }
   bd = kind->baseDim;
   if (3 + bd != nin->dim) {
     sprintf(err, "%s: nrrd should have dimension %d, not %d",
 	    me, 3 + bd, nin->dim);
-    biffAdd(GAGE, err); return 0;
+    biffAdd(GAGE, err); return 1;
   }
   xs = nin->axis[bd+0].spacing;
   ys = nin->axis[bd+1].spacing;
@@ -149,12 +149,12 @@ gageVolumeValid (Nrrd *nin, gageKind *kind) {
   if (!( AIR_EXISTS(xs) && AIR_EXISTS(ys) && AIR_EXISTS(zs) )) {
     sprintf(err, "%s: spacings for axes %d,%d,%d don't all exist",
 	    me, bd+0, bd+1, bd+2);
-    biffAdd(GAGE, err); return 0;
+    biffAdd(GAGE, err); return 1;
   }
   if (!( xs != 0 && ys != 0 && zs != 0 )) {
     sprintf(err, "%s: spacings (%g,%g,%g) for axes %d,%d,%d not all non-zero",
 	    me, xs, ys, zs, bd+0, bd+1, bd+2);
-    biffAdd(GAGE, err); return 0;
+    biffAdd(GAGE, err); return 1;
   }
   if (!( nin->axis[bd+0].center == nin->axis[bd+1].center &&
 	 nin->axis[bd+0].center == nin->axis[bd+2].center )) {
@@ -163,7 +163,7 @@ gageVolumeValid (Nrrd *nin, gageKind *kind) {
 	    airEnumStr(nrrdCenter, nin->axis[bd+0].center),
 	    airEnumStr(nrrdCenter, nin->axis[bd+1].center),
 	    airEnumStr(nrrdCenter, nin->axis[bd+2].center));
-    biffAdd(GAGE, err); return 0;
+    biffAdd(GAGE, err); return 1;
   }
-  return 1;
+  return 0;
 }

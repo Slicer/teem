@@ -107,6 +107,7 @@ enum {
   gageParmK3Pack,                 /* int */
   gageParmGradMagMin,             /* gage_t */
   gageParmGradMagCurvMin,         /* gage_t */
+  gageParmCurvNormalSide,         /* int */
   gageParmKernelIntegralNearZero, /* gage_t */
   gageParmLast
 };
@@ -361,6 +362,14 @@ typedef struct gageParm_t {
 				 no other good place for it */
     kernelIntegralNearZero;   /* tolerance with checkIntegrals on derivative
 				 kernels */
+  int curvNormalSide;         /* determines direction of gradient that is used
+				 as normal in curvature calculations, exactly
+				 the same as miteUser's normalSide: 1 for
+				 normal pointing to lower values (higher
+				 values are more "inside"); -1 for normal
+				 pointing to higher values (low values more
+				 "inside") */
+
 } gageParm;
 
 /*
@@ -518,6 +527,7 @@ extern gage_export int gageDefRenormalize;
 extern gage_export int gageDefCheckIntegrals;
 extern gage_export int gageDefNoRepadWhenSmaller;
 extern gage_export int gageDefK3Pack;
+extern gage_export int gageDefCurvNormalSide;
 extern gage_export double gageDefKernelIntegralNearZero;
 extern gage_export int gageDefCenter;
 
@@ -551,7 +561,7 @@ extern void gageShapeSet(gageShape *shp, Nrrd *nin, gageKind *kind);
 extern void gageShapeReset(gageShape *shp);
 extern int gageShapeEqual(gageShape *shp1, char *name1,
 			  gageShape *shp2, char *name2);
-extern int gageVolumeValid(Nrrd *nin, gageKind *kind);
+extern int gageVolumeCheck(Nrrd *nin, gageKind *kind);
 
 /* the organization of the next two files is according to what
    the first argument is, not what appears in the function name */

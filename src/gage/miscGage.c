@@ -190,6 +190,7 @@ gageParmReset(gageParm *parm) {
     parm->k3pack = gageDefK3Pack;
     parm->gradMagMin = gageDefGradMagMin;
     parm->gradMagCurvMin = gageDefGradMagCurvMin;
+    parm->curvNormalSide = gageDefCurvNormalSide;
     parm->kernelIntegralNearZero = gageDefKernelIntegralNearZero;
   }
   return;

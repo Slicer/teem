@@ -41,6 +41,9 @@ gageDefNoRepadWhenSmaller = AIR_FALSE;
 int
 gageDefK3Pack = AIR_TRUE;
 
+int
+gageDefCurvNormalSide = 1;
+
 double
 gageDefKernelIntegralNearZero = 0.0001;
 

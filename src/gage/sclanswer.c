@@ -104,10 +104,9 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   }
   if (1 & (query >> gageSclGeomTens)) {
     if (gmag >= ctx->parm.gradMagCurvMin) {
-      /* we flip the sign as well as scaling the Hessian, so that when
-	 values "inside" an isosurface are higher, we get the expected
-	 sense: the normal points outwards from a surface */
-      ELL_3M_SCALE(sHess, -1.0/gmag, hess);
+      /* parm.curvNormalSide applied here to determine the sense of the
+	 normal when doing all curvature calculations */
+      ELL_3M_SCALE(sHess, -(ctx->parm.curvNormalSide)/gmag, hess);
       /* nPerp = I - outer(norm, norm): matrix which projects onto the
 	 plane perpendicular to the normal */
       ELL_3MV_OUTER(nPerp, norm, norm);

@@ -296,6 +296,10 @@ gageSet (gageContext *ctx, int which, gage_t val) {
     ctx->parm.noRepadWhenSmaller = AIR_TRUE;
     /* no flag to set, but does affect future calls to _gageHavePadUpdate() */
     break;
+  case gageParmCurvNormalSide:
+    ctx->parm.curvNormalSide = val;
+    /* no flag to set, simply affects future calls to gageProbe() */
+    break;
   default:
     fprintf(stderr, "\n%s: which = %d not valid!!\n\n", me, which);
     break;
