@@ -324,13 +324,13 @@ gageSclProbe(gageSclContext *ctx, float x, float y, float z) {
   /* perform the filtering */
   if (ctx->k3pack) {
     switch (fd) {
-    case 2:
+    case -2:
       _gageScl3PFilter2(ctx->iv3, ctx->iv2, ctx->iv1, 
 			ctx->fw00, ctx->fw11, ctx->fw22,
 			ctx->val, ctx->gvec, ctx->hess,
 			doD1, doD2);
       break;
-    case 4:
+    case -4:
       _gageScl3PFilter4(ctx->iv3, ctx->iv2, ctx->iv1,
 			ctx->fw00, ctx->fw11, ctx->fw22,
 			ctx->val, ctx->gvec, ctx->hess,
