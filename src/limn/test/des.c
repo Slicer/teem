@@ -57,7 +57,7 @@ main(int argc, char *argv[]) {
   win->file = fopen("out.ps", "w");
   win->scale = 200;
 
-  obj = limnObjNew(AIR_TRUE);
+  obj = limnObjNew(256, AIR_TRUE);
   printf("hello 0\n");
   limnObjPolarSphereAdd(obj, 2, 100, 50);
   printf("hello 1\n");

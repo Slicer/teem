@@ -18,27 +18,25 @@
 
 #include "limn.h"
 
-#define LIMN_INCR 50
-
 limnObj *
-limnObjNew(int edges) {
+limnObjNew(int incr, int edges) {
   limnObj *obj;
 
   obj = (limnObj *)calloc(1, sizeof(limnObj));
 
   /* create all various airArrays */
   obj->pA = airArrayNew((void**)&(obj->p), NULL, 
-			sizeof(limnPoint), LIMN_INCR);
+			sizeof(limnPoint), incr);
   obj->vA = airArrayNew((void**)&(obj->v), NULL,
-			sizeof(int), LIMN_INCR);
+			sizeof(int), incr);
   obj->eA = airArrayNew((void**)&(obj->e), NULL,
-			sizeof(limnEdge), LIMN_INCR);
+			sizeof(limnEdge), incr);
   obj->fA = airArrayNew((void**)&(obj->f), NULL,
-			sizeof(limnFace), LIMN_INCR);
+			sizeof(limnFace), incr);
   obj->rA = airArrayNew((void**)&(obj->r), NULL,
-			sizeof(limnPart), LIMN_INCR);
+			sizeof(limnPart), incr);
   obj->sA = airArrayNew((void**)&(obj->s), NULL,
-			sizeof(limnSP), LIMN_INCR);
+			sizeof(limnSP), incr);
   obj->rCurr = NULL;
 
   /* initialize three sp's, for points, edges, and faces */
@@ -73,6 +71,7 @@ limnObjPartBegin(limnObj *obj) {
   r->eBase = obj->eA->len;  r->eNum = 0;
   r->pBase = obj->pA->len;  r->pNum = 0;
   r->origIdx = rBase;
+  ELL_4V_SET(r->rgba, 255, 255, 255, 255);
   obj->rCurr = r;
 
   return rBase;

@@ -91,7 +91,7 @@ typedef struct limnWin_t {
   limnOptsPS ps;
   int device;
   float scale, bbox[4];
-  int zFlip;
+  int yFlip;
   FILE *file;
 } limnWin;
 
@@ -186,6 +186,7 @@ typedef struct limnPart_t {
   float z;           /* assuming that the occlusion graph between parts is
 			acyclic, one depth value is good enough for
 			painter's algorithm ordering of drawing */
+  unsigned char rgba[4];
 } limnPart;
 
 /*
@@ -231,25 +232,29 @@ typedef struct limnObj_t {
 } limnObj;
 
 /* qn.c */
-extern void limnQN16toV(float *vec, unsigned short qn, 
-			int zeroZero, int doNorm);
+extern float *limnQN16toV(float *vec, unsigned short qn, 
+			  int zeroZero, int doNorm);
 extern unsigned short limnQNVto16(float *vec, int zeroZero);
-extern void limnQN16PB1toV(float *vec, unsigned short qn, int doNorm);
+extern float *limnQN16PB1toV(float *vec, unsigned short qn, int doNorm);
 extern unsigned short limnQNVto16PB1(float *vec);
-extern void limnQN15toV(float *vec, unsigned short qn, int doNorm);
+extern float *limnQN15toV(float *vec, unsigned short qn, int doNorm);
 extern unsigned short limnQNVto15(float *vec);
 
 /* light.c */
-typedef void (*limnEnvMapCB)(unsigned char rgb[3], float vec[3]);
-extern int limnEnvMapFill(Nrrd *nout, limnEnvMapCB cb, int qnMethod);
-extern int limnLightUpdate(limnLight *lit, limnCam *cam);
+typedef void (*limnEnvMapCB)(float rgb[3], float vec[3], void *data);
+extern int limnEnvMapFill(Nrrd *envMap, limnEnvMapCB cb, 
+			  void *data, int qnMethod);
 extern int limnLightSet(limnLight *lit, int vsp,
 			float r, float g, float b,
 			float x, float y, float z);
 extern int limnLightSetAmbient(limnLight *lit, float r, float g, float b);
 extern int limnLightToggle(limnLight *lit, int idx, int on);
+extern void limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit);
+extern int limnLightUpdate(limnLight *lit, limnCam *cam);
 
 /* methods.c */
+extern limnLight *limnLightNew(void);
+extern limnLight *limnLightNix(limnLight *);
 extern limnCam *limnCamNew(void);
 extern limnCam *limnCamNix(limnCam *cam);
 extern limnWin *limnWinNew(int device);
@@ -259,7 +264,7 @@ extern limnWin *limnWinNix(limnWin *win);
 extern int limnCamUpdate(limnCam *cam);
 
 /* obj.c */
-extern limnObj *limnObjNew(int edges);
+extern limnObj *limnObjNew(int incr, int edges);
 extern limnObj *limnObjNuke(limnObj *obj);
 extern int limnObjPointAdd(limnObj *obj, int sp, float x, float y, float z);
 extern int limnObjFaceAdd(limnObj *obj, int sp, int numVert, int *vert);
@@ -285,7 +290,8 @@ extern int limnObjSpaceTransform(limnObj *obj, limnCam *cam, limnWin *win,
 extern int limnObjPartTransform(limnObj *obj, int ri, float tx[16]);
 
 /* render.c */
-extern int limnObjPSRender(limnObj *obj, limnCam *cam, limnWin *win);
+extern int limnObjPSRender(limnObj *obj, limnCam *cam, 
+			   Nrrd *envMap, limnWin *win);
 
 
 #ifdef __cplusplus

@@ -44,7 +44,15 @@ _limnPSPreamble(limnObj *obj, limnCam *cam, limnWin *win) {
   fprintf(win->file, "1 setlinejoin\n");
   fprintf(win->file, "1 setlinecap\n");
   fprintf(win->file, "5 setlinewidth\n");
-
+  fprintf(win->file, "/M {moveto} bind def\n");
+  fprintf(win->file, "/L {lineto} bind def\n");
+  fprintf(win->file, "/W {setlinewidth} bind def\n");
+  fprintf(win->file, "/F {fill} bind def\n");
+  fprintf(win->file, "/S {stroke} bind def\n");
+  fprintf(win->file, "/CP {closepath} bind def\n");
+  fprintf(win->file, "/RGB {setrgbcolor} bind def\n");
+  fprintf(win->file, "/Gr {setgray} bind def\n");
+  fprintf(win->file, "\n");
 }
 
 void
@@ -52,83 +60,109 @@ _limnPSEpilogue(limnObj *obj, limnCam *cam, limnWin *win) {
 
   fprintf(win->file, "grestore\n");
   fprintf(win->file, "grestore\n");
-  fprintf(win->file, "showpage\n");
+  /* fprintf(win->file, "showpage\n"); */
   fprintf(win->file, "%%%%Trailer\n");
 }
 
 void
-_limnPSDrawFace(limnObj *obj, limnFace *f, 
+_limnPSDrawFace(limnObj *obj, limnPart *r, limnFace *f, 
 		limnCam *cam, Nrrd *nmap, limnWin *win) {
   int vi;
   limnPoint *p;
   unsigned short qn;
-  float *map;
-  
+  float *map, R, G, B;
+
   qn = limnQNVto16(f->wn, AIR_FALSE);
   map = nmap->data;
   for (vi=0; vi<f->vNum; vi++) {
     p = obj->p + obj->v[vi + f->vBase];
     fprintf(win->file, "%g %g %s\n", 
-	    p->d[0], p->d[1], vi ? "lineto" : "moveto");
+	    p->d[0], p->d[1], vi ? "L" : "M");
   }
-  fprintf(win->file, "closepath %g %g %g setrgbcolor fill\n",
-	  map[0 + 3*qn], map[1 + 3*qn], map[2 + 3*qn]);
+  R = r->rgba[0]/255.0;
+  G = r->rgba[1]/255.0;
+  B = r->rgba[2]/255.0;
+  R *= map[0 + 3*qn];
+  G *= map[1 + 3*qn];
+  B *= map[2 + 3*qn];
+  if (R == G && G == B) {
+    fprintf(win->file, "CP %g Gr F\n", R);
+  }
+  else {
+    fprintf(win->file, "CP %g %g %g RGB F\n", R, G, B);
+  }
 }
 
 void
-_limnPSDrawEdge(limnObj *obj, limnEdge *e, 
+_limnPSDrawEdge(limnObj *obj, limnPart *r, limnEdge *e, 
 		limnCam *cam, limnWin *win) {
-  
+  static float width = 0;
+  limnPoint *p0, *p1;
+
   if (win->ps.edgeWidth[e->visib]) {
-    fprintf(win->file, "%g %g moveto\n", 
-	    obj->p[e->v0].d[0], obj->p[e->v0].d[1]);
-    fprintf(win->file, "%g %g lineto %g setlinewidth stroke\n",
-	    obj->p[e->v1].d[0], obj->p[e->v1].d[1],
-	    win->ps.edgeWidth[e->visib]);
+    p0 = obj->p + e->v0;
+    p1 = obj->p + e->v1;
+    fprintf(win->file, "%g %g M ", p0->d[0], p0->d[1]);
+    fprintf(win->file, "%g %g L ", p1->d[0], p1->d[1]);
+    if (width != win->ps.edgeWidth[e->visib]) {
+      fprintf(win->file, "%g W ", win->ps.edgeWidth[e->visib]);
+      width = win->ps.edgeWidth[e->visib];
+    }
+    fprintf(win->file, "S\n");
   }
 }
 
 int
 limnObjPSRender(limnObj *obj, limnCam *cam, Nrrd *map, limnWin *win) {
-  int vis0, vis1;
+  int vis0, vis1, inside;
   float angle;
   limnFace *f, *f0, *f1; int fi;
   limnEdge *e; int ei;
   limnPart *r; int ri;
+  limnPoint *p; int pi;
   
   _limnPSPreamble(obj, cam, win);
 
   for (ri=0; ri<obj->rA->len; ri++) {
     r = &(obj->r[ri]);
 
-    fprintf(win->file, "\n%% faces for part %d (%d)\n\n", ri, r->origIdx);
-    for (fi=0; fi<r->fNum; fi++) {
-      f = &(obj->f[r->fBase + fi]);
-      f->visib = f->sn[2] < 0;
-      if (f->visib)
-	_limnPSDrawFace(obj, f, cam, map, win);
+    inside = 0;
+    for (pi=0; pi<r->pNum; pi++) {
+      p = &(obj->p[r->pBase + pi]);
+      inside |= (AIR_INSIDE(win->bbox[0], p->d[0], win->bbox[2]) &&
+		 AIR_INSIDE(win->bbox[1], p->d[1], win->bbox[3]));
+      if (inside)
+	break;
     }
-
-    fprintf(win->file, "0 setgray\n");
-
-    fprintf(win->file, "%% ...... edges ......\n");
-    for (ei=0; ei<r->eNum; ei++) {
-      e = &(obj->e[r->eBase + ei]);
-      f0 = &(obj->f[e->f0]);
-      f1 = &(obj->f[e->f1]);
-      vis0 = f0->visib;
-      vis1 = f1->visib;
-      angle = 180/M_PI*acos(ELL_3V_DOT(f0->wn, f1->wn));
-      if (vis0 && vis1) {
-	e->visib = 3 + (angle > win->ps.creaseAngle);
+    
+    if (inside) {
+      for (fi=0; fi<r->fNum; fi++) {
+	f = &(obj->f[r->fBase + fi]);
+	f->visib = f->sn[2] < 0;
+	if (f->visib)
+	  _limnPSDrawFace(obj, r, f, cam, map, win);
       }
-      else if (!!vis0 ^ !!vis1) {
-	e->visib = 2;
+      
+      fprintf(win->file, "0 setgray\n");
+      
+      for (ei=0; ei<r->eNum; ei++) {
+	e = &(obj->e[r->eBase + ei]);
+	f0 = &(obj->f[e->f0]);
+	f1 = &(obj->f[e->f1]);
+	vis0 = f0->visib;
+	vis1 = f1->visib;
+	angle = 180/M_PI*acos(ELL_3V_DOT(f0->wn, f1->wn));
+	if (vis0 && vis1) {
+	  e->visib = 3 + (angle > win->ps.creaseAngle);
+	}
+	else if (!!vis0 ^ !!vis1) {
+	  e->visib = 2;
+	}
+	else {
+	  e->visib = 1 - (angle > win->ps.creaseAngle);
+	}
+	_limnPSDrawEdge(obj, r, e, cam, win);
       }
-      else {
-	e->visib = 1 - (angle > win->ps.creaseAngle);
-      }
-      _limnPSDrawEdge(obj, e, cam, win);
     }
   }
 
