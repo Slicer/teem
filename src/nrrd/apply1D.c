@@ -20,7 +20,7 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-/* int _VV = 0;*/
+/* int _VV = 0; */
 
 /*
 ** learned: even when using doubles, because of limited floating point
@@ -214,10 +214,17 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
 **
 ** we don't need a typeOut arg because nout has already been allocated
 ** as some specific type; we'll look at that.
+**
+** NOTE: non-existant values get passed through regular maps and luts
+** "unchanged".  However, if the output type is integral, the results
+** are probaby undefined.  HEY: there is currently no warning message
+** or error handling based on nrrdStateDisallowIntegerNonExist, but
+** there really should be.
 */
 int
 _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, 
 			const Nrrd *nmap, int ramps, int rescale) {
+  /* char me[]="_nrrdApply1DLutOrRegMap"; */
   char *inData, *outData, *mapData, *entData0, *entData1;
   size_t N, I;
   double (*inLoad)(const void *v), (*mapLup)(const void *v, size_t I),
@@ -244,14 +251,11 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
   outSize = entLen*nrrdElementSize(nout); /* size of entry in output */
   entSize = entLen*nrrdElementSize(nmap); /* size of entry in map */
 
-  /* In below, we do quantize-then-clamp, because clamp-then-quantize
-     won't correctly handle non-existant values */
   N = nrrdElementNumber(nin);       /* the number of values to be mapped */
-  /* _VV = 0; */
+  /* _VV = 1; */
   if (ramps) {
     /* regular map */
     for (I=0; I<N; I++) {
-      /* _VV = 0*(I > 73600); */
       /* if (_VV && !(I % 100)) fprintf(stderr, "I = %d\n", (int)I); */
       val = inLoad(inData);
       /* if (_VV) fprintf(stderr, "##%s: val = \na% 31.15f --> ", me, val); */
@@ -259,23 +263,30 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
 	val = AIR_AFFINE(range->min, val, range->max, domMin, domMax);
 	/* if (_VV) fprintf(stderr, "\nb% 31.15f --> ", val); */
       }
-      /* if (_VV) fprintf(stderr, "\nc% 31.15f --> ", val); */
-      val = AIR_CLAMP(domMin, val, domMax);
-      mapIdxFrac = AIR_AFFINE(domMin, val, domMax, 0, mapLen-1);
-      /* if (_VV) fprintf(stderr, "mapIdxFrac = \nd% 31.15f --> ",
-	 mapIdxFrac); */
-      mapIdx = mapIdxFrac;
-      mapIdx -= mapIdx == mapLen-1;
-      mapIdxFrac -= mapIdx;
-      /* if (_VV) fprintf(stderr, "(%d,\ne% 31.15f) --> ", mapIdx,
-	 mapIdxFrac); */
-      entData0 = mapData + mapIdx*entSize;
-      entData1 = mapData + (mapIdx+1)*entSize;
-      for (i=0; i<entLen; i++) {
-	val = ((1-mapIdxFrac)*mapLup(entData0, i) + 
-	       mapIdxFrac*mapLup(entData1, i));
-	outInsert(outData, i, val);
-	/* if (_VV) fprintf(stderr, "\nf% 31.15f\n", val); */
+      /* if (_VV) fprintf(stderr, "\nc% 31.15f --> clamp(%g,%g), %d --> ",
+	 val, domMin, domMax, mapLen); */
+      if (AIR_EXISTS(val)) {
+	val = AIR_CLAMP(domMin, val, domMax);
+	mapIdxFrac = AIR_AFFINE(domMin, val, domMax, 0, mapLen-1);
+	/* if (_VV) fprintf(stderr, "mapIdxFrac = \nd% 31.15f --> ",
+	   mapIdxFrac); */
+	mapIdx = mapIdxFrac;
+	mapIdx -= mapIdx == mapLen-1;
+	mapIdxFrac -= mapIdx;
+	/* if (_VV) fprintf(stderr, "(%d,\ne% 31.15f) --> ", mapIdx,
+	   mapIdxFrac); */
+	entData0 = mapData + mapIdx*entSize;
+	entData1 = mapData + (mapIdx+1)*entSize;
+	for (i=0; i<entLen; i++) {
+	  val = ((1-mapIdxFrac)*mapLup(entData0, i) + 
+		 mapIdxFrac*mapLup(entData1, i));
+	  outInsert(outData, i, val);
+	  /* if (_VV) fprintf(stderr, "\nf% 31.15f\n", val); */
+	}
+      } else {
+	for (i=0; i<entLen; i++) {
+	  outInsert(outData, i, val);
+	}
       }
       inData += inSize;
       outData += outSize;
@@ -287,11 +298,17 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
       if (rescale) {
 	val = AIR_AFFINE(range->min, val, range->max, domMin, domMax);
       }
-      AIR_INDEX(domMin, val, domMax, mapLen, mapIdx);
-      mapIdx = AIR_CLAMP(0, mapIdx, mapLen-1);
-      entData0 = mapData + mapIdx*entSize;
-      for (i=0; i<entLen; i++) {
-	outInsert(outData, i, mapLup(entData0, i));
+      if (AIR_EXISTS(val)) {
+	AIR_INDEX(domMin, val, domMax, mapLen, mapIdx);
+	mapIdx = AIR_CLAMP(0, mapIdx, mapLen-1);
+	entData0 = mapData + mapIdx*entSize;
+	for (i=0; i<entLen; i++) {
+	  outInsert(outData, i, mapLup(entData0, i));
+	}
+      } else {
+	for (i=0; i<entLen; i++) {
+	  outInsert(outData, i, val);
+	}
       }
       inData += inSize;
       outData += outSize;
