@@ -315,7 +315,8 @@ gageParmSet (gageContext *ctx, int which, gage_t val) {
     break;
   case gageParmDefaultCenter:
     ctx->parm.defaultCenter = val;
-    /* no flag to set, simply affects future calls to gageProbe() */
+    /* no flag to set, I guess, although the value here effects the 
+       action of _gageShapeSet when called by gagePerVolumeAttach ... */
     break;
   default:
     fprintf(stderr, "\n%s: which = %d not valid!!\n\n", me, which);

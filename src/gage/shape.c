@@ -140,7 +140,7 @@ _gageShapeSet (gageContext *ctx, gageShape *shape, Nrrd *nin, int baseDim) {
   sz = ax[2]->size;
   minsize = (nrrdCenterCell == shape->center ? 1 : 2);
   if (!(sx >= minsize && sy >= minsize && sz >= minsize )) {
-    sprintf(err, "%s: sizes (%d,%d,%d) must all be greater than %d "
+    sprintf(err, "%s: sizes (%d,%d,%d) must all be >= %d "
 	    "(min number of %s-centered samples)", me, 
 	    sx, sy, sz, minsize, airEnumStr(nrrdCenter, shape->center));
     biffAdd(GAGE, err); gageShapeReset(shape);
