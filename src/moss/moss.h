@@ -100,21 +100,21 @@ extern moss_export hestCB *mossHestTransform;
 extern moss_export hestCB *mossHestOrigin;
 
 /* xform.c */
-extern void mossMatPrint(FILE *f, double mat[6]);
-extern double *mossMatPreMultiply(double mat[6], double x[6]);
-extern double *mossMatPostMultiply (double mat[6], double x[6]);
-extern double *mossMatInvert(double inv[6], double mat[6]);
-extern double *mossMatIdentitySet(double mat[6]);
-extern double *mossMatTranslateSet(double mat[6], double tx, double ty);
-extern double *mossMatRotateSet(double mat[6], double angle);
-extern double *mossMatFlipSet(double mat[6], double angle);
-extern double *mossMatShearSet(double mat[6], double angleFixed,
+extern void mossMatPrint(FILE *f, double *mat);
+extern double *mossMatPreMultiply(double *mat, double *x);
+extern double *mossMatPostMultiply (double *mat, double *x);
+extern double *mossMatInvert(double *inv, double *mat);
+extern double *mossMatIdentitySet(double *mat);
+extern double *mossMatTranslateSet(double *mat, double tx, double ty);
+extern double *mossMatRotateSet(double *mat, double angle);
+extern double *mossMatFlipSet(double *mat, double angle);
+extern double *mossMatShearSet(double *mat, double angleFixed,
 			       double amount);
-extern double *mossMatScaleSet(double mat[6], double sx, double sy);
-extern void mossMatApply(double *ox, double *oy, double mat[6],
+extern double *mossMatScaleSet(double *mat, double sx, double sy);
+extern void mossMatApply(double *ox, double *oy, double *mat,
 			 double ix, double iy);
 extern int mossLinearTransform(Nrrd *nout, Nrrd *nin, float *bg,
-			       double mat[6],
+			       double *mat,
 			       mossSampler *msp,
 			       double xMin, double xMax,
 			       double yMin, double yMax,
