@@ -39,12 +39,12 @@ main(int argc, char *argv[]) {
   bStr = argv[1];
   pStr = argv[2];
   oStr = argv[3];
-  if (nrrdLoad(b=nrrdNew(), bStr)) {
+  if (nrrdLoad(b=nrrdNew(), bStr, NULL)) {
     fprintf(stderr, "%s: trouble reading %s:\n%s\n", me, bStr, biffGet(NRRD));
     usage();
   }
 
-  if (nrrdLoad(p=nrrdNew(), pStr)) {
+  if (nrrdLoad(p=nrrdNew(), pStr, NULL)) {
     fprintf(stderr, "%s: trouble reading %s:\n%s\n", me, pStr, biffGet(NRRD));
     usage();
   }

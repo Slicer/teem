@@ -37,7 +37,7 @@ float *
 _baneTRexRead(char *fname) {
   char me[]="_baneTRexRead";
 
-  if (nrrdLoad(baneNpos=nrrdNew(), fname)) {
+  if (nrrdLoad(baneNpos=nrrdNew(), fname, NULL)) {
     fprintf(stderr, "%s: !!! trouble reading \"%s\":\n%s\n", me, 
 	    fname, biffGet(NRRD));
     return NULL;

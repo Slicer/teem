@@ -45,7 +45,7 @@ _nrrdHestNrrdParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     mop = airMopNew();
     *nrrdP = nrrdNew();
     airMopAdd(mop, *nrrdP, (airMopper)nrrdNuke, airMopOnError);
-    if (nrrdLoad(*nrrdP, str)) {
+    if (nrrdLoad(*nrrdP, str, NULL)) {
       airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
       strncpy(err, nerr, AIR_STRLEN_HUGE-1);
       airMopError(mop);
@@ -183,7 +183,7 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
      else. */
   
   nrrd = nrrdNew();
-  ret = nrrdLoad(nrrd, str);
+  ret = nrrdLoad(nrrd, str, NULL);
   if (!ret) {
     /* first attempt at nrrdLoad() was SUCCESSFUL */
     nrrdIterSetNrrd(*iterP, nrrd);
@@ -212,7 +212,7 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
       } else {
 	/* it doesn't look like a number, but the fopen failed, so
 	   we'll let it fail again and pass back the error messages */
-	if (nrrdLoad(nrrd = nrrdNew(), str)) {
+	if (nrrdLoad(nrrd = nrrdNew(), str, NULL)) {
 	  nerr = biffGetDone(NRRD);
 	  strncpy(err, nerr, AIR_STRLEN_HUGE-1);
 	  airMopError(mop); return 1;

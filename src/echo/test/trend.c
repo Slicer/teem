@@ -81,7 +81,7 @@ makeSceneAntialias(limnCam *cam, echoRTParm *parm,
   parm->maxRecDepth = 10;
   parm->doShadows = AIR_TRUE;
 
-  nrrdLoad(ntext = nrrdNew(), "chirp.nrrd");
+  nrrdLoad(ntext = nrrdNew(), "chirp.nrrd", NULL);
   rect = echoObjectNew(echoRectangle);
   echoRectangleSet(rect,
 			 -3, -3, 0,
@@ -179,7 +179,7 @@ makeSceneGlass(limnCam *cam, echoRTParm *parm, echoObject **sceneP) {
 		     1.5, 0.0, 0.0);
   echoObjectAdd(scene, cube);
 
-  nrrdLoad(ntext=nrrdNew(), "psq.nrrd");
+  nrrdLoad(ntext=nrrdNew(), "psq.nrrd", NULL);
   
   rect = echoObjectNew(echoRectangle);
   printf("rect = %p\n", rect);
@@ -240,7 +240,7 @@ makeSceneGlass2(limnCam *cam, echoRTParm *parm, echoObject **sceneP) {
 		     1.33333, 0.0, 0.0);
   echoObjectAdd(scene, cube);
 
-  nrrdLoad(ntext=nrrdNew(), "check.nrrd");
+  nrrdLoad(ntext=nrrdNew(), "check.nrrd", NULL);
   
   rect = echoObjectNew(echoRectangle);
   printf("rect = %p\n", rect);
@@ -420,7 +420,7 @@ makeSceneGlassTest(limnCam *cam, echoRTParm *parm, echoScene *scene) {
 		   2, 0, 0);
   echoColorSet(rect, 1.0, 1.0, 1.0, 1.0);
   echoMatterPhongSet(scene, rect, 1.0, 0.0, 0.0, 40);
-  nrrdLoad(ntext=nrrdNew(), "pot.png");
+  nrrdLoad(ntext=nrrdNew(), "pot.png", NULL);
   echoMatterTextureSet(scene, rect, ntext);
   echoObjectAdd(scene, rect);
 
@@ -538,7 +538,7 @@ makeSceneTexture(limnCam *cam, echoRTParm *parm, echoScene *scene) {
   echoMatterPhongSet(scene, rect, 0.1, 1, 0.9, 50);
   echoObjectAdd(scene, rect);
 
-  nrrdLoad(ntext=nrrdNew(), "tmp.png");
+  nrrdLoad(ntext=nrrdNew(), "tmp.png", NULL);
   echoMatterTextureSet(scene, rect, ntext);
 
   sphere = echoObjectNew(scene, echoTypeSphere);
@@ -592,7 +592,7 @@ makeSceneDOF(limnCam *cam, echoRTParm *parm, echoScene *scene) {
   parm->maxRecDepth = 10;
   parm->doShadows = AIR_TRUE;
 
-  nrrdLoad(ntext = nrrdNew(), "tmp.png");
+  nrrdLoad(ntext = nrrdNew(), "tmp.png", NULL);
 
   rect = echoObjectNew(scene, echoTypeRectangle);
   echoRectangleSet(rect,
@@ -726,7 +726,7 @@ makeSceneSimple(limnCam *cam, echoRTParm *parm, echoScene *scene) {
 		   0, 10, 0);
   echoColorSet(rect, 1, 1, 1, 1.0);
   echoMatterPhongSet(scene, rect, 0.1, 0.5, 0.6, 50);
-  nrrdLoad(ntext=nrrdNew(), "pot.png");
+  nrrdLoad(ntext=nrrdNew(), "pot.png", NULL);
   echoMatterTextureSet(scene, rect, ntext);
   echoObjectAdd(scene, rect);
 

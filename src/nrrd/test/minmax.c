@@ -38,7 +38,7 @@ main(int argc, char **argv) {
 
   nrrdStateVerboseIO = 10;
   
-  if (nrrdLoad(nrrd=nrrdNew(), argv[1])) {
+  if (nrrdLoad(nrrd=nrrdNew(), argv[1], NULL)) {
     fprintf(stderr, "%s: trouble loading \"%s\":\n%s", 
 	    me, argv[1], err = biffGet(NRRD));
     free(err);

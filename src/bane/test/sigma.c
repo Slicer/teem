@@ -25,7 +25,7 @@ main(int argc, char *argv[]) {
   Nrrd *info;
   float sigma;
   
-  if (nrrdLoad(info=nrrdNew(), argv[1])) {
+  if (nrrdLoad(info=nrrdNew(), argv[1], NULL)) {
     fprintf(stderr, "trouble:\n%s\n", biffGet(BANE));
   }
   if (baneSigmaCalc(&sigma, info)) {

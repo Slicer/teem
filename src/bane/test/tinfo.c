@@ -42,7 +42,7 @@ main(int argc, char *argv[]) {
   dStr = argv[2];
   oStr = argv[3];
 
-  if (nrrdLoad(hvol=nrrdNew(), iStr)) {
+  if (nrrdLoad(hvol=nrrdNew(), iStr, NULL)) {
     fprintf(stderr, "%s: trouble reading hvol:\n%s\n", me, biffGet(NRRD));
     usage();
   }

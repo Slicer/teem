@@ -135,7 +135,7 @@ baneGkmsParseBEF(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     /* to tell gkms opac that this came from four floats */
     (*nrrdP)->ptr = *nrrdP;
   } else {
-    if (nrrdLoad(*nrrdP, str)) {
+    if (nrrdLoad(*nrrdP, str, NULL)) {
       airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
       sprintf(mesg, "%s: couldn't parse \"%s\" as four-parameter BEF or "
 	      "as a nrrd filename\n", me, str);

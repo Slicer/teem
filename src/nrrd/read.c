@@ -1717,7 +1717,7 @@ nrrdDirBaseSet (NrrdIO *io, const char *name) {
 ** 
 */
 int
-nrrdLoad (Nrrd *nrrd, const char *filename) {
+nrrdLoad (Nrrd *nrrd, const char *filename, NrrdIO *_io) {
   char me[]="nrrdLoad", err[AIR_STRLEN_MED];
   NrrdIO *io;
   FILE *file;
@@ -1728,13 +1728,17 @@ nrrdLoad (Nrrd *nrrd, const char *filename) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  io = nrrdIONew();
-  if (!io) {
-    sprintf(err, "%s: couldn't alloc I/O struct", me);
-    biffAdd(NRRD, err); return 1;
-  }
   mop = airMopNew();
-  airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
+  if (_io) {
+    io = _io;
+  } else {
+    io = nrrdIONew();
+    if (!io) {
+      sprintf(err, "%s: couldn't alloc I/O struct", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
+  }
 
   /* we save the directory of the filename given to us so
      that if it turns out that its just a nhdr file, with

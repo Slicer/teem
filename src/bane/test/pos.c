@@ -51,7 +51,7 @@ main(int argc, char *argv[]) {
     usage();
   }
 
-  if (nrrdLoad(info=nrrdNew(), iStr)) {
+  if (nrrdLoad(info=nrrdNew(), iStr, NULL)) {
     fprintf(stderr, "%s: trouble reading \"%s\" :\n%s\n", me, 
 	    iStr, biffGet(NRRD));
     exit(1);

@@ -33,7 +33,7 @@ main(int argc, char *argv[]) {
   }
   ninName = argv[1];
   noutName = argv[2];
-  if (nrrdLoad(nin=nrrdNew(), ninName)) {
+  if (nrrdLoad(nin=nrrdNew(), ninName, NULL)) {
     fprintf(stderr, "%s: couldn't open nrrd \"%s\":\n%s", me, ninName,
 	    err = biffGetDone(NRRD));
     free(err); exit(1);

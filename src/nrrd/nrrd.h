@@ -497,7 +497,7 @@ extern nrrd_export int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *,
 extern nrrd_export int (*nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *);
 extern int nrrdLineSkip(NrrdIO *io);
 extern int nrrdByteSkip(Nrrd *nrrd, NrrdIO *io);
-extern int nrrdLoad(Nrrd *nrrd, const char *filename);
+extern int nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIO *io);
 extern int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *io);
 extern void nrrdDirBaseSet(NrrdIO *io, const char *name);
 /* write.c */
