@@ -140,7 +140,7 @@ tenEMatrixCalc(Nrrd *nemat, Nrrd *_nbmat, int knownB0) {
 **
 ** output:
 ** ten[0]..ten[6] will be the confidence value followed by the tensor
-** -------------- !IF knownB0 -------------------------
+** -------------- IF !knownB0 -------------------------
 ** input:
 ** dwi[0]..dwi[DD-1] are the DD DWI values,
 ** emat is the DD-by-7 estimation matrix.  The 7th row is for estimating
@@ -159,6 +159,10 @@ tenEstimateLinearSingle(float *ten, float *B0P, float *dwi, double *emat,
   int i, j;
   
   if (knownB0) {
+    if (B0P) {
+      /* we save this as a courtesy */
+      *B0P = AIR_MAX(dwi[0], 1);
+    }
     logB0 = log(AIR_MAX(dwi[0], 1));
     mean = 0;
     for (i=1; i<DD; i++) {
@@ -196,8 +200,9 @@ tenEstimateLinearSingle(float *ten, float *B0P, float *dwi, double *emat,
       if (j < 6) {
 	ten[j+1] = tmp;
       } else {
+	/* we're on seventh row, for finding B0 */
 	if (B0P) {
-	  *B0P = tmp;
+	  *B0P = exp(b*tmp);
 	}
       }
     }
@@ -265,31 +270,18 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 		    Nrrd *ndwi, Nrrd *_nbmat, int knownB0,
 		    float thresh, float soft, float b) {
   char me[]="tenEstimateLinear4D", err[AIR_STRLEN_MED];
-  Nrrd *nemat, *ncrop, *nhist;
+  Nrrd *nemat, *nbmat, *ncrop, *nhist;
   airArray *mop;
-  int E, DD, d, II, sx, sy, sz, cmin[4], cmax[4], amap[4] = {-1,1,2,3};
+  int E, DD, d, II, sx, sy, sz, cmin[4], cmax[4], amap[4];
   float *ten, dwi1[_TEN_MAX_DWI_NUM], *terr=NULL, 
-    *B0=NULL, (*lup)(const void *, size_t);
-  double *emat;
+    _B0, *B0, (*lup)(const void *, size_t);
+  double *emat, *bmat;
   NrrdRange *range;
-
-  /*
-  HEY: uncomment with tenSimulate stuff is working for unknown B0 case
-  Nrrd *nbmat;
-  double *bmat;
-  const char *bk;
   float dwi2[_TEN_MAX_DWI_NUM], te, d1, d2;
-  */
 
   if (!(nten && ndwi && _nbmat)) {
-    /* nerrP can be NULL */
+    /* nerrP and _NB0P can be NULL */
     sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
-  }
-  if (!knownB0 && !nB0P) {
-    /* For the time being, this needless restriction helps simplify things */
-    sprintf(err, "%s: sorry, don't know (and hence will estimate) B=0 image, "
-	    "but didn't get a Nrrd* to put it in", me);
     biffAdd(TEN, err); return 1;
   }
   if (!( 4 == ndwi->dim && 7 <= ndwi->axis[0].size )) {
@@ -317,11 +309,13 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   }
   
   mop = airMopNew();
-  /* HEY, right now, nbmat is not used for anything (not tenSimulate stuff)
-     because tenSimulate currently can't handle the unknown B0 case */
-  /* airMopAdd(mop, nbmat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways); */
+  airMopAdd(mop, nbmat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  if (nrrdConvert(nbmat, _nbmat, nrrdTypeDouble)) {
+    sprintf(err, "%s: trouble converting to doubles", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
   airMopAdd(mop, nemat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  if (tenEMatrixCalc(nemat, _nbmat, knownB0)) {
+  if (tenEMatrixCalc(nemat, nbmat, knownB0)) {
     sprintf(err, "%s: trouble computing estimation matrix", me);
     biffAdd(TEN, err); return 1;
   }
@@ -346,7 +340,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
       sprintf(err, "%s: trouble histograming to find DW threshold", me);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
-    if (_tenFindValley(&thresh, nhist, 0.85)) {
+    if (_tenFindValley(&thresh, nhist, 0.75, AIR_FALSE)) {
       sprintf(err, "%s: problem finding DW histogram valley", me);
       biffAdd(TEN, err); airMopError(mop); return 1;
     }
@@ -357,12 +351,6 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     biffMove(TEN, err, NRRD); return 1;
   }
   if (nterrP) {
-
-    /* HEY HEY HEY HEY */
-    sprintf(err, "%s: sorry, this functionality currently disabled", me);
-    biffAdd(TEN, err); return 1;
-    /* HEY HEY HEY HEY */
-
     if (!(*nterrP)) {
       *nterrP = nrrdNew();
     }
@@ -385,8 +373,10 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     airMopAdd(mop, nB0P, (airMopper)airSetNull, airMopOnError);
     airMopAdd(mop, *nB0P, (airMopper)nrrdNuke, airMopOnError);
     B0 = (float*)((*nB0P)->data);
+  } else {
+    B0 = NULL;
   }
-  /* bmat = (double*)(nbmat->data); */
+  bmat = (double*)(nbmat->data);
   emat = (double*)(nemat->data);
   ten = (float*)(nten->data);
   lup = nrrdFLookup[ndwi->type];
@@ -397,26 +387,40 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
       if (tenVerbose)
 	fprintf(stderr, "%s: input dwi1[%d] = %g\n", me, d, dwi1[d]);
     }
-    tenEstimateLinearSingle(ten, B0, dwi1, emat, DD, knownB0, thresh, soft, b);
-    if (tenVerbose) 
+    tenEstimateLinearSingle(ten, &_B0,
+			    dwi1, emat, DD, knownB0, thresh, soft, b);
+    if (nB0P) {
+      *B0 = _B0;
+    }
+    if (tenVerbose) {
       fprintf(stderr, "%s: output ten = (%g) %g,%g,%g  %g,%g  %g\n", me,
 	      ten[0], ten[1], ten[2], ten[3], ten[4], ten[5], ten[6]);
+    }
     if (nterrP) {
-      /*
-      tenSimulateOne(dwi2, dwi1[0], ten, bmat, DD, b);
       te = 0;
-      for (d=0; d<DD; d++) {
-	d1 = AIR_MAX(dwi1[d], 1);
-	d2 = AIR_MAX(dwi2[d], 1);
-	te += (d1 - d2)*(d1 - d2);
-	if (tenVerbose)
-	  fprintf(stderr, "%s: dwi1,2[%d] = %g,%g --> %g\n",
-		  me, d, dwi1[d], dwi2[d], te);
+      if (knownB0) {
+	tenSimulateOne(dwi2, _B0, ten, bmat, DD, b);
+	for (d=1; d<DD; d++) {
+	  d1 = AIR_MAX(dwi1[d], 1);
+	  d2 = AIR_MAX(dwi2[d], 1);
+	  te += (d1 - d2)*(d1 - d2);
+	}
+	te /= (DD-1);
+      } else {
+	tenSimulateOne(dwi2, _B0, ten, bmat, DD+1, b);
+	for (d=0; d<DD; d++) {
+	  d1 = AIR_MAX(dwi1[d], 1);
+	  /* tenSimulateOne always puts the B0 in the beginning of
+	     the dwi vector, but in this case we didn't have it in
+	     the input dwi vecctor */
+	  d2 = AIR_MAX(dwi2[d+1], 1);
+	  te += (d1 - d2)*(d1 - d2);
+	}
+	te /= DD;
       }
       *terr = sqrt(te);
-      */
       terr += 1;
-    }
+    }  
     ten += 7;
     if (B0) {
       B0 += 1;
@@ -424,6 +428,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   }
   /* tenEigenvalueClamp(nten, nten, 0, AIR_NAN); */
 
+  ELL_4V_SET(amap, -1, 1, 2, 3);
   nrrdAxisInfoCopy(nten, ndwi, amap, NRRD_AXIS_INFO_NONE);
 
   airMopOkay(mop);
@@ -433,13 +438,20 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 /*
 ******** tenSimulateOne
 **
-** simulate a diffusion weighted measurement
+** given a tensor, simulate the set of diffusion weighted measurements
+** represented by the given B matrix
 **
+** NOTE: the mindset if this function is very much "knownB0==true":
+** B0 is required as an argument (and its always copied to dwi[0]),
+** and the given bmat is assumed to have DD-1 rows,
+**  so dwi[0] through dwi[DD-1] (DD values total) are set in the output.
 */
 void
-tenSimulateOne(float *dwi, float B0, float *ten,
-	       double *bmat, int DD, float b) {
-  double v[_TEN_MAX_DWI_NUM];
+tenSimulateOne(float *dwi,
+	       float B0, float *ten, double *bmat, int DD, float b) {
+  double vv;
+  /* this is how we multiply the off-diagonal entries by 2 */
+  double matwght[6] = {1, 2, 2, 1, 2, 1};
   int i, j;
   
   dwi[0] = B0;
@@ -448,13 +460,13 @@ tenSimulateOne(float *dwi, float B0, float *ten,
 	    ten[1], ten[2], ten[3], ten[4], ten[5], ten[6]);
   }
   for (i=0; i<DD-1; i++) {
-    v[i] = 0;
+    vv = 0;
     for (j=0; j<6; j++) {
-      v[i] += bmat[j + 6*i]*ten[j+1];
+      vv += matwght[j]*bmat[j + 6*i]*ten[j+1];
     }
-    dwi[i+1] = AIR_MAX(B0, 1)*exp(-b*v[i]);
+    dwi[i+1] = AIR_MAX(B0, 1)*exp(-b*vv);
     if (tenVerbose) {
-      fprintf(stderr, "v[%d] = %g --> dwi = %g\n", i, v[i], dwi[i+1]);
+      fprintf(stderr, "v[%d] = %g --> dwi = %g\n", i, vv, dwi[i+1]);
     }
   }
   
