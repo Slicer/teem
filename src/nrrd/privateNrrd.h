@@ -57,7 +57,7 @@ typedef union {
   unsigned int *UI;
   double *D;
   const void *P;
-  double (*V)[NRRD_DIM_MAX];
+  double (*V)[NRRD_SPACE_DIM_MAX];
 } _nrrdAxisInfoSetPtrs;
 
 typedef union {
@@ -66,7 +66,7 @@ typedef union {
   unsigned int *UI;
   double *D;
   void *P;
-  double (*V)[NRRD_DIM_MAX];
+  double (*V)[NRRD_SPACE_DIM_MAX];
 } _nrrdAxisInfoGetPtrs;
 
 /* keyvalue.c */

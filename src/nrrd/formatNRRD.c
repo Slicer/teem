@@ -148,9 +148,11 @@ nrrdIoStateDataFileIterNext(FILE **fileP, NrrdIoState *nio, int reading) {
       airMopError(mop); return 1;
     }
   } else {
+    /* data file is attached */
     *fileP = nio->headerFile;
   }
   
+  airMopOkay(mop);
   return 0;
 }
 
@@ -443,12 +445,14 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       fprintf(stderr, "done)\n");
     }
     /* ---------------- go to next data file */
-    if (nio->keepNrrdDataFileOpen) {
+    if (nio->keepNrrdDataFileOpen && _nrrdDataFNNumber(nio) == 1) {
       nio->dataFile = dataFile;
     } else {
-      dataFile = airFclose(dataFile);
-      data += valsPerPiece*nrrdElementSize(nrrd);
+      if (dataFile != nio->headerFile) {
+        dataFile = airFclose(dataFile);
+      }
     }
+    data += valsPerPiece*nrrdElementSize(nrrd);
     if (nrrdIoStateDataFileIterNext(&dataFile, nio, AIR_TRUE)) {
       if ((err = (char*)malloc(AIR_STRLEN_MED))) {
         sprintf(err, "%s: couldn't get the next datafile", me);
@@ -581,7 +585,9 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
         fprintf(stderr, "done)\n");
       }
       /* ---------------- go to next data file */
-      dataFile = airFclose(dataFile);
+      if (dataFile != nio->headerFile) {
+        dataFile = airFclose(dataFile);
+      }
       data += valsPerPiece*nrrdElementSize(nrrd);
       if (nrrdIoStateDataFileIterNext(&dataFile, nio, AIR_TRUE)) {
         sprintf(err, "%s: couldn't get the next datafile", me);

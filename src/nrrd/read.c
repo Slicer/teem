@@ -504,7 +504,8 @@ nrrdLoad (Nrrd *nrrd, const char *filename, NrrdIoState *nio) {
   }
   
   if (nrrdFormatNRRD == nio->format
-      && nio->keepNrrdDataFileOpen && file == nio->dataFile ) {
+      && nio->keepNrrdDataFileOpen
+      && file == nio->dataFile ) {
     /* we have to keep the datafile open.  If was attached, we can't
        close file, because that is the datafile.  If was detached,
        file != nio->dataFile, so we can close file.  */
