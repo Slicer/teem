@@ -343,10 +343,10 @@ nrrdNuke (Nrrd *nrrd) {
 int
 _nrrdSizeCheck (int dim, int *size, int useBiff) {
   char me[]="_nrrdSizeCheck", err[AIR_STRLEN_MED];
-  size_t num;
+  size_t num, pre;
   int d;
   
-  num = 1;
+  pre = num = 1;
   for (d=0; d<dim; d++) {
     if (!(size[d] > 0)) {
       sprintf(err, "%s: invalid size (%d) for axis %d (dim = %d)",
@@ -354,15 +354,12 @@ _nrrdSizeCheck (int dim, int *size, int useBiff) {
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
     num *= size[d];
-  }
-  /* see if num was overflowed */
-  for (d=0; d<dim; d++) {
-    num /= size[d];
-  }
-  if (1 != num) {
-    sprintf(err, "%s: total # of elements too large to be represented in "
-	    "type size_t, so too large for current architecture", me);
-    biffMaybeAdd(NRRD, err, useBiff); return 1;
+    if (num/size[d] != pre) {
+      sprintf(err, "%s: total # of elements too large to be represented in "
+	      "type size_t, so too large for current architecture", me);
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
+    }
+    pre *= size[d];
   }
   return 0;
 }
