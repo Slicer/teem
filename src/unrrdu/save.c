@@ -118,8 +118,8 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
       io->format = nrrdFormatNRRD;
     }
     nrrdDirBaseSet(io, out);
-    /* we know exactly what part of this function (since we know
-       airEndsWith()) run, so we could copy the code, but let's not */
+    /* we know exactly what part of this function will run (since we
+       know airEndsWith()), so we could copy the code, but let's not */
     _nrrdGuessFormat(io, out);
   }
 
@@ -130,3 +130,4 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
 }
 
 UNRRDU_CMD(save, INFO);
+
