@@ -33,15 +33,18 @@ char info[]="Generates volume datasets for the Simian volume renderer. "
 int saveall = AIR_TRUE;  /* can be used to save output of every stage */
 
 /*
-** This padding is to get axis[i]'s size >= sz[i].
-** This padding is only needed if the input volume is smaller along
-** any of the axes than the desired output volume.
+** This padding/resampling is to get axis[i]'s size >= sz[i], which
+** is only needed if the input volume is smaller along any of the axes
+** than the desired output volume.
 */
 int
-qbertPadStage1(Nrrd *nout, Nrrd *nin, int *sz) {
+qbertSizeUp(Nrrd *nout, Nrrd *nin, int *sz,
+	    NrrdKernelSpec *uk) {
   char me[]="qbertPadStage1", err[AIR_STRLEN_MED];
   int i, need, padMin[3], padMax[3];
+  NrrdResampleInfo *rsmpInfo;
 
+  need = 0;
   for (i=0; i<=2; i++) {
     need = sz[i] - nin->axis[i].size;
     fprintf(stderr, "%s: sz[%d] = %d -> need = %d --> ", 
@@ -69,7 +72,7 @@ qbertPadStage1(Nrrd *nout, Nrrd *nin, int *sz) {
 ** resampling to get axis[i]'s size down to exactly sz[i]
 */
 int
-qbertResample(Nrrd *nout, Nrrd *nin, int *sz,
+qbertSizeDown(Nrrd *nout, Nrrd *nin, int *sz,
 	      NrrdKernelSpec *dk) {
   char me[]="qbertResample", err[AIR_STRLEN_MED];
   NrrdResampleInfo *rsmpInfo;
@@ -120,32 +123,6 @@ qbertResample(Nrrd *nout, Nrrd *nin, int *sz,
   if (saveall) {
     fprintf(stderr, "%s: saving rsmp.nrrd\n", me);
     nrrdSave("rsmp.nrrd", nout, NULL);
-  }
-
-  return 0;
-}
-
-/*
-** padding to get axis[i]'s size to exactly sz[i]
-*/
-int
-qbertPadStage2(Nrrd *nout, Nrrd *nin, int *sz) {
-  char me[]="qbertPadStage2", err[AIR_STRLEN_MED];
-  int i, padMin[3], padMax[3];
-
-  for (i=0; i<=2; i++) {
-    padMin[i] = 0;
-    padMax[i] = sz[i] - 1;
-  }
-  fprintf(stderr, "%s: padding ... ", me); fflush(stderr);
-  if (nrrdPad(nout, nin, padMin, padMax, nrrdBoundaryPad, 0.0)) {
-    sprintf(err, "%s: trouble padding", me);
-    biffMove(QBERT, err, NRRD); return 1;
-  }
-  fprintf(stderr, "done\n");
-  if (saveall) {
-    fprintf(stderr, "%s: saving pad2.nrrd\n", me);
-    nrrdSave("pad2.nrrd", nout, NULL);
   }
 
   return 0;
@@ -409,11 +386,11 @@ main(int argc, char *argv[]) {
   char *me, *outS, *errS;
   Nrrd *nin, *npad, *nrsmp, *nvghF, *nvhist, *nghist, *nhhist, *nvgh;
   int i, sz[3], ups;
-  float perc[3];
-  double amin[4], amax[4], spacing[4], gmax, hmax, vrange[2];
-  NrrdKernelSpec *dk;
+  double amin[4], amax[4], spacing[4];
+  NrrdKernelSpec *dk, *uk;
   hestParm *hparm;
   hestOpt *hopt = NULL;
+  double inc[3*(1+BANE_INC_PARM_NUM)];
 
   me = argv[0];
   hparm = hestParmNew();
@@ -424,35 +401,33 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
 	     "input volume, in nrrd format",
 	     NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "s", "sx sy sz", airTypeInt, 3, 3, sz, NULL,
+  hestOptAdd(&hopt, "d", "dimX dimY dimZ", airTypeInt, 3, 3, sz, NULL,
 	     "dimensions of output volume");
   hestOptAdd(&hopt, "up", NULL, airTypeInt, 0, 0, &ups, NULL,
-	     "Instead of just padding axes up to the size given "
-	     "with \"-s\", do upsampling to artificially increase "
-	     "resolution.");
-  hestOptAdd(&hopt, "p", "pv pg ph", airTypeFloat, 3, 3, perc, "0.0 0.01 0.03",
-	     "percentiles along value, gradient, and 2nd derivative "
-	     "axes to EXCLUDE in the quantized 8-bit ranges. "
-	     "\"0 0 0\" will fit ALL values and derivatives into 8-bits, "
-	     "with no clamping whatsoever. \"0.0 0.1 0.2\" will fit all the "
-	     "values, but will clamp the extreme 0.1 percent of the "
-	     "gradient magnitude, and 0.2 percent in the 2nd derivative. "
-	     "Noisier datasets will require higher derivative exclusion "
-	     "values so as to best use the 8-bits on the significant "
-	     "range of derivative values.");
-  hestOptAdd(&hopt, "v", "vMin vMax", airTypeDouble, 2, 2, vrange, "nan nan",
-	     "instead of percentile-based inclusion determination of "
-	     "value range, use the range [vMin,\tvMax].");
-  hestOptAdd(&hopt, "g", "gmMax", airTypeDouble, 1, 1, &gmax, "nan",
-	     "instead of percentile-based inclusion determination of "
-	     "gradient magnitude, use the range [0.0,\tgmMax].");
-  hestOptAdd(&hopt, "h", "hExt", airTypeDouble, 1, 1, &hmax, "nan",
-	     "instead of percentile-based inclusion determination of "
-	     "2nd derivative, use the range [-hExt,\thExt].");
+	     "Instead of just padding axes up to dimensions given "
+	     "with \"-d\" when original dimensions are smaller, do filtered "
+	     "upsampling.");
+  hestOptAdd(&hopt, "uk", "upsample k", airTypeOther, 1, 1, &uk,
+	     "cubic:0,0.5",
+	     "kernel to use when doing the upsampling enabled by \"-up\",
+	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "dk", "downsample k", airTypeOther, 1, 1, &dk, "tent",
 	     "kernel to use when downsampling volume to fit with specified "
-	     "dimensions (ringing can be problematic here)",
+	     "dimensions; ringing can be problematic here.",
 	     NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "s", "incV incG incH", airTypeOther, 3, 3, inc, 
+	     "f:1.0 p:0.01 p:0.03",
+	     "Strategies for determining how much of the range "
+	     "of a quantity (V, G, or H) should be included and quantized "
+	     "in the output VGH volume.  Possibilities include:\n "
+	     "\b\bo \"f:<F>\": included range is some fraction of the "
+	     "total range, as scaled by F\n "
+	     "\b\bo \"p:<P>\": exclude the extremal P percent of "
+	     "the values\n "
+	     "\b\bo \"s:<S>\": included range is S times the standard "
+	     "deviation of the values\n "
+	     "\b\bo \"a:<min>,<max>\": range is from <min> to <max>",
+	     NULL, NULL, baneGkmsHestIncStrategy);
   hestOptAdd(&hopt, "o", "output", airTypeString, 1, 1, &outS, NULL,
 	     "output volume in nrrd format");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
@@ -464,30 +439,23 @@ main(int argc, char *argv[]) {
   }
 
   npad = nrrdNew();
-  if (qbertPadStage1(npad, nin, sz)) {
+  if (qbertSizeUp(npad, nin, sz, up ? uk : NULL)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, errS = biffGetDone(QBERT));
     free(errS); exit(1);
   }  
 
   nrsmp = nrrdNew();
-  if (qbertResample(nrsmp, npad, sz, dk)) {
+  if (qbertSizeDown(nrsmp, npad, sz, dk)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, errS = biffGetDone(QBERT));
     free(errS); exit(1);
   }
   npad = nrrdNuke(npad);
   
-  npad = nrrdNew();
-  if (qbertPadStage2(npad, nrsmp, sz)) {
-    fprintf(stderr, "%s: trouble:\n%s\n", me, errS = biffGetDone(QBERT));
-    free(errS); exit(1);
-  }
-  nrsmp = nrrdNuke(nrsmp);
-
   /* this axis info is being saved so that it can be re-enstated at the end */
   spacing[0] = amin[0] = amax[0] = AIR_NAN;
-  nrrdAxesGet_nva(npad, nrrdAxesInfoSpacing, spacing+1);
-  nrrdAxesGet_nva(npad, nrrdAxesInfoMin, amin+1);
-  nrrdAxesGet_nva(npad, nrrdAxesInfoMax, amax+1);
+  nrrdAxesGet_nva(nrsmp, nrrdAxesInfoSpacing, spacing+1);
+  nrrdAxesGet_nva(nrsmp, nrrdAxesInfoMin, amin+1);
+  nrrdAxesGet_nva(nrsmp, nrrdAxesInfoMax, amax+1);
   /* if we had to downsample, we may have enstated axis mins and maxs where
      they didn't exist before, and those shouldn't be saved in output.  But
      we can't just copy axis mins and maxs from the original input because
@@ -501,11 +469,11 @@ main(int argc, char *argv[]) {
   }
   
   nvghF = nrrdNew();
-  if (qbertProbe(nvghF, npad, sz)) {
+  if (qbertProbe(nvghF, nrsmp, sz)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, errS = biffGetDone(QBERT));
     free(errS); exit(1);
   }
-  npad = nrrdNuke(npad);
+  nrsmp = nrrdNuke(nrsmp);
 
   nvhist = nrrdNew();
   nghist = nrrdNew();
