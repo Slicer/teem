@@ -18,41 +18,6 @@
 
 #include "nrrd.h"
 
-int
-nrrdStr2Endian(char *str) {
-  char *c, *tmp;
-  int ret;
-
-  ret = nrrdEndianUnknown;
-  if (str) {
-    if (tmp = airStrdup(str)) {
-      c = tmp;
-      while (*c) {
-	*c = tolower(*c);
-	c++;
-      }
-      if (!strncmp("big", tmp, 3)) {
-	ret = nrrdEndianBig;
-      }
-      else if (!strncmp("little", tmp, 6)) {
-	ret = nrrdEndianLittle;
-      }
-      free(tmp);
-    }
-  }  
-  return ret;
-}
-
-int
-nrrdMyEndian(void) {
-  short word;
-  char *byte;
-
-  word = 0x0001;
-  byte = (char *)&word;
-  return(*byte ? nrrdEndianLittle : nrrdEndianBig);
-}
-
 void
 _nrrdSwapShortEndian(void *_data, NRRD_BIG_INT N) {
   short *data, s, fix;
@@ -88,7 +53,7 @@ _nrrdSwapWordEndian(void *_data, NRRD_BIG_INT N) {
 }
 
 void
-_nrrdSwapLongWordEndian(void *_data, NRRD_BIG_INT N) {
+_nrrdSwapLongLongWordEndian(void *_data, NRRD_BIG_INT N) {
   unsigned long long *data, l, fix;
   NRRD_BIG_INT I;
 
@@ -115,7 +80,7 @@ _nrrdNoopEndian(void *_data, NRRD_BIG_INT N) {
 }
 
 void
-(*_nrrdEndianSwapper[])(void *, NRRD_BIG_INT) = {
+(*_nrrdSwapEndian[])(void *, NRRD_BIG_INT) = {
   _nrrdNoopEndian,         /*  0: nobody knows! */
   _nrrdNoopEndian,         /*  1:   signed 1-byte integer */
   _nrrdNoopEndian,         /*  2: unsigned 1-byte integer */
@@ -123,10 +88,10 @@ void
   _nrrdSwapShortEndian,    /*  4: unsigned 2-byte integer */
   _nrrdSwapWordEndian,     /*  5:   signed 4-byte integer */
   _nrrdSwapWordEndian,     /*  6: unsigned 4-byte integer */
-  _nrrdSwapLongWordEndian, /*  7:   signed 8-byte integer */
-  _nrrdSwapLongWordEndian, /*  8: unsigned 8-byte integer */
+  _nrrdSwapLongLongWordEndian, /*  7:   signed 8-byte integer */
+  _nrrdSwapLongLongWordEndian, /*  8: unsigned 8-byte integer */
   _nrrdSwapWordEndian,     /*  9:          4-byte floating point */
-  _nrrdSwapLongWordEndian, /* 10:          8-byte floating point */
+  _nrrdSwapLongLongWordEndian, /* 10:          8-byte floating point */
   _nrrdNoopEndian,         /* HEY! PUNT: 11:        16-byte floating point */
   _nrrdNoopEndian          /* HEY! PUNT: 12: size user defined at run time */
 };
@@ -137,9 +102,8 @@ nrrdSwapEndian(Nrrd *nrrd) {
   
   if (nrrd 
       && nrrd->data 
-      && nrrdTypeUnknown < nrrd->type 
-      && nrrd->type < nrrdTypeLast) {
-    swapper = _nrrdEndianSwapper[nrrd->type];
+      && AIR_BETWEEN(nrrdTypeUnknown, nrrd->type, nrrdTypeLast)) {
+    swapper = _nrrdSwapEndian[nrrd->type];
     swapper(nrrd->data, nrrd->num);
   }
 }
