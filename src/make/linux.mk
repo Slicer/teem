@@ -49,7 +49,6 @@ else
     endif
   endif
 endif
-TEEM_BIGBITFIELD = 1
 
 TEEM_ZLIB.IPATH ?=
 TEEM_ZLIB.LPATH ?=

@@ -29,9 +29,10 @@
 */
 int
 airSanity(void) {
-  double nan, pinf, ninf, pzero;
+  double nan, pinf, ninf;
   float nanF, pinfF, ninfF;
-  int tmpI, sign, exp, frac, size;
+  unsigned int sign, exp, mant;
+  int tmpI, size;
   char endian;
   unsigned char uc0, uc1;
   static int _airSanity=0;
@@ -71,7 +72,9 @@ airSanity(void) {
 
   /* run-time NaN checks */
   pinf = DBL_MAX;
-  pinf = pinf * pinf;
+  pinf = pinf * pinf * pinf;
+  pinf = pinf * pinf * pinf;
+  pinf = pinf * pinf * pinf;
   if (AIR_EXISTS(pinf)) {
     return airInsane_pInfExists;
   }
@@ -79,17 +82,16 @@ airSanity(void) {
   if (AIR_EXISTS(ninf)) {
     return airInsane_nInfExists;
   }
-  pzero = 0.0;
-  nan = pzero/pzero;
+  nan = pinf / pinf;
   if (AIR_EXISTS(nan)) {
     return airInsane_NaNExists;
   }
   nanF = nan;
   pinfF = pinf;
   ninfF = ninf;
-  airFPValToParts_f(&sign, &exp, &frac, nanF);
-  frac >>= 22;
-  if (AIR_QNANHIBIT != frac) {
+  airFPValToParts_f(&sign, &exp, &mant, nanF);
+  mant >>= 22;
+  if (AIR_QNANHIBIT != mant) {
     return airInsane_QNaNHiBit;
   }
   if (!(airFP_QNAN == airFPClass_f(nanF)

@@ -98,8 +98,8 @@ airDrand48_r(airDrand48State *state) {
   
   _airDrand48Iterate(state);
   temp.v = 1.0;
-  temp.c2.frac1 = (state->x2 << 4) | (state->x1 >> 12);
-  temp.c2.frac0 = ((state->x1 & 0xfff) << 20) | (state->x0 << 4);
+  temp.c.mant0 = (state->x2 << 4) | (state->x1 >> 12);
+  temp.c.mant1 = ((state->x1 & 0xfff) << 20) | (state->x0 << 4);
   return temp.v - 1.0;
 }
 

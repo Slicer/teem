@@ -282,11 +282,20 @@ typedef union {
   double d;
 } airDouble;
 TEEM_API const int airMyQNaNHiBit;
-TEEM_API const int airMyBigBitField;
-TEEM_API float airFPPartsToVal_f(int sign, int exp, int frac);
-TEEM_API void airFPValToParts_f(int *signP, int *expP, int *fracP, float v);
-TEEM_API double airFPPartsToVal_d(int sign, int exp, airULLong frac);
-TEEM_API void airFPValToParts_d(int *signP, int *expP, airULLong *fracP,
+TEEM_API float airFPPartsToVal_f(unsigned int sign, 
+                                 unsigned int expo, 
+                                 unsigned int mant);
+TEEM_API void airFPValToParts_f(unsigned int *signP, 
+                                unsigned int *expoP, 
+                                unsigned int *mantP, float v);
+TEEM_API double airFPPartsToVal_d(unsigned int sign, 
+                                  unsigned int expo,
+                                  unsigned int mant0,
+                                  unsigned int mant1);
+TEEM_API void airFPValToParts_d(unsigned int *signP, 
+                                unsigned int *expoP,
+                                unsigned int *mant0P,
+                                unsigned int *mant1P,
                                 double v);
 TEEM_API float airFPGen_f(int cls);
 TEEM_API double airFPGen_d(int cls);
@@ -304,6 +313,7 @@ TEEM_API int airIsInf_f(float f);
 TEEM_API int airIsInf_d(double d);
 TEEM_API int airExists_f(float f);
 TEEM_API int airExists_d(double d);
+TEEM_API int airExists(double d);
 
 /* ---- BEGIN non-NrrdIO */
 
@@ -507,7 +517,7 @@ TEEM_API void airMopDebug(airArray *arr);
 #define AIR_WHITESPACE " \t\n\r\v\f"       /* K+R pg. 157 */
 
 /*
-******** AIR_ENDIAN, AIR_QNANHIBIT, AIR_DIO, AIR_BIGBITFIELD
+******** AIR_ENDIAN, AIR_QNANHIBIT, AIR_DIO
 **
 ** These reflect particulars of hardware which we're running on.
 ** The reason to have these in addition to TEEM_ENDIAN, TEEM_DIO, etc.,
@@ -522,7 +532,6 @@ TEEM_API void airMopDebug(airArray *arr);
 #define AIR_QNANHIBIT (airMyQNaNHiBit)
 #define AIR_DIO (airMyDio)
 #define AIR_32BIT (airMy32Bit)
-#define AIR_BIGBITFIELD (airMyBigBitField)
 
 /*
 ******** AIR_NAN, AIR_QNAN, AIR_SNAN, AIR_POS_INF, AIR_NEG_INF
