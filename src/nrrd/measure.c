@@ -40,7 +40,7 @@ _nrrdMeasureMin(void *ans, int ansType,
 
   if (nrrdTypeInteger[lineType]) {
     M = nrrdDLookup[lineType](line, 0);
-    for (i=1; i<3; i++) {
+    for (i=1; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
       M = AIR_MIN(M, val);
     }
