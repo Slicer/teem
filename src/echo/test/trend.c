@@ -20,6 +20,62 @@
 #include "../echo.h"
 
 void
+makeSceneGlassMetal(limnCam *cam, EchoParam *param,
+		    EchoObject *scene, airArray *lightArr) {
+  EchoObject *sphere, *cube, *rect;
+  EchoLight *light;
+  
+  ELL_3V_SET(cam->from, 2, 0, 20);
+  ELL_3V_SET(cam->at,   0, 0, 0);
+  ELL_3V_SET(cam->up,   -1, 0, 0);
+  cam->uMin = -1.8;
+  cam->uMax = 1.8;
+  cam->vMin = -1.8;
+  cam->vMax = 1.8;
+
+  param->jitter = echoJitterJitter;
+  param->verbose = 0;
+  param->samples = 4;
+  param->imgResU = 200;
+  param->imgResV = 200;
+  param->aperture = 0.0;
+  param->gamma = 2.0;
+  param->refDistance = 4;
+  param->renderLights = AIR_TRUE;
+
+  /* create scene */
+  sphere = echoObjectNew(echoObjectSphere);
+  echoObjectSphereSet(sphere, 1, 0, 0, 0.5);
+  echoMatterPhongSet(sphere, 0.5, 0.5, 1, 1.0,
+		     0.1, 0.6, 0.3, 40);
+  echoObjectListAdd(scene, sphere);
+
+  cube = echoObjectNew(echoObjectCube);
+  echoMatterMetalSet(cube, 1, 1, 1, 0, 0);
+  echoObjectListAdd(scene, cube);
+
+  rect = echoObjectNew(echoObjectRectangle);
+  echoObjectRectangleSet(rect,
+			 -2, -2, -2,
+			 4, 0, 0,
+			 0, 4, 0);
+  echoMatterMetalSet(rect, 1, 1, 1, 0, 0);
+  echoObjectListAdd(scene, rect);
+
+  rect = echoObjectNew(echoObjectRectangle);
+  echoObjectRectangleSet(rect,
+			 1.0, 0.2, 4,
+			 0.2, 0, 0,
+			 0, 0.2, 0);
+  echoMatterLightSet(rect, 1, 1, 1);
+  echoObjectListAdd(scene, rect);
+  light = echoLightNew(echoLightArea);
+  echoLightAreaSet(light, rect);
+  echoLightArrayAdd(lightArr, light);
+
+}
+
+void
 makeSceneShadow(limnCam *cam, EchoParam *param,
 		EchoObject *scene, airArray *lightArr) {
   EchoObject *sphere, *rect, *tri;
@@ -217,7 +273,8 @@ main(int argc, char **argv) {
   airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, npgm, (airMopper)nrrdNuke, airMopAlways);
 
-  makeSceneShadow(cam, param, scene, lightArr);
+  /* makeSceneShadow(cam, param, scene, lightArr); */
+  makeSceneGlassMetal(cam, param, scene, lightArr);
 
   E = 0;
   if (!E) E |= echoRender(nraw, cam, param, state, scene, lightArr);

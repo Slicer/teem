@@ -34,7 +34,6 @@ _echoObject##TYPE##_new(void) {                                  \
   echoObjectUnknown,
   echoObjectSphere,     
   echoObjectCube,       
-  echoObjectUnitCube,   
   echoObjectTriangle,   
   echoObjectRectangle,  
   echoObjectTriMesh,    
@@ -47,7 +46,6 @@ _echoObject##TYPE##_new(void) {                                  \
 
 NEW_TMPL(Sphere,);
 NEW_TMPL(Cube,);
-NEW_TMPL(UnitCube,);
 NEW_TMPL(Triangle,);
 NEW_TMPL(Rectangle,);
 NEW_TMPL(TriMesh, /* ??? */ );
@@ -78,7 +76,6 @@ _echoObjectNew[ECHO_OBJECT_MAX+1])(void) = {
   NULL,
   (EchoObject *(*)(void))_echoObjectSphere_new,
   (EchoObject *(*)(void))_echoObjectCube_new,
-  (EchoObject *(*)(void))_echoObjectUnitCube_new,
   (EchoObject *(*)(void))_echoObjectTriangle_new,
   (EchoObject *(*)(void))_echoObjectRectangle_new,
   (EchoObject *(*)(void))_echoObjectTriMesh_new,
@@ -126,7 +123,6 @@ NIX_TMPL(Instance,
 EchoObject *(*
 _echoObjectNix[ECHO_OBJECT_MAX+1])(EchoObject *) = {
   NULL,
-  (EchoObject *(*)(EchoObject *))airFree,
   (EchoObject *(*)(EchoObject *))airFree,
   (EchoObject *(*)(EchoObject *))airFree,
   (EchoObject *(*)(EchoObject *))airFree,

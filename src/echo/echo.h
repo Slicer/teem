@@ -156,17 +156,16 @@ enum {
   echoObjectUnknown,
   echoObjectSphere,     /*  1 */
   echoObjectCube,       /*  2 */
-  echoObjectUnitCube,   /*  3 */
-  echoObjectTriangle,   /*  4 */
-  echoObjectRectangle,  /*  5 */
-  echoObjectTriMesh,    /*  6: only triangles in the mesh */
-  echoObjectIsosurface, /*  7 */
-  echoObjectAABBox,     /*  8 */
-  echoObjectList,       /*  9 */
-  echoObjectInstance,   /* 10 */
+  echoObjectTriangle,   /*  3 */
+  echoObjectRectangle,  /*  4 */
+  echoObjectTriMesh,    /*  5: only triangles in the mesh */
+  echoObjectIsosurface, /*  6 */
+  echoObjectAABBox,     /*  7 */
+  echoObjectList,       /*  8 */
+  echoObjectInstance,   /*  9 */
   echoObjectLast
 };
-#define ECHO_OBJECT_MAX    10
+#define ECHO_OBJECT_MAX     9
 
 /* function: me, k, intx --> lit color */
 
@@ -193,13 +192,7 @@ typedef struct {
 typedef struct {
   ECHO_OBJECT_COMMON;
   ECHO_OBJECT_MATTER;
-  echoPos_t lo[3], hi[3];
 } EchoObjectCube;
-
-typedef struct {
-  ECHO_OBJECT_COMMON;
-  ECHO_OBJECT_MATTER;
-} EchoObjectUnitCube;
 
 typedef struct {
   ECHO_OBJECT_COMMON;

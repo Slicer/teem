@@ -66,6 +66,76 @@ _echoRayIntxSphere(INTX_ARGS(Sphere)) {
   return AIR_TRUE;
 }
 
+int
+_echoRayIntxCube(INTX_ARGS(Cube)) {
+  echoPos_t txmin, tymin, tzmin, txmax, tymax, tzmax,
+    dx, dy, dz, ox, oy, oz, tmin, tmax, t;
+  int axmin, axmax, ax, dir;
+
+  ELL_3V_GET(dx, dy, dz, ray->dir);
+  ELL_3V_GET(ox, oy, oz, ray->from);
+  if (dx > 0) {
+    txmin = (-0.5 - ox)/dx; txmax = ( 0.5 - ox)/dx;
+  }
+  else {
+    txmin = ( 0.5 - ox)/dx; txmax = (-0.5 - ox)/dx;
+  }
+  if (dy > 0) {
+    tymin = (-0.5 - oy)/dy; tymax = ( 0.5 - oy)/dy;
+  }
+  else {
+    tymin = ( 0.5 - oy)/dy; tymax = (-0.5 - oy)/dy;
+  }
+  if (dz > 0) {
+    tzmin = (-0.5 - oz)/dz; tzmax = ( 0.5 - oz)/dz;
+  }
+  else {
+    tzmin = ( 0.5 - oz)/dz; tzmax = (-0.5 - oz)/dz;
+  }
+  if (txmin > tymin) {
+    tmin = txmin; axmin = 0;
+  }
+  else {
+    tmin = tymin; axmin = 1;
+  }
+  if (tzmin > tmin) {
+    tmin = tzmin; axmin = 2;
+  }
+  if (txmax < tymax) {
+    tmax = txmax; axmax = 0;
+  }
+  else {
+    tmax = tymax; axmax = 1;
+  }
+  if (tzmax < tmax) {
+    tmax = tzmax; axmax = 2;
+  }
+  if (tmin >= tmax)
+    return AIR_FALSE;
+  t = tmin;
+  ax = axmin;
+  dir = -1;
+  if (!AIR_INSIDE(ray->near, t, ray->far)) {
+    t = tmax;
+    ax = axmax;
+    dir = 1;
+    if (!AIR_INSIDE(ray->near, t, ray->far)) {
+      return AIR_FALSE;
+    }
+  }
+  intx->t = t;
+  switch(ax) {
+  case 0: ELL_3V_SET(intx->norm, dir, 0, 0); break;
+  case 1: ELL_3V_SET(intx->norm, 0, dir, 0); break;
+  case 2: ELL_3V_SET(intx->norm, 0, 0, dir); break;
+  }
+  /* set in intx:
+     yes: t, norm, 
+     no: u, v, view, pos
+  */
+  return AIR_TRUE;
+}
+
 void
 _echoRayIntxUVSphere(EchoIntx *intx, EchoRay *ray) {
   echoPos_t len, u, v;
@@ -195,8 +265,7 @@ _echoRayIntx_t
 _echoRayIntx[ECHO_OBJECT_MAX+1] = {
   NULL,
   (_echoRayIntx_t)_echoRayIntxSphere,
-  (_echoRayIntx_t)NULL,
-  (_echoRayIntx_t)NULL,
+  (_echoRayIntx_t)_echoRayIntxCube,
   (_echoRayIntx_t)_echoRayIntxTriangle,
   (_echoRayIntx_t)_echoRayIntxRectangle,
   (_echoRayIntx_t)NULL,
@@ -210,7 +279,6 @@ _echoRayIntxUV_t
 _echoRayIntxUV[ECHO_OBJECT_MAX+1] = {
   NULL,
   _echoRayIntxUVSphere,
-  NULL,
   NULL,
   _echoRayIntxUVNoop,
   _echoRayIntxUVNoop,
