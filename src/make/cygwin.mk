@@ -22,6 +22,9 @@
 # this will stay unset until I figure out gcc creation of Windows DLLs
 SHEXT = 
 
+CC = gcc
+DOTEXE = .exe
+
 OPT_CFLAG = -O2
 STATIC_CFLAG = -Wl,-Bstatic
 SHARED_CFLAG = -Wl,-Bdynamic
