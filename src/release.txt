@@ -76,22 +76,23 @@ setenv TEEM_ZLIB.LPATH -L/home/gk/lib
 setenv TEEM_ZLIB.IPATH -I/home/gk/include
 
 4) Create source-only tgz:
-   a) cvs checkout teem
-   b) (cd teem; find . -name CVS  -exec rm -rf {} \;)
-   c) mv teem teem-VERSION
-   c) tar czvf teem-VERSION.tgz teem-VERSION
+cvs checkout teem; cd teem
+find . -name CVS  -exec rm -rf {} \;
+rm -rf html
+cd ..; mv teem teem-${VERSION}
+tar czvf teem-${VERSION}.tgz teem-${VERSION}
 
 5) Create Unix-ish binary builds (without src or docs):
    for each TEEM_ARCH in "irix6.n32 irix6.64 linux cygwin solaris darwin":
-   a) ssh to some ARCH machine, copy teem-VERSION.tgz there if needed
-   b) setenv TEEM_XXX for all the externals that it makes sense to 
+-  ssh to some ARCH machine, copy teem-VERSION.tgz there if needed
+-  setenv TEEM_XXX for all the externals that it makes sense to 
       compile into the distributed statically linked binaries
-   c) tar xzvf teem-${VERSION}.tgz
-   d) cd teem-${VERSION}; setenv TEEM_DEST `pwd`
-   e) alias GO "mv src/LICENSE.txt . ; rm -rf README.txt ; rm -rf cygwin/ ; rm -rf darwin/ ; rm -rf irix6.64/ ; rm -rf irix6.n32/ ; rm -rf linux/ ; rm -rf solaris/ ; rm -rf win32 ; rm -rf src"
-   f) cd src; make; cd ..; GO; cd ..
-   g) mv teem-${VERSION} teem-${VERSION}-${TEEM_ARCH}
-   h) tar czvf teem-${VERSION}-${TEEM_ARCH}.tgz teem-${VERSION}-${TEEM_ARCH}
+tar xzvf teem-${VERSION}.tgz
+cd teem-${VERSION}; setenv TEEM_DEST `pwd`
+alias GO "mv src/LICENSE.txt . ; rm -rf README.txt ; rm -rf cygwin/ ; rm -rf darwin/ ; rm -rf irix6.64/ ; rm -rf irix6.n32/ ; rm -rf linux/ ; rm -rf solaris/ ; rm -rf win32 ; rm -rf src"
+cd src; make; cd ..; GO; cd ..
+mv teem-${VERSION} teem-${VERSION}-${TEEM_ARCH}
+tar czvf teem-${VERSION}-${TEEM_ARCH}.tgz teem-${VERSION}-${TEEM_ARCH}
 
 6) Create Windows binary builds.  vc6 only, "Release" only, with
 and without compression encodings.
@@ -99,10 +100,14 @@ and without compression encodings.
 7) Move all the binary builds to the web server
 
 8) update online documentation (which may be done more often than releases)
-   a) cvs checkout teem
-   b) (cd teem/html; find . -name CVS  -exec rm -rf {} \;)
-   c) (cd teem; tar czvf html.tgz html)
-   d) scp teem/html.tgz faith.cs:/home/gk/web; ssh faith.cs
-   e) cd web; tar xzvf html.tgz
-   f) yes | rm -rf teem; mv html teem
-   g) yes | rm -rf html.tgz
+cvs checkout teem; cd teem/html
+find . -name CVS  -exec rm -rf {} \; ; cd ..
+mv html teem-${VERSION}-html
+tar czvf teem-${VERSION}-html.tgz teem-${VERSION}-html
+scp teem-${VERSION}-html.tgz faith.cs.utah.edu:/home/gk/web
+
+ssh faith.cs.utah.edu
+
+cd web; tar xzvf teem-*-html.tgz
+yes | rm -rf teem; mv teem-*-html teem
+yes | rm -rf teem-*-html*
