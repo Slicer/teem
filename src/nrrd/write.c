@@ -262,7 +262,7 @@ void
 _nrrdSprintFieldInfo(char **strP, Nrrd *nrrd, NrrdIO *io, int field) {
   char buff[AIR_STRLEN_MED];
   const char *fs;
-  int i, D, fslen, fdlen;
+  int i, D, fslen, fdlen, endi;
 
   if (!( strP
 	 && nrrd 
@@ -273,7 +273,11 @@ _nrrdSprintFieldInfo(char **strP, Nrrd *nrrd, NrrdIO *io, int field) {
   
   D = nrrd->dim;
   fs = airEnumStr(nrrdField, field);
-  fslen = strlen(fs) + 3;
+  fslen = strlen(fs) + 50;  /* HEY: the real problem with this is that
+			       we have to anticipate the "prefix" that 
+			       will be used with the _PRINT_FIELD macro,
+			       and at this point we have no access to
+			       that information */
   switch (field) {
   case nrrdField_comment:
     /* this is handled differently */
@@ -288,9 +292,18 @@ _nrrdSprintFieldInfo(char **strP, Nrrd *nrrd, NrrdIO *io, int field) {
     sprintf(*strP, "%s: %s", fs, airEnumStr(nrrdEncoding, io->encoding));
     break;
   case nrrdField_endian:
-    /* note we record our current architecture's endian */
-    *strP = malloc(fslen + strlen(airEnumStr(airEndian, AIR_ENDIAN)));
-    sprintf(*strP, "%s: %s", fs, airEnumStr(airEndian, AIR_ENDIAN));
+    if (airStrlen(io->dataFN)) {
+      /* we record whatever endianness was given with unu make -h
+	 because we're writing a header (only) to describe
+	 existing data on disk */
+      endi = io->endian;
+    } else {
+      /* we record our current architecture's endian because we're
+	 going to writing out data */
+      endi = AIR_ENDIAN;
+    }
+    *strP = malloc(fslen + strlen(airEnumStr(airEndian, endi)));
+    sprintf(*strP, "%s: %s", fs, airEnumStr(airEndian, endi));
     break;
   case nrrdField_dimension:
     *strP = malloc(fslen + 10);
@@ -592,8 +605,7 @@ _nrrdGuessFormat(NrrdIO *io, const char *filename) {
   strpos = strlen(io->base) - strlen(NRRD_EXT_HEADER);
   if (airEndsWith(filename, NRRD_EXT_HEADER)) {
     io->base[strpos++] = '.';
-    strcpy(io->base + strpos,
-	   airEnumStr(nrrdEncoding, io->encoding));
+    strcpy(io->base + strpos, airEnumStr(nrrdEncoding, io->encoding));
     io->seperateHeader = AIR_TRUE;
     io->format = nrrdFormatNRRD;
   } else if (airEndsWith(filename, NRRD_EXT_PGM) 
