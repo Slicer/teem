@@ -564,11 +564,22 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
     sprintf(err, "%s: problem with arguments", me);
     biffAdd(NRRD, err); return 1;
   }
-
+  
   _nrrdResampleComputePermute(permute, ax, sz,
 			      &topRax, &botRax, &passes,
 			      nin, info);
   topLax = topRax ? 0 : 1;
+
+  /* not sure where else to put this:
+     (want to put it before 0 == passes branch)
+     We have to assume some centering when doing resampling, and it would
+     be stupid to not record it in the outgoing nrrd, since the value of
+     nrrdDefCenter could always change. */
+  for (d=0; d<nin->dim; d++) {
+    if (info->kernel[d]) {
+      nout->axis[d].center = _nrrdCenter(nin->axis[d].center);
+    }
+  }
 
   if (0 == passes) {
     /* actually, no resampling was desired.  Copy input to output,
