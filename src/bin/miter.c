@@ -1,17 +1,17 @@
 /*
   teem: Gordon Kindlmann's research software
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
-
+  
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
-
+  
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-
+  
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -39,7 +39,7 @@ main(int argc, char *argv[]) {
   float ads[3];
   double gmc, turn, eye[3], eyedist;
   Nrrd *nin;
-
+  
   me = argv[0];
   mop = airMopNew();
   hparm = hestParmNew();
@@ -136,7 +136,7 @@ main(int argc, char *argv[]) {
                  me, miteInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-
+  
   if (muu->nsin) {
     nin = muu->nsin;
     baseDim = 0;
@@ -151,7 +151,7 @@ main(int argc, char *argv[]) {
     airMopError(mop);
     return 1;
   }
-
+  
   /* finish processing command-line args */
   muu->rangeInit[miteRangeKa] = ads[0];
   muu->rangeInit[miteRangeKd] = ads[1];
@@ -163,7 +163,7 @@ main(int argc, char *argv[]) {
   if (offfr) {
     ELL_3V_INCR(muu->hctx->cam->from, muu->hctx->cam->at);
   }
-
+  
   muu->nout = nrrdNew();
   airMopAdd(mop, muu->nout, (airMopper)nrrdNuke, airMopAlways);
   ELL_3V_SET(muu->lit->col[0], 1, 1, 1);
@@ -205,13 +205,13 @@ main(int argc, char *argv[]) {
     }
   }
   /*
-  fprintf(stderr, "%s: camera info\n", me);
-  fprintf(stderr, "    U = {%g,%g,%g}\n",
-	  muu->hctx->cam->U[0], muu->hctx->cam->U[1], muu->hctx->cam->U[2]);
-  fprintf(stderr, "    V = {%g,%g,%g}\n",
-	  muu->hctx->cam->V[0], muu->hctx->cam->V[1], muu->hctx->cam->V[2]);
-  fprintf(stderr, "    N = {%g,%g,%g}\n",
-	  muu->hctx->cam->N[0], muu->hctx->cam->N[1], muu->hctx->cam->N[2]);
+    fprintf(stderr, "%s: camera info\n", me);
+    fprintf(stderr, "    U = {%g,%g,%g}\n",
+    muu->hctx->cam->U[0], muu->hctx->cam->U[1], muu->hctx->cam->U[2]);
+    fprintf(stderr, "    V = {%g,%g,%g}\n",
+    muu->hctx->cam->V[0], muu->hctx->cam->V[1], muu->hctx->cam->V[2]);
+    fprintf(stderr, "    N = {%g,%g,%g}\n",
+    muu->hctx->cam->N[0], muu->hctx->cam->N[1], muu->hctx->cam->N[2]);
   */
   strncpy(muu->shadeStr, shadeStr, AIR_STRLEN_MED-1);
   strncpy(muu->normalStr, normalStr, AIR_STRLEN_MED-1);
@@ -230,7 +230,7 @@ main(int argc, char *argv[]) {
   muu->hctx->rayEnd = (hooverRayEnd_t *)miteRayEnd;
   muu->hctx->threadEnd = (hooverThreadEnd_t *)miteThreadEnd;
   muu->hctx->renderEnd = (hooverRenderEnd_t *)miteRenderEnd;
-
+  
   if (!airThreadCapable && 1 != muu->hctx->numThreads) {
     fprintf(stderr, "%s: This teem not compiled with "
             "multi-threading support.\n", me);
@@ -238,9 +238,9 @@ main(int argc, char *argv[]) {
             me, muu->hctx->numThreads);
     muu->hctx->numThreads = 1;
   }
-
+  
   fprintf(stderr, "%s: rendering ... ", me); fflush(stderr);
-
+  
   E = hooverRender(muu->hctx, &Ecode, NULL);
   if (E) {
     if (hooverErrInit == E) {
@@ -256,7 +256,7 @@ main(int argc, char *argv[]) {
   fprintf(stderr, "\n");
   fprintf(stderr, "%s: rendering time = %g secs\n", me, muu->rendTime);
   fprintf(stderr, "%s: sampling rate = %g Khz\n", me, muu->sampRate);
-
+  
   if (nrrdSave(outS, muu->nout, NULL)) {
     airMopAdd(mop, errS = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble saving image:\n%s\n", me, errS);
@@ -267,3 +267,4 @@ main(int argc, char *argv[]) {
   airMopOkay(mop);
   return 0;
 }
+
