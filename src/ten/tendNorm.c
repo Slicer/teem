@@ -37,15 +37,15 @@ tend_normMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin, *nout;
   char *outS;
   float weight[3], amount, target;
-  
+
   hestOptAdd(&hopt, "w", "w0 w1 w2", airTypeFloat, 3, 3, weight, NULL,
 	     "relative weights to put on major, medium, and minor "
 	     "eigenvalue when performing normalization (internally "
 	     "rescaled to have a 1.0 L1 norm). These weightings determine "
 	     "the tensors's \"size\".");
-  hestOptAdd(&hopt, "a", "amount", airTypeOther, 1, 1, &amount, "1.0",
+  hestOptAdd(&hopt, "a", "amount", airTypeFloat, 1, 1, &amount, "1.0",
 	     "how much of the normalization to perform");
-  hestOptAdd(&hopt, "t", "target", airTypeOther, 1, 1, &target, "1.0",
+  hestOptAdd(&hopt, "t", "target", airTypeFloat, 1, 1, &target, "1.0",
 	     "target size, post normalization");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
 	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
