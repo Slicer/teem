@@ -561,7 +561,10 @@ extern int nrrdReshape(Nrrd *nout, Nrrd *nin, int dim,
 		       ... /* sx, sy, .., axis(dim-1) size */ );
 extern int nrrdReshape_nva(Nrrd *nout, Nrrd *nin, int dim, int *size);
 extern int nrrdAxesInsert(Nrrd *nout, Nrrd *nin, int ax);
+extern int nrrdAxesSplit(Nrrd *nout, Nrrd *nin, int ax,
+			 int sizeFast, int sizeSlow);
 extern int nrrdAxesDelete(Nrrd *nout, Nrrd *nin, int ax);
+extern int nrrdAxesMerge(Nrrd *nout, Nrrd *nin, int ax);
 extern int nrrdBlock(Nrrd *nout, Nrrd *nin);
 extern int nrrdUnblock(Nrrd *nout, Nrrd *nin, int type);
 

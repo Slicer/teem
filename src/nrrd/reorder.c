@@ -628,7 +628,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
 */
 int
 nrrdAxesInsert(Nrrd *nout, Nrrd *nin, int ax) {
-  char me[]="nrrdAxesInsert", func[] = "axinsert", err[AIR_STRLEN_MED];
+  char me[]="nrrdAxesInsert", func[]="axinsert", err[AIR_STRLEN_MED];
   int d;
   
   if (!(nout && nin)) {
@@ -668,6 +668,61 @@ nrrdAxesInsert(Nrrd *nout, Nrrd *nin, int ax) {
 }
 
 /*
+******** nrrdAxesSplit
+**
+** like reshape, but only for splitting one axis into a fast and slow part.
+*/
+int
+nrrdAxesSplit(Nrrd *nout, Nrrd *nin, int ax, int sizeFast, int sizeSlow) {
+  char me[]="nrrdAxesSplit", func[]="axsplit", err[AIR_STRLEN_MED];
+  int d;
+  
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!AIR_IN_CL(0, ax, nin->dim)) {
+    sprintf(err, "%s: given axis (%d) outside valid range [0, %d]",
+	    me, ax, nin->dim);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (NRRD_DIM_MAX == nin->dim) {
+    sprintf(err, "%s: given nrrd already at NRRD_DIM_MAX (%d)",
+	    me, NRRD_DIM_MAX);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!(sizeFast*sizeSlow == nin->axis[ax].size)) {
+    sprintf(err, "%s: # samples along axis %d (%d) != product of "
+	    "fast and slow sizes (%d * %d = %d)",
+	    me, ax, nin->axis[ax].size,
+	    sizeFast, sizeSlow, sizeFast*sizeSlow);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nout != nin) {
+    if (nrrdCopy(nout, nin)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    /* HEY: comments have been copied, perhaps that's not appropriate */
+  }
+  nout->dim = 1 + nin->dim;
+  for (d=nin->dim-1; d>=ax+1; d--) {
+    _nrrdAxisCopy(&(nout->axis[d+1]), &(nin->axis[d]), NRRD_AXESINFO_NONE);
+  }
+  /* the ONLY thing we can say about the new axes are their sizes */
+  _nrrdAxisInit(&(nout->axis[ax]));
+  _nrrdAxisInit(&(nout->axis[ax+1]));
+  nout->axis[ax].size = sizeFast;
+  nout->axis[ax+1].size = sizeSlow;
+  if (nrrdContentSet(nout, func, nin, "%d,%d,%d", ax, sizeFast, sizeSlow)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  nrrdPeripheralCopy(nout, nin);
+  return 0;
+}
+
+/*
 ******** nrrdAxesDelete
 **
 ** like reshape, but preserves axis information on old axes, and
@@ -675,7 +730,7 @@ nrrdAxesInsert(Nrrd *nout, Nrrd *nin, int ax) {
 */
 int
 nrrdAxesDelete(Nrrd *nout, Nrrd *nin, int ax) {
-  char me[]="nrrdAxesDelete", func[] = "axdelete", err[AIR_STRLEN_MED];
+  char me[]="nrrdAxesDelete", func[]="axdelete", err[AIR_STRLEN_MED];
   int d;
   
   if (!(nout && nin)) {
@@ -688,7 +743,7 @@ nrrdAxesDelete(Nrrd *nout, Nrrd *nin, int ax) {
     biffAdd(NRRD, err); return 1;
   }
   if (1 == nin->dim) {
-    sprintf(err, "%s: given nrrd at lowest dimension (1)", me);
+    sprintf(err, "%s: given nrrd already at lowest dimension (1)", me);
     biffAdd(NRRD, err); return 1;
   }
   if (1 != nin->axis[ax].size) {
@@ -704,9 +759,57 @@ nrrdAxesDelete(Nrrd *nout, Nrrd *nin, int ax) {
     /* HEY: comments have been copied, perhaps that's not appropriate */
   }
   nout->dim = nin->dim - 1;
-  for (d=ax; d<nin->dim-1; d++) {
+  for (d=ax; d<=nin->dim-2; d++) {
     _nrrdAxisCopy(&(nout->axis[d]), &(nin->axis[d+1]), NRRD_AXESINFO_NONE);
   }
+  if (nrrdContentSet(nout, func, nin, "%d", ax)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  nrrdPeripheralCopy(nout, nin);
+  return 0;
+}
+
+/*
+******** nrrdAxesMerge
+**
+** like reshape, but preserves axis information on old axes
+** merges axis ax and ax+1 into one 
+*/
+int
+nrrdAxesMerge(Nrrd *nout, Nrrd *nin, int ax) {
+  char me[]="nrrdAxesMerge", func[]="axmerge", err[AIR_STRLEN_MED];
+  int d, sizeFast, sizeSlow;
+  
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!AIR_IN_CL(0, ax, nin->dim-2)) {
+    sprintf(err, "%s: given axis (%d) outside valid range [0, %d]",
+	    me, ax, nin->dim-2);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (1 == nin->dim) {
+    sprintf(err, "%s: given nrrd already at lowest dimension (1)", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nout != nin) {
+    if (nrrdCopy(nout, nin)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    /* HEY: comments have been copied, perhaps that's not appropriate */
+  }
+  sizeFast = nin->axis[ax].size;
+  sizeSlow = nin->axis[ax+1].size;
+  nout->dim = nin->dim - 1;
+  for (d=ax+1; d<=nin->dim-2; d++) {
+    _nrrdAxisCopy(&(nout->axis[d]), &(nin->axis[d+1]), NRRD_AXESINFO_NONE);
+  }
+  /* the ONLY thing we can say about the new axis is its size */
+  _nrrdAxisInit(&(nout->axis[ax]));
+  nout->axis[ax].size = sizeFast*sizeSlow;
   if (nrrdContentSet(nout, func, nin, "%d", ax)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
