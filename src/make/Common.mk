@@ -111,7 +111,6 @@ ifdef LIB
   OBJ_PREF = $(ODEST)/$(LIB)
   OBJS = $(addprefix $(OBJ_PREF)/,$(LIB_OBJS))
   LIB_BASENAME ?= lib$(LIB)
-  _LIB = lib$(LIB)
   _LIB.A = $(LIB_BASENAME).a
   LIB.A = $(OBJ_PREF)/$(_LIB.A)
   # if SHEXT is not defined to any non-zero length string, then these
@@ -140,10 +139,6 @@ endif
 # the complete path names for installed headers and libraries
 INSTALL_HDRS = $(addprefix $(IDEST)/,$(HEADERS))
 INSTALL_LIBS = $(addprefix $(LDEST)/,$(_LIB.A) $(_LIB.S))
-
-$(warning INSTALL_HDRS = $(INSTALL_HDRS))
-$(warning INSTALL_LIBS = $(INSTALL_LIBS))
-$(warning (LDEST)/(_LIB) == $(LDEST)/$(_LIB))
 
 # the complete path name for the "single" binary
 INSTALL_BIN = $(addprefix $(BDEST)/,$(_BIN))
