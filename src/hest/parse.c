@@ -29,16 +29,16 @@ twice with differen values
 /*
 ** _hestArgsInResponseFiles()
 **
-** returns the number of args that will be parsed from the response file.
+** returns the number of args that will be parsed from the response files.
 ** The role of this function is solely to simplify the task of avoiding
 ** memory leaks.  By knowing exactly how many args we'll get in the response
 ** file, then hestParse() can allocate its local argv[] for exactly as
 ** long as it needs to be, and we can avoid using an airArray.  The drawback
-** is that we open and readthrough the response files twice.
+** is that we open and read through the response files twice.  Alas.
 */
 int
 _hestArgsInResponseFiles(int *argcP, int *nrfP,
-			   char **argv, char *err, hestParm *parm) {
+			 char **argv, char *err, hestParm *parm) {
   FILE *file;
   char me[]="_hestArgsInResponseFiles: ", line[AIR_STRLEN_HUGE];
   int len;
@@ -50,25 +50,27 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
     return 0;
   }
 
-  while (argv[*nrfP] && parm->respFileFlag == argv[*nrfP][0]) {
-    if (!(file = fopen(argv[*nrfP]+1, "r"))) {
-      /* can't open the indicated response file for reading */
-      sprintf(err, "%scouldn't open \"%s\" for reading as response file",
-	      ME, argv[*nrfP]+1);
-      *argcP = 0;
-      *nrfP = 0;
-      return 1;
-    }
-    len = airOneLine(file, line, AIR_STRLEN_HUGE);
-    while (len > 0) {
-      if (parm->respFileComment != line[0]) {
-	/* process this only if its not a comment */
-	airOneLinify(line);
-	*argcP += airStrntok(line, " ");
+  while (argv[*nrfP]) {
+    if (parm->respFileFlag == argv[*nrfP][0]) {
+      if (!(file = fopen(argv[*nrfP]+1, "r"))) {
+	/* can't open the indicated response file for reading */
+	sprintf(err, "%scouldn't open \"%s\" for reading as response file",
+		ME, argv[*nrfP]+1);
+	*argcP = 0;
+	*nrfP = 0;
+	return 1;
       }
       len = airOneLine(file, line, AIR_STRLEN_HUGE);
+      while (len > 0) {
+	if (parm->respFileComment != line[0]) {
+	  /* process this only if its not a comment */
+	  airOneLinify(line);
+	  *argcP += airStrntok(line, " ");
+	}
+	len = airOneLine(file, line, AIR_STRLEN_HUGE);
+      }
+      fclose(file);
     }
-    fclose(file);
     (*nrfP)++;
   }
   return 0;
@@ -81,45 +83,49 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
 */
 int
 _hestResponseFiles(char **newArgv, char **oldArgv, int nrf,
-		     char *err, hestParm *parm, airArray *pmop) {
+		   char *err, hestParm *parm, airArray *pmop) {
   char line[AIR_STRLEN_HUGE];
-  int len, argc, numArgs, ai, fi;
+  int len, newArgc, oldArgc, numArgs, ai;
   FILE *file;
   
   if (!parm->respFileEnable) {
     /* don't do response files; we're done */
     return 0;
   }
-  fi = 0;
-  argc = 0;
-  while (oldArgv[fi] && parm->respFileFlag == oldArgv[fi][0]) {
-    /* error checking on this done by _hestArgsInResponseFiles() */
-    file = fopen(oldArgv[fi]+1, "r");
-    /* accumulate info from the response file into given newArgv */
-    len = airOneLine(file, line, AIR_STRLEN_HUGE);
-    while (len > 0) {
-      if (parm->respFileComment != line[0]) {
-	/* process this only if its not a comment */
-	airOneLinify(line);
-	numArgs = airStrntok(line, " ");
-	airParseStrS(newArgv + argc, line, " ", numArgs);
-	argc += numArgs;
-      }
+  newArgc = oldArgc = 0;
+  while(oldArgv[oldArgc]) {
+    if (parm->respFileFlag != oldArgv[oldArgc][0]) {
+      /* nothing to do with a response file, just copy the arg over.
+	 We are not allocating new memory in this case. */
+      newArgv[newArgc] = oldArgv[oldArgc];
+      newArgc += 1;
+    }
+    else {
+      /* It is a response file.  Error checking on being able to open it
+	 should have been done by _hestArgsInResponseFiles() */
+      file = fopen(oldArgv[oldArgc]+1, "r");
       len = airOneLine(file, line, AIR_STRLEN_HUGE);
+      while (len > 0) {
+	if (parm->respFileComment != line[0]) {
+	  /* process this only if its not a comment */
+	  airOneLinify(line);
+	  numArgs = airStrntok(line, " ");
+	  airParseStrS(newArgv + newArgc, line, " ", numArgs);
+	  for (ai=0; ai<=numArgs-1; ai++) {
+	    /* This time, we did allocate memory.  We can use airFree and
+	       not airFreeP because these will not be reset before mopping */
+	    airMopAdd(pmop, newArgv[newArgc+ai], airFree, AIR_FALSE);
+	  }
+	  newArgc += numArgs;
+	}
+	len = airOneLine(file, line, AIR_STRLEN_HUGE);
+      }
+      fclose(file);
     }
-    fclose(file);
-    fi++;
+    oldArgc++;
   }
+  newArgv[newArgc] = NULL;
 
-  if (argc) {
-    /* unlike main()'s argv[], we actually allocated new argv[] elements */
-    for (ai=0; ai<=argc-1; ai++) {
-      /* we can use airFree and not airFreeP because these will not
-	 be reset before mopping */
-      airMopAdd(pmop, newArgv[ai], airFree, AIR_FALSE);
-    }
-  }
-  
   return 0;
 }
 
@@ -163,11 +169,6 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
       if (err)
 	sprintf(err, "%s!!!!!! opt[%d].type (%d) not in valid range [%d,%d]",
 		ME, op, opt[op].type, airTypeUnknown+1, airTypeLast-1);
-      return 1;
-    }
-    if (!opt[op].valueP) {
-      if (err)
-	sprintf(err, "%s!!!!!! opt[%d].valueP is NULL", ME, op);
       return 1;
     }
     if (opt[op].flag) {
@@ -229,7 +230,7 @@ _hestExtractFlagged(char **prms, int *nprm, int *appr,
 		     char *err, hestParm *parm, airArray *pmop) {
   char me[]="_hestExtractFlagged: ", ident1[AIR_STRLEN_HUGE],
     ident2[AIR_STRLEN_HUGE];
-  int a, np, flag, endflag;
+  int a, np, flag, endflag, numOpts, op;
 
   a = 0;
   while (a<=*argcP-1) {
@@ -252,12 +253,12 @@ _hestExtractFlagged(char **prms, int *nprm, int *appr,
     if (np < opt[flag].min) {
       /* didn't get minimum number of parameters */
       if (!( a+np+1 <= *argcP-1 )) {
-	sprintf(err, "%ssaw end of line before getting %d parameter%s for %s",
+	sprintf(err, "%shit end of line before getting %d parameter%s for %s",
 		ME, opt[flag].min, opt[flag].min > 1 ? "s" : "",
 		_hestIdent(ident1, opt+flag));
       }
       else {
-	sprintf(err, "%ssaw %s before getting %d parameter%s for %s",
+	sprintf(err, "%shit %s before getting %d parameter%s for %s",
 		ME, _hestIdent(ident1, opt+endflag),
 		opt[flag].min, opt[flag].min > 1 ? "s" : "",
 		_hestIdent(ident2, opt+flag));
@@ -288,6 +289,16 @@ _hestExtractFlagged(char **prms, int *nprm, int *appr,
     printf("!%s:^^^^^^^^ *argcP = %d\n", me, *argcP);
     printf("!%s: prms[%d] = %s\n", me, flag, prms[flag]);
     */
+  }
+
+  /* make sure that flagged options without default were given */
+  numOpts = _hestNumOpts(opt);
+  for (op=0; op<=numOpts-1; op++) {
+    if (opt[op].flag && !opt[op].dflt && !appr[op]) {
+      sprintf(err, "%sdidn't get required %s",
+	      ME, _hestIdent(ident1, opt+op));
+      return 1;
+    }
   }
 
   return 0;
@@ -485,12 +496,13 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
     switch(opt[op].kind) {
     case 1:
       /* -------- parameter-less boolean flags -------- */
-      *((int*)vP) = appr[op];
+      if (vP)
+	*((int*)vP) = appr[op];
       opt[op].alloc = 0;
       break;
     case 2:
       /* -------- one required parameter -------- */
-      if (prms[op]) {
+      if (prms[op] && vP) {
 	if (1 != airParseStr[type](vP, prms[op], " ", 1)) {
 	  sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", 
 		  ME, udflt[op] ? "(default) " : "", prms[op],
@@ -505,7 +517,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
       break;
     case 3:
       /* -------- multiple required parameters -------- */
-      if (prms[op]) {
+      if (prms[op] && vP) {
 	if (opt[op].min !=   /* min == max */
 	    airParseStr[type](vP, prms[op], " ", opt[op].min)) {
 	  sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s",
@@ -522,7 +534,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
       break;
     case 4:
       /* -------- optional single variables -------- */
-      if (prms[op]) {
+      if (prms[op] && vP) {
 	if (1 != airParseStr[type](vP, prms[op], " ", 1)) {
 	  sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s",
 		  ME, udflt[op] ? "(default) " : "", prms[op],
@@ -548,7 +560,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
       break;
     case 5:
       /* -------- multiple optional parameters -------- */
-      if (prms[op]) {
+      if (prms[op] && vP) {
 	if (1 == _hestCase(opt, udflt, nprm, appr, op)) {
 	  *((void**)vP) = NULL;
 	  opt[op].alloc = 0;
@@ -636,22 +648,9 @@ hestParse(hestOpt *opt, char **_argv,
   if (_hestResponseFiles(argv, _argv, nrf, err, parm, mop)) {
     airMopDone(mop, AIR_TRUE); return 1;
   }
-  if (argr) {
-    /* lose arguments identifying response files */
-    for (a=nrf; a<=_argc-1; a++) {
-      argv[argr+a-nrf] = _argv[a];
-    }
-  }
-  else {
-    /* simple copy */
-    for (a=0; a<=_argc-1; a++) {
-      argv[a] = _argv[a];
-    }
-  }
-  argv[argc] = NULL;
-  /*
+
   _hestPrintArgv(argc, argv);
-  */
+
   /* -------- extract flags and their associated parameters from argv */
   if (_hestExtractFlagged(prms, nprm, appr, 
 			   &argc, argv, 
@@ -659,6 +658,8 @@ hestParse(hestOpt *opt, char **_argv,
 			   err, parm, mop)) {
     airMopDone(mop, AIR_TRUE); return 1;
   }
+
+  _hestPrintArgv(argc, argv);
 
   /* -------- extract args for unflagged options */
   if (_hestExtractUnflagged(prms, nprm,

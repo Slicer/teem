@@ -44,21 +44,25 @@
 ** starts not with a new line but with "already" chars printed.
 */
 void
-_hestPrintStr(FILE *f, int indent, int already, int width, char *_str) {
+_hestPrintStr(FILE *f, int indent, int already, int width, char *_str,
+	      int bslash) {
   char *str, *ws, *last;
-  int nw, w, pos, s;
+  int nwrd, wrd, pos, s;
 
   str = airStrdup(_str);
-  nw = airStrntok(str, " ");
+  nwrd = airStrntok(str, " ");
   pos = already;
-  for (w=0; w<=nw-1; w++) {
-    ws = airStrtok(!w ? str : NULL, " ", &last);
+  for (wrd=0; wrd<=nwrd-1; wrd++) {
+    ws = airStrtok(!wrd ? str : NULL, " ", &last);
     airOneLinify(ws);
     if (pos + 1 + strlen(ws) <= width) {
-      fprintf(f, "%s%s", !w ? "" : " ", ws);
+      fprintf(f, "%s%s", !wrd ? "" : " ", ws);
       pos += 1 + strlen(ws);
     }
     else {
+      if (bslash) {
+	fprintf(f, " \\");
+      }
       fprintf(f, "\n");
       for (s=0; s<=indent-1; s++) {
 	fprintf(f, " ");
@@ -78,7 +82,7 @@ hestInfo(FILE *file, char *argv0, char *info, hestParm *_parm) {
   parm = !_parm ? hestParmNew() : _parm;
   if (info) {
     fprintf(file, "\n%s: ", argv0);
-    _hestPrintStr(file, 0, strlen(argv0) + 2, parm->columns, info);
+    _hestPrintStr(file, 0, strlen(argv0) + 2, parm->columns, info, AIR_FALSE);
   }
   parm = !_parm ? hestParmNix(parm) : NULL;
 }
@@ -102,19 +106,19 @@ hestUsage(FILE *f, hestOpt *opt, char *argv0, hestParm *_parm) {
   strcpy(buff, "Usage: ");
   strcat(buff, argv0 ? argv0 : "");
   if (parm && parm->respFileEnable) {
-    sprintf(tmpS, " [%cfile ...]", parm->respFileFlag);
+    sprintf(tmpS, " [%cfile...]", parm->respFileFlag);
     strcat(buff, tmpS);
   }
   for (i=0; i<=numOpts-1; i++) {
     strcat(buff, " ");
-    if (opt[i].flag)
+    if (opt[i].flag && opt[i].dflt)
       strcat(buff, "[");
     SETBUFF(buff, opt[i]);
-    if (opt[i].flag)
+    if (opt[i].flag && opt[i].dflt)
       strcat(buff, "]");
   }
 
-  _hestPrintStr(f, 3, 0, parm->columns, buff);
+  _hestPrintStr(f, strlen("Usage: "), 0, parm->columns, buff, AIR_TRUE);
 
   parm = !_parm ? hestParmNix(parm) : NULL;
   return;
@@ -143,6 +147,15 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
     strcpy(buff, "");
     SETBUFF(buff, opt[i]);
     maxlen = AIR_MAX(strlen(buff), maxlen);
+  }
+  if (parm && parm->respFileEnable) {
+    sprintf(buff, "%cfile...", parm->respFileFlag);
+    len = strlen(buff);
+    for (j=len; j<=maxlen-1; j++)
+      fprintf(f, " ");
+    fprintf(f, "%s = ", buff);
+    strcpy(buff, "response file(s) containing command-line arguments");
+    _hestPrintStr(f, maxlen + 3, maxlen + 3, parm->columns, buff, AIR_FALSE);
   }
   for (i=0; i<=numOpts-1; i++) {
     strcpy(buff, "");
@@ -190,7 +203,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
       airStrtrans(tmpS, ' ', '\t');
       strcat(buff, tmpS);
     }
-    _hestPrintStr(f, maxlen + 3, maxlen + 3, parm->columns, buff);
+    _hestPrintStr(f, maxlen + 3, maxlen + 3, parm->columns, buff, AIR_FALSE);
   }
   parm = !_parm ? hestParmNix(parm) : NULL;
 
