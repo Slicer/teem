@@ -34,7 +34,7 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
   if (1 & (query >> gageSclValue)) {
     /* done if doV */
     if (ctx->verbose) {
-      fprintf(stderr, "val = % 15.7f\n", (float)(san->val[0]));
+      fprintf(stderr, "val = % 15.7f\n", (double)(san->val[0]));
     }
   }
   if (1 & (query >> gageSclGradVec)) {
