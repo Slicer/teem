@@ -49,7 +49,7 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   
-  cam->near = -1;
+  cam->neer = -1;
   cam->dist = 0;
   cam->faar = 1;
   cam->atRel = AIR_TRUE;

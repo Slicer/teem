@@ -255,7 +255,7 @@ main(int argc, char *argv[]) {
 
   cam = echoLimnCamNew();
   airMopAdd(mop, cam, (airMopper)limnCamNix, airMopAlways);
-  cam->near = 0;
+  cam->neer = 0;
   cam->dist = 0;
   cam->faar = 0;
   cam->atRel = AIR_TRUE;

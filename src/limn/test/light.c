@@ -36,7 +36,7 @@ main(int argc, char *argv[]) {
   ELL_3V_SET(cam->up, 0, 0, 1);
   cam->uRange[0] = -(cam->uRange[1] = 4);
   cam->vRange[0] = -(cam->vRange[1] = 3);
-  cam->near = -5;
+  cam->neer = -5;
   cam->dist = 0;
   cam->faar =  5;
   cam->atRel = AIR_TRUE;
