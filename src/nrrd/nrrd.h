@@ -658,6 +658,7 @@ extern nrrd_export NrrdKernel
   *nrrdKernelGaussianDD;         /* 2nd derivative of Gaussian */
 extern int nrrdKernelParse(NrrdKernel **kernelP, double *parm,
 			   const char *str);
+extern int nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str);
 
 #ifdef __cplusplus
 }

@@ -1280,3 +1280,17 @@ nrrdKernelParse(NrrdKernel **kernelP, double *parm, const char *_str) {
   }
   return 0;
 }
+
+int
+nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str) {
+  char me[]="nrrdKernelSpecParse", err[AIR_STRLEN_MED];
+  NrrdKernel *kern;
+  double kparm[NRRD_KERNEL_PARMS_NUM];
+  
+  if (nrrdKernelParse(&kern, kparm, str)) {
+    sprintf(err, "%s: ", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  nrrdKernelSpecSet(ksp, kern, kparm);
+  return 0;
+}
