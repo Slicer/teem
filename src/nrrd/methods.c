@@ -400,7 +400,7 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
     num *= (nrrd->axis[d].size = size[d]);
   }
   esize = nrrdElementSize(nrrd);
-  nrrd->data = calloc(num, esize);
+  nrrd->data = calloc(2*num, esize);
   printf("%s: data at %llx is from calloc(" NRRD_BIG_INT_PRINTF ", %d)\n",
 	 me, (unsigned long long int)nrrd->data, num, esize);
   if (!(nrrd->data)) {
