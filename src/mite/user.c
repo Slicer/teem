@@ -70,7 +70,7 @@ miteUserNix(miteUser *muu) {
 int
 _miteUserCheck(miteUser *muu) {
   char me[]="miteUserCheck", err[AIR_STRLEN_MED];
-  int T;
+  int T, gotOpac;
   
   if (!muu) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -80,12 +80,18 @@ _miteUserCheck(miteUser *muu) {
     sprintf(err, "%s: need at least one transfer function", me);
     biffAdd(MITE, err); return 1;
   }
+  gotOpac = AIR_FALSE;
   for (T=0; T<muu->ntxfNum; T++) {
     if (miteNtxfCheck(muu->ntxf[T], gageKindScl)) {
       sprintf(err, "%s: ntxf[%d] (%d of %d) can't be used as a txf",
 	      me, T, T+1, muu->ntxfNum);
       biffAdd(MITE, err); return 1;
     }
+    gotOpac |= !!strchr(muu->ntxf[T]->axis[0].label, 'A');
+  }
+  if (!gotOpac) {
+    fprintf(stderr, "\n\n%s: !!! WARNING !!! opacity (\"A\") not set "
+	    "by any transfer function\n\n", me);
   }
   if (!muu->nout) {
     sprintf(err, "%s: rendered image nrrd is NULL", me);
