@@ -610,8 +610,8 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
 	numLines *= sz[pass][d];
     }
     sizeIn = sz[pass][topRax];
-    numOut = numLines*sizeIn;
     sizeOut = sz[pass+1][botRax];
+    numOut = numLines*sizeOut;
     /* for the rest of the loop body, d is the original "dimension"
        for the axis being resampled */
     d = ax[pass][topRax];
