@@ -369,7 +369,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP, int bins, int smart) {
   Nrrd *nhist, *nmap;
   float *ycoord = NULL;
   double val, min, max, *last = NULL;
-  int i, idx, *respect = NULL;
+  int i, idx, *respect = NULL, lort, hirt;
   unsigned int *hist, *steady = NULL;
   nrrdBigInt I, num;
   airArray *mop;
@@ -383,8 +383,8 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP, int bins, int smart) {
 	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
-  if (!(bins > 2)) {
-    sprintf(err, "%s: need # bins > 2 (not %d)", me, bins);
+  if (!(bins > 4)) {
+    sprintf(err, "%s: need # bins > 4 (not %d)", me, bins);
     biffAdd(NRRD, err); return 1;
   }
   /* we start by simply copying, because the only thing we're 
@@ -477,6 +477,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP, int bins, int smart) {
     /* we ignore some of the bins according to "smart" arg */
     for (i=0; i<smart; i++) {
       respect[steady[1+2*i]] = 0;
+      /* printf("%s: disrespecting bin %d\n", me, steady[1+2*i]); */
     }
   }
   if (nrrdAlloc(nmap=nrrdNew(), nrrdTypeFloat, 1, bins+1)) {
@@ -497,6 +498,32 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP, int bins, int smart) {
       ycoord[i] = ycoord[i-1] + hist[i-1]*(smart 
 					   ? respect[i-1] 
 					   : 1);
+    }
+  }
+  /* if we've done smart, the integral will have little flat spots
+     where we ignored hits in the histogram.  That means the mapping
+     will actually be lower at that value than it should be.  In
+     truth, we should be using an irregular mapping for this, and the
+     control points at the ignored bins should just be missing.  So we
+     have to do this silliness to raise those control points in the
+     regular map. */
+  if (smart) {
+    /* there are bins+1 control points, with indices 0 to bins.
+       We'll fix control points 1 to bins-1.  ycoord[i] is too low
+       if hist[i-1] was not respected (!respect[i-1]) */
+    for (i=1; i<=bins-1; i++) {
+      if (!respect[i-1]) {
+	/* lort and hirt will bracket the index of the bad control point
+	   with points corresponding either to respected bins or the
+	   endpoints of the histogram */
+	for (lort=i; lort>=1 && !respect[lort-1]; lort--);
+	for (hirt=i; hirt<=bins-1 && !respect[hirt-1]; hirt++);
+	ycoord[i] = AIR_AFFINE(lort, i, hirt, ycoord[lort], ycoord[hirt]);
+      }
+    }
+    /* the very last control point has to be handled differently */
+    if (!respect[bins-1]) {
+      ycoord[bins] += ycoord[bins-1] - ycoord[bins-2];
     }
   }
   for (i=0; i<=bins; i++) {
