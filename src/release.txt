@@ -13,7 +13,9 @@ cp src/LICENSE.txt ~/usr/teemdoc/html/tree/src/
   a) Make sure all library symbols are properly prefixed.  On linux,
   this should return nothing:
   cd teem/linux/lib
-  nm libteem.so | grep -v "gcc2_compiled." | grep -v " U " | grep -v " A " \
+  nm libteem.so \
+  | grep -v "gcc2_compiled." | grep -v " U " | grep -v " A " \
+  | grep -v " t Letext" \
   | grep -v " air" | grep -v " _air" \
   | grep -v " hest" | grep -v " _hest" \
   | grep -v " biff" | grep -v " _biff" \
@@ -30,7 +32,7 @@ cp src/LICENSE.txt ~/usr/teemdoc/html/tree/src/
   | grep -v " ten" | grep -v " _ten" \
   | grep -v " echo" | grep -v " _echo"
   b) Make sure #defines in header files are properly prefixed:
-  cd ../../inlude
+  cd ../../include
   grep #define *.h | grep -v _export \
   | grep -v " echo" | grep -v " ell" | grep -v " gage" \
   | grep -v " AIR" | grep -v " _AIR" \
@@ -45,7 +47,7 @@ cp src/LICENSE.txt ~/usr/teemdoc/html/tree/src/
   | grep -v " BANE" | grep -v " _BANE" \
   | grep -v " LIMN" | grep -v " _LIMN" \
   | grep -v " HOOVER" | grep -v " _HOOVER" \
-  | grep -v " MITE" | grep -v " _MITE" \
+  | grep -v " MITE" | grep -v " _MITE" | grep -v "mite_" \
   | grep -v " TEN" | grep -v " _TEN" \
   | grep -v " ECHO" | grep -v " _ECHO"
 
@@ -116,6 +118,8 @@ setenv TEEM_BZIP2_LPATH -L/home/gk/lib
 setenv TEEM_BZIP2_IPATH -I/home/gk/include
 setenv TEEM_ZLIB_LPATH -L/home/gk/lib
 setenv TEEM_ZLIB_IPATH -I/home/gk/include
+setenv TEEM_PNG_LPATH -L/usr/local/lib
+setenv TEEM_PNG_IPATH -I/usr/local/include
 
 4) Create source-only tgz:
 cvs -d /usr/sci/projects/teem/cvs co teem; cd teem
