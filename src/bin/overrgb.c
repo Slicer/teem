@@ -22,27 +22,29 @@
 #include <teem/hest.h>
 #include <teem/nrrd.h>
 
-char *overInfo = ("Composites an RGBA nrrd over "
-		  "a background color, after doing gamma correction, "
-		  "then quantizes to an 8-bit ppm.  Actually, the "
-		  "input nrrd can have more than 4 values per pixel, "
-		  "but only the first four are used.  If the RGBA nrrd "
-		  "is floating point, the values are taken at face value; "
-		  "if it is fixed point, the values interpreted as having "
-		  "been quantized (so that 8-bit RGBA images will act as "
-		  "you expect).");
+char *overInfo = (
+  "Composites an RGBA nrrd over "
+  "a background color (or image), after doing gamma correction, "
+  "then quantizes to an 8-bit image.  Actually, the "
+  "input nrrd can have more than 4 values per pixel, "
+  "but only the first four are used.  If the RGBA nrrd "
+  "is floating point, the values are taken at face value; "
+  "if it is fixed point, the values interpreted as having "
+  "been quantized (so that 8-bit RGBA images will act as "
+  "you expect).");
 
 int
 main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   Nrrd *nin, *nout,    /* initial input and final output */
     *ninD,             /* input converted to double */
+    *nbg,              /* background image (optional) */
     *nrgbaD;           /* rgba input as double */
   char *me, *outS, *errS;
   double gamma, back[3], *rgbaD, r, g, b, a;
   airArray *mop;
-  int E, N, min[3], max[3], i, rI, gI, bI;
-  unsigned char *outUC;
+  int E, min[3], max[3], i, rI, gI, bI, sx, sy;
+  unsigned char *outUC, *bgUC;
 
   me = argv[0];
   mop = airMopNew();
@@ -53,6 +55,9 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "b", "background", airTypeDouble, 3, 3, back, "0 0 0",
 	     "background color to composite against; white is "
 	     "1 1 1, not 255 255 255.");
+  hestOptAdd(&hopt, "bi", "nbg", airTypeOther, 1, 1, &nbg, "",
+	     "8-bit RGB background image to composite against",
+	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS,
 	     NULL, "file to write output PPM image to");
   hestParseOrDie(hopt, argc-1, argv+1, NULL, me, overInfo,
@@ -65,9 +70,23 @@ main(int argc, char *argv[]) {
     airMopError(mop); return 1;
   }
   if (nrrdTypeBlock == nin->type) {
-    fprintf(stderr, "%s: can't use a %s nrrd", me,
+    fprintf(stderr, "%s: can't use a %s nrrd\n", me,
 	    airEnumStr(nrrdType, nrrdTypeBlock));
     airMopError(mop); return 1;
+  }
+
+  sx = nin->axis[1].size;
+  sy = nin->axis[2].size;
+  if (nbg) {
+    if (!(3 == nbg->dim 
+	  && 3 == nbg->axis[0].size
+	  && sx == nbg->axis[1].size 
+	  && sy == nbg->axis[2].size
+	  && nrrdTypeUChar == nbg->type)) {
+      fprintf(stderr, "%s: background image not %dx%d 8-bit RGB\n",
+	      me, sx, sy);
+      airMopError(mop); return 1;
+    }
   }
 
   ninD = nrrdNew();
@@ -87,19 +106,19 @@ main(int argc, char *argv[]) {
   }  
   min[0] = min[1] = min[2] = 0;
   max[0] = 3;
-  max[1] = nin->axis[1].size-1;
-  max[2] = nin->axis[2].size-1;
+  max[1] = sx-1;
+  max[2] = sy-1;
   if (!E) E |= nrrdCrop(nrgbaD, ninD, min, max);
-  if (!E) E |= nrrdPPM(nout, nin->axis[1].size, nin->axis[2].size);
+  if (!E) E |= nrrdPPM(nout, sx, sy);
   if (E) {
     fprintf(stderr, "%s: trouble:\n%s", me, errS = biffGetDone(NRRD));
     free(errS); return 1;
   }
   
   outUC = (unsigned char*)nout->data;
+  bgUC = nbg ? nbg->data : NULL;
   rgbaD = (double *)nrgbaD->data;
-  N = nin->axis[1].size * nin->axis[2].size;
-  for (i=0; i<N; i++) {
+  for (i=0; i<sx*sy; i++) {
     r = AIR_CLAMP(0, rgbaD[0], 1);
     g = AIR_CLAMP(0, rgbaD[1], 1);
     b = AIR_CLAMP(0, rgbaD[2], 1);
@@ -107,9 +126,15 @@ main(int argc, char *argv[]) {
     r = pow(r, 1.0/gamma);
     g = pow(g, 1.0/gamma);
     b = pow(b, 1.0/gamma);
-    r = a*r + (1-a)*back[0];
-    g = a*g + (1-a)*back[1];
-    b = a*b + (1-a)*back[2];
+    if (bgUC) {
+      r = a*r + (1-a)*back[0];
+      g = a*g + (1-a)*back[1];
+      b = a*b + (1-a)*back[2];
+    } else {
+      r = a*r + (1-a)*bgUC[0 + 3*i]/255;
+      g = a*g + (1-a)*bgUC[0 + 3*i]/255;
+      b = a*b + (1-a)*bgUC[0 + 3*i]/255;
+    }
     AIR_INDEX(0.0, r, 1.0, 256, rI);
     AIR_INDEX(0.0, g, 1.0, 256, gI);
     AIR_INDEX(0.0, b, 1.0, 256, bI);
