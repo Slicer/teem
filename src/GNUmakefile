@@ -386,10 +386,10 @@ teem.dsp:
 	@echo s/TEEMALLDOTH/$(patsubst %.h,\# Begin Source File\\n\\nSOURCE=%.h\\n\# End Source File\\n,$(foreach lib,$(LIBS),$(addprefix ..\\\\..\\\\src\\\\$(lib)\\\\,$($(lib).PUBLIC_HEADERS) $($(lib).PRIVATE_HEADERS))))/g >> cmd.ed
 	@echo s/TEEMALLINC/$(foreach lib,$(LIBS),\\/I \"..\\/..\\/src\\/$(lib)\")/g >> cmd.ed
 	@echo "s/ #/#/g" >> cmd.ed
-	@sed -f cmd.ed ../win32/make/teem.dsp.tmpl > ../win32/make/teem.dsp
-	@sed -f cmd.ed ../win32/make/teem_s.dsp.tmpl > ../win32/make/teem_s.dsp
-	@unix2dos ../win32/make/teem.dsp 2> /dev/null
-	@unix2dos ../win32/make/teem_s.dsp 2> /dev/null
+	@sed -f cmd.ed ../win32/make/teem_shared.dsp.tmpl > ../win32/make/teem_shared.dsp
+	@sed -f cmd.ed ../win32/make/teem_static.dsp.tmpl > ../win32/make/teem_static.dsp
+	@unix2dos ../win32/make/teem_shared.dsp 2> /dev/null
+	@unix2dos ../win32/make/teem_static.dsp 2> /dev/null
 	@rm -rf cmd.ed
 
 bins.dsp: $(foreach bin,$(BINS),teembin.$(bin).dsp)
@@ -420,18 +420,18 @@ install_lib.bat:
 	@rm -rf cmd.ed
 
 def: teem.dsp
-	@msdev ../win32/make/teem.dsp /make "teem - Win32 Release" /clean
-	@-msdev ../win32/make/teem.dsp /make "teem - Win32 Release" /build
-	@dlltool --export-all-symbols --output-def teem.def ../win32/make/Release/*.obj
+	@msdev ../win32/make/teem_shared.dsp /make "teem - Win32 Release" /clean
+	@-msdev ../win32/make/teem_shared.dsp /make "teem - Win32 Release" /build
+	@dlltool --export-all-symbols --output-def teem.def ../win32/make/shared/release/*.obj
 	@grep -v '; dlltool' teem.def | grep -v '_real' | grep -v '??' | grep -v '_hooverThreadBody' > ../win32/make/teem.def
 	@rm teem.def
-	@-msdev ../win32/make/teem.dsp /make "teem - Win32 Release" /clean
+	@-msdev ../win32/make/teem_shared.dsp /make "teem - Win32 Release" /clean
 
 unproject:
 	rm -rf ../win32/make/*.dsp ../win32/make/*.dsw ../win32/make/teem.def ../win32/make/install_lib.bat
 
 win32:
-	@-msdev ../win32/make/teem.dsp /make all /build
+	@-msdev ../win32/make/teem.dsw /make all /build
 
 win32-clean:
 	@-msdev ../win32/make/teem.dsw /make all /clean

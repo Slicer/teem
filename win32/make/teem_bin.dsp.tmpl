@@ -54,7 +54,7 @@ LINK32=link.exe
 # Begin Special Build Tool
 TargetName=TEEMBINNAME
 SOURCE="$(InputPath)"
-PostBuild_Cmds=call install_bin.bat $(TargetName)
+PostBuild_Cmds=call install_bin.bat $(TargetName) release
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "TEEMBINNAME - Win32 Debug"
@@ -83,7 +83,7 @@ LINK32=link.exe
 # Begin Special Build Tool
 TargetName=TEEMBINNAME
 SOURCE="$(InputPath)"
-PostBuild_Cmds=call install_bin.bat $(TargetName)
+PostBuild_Cmds=call install_bin.bat $(TargetName) debug
 # End Special Build Tool
 
 !ENDIF 
