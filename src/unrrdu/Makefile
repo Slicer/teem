@@ -29,6 +29,7 @@ BIN_OBJS = unu.o
 # This applies to every .o file below!
 #
 BIN_OBJS += flip.o slice.o
+$(warning BIN_OBJS = $(BIN_OBJS))
 BIN_LIBS = -lnrrd -lbiff -lhest -lair -lm
 
 include ../make/Common.mk

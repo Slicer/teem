@@ -122,6 +122,7 @@ parseNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     airMopError(mop);
     return 1;
   }
+  airMopOkay(mop);
   return 0;
 }
 
