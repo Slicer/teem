@@ -84,13 +84,8 @@ char info[]="Calculate volumes friendly to monkeys.  Each voxel in the "
 
 int
 main(int argc, char *argv[]) {
-#if 0
-  char *ninStr, *sizeStr, *baseStr, 
-    name[1024], 
-  int vo, go, ho, no, need
-#endif
   unsigned char *vgh;
-  char *me, *outS, cmt[512];
+  char *me, *outS, cmt[512], *herr;
   Nrrd *nin, *npad, *npad2, *nrsmp, *nvghF, *nvgh;
   NrrdResampleInfo *rsmpInfo;
   int i, j, k, vi, gi, hi, n, ignore,
@@ -128,6 +123,7 @@ main(int argc, char *argv[]) {
 	     "will be all zeroes");
   hestOptAdd(&opt, "o", "output", airTypeString, 1, 1, &outS, NULL,
 	     "output volume in nrrd format");
+  if (hestOptCheck(opt, &herr)) { printf("%s\n", herr); exit(1); }
 
   if (1 == argc) {
     hestInfo(stderr, me, info, hparm);
@@ -137,6 +133,15 @@ main(int argc, char *argv[]) {
     opt = hestOptFree(opt);
     exit(1);
   }
+  if (hestParse(opt, argc-1, argv+1, &herr, hparm)) {
+    fprintf(stderr, "ERROR: %s\n", herr); free(herr);
+    hestUsage(stderr, opt, me, hparm);
+    hestGlossary(stderr, opt, hparm);
+    hparm = hestParmFree(hparm);
+    opt = hestOptFree(opt);
+    exit(1);
+  }
+  printf("output size = %d %d %d\n", sz[0], sz[1], sz[2]);
 
   /* padding; to get up to (sz[i] - 2*border)
      This padding is only needed if the input volume is smaller along
@@ -269,6 +274,7 @@ main(int argc, char *argv[]) {
   npad2->axis[2].spacing = (AIR_EXISTS(npad2->axis[2].spacing)
 			    ? npad2->axis[2].spacing : 1.0);
   printf("%s: probing ... ", me); fflush(stdout);
+  ctx->c.verbose = 0;
   t0 = airTime();
   for (k=0; k<=sz[2]-1; k++) {
     for (j=0; j<=sz[1]-1; j++) {
