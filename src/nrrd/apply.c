@@ -20,13 +20,32 @@
 #include "nrrd.h"
 #include "private.h"
 
+/*
+** _nrrdApply1DSetUp()
+**
+** error checking and initializing needed for 1D LUTS and regular
+** maps.  The intent is that if thing succeeds, then there is no
+** need for any further error checking.
+**
+** Allocates the output nrrd.
+*/
 int
-_nrrdApply1DSetUp(Nrrd *nout, Nrrd *nmap, Nrrd *nin, int lut) {
-  char me[]="_nrrdApply1DSetUp", err[AIR_STRLEN_MED];
+_nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap, int lut) {
+  char me[]="_nrrdApply1DSetUp", funcLut[]="lut",
+    funcRmap[]="rmap", err[AIR_STRLEN_MED], *mapcnt;
   int mapax, size[NRRD_DIM_MAX], axmap[NRRD_DIM_MAX], d;
 
+  if (nout == nin) {
+    sprintf(err, "%s: due to laziness, nout==nin always disallowed", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdTypeBlock == nin->type || nrrdTypeBlock == nmap->type) {
+    sprintf(err, "%s: input nrrd or %s nrrd is of type block",
+	    me, lut ? "lut" : "map");
+    biffAdd(NRRD, err); return 1;
+  }
   mapax = nmap->dim - 1;
-  fprintf(stderr, "%s: mapax = %d\n", me, mapax);
+  /* fprintf(stderr, "!%s: mapax = %d\n", me, mapax); */
   if (!(0 == mapax || 1 == mapax)) {
     sprintf(err, "%s: dimension of %s should be 1 or 2, not %d", 
 	    me, lut ? "lut" : "map", nmap->dim);
@@ -43,11 +62,18 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nmap, Nrrd *nin, int lut) {
 	    me, nin->dim, lut ? "lut" : "map", NRRD_DIM_MAX);
     biffAdd(NRRD, err); return 1;
   }
-  
+  /* HEY: this won't work for irregular maps */
+  if (nrrdHasNonExistSet(nmap)) {
+    sprintf(err, "%s: %s nrrd has non-existent values",
+	    me, lut ? "lut" : "map");
+    biffAdd(NRRD, err); return 1;
+  }
+
   nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size+mapax);
-  for (d=0; d<=nin->dim-1; d++) {
+  for (d=0; d<nin->dim; d++) {
     axmap[d+mapax] = d;
-    fprintf(stderr, "%s: axmap[%d] = %d\n", me, d+mapax, axmap[d+mapax]);
+    /* fprintf(stderr, "!%s: axmap[%d] = %d\n",
+       me, d+mapax, axmap[d+mapax]); */
   }
   if (mapax) {
     size[0] = nmap->axis[0].size;
@@ -57,10 +83,27 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nmap, Nrrd *nin, int lut) {
     sprintf(err, "%s: couldn't allocate output nrrd", me);
     biffAdd(NRRD, err); return 1;
   }
+
+  /* peripheral */
   if (nrrdAxesCopy(nout, nin, axmap, NRRD_AXESINFO_NONE)) {
     sprintf(err, "%s: trouble copying axes", me);
     biffAdd(NRRD, err); return 1;
   }
+  mapcnt = (nmap->content
+	    ? airStrdup(nmap->content)
+	    : airStrdup(nrrdStateUnknownContent));
+  if (!mapcnt) {
+    sprintf(err, "%s: couldn't copy %s content!",
+	    me, lut ? "lut" : "map");
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdContentSet(nout, lut ? funcLut : funcRmap,
+		     nin, "%s", mapcnt)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  nrrdPeripheralInit(nout);
+  nout->hasNonExist = nrrdNonExistFalse;   /* really! */
   return 0;
 }
 
@@ -70,7 +113,7 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nmap, Nrrd *nin, int lut) {
 ** allows lut length to be simply 1
 */
 int
-nrrdApply1DLut(Nrrd *nout, Nrrd *nlut, Nrrd *nin) {
+nrrdApply1DLut(Nrrd *nout, Nrrd *nin, Nrrd *nlut) {
   char me[]="nrrdApply1DLut", err[AIR_STRLEN_MED];
   int mapax, szin, szlutel, lutidx, lutlen;
   nrrdBigInt N, I;
@@ -81,7 +124,7 @@ nrrdApply1DLut(Nrrd *nout, Nrrd *nlut, Nrrd *nin) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (_nrrdApply1DSetUp(nout, nlut, nin, AIR_TRUE)) {
+  if (_nrrdApply1DSetUp(nout, nin, nlut, AIR_TRUE)) {
     sprintf(err, "%s: ", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -117,7 +160,7 @@ nrrdApply1DLut(Nrrd *nout, Nrrd *nlut, Nrrd *nin) {
 ** allows map length to be simply 1
 */
 int
-nrrdApply1DRegMap(Nrrd *nout, Nrrd *nmap, Nrrd *nin, 
+nrrdApply1DRegMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
 		  NrrdKernel *kernel, double *param) {
   char me[]="nrrdApply1DRegMap", err[AIR_STRLEN_MED];
   int mapax, szin, szmapel, idx, maplen, ellen, i;
@@ -130,13 +173,14 @@ nrrdApply1DRegMap(Nrrd *nout, Nrrd *nmap, Nrrd *nin,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (_nrrdApply1DSetUp(nout, nmap, nin, AIR_FALSE)) {
+  if (_nrrdApply1DSetUp(nout, nin, nmap, AIR_FALSE)) {
     sprintf(err, "%s: ", me);
     biffAdd(NRRD, err); return 1;
   }
   mapax = nmap->dim - 1;
 
   if (kernel && param) {
+    /* HEY */
     sprintf(err, "%s: sorry, filtered maps not yet implemented", me);
     fprintf(stderr, "%s\n", err);
     biffAdd(NRRD, err); return 1;
@@ -236,7 +280,7 @@ nrrdApply1DIrregMap(Nrrd *nout, Nrrd *nmap, Nrrd *nacl, Nrrd *nin) {
   szmapel = ellen*nrrdElementSize(nmap);
   mapmin = lup(nmap->data, 0);
   mapmax = lup(nmap->data, (maplen-1)*ellen);
-  fprintf(stderr, "%s: mapmin = %g, mapmax = %g\n", me, mapmin, mapmax);
+  fprintf(stderr, "!%s: mapmin = %g, mapmax = %g\n", me, mapmin, mapmax);
   for (I=0; I<N; I++) {
     val = load(din);
     if (val < mapmin) {

@@ -29,7 +29,7 @@ _nrrdCM_median(float *hist, float half) {
   while(sum < half)
     sum += *hpt++;
   
-  return(hpt - 1 - hist);
+  return hpt - 1 - hist;
 }
 
 #define INDEX(nin, lup, idxIn, bins, val, idxOut) ( \
@@ -43,7 +43,7 @@ _nrrdCM_printhist(float *hist, int bins, char *desc) {
   int i;
 
   printf("%s:\n", desc);
-  for (i=0; i<=bins-1; i++) {
+  for (i=0; i<bins; i++) {
     if (hist[i]) {
       printf("   %d: %g\n", i, hist[i]);
     }
@@ -63,15 +63,15 @@ _nrrdCM_wtAlloc(int radius, float wght) {
     wt[radius-r] = pow(1.0/wght, r);
   }
   sum = 0.0;
-  for (r=0; r<=diam-1; r++) {
+  for (r=0; r<diam; r++) {
     sum += wt[r];
   }
-  for (r=0; r<=diam-1; r++) {
+  for (r=0; r<diam; r++) {
     wt[r] /= sum;
   }
   /*
-  for (r=0; r<=diam-1; r++) {
-    fprintf(stderr, "%s: wt[%d] = %g\n", "_nrrdCM_wtAlloc", r, wt[r]);
+  for (r=0; r<diam; r++) {
+    fprintf(stderr, "!%s: wt[%d] = %g\n", "_nrrdCM_wtAlloc", r, wt[r]);
   }
   */
   return wt;
@@ -94,12 +94,12 @@ _nrrdCheapMedian1D(Nrrd *nout, Nrrd *nin, int radius, float wght,
     /* initialize histogram */
     half = diam/2 + 1;
     memset(hist, 0, bins*sizeof(float));
-    for (X=0; X<=diam-1; X++) {
+    for (X=0; X<diam; X++) {
       hist[INDEX(nin, lup, X, bins, val, idx)]++;
     }
     /* _nrrdCM_printhist(hist, bins, "after init"); */
     /* find median at each point using existing histogram */
-    for (X=radius; X<=num-radius-1; X++) {
+    for (X=radius; X<num-radius; X++) {
       /* _nrrdCM_printhist(hist, bins, "----------"); */
       idx = _nrrdCM_median(hist, half);
       val = NRRD_AXIS_POS(nrrdCenterCell, nin->min, nin->max, bins, idx);
@@ -116,7 +116,7 @@ _nrrdCheapMedian1D(Nrrd *nout, Nrrd *nin, int radius, float wght,
     /* non-uniform weighting --> slow and stupid */
     wt = _nrrdCM_wtAlloc(radius, wght);
     half = 0.5;
-    for (X=radius; X<=num-radius-1; X++) {
+    for (X=radius; X<num-radius; X++) {
       memset(hist, 0, bins*sizeof(float));
       for (I=-radius; I<=radius; I++) {
 	hist[INDEX(nin, lup, I+X, bins, val, idx)] += wt[I+radius];
@@ -145,7 +145,7 @@ _nrrdCheapMedian2D(Nrrd *nout, Nrrd *nin, int radius, float wght,
   if (1 == wght) {
     /* uniform weighting-> can do sliding histogram optimization */
     half = diam*diam/2 + 1;
-    for (Y=radius; Y<=sy-radius-1; Y++) {
+    for (Y=radius; Y<sy-radius; Y++) {
       /* initialize histogram */
       memset(hist, 0, bins*sizeof(float));
       X = radius;
@@ -156,7 +156,7 @@ _nrrdCheapMedian2D(Nrrd *nout, Nrrd *nin, int radius, float wght,
       }
       /* _nrrdCM_printhist(hist, bins, "after init"); */
       /* find median at each point using existing histogram */
-      for (X=radius; X<=sx-radius-1; X++) {
+      for (X=radius; X<sx-radius; X++) {
 	idx = _nrrdCM_median(hist, half);
 	val = NRRD_AXIS_POS(nrrdCenterCell, nin->min, nin->max, bins, idx);
 	nrrdDInsert[nout->type](nout->data, X + sx*Y, val);
@@ -174,8 +174,8 @@ _nrrdCheapMedian2D(Nrrd *nout, Nrrd *nin, int radius, float wght,
     /* non-uniform weighting --> slow and stupid */
     wt = _nrrdCM_wtAlloc(radius, wght);
     half = 0.5;
-    for (Y=radius; Y<=sy-radius-1; Y++) {
-      for (X=radius; X<=sx-radius-1; X++) {
+    for (Y=radius; Y<sy-radius; Y++) {
+      for (X=radius; X<sx-radius; X++) {
 	memset(hist, 0, bins*sizeof(float));
 	for (J=-radius; J<=radius; J++) {
 	  for (I=-radius; I<=radius; I++) {
@@ -209,8 +209,8 @@ _nrrdCheapMedian3D(Nrrd *nout, Nrrd *nin, int radius, float wght,
   if (1 == wght) {
     /* uniform weighting-> can do sliding histogram optimization */
     half = diam*diam*diam/2 + 1;
-    for (Z=radius; Z<=sz-radius-1; Z++) {
-      for (Y=radius; Y<=sy-radius-1; Y++) {
+    for (Z=radius; Z<sz-radius; Z++) {
+      for (Y=radius; Y<sy-radius; Y++) {
 	/* initialize histogram */
 	memset(hist, 0, bins*sizeof(float));
 	X = radius;
@@ -223,7 +223,7 @@ _nrrdCheapMedian3D(Nrrd *nout, Nrrd *nin, int radius, float wght,
 	  }
 	}
 	/* find median at each point using existing histogram */
-	for (X=radius; X<=sx-radius-1; X++) {
+	for (X=radius; X<sx-radius; X++) {
 	  idx = _nrrdCM_median(hist, half);
 	  val = NRRD_AXIS_POS(nrrdCenterCell, nin->min, nin->max, bins, idx);
 	  nrrdDInsert[nout->type](nout->data, X + sx*(Y + sy*Z), val);
@@ -246,10 +246,10 @@ _nrrdCheapMedian3D(Nrrd *nout, Nrrd *nin, int radius, float wght,
     /* non-uniform weighting --> slow and stupid */
     wt = _nrrdCM_wtAlloc(radius, wght);
     half = 0.5;
-    for (Z=radius; Z<=sz-radius-1; Z++) {
+    for (Z=radius; Z<sz-radius; Z++) {
       fprintf(stderr, "%s: Z = %d/%d\n", me, Z-radius, sz-2*radius-1);
-      for (Y=radius; Y<=sy-radius-1; Y++) {
-	for (X=radius; X<=sx-radius-1; X++) {
+      for (Y=radius; Y<sy-radius; Y++) {
+	for (X=radius; X<sx-radius; X++) {
 	  memset(hist, 0, bins*sizeof(float));
 	  for (K=-radius; K<=radius; K++) {
 	    for (J=-radius; J<=radius; J++) {
@@ -270,10 +270,9 @@ _nrrdCheapMedian3D(Nrrd *nout, Nrrd *nin, int radius, float wght,
   }
 }
 
-
 int
 nrrdCheapMedian(Nrrd *nout, Nrrd *nin, int radius, float wght, int bins) {
-  char me[]="nrrdCheapMedian", err[AIR_STRLEN_MED];
+  char me[]="nrrdCheapMedian", func[]="cmedian", err[AIR_STRLEN_MED];
   float *hist;
 
   if (!(nin && nout)) {
@@ -293,6 +292,16 @@ nrrdCheapMedian(Nrrd *nout, Nrrd *nin, int radius, float wght, int bins) {
 	    me, nin->dim);
     biffAdd(NRRD, err); return 1;    
   }
+  if (nout == nin) {
+    sprintf(err, "%s: nout==nin disallowed", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdTypeBlock == nin->type) {
+    sprintf(err, "%s: can't filter nrrd type %s", me,
+	    airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAdd(NRRD, err); return 1;
+  }
+
   if (nrrdCopy(nout, nin)) {
     sprintf(err, "%s: failed to create copy of input", me);
     biffAdd(NRRD, err); return 1;
@@ -324,23 +333,11 @@ nrrdCheapMedian(Nrrd *nout, Nrrd *nin, int radius, float wght, int bins) {
   }
 
   nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
-  nout->content = airFree(nout->content);
-  if (nin->content) {
-    nout->content = calloc(strlen("cheapmedian(,,)")
-			   + strlen(nin->content)
-			   + 11
-			   + 11
-			   + 11
-			   + 1, sizeof(char));
-    if (nout->content) {
-      sprintf(nout->content, "cheapmedian(%s,%d,%g,%d)", 
-	      nin->content, radius, wght, bins);
-    }
-    else {
-      sprintf(err, "%s: couldn't allocate output content", me);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (nrrdContentSet(nout, func, nin, "%d,%g,%d", radius, wght, bins)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
   }
+  nrrdPeripheralInit(nout);
 
   hist = airFree(hist);
   return 0;

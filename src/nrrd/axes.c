@@ -107,14 +107,14 @@ nrrdAxesCopy(Nrrd *nout, Nrrd *nin, int *map, int bitflag) {
     return 2;
   }
   if (map) {
-    for (d=0; d<=nout->dim-1; d++) {
+    for (d=0; d<nout->dim; d++) {
       if (!AIR_INSIDE(-1, map[d], nin->dim-1)) {
 	return 3;
       }
     }
   }
   
-  for (d=0; d<=nout->dim-1; d++) {
+  for (d=0; d<nout->dim; d++) {
     from = map ? map[d] : d;
     if (-1 == from) {
       /* for this axis, we don't touch a thing */
@@ -161,7 +161,7 @@ nrrdAxesSet_nva(Nrrd *nrrd, int axInfo, void *_info) {
   }
   info.P = _info;
 
-  for (d=0; d<=nrrd->dim-1; d++) {
+  for (d=0; d<nrrd->dim; d++) {
     switch (axInfo) {
     case nrrdAxesInfoSize:
       nrrd->axis[d].size = info.I[d];
@@ -207,7 +207,7 @@ nrrdAxesSet(Nrrd *nrrd, int axInfo, ...) {
 
   info.P = space;
   va_start(ap, axInfo);
-  for (d=0; d<=nrrd->dim-1; d++) {
+  for (d=0; d<nrrd->dim; d++) {
     switch (axInfo) {
     case nrrdAxesInfoSize:
       info.I[d] = va_arg(ap, int);
@@ -272,7 +272,7 @@ nrrdAxesGet_nva(Nrrd *nrrd, int axInfo, void *_info) {
   }
   
   info.P = _info;
-  for (d=0; d<=nrrd->dim-1; d++) {
+  for (d=0; d<nrrd->dim; d++) {
     switch (axInfo) {
     case nrrdAxesInfoSize:
       info.I[d] = nrrd->axis[d].size;
@@ -316,7 +316,7 @@ nrrdAxesGet(Nrrd *nrrd, int axInfo, ...) {
   nrrdAxesGet_nva(nrrd, axInfo, info.P);
 
   va_start(ap, axInfo);
-  for (d=0; d<=nrrd->dim-1; d++) {
+  for (d=0; d<nrrd->dim; d++) {
     ptr = va_arg(ap, void*);
     switch (axInfo) {
     case nrrdAxesInfoSize:

@@ -302,7 +302,7 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
   integral = info->kernel[d]->integral(info->param[d]);
   /*
   fprintf(stderr, 
-	  "%s(%d): size{In,Out} = %d, %d, support = %f; ratio = %f\n", 
+	  "!%s(%d): size{In,Out} = %d, %d, support = %f; ratio = %f\n", 
 	  me, d, sizeIn, sizeOut, support, ratio);
   */
   if (ratio > 1) {
@@ -316,7 +316,7 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
     dotLen = 2*ceil(support/ratio);
   }
   /*
-  fprintf(stderr, "%s(%d): dotLen = %d\n", me, d, dotLen);
+  fprintf(stderr, "!%s(%d): dotLen = %d\n", me, d, dotLen);
   */
 
   weight = calloc(sizeOut*dotLen, sizeof(float));
@@ -454,7 +454,7 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
   *weightP = weight;
   *indexP = index;
   /*
-  fprintf(stderr, "%s: dotLen = %d\n", me, dotLen);
+  fprintf(stderr, "!%s: dotLen = %d\n", me, dotLen);
   */
   return dotLen;
 }
@@ -780,10 +780,8 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
     sprintf(err, "%s: couldn't allocate final output nrrd", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  /*
-  printf("!%s: nout: dim = %d; sz[] = %d %d %d\n", me,
-	 dim, sz[passes][0],  sz[passes][1],  sz[passes][2]);
-  */
+  /* printf("!%s: nout: dim = %d; sz[] = %d %d %d\n", me,
+     dim, sz[passes][0],  sz[passes][1],  sz[passes][2]); */
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopOnError);
   nrrdAxesCopy(nout, nin, NULL, 
 	       (NRRD_AXESINFO_SIZE

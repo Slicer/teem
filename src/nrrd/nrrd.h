@@ -332,6 +332,7 @@ extern NrrdIter *nrrdIterNew(void);
 extern void nrrdIterSetValue(NrrdIter *iter, double val);
 extern void nrrdIterSetNrrd(NrrdIter *iter, Nrrd *nrrd);
 extern double nrrdIterValue(NrrdIter *iter);
+extern char *nrrdIterContent(NrrdIter *iter);
 extern NrrdIter *nrrdIterNix(NrrdIter *iter);
 extern NrrdIter *nrrdIterNuke(NrrdIter *iter);
 
@@ -353,6 +354,8 @@ extern void nrrdAxisMinMaxSet(Nrrd *nrrd, int ax);
 
 /******** simple things */
 /* simple.c */
+extern void nrrdPeripheralInit(Nrrd *nrrd);
+extern void nrrdPeripheralCopy(Nrrd *nout, Nrrd *nin);
 extern int nrrdContentSet(Nrrd *nout, const char *func,
 			  Nrrd *nin, const char *format, ...);
 extern void nrrdDescribe(FILE *file, Nrrd *nrrd);
@@ -419,8 +422,8 @@ extern int nrrdHistoEq(Nrrd *nout, Nrrd *nin,
 
 /******** rest of point-wise value remapping, and "color"mapping */
 /* apply.c */
-extern int nrrdApply1DLut(Nrrd *nout, Nrrd *nlut, Nrrd *nin);
-extern int nrrdApply1DRegMap(Nrrd *nout, Nrrd *nmap, Nrrd *nin,
+extern int nrrdApply1DLut(Nrrd *nout, Nrrd *nin, Nrrd *nlut);
+extern int nrrdApply1DRegMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
 			     NrrdKernel *kernel, double *param);
 
 /******** sampling, slicing, cropping */
@@ -444,14 +447,14 @@ extern int nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes);
 extern int nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2);
 extern int nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm);
 extern int nrrdFlip(Nrrd *nout, Nrrd *nin, int axis);
-extern int nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis, int incrDim);
+extern int nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim);
 extern int nrrdReshape(Nrrd *nout, Nrrd *nin, int dim, ...);
 extern int nrrdReshape_nva(Nrrd *nout, Nrrd *nin, int dim, int *size);
 extern int nrrdBlock(Nrrd *nout, Nrrd *nin);
 extern int nrrdUnblock(Nrrd *nout, Nrrd *nin, int type);
 
 /******** measuring and projecting */
-/* measr.c */
+/* measure.c */
 extern int nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr);
 
 /********* various kinds of histograms */
@@ -460,7 +463,7 @@ extern int nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type);
 extern int nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy);
 extern int nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int axis, int bins, int type);
 extern int nrrdHistoJoint(Nrrd *nout, Nrrd **nin, 
-			  int numNrrds, int *bins, int type, int *clamp);
+			  int numNin, int *bins, int type, int *clamp);
 
 /******** arithmetic and math on nrrds */
 /* arith.c */
@@ -476,7 +479,7 @@ extern int nrrdArithTernaryOp(Nrrd *nout, int op,
 /* filt.c */
 extern int nrrdCheapMedian(Nrrd *nout, Nrrd *nin,
 			   int radius, float wght, int bins);
-/* rsmp.c */
+/* resample.c */
 extern int nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info);
 extern int nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
 			      NrrdKernel *kernel, double *param,

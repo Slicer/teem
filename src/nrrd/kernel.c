@@ -1149,7 +1149,7 @@ nrrdKernelParse(NrrdKernel **kernelP, double *param, const char *_str) {
     biffAdd(NRRD, err); return 1;
   }
   NP = (*kernelP)->numParam;
-  for (i=0; i<=NP-1; i++) {
+  for (i=0; i<NP; i++) {
     if (!pstr)
       break;
     if (1 != sscanf(pstr, "%lg", param+i)) {

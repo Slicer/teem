@@ -99,11 +99,11 @@ void
 _nrrdResampleInfoInit(NrrdResampleInfo *info) {
   int i, d;
 
-  for (d=0; d<=NRRD_DIM_MAX-1; d++) {
+  for (d=0; d<NRRD_DIM_MAX; d++) {
     info->kernel[d] = NULL;
     info->samples[d] = 0;
     info->param[d][0] = nrrdDefRsmpScale;
-    for (i=1; i<=NRRD_KERNEL_PARAMS_MAX-1; i++)
+    for (i=1; i<NRRD_KERNEL_PARAMS_MAX; i++)
       info->param[d][i] = AIR_NAN;
     info->min[d] = info->max[d] = AIR_NAN;
   }
@@ -154,7 +154,7 @@ nrrdInit(Nrrd *nrrd) {
     nrrd->type = nrrdTypeUnknown;
     nrrd->dim = 0;
     
-    for (i=0; i<=NRRD_DIM_MAX-1; i++) {
+    for (i=0; i<NRRD_DIM_MAX; i++) {
       _nrrdAxisInit(&(nrrd->axis[i]));
     }
     
@@ -191,7 +191,7 @@ nrrdNew(void) {
   nrrd->data = NULL;
   nrrd->content = NULL;
   /* HEY: this is a symptom of some stupidity, no? */
-  for (i=0; i<=NRRD_DIM_MAX-1; i++) {
+  for (i=0; i<NRRD_DIM_MAX; i++) {
     nrrd->axis[i].label = NULL;
   }
 
@@ -225,7 +225,7 @@ nrrdNix(Nrrd *nrrd) {
   if (nrrd) {
     nrrd->content = airFree(nrrd->content);
     /* HEY: this is a symptom of some stupidity, no? */
-    for (i=0; i<=NRRD_DIM_MAX-1; i++) {
+    for (i=0; i<NRRD_DIM_MAX; i++) {
       nrrd->axis[i].label = airFree(nrrd->axis[i].label);
     }
     nrrdCommentClear(nrrd);
@@ -276,7 +276,7 @@ _nrrdSizeValid(int dim, int *size) {
   char me[]="_nrrdSizeValid", err[AIR_STRLEN_MED];
   int d;
   
-  for (d=0; d<=dim-1; d++) {
+  for (d=0; d<dim; d++) {
     if (!(size[d] > 0)) {
       sprintf(err, "%s: invalid size (%d) for axis %d (of %d)",
 	      me, size[d], d, dim-1);
@@ -313,7 +313,7 @@ nrrdWrap_nva(Nrrd *nrrd, void *data, int type, int dim, int *size) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  for (d=0; d<=dim-1; d++) {
+  for (d=0; d<dim; d++) {
     nrrd->axis[d].size = size[d];
   }
   return 0;
@@ -342,7 +342,7 @@ nrrdWrap(Nrrd *nrrd, void *data, int type, int dim, ...) {
     biffAdd(NRRD, err); return 1;
   }
   va_start(ap, dim);
-  for (d=0; d<=dim-1; d++) {
+  for (d=0; d<dim; d++) {
     size[d] = va_arg(ap, int);
   }
   va_end(ap);
@@ -400,7 +400,7 @@ nrrdCopy(Nrrd *nout, Nrrd *nin) {
     /* its not the case that we have nothing to do- the semantics of
        copying can not be achieved if the input and output nrrd are
        the same; this is an error */
-    sprintf(err, "%s: can't copy if nout==nin", me);
+    sprintf(err, "%s: nout==nin disallowed", me);
     biffAdd(NRRD, err); return 1;
   }
   if (!nrrdElementSize(nin)) {
@@ -519,7 +519,7 @@ nrrdAlloc(Nrrd *nrrd, int type, int dim, ...) {
     biffAdd(NRRD, err); return 1;
   }
   va_start(ap, dim);
-  for (d=0; d<=dim-1; d++) {
+  for (d=0; d<dim; d++) {
     size[d] = va_arg(ap, int);
   }
   va_end(ap);
@@ -578,7 +578,7 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
   }
   else {
     numWant = 1;
-    for (d=0; d<=dim-1; d++) {
+    for (d=0; d<dim; d++) {
       numWant *= size[d];
     }
     if (!nrrdElementSize(nrrd)) {
@@ -625,7 +625,7 @@ nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim, ...) {
   }
   num = 1;
   va_start(ap, dim);
-  for (d=0; d<=dim-1; d++) {
+  for (d=0; d<dim; d++) {
     num *= (size[d] = va_arg(ap, int));
   }
   va_end(ap);

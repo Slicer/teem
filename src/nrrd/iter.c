@@ -86,6 +86,32 @@ nrrdIterValue(NrrdIter *iter) {
   return ret;
 }
 
+/*
+******** nrrdIterContent()
+**
+** ALLOCATES a string that is either the nrrd's content (or 
+** nrrdStateUnknownContent) or a string version of the value; useful
+** for when you's use the "content" of a nrrd
+*/
+char *
+nrrdIterContent(NrrdIter *iter) {
+  char *ret, buff[AIR_STRLEN_SMALL];
+
+  ret = NULL;
+  if (iter) {
+    if (iter->nrrd) {
+      ret = (iter->nrrd->content
+	     ? airStrdup(iter->nrrd->content)
+	     : airStrdup(nrrdStateUnknownContent));
+    }
+    else {
+      airSinglePrintf(NULL, buff, "%g", iter->val);
+      ret = airStrdup(buff);
+    }
+  }  
+  return ret;
+}
+
 NrrdIter *
 nrrdIterNix(NrrdIter *iter) {
 
@@ -106,3 +132,4 @@ nrrdIterNuke(NrrdIter *iter) {
   }
   return NULL;
 }
+

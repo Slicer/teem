@@ -44,7 +44,7 @@ nrrdSample_nva(void *val, Nrrd *nrrd, int *coord) {
   
   typeSize = nrrdElementSize(nrrd);
   nrrdAxesGet_nva(nrrd, nrrdAxesInfoSize, size);
-  for (d=0; d<=nrrd->dim-1; d++) {
+  for (d=0; d<nrrd->dim; d++) {
     if (!(AIR_INSIDE(0, coord[d], size[d]-1))) {
       sprintf(err, "%s: coordinate %d on axis %d out of bounds (0 to %d)", 
 	      me, coord[d], d, size[d]-1);
@@ -75,7 +75,7 @@ nrrdSample(void *val, Nrrd *nrrd, ...) {
   }
 
   va_start(ap, nrrd);
-  for (d=0; d<=nrrd->dim-1; d++) {
+  for (d=0; d<nrrd->dim; d++) {
     coord[d] = va_arg(ap, int);
   }
   va_end(ap);
@@ -119,6 +119,10 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
+  if (nout == nin) {
+    sprintf(err, "%s: nout==nin disallowed", me);
+    biffAdd(NRRD, err); return 1;
+  }
   if (1 == nin->dim) {
     sprintf(err, "%s: can't slice a 1-D nrrd; use nrrd{I,F,D}Lookup[]", me);
     biffAdd(NRRD, err); return 1;
@@ -141,7 +145,7 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
 
   /* set up control variables */
   rowLen = colLen = 1;
-  for (i=0; i<=nin->dim-1; i++) {
+  for (i=0; i<nin->dim; i++) {
     if (i < axis) {
       rowLen *= nin->axis[i].size;
     }
@@ -153,7 +157,7 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
   colStep = rowLen*nin->axis[axis].size;
 
   outdim = nin->dim-1;
-  for (i=0; i<=outdim-1; i++) {
+  for (i=0; i<outdim; i++) {
     map[i] = i + (i >= axis);
     szOut[i] = nin->axis[map[i]].size;
   }
@@ -183,11 +187,10 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  nout->min = nout->max = AIR_NAN;
-  nout->oldMin = nout->oldMax = AIR_NAN;
+  nrrdPeripheralInit(nout);
   /* leave comments alone */
 
-  return(0);
+  return 0;
 }
 
 /*
@@ -218,8 +221,12 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
+  if (nout == nin) {
+    sprintf(err, "%s: nout==nin disallowed", me);
+    biffAdd(NRRD, err); return 1;
+  }
   dim = nin->dim;
-  for (d=0; d<=dim-1; d++) {
+  for (d=0; d<dim; d++) {
     if (!(min[d] <= max[d])) {
       sprintf(err, "%s: axis %d min (%d) not <= max (%d)", 
 	      me, d, min[d], max[d]);
@@ -241,7 +248,7 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
   /* allocate */
   nrrdAxesGet_nva(nin, nrrdAxesInfoSize, szIn);
   numLines = 1;
-  for (d=0; d<=dim-1; d++) {
+  for (d=0; d<dim; d++) {
     szOut[d] = max[d] - min[d] + 1;
     if (d)
       numLines *= szOut[d];
@@ -267,8 +274,8 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
   printf("!%s: typeSize = %d\n", me, typeSize);
   printf("!%s: numLines = %d\n", me, (int)numLines);
   */
-  for (I=0; I<=numLines-1; I++) {
-    for (d=0; d<=dim-1; d++)
+  for (I=0; I<numLines; I++) {
+    for (d=0; d<dim; d++)
       cIn[d] = cOut[d] + min[d];
     NRRD_COORD_INDEX(idxOut, cOut, szOut, dim);
     NRRD_COORD_INDEX(idxIn, cIn, szIn, dim);
@@ -288,12 +295,12 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  for (d=0; d<=dim-1; d++) {
+  for (d=0; d<dim; d++) {
     nrrdAxisPosRange(&(nout->axis[d].min), &(nout->axis[d].max),
 		     nin, d, min[d], max[d]);
   }
   strcpy(buff1, "");
-  for (d=0; d<=dim-1; d++) {
+  for (d=0; d<dim; d++) {
     sprintf(buff2, "%s[%d,%d]", (d ? "x" : ""), min[d], max[d]);
     strcat(buff1, buff2);
   }
@@ -301,8 +308,7 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  nout->min = nout->max = AIR_NAN;
-  nout->oldMin = nout->oldMax = AIR_NAN;
+  nrrdPeripheralInit(nout);
   /* leave comments alone */
 
   return 0;
@@ -321,7 +327,7 @@ nrrdSimpleCrop(Nrrd *nout, Nrrd *nin, int crop) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  for (d=0; d<=nin->dim-1; d++) {
+  for (d=0; d<nin->dim; d++) {
     min[d] = crop;
     max[d] = nin->axis[d].size-1 - crop;
   }

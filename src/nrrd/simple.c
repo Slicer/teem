@@ -24,6 +24,82 @@
 #include <limits.h>
 
 /*
+******** nrrdPeripheralInit
+**
+** resets peripheral information
+*/
+void
+nrrdPeripheralInit(Nrrd *nrrd) {
+
+  if (nrrd) {
+    nrrd->min = nrrd->max = AIR_NAN;
+    nrrd->oldMin = nrrd->oldMax = AIR_NAN;
+    nrrd->hasNonExist = nrrdNonExistUnknown;
+  }
+}
+
+/*
+******** nrrdPeripheralCopy
+**
+** copies peripheral information
+*/
+void
+nrrdPeripheralCopy(Nrrd *nout, Nrrd *nin) {
+
+  if (nout && nin) {
+    nout->min = nin->min;
+    nout->max = nin->max;
+    nout->oldMin = nin->oldMin;
+    nout->oldMax = nin->oldMax;
+    nout->hasNonExist = nin->hasNonExist;
+  }
+}
+
+int
+_nrrdContentSet_nva(Nrrd *nout, const char *func,
+		    char *content, const char *format, va_list arg) {
+  char me[]="_nrrdContentSet_nva", err[AIR_STRLEN_MED], buff[AIR_STRLEN_HUGE];
+  
+  nout->content = airFree(nout->content);
+
+  /* we are currently praying that this won't overflow the "buff" array */
+  vsprintf(buff, format, arg);
+
+  nout->content = calloc(strlen("(,)")
+			 + strlen(func)
+			 + 1                      /* '(' */
+			 + strlen(content)
+			 + 1                      /* ',' */
+			 + strlen(buff)
+			 + 1                      /* ')' */
+			 + 1, sizeof(char));      /* '\0' */
+  if (!nout->content) {
+    sprintf(err, "%s: couln't alloc output content!", me);
+    biffAdd(NRRD, err); free(content); return 1;
+  }
+  sprintf(nout->content, "%s(%s%s%s)", func, content,
+	  strlen(buff) ? "," : "", buff);
+  return 0;
+}
+
+int
+_nrrdContentSet(Nrrd *nout, const char *func,
+		char *content, const char *format, ...) {
+  char me[]="_nrrdContentSet", err[AIR_STRLEN_MED];
+  va_list ap;
+  
+  va_start(ap, format);
+  if (_nrrdContentSet_nva(nout, func, content, format, ap)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); free(content); return 1;
+  }
+  va_end(ap);
+
+  free(content); 
+  return 0;
+}
+
+/*
 ******** nrrdContentSet
 **
 ** Kind of like sprintf, but for the content string of the nrrd.
@@ -38,7 +114,7 @@
 int
 nrrdContentSet(Nrrd *nout, const char *func,
 	       Nrrd *nin, const char *format, ...) {
-  char me[]="nrrdContentSet", err[AIR_STRLEN_MED], buff[AIR_STRLEN_HUGE];
+  char me[]="nrrdContentSet", err[AIR_STRLEN_MED];
   va_list ap;
   char *content;
   
@@ -52,39 +128,24 @@ nrrdContentSet(Nrrd *nout, const char *func,
     nout->content = airFree(nout->content);
     return 0;
   }
+  /* we copy the input nrrd content first, before blowing away the
+     output content, in case nout == nin */
   content = (nin->content
 	     ? airStrdup(nin->content)
 	     : airStrdup(nrrdStateUnknownContent));
   if (!content) {
-    sprintf(err, "%s: couldn't copy input content!\n", me);
+    sprintf(err, "%s: couldn't copy input content!", me);
     biffAdd(NRRD, err); return 1;
   }
-
-  /* we copied the input nrrd first, before blowing away the output,
-     in case nout == nin */
-  nout->content = airFree(nout->content);
-
-  /* we are currently praying that this won't overflow the "buff" array */
   va_start(ap, format);
-  vsprintf(buff, format, ap);
+  /* fprintf(stderr, "!%s: func = |%s|, content = |%s|, format = |%s|\n",
+      me, func, content, format); */
+  if (_nrrdContentSet_nva(nout, func, content, format, ap)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); va_end(ap); free(content); return 1;
+  }
   va_end(ap);
 
-  if (strlen(buff)) {
-    nout->content = calloc(strlen("(,)")
-			   + strlen(func)
-			   + 1                      /* '(' */
-			   + strlen(content)
-			   + 1                      /* ',' */
-			   + strlen(buff)
-			   + 1                      /* ')' */
-			   + 1, sizeof(char));      /* '\0' */
-    if (!nout->content) {
-      sprintf(err, "%s: couln't alloc output content!", me);
-      biffAdd(NRRD, err); free(content); return 1;
-    }
-    sprintf(nout->content, "%s(%s%s%s)", func, content,
-	    strlen(buff) ? "," : "", buff);
-  }
   free(content); 
   return 0;
 }
@@ -109,7 +170,7 @@ nrrdDescribe(FILE *file, Nrrd *nrrd) {
     if (airStrlen(nrrd->content))
       fprintf(file, "Content = \"%s\"\n", nrrd->content);
     fprintf(file, "%d-dimensional array, with axes:\n", nrrd->dim);
-    for (i=0; i<=nrrd->dim-1; i++) {
+    for (i=0; i<nrrd->dim; i++) {
       if (airStrlen(nrrd->axis[i].label))
 	fprintf(file, "%d: (\"%s\") ", i, nrrd->axis[i].label);
       else
@@ -131,7 +192,7 @@ nrrdDescribe(FILE *file, Nrrd *nrrd) {
     fprintf(file, "hasNonExist = %d\n", nrrd->hasNonExist);
     if (nrrd->cmtArr->len) {
       fprintf(file, "Comments:\n");
-      for (i=0; i<=nrrd->cmtArr->len-1; i++) {
+      for (i=0; i<nrrd->cmtArr->len; i++) {
 	fprintf(file, "%s\n", nrrd->cmt[i]);
       }
     }
@@ -198,7 +259,7 @@ nrrdSameSize(Nrrd *n1, Nrrd *n2, int useBiff) {
     biffMaybeAdd(NRRD, err, useBiff); 
     return 0;
   }
-  for (i=0; i<=n1->dim-1; i++) {
+  for (i=0; i<n1->dim; i++) {
     if (n1->axis[i].size != n2->axis[i].size) {
       sprintf(err, "%s: n1->axis[%d].size (%d) != n2->axis[%d].size (%d)", 
 	      me, i, n1->axis[i].size, i, n2->axis[i].size);
@@ -264,7 +325,7 @@ nrrdElementNumber(Nrrd *nrrd) {
     return 0;
   }
   num = 1;
-  for (d=0; d<=nrrd->dim-1; d++) {
+  for (d=0; d<nrrd->dim; d++) {
     num *= size[d];
   }
   return num;
@@ -378,7 +439,7 @@ nrrdHasNonExistSet(Nrrd *nrrd) {
   else {
     nrrd->hasNonExist = nrrdNonExistFalse;
     N = nrrdElementNumber(nrrd);
-    for (I=0; I<=N-1; I++) {
+    for (I=0; I<N; I++) {
       val = nrrdFLookup[nrrd->type](nrrd->data, I);
       if (!AIR_EXISTS(val)) {
 	nrrd->hasNonExist = nrrdNonExistTrue;

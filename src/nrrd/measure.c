@@ -423,7 +423,7 @@ _nrrdMeasureHistoMedian(void *line, int lineType, int len,
   int i;
   
   sum = 0;
-  for (i=0; i<=len-1; i++) {
+  for (i=0; i<len; i++) {
     sum += nrrdDLookup[lineType](line, i);
   }
   if (!sum) {
@@ -433,7 +433,7 @@ _nrrdMeasureHistoMedian(void *line, int lineType, int len,
   /* else there was something in the histogram */
   half = sum/2;
   sum = 0;
-  for (i=0; i<=len-1; i++) {
+  for (i=0; i<len; i++) {
     sum += nrrdDLookup[lineType](line, i);
     if (sum >= half) {
       break;
@@ -453,7 +453,7 @@ _nrrdMeasureHistoMode(void *line, int lineType, int len,
   int i, idxcount;
   
   max = 0;
-  for (i=0; i<=len-1; i++) {
+  for (i=0; i<len; i++) {
     val = nrrdDLookup[lineType](line, i);
     max = AIR_MAX(max, val);
   }
@@ -467,7 +467,7 @@ _nrrdMeasureHistoMode(void *line, int lineType, int len,
      This may well be bone-headed, and is subject to change */
   idxsum = 0;
   idxcount = 0;
-  for (i=0; i<=len-1; i++) {
+  for (i=0; i<len; i++) {
     val = nrrdDLookup[lineType](line, i);
     if (val == max) {
       idxcount++;
@@ -495,7 +495,7 @@ _nrrdMeasureHistoMean(void *line, int lineType, int len,
   int i;
   
   ansD = count = 0;
-  for (i=0; i<=len-1; i++) {
+  for (i=0; i<len; i++) {
     hits = nrrdDLookup[lineType](line, i);
     count += hits;
     ansD += hits*i;
@@ -524,7 +524,7 @@ _nrrdMeasureHistoVariance(void *line, int lineType, int len,
     axmin = -0.5;
     axmax = len-0.5;
   }
-  for (i=0; i<=len-1; i++) {
+  for (i=0; i<len; i++) {
     val = NRRD_AXIS_POS(nrrdCenterCell, axmin, axmax, len, i);
     hits = nrrdDLookup[lineType](line, i);
     count += hits;
@@ -552,7 +552,7 @@ _nrrdMeasureHistoProduct(void *line, int lineType, int len,
     axmax = len-0.5;
   }
   product = 1.0;
-  for (i=0; i<=len-1; i++) {
+  for (i=0; i<len; i++) {
     val = NRRD_AXIS_POS(nrrdCenterCell, axmin, axmax, len, i);
     hits = nrrdDLookup[lineType](line, i);
     count += hits;
@@ -577,7 +577,7 @@ _nrrdMeasureHistoSum(void *line, int lineType, int len,
     axmax = len-0.5;
   }
   sum = count = 0;
-  for (i=0; i<=len-1; i++) {
+  for (i=0; i<len; i++) {
     val = NRRD_AXIS_POS(nrrdCenterCell, axmin, axmax, len, i);
     hits = nrrdDLookup[lineType](line, i);
     count += hits;
@@ -624,7 +624,7 @@ _nrrdMeasureHistoMin(void *line, int lineType, int len,
     axmin = 0;
     axmax = len-1;
   }
-  for (i=0; i<=len-1; i++) {
+  for (i=0; i<len; i++) {
     if (nrrdDLookup[lineType](line, i))
       break;
   }
@@ -711,7 +711,7 @@ _nrrdMeasureType(Nrrd *nin, int measr) {
 
 int
 nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
-  char me[] = "nrrdProject", err[AIR_STRLEN_MED];
+  char me[]="nrrdProject", func[]="project", err[AIR_STRLEN_MED];
   int d, i, iType, oType, row, rowNum, col, colNum, colStep, 
     linLen, iElSz, oElSz,
     map[NRRD_DIM_MAX], iSize[NRRD_DIM_MAX], oSize[NRRD_DIM_MAX];
@@ -720,6 +720,10 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   
   if (!(nin && nout)) {
     sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nout == nin) {
+    sprintf(err, "%s: nout==nin disallowed", me);
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdTypeBlock == nin->type) {
@@ -742,7 +746,7 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   oElSz = nrrdTypeSize[oType];
   nrrdAxesGet_nva(nin, nrrdAxesInfoSize, iSize);
   colNum = rowNum = 1;
-  for (d=0; d<=nin->dim-1; d++) {
+  for (d=0; d<nin->dim; d++) {
     if (d < axis) {
       colNum *= iSize[d];
     }
@@ -788,7 +792,7 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
     for (col=0; col<colNum; col++) {
       line = _line;
       ptr = iData + iElSz*(col + row*colStep);
-      for (i=0; i<=linLen-1; i++) {
+      for (i=0; i<linLen; i++) {
 	memcpy(line, ptr, iElSz);
 	ptr += iElSz*colNum;
 	line += iElSz;
@@ -804,23 +808,12 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
     sprintf(err, "%s:", me); 
     biffAdd(NRRD, err); return 1;
   }
-  nout->content = airFree(nout->content);
-  if (nin->content) {
-    nout->content = calloc(strlen("measure(,,)")
-			   + strlen(nin->content)
-			   + 11
-			   + strlen(airEnumStr(nrrdMeasure, measr))
-			   + 1, sizeof(char));
-    if (nout->content) {
-      sprintf(nout->content, "measure(%s,%d,%s)", 
-	      nin->content, axis,
-	      airEnumStr(nrrdMeasure, measr));
-    }
-    else {
-      sprintf(err, "%s: couldn't allocate output content", me);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (nrrdContentSet(nout, func, nin,
+		     "%d,%s", axis, airEnumStr(nrrdMeasure, measr))) {
+    sprintf(err, "%s:", me); 
+    biffAdd(NRRD, err); return 1;
   }
+  nrrdPeripheralInit(nout);
 
   airFree(_line);
   return 0;

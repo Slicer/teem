@@ -184,21 +184,21 @@ nrrdDInsert[NRRD_TYPE_MAX+1])(void *, nrrdBigInt, double) = {
 ** Dereferences pointer v and sprintf()s that value into given string s,
 ** returns the result of sprintf()
 */
-int _nrrdSprintCH(char *s, CH *v) { return(sprintf(s, "%d", *v)); }
-int _nrrdSprintUC(char *s, UC *v) { return(sprintf(s, "%u", *v)); }
-int _nrrdSprintSH(char *s, SH *v) { return(sprintf(s, "%d", *v)); }
-int _nrrdSprintUS(char *s, US *v) { return(sprintf(s, "%u", *v)); }
-int _nrrdSprintIN(char *s, IN *v) { return(sprintf(s, "%d", *v)); }
-int _nrrdSprintUI(char *s, UI *v) { return(sprintf(s, "%u", *v)); }
-int _nrrdSprintLL(char *s, LL *v) { return(sprintf(s, "%lld", *v)); }
-int _nrrdSprintUL(char *s, UL *v) { return(sprintf(s, "%llu", *v)); }
+int _nrrdSprintCH(char *s, CH *v) { return sprintf(s, "%d", *v); }
+int _nrrdSprintUC(char *s, UC *v) { return sprintf(s, "%u", *v); }
+int _nrrdSprintSH(char *s, SH *v) { return sprintf(s, "%d", *v); }
+int _nrrdSprintUS(char *s, US *v) { return sprintf(s, "%u", *v); }
+int _nrrdSprintIN(char *s, IN *v) { return sprintf(s, "%d", *v); }
+int _nrrdSprintUI(char *s, UI *v) { return sprintf(s, "%u", *v); }
+int _nrrdSprintLL(char *s, LL *v) { return sprintf(s, "%lld", *v); }
+int _nrrdSprintUL(char *s, UL *v) { return sprintf(s, "%llu", *v); }
 /* HEY: sizeof(float) and sizeof(double) assumed here, since we're 
    basing "8" and "17" on 6 == FLT_DIG and 15 == DBL_DIG, which are 
    digits of precision for floats and doubles, respectively */
 int _nrrdSprintFL(char *s, FL *v) {
-  return(airSinglePrintf(NULL, s, "%.8g", (double)(*v))); }
+  return airSinglePrintf(NULL, s, "%.8g", (double)(*v)); }
 int _nrrdSprintDB(char *s, DB *v) {
-  return(airSinglePrintf(NULL, s, "%.17g", *v)); }
+  return airSinglePrintf(NULL, s, "%.17g", *v); }
 int (*
 nrrdSprint[NRRD_TYPE_MAX+1])(char *, void *) = {
   NULL,
@@ -220,18 +220,18 @@ nrrdSprint[NRRD_TYPE_MAX+1])(char *, void *) = {
 ** Dereferences pointer v and fprintf()s that value into given file f;
 ** returns the result of fprintf()
 */
-int _nrrdFprintCH(FILE *f, CH *v) { return(fprintf(f, "%d", *v)); }
-int _nrrdFprintUC(FILE *f, UC *v) { return(fprintf(f, "%u", *v)); }
-int _nrrdFprintSH(FILE *f, SH *v) { return(fprintf(f, "%d", *v)); }
-int _nrrdFprintUS(FILE *f, US *v) { return(fprintf(f, "%u", *v)); }
-int _nrrdFprintIN(FILE *f, IN *v) { return(fprintf(f, "%d", *v)); }
-int _nrrdFprintUI(FILE *f, UI *v) { return(fprintf(f, "%u", *v)); }
-int _nrrdFprintLL(FILE *f, LL *v) { return(fprintf(f, "%lld", *v)); }
-int _nrrdFprintUL(FILE *f, UL *v) { return(fprintf(f, "%llu", *v)); }
+int _nrrdFprintCH(FILE *f, CH *v) { return fprintf(f, "%d", *v); }
+int _nrrdFprintUC(FILE *f, UC *v) { return fprintf(f, "%u", *v); }
+int _nrrdFprintSH(FILE *f, SH *v) { return fprintf(f, "%d", *v); }
+int _nrrdFprintUS(FILE *f, US *v) { return fprintf(f, "%u", *v); }
+int _nrrdFprintIN(FILE *f, IN *v) { return fprintf(f, "%d", *v); }
+int _nrrdFprintUI(FILE *f, UI *v) { return fprintf(f, "%u", *v); }
+int _nrrdFprintLL(FILE *f, LL *v) { return fprintf(f, "%lld", *v); }
+int _nrrdFprintUL(FILE *f, UL *v) { return fprintf(f, "%llu", *v); }
 int _nrrdFprintFL(FILE *f, FL *v) {
-  return(airSinglePrintf(f, NULL, "%.8g", (double)(*v))); }
+  return airSinglePrintf(f, NULL, "%.8g", (double)(*v)); }
 int _nrrdFprintDB(FILE *f, DB *v) {
-  return(airSinglePrintf(f, NULL, "%.17g", *v)); }
+  return airSinglePrintf(f, NULL, "%.17g", *v); }
 int (*
 nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, void *) = {
   NULL,

@@ -204,8 +204,7 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
   }
   /* the min and max have probably changed if there was a conversion
      to fixed point, or to a lower precision representation */
-  nout->min = nout->max = AIR_NAN;
-  nout->oldMin = nout->oldMax = AIR_NAN;
+  nrrdPeripheralInit(nout);
   nout->blockSize = 0;
   nout->hasNonExist = (nrrdTypeFixed[nout->type]
 		       ? nrrdNonExistFalse
@@ -299,6 +298,7 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   }
 
   /* set information in new volume */
+  /* nrrdPeripheralInit(nout); nout==nin qualms */
   nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
   nout->oldMin = min;
   nout->oldMax = max;
@@ -307,7 +307,6 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
     biffAdd(NRRD, err); return 1;
   }
   nout->min = nout->max = AIR_NAN;
-  nout->oldMin = nout->oldMax = AIR_NAN;
   nout->blockSize = 0;
   nout->hasNonExist = nrrdNonExistFalse;
 
@@ -325,7 +324,7 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
 int 
 _nrrdHistoEqCompare(const void *a, const void *b) {
 
-  return(*((int*)b) - *((int*)a));
+  return *((int*)b) - *((int*)a);
 }
 
 /*
@@ -512,7 +511,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
     val = nrrdDLookup[nin->type](nin->data, I);
     if (AIR_EXISTS(val)) {
       AIR_INDEX(min, val, max, bins, idx);
-      /* fprintf(stderr, "%s: val=%g -> idx=%d -> ", me, val, idx); */
+      /* fprintf(stderr, "!%s: val=%g -> idx=%d -> ", me, val, idx); */
       val = AIR_AFFINE(xcoord[idx], val, xcoord[idx+1], 
 		       ycoord[idx], ycoord[idx+1]);
       /* fprintf(stderr, "%g\n", val); */
@@ -525,6 +524,15 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
   if (nhistP) {
     *nhistP = nhist;
   }
+
+  /* fiddling with content is the only thing we'll do */
+  if (nrrdContentSet(nout, func, nin, "%d,%d", bins, smart)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
+  nout->min = nin->min;
+  nout->max = nin->max;
+
   airMopOkay(mop);
-  return(0);
+  return 0;
 }

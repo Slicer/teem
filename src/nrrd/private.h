@@ -39,6 +39,14 @@ extern char _nrrdEnumFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL];
 extern int _nrrdFieldRequired[NRRD_FIELD_MAX+1];
 extern int _nrrdFormatUsesDIO[NRRD_FORMAT_MAX+1];
 
+/* simple.c */
+extern int _nrrdContentSet_nva(Nrrd *nout, const char *func,
+			       char *content, const char *format,
+			       va_list arg);
+extern int _nrrdContentSet(Nrrd *nout, const char *func,
+			   char *content, const char *format, ...);
+
+
 /* axes.c */
 extern void _nrrdAxisInit(NrrdAxis *axis);
 extern int _nrrdCenter(int center);

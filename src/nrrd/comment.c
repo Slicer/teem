@@ -122,7 +122,7 @@ nrrdCommentScan(Nrrd *nrrd, const char *key) {
     /* key contains colon- would confuse later steps */
     return NULL;
   }
-  for (i=0; i<=nrrd->cmtArr->len-1; i++) {
+  for (i=0; i<nrrd->cmtArr->len; i++) {
     cmt = nrrd->cmt[i];
     /* printf("%s: looking at comment \"%s\"\n", me, cmt); */
     if ((k = strstr(cmt, key)) && (c = strchr(cmt, ':'))) {
@@ -187,7 +187,7 @@ nrrdCommentCopy(Nrrd *nout, Nrrd *nin) {
   nrrdCommentClear(nout);
   numc = nin->cmtArr->len;
   E = 0;
-  for (i=0; i<=numc-1; i++) {
+  for (i=0; i<numc; i++) {
     if (!E) E |= nrrdCommentAdd(nout, nin->cmt[i]);
   }
   if (E) {

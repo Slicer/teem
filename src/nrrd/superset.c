@@ -26,7 +26,8 @@
 */
 int
 nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
-  char me[]="nrrdPad", err[AIR_STRLEN_MED], buff[AIR_STRLEN_SMALL];
+  char me[]="nrrdPad", func[]="pad", err[AIR_STRLEN_MED],
+    buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   double padValue=AIR_NAN;
   int d, outside, dim, typeSize,
     cIn[NRRD_DIM_MAX],       /* coords for line start, in input */
@@ -41,6 +42,10 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
   
   if (!(nout && nin && min && max)) {
     sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nout == nin) {
+    sprintf(err, "%s: nout==nin disallowed", me);
     biffAdd(NRRD, err); return 1;
   }
   if (!AIR_BETWEEN(nrrdBoundaryUnknown, boundary, nrrdBoundaryLast)) {
@@ -78,7 +83,7 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
 
   dim = nin->dim;
   nrrdAxesGet_nva(nin, nrrdAxesInfoSize, szIn);
-  for (d=0; d<=dim-1; d++) {
+  for (d=0; d<dim; d++) {
     if (!(min[d] <= 0)) {
       sprintf(err, "%s: axis %d min (%d) not <= 0", 
 	      me, d, min[d]);
@@ -98,7 +103,7 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
 
   /* allocate */
   numOut = 1;
-  for (d=0; d<=dim-1; d++) {
+  for (d=0; d<dim; d++) {
     numOut *= (szOut[d] = -min[d] + max[d] + 1);
   }
   nout->blockSize = nin->blockSize;
@@ -112,9 +117,9 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
   dataIn = nin->data;
   dataOut = nout->data;
   memset(cOut, 0, NRRD_DIM_MAX*sizeof(int));
-  for (idxOut=0; idxOut<=numOut-1; idxOut++) {
+  for (idxOut=0; idxOut<numOut; idxOut++) {
     outside = 0;
-    for (d=0; d<=dim-1; d++) {
+    for (d=0; d<dim; d++) {
       cIn[d] = cOut[d] + min[d];
       switch(boundary) {
       case nrrdBoundaryPad:
@@ -158,32 +163,20 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  for (d=0; d<=dim-1; d++) {
+  for (d=0; d<dim; d++) {
     nrrdAxisPosRange(&(nout->axis[d].min), &(nout->axis[d].max),
 		     nin, d, min[d], max[d]);
   }
-  nout->content = airFree(nout->content);
-  if (nin->content) {
-    nout->content = calloc(strlen("pad(,)")
-			   + strlen(nin->content)
-			   + dim*(strlen("[,]x") + 2*11)
-			   + 1, sizeof(char));
-    if (nout->content) {
-      sprintf(nout->content, "pad(%s,", nin->content);
-      for (d=0; d<=dim-1; d++) {
-	sprintf(buff, "%s[%d,%d]", (d ? "x" : ""), min[d], max[d]);
-	strcat(nout->content, buff);
-      }
-      sprintf(buff, ")");
-      strcat(nout->content, buff);    
-    }
-    else {
-      sprintf(err, "%s: couldn't alloc content string", me);
-      biffAdd(NRRD, err); return 1;
-    }
+  strcpy(buff1, "");
+  for (d=0; d<dim; d++) {
+    sprintf(buff2, "%s[%d,%d]", (d ? "x" : ""), min[d], max[d]);
+    strcat(buff1, buff2);
   }
-  nout->min = nout->max = AIR_NAN;
-  nout->oldMin = nout->oldMax = AIR_NAN;
+  if (nrrdContentSet(nout, func, nin, "%s", buff1)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  nrrdPeripheralInit(nout);
   /* leave comments alone */
 
   return 0;
@@ -204,7 +197,7 @@ nrrdSimplePad(Nrrd *nout, Nrrd *nin, int pad, int boundary, ...) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  for (d=0; d<=nin->dim-1; d++) {
+  for (d=0; d<nin->dim; d++) {
     min[d] = -pad;
     max[d] = nin->axis[d].size-1 + pad;
   }

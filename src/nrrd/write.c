@@ -63,31 +63,31 @@ _nrrdFieldInteresting(Nrrd *nrrd, NrrdIO *io, int field) {
     break;
   case nrrdField_spacings:
     ret = 0;
-    for (d=0; d<=nrrd->dim-1; d++) {
+    for (d=0; d<nrrd->dim; d++) {
       ret |= AIR_EXISTS(nrrd->axis[d].spacing);
     }
     break;
   case nrrdField_axis_mins:
     ret = 0;
-    for (d=0; d<=nrrd->dim-1; d++) {
+    for (d=0; d<nrrd->dim; d++) {
       ret |= AIR_EXISTS(nrrd->axis[d].min);
     }
     break;
   case nrrdField_axis_maxs:
     ret = 0;
-    for (d=0; d<=nrrd->dim-1; d++) {
+    for (d=0; d<nrrd->dim; d++) {
       ret |= AIR_EXISTS(nrrd->axis[d].max);
     }
     break;
   case nrrdField_centers:
     ret = 0;
-    for (d=0; d<=nrrd->dim-1; d++) {
+    for (d=0; d<nrrd->dim; d++) {
       ret |= (nrrdCenterUnknown != nrrd->axis[d].center);
     }
     break;
   case nrrdField_labels:
     ret = 0;
-    for (d=0; d<=nrrd->dim-1; d++) {
+    for (d=0; d<nrrd->dim; d++) {
       ret |= !!(airStrlen(nrrd->axis[d].label));
     }
     break;
@@ -218,7 +218,7 @@ _nrrdWriteDataAscii(Nrrd *nrrd, NrrdIO *io) {
   size = nrrdElementSize(nrrd);
   num = nrrdElementNumber(nrrd);
   linelen = 0;
-  for (I=0; I<=num-1; I++) {
+  for (I=0; I<num; I++) {
     nrrdSprint[nrrd->type](buff, data);
     if (1 == nrrd->dim) {
       fprintf(io->dataFile, "%s\n", buff);
@@ -302,35 +302,35 @@ _nrrdSprintFieldInfo(char *str, Nrrd *nrrd, NrrdIO *io, int field) {
     /* ---- begin per-axis fields ---- */
   case nrrdField_sizes:
     sprintf(str, "%s:", fs);
-    for (i=0; i<=D-1; i++) {
+    for (i=0; i<D; i++) {
       sprintf(buff, " %d", nrrd->axis[i].size);
       strcat(str, buff);
     }
     break;
   case nrrdField_spacings:
     sprintf(str, "%s:", fs);
-    for (i=0; i<=D-1; i++) {
+    for (i=0; i<D; i++) {
       airSinglePrintf(NULL, buff, " %lg", nrrd->axis[i].spacing);
       strcat(str, buff);
     }
     break;
   case nrrdField_axis_mins:
     sprintf(str, "%s:", fs);
-    for (i=0; i<=D-1; i++) {
+    for (i=0; i<D; i++) {
       airSinglePrintf(NULL, buff, " %lg", nrrd->axis[i].min);
       strcat(str, buff);
     }
     break;
   case nrrdField_axis_maxs:
     sprintf(str, "%s:", fs);
-    for (i=0; i<=D-1; i++) {
+    for (i=0; i<D; i++) {
       airSinglePrintf(NULL, buff, " %lg", nrrd->axis[i].max);
       strcat(str, buff);
     }
     break;
   case nrrdField_centers:
     sprintf(str, "%s:", fs);
-    for (i=0; i<=D-1; i++) {
+    for (i=0; i<D; i++) {
       sprintf(buff, " %s",
 	      (nrrd->axis[i].center 
 	       ? airEnumStr(nrrdCenter, nrrd->axis[i].center)
@@ -340,7 +340,7 @@ _nrrdSprintFieldInfo(char *str, Nrrd *nrrd, NrrdIO *io, int field) {
     break;
   case nrrdField_labels:
     sprintf(str, "%s:", fs);
-    for (i=0; i<=D-1; i++) {
+    for (i=0; i<D; i++) {
       sprintf(buff, " \"%s\"", 
 	      airStrlen(nrrd->axis[i].label) ? nrrd->axis[i].label : "");
       strcat(str, buff);
@@ -422,7 +422,7 @@ _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
     _PRINT_FIELD("", i);
   }
 
-  for (i=0; i<=nrrd->cmtArr->len-1; i++) {
+  for (i=0; i<nrrd->cmtArr->len; i++) {
     fprintf(file, "%c %s\n", _NRRD_COMMENT_CHAR, nrrd->cmt[i]);
   }
 
@@ -485,7 +485,7 @@ _nrrdWritePNM(FILE *file, Nrrd *nrrd, NrrdIO *io) {
       _PRINT_FIELD(NRRD_PNM_COMMENT, i); 
     }
   }
-  for (i=0; i<=nrrd->cmtArr->len-1; i++) {
+  for (i=0; i<nrrd->cmtArr->len; i++) {
     fprintf(file, "# %s\n", nrrd->cmt[i]);
   }
   fprintf(file, "255\n");
@@ -521,8 +521,8 @@ _nrrdWriteTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
   sy = nrrd->axis[1].size;
   data = nrrd->data;
   I = 0;
-  for (y=0; y<=sy-1; y++) {
-    for (x=0; x<=sx-1; x++) {
+  for (y=0; y<sy; y++) {
+    for (x=0; x<sx; x++) {
       val = nrrdFLookup[nrrd->type](data, I);
       nrrdSprint[nrrdTypeFloat](buff, &val);
       if (x) fprintf(file, " ");

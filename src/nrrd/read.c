@@ -184,8 +184,10 @@ _nrrdReadDataRaw(Nrrd *nrrd, NrrdIO *io) {
       /* the endiannesses of the data and the architecture are different,
 	 and, the size of the data elements is bigger than a byte */
       if (2 <= nrrdStateVerboseIO) {
+	/*
 	fprintf(stderr, "!%s: io->endian = %d, AIR_ENDIAN = %d\n", 
 		me, io->endian, AIR_ENDIAN);
+	*/
 	fprintf(stderr, "(%s: fixing endianness ... ", me);
 	fflush(stderr);
       }
@@ -229,7 +231,7 @@ _nrrdReadDataAscii(Nrrd *nrrd, NrrdIO *io) {
   }
   data = nrrd->data;
   size = nrrdElementSize(nrrd);
-  for (I=0; I<=num-1; I++) {
+  for (I=0; I<num; I++) {
     if (1 != fscanf(io->dataFile, "%s", numStr)) {
       sprintf(err, "%s: couldn't parse element " NRRD_BIG_INT_PRINTF
 	      " of "NRRD_BIG_INT_PRINTF, me, I+1, num);

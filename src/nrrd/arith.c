@@ -34,7 +34,7 @@
 */
 int
 nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, double min, double max) {
-  char me[]="nrrdArithGamma", err[AIR_STRLEN_MED];
+  char me[]="nrrdArithGamma", func[]="gamma", err[AIR_STRLEN_MED];
   double val;
   nrrdBigInt I, num;
   double (*lup)(void *, nrrdBigInt);
@@ -66,7 +66,7 @@ nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, double min, double max) {
   num = nrrdElementNumber(nin);
   if (gamma < 0.0) {
     gamma = -gamma;
-    for (I=0; I<=num-1; I++) {
+    for (I=0; I<num; I++) {
       val = lup(nin->data, I);
       val = AIR_AFFINE(min, val, max, 0.0, 1.0);
       val = pow(val, gamma);
@@ -75,13 +75,17 @@ nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, double min, double max) {
     }
   }
   else {
-    for (I=0; I<=num-1; I++) {
+    for (I=0; I<num; I++) {
       val = lup(nin->data, I);
       val = AIR_AFFINE(min, val, max, 0.0, 1.0);
       val = pow(val, gamma);
       val = AIR_AFFINE(0.0, val, 1.0, min, max);
       ins(nout->data, I, val);
     }
+  }
+  if (nrrdContentSet(nout, func, nin, "%g,%g,%g", gamma, min, max)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
   }
   
   return 0;
@@ -141,15 +145,23 @@ nrrdArithUnaryOp(Nrrd *nout, int op, Nrrd *nin) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
+  if (nrrdTypeBlock == nin->type) {
+    sprintf(err, "%s: can't operate on type %s", me,
+	    airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAdd(NRRD, err); return 1;
+  }
   if (!airEnumValidVal(nrrdUnaryOp, op)) {
     sprintf(err, "%s: unary op %d invalid", me, op);
     biffAdd(NRRD, err); return 1;
   }
-  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
-  if (nrrdMaybeAlloc_nva(nout, nin->type, nin->dim, size)) {
-    sprintf(err, "%s: couldn't allocate output nrrd", me);
-    biffAdd(NRRD, err); return 1;
+  if (nout != nin) {
+    if (nrrdCopy(nout, nin)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
   }
+  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
+  nrrdPeripheralInit(nout);
   uop = _nrrdUnaryOp[op];
 
   N = nrrdElementNumber(nin);
@@ -157,13 +169,11 @@ nrrdArithUnaryOp(Nrrd *nout, int op, Nrrd *nin) {
   insert = nrrdDInsert[nin->type];
   for (I=0; I<N; I++) {
     val = lookup(nin->data, I);
-    /*
-    if (!(I % 1000)) {
-      fprintf(stderr, "%s: %d: uop(%g) = %g\n", me, (int)I, val,
-	      uop(val));
-    }
-    */
     insert(nout->data, I, uop(val));
+  }
+  if (nrrdContentSet(nout, airEnumStr(nrrdUnaryOp, op), nin, "")) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
   }
   return 0;
 }
@@ -203,7 +213,7 @@ double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
 
 int
 nrrdArithBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
-  char me[]="nrrdArithBinaryOp", err[AIR_STRLEN_MED];
+  char me[]="nrrdArithBinaryOp", err[AIR_STRLEN_MED], *contA, *contB;
   nrrdBigInt N, I;
   int type, size[NRRD_DIM_MAX];
   double (*insert)(void *v, nrrdBigInt I, double d), 
@@ -225,14 +235,16 @@ nrrdArithBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
   }
   type = nin->type;
   nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
+  
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
     sprintf(err, "%s: couldn't allocate output nrrd", me);
     biffAdd(NRRD, err); return 1;
   }
+  nrrdPeripheralInit(nout);
   bop = _nrrdBinaryOp[op];
 
   /*
-  fprintf(stderr, "%s: inA->left = %d, inB->left = %d\n", me, 
+  fprintf(stderr, "!%s: inA->left = %d, inB->left = %d\n", me, 
 	  (int)(inA->left), (int)(inB->left));
   */
   N = nrrdElementNumber(nin);
@@ -240,14 +252,17 @@ nrrdArithBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
   for (I=0; I<N; I++) {
     valA = nrrdIterValue(inA);
     valB = nrrdIterValue(inB);
-    /*
-    if (!(I % 1000)) {
-      fprintf(stderr, "%s: %d: bop(%g,%g) = %g\n", me, (int)I, valA, valB,
-	      bop(valA, valB));
-    }
-    */
     insert(nout->data, I, bop(valA, valB));
   }
+  contA = nrrdIterContent(inA);
+  contB = nrrdIterContent(inB);
+  if (_nrrdContentSet(nout, airEnumStr(nrrdBinaryOp, op),
+		      contA, "%s", contB)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); free(contA); free(contB); return 1;
+  }
+  free(contA);
+  free(contB); 
   return 0;
 }
 
@@ -280,7 +295,8 @@ double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
 int
 nrrdArithTernaryOp(Nrrd *nout, int op,
 		   NrrdIter *inA, NrrdIter *inB, NrrdIter *inC) {
-  char me[]="nrrdArithTernaryOp", err[AIR_STRLEN_MED];
+  char me[]="nrrdArithTernaryOp", err[AIR_STRLEN_MED],
+    *contA, *contB, *contC;
   nrrdBigInt N, I;
   int type, size[NRRD_DIM_MAX];
   double (*insert)(void *v, nrrdBigInt I, double d), 
@@ -306,10 +322,11 @@ nrrdArithTernaryOp(Nrrd *nout, int op,
     sprintf(err, "%s: couldn't allocate output nrrd", me);
     biffAdd(NRRD, err); return 1;
   }
+  nrrdPeripheralInit(nout);
   top = _nrrdTernaryOp[op];
 
   /*
-  fprintf(stderr, "%s: inA->left = %d, inB->left = %d\n", me, 
+  fprintf(stderr, "%!s: inA->left = %d, inB->left = %d\n", me, 
 	  (int)(inA->left), (int)(inB->left));
   */
   N = nrrdElementNumber(nin);
@@ -320,13 +337,24 @@ nrrdArithTernaryOp(Nrrd *nout, int op,
     valC = nrrdIterValue(inC);
     /*
     if (!(I % 1000)) {
-      fprintf(stderr, "%s: %d: top(%g,%g,%g) = %g\n", me, (int)I,
+      fprintf(stderr, "!%s: %d: top(%g,%g,%g) = %g\n", me, (int)I,
 	      valA, valB, valC,
 	      top(valA, valB, valC));
     }
     */
     insert(nout->data, I, top(valA, valB, valC));
   }
+  contA = nrrdIterContent(inA);
+  contB = nrrdIterContent(inB);
+  contC = nrrdIterContent(inC);
+  if (_nrrdContentSet(nout, airEnumStr(nrrdTernaryOp, op),
+		      contA, "%s,%s", contB, contC)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); free(contA); free(contB); free(contC); return 1;
+  }
+  free(contA);
+  free(contB); 
+  free(contC); 
   return 0;
 }
 

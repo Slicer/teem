@@ -27,7 +27,7 @@ _nrrdSwap16Endian(void *_data, nrrdBigInt N) {
   
   if (_data) {
     data = (short *)_data;
-    for (I=0; I<=N-1; I++) {
+    for (I=0; I<N; I++) {
       s = data[I];
       fix =  (s & 0x00FF);
       fix = ((s & 0xFF00) >> 0x08) | (fix << 0x08);
@@ -43,7 +43,7 @@ _nrrdSwap32Endian(void *_data, nrrdBigInt N) {
 
   if (_data) {
     data = (int *)_data;
-    for (I=0; I<=N-1; I++) {
+    for (I=0; I<N; I++) {
       w = data[I];
       fix =  (w & 0x000000FF);
       fix = ((w & 0x0000FF00) >> 0x08) | (fix << 0x08);
@@ -61,7 +61,7 @@ _nrrdSwap64Endian(void *_data, nrrdBigInt N) {
 
   if (_data) {
     data = (unsigned long long  *)_data;
-    for (I=0; I<=N-1; I++) {
+    for (I=0; I<N; I++) {
       l = data[I];
       fix =  (l & 0x00000000000000FF);
       fix = ((l & 0x000000000000FF00) >> 0x08) | (fix << 0x08);

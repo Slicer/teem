@@ -79,7 +79,7 @@ char
 _nrrdMagicStr[NRRD_MAGIC_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_magic)",
   "NRRD00.01",
-  "NRRD00.01", /*   "NRRD0001", */
+  "NRRD0001",
   "P2",
   "P3",
   "P5",

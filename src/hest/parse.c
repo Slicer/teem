@@ -55,7 +55,7 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
   ai = 0;
   while (argv[ai]) {
     if (parm->respFileFlag == argv[ai][0]) {
-      if (!(file = fopen(argv[ai]+1, "r"))) {
+      if (!(file = fopen(argv[ai]+1, "rb"))) {
 	/* can't open the indicated response file for reading */
 	sprintf(err, "%scouldn't open \"%s\" for reading as response file",
 		ME, argv[ai]+1);
@@ -110,7 +110,7 @@ _hestResponseFiles(char **newArgv, char **oldArgv, int nrf,
     else {
       /* It is a response file.  Error checking on being able to open it
 	 should have been done by _hestArgsInResponseFiles() */
-      file = fopen(oldArgv[oldArgc]+1, "r");
+      file = fopen(oldArgv[oldArgc]+1, "rb");
       len = airOneLine(file, line, AIR_STRLEN_HUGE);
       while (len > 0) {
 	if (parm->verbosity)
