@@ -1,5 +1,6 @@
+scalar 6pack filtering
+
 tests:
-having query==0 should be kosher
 two pervolumes with different sized volumes
 NRWS doing its job
 
@@ -8,7 +9,6 @@ and miter.
 
 retest comparison of upsampling by probing and by unu resample
 
-scalar 6pack filtering
 make sure that setting a zero-query is kosher
 make the curvature direction code (scl.c) more robust
 
