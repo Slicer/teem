@@ -19,6 +19,8 @@
 
 #include <teem/unrrdu.h>
 
+#define UNU "unu"
+
 int
 main(int argc, char **argv) {
   int i, ret;
@@ -75,9 +77,9 @@ main(int argc, char **argv) {
   if (unrrduCmdList[i]) {
     /* yes, we have that command */
     /* initialize variables used by the various commands */
-    argv0 = malloc(strlen(UNRRDU) + strlen(argv[1]) + 2);
+    argv0 = malloc(strlen(UNU) + strlen(argv[1]) + 2);
     airMopMem(mop, &argv0, airMopAlways);
-    sprintf(argv0, "%s %s", UNRRDU, argv[1]);
+    sprintf(argv0, "%s %s", UNU, argv[1]);
 
     /* run the individual unu program, saving its exit status */
     ret = unrrduCmdList[i]->main(argc-2, argv+2, argv0, hparm);
