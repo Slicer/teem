@@ -1139,9 +1139,18 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("gaussiandd", str)) return nrrdKernelGaussianDD;
   if (!strcmp("gaussdd", str))    return nrrdKernelGaussianDD;
   if (!strcmp("gdd", str))        return nrrdKernelGaussianDD;
-  if (!strcmp("cos", str))        return nrrdKernelCos;
-  if (!strcmp("cosd", str))       return nrrdKernelCosD;
-  if (!strcmp("cosdd", str))      return nrrdKernelCosDD;
+  if (!strcmp("hann", str))       return nrrdKernelHann;
+  if (!strcmp("hannd", str))      return nrrdKernelHannD;
+  if (!strcmp("hanndd", str))     return nrrdKernelHannDD;
+  if (!strcmp("bkmn", str))       return nrrdKernelBlackman;
+  if (!strcmp("black", str))      return nrrdKernelBlackman;
+  if (!strcmp("blackman", str))   return nrrdKernelBlackman;
+  if (!strcmp("bkmnd", str))      return nrrdKernelBlackmanD;
+  if (!strcmp("blackd", str))     return nrrdKernelBlackmanD;
+  if (!strcmp("blackmand", str))  return nrrdKernelBlackmanD;
+  if (!strcmp("bkmndd", str))     return nrrdKernelBlackmanDD;
+  if (!strcmp("blackdd", str))    return nrrdKernelBlackmanDD;
+  if (!strcmp("blackmandd", str)) return nrrdKernelBlackmanDD;
   return NULL;
 }
 

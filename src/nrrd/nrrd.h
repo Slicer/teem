@@ -632,9 +632,12 @@ extern nrrd_export int nrrdKernelTMF_maxD;
 extern nrrd_export int nrrdKernelTMF_maxC;
 extern nrrd_export int nrrdKernelTMF_maxA;
 /* winKernel.c : various kinds of windowed sincs */
-extern nrrd_export NrrdKernel *nrrdKernelCos;
-extern nrrd_export NrrdKernel *nrrdKernelCosD;
-extern nrrd_export NrrdKernel *nrrdKernelCosDD;
+extern nrrd_export NrrdKernel *nrrdKernelHann;
+extern nrrd_export NrrdKernel *nrrdKernelHannD;
+extern nrrd_export NrrdKernel *nrrdKernelHannDD;
+extern nrrd_export NrrdKernel *nrrdKernelBlackman;
+extern nrrd_export NrrdKernel *nrrdKernelBlackmanD;
+extern nrrd_export NrrdKernel *nrrdKernelBlackmanDD;
 /* kernel.c */
 extern nrrd_export NrrdKernel *nrrdKernelZero, /* zero everywhere */
   *nrrdKernelBox,                  /* box filter (nearest neighbor) */
