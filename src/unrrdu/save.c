@@ -22,12 +22,100 @@
 
 /* bad bad bad Gordon */
 extern void _nrrdGuessFormat(NrrdIO *io, const char *filename);
+extern int _nrrdWriteDataHex (Nrrd *nrrd, NrrdIO *io);
+
+int
+unrrduFormatPlusParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[]="unrrduParsePos";
+  int *pos;
+
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  pos = ptr;
+  airToLower(str);
+  if (!strcmp("eps", str)) {
+    /* invent some unused value */
+    pos[0] = 2*nrrdFormatLast;
+  } else {
+    pos[0] = airEnumVal(nrrdFormat, str);
+    if (nrrdFormatUnknown == pos[0]) {
+      sprintf(err, "%s: couldn't parse \"%s\" as format", me, str);
+      return 1;
+    }
+  }
+  return 0;
+}
+
+hestCB unrrduFormatPlusCB = {
+  sizeof(int),
+  "format",
+  unrrduFormatPlusParse,
+  NULL
+};
+
+int
+unrrduEpsSave(char *out, NrrdIO *io, Nrrd *nout) {
+  char me[]="unrrduEpsSave", err[AIR_STRLEN_MED];
+  int color, sx, sy, fit;
+
+  fit = nrrdFitsInFormat(nout, nrrdEncodingAscii, nrrdFormatPNM, AIR_TRUE);
+  if (!fit) {
+    sprintf(err, "%s: can't save image into EPS", me);
+    biffMove(UNRRDU, err, NRRD); return 1;
+  }
+  color = (3 == fit);
+  
+  if (!( nrrdTypeUChar == nout->type )) {
+    sprintf(err, "%s: can only save type %s data to EPS", me,
+	    airEnumStr(nrrdType, nrrdTypeUChar));
+    biffAdd(UNRRDU, err); return 1;
+  }
+  if (2 == nout->dim) {
+    sx = nout->axis[0].size;
+    sy = nout->axis[1].size;
+  } else {
+    sx = nout->axis[1].size;
+    sy = nout->axis[2].size;
+  }
+
+  if (!(io->dataFile = fopen(out, "w"))) {
+    sprintf(err, "%s: fopen(\"%s\", \"w\") failed: %s", me,
+	    out, strerror(errno));
+    biffAdd(UNRRDU, err); return 1;
+  }
+  fprintf(io->dataFile, "%%!PS-Adobe-2.0 EPSF-2.0\n");
+  fprintf(io->dataFile, "%%%%Creator: unu\n");
+  fprintf(io->dataFile, "%%%%Title: %s\n",
+	  nout->content ? nout->content : NRRD_UNKNOWN);
+  fprintf(io->dataFile, "%%%%Pages: 1\n");
+  fprintf(io->dataFile, "%%%%BoundingBox: 0 0 %d %d\n", sx, sy);
+  fprintf(io->dataFile, "%%%%EndComments\n");
+  fprintf(io->dataFile, "%% linestr creates an empty string to hold one scanline\n");
+  fprintf(io->dataFile, "/linestr %d string def\n", sx*(color ? 3 : 1));
+  fprintf(io->dataFile, "%%%%EndProlog\n");
+  fprintf(io->dataFile, "%%%%Page: 1 1\n");
+  fprintf(io->dataFile, "gsave\n");
+  fprintf(io->dataFile, "%d %d scale\n", sx, sy);
+  fprintf(io->dataFile, "%d %d 8\n", sx, sy);
+  fprintf(io->dataFile, "[%d 0 0 -%d 0 %d]\n", sx, sy, sy);
+  fprintf(io->dataFile, "{currentfile linestr readhexstring pop} %s\n",
+	  color ? "false 3 colorimage" : "image");
+  _nrrdWriteDataHex(nout, io);
+  fprintf(io->dataFile, "\n");
+  fprintf(io->dataFile, "grestore\n");
+
+  
+  return 0;
+}
 
 #define INFO "Write nrrd with specific format, encoding, or endianness"
 char *_unrrdu_saveInfoL =
 (INFO
  ". Use \"unu\tsave\t-f\tpnm\t|\txv\t-\" to view PPM- or "
- "PGM-compatible nrrds on unix.");
+ "PGM-compatible nrrds on unix.  Support for the EPS format is limited "
+ "to this unu command only.");
 
 int
 unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -52,8 +140,10 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
     strcat(fmtInfo,
 	   "\n \b\bo \"png\": PNG image");
   }
-  hestOptAdd(&opt, "f", "format", airTypeEnum, 1, 1, &(io->format), NULL,
-	     fmtInfo, NULL, nrrdFormat);
+  strcat(fmtInfo,
+	 "\n \b\bo \"eps\": EPS file");
+  hestOptAdd(&opt, "f", "format", airTypeOther, 1, 1, &(io->format), NULL,
+	     fmtInfo, NULL, NULL, &unrrduFormatPlusCB);
   strcpy(encInfo,
 	 "encoding of data in file.  Not all encodings are supported in "
 	 "a given format. Possibilities include:"
@@ -98,6 +188,17 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+
+  if (2*nrrdFormatLast == io->format) {
+    if (unrrduEpsSave(out, io, nin)) {
+      airMopAdd(mop, err = biffGetDone(UNRRDU), airFree, airMopAlways);
+      fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s\n", me, out, err);
+      airMopError(mop);
+      return 1;
+    }
+    airMopOkay(mop);
+    return 0;
+  }
 
   nrrdCopy(nout, nin);
   

@@ -20,7 +20,7 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "replace a sub-region with a different nrrd"
+#define INFO "Replace a sub-region with a different nrrd"
 char *_unrrdu_insetInfoL = 
 (INFO ". This is functionally the opposite of \"crop\".");
 
