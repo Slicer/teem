@@ -1,13 +1,13 @@
 Things to do with each teem release:
 
 -1) Bring documentation up-to-date with source tree
-make sure all the unrrdu pages agree with unu usage info?
-cp README.txt html/tree/
-cp src/README.txt html/tree/src/
-cp src/CHANGES.txt html/tree/src/
-cp src/TODO.txt html/tree/src/
-cp src/LICENSE.txt html/tree/src/
-cd html; cvs commit -m blah
+(in teem top-level)
+make sure all the unrrdu pages agree with unu usage info
+cp README.txt ~/usr/teemdoc/html/tree/
+cp src/README.txt ~/usr/teemdoc/html/tree/src/
+cp src/CHANGES.txt ~/usr/teemdoc/html/tree/src/
+cp src/TODO.txt ~/usr/teemdoc/html/tree/src/
+cp src/LICENSE.txt ~/usr/teemdoc/html/tree/src/
 
 0) Check namespace safety
   a) Make sure all library symbols are properly prefixed.  On linux,
@@ -97,21 +97,25 @@ setenv TEEM_ZLIB_IPATH -I/home/gk/include
 4) Create source-only tgz:
 cvs checkout teem; cd teem
 find . -name CVS  -exec rm -rf {} \;
-rm -rf html
 cd ..; mv teem teem-${VERSION}
 tar czvf teem-${VERSION}.tgz teem-${VERSION}
+mv teem-${VERSION}.tgz ~/rel
 
 5) Create Unix-ish binary builds (without src or docs):
    for each TEEM_ARCH in "irix6.n32 irix6.64 linux cygwin solaris darwin":
 -  ssh to some ARCH machine, copy teem-VERSION.tgz there if needed
 -  setenv TEEM_XXX for all the externals that it makes sense to 
       compile into the distributed statically linked binaries
-tar xzvf teem-${VERSION}.tgz
+setenv VERSION <<version>>
+tar xzvf ~/rel/teem-${VERSION}.tgz
 cd teem-${VERSION}; setenv TEEM_DEST `pwd`
-alias GO "mv src/LICENSE.txt . ; rm -rf README.txt ; rm -rf cygwin/ ; rm -rf darwin/ ; rm -rf irix6.64/ ; rm -rf irix6.n32/ ; rm -rf linux/ ; rm -rf solaris/ ; rm -rf win32 ; rm -rf src"
-cd src; make; cd ..; GO; cd ..
+cd src; make; cd ..
+mv src/LICENSE.txt . 
+yes | rm -rf README.txt cygwin darwin irix6.64 irix6.n32 linux solaris win32 src
+cd ..
 mv teem-${VERSION} teem-${VERSION}-${TEEM_ARCH}
 tar czvf teem-${VERSION}-${TEEM_ARCH}.tgz teem-${VERSION}-${TEEM_ARCH}
+mv teem-${VERSION}-${TEEM_ARCH}.tgz ~/rel
 
 6) Create Windows binary builds.
 
@@ -133,3 +137,8 @@ exit
 cd ..
 rm -rf teemdoc
 
+9) make tarball of documentation
+cvs -d /usr/sci/projects/teem/cvs co teemdoc; cd teemdoc
+mv html teem-${VERSION}-html
+tar czvf teem-${VERSION}-html.tgz teem-${VERSION}-html
+mv teem-${VERSION}-html.tgz ~/rel
