@@ -126,11 +126,9 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
   /* else topFax < dim-1 (actually, topFax < dim-2) */
   
   /* set information in new volume */
-  if (!(nout->data)) {
-    if (nrrdAlloc(nout, nin->num, nin->type, nin->dim)) {
-      sprintf(err, "%s: failed to allocate output", me);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (nrrdMaybeAlloc(nout, nin->num, nin->type, nin->dim)) {
+    sprintf(err, "%s: failed to allocate output", me);
+    biffAdd(NRRD, err); return 1;
   }
   for (d=0; d<=dim-1; d++) {
     nout->size[d] = nin->size[axes[d]];
@@ -276,7 +274,7 @@ nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
       idxI = ci[d] + size[d]*idxI;
       idxO = co[d] + size[d]*idxO;
     }
-    memcpy(dataO + typesize*idxO, dataI + typesize*idxI, typesize);
+    AIR_MEMCPY(dataO + typesize*idxO, dataI + typesize*idxI, typesize);
     d = 0;
     co[d]++;
     while (d <= dim-1 && co[d] == size[d]) {
@@ -452,8 +450,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis, int incrDim) {
     outnum *= ninperm[0]->size[d];
   }
   outnum *= outlen;
-  nperm = nrrdNew();
-  if (nrrdAlloc(nperm, outnum, ninperm[0]->type, outdim)) {
+  if (nrrdAlloc(nperm = nrrdNew(), outnum, ninperm[0]->type, outdim)) {
     sprintf(err, "%s: trouble allocating temporory nrrd", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -501,14 +498,14 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis, int incrDim) {
   }
 
   /* clean up */
-  free(trs);
+  trs = airFree(trs);
   for (i=0; i<=num-1; i++) {
     /* we only nuke the nrrds we created */
     if (ninperm[i] != nin[i]) {
       ninperm[i] = nrrdNuke(ninperm[i]);
     }
   }
-  free(ninperm);
+  ninperm = airFree(ninperm);
   nperm = nrrdNuke(nperm);
 
   return 0;
@@ -547,6 +544,6 @@ nrrdFlip(Nrrd *nout, Nrrd *nin, int axis) {
   }
   nout->axisMin[axis] = nin->axisMax[axis];
   nout->axisMax[axis] = nin->axisMin[axis];
-  free(perm);
+  perm = airFree(perm);
   return 0;
 }
