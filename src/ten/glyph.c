@@ -26,6 +26,7 @@ tenGlyphParmNew() {
 
   parm = calloc(1, sizeof(tenGlyphParm));
   if (parm) {
+    parm->verbose = 0;
     parm->nmask = NULL;
     parm->anisoType = tenAnisoUnknown;
     parm->onlyPositive = AIR_TRUE;
@@ -257,8 +258,18 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   }
   for (idx=0; idx<numGlyphs; idx++, _idx = idx) {
     tdata = (float*)(nten->data) + 7*idx;
+    if (parm->verbose >= 2) {
+      fprintf(stderr, "%s: glyph %d/%d: hello %g    %g %g %g %g %g %g\n",
+              me, idx, numGlyphs, tdata[0], 
+              tdata[1], tdata[2], tdata[3], 
+              tdata[4], tdata[5], tdata[6]);
+    }
     if (!( TEN_T_EXISTS(tdata) )) {
       /* there's nothing we can do here */
+      if (parm->verbose >= 2) {
+        fprintf(stderr, "%s: glyph %d/%d: non-existant data\n",
+                me, idx, numGlyphs);
+      }
       continue;
     }
     if (npos) {
@@ -268,8 +279,13 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       gageShapeUnitItoW(shape, pW, pI);
       if (parm->nmask) {
         if (!( nrrdFLookup[parm->nmask->type](parm->nmask->data, idx)
-               >= parm->maskThresh ))
+               >= parm->maskThresh )) {
+          if (parm->verbose >= 2) {
+            fprintf(stderr, "%s: glyph %d/%d: doesn't meet mask thresh\n",
+                    me, idx, numGlyphs);
+          }
           continue;
+        }
       }
     }
     tenEigensolve_f(eval, evec, tdata);
@@ -291,8 +307,13 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
           nrrdFLookup[nslc->type](nslc->data, slcCoord[0] 
                                   + nslc->axis[0].size*slcCoord[1]);
       } else {
-        if (!( tdata[0] >= parm->confThresh ))
+        if (!( tdata[0] >= parm->confThresh )) {
+          if (parm->verbose >= 2) {
+            fprintf(stderr, "%s: glyph %d/%d (slice): conf %g < thresh %g\n",
+                    me, idx, numGlyphs, tdata[0], parm->confThresh);
+          }
           continue;
+        }
         sliceGray = aniso[parm->sliceAnisoType];
       }
       if (parm->sliceGamma > 0) {
@@ -344,13 +365,28 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
     if (parm->onlyPositive) {
       if (eval[2] < 0) {
         /* didn't have all positive eigenvalues, its outta here */
+        if (parm->verbose >= 2) {
+          fprintf(stderr, "%s: glyph %d/%d: not all evals %g %g %g > 0\n",
+                  me, idx, numGlyphs, eval[0], eval[1], eval[2]);
+        }
         continue;
       }
     }
-    if (!( tdata[0] >= parm->confThresh ))
+    if (!( tdata[0] >= parm->confThresh )) {
+      if (parm->verbose >= 2) {
+        fprintf(stderr, "%s: glyph %d/%d: conf %g < thresh %g\n",
+                me, idx, numGlyphs, tdata[0], parm->confThresh);
+      }
       continue;
-    if (!( aniso[parm->anisoType] >= parm->anisoThresh ))
+    }
+    if (!( aniso[parm->anisoType] >= parm->anisoThresh )) {
+      if (parm->verbose >= 2) {
+        fprintf(stderr, "%s: glyph %d/%d: aniso[%d] %g < thresh %g\n",
+                me, idx, numGlyphs, parm->anisoType,
+                aniso[parm->anisoType], parm->anisoThresh);
+      }
       continue;
+    }
     glyphAniso = aniso[parm->colAnisoType];
     /*
       fprintf(stderr, "%s: eret = %d; evals = %g %g %g\n", me,
@@ -411,6 +447,10 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
     }
     
     /* add the glyph */
+    if (parm->verbose >= 2) {
+      fprintf(stderr, "%s: glyph %d/%d: the glyph stays!\n",
+              me, idx, numGlyphs);
+    }
     if (glyphsLimn) {
       lookIdx = limnObjectLookAdd(glyphsLimn);
       look = glyphsLimn->look + lookIdx;
