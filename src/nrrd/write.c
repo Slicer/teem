@@ -372,7 +372,12 @@ _nrrdSprintFieldInfo(char *str, Nrrd *nrrd, NrrdIO *io, int field) {
     strcat(str, buff);
     break;
   case nrrdField_data_file:
-    sprintf(str, "%s: ./%s", fs, io->base);
+    if (airStrlen(io->dataFN)) {
+      /* for "unu make -h" */
+      sprintf(str, "%s: %s", fs, io->dataFN);
+    } else {
+      sprintf(str, "%s: ./%s", fs, io->base);
+    }
     break;
   case nrrdField_line_skip:
     sprintf(str, "%s: %d", fs, io->lineSkip);
@@ -392,21 +397,23 @@ if (_nrrdFieldInteresting(nrrd, io, field)) { \
 }
 
 int
-_nrrdWriteNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
+_nrrdWriteNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io, int writeData) {
   char me[]="_nrrdWriteNrrd", err[AIR_STRLEN_MED], 
     tmpName[NRRD_STRLEN_LINE],  line[NRRD_STRLEN_LINE];
   int i;
   
-  if (io->seperateHeader) {
-    sprintf(tmpName, "%s/%s", io->dir, io->base);
-    io->dataFile = fopen(tmpName, "wb");
-    if (!io->dataFile) {
-      sprintf(err, "%s: couldn't fopen(\"%s\",\"wb\"): %s",
-	      me, tmpName, strerror(errno));
-      biffAdd(NRRD, err); return 1;
+  if (writeData) {
+    if (io->seperateHeader) {
+      sprintf(tmpName, "%s/%s", io->dir, io->base);
+      io->dataFile = fopen(tmpName, "wb");
+      if (!io->dataFile) {
+	sprintf(err, "%s: couldn't fopen(\"%s\",\"wb\"): %s",
+		me, tmpName, strerror(errno));
+	biffAdd(NRRD, err); return 1;
+      }
+    } else {
+      io->dataFile = file;
     }
-  } else {
-    io->dataFile = file;
   }
 
   fprintf(file, "%s\n", airEnumStr(nrrdMagic, nrrdMagicNRRD0001));
@@ -425,26 +432,28 @@ _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
     fprintf(file, "\n");
   }
 
-  if (2 <= nrrdStateVerboseIO) {
-    fprintf(stderr, "(%s: writing %s data ", me, 
-	    airEnumStr(nrrdEncoding, io->encoding));
-    fflush(stderr);
-  }
-  if (nrrdWriteData[io->encoding](nrrd, io)) {
+  if (writeData) {
     if (2 <= nrrdStateVerboseIO) {
-      fprintf(stderr, "error!\n");
+      fprintf(stderr, "(%s: writing %s data ", me, 
+	      airEnumStr(nrrdEncoding, io->encoding));
+      fflush(stderr);
     }
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (2 <= nrrdStateVerboseIO) {
-    fprintf(stderr, "done)\n");
-  }
+    if (nrrdWriteData[io->encoding](nrrd, io)) {
+      if (2 <= nrrdStateVerboseIO) {
+	fprintf(stderr, "error!\n");
+      }
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    if (2 <= nrrdStateVerboseIO) {
+      fprintf(stderr, "done)\n");
+    }
 
-  if (io->seperateHeader) {
-    io->dataFile = airFclose(io->dataFile);
-  } else {
-    io->dataFile = NULL;
+    if (io->seperateHeader) {
+      io->dataFile = airFclose(io->dataFile);
+    } else {
+      io->dataFile = NULL;
+    }
   }
 
   return 0;
@@ -658,7 +667,7 @@ nrrdWrite(FILE *file, Nrrd *nrrd, NrrdIO *io) {
 
   switch (io->format) {
   case nrrdFormatNRRD:
-    ret = _nrrdWriteNrrd(file, nrrd, io);
+    ret = _nrrdWriteNrrd(file, nrrd, io, AIR_TRUE);
     break;
   case nrrdFormatPNM:
     ret = _nrrdWritePNM(file, nrrd, io);
