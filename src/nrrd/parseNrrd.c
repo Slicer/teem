@@ -185,6 +185,7 @@ _nrrdReadNrrdParse_sizes (Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
   ret = airParseStrI(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
   nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSize, val);
+  /* HEY: this is a very imperfect check of excess info */
   if (nrrd->dim+1 == airParseStrI(val, info, _nrrdFieldSep, nrrd->dim+1)) {
     sprintf(err, "%s: seem to have more than expected %d sizes",
             me, nrrd->dim);
@@ -209,6 +210,7 @@ _nrrdReadNrrdParse_spacings (Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
   ret = airParseStrD(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
   nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSpacing, val);
+  /* HEY: this is a very imperfect check of excess info */
   if (nrrd->dim+1 == airParseStrD(val, info, _nrrdFieldSep, nrrd->dim+1)) {
     sprintf(err, "%s: seem to have more than expected %d spacings",
             me, nrrd->dim);
@@ -233,6 +235,7 @@ _nrrdReadNrrdParse_thicknesses (Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
   ret = airParseStrD(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
   nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoThickness, val);
+  /* HEY: this is a very imperfect check of excess info */
   if (nrrd->dim+1 == airParseStrD(val, info, _nrrdFieldSep, nrrd->dim+1)) {
     sprintf(err, "%s: seem to have more than expected %d thicknesses",
             me, nrrd->dim);
@@ -257,6 +260,7 @@ _nrrdReadNrrdParse_axis_mins (Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
   ret = airParseStrD(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
   nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoMin, val);
+  /* HEY: this is a very imperfect check of excess info */
   if (nrrd->dim+1 == airParseStrD(val, info, _nrrdFieldSep, nrrd->dim+1)) {
     sprintf(err, "%s: seem to have more than expected %d axis mins",
             me, nrrd->dim);
@@ -281,6 +285,7 @@ _nrrdReadNrrdParse_axis_maxs (Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
   ret = airParseStrD(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
   nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoMax, val);
+  /* HEY: this is a very imperfect check of excess info */
   if (nrrd->dim+1 == airParseStrD(val, info, _nrrdFieldSep, nrrd->dim+1)) {
     sprintf(err, "%s: seem to have more than expected %d axis maxs",
             me, nrrd->dim);
@@ -412,10 +417,12 @@ _nrrdReadNrrdParse_space_directions (Nrrd *nrrd, NrrdIoState *nio,
               me, dd+1, nrrd->dim);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
+    fprintf(stderr, "(%d) |%s| %d %d\n", dd, info,
+            (int)strlen(info), (int)strspn(info, _nrrdFieldSep));
   }
   if (strlen(info) != strspn(info, _nrrdFieldSep)) {
     sprintf(err, "%s: seem to have more than expected %d directions",
-            me, nrrd->spaceDim);
+            me, nrrd->dim);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   if (_nrrdFieldCheck[nrrdField_space_directions](nrrd, useBiff)) {
@@ -587,7 +594,7 @@ _nrrdReadNrrdParse_labels (Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
   }
   if (strlen(h) != strspn(h, _nrrdFieldSep)) {
     sprintf(err, "%s: seem to have more than expected %d labels",
-            me, nrrd->spaceDim);
+            me, nrrd->dim);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   if (_nrrdFieldCheck[nrrdField_labels](nrrd, useBiff)) {
@@ -620,7 +627,7 @@ _nrrdReadNrrdParse_units (Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
   }
   if (strlen(h) != strspn(h, _nrrdFieldSep)) {
     sprintf(err, "%s: seem to have more than expected %d units",
-            me, nrrd->spaceDim);
+            me, nrrd->dim);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   if (_nrrdFieldCheck[nrrdField_units](nrrd, useBiff)) {
