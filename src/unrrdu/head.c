@@ -82,11 +82,10 @@ unrrdu_headDoit(char *me, NrrdIO *io, char *inS, FILE *fout) {
 int
 unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *err, **inS, *outS="-";
+  char *err, **inS;
   NrrdIO *io;
   airArray *mop;
   int pret, ni, ninLen;
-  FILE *fout;
 #ifdef _WIN32
   int c;
 #endif
@@ -103,27 +102,18 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
   io = nrrdIONew();
   airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
 
-  if (!( fout = airFopen(outS, stdout, "wb") )) {
-    sprintf(err, "%s: couldn't fopen(\"%s\",\"wb\"): %s\n", 
-	    me, outS, strerror(errno));
-    biffAdd(me, err); airMopError(mop); return 1;
-  }
-  airMopAdd(mop, fout, (airMopper)airFclose, airMopAlways);
-
   for (ni=0; ni<ninLen; ni++) {
     if (ninLen > 1) {
-      fprintf(fout, "==> %s <==\n", inS[ni]);
+      fprintf(stdout, "==> %s <==\n", inS[ni]);
     }
-    /* HEY: would be better if we continued reading from other
-       files after one is bad, but oh well */
-    if (unrrdu_headDoit(me, io, inS[ni], fout)) {
+    if (unrrdu_headDoit(me, io, inS[ni], stdout)) {
       airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble reading from \"%s\":\n%s",
 	      me, inS[ni], err);
-      airMopError(mop); return 1;
+      /* continue working on the remaining files */
     }
     if (ninLen > 1 && ni < ninLen-1) {
-      fprintf(fout, "\n");
+      fprintf(stdout, "\n");
     }
   }
 

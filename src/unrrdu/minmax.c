@@ -20,37 +20,75 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Print out min and max values in a nrrd"
+/* bad bad bad Gordon */
+extern int _nrrdOneLine(int *lenP, NrrdIO *io, FILE *file);
+
+#define INFO "Print out min and max values in one or more nrrds"
 char *_unrrdu_minmaxInfoL =
 (INFO ". Unlike other commands, this doesn't produce a nrrd.  It only "
- "prints to standard error the min and max values found in the input nrrd, "
+ "prints to standard out the min and max values found in the input nrrd(s), "
  "and it also indicates if there are non-existant values.");
+
+int
+unrrdu_minmaxDoit(char *me, char *inS, FILE *fout) {
+  char err[AIR_STRLEN_MED];
+  Nrrd *nrrd;
+  NrrdRange *range;
+  airArray *mop;
+  int len;
+  FILE *fin;
+
+  mop = airMopNew();
+  airMopAdd(mop, nrrd=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  if (nrrdLoad(nrrd, inS, NULL)) {
+    sprintf(err, "%s: trouble loading \"%s\"", me, inS);
+    biffMove(me, err, NRRD); airMopError(mop); return 1;
+  }
+
+  range = nrrdRangeNewSet(nrrd, nrrdBlind8BitRangeFalse);
+  airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
+  airSinglePrintf(stderr, NULL, "min: %f\n", range->min);
+  airSinglePrintf(stderr, NULL, "max: %f\n", range->max);
+  if (range->hasNonExist) {
+    fprintf(stderr, "# has non-existent values\n");
+  }
+
+  airMopOkay(mop);
+  return 0;
+}
 
 int
 unrrdu_minmaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *err;
-  Nrrd *nin;
-  NrrdRange *range;
+  char *err, **inS;
   airArray *mop;
-  int pret;
+  int pret, ni, ninLen;
+#ifdef _WIN32
+  int c;
+#endif
 
   mop = airMopNew();
-  hestOptAdd(&opt, NULL, "nin", airTypeOther, 1, 1, &nin, NULL,
-	     "input nrrd",
-	     NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL,
+	     "input nrrd(s)", &ninLen);
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(_unrrdu_minmaxInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  range = nrrdRangeNewSet(nin, nrrdBlind8BitRangeFalse);
-  airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-  airSinglePrintf(stderr, NULL, "min: %f\n", range->min);
-  airSinglePrintf(stderr, NULL, "max: %f\n", range->max);
-  if (range->hasNonExist) {
-    fprintf(stderr, "# has non-existent values\n");
+  for (ni=0; ni<ninLen; ni++) {
+    if (ninLen > 1) {
+      fprintf(stdout, "==> %s <==\n", inS[ni]);
+    }
+    if (unrrdu_minmaxDoit(me, inS[ni], stdout)) {
+      airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble with \"%s\":\n%s",
+	      me, inS[ni], err);
+      /* continue working on the remaining files */
+    }
+    if (ninLen > 1 && ni < ninLen-1) {
+      fprintf(stdout, "\n");
+    }
   }
 
   airMopOkay(mop);
