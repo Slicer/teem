@@ -45,7 +45,8 @@ char *info = ("A demonstration of hoover, gage, and nrrd measures. "
 
 typedef struct {
   Nrrd *nin;            /* input volume to render */
-  double rayStep;       /* distance between sampling planes */
+  double rayStep,       /* distance between sampling planes */
+    fromNaN;            /* what to convert non-existent value to */
   int whatq,            /* what to measure along the ray */
     measr;              /* how to reduce the ray samples to a scalar */
   /* we have a seperate copy of the kernel specs so that hest can
@@ -311,10 +312,7 @@ mrendRayEnd(mrendThread *tt, mrendRender *rr, mrendUser *uu) {
 			       tt->val, nrrdTypeFloat,
 			       tt->valNum,
 			       0, tt->rayLen);
-    /* this silliness is because when using a histo-based
-       nrrdMeasure, and if the values where all zero,
-       then the answer will probably be NaN */
-    answer = AIR_EXISTS(answer) ? answer : 0.0;
+    answer = AIR_EXISTS(answer) ? answer : uu->fromNaN;
     rr->imgData[(tt->ui) + (rr->sx)*(tt->vi)] = answer;
   } else {
     rr->imgData[(tt->ui) + (rr->sx)*(tt->vi)] = 0.0;
@@ -444,6 +442,9 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc, "0.0",
 	     "For curvature-related queries, set answer to zero when "
 	     "gradient magnitude is below this");
+  hestOptAdd(&hopt, "fn", "from nan", airTypeDouble, 1, 1, &(uu->fromNaN),
+	     "nan", "When histo-based measures generate NaN answers, the "
+	     "value that should be substituted for NaN.");
   hestOptAdd(&hopt, "step", "size", airTypeDouble, 1, 1, &(uu->rayStep),
 	     "0.01", "step size along ray in world space");
   hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1,
@@ -464,6 +465,7 @@ main(int argc, char *argv[]) {
     return 1;
   }
   gageParmSet(uu->gctx0, gageParmGradMagCurvMin, gmc);
+  gageParmSet(uu->gctx0, gageParmRequireAllSpacings, AIR_FALSE);
   gageParmSet(uu->gctx0, gageParmRenormalize, renorm);
   fprintf(stderr, "%s: will render %s of %s\n", me,
 	  airEnumStr(nrrdMeasure, uu->measr),

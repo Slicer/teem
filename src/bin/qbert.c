@@ -474,12 +474,12 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
 int
 qbertScat(Nrrd *nvgh, int pos, int size, char *name) {
   char me[]="qbertScat", err[AIR_STRLEN_MED];
-  Nrrd *nin[2], *nv, *nx, *nscA, *nscB;
+  Nrrd *nin[2];
+  Nrrd *nv, *nx, *nscA, *nscB;
   airArray *mop;
-  int E, bins[2], clamp[2], hack;
+  int E, bins[2], clamp[2];
+  NrrdRange *range;
 
-  hack = nrrdStateClever8BitMinMax;
-  nrrdStateClever8BitMinMax = AIR_TRUE;
   bins[0] = bins[1] = size;
   clamp[0] = clamp[1] = AIR_FALSE;
   mop = airMopNew();
@@ -492,11 +492,16 @@ qbertScat(Nrrd *nvgh, int pos, int size, char *name) {
   E = 0;
   if (!E) E |= nrrdSlice(nv, nvgh, 0, 0);
   if (!E) E |= nrrdSlice(nx, nvgh, 0, pos);
-  if (!E) E |= nrrdHistoJoint(nscA, nin, 2, NULL, bins, nrrdTypeFloat, clamp);
+  if (!E) E |= nrrdHistoJoint(nscA, nin, NULL, 2,
+			      NULL, bins, nrrdTypeFloat, clamp);
   if (!E) E |= nrrdArithUnaryOp(nscB, nrrdUnaryOpLog1p, nscA);
   if (!E) E |= nrrdHistoEq(nscA, nscB, NULL, 2048, 2, 0.45);
-  if (!E) { nrrdMinMaxSet(nscA); nscA->max *= 0.8; }
-  if (!E) E |= nrrdQuantize(nscB, nscA, 8);
+  if (!E) { 
+    range = nrrdRangeNewSet(nscA, nrrdBlind8BitRangeTrue);
+    airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
+    range->max *= 0.8; 
+  }
+  if (!E) E |= nrrdQuantize(nscB, nscA, range, 8);
   if (!E) E |= nrrdFlip(nscA, nscB, 1);
   if (!E) E |= nrrdSave(name, nscA, NULL);
   if (E) {
@@ -504,7 +509,6 @@ qbertScat(Nrrd *nvgh, int pos, int size, char *name) {
     biffMove(QBERT, err, NRRD); airMopError(mop); return 1;
   }
 
-  nrrdStateClever8BitMinMax = hack;
   airMopOkay(mop);
   return 0;
 }
