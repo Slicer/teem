@@ -76,7 +76,7 @@ main(int argc, char **argv) {
     argv0 = malloc(strlen(UNRRDU) + strlen(argv[1]) + 2);
     sprintf(argv0, "%s %s", UNRRDU, argv[1]);
 
-    /* run the individual unu program */
+    /* run the individual unu program, saving its exit status */
     ret = unrrduCmdList[i]->main(argc-2, argv+2, argv0, hparm);
   } else {
     fprintf(stderr, "%s: unrecognized command: \"%s\"\n", me, argv[1]);
