@@ -83,6 +83,16 @@ extern int _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIO *io, int useBiff);
 extern int _nrrdSizeValid(int dim, int *size);
 extern void _nrrdTraverse(Nrrd *nrrd);
 
+#ifdef TEEM_GZIP
+#include <zlib.h>
+
+/* gzio.c */
+extern gzFile _nrrdGzOpen (FILE* fd, const char *mode);
+extern int _nrrdGzClose (gzFile file);
+extern int _nrrdGzRead (gzFile file, voidp buf, unsigned len);
+extern int _nrrdGzWrite (gzFile file, const voidp buf, unsigned len);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

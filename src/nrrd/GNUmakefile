@@ -50,13 +50,13 @@ $(L).NEED = biff hest air
 $(L).PUBLIC_HEADERS = nrrd.h nrrdDefines.h nrrdMacros.h nrrdEnums.h
 $(L).PRIVATE_HEADERS = privateNrrd.h
 $(L).OBJS = \
-	accessors.o  arith.o        arraysNrrd.o  apply1D.o      \
-	axes.o       comment.o      convertNrrd.o defaultsNrrd.o \
-	endianNrrd.o enumsNrrd.o    filt.o        hestNrrd.o     \
-	histogram.o  iter.o         kernel.o      map.o          \
-	measure.o    methodsNrrd.o  parseNrrd.o   read.o         \
-	reorder.o    resampleNrrd.o simple.o      subset.o       \
-	superset.o   write.o 
+	accessors.o  arith.o     arraysNrrd.o   apply1D.o        \
+	axes.o       comment.o   convertNrrd.o  defaultsNrrd.o   \
+	endianNrrd.o enumsNrrd.o filt.o         gzio.o           \
+	hestNrrd.o   histogram.o iter.o         kernel.o         \
+	map.o        measure.o   methodsNrrd.o  parseNrrd.o      \
+	read.o       reorder.o   resampleNrrd.o simple.o         \
+	subset.o     superset.o  write.o 
 $(L).TESTS = test/trand test/ax test/io test/minmax test/tkernel \
 	test/typestest test/tline test/tread
 ####

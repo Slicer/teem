@@ -27,7 +27,7 @@
 
 int
 _nrrdFieldInteresting(Nrrd *nrrd, NrrdIO *io, int field) {
-  int d, ret;
+  int d, ret=0;
   
   if (!( nrrd
 	 && AIR_INSIDE(1, nrrd->dim, NRRD_DIM_MAX)
