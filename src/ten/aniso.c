@@ -75,9 +75,9 @@ tenAnisoCalc(float c[TEN_ANISO_MAX+1], float e[3]) {
   stdv = sqrt((mean-e0)*(mean-e0)   /* okay, not exactly standard dev */
 	      + (mean-e1)*(mean-e1) 
 	      + (mean-e2)*(mean-e2));
-  ra = stdv/(mean*sqrt(6.0));  ra = AIR_CLAMP(0.0, ra, 1.0);
+  ra = stdv/(tenAnisoSigma + mean*sqrt(6.0));  ra = AIR_CLAMP(0.0, ra, 1.0);
   c[tenAniso_RA] = ra;
-  denom = 2.0*(e0*e0 + e1*e1 + e2*e2);
+  denom = tenAnisoSigma + 2.0*(e0*e0 + e1*e1 + e2*e2);
   if (denom) {
     fa = stdv*sqrt(3.0/denom);
     fa = AIR_CLAMP(0.0, fa, 1.0);
