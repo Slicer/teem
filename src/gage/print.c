@@ -21,7 +21,7 @@
 #include "private.h"
 
 void
-_gagePrint_off(gageContext *ctx) {
+_gagePrint_off(FILE *file, gageContext *ctx) {
   int i, fd, *off;
 
   fd = ctx->fd;
@@ -29,33 +29,33 @@ _gagePrint_off(gageContext *ctx) {
   fprintf(stderr, "off[]:\n");
   switch(fd) {
   case 2:
-    fprintf(stderr, "% 6d   % 6d\n", off[6], off[7]);
-    fprintf(stderr, "   % 6d   % 6d\n\n", off[4], off[5]);
-    fprintf(stderr, "% 6d   % 6d\n", off[2], off[3]);
-    fprintf(stderr, "   % 6d   % 6d\n", off[0], off[1]);
+    fprintf(file, "% 6d   % 6d\n", off[6], off[7]);
+    fprintf(file, "   % 6d   % 6d\n\n", off[4], off[5]);
+    fprintf(file, "% 6d   % 6d\n", off[2], off[3]);
+    fprintf(file, "   % 6d   % 6d\n", off[0], off[1]);
     break;
   case 4:
     for (i=3; i>=0; i--) {
-      fprintf(stderr, "% 6d   % 6d   % 6d   % 6d\n", 
+      fprintf(file, "% 6d   % 6d   % 6d   % 6d\n", 
 	      off[12+16*i], off[13+16*i], 
 	      off[14+16*i], off[15+16*i]);
-      fprintf(stderr, "   % 6d  %c% 6d   % 6d%c   % 6d\n", 
+      fprintf(file, "   % 6d  %c% 6d   % 6d%c   % 6d\n", 
 	      off[ 8+16*i], (i==1||i==2)?'\\':' ',
 	      off[ 9+16*i], off[10+16*i], (i==1||i==2)?'\\':' ',
 	      off[11+16*i]);
-      fprintf(stderr, "      % 6d  %c% 6d   % 6d%c   % 6d\n", 
+      fprintf(file, "      % 6d  %c% 6d   % 6d%c   % 6d\n", 
 	      off[ 4+16*i], (i==1||i==2)?'\\':' ',
 	      off[ 5+16*i], off[ 6+16*i], (i==1||i==2)?'\\':' ',
 	      off[ 7+16*i]);
-      fprintf(stderr, "         % 6d   % 6d   % 6d   % 6d\n", 
+      fprintf(file, "         % 6d   % 6d   % 6d   % 6d\n", 
 	      off[ 0+16*i], off[ 1+16*i],
 	      off[ 2+16*i], off[ 3+16*i]);
-      if (i) fprintf(stderr, "\n");
+      if (i) fprintf(file, "\n");
     }
     break;
   default:
     for (i=0; i<fd*fd*fd; i++) {
-      fprintf(stderr, "  off[% 3d,% 3d,% 3d] = % 6d\n",
+      fprintf(file, "  off[% 3d,% 3d,% 3d] = % 6d\n",
 	      i%fd, (i/fd)%fd, i/(fd*fd), off[i]);
     }
     break;
@@ -64,17 +64,17 @@ _gagePrint_off(gageContext *ctx) {
 
 #define PRINT_2(NN,C)                                  \
    fw = fw##NN##C;                                     \
-   fprintf(stderr, " --" #NN "-->% 15.7f   % 15.7f\n", \
+   fprintf(file, " --" #NN "-->% 15.7f   % 15.7f\n", \
 	  (float)fw[0], (float)fw[1])
 #define PRINT_4(NN,C)                                                      \
    fw = fw##NN##C;                                                         \
-   fprintf(stderr, " --" #NN "-->% 15.7f   % 15.7f   % 15.7f   % 15.7f\n", \
+   fprintf(file, " --" #NN "-->% 15.7f   % 15.7f   % 15.7f   % 15.7f\n", \
 	  (float)fw[0], (float)fw[1], (float)fw[2], (float)fw[3])
 #define PRINT_N(NN,C)                                   \
    fw = fw##NN##C;                                      \
-   fprintf(stderr, " --" #NN "--> \n");                 \
+   fprintf(file, " --" #NN "--> \n");                 \
    for (i=0; i<fd; i++)                                 \
-     fprintf(stderr, "     % 5d : % 15.7f\n", i, (float)fw[i])
+     fprintf(file, "     % 5d : % 15.7f\n", i, (float)fw[i])
 
 #define PRINTALL(HOW,C)                                 \
    if (ctx->needK[gageKernel00]) { HOW(00,C); }         \
@@ -85,7 +85,7 @@ _gagePrint_off(gageContext *ctx) {
    if (ctx->needK[gageKernel22]) { HOW(22,C); }
 
 void
-_gagePrint_fslw(gageContext *ctx) {
+_gagePrint_fslw(FILE *file, gageContext *ctx) {
   int i, fd;
   gage_t *fslx, *fsly, *fslz, *fw,
     *fw000, *fw001, *fw002, 
@@ -120,42 +120,42 @@ _gagePrint_fslw(gageContext *ctx) {
   fw221 = ctx->fw + 0 + fd*(1 + 3*gageKernel22);
   fw222 = ctx->fw + 0 + fd*(2 + 3*gageKernel22);
 
-  fprintf(stderr, "fsl -> fw: \n");
+  fprintf(file, "fsl -> fw: \n");
   switch(fd) {
   case 2:
-    fprintf(stderr, "x[]: % 15.7f   % 15.7f\n",
+    fprintf(file, "x[]: % 15.7f   % 15.7f\n",
 	    (float)fslx[0], (float)fslx[1]);
     PRINTALL(PRINT_2, 0);
-    fprintf(stderr, "y[]: % 15.7f   % 15.7f\n",
+    fprintf(file, "y[]: % 15.7f   % 15.7f\n",
 	    (float)fsly[0], (float)fsly[1]);
     PRINTALL(PRINT_2, 1);
-    fprintf(stderr, "z[]: % 15.7f   % 15.7f\n",
+    fprintf(file, "z[]: % 15.7f   % 15.7f\n",
 	    (float)fslz[0], (float)fslz[1]);
     PRINTALL(PRINT_2, 2);
     break;
   case 4:
-    fprintf(stderr, "x[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", 
+    fprintf(file, "x[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", 
 	    (float)fslx[0], (float)fslx[1], (float)fslx[2], (float)fslx[3]);
     PRINTALL(PRINT_4, 0);
-    fprintf(stderr, "y[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", 
+    fprintf(file, "y[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", 
 	    (float)fsly[0], (float)fsly[1], (float)fsly[2], (float)fsly[3]);
     PRINTALL(PRINT_4, 1);
-    fprintf(stderr, "z[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", 
+    fprintf(file, "z[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", 
 	    (float)fslz[0], (float)fslz[1], (float)fslz[2], (float)fslz[3]);
     PRINTALL(PRINT_4, 2);
     break;
   default:
-    fprintf(stderr, "x[]:\n");
+    fprintf(file, "x[]:\n");
     for (i=0; i<fd; i++)
-      fprintf(stderr, "     % 5d : % 15.7f\n", i, (float)fslx[i]);
+      fprintf(file, "     % 5d : % 15.7f\n", i, (float)fslx[i]);
     PRINTALL(PRINT_N, 0);
-    fprintf(stderr, "y[]:\n");
+    fprintf(file, "y[]:\n");
     for (i=0; i<fd; i++)
-      fprintf(stderr, "     % 5d : % 15.7f\n", i, (float)fsly[i]);
+      fprintf(file, "     % 5d : % 15.7f\n", i, (float)fsly[i]);
     PRINTALL(PRINT_N, 1);
-    fprintf(stderr, "z[]:\n");
+    fprintf(file, "z[]:\n");
     for (i=0; i<fd; i++)
-      fprintf(stderr, "     % 5d : % 15.7f\n", i, (float)fslz[i]);
+      fprintf(file, "     % 5d : % 15.7f\n", i, (float)fslz[i]);
     PRINTALL(PRINT_N, 2);
     break;
   }

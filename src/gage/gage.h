@@ -249,7 +249,7 @@ typedef struct {
 */
 typedef struct {
   int verbose;
-  unsigned int query;         /* the query (recursively expanded) */
+  unsigned int query;         /* the query (yes, recursively expanded) */
   Nrrd *npad;                 /* user-padded nrrd, not "owned" by gage,
 				 nrrdNuke() and nrrdNix() not called */
   /*  --------------------------------------- Internal state */
@@ -294,13 +294,15 @@ typedef struct gageKind_t {
     totalAnsLen,                    /* such as GAGE_SCL_TOTAL_ANS_LENGTH */
     *needDeriv;                     /* such as _gageSclNeedDeriv */
   unsigned int *queryPrereq;        /* such as _gageSclPrereq; */
-  void (*queryPrint)(unsigned int), /* such as _gageSclPrint_query() */
+  void (*queryPrint)(FILE *,        /* such as _gageSclPrint_query() */
+		     unsigned int), 
     *(*ansNew)(void),               /* such as _gageSclAnswerNew() */
     *(*ansNix)(void *),             /* such as _gageSclAnswerNix() */
     (*iv3Fill)(gageContext *,       /* such as _gageSclIv3Fill() */
 	       gagePerVolume *,
 	       void *),
-    (*iv3Print)(gageContext *,      /* such as _gageSclIv3Print() */
+    (*iv3Print)(FILE *,             /* such as _gageSclIv3Print() */
+		gageContext *,
 		gagePerVolume *),
     (*filter)(gageContext *,        /* such as _gageSclFilter() */
 	      gagePerVolume *),
@@ -322,7 +324,7 @@ typedef struct {
                               /* interp, 1st, 2nd deriv. kernels */
   double kparm[GAGE_KERNEL_NUM][NRRD_KERNEL_PARMS_NUM];
                               /* kernel parameters */
-  unsigned int query;         /* the bit-flag query */
+  unsigned int query;         /* the query (NOT recursively expanded) */
   /*  --------------------------------------- Internal state */
   Nrrd *npad;                 /* padded input */
   gageContext *ctx;

@@ -21,21 +21,21 @@
 #include "private.h"
 
 void
-_gageVecPrint_query(unsigned int query) {
+_gageVecPrint_query(FILE *file, unsigned int query) {
   unsigned int q;
 
-  fprintf(stderr, "query = %u ...\n", query);
+  fprintf(file, "query = %u ...\n", query);
   q = GAGE_VEC_MAX+1;
   do {
     q--;
     if ((1<<q) & query) {
-      fprintf(stderr, "    %3d: %s\n", q, airEnumStr(gageVec, q));
+      fprintf(file, "    %3d: %s\n", q, airEnumStr(gageVec, q));
     }
   } while (q);
 }
 
 void
-_gageVecIv3Print(gageContext *ctx, gagePerVolume *pvl) {
+_gageVecIv3Print(FILE *file, gageContext *ctx, gagePerVolume *pvl) {
   
-  fprintf(stderr, "_gageVecIv3Print() not implemented\n");
+  fprintf(file, "_gageVecIv3Print() not implemented\n");
 }

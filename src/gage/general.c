@@ -390,7 +390,7 @@ _gageVolumeDependentSet(gageContext *ctx, Nrrd *npad, gageKind *kind) {
   if (ctx->verbose > 2) {
     fprintf(stderr, "%s: offset array for %d x %d x %d volume:\n",
 	    me, ctx->sx, ctx->sy, ctx->sz);
-    _gagePrint_off(ctx);
+    _gagePrint_off(stderr, ctx);
   }
 
   return 0;
@@ -417,7 +417,7 @@ gageQuerySet(gagePerVolume *pvl, unsigned int query) {
   pvl->query = query;
   if (pvl->verbose) {
     fprintf(stderr, "%s: original query = %u ...\n", me, pvl->query);
-    pvl->kind->queryPrint(pvl->query);
+    pvl->kind->queryPrint(stderr, pvl->query);
   }
   /* recursive expansion of prerequisites */
   do {
@@ -431,7 +431,7 @@ gageQuerySet(gagePerVolume *pvl, unsigned int query) {
   } while (pvl->query != lastq);
   if (pvl->verbose) {
     fprintf(stderr, "!%s: expanded query = %u ...\n", me, pvl->query);
-    pvl->kind->queryPrint(pvl->query);
+    pvl->kind->queryPrint(stderr, pvl->query);
   }
 
   return 0;
@@ -568,7 +568,7 @@ gageProbe(gageContext *ctx, gagePerVolume *pvl,
   if (ctx->verbose > 1) {
     fprintf(stderr,
 	    "%s: value cache with bidx = %d:\n", me, ctx->bidx);
-    pvl->kind->iv3Print(ctx, pvl);
+    pvl->kind->iv3Print(stderr, ctx, pvl);
   }
 
   /* fprintf(stderr, "##%s: bingo 3\n", me); */

@@ -46,6 +46,7 @@ baneMeasrUnknown = &_baneMeasrUnknown;
 float
 _baneMeasrVal_Ans(gageSclAnswer *san, double *measrParm) {
 
+  /* fprintf(stderr, "## _baneMeasrVal_Ans: %g\n", san->val[0]); */
   return san->val[0];
 }
 
@@ -108,6 +109,7 @@ baneMeasrVal = &_baneMeasrValFloat;
 float
 _baneMeasrGradMag_Ans(gageSclAnswer *san, double *measrParm) {
 
+  /* fprintf(stderr, "## _baneMeasrGradMag_Ans: %g\n", san->gmag[0]); */
   return san->gmag[0];
 }
 
@@ -148,6 +150,7 @@ baneMeasrLapl = &_baneMeasrLapl;
 float
 _baneMeasrHess_Ans(gageSclAnswer *san, double *measrParm) {
   
+  /* fprintf(stderr, "## _baneMeasrHess_Ans: %g\n", san->scnd[0]); */
   return san->scnd[0];
 }
 
@@ -156,7 +159,7 @@ _baneMeasrHess = {
   "hess-2nd",
   baneMeasrHess_e,
   0,
-  (1<<gageSclHessian),
+  (1<<gageScl2ndDD),  /* this is hessian BASED 2nd DD measure */
   &_baneRangeZeroCent,
   _baneMeasrHess_Ans
 };

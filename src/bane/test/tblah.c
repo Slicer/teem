@@ -38,16 +38,28 @@ rangeTest(char *me, double imin, double imax) {
 
 void
 incTest(char *me, int num, baneRange *range) {
-  double *val, tmp, incParm[BANE_INC_PARM_NUM], omin, omax;
+  double *val, tmp, incParm[BANE_INC_PARM_NUM], omin, omax, rmin, rmax;
   baneInc *inc;
   Nrrd *hist;
   int i, j;
 
+  airSrand();
+
   val = (double*)malloc(num*sizeof(double));
+  /* from <http://www.itl.nist.gov/div898/handbook/index.htm>:
+     the standard dev of a uniform distribution between A and B is
+     sqrt((B-A)^2/12) */
   for (j=0; j<num; j++) {
-    tmp = AIR_AFFINE(0.0, airRand(), 1.0, -1.0, 2.0);
-    val[j] = tmp*tmp*tmp;
+    tmp = AIR_AFFINE(0.0, airRand(), 1.0, -1.0, 1.0);
+    /* val[j] = tmp*tmp*tmp; */
+    val[j] = tmp;
   }
+  rmin = rmax = val[0];
+  for (j=0; j<num; j++) {
+    rmin = AIR_MIN(rmin, val[j]);
+    rmax = AIR_MAX(rmax, val[j]);
+  }
+  fprintf(stderr, "incTest: real min,max = %g,%g\n", rmin, rmax);
   
   for (i=1; i<=BANE_INC_MAX; i++) {
     inc = baneIncArray[i];
@@ -57,11 +69,13 @@ incTest(char *me, int num, baneRange *range) {
       ELL_3V_SET(incParm, -0.8, 1.5, AIR_NAN);
       break;
     case baneIncRangeRatio_e:
-      ELL_3V_SET(incParm, 0.9, AIR_NAN, AIR_NAN);
+      ELL_3V_SET(incParm, 0.99, AIR_NAN, AIR_NAN);
       break;
     case baneIncPercentile_e:
+      ELL_3V_SET(incParm, 1024, 10, AIR_NAN);
       break;
     case baneIncStdv_e:
+      ELL_3V_SET(incParm, 1.0, AIR_NAN, AIR_NAN);
       break;
     }
     hist = inc->histNew(incParm);
@@ -89,7 +103,7 @@ main(int argc, char *argv[]) {
   rangeTest(me, -3, 2);
 
   printf("%s ================================ inclusion testing\n", me);
-  incTest(me, 1000, baneRangeFloat);
+  incTest(me, 10000, baneRangeFloat);
 
   return 0;
 }

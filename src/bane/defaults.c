@@ -25,3 +25,5 @@ int baneDefRenormalize = AIR_FALSE;
 
 int baneStateHistEqBins = 1024;
 int baneStateHistEqSmart = 1;
+
+int baneHack = 0;

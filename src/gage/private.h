@@ -55,20 +55,20 @@ extern airEnum _gageScl;
 extern airEnum _gageVec;
 
 /* print.c */
-extern void _gagePrint_off(gageContext *ctx);
-extern void _gagePrint_fslw(gageContext *ctx);
+extern void _gagePrint_off(FILE *, gageContext *ctx);
+extern void _gagePrint_fslw(FILE *, gageContext *ctx);
 
 /* filter.c */
 extern int _gageLocationSet(gageContext *ctx, int *newBidxP,
 			    gage_t x, gage_t y, gage_t z);
 
 /* sclprint.c */
-extern void _gageSclPrint_query(unsigned int query);
-extern void _gageSclIv3Print(gageContext *ctx, gagePerVolume *pvl);
+extern void _gageSclPrint_query(FILE *, unsigned int query);
+extern void _gageSclIv3Print(FILE *, gageContext *ctx, gagePerVolume *pvl);
 
 /* vecprint.c */
-extern void _gageVecPrint_query(unsigned int query);
-extern void _gageVecIv3Print(gageContext *ctx, gagePerVolume *pvl);
+extern void _gageVecPrint_query(FILE *, unsigned int query);
+extern void _gageVecIv3Print(FILE *, gageContext *ctx, gagePerVolume *pvl);
 
 /* scl.c */
 extern void _gageSclFilter(gageContext *ctx, gagePerVolume *pvl);

@@ -105,10 +105,38 @@ typedef struct {
 */
 enum {
   baneIncUnknown_e,     /* 0: nobody knows */
-  baneIncAbsolute_e,    /* 1: within explicitly specified bounds */
-  baneIncRangeRatio_e,  /* 2: some fraction of the total range */
-  baneIncPercentile_e,  /* 3: exclude some percentile */
-  baneIncStdv_e,        /* 4: some multiple of the standard deviation */
+  baneIncAbsolute_e,    /* 1: within explicitly specified bounds 
+			   incParm[0]: new min
+			   incParm[1]: new max */
+  baneIncRangeRatio_e,  /* 2: some fraction of the total range
+			   incParm[0]: scales the size of the range
+			   after it has been sent through the
+			   associated range function.
+			   incParm[1]: (optional) for baneRangeFloat:
+			   midpoint of scaling; if doesn't exist,
+			   average of min and max is used.  For all
+			   other range types, 0 is always used. */
+  baneIncPercentile_e,  /* 3: exclude some percentile
+			   incParm[0]: resolution of histogram
+			   generated
+			   incParm[1]: PERCENT of hits to throw away,
+			   by nibbling away at lower and upper ends of
+			   range, in a manner dependant on the range
+			   type
+			   incParm[2]: (optional) for baneRangeFloat,
+			   center value that we nibble towards.  If it
+			   doesn't exist, we use the average of the
+			   min and max (though perhaps the mode value
+			   would be better).  For all other range
+			   types, we nibble towards 0. */
+  baneIncStdv_e,        /* 4: some multiple of the standard deviation
+			   incParm[0]: range is standard deviation
+			   times this
+			   incParm[1]: (optional) for baneRangeFloat:
+			   if exists, the midpoint of the range,
+			   otherwise the mean is used.  For all other
+			   range types, the range is positioned in the
+			   logical way. */
   baneIncLast_e
 };
 #define BANE_INC_MAX       4
@@ -266,6 +294,7 @@ extern float baneDefIncLimit;
 extern int baneDefRenormalize;
 extern int baneStateHistEqBins;
 extern int baneStateHistEqSmart;
+extern int baneHack;
 
 /* range.c */
 extern baneRange *baneRangeUnknown;

@@ -109,13 +109,13 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
 
     if (ctx->verbose) {
       ELL_3MV_MUL(tmpVec, san->gten, san->norm); len = ELL_3V_LEN(tmpVec);
-      fprintf(stderr, "should be small: %30.15lf\n", len);
+      fprintf(stderr, "should be small: %30.15f\n", (double)len);
       ell3vPERP(gp1, san->norm);
       ELL_3MV_MUL(tmpVec, san->gten, gp1); len = ELL_3V_LEN(tmpVec);
-      fprintf(stderr, "should be bigger: %30.15lf\n", len);
+      fprintf(stderr, "should be bigger: %30.15f\n", (double)len);
       ELL_3V_CROSS(gp2, gp1, san->norm);
       ELL_3MV_MUL(tmpVec, san->gten, gp2); len = ELL_3V_LEN(tmpVec);
-      fprintf(stderr, "should be bigger: %30.15lf\n", len);
+      fprintf(stderr, "should be bigger: %30.15f\n", (double)len);
     }
   }
   if (1 && (query >> gageSclCurvedness)) {

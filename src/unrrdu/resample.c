@@ -211,6 +211,7 @@ resampleMain(int argc, char **argv, char *me) {
   info->boundary = bb;
   info->type = type;
   info->padValue = padVal;
+  info->renormalize = AIR_TRUE;
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);

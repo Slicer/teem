@@ -17,6 +17,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+/*
+** learned: don't ever count on interleaved printfs to stdout
+** and stderr to appear in the right order
+*/
 
 #include "bane.h"
 #include "private.h"
@@ -54,7 +58,7 @@ _baneValidAxis(baneAxis *ax) {
   }
   if (_baneInc_HistNew == ax->inc->histNew) {
     /* a histogram is needed for inclusion */
-    if (!( 2 < ax->incParm[0] )) {
+    if (!( 3 < ax->incParm[0] )) {
       sprintf(err, "%s: won't make a size-%d histogram for %s inclusion",
 	      me, (int)(ax->incParm[0]), ax->inc->name);
     }
@@ -73,7 +77,7 @@ _baneFindInclusion(double min[3], double max[3],
   double *incParm[3], *measrParm[3];
   baneMeasr *measr[3];
   Nrrd *hist[3];
-  baneIncPass *pass[3];
+  baneIncPass *incPass[3];
   gageSclAnswer *san;
   
   /* conveniance copies */
@@ -96,6 +100,10 @@ _baneFindInclusion(double min[3], double max[3],
   if (hvp->verbose) {
     fprintf(stderr, "%s: inclusions: %s %s %s\n", me,
 	    inc[0]->name, inc[1]->name, inc[2]->name);
+    fprintf(stderr, "%s: measures: %s %s %s\n", me,
+	    measr[0]->name, measr[1]->name, measr[2]->name);
+    fprintf(stderr, "%s: gage query:\n", me);
+    gsl->kind->queryPrint(stderr, gsl->pvl->query);
   }
 
   hist[0] = inc[0]->histNew(incParm[0]);
@@ -119,10 +127,14 @@ _baneFindInclusion(double min[3], double max[3],
     fprintf(stderr, "%s: pass A of inclusion initialization ...       ", me);
     fflush(stderr);
   }
-  pass[0] = inc[0]->passA;
-  pass[1] = inc[1]->passA;
-  pass[2] = inc[2]->passA;
-  if (pass[0] || pass[1] || pass[2]) {
+  incPass[0] = inc[0]->passA;
+  incPass[1] = inc[1]->passA;
+  incPass[2] = inc[2]->passA;
+  if (incPass[0] || incPass[1] || incPass[2]) {
+    /*
+    fprintf(stderr, "%s: inclusion pass CBs = %p %p %p \n", me, 
+	    incPass[0], incPass[1], incPass[2]);
+    */
     for (z=0; z<sz; z++) {
       for (y=0; y<sy; y++) {
 	if (hvp->verbose && !((y+sy*z)%100)) {
@@ -130,12 +142,18 @@ _baneFindInclusion(double min[3], double max[3],
 	}
 	for (x=0; x<sx; x++) {
 	  gageSimpleProbe(gsl, x, y, z);
-	  if (pass[0])
-	    pass[0](hist[0], measr[0]->ans(san, measrParm[0]), incParm[0]);
-	  if (pass[1])
-	    pass[1](hist[1], measr[1]->ans(san, measrParm[1]), incParm[1]);
-	  if (pass[2])
-	    pass[2](hist[2], measr[2]->ans(san, measrParm[2]), incParm[2]);
+	  /*
+	  fprintf(stderr, "## _baneFindInclusion: (%d,%d,%d) -> (%g,%g,%g)\n",
+		  x,y,z, measr[0]->ans(san, measrParm[0]),
+		  measr[1]->ans(san, measrParm[1]),
+		  measr[2]->ans(san, measrParm[2]));
+	  */
+	  if (incPass[0])
+	    incPass[0](hist[0], measr[0]->ans(san, measrParm[0]), incParm[0]);
+	  if (incPass[1])
+	    incPass[1](hist[1], measr[1]->ans(san, measrParm[1]), incParm[1]);
+	  if (incPass[2])
+	    incPass[2](hist[2], measr[2]->ans(san, measrParm[2]), incParm[2]);
 	}
       }
     }
@@ -154,10 +172,10 @@ _baneFindInclusion(double min[3], double max[3],
     fprintf(stderr, "%s: pass B of inclusion initialization ...       ", me);
     fflush(stderr);
   }
-  pass[0] = inc[0]->passB;
-  pass[1] = inc[1]->passB;
-  pass[2] = inc[2]->passB;
-  if (pass[0] || pass[1] || pass[2]) {
+  incPass[0] = inc[0]->passB;
+  incPass[1] = inc[1]->passB;
+  incPass[2] = inc[2]->passB;
+  if (incPass[0] || incPass[1] || incPass[2]) {
     for (z=0; z<sz; z++) {
       for (y=0; y<sy; y++) {
 	if (hvp->verbose && !((y+sy*z)%100)) {
@@ -165,12 +183,12 @@ _baneFindInclusion(double min[3], double max[3],
 	}
 	for (x=0; x<sx; x++) {
 	  gageSimpleProbe(gsl, x, y, z);
-	  if (pass[0])
-	    pass[0](hist[0], measr[0]->ans(san, measrParm[0]), incParm[0]);
-	  if (pass[1])
-	    pass[1](hist[1], measr[1]->ans(san, measrParm[1]), incParm[1]);
-	  if (pass[2])
-	    pass[2](hist[2], measr[2]->ans(san, measrParm[2]), incParm[2]);
+	  if (incPass[0])
+	    incPass[0](hist[0], measr[0]->ans(san, measrParm[0]), incParm[0]);
+	  if (incPass[1])
+	    incPass[1](hist[1], measr[1]->ans(san, measrParm[1]), incParm[1]);
+	  if (incPass[2])
+	    incPass[2](hist[2], measr[2]->ans(san, measrParm[2]), incParm[2]);
 	}
       }
     }
@@ -271,10 +289,12 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   gsl->pvl->verbose = gageValGet(gsl->ctx, gageValVerbose);
   san = (gageSclAnswer *)(gsl->pvl->ansStruct);
   
+  fprintf(stderr, "##%s: calling _baneFindInclusion ...\n", me);
   if (_baneFindInclusion(min, max, nin, hvp, gsl)) {
     sprintf(err, "%s: trouble finding inclusion ranges", me);
     biffAdd(BANE, err); return 1;
   }
+  fprintf(stderr, "##%s: _baneFindInclusion done\n", me);
   if (max[0] == min[0]) {
     max[0] += 1;
     if (hvp->verbose)

@@ -158,7 +158,7 @@ _gageFwSet(gageContext *ctx) {
 
   if (ctx->verbose > 1) {
     fprintf(stderr, "%s: filter weights after kernel evaluation:\n", me);
-    _gagePrint_fslw(ctx);
+    _gagePrint_fslw(stderr, ctx);
   }
   if (ctx->renormalize) {
     for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
@@ -177,7 +177,7 @@ _gageFwSet(gageContext *ctx) {
     }
     if (ctx->verbose > 1) {
       fprintf(stderr, "%s: filter weights after renormalization:\n", me);
-      _gagePrint_fslw(ctx);
+      _gagePrint_fslw(stderr, ctx);
     }
   }
 
@@ -199,7 +199,7 @@ _gageFwSet(gageContext *ctx) {
     }
     if (ctx->verbose > 1) {
       fprintf(stderr, "%s: filter weights after non-unit fix:\n", me);
-      _gagePrint_fslw(ctx);
+      _gagePrint_fslw(stderr, ctx);
     }
   }
 }
