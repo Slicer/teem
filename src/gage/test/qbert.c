@@ -184,6 +184,12 @@ main(int argc, char *argv[]) {
       rsmpInfo->max[i] = npad->axis[i].size-1;
       printf("%s: resampling axis %d from %d to %d\n", 
 	     me, i, npad->axis[i].size, sz[i]);
+      if (!AIR_EXISTS(npad->axis[i].min)) {
+	npad->axis[i].min = 0.0;
+      }
+      if (!AIR_EXISTS(npad->axis[i].max)) {
+	npad->axis[i].max = npad->axis[i].size-1;
+      }
     }
     else {
       rsmpInfo->kernel[i] = NULL;
