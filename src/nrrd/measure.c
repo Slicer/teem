@@ -717,6 +717,7 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   }
   linLen = iSize[axis];
   colStep = linLen*colNum;
+  /*
   fprintf(stderr, "!%s: {i,o}Type = %d, %d\n", me, iType, oType);
   fprintf(stderr, "!%s: {i,o}ElSz = %d, %d\n", me, iElSz, oElSz);
   fprintf(stderr, "!%s: {col,row}Num = %d, %d\n", me, colNum, rowNum);
@@ -724,16 +725,13 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   fprintf(stderr, "!%s: colStep = %d\n", me, colStep);
   fprintf(stderr, "!%s: iSize = %d %d %d\n", me, iSize[0], iSize[1], iSize[2]);
   fprintf(stderr, "!%s: axis = %d\n", me, axis); 
-  
+  */
   for (d=0; d<=nin->dim-2; d++) {
     map[d] = d + (d >= axis);
   }
   for (d=0; d<=nin->dim-2; d++) {
     oSize[d] = iSize[map[d]];
-    fprintf(stderr, "!%s: iSize[map[%d]] = iSize[%d] = %d\n",
-	    me, d, map[d], iSize[map[d]]);
   }
-  fprintf(stderr, "!%s: oSize = %d %d %d\n", me, oSize[0], oSize[1], oSize[2]);
   if (nrrdMaybeAlloc_nva(nout, oType, nin->dim-1, oSize)) {
     sprintf(err, "%s: failed to create output", me);
     biffAdd(NRRD, err); return 1;
