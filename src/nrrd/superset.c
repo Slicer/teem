@@ -156,8 +156,9 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
     }
     NRRD_COORD_INCR(cOut, szOut, dim, 0);
   }
-  if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE
-				     | NRRD_AXESINFO_AMINMAX ))) {
+  if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE_BIT |
+				     NRRD_AXESINFO_MIN_BIT |
+				     NRRD_AXESINFO_MAX_BIT ))) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -181,8 +182,38 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
 }
 
 /*
+******** nrrdPad_nva()
+**
+** unlike other {X,X_nva} pairs, nrrdPad_nva() is a wrapper around
+** nrrdPad() instead of the other way around.
+*/
+int
+nrrdPad_nva(Nrrd *nout, Nrrd *nin, int *min, int *max,
+	    int boundary, double padValue) {
+  char me[]="nrrdPad_nva", err[AIR_STRLEN_MED];
+  int E;
+
+  if (!AIR_BETWEEN(nrrdBoundaryUnknown, boundary, nrrdBoundaryLast)) {
+    sprintf(err, "%s: boundary behavior %d invalid", me, boundary);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdBoundaryPad == boundary) {
+    E = nrrdPad(nout, nin, min, max, boundary, padValue);
+  } else {
+    E = nrrdPad(nout, nin, min, max, boundary);
+  }
+  if (E) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  
+  return 0;
+}
+
+/*
 ******** nrrdSimplePad()
 **
+** pads by a given amount on top and bottom of EVERY axis
 */
 int
 nrrdSimplePad(Nrrd *nout, Nrrd *nin, int pad, int boundary, ...) {
@@ -214,3 +245,31 @@ nrrdSimplePad(Nrrd *nout, Nrrd *nin, int pad, int boundary, ...) {
   return 0;
 }
 
+/*
+******** nrrdSimplePad_nva()
+**
+** unlike other {X,X_nva} pairs, nrrdSimplePad_nva() is a wrapper
+** around nrrdSimplePad() instead of the other way around.
+*/
+int
+nrrdSimplePad_nva(Nrrd *nout, Nrrd *nin, int pad,
+		  int boundary, double padValue) {
+  char me[]="nrrdSimplePad_nva", err[AIR_STRLEN_MED];
+  int E;
+
+  if (!AIR_BETWEEN(nrrdBoundaryUnknown, boundary, nrrdBoundaryLast)) {
+    sprintf(err, "%s: boundary behavior %d invalid", me, boundary);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdBoundaryPad == boundary) {
+    E = nrrdSimplePad(nout, nin, pad, boundary, padValue);
+  } else {
+    E = nrrdSimplePad(nout, nin, pad, boundary);
+  }
+  if (E) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  return 0;
+}
