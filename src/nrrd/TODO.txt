@@ -1,3 +1,5 @@
+nrrdPad_nva, nrrdSimplePad_nva
+
 write a select() function to replace qsort() in median calculation
 make the NRRD00.01 ---> NRRD0001 switchover
 
@@ -21,15 +23,12 @@ verify behavior WRT blocks:
   all
 verify that all axis and nrrd fields are accounted for
   all functions making a "nout" from a "nin"
-incorporate gaussian kernel
  
 finish writing format.txt
 
 make nrrdDescribe() a little prettier
 
 make nrrdHistoEq permit learning what mapping was used to acheive equalization
-
-revisit slicer,
 
 split
 
@@ -46,8 +45,6 @@ determine a consistent policy regarding assumptions and expections
 surrounding use of the min and max fields, perhaps also oldMin and oldMax
 
 other encodings- base 85, gzip, hex
-
-use consts as necessary for the arrays which shouldn't be messed with
 
 try to enforce the policy that variables which exist solely to be
 a local copy of values in nrrds should be **eliminated**.  This
