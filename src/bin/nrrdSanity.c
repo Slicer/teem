@@ -38,7 +38,7 @@ main(int argc, char *argv[]) {
     printf("%s: encodings supported in this build:\n", me);
     for (enc=nrrdEncodingUnknown+1; enc<nrrdEncodingLast; enc++) {
       printf("%s: %s\n", airEnumStr(nrrdEncoding, enc),
-	     nrrdEncodingAvailable[enc] ? "yes" : "not available");
+	     nrrdEncodingIsAvailable[enc] ? "yes" : "not available");
     }
   }
 
