@@ -192,19 +192,25 @@ tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
   int ret;
   
   TEN_LIST2MAT(m, t);
-  ret = ell3mEigensolve(eval, evec, m, AIR_TRUE);
-  ELL_3V_COPY(_eval, eval);
-  ELL_3M_COPY(_evec, evec);
-  if (tenVerbose && _eval[2] < 0) {
-    fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
-	    t[1], t[2], t[3]);
-    fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
-	    t[2], t[4], t[5]);
-    fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
-	    t[3], t[5], t[6]);
-    fprintf(stderr, " --> % 15.7f % 15.7f % 15.7f\n",
-	    _eval[0], _eval[1], _eval[2]);
-  }
+  if (_evec) {
+    ret = ell3mEigensolve(eval, evec, m, AIR_TRUE);
+    ELL_3V_COPY(_eval, eval);
+    ELL_3M_COPY(_evec, evec);
+    if (tenVerbose && _eval[2] < 0) {
+      fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
+	      t[1], t[2], t[3]);
+      fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
+	      t[2], t[4], t[5]);
+      fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
+	      t[3], t[5], t[6]);
+      fprintf(stderr, " --> % 15.7f % 15.7f % 15.7f\n",
+	      _eval[0], _eval[1], _eval[2]);
+    }
+  } else {
+    /* the only want eigenvalues */
+    ret = ell3mEigenvalues(eval, m, AIR_TRUE);
+    ELL_3V_COPY(_eval, eval);
+  }    
   return ret;
 }
 

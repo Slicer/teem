@@ -28,6 +28,7 @@
 #include <nrrd.h>
 #include <unrrdu.h>
 #include <dye.h>
+#include <gage.h>
 #include <limn.h>
 
 #include "tenMacros.h"
@@ -59,10 +60,12 @@ enum {
   tenAniso_RA,        /* 11: Bass+Pier's relative anisotropy */
   tenAniso_FA,        /* 12: (Bass+Pier's fractional anisotropy)/sqrt(2) */
   tenAniso_VF,        /* 13: volume fraction = 1-(Bass+Pier's volume ratio) */
-  tenAniso_RR,        /* 14: based on radius of circle in cubic solve */
+  tenAniso_RR,        /* 14: square of radius of circle in cubic solve for evals */
+  tenAniso_Cz,        /* 15: Zhukov's invariant-based */
+  tenAniso_Tr,        /* 16: plain old trace */
   tenAnisoLast
 };
-#define TEN_ANISO_MAX    14
+#define TEN_ANISO_MAX    16
 
 typedef struct {
   Nrrd *vThreshVol;
@@ -83,10 +86,39 @@ typedef struct {
   "\b\bo \"ct1\", \"ct2\": GK's anisotropy type (cp/ca)\n " \
   "\b\bo \"ra\": Basser/Pierpaoli relative anisotropy\n " \
   "\b\bo \"fa\": Basser/Pierpaoli fractional anisotropy/sqrt(2)\n " \
-  "\b\bo \"vf\": volume fraction = 1-(Basser/Pierpaoli volume ratio)"
+  "\b\bo \"vf\": volume fraction = 1-(Basser/Pierpaoli volume ratio)\n " \
+  "\b\bo \"tr\": trace"
 
-/* arraysTen.c */
+enum {
+  tenGageUnknown = -1,  /* -1: nobody knows */
+  tenGageTensor,        /*  0: "t", the reconstructed tensor: GT[7] */
+  tenGageTrace,         /*  1: "tr", trace of tensor: *GT */
+  tenGageFrobTensor,    /*  2: "fro", frobenius norm of tensor: *GT */
+  tenGageEval,          /*  3: "eval", eigenvalues of tensor
+			       (sorted descending) : GT[3] */
+  tenGageEvec,          /*  4: "evec", eigenvectors of tensor: GT[9] */
+  tenGageTensorGrad,    /*  5: "tg", all tensor component gradients, starting with
+			        the confidence value gradient: GT[21] */
+  tenGageRRGradVec,     /*  6: "rrv", gradient of rr anisotropy: GT[3] */
+  tenGageRRGradMag,     /*  7: "rrg", grad mag of rr anisotropy: *GT */
+  tenGageRRNormal,      /*  8: "rrn", normalized gradient of rr anisotropy: GT[3] */
+  tenGageMultiGrad,     /*  9: "mg", sum of outer products of the tensor 
+			       matrix elements, correctly counting the off-diagonal
+			       entries twice, but not counting the confidence
+			       value: GT[9] */
+  tenGageFrobMG,        /* 10: "frmg", frobenius norm of multi gradient: *GT */
+  tenGageMGEval,        /* 11: "mgeval", eigenvalues of multi gradient: GT[3] */
+  tenGageMGEvec,        /* 12: "mgevec", eigenvectors of multi gradient: GT[9] */
+  tenGageAniso,         /* 13: "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
+  tenGageLast
+};
+#define TEN_GAGE_MAX       13
+#define TEN_GAGE_TOTAL_ANS_LENGTH (71+TEN_ANISO_MAX+1)
+
+/* enumsTen.c */
 extern ten_export airEnum *tenAniso;
+extern ten_export airEnum _tenGage;
+extern ten_export airEnum *tenGage;
 
 /* methodsTen.c */
 extern tenGlyphParm *tenGlyphParmNew();
@@ -125,7 +157,10 @@ extern int tenEvqVolume(Nrrd *nout, Nrrd *nin, int which,
 /* glyph.c */
 extern int tenGlyphGen(limnObj *obj, Nrrd *nin, tenGlyphParm *parm);
 
-/* tend{Flotsam,Anplot,Anvol,Evec,Eval,Expand}.c */
+/* tenGage.c */
+extern ten_export gageKind *tenGageKind;
+
+/* tend{Flotsam,Anplot,Anvol,Evec,Eval,...}.c */
 #define TEND_DECLARE(C) extern ten_export unrrduCmd tend_##C##Cmd;
 #define TEND_LIST(C) &tend_##C##Cmd,
 #define TEND_MAP(F) \

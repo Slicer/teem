@@ -86,8 +86,12 @@ tenAnisoCalc(float c[TEN_ANISO_MAX+1], float e[3]) {
   vf = 1 - e0*e1*e2/(mean*mean*mean);
   vf = AIR_CLAMP(0.0, vf, 1.0);
   c[tenAniso_VF] = vf;
-  c[tenAniso_RR] = ((e0*e0 + e1*e1 + e2*e2 - e0*e1 - e0*e2 - e1*e2)
-		    /(tenAnisoSigma + e0*e0));
+  /* that's right, this is NOT dimensionless */
+  c[tenAniso_RR] = e0*e0 + e1*e1 + e2*e2 - e0*e1 - e0*e2 - e1*e2;
+  c[tenAniso_Cz] = ((e0 + e1)/(tenAnisoSigma + e2) 
+		    + (e1 + e2)/(tenAnisoSigma + e0) 
+		    + (e0 + e2)/(tenAnisoSigma + e1))/6;
+  c[tenAniso_Tr] = sum;
   return;
 }
 

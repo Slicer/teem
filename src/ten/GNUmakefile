@@ -48,7 +48,8 @@ $(L).SEEN := true
 $(L).NEED = limn dye unrrdu nrrd ell biff air
 $(L).PUBLIC_HEADERS = ten.h tenMacros.h
 $(L).PRIVATE_HEADERS = tenPrivate.h
-$(L).OBJS = tensor.o chan.o aniso.o methodsTen.o arraysTen.o miscTen.o \
+$(L).OBJS = tensor.o chan.o aniso.o methodsTen.o enumsTen.o miscTen.o \
+	tenGage.o \
 	tendFlotsam.o tendAnplot.o tendAnvol.o tendEval.o \
 	tendEvec.o tendCalc.o tendExpand.o tendEvq.o tendPoint.o \
 	tendAnhist.o tendMake.o tendSatin.o tendShrink.o
