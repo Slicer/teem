@@ -83,14 +83,14 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nrrd;
   Nrrd **nslice;
   int *size, sizeLen,
-    nameLen, kvpLen, ki, spacingLen, labelLen,
+    nameLen, kvpLen, ki, spacingLen, labelLen, unitLen,
     headerOnly, pret, lineSkip, byteSkip, endian, slc, type,
     encodingType, gotSpacing;
   double *spacing;
   airArray *mop;
   NrrdIoState *nio;
   FILE *fileOut;
-  char **label;
+  char **label, **unit;
   const NrrdEncoding *encoding;
 
   /* so that long lists of filenames can be read from file */
@@ -130,6 +130,8 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
              "along axis 0 of interleaved RGB image data)", &spacingLen);
   hestOptAdd(&opt, "l", "lb0 lb1", airTypeString, 1, -1, &label, "",
              "short string labels for each of the axes", &labelLen);
+  hestOptAdd(&opt, "u", "un0 un1", airTypeString, 1, -1, &unit, "",
+             "short string units for each of the axes", &unitLen);
   hestOptAdd(&opt, "c", "content", airTypeString, 1, 1, &content, "",
              "Specifies the content string of the nrrd, which is built upon "
              "by many nrrd function to record a history of operations");
@@ -203,6 +205,13 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
+  if (airStrlen(unit[0]) && sizeLen != unitLen) {
+    fprintf(stderr,
+            "%s: got different numbers of sizes (%d) and units (%d)\n",
+            me, sizeLen, unitLen);
+    airMopError(mop);
+    return 1;
+  }
   if (nameLen > 1 && nameLen != size[sizeLen-1]) {
     fprintf(stderr, "%s: got %d slice filenames but the last axis has %d "
             "elements\n", me, nameLen, size[sizeLen-1]);
@@ -217,6 +226,9 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   if (airStrlen(label[0])) {
     nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoLabel, label);
+  }
+  if (airStrlen(unit[0])) {
+    nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoUnit, unit);
   }
   if (airStrlen(content)) {
     nrrd->content = airStrdup(content);
@@ -329,6 +341,9 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
       }
       if (airStrlen(label[0])) {
         nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoLabel, label);
+      }
+      if (airStrlen(unit[0])) {
+        nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoUnit, unit);
       }
       if (airStrlen(content)) {
         nrrd->content = airStrdup(content);
