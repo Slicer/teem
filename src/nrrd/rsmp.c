@@ -748,8 +748,10 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   }
   printf("!%s: nout: dim = %d; sz[] = %d %d %d\n", me,
 	 dim, sz[passes][0],  sz[passes][1],  sz[passes][2]);
+  /*
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopOnError);
   airMopAdd(mop, TEST, TESTPRINT, airMopOnError);
+  */
   nrrdAxesCopy(nout, nin, NULL, 
 	       (NRRD_AXESINFO_SIZE
 		| NRRD_AXESINFO_AMINMAX
