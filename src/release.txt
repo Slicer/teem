@@ -59,26 +59,34 @@ cd html; cvs commit -m blah
 so that all SCItizens have access to teem.  This should actually
 be maintained with a finer granularity than major teem releases.
 With major releases, update the "teem" symlink.
-setenv TEEM_ZLIB
-setenv TEEM_BZIP2
 mojojojo:
 setenv TEEM_ARCH darwin
+setenv TEEM_ZLIB
+setenv TEEM_BZIP2
 setenv TEEM_BZIP2.LPATH -L/home/sci/gk/usr/darwin/lib
 setenv TEEM_BZIP2.IPATH -I/home/sci/gk/usr/include
 carrot:
 setenv TEEM_ARCH irix6.n32
+setenv TEEM_ZLIB
+setenv TEEM_BZIP2
 setenv TEEM_BZIP2.LPATH -L/home/sci/gk/usr/irix6.n32/lib
 setenv TEEM_BZIP2.IPATH -I/home/sci/gk/usr/include
 rapture:
 setenv TEEM_ARCH irix6.64
+setenv TEEM_ZLIB
+setenv TEEM_BZIP2
 setenv TEEM_BZIP2.LPATH -L/home/sci/gk/usr/irix6.64/lib
 setenv TEEM_BZIP2.IPATH -I/home/sci/gk/usr/include
 shot:
 setenv TEEM_ARCH linux
+setenv TEEM_ZLIB
+setenv TEEM_BZIP2
 setenv TEEM_BZIP2.LPATH -L/home/sci/gk/usr/linux/lib
 setenv TEEM_BZIP2.IPATH -I/home/sci/gk/usr/include
 faith:
 setenv TEEM_ARCH solaris
+setenv TEEM_ZLIB
+setenv TEEM_BZIP2
 setenv TEEM_BZIP2.LPATH -L/home/gk/lib
 setenv TEEM_BZIP2.IPATH -I/home/gk/include
 setenv TEEM_ZLIB.LPATH -L/home/gk/lib
