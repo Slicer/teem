@@ -182,7 +182,6 @@ _nrrdFieldValidInImage[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_max */
   1, /* nrrdField_old_min */
   1, /* nrrdField_old_max */
-  0, /* nrrdField_data_file */
   0, /* nrrdField_endian */
   0, /* nrrdField_encoding */
   0, /* nrrdField_line_skip */
@@ -190,7 +189,8 @@ _nrrdFieldValidInImage[NRRD_FIELD_MAX+1] = {
   1, /* nrrdField_keyvalue */
   1, /* nrrdField_sample_units */
   1, /* nrrdField_space_units */
-  1  /* nrrdField_space_origin */
+  1, /* nrrdField_space_origin */
+  0  /* nrrdField_data_file */
 };
 
 /*
@@ -223,7 +223,6 @@ _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_max */
   0, /* nrrdField_old_min */
   0, /* nrrdField_old_max */
-  0, /* nrrdField_data_file */
   0, /* nrrdField_endian */
   0, /* nrrdField_encoding */
   0, /* nrrdField_line_skip */
@@ -231,7 +230,8 @@ _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_keyvalue */
   0, /* nrrdField_sample_units */
   0, /* nrrdField_space_units */
-  0  /* nrrdField_space_origin */
+  0, /* nrrdField_space_origin */
+  0  /* nrrdField_data_file */
 };
 
 /*
@@ -267,7 +267,6 @@ _nrrdFieldValidInText[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_max */
   1, /* nrrdField_old_min */
   1, /* nrrdField_old_max */
-  0, /* nrrdField_data_file */
   0, /* nrrdField_endian */
   0, /* nrrdField_encoding */
   0, /* nrrdField_line_skip */
@@ -275,7 +274,8 @@ _nrrdFieldValidInText[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_keyvalue */
   0, /* nrrdField_sample_units */
   0, /* nrrdField_space_units */
-  0  /* nrrdField_space_origin */
+  0, /* nrrdField_space_origin */
+  0  /* nrrdField_data_file */
 };
 
 /*
@@ -309,7 +309,6 @@ _nrrdFieldRequired[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_max */
   0, /* nrrdField_old min */
   0, /* nrrdField_old max */
-  0, /* nrrdField_data file */
   0, /* nrrdField_endian */
   1, /* nrrdField_encoding */
   0, /* nrrdField_line_skip */
@@ -317,6 +316,7 @@ _nrrdFieldRequired[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_keyvalue */
   0, /* nrrdField_sample_units */
   0, /* nrrdField_space_units */
-  0  /* nrrdField_space_origin */
+  0, /* nrrdField_space_origin */
+  0  /* nrrdField_data file */
 };
 
