@@ -25,12 +25,12 @@ char *me;
 int
 main(int argc, char *argv[]) {
   limnLight *lit;
-  limnCam *cam;
+  limnCamera *cam;
   Nrrd *map, *ppm;
 
   me = argv[0];
 
-  cam = limnCamNew();
+  cam = limnCameraNew();
   ELL_3V_SET(cam->from, 10, 0, 0);
   ELL_3V_SET(cam->at, 0, 0, 0);
   ELL_3V_SET(cam->up, 0, 0, 1);

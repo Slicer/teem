@@ -20,10 +20,10 @@
 #include "limn.h"
 
 /*
-******** limnHestCamOptAdd()
+******** limnHestCameraOptAdd()
 **
 ** calls hestOptAdd a bunch of times to set up command-line options
-** useful for specifying a limnCam.  The flags used are as follows:
+** useful for specifying a limnCamera.  The flags used are as follows:
 ** fr: cam->from
 ** at: cam->at
 ** up: cam->up
@@ -37,10 +37,10 @@
 ** vr: cam->vRange
 */
 void
-limnHestCamOptAdd(hestOpt **hoptP, limnCam *cam,
-		  char *frDef, char *atDef, char *upDef,
-		  char *dnDef, char *diDef, char *dfDef,
-		  char *urDef, char *vrDef) {
+limnHestCameraOptAdd(hestOpt **hoptP, limnCamera *cam,
+		     char *frDef, char *atDef, char *upDef,
+		     char *dnDef, char *diDef, char *dfDef,
+		     char *urDef, char *vrDef) {
   hestOpt *hopt;
   
   hopt = *hoptP;

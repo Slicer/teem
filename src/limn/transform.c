@@ -83,7 +83,7 @@ _limnObjNormals(limnObj *obj, int space) {
 }
 
 int
-_limnObjVTransform(limnObj *obj, limnCam *cam) {
+_limnObjVTransform(limnObj *obj, limnCamera *cam) {
   int pi;
   limnPoint *p;
   float d;
@@ -102,7 +102,7 @@ _limnObjVTransform(limnObj *obj, limnCam *cam) {
 }
 
 int
-_limnObjSTransform(limnObj *obj, limnCam *cam) {
+_limnObjSTransform(limnObj *obj, limnCamera *cam) {
   int pi;
   limnPoint *p;
   float d;
@@ -124,7 +124,7 @@ _limnObjSTransform(limnObj *obj, limnCam *cam) {
 }
 
 int
-_limnObjDTransform(limnObj *obj, limnCam *cam, limnWin *win) {
+_limnObjDTransform(limnObj *obj, limnCamera *cam, limnWin *win) {
   int pi;
   limnPoint *p;
   float wy0, wy1, wx0, wx1, t;
@@ -187,7 +187,7 @@ limnObjNormals(limnObj *obj, int space) {
 }
 
 int
-limnObjSpaceTransform(limnObj *obj, limnCam *cam, limnWin *win, int space) {
+limnObjSpaceTransform(limnObj *obj, limnCamera *cam, limnWin *win, int space) {
   char me[]="limnObjSpaceTransform";
   int ret;
 

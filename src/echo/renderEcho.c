@@ -128,7 +128,7 @@ echoJitterCompute(echoRTParm *parm, echoThreadState *tstate) {
 ** everything that it calls
 */
 int
-echoRTRenderCheck(Nrrd *nraw, limnCam *cam, echoScene *scene,
+echoRTRenderCheck(Nrrd *nraw, limnCamera *cam, echoScene *scene,
 		  echoRTParm *parm, echoGlobalState *gstate) {
   char me[]="echoRTRenderCheck", err[AIR_STRLEN_MED];
   int tmp;
@@ -137,7 +137,7 @@ echoRTRenderCheck(Nrrd *nraw, limnCam *cam, echoScene *scene,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(ECHO, err); return 1;
   }
-  if (limnCamUpdate(cam)) {
+  if (limnCameraUpdate(cam)) {
     sprintf(err, "%s: camera trouble", me);
     biffMove(ECHO, err, LIMN); return 1;
   }
@@ -271,7 +271,7 @@ echoRayColor(echoCol_t *chan, echoRay *ray,
 ** lower-level functions.
 */
 int
-echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
+echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
 	     echoRTParm *parm, echoGlobalState *gstate) {
   char me[]="echoRTRender", err[AIR_STRLEN_MED], done[20];
   int imgUi, imgVi,         /* integral pixel indices */

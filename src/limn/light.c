@@ -65,13 +65,13 @@ limnLightSetAmbient(limnLight *lit, float r, float g, float b) {
 ** returns 1 if there was a problem in the camera, otherwise 0.
 */
 int
-limnLightUpdate(limnLight *lit, limnCam *cam) {
+limnLightUpdate(limnLight *lit, limnCamera *cam) {
   char me[]="limnLightUpdate", err[AIR_STRLEN_MED];
   float dir[3], _dir[3], uvn[9], norm;
   int i;
   
   if (cam) {
-    if (limnCamUpdate(cam)) {
+    if (limnCameraUpdate(cam)) {
       sprintf(err, "%s: trouble in camera", me);
       biffAdd(LIMN, err); return 1;
     }

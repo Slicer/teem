@@ -52,7 +52,7 @@ extern "C" {
 #define LIMN_SPLINE_Q_AVG_EPS 0.00001
 
 /*
-****** limnCam struct
+****** limnCamera struct
 **
 ** for all standard graphics camera parameters.  Image plane is
 ** spanned by U and V; N always points away from the viewer, U
@@ -61,7 +61,7 @@ extern "C" {
 **
 ** Has no dynamically allocated information or pointers.
 */
-typedef struct limnCam_t {
+typedef struct limnCamera_t {
   double from[3],     /* location of eyepoint */
     at[3],            /* what eye is looking at */
     up[3],            /* what is up direction for eye (this is not updated
@@ -80,7 +80,7 @@ typedef struct limnCam_t {
     rightHanded;      /* if rightHanded, V = NxU (V points "downwards"),
 			 otherwise, V = UxN (V points "upwards") */
   /* --------------------------------------------------------------------
-     End of user-set parameters.  Things below are set by limnCamUpdate
+     End of user-set parameters.  Things below are set by limnCameraUpdate
      -------------------------------------------------------------------- */
   double W2V[16],     /* World to view transform. The _rows_ of this
                          matrix (its 3x3 submatrix) are the U, V, N
@@ -97,7 +97,7 @@ typedef struct limnCam_t {
     vspNeer, vspFaar, /* not usually user-set: neer, far, and image plane
 			 distances, in view space */
     vspDist;
-} limnCam;
+} limnCamera;
 
 /*
 ******** struct limnLight
@@ -325,9 +325,9 @@ typedef struct limnSpline_t {
 
 /* defaultsLimn.c */
 extern limn_export const char *limnBiffKey;
-extern limn_export int limnDefCamAtRel;
-extern limn_export int limnDefCamOrtho;
-extern limn_export int limnDefCamRightHanded;
+extern limn_export int limnDefCameraAtRel;
+extern limn_export int limnDefCameraOrtho;
+extern limn_export int limnDefCameraRightHanded;
 
 /* qn.c */
 extern limn_export int limnQNBytes[LIMN_QN_MAX+1];
@@ -341,7 +341,7 @@ extern void limnLightSet(limnLight *lit, int which, int vsp,
 extern void limnLightSetAmbient(limnLight *lit, float r, float g, float b);
 extern void limnLightSwitch(limnLight *lit, int which, int on);
 extern void limnLightReset(limnLight *lit);
-extern int limnLightUpdate(limnLight *lit, limnCam *cam);
+extern int limnLightUpdate(limnLight *lit, limnCamera *cam);
 
 /* env.c */
 typedef void (*limnEnvMapCB)(float rgb[3], float vec[3], void *data);
@@ -353,19 +353,19 @@ extern int limnEnvMapCheck(Nrrd *envMap);
 /* methodsLimn.c */
 extern limnLight *limnLightNew(void);
 extern limnLight *limnLightNix(limnLight *);
-extern limnCam *limnCamNew(void);
-extern limnCam *limnCamNix(limnCam *cam);
+extern limnCamera *limnCameraNew(void);
+extern limnCamera *limnCameraNix(limnCamera *cam);
 extern limnWin *limnWinNew(int device);
 extern limnWin *limnWinNix(limnWin *win);
 
 /* hestLimn.c */
-extern void limnHestCamOptAdd(hestOpt **hoptP, limnCam *cam,
-			      char *frDef, char *atDef, char *upDef,
-			      char *dnDef, char *diDef, char *dfDef,
-			      char *urDef, char *vrDef);
+extern void limnHestCameraOptAdd(hestOpt **hoptP, limnCamera *cam,
+				 char *frDef, char *atDef, char *upDef,
+				 char *dnDef, char *diDef, char *dfDef,
+				 char *urDef, char *vrDef);
 
 /* cam.c */
-extern int limnCamUpdate(limnCam *cam);
+extern int limnCameraUpdate(limnCamera *cam);
 
 /* obj.c */
 extern limnObj *limnObjNew(int incr, int edges);
@@ -395,14 +395,14 @@ extern int limnObjPolarSuperquadAdd(limnObj *obj, int sp, int axis,
 /* transform.c */
 extern int limnObjHomog(limnObj *obj, int space);
 extern int limnObjNormals(limnObj *obj, int space);
-extern int limnObjSpaceTransform(limnObj *obj, limnCam *cam, limnWin *win,
+extern int limnObjSpaceTransform(limnObj *obj, limnCamera *cam, limnWin *win,
 				 int space);
 extern int limnObjPartTransform(limnObj *obj, int ri, float tx[16]);
 extern int limnObjDepthSortParts(limnObj *obj);
 
 /* renderLimn.c */
-extern int limnObjRender(limnObj *obj, limnCam *cam, limnWin *win);
-extern int limnObjPSDraw(limnObj *obj, limnCam *cam,
+extern int limnObjRender(limnObj *obj, limnCamera *cam, limnWin *win);
+extern int limnObjPSDraw(limnObj *obj, limnCamera *cam,
 			 Nrrd *envMap, limnWin *win);
 
 /* splineMisc.c */

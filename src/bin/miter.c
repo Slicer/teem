@@ -52,10 +52,10 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "txf", "nin", airTypeOther, 1, -1, &(muu->ntxf), NULL,
 	     "one or more transfer functions",
 	     &(muu->ntxfNum), NULL, nrrdHestNrrd);
-  limnHestCamOptAdd(&hopt, muu->hctx->cam,
-		    NULL, "0 0 0", "0 0 1",
-		    NULL, NULL, NULL,
-		    "-1 1", "-1 1");
+  limnHestCameraOptAdd(&hopt, muu->hctx->cam,
+		       NULL, "0 0 0", "0 0 1",
+		       NULL, NULL, NULL,
+		       "-1 1", "-1 1");
   hestOptAdd(&hopt, "am", "ambient", airTypeFloat, 3, 3, muu->lit->amb,
 	     "1 1 1", "ambient light color");
   hestOptAdd(&hopt, "ld", "light pos", airTypeFloat, 3, 3, muu->lit->_dir[0],
@@ -121,7 +121,7 @@ main(int argc, char *argv[]) {
   ELL_3V_SET(muu->lit->col[0], 1, 1, 1);
   muu->lit->on[0] = AIR_TRUE;
   muu->lit->vsp[0] = AIR_TRUE;
-  if (limnCamUpdate(muu->hctx->cam)
+  if (limnCameraUpdate(muu->hctx->cam)
       || limnLightUpdate(muu->lit, muu->hctx->cam)) {
     airMopAdd(mop, errS = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble setting camera:\n%s\n", me, errS);

@@ -25,7 +25,7 @@ char *info = ("Render something in postscript.");
 int
 main(int argc, char *argv[]) {
   char *me, *err, *outS;
-  limnCam *cam;
+  limnCamera *cam;
   float matA[16], matB[16];
   hestOpt *hopt=NULL;
   airArray *mop;
@@ -35,8 +35,8 @@ main(int argc, char *argv[]) {
   Nrrd *nmap;
 
   mop = airMopNew();
-  cam = limnCamNew();
-  airMopAdd(mop, cam, (airMopper)limnCamNix, airMopAlways);
+  cam = limnCameraNew();
+  airMopAdd(mop, cam, (airMopper)limnCameraNix, airMopAlways);
   
   me = argv[0];
   hestOptAdd(&hopt, "fr", "from point", airTypeDouble, 3, 3, cam->from,"4 4 4",
@@ -68,7 +68,7 @@ main(int argc, char *argv[]) {
   cam->faar = 0.0000000001;
   cam->atRel = AIR_TRUE;
 
-  if (limnCamUpdate(cam)) {
+  if (limnCameraUpdate(cam)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, err = biffGet(LIMN));
     free(err);
     return 1;

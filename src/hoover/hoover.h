@@ -95,7 +95,7 @@ typedef int (hooverRenderEnd_t)(void *rend, void *user);
 typedef struct {
 
   /******** 1) camera information */
-  limnCam *cam;            /* camera info */
+  limnCamera *cam;         /* camera info */
 
   /******** 2) volume information: size and spacing, centering */
   int volSize[3];          /* X,Y,Z resolution of volume */

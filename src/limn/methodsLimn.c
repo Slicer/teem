@@ -36,21 +36,21 @@ limnLightNix(limnLight *lit) {
   return NULL;
 }
 
-limnCam *
-limnCamNew(void) {
-  limnCam *cam;
+limnCamera *
+limnCameraNew(void) {
+  limnCamera *cam;
 
-  cam = (limnCam *)calloc(1, sizeof(limnCam));
+  cam = (limnCamera *)calloc(1, sizeof(limnCamera));
   if (cam) {
-    cam->atRel = limnDefCamAtRel;
-    cam->ortho = limnDefCamOrtho;
-    cam->rightHanded = limnDefCamRightHanded;
+    cam->atRel = limnDefCameraAtRel;
+    cam->ortho = limnDefCameraOrtho;
+    cam->rightHanded = limnDefCameraRightHanded;
   }
   return cam;
 }
 
-limnCam *
-limnCamNix(limnCam *cam) {
+limnCamera *
+limnCameraNix(limnCamera *cam) {
 
   if (cam) {
     free(cam);

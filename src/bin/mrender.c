@@ -412,10 +412,10 @@ main(int argc, char *argv[]) {
 
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &(uu->nin), NULL,
 	     "input nrrd to render", NULL, NULL, nrrdHestNrrd);
-  limnHestCamOptAdd(&hopt, uu->hctx->cam,
-		    NULL, "0 0 0", "0 0 1",
-		    NULL, NULL, NULL,
-		    "-1 1", "-1 1");
+  limnHestCameraOptAdd(&hopt, uu->hctx->cam,
+		       NULL, "0 0 0", "0 0 1",
+		       NULL, NULL, NULL,
+		       "-1 1", "-1 1");
   hestOptAdd(&hopt, "is", "image size", airTypeInt, 2, 2, uu->hctx->imgSize,
 	     "256 256", "image dimensions");
   hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1,

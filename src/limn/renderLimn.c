@@ -21,12 +21,12 @@
 #include "limn.h"
 
 int
-limnObjRender(limnObj *obj, limnCam *cam, limnWin *win) {
+limnObjRender(limnObj *obj, limnCamera *cam, limnWin *win) {
   char me[]="limnObjRender", err[AIR_STRLEN_MED];
   int E;
   
   E = 0;
-  if (!E) E |= limnCamUpdate(cam);
+  if (!E) E |= limnCameraUpdate(cam);
   if (!E) E |= limnObjHomog(obj, limnSpaceWorld);
   if (!E) E |= limnObjNormals(obj, limnSpaceWorld);
   if (!E) E |= limnObjSpaceTransform(obj, cam, win, limnSpaceView);
@@ -41,7 +41,7 @@ limnObjRender(limnObj *obj, limnCam *cam, limnWin *win) {
 }
 
 void
-_limnPSPreamble(limnObj *obj, limnCam *cam, limnWin *win) {
+_limnPSPreamble(limnObj *obj, limnCamera *cam, limnWin *win) {
   
   fprintf(win->file, "%%!PS-Adobe-2.0 EPSF-2.0\n");
   fprintf(win->file, "%%%%Creator: limn\n");
@@ -78,7 +78,7 @@ _limnPSPreamble(limnObj *obj, limnCam *cam, limnWin *win) {
 }
 
 void
-_limnPSEpilogue(limnObj *obj, limnCam *cam, limnWin *win) {
+_limnPSEpilogue(limnObj *obj, limnCamera *cam, limnWin *win) {
 
   fprintf(win->file, "grestore\n");
   fprintf(win->file, "grestore\n");
@@ -88,7 +88,7 @@ _limnPSEpilogue(limnObj *obj, limnCam *cam, limnWin *win) {
 
 void
 _limnPSDrawFace(limnObj *obj, limnPart *r, limnFace *f, 
-		limnCam *cam, Nrrd *nmap, limnWin *win) {
+		limnCamera *cam, Nrrd *nmap, limnWin *win) {
   int vi;
   limnPoint *p;
   limnSP *sp;
@@ -128,7 +128,7 @@ _limnPSDrawFace(limnObj *obj, limnPart *r, limnFace *f,
 
 void
 _limnPSDrawEdge(limnObj *obj, limnPart *r, limnEdge *e, 
-		limnCam *cam, limnWin *win) {
+		limnCamera *cam, limnWin *win) {
   limnPoint *p0, *p1;
 
   if (win->ps.edgeWidth[e->visib]) {
@@ -153,7 +153,7 @@ _limnPSDrawEdge(limnObj *obj, limnPart *r, limnEdge *e,
 ** correct specular lighting is not possible
 */
 int
-limnObjPSDraw(limnObj *obj, limnCam *cam, Nrrd *nmap, limnWin *win) {
+limnObjPSDraw(limnObj *obj, limnCamera *cam, Nrrd *nmap, limnWin *win) {
   char me[]="limnObjPSDraw", err[AIR_STRLEN_MED];
   int vis0, vis1, inside;
   float angle, widthTmp;

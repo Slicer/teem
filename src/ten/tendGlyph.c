@@ -51,7 +51,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   Nrrd *nten, *emap, *nraw;
   char *outS;
-  limnCam *cam;
+  limnCamera *cam;
   limnObj *glyph;
   limnWin *win;
   echoScene *scene;
@@ -66,8 +66,8 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   hparm->elideSingleEmptyStringDefault = AIR_TRUE;
 
   mop = airMopNew();
-  cam = limnCamNew();
-  airMopAdd(mop, cam, (airMopper)limnCamNix, airMopAlways);
+  cam = limnCameraNew();
+  airMopAdd(mop, cam, (airMopper)limnCameraNix, airMopAlways);
   glyph = limnObjNew(512, AIR_TRUE);
   airMopAdd(mop, glyph, (airMopper)limnObjNix, airMopAlways);
   scene = echoSceneNew();

@@ -21,15 +21,15 @@
 #include "limn.h"
 
 /*
-******** limnCamUpdate()
+******** limnCameraUpdate()
 **
 ** sets in cam: W2V matrix, vspNeer, vspFaar, vspDist
 **
 ** This does use biff to describe problems with camera settings
 */
 int
-limnCamUpdate(limnCam *cam) {
-  char me[] = "limnCamUpdate", err[129];
+limnCameraUpdate(limnCamera *cam) {
+  char me[] = "limnCameraUpdate", err[129];
   double len, l[4], u[4], v[4], n[4], T[16], R[16];
 
   ELL_4V_SET(u, 0, 0, 0, 0);

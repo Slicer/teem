@@ -25,7 +25,7 @@ hooverContextNew() {
 
   ctx = (hooverContext *)calloc(1, sizeof(hooverContext));
   if (ctx) {
-    ctx->cam = limnCamNew();
+    ctx->cam = limnCameraNew();
     ELL_3V_SET(ctx->volSize, 0, 0, 0);
     ELL_3V_SET(ctx->volSpacing, AIR_NAN, AIR_NAN, AIR_NAN);
     ctx->volCentering = hooverDefVolCentering;
@@ -53,7 +53,7 @@ hooverContextCheck(hooverContext *ctx) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(HOOVER, err); return 1;
   }
-  if (limnCamUpdate(ctx->cam)) {
+  if (limnCameraUpdate(ctx->cam)) {
     sprintf(err, "%s: trouble learning view transform matrix", me);
     biffMove(HOOVER, err, LIMN); return 1;
   }
@@ -150,7 +150,7 @@ void
 hooverContextNix(hooverContext *ctx) {
 
   if (ctx) {
-    limnCamNix(ctx->cam);
+    limnCameraNix(ctx->cam);
     free(ctx);
   }
 }

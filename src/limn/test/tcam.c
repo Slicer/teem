@@ -27,14 +27,14 @@ char *info = ("dumb little demonstration of calculating the "
 int
 main(int argc, char *argv[]) {
   char *me, *err;
-  limnCam *cam;
+  limnCamera *cam;
   float mat[16];
   hestOpt *hopt=NULL;
   airArray *mop;
 
   mop = airMopNew();
-  cam = limnCamNew();
-  airMopAdd(mop, cam, (airMopper)limnCamNix, airMopAlways);
+  cam = limnCameraNew();
+  airMopAdd(mop, cam, (airMopper)limnCameraNix, airMopAlways);
   
   me = argv[0];
   hestOptAdd(&hopt, "fr", "eye pos", airTypeDouble, 3, 3, cam->from,
@@ -55,7 +55,7 @@ main(int argc, char *argv[]) {
   cam->faar = 1;
   cam->atRel = AIR_TRUE;
 
-  if (limnCamUpdate(cam)) {
+  if (limnCameraUpdate(cam)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, err = biffGet(LIMN));
     free(err);
     return 1;

@@ -502,9 +502,9 @@ extern void echoRayColor(echoCol_t rgba[4], echoRay *ray,
 			 echoThreadState *tstate);
 extern void echoChannelAverage(echoCol_t *img,
 			       echoRTParm *parm, echoThreadState *tstate);
-extern int echoRTRenderCheck(Nrrd *nraw, limnCam *cam, echoScene *scene,
+extern int echoRTRenderCheck(Nrrd *nraw, limnCamera *cam, echoScene *scene,
 			     echoRTParm *parm, echoGlobalState *gstate);
-extern int echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
+extern int echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
 			echoRTParm *parm, echoGlobalState *gstate);
 
 #ifdef __cplusplus

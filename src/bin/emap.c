@@ -44,7 +44,7 @@ main(int argc, char *argv[]) {
   float amb[3], *linfo, *debug, *map, W[3], V[3];
   int li, ui, vi, qn;
   limnLight *light;
-  limnCam *cam;
+  limnCamera *cam;
   double u, v, r, w, V2W[9];
   
   me = argv[0];
@@ -52,8 +52,8 @@ main(int argc, char *argv[]) {
   hparm = hestParmNew();
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hparm->elideSingleEmptyStringDefault = AIR_TRUE;
-  cam = limnCamNew();
-  airMopAdd(mop, cam, (airMopper)limnCamNix, airMopAlways);
+  cam = limnCameraNew();
+  airMopAdd(mop, cam, (airMopper)limnCameraNix, airMopAlways);
   hestOptAdd(&hopt, "i", "nlight", airTypeOther, 1, 1, &nlight, NULL,
 	     "input nrrd containing light information",
 	     NULL, NULL, nrrdHestNrrd);
@@ -104,7 +104,7 @@ main(int argc, char *argv[]) {
   cam->dist = 0;
   cam->faar = 0.0000000001;
   cam->atRel = AIR_TRUE;
-  if (limnCamUpdate(cam) || limnLightUpdate(light, cam)) {
+  if (limnCameraUpdate(cam) || limnLightUpdate(light, cam)) {
     airMopAdd(mop, errS = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: problem with camera or lights:\n%s\n", me, errS);
     airMopError(mop); return 1;
