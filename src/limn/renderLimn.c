@@ -60,7 +60,8 @@ _limnPSPreamble(limnObj *obj, limnCam *cam, limnWin *win) {
   fprintf(win->file, "%g %g lineto\n", win->bbox[2], win->bbox[3]);
   fprintf(win->file, "%g %g lineto\n", win->bbox[0], win->bbox[3]);
   fprintf(win->file, "closepath\n");
-  fprintf(win->file, "gsave %g setgray fill grestore\n", win->ps.bgGray);
+  fprintf(win->file, "gsave %g %g %g setrgbcolor fill grestore\n",
+	  win->ps.bg[0], win->ps.bg[1], win->ps.bg[2]);
   fprintf(win->file, "clip\n");
   fprintf(win->file, "gsave newpath\n");
   fprintf(win->file, "1 setlinejoin\n");
@@ -191,7 +192,7 @@ limnObjPSDraw(limnObj *obj, limnCam *cam, Nrrd *nmap, limnWin *win) {
       /* this part is just one lone edge */
       e = &(obj->e[r->eBase]);
       widthTmp = win->ps.edgeWidth[e->visib];
-      fprintf(win->file, "%g setgray\n", 1 - win->ps.bgGray);
+      fprintf(win->file, "%g setgray\n", 1 - win->ps.bg[0]);
       win->ps.edgeWidth[e->visib] = 8;
       _limnPSDrawEdge(obj, r, e, cam, win);
       fprintf(win->file, "%g %g %g RGB\n", 

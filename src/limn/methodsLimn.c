@@ -67,7 +67,7 @@ _limnOptsPSDefaults(limnOptsPS *ps) {
   ps->edgeWidth[3] = 1.0;
   ps->edgeWidth[4] = 0.0;
   ps->creaseAngle = 46;
-  ps->bgGray = 1.0;
+  ELL_3V_SET(ps->bg, 1, 1, 1);
 }
 
 limnWin *

@@ -123,7 +123,7 @@ typedef struct {
 			  3 : crease edge: front-facing
 			  4 : non-crease edge, front-facing */
     creaseAngle,
-    bgGray;
+    bg[3];             /* background color */
 } limnOptsPS;
 
 typedef struct limnWin_t {
