@@ -733,8 +733,8 @@ makeSceneSimple(limnCam *cam, echoRTParm *parm, echoScene *scene) {
   sphere = echoObjectNew(scene, echoTypeSphere);
   echoSphereSet(sphere, 0, 0, 0, 1.85);
   echoColorSet(sphere, 1, 1, 1, 1.0);
-  echoMatterMetalSet(scene, sphere, 0.8, 0.0, 1.0, 0.15);
   echoMatterGlassSet(scene, sphere, 1.5, 0.0, 0.0, 0.0);
+  echoMatterMetalSet(scene, sphere, 0.8, 0.0, 1.0, 0.15);
   echoObjectAdd(scene, sphere);
 
   tri = echoObjectNew(scene, echoTypeTriangle);
@@ -868,9 +868,9 @@ main(int argc, char **argv) {
   /* makeSceneGlassMetal(cam, parm, scene); */
   /* makeSceneGlassTest(cam, parm, scene); */
   /* makeSceneBVH(cam, parm, scene); */
-  makeSceneInstance(cam, parm, scene);
+  /* makeSceneInstance(cam, parm, scene); */
   /* makeSceneTexture(cam, parm, scene); */
-  /* makeSceneSimple(cam, parm, scene); */
+  makeSceneSimple(cam, parm, scene);
   /* makeSceneRainLights(cam, parm, scene); */
   /* makeSceneAntialias(cam, parm, scene); */
   /* makeSceneShadow(cam, parm, scene); */
