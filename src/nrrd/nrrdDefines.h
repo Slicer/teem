@@ -34,11 +34,6 @@ extern "C" {
 #define NRRD_EXT_PPM    ".ppm"
 #define NRRD_EXT_TABLE  ".txt"
 
-#define NRRD_STRLEN_LINE 64*1024+1 /* length of lines from a file.  Needs to
-				      be big because of possibility of bare
-				      ascii tables with lots of data */
-#define NRRD_STRLEN_COMMENT 129    /* longest comment strings allowed */
-
 #define NRRD_KERNEL_PARMS_NUM 8    /* max # arguments to a kernel-
 				      this is weird: it isn't the max
 				      of any of the NrrdKernels
@@ -52,17 +47,17 @@ extern "C" {
 
 
 /* 
-** For the 64-bit integer types (not standard except in C9X), we try
-** to use the names for the _MIN and _MAX values which are used in C9X
+** For the 64-bit integer types (not standard except in C99), we try
+** to use the names for the _MIN and _MAX values which are used in C99
 ** (as well as gcc) such as LLONG_MAX.
 ** 
 ** If these aren't defined, we try the ones used on SGI such as
 ** LONGLONG_MAX.
 **
 ** If these aren't defined either, we go wild and define something
-** ourselves (which just happen to be the values defined in C9X), with
+** ourselves (which just happen to be the values defined in C99), with
 ** total disregard to what the architecture and compiler actually
-** support.
+** support.  These values are tested, however, by nrrdSanity().
 */
 
 #ifdef LLONG_MAX
@@ -99,6 +94,7 @@ extern "C" {
 ** Chances are, you shouldn't mess with these
 */
 
+#define NRRD_COMMENT_CHAR '#'
 #define NRRD_COMMENT_INCR 16
 #define NRRD_PNM_COMMENT "# NRRD>"  /* this is designed to be robust against
 				       the mungling that xv does, but no
