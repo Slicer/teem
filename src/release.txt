@@ -91,6 +91,7 @@ setenv TEEM_PNG_IPATH -I/home/sci/gk/usr/irix6.64/include
 
 setenv TEEM_PTHREAD
 setenv TEEM_LINK_SHARED
+setenv PATH ${PATH}:/home/sci/gk/usr/local/irix6.64/bin
 setenv LD_LIBRARY64_PATH ${LD_LIBRARY64_PATH}:/home/sci/gk/usr/local/irix6.64/lib
 haruko:
 setenv TEEM_ARCH linux
