@@ -192,6 +192,9 @@ TEEM_API int ell_3m_eigenvalues_d(double eval[3],
 				  double m[9], int newton);
 TEEM_API int ell_3m_eigensolve_d(double eval[3], double evec[9], double m[9],
 				 int newton);
+TEEM_API int ell_3m_svd_d(double uu[9], double sval[3], double vv[9], 
+			  double mat[9], int newton);
+
 
 #ifdef __cplusplus
 }

@@ -204,42 +204,13 @@ ell_3m_eigenvalues_d(double _eval[3], double _m[9], int newton) {
   return roots;
 }
 
-/*
-******** ell_3m_eigensolve_d()
-**
-** finds eigenvalues and eigenvectors of given matrix m
-**
-** returns information about the roots according to ellCubeRoot enum,
-** see header for ellCubic for details.  When eval[i] is set, evec+3*i
-** is set to a corresponding eigenvector.  The eigenvectors are
-** (evec+0)[], (evec+3)[], and (evec+6)[]
-**
-** NOTE: Even in the post-teem-1.7 switch from column-major to 
-** row-major- its still the case that the eigenvectors are at
-** evec+0, evec+3, evec+6: this means that they USED to be the
-** "columns" of the matrix, and NOW they're the rows.  
-**
-** The eigenvalues (and associated eigenvectors) are sorted in
-** descending order.
-**
-** This does NOT use biff
-*/
-int
-ell_3m_eigensolve_d(double eval[3], double evec[9], double m[9], int newton) {
+void
+_ell_3m_evecs_d(double evec[9], double eval[3], int roots, double m[9]) {
   double n[9], e0, e1, e2, t /* , tmpv[3] */ ;
-  int roots;
 
-  /* if (ell_debug) {
-    printf("ell_3m_eigensolve: input matrix:\n");
-    printf("{{%20.15f,\t%20.15f,\t%20.15f},\n", m[0], m[1], m[2]);
-    printf(" {%20.15f,\t%20.15f,\t%20.15f},\n", m[3], m[4], m[5]);
-    printf(" {%20.15f,\t%20.15f,\t%20.15f}};\n",m[6], m[7], m[8]);
-    } */
-  
-  roots = ell_3m_eigenvalues_d(eval, m, newton);
   ELL_3V_GET(e0, e1, e2, eval);
   /* if (ell_debug) {
-    printf("ell_3m_eigensolve: numroots = %d\n", numroots);
+    printf("ell_3m_evecs_d: numroots = %d\n", numroots);
     } */
 
   /* we form m - lambda*I by doing a memcpy from m, and then
@@ -248,7 +219,7 @@ ell_3m_eigensolve_d(double eval[3], double evec[9], double m[9], int newton) {
   switch (roots) {
   case ell_cubic_root_three:
     /* if (ell_debug) {
-      printf("ell_3m_eigensolve: evals: %20.15f %20.15f %20.15f\n", 
+      printf("ell_3m_evecs_d: evals: %20.15f %20.15f %20.15f\n", 
 	     eval[0], eval[1], eval[2]);
 	     } */
     ELL_3M_DIAG_SET(n, m[0]-e0, m[4]-e0, m[8]-e0);
@@ -296,7 +267,7 @@ ell_3m_eigensolve_d(double eval[3], double evec[9], double m[9], int newton) {
     break;
   }
   /* if (ell_debug) {
-    printf("ell_3m_eigensolve (numroots = %d): evecs: \n", numroots);
+    printf("ell_3m_evecs_d (numroots = %d): evecs: \n", numroots);
     ELL_3MV_MUL(tmpv, m, evec[0]);
     printf(" (%g:%g): %20.15f %20.15f %20.15f\n", 
 	   eval[0], ELL_3V_DOT(evec[0], tmpv), 
@@ -310,5 +281,77 @@ ell_3m_eigensolve_d(double eval[3], double evec[9], double m[9], int newton) {
 	   eval[2], ELL_3V_DOT(evec[2], tmpv), 
 	   evec[2][0], evec[2][1], evec[2][2]);
 	   } */
+  return;
+}
+
+/*
+******** ell_3m_eigensolve_d()
+**
+** finds eigenvalues and eigenvectors of given matrix m
+**
+** returns information about the roots according to ellCubeRoot enum,
+** see header for ellCubic for details.  When eval[i] is set, evec+3*i
+** is set to a corresponding eigenvector.  The eigenvectors are
+** (evec+0)[], (evec+3)[], and (evec+6)[]
+**
+** NOTE: Even in the post-teem-1.7 switch from column-major to 
+** row-major- its still the case that the eigenvectors are at
+** evec+0, evec+3, evec+6: this means that they USED to be the
+** "columns" of the matrix, and NOW they're the rows.  
+**
+** The eigenvalues (and associated eigenvectors) are sorted in
+** descending order.
+**
+** This does NOT use biff
+*/
+int
+ell_3m_eigensolve_d(double eval[3], double evec[9], double m[9], int newton) {
+  int roots;
+
+  /* if (ell_debug) {
+    printf("ell_3m_eigensolve_d: input matrix:\n");
+    printf("{{%20.15f,\t%20.15f,\t%20.15f},\n", m[0], m[1], m[2]);
+    printf(" {%20.15f,\t%20.15f,\t%20.15f},\n", m[3], m[4], m[5]);
+    printf(" {%20.15f,\t%20.15f,\t%20.15f}};\n",m[6], m[7], m[8]);
+    } */
+  
+  roots = ell_3m_eigenvalues_d(eval, m, newton);
+  _ell_3m_evecs_d(evec, eval, roots, m);
+
   return roots;
 }
+
+/*
+******** ell_3m_svd_d
+**
+** singular value decomposition:
+** mat = uu * diag(sval) * vv
+**
+** singular values are square roots of eigenvalues of mat * mat^T
+** columns of uu are eigenvectors of mat * mat^T
+** rows of vv are eigenvectors of mat^T * mat
+**
+** returns info about singular values according to ellCubeRoot enum
+**
+** HEY: I think this does the wrong thing when given a symmetric
+** matrix with negative eigenvalues...
+*/
+int
+ell_3m_svd_d(double uu[9], double sval[3], double vv[9], 
+	     double mat[9], int newton) {
+  double trn[9], msqr[9], eval[3], evec[9];
+  int roots;
+  
+  ELL_3M_TRANSPOSE(trn, mat);
+  ELL_3M_MUL(msqr, mat, trn);
+  roots = ell_3m_eigensolve_d(eval, evec, msqr, newton);
+  sval[0] = sqrt(eval[0]);
+  sval[1] = sqrt(eval[1]);
+  sval[2] = sqrt(eval[2]);
+  ELL_3M_TRANSPOSE(uu, evec);
+  ELL_3M_MUL(msqr, trn, mat);
+  _ell_3m_evecs_d(vv, eval, roots, msqr);
+
+  return roots;
+}
+
