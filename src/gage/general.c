@@ -236,7 +236,7 @@ gageNixerSet(gageContext *ctx, gageNixer_t *nixer) {
 int
 gageKernelSet(gageContext *ctx, 
 	      int which, NrrdKernel *k, double *kparm) {
-  char me[]="_gageKernelSet", err[AIR_STRLEN_MED];
+  char me[]="gageKernelSet", err[AIR_STRLEN_MED];
   int numParm;
   double support, integral;
 
