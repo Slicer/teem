@@ -212,7 +212,7 @@ ell3mEigensolve(double eval[3], double evec[9], double m[9], int newton) {
   int roots;
 
   /* if (ellDebug) {
-    printf("lineal3Eigensolve: input matrix:\n");
+    printf("ell3Eigensolve: input matrix:\n");
     printf("{{%20.15f,\t%20.15f,\t%20.15f},\n", m[0], m[3], m[6]);
     printf(" {%20.15f,\t%20.15f,\t%20.15f},\n", m[1], m[4], m[7]);
     printf(" {%20.15f,\t%20.15f,\t%20.15f}};\n",m[2], m[5], m[8]);
@@ -220,8 +220,8 @@ ell3mEigensolve(double eval[3], double evec[9], double m[9], int newton) {
   
   roots = ell3mEigenvalues(eval, m, newton);
   ELL_3V_GET(e0, e1, e2, eval);
-  /* if (linealDebug) {
-    printf("lineal3Eigensolve: numroots = %d\n", numroots);
+  /* if (ellDebug) {
+    printf("ell3Eigensolve: numroots = %d\n", numroots);
     } */
 
   /* we form m - lambda*I by doing a memcpy from m, and then
@@ -231,7 +231,7 @@ ell3mEigensolve(double eval[3], double evec[9], double m[9], int newton) {
   case ellCubicRootThree:
     ELL_SORT3(e0, e1, e2, t);
     /* if (ellDebug) {
-      printf("lineal3Eigensolve: evals: %20.15f %20.15f %20.15f\n", 
+      printf("ell3Eigensolve: evals: %20.15f %20.15f %20.15f\n", 
 	     eval[0], eval[1], eval[2]);
 	     } */
     ELL_3M_DIAG_SET(n, m[0]-e0, m[4]-e0, m[8]-e0);
@@ -279,7 +279,7 @@ ell3mEigensolve(double eval[3], double evec[9], double m[9], int newton) {
     break;
   }
   /* if (ellDebug) {
-    printf("lineal3Eigensolve (numroots = %d): evecs: \n", numroots);
+    printf("ell3Eigensolve (numroots = %d): evecs: \n", numroots);
     ELL_3MV_MUL(tmpv, m, evec[0]);
     printf(" (%g:%g): %20.15f %20.15f %20.15f\n", 
 	   eval[0], ELL_3V_DOT(evec[0], tmpv), 
