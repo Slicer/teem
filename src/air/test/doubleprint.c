@@ -46,7 +46,7 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   if (ret && (sd != d)) {
-    printf("%s: sscanf result (%lf) != airSingleSscanf (%lf)!!!\n", me, sd, d);
+    printf("%s: sscanf result (%f) != airSingleSscanf (%f)!!!\n", me, sd, d);
     printf("\n");
   }
   f = d;
@@ -54,7 +54,7 @@ main(int argc, char *argv[]) {
   printf("%s: printf/airSinglePrintf as float:\n%f\n%s\n", me, f, buff);
   airSinglePrintf(NULL, buff, "%lf", d);
   printf("\n");
-  printf("%s: printf/airSinglePrintf as double:\n%lf\n%s\n", me, d, buff);
+  printf("%s: printf/airSinglePrintf as double:\n%f\n%s\n", me, d, buff);
   printf("\n");
   printf("%s: airFPFprintf_d:\n", me);
   airFPFprintf_d(stderr, d);
