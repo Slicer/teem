@@ -305,7 +305,7 @@ _gageVecStr[][AIR_STRLEN_SMALL] = {
   "normalized",
   "Jacobian",
   "divergence",
-  "curl"
+  "curl",
   "gradient0",
   "gradient1",
   "gradient2",
@@ -358,6 +358,7 @@ _gageVecStrEqv[][AIR_STRLEN_SMALL] = {
   "g0", "grad0", "gradient0",
   "g1", "grad1", "gradient1",
   "g2", "grad2", "gradient2",
+  "mg", "multigrad",
   "l2mg", "l2multigrad",
   "mgeval", "mg eval", "multigrad eigenvalues",
   "mgevec", "mg evec", "multigrad eigenvectors",
@@ -376,6 +377,7 @@ _gageVecValEqv[] = {
   GV_G1, GV_G1, GV_G1,
   GV_G2, GV_G2, GV_G2,
   GV_MG, GV_MG,
+  GV_LM, GV_LM,
   GV_ML, GV_ML, GV_ML,
   GV_MC, GV_MC, GV_MC
 };

@@ -347,6 +347,8 @@ gageVolumeSet(gageContext *ctx, gagePerVolume *pvl,
     biffAdd(GAGE, err); return 1;
   }
   bd = pvl->kind->baseDim;
+  fprintf(stderr, "%s: kind = %s, baseDim = %d, nin->dim = %d\n", me,
+	  pvl->kind->name, pvl->kind->baseDim, nin->dim);
   if (3 + bd != nin->dim) {
     sprintf(err, "%s: nrrd should have dimension %d, not %d",
 	    me, 3 + bd, nin->dim);
