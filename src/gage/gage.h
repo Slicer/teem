@@ -200,26 +200,27 @@ enum {
   gageSclGradVec,     /*  1: "grad", gradient vector, un-normalized: GT[3] */
   gageSclGradMag,     /*  2: "gm", gradient magnitude: *GT */
   gageSclNormal,      /*  3: "n", gradient vector, normalized: GT[3] */
-  gageSclHessian,     /*  4: "h", Hessian: GT[9] (column-order) */
-  gageSclLaplacian,   /*  5: "l", Laplacian: Dxx + Dyy + Dzz: *GT */
-  gageSclHessEval,    /*  6: "heval", Hessian's eigenvalues: GT[3] */
-  gageSclHessEvec,    /*  7: "hevec", Hessian's eigenvectors: GT[9] */
-  gageScl2ndDD,       /*  8: "2d", 2nd dir.deriv. along gradient: *GT */
-  gageSclGeomTens,    /*  9: "gten", sym. matx w/ evals 0,K1,K2 and evecs grad,
+  gageSclNPerp,       /*  4: "np", projection onto tangent plane: GT[9] */
+  gageSclHessian,     /*  5: "h", Hessian: GT[9] (column-order) */
+  gageSclLaplacian,   /*  6: "l", Laplacian: Dxx + Dyy + Dzz: *GT */
+  gageSclHessEval,    /*  7: "heval", Hessian's eigenvalues: GT[3] */
+  gageSclHessEvec,    /*  8: "hevec", Hessian's eigenvectors: GT[9] */
+  gageScl2ndDD,       /*  9: "2d", 2nd dir.deriv. along gradient: *GT */
+  gageSclGeomTens,    /* 10: "gten", sym. matx w/ evals 0,K1,K2 and evecs grad,
 			     curvature directions: GT[9] */
-  gageSclK1,          /* 10: "k1", 1st principle curvature: *GT */
-  gageSclK2,          /* 11: "k2", 2nd principle curvature (k2 <= k1): *GT */
-  gageSclCurvedness,  /* 12: "cv", L2 norm of K1, K2 (not Koen.'s "C"): *GT */
-  gageSclShapeTrace,  /* 13, "st", (K1+K2)/Curvedness: *GT */
-  gageSclShapeIndex,  /* 14: "si", Koen.'s shape index, ("S"): *GT */
-  gageSclMeanCurv,    /* 15: "mc", mean curvature (K1 + K2)/2: *GT */
-  gageSclGaussCurv,   /* 16: "gc", gaussian curvature K1*K2: *GT */
-  gageSclCurvDir,     /* 17: "cdir", principle curvature directions: GT[6] */
-  gageSclNormalCurv,  /* 18: "nc", curvature of normal streamline: *GT */
+  gageSclK1,          /* 11: "k1", 1st principle curvature: *GT */
+  gageSclK2,          /* 12: "k2", 2nd principle curvature (k2 <= k1): *GT */
+  gageSclCurvedness,  /* 13: "cv", L2 norm of K1, K2 (not Koen.'s "C"): *GT */
+  gageSclShapeTrace,  /* 14, "st", (K1+K2)/Curvedness: *GT */
+  gageSclShapeIndex,  /* 15: "si", Koen.'s shape index, ("S"): *GT */
+  gageSclMeanCurv,    /* 16: "mc", mean curvature (K1 + K2)/2: *GT */
+  gageSclGaussCurv,   /* 17: "gc", gaussian curvature K1*K2: *GT */
+  gageSclCurvDir,     /* 18: "cdir", principle curvature directions: GT[6] */
+  gageSclNormalCurv,  /* 19: "nc", curvature of normal streamline: *GT */
   gageSclLast
 };
-#define GAGE_SCL_MAX     18
-#define GAGE_SCL_TOTAL_ANS_LENGTH 54
+#define GAGE_SCL_MAX     19
+#define GAGE_SCL_TOTAL_ANS_LENGTH 63
 
 /*
 ******** GAGE_SCL_*_BIT #defines
@@ -232,21 +233,22 @@ enum {
 #define GAGE_SCL_GRADVEC_BIT    (1<<1)
 #define GAGE_SCL_GRADMAG_BIT    (1<<2)
 #define GAGE_SCL_NORMAL_BIT     (1<<3)
-#define GAGE_SCL_HESSIAN_BIT    (1<<4)
-#define GAGE_SCL_LAPLACIAN_BIT  (1<<5)
-#define GAGE_SCL_HESSEVAL_BIT   (1<<6)
-#define GAGE_SCL_HESSEVEC_BIT   (1<<7)
-#define GAGE_SCL_2NDDD_BIT      (1<<8)
-#define GAGE_SCL_GEOMTENS_BIT   (1<<9)
-#define GAGE_SCL_K1_BIT         (1<<10)
-#define GAGE_SCL_K2_BIT         (1<<11)
-#define GAGE_SCL_CURVEDNESS_BIT (1<<12)
-#define GAGE_SCL_SHAPETRACE_BIT (1<<13)
-#define GAGE_SCL_SHAPEINDEX_BIT (1<<14)
-#define GAGE_SCL_MEANCURV_BIT   (1<<15)
-#define GAGE_SCL_GAUSSCURV_BIT  (1<<16)
-#define GAGE_SCL_CURVDIR_BIT    (1<<17)
-#define GAGE_SCL_NORMALCURV_BIT (1<<18)
+#define GAGE_SCL_NPERP_BIT      (1<<4)
+#define GAGE_SCL_HESSIAN_BIT    (1<<5)
+#define GAGE_SCL_LAPLACIAN_BIT  (1<<6)
+#define GAGE_SCL_HESSEVAL_BIT   (1<<7)
+#define GAGE_SCL_HESSEVEC_BIT   (1<<8)
+#define GAGE_SCL_2NDDD_BIT      (1<<9)
+#define GAGE_SCL_GEOMTENS_BIT   (1<<10)
+#define GAGE_SCL_K1_BIT         (1<<11)
+#define GAGE_SCL_K2_BIT         (1<<12)
+#define GAGE_SCL_CURVEDNESS_BIT (1<<13)
+#define GAGE_SCL_SHAPETRACE_BIT (1<<14)
+#define GAGE_SCL_SHAPEINDEX_BIT (1<<15)
+#define GAGE_SCL_MEANCURV_BIT   (1<<16)
+#define GAGE_SCL_GAUSSCURV_BIT  (1<<17)
+#define GAGE_SCL_CURVDIR_BIT    (1<<18)
+#define GAGE_SCL_NORMALCURV_BIT (1<<19)
 
 /*
 ******** gageVec* enum
@@ -271,7 +273,7 @@ enum {
   gageVecGradient1,  /*  7: "g2", gradient of 2nd component of vector: GT[3] */
   gageVecGradient2,  /*  8: "g3", gradient of 3rd component of vector: GT[3] */
   gageVecMultiGrad,  /*  9: "mg", sum of outer products of gradients: GT[9] */
-  gageVecL2MG,       /* 10: "l2mg", L2 norm of multi-gradient: *GT */
+  gageVecMGFrob,     /* 10: "mgfrob", frob norm of multi-gradient: *GT */
   gageVecMGEval,     /* 11: "mgeval", eigenvalues of multi-gradient: GT[3] */
   gageVecMGEvec,     /* 12: "mgevec", eigenvectors of multi-gradient: GT[9] */
   gageVecLast
@@ -289,7 +291,7 @@ enum {
 #define GAGE_VEC_GRADIENT1_BIT  (1<<7)
 #define GAGE_VEC_GRADIENT2_BIT  (1<<8)
 #define GAGE_VEC_MULTIGRAD_BIT  (1<<9)
-#define GAGE_VEC_L2MG_BIT       (1<<10)
+#define GAGE_VEC_MGFROB_BIT     (1<<10)
 #define GAGE_VEC_MGEVAL_BIT     (1<<11)
 #define GAGE_VEC_MGEVEC_BIT     (1<<12)
 

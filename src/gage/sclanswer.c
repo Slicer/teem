@@ -28,7 +28,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   double tmpMat[9], tmpVec[3], hevec[9], heval[3];
   int *offset;
 
-  gage_t len, gp1[3], gp2[3], nPerp[9], nProj[9], ncTen[9];
+  gage_t len, gp1[3], gp2[3], *nPerp, nProj[9], ncTen[9];
   double T, N, D;
 
   query = pvl->query;
@@ -38,6 +38,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   hess = ans + offset[gageSclHessian];
   gvec = ans + offset[gageSclGradVec];
   norm = ans + offset[gageSclNormal];
+  nPerp = ans + offset[gageSclNPerp];
   gten = ans + offset[gageSclGeomTens];
   k1 = ans + offset[gageSclK1];
   k2 = ans + offset[gageSclK2];
@@ -73,6 +74,15 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
       ELL_3V_COPY(norm, gageZeroNormal);
     }
   }
+  if (1 & (query >> gageSclNPerp)) {
+    /* nPerp = I - outer(norm, norm) */
+    /* NB: this sets both nPerp and nProj */
+    ELL_3MV_OUTER(nProj, norm, norm);
+    ELL_3M_SCALE(nPerp, -1, nProj);
+    nPerp[0] += 1;
+    nPerp[4] += 1;
+    nPerp[8] += 1;
+  }
   if (1 & (query >> gageSclHessian)) {
     /* done if doD2 */
     if (ctx->verbose) {
@@ -103,17 +113,10 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     ans[offset[gageScl2ndDD]] = ELL_3V_DOT(norm, tmpVec);
   }
   if (1 & (query >> gageSclGeomTens)) {
-    if (gmag >= ctx->parm.gradMagCurvMin) {
+    if (gmag > ctx->parm.gradMagCurvMin) {
       /* parm.curvNormalSide applied here to determine the sense of the
 	 normal when doing all curvature calculations */
       ELL_3M_SCALE(sHess, -(ctx->parm.curvNormalSide)/gmag, hess);
-      /* nPerp = I - outer(norm, norm): matrix which projects onto the
-	 plane perpendicular to the normal */
-      ELL_3MV_OUTER(nProj, norm, norm);
-      ELL_3M_SCALE(nPerp, -1, nProj);
-      nPerp[0] += 1;
-      nPerp[4] += 1;
-      nPerp[8] += 1;
       
       /* san->gten = nPerp * sHess * nPerp */
       ELL_3M_MUL(tmpMat, sHess, nPerp);
@@ -139,7 +142,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     }
   }
   if (1 && (query >> gageSclCurvedness)) {
-    curv = ans[offset[gageSclCurvedness]] = ELL_3M_L2NORM(gten);
+    curv = ans[offset[gageSclCurvedness]] = ELL_3M_FROBNORM(gten);
   }
   if (1 && (query >> gageSclShapeTrace)) {
     ans[offset[gageSclShapeTrace]] = (curv
@@ -192,11 +195,10 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
       /* ncTen = nPerp * sHess * nProj */
       ELL_3M_MUL(tmpMat, sHess, nProj);
       ELL_3M_MUL(ncTen, nPerp, tmpMat);
-
     } else {
       ELL_3M_ZERO_SET(ncTen);
     }
-    ans[offset[gageSclNormalCurv]] = ELL_3M_L2NORM(ncTen);
+    ans[offset[gageSclNormalCurv]] = ELL_3M_FROBNORM(ncTen);
   }
   return;
 }

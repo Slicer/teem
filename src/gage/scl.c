@@ -22,27 +22,28 @@
 
 /*
   gageSclUnknown=-1,   -1: nobody knows 
-  gageSclValue,           0: "v", data value: *GT   
-  gageSclGradVec,         1: "grad", gradient vector, un-normalized: GT[3]   
-  gageSclGradMag,         2: "gm", gradient magnitude: *GT   
-  gageSclNormal,          3: "n", gradient vector, normalized: GT[3]   
-  gageSclHessian,         4: "h", Hessian: GT[9] (column-order)   
-  gageSclLaplacian,       5: "l", Laplacian: Dxx + Dyy + Dzz: *GT   
-  gageSclHessEval,        6: "heval", Hessian's eigenvalues: GT[3]   
-  gageSclHessEvec,        7: "hevec", Hessian's eigenvectors: GT[9]   
-  gageScl2ndDD,           8: "2d", 2nd dir.deriv. along gradient: *GT   
-  gageSclGeomTens,        9: "gten", sym. matx w/ evals 0,K1,K2 and evecs grad,
-			     curvature directions: GT[9]   
-  gageSclK1,             10: "k1", 1st principle curvature: *GT   
-  gageSclK2,             11: "k2", 2nd principle curvature (k2 <= k1): *GT   
-  gageSclCurvedness,     12: "cv", L2 norm of K1, K2 (not Koen.'s "C"): *GT   
-  gageSclShapeTrace,     13, "st", (K1+K2)/Curvedness: *GT   
-  gageSclShapeIndex,     14: "si", Koen.'s shape index, ("S"): *GT   
-  gageSclMeanCurv,       15: "mc", mean curvature (K1 + K2)/2: *GT   
-  gageSclGaussCurv,      16: "gc", gaussian curvature K1*K2: *GT   
-  gageSclCurvDir,        17: "cdir", principle curvature directions: GT[6]   
-  gageSclNormalCurv,     18: "nc", curvature of normal streamline: *GT
-  0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18
+  gageSclValue,       *  0: "v", data value: *GT *
+  gageSclGradVec,     *  1: "grad", gradient vector, un-normalized: GT[3] *
+  gageSclGradMag,     *  2: "gm", gradient magnitude: *GT *
+  gageSclNormal,      *  3: "n", gradient vector, normalized: GT[3] *
+  gageSclNPerp,       *  4: "np", projection onto tangent plane: GT[9] *
+  gageSclHessian,     *  5: "h", Hessian: GT[9] (column-order) *
+  gageSclLaplacian,   *  6: "l", Laplacian: Dxx + Dyy + Dzz: *GT *
+  gageSclHessEval,    *  7: "heval", Hessian's eigenvalues: GT[3] *
+  gageSclHessEvec,    *  8: "hevec", Hessian's eigenvectors: GT[9] *
+  gageScl2ndDD,       *  9: "2d", 2nd dir.deriv. along gradient: *GT *
+  gageSclGeomTens,    * 10: "gten", sym. matx w/ evals 0,K1,K2 and evecs grad,
+			     curvature directions: GT[9] *
+  gageSclK1,          * 11: "k1", 1st principle curvature: *GT *
+  gageSclK2,          * 12: "k2", 2nd principle curvature (k2 <= k1): *GT *
+  gageSclCurvedness,  * 13: "cv", L2 norm of K1, K2 (not Koen.'s "C"): *GT *
+  gageSclShapeTrace,  * 14, "st", (K1+K2)/Curvedness: *GT *
+  gageSclShapeIndex,  * 15: "si", Koen.'s shape index, ("S"): *GT *
+  gageSclMeanCurv,    * 16: "mc", mean curvature (K1 + K2)/2: *GT *
+  gageSclGaussCurv,   * 17: "gc", gaussian curvature K1*K2: *GT *
+  gageSclCurvDir,     * 18: "cdir", principle curvature directions: GT[6] *
+  gageSclNormalCurv,  * 19: "nc", curvature of normal streamline: *GT *
+ 0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19
 */
 
 /*
@@ -52,7 +53,7 @@
 */
 int
 gageSclAnsLength[GAGE_SCL_MAX+1] = {
-  1,  3,  1,  3,  9,  1,  3,  9,  1,  9,  1,  1,  1,  1,  1,  1,  1,  6,  1
+1,  3,  1,  3,  9,  9,  1,  3,  9,  1,  9,  1,  1,  1,  1,  1,  1,  1,  6,  1
 };
 
 /*
@@ -62,8 +63,8 @@ gageSclAnsLength[GAGE_SCL_MAX+1] = {
 */
 int
 gageSclAnsOffset[GAGE_SCL_MAX+1] = {
-  0,  1,  4,  5,  8, 17, 18, 21, 30, 31, 40, 41, 42, 43, 44, 45, 46, 47, 53
-  /* --> 54 == GAGE_SCL_TOTAL_ANS_LENGTH */
+0,  1,  4,  5,  8, 17, 26, 27, 30, 39, 40, 49, 50, 51, 52, 53, 54, 55, 56, 62
+  /* --> 63 == GAGE_SCL_TOTAL_ANS_LENGTH */
 };
 
 /*
@@ -78,7 +79,7 @@ gageSclAnsOffset[GAGE_SCL_MAX+1] = {
 */
 int
 _gageSclNeedDeriv[GAGE_SCL_MAX+1] = {
-  1,  2,  2,  2,  4,  4,  4,  4,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6
+ 1,  2,  2,  2,  2,  4,  4,  4,  4,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6
 };
 
 /*
@@ -102,49 +103,52 @@ _gageSclPrereq[GAGE_SCL_MAX+1] = {
   /* 3: gageSclNormal */
   (1<<gageSclGradVec) | (1<<gageSclGradMag),
 
-  /* 4: gageSclHessian */
+  /* 3: gageSclNPerp */
+  (1<<gageSclNormal),
+
+  /* 5: gageSclHessian */
   0,
 
-  /* 5: gageSclLaplacian */
+  /* 6: gageSclLaplacian */
   (1<<gageSclHessian),   /* not really true, but this is simpler */
 
-  /* 6: gageSclHessEval */
+  /* 7: gageSclHessEval */
   (1<<gageSclHessian),
 
-  /* 7: gageSclHessEvec */
+  /* 8: gageSclHessEvec */
   (1<<gageSclHessian) | (1<<gageSclHessEval),
 
-  /* 8: gageScl2ndDD */
+  /* 9: gageScl2ndDD */
   (1<<gageSclHessian) | (1<<gageSclNormal),
 
-  /* 9: gageSclGeomTens */
-  (1<<gageSclHessian) | (1<<gageSclNormal) | (1<<gageSclGradMag),
+  /* 10: gageSclGeomTens */
+  (1<<gageSclHessian) | (1<<gageSclNPerp) | (1<<gageSclGradMag),
   
-  /* 10: gageSclK1 */
+  /* 11: gageSclK1 */
   (1<<gageSclCurvedness) | (1<<gageSclShapeTrace),
 
-  /* 11: gageSclK2 */
+  /* 12: gageSclK2 */
   (1<<gageSclCurvedness) | (1<<gageSclShapeTrace),
 
-  /* 12: gageSclCurvedness */
+  /* 13: gageSclCurvedness */
   (1<<gageSclGeomTens),
 
-  /* 13: gageSclShapeTrace */
+  /* 14: gageSclShapeTrace */
   (1<<gageSclGeomTens),
 
-  /* 14: gageSclShapeIndex */
+  /* 15: gageSclShapeIndex */
   (1<<gageSclK1) | (1<<gageSclK2),
 
-  /* 15: gageSclMeanCurv */
+  /* 16: gageSclMeanCurv */
   (1<<gageSclK1) | (1<<gageSclK2),
 
-  /* 16: gageSclGaussCurv */
+  /* 17: gageSclGaussCurv */
   (1<<gageSclK1) | (1<<gageSclK2),
 
-  /* 17: gageSclCurvDir */
+  /* 18: gageSclCurvDir */
   (1<<gageSclGeomTens) | (1<<gageSclK1) | (1<<gageSclK2),
 
-  /* 18: gageSclNormalCurv */
+  /* 19: gageSclNormalCurv */
   /* this is because of how answer code uses sHess, nPerp, nProj */
   (1<<gageSclGeomTens) 
   
@@ -157,6 +161,7 @@ _gageSclStr[][AIR_STRLEN_SMALL] = {
   "gradient vector",
   "gradient magnitude",
   "normalized gradient",
+  "tangent projector",
   "Hessian",
   "Laplacian",
   "Hessian eigenvalues",
@@ -180,6 +185,7 @@ _gageSclDesc[][AIR_STRLEN_MED] = {
   "reconstructed scalar data value",
   "gradient vector, un-normalized",
   "gradient magnitude (length of gradient vector)",
+  "projection into tangent (perp space of normal)",
   "normalized gradient vector",
   "3x3 Hessian matrix",
   "Laplacian",
@@ -205,6 +211,7 @@ _gageSclVal[] = {
   gageSclGradVec,
   gageSclGradMag,
   gageSclNormal,
+  gageSclNPerp,
   gageSclHessian,
   gageSclLaplacian,
   gageSclHessEval,
@@ -226,6 +233,7 @@ _gageSclVal[] = {
 #define GS_GV gageSclGradVec
 #define GS_GM gageSclGradMag
 #define GS_N  gageSclNormal
+#define GS_NP gageSclNPerp
 #define GS_H  gageSclHessian
 #define GS_L  gageSclLaplacian
 #define GS_HA gageSclHessEval
@@ -249,6 +257,7 @@ _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
   "g", "gm", "gmag", "gradmag", "grad mag", "gradient magnitude",
   "n", "normal", "gnorm", "normg", "norm", "normgrad", \
        "norm grad", "normalized gradient",
+  "np", "nperp", 
   "h", "hess", "hessian",
   "l", "lapl", "laplacian",
   "heval", "h eval", "hessian eval", "hessian eigenvalues",
@@ -273,6 +282,7 @@ _gageSclValEqv[] = {
   GS_GV, GS_GV, GS_GV, GS_GV, GS_GV, 
   GS_GM, GS_GM, GS_GM, GS_GM, GS_GM, GS_GM,
   GS_N, GS_N, GS_N, GS_N, GS_N, GS_N, GS_N, GS_N,
+  GS_NP, GS_NP,
   GS_H, GS_H, GS_H, 
   GS_L, GS_L, GS_L, 
   GS_HA, GS_HA, GS_HA, GS_HA, 

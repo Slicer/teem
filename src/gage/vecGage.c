@@ -31,7 +31,7 @@
   gageVecGradient1,    7: "g2", gradient of 2nd component of vector: GT[3] 
   gageVecGradient2,    8: "g3", gradient of 3rd component of vector: GT[3] 
   gageVecMultiGrad,    9: "mg", sum of outer products of gradients: GT[9] 
-  gageVecL2MG,        10: "l2mg", L2 norm of multi-gradient: *GT 
+  gageVecMGFrob,      10: "mgfrob", frob norm of multi-gradient: *GT 
   gageVecMGEval,      11: "mgeval", eigenvalues of multi-gradient: GT[3] 
   gageVecMGEvec,      12: "mgevec", eigenvectors of multi-gradient: GT[9] 
 
@@ -112,7 +112,7 @@ _gageVecPrereq[GAGE_VEC_MAX+1] = {
   /* gageVecMultiGrad */
   (1<<gageVecGradient0) | (1<<gageVecGradient1) | (1<<gageVecGradient2),
 
-  /* gageVecL2MG */
+  /* gageVecMGFrob */
   (1<<gageVecMultiGrad),
 
   /* gageVecMGEval */
@@ -198,7 +198,7 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
   gageVecGradient1,   *  7: gradient of 2nd component of vector: GT[3] *
   gageVecGradient2,   *  8: gradient of 3rd component of vector: GT[3] *
   gageVecMultiGrad,   *  9: sum of outer products of gradients: GT[9] *
-  gageVecL2MG,        * 10: L2 norm of multi-gradient: *GT *
+  gageVecMGFrob,      * 10: Frob norm of multi-gradient: *GT *
   gageVecMGEval,      * 11: eigenvalues of multi-gradient: GT[3] *
   gageVecMGEvec,      * 12: eigenvectors of multi-gradient: GT[9] *
   gageVecLast
@@ -279,8 +279,9 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
 		     ans + offset[gageVecGradient2],
 		     ans + offset[gageVecGradient2]);
   }
-  if (1 & (query >> gageVecL2MG)) {
-    ans[offset[gageVecL2MG]] = ELL_3M_L2NORM(ans + offset[gageVecMultiGrad]);
+  if (1 & (query >> gageVecMGFrob)) {
+    ans[offset[gageVecMGFrob]] 
+      = ELL_3M_FROBNORM(ans + offset[gageVecMultiGrad]);
   }
   if (1 & (query >> gageVecMGEval)) {
     ELL_3M_COPY(tmpMat, ans + offset[gageVecMultiGrad]);
@@ -308,7 +309,7 @@ _gageVecStr[][AIR_STRLEN_SMALL] = {
   "gradient1",
   "gradient2",
   "multigrad",
-  "L2(multigrad)",
+  "frob(multigrad)",
   "multigrad eigenvalues",
   "multigrad eigenvectors",
 };
@@ -326,7 +327,7 @@ _gageVecDesc[][AIR_STRLEN_MED] = {
   "gradient of 2nd component of vector",
   "gradient of 3rd component of vector",
   "multi-gradient: sum of outer products of gradients",
-  "L2 norm of multi-gradient",
+  "frob norm of multi-gradient",
   "eigenvalues of multi-gradient",
   "eigenvectors of multi-gradient"
 };
@@ -344,7 +345,7 @@ _gageVecVal[] = {
   gageVecGradient1,
   gageVecGradient2,
   gageVecMultiGrad,
-  gageVecL2MG,
+  gageVecMGFrob,
   gageVecMGEval,
   gageVecMGEvec,
 };
@@ -359,7 +360,7 @@ _gageVecVal[] = {
 #define GV_G1 gageVecGradient1
 #define GV_G2 gageVecGradient2
 #define GV_MG gageVecMultiGrad
-#define GV_LM gageVecL2MG
+#define GV_MF gageVecMGFrob
 #define GV_ML gageVecMGEval
 #define GV_MC gageVecMGEvec
 
@@ -375,7 +376,7 @@ _gageVecStrEqv[][AIR_STRLEN_SMALL] = {
   "g1", "grad1", "gradient1",
   "g2", "grad2", "gradient2",
   "mg", "multigrad",
-  "l2mg", "l2multigrad",
+  "mgfrob",
   "mgeval", "mg eval", "multigrad eigenvalues",
   "mgevec", "mg evec", "multigrad eigenvectors",
   ""
@@ -393,7 +394,7 @@ _gageVecValEqv[] = {
   GV_G1, GV_G1, GV_G1,
   GV_G2, GV_G2, GV_G2,
   GV_MG, GV_MG,
-  GV_LM, GV_LM,
+  GV_MF,
   GV_ML, GV_ML, GV_ML,
   GV_MC, GV_MC, GV_MC
 };
