@@ -32,6 +32,14 @@
 extern "C" {
 #endif
 
+/* Get rid of some warnings on VC++ */
+#ifdef _MSC_VER
+#pragma warning ( disable : 4244 )
+#pragma warning ( disable : 4305 )
+#pragma warning ( disable : 4309 )
+#pragma warning ( disable : 4273 )
+#endif /* _MSC_VER */
+
 #if defined(_WIN32) && !defined(TEEM_STATIC) && !defined(__CYGWIN__)
 #define air_export __declspec(dllimport)
 #else

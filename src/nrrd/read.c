@@ -196,7 +196,7 @@ nrrdByteSkip (Nrrd *nrrd, NrrdIoState *nio) {
       biffAdd(NRRD, err); return 1;
     }
     numbytes = nrrdElementNumber(nrrd)*nrrdElementSize(nrrd);
-    if (fseek(nio->dataFile, -numbytes, SEEK_END)) {
+    if (fseek(nio->dataFile, -((long)numbytes), SEEK_END)) {
       sprintf(err, "%s: failed to fseek(dataFile, " _AIR_SIZE_T_FMT
 	      ", SEEK_END)", me, numbytes);
       biffAdd(NRRD, err); return 1;      
@@ -332,7 +332,7 @@ nrrdRead (Nrrd *nrrd, FILE *file, NrrdIoState *nio) {
 */
 void
 _nrrdSplitName (char **dirP, char **baseP, const char *name) {
-  int i;
+  char *where;
   
   if (dirP) {
     AIR_FREE(*dirP);
@@ -340,16 +340,16 @@ _nrrdSplitName (char **dirP, char **baseP, const char *name) {
   if (baseP) {
     AIR_FREE(*baseP);
   }
-  i = strrchr(name, '/') - name;
+  where = strrchr(name, '/');
   /* we found a valid break if the last directory character
      is somewhere in the string except the last character */
-  if (i>=0 && i<strlen(name)-1) {
+  if (where && airStrlen(where) > 1) {
     if (dirP) {
       *dirP = airStrdup(name);
-      (*dirP)[i] = 0;
+      (*dirP)[where - name] = 0;
     }
     if (baseP) {
-      *baseP = airStrdup(name + i + 1);
+      *baseP = airStrdup(where + 1);
     }
   } else {
     /* if the name had no slash, its in the current directory, which

@@ -142,7 +142,8 @@ airEnumVal(airEnum *enm, const char *str) {
 char *
 airEnumFmtDesc(airEnum *enm, int val, int canon, const char *fmt) {
   char *buff, *_ident, *desc, ident[AIR_STRLEN_SMALL];
-  int i, len;
+  int i;
+  size_t len;
 
   if (!(enm && enm->desc && fmt)) {
     return airStrdup("(airEnumDesc: invalid args)");

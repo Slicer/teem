@@ -185,7 +185,7 @@ nrrdKeyValueGet(const Nrrd *nrrd, const char *key) {
 
 void
 _nrrdFwriteEscaped(FILE *file, const char *str) {
-  int ci;
+  size_t ci;
 
   for (ci=0; ci<strlen(str); ci++) {
     switch(str[ci]) {
