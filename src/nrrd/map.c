@@ -18,59 +18,24 @@
 
 #include "nrrd.h"
 
-int
-nrrdRange(double *minP, double *maxP, Nrrd *nrrd) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdRange";
-  char _min[NRRD_MAX_TYPE_SIZE], _max[NRRD_MAX_TYPE_SIZE];
-
-  if (!nrrd) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return 1;
-  }
-  if (nrrdTypeUChar == nrrd->type) {
-    *minP = 0;
-    *maxP = UCHAR_MAX;
-  }
-  else if (nrrdTypeChar == nrrd->type) {
-    *minP = SCHAR_MIN;
-    *maxP = SCHAR_MAX;
-  }
-  else if (nrrdTypeChar < nrrd->type &&
-	   nrrd->type < nrrdTypeBlock) {
-    nrrdMinMax[nrrd->type](_min, _max, nrrd->num, nrrd->data);
-    *minP = nrrdDLoad[nrrd->type](_min);
-    *maxP = nrrdDLoad[nrrd->type](_max);
-  }
-  else {
-    sprintf(err, "%s: don't know how to find range in type %d data",
-	    me, nrrd->type);
-    biffSet(NRRD, err); return 1;
-  }
-  return 0;
-}  
-
 /*
 ******** nrrdConvert()
 **
 ** copies values from one type of nrrd to another, without
 ** any transformation, except what you get with a cast
-**
-** HEY: for the time being, this uses a "double" as the intermediate
-** value holder, which may mean needless loss of precision
 */
 int
 nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdConvert";
   int d;
-  NRRD_BIG_INT I;
+  void (*conv)(void *, void *, NRRD_BIG_INT);
 
-  if (!(nin && nout &&
-	type > nrrdTypeUnknown &&
-	type < nrrdTypeLast)) {
+  if (!(nin && nout && AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast))) {
     sprintf(err, "%s: invalid args", me);
     biffSet(NRRD, err); return 1;
   }
-  if (nin->type == nrrdTypeBlock) {
+  if (nin->type == nrrdTypeBlock
+      || type == nrrdTypeBlock) {
     sprintf(err, "%s: can't deal with type block now, sorry", me);
     biffSet(NRRD, err); return 1;
   }
@@ -90,12 +55,15 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
     biffSet(NRRD, err); return 1;
   }
   nout->type = type;
-  
-  /* copy (cast, really) the values */
-  for (I=0; I<=nin->num-1; I++) {
-    nrrdDInsert[nout->type](nout->data, I, 
-			    nrrdDLookup[nin->type](nin->data, I));
+
+  /* call the appropriate converter */
+  conv = _nrrdConv[nout->type][nin->type];
+  if (!conv) {
+    sprintf(err, "%s: converter (%d <-- %d) is NULL!!", 
+	    me, nout->type, nin->type);
+    biffSet(NRRD, err); return 1;
   }
+  conv(nout->data, nin->data, nin->num);
 
   /* set information in new volume */
   for (d=0; d<=nin->dim-1; d++) {
@@ -112,6 +80,82 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
   return 0;
 }
 
+int
+nrrdMinMaxFind(double *minP, double *maxP, Nrrd *nrrd) {
+  char err[NRRD_MED_STRLEN], me[] = "nrrdMinMaxFind";
+  char _min[NRRD_MAX_TYPE_SIZE], _max[NRRD_MAX_TYPE_SIZE];
+
+  if (!nrrd) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffSet(NRRD, err); return 1;
+  }
+  if (nrrdTypeUChar == nrrd->type) {
+    *minP = 0;
+    *maxP = UCHAR_MAX;
+  }
+  else if (nrrdTypeChar == nrrd->type) {
+    *minP = SCHAR_MIN;
+    *maxP = SCHAR_MAX;
+  }
+  else if (nrrdTypeChar < nrrd->type &&
+	   nrrd->type < nrrdTypeBlock) {
+    _nrrdMinMaxFind[nrrd->type](_min, _max, nrrd->num, nrrd->data);
+    *minP = nrrdDLoad[nrrd->type](_min);
+    *maxP = nrrdDLoad[nrrd->type](_max);
+  }
+  else {
+    sprintf(err, "%s: don't know how to find range in type %d data",
+	    me, nrrd->type);
+    biffSet(NRRD, err); return 1;
+  }
+  return 0;
+}  
+
+int
+nrrdMinMaxDo(double *minP, double *maxP, Nrrd *nrrd, 
+	     double min, double max, int minmax) {
+  char me[]="nrrdMinMaxDo", err[NRRD_MED_STRLEN];
+  int E;
+  
+  if (!AIR_BETWEEN(nrrdMinMaxUnknown, minmax, nrrdMinMaxLast)) {
+    sprintf(err, "%s: minmax behavior %d invalid", me, minmax);
+    biffSet(NRRD, err); return 1;
+  }
+  E = 0;
+  switch (minmax) {
+  case nrrdMinMaxCalc:
+    E = nrrdMinMaxFind(minP, maxP, nrrd);
+    break;
+  case nrrdMinMaxCalcSet:
+    E = nrrdMinMaxFind(&nrrd->min, &nrrd->max, nrrd);
+    *minP = nrrd->min;
+    *maxP = nrrd->max;
+    break;
+  case nrrdMinMaxUse:
+    *minP = nrrd->min;
+    *maxP = nrrd->max;
+    break;
+  case nrrdMinMaxInsteadUse:
+    *minP = min;
+    *maxP = max;
+    break;
+  default:
+    sprintf(err, "%s: sorry, minmax behavior %d not implemented", me, minmax);
+    biffSet(NRRD, err); return 1;
+    break;
+  }
+  if (E) {
+    sprintf(err, "%s: trouble finding min, max", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!(AIR_EXISTS(*minP) && AIR_EXISTS(*maxP))) {
+    sprintf(err, "%s: final min and max values don't both exist", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  
+  return 0;
+}
+
 /*
 ******** nrrdQuantize
 **
@@ -123,11 +167,11 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
 ** value holder, which may mean needless loss of precision
 */
 int
-nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits, float min, float max) {
+nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits, int minmax) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdQuantize";
-  double valIn;
+  double valIn, min, max;
   int valOut;
-  unsigned long long valOutll;
+  long long valOutll;
   NRRD_BIG_INT I;
   int type, d;
 
@@ -135,13 +179,13 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits, float min, float max) {
     sprintf(err, "%s: got NULL pointer", me);
     biffSet(NRRD, err); return 1;
   }
-  if (!( AIR_EXISTS(min) && AIR_EXISTS(max) )) {
-    sprintf(err, "%s: wasn't given min,max values", me);
-    biffSet(NRRD, err); return 1;
-  }
   if (!(8 == bits || 16 == bits || 32 == bits)) {
     sprintf(err, "%s: bits has to be 8, 16, or 32 (not %d)", me, bits);
     biffSet(NRRD, err); return 1;
+  }
+  if (nrrdMinMaxDo(&min, &max, nin, AIR_NAN, AIR_NAN, minmax)) {
+    sprintf(err, "%s: trouble setting min, max", me);
+    biffAdd(NRRD, err); return 1;
   }
 
   /* determine nrrd type from number of bits */
@@ -155,8 +199,12 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits, float min, float max) {
   case 32:
     type = nrrdTypeUInt;
     break;
+  default:
+    sprintf(err, "%s: %d bits not implemented, sorry", me, bits);
+    biffAdd(NRRD, err); return 1;
+    break;
   }
-
+  
   /* allocate space if necessary */
   if (nrrdMaybeAlloc(nout, nin->num, type, nin->dim)) {
     sprintf(err, "%s: failed to create slice", me);
@@ -176,7 +224,7 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits, float min, float max) {
     case 32:
       AIR_INDEX(min, valIn, max, 1LLU << 32, valOutll);
       /* this line isn't compiling on my intel laptop */
-      valOut = AIR_CLAMP(0, valOut, (1LLU << 32)-1);
+      valOutll = AIR_CLAMP(0, valOutll, (1LLU << 32)-1);
       nrrdDInsert[nout->type](nout->data, I, valOutll);
       break;
     }
@@ -288,12 +336,12 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
       biffSet(NRRD, err); return 1;
     }
     for (i=0; i<=bins-1; i++) {
-      last[i] = airNand();
+      last[i] = AIR_NAN;
       respect[i] = 1;
       steady[1 + 2*i] = i;
     }
     /* now create the histogram */
-    if (nrrdRange(&nrrd->min, &nrrd->max, nrrd)) {
+    if (nrrdMinMaxFind(&nrrd->min, &nrrd->max, nrrd)) {
       sprintf(err, "%s: couldn't find value range in nrrd", me);
       biffAdd(NRRD, err); return 1;
     }
@@ -384,16 +432,4 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
   steady = airFree(steady);
   last = airFree(last);
   return(0);
-}
-
-int
-nrrdApplyGamma(Nrrd *nrrd, double gamma) {
-  char me[]="nrrdApplyGamma", err[NRRD_MED_STRLEN];
-
-  if (!nrrd) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return 1;
-  }
-  
-  return 0;
 }

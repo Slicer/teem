@@ -22,7 +22,7 @@
 ** initnrrd
 **
 ** initializes a nrrd to default state.  Mostly just sets values to 
-** -1, Nan, "", NULL, or Unknown
+** -1, NaN, "", NULL, or Unknown
 */
 void
 _nrrdinit(Nrrd *nrrd) {
@@ -40,22 +40,22 @@ _nrrdinit(Nrrd *nrrd) {
   */
   for (i=0; i<=NRRD_MAX_DIM-1; i++) {
     nrrd->size[i] = -1;
-    nrrd->spacing[i] = airNand();
-    nrrd->axisMin[i] = nrrd->axisMax[i] = airNand();
+    nrrd->spacing[i] = AIR_NAN;
+    nrrd->axisMin[i] = nrrd->axisMax[i] = AIR_NAN;
     strcpy(nrrd->label[i], "");
   }
   strcpy(nrrd->content, "");
   nrrd->blockSize = -1;
-  nrrd->min = nrrd->max = airNand();
-  nrrd->oldMin = nrrd->oldMax = airNand();
+  nrrd->min = nrrd->max = AIR_NAN;
+  nrrd->oldMin = nrrd->oldMax = AIR_NAN;
   strcpy(nrrd->dir, "");
   strcpy(nrrd->name, "");
   nrrd->dataFile = NULL;
   nrrd->lineSkip = 0;    /* this is a reasonable default value */
   nrrd->byteSkip = 0;    /* this is a reasonable default value */
   nrrd->ptr = NULL;
-  nrrd->fileEndian = nrrdEndianUnknown;
-  nrrdClearComments(nrrd);
+  nrrd->fileEndian = airEndianUnknown;
+  nrrdCommentClear(nrrd);
 }
 
 /*
@@ -73,7 +73,7 @@ nrrdNew(void) {
   if (nrrd) {
     _nrrdinit(nrrd);
   }
-  return(nrrd);
+  return nrrd;
 }
 
 /*
@@ -105,10 +105,10 @@ nrrdNix(Nrrd *nrrd) {
   if (nrrd) {
     /* because comments are the only dynamically allocated part
        of the nrrd struct itself */
-    nrrdClearComments(nrrd);
-    free(nrrd);
+    nrrdCommentClear(nrrd);
+    nrrd = airFree(nrrd);
   }
-  return(NULL);
+  return NULL;
 }
 
 /*
@@ -119,7 +119,7 @@ nrrdNix(Nrrd *nrrd) {
 Nrrd *
 nrrdUnwrap(Nrrd *nrrd) {
   
-  return(nrrdNix(nrrd));
+  return nrrdNix(nrrd);
 }
 
 /*
@@ -128,16 +128,16 @@ nrrdUnwrap(Nrrd *nrrd) {
 ** frees data inside nrrd AND resets all its state, so its the
 ** same as what comes from nrrdNew()
 */
-void 
+Nrrd *
 nrrdEmpty(Nrrd *nrrd) {
   
   if (nrrd) {
     if (nrrd->data) {
-      free(nrrd->data);
-      nrrd->data = NULL;
+      nrrd->data = airFree(nrrd->data);
     }
     _nrrdinit(nrrd);
   }
+  return nrrd;
 }
 
 /*
@@ -154,7 +154,7 @@ nrrdNuke(Nrrd *nrrd) {
     nrrdEmpty(nrrd);
     nrrdNix(nrrd);
   }
-  return(NULL);
+  return NULL;
 }
 
 /*
@@ -184,11 +184,11 @@ nrrdNewWrap(void *data, NRRD_BIG_INT num, int type, int dim) {
   Nrrd *nrrd;
 
   if (!(nrrd = nrrdNew())) {
-    sprintf(err, "%s: nrrdNew() failed", me);
-    biffAdd(NRRD, err); return(NULL);
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return NULL;
   }
   nrrdWrap(nrrd, data, num, type, dim);
-  return(nrrd);
+  return nrrd;
 }
 
 /*
@@ -217,48 +217,70 @@ nrrdNewSetInfo(NRRD_BIG_INT num, int type, int dim) {
   Nrrd *nrrd;
 
   if (!(nrrd = nrrdNew())) {
-    sprintf(err, "%s: nrrdNew() failed", me);
-    biffAdd(NRRD, err); return(NULL);
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return NULL;
   }
   nrrdSetInfo(nrrd, num, type, dim);
-  return(nrrd);
+  return nrrd;
+}
+
+int
+nrrdCommentCopy(Nrrd *nout, Nrrd *nin) {
+  char me[]="nrrdCommentCopy", err[NRRD_MED_STRLEN];
+  int numc, i, E;
+
+  if (!(nin && nout)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffSet(NRRD, err); return 1;
+  }
+  nrrdCommentClear(nout);
+  numc = nin->numComments;
+  E = 0;
+  if (numc) {
+    if (!E) nout->comment = calloc(numc+1, sizeof(char*));
+    E |= !nout->comment;
+    for (i=0; i<=numc-1; i++) {
+      if (!E) nout->comment[i] = airStrdup(nin->comment[i]);
+      E |= !nout->comment[i];
+    }
+    if (!E) nout->comment[numc] = NULL;
+    if (E) {
+      sprintf(err, "%s: failed to allocate or copy comments", me);
+      biffSet(NRRD, err); return 1;
+    }
+  }
+  return 0;
 }
 
 int
 nrrdCopy(Nrrd *nout, Nrrd *nin) {
+  Nrrd ntmp;
   char me[]="nrrdCopy", err[NRRD_MED_STRLEN];
-  int numComments, i;
 
   if (!(nin && nout)) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return(1);
+    biffSet(NRRD, err); return 1;
   }
-  if (nout->data)
-    free(nout->data);
-  /* copy everything except the data and comments */
+  if (nout == nin) {
+    /* I guess there's nothing to do! */
+    return 0;
+  }
+  if (nrrdMaybeAlloc(nout, nin->num, nin->type, nin->dim)) {
+    sprintf(err, "%s: couldn't allocate data", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  nrrdCommentClear(nout);
+  memcpy(&ntmp, nout, sizeof(Nrrd));
   memcpy(nout, nin, sizeof(Nrrd));
-  /* NULL out the data pointer, since otherwise nrrdAlloc will
-     free the data from the input nrrd */
-  nout->data = NULL;
-  numComments = nout->numComments = nin->numComments;
-  if (numComments) {
-    if (!(nout->comment = calloc(numComments+1, sizeof(char*)))) {
-      sprintf(err, "%s: calloc() for comment char** failed!", me);
-      biffSet(NRRD, err); return(1);
-    }
-    for (i=0; i<=numComments-1; i++) {
-      nout->comment[i] = airStrdup(nin->comment[i]);
-    }
-    nout->comment[numComments] = NULL;
-  }
-  if (!nout->data) {
-    if (nrrdAlloc(nout, nin->num, nin->type, nin->dim)) {
-      sprintf(err, "%s: couldn't allocate data", me);
-      biffAdd(NRRD, err); return(1);
-    }
+  nout->data = ntmp.data;
+  nout->numComments = 0;
+  nout->comment = NULL;
+  if (nrrdCommentCopy(nout, nin)) {
+    sprintf(err, "%s: can't copy comments", me);
+    biffAdd(NRRD, err); return 1;
   }
   memcpy(nout->data, nin->data, nin->num*nrrdTypeSize[nin->type]);
-  return(0);
+  return 0;
 }
 
 Nrrd *
@@ -267,14 +289,14 @@ nrrdNewCopy(Nrrd *nin) {
   Nrrd *nout;
 
   if (!(nout = nrrdNew())) {
-    sprintf(err, "%s: nrrdNew() failed", me);
-    biffAdd(NRRD, err); return(NULL);
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return NULL;
   }
   if (nrrdCopy(nout, nin)) {
     sprintf(err, "%s: trouble copying nrrd", me);
-    biffAdd(NRRD, err); return(NULL);
+    biffAdd(NRRD, err); return NULL;
   }
-  return(nout);
+  return nout;
 }
 
 /*
@@ -291,22 +313,66 @@ int
 nrrdAlloc(Nrrd *nrrd, NRRD_BIG_INT num, int type, int dim) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdAlloc";
 
-  if (!nrrd)
-    return(1);
-  if (nrrd->data)
-    free(nrrd->data);
-  /* printf("%s: callocing(%d, %d)\n", me, num, nrrdTypeSize[type]); */
-  if (!(nrrd->data = calloc(num, nrrdTypeSize[type]))) {
+  if (!nrrd) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffSet(NRRD, err); return 1;
+  }
+  if (!AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast)) {
+    sprintf(err, "%s: type (%d) is invalid", me, type);
+    biffSet(NRRD, err); return 1;
+  }
+  if (nrrdTypeBlock == type) {
+    sprintf(err, "%s: can't deal with nrrdTypeBlock, sorry", me);
+    biffSet(NRRD, err); return 1;
+  }
+  nrrd->data = airFree(nrrd->data);
+  nrrd->data = calloc(num, nrrdTypeSize[type]);
+  if (!(nrrd->data)) {
     sprintf(err, "%s: calloc(" NRRD_BIG_INT_PRINTF ",%d) failed", 
 	    me, num, nrrdTypeSize[type]);
-    biffSet(NRRD, err); return(1);
+    biffSet(NRRD, err); return 1 ;
   }
-  /* printf("%s: DONE callocing(%d, %d)\n", me, num, nrrdTypeSize[type]); */
   nrrd->num = num;
   nrrd->type = type;
   nrrd->dim = dim;
-  return(0);
+  return 0;
 }
+
+int
+nrrdMaybeAlloc(Nrrd *nrrd, NRRD_BIG_INT num, int type, int dim) {
+  char err[NRRD_MED_STRLEN], me[]="nrrdMaybeAlloc";
+  NRRD_BIG_INT sizeWant, sizeHave;
+  int need;
+  
+  if (!nrrd) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffSet(NRRD, err); return 1;
+  }
+  if (!AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast)) {
+    sprintf(err, "%s: type (%d) is invalid", me, type);
+    biffSet(NRRD, err); return 1;
+  }
+  if (nrrdTypeBlock == type) {
+    sprintf(err, "%s: can't deal with nrrdTypeBlock, sorry", me);
+    biffSet(NRRD, err); return 1;
+  }
+  if (!(nrrd->data && nrrd->num > 0)) {
+    need = 1;
+  }
+  else {
+    sizeHave = nrrd->num * nrrdElementSize(nrrd);
+    sizeWant = num * nrrdTypeSize[type];
+    need = sizeHave != sizeWant;
+  }
+  if (need) {
+    if (nrrdAlloc(nrrd, num, type, dim)) {
+      sprintf(err, "%s: trouble", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  return 0;
+}
+
 
 /*
 ******** nrrdNewAlloc()
@@ -322,15 +388,15 @@ nrrdNewAlloc(NRRD_BIG_INT num, int type, int dim) {
   
   if (!(nrrd = nrrdNew())) {
     sprintf(err, "%s: nrrdNew() failed", me);
-    biffAdd(NRRD, err); return(NULL);
+    biffAdd(NRRD, err); return NULL;
   }
   if (nrrdAlloc(nrrd, num, type, dim)) {
     sprintf(err, "%s: nrrdAlloc() failed", me);
     biffAdd(NRRD, err); 
     nrrdNix(nrrd);
-    return(NULL);
+    return NULL;
   }    
-  return(nrrd);
+  return nrrd;
 }
 
 /*
@@ -346,17 +412,17 @@ nrrdNewPPM(int sx, int sy) {
   if (!(sx > 0 && sy > 0)) {
     sprintf(err, "%s: got invalid sizes (%d,%d)", me, sx, sy);
     biffSet(NRRD, err);
-    return(NULL);
+    return NULL;
   }
   if (!(ppm = nrrdNewAlloc(sx*sy*3, nrrdTypeUChar, 3))) {
-    sprintf(err, "%s: nrrdNewAlloc(%d*%d*3) failed", me, sx, sy);
+    sprintf(err, "%s: couldn't allocate %d x %d 24-bit image", me, sx, sy);
     biffAdd(NRRD, err);
-    return(NULL);
+    return NULL;
   }
   ppm->size[0] = 3;
   ppm->size[1] = sx;
   ppm->size[2] = sy;
-  return(ppm);
+  return ppm;
 }
 
 /*
@@ -372,25 +438,25 @@ nrrdNewPGM(int sx, int sy) {
   if (!(sx > 0 && sy > 0)) {
     sprintf(err, "%s: got invalid sizes (%d,%d)", me, sx, sy);
     biffSet(NRRD, err);
-    return(NULL);
+    return NULL;
   }
   if (!(pgm = nrrdNewAlloc(sx*sy, nrrdTypeUChar, 2))) {
-    sprintf(err, "%s: nrrdNewAlloc(%d*%d) failed", me, sx, sy);
+    sprintf(err, "%s: couldn't allocate %d x %d 8-bit image", me, sx, sy);
     biffAdd(NRRD, err);
-    return(NULL);
+    return NULL;
   }
   pgm->size[0] = sx;
   pgm->size[1] = sy;
-  return(pgm);
+  return pgm;
 }
 
 /*
-******** nrrdAddComment()
+******** nrrdCommentAdd()
 **
 ** adds a given string to the list of comments
 */
 void
-nrrdAddComment(Nrrd *nrrd, char *cmt) {
+nrrdCommentAdd(Nrrd *nrrd, char *cmt) {
   char *newcmt, **newcmts;
   int i, len, num;
   
@@ -416,36 +482,36 @@ nrrdAddComment(Nrrd *nrrd, char *cmt) {
     newcmts[i] = newcmt;
     newcmts[i+1] = NULL;
     if (nrrd->comment) 
-      free(nrrd->comment);
+      nrrd->comment = airFree(nrrd->comment);
     nrrd->comment = newcmts;
     nrrd->numComments += 1;
   }
 }
 
 /*
-******** nrrdClearComments()
+******** nrrdCommentClear()
 **
 ** blows away comments only
 */
 void
-nrrdClearComments(Nrrd *nrrd) {
+nrrdCommentClear(Nrrd *nrrd) {
   int i;
 
-  if (nrrd->comment) {
-    i = 0;
-    while (nrrd->comment[i]) {
-      free(nrrd->comment[i]);
-      nrrd->comment[i] = NULL;
-      i++;
+  if (nrrd) {
+    if (nrrd->comment) {
+      i = 0;
+      while (nrrd->comment[i]) {
+	nrrd->comment[i] = airFree(nrrd->comment[i]);
+	i++;
+      }
+      nrrd->comment = airFree(nrrd->comment);
     }
-    free(nrrd->comment);
-    nrrd->comment = NULL;
+    nrrd->numComments = 0;
   }
-  nrrd->numComments = 0;
 }
 
 /*
-******** nrrdScanComments()
+******** nrrdCommentScan()
 **
 ** looks through comments of nrrd for something of the form
 ** " <key> : <val>"
@@ -461,8 +527,8 @@ nrrdClearComments(Nrrd *nrrd) {
 ** This function does not use biff.
 */
 int
-nrrdScanComments(Nrrd *nrrd, char *key, char **valP) {
-  /* char me[]="nrrdScanComments";  */
+nrrdCommentScan(Nrrd *nrrd, char *key, char **valP) {
+  /* char me[]="nrrdCommentScan";  */
   int i;
   char *cmt, *k, *c, *t;
 
@@ -605,37 +671,6 @@ nrrdCheck(Nrrd *nrrd) {
 }
 
 int
-nrrdRange(double *minP, double *maxP, Nrrd *nrrd) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdRange";
-  char _min[NRRD_MAX_TYPE_SIZE], _max[NRRD_MAX_TYPE_SIZE];
-
-  if (!nrrd) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return(1);
-  }
-  if (nrrdTypeUChar == nrrd->type) {
-    *minP = 0;
-    *maxP = UCHAR_MAX;
-  }
-  else if (nrrdTypeChar == nrrd->type) {
-    *minP = SCHAR_MIN;
-    *maxP = SCHAR_MAX;
-  }
-  else if (nrrdTypeChar < nrrd->type &&
-	   nrrd->type < nrrdTypeBlock) {
-    nrrdMinMax[nrrd->type](_min, _max, nrrd->num, nrrd->data);
-    *minP = nrrdDLoad[nrrd->type](_min);
-    *maxP = nrrdDLoad[nrrd->type](_max);
-  }
-  else {
-    sprintf(err, "%s: don't know how to find range in type %d data",
-	    me, nrrd->type);
-    biffSet(NRRD, err); return 1;
-  }
-  return 0;
-}  
-
-int
 nrrdSameSize(Nrrd *n1, Nrrd *n2) {
   char me[]="nrrdSameSize", err[NRRD_MED_STRLEN];
   int i;
@@ -667,8 +702,8 @@ _nrrdInitResample(nrrdResampleInfo *info) {
     info->samples[d] = 0;
     info->param[d][0] = 1.0;
     for (i=1; i<=NRRD_MAX_KERNEL_PARAMS-1; i++)
-      info->param[d][i] = airNanf();
-    info->min[d] = info->max[d] = airNanf();
+      info->param[d][i] = AIR_NAN;
+    info->min[d] = info->max[d] = AIR_NAN;
   }
   info->type = nrrdTypeUnknown;
   /* these may or may not be the best choices for default values */
@@ -691,10 +726,7 @@ nrrdResampleInfoNew(void) {
 nrrdResampleInfo *
 nrrdResampleInfoNix(nrrdResampleInfo *info) {
   
-  if (info) {
-    free(info);
-  }
-  return NULL;
+  return airFree(info);
 }
 
 /*
