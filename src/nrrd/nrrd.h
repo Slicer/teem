@@ -546,7 +546,7 @@ extern int nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr);
 /********* various kinds of histograms */
 /* histogram.c */
 extern int nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type);
-extern int nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy);
+extern int nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy, int showLog);
 extern int nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int axis, int bins, int type);
 extern int nrrdHistoJoint(Nrrd *nout, Nrrd **nin, 
 			  int numNin, int *bins, int type, int *clamp);

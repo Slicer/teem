@@ -37,7 +37,7 @@ main(int argc, char **argv) {
   }
   
   nrrdHisto(nhist=nrrdNew(), nval, BINS, nrrdTypeInt);
-  nrrdHistoDraw(npgm=nrrdNew(), nhist, HGHT);
+  nrrdHistoDraw(npgm=nrrdNew(), nhist, HGHT, AIR_FALSE);
   nrrdSave("hist.pgm", npgm, NULL);
   
   nrrdNuke(nval);

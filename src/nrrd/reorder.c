@@ -402,7 +402,8 @@ int
 nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
   char me[]="nrrdJoin", err[AIR_STRLEN_MED];
   int mindim, maxdim, diffdim, outdim, map[NRRD_DIM_MAX], size[NRRD_DIM_MAX],
-    i, d, outlen, permute[NRRD_DIM_MAX], ipermute[NRRD_DIM_MAX];
+    i, d, outlen, permute[NRRD_DIM_MAX], ipermute[NRRD_DIM_MAX],
+    axmap[NRRD_DIM_MAX];
   size_t outnum, chunksize;
   char *dataPerm;
   Nrrd *ntmpperm,    /* axis-permuted version of output */
@@ -511,6 +512,16 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
 	size[d] = size[d-1];
       }
       size[mindim] = 1;
+      /* this may be done needlessly often */
+      for (d=0; d<=nin[i]->dim; d++) {
+	if (d < mindim) {
+	  axmap[d] = d;
+	} else if (d > mindim) {
+	  axmap[d] = d-1;
+	} else {
+	  axmap[d] = -1;
+	}
+      }
       /* we don't have to actually call nrrdReshape(): we just nrrdWrap()
 	 the input data with the reshaped size array */
       if (nrrdWrap_nva(ninperm[i], nin[i]->data, nin[i]->type,
@@ -519,6 +530,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
 		me, i);
 	biffAdd(NRRD, err); airMopError(mop); return 1;    
       }
+      nrrdAxesCopy(ninperm[i], nin[i], axmap, NRRD_AXESINFO_SIZE_BIT);
     } else {
       /* on this part, we permute (no need for a reshape) */
       airMopAdd(mop, ninperm[i], (airMopper)nrrdNuke, airMopAlways);

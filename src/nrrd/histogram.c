@@ -107,13 +107,14 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type) {
 }
 
 int
-nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy) {
+nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy, int showLog) {
   char me[]="nrrdHistoDraw", func[]="dhisto", err[AIR_STRLEN_MED],
     cmt[AIR_STRLEN_MED];
   int k, sx, x, y, maxhitidx, E,
     numticks, *Y, *logY, tick, *ticks;
   double hits, maxhits;
   unsigned char *pgmData;
+  airArray *mop;
 
   if (!(nin && nout && sy > 0)) {
     sprintf(err, "%s: invalid args", me);
@@ -157,12 +158,16 @@ nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy) {
     }
   }
   numticks = log10(maxhits + 1);
+  mop = airMopInit();
   ticks = (int*)calloc(numticks, sizeof(int));
+  airMopMem(mop, &ticks, airMopAlways);
   Y = (int*)calloc(sx, sizeof(int));
+  airMopMem(mop, &Y, airMopAlways);
   logY = (int*)calloc(sx, sizeof(int));
+  airMopMem(mop, &logY, airMopAlways);
   if (!(ticks && Y && logY)) {
     sprintf(err, "%s: failed to allocate temp arrays", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   for (k=0; k<numticks; k++) {
     AIR_INDEX(0, log10(pow(10,k+1) + 1), log10(maxhits+1), sy, ticks[k]);
@@ -179,13 +184,16 @@ nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy) {
       tick |= ticks[k] == y;
     for (x=0; x<sx; x++) {
       pgmData[x + sx*(sy-1-y)] = 
-	(y >= logY[x]       /* above log curve                       */
-	 ? (!tick ? 0       /*                    not on tick mark   */
-	    : 255)          /*                    on tick mark       */
-	 : (y >= Y[x]       /* below log curve, above normal curve   */
-	    ? (!tick ? 128  /*                    not on tick mark   */
-	       : 0)         /*                    on tick mark       */
-	    :255            /* below log curve, below normal curve */
+	(!showLog
+	 ? (y >= Y[x] ? 0 : 255)
+	 : (y >= logY[x]       /* above log curve                       */
+	    ? (!tick ? 0       /*                    not on tick mark   */
+	       : 255)          /*                    on tick mark       */
+	    : (y >= Y[x]       /* below log curve, above normal curve   */
+	       ? (!tick ? 128  /*                    not on tick mark   */
+		  : 0)         /*                    on tick mark       */
+	       :255            /* below log curve, below normal curve */
+	       )
 	    )
 	 );
     }
@@ -201,13 +209,11 @@ nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy) {
   if (!E) E |= nrrdContentSet(nout, func, nin, "%d", sy);
   if (E) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 
   /* bye */
-  Y = airFree(Y);
-  logY = airFree(logY);
-  ticks = airFree(ticks);
+  airMopOkay(mop);
   return 0;
 }
 
