@@ -45,7 +45,7 @@ main(int argc, char **argv) {
     exit(1);
   }
 
-  if (nrrdMinMaxClever(nrrd)) {
+  if (nrrdMinMaxCleverSet(nrrd)) {
     fprintf(stderr, "%s: trouble finding min/max \"%s\":\n%s", 
 	    me, argv[1], err = biffGet(NRRD));
     free(err);

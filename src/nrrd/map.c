@@ -31,7 +31,7 @@
 ** (because of the nrrdFindMinMax[] functions)
 **
 ** decided NOT to use biff, so that this is a more distinct alternative to 
-** nrrdMinMaxClever().
+** nrrdMinMaxCleverSet().
 */
 void
 nrrdMinMaxSet(Nrrd *nrrd) {
@@ -51,7 +51,7 @@ nrrdMinMaxSet(Nrrd *nrrd) {
 }
 
 /*
-** nrrdMinMaxClever()
+** nrrdMinMaxCleverSet()
 **
 ** basically a wrapper around nrrdMinMaxSet(), with bells + whistles:
 ** 1) will call nrrdMinMaxSet only when one of nrrd->min and nrrd->max
@@ -68,8 +68,8 @@ nrrdMinMaxSet(Nrrd *nrrd) {
 ** Uses biff.
 */
 int
-nrrdMinMaxClever(Nrrd *nrrd) {
-  char me[]="nrrdMinMaxClever", err[AIR_STRLEN_MED];
+nrrdMinMaxCleverSet(Nrrd *nrrd) {
+  char me[]="nrrdMinMaxCleverSet", err[AIR_STRLEN_MED];
   double min, max;
 
   if (!nrrd) {
@@ -257,7 +257,7 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
     sprintf(err, "%s: nout==nin but input,output type sizes unequal", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdMinMaxClever(nin)) {
+  if (nrrdMinMaxCleverSet(nin)) {
     sprintf(err, "%s: trouble setting min, max", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -441,7 +441,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
     }
     /* now create the histogram */
     nin->min = nin->max = AIR_NAN;
-    if (nrrdMinMaxClever(nin)) {
+    if (nrrdMinMaxCleverSet(nin)) {
       sprintf(err, "%s: couldn't find value range in nrrd", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
