@@ -83,7 +83,7 @@ extern int _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIO *io, int useBiff);
 extern int _nrrdSizeValid(int dim, int *size);
 extern void _nrrdTraverse(Nrrd *nrrd);
 
-#ifdef TEEM_GZIP
+#ifdef TEEM_ZLIB
 #include <zlib.h>
 
 /* gzio.c */
