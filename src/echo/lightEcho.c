@@ -34,7 +34,7 @@ _echoLight##TYPE##_new(void) {                                   \
 NEW_TMPL(Directional,dummy=dummy;) /* _echoLightDirectional_new */
 NEW_TMPL(Area,                     /* _echoLightArea_new */
 	 light->obj = NULL;
-	 );
+	 )
 
 EchoLight_ *(*
 _echoLightNew[ECHO_LIGHT_MAX+1])(void) = {
