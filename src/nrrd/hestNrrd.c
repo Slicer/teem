@@ -200,9 +200,12 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     } else {
       /* fopen() failed, so it probably wasn't meant to be a filename */
       free(biffGetDone(NRRD));
-      if (_nrrdLooksLikeANumber(str)) {
-	/* printf("|%s| looks like a number\n", str); */
-	if (1 == airSingleSscanf(str, "%lf", &val)) {
+      ret = airSingleSscanf(str, "%lf", &val);
+      if (_nrrdLooksLikeANumber(str)
+	  || (1 == ret && !AIR_EXISTS(val))) {
+	/* either it patently looks like a number, or,
+	   it already parsed as a number and it is a special value */
+	if (1 == ret) {
 	  nrrdIterSetValue(*iterP, val);
 	} else {
 	  /* oh, this is bad. */
