@@ -283,6 +283,28 @@ gageQuerySet (gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
 }
 
 int
+gageQueryAdd(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
+  char me[]="gageQueryAdd", err[AIR_STRLEN_MED];
+
+  if (!( pvl )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  if (pvl->thisIsACopy) {
+    sprintf(err, "%s: can't operate on a pervolume copy", me);
+    biffAdd(GAGE, err); return 1;
+  }
+
+  GAGE_QUERY_ADD(pvl->query, query);
+  if (gageQuerySet(ctx, pvl, pvl->query)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(GAGE, err); return 1;
+  }
+
+  return 0;
+}
+
+int
 gageQueryItemOn(gageContext *ctx, gagePerVolume *pvl, int item) {
   char me[]="gageQueryItemOn", err[AIR_STRLEN_MED];
 

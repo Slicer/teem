@@ -139,8 +139,8 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
       ELL_3M_ZERO_SET(gten);
     }
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclCurvedness)) {
-    curv = pvl->directAnswer[gageSclCurvedness][0] = ELL_3M_FROB(gten);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclTotalCurv)) {
+    curv = pvl->directAnswer[gageSclTotalCurv][0] = ELL_3M_FROB(gten);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclShapeTrace)) {
     pvl->directAnswer[gageSclShapeTrace][0] = (curv

@@ -30,12 +30,6 @@
 #include <teem/ell.h>
 #include <teem/nrrd.h>
 
-#if defined(_WIN32) && !defined(TEEM_STATIC) && !defined(__CYGWIN__)
-#define gage_export __declspec(dllimport)
-#else
-#define gage_export
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -260,7 +254,7 @@ enum {
 			     evecs {grad, cdir0, cdir1}: GT[9] */
   gageSclK1,          /* 17: "k1", 1st principle curvature: GT[1] */
   gageSclK2,          /* 18: "k2", 2nd principle curvature (k2 <= k1): GT[1] */
-  gageSclCurvedness,  /* 19: "cv", L2 norm(K1,K2) (not Koen.'s "C"): GT[1] */
+  gageSclTotalCurv,   /* 19: "tc", L2 norm(K1,K2) (not Koen.'s "C"): GT[1] */
   gageSclShapeTrace,  /* 20, "st", (K1+K2)/Curvedness: GT[1] */
   gageSclShapeIndex,  /* 21: "si", Koen.'s shape index, ("S"): GT[1] */
   gageSclMeanCurv,    /* 22: "mc", mean curvature (K1 + K2)/2: GT[1] */
@@ -448,6 +442,9 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
 #define GAGE_QUERY_COPY(p, q) \
   p[0] = q[0]; p[1] = q[1]; p[2] = q[2]; p[3] = q[3]; \
   p[4] = q[4]; p[5] = q[5]; p[6] = q[6]; p[7] = q[7]
+#define GAGE_QUERY_ADD(p, q) \
+  p[0] |= q[0]; p[1] |= q[1]; p[2] |= q[2]; p[3] |= q[3]; \
+  p[4] |= q[4]; p[5] |= q[5]; p[6] |= q[6]; p[7] |= q[7]
 #define GAGE_QUERY_EQUAL(p, q) \
   (p[0] == q[0] && p[1] == q[1] && p[2] == q[2] && p[3] == q[3] \
    && p[4] == q[4] && p[5] == q[5] && p[6] == q[6] && p[7] == q[7])
@@ -582,116 +579,119 @@ typedef struct {
 } gageItemSpec;
 
 /* defaultsGage.c */
-extern gage_export const char *gageBiffKey;
-extern gage_export int gageDefVerbose;
-extern gage_export gage_t gageDefGradMagMin;
-extern gage_export gage_t gageDefGradMagCurvMin;
-extern gage_export int gageDefRenormalize;
-extern gage_export int gageDefCheckIntegrals;
-extern gage_export int gageDefNoRepadWhenSmaller;
-extern gage_export int gageDefK3Pack;
-extern gage_export gage_t gageDefDefaultSpacing;
-extern gage_export int gageDefCurvNormalSide;
-extern gage_export double gageDefKernelIntegralNearZero;
-extern gage_export int gageDefRequireAllSpacings;
-extern gage_export int gageDefRequireEqualCenters;
-extern gage_export int gageDefDefaultCenter;
+TEEM_API const char *gageBiffKey;
+TEEM_API int gageDefVerbose;
+TEEM_API gage_t gageDefGradMagMin;
+TEEM_API gage_t gageDefGradMagCurvMin;
+TEEM_API int gageDefRenormalize;
+TEEM_API int gageDefCheckIntegrals;
+TEEM_API int gageDefNoRepadWhenSmaller;
+TEEM_API int gageDefK3Pack;
+TEEM_API gage_t gageDefDefaultSpacing;
+TEEM_API int gageDefCurvNormalSide;
+TEEM_API double gageDefKernelIntegralNearZero;
+TEEM_API int gageDefRequireAllSpacings;
+TEEM_API int gageDefRequireEqualCenters;
+TEEM_API int gageDefDefaultCenter;
 
 /* miscGage.c */
 /* gageErrStr and gageErrNum are for describing errors that happen in
    gageProbe(): using biff is too heavy-weight for this, and the idea is
    that no ill should occur if the error is repeatedly ignored */
-extern gage_export char gageErrStr[AIR_STRLEN_LARGE];
-extern gage_export int gageErrNum;
-extern gage_export gage_t gageZeroNormal[3];
-extern gage_export airEnum *gageKernel;
-extern void gageParmReset(gageParm *parm);
-extern void gagePointReset(gagePoint *point);
-extern gageItemSpec *gageItemSpecNew(void);
-extern gageItemSpec *gageItemSpecNix(gageItemSpec *isp);
+TEEM_API char gageErrStr[AIR_STRLEN_LARGE];
+TEEM_API int gageErrNum;
+TEEM_API gage_t gageZeroNormal[3];
+TEEM_API airEnum *gageKernel;
+TEEM_API void gageParmReset(gageParm *parm);
+TEEM_API void gagePointReset(gagePoint *point);
+TEEM_API gageItemSpec *gageItemSpecNew(void);
+TEEM_API gageItemSpec *gageItemSpecNix(gageItemSpec *isp);
 
 /* kind.c */
-extern int gageKindCheck(gageKind *kind);
-extern int gageKindTotalAnswerLength(gageKind *kind);
-extern int gageKindAnswerOffset(gageKind *kind, int item);
+TEEM_API int gageKindCheck(gageKind *kind);
+TEEM_API int gageKindTotalAnswerLength(gageKind *kind);
+TEEM_API int gageKindAnswerOffset(gageKind *kind, int item);
 
 /* print.c */
-extern void gageQueryPrint(FILE *file, gageKind *kind, gageQuery query);
+TEEM_API void gageQueryPrint(FILE *file, gageKind *kind, gageQuery query);
 
 /* sclfilter.c */
-extern void gageScl3PFilter2(gage_t *iv3, gage_t *iv2, gage_t *iv1,
-			     gage_t *fw00, gage_t *fw11, gage_t *fw22,
-			     gage_t *val, gage_t *gvec, gage_t *hess,
-			     int doV, int doD1, int doD2);
-extern void gageScl3PFilter4(gage_t *iv3, gage_t *iv2, gage_t *iv1,
-			     gage_t *fw00, gage_t *fw11, gage_t *fw22,
-			     gage_t *val, gage_t *gvec, gage_t *hess,
-			     int doV, int doD1, int doD2);
-extern void gageScl3PFilterN(int fd,
-			     gage_t *iv3, gage_t *iv2, gage_t *iv1,
-			     gage_t *fw00, gage_t *fw11, gage_t *fw22,
-			     gage_t *val, gage_t *gvec, gage_t *hess,
-			     int doV, int doD1, int doD2);
+TEEM_API void gageScl3PFilter2(gage_t *iv3, gage_t *iv2, gage_t *iv1,
+			       gage_t *fw00, gage_t *fw11, gage_t *fw22,
+			       gage_t *val, gage_t *gvec, gage_t *hess,
+			       int doV, int doD1, int doD2);
+TEEM_API void gageScl3PFilter4(gage_t *iv3, gage_t *iv2, gage_t *iv1,
+			       gage_t *fw00, gage_t *fw11, gage_t *fw22,
+			       gage_t *val, gage_t *gvec, gage_t *hess,
+			       int doV, int doD1, int doD2);
+TEEM_API void gageScl3PFilterN(int fd,
+			       gage_t *iv3, gage_t *iv2, gage_t *iv1,
+			       gage_t *fw00, gage_t *fw11, gage_t *fw22,
+			       gage_t *val, gage_t *gvec, gage_t *hess,
+			       int doV, int doD1, int doD2);
 
 /* scl.c */
-extern gage_export airEnum *gageScl;
-extern gage_export gageKind *gageKindScl;
+TEEM_API airEnum *gageScl;
+TEEM_API gageKind *gageKindScl;
 
 /* vecGage.c (together with vecprint.c, these contain everything to
    implement the "vec" kind, and could be used as examples of what it
    takes to create a new gageKind) */
-extern gage_export airEnum *gageVec;
-extern gage_export gageKind *gageKindVec;
+TEEM_API airEnum *gageVec;
+TEEM_API gageKind *gageKindVec;
 
 /* shape.c */
-extern void gageShapeReset(gageShape *shp);
-extern gageShape *gageShapeNew();
-extern gageShape *gageShapeNix(gageShape *shape);
-extern int gageShapeSet(gageShape *shp, Nrrd *nin, int baseDim);
-extern void gageShapeUnitWtoI(gageShape *shape,
-			      double index[3], double world[3]);
-extern void gageShapeUnitItoW(gageShape *shape,
-			      double world[3], double index[3]);
-extern int gageShapeEqual(gageShape *shp1, char *name1,
-			  gageShape *shp2, char *name2);
+TEEM_API void gageShapeReset(gageShape *shp);
+TEEM_API gageShape *gageShapeNew();
+TEEM_API gageShape *gageShapeNix(gageShape *shape);
+TEEM_API int gageShapeSet(gageShape *shp, Nrrd *nin, int baseDim);
+TEEM_API void gageShapeUnitWtoI(gageShape *shape,
+				double index[3], double world[3]);
+TEEM_API void gageShapeUnitItoW(gageShape *shape,
+				double world[3], double index[3]);
+TEEM_API int gageShapeEqual(gageShape *shp1, char *name1,
+			    gageShape *shp2, char *name2);
 
 /* the organization of the next two files used to be according to
    what the first argument is, not what appears in the function name,
    but that's just a complete mess now */
 /* pvl.c */
-extern int gageVolumeCheck(gageContext *ctx, Nrrd *nin, gageKind *kind);
-extern gagePerVolume *gagePerVolumeNew(gageContext *ctx,
-				       Nrrd *nin, gageKind *kind);
-extern gagePerVolume *gagePerVolumeNix(gagePerVolume *pvl);
-extern void gagePadderSet(gageContext *ctx,
-			  gagePerVolume *pvl, gagePadder_t *padder);
-extern void gageNixerSet(gageContext *ctx, 
-			 gagePerVolume *pvl, gageNixer_t *nixer);
-extern gage_t *gageAnswerPointer(gageContext *ctx, 
-				 gagePerVolume *pvl, int item);
-extern int gageQueryReset(gageContext *ctx, gagePerVolume *pvl);
-extern int gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query);
-extern int gageQueryItemOn(gageContext *ctx, gagePerVolume *pvl, int item);
+TEEM_API int gageVolumeCheck(gageContext *ctx, Nrrd *nin, gageKind *kind);
+TEEM_API gagePerVolume *gagePerVolumeNew(gageContext *ctx,
+					 Nrrd *nin, gageKind *kind);
+TEEM_API gagePerVolume *gagePerVolumeNix(gagePerVolume *pvl);
+TEEM_API void gagePadderSet(gageContext *ctx,
+			    gagePerVolume *pvl, gagePadder_t *padder);
+TEEM_API void gageNixerSet(gageContext *ctx, 
+			   gagePerVolume *pvl, gageNixer_t *nixer);
+TEEM_API gage_t *gageAnswerPointer(gageContext *ctx, 
+				   gagePerVolume *pvl, int item);
+TEEM_API int gageQueryReset(gageContext *ctx, gagePerVolume *pvl);
+TEEM_API int gageQuerySet(gageContext *ctx, gagePerVolume *pvl,
+			  gageQuery query);
+TEEM_API int gageQueryAdd(gageContext *ctx, gagePerVolume *pvl,
+			  gageQuery query);
+TEEM_API int gageQueryItemOn(gageContext *ctx, gagePerVolume *pvl, int item);
 
 /* ctx.c */
-extern gageContext *gageContextNew();
-extern gageContext *gageContextCopy(gageContext *ctx);
-extern gageContext *gageContextNix(gageContext *ctx);
-extern void gageParmSet(gageContext *ctx, int which, gage_t val);
-extern int gagePerVolumeIsAttached(gageContext *ctx, gagePerVolume *pvl);
-extern int gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl);
-extern int gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl);
-extern int gageKernelSet(gageContext *ctx,
-			 int which, const NrrdKernel *k, double *kparm);
-extern void gageKernelReset(gageContext *ctx);
-extern int gageProbe(gageContext *ctx, gage_t x, gage_t y, gage_t z);
+TEEM_API gageContext *gageContextNew();
+TEEM_API gageContext *gageContextCopy(gageContext *ctx);
+TEEM_API gageContext *gageContextNix(gageContext *ctx);
+TEEM_API void gageParmSet(gageContext *ctx, int which, gage_t val);
+TEEM_API int gagePerVolumeIsAttached(gageContext *ctx, gagePerVolume *pvl);
+TEEM_API int gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl);
+TEEM_API int gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl);
+TEEM_API int gageKernelSet(gageContext *ctx,
+			   int which, const NrrdKernel *k, double *kparm);
+TEEM_API void gageKernelReset(gageContext *ctx);
+TEEM_API int gageProbe(gageContext *ctx, gage_t x, gage_t y, gage_t z);
 
 /* update.c */
-extern int gageUpdate(gageContext *ctx);
+TEEM_API int gageUpdate(gageContext *ctx);
 
 /* st.c */
-extern int gageStructureTensor(Nrrd *nout, Nrrd *nin,
-			       int dScale, int iScale, int dsmp);
+TEEM_API int gageStructureTensor(Nrrd *nout, Nrrd *nin,
+				 int dScale, int iScale, int dsmp);
 
 #ifdef __cplusplus
 }

@@ -51,9 +51,9 @@ _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
   {gageSclHessEvec2,     3,  2,  {gageSclHessEvec, -1, -1, -1, -1},                       gageSclHessEvec,  6},
   {gageScl2ndDD,         1,  2,  {gageSclHessian, gageSclNormal, -1, -1, -1},             -1,  -1},
   {gageSclGeomTens,      1,  2,  {gageSclHessian, gageSclNPerp, gageSclGradMag, -1, -1},  -1,  -1},
-  {gageSclK1,            1,  2,  {gageSclCurvedness, gageSclShapeTrace, -1, -1, -1},      -1,  -1},
-  {gageSclK2,            1,  2,  {gageSclCurvedness, gageSclShapeTrace, -1, -1, -1},      -1,  -1},
-  {gageSclCurvedness,    1,  2,  {gageSclGeomTens, -1, -1, -1, -1},                       -1,  -1},
+  {gageSclK1,            1,  2,  {gageSclTotalCurv, gageSclShapeTrace, -1, -1, -1},      -1,  -1},
+  {gageSclK2,            1,  2,  {gageSclTotalCurv, gageSclShapeTrace, -1, -1, -1},      -1,  -1},
+  {gageSclTotalCurv,     1,  2,  {gageSclGeomTens, -1, -1, -1, -1},                       -1,  -1},
   {gageSclShapeTrace,    1,  2,  {gageSclGeomTens, -1, -1, -1, -1},                       -1,  -1},
   {gageSclShapeIndex,    1,  2,  {gageSclK1, gageSclK2, -1, -1, -1},                      -1,  -1},
   {gageSclMeanCurv,      1,  2,  {gageSclK1, gageSclK2, -1, -1, -1},                      -1,  -1},
@@ -85,7 +85,7 @@ _gageSclStr[][AIR_STRLEN_SMALL] = {
   "geometry tensor",
   "kappa1",
   "kappa2",
-  "curvedness",
+  "total curvature",
   "shape trace",
   "shape index",
   "mean curvature",
@@ -117,8 +117,8 @@ _gageSclDesc[][AIR_STRLEN_MED] = {
   "geometry tensor",
   "1st principal curvature (K1)",
   "2nd principal curvature (K2)",
-  "curvedness (L2 norm of K1, K2)",
-  "shape trace = (K1+K2)/curvedness",
+  "total curvature (L2 norm of K1, K2)",
+  "shape trace = (K1+K2)/(total curvature)",
   "Koenderink's shape index",
   "mean curvature = (K1+K2)/2",
   "gaussian curvature = K1*K2",
@@ -149,7 +149,7 @@ _gageSclVal[] = {
   gageSclGeomTens,
   gageSclK1,
   gageSclK2,
-  gageSclCurvedness,
+  gageSclTotalCurv,
   gageSclShapeTrace,
   gageSclShapeIndex,
   gageSclMeanCurv,
@@ -178,7 +178,7 @@ _gageSclVal[] = {
 #define GS_GT  gageSclGeomTens
 #define GS_K1  gageSclK1
 #define GS_K2  gageSclK2
-#define GS_CV  gageSclCurvedness
+#define GS_TC  gageSclTotalCurv
 #define GS_ST  gageSclShapeTrace
 #define GS_SI  gageSclShapeIndex
 #define GS_MC  gageSclMeanCurv
@@ -209,7 +209,7 @@ _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
   "gten", "geoten", "geomten", "geometry tensor",
   "k1", "kap1", "kappa1",
   "k2", "kap2", "kappa2",
-  "cv", "curvedness",
+  "total curv", "totalcurv", "total curvature", "tc", "cv", "curvedness",
   "st", "shape trace",
   "si", "shape index",
   "mc", "mcurv", "meancurv", "mean curvature",
@@ -241,7 +241,7 @@ _gageSclValEqv[] = {
   GS_GT, GS_GT, GS_GT, GS_GT, 
   GS_K1, GS_K1, GS_K1,
   GS_K2, GS_K2, GS_K2,
-  GS_CV, GS_CV,
+  GS_TC, GS_TC, GS_TC, GS_TC, GS_TC, GS_TC,
   GS_ST, GS_ST,
   GS_SI, GS_SI,
   GS_MC, GS_MC, GS_MC, GS_MC,
