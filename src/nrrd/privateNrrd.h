@@ -37,7 +37,7 @@ extern "C" {
 #  define EVALN evalN_d               /* NrrdKernel method */
 #endif
 
-#define _NRRD_TABLE_INCR 256
+#define _NRRD_TABLE_INCR 1024
 
 /*
 ** _NRRD_SPACING
