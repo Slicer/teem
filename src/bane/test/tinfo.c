@@ -40,7 +40,7 @@ main(int argc, char *argv[]) {
   dStr = argv[2];
   oStr = argv[3];
 
-  if (!(hvol = nrrdNewLoad(iStr))) {
+  if (nrrdLoad(hvol=nrrdNew(), iStr)) {
     fprintf(stderr, "%s: trouble reading hvol:\n%s\n", me, biffGet(NRRD));
     usage();
   }
@@ -53,7 +53,7 @@ main(int argc, char *argv[]) {
 	    me, dim, biffGet(BANE));
     exit(1);
   }
-  if (nrrdSave(oStr, info)) {
+  if (nrrdSave(oStr, info, NULL)) {
     fprintf(stderr, "%s: trouble saving nrrd to %s:\n%s\n", me, oStr,
 	    biffGet(NRRD));
     exit(1);

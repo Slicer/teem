@@ -120,7 +120,7 @@ baneProbe(float *_ans, Nrrd *nin, int query,
     *grad, *hess,               /* madness */
     *tmpP, 
     xs, ys, zs,                 /* scaling along the axis */
-    (*lup)(void *v, NRRD_BIG_INT I);  /* nrrdFLookup[] element */
+    (*lup)(void *v, nrrdBigInt I);  /* nrrdFLookup[] element */
   static int 
     idx,                        /* volume index for voxel at probe */
     lidx,                       /* volume index for lower corner of 
@@ -154,12 +154,12 @@ baneProbe(float *_ans, Nrrd *nin, int query,
     ans = _ans;
     data = nin->data;
     lup = nrrdFLookup[nin->type];
-    sx = nin->size[0];
-    sy = nin->size[1];
-    sz = nin->size[2];
-    xs = nin->spacing[0]; xs = AIR_EXISTS(xs) ? xs : 1.0;
-    ys = nin->spacing[1]; ys = AIR_EXISTS(ys) ? ys : 1.0;
-    zs = nin->spacing[2]; zs = AIR_EXISTS(zs) ? zs : 1.0;
+    sx = nin->axis[0].size;
+    sy = nin->axis[1].size;
+    sz = nin->axis[2].size;
+    xs = nin->axis[0].spacing; xs = AIR_EXISTS(xs) ? xs : 1.0;
+    ys = nin->axis[1].spacing; ys = AIR_EXISTS(ys) ? ys : 1.0;
+    zs = nin->axis[2].spacing; zs = AIR_EXISTS(zs) ? zs : 1.0;
     if (baneProbeDebug) {
       fprintf(stderr, "%s: sx,sy,sz = (%d,%d,%d); xs,ys,zs = (%g,%g,%g)\n",
 	      me, sx, sy, sz, xs, ys, zs);
@@ -329,9 +329,9 @@ baneProbe(float *_ans, Nrrd *nin, int query,
     break;
   }
   /* does evaluations for x, y, z all at once to minimize calling overhead */
-  pack->k[0]->evalVec(fw0, fsl, 3*fd, pack->param[0]);
-  pack->k[1]->evalVec(fw1, fsl, 3*fd, pack->param[1]);
-  pack->k[2]->evalVec(fw2, fsl, 3*fd, pack->param[2]);
+  pack->k[0]->evalVec_f(fw0, fsl, 3*fd, pack->param[0]);
+  pack->k[1]->evalVec_f(fw1, fsl, 3*fd, pack->param[1]);
+  pack->k[2]->evalVec_f(fw2, fsl, 3*fd, pack->param[2]);
   /* fix scalings for anisotropic voxels */
   for (i=0; i<=fd-1; i++) {
     fw1x[i] /= xs;  fw2x[i] /= xs*xs;

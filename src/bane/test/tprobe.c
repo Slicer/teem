@@ -68,7 +68,7 @@ main(int argc, char *argv[]) {
   printf("]\n");
   */
 
-  if (!(nin = nrrdNewLoad(argv[1]))) {
+  if (nrrdLoad(nin=nrrdNew(), argv[1])) {
     fprintf(stderr, "%s: can't open it.\n", me);
   }
   query = BANE_PROBE_GRADMAG | BANE_PROBE_2NDDD | BANE_PROBE_HESS;
@@ -78,11 +78,8 @@ main(int argc, char *argv[]) {
   by = 4;
   bz = 4;
   size = 100;
-  nout = nrrdNewAlloc(6*size*size*size, nrrdTypeFloat, 4);
-  nout->size[0] = 6;
-  nout->size[1] = size;
-  nout->size[2] = size;
-  nout->size[3] = size;
+  nrrdAlloc_va(nout=nrrdNew(), 6*size*size*size, nrrdTypeFloat, 4,
+	       6, size, size, size);
   data = nout->data;
   t0 = airTime();
   for (zi=0; zi<=size-1; zi++) {
@@ -113,7 +110,7 @@ main(int argc, char *argv[]) {
   t1 = airTime();
   printf("probe rate = %g/sec\n", size*size*size/(t1-t0));
   
-  nrrdSave("out.nrrd", nout);
+  nrrdSave("out.nrrd", nout, NULL);
 
   nrrdNuke(nin);
   nrrdNuke(nout);

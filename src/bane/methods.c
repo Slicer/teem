@@ -100,7 +100,7 @@ baneProbeK3PackNew() {
   if (pack) {
     pack->k[0] = pack->k[1] = pack->k[2] = nrrdKernelZero;
     pack->param[0][0] = pack->param[1][0] = pack->param[2][0] = 1.0;
-    for (i=1; i<=NRRD_MAX_KERNEL_PARAMS-1; i++) {
+    for (i=1; i<=NRRD_KERNEL_PARAMS_MAX-1; i++) {
       pack->param[0][i] = pack->param[1][i] = pack->param[2][i] = 0;
     }
   }

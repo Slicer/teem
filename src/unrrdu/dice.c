@@ -42,7 +42,7 @@ main(int argc, char *argv[]) {
   }
   in = argv[1];
   base = argv[3];
-  if (!(nin = nrrdNewLoad(in))) {
+  if (nrrdLoad(nin=nrrdNew(), in)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error reading nrrd from \"%s\":%s\n", me, in, err);
     free(err);
@@ -53,7 +53,7 @@ main(int argc, char *argv[]) {
 	    me, axis, nin->dim-1);
     exit(1);
   }
-  top = nin->size[axis]-1;
+  top = nin->axis[axis].size-1;
   if (top > 99999)
     sprintf(format, "%%s%%06d.nrrd");
   else if (top > 9999)
@@ -76,8 +76,7 @@ main(int argc, char *argv[]) {
       free(err);
       exit(1);
     }
-    nout->encoding = nrrdEncodingRaw;
-    if (nrrdSave(out, nout)) {
+    if (nrrdSave(out, nout, NULL)) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: error writing nrrd to \"%s\":%s\n", me, out, err);
       free(err);

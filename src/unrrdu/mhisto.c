@@ -31,22 +31,22 @@ usage() {
 int
 main(int argc, char **argv) {
   char *err;
-  Nrrd *nin[NRRD_MAX_DIM], *nout;
-  int d, n, bin[NRRD_MAX_DIM], clamp[NRRD_MAX_DIM];
-  float min[NRRD_MAX_DIM], max[NRRD_MAX_DIM];
+  Nrrd *nin[NRRD_DIM_MAX], *nout;
+  int d, n, bin[NRRD_DIM_MAX], clamp[NRRD_DIM_MAX];
+  float min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
 
   me = argv[0];
   if (argc < 4 || 0 != argc%2) 
     usage();
   n = (argc-2)/2;
-  if (n > NRRD_MAX_DIM) {
+  if (n > NRRD_DIM_MAX) {
     fprintf(stderr, "%s: sorry, can only deal with up to %d nrrds\n", 
-	    me, NRRD_MAX_DIM);
+	    me, NRRD_DIM_MAX);
     exit(1);
   }
   fprintf(stderr, "%s: will try to parse 2*%d args\n", me, n);
   for (d=0; d<=n-1; d++) {
-    if (!(nin[d] = nrrdNewLoad(argv[1+d]))) {
+    if (nrrdLoad(nin[d]=nrrdNew(), argv[1+d])) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: trouble reading nrrd %d from \"%s\":\n%s\n", me,
 	      d, argv[1+d], err);
@@ -86,7 +86,7 @@ main(int argc, char **argv) {
     nrrdNuke(nin[d]);
   }
 
-  if (nrrdSave(argv[2*n+1], nout)) {
+  if (nrrdSave(argv[2*n+1], nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble writing output nrrd to \"%s\":\n%s\n", 
 	    me, argv[2*n+1], err);

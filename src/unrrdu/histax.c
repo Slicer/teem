@@ -48,7 +48,7 @@ main(int argc, char **argv) {
 	    me, axStr, binStr);
     exit(1);
   }
-  if (!(nin = nrrdNewLoad(inStr))) {
+  if (nrrdLoad(nin=nrrdNew(), inStr)) {
     err = biffGet(NRRD);
     fprintf(stderr, 
 	    "%s: trouble reading nrrd from \"%s\":\n%s\n", me, inStr, err);
@@ -63,8 +63,7 @@ main(int argc, char **argv) {
     free(err);
     exit(1);
   }
-  nout->encoding = nrrdEncodingRaw;
-  if (nrrdSave(outStr, nout)) {
+  if (nrrdSave(outStr, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble writing output to \"%s\":\n%s\n",
 	    me, outStr, err);

@@ -46,7 +46,7 @@ main(int argc, char *argv[]) {
   in = argv[1];
   out = argv[4];
 
-  if (!(nin = nrrdNewLoad(in))) {
+  if (nrrdLoad(nin=nrrdNew(), in)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: couldn't get nrrd from %s:\n%s\n", me, in, err);
     free(err);
@@ -59,8 +59,7 @@ main(int argc, char *argv[]) {
     free(err);
     exit(1);
   }
-  nout->encoding = nrrdEncodingRaw;
-  if (nrrdSave(out, nout)) {
+  if (nrrdSave(out, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error saving nrrd to %s:\n%s\n", me, out, err);
     free(err);

@@ -19,7 +19,7 @@
 #include "bane.h"
 
 double
-_baneMeasrUnknown(Nrrd *n, NRRD_BIG_INT idx) {
+_baneMeasrUnknown(Nrrd *n, nrrdBigInt idx) {
   char me[]="_baneMeasrUnknown";
   
   fprintf(stderr, "%s: Need To Specify A Measure !!!\n", me);
@@ -27,18 +27,19 @@ _baneMeasrUnknown(Nrrd *n, NRRD_BIG_INT idx) {
 }
 
 double
-_baneMeasrVal(Nrrd *n, NRRD_BIG_INT idx) {
+_baneMeasrVal(Nrrd *n, nrrdBigInt idx) {
 
   return nrrdDLookup[n->type](n->data, idx);
 }
 
 double
-_baneMeasrGradMag_cd(Nrrd *n, NRRD_BIG_INT idx) {
-  double (*lookup)(void *, NRRD_BIG_INT), dx, dy, dz, gm, *spc;
+_baneMeasrGradMag_cd(Nrrd *n, nrrdBigInt idx) {
+  double (*lookup)(void *, nrrdBigInt), dx, dy, dz, gm, spc[3];
   int sx, sxy;
 
-  lookup = nrrdDLookup[n->type]; sx = n->size[0]; sxy = sx*n->size[1];
-  spc = n->spacing;
+  lookup = nrrdDLookup[n->type]; 
+  sx = n->axis[0].size; sxy = sx*n->axis[1].size;
+  nrrdAxesGet(n, nrrdAxesInfoSpacing, spc);
 
   dx = (lookup(n->data, idx   +1) - lookup(n->data, idx   -1))/(2*spc[0]);
   dy = (lookup(n->data, idx  +sx) - lookup(n->data, idx  -sx))/(2*spc[1]);
@@ -49,12 +50,13 @@ _baneMeasrGradMag_cd(Nrrd *n, NRRD_BIG_INT idx) {
 }
 
 double
-_baneMeasrLapl_cd(Nrrd *n, NRRD_BIG_INT idx) {
-  double (*lookup)(void *, NRRD_BIG_INT), cv, *spc, lapl;
+_baneMeasrLapl_cd(Nrrd *n, nrrdBigInt idx) {
+  double (*lookup)(void *, nrrdBigInt), cv, spc[3], lapl;
   int sx, sxy;
 
-  lookup = nrrdDLookup[n->type]; sx = n->size[0]; sxy = sx*n->size[1];
-  spc = n->spacing;
+  lookup = nrrdDLookup[n->type]; 
+  sx = n->axis[0].size; sxy = sx*n->axis[1].size;
+  nrrdAxesGet(n, nrrdAxesInfoSpacing, spc);
   cv = lookup(n->data, idx);
 
   lapl = ( (lookup(n->data, idx + 1) - 2*cv + 
@@ -68,11 +70,12 @@ _baneMeasrLapl_cd(Nrrd *n, NRRD_BIG_INT idx) {
 }
 
 void
-_baneMeasrFillCache(Nrrd *n, NRRD_BIG_INT idx, double V[3][3][3]) {
-  double (*lookup)(void *, NRRD_BIG_INT);
+_baneMeasrFillCache(Nrrd *n, nrrdBigInt idx, double V[3][3][3]) {
+  double (*lookup)(void *, nrrdBigInt);
   int sx, sxy;
 
-  lookup = nrrdDLookup[n->type]; sx = n->size[0]; sxy = sx*n->size[1];
+  lookup = nrrdDLookup[n->type]; 
+  sx = n->axis[0].size; sxy = sx*n->axis[1].size;
 
   V[0][0][0] = lookup(n->data, idx -1 -sx -sxy);
   V[0][0][1] = lookup(n->data, idx    -sx -sxy);
@@ -132,12 +135,12 @@ _baneMeasrFillCache(Nrrd *n, NRRD_BIG_INT idx, double V[3][3][3]) {
 ** dxy= (V[1][2][2] - V[1][0][2] - V[1][2][0] + V[1][0][0])/(4*spc[0]*spc[1]);
 */
 double
-_baneMeasrHess_cd(Nrrd *n, NRRD_BIG_INT idx) {
+_baneMeasrHess_cd(Nrrd *n, nrrdBigInt idx) {
   double V[3][3][3], dxx, dyy, dzz, dxy, dxz, dyz, 
-    dx, dy, dz, *spc, dot1, dot2, dot3, hess, mag;
+    dx, dy, dz, spc[3], dot1, dot2, dot3, hess, mag;
 
   _baneMeasrFillCache(n, idx, V);
-  spc = n->spacing;
+  nrrdAxesGet(n, nrrdAxesInfoSpacing, spc);
 
   dx = (V[1][1][2] - V[1][1][0])/(2*spc[0]);
   dy = (V[1][2][1] - V[1][0][1])/(2*spc[1]);
@@ -168,12 +171,13 @@ _baneMeasrHess_cd(Nrrd *n, NRRD_BIG_INT idx) {
 }
 
 double
-_baneMeasrGMG_cd(Nrrd *n, NRRD_BIG_INT idx) {
-  double (*lookup)(void *, NRRD_BIG_INT), d[3], G[3], *spc, mag, gmg;
+_baneMeasrGMG_cd(Nrrd *n, nrrdBigInt idx) {
+  double (*lookup)(void *, nrrdBigInt), d[3], G[3], spc[3], mag, gmg;
   int sx, sxy;
 
-  lookup = nrrdDLookup[n->type]; sx = n->size[0]; sxy = sx*n->size[1];
-  spc = n->spacing;
+  lookup = nrrdDLookup[n->type]; 
+  sx = n->axis[0].size; sxy = sx*n->axis[1].size;
+  nrrdAxesGet(n, nrrdAxesInfoSpacing, spc);
   
   G[0] = (lookup(n->data, idx   +1) - lookup(n->data, idx   -1))/(2*spc[0]);
   G[1] = (lookup(n->data, idx  +sx) - lookup(n->data, idx  -sx))/(2*spc[1]);
@@ -198,7 +202,7 @@ _baneMeasrGMG_cd(Nrrd *n, NRRD_BIG_INT idx) {
 }
 
 double
-(*baneMeasr[BANE_MEASR_MAX+1])(Nrrd *n, NRRD_BIG_INT idx) = {
+(*baneMeasr[BANE_MEASR_MAX+1])(Nrrd *n, nrrdBigInt idx) = {
   _baneMeasrUnknown,
   _baneMeasrVal,
   _baneMeasrGradMag_cd,

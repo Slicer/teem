@@ -46,18 +46,15 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
     biffAdd(BANE, err); return 1;
   }
   if (1 == dim) {
-    len = hvol->size[2];
+    len = hvol->axis[2].size;
     if (!info->data) {
-      if (nrrdAlloc(info, 2*len, nrrdTypeFloat, 2)) {
+      if (nrrdAlloc_va(info, nrrdTypeFloat, 2, 2, len)) {
 	sprintf(err, BIFF_NRRDALLOC, me);
 	biffMove(BANE, err, NRRD); return 1;
       }
     }
-
-    info->size[0] = 2;
-    info->size[1] = len;
-    info->axisMin[1] = hvol->axisMin[2];
-    info->axisMax[1] = hvol->axisMax[2];
+    info->axis[1].min = hvol->axis[2].min;
+    info->axis[1].max = hvol->axis[2].max;
     data1D = info->data;
 
     /* sum up along 2nd deriv for each data value, grad mag */
@@ -95,21 +92,18 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
   else {
     /* 2 == dim */
     /* hvol axes: 0: grad, 1: 2nd deriv: 2: data value */
-    sv = hvol->size[2];
-    sg = hvol->size[0];
+    sv = hvol->axis[2].size;
+    sg = hvol->axis[0].size;
     if (!info->data) {
-      if (nrrdAlloc(info, 2*sv*sg, nrrdTypeFloat, 3)) {
+      if (nrrdAlloc_va(info, nrrdTypeFloat, 3, 2, sv, sg)) {
 	sprintf(err, BIFF_NRRDALLOC, me);
 	biffMove(BANE, err, NRRD); return 1;
       }
     }
-    info->size[0] = 2;
-    info->size[1] = sv;
-    info->size[2] = sg;
-    info->axisMin[1] = hvol->axisMin[2];
-    info->axisMax[1] = hvol->axisMax[2];
-    info->axisMin[2] = hvol->axisMin[0];
-    info->axisMax[2] = hvol->axisMax[0];
+    info->axis[1].min = hvol->axis[2].min;
+    info->axis[1].max = hvol->axis[2].max;
+    info->axis[2].min = hvol->axis[0].min;
+    info->axis[2].max = hvol->axis[0].max;
     data2D = info->data;
 
     /* first create h(v,g) */
@@ -160,7 +154,7 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
     biffAdd(BANE, err); return 1;
   }
   
-  len = info2D->size[1];
+  len = info2D->axis[1].size;
   E = 0;
   if (!E) E |= nrrdMeasureAxis(projH2=nrrdNew(), info2D, 0, 
 			       nrrdMeasureProduct);
@@ -176,15 +170,13 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
   }
   
   if (!info1D->data) {
-    if (nrrdAlloc(info1D, 2*len, nrrdTypeFloat, 2)) {
+    if (nrrdAlloc_va(info1D, nrrdTypeFloat, 2, 2, len)) {
       sprintf(err, BIFF_NRRDALLOC, me);
       biffMove(BANE, err, NRRD); return 1;
     }
   }
-  info1D->size[0] = 2;
-  info1D->size[1] = len;
-  info1D->axisMin[1] = info2D->axisMin[1];
-  info1D->axisMax[1] = info2D->axisMax[1];
+  info1D->axis[1].min = info2D->axis[1].min;
+  info1D->axis[1].max = info2D->axis[1].max;
   data1D = info1D->data;
 
   for (i=0; i<=len-1; i++) {
@@ -205,7 +197,7 @@ _baneSigmaCalc1D(float *sP, Nrrd *info1D) {
   int i, len;
   float maxg, maxh, minh, *data;
   
-  len = info1D->size[1];
+  len = info1D->axis[1].size;
   data = info1D->data;
   maxg = -1;
   maxh = -1;
@@ -275,16 +267,15 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
   }
   d = info->dim-1;
   if (1 == d) {
-    len = info->size[1];
+    len = info->axis[1].size;
     if (!pos->data) {
-      if (nrrdAlloc(pos, len, nrrdTypeFloat, 1)) {
+      if (nrrdAlloc_va(pos,  nrrdTypeFloat, 1, len)) {
 	sprintf(err, BIFF_NRRDALLOC, me); 
 	biffMove(BANE, err, NRRD); return 1;
       }
     }
-    pos->size[0] = len;
-    pos->axisMin[0] = info->axisMin[1];
-    pos->axisMax[0] = info->axisMax[1];
+    pos->axis[0].min = info->axis[1].min;
+    pos->axis[0].max = info->axis[1].max;
     posData = pos->data;
     infoData = info->data;
     for (i=0; i<=len-1; i++) {
@@ -301,22 +292,20 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
   }
   else {
     /* 2 == d */
-    sv = info->size[1];
-    sg = info->size[2];
+    sv = info->axis[1].size;
+    sg = info->axis[2].size;
     if (!pos->data) {
-      if (nrrdAlloc(pos, sv*sg, nrrdTypeFloat, 2)) {
+      if (nrrdAlloc_va(pos, nrrdTypeFloat, 2, sv, sg)) {
 	sprintf(err, BIFF_NRRDALLOC, me); biffMove(BANE, err, NRRD); return 1;
       }
     }
-    pos->size[0] = sv;
-    pos->size[1] = sg;
-    pos->axisMin[0] = info->axisMin[1];
-    pos->axisMax[0] = info->axisMax[1];
-    pos->axisMin[1] = info->axisMin[2];
-    pos->axisMax[1] = info->axisMax[2];
+    pos->axis[0].min = info->axis[1].min;
+    pos->axis[0].max = info->axis[1].max;
+    pos->axis[1].min = info->axis[2].min;
+    pos->axis[1].max = info->axis[2].max;
     posData = pos->data;
     for (gi=0; gi<=sg-1; gi++) {
-      g = AIR_AFFINE(0, gi, sg-1, info->axisMin[2], info->axisMax[2]);
+      g = AIR_AFFINE(0, gi, sg-1, info->axis[2].min, info->axis[2].max);
       for (vi=0; vi<=sv-1; vi++) {
 	h = nrrdFLookup[info->type](info->data, 0 + 2*(vi + sv*gi));
 	/* from pg. 61 of GK's MS */
@@ -440,39 +429,36 @@ baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos) {
   }
   dim = pos->dim;
   if (1 == dim) {
-    len = pos->size[0];
+    len = pos->axis[0].size;
     if (!opac->data) {
-      if (nrrdAlloc(opac, len, nrrdTypeFloat, 1)) {
+      if (nrrdAlloc_va(opac, nrrdTypeFloat, 1, len)) {
 	sprintf(err, BIFF_NRRDALLOC, me); biffMove(BANE, err, NRRD); return 1;
       }
     }
-    opac->size[0] = len;
-    opac->axisMin[0] = pos->axisMin[0];
-    opac->axisMax[0] = pos->axisMax[0];
+    opac->axis[0].min = pos->axis[0].min;
+    opac->axis[0].max = pos->axis[0].max;
     odata = opac->data;
     bdata = Bcpts->data;
     pdata = pos->data;
-    npts = Bcpts->size[1];
+    npts = Bcpts->axis[1].size;
     _baneOpacCalcA(len, odata, npts, bdata, pdata);
   }
   else {
-    sv = pos->size[0];
-    sg = pos->size[1];
+    sv = pos->axis[0].size;
+    sg = pos->axis[1].size;
     if (!opac->data) {
-      if (nrrdAlloc(opac, sv*sg, nrrdTypeFloat, 2)) {
+      if (nrrdAlloc_va(opac, nrrdTypeFloat, 2, sv, sg)) {
 	sprintf(err, BIFF_NRRDALLOC, me); biffMove(BANE, err, NRRD); return 1;
       }
     }
-    opac->size[0] = sv;
-    opac->size[1] = sg;
-    opac->axisMin[0] = pos->axisMin[0];
-    opac->axisMax[0] = pos->axisMax[0];
-    opac->axisMin[1] = pos->axisMin[1];
-    opac->axisMax[1] = pos->axisMax[1];
+    opac->axis[0].min = pos->axis[0].min;
+    opac->axis[0].max = pos->axis[0].max;
+    opac->axis[1].min = pos->axis[1].min;
+    opac->axis[1].max = pos->axis[1].max;
     odata = opac->data;
     bdata = Bcpts->data;
     pdata = pos->data;
-    npts = Bcpts->size[1];
+    npts = Bcpts->axis[1].size;
     _baneOpacCalcA(sv*sg, odata, npts, bdata, pdata);
   }
   return 0;

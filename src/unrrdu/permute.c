@@ -32,7 +32,7 @@ usage() {
 int
 main(int argc, char *argv[]) {
   char *in, *out, *err;
-  int i, ax, udim, axis[NRRD_MAX_DIM], used[NRRD_MAX_DIM];
+  int i, ax, udim, axis[NRRD_DIM_MAX], used[NRRD_DIM_MAX];
   Nrrd *nin, *nout;
 
   me = argv[0];
@@ -43,7 +43,7 @@ main(int argc, char *argv[]) {
 
   in = argv[1];
   out = argv[argc-1];
-  memset(used, 0, NRRD_MAX_DIM*sizeof(int));
+  memset(used, 0, NRRD_DIM_MAX*sizeof(int));
   for (i=0; i<=udim-1; i++) {
     if (1 != sscanf(argv[i+2], "%d", &ax)) {
       fprintf(stderr, "%s: couldn't parse axis \"%s\" as int\n",
@@ -52,7 +52,7 @@ main(int argc, char *argv[]) {
     }
     axis[i] = ax;
   }
-  if (!(nin = nrrdNewLoad(in))) {
+  if (nrrdLoad(nin=nrrdNew(), in)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error reading nrrd from \"%s\":\n%s\n", me, in, err);
     free(err);
@@ -71,8 +71,7 @@ main(int argc, char *argv[]) {
     exit(1);
   }
 
-  nout->encoding = nin->encoding;
-  if (nrrdSave(out, nout)) {
+  if (nrrdSave(out, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error writing nrrd to \"%s\":\n%s\n", me, out, err);
     free(err);

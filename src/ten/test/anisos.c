@@ -41,7 +41,7 @@ main(int argc, char **argv) {
   ninStr = argv[1];
   noutStr = argv[2];
   
-  if (!(nin = nrrdNewLoad(ninStr))) {
+  if (nrrdLoad(nin=nrrdNew(), ninStr)) {
     fprintf(stderr, "%s: trouble reading %s:\n%s\n", 
 	    me, ninStr, biffGet(NRRD));
     exit(1);
@@ -52,27 +52,24 @@ main(int argc, char **argv) {
     exit(1);
   }
 
-  sx = nin->size[1];
-  sy = nin->size[2]; 
-  sz = nin->size[3];
+  sx = nin->axis[1].size;
+  sy = nin->axis[2].size; 
+  sz = nin->axis[3].size;
   
-  if (!(nout = nrrdNewAlloc(sx*sy*sz*4, nrrdTypeFloat, 4))) {
+  if (nrrdAlloc_va(nout=nrrdNew(), nrrdTypeFloat, 4,
+		   4, sx, sy, sz)) {
     fprintf(stderr, "%s: couldn't allocate anisotropy nrrd:\n%s\n",
 	    me, biffGet(NRRD));
     exit(1);
   }
-  nout->size[0] = 4;
-  nout->size[1] = sx;
-  nout->size[2] = sy;
-  nout->size[3] = sz;
-  nout->spacing[0] = nin->spacing[0];
-  nout->spacing[1] = nin->spacing[1];
-  nout->spacing[2] = nin->spacing[2];
-  nout->spacing[3] = nin->spacing[3];
-  strcpy(nout->label[0], "cl;cp;ca;ct");
-  strcpy(nout->label[1], "x");
-  strcpy(nout->label[2], "y");
-  strcpy(nout->label[3], "z");
+  nout->axis[0].spacing = nin->axis[0].spacing;
+  nout->axis[1].spacing = nin->axis[1].spacing;
+  nout->axis[2].spacing = nin->axis[2].spacing;
+  nout->axis[3].spacing = nin->axis[3].spacing;
+  nout->axis[0].label = airStrdup("cl;cp;ca;ct");
+  nout->axis[1].label = airStrdup("x");
+  nout->axis[2].label = airStrdup("y");
+  nout->axis[3].label = airStrdup("z");
 
   tdata = nin->data;
   adata = nout->data;
@@ -92,7 +89,7 @@ main(int argc, char **argv) {
     }
   }
 
-  if (nrrdSave(noutStr, nout)) {
+  if (nrrdSave(noutStr, nout, NULL)) {
     fprintf(stderr, "%s: trouble writing %s:\n%s\n", 
 	    me, noutStr, biffGet(NRRD));
     exit(1);

@@ -28,21 +28,21 @@ _baneIncInitUnknown(Nrrd *n, double val) {
 void
 _baneIncInitMinMax(Nrrd *n, double val) {
 
-  if (AIR_EXISTS(n->axisMin[0]))
-    n->axisMin[0] = AIR_MIN(n->axisMin[0], val);
+  if (AIR_EXISTS(n->axis[0].min))
+    n->axis[0].min = AIR_MIN(n->axis[0].min, val);
   else
-    n->axisMin[0] = val;
-  if (AIR_EXISTS(n->axisMax[0]))
-    n->axisMax[0] = AIR_MAX(n->axisMax[0], val);
+    n->axis[0].min = val;
+  if (AIR_EXISTS(n->axis[0].max))
+    n->axis[0].max = AIR_MAX(n->axis[0].max, val);
   else
-    n->axisMax[0] = val;
+    n->axis[0].max = val;
 }
 
 void
 _baneIncInitHisto(Nrrd *n, double val) {
   int idx;
   
-  AIR_INDEX(n->axisMin[0], val, n->axisMax[0], n->size[0], idx);
+  AIR_INDEX(n->axis[0].min, val, n->axis[0].max, n->axis[0].size, idx);
   ((int*)n->data)[idx]++;
 }
 
@@ -89,8 +89,7 @@ Nrrd *
 _baneIncPercentileNrrd(double *parm) {
   Nrrd *nhist;
   
-  if (nhist = nrrdNewAlloc(parm[0], nrrdTypeInt, 1))
-    nhist->size[0] = parm[0];
+  nrrdAlloc_va(nhist=nrrdNew(), nrrdTypeInt, 1, (int)(parm[0]));
   return nhist;
 }
 
@@ -98,8 +97,7 @@ Nrrd *
 _baneIncStdvNrrd(double *parm) {
   Nrrd *nhist;
   
-  if (nhist = nrrdNewAlloc(parm[0], nrrdTypeInt, 1))
-    nhist->size[0] = parm[0];
+  nrrdAlloc_va(nhist=nrrdNew(), nrrdTypeInt, 1, (int)(parm[0]));
   return nhist;
 }
 
@@ -150,10 +148,10 @@ _baneIncRangeRatio(double *minP, double *maxP,
   printf("_baneIncRangeRatio, minP=%lu, maxP=%lu\n", 
 	 (unsigned long)minP, (unsigned long)maxP);
   */
-  baneRange[range](minP, maxP, n->axisMin[0], n->axisMax[0]);
+  baneRange[range](minP, maxP, n->axis[0].min, n->axis[0].max);
   /*
   printf("_baneIncRangeRatio: [%g,%g] -> [%g,%g]\n",
-	 n->axisMin[0], n->axisMax[0], *minP, *maxP);
+	 n->axis[0].min, n->axis[0].max, *minP, *maxP);
   */
   if (baneRangeFloat == range) {
     mid = (*minP + *maxP)/2;
@@ -174,11 +172,11 @@ _baneIncPercentile(double *minP, double *maxP,
 		   Nrrd *n, double *parm, int range) {
   char me[]="_baneIncPercentile";
   int *hist, i, bot, top, botIncr, topIncr;
-  NRRD_BIG_INT sum, out, outsum;
+  nrrdBigInt sum, out, outsum;
   
   sum = 0;
   hist = n->data;
-  for (i=0; i<=n->size[0]-1; i++) {
+  for (i=0; i<=n->axis[0].size-1; i++) {
     sum += hist[i];
   }
   out = sum*parm[1]/100;
@@ -199,9 +197,9 @@ _baneIncPercentile(double *minP, double *maxP,
     break;
   }
   bot = 0;
-  top = n->size[0]-1;
+  top = n->axis[0].size-1;
   outsum = 0;
-  for (i=0; i<=n->size[0]-1; i++) {
+  for (i=0; i<=n->axis[0].size-1; i++) {
     if (outsum >= out)
       break;
     outsum += botIncr*hist[bot];
@@ -214,10 +212,10 @@ _baneIncPercentile(double *minP, double *maxP,
     }
   }
   baneRange[range](minP, maxP, 
-		   AIR_AFFINE(0, bot, n->size[0]-1, 
-			      n->axisMin[0], n->axisMax[0]),
-		   AIR_AFFINE(0, top, n->size[0]-1, 
-			      n->axisMin[0], n->axisMax[0]));
+		   AIR_AFFINE(0, bot, n->axis[0].size-1, 
+			      n->axis[0].min, n->axis[0].max),
+		   AIR_AFFINE(0, top, n->axis[0].size-1, 
+			      n->axis[0].min, n->axis[0].max));
 }
 
 void
@@ -225,21 +223,21 @@ _baneIncStdv(double *minP, double *maxP,
 	     Nrrd *n, double *parm, int range) {
   int *hist, i;
   double val, mean, stdv;
-  NRRD_BIG_INT sum;
+  nrrdBigInt sum;
   
   hist = n->data;
   sum = 0;
   mean = 0;
-  for (i=0; i<=n->size[0]-1; i++) {
-    val = AIR_AFFINE(0, i, n->size[0]-1, n->axisMin[0], n->axisMax[0]);
+  for (i=0; i<=n->axis[0].size-1; i++) {
+    val = AIR_AFFINE(0, i, n->axis[0].size-1, n->axis[0].min, n->axis[0].max);
     sum += hist[i];
     mean += val*hist[i];
   }
   mean /= sum;
   /* printf("%s: HEY sum = %d, mean = %g\n", "_baneIncStdv",(int)sum,mean); */
   stdv = 0;
-  for (i=0; i<=n->size[0]-1; i++) {
-    val = AIR_AFFINE(0, i, n->size[0]-1, n->axisMin[0], n->axisMax[0]);
+  for (i=0; i<=n->axis[0].size-1; i++) {
+    val = AIR_AFFINE(0, i, n->axis[0].size-1, n->axis[0].min, n->axis[0].max);
     stdv += (mean-val)*(mean-val);
   }
   stdv /= sum;

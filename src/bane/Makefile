@@ -20,7 +20,7 @@ HEADERS = bane.h
 LIBOBJS = arrays.o methods.o range.o measr.o inc.o clip.o \
 	hvol.o trnsf.o trex.o probe.o valid.o scat.o
 TEST_BINS = test/apply test/tinfo test/sigma test/pos \
-	test/opac test/pvg test/tprobe
+	test/opac test/tprobe    # test/pvg 
 BINS = bin/gkms
 BINLIBS = -lbane -lnrrd -lbiff -lair -lm
 

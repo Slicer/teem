@@ -29,7 +29,6 @@ usage() {
 
 int
 main(int argc, char *argv[]) {
-  FILE *file;
   Nrrd *info, *pos;
   float sigma, gthresh;
   char *iStr, *oStr, *sigStr, *gthStr;
@@ -50,26 +49,17 @@ main(int argc, char *argv[]) {
     usage();
   }
 
-  if (!(file = fopen(iStr, "r"))) {
-    fprintf(stderr, "%s: couldn't open \"%s\" for reading\n", me, iStr);
-    exit(1);
-  }
-  if (!(info = nrrdNewRead(file))) {
+  if (nrrdLoad(info=nrrdNew(), iStr)) {
     fprintf(stderr, "%s: trouble reading \"%s\" :\n%s\n", me, 
 	    iStr, biffGet(NRRD));
     exit(1);
   }
-  fclose(file);
   if (banePosCalc(pos = nrrdNew(), sigma, gthresh, info)) {
     fprintf(stderr, "%s: trouble calculating %s:\n%s\n", me,
 	    2 == info->dim ? "p(v,g)" : "p(v)", biffGet(BANE));
     exit(1);
   }
-  if (!(file = fopen(oStr, "w"))) {
-    fprintf(stderr, "%s: couldn't open \"%s\" for writing\n", me, oStr);
-    exit(1);
-  }
-  if (nrrdWrite(file, pos)) {
+  if (nrrdSave(oStr, pos, NULL)) {
     fprintf(stderr, "%s: trouble writing output to \"%s\"\n", me, oStr);
     exit(1);
   }

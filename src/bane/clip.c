@@ -36,7 +36,7 @@ _baneClipAbsolute(Nrrd *rhv, double *parm) {
 int
 _baneClipPeakRatio(Nrrd *rhv, double *parm) {
   int *hits, maxhits;
-  NRRD_BIG_INT idx;
+  nrrdBigInt idx;
   
   hits = rhv->data;
   maxhits = 0;
@@ -60,9 +60,9 @@ _baneClipPercentile(Nrrd *rhv, double *parm) {
   char me[]="_baneClipPercentile", err[128];
   Nrrd *copy;
   int *hits, clip;
-  NRRD_BIG_INT sum, out, outsum, hi;
+  nrrdBigInt sum, out, outsum, hi;
   
-  if (!(copy = nrrdNewCopy(rhv))) {
+  if (nrrdCopy(copy=nrrdNew(), rhv)) {
     sprintf(err, "%s: couldn't create copy of histovol", me);
     biffMove(BANE, err, NRRD); return -1;
   }
@@ -90,7 +90,7 @@ _baneClipTopN(Nrrd *rhv, double *parm) {
   Nrrd *copy;
   int *hits, clip;
 
-  if (!(copy = nrrdNewCopy(rhv))) {
+  if (nrrdCopy(copy=nrrdNew(), rhv)) {
     sprintf(err, "%s: couldn't create copy of histovol", me);
     biffMove(BANE, err, NRRD); return -1;
   }

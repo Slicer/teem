@@ -80,18 +80,18 @@ _baneValidInput(Nrrd *nin, baneHVolParm *hvp) {
     sprintf(err, "%s: must have a scalar type nrrd", me);
     biffSet(BANE, err); return 0;
   }
-  if (!( AIR_EXISTS(nin->spacing[0]) && nin->spacing[0] > 0 &&
-	 AIR_EXISTS(nin->spacing[1]) && nin->spacing[1] > 0 &&
-	 AIR_EXISTS(nin->spacing[2]) && nin->spacing[2] > 0 )) {
+  if (!( AIR_EXISTS(nin->axis[0].spacing) && nin->axis[0].spacing > 0 &&
+	 AIR_EXISTS(nin->axis[1].spacing) && nin->axis[1].spacing > 0 &&
+	 AIR_EXISTS(nin->axis[2].spacing) && nin->axis[2].spacing > 0 )) {
     sprintf(err, "%s: must have positive spacing for all three axes", me);
     biffSet(BANE, err); return 0;
   }
   marg = _maxMarg(hvp);
-  if (!( nin->size[0]-2*marg > 0 &&
-	 nin->size[1]-2*marg > 0 &&
-	 nin->size[2]-2*marg > 0 )) {
+  if (!( nin->axis[0].size-2*marg > 0 &&
+	 nin->axis[1].size-2*marg > 0 &&
+	 nin->axis[2].size-2*marg > 0 )) {
     sprintf(err, "%s: can't have measurement margin %d with sizes %d,%d,%d",
-	    me, marg, nin->size[0], nin->size[1], nin->size[2]);
+	    me, marg, nin->axis[0].size, nin->axis[1].size, nin->axis[2].size);
     biffSet(BANE, err); return 0;
   }
   for (i=0; i<=2; i++) {
@@ -126,12 +126,12 @@ _baneFindInclusion(double min[3], double max[3],
   baneIncInitType init0, init1, init2;
   baneMeasrType msr0, msr1, msr2;
   Nrrd *n0, *n1, *n2;
-  NRRD_BIG_INT idx;
+  nrrdBigInt idx;
 
   marg = _maxMarg(hvp);
-  sx = nin->size[0];
-  sy = nin->size[1];
-  sz = nin->size[2];
+  sx = nin->axis[0].size;
+  sy = nin->axis[1].size;
+  sz = nin->axis[2].size;
   incIdx0 = hvp->axp[0].inc;
   incIdx1 = hvp->axp[1].inc;
   incIdx2 = hvp->axp[2].inc;
@@ -187,9 +187,9 @@ _baneFindInclusion(double min[3], double max[3],
     fprintf(stderr, "\b\b\b\b\b\b  done\n");
   if (hvp->verb > 1) {
     fprintf(stderr, "%s: after initA; ranges: [%g,%g] [%g,%g] [%g,%g]\n", me,
-	    n0->axisMin[0], n0->axisMax[0], 
-	    n1->axisMin[0], n1->axisMax[0], 
-	    n2->axisMin[0], n2->axisMax[0]);
+	    n0->axis[0].min, n0->axis[0].max, 
+	    n1->axis[0].min, n1->axis[0].max, 
+	    n2->axis[0].min, n2->axis[0].max);
   }
 
   /* second stage of initialization, includes creating histograms */
@@ -223,9 +223,9 @@ _baneFindInclusion(double min[3], double max[3],
     fprintf(stderr, "\b\b\b\b\b\b  done\n");
   if (hvp->verb > 1) {
     fprintf(stderr, "%s: after initB; ranges: [%g,%g] [%g,%g] [%g,%g]\n", me,
-	    n0->axisMin[0], n0->axisMax[0], 
-	    n1->axisMin[0], n1->axisMax[0], 
-	    n2->axisMin[0], n2->axisMax[0]);
+	    n0->axis[0].min, n0->axis[0].max, 
+	    n1->axis[0].min, n1->axis[0].max, 
+	    n2->axis[0].min, n2->axis[0].max);
   }
 
   /* now the real work of determining the inclusion */
@@ -262,7 +262,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   char me[]="baneMakeHVol", err[128], prog[13];
   int sx, sy, sz, shx, shy, shz, x, y, z, hx, hy, hz, marg, *rhvdata, 
     clipVal, hval;
-  NRRD_BIG_INT idx, hidx, included;
+  nrrdBigInt idx, hidx, included;
   double val0, val1, val2, min[3], max[3];
   baneMeasrType msr0, msr1, msr2;
   float fracIncluded;
@@ -279,9 +279,9 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
     sprintf(err, "%s: something wrong with input", me);
     biffAdd(BANE, err); return 1;
   }
-  sx = nin->size[0];
-  sy = nin->size[1];
-  sz = nin->size[2];
+  sx = nin->axis[0].size;
+  sy = nin->axis[1].size;
+  sz = nin->axis[2].size;
   marg = _maxMarg(hvp);
   msr0 = baneMeasr[hvp->axp[0].measr];
   msr1 = baneMeasr[hvp->axp[1].measr];
@@ -321,15 +321,11 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   shx = hvp->axp[0].res;
   shy = hvp->axp[1].res;
   shz = hvp->axp[2].res;
-  rawhvol = nrrdNewAlloc(shx*shy*shz, nrrdTypeInt, 3);
-  if (!rawhvol) {
+  if (nrrdAlloc_va(rawhvol=nrrdNew(), nrrdTypeInt, 3, shx, shy, shz)) {
     sprintf(err, "%s: couldn't allocate raw histovol (%dx%dx%d)", me,
 	    shx, shy, shz);
     biffMove(BANE, err, NRRD); return 1;
   }
-  rawhvol->size[0] = shx;
-  rawhvol->size[1] = shy;
-  rawhvol->size[2] = shz;
   rhvdata = rawhvol->data;
   included = 0;
   
@@ -383,22 +379,19 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
     fprintf(stderr, "%s: creating 8-bit histogram volume ...       ", me);
     fflush(stderr);
   }
-  if (nrrdAlloc(hvol, shx*shy*shz, nrrdTypeUChar, 3)) {
+  if (nrrdAlloc_va(hvol, nrrdTypeUChar, 3, shx, shy, shz)) {
     sprintf(err, "%s: couldn't alloc finished histovol", me);
     biffMove(BANE, err, NRRD); return 1;
   }
-  hvol->size[0] = shx;
-  hvol->size[1] = shy;
-  hvol->size[2] = shz;
-  hvol->axisMin[0] = min[0];
-  hvol->axisMin[1] = min[1];
-  hvol->axisMin[2] = min[2];
-  hvol->axisMax[0] = max[0];
-  hvol->axisMax[1] = max[1];
-  hvol->axisMax[2] = max[2];
-  strcpy(hvol->label[0], baneMeasrStr[hvp->axp[0].measr]);
-  strcpy(hvol->label[1], baneMeasrStr[hvp->axp[1].measr]);
-  strcpy(hvol->label[2], baneMeasrStr[hvp->axp[2].measr]);
+  hvol->axis[0].min = min[0];
+  hvol->axis[1].min = min[1];
+  hvol->axis[2].min = min[2];
+  hvol->axis[0].max = max[0];
+  hvol->axis[1].max = max[1];
+  hvol->axis[2].max = max[2];
+  hvol->axis[0].label = airStrdup(baneMeasrStr[hvp->axp[0].measr]);
+  hvol->axis[1].label = airStrdup(baneMeasrStr[hvp->axp[1].measr]);
+  hvol->axis[2].label = airStrdup(baneMeasrStr[hvp->axp[2].measr]);
   nhvdata = hvol->data;
   for (hz=0; hz<=shz-1; hz++) {
     for (hy=0; hy<=shy-1; hy++) {
@@ -447,8 +440,8 @@ baneApplyMeasr(Nrrd *nout, Nrrd *nin, int measr) {
   char me[]="baneApplyMeasr", err[128];
   int sx, sy, sz, x, y, z, marg;
   baneMeasrType msr;
-  NRRD_BIG_INT idx;
-  float (*insert)(void *, NRRD_BIG_INT, float);
+  nrrdBigInt idx;
+  float (*insert)(void *, nrrdBigInt, float);
   
   if (3 != nin->dim) {
     sprintf(err, "%s: need a 3-dimensional nrrd (not %d)", me, nin->dim);
@@ -459,30 +452,27 @@ baneApplyMeasr(Nrrd *nout, Nrrd *nin, int measr) {
     sprintf(err, "%s: must have a scalar type nrrd", me);
     biffSet(BANE, err); return 1;
   }
-  if (!( AIR_EXISTS(nin->spacing[0]) && nin->spacing[0] > 0 &&
-	 AIR_EXISTS(nin->spacing[1]) && nin->spacing[1] > 0 &&
-	 AIR_EXISTS(nin->spacing[2]) && nin->spacing[2] > 0 )) {
+  if (!( AIR_EXISTS(nin->axis[0].spacing) && nin->axis[0].spacing > 0 &&
+	 AIR_EXISTS(nin->axis[1].spacing) && nin->axis[1].spacing > 0 &&
+	 AIR_EXISTS(nin->axis[2].spacing) && nin->axis[2].spacing > 0 )) {
     sprintf(err, "%s: must have positive spacing for all three axes", me);
     biffSet(BANE, err); return 1;
   }
 
-  sx = nin->size[0];
-  sy = nin->size[1];
-  sz = nin->size[2];
+  sx = nin->axis[0].size;
+  sy = nin->axis[1].size;
+  sz = nin->axis[2].size;
   marg = baneMeasrMargin[measr];
   msr = baneMeasr[measr];
   insert = nrrdFInsert[nrrdTypeFloat];
 
-  if (nrrdAlloc(nout, sx*sy*sz, nrrdTypeFloat, 3)) {
+  if (nrrdAlloc_va(nout, nrrdTypeFloat, 3, sx, sy, sz)) {
     sprintf(err, "%s: couldn't alloc output nrrd", me);
     biffMove(BANE, err, NRRD); return 1;
   }
-  nout->size[0] = sx;
-  nout->size[1] = sy;
-  nout->size[2] = sz;
-  nout->spacing[0] = nin->spacing[0];
-  nout->spacing[1] = nin->spacing[1];
-  nout->spacing[2] = nin->spacing[2];
+  nout->axis[0].spacing = nin->axis[0].spacing;
+  nout->axis[1].spacing = nin->axis[1].spacing;
+  nout->axis[2].spacing = nin->axis[2].spacing;
   insert = nrrdFInsert[nrrdTypeFloat];
   for (z=marg; z<=sz-marg-1; z++) {
     for (y=marg; y<=sy-marg-1; y++) {

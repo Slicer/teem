@@ -48,7 +48,7 @@ main(int argc, char **argv) {
     fprintf(stderr, "%s: couldn't parse \"%s\" as int\n", me, argv[3]);
     exit(1);
   }
-  if (!(nrrd = nrrdNewLoad(argv[1]))) {
+  if (nrrdLoad(nrrd=nrrdNew(), argv[1])) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble reading nrrd from %s:\n%s", 
 	    me, argv[1], err);
@@ -112,26 +112,11 @@ main(int argc, char **argv) {
   } 
   */   
   
-  if (strstr(argv[4], ".pgm")) {
-    if (!(file = fopen(argv[4], "w"))) {
-      fprintf(stderr, "%s: couldn't open %s for writing\n", me, argv[4]);
-      exit(1);
-    }
-    if (nrrdWritePNM(file, nrrd)) {
-      err = biffGet(NRRD);
-      fprintf(stderr, "%s: trouble writing PGM\n%s", me, err);
-      free(err);
-      exit(1);
-    }
-    fclose(file);
-  }
-  else {
-    if (nrrdSave(argv[4], nrrd)) {
-      err = biffGet(NRRD);
-      fprintf(stderr, "%s: trouble writing nrrd:\n%s", me, err);
-      free(err);
-      exit(1);
-    }
+  if (nrrdSave(argv[4], nrrd, NULL)) {
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: trouble writing nrrd:\n%s", me, err);
+    free(err);
+    exit(1);
   }
   nrrdNuke(nrrd);
   exit(0);

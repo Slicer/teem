@@ -40,12 +40,13 @@ main(int argc, char **argv) {
   in = argv[1];
   typeStr = argv[2];
   out = argv[3];
-  if (nrrdTypeUnknown == (type = nrrdStr2Type(typeStr))) {
+  if (nrrdTypeUnknown == 
+      (type = nrrdEnumStrToVal(nrrdEnumType, typeStr))) {
     fprintf(stderr, "%s: didn't recognize \"%s\" as a type\n", me, typeStr);
     exit(1);
   }
 
-  if (!(nin = nrrdNewLoad(in))) {
+  if (nrrdLoad(nin=nrrdNew(), in)) {
     err = biffGet(NRRD);
     fprintf(stderr, 
 	    "%s: trouble reading nrrd from \"%s\":\n%s\n", me, in, err);
@@ -60,8 +61,7 @@ main(int argc, char **argv) {
     exit(1);
   }
 
-  nout->encoding = nrrdEncodingRaw;
-  if (nrrdSave(out, nout)) {
+  if (nrrdSave(out, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble writing nrrd to \"%s\":\n%s\n", me, out, err);
     free(err);

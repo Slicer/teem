@@ -43,7 +43,21 @@ typedef enum {
   tenAnisoLast
 } tenAniso;
 #define TEN_MAX_ANISO 5
-  
+
+typedef struct {
+  Nrrd *vThreshVol;
+  float anisoType, anisoThresh;
+  float dwiThresh, vThresh, useColor;
+  float thresh, cscale;
+  float sumFloor, sumCeil;
+  float fakeSat;
+  int dim;
+} tenGlyphParm;
+
+/* methods.c */
+extern tenGlyphParm *tenGlyphParmNew();
+extern tenGlyphParm *tenGlyphParmNix(tenGlyphParm *parm);
+
 /* tensor.c */
 extern int tenVerbose;
 extern int tenValidTensor(Nrrd *nin, int wantType, int useBiff);
@@ -57,11 +71,11 @@ extern int tenCalcTensor(Nrrd *nout, Nrrd *nin,
 
 /* aniso.c */
 extern void tenAnisotropy(float c[TEN_MAX_ANISO+1], float eval[3]);
+extern int tenAnisoVolume(Nrrd *nout, Nrrd *nin, float anis);
 
 /* glyph.c */
-extern int tenGlyphGen(limnObj *obj, Nrrd *nin, float useColor,
-		       float anisoThresh, float anisoType,
-		       float thresh, float cscale);
+extern int tenGlyphGen(limnObj *obj, Nrrd *nin, tenGlyphParm *parm);
+
 
 
 #ifdef __cplusplus

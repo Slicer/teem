@@ -87,7 +87,7 @@ typedef enum {
 extern char baneMeasrStr[][BANE_SMALL_STRLEN];
 extern int baneMeasrRange[BANE_MEASR_MAX+1];
 extern int baneMeasrMargin[BANE_MEASR_MAX+1];
-typedef double (*baneMeasrType)(Nrrd *n, NRRD_BIG_INT idx);
+typedef double (*baneMeasrType)(Nrrd *n, nrrdBigInt idx);
 extern baneMeasrType baneMeasr[BANE_MEASR_MAX+1];
 
 /*
@@ -189,7 +189,7 @@ typedef struct {
 
 typedef struct {
   nrrdKernel *k[3];
-  float param[3][NRRD_MAX_KERNEL_PARAMS];
+  float param[3][NRRD_KERNEL_PARAMS_MAX];
 } baneProbeK3Pack;
 
 /* methods.c */

@@ -47,7 +47,7 @@ main(int argc, char *argv[]) {
   in = argv[1];
   out = argv[4];
 
-  if (!(nin = nrrdNewLoad(in))) {
+  if (nrrdLoad(nin=nrrdNew(), in)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error reading nrrd from \"%s\":\n%s\n", me, in, err);
     free(err);
@@ -62,8 +62,7 @@ main(int argc, char *argv[]) {
   }
   t2 = airTime();
   printf("%s: projection took %g seconds\n", me, t2-t1);
-  nout->encoding = nin->encoding;
-  if (nrrdSave(out, nout)) {
+  if (nrrdSave(out, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error writing nrrd:\n%s\n", me, err);
     free(err);

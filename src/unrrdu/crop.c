@@ -68,8 +68,8 @@ getint(char *str, int *n, int *offset) {
 int
 main(int argc, char *argv[]) {
   char *inStr, *outStr, *err;
-  int i, udim, min[NRRD_MAX_DIM], max[NRRD_MAX_DIM], 
-    minoffset[NRRD_MAX_DIM], maxoffset[NRRD_MAX_DIM];
+  int i, udim, min[NRRD_DIM_MAX], max[NRRD_DIM_MAX], 
+    minoffset[NRRD_DIM_MAX], maxoffset[NRRD_DIM_MAX];
   Nrrd *nin, *nout;
   double t1, t2;
 
@@ -95,7 +95,7 @@ main(int argc, char *argv[]) {
       usage();
     }
   }
-  if (!(nin = nrrdNewLoad(inStr))) {
+  if (nrrdLoad(nin=nrrdNew(), inStr)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble reading input:%s\n", me, err);
     free(err);
@@ -108,9 +108,9 @@ main(int argc, char *argv[]) {
   }
   for (i=0; i<=udim-1; i++) {
     if (INT_MAX == min[i])
-      min[i] = nin->size[i] - 1 + minoffset[i];
+      min[i] = nin->axis[i].size - 1 + minoffset[i];
     if (INT_MAX == max[i])
-      max[i] = nin->size[i] - 1 + maxoffset[i];
+      max[i] = nin->axis[i].size - 1 + maxoffset[i];
     fprintf(stderr, "%s: axis % 2d: %d -> %d\n", me, i, min[i], max[i]);
   }
 
@@ -124,8 +124,7 @@ main(int argc, char *argv[]) {
   }
   t2 = airTime();
   printf("%s: nrrdSubvolume took %g seconds\n", me, t2-t1);
-  nout->encoding = nrrdEncodingRaw;
-  if (nrrdSave(outStr, nout)) {
+  if (nrrdSave(outStr, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error writing nrrd:\n%s", me, err);
     free(err);

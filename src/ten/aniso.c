@@ -31,24 +31,31 @@
 ** c[tenAnisoC_s]: c_s: 1 - c_a
 ** c[tenAnisoC_t]: c_theta: Gordon's anisotropy type: 0:linear <-> 1:planar
 **
-** This used to clamp all the values from 0 to 1, but it was
-** later decided that if this gets garbage eigenvalues 
-** (for instance, some of them are negative), then its okay
-** that this produces garbage anisotropy values.  The user
-** has to be able to deal.
+** For a time, this function did not clamp the cl and cp values
+** between 0.0 and 1.0.  Some sort of bone-headed purist argument.
+** Caused nothing but trouble, really. The problem was that in
+** measured tensor data there were voxels for which the "threshold"
+** (based on sum of diffusion-weighted images) was 1.0, but the voxel
+** actually had physically impossible eigenvalues, so no amount of
+** threshold-based trickery could reign the crazy values back into line.
+** Naive clamping of the anisotropy into a physically plausible range
+** is the next best thing, as far as I can tell.
 **
-** This does NOT use biff.
+** This does NOT use biff.  
 */
 void
 tenAnisotropy(float c[TEN_MAX_ANISO+1], float e[3]) {
   float sum, cl, cp, ca;
   
   sum = e[0] + e[1] + e[2];
-
+  
   if (sum) {
-    c[tenAnisoC_l] = cl = (e[0] - e[1])/sum;
-    c[tenAnisoC_p] = cp = 2*(e[1] - e[2])/sum;
-    c[tenAnisoC_a] = ca = cl + cp;
+    cl = (e[0] - e[1])/sum;   cl = AIR_CLAMP(0.0, cl, 1.0);
+    cp = 2*(e[1] - e[2])/sum; cp = AIR_CLAMP(0.0, cp, 1.0);
+    c[tenAnisoC_l] = cl;
+    c[tenAnisoC_p] = cp;
+    ca = cl + cp;             ca = AIR_CLAMP(0.0, ca, 1.0);
+    c[tenAnisoC_a] = ca;
     c[tenAnisoC_s] = 1 - ca;
     c[tenAnisoC_t] = ca ? cp/ca : 0;
   }
@@ -61,4 +68,48 @@ tenAnisotropy(float c[TEN_MAX_ANISO+1], float e[3]) {
   }
   return;
 }
+
+int
+tenAnisoVolume(Nrrd *nout, Nrrd *nin, float anisoType) {
+  char me[]="tenAnisoVolume", err[128];
+  nrrdBigInt N, I;
+  float *out, *in, *tensor, eval[3], evec[9], c[TEN_MAX_ANISO+1], cl, cp;
+  int d, map[NRRD_DIM_MAX];
+
+  if (!tenValidTensor(nin, nrrdTypeFloat, AIR_TRUE)) {
+    sprintf(err, "%s: didn't get a tensor nrrd", me);
+    biffAdd(TEN, err); return 1;
+  }
+  N = nin->axis[1].size*nin->axis[2].size*nin->axis[3].size;
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 3,
+			nin->axis[1].size, 
+			nin->axis[2].size, 
+			nin->axis[3].size)) {
+    sprintf(err, "%s: trouble", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  for (d=0; d<=2; d++) {
+    map[d] = d+1;
+  }
+  out = nout->data;
+  in = nin->data;
+  for (I=0; I<=N-1; I++) {
+    tensor = &(in[I*7]);
+    if (tensor[0] < 0.5) {
+      out[I] = 0.0;
+      continue;
+    }
+    tenEigensolve(eval, evec, tensor);
+    tenAnisotropy(c, eval);
+    cl = c[tenAnisoC_l];
+    cp = c[tenAnisoC_p];
+    out[I] = AIR_LERP(anisoType, cl, cp);
+  }
+  if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_NONE)) {
+    sprintf(err, "%s: trouble", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  return 0;
+}
+
 

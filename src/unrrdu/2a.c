@@ -32,19 +32,21 @@ int
 main(int argc, char **argv) {
   Nrrd *nin;
   char *err;
+  nrrdIO *io;
 
   me = argv[0];
   if (3 != argc)
     usage();
-  if (!(nin = nrrdNewLoad(argv[1]))) {
+  if (nrrdLoad(nin=nrrdNew(), argv[1])) {
     err = biffGet(NRRD);
     fprintf(stderr, 
 	    "%s: trouble reading nrrd from \"%s\":\n%s\n", me, argv[1], err);
     free(err);
     exit(1);
   }
-  nin->encoding = nrrdEncodingAscii;
-  if (nrrdSave(argv[2], nin)) {
+  io = nrrdIONew();
+  io->encoding = nrrdEncodingAscii;
+  if (nrrdSave(argv[2], nin, io)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble writing nrrd to \"%s\":\n%s\n",
 	    me, argv[2], err);

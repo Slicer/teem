@@ -36,6 +36,7 @@ main(int argc, char *argv[]) {
   limnCam *cam;
   limnLight *lit;
   limnWin *win;
+  tenGlyphParm *parm;
   double t0, t1;
 
   me = argv[0];
@@ -45,7 +46,7 @@ main(int argc, char *argv[]) {
   inS = argv[1];
   outS = argv[2];
 
-  if (!(nin = nrrdNewLoad(inS))) {
+  if (nrrdLoad(nin=nrrdNew(), inS)) {
     fprintf(stderr, "%s: couldn't load \"%s\":\n%s", me, inS, biffGet(NRRD));
     exit(1);
   }
@@ -56,9 +57,19 @@ main(int argc, char *argv[]) {
   obj = limnObjNew(32*1024, AIR_TRUE);
  
   t0 = airTime();
-  if (tenGlyphGen(obj, nin, 1,
-		  0.31, 0.3,
-		  0.99, 0.55)) {
+  parm = tenGlyphParmNew();
+  parm->vThreshVol = NULL;
+  parm->vThresh = 0.3;
+  parm->dwiThresh = 0.9;
+  parm->useColor = 1;
+  parm->cscale = 0.55;
+  parm->anisoThresh = 0.24;
+  parm->anisoType = 0.3;
+  parm->sumFloor = 4;
+  parm->sumCeil = 10;
+  parm->fakeSat = 1.1;
+  parm->dim = 3;
+  if (tenGlyphGen(obj, nin, parm)) {
     fprintf(stderr, "%s: trouble:\n%s", me, biffGet(TEN));
     exit(1);
   }

@@ -34,14 +34,8 @@ float _baneTesting[256];
 float *
 _baneTRexRead(char *fname) {
   char me[]="_baneTRexRead";
-  FILE *file;
-  
-  file = fopen(fname, "r");
-  if (!file) {
-    fprintf(stderr, "%s: !!! couldn't open %s for reading\n", me, fname);
-    return NULL;
-  }
-  if (!(npos = nrrdNewRead(file))) {
+
+  if (nrrdLoad(npos=nrrdNew(), fname)) {
     fprintf(stderr, "%s: !!! trouble reading \"%s\":\n%s\n", me, 
 	    fname, biffGet(NRRD));
     return NULL;
@@ -51,9 +45,9 @@ _baneTRexRead(char *fname) {
 	    biffGet(BANE));
     return NULL;
   }
-  if (TREX_LUTLEN != npos->size[0]) {
+  if (TREX_LUTLEN != npos->axis[0].size) {
     fprintf(stderr, "%s: !!! need a length %d p(x) (not %d)\n", me, 
-	    TREX_LUTLEN, npos->size[0]); 
+	    TREX_LUTLEN, npos->axis[0].size); 
     return NULL;
   }
 

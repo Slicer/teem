@@ -47,7 +47,7 @@ main(int argc, char *argv[]) {
   Nrrd *nin, *nout;
   nrrdResampleInfo *info;
   nrrdKernel *kern;
-  float param[NRRD_MAX_KERNEL_PARAMS], ratio;
+  float param[NRRD_KERNEL_PARAMS_MAX], ratio;
   int d, size;
 
   me = argv[0];
@@ -57,13 +57,13 @@ main(int argc, char *argv[]) {
   in = argv[1];
   kernS = argv[2];
   out = argv[argc-1];
-  if (!(nin = nrrdNewLoad(in))) {
+  if (nrrdLoad(nin=nrrdNew(), in)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble reading nrrd from \"%s\":%s\n", me, in, err);
     free(err);
     usage();
   }
-  memset(param, 0, NRRD_MAX_KERNEL_PARAMS*sizeof(float));
+  memset(param, 0, NRRD_KERNEL_PARAMS_MAX*sizeof(float));
   param[0] = 1.0;
   
   /* parse the kernel */
@@ -133,7 +133,7 @@ main(int argc, char *argv[]) {
 	fprintf(stderr, "%s: couldn't parse float in \"%s\"\n",	me, sizeS);
 	usage();
       }
-      info->samples[d] = nin->size[d]*ratio;
+      info->samples[d] = nin->axis[d].size*ratio;
       if (!(info->samples[d] > 0)) {
 	fprintf(stderr, "%s: invalid # samples (%d), axis %d (ratio=%g)\n", 
 		me, info->samples[d], d, ratio);
@@ -148,9 +148,9 @@ main(int argc, char *argv[]) {
       info->samples[d] = size;
     }
     info->kernel[d] = kern;
-    memcpy(info->param[d], param, NRRD_MAX_KERNEL_PARAMS*sizeof(float));
+    memcpy(info->param[d], param, NRRD_KERNEL_PARAMS_MAX*sizeof(float));
     info->min[d] = 0;
-    info->max[d] = nin->size[d]-1;
+    info->max[d] = nin->axis[d].size-1;
   }
   info->boundary = nrrdBoundaryBleed;
   info->type = nin->type;
@@ -163,8 +163,7 @@ main(int argc, char *argv[]) {
     free(err);
     exit(1);
   }
-  nout->encoding = nrrdEncodingRaw;
-  if (nrrdSave(out, nout)) {
+  if (nrrdSave(out, nout, NULL)) {
     fprintf(stderr, "%s: error writing nrrd:\n%s", me, biffGet(NRRD));
     exit(1);
   }

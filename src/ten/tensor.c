@@ -59,8 +59,8 @@ tenValidTensor(Nrrd *nin, int wantType, int useBiff) {
     sprintf(err, "%s: given dimension is %d, not 4", me, nin->dim);
     if (useBiff) biffAdd(TEN, err); return 0;
   }
-  if (!(7 == nin->size[0])) {
-    sprintf(err, "%s: axis 0 has size %d, not 7", me, nin->size[0]);
+  if (!(7 == nin->axis[0].size)) {
+    sprintf(err, "%s: axis 0 has size %d, not 7", me, nin->axis[0].size);
     if (useBiff) biffAdd(TEN, err); return 0;
   }
   return 1;
@@ -83,8 +83,7 @@ tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
   TEN_LIST2MAT(m, t);
   ret = ell3mEigensolve(eval, evec, m, AIR_FALSE);
   ELL_3V_COPY(_eval, eval);
-  ELL_3V_COPY(_evec+0, evec+0);
-  ELL_3V_COPY(_evec+3, evec+3);
-  ELL_3V_COPY(_evec+6, evec+6);
+  ELL_3M_COPY(_evec, evec);
   return ret;
 }
+

@@ -28,26 +28,26 @@ baneValidHVol(Nrrd *hvol) {
   }
   if (nrrdTypeUChar != hvol->type) {
     sprintf(err, "%s: need type to be unsigned char (not %s)", 
-	    me, nrrdType2Str[hvol->type]);
+	    me, nrrdEnumValToStr(nrrdEnumType, hvol->type));
     biffSet(BANE, err); return 0;
   }
-  if (!( AIR_EXISTS(hvol->axisMin[0]) && AIR_EXISTS(hvol->axisMax[0]) && 
-	 AIR_EXISTS(hvol->axisMin[1]) && AIR_EXISTS(hvol->axisMax[1]) && 
-	 AIR_EXISTS(hvol->axisMin[2]) && AIR_EXISTS(hvol->axisMax[2]) )) {
+  if (!( AIR_EXISTS(hvol->axis[0].min) && AIR_EXISTS(hvol->axis[0].max) && 
+	 AIR_EXISTS(hvol->axis[1].min) && AIR_EXISTS(hvol->axis[1].max) && 
+	 AIR_EXISTS(hvol->axis[2].min) && AIR_EXISTS(hvol->axis[2].max) )) {
     sprintf(err, "%s: axisMin and axisMax must be set for all axes", me);
     biffSet(BANE, err); return 0;
   }
-  if (strcmp(hvol->label[0], "gradient-mag_cd")) {
+  if (strcmp(hvol->axis[0].label, "gradient-mag_cd")) {
     sprintf(err, "%s: expected \"gradient-mag_cd\" on axis 0", me);
     biffSet(BANE, err); return 0;
   }
-  if (strcmp(hvol->label[1], "Laplacian_cd") &&
-      strcmp(hvol->label[1], "Hessian-2dd_cd") &&
-      strcmp(hvol->label[1], "grad-mag-grad_cd")) {
+  if (strcmp(hvol->axis[1].label, "Laplacian_cd") &&
+      strcmp(hvol->axis[1].label, "Hessian-2dd_cd") &&
+      strcmp(hvol->axis[1].label, "grad-mag-grad_cd")) {
     sprintf(err, "%s: expected a second derivative measure on axis 1", me);
     biffSet(BANE, err); return 0;    
   }
-  if (strcmp(hvol->label[2], "value")) {
+  if (strcmp(hvol->axis[2].label, "value")) {
     sprintf(err, "%s: expected \"value\" on axis 2", me);
     biffSet(BANE, err); return 0;
   }
@@ -84,8 +84,8 @@ baneValidInfo(Nrrd *info, int wantDim) {
     sprintf(err, "%s: need data of type float", me);
     biffSet(BANE, err); return 0;
   }
-  if (2 != info->size[0]) {
-    sprintf(err, "%s: 1st axis needs size 2 (not %d)", me, info->size[0]);
+  if (2 != info->axis[0].size) {
+    sprintf(err, "%s: 1st axis needs size 2 (not %d)", me, info->axis[0].size);
     biffSet(BANE, err); return 0;
   }
   return gotDim-1;
@@ -137,15 +137,15 @@ baneValidBcpts(Nrrd *Bcpts) {
     sprintf(err, "%s: need 2-dimensional (not %d)", me, Bcpts->dim);
     biffSet(BANE, err); return 0;
   }
-  if (2 != Bcpts->size[0]) {
-    sprintf(err, "%s: axis#0 needs size 2 (not %d)", me, Bcpts->size[0]);
+  if (2 != Bcpts->axis[0].size) {
+    sprintf(err, "%s: axis#0 needs size 2 (not %d)", me, Bcpts->axis[0].size);
     biffSet(BANE, err); return 0;
   }
   if (nrrdTypeFloat != Bcpts->type) {
     sprintf(err, "%s: need data of type float", me);
     biffSet(BANE, err); return 0;
   }
-  len = Bcpts->size[1];
+  len = Bcpts->axis[1].size;
   data = Bcpts->data;
   for (i=0; i<=len-2; i++) {
     if (!(data[0 + 2*i] <= data[0 + 2*(i+1)])) {

@@ -53,7 +53,7 @@ main(int argc, char **argv) {
     exit(1);
   }
 
-  if (!(nin = nrrdNewLoad(inS))) {
+  if (nrrdLoad(nin=nrrdNew(), inS)) {
     printf("%s: couldn't read input \"%s\":\n%s", me, inS, biffGet(NRRD));
     exit(1);
   }
@@ -66,8 +66,7 @@ main(int argc, char **argv) {
   }
   printf("done\n");
 
-  nout->encoding = nrrdEncodingRaw;
-  if (nrrdSave(outS, nout)) {
+  if (nrrdSave(outS, nout, NULL)) {
     printf("%s: couldn't save output to \"%s\":\n%s", me, outS, biffGet(NRRD));
     exit(1);
   }

@@ -63,7 +63,7 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin,
   char me[] = "tenCalcTensor", err[128], cmt[128];
   float *out, tens[6], chan[7];
   int sx, sy, sz;
-  NRRD_BIG_INT I;
+  nrrdBigInt I;
   
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -73,37 +73,34 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin,
     sprintf(err, "%s: wasn't given valid tensor nrrd", me);
     biffAdd(TEN, err); return 1;
   }
-  sx = nin->size[1];
-  sy = nin->size[2];
-  sz = nin->size[3];
-  if (nrrdMaybeAlloc(nout, 7*sx*sy*sz, nrrdTypeFloat, 4)) {
+  sx = nin->axis[1].size;
+  sy = nin->axis[2].size;
+  sz = nin->axis[3].size;
+  if (nrrdMaybeAlloc_va(nout, 7*sx*sy*sz, nrrdTypeFloat, 4,
+			7, sx, sy, sz)) {
     sprintf(err, "%s: couldn't alloc output", me);
     biffMove(TEN, err, NRRD); return 1;
   }
-  nout->size[0] = 7;
-  nout->size[1] = sx;
-  nout->size[2] = sy;
-  nout->size[3] = sz;
-  strcpy(nout->label[0], "matrix");
-  strcpy(nout->label[1], "x");
-  strcpy(nout->label[2], "y");
-  strcpy(nout->label[3], "z");
-  nout->spacing[0] = AIR_NAN;
-  if (AIR_EXISTS(nin->spacing[1]) && 
-      AIR_EXISTS(nin->spacing[2]) &&
-      AIR_EXISTS(nin->spacing[3])) {
-    nout->spacing[1] = nin->spacing[1];
-    nout->spacing[2] = nin->spacing[2];
-    nout->spacing[3] = nin->spacing[3];
+  nout->axis[0].label = airStrdup("matrix");
+  nout->axis[1].label = airStrdup("x");
+  nout->axis[2].label = airStrdup("y");
+  nout->axis[3].label = airStrdup("z");
+  nout->axis[0].spacing = AIR_NAN;
+  if (AIR_EXISTS(nin->axis[1].spacing) && 
+      AIR_EXISTS(nin->axis[2].spacing) &&
+      AIR_EXISTS(nin->axis[3].spacing)) {
+    nout->axis[1].spacing = nin->axis[1].spacing;
+    nout->axis[2].spacing = nin->axis[2].spacing;
+    nout->axis[3].spacing = nin->axis[3].spacing;
   }
   else {
-    nout->spacing[1] = 1.0;
-    nout->spacing[2] = 1.0;
-    nout->spacing[3] = 1.0;
+    nout->axis[1].spacing = 1.0;
+    nout->axis[2].spacing = 1.0;
+    nout->axis[3].spacing = 1.0;
   }    
   sprintf(cmt, "%s: using thresh = %g, slope = %g, b = %g\n", 
 	  me, thresh, slope, b);
-  nrrdCommentAdd(nout, cmt);
+  nrrdCommentAdd(nout, cmt, AIR_FALSE);
   out = nout->data;
   for (I=0; I<=sx*sy*sz-1; I++) {
     if (tenVerbose && !(I % (sx*sy)))

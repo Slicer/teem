@@ -63,7 +63,7 @@ main(int argc, char **argv) {
     fprintf(stderr, "%s: didn't recognize \"%s\" as an int\n", me, bitStr);
     exit(1);
   }
-  if (!(nin = nrrdNewLoad(ninStr))) {
+  if (nrrdLoad(nin=nrrdNew(), ninStr)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble reading nrrd from \"%s\":\n%s\n", 
 	    me, ninStr, err);
@@ -93,8 +93,7 @@ main(int argc, char **argv) {
     exit(1);
   }
 
-  nout->encoding = nrrdEncodingRaw;
-  if (nrrdSave(noutStr, nout)) {
+  if (nrrdSave(noutStr, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble writing nrrd to \"%s\":\n%s\n",
 	    me, noutStr, err);

@@ -74,7 +74,7 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   for (i=0; i<=num-1; i++) {
-    if (!(nin[i] = nrrdNewLoad(argv[1+i]))) {
+    if (nrrdLoad(nin[i]=nrrdNew(), argv[1+i])) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: error loading nrrd #%d from \"%s\":\n%s\n",
 	      me, i, argv[1+i], err);
@@ -91,8 +91,8 @@ main(int argc, char *argv[]) {
     free(err); 
     exit(1);
   }
-  nout->spacing[axis] = spacing;
-  strcpy(nout->label[axis], label);
+  nout->axis[axis].spacing = spacing;
+  nout->axis[axis].label = airStrdup(label);
 
   /* nuke all the inputs */
   for (i=0; i<=num-1; i++) {
@@ -101,8 +101,7 @@ main(int argc, char *argv[]) {
   free(nin);
 
   /* save the output */
-  nout->encoding = nrrdEncodingRaw;
-  if (nrrdSave(out, nout)) {
+  if (nrrdSave(out, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s", me, out, err);
     free(err);

@@ -18,6 +18,7 @@
 
 #include <nrrd.h>
 #include <math.h>
+#include <string.h>
 
 char *me;
 
@@ -31,13 +32,13 @@ usage() {
 
 int
 main(int argc, char *argv[]) {
-  FILE *fin, *fout;
+  FILE *fin = NULL;
   char *err, *op, *in1Str, *in2Str, *outStr;
   Nrrd *nin = NULL, *nin1 = NULL, *nin2 = NULL, *nout = NULL;
   double op1, op2, result;
-  NRRD_BIG_INT i, len;
-  double (*look1)(void *, NRRD_BIG_INT) = NULL, 
-    (*look2)(void *, NRRD_BIG_INT) = NULL;
+  nrrdBigInt i, len;
+  double (*look1)(void *, nrrdBigInt) = NULL, 
+    (*look2)(void *, nrrdBigInt) = NULL;
 
   me = argv[0];
   if (!(argc == 5))
@@ -59,9 +60,12 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: didn't get one of the supported operations\n", me);
     usage();
   }
-  if (fin = fopen(in1Str, "r")) {
-    fclose(fin);
-    if (!(nin1 = nrrdNewLoad(in1Str))) {
+  /* fprintf(stderr, "%s: in1Str = |%s| (%d)\n", 
+     me, in1Str, !strcmp(in1Str, "-")); */
+  if (!strcmp(in1Str, "-") || (fin = fopen(in1Str, "r"))) {
+    if (fin)
+      fclose(fin);
+    if (nrrdLoad(nin1=nrrdNew(), in1Str)) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: error reading first nrrd:%s\n", me, err);
       free(err);
@@ -73,12 +77,15 @@ main(int argc, char *argv[]) {
       fprintf(stderr, "%s: can't open %s or parse it as float\n", me, in1Str);
       exit(1);
     }
-    printf("%s: op1 is constant %g\n", me, op1);
+    fprintf(stderr, "%s: op1 is constant %g\n", me, op1);
   }
 
-  if (fin = fopen(in2Str, "r")) {
-    fclose(fin);
-    if (!(nin2 = nrrdNewLoad(in2Str))) {
+  /* fprintf(stderr, "%s: in2Str = |%s| (%d)\n", 
+     me, in2Str, !strcmp(in2Str, "-")); */
+  if (!strcmp(in2Str, "-") || (fin = fopen(in2Str, "r"))) {
+    if (fin)
+      fclose(fin);
+    if (nrrdLoad(nin2=nrrdNew(), in2Str)) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: error reading second nrrd:%s\n", me, err);
       free(err);
@@ -90,7 +97,7 @@ main(int argc, char *argv[]) {
       fprintf(stderr, "%s: can't open %s or parse it as float\n", me, in2Str);
       exit(1);
     }
-    printf("%s: op2 is constant %g\n", me, op2);
+    fprintf(stderr, "%s: op2 is constant %g\n", me, op2);
   }
 
   if (!(nin1 || nin2)) {
@@ -113,7 +120,7 @@ main(int argc, char *argv[]) {
   }
 
   /* we copy even though we'll be over-writing the data */
-  if (!(nout = nrrdNewCopy(nin))) {
+  if (nrrdCopy(nout=nrrdNew(), nin)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: nrrdNewCopy failed:\n%s\n", me, err);
     free(err);
@@ -159,29 +166,11 @@ main(int argc, char *argv[]) {
     nrrdDInsert[nin->type](nout->data, i, result);
   }
 
-  if (strlen(outStr) > 5 &&
-      nout->dim == 2 &&
-      nout->type == nrrdTypeUChar &&
-      !strcmp(".pgm", outStr + strlen(outStr) - 4)) {
-    if (!(fout = fopen(outStr, "w"))) {
-      fprintf(stderr, "%s: couldn't open %s for writing\n", me, outStr);
-      exit(1);
-    }
-    if (nrrdWritePNM(fout, nout)) {
-      err = biffGet(NRRD);
-      fprintf(stderr, "%s: trouble writing as PGM:\n%s\n", me, err);
-      free(err);
-      exit(1);
-    }
-    fclose(fout);
-  }
-  else {
-    if (nrrdSave(outStr, nout)) {
-      err = biffGet(NRRD);
-      fprintf(stderr, "%s: trouble in nrrdSave:\n%s\n", me, err);
-      free(err);
-      exit(1);
-    }
+  if (nrrdSave(outStr, nout, NULL)) {
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: trouble in nrrdSave:\n%s\n", me, err);
+    free(err);
+    exit(1);
   }
 
   nrrdNuke(nin1);

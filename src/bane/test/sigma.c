@@ -23,11 +23,14 @@ main(int argc, char *argv[]) {
   Nrrd *info;
   float sigma;
   
-  if (!(info = nrrdNewLoad(argv[1]))) {
+  if (nrrdLoad(info=nrrdNew(), argv[1])) {
     fprintf(stderr, "trouble:\n%s\n", biffGet(BANE));
   }
   if (baneSigmaCalc(&sigma, info)) {
     fprintf(stderr, "trouble:\n%s\n", biffGet(BANE));
   }
   printf("%g\n", sigma);
+
+  nrrdNuke(info);
+  return 0;
 }

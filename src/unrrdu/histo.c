@@ -30,10 +30,10 @@ usage() {
 
 int
 main(int argc, char **argv) {
-  FILE *fout;
   char *err, *xStr, *yStr, *inStr, *outStr;
   int sx, sy;
   Nrrd *nin, *nhist, *nimg;
+  nrrdIO *io;
 
   me = argv[0];
   if (5 != argc)
@@ -53,7 +53,7 @@ main(int argc, char **argv) {
     fprintf(stderr, "%s: sorry, can't write PNMs to stdout yet\n", me);
     exit(1);
   }
-  if (!(nin = nrrdNewLoad(inStr))) {
+  if (nrrdLoad(nin=nrrdNew(), inStr)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: can't read nrrd from \"%s\":\n%s", me, inStr, err);
     free(err);
@@ -73,19 +73,14 @@ main(int argc, char **argv) {
     free(err);
     exit(1);
   }
-  nimg->encoding = nrrdEncodingRaw;
-  if (!(fout = fopen(outStr, "w"))) {
-    fprintf(stderr, "%s: couldn't open %s for writing\n", me, outStr);
-    exit(1);
-  }
-  if (nrrdWritePNM(fout, nimg)) {
+  io = nrrdIONew();
+  if (nrrdSave(outStr, nimg, io)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble writing histogram image to \"%s\":\n%s\n",
 	    me, outStr, err);
     free(err);
     exit(1);
   }
-  fclose(fout);
 
   nrrdNuke(nin);
   nrrdNuke(nhist);
