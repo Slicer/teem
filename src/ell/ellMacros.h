@@ -403,6 +403,17 @@
    (v2)[2]=(m)[ 8]*(v1)[0]+(m)[ 9]*(v1)[1]+(m)[10]*(v1)[2]+(m)[11]*(v1)[3], \
    (v2)[3]=(m)[12]*(v1)[0]+(m)[13]*(v1)[1]+(m)[14]*(v1)[2]+(m)[15]*(v1)[3])
 
+#define ELL_34V_HOMOG(v2, v1) \
+  ((v2)[0] = (v1)[0]/(v1)[3], \
+   (v2)[1] = (v1)[1]/(v1)[3], \
+   (v2)[2] = (v1)[2]/(v1)[3])
+
+#define ELL_4V_HOMOG(v2, v1)  \
+  ((v2)[0] = (v1)[0]/(v1)[3], \
+   (v2)[1] = (v1)[1]/(v1)[3], \
+   (v2)[2] = (v1)[2]/(v1)[3], \
+   (v2)[3] = 1.0)
+
 /*
 ** the ELL_4M_SET... macros are setting the matrix one _column_
 ** at a time- so the matrix components appear below in transpose
