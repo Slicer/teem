@@ -251,11 +251,12 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
     sprintf(err, "%s: trouble copying axes", me);
     biffAdd(NRRD, err); return 1;
   }
-  mapcnt = nmap->content ? nmap->content : nrrdStateUnknownContent;
+  mapcnt = _nrrdContentGet(nmap);
   if (nrrdContentSet(nout, verbStr[kind], nin, "%s", mapcnt)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); free(mapcnt); return 1;
   }
+  free(mapcnt); 
   nrrdPeripheralInit(nout);
   nout->hasNonExist = nrrdNonExistFalse;   /* really! */
   return 0;

@@ -18,6 +18,7 @@
 */
 
 #include "nrrd.h"
+#include "privateNrrd.h"
 
 /*
 ******** nrrdSample_nva()

@@ -60,6 +60,27 @@ nrrdPeripheralCopy (Nrrd *nout, Nrrd *nin) {
   return 0;
 }
 
+/*
+** _nrrdContentGet
+**
+** ALLOCATES a string for the content of a given nrrd
+** panics and exits if allocation failed
+*/
+char *
+_nrrdContentGet(Nrrd *nin) {
+  char me[]="_nrrdContentGet";
+  char *ret;
+  
+  ret = ((nin && nin->content) ? 
+	 airStrdup(nin->content) : 
+	 airStrdup(nrrdStateUnknownContent));
+  if (!ret) {
+    fprintf(stderr, "%s: PANIC: content strdup failed!\n", me);
+    exit(1);
+  }
+  return ret;
+}
+
 int
 _nrrdContentSet_nva (Nrrd *nout, const char *func,
 		     char *content, const char *format, va_list arg) {
@@ -148,21 +169,15 @@ nrrdContentSet (Nrrd *nout, const char *func,
   }
   /* we copy the input nrrd content first, before blowing away the
      output content, in case nout == nin */
-  content = (nin->content ? 
-	     airStrdup(nin->content) : 
-	     airStrdup(nrrdStateUnknownContent));
-  if (!content) {
-    sprintf(err, "%s: couldn't copy input content!", me);
-    biffAdd(NRRD, err); return 1;
-  }
+  content = _nrrdContentGet(nin);
   va_start(ap, format);
   if (_nrrdContentSet_nva(nout, func, content, format, ap)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); va_end(ap); free(content); return 1;
   }
   va_end(ap);
-
   free(content); 
+
   return 0;
 }
 

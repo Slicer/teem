@@ -18,6 +18,7 @@
 */
 
 #include "nrrd.h"
+#include "privateNrrd.h"
 
 /*
 ******** nrrdSplice()
@@ -121,15 +122,12 @@ nrrdSplice(Nrrd *nout, Nrrd *nin, Nrrd *nslice, int axis, int pos) {
     dest += rowLen;
   }
   
-  sliceCont = nslice->content ? nslice->content : nrrdStateUnknownContent;
-  if (!sliceCont) {
-    sprintf(err, "%s: couldn't copy slice content!", me);
-    biffAdd(NRRD, err); return 1;
-  }
+  sliceCont = _nrrdContentGet(nslice);
   if (nrrdContentSet(nout, func, nin, "%s,%d,%d", sliceCont, axis, pos)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); free(sliceCont); return 1;
   }
+  free(sliceCont);
 
   nrrdPeripheralInit(nout);
 
@@ -245,15 +243,12 @@ nrrdInset(Nrrd *nout, Nrrd *nin, Nrrd *nsub, int *min) {
     strcat(buff1, buff2);
   }
   strcat(buff1, "]");
-  subCont = nsub->content ? nsub->content : nrrdStateUnknownContent;
-  if (!subCont) {
-    sprintf(err, "%s: couldn't copy subvolume content!", me);
-    biffAdd(NRRD, err); return 1;
-  }
+  subCont = _nrrdContentGet(nsub);
   if (nrrdContentSet(nout, func, nin, "%s,%s", subCont, buff1)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); free(subCont); return 1;
   }
+  free(subCont); 
 
   nrrdPeripheralInit(nout);
 

@@ -100,9 +100,7 @@ nrrdIterContent(NrrdIter *iter) {
   ret = NULL;
   if (iter) {
     if (iter->nrrd) {
-      ret = (iter->nrrd->content
-	     ? airStrdup(iter->nrrd->content)
-	     : airStrdup(nrrdStateUnknownContent));
+      ret = _nrrdContentGet(iter->nrrd);
     } else {
       airSinglePrintf(NULL, buff, "%g", iter->val);
       ret = airStrdup(buff);
