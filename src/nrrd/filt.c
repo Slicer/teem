@@ -244,6 +244,48 @@ nrrdNewMedian(Nrrd *nin, int radius, int bins) {
   return nout;
 }
 
+int
+_nrrdResampleCheckInfo(Nrrd *nin, nrrdResampleInfo *info) {
+  char me[] = "_nrrdResampleCheckInfo", err[NRRD_BIG_STRLEN];
+  nrrdKernel *k;
+  int p, d, np;
+
+  for (d=0; d<=nin->dim-1; d++) {
+    k = info->kernel[d];
+    /* we only care about the axes being resampled */
+    if (!k)
+      continue;
+    np = k->numParam();
+    for (p=0; p<=np-1; p++) {
+      if (!AIR_EXISTS(info->param[d][p])) {
+	sprintf(err, "%s: didn't set parameter %d for axis %d\n", me, p, d);
+	biffSet(NRRD, err); return 1;
+      }
+    }
+    if (!(AIR_EXISTS(info->min[d]) && AIR_EXISTS(info->max[d]))) {
+      sprintf(err, "%s: didn't set min and max domain limits for axis %d\n",
+	      me, d);
+      biffSet(NRRD, err); return 1;
+    }
+  }
+  if (nrrdBoundaryUnknown == info->boundary) {
+    sprintf(err, "%s: didn't set boundary behavior\n", me);
+    biffSet(NRRD, err); return 1;
+  }
+  if (nrrdBoundaryPad == info->boundary && !AIR_EXISTS(info->padValue)) {
+    sprintf(err, "%s: asked for boundary padding, but no pad value set\n", me);
+    biffSet(NRRD, err); return 1;
+  }
+  return 0;
+}
+
+
+/*
+** _nrrdResampleComputePermute()
+**
+** figures out information related to how the axes in a nrrd are
+** permuted during resampling: topRax, botRax, passes, ax[][], sz[][]
+*/
 void
 _nrrdResampleComputePermute(int permute[], 
 			    int ax[NRRD_MAX_DIM][NRRD_MAX_DIM], 
@@ -255,7 +297,8 @@ _nrrdResampleComputePermute(int permute[],
   int a, p, d, dim;
   
   dim = nin->dim;
-
+  
+  /* what are the first (top) and last (bottom) axes being resampled? */
   *topRax = *botRax = -1;
   for (d=0; d<=dim-1; d++) {
     if (info->kernel[d]) {
@@ -265,13 +308,15 @@ _nrrdResampleComputePermute(int permute[],
       *botRax = d;
     }
   }
+
+  /* figure out total number of passes needed, and construct the
+     permute[] array.  permute[i] = j means that the axis in position
+     i of the old array will be in position j of the new one
+     (permute answers "where do I put this", not "what do I put here").
+  */
   *passes = a = 0;
   for (d=0; d<=dim-1; d++) {
     if (info->kernel[d]) {
-      if (*topRax < 0) {
-	*topRax = d;
-      }
-      *botRax = d;
       do {
 	a = AIR_MOD(a+1, dim);
       } while (!info->kernel[a]);
@@ -295,7 +340,9 @@ _nrrdResampleComputePermute(int permute[],
   */
 
   /* create array of how the axes will be arranged in each pass ("ax"), 
-     and create array of how big each axes is in each pass ("sz") */
+     and create array of how big each axes is in each pass ("sz").
+     The input pass i will have axis layout described in ax[i] and
+     axis sizes described in sz[i] */
   for (d=0; d<=dim-1; d++) {
     ax[0][d] = d;
     sz[0][d] = nin->size[d];
@@ -331,6 +378,14 @@ _nrrdResampleComputePermute(int permute[],
   return;
 }
 
+/*
+** _nrrdResampleFillSmpIndex()
+**
+** allocate and fill the arrays of indices and weights that are
+** needed to process all the scanlines along a given axis; also
+** be so kind as to return the sampling ratio (<1: downsampling,
+** result has fewer samples, >1: upsampling, result has more samples)
+*/
 int
 _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
 			  Nrrd *nin, nrrdResampleInfo *info, int d) {
@@ -348,11 +403,18 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
   smpRatio = (lengthOut-1)/(info->max[d] - info->min[d]);
   suppF = info->kernel[d]->support(info->param[d]);
   integral = info->kernel[d]->integral(info->param[d]);
-  printf("%s(%d): suppF = %g; smpRatio = %g\n", me, d, suppF, smpRatio);
-  if (smpRatio >= 1) {
+  /*
+  fprintf(stderr, "%s(%d): suppF = %g; smpRatio = %g\n", 
+	  me, d, suppF, smpRatio);
+  */
+  if (smpRatio > 1) {
+    /* if upsampling, we need only as many samples as needed for
+       interpolation with the given kernel */
     dotLen = 2*AIR_ROUNDUP(suppF);
   }
   else {
+    /* if downsampling, we need to use all the samples covered by
+       the stretched out version of the kernel */
     dotLen = 2*AIR_ROUNDUP(suppF/smpRatio);
   }
   smp = (float *)calloc(lengthOut*dotLen, sizeof(float));
@@ -537,7 +599,6 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     strideOut,                /* stride between samples in output 
 				 "scanline" from resampling */
     L, LI, LO, numLines,      /* top secret */
-    numAIn, numAOut,
     strideBIn, strideBOut,
     numOut;                   /* # of _samples_, total, in output volume;
 				 this is for allocating the output */
@@ -553,6 +614,11 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   dim = nin->dim;
   typeIn = nin->type;
   typeOut = nrrdTypeUnknown == info->type ? typeIn : info->type;
+
+  if (_nrrdResampleCheckInfo(nin, info)) {
+    sprintf(err, "%s: problem with arguments in nrrdResampleInfo", me);
+    biffAdd(NRRD, err); return 1;
+  }
 
   _nrrdResampleComputePermute(permute, ax, sz,
 			      &topRax, &botRax, &passes,
@@ -595,12 +661,16 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
       break;
     }
   }
+  /*
   printf("%s: strideIn = "NRRD_BIG_INT_PRINTF"\n", me, strideIn);
+  */
 
   /* go! */
   for (p=0; p<=passes-1; p++) {
+    /*
     printf("%s: --- pass %d --- \n", me, p);
-    numOut = numLines = numAIn = numAOut = strideBIn = strideBOut = 1;
+    */
+    numOut = numLines = strideBIn = strideBOut = 1;
     for (d=0; d<=dim-1; d++) {
       if (d <= topRax)
 	strideBIn *= sz[p][d];
@@ -610,23 +680,22 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
 	numLines *= sz[p][d];
       numOut *= sz[p+1][d];
     }
-    numAIn = strideBIn/sz[p][topRax];
-    numAOut = strideBOut/sz[p+1][botRax];
+    strideOut = strideBOut/sz[p+1][botRax];
     lengthIn = sz[p][topRax];
     lengthOut = sz[p+1][botRax];
-    strideOut = numAOut;
     /* for the rest of the loop body, d is the original "dimension"
        for the axis being resampled */
     d = ax[p][topRax];
+    /*
     printf("%s(%d): numOut = "NRRD_BIG_INT_PRINTF"\n", me, p, numOut);
     printf("%s(%d): numLines = "NRRD_BIG_INT_PRINTF"\n", me, p, numLines);
     printf("%s(%d): stride: In=%d, Out=%d\n", me, p, 
 	   (int)strideIn, (int)strideOut);
-    printf("%s(%d): numA: In=%d, Out=%d\n", me, p, (int)numAIn, (int)numAOut);
     printf("%s(%d): strideB: In=%d, Out=%d\n", 
 	   me, p, (int)strideBIn, (int)strideBOut);
     printf("%s(%d): lengthIn = %d\n", me, p, lengthIn);
     printf("%s(%d): lengthOut = %d\n", me, p, lengthOut);
+    */
 
     /* we can free the input to the previous pass 
        (if its not the given data) */
@@ -636,13 +705,17 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
 	  floatNin = nrrdNuke(floatNin);
 
 	  arr[0] = NULL;
+	  /*
 	  printf("%s: pass %d: freeing arr[0]\n", me, p);
+	  */
 	}
       }
       else {
 	free(arr[p-1]);
 	arr[p-1] = NULL;
+	/*
 	printf("%s: pass %d: freeing arr[%d]\n", me, p, p-1);
+	*/
       }
     }
 
@@ -653,7 +726,9 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
 	      "for output of pass %d", me, numOut, p);
       biffAdd(NRRD, err); return 1;
     }
+    /*
     printf("%s: allocated arr[%d]\n", me, p+1);
+    */
 
     /* allocate contiguous input scanline buffer, we alloc one more
        than needed to provide a place for the pad value */
@@ -720,7 +795,9 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   /* clean up second-to-last array and scanline buffers */
   if (passes > 1) {
     free(arr[passes-1]);
+    /*
     printf("%s: now freeing arr[%d]\n", me, passes-1);
+    */
   }
   else if (arr[passes-1] != nin->data) {
     floatNin = nrrdNuke(floatNin);
@@ -728,9 +805,11 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   arr[passes-1] = NULL;
   
   /* create output nrrd and set axis info */
-  if (nrrdAlloc(nout, numOut, typeOut, dim)) {
-    sprintf(err, "%s: couldn't allocate final output nrrd", me);
-    biffAdd(NRRD, err); return 1;
+  if (!nout->data) {
+    if (nrrdAlloc(nout, numOut, typeOut, dim)) {
+      sprintf(err, "%s: couldn't allocate final output nrrd", me);
+      biffAdd(NRRD, err); return 1;
+    }
   }
   for (d=0; d<=dim-1; d++) {
     if (info->kernel[d]) {
