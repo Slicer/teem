@@ -85,8 +85,8 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: all axis spacings must exist in input nrrd\n", me);
     exit(1);
   }
-  printf("%s: input and output have dimensions %d %d %d\n",
-	 me, sx, sy, sz);
+  fprintf(stderr, "%s: input and output have dimensions %d %d %d\n",
+	  me, sx, sy, sz);
   
   /* start by just copying the nrrd; then we'll meddle with the values */
   if (nrrdCopy(nout = nrrdNew(), nin)) {

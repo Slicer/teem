@@ -45,7 +45,7 @@ endif
 ## BINS: all the command-line executables associated with teem
 ## 
 BINS = airSanity affine cubic nrrdSanity overrgb idx2pos \
-  pos2idx vprobe unu qbert mrender miter gkms gantry
+  pos2idx vprobe unu qbert mrender miter gkms ungantry
 
 ## _BIND: list of development locations for given bins
 ## _BINI: list of install locations for given bins
@@ -61,12 +61,7 @@ BINS.DEV = $(call _BIND,$(BINS))
 BINS.INST = $(call _BINI,$(BINS))
 
 
-## print progress info only if this is a single-job build
-##
-#  bin/install ::
-#	@echo ">>>>>>>>>>>>>>>>>>>>" bin "<<<<<<<<<<<<<<<<<<<<"
-
-## Dntry-point targets for binaries.  There is no "usable" for
+## Entry-point targets for binaries.  There is no "usable" for
 ## binaries, since they aren't libraries.
 ##
 bin/dev: $(BINS.DEV)
@@ -94,7 +89,7 @@ gkms.NEED       = bane nrrd biff air
 unu.NEED        = unrrdu nrrd biff hest air
 mrender.NEED    = hoover limn gage nrrd biff hest air
 miter.NEED      = mite hoover limn nrrd ell biff air
-gantry.NEED     = gage nrrd biff hest air
+ungantry.NEED   = gage nrrd biff hest air
 
 ## TOP.DEP(BIN) : most dependent library (furthest from air) needed for BIN
 ## TOP.DEP.IS(LIB) : which bins have TOP.DEP of LIB
@@ -110,14 +105,14 @@ TOP.DEP.IS = $(foreach bin,$(BINS),$(if $(strip $(subst $(1),,$(call TOP.DEP,$(b
 ## require supplementing these rules!!!  (do "make clobber; make
 ## bin/install" from teem/src to see)
 ##
-$(call _BINDI,$(call TOP.DEP.IS,air)) : air/usable
-$(call _BINDI,$(call TOP.DEP.IS,ell)) : ell/usable
-$(call _BINDI,$(call TOP.DEP.IS,nrrd)) : nrrd/usable
-$(call _BINDI,$(call TOP.DEP.IS,unrrdu)) : unrrdu/usable
-$(call _BINDI,$(call TOP.DEP.IS,gage)) : gage/usable
-$(call _BINDI,$(call TOP.DEP.IS,hoover)) : hoover/usable
-$(call _BINDI,$(call TOP.DEP.IS,mite)) : mite/usable
-$(call _BINDI,$(call TOP.DEP.IS,bane)) : bane/usable
+$(call _BINDI,$(call TOP.DEP.IS,air))    : $(TEEM_SRC)/.air.usable
+$(call _BINDI,$(call TOP.DEP.IS,ell))    : $(TEEM_SRC)/.ell.usable
+$(call _BINDI,$(call TOP.DEP.IS,nrrd))   : $(TEEM_SRC)/.nrrd.usable
+$(call _BINDI,$(call TOP.DEP.IS,unrrdu)) : $(TEEM_SRC)/.unrrdu.usable
+$(call _BINDI,$(call TOP.DEP.IS,gage))   : $(TEEM_SRC)/.gage.usable
+$(call _BINDI,$(call TOP.DEP.IS,hoover)) : $(TEEM_SRC)/.hoover.usable
+$(call _BINDI,$(call TOP.DEP.IS,mite))   : $(TEEM_SRC)/.mite.usable
+$(call _BINDI,$(call TOP.DEP.IS,bane))   : $(TEEM_SRC)/.bane.usable
 
 ## How to make BINS.DEV and BINS.INST: both kinds link against the
 ## same (installed) libraries and include the same (installed)
@@ -127,5 +122,5 @@ $(TEEM_SRC)/bin/% $(BDEST)/% : $(TEEM_SRC)/bin/%.c
 	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) -o $@ $< \
 	  $(LPATH) $(call NEED.LIBLINKS,$(notdir $@)) -lz -lm
 
-# we're not a library, template.mk doesn't apply to us
+# we're not a library; template.mk doesn't apply to us
 endif
