@@ -39,12 +39,13 @@ extern "C" {
 #endif
 
 #ifdef _WIN32
-/* ---- BEGIN non-NrrdIO */
 #if _MSC_VER < 1300 || !defined(_USE_MATH_DEFINES)
 #define M_PI 3.14159265358979323846
 #define M_E  2.71828182845904523536
 #endif
-/* ---- END non-NrrdIO */
+#endif
+
+#ifdef _WIN32 && !defined(__CYGWIN__)
 typedef signed __int64 airLLong;
 typedef unsigned __int64 airULLong;
 #define AIR_LLONG_FMT "%I64d"
