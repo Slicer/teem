@@ -42,10 +42,11 @@ enum {
   nrrdFormatNRRD,       /* 1: basic nrrd format (associated with both
 			   magic nrrdMagicOldNRRD and nrrdMagicNRRD0001 */
   nrrdFormatPNM,        /* 2: PNM image */
-  nrrdFormatTable,      /* 3: bare ASCII table */
+  nrrdFormatPNG,        /* 3: PNG image */
+  nrrdFormatTable,      /* 4: bare ASCII table */
   nrrdFormatLast
 };
-#define NRRD_FORMAT_MAX    3
+#define NRRD_FORMAT_MAX    4
 
 /*
 ******** nrrdBoundary enum
@@ -74,15 +75,16 @@ enum {
 */
 enum {
   nrrdMagicUnknown,
-  nrrdMagicOldNRRD,      /* 1: "NRRD00.01\n" (pre teem 1.4) */
-  nrrdMagicNRRD0001,     /* 2: "NRRD0001\n" */
-  nrrdMagicP2,           /* 3: "P2\n": ascii PGM */
-  nrrdMagicP3,           /* 4: "P3\n": ascii PPM */
-  nrrdMagicP5,           /* 5: "P5\n": binary PGM */
-  nrrdMagicP6,           /* 6: "P6\n": binary PPM */
+  nrrdMagicOldNRRD,      /* 1: "NRRD00.01" (pre teem 1.4) */
+  nrrdMagicNRRD0001,     /* 2: "NRRD0001" */
+  nrrdMagicP2,           /* 3: "P2": ascii PGM */
+  nrrdMagicP3,           /* 4: "P3": ascii PPM */
+  nrrdMagicP5,           /* 5: "P5": binary PGM */
+  nrrdMagicP6,           /* 6: "P6": binary PPM */
+  nrrdMagicPNG,          /* 7: "\211PNG": PNG */
   nrrdMagicLast
 };
-#define NRRD_MAGIC_MAX      6
+#define NRRD_MAGIC_MAX      7
 
 /*
 ******** nrrdType enum

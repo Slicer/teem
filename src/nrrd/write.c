@@ -19,6 +19,7 @@
 
 #include "nrrd.h"
 #include "privateNrrd.h"
+#include <teemPng.h>
 #include <teem32bit.h>
 
 #if TEEM_BZIP2
@@ -784,35 +785,29 @@ _nrrdWriteNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io, int writeData) {
 }
 
 int
-_nrrdReshapeDownGrayscale (Nrrd *nout, Nrrd *nin) {
+_nrrdReshapeDownGrayscale (Nrrd *nimg) {
   char me[]="_nrrdReshapeDownGrayscale", err[AIR_STRLEN_MED];
   int axmap[2] = {1, 2};
+  Nrrd *ntmp;  /* just a holder for axis information */
   
-  if (nrrdReshape(nout, nin, 2, nin->axis[1].size, nin->axis[2].size)
-      || nrrdAxesCopy(nout, nin, axmap, NRRD_AXESINFO_SIZE_BIT)
-      || nrrdPeripheralCopy(nout, nin)
-      || nrrdCommentCopy(nout, nin)) {
+  ntmp = nrrdNew();
+  if (nrrdAxesCopy(ntmp, nimg, NULL, NRRD_AXESINFO_NONE)
+      || nrrdAxesCopy(nimg, ntmp, axmap, NRRD_AXESINFO_NONE)) {
     sprintf(err, "%s: ", me); biffAdd(NRRD, err); return 1;
   }
   return 0;
 }
 
 int
-_nrrdWritePNM (FILE *file, Nrrd *_nrrd, NrrdIO *io) {
+_nrrdWritePNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWritePNM", err[AIR_STRLEN_MED], *line;
   int i, color, sx, sy, magic;
-  Nrrd *nrrd;
   
-  nrrd = _nrrd; /* bad warnings */
   if (3 == nrrd->dim && 1 == nrrd->axis[0].size) {
-    nrrd = nrrdNew();
-    if (_nrrdReshapeDownGrayscale(nrrd, _nrrd)) {
+    if (_nrrdReshapeDownGrayscale(nrrd)) {
       sprintf(err, "%s: trouble reshaping grayscale image", me);
       biffAdd(NRRD, err); return 1;
     }
-  } else {
-    /* no cleverness needed */
-    nrrd = _nrrd;
   }
   color = (3 == nrrd->dim);
   if (!color) {
@@ -832,7 +827,7 @@ _nrrdWritePNM (FILE *file, Nrrd *_nrrd, NrrdIO *io) {
   fprintf(file, "%s\n", airEnumStr(nrrdMagic, magic));
   fprintf(file, "%d %d\n", sx, sy);
   for (i=1; i<=NRRD_FIELD_MAX; i++) {
-    if (_nrrdFieldValidInPNM[i]) { 
+    if (_nrrdFieldValidInImage[i]) { 
       _PRINT_FIELD(NRRD_PNM_COMMENT, i); 
     }
   }
@@ -844,11 +839,22 @@ _nrrdWritePNM (FILE *file, Nrrd *_nrrd, NrrdIO *io) {
   io->dataFile = file;
   if (nrrdWriteData[io->encoding](nrrd, io)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); if (nrrd != _nrrd) nrrdNuke(nrrd); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   
-  if (nrrd != _nrrd) nrrdNuke(nrrd); 
   return 0;
+}
+
+int
+_nrrdWritePNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
+  char me[]="_nrrdWritePNG", err[AIR_STRLEN_MED];
+#if TEEM_PNG
+  
+  return 0;
+#else
+  sprintf(err, "%s: sorry, this nrrd not compiled with PNG enabled", me);
+  biffAdd(NRRD, err); return 1;
+#endif
 }
 
 int
@@ -1036,6 +1042,9 @@ nrrdWrite (FILE *file, Nrrd *nrrd, NrrdIO *io) {
     break;
   case nrrdFormatPNM:
     ret = _nrrdWritePNM(file, nrrd, io);
+    break;
+  case nrrdFormatPNG:
+    ret = _nrrdWritePNG(file, nrrd, io);
     break;
   case nrrdFormatTable:
     ret = _nrrdWriteTable(file, nrrd, io);

@@ -457,6 +457,35 @@ nrrdFitsInFormat (Nrrd *nrrd, int encoding, int format, int useBiff) {
       return AIR_FALSE;
     }
     break;
+  case nrrdFormatPNG:
+    if (!( nrrdTypeUChar == nrrd->type || nrrdTypeUShort == nrrd->type )) {
+      sprintf(err, "%s: type is %s, not %s or %s", me,
+	      airEnumStr(nrrdType, nrrd->type),
+	      airEnumStr(nrrdType, nrrdTypeUChar),
+	      airEnumStr(nrrdType, nrrdTypeUShort));
+      biffMaybeAdd(NRRD, err, useBiff); 
+      return AIR_FALSE;
+    }
+    /* encoding ignored- always gzip */
+    /* else */
+    if (2 == nrrd->dim) {
+      /* its a gray-scale image */
+      ret = AIR_TRUE;
+    } else if (3 == nrrd->dim) {
+      if (!( 1 == nrrd->axis[0].size
+	     || 2 == nrrd->axis[0].size
+	     || 3 == nrrd->axis[0].size
+	     || 4 == nrrd->axis[0].size )) {
+	sprintf(err, "%s: 1st axis size is %d, not 1, 2, 3, or 4",
+		me, nrrd->axis[0].size);
+	biffMaybeAdd(NRRD, err, useBiff); 
+	return AIR_FALSE;
+      }
+    } else {
+      sprintf(err, "%s: dimension is %d, not 2 or 3", me, nrrd->dim);
+      biffMaybeAdd(NRRD, err, useBiff); 
+      return AIR_FALSE;
+    }
   case nrrdFormatTable:
     /* encoding ignored- always ascii */
     if (!(1  == nrrd->dim || 2 == nrrd->dim)) {
@@ -474,7 +503,7 @@ nrrdFitsInFormat (Nrrd *nrrd, int encoding, int format, int useBiff) {
     ret = AIR_TRUE;
     break;
   }
-  return ret;
+  return ret; /* ret is never AIR_FALSE; its different flavors of non-zero */
 }
 
 /*

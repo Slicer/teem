@@ -32,7 +32,7 @@ char *_unrrdu_saveInfoL =
 int
 unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, encInfo[AIR_STRLEN_HUGE];
+  char *out, *err, encInfo[AIR_STRLEN_HUGE], fmtInfo[AIR_STRLEN_HUGE];
   Nrrd *nin, *nout;
   airArray *mop;
   NrrdIO *io;
@@ -42,12 +42,17 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   io = nrrdIONew();
   airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
 
+  strcpy(fmtInfo,
+	 "output file format. Possibilities include:\n "
+	 "\b\bo \"nrrd\": standard nrrd format\n "
+	 "\b\bo \"pnm\": PNM image; PPM for color, PGM for grayscale\n "
+	 "\b\bo \"text\": plain ASCII text for 1-D and 2-D data");
+  if (nrrdFormatIsAvailable[nrrdFormatPNG]) {
+    strcat(fmtInfo,
+	   "\n \b\bo \"png\": PNG image");
+  }
   hestOptAdd(&opt, "f", "format", airTypeEnum, 1, 1, &(io->format), NULL,
-	     "output file format. Possibilities include:\n "
-	     "\b\bo \"nrrd\": standard nrrd format\n "
-	     "\b\bo \"pnm\": PNM image; PPM for color, PGM for grayscale\n "
-	     "\b\bo \"text\": plain ASCII text for 1-D and 2-D data",
-	     NULL, nrrdFormat);
+	     fmtInfo, NULL, nrrdFormat);
   strcpy(encInfo,
 	 "output file format. Possibilities include:"
 	 "\n \b\bo \"raw\": raw encoding"

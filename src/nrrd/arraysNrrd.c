@@ -150,14 +150,14 @@ nrrdTypeNumberValues[NRRD_TYPE_MAX+1] = {
 };
 
 /*
-** _nrrdFieldValidInPNM[]
+** _nrrdFieldValidInImage[]
 **
-** these fields are valid embedded in PNM comments
+** these fields are valid embedded in PNM and PNG comments
 ** This does NOT include the fields who's values are constrained
-** the PNM format/magic itself.
+** the image format (and in the case of PNM, magic) itself.
 */
 int
-_nrrdFieldValidInPNM[NRRD_FIELD_MAX+1] = {
+_nrrdFieldValidInImage[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_unknown */
   1, /* nrrdField_comment */
   1, /* nrrdField_content */
@@ -284,6 +284,40 @@ _nrrdFieldRequired[NRRD_FIELD_MAX+1] = {
 };
 
 /*
+******** nrrdFormatIsAvailable[]
+**
+** tells if a given format has been compiled in
+*/
+int
+nrrdFormatIsAvailable[NRRD_FORMAT_MAX+1] = {
+  0, /* 0: nrrdFormatUnknown */
+  1, /* 1: nrrdFormatNRRD */
+  1, /* 2: nrrdFormatPNM */
+#if TEEM_PNG
+  1, /* 3: nrrdFormatPNG */
+#else
+  0, /* 3: nrrdFormatPNG */
+#endif
+  1  /* 4: nrrdFormatTable */
+};
+
+/*
+******** nrrdFormatIsImage[]
+**
+** tells if a given format is for images, which currently is
+** only used to control invocation of _nrrdReshapeUpGrayscale()
+** if nrrdStateGrayscaleImage3D
+*/
+int
+nrrdFormatIsImage[NRRD_FORMAT_MAX+1] = {
+  0, /* 0: nrrdFormatUnknown */
+  0, /* 1: nrrdFormatNRRD */
+  1, /* 2: nrrdFormatPNM */
+  1, /* 3: nrrdFormatPNG */
+  0  /* 4: nrrdFormatTable */
+};
+
+/*
 ******** nrrdEncodingEndianMatters[]
 ** 
 ** tells if given encoding exposes endianness of architecture
@@ -347,5 +381,6 @@ _nrrdFormatUsesDIO[NRRD_FORMAT_MAX+1] = {
   0,   /* nrrdFormatUnknown */
   1,   /* nrrdFormatNRRD */
   0,   /* nrrdFormatPNM */
+  0,   /* nrrdFormatPNG */
   0    /* nrrdFormatTable */
 };

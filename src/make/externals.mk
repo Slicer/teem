@@ -20,29 +20,42 @@
 
 ## XTERNS: list of all the identifiers for the various external
 ## libraries that we can _optionally_ link against.  Teem has no
-## notion of depending on these in the makefile sense, and doesn't try
-## to represent inter-external dependencies (PNG on zlib) with any
-## generality.
+## notion of depending on these in the makefile sense.  Teem doesn't
+## try to represent inter-external dependencies (e.g. PNG on zlib)
+## explicitly, but the ordering of the xterns below has to reflect
+## the ordering on the link line (e.g. PNG precides ZLIB)
 ##
 ## Extern EXT is enabled during make by setting the environment
 ## variable TEEM_EXT (just set it, not to anything in particular).  If
 ## external EXT is enabled during make, then TEEM_EXT will be defined
 ## as "1" during source file compilation.
 ##
-XTERNS = ZLIB BZIP2
+XTERNS = PNG ZLIB BZIP2
 
 ## ZLIB: for the zlib library underlying gzip and the PNG image
 ## format.  Using zlib enables the "gzip" nrrd data encoding.  Header
-## file is <zlib.h>.  Arch-specific .mk files may need to set
-## TEEM_ZLIB.IPATH and TEEM_ZLIB.LPATH to "-I<path>" and "-L<path>"
-## for the compile and link lines, respectively.
+## file is <zlib.h>.
+##
+## Arch-specific .mk files may need to set TEEM_ZLIB.IPATH and
+## TEEM_ZLIB.LPATH to "-I<path>" and "-L<path>" for the compile and
+## link lines, respectively.
 ZLIB.LINK = -lz
 nrrd.XTERN += ZLIB
 
-## BZIP2: for the bzip2 library.  Using bzip2 enables the "bzip2" 
-## nrrd data encoding.  Header file is <bzlib.h>.  Arch-specific 
-## .mk files may need to set TEEM_BZIP2_IPATH and TEEM_BZIP2_LPATH 
-## to "-I<path>" and "-L<path>" for the compile and link lines, 
-## respectively.
+## BZIP2: for the bzip2 compression library.  Using bzip2 enables
+## the "bzip2" nrrd data encoding.  Header file is <bzlib.h>.
+##
+## Arch-specific .mk files may need to set TEEM_BZIP2_IPATH and
+## TEEM_BZIP2_LPATH to "-I<path>" and "-L<path>" for the compile and
+## link lines, respectively.
 BZIP2.LINK = -lbz2
 nrrd.XTERN += BZIP2
+
+## PNG: for PNG images.  Using PNG enables the "png" nrrd format.
+## Header file is <png.h>
+##
+## Arch-specific .mk files may need to set TEEM_PNG_IPATH and
+## TEEM_PNG_LPATH to "-I<path>" and "-L<path>" for the compile and
+## link lines, respectively.
+PNG.LINK = -lpng
+nrrd.XTERN += PNG

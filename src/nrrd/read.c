@@ -19,6 +19,7 @@
 
 #include "nrrd.h"
 #include "privateNrrd.h"
+#include <teemPng.h>
 
 #if TEEM_BZIP2
 #include <bzlib.h>
@@ -791,14 +792,14 @@ _nrrdReadNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io) {
 }
 
 int
-_nrrdReshapeUpGrayscale (Nrrd *nout, Nrrd *nin) {
+_nrrdReshapeUpGrayscale (Nrrd *nimg) {
   char me[]="_nrrdReshapeUpGrayscale", err[AIR_STRLEN_MED];
   int axmap[3] = {-1, 0, 1};
+  Nrrd *ntmp;  /* just a holder for axis information */
   
-  if (nrrdReshape(nout, nin, 3, 1, nin->axis[0].size, nin->axis[1].size)
-      || nrrdAxesCopy(nout, nin, axmap, NRRD_AXESINFO_SIZE_BIT)
-      || nrrdPeripheralCopy(nout, nin)
-      || nrrdCommentCopy(nout, nin)) {
+  ntmp = nrrdNew();
+  if (nrrdAxesCopy(ntmp, nimg, NULL, NRRD_AXESINFO_NONE)
+      || nrrdAxesCopy(nimg, ntmp, axmap, NRRD_AXESINFO_NONE)) {
     sprintf(err, "%s: ", me); biffAdd(NRRD, err); return 1;
   }
   return 0;
@@ -809,7 +810,6 @@ _nrrdReadPNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadPNM", err[AIR_STRLEN_MED];
   const char *fs;
   int i, color, got, want, len, ret, val[5], sx, sy, max;
-  Nrrd *ntmp;
   
   nrrd->type = nrrdTypeUChar;
   switch(io->magic) {
@@ -874,7 +874,7 @@ _nrrdReadPNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
 	goto plain;
       }
       fs = airEnumStr(nrrdField, ret);
-      if (!_nrrdFieldValidInPNM[ret]) {
+      if (!_nrrdFieldValidInImage[ret]) {
 	if (nrrdStateVerboseIO) {
 	  fprintf(stderr, "(%s: field \"%s\" (not allowed in PNM) "
 		  "--> plain comment)\n", me, fs);
@@ -956,18 +956,21 @@ _nrrdReadPNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
     nrrd->data = NULL;
   }
 
-  /* reshape up grayscales if desired */
-  if (!color && nrrdStateGrayscaleImage3D) {
-    ntmp = nrrdNew();
-    if (_nrrdReshapeUpGrayscale(ntmp, nrrd)
-	|| nrrdCopy(nrrd, ntmp)) {
-      sprintf(err, "%s:", me);
-      biffAdd(NRRD, err); nrrdNuke(ntmp); return 1;
-    }
-    nrrdNuke(ntmp);
-  }
+  return 0;
+}
+
+int
+_nrrdReadPNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
+  char me[]="_nrrdReadPNG", err[AIR_STRLEN_MED];
+#if TEEM_PNG
+
+
   
   return 0;
+#else
+  sprintf(err, "%s: sorry, this nrrd not compiled with PNG enabled", me);
+  biffAdd(NRRD, err); return 1;
+#endif
 }
 
 int
@@ -1220,6 +1223,13 @@ nrrdRead (Nrrd *nrrd, FILE *file, NrrdIO *_io) {
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     break;
+  case nrrdMagicPNG:
+    io->format = nrrdFormatPNG;
+    if (_nrrdReadPNG(file, nrrd, io)) {
+      sprintf(err, "%s: trouble reading PNG", me);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+    break;
   default:
     /* see if line is a comment, or if we can parse one float from it,
        which implies its a table, */
@@ -1238,7 +1248,15 @@ nrrdRead (Nrrd *nrrd, FILE *file, NrrdIO *_io) {
     }
     break;
   }
-
+  /* reshape up grayscale images, if desired */
+  if (nrrdFormatIsImage[io->format] && 2 == nrrd->dim
+      && nrrdStateGrayscaleImage3D) {
+    if (_nrrdReshapeUpGrayscale(nrrd)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  
   if (_io) {
     /* reset the given NrrdIO so that it can be used again */
     nrrdIOReset(_io);

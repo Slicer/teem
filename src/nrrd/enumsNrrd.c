@@ -26,6 +26,7 @@ _nrrdFormatStr[NRRD_FORMAT_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_format)",
   "nrrd",
   "pnm",
+  "png",
   "text"
 };
 
@@ -33,6 +34,7 @@ char
 _nrrdFormatStrEqv[][AIR_STRLEN_SMALL] = {
   "nrrd",
   "pnm",
+  "png",
   "table", "text", "txt",
   ""
 };
@@ -41,6 +43,7 @@ int
 _nrrdFormatValEqv[] = {
   nrrdFormatNRRD,
   nrrdFormatPNM,
+  nrrdFormatPNG,
   nrrdFormatTable, nrrdFormatTable, nrrdFormatTable
 };
 
@@ -87,7 +90,8 @@ _nrrdMagicStr[NRRD_MAGIC_MAX+1][AIR_STRLEN_SMALL] = {
   "P2",
   "P3",
   "P5",
-  "P6"
+  "P6",
+  "\211PNG",
 };
 
 airEnum

@@ -56,7 +56,7 @@ typedef union {
 } _nrrdAxesInfoPtrs;
 
 /* arrays.c */
-extern int _nrrdFieldValidInPNM[NRRD_FIELD_MAX+1];
+extern int _nrrdFieldValidInImage[NRRD_FIELD_MAX+1];
 extern int _nrrdFieldValidInTable[NRRD_FIELD_MAX+1];
 extern int _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1];
 extern char _nrrdEnumFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL];
@@ -88,7 +88,11 @@ extern char _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL];
 extern char _nrrdRelDirFlag[];
 extern char _nrrdFieldSep[];
 extern char _nrrdTableSep[];
+extern int _nrrdReshapeUpGrayscale(Nrrd *nimg);
 extern int _nrrdSplitName(char **dirP, char **baseP, const char *name);
+
+/* write.c */
+extern int _nrrdReshapeDownGrayscale(Nrrd *nimg);
 
 /* parse.c */
 extern int (*_nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1])(Nrrd *, NrrdIO *, int);
