@@ -26,19 +26,22 @@ int
 main(int argc, char *argv[]) {
   char *me, *err, *outS;
   limnCamera *cam;
-  float matA[16], matB[16], sc[3];
+  float matA[16], matB[16], sc[3], rad, edgeWidth[5];
   hestOpt *hopt=NULL;
   airArray *mop;
   limnObj *obj;
   limnSP *sp;
+  limnPart *r;
   limnWin *win;
-  int ri, si;
+  int ri, si, res;
   Nrrd *nmap;
 
   mop = airMopNew();
   cam = limnCameraNew();
   airMopAdd(mop, cam, (airMopper)limnCameraNix, airMopAlways);
   
+  edgeWidth[0] = 0;
+  edgeWidth[1] = 0;
   me = argv[0];
   hestOptAdd(&hopt, "fr", "from point", airTypeDouble, 3, 3, cam->from,"4 4 4",
 	     "position of camera, used to determine view vector");
@@ -59,6 +62,14 @@ main(int argc, char *argv[]) {
 	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "sc", "scalings", airTypeFloat, 3, 3, sc, "1 1 1",
 	     "axis-aligned scaling to do on ellipsoid");
+  hestOptAdd(&hopt, "r", "radius", airTypeFloat, 1, 1, &rad, "0.015",
+	     "black axis cylinder radius");
+  hestOptAdd(&hopt, "res", "resolution", airTypeInt, 1, 1, &res, "25",
+	     "black axis cylinder radius");
+  hestOptAdd(&hopt, "wd", "3 widths", airTypeFloat, 3, 3, edgeWidth + 2,
+	     "1.5 0.7 0.0",
+	     "width of edges drawn for three kinds of "
+	     "edges: silohuette, crease, non-crease");
   hestOptAdd(&hopt, "o", "output PS", airTypeString, 1, 1, &outS, "out.ps",
 	     "output file to render postscript into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
@@ -82,52 +93,80 @@ main(int argc, char *argv[]) {
   /* create limnSPs for ellipsoid (#0) and for rods (#1) */
   si = airArrayIncrLen(obj->sA, 2);
   sp = obj->s + si + 0;
-  ELL_4V_SET(sp->rgba, 1, 1, 1, 1);
+  ELL_4V_SET(sp->rgba, 1, 1, 1, 1);  /* this is kind of silly */
   ELL_3V_SET(sp->k, 0.2, 0.8, 0);
   sp->spec = 0;
   sp = obj->s + si + 1;
-  ELL_4V_SET(sp->rgba, 0, 0, 0, 1);
+  ELL_4V_SET(sp->rgba, 1, 1, 1, 1);  /* this is kind of silly */
   ELL_3V_SET(sp->k, 1, 0, 0);
   sp->spec = 0;
 
-  /*
-  ri = limnObjCylinderAdd(obj, 0, 0, 16);
-  ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, 1, 0.2, 0.2); ell_4m_post_mul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 1.3, 0.0, 0.0); ell_4m_post_mul_f(matA, matB);
-  limnObjPartTransform(obj, ri, matA);
-
-  ri = limnObjCylinderAdd(obj, 0, 1, 16);
-  ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, 0.2, 1, 0.2); ell_4m_post_mul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, 1.3, 0.0); ell_4m_post_mul_f(matA, matB);
-  limnObjPartTransform(obj, ri, matA);
-
-  ri = limnObjCylinderAdd(obj, 0, 2, 16);
-  ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, 0.2, 0.2, 1); ell_4m_post_mul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, 1.3); ell_4m_post_mul_f(matA, matB);
-  limnObjPartTransform(obj, ri, matA);
-
-  ri = limnObjPolarSphereAdd(obj, 0, 0, 32, 16);
-  ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, 0.28, 0.28, 0.28); ell_4m_post_mul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, 2.6, 0.0); ell_4m_post_mul_f(matA, matB);
-  limnObjPartTransform(obj, ri, matA);
-
-  ri = limnObjPolarSphereAdd(obj, 0, 1, 32, 16);
-  ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, 0.28, 0.28, 0.28); ell_4m_post_mul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, 2.6); ell_4m_post_mul_f(matA, matB);
-  limnObjPartTransform(obj, ri, matA);
-  */
-
-  ri = limnObjPolarSphereAdd(obj, 0, 0, 32, 16);
+  ri = limnObjPolarSphereAdd(obj, 0, 0, 2*res, res);
+  r = obj->r + ri; ELL_4V_SET(r->rgba, 1, 1, 1, 1);
   ELL_4M_IDENTITY_SET(matA);
   ELL_4M_SCALE_SET(matB, sc[0], sc[1], sc[2]); ell_4m_post_mul_f(matA, matB);
   limnObjPartTransform(obj, ri, matA);
 
+  ri = limnObjCylinderAdd(obj, 1, 0, res);
+  r = obj->r + ri; ELL_4V_SET(r->rgba, 0, 0, 0, 1);
+  ELL_4M_IDENTITY_SET(matA);
+  ELL_4M_SCALE_SET(matB, (1-sc[0])/2, rad, rad);
+  ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, (1+sc[0])/2, 0.0, 0.0); 
+  ell_4m_post_mul_f(matA, matB);
+  limnObjPartTransform(obj, ri, matA);
+
+  ri = limnObjCylinderAdd(obj, 1, 0, res);
+  r = obj->r + ri; ELL_4V_SET(r->rgba, 0, 0, 0, 1);
+  ELL_4M_IDENTITY_SET(matA);
+  ELL_4M_SCALE_SET(matB, (1-sc[0])/2, rad, rad);
+  ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, -(1+sc[0])/2, 0.0, 0.0); 
+  ell_4m_post_mul_f(matA, matB);
+  limnObjPartTransform(obj, ri, matA);
+
+
+  ri = limnObjCylinderAdd(obj, 1, 1, res);
+  r = obj->r + ri; ELL_4V_SET(r->rgba, 0, 0, 0, 1);
+  ELL_4M_IDENTITY_SET(matA);
+  ELL_4M_SCALE_SET(matB, rad, (1-sc[1])/2, rad);
+  ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, 0.0, (1+sc[1])/2, 0.0); 
+  ell_4m_post_mul_f(matA, matB);
+  limnObjPartTransform(obj, ri, matA);
+
+  ri = limnObjCylinderAdd(obj, 1, 1, res);
+  r = obj->r + ri; ELL_4V_SET(r->rgba, 0, 0, 0, 1);
+  ELL_4M_IDENTITY_SET(matA);
+  ELL_4M_SCALE_SET(matB, rad, (1-sc[1])/2, rad);
+  ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, 0.0, -(1+sc[1])/2, 0.0); 
+  ell_4m_post_mul_f(matA, matB);
+  limnObjPartTransform(obj, ri, matA);
+
+
+  ri = limnObjCylinderAdd(obj, 1, 2, res);
+  r = obj->r + ri; ELL_4V_SET(r->rgba, 0, 0, 0, 1);
+  ELL_4M_IDENTITY_SET(matA);
+  ELL_4M_SCALE_SET(matB, rad, rad, (1-sc[2])/2);
+  ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, (1+sc[2])/2); 
+  ell_4m_post_mul_f(matA, matB);
+  limnObjPartTransform(obj, ri, matA);
+
+  ri = limnObjCylinderAdd(obj, 1, 2, res);
+  r = obj->r + ri; ELL_4V_SET(r->rgba, 0, 0, 0, 1);
+  ELL_4M_IDENTITY_SET(matA);
+  ELL_4M_SCALE_SET(matB, rad, rad, (1-sc[2])/2);
+  ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, -(1+sc[2])/2); 
+  ell_4m_post_mul_f(matA, matB);
+  limnObjPartTransform(obj, ri, matA);
+
+
   win = limnWinNew(limnDevicePS);
+  ELL_5V_COPY(win->ps.edgeWidth, edgeWidth);
+  win->scale = 200;
 
   win->file = fopen(outS, "w");
   airMopAdd(mop, win, (airMopper)limnWinNix, airMopAlways);
