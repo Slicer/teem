@@ -32,6 +32,7 @@ alanContextInit(alanContext *actx) {
     actx->dim = 0;
     ELL_3V_SET(actx->size, 0, 0, 0);
     actx->oversample = 0;
+    actx->homogAniso = AIR_FALSE;
     actx->numThreads = 1;
     actx->frameInterval = 10;
     actx->saveInterval = 100;
@@ -183,6 +184,7 @@ alanTensorSet(alanContext *actx, Nrrd *nten, int oversample) {
     sprintf(err, "%s: sorry, can only handle oversample==1 now", me);
     biffAdd(ALAN, err); return 1;
   }
+
   actx->nten = nrrdNuke(actx->nten);
   actx->nten = nrrdNew();
   if (nrrdConvert(actx->nten, nten, alan_nt)) {
@@ -193,6 +195,8 @@ alanTensorSet(alanContext *actx, Nrrd *nten, int oversample) {
   actx->size[1] = oversample*nten->axis[2].size;
   if (3 == actx->dim) {
     actx->size[2] = oversample*nten->axis[3].size;
+  } else {
+    actx->size[2] = 1;
   }
 
   return 0;
@@ -240,6 +244,10 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
       parmI = 1;
     }
     actx->numThreads = parmI;
+    break;
+  case alanParmHomogAniso:
+    parmI = parm;
+    actx->homogAniso = parmI;
     break;
   case alanParmSaveInterval:
     parmI = parm;

@@ -212,9 +212,12 @@ typedef struct {
 
 void *
 _alanTuringWorker(void *_task) {
-  alan_t *tendata, *ten, Dxx, Dxy, Dyy, react, _react,
+  alan_t *tendata, *ten, react, _react,
+    Dxx, Dxy, Dyy, Dxz, Dyz,
+    *tpx, *tmx, *tpy, *tmy, *tpz, *tmz,
     *lev0, *lev1, *parm, deltaT, alpha, beta, A, B,
-    *v[27], lapA, lapB, deltaA, deltaB, diffA, diffB, change;
+    *v[27], lapA, lapB, corrA, corrB, 
+    deltaA, deltaB, diffA, diffB, change;
   int dim, iter, stop, startW, endW, idx,
     px, mx, py, my, pz, mz,
     startY, endY, startZ, endZ, sx, sy, sz, x, y, z;
@@ -300,7 +303,6 @@ _alanTuringWorker(void *_task) {
 	    v[5] = lev0 + 2*(px + sx*( y));
 	    v[7] = lev0 + 2*( x + sx*(py));
 	    if (tendata) {
-	      ten = tendata + 4*(x + sx*(y));
 	      /*
 	      **  0 1 2    Dxy/2          Dyy        -Dxy/2
 	      **  3 4 5     Dxx     -2*(Dxx + Dyy)     Dxx
@@ -310,6 +312,7 @@ _alanTuringWorker(void *_task) {
 	      v[2] = lev0 + 2*(px + sx*(my));
 	      v[6] = lev0 + 2*(mx + sx*(py));
 	      v[8] = lev0 + 2*(px + sx*(py));
+	      ten = tendata + 4*idx;
 	      Dxx = ten[1];
 	      Dxy = ten[2];
 	      Dyy = ten[3];
@@ -320,9 +323,28 @@ _alanTuringWorker(void *_task) {
 		      + Dxx*(v[3][1] + v[5][1]) + Dyy*(v[1][1] + v[7][1])
 		      - 2*(Dxx + Dyy)*B);
 	      react = ten[0];
+	      if (task->actx->homogAniso) {
+		corrA = 0;
+		corrB = 0;
+	      } else {
+		tpx = tendata + 4*(px + sx*( y + sy*( z)));
+		tmx = tendata + 4*(mx + sx*( y + sy*( z)));
+		tpy = tendata + 4*( x + sx*(py + sy*( z)));
+		tmy = tendata + 4*( x + sx*(my + sy*( z)));
+		corrA = ((tpx[1] - tmx[1])*(v[5][0] - v[3][0])/4 +  /* Dxx,x * A,x */
+			 (tpx[2] - tmx[2])*(v[7][0] - v[1][0])/4 +  /* Dxy,x * A,y */
+			 (tpy[2] - tmy[2])*(v[5][0] - v[3][0])/4 +  /* Dxy,y * A,x */
+			 (tpy[3] - tmy[3])*(v[7][0] - v[1][0]));    /* Dyy,y * A,y */
+		corrB = ((tpx[1] - tmx[1])*(v[5][1] - v[3][1])/4 +  /* Dxx,x * B,x */
+			 (tpx[2] - tmx[2])*(v[7][1] - v[1][1])/4 +  /* Dxy,x * B,y */
+			 (tpy[2] - tmy[2])*(v[5][1] - v[3][1])/4 +  /* Dxy,y * B,x */
+			 (tpy[3] - tmy[3])*(v[7][1] - v[1][1]));    /* Dyy,y * B,y */
+	      }
 	    } else {
 	      lapA = v[1][0] + v[3][0] + v[5][0] + v[7][0] - 4*A;
 	      lapB = v[1][1] + v[3][1] + v[5][1] + v[7][1] - 4*B;
+	      corrA = 0;
+	      corrB = 0;
 	      react = 1;
 	    }
 	  } else {
@@ -349,20 +371,34 @@ _alanTuringWorker(void *_task) {
 	    v[14] = lev0 + 2*(px + sx*( y + sy*( z)));
 	    v[16] = lev0 + 2*( x + sx*(py + sy*( z)));
 	    v[22] = lev0 + 2*( x + sx*( y + sy*(pz)));
-	    lapA = (v[ 4][0] + v[10][0] + v[12][0]
-		    + v[14][0] + v[16][0] + v[22][0] - 6*A);
-	    lapB = (v[ 4][1] + v[10][1] + v[12][1]
-		    + v[14][1] + v[16][1] + v[22][1] - 6*B);
-	    react = 1;
+	    if (tendata) {
+
+	      if (task->actx->homogAniso) {
+		corrA = 0;
+		corrB = 0;
+	      } else {
+		
+	      }
+	    } else {
+	      lapA = (v[ 4][0] + v[10][0] + v[12][0]
+		      + v[14][0] + v[16][0] + v[22][0] - 6*A);
+	      lapB = (v[ 4][1] + v[10][1] + v[12][1]
+		      + v[14][1] + v[16][1] + v[22][1] - 6*B);
+	      corrA = 0;
+	      corrB = 0;
+	      react = 1;
+	    }
 	  }
 	  
 	  react *= _react;
-	  deltaA = deltaT*(react*task->actx->K*(alpha - A*B) + diffA*lapA);
+	  deltaA = deltaT*(react*task->actx->K*(alpha - A*B) 
+			   + diffA*(lapA + corrA));
 	  if (AIR_ABS(deltaA) > task->actx->maxPixelChange) {
 	    stop = alanStopDiverged;
 	  }
 	  change += AIR_ABS(deltaA);
-	  deltaB = deltaT*(react*task->actx->K*(A*B - B - beta) + diffB*lapB);
+	  deltaB = deltaT*(react*task->actx->K*(A*B - B - beta)
+			   + diffB*(lapB + corrB));
 	  if (!( AIR_EXISTS(deltaA) && AIR_EXISTS(deltaB) )) {
 	    stop = alanStopNonExist;
 	  }

@@ -37,7 +37,7 @@ main(int argc, char *argv[]) {
 
   char *outS;
   alanContext *actx;
-  int *size, sizeLen, fi, si, wrap, nt, cfn;
+  int *size, sizeLen, fi, si, wrap, nt, cfn, ha;
   double deltaT, mch, xch, alphabeta[2], time0, time1, deltaX, react, rrange;
   Nrrd *ninit=NULL, *nten=NULL, *nparm=NULL;
 
@@ -48,8 +48,13 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "i", "tensors", airTypeOther, 1, 1, &nten, "",
 	     "diffusion tensors to use for guiding the texture generation. "
 	     "If used, over-rides the \"-s\" option, both for setting "
-	     "texture dimension and size (in connection with \"-ovs\")",
+	     "texture dimension and size.  If you want upsampling, you "
+	     "do it yourself before sending it here.",
 	     NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "ha", NULL, airTypeInt, 0, 0, &ha, NULL,
+	     "use the homogenous anisotropy assumption- that the spatial "
+	     "derivative of the diffusion tensor is negligible when "
+	     "computing the diffusive term ");
   hestOptAdd(&hopt, "wrap", NULL, airTypeInt, 0, 0, &wrap, NULL,
 	     "wrap edges of texture around a topological torus (which "
 	     "makes a texture suitable for tiling)");
@@ -131,6 +136,7 @@ main(int argc, char *argv[]) {
       || alanParmSet(actx, alanParmFrameInterval, fi)
       || alanParmSet(actx, alanParmConstantFilename, cfn)
       || alanParmSet(actx, alanParmWrapAround, wrap)
+      || alanParmSet(actx, alanParmHomogAniso, ha)
       || alanParmSet(actx, alanParmNumThreads, nt)) {
     airMopAdd(mop, err = biffGetDone(ALAN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble setting parameters:\n%s\n", me, err);

@@ -48,6 +48,7 @@ enum {
   alanParmTextureType,
   alanParmNumThreads,
   alanParmFrameInterval,
+  alanParmHomogAniso,
   alanParmSaveInterval,
   alanParmMaxIteration,
   alanParmRandRange,
@@ -100,6 +101,7 @@ typedef struct alanContext_t {
     dim,              /* either 2 or 3 */
     size[3],          /* number of texels in X, Y, (Z) */
     oversample,       /* oversampling of tensors to texels */
+    homogAniso,       /* homogenous anisotropy approximation */
     numThreads,       /* # of threads, if airThreadCapable */
     frameInterval,    /* # of iterations between which to an image */
     saveInterval,     /* # of iterations between which to save all state */
