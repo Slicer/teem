@@ -24,6 +24,7 @@
 
 WIN32.DEST ?= ../win32/build
 WIN32.TOP ?= ..\\\\..\\\\
+WIN32.HEADERS ?= ../win32
 
 project: project.build
 unproject: project.clean
@@ -51,12 +52,12 @@ teem.dsp.build:
 
 headers.copy:
 	@echo -n "Copying headers..."
-	@mkdir -p ../win32/include/teem
-	@$(CP) $(foreach lib,$(LIBS),$(addprefix $(lib)/,$($(lib).PUBLIC_HEADERS))) ../win32/include/teem
+	@mkdir -p $(WIN32.HEADERS)/include/teem
+	@$(CP) $(foreach lib,$(LIBS),$(addprefix $(lib)/,$($(lib).PUBLIC_HEADERS))) $(WIN32.HEADERS)/include/teem
 	@echo "done"
 
 headers.clean:
-	$(RM) -r ../win32/include/teem
+	$(RM) -r $(WIN32.HEADERS)/include/teem
 
 teem.dsw.build:
 	@echo -n "Creating teem.dsw..."
