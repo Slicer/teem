@@ -40,11 +40,12 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *dataFileName, *content, encInfo[AIR_STRLEN_LARGE];
   Nrrd *nrrd;
-  int *size, sizeLen, spacingLen, headerOnly, pret;
+  int *size, sizeLen, spacingLen, labelLen, headerOnly, pret;
   double *spacing;
   airArray *mop;
   NrrdIO *io;
   FILE *fileOut;
+  char **label;
 
   mop = airMopInit();
   io = nrrdIONew();
@@ -75,6 +76,8 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "spacing between samples on each axis.  Use \"nan\" for "
 	     "any non-spatial axes (e.g. spacing between red, green, and blue "
 	     "along axis 0 of interleaved RGB image data)", &spacingLen);
+  hestOptAdd(&opt, "l", "lab0 lab1", airTypeString, 1, -1, &label, "",
+	     "short string labels for each of the axes", &labelLen);
   hestOptAdd(&opt, "c", "content", airTypeString, 1, 1, &content, "",
 	     "Specifies the content string of the nrrd, which is built upon "
 	     "by many nrrd function to record a history of operations");
@@ -128,10 +131,20 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
+  if (airStrlen(label[0]) && sizeLen != labelLen) {
+    fprintf(stderr,
+	    "%s: got different numbers of sizes (%d) and labels (%d)\n",
+	    me, sizeLen, labelLen);
+    airMopError(mop);
+    return 1;
+  }
   nrrd->dim = sizeLen;
   nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, size);
   if (AIR_EXISTS(spacing[0])) {
     nrrdAxesSet_nva(nrrd, nrrdAxesInfoSpacing, spacing);
+  }
+  if (airStrlen(label[0])) {
+    nrrdAxesSet_nva(nrrd, nrrdAxesInfoLabel, label);
   }
   if (airStrlen(content)) {
     nrrd->content = airStrdup(content);
@@ -147,7 +160,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     io->dataFN = airStrdup(dataFileName);
     io->seperateHeader = AIR_TRUE;
     /* we open and hand off the output FILE* to _nrrdWriteNrrd,
-       which not write any data (because of the AIR_FALSE) */
+       which will not write any data (because of the AIR_FALSE) */
     if (!strcmp("-", out)) {
       fileOut = stdout;
 #ifdef WIN32
@@ -194,6 +207,12 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
       fprintf(stderr, "%s: error reading data:\n%s", me, err);
       airMopError(mop);
       return 1;
+    }
+    if (1 < nrrdElementSize(nrrd)
+	&& nrrdEncodingEndianMatters[io->encoding]
+	&& io->endian != AIR_ENDIAN) {
+      /* endianness exposed in encoding, and its wrong */
+      nrrdSwapEndian(nrrd);
     }
     /* we are saving normally- no need to subvert nrrdSave() here;
        we just pass it the output filename */
