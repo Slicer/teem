@@ -30,7 +30,7 @@
 int
 limnCamUpdate(limnCam *cam) {
   char me[] = "limnCamUpdate", err[129];
-  float len, l[4], u[4], v[4], n[4], T[16], R[16];
+  double len, l[4], u[4], v[4], n[4], T[16], R[16];
 
   ELL_4V_SET(u, 0, 0, 0, 0);
   ELL_4V_SET(v, 0, 0, 0, 0);
@@ -57,8 +57,8 @@ limnCamUpdate(limnCam *cam) {
     cam->vspFaar = cam->faar + len;
     cam->vspDist = cam->dist +len;
   }
-  if (!(cam->vspNear >= 0 && cam->vspDist >= 0 && cam->vspFaar >= 0)) {
-    sprintf(err, "%s: eye-relative near (%g), dist (%g), or far (%g) < 0\n",
+  if (!(cam->vspNear > 0 && cam->vspDist > 0 && cam->vspFaar > 0)) {
+    sprintf(err, "%s: eye-relative near (%g), dist (%g), or far (%g) <= 0\n",
 	    me, cam->vspNear, cam->vspDist, cam->vspFaar);
     biffAdd(LIMN, err); return 1;
   }
