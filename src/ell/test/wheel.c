@@ -216,10 +216,10 @@ main(int argc, char *argv[]) {
   airArray *mop;
   
   double tval[6], ABC[3], geom[3], xroot[3], yroot[3], bbox[4], psc;
-  me = argv[0];
   wheelPS wps;
   int correct, labels;
 
+  me = argv[0];
   mop = airMopNew();
   hparm = hestParmNew();
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
@@ -361,7 +361,6 @@ main(int argc, char *argv[]) {
     wheelLabel(&wps, xroot[1], 0, "root-");
     wheelLabel(&wps, xroot[2], 0, "root+");
   }
-
 
   wheelEpilog(&wps);
 
