@@ -94,7 +94,6 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   const NrrdEncoding *encoding;
 
   /* so that long lists of filenames can be read from file */
-  airStrtokQuoting = AIR_TRUE;
   hparm->respFileEnable = AIR_TRUE;
   hparm->greedySingleString = AIR_TRUE;
 
@@ -160,8 +159,9 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     airEnumStr(airEndian, airMyEndian),
 	     "Endianness of data; relevent for any data with value "
 	     "representation bigger than 8 bits, with a non-ascii encoding: "
-	     "\"little\" for Intel and "
-	     "friends; \"big\" for everyone else. "
+	     "\"little\" for Intel and friends "
+	     "(least significant byte first, at lower address); "
+	     "\"big\" for everyone else (most significant byte first). "
 	     "Defaults to endianness of this machine",
 	     NULL, airEndian);
   hestOptAdd(&opt, "kv", "key/val", airTypeString, 0, -1, &kvp, "",
@@ -174,6 +174,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(_unrrdu_makeInfoL);
+  airStrtokQuoting = AIR_TRUE;
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
   encoding = nrrdEncodingArray[encodingType];
