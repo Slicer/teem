@@ -22,17 +22,19 @@
 /* the non-histogram measures assume that there will be no NaNs in data */
 
 void
-_nrrdMeasrUnknown(void *line, int lineType, int len, float axmin, float axmax, 
-		  void *ans, int ansType) {
-  char me[]="_nrrdMeasrUnknown";
+_nrrdMeasureUnknown(void *line, int lineType, int len, 
+		    float axmin, float axmax, 
+		    void *ans, int ansType) {
+  char me[]="_nrrdMeasureUnknown";
   
   fprintf(stderr, "%s: Need To Specify A Measure !!! \n", me);
-  nrrdDStore[ansType](ans, airNand());
+  nrrdDStore[ansType](ans, AIR_NAN);
 }
 
 void
-_nrrdMeasrMin(void *line, int lineType, int len, float axmin, float axmax, 
-	      void *ans, int ansType) {
+_nrrdMeasureMin(void *line, int lineType, int len,
+		float axmin, float axmax, 
+		void *ans, int ansType) {
   double val, min;
   int i;
 
@@ -45,8 +47,9 @@ _nrrdMeasrMin(void *line, int lineType, int len, float axmin, float axmax,
 }
 
 void
-_nrrdMeasrMax(void *line, int lineType, int len, float axmin, float axmax, 
-	      void *ans, int ansType) {
+_nrrdMeasureMax(void *line, int lineType, int len, 
+		float axmin, float axmax, 
+		void *ans, int ansType) {
   double val, max;
   int i;
 
@@ -59,8 +62,9 @@ _nrrdMeasrMax(void *line, int lineType, int len, float axmin, float axmax,
 }
 
 void
-_nrrdMeasrProduct(void *line, int lineType, int len, float axmin, float axmax,
-		  void *ans, int ansType) {
+_nrrdMeasureProduct(void *line, int lineType, int len, 
+		    float axmin, float axmax,
+		    void *ans, int ansType) {
   double val, prod;
   int i;
 
@@ -74,8 +78,9 @@ _nrrdMeasrProduct(void *line, int lineType, int len, float axmin, float axmax,
 }
 
 void
-_nrrdMeasrSum(void *line, int lineType, int len, float axmin, float axmax,
-	      void *ans, int ansType) {
+_nrrdMeasureSum(void *line, int lineType, int len, 
+		float axmin, float axmax,
+		void *ans, int ansType) {
   double sum;
   int i;
 
@@ -87,8 +92,9 @@ _nrrdMeasrSum(void *line, int lineType, int len, float axmin, float axmax,
 }
 
 void
-_nrrdMeasrMean(void *line, int lineType, int len, float axmin, float axmax,
-	       void *ans, int ansType) {
+_nrrdMeasureMean(void *line, int lineType, int len, 
+		 float axmin, float axmax,
+		 void *ans, int ansType) {
   double sum;
   int i;
 
@@ -100,26 +106,29 @@ _nrrdMeasrMean(void *line, int lineType, int len, float axmin, float axmax,
 }
 
 void
-_nrrdMeasrMode(void *line, int lineType, int len, float axmin, float axmax,
-	       void *ans, int ansType) {
-  char me[]="_nrrdMeasrMode";
-  
-  fprintf(stderr, "%s: sorry, not implemented\n", me);
-  nrrdDStore[ansType](ans, airNand());
-}
-
-void
-_nrrdMeasrMedian(void *line, int lineType, int len, float axmin, float axmax,
+_nrrdMeasureMode(void *line, int lineType, int len, 
+		 float axmin, float axmax,
 		 void *ans, int ansType) {
-  char me[]="_nrrdMeasrMedian";
+  char me[]="_nrrdMeasureMode";
   
   fprintf(stderr, "%s: sorry, not implemented\n", me);
-  nrrdDStore[ansType](ans, airNand());
+  nrrdDStore[ansType](ans, AIR_NAN);
 }
 
 void
-_nrrdMeasrL1(void *line, int lineType, int len, float axmin, float axmax,
-	     void *ans, int ansType) {
+_nrrdMeasureMedian(void *line, int lineType, int len, 
+		   float axmin, float axmax,
+		   void *ans, int ansType) {
+  char me[]="_nrrdMeasureMedian";
+  
+  fprintf(stderr, "%s: sorry, not implemented\n", me);
+  nrrdDStore[ansType](ans, AIR_NAN);
+}
+
+void
+_nrrdMeasureL1(void *line, int lineType, int len, 
+	       float axmin, float axmax,
+	       void *ans, int ansType) {
   double sum, val;
   int i;
 
@@ -134,8 +143,9 @@ _nrrdMeasrL1(void *line, int lineType, int len, float axmin, float axmax,
 }
 
 void
-_nrrdMeasrL2(void *line, int lineType, int len, float axmin, float axmax,
-	     void *ans, int ansType) {
+_nrrdMeasureL2(void *line, int lineType, int len, 
+	       float axmin, float axmax,
+	       void *ans, int ansType) {
   double sum, val;
   int i;
 
@@ -150,8 +160,9 @@ _nrrdMeasrL2(void *line, int lineType, int len, float axmin, float axmax,
 }
 
 void
-_nrrdMeasrLinf(void *line, int lineType, int len, float axmin, float axmax,
-	       void *ans, int ansType) {
+_nrrdMeasureLinf(void *line, int lineType, int len, 
+		 float axmin, float axmax,
+		 void *ans, int ansType) {
   double max, val;
   int i;
 
@@ -167,9 +178,9 @@ _nrrdMeasrLinf(void *line, int lineType, int len, float axmin, float axmax,
 }
 
 void
-_nrrdMeasrHistoMedian(void *line, int lineType, int len, 
-		      float axmin, float axmax, 
-		      void *ans, int ansType) {
+_nrrdMeasureHistoMedian(void *line, int lineType, int len, 
+			float axmin, float axmax, 
+			void *ans, int ansType) {
   double sum, half;
   int i;
   float ansF;
@@ -179,7 +190,7 @@ _nrrdMeasrHistoMedian(void *line, int lineType, int len,
     sum += nrrdDLookup[lineType](line, i);
   }
   if (!sum) {
-    nrrdDStore[ansType](ans, airNand());
+    nrrdDStore[ansType](ans, AIR_NAN);
     return;
   }
   /* else there was something in the histogram */
@@ -198,9 +209,9 @@ _nrrdMeasrHistoMedian(void *line, int lineType, int len,
 }
 
 void
-_nrrdMeasrHistoMode(void *line, int lineType, int len, 
-		    float axmin, float axmax, 
-		    void *ans, int ansType) {
+_nrrdMeasureHistoMode(void *line, int lineType, int len, 
+		      float axmin, float axmax, 
+		      void *ans, int ansType) {
   double val, max, idxsum;
   int i, idxcount;
   float ansF;
@@ -211,7 +222,7 @@ _nrrdMeasrHistoMode(void *line, int lineType, int len,
     max = AIR_MAX(max, val);
   }
   if (!max) {
-    nrrdDStore[ansType](ans, airNand());
+    nrrdDStore[ansType](ans, AIR_NAN);
     return;
   }
   /* else there was something in the histogram */
@@ -235,9 +246,9 @@ _nrrdMeasrHistoMode(void *line, int lineType, int len,
 }
 
 void
-_nrrdMeasrHistoMean(void *line, int lineType, int len, 
-		    float axmin, float axmax,
-		    void *ans, int ansType) {
+_nrrdMeasureHistoMean(void *line, int lineType, int len, 
+		      float axmin, float axmax,
+		      void *ans, int ansType) {
   double mean, count, hits;
   int i;
   
@@ -252,7 +263,7 @@ _nrrdMeasrHistoMean(void *line, int lineType, int len,
     mean += hits*AIR_AFFINE(0, i, len-1, axmin, axmax);
   }
   if (!count) {
-    nrrdDStore[ansType](ans, airNand());
+    nrrdDStore[ansType](ans, AIR_NAN);
     return;
   }
   mean /= count;
@@ -260,9 +271,9 @@ _nrrdMeasrHistoMean(void *line, int lineType, int len,
 }
 
 void
-_nrrdMeasrHistoVariance(void *line, int lineType, int len, 
-			float axmin, float axmax,
-			void *ans, int ansType) {
+_nrrdMeasureHistoVariance(void *line, int lineType, int len, 
+			  float axmin, float axmax,
+			  void *ans, int ansType) {
   double mean, count, hits, val, vari, diff;
   int i;
   
@@ -277,7 +288,7 @@ _nrrdMeasrHistoVariance(void *line, int lineType, int len,
     mean += hits*AIR_AFFINE(0, i, len-1, axmin, axmax);
   }
   if (!count) {
-    nrrdDStore[ansType](ans, airNand());
+    nrrdDStore[ansType](ans, AIR_NAN);
     return;
   }
   mean /= count;
@@ -296,9 +307,9 @@ _nrrdMeasrHistoVariance(void *line, int lineType, int len,
 }
 
 void
-_nrrdMeasrHistoProduct(void *line, int lineType, int len, 
-		       float axmin, float axmax,
-		       void *ans, int ansType) {
+_nrrdMeasureHistoProduct(void *line, int lineType, int len, 
+			 float axmin, float axmax,
+			 void *ans, int ansType) {
   double product, count, hits;
   int i;
   
@@ -315,16 +326,16 @@ _nrrdMeasrHistoProduct(void *line, int lineType, int len,
     product *= pow(AIR_AFFINE(0, i, len-1, axmin, axmax), hits);
   }
   if (!count) {
-    nrrdDStore[ansType](ans, airNand());
+    nrrdDStore[ansType](ans, AIR_NAN);
     return;
   }
   nrrdDStore[ansType](ans, product);
 }
 
 void
-_nrrdMeasrHistoSum(void *line, int lineType, int len, 
-		   float axmin, float axmax,
-		   void *ans, int ansType) {
+_nrrdMeasureHistoSum(void *line, int lineType, int len, 
+		     float axmin, float axmax,
+		     void *ans, int ansType) {
   double sum, count, hits;
   int i;
   
@@ -339,16 +350,16 @@ _nrrdMeasrHistoSum(void *line, int lineType, int len,
     sum += hits*AIR_AFFINE(0, i, len-1, axmin, axmax);
   }
   if (!count) {
-    nrrdDStore[ansType](ans, airNand());
+    nrrdDStore[ansType](ans, AIR_NAN);
     return;
   }
   nrrdDStore[ansType](ans, sum);
 }
 
 void
-_nrrdMeasrHistoMax(void *line, int lineType, int len, 
-		   float axmin, float axmax,
-		   void *ans, int ansType) {
+_nrrdMeasureHistoMax(void *line, int lineType, int len, 
+		     float axmin, float axmax,
+		     void *ans, int ansType) {
   int i;
 
   if (!(AIR_EXISTS(axmin) && AIR_EXISTS(axmax))) {
@@ -360,16 +371,16 @@ _nrrdMeasrHistoMax(void *line, int lineType, int len,
       break;
   }
   if (i==-1) {
-    nrrdDStore[ansType](ans, airNand());
+    nrrdDStore[ansType](ans, AIR_NAN);
     return;
   }
   nrrdDStore[ansType](ans, AIR_AFFINE(0, i, len-1, axmin, axmax));
 }
 
 void
-_nrrdMeasrHistoMin(void *line, int lineType, int len, 
-		   float axmin, float axmax,
-		   void *ans, int ansType) {
+_nrrdMeasureHistoMin(void *line, int lineType, int len, 
+		     float axmin, float axmax,
+		     void *ans, int ansType) {
   int i;
 
   if (!(AIR_EXISTS(axmin) && AIR_EXISTS(axmax))) {
@@ -381,33 +392,34 @@ _nrrdMeasrHistoMin(void *line, int lineType, int len,
       break;
   }
   if (i==len) {
-    nrrdDStore[ansType](ans, airNand());
+    nrrdDStore[ansType](ans, AIR_NAN);
     return;
   }
   nrrdDStore[ansType](ans, AIR_AFFINE(0, i, len-1, axmin, axmax));
 }
 
-void (*nrrdMeasr[NRRD_MEASR_MAX+1])(void *, int, int, float, float, 
-				    void *, int) = {
-  _nrrdMeasrUnknown,
-  _nrrdMeasrMin,
-  _nrrdMeasrMax,
-  _nrrdMeasrProduct,
-  _nrrdMeasrSum,
-  _nrrdMeasrMean,
-  _nrrdMeasrMedian,
-  _nrrdMeasrMode,
-  _nrrdMeasrL1,
-  _nrrdMeasrL2,
-  _nrrdMeasrLinf,
-  _nrrdMeasrHistoMin,
-  _nrrdMeasrHistoMax,
-  _nrrdMeasrHistoProduct,
-  _nrrdMeasrHistoSum,
-  _nrrdMeasrHistoMean,
-  _nrrdMeasrHistoMedian,
-  _nrrdMeasrHistoMode,
-  _nrrdMeasrHistoVariance
+void (*_nrrdMeasureAxis[NRRD_MEASURE_MAX+1])(void *, int, int, 
+					     float, float, 
+					     void *, int) = {
+  _nrrdMeasureUnknown,
+  _nrrdMeasureMin,
+  _nrrdMeasureMax,
+  _nrrdMeasureProduct,
+  _nrrdMeasureSum,
+  _nrrdMeasureMean,
+  _nrrdMeasureMedian,
+  _nrrdMeasureMode,
+  _nrrdMeasureL1,
+  _nrrdMeasureL2,
+  _nrrdMeasureLinf,
+  _nrrdMeasureHistoMin,
+  _nrrdMeasureHistoMax,
+  _nrrdMeasureHistoProduct,
+  _nrrdMeasureHistoSum,
+  _nrrdMeasureHistoMean,
+  _nrrdMeasureHistoMedian,
+  _nrrdMeasureHistoMode,
+  _nrrdMeasureHistoVariance
 };
 
 int
@@ -415,13 +427,13 @@ _nrrdMeasureType(Nrrd *nin, int measr) {
   int type;
 
   switch(measr) {
-  case nrrdMeasrMin:
-  case nrrdMeasrMax:
-  case nrrdMeasrMedian:
-  case nrrdMeasrMode:
+  case nrrdMeasureMin:
+  case nrrdMeasureMax:
+  case nrrdMeasureMedian:
+  case nrrdMeasureMode:
     type = nin->type;
     break;
-  case nrrdMeasrMean:
+  case nrrdMeasureMean:
     /* the rational for this is that if you're after the average
        value along a scanline, you probably want it in the same
        format as what you started with, and if you really want
@@ -429,21 +441,21 @@ _nrrdMeasureType(Nrrd *nin, int measr) {
        This may well be bone-headed, so is subject to change */
     type = nin->type;
     break;
-  case nrrdMeasrProduct:
-  case nrrdMeasrSum:
-  case nrrdMeasrL1:
-  case nrrdMeasrL2:
-  case nrrdMeasrLinf:
+  case nrrdMeasureProduct:
+  case nrrdMeasureSum:
+  case nrrdMeasureL1:
+  case nrrdMeasureL2:
+  case nrrdMeasureLinf:
     type = nrrdTypeFloat;
     break;
-  case nrrdMeasrHistoMin:
-  case nrrdMeasrHistoMax:
-  case nrrdMeasrHistoProduct:
-  case nrrdMeasrHistoSum:
-  case nrrdMeasrHistoMean:
-  case nrrdMeasrHistoMedian:
-  case nrrdMeasrHistoMode:
-  case nrrdMeasrHistoVariance:
+  case nrrdMeasureHistoMin:
+  case nrrdMeasureHistoMax:
+  case nrrdMeasureHistoProduct:
+  case nrrdMeasureHistoSum:
+  case nrrdMeasureHistoMean:
+  case nrrdMeasureHistoMedian:
+  case nrrdMeasureHistoMode:
+  case nrrdMeasureHistoVariance:
     /* We (currently) don't keep track of the type of the original
        values which generated the histogram, and we may not even
        have access to that information.  Float is a defensible 
@@ -460,14 +472,14 @@ nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdMeasureAxis";
   int type;
   int i, j, length, numperiod, lambda, period, inElSize, outElSize;
-  char *line, *src, *dest;
+  char *line, *src, *dest, *lineSrc, *lineDest;
   float axmin, axmax;
   
   if (!(nin && nout)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffSet(NRRD, err); return 1;
   }
-  if (!(nrrdMeasrUnknown < measr && measr < nrrdMeasrLast)) {
+  if (!AIR_BETWEEN(nrrdMeasureUnknown, measr, nrrdMeasureLast)) {
     sprintf(err, "%s: measure %d not recognized", me, measr);
     biffSet(NRRD, err); return 1;
   }
@@ -491,11 +503,9 @@ nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   lambda = length*nin->size[axis];
   
   /* allocate space if necessary */
-  if (!(nout->data)) {
-    if (nrrdAlloc(nout, nin->num/nin->size[axis], type, nin->dim-1)) {
-      sprintf(err, "%s: failed to create output", me);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (nrrdMaybeAlloc(nout, nin->num/nin->size[axis], type, nin->dim-1)) {
+    sprintf(err, "%s: failed to create output", me);
+    biffAdd(NRRD, err); return 1;
   }
 
   /* allocate a scanline buffer */
@@ -519,12 +529,12 @@ nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr) {
        the measurement */
     for (j=0; j<=length-1; j++) {
       for (i=0; i<=nin->size[axis]-1; i++) {
-	memcpy(line + inElSize*i, 
-	       src + inElSize*(period*lambda + length*i + j), 
-	       inElSize);
+	lineDest = line + inElSize*i;
+	lineSrc = src + inElSize*(period*lambda + length*i + j);
+	memcpy(lineDest, lineSrc, inElSize);
       }
-      nrrdMeasr[measr](line, nin->type, nin->size[axis], axmin, axmax,
-			   dest, nout->type);
+      _nrrdMeasureAxis[measr](line, nin->type, nin->size[axis], axmin, axmax,
+			      dest, nout->type);
       dest += outElSize;
     }
   }
@@ -541,6 +551,6 @@ nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr) {
 	  nin->content, axis, measr);
 
   /* bye */
-  free(line);
+  line = airFree(line);
   return 0;
 }
