@@ -89,4 +89,6 @@ main(int argc, char *argv[]) {
   printf("f: %f\n", f);
   printf("d: %lf\n", d);
   */
+
+  exit(0);
 }
