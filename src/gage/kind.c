@@ -61,6 +61,18 @@ gageKindCheck(gageKind *kind) {
     pitem = kind->table[ii].parentItem;
     pindex = kind->table[ii].parentIndex;
     if (-1 != pitem) {
+      if (0 == ii) {
+	sprintf(err, "%s: first item (index 0) of kind \"%s\" can't "
+		"be a sub-item (wanted parent index %d)", 
+		me, kind->name, pitem);
+	biffAdd(GAGE, err); return 1;
+      }
+      if (!(AIR_IN_CL(0, pitem, kind->itemMax))) {
+	sprintf(err, "%s: item %d of kind \"%s\" wants parent item %d "
+		"outside valid range [0..%d]",
+		me, ii, kind->name, pitem, kind->itemMax);
+	biffAdd(GAGE, err); return 1;
+      }
       if (-1 != kind->table[pitem].parentItem) {
 	sprintf(err, "%s: item %d of kind \"%s\" has parent %d which "
 		"wants to have parent %d: can't have sub-sub-items", 
@@ -100,13 +112,38 @@ gageKindTotalAnswerLength(gageKind *kind) {
   return alen;
 }
 
+/*
+** _gageKindAnswerOffset
+**
+** return the location of the item in the master answer array 
+**
+** I don't think this will work if there are sub-sub-items
+*/
 int
 _gageKindAnswerOffset(gageKind *kind, int item) {
+  int parent, ii;
 
-  return (item
-	  ? (kind->table[item-1].answerLength 
-	     + _gageKindAnswerOffset(kind, item-1))
-	  : 0);
+  if (!item) {
+    /* the first item always has zero offset */
+    return 0;
+  }
+
+  /* else we're not the first */
+  parent = kind->table[item].parentItem;
+  if (-1 != parent) {
+    /* we're a sub-item */
+    return (kind->table[item].parentIndex 
+	    + _gageKindAnswerOffset(kind, parent));
+  }
+
+  /* else we're not a sub-item: find the first previous non-sub-item */
+  ii = item-1;
+  while (-1 != kind->table[ii].parentItem) {
+    /* gageKindCheck ensures that item 0 is not a sub-item */
+    ii--;
+  }
+  return (kind->table[ii].answerLength
+	  + _gageKindAnswerOffset(kind, ii));
 }
 
 int
@@ -119,10 +156,6 @@ gageKindAnswerOffset(gageKind *kind, int item) {
     free(err); exit(1);
   }
 
-  /* here's why its important that there are no sub-sub-items */
-  return (-1 == kind->table[item].parentItem
-	  ? _gageKindAnswerOffset(kind, item)
-	  : (kind->table[item].parentIndex
-	     + _gageKindAnswerOffset(kind, kind->table[item].parentItem)));
+  return _gageKindAnswerOffset(kind, item);
 }
 
