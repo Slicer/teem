@@ -92,3 +92,12 @@ dye: hest callbacks
 air:  think about implementing a fabs() and dabs() with bitmasking
 
 nrrd: figure out some framework for lazy evaluation stuff
+
+write a paper about nrrd!
+include a list of published papers using teem:
+Kindlmann: Superquadric Tensor Glyphs
+Kindlmann Vis03: Curvature-Based Transfer Functions
+Lefohn Vis03: Interactive Deformation and Visualization of Level Set Surfaces Using Graphics Hardware
+Kniss VisSym04: Medical Applications of Multi-field Volume Rendering and VR Techniques
+Deschamps TVCG04: Fast Evolution of Image Manifolds and Application to Filtering and Segmentation in 3D Medical Images
+ikits Vis03: A Constraint-based Technique for Haptic Volume Exploration
