@@ -223,9 +223,9 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   printf("done\n");
-  /*
+
   nrrdSave("pad1.nrrd", npad, NULL);
-  */
+
 
   /* probing to make triple volume */
   ctx = gageSclContextNew();
@@ -296,9 +296,9 @@ main(int argc, char *argv[]) {
   t1 = airTime();
   npad2 = nrrdNuke(npad2);
   printf("done (probe rate = %g/sec)\n", sz[0]*sz[1]*sz[2]/(t1-t0));
-  /*
-  nrrdSave("vghF.nrrd", nvghF);
-  */
+
+  nrrdSave("vghF.nrrd", nvghF, NULL);
+
 
 
   /* make histograms to determine inclusion ranges */
