@@ -347,8 +347,17 @@ mrendSample(mrendThreadInfo *tt, mrendRenderInfo *rr, mrendUserInfo *uu,
 
 /* -------------------------------------------------------------- */
 
+/*
+** learned: if you're playing games with strings with two passes, where
+** you first generate the set of strings in order to calculate their
+** cumulative lenght, and then (2nd pass) concatenate the strings
+** together, be very sure that the generation of the strints on the
+** two passes is identical.  Had a very troublesome memory error because
+** I was using short version of the description string to determine
+** allocation, and then the long version in the second pass...
+*/
 char *
-mrendGageInfo() {
+mrendGageInfo(char *prefix) {
   char *line, *ret;
   int i, len;
   
@@ -361,13 +370,13 @@ mrendGageInfo() {
       free(line);
     }
   }
-  ret = calloc(1+len, sizeof(char));
-  strcpy(ret, "");
+  ret = (char*)calloc(strlen(prefix) + len + 1, sizeof(char));
   if (ret) {
+    strcpy(ret, prefix);
     /* 2nd pass through: create output */
     for (i=airEnumUnknown(gageScl)+1; airEnumValValid(gageScl, i); i++) {
       if (1 == gageKindScl->ansLength[i]) {
-	line = airEnumFmtDesc(gageScl, i, AIR_TRUE, "\n \b\bo \"%s\": %s");
+	line = airEnumFmtDesc(gageScl, i, AIR_FALSE, "\n \b\bo \"%s\": %s");
 	strcat(ret, line);
 	free(line);
       }
@@ -381,7 +390,7 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   hestParm *hparm;
   int E, Ecode, renorm;
-  char *me, *errS, *buff1, *buff2;
+  char *me, *errS, *buff;
   mrendUserInfo *uu;
   airArray *mop;
   double gmc;
@@ -393,7 +402,11 @@ main(int argc, char *argv[]) {
   uu = mrendUserInfoNew();
 
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
-  airMopAdd(mop, uu, airFree, airMopAlways);
+  airMopAdd(mop, uu, (airMopper)mrendUserInfoNix, airMopAlways);
+
+  buff = mrendGageInfo("the quantity to measure at sample points along " \
+		       "rays. Possibilities include:%s");
+  airMopAdd(mop, buff, airFree, airMopAlways);
 
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &(uu->nin), NULL,
 	     "input nrrd to render", NULL, NULL, nrrdHestNrrd);
@@ -419,14 +432,9 @@ main(int argc, char *argv[]) {
 	     "renormalize kernel weights at each new sample location. "
 	     "\"Accurate\" kernels don't need this; doing it always "
 	     "makes things go slower");
-  buff1 = mrendGageInfo();
-  buff2 = (char*)calloc(2*strlen(buff1), sizeof(char));
-  airMopAdd(mop, buff1, airFree, airMopAlways);
-  airMopAdd(mop, buff2, airFree, airMopAlways);
-  sprintf(buff2, "the quantity to measure at sample points along rays. "
-	  "Possibilities include:%s", buff1);
   hestOptAdd(&hopt, "q", "quantity", airTypeEnum, 1, 1, &(uu->whatq), NULL,
-	     buff2, NULL, gageKindScl->enm);
+	     buff,
+	     NULL, gageKindScl->enm);
   hestOptAdd(&hopt, "m", "measure", airTypeEnum, 1, 1, &(uu->measr), NULL,
 	     "how to collapse list of ray samples into one scalar. "
 	     NRRD_MEASURE_DESC,
@@ -445,9 +453,10 @@ main(int argc, char *argv[]) {
   }
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &(uu->outS),
 	     NULL, "file to write output nrrd to");
+  airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
+
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
 		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
-  airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   if (!mrendUserInfoValid(uu)) {
