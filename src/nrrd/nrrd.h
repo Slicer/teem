@@ -518,7 +518,7 @@ extern NrrdIter *nrrdIterNix(NrrdIter *iter);
 /******** axis info related */
 /* axis.c */
 extern int nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin,
-			    const int *map, int bitflag);
+			    const int *axmap, int bitflag);
 extern void nrrdAxisInfoSet_nva(Nrrd *nin, int axInfo, const void *info);
 extern void nrrdAxisInfoSet(Nrrd *nin, int axInfo,
 			    ... /* const void* */);

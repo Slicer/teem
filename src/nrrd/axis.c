@@ -115,7 +115,7 @@ _nrrdAxisInfoCopy(NrrdAxis *dest, const NrrdAxis *src, int bitflag) {
 ** indicates error.
 */
 int
-nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin, const int *map, int bitflag) {
+nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin, const int *axmap, int bitflag) {
   int d, from;
   
   if (!(nout && nin)) {
@@ -126,19 +126,19 @@ nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin, const int *map, int bitflag) {
        temp variables to re-arrange the axes */
     return 2;
   }
-  if (map) {
+  if (axmap) {
     for (d=0; d<nout->dim; d++) {
-      if (-1 == map[d]) {
+      if (-1 == axmap[d]) {
 	continue;
       }
-      if (!AIR_IN_CL(0, map[d], nin->dim-1)) {
+      if (!AIR_IN_CL(0, axmap[d], nin->dim-1)) {
 	return 3;
       }
     }
   }
   
   for (d=0; d<nout->dim; d++) {
-    from = map ? map[d] : d;
+    from = axmap ? axmap[d] : d;
     if (-1 == from) {
       /* for this axis, we don't touch a thing */
       continue;
