@@ -862,7 +862,8 @@ _nrrdWriteTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
 }
 
 /*
-** HEY: this is where the filename of a seperate datafile is determined
+** HEY: this (of all places) is where the filename of a seperate
+** datafile is determined
 */
 void
 _nrrdGuessFormat(NrrdIO *io, const char *filename) {
@@ -878,6 +879,7 @@ _nrrdGuessFormat(NrrdIO *io, const char *filename) {
      be a real drag). */
   strpos = strlen(io->base) - strlen(NRRD_EXT_HEADER);
   if (airEndsWith(filename, NRRD_EXT_HEADER)) {
+    /* HEY: isn't this an out-of-allocated-bounds error? */
     io->base[strpos++] = '.';
     if (nrrdEncodingIsCompression[io->encoding]) {
       sprintf(suffix, "raw.%s", airEnumStr(nrrdEncoding, io->encoding));

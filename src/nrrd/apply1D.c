@@ -220,6 +220,7 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
   for (d=0; d<nin->dim; d++) {
     axisMap[d+mapAxis] = d;
   }
+  /*
   fprintf(stderr, "##%s: pre maybe alloc: nout->data = %p\n", me, nout->data);
   for (d=0; d<mapAxis + nin->dim; d++) {
     fprintf(stderr, "    size[%d] = %d\n", d, size[d]);
@@ -230,12 +231,14 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
 	  nout->axis[0].size, nout->axis[1].size);
   fprintf(stderr, "   typeOut = %d = %s\n", typeOut,
 	  airEnumStr(nrrdType, typeOut));
+  */
   if (nrrdMaybeAlloc_nva(nout, typeOut, mapAxis + nin->dim, size)) {
     sprintf(err, "%s: couldn't allocate output nrrd", me);
     biffAdd(NRRD, err); return 1;
   }
+  /*
   fprintf(stderr, "##%s: post maybe alloc: nout->data = %p\n", me, nout->data);
-
+  */
   if (nrrdAxesCopy(nout, nin, axisMap, NRRD_AXESINFO_NONE)) {
     sprintf(err, "%s: trouble copying axes", me);
     biffAdd(NRRD, err); return 1;
