@@ -240,21 +240,26 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
             me, nio->line);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  if (_nrrdCalloc(nrrd, nio, file)) {
-    sprintf(err, "%s: couldn't allocate memory for data", me);
-    biffAdd(NRRD, err); return 1;
+  if (!nio->skipData) {
+    if (_nrrdCalloc(nrrd, nio, file)) {
+      sprintf(err, "%s: couldn't allocate memory for data", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    if (nio->encoding->read(file, nrrd->data, nrrdElementNumber(nrrd),
+                            nrrd, nio)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    if (1 < nrrdElementSize(nrrd)
+        && nio->encoding->endianMatters
+        && airMyEndian != airEndianBig) {
+      /* encoding exposes endianness, and its big, but we aren't */
+      nrrdSwapEndian(nrrd);
+    }
+  } else {
+    nrrd->data = NULL;
   }
-  if (nio->encoding->read(file, nrrd->data, nrrdElementNumber(nrrd),
-                          nrrd, nio)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (1 < nrrdElementSize(nrrd)
-      && nio->encoding->endianMatters
-      && airMyEndian != airEndianBig) {
-    /* encoding exposes endianness, and its big, but we aren't */
-    nrrdSwapEndian(nrrd);
-  }
+    
   airMopOkay(mop);
   return 0;
 }

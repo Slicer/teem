@@ -259,11 +259,11 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   } else {
     nrrdAxisInfoSet(nrrd, nrrdAxisInfoSize, sx, sy);
   }
-  if (_nrrdCalloc(nrrd, nio, file)) {
-    sprintf(err, "%s: couldn't allocate memory for data", me);
-    biffAdd(NRRD, err); return 1;
-  }
   if (!nio->skipData) {
+    if (_nrrdCalloc(nrrd, nio, file)) {
+      sprintf(err, "%s: couldn't allocate memory for data", me);
+      biffAdd(NRRD, err); return 1;
+    }
     if (nio->encoding->read(file, nrrd->data, nrrdElementNumber(nrrd),
                             nrrd, nio)) {
       sprintf(err, "%s:", me);
