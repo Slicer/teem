@@ -55,7 +55,7 @@ _airEnumIndex(airEnum *enm, int val) {
       }
     }
   } else {
-    ret = AIR_WITHIN_CL(0, val, enm->M) ? val : 0;
+    ret = AIR_IN_CL(0, val, enm->M) ? val : 0;
   }
   return ret;
 }

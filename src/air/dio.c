@@ -187,7 +187,7 @@ _airNoDioErr[AIR_NODIO_MAX+2][AIR_STRLEN_SMALL] = {
 const char *
 airNoDioErr(int noDio) {
 
-  if (AIR_WITHIN_CL(0, noDio, AIR_NODIO_MAX)) {
+  if (AIR_IN_CL(0, noDio, AIR_NODIO_MAX)) {
     return _airNoDioErr[noDio+1];
   }
   else {

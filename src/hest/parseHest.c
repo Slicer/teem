@@ -163,7 +163,7 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
   numvar = 0;
   for (op=0; op<=numOpts-1; op++) {
     opt[op].kind = _hestKind(opt + op);
-    if (!(AIR_WITHIN_OP(airTypeUnknown, opt[op].type, airTypeLast))) {
+    if (!(AIR_IN_OP(airTypeUnknown, opt[op].type, airTypeLast))) {
       if (err)
 	sprintf(err, "%s!!!!!! opt[%d].type (%d) not in valid range [%d,%d]",
 		ME, op, opt[op].type, airTypeUnknown+1, airTypeLast-1);
@@ -643,7 +643,7 @@ _hestDefaults(char **prms, int *udflt, int *nprm, int *appr,
       tmpS = airFree(tmpS);
       /* printf("!%s: nprm[%d] in default = %d\n", me, op, nprm[op]); */
       if (opt[op].min < _hestMax(opt[op].max)) {
-	if (!( AIR_WITHIN_CL(opt[op].min, nprm[op], _hestMax(opt[op].max))
+	if (!( AIR_IN_CL(opt[op].min, nprm[op], _hestMax(opt[op].max))
 	       || (airTypeString == opt[op].type 
 		   && parm->elideMultipleEmptyStringDefault) )) {
 	  sprintf(err, "%s# parameters (in default) for %s is %d, "
