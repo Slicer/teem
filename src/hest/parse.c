@@ -41,7 +41,7 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
 			 char **argv, char *err, hestParm *parm) {
   FILE *file;
   char me[]="_hestArgsInResponseFiles: ", line[AIR_STRLEN_HUGE];
-  int len;
+  int ai, len;
 
   *argcP = 0;
   *nrfP = 0;
@@ -50,12 +50,13 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
     return 0;
   }
 
-  while (argv[*nrfP]) {
-    if (parm->respFileFlag == argv[*nrfP][0]) {
-      if (!(file = fopen(argv[*nrfP]+1, "r"))) {
+  ai = 0;
+  while (argv[ai]) {
+    if (parm->respFileFlag == argv[ai][0]) {
+      if (!(file = fopen(argv[ai]+1, "r"))) {
 	/* can't open the indicated response file for reading */
 	sprintf(err, "%scouldn't open \"%s\" for reading as response file",
-		ME, argv[*nrfP]+1);
+		ME, argv[ai]+1);
 	*argcP = 0;
 	*nrfP = 0;
 	return 1;
@@ -70,8 +71,9 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
 	len = airOneLine(file, line, AIR_STRLEN_HUGE);
       }
       fclose(file);
+      (*nrfP)++;
     }
-    (*nrfP)++;
+    ai++;
   }
   return 0;
 }
@@ -636,10 +638,10 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
     airMopDone(mop, AIR_TRUE); return 1;
   }
   argc = argr + _argc - nrf;
-  /*
+
   printf("!%s: nrf = %d; argr = %d; _argc = %d --> argc = %d\n", 
 	 me, nrf, argr, _argc, argc);
-  */
+
   argv = calloc(argc+1, sizeof(char*));
   airMopMem(mop, &argv, AIR_FALSE);
 

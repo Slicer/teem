@@ -56,7 +56,7 @@ main(int argc, char **argv) {
   }
 
   /* else we got something, see if we can parse it */
-  if (hestParse(opt, argv+1, err, parm)) {
+  if (hestParse(opt, argc-1, argv+1, err, parm)) {
     printf("ERROR: %s\n", err);
     hestUsage(stderr, opt, argv[0], parm);
     hestGlossary(stderr, opt, parm);
