@@ -46,7 +46,7 @@ $(L).SEEN := true
 
 ## BINS: all the command-line executables associated with teem
 ## 
-BINS = airSanity affine cubic nrrdSanity overrgb idx2pos emap undos \
+BINS = airSanity affine cubic nrrdSanity overrgb idx2pos emap undos talkweb \
   pos2idx unu pprobe vprobe qbert mrender miter gkms ungantry ilk tend spots
 
 ## _binD(bins): list of development locations for given bins
@@ -96,6 +96,7 @@ unu.need        = $(call meneed,unrrdu nrrd biff hest air)
 mrender.need    = $(call meneed,hoover limn gage nrrd biff hest air)
 miter.need      = $(call meneed,mite hoover limn nrrd ell biff air)
 ungantry.need   = $(call meneed,gage nrrd biff hest air)
+talkweb.need    = $(call meneed,nrrd biff hest air)
 tend.need       = $(call meneed,ten limn gage dye unrrdu nrrd ell biff air)
 vprobe.need     = $(call meneed,ten limn gage nrrd ell biff hest air)
 pprobe.need     = $(call meneed,ten limn gage nrrd ell biff hest air)
@@ -126,6 +127,7 @@ $(call _binDI,unu)        : $(call used,$(unu.need))
 $(call _binDI,mrender)    : $(call used,$(mrender.need))
 $(call _binDI,miter)      : $(call used,$(miter.need))
 $(call _binDI,ungantry)   : $(call used,$(ungantry.need))
+$(call _binDI,talkweb)    : $(call used,$(talkweb.need))
 $(call _binDI,tend)       : $(call used,$(tend.need))
 $(call _binDI,spots)      : $(call used,$(spots.need))
 
