@@ -175,8 +175,10 @@ rm -rf teem-${VERSION}-${TEEM_ARCH}
 7) put the builds on sourceforge:
 cd ~/rel
 ftp upload.sourceforge.net
-... binary ...
-... cd incoming ...
+binary
+prompt
+cd incoming
+mput *.tar.gz
 
 8) update online documentation (which may be done more often than releases)
 cd ~/teemdoc
