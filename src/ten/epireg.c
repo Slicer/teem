@@ -618,6 +618,7 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
   return 0;
 }
 
+/*
 int
 _tenEpiRegSmoothHST(Nrrd *nhst, float bwP) {
   char me[]="_tenEpiRegSmoothHST", err[AIR_STRLEN_MED];
@@ -633,7 +634,7 @@ _tenEpiRegSmoothHST(Nrrd *nhst, float bwP) {
     airMopAdd(mop, rinfo, (airMopper)nrrdResampleInfoNix, airMopAlways);
     rinfo->kernel[1] = nrrdKernelGaussian;
     rinfo->parm[1][0] = bwP;
-    rinfo->parm[1][1] = 3.0; /* how many stnd devs do we cut-off at */
+    rinfo->parm[1][1] = 3.0; / * how many stnd devs do we cut-off at * /
     ELL_2V_SET(rinfo->samples, sp, sz);
     ELL_2V_SET(rinfo->min, 0, 0);
     ELL_2V_SET(rinfo->max, sp-1, sz-1);
@@ -652,6 +653,109 @@ _tenEpiRegSmoothHST(Nrrd *nhst, float bwP) {
   }
   return 0;
 }
+*/
+
+int
+_tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
+		 float goodFrac, int verb) {
+  char me[]="_tenEpiRegFitHST", err[AIR_STRLEN_MED];
+  airArray *mop;
+  Nrrd *ncc, *ntA, *ntB, *nsd, *nl2;
+  int c, sz, zi, sh, hi;
+  float *mess, *two, tmp;
+  double *hst, x, y, xx, xy, mm, bb;
+
+  mop = airMopNew();
+  airMopAdd(mop, ncc=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, ntA=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, ntB=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nsd=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nl2=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  /* do SD and L2 projections of the CCs along the DWI axis,
+     integrate these over the X and Y axes of the slices,
+     and define per-slice "messiness" as the quotient of the
+     SD integral with the L2 integral */
+  if (verb) {
+    fprintf(stderr, "%s: measuring segmentation quality ... ", me);
+    fflush(stderr);
+  }
+  if (nrrdJoin(ncc, _ncc+1, ninLen-1, 0, AIR_TRUE)
+      || nrrdProject(ntA, ncc, 0, nrrdMeasureSD, nrrdTypeFloat)
+      || nrrdProject(ntB, ntA, 0, nrrdMeasureSum, nrrdTypeFloat)
+      || nrrdProject(nsd, ntB, 0, nrrdMeasureSum, nrrdTypeFloat)
+      || nrrdProject(ntA, ncc, 0, nrrdMeasureL2, nrrdTypeFloat)
+      || nrrdProject(ntB, ntA, 0, nrrdMeasureSum, nrrdTypeFloat)
+      || nrrdProject(nl2, ntB, 0, nrrdMeasureSum, nrrdTypeFloat)
+      || nrrdArithBinaryOp(ntA, nrrdBinaryOpDivide, nsd, nl2)) {
+    sprintf(err, "%s: trouble doing CC projections", me);
+    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+  }
+  if (verb) {
+    fprintf(stderr, "done\n");
+  }
+  /* now ntA stores the per-slice messiness */
+  mess = (float*)(ntA->data);
+
+  /* allocate an array of 2 floats per slice */
+  sz = ntA->axis[0].size;
+  two = (float*)calloc(2*sz, sizeof(float));
+  if (!two) {
+    sprintf(err, "%s: couldn't allocate tmp buffer", me);
+    biffAdd(TEN, err); airMopError(mop); return 1;
+  }
+  airMopAdd(mop, two, airFree, airMopAlways);
+  /* initial ordering: messiness, slice index */
+  for (zi=0; zi<sz; zi++) {
+    two[0 + 2*zi] = mess[zi];
+    two[1 + 2*zi] = zi;
+  }
+  /* sort into ascending messiness */
+  qsort(two, zi, 2*sizeof(float), nrrdValCompare[nrrdTypeFloat]);
+  /* flip ordering whilc thresholding messiness into usability */
+  for (zi=0; zi<sz; zi++) {
+    tmp = two[1 + 2*zi];
+    two[1 + 2*zi] = (AIR_AFFINE(0, zi, sz-1, 0, 1) <= goodFrac ? 1.0 : 0.0);
+    two[0 + 2*zi] = tmp;
+  }  
+  /* sort again, into ascending slice order */
+  qsort(two, zi, 2*sizeof(float), nrrdValCompare[nrrdTypeFloat]);
+  if (verb) {
+    fprintf(stderr, "%s: using slices", me);
+    for (zi=0; zi<sz; zi++) {
+      if (two[1 + 2*zi]) {
+	fprintf(stderr, " %d", zi);
+      }
+    }
+    fprintf(stderr, " for fitting\n");
+  }
+
+  /* perform fitting for each column in hst */
+  hst = (double*)(nhst->data);
+  sh = nhst->axis[0].size;
+  for (hi=0; hi<sh; hi++) {
+    x = y = xy = xx = 0;
+    c = 0;
+    for (zi=0; zi<sz; zi++) {
+      if (!two[1 + 2*zi])
+	continue;
+      c += 1;
+      x += zi;
+      xx += zi*zi;
+      y += hst[hi + sh*zi];
+      xy += zi*hst[hi + sh*zi];
+    }
+    x /= c; xx /= c; y /= c; xy /= c;
+    mm = (xy - x*y)/(xx - x*x);
+    bb = y - mm*x;
+    for (zi=0; zi<sz; zi++) {
+      hst[hi + sh*zi] = mm*zi + bb;
+    }
+  }
+
+  airMopOkay(mop);
+  return 0;
+}
+
 
 int
 _tenEpiRegGetHST(double *hhP, double *ssP, double *ttP,
@@ -806,7 +910,7 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
       pb = floor(pp);
       pf = pp - pb;
       for (pi=-(supp-1); pi<=supp; pi++) {
-	idx[pi+(supp-1)] = AIR_IN_CL(0, pb + pi, sy-1) ? pb + pi : -1;
+	idx[pi+(supp-1)] = AIR_CLAMP(0, pb + pi, sy-1);
 	wght[pi+(supp-1)] = pi - pf;
       }
       idx += 2*supp;
@@ -818,7 +922,7 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
     for (yi=0; yi<sy; yi++) {
       tmp = 0;
       for (pi=0; pi<2*supp; pi++) {
-	tmp += idx[pi] >= 0 ? in[idx[pi]]*wght[pi] : 1;
+	tmp += in[idx[pi]]*wght[pi];
       }
       ins(nout->data, xi + sx*yi, clamp(ss*tmp));
       idx += 2*supp;
@@ -908,8 +1012,8 @@ _tenEpiRegWarp2(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
 int
 tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
 	       int reference,
-	       float bwX, float bwY, float bwP,
-	       float B0thr, float DWthr, int doCC,
+	       float bwX, float bwY, float fitFrac,
+	       float B0thr, float DWthr, int doCC, 
 	       NrrdKernel *kern, double *kparm,
 	       int progress, int verbose) {
   char me[]="tenEpiRegister", err[AIR_STRLEN_MED];
@@ -1024,30 +1128,34 @@ tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
     fprintf(stderr, "%s: saved pxfr.nrrd\n", me);
   }
 
-  /* ------ HST estimation */
-  if (_tenEpiRegEstimHST(nhst, npxfr, ninLen, ngrad)) {
-    sprintf(err, "%s: trouble estimating HST", me);
-    biffAdd(TEN, err); airMopError(mop); return 1;
-  }
-  if (progress) {
-    if (nrrdSave("hst.nrrd", nhst, NULL)) {
-      sprintf(err, "%s: trouble saving intermediate: HST estimates", me);
-      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+  if (0 == reference) {
+    /* ------ HST estimation */
+    if (_tenEpiRegEstimHST(nhst, npxfr, ninLen, ngrad)) {
+      sprintf(err, "%s: trouble estimating HST", me);
+      biffAdd(TEN, err); airMopError(mop); return 1;
     }
-    fprintf(stderr, "%s: saved hst.nrrd\n", me);
-  }
+    if (progress) {
+      if (nrrdSave("hst.nrrd", nhst, NULL)) {
+	sprintf(err, "%s: trouble saving intermediate: HST estimates", me);
+	biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+      }
+      fprintf(stderr, "%s: saved hst.nrrd\n", me);
+    }
 
-  /* ------ HST smoothing/fitting */
-  if (_tenEpiRegSmoothHST(nhst, bwP)) {
-    sprintf(err, "%s: trouble smoothing/fitting HST", me);
-    biffAdd(TEN, err); airMopError(mop); return 1;
-  }
-  if (progress) {
-    if (nrrdSave("smhst.nrrd", nhst, NULL)) {
-      sprintf(err, "%s: trouble saving intermediate: smoothed HST", me);
-      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+    if (fitFrac) {
+      /* ------ HST parameter fitting */
+      if (_tenEpiRegFitHST(nhst, nbuffB, ninLen, fitFrac, verbose)) {
+	sprintf(err, "%s: trouble fitting HST", me);
+	biffAdd(TEN, err); airMopError(mop); return 1;
+      }
+      if (progress) {
+	if (nrrdSave("fit-hst.nrrd", nhst, NULL)) {
+	  sprintf(err, "%s: trouble saving intermediate: fitted HST", me);
+	  biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+	}
+	fprintf(stderr, "%s: saved fit-hst.nrrd\n", me);
+      }
     }
-    fprintf(stderr, "%s: saved smhst.nrrd\n", me);
   }
 
   /* ------ doit */

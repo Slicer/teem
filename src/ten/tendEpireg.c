@@ -23,13 +23,14 @@
 #define INFO "Register diffusion-weighted echo-planar images"
 char *_tend_epiregInfoL =
   (INFO
-   ".  Registration is based on moments of thresholded images. The "
-   "images may be optionally blurred, prior to thresholding, but this is "
-   "only for the purposes of calculating the transform; the output data "
-   "is not blurred. This tool is only useful for distortions described by "
-   "a scale, shear, and translate along the phase "
-   "encoding direction, which is assumed to be the Y (second) axis of the "
-   "image data. The output registered DWIs are resampled with the "
+   ". This registration corrects the shear, scale, and translate along "
+   "the phase encoding direction (assumed to be the Y (second) axis of "
+   "the image) caused by eddy currents from the diffusion-encoding "
+   "gradients with echo-planar imaging.  The method is based on calculating "
+   "moments of segmented images, where the segmentation is a simple "
+   "procedure based on blurring (optional), thresholding and "
+   "connected component analysis. "
+   "The registered DWIs are resampled with the "
    "chosen kernel, with the seperate DWIs stacked along axis 0.");
 
 int
@@ -43,38 +44,56 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   NrrdKernelSpec *ksp;
   Nrrd **nin, *nout, *ngrad;
   int ref, ninLen, noverbose, progress, nocc;
-  float bw[2], thr[2];
+  float bw[2], thr[2], fitFrac;
   
-  hestOptAdd(&hopt, "i", "b0 dwi1 dwi2", airTypeOther, 3, -1, &nin, NULL,
-	     "all the DWIs, as seperate nrrds",
+  hestOptAdd(&hopt, "i", "T2 dwi1 dwi2", airTypeOther, 3, -1, &nin, NULL,
+	     "all the DWIs, as seperate nrrds, starting with the "
+	     "non-diffusion-weighted T2 scan",
 	     &ninLen, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "g", "grads", airTypeOther, 1, 1, &ngrad, NULL,
-	     "array of gradient directions", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "r", "reference", airTypeInt, 1, 1, &ref, NULL,
+	     "array of gradient directions. ", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "r", "reference", airTypeInt, 1, 1, &ref, "0",
 	     "which of the DW volumes (one-based numbering) should be used "
-	     "as the standard, to which all other images are transformed. ");
+	     "as the standard, to which all other images are transformed. "
+	     "Using 0 (the default) means that 9 intrinsic parameters "
+	     "governing the relationship between the gradient direction "
+	     "and the resulting distortion are estimated and fitted, "
+	     "ensuring a good match with the non-diffusion-weighted T2 image. "
+	     "Otherwise, by picking a specific DWI, no distortion parameter "
+	     "estimation is done. ");
   hestOptAdd(&hopt, "nv", NULL, airTypeInt, 0, 0, &noverbose, NULL,
-	     "turn OFF verbose mode, "
-	     "have no idea what stage processing is at");
+	     "turn OFF verbose mode, and "
+	     "have no idea what stage processing is at.");
   hestOptAdd(&hopt, "p", NULL, airTypeInt, 0, 0, &progress, NULL,
 	     "save out intermediate steps of processing");
-  hestOptAdd(&hopt, "bw", "x, y blur width", airTypeFloat, 2, 2, bw, "0.0 2.0",
+  hestOptAdd(&hopt, "bw", "x,y blur", airTypeFloat, 2, 2, bw, "1.0 2.0",
 	     "standard devs in X and Y directions of gaussian filter used "
-	     "to blur the DWIs prior to doing registration. "
-	     "Use 0.0 to say \"no blurring\"");
-  hestOptAdd(&hopt, "t", "B0, DWI threshold", airTypeFloat, 2, 2, &thr,
+	     "to blur the DWIs prior to doing segmentation. This blurring "
+	     "does not effect the final resampling of registered DWIs. "
+	     "Use \"0.0 0.0\" to say \"no blurring\"");
+  hestOptAdd(&hopt, "t", "T2,DWI thresh", airTypeFloat, 2, 2, &thr,
 	     "nan nan",
-	     "Threshold values to use on B0 and DW images, respectively, "
-	     "to do rough seperation of brain and non-brain.  By default, "
+	     "Threshold values to use on T2 and DW images, respectively, "
+	     "to do initial seperation of brain and non-brain.  By default, "
 	     "the thresholds are determined automatically by histogram "
 	     "analysis. ");
   hestOptAdd(&hopt, "ncc", NULL, airTypeInt, 0, 0, &nocc, NULL,
 	     "do *NOT* do connected component (CC) analysis, after "
 	     "thresholding and before moment calculation.  Doing CC analysis "
-	     "should give better results because it converts the thresholding "
-	     "output into something much closer to a segmentation");
+	     "usually gives better results because it converts the "
+	     "thresholding output into something much closer to a "
+	     "real segmentation");
+  hestOptAdd(&hopt, "f", "fit frac", airTypeFloat, 1, 1, &fitFrac, "0.70",
+	     "(only meaningful with \"-r 0\") When doing linear fitting "
+	     "of the intrinsic distortion parameters, it is good "
+	     "to ignore the slices for which the segmentation was poor.  A "
+	     "heuristic is used to rank the slices according to segmentation "
+	     "quality.  This option controls how many of the (best) slices "
+	     "contribute to the fitting.  Use \"0\" to disable distortion "
+	     "parameter fitting. ");
   hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &ksp, "cubic:0,0.5",
-	     "kernel for resampling DWI during registration",
+	     "kernel for resampling DWIs along the phase-encoding "
+	     "direction during final registration stage",
 	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
 	     "single output volume containing all registered DWIs");
@@ -89,7 +108,7 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenEpiRegister(nout, nin, ninLen, ngrad,
 		     ref,
-		     bw[0], bw[1], 0.0001,
+		     bw[0], bw[1], fitFrac,
 		     thr[0], thr[1], !nocc,
 		     ksp->kernel, ksp->parm,
 		     progress, !noverbose)) {
