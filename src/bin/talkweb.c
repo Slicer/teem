@@ -144,7 +144,7 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
   airArray *mop, *slideArr;
   tkwbSlide **slide = NULL;
   char *title, *image, *text, stop[AIR_STRLEN_HUGE], line[AIR_STRLEN_HUGE];
-  int slideIdx, hitEOF, notReally, len;
+  int slideIdx=0, hitEOF, notReally, len;
   
   mop = airMopNew();
   if (!( file = airFopen(filename, stdin, "rb") )) {
