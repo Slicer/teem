@@ -94,7 +94,7 @@ tenGlyphGen(limnObj *obj, Nrrd *nin, tenGlyphParm *parm) {
 	  }
 	}
 	if (1 || ten[0] > parm->dwiThresh) {
-	  ELL_3V_SCALE(sc, eval, parm->cscale);
+	  ELL_3V_SCALE(sc, parm->cscale, eval);
 	  
 	  switch (parm->dim) {
 	  case 3:

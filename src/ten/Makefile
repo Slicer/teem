@@ -22,7 +22,7 @@ LIB = ten
 HEADERS = ten.h tenMacros.h
 LIB_OBJS = tensor.o chan.o aniso.o glyph.o methods.o arrays.o
 #TEST_BINS = test/chan2tens test/anisos test/boxes test/anisovol test/slices
-TEST_BINS = test/chan2tens test/anisos test/anisovol test/es
+TEST_BINS = test/chan2tens test/anisos 
 BINS = 
 BIN_LIBS = -lten -lnrrd -lell -lbiff -lair -lm
 
