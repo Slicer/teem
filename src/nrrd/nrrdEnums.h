@@ -159,7 +159,7 @@ enum {
 ** node-centered vs. cell-centered
 */
 enum {
-  nrrdCenterUnknown,
+  nrrdCenterUnknown,         /* 0: no centering known for this axis */
   nrrdCenterNode,            /* 1: samples at corners of things
                                 (how "voxels" are usually imagined)
                                 |\______/|\______/|\______/|
