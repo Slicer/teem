@@ -334,7 +334,7 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
        root between t0 and t1 or t2, whichever one is associated with
        a smaller value */
     Tmin = t0;
-    Tmax = v1 < v2 ? t1 : t2;
+    Tmax = v1 < v2 ? t1 : t2;  /* HEY: shouldn't I just be using whichever one is closer? */
     Vmin = VAL(Tmin);
     Vmax = VAL(Tmax);
   }
