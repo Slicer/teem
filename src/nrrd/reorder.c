@@ -140,7 +140,10 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
   
   /* set information in new volume */
   nout->blockSize = nin->blockSize;
-  if (nrrdMaybeAlloc(nout, nin->num, nin->type, nin->dim)) {
+  for (d=0; d<=dim-1; d++) {
+    szOut[d] = szOut[axes[d]];
+  }
+  if (nrrdMaybeAlloc_nva(nout, nin->type, nin->dim, szOut)) {
     sprintf(err, "%s: failed to allocate output", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -153,12 +156,12 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
   for (d=0; d<=lowPax-1; d++) {
     lineSize *= nin->axis[d].size;
   }
-  numLines = nin->num/lineSize;
+  numLines = nrrdElementNumber(nin)/lineSize;
   lineSize *= nrrdElementSize(nin);
   src = nin->data;
   dest = nout->data;
-  nrrdAxesGet(nin, nrrdAxesInfoSize, szIn);
-  nrrdAxesGet(nout, nrrdAxesInfoSize, szOut);
+  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, szIn);
+  nrrdAxesGet_nva(nout, nrrdAxesInfoSize, szOut);
   fprintf(stderr, "%s: szOut = %d %d %d\n", me, szOut[0], szOut[1], szOut[2]);
   fprintf(stderr, "%s: numLines = %d, lineSize = %d\n", me,
 	  (int)numLines, (int)lineSize);
@@ -256,7 +259,7 @@ nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
     tmpS[NRRD_STRLEN_SMALL];
   int typesize, size[NRRD_DIM_MAX], d, dim, len,
     ci[NRRD_DIM_MAX+1], co[NRRD_DIM_MAX+1];
-  nrrdBigInt I, idxI, idxO;
+  nrrdBigInt I, idxI, idxO, num;
   unsigned char *dataI, *dataO;
 
   if (!(nin && nout && perm)) {
@@ -284,7 +287,8 @@ nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
 
   /* set information in new volume */
   nout->blockSize = nin->blockSize;
-  if (nrrdMaybeAlloc(nout, nin->num, nin->type, nin->dim)) {
+  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
+  if (nrrdMaybeAlloc_nva(nout, nin->type, nin->dim, size)) {
     sprintf(err, "%s: failed to allocate output", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -292,20 +296,21 @@ nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
+  /* the min and max along the shuffled axis are now meaningless */
   nout->axis[axis].min = nout->axis[axis].max = AIR_NAN;
   nout->min = nin->min;
   nout->max = nin->max;
   nout->oldMin = nin->oldMin;
   nout->oldMax = nin->oldMax;
   
-  nrrdAxesGet(nin, nrrdAxesInfoSize, size);
   dim = nin->dim;
   dataI = nin->data;
   dataO = nout->data;
   typesize = nrrdElementSize(nin);
   memset(ci, 0, (NRRD_DIM_MAX+1)*sizeof(int));
   memset(co, 0, (NRRD_DIM_MAX+1)*sizeof(int));
-  for (I=0; I<=nin->num-1; I++) {
+  num = nrrdElementNumber(nin);
+  for (I=0; I<=num-1; I++) {
     memcpy(ci, co, NRRD_DIM_MAX*sizeof(int));
     ci[axis] = perm[co[axis]];
     NRRD_COORD_INDEX(idxI, ci, size, dim, d);
@@ -342,7 +347,8 @@ nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
 ******** nrrdFlip()
 **
 ** reverse the order of slices along the given axis.
-** Actually, just a wrapper around nrrdShuffle()
+** Actually, just a wrapper around nrrdShuffle() (with the minor addition
+** of setting nout->axis[axis].min and .max)
 */
 int
 nrrdFlip(Nrrd *nout, Nrrd *nin, int axis) {
@@ -544,7 +550,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis, int incrDim) {
   tmpdata = nperm->data;
   for (i=0; i<=num-1; i++) {
     /* here is where the actual joining happens */
-    chunksize = ninperm[i]->num*nrrdElementSize(ninperm[i]);
+    chunksize = nrrdElementNumber(ninperm[i])*nrrdElementSize(ninperm[i]);
     memcpy(tmpdata, ninperm[i]->data, chunksize);
     tmpdata += chunksize;
   }
@@ -596,12 +602,12 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis, int incrDim) {
 }
 
 /*
-******** nrrdReshape()
+******** nrrdReshape_nva()
 **
 */
 int
-nrrdReshape(Nrrd *nout, Nrrd *nin, int dim, int *size) {
-  char me[]="nrrdReshape", err[NRRD_STRLEN_MED],
+nrrdReshape_nva(Nrrd *nout, Nrrd *nin, int dim, int *size) {
+  char me[]="nrrdReshape_nva", err[NRRD_STRLEN_MED],
     tmpS[NRRD_STRLEN_SMALL];
   nrrdBigInt numOut;
   int d;
@@ -623,10 +629,10 @@ nrrdReshape(Nrrd *nout, Nrrd *nin, int dim, int *size) {
     }
     numOut *= size[d];
   }
-  if (numOut != nin->num) {
+  if (numOut != nrrdElementNumber(nin)) {
     sprintf(err, "%s: new sizes product (" NRRD_BIG_INT_PRINTF ") "
 	    "!= # elements (" NRRD_BIG_INT_PRINTF ")",
-	    me, numOut, nin->num);
+	    me, numOut, nrrdElementNumber(nin));
     biffAdd(NRRD, err); return 1;
   }
 
@@ -667,13 +673,13 @@ nrrdReshape(Nrrd *nout, Nrrd *nin, int dim, int *size) {
 }
 
 /*
-******** nrrdReshape_va()
+******** nrrdReshape()
 **
-** var-args version of nrrdReshape()
+** var-args version of nrrdReshape_nva()
 */
 int
-nrrdReshape_va(Nrrd *nout, Nrrd *nin, int dim, ...) {
-  char me[]="nrrdReshape_va", err[NRRD_STRLEN_MED];
+nrrdReshape(Nrrd *nout, Nrrd *nin, int dim, ...) {
+  char me[]="nrrdReshape", err[NRRD_STRLEN_MED];
   int d, size[NRRD_DIM_MAX];
   va_list ap;
 
@@ -692,7 +698,7 @@ nrrdReshape_va(Nrrd *nout, Nrrd *nin, int dim, ...) {
   }
   va_end(ap);
 
-  if (nrrdReshape(nout, nin, dim, size)) {
+  if (nrrdReshape_nva(nout, nin, dim, size)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -703,7 +709,7 @@ nrrdReshape_va(Nrrd *nout, Nrrd *nin, int dim, ...) {
 int
 nrrdBlock(Nrrd *nout, Nrrd *nin) {
   char me[]="nrrdBlock", err[NRRD_STRLEN_MED];
-  int d, numEl, map[NRRD_DIM_MAX];
+  int d, numEl, map[NRRD_DIM_MAX], size[NRRD_DIM_MAX];
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -725,14 +731,15 @@ nrrdBlock(Nrrd *nout, Nrrd *nin) {
 	  numEl, nrrdElementSize(nin), nout->blockSize);
   for (d=0; d<=nin->dim-2; d++) {
     map[d] = d+1;
+    size[d] = nin->axis[map[d]].size;
   }
 
   /* nout->blockSize set above */
-  if (nrrdMaybeAlloc(nout, nin->num/numEl, nrrdTypeBlock, nin->dim-1)) {
+  if (nrrdMaybeAlloc_nva(nout, nrrdTypeBlock, nin->dim-1, size)) {
     sprintf(err, "%s: failed to allocate output", me);
     biffAdd(NRRD, err); return 1;
   }
-  memcpy(nout->data, nin->data, nin->num*nrrdElementSize(nin));
+  memcpy(nout->data, nin->data, nrrdElementNumber(nin)*nrrdElementSize(nin));
   if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_NONE)) {
     sprintf(err, "%s: failed to copy axes", me);
     biffAdd(NRRD, err); return 1;
@@ -757,7 +764,7 @@ nrrdBlock(Nrrd *nout, Nrrd *nin) {
 int
 nrrdUnblock(Nrrd *nout, Nrrd *nin, int type) {
   char me[]="nrrdUnblock", err[NRRD_STRLEN_MED];
-  int size, d, map[NRRD_DIM_MAX], outElSz;
+  int size[NRRD_DIM_MAX], d, map[NRRD_DIM_MAX], outElSz;
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -795,22 +802,21 @@ nrrdUnblock(Nrrd *nout, Nrrd *nin, int type) {
 	    me, nin->blockSize, outElSz);
     biffAdd(NRRD, err); return 1;
   }
-  size = nin->blockSize / outElSz;
   for (d=0; d<=nin->dim; d++) {
-    map[d] = !d ? -1 : d-1;
+    map[d] = !d ?  -1 : d-1;
+    size[d] = !d ? nin->blockSize / outElSz : nin->axis[map[d]].size;
   }
-  /* if nout->blockSize is need, we've checked that its set */
-  if (nrrdMaybeAlloc(nout, nin->num*size, type, nin->dim+1)) {
+  /* if nout->blockSize is needed, we've checked that its set */
+  if (nrrdMaybeAlloc_nva(nout, type, nin->dim+1, size)) {
     sprintf(err, "%s: failed to allocate output", me);
     biffAdd(NRRD, err); return 1;
   }
-  memcpy(nout->data, nin->data, nin->num*nrrdElementSize(nin));
+  memcpy(nout->data, nin->data, nrrdElementNumber(nin)*nrrdElementSize(nin));
   if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_NONE)) {
     sprintf(err, "%s: failed to copy axes", me);
     biffAdd(NRRD, err); return 1;
   }
   _nrrdAxisInit(&(nout->axis[0]));
-  nout->axis[0].size = size;
   
   nout->content = airFree(nout->content);
   if (nin->content) {
@@ -820,8 +826,8 @@ nrrdUnblock(Nrrd *nout, Nrrd *nin, int type) {
 			   + 11
 			   + 1, sizeof(char));
     if (nout->content) {
-      sprintf(nout->content, "block(%s,%s,%d)", 
-	      nin->content, nrrdEnumValToStr(nrrdEnumType, type), size);
+      sprintf(nout->content, "unblock(%s,%s)", 
+	      nin->content, nrrdEnumValToStr(nrrdEnumType, type));
     }
     else {
       sprintf(err, "%s: couldn't allocate output content", me);

@@ -38,10 +38,16 @@ ell3mNullspace1(double ans[3], double n[9]) {
   ELL_3V_CROSS(t1, n+0, n+6);
   ELL_3V_CROSS(t2, n+3, n+6);
 
-  /* point them the same way */
+  /* point them the same way: you might think that only the first two
+     of these three statements would be needed, but there is the 
+     possibility that t1 = (0,0,0), in which case you can end up with
+     t0 = -t2, so that when you add t0+t1+t2, you get (0,0,0), which
+     isn't easy to normalize ... */
   if (ELL_3V_DOT(t0, t1) < 0)
     ELL_3V_SCALE(t1, t1, -1);
   if (ELL_3V_DOT(t1, t2) < 0)
+    ELL_3V_SCALE(t2, t2, -1);
+  if (ELL_3V_DOT(t0, t2) < 0)
     ELL_3V_SCALE(t2, t2, -1);
 
   /* add them up (longer, hence more accurate, ones will dominate) */
@@ -70,10 +76,13 @@ ell3mNullspace2(double ans0[3], double ans1[3], double _n[9]) {
   /* copy to local matrix */
   memcpy(n, _n, 9*sizeof(double));
   
-  /* make the column vectors point the same way */
+  /* make the column vectors point the same way: see the comment
+     above in ell3mNullspace1() regarding this operation */
   if (ELL_3V_DOT(n+0, n+3) < 0)
     ELL_3V_SCALE(n+3, n+3, -1);
   if (ELL_3V_DOT(n+3, n+6) < 0)
+    ELL_3V_SCALE(n+6, n+6, -1);
+  if (ELL_3V_DOT(n+0, n+6) < 0)
     ELL_3V_SCALE(n+6, n+6, -1);
 
   /* add them up (longer, hence more accurate, ones will dominate) */
@@ -82,7 +91,7 @@ ell3mNullspace2(double ans0[3], double ans1[3], double _n[9]) {
   
   /* any two vectors which are perpendicular to the (supposedly 1D)
      span of the column vectors span the nullspace */
-  ell3vPerp(ans0, tmp);
+  ell3vPerp_d(ans0, tmp);
   ELL_3V_NORM(ans0, ans0, norm);
   ELL_3V_CROSS(ans1, tmp, ans0);
 
@@ -163,7 +172,7 @@ ell3mEigensolve(double eval[3], double evec[9], double m[9], int polish) {
   switch (roots) {
   case ellCubicRootThree:
     ELL_SORT3(e0, e1, e2, t);
-    /* if (linealDebug) {
+    /* if (ellDebug) {
       printf("lineal3Eigensolve: evals: %20.15f %20.15f %20.15f\n", 
 	     eval[0], eval[1], eval[2]);
 	     } */
@@ -182,6 +191,7 @@ ell3mEigensolve(double eval[3], double evec[9], double m[9], int polish) {
       ell3mNullspace1(evec+0, n);
       ELL_3M_SETDIAG(n, m[0]-e1, m[4]-e1, m[8]-e1);
       ell3mNullspace2(evec+3, evec+6, n);
+      ELL_3V_SET(eval, e0, e1, e1);
     }
     else {
       /* two big (e1), one small (e0): more like a pancake */
@@ -189,9 +199,7 @@ ell3mEigensolve(double eval[3], double evec[9], double m[9], int polish) {
       ell3mNullspace2(evec+0, evec+3, n);
       ELL_3M_SETDIAG(n, m[0]-e0, m[4]-e0, m[8]-e0);
       ell3mNullspace1(evec+6, n);
-      /* e2 == e1 */
-      ELL_SWAP2(e0, e1, t);
-      ELL_3V_SET(eval, e0, e1, e2);
+      ELL_3V_SET(eval, e1, e1, e0);
     }
     break;
   case ellCubicRootTriple:

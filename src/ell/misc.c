@@ -28,6 +28,42 @@ int ellDebug = 0;
 
 
 void
+ell3mPrint_f(FILE *f, float s[9]) {
+
+  fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
+	  s[0], s[3], s[6]);
+  fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
+	  s[1], s[4], s[7]);
+  fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
+	  s[2], s[5], s[8]);
+}
+
+void
+ell3vPrint_f(FILE *f, float s[3]) {
+
+  fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
+	  s[0], s[1], s[2]);
+}
+
+void
+ell3mPrint_d(FILE *f, double s[9]) {
+
+  fprintf(f, "% 31.15lf % 31.15lf % 31.15lf\n", 
+	  s[0], s[3], s[6]);
+  fprintf(f, "% 31.15lf % 31.15lf % 31.15lf\n", 
+	  s[1], s[4], s[7]);
+  fprintf(f, "% 31.15lf % 31.15lf % 31.15lf\n", 
+	  s[2], s[5], s[8]);
+}
+
+void
+ell3vPrint_d(FILE *f, double s[3]) {
+
+  fprintf(f, "% 31.15lf % 31.15lf % 31.15lf\n",
+	  s[0], s[1], s[2]);
+}
+
+void
 ell4mPrint_f(FILE *f, float s[16]) {
 
   fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n", 
@@ -41,6 +77,13 @@ ell4mPrint_f(FILE *f, float s[16]) {
 }
 
 void
+ell4vPrint_f(FILE *f, float s[4]) {
+
+  fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n", 
+	  s[0], s[1], s[2], s[3]);
+}
+
+void
 ell4mPrint_d(FILE *f, double s[16]) {
 
   fprintf(f, "% 31.15lf % 31.15lf % 31.15lf % 31.15lf\n", 
@@ -51,5 +94,12 @@ ell4mPrint_d(FILE *f, double s[16]) {
 	  s[2], s[6], s[10], s[14]);
   fprintf(f, "% 31.15lf % 31.15lf % 31.15lf % 31.15lf\n", 
 	  s[3], s[7], s[11], s[15]);
+}
+
+void
+ell4vPrint_d(FILE *f, double s[4]) {
+
+  fprintf(f, "% 31.15lf % 31.15lf % 31.15lf % 31.15lf\n", 
+	  s[0], s[1], s[2], s[3]);
 }
 

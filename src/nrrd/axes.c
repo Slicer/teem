@@ -138,15 +138,12 @@ nrrdAxesCopy(Nrrd *nout, Nrrd *nin, int *map, int bitflag) {
 }
 
 /*
-******** nrrdAxesSet()
+******** nrrdAxesSet_nva()
 **
 ** Simple means of setting fields of the axis array in the nrrd.
-**
-** NOTE: for kicks, when you set nrrdAxesInfoSize, nrrd->num
-** will be updated accordingly
 */
 void
-nrrdAxesSet(Nrrd *nrrd, int axInfo, void *_info) {
+nrrdAxesSet_nva(Nrrd *nrrd, int axInfo, void *_info) {
   _nrrdAxesInfoPtrs info;
   int d;
   
@@ -158,13 +155,10 @@ nrrdAxesSet(Nrrd *nrrd, int axInfo, void *_info) {
   }
   info.P = _info;
 
-  if (nrrdAxesInfoSize == axInfo) {
-    nrrd->num = 1;
-  }
   for (d=0; d<=nrrd->dim-1; d++) {
     switch (axInfo) {
     case nrrdAxesInfoSize:
-      nrrd->num *= (nrrd->axis[d].size = info.I[d]);
+      nrrd->axis[d].size = info.I[d];
       break;
     case nrrdAxesInfoSpacing:
       nrrd->axis[d].spacing = info.D[d];
@@ -188,12 +182,12 @@ nrrdAxesSet(Nrrd *nrrd, int axInfo, void *_info) {
 }
 
 /*
-******** nrrdAxesSet_va()
+******** nrrdAxesSet()
 **
-** var args front-end for nrrdAxesSet
+** var args front-end for nrrdAxesSet_nva
 */
 void
-nrrdAxesSet_va(Nrrd *nrrd, int axInfo, ...) {
+nrrdAxesSet(Nrrd *nrrd, int axInfo, ...) {
   void *space[NRRD_DIM_MAX];
   _nrrdAxesInfoPtrs info;
   int d;
@@ -211,8 +205,7 @@ nrrdAxesSet_va(Nrrd *nrrd, int axInfo, ...) {
     switch (axInfo) {
     case nrrdAxesInfoSize:
       info.I[d] = va_arg(ap, int);
-      /* printf("!%s: got int[%d] = %d\n", 
-	 "nrrdAxesSet_va", d, info.I[d]); */
+      printf("!%s: got int[%d] = %d\n", "nrrdAxesSet_va", d, info.I[d]);
       break;
     case nrrdAxesInfoCenter:
       info.I[d] = va_arg(ap, int);
@@ -239,22 +232,22 @@ nrrdAxesSet_va(Nrrd *nrrd, int axInfo, ...) {
   va_end(ap);
 
   /* now set the quantities which we've gotten from the var args */
-  nrrdAxesSet(nrrd, axInfo, info.P);
+  nrrdAxesSet_nva(nrrd, axInfo, info.P);
   
   return;
 }
 
 /*
-******** nrrdAxesGet()
+******** nrrdAxesGet_nva()
 **
 ** get any of the axis fields into an array
 **
 ** Note that getting axes labels involves implicitly allocating space
 ** for them, due to the action of airStrdup().  The user is
-** responsible for free()ing these strings when done with them.  
+** responsible for free()ing these strings when done with them. 
 */
 void
-nrrdAxesGet(Nrrd *nrrd, int axInfo, void *_info) {
+nrrdAxesGet_nva(Nrrd *nrrd, int axInfo, void *_info) {
   _nrrdAxesInfoPtrs info;
   int d;
   
@@ -293,7 +286,7 @@ nrrdAxesGet(Nrrd *nrrd, int axInfo, void *_info) {
 }
 
 void
-nrrdAxesGet_va(Nrrd *nrrd, int axInfo, ...) {
+nrrdAxesGet(Nrrd *nrrd, int axInfo, ...) {
   void *space[NRRD_DIM_MAX], *ptr;
   _nrrdAxesInfoPtrs info;
   int d;
@@ -306,7 +299,7 @@ nrrdAxesGet_va(Nrrd *nrrd, int axInfo, ...) {
   }
 
   info.P = space;
-  nrrdAxesGet(nrrd, axInfo, info.P);
+  nrrdAxesGet_nva(nrrd, axInfo, info.P);
 
   va_start(ap, axInfo);
   for (d=0; d<=nrrd->dim-1; d++) {
@@ -343,109 +336,182 @@ nrrdAxesGet_va(Nrrd *nrrd, int axInfo, ...) {
   return;
 }
 
-int
-_nrrdAxisMinMaxHelp(double *minIdxP, double *maxIdxP, int *centerP,
-		    Nrrd *nrrd, int ax) {
-  char me[]="_nrrdAxisMinMaxHelp";
-  int center;
-  int size;
-
-  /* bail on invalid input */
-  if (!( nrrd 
-	 && AIR_INSIDE(0, ax, nrrd->dim-1)
-	 && AIR_EXISTS(nrrd->axis[ax].min)
-	 && AIR_EXISTS(nrrd->axis[ax].max) )) {
-    return 1;
-  }
-  
-  /* set center and size */
-  if (nrrdCenterUnknown == nrrd->axis[ax].center) {
-    center = nrrdDefCenter;
-  }
-  else {
-    center = nrrd->axis[ax].center;
-  }
-  center = AIR_CLAMP(nrrdCenterUnknown + 1, center, nrrdCenterLast - 1);
-  *centerP = center;
-  size = AIR_MAX(1, nrrd->axis[ax].size);
-
-  /* determine min and max index space locations corresponding to the
-     min and max axis values */
-  if (nrrdCenterNode == center) {
-    *minIdxP = 0;
-    *maxIdxP = size - 1;
-  }
-  else if (nrrdCenterCell == center) {
-    *minIdxP = -0.5;
-    *maxIdxP = size - 0.5;
-  }
-  else {
-    fprintf(stderr, "%s: PANIC: center %d unimplemented\n", me, center);
-    exit(1);
-  }
-  
-  /* flip minIdx and maxIdx if axis min > axis max */
-  /*
-  if (nrrd->axis[ax].min > nrrd->axis[ax].max) {
-    tmp = *minIdxP; *minIdxP = *maxIdxP; *maxIdxP = tmp;
-  }
-  */
-  return 0;
-}
-
+/*
+******** nrrdAxisPos()
+** 
+** given a nrrd, an axis, and a (floating point) index space position,
+** return the position implied the axis's min, max, and center
+** Does the opposite of nrrdAxisIdx().
+**
+** does not use biff
+*/
 double
-nrrdAxisPosition(Nrrd *nrrd, int ax, double idx) {
-  int center;
-  double minIdx, maxIdx;
+nrrdAxisPos(Nrrd *nrrd, int ax, double idx) {
+  int center, size;
+  double min, max;
   
-  /* might as well return NaN if we can't get the min
-     and max indices right, or if given idx doesn't exist */
-  if ( _nrrdAxisMinMaxHelp(&minIdx, &maxIdx, &center, nrrd, ax)
-       || !AIR_EXISTS(idx) ) {
+  if (!( nrrd && AIR_INSIDE(0, ax, nrrd->dim-1) )) {
     return AIR_NAN;
   }
-
-  return AIR_AFFINE(minIdx, idx, maxIdx, 
-		    nrrd->axis[ax].min, nrrd->axis[ax].max);
+  center = (nrrdCenterUnknown == nrrd->axis[ax].center
+	    ? nrrdDefCenter
+	    : nrrd->axis[ax].center);
+  if (!( AIR_INSIDE(nrrdCenterUnknown+1, center, nrrdCenterLast-1) )) {
+    return AIR_NAN;
+  }
+  min = nrrd->axis[ax].min;
+  max = nrrd->axis[ax].max;
+  size = nrrd->axis[ax].size;
+  
+  if (nrrdCenterCell == center) {
+    return AIR_AFFINE(0, idx + 0.5, size, min, max);
+  }
+  else {
+    return AIR_AFFINE(0, idx, size-1, min, max);
+  }
 }
 
-void
-nrrdAxisRange(double *loP, double *hiP,
-	      Nrrd *nrrd, int ax, 
-	      double loIdx, double hiIdx) {
-  int center, flip;
-  double min, max, minIdx, maxIdx, half;
-
-  if (!( loP && hiP )) {
-    /* idiots */
-    return;
+/*
+******** nrrdAxisIdx()
+** 
+** given a nrrd, an axis, and a (floating point) world space position,
+** return the index implied the axis's min, max, and center.
+** Does the opposite of nrrdAxisPos().
+**
+** does not use biff
+*/
+double
+nrrdAxisIdx(Nrrd *nrrd, int ax, double pos) {
+  int center, size;
+  double min, max;
+  
+  if (!( nrrd && AIR_INSIDE(0, ax, nrrd->dim-1) )) {
+    return AIR_NAN;
   }
+  center = (nrrdCenterUnknown == nrrd->axis[ax].center
+	    ? nrrdDefCenter
+	    : nrrd->axis[ax].center);
+  if (!( AIR_INSIDE(nrrdCenterUnknown+1, center, nrrdCenterLast-1) )) {
+    return AIR_NAN;
+  }
+  min = nrrd->axis[ax].min;
+  max = nrrd->axis[ax].max;
+  size = nrrd->axis[ax].size;
+  
+  if (nrrdCenterCell == center) {
+    return AIR_AFFINE(min, pos, max, 0, size) - 0.5;
+  }
+  else {
+    return AIR_AFFINE(min, pos, max, 0, size-1);
+  }
+}
 
-  if (_nrrdAxisMinMaxHelp(&minIdx, &maxIdx, &center, nrrd, ax)
-      || !AIR_EXISTS(loIdx)
-      || !AIR_EXISTS(hiIdx)) {
+/*
+******** nrrdAxisPosRange()
+**
+** given a nrrd, an axis, and two (floating point) index space positions,
+** return the range of positions implied the axis's min, max, and center
+** The opposite of nrrdAxisIdxRange()
+*/
+void
+nrrdAxisPosRange(double *loP, double *hiP, Nrrd *nrrd, int ax, 
+		 double loIdx, double hiIdx) {
+  int center, size, flip = 0;
+  double min, max, tmp;
+
+  if (!( loP && hiP && nrrd && AIR_INSIDE(0, ax, nrrd->dim-1) )) {
     *loP = *hiP = AIR_NAN;
     return;
   }
-
+  center = (nrrdCenterUnknown == nrrd->axis[ax].center
+	    ? nrrdDefCenter
+	    : nrrd->axis[ax].center);
+  if (!( AIR_INSIDE(nrrdCenterUnknown+1, center, nrrdCenterLast-1) )) {
+    *loP = *hiP = AIR_NAN;
+    return;
+  }
   min = nrrd->axis[ax].min;
   max = nrrd->axis[ax].max;
-  flip = max < min;
-  *loP = AIR_AFFINE(minIdx, loIdx, maxIdx, min, max);
-  *hiP = AIR_AFFINE(minIdx, hiIdx, maxIdx, min, max);
-  
+  size = nrrd->axis[ax].size;
+
+  if (loIdx > hiIdx) {
+    flip = 1;
+    tmp = loIdx; loIdx = hiIdx; hiIdx = tmp;
+  }
   if (nrrdCenterCell == center) {
-    half = 0.5*(max - min)/nrrd->axis[ax].size;
-    half = AIR_ABS(half);
-    if ( (!flip && *loP <= *hiP) || (flip && *loP < *hiP) ) {
-      *loP -= half;
-      *hiP += half;
+    *loP = AIR_AFFINE(0, loIdx, size, min, max);
+    *hiP = AIR_AFFINE(0, hiIdx+1, size, min, max);
+  }
+  else {
+    *loP = AIR_AFFINE(0, loIdx, size-1, min, max);
+    *hiP = AIR_AFFINE(0, hiIdx, size-1, min, max);
+  }
+  if (flip) {
+    tmp = *loP; *loP = *hiP; *hiP = tmp;
+  }
+
+  return;
+}
+
+/*
+******** nrrdAxisIdxRange()
+**
+** given a nrrd, an axis, and two (floating point) world space positions,
+** return the range of index space implied the axis's min, max, and center
+** The opposite of nrrdAxisPosRange().
+**
+** Actually- there are situations where sending an interval through
+** nrrdAxisIdxRange -> nrrdAxisPosRange -> nrrdAxisIdxRange
+** such as in cell centering, when the range of positions given does
+** not even span one sample.  Such as:
+** axis->size = 4, axis->min = -4, axis->max = 4, loPos = 0, hiPos = 1
+** --> nrrdAxisIdxRange == (2, 1.5) --> nrrdAxisPosRange == (2, -1)
+** The basic problem is that because of the 0.5 offset inherent in
+** cell centering, there are situations where (in terms of the arguments
+** to nrrdAxisIdxRange()) loPos < hiPos, but *loP > *hiP.
+*/
+void
+nrrdAxisIdxRange(double *loP, double *hiP, Nrrd *nrrd, int ax, 
+		 double loPos, double hiPos) {
+  int center, size, flip = 0;
+  double min, max, tmp;
+
+  if (!( loP && hiP && nrrd && AIR_INSIDE(0, ax, nrrd->dim-1) )) {
+    *loP = *hiP = AIR_NAN;
+    return;
+  }
+  center = (nrrdCenterUnknown == nrrd->axis[ax].center
+	    ? nrrdDefCenter
+	    : nrrd->axis[ax].center);
+  if (!( AIR_INSIDE(nrrdCenterUnknown+1, center, nrrdCenterLast-1) )) {
+    *loP = *hiP = AIR_NAN;
+    return;
+  }
+  min = nrrd->axis[ax].min;
+  max = nrrd->axis[ax].max;
+  size = nrrd->axis[ax].size;
+
+  if (loPos > hiPos) {
+    flip = 1;
+    tmp = loPos; loPos = hiPos; hiPos = tmp;
+  }
+  if (nrrdCenterCell == center) {
+    if (min < max) {
+      *loP = AIR_AFFINE(min, loPos, max, 0, size);
+      *hiP = AIR_AFFINE(min, hiPos, max, -1, size-1);
     }
     else {
-      *loP += half;
-      *hiP -= half;
+      *loP = AIR_AFFINE(min, loPos, max, -1, size-1);
+      *hiP = AIR_AFFINE(min, hiPos, max, 0, size);
     }
   }
-  
+  else {
+    *loP = AIR_AFFINE(min, loPos, max, 0, size-1);
+    *hiP = AIR_AFFINE(min, hiPos, max, 0, size-1);
+  }
+  if (flip) {
+    tmp = *loP; *loP = *hiP; *hiP = tmp;
+  }
+
   return;
 }

@@ -38,7 +38,7 @@ _nrrdReadNrrdParse_comment(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   char *info;
   
   info = io->line + io->pos;
-  if (nrrdCommentAdd(nrrd, info, AIR_TRUE)) {
+  if (nrrdCommentAdd(nrrd, info)) {
     sprintf(err, "%s: trouble", me);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
@@ -137,7 +137,9 @@ _nrrdReadNrrdParse_sizes(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   _CHECK_HAVE_DIM;
   ret = airParseStrI(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
-  nrrdAxesSet(nrrd, nrrdAxesInfoSize, val);
+  printf("!%s: val[0] = %d\n", me, val[0]);
+  nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, val);
+  printf("!%s: nrrd->axis[0].size = %d\n", me, nrrd->axis[0].size);
   return 0;
 }
 
@@ -158,7 +160,7 @@ _nrrdReadNrrdParse_spacings(Nrrd *nrrd, nrrdIO *io, int useBiff) {
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
   }
-  nrrdAxesSet(nrrd, nrrdAxesInfoSpacing, val);
+  nrrdAxesSet_nva(nrrd, nrrdAxesInfoSpacing, val);
   return 0;
 }
 
@@ -173,7 +175,7 @@ _nrrdReadNrrdParse_axis_mins(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   _CHECK_HAVE_DIM;
   ret = airParseStrD(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
-  nrrdAxesSet(nrrd, nrrdAxesInfoMin, val);
+  nrrdAxesSet_nva(nrrd, nrrdAxesInfoMin, val);
   return 0;
 }
 
@@ -188,7 +190,7 @@ _nrrdReadNrrdParse_axis_maxs(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   _CHECK_HAVE_DIM;
   ret = airParseStrD(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
-  nrrdAxesSet(nrrd, nrrdAxesInfoMax, val);
+  nrrdAxesSet_nva(nrrd, nrrdAxesInfoMax, val);
   return 0;
 }
 
@@ -538,3 +540,4 @@ _nrrdReadNrrdParseField(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   return i;
 }
 
+/* kernel parsing is all in kernel.c */

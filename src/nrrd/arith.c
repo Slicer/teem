@@ -18,15 +18,24 @@
 
 #include "nrrd.h"
 
+/*
+******** nrrdArithGamma()
+**
+** map the values in a nrrd through a power function; essentially:
+** val = pow(val, gamma), but this is after the val has been normalized
+** to be in the range of 0.0 to 1.0 (assuming that the given min and
+** max really are the full range of the values in the nrrd).  Thus,
+** the given min and max values are fixed points of this
+** transformation.  Using a negative gamma means that after the pow()
+** function has been applied, the value is inverted with respect to
+** min and max.  */
 int
-nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, int minmax, ...) {
+nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, double min, double max) {
   char me[]="nrrdArithGamma", err[NRRD_STRLEN_MED];
-  double min, max, val, insteadMin, insteadMax;
-  nrrdBigInt I;
+  double val;
+  nrrdBigInt I, num;
   double (*lup)(void *, nrrdBigInt);
   double (*ins)(void *, nrrdBigInt, double);
-  va_list ap;
-  int E = 0;
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -38,32 +47,14 @@ nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, int minmax, ...) {
       biffSet(NRRD, err); return 1;
     }
   }
-  if (!AIR_BETWEEN(nrrdMinMaxUnknown, minmax, nrrdMinMaxLast)) {
-    sprintf(err, "%s: minmax behavior (%d) invalid", me, minmax);
-    biffSet(NRRD, err); return 1;
-  }
-  if (nrrdMinMaxInsteadUse == minmax) {
-    va_start(ap, minmax);
-    insteadMin = va_arg(ap, double);
-    insteadMax = va_arg(ap, double);
-    va_end(ap);
-    E = nrrdMinMaxDo(&min, &max, nin, nrrdMinMaxInsteadUse, 
-		     insteadMin, insteadMax);
-  }
-  else {
-    E = nrrdMinMaxDo(&min, &max, nin, minmax);
-  }
-  if (E) {
-    sprintf(err, "%s: trouble setting min, max", me);
-    biffAdd(NRRD, err); return 1;
-  }
 
   lup = nrrdDLookup[nin->type];
   ins = nrrdDInsert[nout->type];
   gamma = 1/gamma;
+  num = nrrdElementNumber(nin);
   if (gamma < 0.0) {
     gamma = -gamma;
-    for (I=0; I<=nin->num-1; I++) {
+    for (I=0; I<=num-1; I++) {
       val = lup(nin->data, I);
       val = AIR_AFFINE(min, val, max, 0.0, 1.0);
       val = pow(val, gamma);
@@ -72,7 +63,7 @@ nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, int minmax, ...) {
     }
   }
   else {
-    for (I=0; I<=nin->num-1; I++) {
+    for (I=0; I<=num-1; I++) {
       val = lup(nin->data, I);
       val = AIR_AFFINE(min, val, max, 0.0, 1.0);
       val = pow(val, gamma);

@@ -138,8 +138,9 @@ nrrdResampleInfoNix(nrrdResampleInfo *info) {
 /*
 ******* nrrdInit
 **
-** initializes a nrrd to default state.  Mostly just sets values to 
-** 0, NaN, "", NULL, or Unknown
+** initializes a nrrd to default state.  All nrrd functions in the
+** business of initializing a nrrd struct use this function.  Mostly
+** just sets values to 0, NaN, "", NULL, or Unknown
 */
 void
 nrrdInit(Nrrd *nrrd) {
@@ -147,7 +148,6 @@ nrrdInit(Nrrd *nrrd) {
 
   if (nrrd) {
     nrrd->data = airFree(nrrd->data);
-    nrrd->num = 0;
     nrrd->type = nrrdTypeUnknown;
     nrrd->dim = 0;
     
@@ -160,8 +160,9 @@ nrrdInit(Nrrd *nrrd) {
     nrrd->min = nrrd->max = AIR_NAN;
     nrrd->oldMin = nrrd->oldMax = AIR_NAN;
     /* nrrd->ptr = NULL; */
+    nrrd->hasNonExist = nrrdNonExistUnknown;
     
-    /* the comment airArray has already been allocated, 
+    /* the comment airArray should be already been allocated, 
        though perhaps empty */
     nrrdCommentClear(nrrd);
   }
@@ -198,7 +199,9 @@ nrrdNew(void) {
     return NULL;
   airArrayPointerCB(nrrd->cmtArr, airNull, airFree);
 
+  /* finish initializations */
   nrrdInit(nrrd);
+
   return nrrd;
 }
 
@@ -266,30 +269,30 @@ nrrdNuke(Nrrd *nrrd) {
 /* ------------------------------------------------------------ */
 
 /*
-******** nrrdWrap()
+******** nrrdWrap_nva()
 **
 ** wraps a given Nrrd around a given array
-**
-** NOTE: does not touch any fields other than what the arguments imply,
-** which means that updating the axis[i]->size to agree with the num
-** argument is up to the user!!
-**
-** Thus, this function should be deprecated or something.
 */
 Nrrd *
-nrrdWrap(Nrrd *nrrd, void *data, nrrdBigInt num, int type, int dim) {
-
-  if (nrrd) {
-    nrrd->data = data;
-    nrrd->num = num;
-    nrrd->type = type;
-    nrrd->dim = dim;
+nrrdWrap_nva(Nrrd *nrrd, void *data, int type, int dim, int *size) {
+  char me[] = "nrrdWrap_nva", err[NRRD_STRLEN_MED];
+  int d;
+  
+  if (!(nrrd && size)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return NULL;
+  }
+  nrrd->data = data;
+  nrrd->type = type;
+  nrrd->dim = dim;
+  for (d=0; d<=dim-1; d++) {
+    nrrd->axis[d].size = size[d];
   }
   return nrrd;
 }
 
 /*
-******** nrrdWrap_va()
+******** nrrdWrap()
 **
 ** Minimal var args wrapper around nrrdWrap, with the advantage of 
 ** taking all the axes sizes as the var args.
@@ -297,22 +300,25 @@ nrrdWrap(Nrrd *nrrd, void *data, nrrdBigInt num, int type, int dim) {
 ** This is THE BEST WAY to wrap a nrrd around existing raster data!
 */
 Nrrd *
-nrrdWrap_va(Nrrd *nrrd, void *data, int type, int dim, ...) {
-  nrrdBigInt num;
+nrrdWrap(Nrrd *nrrd, void *data, int type, int dim, ...) {
+  char me[] = "nrrdWrap", err[NRRD_STRLEN_MED];
   va_list ap;
-  int d;
+  int d, size[NRRD_DIM_MAX];
   
   if (!nrrd) {
     return NULL;
   }
-  num = 1;
   va_start(ap, dim);
   for (d=0; d<=dim-1; d++) {
-    nrrd->axis[d].size = va_arg(ap, int);
-    num *= nrrd->axis[d].size;
+    size[d] = va_arg(ap, int);
+    if (!(size[d] > 0)) {
+      sprintf(err, "%s: invalid size (%d) for axis %d (of %d)",
+	      me, size, d, dim-1);
+      biffAdd(NRRD, err); return NULL;
+    }
   }
   va_end(ap);
-  return nrrdWrap(nrrd, data, num, type, dim);
+  return nrrdWrap_nva(nrrd, data, type, dim, size);
 }
 
 
@@ -328,12 +334,12 @@ nrrdUnwrap(Nrrd *nrrd) {
 }
 
 /*
-******** nrrdAlloc()
+******** nrrdAlloc_nva()
 **
 ** allocates data array and sets information.
 **
 ** This function will always allocate more memory (via calloc), but
-** it will free() nrrd->data if it is non-NULL when passed in
+** it will free() nrrd->data if it is non-NULL when passed in.
 **
 ** Note to Gordon: don't get clever and change ANY axis-specific
 ** information here.  It may be very conveniant to set that before
@@ -342,10 +348,12 @@ nrrdUnwrap(Nrrd *nrrd) {
 ** Note: This function DOES use biff
 */
 int 
-nrrdAlloc(Nrrd *nrrd, nrrdBigInt num, int type, int dim) {
-  char err[NRRD_STRLEN_MED], me[] = "nrrdAlloc";
+nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
+  char me[] = "nrrdAlloc_nva", err[NRRD_STRLEN_MED];
+  nrrdBigInt num;
+  int d;
 
-  if (!nrrd) {
+  if (!(nrrd && size)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -367,43 +375,48 @@ nrrdAlloc(Nrrd *nrrd, nrrdBigInt num, int type, int dim) {
 
   nrrd->type = type;
   nrrd->data = airFree(nrrd->data);
+  num = 1;
+  for (d=0; d<=dim-1; d++) {
+    num *= (nrrd->axis[d].size = size[d]);
+  }
   nrrd->data = calloc(num, nrrdElementSize(nrrd));
   if (!(nrrd->data)) {
     sprintf(err, "%s: calloc(" NRRD_BIG_INT_PRINTF ",%d) failed", 
 	    me, num, nrrdElementSize(nrrd));
     biffAdd(NRRD, err); return 1 ;
   }
-  nrrd->num = num;
   nrrd->dim = dim;
 
   return 0;
 }
 
 /*
-******** nrrdAlloc_va()
+******** nrrdAlloc()
 **
-** Handy wrapper around nrrdAlloc, which takes, as its vararg list
-** all the axes sizes, thereby calculating the total number.
+** Handy wrapper around nrrdAlloc_nva, which takes, as its vararg list,
+** all the axes sizes.
 */
 int 
-nrrdAlloc_va(Nrrd *nrrd, int type, int dim, ...) {
-  char me[]="nrrdAlloc_va", err[NRRD_STRLEN_MED];
-  int d;
-  nrrdBigInt num;
+nrrdAlloc(Nrrd *nrrd, int type, int dim, ...) {
+  char me[]="nrrdAlloc", err[NRRD_STRLEN_MED];
+  int size[NRRD_DIM_MAX], d;
   va_list ap;
   
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  num = 1;
   va_start(ap, dim);
   for (d=0; d<=dim-1; d++) {
-    nrrd->axis[d].size = va_arg(ap, int);
-    num *= nrrd->axis[d].size;
+    size[d] = va_arg(ap, int);
+    if (!(size[d] > 0)) {
+      sprintf(err, "%s: invalid size (%d) for axis %d (of %d)",
+	      me, size, d, dim-1);
+      biffAdd(NRRD, err); return 1;
+    }
   }
   va_end(ap);
-  if (nrrdAlloc(nrrd, num, type, dim)) {
+  if (nrrdAlloc_nva(nrrd, type, dim, size)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -412,21 +425,16 @@ nrrdAlloc_va(Nrrd *nrrd, int type, int dim, ...) {
 
 
 /*
-******** nrrdMaybeAlloc
+******** nrrdMaybeAlloc_nva
 **
-** calls nrrdAlloc if the requested space is different than
+** calls nrrdAlloc_nva if the requested space is different than
 ** what is currently held
-**
-** Note to Gordon: don't get clever and reset any axis-specific
-** information here.  It may be very conveniant to set that before
-** nrrdAlloc() or nrrdMaybeAlloc()
-**
 */
 int
-nrrdMaybeAlloc(Nrrd *nrrd, nrrdBigInt num, int type, int dim) {
-  char err[NRRD_STRLEN_MED], me[]="nrrdMaybeAlloc";
-  nrrdBigInt sizeWant, sizeHave;
-  int need;
+nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
+  char me[]="nrrdMaybeAlloc_nva", err[NRRD_STRLEN_MED];
+  nrrdBigInt sizeWant, sizeHave, numWant;
+  int d, need;
 
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -448,26 +456,29 @@ nrrdMaybeAlloc(Nrrd *nrrd, nrrdBigInt num, int type, int dim) {
     need = 1;
   }
   else {
+    numWant = 1;
+    for (d=0; d<=dim-1; d++) {
+      numWant *= size[d];
+    }
     /* this shouldn't actually be necessary ... */
     if (!nrrdElementSize(nrrd)) {
       sprintf(err, "%s: nrrd reports zero element size!", me);
       biffAdd(NRRD, err); return 1;
     }
-    sizeHave = nrrd->num * nrrdElementSize(nrrd);
-    sizeWant = num * nrrdElementSize(nrrd);
+    sizeHave = nrrdElementNumber(nrrd) * nrrdElementSize(nrrd);
+    sizeWant = numWant * nrrdElementSize(nrrd);
     need = sizeHave != sizeWant;
   }
   if (need) {
-    if (nrrdAlloc(nrrd, num, type, dim)) {
+    if (nrrdAlloc_nva(nrrd, type, dim, size)) {
       sprintf(err, "%s: trouble", me);
       biffAdd(NRRD, err); return 1;
     }
   }
 
   /* we need to set these here because if need was NOT true above,
-     then these things would not be set by nrrdAlloc(), but they
+     then these things would not be set by nrrdAlloc_nva(), but they
      need to be set in accordance with the function arguments */
-  nrrd->num = num;
   nrrd->type = type;
   nrrd->dim = dim;
 
@@ -475,15 +486,15 @@ nrrdMaybeAlloc(Nrrd *nrrd, nrrdBigInt num, int type, int dim) {
 }
 
 /*
-******** nrrdMaybeAlloc_va()
+******** nrrdMaybeAlloc()
 **
 ** Handy wrapper around nrrdAlloc, which takes, as its vararg list
 ** all the axes sizes, thereby calculating the total number.
 */
 int 
-nrrdMaybeAlloc_va(Nrrd *nrrd, int type, int dim, ...) {
-  char me[]="nrrdMaybeAlloc_va", err[NRRD_STRLEN_MED];
-  int d;
+nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim, ...) {
+  char me[]="nrrdMaybeAlloc", err[NRRD_STRLEN_MED];
+  int d, size[NRRD_DIM_MAX];
   nrrdBigInt num;
   va_list ap;
   
@@ -498,7 +509,8 @@ nrrdMaybeAlloc_va(Nrrd *nrrd, int type, int dim, ...) {
     num *= nrrd->axis[d].size;
   }
   va_end(ap);
-  if (nrrdMaybeAlloc(nrrd, num, type, dim)) {
+  nrrdAxesGet_nva(nrrd, nrrdAxesInfoSize, size);
+  if (nrrdMaybeAlloc_nva(nrrd, type, dim, size)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -516,6 +528,7 @@ nrrdMaybeAlloc_va(Nrrd *nrrd, int type, int dim, ...) {
 int
 nrrdCopy(Nrrd *nout, Nrrd *nin) {
   char me[]="nrrdCopy", err[NRRD_STRLEN_MED];
+  int size[NRRD_DIM_MAX];
 
   if (!(nin && nout)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -530,11 +543,12 @@ nrrdCopy(Nrrd *nout, Nrrd *nin) {
     sprintf(err, "%s: input nrrd reports zero element size!", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdMaybeAlloc(nout, nin->num, nin->type, nin->dim)) {
+  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
+  if (nrrdMaybeAlloc_nva(nout, nin->type, nin->dim, size)) {
     sprintf(err, "%s: couldn't allocate data", me);
     biffAdd(NRRD, err); return 1;
   }
-  memcpy(nout->data, nin->data, nin->num*nrrdElementSize(nin));
+  memcpy(nout->data, nin->data, nrrdElementNumber(nin)*nrrdElementSize(nin));
   nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
 
   nout->content = airStrdup(nin->content);
@@ -549,7 +563,7 @@ nrrdCopy(Nrrd *nout, Nrrd *nin) {
   nout->oldMax = nin->oldMax;
   /* nout->ptr = nin->ptr; */
     
-  if (nrrdCommentCopy(nout, nin, AIR_TRUE)) {
+  if (nrrdCommentCopy(nout, nin)) {
     sprintf(err, "%s: trouble copying comments", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -568,13 +582,11 @@ nrrdPPM(Nrrd *ppm, int sx, int sy) {
 
   if (!(sx > 0 && sy > 0)) {
     sprintf(err, "%s: got invalid sizes (%d,%d)", me, sx, sy);
-    biffAdd(NRRD, err);
-    return 1;
+    biffAdd(NRRD, err); return 1;
   }
-  if (nrrdMaybeAlloc_va(ppm, nrrdTypeUChar, 3, 3, sx, sy)) {
+  if (nrrdMaybeAlloc(ppm, nrrdTypeUChar, 3, 3, sx, sy)) {
     sprintf(err, "%s: couldn't allocate %d x %d 24-bit image", me, sx, sy);
-    biffAdd(NRRD, err);
-    return 1;
+    biffAdd(NRRD, err); return 1;
   }
   return 0;
 }
@@ -593,7 +605,7 @@ nrrdPGM(Nrrd *pgm, int sx, int sy) {
     biffAdd(NRRD, err);
     return 1;
   }
-  if (nrrdMaybeAlloc_va(pgm, nrrdTypeUChar, 2, sx, sy)) {
+  if (nrrdMaybeAlloc(pgm, nrrdTypeUChar, 2, sx, sy)) {
     sprintf(err, "%s: couldn't allocate %d x %d 8-bit image", me, sx, sy);
     biffAdd(NRRD, err);
     return 1;
@@ -604,7 +616,7 @@ nrrdPGM(Nrrd *pgm, int sx, int sy) {
 /*
 ******** nrrdTable()
 **
-** for making a nrrd suitable for holding table data
+** for making a nrrd suitable for holding "table" data
 */
 int
 nrrdTable(Nrrd *table, int sx, int sy) {
@@ -615,7 +627,7 @@ nrrdTable(Nrrd *table, int sx, int sy) {
     biffAdd(NRRD, err);
     return 1;
   }
-  if (nrrdMaybeAlloc_va(table, nrrdTypeFloat, 2, sx, sy)) {
+  if (nrrdMaybeAlloc(table, nrrdTypeFloat, 2, sx, sy)) {
     sprintf(err, "%s: couldn't allocate %d x %d table of floats", me, sx, sy);
     biffAdd(NRRD, err);
     return 1;

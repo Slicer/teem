@@ -34,6 +34,8 @@
 **   ellCubicRootSingleDouble: single root[0]; double root[1] == root[2]
 **   ellCubicRootThree: root[0], root[1], root[2]
 **
+** The values stored in root[] are NOT SORTED in anyway.
+**
 ** This does NOT use biff
 */
 int
@@ -55,6 +57,11 @@ ellCubic(double root[3], double A, double B, double C, int polish) {
     root[0] = t*cos(phi) - sub;
     root[1] = -t*cos(phi + M_PI/3.0) - sub;
     root[2] = -t*cos(phi - M_PI/3.0) - sub;
+    /*
+    if (!AIR_EXISTS(root[0])) {
+      printf("ellCubic: %g %g %g --> nan!!!\n", A, B, C);
+    }
+    */
     return ellCubicRootThree;
   }
   else if (D > epsilon) {

@@ -1,8 +1,18 @@
-tests: purify on reading a big table
-       gracefully bumping up against NRRD_STRLEN_LINE
+make mhisto allow non-uchar types
+
+make a nrrdSimpleResample which is simpler
+
+allow "datafile" and "data file" and "line skip" and "lineskip", etc ...
+
+figure out why _nrrdMinMaxFind[nrrdTypeUInt] was broken, and why 
+changing FIXED to FLOAT fixed it
+
+determine exactly what is and is not thread-safe
+
+figure out a way to lose all but the most necessary "useBiff" arguments.
+Its just too stupid looking
 
 finish the re-write: should fix resampler
-
 
 clean up nrrdJoin()
 verify behavior WRT min/max/center:
@@ -13,8 +23,6 @@ verify that all axis and nrrd fields are accounted for
   all functions making a "nout" from a "nin"
 incorporate gaussian kernel
  
--------------------------------------------
-
 finish writing format.txt
 
 make nrrdDescribe() a little prettier
@@ -37,22 +45,10 @@ better regular median filtering, weighted median filter
 make sure blockSize (and maybe any other non-per-axis information??)
 is copied in all basic nrrd functions
 
-For everything in reorder.c, whenever possible, 
-make them friendly to the input and output nrrds being the _same_
-
-for things which can produce a nrrd of one higher dimension, 
-make sure it isn't bumping up against NRRD_MAX_DIM
-
 debug and scrutinize current implementation of all "nhdr" related behavior
 
 "mappings": create minimal support for creating and "evaluating"
 functions based on an array of control points.
-
-check for handling of size of type "block"- when does the user have to
-specify it.
-
-be smarter about filling in "content" of something created from
-something else with no "content" (like nrrdConvert)
 
 clarify policy regarding (and make code changes as needed) on what
 quantities can only be "ints" and which need to be long long ints.

@@ -24,15 +24,19 @@
 **
 ** Adds a given string to the list of comments
 ** Leading spaces (' ') and comment chars ('#') are not included.
+**
+** This function does NOT use biff.
 */
 int
-nrrdCommentAdd(Nrrd *nrrd, char *_str, int useBiff) {
-  char me[]="nrrdCommentAdd", err[512], *str;
+nrrdCommentAdd(Nrrd *nrrd, char *_str) {
+  char /* me[]="nrrdCommentAdd", err[512], */ *str;
   int i, len;
   
   if (!(nrrd && _str)) {
+    /*
     sprintf(err, "%s: got NULL pointer", me);
     biffMaybeAdd(NRRD, err, useBiff);
+    */
     return 1;
   }
   _str += strspn(_str, " #");
@@ -42,23 +46,29 @@ nrrdCommentAdd(Nrrd *nrrd, char *_str, int useBiff) {
   }
   str = airStrdup(_str);
   if (!str) {
+    /*
     sprintf(err, "%s: couldn't strdup given string", me);
     biffMaybeAdd(NRRD, err, useBiff);
+    */
     return 1;
   }
   len = strlen(str);
   if (len >= NRRD_STRLEN_COMMENT) {
+    /*
     sprintf(err, "%s: cmt's length (%d) exceeds max (%d)", 
 	    me, len, NRRD_STRLEN_COMMENT);
     biffMaybeAdd(NRRD, err, useBiff);
+    */
     return 1;
   }
   /* clean out carraige returns that would screw up reader */
   airOneLinify(str);
   i = airArrayIncrLen(nrrd->cmtArr, 1);
   if (-1 == i) {
+    /*
     sprintf(err, "%s: couldn't lengthen comment array", me);
     biffMaybeAdd(NRRD, err, useBiff);
+    */
     return 1;
   }
   nrrd->cmt[i] = str;
@@ -149,25 +159,36 @@ nrrdCommentScan(Nrrd *nrrd, char *key) {
   return ret;
 }
 
+/*
+******** nrrdCommentCopy()
+**
+** copies comments from one nrrd to another
+**
+** This does NOT use biff.
+*/
 int
-nrrdCommentCopy(Nrrd *nout, Nrrd *nin, int useBiff) {
-  char me[]="nrrdCommentCopy", err[512];
+nrrdCommentCopy(Nrrd *nout, Nrrd *nin) {
+  /* char me[]="nrrdCommentCopy", err[512]; */
   int numc, i, E;
 
   if (!(nout && nin)) {
+    /*
     sprintf(err, "%s: got NULL pointer", me);
     biffMaybeAdd(NRRD, err, useBiff);
+    */
     return 1;
   }
   nrrdCommentClear(nout);
   numc = nin->cmtArr->len;
   E = 0;
   for (i=0; i<=numc-1; i++) {
-    if (!E) E |= nrrdCommentAdd(nout, nin->cmt[i], useBiff);
+    if (!E) E |= nrrdCommentAdd(nout, nin->cmt[i]);
   }
   if (E) {
+    /*
     sprintf(err, "%s: couldn't add all comments", me);
     biffMaybeAdd(NRRD, err, useBiff);
+    */
     return 1;
   }
   return 0;

@@ -144,27 +144,6 @@ typedef enum {
 #define NRRD_MEASURE_MAX        18
 
 /*
-******** nrrdMinMax enum
-** 
-** behaviors for dealing with the "min" and "max" fields in the nrrd,
-** and the min and max values measured in the data of the nrrd
-*/
-typedef enum {
-  nrrdMinMaxUnknown,
-  nrrdMinMaxSearch,          /* 1: find the actual min/max of the
-				data, and use it for compuation, but
-				don't set them in nrrd */
-  nrrdMinMaxSearchSet,       /* 2: like nrrdMinMaxCalc, but DO record
-				the min/max in the nrrd */
-  nrrdMinMaxUse,             /* 3: trust and use the min/max values 
-				already stored in the nrrd */
-  nrrdMinMaxInsteadUse,      /* 4: use (instead) the min/max values
-				specified by some alternate means */
-  nrrdMinMaxLast
-} nrrdMinMax;
-#define NRRD_MINMAX_MAX         4
-
-/*
 ******** nrrdCenter enum
 **
 ** node-centered vs. cell-centered
@@ -210,7 +189,7 @@ typedef enum {
 #define NRRD_AXESINFO_NONE        0
 
 /*
-** the "endian" enum is actually in the air library, but its very
+** the "endian" enum is actually in the air library, but it is very
 ** convenient to have it incorporated into the nrrd enum framework 
 */
 #define NRRD_ENDIAN_MAX 2
@@ -247,6 +226,14 @@ typedef enum {
 } nrrdField;
 #define NRRD_FIELD_MAX          21
 
+typedef enum {
+  nrrdNonExistUnknown,    /* 0 */
+  nrrdNonExistTrue,       /* 1 */
+  nrrdNonExistFalse,      /* 2 */
+  nrrdNonExistLast
+} nrrdNonExist;
+#define NRRD_NON_EXIST_MAX  2
+
 /*
 ******** nrrdEnum enum
 **
@@ -260,11 +247,11 @@ typedef enum {
   nrrdEnumType,              /*  4 */
   nrrdEnumEncoding,          /*  5 */
   nrrdEnumMeasure,           /*  6 */
-  nrrdEnumMinMax,            /*  7 */
-  nrrdEnumCenter,            /*  8 */
-  nrrdEnumAxesInfo,          /*  9 */
-  nrrdEnumEndian,            /* 10 */
-  nrrdEnumField,             /* 11 */
+  nrrdEnumCenter,            /*  7 */
+  nrrdEnumAxesInfo,          /*  8 */
+  nrrdEnumEndian,            /*  9 */
+  nrrdEnumField,             /* 10 */
+  nrrdEnumNonExist,          /* 11 */
   nrrdEnumLast
 } nrrdEnum;
 #define NRRD_ENUM_MAX           11

@@ -34,7 +34,7 @@ nrrdDescribe(FILE *file, Nrrd *nrrd) {
     fprintf(file, "Nrrd at 0x%lx:\n", (unsigned long)nrrd);
     fprintf(file, "Data at 0x%lx is " NRRD_BIG_INT_PRINTF 
 	    " elements of type %s.\n",
-	    (unsigned long)nrrd->data, nrrd->num, 
+	    (unsigned long)nrrd->data, nrrdElementNumber(nrrd), 
 	    nrrdEnumValToStr(nrrdEnumType, nrrd->type));
     if (nrrdTypeBlock == nrrd->type) 
       fprintf(file, "The blocks have size %d\n", nrrd->blockSize);
@@ -78,15 +78,10 @@ nrrdDescribe(FILE *file, Nrrd *nrrd) {
 int
 nrrdValid(Nrrd *nrrd) {
   char me[] = "nrrdValid", err[NRRD_STRLEN_MED];
-  nrrdBigInt mult;
   int i;
 
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return 0;
-  }
-  if (!(0 < nrrd->num)) {
-    sprintf(err, "%s: number of elements is not > zero", me);
     biffSet(NRRD, err); return 0;
   }
   if (!AIR_BETWEEN(nrrdTypeUnknown, nrrd->type, nrrdTypeLast)) {
@@ -104,20 +99,12 @@ nrrdValid(Nrrd *nrrd) {
 	    me, nrrd->dim, NRRD_DIM_MAX);
     biffSet(NRRD, err); return 0;
   }
-  mult = 1;
   for (i=0; i<=nrrd->dim-1; i++) {
     if (!(1 <= nrrd->axis[i].size)) {
       sprintf(err, "%s: axis %d has invalid size (%d)", me, i,
 	      nrrd->axis[i].size);
       biffSet(NRRD, err); return 0;
     }
-    mult *= nrrd->axis[i].size;
-  }
-  if (mult != nrrd->num) {
-    sprintf(err, "%s: # elements (" NRRD_BIG_INT_PRINTF
-	    ") != product of axes sizes (" NRRD_BIG_INT_PRINTF ")", me,
-	    nrrd->num, mult);
-    biffSet(NRRD, err); return 0;
   }
   return 1;
 }
@@ -164,7 +151,7 @@ nrrdSameSize(Nrrd *n1, Nrrd *n2, int useBiff) {
 ** size isn't greater than zero (in which case it sets nrrd->blockSize
 ** to 0, just out of spite).  This function never returns a negative
 ** value; using (!nrrdElementSize(nrrd)) is a sufficient check for
-** invalidity
+** invalidity.
 */
 int
 nrrdElementSize(Nrrd *nrrd) {
@@ -175,15 +162,35 @@ nrrdElementSize(Nrrd *nrrd) {
   if (nrrdTypeBlock != nrrd->type) {
     return nrrdTypeSize[nrrd->type];
   }
-  else {
-    if (nrrd->blockSize > 0) {
-      return nrrd->blockSize;
-    }
-    else {
-      nrrd->blockSize = 0;
-      return 0;
-    }
+  /* else its block type */
+  if (nrrd->blockSize > 0) {
+    return nrrd->blockSize;
   }
+  /* else we got an invalid block size */
+  nrrd->blockSize = 0;
+  return 0;
+}
+
+/*
+******** nrrdElementNumber()
+**
+** takes the place of old "nrrd->num": the number of elements in the
+** nrrd, which is just the product of the axis sizes.
+*/
+nrrdBigInt
+nrrdElementNumber(Nrrd *nrrd) {
+  nrrdBigInt num;
+  int d;
+
+  if (!nrrd) {
+    return 0;
+  }
+  /* else */
+  num = 1;
+  for (d=0; d<=nrrd->dim-1; d++) {
+    num *= nrrd->axis[d].size;
+  }
+  return num;
 }
 
 /*
@@ -318,6 +325,41 @@ nrrdFloatingType(Nrrd *nrrd) {
 }
 
 /*
+******** nrrdHasNonExist()
+**
+** returns non-zero iff there are values for which AIR_EXISTS() fails.
+** This function will also always set the value of nrrd->hasNonExist,
+** but the return value is not the same as what nrrd->hasNonExist is
+** set to (since nrrd->hasNonExist is set from the nrrdNonExist enum)
+** This function will ALWAYS determine the correct answer and set the
+** value of nrrd->hasNonExist: it ignores the value of
+** nrrd->hasNonExist on the input nrrd
+*/
+int
+nrrdHasNonExist(Nrrd *nrrd) {
+  nrrdBigInt I, N;
+  float val;
+
+  if (!nrrd)
+    return 0;
+  if (nrrdFixedType(nrrd)) {
+    nrrd->hasNonExist = nrrdNonExistFalse;
+  }
+  else {
+    nrrd->hasNonExist = nrrdNonExistFalse;
+    N = nrrdElementNumber(nrrd);
+    for (I=0; I<=N-1; I++) {
+      val = nrrdFLookup[nrrd->type](nrrd->data, I);
+      if (!AIR_EXISTS(val)) {
+	nrrd->hasNonExist = nrrdNonExistTrue;
+	break;
+      }
+    }
+  }
+  return nrrdNonExistTrue == nrrd->hasNonExist ? AIR_TRUE : AIR_FALSE;
+}
+
+/*
 ******** nrrdSanity()
 **
 ** makes sure that all the basic assumptions of nrrd hold for
@@ -328,9 +370,7 @@ nrrdFloatingType(Nrrd *nrrd) {
 int
 nrrdSanity(void) {
   char me[]="nrrdSanity", err[NRRD_STRLEN_MED];
-  float nan, inf;
-  int type, tmpI, sign, exp, frac, maxsize;
-  char endian;
+  int aret, type, maxsize;
   long long int tmpLLI;
   unsigned long long int tmpULLI;
   static int sanity = 0;
@@ -342,6 +382,12 @@ nrrdSanity(void) {
        that, at worse, both of them will go through all the tests and
        then set sanity to the same thing? */
     return 1;
+  }
+  
+  aret = airSanity();
+  if (aret != airInsane_not) {
+    sprintf(err, "%s: airSanity() failed: %s", me, airInsaneErr(aret));
+    biffAdd(NRRD, err); return 0;
   }
 
   if (!( nrrdTypeSize[nrrdTypeChar] == sizeof(char)
@@ -390,56 +436,15 @@ nrrdSanity(void) {
 	    me, maxsize, NRRD_TYPE_SIZE_MAX);
     biffAdd(NRRD, err); return 0;
   }
-  
-  /* run-time endian check */
-  tmpI = 1;
-  endian = !(*((char*)(&tmpI)));
-  if (endian) {
-    /* big endian */
-    if (4321 != airMyEndian) {
-      sprintf(err, "%s: airMyEndian (%d) should be 4321", me, airMyEndian);
-      biffAdd(NRRD, err); return 0;
-    }
-  }
-  else {
-    if (1234 != airMyEndian) {
-      sprintf(err, "%s: airMyEndian (%d) should be 1234", me, airMyEndian);
-      biffAdd(NRRD, err); return 0;
-    }
-  }    
 
-  /* run-time NaN checks */
-  inf = 3e+38F;                 /* close to FLT_MAX */
-  inf = inf * inf * inf * inf;  /* this generates infinity even for doubles */
-  inf = inf * inf * inf * inf;
-  inf = inf * inf * inf * inf;
-  inf = inf * inf * inf * inf;
-  if (AIR_EXISTS(inf)) {
-    sprintf(err, "%s: AIR_EXISTS() failed to detect a positive infinity", me);
-    biffAdd(NRRD, err); return 0;
-  }
-  nan = inf/inf;
-  if (AIR_EXISTS(nan)) {
-    sprintf(err, "%s: AIR_EXISTS() failed to detect a NaN", me);
-    biffAdd(NRRD, err); return 0;
-  }
-  airFPValToParts(&sign, &exp, &frac, nan);
-  frac >>= 22;
-  if (airMyQNaNHiBit != frac) {
-    sprintf(err, "%s: QNAN hi bit seems to be %d, not %d", me,
-	    frac, airMyQNaNHiBit);
+  /* check on NRRD_BIGGEST_TYPE */
+  if (maxsize != sizeof(NRRD_BIGGEST_TYPE)) {
+    sprintf(err, "%s: actual max type size is %d != "
+	    "%d == sizeof(NRRD_BIGGEST_TYPE)",
+	    me, maxsize, sizeof(NRRD_BIGGEST_TYPE));
     biffAdd(NRRD, err); return 0;
   }
   
-  /* just make sure airMyDio is reasonably set */
-  switch (airMyDio) {
-  case 0: break;
-  case 1: break;
-  default:
-    sprintf(err, "%s: airMyDio value (%d) invalid", me, airMyDio);
-    biffAdd(NRRD, err); return 0;
-  }
-
   /* nrrd-defined type min/max values */
   tmpLLI = NRRD_LLONG_MAX;
   if (tmpLLI != NRRD_LLONG_MAX) {

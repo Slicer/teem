@@ -19,14 +19,42 @@
 #include "ell.h"
 
 /*
-******** ell3vPerp()
+******** ell3vPerp_f()
 **
 ** Given a 3-vector, produce one which is perpendicular.
 ** Output length won't be same as input length, but it will always
-** be non-zero, if input length is non-zero.
+** be non-zero, if input length is non-zero.   This will NOT produce
+** a unit-length vector if the input is unit length.
 */
 void
-ell3vPerp(float *a, float *b) {
+ell3vPerp_f(float a[3], float b[3]) {
+  int idx;
+
+  idx = 0;
+  if (AIR_ABS(b[0]) < AIR_ABS(b[1]))
+    idx = 1;
+  if (AIR_ABS(b[idx]) < AIR_ABS(b[2]))
+    idx = 2;
+  switch (idx) {
+  case 0:
+    ELL_3V_SET(a, b[1] - b[2], -b[0], b[0]);
+    break;
+  case 1:
+    ELL_3V_SET(a, -b[1], b[0] - b[2], b[1]);
+    break;
+  case 2:
+    ELL_3V_SET(a, -b[2], b[2], b[0] - b[1]);
+    break;
+  }
+}
+
+/*
+******** ell3vPerp_d()
+**
+** same as above, but for doubles
+*/
+void
+ell3vPerp_d(double a[3], double b[3]) {
   int idx;
 
   idx = 0;

@@ -239,8 +239,15 @@ _nrrdMeasureHistoMode(void *line, int lineType, int len,
     }
   }
   ansF = idxsum/idxcount;
+  /*
+  printf("idxsum = %g; idxcount = %d --> ansF = %g --> ",
+	 (float)idxsum, idxcount, ansF);
+  */
   if (AIR_EXISTS(axmin) && AIR_EXISTS(axmax)) 
     ansF = AIR_AFFINE(0, ansF, len-1, axmin, axmax);
+  /*
+  printf("%g\n", ansF);
+  */
   
   nrrdDStore[ansType](ans, ansF);
 }
@@ -468,11 +475,11 @@ _nrrdMeasureType(Nrrd *nin, int measr) {
 }
 
 int
-nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr) {
-  char me[] = "nrrdMeasureAxis", err[NRRD_STRLEN_MED];
+nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
+  char me[] = "nrrdProject", err[NRRD_STRLEN_MED];
   int type;
   int i, j, length, numperiod, lambda, period, inElSize, outElSize, 
-    map[NRRD_DIM_MAX];
+    map[NRRD_DIM_MAX], size[NRRD_DIM_MAX];
   char *line, *src, *dest, *lineSrc, *lineDest;
   float axmin, axmax;
   
@@ -509,7 +516,11 @@ nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   lambda = length*nin->axis[axis].size;
   
   /* allocate space if necessary */
-  if (nrrdMaybeAlloc(nout, nin->num/nin->axis[axis].size, type, nin->dim-1)) {
+  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
+  for (i=0; i<=nout->dim-1; i++) {
+    size[i] = size[i + (i >= axis)];
+  }
+  if (nrrdMaybeAlloc_nva(nout, type, nin->dim-1, size)) {
     sprintf(err, "%s: failed to create output", me);
     biffAdd(NRRD, err); return 1;
   }

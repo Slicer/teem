@@ -46,9 +46,8 @@ extern void _nrrdAxisInit(nrrdAxis *axis);
 /* convert.c */
 extern void (*_nrrdConv[][NRRD_TYPE_MAX+1])(void *,void *, nrrdBigInt);
 
-/* accessors.c */
-extern void   (*_nrrdMinMaxFind[NRRD_TYPE_MAX+1])(void *minP, void *maxP, 
-						  nrrdBigInt, void *data);
+/* map.c */
+extern int _nrrdSetMinMax(Nrrd *nrrd);
 
 /* read.c */
 extern char _nrrdFieldStr[NRRD_FIELD_MAX+1][NRRD_STRLEN_SMALL];

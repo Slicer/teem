@@ -34,18 +34,28 @@ extern "C" {
 ** return values for ellCubic
 */
 typedef enum {
-  ellCubicRootUnknown,
-  ellCubicRootSingle,
-  ellCubicRootTriple,
-  ellCubicRootSingleDouble,
-  ellCubicRootThree,
-  ellCubicRootLast
+  ellCubicRootUnknown,         /* 0 */
+  ellCubicRootSingle,          /* 1 */
+  ellCubicRootTriple,          /* 2 */
+  ellCubicRootSingleDouble,    /* 3 */
+  ellCubicRootThree,           /* 4 */
+  ellCubicRootLast             /* 5 */
 } ellCubicRoot;
 
 /* misc.c */
 extern int ellDebug;
+extern void ell3mPrint_f(FILE *f, float s[9]);
+extern void ell3vPrint_f(FILE *f, float s[3]);
+extern void ell3mPrint_d(FILE *f, double s[9]);
+extern void ell3vPrint_d(FILE *f, double s[3]);
 extern void ell4mPrint_f(FILE *f, float s[16]);
+extern void ell4vPrint_f(FILE *f, float s[3]);
 extern void ell4mPrint_d(FILE *f, double s[16]);
+extern void ell4vPrint_d(FILE *f, double s[4]);
+
+/* vec.c */
+extern void ell3vPerp_f(float p[3], float v[3]);
+extern void ell3vPerp_d(double p[3], double v[3]);
 
 /* cubic.c */
 extern int ellCubic(double root[3], double A, double B, double C, int polish);

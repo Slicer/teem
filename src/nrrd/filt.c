@@ -54,10 +54,10 @@ _printhist(unsigned char *hist, int bins, char *desc) {
 }
 
 void
-_nrrdMedian1D(Nrrd *nout, Nrrd *nin, int radius, 
+_nrrdCheapMedian1D(Nrrd *nout, Nrrd *nin, int radius, 
 	      int bins, unsigned char *hist) {
-  /* char me[] = "_nrrdMedian1D"; */
-  nrrdBigInt X;
+  /* char me[] = "_nrrdCheapMedian1D"; */
+  nrrdBigInt X, num;
   int idx, diam, half;
   double val;
 
@@ -70,12 +70,13 @@ _nrrdMedian1D(Nrrd *nout, Nrrd *nin, int radius,
   }
   /* _printhist(hist, bins, "after init"); */
   /* find median at each point using existing histogram */
-  for (X=radius; X<=nin->num-radius-1; X++) {
+  num = nrrdElementNumber(nin);
+  for (X=radius; X<=num-radius-1; X++) {
     idx = _median(hist, half);
     val = AIR_AFFINE(0, idx, bins-1, nin->min, nin->max);
     nrrdDInsert[nout->type](nout->data, X, val);
     /* probably update histogram for next iteration */
-    if (X < nin->num-radius-1) {
+    if (X < num-radius-1) {
       hist[_index(nin, X+radius+1, bins)]++;
       hist[_index(nin, X-radius, bins)]--;
     }
@@ -83,9 +84,9 @@ _nrrdMedian1D(Nrrd *nout, Nrrd *nin, int radius,
 }
 
 void
-_nrrdMedian2D(Nrrd *nout, Nrrd *nin, int radius, 
+_nrrdCheapMedian2D(Nrrd *nout, Nrrd *nin, int radius, 
 	      int bins, unsigned char *hist) {
-  /* char me[] = "_nrrdMedian2D"; */
+  /* char me[] = "_nrrdCheapMedian2D"; */
   nrrdBigInt X, Y, I, J;
   int sx, sy, idx, diam, half;
   double val;
@@ -119,9 +120,9 @@ _nrrdMedian2D(Nrrd *nout, Nrrd *nin, int radius,
 }
 
 void
-_nrrdMedian3D(Nrrd *nout, Nrrd *nin, int radius, 
+_nrrdCheapMedian3D(Nrrd *nout, Nrrd *nin, int radius, 
 	      int bins, unsigned char *hist) {
-  /* char me[] = "_nrrdMedian3D"; */
+  /* char me[] = "_nrrdCheapMedian3D"; */
   nrrdBigInt X, Y, Z, I, J, K;
   int sx, sy, sz, idx, diam, half;
   double val;
@@ -163,66 +164,66 @@ _nrrdMedian3D(Nrrd *nout, Nrrd *nin, int radius,
 
 
 int
-nrrdMedian(Nrrd *nout, Nrrd *nin, int radius, int bins) {
-  char err[NRRD_STRLEN_MED], me[] = "nrrdMedian";
+nrrdCheapMedian(Nrrd *nout, Nrrd *nin, int radius, int bins) {
+  char err[NRRD_STRLEN_MED], me[] = "nrrdCheapMedian";
   unsigned char *hist;
 
   if (!(nin && nout)) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   if (!(radius >= 1)) {
     sprintf(err, "%s: need radius >= 1 (got %d)", me, radius);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   if (!(bins >= 1)) {
     sprintf(err, "%s: need bins >= 1 (got %d)", me, bins);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   if (!(AIR_INSIDE(1, nin->dim, 3))) {
     sprintf(err, "%s: sorry, can only handle dim 1, 2, 3 (not %d)", 
 	    me, nin->dim);
-    biffSet(NRRD, err); return 1;    
+    biffAdd(NRRD, err); return 1;    
   }
-  if (nrrdMaybeAlloc(nout, nin->num, nin->type, nin->dim)) {
-    sprintf(err, "%s: failed to create slice", me);
-    biffSet(NRRD, err); return 1;
+  if (nrrdCopy(nout, nin)) {
+    sprintf(err, "%s: failed to create copy of input", me);
+    biffAdd(NRRD, err); return 1;
   }
   if (!(AIR_EXISTS(nin->min) && AIR_EXISTS(nin->max))) {
-    if (nrrdMinMaxFind(&nin->min, &nin->max, nin)) {
+    if (nrrdSetMinMax(nin)) {
       sprintf(err, "%s: couldn't learn value range", me);
-      biffSet(NRRD, err); return 1;
+      biffAdd(NRRD, err); return 1;
     }
   }
   if (!(hist = calloc(bins, sizeof(unsigned char)))) {
     sprintf(err, "%s: couldn't allocate histogram (%d bins)", me, bins);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   switch (nin->dim) {
   case 1:
-    _nrrdMedian1D(nout, nin, radius, bins, hist);
+    _nrrdCheapMedian1D(nout, nin, radius, bins, hist);
     break;
   case 2:
-    _nrrdMedian2D(nout, nin, radius, bins, hist);
+    _nrrdCheapMedian2D(nout, nin, radius, bins, hist);
     break;
   case 3:
-    _nrrdMedian3D(nout, nin, radius, bins, hist);
+    _nrrdCheapMedian3D(nout, nin, radius, bins, hist);
     break;
   default:
     sprintf(err, "%s: can't handle dimensions %d", me, nin->dim);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
 
   nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
   nout->content = airFree(nout->content);
   if (nin->content) {
-    nout->content = calloc(strlen("median(,,)")
+    nout->content = calloc(strlen("cheapmedian(,,)")
 			   + strlen(nin->content)
 			   + 11
 			   + 11
 			   + 1, sizeof(char));
     if (nout->content) {
-      sprintf(nout->content, "median(%s,%d,%d)", 
+      sprintf(nout->content, "cheapmedian(%s,%d,%d)", 
 	      nin->content, radius, bins);
     }
     else {
@@ -235,47 +236,60 @@ nrrdMedian(Nrrd *nout, Nrrd *nin, int radius, int bins) {
   return 0;
 }
 
+/*
+** _nrrdResampleCheckInfo()
+**
+** checks validity of given nrrdResampleInfo *info: 
+** - all required parameters exist
+** - both min[d] and max[d] for all axes d
+*/
 int
 _nrrdResampleCheckInfo(Nrrd *nin, nrrdResampleInfo *info) {
   char me[] = "_nrrdResampleCheckInfo", err[NRRD_STRLEN_MED];
   nrrdKernel *k;
-  int p, d, np;
+  int center, p, d, np;
 
   for (d=0; d<=nin->dim-1; d++) {
     k = info->kernel[d];
     /* we only care about the axes being resampled */
     if (!k)
       continue;
+    if (!(info->samples[d] > 1)) {
+      sprintf(err, "%s: axis %d # samples (%d) invalid", 
+	      me, d, info->samples[d]);
+      biffAdd(NRRD, err); return 1;
+    }
     np = k->numParam;
     for (p=0; p<=np-1; p++) {
       if (!AIR_EXISTS(info->param[d][p])) {
 	sprintf(err, "%s: didn't set parameter %d for axis %d\n", me, p, d);
-	biffSet(NRRD, err); return 1;
+	biffAdd(NRRD, err); return 1;
       }
     }
-    if (!(AIR_EXISTS(info->min[d]) && AIR_EXISTS(info->max[d]))) {
-      sprintf(err, "%s: didn't set min and max domain limits for axis %d",
-	      me, d);
-      biffSet(NRRD, err); return 1;
+    if (!( AIR_EXISTS(info->min[d]) && AIR_EXISTS(info->max[d]) )) {
+      sprintf(err, "%s: axis %d min and max not both set", me, d);
+      biffAdd(NRRD, err); return 1;
     }
-    if (!(info->min[d] != info->max[d])) {
-      sprintf(err, "%s: need to have axis %d min (%g) and max (%g) distinct",
-	      me, d, info->min[d], info->max[d]);
-      biffSet(NRRD, err); return 1;
+    /*
+    if (info->min[d] == info->max[d] && nrrdCenterCell != nin->axis[d]) {
+      sprintf(err, "%s: 
     }
-    if (!(info->samples[d] > 1)) {
-      sprintf(err, "%s: axis %d # samples (%d) invalid", 
-	      me, d, info->samples[d]);
-      biffSet(NRRD, err); return 1;
-    }
+    center = (nrrdCenterNode == nin->axis[d].center
+	      ? nrrdCenterNode
+	      : (nrrdCenterCell == nin->axis[d].center
+		 ? nrrdCenterCell
+		 : nrrdDefCenter));
+    if ( (nrrdCenterCell == center && !(info->samples[d] >= 1)) ||
+	 (nrrdCenterNode == center && !(info->samples[d] >= 2)) )
+    */
   }
   if (nrrdBoundaryUnknown == info->boundary) {
     sprintf(err, "%s: didn't set boundary behavior\n", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   if (nrrdBoundaryPad == info->boundary && !AIR_EXISTS(info->padValue)) {
     sprintf(err, "%s: asked for boundary padding, but no pad value set\n", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   return 0;
 }
@@ -294,7 +308,7 @@ _nrrdResampleComputePermute(int permute[],
 			    int *topRax, int *botRax, int *passes,
 			    Nrrd *nin,
 			    nrrdResampleInfo *info) {
-  /* char me[]="_nrrdResampleComputePermute"; */
+  char me[]="_nrrdResampleComputePermute";
   int a, p, d, dim;
   
   dim = nin->dim;
@@ -330,19 +344,21 @@ _nrrdResampleComputePermute(int permute[],
     }
   }
   permute[dim] = dim;
-  if (!*passes)
+  if (!*passes) {
+    /* none of the kernels was non-NULL */
     return;
+  }
   
-  /*
+  /* */
   printf("%s: permute:\n", me);
   for (d=0; d<=dim-1; d++) {
     printf("   permute[%d] = %d\n", d, permute[d]);
   }
-  */
+  /* */
 
   /* create array of how the axes will be arranged in each pass ("ax"), 
      and create array of how big each axes is in each pass ("sz").
-     The input pass i will have axis layout described in ax[i] and
+     The input to pass i will have axis layout described in ax[i] and
      axis sizes described in sz[i] */
   for (d=0; d<=dim-1; d++) {
     ax[0][d] = d;
@@ -353,20 +369,21 @@ _nrrdResampleComputePermute(int permute[],
       ax[p+1][permute[d]] = ax[p][d];
       if (d == *topRax) {
 	/* this is the axis which is getting resampled, 
-	   so the number of samples is changing.
-	   Or not. */
+	   so the number of samples is potentially changing */
 	sz[p+1][permute[d]] = (info->kernel[ax[p][d]]
 			       ? info->samples[ax[p][d]]
 			       : sz[p][d]);
       }
       else {
 	/* this axis is just a shuffled version of the
-	   previous axis; no resampling this pass */
+	   previous axis; no resampling this pass.
+	   Note: this case also includes axes which aren't 
+	   getting resampled whatsoever */
 	sz[p+1][permute[d]] = sz[p][d];
       }
     }
   }
-  /*
+  /* */
   printf("%s: axis arrangements for %d passes:\n", me, *passes);
   for (p=0; p<=*passes; p++) {
     printf("%s: %d:", me, p);
@@ -375,25 +392,33 @@ _nrrdResampleComputePermute(int permute[],
     }
     printf("\n");
   }
-  */
+  /* */
   return;
 }
 
 /*
 ** _nrrdResampleFillSmpIndex()
 **
-** allocate and fill the arrays of indices and weights that are
+** _allocate_ and fill the arrays of indices and weights that are
 ** needed to process all the scanlines along a given axis; also
 ** be so kind as to return the sampling ratio (<1: downsampling,
 ** result has fewer samples, >1: upsampling, result has more samples)
+**
+** Note that if an axis does not have center set, then nrrdDefCenter
+** is used.
+**
+** returns "dotLen", the number of input samples which are required
+** for resampling this axis, or 0 if there was an error.  Uses biff.
 */
 int
 _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
 			  Nrrd *nin, nrrdResampleInfo *info, int d) {
   char me[]="_nrrdResampleFillSmpIndex", err[NRRD_STRLEN_MED];
   float smpRatio, suppF, *smp, tmpF, p0, integral;
-  int e, i, ind, lengthIn, lengthOut, dotLen, *index;
-  
+  int e, i, ind, lengthIn, lengthOut, center, dotLen, *index;
+  double minInIdx, maxInIdx, minOutIdx, maxOutIdx;
+
+  /*
   if (!(info->kernel[d])) {
     sprintf(err, "%s: don't see a kernel for dimension %d", me, d);
     biffAdd(NRRD, err); return 0;
@@ -401,12 +426,20 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
 
   lengthIn = nin->axis[d].size;
   lengthOut = info->samples[d];
-  smpRatio = (lengthOut-1)/(info->max[d] - info->min[d]);
+  if (_nrrdAxisMinMaxHelp(&minInIdx, &maxInIdx, &center, nin, d)) {
+    sprintf(err, "%s: _nrrdAxisMinMaxHelp() failed", me);
+    biffAdd(NRRD, err); return 0;
+  }
+  minOutIdx = AIR_EXISTS(info->min[d]) ? info->min[d] : minInIdx;
+  maxOutIdx = AIR_EXISTS(info->max[d]) ? info->max[d] : maxInIdx;
+  smpRatio = (maxOutIdx - minOutIdx)/(maxInIdx - minInIdx);
   suppF = info->kernel[d]->support(info->param[d]);
   integral = info->kernel[d]->integral(info->param[d]);
 
-  fprintf(stderr, "%s(%d): suppF = %g; smpRatio = %g\n", 
-	  me, d, suppF, smpRatio);
+  */  
+  fprintf(stderr, 
+	  "%s(%d): length{In,Out} = %d, %d, suppF = %g; smpRatio = %g\n", 
+	  me, d, lengthIn, lengthOut, suppF, smpRatio);
 
   if (smpRatio > 1) {
     /* if upsampling, we need only as many samples as needed for
@@ -419,7 +452,7 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
     dotLen = 2*AIR_ROUNDUP(suppF/smpRatio);
   }
 
-  fprintf(stderr, "%s: dotLen = %d\n", me, dotLen);
+  fprintf(stderr, "%s(%d): dotLen = %d\n", me, d, dotLen);
 
   smp = (float *)calloc(lengthOut*dotLen, sizeof(float));
   index = (int *)calloc(lengthOut*dotLen, sizeof(int));
@@ -529,6 +562,11 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
 ** any dimension along any or all of its axes, with any combination of
 ** up- or down-sampling along the axes, with any kernel (specified by
 ** callback), with potentially a different kernel for each axis.
+** Whether or not to resample along axis d is controlled by the
+** non-NULL-ity of info->kernel[d].  Where to sample on the axis
+** is controlled by info->min[d] and info->max[d], and if these 
+** are not set, then the lowest and highest positions along the axis
+** are used (that is, no cropping or padding is done).
 ** 
 ** we cyclically permute those axes being resampled, and never touch
 ** the position (in axis ordering) of axes along which we are not
@@ -610,11 +648,11 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
 				 this is for allocating the output */
   if (!(nout && nin && info)) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   if (nrrdBoundaryUnknown == info->boundary) {
     sprintf(err, "%s: need to specify a boundary behavior", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
 
   dim = nin->dim;
@@ -635,7 +673,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     /* actually, no resampling was desired.  Copy input to output */
     /* HEY! this could mean that fixed-point output types suffer
        wrap-around.  Should this be clamped? */
-    if (nrrdConvert(nin, nout, typeOut)) {
+    if (nrrdConvert(nout, nin, typeOut)) {
       sprintf(err, "%s: couldn't copy input to output", me);
       biffAdd(NRRD, err); return 1;
     }

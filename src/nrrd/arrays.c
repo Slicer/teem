@@ -97,15 +97,6 @@ _nrrdEnumMeasureStr[NRRD_MEASURE_MAX+1][NRRD_STRLEN_SMALL] = {
 };
 
 char
-_nrrdEnumMinMaxStr[NRRD_MINMAX_MAX+1][NRRD_STRLEN_SMALL] = {
-  "(unknown_minmax)",
-  "search",
-  "search+set",
-  "use",
-  "instead-use"
-};
-
-char
 _nrrdEnumCenterStr[NRRD_CENTER_MAX+1][NRRD_STRLEN_SMALL] = {
   "(unknown_center)",
   "node",
@@ -156,6 +147,14 @@ _nrrdEnumFieldStr[NRRD_FIELD_MAX+1][NRRD_STRLEN_SMALL] = {
 };
 
 char
+_nrrdEnumNonExistStr[NRRD_NON_EXIST_MAX+1][NRRD_STRLEN_SMALL] = {
+  "(unknown)",
+  "true",
+  "false"
+};
+
+
+char
 _nrrdEnumEnumStr[NRRD_ENUM_MAX+1][NRRD_STRLEN_SMALL] = {
   "(unknown_enum)",
   "format",
@@ -164,7 +163,6 @@ _nrrdEnumEnumStr[NRRD_ENUM_MAX+1][NRRD_STRLEN_SMALL] = {
   "type",
   "encoding",
   "measure",
-  "minmax",
   "center",
   "axes info",
   "endian",
@@ -180,11 +178,11 @@ _nrrdEnumAllMax[NRRD_ENUM_MAX+1] = {
   NRRD_TYPE_MAX,
   NRRD_ENCODING_MAX,
   NRRD_MEASURE_MAX,
-  NRRD_MINMAX_MAX,
   NRRD_CENTER_MAX,
   NRRD_AXESINFO_MAX,
   NRRD_ENDIAN_MAX,
-  NRRD_FIELD_MAX
+  NRRD_FIELD_MAX,
+  NRRD_NON_EXIST_MAX
 };
 
 void *
@@ -196,11 +194,11 @@ _nrrdEnumAllStr[NRRD_ENUM_MAX+1] = {
   _nrrdEnumTypeStr,
   _nrrdEnumEncodingStr,
   _nrrdEnumMeasureStr,
-  _nrrdEnumMinMaxStr,
   _nrrdEnumCenterStr,
   _nrrdEnumAxesInfoStr,
   NULL,  /* _nrrdEnumEndianStr, alors, il n'existe pas */
-  _nrrdEnumFieldStr
+  _nrrdEnumFieldStr,
+  _nrrdEnumNonExistStr
 };
 
 char *
@@ -305,7 +303,6 @@ nrrdEnumStrToVal(int whichEnum, char *_str) {
   case nrrdEnumBoundary:
   case nrrdEnumEncoding:
   case nrrdEnumMeasure:
-  case nrrdEnumMinMax:
   case nrrdEnumCenter:
     airToLower(str);
 

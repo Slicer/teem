@@ -40,7 +40,6 @@ int
 _nrrdValidHeader(Nrrd *nrrd, nrrdIO *io) {
   char me[]="_nrrdValidHeader", err[NRRD_STRLEN_MED];
   int i;
-  nrrdBigInt num;
 
   for (i=1; i<=NRRD_FIELD_MAX; i++) {
     if (!_nrrdFieldRequired[i])
@@ -77,32 +76,13 @@ _nrrdValidHeader(Nrrd *nrrd, nrrdIO *io) {
      each axis size.  Past that, if the user messes it up, its not really
      our problem ... */
 
-  num = 1;
-  for (i=0; i<=nrrd->dim-1; i++) {
-    num *= nrrd->axis[i].size;
-  }
-  if (0 != nrrd->num) {
-    if (num != nrrd->num) {
-      sprintf(err, "%s: given \"%s\" (" NRRD_BIG_INT_PRINTF
-	      ") != product of \"%s\" ("
-	      NRRD_BIG_INT_PRINTF ")", me,
-	      nrrdEnumValToStr(nrrdEnumField, nrrdField_number),
-	      nrrd->num,
-	      nrrdEnumValToStr(nrrdEnumField, nrrdField_sizes),
-	      num);
-      biffAdd(NRRD, err); return 0;
-    }
-  }
-  else {
-    nrrd->num = num;
-  }
-  
   return 1;
 }
 
 int
 _nrrdCalloc(Nrrd *nrrd) {
   char me[]="_nrrdCalloc", err[NRRD_STRLEN_MED];
+  nrrdBigInt num;
 
   nrrd->data = airFree(nrrd->data);
   /* this shouldn't actually be necessary ... */
@@ -110,10 +90,15 @@ _nrrdCalloc(Nrrd *nrrd) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
     biffAdd(NRRD, err); return 1;
   }
-  nrrd->data = calloc(nrrd->num, nrrdElementSize(nrrd));
+  num = nrrdElementNumber(nrrd);
+  if (!num) {
+    sprintf(err, "%s: calculated number of elements to be zero!", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  nrrd->data = calloc(num, nrrdElementSize(nrrd));
   if (!nrrd->data) {
     sprintf(err, "%s: couldn't calloc(" NRRD_BIG_INT_PRINTF
-	    ", %d)", me, nrrd->num, nrrdElementSize(nrrd));
+	    ", %d)", me, num, nrrdElementSize(nrrd));
     biffAdd(NRRD, err); return 1;
   }
   return 0;
@@ -122,7 +107,7 @@ _nrrdCalloc(Nrrd *nrrd) {
 int
 _nrrdReadDataRaw(Nrrd *nrrd, nrrdIO *io) {
   char me[]="_nrrdReadDataRaw", err[NRRD_STRLEN_MED];
-  nrrdBigInt bsize;
+  nrrdBigInt num, bsize;
   size_t size, ret, dio;
   
   /* this shouldn't actually be necessary ... */
@@ -130,8 +115,18 @@ _nrrdReadDataRaw(Nrrd *nrrd, nrrdIO *io) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
     biffAdd(NRRD, err); return 1;
   }
-  bsize = nrrd->num * nrrdElementSize(nrrd);
+  printf("!%s: nrrd->axis[0].size = %d\n", me, nrrd->axis[0].size);
+  num = nrrdElementNumber(nrrd);
+  if (!num) {
+    sprintf(err, "%s: calculated number of elements to be zero!", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  printf("!%s: num = " NRRD_BIG_INT_PRINTF "\n", me, num);
+  printf("!%s: element size = %d\n", me, nrrdElementSize(nrrd));
+  bsize = num * nrrdElementSize(nrrd);
   size = bsize;
+  printf("!%s: bsize = " NRRD_BIG_INT_PRINTF "\n", me, bsize);
+  printf("!%s: size = " NRRD_BIG_INT_PRINTF "\n", me, (nrrdBigInt)size);
   if (size != bsize) {
     fprintf(stderr,
 	    "%s: PANIC: \"size_t\" can't represent byte-size of data.\n", me);
@@ -177,11 +172,11 @@ _nrrdReadDataRaw(Nrrd *nrrd, nrrdIO *io) {
 	fflush(stderr);
       }
     }
-    ret = fread(nrrd->data, nrrdElementSize(nrrd), nrrd->num, io->dataFile);
-    if (ret != nrrd->num) {
+    ret = fread(nrrd->data, nrrdElementSize(nrrd), num, io->dataFile);
+    if (ret != num) {
       sprintf(err, "%s: fread() returned " NRRD_BIG_INT_PRINTF
 	      " (not " NRRD_BIG_INT_PRINTF ")", me,
-	      (nrrdBigInt)ret, nrrd->num);
+	      (nrrdBigInt)ret, num);
       biffAdd(NRRD, err); return 1;
     }
   }
@@ -210,13 +205,18 @@ int
 _nrrdReadDataAscii(Nrrd *nrrd, nrrdIO *io) {
   char me[]="_nrrdReadDataAscii", err[NRRD_STRLEN_MED],
     numStr[NRRD_STRLEN_LINE];
-  nrrdBigInt I;
+  nrrdBigInt I, num;
   char *data;
   int size, tmp;
   
   if (nrrdTypeBlock == nrrd->type) {
     sprintf(err, "%s: can't read nrrd type %s from ascii", me,
 	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+    biffAdd(NRRD, err); return 1;
+  }
+  num = nrrdElementNumber(nrrd);
+  if (!num) {
+    sprintf(err, "%s: calculated number of elements to be zero!", me);
     biffAdd(NRRD, err); return 1;
   }
   /* this shouldn't actually be necessary ... */
@@ -230,10 +230,10 @@ _nrrdReadDataAscii(Nrrd *nrrd, nrrdIO *io) {
   }
   data = nrrd->data;
   size = nrrdElementSize(nrrd);
-  for (I=0; I<=nrrd->num-1; I++) {
+  for (I=0; I<=num-1; I++) {
     if (1 != fscanf(io->dataFile, "%s", numStr)) {
       sprintf(err, "%s: couldn't parse element " NRRD_BIG_INT_PRINTF
-	      " of "NRRD_BIG_INT_PRINTF, me, I+1, nrrd->num);
+	      " of "NRRD_BIG_INT_PRINTF, me, I+1, num);
       biffAdd(NRRD, err); return 1;
     }
     if (nrrd->type >= nrrdTypeInt) {
@@ -243,7 +243,7 @@ _nrrdReadDataAscii(Nrrd *nrrd, nrrdIO *io) {
 	sprintf(err, "%s: couln't parse %s "NRRD_BIG_INT_PRINTF
 		" of " NRRD_BIG_INT_PRINTF " (\"%s\")", me,
 		nrrdEnumValToStr(nrrdEnumType, nrrd->type),
-		I+1, nrrd->num, numStr);
+		I+1, num, numStr);
 	biffAdd(NRRD, err); return 1;
       }
     }
@@ -252,7 +252,7 @@ _nrrdReadDataAscii(Nrrd *nrrd, nrrdIO *io) {
       if (1 != airSingleSscanf(numStr, "%d", &tmp)) {
 	sprintf(err, "%s: couln't parse element "NRRD_BIG_INT_PRINTF
 		" of " NRRD_BIG_INT_PRINTF  " (\"%s\")",
-		me, I+1, nrrd->num, numStr);
+		me, I+1, num, numStr);
 	biffAdd(NRRD, err); return 1;
       }
       nrrdIInsert[nrrd->type](data, I, tmp);
@@ -453,7 +453,7 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
       io->seen[ret] = AIR_TRUE;
     plain:
       if (!ret) {
-	if (nrrdCommentAdd(nrrd, io->line+1, AIR_TRUE)) {
+	if (nrrdCommentAdd(nrrd, io->line+1)) {
 	  sprintf(err, "%s: couldn't add comment", me);
 	  biffAdd(NRRD, err); return 1;
 	}
@@ -500,10 +500,10 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 
   /* we know what we need in order to set nrrd fields and read data */
   if (color) {
-    nrrdAxesSet_va(nrrd, nrrdAxesInfoSize, 3, sx, sy);
+    nrrdAxesSet(nrrd, nrrdAxesInfoSize, 3, sx, sy);
   }
   else {
-    nrrdAxesSet_va(nrrd, nrrdAxesInfoSize, sx, sy);
+    nrrdAxesSet(nrrd, nrrdAxesInfoSize, sx, sy);
   }
   io->dataFile = file;
   if (_nrrdReadData[io->encoding](nrrd, io)) {
@@ -561,7 +561,7 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     io->seen[ret] = AIR_TRUE;
   plain:
     if (!ret) {
-      if (nrrdCommentAdd(nrrd, io->line + 1, AIR_TRUE)) {
+      if (nrrdCommentAdd(nrrd, io->line + 1)) {
 	sprintf(err, "%s: couldn't add comment", me);
 	biffAdd(NRRD, err); return 1;
       }
@@ -730,25 +730,37 @@ nrrdRead(Nrrd *nrrd, FILE *file, nrrdIO *_io) {
 
 /*
 ** _nrrdSplitName()
+**
+** slits a file name into a path and a base filename.  The directory
+** seperator is assumed to be '/'.  The division between the path
+** and the base is the last '/' in the file name.  The path is
+** everything prior to this, and base is everythign after (so the
+** base does NOT start wiht '/').  If there is not a '/' in the name,
+** or if a '/' appears as the last character, then the path is set to
+** ".", and the name is copied into base.
 */
 int
-_nrrdSplitName(char *dir, char *base, char *name) {
+_nrrdSplitName(char *path, char *base, char *name) {
   int i, ret;
   
   i = strrchr(name, '/') - name;
   /* we found a valid break if the last directory character
      is somewhere in the string except the last character */
   if (i>=0 && i<strlen(name)-1) {
-    strcpy(dir, name);
-    dir[i] = 0;
-    strcpy(base, name + i);
+    strcpy(path, name);
+    path[i] = 0;
+    strcpy(base, name + i + 1);
+    /*
+    printf("_nrrdSplitName: path = |%s|\n", path);
+    printf("_nrrdSplitName: base = |%s|\n", base);
+    */
     ret = 1;
   }
   else {
     /* if the name had no slash, its in the current directory, which
        means that we need to explicitly store "." as the header
        directory in case we have header-relative data. */
-    strcpy(dir, ".");
+    strcpy(path, ".");
     strcpy(base, name);
     ret = 0;
   }

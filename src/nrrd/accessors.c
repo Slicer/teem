@@ -392,16 +392,23 @@ double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double) = {
 
 /* about here is where Gordon admits he might have some use for C++ */
 
-#define _MM_ARGS(type) type *minP, type *maxP, nrrdBigInt N, type *v
+#define _MM_ARGS(type) type *minP, type *maxP, Nrrd *nrrd
 
 #define _MM_FIXED(type)                                                  \
-  nrrdBigInt I, T;                                                       \
-  type a, b, min, max;                                                   \
+  nrrdBigInt I, N, T;                                                    \
+  type a, b, min, max, *v;                                               \
                                                                          \
   if (!(minP && maxP))                                                   \
     return;                                                              \
                                                                          \
+  /* all fixed-point values exist */                                     \
+  nrrd->hasNonExist = nrrdNonExistFalse;                                 \
+                                                                         \
+  /* set the local data pointer */                                       \
+  v = (type*)(nrrd->data);                                               \
+                                                                         \
   /* get initial values */                                               \
+  N = nrrdElementNumber(nrrd);                                           \
   min = max = v[0];                                                      \
                                                                          \
   /* run through array in pairs; by doing a compare on successive        \
@@ -440,11 +447,18 @@ double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double) = {
   *maxP = max;
 
 #define _MM_FLOAT(type)                                                  \
-  nrrdBigInt I;                                                          \
-  type a, min, max;                                                      \
+  nrrdBigInt I, N;                                                       \
+  type a, min, max, *v;                                                  \
                                                                          \
   if (!(minP && maxP))                                                   \
     return;                                                              \
+                                                                         \
+  /* this may be over-written below */                                   \
+  nrrd->hasNonExist = nrrdNonExistFalse;                                 \
+                                                                         \
+  /* set the local data pointer */                                       \
+  N = nrrdElementNumber(nrrd);                                           \
+  v = (type*)(nrrd->data);                                               \
                                                                          \
   /* we have to explicitly search for the first non-NaN value */         \
   min = min = AIR_NAN;                                                   \
@@ -455,13 +469,13 @@ double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double) = {
       break;                                                             \
     }                                                                    \
     else {                                                               \
-      nrrdHackHasNonExist = AIR_TRUE;                                    \
+      nrrd->hasNonExist = nrrdNonExistTrue;                              \
     }                                                                    \
   }                                                                      \
   /* we continue searching knowing something to compare against, but     \
      still checking AIR_EXISTS at each value.  We don't want an          \
-     infinity to corrupt min or max, since this is the stated behavior   \
-     of nrrdMinMaxFind() */                                              \
+     infinity to corrupt min or max, in accordance with the stated       \
+     behavior of nrrdMinMax() */                                         \
   for (I=I+1; I<N; I++) {                                                \
     a = v[I];                                                            \
     if (AIR_EXISTS(a)) {                                                 \
@@ -475,7 +489,7 @@ double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double) = {
       }                                                                  \
     }                                                                    \
     else {                                                               \
-      nrrdHackHasNonExist = AIR_TRUE;                                    \
+      nrrd->hasNonExist = nrrdNonExistTrue;                              \
     }                                                                    \
   }                                                                      \
                                                                          \
@@ -487,26 +501,35 @@ void _nrrdMinMaxUC  (_MM_ARGS(unsigned char))  { _MM_FIXED(unsigned char) }
 void _nrrdMinMaxS   (_MM_ARGS(short))          { _MM_FIXED(short) }
 void _nrrdMinMaxUS  (_MM_ARGS(unsigned short)) { _MM_FIXED(unsigned short) }
 void _nrrdMinMaxI   (_MM_ARGS(int))            { _MM_FIXED(int) }
-void _nrrdMinMaxUI  (_MM_ARGS(unsigned int))   { _MM_FIXED(unsigned int) }
+void _nrrdMinMaxUI  (_MM_ARGS(unsigned int))   { _MM_FLOAT(unsigned int) }
 void _nrrdMinMaxLLI (_MM_ARGS(long long int))  { _MM_FIXED(long long int) }
 void _nrrdMinMaxULLI(_MM_ARGS(unsigned long long int))   { 
   _MM_FIXED(unsigned long long int) }
 void _nrrdMinMaxF   (_MM_ARGS(float))          { _MM_FLOAT(float) }
 void _nrrdMinMaxD   (_MM_ARGS(double))         { _MM_FLOAT(double) }
 /* void _nrrdMinMaxLD  (_MM_ARGS(long double))    { _MM_FLOAT(long double) } */
-void (*_nrrdMinMaxFind[NRRD_TYPE_MAX+1])(void *, void *, 
-					 nrrdBigInt, void *) = {
+
+/*
+******** nrrdMinMaxFind[]
+**
+** the role of these is to allow finding the EXACT min and max of a nrrd,
+** including cases where the value of min or max can not be losslessly
+** stored in the nrrd->min and nrrd->max fields, which are of type double.
+** 
+** These functions have as a side-effect the setting of nrrd->hasNonExist
+*/
+void (*nrrdMinMaxFind[NRRD_TYPE_MAX+1])(void *, void *, Nrrd *) = {
   NULL,
-  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxC,
-  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxUC,
-  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxS,
-  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxUS,
-  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxI,
-  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxUI,
-  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxLLI,
-  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxULLI,
-  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxF,
-  (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxD,
-  /* (void (*)(void *, void *, nrrdBigInt, void *))_nrrdMinMaxLD, */
+  (void (*)(void *, void *, Nrrd *))_nrrdMinMaxC,
+  (void (*)(void *, void *, Nrrd *))_nrrdMinMaxUC,
+  (void (*)(void *, void *, Nrrd *))_nrrdMinMaxS,
+  (void (*)(void *, void *, Nrrd *))_nrrdMinMaxUS,
+  (void (*)(void *, void *, Nrrd *))_nrrdMinMaxI,
+  (void (*)(void *, void *, Nrrd *))_nrrdMinMaxUI,
+  (void (*)(void *, void *, Nrrd *))_nrrdMinMaxLLI,
+  (void (*)(void *, void *, Nrrd *))_nrrdMinMaxULLI,
+  (void (*)(void *, void *, Nrrd *))_nrrdMinMaxF,
+  (void (*)(void *, void *, Nrrd *))_nrrdMinMaxD,
+  /* (void (*)(void *, void *, Nrrd *))_nrrdMinMaxLD, */
   NULL
 };

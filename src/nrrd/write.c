@@ -133,7 +133,7 @@ _nrrdWriteDataRaw(Nrrd *nrrd, nrrdIO *io) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
     biffAdd(NRRD, err); return 1;
   }
-  bsize = nrrd->num * nrrdElementSize(nrrd);
+  bsize = nrrdElementNumber(nrrd) * nrrdElementSize(nrrd);
   size = bsize;
   if (size != bsize) {
     sprintf(err, "%s: \"size_t\" can't represent byte-size of data.", me);
@@ -175,11 +175,12 @@ _nrrdWriteDataRaw(Nrrd *nrrd, nrrdIO *io) {
 	fflush(stderr);
       }
     }
-    ret = fwrite(nrrd->data, nrrdElementSize(nrrd), nrrd->num, io->dataFile);
-    if (ret != nrrd->num) {
+    ret = fwrite(nrrd->data, nrrdElementSize(nrrd),
+		 nrrdElementNumber(nrrd), io->dataFile);
+    if (ret != nrrdElementNumber(nrrd)) {
       sprintf(err, "%s: fwrite() returned " NRRD_BIG_INT_PRINTF
 	      " (not " NRRD_BIG_INT_PRINTF ")", me,
-	      (nrrdBigInt)ret, nrrd->num);
+	      (nrrdBigInt)ret, nrrdElementNumber(nrrd));
       biffAdd(NRRD, err); return 1;
     }
     fflush(io->dataFile);
@@ -199,7 +200,7 @@ _nrrdWriteDataAscii(Nrrd *nrrd, nrrdIO *io) {
     buff[NRRD_STRLEN_MED];
   int size, bufflen, linelen;
   char *data;
-  nrrdBigInt I;
+  nrrdBigInt I, num;
   
   if (nrrdTypeBlock == nrrd->type) {
     sprintf(err, "%s: can't write nrrd type %s to ascii", me,
@@ -213,8 +214,9 @@ _nrrdWriteDataAscii(Nrrd *nrrd, nrrdIO *io) {
   }
   data = nrrd->data;
   size = nrrdElementSize(nrrd);
+  num = nrrdElementNumber(nrrd);
   linelen = 0;
-  for (I=0; I<=nrrd->num-1; I++) {
+  for (I=0; I<=num-1; I++) {
     nrrdSprint[nrrd->type](buff, data);
     if (1 == nrrd->dim) {
       fprintf(io->dataFile, "%s\n", buff);
@@ -343,7 +345,7 @@ _nrrdSprintFieldInfo(char *str, Nrrd *nrrd, nrrdIO *io, int field) {
     break;
     /* ---- end per-axis fields ---- */
   case nrrdField_number:
-    sprintf(str, "%s: " NRRD_BIG_INT_PRINTF, fs, nrrd->num);
+    sprintf(str, "%s: " NRRD_BIG_INT_PRINTF, fs, nrrdElementNumber(nrrd));
     break;
   case nrrdField_content:
     sprintf(str, "%s: %s", fs, airOneLinify(nrrd->content));

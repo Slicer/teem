@@ -94,7 +94,9 @@ extern "C" {
 ** Chances are, you shouldn't mess with these
 */
 
-#define NRRD_BIGGEST_TYPE double
+#define NRRD_BIGGEST_TYPE double    /* this should be a basic C type which
+				       requires for storage the maximum size
+				       of all the basic C types */
 #define NRRD_COMMENT_INCR 16
 #define NRRD_PNM_COMMENT "# NRRD>"  /* this is designed to be robust against
 				       the mungling that xv does, but no

@@ -110,7 +110,7 @@ nrrdSwapEndian(Nrrd *nrrd) {
   if (nrrd 
       && nrrd->data 
       && AIR_BETWEEN(nrrdTypeUnknown, nrrd->type, nrrdTypeLast)) {
-    _nrrdSwapEndian[nrrd->type](nrrd->data, nrrd->num);
+    _nrrdSwapEndian[nrrd->type](nrrd->data, nrrdElementNumber(nrrd));
   }
   return;
 }
