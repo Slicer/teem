@@ -22,6 +22,7 @@
 #include <hest.h>
 #include <nrrd.h>
 #include <gage.h>
+#include <bane.h>
 
 #define QBERT "qbert"
 #define QBERT_HIST_BINS 1024     /* histogram size for v, g, and h */
@@ -297,7 +298,7 @@ qbertMakeVghHists(Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
 */
 int
 qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
-	     int *sz, float *perc,
+	     int *sz, double *perc,
 	     Nrrd *nvghF) {
   char me[]="qbertMakeVgh", err[AIR_STRLEN_MED], cmt[AIR_STRLEN_SMALL];
   double minv, maxv, ming, maxg, minh, maxh;
@@ -409,7 +410,7 @@ main(int argc, char *argv[]) {
 	     "upsampling.");
   hestOptAdd(&hopt, "uk", "upsample k", airTypeOther, 1, 1, &uk,
 	     "cubic:0,0.5",
-	     "kernel to use when doing the upsampling enabled by \"-up\",
+	     "kernel to use when doing the upsampling enabled by \"-up\"",
 	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "dk", "downsample k", airTypeOther, 1, 1, &dk, "tent",
 	     "kernel to use when downsampling volume to fit with specified "
@@ -439,7 +440,7 @@ main(int argc, char *argv[]) {
   }
 
   npad = nrrdNew();
-  if (qbertSizeUp(npad, nin, sz, up ? uk : NULL)) {
+  if (qbertSizeUp(npad, nin, sz, ups ? uk : NULL)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, errS = biffGetDone(QBERT));
     free(errS); exit(1);
   }  
@@ -486,7 +487,7 @@ main(int argc, char *argv[]) {
   }
 
   nvgh = nrrdNew();
-  if (qbertMakeVgh(nvgh, nvhist, nghist, nhhist, sz, perc, nvghF)) {
+  if (qbertMakeVgh(nvgh, nvhist, nghist, nhhist, sz, inc, nvghF)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, errS = biffGetDone(QBERT));
     free(errS); exit(1);
   }
