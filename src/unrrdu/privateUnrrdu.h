@@ -116,7 +116,7 @@ in the error messages.
 #define SAVE(outS, nout, io) \
   if (nrrdSave((outS), (nout), (io))) { \
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways); \
-    fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s\n", me, out, err); \
+    fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s\n", me, (outS), err); \
     airMopError(mop); \
     return 1; \
   }
