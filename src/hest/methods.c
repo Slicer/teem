@@ -162,6 +162,7 @@ hestOptCheck(hestOpt *opt, char **errP) {
   /* else, no problems */
   if (errP)
     *errP = NULL;
+  free(err);
   hestParmFree(parm);
   return 0;
 }
