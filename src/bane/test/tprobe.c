@@ -29,9 +29,9 @@ main(int argc, char *argv[]) {
   baneProbeDebug = 0;
 
   pack = baneProbeK3PackNew();
-  pack->k0 = nrrdKernel + nrrdKernelBCCubic;
-  pack->k1 = nrrdKernel + nrrdKernelBCCubicD;
-  pack->k2 = nrrdKernel + nrrdKernelBCCubicDD;
+  pack->k0 = nrrdKernelBCCubic;
+  pack->k1 = nrrdKernelBCCubicD;
+  pack->k2 = nrrdKernelBCCubicDD;
   pack->param0[0] = 1.0; pack->param0[1] = 1.0; pack->param0[2] = 0;
   pack->param1[0] = 1.0; pack->param1[1] = 1.0; pack->param1[2] = 0;
   pack->param2[0] = 1.0; pack->param2[1] = 1.0; pack->param2[2] = 0;
@@ -39,19 +39,19 @@ main(int argc, char *argv[]) {
   printf("v = [\n");
   for (xi=0; xi<=30; xi++) {
     x = AIR_AFFINE(0, xi, 30, -2, 2);
-    y = nrrdKernel[nrrdKernelBCCubic].eval(x, pack->param0);
-    z = nrrdKernel[nrrdKernelBCCubicD].eval(x, pack->param0);
+    y = nrrdKernelBCCubic->eval(x, pack->param0);
+    z = nrrdKernelBCCubicD->eval(x, pack->param0);
     printf("%g %g %g;\n", x, y, z);
   }
   printf("]\n");
 
   /*
   pack = baneProbeK3PackNew();
-  pack->k0 = nrrdKernel + nrrdKernelTent;
-  pack->k1 = nrrdKernel + nrrdKernelForwDiff;
+  pack->k0 = nrrdKernelTent;
+  pack->k1 = nrrdKernelForwDiff;
   */
 
-  nin = nrrdNewOpen("engine-crop.nrrd");
+  nin = nrrdNewOpen("test/engine-crop.nrrd");
   query = BANE_PROBE_GRADMAG | BANE_PROBE_2NDDD;
 
   bx = 30;

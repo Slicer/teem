@@ -118,7 +118,7 @@ baneProbe(float *_ans, Nrrd *nin, int query,
     *fw1x, *fw1y, *fw1z,        /* pointers into fw1 */
     *fw2x, *fw2y, *fw2z,        /* pointers info fw2 */
     *grad, *hess,               /* madness */
-    *tmpP, *tmpQ,               /* bad gordon */
+    *tmpP, 
     xs, ys, zs,                 /* scaling along the axis */
     (*lup)(void *v, NRRD_BIG_INT I);  /* nrrdFLookup[] element */
   static int 

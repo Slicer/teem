@@ -175,7 +175,7 @@ typedef struct {
 #define BANE_DEF_INCLIMIT 0.8
 
 typedef struct {
-  nrrdKernelMethods *k0, *k1, *k2;
+  nrrdKernel *k0, *k1, *k2;
   float param0[NRRD_MAX_KERNEL_PARAMS],
     param1[NRRD_MAX_KERNEL_PARAMS],
     param2[NRRD_MAX_KERNEL_PARAMS];
