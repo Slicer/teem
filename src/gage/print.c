@@ -77,12 +77,12 @@ _gagePrint_off(gageContext *ctx) {
      fprintf(stderr, "     % 5d : % 15.7f\n", i, (float)fw[i])
 
 #define PRINTALL(HOW,C)                                 \
-   if (fw000) { HOW(00,C); }                            \
-   if (fw100) { HOW(10,C); }                            \
-   if (fw110) { HOW(11,C); }                            \
-   if (fw200) { HOW(20,C); }                            \
-   if (fw210) { HOW(21,C); }                            \
-   if (fw220) { HOW(22,C); }
+   if (ctx->needK[gageKernel00]) { HOW(00,C); }         \
+   if (ctx->needK[gageKernel10]) { HOW(10,C); }         \
+   if (ctx->needK[gageKernel11]) { HOW(11,C); }         \
+   if (ctx->needK[gageKernel20]) { HOW(20,C); }         \
+   if (ctx->needK[gageKernel21]) { HOW(21,C); }         \
+   if (ctx->needK[gageKernel22]) { HOW(22,C); }
 
 void
 _gagePrint_fslw(gageContext *ctx, int doD1, int doD2) {
@@ -101,24 +101,24 @@ _gagePrint_fslw(gageContext *ctx, int doD1, int doD2) {
   fslx = ctx->fsl + fd*0;
   fsly = ctx->fsl + fd*1;
   fslz = ctx->fsl + fd*2;
-  fw000 = ctx->fw[gageKernel00] + fd*0;
-  fw001 = ctx->fw[gageKernel00] + fd*1;
-  fw002 = ctx->fw[gageKernel00] + fd*2;
-  fw100 = ctx->fw[gageKernel10] + fd*0;
-  fw101 = ctx->fw[gageKernel10] + fd*1;
-  fw102 = ctx->fw[gageKernel10] + fd*2;
-  fw110 = ctx->fw[gageKernel11] + fd*0;
-  fw111 = ctx->fw[gageKernel11] + fd*1;
-  fw112 = ctx->fw[gageKernel11] + fd*2;
-  fw200 = ctx->fw[gageKernel20] + fd*0;
-  fw201 = ctx->fw[gageKernel20] + fd*1;
-  fw202 = ctx->fw[gageKernel20] + fd*2;
-  fw210 = ctx->fw[gageKernel21] + fd*0;
-  fw211 = ctx->fw[gageKernel21] + fd*1;
-  fw212 = ctx->fw[gageKernel21] + fd*2;
-  fw220 = ctx->fw[gageKernel22] + fd*0;
-  fw221 = ctx->fw[gageKernel22] + fd*1;
-  fw222 = ctx->fw[gageKernel22] + fd*2;
+  fw000 = ctx->fw + 0 + fd*(0 + 3*gageKernel00);
+  fw001 = ctx->fw + 0 + fd*(1 + 3*gageKernel00);
+  fw002 = ctx->fw + 0 + fd*(2 + 3*gageKernel00);
+  fw100 = ctx->fw + 0 + fd*(0 + 3*gageKernel10);
+  fw101 = ctx->fw + 0 + fd*(1 + 3*gageKernel10);
+  fw102 = ctx->fw + 0 + fd*(2 + 3*gageKernel10);
+  fw110 = ctx->fw + 0 + fd*(0 + 3*gageKernel11);
+  fw111 = ctx->fw + 0 + fd*(1 + 3*gageKernel11);
+  fw112 = ctx->fw + 0 + fd*(2 + 3*gageKernel11);
+  fw200 = ctx->fw + 0 + fd*(0 + 3*gageKernel20);
+  fw201 = ctx->fw + 0 + fd*(1 + 3*gageKernel20);
+  fw202 = ctx->fw + 0 + fd*(2 + 3*gageKernel20);
+  fw210 = ctx->fw + 0 + fd*(0 + 3*gageKernel21);
+  fw211 = ctx->fw + 0 + fd*(1 + 3*gageKernel21);
+  fw212 = ctx->fw + 0 + fd*(2 + 3*gageKernel21);
+  fw220 = ctx->fw + 0 + fd*(0 + 3*gageKernel22);
+  fw221 = ctx->fw + 0 + fd*(1 + 3*gageKernel22);
+  fw222 = ctx->fw + 0 + fd*(2 + 3*gageKernel22);
 
   fprintf(stderr, "fsl -> fw: \n");
   switch(fd) {

@@ -21,6 +21,61 @@
 #include "private.h"
 
 char
+_gageKernelStr[][AIR_STRLEN_SMALL] = {
+  "(unknown_kernel)",
+  "00",
+  "10",
+  "11",
+  "20",
+  "21",
+  "22"
+};
+
+int
+_gageKernelVal[] = {
+  gageKernelUnknown,
+  gageKernel00,
+  gageKernel10,
+  gageKernel11,
+  gageKernel20,
+  gageKernel21,
+  gageKernel22
+};
+
+char
+_gageKernelStrEqv[][AIR_STRLEN_SMALL] = {
+  "00",
+  "10",
+  "11",
+  "20",
+  "21",
+  "22",
+  ""
+};
+
+int
+_gageKernelValEqv[] = {
+  gageKernel00,
+  gageKernel10,
+  gageKernel11,
+  gageKernel20,
+  gageKernel21,
+  gageKernel22
+};
+
+airEnum
+gageKernel = {
+  "kernel",
+  GAGE_KERNEL_NUM,
+  _gageKernelStr, _gageKernelVal,
+  _gageKernelStrEqv, _gageKernelValEqv,
+  AIR_FALSE
+};
+
+
+/* ---------------------------- scl ------------------------- */
+
+char
 _gageSclStr[][AIR_STRLEN_SMALL] = {
   "(unknown gageScl)",
   "value",
@@ -84,12 +139,13 @@ _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
   "l", "lapl", "laplacian",
   "heval", "h eval", "hessian eval", "hessian eigenvalues",
   "hevec", "h evec", "hessian evec", "hessian eigenvectors",
-  "2d", "2dd", "2nddd", "2nd dd", "2nd dd along gradient",
+  "2d", "2dd", "2nddd", "2nd", "2nd dd", "2nd dd along gradient",
   "gten", "geoten", "geomten", "geometry tensor",
   "k1k2", "k1 k2", "kappa1kappa2", "kappa1 kappa2",
   "cdir", "c dir", "curvdir", "curv dir", "curvature directions",
   "si", "shape index",
-  "cv", "curvedness"
+  "cv", "curvedness",
+  ""
 };
 
 int
@@ -102,7 +158,7 @@ _gageSclValEqv[] = {
   GS_L, GS_L, GS_L, 
   GS_HA, GS_HA, GS_HA, GS_HA, 
   GS_HE, GS_HE, GS_HE, GS_HE, 
-  GS_2D, GS_2D, GS_2D, GS_2D, GS_2D,
+  GS_2D, GS_2D, GS_2D, GS_2D, GS_2D, GS_2D,
   GS_GT, GS_GT, GS_GT, GS_GT, 
   GS_KK, GS_KK, GS_KK, GS_KK, 
   GS_CD, GS_CD, GS_CD, GS_CD, GS_CD, 
@@ -116,6 +172,67 @@ gageScl = {
   GAGE_SCL_MAX+1,
   _gageSclStr, _gageSclVal,
   _gageSclStrEqv, _gageSclValEqv,
+  AIR_FALSE
+};
+
+/* ---------------------------- vec ------------------------- */
+
+char
+_gageVecStr[][AIR_STRLEN_SMALL] = {
+  "(unknown gageVec)",
+  "vector",
+  "length",
+  "normalized",
+  "Jacobian",
+  "divergence",
+  "curl"
+};
+
+int
+_gageVecVal[] = {
+  gageVecUnknown,
+  gageVecVector,
+  gageVecLength,
+  gageVecNormalized,
+  gageVecJacobian,
+  gageVecDivergence,
+  gageVecCurl,
+};
+
+#define GV_V gageVecVector
+#define GV_L gageVecLength
+#define GV_N gageVecNormalized
+#define GV_J gageVecJacobian
+#define GV_D gageVecDivergence
+#define GV_C gageVecCurl
+
+char
+_gageVecStrEqv[][AIR_STRLEN_SMALL] = {
+  "vector", "vec",
+  "length", "len",
+  "normalized", "normalized vector",
+  "jacobian", "jac",
+  "divergence", "div",
+  "curl",
+  ""
+};
+
+int
+_gageVecValEqv[] = {
+  GV_V, GV_V,
+  GV_L, GV_L,
+  GV_N, GV_N,
+  GV_J, GV_J,
+  GV_D, GV_D,
+  GV_C
+};
+
+airEnum
+gageVec = {
+  "gageVec",
+  GAGE_VEC_MAX+1,
+  _gageVecStr, _gageVecVal,
+  _gageVecStrEqv, _gageVecValEqv,
   AIR_FALSE
 };
 

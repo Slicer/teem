@@ -35,12 +35,12 @@ _gageSclPrint_query(unsigned int query) {
 }
 
 void
-_gageSclPrint_iv3(gageSclContext *ctx) {
+_gageSclPrint_iv3(gageContext *ctx, gagePerVolume *pvl) {
   gage_t *iv3;
   int i, fd;
 
-  iv3 = ctx->iv3;
-  fd = ctx->c.fd;
+  iv3 = pvl->iv3;
+  fd = ctx->fd;
   fprintf(stderr, "iv3[]:\n");
   switch(fd) {
   case 2:

@@ -77,9 +77,9 @@ _gageFwValueRenormalize(gageContext *ctx, int wch) {
   int i, fd;
 
   fd = ctx->fd;
-  fwX = ctx->fw[wch] + 0*fd;
-  fwY = ctx->fw[wch] + 1*fd;
-  fwZ = ctx->fw[wch] + 2*fd;
+  fwX = ctx->fw + 0 + fd*(0 + 3*wch);
+  fwY = ctx->fw + 0 + fd*(1 + 3*wch);
+  fwZ = ctx->fw + 0 + fd*(2 + 3*wch);
   integral = ctx->k[wch]->integral(ctx->kparm[wch]);
   sumX = sumY = sumZ = 0;
   for (i=0; i<fd; i++) {
@@ -92,6 +92,7 @@ _gageFwValueRenormalize(gageContext *ctx, int wch) {
     fwY[i] *= integral/sumY;
     fwZ[i] *= integral/sumZ;
   }
+  return;
 }
 
 /*
@@ -107,9 +108,9 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
   int i, fd;
 
   fd = ctx->fd;
-  fwX = ctx->fw[wch] + 0*fd;
-  fwY = ctx->fw[wch] + 1*fd;
-  fwZ = ctx->fw[wch] + 2*fd;
+  fwX = ctx->fw + 0 + fd*(0 + 3*wch);
+  fwY = ctx->fw + 0 + fd*(1 + 3*wch);
+  fwZ = ctx->fw + 0 + fd*(2 + 3*wch);
   negX = negY = negZ = 0;
   posX = posY = posZ = 0;
   for (i=0; i<fd; i++) {
@@ -132,6 +133,7 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
     if (fwY[i] <= 0) { fwY[i] *= fixY; } else { fwY[i] /= fixY; }
     if (fwZ[i] <= 0) { fwZ[i] *= fixZ; } else { fwZ[i] /= fixZ; }
   }
+  return;
 }
 
 void
@@ -146,10 +148,12 @@ _gageFwSet(gageContext *ctx) {
 #  define EVALN evalN_d
 #endif
 
+  fd = ctx->fd;
   for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-    if (!ctx->fw[i])
+    if (!ctx->needK[i])
       continue;
-    ctx->k[i]->EVALN(ctx->fw[i], ctx->fsl, 3*ctx->fd, ctx->kparm[i]);
+    /* we evaluate weights for all three axes with one call */
+    ctx->k[i]->EVALN(ctx->fw + 3*fd*i, ctx->fsl, 3*ctx->fd, ctx->kparm[i]);
   }
 
   if (ctx->verbose > 1) {
@@ -158,7 +162,7 @@ _gageFwSet(gageContext *ctx) {
   }
   if (ctx->renormalize) {
     for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-      if (!ctx->fw[i])
+      if (!ctx->needK[i])
 	continue;
       switch (i) {
       case gageKernel00:
@@ -180,14 +184,13 @@ _gageFwSet(gageContext *ctx) {
   /* fix weightings for non-unit-spacing samples */
   if (!( 1.0 == ctx->xs && 1.0 == ctx->ys && 1.0 == ctx->zs )) {
     for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
+      if (!ctx->needK[i])
+	continue;
       if (gageKernel00 == i || gageKernel10 == i || gageKernel20 == i)
 	continue;
-      if (!ctx->fw[i])
-	continue;
-      fd = ctx->fd;
-      fwX = ctx->fw[i] + 0*fd;
-      fwY = ctx->fw[i] + 1*fd;
-      fwZ = ctx->fw[i] + 2*fd;
+      fwX = ctx->fw + 0 + fd*(0 + 3*i);
+      fwY = ctx->fw + 0 + fd*(1 + 3*i);
+      fwZ = ctx->fw + 0 + fd*(2 + 3*i);
       for (j=0; j<fd; j++) {
 	fwX[j] *= ctx->fwScl[i][0];
 	fwY[j] *= ctx->fwScl[i][1];
@@ -216,8 +219,8 @@ int
 _gageLocationSet(gageContext *ctx, int *newBidxP,
 		 gage_t x, gage_t y, gage_t z) {
   char me[]="_gageProbeLocationSet";
-  int tx, ty, tz,     /* "top" x, y, z: highest valid float-point
-			 position for position in unpadded volume */
+  int tx, ty, tz,     /* "top" x, y, z: highest valid floating point
+			 value for position in unpadded volume */
     xi, yi, zi,       /* computed integral positions in unpadded
                          volume */
     dif,              /* difference between coordinates between 
@@ -267,7 +270,8 @@ _gageLocationSet(gageContext *ctx, int *newBidxP,
     ctx->xf = xf;
     ctx->yf = yf;
     ctx->zf = zf;
-    /* this is essentially _gageLocationDependentSet() */
+    /* these may take some time (especially if using renormalization),
+       hence the conditional above */
     _gageFslSet(ctx);
     _gageFwSet(ctx);
   }

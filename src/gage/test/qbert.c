@@ -96,7 +96,9 @@ main(int argc, char *argv[]) {
   double t0, t1, spcX, spcY, spcZ;
   hestParm *hparm;
   hestOpt *hopt = NULL;
-  gageSclContext *ctx;
+  gageContext *ctx;
+  gagePerVolume *pvl;
+  gageSclAnswer *san;
   double kparm[3];
 
   me = argv[0];
@@ -234,39 +236,41 @@ main(int argc, char *argv[]) {
   */
 
   /* probing to make triple volume */
-  ctx = gageSclContextNew();
-  ctx->c.verbose = 1;   /* reset later */
-  ctx->c.renormalize = AIR_TRUE;
-  ctx->c.checkIntegrals = AIR_TRUE;
+  ctx = gageContextNew();
+  gageValSet(ctx, gageValVerbose, 1);
+  gageValSet(ctx, gageValRenormalize, AIR_TRUE);
+  gageValSet(ctx, gageValCheckIntegrals, AIR_TRUE);
   kparm[0] = 1.0; kparm[1] = 1.0; kparm[2] = 0.0;
   E = 0;
   /* we have to use a slightly blurring kernel for the 2nd derivatives
      to work out (B-spline is kind of rotationally symmetric) */
   kparm[0] = 1.0; kparm[1] = 0.0; kparm[2] = 0.5;
   kparm[0] = 1.0; kparm[1] = 1.0; kparm[2] = 0.0;
-  if (!E) E |= gageSclKernelSet(ctx, gageKernel00,
-				nrrdKernelBCCubic, kparm);
+  if (!E) E |= gageKernelSet(ctx, gageKernel00,
+			     nrrdKernelBCCubic, kparm);
   kparm[0] = 1.0; kparm[1] = 1.0; kparm[2] = 0.0;
-  if (!E) E |= gageSclKernelSet(ctx, gageKernel11,
-				nrrdKernelBCCubicD, kparm);
-  if (!E) E |= gageSclKernelSet(ctx, gageKernel22,
-				nrrdKernelBCCubicDD, kparm);
+  if (!E) E |= gageKernelSet(ctx, gageKernel11,
+			     nrrdKernelBCCubicD, kparm);
+  if (!E) E |= gageKernelSet(ctx, gageKernel22,
+			     nrrdKernelBCCubicDD, kparm);
   if (E) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));
     exit(1);
   }
-  needPad = gageSclNeedPadGet(ctx);
+  needPad = gageValGet(ctx, gageValNeedPad);
+  pvl = gagePerVolumeNew(needPad, gageKindScalar);
+  san = (gageSclAnswer *)pvl->ans;
   if (nrrdSimplePad(npad2=nrrdNew(), npad, needPad, nrrdBoundaryBleed)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(NRRD));
     exit(1);
   }
   nrrdNuke(npad);
-  if (!E) E |= gageSclVolumeSet(ctx, needPad, npad2);
-  if (!E) E |= gageSclQuerySet(ctx,
-			       (1 << gageSclValue) | 
-			       (1 << gageSclGradMag) |
-			       (1 << gageScl2ndDD));
-  if (!E) E |= gageSclUpdate(ctx);
+  if (!E) E |= gageVolumeSet(ctx, pvl, npad2, needPad);
+  if (!E) E |= gageQuerySet(pvl,
+			    (1 << gageSclValue) | 
+			    (1 << gageSclGradMag) |
+			    (1 << gageScl2ndDD));
+  if (!E) E |= gageUpdate(ctx, pvl);
   if (E) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));
     exit(1);
@@ -285,16 +289,16 @@ main(int argc, char *argv[]) {
   npad2->axis[2].spacing = (AIR_EXISTS(npad2->axis[2].spacing)
 			    ? npad2->axis[2].spacing : 1.0);
   printf("%s: probing ... ", me); fflush(stdout);
-  ctx->c.verbose = 0;
+  gageValSet(ctx, gageValVerbose, 0);
   t0 = airTime();
   for (k=0; k<=sz[2]-1; k++) {
     printf("%d/%d ", k, sz[2]-1); fflush(stdout);
     for (j=0; j<=sz[1]-1; j++) {
       for (i=0; i<=sz[0]-1; i++) {
-	gageSclProbe(ctx, i, j, k);
-	vghF[0 + 3*(i + sz[0]*(j + sz[1]*k))] = *(ctx->val);
-	vghF[1 + 3*(i + sz[0]*(j + sz[1]*k))] = *(ctx->gmag);
-	vghF[2 + 3*(i + sz[0]*(j + sz[1]*k))] = *(ctx->scnd);
+	gageProbe(ctx, pvl, i, j, k);
+	vghF[0 + 3*(i + sz[0]*(j + sz[1]*k))] = *(san->val);
+	vghF[1 + 3*(i + sz[0]*(j + sz[1]*k))] = *(san->gmag);
+	vghF[2 + 3*(i + sz[0]*(j + sz[1]*k))] = *(san->scnd);
 	/*
 	printf("%d,%d,%d: %g %g %g\n", i, j, k, ans[vo], ans[go], ans[ho]);
 	*/
@@ -437,7 +441,8 @@ main(int argc, char *argv[]) {
   nvghF = nrrdNuke(nvghF);
   nrsmp = nrrdNuke(nrsmp);
   nvgh = nrrdNuke(nvgh);
-  ctx = gageSclContextNix(ctx);
+  ctx = gageContextNix(ctx);
+  pvl = gagePerVolumeNix(pvl);
 
   exit(0);
 }

@@ -23,7 +23,9 @@
 char gageErrStr[AIR_STRLEN_LARGE];
 int gageErrNum;
 
-gage_t gageSclZeroNormal[3] = {0,0,1};
+/* --------------------------- scl ------------------------- */
+
+gage_t gageSclZeroNormal[3] = {1,0,0};
 
 /*
 ******** gageSclAnsLength[]
@@ -42,17 +44,18 @@ gageSclAnsLength[GAGE_SCL_MAX+1] = {
 */
 int
 gageSclAnsOffset[GAGE_SCL_MAX+1] = {
-  0,  1,  4,  5,  8, 17, 18, 21, 30, 31, 40, 42, 48, 49
+  0,  1,  4,  5,  8, 17, 18, 21, 30, 31, 40, 42, 48, 49  /* 50 */
 };
 
 /*
 ** _gageSclNeedDeriv[]
 **
-** highest order derivative needed for each different query
+** each value is a BIT FLAG representing the different value/derivatives
+** that are needed to calculate the quantity.  
 */
 int
 _gageSclNeedDeriv[GAGE_SCL_MAX+1] = {
-  0,  1,  1,  1,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2
+  1,  2,  2,  2,  4,  4,  4,  4,  6,  4,  4,  4,  4,  4
 };
 
 
@@ -107,3 +110,65 @@ _gageSclPrereq[GAGE_SCL_MAX+1] = {
   /* gageSclCurvedness */
   (1<<gageSclK1K2)
 };
+
+/* --------------------------- vec ------------------------- */
+
+/*
+******** gageVecAnsLength[]
+**
+** the number of gage_t used for each answer
+*/
+int
+gageVecAnsLength[GAGE_VEC_MAX+1] = {
+  3,  1,  3,  9,  3,  3
+};
+
+/*
+******** gageVecAnsOffset[]
+**
+** the index into the answer array of the first element of the answer
+*/
+int
+gageVecAnsOffset[GAGE_VEC_MAX+1] = {
+  0,  3,  4,  7, 16, 19 /* 22 */
+};
+
+/*
+** _gageVecNeedDeriv[]
+**
+** each value is a BIT FLAG representing the different value/derivatives
+** that are needed to calculate the quantity.  
+*/
+int
+_gageVecNeedDeriv[GAGE_VEC_MAX+1] = {
+  1,  1,  1,  2,  2,  2
+};
+
+/*
+** _gageVecPrereq[]
+** 
+** this records the measurements which are needed as ingredients for any
+** given measurement, but it is not necessarily the recursive expansion of
+** that requirement.
+*/
+unsigned int
+_gageVecPrereq[GAGE_VEC_MAX+1] = {
+  /* gageVecVector */
+  0,
+
+  /* gageVecLength */
+  (1<<gageVecVector),
+
+  /* gageVecNormalized */
+  (1<<gageVecVector) | (1<<gageVecLength),
+
+  /* gageVecJacobian */
+  0,
+
+  /* gageVecDivergence */
+  (1<<gageVecJacobian),
+
+  /* gageVecCurl */
+  (1<<gageVecJacobian)
+};
+

@@ -20,8 +20,22 @@
 #include "gage.h"
 #include "private.h"
 
-int gageDefVerbose = 0;
-gage_t gageDefGradMagMin = 0.00001;
-int gageDefRenormalize = AIR_FALSE;
-int gageDefCheckIntegrals = AIR_TRUE;
-int gageDefK3Pack = AIR_TRUE;
+void
+_gageVecPrint_query(unsigned int query) {
+  unsigned int q;
+
+  fprintf(stderr, "query = %u ...\n", query);
+  q = GAGE_VEC_MAX+1;
+  do {
+    q--;
+    if ((1<<q) & query) {
+      fprintf(stderr, "    %3d: %s\n", q, airEnumStr(gageVec, q));
+    }
+  } while (q);
+}
+
+void
+_gageVecPrint_iv3(gageContext *ctx, gagePerVolume *pvl) {
+  
+  fprintf(stderr, "_gageVecPrint_iv3() not implemented\n");
+}

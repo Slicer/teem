@@ -104,12 +104,14 @@ int
 main(int argc, char *argv[]) {
   hestParm *hparm;
   hestOpt *hopt = NULL;
-  gageSclContext *ctx;
+  gageContext *ctx;
+  gagePerVolume *pvl;
+  gageSclAnswer *san;
   Nrrd *nin, *npad, *nout;
   char *me, *herr, *outS;
   float angle;
   double xs, ys, zs, y, z;
-  int sx, sy, sz, E, xi, yi, zi;
+  int sx, sy, sz, E, xi, yi, zi, needPad;
   gantryNrrdKernel gantric;
   void *out;
   double (*insert)(void *v, nrrdBigInt I, double d);
@@ -182,28 +184,30 @@ main(int argc, char *argv[]) {
   out = nout->data;
   insert = nrrdDInsert[nout->type];
 
-  ctx = gageSclContextNew();
-  ctx->c.verbose = 1;   /* reset later */
-  ctx->c.renormalize = AIR_TRUE;
-  ctx->c.checkIntegrals = AIR_TRUE;
-  if (gageSclKernelSet(ctx, gageKernel00, gantric.kernel, gantric.parm)) {
+  ctx = gageContextNew();
+  gageValSet(ctx, gageValVerbose, 1);
+  gageValSet(ctx, gageValRenormalize, AIR_TRUE);
+  gageValSet(ctx, gageValCheckIntegrals, AIR_TRUE);
+  if (gageKernelSet(ctx, gageKernel00, gantric.kernel, gantric.parm)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));
     exit(1);
   }  
-  if (nrrdSimplePad(npad=nrrdNew(), nin, gageSclNeedPadGet(ctx),
-		    nrrdBoundaryBleed)) {
+  needPad = gageValGet(ctx, gageValNeedPad);
+  if (nrrdSimplePad(npad=nrrdNew(), nin, needPad, nrrdBoundaryBleed)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(NRRD));
     exit(1);
   }
   E = 0;
-  if (!E) E |= gageSclVolumeSet(ctx, gageSclNeedPadGet(ctx), npad);
-  if (!E) E |= gageSclQuerySet(ctx, 1 << gageSclValue);
-  if (!E) E |= gageSclUpdate(ctx);
+  if (!E) E |= !(pvl = gagePerVolumeNew(needPad, gageKindScalar));
+  if (!E) san = (gageSclAnswer *)pvl->ans;
+  if (!E) E |= gageVolumeSet(ctx, pvl, npad, needPad);
+  if (!E) E |= gageQuerySet(pvl, 1 << gageSclValue);
+  if (!E) E |= gageUpdate(ctx, pvl);
   if (E) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));
     exit(1);
   }
-  ctx->c.verbose = 0;
+  gageValSet(ctx, gageValVerbose, 0);
   
   for (zi=0; zi<sz; zi++) {
     for (yi=0; yi<sy; yi++) {
@@ -216,8 +220,8 @@ main(int argc, char *argv[]) {
 	y = (yi - sy/2.0)*ys;
 	z = (zi*zs + y*sin(-angle*3.141592653/180.0))/zs;
 	z = AIR_CLAMP(0, z, sz-1);
-	gageSclProbe(ctx, xi, yi, z);
-	insert(out, xi + sx*(yi + sy*zi), *(ctx->val));
+	gageProbe(ctx, pvl, xi, yi, z);
+	insert(out, xi + sx*(yi + sy*zi), *(san->val));
       }
     }
   }
@@ -226,9 +230,10 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(NRRD));
     exit(1);
   }
-  ctx = gageSclContextNix(ctx);
+  ctx = gageContextNix(ctx);
   hparm = hestParmFree(hparm);
   hopt = hestOptFree(hopt);
+  pvl = gagePerVolumeNix(pvl);
   nrrdNuke(nout);
   nrrdNuke(npad);
   

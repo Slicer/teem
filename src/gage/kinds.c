@@ -20,8 +20,40 @@
 #include "gage.h"
 #include "private.h"
 
-int gageDefVerbose = 0;
-gage_t gageDefGradMagMin = 0.00001;
-int gageDefRenormalize = AIR_FALSE;
-int gageDefCheckIntegrals = AIR_TRUE;
-int gageDefK3Pack = AIR_TRUE;
+gageKind
+_gageKindScalar = {
+  0,
+  1,
+  GAGE_SCL_MAX,
+  GAGE_SCL_TOTAL_ANS_LENGTH,
+  _gageSclNeedDeriv,
+  _gageSclPrereq,
+  _gageSclPrint_query,
+  (void *(*)(void))_gageSclAnswerNew,
+  (void *(*)(void*))_gageSclAnswerNix,
+  _gageSclPrint_iv3,
+  _gageSclFilter,
+  _gageSclAnswer
+  
+};
+gageKind *
+gageKindScalar = &_gageKindScalar;
+
+gageKind
+_gageKindVector = {
+  1,
+  3,
+  GAGE_VEC_MAX,
+  GAGE_VEC_TOTAL_ANS_LENGTH,
+  _gageVecNeedDeriv,
+  _gageVecPrereq,
+  _gageVecPrint_query,
+  (void *(*)(void))_gageVecAnswerNew,
+  (void *(*)(void*))_gageVecAnswerNix,
+  _gageVecPrint_iv3,
+  NULL,
+  NULL
+};
+gageKind *
+gageKindVector = &_gageKindVector;
+

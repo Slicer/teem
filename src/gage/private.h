@@ -38,41 +38,39 @@ extern "C" {
 
 #define RESET(p) p = airFree(p)
 
-/* arrays.c */
-extern int _gageSclNeedDeriv[GAGE_SCL_MAX+1];
-extern unsigned int _gageSclPrereq[GAGE_SCL_MAX+1];
-
 /* methods.c */
-extern void _gageContextInit(gageContext *ctx);
-extern void _gageContextDone(gageContext *ctx);
-extern void _gageKernelReset(gageContext *ctx);
-extern int _gageKernelSet(gageContext *ctx, 
-			 int which, NrrdKernel *k, double *kparm);
-extern int _gageKernelDependentSet(gageContext *ctx);
-extern int _gageVolumeSet(gageContext *ctx, int pad, Nrrd *npad, int baseDim);
-extern int _gageVolumeDependentSet(gageContext *ctx, Nrrd *npad, int baseDim);
-extern int _gageUpdate(gageContext *ctx, int needK[GAGE_KERNEL_NUM]);
+extern gageSclAnswer *_gageSclAnswerNew();
+extern gageSclAnswer *_gageSclAnswerNix(gageSclAnswer *san);
+extern gageVecAnswer *_gageVecAnswerNew();
+extern gageVecAnswer *_gageVecAnswerNix(gageVecAnswer *van);
 
-/* sclmethods.c */
-extern int _gageSclKernelDependentSet(gageSclContext *sctx);
-extern int _gageSclQueryDependentSet(gageSclContext *sctx);
-extern int _gageSclVolumeDependentSet(gageSclContext *sctx);
-
-/* general.c */
-extern void _gageFslSet(gageContext *ctx);
-extern void _gageFwValueRenormalize(gageContext *ctx, int wch);
-extern void _gageFwDerivRenormalize(gageContext *ctx, int wch);
-extern void _gageFwSet(gageContext *ctx);
-extern int _gageLocationSet(gageContext *ctx, int *newBidxP,
-			    gage_t x, gage_t y, gage_t z);
+/* arrays.c */
+extern unsigned int _gageSclPrereq[GAGE_SCL_MAX+1];
+extern unsigned int _gageVecPrereq[GAGE_VEC_MAX+1];
+extern int _gageSclNeedDeriv[GAGE_SCL_MAX+1];
+extern int _gageVecNeedDeriv[GAGE_VEC_MAX+1];
 
 /* print.c */
 extern void _gagePrint_off(gageContext *ctx);
+  /*
 extern void _gageSclPrint_fslw(gageSclContext *ctx, int doD1, int doD2);
+  */
 
 /* sclprint.c */
 extern void _gageSclPrint_query(unsigned int query);
-extern void _gageSclPrint_iv3(gageSclContext *ctx);
+extern void _gageSclPrint_iv3(gageContext *ctx, gagePerVolume *pvl);
+
+/* vecprint.c */
+extern void _gageVecPrint_query(unsigned int query);
+extern void _gageVecPrint_iv3(gageContext *ctx, gagePerVolume *pvl);
+
+/* filter.c */
+extern int _gageLocationSet(gageContext *ctx, int *newBidxP,
+			    gage_t x, gage_t y, gage_t z);
+
+/* scl.c */
+extern void _gageSclFilter(gageContext *ctx, gagePerVolume *pvl);
+extern void _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl);
 
 /* sclfilt.c */
 extern void _gageScl3PFilter2(GT *iv3, GT *iv2, GT *iv1,

@@ -33,8 +33,8 @@ extern "C" {
 
 #include <air.h>
 #include <biff.h>
-#include <nrrd.h>
 #include <ell.h>
+#include <nrrd.h>
 
 /*
 ** the only extent to which gage treats different axes differently is
@@ -44,12 +44,8 @@ extern "C" {
 ** downsampling: it can't tell that along one axis samples should be
 ** blurred while they should be interpolated along another.  Rather,
 ** it assumes that the main task of probing is *reconstruction*: of
-** values, of derivatives, of lots of different quantities
-**
-** controlling 3pack vs 6pack is done solely by which set of kernels
-** is set- there is no direct control for that.  Currently, if you
-** want to do both kinds of probing, then you need two contexts.
- */
+** values, of derivatives, or lots of different quantities
+*/
 
 /*
 ******** gage_t
@@ -87,8 +83,7 @@ enum {
   gageKernel20,         /* 3: reconstructing 1st partials and 2nd deriv.s */
   gageKernel21,         /* 4: measuring 1st partials for a 2nd derivative */
   gageKernel22,         /* 5: measuring 2nd derivatives */
-  gageKernelLast,
-  gageKernel
+  gageKernelLast
 };
 #define GAGE_KERNEL_NUM    6
 
@@ -104,51 +99,74 @@ enum {
 ** that prerequisite measurements are listed before the other measurements
 ** which need them
 **
-** (in the following, GST means gageScl_t)
+** (in the following, GT means gage_t)
 */
 enum {
   gageSclUnknown=-1,  /* -1: nobody knows */
-  gageSclValue,       /*  0: data value (*GST) */
-  gageSclGradVec,     /*  1: gradient vector, un-normalized (GST[3])*/
-  gageSclGradMag,     /*  2: gradient magnitude (*GST) */
-  gageSclNormal,      /*  3: gradient vector, normalized (GST[3]) */
-  gageSclHessian,     /*  4: Hessian (GST[9]) */
-  gageSclLaplacian,   /*  5: Laplacian: Dxx + Dyy + Dzz (*GST) */
-  gageSclHessEval,    /*  6: Hessian's eigenvalues (GST[3]) */
-  gageSclHessEvec,    /*  7: Hessian's eigenvectors (GST[9]) */
-  gageScl2ndDD,       /*  8: 2nd dir.deriv. along gradient (*GST) */
+  gageSclValue,       /*  0: data value: *GT */
+  gageSclGradVec,     /*  1: gradient vector, un-normalized: GT[3] */
+  gageSclGradMag,     /*  2: gradient magnitude: *GT */
+  gageSclNormal,      /*  3: gradient vector, normalized: GT[3] */
+  gageSclHessian,     /*  4: Hessian: GT[9] */
+  gageSclLaplacian,   /*  5: Laplacian: Dxx + Dyy + Dzz: *GT */
+  gageSclHessEval,    /*  6: Hessian's eigenvalues: GT[3] */
+  gageSclHessEvec,    /*  7: Hessian's eigenvectors: GT[9] */
+  gageScl2ndDD,       /*  8: 2nd dir.deriv. along gradient: *GT */
   gageSclGeomTens,    /*  9: symm. matrix w/ evals 0,K1,K2 and evecs grad,
-			     curvature directions (GST[9]) */
-  gageSclK1K2,        /* 10: principle curvature magnitudes (GST[2]) */
-  gageSclCurvDir,     /* 11: principle curvature directions (GST[6]) */
-  gageSclShapeIndex,  /* 12: Koen.'s shape index, ("S") (*GST) */
-  gageSclCurvedness,  /* 13: L2 norm of K1, K2 (not Koen.'s "C") (*GST) */
+			     curvature directions: GT[9] */
+  gageSclK1K2,        /* 10: principle curvature magnitudes: GT[2] */
+  gageSclCurvDir,     /* 11: principle curvature directions: GT[6] */
+  gageSclShapeIndex,  /* 12: Koen.'s shape index, ("S"): *GT */
+  gageSclCurvedness,  /* 13: L2 norm of K1, K2 (not Koen.'s "C"): *GT */
   gageSclLast
 };
 #define GAGE_SCL_MAX     13
 #define GAGE_SCL_TOTAL_ANS_LENGTH 50
 
+enum {
+  gageVecUnknown=-1,  /* -1: nobody knows */
+  gageVecVector,      /*  0: component-wise-interpolatd (CWI) vector: GT[3] */
+  gageVecLength,      /*  1: length of CWI vector: *GT */
+  gageVecNormalized,  /*  2: normalized CWI vector: GT[3] */
+  gageVecJacobian,    /*  3: component-wise Jacobian: GT[9] */
+  gageVecDivergence,  /*  4: divergence (based on Jacobian): *GT */
+  gageVecCurl,        /*  5: curl (based on Jacobian): *GT */
+  gageVecLast
+};
+#define GAGE_VEC_MAX      5
+#define GAGE_VEC_TOTAL_ANS_LENGTH 22
+
+/*
+******** gageVal... enum
+**
+** the different integer values/flags in a gageContext
+** that can be got (via gageValGet()) or set (via gageValSet())
+*/
+enum {
+  gageValUnknown=-1,     /* -1: nobody knows */
+  gageValVerbose,        /*  0: verbosity */
+  gageValRenormalize,    /*  1: make mask weights' sum = continuous integral */
+  gageValCheckIntegrals, /*  2: verify integrals of kernels */
+  gageValK3Pack,         /*  3: use only three kernels (00, 11, and 22) */
+  gageValNeedPad,        /*  4: given kernels chosen, the padding needed */
+  gageValHavePad,        /*  5: the padding of the volume used */
+  gageValLast
+};
+
 /*
 ******** gageContext struct
 **
-** this is for everything that is common to any volume probing, be it
-** scalar, vector, whatever.  The current intent is that, for the sake
-** of simplicity, this context is used in association with only one
-** volume, even though in principle the information stored here could
-** be shared across, say, a scalar and a vector volume of the same
-** dimensions and same padding.  On the off chance that that usage 
-** becomes supported, I have refrained from putting the Nrrd* inside
-** the gageContext.
-**
-** Note: these are never created or accessed by the user- all the
-** functionality relating to these is declared in private.h.  The
-** reason to make the gageContext struct declaration public is because
-** hiding it would be too clever, and would complicate setting and
-** accessing these fields for normal use and/or debugging.
+** The information here is specific to the dimensions, scalings, and
+** padding of a volume, but not to kind of volume (all kind-specific
+** information is in the gagePerVolume).  One context can be used in
+** conjuction with probing two different kinds of volumes.
 */
 typedef struct {
   /*  --------------------------------------- Input parameters */
   int verbose;                /* verbosity */
+  gage_t gradMagMin;          /* vector lengths can never be smaller 
+				 than this */
+  double integralNearZero;    /* tolerance with checkIntegrals */
   NrrdKernel *k[GAGE_KERNEL_NUM];
                               /* interp, 1st, 2nd deriv. kernels */
   double kparm[GAGE_KERNEL_NUM][NRRD_KERNEL_PARMS_NUM];
@@ -163,13 +181,25 @@ typedef struct {
 				 appropriate for the task for which
 				 the kernel is being set:
 				 reconstruction: 1.0, derivatives: 0.0 */
+  int k3pack;                 /* non-zero (true) iff we do not use
+				 kernels for gageKernelIJ with I != J.
+				 So, we use the value reconstruction
+				 kernel (gageKernel00) for 1st and 2nd
+				 derivative reconstruction, and so on.
+				 This is faster because we can re-use
+				 results from low-order convolutions. */
   /*  --------------------------------------- Internal state */
+  int haveVolume;             /* non-zero iff gageVolumeSet has been called
+				 (used to ensure that all volumes associated
+				 with this context are consistent */
   /*  ------------ kernel-dependent */
   int needPad;                /* amount of boundary margin required
 				 for current kernels (irrespective of
 				 query, which is perhaps foolish) */
   int fr, fd;                 /* max filter radius and diameter */
-  gage_t *fsl;                /* filter sample locations (all axes) */
+  gage_t *fsl,                /* filter sample locations (all axes) */
+    *fw;                      /* filter weights (all axes, all kernels):
+				 logically a fd x 3 x GAGE_KERNEL_NUM array */
   int *off;                   /* offsets to other fd^3 samples needed
 				 to fill 3D intermediate value
 				 cache. Allocated size is dependent on
@@ -186,13 +216,9 @@ typedef struct {
     fwScl[GAGE_KERNEL_NUM][3];/* how to rescale weights for each of the
 				 kernels according to non-unity-ness of
 				 sample spacing (0=X, 1=Y, 2=Z) */
-  /* ------------- query-dependent */
-  gage_t *fw[GAGE_KERNEL_NUM];/* the needed filter weights (all axes):
-				 whether or not these are allocated or
-				 left NULL prior to probing is
-				 determined by _gageUpdate(). The size
-				 that they are allocated to (3*fd) is
-				 dependent on the kernel set */
+  /*  ------------ query-dependent: actually, dependent on every query
+      associated with all pervolumes used with this context */
+  int needK[GAGE_KERNEL_NUM]; /* which kernels are needed */
   /*  ------------ probe-location-dependent */
   gage_t xf, yf, zf;          /* fractional voxel location of last
 				 query, used to short-circuit
@@ -204,55 +230,95 @@ typedef struct {
 } gageContext;
 
 /*
-******** gageSclContext struct
+******** gagePerVolume
 **
-** The input, state, and output needed for probing in scalar volumes
+** information that is specific to one volume, and to one kind of
+** volume.
 */
 typedef struct {
-  gageContext c;              /* the general context */
-  /*  --------------------------------------- Input parameters */
-  Nrrd *npad;                 /* user-padded nrrd.  This is not "owned" by
-				 the context- no nrrdNuke() or nrrdNix() call
-				 is made by gageSclContextNix() */
-  unsigned int query;         /* the query */
-  gage_t epsilon;             /* gradient magnitude can never be smaller
-				 than this */
+  int verbose;
+  unsigned int query;         /* the query (recursively expanded) */
+  Nrrd *npad;                 /* user-padded nrrd, not "owned" by gage,
+				 nrrdNuke() and nrrdNix() not called */
   /*  --------------------------------------- Internal state */
   /*  ------------ kernel-dependent */
-  int k3pack;                 /* non-zero (true) iff we have no
-				 kernels for gageKernelIJ with I != J.
-				 So, we use the value reconstruction
-				 kernel (gageKernel00) for 1st and 2nd
-				 derivative reconstruction, and so on.
-				 This is faster because we can re-use
-				 results from low-order convolutions. */
   gage_t *iv3, *iv2, *iv1;    /* 3D, 2D, 1D, value caches */
   /*  ------------ volume-dependent */
+  struct gageKind_t *kind;
   gage_t (*lup)(void *ptr, nrrdBigInt I); 
                               /* nrrd{F,D}Lookup[] element, according to
 				 npad and gage_t */
-  /* ------------- query-dependent */
+  /*  ------------ query-dependent: these represent the needs of
+      the one query associated with this pervolume */
   int doV, doD1, doD2;        /* which derivatives need to be calculated
 				 (more immediately useful for 3pack) */
   int needK[GAGE_KERNEL_NUM]; /* which kernels are needed */
   /*  --------------------------------------- Output */
+  void *ans;                  /* an answer struct, such as gageSclAnswer */
+} gagePerVolume;
+
+/*
+******** gageKind struct
+**
+** all the information and functions that are needed to handle one
+** kind of volume (such as scalar, vector, etc.)
+*/
+typedef struct gageKind_t {
+  int baseDim,                      /* dimension that x,y,z axes start on */
+    valLen,                         /* number of scalars per data point */
+    queryMax,                       /* such as GAGE_SCL_MAX */
+    totalAnsLen,                    /* such as GAGE_SCL_TOTAL_ANS_LENGTH */
+    *needDeriv;                     /* such as _gageSclNeedDeriv */
+  unsigned int *queryPrereq;        /* such as _gageSclPrereq; */
+  void (*queryPrint)(unsigned int), /* such as _gageSclPrint_query() */
+    *(*ansNew)(void),               /* such as _gageSclAnswerNew() */
+    *(*ansNix)(void *),             /* such as _gageSclAnswerNix() */
+    (*iv3Print)(gageContext *,      /* such as _gageSclPrint_iv3() */
+		gagePerVolume *),
+    (*filter)(gageContext *,        /* such as _gageSclFilter() */
+	      gagePerVolume *),
+    (*answer)(gageContext *,        /* such as _gageSclAnswer() */
+	      gagePerVolume *);
+} gageKind;
+
+/*
+******** gageSclAnswer struct
+**
+** Where answers to scalar probing are stored.
+*/
+typedef struct {
   gage_t
-    ans[GAGE_SCL_TOTAL_ANS_LENGTH],
-                              /* where all the answers are held */
-    *val, *gvec,              /* convenience pointers into ans[] */
+    ans[GAGE_SCL_TOTAL_ANS_LENGTH],  /* all the answers */
+    *val, *gvec,                     /* convenience pointers into ans[] */
     *gmag, *norm,      
     *hess, *lapl, *heval, *hevec, *scnd,
     *gten, *k1k2, *cdir, *S, *C;
-} gageSclContext;
+} gageSclAnswer;
+
+/*
+******** gageVecAnswer struct
+**
+** Where answers to vector probing are stored.
+*/
+typedef struct {
+  gage_t
+    ans[GAGE_VEC_TOTAL_ANS_LENGTH], /* all the answers */
+    *vec, *len,                     /* convenience pointers into ans[] */
+    *norm, *jac,      
+    *div, *curl;
+} gageVecAnswer;
 
 /* defaults.c */
 extern int gageDefVerbose;
+extern gage_t gageDefGradMagMin;
 extern int gageDefRenormalize;
 extern int gageDefCheckIntegrals;
-extern double gageDefSclEpsilon;
+extern int gageDefK3Pack;
 
 /* enums.c */
+extern airEnum gageKernel;
 extern airEnum gageScl;
+extern airEnum gageVec;
 
 /* arrays.c */
 extern char gageErrStr[AIR_STRLEN_LARGE];
@@ -260,22 +326,31 @@ extern int gageErrNum;
 extern gage_t gageSclZeroNormal[3];
 extern int gageSclAnsLength[GAGE_SCL_MAX+1];
 extern int gageSclAnsOffset[GAGE_SCL_MAX+1];
-extern int gageSclAnsLen[GAGE_SCL_MAX+1];
+extern int gageVecAnsLength[GAGE_VEC_MAX+1];
+extern int gageVecAnsOffset[GAGE_VEC_MAX+1];
 
-/* sclmethods.c */
-extern gageSclContext *gageSclContextNew();
-extern gageSclContext *gageSclContextNix(gageSclContext *sctx);
-extern int gageSclKernelSet(gageSclContext *sctx,
-			    int which, NrrdKernel *k, double *kparm);
-extern void gageSclKernelReset(gageSclContext *sctx);
-extern int gageSclNeedPadGet(gageSclContext *sctx);
-extern int gageSclVolumeSet(gageSclContext *sctx, int pad, Nrrd *npad);
-extern int gageSclQuerySet(gageSclContext *sctx, unsigned int query);
-extern int gageSclUpdate(gageSclContext *sctx);
-extern gageSclContext *gageSclContextCopy(gageSclContext *sctx);
+/* kinds.c */
+extern gageKind *gageKindScalar;
+extern gageKind *gageKindVector;
 
-/* scl.c */
-extern int gageSclProbe(gageSclContext *sctx, gage_t x, gage_t y, gage_t z);
+/* methods.c */
+extern gageContext *gageContextNew();
+extern gageContext *gageContextNix(gageContext *ctx);
+extern gagePerVolume *gagePerVolumeNew(int needPad, gageKind *kind);
+extern gagePerVolume *gagePerVolumeNix(gagePerVolume *pvl);
+
+/* general.c */
+extern void gageValSet(gageContext *ctx, int which, int val);
+extern int gageValGet(gageContext *ctx, int which);
+extern int gageKernelSet(gageContext *ctx,
+			 int which, NrrdKernel *k, double *kparm);
+extern void gageKernelReset(gageContext *ctx);
+extern int gageVolumeSet(gageContext *ctx, gagePerVolume *pvl,
+			 Nrrd *npad, int havePad);
+extern int gageQuerySet(gagePerVolume *pvl, unsigned int query);
+extern int gageUpdate(gageContext *ctx, gagePerVolume *pvl);
+extern int gageProbe(gageContext *ctx, gagePerVolume *pvl,
+		     gage_t x, gage_t y, gage_t z);
 
 #endif /* GAGE_HAS_BEEN_INCLUDED */
 #ifdef __cplusplus
