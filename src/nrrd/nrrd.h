@@ -601,13 +601,13 @@ TEEM_API int nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *io);
 TEEM_API int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIoState *io);
 /* write.c */
 TEEM_API int nrrdIoStateSet(NrrdIoState *io, int parm, int value);
-TEEM_API int nrrdIoStateSetEncoding(NrrdIoState *io,
+TEEM_API int nrrdIoStateEncodingSet(NrrdIoState *io,
 				    const NrrdEncoding *encoding);
-TEEM_API int nrrdIoStateSetFormat(NrrdIoState *io, 
+TEEM_API int nrrdIoStateFormatSet(NrrdIoState *io, 
 				  const NrrdFormat *format);
 TEEM_API int nrrdIoStateGet(NrrdIoState *io, int parm);
-TEEM_API const NrrdEncoding *nrrdIoStateGetEncoding(NrrdIoState *io);
-TEEM_API const NrrdFormat *nrrdIoStateBetFormat(NrrdIoState *io);
+TEEM_API const NrrdEncoding *nrrdIoStateEncodingGet(NrrdIoState *io);
+TEEM_API const NrrdFormat *nrrdIoStateFormatGet(NrrdIoState *io);
 TEEM_API int nrrdSave(const char *filename, const Nrrd *nrrd, NrrdIoState *io);
 TEEM_API int nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIoState *io);
 

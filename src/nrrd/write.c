@@ -95,8 +95,8 @@ nrrdIoStateSet (NrrdIoState *nio, int parm, int value) {
 }
 
 int
-nrrdIoStateSetEncoding (NrrdIoState *nio, const NrrdEncoding *encoding) {
-  char me[]="nrrdIoStateSetEncoding", err[AIR_STRLEN_MED];
+nrrdIoStateEncodingSet (NrrdIoState *nio, const NrrdEncoding *encoding) {
+  char me[]="nrrdIoStateEncodingSet", err[AIR_STRLEN_MED];
 
   if (!( nio && encoding )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -116,8 +116,8 @@ nrrdIoStateSetEncoding (NrrdIoState *nio, const NrrdEncoding *encoding) {
 }
 
 int
-nrrdIoStateSetFormat (NrrdIoState *nio, const NrrdFormat *format) {
-  char me[]="nrrdIoStateSetFormat", err[AIR_STRLEN_MED];
+nrrdIoStateFormatSet (NrrdIoState *nio, const NrrdFormat *format) {
+  char me[]="nrrdIoStateFormatSet", err[AIR_STRLEN_MED];
 
   if (!( nio && format )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -190,7 +190,7 @@ nrrdIoStateGet (NrrdIoState *nio, int parm) {
 ** no biff
 */
 const NrrdEncoding *
-nrrdIoStateGetEncoding (NrrdIoState *nio) {
+nrrdIoStateEncodingGet (NrrdIoState *nio) {
 
   return nio ? nio->encoding : nrrdEncodingUnknown;
 }
@@ -199,7 +199,7 @@ nrrdIoStateGetEncoding (NrrdIoState *nio) {
 ** no biff
 */
 const NrrdFormat *
-nrrdIoStateGetFormat (NrrdIoState *nio) {
+nrrdIoStateFormatGet (NrrdIoState *nio) {
 
   return nio ? nio->format : nrrdFormatUnknown;
 }
