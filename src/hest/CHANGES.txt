@@ -1,0 +1,6 @@
+Changes from 1.4:
+
+- added hestElideSingleEmptyStringDefault and the associated
+member of the hparm struct, elideSingleEmptyStringDefault.
+With this true, if parsing a single string, and the default
+is "", then the default will not be displayed in the glossary.
