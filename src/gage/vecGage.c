@@ -100,9 +100,8 @@ void
 _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageVecAnswer";
   double tmpMat[9], mgevec[9], mgeval[3];
-  gage_t *ans, *vecAns, *normAns, *jacAns;
+  gage_t *vecAns, *normAns, *jacAns;
 
-  ans = pvl->answer;
   vecAns = pvl->directAnswer[gageVecVector];
   jacAns = pvl->directAnswer[gageVecJacobian];
   normAns = pvl->directAnswer[gageVecNormalized];

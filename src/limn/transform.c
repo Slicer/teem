@@ -329,7 +329,6 @@ int
 limnObjectFaceReverse(limnObject *obj) {
   char me[]="limnObjectFaceReverse", err[AIR_STRLEN_MED];
   limnFace *face; int faceIdx;
-  limnPart *part;
   int *buff, sii;
 
   if (!obj) {
@@ -339,7 +338,6 @@ limnObjectFaceReverse(limnObject *obj) {
   buff = NULL;
   for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
     face = obj->face + faceIdx;
-    part = obj->part + face->partIdx;
     buff = (int *)calloc(face->sideNum, sizeof(int));
     if (!(buff)) {
       sprintf(err, "%s: couldn't allocate %d side buffer for face %d\n", 

@@ -106,7 +106,7 @@ _tenGageFilter (gageContext *ctx, gagePerVolume *pvl) {
 void
 _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   /* char me[]="_tenGageAnswer"; */
-  gage_t *ans, *tenAns, *tgradAns, *QgradAns, *evalAns, *evecAns, tmptmp=0,
+  gage_t *tenAns, *tgradAns, *QgradAns, *evalAns, *evecAns, tmptmp=0,
     dtA=0, dtB=0, dtC=0, dtD=0, dtE=0, dtF=0, cbA, cbB;
   int wantEvals, wantEvecs;
 
@@ -115,7 +115,6 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   float tenAnsF[7], evalAnsF[3], evecAnsF[9], aniso[TEN_ANISO_MAX+1];
 #endif
 
-  ans = pvl->answer;
   tenAns = pvl->directAnswer[tenGageTensor];
   tgradAns = pvl->directAnswer[tenGageTensorGrad];
   QgradAns = pvl->directAnswer[tenGageQGradVec];

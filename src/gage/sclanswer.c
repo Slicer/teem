@@ -23,13 +23,12 @@
 void
 _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageSclAnswer";
-  gage_t *ans, gmag=0, *hess, *norm, *gvec, *gten, *k1, *k2, sHess[9], curv=0;
+  gage_t gmag=0, *hess, *norm, *gvec, *gten, *k1, *k2, sHess[9], curv=0;
   double tmpMat[9], tmpVec[3], hevec[9], heval[3];
 
   gage_t len, gp1[3], gp2[3], *nPerp, nProj[9], ncTen[9];
   double T, N, D;
 
-  ans = pvl->answer;
   /* convenience pointers for work below */
   hess = pvl->directAnswer[gageSclHessian];
   gvec = pvl->directAnswer[gageSclGradVec];
