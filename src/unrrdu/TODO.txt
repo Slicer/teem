@@ -1,3 +1,5 @@
+make "unu make" into a nrrd function
+
 unu minmax takes multiple arguments
 
 enable the unu 2op and 3op operations that output integers to save
@@ -9,9 +11,6 @@ than being able to change input type, for operations like "gt".
 ----- teem 1.5 cut-off -----
 
 unu squeeze (like matlab)
-
-make unu check on environment variables, so that nrrdDef* and nrrdState*
-variables can be set that way
 
 figure out why I was getting a MIO (memory in use) error with 
 unu resample when I had the bug in nrrdAlloc_nva (where the
