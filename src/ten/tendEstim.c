@@ -36,30 +36,42 @@ int
 tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
-  char *perr, *err, *terrS;
+  char *perr, *err;
   airArray *mop;
 
   Nrrd **nin, *nbmat, *nterr=NULL, *nB0=NULL, *nout;
-  char *outS;
-  float thresh, soft, b;
+  char *outS, *terrS, *eb0S;
+  float thresh, soft, b, scale;
   int ninLen, eret, knownB0;
 
-  hestOptAdd(&hopt, "e", "filename", airTypeString, 1, 1, &terrS, "",
-	     "Giving a filename here allows you to save out the tensor "
+  hestOptAdd(&hopt, "ee", "filename", airTypeString, 1, 1, &terrS, "",
+	     "Giving a filename here allows you to save out the tensor estimation "
 	     "error: a value which measures how much error there is between "
 	     "the tensor model and the given diffusion weighted measurements "
 	     "for each sample.  By default, no such error calculation is "
 	     "saved.");
+  hestOptAdd(&hopt, "eb", "filename", airTypeString, 1, 1, &eb0S, "",
+	     "In those cases where there is no B=0 reference image given "
+	     "(\"-knownB0 false\"), "
+	     "giving a filename here allows you to save out the B=0 image "
+	     "which is estimated from the data.  By default, this image value "
+	     "is estimated but not saved.");
   hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "nan",
 	     "value at which to threshold the mean DWI value per pixel "
 	     "in order to generate the \"confidence\" mask.  By default, "
 	     "the threshold value is calculated automatically, based on "
 	     "histogram analysis.");
-  hestOptAdd(&hopt, "s", "soft", airTypeFloat, 1, 1, &soft, "0",
+  hestOptAdd(&hopt, "soft", "soft", airTypeFloat, 1, 1, &soft, "0",
 	     "how fuzzy the confidence boundary should be.  By default, "
 	     "confidence boundary is perfectly sharp");
-  hestOptAdd(&hopt, "B", "B-matrix", airTypeOther, 1, 1, &nbmat, NULL,
-	     "6-by-N B-matrix characterizing the diffusion weighting for each "
+  hestOptAdd(&hopt, "scale", "scale", airTypeFloat, 1, 1, &scale, "1",
+	     "Ffter estimating the tensor, scale all of its elements "
+	     "(but not the confidence value) by this amount.  Can help with "
+	     "downstream numerical precision if values are very large "
+	     "or small.");
+  hestOptAdd(&hopt, "B", "B-list", airTypeOther, 1, 1, &nbmat, NULL,
+	     "6-by-N list of B-matrices characterizing "
+	     "the diffusion weighting for each "
 	     "image.  \"tend bmat\" is one source for such a matrix; see "
 	     "its usage info for specifics on how the coefficients of "
 	     "the B-matrix are ordered. "
@@ -102,6 +114,13 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
     eret = tenEstimateLinear3D(nout, airStrlen(terrS) ? &nterr : NULL, &nB0,
 			       nin, ninLen, nbmat, knownB0, thresh, soft, b);
   }
+  if (1 != scale) {
+    if (tenSizeScale(nout, nout, scale)) {
+      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble doing scaling:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
+  }
   if (eret) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making tensor volume:\n%s\n", me, err);
@@ -110,16 +129,17 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (nterr) {
     if (nrrdSave(terrS, nterr, NULL)) {
       airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
+      fprintf(stderr, "%s: trouble writing error image:\n%s\n", me, err);
       airMopError(mop); return 1;
     }
   }
-
-  /* HEY: this is stupid */
-  /*
-  nrrdSave("estimB0.nrrd", nB0, NULL);
-  nrrdNuke(nB0);
-  */
+  if (!knownB0 && airStrlen(eb0S)) {
+    if (nrrdSave(eb0S, nB0, NULL)) {
+      airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble writing estimated B=0 image:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
+  }
 
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
