@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 #define INFO "Generate a pretty synthetic DT volume"
 char *_tend_satinInfoL =

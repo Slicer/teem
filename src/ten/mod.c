@@ -19,7 +19,7 @@
 
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 int
 tenSizeNormalize(Nrrd *nout, Nrrd *nin, float _weight[3],

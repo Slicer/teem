@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 int
 _tenEpiRegSave(char *fname, Nrrd *nsingle, Nrrd **nmulti,

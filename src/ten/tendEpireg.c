@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 #define INFO "Register diffusion-weighted echo-planar images"
 char *_tend_epiregInfoL =

@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 #define INFO "Calculate one or more eigenvectors in a DT volume"
 char *_tend_evecInfoL =

@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 #define INFO "Scale the anisotropic component of the tensors"
 char *_tend_anscaleInfoL =

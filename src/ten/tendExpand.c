@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 #define INFO "Converts a 7-value DT volume to a 9-value DT volume"
 char *_tend_expandInfoL =

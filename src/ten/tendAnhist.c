@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 #define INFO "Generate barycentric histograms of anisotropy"
 char *_tend_anhistInfoL =

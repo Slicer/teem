@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 #define INFO "Generate postscript renderings of 2D glyphs"
 char *_tend_ellipseInfoL =

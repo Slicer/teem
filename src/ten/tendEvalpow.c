@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 #define INFO "Modify shape by raising eigenvalues to some power"
 char *_tend_evalpowInfoL =

@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 #define INFO "Modify shape by adding a constant to all eigenvalues"
 char *_tend_evaladdInfoL =

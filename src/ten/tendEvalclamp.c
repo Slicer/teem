@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 #define INFO "Modify shape by clamping eigenvalues in some range"
 char *_tend_evalclampInfoL =

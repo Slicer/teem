@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 #define INFO "Apply an anisotropy metric to a DT volume"
 char *_tend_anvolInfoL =

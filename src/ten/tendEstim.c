@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 #define INFO "Estimate tensors from a set of DW images"
 char *_tend_estimInfoL =

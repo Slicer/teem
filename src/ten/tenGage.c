@@ -19,7 +19,7 @@
 
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 /*
   tenGageTensor,        *  0: "t", the reconstructed tensor: GT[7] *

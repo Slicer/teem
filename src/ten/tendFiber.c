@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 #define INFO "Extract a single fiber tract, given a start point"
 char *_tend_fiberInfoL =

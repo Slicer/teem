@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 #define INFO "Create DT volume from confidence and eigensystem"
 char *_tend_makeInfoL =

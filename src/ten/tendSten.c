@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 #define INFO "Calculate structure tensors from a scalar field"
 char *_tend_stenInfoL =

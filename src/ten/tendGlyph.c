@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 #define INFO "Generate postscript or ray-traced renderings of 3D glyphs"
 char *_tend_glyphInfoL =

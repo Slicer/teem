@@ -19,7 +19,7 @@
 
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 int
 tenEvecRGB(Nrrd *nout, Nrrd *nin, int which, int aniso,

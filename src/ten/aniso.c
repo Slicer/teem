@@ -17,9 +17,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 float tenAnisoSigma = 0.000001;
 

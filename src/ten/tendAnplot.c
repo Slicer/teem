@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 #define INFO "Graph anisotropy metric in barycentric coords"
 char *_tend_anplotInfoL =

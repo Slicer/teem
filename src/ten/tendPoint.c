@@ -18,7 +18,7 @@
 */
 
 #include "ten.h"
-#include "tenPrivate.h"
+#include "privateTen.h"
 
 #define INFO "Describe everything about one sample in a DT volume"
 char *_tend_pointInfoL =
