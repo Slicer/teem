@@ -17,6 +17,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef TENMACROS_HAS_BEEN_INCLUDED
 #define TENMACROS_HAS_BEEN_INCLUDED
 
@@ -64,3 +68,7 @@
 
 
 #endif /* TENMACROS_HAS_BEEN_INCLUDED */
+
+#ifdef __cplusplus
+}
+#endif

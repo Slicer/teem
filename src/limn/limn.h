@@ -17,6 +17,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #ifndef LIMN_HAS_BEEN_INCLUDED
 #define LIMN_HAS_BEEN_INCLUDED
@@ -306,3 +310,7 @@ extern int limnObjPSRender(limnObj *obj, limnCam *cam,
 
 
 #endif /* LIMN_HAS_BEEN_INCLUDED */
+
+#ifdef __cplusplus
+}
+#endif

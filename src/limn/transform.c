@@ -84,7 +84,7 @@ _limnObjVTransform(limnObj *obj, limnCam *cam) {
     p = obj->p + pi;
     ELL_4MV_MUL(p->v, cam->W2V, p->w);
     d = 1.0/p->v[3];
-    ELL_4V_SCALE(p->v, p->v, d);
+    ELL_4V_SCALE(p->v, d, p->v);
   }
   return 0;
 }
