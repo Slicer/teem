@@ -37,7 +37,7 @@ nrrdMinMaxSet(Nrrd *nrrd) {
   NRRD_TYPE_BIGGEST _min, _max;
 
   if (nrrd) {
-    if (airEnumValValid(nrrdType, nrrd->type)
+    if (!airEnumValCheck(nrrdType, nrrd->type)
 	&& nrrdTypeBlock != nrrd->type) {
       nrrdFindMinMax[nrrd->type](&_min, &_max, nrrd);
       nrrd->min = nrrdDLoad[nrrd->type](&_min);
@@ -75,7 +75,7 @@ nrrdMinMaxCleverSet(Nrrd *nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValValid(nrrdType, nrrd->type)) {
+  if (airEnumValCheck(nrrdType, nrrd->type)) {
     sprintf(err, "%s: input nrrd has invalid type (%d)", me, nrrd->type);
     biffAdd(NRRD, err); return 1;
   }
@@ -142,8 +142,8 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
   size_t num;
 
   if (!( nin && nout 
-	 && airEnumValValid(nrrdType, nin->type)
-	 && airEnumValValid(nrrdType, type) )) {
+	 && !airEnumValCheck(nrrdType, nin->type)
+	 && !airEnumValCheck(nrrdType, type) )) {
     sprintf(err, "%s: invalid args", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -241,10 +241,6 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(8 == bits || 16 == bits || 32 == bits)) {
-    sprintf(err, "%s: bits has to be 8, 16, or 32 (not %d)", me, bits);
-    biffAdd(NRRD, err); return 1;
-  }
   if (nrrdTypeBlock == nin->type) {
     sprintf(err, "%s: can't quantize type %s", me,
 	    airEnumStr(nrrdType, nrrdTypeBlock));
@@ -255,6 +251,9 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   case 8:  type = nrrdTypeUChar;  break;
   case 16: type = nrrdTypeUShort; break;
   case 32: type = nrrdTypeUInt;   break;
+  default:
+    sprintf(err, "%s: bits has to be 8, 16, or 32 (not %d)", me, bits);
+    biffAdd(NRRD, err); return 1;
   }
   if (nout == nin && nrrdTypeSize[type] != nrrdTypeSize[nin->type]) {
     sprintf(err, "%s: nout==nin but input,output type sizes unequal", me);
@@ -360,7 +359,7 @@ nrrdUnquantize(Nrrd *nout, Nrrd *nin, int type) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValValid(nrrdType, type)) {
+  if (airEnumValCheck(nrrdType, type)) {
     sprintf(err, "%s: don't recognize type %d\n", me, type);
     biffAdd(NRRD, err); return 1;
   }
