@@ -558,7 +558,6 @@ extern int nrrdSameSize(const Nrrd *n1, const Nrrd *n2, int useBiff);
 extern int nrrdCommentAdd(Nrrd *nrrd, const char *str);
 extern void nrrdCommentClear(Nrrd *nrrd);
 extern int nrrdCommentCopy(Nrrd *nout, const Nrrd *nin);
-extern char *nrrdCommentScan(Nrrd *nrrd, const char *key);
 
 /******** key/value pairs */
 /* keyvalue.c */
