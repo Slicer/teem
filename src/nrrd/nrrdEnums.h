@@ -375,7 +375,7 @@ enum {
   nrrdField_data_file,        /* 31 */
   nrrdField_last
 };
-#define NRRD_FIELD_MAX          31
+#define NRRD_FIELD_MAX           31
 
 /* 
 ******** nrrdHasNonExist* enum

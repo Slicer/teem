@@ -44,7 +44,7 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
     dio = airNoDio_format;
   }
   if (airNoDio_okay == dio) {
-    if (2 <= nrrdStateVerboseIO) {
+    if (nrrdStateVerboseIO >= 2) {
       fprintf(stderr, "with direct I/O ... ");
     }
     ret = airDioRead(fd, data, bsize);
@@ -56,11 +56,10 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
       biffAdd(NRRD, err); return 1;
     }
   } else {
-    if (2 <= nrrdStateVerboseIO) {
+    if (nrrdStateVerboseIO >= 2) {
       if (AIR_DIO && nio->format->usesDIO) {
         fprintf(stderr, "with fread(), not DIO: %s ...", airNoDioErr(dio));
       }
-      fprintf(stderr, "... ");
     }
     ret = fread(data, nrrdElementSize(nrrd), elementNum, file);
     if (ret != elementNum) {
@@ -77,7 +76,7 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
               "but file not at EOF\n", me);
       ungetc(car, file);
     }
-    if (nrrdStateVerboseIO && nio->byteSkip && stdin != file) {
+    if (nrrdStateVerboseIO >= 2 && nio->byteSkip && stdin != file) {
       savePos = ftell(file);
       if (!fseek(file, 0, SEEK_END)) {
         fprintf(stderr, "(%s: used %g%% of file for nrrd data)\n",
@@ -106,7 +105,7 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
     dio = airNoDio_format;
   }
   if (airNoDio_okay == dio) {
-    if (2 <= nrrdStateVerboseIO) {
+    if (nrrdStateVerboseIO >= 2) {
       fprintf(stderr, "with direct I/O ... ");
     }
     ret = airDioWrite(fd, data, bsize);
@@ -118,11 +117,10 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
       biffAdd(NRRD, err); return 1;
     }
   } else {
-    if (2 <= nrrdStateVerboseIO) {
+    if (nrrdStateVerboseIO >= 2) {
       if (AIR_DIO && nio->format->usesDIO) {
         fprintf(stderr, "with fread(), not DIO: %s ...", airNoDioErr(dio));
       }
-      fprintf(stderr, "... ");
     }
     ret = fwrite(data, nrrdElementSize(nrrd), elementNum, file);
     if (ret != elementNum) {

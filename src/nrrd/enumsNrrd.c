@@ -28,7 +28,11 @@
 ** 1) Be awake and undistracted.  Turn down the music.
 ** 2) When editing the char arrays, make sure that you put commas
 **    where you mean them to be.  C's automatic string concatenation 
-**    is not your friend here.
+**    is not your friend here.  In fact, EXPLOIT the fact that you can have
+**    a comma after the last element of a list (of strings)- it decreases
+**    the chances that adding a new element at the end will be thwarted by 
+**    the lack of a comma at the end of the previous (and previously last)
+**    string.
 ** 3) When editing the *StrEqv and *ValEqv arrays, make absolutely
 **    sure that both are changed in parallel.  Use only one enum value
 **    per line; putting all equivalents on that line, and make sure that
@@ -48,7 +52,7 @@ _nrrdFormatTypeStr[NRRD_FORMAT_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "png",
   "vtk",
   "text",
-  "eps"
+  "eps",
 };
 
 char
@@ -59,7 +63,7 @@ _nrrdFormatTypeDesc[NRRD_FORMAT_TYPE_MAX+1][AIR_STRLEN_MED] = {
   "Portable Network Graphics: lossless compression of 8- and 16-bit data",
   "Visualization ToolKit STRUCTURED_POINTS data",
   "white-space-delimited plain text encoding of 2-D float array",
-  "Encapsulated PostScript images"
+  "Encapsulated PostScript images",
 };
 
 char
@@ -80,7 +84,7 @@ _nrrdFormatTypeValEqv[] = {
   nrrdFormatTypePNG,
   nrrdFormatTypeVTK,
   nrrdFormatTypeText, nrrdFormatTypeText, nrrdFormatTypeText,
-  nrrdFormatTypeEPS
+  nrrdFormatTypeEPS,
 };
 
 airEnum
@@ -110,7 +114,7 @@ _nrrdTypeStr[NRRD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "unsigned long long int",
   "float",
   "double",
-  "block"
+  "block",
 };
 
 char 
@@ -126,7 +130,7 @@ _nrrdTypeDesc[NRRD_TYPE_MAX+1][AIR_STRLEN_MED] = {
   "unsigned 8-byte integer",
   "4-byte floating point",
   "8-byte floating point",
-  "size user-defined at run-time"
+  "size user-defined at run-time",
 };
 
 #define ntCH nrrdTypeChar
@@ -171,7 +175,7 @@ _nrrdTypeValEqv[] = {
   ntUL, ntUL, ntUL, ntUL, ntUL, 
   ntFL,
   ntDB,
-  ntBL
+  ntBL,
 };
 
 airEnum
@@ -195,7 +199,7 @@ _nrrdEncodingTypeStr[NRRD_ENCODING_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "ascii",
   "hex",
   "gz",
-  "bz2"
+  "bz2",
 };
 
 char
@@ -205,7 +209,7 @@ _nrrdEncodingTypeDesc[NRRD_ENCODING_TYPE_MAX+1][AIR_STRLEN_MED] = {
   "values written out in ASCII",
   "case-insenstive hexadecimal encoding (2 chars / byte)",
   "gzip compression of binary encoding",
-  "bzip2 compression of binary encoding"
+  "bzip2 compression of binary encoding",
 };
 
 char
@@ -226,7 +230,7 @@ _nrrdEncodingTypeValEqv[] = {
   nrrdEncodingTypeAscii, nrrdEncodingTypeAscii, nrrdEncodingTypeAscii,
   nrrdEncodingTypeHex,
   nrrdEncodingTypeGzip, nrrdEncodingTypeGzip,
-  nrrdEncodingTypeBzip2, nrrdEncodingTypeBzip2
+  nrrdEncodingTypeBzip2, nrrdEncodingTypeBzip2,
 };
 
 airEnum
@@ -247,7 +251,7 @@ char
 _nrrdCenterStr[NRRD_CENTER_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_center)",
   "node",
-  "cell"
+  "cell",
 };
 
 char
@@ -319,7 +323,7 @@ _nrrdKindStr[NRRD_KIND_MAX+1][AIR_STRLEN_SMALL] = {
   "3D-symmetric-matrix",
   "3D-masked-symmetric-matrix",
   "3D-matrix",
-  "3D-masked-matrix"
+  "3D-masked-matrix",
 };
 
 char
@@ -345,7 +349,7 @@ _nrrdKindDesc[NRRD_KIND_MAX+1][AIR_STRLEN_MED] = {
   "6 elements of 3D symmetric matrix: Mxx Mxy Mxz Myy Myz Mzz",
   "mask plus 6 elements of 3D symmetric matrix: mask Mxx Mxy Mxz Myy Myz Mzz",
   "9 elements of general 3D matrix: Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz",
-  "mask plus 9 elements of general 3D matrix: mask Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz"
+  "mask plus 9 elements of general 3D matrix: mask Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz",
 };
 
 char
@@ -461,7 +465,7 @@ _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL] = {
   "key/value",
   "sample units",
   "space units",
-  "space origin"
+  "space origin",
   "data file",
 };
 
@@ -617,7 +621,7 @@ _nrrdSpaceStr[NRRD_SPACE_MAX+1][AIR_STRLEN_SMALL] = {
   "3D-right-handed",
   "3D-left-handed",
   "3D-right-handed-time",
-  "3D-left-handed-time"
+  "3D-left-handed-time",
 };
 
 char
@@ -634,7 +638,7 @@ _nrrdSpaceDesc[NRRD_SPACE_MAX+1][AIR_STRLEN_MED] = {
   "3D-right-handed",
   "3D-left-handed",
   "3D-right-handed-time",
-  "3D-left-handed-time"
+  "3D-left-handed-time",
 };
 
 char
@@ -710,7 +714,7 @@ _nrrdBoundaryStr[NRRD_BOUNDARY_MAX+1][AIR_STRLEN_SMALL] = {
   "pad",
   "bleed",
   "wrap",
-  "weight"
+  "weight",
 };
 
 char
@@ -719,7 +723,7 @@ _nrrdBoundaryDesc[NRRD_BOUNDARY_MAX+1][AIR_STRLEN_MED] = {
   "pad with some specified value",
   "copy values from edge outward as needed",
   "wrap around to other end of axis",
-  "re-weight (by normalization) samples within axis range"
+  "re-weight (by normalization) samples within axis range",
 };
 
 airEnum
@@ -764,7 +768,7 @@ _nrrdMeasureStr[NRRD_MEASURE_MAX+1][AIR_STRLEN_SMALL] = {
   "histo-sum",
   "histo-L2",
   "histo-variance",
-  "histo-SD"
+  "histo-SD",
 };
 
 char
@@ -795,7 +799,7 @@ _nrrdMeasureDesc[NRRD_MEASURE_MAX+1][AIR_STRLEN_MED] = {
   "sum of histogrammed values",
   "L2 norm of histogrammed values",
   "variance of histogrammed values",
-  "standard deviation of histogrammed values"
+  "standard deviation of histogrammed values",
 };
 
 char
@@ -859,7 +863,7 @@ _nrrdMeasureValEqv[] = {
   nrrdMeasureHistoSum,
   nrrdMeasureHistoL2,
   nrrdMeasureHistoVariance, nrrdMeasureHistoVariance,
-  nrrdMeasureHistoSD
+  nrrdMeasureHistoSD,
 };
 
 airEnum
@@ -927,7 +931,7 @@ _nrrdUnaryOpStr[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "abs",
   "sgn",
   "exists",
-  "rand"
+  "rand",
 };
 
 char 
@@ -956,7 +960,7 @@ _nrrdUnaryOpDesc[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_MED] = {
   "absolute value",
   "sign of value (-1, 0, or 1)",
   "value is not infinity or NaN",
-  "random value between 0 and 1"
+  "random value between 0 and 1",
 };
 
 char
@@ -1013,7 +1017,7 @@ _nrrdUnaryOpValEqv[] = {
   nuAbs, nuAbs,
   nuSgn, nuSgn,
   nuExs,
-  nuRnd
+  nuRnd,
 };
 
 airEnum
@@ -1052,7 +1056,7 @@ _nrrdBinaryOpStr[NRRD_BINARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "eq",
   "neq",
   "exists",
-  "if"
+  "if",
 };
 
 char 
@@ -1077,7 +1081,7 @@ _nrrdBinaryOpDesc[NRRD_BINARY_OP_MAX+1][AIR_STRLEN_MED] = {
   "equal",
   "not equal",
   "if exists(a), then a, else b",
-  "if a, then a, else b"
+  "if a, then a, else b",
 };
 
 #define nbAdd nrrdBinaryOpAdd
@@ -1176,7 +1180,7 @@ _nrrdTernaryOpStr[NRRD_TERNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "lerp",
   "exists",
   "in_op",
-  "in_cl"
+  "in_cl",
 };
 
 char 
@@ -1191,7 +1195,7 @@ _nrrdTernaryOpDesc[NRRD_TERNARY_OP_MAX+1][AIR_STRLEN_MED] = {
   "linearly interpolate between 2nd value (1st = 0.0) and 3rd (1st = 1.0)",
   "if 1st value exists, the 2nd value, else the 3rd",
   "2nd value is inside OPEN interval range between 1st and 3rd",
-  "2nd value is inside CLOSED interval range between 1st and 3rd"
+  "2nd value is inside CLOSED interval range between 1st and 3rd",
 };
 
 #define ntAdd nrrdTernaryOpAdd
@@ -1223,7 +1227,7 @@ _nrrdTernaryOpValEqv[] = {
   nrrdTernaryOpLerp,
   nrrdTernaryOpExists,
   nrrdTernaryOpInOpen,
-  nrrdTernaryOpInClosed
+  nrrdTernaryOpInClosed,
 };
 
 airEnum

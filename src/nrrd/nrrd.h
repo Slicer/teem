@@ -268,7 +268,7 @@ typedef struct NrrdIoState_t {
     *base,                  /* when "save"ing a nrrd into seperate
                                header and data, the name of the header
                                file (e.g. "output.nhdr") MINUS the ".nhdr".
-                               This is  massaged to produce a header-
+                               This is massaged to produce a header-
                                relative data filename.  */
     *line,                  /* buffer for saving one line from file */
     *dataFNFormat,          /* if non-NULL, the format string (containing 
@@ -695,6 +695,9 @@ TEEM_API const NrrdEncoding *const nrrdEncodingUnknown;
 TEEM_API const NrrdEncoding *
   const nrrdEncodingArray[NRRD_ENCODING_TYPE_MAX+1];
 /* parseNrrd.c */
+/* this needs the "FILE *file" first arg for the sole reason that
+   parsing a "data file: " field which identifies a LIST must then
+   read in all the data filenames from the same file */
 TEEM_API int (*nrrdFieldInfoParse[NRRD_FIELD_MAX+1])(FILE *file, Nrrd *nrrd,
                                                      NrrdIoState *nio,
                                                      int useBiff);
