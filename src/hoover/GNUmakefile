@@ -44,9 +44,9 @@ $(L).SEEN := true
 #### Describe library here
 ####
 ####
-$(L).NEED = limn ell biff air
+$(L).NEED = limn nrrd ell biff air
 $(L).PUBLIC_HEADERS = hoover.h
-$(L).OBJS = stub.o methodsHoover.o rays.o 
+$(L).OBJS = defaultsHoover.o stub.o methodsHoover.o rays.o 
 ####
 ####
 ####
