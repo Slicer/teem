@@ -39,7 +39,7 @@
 ## "src", "include", and all the architecture-specific directories
 ## (which in turn contain "bin", "lib", "obj", and "purify"). Whether
 ## make started on this makefile or on an individual library's
-## makefile determine who gets to set TEEM_ROOT first.  Same for
+## makefile determines who gets to set TEEM_ROOT first.  Same for
 ## TEEM_SRC, a relative path to the "src" directory
 ##
 TEEM_ROOT ?= ..

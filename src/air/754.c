@@ -105,7 +105,7 @@ typedef union {
 
 /* 
 ** The hex numbers in braces are examples of C's "initial member of a union"
-** aggregate initialization.  We'd be totally out of luck without this.
+** aggregate initialization.
 */
 
 #if TEEM_QNANHIBIT == 1
