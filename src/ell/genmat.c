@@ -129,7 +129,7 @@ _ell_LU_decomp (double *a, int *indx, int NN)  {
     biffAdd(ELL, err); ret = 1; goto seeya;
   }
 
-  /* find vv[i]: max of abs of everything in row i */
+  /* find vv[i]: max of abs of everything in column i */
   for (i=0; i<NN; i++) {
     big = 0.0;
     for (j=0; j<NN; j++) {
@@ -138,7 +138,7 @@ _ell_LU_decomp (double *a, int *indx, int NN)  {
       }
     }
     if (!big) {
-      sprintf(err, "%s: singular matrix since row %d all zero", me, i);
+      sprintf(err, "%s: singular matrix since column %d all zero", me, i);
       biffAdd(ELL, err); ret = 1; goto seeya;
     }
     vv[i] = big;
