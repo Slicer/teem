@@ -34,8 +34,12 @@ genvolFunc(float x, float y, float z) {
 
   A = 1;
   B = 1;
-  /* marschner-lobb */
-  return ((1 - sin(M_PI*z/2)) + 0.25*(1 + rho(sqrt(x*x + y*y))))/(2*(1 + 0.25));
+  /* marschner-lobb, the real thing
+  return ((1 - sin(M_PI*z/2))
+	  + 0.25*(1 + rho(sqrt(x*x + y*y))))/(2*(1 + 0.25));
+	   */
+  /* marschner-lobb, linear variation in Z */
+  return (1 - (M_PI*z + 3)/5) + 0.25*(1 + rho(sqrt(x*x + y*y)))/(2*(1 + 0.25));
   /* pin-cushion
   return x*x + y*y + z*z - x*x*x*x - y*y*y*y - z*z*z*z;
   */
