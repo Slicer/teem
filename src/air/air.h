@@ -562,7 +562,7 @@ TEEM_API void airMopDebug(airArray *arr);
 ** have yet to produce this behavior, or convince myself it can't
 ** happen.  If you have problems, then use the version of the macro
 ** which is a function call to airExists_d(), and please email me:
-** gk@cs.utah.edu
+** gk@bwh.harvard.edu
 **
 ** The reason to #define AIR_EXISTS as airExists_d is that on some
 ** optimizing compilers, the !((x) - (x)) doesn't work.  This has been
