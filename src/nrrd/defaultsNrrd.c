@@ -36,7 +36,7 @@
 
 int nrrdDefWrtEncoding = nrrdEncodingRaw;
 int nrrdDefWrtSeperateHeader = AIR_FALSE;
-int nrrdDefWrtBareTable = AIR_FALSE;
+int nrrdDefWrtBareTable = AIR_TRUE;
 int nrrdDefWrtCharsPerLine = 75;
 int nrrdDefWrtValsPerLine = 8;
 int nrrdDefRsmpBoundary = nrrdBoundaryBleed;

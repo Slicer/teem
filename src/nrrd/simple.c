@@ -454,7 +454,12 @@ nrrdFitsInFormat (Nrrd *nrrd, int encoding, int format, int useBiff) {
       biffMaybeAdd(NRRD, err, useBiff); 
       return AIR_FALSE;
     }
-    /* any type is good for writing to a table, but it will
+    if (nrrdTypeBlock == nrrd->type) {
+      sprintf(err, "%s: can't save blocks to a table", me);
+      biffMaybeAdd(NRRD, err, useBiff); 
+      return AIR_FALSE;
+    }
+    /* any non-block type is good for writing to a table, but it will
        always be read back in as floats */
     ret = AIR_TRUE;
     break;

@@ -1186,7 +1186,8 @@ nrrdRead (Nrrd *nrrd, FILE *file, NrrdIO *_io) {
     }
     break;
   default:
-    /* see if line is a comment, which implies its a table */
+    /* see if line is a comment, or if we can parse one float from it,
+       which implies its a table, */
     if (NRRD_COMMENT_CHAR == io->line[0] 
 	|| airParseStrF(&oneFloat, io->line, _nrrdTableSep, 1)) {
       io->format = nrrdFormatTable;

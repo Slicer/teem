@@ -31,7 +31,7 @@
 */
 
 int
-_nrrdFieldInteresting(Nrrd *nrrd, NrrdIO *io, int field) {
+_nrrdFieldInteresting (Nrrd *nrrd, NrrdIO *io, int field) {
   int d, ret=0;
   
   if (!( nrrd
@@ -135,7 +135,7 @@ _nrrdFieldInteresting(Nrrd *nrrd, NrrdIO *io, int field) {
 }
 
 int
-_nrrdWriteDataRaw(Nrrd *nrrd, NrrdIO *io) {
+_nrrdWriteDataRaw (Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteDataRaw", err[AIR_STRLEN_MED];
   size_t size, ret, dio;
   
@@ -209,7 +209,7 @@ _nrrdWriteHexTable[16] = {
 };
 
 int
-_nrrdWriteDataHex(Nrrd *nrrd, NrrdIO *io) {
+_nrrdWriteDataHex (Nrrd *nrrd, NrrdIO *io) {
   /* char me[]="_nrrdWriteDataAscii", err[AIR_STRLEN_MED]; */
   unsigned char *data;
   size_t byteIdx, byteNum;
@@ -230,7 +230,7 @@ _nrrdWriteDataHex(Nrrd *nrrd, NrrdIO *io) {
 
 
 int
-_nrrdWriteDataAscii(Nrrd *nrrd, NrrdIO *io) {
+_nrrdWriteDataAscii (Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteDataAscii", err[AIR_STRLEN_MED], 
     buff[AIR_STRLEN_MED];
   int size, bufflen, linelen;
@@ -278,7 +278,7 @@ _nrrdWriteDataAscii(Nrrd *nrrd, NrrdIO *io) {
 }
 
 int
-_nrrdWriteDataGzip(Nrrd *nrrd, NrrdIO *io) {
+_nrrdWriteDataGzip (Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteDataGzip", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
   size_t num, bsize, size, total_written;
@@ -385,7 +385,7 @@ _nrrdWriteDataGzip(Nrrd *nrrd, NrrdIO *io) {
 }
 
 int
-_nrrdWriteDataBzip2(Nrrd *nrrd, NrrdIO *io) {
+_nrrdWriteDataBzip2 (Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteDataBzip2", err[AIR_STRLEN_MED];
 #if TEEM_BZIP2
   size_t num, bsize, size, total_written;
@@ -517,7 +517,7 @@ nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
 ** HEY: this function is an utter mess.  re-write it pronto.
 */
 void
-_nrrdSprintFieldInfo(char **strP, Nrrd *nrrd, NrrdIO *io, int field) {
+_nrrdSprintFieldInfo (char **strP, Nrrd *nrrd, NrrdIO *io, int field) {
   char buff[AIR_STRLEN_MED];
   const char *fs;
   int i, D, fslen, fdlen, endi;
@@ -710,7 +710,7 @@ if (_nrrdFieldInteresting(nrrd, io, field)) { \
 }
 
 int
-_nrrdWriteNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io, int writeData) {
+_nrrdWriteNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io, int writeData) {
   char me[]="_nrrdWriteNrrd", err[AIR_STRLEN_MED], *tmpName, *line;
   int i;
   
@@ -774,7 +774,7 @@ _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io, int writeData) {
 }
 
 int
-_nrrdWritePNM(FILE *file, Nrrd *nrrd, NrrdIO *io) {
+_nrrdWritePNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWritePNM", err[AIR_STRLEN_MED], *line;
   int i, color, sx, sy, magic;
   
@@ -815,7 +815,7 @@ _nrrdWritePNM(FILE *file, Nrrd *nrrd, NrrdIO *io) {
 }
 
 int
-_nrrdWriteTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
+_nrrdWriteTable (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char cmt[AIR_STRLEN_SMALL], *line, buff[AIR_STRLEN_SMALL];
   size_t I;
   int i, x, y, sx, sy;
@@ -866,7 +866,7 @@ _nrrdWriteTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
 ** datafile is determined
 */
 void
-_nrrdGuessFormat(NrrdIO *io, const char *filename) {
+_nrrdGuessFormat (NrrdIO *io, const char *filename) {
   int strpos;
   char suffix[AIR_STRLEN_SMALL];
 
@@ -901,7 +901,7 @@ _nrrdGuessFormat(NrrdIO *io, const char *filename) {
 }
 
 void
-_nrrdFixFormat(NrrdIO *io, Nrrd *nrrd) {
+_nrrdFixFormat (NrrdIO *io, Nrrd *nrrd) {
   char me[]="_nrrdFixFormat";
   int fits;
 
@@ -958,7 +958,7 @@ _nrrdFixFormat(NrrdIO *io, Nrrd *nrrd) {
 }
 
 int
-nrrdWrite(FILE *file, Nrrd *nrrd, NrrdIO *io) {
+nrrdWrite (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="nrrdWrite", err[AIR_STRLEN_MED];
   int ret=0;
 
@@ -1018,7 +1018,7 @@ nrrdWrite(FILE *file, Nrrd *nrrd, NrrdIO *io) {
 }
 
 int
-nrrdSave(const char *filename, Nrrd *nrrd, NrrdIO *io) {
+nrrdSave (const char *filename, Nrrd *nrrd, NrrdIO *io) {
   char me[]="nrrdSave", err[AIR_STRLEN_MED];
   FILE *file;
   airArray *mop;
@@ -1075,4 +1075,3 @@ nrrdSave(const char *filename, Nrrd *nrrd, NrrdIO *io) {
 }
 
 /* Ernesto "Che" Guevara  */
-
