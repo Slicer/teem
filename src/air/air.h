@@ -189,6 +189,7 @@ extern air_export const int airThreadCapable;
 */
 extern air_export int airThreadNoopWarning; 
 
+/* opaque typedefs for OS-specific stuff */
 typedef struct _airThread airThread;
 typedef struct _airThreadMutex airThreadMutex;
 typedef struct _airThreadCond airThreadCond;

@@ -31,33 +31,31 @@ int airThreadNoopWarning = AIR_TRUE;
 
 const int airThreadCapable = AIR_TRUE;
 
-typedef struct {
+struct _airThread {
   pthread_t id;
-} _airThread;
+};
 
-typedef struct {
+struct _airThreadMutex {
   pthread_mutex_t id;
-} _airThreadMutex;
+};
 
-typedef struct {
+struct _airThreadCond {
   pthread_cond_t id;
-} _airThreadCond;
+};
 
 airThread *
 airThreadNew(void) {
-  _airThread *thread;
+  airThread *thread;
 
-  thread = (_airThread *)calloc(1, sizeof(_airThread));
+  thread = (airThread *)calloc(1, sizeof(airThread));
   /* HEY: not sure if this can be usefully initialized */
-  return (airThread *)thread;
+  return thread;
 }
 
 int
-airThreadStart(airThread *_thread, void *(*threadBody)(void *), void *arg) {
+airThreadStart(airThread *thread, void *(*threadBody)(void *), void *arg) {
   pthread_attr_t attr;
-  _airThread *thread;
 
-  thread = (_airThread *)_thread;
   pthread_attr_init(&attr);
 #ifdef __sgi
   pthread_attr_setscope(&attr, PTHREAD_SCOPE_BOUND_NP);
@@ -66,114 +64,96 @@ airThreadStart(airThread *_thread, void *(*threadBody)(void *), void *arg) {
 }
 
 int
-airThreadJoin(airThread *_thread, void **retP) {
-  _airThread *thread;
+airThreadJoin(airThread *thread, void **retP) {
 
-  thread = (_airThread *)_thread;
   return pthread_join(thread->id, retP);
 }
 
 airThread *
-airThreadNix(airThread *_thread) {
+airThreadNix(airThread *thread) {
 
-  return airFree(_thread);
+  return airFree(thread);
 }
 
 airThreadMutex *
 airThreadMutexNew(void) {
-  _airThreadMutex *mutex;
+  airThreadMutex *mutex;
 
-  mutex = (_airThreadMutex *)calloc(1, sizeof(_airThreadMutex));
+  mutex = (airThreadMutex *)calloc(1, sizeof(airThreadMutex));
   if (mutex) {
     if (pthread_mutex_init(&(mutex->id), NULL)) {
       mutex = airFree(mutex);
     }
   }
-  return (airThreadMutex *)mutex;
+  return mutex;
 }
 
 int
-airThreadMutexLock(airThreadMutex *_mutex) {
-  _airThreadMutex *mutex;
+airThreadMutexLock(airThreadMutex *mutex) {
 
-  mutex = (_airThreadMutex *)_mutex;
   return pthread_mutex_lock(&(mutex->id));
 }
 
 int
-airThreadMutexUnlock(airThreadMutex *_mutex) {
-  _airThreadMutex *mutex;
+airThreadMutexUnlock(airThreadMutex *mutex) {
 
-  mutex = (_airThreadMutex *)_mutex;
   return pthread_mutex_unlock(&(mutex->id));
 }
 
 airThreadMutex *
-airThreadMutexNix(airThreadMutex *_mutex) {
-  _airThreadMutex *mutex;
+airThreadMutexNix(airThreadMutex *mutex) {
 
-  if (_mutex) {
-    mutex = (_airThreadMutex *)_mutex;
+  if (mutex) {
     if (!pthread_mutex_destroy(&(mutex->id))) {
       /* there was no error */
-      _mutex = airFree(_mutex);
+      mutex = airFree(mutex);
     }
   }
-  return _mutex;
+  return mutex;
 }
 
 airThreadCond *
 airThreadCondNew(void) {
-  _airThreadCond *cond;
+  airThreadCond *cond;
   
-  cond = (_airThreadCond *)calloc(1, sizeof(_airThreadCond));
+  cond = (airThreadCond *)calloc(1, sizeof(airThreadCond));
   if (cond) {
     if (pthread_cond_init(&(cond->id), NULL)) {
       /* there was an error */
       cond = airFree(cond);
     }
   }
-  return (airThreadCond *)cond;
+  return cond;
 }
 
 int
-airThreadCondWait(airThreadCond *_cond, airThreadMutex *_mutex) {
-  _airThreadCond *cond;
-  _airThreadMutex *mutex;
+airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex) {
 
-  cond = (_airThreadCond *)_cond;
-  mutex = (_airThreadMutex *)_mutex;
   return pthread_cond_wait(&(cond->id), &(mutex->id));
 }
 
 int
-airThreadCondSignal(airThreadCond *_cond) {
-  _airThreadCond *cond;
+airThreadCondSignal(airThreadCond *cond) {
 
-  cond = (_airThreadCond *)_cond;
   return pthread_cond_signal(&(cond->id));
 }
 
 int
-airThreadCondBroadcast(airThreadCond *_cond) {
-  _airThreadCond *cond;
+airThreadCondBroadcast(airThreadCond *cond) {
 
-  cond = (_airThreadCond *)_cond;
   return pthread_cond_broadcast(&(cond->id));
 }
 
 airThreadCond *
-airThreadCondNix(airThreadCond *_cond) {
-  _airThreadCond *cond;
+airThreadCondNix(airThreadCond *cond) {
   
-  if (_cond) {
-    cond = (_airThreadCond *)_cond;
+  if (cond) {
     if (!pthread_cond_destroy(&(cond->id))) {
       /* there was no error */
-      _cond = airFree(_cond);
+      cond = airFree(cond);
     }
   }
-  return _cond;
+  return cond;
 }
 
 /* ------------------------------------------------------------------ */
@@ -188,49 +168,47 @@ airThreadCondNix(airThreadCond *_cond) {
 
 const int airThreadCapable = AIR_TRUE;
 
-typedef struct {
+struct _airThread {
   HANDLE handle;
   void *(*body)(void *);
   void *arg;
   void *ret;
-} _airThread;
+};
 
-typedef struct {
+struct _airThreadMutex {
   HANDLE handle;
-} _airThreadMutex;
+};
 
-typedef struct {
+struct _airThreadCond {
   int count;
   CRITICAL_SECTION lock;
   HANDLE sema;
   HANDLE done;
   size_t broadcast;
-} _airThreadCond;
+};
 
 airThread *
 airThreadNew(void) {
-  _airThread *thread;
+  airThread *thread;
 
-  thread = (_airThread *)calloc(1, sizeof(_airThread));
-  /* HEY: any useful way to initialized a HANDLE */
+  thread = (airThread *)calloc(1, sizeof(airThread));
+  /* HEY: any useful way to initialized a HANDLE? */
   thread->body = NULL;
   thread->arg = thread->reg = NULL;
-  return (airThread *)thread;
+  return thread;
 }
 
-int WINAPI _airThreadWin32Body(void *arg) {
-  airThread *t;
+int WINAPI _airThreadWin32Body(void *_thread) {
+  airThread *thread;
 
-  t = (airThread *)arg;
-  t->ret = t->body(t->arg);
+  thread = (airThread *)_thread;
+  thread->ret = thread->body(thread->arg);
   return 0;
 }
 
 int
-airThreadStart(airThread *_thread, void *(*threadBody)(void *), void *arg) {
-  _airThread *thread;
+airThreadStart(airThread *thread, void *(*threadBody)(void *), void *arg) {
 
-  thread = (_airThread *)_thread;
   thread->body = threadBody;
   thread->arg = arg;
   thread->handle = CreateThread(0, 0, _airThreadWin32Body, 
@@ -239,11 +217,9 @@ airThreadStart(airThread *_thread, void *(*threadBody)(void *), void *arg) {
 }
 
 int
-airThreadJoin(airThread *_thread, void **retP) {
+airThreadJoin(airThread *thread, void **retP) {
   int err;
-  _airThread *thread;
 
-  thread = (_airThread *)_thread;
   err = (WAIT_FAILED == WaitForSingleObject(thread->handle, INFINITE));
   *retP = thread->ret;
   return err;
@@ -259,7 +235,7 @@ airThreadMutex *
 airThreadMutexNew() {
   airThreadMutex *mutex;
 
-  mutex = (airThreadMutex *)calloc(1, sizeof(_airThreadMutex));
+  mutex = (airThreadMutex *)calloc(1, sizeof(airThreadMutex));
   if (mutex) {
     if (!(mutex->handle = CreateMutex(NULL, TRUE, NULL))) {
       return airFree(mutex);
@@ -270,11 +246,13 @@ airThreadMutexNew() {
 
 int
 airThreadMutexLock(airThreadMutex *mutex) {
+
   return WAIT_FAILED == WaitForSingleObject(mutex->handle, INFINITE);
 }
 
 int
 airThreadMutexUnlock(airThreadMutex *mutex) {
+
   return 0 == ReleaseMutex(mutex->handle);
 }
 
@@ -291,7 +269,7 @@ airThreadCond *
 airThreadCondNew(void) {
   airThreadCond *cond;
 
-  cond = (airThreadCond *)calloc(1, sizeof(_airThreadCond));
+  cond = (airThreadCond *)calloc(1, sizeof(airThreadCond));
   if (cond) {
     cond->count = 0;
     cond->broadcast = 0;
@@ -423,49 +401,47 @@ airThreadCondNix(airThreadCond *cond) {
 
 const int airThreadCapable = AIR_FALSE;
 
-typedef struct {
+struct _airThread {
   void *ret;
-} _airThread;
+};
 
-typedef struct {
+struct _airThreadMutex {
   int dummy;
-} _airThreadMutex;
+};
 
-typedef struct {
+struct _airThreadCond {
   int dummy;
-} _airThreadCond;
+};
 
 airThread *
 airThreadNew(void) {
-  _airThread *thread;
+  airThread *thread;
 
-  thread = (_airThread *)calloc(1, sizeof(_airThread));
+  thread = (airThread *)calloc(1, sizeof(airThread));
   thread->read = NULL;
-  return (airThread *)thread;
+  return thread;
 }
 
 int
-airThreadStart(airThread *_thread, void *(*threadBody)(void *), void *arg) {
-  _airThread *thread;
+airThreadStart(airThread *thread, void *(*threadBody)(void *), void *arg) {
 
-  thread = (_airThread *)_thread;
+  /* we arbitrarily chose to have the threadBody
+     evaluation happen here, instead of at airThreadJoin */
   thread->ret = (*threadBody)(arg);
   return 0;
 }
 
 int
-airThreadJoin(airThread *_thread, void **retP) {
-  _airThread *thread;
+airThreadJoin(airThread *thread, void **retP) {
 
-  thread = (_airThread *)_thread;
   *retP = thread->ret;
   return 0;
 }
 
 airThread *
-airThreadNix(airThread *_thread) {
+airThreadNix(airThread *thread) {
 
-  return airFree(_thread);
+  return airFree(thread);
 }
 
 airThreadMutex *
@@ -473,11 +449,9 @@ airThreadMutexNew(void) {
   char me[]="airThreadMutexInit";
   airThreadMutex *mutex;
 
-  mutex = (airThreadMutex *)calloc(1, sizeof(_airThreadMutex));
-  if (mutex) {
-    if (airThreadNoopWarning) {
-      fprintf(stderr, "%s: WARNING: all mutex usage is a no-op!\n", me);
-    }
+  mutex = (airThreadMutex *)calloc(1, sizeof(airThreadMutex));
+  if (airThreadNoopWarning) {
+    fprintf(stderr, "%s: WARNING: all mutex usage is a no-op!\n", me);
   }
   return mutex;
 }
@@ -485,6 +459,7 @@ airThreadMutexNew(void) {
 int
 airThreadMutexLock(airThreadMutex *mutex) {
   char me[]="airThreadMutexLock";
+
   if (airThreadNoopWarning) {
     fprintf(stderr, "%s: WARNING: all mutex usage is a no-op!\n", me);
   }
@@ -494,6 +469,7 @@ airThreadMutexLock(airThreadMutex *mutex) {
 int
 airThreadMutexUnlock(airThreadMutex *mutex) {
   char me[]="airThreadMutexUnlock";
+
   if (airThreadNoopWarning) {
     fprintf(stderr, "%s: WARNING: all mutex usage is a no-op!\n", me);
   }
@@ -511,11 +487,9 @@ airThreadCondNew(void) {
   char me[]="airThreadCondInit";
   airThreadCond *cond;
   
-  cond = (airThreadCond *)calloc(1, sizeof(_airThreadCond));
-  if (cond) {
-    if (airThreadNoopWarning) {
-      fprintf(stderr, "%s: WARNING: all cond usage is a no-op!\n", me);
-    }
+  cond = (airThreadCond *)calloc(1, sizeof(airThreadCond));
+  if (airThreadNoopWarning) {
+    fprintf(stderr, "%s: WARNING: all cond usage is a no-op!\n", me);
   }
   return cond;
 }
@@ -523,6 +497,7 @@ airThreadCondNew(void) {
 int
 airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex) {
   char me[]="airThreadCondWait";
+
   if (airThreadNoopWarning) {
     fprintf(stderr, "%s: WARNING: all cond usage is a no-op!\n", me);
   }
@@ -532,6 +507,7 @@ airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex) {
 int
 airThreadCondSignal(airThreadCond *cond) {
   char me[]="airThreadCondSignal";
+
   if (airThreadNoopWarning) {
     fprintf(stderr, "%s: WARNING: all cond usage is a no-op!\n", me);
   }
@@ -541,6 +517,7 @@ airThreadCondSignal(airThreadCond *cond) {
 int
 airThreadCondBroadcast(airThreadCond *cond) {
   char me[]="airThreadCondBroadcast";
+
   if (airThreadNoopWarning) {
     fprintf(stderr, "%s: WARNING: all cond usage is a no-op!\n", me);
   }
