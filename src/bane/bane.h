@@ -311,7 +311,7 @@ extern bane_export int baneStateHistEqBins;
 extern bane_export int baneStateHistEqSmart;
 extern bane_export int baneHack;
 
-/* range.c */
+/* rangeBane.c */
 extern bane_export baneRange *baneRangeUnknown;
 extern bane_export baneRange *baneRangePos;
 extern bane_export baneRange *baneRangeNeg;

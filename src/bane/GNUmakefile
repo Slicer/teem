@@ -46,7 +46,7 @@ $(L).SEEN := true
 $(L).NEED = gage unrrdu nrrd biff air
 $(L).PUBLIC_HEADERS = bane.h
 $(L).PRIVATE_HEADERS = privateBane.h
-$(L).OBJS = defaultsBane.o range.o inc.o clip.o measr.o valid.o \
+$(L).OBJS = defaultsBane.o rangeBane.o inc.o clip.o measr.o valid.o \
 	methodsBane.o trnsf.o scat.o hvol.o trex.o \
 	gkmsHvol.o gkmsScat.o gkmsInfo.o gkmsPvg.o gkmsOpac.o \
 	gkmsMite.o gkmsFlotsam.o gkmsTxf.o
