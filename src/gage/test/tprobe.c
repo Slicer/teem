@@ -155,7 +155,6 @@ main(int argc, char *argv[]) {
   t0 = airTime();
   fprintf(stderr, "%s: si{x,y,z} = %d, %d, %d\n", me, six, siy, siz);
   fprintf(stderr, "%s: so{x,y,z} = %d, %d, %d\n", me, sox, soy, soz);
-  ctx->verbose = 0;
   for (zi=0; zi<=soz-1; zi++) {
     /* printf("%s: z = % 3d/%d\n", me, zi, soz-1); */
     z = AIR_AFFINE(0, zi, soz-1, 0, siz-1);
@@ -199,5 +198,6 @@ main(int argc, char *argv[]) {
   nrrdNuke(nin);
   nrrdNuke(npad);
   nrrdNuke(nout);
+  gageSclContextNix(ctx);
   exit(0);
 }
