@@ -20,6 +20,8 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
+#include <ctype.h>
+
 /* number of columns that hest will used */
 int
 unrrduDefNumColumns = 78;
@@ -71,6 +73,10 @@ unrrduUsage(char *me, hestParm *hparm) {
 		  unrrduCmdList[i]->info, AIR_FALSE);
   }
 }
+
+/* --------------------------------------------------------- */
+/* --------------------------------------------------------- */
+/* --------------------------------------------------------- */
 
 /*
 ******** unrrduHestPosCB
@@ -153,6 +159,10 @@ hestCB unrrduHestPosCB = {
   NULL
 };
 
+/* --------------------------------------------------------- */
+/* --------------------------------------------------------- */
+/* --------------------------------------------------------- */
+
 /*
 ******** unrrduHestMaybeTypeCB
 **
@@ -193,6 +203,10 @@ hestCB unrrduHestMaybeTypeCB = {
   NULL
 };
 
+/* --------------------------------------------------------- */
+/* --------------------------------------------------------- */
+/* --------------------------------------------------------- */
+
 /*
 ******** unrrduHestBitsCB
 ** 
@@ -225,6 +239,10 @@ hestCB unrrduHestBitsCB = {
   unrrduParseBits,
   NULL
 };
+
+/* --------------------------------------------------------- */
+/* --------------------------------------------------------- */
+/* --------------------------------------------------------- */
 
 /*
 ******** unrrduParseScale
@@ -274,6 +292,10 @@ hestCB unrrduHestScaleCB = {
   unrrduParseScale,
   NULL
 };
+
+/* --------------------------------------------------------- */
+/* --------------------------------------------------------- */
+/* --------------------------------------------------------- */
 
 /*
 ******** unrrduHestFileCB
@@ -325,5 +347,86 @@ hestCB unrrduHestFileCB = {
   "filename",
   unrrduParseFile,
   unrrduMaybeFclose,
+};
+
+/* --------------------------------------------------------- */
+/* --------------------------------------------------------- */
+/* --------------------------------------------------------- */
+
+/*
+******** unrrduHestEncodingCB
+** 
+** for parsing output encoding, including compression flags
+** enc[0]: which encoding, from nrrdEncoding* enum
+** enc[1]: for compressions: zlib "level" and bzip2 "blocksize"
+** enc[2]: for zlib: strategy, from nrrdZlibStrategy* enum
+*/
+int
+unrrduParseEncoding(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
+  char me[]="unrrduParseEncoding", *str, *opt;
+  int *enc;
+  airArray *mop;
+
+  if (!(ptr && _str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  enc = ptr;
+  /* these are the defaults, they may not get over-written */
+  enc[1] = -1;
+  enc[2] = nrrdZlibStrategyDefault;
+
+  enc[0] = airEnumVal(nrrdEncoding, _str);
+  if (nrrdEncodingUnknown != enc[0]) {
+    /* we're done; encoding was simple: "raw" or "gz" */
+    return 0;
+  }
+  mop = airMopInit();
+  str = airStrdup(_str);
+  airMopMem(mop, &str, airMopAlways);
+  opt = strchr(str, ':');
+  if (!opt) {
+    /* couldn't parse string as nrrdEncoding, but there wasn't a colon */
+    sprintf(err, "%s: didn't recognize \"%s\" as %s",
+	    me, str, nrrdEncoding->name);
+    airMopError(mop); return 1;
+  } else {
+    *opt = '\0';
+    opt++;
+    enc[0] = airEnumVal(nrrdEncoding, str);
+    if (nrrdEncodingUnknown == enc[0]) {
+      sprintf(err, "%s: didn't recognize \"%s\" as %s",
+	      me, str, nrrdEncoding->name);
+      airMopError(mop); return 1;
+    }
+    if (!nrrdEncodingIsCompression[enc[0]]) {
+      sprintf(err, "%s: only compression encodings have parameters", me);
+      airMopError(mop); return 1;
+    }
+    while (*opt) {
+      if (isdigit(*opt)) {
+	enc[1] = *opt - '0';
+      } else if ('d' == tolower(*opt)) {
+	enc[2] = nrrdZlibStrategyDefault;
+      } else if ('h' == tolower(*opt)) {
+	enc[2] = nrrdZlibStrategyHuffman;
+      } else if ('f' == tolower(*opt)) {
+	enc[2] = nrrdZlibStrategyFiltered;
+      } else {
+	sprintf(err, "%s: parameter char \"%c\" not a digit or 'd','h','f'",
+		me, *opt);
+	airMopError(mop); return 1;
+      }
+      opt++;
+    }
+  }
+  return 0;
+}
+
+hestCB unrrduHestEncodingCB = {
+  3*sizeof(int),
+  "encoding",
+  unrrduParseEncoding,
+  NULL
 };
 

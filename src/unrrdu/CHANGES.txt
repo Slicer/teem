@@ -1,4 +1,4 @@
-Changes from 1.4:
+Changes from 1.4 ------------------------------------------
 
 private.h:
 - changed SAVE macro to take file name as first arg, this 
@@ -33,3 +33,11 @@ files; this turned out to be rather annoying.
 
 rmap.c:
 - change to nrrdApply1DRegMap() call: added "rescale" argument.
+
+Changes from 1.5beta0 ----------------------------------------
+
+- INTERFACE NEW (lut.c, rmap.c, imap.c): added -min and -max flags
+to allow specifying the used input range
+- INTERFACE NEW (unrrdu.h flotsam.c, save.c): now allow specifying
+flags for gzip and bzip2 compression
+- convert.c, quantize.c, resample.c: more usage info

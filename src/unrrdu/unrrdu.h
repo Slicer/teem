@@ -156,6 +156,7 @@ extern unrrdu_export hestCB unrrduHestMaybeTypeCB;
 extern unrrdu_export hestCB unrrduHestScaleCB;
 extern unrrdu_export hestCB unrrduHestBitsCB;
 extern unrrdu_export hestCB unrrduHestFileCB;
+extern unrrdu_export hestCB unrrduHestEncodingCB;
 
 
 #ifdef __cplusplus

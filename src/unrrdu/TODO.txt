@@ -1,8 +1,6 @@
 change parsing of encoding on unu save to allow different strategies
 and compression levels for gzip and bzip2
 
-add -min and -max flags to unu lut, rmap, imap
-
 ----- teem 1.5beta1 cut-off -----
 
 ----- teem 1.5 cut-off -----

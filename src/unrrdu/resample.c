@@ -49,11 +49,13 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hparm->elideSingleOtherDefault = AIR_FALSE;
   hestOptAdd(&opt, "s", "s0 ", airTypeOther, 1, -1, &scale, NULL,
 	     "For each axis, information about how many samples in output:\n "
-	     "\b\bo \"=\": leave this axis untouched: no resampling "
-	     "whatsoever\n "
-	     "\b\bo \"x<float>\": number of output samples is some scaling of "
-	     " the number samples in input, multiplied by <float>\n "
-	     "\b\bo \"<int>\": exact number of samples",
+	     "\b\bo \"=\": leave this axis completely untouched: no "
+	     "resampling whatsoever\n "
+	     "\b\bo \"x<float>\": multiply the number of input samples by "
+	     "<float>, and round to the nearest integer, to get the number "
+	     "of output samples.  Use \"x1\" to resample the axis but leave "
+	     "the number of samples unchanged\n "
+	     "\b\bo \"<int>\": exact number of output samples",
 	     &scaleLen, NULL, &unrrduHestScaleCB);
   hestOptAdd(&opt, "k", "kern", airTypeOther, 1, 1, &unuk, "quartic:0.0834",
 	     "The kernel to use for resampling.  Possibilities include:\n "
@@ -107,7 +109,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
       break;
     case 1:
       /* scaling of input # samples */
-      info->samples[d] = scale[1 + 2*d]*nin->axis[d].size;
+      info->samples[d] = AIR_ROUNDUP(scale[1 + 2*d]*nin->axis[d].size);
       break;
     case 2:
       /* explicit # of samples */
