@@ -110,7 +110,7 @@ parseNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   }
   nrrdP = ptr;
   if (nrrdLoad(*nrrdP = nrrdNew(), str)) {
-    nerr = biffGet(NRRD);
+    nerr = biffGetDone(NRRD);
     if (strlen(nerr) > AIR_STRLEN_HUGE - 1)
       nerr[AIR_STRLEN_HUGE - 1] = '\0';
     strcpy(err, nerr);
