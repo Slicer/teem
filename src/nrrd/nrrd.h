@@ -34,6 +34,7 @@ extern "C" {
 #include <math.h>
 #include <ctype.h>
 #include <errno.h>
+#include <float.h>
 
 #include <air.h>
 #include <hest.h>
@@ -42,15 +43,6 @@ extern "C" {
 #include "nrrdDefines.h"
 #include "nrrdMacros.h"
 #include "nrrdEnums.h"
-
-/*
-******** nrrdBigInt typedef 
-**
-** biggest unsigned integral type allowed on system; used to hold
-** number of elements in a nrrd.  Value 0 is used to represent "don't
-** know" or "unset", since nrrds can't hold a zero number of items.  
-*/
-typedef unsigned long long int nrrdBigInt;
 
 /*
 ******** NrrdIO struct
@@ -217,11 +209,11 @@ typedef struct {
   float (*eval1_f)(float x,              /* evaluate once, single precision */
 		   double *parm);
   void (*evalN_f)(float *f, float *x,    /* evaluate N times, single prec. */
-		  int N, double *parm);   
+		  size_t N, double *parm);   
   double (*eval1_d)(double x,            /* evaluate once, double precision */
 		    double *parm);
   void (*evalN_d)(double *f, double *x,  /* evaluate N times, double prec. */
-		  int N, double *parm);
+		  size_t N, double *parm);
 } NrrdKernel;
 
 /*
@@ -242,10 +234,10 @@ typedef struct {
 ** a struct to contain the many parameters needed for nrrdSpatialResample()
 */
 typedef struct {
-  /* kernel, samples, and parm are all per-axis */
-  NrrdKernel *kernel[NRRD_DIM_MAX]; /* kernels from nrrd (or something
-				       supplied by the user) */
-  int samples[NRRD_DIM_MAX];        /* number of samples */
+  NrrdKernel *kernel[NRRD_DIM_MAX]; /* which kernel to use on each axis;
+				       use NULL to signify no resampling
+				       whatsoever on this axis */
+  int samples[NRRD_DIM_MAX];        /* number of samples per axis */
   double parm[NRRD_DIM_MAX][NRRD_KERNEL_PARMS_NUM], /* kernel arguments */
     min[NRRD_DIM_MAX],
     max[NRRD_DIM_MAX];              /* min[i] and max[i] are the range, in
@@ -278,7 +270,7 @@ typedef struct {
   double val;                       /* single fixed value */
   int size;                         /* type size */
   char *data;                       /* where to get the next value */
-  nrrdBigInt left;                  /* number of values beyond what "data"
+  size_t left;                      /* number of values beyond what "data"
 				       currently points to */
   double (*load)(void*);            /* how to get a value out of "data" */
 } NrrdIter;
@@ -331,6 +323,9 @@ extern int nrrdEncodingEndianMatters[];
 extern int nrrdTypeSize[];
 extern int nrrdTypeFixed[];
 extern int nrrdTypeUnsigned[];
+extern double nrrdTypeMin[];
+extern double nrrdTypeMax[];
+extern unsigned long long int nrrdTypeNumberValues[];
 
 /******** things useful with hest */
 extern hestCB *nrrdHestNrrd;
@@ -404,7 +399,7 @@ extern int nrrdContentSet(Nrrd *nout, const char *func,
 extern void nrrdDescribe(FILE *file, Nrrd *nrrd);
 extern int nrrdValid(Nrrd *nrrd);
 extern int nrrdElementSize(Nrrd *nrrd);
-extern nrrdBigInt nrrdElementNumber(Nrrd *nrrd);
+extern size_t nrrdElementNumber(Nrrd *nrrd);
 extern int nrrdHasNonExistSet(Nrrd *nrrd);
 extern int nrrdSanity(void);
 extern int nrrdSameSize(Nrrd *n1, Nrrd *n2, int useBiff);
@@ -430,12 +425,12 @@ extern double (*nrrdDLoad[NRRD_TYPE_MAX+1])(void *v);
 extern int    (*nrrdIStore[NRRD_TYPE_MAX+1])(void *v, int j);
 extern float  (*nrrdFStore[NRRD_TYPE_MAX+1])(void *v, float f);
 extern double (*nrrdDStore[NRRD_TYPE_MAX+1])(void *v, double d);
-extern int    (*nrrdILookup[NRRD_TYPE_MAX+1])(void *v, nrrdBigInt I);
-extern float  (*nrrdFLookup[NRRD_TYPE_MAX+1])(void *v, nrrdBigInt I);
-extern double (*nrrdDLookup[NRRD_TYPE_MAX+1])(void *v, nrrdBigInt I);
-extern int    (*nrrdIInsert[NRRD_TYPE_MAX+1])(void *v, nrrdBigInt I, int j);
-extern float  (*nrrdFInsert[NRRD_TYPE_MAX+1])(void *v, nrrdBigInt I, float f);
-extern double (*nrrdDInsert[NRRD_TYPE_MAX+1])(void *v, nrrdBigInt I, double d);
+extern int    (*nrrdILookup[NRRD_TYPE_MAX+1])(void *v, size_t I);
+extern float  (*nrrdFLookup[NRRD_TYPE_MAX+1])(void *v, size_t I);
+extern double (*nrrdDLookup[NRRD_TYPE_MAX+1])(void *v, size_t I);
+extern int    (*nrrdIInsert[NRRD_TYPE_MAX+1])(void *v, size_t I, int j);
+extern float  (*nrrdFInsert[NRRD_TYPE_MAX+1])(void *v, size_t I, float f);
+extern double (*nrrdDInsert[NRRD_TYPE_MAX+1])(void *v, size_t I, double d);
 extern int    (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, void *);
 extern int    (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, void *);
 extern float  (*nrrdFClamp[NRRD_TYPE_MAX+1])(float);
@@ -537,6 +532,27 @@ extern int nrrdArithTernaryOp(Nrrd *nout, int op,
 /* filt.c */
 extern int nrrdCheapMedian(Nrrd *nout, Nrrd *nin,
 			   int radius, float wght, int bins);
+/*
+******** nrrdResample_t typedef
+**
+** type used to hold filter sample locations and weights in
+** nrrdSpatialResample(), and to hold the intermediate sampling
+** results.  Not as good as templating, but better than hard-coding
+** float versus double.  Actually, the difference between float and
+** double not exposed in any functions or objects declared in this
+** header; it is entirely internal to the operation of
+** nrrdSpatialResample().
+**
+** Choose one by setting #if arg to 0 or 1
+*/
+#if 0
+typedef float nrrdResample_t;
+#  define NRRD_RESAMPLE_FLOAT 1
+#else
+typedef double nrrdResample_t;
+#  define NRRD_RESAMPLE_FLOAT 0
+#endif
+
 /* resample.c */
 extern int nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info);
 extern int nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
