@@ -30,7 +30,6 @@ void
 tend_satinEigen(float *eval, float *evec, float x, float y, float z,
 		float parm, float level) {
   double bound, bound1, bound2, r, norm, tmp[3], meval;
-  double tmp1[3];
 
   r = sqrt(x*x + y*y + z*z);
   bound1 = 0.5 - 0.5*airErf(20*(r-0.9));  /* 1 on inside, 0 on outside */
@@ -61,9 +60,6 @@ tend_satinEigen(float *eval, float *evec, float x, float y, float z,
     /* not optimal, but at least it won't show up in glyph visualizations */
     ELL_3M_IDENTITY_SET(evec);
   }
-  ELL_3V_CROSS(tmp1, evec + 3*0, evec + 3*1);
-  ELL_3V_CROSS(tmp1, evec + 3*0, evec + 3*2);
-  ELL_3V_CROSS(tmp1, evec + 3*1, evec + 3*2);
   return;
 }
 
