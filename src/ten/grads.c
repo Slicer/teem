@@ -30,8 +30,10 @@ tenGradientParmNew(void) {
     ret->charge = 0.2;
     ret->drag = 0.01;
     ret->dt = 0.05;
-    ret->minVelocity = 0.00001;
     ret->jitter = 0.05;
+    ret->minVelocity = 0.000001;
+    ret->minMean = 0.0001;
+    ret->minMeanImprovement = 0.00001;
     ret->srand = AIR_TRUE;
     ret->snap = 0;
     ret->single = AIR_FALSE;
@@ -240,12 +242,60 @@ _tenGradientMeanVelocity(Nrrd *nvel) {
   return mv;
 }
 
+double
+_tenGradientParty(double *grad, int num) {
+  double mean[3];
+  int ii;
+  
+  ELL_3V_SET(mean, 0, 0, 0);
+  for (ii=0; ii<num; ii++) {
+    if (airRandInt(2)) {
+      ELL_3V_SCALE(grad + 3*ii, -1, grad + 3*ii);
+    }
+    ELL_3V_INCR(mean, grad + 3*ii);
+  }
+  ELL_3V_SCALE(mean, 1.0/num, mean);
+  return ELL_3V_LEN(mean);
+}
+
+int
+tenGradientMeanMinimize(Nrrd *nout, Nrrd *nin, tenGradientParm *tgparm) {
+  char me[]="tenGradientMeanMinimize", err[AIR_STRLEN_MED];
+  int num;
+  double *grad, len, lastLen, improv;
+
+  if (!nout || tenGradientCheck(nin, nrrdTypeUnknown, 2)) {
+    sprintf(err, "%s: got NULL pointer or invalid input", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (nrrdConvert(nout, nin, nrrdTypeDouble)) {
+    sprintf(err, "%s: can't initialize output with input", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  num = nout->axis[1].size;
+  grad = (double*)(nout->data);
+   
+  lastLen = _tenGradientParty(grad, num);
+  do {
+    do {
+      len = _tenGradientParty(grad, num);
+    } while (len > lastLen);
+    improv = lastLen - len;
+    lastLen = len;
+    fprintf(stderr, "%s: improvement: %g  (mean length = %g)\n",
+	    me, improv, len);
+  } while (improv > tgparm->minMeanImprovement
+	   && len > tgparm->minMean);
+  
+  return 0;
+}
+
 /*
 ******** tenGradientDistribute
 **
-** takes the given list of gradients, normalizes their lengths, optionally jitters
-** their positions, does point repulsion, and then selects a combination of
-** directions with minimum vector sum.
+** takes the given list of gradients, normalizes their lengths,
+** optionally jitters their positions, does point repulsion, and then
+** selects a combination of directions with minimum vector sum.
 */
 int
 tenGradientDistribute(Nrrd *nout, Nrrd *nin, tenGradientParm *tgparm) {
@@ -343,18 +393,18 @@ tenGradientDistribute(Nrrd *nout, Nrrd *nin, tenGradientParm *tgparm) {
 	}
       }
     } else {
-      if (!(iter % 25)) {
-	fprintf(stderr, "%s: %d: meanVelocity = %g\n", me, iter, meanVelocity);
+      if (!(iter % 1000)) {
+	fprintf(stderr, "%s: iteration = %d: meanVelocity = %g\n",
+		me, iter, meanVelocity);
       }
     }
   }
 
-  /* select output gradients
-     - either do the trivial thing
-     - or run through 2^(#grads) to find one with maximum covariance
-     print covariance matrix eigenvalues
-  */
-  nrrdCopy(nout, npos);
+  fprintf(stderr, "%s: optimizing balance ... \n", me);
+  if (tenGradientMeanMinimize(nout, npos, tgparm)) {
+    sprintf(err, "%s: failed to minimize vector sum of gradients", me);
+    biffAdd(TEN, err); return 1;
+  }
 
   airMopOkay(mop); 
   return 0;
@@ -371,7 +421,8 @@ tenGradientGenerate(Nrrd *nout, int num, tenGradientParm *tgparm) {
     biffAdd(TEN, err); return 1;
   }
   if (!( num >= 3 )) {
-    sprintf(err, "%s: can generate at minimum 3 gradient directions (not %d)", me, num);
+    sprintf(err, "%s: can generate minimum of 3 gradient directions "
+	    "(not %d)", me, num);
     biffAdd(TEN, err); return 1;
   }
   mop = airMopNew();
@@ -387,6 +438,3 @@ tenGradientGenerate(Nrrd *nout, int num, tenGradientParm *tgparm) {
   airMopOkay(mop);
   return 0;
 }
-
-
-

@@ -20,15 +20,18 @@
 #include "ten.h"
 #include "privateTen.h"
 
-#define INFO "Calculate gradient directions for DWI acquisition"
+#define INFO "Calculate balanced gradient directions for DWI acquisition"
 char *_tend_gradsInfoL =
   (INFO
    ", based on a simulation of anti-podal point pairs repelling each other "
-   "on the unit sphere surface. This can either distribute more uniformly a given "
-   "set of gradients, or it can make a new distribution from scratch.  A more "
-   "clever implementation could decrease drag with time, as the solution converges, "
-   "to get closer to the minimum energy configuration faster.  In the mean time, you "
-   "can run a second pass on the output of the first pass, using lower drag. ");
+   "on the unit sphere surface. This can either distribute more uniformly "
+   "a given set of gradients, or it can make a new distribution from scratch. "
+   "A more clever implementation could decrease drag with time, as the "
+   "solution converges, to get closer to the minimum energy configuration "
+   "faster.  In the mean time, you can run a second pass on the output of "
+   "the first pass, using lower drag. A second phase of the algorithm "
+   "tries random signs in gradient directions in trying to find an optimally "
+   "balanced set of directions.");
 
 int
 tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -56,9 +59,10 @@ tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "do NOT call srand() to initialize random number generator");
   hestOptAdd(&hopt, "dt", "dt", airTypeDouble, 1, 1, &(tgparm->dt), "0.05",
 	     "time increment in solver");
-  hestOptAdd(&hopt, "drag", "drag", airTypeDouble, 1, 1, &(tgparm->drag), "0.01",
-	     "viscous drag, to keep things stable");
-  hestOptAdd(&hopt, "charge", "charge", airTypeDouble, 1, 1, &(tgparm->charge), "0.2",
+  hestOptAdd(&hopt, "drag", "drag", airTypeDouble, 1, 1, &(tgparm->drag),
+	     "0.0005", "viscous drag, to keep things stable");
+  hestOptAdd(&hopt, "charge", "charge", airTypeDouble, 1, 1,
+	     &(tgparm->charge), "0.2",
 	     "amount of charge on each particle");
   hestOptAdd(&hopt, "single", NULL, airTypeInt, 0, 0, &(tgparm->single), NULL,
 	     "instead of the default behavior of tracking a pair of "
@@ -68,11 +72,27 @@ tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "specifies an interval between which snapshots of the point "
 	     "positions should be saved out.  By default (not using this "
 	     "option), there is no such snapshot behavior");
-  hestOptAdd(&hopt, "jitter", "jitter", airTypeDouble, 1, 1, &(tgparm->jitter), "0.05",
+  hestOptAdd(&hopt, "jitter", "jitter", airTypeDouble, 1, 1,
+	     &(tgparm->jitter), "0.05",
 	     "amount by which to perturb points when given an input nrrd");
+  hestOptAdd(&hopt, "minvelo", "vel", airTypeDouble, 1, 1, 
+	     &(tgparm->minVelocity), "0.00001",
+	     "low threshold on mean velocity of repelling points, "
+	     "at which point repulsion phase of algorithm terminates. ");
   hestOptAdd(&hopt, "maxiter", "# iters", airTypeInt, 1, 1,
 	     &(tgparm->maxIteration), "1000000",
 	     "max number of iterations for which to run the simulation");
+  hestOptAdd(&hopt, "minimprov", "delta", airTypeDouble, 1, 1, 
+	     &(tgparm->minMeanImprovement), "0.00001",
+	     "in the second phase of the algorithm, "
+	     "when stochastically optimizing the balance of gradients, "
+	     "the (small) improvement in length of mean gradient "
+	     "which triggers termination (as further improvements "
+	     "are unlikely. ");
+  hestOptAdd(&hopt, "minmean", "len", airTypeDouble, 1, 1,
+	     &(tgparm->minMean), "0.0001",
+	     "if length of mean gradient falls below this, finish "
+	     "the balancing phase");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
 	     "file to write output nrrd to");
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

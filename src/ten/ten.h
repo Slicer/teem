@@ -377,8 +377,10 @@ typedef struct {
     charge,
     drag, 
     dt,
+    jitter,
     minVelocity,
-    jitter; 
+    minMean,
+    minMeanImprovement;
   int srand, snap, single, minIteration, maxIteration;
 } tenGradientParm;
 
@@ -399,8 +401,12 @@ TEEM_API tenGradientParm *tenGradientParmNix(tenGradientParm *tgparm);
 TEEM_API int tenGradientCheck(Nrrd *ngrad, int type, int minnum);
 TEEM_API int tenGradientRandom(Nrrd *ngrad, int num, int srand);
 TEEM_API int tenGradientJitter(Nrrd *nout, Nrrd *nin, double dist);
-TEEM_API int tenGradientDistribute(Nrrd *nout, Nrrd *nin, tenGradientParm *tgparm);
-TEEM_API int tenGradientGenerate(Nrrd *nout, int num, tenGradientParm *tgparm);
+TEEM_API int tenGradientMeanMinimize(Nrrd *nout, Nrrd *nin,
+				     tenGradientParm *tgparm);
+TEEM_API int tenGradientDistribute(Nrrd *nout, Nrrd *nin,
+				   tenGradientParm *tgparm);
+TEEM_API int tenGradientGenerate(Nrrd *nout, int num,
+				 tenGradientParm *tgparm);
 
 /* enumsTen.c */
 TEEM_API airEnum *tenAniso;
