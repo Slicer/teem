@@ -104,6 +104,11 @@ tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
       tdata += 7;
     }
   }
+  if (nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_SIZE_BIT)) {
+    sprintf(err, "%s: trouble", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  AIR_FREE(nout->axis[0].label);
 
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);

@@ -58,11 +58,11 @@ tenEvqOne(float vec[3], float scl) {
 }
 
 int
-tenEvqVolume(Nrrd *nout, Nrrd *nin, int which, int aniso) {
+tenEvqVolume(Nrrd *nout, Nrrd *nin, int which, int aniso, int scaleByAniso) {
   char me[]="tenEvqVolume", err[AIR_STRLEN_MED];
   int sx, sy, sz, map[3];
   short *qdata;
-  float *tdata, eval[3], evec[9], c[TEN_ANISO_MAX+1];
+  float *tdata, eval[3], evec[9], c[TEN_ANISO_MAX+1], an;
   size_t N, I;
 
   if (!(nout && nin)) {
@@ -73,9 +73,11 @@ tenEvqVolume(Nrrd *nout, Nrrd *nin, int which, int aniso) {
     sprintf(err, "%s: eigenvector index %d not in range [0..2]", me, which);
     biffAdd(TEN, err); return 1;
   }
-  if (!airEnumValValid(tenAniso, aniso)) {
-    sprintf(err, "%s: anisotropy metric %d not valid", me, aniso);
-    biffAdd(TEN, err); return 1;
+  if (scaleByAniso) {
+    if (!airEnumValValid(tenAniso, aniso)) {
+      sprintf(err, "%s: anisotropy metric %d not valid", me, aniso);
+      biffAdd(TEN, err); return 1;
+    }
   }
   if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE)) {
     sprintf(err, "%s: didn't get a valid DT volume", me);
@@ -93,14 +95,17 @@ tenEvqVolume(Nrrd *nout, Nrrd *nin, int which, int aniso) {
   qdata = nout->data;
   for (I=0; I<N; I++) {
     tenEigensolve(eval, evec, tdata);
-    tenAnisoCalc(c, eval);
-    qdata[I] = tenEvqOne(evec+ 3*which, c[aniso]);
+    if (scaleByAniso) {
+      tenAnisoCalc(c, eval);
+      an = c[aniso];
+    } else {
+      an = 1.0;
+    }
+    qdata[I] = tenEvqOne(evec+ 3*which, an);
     tdata += 7;
   }
-  map[0] = 1;
-  map[1] = 2;
-  map[2] = 3;
-  if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_NONE)) {
+  ELL_3V_SET(map, 1, 2, 3);
+  if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_SIZE_BIT)) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }

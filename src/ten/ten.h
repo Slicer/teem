@@ -101,9 +101,11 @@ extern int tenEigensolve(float eval[3], float evec[9], float t[7]);
 extern int tenTensorMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec);
 
 /* chan.c */
-extern void tenCalcOneTensor(float tens[7], float chan[7], 
-			     float thresh, float slope, float b);
-extern int tenCalcTensor(Nrrd *nout, Nrrd *nin, 
+extern void tenCalcOneTensor1(float tens[7], float chan[7], 
+			      float thresh, float slope, float b);
+extern void tenCalcOneTensor2(float tens[7], float chan[7], 
+			      float thresh, float slope, float b);
+extern int tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
 			 float thresh, float slope, float b);
 
 /* aniso.c */
@@ -117,7 +119,8 @@ extern int tenAnisoHistogram(Nrrd *nout, Nrrd *nin,
 
 /* miscTen.c */
 extern short tenEvqOne(float vec[3], float scl);
-extern int tenEvqVolume(Nrrd *nout, Nrrd *nin, int which, int aniso);
+extern int tenEvqVolume(Nrrd *nout, Nrrd *nin, int which,
+			int aniso, int scaleByAniso);
 
 /* glyph.c */
 extern int tenGlyphGen(limnObj *obj, Nrrd *nin, tenGlyphParm *parm);

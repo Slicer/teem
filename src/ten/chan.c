@@ -22,13 +22,14 @@
 #include "tenPrivate.h"
 
 /*
-******** tenCalcOneTensor
+******** tenCalcOneTensor1
 **
-** make one diffusion tensor from the measured at one voxel
+** make one diffusion tensor from the measured at one voxel, based
+** on the gradient directions used by Andy Alexander
 */
 void
-tenCalcOneTensor(float tens[7], float chan[7], 
-		 float thresh, float slope, float b) {
+tenCalcOneTensor1(float tens[7], float chan[7], 
+		  float thresh, float slope, float b) {
   double c[7], sum, d1, d2, d3, d4, d5, d6;
   
   c[0] = AIR_MAX(chan[0], 1);
@@ -56,21 +57,73 @@ tenCalcOneTensor(float tens[7], float chan[7],
 }
 
 /*
+******** tenCalcOneTensor1
+**
+** using gradient directions used by EK
+*/
+void
+tenCalcOneTensor2(float tens[7], float chan[7], 
+		  float thresh, float slope, float b) {
+  double c[7], sum, d1, d2, d3, d4, d5, d6;
+  
+  c[0] = AIR_MAX(chan[0], 1);
+  c[1] = AIR_MAX(chan[1], 1);
+  c[2] = AIR_MAX(chan[2], 1);
+  c[3] = AIR_MAX(chan[3], 1);
+  c[4] = AIR_MAX(chan[4], 1);
+  c[5] = AIR_MAX(chan[5], 1);
+  c[6] = AIR_MAX(chan[6], 1);
+  sum = c[1] + c[2] + c[3] + c[4] + c[5] + c[6];
+  tens[0] = (1 + airErf(slope*(sum - thresh)))/2.0;
+  d1 = (log(c[0]) - log(c[1]))/b;
+  d2 = (log(c[0]) - log(c[2]))/b;
+  d3 = (log(c[0]) - log(c[3]))/b;
+  d4 = (log(c[0]) - log(c[4]))/b;
+  d5 = (log(c[0]) - log(c[5]))/b;
+  d6 = (log(c[0]) - log(c[6]))/b;
+  tens[1] =  d1;                 /* Dxx */
+  tens[4] =  d2;                 /* Dyy */
+  tens[6] =  d3;                 /* Dzz */
+  tens[5] =  d4 - (d2 + d3)/2;   /* Dyz */
+  tens[3] =  d5 - (d1 + d3)/2;   /* Dxz */
+  tens[2] =  d6 - (d1 + d2)/2;   /* Dxy */
+  return;
+}
+
+/*
 ******** tenCalcTensor
 **
 ** Calculate a volume of tensors from measured data
 */
 int
-tenCalcTensor(Nrrd *nout, Nrrd *nin, 
+tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
 	      float thresh, float slope, float b) {
   char me[] = "tenCalcTensor", err[128], cmt[128];
   float *out, tens[6], chan[7];
   int sx, sy, sz;
   size_t I;
+  void (*calcten)(float tens[7], float chan[7], 
+		  float thresh, float slope, float b);
   
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
+  }
+  if (!( 1 == version || 2 == version )) {
+    sprintf(err, "%s: version should be 1 or 2, not %d", me, version);
+    biffAdd(TEN, err); return 1;
+  }
+  switch (version) {
+  case 1:
+    calcten = tenCalcOneTensor1;
+    break;
+  case 2:
+    calcten = tenCalcOneTensor2;
+    break;
+  default:
+    sprintf(err, "%s: PANIC, version = %d not handled", me, version);
+    biffAdd(TEN, err); return 1;
+    break;
   }
   if (tenTensorCheck(nin, nrrdTypeUnknown, AIR_TRUE)) {
     sprintf(err, "%s: wasn't given valid tensor nrrd", me);
@@ -114,7 +167,7 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin,
     chan[4] = nrrdFLookup[nin->type](nin->data, 4 + 7*I);
     chan[5] = nrrdFLookup[nin->type](nin->data, 5 + 7*I);
     chan[6] = nrrdFLookup[nin->type](nin->data, 6 + 7*I);
-    tenCalcOneTensor(tens, chan, thresh, slope, b);
+    calcten(tens, chan, thresh, slope, b);
     out[0 + 7*I] = tens[0];
     out[1 + 7*I] = tens[1];
     out[2 + 7*I] = tens[2];

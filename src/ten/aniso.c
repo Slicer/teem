@@ -172,10 +172,8 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, float thresh) {
     tenAnisoCalc(c, eval);
     out[I] = c[aniso];
   }
-  map[0] = 1;
-  map[1] = 2;
-  map[2] = 3;
-  if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_NONE)) {
+  ELL_3V_SET(map, 1, 2, 3);
+  if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_SIZE_BIT)) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
@@ -233,5 +231,3 @@ tenAnisoHistogram(Nrrd *nout, Nrrd *nin, int version, int res) {
   
   return 0;
 }
-
-

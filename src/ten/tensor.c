@@ -109,6 +109,8 @@ tenExpand(Nrrd *nout, Nrrd *nin, float scale, float thresh) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
+  AIR_FREE(nout->axis[0].label);
+  nout->axis[0].label = airStrdup("matrix");
 
   return 0;
 }
@@ -165,6 +167,13 @@ tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine) {
     seven += 7;
     nine += 9;
   }
+  if (nrrdAxesCopy(tseven, tnine, NULL, NRRD_AXESINFO_SIZE_BIT)) {
+    sprintf(err, "%s: trouble", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  AIR_FREE(tseven->axis[0].label);
+  tseven->axis[0].label = airStrdup("tensor");
+
   return 0;
 }
 
@@ -211,6 +220,7 @@ tenTensorMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec) {
   int sx, sy, sz;
   size_t I, N;
   float *out, *conf, tmpMat1[9], tmpMat2[9], diag[9], *eval, *evec, evecT[9];
+  int map[4];
 
   if (!(nout && nconf && neval && nevec)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -284,6 +294,13 @@ tenTensorMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec) {
     eval += 3;
     evec += 9;
   }
+  ELL_4V_SET(map, -1, 0, 1, 2);
+  if (nrrdAxesCopy(nout, nconf, map, NRRD_AXESINFO_SIZE_BIT)) {
+    sprintf(err, "%s: trouble", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  AIR_FREE(nout->axis[0].label);
+  nout->axis[0].label = airStrdup("tensor");
 
   return 0;
 }

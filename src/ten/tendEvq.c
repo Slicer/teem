@@ -37,7 +37,7 @@ tend_evqMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int which, aniso;
+  int which, aniso, dontScaleByAniso;
   Nrrd *nin, *nout;
   char *outS;
 
@@ -50,6 +50,10 @@ tend_evqMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "Which anisotropy metric to scale the eigenvector "
 	     "with.  " TEN_ANISO_DESC,
 	     NULL, tenAniso);
+  hestOptAdd(&hopt, "ns", NULL, airTypeInt, 0, 0, &dontScaleByAniso, NULL,
+	     "Don't attenuate the color by anisotropy.  By default (not "
+	     "using this option), regions with low or no anisotropy are "
+	     "very dark colors or black");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
 	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
@@ -63,7 +67,7 @@ tend_evqMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (tenEvqVolume(nout, nin, which, aniso)) {
+  if (tenEvqVolume(nout, nin, which, aniso, !dontScaleByAniso)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble quantizing eigenvectors:\n%s\n", me, err);
     airMopError(mop); exit(1);

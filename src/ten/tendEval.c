@@ -27,7 +27,7 @@ char *_tend_evalInfoL =
 
 int
 tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
-  int pret;
+  int pret, map[4];
   hestOpt *hopt = NULL;
   char *perr, *err;
   airArray *mop;
@@ -90,12 +90,14 @@ tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
   edata = nout->data;
   tdata = nin->data;
   if (1 == compLen) {
+    ELL_3V_SET(map, 1, 2, 3);
     for (I=0; I<N; I++) {
       tenEigensolve(eval, evec, tdata);
       edata[I] = (tdata[0] >= thresh)*eval[comp[0]];
       tdata += 7;
     }
   } else {
+    ELL_4V_SET(map, 0, 1, 2, 3);
     for (I=0; I<N; I++) {
       tenEigensolve(eval, evec, tdata);
       for (cc=0; cc<compLen; cc++)
@@ -103,6 +105,13 @@ tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
       edata += compLen;
       tdata += 7;
     }
+  }
+  if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_SIZE_BIT)) {
+    sprintf(err, "%s: trouble", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  if (1 != compLen) {
+    AIR_FREE(nout->axis[0].label);
   }
 
   if (nrrdSave(outS, nout, NULL)) {
