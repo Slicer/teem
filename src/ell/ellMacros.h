@@ -117,21 +117,26 @@
 #define ELL_3V_DOT(v1, v2) \
   ((v1)[0]*(v2)[0] + (v1)[1]*(v2)[1] + (v1)[2]*(v2)[2])
 
-#define ELL_3V_SCALE(v2, v1, a) \
-  ((v2)[0] = (v1)[0]*a,         \
-   (v2)[1] = (v1)[1]*a,         \
-   (v2)[2] = (v1)[2]*a)
+#define ELL_3V_SCALE(v2, a, v1) \
+  ((v2)[0] = (a)*(v1)[0],       \
+   (v2)[1] = (a)*(v1)[1],       \
+   (v2)[2] = (a)*(v1)[2])
 
-#define ELL_3V_SCALEADD(v2, v1, a) \
-  ((v2)[0] += (v1)[0]*a,           \
-   (v2)[1] += (v1)[1]*a,           \
-   (v2)[2] += (v1)[2]*a)
+#define ELL_3V_SCALEADD(v2, s0, v0, s1, v1) \
+  ((v2)[0] = (s0)*(v0)[0] + (s1)*(v1)[0],   \
+   (v2)[1] = (s0)*(v0)[1] + (s1)*(v1)[1],   \
+   (v2)[2] = (s0)*(v0)[2] + (s1)*(v1)[2])
+
+#define ELL_3V_SCALEADD3(v3, s0, v0, s1, v1, s2, v2)        \
+  ((v3)[0] = (s0)*(v0)[0] + (s1)*(v1)[0] + (s2)*(v2)[0],    \
+   (v3)[1] = (s0)*(v0)[1] + (s1)*(v1)[1] + (s2)*(v2)[1],    \
+   (v3)[2] = (s0)*(v0)[2] + (s1)*(v1)[2] + (s2)*(v2)[2])
 
 #define ELL_3V_LEN(v) \
   (sqrt((v)[0]*(v)[0] + (v)[1]*(v)[1] + (v)[2]*(v)[2]))
 
 #define ELL_3V_NORM(v2, v1, norm) \
-  (norm = 1.0/ELL_3V_LEN(v1), ELL_3V_SCALE(v2, v1, norm))
+  (norm = 1.0/ELL_3V_LEN(v1), ELL_3V_SCALE(v2, norm, v1))
 
 #define ELL_3V_CROSS(v3, v1, v2) \
   ((v3)[0] = (v1)[1]*(v2)[2] - (v1)[2]*(v2)[1], \

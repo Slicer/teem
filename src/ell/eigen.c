@@ -46,11 +46,11 @@ ell3mNullspace1(double ans[3], double n[9]) {
      t0 = -t2, so that when you add t0+t1+t2, you get (0,0,0), which
      isn't easy to normalize ... */
   if (ELL_3V_DOT(t0, t1) < 0)
-    ELL_3V_SCALE(t1, t1, -1);
+    ELL_3V_SCALE(t1, -1, t1);
   if (ELL_3V_DOT(t1, t2) < 0)
-    ELL_3V_SCALE(t2, t2, -1);
+    ELL_3V_SCALE(t2, -1, t2);
   if (ELL_3V_DOT(t0, t2) < 0)
-    ELL_3V_SCALE(t2, t2, -1);
+    ELL_3V_SCALE(t2, -1, t2);
 
   /* add them up (longer, hence more accurate, ones will dominate) */
   ELL_3V_ADD3(ans, t0, t1, t2);
@@ -81,11 +81,11 @@ ell3mNullspace2(double ans0[3], double ans1[3], double _n[9]) {
   /* make the column vectors point the same way: see the comment
      above in ell3mNullspace1() regarding this operation */
   if (ELL_3V_DOT(n+0, n+3) < 0)
-    ELL_3V_SCALE(n+3, n+3, -1);
+    ELL_3V_SCALE(n+3, -1, n+3);
   if (ELL_3V_DOT(n+3, n+6) < 0)
-    ELL_3V_SCALE(n+6, n+6, -1);
+    ELL_3V_SCALE(n+6, -1, n+6);
   if (ELL_3V_DOT(n+0, n+6) < 0)
-    ELL_3V_SCALE(n+6, n+6, -1);
+    ELL_3V_SCALE(n+6, -1, n+6);
 
   /* add them up (longer, hence more accurate, ones will dominate) */
   ELL_3V_ADD3(tmp, n+0, n+3, n+6);
