@@ -39,10 +39,10 @@ typedef struct {
   airArray *AA;               /* air array for err and num */
 } _biffEntry;
 
-_biffEntry **_biffErr ;       /* master array of _biffEntry pointers */
-int _biffNum,                 /* length of _biffErr == # keys maintained */
-  _biffIdx;                   /* hack: index of latest key found */
-airArray *_biffAA;            /* air array of _biffErr and _biffNum */
+_biffEntry **_biffErr=NULL;   /* master array of _biffEntry pointers */
+int _biffNum=0,               /* length of _biffErr == # keys maintained */
+  _biffIdx=-1;                /* hack: index of latest key found */
+airArray *_biffAA=NULL;       /* air array of _biffErr and _biffNum */
 
 #define _BIFF_INCR 2
 
