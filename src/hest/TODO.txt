@@ -5,6 +5,10 @@ for super long things like "tend glyph", it would be nice to have
 seperator lines between the long versions of options, to visually
 group them somewhat.
 
+currently the "input nrrd" option to unu comes last as a way of allowing
+hest to do error checking on all other (more error prone) options.  But
+it would be nice to indicate a parsing order seperate from the option order.
+
 basic problems with hest:
 
 - there's no such thing as a trully optional parameter: data is needed
