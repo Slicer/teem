@@ -130,7 +130,6 @@ miteRenderEnd(miteRender *mrr, miteUser *muu) {
   samples = 0;
   for (thr=0; thr<muu->hctx->numThreads; thr++) {
     samples += mrr->tt[thr]->samples;
-    printf("samples = %g\n", samples);
   }
   muu->sampRate = samples/(1000.0*muu->rendTime);
   _miteRenderNix(mrr);

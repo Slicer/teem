@@ -254,7 +254,7 @@ _miteStageSet(miteThread *mtt, miteRender *mrr, gageKind *kind) {
   char rc;
   
   stageNum = _miteStageNum(mrr);
-  fprintf(stderr, "!%s: stageNum = %d\n", me, stageNum);
+  /* fprintf(stderr, "!%s: stageNum = %d\n", me, stageNum); */
   mtt->stage = (miteStage *)calloc(stageNum, sizeof(miteStage));
   if (!mtt->stage) {
     sprintf(err, "%s: couldn't alloc array of %d stages", me, stageNum);
@@ -269,8 +269,10 @@ _miteStageSet(miteThread *mtt, miteRender *mrr, gageKind *kind) {
       stage = mtt->stage + si;
       dom = _miteDomainParse(ntxf->axis[di].label, kind);
       stage->val = mtt->ans + kind->ansOffset[dom];
+      /*
       fprintf(stderr, "!%s: ans=%p + offset[%d]=%d == %p\n", me,
 	      mtt->ans, dom, kind->ansOffset[dom], stage->val);
+      */
       stage->size = ntxf->axis[di].size;
       stage->min =  ntxf->axis[di].min;
       stage->max =  ntxf->axis[di].max;
@@ -282,8 +284,10 @@ _miteStageSet(miteThread *mtt, miteRender *mrr, gageKind *kind) {
 	for (rii=0; rii<stage->rangeNum; rii++) {
 	  rc = ntxf->axis[0].label[rii];
 	  stage->rangeIdx[rii] = strchr(miteRangeChar, rc) - miteRangeChar;
+	  /*
 	  fprintf(stderr, "!%s: range: %c -> %d\n", "_miteStageSet",
 		  ntxf->axis[0].label[rii], stage->rangeIdx[rii]);
+	  */
 	}
       }
       si++;

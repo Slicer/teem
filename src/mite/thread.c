@@ -43,7 +43,6 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
   (*mttP)->samples = 0;
   (*mttP)->verbose = 0;
   _miteStageSet(*mttP, mrr, gageKindScl);
-  fprintf(stderr, "!%s: end thread begin\n", me);
   return 0;
 }
 
