@@ -52,7 +52,7 @@ $(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o miscTen.o \
 	tendEvec.o tendSten.o tendExpand.o tendEvq.o tendPoint.o \
 	tendAnhist.o tendMake.o tendSatin.o tendShrink.o tendGlyph.o \
 	tendFiber.o tendEpireg.o tendBmat.o tendEstim.o tendSim.o
-$(L).TESTS = test/tg test/tt
+$(L).TESTS = test/tg test/tt test/tem
 ####
 ####
 ####
