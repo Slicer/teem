@@ -143,10 +143,10 @@ char *_unrrdu_saveInfoL =
 (INFO
  ". Use \"unu\tsave\t-f\tpnm\t|\txv\t-\" to view PPM- or "
  "PGM-compatible nrrds on unix.  Support for the EPS format is limited "
- "to this unu command only.  EPS output is a EPSF-3.0 file has BoundingBox "
+ "to this unu command only.  EPS output is a EPSF-3.0 file with BoundingBox "
  "and HiResBoundingBox DSC comments, and is suitable for inclusion into "
  "other PostScript documents.  As a stand-alone file, the image is "
- "conveniently centered on an 8.5x11 inch page, with 0.5 inch margins");
+ "conveniently centered on an 8.5x11 inch page, with 0.5 inch margins.");
 
 int
 unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
