@@ -47,7 +47,6 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   NrrdKernelSpec *unuk;
 
   hparm->elideSingleOtherDefault = AIR_FALSE;
-  OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "s", "s0 ", airTypeOther, 1, -1, &scale, NULL,
 	     "For each axis, information about how many samples in output:\n "
 	     "\b\bo \"=\": leave this axis untouched: no resampling "
@@ -81,6 +80,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "type to save output as. By default (not using this option), "
 	     "the output type is the same as the input type.",
              NULL, NULL, &unrrduHestMaybeTypeCB);
+  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

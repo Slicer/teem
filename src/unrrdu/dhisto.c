@@ -31,12 +31,12 @@ unrrdu_dhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   int size, pret, nolog;
   airArray *mop;
 
-  OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "h", "height", airTypeInt, 1, 1, &size, NULL,
 	     "height of output image (horizontal size is determined by "
 	     "number of bins in input histogram).");
   hestOptAdd(&opt, "nolog", NULL, airTypeInt, 0, 0, &nolog, NULL,
 	     "do not show the log-scaled histogram with decade tick-marks");
+  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

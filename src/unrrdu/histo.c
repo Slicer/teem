@@ -32,7 +32,6 @@ unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   double min, max;
   airArray *mop;
 
-  OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, NULL,
 	     "# of bins in histogram");
   hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
@@ -42,6 +41,7 @@ unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "Value at high end of histogram. Defaults to highest value "
 	     "found in input nrrd.");
   OPT_ADD_TYPE(type, "type to use for bins in output histogram", "uint");
+  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

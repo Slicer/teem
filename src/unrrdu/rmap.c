@@ -44,20 +44,29 @@ unrrdu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin, *nmap, *nout;
   airArray *mop;
   int mapax, typeOut, rescale, pret;
+  double min, max;
 
-  OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "m", "map", airTypeOther, 1, 1, &nmap, NULL,
 	     "regular map to map input nrrd through",
 	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "r", NULL, airTypeInt, 0, 0, &rescale, NULL,
-	     "rescale the input values from the input range to the "
+	     "rescale the values from the input nrrd range to the "
 	     "map domain, assuming it is explicitly defined");
+  hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
+	     "Value to map to low end of map. Defaults to lowest value "
+	     "found in input nrrd.  Explicitly setting this (and the "
+	     "same for the max) is useful only with rescaling (\"-r\") "
+	     "or if map doesn't know its domain");
+  hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
+	     "Value to map to high end of map. Defaults to highest value "
+	     "found in input nrrd.");
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &typeOut, "unknown",
 	     "specify the type (\"int\", \"float\", etc.) of the "
 	     "output nrrd. "
 	     "By default (not using this option), the output type "
 	     "is the map's type.",
              NULL, NULL, &unrrduHestMaybeTypeCB);
+  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
@@ -70,6 +79,10 @@ unrrdu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
+  if (AIR_EXISTS(min))
+    nin->min = min;
+  if (AIR_EXISTS(max))
+    nin->max = max;
   mapax = nmap->dim - 1;
   if (!(AIR_EXISTS(nmap->axis[mapax].min) &&
 	AIR_EXISTS(nmap->axis[mapax].max))) {
@@ -82,8 +95,8 @@ unrrdu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
       nrrdMinMaxCleverSet(nin);
       nmap->axis[mapax].min = nin->min;
       nmap->axis[mapax].max = nin->max;
-      fprintf(stderr, "%s: setting rmap domain to (%g,%g)\n",
-	      me, nin->min, nin->max);
+      /* fprintf(stderr, "%s: setting rmap domain to (%g,%g)\n",
+	 me, nin->min, nin->max); */
     }
   }
   if (rescale) {

@@ -36,7 +36,6 @@ unrrdu_gammaMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
   int pret;
 
-  OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "g", "gamma", airTypeDouble, 1, 1, &gamma, NULL,
 	     "gamma > 1.0 brightens; gamma < 1.0 darkens. "
 	     "Negative gammas invert values (like in xv). ");
@@ -46,6 +45,7 @@ unrrdu_gammaMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
 	     "Value to implicitly map to 1.0 prior to calling pow(). "
 	     "Defaults to highest value found in input nrrd.");
+  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

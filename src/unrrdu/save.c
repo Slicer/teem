@@ -93,7 +93,6 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   io = nrrdIONew();
   airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
 
-  OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "f", "format", airTypeEnum, 1, 1, &(io->format), NULL,
 	     "output file format. Possibilities include:\n "
 	     "\b\bo \"nrrd\": standard nrrd format\n "
@@ -121,6 +120,7 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "friends; \"big\" for everyone else. "
 	     "Defaults to endianness of this machine",
 	     NULL, airEndian);
+  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);

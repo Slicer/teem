@@ -33,7 +33,6 @@ unrrdu_padMain(int argc, char **argv, char *me, hestParm *hparm) {
   double padVal;
   airArray *mop;
 
-  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_BOUND("min", minOff,
 		"low corner of bounding box.\n "
 		"\b\bo <int> gives 0-based index\n "
@@ -52,6 +51,7 @@ unrrdu_padMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     NULL, nrrdBoundary);
   hestOptAdd(&opt, "v", "value", airTypeDouble, 1, 1, &padVal, "0.0",
 	     "for \"pad\" boundary behavior, pad with this value");
+  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

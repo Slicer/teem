@@ -45,12 +45,12 @@ unrrdu_shuffleMain(int argc, char **argv, char *me, hestParm *hparm) {
   /* so that long permutations can be read from file */
   hparm->respFileEnable = AIR_TRUE;
 
-  OPT_ADD_NIN(nin, "input nrrd");
-  hestOptAdd(&opt, "inv", NULL, airTypeInt, 0, 0, &inverse, NULL,
-	     "use inverse of given permutation");
   hestOptAdd(&opt, "p", "slc0 slc1", airTypeInt, 1, -1, &perm, NULL,
 	     "new slice ordering", &permLen);
+  hestOptAdd(&opt, "inv", NULL, airTypeInt, 0, 0, &inverse, NULL,
+	     "use inverse of given permutation");
   OPT_ADD_AXIS(axis, "axis to shuffle along");
+  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

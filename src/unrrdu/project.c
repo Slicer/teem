@@ -36,7 +36,6 @@ unrrdu_projectMain(int argc, char **argv, char *me, hestParm *hparm) {
   int axis, measr, pret;
   airArray *mop;
 
-  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_AXIS(axis, "axis to project along");
   hestOptAdd(&opt, "m", "measr", airTypeEnum, 1, 1, &measr, NULL,
 	     "How to \"measure\" a scanline.  Possibilities include:\n "
@@ -53,6 +52,7 @@ unrrdu_projectMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "the scanlines are histograms of values, not the values "
 	     "themselves.", 
 	     NULL, nrrdMeasure);
+  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

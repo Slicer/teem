@@ -39,8 +39,8 @@ unrrdu_imapMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin, *nmap, *nacl, *nout;
   airArray *mop;
   int typeOut, rescale, aclLen, pret;
+  double min, max;
 
-  OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "m", "map", airTypeOther, 1, 1, &nmap, NULL,
 	     "irregular map to map input nrrd through",
 	     NULL, NULL, nrrdHestNrrd);
@@ -52,12 +52,20 @@ unrrdu_imapMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "r", NULL, airTypeInt, 0, 0, &rescale, NULL,
 	     "rescale the input values from the input range to the "
 	     "map domain");
+  hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
+	     "Value to map to low end of map. Defaults to lowest value "
+	     "found in input nrrd.  Explicitly setting this (and the "
+	     "same for the max) is useful only with rescaling (\"-r\")");
+  hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
+	     "Value to map to high end of map. Defaults to highest value "
+	     "found in input nrrd.");
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &typeOut, "unknown",
 	     "specify the type (\"int\", \"float\", etc.) of the "
 	     "output nrrd. "
 	     "By default (not using this option), the output type "
 	     "is the map's type.",
              NULL, NULL, &unrrduHestMaybeTypeCB);
+  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
@@ -82,6 +90,10 @@ unrrdu_imapMain(int argc, char **argv, char *me, hestParm *hparm) {
   } else {
     nacl = NULL;
   }
+  if (AIR_EXISTS(min))
+    nin->min = min;
+  if (AIR_EXISTS(max))
+    nin->max = max;
   if (rescale) {
     nrrdMinMaxCleverSet(nin);
   }
@@ -91,7 +103,7 @@ unrrdu_imapMain(int argc, char **argv, char *me, hestParm *hparm) {
   /* some very non-exhaustive tests seemed to indicate that the
      accelerator does not in fact reliably speed anything up.
      This of course depends on the size of the imap (# points),
-     but chances are most will have only a handful of points,
+     but chances are most imaps will have only a handful of points,
      in which case the binary search in _nrrd1DIrregFindInterval()
      will finish quickly ... */
   if (nrrdApply1DIrregMap(nout, nin, nmap, nacl, typeOut, rescale)) {

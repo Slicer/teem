@@ -45,7 +45,9 @@ unrrdu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
   float wght;
 
-  OPT_ADD_NIN(nin, "input nrrd");
+  hestOptAdd(&opt, "r", "radius", airTypeInt, 1, 1, &radius, NULL,
+	     "how big a window to filter over. \"-r 1\" leads to a "
+	     "3x3 window in an image, and a 3x3x3 window in a volume");
   hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, "2048",
 	     "# of bins in histogram");
   hestOptAdd(&opt, "w", "weight", airTypeFloat, 1, 1, &wght, "1.0",
@@ -53,14 +55,12 @@ unrrdu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "closer to the center of the window.  \"1.0\" weight means that "
 	     "all samples are uniformly weighted over the window, which "
 	     "facilitates a simple speed-up. ");
-  hestOptAdd(&opt, "r", "radius", airTypeInt, 1, 1, &radius, NULL,
-	     "how big a window to filter over. \"-r 1\" leads to a "
-	     "3x3 window in an image, and a 3x3x3 window in a volume");
   hestOptAdd(&opt, "p", NULL, airTypeInt, 0, 0, &pad, NULL,
 	     "Pad the input (with boundary method \"bleed\"), "
 	     "and crop the output, so as to "
 	     "overcome our cheapness and correctly "
 	     "handle the border.  Obviously, this takes more memory.");
+  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

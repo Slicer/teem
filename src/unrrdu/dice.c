@@ -35,8 +35,8 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
   int fit, pos, axis, top, pret;
   airArray *mop;
 
-  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_AXIS(axis, "axis to slice along");
+  OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "o", "prefix", airTypeString, 1, 1, &base, NULL,
 	     "output filename prefix. Output nrrds will be saved out as "
 	     "<prefix>00.nrrd, <prefix>01.nrrd, and so on. If this is a "

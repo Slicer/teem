@@ -35,7 +35,6 @@ unrrdu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
   double min, max;
   airArray *mop;
 
-  OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "b", "bits", airTypeOther, 1, 1, &bits, NULL,
 	     "Number of bits to quantize down to; determines the type "
 	     "of the output nrrd:\n "
@@ -49,6 +48,7 @@ unrrdu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
 	     "Value to map to highest unsigned integral value. "
 	     "Defaults to highest value found in input nrrd.");
+  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

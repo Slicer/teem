@@ -37,20 +37,29 @@ unrrdu_lutMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin, *nlut, *nout;
   airArray *mop;
   int lutax, typeOut, rescale, pret;
+  double min, max;
 
-  OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "m", "lut", airTypeOther, 1, 1, &nlut, NULL,
 	     "lookup table to map input nrrd through",
 	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "r", NULL, airTypeInt, 0, 0, &rescale, NULL,
 	     "rescale the input values from the input range to the "
 	     "lut domain, assuming it is explicitly defined");
+  hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
+	     "Value to map to low end of lut. Defaults to lowest value "
+	     "found in input nrrd.  Explicitly setting this (and the "
+	     "same for the max) is useful only with rescaling (\"-r\") "
+	     "or if map doesn't know its domain");
+  hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
+	     "Value to map to high end of lut. Defaults to highest value "
+	     "found in input nrrd.");
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &typeOut, "unknown",
 	     "specify the type (\"int\", \"float\", etc.) of the "
 	     "output nrrd. "
 	     "By default (not using this option), the output type "
 	     "is the lut's type.",
              NULL, NULL, &unrrduHestMaybeTypeCB);
+  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
@@ -63,6 +72,10 @@ unrrdu_lutMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
+  if (AIR_EXISTS(min))
+    nin->min = min;
+  if (AIR_EXISTS(max))
+    nin->max = max;
   lutax = nlut->dim - 1;
   if (!( AIR_EXISTS(nlut->axis[lutax].min) &&
 	 AIR_EXISTS(nlut->axis[lutax].max) )) {
@@ -75,8 +88,8 @@ unrrdu_lutMain(int argc, char **argv, char *me, hestParm *hparm) {
       nrrdMinMaxCleverSet(nin);
       nlut->axis[lutax].min = nin->min;
       nlut->axis[lutax].max = nin->max;
-      fprintf(stderr, "%s: setting lut domain to (%g,%g)\n",
-	      me, nin->min, nin->max);
+      /* fprintf(stderr, "%s: setting lut domain to (%g,%g)\n",
+      me, nin->min, nin->max); */
     }
   }
   if (rescale) {

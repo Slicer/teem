@@ -32,7 +32,6 @@ unrrdu_cropMain(int argc, char **argv, char *me, hestParm *hparm) {
     min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
   airArray *mop;
 
-  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_BOUND("min", minOff,
 		"low corner of bounding box.\n "
 		"\b\bo <int> gives 0-based index\n "
@@ -43,6 +42,7 @@ unrrdu_cropMain(int argc, char **argv, char *me, hestParm *hparm) {
 		"the specification styles described above, there's also:\n "
 		"\b\bo m+<int> give index relative to minimum.",
 		maxLen);
+  OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
