@@ -27,9 +27,9 @@ main(int argc, char **argv) {
     printf("gimme somethings\n");
     exit(1);
   }
-  if (!(nrrd = nrrdNewOpen(argv[1]))) {
+  if (!(nrrd = nrrdNewLoad(argv[1]))) {
     err = biffGet(NRRD);
-    printf("nrrdNewOpen failed:\n%s\n", err);
+    printf("nrrdNewLoad failed:\n%s\n", err);
     exit(1);
   }
   slice = nrrdNew();

@@ -401,8 +401,8 @@ extern int nrrdElementSize(Nrrd *nrrd);
 
 /******** getting information to and from files */
 /* io.c */
-extern int nrrdOpen(char *name, Nrrd *nrrd);
-extern Nrrd *nrrdNewOpen(char *name);
+extern int nrrdLoad(char *name, Nrrd *nrrd);
+extern Nrrd *nrrdNewLoad(char *name);
 extern int nrrdSave(char *name, Nrrd *nrrd);
 extern int nrrdOneLine(FILE *file, char *line, int size);
 typedef int (*NrrdReadDataType)(FILE *file, Nrrd *nrrd);

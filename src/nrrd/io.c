@@ -802,8 +802,8 @@ _nrrdSplitFilename(char *name, char *dir, char *base) {
 }
 
 int
-nrrdOpen(char *name, Nrrd *nrrd) {
-  char err[NRRD_MED_STRLEN], me[]="nrrdOpen", *dir, *base;
+nrrdLoad(char *name, Nrrd *nrrd) {
+  char err[NRRD_MED_STRLEN], me[]="nrrdLoad", *dir, *base;
   FILE *file;
   
   if (!(name && nrrd)) {
@@ -844,8 +844,8 @@ nrrdOpen(char *name, Nrrd *nrrd) {
 }
 
 Nrrd *
-nrrdNewOpen(char *name) {
-  char err[NRRD_MED_STRLEN], me[]="nrrdNewOpen";
+nrrdNewLoad(char *name) {
+  char err[NRRD_MED_STRLEN], me[]="nrrdNewLoad";
   Nrrd *nrrd;
   
   if (!name) {
@@ -856,8 +856,8 @@ nrrdNewOpen(char *name) {
     sprintf(err, "%s: nrrdNew() failed", me);
     biffAdd(NRRD, err); return NULL;
   }
-  if (nrrdOpen(name, nrrd)) {
-    sprintf(err, "%s: nrrdOpen() failed", me);
+  if (nrrdLoad(name, nrrd)) {
+    sprintf(err, "%s: nrrdLoad() failed", me);
     nrrdNuke(nrrd);
     biffAdd(NRRD, err); return NULL;
   }
