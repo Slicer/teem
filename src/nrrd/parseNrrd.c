@@ -358,12 +358,14 @@ _nrrdReadNrrdParse_block_size(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char *info;
 
   info = io->line + io->pos;
+  /*
   if (nrrdTypeBlock != nrrd->type) {
-    sprintf(err, "%s: known type (%s) is not (%s)", me,
+    sprintf(err, "%s: known type (%s) is not %s", me,
 	    airEnumStr(nrrdType, nrrd->type),
 	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
+  */
   _PARSE_ONE_VAL(nrrd->blockSize, "%d", "int");
   return 0;
 }

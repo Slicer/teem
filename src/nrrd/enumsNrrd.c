@@ -189,7 +189,7 @@ char
 _nrrdEncodingStrEqv[][AIR_STRLEN_SMALL] = {
   "(unknown_encoding)",
   "raw",
-  "ascii",
+  "txt", "text", "ascii",
   "gz", "gzip",
   "bz2", "bzip2",
   ""
@@ -199,7 +199,7 @@ int
 _nrrdEncodingValEqv[] = {
   nrrdEncodingUnknown,
   nrrdEncodingRaw,
-  nrrdEncodingAscii,
+  nrrdEncodingAscii, nrrdEncodingAscii, nrrdEncodingAscii,
   nrrdEncodingGzip, nrrdEncodingGzip,
   nrrdEncodingBzip2, nrrdEncodingBzip2,
   nrrdEncodingLast

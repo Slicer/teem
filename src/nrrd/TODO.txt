@@ -1,3 +1,6 @@
+make sure that endian-specified ascii data isn't swapped, refactor
+endian-fixing of other encodings
+
 change verbosity to warning when nrrd headers in PPM and tables are botched,
 and to get indication of successful DIO reading
 
