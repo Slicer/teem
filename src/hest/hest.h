@@ -116,9 +116,12 @@ typedef struct {
 			     parameter option, then don't bother printing the
 			     type information as part of hestGlossary() */
     elideSingleOtherType, /* like above, but for airTypeOther */
-    elideSingleNonExistFloatDefault, /* if default for a single fixed
-			   floating point (float or double) parameter doesn't
-			   AIR_EXIST, then don't display the default */
+    elideSingleOtherDefault, /* don't display default for single fixed
+				airTypeOther parameter */
+    elideSingleNonExistFloatDefault, /* if default for a single fixed floating
+					point (float or double) parameter
+					doesn't AIR_EXIST, then don't display
+					the default */
     columns;            /* number of printable columns in output */
   char respFileFlag,    /* the character at the beginning of an argument
 			   indicating that this is a response file name */
@@ -137,6 +140,7 @@ extern int hestVerbosity;
 extern int hestRespFileEnable;
 extern int hestElideSingleEnumType;
 extern int hestElideSingleOtherType;
+extern int hestElideSingleOtherDefault;
 extern int hestElideSingleNonExistFloatDefault;
 extern int hestColumns;
 extern char hestRespFileFlag;

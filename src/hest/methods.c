@@ -31,7 +31,12 @@ hestParmNew() {
     parm->respFileEnable = hestRespFileEnable;
     parm->elideSingleEnumType = hestElideSingleEnumType;
     parm->elideSingleOtherType = hestElideSingleOtherType;
-    parm->elideSingleNonExistFloatDefault = 
+    parm->elideSingleOtherDefault = hestElideSingleOtherDefault;
+    /*
+    fprintf(stderr, "!%s: parm->elideSingleOtherDefault = %d\n",
+	    "hestParmNew", parm->elideSingleOtherDefault);
+    */
+    parm->elideSingleNonExistFloatDefault =
       hestElideSingleNonExistFloatDefault;
     parm->columns = hestColumns;
     parm->respFileFlag = hestRespFileFlag;

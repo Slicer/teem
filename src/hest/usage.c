@@ -266,12 +266,19 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
       strcat(buff, tmpS);
       strcat(buff, ")");
     }
+    /*
+    fprintf(stderr, "!%s: parm->elideSingleOtherDefault = %d\n",
+	    "hestGlossary", parm->elideSingleOtherDefault);
+    */
     if (opt[i].dflt 
 	&& (opt[i].min || _hestMax(opt[i].max))
 	&& (!( 2 == opt[i].kind
 	       && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
 	       && !AIR_EXISTS(airAtod(opt[i].dflt)) 
 	       && parm->elideSingleNonExistFloatDefault ))
+	&& (!( 2 == opt[i].kind
+	       && airTypeOther == opt[i].type
+	       && parm->elideSingleOtherDefault ))
 	) {
       /* if there are newlines in the info, then we want to clarify the
 	 default by printing it on its own line */
