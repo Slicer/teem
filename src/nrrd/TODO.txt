@@ -12,6 +12,7 @@ rewrite most of io.c, using some sort of "io context" struct which
 seperates io-specific state from the nrrd itself, since that info
 has no value outside the context of io operations
 
+make nrrdHistoEq permit learning what mapping was used to acheive equalization
 
 figure out which (if any) of float args should be doubles
 
