@@ -130,7 +130,7 @@ typedef struct {
   /* ----------------------- intput */
   hooverContext *ctx;
   _hooverExtraContext *ec;
-  void *renderInfo;
+  void *render;
   int whichThread;
   /* ----------------------- output */
   int whichErr;
@@ -140,7 +140,7 @@ typedef struct {
 void *
 _hooverThreadBody(void *_arg) {
   _hooverThreadArg *arg;
-  void *threadInfo;
+  void *thread;
   int ret,               /* to catch return values from callbacks */
     sampleI,             /* which sample we're on */
     inside,              /* we're inside the volume */
@@ -169,9 +169,9 @@ _hooverThreadBody(void *_arg) {
 			    directions towards start of ray */
 
   arg = (_hooverThreadArg *)_arg;
-  if ( (ret = (arg->ctx->threadBegin)(&threadInfo, 
-				      arg->renderInfo, 
-				      arg->ctx->userInfo,
+  if ( (ret = (arg->ctx->threadBegin)(&thread, 
+				      arg->render, 
+				      arg->ctx->user,
 				      arg->whichThread)) ) {
     arg->errCode = ret;
     arg->whichErr = hooverErrThreadBegin;
@@ -242,9 +242,9 @@ _hooverThreadBody(void *_arg) {
 	rayLen = ((arg->ctx->cam->vspFaar - arg->ctx->cam->vspNeer)/
 		  ELL_3V_DOT(rayDirW, arg->ctx->cam->N));
       }
-      if ( (ret = (arg->ctx->rayBegin)(threadInfo,
-				       arg->renderInfo,
-				       arg->ctx->userInfo,
+      if ( (ret = (arg->ctx->rayBegin)(thread,
+				       arg->render,
+				       arg->ctx->user,
 				       uI, vI, rayLen,
 				       rayStartW, rayStartI,
 				       rayDirW, rayDirI)) ) {
@@ -261,9 +261,9 @@ _hooverThreadBody(void *_arg) {
 	inside = (AIR_IN_CL(mm, rayPosI[0], Mx) &&
 		  AIR_IN_CL(mm, rayPosI[1], My) &&
 		  AIR_IN_CL(mm, rayPosI[2], Mz));
-	rayStep = (arg->ctx->sample)(threadInfo,
-				     arg->renderInfo,
-				     arg->ctx->userInfo,
+	rayStep = (arg->ctx->sample)(thread,
+				     arg->render,
+				     arg->ctx->user,
 				     sampleI, rayT,
 				     inside,
 				     rayPosW, rayPosI);
@@ -286,9 +286,9 @@ _hooverThreadBody(void *_arg) {
 	sampleI++;
       }
       
-      if ( (ret = (arg->ctx->rayEnd)(threadInfo,
-				     arg->renderInfo,
-				     arg->ctx->userInfo)) ) {
+      if ( (ret = (arg->ctx->rayEnd)(thread,
+				     arg->render,
+				     arg->ctx->user)) ) {
 	arg->errCode = ret;
 	arg->whichErr = hooverErrRayEnd;
 	return arg;
@@ -297,9 +297,9 @@ _hooverThreadBody(void *_arg) {
     vI += arg->ctx->numThreads;
   } /* end skipping through scanlines */
 
-  if ( (ret = (arg->ctx->threadEnd)(threadInfo,
-				    arg->renderInfo,
-				    arg->ctx->userInfo)) ) {
+  if ( (ret = (arg->ctx->threadEnd)(thread,
+				    arg->render,
+				    arg->ctx->user)) ) {
     arg->errCode = ret;
     arg->whichErr = hooverErrThreadEnd;
     return arg;
@@ -326,7 +326,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   pthread_attr_t attr;
 #endif
 
-  void *renderInfo;
+  void *render;
   int ret;
   airArray *mop;
   int threadIdx;
@@ -345,7 +345,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   }
   mop = airMopNew();
   airMopAdd(mop, ec, (airMopper)_hooverExtraContextNix, airMopAlways);
-  if ( (ret = (ctx->renderBegin)(&renderInfo, ctx->userInfo)) ) {
+  if ( (ret = (ctx->renderBegin)(&render, ctx->user)) ) {
     *errCodeP = ret;
     airMopError(mop);
     return hooverErrRenderBegin;
@@ -354,7 +354,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
     args[threadIdx].ctx = ctx;
     args[threadIdx].ec = ec;
-    args[threadIdx].renderInfo = renderInfo;
+    args[threadIdx].render = render;
     args[threadIdx].whichThread = threadIdx;
     args[threadIdx].whichErr = hooverErrNone;
     args[threadIdx].errCode = 0;
@@ -415,11 +415,11 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   }
 #endif
 
-  if ( (ret = (ctx->renderEnd)(renderInfo, ctx->userInfo)) ) {
+  if ( (ret = (ctx->renderEnd)(render, ctx->user)) ) {
     *errCodeP = ret;
     return hooverErrRenderEnd;
   }
-  renderInfo = NULL;
+  render = NULL;
   airMopOkay(mop);
 
   return hooverErrNone;

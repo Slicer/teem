@@ -31,7 +31,7 @@ hooverContextNew() {
     ctx->volCentering = hooverDefVolCentering;
     ctx->imgSize[0] = ctx->imgSize[1] = 0;
     ctx->imgCentering = hooverDefImgCentering;
-    ctx->userInfo = NULL;
+    ctx->user = NULL;
     ctx->numThreads = 1;
     ctx->renderBegin = hooverStubRenderBegin;
     ctx->threadBegin = hooverStubThreadBegin;

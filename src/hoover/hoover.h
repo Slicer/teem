@@ -47,15 +47,15 @@ extern "C" {
 /* 
 ******** the mess of typedefs for callbacks used below
 */
-typedef int (hooverRenderBegin_t)(void **renderInfoP,
-				  void *userInfo);
-typedef int (hooverThreadBegin_t)(void **threadInfoP,
-				  void *renderInfo,
-				  void *userInfo,
+typedef int (hooverRenderBegin_t)(void **renderP,
+				  void *user);
+typedef int (hooverThreadBegin_t)(void **threadP,
+				  void *render,
+				  void *user,
 				  int whichThread);
-typedef int (hooverRayBegin_t)(void *threadInfo,
-			       void *renderInfo,
-			       void *userInfo,
+typedef int (hooverRayBegin_t)(void *thread,
+			       void *render,
+			       void *user,
 			       int uIndex,    /* img coords of current ray */
 			       int vIndex, 
 			       double rayLen, /* length of ray segment between
@@ -64,21 +64,21 @@ typedef int (hooverRayBegin_t)(void *threadInfo,
 			       double rayStartIndex[3],
 			       double rayDirWorld[3],
 			       double rayDirIndex[3]);
-typedef double (hooverSample_t)(void *threadInfo,
-				void *renderInfo,
-				void *userInfo,
+typedef double (hooverSample_t)(void *thread,
+				void *render,
+				void *user,
 				int num,    /* which sample this is, 0-based */
 				double rayT,/* position along ray */
 				int inside, /* sample is inside the volume */
 				double samplePosWorld[3],
 				double samplePosIndex[3]);
-typedef int (hooverRayEnd_t)(void *threadInfo,
-			     void *renderInfo,
-			     void *userInfo);
-typedef int (hooverThreadEnd_t)(void *threadInfo,
-				void *renderInfo,
-				void *userInfo);
-typedef int (hooverRenderEnd_t)(void *rendInfo, void *userInfo);
+typedef int (hooverRayEnd_t)(void *thread,
+			     void *render,
+			     void *user);
+typedef int (hooverThreadEnd_t)(void *thread,
+				void *render,
+				void *user);
+typedef int (hooverRenderEnd_t)(void *rend, void *user);
 
 /*
 ******** hooverContext struct
@@ -111,7 +111,7 @@ typedef struct {
     imgCentering;          /* either nrrdCenterNode or nrrdCenterCell */
   
   /******** 4) opaque "user information" pointer */
-  void *userInfo;          /* passed to all callbacks */
+  void *user;          /* passed to all callbacks */
 
   /******** 5) the number of threads to spawn */
   int numThreads;          /* number of threads to spawn per rendering */
@@ -135,21 +135,21 @@ typedef struct {
   ** renderBegin()
   **
   ** called once at beginning of whole rendering, and
-  ** *renderInfoP is passed to all following calls as "renderInfo".
+  ** *renderP is passed to all following calls as "render".
   ** Any mechanisms for inter-thread communication go nicely in 
-  ** the renderInfo.
+  ** the render.
   **
-  ** int (*renderBegin)(void **renderInfoP, void *userInfo);
+  ** int (*renderBegin)(void **renderP, void *user);
   */
   hooverRenderBegin_t *renderBegin;
   
   /* 
   ** threadBegin() 
   **
-  ** called once per thread, and *threadInfoP is passed to all
-  ** following calls as "threadInfo".
+  ** called once per thread, and *threadP is passed to all
+  ** following calls as "thread".
   **
-  ** int (*threadBegin)(void **threadInfoP, void *renderInfo, void *userInfo,
+  ** int (*threadBegin)(void **threadP, void *render, void *user,
   **                    int whichThread);
   */
   hooverThreadBegin_t *threadBegin;
@@ -161,7 +161,7 @@ typedef struct {
   ** called regardless of whether the ray actually intersects the
   ** volume, but this will change in the future.
   **
-  ** int (*rayBegin)(void *threadInfo, void *renderInfo, void *userInfo,
+  ** int (*rayBegin)(void *thread, void *render, void *user,
   **                 int uIndex, int vIndex, 
   **                 double rayLen,
   **                 double rayStartWorld[3], double rayStartIndex[3],
@@ -184,7 +184,7 @@ typedef struct {
   ** hoover) in that it enforces rather rigid constraints on how
   ** multi-threading works: one thread can not render multiple rays
   ** simulatenously.  If there were more args to sample() (like a
-  ** rayInfo, or an integral rayIndex), then this would be possible,
+  ** ray, or an integral rayIndex), then this would be possible,
   ** but it would mean that _hooverThreadBody() would have to
   ** implement all the smarts about which samples belong on which rays
   ** belong with which threads.
@@ -193,7 +193,7 @@ typedef struct {
   ** never call this function if the ray does not in fact intersect
   ** the volume at all.
   **
-  ** double (*sample)(void *threadInfo, void *renderInfo, void *userInfo,
+  ** double (*sample)(void *thread, void *render, void *user,
   **                  int num, double rayT, int inside,
   **                  double samplePosWorld[3],
   **                  double samplePosIndex[3]);
@@ -207,7 +207,7 @@ typedef struct {
   ** 1) sample returns 0.0, or,
   ** 2) the sample location goes behind far plane
   **
-  ** int (*rayEnd)(void *threadInfo, void *renderInfo, void *userInfo);
+  ** int (*rayEnd)(void *thread, void *render, void *user);
   */
   hooverRayEnd_t *rayEnd;
 
@@ -216,7 +216,7 @@ typedef struct {
   **
   ** called at end of thread
   **
-  ** int (*threadEnd)(void *threadInfo, void *renderInfo, void *userInfo);
+  ** int (*threadEnd)(void *thread, void *render, void *user);
   */
   hooverThreadEnd_t *threadEnd;
   
@@ -225,7 +225,7 @@ typedef struct {
   ** 
   ** called once at end of whole rendering
   **
-  ** int (*renderEnd)(void *rendInfo, void *userInfo);
+  ** int (*renderEnd)(void *rend, void *user);
   */
   hooverRenderEnd_t *renderEnd;
 
