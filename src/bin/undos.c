@@ -55,14 +55,15 @@ undosConvert(char *me, char *name, int reverse) {
   airMopAdd(mop, fin, (airMopper)airFclose, airMopOnError);
 
   /* create buffer */
-  dataArr = airArrayNew((void**)&data, NULL, sizeof(char), AIR_STRLEN_LARGE);
+  dataArr = airArrayNew((void**)&data, NULL, sizeof(char), AIR_STRLEN_HUGE);
   if (!dataArr) {
     fprintf(stderr, "%s: internal allocation error #1\n", me);
     airMopError(mop); return;
   }
   airMopAdd(mop, dataArr, (airMopper)airArrayNuke, airMopAlways);
 
-  /* read input file */
+  /* read input file, testing for binary-ness along the way */
+  numBad = 0;
   car = getc(fin);
   if (EOF == car) {
     fprintf(stderr, "%s: \"%s\" was empty, skipping ...\n", me, name);
@@ -75,24 +76,18 @@ undosConvert(char *me, char *name, int reverse) {
       airMopError(mop); return;
     }
     data[ci] = car;
-    car = getc(fin);
-  } while (EOF != car);
-  fin = airFclose(fin);
-
-  /* test for binary-ness */
-  numBad = 0;
-  for (ci=0; ci<dataArr->len; ci++) {
     numBad += !(isprint(data[ci]) || isspace(data[ci]));
-  }
-  if (BAD_PERC < 100*(double)numBad/dataArr->len) {
+    car = getc(fin);
+  } while (EOF != car && BAD_PERC > 100.0*numBad/dataArr->len);
+  if (EOF != car) {
     fprintf(stderr, "%s: more than %g%% of \"%s\" is non-printing, "
 	    "skipping ...\n", me, BAD_PERC, name);
     airMopError(mop); return;    
   }
-  fprintf(stderr, "!%s: numBad = %d\n", me, numBad);
+  fin = airFclose(fin);
 
   /* open output file */
-  fout = airFopen(name, stdin, "wb");
+  fout = airFopen(name, stdout, "wb");
   if (!fout) {
     fprintf(stderr, "%s: couldn't open \"%s\" for writing: \"%s\"\n", 
 	    me, name, strerror(errno));
@@ -134,7 +129,7 @@ undosConvert(char *me, char *name, int reverse) {
 
 int
 main(int argc, char *argv[]) {
-  char *me, **name, prefix[AIR_STRLEN_MED];
+  char *me, **name;
   int lenName, ni, reverse;
   hestOpt *hopt = NULL;
   airArray *mop;
@@ -154,8 +149,7 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   for (ni=0; ni<lenName; ni++) {
-    sprintf(prefix, "%s: (input file #%d of %d)", me, ni+1, lenName);
-    undosConvert(prefix, name[ni], reverse);
+    undosConvert(me, name[ni], reverse);
   }
   
   airMopOkay(mop);
