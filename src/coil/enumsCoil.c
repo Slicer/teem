@@ -26,7 +26,8 @@ _coilMethodTypeStr[COIL_METHOD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "homogeneous",
   "perona-malik",
   "modified curvature",
-  "curvature flow"
+  "curvature flow",
+  "self"
 };
 
 char
@@ -36,26 +37,29 @@ _coilMethodTypeDesc[COIL_METHOD_TYPE_MAX+1][AIR_STRLEN_MED] = {
   "homogenous isotropic diffusion (Gaussian blurring)",
   "Perona-Malik",
   "modified curvature diffusion",
-  "curvature flow"
+  "curvature flow",
+  "self-diffusion of diffusion tensors"
 };
 
 char
 _coilMethodTypeStrEqv[][AIR_STRLEN_SMALL] = {
   "test", "testing",
-  "homog", "homogeneous",
+  "iso", "homog", "homogeneous",
   "pm", "perona-malik",
   "mcde",
-  "flow", 
+  "flow",
+  "self",
   ""
 };
 
 int
 _coilMethodTypeValEqv[] = {
   coilMethodTypeTesting, coilMethodTypeTesting,
-  coilMethodTypeHomogeneous, coilMethodTypeHomogeneous,
+  coilMethodTypeHomogeneous, coilMethodTypeHomogeneous, coilMethodTypeHomogeneous,
   coilMethodTypePeronaMalik, coilMethodTypePeronaMalik,
   coilMethodTypeModifiedCurvature,
-  coilMethodTypeCurvatureFlow
+  coilMethodTypeCurvatureFlow,
+  coilMethodTypeSelf
 };
 
 airEnum

@@ -80,8 +80,8 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   
   /* the ...Mags item doesn't actually require all of the previous item,
      but its the easiest way to implement it for now */
-  {tenGageShapeGrads,          9,  1,  {tenGageTensor, tenGageTensorGrad, -1, -1, -1},                                        -1,  -1},
-  {tenGageShapeGradMags,       3,  1,  {tenGageShapeGrads, -1, -1, -1, -1},                                                   -1,  -1},
+  {tenGageInvarGrads,          9,  1,  {tenGageTensor, tenGageTensorGrad, -1, -1, -1},                                        -1,  -1},
+  {tenGageInvarGradMags,       3,  1,  {tenGageInvarGrads, -1, -1, -1, -1},                                                   -1,  -1},
   {tenGageRotTans,             9,  1,  {tenGageTensor, tenGageTensorGrad, tenGageEval, tenGageEvec, -1},                      -1,  -1},
   {tenGageRotTanMags,          3,  1,  {tenGageRotTans, -1, -1, -1, -1},                                                      -1,  -1},
 
@@ -236,7 +236,7 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorGrad)) {
     /* done if doD1 */
-    /* still have to set up point variables that item answers
+    /* still have to set up pointer variables that item answers
        below will rely on as short-cuts */
     vecTmp = pvl->directAnswer[tenGageTensorGrad];
     gradDtA = vecTmp + 1*3;
@@ -394,32 +394,32 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     ELL_3V_SCALE(pvl->directAnswer[tenGageThetaNormal],
 		 1.0/(epsilon + magTmp), vecTmp);
   }
-  /* --- Shape gradients + rotation tangents --- */
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageShapeGrads)
-      || GAGE_QUERY_ITEM_TEST(pvl->query, tenGageShapeGradMags)) {
+  /* --- Invariant gradients + rotation tangents --- */
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageInvarGrads)
+      || GAGE_QUERY_ITEM_TEST(pvl->query, tenGageInvarGradMags)) {
     double mu1Grad[7], mu2Grad[7], mu2Norm,
       skwGrad[7], skwNorm, copyT[7];
     
     TEN_T_COPY(copyT, tenAns);
-    tenShapeGradients_d(mu1Grad, 
-			mu2Grad, &mu2Norm,
-			skwGrad, &skwNorm,
-			copyT);
+    tenInvariantGradients_d(mu1Grad, 
+			    mu2Grad, &mu2Norm,
+			    skwGrad, &skwNorm,
+			    copyT);
     vecTmp[0] = TEN_T_DOT(mu1Grad, gradDdXYZ + 0*7);
     vecTmp[1] = TEN_T_DOT(mu1Grad, gradDdXYZ + 1*7);
     vecTmp[2] = TEN_T_DOT(mu1Grad, gradDdXYZ + 2*7);
-    ELL_3V_COPY(pvl->directAnswer[tenGageShapeGrads] + 0*3, vecTmp);
+    ELL_3V_COPY(pvl->directAnswer[tenGageInvarGrads] + 0*3, vecTmp);
     vecTmp[0] = TEN_T_DOT(mu2Grad, gradDdXYZ + 0*7);
     vecTmp[1] = TEN_T_DOT(mu2Grad, gradDdXYZ + 1*7);
     vecTmp[2] = TEN_T_DOT(mu2Grad, gradDdXYZ + 2*7);
-    ELL_3V_COPY(pvl->directAnswer[tenGageShapeGrads] + 1*3, vecTmp);
+    ELL_3V_COPY(pvl->directAnswer[tenGageInvarGrads] + 1*3, vecTmp);
     vecTmp[0] = TEN_T_DOT(skwGrad, gradDdXYZ + 0*7);
     vecTmp[1] = TEN_T_DOT(skwGrad, gradDdXYZ + 1*7);
     vecTmp[2] = TEN_T_DOT(skwGrad, gradDdXYZ + 2*7);
-    ELL_3V_COPY(pvl->directAnswer[tenGageShapeGrads] + 2*3, vecTmp);
-    pvl->directAnswer[tenGageShapeGradMags][0] = 1;
-    pvl->directAnswer[tenGageShapeGradMags][1] = mu2Norm;
-    pvl->directAnswer[tenGageShapeGradMags][2] = skwNorm;
+    ELL_3V_COPY(pvl->directAnswer[tenGageInvarGrads] + 2*3, vecTmp);
+    pvl->directAnswer[tenGageInvarGradMags][0] = 1;
+    pvl->directAnswer[tenGageInvarGradMags][1] = mu2Norm;
+    pvl->directAnswer[tenGageInvarGradMags][2] = skwNorm;
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEvalGrads)) {
     double matOut[9], tenOut[9];
@@ -438,15 +438,14 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
       || GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRotTanMags)) {
     double phi1[7], phi2[7], phi3[7], 
       phi1Mag, phi2Mag, phi3Mag,
-      eval[3], evec[9], copyT[7];
+      eval[3], evec[9];
 
-    TEN_T_COPY(copyT, tenAns);
     ELL_3V_COPY(eval, evalAns);
     ELL_9V_COPY(evec, evecAns);
     tenRotationTangents_d(phi1, &phi1Mag,
 			  phi2, &phi2Mag,
 			  phi3, &phi3Mag,
-			  eval, evec, copyT);
+			  eval, evec);
     vecTmp[0] = TEN_T_DOT(phi1, gradDdXYZ + 0*7);
     vecTmp[1] = TEN_T_DOT(phi1, gradDdXYZ + 1*7);
     vecTmp[2] = TEN_T_DOT(phi1, gradDdXYZ + 2*7);

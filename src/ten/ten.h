@@ -216,10 +216,10 @@ enum {
   tenGageThetaGradMag,  /* 41: "thgm", gradient magnitude of Th: GT[1] */
   tenGageThetaNormal,   /* 42: "thn", normalized gradient of Th: GT[3] */
 
-  tenGageShapeGrads,    /* 43, "shgs", projections of tensor gradient onto the
+  tenGageInvarGrads,    /* 43, "igs", projections of tensor gradient onto the
 			       normalized shape gradients: eigenvalue 
-				ean, variance, skew, in that order: GT[9]  */
-  tenGageShapeGradMags, /* 44: "shgms", what the tensor-valued shape gradients
+			       mean, variance, skew, in that order: GT[9]  */
+  tenGageInvarGradMags, /* 44: "igms", what the tensor-valued shape gradients
 			       where to be normalized by: GT[3] */
   tenGageRotTans,       /* 45: "rts", projections of the tensor gradient onto
 			       non-normalized rotation tangents: GT[9] */
@@ -452,15 +452,14 @@ TEEM_API void tenMakeOne_f(float ten[7],
 			   float conf, float eval[3], float evec[9]);
 TEEM_API int tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec);
 TEEM_API int tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos, int dim);
-TEEM_API void tenShapeGradients_d(double mu1[7],
-				  double mu2[7], double *mu2Norm,
-				  double skw[7], double *skwNorm,
-				  double ten[7]);
+TEEM_API void tenInvariantGradients_d(double mu1[7],
+				      double mu2[7], double *mu2Norm,
+				      double skw[7], double *skwNorm,
+				      double ten[7]);
 TEEM_API void tenRotationTangents_d(double phi1[7], double *phi1Mag,
 				    double phi2[7], double *phi2Mag,
 				    double phi3[7], double *phi3Mag,
-				    double eval[3], double evec[9],
-				    double ten[7]);
+				    double eval[3], double evec[9]);
 
 /* chan.c */
 /* old tenCalc* functions replaced by tenEstimate* */

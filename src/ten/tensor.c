@@ -515,10 +515,10 @@ tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos, int dim) {
 ** we may compute the eigensystem
 */
 void
-tenShapeGradients_d(double mu1[7],
-		    double mu2[7], double *mu2Norm,
-		    double skw[7], double *skwNorm,
-		    double ten[7]) {
+tenInvariantGradients_d(double mu1[7],
+			double mu2[7], double *mu2Norm,
+			double skw[7], double *skwNorm,
+			double ten[7]) {
   double eval[3], evec[9];
   double mu1Dot, mu2Dot, dot, mev, third, matR[9],
     matA[9], matB[9], norm, epsilon;
@@ -586,6 +586,12 @@ tenShapeGradients_d(double mu1[7],
       ELL_3M_MUL(matB, matA, evec);
       ELL_3M_MUL(matA, matR, matB);
       TEN_M2T(skw, matA);
+      /* not sure why this last orgthonalization against mu2 is needed,
+	 but I got some slop otherwise : mu2 . skw = 0.001 or so */
+      dot = TEN_T_DOT(mu2, skw);
+      TEN_T_SCALE_INCR(skw, -dot, mu2);
+      norm = TEN_T_NORM(skw);
+      TEN_T_SCALE(skw, 1.0/(norm), skw);
     } else {
       /* skw not at extremum */
       TEN_T_SCALE(skw, 1.0/(*skwNorm), skw);
@@ -639,34 +645,25 @@ void
 tenRotationTangents_d(double phi1[7], double *phi1Mag,
 		      double phi2[7], double *phi2Mag,
 		      double phi3[7], double *phi3Mag,
-		      double eval[3], double evec[9],
-		      double ten[7]) {
-  double anti[9], mat[9], wM[9], Mw[9], diff[9];
-  int ii;
+		      double eval[3], double evec[9]) {
+  double outA[9], outB[9], mat[9];
 
-  TEN_T2M(mat, ten);
-  for (ii=0; ii<=2; ii++) {
-    /* the matrix macros for setting/getting rows
-       are pretty stupid, so unfortunately they aren't
-       being used here */
-    ELL_3V_SET(anti + 0*3,                 0, -(evec + ii*3)[2],  (evec + ii*3)[1]);
-    ELL_3V_SET(anti + 1*3,  (evec + ii*3)[2],                 0, -(evec + ii*3)[0]);
-    ELL_3V_SET(anti + 2*3, -(evec + ii*3)[1],  (evec + ii*3)[0],                 0);
-    ELL_3M_MUL(wM, anti, mat);
-    ELL_3M_MUL(Mw, mat, anti);
-    ELL_3M_SUB(diff, wM, Mw);
-    switch (ii) {
-    case 0:
-      TEN_M2T(phi1, diff); phi1[0] = 1;
-      break;
-    case 1:
-      TEN_M2T(phi2, diff); phi2[0] = 1;
-      break;
-    case 2:
-      TEN_M2T(phi3, diff); phi3[0] = 1;
-      break;
-    }
-  }
+  phi1[0] = phi2[0] = phi3[3] = 1.0;
+
+  ELL_3MV_OUTER(outA, evec + 1*3, evec + 2*3);
+  ELL_3MV_OUTER(outB, evec + 2*3, evec + 1*3);
+  ELL_3M_SCALE_ADD2(mat, 0.7071068, outA, 0.7071068, outB);
+  TEN_M2T(phi1, mat);
+
+  ELL_3MV_OUTER(outA, evec + 0*3, evec + 2*3);
+  ELL_3MV_OUTER(outB, evec + 2*3, evec + 0*3);
+  ELL_3M_SCALE_ADD2(mat, 0.7071068, outA, 0.7071068, outB);
+  TEN_M2T(phi2, mat);
+
+  ELL_3MV_OUTER(outA, evec + 0*3, evec + 1*3);
+  ELL_3MV_OUTER(outB, evec + 1*3, evec + 0*3);
+  ELL_3M_SCALE_ADD2(mat, 0.7071068, outA, 0.7071068, outB);
+  TEN_M2T(phi3, mat);
   
   *phi1Mag = 1.414214*(eval[1] - eval[2]);
   *phi2Mag = 1.414214*(eval[0] - eval[2]);

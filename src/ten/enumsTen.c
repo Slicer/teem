@@ -124,8 +124,8 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "P grad mag",
   "P normal",
 
-  "shape gradients",
-  "shape gradient mags",
+  "invariant gradients",
+  "invariant gradient mags",
   "rotation tangents",
   "rotation tangent mags",
 
@@ -180,8 +180,8 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "P grad vec",
   "P grad mag",
   "P normal",
-  "shape gradients",
-  "shape gradient mags",
+  "invariant gradients",
+  "invariant gradient mags",
   "rotation tangents",
   "rotation tangent mags",
   "eigenvalue gradients",
@@ -234,8 +234,8 @@ _tenGageVal[] = {
   tenGageThetaGradVec,  /* "thgv", gradient vector of P: GT[3] */
   tenGageThetaGradMag,  /* "thgm", gradient magnitude of P: GT[1] */
   tenGageThetaNormal,   /* "thn", normalized gradient of P: GT[3] */
-  tenGageShapeGrads,    /* "shgs" */
-  tenGageShapeGradMags, /* "shgms" */
+  tenGageInvarGrads,    /* "igs" */
+  tenGageInvarGradMags, /* "igms" */
   tenGageRotTans,       /* "rts" */
   tenGageRotTanMags,    /* "rtms" */
   tenGageEvalGrads,     /* "evgs" */
@@ -287,8 +287,8 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "thgv", "th grad vec",
   "thgm", "th grad mag",
   "thn", "th normal",
-  "shgs", "shape gradients",
-  "shgms", "shape gradient mags",
+  "igs", "invariant gradients", "shgs", 
+  "igms", "invariant gradient mags", "shgms", 
   "rts", "rotation tangents",
   "rtms", "rotation tangent mags",
   "evgs", "eigenvalue gradients",
@@ -341,8 +341,8 @@ _tenGageValEqv[] = {
   tenGageThetaGradVec, tenGageThetaGradVec,
   tenGageThetaGradMag, tenGageThetaGradMag,
   tenGageThetaNormal, tenGageThetaNormal,
-  tenGageShapeGrads, tenGageShapeGrads,
-  tenGageShapeGradMags, tenGageShapeGradMags,
+  tenGageInvarGrads, tenGageInvarGrads, tenGageInvarGrads,
+  tenGageInvarGradMags, tenGageInvarGradMags, tenGageInvarGradMags,
   tenGageRotTans, tenGageRotTans,
   tenGageRotTanMags, tenGageRotTanMags,
   tenGageEvalGrads, tenGageEvalGrads,
