@@ -121,9 +121,9 @@ F(shuffle) \
 F(flip) \
 F(axinfo) \
 F(axinsert) \
+F(axsplit) \
 F(axdelete) \
-F(block) \
-F(unblock) \
+F(axmerge) \
 F(histo) \
 F(dhisto) \
 F(jhisto) \
@@ -141,6 +141,10 @@ F(ccadj) \
 F(ccmerge) \
 F(ccsettle) \
 F(save)
+/* these two have been removed since no one uses them
+F(block) \
+F(unblock) \
+*/
 
 /*
 ******** UNRRDU_CMD
