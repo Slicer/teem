@@ -47,9 +47,9 @@ extern "C" {
 ****** limnCam struct
 **
 ** for all standard graphics camera parameters.  Image plane is
-** spanned by U and V; N always points away from the viewer.  V can
-** point up or down, if the camera is left- or right-handed,
-** respectively.
+** spanned by U and V; N always points away from the viewer, U
+** always points to the right, V can point up or down, if the
+** camera is left- or right-handed, respectively.
 **
 ** Has no dynamically allocated information or pointers.
 */
@@ -267,6 +267,52 @@ enum {
 };
 #define LIMN_QN_MAX      4
 
+enum {
+  limnSplineTypeUnknown,     /* 0 */
+  limnSplineTypeLinear,      /* 1 */
+  limnSplineTypeTimeWarp,    /* 2 */
+  limnSplineTypeHermite,     /* 3 */
+  limnSplineTypeCubicBezier, /* 4 */
+  limnSplineTypeBC,          /* 5 */
+  limnSplineTypeLast
+};
+#define LIMN_SPLINE_TYPE_MAX    5
+
+enum {
+  limnSplineInfoUnknown,    /* 0 */
+  limnSplineInfoScalar,     /* 1 */
+  limnSplineInfo2Vector,    /* 2 */
+  limnSplineInfo3Vector,    /* 3 */
+  limnSplineInfoQuaternion, /* 4 */
+  limnSplineInfoLast
+};
+#define LIMN_SPLINE_INFO_MAX   4
+
+/*
+******** limnSpline
+**
+** the ncpt nrrd stores control point information in a 3-D nrrd, with
+** sizes C by 3 by N, where C is the number of values needed for each 
+** point (3 for 3Vecs, 1 for scalars), and N is the number of control
+** points.  The 3 things per control point are 0) the pre-point info 
+** (either inward tangent or an internal control point), 1) the control
+** point itself, 2) the post-point info (e.g., outward tangent).
+**
+** NOTE: for the sake of simplicity, the ncpt nrrd is always "owned"
+** by the limnSpline, that is, it is COPIED from the one given in 
+** limnSplineNew() (and is converted to type double along the way),
+** and it will is deleted with limnSplineNix.
+*/
+typedef struct limnSpline_t {
+  int type,          /* from limnSplineType* enum */
+    info,            /* from limnSplineInfo* enum */
+    loop;            /* the last (implicit) control point is the first */
+  double B, C;       /* B,C values for BC-splines */
+  Nrrd *ncpt;        /* the control point info, ALWAYS a 3-D nrrd */
+  double *time;      /* ascending times for non-uniform control points.
+			Currently, only used for limnSplineTypeTimeWarp */
+} limnSpline;
+
 /* defaultsLimn.c */
 extern limn_export const char *limnBiffKey;
 extern limn_export int limnDefCamAtRel;
@@ -348,6 +394,31 @@ extern int limnObjDepthSortParts(limnObj *obj);
 extern int limnObjRender(limnObj *obj, limnCam *cam, limnWin *win);
 extern int limnObjPSDraw(limnObj *obj, limnCam *cam,
 			 Nrrd *envMap, limnWin *win);
+
+/* splineMisc.c */
+extern limn_export airEnum *limnSplineType;
+extern limn_export airEnum *limnSplineInfo;
+extern limn_export hestCB *limnHestSpline;
+extern limn_export int limnSplineInfoSize[LIMN_SPLINE_INFO_MAX+1];
+extern limn_export int
+  limnSplineTypeHasImplicitTangents[LIMN_SPLINE_TYPE_MAX+1];
+extern void limnSplineBCSet(limnSpline *spline, double B, double C);
+extern int limnSplineNumPoints(limnSpline *spline);
+extern double limnSplineMinT(limnSpline *spline);
+extern double limnSplineMaxT(limnSpline *spline);
+
+/* splineMethods.c */
+extern limnSpline *limnSplineNew(Nrrd *ncpt, int type, int info);
+extern limnSpline *limnSplineNix(limnSpline *spline);
+extern int limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int type, int info);
+extern int limnSplineUpdate(limnSpline *spline, Nrrd *ncpt);
+
+/* splineEval.c */
+extern void limnSplineEvaluate(double *out, limnSpline *spline, double time);
+extern int limnSplineNrrdEvaluate(Nrrd *nout, limnSpline *spline, Nrrd *nin);
+extern int limnSplineSample(Nrrd *nout, limnSpline *spline,
+			    double minT, int M, double maxT);
+
 
 #ifdef __cplusplus
 }
