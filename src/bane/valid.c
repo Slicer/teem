@@ -19,8 +19,8 @@
 #include "bane.h"
 
 int
-_baneValidHVol(Nrrd *hvol) {
-  char me[]="_baneValidHVol", err[128];
+baneValidHVol(Nrrd *hvol) {
+  char me[]="baneValidHVol", err[128];
 
   if (3 != hvol->dim) {
     sprintf(err, "%s: need dimension to be 3 (not %d)", me, hvol->dim);
@@ -55,8 +55,8 @@ _baneValidHVol(Nrrd *hvol) {
 }
 
 int
-_baneValidInfo2D(Nrrd *info2D) {
-  char me[]="_baneValidInfo2D", err[128];
+baneValidInfo2D(Nrrd *info2D) {
+  char me[]="baneValidInfo2D", err[128];
 
   if (3 != info2D->dim) {
     sprintf(err, "%s: need 3 dimensions, not %d", me, info2D->dim);
@@ -74,8 +74,8 @@ _baneValidInfo2D(Nrrd *info2D) {
 }
 
 int
-_baneValidInfo1D(Nrrd *info1D) {
-  char me[]="_baneValidInfo1D", err[128];
+baneValidInfo1D(Nrrd *info1D) {
+  char me[]="baneValidInfo1D", err[128];
   
   if (2 != info1D->dim) {
     sprintf(err, "%s: need 2 dimensions, not %d", me, info1D->dim);
@@ -93,8 +93,8 @@ _baneValidInfo1D(Nrrd *info1D) {
 }
 
 int
-_baneValidPos1D(Nrrd *pos1D) {
-  char me[]="_baneValidPos1D", err[128];
+baneValidPos1D(Nrrd *pos1D) {
+  char me[]="baneValidPos1D", err[128];
 
   if (1 != pos1D->dim) {
     sprintf(err, "%s: need 1-dimensional (not %d)", me, pos1D->dim);
@@ -109,8 +109,8 @@ _baneValidPos1D(Nrrd *pos1D) {
 }
 
 int
-_baneValidPos2D(Nrrd *pos2D) {
-  char me[]="_baneValidPos2D", err[128];
+baneValidPos2D(Nrrd *pos2D) {
+  char me[]="baneValidPos2D", err[128];
 
   if (2 != pos2D->dim) {
     sprintf(err, "%s: need 2-dimensional (not %d)", me, pos2D->dim);
@@ -126,8 +126,8 @@ _baneValidPos2D(Nrrd *pos2D) {
 }
 
 int
-_baneValidBcpts(Nrrd *Bcpts) {
-  char me[]="_baneValidBcpts", err[128];
+baneValidBcpts(Nrrd *Bcpts) {
+  char me[]="baneValidBcpts", err[128];
   int i, len;
   float *data;
 
