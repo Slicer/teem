@@ -46,11 +46,11 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   int ninLen, eret, knownB0;
 
   hestOptAdd(&hopt, "ee", "filename", airTypeString, 1, 1, &terrS, "",
-             "Giving a filename here allows you to save out the tensor estimation "
-             "error: a value which measures how much error there is between "
-             "the tensor model and the given diffusion weighted measurements "
-             "for each sample.  By default, no such error calculation is "
-             "saved.");
+             "Giving a filename here allows you to save out the tensor "
+             "estimation error: a value which measures how much error there "
+             "is between the tensor model and the given diffusion weighted "
+             "measurements for each sample.  By default, no such error "
+             "calculation is saved.");
   hestOptAdd(&hopt, "eb", "filename", airTypeString, 1, 1, &eb0S, "",
              "In those cases where there is no B=0 reference image given "
              "(\"-knownB0 false\"), "
