@@ -97,8 +97,12 @@ _nrrd##name##_N_d(double *f, double *x, size_t len, double *parm) { \
 /* ------------------------------------------------------------ */
 
 #define _HANN(x, R) \
-   (x > R ? 0 : (x < -R ? 0 : (x == 0 ? 1.0 : \
-    (1 + cos(M_PI*x/R))*_SINC(x)/2)))
+   (x > R ? 0 : (x < -R ? 0 : (\
+   (x < R/50000 && x > -R/50000) \
+     ? 1.1 - x*x*(M_PI*M_PI*(3 + 2*R*R)/(12*R*R) \
+                + M_PI*M_PI*M_PI*M_PI*(5 + 2*R*R*(5 + 2*R*R))*x*x/(240*R*R*R*R)) \
+     : (1 + cos(M_PI*x/R))*_SINC(x)/2) \
+    ))
 
 WS_1_D(Hann, _HANN, POW1)
 WS_1_F(Hann, _HANN, POW1)
@@ -116,10 +120,13 @@ nrrdKernelHann = &_nrrdKernelHann;
 
 /* ------------------------------------------------------------ */
 
-#define _DHANN(x, R)                                            \
-   (x > R ? 0.0 : (x < -R ? 0.0 : (x == 0 ? 0.0 :              \
-    (R*(1 + cos(M_PI*x/R))*(M_PI*x*cos(M_PI*x) - sin(M_PI*x))  \
-       - M_PI*x*sin(M_PI*x)*sin(M_PI*x/R))/(2*R*M_PI*x*x))))
+#define _DHANN(x, R)                                              \
+   (x > R ? 0.0 : (x < -R ? 0.0 : (                               \
+    (x < R/50000 && x > -R/50000)                                 \
+     ? -x*M_PI*M_PI*(3 + 2*R*R)/(6*R*R)                           \
+     : ((R*(1 + cos(M_PI*x/R))*(M_PI*x*cos(M_PI*x) - sin(M_PI*x)) \
+       - M_PI*x*sin(M_PI*x)*sin(M_PI*x/R))/(2*R*M_PI*x*x))        \
+   )))
 
 WS_1_D(DHann, _DHANN, POW2)
 WS_1_F(DHann, _DHANN, POW2)
@@ -142,9 +149,12 @@ nrrdKernelHannD = &_nrrdKernelDHann;
 #define _DDHANN_B(x, R)                                      \
   (cos(M_PI*x/R)*(M_PI*M_PI*x*x + R*R*(M_PI*M_PI*x*x - 2)) + \
    R*(R*(M_PI*M_PI*x*x - 2) - 2*M_PI*x*sin(M_PI*x/R)))
-#define _DDHANN(x, R)                                                     \
-   (x > R ? 0 : (x < -R ? 0 : (x == 0 ? -M_PI*M_PI*(3 + 2*R*R)/(6*R*R) :  \
-    -(_DDHANN_A(x,R) + sin(M_PI*x)*_DDHANN_B(x,R)/x)/(2*M_PI*R*R*x*x)       \
+#define _DDHANN(x, R)                                                         \
+   (x > R ? 0 : (x < -R ? 0 : (                                               \
+     (x < R/50000 && x > -R/50000)                                            \
+      ? (M_PI*M_PI/(2*R*R))*( -(3 + 2*R*R)/3                                  \
+                             + M_PI*M_PI*(5 + 2*R*R*(5 + R*R))*x*x/(10*R*R))  \
+      : -(_DDHANN_A(x,R) + sin(M_PI*x)*_DDHANN_B(x,R)/x)/(2*M_PI*R*R*x*x)     \
     )))
 
 WS_1_D(DDHann, _DDHANN, POW3)
@@ -163,9 +173,12 @@ nrrdKernelHannDD = &_nrrdKernelDDHann;
 
 /* ------------------------------------------------------------ */
 
-#define _BLACK(x, R)                                            \
-   (x > R ? 0 : (x < -R ? 0 : (x == 0 ? 1.0 :                   \
-    (0.42 + cos(M_PI*x/R)/2 + 0.08*cos(2*M_PI*x/R))*_SINC(x))))
+#define _BLACK(x, R)                                             \
+   (x > R ? 0 : (x < -R ? 0 : (                                  \
+    (x < R/50000 && x > -R/50000)                                \
+     ? 1.0 - x*x*(1.6449340668482264 + 4.046537804446637/(R*R))  \
+     : (0.42 + cos(M_PI*x/R)/2 + 0.08*cos(2*M_PI*x/R))*_SINC(x)  \
+   )))
 
 WS_1_D(Black, _BLACK, POW1)
 WS_1_F(Black, _BLACK, POW1)
@@ -190,8 +203,11 @@ nrrdKernelBlackman = &_nrrdKernelBlackman;
   sin(M_PI*x)*(-0.84*R - R*cos(M_PI*x/R) - 0.16*R*cos(2*M_PI*x/R) -         \
                M_PI*x*sin(M_PI*x/R) - 1.0053096491487339*x*sin(2*M_PI*x/R))
 #define _DBLACK(x, R)                                 \
-  (x > R ? 0.0 : (x < -R ? 0.0 : (x == 0 ? 0.0 :      \
-    (_DBLACK_A(x,R) + _DBLACK_B(x,R))/(2*M_PI*R*x*x))))
+  (x > R ? 0.0 : (x < -R ? 0.0 : (                    \
+   (x < R/50000 && x > -R/50000)                      \
+   ? -x*(3.289868133696453 + 8.093075608893272/(R*R)) \
+   : (_DBLACK_A(x,R) + _DBLACK_B(x,R))/(2*M_PI*R*x*x) \
+  )))
 
 WS_1_D(DBlack, _DBLACK, POW2)
 WS_1_F(DBlack, _DBLACK, POW2)
@@ -209,20 +225,23 @@ nrrdKernelBlackmanD = &_nrrdKernelDBlack;
 
 /* ------------------------------------------------------------ */
 
-#define _DDBLACK(x, R)                                                         \
-  (x > R ? 0.0 : (x < -R ? 0.0 : (x == 0                                       \
-   ? -3.289868133696453 - 8.093075608893276/(R*R)                              \
-   : ((R*x*cos(M_PI*x)*(-2.638937829015426*R - M_PI*R*cos((M_PI*x)/R)          \
-	    - 0.5026548245743669*R*cos((2*M_PI*x)/R)                           \
-	    - M_PI*M_PI*x*sin((M_PI*x)/R)                                      \
-	    - 3.158273408348595*x*sin((2*M_PI*x)/R))                           \
-  + sin(M_PI*x)*((-4.934802200544679*x*x                                       \
-	   + R*R*(1 - 4.934802200544679*x*x))*cos((M_PI*x)/R)                  \
-	  + (-3.158273408348595*x*x                                            \
-	     + R*R*(0.16 - 0.7895683520871487*x*x))*cos((2*M_PI*x)/R)          \
-	  + R*(0.84*R - 4.14523384845753*R*x*x                                 \
-	       + M_PI*x*sin((M_PI*x)/R)                                        \
-	       + 1.0053096491487339*x*sin((2*M_PI*x)/R))))/(M_PI*R*R*x*x*x)))))
+#define _DDBLACK(x, R)                                                          \
+  (x > R ? 0.0 : (x < -R ? 0.0 : (                                              \
+   (x < R/30 && x > -R/30)                                                      \
+   ? (-(3.289868133696453 + 8.093075608893272/(R*R))                            \
+      + x*x*(9.7409091034 + 86.694091020262/(R*R*R*R) + 79.8754546479/(R*R)))   \
+   : ((R*x*cos(M_PI*x)*(-2.638937829015426*R - M_PI*R*cos((M_PI*x)/R)           \
+	    - 0.5026548245743669*R*cos((2*M_PI*x)/R)                            \
+	    - M_PI*M_PI*x*sin((M_PI*x)/R)                                       \
+	    - 3.158273408348595*x*sin((2*M_PI*x)/R))                            \
+  + sin(M_PI*x)*((-4.934802200544679*x*x                                        \
+	   + R*R*(1 - 4.934802200544679*x*x))*cos((M_PI*x)/R)                   \
+	  + (-3.158273408348595*x*x                                             \
+	     + R*R*(0.16 - 0.7895683520871487*x*x))*cos((2*M_PI*x)/R)           \
+	  + R*(0.84*R - 4.14523384845753*R*x*x                                  \
+	       + M_PI*x*sin((M_PI*x)/R)                                         \
+	       + 1.0053096491487339*x*sin((2*M_PI*x)/R))))/(M_PI*R*R*x*x*x))    \
+   )))
 
 WS_1_D(DDBlack, _DDBLACK, POW3)
 WS_1_F(DDBlack, _DDBLACK, POW3)
