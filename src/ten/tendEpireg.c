@@ -90,7 +90,8 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenEpiRegister(nout, nin, ninLen, ngrad,
 		     ref,
-		     bw[0], bw[1], thr[0], thr[1], ccsize[0], ccsize[1],
+		     bw[0], bw[1], 0.0001,
+		     thr[0], thr[1], ccsize[0], ccsize[1],
 		     ksp->kernel, ksp->parm,
 		     progress, !noverbose)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
