@@ -539,13 +539,16 @@ extern void airMopDebug(airArray *arr);
                              : 0))
 
 /*
-******** AIR_WITHIN_OP(a,b,c), AIR_WITHIN_CL(a,b,c)
+******** AIR_IN_OP(a,b,c), AIR_IN_CL(a,b,c)
 **
-** is true if the middle argument is in the closed/open interval
+** is true if the middle argument is in the open/closed interval
 ** defined by the first and third arguments
+** 
+** AIR_IN_OP is new name for old AIR_BETWEEN
+** AIR_IN_CL is new name for odl AIR_INSIDE
 */
-#define AIR_WITHIN_OP(a,b,c) ((a) < (b) && (b) < (c))     /* closed interval */
-#define AIR_WITHIN_CL(a,b,c) ((a) <= (b) && (b) <= (c))   /* open interval */
+#define AIR_IN_OP(a,b,c) ((a) < (b) && (b) < (c))     /* closed interval */
+#define AIR_IN_CL(a,b,c) ((a) <= (b) && (b) <= (c))   /* open interval */
 
 /*
 ******** AIR_CLAMP(a,b,c)
