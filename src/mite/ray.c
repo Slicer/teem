@@ -128,7 +128,7 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
   mtt->mscl[miteSclTw] = rayT;
   mtt->mscl[miteSclTi] = num;
   mtt->mscl[miteSclNdotV] = -muu->normalSide*ELL_3V_DOT(mtt->V, mtt->norm);
-  mtt->mscl[miteSclNdotL] = -muu->normalSide*ELL_3V_DOT(mtt->V,
+  mtt->mscl[miteSclNdotL] = -muu->normalSide*ELL_3V_DOT(mtt->norm,
 							muu->lit->dir[0]);
   ELL_3MV_MUL(kn, mtt->nPerp, mtt->V);
   ELL_3V_NORM(kn, kn, len);
