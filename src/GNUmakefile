@@ -58,6 +58,7 @@ $(checkArchLinux)
 $(checkArchLinux64)
 $(checkArchDarwin)
 $(checkArchValid)
+$(checkTeemDest)
 
 ## the architecture name may have two parts, ARCH and SUBARCH,
 ## seperated by one period
@@ -155,7 +156,6 @@ ifeq (undefined,$(origin TEEM_DEST))
   LDEST = $(TEEM_ROOT)/$(TEEM_ARCH)/lib
   BDEST = $(TEEM_ROOT)/$(TEEM_ARCH)/bin
 else
-  IPATH += -I$(TEEM_ROOT)/include
   IDEST = $(TEEM_DEST)/include
   LDEST = $(TEEM_DEST)/lib
   BDEST = $(TEEM_DEST)/bin
@@ -168,6 +168,10 @@ ODEST = $(TEEM_ROOT)/$(TEEM_ARCH)/obj
 PCACHE = $(TEEM_ROOT)/$(TEEM_ARCH)/purify
 IPATH += -I$(IDEST)
 LPATH += -L$(LDEST)
+ifneq (undefined,$(origin TEEM_DEST))
+  # we still need this for the teem*.h headers (such as teem32bit.h)
+  IPATH += -I$(TEEM_ROOT)/include
+endif
 
 ## By giving a list of library extensions we care about, LIBEXTS determines
 ## what kinds of libraries are built (just static, or both static and
@@ -373,7 +377,11 @@ $(LDEST)/libteem.a : $(foreach lib,$(LIBS),$(call objs.dev,$(lib)))
 	$(AR) $(ARFLAGS) $@ $^
 ifdef TEEM_SHEXT
 $(LDEST)/libteem.$(TEEM_SHEXT) : $(foreach lib,$(LIBS),$(call objs.dev,$(lib)))
-	$(LD) -o $@ $(LDFLAGS) $(LPATH) $^
+	$(LD) -o $@ \
+          $(if $(TEEM_DEST),$(if $(SHARED_LINK_NAME),$(SHARED_LINK_NAME)$@,),) \
+          $(LDFLAGS) $(LPATH) $^ \
+          $(foreach X,$(xterns),$(TEEM_$(X)_LPATH)) \
+          $(foreach X,$(xterns),$($(X).LINK))
 endif
 unmegalibs:
 	$(RM) $(foreach ext,$(LIBEXTS),$(LDEST)/libteem.$(ext))
