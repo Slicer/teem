@@ -167,18 +167,24 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
       if (err)
 	sprintf(err, "%s!!!!!! opt[%d].type (%d) not in valid range [%d,%d]",
 		ME, op, opt[op].type, airTypeUnknown+1, airTypeLast-1);
+      else
+	fprintf(stderr, "%s: panic 0\n", me);
       return 1;
     }
     if (-1 == opt[op].kind) {
       if (err)
 	sprintf(err, "%s!!!!!! opt[%d]'s min (%d) and max (%d) incompatible",
 		ME, op, opt[op].min, opt[op].max);
+      else
+	fprintf(stderr, "%s: panic 1\n", me);
       return 1;
     }
     if (5 == opt[op].kind && !(opt[op].sawP)) {
       if (err)
 	sprintf(err, "%s!!!!!! have multiple variable parameters, "
 		"but sawP is NULL", ME);
+      else
+	fprintf(stderr, "%s: panic 2\n", me);
       return 1;
     }
     if (airTypeEnum == opt[op].type) {
@@ -186,6 +192,8 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
 	if (err)
 	  sprintf(err, "%s!!!!!! opt[%d] is type \"enum\", but no "
 		  "airEnum pointer given", ME, op);
+	else
+	  fprintf(stderr, "%s: panic 3\n", me);
 	return 1;
       }
     }
@@ -194,30 +202,40 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
 	if (err)
 	  sprintf(err, "%s!!!!!! opt[%d] is type \"other\", but no "
 		  "callbacks given", ME, op);
+	else
+	  fprintf(stderr, "%s: panic 4\n", me);
 	return 1;
       }
       if (!( opt[op].CB->size > 0 )) {
 	if (err)
 	  sprintf(err, "%s!!!!!! opt[%d]'s \"size\" (%d) invalid", 
 		  ME, op, (int)(opt[op].CB->size));
+	else
+	  fprintf(stderr, "%s: panic 5\n", me);
 	return 1;
       }
       if (!( opt[op].type )) {
 	if (err)
 	  sprintf(err, "%s!!!!!! opt[%d]'s \"type\" is NULL",
 		  ME, op);
+	else
+	  fprintf(stderr, "%s: panic 6\n", me);
 	return 1;
 
       }
       if (!( opt[op].CB->parse )) {
 	if (err)
 	  sprintf(err, "%s!!!!!! opt[%d]'s \"parse\" callback NULL", ME, op);
+	else
+	  fprintf(stderr, "%s: panic 7\n", me);
 	return 1;
       }
       if (opt[op].CB->delete && (sizeof(void*) != opt[op].CB->size)) {
 	if (err)
 	  sprintf(err, "%s!!!!!! opt[%d] has a \"delete\", but size isn't "
 		  "sizeof(void*)", ME, op);
+	else
+	  fprintf(stderr, "%s: panic 8\n", me);
 	return 1;
       }
     }
@@ -229,6 +247,8 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
 	  if (err)
 	    sprintf(err, "%s!!!!!! either short (\"%s\") or long (\"%s\") flag"
 		    " of opt[%d] is zero length", ME, tbuff, sep+1, op);
+	  else
+	    fprintf(stderr, "%s: panic 9\n", me);
 	  return 1;
 	}
       }
@@ -237,18 +257,26 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
 	  if (err)
 	    sprintf(err, "%s!!!!!! opt[%d].flag is zero length",
 		    ME, op);
+	  else
+	    fprintf(stderr, "%s: panic 10\n", me);
 	  return 1;
 	}
       }
       if (4 == opt[op].kind) {
 	if (!opt[op].dflt) {
-	  sprintf(err, "%s!!!!!! flagged single variable parameter must "
-		  "specify a default", ME);
+	  if (err)
+	    sprintf(err, "%s!!!!!! flagged single variable parameter must "
+		    "specify a default", ME);
+	  else 
+	    fprintf(stderr, "%s: panic 11\n", me);
 	  return 1;
 	}
 	if (!strlen(opt[op].dflt)) {
-	  sprintf(err, "%s!!!!!! flagged single variable parameter default "
-		  "must be non-zero length", ME);
+	  if (err) 
+	    sprintf(err, "%s!!!!!! flagged single variable parameter default "
+		    "must be non-zero length", ME);
+	  else
+	    fprintf(stderr, "%s: panic 12\n", me);
 	  return 1;
 	}
       }
@@ -266,6 +294,8 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
       if (!opt[op].flag) {
 	if (err)
 	  sprintf(err, "%s!!!!!! flags must have flags", ME);
+	else
+	  fprintf(stderr, "%s: panic 13\n", me);
 	return 1;
       }
     }
@@ -274,6 +304,8 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
 	if (err)
 	  sprintf(err, "%s!!!!!! opt[%d] isn't a flag: must have \"name\"",
 		  ME, op);
+	else
+	  fprintf(stderr, "%s: panic 14\n", me);
 	return 1;
       }
     }
@@ -281,6 +313,8 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
       if (err)
 	sprintf(err, "%s!!!!!! opt[%d] is single variable parameter, but "
 		"no default set", ME, op);
+      else
+	fprintf(stderr, "%s: panic 15\n", me);
       return 1;
     }
     numvar += (opt[op].min < _hestMax(opt[op].max) && (NULL == opt[op].flag));
@@ -289,6 +323,8 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
     if (err)
       sprintf(err, "%s!!!!!! can't have %d unflagged min<max opts, only one", 
 	      ME, numvar);
+    else
+      fprintf(stderr, "%s: panic 16\n", me);
     return 1;
   }
   return 0;

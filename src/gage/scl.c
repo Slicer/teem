@@ -263,7 +263,7 @@ _gageSclAnswer(gageSclContext *ctx) {
     ginv = 1.0/ctx->gmag[0];
     /* we also flip the sign here, so that when values "inside"
        an isosurface are higher, we get the expected sense */
-    ELL_3M_SCALE(sHess, ctx->hess, -ginv);
+    ELL_3M_SCALE(sHess, -ginv, ctx->hess);
     ELL_3MV_OUTER(ZPP, ctx->norm, ctx->norm);
     ZPP[0] -= 1;
     ZPP[4] -= 1;
