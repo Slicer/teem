@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 
-#define NRRD_DIM_MAX 10            /* Maximum dimension which we can handle */
+#define NRRD_DIM_MAX 16            /* Maximum dimension which we can handle */
 
 #define NRRD_EXT_NRRD   ".nrrd"
 #define NRRD_EXT_NHDR   ".nhdr"
