@@ -46,8 +46,10 @@ $(L).SEEN := true
 
 ## BINS: all the command-line executables associated with teem
 ## 
+#BINS = airSanity affine cubic nrrdSanity overrgb idx2pos emap undos talkweb \
+#  pos2idx unu pprobe vprobe qbert mrender miter gkms ungantry ilk tend spots
 BINS = airSanity affine cubic nrrdSanity overrgb idx2pos emap undos talkweb \
-  pos2idx unu pprobe vprobe qbert mrender miter gkms ungantry ilk tend spots
+  pos2idx unu pprobe vprobe qbert mrender ungantry ilk tend spots
 
 ## _binD(bins): list of development locations for given bins
 ## _binI(bins): list of install locations for given bins
@@ -93,11 +95,11 @@ ilk.need        = $(call meneed,moss unrrdu nrrd ell biff hest air)
 emap.need       = $(call meneed,limn nrrd ell biff hest air)
 gkms.need       = $(call meneed,bane nrrd biff air)
 unu.need        = $(call meneed,unrrdu nrrd biff hest air)
-mrender.need    = $(call meneed,hoover limn gage nrrd biff hest air)
 miter.need      = $(call meneed,mite hoover limn nrrd ell biff air)
 ungantry.need   = $(call meneed,gage nrrd biff hest air)
 talkweb.need    = $(call meneed,nrrd biff hest air)
 tend.need       = $(call meneed,ten limn gage dye unrrdu nrrd ell biff air)
+mrender.need    = $(call meneed,ten hoover limn gage nrrd biff hest air)
 vprobe.need     = $(call meneed,ten limn gage nrrd ell biff hest air)
 pprobe.need     = $(call meneed,ten limn gage nrrd ell biff hest air)
 spots.need      = $(call meneed,alan nrrd ell biff hest air)
