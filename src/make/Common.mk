@@ -1,4 +1,4 @@
-#
+
 # The contents of this file are subject to the University of Utah Public
 # License (the "License"); you may not use this file except in
 # compliance with the License.
@@ -68,6 +68,7 @@ IDEST = $(PREFIX)/include
 LDEST = $(PREFIX)/$(TEEM_ARCH)/lib
 BDEST = $(PREFIX)/$(TEEM_ARCH)/bin
 ODEST = $(PREFIX)/$(TEEM_ARCH)/obj
+PCACHE = $(PREFIX)/$(TEEM_ARCH)/purify
 IPATH += -I$(IDEST)
 LPATH += -L$(LDEST)
 
@@ -124,6 +125,22 @@ LDFLAGS += $(ARCH_LDFLAG) $(SHARED_LDFLAG)
 ARFLAGS = ru
 
 #
+# are we using purify?
+# 
+ifeq ($(TEEM_PURIFY),true)
+  ifndef PURIFY
+    $(warning *)
+    $(warning *)
+    $(warning *    Purification requested, but env variable PURIFY not set)
+    $(warning *    Edit make/$(ARCH).mk in teem root directory)
+    $(warning *)
+    $(warning *)
+    $(error Make quitting)
+  endif
+  P = $(PURIFY) -always-use-cache-dir -cache-dir=$(PCACHE)
+endif
+
+#
 # Okay kids, here are the rules.
 # 
 
@@ -161,7 +178,7 @@ $(OBJS): $(HEADERS) $(PRIV_HEADERS)
 
 # NB: .o's are never created in the same directory as the source
 $(OBJ_PREF)/%.o: %.c
-	$(CC) $(CFLAGS) -I. $(IPATH) -c $< -o $@
+	$(P) $(CC) $(CFLAGS) -I. $(IPATH) -c $< -o $@
 
 # the libraries are dependent on the respective object files
 $(LIB.A): $(OBJS)
@@ -182,7 +199,7 @@ $(LIB.S): $(OBJS)
 # NB: This creates the executable in the same directory as the .c file
 #
 %: %.c $(THISLIB)
-	$(CC) $(CFLAGS) $(BIN_CFLAGS) -I. $(IPATH) -o $@ $< \
+	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) -I. $(IPATH) -o $@ $< \
 	$(THISLIB_LPATH) $(LPATH) $(BINLIBS)
 
 # This rule is to satisfy the target $(INSTALL_HDRS)
@@ -200,5 +217,5 @@ $(LDEST)/%: $(OBJ_PREF)/%
 # NB: VPATH is used to locate the prerequisite %.c in a subdirectory
 #
 $(BDEST)/%: %.c $(INSTALL_LIBS) $(INSTALL_HDRS)
-	$(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) -o $@ $< $(LPATH) $(BINLIBS)
+	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) -o $@ $< $(LPATH) $(BINLIBS)
 	$(CHMOD) 755 $@
