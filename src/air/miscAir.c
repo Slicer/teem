@@ -258,36 +258,6 @@ const char airMyFmt_size_t[] = "%lu";
 #endif
 
 /*
-******** airSrand()
-**
-** uses clock to seed srand()
-*/
-void
-airSrand(void) {
-  
-  srand((unsigned int)airTime());
-}
-
-/*
-******** airRand()
-**
-** returns double in range [0.0,1.0)
-*/
-double
-airRand(void) {
-  double val, sc = 1.0/(RAND_MAX+1.0);
-
-  val = sc*rand();
-
-  /* repeat as needed */
-  val = sc*(val + rand());
-  val = sc*(val + rand());
-  val = sc*(val + rand());
-
-  return val;
-}
-
-/*
 ******** airRandInt
 **
 ** returns a random integer in range [0, N-1]
@@ -296,7 +266,7 @@ int
 airRandInt(int N) {
   int i;
   
-  AIR_INDEX(0.0, airRand(), 1.0, N, i);
+  AIR_INDEX(0.0, airDrand48(), 1.0, N, i);
   i = AIR_CLAMP(0, i, N-1);
   return i;
 }

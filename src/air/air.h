@@ -299,6 +299,18 @@ TEEM_API int airIsInf_d(double d);
 TEEM_API int airExists_f(float f);
 TEEM_API int airExists_d(double d);
 
+typedef struct {
+  airULLong a;          /* Factor in congruential formula.  */
+  unsigned short c,     /* Additive const. in congruential formula. */
+    x0, x1, x2;         /* Current state.  */
+} airDrand48State;
+/* rand48.c */
+TEEM_API airDrand48State *airDrand48StateGlobal;
+TEEM_API void airSrand48_r(airDrand48State *state, int seed);
+TEEM_API double airDrand48_r(airDrand48State *state);
+TEEM_API void airSrand48(int seed);
+TEEM_API double airDrand48();
+
 /*
 ******** airType
 **
@@ -394,8 +406,6 @@ TEEM_API int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
 TEEM_API const int airMy32Bit;
 /* ---- BEGIN non-NrrdIO */
 TEEM_API const char airMyFmt_size_t[];
-TEEM_API void airSrand(void);
-TEEM_API double airRand(void);
 TEEM_API int airRandInt(int N);
 TEEM_API void airShuffle(int *buff, int N, int perm);
 TEEM_API char *airDoneStr(float start, float here, float end, char *str);
