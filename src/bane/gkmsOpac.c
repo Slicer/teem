@@ -54,7 +54,8 @@ baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     NULL, NULL, baneGkmsHestBEF);
   hestOptAdd(&opt, "s", "sigma", airTypeFloat, 1, 1, &sigma, "nan",
 	     "scaling in position calculation, accounts for thickness "
-	     "of transition region between materials. "
+	     "of transition region between materials. Lower sigmas lead to "
+	     "wider peaks in opacity function. "
 	     "Calculated automatically by default.");
   hestOptAdd(&opt, "g", "gthresh", airTypeOther, 1, 1, gthrInfo, "x0.04",
 	     "minimum significant gradient magnitude.  Can be given "

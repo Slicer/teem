@@ -45,7 +45,7 @@ baneGkms_hvolMain(int argc, char **argv, char *me, hestParm *hparm) {
   NrrdKernelSpec *ksp00, *ksp11, *ksp22;
 
   hestOptAdd(&opt, "s", "incV incG incH", airTypeOther, 3, 3, inc, 
-	     "f:1.0 p:0.10 p:0.15",
+	     "f:1.0 p:0.01 p:0.03",
 	     "Strategies for determining how much of the range "
 	     "of a quantity should be included and quantized in its axis "
 	     "of the histogram volume.  Possibilities include:\n "

@@ -174,7 +174,7 @@ _baneFindInclusion(double min[3], double max[3],
     }
     for (z=0; z<sz; z++) {
       for (y=0; y<sy; y++) {
-	if (hvp->verbose && !((y+sy*z)%100)) {
+	if (hvp->verbose && !((y+sy*z)%200)) {
 	  fprintf(stderr, "%s", airDoneStr(0, y+sy*z, sy*sz, prog));
 	  fflush(stderr);
 	}
@@ -219,7 +219,7 @@ _baneFindInclusion(double min[3], double max[3],
     }
     for (z=0; z<sz; z++) {
       for (y=0; y<sy; y++) {
-	if (hvp->verbose && !((y+sy*z)%100)) {
+	if (hvp->verbose && !((y+sy*z)%200)) {
 	  fprintf(stderr, "%s", airDoneStr(0, y+sy*z, sy*sz, prog));
 	  fflush(stderr);
 	}
@@ -394,7 +394,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   
   for (z=pad; z<sz-pad; z++) {
     for (y=pad; y<sy-pad; y++) {
-      if (hvp->verbose && !((y-pad+(sy-2*pad)*(z-pad))%100)) {
+      if (hvp->verbose && !((y-pad+(sy-2*pad)*(z-pad))%200)) {
 	fprintf(stderr, "%s", airDoneStr(0, y-pad+(sy-2*pad)*(z-pad),
 					 (sy-2*pad)*(sz-2*pad), prog));
 	fflush(stderr);
@@ -460,7 +460,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   nhvdata = hvol->data;
   for (hz=0; hz<shz; hz++) {
     for (hy=0; hy<shy; hy++) {
-      if (hvp->verbose && !((hy+shy*hz)%100)) {
+      if (hvp->verbose && !((hy+shy*hz)%200)) {
 	fprintf(stderr, "%s", airDoneStr(0, hy+shy*hz, shy*shz, prog));
 	fflush(stderr);
       }

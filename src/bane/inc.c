@@ -225,7 +225,7 @@ _baneIncPercentile_Ans(double *minP, double *maxP,
   fprintf(stderr, "##%s: hist's min,max (%g,%g) ---%s---> %g, %g\n",
 	  me, nhist->axis[0].min, nhist->axis[0].max,
 	  range->name, min, max);
-  if (baneRangeFloat == range) {
+  if (baneRangeFloat_e == range->which) {
     mid = AIR_EXISTS(incParm[2]) ? incParm[2] : (min + max)/2;
   } else {
     mid = 0;

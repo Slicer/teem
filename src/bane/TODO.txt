@@ -1,12 +1,11 @@
-allow creation of a float VGH volume, so that you don't have to
-probe through the volume over and over again.  
-
-use hest for gkms, and make all the constants that GKMSInit sets
-be global defaults, so that gkms can see them too.
-
---- teem1.5beta1 cutoff ---
+make all the constants that GKMSInit sets be global defaults, so that
+gkms can see them too.
 
 --- teem1.5 cutoff ---
+
+generate string representations of inclusion strategies (unparse them),
+and save these as comments in the histovolume, and save all other gkms
+parameters in generated nrrds
 
 make sure that the NUM_PARM_MAX values are correct
 
