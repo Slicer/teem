@@ -181,7 +181,6 @@ nrrdDInsert[NRRD_TYPE_MAX+1])(void *, size_t, double) = {
   NULL, MAP(INSERT_LIST, DB) NULL
 };
 
-
 /*
 ******** nrrdSprint
 **
@@ -221,6 +220,8 @@ nrrdSprint[NRRD_TYPE_MAX+1])(char *, const void *) = {
   (int (*)(char *, const void *))_nrrdSprintFL,
   (int (*)(char *, const void *))_nrrdSprintDB,
   NULL};
+
+/* ---- BEGIN non-NrrdIO */
 
 /*
 ******** nrrdFprint
@@ -511,3 +512,5 @@ nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *) = {
   (int (*)(const void *, const void *))_nrrdValCompareDB,
   NULL
 };
+
+/* ---- END non-NrrdIO */

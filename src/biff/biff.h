@@ -20,10 +20,15 @@
 #ifndef BIFF_HAS_BEEN_INCLUDED
 #define BIFF_HAS_BEEN_INCLUDED
 
+/* ---- BEGIN non-NrrdIO */
+
 #include <stdio.h>
 #include <string.h>
 
 #include <teem/air.h>
+
+/* ---- END non-NrrdIO */
+
 
 #ifdef __cplusplus
 extern "C" {

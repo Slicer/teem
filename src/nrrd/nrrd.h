@@ -20,24 +20,25 @@
 #ifndef NRRD_HAS_BEEN_INCLUDED
 #define NRRD_HAS_BEEN_INCLUDED
 
+#include <errno.h>
+
+/* ---- BEGIN non-NrrdIO */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
-#include <errno.h>
 #include <float.h>
 
 #include <teem/air.h>
-/* ---- BEGIN non-NrrdIO */
 #include <teem/hest.h>
-/* ---- END non-NrrdIO */
 #include <teem/biff.h>
 
 #include "nrrdDefines.h"
 #include "nrrdMacros.h"
 #include "nrrdEnums.h"
+/* ---- END non-NrrdIO */
 
 #if defined(_WIN32) && !defined(TEEM_STATIC) && !defined(__CYGWIN__)
 #define nrrd_export __declspec(dllimport)
@@ -631,6 +632,7 @@ extern nrrd_export float  (*nrrdFInsert[NRRD_TYPE_MAX+1])(void *v,
 extern nrrd_export double (*nrrdDInsert[NRRD_TYPE_MAX+1])(void *v,
 							  size_t I, double d);
 extern nrrd_export int    (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, const void *);
+/* ---- BEGIN non-NrrdIO */
 extern nrrd_export int    (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, const void *);
 extern nrrd_export float  (*nrrdFClamp[NRRD_TYPE_MAX+1])(float);
 extern nrrd_export double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double);
@@ -639,6 +641,8 @@ extern nrrd_export void
 					  int *hasNonExistP, const Nrrd *nrrd);
 extern nrrd_export int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *,
 							  const void *);
+/* ---- END non-NrrdIO */
+
 
 /******** permuting, shuffling, and all flavors of reshaping */
 /* reorder.c */
