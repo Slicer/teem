@@ -56,31 +56,31 @@ main(int argc, char **argv) {
   hparm->elideSingleOtherDefault = AIR_TRUE;
   hparm->elideSingleNonExistFloatDefault = AIR_TRUE;
   hparm->elideSingleEmptyStringDefault = AIR_TRUE;
-  hparm->columns = unuDefNumColumns;
+  hparm->columns = unrrduDefNumColumns;
 
   /* if there are no arguments, then we give general usage information */
   if (1 >= argc) {
-    unuUsage(UNU, hparm);
+    unrrduUsage(UNRRDU, hparm);
     airMopError(mop);
     exit(1);
   }
   /* else, we should see if they're asking for a command we know about */  
-  for (i=0; unuCmdList[i]; i++) {
-    if (!strcmp(argv[1], unuCmdList[i]->name))
+  for (i=0; unrrduCmdList[i]; i++) {
+    if (!strcmp(argv[1], unrrduCmdList[i]->name))
       break;
   }
-  /* unuCmdList[] is NULL-terminated */
-  if (unuCmdList[i]) {
+  /* unrrduCmdList[] is NULL-terminated */
+  if (unrrduCmdList[i]) {
     /* yes, we have that command */
     /* initialize variables used by the various commands */
-    argv0 = malloc(strlen(UNU) + strlen(argv[1]) + 2);
-    sprintf(argv0, "%s %s", UNU, argv[1]);
+    argv0 = malloc(strlen(UNRRDU) + strlen(argv[1]) + 2);
+    sprintf(argv0, "%s %s", UNRRDU, argv[1]);
 
     /* run the individual unu program */
-    ret = unuCmdList[i]->main(argc-2, argv+2, argv0, hparm);
+    ret = unrrduCmdList[i]->main(argc-2, argv+2, argv0, hparm);
   } else {
     fprintf(stderr, "%s: unrecognized command: \"%s\"\n", me, argv[1]);
-    unuUsage(UNU, hparm);
+    unrrduUsage(UNRRDU, hparm);
     ret = 1;
   }
 

@@ -32,21 +32,21 @@ main(int argc, char *argv[]) {
   airArray *mop;
   hestOpt *hopt=NULL;
   hestParm *hparm=NULL;
-  hoovContext *ctx;
+  hooverContext *ctx;
   miteUserInfo *muu;
   char *me, *errS;
   int E, Ecode;
 
   me = argv[0];
   mop = airMopInit();
-  ctx = hoovContextNew();
-  fprintf(stderr, "%s: hoov ctx = %p\n", me, ctx);
-  airMopAdd(mop, ctx, (airMopper)hoovContextNix, airMopAlways);
+  ctx = hooverContextNew();
+  fprintf(stderr, "%s: hoover ctx = %p\n", me, ctx);
+  airMopAdd(mop, ctx, (airMopper)hooverContextNix, airMopAlways);
   hparm = hestParmNew();
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
-  fprintf(stderr, "%s: hoov ctx = %p\n", me, ctx);
+  fprintf(stderr, "%s: hoover ctx = %p\n", me, ctx);
   muu = miteUserInfoNew(ctx);
-  fprintf(stderr, "%s: hoov muu->ctx = %p\n", me, muu->ctx);
+  fprintf(stderr, "%s: hoover muu->ctx = %p\n", me, muu->ctx);
   fprintf(stderr, "%s: muu = %p, muu->ctx = %p\n", me, muu, muu->ctx);
   airMopAdd(mop, muu, (airMopper)miteUserInfoNix, airMopAlways);
   
@@ -116,18 +116,18 @@ main(int argc, char *argv[]) {
      a single thread, since multiple threads would each have their
      own padded copy of the volume */
   ctx->userInfo = muu;
-  ctx->renderBegin = (hoovRenderBegin_t *)miteRenderBegin;
-  ctx->threadBegin = (hoovThreadBegin_t *)miteThreadBegin;
-  ctx->rayBegin = (hoovRayBegin_t *)miteRayBegin;
-  ctx->sample = (hoovSample_t *)miteSample;
-  ctx->rayEnd = (hoovRayEnd_t *)miteRayEnd;
-  ctx->threadEnd = (hoovThreadEnd_t *)miteThreadEnd;
-  ctx->renderEnd = (hoovRenderEnd_t *)miteRenderEnd;
+  ctx->renderBegin = (hooverRenderBegin_t *)miteRenderBegin;
+  ctx->threadBegin = (hooverThreadBegin_t *)miteThreadBegin;
+  ctx->rayBegin = (hooverRayBegin_t *)miteRayBegin;
+  ctx->sample = (hooverSample_t *)miteSample;
+  ctx->rayEnd = (hooverRayEnd_t *)miteRayEnd;
+  ctx->threadEnd = (hooverThreadEnd_t *)miteThreadEnd;
+  ctx->renderEnd = (hooverRenderEnd_t *)miteRenderEnd;
 
   fprintf(stderr, "%s: rendering ... ", me); fflush(stderr);
-  E = hoovRender(ctx, &Ecode, NULL);
+  E = hooverRender(ctx, &Ecode, NULL);
   if (E) {
-    if (hoovErrInit == E) {
+    if (hooverErrInit == E) {
       fprintf(stderr, "%s: ERROR:\n%s\n",
 	      me, errS = biffGetDone(HOOVER)); free(errS);
     } else {
