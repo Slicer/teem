@@ -44,24 +44,29 @@ extern "C" {
 ** Unlike nrrdAxisPos() and nrrdAxisIdx(), this assumes that center
 ** is either nrrdCenterCell or nrrdCenterNode, but not nrrdCenterUnknown.
 */
+/* index to position, cell centering */
 #define NRRD_AXIS_CELL_POS(min, max, size, idx)       \
   AIR_AFFINE(0, (idx) + 0.5, (size), (min), (max))
 
+/* index to position, node centering */
 #define NRRD_AXIS_NODE_POS(min, max, size, idx)       \
   AIR_AFFINE(0, (idx), (size)-1, (min), (max))
 
+/* index to position, either centering */
 #define NRRD_AXIS_POS(center, min, max, size, idx)    \
   (nrrdCenterCell == (center)                         \
    ? NRRD_AXIS_CELL_POS((min), (max), (size), (idx))  \
    : NRRD_AXIS_NODE_POS((min), (max), (size), (idx)))
 
-
+/* position to index, cell centering */
 #define NRRD_AXIS_CELL_IDX(min, max, size, pos)       \
   (AIR_AFFINE((min), (pos), (max), 0, (size)) - 0.5)
 
+/* position to index, node centering */
 #define NRRD_AXIS_NODE_IDX(min, max, size, pos)       \
   AIR_AFFINE((min), (pos), (max), 0, (size)-1)
 
+/* position to index, either centering */
 #define NRRD_AXIS_IDX(center, min, max, size, pos)    \
   (nrrdCenterCell == (center)                         \
    ? NRRD_AXIS_CELL_IDX((min), (max), (size), (pos))  \
