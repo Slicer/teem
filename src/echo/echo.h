@@ -53,10 +53,11 @@ typedef double echoCol_t;
 #endif
 
 #define ECHO_AABBOX_OBJECT_MAX 8
-#define ECHO_LIST_OBJECT_INCR 32
+#define ECHO_LIST_OBJECT_INCR 8
 #define ECHO_IMG_CHANNELS 5
 #define ECHO_EPSILON 0.001        /* used for adjusting ray positions */
 #define ECHO_NEAR0 0.004          /* used for comparing transparency to zero */
+#define ECHO_LEN_SMALL_ENOUGH 4
 
 typedef struct {
   /* ray-tracing parameters */

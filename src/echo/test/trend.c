@@ -53,7 +53,7 @@ makeSceneBVH(limnCam *cam, EchoParam *param,
   param->maxRecDepth = 10;
   param->shadow = AIR_FALSE;
 
-  N = 10000;
+  N = 100000;
   /* airSrand(); */
   airArraySetLen(LIST(scene)->objArr, N);
   for (i=0; i<N; i++) {

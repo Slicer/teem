@@ -430,7 +430,7 @@ echoObjectListSplit(EchoObject *list, int axis) {
   }
 
   len = LIST(list)->objArr->len;
-  if (0 == len || 1 == len) {
+  if (len <= ECHO_LEN_SMALL_ENOUGH) {
     /* there is nothing or only one object */
     return list;
   }
@@ -508,7 +508,7 @@ echoObjectListSplit(EchoObject *list, int axis) {
 
 EchoObject *
 echoObjectListSplit3(EchoObject *list, int depth) {
-  EchoObject *tmp, *ret, **ptr;
+  EchoObject *ret, *tmp0, *tmp1;
 
   if (!( echoObjectList == list->type ||
 	 echoObjectAABBox == list->type )) 
@@ -518,35 +518,38 @@ echoObjectListSplit3(EchoObject *list, int depth) {
     return list;
   
   printf("echoObjectListSplit3: ------ depth = %d\n", depth);
-  ret = tmp = echoObjectListSplit(list, 0);
+  ret = echoObjectListSplit(list, 0);
 
-  SPLIT(tmp)->obj0 = echoObjectListSplit(SPLIT(tmp)->obj0, 1);
-  SPLIT(tmp)->obj1 = echoObjectListSplit(SPLIT(tmp)->obj1, 1);
+#define DOIT(obj, ax) ((obj) = echoObjectListSplit((obj), (ax)))
+#define MORE(obj) echoObjectSplit == (obj)->type
 
-  tmp = SPLIT(ret)->obj0;
-  SPLIT(tmp)->obj0 = echoObjectListSplit(SPLIT(tmp)->obj0, 2);
-  SPLIT(tmp)->obj1 = echoObjectListSplit(SPLIT(tmp)->obj1, 2);
-  tmp = SPLIT(ret)->obj1;
-  SPLIT(tmp)->obj0 = echoObjectListSplit(SPLIT(tmp)->obj0, 2);
-  SPLIT(tmp)->obj1 = echoObjectListSplit(SPLIT(tmp)->obj1, 2);
-
-  if (depth-1) {
-    ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj0)->obj0)->obj0);
-    *ptr = echoObjectListSplit3(*ptr, depth-1);
-    ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj0)->obj0)->obj1);
-    *ptr = echoObjectListSplit3(*ptr, depth-1);
-    ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj0)->obj1)->obj0);
-    *ptr = echoObjectListSplit3(*ptr, depth-1);
-    ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj0)->obj1)->obj1);
-    *ptr = echoObjectListSplit3(*ptr, depth-1);
-    ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj1)->obj0)->obj0);
-    *ptr = echoObjectListSplit3(*ptr, depth-1);
-    ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj1)->obj0)->obj1);
-    *ptr = echoObjectListSplit3(*ptr, depth-1);
-    ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj1)->obj1)->obj0);
-    *ptr = echoObjectListSplit3(*ptr, depth-1);
-    ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj1)->obj1)->obj1);
-    *ptr = echoObjectListSplit3(*ptr, depth-1);
+  if (MORE(ret)) {
+    tmp0 = DOIT(SPLIT(ret)->obj0, 1);
+    if (MORE(tmp0)) {
+      tmp1 = DOIT(SPLIT(tmp0)->obj0, 2);
+      if (MORE(tmp1)) {
+	SPLIT(tmp1)->obj0 = echoObjectListSplit3(SPLIT(tmp1)->obj0, depth-1);
+	SPLIT(tmp1)->obj1 = echoObjectListSplit3(SPLIT(tmp1)->obj1, depth-1);
+      }
+      tmp1 = DOIT(SPLIT(tmp0)->obj1, 2);
+      if (MORE(tmp1)) {
+	SPLIT(tmp1)->obj0 = echoObjectListSplit3(SPLIT(tmp1)->obj0, depth-1);
+	SPLIT(tmp1)->obj1 = echoObjectListSplit3(SPLIT(tmp1)->obj1, depth-1);
+      }
+    }
+    tmp0 = DOIT(SPLIT(ret)->obj1, 1);
+    if (MORE(tmp0)) {
+      tmp1 = DOIT(SPLIT(tmp0)->obj0, 2);
+      if (MORE(tmp1)) {
+	SPLIT(tmp1)->obj0 = echoObjectListSplit3(SPLIT(tmp1)->obj0, depth-1);
+	SPLIT(tmp1)->obj1 = echoObjectListSplit3(SPLIT(tmp1)->obj1, depth-1);
+      }
+      tmp1 = DOIT(SPLIT(tmp0)->obj1, 2);
+      if (MORE(tmp1)) {
+	SPLIT(tmp1)->obj0 = echoObjectListSplit3(SPLIT(tmp1)->obj0, depth-1);
+	SPLIT(tmp1)->obj1 = echoObjectListSplit3(SPLIT(tmp1)->obj1, depth-1);
+      }
+    }
   }
   return ret;
 }
