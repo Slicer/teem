@@ -98,7 +98,7 @@ nrrdStateGetenv(void) {
   }
   if ((envS = getenv("NRRD_STATE_CLEVER_8_BIT_MIN_MAX"))
       && (-1 != (valI = airEnumVal(airBool, envS)))) {
-    nrrdStateAlwaysSetContent = valI;
+    nrrdStateClever8BitMinMax = valI;
   }
   if ((envS = getenv("NRRD_STATE_ALWAYS_SET_CONTENT"))
       && (-1 != (valI = airEnumVal(airBool, envS)))) {
