@@ -556,6 +556,10 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
     _hestIdent(ident, opt+op);
     type = opt[op].type;
     vP = opt[op].valueP;
+    if (parm->verbosity) {
+      printf("%s op=%d of (0,%d): |%s| --> kind = %d\n", 
+	     me, op, numOpts-1, ident, opt[op].kind);
+    }
     switch(opt[op].kind) {
     case 1:
       /* -------- parameter-less boolean flags -------- */
@@ -602,7 +606,11 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	}
 	if (airTypeString == opt[op].type) {
 	  /* vP is an array of char*s, (a char**), and what we manage
-	     with airMop are the individual vP[p] */
+	     with airMop are the individual vP[p].  We can use airMopMem
+	     (as opposed to just airMopAdd(airFree)) because we actually
+	     "set" the values (with _hestSetValues()) exactly once, while
+	     the parameters may have been gathered by _hestExtractFlagged()
+	     or _hestExtractUnflagged() multiple times. */
 	  for (p=0; p<=opt[op].min-1; p++) {
 	    airMopMem(pmop, &(((char**)vP)[p]), airMopOnError);
 	  }
@@ -657,8 +665,12 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	  *(opt[op].sawP) = 0;
 	}
 	else {
-	  /* printf("!%s: nprm[%d] = %d\n", me, op, nprm[op]); */
 	  *((void**)vP) = calloc(nprm[op], airTypeSize[type]);
+	  if (parm->verbosity) {
+	    printf("!%s: nprm[%d] = %d\n", me, op, nprm[op]);
+	    printf("!%s: new array is at 0x%lx\n", me, 
+		   (unsigned long)(*((void**)vP)));
+	  }
 	  airMopMem(pmop, vP, airMopOnError);
 	  if (nprm[op] != 
 	      airParseStr[type](*((void**)vP), prms[op], " ", nprm[op])) {
@@ -673,9 +685,11 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	  if (airTypeString == opt[op].type) {
 	    /* vP is the address of an array of char*s (a char ***), and
 	       what we manage with airMop is the individual (*vP)[p],
-	       as well as vP itself (above) */
+	       as well as vP itself (above).  We can't use airMopMem()
+	       because then the airSetNull on &(*vP)[0] would clobber 
+	       the airFree on *vP. (a very hard to find bug!) */
 	    for (p=0; p<=nprm[op]-1; p++) {
-	      airMopMem(pmop, &(((char***)vP)[p]), airMopOnError);
+	      airMopAdd(pmop, (*((char***)vP))[p], airFree, airMopOnError);
 	    }
 	  }
 	}
@@ -687,6 +701,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
       break;
     }
   }
+  printf("%s done!\n", me);
   return 0;
 }
 
@@ -829,6 +844,7 @@ hestParseFree(hestOpt *opt) {
 
   numOpts = _hestNumOpts(opt);
   for (op=0; op<=numOpts-1; op++) {
+    printf("hestParseFree: op %d of (0,%d) ...\n", op, numOpts-1);
     vP = opt[op].valueP;
     str = opt[op].valueP;
     strP = opt[op].valueP;
@@ -852,6 +868,7 @@ hestParseFree(hestOpt *opt) {
       break;
     }
   }
+  printf("hestParseFree: done!\n");
   return;
 }
 
