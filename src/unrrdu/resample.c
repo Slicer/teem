@@ -57,7 +57,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "the number of samples unchanged\n "
 	     "\b\bo \"<int>\": exact number of output samples",
 	     &scaleLen, NULL, &unrrduHestScaleCB);
-  hestOptAdd(&opt, "k", "kern", airTypeOther, 1, 1, &unuk, "quartic:0.0834",
+  hestOptAdd(&opt, "k", "kern", airTypeOther, 1, 1, &unuk, "cubic:0,0.5",
 	     "The kernel to use for resampling.  Possibilities include:\n "
 	     "\b\bo \"box\": nearest neighbor interpolation\n "
 	     "\b\bo \"tent\": linear interpolation\n "
