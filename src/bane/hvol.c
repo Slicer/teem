@@ -20,6 +20,14 @@
 #include "bane.h"
 #include "privateBane.h"
 
+/* hz is defined in the aix system in /usr/include/sys/m_param.h .
+   This causes compilation errors for later functions which want to use
+   this as a variable.
+*/
+#ifdef hz
+#  undef hz
+#endif
+
 /*
 ** learned: don't ever count on interleaved printfs to stdout
 ** and stderr to appear in the right order
