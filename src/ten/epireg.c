@@ -648,7 +648,7 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
   if (verb) {
     fprintf(stderr, "done\n");
   }
-  if (prog && _tenEpiRegSave("messy.txt", ntA,
+  if (prog && _tenEpiRegSave("regtmp-messy.txt", ntA,
 			     NULL, 0, "segmentation uncertainty")) {
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
@@ -922,7 +922,7 @@ tenEpiRegister(Nrrd **nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
     sprintf(err, "%s: trouble %s", me, (bwX || bwY) ? "blurring" : "copying");
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
-  if (progress && _tenEpiRegSave("blur.nrrd", NULL,
+  if (progress && _tenEpiRegSave("regtmp-blur.nrrd", NULL,
 				 nbuffA, ninLen, "blurred DWIs")) {
     airMopError(mop); return 1;
   }
@@ -933,7 +933,7 @@ tenEpiRegister(Nrrd **nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
     sprintf(err, "%s: trouble thresholding", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
-  if (progress && _tenEpiRegSave("thresh.nrrd", NULL,
+  if (progress && _tenEpiRegSave("regtmp-thresh.nrrd", NULL,
 				 nbuffB, ninLen, "thresholded DWIs")) {
     airMopError(mop); return 1;
   }
@@ -944,7 +944,7 @@ tenEpiRegister(Nrrd **nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
       sprintf(err, "%s: trouble doing connected components", me);
       biffAdd(TEN, err); airMopError(mop); return 1;
     }
-    if (progress && _tenEpiRegSave("ccs.nrrd", NULL,
+    if (progress && _tenEpiRegSave("regtmp-ccs.nrrd", NULL,
 				   nbuffB, ninLen, "connected components")) {
       airMopError(mop); return 1;
     }
@@ -955,7 +955,7 @@ tenEpiRegister(Nrrd **nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
     sprintf(err, "%s: trouble finding moments", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
-  if (progress && _tenEpiRegSave("mom.nrrd", NULL,
+  if (progress && _tenEpiRegSave("regtmp-mom.nrrd", NULL,
 				 nbuffA, ninLen, "moments")) {
     airMopError(mop); return 1;
   }
@@ -965,7 +965,7 @@ tenEpiRegister(Nrrd **nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
     sprintf(err, "%s: trouble calculating transforms", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
-  if (progress && _tenEpiRegSave("pxfr.nrrd", npxfr,
+  if (progress && _tenEpiRegSave("regtmp-pxfr.nrrd", npxfr,
 				 NULL, 0, "pair-wise xforms")) {
     airMopError(mop); return 1;
   }
@@ -976,7 +976,7 @@ tenEpiRegister(Nrrd **nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
       sprintf(err, "%s: trouble estimating HST", me);
       biffAdd(TEN, err); airMopError(mop); return 1;
     }
-    if (progress && _tenEpiRegSave("hst.txt", nhst,
+    if (progress && _tenEpiRegSave("regtmp-hst.txt", nhst,
 				   NULL, 0, "HST estimates")) {
       airMopError(mop); return 1;
     }
@@ -987,7 +987,7 @@ tenEpiRegister(Nrrd **nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
 	sprintf(err, "%s: trouble fitting HST", me);
 	biffAdd(TEN, err); airMopError(mop); return 1;
       }
-      if (progress && _tenEpiRegSave("fit-hst.txt", nhst,
+      if (progress && _tenEpiRegSave("regtmp-fit-hst.txt", nhst,
 				     NULL, 0, "fitted HST")) {
 	airMopError(mop); return 1;
       }
