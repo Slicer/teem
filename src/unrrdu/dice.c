@@ -32,7 +32,7 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *base, out[512], *err, format[512];
   Nrrd *nin, *nout;
-  int fit, pos, axis, top, pret;
+  int pos, axis, top, pret;
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "axis to slice along");
