@@ -358,9 +358,9 @@ _nrrdKindStr_Eqv[][AIR_STRLEN_SMALL] = {
   "2D-mask-sym-tensor", "2Dmasksymtensor",
   "2D-tensor", "2Dtensor",
   "2D-mask-tensor", "2Dmasktensor",
-  "3D-sym-tensor", "3Dsymtensor",
-  "3D-mask-sym-tensor", "3Dmasksymtensor",
-  "3D-tensor", "3Dtensor",
+  "3D-sym-tensor", "3Dsymtensor", "6-tensor",
+  "3D-mask-sym-tensor", "3Dmasksymtensor", "7-tensor",
+  "3D-tensor", "3Dtensor", "9-tensor",
   "3D-mask-tensor", "3Dmasktensor",
   ""
 };
@@ -382,9 +382,10 @@ _nrrdKindVal_Eqv[] = {
   nrrdKind2DMaskedSymTensor, nrrdKind2DMaskedSymTensor,
   nrrdKind2DTensor, nrrdKind2DTensor,
   nrrdKind2DMaskedTensor, nrrdKind2DMaskedTensor,
-  nrrdKind3DSymTensor, nrrdKind3DSymTensor,
+  nrrdKind3DSymTensor, nrrdKind3DSymTensor, nrrdKind3DSymTensor,
   nrrdKind3DMaskedSymTensor, nrrdKind3DMaskedSymTensor,
-  nrrdKind3DTensor, nrrdKind3DTensor,
+             nrrdKind3DMaskedSymTensor,
+  nrrdKind3DTensor, nrrdKind3DTensor, nrrdKind3DTensor,
   nrrdKind3DMaskedTensor, nrrdKind3DMaskedTensor
 };
 
