@@ -81,7 +81,7 @@ _hestSetBuff(char *B, hestOpt *O, hestParm *P, int showlong) {
 ** not a useful function.  Do not use.
 */
 void
-_hestPrintStr(FILE *f, int indent, int already, int width, char *_str,
+_hestPrintStr(FILE *f, int indent, int already, int width, const char *_str,
 	      int bslash) {
   char *str, *ws, *last;
   int nwrd, wrd, pos, s;
@@ -191,7 +191,7 @@ hestMinNumArgs(hestOpt *opt) {
 }
 
 void
-hestInfo(FILE *file, char *argv0, char *info, hestParm *_parm) {
+hestInfo(FILE *file, const char *argv0, const char *info, hestParm *_parm) {
   hestParm *parm;
 
   parm = !_parm ? hestParmNew() : _parm;
@@ -203,7 +203,7 @@ hestInfo(FILE *file, char *argv0, char *info, hestParm *_parm) {
 }
 
 void
-hestUsage(FILE *f, hestOpt *opt, char *argv0, hestParm *_parm) {
+hestUsage(FILE *f, hestOpt *opt, const char *argv0, hestParm *_parm) {
   int i, numOpts;
   char buff[2*AIR_STRLEN_HUGE], tmpS[AIR_STRLEN_HUGE];
   hestParm *parm;

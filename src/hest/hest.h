@@ -186,11 +186,13 @@ extern void hestParseOrDie(hestOpt *opt, int argc, char **argv, hestParm *parm,
 
 /* usage.c */
 extern void _hestPrintStr(FILE *f, int indent, int already, int width,
-			  char *_str, int bslash);
+			  const char *_str, int bslash);
 extern int hestMinNumArgs(hestOpt *opt);
-extern void hestUsage(FILE *file, hestOpt *opt, char *argv0, hestParm *parm);
+extern void hestUsage(FILE *file, hestOpt *opt, const char *argv0,
+		      hestParm *parm);
 extern void hestGlossary(FILE *file, hestOpt *opt, hestParm *parm);
-extern void hestInfo(FILE *file, char *argv0, char *info, hestParm *parm);
+extern void hestInfo(FILE *file, const char *argv0, const char *info,
+		     hestParm *parm);
 
 #ifdef __cplusplus
 }
