@@ -658,8 +658,8 @@ _nrrdMeasureHistoMin(void *ans, int ansType,
   double val;
 
   if (!(AIR_EXISTS(axmin) && AIR_EXISTS(axmax))) {
-    axmin = 0;
-    axmax = len-1;
+    axmin = -0.5;
+    axmax = len-0.5;
   }
   for (i=0; i<len; i++) {
     if (nrrdDLookup[lineType](line, i))
