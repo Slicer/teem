@@ -26,7 +26,7 @@ main(int argc, char **argv) {
   static char **in, *out;
   int n;
   hestOpt opt[] = {
-    {"res",   "sx sy", airTypeInt,    2,  2,   res,  NULL /* "640 480"*/, 
+    {"res",   "sx sy", airTypeInt,    2,  2,   res,  NULL, 
      "image resolution"},
     {"v",     "level", airTypeInt,    0,  1,   &v,   "0",
      "verbosity level"},
@@ -37,7 +37,7 @@ main(int argc, char **argv) {
     {NULL, NULL, 0}
   };
   hestParm *parm;
-  char *err, info[] = 
+  char *err = NULL, info[] = 
     "This program does nothing in particular, though it does attempt "
     "to pose as some sort of command-line image processing program. "
     "As usual, any implied functionality is purely coincidental, "
@@ -56,8 +56,8 @@ main(int argc, char **argv) {
   }
 
   /* else we got something, see if we can parse it */
-  if (hestParse(opt, argc-1, argv+1, &err, parm)) {
-    printf("ERROR: %s\n", err);
+  if (hestParse(opt, argc-1, argv+1, NULL, parm)) {
+    fprintf(stderr, "ERROR: %s\n", err);
     hestUsage(stderr, opt, argv[0], parm);
     hestGlossary(stderr, opt, parm);
     parm = hestParmNix(parm);
