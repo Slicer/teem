@@ -24,12 +24,45 @@
 #include <teem/gage.h>
 #include <teem/limn.h>
 #include <teem/hoover.h>
+#include <teem/ten.h>
 
+int
+probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[] = "probeParseKind";
+  gageKind **kindP;
+  
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  kindP = ptr;
+  airToLower(str);
+  if (!strcmp("scalar", str)) {
+    *kindP = gageKindScl;
+  } else if (!strcmp("vector", str)) {
+    *kindP = gageKindVec;
+  } else if (!strcmp("tensor", str)) {
+    *kindP = tenGageKind;
+  } else {
+    sprintf(err, "%s: not \"scalar\", \"vector\", or \"tensor\"", me);
+    return 1;
+  }
+
+  return 0;
+}
+
+hestCB probeKindHestCB = {
+  sizeof(gageKind *),
+  "kind",
+  probeParseKind,
+  NULL
+}; 
 
 #define MREND "mrender"
 
 char *info = ("A demonstration of hoover, gage, and nrrd measures. "
-	      "Uses hoover to cast rays through a scalar volume, gage to "
+	      "Uses hoover to cast rays through a volume (scalar, vector, or "
+	      "tensor), gage to "
 	      "measure one of various quantities along the rays, and a "
 	      "specified nrrd measure to reduce all the values along a ray "
 	      "down to one scalar, which is saved in the output (float) "
@@ -45,6 +78,7 @@ char *info = ("A demonstration of hoover, gage, and nrrd measures. "
 
 typedef struct {
   Nrrd *nin;            /* input volume to render */
+  gageKind *kind;       /* the kind of volume it is */
   double rayStep,       /* distance between sampling planes */
     fromNaN;            /* what to convert non-existent value to */
   int whatq,            /* what to measure along the ray */
@@ -68,6 +102,7 @@ mrendUserNew() {
 
   uu = (mrendUser *)calloc(1, sizeof(mrendUser));
   uu->nin = NULL;
+  uu->kind = NULL;
   uu->rayStep = 0.0;
   uu->whatq = gageSclUnknown;
   uu->measr = nrrdMeasureUnknown;
@@ -97,9 +132,9 @@ int
 mrendUserCheck(mrendUser *uu) {
   char me[]="mrendUserCheck", err[AIR_STRLEN_MED];
   
-  if (3 != uu->nin->dim) {
-    sprintf(err, "%s: input nrrd needs 3 dimensions, not %d", 
-	    me, uu->nin->dim);
+  if (3 + uu->kind->baseDim != uu->nin->dim) {
+    sprintf(err, "%s: input nrrd needs %d dimensions, not %d", 
+	    me,  + uu->kind->baseDim, uu->nin->dim);
     biffAdd(MREND, err); return 1;
   }
   if (!( uu->nin->axis[0].center == uu->nin->axis[1].center &&
@@ -110,9 +145,10 @@ mrendUserCheck(mrendUser *uu) {
 	    airEnumStr(nrrdCenter, uu->nin->axis[2].center));
     biffAdd(MREND, err); return 1;
   }
-  if (1 != gageKindScl->table[uu->whatq].answerLength) {
-    sprintf(err, "%s: quantity %s isn't a scalar; can't render it\n",
-	    me, airEnumStr(gageKindScl->enm, uu->whatq));
+  if (1 != uu->kind->table[uu->whatq].answerLength) {
+    sprintf(err, "%s: quantity %s (in %s volumes) isn't a scalar; "
+	    "can't render it",
+	    me, airEnumStr(uu->kind->enm, uu->whatq), uu->kind->name);
     biffAdd(MREND, err); return 1;
   }
   
@@ -161,7 +197,7 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   (*rrP)->time0 = airTime();
 
   E = 0;
-  if (!E) E |= !(pvl = gagePerVolumeNew(uu->gctx0, uu->nin, gageKindScl));
+  if (!E) E |= !(pvl = gagePerVolumeNew(uu->gctx0, uu->nin, uu->kind));
   if (!E) E |= gagePerVolumeAttach(uu->gctx0, pvl);
   if (!E) E |= gageKernelSet(uu->gctx0, gageKernel00,
 			     uu->ksp[gageKernel00]->kernel,
@@ -347,6 +383,12 @@ mrendSample(mrendThread *tt, mrendRender *rr, mrendUser *uu,
 
 /* -------------------------------------------------------------- */
 
+#if 0
+
+  this was nixed once mrender learned to handle volume of general
+  kind, instead of being restricted to scalars
+
+
 /*
 ** learned: if you're playing games with strings with two passes, where
 ** you first generate the set of strings in order to calculate their
@@ -385,12 +427,14 @@ mrendGage(char *prefix) {
   return ret;
 }
 
+#endif
+
 int
 main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   hestParm *hparm;
   int E, Ecode, renorm;
-  char *me, *errS, *buff;
+  char *me, *errS, *whatS;
   mrendUser *uu;
   airArray *mop;
   double gmc;
@@ -404,12 +448,11 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   airMopAdd(mop, uu, (airMopper)mrendUserNix, airMopAlways);
 
-  buff = mrendGage("the quantity to measure at sample points along " \
-		   "rays. Possibilities include:");
-  airMopAdd(mop, buff, airFree, airMopAlways);
-
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &(uu->nin), NULL,
 	     "input nrrd to render", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &(uu->kind), NULL,
+	     "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")",
+	     NULL, NULL, &probeKindHestCB);
   limnHestCameraOptAdd(&hopt, uu->hctx->cam,
 		       NULL, "0 0 0", "0 0 1",
 		       NULL, NULL, NULL,
@@ -432,9 +475,8 @@ main(int argc, char *argv[]) {
 	     "renormalize kernel weights at each new sample location. "
 	     "\"Accurate\" kernels don't need this; doing it always "
 	     "makes things go slower");
-  hestOptAdd(&hopt, "q", "quantity", airTypeEnum, 1, 1, &(uu->whatq), NULL,
-	     buff,
-	     NULL, gageKindScl->enm);
+  hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
+	     "the quantity (scalar, vector, or matrix) to learn by probing");
   hestOptAdd(&hopt, "m", "measure", airTypeEnum, 1, 1, &(uu->measr), NULL,
 	     "how to collapse list of ray samples into one scalar. "
 	     NRRD_MEASURE_DESC,
@@ -458,6 +500,17 @@ main(int argc, char *argv[]) {
 		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
+  uu->whatq = airEnumVal(uu->kind->enm, whatS);
+  if (-1 == uu->whatq) {
+    /* -1 indeed always means "unknown" for any gageKind */
+    fprintf(stderr, "%s: couldn't parse \"%s\" as measure of \"%s\" volume\n",
+	    me, whatS, uu->kind->name);
+    hestUsage(stderr, hopt, me, hparm);
+    hestGlossary(stderr, hopt, hparm);
+    airMopError(mop);
+    return 1;
+  }
+
   if (mrendUserCheck(uu)) {
     fprintf(stderr, "%s: problem with input parameters:\n%s\n",
 	    me, errS = biffGetDone(MREND)); free(errS);
@@ -467,9 +520,9 @@ main(int argc, char *argv[]) {
   gageParmSet(uu->gctx0, gageParmGradMagCurvMin, gmc);
   gageParmSet(uu->gctx0, gageParmRequireAllSpacings, AIR_FALSE);
   gageParmSet(uu->gctx0, gageParmRenormalize, renorm);
-  fprintf(stderr, "%s: will render %s of %s\n", me,
+  fprintf(stderr, "%s: will render %s of %s in %s volume\n", me,
 	  airEnumStr(nrrdMeasure, uu->measr),
-	  airEnumStr(gageKindScl->enm, uu->whatq));
+	  airEnumStr(uu->kind->enm, uu->whatq), uu->kind->name);
   
   /* set remaining fields of hoover context */
   nrrdAxisInfoGet_nva(uu->nin, nrrdAxisInfoSize, uu->hctx->volSize);
