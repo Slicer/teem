@@ -1,5 +1,5 @@
-The "teem" source tree
-"To one day be a powerful swarm of useful libraries and utilities"
+teem: "To be, one day, a powerful swarm of useful libraries and utilities"
+http://www.cs.utah.edu/~gk/teem
 
 =============== 
 
@@ -66,9 +66,9 @@ undergo my scrutiny before they will be added to the official CVS
 tree.
 
 I'm not especially averse to C++, I just think its a bit of a
-disaster.  Bill Joy agrees with me on this one.  As do other people I
-respect.  C++ has its time and place, no doubt.  I'm just generally not
-in those times or places.  My loss, I'm sure.
+disaster.  Bill Joy agrees with me on this one, as do other people I
+respect.  C++ has its time and place, no doubt.  I'm just generally
+not in those times or places.  My loss, I'm sure.
 
 =============== Directory Structure
 
