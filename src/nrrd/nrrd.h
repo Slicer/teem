@@ -575,12 +575,12 @@ extern int nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr);
 
 /********* various kinds of histograms */
 /* histogram.c */
-extern int nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type);
+extern int nrrdHisto(Nrrd *nout, Nrrd *nin, Nrrd *nwght, int bins, int type);
 extern int nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy,
 			 int showLog, double max);
 extern int nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int axis, int bins, int type);
-extern int nrrdHistoJoint(Nrrd *nout, Nrrd **nin, 
-			  int numNin, int *bins, int type, int *clamp);
+extern int nrrdHistoJoint(Nrrd *nout, Nrrd **nin, int numNin,
+			  Nrrd *nwght, int *bins, int type, int *clamp);
 
 /******** arithmetic and math on nrrds */
 /* arith.c */
@@ -624,6 +624,13 @@ extern int nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
 			      int *samples, double *scalings);
 
 /******** kernels (interpolation, 1st and 2nd derivatives) */
+/* tmfKernel.c
+   nrrdKernelTMF[D][C][A] is d<D>_c<C>_<A>ef:
+   Dth-derivative, C-order continuous ("smooth"), A-order accurate */
+extern nrrd_export NrrdKernel *nrrdKernelTMF[3][4][5];
+extern nrrd_export int nrrdKernelTMF_maxD;
+extern nrrd_export int nrrdKernelTMF_maxC;
+extern nrrd_export int nrrdKernelTMF_maxA;
 /* kernel.c */
 extern nrrd_export NrrdKernel *nrrdKernelZero, /* zero everywhere */
   *nrrdKernelBox,                  /* box filter (nearest neighbor) */

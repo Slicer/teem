@@ -149,7 +149,9 @@ enum {
 ******** nrrdMeasure enum
 **
 ** ways to "measure" some portion of the array
-** NEEDS TO BE IN SYNC WITH nrrdMeasr array in measr.c
+** NEEDS TO BE IN SYNC WITH:
+** - nrrdMeasure airEnum in enumsNrrd.c
+** - nrrdMeasureLine function array in measure.c
 */
 enum {
   nrrdMeasureUnknown,
@@ -176,10 +178,11 @@ enum {
   nrrdMeasureHistoMode,      /* 17 */
   nrrdMeasureHistoProduct,   /* 18 */
   nrrdMeasureHistoSum,       /* 19 */
-  nrrdMeasureHistoVariance,  /* 20 */
+  nrrdMeasureHistoL2,        /* 20 */
+  nrrdMeasureHistoVariance,  /* 21 */
   nrrdMeasureLast
 };
-#define NRRD_MEASURE_MAX        20
+#define NRRD_MEASURE_MAX        21
 #define NRRD_MEASURE_DESC \
    "Possibilities include:\n " \
    "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", \"variance\"\n " \
@@ -188,7 +191,7 @@ enum {
    "\b\bo \"product\", \"sum\": product or sum of all values\n " \
    "\b\bo \"L1\", \"L2\", \"Linf\": different norms\n " \
    "\b\bo \"histo-min\",  \"histo-max\", \"histo-mean\", " \
-     "\"histo-median\", \"histo-mode\", \"histo-product\", " \
+     "\"histo-median\", \"histo-mode\", \"histo-product\", \"histo-l2\", " \
      "\"histo-sum\", \"histo-variance\": same measures, but for situations " \
      "where we're given not the original values but a histogram of them."
   
@@ -317,18 +320,20 @@ enum {
   nrrdUnaryOpExp,        /*  9 */
   nrrdUnaryOpLog,        /* 10 */
   nrrdUnaryOpLog10,      /* 11 */
-  nrrdUnaryOpSqrt,       /* 12 */
-  nrrdUnaryOpErf,        /* 13 */
-  nrrdUnaryOpCeil,       /* 14 */
-  nrrdUnaryOpFloor,      /* 15 */
-  nrrdUnaryOpRoundUp,    /* 16 */
-  nrrdUnaryOpRoundDown,  /* 17 */
-  nrrdUnaryOpAbs,        /* 18 */
-  nrrdUnaryOpSgn,        /* 19 */
-  nrrdUnaryOpExists,     /* 20 */
+  nrrdUnaryOpLog1p,      /* 12 */
+  nrrdUnaryOpSqrt,       /* 13 */
+  nrrdUnaryOpCbrt,       /* 14 */
+  nrrdUnaryOpErf,        /* 15 */
+  nrrdUnaryOpCeil,       /* 16 */
+  nrrdUnaryOpFloor,      /* 17 */
+  nrrdUnaryOpRoundUp,    /* 18 */
+  nrrdUnaryOpRoundDown,  /* 19 */
+  nrrdUnaryOpAbs,        /* 20 */
+  nrrdUnaryOpSgn,        /* 21 */
+  nrrdUnaryOpExists,     /* 22 */
   nrrdUnaryOpLast
 };
-#define NRRD_UNARY_OP_MAX   20
+#define NRRD_UNARY_OP_MAX   22
 
 
 /*
