@@ -20,38 +20,6 @@
 #include "mite.h"
 #include "privateMite.h"
 
-miteShadeSpec *
-miteShadeSpecNew(void) {
-  miteShadeSpec *shpec;
-
-  shpec = (miteShadeSpec *)calloc(1, sizeof(miteShadeSpec));
-  if (shpec) {
-    shpec->shadeMethod = miteShadeMethodUnknown;
-    shpec->vec0 = gageQuerySpecNew();
-    shpec->vec1 = gageQuerySpecNew();
-    shpec->scl0 = gageQuerySpecNew();
-    shpec->scl1 = gageQuerySpecNew();
-    if (!( shpec->vec0 && shpec->vec1 && 
-	   shpec->scl0 && shpec->scl1 )) {
-      return NULL;
-    }
-  }
-  return shpec;
-}
-
-miteShadeSpec *
-miteShadeSpecNix(miteShadeSpec *shpec) {
-
-  if (shpec) {
-    shpec->vec0 = gageQuerySpecNix(shpec->vec0);
-    shpec->vec1 = gageQuerySpecNix(shpec->vec1);
-    shpec->scl0 = gageQuerySpecNix(shpec->scl0);
-    shpec->scl1 = gageQuerySpecNix(shpec->scl1);
-    AIR_FREE(shpec);
-  }
-  return NULL;
-}
-
 miteRender *
 _miteRenderNew(void) {
   miteRender *mrr;
@@ -63,7 +31,12 @@ _miteRenderNew(void) {
       AIR_FREE(mrr);
       return mrr;
     }
+    mrr->ntxf = NULL;
+    mrr->ntxfNum = 0;
     mrr->shpec = miteShadeSpecNew();
+    mrr->sclPvlIdx = -1;
+    mrr->vecPvlIdx = -1;
+    mrr->tenPvlIdx = -1;
     airMopAdd(mrr->rmop, mrr->shpec,
 	      (airMopper)miteShadeSpecNix, airMopAlways);
   }
@@ -80,108 +53,13 @@ _miteRenderNix(miteRender *mrr) {
   return NULL;
 }
 
-int
-miteShadeParse(miteShadeSpec *shpec, char *shadeStr) {
-  char me[]="miteShadeParse", err[AIR_STRLEN_MED], *buff, *qstr, *tok, *state;
-  airArray *mop;
-  int ansLength;
-
-  mop = airMopNew();
-  if (!( shpec && airStrlen(shadeStr) )) {
-    sprintf(err, "%s: got NULL pointer and/or empty string", me);
-    biffAdd(MITE, err); airMopError(mop); return 1;
-  }
-  buff = airToLower(airStrdup(shadeStr));
-  if (!buff) {
-    sprintf(err, "%s: couldn't strdup shading spec", me);
-    biffAdd(MITE, err); airMopError(mop); return 1;
-  }
-  airMopAdd(mop, buff, airFree, airMopAlways);
-  if (!strcmp("none", buff)) {
-    shpec->shadeMethod = miteShadeMethodNone;
-  } else if (buff == strstr("phong:", buff)) {
-    qstr = buff + strlen("phong:");
-    if (miteVariableParse(shpec->vec0, qstr)) {
-      sprintf(err, "%s: couldn't parse \"%s\" as shading vector", me, qstr);
-      biffAdd(MITE, err); airMopError(mop); return 1;
-    }
-    ansLength = shpec->vec0->kind->ansLength[shpec->vec0->query];
-    if (3 != ansLength) {
-      sprintf(err, "%s: \"%s\" isn't a vector (answer length is %d, not 3)",
-	      me, qstr, ansLength);
-      biffAdd(MITE, err); airMopError(mop); return 1;
-    }
-    fprintf(stderr, "!%s: got phong:%s(%s)\n", me,
-	    shpec->vec0->kind->name, 
-	    airEnumStr(shpec->vec0->kind->enm, shpec->vec0->query));
-  } else if (buff == strstr("litten:", buff)) {
-    qstr = buff + strlen("litten:");
-    /* ---- first vector */
-    tok = airStrtok(qstr, ",", &state);
-    if (miteVariableParse(shpec->vec0, tok)) {
-      sprintf(err, "%s: couldn't parse \"%s\" as lit-tensor vector", me, tok);
-      biffAdd(MITE, err); airMopError(mop); return 1;
-    }
-    ansLength = shpec->vec0->kind->ansLength[shpec->vec0->query];
-    if (3 != ansLength) {
-      sprintf(err, "%s: \"%s\" isn't a vector (answer length is %d, not 3)",
-	      me, qstr, ansLength);
-      biffAdd(MITE, err); airMopError(mop); return 1;
-    }
-    /* ---- second vector */
-    tok = airStrtok(qstr, ",", &state);
-    if (miteVariableParse(shpec->vec1, tok)) {
-      sprintf(err, "%s: couldn't parse \"%s\" as lit-tensor vector", me, tok);
-      biffAdd(MITE, err); airMopError(mop); return 1;
-    }
-    ansLength = shpec->vec1->kind->ansLength[shpec->vec1->query];
-    if (3 != ansLength) {
-      sprintf(err, "%s: \"%s\" isn't a vector (answer length is %d, not 3)",
-	      me, qstr, ansLength);
-      biffAdd(MITE, err); airMopError(mop); return 1;
-    }
-    /* ---- first scalar */
-    tok = airStrtok(qstr, ",", &state);
-    if (miteVariableParse(shpec->scl0, tok)) {
-      sprintf(err, "%s: couldn't parse \"%s\" as lit-tensor scalar", me, tok);
-      biffAdd(MITE, err); airMopError(mop); return 1;
-    }
-    ansLength = shpec->scl0->kind->ansLength[shpec->scl0->query];
-    if (1 != ansLength) {
-      sprintf(err, "%s: \"%s\" isn't a scalar (answer length is %d, not 1)",
-	      me, qstr, ansLength);
-      biffAdd(MITE, err); airMopError(mop); return 1;
-    }
-    /* ---- second scalar */
-    tok = airStrtok(qstr, ",", &state);
-    if (miteVariableParse(shpec->scl1, tok)) {
-      sprintf(err, "%s: couldn't parse \"%s\" as lit-tensor scalar", me, tok);
-      biffAdd(MITE, err); airMopError(mop); return 1;
-    }
-    ansLength = shpec->scl1->kind->ansLength[shpec->scl1->query];
-    if (1 != ansLength) {
-      sprintf(err, "%s: \"%s\" isn't a scalar (answer length is %d, not 1)",
-	      me, qstr, ansLength);
-      biffAdd(MITE, err); airMopError(mop); return 1;
-    }
-    fprintf(stderr, "!%s: got litten:%s(%s),\n", me,
-	    shpec->vec0->kind->name, 
-	    airEnumStr(shpec->vec0->kind->enm, shpec->vec0->query));
-  } else {
-    sprintf(err, "%s: shading specification \"%s\" not understood",
-	    me, shadeStr);
-    biffAdd(MITE, err); airMopError(mop); return 1;
-  }
-  airMopOkay(mop);
-  return 0;
-}
-
 int 
 miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   char me[]="miteRenderBegin", err[AIR_STRLEN_MED];
   gagePerVolume *pvl;
-  int E, T, thr, axi;
-  unsigned int queryScl, queryVec, queryTen;
+  int E, T, thr, axi, pvlIdx;
+  gageQuery queryScl, queryVec, queryTen;
+  gageItemSpec isp;
  
   if (!(mrrP && muu)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -200,28 +78,38 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
     biffAdd(MITE, err); return 1;
   }
 
-  queryScl = 0;
-  queryTen = 0;
+  GAGE_QUERY_RESET(queryScl);
+  GAGE_QUERY_RESET(queryVec);
+  GAGE_QUERY_RESET(queryTen);
   for (T=0; T<muu->ntxfNum; T++) {
-    for (axi=1; axi<=muu->ntxf[T]->dim-1; axi++) {
-      _miteNtxfQuery(&queryScl, &queryVec, &queryTen,
-		     muu->ntxf[T]->axis[axi]->label);
+    for (axi=1; axi<muu->ntxf[T]->dim; axi++) {
+      miteVariableParse(&isp, muu->ntxf[T]->axis[axi].label);
+      miteQueryAdd(queryScl, queryVec, queryTen, &isp);
+    }
   }
-  if (!muu->noDirLight) {
-    query |= 1<<gageSclNormal;
-  }
-  /*
-  fprintf(stderr, "!%s: gageScl query: \n", me);
-  gageQueryPrint(stderr, gageKindScl, query);
-  */
+  miteShadeSpecParse((*mrrP)->shpec, muu->shadeStr);
+  miteShadeSpecQueryAdd(queryScl, queryVec, queryTen, (*mrrP)->shpec);
 
   E = 0;
-  if (!muu->nsin) {
-    sprintf(err, "%s: sorry- can't proceed without scalar volume", me);
-    biffAdd(MITE, err); return 1;
+  pvlIdx = 0;
+  if (muu->nsin) {
+    if (!E) E |= !(pvl = gagePerVolumeNew(muu->gctx0, muu->nsin, gageKindScl));
+    if (!E) E |= gageQuerySet(muu->gctx0, pvl, queryScl);
+    if (!E) E |= gagePerVolumeAttach(muu->gctx0, pvl);
+    if (!E) (*mrrP)->sclPvlIdx = pvlIdx++;
   }
-  if (!E) E |= !(pvl = gagePerVolumeNew(muu->gctx0, muu->nsin, gageKindScl));
-  if (!E) E |= gagePerVolumeAttach(muu->gctx0, pvl);
+  if (muu->nvin) {
+    if (!E) E |= !(pvl = gagePerVolumeNew(muu->gctx0, muu->nvin, gageKindVec));
+    if (!E) E |= gageQuerySet(muu->gctx0, pvl, queryVec);
+    if (!E) E |= gagePerVolumeAttach(muu->gctx0, pvl);
+    if (!E) (*mrrP)->vecPvlIdx = pvlIdx++;
+  }
+  if (muu->ntin) {
+    if (!E) E |= !(pvl = gagePerVolumeNew(muu->gctx0, muu->ntin, tenGageKind));
+    if (!E) E |= gageQuerySet(muu->gctx0, pvl, queryTen);
+    if (!E) E |= gagePerVolumeAttach(muu->gctx0, pvl);
+    if (!E) (*mrrP)->tenPvlIdx = pvlIdx++;
+  }
   if (!E) E |= gageKernelSet(muu->gctx0, gageKernel00,
 			     muu->ksp[gageKernel00]->kernel,
 			     muu->ksp[gageKernel00]->parm);
@@ -231,7 +119,6 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   if (!E) E |= gageKernelSet(muu->gctx0, gageKernel22,
 			     muu->ksp[gageKernel22]->kernel,
 			     muu->ksp[gageKernel22]->parm);
-  if (!E) E |= gageQuerySet(muu->gctx0, pvl, query);
   if (!E) E |= gageUpdate(muu->gctx0);
   if (E) {
     sprintf(err, "%s: gage trouble", me);
@@ -240,7 +127,7 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   fprintf(stderr, "!%s: kernel support = %d^3 samples\n",
 	  me, GAGE_FD(muu->gctx0));
   
-  if (nrrdMaybeAlloc(muu->nout, mite_nt, 3, 4,
+  if (nrrdMaybeAlloc(muu->nout, mite_nt, 3, 5 /* RGBAZ */ ,
 		     muu->hctx->imgSize[0], muu->hctx->imgSize[1])) {
     sprintf(err, "%s: nrrd trouble", me);
     biffMove(MITE, err, NRRD);
@@ -254,8 +141,13 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   muu->nout->axis[2].max = muu->hctx->cam->vRange[1];
 
   for (thr=0; thr<muu->hctx->numThreads; thr++) {
-    (*mrrP)->tt[thr] = (miteThread *)calloc(1, sizeof(miteThread));
-    airMopAdd((*mrrP)->rmop, (*mrrP)->tt[thr], airFree, airMopAlways);
+    (*mrrP)->tt[thr] = miteThreadNew();
+    if (!((*mrrP)->tt[thr])) {
+      sprintf(err, "%s: couldn't allocate thread[%d]", me, thr);
+      biffAdd(MITE, err); return 1;
+    }
+    airMopAdd((*mrrP)->rmop, (*mrrP)->tt[thr],
+	      (airMopper)miteThreadNix, airMopAlways);
   }
 
   (*mrrP)->time0 = airTime();

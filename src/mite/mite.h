@@ -109,20 +109,20 @@ typedef struct {
   Nrrd *nsin,            /* scalar volume being rendered */
     *nvin,               /* 3-vector volume being rendered */
     *ntin,               /* tensor volume being rendered */
-    **ntxf,              /* array of nrrds containing transfer functions,
-			    these are never altered (in contrast to ntxf
-			    in miteRender) */
+    **ntxf,              /* array of pointers to nrrds containing transfer
+			    functions, these are never altered (the ntxf
+			    in miteRender, however, is created and altered
+			    based on this ntxf) */
     *nout;               /* output image container, for five-channel output
 			    RGBAZ.  We'll nrrdMaybeAlloc all the image data
 			    and put it in here, but we won't nrrdNuke(nout),
-			    just like we won't nrrdNuke nsin, ntin, or any of
-			    the ntxf[i] */
+			    just like we won't nrrdNuke nsin, nvin, ntin, or
+			    any of the ntxf[i] */
   int ntxfNum;           /* allocated and valid length of ntxf[] */
   char shadeStr[AIR_STRLEN_MED];  /* how to do shading */
   /* for each possible element of the txf range, what value should it
-     start at prior to multiplying by the values (if any) learned from
-     the txf.  Mainly needed to store non-unity values for the
-     quantities not covered by a transfer function */
+     start at prior to rendering. Mainly needed to store non-unity values
+     for the quantities not covered by a transfer function */
   mite_t rangeInit[MITE_RANGE_NUM]; 
   double refStep,        /* length of "unity" for doing opacity correction */
     rayStep,             /* distance between sampling planes */
@@ -143,17 +143,20 @@ typedef struct {
 			    light are used */
   int normalSide,        /* determines direction of gradient that is used
 			    as normal for shading:
-			    1: normal points to lower values
+			    1: the standard way: normal points to lower values
                                (higher values are more "inside"); 
                             0: "two-sided": dot-products are abs()'d
                             -1: normal points to higher values
-                               (lower values more "inside") */
+                               (lower values more "inside")
+			    Setting up the values this way allows for idioms
+			    like "if (muu->normalSide) ...", meaning, if the
+			    lighting is one-sided */
     verbUi, verbVi;      /* pixel coordinate for which to turn on verbosity */
   airArray *umop;        /* for things allocated which are used across
 			    multiple renderings */
   /* output information from last rendering */
   double rendTime,       /* rendering time, in seconds */
-    sampRate;            /* rate (KHz) at which sampler callback was called */
+    sampRate;            /* rate (KHz) at which samples were rendered */
 } miteUser;
 
 struct miteThread_t;
@@ -166,8 +169,10 @@ struct miteThread_t;
 enum {
   miteShadeMethodUnknown,
   miteShadeMethodNone,        /* 1: no direction shading based on anything
-				 in the miteShadeSpec: just ambient 
-				 (though still using over operator) */
+				 in the miteShadeSpec: just ambient, though
+				 things are still compositited with the over
+				 operator, and transfer functions are free
+				 to implement whatever shading they can */
   miteShadeMethodPhong,       /* 2: what mite has been doing all along */
   miteShadeMethodLitTen,      /* 3: (tensor-based) lit-tensors */
   miteShadeMethodLast
@@ -183,8 +188,8 @@ enum {
 ** But its here for the time being...
 */
 typedef struct {
-  int shadeMethod;            /* from miteShadeMethod* enum */
-  gageQuerySpec *vec0, *vec1,
+  int method;                 /* from miteShadeMethod* enum */
+  gageItemSpec *vec0, *vec1,
     *scl0, *scl1;             /* things to use for shading.  How these are
 				 interpreted is determined by shadeMethod:
 				 phong: vec0 is used as normal
@@ -196,7 +201,9 @@ typedef struct {
 ******** miteRender
 **
 ** rendering-parameter-set-specific (but non-thread-specific) state,
-** used internally by mite
+** used internally by mite.  The primary role here is to store information
+** derived from the miteUser, in a form which is more immediately useful
+** for rendering.  
 */
 typedef struct {
   Nrrd **ntxf;                /* array of transfer function nrrds.  The 
@@ -206,6 +213,10 @@ typedef struct {
 				 these have been converted/unquantized to
 				 type mite_t */
   int ntxfNum;                /* allocated and valid length of ntxf[] */
+  int sclPvlIdx, vecPvlIdx,
+    tenPvlIdx;                /* indices of the different gageKinds of 
+				 volumes in the gageContext's array of
+				 gagePerVolumes.  Probably a hack */
   miteShadeSpec *shpec;       /* information based on muu->shadeStr */
   double time0;               /* rendering start time */
 
@@ -227,8 +238,9 @@ typedef struct {
 */
 enum {
   miteStageOpUnknown,
-  miteStageOpAdd,
+  miteStageOpMin,
   miteStageOpMax,
+  miteStageOpAdd,
   miteStageOpMultiply,
   miteStageOpLast
 };
@@ -237,19 +249,24 @@ typedef struct {
   gage_t *val;                  /* the txf axis variable, computed either by
 				   gage or by mite.  This points into the 
 				   answer vector in one of the thread's
-				   pervolumes */
+				   pervolumes, or into ansMiteVal in the
+				   miteThread.  It can be either a scalar
+				   or a vector */
   int size,                     /* number of entries along this txf axis */
     op,                         /* from miteStageOp* enum.  Note that this
 				   operation applies to ALL the range variables
 				   adjusted by this txf (can't add color while
 				   multiplying opacity) */
-    (*qn)(gage_t *);            /* callback for doing vector quantization of
-				   vector-valued txf domain variables, or
-				   NULL if this is a scalar variable */
-  double min, max;              /* min, max (copied from nrrd axis) */
+    (*qn)(gage_t *);            /* if non-NULL: callback for doing vector
+				   quantization of vector-valued txf domain
+				   variables */
+  double min, max;              /* quantization range of values which is 
+				   covered by this axis of the txf; copied
+				   from corresponding axis of the nrrd */
   mite_t *data;                 /* pointer to txf data.  If non-NULL, the
-				   rest of the variables are meaningful */
-  int rangeIdx[MITE_RANGE_NUM], /* indices into miteThread's range */
+				   following fields are meaningful */
+  int rangeIdx[MITE_RANGE_NUM], /* indices into miteThread's range, so that
+				   we know which quantities to update */
     rangeNum;                   /* number of range variables set by the txf
 				   == number of pointers in range[] to use */
 } miteStage;
@@ -266,31 +283,31 @@ typedef struct {
 */
 enum {
   miteValUnknown=-1,    /* -1: nobody knows */
-  miteValXw,            /*  0: "Xw", X position, world space (*gage_t) */
-  miteValXi,            /*  1: "Xi", X     "   , index   "   (*gage_t) */
-  miteValYw,            /*  2: "Yw", Y     "   , world   "   (*gage_t) */
-  miteValYi,            /*  3: "Yi", Y     "   , index   "   (*gage_t) */
-  miteValZw,            /*  4: "Zw", Z     "   , world   "   (*gage_t) */
-  miteValZi,            /*  5: "Zi", Z     "   , index   "   (*gage_t) */
-  miteValTw,            /*  6: "Tw", ray position (*gage_t) */
-  miteValTi,            /*  7: "Ti", ray index (ray sample #) (*gage_t) */
+  miteValXw,            /*  0: "Xw", X position, world space (gage_t[1]) */
+  miteValXi,            /*  1: "Xi", X     "   , index   "   (gage_t[1]) */
+  miteValYw,            /*  2: "Yw", Y     "   , world   "   (gage_t[1]) */
+  miteValYi,            /*  3: "Yi", Y     "   , index   "   (gage_t[1]) */
+  miteValZw,            /*  4: "Zw", Z     "   , world   "   (gage_t[1]) */
+  miteValZi,            /*  5: "Zi", Z     "   , index   "   (gage_t[1]) */
+  miteValTw,            /*  6: "Tw", ray position (gage_t[1]) */
+  miteValTi,            /*  7: "Ti", ray index (ray sample #) (gage_t[1]) */
   miteValNdotV,         /*  8: "NdotV", surface normal dotted w/ view vector
-			        (towards eye) (*gage_t) */
+			        (towards eye) (gage_t[1]) */
   miteValNdotL,         /*  9: "NdotL", surface normal dotted w/ light vector
-			        (towards the light source) (*gage_t) */
-  miteValGTdotV,        /* 10: "GTdotV", normal curvature in view direction 
-			        (*gage_t) */
+			        (towards the light source) (gage_t[1]) */
+  miteValGTdotV,        /* 10: "GTdotV", normal curvature in view direction,
+			        the contraction of the geometry tensor along
+				the view vector (gage_t[1]) */
   miteValVrefN,         /* 11: "VrefN", view vector (towards eye) reflected
 			       across surface normal (gage_t[3]) */
   miteValVdefT,         /* 12: "VdefT", view direction, deflected by tensor,
 			       then normalized (gage_t[3]) */
   miteValVdefTdotV,     /* 13: "VdefTdotV", VdefT dotted back with V, not the
 			       same as the tensor contraction along V,
-			       (*gage_t) */
+			       (gage_t[1]) */
   miteValLast
 };
-#define MITE_VAL_MAX       13
-#define MITE_VAL_TOTAL_ANS_LENGTH   18
+#define MITE_VAL_ITEM_MAX  13
 
 /*
 ******** miteThread
@@ -299,15 +316,18 @@ enum {
 */
 typedef struct miteThread_t {
   gageContext *gctx;            /* per-thread context */
-  gage_t *ansScl,               /* shortcut to scalar answer vector */
-    *ansVec,                    /* shortcut to vector answer vector */
-    *ansTen,                    /* shortcut to tensor answer vector */
-    *vec0, *vec1, *scl0, *scl1, /* shortcuts vectors/scalars used for 
-				   shading; explained with miteShadeSpec */
-    ansMiteVal[MITE_VAL_TOTAL_ANS_LENGTH];  /* room for all the miteVal */
-  int verbose,                  /* blah blah blah */
+  gage_t *ansScl,               /* pointer to gageKindScl answer vector */
+    *ansVec,                    /* pointer to gageKindVec answer vector */
+    *ansTen,                    /* pointer to tenGageKind answer vector */
+    *ansMiteVal,                /* room for all the miteVal answers, which
+				   unlike ans{Scl,Vec,Ten} is allocated by
+				   mite instead of by gage */
+    *shadeVec0, *shadeVec1, 
+    *shadeScl0, *shadeScl1;     /* pointers into the ans* arrays above,
+				   used for shading */
+  int verbose,                  /* blah, blah, blah */
     thrid,                      /* thread ID */
-    ui, vi,                     /* image coords */
+    ui, vi,                     /* image coords of current ray */
     samples;                    /* number of samples handled so far by
 				   this thread */
   miteStage *stage;             /* array of stages for txf computation */
@@ -335,22 +355,34 @@ TEEM_API gageKind *miteValGageKind;
 
 /* txf.c */
 TEEM_API char miteRangeChar[MITE_RANGE_NUM];
-TEEM_API void miteVariablePrint(char *buff, const gageQuerySpec *qsp);
-TEEM_API int miteVariableParse(gageQuerySpec *qsp, const char *label);
+TEEM_API int miteVariableParse(gageItemSpec *isp, const char *label);
+TEEM_API void miteVariablePrint(char *buff, const gageItemSpec *isp);
 TEEM_API int miteNtxfCheck(const Nrrd *ntxf);
+TEEM_API void miteQueryAdd(gageQuery queryScl, 
+			   gageQuery queryVec, 
+			   gageQuery queryTen, gageItemSpec *isp);
+
 
 /* user.c */
 TEEM_API miteUser *miteUserNew();
 TEEM_API miteUser *miteUserNix(miteUser *muu);
 
-/* renderMite.c */
+/* shade.c */
 TEEM_API miteShadeSpec *miteShadeSpecNew();
 TEEM_API miteShadeSpec *miteShadeSpecNix(miteShadeSpec *);
-TEEM_API int miteShadeParse(miteShadeSpec *shpec, char *shadeStr);
+TEEM_API int miteShadeSpecParse(miteShadeSpec *shpec, char *shadeStr);
+TEEM_API void miteShadeSpecPrint(char *buff, const miteShadeSpec *shpec);
+TEEM_API void miteShadeSpecQueryAdd(gageQuery queryScl, 
+				    gageQuery queryVec, 
+				    gageQuery queryTen, miteShadeSpec *shpec);
+
+/* renderMite.c */
 TEEM_API int miteRenderBegin(miteRender **mrrP, miteUser *muu);
 TEEM_API int miteRenderEnd(miteRender *mrr, miteUser *muu);
 
 /* thread.c */
+TEEM_API miteThread *miteThreadNew();
+TEEM_API miteThread *miteThreadNix(miteThread *mtt);
 TEEM_API int miteThreadBegin(miteThread **mttP, miteRender *mrr, miteUser *muu,
 			     int whichThread);
 TEEM_API int miteThreadEnd(miteThread *mtt, miteRender *mrr, miteUser *muu);

@@ -31,9 +31,7 @@ extern "C" {
 #endif
 
 /* txf.c */
-extern void _miteQuery(unsigned int *queryScl, 
-		       unsigned int *queryVec, 
-		       unsigned int *queryTen, gageQuerySpec *qsp);
+extern gage_t *_miteAnswerPointer(miteThread *mtt, gageItemSpec *isp);
 extern int _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu);
 extern int _miteStageSet(miteThread *mtt, miteRender *mrr);
 extern void _miteStageRun(miteThread *mtt);

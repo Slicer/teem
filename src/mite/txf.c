@@ -28,50 +28,31 @@
 char
 miteRangeChar[MITE_RANGE_NUM] = "ARGBEadsp";
 
-void
-miteVariablePrint(char *buff, const gageQuerySpec *qsp) {
-  char me[]="miteVariablePrint";
-  
-  if (gageKindScl == qsp->kind
-      || gageKindVec == qsp->kind
-      || tenGageKind == qsp->kind) {
-    sprintf(buff, "gage(%s:%s)", qsp->kind->name, 
-	    airEnumStr(qsp->kind->enm, qsp->query));
-  } else if (miteValGageKind == qsp->kind) {
-    sprintf(buff, "%s(%s)", qsp->kind->name, 
-	    airEnumStr(qsp->kind->enm, qsp->query));
-  } else {
-    sprintf(buff, "(%s: unknown variable!)", me);
-  }
-  return;
-}
-
-
 /*
 ******** miteVariableParse()
 **
 ** takes a string (usually the label from a nrrd axis) and parses it
-** to determine the gageQuerySpec from it (which means finding the
-** kind and query).  The valid formats are (currently):
+** to determine the gageItemSpec from it (which means finding the
+** kind and item).  The valid formats are:
 **
-**   <query>              : miteValGageKind (DEPRECATED)
-**   gage(<query>)        : gageKindScl (DEPRECATED)
-**   gage(scalar:<query>) : gageKindScl (preferred)
-**   gage(vector:<query>) : gageKindVec
-**   gage(tensor:<query>) : tenGageKind
-**   mite(<query>)        : miteValGageKind
+**   <item>              : miteValGageKind (DEPRECATED)
+**   mite(<item>)        : miteValGageKind
+**   gage(<item>)        : gageKindScl (DEPRECATED)
+**   gage(scalar:<item>) : gageKindScl
+**   gage(vector:<item>) : gageKindVec
+**   gage(tensor:<item>) : tenGageKind
 **
 ** Notice that "scalar", "vector", and "tensor" to NOT refer to the type 
 ** of the quantity being measured, but rather to the type of volume in 
 ** which quantity is measured (i.e., the gageKind used)
 */
 int
-miteVariableParse(gageQuerySpec *qsp, const char *label) {
+miteVariableParse(gageItemSpec *isp, const char *label) {
   char me[]="miteVariableParse", err[AIR_STRLEN_MED], *buff, *endparen,
     *kqstr, *col, *kstr, *qstr;
   airArray *mop;
   
-  if (!( qsp && label )) {
+  if (!( isp && label )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(MITE, err); return 1;
   }
@@ -90,39 +71,39 @@ miteVariableParse(gageQuerySpec *qsp, const char *label) {
     }
     *endparen = 0;
     kqstr = buff + strlen("gage(");
-    /* first see if its a gageKindScl specification */
-    qsp->query = airEnumVal(gageScl, kqstr);
-    if (-1 != qsp->query) {
-      qsp->kind = gageKindScl;
+    /* first see if its a (deprecated) gageKindScl specification */
+    isp->item = airEnumVal(gageScl, kqstr);
+    if (-1 != isp->item) {
+      isp->kind = gageKindScl;
       fprintf(stderr, "\n%s: WARNING: deprecated use of txf domain "
 	      "\"gage(%s)\" without explicit gage kind specification; "
 	      "should use \"gage(%s:%s)\" instead\n\n",
 	      me, kqstr, gageKindScl->name, kqstr);
     } else {
-      /* should be of form "<kind>:<query>" */
+      /* should be of form "<kind>:<item>" */
       col = strstr(kqstr, ":");
       if (!col) {
 	sprintf(err, "%s: didn't see \":\" seperator between gage "
-		"kind and query", me);
+		"kind and item", me);
 	biffAdd(MITE, err); airMopError(mop); return 1;
       }
       *col = 0;
       kstr = kqstr;
       qstr = col+1;
       if (!strcmp(gageKindScl->name, kstr)) {
-	qsp->kind = gageKindScl;
+	isp->kind = gageKindScl;
       } else if (!strcmp(gageKindVec->name, kstr)) {
-	qsp->kind = gageKindVec;
+	isp->kind = gageKindVec;
       } else if (!strcmp(tenGageKind->name, kstr)) {
-	qsp->kind = tenGageKind;
+	isp->kind = tenGageKind;
       } else {
 	sprintf(err, "%s: don't recognized \"%s\" gage kind", me, kstr);
 	biffAdd(MITE, err); airMopError(mop); return 1;
       }
-      qsp->query = airEnumVal(qsp->kind->enm, qstr);
-      if (-1 == qsp->query) {
+      isp->item = airEnumVal(isp->kind->enm, qstr);
+      if (-1 == isp->item) {
 	sprintf(err, "%s: couldn't parse \"%s\" as a %s varable",
-		me, qstr, qsp->kind->name);
+		me, qstr, isp->kind->name);
 	biffAdd(MITE, err); airMopError(mop); return 1;
       }
     }
@@ -133,20 +114,20 @@ miteVariableParse(gageQuerySpec *qsp, const char *label) {
       biffAdd(MITE, err); airMopError(mop); return 1;
     }
     *endparen = 0;
-    kqstr = buff + strlen("mite(");
-    qsp->query = airEnumVal(miteVal, kqstr);
-    if (-1 == qsp->query) {
+    qstr = buff + strlen("mite(");
+    isp->item = airEnumVal(miteVal, qstr);
+    if (-1 == isp->item) {
       sprintf(err, "%s: couldn't parse \"%s\" as a miteVal variable",
-	      me, kqstr);
+	      me, qstr);
       biffAdd(MITE, err); airMopError(mop); return 1;
     }
-    qsp->kind = miteValGageKind;
+    isp->kind = miteValGageKind;
   } else {
     /* didn't start with "gage(" or "mite(" */
-    qsp->query = airEnumVal(miteVal, label);
-    if (-1 != qsp->query) {
+    isp->item = airEnumVal(miteVal, label);
+    if (-1 != isp->item) {
       /* its measured by mite */
-      qsp->kind = miteValGageKind;
+      isp->kind = miteValGageKind;
       fprintf(stderr, "\n%s: WARNING: deprecated use of txf domain "
 	      "\"%s\"; should use \"mite(%s)\" instead\n\n",
 	      me, label, label);
@@ -159,10 +140,28 @@ miteVariableParse(gageQuerySpec *qsp, const char *label) {
   return 0;
 }
 
+void
+miteVariablePrint(char *buff, const gageItemSpec *isp) {
+  char me[]="miteVariablePrint";
+  
+  if (gageKindScl == isp->kind
+      || gageKindVec == isp->kind
+      || tenGageKind == isp->kind) {
+    sprintf(buff, "gage(%s:%s)", isp->kind->name, 
+	    airEnumStr(isp->kind->enm, isp->item));
+  } else if (miteValGageKind == isp->kind) {
+    sprintf(buff, "%s(%s)", isp->kind->name, 
+	    airEnumStr(isp->kind->enm, isp->item));
+  } else {
+    sprintf(buff, "(%s: unknown gageKind!)", me);
+  }
+  return;
+}
+
 int
 miteNtxfCheck(const Nrrd *ntxf) {
-  char me[]="miteNtxfCheck", err[AIR_STRLEN_MED], *range, *domS;
-  gageQuerySpec qsp;
+  char me[]="miteNtxfCheck", err[AIR_STRLEN_MED], *rangeStr, *domStr;
+  gageItemSpec isp;
   int rii, axi;
 
   if (nrrdCheck(ntxf)) {
@@ -184,21 +183,21 @@ miteNtxfCheck(const Nrrd *ntxf) {
 	    me, ntxf->dim);
     biffAdd(MITE, err); return 1;
   }
-  range = ntxf->axis[0].label;
-  if (0 == airStrlen(range)) {
+  rangeStr = ntxf->axis[0].label;
+  if (0 == airStrlen(rangeStr)) {
     sprintf(err, "%s: axis[0]'s label doesn't specify txf range", me);
     biffAdd(MITE, err); return 1;
   }
-  if (airStrlen(range) != ntxf->axis[0].size) {
+  if (airStrlen(rangeStr) != ntxf->axis[0].size) {
     sprintf(err, "%s: axis[0]'s size is %d, but label specifies %d values",
-	    me, ntxf->axis[0].size, (int)airStrlen(range));
+	    me, ntxf->axis[0].size, (int)airStrlen(rangeStr));
     biffAdd(MITE, err); return 1;
   }
-  for (rii=0; rii<airStrlen(range); rii++) {
-    if (!strchr(miteRangeChar, range[rii])) {
+  for (rii=0; rii<airStrlen(rangeStr); rii++) {
+    if (!strchr(miteRangeChar, rangeStr[rii])) {
       sprintf(err, "%s: char %d of axis[0]'s label (\"%c\") isn't a valid "
 	      "transfer function range specifier (not in \"%s\")",
-	      me, rii, range[rii], miteRangeChar);
+	      me, rii, rangeStr[rii], miteRangeChar);
       biffAdd(MITE, err); return 1;
     }
   }
@@ -217,30 +216,30 @@ miteNtxfCheck(const Nrrd *ntxf) {
       sprintf(err, "%s: # samples on axis %d must be > 1", me, axi);
       biffAdd(MITE, err); return 1;
     }
-    domS = ntxf->axis[axi].label;
-    if (0 == airStrlen(domS)) {
+    domStr = ntxf->axis[axi].label;
+    if (0 == airStrlen(domStr)) {
       sprintf(err, "%s: axis[%d] of txf didn't specify a domain variable",
 	      me, axi);
       biffAdd(MITE, err); return 1;
     }
-    if (miteVariableParse(&qsp, domS)) {
+    if (miteVariableParse(&isp, domStr)) {
       sprintf(err, "%s: couldn't parse txf domain \"%s\" for axis %d\n", 
-	      me, domS, axi);
+	      me, domStr, axi);
       biffAdd(MITE, err); return 1;
     }
-    if (!( 1 == qsp.kind->ansLength[qsp.query] ||
-	   3 == qsp.kind->ansLength[qsp.query] )) {
+    if (!( 1 == isp.kind->table[isp.item].answerLength ||
+	   3 == isp.kind->table[isp.item].answerLength )) {
       sprintf(err, "%s: %s not a scalar or vector: can't be a txf "
-	      "domain variable", me, domS);
+	      "domain variable", me, domStr);
       biffAdd(MITE, err); return 1;
     }
-    if (3 == qsp.kind->ansLength[qsp.query]) {
+    if (3 == isp.kind->table[isp.item].answerLength) {
       /* has to be right length for one of the quantization schemes */
       if (!( limnQNBins[limnQN16checker] == ntxf->axis[axi].size ||
 	     limnQNBins[limnQN14checker] == ntxf->axis[axi].size ||
 	     limnQNBins[limnQN12checker] == ntxf->axis[axi].size )) {
 	sprintf(err, "%s: vector %s can be quantized into %d, %d, or %d bins "
-		"but not %d", me, domS, limnQNBins[limnQN16checker],
+		"but not %d", me, domStr, limnQNBins[limnQN16checker],
 		limnQNBins[limnQN14checker], limnQNBins[limnQN12checker],
 		ntxf->axis[axi].size);
 	biffAdd(MITE, err); return 1;
@@ -252,56 +251,56 @@ miteNtxfCheck(const Nrrd *ntxf) {
 }
 
 /*
-** _miteQuery()
+******** miteQueryAdd()
 **
-** This looks a given gageQuerySpec and sets the bits in the
+** This looks a given gageItemSpec and sets the bits in the
 ** gageKindScl and tenGageKind queries that are required to calculate
 ** the quantity
 **
-** NOTE: This does NOT initialize the *query{Scl,Vec,Ten}: it
-** just bit-wise or's on new stuff
+** NOTE: This does NOT initialize the query{Scl,Vec,Ten}: it
+** just adds on new items to the existing queries
 **
 ** HEY: this is really unfortunate: each new gage type use for
 ** volume rendering in mite will have to explicitly added as
 ** arguments here, which is part of the reason that mite may end
 ** up explicitly depending on the libraries supplying those gageKinds
-** (like how new mite depends on ten)
+** (like how mite now must depend on ten)
 */
 void
-_miteQuery(unsigned int *queryScl, 
-	   unsigned int *queryVec, 
-	   unsigned int *queryTen, gageQuerySpec *qsp) {
-  char me[]="_miteQuery";
+miteQueryAdd(gageQuery queryScl, 
+	     gageQuery queryVec, 
+	     gageQuery queryTen, gageItemSpec *isp) {
+  char me[]="miteQueryAdd";
   
-  /*
-  for (i=1; i<ntxf->dim; i++) {
-    miteVariableParse(qsp, ntxf->axis[i].label);
-  */
-  if (gageKindScl == qsp->kind) {
-    *queryScl |= 1 << qsp->query;
-  } else if (gageKindVec == qsp->kind) {
-    *queryVec |= 1 << qsp->query;
-  } else if (tenGageKind == qsp->kind) {
-    *queryTen |= 1 << qsp->query;
-  } else if (miteValGageKind == qsp->kind) {
-    /* HEY: the first of these two have useful analogs for tensor
-       data, but I won't be able to express them ... */
-    switch(qsp->query) {
+  if (gageKindScl == isp->kind) {
+    GAGE_QUERY_ITEM_ON(queryScl, isp->item);
+  } else if (gageKindVec == isp->kind) {
+    GAGE_QUERY_ITEM_ON(queryVec, isp->item);
+  } else if (tenGageKind == isp->kind) {
+    GAGE_QUERY_ITEM_ON(queryTen, isp->item);
+  } else if (miteValGageKind == isp->kind) {
+    /* HEY: some these have useful analogs for tensor data, but I
+       won't be able to express them.  This means that while Phong
+       shading of *scalar* volumes can be implemented with transfer
+       functions, it is currently not possible in *tensor* volumes
+       (for instance, using the gradient of fractional anisotropy) */
+    switch(isp->item) {
     case miteValNdotV: 
-      *queryScl |= 1 << gageSclNormal;
+      GAGE_QUERY_ITEM_ON(queryScl, gageSclNormal);
       break;
     case miteValNdotL:
-      *queryScl |= 1 << gageSclNormal;
+      GAGE_QUERY_ITEM_ON(queryScl, gageSclNormal);
       break;
     case miteValGTdotV:
-      *queryScl |= 1 << gageSclGeomTens;
+      GAGE_QUERY_ITEM_ON(queryScl, gageSclGeomTens);
       break;
     case miteValVrefN:
-      *queryScl |= 1 << gageSclNormal;
+      GAGE_QUERY_ITEM_ON(queryScl, gageSclNormal);
       break;
     case miteValVdefT:
+      GAGE_QUERY_ITEM_ON(queryTen, tenGageTensor);
     case miteValVdefTdotV:
-      *queryTen |= 1 << tenGageTensor;
+      GAGE_QUERY_ITEM_ON(queryTen, tenGageTensor);
       break;
     }
   } else {
@@ -417,13 +416,39 @@ _miteStageInit(miteStage *stage) {
   return;
 }
 
+gage_t *
+_miteAnswerPointer(miteThread *mtt, gageItemSpec *isp) {
+  char me[]="_miteAnswerPointer";
+  gage_t *ret;
+
+  if (gageKindScl == isp->kind) {
+    ret = mtt->ansScl;
+  } else if (gageKindVec == isp->kind) {
+    ret = mtt->ansVec;
+  } else if (tenGageKind == isp->kind) {
+    ret = mtt->ansTen;
+  } else if (miteValGageKind == isp->kind) {
+    ret = mtt->ansMiteVal;
+  } else {
+    fprintf(stderr, "\nPANIC: %s: unknown gageKind!\n", me);
+    exit(1);
+  }
+  ret += gageKindAnswerOffset(isp->kind, isp->item);
+  return ret;
+}
+
+/*
+** _miteStageSet
+**
+** ALLOCATES and initializes stage array in a miteThread
+*/
 int
 _miteStageSet(miteThread *mtt, miteRender *mrr) {
   char me[]="_miteStageSet", err[AIR_STRLEN_MED];
   int ni, di, stageIdx, rii, stageNum;
   Nrrd *ntxf;
   miteStage *stage;
-  gageQuerySpec qsp;
+  gageItemSpec isp;
   char rc;
   
   stageNum = _miteStageNum(mrr);
@@ -441,21 +466,8 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
     for (di=ntxf->dim-1; di>=1; di--) {
       stage = mtt->stage + stageIdx;
       _miteStageInit(stage);
-      miteVariableParse(&qsp, ntxf->axis[di].label);
-      if (gageKindScl == qsp.kind) {
-	stage->val = mtt->ansScl;
-      } else if (gageKindVec == qsp.kind) {
-	stage->val = mtt->ansVec;
-      } else if (tenGageKind == qsp.kind) {
-	stage->val = mtt->ansTen;
-      } else if (miteValGageKind == qsp.kind) {
-	stage->val = mtt->ansMiteVal;
-      } else {
-	sprintf(err, "%s: don't handle gageKind for \"%s\"",
-		me, ntxf->axis[di].label);
-	biffAdd(MITE, err); return 1;
-      }
-      stage->val += qsp.kind->ansOffset[qsp.query];
+      miteVariableParse(&isp, ntxf->axis[di].label);
+      stage->val = _miteAnswerPointer(mtt, &isp);
       /*
       fprintf(stderr, "!%s: ans=%p + offset[%d]=%d == %p\n", me,
 	      mtt->ans, dom, kind->ansOffset[dom], stage->val);
@@ -468,9 +480,9 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
       } else {
 	stage->data = ntxf->data;
 	stage->op = miteStageOpMultiply;
-	if (1 == qsp.kind->ansLength[qsp.query]) {
+	if (1 == isp.kind->table[isp.item].answerLength) {
 	  stage->qn = NULL;
-	} else if (3 == 1 == qsp.kind->ansLength[qsp.query]) {
+	} else if (3 == isp.kind->table[isp.item].answerLength) {
 	  if (limnQNBins[limnQN16checker] == ntxf->axis[di].size) {
 	    stage->qn = limnVtoQN_GT[limnQN16checker];
 	  } else if (limnQNBins[limnQN14checker] == ntxf->axis[di].size) {
@@ -486,7 +498,8 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
 	} else {
 	  sprintf(err, "%s: %s not scalar or vector (len = %d): can't be "
 		  "a txf domain variable", me,
-		  ntxf->axis[di].label, qsp.kind->ansLength[qsp.query]);
+		  ntxf->axis[di].label,
+		  isp.kind->table[isp.item].answerLength);
 	  biffAdd(MITE, err); return 1;
 	}
 	stage->rangeNum = ntxf->axis[0].size;
@@ -527,7 +540,21 @@ _miteStageRun(miteThread *mtt) {
       rangeData = stage->data + stage->rangeNum*finalIdx;
       for (rii=0; rii<stage->rangeNum; rii++) {
 	ri = stage->rangeIdx[rii];
-	mtt->range[ri] *= rangeData[rii];
+	switch(stage->op) {
+	case miteStageOpMin:
+	  mtt->range[ri] = AIR_MIN(mtt->range[ri], rangeData[rii]);
+	  break;
+	case miteStageOpMax:
+	  mtt->range[ri] = AIR_MAX(mtt->range[ri], rangeData[rii]);
+	  break;
+	case miteStageOpAdd:
+	  mtt->range[ri] += rangeData[rii];
+	  break;
+	case miteStageOpMultiply:
+	default:
+	  mtt->range[ri] *= rangeData[rii];
+	  break;
+	}
       }
       finalIdx = 0;
     }

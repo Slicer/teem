@@ -49,7 +49,7 @@ $(L).SEEN := true
 #BINS = airSanity affine cubic nrrdSanity overrgb idx2pos emap undos talkweb \
 #  pos2idx unu pprobe vprobe qbert mrender miter gkms ungantry ilk tend spots
 BINS = airSanity affine cubic nrrdSanity overrgb idx2pos emap undos talkweb \
-  pos2idx unu pprobe vprobe qbert mrender ungantry ilk tend spots
+  pos2idx unu pprobe vprobe qbert mrender miter ungantry ilk tend spots
 
 ## _binD(bins): list of development locations for given bins
 ## _binI(bins): list of install locations for given bins

@@ -46,7 +46,8 @@ $(L).SEEN := true
 $(L).NEED = ten hoover limn gage ell nrrd biff air
 $(L).PUBLIC_HEADERS = mite.h
 $(L).PRIVATE_HEADERS = privateMite.h
-$(L).OBJS = defaultsMite.o kindnot.o renderMite.o thread.o ray.o txf.o user.o
+$(L).OBJS = defaultsMite.o kindnot.o txf.o shade.o \
+            user.o renderMite.o thread.o ray.o
 ####
 ####
 ####

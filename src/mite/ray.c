@@ -61,12 +61,18 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
   kd = mtt->range[miteRangeKd];
   ks = mtt->range[miteRangeKs];
   ELL_3V_SCALE(ad, ka, muu->lit->amb);
-  if (miteShadeMethodPhong == mrr->shpec->shadeMethod) {
+  switch (mrr->shpec->method) {
+  case miteShadeMethodNone:
+    /* nothing to do */
+    break;
+  case miteShadeMethodPhong:
+    /* this is dicey- we're *writing* to the answer buffer */
     if (kd || ks) {
+      ELL_3V_NORM(mtt->shadeVec0, mtt->shadeVec0, tmp);
       if (muu->normalSide) {
-	ELL_3V_SCALE(N, -muu->normalSide, mtt->vec0);
+	ELL_3V_SCALE(N, -muu->normalSide, mtt->shadeVec0);
       } else {
-	ELL_3V_COPY(N, mtt->vec0);
+	ELL_3V_COPY(N, mtt->shadeVec0);
       }
       if (kd) {
 	LdotN = ELL_3V_DOT(muu->lit->dir[0], N);
@@ -74,7 +80,7 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
 	  LdotN = AIR_ABS(LdotN);
 	}
 	if (LdotN > 0) {
-	  ELL_3V_SCALE_ADD2(ad, 1.0, ad, LdotN*kd, muu->lit->col[0]);
+	  ELL_3V_SCALE_INCR(ad, LdotN*kd, muu->lit->col[0]);
 	}
       }
       if (ks) {
@@ -91,12 +97,15 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
 	}
       }
     }
-  } else if (miteShadeMethodLitTen == mrr->shpec->shadeMethod) {
-
-  } else {
+    break;
+  case miteShadeMethodLitTen:
+    fprintf(stderr, "!%s: lit-tensor not yet implemented\n", me);
+    break;
+  default:
     fprintf(stderr, "!%s: PANIC, shadeMethod %d unimplemented\n", 
-	    me, mrr->shpec->shadeMethod);
+	    me, mrr->shpec->method);
     exit(1);
+    break;
   }
   *R = (E - 1 + ad[0])*col[0] + s[0];
   *G = (E - 1 + ad[1])*col[1] + s[1];
@@ -148,17 +157,28 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
   mtt->ansMiteVal[miteValZi] = samplePosIndex[2];
   mtt->ansMiteVal[miteValTw] = rayT;
   mtt->ansMiteVal[miteValTi] = num;
-  mtt->ansMiteVal[miteValNdotV] = -muu->normalSide*ELL_3V_DOT(mtt->V, mtt->vec0);
-  mtt->ansMiteVal[miteValNdotL] = -muu->normalSide*ELL_3V_DOT(mtt->vec0,
-							      muu->lit->dir[0]);
+#if 0
+
+  what if shading is none?
+
+  mtt->ansMiteVal[miteValNdotV] =
+    -muu->normalSide*ELL_3V_DOT(mtt->V, mtt->shadeVec0);
+  mtt->ansMiteVal[miteValNdotL] =
+    -muu->normalSide*ELL_3V_DOT(mtt->shadeVec0, muu->lit->dir[0]);
+#endif
   if (!muu->normalSide) {
     mtt->ansMiteVal[miteValNdotV] = AIR_ABS(mtt->ansMiteVal[miteValNdotV]);
     mtt->ansMiteVal[miteValNdotL] = AIR_ABS(mtt->ansMiteVal[miteValNdotL]);
   }
+
+#if 0
+  this is bullshit
+
   ELL_3MV_MUL(kn, mtt->nPerp, mtt->V);
   ELL_3V_NORM(kn, kn, len);
   ELL_3MV_MUL(knd, mtt->gten, kn);
   mtt->ansMiteVal[miteValGTdotV] = ELL_3V_DOT(knd, kn);
+#endif
   
   memcpy(mtt->range, muu->rangeInit, MITE_RANGE_NUM*sizeof(mite_t));
   _miteStageRun(mtt);
@@ -192,9 +212,9 @@ miteRayEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
   imgData = (mite_t*)muu->nout->data;
   A = 1 - mtt->TT;
   if (A) {
-    ELL_4V_SET(imgData + 4*idx, mtt->RR/A, mtt->GG/A, mtt->BB/A, A);
+    ELL_4V_SET(imgData + 5*idx, mtt->RR/A, mtt->GG/A, mtt->BB/A, A);
   } else {
-    ELL_4V_SET(imgData + 4*idx, 0, 0, 0, 0);
+    ELL_4V_SET(imgData + 5*idx, 0, 0, 0, 0);
   }
   return 0;
 }

@@ -43,7 +43,8 @@ miteUserNew() {
   muu->normalSide = miteDefNormalSide;
   muu->refStep = miteDefRefStep;
   muu->rayStep = AIR_NAN;
-  muu->near1 = miteDefNear1;
+  muu->opacMatters = miteDefOpacMatters;
+  muu->opacNear1 = miteDefOpacNear1;
   muu->hctx = hooverContextNew();
   airMopAdd(muu->umop, muu->hctx, (airMopper)hooverContextNix, airMopAlways);
   for (i=0; i<GAGE_KERNEL_NUM; i++) {
@@ -74,22 +75,35 @@ miteUserNix(miteUser *muu) {
 int
 _miteUserCheck(miteUser *muu) {
   char me[]="miteUserCheck", err[AIR_STRLEN_MED];
-  int T, gotOpac;
+  int T, axi, gotOpac;
+  gageItemSpec isp;
+  gageQuery queryScl, queryVec, queryTen;
+  miteShadeSpec *shpec;
+  airArray *mop;
   
   if (!muu) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(MITE, err); return 1;
   }
+  mop = airMopNew();
   if (!( muu->ntxfNum >= 1 )) {
     sprintf(err, "%s: need at least one transfer function", me);
-    biffAdd(MITE, err); return 1;
+    biffAdd(MITE, err); airMopError(mop); return 1;
   }
   gotOpac = AIR_FALSE;
+  GAGE_QUERY_RESET(queryScl);
+  GAGE_QUERY_RESET(queryVec);
+  GAGE_QUERY_RESET(queryTen);
   for (T=0; T<muu->ntxfNum; T++) {
     if (miteNtxfCheck(muu->ntxf[T])) {
       sprintf(err, "%s: ntxf[%d] (%d of %d) can't be used as a txf",
 	      me, T, T+1, muu->ntxfNum);
-      biffAdd(MITE, err); return 1;
+      biffAdd(MITE, err); airMopError(mop); return 1;
+    }
+    /* NOTE: no error checking because miteNtxfCheck succeeded */
+    for (axi=1; axi<muu->ntxf[T]->dim; axi++) {
+      miteVariableParse(&isp, muu->ntxf[T]->axis[axi].label);
+      miteQueryAdd(queryScl, queryVec, queryTen, &isp);
     }
     gotOpac |= !!strchr(muu->ntxf[T]->axis[0].label, 'A');
   }
@@ -101,25 +115,54 @@ _miteUserCheck(miteUser *muu) {
     fprintf(stderr, "%s: ****************************************"
 	    "************************\n\n\n", me);
   }
+  shpec = miteShadeSpecNew();
+  airMopAdd(mop, shpec, (airMopper)miteShadeSpecNix, airMopAlways);
+  if (miteShadeSpecParse(shpec, muu->shadeStr)) {
+    sprintf(err, "%s: couldn't parse shading spec \"%s\"", 
+	    me, muu->shadeStr);
+    biffAdd(MITE, err); airMopError(mop); return 1;
+  }
+  miteShadeSpecQueryAdd(queryScl, queryVec, queryTen, shpec);
+  if (GAGE_QUERY_NONZERO(queryScl) && !(muu->nsin)) {
+    sprintf(err, "%s: txf or shading require %s volume, but don't have one",
+	    me, gageKindScl->name);
+    biffAdd(MITE, err); airMopError(mop); return 1;
+  }
+  if (GAGE_QUERY_NONZERO(queryVec) && !(muu->nvin)) {
+    sprintf(err, "%s: txf or shading require %s volume, but don't have one",
+	    me, gageKindVec->name);
+    biffAdd(MITE, err); airMopError(mop); return 1;
+  }
+  if (GAGE_QUERY_NONZERO(queryTen) && !(muu->ntin)) {
+    sprintf(err, "%s: txf or shading require %s volume, but don't have one",
+	    me, tenGageKind->name);
+    biffAdd(MITE, err); airMopError(mop); return 1;
+  }
   if (!muu->nout) {
     sprintf(err, "%s: rendered image nrrd is NULL", me);
-    biffAdd(MITE, err); return 1;
-  }
-  if (!(muu->nsin || muu->ntin)) {
-    sprintf(err, "%s: got neither scalar nor tensor volume", me);
-    biffAdd(MITE, err); return 1;
+    biffAdd(MITE, err); airMopError(mop); return 1;
   }
   if (muu->nsin) {
     if (gageVolumeCheck(muu->gctx0, muu->nsin, gageKindScl)) {
-      sprintf(err, "%s: trouble with input scalar volume", me);
-      biffMove(MITE, err, GAGE); return 1;
-    }
-  } else {
-    if (gageVolumeCheck(muu->gctx0, muu->ntin, tenGageKind)) {
-      sprintf(err, "%s: trouble with input tensor volume", me);
-      biffMove(MITE, err, GAGE); return 1;
+      sprintf(err, "%s: trouble with input %s volume",
+	      me, gageKindScl->name);
+      biffMove(MITE, err, GAGE); airMopError(mop); return 1;
     }
   }
-
+  if (muu->nvin) {
+    if (gageVolumeCheck(muu->gctx0, muu->nvin, gageKindVec)) {
+      sprintf(err, "%s: trouble with input %s volume", 
+	      me, gageKindVec->name);
+      biffMove(MITE, err, GAGE); airMopError(mop); return 1;
+    }
+  }
+  if (muu->ntin) {
+    if (gageVolumeCheck(muu->gctx0, muu->ntin, tenGageKind)) {
+      sprintf(err, "%s: trouble with input %s volume", 
+	      me, tenGageKind->name);
+      biffMove(MITE, err, GAGE); airMopError(mop); return 1;
+    }
+  }
+  airMopOkay(mop); 
   return 0;
 }

@@ -33,7 +33,7 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   hestParm *hparm=NULL;
   miteUser *muu;
-  char *me, *errS, *outS;
+  char *me, *errS, *outS, *shadeStr;
   int renorm;
   int E, Ecode;
   float ads[3];
@@ -47,8 +47,12 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, muu, (airMopper)miteUserNix, airMopAlways);
   
   hparm->respFileEnable = AIR_TRUE;
-  hestOptAdd(&hopt, "i", "nsin", airTypeOther, 1, 1, &(muu->nsin), NULL,
+  hestOptAdd(&hopt, "i", "nsin", airTypeOther, 1, 1, &(muu->nsin), "",
 	     "input scalar volume to render", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "vi", "nvin", airTypeOther, 1, 1, &(muu->nvin), "",
+	     "input vector volume to render", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "ti", "ntin", airTypeOther, 1, 1, &(muu->ntin), "",
+	     "input tensor volume to render", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "txf", "nin", airTypeOther, 1, -1, &(muu->ntxf), NULL,
 	     "one or more transfer functions",
 	     &(muu->ntxfNum), NULL, nrrdHestNrrd);
@@ -78,6 +82,8 @@ main(int argc, char *argv[]) {
 	     &(muu->ksp[gageKernel22]),
 	     "cubicdd:1,0",  "second derivative kernel",
 	     NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "ss", "shading spec", airTypeString, 1, 1, &shadeStr,
+	     "phong:gage(scalar:n)", "how to do shading");
   hestOptAdd(&hopt, "ns", "normal side", airTypeInt, 1, 1, &(muu->normalSide),
 	     "1", "how to interpret gradients as normals:\n "
 	     "\b\bo \"1\": normal points to lower values (higher == "
@@ -89,10 +95,6 @@ main(int argc, char *argv[]) {
 	     "renormalize kernel weights at each new sample location. "
 	     "\"Accurate\" kernels don't need this; doing it always "
 	     "makes things go slower");
-  hestOptAdd(&hopt, "sum", NULL, airTypeBool, 0, 0, &(muu->justSum), NULL,
-	     "Ignore opacity and composite simply by summing");
-  hestOptAdd(&hopt, "nolight", NULL, airTypeBool, 0, 0, &(muu->noDirLight),
-	     NULL, "Ignore directional lights, use ambient only");
   hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc, "0.0",
 	     "For curvature-based transfer functions, set curvature to "
 	     "zero when gradient magnitude is below this");
@@ -101,7 +103,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "ref", "size", airTypeDouble, 1, 1, &(muu->refStep),
 	     "0.01", "\"reference\" step size (world space) for doing "
 	     "opacity correction in compositing");
-  hestOptAdd(&hopt, "n1", "near1", airTypeDouble, 1, 1, &(muu->near1),
+  hestOptAdd(&hopt, "n1", "near1", airTypeDouble, 1, 1, &(muu->opacNear1),
 	     "0.99", "opacity close enough to 1.0 to terminate ray");
   hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1,
 	     &(muu->hctx->numThreads), "1", 
@@ -135,7 +137,8 @@ main(int argc, char *argv[]) {
     airMopError(mop);
     return 1;
   }
-
+  strncpy(muu->shadeStr, shadeStr, AIR_STRLEN_MED-1);
+  muu->shadeStr[AIR_STRLEN_MED-1] = 0;
   nrrdAxisInfoGet_nva(muu->nsin, nrrdAxisInfoSize, muu->hctx->volSize);
   nrrdAxisInfoGet_nva(muu->nsin, nrrdAxisInfoSpacing, muu->hctx->volSpacing);
   muu->hctx->user = muu;
