@@ -138,21 +138,22 @@ enum {
   nrrdMeasureL2,             /* 9 */
   nrrdMeasureLinf,           /* 10 */
   nrrdMeasureVariance,       /* 11 */
+  nrrdMeasureSD,             /* 12: standard deviation */
   /* 
   ** the nrrduMeasureHisto... measures interpret the array as a
   ** histogram of some implied value distribution
   */
-  nrrdMeasureHistoMin,       /* 12 */
-  nrrdMeasureHistoMax,       /* 13 */
-  nrrdMeasureHistoMean,      /* 14 */
-  nrrdMeasureHistoMedian,    /* 15 */
-  nrrdMeasureHistoMode,      /* 16 */
-  nrrdMeasureHistoProduct,   /* 17 */
-  nrrdMeasureHistoSum,       /* 18 */
-  nrrdMeasureHistoVariance,  /* 19 */
+  nrrdMeasureHistoMin,       /* 13 */
+  nrrdMeasureHistoMax,       /* 14 */
+  nrrdMeasureHistoMean,      /* 15 */
+  nrrdMeasureHistoMedian,    /* 16 */
+  nrrdMeasureHistoMode,      /* 17 */
+  nrrdMeasureHistoProduct,   /* 18 */
+  nrrdMeasureHistoSum,       /* 19 */
+  nrrdMeasureHistoVariance,  /* 20 */
   nrrdMeasureLast
 };
-#define NRRD_MEASURE_MAX        19
+#define NRRD_MEASURE_MAX        20
 
 /*
 ******** nrrdCenter enum

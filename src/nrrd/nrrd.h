@@ -367,10 +367,11 @@ extern int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *);
 
 /******** getting information to and from files */
 /* read.c */
+extern int (*nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, nrrdIO *);
 extern int nrrdLoad(Nrrd *nrrd, char *filename);
 extern int nrrdRead(Nrrd *nrrd, FILE *file, nrrdIO *io);
-extern int (*_nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, nrrdIO *);
 /* write.c */
+extern int (*nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, nrrdIO *);
 extern int nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io);
 extern int nrrdWrite(FILE *file, Nrrd *nrrd, nrrdIO *io);
 

@@ -1,3 +1,10 @@
+nrrdAxis -> NrrdAxis
+nrrdIO -> NrrdIO
+nrrdKernel -> NrrdKernel
+nrrdResampleInfo -> NrrdResampleInfo 
+
+allow NULL io arg to nrrdWriteData[] and nrrdReadData[] functions
+
 nrrdPad_nva, nrrdSimplePad_nva
 
 write a select() function to replace qsort() in median calculation

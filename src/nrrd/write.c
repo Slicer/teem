@@ -248,7 +248,7 @@ _nrrdWriteDataAscii(Nrrd *nrrd, nrrdIO *io) {
 }
 
 int
-(*_nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, nrrdIO *) = {
+(*nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, nrrdIO *) = {
   NULL,
   _nrrdWriteDataRaw,
   _nrrdWriteDataAscii
@@ -435,7 +435,7 @@ _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 	    airEnumStr(nrrdEncoding, io->encoding));
     fflush(stderr);
   }
-  if (_nrrdWriteData[io->encoding](nrrd, io)) {
+  if (nrrdWriteData[io->encoding](nrrd, io)) {
     if (2 <= nrrdStateVerboseIO) {
       fprintf(stderr, "error!\n");
     }
@@ -491,7 +491,7 @@ _nrrdWritePNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
   fprintf(file, "255\n");
 
   io->dataFile = file;
-  if (_nrrdWriteData[io->encoding](nrrd, io)) {
+  if (nrrdWriteData[io->encoding](nrrd, io)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }

@@ -120,7 +120,7 @@ makeMain(int argc, char **argv, char *me) {
   nrrd->dim = sizeLen;
   nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, size);
   
-  if (_nrrdReadData[io->encoding](nrrd, io)) {
+  if (nrrdReadData[io->encoding](nrrd, io)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error reading data:\n%s", me, err);
     airMopError(mop);

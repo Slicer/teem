@@ -42,7 +42,7 @@ projectMain(int argc, char **argv, char *me) {
   hestOptAdd(&opt, "m", "measr", airTypeEnum, 1, 1, &measr, NULL,
 	     "How to \"measure\" a scanline.  Possibilities include:\n "
 	     "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", "
-	     "\"variance\"\n "
+	     "\"variance\", \"SD\"\n "
 	     "(self-explanatory)\n "
 	     "\b\bo \"product\", \"sum\": product or sum of all values along "
 	     "scanline\n "

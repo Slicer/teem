@@ -266,7 +266,7 @@ _nrrdReadDataAscii(Nrrd *nrrd, nrrdIO *io) {
 ** This is necessitated by the memory restrictions of direct I/O
 */
 int
-(*_nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, nrrdIO *) = {
+(*nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, nrrdIO *) = {
   NULL,
   _nrrdReadDataRaw,
   _nrrdReadDataAscii
@@ -345,7 +345,7 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     }
   }
 
-  if (_nrrdReadData[io->encoding](nrrd, io)) {
+  if (nrrdReadData[io->encoding](nrrd, io)) {
     if (2 <= nrrdStateVerboseIO) {
       fprintf(stderr, "error!\n");
     }
@@ -506,7 +506,7 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     nrrdAxesSet(nrrd, nrrdAxesInfoSize, sx, sy);
   }
   io->dataFile = file;
-  if (_nrrdReadData[io->encoding](nrrd, io)) {
+  if (nrrdReadData[io->encoding](nrrd, io)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }

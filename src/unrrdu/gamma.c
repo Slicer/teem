@@ -23,7 +23,9 @@ char *gammaName = "gamma";
 #define INFO "Brighten or darken values with a gamma"
 char *gammaInfo = INFO;
 char *gammaInfoL = (INFO
-		    ". ");
+		    ". Just as in xv, the gamma value here is actually the "
+		    "reciprocal of the exponent actually used to transform "
+		    "the values.");
 
 int
 gammaMain(int argc, char **argv, char *me) {

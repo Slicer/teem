@@ -32,7 +32,7 @@ main(int argc, char **argv) {
   char *ninStr, *noutStr;
   int I, x, y, z, sx, sy, sz;
   Nrrd *nin, *nout;
-  float *tdata, *adata, *tensor, eval[3], evec[9], c[TEN_MAX_ANISO+1];
+  float *tdata, *adata, *tensor, eval[3], evec[9], c[TEN_ANISO_MAX+1];
 
   me = argv[0];
   if (3 != argc)
@@ -56,8 +56,7 @@ main(int argc, char **argv) {
   sy = nin->axis[2].size; 
   sz = nin->axis[3].size;
   
-  if (nrrdAlloc_va(nout=nrrdNew(), nrrdTypeFloat, 4,
-		   4, sx, sy, sz)) {
+  if (nrrdAlloc(nout=nrrdNew(), nrrdTypeFloat, 4, 4, sx, sy, sz)) {
     fprintf(stderr, "%s: couldn't allocate anisotropy nrrd:\n%s\n",
 	    me, biffGet(NRRD));
     exit(1);
@@ -90,7 +89,7 @@ main(int argc, char **argv) {
 		 evec[3], evec[4], evec[5], 
 		 evec[6], evec[7], evec[8]);
 	}
-	tenAnisotropy(c, eval);
+	tenAnisoCalc(c, eval);
 	adata[0 + 4*I] = tensor[0]*c[tenAniso_Cl];
 	adata[1 + 4*I] = tensor[0]*c[tenAniso_Cp];
 	adata[2 + 4*I] = tensor[0]*c[tenAniso_Ca];
