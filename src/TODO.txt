@@ -1,14 +1,23 @@
-Try purify again
-Test that shared libraries work everywhere
+Fix TEEM_USABLE
 
-darwin
+make dev on cygwin
+
+make sure that test programs actually link against the development
+library instead of the installed one.
+
+other_clean (so_locations on SGI)
+
+Try purify again
+
+figure out shared libraries on cygwin.
+Test that they work everywhere.
 
 DTInspect: resurrect
  - add plane of glyphs
  - fix normals on isosurface
  - trouble building "anisovol" in ten/test directory
 
-DTInspect and lumin integration
+lumin integration
 
 ------- teem 1.5beta cutoff ---------
 
