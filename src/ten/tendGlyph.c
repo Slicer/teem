@@ -41,7 +41,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  Nrrd *nten, *emap, *nraw;
+  Nrrd *nten, *emap, *nraw, *npos;
   char *outS;
   limnCamera *cam;
   limnObj *glyph;
@@ -89,6 +89,11 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     &(gparm->anisoThresh), "0.5",
 	     "Glyphs will be drawn only for tensors with anisotropy "
 	     "greater than this threshold");
+  hestOptAdd(&hopt, "p", "pos array", airTypeOther, 1, 1, &npos, "",
+	     "Instead of being on a grid, tensors are at arbitrary locations, "
+	     "as defined by this 3-by-N array of floats. Doing this makes "
+	     "various other options moot. ", NULL, NULL,
+	     nrrdHestNrrd);
   hestOptAdd(&hopt, "m", "mask vol", airTypeOther, 1, 1, &(gparm->nmask), "",
 	     "Scalar volume (if any) for masking region in which glyphs are "
 	     "drawn, in conjunction with \"mtr\" flag. ", NULL, NULL,
@@ -212,9 +217,13 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     /* gparm->sliceOffset set by hest */
   }
 
+  if (npos) {
+    fprintf(stderr, "%s: hack: turning off onlyPositive\n", me);
+    gparm->onlyPositive = AIR_FALSE;
+  }
   if (tenGlyphGen(doRT ? NULL : glyph, 
 		  doRT ? scene : NULL,
-		  nten, NULL, gparm)) {
+		  nten, npos, gparm)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble generating glyphs:\n%s\n", me, err);
     airMopError(mop); return 1;
