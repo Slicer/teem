@@ -20,8 +20,8 @@
 
 TEEM_LIB = bane
 HEADERS = bane.h
-TEEM_LIB_OBJS = arrays.o methods.o range.o measr.o inc.o clip.o \
-	hvol.o trnsf.o trex.o valid.o scat.o
+TEEM_LIB_OBJS = arrays.o defaults.o methods.o range.o measr.o inc.o \
+	clip.o hvol.o trnsf.o trex.o valid.o scat.o
 #TEST_BINS = test/apply test/tinfo test/sigma test/pos \
 #	test/opac
 TEEM_BINS = bin/gkms

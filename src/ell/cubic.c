@@ -70,8 +70,8 @@ ellCubic(double root[3], double A, double B, double C, int polish) {
     double nr, fnr;
     /* one real solution, except maybe also a "rescued" double root */
     sqrt_D = sqrt(D);
-    u = cbrt(sqrt_D-q);
-    v = -cbrt(sqrt_D+q);
+    u = airCbrt(sqrt_D-q);
+    v = -airCbrt(sqrt_D+q);
     x = u+v - sub;
     if (!polish) {
       root[0] = x;
@@ -106,7 +106,7 @@ ellCubic(double root[3], double A, double B, double C, int polish) {
     /* else D is in the interval [-epsilon, +epsilon] */
     if (q < -epsilon || q > epsilon) {
       /* one double root and one single root */
-      u = cbrt(-q);
+      u = airCbrt(-q);
       root[0] = 2*u - sub;
       root[1] = -u - sub;
       root[2] = -u - sub;

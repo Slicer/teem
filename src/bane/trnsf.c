@@ -25,17 +25,17 @@
 
 int
 baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
-  char me[]="baneOpacInfo", err[128];
+  char me[]="baneOpacInfo", err[AIR_STRLEN_MED];
   Nrrd *proj2, *proj1, *projT;
   float *data2D, *data1D;
   int i, len, sv, sg;
 
   if (!(info && hvol)) {
-    sprintf(err, BIFF_NULL, me); biffSet(BANE, err); return 1;
+    sprintf(err, BIFF_NULL, me); biffAdd(BANE, err); return 1;
   }
   if (!(1 == dim || 2 == dim)) {
     sprintf(err, "%s: got dimension %d, not 1 or 2", me, dim);
-    biffSet(BANE, err); return 1;
+    biffAdd(BANE, err); return 1;
   }
   if (!(nrrdMeasureHistoMin == measr ||
 	nrrdMeasureHistoMax == measr ||
@@ -44,7 +44,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
 	nrrdMeasureHistoMode == measr)) {
     sprintf(err, "%s: measure %d doesn't make sense for histovolume",
 	    me, dim);
-    biffSet(BANE, err); return 1;
+    biffAdd(BANE, err); return 1;
   }
   if (!baneValidHVol(hvol)) {
     sprintf(err, "%s: given nrrd doesn't seem to be a histogram volume", me);
@@ -146,13 +146,13 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
 
 int
 bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
-  char me[]="bane1DOpacInfoFrom2D", err[128];
+  char me[]="bane1DOpacInfoFrom2D", err[AIR_STRLEN_MED];
   Nrrd *projH2, *projH1, *projN, *projG1;
   float *data1D;
   int E, i, len;
   
   if (!(info1D && info2D)) {
-    sprintf(err, BIFF_NULL, me); biffSet(BANE, err); return 1;
+    sprintf(err, BIFF_NULL, me); biffAdd(BANE, err); return 1;
   }
   if (!baneValidInfo(info2D, 2)) {
     sprintf(err, "%s: didn't get valid 2D info", me);
@@ -194,7 +194,7 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
 
 int
 _baneSigmaCalc1D(float *sP, Nrrd *info1D) {
-  char me[]="_baneSigmaCalc1D", err[128];
+  char me[]="_baneSigmaCalc1D", err[AIR_STRLEN_MED];
   int i, len;
   float maxg, maxh, minh, *data;
   
@@ -213,7 +213,7 @@ _baneSigmaCalc1D(float *sP, Nrrd *info1D) {
   }
   if (maxg == -1 || maxh == -1) {
     sprintf(err, "%s: saw only NaNs in 1D info!", me);
-    biffSet(BANE, err); return 1;
+    biffAdd(BANE, err); return 1;
   }
 
   /* here's the actual calculation: from page 54 of GK's MS */
@@ -227,11 +227,11 @@ _baneSigmaCalc1D(float *sP, Nrrd *info1D) {
 
 int
 baneSigmaCalc(float *sP, Nrrd *_info) {
-  char me[]="baneSigmaCalc", err[128];
+  char me[]="baneSigmaCalc", err[AIR_STRLEN_MED];
   Nrrd *info;
 
   if (!(sP && _info)) { 
-    sprintf(err, BIFF_NULL, me); biffSet(BANE, err); return 1;
+    sprintf(err, BIFF_NULL, me); biffAdd(BANE, err); return 1;
   }
   if (!baneValidInfo(_info, 0)) {
     sprintf(err, "%s: didn't get a valid info", me);
@@ -258,12 +258,12 @@ baneSigmaCalc(float *sP, Nrrd *_info) {
 
 int
 banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
-  char me[]="banePosCalc", err[128];
+  char me[]="banePosCalc", err[AIR_STRLEN_MED];
   int d, i, len, vi, gi, sv, sg;
   float *posData, *infoData, h, g, p;
 
   if (!(pos && info)) {
-    sprintf(err, BIFF_NULL, me); biffSet(BANE, err); return 1;
+    sprintf(err, BIFF_NULL, me); biffAdd(BANE, err); return 1;
   }
   if (!baneValidInfo(info, 0)) {
     sprintf(err, "%s: didn't get a valid info", me);
@@ -416,12 +416,12 @@ _baneOpacCalcB(int lutLen, float *opacLut,
 
 int
 baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos) {
-  char me[]="baneOpacCalc", err[128];
+  char me[]="baneOpacCalc", err[AIR_STRLEN_MED];
   int dim, sv, sg, len, npts;
   float *bdata, *odata, *pdata;
 
   if (!(opac && Bcpts && pos)) {
-    sprintf(err, BIFF_NULL, me); biffSet(BANE, err); return 1;
+    sprintf(err, BIFF_NULL, me); biffAdd(BANE, err); return 1;
   }
   if (!baneValidBcpts(Bcpts)) {
     sprintf(err, "%s: didn't get valid control points for b(x)", me);

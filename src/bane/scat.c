@@ -23,12 +23,12 @@
 int
 baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
   Nrrd *gA, *hA, *gB, *hB;
-  char me[]="baneRawScatterplots", err[512];
+  char me[]="baneRawScatterplots", err[AIR_STRLEN_MED];
   int E;
   
   if (!( nvg && nvh && hvol )) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffSet(BANE, err); return 1;
+    biffAdd(BANE, err); return 1;
   }
   if (!baneValidHVol(hvol)) {
     sprintf(err, "%s: didn't get a valid histogram volume", me);

@@ -22,10 +22,10 @@
 
 int
 _baneClipUnknown(Nrrd *rhv, double *parm) {
-  char me[]="_baneClipUnknown", err[128];
+  char me[]="_baneClipUnknown", err[AIR_STRLEN_MED];
 
   sprintf(err, "%s: Need To Specify a Clipping Method !!!\n", me);
-  biffSet(BANE, err);
+  biffAdd(BANE, err);
   return -1;
 }
 
@@ -60,7 +60,7 @@ _baneClipCompare(const void *a, const void *b) {
 
 int
 _baneClipPercentile(Nrrd *rhv, double *parm) {
-  char me[]="_baneClipPercentile", err[128];
+  char me[]="_baneClipPercentile", err[AIR_STRLEN_MED];
   Nrrd *copy;
   int *hits, clip;
   nrrdBigInt num, sum, out, outsum, hi;
@@ -90,7 +90,7 @@ _baneClipPercentile(Nrrd *rhv, double *parm) {
 
 int
 _baneClipTopN(Nrrd *rhv, double *parm) {
-  char me[]="_baneClipTopN", err[128];
+  char me[]="_baneClipTopN", err[AIR_STRLEN_MED];
   Nrrd *copy;
   int *hits, clip;
   nrrdBigInt num;

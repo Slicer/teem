@@ -230,7 +230,7 @@ dyeXYZtoRGB(float *R, float *G, float *B,
 
 float
 dyeLcbrt(float t) {
-  return(t > 0.008856 ? cbrt(t) : 7.787*t + 16.0/116.0);
+  return(t > 0.008856 ? airCbrt(t) : 7.787*t + 16.0/116.0);
 }
 
 float

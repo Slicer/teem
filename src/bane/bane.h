@@ -37,8 +37,6 @@ extern "C" {
 #include <nrrd.h>
 #include <gage.h>
 
-#define BANE_HIST_EQ_BINS 1024
-
 /*
 ******** baneRange enum
 ******** baneRangeStr[][]
@@ -49,19 +47,21 @@ extern "C" {
 ** be centered around zero (2nd directional derivative) or could they
 ** be anywhere (data value)
 */
-#define BANE_RANGE_MAX 4
 enum {
   baneRangeUnknown,    /* 0: nobody knows */
   baneRangePos,        /* 1: always positive */
   baneRangeNeg,        /* 2: always negative */
-  baneRangeZeroCent,   /* 3: positive and negative, centered around zero */
+  baneRangeZeroCent,   /* 3: positive and negative, conceptually
+			     centered around zero */
   baneRangeFloat,      /* 4: anywhere */
   baneRangeLast
 };
-extern char baneRangeStr[][BANE_SMALL_STRLEN];
-typedef void (*baneRange_t)(double *minP, double *maxP, 
-			    double min, double max);
-extern baneRange_t baneRange[BANE_RANGE_MAX+1];
+#define BANE_RANGE_MAX    4
+typedef struct {
+  char name[AIR_STRLEN_SMALL];
+  void (*calc)(double *minP, double *maxP, double min, double max);
+} baneRange_t;
+extern baneRange_t baneRange[BANE_RANGE_MAX+1]; 
 
 /*
 ******** baneMeasr enum
@@ -87,7 +87,9 @@ enum {
   baneMeasrLapl,       /* 3: Laplacian */
   baneMeasrHess,       /* 4: Hessian-based measure of 2nd DD along gradient */
   baneMeasrGMG,        /* 5: gradient of magnitude of gradient */
-  baneMeasrCurvedness  
+  baneMeasrCurvedness  /* 6: L2 norm of K1, K2 principal curvatures
+			     (gageSclCurvedness) */
+  baneMeasrShapeTrace  /* 7: shape indicator (gageSclShapeTrace) */
   baneMeasrLast
 };
 extern char baneMeasrStr[][BANE_SMALL_STRLEN];
@@ -116,6 +118,15 @@ enum {
   baneIncStdv,         /* 4: some multiple of the standard deviation */
   baneIncLast
 };
+typedef struct {
+  char name[AIR_STRLEN_SMALL];
+  int numParm;
+  Nrrd *(*initNrrd)(double *iparm);
+  void (*initA)(Nrrd *nrrd, double val);
+  void (*initB)(Nrrd *nrrd, double val);
+  void (*calcInc)(double *minP, double *maxP,
+		  Nrrd *nrrd, double *iparm, int range
+}
 extern char baneIncStr[BANE_INC_MAX+1][BANE_SMALL_STRLEN];
 extern int baneIncNumParm[BANE_INC_MAX+1];
 extern Nrrd *(*baneIncNrrd[BANE_INC_MAX+1])(double *parm);
@@ -181,16 +192,9 @@ typedef struct {
 					  has been determined */
 } baneHVolParm;
 
-/*
-******** BANE_DEF_INCLIMIT
-**
-** the default minimum percentage of voxels which must be included in
-** the histogram volume volume (baneHVolParm's incLimit is set to 100
-** times this by default).  If the inclusion is set such that that you
-** get less than this percentage of hits, then baneMakeHVol() will
-** fail 
-*/
-#define BANE_DEF_INCLIMIT 80
+/* defaults.c */
+extern float baneDefIncLimit;
+extern int baneDefHistEqBins;
 
 /* methods.c */
 extern baneHVolParm *baneHVolParmNew();
