@@ -86,7 +86,7 @@ quantizeMain(int argc, char **argv, char *me) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   /* If the input nrrd never specified min and max, then they'll be
-     AIR_NAN, and nrrdMinMaxClever will find them.  If the input nrrd
+     AIR_NAN, and nrrdMinMaxCleverSet will find them.  If the input nrrd
      had a notion of min and max, we should respect it, but not if the
      user specified something else. */
   if (AIR_EXISTS(min))

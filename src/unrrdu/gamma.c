@@ -59,7 +59,7 @@ gammaMain(int argc, char **argv, char *me) {
 
   nin->min = min;
   nin->max = max;
-  if (nrrdMinMaxClever(nin)) {
+  if (nrrdMinMaxCleverSet(nin)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble determining range in nrrd:\n%s", me, err);
     airMopError(mop);

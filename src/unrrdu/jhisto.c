@@ -63,7 +63,7 @@ jhistoMain(int argc, char **argv, char *me) {
     return 1;
   }
   for (d=0; d<=ninLen-1; d++) {
-    if (nrrdMinMaxClever(nin[d])) {
+    if (nrrdMinMaxCleverSet(nin[d])) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble determining range in nrrd %d:\n%s",
 	      me, d, err);
