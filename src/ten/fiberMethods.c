@@ -63,7 +63,7 @@ tenFiberContextNew(Nrrd *dtvol) {
   
   tfx = calloc(1, sizeof(tenFiberContext));
   if (tfx) {
-    if (tenTensorCheck(dtvol, nrrdTypeUnknown, AIR_TRUE)) {
+    if (tenTensorCheck(dtvol, nrrdTypeUnknown, AIR_TRUE, AIR_TRUE)) {
       sprintf(err, "%s: didn't get a tensor volume", me);
       biffAdd(TEN, err); return NULL;
     }

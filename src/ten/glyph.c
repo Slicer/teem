@@ -152,7 +152,7 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
   shape = gageShapeNew();
   shape->defaultCenter = nrrdCenterCell;
   airMopAdd(mop, shape, (airMopper)gageShapeNix, airMopAlways);
-  if (tenTensorCheck(nten, nrrdTypeFloat, AIR_TRUE)) {
+  if (tenTensorCheck(nten, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
     sprintf(err, "%s: didn't get a valid DT volume", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }

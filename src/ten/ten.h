@@ -348,7 +348,7 @@ extern int tenGlyphGen(limnObj *glyphs, echoScene *scene,
 
 /* tensor.c */
 extern ten_export int tenVerbose;
-extern int tenTensorCheck(Nrrd *nin, int wantType, int useBiff);
+extern int tenTensorCheck(Nrrd *nin, int wantType, int want4D, int useBiff);
 extern int tenExpand(Nrrd *tnine, Nrrd *tseven, float scale, float thresh);
 extern int tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine);
 extern int tenEigensolve(float eval[3], float evec[9], float ten[7]);

@@ -68,7 +68,7 @@ tend_evecrgbMain(int argc, char **argv, char *me, hestParm *hparm) {
     fprintf(stderr, "%s: requested component %d not in [0..2]\n", me, cc);
     airMopError(mop); return 1;
   }
-  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE)) {
+  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: didn't get a valid DT volume:\n%s\n", me, err);
     airMopError(mop); return 1;

@@ -39,7 +39,7 @@ int tenVerbose = 0;
 ** useBiff controls if biff is used to describe the problem
 */
 int
-tenTensorCheck(Nrrd *nin, int wantType, int useBiff) {
+tenTensorCheck(Nrrd *nin, int wantType, int want4D, int useBiff) {
   char me[]="tenTensorCheck", err[256];
   
   if (!nin) {
@@ -60,7 +60,7 @@ tenTensorCheck(Nrrd *nin, int wantType, int useBiff) {
       if (useBiff) biffAdd(TEN, err); return 1;
     }
   }
-  if (!(4 == nin->dim)) {
+  if (want4D && !(4 == nin->dim)) {
     sprintf(err, "%s: given dimension is %d, not 4", me, nin->dim);
     if (useBiff) biffAdd(TEN, err); return 1;
   }
@@ -82,7 +82,7 @@ tenExpand(Nrrd *nout, Nrrd *nin, float scale, float thresh) {
     sprintf(err, "%s: got NULL pointer or non-existant threshold", me);
     biffAdd(TEN, err); return 1;
   }
-  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE)) {
+  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
     sprintf(err, "%s: ", me);
     biffAdd(TEN, err); return 1;
   }
@@ -400,7 +400,7 @@ tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos, int dim) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  if (tenTensorCheck(nten, nrrdTypeDefault, AIR_TRUE)) {
+  if (tenTensorCheck(nten, nrrdTypeDefault, AIR_TRUE, AIR_TRUE)) {
     sprintf(err, "%s: didn't get a valid tensor field", me);
     biffAdd(TEN, err); return 1;
   }

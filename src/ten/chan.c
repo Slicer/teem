@@ -358,7 +358,7 @@ tenSimulate(Nrrd *ndwi, Nrrd *nT2, Nrrd *nten, Nrrd *_nbmat, float b) {
   float *dwi, *ten, (*lup)(const void *, size_t I);
   
   if (!ndwi || !nT2 || !nten || !_nbmat
-      || tenTensorCheck(nten, nrrdTypeFloat, AIR_TRUE)
+      || tenTensorCheck(nten, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)
       || tenBmatCheck(_nbmat)) {
     sprintf(err, "%s: got NULL pointer or invalid args", me);
     biffAdd(TEN, err); return 1;
@@ -526,7 +526,7 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
     biffAdd(TEN, err); return 1;
     break;
   }
-  if (tenTensorCheck(nin, nrrdTypeDefault, AIR_TRUE)) {
+  if (tenTensorCheck(nin, nrrdTypeDefault, AIR_TRUE, AIR_TRUE)) {
     sprintf(err, "%s: wasn't given valid tensor nrrd", me);
     biffAdd(TEN, err); return 1;
   }

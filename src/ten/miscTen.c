@@ -79,7 +79,7 @@ tenEvqVolume(Nrrd *nout, Nrrd *nin, int which, int aniso, int scaleByAniso) {
       biffAdd(TEN, err); return 1;
     }
   }
-  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE)) {
+  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
     sprintf(err, "%s: didn't get a valid DT volume", me);
     biffAdd(TEN, err); return 1;
   }

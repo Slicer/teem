@@ -32,7 +32,7 @@ tenSizeNormalize(Nrrd *nout, Nrrd *nin, float _weight[3],
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE)) {
+  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_FALSE, AIR_TRUE)) {
     sprintf(err, "%s: didn't get a tensor nrrd", me);
     biffAdd(TEN, err); return 1;
   }
@@ -84,7 +84,7 @@ tenAnisoScale(Nrrd *nout, Nrrd *nin, float scale) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE)) {
+  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_FALSE, AIR_TRUE)) {
     sprintf(err, "%s: didn't get a tensor nrrd", me);
     biffAdd(TEN, err); return 1;
   }
@@ -127,7 +127,7 @@ tenEigenvalueClamp(Nrrd *nout, Nrrd *nin, float min, float max) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE)) {
+  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_FALSE, AIR_TRUE)) {
     sprintf(err, "%s: didn't get a tensor nrrd", me);
     biffAdd(TEN, err); return 1;
   }
@@ -174,7 +174,7 @@ tenEigenvaluePower(Nrrd *nout, Nrrd *nin, float expo) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE)) {
+  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_FALSE, AIR_TRUE)) {
     sprintf(err, "%s: didn't get a tensor nrrd", me);
     biffAdd(TEN, err); return 1;
   }
