@@ -111,3 +111,6 @@ ssh faith.cs.utah.edu
 cd web; tar xzvf teem-*-html.tgz
 yes | rm -rf teem; mv teem-*-html teem
 yes | rm -rf teem-*-html*
+exit
+cd ..
+rm -rf teem
