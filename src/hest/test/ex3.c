@@ -23,8 +23,8 @@
 int
 main(int argc, char **argv) {
   int res[2], v, numIn;
-  char **in, *out;
-  int n;
+  char **in, *out, *blah[3], *option;
+  int n, *ints, numN;
   hestOpt *opt = NULL;
   hestParm *parm;
   char *err = NULL, info[] = 
@@ -41,10 +41,14 @@ main(int argc, char **argv) {
 	     "verbosity level");
   hestOptAdd(&opt, "out",   "file",  airTypeString, 1,  1,  &out, "output.ppm",
 	     "PPM image output");
+  hestOptAdd(&opt, "blah",  "input", airTypeString, 3,  3,  blah,  "a b c",
+	     "input image file(s)");
+  hestOptAdd(&opt, "option","opt",   airTypeString, 0,  1,  &option,  "barf",
+	     "this is just a test");
   hestOptAdd(&opt, NULL,    "input", airTypeString, 1, -1,  &in,  NULL,
 	     "input image file(s)", &numIn);
-  hestOptAdd(&opt, "blah",  "input", airTypeString, 3,  3,  &in,  "a b c",
-	     "input image file(s)", &numIn);
+  hestOptAdd(&opt, "ints",  "N",     airTypeInt,    1,  -1, &ints,  "10 20 30",
+	     "a list of integers", &numN);
   hestOptAdd(&opt, "res",   "sx sy", airTypeInt,    2,  2,  res,  NULL,
 	     "image resolution");
   
@@ -70,16 +74,27 @@ main(int argc, char **argv) {
     /* ... and then avoid memory leaks */
     opt = hestOptFree(opt);
     parm = hestParmFree(parm);
+    printf(" ---- in = %lx\n", (unsigned long)in);
+    printf(" ---- blah[0] = %lx\n", (unsigned long)(blah[0]));
+    printf(" ---- option = %lx\n", (unsigned long)option);
     exit(1);
   }
-  
+
   printf("(err = %s)\n", err);
-  printf("res = %d %d\n", res[0], res[1]);
   printf("  v = %d\n", v);
   printf("out = \"%s\"\n", out);
+  printf("blah = \"%s\" \"%s\" \"%s\"\n", blah[0], blah[1], blah[2]);
+  printf("option = \"%s\"\n", option);
+  printf("res = %d %d\n", res[0], res[1]);
+  printf(" ---- in = %lx\n", (unsigned long)in);
   printf(" in = %d files:", numIn);
   for (n=0; n<=numIn-1; n++) {
     printf(" \"%s\"", in[n]);
+  }
+  printf("\n");
+  printf(" ints = %d ints:", numN);
+  for (n=0; n<=numN-1; n++) {
+    printf(" %d", ints[n]);
   }
   printf("\n");
 

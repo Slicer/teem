@@ -24,7 +24,7 @@
 void
 _hestSetBuff(char *B, hestOpt *O, hestParm *P, int showlong) {
   char copy[AIR_STRLEN_HUGE], *sep;
-  int max;
+  int max, len;
 
   max = _hestMax(O->max);
   if (O->flag) {
@@ -34,7 +34,10 @@ _hestSetBuff(char *B, hestOpt *O, hestParm *P, int showlong) {
       strcat(B, "-");
       strcat(B, copy);
       if (showlong) {
-	strcat(B, "|--");
+	len = strlen(B);
+	B[len] = P->multiFlagSep;
+	B[len+1] = '\0';
+	strcat(B, "--");
 	strcat(B, sep+1);
       }
     }

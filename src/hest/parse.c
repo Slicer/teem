@@ -317,13 +317,13 @@ _hestExtractFlagged(char **prms, int *nprm, int *appr,
 	sprintf(err, "%shit end of line before getting %d parameter%s "
 		"for %s (got %d)",
 		ME, opt[flag].min, opt[flag].min > 1 ? "s" : "",
-		_hestIdent(ident1, opt+flag), np);
+		_hestIdent(ident1, opt+flag, parm), np);
       }
       else {
 	sprintf(err, "%shit %s before getting %d parameter%s for %s (got %d)",
-		ME, _hestIdent(ident1, opt+endflag),
+		ME, _hestIdent(ident1, opt+endflag, parm),
 		opt[flag].min, opt[flag].min > 1 ? "s" : "",
-		_hestIdent(ident2, opt+flag), np);
+		_hestIdent(ident2, opt+flag, parm), np);
       }
       return 1;
     }
@@ -337,7 +337,7 @@ _hestExtractFlagged(char **prms, int *nprm, int *appr,
     free(_hestExtract(argcP, argv, a, 1));
     /* extract the args after the flag */
     if (appr[flag]) {
-      airMopAdd(pmop, prms[flag], NULL, airMopNever);
+      airMopSub(pmop, prms[flag], airFree);
       airFree(prms[flag]);
     }
     prms[flag] = _hestExtract(argcP, argv, a, nprm[flag]);
@@ -359,7 +359,7 @@ _hestExtractFlagged(char **prms, int *nprm, int *appr,
   for (op=0; op<=numOpts-1; op++) {
     if (opt[op].flag && !opt[op].dflt && !appr[op]) {
       sprintf(err, "%sdidn't get required %s",
-	      ME, _hestIdent(ident1, opt+op));
+	      ME, _hestIdent(ident1, opt+op, parm));
       return 1;
     }
   }
@@ -413,7 +413,7 @@ _hestExtractUnflagged(char **prms, int *nprm,
 	      argv[0] ? "starting at \"" : "",
 	      argv[0] ? argv[0] : "",
 	      argv[0] ? "\" " : "",
-	      _hestIdent(ident, opt+op));
+	      _hestIdent(ident, opt+op, parm));
       return 1;
     }
     prms[op] = _hestExtract(argcP, argv, 0, np);
@@ -438,7 +438,7 @@ _hestExtractUnflagged(char **prms, int *nprm,
     np = opt[op].min;
     sprintf(err, "%sdon't have %d parameter%s for %s", 
 	    ME, np, np > 1 ? "s" : "", 
-	    _hestIdent(ident, opt+op));
+	    _hestIdent(ident, opt+op, parm));
     return 1;
   }
   /* else we had enough args for all the unflagged options following
@@ -465,7 +465,7 @@ _hestExtractUnflagged(char **prms, int *nprm,
       sprintf(err, "%sdidn't get minimum of %d arg%s for %s (got %d)",
 	      ME, opt[unflagVar].min, 
 	      opt[unflagVar].min > 1 ? "s" : "",
-	      _hestIdent(ident, opt+unflagVar), nvp);
+	      _hestIdent(ident, opt+unflagVar, parm), nvp);
       return 1;
     }
     if (nvp) {
@@ -532,7 +532,7 @@ _hestDefaults(char **prms, int *udflt, int *nprm, int *appr,
 	if (!( AIR_INSIDE(opt[op].min, nprm[op], _hestMax(opt[op].max)) )) {
 	  sprintf(err, "%s# parameters (in default) for %s is %d, "
 		  "but need between %d and %d", 
-		  ME, _hestIdent(ident, opt+op), nprm[op],
+		  ME, _hestIdent(ident, opt+op, parm), nprm[op],
 		  opt[op].min, _hestMax(opt[op].max));
 	  return 1;
 	}
@@ -553,7 +553,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 
   numOpts = _hestNumOpts(opt);
   for (op=0; op<=numOpts-1; op++) {
-    _hestIdent(ident, opt+op);
+    _hestIdent(ident, opt+op, parm);
     type = opt[op].type;
     vP = opt[op].valueP;
     if (parm->verbosity) {
@@ -605,7 +605,8 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	  return 1;
 	}
 	if (airTypeString == opt[op].type) {
-	  /* vP is an array of char*s, (a char**), and what we manage
+	  /* NOTE: this comment was written before airMopSub() existed.
+	     vP is an array of char*s, (a char**), and what we manage
 	     with airMop are the individual vP[p].  We can use airMopMem
 	     (as opposed to just airMopAdd(airFree)) because we actually
 	     "set" the values (with _hestSetValues()) exactly once, while
@@ -683,7 +684,8 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	  *(opt[op].sawP) = nprm[op];
 	  opt[op].alloc = (airTypeString == opt[op].type ? 3 : 1);
 	  if (airTypeString == opt[op].type) {
-	    /* vP is the address of an array of char*s (a char ***), and
+	    /* NOTE: this comment was written before airMopSub() existed.
+	       vP is the address of an array of char*s (a char ***), and
 	       what we manage with airMop is the individual (*vP)[p],
 	       as well as vP itself (above).  We can't use airMopMem()
 	       because then the airSetNull on &(*vP)[0] would clobber 
