@@ -65,13 +65,6 @@ main(int argc, char *argv[]) {
   FILE *fin, *fout;
   int car=0, col;
 
-  float nan;
-
-  nan = 0.0;
-  nan /= nan;
-  printf("%g\n", nan);
-  exit(0);
-
   me = argv[0];
   if (!( 2 == argc || 3 == argc ))
     enhexUsage(me);
