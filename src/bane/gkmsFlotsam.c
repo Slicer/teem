@@ -27,7 +27,7 @@
 /*
 ** baneGkmsParseIncStrategy
 **
-** inc[0]: member of baneInc*_e enum
+** inc[0]: member of baneInc* enum
 ** inc[1], inc[2] ... : incParm[0], incParm[1] ... 
 */
 int
@@ -42,32 +42,32 @@ baneGkmsParseIncStrategy(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   }
   inc = ptr;
   incParm = inc + 1;
-  for (i=0; i<BANE_INC_PARM_NUM; i++) {
+  for (i=0; i<BANE_PARM_NUM; i++) {
     incParm[i] = AIR_NAN;
   }
   if (1 == sscanf(str, "f:%lg", incParm+0) 
       || 2 == sscanf(str, "f:%lg,%lg", incParm+0, incParm+1)) {
-    inc[0] = baneIncRangeRatio_e;
+    inc[0] = baneIncRangeRatio;
     return 0;
   }
   if (1 == sscanf(str, "p:%lg", incParm+1)
       || 2 == sscanf(str, "p:%lg,%lg", incParm+1, incParm+2)) {
-    inc[0] = baneIncPercentile_e;
+    inc[0] = baneIncPercentile;
     incParm[0] = baneDefPercHistBins;
     return 0;
   }
   if (3 == sscanf(str, "p:%d,%lg,%lg", &bins, incParm+1, incParm+2)) {
-    inc[0] = baneIncPercentile_e;
+    inc[0] = baneIncPercentile;
     incParm[0] = bins;
     return 0;
   }
   if (2 == sscanf(str, "a:%lg,%lg", incParm+0, incParm+1)) {
-    inc[0] = baneIncAbsolute_e;
+    inc[0] = baneIncAbsolute;
     return 0;
   }
   if (1 == sscanf(str, "s:%lg", incParm+0)
       || 2 == sscanf(str, "s:%lg,%lg", incParm+1, incParm+2)) {
-    inc[0] = baneIncStdv_e;
+    inc[0] = baneIncStdv;
     return 0;
   }
 
@@ -78,7 +78,7 @@ baneGkmsParseIncStrategy(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
 }
 
 hestCB _baneGkmsHestIncStrategy = {
-  (1+BANE_INC_PARM_NUM)*sizeof(double),
+  (1+BANE_PARM_NUM)*sizeof(double),
   "inclusion strategy",
   baneGkmsParseIncStrategy,
   NULL

@@ -45,7 +45,7 @@ baneInputCheck (Nrrd *nin, baneHVolParm *hvp) {
     biffAdd(BANE, err); return 1;
   }
   for (i=0; i<=2; i++) {
-    if (_baneAxisCheck(hvp->ax + i)) {
+    if (_baneAxisCheck(hvp->axis + i)) {
       sprintf(err, "%s: trouble with axis %d", me, i);
       biffAdd(BANE, err); return 1;
     }
@@ -53,13 +53,6 @@ baneInputCheck (Nrrd *nin, baneHVolParm *hvp) {
   if (!hvp->clip) {
     sprintf(err, "%s: got NULL baneClip", me);
     biffAdd(BANE, err); return 1;
-  }
-  for (i=0; i<hvp->clip->numParm; i++) {
-    if (!AIR_EXISTS(hvp->clipParm[i])) {
-      sprintf(err, "%s: didn't get %d parms for %s clipping",
-	      me, hvp->clip->numParm, hvp->clip->name);
-      biffAdd(BANE, err); return 1;
-    }
   }
 
   /* all okay */
@@ -86,6 +79,9 @@ baneHVolCheck (Nrrd *hvol) {
     sprintf(err, "%s: axisMin and axisMax must be set for all axes", me);
     biffAdd(BANE, err); return 1;
   }
+  /* 
+  ** NOTE: For the time being, I'm giving up on enforcing a 
+  ** particular kind of histogram volume ...
   if (strcmp(hvol->axis[0].label, baneMeasrGradMag->name)) {
     sprintf(err, "%s: expected \"%s\" on axis 0 label",
 	    me, baneMeasrGradMag->name);
@@ -102,6 +98,7 @@ baneHVolCheck (Nrrd *hvol) {
 	    me, baneMeasrVal->name);
     biffAdd(BANE, err); return 1;
   }
+  */
   return 0;
 }
 

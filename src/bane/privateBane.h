@@ -24,35 +24,8 @@
 extern "C" {
 #endif
 
-/* range.c */
-extern baneRange _baneRangePos;
-extern baneRange _baneRangeNeg;
-extern baneRange _baneRangeZeroCent;
-extern baneRange _baneRangeFloat;
-
-/* inc.c */
-extern Nrrd *_baneInc_HistNew(double *incParm);
-extern baneInc _baneIncAbsolute;
-extern baneInc _baneIncRangeRatio;
-extern baneInc _baneIncPercentile;
-extern baneInc _baneIncStdv;
-
-/* measr.c */
-extern baneMeasr _baneMeasrVal;
-extern baneMeasr _baneMeasrGradMag;
-extern baneMeasr _baneMeasrLapl;
-extern baneMeasr _baneMeasrHess;
-extern baneMeasr _baneMeasrCurvedness;
-extern baneMeasr _baneMeasrShadeTrace;
-
-/* clip.c */
-extern baneClip _baneClipAbsolute;
-extern baneClip _baneClipPeakRatio;
-extern baneClip _baneClipPercentile;
-extern baneClip _baneClipTopN;
-
 /* hvol.c */
-extern int _baneAxisCheck(baneAxis *ax);
+extern int _baneAxisCheck(baneAxis *axis);
 
 #define BANE_GKMS_CMD(name, info) \
 unrrduCmd baneGkms_##name##Cmd = { #name, info, baneGkms_##name##Main }

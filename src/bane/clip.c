@@ -21,47 +21,16 @@
 #include "bane.h"
 #include "privateBane.h"
 
-/* ----------------- baneClipUnknown -------------------- */
 
 int
-_baneClipUnknown_Ans(Nrrd *hvol, double *clipParm) {
-  char me[]="_baneClipUnknown_Ans";
-  fprintf(stderr, "%s: a baneClip is unset somewhere ...\n", me);
-  return -1;
+_baneClipAnswer_Absolute(int *countP, Nrrd *hvol, double *clipParm) {
+
+  *countP = clipParm[0];
+  return 0;
 }
 
-baneClip
-_baneClipUnknown = {
-  "unknown",
-  baneClipUnknown_e,
-  0,
-  _baneClipUnknown_Ans
-};
-baneClip *
-baneClipUnknown = &_baneClipUnknown;
-
-/* ----------------- baneClipAbsolute -------------------- */
-
 int
-_baneClipAbsolute_Ans(Nrrd *hvol, double *clipParm) {
-
-  return clipParm[0];
-}
-
-baneClip
-_baneClipAbsolute = {
-  "absolute",
-  baneClipAbsolute_e,
-  1,
-  _baneClipAbsolute_Ans
-};
-baneClip *
-baneClipAbsolute = &_baneClipAbsolute;
-
-/* ----------------- baneClipPeakRatio -------------------- */
-
-int
-_baneClipPeakRatio_Ans(Nrrd *hvol, double *clipParm) {
+_baneClipAnswer_PeakRatio(int *countP, Nrrd *hvol, double *clipParm) {
   int *hits, maxhits;
   size_t idx, num;
   
@@ -72,34 +41,23 @@ _baneClipPeakRatio_Ans(Nrrd *hvol, double *clipParm) {
     maxhits = AIR_MAX(maxhits, hits[idx]);
   }
 
-  return maxhits*clipParm[0];
+  *countP = maxhits*clipParm[0];
+  return 0;
 }
 
-baneClip
-_baneClipPeakRatio = {
-  "peak-ratio",
-  baneClipPeakRatio_e,
-  1,
-  _baneClipPeakRatio_Ans
-};
-baneClip *
-baneClipPeakRatio = &_baneClipPeakRatio;
-
-/* ----------------- baneClipPercentile -------------------- */
-
 int
-_baneClipPercentile_Ans(Nrrd *hvol, double *clipParm) {
-  char me[]="_baneClipPercentile", err[AIR_STRLEN_MED];
-  Nrrd *copy;
+_baneClipAnswer_Percentile(int *countP, Nrrd *hvol, double *clipParm) {
+  char me[]="_baneClipAnswer_Percentile", err[AIR_STRLEN_MED];
+  Nrrd *ncopy;
   int *hits, clip;
   size_t num, sum, out, outsofar, hi;
 
-  if (nrrdCopy(copy=nrrdNew(), hvol)) {
+  if (nrrdCopy(ncopy=nrrdNew(), hvol)) {
     sprintf(err, "%s: couldn't create copy of histovol", me);
-    biffMove(BANE, err, NRRD); return -1;
+    biffMove(BANE, err, NRRD); return 1;
   }
-  hits = copy->data;
-  num = nrrdElementNumber(copy);
+  hits = ncopy->data;
+  num = nrrdElementNumber(ncopy);
   qsort(hits, num, sizeof(int), nrrdValCompare[nrrdTypeInt]);
   sum = 0;
   for (hi=0; hi<num; hi++) {
@@ -112,62 +70,117 @@ _baneClipPercentile_Ans(Nrrd *hvol, double *clipParm) {
     outsofar += hits[hi--];
   } while (outsofar < out);
   clip = hits[hi];
-  nrrdNuke(copy);
+  nrrdNuke(ncopy);
 
-  return clip;
+  *countP = clip;
+  return 0;
 }
 
-baneClip
-_baneClipPercentile = {
-  "percentile",
-  baneClipPercentile_e,
-  1,
-  _baneClipPercentile_Ans
-};
-baneClip *
-baneClipPercentile = &_baneClipPercentile;
-
-/* ----------------- baneClipTopN -------------------- */
-
 int
-_baneClipTopN_Ans(Nrrd *hvol, double *clipParm) {
-  char me[]="_baneClipTopN", err[AIR_STRLEN_MED];
+_baneClipAnswer_TopN(int *countP, Nrrd *hvol, double *clipParm) {
+  char me[]="_baneClipAnwer_TopN", err[AIR_STRLEN_MED];
   Nrrd *copy;
-  int *hits, clip;
+  int *hits, tmp;
   size_t num;
 
   if (nrrdCopy(copy=nrrdNew(), hvol)) {
     sprintf(err, "%s: couldn't create copy of histovol", me);
-    biffMove(BANE, err, NRRD); return -1;
+    biffMove(BANE, err, NRRD); return 1;
   }
   hits = copy->data;
   num = nrrdElementNumber(copy);
   qsort(hits, num, sizeof(int), nrrdValCompare[nrrdTypeInt]);
-  clipParm[0] = AIR_CLAMP(0, (int)clipParm[0], num-1);
-  clip = hits[num-(int)clipParm[0]-1];
+  tmp = AIR_CLAMP(0, (int)clipParm[0], num-1);
+  *countP = hits[num-tmp-1];
   nrrdNuke(copy);
 
+  return 0;
+}
+
+baneClip *
+baneClipNew(int type, double *parm) {
+  char me[]="baneClipNew", err[AIR_STRLEN_MED];
+  baneClip *clip;
+
+  if (!( AIR_IN_OP(baneClipUnknown, type, baneClipLast) )) {
+    sprintf(err, "%s: baneClip %d invalid", me, type);
+    biffAdd(BANE, err); return NULL;
+  }
+  if (!parm) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(BANE, err); return NULL;
+  }
+  if (!(AIR_EXISTS(parm[0]))) {
+    sprintf(err, "%s: parm[0] doesn't exist", me);
+    biffAdd(BANE, err); return NULL;
+  }
+  clip = (baneClip*)calloc(1, sizeof(baneClip));
+  if (!clip) {
+    sprintf(err, "%s: couldn't allocate baneClip!", me);
+    biffAdd(BANE, err); return NULL;
+  }
+  clip->parm[0] = parm[0];
+  clip->type = type;
+  switch(type) {
+  case baneClipAbsolute:
+    sprintf(clip->name, "absolute");
+    clip->answer = _baneClipAnswer_Absolute;
+    break;
+  case baneClipPeakRatio:
+    sprintf(clip->name, "peak ratio");
+    clip->answer = _baneClipAnswer_PeakRatio;
+    break;
+  case baneClipPercentile:
+    sprintf(clip->name, "percentile");
+    clip->answer = _baneClipAnswer_Percentile;
+    break;
+  case baneClipTopN:
+    sprintf(clip->name, "top N");
+    clip->answer = _baneClipAnswer_TopN;
+    break;
+  default:
+    sprintf(err, "%s: sorry, baneClip %d not implemented", me, type);
+    biffAdd(BANE, err); baneClipNix(clip); return NULL;
+    break;
+  }
   return clip;
 }
 
-baneClip
-_baneClipTopN = {
-  "top-N",
-  baneClipTopN_e,
-  1,
-  _baneClipTopN_Ans
-};
-baneClip *
-baneClipTopN = &_baneClipTopN;
+int
+baneClipAnswer(int *countP, baneClip *clip, Nrrd *hvol) {
+  char me[]="baneClipAnswer", err[AIR_STRLEN_MED];
 
-/* --------------------------------------------------- */
+  if (!( countP && clip && hvol )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(BANE, err); return 0;
+  }
+  if (clip->answer(countP, hvol, clip->parm)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(BANE, err); return 0;
+  }
+  return 0;
+}
 
 baneClip *
-baneClipArray[BANE_CLIP_MAX+1] = {
-  &_baneClipUnknown,
-  &_baneClipAbsolute,
-  &_baneClipPeakRatio,
-  &_baneClipPercentile,
-  &_baneClipTopN
-};
+baneClipCopy(baneClip *clip) {
+  char me[]="baneClipCopy", err[AIR_STRLEN_MED];
+  baneClip *ret = NULL;
+  
+  ret = baneClipNew(clip->type, clip->parm);
+  if (!ret) {
+    sprintf(err, "%s: couldn't make new clip", me);
+    biffAdd(BANE, err); return NULL;
+  }
+  return ret;
+}
+
+baneClip *
+baneClipNix(baneClip *clip) {
+
+  if (clip) {
+    airFree(clip->name);
+    airFree(clip);
+  }
+  return NULL;
+}
 

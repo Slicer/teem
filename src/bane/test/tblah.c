@@ -28,17 +28,18 @@ rangeTest(char *me, double imin, double imax) {
   int i;
 
   printf("input range (%g,%g) ---------------------\n", imin, imax);
-  for (i=1; i<=BANE_RANGE_MAX; i++) {
-    range = baneRangeArray[i];
-    range->ans(&omin, &omax, imin, imax);
+  for (i=1; i<baneRangeLast; i++) {
+    range = baneRangeNew(i);
+    range->answer(&omin, &omax, imin, imax);
     printf("%s: range %s --> (%g,%g)\n",
 	   me, range->name, omin, omax);
+    range = baneRangeNix(range);
   }
 }
 
 void
 incTest(char *me, int num, baneRange *range) {
-  double *val, tmp, incParm[BANE_INC_PARM_NUM], omin, omax, rmin, rmax;
+  double *val, tmp, incParm[BANE_PARM_NUM], omin, omax, rmin, rmax;
   baneInc *inc;
   Nrrd *hist;
   int i, j;
@@ -61,33 +62,36 @@ incTest(char *me, int num, baneRange *range) {
   }
   fprintf(stderr, "incTest: real min,max = %g,%g\n", rmin, rmax);
   
-  for (i=1; i<=BANE_INC_MAX; i++) {
-    inc = baneIncArray[i];
+  for (i=1; i<baneIncLast; i++) {
+    /* NOTE: THIS IS BROKEN !!! */
+    inc = baneIncNew(i, NULL, incParm);
     printf("%s: inclusion %s ------\n", me, inc->name);
     switch(i) {
-    case baneIncAbsolute_e:
+    case baneIncAbsolute:
       ELL_3V_SET(incParm, -0.8, 1.5, AIR_NAN);
       break;
-    case baneIncRangeRatio_e:
+    case baneIncRangeRatio:
       ELL_3V_SET(incParm, 0.99, AIR_NAN, AIR_NAN);
       break;
-    case baneIncPercentile_e:
+    case baneIncPercentile:
       ELL_3V_SET(incParm, 1024, 10, AIR_NAN);
       break;
-    case baneIncStdv_e:
+    case baneIncStdv:
       ELL_3V_SET(incParm, 1.0, AIR_NAN, AIR_NAN);
       break;
     }
-    hist = inc->histNew(incParm);
+    fprintf(stderr, "!%s: THIS IS BROKEN!!!\n", "incTest");
+    /*
     if (inc->passA) {
       for (j=0; j<num; j++)
-	inc->passA(hist, val[j], incParm);
+	inc->process[0](hist, val[j], incParm);
     }
     if (inc->passB) {
       for (j=0; j<num; j++)
-	inc->passB(hist, val[j], incParm);
+	inc->process[1](hist, val[j], incParm);
     }
     inc->ans(&omin, &omax, hist, incParm, range);
+    */
     printf(" --> (%g,%g)\n", omin, omax);
   }
 

@@ -36,7 +36,6 @@
 int
 _baneAxisCheck (baneAxis *ax) {
   char me[]="_baneAxisCheck", err[AIR_STRLEN_MED];
-  int i;
   
   if (!(ax->res >= 2)) {
     sprintf(err, "%s: need resolution at least 2 (not %d)", me, ax->res);
@@ -46,31 +45,9 @@ _baneAxisCheck (baneAxis *ax) {
     sprintf(err, "%s: have NULL baneMeasr", me);
     biffAdd(BANE, err); return 1;
   }
-  for (i=0; i<ax->measr->numParm; i++) {
-    if (!AIR_EXISTS(ax->measrParm[i])) {
-      sprintf(err, "%s: didn't get %d parms for %s measurement",
-	      me, ax->measr->numParm, ax->measr->name);
-      biffAdd(BANE, err); return 1;
-    }
-  }
   if (!ax->inc) {
     sprintf(err, "%s: have NULL baneInc", me);
     biffAdd(BANE, err); return 1;
-  }
-  for (i=0; i<ax->inc->numParm; i++) {
-    if (!AIR_EXISTS(ax->incParm[i])) {
-      sprintf(err, "%s: didn't get %d parms for %s inclusion",
-	      me, ax->inc->numParm, ax->inc->name);
-      biffAdd(BANE, err); return 1;
-    }
-  }
-  if (_baneInc_HistNew == ax->inc->histNew) {
-    /* a histogram is needed for inclusion */
-    if (!( 3 < ax->incParm[0] )) {
-      sprintf(err, "%s: won't make a size-%d histogram for %s inclusion",
-	      me, (int)(ax->incParm[0]), ax->inc->name);
-      biffAdd(BANE, err); return 1;
-    }
   }
 
   /* all okay */
@@ -81,19 +58,17 @@ void
 baneProbe(double val[3],
 	  Nrrd *nin, baneHVolParm *hvp, gageContext *ctx,
 	  int x, int y, int z) {
-  gage_t *san;
   float *data=NULL;
 
-  san = ctx->pvl[0]->ans;
   if (hvp->makeMeasrVol) {
     data = ( (float*)(hvp->measrVol->data) 
 	     + 3*(x + nin->axis[0].size*(y + nin->axis[1].size*z)) );
   }
   if (!hvp->makeMeasrVol || !hvp->measrVolDone) {
     gageProbe(ctx, x, y, z);
-    val[0] = hvp->ax[0].measr->ans(san, hvp->ax[0].measrParm);
-    val[1] = hvp->ax[1].measr->ans(san, hvp->ax[1].measrParm);
-    val[2] = hvp->ax[2].measr->ans(san, hvp->ax[2].measrParm);
+    val[0] = baneMeasrAnswer(hvp->axis[0].measr, ctx);
+    val[1] = baneMeasrAnswer(hvp->axis[1].measr, ctx);
+    val[2] = baneMeasrAnswer(hvp->axis[2].measr, ctx);
     if (hvp->makeMeasrVol) {
       data[0] = val[0];
       data[1] = val[1];
@@ -121,38 +96,19 @@ baneFindInclusion(double min[3], double max[3],
   sx = nin->axis[0].size;
   sy = nin->axis[1].size;
   sz = nin->axis[2].size;
-  inc[0] = hvp->ax[0].inc;
-  inc[1] = hvp->ax[1].inc;
-  inc[2] = hvp->ax[2].inc;
+  inc[0] = hvp->axis[0].inc;
+  inc[1] = hvp->axis[1].inc;
+  inc[2] = hvp->axis[2].inc;
   if (hvp->verbose) {
     fprintf(stderr, "%s: inclusions: %s %s %s\n", me,
 	    inc[0]->name, inc[1]->name, inc[2]->name);
     fprintf(stderr, "%s: measures: %s %s %s\n", me,
-	    hvp->ax[0].measr->name, hvp->ax[1].measr->name,
-	    hvp->ax[2].measr->name);
+	    hvp->axis[0].measr->name, hvp->axis[1].measr->name,
+	    hvp->axis[2].measr->name);
     /*
     fprintf(stderr, "%s: gage query:\n", me);
     ctx->pvl[0]->kind->queryPrint(stderr, ctx->pvl[0]->query);
     */
-  }
-
-  E = 0;
-  if (!E) {
-    ai = 0;
-    E |= (!(hist[0] = inc[0]->histNew(hvp->ax[0].incParm)));
-  }
-  if (!E) {
-    ai = 1;
-    E |= (!(hist[1] = inc[1]->histNew(hvp->ax[1].incParm)));
-  }
-  if (!E) {
-    ai = 2;
-    E |= (!(hist[2] = inc[2]->histNew(hvp->ax[2].incParm)));
-  }
-  if (E) {
-    sprintf(err, "%s: trouble getting Nrrds for axis %d (%s) inclusions",
-	    me, ai, aname[ai]);
-    biffAdd(BANE, err); return 1;
   }
 
   /* Determining the inclusion ranges for the histogram volume takes
@@ -168,7 +124,9 @@ baneFindInclusion(double min[3], double max[3],
     fprintf(stderr, "%s: pass A of inclusion initialization ...       ", me);
     fflush(stderr);
   }
-  if (inc[0]->passA || inc[1]->passA || inc[2]->passA) {
+  if (inc[0]->process[0] 
+      || inc[1]->process[0] 
+      || inc[2]->process[0]) {
     /*
     fprintf(stderr, "%s: inclusion pass CBs = %p %p %p \n", me, 
 	    incPass[0], incPass[1], incPass[2]);
@@ -189,12 +147,9 @@ baneFindInclusion(double min[3], double max[3],
 	}
 	for (x=0; x<sx; x++) {
 	  baneProbe(val, nin, hvp, ctx, x, y, z);
-	  if (inc[0]->passA) inc[0]->passA(hist[0], val[0],
-					   hvp->ax[0].incParm);
-	  if (inc[1]->passA) inc[1]->passA(hist[1], val[1],
-					   hvp->ax[1].incParm);
-	  if (inc[2]->passA) inc[2]->passA(hist[2], val[2],
-					   hvp->ax[2].incParm);
+	  if (inc[0]->process[0]) inc[0]->process[0](inc[0], val[0]);
+	  if (inc[1]->process[0]) inc[1]->process[0](inc[1], val[1]);
+	  if (inc[2]->process[0]) inc[2]->process[0](inc[2], val[2]);
 	}
       }
     }
@@ -217,7 +172,9 @@ baneFindInclusion(double min[3], double max[3],
     fprintf(stderr, "%s: pass B of inclusion initialization ...       ", me);
     fflush(stderr);
   }
-  if (inc[0]->passB || inc[1]->passB || inc[2]->passB) {
+  if (inc[0]->process[1] 
+      || inc[1]->process[1]
+      || inc[2]->process[1]) {
     if (hvp->makeMeasrVol && !hvp->measrVol) {
       if (nrrdMaybeAlloc(hvp->measrVol=nrrdNew(), nrrdTypeFloat, 4,
 			 3, sx, sy, sz)) {
@@ -234,12 +191,9 @@ baneFindInclusion(double min[3], double max[3],
 	}
 	for (x=0; x<sx; x++) {
 	  baneProbe(val, nin, hvp, ctx, x, y, z);
-	  if (inc[0]->passB) inc[0]->passB(hist[0], val[0],
-					   hvp->ax[0].incParm);
-	  if (inc[1]->passB) inc[1]->passB(hist[1], val[1],
-					   hvp->ax[1].incParm);
-	  if (inc[2]->passB) inc[2]->passB(hist[2], val[2],
-					   hvp->ax[2].incParm);
+	  if (inc[0]->process[1]) inc[0]->process[1](inc[0], val[0]);
+	  if (inc[1]->process[1]) inc[1]->process[1](inc[1], val[1]);
+	  if (inc[2]->process[1]) inc[2]->process[1](inc[2], val[2]);
 	}
       }
     }
@@ -264,18 +218,15 @@ baneFindInclusion(double min[3], double max[3],
   E = 0;
   if (!E) {
     ai = 0;
-    E |= inc[0]->ans(0 + min, 0 + max, hist[0], hvp->ax[0].incParm,
-		     hvp->ax[0].measr->range);
+    E |= baneIncAnswer(inc[0], 0 + min, 0 + max);
   }
   if (!E) {
     ai = 1;
-    E |= inc[1]->ans(1 + min, 1 + max, hist[1], hvp->ax[1].incParm,
-		     hvp->ax[1].measr->range);
+    E |= baneIncAnswer(inc[1], 1 + min, 1 + max);
   }
   if (!E) {
     ai = 2;
-    E |= inc[2]->ans(2 + min, 2 + max, hist[2], hvp->ax[2].incParm,
-		     hvp->ax[2].measr->range);
+    E |= baneIncAnswer(inc[2], 2 + min, 2 + max);
   }
   if (E) {
     sprintf(err, "%s: problem calculating inclusion for axis %d (%s)",
@@ -341,9 +292,10 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
 			     hvp->kparm[gageKernel11]);
   if (!E) E |= gageKernelSet(ctx, gageKernel22, hvp->k[gageKernel22],
 			     hvp->kparm[gageKernel22]);
-  if (!E) E |= gageQuerySet(ctx, pvl, (hvp->ax[0].measr->query |
-				       hvp->ax[1].measr->query |
-				       hvp->ax[2].measr->query));
+  if (!E) E |= gageQueryReset(ctx, pvl);
+  if (!E) E |= gageQueryAdd(ctx, pvl, hvp->axis[0].measr->query);
+  if (!E) E |= gageQueryAdd(ctx, pvl, hvp->axis[1].measr->query);
+  if (!E) E |= gageQueryAdd(ctx, pvl, hvp->axis[2].measr->query);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
     sprintf(err, "%s: trouble setting up gage", me);
@@ -382,9 +334,9 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
     fprintf(stderr, "%s: creating raw histogram volume ...       ", me);
     fflush(stderr);
   }
-  shx = hvp->ax[0].res;
-  shy = hvp->ax[1].res;
-  shz = hvp->ax[2].res;
+  shx = hvp->axis[0].res;
+  shy = hvp->axis[1].res;
+  shz = hvp->axis[2].res;
   if (nrrdMaybeAlloc(rawhvol=nrrdNew(), nrrdTypeInt, 3, shx, shy, shz)) {
     sprintf(err, "%s: couldn't allocate raw histovol (%dx%dx%d)", me,
 	    shx, shy, shz);
@@ -432,8 +384,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   }
   
   /* determine the clipping value and produce the final histogram volume */
-  clipVal = hvp->clip->ans(rawhvol, hvp->clipParm);
-  if (-1 == clipVal) {
+  if (baneClipAnswer(&clipVal, hvp->clip, rawhvol)) {
     sprintf(err, "%s: trouble determining clip value", me);
     biffAdd(BANE, err); airMopError(mop); return 1;
   }
@@ -454,9 +405,9 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   hvol->axis[0].max = max[0];
   hvol->axis[1].max = max[1];
   hvol->axis[2].max = max[2];
-  hvol->axis[0].label = airStrdup(hvp->ax[0].measr->name);
-  hvol->axis[1].label = airStrdup(hvp->ax[1].measr->name);
-  hvol->axis[2].label = airStrdup(hvp->ax[2].measr->name);
+  hvol->axis[0].label = airStrdup(hvp->axis[0].measr->name);
+  hvol->axis[1].label = airStrdup(hvp->axis[1].measr->name);
+  hvol->axis[2].label = airStrdup(hvp->axis[2].measr->name);
   hvol->axis[0].center = nrrdCenterCell;
   hvol->axis[1].center = nrrdCenterCell;
   hvol->axis[2].center = nrrdCenterCell;
@@ -493,8 +444,8 @@ baneGKMSHVol(Nrrd *nin, float gradPerc, float hessPerc) {
     biffAdd(BANE, err); return NULL;
   }
   baneHVolParmGKMSInit(hvp);
-  hvp->ax[0].incParm[1] = gradPerc;
-  hvp->ax[1].incParm[1] = hessPerc;
+  hvp->axis[0].inc->parm[1] = gradPerc;
+  hvp->axis[1].inc->parm[1] = hessPerc;
   hvol = nrrdNew();
   if (baneMakeHVol(hvol, nin, hvp)) {
     sprintf(err, "%s: trouble making GKMS histogram volume", me);

@@ -28,11 +28,11 @@ baneDefVerbose = 0;
 int
 baneDefMakeMeasrVol = AIR_TRUE;
 
-float
+double
 baneDefIncLimit = 0.80;  /* throwing away more than 20% is too much */
 
 int
-baneDefRenormalize = AIR_FALSE;
+baneDefRenormalize = AIR_TRUE;
 
 int
 baneDefPercHistBins = 1024;

@@ -22,18 +22,18 @@
 #include "privateBane.h"
 
 void
-_baneAxisInit(baneAxis *ax) {
-  int i;
+_baneAxisInit(baneAxis *axis) {
 
-  ax->res = -1;
-  ax->measr = baneMeasrUnknown;
-  for (i=0; i<BANE_MEASR_PARM_NUM; i++) {
-    ax->measrParm[i] = AIR_NAN;
-  }
-  ax->inc = baneIncUnknown;
-  for (i=0; i<BANE_INC_PARM_NUM; i++) {
-    ax->incParm[i] = AIR_NAN;
-  }
+  axis->res = -1;
+  axis->measr = NULL;
+  axis->inc = NULL;
+}
+
+void
+_baneAxisEmpty(baneAxis *axis) {
+
+  axis->measr = baneMeasrNix(axis->measr);
+  axis->inc = baneIncNix(axis->inc);
 }
 
 baneHVolParm *
@@ -47,9 +47,9 @@ baneHVolParmNew() {
     hvp->makeMeasrVol = baneDefMakeMeasrVol;
     hvp->measrVol = NULL;
     hvp->measrVolDone = AIR_FALSE;
-    _baneAxisInit(hvp->ax + 0);
-    _baneAxisInit(hvp->ax + 1);
-    _baneAxisInit(hvp->ax + 2);
+    _baneAxisInit(hvp->axis + 0);
+    _baneAxisInit(hvp->axis + 1);
+    _baneAxisInit(hvp->axis + 2);
     hvp->k3pack = AIR_TRUE;
     for(i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       hvp->k[i] = NULL;
@@ -57,13 +57,33 @@ baneHVolParmNew() {
 	hvp->kparm[i][j] = AIR_NAN;
     }
     hvp->renormalize = baneDefRenormalize;
-    hvp->clip = baneClipUnknown;
-    for (i=0; i<BANE_CLIP_PARM_NUM; i++) {
-      hvp->clipParm[i] = AIR_NAN;
-    }
+    hvp->clip = NULL;
     hvp->incLimit = baneDefIncLimit;
   }
   return hvp;
+}
+
+void
+baneHVolParmAxisSet(baneHVolParm *hvp, int axisIdx,
+		    int res, baneMeasr *measr, baneInc *inc) {
+
+  if (hvp && AIR_IN_CL(0, axisIdx, 2)) {
+    _baneAxisEmpty(hvp->axis + axisIdx);
+    hvp->axis[axisIdx].res = res;
+    hvp->axis[axisIdx].measr = baneMeasrCopy(measr);
+    hvp->axis[axisIdx].inc = baneIncCopy(inc);
+  }
+  return;
+}
+
+void
+baneHVolParmClipSet(baneHVolParm *hvp, baneClip *clip) {
+
+  if (hvp && clip) {
+    hvp->clip = baneClipNix(hvp->clip);
+    hvp->clip = baneClipCopy(clip);
+  }
+  return;
 }
 
 baneHVolParm *
@@ -73,6 +93,10 @@ baneHVolParmNix(baneHVolParm *hvp) {
     if (hvp->measrVol) {
       nrrdNuke(hvp->measrVol);
     }
+    _baneAxisEmpty(hvp->axis + 0);
+    _baneAxisEmpty(hvp->axis + 1);
+    _baneAxisEmpty(hvp->axis + 2);
+    baneClipNix(hvp->clip);
     free(hvp);
   }
   return NULL;
@@ -85,37 +109,37 @@ baneHVolParmNix(baneHVolParm *hvp) {
 */
 void
 baneHVolParmGKMSInit(baneHVolParm *hvp) {
+  baneMeasr *measr;
+  baneInc *inc;
+  double parm[BANE_PARM_NUM];
 
   if (hvp) {
-    hvp->ax[0].res = 256;
-    hvp->ax[0].measr = baneMeasrGradMag;
-    hvp->ax[0].inc = baneIncPercentile;
-    hvp->ax[0].incParm[0] = 1024;
-    hvp->ax[0].incParm[1] = 0.15;
-    /*
-    hvp->ax[0].inc = baneIncRangeRatio;
-    hvp->ax[0].incParm[0] = 1.0;
-    */
+    /* no parms to set */
+    measr = baneMeasrNew(baneMeasrGradMag, parm);
+    parm[0] = 1024;
+    parm[1] = 0.15;
+    inc = baneIncNew(baneIncPercentile, measr->range, parm);
+    baneHVolParmAxisSet(hvp, 0, 256, measr, inc);
+    measr = baneMeasrNix(measr);
+    inc = baneIncNix(inc);
 
-    hvp->ax[1].res = 256;
-    hvp->ax[1].measr = baneMeasrHess;
-    hvp->ax[1].inc = baneIncPercentile;
-    hvp->ax[1].incParm[0] = 1024;
-    hvp->ax[1].incParm[1] = 0.25;
-    /*
-    hvp->ax[1].inc = baneIncRangeRatio;
-    hvp->ax[1].incParm[0] = 1.0;
-    */
+    /* no parms to set */
+    measr = baneMeasrNew(baneMeasr2ndDD, parm);
+    parm[0] = 1024;
+    parm[1] = 0.25;
+    inc = baneIncNew(baneIncPercentile, measr->range, parm);
+    baneHVolParmAxisSet(hvp, 1, 256, measr, inc);
+    measr = baneMeasrNix(measr);
+    inc = baneIncNix(inc);
 
-    hvp->ax[2].res = 256;
-    hvp->ax[2].measr = baneMeasrVal;
-    hvp->ax[2].inc = baneIncRangeRatio;
-    hvp->ax[2].incParm[0] = 1.0;
+    /* no parms to set */
+    measr = baneMeasrNew(baneMeasrValueAnywhere, parm);
+    parm[0] = 1.0;
+    inc = baneIncNew(baneIncRangeRatio, measr->range, parm);
+    baneHVolParmAxisSet(hvp, 2, 256, measr, inc);
+    measr = baneMeasrNix(measr);
+    inc = baneIncNix(inc);
 
-    hvp->verbose = 1;
-    hvp->clip = baneClipAbsolute;
-    hvp->clipParm[0] = 256;
-    
     nrrdKernelParse(&(hvp->k[gageKernel00]), hvp->kparm[gageKernel00],
 		    "cubic:0,0.5");  /* catmull-rom */
     nrrdKernelParse(&(hvp->k[gageKernel11]), hvp->kparm[gageKernel11],

@@ -35,7 +35,7 @@ baneGkms_hvolMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin, *nout;
   airArray *mop;
   int pret, dim[3], lapl, i, j, perm[3] = {1,2,0}, slow, gz = AIR_FALSE;
-  double inc[3*(1+BANE_INC_PARM_NUM)];
+  double inc[3*(1+BANE_PARM_NUM)];
   baneHVolParm *hvp;
   NrrdIoState *nio;
   NrrdKernelSpec *ksp00, *ksp11, *ksp22;
@@ -99,16 +99,19 @@ baneGkms_hvolMain(int argc, char **argv, char *me, hestParm *hparm) {
   baneHVolParmGKMSInit(hvp);
   hvp->makeMeasrVol = !slow;
 
-  hvp->ax[0].res = dim[perm[0]];
-  hvp->ax[1].res = dim[perm[1]];
-  hvp->ax[2].res = dim[perm[2]];
-  hvp->ax[1].measr = lapl ? baneMeasrLapl : baneMeasrHess;
+  fprintf(stderr, "!%s: need to be using baneHVolParmAxisSet\n", me);
+  /*
+  hvp->axis[0].res = dim[perm[0]];
+  hvp->axis[1].res = dim[perm[1]];
+  hvp->axis[2].res = dim[perm[2]];
+  hvp->axis[1].measr = lapl ? baneMeasrLapl : baneMeasrHess;
   for (i=0; i<=2; i++) {
     hvp->ax[i].inc = baneIncArray[(int)inc[(1+BANE_INC_PARM_NUM)*perm[i]]];
     for (j=0; j<BANE_INC_PARM_NUM; j++) {
       hvp->ax[i].incParm[j] = inc[1 + j + (1+BANE_INC_PARM_NUM)*perm[i]];
     }
   }
+  */
   hvp->k3pack = AIR_TRUE;
   nrrdKernelParmSet(&hvp->k[gageKernel00], hvp->kparm[gageKernel00], ksp00);
   nrrdKernelParmSet(&hvp->k[gageKernel11], hvp->kparm[gageKernel11], ksp11);

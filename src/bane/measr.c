@@ -20,201 +20,145 @@
 #include "bane.h"
 #include "privateBane.h"
 
-/* ----------------- baneMeasrUnknown -------------------- */
+double
+_baneMeasr_StockAnswer(baneMeasr *measr, gage_t *san, double *parm) {
 
-float
-_baneMeasrUnknown_Ans(gage_t *san, double *measrParm) {
-  char me[]="_baneMeasrUnknown_Ans";
-  fprintf(stderr, "%s: a baneMeasr is unset somewhere ...\n", me);
-  return AIR_NAN;
+  return san[measr->offset0];
 }
 
-baneMeasr
-_baneMeasrUnknown = {
-  "unknown",
-  baneMeasrUnknown_e,
-  0,
-  0,
-  &_baneRangePos,
-  _baneMeasrUnknown_Ans
-};
 baneMeasr *
-baneMeasrUnknown = &_baneMeasrUnknown;
+baneMeasrNew(int type, double *parm) {
+  char me[]="baneMeasrNew", err[AIR_STRLEN_MED];
+  baneMeasr *measr;
+  int item;
 
-/* ----------------- baneMeasrVal -------------------- */
-
-float
-_baneMeasrVal_Ans(gage_t *san, double *measrParm) {
-
-  /* fprintf(stderr, "## _baneMeasrVal_Ans: %g\n", san->val[0]); */
-  return san[gageKindScl->ansOffset[gageSclValue]];
+  if (!( AIR_IN_OP(baneMeasrUnknown, type, baneMeasrLast) )) {
+    sprintf(err, "%s: baneMeasr %d invalid", me, type);
+    biffAdd(BANE, err); return NULL;
+  }
+  /* for now, parm is ignored ... */
+  measr = (baneMeasr*)calloc(1, sizeof(baneMeasr));
+  if (!measr) {
+    sprintf(err, "%s: couldn't allocate baneMeasr!", me);
+    biffAdd(BANE, err); return NULL;
+  }
+  measr->type = type;
+  measr->range = NULL;
+  GAGE_QUERY_RESET(measr->query);
+  switch(type) {
+    /* --------------------------------------------------------------- */
+  case baneMeasrValuePositive:
+    item = gageSclValue;
+    sprintf(measr->name, "%s, positive", airEnumStr(gageScl, item));
+    GAGE_QUERY_ITEM_ON(measr->query, item);
+    measr->range = baneRangeNew(baneRangePositive);
+    measr->offset0 = gageKindAnswerOffset(gageKindScl, item);
+    measr->answer = _baneMeasr_StockAnswer;
+    break;
+    /* --------------------------------------------------------------- */
+  case baneMeasrValueZeroCentered:
+    item = gageSclValue;
+    sprintf(measr->name, "%s, zero-centered", airEnumStr(gageScl, item));
+    GAGE_QUERY_ITEM_ON(measr->query, item);
+    measr->range = baneRangeNew(baneRangeZeroCentered);
+    measr->offset0 = gageKindAnswerOffset(gageKindScl, item);
+    measr->answer = _baneMeasr_StockAnswer;
+    break;
+    /* --------------------------------------------------------------- */
+  case baneMeasrValueAnywhere:
+    item = gageSclValue;
+    sprintf(measr->name, "%s, anywhere", airEnumStr(gageScl, item));
+    GAGE_QUERY_ITEM_ON(measr->query, item);
+    measr->range = baneRangeNew(baneRangeAnywhere);
+    measr->offset0 = gageKindAnswerOffset(gageKindScl, item);
+    measr->answer = _baneMeasr_StockAnswer;
+    break;
+    /* --------------------------------------------------------------- */
+  case baneMeasrGradMag:
+    item = gageSclGradMag;
+    sprintf(measr->name, "%s", airEnumStr(gageScl, item));
+    GAGE_QUERY_ITEM_ON(measr->query, item);
+    measr->range = baneRangeNew(baneRangePositive);
+    measr->offset0 = gageKindAnswerOffset(gageKindScl, item);
+    measr->answer = _baneMeasr_StockAnswer;
+    break;
+    /* --------------------------------------------------------------- */
+  case baneMeasrLaplacian:
+    item = gageSclLaplacian;
+    sprintf(measr->name, "%s", airEnumStr(gageScl, item));
+    GAGE_QUERY_ITEM_ON(measr->query, item);
+    measr->range = baneRangeNew(baneRangeZeroCentered);
+    measr->offset0 = gageKindAnswerOffset(gageKindScl, item);
+    measr->answer = _baneMeasr_StockAnswer;
+    break;
+    /* --------------------------------------------------------------- */
+  case baneMeasr2ndDD:
+    item = gageScl2ndDD;
+    sprintf(measr->name, "%s", airEnumStr(gageScl, item));
+    GAGE_QUERY_ITEM_ON(measr->query, item);
+    measr->range = baneRangeNew(baneRangeZeroCentered);
+    measr->offset0 = gageKindAnswerOffset(gageKindScl, item);
+    measr->answer = _baneMeasr_StockAnswer;
+    break;
+    /* --------------------------------------------------------------- */
+  case baneMeasrTotalCurv:
+    item = gageSclTotalCurv;
+    sprintf(measr->name, "%s", airEnumStr(gageScl, item));
+    GAGE_QUERY_ITEM_ON(measr->query, item);
+    measr->range = baneRangeNew(baneRangePositive);
+    measr->offset0 = gageKindAnswerOffset(gageKindScl, item);
+    measr->answer = _baneMeasr_StockAnswer;
+    break;
+    /* --------------------------------------------------------------- */
+  case baneMeasrFlowlineCurv:
+    item = gageSclFlowlineCurv;
+    sprintf(measr->name, "%s", airEnumStr(gageScl, item));
+    GAGE_QUERY_ITEM_ON(measr->query, item);
+    measr->range = baneRangeNew(baneRangePositive);
+    measr->offset0 = gageKindAnswerOffset(gageKindScl, item);
+    measr->answer = _baneMeasr_StockAnswer;
+    break;
+    /* --------------------------------------------------------------- */
+  default:    
+    sprintf(err, "%s: Sorry, baneMeasr %d not implemented", me, type);
+    biffAdd(BANE, err); baneMeasrNix(measr); return NULL;
+  }
+  return measr;
 }
 
-/*
-** I'm really asking for it here.  Because data value can have
-** different ranges depending on the data, I want to have different
-** baneMeasrs for them, even though all of them use the same
-** ans() method.  This obviously breaks the one-to-one relationship
-** between the members of the enum and the related structs which
-** occurs with inclusions, measures, and clippings.
-*/
-
-baneMeasr
-_baneMeasrValFloat = {
-  "val(float)",
-  baneMeasrVal_e,
-  0,
-  (1<<gageSclValue),
-  &_baneRangeFloat,
-  _baneMeasrVal_Ans
-};
-baneMeasr *
-baneMeasrValFloat = &_baneMeasrValFloat;
-
-baneMeasr
-_baneMeasrValPos = {
-  "val(pos)",
-  baneMeasrVal_e,
-  0,
-  (1<<gageSclValue),
-  &_baneRangePos,
-  _baneMeasrVal_Ans
-};
-baneMeasr *
-baneMeasrValPos = &_baneMeasrValPos;
-
-baneMeasr
-_baneMeasrValZeroCent = {
-  "val(zerocent)",
-  baneMeasrVal_e,
-  0,
-  (1<<gageSclValue),
-  &_baneRangeZeroCent,
-  _baneMeasrVal_Ans
-};
-baneMeasr *
-baneMeasrValZeroCent = &_baneMeasrValZeroCent;
-
-/*
-** We're making baneMeasrVal point to _baneMeasrValFloat, with
-** baneRangeFloat, because that is what was done in the last version
-** of bane.
-*/
-baneMeasr *
-baneMeasrVal = &_baneMeasrValFloat;
-
-
-/* ----------------- baneMeasrGradMag -------------------- */
-
-float
-_baneMeasrGradMag_Ans(gage_t *san, double *measrParm) {
-
-  /* fprintf(stderr, "## _baneMeasrGradMag_Ans: %g\n", san->gmag[0]); */
-  return san[gageKindScl->ansOffset[gageSclGradMag]];
-}
-
-baneMeasr
-_baneMeasrGradMag = {
-  "gradmag",
-  baneMeasrGradMag_e,
-  0,
-  (1<<gageSclGradMag),
-  &_baneRangePos,
-  _baneMeasrGradMag_Ans
-};
-baneMeasr *
-baneMeasrGradMag = &_baneMeasrGradMag;
-
-/* ----------------- baneMeasrLapl -------------------- */
-
-float
-_baneMeasrLapl_Ans(gage_t *san, double *measrParm) {
-
-  return san[gageKindScl->ansOffset[gageSclLaplacian]];
-}
-
-baneMeasr
-_baneMeasrLapl = {
-  "laplacian",
-  baneMeasrLapl_e,
-  0,
-  (1<<gageSclLaplacian),
-  &_baneRangeZeroCent,
-  _baneMeasrLapl_Ans
-};
-baneMeasr *
-baneMeasrLapl = &_baneMeasrLapl;
-
-/* ----------------- baneMeasrHess -------------------- */
-
-float
-_baneMeasrHess_Ans(gage_t *san, double *measrParm) {
+double
+baneMeasrAnswer(baneMeasr *measr, gageContext *gctx) {
+  char me[]="baneMeasrAnswer";
+  double ret;
   
-  /* fprintf(stderr, "## _baneMeasrHess_Ans: %g\n", san->scnd[0]); */
-  return san[gageKindScl->ansOffset[gageScl2ndDD]];
+  if (measr && gctx && 1 == gctx->numPvl) {
+    ret = measr->answer(measr, gctx->pvl[0]->answer, measr->parm);
+  } else {
+    fprintf(stderr, "%s: something is terribly wrong\n", me);
+    ret = AIR_NAN;
+  }
+  return ret;
 }
 
-baneMeasr
-_baneMeasrHess = {
-  "hess-2nd",
-  baneMeasrHess_e,
-  0,
-  (1<<gageScl2ndDD),  /* this is hessian BASED 2nd DD measure */
-  &_baneRangeZeroCent,
-  _baneMeasrHess_Ans
-};
 baneMeasr *
-baneMeasrHess = &_baneMeasrHess;
-
-/* ----------------- baneMeasrCurvedness -------------------- */
-
-float
-_baneMeasrCurvedness_Ans(gage_t *san, double *measrParm) {
-
-  return san[gageKindScl->ansOffset[gageSclCurvedness]];
+baneMeasrCopy(baneMeasr *measr) {
+  char me[]="baneMeasrCopy", err[AIR_STRLEN_MED];
+  baneMeasr *ret = NULL;
+  
+  ret = baneMeasrNew(measr->type, measr->parm);
+  if (!ret) {
+    sprintf(err, "%s: couldn't make new measr", me);
+    biffAdd(BANE, err); return NULL;
+  }
+  return ret;
 }
 
-baneMeasr
-_baneMeasrCurvedness = {
-  "curvedness",
-  baneMeasrCurvedness_e,
-  0,
-  (1<<gageSclCurvedness),
-  &_baneRangePos,
-  _baneMeasrCurvedness_Ans
-};
 baneMeasr *
-baneMeasrCurvedness = &_baneMeasrCurvedness;
-
-/* ----------------- baneMeasrShapeTrace -------------------- */
-
-float
-_baneMeasrShapeTrace_Ans(gage_t *san, double *measrParm) {
-
-  return san[gageKindScl->ansOffset[gageSclShapeTrace]];
+baneMeasrNix(baneMeasr *measr) {
+  
+  if (measr) {
+    baneRangeNix(measr->range);
+    airFree(measr);
+  }
+  return NULL;
 }
-
-baneMeasr
-_baneMeasrShapeTrace = {
-  "shape-trace",
-  baneMeasrShapeTrace_e,
-  0,
-  (1<<gageSclShapeTrace),
-  &_baneRangeZeroCent,
-  _baneMeasrShapeTrace_Ans
-};
-baneMeasr *
-baneMeasrShapeTrace = &_baneMeasrShapeTrace;
-
-/* ---------------------------------------------------------- */
-
-baneMeasr *baneMeasrArray[BANE_MEASR_MAX+1] = {
-  &_baneMeasrUnknown,
-  /* HEY: this shouldn't be specific here */
-  &_baneMeasrValFloat,
-  &_baneMeasrGradMag,
-  &_baneMeasrLapl,
-  &_baneMeasrHess,
-  &_baneMeasrCurvedness,
-  &_baneMeasrShapeTrace
-};
