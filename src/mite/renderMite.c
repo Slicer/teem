@@ -76,7 +76,7 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
     query |= 1<<gageSclNormal;
   }
   fprintf(stderr, "!%s: gageScl query: \n", me);
-  gageKindScl->queryPrint(stderr, query);
+  gageQueryPrint(stderr, gageKindScl, query);
 
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(muu->nin, gageKindScl));
