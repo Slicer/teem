@@ -335,6 +335,7 @@ _nrrdMeasureStr[NRRD_MEASURE_MAX+1][AIR_STRLEN_SMALL] = {
   "histo-mode",
   "histo-product",
   "histo-sum",
+  "histo-l2",
   "histo-variance"
 };
 
@@ -348,9 +349,9 @@ _nrrdMeasureDesc[NRRD_MEASURE_MAX+1][AIR_STRLEN_MED] = {
   "mode of values",
   "product of values",
   "sum of values",
-  "L1 of values",
-  "L2 of values",
-  "Linf of values",
+  "L1 norm of values",
+  "L2 norm of values",
+  "Linf norm of values",
   "variance of values",
   "SD of values",
   "minimum of histogrammed values",
@@ -360,6 +361,7 @@ _nrrdMeasureDesc[NRRD_MEASURE_MAX+1][AIR_STRLEN_MED] = {
   "mode of histogrammed values",
   "product of histogrammed values",
   "sum of histogrammed values",
+  "L2 norm of histogrammed values",
   "variance of histogrammed values"
 };
 
@@ -385,7 +387,8 @@ _nrrdMeasureStrEqv[][AIR_STRLEN_SMALL] = {
   "histo-mode",
   "histo-product",
   "histo-sum",
-  "histo-variance"
+  "histo-l2",
+  "histo-variance", "histo-var"
 };
 
 int
@@ -410,7 +413,8 @@ _nrrdMeasureValEqv[] = {
   nrrdMeasureHistoMode,
   nrrdMeasureHistoProduct,
   nrrdMeasureHistoSum,
-  nrrdMeasureHistoVariance
+  nrrdMeasureHistoL2,
+  nrrdMeasureHistoVariance, nrrdMeasureHistoVariance
 };
 
 airEnum
@@ -637,7 +641,9 @@ _nrrdNonExistStr[NRRD_NON_EXIST_MAX+1][AIR_STRLEN_SMALL] = {
 #define nuExp nrrdUnaryOpExp
 #define nuLge nrrdUnaryOpLog
 #define nuLgt nrrdUnaryOpLog10
+#define nuL1p nrrdUnaryOpLog1p
 #define nuSqt nrrdUnaryOpSqrt
+#define nuCbt nrrdUnaryOpCbrt
 #define nuErf nrrdUnaryOpErf
 #define nuCil nrrdUnaryOpCeil
 #define nuFlr nrrdUnaryOpFloor
@@ -661,7 +667,9 @@ _nrrdUnaryOpStr[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "exp",
   "log",
   "log10",
+  "log1p",
   "sqrt",
+  "cbrt",
   "erf",
   "ceil",
   "floor",
@@ -686,7 +694,9 @@ _nrrdUnaryOpDesc[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_MED] = {
   "e raised to something",
   "natural (base e) logarithm",
   "base 10 logarithm",
+  "ln(1+x), accurate for small x",
   "square root",
+  "cube root",
   "error function (integral of gaussian)",
   "smallest integer greater than or equal",
   "largest integer less than or equal",
@@ -710,7 +720,9 @@ _nrrdUnaryOpStrEqv[][AIR_STRLEN_SMALL] = {
   "exp",
   "ln", "log",
   "log10",
+  "ln1p", "log1p",
   "sqrt",
+  "cbrt",
   "erf",
   "ceil",
   "floor",
@@ -735,7 +747,9 @@ _nrrdUnaryOpValEqv[] = {
   nuExp,
   nuLge, nuLge,
   nuLgt,
+  nuL1p, nuL1p,
   nuSqt,
+  nuCbt,
   nuErf,
   nuCil,
   nuFlr,
