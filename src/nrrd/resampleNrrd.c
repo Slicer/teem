@@ -800,8 +800,6 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
 		    | NRRD_AXIS_INFO_SPACING_BIT
 		    | NRRD_AXIS_INFO_KIND_BIT));
   for (d=0; d<dim; d++) {
-    fprintf(stderr, "%s: nin->axis[%d].kind = %s\n", me, d,
-	    airEnumStr(nrrdKind, nin->axis[d].kind));
     if (info->kernel[d]) {
       nout->axis[d].min = info->min[d];
       nout->axis[d].max = info->max[d];
@@ -813,8 +811,6 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
       nout->axis[d].spacing = nin->axis[d].spacing;
       nout->axis[d].kind = nin->axis[d].kind;
     }
-    fprintf(stderr, "%s: nout->axis[%d].kind = %s\n", me, d,
-	    airEnumStr(nrrdKind, nout->axis[d].kind));
   }
   /* HEY: need to create textual representation of resampling parameters */
   if (nrrdContentSet(nout, func, nin, "")) {

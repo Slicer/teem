@@ -245,6 +245,13 @@ enum {
 ******** nrrdField enum
 **
 ** the various fields we can parse in a NRRD header
+**
+** other things which must be kept in sync:
+** arraysNrrd.c: 
+**    _nrrdFieldValidInImage[]
+**    _nrrdFieldOnePerAxis[]
+**    _nrrdFieldValidInText[]
+**    _nrrdFieldRequired[]
 */
 enum {
   nrrdField_unknown,
