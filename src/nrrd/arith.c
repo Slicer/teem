@@ -267,6 +267,9 @@ nrrdArithBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); free(contA); free(contB); return 1;
   }
+  if (nout != nin) {
+    nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+  }
   free(contA);
   free(contB); 
   return 0;

@@ -1,4 +1,4 @@
-why the hell isn't spacing and other axis information passed by unu Nop?
+fix/purify bug in passing axis information in unu 2op: label[0] == " %lg"
 
 test working with nout==nin
 nrrdContentSet
@@ -9,12 +9,12 @@ nrrdQuantize
 
 VTK file input and output!
 
+for kernels: teach them their derivatives, and whether or not they
+need renormalization
+
 HEY: need to create textual representation of resampling parameters
 
 change nrrdHistoEq to use 1D regular maps, allow learning of mapping used.
-
-do warning messages if the number of kernel parameters in a kernel
-specification string is _greater_ than useful
 
 nrrdPad_nva, nrrdSimplePad_nva
 
