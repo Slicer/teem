@@ -274,6 +274,13 @@ echoChannelAverage(echoCol_t *img,
   return;
 }
 
+/*
+** echoRayColor
+**
+** This is called by echoRender and by the various color routines,
+** following an intersection with non-phong non-light material.
+** As such, it is never called on shadow rays.  
+*/
 void
 echoRayColor(echoCol_t *chan, int samp, EchoRay *ray,
 	     EchoParam *param, EchoThreadState *tstate,
@@ -281,13 +288,30 @@ echoRayColor(echoCol_t *chan, int samp, EchoRay *ray,
   
   EchoIntx intx;  /* NOT a pointer */
   
-  if (!_echoRayIntx[scene->type](&intx, ray, param, scene)) {
-    /* ray hits nothing in scene */
-    ELL_4V_SET(chan, 0, 0, 0, 0);
+  if (ray->depth > param->maxRecDepth) {
+    /* we've exceeded the recursion depth, so no more rays for you */
+    ELL_4V_SET(chan, param->mrR, param->mrG, param->mrB, 1.0);
     return;
   }
-  /* else we actually hit something */
-  _echoRayIntxFinish[intx.obj->type](&intx, ray, AIR_FALSE);
+  
+  if (!_echoRayIntx[scene->type](&intx, ray, param, scene)) {
+    /* ray hits nothing in scene */
+    ELL_4V_SET(chan, param->bgR, param->bgG, param->bgB, 1.0);
+    return;
+  }
+  /* else we actually hit something.  Chances are, we'll need to
+     know the view vector and intersection location ("pos"), either
+     for texturing or for starting new rays, so we'll calculate 
+     those here.  Also, record the depth for the child rays. */
+  ELL_3V_SCALE(intx.view, ray->dir, -1);
+  intx.pos[0] = ray->from[0] + intx.t*ray->dir[0];
+  intx.pos[1] = ray->from[1] + intx.t*ray->dir[1];
+  intx.pos[2] = ray->from[2] + intx.t*ray->dir[2];
+  intx.depth = ray->depth;
+  /* it seems that the only other information that might be needed
+     about the intersection is (u,v) location, which be generated
+     on an as-needed basis, so this should be migrated somewhere ... */
+  /* _echoRayIntxUV[intx.obj->type](&intx, ray, AIR_FALSE); */
   _echoIntxColor[intx.obj->matter](chan, &intx, samp, param,
 				   tstate, scene, lightArr);
 
@@ -392,7 +416,7 @@ echoRender(Nrrd *nraw, limnCam *cam,
 	/* do it! */
 	ELL_3V_SUB(ray.dir, at, ray.from);
 	ray.near = 0.0;
-	ray.far = POS_MAX;
+	ray.far = ECHO_POS_MAX;
 	/*
 	printf("!%s:(%d,%d): from=(%g,%g,%g); at=(%g,%g,%g); dir=(%g,%g,%g)\n",
 	       me, imgUi, imgVi, from[0], from[1], from[2],

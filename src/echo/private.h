@@ -24,11 +24,11 @@
 #define INTX_ARGS(TYPE) EchoIntx *intx, EchoRay *ray,               \
                         EchoParam *param, EchoObject##TYPE *obj
 
-typedef int (*_echoRayIntx_t)(INTX_ARGS());
+typedef int (*_echoRayIntx_t)(INTX_ARGS( ));
 extern _echoRayIntx_t _echoRayIntx[ECHO_OBJECT_MAX+1];
 
-typedef void (*_echoRayIntxFinish_t)(EchoIntx *intx, EchoRay *ray, int uvNeed);
-extern _echoRayIntxFinish_t _echoRayIntxFinish[ECHO_OBJECT_MAX+1];
+typedef void (*_echoRayIntxUV_t)(EchoIntx *intx, EchoRay *ray);
+extern _echoRayIntxUV_t _echoRayIntxUV[ECHO_OBJECT_MAX+1];
 
 /* color.c */
 #define COLOR_ARGS echoCol_t *chan, EchoIntx *intx, int samp,       \

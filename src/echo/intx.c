@@ -196,6 +196,7 @@ _echoRayIntx[ECHO_OBJECT_MAX+1] = {
   NULL,
   (_echoRayIntx_t)_echoRayIntxSphere,
   (_echoRayIntx_t)NULL,
+  (_echoRayIntx_t)NULL,
   (_echoRayIntx_t)_echoRayIntxTriangle,
   (_echoRayIntx_t)_echoRayIntxRectangle,
   (_echoRayIntx_t)NULL,
@@ -209,6 +210,7 @@ _echoRayIntxUV_t
 _echoRayIntxUV[ECHO_OBJECT_MAX+1] = {
   NULL,
   _echoRayIntxUVSphere,
+  NULL,
   NULL,
   _echoRayIntxUVNoop,
   _echoRayIntxUVNoop,

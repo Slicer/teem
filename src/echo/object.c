@@ -31,15 +31,18 @@ _echoObject##TYPE##_new(void) {                                  \
 }
 
 /*
-  echoObjectSphere,
-  echoObjectCube,
-  echoObjectTriangle,
-  echoObjectRectangle,
-  echoObjectTriMesh,
-  echoObjectIsosurface,
-  echoObjectAABBox,
-  echoObjectList,
-  echoObjectInstance,
+  echoObjectUnknown,
+  echoObjectSphere,     /*  1 */
+  echoObjectCube,       /*  2 */
+  echoObjectUnitCube,   /*  3 */
+  echoObjectTriangle,   /*  4 */
+  echoObjectRectangle,  /*  5 */
+  echoObjectTriMesh,    /*  6: only triangles in the mesh */
+  echoObjectIsosurface, /*  7 */
+  echoObjectAABBox,     /*  8 */
+  echoObjectList,       /*  9 */
+  echoObjectInstance,   /* 10 */
+  echoObjectLast
 */
 
 NEW_TMPL(Sphere,);

@@ -35,11 +35,12 @@ makeSceneShadow(limnCam *cam, EchoParam *param,
 
   param->jitter = echoJitterJitter;
   param->verbose = 0;
-  param->samples = 9;
-  param->imgResU = 300;
-  param->imgResV = 300;
+  param->samples = 4;
+  param->imgResU = 200;
+  param->imgResV = 200;
   param->aperture = 0.0;
   param->gamma = 2.0;
+  param->refDistance = 4;
   param->renderLights = AIR_TRUE;
 
   /* create scene */
@@ -58,7 +59,7 @@ makeSceneShadow(limnCam *cam, EchoParam *param,
   sphere = echoObjectNew(echoObjectSphere);
   echoObjectSphereSet(sphere, 0, 0, 1, 0.2);
   echoMatterPhongSet(sphere, 0.5, 1, 0.5, 1.0,
-		     0.1, 0.6, 0.3, 200);
+		     0.1, 0.6, 0.3, 40);
   echoObjectListAdd(scene, sphere);
 
   tri = echoObjectNew(echoObjectTriangle);
@@ -126,9 +127,9 @@ makeSceneRainLights(limnCam *cam, EchoParam *param,
 
   param->jitter = echoJitterJitter;
   param->verbose = 0;
-  param->samples = 25;
-  param->imgResU = 300;
-  param->imgResV = 300;
+  param->samples = 36;
+  param->imgResU = 1000;
+  param->imgResV = 1000;
   param->aperture = 0.0;
   param->gamma = 2.0;
   param->renderLights = AIR_TRUE;
@@ -216,7 +217,7 @@ main(int argc, char **argv) {
   airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, npgm, (airMopper)nrrdNuke, airMopAlways);
 
-  makeSceneRainLights(cam, param, scene, lightArr);
+  makeSceneShadow(cam, param, scene, lightArr);
 
   E = 0;
   if (!E) E |= echoRender(nraw, cam, param, state, scene, lightArr);
