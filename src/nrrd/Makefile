@@ -31,7 +31,7 @@ LIB_OBJS = \
 	write.o
 
 #TEST_BINS = test/enum2str test/str2enum 
-TEST_BINS = test/shuff test/ax test/io test/minmax test/tkernel
+TEST_BINS = test/trand test/shuff test/ax test/io test/minmax test/tkernel
 BINS = bin/nrrdSanity
 BIN_LIBS = -lnrrd -lbiff -lair -lm
 
