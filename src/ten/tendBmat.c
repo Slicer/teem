@@ -20,10 +20,11 @@
 #include "ten.h"
 #include "tenPrivate.h"
 
-#define INFO "Find tensor estimation matrix given gradient directions"
-char *_tend_ematInfoL =
+#define INFO "Calculate B-matrix given gradient directions"
+char *_tend_bmatInfoL =
   (INFO
-   ".  The input is a 3-by-N array of floats or doubles, each row being "
+   ", assuming no diffusion weighting from the other imaging gradients. "
+   "The input is a 3-by-N array of floats or doubles, each row being "
    "one of the gradient directions used for diffusion-weighted imaging. "
    "A plain text file with one gradient per line, no punctuation, is an "
    "easy way to specify this information. "
@@ -34,7 +35,7 @@ char *_tend_ematInfoL =
    "components, in the order Dxx, Dxy, Dxz, Dyy, Dyz, Dzz.");
 
 int
-tend_ematMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_bmatMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -46,19 +47,19 @@ tend_ematMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "i", "grads", airTypeOther, 1, 1, &ngrad, NULL,
 	     "array of gradient directions", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output tensor estimation matrix");
+	     "output B matrix");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_ematInfoL);
+  USAGE(_tend_bmatInfoL);
   PARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (tenEstimationMatrix(nout, ngrad)) {
+  if (tenBMatrix(nout, ngrad)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble making tensor volume:\n%s\n", me, err);
+    fprintf(stderr, "%s: trouble making B matrix:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
 
@@ -71,4 +72,4 @@ tend_ematMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopOkay(mop);
   return 0;
 }
-unrrduCmd tend_ematCmd = { "emat", INFO, tend_ematMain };
+unrrduCmd tend_bmatCmd = { "bmat", INFO, tend_bmatMain };
