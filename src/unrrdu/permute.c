@@ -15,68 +15,51 @@
   of Utah. All Rights Reserved.
 */
 
+#include "private.h"
 
-#include <nrrd.h>
-
-int
-usage(char *me) {
-  /*               0    1        2        3           argc-2     argc-1 */ 
-  fprintf(stderr, 
-	  "usage: %s <nrrdIn> <axis_0> <axis_1> ... <axis_n-1> <nrrdOut>\n",
-	  me);
-  return 1;
-}
+char *permuteName = "permute";
+char *permuteInfo = "Permute scan-line ordering of axes";
 
 int
-main(int argc, char *argv[]) {
-  char *me, *in, *out, *err;
-  int i, ax, udim, axis[NRRD_DIM_MAX], used[NRRD_DIM_MAX];
+permuteMain(int argc, char **argv, char *me) {
+  hestOpt *opt = NULL;
+  char *out, *err;
   Nrrd *nin, *nout;
+  int *perm, permLen;
+  airArray *mop;
 
-  me = argv[0];
-  udim = argc - 3;
-  if (!(udim > 1)) {
-    return usage(me);
-  }
+  OPT_ADD_NIN(nin, "input");
+  hestOptAdd(&opt, "p|permute", "ax0 ax1 ", airTypeInt, 1, -1, &perm, NULL,
+	     "new axis ordering", &permLen);
+  OPT_ADD_NOUT(out, "output nrrd");
 
-  in = argv[1];
-  out = argv[argc-1];
-  memset(used, 0, NRRD_DIM_MAX*sizeof(int));
-  for (i=0; i<=udim-1; i++) {
-    if (1 != sscanf(argv[i+2], "%d", &ax)) {
-      fprintf(stderr, "%s: couldn't parse axis \"%s\" as int\n",
-	      me, argv[i+2]);
-      return 1;
-    }
-    axis[i] = ax;
-  }
-  if (nrrdLoad(nin=nrrdNew(), in)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: error reading nrrd from \"%s\":\n%s\n", me, in, err);
-    free(err);
-    return 1;
-  }
-  if (udim != nin->dim) {
-    fprintf(stderr, "%s: input nrrd has dimension %d, but given %d axes\n",
-	    me, nin->dim, udim);
-    return 1;
-  }
+  mop = airMopInit();
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+
+  USAGE(permuteInfo);
+  PARSE();
+
   nout = nrrdNew();
-  if (nrrdPermuteAxes(nout, nin, axis)) {
-    err = biffGet(NRRD);
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+
+  if (!( permLen == nin->dim )) {
+    fprintf(stderr,
+	    "%s: # axes in permutation (%d) != nrrd dim (%d)\n",
+	    me, permLen, nin->dim);
+    airMopError(mop);
+    return 1;
+  }
+  printf("!%s: perm: %d %d %d\n", me, perm[0], perm[1], perm[2]);
+
+  if (nrrdPermuteAxes(nout, nin, perm)) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error permuting nrrd:\n%s", me, err);
-    free(err);
+    airMopError(mop);
     return 1;
   }
 
-  if (nrrdSave(out, nout, NULL)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: error writing nrrd to \"%s\":\n%s\n", me, out, err);
-    free(err);
-    return 1;
-  }
-    
-  nrrdNuke(nin);
-  nrrdNuke(nout);
+  SAVE();
+
+  airMopOkay(mop);
   return 0;
 }

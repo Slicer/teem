@@ -50,16 +50,16 @@ padMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int *minOff, numMin, *maxOff, numMax, ax, bb, ret,
+  int *minOff, minLen, *maxOff, maxLen, ax, bb, ret,
     min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
   double padVal;
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input");
-  OPT_ADD_BOUND("min", minOff, "low corner of bounding box", numMin);
-  OPT_ADD_BOUND("max", maxOff, "high corner of bounding box", numMax);
+  OPT_ADD_BOUND("min", minOff, "low corner of bounding box", minLen);
+  OPT_ADD_BOUND("max", maxOff, "high corner of bounding box", maxLen);
   hestOptAdd(&opt, "b|boundary", "bb", airTypeOther, 1, 1, &bb, "bleed",
-	     "behavior at boundary: pad, bleed, or wrap");
+	     "\"pad\", \"bleed\", or \"wrap\"", NULL, &unuBoundaryHestCB);
   hestOptAdd(&opt, "v|value", "val", airTypeDouble, 1, 1, &padVal, "0.0",
 	     "for \"pad\" boundary behavior, pad with this value");
   OPT_ADD_NOUT(out, "output nrrd");
@@ -70,10 +70,10 @@ padMain(int argc, char **argv, char *me) {
   USAGE(padInfo);
   PARSE();
 
-  if (!( numMin == nin->dim && numMax == nin->dim )) {
+  if (!( minLen == nin->dim && maxLen == nin->dim )) {
     fprintf(stderr,
 	    "%s: # min coords (%d) or max coords (%d) != nrrd dim (%d)\n",
-	    me, numMin, numMax, nin->dim);
+	    me, minLen, maxLen, nin->dim);
     airMopError(mop);
     return 1;
   }
@@ -87,10 +87,14 @@ padMain(int argc, char **argv, char *me) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdBoundaryPad == bb)
+  if (nrrdBoundaryPad == bb) {
+    printf("!%s: bb = nrrdBoundaryPad, padVal = %g\n", me, padVal);
     ret = nrrdPad(nout, nin, min, max, bb, padVal);
-  else
+  }
+  else {
+    printf("!%s: bb = %d\n", me, bb);
     ret = nrrdPad(nout, nin, min, max, bb);
+  }
   if (ret) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error padding nrrd:\n%s", me, err);

@@ -25,13 +25,13 @@ cropMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int *minOff, numMin, *maxOff, numMax, ax,
+  int *minOff, minLen, *maxOff, maxLen, ax,
     min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input");
-  OPT_ADD_BOUND("min", minOff, "low corner of bounding box", numMin);
-  OPT_ADD_BOUND("max", maxOff, "high corner of bounding box", numMax);
+  OPT_ADD_BOUND("min", minOff, "low corner of bounding box", minLen);
+  OPT_ADD_BOUND("max", maxOff, "high corner of bounding box", maxLen);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
@@ -40,10 +40,10 @@ cropMain(int argc, char **argv, char *me) {
   USAGE(cropInfo);
   PARSE();
 
-  if (!( numMin == nin->dim && numMax == nin->dim )) {
+  if (!( minLen == nin->dim && maxLen == nin->dim )) {
     fprintf(stderr,
 	    "%s: # min coords (%d) or max coords (%d) != nrrd dim (%d)\n",
-	    me, numMin, numMax, nin->dim);
+	    me, minLen, maxLen, nin->dim);
     airMopError(mop);
     return 1;
   }

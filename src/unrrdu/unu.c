@@ -74,6 +74,7 @@ hestParm *hparm;
 F(slice) \
 F(crop) \
 F(pad) \
+F(permute) \
 F(flip) \
 F(convert)
 /*********************************************************/

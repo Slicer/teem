@@ -1044,7 +1044,7 @@ hestParseFree(hestOpt *opt) {
       /* nothing was allocated */
       break;
     case 1:
-      if (airTypeString == opt[op].type) {
+      if (airTypeOther != opt[op].type) {
 	*vP = airFree(*vP);
       }
       else {

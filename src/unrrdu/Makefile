@@ -28,7 +28,7 @@ BIN_OBJS = unu.o
 #      the function to call to do the command
 # This applies to every .o file below!
 #
-BIN_OBJS += flip.o slice.o convert.o crop.o pad.o
+BIN_OBJS += flip.o slice.o convert.o crop.o pad.o permute.o
 BIN_LIBS = -lnrrd -lbiff -lhest -lair -lm
 
 include ../make/Common.mk
