@@ -4,23 +4,11 @@ apparent problem w/ gage probing (0,0,0) in a cell-centered thickness-1 volume
 gageIv3Fill: padded size = (258,258,3);
     fd = 4; point (pad: 1) coord = (1,1,0) --> bidx = -66564
 
-nrrd: verbose message to confirm directIO success
-
-nrrd: extract min, max, hasNonExist from nrrd struct, create nrrdRange
-  decide if oldMin and oldMax stay as is
-
-nrrd: key/value pairs
-
-nrrd: enable imagemagick-style format flagging on filenames ("PNM:-"),
-thereby obviating "unu save -f pnm" steps in pipes to standard out 
-
 air: make floating point stuff more like C++: lots of per-arch #defines
 
 bin/unu: valgrid parsing of encoding stuff
 
 echo: test textured lights
-
-nrrd: matlab reader/writer for raw and ascii formats
 
 bin/emap: allow generating envmaps useful for specular highlights
 
@@ -59,10 +47,6 @@ mrender: deal with vectors
 air: make airOneLine return number of bytes read; current return
   of string length is entirely redundant with return of strlen()
   and then enable the ftell() check after PNG magic read
-
-nrrd: support Analyze format
-nrrd: support FITS format
-nrrd: support TIFF format
 
 dye: colormaps
 

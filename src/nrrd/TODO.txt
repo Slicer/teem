@@ -1,3 +1,18 @@
+verbose message to confirm directIO success
+
+gamma
+
+key/value pairs
+
+matlab reader/writer for raw and ascii formats
+
+enable imagemagick-style format flagging on filenames ("PNM:-"),
+thereby obviating "unu save -f pnm" steps in pipes to standard out 
+
+support TIFF format
+support Analyze format
+support FITS format
+
 unu heq should not DIE if min==max, it should just be a no-op.
 unu heq -s 2 shouldn't DIE if there are only 2 bins with any hits
 
@@ -15,9 +30,9 @@ nrrdConvert
 nrrdQuantize
 nrrdUnquantize
 
-test regular and irregular colormaps with only 2 points, 
-purify unu {lut, rmap, imap} with scalar and nonscalar,
-                                  type  same and different than map type.
+test regular and irregular colormaps with only 2 points, purify unu
+{lut, rmap, imap} with scalar and nonscalar, type same and different
+than map type.
 
 check resampler getting info with NULL kernel on each axis
 (bug that Joe and I had with qbert when no resmapling was needed)
