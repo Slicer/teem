@@ -139,7 +139,7 @@ F(save)
 ** the command, UNQUOTED, such as flip or slice.
 */
 #define UNRRDU_CMD(name, info) \
-unrrduCmd unrrdu_##name##Cmd = { #name, info, unrrdu_##name##Main };
+unrrduCmd unrrdu_##name##Cmd = { #name, info, unrrdu_##name##Main }
 
 /* xxx.c */
 /* Declare the extern unrrduCmds unrrdu_xxxCmd, for all xxx.  These are
