@@ -427,6 +427,17 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
   return dotLen;
 }
 
+int TEST[1] = {666};
+void *
+TESTPRINT(void *_iP) {
+  int *iP;
+
+  iP = _iP;
+  printf("HELLO!!\n");
+  printf("HELLO!!  i = %d\n", *iP);
+  printf("HELLO!!\n");
+}
+
 /*
 ******** nrrdSpatialResample()
 **
@@ -562,7 +573,6 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   mop = airMopInit();
   /* convert input nrrd to float if necessary */
   if (nrrdTypeFloat != typeIn) {
-    printf("%s: bingo 4.1\n", me);
     if (nrrdConvert(floatNin = nrrdNew(), nin, nrrdTypeFloat)) {
       sprintf(err, "%s: couldn't create float copy of input", me);
       biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
@@ -666,7 +676,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     airMopAdd(mop, weight, airFree, airMopAlways);
     airMopAdd(mop, index, airFree, airMopAlways);
 
-    /* the real tofu of it: resample all the scanlines */
+    /* the skinny: resample all the scanlines */
     _in = arr[pass];
     _out = arr[pass+1];
     memset(ci, 0, (NRRD_DIM_MAX+1)*sizeof(int));
@@ -738,6 +748,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   printf("!%s: nout: dim = %d; sz[] = %d %d %d\n", me,
 	 dim, sz[passes][0],  sz[passes][1],  sz[passes][2]);
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopOnError);
+  airMopAdd(mop, TEST, TESTPRINT, airMopOnError);
   nrrdAxesCopy(nout, nin, NULL, 
 	       (NRRD_AXESINFO_SIZE
 		| NRRD_AXESINFO_AMINMAX
