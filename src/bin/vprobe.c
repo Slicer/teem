@@ -124,7 +124,7 @@ main(int argc, char *argv[]) {
 	     "magnitude is below this");
   hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &otype, "float",
 	     "type of output volume", NULL, nrrdType);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
 	     "output volume");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
 		 me, probeInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
