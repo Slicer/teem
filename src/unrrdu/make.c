@@ -85,7 +85,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err, **dataFileNames, *content, encInfo[AIR_STRLEN_LARGE];
   Nrrd *nrrd, **nslice;
   int *size, nameLen, sizeLen, spacingLen, labelLen, headerOnly, pret,
-    lineSkip, byteSkip, encoding, endian, slc, type;
+    lineSkip, byteSkip, encoding, endian, slc, type, gotSpacing;
   double *spacing;
   airArray *mop;
   NrrdIO *nio;
@@ -173,7 +173,9 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
-  if (AIR_EXISTS(spacing[0]) && sizeLen != spacingLen) {
+  gotSpacing = (spacingLen > 1 ||
+		(sizeLen == 1 && AIR_EXISTS(spacing[0])));
+  if (gotSpacing && spacingLen != sizeLen) {
     fprintf(stderr,
 	    "%s: got different numbers of sizes (%d) and spacings (%d)\n",
 	    me, sizeLen, spacingLen);
@@ -196,7 +198,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   nrrd->type = type;
   nrrd->dim = sizeLen;
   nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, size);
-  if (AIR_EXISTS(spacing[0])) {
+  if (gotSpacing) {
     nrrdAxesSet_nva(nrrd, nrrdAxesInfoSpacing, spacing);
   }
   if (airStrlen(label[0])) {
@@ -296,7 +298,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
       }
       /* unfortunately, we have to re-set some peripheral information
 	 since we never bothered to set it in any nslice[i]... */
-      if (AIR_EXISTS(spacing[0])) {
+      if (gotSpacing) {
 	nrrdAxesSet_nva(nrrd, nrrdAxesInfoSpacing, spacing);
       }
       if (airStrlen(label[0])) {
