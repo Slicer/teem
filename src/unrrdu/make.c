@@ -171,7 +171,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
              "the location of the center "
              "of the first sample, of the form \"(x,y,z)\" (or however "
              "many coefficients are needed for the chosen space). Quoting the "
-             "vector is needed to stop interpretation from the with shell");
+             "vector is needed to stop interpretation from the shell");
   hestOptAdd(&opt, "dirs", "dir0 dir1 ...", airTypeString, 1, 1, &_dirStr, "",
              "(NOTE: must quote whole vector list) The \"space directions\": "
              "the vectors in space spanned by incrementing (by one) each "
