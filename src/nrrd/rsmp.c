@@ -586,7 +586,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     arr[0] = floatNin->data;
-    airMopAdd(mop, floatNin, (airMopper)nrrdNuke, airMopOnError);
+    airMopAdd(mop, floatNin, (airMopper)nrrdNuke, airMopAlways);
   }
   else {
     floatNin = NULL;
@@ -636,7 +636,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     if (pass > 0) {
       if (pass == 1) {
 	if (arr[0] != nin->data) {
-	  airMopAdd(mop, floatNin, NULL, airMopNever);
+	  airMopSub(mop, floatNin, (airMopper)nrrdNuke);
 	  floatNin = nrrdNuke(floatNin);
 	  arr[0] = NULL;
 	  /*
@@ -645,7 +645,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
 	}
       }
       else {
-	airMopAdd(mop, arr[pass-1], NULL, airMopNever);
+	airMopSub(mop, arr[pass-1], airFree);
 	arr[pass-1] = airFree(arr[pass-1]);
 	/*
 	printf("%s: pass %d: freeing arr[%d]\n", me, pass, pass-1);
@@ -727,24 +727,24 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     }
 
     /* pass-specific clean up */
-    airMopAdd(mop, weight, NULL, airMopNever);
+    airMopSub(mop, weight, airFree);
+    airMopSub(mop, index, airFree);
+    airMopSub(mop, in, airFree);
     weight = airFree(weight);
-    airMopAdd(mop, index, NULL, airMopNever);
     index = airFree(index);
-    airMopAdd(mop, in, NULL, airMopNever);
     in = airFree(in);
   }
 
   /* clean up second-to-last array and scanline buffers */
   if (passes > 1) {
-    airMopAdd(mop, arr[passes-1], NULL, airMopNever);
+    airMopSub(mop, arr[passes-1], airFree);
     arr[passes-1] = airFree(arr[passes-1]);
     /*
     printf("%s: now freeing arr[%d]\n", me, passes-1);
     */
   }
   else if (arr[passes-1] != nin->data) {
-    airMopAdd(mop, floatNin, NULL, airMopNever);
+    airMopSub(mop, floatNin, (airMopper)nrrdNuke);
     floatNin = nrrdNuke(floatNin);
   }
   arr[passes-1] = NULL;

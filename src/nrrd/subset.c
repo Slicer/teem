@@ -269,16 +269,30 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
   dataIn = nin->data;
   dataOut = nout->data;
   memset(cOut, 0, NRRD_DIM_MAX*sizeof(int));
+  /*
+  printf("!%s: dim = %d\n", me, dim);
+  printf("!%s: min  = %d %d %d\n", me, min[0], min[1], min[2]);
+  printf("!%s: szIn = %d %d %d\n", me, szIn[0], szIn[1], szIn[2]);
+  printf("!%s: szOut = %d %d %d\n", me, szOut[0], szOut[1], szOut[2]);
+  printf("!%s: lineSize = %d\n", me, lineSize);
+  printf("!%s: typeSize = %d\n", me, typeSize);
+  printf("!%s: numLines = %d\n", me, (int)numLines);
+  */
   for (I=0; I<=numLines-1; I++) {
     for (d=0; d<=dim-1; d++)
       cIn[d] = cOut[d] + min[d];
     NRRD_COORD_INDEX(idxOut, cOut, szOut, dim);
     NRRD_COORD_INDEX(idxIn, cIn, szIn, dim);
+    /*
+    printf("!%s: %5d: cOut=(%3d,%3d,%3d) --> idxOut = %5d\n",
+	   me, (int)I, cOut[0], cOut[1], cOut[2], (int)idxOut);
+    printf("!%s: %5d:  cIn=(%3d,%3d,%3d) -->  idxIn = %5d\n",
+	   me, (int)I, cIn[0], cIn[1], cIn[2], (int)idxIn);
+    */
     memcpy(dataOut + idxOut*typeSize, dataIn + idxIn*typeSize, lineSize);
     /* the lowest coordinate in cOut[] will stay zero, since we are 
        copying one (1-D) scanline at a time */
-    cOut[1]++; 
-    NRRD_COORD_UPDATE(cOut, szOut, dim);
+    NRRD_COORD_INCR(cOut, szOut, dim, 1);
   }
   if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE
 				     | NRRD_AXESINFO_AMINMAX ))) {
@@ -448,7 +462,7 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
 	memcpy(dataOut + idxOut*typeSize, dataIn + idxIn*typeSize, typeSize);
       }
     }
-    NRRD_COORD_INCR(cOut, szOut, dim);
+    NRRD_COORD_INCR(cOut, szOut, dim, 0);
   }
   if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE
 				     | NRRD_AXESINFO_AMINMAX ))) {

@@ -326,7 +326,7 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins, int type) {
 	nrrdDInsert[nout->type](nout->data, hI, count);
       }
     }
-    NRRD_COORD_INCR(coordIn, szIn, nin->dim);
+    NRRD_COORD_INCR(coordIn, szIn, nin->dim, 0);
   }
 
   if (nin->content) {

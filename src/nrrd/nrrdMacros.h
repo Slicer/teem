@@ -55,40 +55,43 @@ extern "C" {
 **
 ** This is for doing the "carrying" associated with gradually
 ** incrementing an array of coordinates.  Assuming that the given
-** coordinate array "coord" has been incrementing by adding 1 to one
-** of its elements (NB: this is a strong assumption), then, this macro
-** is good for propagating the change up to higher axes (which really
-** only happens when the position has stepped over the limit on a
-** lower axis.)  Relies on the array of axes sizes "size", as as the
-** length "dim" of "coord" and "size".
+** coordinate array "coord" has been incrementing by adding 1 to THE
+** FIRST, THE ZERO-ETH, ELEMENT (this is a strong assumption), then,
+** this macro is good for propagating the change up to higher axes
+** (which really only happens when the position has stepped over the
+** limit on a lower axis.)  Relies on the array of axes sizes "size",
+** as as the length "dim" of "coord" and "size".
 **
-** This may be turned into something more general purpose soon.
+** This may be turned into something more general purpose soon. 
 */
-#define NRRD_COORD_UPDATE(coord, size, dim)          \
-do {                                                 \
-  int d;                                             \
-  for ((d)=0;                                        \
-       (d) < (dim)-1 && (coord)[(d)] == (size)[(d)]; \
-       (d)++) {                                      \
-    (coord)[(d)] = 0;                                \
-    (coord)[(d)+1]++;                                \
-  }                                                  \
+#define NRRD_COORD_UPDATE(coord, size, dim)    \
+do {                                           \
+  int d;                                       \
+  printf("NRRD_COORD_UPDATE: hello; dim-1 = %d; c[1],s[1] = %d,%d\n", \
+         (dim)-1, (coord)[1], (size)[1]); \
+  for (d=0;                                    \
+       d < (dim)-1 && (coord)[d] == (size)[d]; \
+       d++) {                                  \
+    printf("     d = %d; size[%d] = %d\n", d, d, (size)[d]); \
+    (coord)[d] = 0;                            \
+    (coord)[d+1]++;                            \
+  }                                            \
 } while (0)
 
 /*
 ******** NRRD_COORD_INCR
 **
-** same as NRRD_COORD_UPDATE, but starts by incrementing coord[0]
+** same as NRRD_COORD_UPDATE, but starts by incrementing coord[idx]
 */
-#define NRRD_COORD_INCR(coord, size, dim)            \
-do {                                                 \
-  int d;                                             \
-  for ((coord)[0]++, (d)=0;                          \
-       (d) < (dim)-1 && (coord)[(d)] == (size)[(d)]; \
-       (d)++) {                                      \
-    (coord)[(d)] = 0;                                \
-    (coord)[(d)+1]++;                                \
-  }                                                  \
+#define NRRD_COORD_INCR(coord, size, dim, idx) \
+do {                                           \
+  int d;                                       \
+  for (d=idx, (coord)[d]++;                    \
+       d < (dim)-1 && (coord)[d] == (size)[d]; \
+       d++) {                                  \
+    (coord)[d] = 0;                            \
+    (coord)[d+1]++;                            \
+  }                                            \
 } while (0)
 
 /*
@@ -98,24 +101,24 @@ do {                                                 \
 ** and dimension "dim", calculates the linear index, and stores it in
 ** I.
 */
-#define NRRD_COORD_INDEX(I, coord, size, dim)        \
-do {                                                 \
-  int d;                                             \
-  for ((d)=(dim)-1, (I)=(coord)[(d)--];              \
-       (d) >= 0;                                     \
-       (d)--) {                                      \
-    (I) = (coord)[(d)] + (size)[(d)]*(I);            \
-  }                                                  \
+#define NRRD_COORD_INDEX(I, coord, size, dim) \
+do {                                          \
+  int d;                                      \
+  for (d=(dim)-1, (I)=(coord)[d--];           \
+       d >= 0;                                \
+       d--) {                                 \
+    (I) = (coord)[d] + (size)[d]*(I);         \
+  }                                           \
 } while (0)
 
-#define NRRD_COORD_GEN(coord, size, dim, I)          \
-do {                                                 \
-  int d;                                             \
-  for ((d)=0; (d)<=(dim)-1; (d)++) {                 \
-    (coord)[(d)] = I % (size)[(d)];                  \
-    I /= (size)[(d)];                                \
-  }                                                  \
-} while (0)                                          \
+#define NRRD_COORD_GEN(coord, size, dim, I)   \
+do {                                          \
+  int d;                                      \
+  for (d=0; d<=(dim)-1; d++) {                \
+    (coord)[d] = I % (size)[d];               \
+    I /= (size)[d];                           \
+  }                                           \
+} while (0)
 
 /* extern C */
 #ifdef __cplusplus
