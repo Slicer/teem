@@ -102,6 +102,7 @@ tenAnisoCalc(float c[TEN_ANISO_MAX+1], float e[3]) {
   c[tenAniso_Cz] = ((e0 + e1)/(tenAnisoSigma + e2) 
 		    + (e1 + e2)/(tenAnisoSigma + e0) 
 		    + (e0 + e2)/(tenAnisoSigma + e1))/6;
+  c[tenAniso_Det] = e0*e1*e2;
   c[tenAniso_Tr] = sum;
   return;
 }
@@ -184,12 +185,18 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, float thresh) {
   out = nout->data;
   in = nin->data;
   for (I=0; I<=N-1; I++) {
+    /* tenVerbose = (I == 1882); */
     tensor = in + I*7;
     if (tensor[0] < thresh) {
       out[I] = 0.0;
       continue;
     }
     tenEigensolve(eval, evec, tensor);
+    if (!(AIR_EXISTS(eval[0]) && AIR_EXISTS(eval[1]) && AIR_EXISTS(eval[2]))) {
+      sprintf(err, "%s: not all eigenvalues exist (%g,%g,%g) at sample %d",
+	      me, eval[0], eval[1], eval[2], (int)I);
+      biffAdd(TEN, err); return 1;
+    }
     tenAnisoCalc(c, eval);
     out[I] = c[aniso];
   }
