@@ -765,9 +765,9 @@ nrrdCCRevalue (Nrrd *nout, Nrrd *nin, Nrrd *nval) {
 int
 nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, Nrrd *nin) {
   char me[]="nrrdCCSettle", func[]="ccsettle", err[AIR_STRLEN_MED];
-  int numid, maxid, jd, id, 
-    (*lup)(void *, size_t), (*ins)(void *, size_t, int),
-    *map, *val=NULL;
+  int numid, maxid, jd, id, *map,
+    (*lup)(void *, size_t), (*ins)(void *, size_t, int);
+  void *val=NULL;
   size_t I, NN;
   airArray *mop;
 
@@ -817,7 +817,7 @@ nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, Nrrd *nin) {
     if (map[jd]) {
       map[jd] = id;
       if (nvalP) {
-	val[id] = jd;
+	ins(val, id, jd);
       }
       id++;
     }
