@@ -25,8 +25,16 @@ char *genvolInfo = ("generates test volumes.  Not very flexible as long as "
 
 float
 genvolFunc(float x, float y, float z) {
-  
-  return sqrt(x*x + y*y + z*z);
+  float A, B;
+
+  A = 1;
+  B = 1;
+  return A*x*x + B*y*y - z;
+  /*
+  A = sqrt(x*x + y*y) - 0.5;
+  return 2 - sqrt(A*A + z*z);
+  */
+  /* return sqrt(x*x + y*y + z*z); */
   /* return sqrt(x*x + y*y); */
 }
 
