@@ -23,7 +23,7 @@
 ####
 
 # all the architectures currently supported
-KNOWN_ARCH = irix6.n32 irix6.64 linux.32 linux.64 \
+KNOWN_ARCH = irix6.n32 irix6.64 linux.32 linux.ia64 linux.amd64 \
   darwin.32 darwin.64 cygwin solaris aix
 
 # there is no default architecture
@@ -42,8 +42,20 @@ checkArchLinux = $(if $(findstring $(TEEM_ARCH),linux),\
 $(warning *)\
 $(warning *)\
 $(warning * Sorry: the $(TEEM_ARCH) TEEM_ARCH has split into:)\
-$(warning * "linux.32" for 32-bit machines)\
-$(warning * "linux.64" for 64-bit machines)\
+$(warning * "linux.32" for 32-bit)\
+$(warning * "linux.ia64" for 64-bit Itanium (Intel))\
+$(warning * "linux.amd64" for 64-bit Athlon (AMD))\
+$(warning *)\
+$(warning *)\
+$(error Make quitting))
+
+# see if they were looking for linux.64
+checkArchLinux64 = $(if $(findstring $(TEEM_ARCH),linux.64),\
+$(warning *)\
+$(warning *)\
+$(warning * Sorry: the $(TEEM_ARCH) TEEM_ARCH has split into:)\
+$(warning * "linux.ia64" for 64-bit Itanium (Intel))\
+$(warning * "linux.amd64" for 64-bit Athlon (AMD))\
 $(warning *)\
 $(warning *)\
 $(error Make quitting))
@@ -53,8 +65,8 @@ checkArchDarwin = $(if $(findstring $(TEEM_ARCH),darwin),\
 $(warning *)\
 $(warning *)\
 $(warning * Sorry: the "darwin" TEEM_ARCH has split into:)\
-$(warning * "darwin.32" for 32-bit machines)\
-$(warning * "darwin.64" for 64-bit machines)\
+$(warning * "darwin.32" for 32-bit Macs (G4))\
+$(warning * "darwin.64" for 64-bit Macs (G5))\
 $(warning *)\
 $(warning *)\
 $(error Make quitting))

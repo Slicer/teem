@@ -32,7 +32,8 @@ any of the teem libraries in their own programs.
    "irix6.n32": for irix in n32 mode
    "irix6.64": for irix in 64-bit mode
    "linux.32": for 32-bit linux boxes
-   "linux.64": for 64-bit linux boxes
+   "linux.ia64": for 64-bit Itanium (Intel) linux
+   "linux.amd64": for 64-bit Athlon (AMD) linux
    "solaris": for solaris boxes
    "cygwin": if you have cygwin (www.cygwin.com) on a windows box
    "darwin.32": on a 32-bit Mac OS X box

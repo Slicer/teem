@@ -55,6 +55,7 @@ endif
 include $(TEEM_SRC)/make/errorCheck.mk
 $(checkArchSet)
 $(checkArchLinux)
+$(checkArchLinux64)
 $(checkArchDarwin)
 $(checkArchValid)
 
