@@ -761,7 +761,12 @@ tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
   char me[]="tenEpiRegister", err[AIR_STRLEN_MED];
   airArray *mop;
   Nrrd **nbuffA, **nbuffB, *npxfr, *nprog, *nsmt, *ngrad;
-  int i;
+  int i, hack1, hack2;
+
+  hack1 = nrrdStateAlwaysSetContent;
+  hack2 = nrrdStateDisableContent;
+  nrrdStateAlwaysSetContent = AIR_FALSE;
+  nrrdStateDisableContent = AIR_TRUE;
 
   mop = airMopNew();
   if (_tenEpiRegCheck(nout, nin, ninLen, _ngrad, reference,
@@ -898,5 +903,7 @@ tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
   }
   
   airMopOkay(mop);
+  nrrdStateAlwaysSetContent = hack1;
+  nrrdStateDisableContent = hack2;
   return 0;
 }
