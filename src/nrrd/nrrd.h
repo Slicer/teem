@@ -665,10 +665,10 @@ TEEM_API int nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, int ax);
 TEEM_API int nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, int ax);
 TEEM_API int nrrdBlock(Nrrd *nout, const Nrrd *nin);
 TEEM_API int nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type);
-TEEM_API int nrrdTile(Nrrd *nout, const Nrrd *nin, int ax1, int ax2,
-                      int axSplit, int sizeFast, int sizeSlow);
-TEEM_API int nrrdUntile(Nrrd *nout, const Nrrd *nin, int ax1, int ax2,
-                        int axMerge, int sizeFast, int sizeSlow);
+TEEM_API int nrrdTile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
+			int axSplit, int sizeFast, int sizeSlow);
+TEEM_API int nrrdUntile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
+			  int axMerge, int sizeFast, int sizeSlow);
 
 /******** things useful with hest */
 /* hestNrrd.c */
