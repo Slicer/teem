@@ -387,7 +387,7 @@ extern void airMopError(airArray *arr);
 extern void airMopOkay(airArray *arr);
 extern void airMopDebug(airArray *arr);
 
-/*******     the interminable sea of #define and macros     *******/
+/*******     the interminable sea of defines and macros     *******/
 
 #define AIR_TRUE 1
 #define AIR_FALSE 0
