@@ -326,6 +326,7 @@ extern air_export int (*airParseStr[AIR_TYPE_MAX+1])(void *, const char *,
 /* string.c */
 extern char *airStrdup(const char *s);
 extern size_t airStrlen(const char *s);
+extern air_export int airStrtokQuoting;
 extern char *airStrtok(char *s, const char *ct, char **last);
 extern int airStrntok(const char *s, const char *ct);
 extern char *airStrtrans(char *s, char from, char to);

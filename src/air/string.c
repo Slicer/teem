@@ -19,6 +19,10 @@
 
 #include "air.h"
 
+/* this has to default to false in order for airStrtok to be a
+   functional substitute for strtok() */
+int airStrtokQuoting = AIR_FALSE;
+
 /*
 ******** airStrdup()
 **
@@ -71,7 +75,7 @@ airStrlen(const char *s) {
 */
 char *
 airStrtok(char *s, const char *ct, char **last) {
-  char *h, *e;
+  char *h, *e, *q;
   
   if (!(ct && last)) {
     /* can't do any work, bail */
@@ -81,7 +85,23 @@ airStrtok(char *s, const char *ct, char **last) {
   if (!airStrlen(h))
     return NULL;
   h += strspn(h, ct);
-  e = h + strcspn(h, ct);
+  if ('\"' == *h && airStrtokQuoting) {
+    /* something is trying to be quoted, and, we'll respect that */
+    /* have to find the next un-escaped '\"' */
+    q = h + 1;
+    while (*q && !('\"' == *q && '\\' != q[-1])) {
+      q++;
+    }
+    if (*q) {
+      /* we found an unescaped " */
+      e = q;
+    } else {
+      /* give up; pretend we never tried to do this quoting stuff */
+      e = h + strcspn(h, ct);
+    }
+  } else {
+    e = h + strcspn(h, ct);
+  }
   if ('\0' == *e) {
     *last = e;
   }

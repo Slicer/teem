@@ -259,6 +259,7 @@ airParseStrS(char **out, const char *_s, const char *ct, int n, ...) {
   /* copy the input so that we don't change it */
   s = airStrdup(_s);
   airMopMem(mop, &s, airMopAlways);
+  fprintf(stderr, "!%s: s = \"%s\"\n", "airParseStrS", s);
 
   /* keep calling airStrtok() until we have everything */
   for (i=0; i<=n-1; i++) {
