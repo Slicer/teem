@@ -17,13 +17,13 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include <air.h>
-#include <biff.h>
-#include <ell.h>
-#include <nrrd.h>
-#include <limn.h>
-#include <hoover.h>
-#include <mite.h>
+#include <teem/air.h>
+#include <teem/biff.h>
+#include <teem/ell.h>
+#include <teem/nrrd.h>
+#include <teem/limn.h>
+#include <teem/hoover.h>
+#include <teem/mite.h>
 
 char *miteInfo = ("A simple but effective little volume renderer.");
 

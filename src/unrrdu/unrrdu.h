@@ -20,10 +20,10 @@
 #ifndef UNRRDU_HAS_BEEN_INCLUDED
 #define UNRRDU_HAS_BEEN_INCLUDED
 
-#include <air.h>
-#include <biff.h>
-#include <hest.h>
-#include <nrrd.h>
+#include <teem/air.h>
+#include <teem/biff.h>
+#include <teem/hest.h>
+#include <teem/nrrd.h>
 
 #if defined(_WIN32) && defined(TEEM_DLL)
 #define unrrdu_export __declspec(dllimport)

@@ -24,9 +24,9 @@
 #include <math.h>
 #include <ctype.h>
 
-#include <air.h>
-#include <biff.h>
-#include <ell.h>
+#include <teem/air.h>
+#include <teem/biff.h>
+#include <teem/ell.h>
 
 #ifdef __cplusplus
 extern "C" {

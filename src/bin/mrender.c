@@ -17,13 +17,13 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include <air.h>
-#include <hest.h>
-#include <biff.h>
-#include <nrrd.h>
-#include <gage.h>
-#include <limn.h>
-#include <hoover.h>
+#include <teem/air.h>
+#include <teem/hest.h>
+#include <teem/biff.h>
+#include <teem/nrrd.h>
+#include <teem/gage.h>
+#include <teem/limn.h>
+#include <teem/hoover.h>
 
 
 #define MREND "mrender"

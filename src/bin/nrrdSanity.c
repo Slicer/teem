@@ -18,8 +18,8 @@
 */
 
 
-#include <biff.h>
-#include <nrrd.h>
+#include <teem/biff.h>
+#include <teem/nrrd.h>
 
 int
 main(int argc, char *argv[]) {

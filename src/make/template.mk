@@ -163,6 +163,6 @@ endif
 ## How to install headers: another instance where vpath could simplify
 ## things, but why bother.
 ##
-$(call hdrs.inst,$(L)) : $(IDEST)/%.h : $(TEEM_SRC)/$(L)/%.h
+$(call hdrs.inst,$(L)) : $(IDEST)/teem/%.h : $(TEEM_SRC)/$(L)/%.h
 	$(CP) $< $@; $(CHMOD) 644 $@
 	$(if $(SIGH),$(SLEEP) $(SIGH); touch $@)

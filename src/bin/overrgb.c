@@ -17,10 +17,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include <air.h>
-#include <biff.h>
-#include <hest.h>
-#include <nrrd.h>
+#include <teem/air.h>
+#include <teem/biff.h>
+#include <teem/hest.h>
+#include <teem/nrrd.h>
 
 char *overInfo = ("Composites an RGBA nrrd over "
 		  "a background color, after doing gamma correction, "

@@ -25,7 +25,7 @@
 #include <stdarg.h>
 #include <string.h>
 
-#include <air.h>
+#include <teem/air.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -17,11 +17,11 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include <air.h>
-#include <biff.h>
-#include <hest.h>
-#include <nrrd.h>
-#include <limn.h>
+#include <teem/air.h>
+#include <teem/biff.h>
+#include <teem/hest.h>
+#include <teem/nrrd.h>
+#include <teem/limn.h>
 
 char *emapInfo = ("Creates environment maps based on limn's 16checker "
 		  "normal quantization method.  By taking into account "

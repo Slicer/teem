@@ -23,11 +23,12 @@
 #include <stdlib.h>
 
 #include <math.h>
-#include <air.h>
-#include <biff.h>
-#include <hest.h>
-#include <ell.h>
-#include <nrrd.h>
+
+#include <teem/air.h>
+#include <teem/biff.h>
+#include <teem/hest.h>
+#include <teem/ell.h>
+#include <teem/nrrd.h>
 
 #if defined(_WIN32) && defined(TEEM_DLL)
 #define limn_export __declspec(dllimport)

@@ -25,11 +25,11 @@
 #include <limits.h>
 #include <math.h>
 
-#include <air.h>
-#include <biff.h>
-#include <nrrd.h>
-#include <unrrdu.h>
-#include <gage.h>
+#include <teem/air.h>
+#include <teem/biff.h>
+#include <teem/nrrd.h>
+#include <teem/unrrdu.h>
+#include <teem/gage.h>
 
 #if defined(_WIN32) && defined(TEEM_DLL)
 #define bane_export __declspec(dllimport)

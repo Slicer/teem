@@ -141,9 +141,12 @@ else
   ## complain if the destination directories don't exist
   $(if $(call if.missing,$(IDEST) $(LDEST) $(BDEST)),\
     $(error TEEM_DEST="$(TEEM_DEST)" lacks include,lib,bin subdirectories))
-  ## out of laziness, always copy over all the teem*.h headers
-  $(shell cp $(TEEM_ROOT)/include/teem*.h $(IDEST))
+  ## create IDEST/teem if necessary
+  $(if $(call if.missing,$(IDEST)/teem),\
+    $(shell mkdir $(IDEST)/teem))
 endif
+## out of laziness, always copy over all the teem*.h headers
+$(shell cp $(TEEM_ROOT)/include/teem*.h $(IDEST)/teem)
 ODEST = $(TEEM_ROOT)/$(TEEM_ARCH)/obj
 PCACHE = $(TEEM_ROOT)/$(TEEM_ARCH)/purify
 IPATH += -I$(IDEST)
@@ -204,7 +207,7 @@ endif
 ##   when compiling the tests
 ##
 libs.inst = $(foreach ext,$(LIBEXTS),$(LDEST)/lib$(1).$(ext))
-hdrs.inst = $(addprefix $(IDEST)/,$($(1).PUBLIC_HEADERS))
+hdrs.inst = $(addprefix $(IDEST)/teem/,$($(1).PUBLIC_HEADERS))
 hdrs.dev = $(addprefix $(TEEM_SRC)/$(1)/,\
   $($(1).PUBLIC_HEADERS) $($(1).PRIVATE_HEADERS))
 tests.dev = $(addprefix $(TEEM_SRC)/$(1)/,$($(1).TESTS))

@@ -17,8 +17,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include <unrrdu.h>
-#include <moss.h>
+#include <teem/unrrdu.h>
+#include <teem/moss.h>
 
 char *ilkInfo = ("(I)mage (L)inear Trans(X-->K)forms. "
 		 "Applies linear (homogenous coordinate) transforms "

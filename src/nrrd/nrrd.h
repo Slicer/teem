@@ -29,9 +29,9 @@
 #include <errno.h>
 #include <float.h>
 
-#include <air.h>
-#include <hest.h>
-#include <biff.h>
+#include <teem/air.h>
+#include <teem/hest.h>
+#include <teem/biff.h>
 
 #include "nrrdDefines.h"
 #include "nrrdMacros.h"

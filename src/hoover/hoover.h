@@ -24,11 +24,11 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <air.h>
-#include <biff.h>
-#include <ell.h>
-#include <nrrd.h>
-#include <limn.h>
+#include <teem/air.h>
+#include <teem/biff.h>
+#include <teem/ell.h>
+#include <teem/nrrd.h>
+#include <teem/limn.h>
 
 #if defined(_WIN32) && defined(TEEM_DLL)
 #define hoover_export __declspec(dllimport)

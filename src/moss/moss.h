@@ -22,11 +22,11 @@
 
 #include <math.h>
 
-#include <air.h>
-#include <hest.h>
-#include <biff.h>
-#include <ell.h>
-#include <nrrd.h>
+#include <teem/air.h>
+#include <teem/hest.h>
+#include <teem/biff.h>
+#include <teem/ell.h>
+#include <teem/nrrd.h>
 
 #if defined(_WIN32) && defined(TEEM_DLL)
 #define moss_export __declspec(dllimport)

@@ -18,7 +18,7 @@
 */
 
 
-#include <ell.h>
+#include <teem/ell.h>
 
 char *me;
 

@@ -19,11 +19,12 @@
 
 
 #include <stdio.h>
-#include <biff.h>
-#include <hest.h>
-#include <nrrd.h>
-#include <gage.h>
-#include <ten.h>
+
+#include <teem/biff.h>
+#include <teem/hest.h>
+#include <teem/nrrd.h>
+#include <teem/gage.h>
+#include <teem/ten.h>
 
 #define SPACING(spc) (AIR_EXISTS(spc) ? spc: nrrdDefSpacing)
 

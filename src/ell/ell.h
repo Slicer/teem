@@ -22,9 +22,9 @@
 
 #include <math.h>
 
-#include <air.h>
-#include <biff.h>
-#include <nrrd.h>
+#include <teem/air.h>
+#include <teem/biff.h>
+#include <teem/nrrd.h>
 
 #include "ellMacros.h"
 

@@ -22,15 +22,15 @@
 
 #include <math.h>
 
-#include <air.h>
-#include <biff.h>
-#include <ell.h>
-#include <nrrd.h>
-#include <unrrdu.h>
-#include <dye.h>
-#include <gage.h>
-#include <limn.h>
-#include <echo.h>
+#include <teem/air.h>
+#include <teem/biff.h>
+#include <teem/ell.h>
+#include <teem/nrrd.h>
+#include <teem/unrrdu.h>
+#include <teem/dye.h>
+#include <teem/gage.h>
+#include <teem/limn.h>
+#include <teem/echo.h>
 
 #include "tenMacros.h"
 

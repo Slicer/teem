@@ -20,13 +20,13 @@
 #ifndef MITE_HAS_BEEN_INCLUDED
 #define MITE_HAS_BEEN_INCLUDED
 
-#include <air.h>
-#include <biff.h>
-#include <ell.h>
-#include <nrrd.h>
-#include <gage.h>
-#include <limn.h>
-#include <hoover.h>
+#include <teem/air.h>
+#include <teem/biff.h>
+#include <teem/ell.h>
+#include <teem/nrrd.h>
+#include <teem/gage.h>
+#include <teem/limn.h>
+#include <teem/hoover.h>
 
 #if defined(_WIN32) && defined(TEEM_DLL)
 #define mite_export __declspec(dllimport)

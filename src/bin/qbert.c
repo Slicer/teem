@@ -18,11 +18,11 @@
 */
 
 
-#include <air.h>
-#include <hest.h>
-#include <nrrd.h>
-#include <gage.h>
-#include <bane.h>
+#include <teem/air.h>
+#include <teem/hest.h>
+#include <teem/nrrd.h>
+#include <teem/gage.h>
+#include <teem/bane.h>
 
 #define QBERT "qbert"
 #define QBERT_HIST_BINS 1024     /* histogram size for v, g, and h */
