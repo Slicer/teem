@@ -216,7 +216,7 @@ enum {
   gageSclMeanCurv,    /* 16: "mc", mean curvature (K1 + K2)/2: *GT */
   gageSclGaussCurv,   /* 17: "gc", gaussian curvature K1*K2: *GT */
   gageSclCurvDir,     /* 18: "cdir", principle curvature directions: GT[6] */
-  gageSclNormalCurv,  /* 19: "nc", curvature of normal streamline: *GT */
+  gageSclFlowlineCurv,/* 19: "fc", curvature of normal streamline: *GT */
   gageSclLast
 };
 #define GAGE_SCL_MAX     19
@@ -229,26 +229,26 @@ enum {
 ** is same as:
 **   GAGE_SCL_VALUE_BIT | GAGE_SCL_GRADMAG_BIT | GAGE_SCL_2NDDD_BIT
 */
-#define GAGE_SCL_VALUE_BIT      (1<<0)
-#define GAGE_SCL_GRADVEC_BIT    (1<<1)
-#define GAGE_SCL_GRADMAG_BIT    (1<<2)
-#define GAGE_SCL_NORMAL_BIT     (1<<3)
-#define GAGE_SCL_NPERP_BIT      (1<<4)
-#define GAGE_SCL_HESSIAN_BIT    (1<<5)
-#define GAGE_SCL_LAPLACIAN_BIT  (1<<6)
-#define GAGE_SCL_HESSEVAL_BIT   (1<<7)
-#define GAGE_SCL_HESSEVEC_BIT   (1<<8)
-#define GAGE_SCL_2NDDD_BIT      (1<<9)
-#define GAGE_SCL_GEOMTENS_BIT   (1<<10)
-#define GAGE_SCL_K1_BIT         (1<<11)
-#define GAGE_SCL_K2_BIT         (1<<12)
-#define GAGE_SCL_CURVEDNESS_BIT (1<<13)
-#define GAGE_SCL_SHAPETRACE_BIT (1<<14)
-#define GAGE_SCL_SHAPEINDEX_BIT (1<<15)
-#define GAGE_SCL_MEANCURV_BIT   (1<<16)
-#define GAGE_SCL_GAUSSCURV_BIT  (1<<17)
-#define GAGE_SCL_CURVDIR_BIT    (1<<18)
-#define GAGE_SCL_NORMALCURV_BIT (1<<19)
+#define GAGE_SCL_VALUE_BIT        (1<<0)
+#define GAGE_SCL_GRADVEC_BIT      (1<<1)
+#define GAGE_SCL_GRADMAG_BIT      (1<<2)
+#define GAGE_SCL_NORMAL_BIT       (1<<3)
+#define GAGE_SCL_NPERP_BIT        (1<<4)
+#define GAGE_SCL_HESSIAN_BIT      (1<<5)
+#define GAGE_SCL_LAPLACIAN_BIT    (1<<6)
+#define GAGE_SCL_HESSEVAL_BIT     (1<<7)
+#define GAGE_SCL_HESSEVEC_BIT     (1<<8)
+#define GAGE_SCL_2NDDD_BIT        (1<<9)
+#define GAGE_SCL_GEOMTENS_BIT     (1<<10)
+#define GAGE_SCL_K1_BIT           (1<<11)
+#define GAGE_SCL_K2_BIT           (1<<12)
+#define GAGE_SCL_CURVEDNESS_BIT   (1<<13)
+#define GAGE_SCL_SHAPETRACE_BIT   (1<<14)
+#define GAGE_SCL_SHAPEINDEX_BIT   (1<<15)
+#define GAGE_SCL_MEANCURV_BIT     (1<<16)
+#define GAGE_SCL_GAUSSCURV_BIT    (1<<17)
+#define GAGE_SCL_CURVDIR_BIT      (1<<18)
+#define GAGE_SCL_FLOWLINECURV_BIT (1<<19)
 
 /*
 ******** gageVec* enum

@@ -42,7 +42,7 @@
   gageSclMeanCurv,    * 16: "mc", mean curvature (K1 + K2)/2: *GT *
   gageSclGaussCurv,   * 17: "gc", gaussian curvature K1*K2: *GT *
   gageSclCurvDir,     * 18: "cdir", principle curvature directions: GT[6] *
-  gageSclNormalCurv,  * 19: "nc", curvature of normal streamline: *GT *
+  gageSclFlowlineCurv,* 19: "nc", curvature of normal streamline: *GT *
  0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19
 */
 
@@ -148,7 +148,7 @@ _gageSclPrereq[GAGE_SCL_MAX+1] = {
   /* 18: gageSclCurvDir */
   (1<<gageSclGeomTens) | (1<<gageSclK1) | (1<<gageSclK2),
 
-  /* 19: gageSclNormalCurv */
+  /* 19: gageSclFlowlineCurv */
   /* this is because of how answer code uses sHess, nPerp, nProj */
   (1<<gageSclGeomTens) 
   
@@ -176,7 +176,7 @@ _gageSclStr[][AIR_STRLEN_SMALL] = {
   "mean curvature",
   "Gaussian curvature",
   "curvature directions",
-  "normal curvature"
+  "flowline curvature"
 };
 
 char
@@ -226,7 +226,7 @@ _gageSclVal[] = {
   gageSclMeanCurv,
   gageSclGaussCurv,
   gageSclCurvDir,
-  gageSclNormalCurv
+  gageSclFlowlineCurv
 };
 
 #define GS_V  gageSclValue
@@ -248,7 +248,7 @@ _gageSclVal[] = {
 #define GS_MC gageSclMeanCurv
 #define GS_GC gageSclGaussCurv
 #define GS_CD gageSclCurvDir
-#define GS_NC gageSclNormalCurv
+#define GS_FC gageSclFlowlineCurv
 
 char
 _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
@@ -272,7 +272,7 @@ _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
   "mc", "mcurv", "meancurv", "mean curvature",
   "gc", "gcurv", "gausscurv", "gaussian curvature",
   "cdir", "c dir", "curvdir", "curv dir", "curvature directions",
-  "nc", "normalcurv", "normal curv", "normal curvature",
+  "fc", "flowlinecurv", "flowline curv", "flowline curvature",
   ""
 };
 
@@ -297,7 +297,7 @@ _gageSclValEqv[] = {
   GS_MC, GS_MC, GS_MC, GS_MC,
   GS_GC, GS_GC, GS_GC, GS_GC,
   GS_CD, GS_CD, GS_CD, GS_CD, GS_CD,
-  GS_NC, GS_NC, GS_NC, GS_NC
+  GS_FC, GS_FC, GS_FC, GS_FC
 };
 
 airEnum

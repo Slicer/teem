@@ -188,7 +188,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     ell3mNullspace1(tmpVec, tmpMat);
     ELL_3V_COPY(ans+offset[gageSclCurvDir]+3, tmpVec);
   }
-  if (1 & (query >> gageSclNormalCurv)) {
+  if (1 & (query >> gageSclFlowlineCurv)) {
     if (gmag >= ctx->parm.gradMagCurvMin) {
       /* because of the gageSclGeomTens prerequisite, sHess, nPerp, and
 	 nProj are all already set */
@@ -198,7 +198,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     } else {
       ELL_3M_ZERO_SET(ncTen);
     }
-    ans[offset[gageSclNormalCurv]] = ELL_3M_FROBNORM(ncTen);
+    ans[offset[gageSclFlowlineCurv]] = sqrt(ELL_3M_FROBNORM(ncTen));
   }
   return;
 }
