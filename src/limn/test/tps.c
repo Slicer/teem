@@ -30,8 +30,9 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
   limnObj *obj;
+  limnSP *sp;
   limnWin *win;
-  int ri;
+  int ri, si;
   Nrrd *nmap;
 
   mop = airMopNew();
@@ -75,6 +76,17 @@ main(int argc, char *argv[]) {
   }
   obj = limnObjNew(10, AIR_TRUE);
   airMopAdd(mop, obj, (airMopper)limnObjNix, airMopAlways);
+
+  /* create limnSPs for diffuse (#0) and flat (#1) shading */
+  si = airArrayIncrLen(obj->sA, 2);
+  sp = obj->s + si + 0;
+  ELL_4V_SET(sp->rgba, 1, 1, 1, 1);
+  ELL_3V_SET(sp->k, 0, 1, 0);
+  sp->spec = 0;
+  sp = obj->s + si + 1;
+  ELL_4V_SET(sp->rgba, 1, 1, 1, 1);
+  ELL_3V_SET(sp->k, 1, 0, 0);
+  sp->spec = 0;
 
   ri = limnObjCylinderAdd(obj, 0, 0, 16);
   ELL_4M_IDENTITY_SET(matA);

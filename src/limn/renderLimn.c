@@ -101,17 +101,9 @@ _limnPSDrawFace(limnObj *obj, limnPart *r, limnFace *f,
 	    p->d[0], p->d[1], vi ? "L" : "M");
   }
   sp = obj->s + f->sp;
-  R = r->rgba[0];
-  G = r->rgba[1];
-  B = r->rgba[2];
-  /*
   R = sp->k[0]*r->rgba[0];
   G = sp->k[0]*r->rgba[1];
   B = sp->k[0]*r->rgba[2];
-  */
-  R *= sp->k[0];
-  G *= sp->k[0];
-  B *= sp->k[0];
   /* fprintf(stderr, "RGB = %g %g %g ->", R, G, B); */
   if (nmap) {
     qn = limnVtoQN[limnQN_16checker](f->wn);
