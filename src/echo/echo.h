@@ -52,6 +52,25 @@ typedef double echoCol_t;
 
 #define ECHO_OBJECT_INCR 20
 
+typedef struct {
+  int verbose,         /* verbosity level */
+    jitter,            /* what kind of jittering to do */
+    samples,           /* # samples per pixel */
+    imgResU, imgResV,  /* horizontal and vertical image resolution */
+    recDepth,          /* max recursion depth */
+    reuseJitter;       /* don't recompute jitter offsets per pixel */
+  float epsilon,       /* somewhat bigger than zero */
+    aperture;          /* shallowness of field */
+  echoCol_t
+    bgR, bgG, bgB;     /* background color */
+} EchoParam;
+
+typedef struct {
+  Nrrd *njitt;         /* 2 x ECHO_JITTER_NUM x samples values of 
+			  type echoPos_t in [-1/2,1/2] */
+  double time0, time1; /* start and end time for whole image rendering */
+} EchoState;
+
 enum {
   echoJitterUnknown,
   echoJitterNone,       /* 1: N samples all at the square center */
@@ -72,8 +91,9 @@ enum {
 };
 #define ECHO_SAMPLE_NUM    4
 
-/* enum.c */
+/* enum.c ------------------------------------------ */
 extern airEnum echoJitter;
+extern airEnum echoObject;
 
 /* object.c ---------------------------------------- */
 
@@ -178,24 +198,14 @@ typedef struct {
 extern EchoLight *echoLightNew(int type);
 extern EchoLight *echoLightNix(EchoLight *light);
 
+/* methods.c --------------------------------------- */
+extern EchoParam *echoParamNew();
+extern EchoParam *echoParamNix(EchoParam *param);
+extern EchoState *echoStateNew();
+extern EchoState *echoStateNix(EchoState *state);
+extern limnCam *echoLimnCamNew();
+
 /* render.c ---------------------------------------- */
-
-typedef struct {
-  int verbose,         /* verbosity level */
-    jitter,            /* what kind of jittering to do */
-    samples,           /* # samples per pixel */
-    imgResU, imgResV,  /* horizontal and vertical image resolution */
-    recDepth,          /* max recursion depth */
-    reuseJitter;       /* don't recompute jitter offsets per pixel */
-  float epsilon,       /* somewhat bigger than zero */
-    aperture;          /* shallowness of field */
-} EchoParam;
-
-typedef struct {
-  Nrrd *njitt;         /* 2 x ECHO_JITTER_NUM x samples values of 
-			  type echoPos_t in [-1/2,1/2] */
-  double time0, time1; /* start and end time for whole image rendering */
-} EchoState;
 
 typedef struct {
   echoPos_t pos[3];
@@ -209,9 +219,11 @@ typedef struct {
   /* ??? */
 } EchoIntx;
 
+extern int echoComposite(Nrrd *nimg, Nrrd *nraw, EchoParam *param);
+extern int echoPPM(Nrrd *nppm, Nrrd *nimg, EchoParam *param);
 extern int echoRender(Nrrd *nout, limnCam *cam,
 		      EchoParam *param, EchoState *state,
-		      EchoObjectAABox *scene, airArray *lightArr);
+		      EchoObject *scene, airArray *lightArr);
 
 
 #endif /* ECHO_HAS_BEEN_INCLUDED */

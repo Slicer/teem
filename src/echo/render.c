@@ -20,19 +20,92 @@
 #include "echo.h"
 
 /*
+******** echoComposite
+**
+**
+*/
+int
+echoComposite(Nrrd *nimg, Nrrd *nraw, EchoParam *param) {
+  char me[]="echoComposite", err[AIR_STRLEN_MED];
+  echoCol_t *raw, *img, R, G, B, A;
+  int i, N;
+
+  if (!(nimg && nraw && param)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(ECHO, err); return 1;
+  }
+  if (nrrdMaybeAlloc(nimg, echoCol_nrrdType, 3,
+		     3, nraw->axis[1].size, nraw->axis[2].size)) {
+    sprintf(err, "%s:", me);
+    biffMove(ECHO, err, NRRD); return 1;
+  }
+  
+  raw = nraw->data;
+  img = nimg->data;
+  N = nraw->axis[1].size * nraw->axis[2].size;
+  for (i=0; i<N; i++) {
+    R = raw[0 + 5*i];
+    G = raw[1 + 5*i];
+    B = raw[2 + 5*i];
+    A = raw[3 + 5*i];
+    img[0 + 3*i] = A*R + (1-A)*param->bgR;
+    img[1 + 3*i] = A*G + (1-A)*param->bgG;
+    img[2 + 3*i] = A*B + (1-A)*param->bgB;
+  }
+
+  return 0;
+}
+
+/*
+******** echoPPM
+**
+**
+*/
+int
+echoPPM(Nrrd *nppm, Nrrd *nimg, EchoParam *param) {
+  char me[]="echoPPM", err[AIR_STRLEN_MED];
+  echoCol_t val, *img;
+  unsigned char *ppm;
+  int i, c, v, N;
+
+  if (!(nppm && nimg && param)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(ECHO, err); return 1;
+  }
+  if (nrrdMaybeAlloc(nppm, nrrdTypeUChar, 3,
+		     3, nimg->axis[1].size, nimg->axis[2].size)) {
+    sprintf(err, "%s:", me);
+    biffMove(ECHO, err, NRRD); return 1;
+  }
+  
+  img = nimg->data;
+  ppm = nppm->data;
+  N = nimg->axis[1].size * nimg->axis[2].size;
+  for (i=0; i<N; i++) {
+    for (c=0; c<3; c++) {
+      val = AIR_CLAMP(0.0, img[c + 3*i], 1.0);
+      AIR_INDEX(0.0, val, 1.0, 256, v); 
+      ppm[c + 3*i] = v;
+    }
+  }
+
+  return 0;
+}
+
+/*
 ******** echoCheck
 **
 ** does all the error checking required of echoRender and
 ** everything that it calls
 */
 int
-echoCheck(Nrrd *nout, limnCam *cam, 
+echoCheck(Nrrd *nraw, limnCam *cam, 
 	  EchoParam *param, EchoState *state,
-	  EchoObjectAABox *scene, airArray *lightArr) {
+	  EchoObject *scene, airArray *lightArr) {
   char me[]="echoCheck", err[AIR_STRLEN_MED];
   int tmp;
 
-  if (!(nout && cam && param && scene && lightArr)) {
+  if (!(nraw && cam && param && scene && lightArr)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(ECHO, err); return 1;
   }
@@ -55,6 +128,11 @@ echoCheck(Nrrd *nout, limnCam *cam,
   }
   if (!(AIR_EXISTS(param->epsilon) && AIR_EXISTS(param->aperture))) {
     sprintf(err, "%s: epsilon or aperture doesn't exist", me);
+    biffAdd(ECHO, err); return 1;
+  }
+  if (echoObjectAABox != scene->type) {
+    sprintf(err, "%s: can only handle %s top-level object", me,
+	    airEnumStr(echoObject, echoObjectAABox));
     biffAdd(ECHO, err); return 1;
   }
 
@@ -120,9 +198,9 @@ echoJitterSet(EchoParam *param, EchoState *state) {
 ** as possible should be done here and not in the lower-level functions.
 */
 int
-echoRender(Nrrd *nout, limnCam *cam,
+echoRender(Nrrd *nraw, limnCam *cam,
 	   EchoParam *param, EchoState *state,
-	   EchoObjectAABox *scene, airArray *lightArr) {
+	   EchoObject *scene, airArray *lightArr) {
   char me[]="echoRender", err[AIR_STRLEN_MED];
   int imgUi, imgVi,     /* integral pixel indices */
     samp;               /* which sample are we doing */
@@ -136,11 +214,11 @@ echoRender(Nrrd *nout, limnCam *cam,
     imgOrig[3],         /* image origin */
     *jitt;              /* current scanline of master jitter array */
 
-  if (echoCheck(nout, cam, param, state, scene, lightArr)) {
+  if (echoCheck(nraw, cam, param, state, scene, lightArr)) {
     sprintf(err, "%s: problem with input", me);
     biffAdd(ECHO, err); return 1;
   }
-  if (nrrdMaybeAlloc(nout, echoCol_nrrdType, 3,
+  if (nrrdMaybeAlloc(nraw, echoCol_nrrdType, 3,
 		     5, param->imgResU, param->imgResV)) {
     sprintf(err, "%s: couldn't allocate output image", me);
     biffMove(ECHO, err, NRRD); return 1;
@@ -173,7 +251,10 @@ echoRender(Nrrd *nout, limnCam *cam,
     for (imgUi=0; imgUi<param->imgResU; imgUi++) {
       imgU = NRRD_AXIS_POS(nrrdCenterCell, cam->uMin, cam->uMax,
 			   param->imgResU, imgUi);
+      /* initialize jitt on first "scanline" */
       jitt = (echoPos_t *)state->njitt->data;
+
+      /* go through samples */
       for (samp=0; samp<=param->samples; samp++) {
 	/* set from[] */
 	ELL_3V_COPY(from, eye);
@@ -189,8 +270,13 @@ echoRender(Nrrd *nout, limnCam *cam,
 	tmp = imgV + pixVsz*jitt[1 + 2*echoSamplePixel];
 	ELL_3V_SCALEADD(at, V, tmp);
 
+	
+
+	/* move jitt to next "scanline" */
 	jitt += 2*ECHO_SAMPLE_NUM;
       }
+      if (!param->reuseJitter) 
+	echoJitterSet(param, state);
     }
   }
   state->time1 = airTime();

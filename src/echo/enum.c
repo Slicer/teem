@@ -19,6 +19,8 @@
 
 #include "echo.h"
 
+/* ------------------------------- jitter --------------------------- */
+
 char
 _echoJitterStr[ECHO_JITTER_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_jitter)",
@@ -53,3 +55,47 @@ echoJitter = {
   AIR_FALSE
 };
 
+/* ------------------------------- object --------------------------- */
+
+char
+_echoObjectStr[ECHO_OBJECT_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown_object)",
+  "sphere",
+  "cube",
+  "triangle",
+  "rectangle",
+  "mesh",
+  "isosurface",
+  "AAbox"
+};
+
+char
+_echoObjectStrEqv[][AIR_STRLEN_SMALL] = {
+  "sphere",
+  "cube",
+  "triangle", "tri",
+  "rectangle", "rect",
+  "mesh", "tri-mesh",
+  "isosurface",
+  "AAbox"
+};
+
+int
+_echoObjectValEqv[] = {
+  echoObjectSphere,
+  echoObjectCube,
+  echoObjectTriangle, echoObjectTriangle,
+  echoObjectRectangle, echoObjectRectangle,
+  echoObjectMesh, echoObjectMesh,
+  echoObjectIsosurface,
+  echoObjectAABox
+};
+
+airEnum
+echoObject = {
+  "object",
+  ECHO_OBJECT_MAX,
+  _echoObjectStr,  NULL,
+  _echoObjectStrEqv, _echoObjectValEqv,
+  AIR_FALSE
+};
