@@ -189,8 +189,8 @@ tenGage = &_tenGage;
 /* --------------------------------------------------------------------- */
 
 char
-_tenFiberStyleStr[][AIR_STRLEN_SMALL] = {
-  "(unknown tenFiberStyle)",
+_tenFiberTypeStr[][AIR_STRLEN_SMALL] = {
+  "(unknown tenFiberType)",
   "evec1",
   "tensorline",
   "pureline",
@@ -198,8 +198,8 @@ _tenFiberStyleStr[][AIR_STRLEN_SMALL] = {
 };
 
 char
-_tenFiberStyleDesc[][AIR_STRLEN_MED] = {
-  "unknown tenFiber style",
+_tenFiberTypeDesc[][AIR_STRLEN_MED] = {
+  "unknown tenFiber type",
   "simply follow principal eigenvector",
   "Weinstein-Kindlmann tensorlines",
   "based on tensor multiplication only",
@@ -207,7 +207,7 @@ _tenFiberStyleDesc[][AIR_STRLEN_MED] = {
 };
 
 char
-_tenFiberStyleStrEqv[][AIR_STRLEN_SMALL] = {
+_tenFiberTypeStrEqv[][AIR_STRLEN_SMALL] = {
   "ev1", "evec1",
   "tline", "tensorline",
   "pline", "pureline",
@@ -216,24 +216,24 @@ _tenFiberStyleStrEqv[][AIR_STRLEN_SMALL] = {
 };
 
 int
-_tenFiberStyleValEqv[] = {
-  tenFiberStyleEvec1, tenFiberStyleEvec1,
-  tenFiberStyleTensorLine, tenFiberStyleTensorLine,
-  tenFiberStylePureLine, tenFiberStylePureLine,
-  tenFiberStyleZhukov, tenFiberStyleZhukov
+_tenFiberTypeValEqv[] = {
+  tenFiberTypeEvec1, tenFiberTypeEvec1,
+  tenFiberTypeTensorLine, tenFiberTypeTensorLine,
+  tenFiberTypePureLine, tenFiberTypePureLine,
+  tenFiberTypeZhukov, tenFiberTypeZhukov
 };
 
 airEnum
-_tenFiberStyle = {
-  "tenFiberStyle",
-  TEN_FIBER_STYLE_MAX,
-  _tenFiberStyleStr, NULL,
-  _tenFiberStyleDesc,
-  _tenFiberStyleStrEqv, _tenFiberStyleValEqv,
+_tenFiberType = {
+  "tenFiberType",
+  TEN_FIBER_TYPE_MAX,
+  _tenFiberTypeStr, NULL,
+  _tenFiberTypeDesc,
+  _tenFiberTypeStrEqv, _tenFiberTypeValEqv,
   AIR_FALSE
 };
 airEnum *
-tenFiberStyle = &_tenFiberStyle;
+tenFiberType = &_tenFiberType;
 
 /* ----------------------------------------------------------------------- */
 
@@ -264,3 +264,52 @@ _tenFiberStop = {
 };
 airEnum *
 tenFiberStop = &_tenFiberStop;
+
+/* ----------------------------------------------------------------------- */
+
+char
+_tenGlyphTypeStr[][AIR_STRLEN_SMALL] = {
+  "(unknown tenGlyphType)",
+  "box",
+  "sphere",
+  "cylinder",
+  "superquad"
+};
+
+char
+_tenGlyphTypeStrEqv[][AIR_STRLEN_SMALL] = {
+  "b", "box",
+  "s", "sphere",
+  "c", "cylinder",
+  "q", "superquad", "superquadrics",
+  ""
+};
+
+int
+_tenGlyphTypeValEqv[] = {
+  tenGlyphTypeBox, tenGlyphTypeBox,
+  tenGlyphTypeSphere, tenGlyphTypeSphere,
+  tenGlyphTypeCylinder, tenGlyphTypeCylinder,
+  tenGlyphTypeSuperquad, tenGlyphTypeSuperquad, tenGlyphTypeSuperquad
+};
+
+char
+_tenGlyphTypeDesc[][AIR_STRLEN_MED] = {
+  "unknown tenGlyph type",
+  "box/cube (rectangular prisms)",
+  "sphere (ellipsoids)",
+  "cylinders aligned along major eigenvector",
+  "superquadric (superellipsoids)"
+};
+
+airEnum
+_tenGlyphType = {
+  "tenGlyphType",
+  TEN_GLYPH_TYPE_MAX,
+  _tenGlyphTypeStr, NULL,
+  _tenGlyphTypeDesc,
+  _tenGlyphTypeStrEqv, _tenGlyphTypeValEqv, 
+  AIR_FALSE
+};
+airEnum *
+tenGlyphType = &_tenGlyphType;

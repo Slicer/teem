@@ -197,6 +197,15 @@ tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
     ret = ell3mEigensolve(eval, evec, m, AIR_TRUE);
     ELL_3V_COPY(_eval, eval);
     ELL_3M_COPY(_evec, evec);
+    if (ellCubicRootSingleDouble == ret) {
+      /* this was added to fix a stupid problem with very nearly
+	 isotropic glyphs, used for demonstration figures */
+      if (eval[0] == eval[1]) {
+	ELL_3V_CROSS(_evec+6, _evec+0, _evec+3);
+      } else {
+	ELL_3V_CROSS(_evec+0, _evec+3, _evec+6);
+      }
+    }
     if (tenVerbose && _eval[2] < 0) {
       fprintf(stderr, "tenEigensolve -------------\n");
       fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 

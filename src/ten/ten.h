@@ -72,10 +72,12 @@ enum {
 #define TEN_ANISO_MAX    19
 
 typedef struct {
+  int glyphType;          /* from tenGlyphType* enum */
+  float sharp;
   Nrrd *nmask;
-  int anisoType, colEvec;
+  int anisoType, colEvec, res;
   float colSat, colGamma;
-  float siloWidth, edgeWidth;
+  float edgeWidth[5];     /* same as limnOptsPS */
   float anisoThresh, confThresh, useColor;
   float maskThresh, glyphScale;
   float sumFloor, sumCeil;
@@ -125,19 +127,19 @@ enum {
 #define TEN_GAGE_TOTAL_ANS_LENGTH (72+TEN_ANISO_MAX+1)
 
 /*
-******** tenFiberStyle* enum
+******** tenFiberType* enum
 **
 ** the different kinds of fiber tractography that we do
 */
 enum {
-  tenFiberStyleUnknown,    /* 0: nobody knows */
-  tenFiberStyleEvec1,      /* 1: standard following of principal eigenvector */
-  tenFiberStyleTensorLine, /* 2: Weinstein-Kindlmann tensorlines */
-  tenFiberStylePureLine,   /* 3: "pure" tensorlines- multiplication only */
-  tenFiberStyleZhukov,     /* 4: Zhukov's oriented tensor reconstruction */
-  tenFiberStyleLast
+  tenFiberTypeUnknown,    /* 0: nobody knows */
+  tenFiberTypeEvec1,      /* 1: standard following of principal eigenvector */
+  tenFiberTypeTensorLine, /* 2: Weinstein-Kindlmann tensorlines */
+  tenFiberTypePureLine,   /* 3: "pure" tensorlines- multiplication only */
+  tenFiberTypeZhukov,     /* 4: Zhukov's oriented tensor reconstruction */
+  tenFiberTypeLast
 };
-#define TEN_FIBER_STYLE_MAX   4
+#define TEN_FIBER_TYPE_MAX   4
 
 /*
 ******** tenFiberStop* enum
@@ -153,11 +155,26 @@ enum {
 };
 #define TEN_FIBER_STOP_MAX 3
 
+/*
+******** tenGlyphType* enum
+** 
+** the different types of glyphs that may be used for tensor viz
+*/
+enum {
+  tenGlyphTypeUnknown,    /* 0: nobody knows */
+  tenGlyphTypeBox,        /* 1 */
+  tenGlyphTypeSphere,     /* 2 */
+  tenGlyphTypeCylinder,   /* 3 */
+  tenGlyphTypeSuperquad,  /* 4 */
+  tenGlyphTypeLast
+};
+#define TEN_GLYPH_TYPE_MAX   4
+
 typedef struct {
   /* ---- input -------- */
   Nrrd *dtvol;          /* the volume being analyzed */
   NrrdKernelSpec *ksp;  /* how to interpolate tensor values in dtvol */
-  int style;            /* from the tenFiber* enum */
+  int type;            /* from the tenFiber* enum */
   double step,          /* step size in world space */
     maxHalfLen;         /* longest propagation (forward or backward) allowed
 			   from midpoint */
@@ -180,8 +197,9 @@ extern ten_export double tenDefFiberMaxHalfLen;
 extern ten_export airEnum *tenAniso;
 extern ten_export airEnum _tenGage;
 extern ten_export airEnum *tenGage;
-extern ten_export airEnum *tenFiberStyle;
+extern ten_export airEnum *tenFiberType;
 extern ten_export airEnum *tenFiberStop;
+extern ten_export airEnum *tenGlyphType;
 
 /* glyph.c */
 extern tenGlyphParm *tenGlyphParmNew();
@@ -222,7 +240,7 @@ extern int tenEvqVolume(Nrrd *nout, Nrrd *nin, int which,
 /* fiberMethods.c */
 extern const char tenDefFiberKernel[];
 extern tenFiberContext *tenFiberContextNew(Nrrd *dtvol);
-extern int tenFiberStyleSet(tenFiberContext *tfx, int style);
+extern int tenFiberTypeSet(tenFiberContext *tfx, int type);
 extern int tenFiberKernelSet(tenFiberContext *tfx,
 			     NrrdKernel *kern,
 			     double parm[NRRD_KERNEL_PARMS_NUM]);

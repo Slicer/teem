@@ -83,7 +83,7 @@ tenFiberContextNew(Nrrd *dtvol) {
       sprintf(err, "%s: couldn't set default kernel", me);
       biffAdd(TEN, err); return NULL;
     }
-    tfx->style = tenFiberStyleUnknown;
+    tfx->type = tenFiberTypeUnknown;
     tfx->step = tenDefFiberStep;
     tfx->maxHalfLen = tenDefFiberMaxHalfLen;
 
@@ -94,8 +94,8 @@ tenFiberContextNew(Nrrd *dtvol) {
 }
 
 int
-tenFiberStyleSet(tenFiberContext *tfx, int style) {
-  char me[]="tenFiberStyleSet", err[AIR_STRLEN_MED];
+tenFiberTypeSet(tenFiberContext *tfx, int type) {
+  char me[]="tenFiberTypeSet", err[AIR_STRLEN_MED];
   gagePerVolume *pvl;
   int qse;
 
@@ -105,26 +105,26 @@ tenFiberStyleSet(tenFiberContext *tfx, int style) {
   }
   pvl = tfx->gtx->pvl[0];
   qse = 0;
-  switch(style) {
-  case tenFiberStyleEvec1:
+  switch(type) {
+  case tenFiberTypeEvec1:
     qse = gageQuerySet(pvl, ( (1 << tenGageEvec) 
 			      | (1 << tenGageAniso) ));
     break;
-  case tenFiberStyleTensorLine:
+  case tenFiberTypeTensorLine:
     qse = gageQuerySet(pvl, ( (1 << tenGageTensor)
 			      | (1 << tenGageEvec) 
 			      | (1 << tenGageAniso) ));
     break;
-  case tenFiberStylePureLine:
+  case tenFiberTypePureLine:
     qse = gageQuerySet(pvl, ( (1 << tenGageTensor)
 			      | (1 << tenGageAniso) ));
     break;
-  case tenFiberStyleZhukov:
+  case tenFiberTypeZhukov:
     sprintf(err, "%s: sorry, not Zhukov oriented tensors implemented", me);
     biffAdd(TEN, err); return 1;
     break;
   default:
-    sprintf(err, "%s: fiber style %d not recognized", me, style);
+    sprintf(err, "%s: fiber type %d not recognized", me, type);
     biffAdd(TEN, err); return 1;
     break;
   }
@@ -132,7 +132,7 @@ tenFiberStyleSet(tenFiberContext *tfx, int style) {
     sprintf(err, "%s: problem setting query", me);
     biffMove(TEN, err, GAGE); return 1;
   }
-  tfx->style = style;
+  tfx->type = type;
   return 0;
 }
 
@@ -164,8 +164,8 @@ tenFiberUpdate(tenFiberContext *tfx) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  if (tenFiberStyleUnknown == tfx->style) {
-    sprintf(err, "%s: fiber style not set", me);
+  if (tenFiberTypeUnknown == tfx->type) {
+    sprintf(err, "%s: fiber type not set", me);
     biffAdd(TEN, err); return 1;
   }
   if (gageUpdate(tfx->gtx)) {

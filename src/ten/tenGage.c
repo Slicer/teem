@@ -281,7 +281,6 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   return;
 }
 
-
 gageKind
 _tenGageKind = {
   "tensor",

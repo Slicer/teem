@@ -27,11 +27,17 @@ tenGlyphParmNew() {
   parm = calloc(1, sizeof(tenGlyphParm));
   if (parm) {
     parm->anisoType = tenAnisoUnknown;
+    parm->glyphType = tenGlyphTypeUnknown;
     parm->colEvec = 0;  /* first */
     parm->colSat = 1; 
+    parm->res = 10;
+    parm->sharp = 3.5;
     parm->colGamma = 1;
-    parm->siloWidth = 0.8;
-    parm->edgeWidth = 0.4;
+    parm->edgeWidth[0] = 0.0;
+    parm->edgeWidth[1] = 0.0;
+    parm->edgeWidth[2] = 0.4;
+    parm->edgeWidth[3] = 0.2;
+    parm->edgeWidth[4] = 0.1;
     parm->anisoThresh = AIR_NAN;
     parm->confThresh = parm->useColor = AIR_NAN;
     parm->maskThresh = AIR_NAN;
@@ -55,7 +61,16 @@ tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten) {
     biffAdd(TEN, err); return 1;
   }
   if (!( AIR_IN_OP(tenAnisoUnknown, parm->anisoType, tenAnisoLast) )) {
-    sprintf(err, "%s: invalid anisoType (%d)", me, parm->anisoType);
+    sprintf(err, "%s: unset (or invalid) anisoType (%d)", me, parm->anisoType);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( parm->res >= 3 )) {
+    sprintf(err, "%s: resolution %d not >= 3", me, parm->res);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( AIR_IN_OP(tenGlyphTypeUnknown, parm->glyphType,
+		   tenGlyphTypeLast) )) {
+    sprintf(err, "%s: unset (or invalid) glyphType (%d)", me, parm->glyphType);
     biffAdd(TEN, err); return 1;
   }
   if (parm->nmask) {
@@ -86,10 +101,13 @@ tenGlyphGen(limnObj *obj, Nrrd *nten, tenGlyphParm *parm) {
   gageShape *shape;
   airArray *mop;
   double I[3], W[3];
-  float *tdata, evec[9], eval[3], *cvec, aniso[TEN_ANISO_MAX+1],
-    mA[16], mB[16], R, G, B;
-  int idx, ri;
-  limnPart *cube;
+  float cl, cp, *tdata, evec[9], eval[3], *cvec, aniso[TEN_ANISO_MAX+1],
+    mA[16], mB[16], R, G, B, qA, qB;
+  int idx, ri, axis;
+  limnPart *glyph;
+  
+  int eret;
+  double tmp1[3], tmp2[3];  
 
   if (!(obj && nten && parm)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -122,41 +140,73 @@ tenGlyphGen(limnObj *obj, Nrrd *nten, tenGlyphParm *parm) {
 		 >= parm->maskThresh ))
 	    continue;
 	}
-	tenEigensolve(eval, evec, tdata);
+	eret = tenEigensolve(eval, evec, tdata);
 	tenAnisoCalc(aniso, eval);
 	if (!( aniso[parm->anisoType] >= parm->anisoThresh ))
 	  continue;
 	gageShapeUnitItoW(shape, W, I);
+	/*
+	fprintf(stderr, "%s: eret = %d; evals = %g %g %g\n", me,
+		eret, eval[0], eval[1], eval[2]);
+	ELL_3V_CROSS(tmp1, evec+0, evec+3); tmp2[0] = ELL_3V_LEN(tmp1);
+	ELL_3V_CROSS(tmp1, evec+0, evec+6); tmp2[1] = ELL_3V_LEN(tmp1);
+	ELL_3V_CROSS(tmp1, evec+3, evec+6); tmp2[2] = ELL_3V_LEN(tmp1);
+	fprintf(stderr, "%s: crosses = %g %g %g\n", me,
+		tmp2[0], tmp2[1], tmp2[2]);
+	*/
 	
-	/* reset transform */
-	ELL_4M_IDENTITY_SET(mA);
-
-	/* scale by eigenvalues */
-	ELL_3V_SCALE(eval, parm->glyphScale, eval);
+	/* set transform (in mA) */
+	ELL_4M_IDENTITY_SET(mA);                        /* reset */
+	ELL_3V_SCALE(eval, parm->glyphScale, eval);     /* scale by evals */
 	ELL_4M_SCALE_SET(mB, eval[0], eval[1], eval[2]);
 	ell4mPostMul_f(mA, mB);
-	
-	/* rotate by eigenvectors */
-	ELL_43M_INSET(mB, evec);
+	ELL_43M_INSET(mB, evec);                        /* rotate by evecs */
+	ell4mPostMul_f(mA, mB);
+	ELL_4M_TRANSLATE_SET(mB, W[0], W[1], W[2]);     /* translate */
 	ell4mPostMul_f(mA, mB);
 
-	/* translate to sample location */
-	ELL_4M_TRANSLATE_SET(mB, W[0], W[1], W[2]);
-	ell4mPostMul_f(mA, mB);
-
-	ri = limnObjCubeAdd(obj, 0);
-	cube = obj->r + ri;
+	/* set color (in R,G,B) */
 	cvec = evec + 3*(AIR_CLAMP(0, parm->colEvec, 2));
-	R = AIR_ABS(cvec[0]);
+	R = AIR_ABS(cvec[0]);                           /* standard mapping */
 	G = AIR_ABS(cvec[1]);
 	B = AIR_ABS(cvec[2]);
-	R = AIR_AFFINE(0.0, parm->colSat, 1.0, 1.0, R);
+	R = AIR_AFFINE(0.0, parm->colSat, 1.0, 1.0, R); /* desaturate */
 	G = AIR_AFFINE(0.0, parm->colSat, 1.0, 1.0, G);
 	B = AIR_AFFINE(0.0, parm->colSat, 1.0, 1.0, B);
-	R = pow(R, parm->colGamma);
+	R = pow(R, parm->colGamma);                     /* gamma */
 	G = pow(G, parm->colGamma);
 	B = pow(B, parm->colGamma);
-	ELL_4V_SET(cube->rgba, R, G, B, 1);
+	
+	/* which is the axis of revolution */
+	cl = aniso[tenAniso_Cl1];
+	cp = aniso[tenAniso_Cp1];
+	if (cl > cp) {
+	  axis = 0;
+	  qA = pow(1-cp, parm->sharp);
+	  qB = pow(1-cl, parm->sharp);
+	} else {
+	  axis = 2;
+	  qA = pow(1-cl, parm->sharp);
+	  qB = pow(1-cp, parm->sharp);
+	}
+	switch(parm->glyphType) {
+	case tenGlyphTypeBox:
+	  ri = limnObjCubeAdd(obj, 0);
+	  break;
+	case tenGlyphTypeSphere:
+	  ri = limnObjPolarSphereAdd(obj, 0, axis, 2*parm->res, parm->res);
+	  break;
+	case tenGlyphTypeCylinder:
+	  ri = limnObjCylinderAdd(obj, 0, axis, parm->res);
+	  break;
+	case tenGlyphTypeSuperquad:
+	default:
+	  ri = limnObjPolarSuperquadAdd(obj, 0, axis, qA, qB, 
+					2*parm->res, parm->res);
+	  break;
+	}
+	glyph = obj->r + ri;
+	ELL_4V_SET(glyph->rgba, R, G, B, 1);
 	limnObjPartTransform(obj, ri, mA);
       }
     }

@@ -50,7 +50,7 @@ main(int argc, char *argv[]) {
 
   tfx = tenFiberContextNew(dtvol);
   airMopAdd(mop, tfx, (airMopper)tenFiberContextNix, airMopAlways);
-  if (tenFiberStyleSet(tfx, tenFiberStyleEvec1)
+  if (tenFiberTypeSet(tfx, tenFiberTypeEvec1)
       || tenFiberUpdate(tfx)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);

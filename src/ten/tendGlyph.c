@@ -42,7 +42,6 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   limnObj *glyph;
   limnWin *win;
   tenGlyphParm *gparm;
-  float width[2];
 
   /* so that command-line options can be read from file */
   hparm->respFileEnable = AIR_TRUE;
@@ -57,7 +56,14 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, win, (airMopper)limnWinNix, airMopAlways);
   gparm = tenGlyphParmNew();
   airMopAdd(mop, gparm, (airMopper)tenGlyphParmNix, airMopAlways);
-  
+
+  hestOptAdd(&hopt, "g", "glyph shape", airTypeEnum, 1, 1, &(gparm->glyphType),
+	     "box", "shape of glyph to use for display.  Possibilities "
+	     "include \"box\", \"sphere\", \"cylinder\", and "
+	     "\"superquad\"", NULL, tenGlyphType);
+  hestOptAdd(&hopt, "gr", "glyph res", airTypeInt, 1, 1, &(gparm->res),
+	     "10", "resolution of polygonalization of glyphs (all glyphs "
+	     "other than the default box)");
   hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &(gparm->anisoType),
 	     "fa", "Which anisotropy metric to use for thresholding the data "
 	     "points to be drawn", NULL, tenAniso);
@@ -75,11 +81,12 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     nrrdHestNrrd);
   hestOptAdd(&hopt, "mtr", "mask thresh", airTypeFloat, 1, 1,
 	     &(gparm->maskThresh),
-	     "0.0", "Glyphs will be drawn only for tensors with mask "
+	     "0.5", "Glyphs will be drawn only for tensors with mask "
 	     "value greater than this threshold");
-  hestOptAdd(&hopt, "wd", "silo, edge width", airTypeFloat, 2, 2, width,
-	     "0.8 0.4", "width of edges drawn for glyph silohuette edges, "
-	     "and for non-silohuette glyph edges");
+  hestOptAdd(&hopt, "wd", "silo, edge width", airTypeFloat, 3, 3,
+	     gparm->edgeWidth + 2,
+	     "0.8 0.4 0.0", "width of edges drawn for three kinds of glyph "
+	     "edges: silohuette, crease, non-crease");
   hestOptAdd(&hopt, "sat", "saturation", airTypeFloat, 1, 1, &(gparm->colSat),
 	     "1.0", "saturation to use on glyph colors (use 0.0 for B+W)");
   hestOptAdd(&hopt, "gam", "gamma", airTypeFloat, 1, 1, &(gparm->colGamma),
@@ -114,8 +121,6 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  gparm->siloWidth = width[0];
-  gparm->edgeWidth = width[1];
   if (tenGlyphGen(glyph, nten, gparm)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble generating glyphs:\n%s\n", me, err);
@@ -131,11 +136,12 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   cam->dist = 0;
   cam->faar = 0.0000000001;
   cam->atRel = AIR_TRUE;
-  win->ps.edgeWidth[0] = 0;
-  win->ps.edgeWidth[1] = 0;
-  win->ps.edgeWidth[2] = gparm->siloWidth;
-  win->ps.edgeWidth[3] = gparm->edgeWidth;
-  win->ps.edgeWidth[4] = gparm->edgeWidth;
+  win->ps.edgeWidth[0] = gparm->edgeWidth[0];
+  win->ps.edgeWidth[1] = gparm->edgeWidth[1];
+  win->ps.edgeWidth[2] = gparm->edgeWidth[2];
+  win->ps.edgeWidth[3] = gparm->edgeWidth[3];
+  win->ps.edgeWidth[4] = gparm->edgeWidth[4];
+  win->ps.creaseAngle = 33;
   if (limnObjRender(glyph, cam, win)
       || limnObjPSDraw(glyph, cam, emap, win)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);

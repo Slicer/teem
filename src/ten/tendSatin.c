@@ -130,7 +130,7 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "anisotropy parameter.  0.0 for linear along lines of constant "
 	     "longitude (from pole to pole), 1.0 for planar, 2.0 for linear "
 	     "along lines of constant latitude");
-  hestOptAdd(&hopt, "ca", "aniso level", airTypeFloat, 1, 1, &level, "1.0",
+  hestOptAdd(&hopt, "ca1", "aniso level", airTypeFloat, 1, 1, &level, "1.0",
 	     "the non-spherical-ness of the anisotropy used.  \"1.0\" means "
 	     "completely linear or completely planar anisotropy");
   hestOptAdd(&hopt, "s", "sx sy sz", airTypeInt, 3, 3, size, "32 32 32",
