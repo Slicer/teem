@@ -1,7 +1,4 @@
-nrrdHistoDraw takes a maxval argument, so that different
-histograms can be compared visually better
-
------ teem 1.5beta1 cut-off -----
+unu heq should not DIE if min==max, it should just be a no-op.
 
 when reading raw data, make sure that after all data has been
 accounted for by nrrdReadDataRaw(), make sure that a subsequent

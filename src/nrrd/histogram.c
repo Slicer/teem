@@ -142,7 +142,6 @@ nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy, int showLog, double max) {
   nout->axis[0].spacing = nout->axis[1].spacing = AIR_NAN;
   nout->axis[0].min = nin->axis[0].min;
   nout->axis[0].max = nin->axis[0].max;
-  nout->axis[1].min = nout->axis[1].max = AIR_NAN;
   nout->axis[0].center = nout->axis[1].center = nrrdCenterCell;
   nout->axis[0].label = airStrdup(nin->axis[0].label);
   AIR_FREE(nout->axis[1].label);
@@ -162,6 +161,8 @@ nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy, int showLog, double max) {
   } else {
     usemaxhits = maxhits;
   }
+  nout->axis[1].min = usemaxhits;
+  nout->axis[1].max = 0;
   numticks = log10(usemaxhits + 1);
   mop = airMopNew();
   ticks = (int*)calloc(numticks, sizeof(int));
