@@ -176,7 +176,7 @@ main(int argc, char *argv[]) {
   me = argv[0];
   hestOptAdd(&hopt, "r", NULL, airTypeInt, 0, 0, &reverse, NULL,
 	     "convert back to DOS, instead of convert from DOS to normal");
-  hestOptAdd(&hopt, NULL, "file1 ", airTypeString, 1, -1, &name, NULL,
+  hestOptAdd(&hopt, NULL, "file ", airTypeString, 1, -1, &name, NULL,
 	     "all the files to convert.  Each file will be over-written "
 	     "with its converted contents.  Use \"-\" to read from stdin "
 	     "and write to stdout", &lenName);
