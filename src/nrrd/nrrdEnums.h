@@ -598,9 +598,11 @@ enum {
   nrrdUnaryOpSgn,        /* 22 */
   nrrdUnaryOpExists,     /* 23 */
   nrrdUnaryOpRand,       /* 24 */
+  nrrdUnaryOpZero,       /* 25 */
+  nrrdUnaryOpOne,        /* 26 */
   nrrdUnaryOpLast
 };
-#define NRRD_UNARY_OP_MAX   24
+#define NRRD_UNARY_OP_MAX   26
 
 /*
 ******** nrrdBinaryOp enum

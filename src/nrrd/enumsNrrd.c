@@ -904,6 +904,8 @@ nrrdMeasure = &_nrrdMeasure;
 #define nuSgn nrrdUnaryOpSgn
 #define nuExs nrrdUnaryOpExists
 #define nuRnd nrrdUnaryOpRand
+#define nuZer nrrdUnaryOpZero
+#define nuOne nrrdUnaryOpOne
 
 char 
 _nrrdUnaryOpStr[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
@@ -932,6 +934,8 @@ _nrrdUnaryOpStr[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "sgn",
   "exists",
   "rand",
+  "zero",
+  "one"
 };
 
 char 
@@ -961,6 +965,8 @@ _nrrdUnaryOpDesc[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_MED] = {
   "sign of value (-1, 0, or 1)",
   "value is not infinity or NaN",
   "random value between 0 and 1",
+  "always zero",
+  "always one"
 };
 
 char
@@ -989,6 +995,8 @@ _nrrdUnaryOpStrEqv[][AIR_STRLEN_SMALL] = {
   "sgn", "sign",
   "exists",
   "rand",
+  "zero", "0",
+  "one", "1",
   ""
 };
 
@@ -1018,6 +1026,8 @@ _nrrdUnaryOpValEqv[] = {
   nuSgn, nuSgn,
   nuExs,
   nuRnd,
+  nuZer, nuZer,
+  nuOne, nuOne
 };
 
 airEnum
