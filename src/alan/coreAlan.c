@@ -62,6 +62,7 @@ _alanStart(alanContext *actx) {
     nbeta = nrrdNuke(nbeta);
   } else if (!( alan_nt == nbeta->type 
 		&& 2 == nbeta->dim 
+		&& 2 == actx->dim
 		&& nbeta->axis[0].size == actx->size[0]
 		&& nbeta->axis[1].size == actx->size[1] )) {
     fprintf(stderr, "%s: beta type/size mismatch\n", me);
@@ -69,34 +70,46 @@ _alanStart(alanContext *actx) {
   } else {
     beta = (alan_t*)(nbeta->type);
   }
+
   actx->nlev[0] = nrrdNew();
   actx->nlev[1] = nrrdNew();
   if (2 == actx->dim) {
     ret = (nrrdMaybeAlloc(actx->nlev[0], alan_nt, 3,
 			  3, actx->size[0], actx->size[1])
-	   || nrrdMaybeAlloc(actx->nlev[1], alan_nt, 3,
-			     3, actx->size[1], actx->size[1]));
+	   || nrrdCopy(actx->nlev[1], actx->nlev[0]));
   } else {
     ret = (nrrdMaybeAlloc(actx->nlev[0], alan_nt, 4,
 			  3, actx->size[0], actx->size[1], actx->size[2])
-	   || nrrdMaybeAlloc(actx->nlev[1], alan_nt, 4,
-			     3, actx->size[1], actx->size[1], actx->size[2]));
+	   || nrrdCopy(actx->nlev[1], actx->nlev[0]));
   }
   if (ret) {
     sprintf(err, "%s: trouble allocating buffers", me);
     biffMove(ALAN, err, NRRD); return 1;
   }
   
-  N = nrrdElementNumber(actx->nlev[0])/3;
+  N = nrrdElementNumber(actx->nlev[0])/actx->nlev[0]->axis[0].size;
   lev0 = (alan_t*)(actx->nlev[0]->data);
   lev1 = (alan_t*)(actx->nlev[1]->data);
   for (I=0; I<N; I++) {
     lev0[0 + 3*I] = actx->initA;
     lev0[1 + 3*I] = actx->initB;
+    /*
+    lev0[2 + 3*I] = (beta 
+		     ? 12 + AIR_AFFINE(0, airRand(), 1,
+				       -actx->randRange, actx->randRange)
+		     : 12 + AIR_AFFINE(0, airRand(), 1,
+				       -actx->randRange, actx->randRange));
+    */
+
     lev0[2 + 3*I] = (beta 
 		     ? beta[I]
 		     : 12 + AIR_AFFINE(0, airRand(), 1,
 				       -actx->randRange, actx->randRange));
+
+    /*
+    lev0[2 + 3*I] = 12 + AIR_AFFINE(0, airRand(), 1,
+				    -actx->randRange, actx->randRange);
+    */
     lev1[2 + 3*I] = lev0[2 + 3*I];
   }
   
