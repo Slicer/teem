@@ -45,7 +45,7 @@ $(L).SEEN := true
 #### For time being, glyph (glyph.o, test/boxes, test/slices)
 #### stuff is nixed.
 ####
-$(L).NEED = limn gage dye unrrdu nrrd ell biff air
+$(L).NEED = echo limn gage dye unrrdu nrrd ell biff air
 $(L).PUBLIC_HEADERS = ten.h tenMacros.h
 $(L).PRIVATE_HEADERS = tenPrivate.h
 $(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o miscTen.o \

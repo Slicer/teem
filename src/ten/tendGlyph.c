@@ -20,31 +20,41 @@
 #include "ten.h"
 #include "tenPrivate.h"
 
-#define INFO "Generate postscript renderings of box glyphs"
+#define INFO "Generate postscript or ray-traced renderings of box glyphs"
 char *_tend_glyphInfoL =
   (INFO
-   ".  Because this is doing viz/graphics, many parameters need to be set. "
+   ".  Whether the output is postscript versus ray-traced image in controlled "
+   "by the initial \"rt\" flag (default, the output is postscript). "
+   "Because this is doing viz/graphics, many parameters need to be set. "
    "Use a response file to simplify giving the command-line options which "
    "aren't changing between invocations. "
-   "The output is an EPS file suitable for including as a figure in LaTeX, "
-   "or viewing with ghostview, or distilling into PDF.");
+   "The postscript output is an EPS file, suitable for including as a figure "
+   "in LaTeX, or viewing with ghostview, or distilling into PDF. "
+   "The ray-traced output is a 3 channel float nrrd, suitable for "
+   "\"unu gamma\" and \"unu quantize -b 8\".");
 
 int
 tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
-  int pret;
+  int pret, doRT = AIR_FALSE;
   hestOpt *hopt = NULL;
   char *perr, *err;
   airArray *mop;
 
-  Nrrd *nten, *emap;
+  Nrrd *nten, *emap, *nraw, *nrgb;
   char *outS;
   limnCam *cam;
   limnObj *glyph;
   limnWin *win;
+  echoScene *scene;
+  echoRTParm *eparm;
+  echoGlobalState *gstate;
   tenGlyphParm *gparm;
+  float bg[3];
+  int ires[2], cropmin[3], cropmax[3];
 
   /* so that command-line options can be read from file */
   hparm->respFileEnable = AIR_TRUE;
+  hparm->elideSingleEmptyStringDefault = AIR_TRUE;
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -52,26 +62,35 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, cam, (airMopper)limnCamNix, airMopAlways);
   glyph = limnObjNew(512, AIR_TRUE);
   airMopAdd(mop, glyph, (airMopper)limnObjNix, airMopAlways);
+  scene = echoSceneNew();
+  airMopAdd(mop, scene, (airMopper)echoSceneNix, airMopAlways);
   win = limnWinNew(limnDevicePS);
   airMopAdd(mop, win, (airMopper)limnWinNix, airMopAlways);
   gparm = tenGlyphParmNew();
   airMopAdd(mop, gparm, (airMopper)tenGlyphParmNix, airMopAlways);
+  eparm = echoRTParmNew();
+  airMopAdd(mop, eparm, (airMopper)echoRTParmNix, airMopAlways);
 
+  /* do postscript or ray-traced? */
+  hestOptAdd(&hopt, "rt", NULL, airTypeFloat, 0, 0, &doRT, NULL,
+	     "generate ray-traced output.  By default (not using this "
+	     "option), postscript output is generated.");
+  
   /* which points will rendered */
   hestOptAdd(&hopt, "ctr", "conf thresh", airTypeFloat, 1, 1,
-	     &(gparm->confThresh),
-	     "0.5", "Glyphs will be drawn only for tensors with confidence "
+	     &(gparm->confThresh), "0.5",
+	     "Glyphs will be drawn only for tensors with confidence "
 	     "values greater than this threshold");
-  hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &(gparm->anisoType),
-	     "fa", "Which anisotropy metric to use for thresholding the data "
+  hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &(gparm->anisoType), "fa",
+	     "Which anisotropy metric to use for thresholding the data "
 	     "points to be drawn", NULL, tenAniso);
   hestOptAdd(&hopt, "atr", "aniso thresh", airTypeFloat, 1, 1,
-	     &(gparm->anisoThresh),
-	     "0.5", "Glyphs will be drawn only for tensors with anisotropy "
+	     &(gparm->anisoThresh), "0.5",
+	     "Glyphs will be drawn only for tensors with anisotropy "
 	     "greater than this threshold");
-  hestOptAdd(&hopt, "m", "mask vol", airTypeOther, 1, 1, &(gparm->nmask), 
-	     "", "Scalar volume for masking region in which glyphs are "
-	     "drawn, in conjunction with \"mtr\" flag.  ", NULL, NULL,
+  hestOptAdd(&hopt, "m", "mask vol", airTypeOther, 1, 1, &(gparm->nmask), "",
+	     "Scalar volume (if any) for masking region in which glyphs are "
+	     "drawn, in conjunction with \"mtr\" flag. ", NULL, NULL,
 	     nrrdHestNrrd);
   hestOptAdd(&hopt, "mtr", "mask thresh", airTypeFloat, 1, 1,
 	     &(gparm->maskThresh),
@@ -79,19 +98,28 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "value greater than this threshold");
 
   /* how glyphs will be shaped and colored */
-  hestOptAdd(&hopt, "g", "glyph shape", airTypeEnum, 1, 1, &(gparm->glyphType),
-	     "box", "shape of glyph to use for display.  Possibilities "
+  hestOptAdd(&hopt, "g", "glyph shape", airTypeEnum, 1, 1,
+	     &(gparm->glyphType), "box",
+	     "shape of glyph to use for display.  Possibilities "
 	     "include \"box\", \"sphere\", \"cylinder\", and "
 	     "\"superquad\"", NULL, tenGlyphType);
+  hestOptAdd(&hopt, "sh", "sharpness", airTypeFloat, 1, 1,
+	     &(gparm->sqSharp), "3.0",
+	     "for superquadric glyphs, how much to sharp edges form as a "
+	     "function of differences between eigenvalues.  Higher values "
+	     "mean that edges form more easily");
   hestOptAdd(&hopt, "gsc", "scale", airTypeFloat, 1, 1, &(gparm->glyphScale),
 	     "0.01", "over-all glyph size in world-space");
-  hestOptAdd(&hopt, "sat", "saturation", airTypeFloat, 1, 1, &(gparm->colSat),
-	     "1.0", "saturation to use on glyph colors (use 0.0 for B+W)");
+  hestOptAdd(&hopt, "sat", "saturation", airTypeFloat, 1, 1,
+	     &(gparm->colSat), "1.0",
+	     "saturation to use on glyph colors (use 0.0 for B+W)");
   hestOptAdd(&hopt, "gam", "gamma", airTypeFloat, 1, 1, &(gparm->colGamma),
 	     "0.7", "gamma to use on color components (after saturation)");
-  hestOptAdd(&hopt, "emap", "env map", airTypeOther, 1, 1, &emap,
-	     "", "environment map to use for shading glyphs.  By default, "
+  hestOptAdd(&hopt, "emap", "env map", airTypeOther, 1, 1, &emap, "",
+	     "environment map to use for shading glyphs.  By default, "
 	     "there is no shading", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "bg", "background", airTypeFloat, 3, 3, bg, "1 1 1",
+	     "background RGB color; each component in range [0.0,1.0]");
 
   /* camera */
   hestOptAdd(&hopt, "fr", "from point", airTypeDouble, 3, 3, cam->from,"4 4 4",
@@ -111,51 +139,109 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   /* postscript-specific options */
   hestOptAdd(&hopt, "gr", "glyph res", airTypeInt, 1, 1, &(gparm->res),
-	     "10", "resolution of polygonalization of glyphs (all glyphs "
+	     "10", "(* postscript only *) "
+	     "resolution of polygonalization of glyphs (all glyphs "
 	     "other than the default box)");
-  hestOptAdd(&hopt, "wd", "3 widths", airTypeFloat, 3, 3,
-	     gparm->edgeWidth + 2,
-	     "0.8 0.4 0.0", "width of edges drawn for three kinds of glyph "
+  hestOptAdd(&hopt, "wd", "3 widths", airTypeFloat, 3, 3, gparm->edgeWidth + 2,
+	     "0.8 0.4 0.0",  "(* postscript only *) "
+	     "width of edges drawn for three kinds of glyph "
 	     "edges: silohuette, crease, non-crease");
-  hestOptAdd(&hopt, "psc", "scale", airTypeFloat, 1, 1, &(win->scale), "100",
-	     "scaling from unit in screen space to postscript points");
+  hestOptAdd(&hopt, "psc", "scale", airTypeFloat, 1, 1, &(win->scale), "300",
+	      "(* postscript only *) "
+	     "scaling from screen space units to postscript units "
+	     "(in points)");
+
+  /* ray-traced-specific options */
+  hestOptAdd(&hopt, "is", "nx ny", airTypeInt, 2, 2, ires, "256 256",
+	     "(* ray-traced only *) "
+	     "image size (resolution) to render");
+  hestOptAdd(&hopt, "ns", "# samp", airTypeInt, 1, 1, &(eparm->numSamples),"4",
+	     "(* ray-traced only *) "
+	     "number of samples per pixel (must be a square number)");
 
   /* input/output */
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nten, "-",
 	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
-	     "output EPS file");
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
+	     "output file");
 
   USAGE(_tend_glyphInfoL);
   PARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  if (tenGlyphGen(glyph, nten, gparm)) {
+  if (tenGlyphGen(doRT ? NULL : glyph, 
+		  doRT ? scene : NULL, nten, gparm)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble generating glyphs:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
-  if (!(win->file = airFopen(outS, stdout, "w"))) {
-    fprintf(stderr, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", 
-	    me, outS, strerror(errno));
-    airMopError(mop); return 1;
-  }
-  airMopAdd(mop, win->file, (airMopper)airFclose, airMopAlways);
-  cam->neer = -0.000000001;
-  cam->dist = 0;
-  cam->faar = 0.0000000001;
-  cam->atRel = AIR_TRUE;
-  win->ps.edgeWidth[0] = gparm->edgeWidth[0];
-  win->ps.edgeWidth[1] = gparm->edgeWidth[1];
-  win->ps.edgeWidth[2] = gparm->edgeWidth[2];
-  win->ps.edgeWidth[3] = gparm->edgeWidth[3];
-  win->ps.edgeWidth[4] = gparm->edgeWidth[4];
-  win->ps.creaseAngle = 33;
-  if (limnObjRender(glyph, cam, win)
-      || limnObjPSDraw(glyph, cam, emap, win)) {
-    airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble drawing glyphs:\n%s\n", me, err);
-    airMopError(mop); return 1;
+  if (doRT) {
+    nraw = nrrdNew();
+    airMopAdd(mop, nraw, (airMopper)nrrdNuke, airMopAlways);
+    nrgb = nrrdNew();
+    airMopAdd(mop, nrgb, (airMopper)nrrdNuke, airMopAlways);
+    gstate = echoGlobalStateNew();
+    airMopAdd(mop, gstate, (airMopper)echoGlobalStateNix, airMopAlways);
+    cam->neer = -2;
+    cam->dist = 0;
+    cam->faar = 2;
+    cam->atRel = AIR_TRUE;
+    eparm->imgResU = ires[0];
+    eparm->imgResV = ires[1];
+    eparm->jitterType = (eparm->numSamples > 1
+			 ? echoJitterJitter
+			 : echoJitterNone);
+    eparm->aperture = 0;
+    eparm->renderBoxes = AIR_FALSE;
+    eparm->seedRand = AIR_FALSE;
+    ELL_3V_COPY(scene->bkgr, bg);
+    scene->envmap = emap;
+    if (!emap) {
+      
+    }
+    if (echoRTRender(nraw, cam, scene, eparm, gstate)) {
+      airMopAdd(mop, err = biffGetDone(ECHO), airFree, airMopAlways);
+      fprintf(stderr, "%s: %s\n", me, err);
+      airMopError(mop);
+      return 1;
+    }
+    ELL_3V_SET(cropmin, 0, 0, 0);
+    ELL_3V_SET(cropmax, 2, nraw->axis[1].size-1, nraw->axis[2].size-1);
+    if (nrrdCrop(nrgb, nraw, cropmin, cropmax)
+	|| nrrdSave(outS, nrgb, NULL)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: %s\n", me, err);
+      airMopError(mop);
+      return 1;
+    }
+    /*
+    nrrdSlice(nrgb, nraw, 0, 4);
+    nrrdSave("time.nrrd", nrgb, NULL);
+    */
+  } else {
+    if (!(win->file = airFopen(outS, stdout, "w"))) {
+      fprintf(stderr, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", 
+	      me, outS, strerror(errno));
+      airMopError(mop); return 1;
+    }
+    airMopAdd(mop, win->file, (airMopper)airFclose, airMopAlways);
+    cam->neer = -0.000000001;
+    cam->dist = 0;
+    cam->faar = 0.0000000001;
+    cam->atRel = AIR_TRUE;
+    win->ps.edgeWidth[0] = gparm->edgeWidth[0];
+    win->ps.edgeWidth[1] = gparm->edgeWidth[1];
+    win->ps.edgeWidth[2] = gparm->edgeWidth[2];
+    win->ps.edgeWidth[3] = gparm->edgeWidth[3];
+    win->ps.edgeWidth[4] = gparm->edgeWidth[4];
+    win->ps.creaseAngle = 33;
+    ELL_3V_COPY(win->ps.bg, bg);
+    if (limnObjRender(glyph, cam, win)
+	|| limnObjPSDraw(glyph, cam, emap, win)) {
+      airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble drawing glyphs:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
   }
 
   airMopOkay(mop);

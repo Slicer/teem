@@ -1,5 +1,10 @@
-alias DOIT "tend glyph -sat 0 -wd 0.3 0.1 0 -gsc 0.13 -psc 220 -fr 0 0 -1 -up 0 1 0 -rh -ur -1.2 1.2 -vr -1.2 1.2 -or -emap emap.nrrd -atr 0 -gr 20"
+alias DOIT "tend glyph -bg 0.2 0.3 0.4 -rt -sat 0 -fr 0 0 -30 -up 0 1 0 -rh -ur -1.2 1.2 -vr -1.2 1.2 -or -emap emap.nrrd -atr 0 -gsc 0.25 -is 512 512 -ns 16"
 
-test/tt -n 8 -p 0.9 0.4 -0.2 | DOIT -g b -o box.ps
-test/tt -n 8 -p 0.9 0.4 -0.2 | DOIT -g s -o sph.ps
-test/tt -n 8 -p 0.9 0.4 -0.2 | DOIT -g q -o sqd.ps
+test/tt -n 7 -p -0.45 0.2 -0.35 | DOIT -g q \
+ | unu quantize -b 8 -min 0 -max 1 -o sqd.png
+test/tt -n 7 -p -0.45 0.2 -0.35 | DOIT -g b \
+ | unu quantize -b 8 -min 0 -max 1 -o box.png
+test/tt -n 7 -p -0.45 0.2 -0.35 | DOIT -g s \
+ | unu quantize -b 8 -min 0 -max 1 -o sph.png
+test/tt -n 7 -p -0.45 0.2 -0.35 | DOIT -g c \
+ | unu quantize -b 8 -min 0 -max 1 -o cyl.png

@@ -30,6 +30,7 @@
 #include <dye.h>
 #include <gage.h>
 #include <limn.h>
+#include <echo.h>
 
 #include "tenMacros.h"
 
@@ -73,7 +74,7 @@ enum {
 
 typedef struct {
   int glyphType;          /* from tenGlyphType* enum */
-  float sharp;
+  float sqSharp;          /* how much to turn on edges in superquadrics */
   Nrrd *nmask;
   int anisoType, colEvec, res;
   float colSat, colGamma;
@@ -205,7 +206,8 @@ extern ten_export airEnum *tenGlyphType;
 extern tenGlyphParm *tenGlyphParmNew();
 extern tenGlyphParm *tenGlyphParmNix(tenGlyphParm *parm);
 extern int tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten);
-extern int tenGlyphGen(limnObj *glyphs, Nrrd *nten, tenGlyphParm *parm);
+extern int tenGlyphGen(limnObj *glyphs, echoScene *scene,
+		       Nrrd *nten, tenGlyphParm *parm);
 
 /* tensor.c */
 extern ten_export int tenVerbose;

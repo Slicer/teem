@@ -31,7 +31,7 @@ tenGlyphParmNew() {
     parm->colEvec = 0;  /* first */
     parm->colSat = 1; 
     parm->res = 10;
-    parm->sharp = 3.5;
+    parm->sqSharp = 3.0;
     parm->colGamma = 1;
     parm->edgeWidth[0] = 0.0;
     parm->edgeWidth[1] = 0.0;
@@ -96,7 +96,8 @@ tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten) {
 }
 
 int
-tenGlyphGen(limnObj *obj, Nrrd *nten, tenGlyphParm *parm) {
+tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
+	    Nrrd *nten, tenGlyphParm *parm) {
   char me[]="tenGlyphGen", err[AIR_STRLEN_MED];
   gageShape *shape;
   airArray *mop;
@@ -104,12 +105,15 @@ tenGlyphGen(limnObj *obj, Nrrd *nten, tenGlyphParm *parm) {
   float cl, cp, *tdata, evec[9], eval[3], *cvec, aniso[TEN_ANISO_MAX+1],
     mA[16], mB[16], R, G, B, qA, qB;
   int idx, ri, axis;
-  limnPart *glyph;
-  
+  limnPart *lglyph;
+  echoObject *eglyph, *inst, *list=NULL, *split;
+  echoPos_t eM[16];
+  /*
   int eret;
   double tmp1[3], tmp2[3];  
+  */
 
-  if (!(obj && nten && parm)) {
+  if (!( (glyphsLimn || glyphsEcho) && nten && parm)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
@@ -129,6 +133,9 @@ tenGlyphGen(limnObj *obj, Nrrd *nten, tenGlyphParm *parm) {
     biffMove(TEN, err, GAGE); airMopError(mop); return 1;
   }
   idx = 0;
+  if (glyphsEcho) {
+    list = echoObjectNew(glyphsEcho, echoTypeList);
+  }
   for (I[2]=0; I[2]<shape->size[2]; I[2]++) {
     for (I[1]=0; I[1]<shape->size[1]; I[1]++) {
       for (I[0]=0; I[0]<shape->size[0]; idx++, I[0]++) {
@@ -140,7 +147,8 @@ tenGlyphGen(limnObj *obj, Nrrd *nten, tenGlyphParm *parm) {
 		 >= parm->maskThresh ))
 	    continue;
 	}
-	eret = tenEigensolve(eval, evec, tdata);
+	/* eret = */
+	tenEigensolve(eval, evec, tdata);
 	tenAnisoCalc(aniso, eval);
 	if (!( aniso[parm->anisoType] >= parm->anisoThresh ))
 	  continue;
@@ -178,38 +186,74 @@ tenGlyphGen(limnObj *obj, Nrrd *nten, tenGlyphParm *parm) {
 	B = pow(B, parm->colGamma);
 	
 	/* which is the axis of revolution */
-	cl = aniso[tenAniso_Cl1];
-	cp = aniso[tenAniso_Cp1];
+	cl = AIR_MIN(0.99, aniso[tenAniso_Cl1]);
+	cp = AIR_MIN(0.99, aniso[tenAniso_Cp1]);
 	if (cl > cp) {
 	  axis = 0;
-	  qA = pow(1-cp, parm->sharp);
-	  qB = pow(1-cl, parm->sharp);
+	  qA = pow(1-cp, parm->sqSharp);
+	  qB = pow(1-cl, parm->sqSharp);
 	} else {
 	  axis = 2;
-	  qA = pow(1-cl, parm->sharp);
-	  qB = pow(1-cp, parm->sharp);
+	  qA = pow(1-cl, parm->sqSharp);
+	  qB = pow(1-cp, parm->sqSharp);
 	}
-	switch(parm->glyphType) {
-	case tenGlyphTypeBox:
-	  ri = limnObjCubeAdd(obj, 0);
-	  break;
-	case tenGlyphTypeSphere:
-	  ri = limnObjPolarSphereAdd(obj, 0, axis, 2*parm->res, parm->res);
-	  break;
-	case tenGlyphTypeCylinder:
-	  ri = limnObjCylinderAdd(obj, 0, axis, parm->res);
-	  break;
-	case tenGlyphTypeSuperquad:
-	default:
-	  ri = limnObjPolarSuperquadAdd(obj, 0, axis, qA, qB, 
-					2*parm->res, parm->res);
-	  break;
+
+	/* add the glyph */
+	if (glyphsLimn) {
+	  switch(parm->glyphType) {
+	  case tenGlyphTypeBox:
+	    ri = limnObjCubeAdd(glyphsLimn, 0);
+	    break;
+	  case tenGlyphTypeSphere:
+	    ri = limnObjPolarSphereAdd(glyphsLimn, 0, axis,
+				       2*parm->res, parm->res);
+	    break;
+	  case tenGlyphTypeCylinder:
+	    ri = limnObjCylinderAdd(glyphsLimn, 0, axis, parm->res);
+	    break;
+	  case tenGlyphTypeSuperquad:
+	  default:
+	    ri = limnObjPolarSuperquadAdd(glyphsLimn, 0, axis, qA, qB, 
+					  2*parm->res, parm->res);
+	    break;
+	  }
+	  lglyph = glyphsLimn->r + ri;
+	  ELL_4V_SET(lglyph->rgba, R, G, B, 1);
+	  limnObjPartTransform(glyphsLimn, ri, mA);
 	}
-	glyph = obj->r + ri;
-	ELL_4V_SET(glyph->rgba, R, G, B, 1);
-	limnObjPartTransform(obj, ri, mA);
+	if (glyphsEcho) {
+	  switch(parm->glyphType) {
+	  case tenGlyphTypeBox:
+	    eglyph = echoObjectNew(glyphsEcho, echoTypeCube);
+	    /* nothing else to set */
+	    break;
+	  case tenGlyphTypeSphere:
+	    eglyph = echoObjectNew(glyphsEcho, echoTypeSphere);
+	    echoSphereSet(eglyph, 0, 0, 0, 1);
+	    break;
+	  case tenGlyphTypeCylinder:
+	    eglyph = echoObjectNew(glyphsEcho, echoTypeCylinder);
+	    echoCylinderSet(eglyph, axis);
+	    break;
+	  case tenGlyphTypeSuperquad:
+	  default:
+	    eglyph = echoObjectNew(glyphsEcho, echoTypeSuperquad);
+	    echoSuperquadSet(eglyph, axis, qA, qB);
+	    break;
+	  }
+	  ELL_4V_SET(eglyph->rgba, R, G, B, 1);
+	  echoMatterPhongSet(glyphsEcho, eglyph, 0, 1, 0, 40);
+	  inst = echoObjectNew(glyphsEcho, echoTypeInstance);
+	  ELL_4M_COPY(eM, mA);
+	  echoInstanceSet(inst, eM, eglyph);
+	  echoListAdd(list, inst);
+	}
       }
     }
+  }
+  if (glyphsEcho) {
+    split = echoListSplit3(glyphsEcho, list, 10);
+    echoObjectAdd(glyphsEcho, split);
   }
   
   airMopOkay(mop);

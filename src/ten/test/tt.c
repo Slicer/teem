@@ -28,9 +28,9 @@ _cap2xyz(double xyz[3], double ca, double cp) {
   
   cs = 1 - ca;
   cl = 1 - cs - cp;
-  xyz[0] = cs*0.7 + cl*1.0 + cp*1.0;
-  xyz[1] = cs*0.7 + cl*0.0 + cp*1.0;
-  xyz[2] = cs*0.7 + cl*0.0 + cp*0.0;
+  xyz[0] = cs*0.333 + cl*1.0 + cp*0.5;
+  xyz[1] = cs*0.333 + cl*0.0 + cp*0.5;
+  xyz[2] = cs*0.333 + cl*0.0 + cp*0.0;
 }
 
 void
@@ -69,7 +69,7 @@ main(int argc, char *argv[]) {
   
   int xi, yi, samp;
   float *tdata;
-  double p[3], xyz[3], q[4], len, maxca;
+  double p[3], xyz[3], q[4], len, hackcp, maxca;
   double ca, cp, mD[9], mRF[9], mRI[9], mT[9];
   Nrrd *nten;
   mop = airMopNew();
@@ -111,8 +111,9 @@ main(int argc, char *argv[]) {
   ELL_3M_TRANSPOSE(mRI, mRF);
   for (yi=0; yi<samp; yi++) {
     ca = AIR_AFFINE(0, yi, samp-1, 0.04, maxca);
+    hackcp = AIR_AFFINE(0, yi, samp-1, 0.04, 0);
     for (xi=0; xi<=yi; xi++) {
-      cp = AIR_AFFINE(0, xi, samp-1, 0.06, maxca-0.02);
+      cp = AIR_AFFINE(0, xi, samp-1, hackcp, maxca-0.02);
       _cap2xyz(xyz, ca, cp);
       /*
       fprintf(stderr, "%s: (%d,%d) -> (%g,%g) -> %g %g %g\n", me,
