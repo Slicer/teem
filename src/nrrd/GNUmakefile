@@ -55,8 +55,8 @@ hestNrrd.o   histogram.o iter.o         kernel.o         \
 	map.o        measure.o   methodsNrrd.o  parseNrrd.o      \
 	read.o       reorder.o   resampleNrrd.o simple.o         \
 	subset.o     superset.o  write.o 
-$(L).TESTS = test/trand test/ax test/io test/minmax test/tkernel \
-	test/typestest test/tline test/tread
+$(L).TESTS = test/tread test/trand test/ax test/io test/minmax test/tkernel \
+	test/typestest test/tline 
 ####
 ####
 ####
