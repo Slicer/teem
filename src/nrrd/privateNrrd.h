@@ -32,7 +32,6 @@ extern "C" {
 #  define EVALN evalN_d               /* NrrdKernel method */
 #endif
 
-#define _NRRD_COMMENT_CHAR '#'
 #define _NRRD_TABLE_INCR 256
 
 typedef union {
@@ -74,7 +73,7 @@ extern char _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL];
 extern char _nrrdRelDirFlag[];
 extern char _nrrdFieldSep[];
 extern char _nrrdTableSep[];
-extern int _nrrdSplitName(char *dir, char *base, const char *name);
+extern int _nrrdSplitName(char **dirP, char **baseP, const char *name);
 
 /* parse.c */
 extern int (*_nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1])(Nrrd *, NrrdIO *, int);
