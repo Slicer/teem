@@ -64,7 +64,7 @@ miter -i quad.nrrd \
   -dn -2 -di 0 -df 2 -ar \
   -ur -1.3 1.3 -vr -1.3 1.3 \
   -ld -1 -1 -2 -ads 0.3 0.7 0.23 -sp 60 \
-  -is 500 500 \
+  -is 100 100 \
   -txf txf.nrrd txf2.nrrd \
   -o rend.nrrd
 

@@ -40,6 +40,7 @@ miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
   mtt->TT = 1.0;
   ELL_3V_SCALE(mtt->V, -1, rayDirWorld);
 
+  fprintf(stderr, "!%s: mtt->verbose = %d\n", "miteRayBegin", mtt->verbose);
   return 0;
 }
 
@@ -104,6 +105,11 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
   if (!inside)
     return mtt->rayStep;
 
+  if (mtt->verbose) {
+    fprintf(stderr, "!%s: verbose = %d\n", me, mtt->verbose);
+    exit(1);
+  }
+
   if (1-mtt->TT >= muu->near1 && !muu->justSum) {
     /* early ray termination */
     mtt->TT = 0.0;
@@ -115,6 +121,15 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
     sprintf(err, "%s: gage trouble: %s (%d)", me, gageErrStr, gageErrNum);
     biffAdd(MITE, err); return AIR_NAN;
   }
+  mtt->mscl[miteSclXw] = samplePosWorld[0];
+  mtt->mscl[miteSclXi] = samplePosIndex[0];
+  mtt->mscl[miteSclYw] = samplePosWorld[1];
+  mtt->mscl[miteSclYi] = samplePosIndex[1];
+  mtt->mscl[miteSclZw] = samplePosWorld[2];
+  mtt->mscl[miteSclZi] = samplePosIndex[2];
+  mtt->mscl[miteSclTw] = rayT;
+  mtt->mscl[miteSclTi] = num;
+  mtt->mscl[miteSclNdotV] = ELL_3V_DOT(mtt->V, mtt->norm);
   memcpy(mtt->range, muu->rangeInit, MITE_RANGE_NUM*sizeof(mite_t));
   _miteStageRun(mtt);
   if (mtt->range[miteRangeAlpha]) {
@@ -148,6 +163,7 @@ miteRayEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
   int idx;
   mite_t *imgData, A;
   
+  fprintf(stderr, "!%s: mtt->verbose = %d\n", "miteRayEnd", mtt->verbose);
   idx = mtt->ui + (muu->nout->axis[1].size)*mtt->vi;
   imgData = (mite_t*)muu->nout->data;
   A = 1 - mtt->TT;

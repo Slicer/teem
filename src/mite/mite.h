@@ -177,6 +177,29 @@ typedef struct {
 } miteStage;
 
 /*
+******** miteScl* enum
+** 
+** the quantities not measured by gage which can appear in the
+** transfer function domain.  All of these are cheap to compute,
+** so all of them are saved/computed per sample, and stored in
+** the miteThread
+*/
+enum {
+  miteSclUnknown=-1,    /* -1: nobody knows */
+  miteSclXw,            /*  0: X position, world space */
+  miteSclXi,            /*  1: X     "   , index   "   */
+  miteSclYw,            /*  2: Y     "   , world   "   */
+  miteSclYi,            /*  3: Y     "   , index   "   */
+  miteSclZw,            /*  4: Z     "   , world   "   */
+  miteSclZi,            /*  5: Z     "   , index   "   */
+  miteSclTw,            /*  6: ray position */
+  miteSclTi,            /*  7: ray index (ray sample #) */
+  miteSclNdotV,         /*  8: surface normal dotted w/ view (towards eye) */
+  miteSclLast
+};
+#define MITE_SCL_MAX        8
+
+/*
 ******** miteThread
 **
 ** thread-specific state for mite's internal use
@@ -184,7 +207,8 @@ typedef struct {
 typedef struct miteThread_t {
   gageContext *gctx;            /* per-thread context */
   gage_t *ans,                  /* shortcut to gctx->pvl[0]->ans */
-    *norm;                      /* shortcut to ans[...normal...] */
+    *norm,                      /* shortcut to ans[...normal...] */
+    mscl[MITE_SCL_MAX];         /* all the miteScl */
   int verbose,                  /* blah blah blah */
     thrid,                      /* thread ID */
     ui, vi,                     /* image coords */
@@ -208,6 +232,7 @@ extern mite_export int miteDefNormalSide;
 extern mite_export double miteDefNear1;
 
 /* txf.c */
+extern mite_export airEnum *miteScl;
 extern mite_export char miteRangeChar[MITE_RANGE_NUM];
 extern int miteNtxfCheck(Nrrd *ntxf, gageKind *kind);
 

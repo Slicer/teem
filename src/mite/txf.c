@@ -28,6 +28,73 @@
 char
 miteRangeChar[MITE_RANGE_NUM] = "ARGBEadsp";
 
+char
+_miteSclStr[][AIR_STRLEN_SMALL] = {
+  "(unknown miteScl)",
+  "Xw",
+  "Xi",
+  "Yw",
+  "Yi",
+  "Zw",
+  "Zi",
+  "Tw",
+  "Ti",
+  "NdotV"
+};
+
+int
+_miteSclVal[] = {
+  miteSclUnknown,
+  miteSclXw,
+  miteSclXi,
+  miteSclYw,
+  miteSclYi,
+  miteSclZw,
+  miteSclZi,
+  miteSclTw,
+  miteSclTi,
+  miteSclNdotV
+};
+
+char
+_miteSclStrEqv[][AIR_STRLEN_SMALL] = {
+  "x", "xw",
+  "xi",
+  "y", "yw",
+  "yi",
+  "z", "zw",
+  "zi",
+  "t", "tw",
+  "ti",
+  "ndotv",
+  ""
+};
+
+int
+_miteSclValEqv[] = {
+  miteSclXw, miteSclXw,
+  miteSclXi,
+  miteSclYw, miteSclYw,
+  miteSclYi,
+  miteSclZw, miteSclZw,
+  miteSclZi,
+  miteSclTw, miteSclTw,
+  miteSclTi,
+  miteSclNdotV
+};
+
+airEnum
+_miteScl = {
+  "miteScl",
+  MITE_SCL_MAX+1,
+  _miteSclStr, _miteSclVal,
+  NULL,
+  _miteSclStrEqv, _miteSclValEqv,
+  AIR_FALSE
+};
+airEnum *
+miteScl = &_miteScl;
+
 int
 _miteDomainParse(char *label, gageKind *kind) {
   char me[]="_miteDomainParse", err[AIR_STRLEN_MED], *buff, *paren, *qstr;
@@ -60,8 +127,16 @@ _miteDomainParse(char *label, gageKind *kind) {
 	      me, airEnumStr(gageScl, domI));
       biffAdd(MITE, err); free(buff); return -1;
     }
+    free(buff);
   } else {
     /* txf domain variable is not directly measured by gage */
+    domI = airEnumVal(miteScl, label);
+    if (miteSclUnknown == domI) {
+      sprintf(err, "%s: couldn't parse \"%s\" as a miteScl variable", me, label);
+      biffAdd(MITE, err); return -1;
+    }
+    /* this signifies that its a miteScl, not a gageScl */
+    domI += GAGE_SCL_MAX+1;
     sprintf(err, "%s: sorry, only txf domain variables currently supported "
 	    "are those directly measured by gage", me);
     biffAdd(MITE, err); return -1;

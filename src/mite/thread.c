@@ -20,10 +20,16 @@
 #include "mite.h"
 #include "privateMite.h"
 
+/*
+******** miteThreadBegin()
+**
+** this has the body of what would be miteThreadInit
+*/
 int 
 miteThreadBegin(miteThread **mttP, miteRender *mrr,
 		miteUser *muu, int whichThread) {
   char me[]="miteThreadBegin", err[AIR_STRLEN_MED];
+  int msi;
   
   (*mttP) = mrr->tt[whichThread];
   if (!whichThread) {
@@ -39,6 +45,9 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
   }
   (*mttP)->ans = (*mttP)->gctx->pvl[0]->ans;
   (*mttP)->norm = (*mttP)->ans + gageKindScl->ansOffset[gageSclNormal];
+  for (msi=0; msi<=MITE_SCL_MAX; msi++) {
+    (*mttP)->mscl[msi] = 0.0;
+  }
   (*mttP)->thrid = whichThread;
   (*mttP)->samples = 0;
   (*mttP)->verbose = 0;
