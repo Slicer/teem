@@ -48,6 +48,7 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, muu, (airMopper)miteUserNix, airMopAlways);
   
   hparm->respFileEnable = AIR_TRUE;
+  hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
   hestOptAdd(&hopt, "i", "nsin", airTypeOther, 1, 1, &(muu->nsin), "",
 	     "input scalar volume to render", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "vi", "nvin", airTypeOther, 1, 1, &(muu->nvin), "",
@@ -61,6 +62,11 @@ main(int argc, char *argv[]) {
 		       NULL, "0 0 0", "0 0 1",
 		       NULL, NULL, NULL,
 		       "-1 1", "-1 1");
+  hestOptAdd(&hopt, "ffr", "fake from", airTypeDouble, 3, 3,
+	     &(muu->fakeFrom), "nan nan nan",
+	     "eye point to use for view-dependent transfer functions. "
+	     "By default (not using this option), the point used is the "
+	     "normally specified camera eye point.");
   hestOptAdd(&hopt, "am", "ambient", airTypeFloat, 3, 3, muu->lit->amb,
 	     "1 1 1", "ambient light color");
   hestOptAdd(&hopt, "ld", "light pos", airTypeFloat, 3, 3, muu->lit->_dir[0],
