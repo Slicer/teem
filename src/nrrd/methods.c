@@ -108,6 +108,7 @@ _nrrdResampleInfoInit(nrrdResampleInfo *info) {
   info->boundary = nrrdDefRsmpBoundary;
   info->type = nrrdDefRsmpType;
   info->renormalize = nrrdDefRsmpRenormalize;
+  info->clamp = nrrdDefRsmpClamp;
   info->padValue = nrrdDefRsmpPadValue;
 }
 

@@ -41,18 +41,11 @@ extern "C" {
 typedef struct {
   size_t size;          /* sizeof() one thing */
   char *type;           /* used by hestGlossary() to describe the type */
-  void *(*parse)(void *ptr, char *str);
+  int (*parse)(void *ptr, char *str, char err[AIR_STRLEN_LARGE]);
                         /* how to parse one thing from a string.  This will
 			   be called multiple times for multiple parameter
-			   options.  Using a void* as the return value does
-			   not preclude storing an integral value in the void*
-			   (see K+R pg. 199) but its up to you to insure that
-			   the integral value fits in the void*. */
-  char *(*error)(void *ret);
-                        /* what to call if parse() has a non-zero return,
-			   so as to generate an error message.  strlen() of
-			   this string must be < AIR_STRLEN_MED, and it should
-			   not contain any carriage returns or newlines. */
+			   options.  A non-zero return value is considered
+			   an error.  Error message go in the err string */
   void *(*delete)(void *ptr);
                         /* if non-NULL, this is the destructor that will be
 			   called by hestParseFree() (or by hestParse() if
@@ -60,7 +53,6 @@ typedef struct {
 			   argument is NOT the same as passed to parse():
 			   it is the result of dereferencing the argument
 			   to parse() */
-  int freeErrorStr;     /* whether to free() the return of error() */
 } hestCB;
 
 /*

@@ -365,7 +365,7 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
     nhist = nrrdNew();
     if (nrrdHisto(nhist, nrrd, bins, nrrdTypeInt)) {
       sprintf(err, "%s: failed to create histogram", me);
-      biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
+      biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     hist = nhist->data;
     min = nhist->axis[0].min;
@@ -376,7 +376,7 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
        the histogram to look for bins always hit with the same value */
     if (nrrdAlloc(nhist=nrrdNew(), nrrdTypeUInt, 1, bins)) {
       sprintf(err, "%s: failed to allocate histogram", me);
-      biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
+      biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     hist = nhist->data;
     nhist->axis[0].size = bins;
@@ -389,7 +389,7 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
     airMopMem(mop, &last, airMopAlways);
     if (!(respect && steady && last)) {
       sprintf(err, "%s: couldn't allocate smart arrays", me);
-      biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
+      biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     for (i=0; i<=bins-1; i++) {
       last[i] = AIR_NAN;
@@ -400,7 +400,7 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
     nrrd->min = nrrd->max = AIR_NAN;
     if (nrrdCleverMinMax(nrrd)) {
       sprintf(err, "%s: couldn't find value range in nrrd", me);
-      biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
+      biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     min = nrrd->min;
     max = nrrd->max;
@@ -446,7 +446,7 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
   airMopMem(mop, &ycoord, airMopAlways);
   if (!(xcoord && ycoord)) {
     sprintf(err, "%s: failed to create xcoord, ycoord arrays", me);
-    biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 
   /* integrate the histogram then normalize it */
@@ -485,6 +485,6 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
     nrrdNuke(nhist);
   }
   
-  airMopDone(mop, AIR_FALSE);
+  airMopOkay(mop);
   return(0);
 }

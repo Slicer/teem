@@ -31,10 +31,10 @@ nrrdDescribe(FILE *file, Nrrd *nrrd) {
   int i;
 
   if (file && nrrd) {
-    fprintf(file, "Nrrd at 0x%lx:\n", (unsigned long)nrrd);
-    fprintf(file, "Data at 0x%lx is " NRRD_BIG_INT_PRINTF 
+    fprintf(file, "Nrrd at 0x%p:\n", (void*)nrrd);
+    fprintf(file, "Data at 0x%p is " NRRD_BIG_INT_PRINTF 
 	    " elements of type %s.\n",
-	    (unsigned long)nrrd->data, nrrdElementNumber(nrrd), 
+	    nrrd->data, nrrdElementNumber(nrrd), 
 	    nrrdEnumValToStr(nrrdEnumType, nrrd->type));
     if (nrrdTypeBlock == nrrd->type) 
       fprintf(file, "The blocks have size %d\n", nrrd->blockSize);

@@ -26,7 +26,6 @@ extern "C" {
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h> /* for write() */
 #include <stdarg.h>
 #include <string.h>
 #include <math.h>
@@ -228,14 +227,19 @@ typedef struct {
   int boundary,                     /* value from the nrrdBoundary enum */
     type,                           /* desired type of output, use
 				       nrrdTypeUnknown for "same as input" */
-    renormalize;                    /* when downsampling with a kernel with
+    renormalize,                    /* when downsampling with a kernel with
 		   		       non-zero integral, should we renormalize
 				       the weights to match the kernel integral
 				       so as to remove annoying ripple */
+    clamp;                          /* when copying from the last intermediate
+				       (floating point) result to the output
+				       nrrd, should we clamp the values to the
+				       range of values for the output type, a
+				       concern only for fixed-point outputs */
   double padValue;                  /* if padding, what value to pad with */
 } nrrdResampleInfo;
 
-/******** defaults all kinds */
+/******** defaults, as well as state */
 /* defaults.c */
 extern int nrrdDefWrtEncoding;
 extern int nrrdDefWrtSeperateHeader;
@@ -246,6 +250,7 @@ extern int nrrdDefRsmpBoundary;
 extern int nrrdDefRsmpType;
 extern double nrrdDefRsmpScale;
 extern int nrrdDefRsmpRenormalize;
+extern int nrrdDefRsmpClamp;
 extern double nrrdDefRsmpPadValue;
 extern int nrrdDefCenter;
 extern double nrrdDefSpacing;

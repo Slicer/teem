@@ -43,14 +43,15 @@ int nrrdDefRsmpType = nrrdTypeUnknown;  /* means "same as input" */
 double nrrdDefRsmpScale = 1.0;    /* these two should probably be the same */
 double nrrdDefKernelParam0 = 1.0; 
 int nrrdDefRsmpRenormalize = AIR_TRUE;
+int nrrdDefRsmpClamp = AIR_TRUE;
 double nrrdDefRsmpPadValue = 0.0;
 int nrrdDefCenter = nrrdCenterNode;
 double nrrdDefSpacing = 1.0;
 
 /* these aren't really "defaults" because there's no other channel for
    specifying this information.  It is just global state.  Obviously,
-   they are not thread-safe if different threads ever set them
-   differently. */
+   like defaults, they are not thread-safe if different threads ever
+   set them differently. */
 int nrrdStateVerboseIO = 4;
 int nrrdStateClever8BitMinMax = AIR_TRUE;
 int nrrdStateMeasureType = nrrdTypeFloat;

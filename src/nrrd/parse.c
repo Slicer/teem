@@ -23,11 +23,13 @@ int
 _nrrdReadNrrdParse_nonfield(Nrrd *nrrd, nrrdIO *io, int useBiff) { 
   char c;
 
+  /*
   c= 10; write(2,&c,1); c= 69; write(2,&c,1); c=108; write(2,&c,1);
   c= 32; write(2,&c,1); c= 67; write(2,&c,1); c=104; write(2,&c,1);
   c=101; write(2,&c,1); c= 32; write(2,&c,1); c= 86; write(2,&c,1);
   c=105; write(2,&c,1); c=118; write(2,&c,1); c=101; write(2,&c,1);
   c= 33; write(2,&c,1); c= 10; write(2,&c,1); c= 10; write(2,&c,1);
+  */
 
   return 0;
 }
@@ -206,12 +208,8 @@ _nrrdReadNrrdParse_centers(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   for (i=0; i<=nrrd->dim-1; i++) {
     tok = airStrtok(!i ? info : NULL, _nrrdFieldSep, &last);
     if (!tok) {
-      sprintf(err, "%s: couldn't parse center %d of %d",
+      sprintf(err, "%s: couldn't extract string for center %d of %d",
 	      me, i+1, nrrd->dim);
-      /*
-      fprintf(stderr, "!%s: couldn't parse center %d of %d",
-	      me, i+1, nrrd->dim);
-      */
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
     if (!strcmp(tok, NRRD_UNKNOWN)) {
@@ -221,10 +219,6 @@ _nrrdReadNrrdParse_centers(Nrrd *nrrd, nrrdIO *io, int useBiff) {
     if (!(nrrd->axis[i].center = nrrdEnumStrToVal(nrrdEnumCenter, tok))) {
       sprintf(err, "%s: couldn't parse \"%s\" center %d of %d",
 	      me, tok, i+1, nrrd->dim);
-      /*
-      fprintf(stderr, "!%s: couldn't parse \"%s\" center %d of %d",
-	      me, tok, i+1, nrrd->dim);
-      */
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
     /*

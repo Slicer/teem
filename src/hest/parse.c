@@ -305,13 +305,12 @@ _hestErrStrlen(hestOpt *opt, int argc, char **argv) {
     ret = AIR_MAX(ret, airStrlen(airTypeStr[a]));
   }
   if (other) {
-    /* the callback's error() function will return a string that
-       will be copied into the main error string, and hest.h says
-       that strlen() of this string should be < AIR_STRLEN_MED */
-    ret += AIR_STRLEN_MED;
+    /* the callback's error() function may sprintf an error message
+       into a buffer which is size AIR_STRLEN_LARGE */
+    ret += AIR_STRLEN_LARGE;
   }
   ret += 4 * 12;  /* as many as 4 ints per error message */
-  ret += 129;     /* function name and text of error message */
+  ret += 257;     /* function name and text of hest's error message */
 
   return ret;
 }
@@ -611,10 +610,10 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	       hestOpt *opt,
 	       char *err, hestParm *parm, airArray *pmop) {
   char ident[AIR_STRLEN_HUGE], me[]="_hestSetValues: ",
-    *cberr, *tok, *last, *prmsCopy;
+    cberr[AIR_STRLEN_LARGE], *tok, *last, *prmsCopy;
   double tmpD;
-  int op, type, numOpts, p;
-  void *vP, *ret;
+  int op, type, numOpts, p, ret;
+  void *vP;
   char *cP;
   size_t size;
 
@@ -656,15 +655,15 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	}
 	else {
 	  /* we are parsing an "other" (exactly one of them) */
-	  ret = opt[op].CB->parse(vP, prms[op]);
+	  strcpy(cberr, "");
+	  ret = opt[op].CB->parse(vP, prms[op], cberr);
 	  if (ret) {
-	    cberr = opt[op].CB->error ? opt[op].CB->error(ret) : NULL;
-	    sprintf(err, "%serror parsing \"%s\" as %s%s%s", 
-		    ME, prms[op], opt[op].CB->type,
-		    cberr ? ": " : "",
-		    cberr ? cberr : "");
-	    if (opt[op].CB->freeErrorStr)
-	      free(cberr);
+	    if (strlen(cberr))
+	      sprintf(err, "%serror parsing \"%s\" as %s: %s", 
+		      ME, prms[op], opt[op].CB->type, cberr);
+	    else 
+	      sprintf(err, "%serror parsing \"%s\" as %s: return val %d", 
+		      ME, prms[op], opt[op].CB->type, ret);
 	    return 1;
 	  }
 	  if (opt[op].CB->delete) {
@@ -702,15 +701,16 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	  prmsCopy = airStrdup(prms[op]);
 	  for (p=0; p<=opt[op].min-1; p++) {
 	    tok = airStrtok(!p ? prmsCopy : NULL, " ", &last);
-	    ret = opt[op].CB->parse(cP + p*size, tok);
+	    strcpy(cberr, "");
+	    ret = opt[op].CB->parse(cP + p*size, tok, cberr);
 	    if (ret) {
-	      cberr = opt[op].CB->error ? opt[op].CB->error(ret) : NULL;
-	      sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s%s%s", 
-		      ME, tok, prms[op], opt[op].CB->type,
-		      cberr ? ": " : "",
-		      cberr ? cberr : "");
-	      if (opt[op].CB->freeErrorStr)
-		free(cberr);
+	      if (strlen(cberr))
+		sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s: %s", 
+			ME, tok, prms[op], opt[op].CB->type, cberr);
+	      else 
+		sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s: "
+			"return val %d", 
+			ME, tok, prms[op], opt[op].CB->type, ret);
 	      free(prmsCopy);
 	      return 1;
 	    }
@@ -765,15 +765,15 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	     if the parameter didn't appear, we'll parse it from the default,
 	     if it did appear, we'll parse it from the command line.  Setting
 	     up prms[op] thusly has already been done by _hestDefaults() */
-	  ret = opt[op].CB->parse(vP, prms[op]);
+	  strcpy(cberr, "");
+	  ret = opt[op].CB->parse(vP, prms[op], cberr);
 	  if (ret) {
-	    cberr = opt[op].CB->error ? opt[op].CB->error(ret) : NULL;
-	    sprintf(err, "%serror parsing \"%s\" as %s%s%s", 
-		    ME, prms[op], opt[op].CB->type,
-		    cberr ? ": " : "",
-		    cberr ? cberr : "");
-	    if (opt[op].CB->freeErrorStr)
-	      free(cberr);
+	    if (strlen(cberr))
+	      sprintf(err, "%serror parsing \"%s\" as %s: %s", 
+		      ME, prms[op], opt[op].CB->type, cberr);
+	    else 
+	      sprintf(err, "%serror parsing \"%s\" as %s: return val %d", 
+		      ME, prms[op], opt[op].CB->type, ret);
 	    return 1;
 	  }
 	  if (opt[op].CB->delete) {
@@ -829,15 +829,16 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	    opt[op].alloc = (opt[op].CB->delete ? 3 : 1);
 	    for (p=0; p<=nprm[op]-1; p++) {
 	      tok = airStrtok(!p ? prmsCopy : NULL, " ", &last);
-	      ret = opt[op].CB->parse(cP + p*size, tok);
+	      strcpy(cberr, "");
+	      ret = opt[op].CB->parse(cP + p*size, tok, cberr);
 	      if (ret) {
-		cberr = opt[op].CB->error ? opt[op].CB->error(ret) : NULL;
-		sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s%s%s", 
-			ME, tok, prms[op], opt[op].CB->type,
-			cberr ? ": " : "",
-			cberr ? cberr : "");
-		if (opt[op].CB->freeErrorStr)
-		  free(cberr);
+		if (strlen(cberr))
+		  sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s: %s", 
+			  ME, tok, prms[op], opt[op].CB->type, cberr);
+		else 
+		  sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s: "
+			  "return val %d", 
+			  ME, tok, prms[op], opt[op].CB->type, ret);
 		free(prmsCopy);
 		return 1;
 	      }

@@ -19,6 +19,17 @@
 #include "nrrd.h"
 #include "private.h"
 
+/*
+learned: if you start using airMop stuff, and you register a free, but
+then you free the memory yourself, YOU HAVE GOT TO register a NULL in
+place of the original free.  The next malloc may end up at the same
+address as what you just freed, and if you want this memory to NOT be
+mopped up, then you'll be confused with the original registered free
+goes into effect and mops it up for you, even though YOU NEVER
+REGISTERED a free for the second malloc.  If you want simple stupid
+tools, you have to treat them accordingly (be extremely careful with
+fire).  */
+
 int
 nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
 		   nrrdKernel *kernel, double *param,
@@ -274,18 +285,18 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
   support = info->kernel[d]->support(info->param[d]);
   integral = info->kernel[d]->integral(info->param[d]);
   fprintf(stderr, 
-	  "%s(%d): size{In,Out} = %d, %d, support = %g; ratio = %g\n", 
+	  "%s(%d): size{In,Out} = %d, %d, support = %f; ratio = %f\n", 
 	  me, d, sizeIn, sizeOut, support, ratio);
   
   if (ratio > 1) {
     /* if upsampling, we need only as many samples as needed for
        interpolation with the given kernel */
-    dotLen = 2*AIR_ROUNDUP(support);
+    dotLen = 2*ceil(support);
   }
   else {
     /* if downsampling, we need to use all the samples covered by
        the stretched out version of the kernel */
-    dotLen = 2*AIR_ROUNDUP(support/ratio);
+    dotLen = 2*ceil(support/ratio);
   }
   fprintf(stderr, "%s(%d): dotLen = %d\n", me, d, dotLen);
 
@@ -408,17 +419,16 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
       }
     }
   }
-
   /*
   printf("%s: sample weights:\n", me);
   for (i=0; i<=sizeOut-1; i++) {
     printf("%s: %d\n        ", me, i);
-    tmpF = 0;
+    wght = 0;
     for (e=0; e<=dotLen-1; e++) {
       printf("%d/%g ", index[e + dotLen*i], weight[e + dotLen*i]);
-      tmpF += weight[e + dotLen*i];
+      wght += weight[e + dotLen*i];
     }
-    printf(" (sum = %g)\n", tmpF);
+    printf(" (sum = %g)\n", wght);
   }
   */
 
@@ -573,7 +583,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   if (nrrdTypeFloat != typeIn) {
     if (nrrdConvert(floatNin = nrrdNew(), nin, nrrdTypeFloat)) {
       sprintf(err, "%s: couldn't create float copy of input", me);
-      biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
+      biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     arr[0] = floatNin->data;
     airMopAdd(mop, floatNin, (airMopper)nrrdNuke, airMopOnError);
@@ -648,7 +658,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     if (!arr[pass+1]) {
       sprintf(err, "%s: couldn't create array of "NRRD_BIG_INT_PRINTF" floats"
 	      " for output of pass %d", me, numOut, pass);
-      biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
+      biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     airMopAdd(mop, arr[pass+1], airFree, airMopAlways);
     /*
@@ -668,7 +678,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
 					  nin, info, d);
     if (!dotLen) {
       sprintf(err, "%s: trouble creating weight and index vector arrays", me);
-      biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
+      biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     ratios[d] = ratio;
     airMopAdd(mop, weight, airFree, airMopAlways);
@@ -742,10 +752,12 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   /* create output nrrd and set axis info */
   if (nrrdMaybeAlloc_nva(nout, typeOut, dim, sz[passes])) {
     sprintf(err, "%s: couldn't allocate final output nrrd", me);
-    biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
+  /*
   printf("!%s: nout: dim = %d; sz[] = %d %d %d\n", me,
 	 dim, sz[passes][0],  sz[passes][1],  sz[passes][2]);
+  */
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopOnError);
   nrrdAxesCopy(nout, nin, NULL, 
 	       (NRRD_AXESINFO_SIZE
@@ -753,7 +765,6 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
 		| NRRD_AXESINFO_SPACING));
   for (d=0; d<=dim-1; d++) {
     if (info->kernel[d]) {
-      printf("!%s: this is wrong\n", me);
       nout->axis[d].min = info->min[d];
       nout->axis[d].max = info->max[d];
       nout->axis[d].spacing = nin->axis[d].spacing/ratios[d];
@@ -765,18 +776,23 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     }
   }
 
-  /* copy the resampling final result into the output nrrd, clamping
-     as we go to insure that fixed point results don't have unexpected
-     wrap-around.  */
+  /* maybe copy the resampling final result into the output nrrd,
+     clamping as we go to insure that fixed point results don't have
+     unexpected wrap-around.  */
   numOut = nrrdElementNumber(nout);
-  for (I=0; I<=numOut-1; I++) {
-    tmpF = nrrdFClamp[typeOut](arr[passes][I]);
-    nrrdFInsert[typeOut](nout->data, I, tmpF);
+  if (info->clamp) {
+    for (I=0; I<=numOut-1; I++) {
+      tmpF = nrrdFClamp[typeOut](arr[passes][I]);
+      nrrdFInsert[typeOut](nout->data, I, tmpF);
+    }
+  }
+  else {
+    for (I=0; I<=numOut-1; I++) {
+      nrrdFInsert[typeOut](nout->data, I, arr[passes][I]);
+    }
   }
 
   /* enough already */
-  _nrrdTraverse(nout);
-  airMopDone(mop, AIR_FALSE);
-  _nrrdTraverse(nout);
+  airMopOkay(mop);
   return 0;
 }

@@ -232,8 +232,8 @@ nrrdKernelTent = &_nrrdKernelTent;
 /* ------------------------------------------------------------ */
 
 #define _FORDIF(x) (x <= -1 ?  0 :        \
-                   (x <=  0 ? -1 :        \
-                   (x <=  1 ?  1 : 0 )))
+                   (x <=  0 ?  1 :        \
+                   (x <=  1 ? -1 : 0 )))
 
 double
 _nrrdFDInt(double *param) {
@@ -246,7 +246,7 @@ _nrrdFDSup(double *param) {
   double S;
   
   S = param[0];
-  return S;
+  return S+0.0001;  /* sigh */
 }
 
 double
@@ -255,7 +255,7 @@ _nrrdFD1_d(double x, double *param) {
   
   S = param[0];
   x /= S;
-  return _FORDIF(x)/S;
+  return _FORDIF(x)/(S*S);
 }
 
 float
@@ -264,7 +264,7 @@ _nrrdFD1_f(float x, double *param) {
   
   S = param[0];
   x /= S;
-  return _FORDIF(x)/S;
+  return _FORDIF(x)/(S*S);
 }
 
 void
@@ -276,7 +276,7 @@ _nrrdFDN_d(double *f, double *x, int len, double *param) {
   S = param[0];
   for (i=0; i<len; i++) {
     t = x[i]/S;
-    f[i] = _FORDIF(t)/S;
+    f[i] = _FORDIF(t)/(S*S);
   }
 }
 
@@ -288,7 +288,7 @@ _nrrdFDN_f(float *f, float *x, int len, double *param) {
   S = param[0];
   for (i=0; i<len; i++) {
     t = x[i]/S;
-    f[i] = _FORDIF(t)/S;
+    f[i] = _FORDIF(t)/(S*S);
   }
 }
 
@@ -303,9 +303,9 @@ nrrdKernelForwDiff = &_nrrdKernelFD;
 /* ------------------------------------------------------------ */
 
 #define _CENDIF(x) (x <= -2 ?  0         :        \
-                   (x <= -1 ? -0.5*x - 1 :        \
-		   (x <=  1 ?  0.5*x     :        \
-                   (x <=  2 ? -0.5*x + 1 : 0 ))))
+                   (x <= -1 ?  0.5*x + 1 :        \
+		   (x <=  1 ? -0.5*x     :        \
+                   (x <=  2 ?  0.5*x - 1 : 0 ))))
 
 double
 _nrrdCDInt(double *param) {
@@ -327,7 +327,7 @@ _nrrdCD1_d(double x, double *param) {
   
   S = param[0];
   x /= S;
-  return _CENDIF(x)/S;
+  return _CENDIF(x)/(S*S);
 }
 
 float
@@ -336,7 +336,7 @@ _nrrdCD1_f(float x, double *param) {
   
   S = param[0];
   x /= S;
-  return _CENDIF(x)/S;
+  return _CENDIF(x)/(S*S);
 }
 
 void
@@ -348,7 +348,7 @@ _nrrdCDN_d(double *f, double *x, int len, double *param) {
   S = param[0];
   for (i=0; i<len; i++) {
     t = x[i]/S;
-    f[i] = _CENDIF(t)/S;
+    f[i] = _CENDIF(t)/(S*S);
   }
 }
 
@@ -360,7 +360,7 @@ _nrrdCDN_f(float *f, float *x, int len, double *param) {
   S = param[0];
   for (i=0; i<len; i++) {
     t = x[i]/S;
-    f[i] = _CENDIF(t)/S;
+    f[i] = _CENDIF(t)/(S*S);
   }
 }
 
@@ -1095,7 +1095,9 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("tent", str))       return nrrdKernelTent;
   if (!strcmp("t", str))          return nrrdKernelTent;
   if (!strcmp("forwdiff", str))   return nrrdKernelForwDiff;
+  if (!strcmp("fordif", str))     return nrrdKernelForwDiff;
   if (!strcmp("centdiff", str))   return nrrdKernelCentDiff;
+  if (!strcmp("cendif", str))     return nrrdKernelCentDiff;
   if (!strcmp("cubic", str))      return nrrdKernelBCCubic;
   if (!strcmp("cubicd", str))     return nrrdKernelBCCubicD;
   if (!strcmp("cubicdd", str))    return nrrdKernelBCCubicDD;

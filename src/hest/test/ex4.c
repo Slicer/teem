@@ -20,35 +20,25 @@
 #include "air.h"
 #include "hest.h"
 
-void *
-parse(void *_ptr, char *str) {
+int
+parse(void *_ptr, char *str, char *err) {
   double *ptr;
   int ret;
 
   ptr = _ptr;
   ret = sscanf(str, "%lf,%lf", ptr + 0, ptr + 1);
-  return (void*)(2 - ret);
+  if (2 != ret) {
+    sprintf(err, "parsed %d, not 2 doubles", ret);
+    return 1;
+  }
+  return 0;
 }
-
-char *
-error(void *_ret) {
-  int ret;
-  char *str;
-
-  ret = 2 - (int)_ret;
-  str = malloc(128);
-  sprintf(str, "only parsed %d doubles, not 2", ret);
-  return str;
-}
-
 
 hestCB cbinfo = {
   2*sizeof(double),
   "location",
   parse,
-  error,
-  NULL,
-  AIR_TRUE
+  NULL
 };
 
 int
