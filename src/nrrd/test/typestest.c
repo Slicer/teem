@@ -21,7 +21,8 @@
 #include <stdio.h>
 #include "../nrrd.h"
 
-main() {
+int
+main(int argc, char *argv[]) {
   int tt;
   /*
   char str1[AIR_STRLEN_MED], str2[AIR_STRLEN_MED], 
