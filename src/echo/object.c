@@ -53,6 +53,7 @@ NEW_TMPL(Rectangle,);
 NEW_TMPL(TriMesh, /* ??? */ );
 NEW_TMPL(Isosurface, /* ??? */);
 NEW_TMPL(AABBox,
+	 obj->len = 0;
 	 obj->obj = NULL;
 	 obj->objArr = airArrayNew((void**)&(obj->obj), NULL,
 				   sizeof(EchoObject *),
@@ -67,6 +68,7 @@ NEW_TMPL(Split,
 	 obj->obj0 = obj->obj1 = NULL;
 	 );
 NEW_TMPL(List,
+	 obj->len = 0;
 	 obj->obj = NULL;
 	 obj->objArr = airArrayNew((void**)&(obj->obj), NULL,
 				   sizeof(EchoObject *),
@@ -390,16 +392,37 @@ echoObjectIsContainer(EchoObject *obj) {
 }
 
 void
-echoObjectListAdd(EchoObject *parent, EchoObject *child) {
+echoObjectListAdd(EchoObject *list, EchoObject *child) {
   int idx;
   
-  if (!( parent && child &&
-	 (echoObjectList == parent->type ||
-	  echoObjectAABBox == parent->type) ))
+  if (!( list && child &&
+	 (echoObjectList == list->type ||
+	  echoObjectAABBox == list->type) ))
     return;
 
-  idx = airArrayIncrLen(LIST(parent)->objArr, 1);
-  LIST(parent)->obj[idx] = child;
+  if (LIST(list)->len == LIST(list)->objArr->len) {
+    idx = airArrayIncrLen(LIST(list)->objArr, 1);
+  }
+  else {
+    idx = LIST(list)->len;
+    LIST(list)->len++;
+  }
+  LIST(list)->obj[idx] = child;
+
+  return;
+}
+
+void
+echoObjectListSetLen(EchoObject *list, int len) {
+  int idx;
+  
+  if (!( list &&
+	 (echoObjectList == list->type ||
+	  echoObjectAABBox == list->type) ))
+    return;
+
+  LIST(list)->len = len;
+  airArraySetLen(LIST(list)->objArr, len);
 
   return;
 }
@@ -421,7 +444,7 @@ echoObjectListSplit(EchoObject *list, int axis) {
   echoPos_t lo[3], hi[3], loest0[3], hiest0[3],
     loest1[3], hiest1[3];
   double *mids;
-  EchoObject *o, *split, *box0, *box1;
+  EchoObject *o, *split, *list0, *list1;
   int i, splitIdx, len;
 
   if (!( echoObjectList == list->type ||
@@ -429,11 +452,11 @@ echoObjectListSplit(EchoObject *list, int axis) {
     return NULL;
 
   split = echoObjectNew(echoObjectSplit);
-  box0 = echoObjectNew(echoObjectAABBox);
-  box1 = echoObjectNew(echoObjectAABBox);
+  list0 = echoObjectNew(echoObjectList);
+  list1 = echoObjectNew(echoObjectList);
   SPLIT(split)->axis = axis;
-  SPLIT(split)->obj0 = box0;
-  SPLIT(split)->obj1 = box1;
+  SPLIT(split)->obj0 = list0;
+  SPLIT(split)->obj1 = list1;
 
   len = LIST(list)->objArr->len;
   if (!len) {
@@ -462,9 +485,10 @@ echoObjectListSplit(EchoObject *list, int axis) {
   ELL_3V_SET(loest1, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
   ELL_3V_SET(hiest0, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
   ELL_3V_SET(hiest1, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
+  echoObjectListSetLen(list0, splitIdx);
   for (i=0; i<splitIdx; i++) {
     o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
-    echoObjectListAdd(box0, o);
+    echoObjectListAdd(list0, o);
     _echoObjectBounds[o->type](lo, hi, o);
     /*
     printf("000 lo = (%g,%g,%g), hi = (%g,%g,%g)\n",
@@ -473,9 +497,10 @@ echoObjectListSplit(EchoObject *list, int axis) {
     ELL_3V_MIN(loest0, loest0, lo);
     ELL_3V_MAX(hiest0, hiest0, hi);
   }
+  echoObjectListSetLen(list1, len-splitIdx);
   for (i=splitIdx; i<len; i++) {
     o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
-    echoObjectListAdd(box1, o);
+    echoObjectListAdd(list1, o);
     _echoObjectBounds[o->type](lo, hi, o);
     /*
     printf("111 lo = (%g,%g,%g), hi = (%g,%g,%g)\n",
@@ -484,18 +509,18 @@ echoObjectListSplit(EchoObject *list, int axis) {
     ELL_3V_MIN(loest1, loest1, lo);
     ELL_3V_MAX(hiest1, hiest1, hi);
   }
-
+  /*
   printf("0: loest = (%g,%g,%g); hiest = (%g,%g,%g)\n",
 	 loest0[0], loest0[1], loest0[2], 
 	 hiest0[0], hiest0[1], hiest0[2]);
   printf("1: loest = (%g,%g,%g); hiest = (%g,%g,%g)\n",
 	 loest1[0], loest1[1], loest1[2], 
 	 hiest1[0], hiest1[1], hiest1[2]);
-
-  ELL_3V_COPY(AABBOX(box0)->min, loest0);
-  ELL_3V_COPY(AABBOX(box0)->max, hiest0);
-  ELL_3V_COPY(AABBOX(box1)->min, loest1);
-  ELL_3V_COPY(AABBOX(box1)->max, hiest1);
+  */
+  ELL_3V_COPY(SPLIT(split)->min0, loest0);
+  ELL_3V_COPY(SPLIT(split)->max0, hiest0);
+  ELL_3V_COPY(SPLIT(split)->min1, loest1);
+  ELL_3V_COPY(SPLIT(split)->max1, hiest1);
 
   echoObjectNix(list);
   free(mids);
@@ -509,25 +534,21 @@ echoObjectListSplit3(EchoObject *list, int depth) {
   if (!( echoObjectList == list->type ||
 	 echoObjectAABBox == list->type )) 
     return NULL;
+
+  if (!depth)
+    return list;
   
   printf("echoObjectListSplit3: ------ depth = %d\n", depth);
-  printf("echoObjectListSplit3: X\n");
   ret = tmp = echoObjectListSplit(list, 0);
 
-  printf("echoObjectListSplit3: Y 0\n");
   SPLIT(tmp)->obj0 = echoObjectListSplit(SPLIT(tmp)->obj0, 1);
-  printf("echoObjectListSplit3: Y 1\n");
   SPLIT(tmp)->obj1 = echoObjectListSplit(SPLIT(tmp)->obj1, 1);
 
   tmp = SPLIT(ret)->obj0;
-  printf("echoObjectListSplit3: Z 0 0\n");
   SPLIT(tmp)->obj0 = echoObjectListSplit(SPLIT(tmp)->obj0, 2);
-  printf("echoObjectListSplit3: Z 0 1\n");
   SPLIT(tmp)->obj1 = echoObjectListSplit(SPLIT(tmp)->obj1, 2);
   tmp = SPLIT(ret)->obj1;
-  printf("echoObjectListSplit3: Z 1 0\n");
   SPLIT(tmp)->obj0 = echoObjectListSplit(SPLIT(tmp)->obj0, 2);
-  printf("echoObjectListSplit3: Z 1 1\n");
   SPLIT(tmp)->obj1 = echoObjectListSplit(SPLIT(tmp)->obj1, 2);
 
   if (depth-1) {

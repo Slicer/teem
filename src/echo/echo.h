@@ -44,7 +44,7 @@ typedef double echoPos_t;
 #define ECHO_POS_MAX DBL_MAX
 #endif
 
-#if 0
+#if 1
 typedef float echoCol_t;
 #define echoCol_nrrdType nrrdTypeFloat
 #else
@@ -53,7 +53,7 @@ typedef double echoCol_t;
 #endif
 
 #define ECHO_AABBOX_OBJECT_MAX 8
-#define ECHO_LIST_OBJECT_INCR 8
+#define ECHO_LIST_OBJECT_INCR 32
 #define ECHO_IMG_CHANNELS 5
 #define ECHO_EPSILON 0.001        /* used for adjusting ray positions */
 #define ECHO_NEAR0 0.004          /* used for comparing transparency to zero */
@@ -69,6 +69,7 @@ typedef struct {
     reuseJitter,       /* don't recompute jitter offsets per pixel */
     permuteJitter,     /* properly permute the various jitter arrays */
     renderLights,      /* render the area lights */
+    renderBoxes,       
     seedRand;          /* call airSrand() (don't if repeatability wanted) */
   float aperture,      /* shallowness of field */
     timeGamma,         /* gamma for values in time image */
@@ -235,13 +236,16 @@ typedef struct {
   ECHO_OBJECT_COMMON;
   EchoObject **obj;
   airArray *objArr;
+  int len;
   echoPos_t min[3], max[3];
 } EchoObjectAABBox;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
-  int axis;                 /* which axis is split */
-  EchoObject *obj0, *obj1;  /* two splits, or two aabboxes */
+  int axis;                   /* which axis was split */
+  echoPos_t min0[3], max0[3],
+    min1[3], max1[3];         /* bboxes of two children */
+  EchoObject *obj0, *obj1;    /* two splits, or two aabboxes */
 } EchoObjectSplit;
 
 typedef struct {
@@ -249,6 +253,7 @@ typedef struct {
   EchoObject **obj;         /* it is important that this match the
 			       ordering in the struct of the aabbox */
   airArray *objArr;
+  int len;
 } EchoObjectList;  
 
 typedef struct {
@@ -266,6 +271,7 @@ extern EchoObject *echoObjectNuke(EchoObject *obj);
 extern void echoObjectBounds(echoPos_t *lo, echoPos_t *hi, EchoObject *obj);
 extern int echoObjectIsContainer(EchoObject *obj);
 extern void echoObjectListAdd(EchoObject *parent, EchoObject *child);
+extern void echoObjectListSetLen(EchoObject *list, int len);
 extern EchoObject *echoObjectListSplit(EchoObject *list, int axis);
 extern EchoObject *echoObjectListSplit3(EchoObject *list, int depth);
 extern void echoObjectSphereSet(EchoObject *sphere,
@@ -347,8 +353,9 @@ typedef struct {
   echoPos_t norm[3],    /* computed with every intersection */
     view[3],            /* always used with coloring */
     pos[3];             /* always used with coloring (and perhaps texturing) */
-  int depth;            /* the depth of the ray that generated this intx */
-  int face;
+  int depth,            /* the depth of the ray that generated this intx */
+    face,
+    boxhits;            /* how many bounding boxes we hit */
 } EchoIntx;
 
 extern int echoComposite(Nrrd *nimg, Nrrd *nraw, EchoParam *param);

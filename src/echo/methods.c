@@ -43,6 +43,7 @@ echoParamNew(void) {
   param->gamma = 2.2;
   param->timeGamma = 6.0;
   param->renderLights = AIR_TRUE;
+  param->renderBoxes = AIR_FALSE;
   param->refDistance = 1.0;
   param->areaLightHack = 35;
   param->seedRand = AIR_TRUE;

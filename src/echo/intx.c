@@ -256,27 +256,49 @@ _echoRayIntxTriangle(INTX_ARGS(Triangle)) {
 int
 _echoRayIntxSplit(INTX_ARGS(Split)) {
   EchoObject *a, *b;
-  int ret;
+  echoPos_t *mina, *minb, *maxa, *maxb, t;
+  int ret, ax, dir;
 
   if (ray->dir[obj->axis] > 0) {
     a = obj->obj0;
+    mina = obj->min0;
+    maxa = obj->max0;
     b = obj->obj1;
+    minb = obj->min1;
+    maxb = obj->max1;
   }
   else {
-    a = obj->obj0;
-    b = obj->obj1;
+    a = obj->obj1;
+    mina = obj->min1;
+    maxa = obj->max1;
+    b = obj->obj0;
+    minb = obj->min0;
+    maxb = obj->max0;
   }
 
   ret = AIR_FALSE;
-  if (_echoRayIntx[a->type](intx, ray, param, a)) {
-    if (ray->shadow) {
-      return AIR_TRUE;
+  if (_echoRayIntxCubeTest(&t, &ax, &dir,
+			   mina[0], maxa[0],
+			   mina[1], maxa[1],
+			   mina[2], maxa[2], ray)) {
+    intx->boxhits++;
+    if (_echoRayIntx[a->type](intx, ray, param, a)) {
+      if (ray->shadow) {
+	return AIR_TRUE;
+      }
+      ray->far = intx->t;
+      ret = AIR_TRUE;
     }
-    ray->far = intx->t;
-    ret = AIR_TRUE;
   }
-  if (_echoRayIntx[b->type](intx, ray, param, b)) {
-    ret = AIR_TRUE;
+  if (_echoRayIntxCubeTest(&t, &ax, &dir,
+			   minb[0], maxb[0],
+			   minb[1], maxb[1],
+			   minb[2], maxb[2], ray)) {
+    intx->boxhits++;
+    if (_echoRayIntx[b->type](intx, ray, param, b)) {
+      ray->far = intx->t;
+      ret = AIR_TRUE;
+    }
   }
   return ret;
 }
@@ -296,6 +318,7 @@ _echoRayIntxList(INTX_ARGS(List)) {
 			      box->min[2], box->max[2], ray)) {
       return AIR_FALSE;
     }
+    intx->boxhits++;
   }
   
   ret = AIR_FALSE;

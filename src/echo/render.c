@@ -286,7 +286,7 @@ void
 echoRayColor(echoCol_t *chan, int samp, EchoRay *ray,
 	     EchoParam *param, EchoThreadState *tstate,
 	     EchoObject *scene, airArray *lightArr) {
-  
+  float tmp;
   EchoIntx intx;
   
   if (ray->depth > param->maxRecDepth) {
@@ -295,9 +295,16 @@ echoRayColor(echoCol_t *chan, int samp, EchoRay *ray,
     return;
   }
 
+  intx.boxhits = 0;
   if (!_echoRayIntx[scene->type](&intx, ray, param, scene)) {
     /* ray hits nothing in scene */
-    ELL_4V_SET(chan, param->bgR, param->bgG, param->bgB, 1.0);
+    if (param->renderBoxes) {
+      tmp = 0.1*intx.boxhits;
+      ELL_4V_SET(chan, tmp, tmp, tmp, 1.0);
+    }
+    else {
+      ELL_4V_SET(chan, param->bgR, param->bgG, param->bgB, 1.0);
+    }
     return;
   }
 
