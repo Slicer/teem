@@ -753,9 +753,9 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   axmax = nin->axis[axis].max;
   iData = nin->data;
   oData = nout->data;
-  /*
   for (row=0; row<rowNum; row++) {
     for (col=0; col<colNum; col++) {
+      /*
       line = _line;
       ptr = iData + iElSz*(col + row*colStep);
       for (i=0; i<=linLen-1; i++) {
@@ -764,10 +764,11 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
 	line += iElSz;
       }
       _nrrdMeasureAxis[measr](line, iType, linLen, axmin, axmax, oData, oType);
+      */
+      *oData = 0.0;
       oData += oElSz;
     }
   }
-  */
   
   /* copy the peripheral information */
   if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_NONE)) {
