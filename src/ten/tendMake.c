@@ -53,13 +53,13 @@ tend_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (tenTensorMake(nout, nin[0], nin[1], nin[2])) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making tensor volume:\n%s\n", me, err);
-    airMopError(mop); exit(1);
+    airMopError(mop); return 1;
   }
 
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); exit(1);
+    airMopError(mop); return 1;
   }
 
   airMopOkay(mop);

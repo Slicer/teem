@@ -65,13 +65,13 @@ tend_stenMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopAdd(mop, err=biffGetDone(GAGE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble calculating structure tensors:\n%s\n",
 	    me, err);
-    airMopError(mop); exit(1);
+    airMopError(mop); return 1;
   }
 
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); exit(1);
+    airMopError(mop); return 1;
   }
 
   airMopOkay(mop);

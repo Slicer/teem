@@ -58,13 +58,13 @@ tend_anvolMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenAnisoVolume(nout, nin, aniso, thresh)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble making plot:\n%s\n", me, err);
-    airMopError(mop); exit(1);
+    fprintf(stderr, "%s: trouble making aniso volume:\n%s\n", me, err);
+    airMopError(mop); return 1;
   }
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); exit(1);
+    airMopError(mop); return 1;
   }
 
   airMopOkay(mop);

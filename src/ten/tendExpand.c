@@ -64,13 +64,13 @@ tend_expandMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (tenExpand(nout, nin, scale, thresh)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble expanding tensors:\n%s\n", me, err);
-    airMopError(mop); exit(1);
+    airMopError(mop); return 1;
   }
 
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); exit(1);
+    airMopError(mop); return 1;
   }
 
   airMopOkay(mop);

@@ -62,13 +62,14 @@ tend_calcMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenCalcTensor(nout, nin, version, thresh, slope, b)) {
-    fprintf(stderr, "%s: tenCalcTensor failed:\n%s", me, biffGet(TEN));
-    exit(1);
+    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    fprintf(stderr, "%s: tenCalcTensor failed:\n%s", me, err);
+    airMopError(mop); return 1;
   }
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); exit(1);
+    airMopError(mop); return 1;
   }
 
   airMopOkay(mop);

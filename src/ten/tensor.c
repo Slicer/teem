@@ -181,6 +181,7 @@ tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine) {
 ******** tenEigensolve
 **
 ** uses ell3mEigensolve to get the eigensystem of a single tensor
+** disregards the confidence value t[0]
 **
 ** return is same as ell3mEigensolve, which is same as ellCubic
 **
@@ -197,6 +198,7 @@ tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
     ELL_3V_COPY(_eval, eval);
     ELL_3M_COPY(_evec, evec);
     if (tenVerbose && _eval[2] < 0) {
+      fprintf(stderr, "tenEigensolve -------------\n");
       fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
 	      t[1], t[2], t[3]);
       fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
@@ -207,12 +209,51 @@ tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
 	      _eval[0], _eval[1], _eval[2]);
     }
   } else {
-    /* the only want eigenvalues */
+    /* caller only wants eigenvalues */
     ret = ell3mEigenvalues(eval, m, AIR_TRUE);
     ELL_3V_COPY(_eval, eval);
   }    
   return ret;
 }
+
+/*  lop A
+    fprintf(stderr, "###################################  I = %d\n", (int)I);
+    tenEigensolve(teval, tevec, out);
+    fprintf(stderr, "evals: (%g %g %g) %g %g %g --> %g %g %g\n", 
+	    AIR_ABS(eval[0] - teval[0]) + 1,
+	    AIR_ABS(eval[1] - teval[1]) + 1,
+	    AIR_ABS(eval[2] - teval[2]) + 1,
+	    eval[0], eval[1], eval[2], 
+	    teval[0], teval[1], teval[2]);
+    fprintf(stderr, "   tevec lens: %g %g %g\n", ELL_3V_LEN(tevec+3*0),
+	    ELL_3V_LEN(tevec+3*1), ELL_3V_LEN(tevec+3*2));
+    ELL_3V_CROSS(tmp1, evec+3*0, evec+3*1); tmp2[0] = ELL_3V_LEN(tmp1);
+    ELL_3V_CROSS(tmp1, evec+3*0, evec+3*2); tmp2[1] = ELL_3V_LEN(tmp1);
+    ELL_3V_CROSS(tmp1, evec+3*1, evec+3*2); tmp2[2] = ELL_3V_LEN(tmp1);
+    fprintf(stderr, "   evec[0] = %g %g %g\n", 
+	    (evec+3*0)[0], (evec+3*0)[1], (evec+3*0)[2]);
+    fprintf(stderr, "   evec[1] = %g %g %g\n",
+	    (evec+3*1)[0], (evec+3*1)[1], (evec+3*1)[2]);
+    fprintf(stderr, "   evec[2] = %g %g %g\n",
+	    (evec+3*2)[0], (evec+3*2)[1], (evec+3*2)[2]);
+    fprintf(stderr, "   evec crosses: %g %g %g\n",
+	    tmp2[0], tmp2[1], tmp2[2]);
+    ELL_3V_CROSS(tmp1, tevec+3*0, tevec+3*1); tmp2[0] = ELL_3V_LEN(tmp1);
+    ELL_3V_CROSS(tmp1, tevec+3*0, tevec+3*2); tmp2[1] = ELL_3V_LEN(tmp1);
+    ELL_3V_CROSS(tmp1, tevec+3*1, tevec+3*2); tmp2[2] = ELL_3V_LEN(tmp1);
+    fprintf(stderr, "   tevec[0] = %g %g %g\n", 
+	    (tevec+3*0)[0], (tevec+3*0)[1], (tevec+3*0)[2]);
+    fprintf(stderr, "   tevec[1] = %g %g %g\n",
+	    (tevec+3*1)[0], (tevec+3*1)[1], (tevec+3*1)[2]);
+    fprintf(stderr, "   tevec[2] = %g %g %g\n",
+	    (tevec+3*2)[0], (tevec+3*2)[1], (tevec+3*2)[2]);
+    fprintf(stderr, "   tevec crosses: %g %g %g\n",
+	    tmp2[0], tmp2[1], tmp2[2]);
+    if (tmp2[1] < 0.5) {
+      fprintf(stderr, "(panic)\n");
+      exit(0);
+    }
+*/
 
 /*
 ******** tenTensorMake
@@ -227,6 +268,7 @@ tenTensorMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec) {
   size_t I, N;
   float *out, *conf, tmpMat1[9], tmpMat2[9], diag[9], *eval, *evec, evecT[9];
   int map[4];
+  /* float teval[3], tevec[9], tmp1[3], tmp2[3]; */
 
   if (!(nout && nconf && neval && nevec)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -296,6 +338,7 @@ tenTensorMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec) {
     ELL_3M_MUL(tmpMat2, evec, tmpMat1);
     out[0] = conf[I];
     TEN_MAT2LIST(out, tmpMat2);
+    /* lop A */
     out += 7;
     eval += 3;
     evec += 9;

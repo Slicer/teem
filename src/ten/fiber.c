@@ -22,48 +22,22 @@
 
 #define TEN_FIBER_INCR 512
 
-void
-_tenI2W(tenFiberContext *tfx, double wpos[3], double ipos[3]) {
-  
-  if (nrrdCenterNode == tfx->center) {
-    wpos[0] = NRRD_NODE_POS(-tfx->vhlen[0], tfx->vhlen[0], tfx->size[0], ipos[0]);
-    wpos[1] = NRRD_NODE_POS(-tfx->vhlen[1], tfx->vhlen[1], tfx->size[1], ipos[1]);
-    wpos[2] = NRRD_NODE_POS(-tfx->vhlen[2], tfx->vhlen[2], tfx->size[2], ipos[2]);
-  } else {
-    wpos[0] = NRRD_CELL_POS(-tfx->vhlen[0], tfx->vhlen[0], tfx->size[0], ipos[0]);
-    wpos[1] = NRRD_CELL_POS(-tfx->vhlen[1], tfx->vhlen[1], tfx->size[1], ipos[1]);
-    wpos[2] = NRRD_CELL_POS(-tfx->vhlen[2], tfx->vhlen[2], tfx->size[2], ipos[2]);
-  }
-}
-
-void
-_tenW2I(tenFiberContext *tfx, double ipos[3], double wpos[3]) {
-  
-  if (nrrdCenterNode == tfx->center) {
-    ipos[0] = NRRD_NODE_IDX(-tfx->vhlen[0], tfx->vhlen[0], tfx->size[0], wpos[0]);
-    ipos[1] = NRRD_NODE_IDX(-tfx->vhlen[1], tfx->vhlen[1], tfx->size[1], wpos[1]);
-    ipos[2] = NRRD_NODE_IDX(-tfx->vhlen[2], tfx->vhlen[2], tfx->size[2], wpos[2]);
-  } else {
-    ipos[0] = NRRD_CELL_IDX(-tfx->vhlen[0], tfx->vhlen[0], tfx->size[0], wpos[0]);
-    ipos[1] = NRRD_CELL_IDX(-tfx->vhlen[1], tfx->vhlen[1], tfx->size[1], wpos[1]);
-    ipos[2] = NRRD_CELL_IDX(-tfx->vhlen[2], tfx->vhlen[2], tfx->size[2], wpos[2]);
-  }
-}
-
-
 int
 tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber,
 	      double startX, double startY, double startZ) {
   char me[]="tenFiberTrace", err[AIR_STRLEN_MED];
-  airArray *fptsArr[2];        /* airArrays of backward (0) and forward (1) fiber points */
-  double *fpts[2];             /* arrays storing forward and backward fiber points */
-  double wPos[3],              /* world position of current point */
-    wLastPos[3],               /* last world position */
-    iPos[3],                   /* index space position of current point */
-    len[2],                    /* length of fiber */
+  airArray *fptsArr[2];      /* airArrays of backward (0) and forward (1)
+				fiber points */
+  double *fpts[2];           /* arrays storing forward and backward
+				fiber points */
+  double wPos[3],            /* world position of current point */
+    wLastPos[3],             /* last world position */
+    iPos[3],                 /* index space position of current point */
+    len[2],                  /* length of fiber */
     forwdir[3],
     lastdir[3],
-    *fiber,                    /* array of both forward and backward points, when finished */
+    *fiber,                  /* array of both forward and backward points, 
+				when finished */
     tmp;
   int i, idx, dir;
 
@@ -72,17 +46,19 @@ tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber,
     biffAdd(TEN, err); return 1;
   }
   if (gageProbe(tfx->gtx, startX, startY, startZ)) {
-    sprintf(err, "%s: first gageProbe failed: %s (%d)", me, gageErrStr, gageErrNum);
+    sprintf(err, "%s: first gageProbe failed: %s (%d)", 
+	    me, gageErrStr, gageErrNum);
     biffAdd(TEN, err); return 1;
   }
 
   for (dir=0; dir<=1; dir++) {
-    fptsArr[dir] = airArrayNew((void**)&(fpts[dir]), NULL, 3*sizeof(double), TEN_FIBER_INCR);
+    fptsArr[dir] = airArrayNew((void**)&(fpts[dir]), NULL, 
+			       3*sizeof(double), TEN_FIBER_INCR);
     len[dir] = 0;
     iPos[0] = startX;
     iPos[1] = startY;
     iPos[2] = startZ;
-    _tenI2W(tfx, wPos, iPos);
+    gageShapeUnitItoW(tfx->gtx->shape, wPos, iPos);
     while (1) {
       /* record old pos */
       idx = airArrayIncrLen(fptsArr[dir], 1);
@@ -90,7 +66,7 @@ tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber,
       ELL_3V_COPY(wLastPos, wPos);
       
       /* calculate new position */
-      _tenW2I(tfx, iPos, wPos);
+      gageShapeUnitWtoI(tfx->gtx->shape, iPos, wPos);
       if (gageProbe(tfx->gtx, iPos[0], iPos[1], iPos[2])) {
 	/* even if gageProbe had an error OTHER than going out of bounds,
 	   we're not going to report it any differently here */
@@ -143,4 +119,3 @@ tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber,
   }
   return 0;
 }
-

@@ -29,7 +29,8 @@ char *_tend_satinInfoL =
 void
 tend_satinEigen(float *eval, float *evec, float x, float y, float z,
 		float parm, float level) {
-  double bound, bound1, bound2, r, norm, tmp[3];
+  double bound, bound1, bound2, r, norm, tmp[3], meval;
+  double tmp1[3], tmp2[3];
 
   r = sqrt(x*x + y*y + z*z);
   bound1 = 0.5 - 0.5*airErf(20*(r-0.9));  /* 1 on inside, 0 on outside */
@@ -41,25 +42,35 @@ tend_satinEigen(float *eval, float *evec, float x, float y, float z,
   eval[0] = 5*BLAH(bound, AIR_AFFINE(0.0, parm, 2.0, 1.0, 0.0001));
   eval[1] = 5*BLAH(bound, AIR_AFFINE(0.0, parm, 2.0, 0.0001, 1.0));
   eval[2] = 5*BLAH(bound, 0.0001);
+  meval = (eval[0] + eval[1] + eval[2])/3;
+  eval[0] = AIR_AFFINE(0.0, level, 1.0, meval, eval[0]);
+  eval[1] = AIR_AFFINE(0.0, level, 1.0, meval, eval[1]);
+  eval[2] = AIR_AFFINE(0.0, level, 1.0, meval, eval[2]);
+
+  /* v1: looking down positive Z, points counter clockwise */
+  if (x || y) {
+    ELL_3V_SET(evec + 3*0, y, -x, 0);
+    ELL_3V_NORM(evec + 3*0, evec + 3*0, norm);
+
+    /* v2: points towards pole at positive Z */
+    ELL_3V_SET(tmp, -x, -y, -z);
+    ELL_3V_NORM(tmp, tmp, norm);
+    ELL_3V_CROSS(evec + 3*1, tmp, evec + 3*0);
+    ELL_3V_CROSS(evec + 3*2, evec + 3*0, evec + 3*1);
+  } else {
+    /* not optimal, but at least it won't show up in glyph visualizations */
+    ELL_3M_IDENTITY_SET(evec);
+  }
+  ELL_3V_CROSS(tmp1, evec + 3*0, evec + 3*1); tmp2[0] = ELL_3V_LEN(tmp1);
+  ELL_3V_CROSS(tmp1, evec + 3*0, evec + 3*2); tmp2[1] = ELL_3V_LEN(tmp1);
+  ELL_3V_CROSS(tmp1, evec + 3*1, evec + 3*2); tmp2[2] = ELL_3V_LEN(tmp1);
   /*
-  eval[0] = AIR_AFFINE(0.0, level, 1.0, 1.0/3.0, eval[0]);
-  eval[1] = AIR_AFFINE(0.0, level, 1.0, 1.0/3.0, eval[1]);
-  eval[2] = AIR_AFFINE(0.0, level, 1.0, 1.0/3.0, eval[2]);
+  fprintf(stderr, "%g  %g  %g xxx %g  %g  %g\n", 
+	  ELL_3V_LEN(evec + 3*0),
+	  ELL_3V_LEN(evec + 3*1),
+	  ELL_3V_LEN(evec + 3*2), tmp2[0], tmp2[1], tmp2[2]);
   */
-
-  /* v1: looking towards positive Y, points counter clockwise */
-  (evec + 3*0)[0] = -z;
-  (evec + 3*0)[1] = 0;
-  (evec + 3*0)[2] = x;
-  ELL_3V_NORM(evec + 3*0, evec + 3*0, norm);
-
-  /* v2: points towards pole at positive Y */
-  tmp[0] = -x;
-  tmp[1] = -y;
-  tmp[2] = -z;
-  ELL_3V_NORM(tmp, tmp, norm);
-  ELL_3V_CROSS(evec + 3*1, tmp, evec + 3*0);
-  ELL_3V_CROSS(evec + 3*2, evec + 3*0, evec + 3*1);
+  return;
 }
 
 int
@@ -149,13 +160,13 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (tend_satinGen(nout, parm, level, size)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making volume:\n%s\n", me, err);
-    airMopError(mop); exit(1);
+    airMopError(mop); return 1;
   }
 
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); exit(1);
+    airMopError(mop); return 1;
   }
 
   airMopOkay(mop);

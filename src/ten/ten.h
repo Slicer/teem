@@ -72,10 +72,12 @@ enum {
 #define TEN_ANISO_MAX    19
 
 typedef struct {
-  Nrrd *vThreshVol;
-  float anisoType, anisoThresh;
-  float dwiThresh, vThresh, useColor;
-  float thresh, cscale;
+  Nrrd *nmask;
+  int anisoType, colEvec;
+  float colSat, colGamma;
+  float siloWidth, edgeWidth;
+  float anisoThresh, confThresh, useColor;
+  float maskThresh, glyphScale;
   float sumFloor, sumCeil;
   float fakeSat;
   int dim;
@@ -143,13 +145,13 @@ enum {
 ** the different reasons why fibers stop going
 */
 enum {
-  tenFiberStopUnknown,     /* 0: nobody knows */
-  tenFiberStopAniso,       /* 1: specified anisotropy got below specified level */
-  tenFiberStopLen,         /* 2: fiber got too long */
-  tenFiberStopBounds,      /* 3: fiber position stepped outside volume */
+  tenFiberStopUnknown,  /* 0: nobody knows */
+  tenFiberStopAniso,    /* 1: specified anisotropy got below specified level */
+  tenFiberStopLen,      /* 2: fiber got too long */
+  tenFiberStopBounds,   /* 3: fiber position stepped outside volume */
   tenFiberStopLast
 };
-#define TEN_FIBER_STOP_MAX    3
+#define TEN_FIBER_STOP_MAX 3
 
 typedef struct {
   /* ---- input -------- */
@@ -157,17 +159,16 @@ typedef struct {
   NrrdKernelSpec *ksp;  /* how to interpolate tensor values in dtvol */
   int style;            /* from the tenFiber* enum */
   double step,          /* step size in world space */
-    maxHalfLen;         /* longest propagation (forward or backward) allowed from midpoint */
+    maxHalfLen;         /* longest propagation (forward or backward) allowed
+			   from midpoint */
   /* ---- internal ----- */
   gageContext *gtx;     /* wrapped around dtvol */
-  int center,           /* whatever centering gage decided for the volume */
-    size[3];            /* copied from dtvol */
-  double vhlen[3];      /* volume half-length: bounds of volume in world space */
   gage_t *dten,         /* gageAnswerPointer(gtx->pvl[0], tenGageTensor) */
     *evec;              /* gageAnswerPointer(gtx->pvl[0], tenGageEvec) */
   /* ---- output ------- */
   double len;           /* total fiber length in world space */
-  int stop[2];          /* why backward/forward (0/1) tracing stopped (from tenFiberStop* enum) */
+  int stop[2];          /* why backward/forward (0/1) tracing stopped
+			   (from tenFiberStop* enum) */
 } tenFiberContext;
 
 /* defaultsTen.c */
@@ -182,9 +183,11 @@ extern ten_export airEnum *tenGage;
 extern ten_export airEnum *tenFiberStyle;
 extern ten_export airEnum *tenFiberStop;
 
-/* methodsTen.c */
+/* glyph.c */
 extern tenGlyphParm *tenGlyphParmNew();
 extern tenGlyphParm *tenGlyphParmNix(tenGlyphParm *parm);
+extern int tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten);
+extern int tenGlyphGen(limnObj *glyphs, Nrrd *nten, tenGlyphParm *parm);
 
 /* tensor.c */
 extern ten_export int tenVerbose;
@@ -216,9 +219,6 @@ extern short tenEvqOne(float vec[3], float scl);
 extern int tenEvqVolume(Nrrd *nout, Nrrd *nin, int which,
 			int aniso, int scaleByAniso);
 
-/* glyph.c */
-extern int tenGlyphGen(limnObj *obj, Nrrd *nin, tenGlyphParm *parm);
-
 /* fiberMethods.c */
 extern const char tenDefFiberKernel[];
 extern tenFiberContext *tenFiberContextNew(Nrrd *dtvol);
@@ -243,6 +243,7 @@ extern ten_export gageKind *tenGageKind;
 F(make) \
 F(calc) \
 F(sten) \
+F(glyph) \
 F(anplot) \
 F(anvol) \
 F(anhist) \

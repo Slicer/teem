@@ -29,7 +29,7 @@ int
 tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret, map[4];
   hestOpt *hopt = NULL;
-  char *perr, *err, errbuff[AIR_STRLEN_MED];
+  char *perr, *err;
   airArray *mop;
 
   int ret, *comp, compLen, cc, sx, sy, sz;
@@ -60,13 +60,13 @@ tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
     if (!AIR_IN_CL(0, comp[cc], 2)) {
       fprintf(stderr, "%s: requested component %d (%d of 3) not in [0..2]\n",
 	      me, comp[cc], cc+1);
-      airMopError(mop); exit(1);
+      airMopError(mop); return 1;
     }
   }
   if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: didn't get a valid DT volume:\n%s\n", me, err);
-    airMopError(mop); exit(1);
+    airMopError(mop); return 1;
   }
   
   sx = nin->axis[1].size;
@@ -83,7 +83,7 @@ tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (ret) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble allocating output:\n%s\n", me, err);
-    airMopError(mop); exit(1);
+    airMopError(mop); return 1;
   }
 
   N = sx*sy*sz;
@@ -107,8 +107,9 @@ tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
   }
   if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_SIZE_BIT)) {
-    sprintf(errbuff, "%s: trouble", me);
-    biffMove(TEN, errbuff, NRRD); return 1;
+    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble:\n%s\n", me, err);
+    airMopError(mop); return 1;
   }
   if (1 != compLen) {
     AIR_FREE(nout->axis[0].label);
@@ -117,7 +118,7 @@ tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); exit(1);
+    airMopError(mop); return 1;
   }
 
   airMopOkay(mop);

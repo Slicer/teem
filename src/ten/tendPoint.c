@@ -50,7 +50,7 @@ tend_pointMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: didn't get a valid DT volume:\n%s\n", me, err);
-    airMopError(mop); exit(1);
+    airMopError(mop); return 1;
   }
   sx = nin->axis[1].size;
   sy = nin->axis[2].size;
@@ -62,7 +62,7 @@ tend_pointMain(int argc, char **argv, char *me, hestParm *hparm) {
 	    "[0..%d]x[0..%d]x[0..%d]\n",
 	    me, loc[0], loc[1], loc[2],
 	    sx-1, sy-1, sz-1);
-    airMopError(mop); exit(1);
+    airMopError(mop); return 1;
   }
 
   tdata = (float*)(nin->data) + 7*(loc[0] + sx*(loc[1] + sy*loc[2]));

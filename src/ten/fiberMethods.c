@@ -23,6 +23,7 @@
 /*
 ** the volume fits inside [-vhlen[0],vhlen[0]] x [-vhlen[1],vhlen[1]] x [-vhlen[2],vhlen[2]]
 */
+/*
 void
 _tenLearnLengths(double vhlen[3], int center, Nrrd *dtvol) {
   double maxLen;
@@ -49,6 +50,7 @@ _tenLearnLengths(double vhlen[3], int center, Nrrd *dtvol) {
   vhlen[1] /= maxLen;
   vhlen[2] /= maxLen;
 }
+*/
 
 tenFiberContext *
 tenFiberContextNew(Nrrd *dtvol) {
@@ -85,11 +87,6 @@ tenFiberContextNew(Nrrd *dtvol) {
     tfx->step = tenDefFiberStep;
     tfx->maxHalfLen = tenDefFiberMaxHalfLen;
 
-    tfx->center = tfx->gtx->shape.center;
-    tfx->size[0] = dtvol->axis[1].size;
-    tfx->size[1] = dtvol->axis[2].size;
-    tfx->size[2] = dtvol->axis[3].size;
-    _tenLearnLengths(tfx->vhlen, tfx->center, dtvol);
     tfx->dten = gageAnswerPointer(tfx->gtx->pvl[0], tenGageTensor);
     tfx->evec = gageAnswerPointer(tfx->gtx->pvl[0], tenGageEvec);
   }
