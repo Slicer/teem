@@ -113,11 +113,16 @@ endif
 
 ## Top-level rules, available regardless of where make started
 ##
-teem/install : $(addsuffix /install,$(LIBS) bin)
-teem/dev     : $(addsuffix /dev,$(LIBS) bin)
+#teem/install : $(addsuffix /install,$(LIBS) bin)
+#teem/dev     : $(addsuffix /dev,$(LIBS) bin)
+#teem/usable  : $(addsuffix /usable,$(LIBS))
+#teem/clean   : $(addsuffix /clean,$(LIBS) bin)
+#teem/clobber : $(addsuffix /clobber,$(LIBS) bin)
+teem/install : $(addsuffix /install,$(LIBS))
+teem/dev     : $(addsuffix /dev,$(LIBS))
 teem/usable  : $(addsuffix /usable,$(LIBS))
-teem/clean   : $(addsuffix /clean,$(LIBS) bin)
-teem/clobber : $(addsuffix /clobber,$(LIBS) bin)
+teem/clean   : $(addsuffix /clean,$(LIBS))
+teem/clobber : $(addsuffix /clobber,$(LIBS))
 nothing : ;
 
 ## if.missing(stuff): returns a $stuff if one or more of the files
@@ -140,9 +145,9 @@ else
   ## complain if the destination directories don't exist
   $(if $(call if.missing,$(IDEST) $(LDEST) $(BDEST)),\
     $(error TEEM_DEST="$(TEEM_DEST)" lacks include,lib,bin subdirectories))
-  ## don't bother w/ a rule, just copy the teem*.h headers over there
+  ## don't bother w/ a rule, just copy the (four) teem*.h headers over there
   ## if it doesn't look like they're there already
-  $(if $(filter 3,$(words $(wildcard $(IDEST)/teem*.h))),,\
+  $(if $(filter 4,$(words $(wildcard $(IDEST)/teem*.h))),,\
     $(shell cp $(TEEM_ROOT)/include/teem*.h $(IDEST)))
 endif
 ODEST = $(TEEM_ROOT)/$(TEEM_ARCH)/obj
@@ -151,7 +156,7 @@ IPATH += -I$(IDEST)
 LPATH += -L$(LDEST)
 
 ## By giving a list of library extensions we care about, LIBEXTS determines
-## what kinds of libraries are build (just static, or both static and
+## what kinds of libraries are built (just static, or both static and
 ## shared)
 ## 
 ifdef TEEM_SHEXT
@@ -271,8 +276,8 @@ banner = echo "--------------------" $(1) "--------------------"
 ## don't exist, or if any of the files in $needs don't exist or are
 ## newer than anything in $mes. See comments in compare.sh for info.
 ##
-newer.than = $(if $(strip $(2)),$(shell mes=$(1) ; needs='$(2)' ; \
-  . $(TEEM_SRC)/make/compare.sh))
+newer.than = $(shell mes='$(1)' ; needs='$(2)' ; \
+  . $(TEEM_SRC)/make/compare.sh)
 
 #src2lib = $(notdir $(patsubst %/,%,$(dir $(1:.c=))))
 #HDR2LIB = $(notdir $(patsubst %/,%,$(dir $(1:.h=))))
@@ -286,7 +291,7 @@ else
   used.hdrs = $(foreach lib,$(1),$(call hdrs.inst,$(lib)))
   used.libs = $(foreach lib,$(1),$(call libs.inst,$(lib)))
 endif
-used = $(call used.hdrs,$(1)) $(call used.libs,$(1))
+used = $(call used.libs,$(1)) $(call used.hdrs,$(1))
 
 ## related to external optional libraries
 ## wants.ext(EXT): returns EXT if TEEM_EXT has been set, otherwise nothing
@@ -295,6 +300,7 @@ used = $(call used.hdrs,$(1)) $(call used.libs,$(1))
 ##   wanted EXTs whose base teem dependency is within $(libs).  $(libs)
 ##   should be "$(L) $(L).need" for some library L
 ## ext.link(libs): like ext.{i,l}path, but for -l link flags
+## ext.Dflag(libs): for -D defines when creating .o files
 ##
 wants.ext = $(if $(findstring undefined,$(origin TEEM_$(1))),,$(1))
 ext.wants = $(foreach ext,$(EXTERNALS),$(call wants.ext,$(ext)))

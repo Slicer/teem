@@ -70,7 +70,8 @@ $(L).ext.Dflag := $(call ext.Dflag,$($(L).meneed))
 ## want.
 ##
 $(L)/% : _L := $(L)
-$($(L).libs.dev) : _L := $(L)
+$($(L).hdrs.inst) : _L := $(L)
+$($(L).objs.dev) : _L := $(L)
 
 ## The prequisites of .$(L).usable are the .usable's of all our
 ## prerequisites, and our own libs and headers, if either:
@@ -80,9 +81,8 @@ $($(L).libs.dev) : _L := $(L)
 ##
 
 ifneq (undefined,$(origin TEEM_USABLE))
-  $(IDEST)/.$(L).hdr: $(call if.missing,$($(L).hdrs.inst))
-  $(LDEST)/.$(L).lib: \
-    $(call newer.than,$($(L).libs.inst),$($(L).need.hdrs.inst))
+$(IDEST)/.$(L).hdr: $(call if.missing,$($(L).hdrs.inst))
+$(LDEST)/.$(L).lib: $(call newer.than,$($(L).libs.inst),$($(L).need.hdrs.inst))
 endif
 
 ## $(L)/install depends on usable prerequisite libraries and $(L)'s
@@ -186,7 +186,7 @@ endif
 $($(L).hdrs.inst) : $(IDEST)/%.h : $(TEEM_SRC)/$(L)/%.h
 	$(CP) $< $@; $(CHMOD) 644 $@
 	$(if $(SIGH),$(SLEEP) $(SIGH); touch $@)
-	$(if $(SIGH),$(SLEEP) $(SIGH))
 ifneq (undefined,$(origin TEEM_USABLE))
+	$(if $(SIGH),$(SLEEP) $(SIGH))
 	touch $(IDEST)/.$(_L).hdr
 endif

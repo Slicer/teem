@@ -29,12 +29,12 @@
 #   $needs : filenames for every library which L depends on
 #
 # The re-install is needed if:
+# (test 0) One of $mes doesn't exist.
 # (test 1) A needed file wasn't there.   The fact that it will
 # named elsewhere as a prerequisite, and that its prerequisites in turn 
 # will also be named, means that the corresponding needed library will be
 # built, which means that L will have to re-installed, or
 # (test 2) One of the needed files is newer than one of the $mes
-# (test 3) One of $mes doesn't exist.  This is handled as part of test 2
 #
 # If a re-install is needed, then $mes is returned, otherwise nothing
 
@@ -43,9 +43,12 @@ older=
 
 # loop over mes and needs
 for me in $mes
-do
+do #  --test 0--
+  if [ ! -f $me ]
+    then older=yes
+  fi
   for need in $needs
-  do #    ( test 1 )      (   test 2  )
+  do #    --test 1--      ----test 2---
     if [  ! -f $need  -o  $need -nt $me ]
       then older=yes
     fi
