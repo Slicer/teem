@@ -65,7 +65,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "how fuzzy the confidence boundary should be.  By default, "
 	     "confidence boundary is perfectly sharp");
   hestOptAdd(&hopt, "scale", "scale", airTypeFloat, 1, 1, &scale, "1",
-	     "Ffter estimating the tensor, scale all of its elements "
+	     "After estimating the tensor, scale all of its elements "
 	     "(but not the confidence value) by this amount.  Can help with "
 	     "downstream numerical precision if values are very large "
 	     "or small.");
