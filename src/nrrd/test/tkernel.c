@@ -145,6 +145,7 @@ main(int argc, char *argv[]) {
   free(ran_d);
   free(dom_f);
   free(ran_f);
+  fprintf(stderr, "(for matlab:)\n");
   fprintf(stderr, "x = dlmread(\'%s\', \' \'); plot(x(:,1), x(:,2));\n", outS);
   exit(0);
 }
