@@ -22,9 +22,9 @@
 See above.  This preamble appears on all .c, .h, and .mk files. Full
 text of the GNU Lesser General Public License should be in the file
 "LICENSE.txt" in the "src" directory.  See the web page at
-"html/lgpl.html" relative to this file for my understanding of exactly
-what the LGPL means for people wishing to use any of the teem
-libraries in their own programs.
+<http://teem.sourceforge.net/lgpl.html> relative to this file for my
+understanding of exactly what the LGPL means for people wishing to use
+any of the teem libraries in their own programs.
 
 =============== How to compile
 
