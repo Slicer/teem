@@ -396,10 +396,10 @@ main(int argc, char *argv[]) {
     AIR_INDEX(minh, vghF[2 + 3*i], maxh, 169, n);
     vgh[2 + 3*i] = AIR_CLAMP(1, n+1, 169);
   }
-  strcpy(nvgh->axis[0].label, "vgh");
-  strcpy(nvgh->axis[1].label, "x");
-  strcpy(nvgh->axis[2].label, "y");
-  strcpy(nvgh->axis[3].label, "z");
+  airStrdup(nvgh->axis[0].label, "vgh");
+  airStrdup(nvgh->axis[1].label, "x");
+  airStrdup(nvgh->axis[2].label, "y");
+  airStrdup(nvgh->axis[3].label, "z");
   nvgh->axis[1].spacing = npad->axis[0].spacing;
   nvgh->axis[2].spacing = npad->axis[1].spacing;
   nvgh->axis[3].spacing = npad->axis[2].spacing;

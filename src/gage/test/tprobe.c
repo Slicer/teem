@@ -108,7 +108,6 @@ main(int argc, char *argv[]) {
 
   ctx = gageSclContextNew();
   ctx->c.verbose = 1;   /* but this is reset when we start traversing */
-  ctx->c.verbose = 0;
   ctx->c.renormalize = AIR_FALSE;
   ctx->c.checkIntegrals = AIR_FALSE;
   E = 0;
