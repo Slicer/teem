@@ -1,0 +1,16 @@
+Changes from 1.4:
+
+unu.c, Makefile:
+- added imap.c and with that, "unu imap", for applying
+irregular maps
+
+gamma.c, histo.c, jhisto.c, quantize.c:
+- nrrdMinMaxClever() renamed to nrrdMinMaxCleverSet()
+
+lut.c:
+- INTERFACE CHANGE: "-l" flag changed to "-m", in order to
+agree with flag for unu rmap and unu imap.
+- change to nrrdApply1DLut() call: added "rescale" argument.
+
+rmap.c:
+- change to nrrdApply1DRegMap() call: added "rescale" argument.
