@@ -30,8 +30,8 @@ extern "C" {
 **
 ** used to interchange 2 or 3 values, using the given temp variable
 */
-#define ELL_SWAP2(a, b, t)    (t)=(a);(a)=(b);(b)=(t)
-#define ELL_SWAP3(a, b, c, t) (t)=(a);(a)=(b);(b)=(c);(c)=(t)
+#define ELL_SWAP2(a, b, t)    ((t)=(a),(a)=(b),(b)=(t))
+#define ELL_SWAP3(a, b, c, t) ((t)=(a),(a)=(b),(b)=(c),(c)=(t))
 
 /*
 ******** ELL_SORT3
@@ -227,6 +227,11 @@ extern "C" {
    (m2)[7] = (m1)[5],            \
    (m2)[8] = (m1)[8])
 
+#define ELL_3M_TRANSPOSE_IP(m, t) \
+  (ELL_SWAP2((m)[1],(m)[3],(t)),  \
+   ELL_SWAP2((m)[2],(m)[6],(t)),  \
+   ELL_SWAP2((m)[5],(m)[7],(t)))
+
 #define ELL_3M_TRACE(m) ((m)[0] + (m)[4] + (m)[8])
 
 #define ELL_3M_L2NORM(m) \
@@ -377,6 +382,14 @@ extern "C" {
    (m2)[13] = (m2)[ 7],          \
    (m2)[14] = (m2)[11],          \
    (m2)[15] = (m2)[15])
+
+#define ELL_4M_TRANSPOSE_IP(m, t)   \
+  (ELL_SWAP2((m)[ 1],(m)[ 4],(t)),  \
+   ELL_SWAP2((m)[ 2],(m)[ 8],(t)),  \
+   ELL_SWAP2((m)[ 3],(m)[12],(t)),  \
+   ELL_SWAP2((m)[ 6],(m)[ 9],(t)),  \
+   ELL_SWAP2((m)[ 7],(m)[13],(t)),  \
+   ELL_SWAP2((m)[11],(m)[14],(t)))
 
 #define ELL_4MV_GET_COL0(v, m) \
   (ELL_4V_SET((v), (m)[ 0], (m)[ 1], (m)[ 2], (m)[ 3]))
