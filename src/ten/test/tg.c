@@ -117,7 +117,7 @@ main(int argc, char *argv[]) {
 	len = ELL_4V_LEN(q);
 	ELL_4V_SCALE(q, 1.0/len, q);
 	washQtoM3(mRF, q);
-	ELL_3M_TRANSPOSE(mRI, mRF);
+	ELL_3M_TRAN(mRI, mRF);
 	
 	ELL_3M_IDENTITY_SET(mT);
 	ell_3m_post_mul_d(mT, mRI);
