@@ -34,7 +34,7 @@
 **    NrrdEncoding respects it (by making read and write no-ops).  
 **    nrrdFormatNRRD, for instance, won't create empty detached data files
 **    if nio->skipData.
-** -- determing what the NrrdEncoding to use, if there's a choice
+** -- determine what NrrdEncoding to use, if there's a choice
 ** -- respect nrrdStateVerboseIO with messages to stderr, if possible
 **
 ** The "unknown" format is intended as a template for writing new formats.
