@@ -207,7 +207,8 @@ nrrdDescribe(FILE *file, Nrrd *nrrd) {
 int
 nrrdValid(Nrrd *nrrd) {
   char me[] = "nrrdValid", err[AIR_STRLEN_MED];
-  int  size[NRRD_DIM_MAX];
+  int size[NRRD_DIM_MAX], i;
+  double val[NRRD_DIM_MAX];
 
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -217,7 +218,6 @@ nrrdValid(Nrrd *nrrd) {
     sprintf(err, "%s: type (%d) of array is invalid", me, nrrd->type);
     biffAdd(NRRD, err); return 0;
   }
-  /* I should probably be using my own nrrdElementSize ... */
   if (nrrdTypeBlock == nrrd->type && (!(0 < nrrd->blockSize)) ) {
     sprintf(err, "%s: nrrd type is %s but nrrd->blockSize (%d) invalid", me,
 	    airEnumStr(nrrdType, nrrdTypeBlock),
@@ -233,6 +233,38 @@ nrrdValid(Nrrd *nrrd) {
   if (!_nrrdSizeValid(nrrd->dim, size)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 0;
+  }
+
+  /* these checks basically cut/paste from validity checks in 
+     _nrrdReadNrrdParse_* */
+  nrrdAxesGet_nva(nrrd, nrrdAxesInfoSpacing, val);
+  for (i=0; i<=nrrd->dim-1; i++) {
+    if (!( !airIsInf(val[i]) && (airIsNaN(val[i]) || (0 != val[i])) )) {
+      sprintf(err, "%s: spacing %d (%g) invalid", me, i, val[i]);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  nrrdAxesGet_nva(nrrd, nrrdAxesInfoMin, val);
+  for (i=0; i<=nrrd->dim-1; i++) {
+    if (airIsInf(val[i])) {
+      sprintf(err, "%s: axis min %d (%g) invalid", me, i, val[i]);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  nrrdAxesGet_nva(nrrd, nrrdAxesInfoMax, val);
+  for (i=0; i<=nrrd->dim-1; i++) {
+    if (airIsInf(val[i])) {
+      sprintf(err, "%s: axis ax %d (%g) invalid", me, i, val[i]);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  if (airIsInf(nrrd->oldMin)) {
+    sprintf(err, "%s: old min (%g) invalid", me, nrrd->oldMin);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (airIsInf(nrrd->oldMax)) {
+    sprintf(err, "%s: old max (%g) invalid", me, nrrd->oldMax);
+    biffAdd(NRRD, err); return 1;
   }
   return 1;
 }
@@ -483,6 +515,15 @@ _nrrdCheckEnums() {
   }
   if (nrrdNonExistLast-1 != NRRD_NON_EXIST_MAX) {
     strcpy(which, "nrrdNonExist"); goto err;
+  }
+  if (nrrdUnaryOpLast-1 != NRRD_UNARY_OP_MAX) {
+    strcpy(which, "nrrdUnaryOp"); goto err;
+  }
+  if (nrrdBinaryOpLast-1 != NRRD_BINARY_OP_MAX) {
+    strcpy(which, "nrrdBinaryOp"); goto err;
+  }
+  if (nrrdTernaryOpLast-1 != NRRD_TERNARY_OP_MAX) {
+    strcpy(which, "nrrdTernaryOp"); goto err;
   }
   
   /* no errors so far */
