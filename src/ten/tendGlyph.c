@@ -34,6 +34,64 @@ char *_tend_glyphInfoL =
    "\"unu crop -min 0 0 0 -max 2 M M \" followed by "
    "\"unu gamma\" and/or \"unu quantize -b 8\".");
 
+#define _LIMNMAGIC "LIMN0000"
+
+int
+_tendGlyphReadCams(int imgSize[2], limnCamera **camP,
+		   int *numCamsP, FILE *fin) {
+  char me[]="_tendGlyphReadCams", err[AIR_STRLEN_MED];
+  char line[AIR_STRLEN_HUGE];
+  int ki;
+  double di, dn, df, fr[3], at[3], up[3], va, dwell;
+  airArray *mop, *camA;
+  
+  if (!( 0 < airOneLine(fin, line, AIR_STRLEN_HUGE)
+	 && !strcmp(_LIMNMAGIC, line) )) {
+    sprintf(err, "%s: couldn't read first line or it wasn't \"%s\"",
+	    me, _LIMNMAGIC);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( 0 < airOneLine(fin, line, AIR_STRLEN_HUGE)
+	 && 2 == (airStrtrans(airStrtrans(line, '{', ' '), '}', ' '),
+		  sscanf(line, "imgSize %d %d", imgSize+0, imgSize+1)) )) {
+    sprintf(err, "%s: couldn't read second line or it wasn't "
+	    "\"imgSize <sizeX> <sizeY>\"", me);
+    biffAdd(TEN, err); return 1;
+  }
+  
+  mop = airMopNew();
+  camA = airArrayNew((void **)camP, numCamsP, sizeof(limnCamera), 1);
+  airMopAdd(mop, camA, (airMopper)airArrayNix, airMopAlways);
+
+  while ( 0 < airOneLine(fin, line, AIR_STRLEN_HUGE) ) {
+    airStrtrans(airStrtrans(line, '{', ' '), '}', ' ');
+    ki = airArrayIncrLen(camA, 1);
+    if (14 != sscanf(line, "cam.di %lg cam.at %lg %lg %lg "
+		     "cam.up %lg %lg %lg cam.dn %lg cam.df %lg cam.va %lg "
+		     "relDwell %lg cam.fr %lg %lg %lg",
+		     &di, at+0, at+1, at+2,
+		     up+0, up+1, up+2, &dn, &df, &va,
+		     &dwell, fr+0, fr+1, fr+2)) {
+      sprintf(err, "%s: trouble parsing line %d: \"%s\"", me, ki, line);
+      biffAdd(TEN, err); airMopError(mop); return 1;
+    }
+    (*camP)[ki].neer = dn;
+    (*camP)[ki].faar = df;
+    (*camP)[ki].dist = di;
+    ELL_3V_COPY((*camP)[ki].from, fr);
+    ELL_3V_COPY((*camP)[ki].at, at);
+    ELL_3V_COPY((*camP)[ki].up, up);
+    (*camP)[ki].fov = va;
+    (*camP)[ki].aspect = (double)imgSize[0]/imgSize[1];
+    (*camP)[ki].atRelative = AIR_FALSE;
+    (*camP)[ki].orthographic = AIR_FALSE;
+    (*camP)[ki].rightHanded = AIR_TRUE;
+  }
+
+  airMopOkay(mop);
+  return 0;
+}
+
 int
 tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret, doRT = AIR_FALSE;
@@ -43,16 +101,23 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   Nrrd *nten, *emap, *nraw, *npos, *nslc;
   char *outS;
-  limnCamera *cam;
+  limnCamera *cam, *hackcams;
   limnObject *glyph;
   limnWindow *win;
-  echoObject *rect;
+  echoObject *rect=NULL;
   echoScene *scene;
   echoRTParm *eparm;
   echoGlobalState *gstate;
   tenGlyphParm *gparm;
   float bg[3], buvne[5];
-  int ires[2], slice[2], nobg;
+  int ires[2], slice[2], nobg, hacknumcam, hackci,
+    hackmin[3]={0,0,0}, hackmax[3]={2,0,0};
+  char *hackFN, hackoutFN[AIR_STRLEN_SMALL];
+  FILE *hackF;
+  Nrrd *hacknpng, *hacknrgb;
+  NrrdRange *hackrange;
+
+  float v2w[9], ldir[3], edir[3], fdir[3], corn[3], len;
 
   /* so that command-line options can be read from file */
   hparm->respFileEnable = AIR_TRUE;
@@ -61,7 +126,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopNew();
   cam = limnCameraNew();
   airMopAdd(mop, cam, (airMopper)limnCameraNix, airMopAlways);
-  glyph = limnObjectNew(/* 512 HEY */ 100, AIR_TRUE);
+  glyph = limnObjectNew(100, AIR_TRUE);
   airMopAdd(mop, glyph, (airMopper)limnObjectNix, airMopAlways);
   scene = echoSceneNew();
   airMopAdd(mop, scene, (airMopper)echoSceneNix, airMopAlways);
@@ -225,6 +290,8 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "Requires lots more samples \"-ns\" to converge.  Use "
 	     "brightness 0 (the default) to turn this off, and use "
 	     "environment map-based shading (\"-emap\") instead. ");
+  hestOptAdd(&hopt, "hack", "hack", airTypeString, 1, 1, &hackFN, "",
+	     "don't mind me");
 
   /* input/output */
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nten, "-",
@@ -269,7 +336,6 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     cam->faar = 2;
     cam->atRelative = AIR_TRUE;
     if (buvne[0] > 0) {
-      float v2w[9], ldir[3], edir[3], fdir[3], corn[3], len;
 
       if (limnCameraUpdate(cam)) {
 	airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
@@ -306,17 +372,84 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     eparm->renderLights = AIR_FALSE;
     ELL_3V_COPY(scene->bkgr, bg);
     scene->envmap = emap;
-    if (echoRTRender(nraw, cam, scene, eparm, gstate)) {
-      airMopAdd(mop, err = biffGetDone(ECHO), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble ray-tracing %s\n", me, err);
-      airMopError(mop);
-      return 1;
-    }
-    if (nrrdSave(outS, nraw, NULL)) {
-      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trobule saving ray-tracing output %s\n", me, err);
-      airMopError(mop);
-      return 1;
+    if (!airStrlen(hackFN)) {
+      /* normal operation: one ray-tracing for one invocation */
+      if (echoRTRender(nraw, cam, scene, eparm, gstate)) {
+	airMopAdd(mop, err = biffGetDone(ECHO), airFree, airMopAlways);
+	fprintf(stderr, "%s: trouble ray-tracing %s\n", me, err);
+	airMopError(mop);
+	return 1;
+      }
+      if (nrrdSave(outS, nraw, NULL)) {
+	airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+	fprintf(stderr, "%s: trouble saving ray-tracing output %s\n", me, err);
+	airMopError(mop);
+	return 1;
+      }
+    } else {
+      /* hack: multiple renderings per invocation */
+      if (!(hackF = airFopen(hackFN, stdin, "rb"))) {
+	fprintf(stderr, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", 
+		me, hackFN, strerror(errno));
+	airMopError(mop); return 1;
+      }
+      if (_tendGlyphReadCams(ires, &hackcams, &hacknumcam, hackF)) {
+	airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
+	fprintf(stderr, "%s: trouble reading frames %s\n", me, err);
+	airMopError(mop);
+	return 1;
+      }
+      eparm->imgResU = ires[0];
+      eparm->imgResV = ires[1];
+      hackmax[1] = ires[0]-1;
+      hackmax[2] = ires[1]-1;
+      hacknrgb = nrrdNew();
+      hacknpng = nrrdNew();
+      airMopAdd(mop, hacknrgb, (airMopper)nrrdNuke, airMopAlways);
+      airMopAdd(mop, hacknpng, (airMopper)nrrdNuke, airMopAlways);
+      hackrange = nrrdRangeNew(0.0, 1.0);
+      airMopAdd(mop, hackrange, (airMopper)nrrdRangeNix, airMopAlways);
+      for (hackci=0; hackci<hacknumcam; hackci++) {
+	memcpy(cam, hackcams + hackci, sizeof(limnCamera));
+	/* rightHanded and orthographic not handled nicely */
+
+	if (rect) {
+	  if (limnCameraUpdate(cam)) {
+	    airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
+	    fprintf(stderr, "%s: trouble with camera:\n%s\n", me, err);
+	    airMopError(mop); return 1;
+	  }
+	  ELL_34M_EXTRACT(v2w, cam->V2W);
+	  ELL_3MV_MUL(ldir, v2w, buvne+1);
+	  ell_3v_perp_f(edir, ldir);
+	  ELL_3V_NORM(edir, edir, len);
+	  ELL_3V_CROSS(fdir, ldir, edir);
+	  ELL_3V_NORM(fdir, fdir, len);
+	  ELL_3V_SCALE(edir, buvne[4]/2, edir);
+	  ELL_3V_SCALE(fdir, buvne[4]/2, fdir);
+	  ELL_3V_ADD4(corn, cam->at, ldir, edir, fdir);
+	  echoRectangleSet(rect,
+			   corn[0], corn[1], corn[2],
+			   edir[0]*2, edir[1]*2, edir[2]*2,
+			   fdir[0]*2, fdir[1]*2, fdir[2]*2);
+	}
+
+	if (echoRTRender(nraw, cam, scene, eparm, gstate)) {
+	  airMopAdd(mop, err = biffGetDone(ECHO), airFree, airMopAlways);
+	  fprintf(stderr, "%s: trouble ray-tracing %s\n", me, err);
+	  airMopError(mop);
+	  return 1;
+	}
+	sprintf(hackoutFN, "%04d.png", hackci);
+	if (nrrdCrop(hacknrgb, nraw, hackmin, hackmax)
+	    || nrrdQuantize(hacknpng, hacknrgb, hackrange, 8)
+	    || nrrdSave(hackoutFN, hacknpng, NULL)) {
+	  airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+	  fprintf(stderr, "%s: trouble saving output %s\n", me, err);
+	  airMopError(mop);
+	  return 1;
+	}
+      }
     }
   } else {
     if (!(win->file = airFopen(outS, stdout, "wb"))) {
