@@ -198,7 +198,7 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
   airArray *mop;
   Nrrd *nquat, *nfrom, *natpt, *nupvc, *ndist, *nfova, *ntime, *nsample;
   double fratVec[3], *quat, *from, *atpt, *upvc, *dist, *fova,
-    W2V[9], N[3], fratDist, testquat[4];
+    W2V[9], N[3], fratDist;
   limnSpline *timeSpline, *quatSpline, *fromSpline, *atptSpline, *upvcSpline,
     *distSpline, *fovaSpline;
   limnSplineTypeSpec *timeType;
