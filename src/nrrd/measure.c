@@ -38,7 +38,6 @@ _nrrdMeasureMin(void *line, int lineType, int len,
   double val, M;
   int i;
 
-  fprintf(stderr, "_nrrdMeasureMin: line = %p; len = %d\n", line, len);
   if (nrrdTypeFixed[lineType]) {
     M = nrrdDLookup[lineType](line, 0);
     for (i=1; i<3; i++) {
@@ -763,7 +762,8 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
 	ptr += iElSz*colNum;
 	line += iElSz;
       }
-      _nrrdMeasureAxis[measr](line, iType, linLen, axmin, axmax, oData, oType);
+      _nrrdMeasureAxis[measr](_line, iType, linLen,
+			      axmin, axmax, oData, oType);
       oData += oElSz;
     }
   }
