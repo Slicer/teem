@@ -20,6 +20,9 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
+/* bad Gordon */
+extern int _nrrdReadNrrdParse_keyvalue(Nrrd *nrrd, NrrdIO *io, int useBiff);
+
 #define INFO "Create a nrrd (or nrrd header) from scratch"
 char *_unrrdu_makeInfoL =
 (INFO
@@ -72,11 +75,12 @@ unrrduMakeRead(char *me, Nrrd *nrrd, NrrdIO *nio, const char *fname,
 int
 unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, **dataFileNames, *content, encInfo[AIR_STRLEN_LARGE];
+  char *out, *err, **dataFileNames, **kvp, *content, encInfo[AIR_STRLEN_LARGE];
   Nrrd *nrrd;
   Nrrd **nslice;
-  int *size, nameLen, sizeLen, spacingLen, labelLen, headerOnly, pret,
-    lineSkip, byteSkip, endian, slc, type, encodingType, gotSpacing;
+  int *size, nameLen, kvpLen, ki, sizeLen, spacingLen, labelLen,
+    headerOnly, pret, lineSkip, byteSkip, endian, slc, type,
+    encodingType, gotSpacing;
   double *spacing;
   airArray *mop;
   NrrdIO *nio;
@@ -153,6 +157,12 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "friends; \"big\" for everyone else. "
 	     "Defaults to endianness of this machine",
 	     NULL, airEndian);
+  hestOptAdd(&opt, "kv", "key/val", airTypeString, 0, -1, &kvp, "",
+	     "key/value string pairs to be stored in nrrd.  Each key/value "
+	     "pair must be a single string (put it in \"\"s "
+	     "if the key or the value contain spaces).  The format of each "
+	     "pair is \"<key>:=<value>\", with no spaces before or after "
+	     "\":=\".", &kvpLen);
   OPT_ADD_NOUT(out, "output filename");
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
@@ -202,6 +212,19 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   if (airStrlen(content)) {
     nrrd->content = airStrdup(content);
+  }
+  if (kvpLen) {
+    for (ki=0; ki<kvpLen; ki++) {
+      /* a hack: use the NrrdIO has the channel to communicate the k/v pair */
+      nio->line = kvp[ki];
+      if (_nrrdReadNrrdParse_keyvalue (nrrd, nio, AIR_TRUE)) {
+	airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+	fprintf(stderr, "%s: trouble with key/value %d \"%s\":\n%s",
+		me, ki, kvp[ki], err);
+	airMopError(mop); return 1;
+      }
+      nio->line = NULL;
+    }
   }
   
   if (headerOnly) {
