@@ -638,10 +638,15 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
     exit(1);
   }
   /* the error string is mopped only when there _wasn't_ an error */
-  airMopAdd(mop, _errP, (airMopper)airSetNull, airMopOnOkay);
-  airMopAdd(mop, err, airFree, airMopOnOkay);
-  if (_errP)
+  if (_errP) {
     *_errP = err;
+    airMopAdd(mop, _errP, (airMopper)airSetNull, airMopOnOkay);
+    airMopAdd(mop, err, airFree, airMopOnOkay);
+  }
+  else {
+    airMopAdd(mop, err, airFree, airMopAlways);
+  }
+
 
   /* -------- check on validity of the hest array */
   if (_hestPanic(opt, err, parm)) {
