@@ -40,7 +40,7 @@ main(int argc, char *argv[]) {
 
   me = argv[0];
 
-  if (limnEnvMapFill(map=nrrdNew(), cb, NULL, limnQN_16checker)) {
+  if (limnEnvMapFill(map=nrrdNew(), cb, limnQN_16checker, NULL)) {
     fprintf(stderr, "%s: trouble:\n%s", me, biffGet(LIMN));
     exit(1);
   }

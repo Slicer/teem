@@ -65,9 +65,17 @@ _limnObjNormals(limnObj *obj, int space) {
     }
     if (limnSpaceWorld == space) {
       ELL_3V_NORM(f->wn, n, norm);
+      /*
+      printf("%s: wn[%d] = %g %g %g\n", "_limnObjNormals", fi,
+	     f->wn[0], f->wn[1], f->wn[2]);
+      */
     }
     else {
       ELL_3V_NORM(f->sn, n, norm);
+      /*
+      printf("%s: sn[%d] = %g %g %g\n", "_limnObjNormals", fi,
+	     f->sn[0], f->sn[1], f->sn[2]);
+      */
     }
   }
 
@@ -83,8 +91,12 @@ _limnObjVTransform(limnObj *obj, limnCam *cam) {
   for (pi=0; pi<=obj->pA->len-1; pi++) {
     p = obj->p + pi;
     ELL_4MV_MUL(p->v, cam->W2V, p->w);
-    d = 1.0/p->v[3];
+    d = 1.0/p->w[3];
     ELL_4V_SCALE(p->v, d, p->v);
+    /*
+    printf("%s: w[%d] = %g %g %g %g --> v = %g %g %g\n", "_limnObjVTransform",
+	  pi, p->w[0], p->w[1], p->w[2], p->w[3], p->v[0], p->v[1], p->v[2]);
+    */
   }
   return 0;
 }
@@ -97,10 +109,16 @@ _limnObjSTransform(limnObj *obj, limnCam *cam) {
 
   for (pi=0; pi<=obj->pA->len-1; pi++) {
     p = obj->p + pi;
-    d = cam->vspDist/p->v[2];
+    d = (cam->ortho 
+	 ? 1
+	 : cam->vspDist/p->v[2]);
     p->s[0] = d*p->v[0];
     p->s[1] = d*p->v[1];
     p->s[2] = p->v[2];
+    /*
+    printf("%s: v[%d] = %g %g %g --> s = %g %g %g\n", "_limnObjSTransform",
+	   pi, p->v[0], p->v[1], p->v[2], p->s[0], p->s[1], p->s[2]);
+    */
   }
   return 0;
 }
@@ -123,6 +141,10 @@ _limnObjDTransform(limnObj *obj, limnCam *cam, limnWin *win) {
     p = obj->p + pi;
     p->d[0] = AIR_AFFINE(cam->uRange[0], p->s[0], cam->uRange[1], wx0, wx1);
     p->d[1] = AIR_AFFINE(cam->vRange[0], p->s[1], cam->vRange[1], wy0, wy1);
+    /*
+    printf("%s: s[%d] = %g %g --> s = %g %g\n", "_limnObjDTransform",
+	   pi, p->s[0], p->s[1], p->d[0], p->d[1]);
+    */
   }
   return 0;
 }
@@ -226,10 +248,10 @@ limnObjDepthSortParts(limnObj *obj) {
   double t0, t1;
 
   rNum = obj->rA->len;
-  for (ri=0; ri<=rNum-1; ri++) {
+  for (ri=0; ri<rNum; ri++) {
     r = obj->r + ri;
     r->z = 0;
-    for (pi=0; pi<=r->pNum-1; pi++) {
+    for (pi=0; pi<r->pNum; pi++) {
       p = obj->p + r->pBase + pi;
       r->z += p->s[2];
     }

@@ -25,6 +25,12 @@ limnObjNew(int incr, int edges) {
   limnObj *obj;
 
   obj = (limnObj *)calloc(1, sizeof(limnObj));
+  obj->p = NULL;
+  obj->v = NULL;
+  obj->e = NULL;
+  obj->f = NULL;
+  obj->r = NULL;
+  obj->s = NULL;
 
   /* create all various airArrays */
   obj->pA = airArrayNew((void**)&(obj->p), NULL, 
@@ -50,7 +56,7 @@ limnObjNew(int incr, int edges) {
 }
 
 limnObj *
-limnObjNuke(limnObj *obj) {
+limnObjNix(limnObj *obj) {
 
   airArrayNuke(obj->pA);
   airArrayNuke(obj->vA);
@@ -63,7 +69,7 @@ limnObjNuke(limnObj *obj) {
 }
 
 int
-limnObjPartBegin(limnObj *obj) {
+limnObjPartStart(limnObj *obj) {
   int rBase;
   limnPart *r;
 
@@ -90,6 +96,7 @@ limnObjPointAdd(limnObj *obj, int sp, float x, float y, float z) {
   ELL_3V_SET(p->v, AIR_NAN, AIR_NAN, AIR_NAN);
   ELL_3V_SET(p->s, AIR_NAN, AIR_NAN, AIR_NAN);
   ELL_3V_SET(p->n, AIR_NAN, AIR_NAN, AIR_NAN);
+  p->d[0] = p->d[1] = AIR_NAN;
   p->sp = sp;
   obj->rCurr->pNum++;
 
@@ -152,6 +159,8 @@ limnObjFaceAdd(limnObj *obj, int sp, int numVert, int *vert) {
   vBase = airArrayIncrLen(obj->vA, numVert);
   
   f = &(obj->f[fBase]);
+  ELL_3V_SET(f->wn, AIR_NAN, AIR_NAN, AIR_NAN);
+  ELL_3V_SET(f->sn, AIR_NAN, AIR_NAN, AIR_NAN);
   f->vBase = vBase;
   f->vNum = numVert;
   for (i=0; i<=numVert-1; i++) {
@@ -161,13 +170,14 @@ limnObjFaceAdd(limnObj *obj, int sp, int numVert, int *vert) {
     }
   }
   f->sp = sp;
+  f->visib = AIR_FALSE;
   obj->rCurr->fNum++;
   
   return fBase;
 }
 
 int
-limnObjPartEnd(limnObj *obj) {
+limnObjPartFinish(limnObj *obj) {
   
   obj->rCurr = NULL;
   

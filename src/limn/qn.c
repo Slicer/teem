@@ -41,7 +41,7 @@ limnQNBytes[LIMN_QN_MAX+1] = {
 
 
 void
-_limnQN_16simple_QNtoV(float *vec, int qn, int doNorm) {
+_limnQN_16simple_QNtoV(float *vec, int qn) {
   int xi, yi;
   float x, y, z, n;
   
@@ -57,21 +57,14 @@ _limnQN_16simple_QNtoV(float *vec, int qn, int doNorm) {
   x = (qn & 0x2000) ? -x : x;
   y = (qn & 0x4000) ? -y : y;
   z = (qn & 0x8000) ? -z : z;
-  if (doNorm) {
-    n = 1.0/sqrt(x*x + y*y + z*z);
-    vec[0] = x*n;
-    vec[1] = y*n;
-    vec[2] = z*n;
-  }
-  else {
-    vec[0] = x;
-    vec[1] = y;
-    vec[2] = z;
-  }
+  n = 1.0/sqrt(x*x + y*y + z*z);
+  vec[0] = x*n;
+  vec[1] = y*n;
+  vec[2] = z*n;
 }
 
 int
-_limnQN_16simple_VtoQN(int *qnP, float *vec) {
+_limnQN_16simple_VtoQN(float *vec) {
   float x, y, z, L, w;
   int sgn = 0;
   int xi, yi;
@@ -102,55 +95,49 @@ _limnQN_16simple_VtoQN(int *qnP, float *vec) {
     xi = 127 - xi;
     yi = 127 - yi;
   }
-  *qnP = sgn | (yi << 6) | xi;
-  return 1;
+  return sgn | (yi << 6) | xi;
 }
 
 /* ----------------------------------------------------------------  */
 
   /*
-    x =  [ 0.5  0.5 ] u
-    y    [ 0.5 -0.5 ] v
+    x =  [  1.0   1.0 ] u
+    y    [  1.0  -1.0 ] v
   */
 
   /*
-    u =  [ 1.0  1.0 ] x
-    v    [ 1.0 -1.0 ] y
+    u =  [  0.5   0.5 ] x
+    v    [  0.5  -0.5 ] y
   */
 
   /* xor of low bits == 0 --> z<0 ; xor == 1 --> z>0 */
 
+/* May 11 2003 GK verified that except at equator seam,
+   the error due to quantization is unbiased */
 
 void
-_limnQN_16checker_QNtoV(float *vec, int qn, int doNorm) {
+_limnQN_16checker_QNtoV(float *vec, int qn) {
   int ui, vi;
   float u, v, x, y, z, n;
 
   ui = qn & 0xFF;
   vi = (qn >> 8) & 0xFF;
-  u = (ui+0.5)/256.0 - 0.5;  /* u = AIR_AFFINE(-0.5, ui, 255.5, -0.5, 0.5); */
-  v = (vi+0.5)/256.0 - 0.5;  /* v = AIR_AFFINE(-0.5, vi, 255.5, -0.5, 0.5); */
+  u = AIR_AFFINE(0, ui, 255, -0.5, 0.5);
+  v = AIR_AFFINE(0, vi, 255, -0.5, 0.5);
   x =  u + v;
   y =  u - v;
   z = 1 - AIR_ABS(x) - AIR_ABS(y);
   /* would this be better served by a branch? */
   z *= (((ui ^ vi) & 0x01) << 1) - 1;
-  if (doNorm) {
-    n = 1.0/sqrt(x*x + y*y + z*z);
-    vec[0] = x*n; 
-    vec[1] = y*n; 
-    vec[2] = z*n;
-  }
-  else {
-    vec[0] = x;
-    vec[1] = y;
-    vec[2] = z;
-  }
+  n = 1.0/sqrt(x*x + y*y + z*z);
+  vec[0] = x*n; 
+  vec[1] = y*n; 
+  vec[2] = z*n;
 }
 
 int
-_limnQN_16checker_VtoQN(int *qnP, float *vec) {
-  float L, x, y, z, a = 256.0/255.0;
+_limnQN_16checker_VtoQN(float *vec) {
+  float L, x, y, z;
   int xi, yi, ui, vi;
   
   x = vec[0];
@@ -163,25 +150,24 @@ _limnQN_16checker_VtoQN(int *qnP, float *vec) {
   x /= L;
   y /= L;
   if (z > 0) {
-    xi = 127.49999*(x+1);   /* AIR_INDEX(-1, x, 1, 255, xi); */
-    yi = 127.99999*(y+a)/a; /* AIR_INDEX(-1-1.0/255, y, 1+1.0/255, 256, yi); */
-    ui = xi + yi + 127;
+    AIR_INDEX(-1.0, x, 1.0, 255, xi);
+    AIR_INDEX(-1.0 - 1.0/255, y, 1.0 + 1.0/255, 256, yi);
+    ui = xi + yi - 127;
     vi = xi - yi + 128;
   }
   else {
-    xi = 127.99999*(x+a)/a; /* AIR_INDEX(-1-1.0/255, x, 1+1.0/255, 256, xi); */
-    yi = 127.49999*(y+1);   /* AIR_INDEX(-1, y, 1, 255, yi); */
-    ui = xi + yi + 127;
+    AIR_INDEX(-1.0 - 1.0/255, x, 1.0 + 1.0/255, 256, xi);
+    AIR_INDEX(-1, y, 1, 255, yi);
+    ui = xi + yi - 127;
     vi = xi - yi + 127;
   }
-  *qnP = (vi << 8) | ui;
-  return 1;
+  return (vi << 8) | ui;
 }
 
 /* ----------------------------------------------------------------  */
 
 void
-_limnQN_16border1_QNtoV(float *vec, int qn, int doNorm) {
+_limnQN_16border1_QNtoV(float *vec, int qn) {
   int ui, vi;
   float u, v, x, y, z, n;
   
@@ -193,21 +179,14 @@ _limnQN_16border1_QNtoV(float *vec, int qn, int doNorm) {
   y =  u - v;
   z = 1 - AIR_ABS(x) - AIR_ABS(y);
   z *= (((ui ^ vi) & 0x01) << 1) - 1;
-  if (doNorm) {
-    n = 1.0/sqrt(x*x + y*y + z*z);
-    vec[0] = x*n; 
-    vec[1] = y*n; 
-    vec[2] = z*n;
-  }
-  else {
-    vec[0] = x;
-    vec[1] = y;
-    vec[2] = z;
-  }
+  n = 1.0/sqrt(x*x + y*y + z*z);
+  vec[0] = x*n; 
+  vec[1] = y*n; 
+  vec[2] = z*n;
 }
 
 int
-_limnQN_16border1_VtoQN(int *qnP, float *vec) {
+_limnQN_16border1_VtoQN(float *vec) {
   float L, u, v, x, y, z;
   int ui, vi, zi;
   char me[]="limnQNVto16PB1";
@@ -239,14 +218,13 @@ _limnQN_16border1_VtoQN(int *qnP, float *vec) {
   else if (zi && z < -1.0/127.0) {
     printf("%s: panic02\n", me);
   }
-  *qnP = (vi << 8) | ui;
-  return 1;
+  return (vi << 8) | ui;
 }
 
 /* ----------------------------------------------------------------  */
 
 void
-_limnQN_15checker_QNtoV(float *vec, int qn, int doNorm) {
+_limnQN_15checker_QNtoV(float *vec, int qn) {
   int ui, vi, zi;
   float u, v, x, y, z, n;
   
@@ -259,21 +237,14 @@ _limnQN_15checker_QNtoV(float *vec, int qn, int doNorm) {
   y =  u - v;
   z = 1 - AIR_ABS(x) - AIR_ABS(y);
   z *= (zi << 1) - 1;
-  if (doNorm) {
-    n = 1.0/sqrt(x*x + y*y + z*z);
-    vec[0] = x*n; 
-    vec[1] = y*n; 
-    vec[2] = z*n;
-  }
-  else {
-    vec[0] = x;
-    vec[1] = y;
-    vec[2] = z;
-  }
+  n = 1.0/sqrt(x*x + y*y + z*z);
+  vec[0] = x*n; 
+  vec[1] = y*n; 
+  vec[2] = z*n;
 }
 
 int
-_limnQN_15checker_VtoQN(int *qnP, float *vec) {
+_limnQN_15checker_VtoQN(float *vec) {
   float L, u, v, x, y, z;
   int ui, vi, zi;
   
@@ -291,11 +262,10 @@ _limnQN_15checker_VtoQN(int *qnP, float *vec) {
   AIR_INDEX(-1, u, 1, 128, ui);
   AIR_INDEX(-1, v, 1, 128, vi);
   zi = (z > 0);
-  *qnP = (zi << 14) | (vi << 7) | ui;
-  return 1;
+  return (zi << 14) | (vi << 7) | ui;
 }
 
-void (*limnQNtoV[LIMN_QN_MAX+1])(float *, int, int) = {
+void (*limnQNtoV[LIMN_QN_MAX+1])(float *, int) = {
   NULL,
   _limnQN_16checker_QNtoV,
   _limnQN_16simple_QNtoV,
@@ -303,7 +273,7 @@ void (*limnQNtoV[LIMN_QN_MAX+1])(float *, int, int) = {
   _limnQN_15checker_QNtoV
 };
   
-int (*limnVtoQN[LIMN_QN_MAX+1])(int *qnP, float *vec) = {
+int (*limnVtoQN[LIMN_QN_MAX+1])(float *vec) = {
   NULL,
   _limnQN_16checker_VtoQN,
   _limnQN_16simple_VtoQN,

@@ -26,7 +26,7 @@ limnObjCubeAdd(limnObj *obj, int sp) {
   float x, y, z;
 
   x = y = z = 0.5;
-  ret = limnObjPartBegin(obj);
+  ret = limnObjPartStart(obj);
   pb = limnObjPointAdd(obj, 0, -x, -y, -z);
   limnObjPointAdd(obj, 0,  x, -y, -z);
   limnObjPointAdd(obj, 0,  x,  y, -z);
@@ -41,7 +41,7 @@ limnObjCubeAdd(limnObj *obj, int sp) {
   ELL_4V_SET(v, pb+3, pb+7, pb+6, pb+2);  limnObjFaceAdd(obj, 2, 4, v);
   ELL_4V_SET(v, pb+0, pb+4, pb+7, pb+3);  limnObjFaceAdd(obj, 2, 4, v);
   ELL_4V_SET(v, pb+5, pb+6, pb+7, pb+4);  limnObjFaceAdd(obj, 2, 4, v);
-  limnObjPartEnd(obj);
+  limnObjPartFinish(obj);
 
   return ret;
 }
@@ -52,13 +52,13 @@ limnObjSquareAdd(limnObj *obj, int sp) {
   float x, y;
 
   x = y = 0.5;
-  ret = limnObjPartBegin(obj);
+  ret = limnObjPartStart(obj);
   pb = limnObjPointAdd(obj, 0, -x, -y, 0);
   limnObjPointAdd(obj,      0,  x, -y, 0);
   limnObjPointAdd(obj,      0,  x,  y, 0);
   limnObjPointAdd(obj,      0, -x,  y, 0);
   ELL_4V_SET(v, pb+0, pb+1, pb+2, pb+3);  limnObjFaceAdd(obj, 2, 4, v);
-  limnObjPartEnd(obj);
+  limnObjPartFinish(obj);
 
   return ret;
 }
@@ -69,11 +69,11 @@ limnObjLoneEdgeAdd(limnObj *obj, int sp) {
   float x;
 
   x = 0.5;
-  ret = limnObjPartBegin(obj);
+  ret = limnObjPartStart(obj);
   pb = limnObjPointAdd(obj, 0, -x, 0, 0);
   limnObjPointAdd(obj,      0,  x, 0, 0);
   limnObjEdgeAdd(obj, 1, -1, pb+0, pb+1);
-  limnObjPartEnd(obj);
+  limnObjPartFinish(obj);
 
   return ret;
 }
@@ -81,12 +81,11 @@ limnObjLoneEdgeAdd(limnObj *obj, int sp) {
 int
 limnObjCylinderAdd(limnObj *obj, int sp, int res) {
   float x, y, th;
-  int i, j, t, pb, ret, *v;
+  int i, j, t, pb=-1, ret, *v;
   
-  ret = limnObjPartBegin(obj);
+  ret = limnObjPartStart(obj);
   v = (int *)calloc(res, sizeof(int));
 
-  pb = -1;
   for (i=0; i<=res-1; i++) {
     th = AIR_AFFINE(0, i, res, 0, 2*M_PI);
     x = cos(th);
@@ -102,14 +101,14 @@ limnObjCylinderAdd(limnObj *obj, int sp, int res) {
     limnObjFaceAdd(obj, 2, 4, v);
   }
   for (i=0; i<=res-1; i++) {
-    v[i] = 2*i;
+    v[i] = pb + 2*i;
   }
   limnObjFaceAdd(obj, 2, res, v);
   for (i=0; i<=res-1; i++) {
-    v[i] = 2*(res-1-i) + 1;
+    v[i] = pb + 2*(res-1-i) + 1;
   }
   limnObjFaceAdd(obj, 2, res, v);
-  limnObjPartEnd(obj);
+  limnObjPartFinish(obj);
   
   free(v);
   return ret;
@@ -132,7 +131,7 @@ limnObjPolarSphereAdd(limnObj *obj, int sp, int thetaRes, int phiRes) {
   }
   */
   
-  ret = limnObjPartBegin(obj);
+  ret = limnObjPartStart(obj);
   pb = limnObjPointAdd(obj, 0, 0, 0, 1);
   for (pi=1; pi<=phiRes-1; pi++) {
     p = AIR_AFFINE(0, pi, phiRes, 0, M_PI);
@@ -163,7 +162,7 @@ limnObjPolarSphereAdd(limnObj *obj, int sp, int thetaRes, int phiRes) {
     ELL_3V_SET(v, pb+pi*thetaRes + ti, pl, pb+pi*thetaRes + nti);
     limnObjFaceAdd(obj, 2, 3, v);
   }
-  limnObjPartEnd(obj);
+  limnObjPartFinish(obj);
 
   return ret;
 }
@@ -171,11 +170,11 @@ limnObjPolarSphereAdd(limnObj *obj, int sp, int thetaRes, int phiRes) {
 int
 limnObjConeAdd(limnObj *obj, int sp, int res) {
   float th, x, y;
-  int ret, t, pb, i, j, *v;
+  int ret, t, pb=-1, i, j, *v;
 
   v = (int *)calloc(res, sizeof(int));
 
-  ret = limnObjPartBegin(obj);
+  ret = limnObjPartStart(obj);
   for (i=0; i<=res-1; i++) {
     th = AIR_AFFINE(0, i, res, 0, 2*M_PI);
     x = cos(th);
@@ -194,9 +193,8 @@ limnObjConeAdd(limnObj *obj, int sp, int res) {
     v[i] = pb+res-1-i;
   }
   limnObjFaceAdd(obj, 2, res, v);
-  limnObjPartEnd(obj);
+  limnObjPartFinish(obj);
   
   free(v);
   return ret;
 }
-

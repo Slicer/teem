@@ -47,9 +47,8 @@ main(int argc, char *argv[]) {
   limnLightSet(lit, 2, AIR_TRUE, 0, 0, 1, 0, 0, 1);
   limnLightUpdate(lit, cam);
   
-  if (limnEnvMapFill(map=nrrdNew(), 
-		     limnLightDiffuseCB, lit,
-		     limnQN_16checker)) {
+  if (limnEnvMapFill(map=nrrdNew(), limnLightDiffuseCB,
+		     limnQN_16checker, lit)) {
     fprintf(stderr, "%s: trouble:\n%s", me, biffGet(LIMN));
     exit(1);
   }

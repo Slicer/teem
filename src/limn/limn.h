@@ -40,7 +40,7 @@ extern "C" {
 #endif
 
 #define LIMN "limn"
-#define LIMN_LITE_NUM 16
+#define LIMN_LIGHT_NUM 16
 
 /*
 ****** limnCam struct
@@ -98,14 +98,14 @@ typedef struct limnCam_t {
 ** Has no dynamically allocated information or pointers
 */
 typedef struct {
-  float amb[3],             /* RGB ambient light color */
-    _dir[LIMN_LITE_NUM][3], /* direction of light[i] (view or world space).
-			       This is what the user sets via limnLightSet */
-    dir[LIMN_LITE_NUM][3],  /* direction of light[i] (ONLY world space) 
-			       Not user-set: calculated/copied from _dir[] */
-    col[LIMN_LITE_NUM][3];  /* RGB color of light[i] */
-  int on[LIMN_LITE_NUM],    /* light[i] is on */
-    vsp[LIMN_LITE_NUM];     /* light[i] lives in view space */
+  float amb[3],              /* RGB ambient light color */
+    _dir[LIMN_LIGHT_NUM][3], /* direction of light[i] (view or world space).
+				This is what the user sets via limnLightSet */
+    dir[LIMN_LIGHT_NUM][3],  /* direction of light[i] (ONLY world space) 
+				Not user-set: calculated/copied from _dir[] */
+    col[LIMN_LIGHT_NUM][3];  /* RGB color of light[i] */
+  int on[LIMN_LIGHT_NUM],    /* light[i] is on */
+    vsp[LIMN_LIGHT_NUM];     /* light[i] lives in view space */
 } limnLight;
 
 enum {
@@ -116,7 +116,12 @@ enum {
 };
 
 typedef struct {
-  float edgeWidth[5],
+  float edgeWidth[5],  /* different line thickness for different edge types:
+			  0 : non-crease edge, backfacing
+			  1 : crease edge, backfacing
+			  2 : silhouette edge (crease or non-crease)
+			  3 : non-crease edge, front-facing
+			  4 : crease edge: front-facing */
     creaseAngle,
     bgGray;
 } limnOptsPS;
@@ -180,7 +185,7 @@ typedef struct limnFace_t {
   float wn[3],       /* normal in world space */
     sn[3];           /* normal in screen space (post-perspective-divide) */
   int vBase, vNum,   /* start and length in parent's vertex array, "v" */
-    sp;              /* index into parent's SP list */
+    sp;              /* index into parent's SP list, "s" */
   
   int visib;         /* is face currently visible */
   float z;           /* for depth ordering */
@@ -192,14 +197,15 @@ typedef struct limnFace_t {
 ** one connected part of an object
 */
 typedef struct limnPart_t {
-  int fNum, fBase,   /* start and length in parent's limnFace array, "f" */
-    eNum, eBase,     /* start and length in parent's limnEdge array, "e" */
-    pNum, pBase,     /* start and length in parent's limnPoint array, "p" */
+  int fBase, fNum,   /* start and length in parent's limnFace array, "f" */
+    eBase, eNum,     /* start and length in parent's limnEdge array, "e" */
+    pBase, pNum,     /* start and length in parent's limnPoint array, "p" */
     origIdx;         /* initial part index of this part */
 
-  float z;           /* assuming that the occlusion graph between parts is
-			acyclic, one depth value is good enough for
-			painter's algorithm ordering of drawing */
+  float z;           /* assuming that the occlusion graph between
+			whole parts is acyclic, one depth value is
+			good enough for painter's algorithm ordering
+			of drawing */
   unsigned char rgba[4];
 } limnPart;
 
@@ -267,13 +273,10 @@ extern limn_export int limnDefCamRightHanded;
 
 /* qn.c */
 extern limn_export int limnQNBytes[LIMN_QN_MAX+1];
-extern limn_export void (*limnQNtoV[LIMN_QN_MAX+1])(float *vec, int qn, int doNorm);
-extern limn_export int (*limnVtoQN[LIMN_QN_MAX+1])(int *qnP, float *vec);
+extern limn_export void (*limnQNtoV[LIMN_QN_MAX+1])(float *vec, int qn);
+extern limn_export int (*limnVtoQN[LIMN_QN_MAX+1])(float *vec);
 
 /* light.c */
-typedef void (*limnEnvMapCB)(float rgb[3], float vec[3], void *data);
-extern int limnEnvMapFill(Nrrd *envMap, limnEnvMapCB cb, 
-			  void *data, int qnMethod);
 extern void limnLightSet(limnLight *lit, int which, int vsp,
 			 float r, float g, float b,
 			 float x, float y, float z);
@@ -281,6 +284,11 @@ extern void limnLightSetAmbient(limnLight *lit, float r, float g, float b);
 extern void limnLightSwitch(limnLight *lit, int which, int on);
 extern void limnLightReset(limnLight *lit);
 extern int limnLightUpdate(limnLight *lit, limnCam *cam);
+
+/* env.c */
+typedef void (*limnEnvMapCB)(float rgb[3], float vec[3], void *data);
+extern int limnEnvMapFill(Nrrd *envMap, limnEnvMapCB cb, 
+			  int qnMethod, void *data);
 extern void limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit);
 
 /* methodsLimn.c */
@@ -302,11 +310,12 @@ extern int limnCamUpdate(limnCam *cam);
 
 /* obj.c */
 extern limnObj *limnObjNew(int incr, int edges);
-extern limnObj *limnObjNuke(limnObj *obj);
+extern limnObj *limnObjNix(limnObj *obj);
 extern int limnObjPointAdd(limnObj *obj, int sp, float x, float y, float z);
+extern int limnObjEdgeAdd(limnObj *obj, int sp, int face, int v0, int v1);
 extern int limnObjFaceAdd(limnObj *obj, int sp, int numVert, int *vert);
 extern int limnObjSPAdd(limnObj *obj);
-extern int limnObjPartStart(limnObj *obj, int sp);
+extern int limnObjPartStart(limnObj *obj);
 extern int limnObjPartFinish(limnObj *obj);
 
 /* io.c */
@@ -327,6 +336,7 @@ extern int limnObjNormals(limnObj *obj, int space);
 extern int limnObjSpaceTransform(limnObj *obj, limnCam *cam, limnWin *win,
 				 int space);
 extern int limnObjPartTransform(limnObj *obj, int ri, float tx[16]);
+extern int limnObjDepthSortParts(limnObj *obj);
 
 /* renderLimn.c */
 extern int limnObjPSRender(limnObj *obj, limnCam *cam, 

@@ -20,67 +20,6 @@
 
 #include "limn.h"
 
-int
-limnEnvMapFill(Nrrd *map, limnEnvMapCB cb, void *data, int qnMethod) {
-  char me[]="limnEnvMapFill", err[128];
-  int sx, sy;
-  int qn;
-  float vec[3], *mapData;
-
-  if (!(map && cb)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
-  }
-  if (!AIR_IN_OP(limnQN_Unknown, qnMethod, limnQN_Last)) {
-    sprintf(err, "%s: QN method %d invalid", me, qnMethod);
-    biffAdd(LIMN, err); return 1;
-  }
-  switch(qnMethod) {
-  case limnQN_16checker:
-    sx = sy = 256;
-    if (nrrdMaybeAlloc(map, nrrdTypeFloat, 3, 3, sx, sy)) {
-      sprintf(err, "%s: couldn't alloc output", me);
-      biffMove(LIMN, err, NRRD); return 1;
-    }
-    mapData = map->data;
-    for (qn=0; qn<=sx*sy-1; qn++) {
-      limnQNtoV[limnQN_16checker](vec, qn, AIR_TRUE);
-      cb(mapData + 3*qn, vec, data);
-    }
-    break;
-  default:
-    sprintf(err, "%s: sorry, QN method %d not implemented", me, qnMethod);
-    biffAdd(LIMN, err); return 1;
-  }
-
-  return 0;
-}
-
-void
-limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit) {
-  float dot, r, g, b, norm;
-  limnLight *lit;
-  int i;
-
-  lit = _lit;
-  ELL_3V_NORM(vec, vec, norm);
-  r = lit->amb[0];
-  g = lit->amb[1];
-  b = lit->amb[2];
-  for (i=0; i<LIMN_LITE_NUM; i++) {
-    if (!lit->on[i])
-      continue;
-    dot = ELL_3V_DOT(vec, lit->dir[i]);
-    dot = AIR_MAX(0, dot);
-    r += dot*lit->col[i][0];
-    g += dot*lit->col[i][1];
-    b += dot*lit->col[i][2];
-  }
-  rgb[0] = AIR_CLAMP(0, r, 1);
-  rgb[1] = AIR_CLAMP(0, g, 1);
-  rgb[2] = AIR_CLAMP(0, b, 1);
-}
-
 
 /*
 ******** limnLightSet()
@@ -93,7 +32,7 @@ limnLightSet(limnLight *lit, int which, int vsp,
 	     float r, float g, float b,
 	     float x, float y, float z) {
   
-  if (lit && AIR_IN_CL(0, which, LIMN_LITE_NUM-1)) {
+  if (lit && AIR_IN_CL(0, which, LIMN_LIGHT_NUM-1)) {
     lit->on[which] = 1;
     lit->vsp[which] = vsp;
     ELL_3V_SET(lit->col[which], r, g, b);
@@ -119,8 +58,9 @@ limnLightSetAmbient(limnLight *lit, float r, float g, float b) {
 **
 ** copies information from the _dir vectors to the dir vectors. This
 ** needs to be called even if there are no viewspace lights, so that
-** the dir vectors are set and normalized, in which case "cam" can be
-** passed as NULL.
+** the dir vectors are set and normalized.  If there are no viewspace
+** lights, "cam" can actually be passed as NULL, but don't get carried
+** away...
 ** 
 ** returns 1 if there was a problem in the camera, otherwise 0.
 */
@@ -137,7 +77,7 @@ limnLightUpdate(limnLight *lit, limnCam *cam) {
     }
     ELL_34M_EXTRACT(uvn, cam->V2W);
   }
-  for (i=0; i<LIMN_LITE_NUM; i++) {
+  for (i=0; i<LIMN_LIGHT_NUM; i++) {
     ELL_3V_COPY(_dir, lit->_dir[i]);
     if (cam && lit->vsp[i]) {
       ELL_3MV_MUL(dir, uvn, _dir);
@@ -152,7 +92,7 @@ limnLightUpdate(limnLight *lit, limnCam *cam) {
 }
 
 /*
-******** limnLightToggle
+******** limnLightSwitch
 **
 ** can toggle a light on/off
 **
@@ -161,7 +101,7 @@ limnLightUpdate(limnLight *lit, limnCam *cam) {
 void
 limnLightSwitch(limnLight *lit, int which, int on) {
 
-  if (lit && AIR_IN_CL(0, which, LIMN_LITE_NUM-1)) {
+  if (lit && AIR_IN_CL(0, which, LIMN_LIGHT_NUM-1)) {
     lit->on[which] = on;
   }
 }
@@ -172,7 +112,7 @@ limnLightReset(limnLight *lit) {
 
   if (lit) {
     ELL_3V_SET(lit->amb, 0, 0, 0);
-    for (i=0; i<LIMN_LITE_NUM; i++) {
+    for (i=0; i<LIMN_LIGHT_NUM; i++) {
       ELL_3V_SET(lit->_dir[i], 0, 0, 0);
       ELL_3V_SET(lit->dir[i], 0, 0, 0);
       ELL_3V_SET(lit->col[i], 0, 0, 0);

@@ -47,9 +47,9 @@ $(L).SEEN := true
 $(L).NEED = ell nrrd biff hest air
 $(L).PUBLIC_HEADERS = limn.h
 $(L).PRIVATE_HEADERS =
-$(L).OBJS = defaultsLimn.o qn.o light.o cam.o methodsLimn.o obj.o io.o \
-	hestLimn.o transform.o renderLimn.o
-$(L).TESTS = test/map test/light test/tcam
+$(L).OBJS = defaultsLimn.o qn.o light.o env.o cam.o methodsLimn.o obj.o io.o \
+	hestLimn.o transform.o renderLimn.o shapes.o
+$(L).TESTS = test/map test/light test/tcam test/tps
 ####
 ####
 ####

@@ -45,7 +45,6 @@ _limnPSPreamble(limnObj *obj, limnCam *cam, limnWin *win) {
   fprintf(win->file, "gsave newpath\n");
   fprintf(win->file, "1 setlinejoin\n");
   fprintf(win->file, "1 setlinecap\n");
-  fprintf(win->file, "5 setlinewidth\n");
   fprintf(win->file, "/M {moveto} bind def\n");
   fprintf(win->file, "/L {lineto} bind def\n");
   fprintf(win->file, "/W {setlinewidth} bind def\n");
@@ -74,8 +73,6 @@ _limnPSDrawFace(limnObj *obj, limnPart *r, limnFace *f,
   int qn;
   float *map, R, G, B;
 
-  limnVtoQN[limnQN_16checker](&qn, f->wn);
-  map = nmap->data;
   for (vi=0; vi<f->vNum; vi++) {
     p = obj->p + obj->v[vi + f->vBase];
     fprintf(win->file, "%g %g %s\n", 
@@ -84,9 +81,16 @@ _limnPSDrawFace(limnObj *obj, limnPart *r, limnFace *f,
   R = r->rgba[0]/255.0;
   G = r->rgba[1]/255.0;
   B = r->rgba[2]/255.0;
-  R *= map[0 + 3*qn];
-  G *= map[1 + 3*qn];
-  B *= map[2 + 3*qn];
+  if (nmap) {
+    qn = limnVtoQN[limnQN_16checker](f->wn);
+    map = nmap->data;
+    R *= map[0 + 3*qn];
+    G *= map[1 + 3*qn];
+    B *= map[2 + 3*qn];
+  }
+  R = AIR_CLAMP(0, R, 1);
+  G = AIR_CLAMP(0, G, 1);
+  B = AIR_CLAMP(0, B, 1);
   if (R == G && G == B) {
     fprintf(win->file, "CP %g Gr F\n", R);
   }
@@ -110,6 +114,16 @@ _limnPSDrawEdge(limnObj *obj, limnPart *r, limnEdge *e,
   }
 }
 
+/*
+******** limnObjPSRender
+**
+** renders limn objects to postscript.
+**
+** The current (feeble) justification for using an environment map is
+** that its an expressive way of shading things based on surface
+** normal, in a context where, if flat shading is all you have,
+** correct specular lighting is not possible
+*/
 int
 limnObjPSRender(limnObj *obj, limnCam *cam, Nrrd *map, limnWin *win) {
   int vis0, vis1, inside;
@@ -127,55 +141,64 @@ limnObjPSRender(limnObj *obj, limnCam *cam, Nrrd *map, limnWin *win) {
     inside = 0;
     for (pi=0; pi<r->pNum; pi++) {
       p = &(obj->p[r->pBase + pi]);
+      /*
+      printf("p[%d] = %g %g\n", pi, p->d[0], p->d[1]);
+      */
       inside |= (AIR_IN_CL(win->bbox[0], p->d[0], win->bbox[2]) &&
 		 AIR_IN_CL(win->bbox[1], p->d[1], win->bbox[3]));
       if (inside)
 	break;
     }
     
-    if (inside) {
-      if (1 == r->eNum) {
-	/* this part is just one lone edge */
-	e = &(obj->e[r->eBase]);
-	widthTmp = win->ps.edgeWidth[e->visib];
-	fprintf(win->file, "%g setgray\n", 1 - win->ps.bgGray);
-	win->ps.edgeWidth[e->visib] = 8;
-	_limnPSDrawEdge(obj, r, e, cam, win);
-	fprintf(win->file, "%g %g %g RGB\n", 
-		r->rgba[0]/255.0, r->rgba[1]/255.0, r->rgba[2]/255.0);
-	win->ps.edgeWidth[e->visib] = 4;
-	_limnPSDrawEdge(obj, r, e, cam, win);
-	win->ps.edgeWidth[e->visib] = widthTmp;
+    if (!inside)
+      continue;
+
+    if (1 == r->eNum) {
+      /* this part is just one lone edge */
+      e = &(obj->e[r->eBase]);
+      widthTmp = win->ps.edgeWidth[e->visib];
+      fprintf(win->file, "%g setgray\n", 1 - win->ps.bgGray);
+      win->ps.edgeWidth[e->visib] = 8;
+      _limnPSDrawEdge(obj, r, e, cam, win);
+      fprintf(win->file, "%g %g %g RGB\n", 
+	      r->rgba[0]/255.0, r->rgba[1]/255.0, r->rgba[2]/255.0);
+      win->ps.edgeWidth[e->visib] = 4;
+      _limnPSDrawEdge(obj, r, e, cam, win);
+      win->ps.edgeWidth[e->visib] = widthTmp;
+    } else {
+      /* this part is either a lone face or a solid */
+      for (fi=0; fi<r->fNum; fi++) {
+	f = &(obj->f[r->fBase + fi]);
+	/*
+	printf("f[%d]->sn = %g %g %g\n", fi, f->sn[0], f->sn[1], f->sn[2]);
+	*/
+	/* The consequence of having a left-handed frame is that world-space
+	   CC-wise vertex traversal becomes C-wise screen-space traversal, so
+	   all the normals are backwards of what we want */
+	f->visib = (cam->rightHanded 
+		    ? f->sn[2] < 0
+		    : f->sn[2] > 0);
+	if (f->visib)
+	  _limnPSDrawFace(obj, r, f, cam, map, win);
       }
-      else {
-	/* this part is either a lone face or a solid */
-	for (fi=0; fi<r->fNum; fi++) {
-	  f = &(obj->f[r->fBase + fi]);
-	  f->visib = f->sn[2] < 0;
-	  if (f->visib)
-	    _limnPSDrawFace(obj, r, f, cam, map, win);
+      
+      fprintf(win->file, "0 setgray\n");
+      
+      for (ei=0; ei<r->eNum; ei++) {
+	e = &(obj->e[r->eBase + ei]);
+	f0 = &(obj->f[e->f0]);
+	f1 = &(obj->f[e->f1]);
+	vis0 = f0->visib;
+	vis1 = f1->visib;
+	angle = 180/M_PI*acos(ELL_3V_DOT(f0->wn, f1->wn));
+	if (vis0 && vis1) {
+	  e->visib = 3 + (angle > win->ps.creaseAngle);
+	} else if (!!vis0 ^ !!vis1) {
+	  e->visib = 2;
+	} else {
+	  e->visib = (angle > win->ps.creaseAngle);
 	}
-	
-	fprintf(win->file, "0 setgray\n");
-	
-	for (ei=0; ei<r->eNum; ei++) {
-	  e = &(obj->e[r->eBase + ei]);
-	  f0 = &(obj->f[e->f0]);
-	  f1 = &(obj->f[e->f1]);
-	  vis0 = f0->visib;
-	  vis1 = f1->visib;
-	  angle = 180/M_PI*acos(ELL_3V_DOT(f0->wn, f1->wn));
-	  if (vis0 && vis1) {
-	    e->visib = 3 + (angle > win->ps.creaseAngle);
-	  }
-	  else if (!!vis0 ^ !!vis1) {
-	    e->visib = 2;
-	  }
-	  else {
-	    e->visib = 1 - (angle > win->ps.creaseAngle);
-	  }
-	  _limnPSDrawEdge(obj, r, e, cam, win);
-	}
+	_limnPSDrawEdge(obj, r, e, cam, win);
       }
     }
   }
