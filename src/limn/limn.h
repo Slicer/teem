@@ -45,32 +45,33 @@ extern "C" {
 ** Has no dynamically allocated information or pointers
 */
 typedef struct limnCam_t {
-  float from[3],     /* location of eyepoint */
-    at[3],           /* what eye is looking at */
-    up[3],           /* what is up direction for eye (this is not updated
-			to the "true" up) */
-    uMin, uMax,      /* range of U values to put on horiz. image axis */
-    vMin, vMax,      /* range of V values to put on vert. image axis */
-    near, far,       /* near and far clipping plane distances */
-    dist;            /* distance to view plane */
-  int eyeRel,        /* if true: near, far, and dist quantities
-			measure distance from the eyepoint towards the
-			at point.  if false: near, far, and dist
-			quantities measure distance from the _at_
-			point, but with the same sense (sign) as above */
-    ortho,           /* no perspective projection: just orthographic */
-    leftHanded;      /* if leftHanded, then V = UxN (V points "upwards"),
-			otherwise V = NxU (V points "downwards") */
-  float W2V[16],     /* not usually user-set: the world to view
-			transform.  The _rows_ of this matrix (its
-			3x3 submatrix) are the U, V, N vectors which
-			form the view-space coordinate frame.  The
-			ordering of elements into the matrix is from ell:
-			0   4   8  12
-			1   5   9  13
-			2   6  10  14
-			3   7  11  15 */
-    vspNear, vspFar, /* not usually user-set: near and far dist (view space) */
+  float from[3],      /* location of eyepoint */
+    at[3],            /* what eye is looking at */
+    up[3],            /* what is up direction for eye (this is not updated
+			 to the "true" up) */
+    uMin, uMax,       /* range of U values to put on horiz. image axis */
+    vMin, vMax,       /* range of V values to put on vert. image axis */
+    near, faar,       /* near and far clipping plane distances
+		 	(misspelled for the sake of McRosopht) */
+    dist;             /* distance to view plane */
+  int eyeRel,         /* if true: near, far, and dist quantities
+			 measure distance from the eyepoint towards the
+			 at point.  if false: near, far, and dist
+			 quantities measure distance from the _at_
+			 point, but with the same sense (sign) as above */
+    ortho,            /* no perspective projection: just orthographic */
+    leftHanded;       /* if leftHanded, then V = UxN (V points "upwards"),
+			 otherwise V = NxU (V points "downwards") */
+  float W2V[16],      /* not usually user-set: the world to view
+			 transform.  The _rows_ of this matrix (its
+			 3x3 submatrix) are the U, V, N vectors which
+			 form the view-space coordinate frame.  The
+			 ordering of elements into the matrix is from ell:
+			 0   4   8  12
+			 1   5   9  13
+			 2   6  10  14
+			 3   7  11  15 */
+    vspNear, vspFaar, /* not usually user-set: near, far dist (view space) */
     vspDist;         
 } limnCam;
 

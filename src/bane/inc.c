@@ -29,7 +29,8 @@ Nrrd *
 _baneInc_HistNew(double *incParm) {
   Nrrd *nhist;
   
-  nrrdAlloc(nhist=nrrdNew(), nrrdTypeInt, 1, (int)(incParm[0]));
+  nhist=nrrdNew();
+  nrrdAlloc(nhist, nrrdTypeInt, 1, (int)(incParm[0]));
   return nhist;
 }
 
@@ -87,10 +88,13 @@ baneIncAbsolute = &_baneIncAbsolute;
 /*
 ** _baneIncRangeRatio_Ans
 **
-** uses incParm[0] to scale min and max, after they've been sent through
-** the range function.  For baneRangeFloat, if incParm[1] exists, it
-** is used as the midpoint of the scaling, otherwise the average is
-** used.  For all other ranges, zero is used as the scaling midpoint.
+** uses incParm[0] to scale min and max, after they've been sent
+** through the range function.  incParm[0] should be between 0.0 and
+** 1.0; using 0.0 shrinks the range to, well, zero, which would be
+** kind of pointless.  Using 1.0 leaves things as they are.  For
+** baneRangeFloat, if incParm[1] exists, it is used as the midpoint of
+** the scaling, otherwise the average of min and max is used.  For all
+** other ranges, zero is used as the scaling midpoint.
 */
 void
 _baneIncRangeRatio_Ans(double *minP, double *maxP, 
@@ -100,7 +104,7 @@ _baneIncRangeRatio_Ans(double *minP, double *maxP,
   
   range->ans(minP, maxP, hist->axis[0].min, hist->axis[0].max);
 
-  if (baneRangeFloat == range) {
+  if (baneRangeFloat_e == range->which) {
     mid = AIR_EXISTS(incParm[1]) ? incParm[1] : (*minP + *maxP)/2;
     *minP = AIR_AFFINE(-1, -incParm[0], 0, *minP, mid);
     *maxP = AIR_AFFINE(0, incParm[0], 1, mid, *maxP);
@@ -150,9 +154,13 @@ _baneIncPercentile_Ans(double *minP, double *maxP,
   if (baneRangeFloat) {
     mid = AIR_EXISTS(incParm[1]) ? incParm[1] : (min + max)/2;
   } else {
+    /* yes, this is okay.  The "mid" is the value we march towards
+       from both ends, but we control the rate of marching according
+       to the distance to the ends.  So if min == mid == 0, then
+       there is no marching up from below */
     mid = 0;
   }
-  fprintf(stderr, "##%s: hist (%g,%g) --> min,max = (%g,%g) --> %g\n", me,
+  fprintf(stderr, "##%s: hist (%g,%g) --> min,max = (%g,%g) --> mid = %g\n", me,
 	  nhist->axis[0].min, nhist->axis[0].max, min, max, mid);
   if (max-mid > mid-min) {
     /* the max is further from the mid than the min */
@@ -162,6 +170,9 @@ _baneIncPercentile_Ans(double *minP, double *maxP,
     /* the min is further */
     minIncr = 1;
     maxIncr = (max-mid)/(mid-min);
+  }
+  if (!( AIR_EXISTS(minIncr) && AIR_EXISTS(maxIncr) )) {
+    fprintf(stderr, "%s: PANIC: something is terribly wrong (part A)\n", me);
   }
   fprintf(stderr, "##%s: --> {min,max}Incr = %g,%g\n", me, minIncr, maxIncr);
   minIdx = AIR_AFFINE(nhist->axis[0].min, min, nhist->axis[0].max, 0, histSize-1);
@@ -177,7 +188,7 @@ _baneIncPercentile_Ans(double *minP, double *maxP,
     minIdx += minIncr;
     maxIdx -= maxIncr;
     if (minIdx > maxIdx) {
-      fprintf(stderr, "%s: PANIC: something has gone terribly wrong !!! \n", me);
+      fprintf(stderr, "%s: PANIC: something is terribly wrong (part B)\n", me);
       exit(-1);
     }
   }
@@ -206,11 +217,13 @@ _baneIncStdv_HistNew(double *incParm) {
   Nrrd *hist;
 
   hist = nrrdNew();
-  /* this is a total horrid sham and a hack:  we're going to use 
-     axis[1].min to store the sum of all values, and 
-     axis[1].max to store the sum of all squared values, and 
-     axis[1].size to store the number of values.
-     The road to hell ... 
+  /* this is a total horrid sham and a hack: we're going to use
+     axis[1].min to store the sum of all values, and axis[1].max to
+     store the sum of all squared values, and axis[1].size to store
+     the number of values.  It may be tempting to use incParm for
+     this, but its only meant for input.
+
+     The road to hell ...
   */
   hist->axis[1].min = 0.0;
   hist->axis[1].max = 0.0;
@@ -228,6 +241,15 @@ _baneIncStdv_Pass(Nrrd *hist, double val, double *incParm) {
 }
 
 
+/*
+** _baneIncStdv_Ans()
+**
+** the width of the range is always incParm[0] times the standard
+** deviation of the distribution, and the baneRange determines where
+** the range is located.  In the case of baneRangeFloat, incParm[1] is
+** used (if it exists) as the midpoint of the range; otherwise the mean
+** is used.
+*/
 void
 _baneIncStdv_Ans(double *minP, double *maxP,
 		 Nrrd *hist, double *incParm,

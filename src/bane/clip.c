@@ -20,52 +20,61 @@
 
 #include "bane.h"
 
-int
-_baneClipUnknown(Nrrd *rhv, double *parm) {
-  char me[]="_baneClipUnknown", err[AIR_STRLEN_MED];
+/* ----------------- baneClipAbsolute -------------------- */
 
-  sprintf(err, "%s: Need To Specify a Clipping Method !!!\n", me);
-  biffAdd(BANE, err);
-  return -1;
+int
+_baneClipAbsolute_Ans(Nrrd *hvol, double *clipParm) {
+
+  return clipParm[0];
 }
 
-int
-_baneClipAbsolute(Nrrd *rhv, double *parm) {
+baneClip
+_baneClipAbsolute = {
+  "absolute",
+  baneClipAbsolute_e,
+  1,
+  _baneClipAbsolute_Ans
+};
+baneClip *
+baneClipAbsolute = &_baneClipAbsolute;
 
-  return parm[0];
-}
+/* ----------------- baneClipPeakRatio -------------------- */
 
 int
-_baneClipPeakRatio(Nrrd *rhv, double *parm) {
+_baneClipPeakRatio_Ans(Nrrd *hvol, double *clipParm) {
   int *hits, maxhits;
   nrrdBigInt idx, num;
   
-  hits = rhv->data;
+  hits = hvol->data;
   maxhits = 0;
-  num = nrrdElementNumber(rhv);
-  for (idx=0; idx<=num-1; idx++) {
+  num = nrrdElementNumber(hvol);
+  for (idx=0; idx<num; idx++) {
     maxhits = AIR_MAX(maxhits, hits[idx]);
   }
-  return maxhits*parm[0];
+
+  return maxhits*clipParm[0];
 }
 
-int
-_baneClipCompare(const void *a, const void *b) {
-  return((*(int*)a < *(int*)b 
-	  ? -1 
-	  : (*(int*)a > *(int*)b 
-	     ? 1 
-	     : 0)));
-}
+baneClip
+_baneClipPeakRatio = {
+  "peak-ratio",
+  baneClipPeakRatio_e,
+  1,
+  _baneClipPeakRatio_Ans
+};
+baneClip *
+baneClipPeakRatio = &_baneClipPeakRatio;
+
+/* ----------------- baneClipPercentile -------------------- */
 
 int
-_baneClipPercentile(Nrrd *rhv, double *parm) {
+_baneClipPercentile_Ans(Nrrd *hvol, double *clipParm) {
   char me[]="_baneClipPercentile", err[AIR_STRLEN_MED];
   Nrrd *copy;
   int *hits, clip;
-  nrrdBigInt num, sum, out, outsum, hi;
-  
-  if (nrrdCopy(copy=nrrdNew(), rhv)) {
+  nrrdBigInt num, sum, out, outsofar, hi;
+
+  if (nrrdCopy(copy=nrrdNew(), hvol)) {
     sprintf(err, "%s: couldn't create copy of histovol", me);
     biffMove(BANE, err, NRRD); return -1;
   }
@@ -73,46 +82,71 @@ _baneClipPercentile(Nrrd *rhv, double *parm) {
   num = nrrdElementNumber(copy);
   qsort(hits, num, sizeof(int), nrrdValCompare[nrrdTypeInt]);
   sum = 0;
-  for (hi=0; hi<=num-1; hi++) {
+  for (hi=0; hi<num; hi++) {
     sum += hits[hi];
   }
-  out = sum*parm[0]/100;
-  outsum = 0;
-  for (hi=0; hi<=num-1; hi++) {
-    if (outsum >= out)
-      break;
-    outsum += hits[hi];
-  }
+  out = sum*clipParm[0]/100;
+  outsofar = 0;
+  hi = num-1;
+  do {
+    outsofar += hits[hi--];
+  } while (outsofar < out);
   clip = hits[hi];
   nrrdNuke(copy);
+
   return clip;
 }
 
+baneClip
+_baneClipPercentile = {
+  "percentile",
+  baneClipPercentile_e,
+  1,
+  _baneClipPercentile_Ans
+};
+baneClip *
+baneClipPercentile = &_baneClipPercentile;
+
+/* ----------------- baneClipTopN -------------------- */
+
 int
-_baneClipTopN(Nrrd *rhv, double *parm) {
+_baneClipTopN_Ans(Nrrd *hvol, double *clipParm) {
   char me[]="_baneClipTopN", err[AIR_STRLEN_MED];
   Nrrd *copy;
   int *hits, clip;
   nrrdBigInt num;
 
-  if (nrrdCopy(copy=nrrdNew(), rhv)) {
+  if (nrrdCopy(copy=nrrdNew(), hvol)) {
     sprintf(err, "%s: couldn't create copy of histovol", me);
     biffMove(BANE, err, NRRD); return -1;
   }
   hits = copy->data;
   num = nrrdElementNumber(copy);
-  qsort(hits, num, sizeof(int), &_baneClipCompare);
-  clip = hits[(int)parm[0]];
+  qsort(hits, num, sizeof(int), nrrdValCompare[nrrdTypeInt]);
+  clipParm[0] = AIR_CLAMP(0, (int)clipParm[0], num-1);
+  clip = hits[num-(int)clipParm[0]-1];
   nrrdNuke(copy);
+
   return clip;
 }
 
-baneClipType
-baneClip[BANE_CLIP_MAX+1] = {
-  _baneClipUnknown,
-  _baneClipAbsolute,
-  _baneClipPeakRatio,
-  _baneClipPercentile,
-  _baneClipTopN
+baneClip
+_baneClipTopN = {
+  "top-N",
+  baneClipTopN_e,
+  1,
+  _baneClipTopN_Ans
+};
+baneClip *
+baneClipTopN = &_baneClipTopN;
+
+/* --------------------------------------------------- */
+
+baneClip *
+baneClipArray[BANE_CLIP_MAX+1] = {
+  &_baneClipAbsolute,
+  &_baneClipPeakRatio,
+  &_baneClipPercentile,
+  &_baneClipTopN
 };
 

@@ -38,11 +38,11 @@ extern "C" {
 #include <gage.h>
 
 /*
-** The idea is that the baneRange, baneMeasr, baneClip, and baneInc
-** structs, and the pointers to them declared here, are glorified
-** constants.  All the parameters to these things (the various 
-** double *xParm arrays) are kept in things which are dynamically
-** allocated by the user.
+** The idea is that the baneRange, baneInc, baneClip, and baneMeasr,
+** structs, and the pointers to them declared below, are glorified
+** constants.  All the parameters to these things (the various double
+** *xxxParm arrays) are kept in things which are dynamically allocated
+** by the user.
 */
 
 /* -------------------------- ranges -------------------------- */
@@ -55,6 +55,14 @@ extern "C" {
 ** considered to be centered around zero (2nd directional
 ** derivative) or could they be anywhere (data
 ** value).
+**
+** The job of the ans() function in the range is not to exclude
+** any data.  Indeed, if the range is set correctly for the type
+** of data used, then range->ans() should always return a range
+** that is as large or larger than the one which was passed.  
+** Doing otherwise would make ranges too complicated (such as
+** requiring a parm array), and besides, its the job of the
+** inclusion methods to be smart about things like this.
 */
 enum {
   baneRangeUnknown=-1, /* -1: nobody knows */
@@ -77,11 +85,6 @@ typedef struct {
   void (*ans)(double *ominP, double *omaxP,
 	      double imin, double imax);
 } baneRange;
-extern baneRange *baneRangePos;
-extern baneRange *baneRangeNeg;
-extern baneRange *baneRangeZeroCent;
-extern baneRange *baneRangeFloat;
-extern baneRange *baneRangeArray[BANE_RANGE_MAX+1]; 
 
 /* -------------------------- inc -------------------------- */
 
@@ -125,11 +128,38 @@ typedef struct {
 	      Nrrd *hist, double *incParm,
 	      baneRange *range);
 } baneInc;
-extern baneInc *baneIncAbsolute;
-extern baneInc *baneIncRangeRatio;
-extern baneInc *baneIncPercentile;
-extern baneInc *baneIncStdv;
-extern baneInc *baneIncArray[BANE_INC_MAX+1];
+
+/* -------------------------- clip -------------------------- */
+
+/*
+******** baneClip..._e enum
+**
+** Clip: how to map values in the "raw" histogram volume to the more
+** convenient 8-bit version.  The number of hits for the semi-constant
+** background of a large volume can be huge, so some scheme for dealing
+** with this is needed.
+*/
+enum {
+  baneClipUnknown_e=-1, /* -1: nobody knows */
+  baneClipAbsolute_e,    /* 0: clip at explicitly specified bin count */
+  baneClipPeakRatio_e,   /* 1: some fraction of maximum #hits in any bin */
+  baneClipPercentile_e,  /* 2: percentile of values, sorted by hits */
+  baneClipTopN_e,        /* 3: ignore the N bins with the highest counts */
+  baneClipLast
+};
+#define BANE_CLIP_MAX       3
+#define BANE_CLIP_PARM_NUM 1
+/*
+******** baneClip struct
+**
+** things used to calculate and describe clipping
+*/
+typedef struct {
+  char name[AIR_STRLEN_SMALL];
+  int which;
+  int numParm;           /* assumed length of clipParm in this ans() */
+  int (*ans)(Nrrd *hvol, double *clipParm);
+} baneClip;
 
 /* -------------------------- measr -------------------------- */
 
@@ -178,50 +208,6 @@ typedef struct {
   baneRange *range;
   float (*ans)(gageSclAnswer *, double *measrParm);
 } baneMeasr;
-extern baneMeasr *baneMeasrVal;
-extern baneMeasr *baneMeasrGradMag;
-extern baneMeasr *baneMeasrLapl;
-extern baneMeasr *baneMeasrHess;
-extern baneMeasr *baneMeasrCurvedness;
-extern baneMeasr *baneMeasrShadeTrace;
-extern baneMeasr *baneMeasrArray[BANE_MEASR_MAX+1];
-
-/* -------------------------- clip -------------------------- */
-
-/*
-******** baneClip..._e enum
-**
-** Clip: how to map values in the "raw" histogram volume to the more
-** convenient 8-bit version.  The number of hits for the semi-constant
-** background of a large volume can be huge, so some scheme for dealing
-** with this is needed.
-*/
-enum {
-  baneClipUnknown_e=-1, /* -1: nobody knows */
-  baneClipAbsolute_e,    /* 0: clip at explicitly specified bin count */
-  baneClipPeakRatio_e,   /* 1: some fraction of maximum #hits in any bin */
-  baneClipPercentile_e,  /* 2: percentile of values, sorted by hits */
-  baneClipTopN_e,        /* 3: ignore the N bins with the highest counts */
-  baneClipLast
-};
-#define BANE_CLIP_MAX       3
-#define BANE_CLIP_PARM_NUM 1
-/*
-******** baneClip struct
-**
-** things used to calculate and describe clipping
-*/
-typedef struct {
-  char name[AIR_STRLEN_SMALL];
-  int which;
-  int numParm;           /* assumed length of clipParm in this ans() */
-  int (*ans)(Nrrd *hvol, double *clipParm);
-} baneClip;
-extern baneClip *baneClipAbsolute;
-extern baneClip *baneClipPeakRatio;
-extern baneClip *baneClipPercentile;
-extern baneClip *baneClipTopN;
-extern baneClip *baneClipArray[BANE_CLIP_MAX+1];
 
 /* -------------------- histogram volumes, etc. ---------------------- */
 
@@ -263,11 +249,35 @@ typedef struct {
 extern float baneDefIncLimit;
 extern int baneDefHistEqBins;
 
-/* inc.c */
-
-
 /* range.c */
+extern baneRange *baneRangePos;
+extern baneRange *baneRangeNeg;
+extern baneRange *baneRangeZeroCent;
+extern baneRange *baneRangeFloat;
+extern baneRange *baneRangeArray[BANE_RANGE_MAX+1]; 
 
+/* inc.c */
+extern baneInc *baneIncAbsolute;
+extern baneInc *baneIncRangeRatio;
+extern baneInc *baneIncPercentile;
+extern baneInc *baneIncStdv;
+extern baneInc *baneIncArray[BANE_INC_MAX+1];
+
+/* measr.c */
+extern baneMeasr *baneMeasrVal;
+extern baneMeasr *baneMeasrGradMag;
+extern baneMeasr *baneMeasrLapl;
+extern baneMeasr *baneMeasrHess;
+extern baneMeasr *baneMeasrCurvedness;
+extern baneMeasr *baneMeasrShadeTrace;
+extern baneMeasr *baneMeasrArray[BANE_MEASR_MAX+1];
+
+/* clip.c */
+extern baneClip *baneClipAbsolute;
+extern baneClip *baneClipPeakRatio;
+extern baneClip *baneClipPercentile;
+extern baneClip *baneClipTopN;
+extern baneClip *baneClipArray[BANE_CLIP_MAX+1];
 
 /* methods.c */
 extern baneHVolParm *baneHVolParmNew();

@@ -648,6 +648,12 @@ nrrdSanity(void) {
     sprintf(err, "%s: problem with enum definition", me);
     biffAdd(NRRD, err); return 0;
   }
+  
+  if (!( NRRD_DIM_MAX >= 3 )) {
+    sprintf(err, "%s: NRRD_DIM_MAX == %d seems awfully small, doesn't it?",
+	    me, NRRD_DIM_MAX);
+    biffAdd(NRRD, err); return 0;
+  }
 
   /* HEY: any other assumptions built into teem? */
 

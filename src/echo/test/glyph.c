@@ -257,7 +257,7 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, cam, (airMopper)limnCamNix, airMopAlways);
   cam->near = 0;
   cam->dist = 0;
-  cam->far = 0;
+  cam->faar = 0;
   cam->eyeRel = AIR_FALSE;
 
   state = echoGlobalStateNew();

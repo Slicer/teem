@@ -540,6 +540,7 @@ _nrrdMeasureHistoProduct(void *line, int lineType, int len,
     axmax = len-0.5;
   }
   product = 1.0;
+  count = 0;
   for (i=0; i<len; i++) {
     val = NRRD_AXIS_POS(nrrdCenterCell, axmin, axmax, len, i);
     hits = nrrdDLookup[lineType](line, i);

@@ -58,6 +58,14 @@ baneRangeNeg = &_baneRangeNeg;
 
 /* ----------------- baneRangeCent -------------------- */
 
+/*
+** _baneRangeZeroCent_Ans
+**
+** Unlike the last version of this function, this is conservative: we
+** choose the smallest zero-centered range that includes the original
+** min and max.  Previously the average of the min and max magnitude
+** were used.
+*/
 void
 _baneRangeZeroCent_Ans(double *ominP, double *omaxP,
 		       double imin, double imax) {

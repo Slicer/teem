@@ -1,7 +1,7 @@
 /*
   teem: Gordon Kindlmann's research software
   Copyright (C) 2002, 2001, 2000, 1999, 1998 University of Utah
-
+            
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
@@ -17,16 +17,121 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
 #include "bane.h"
 
-double
-_baneMeasrUnknown(Nrrd *n, nrrdBigInt idx) {
-  char me[]="_baneMeasrUnknown";
-  
-  fprintf(stderr, "%s: Need To Specify A Measure !!!\n", me);
-  return AIR_NAN;
+/* ----------------- baneMeasrVal -------------------- */
+
+float
+_baneMeasrVal_Ans(gageSclAnswer *san, double *measrParm) {
+
+  return san->val[0];
 }
+
+/*
+** I'm really asking for it here.  Because data value can have
+** different ranges depending on the data, I want to have different
+** baneMeasrs for them, even though all of them use the same
+** ans() method.  This obviously breaks the one-to-one relationship
+** between the members of the enum and the related structs
+*/
+
+baneMeasr
+_baneMeasrValPos = {
+  "val(pos)",
+  baneMeasrVal_e,
+  0,
+  &_baneRangePos,
+  _baneMeasrVal_Ans
+};
+baneMeasr *
+baneMeasrValPos = &_baneMeasrValPos;
+
+baneMeasr
+_baneMeasrValFloat = {
+  "val(float)",
+  baneMeasrVal_e,
+  0,
+  baneRangeFloat,
+  _baneMeasrVal_Ans
+};
+baneMeasr *
+baneMeasrValFloat = &_baneMeasrValFloat;
+
+baneMeasr
+_baneMeasrValZeroCent = {
+  "val(zerocent)",
+  baneMeasrVal_e,
+  0,
+  baneRangeZeroCent,
+  _baneMeasrVal_Ans
+};
+baneMeasr *
+baneMeasrValZeroCent = &_baneMeasrValZeroCent;
+
+/* ----------------- baneMeasrGradMag -------------------- */
+
+float
+_baneMeasrGradMag_Ans(gageSclAnswer *san, double *measrParm) {
+
+  return san->gmag[0];
+}
+
+baneMeasr
+_baneMeasrGradMag = {
+  "gradmag",
+  baneMeasrGradMag_e,
+  0,
+  baneRangePos,
+  _baneMeasrGradMag_Ans
+};
+baneMeasr *
+baneMeasrGradMag = &_baneMeasrGradMag;
+
+/* ----------------- baneMeasrLapl -------------------- */
+
+float
+_baneMeasrLapl_Ans(gageSclAnswer *san, double *measrParm) {
+
+  return san->hess[0] + san->hess[4] + san->hess[8];
+}
+
+baneMeasr
+_baneMeasrLapl = {
+  "lapl",
+  baneMeasrLapl_e,
+  0,
+  baneRangeZeroCent,
+  _baneMeasrLapl_Ans
+};
+baneMeasr *
+baneMeasrLapl = &_baneMeasrLapl;
+
+/* ----------------- baneMeasrHess -------------------- */
+
+
+enum {
+  baneMeasrHess_e,       /*  3: Hessian-based measure of 2nd DD along
+                                gradient */
+  baneMeasrCurvedness_e, /*  4: L2 norm of K1, K2 principal curvatures
+			       (gageSclCurvedness) */
+  baneMeasrShapeTrace_e, /*  5: shape indicator (gageSclShapeTrace) */
+  baneMeasrLast
+};
+#define BANE_MEASR_MAX       5
+#define BANE_MEASR_PARM_NUM 1
+/*
+******** baneMeasr struct
+**
+** things used to calculate and describe measurements
+*/
+typedef struct {
+  char name[AIR_STRLEN_SMALL];
+  int which;
+  int numParm;           /* assumed length of measrParm in this ans() */
+  baneRange *range;
+  float (*ans)(gageSclAnswer *, double *measrParm);
+} baneMeasr;
+
 
 double
 _baneMeasrVal(Nrrd *n, nrrdBigInt idx) {
@@ -205,7 +310,6 @@ _baneMeasrGMG_cd(Nrrd *n, nrrdBigInt idx) {
 
 double
 (*baneMeasr[BANE_MEASR_MAX+1])(Nrrd *n, nrrdBigInt idx) = {
-  _baneMeasrUnknown,
   _baneMeasrVal,
   _baneMeasrGradMag_cd,
   _baneMeasrLapl_cd,
