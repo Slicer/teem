@@ -467,7 +467,7 @@ extern int nrrdSubvolume(Nrrd *nout, Nrrd *nin,
 extern int nrrdInvertPerm(int *invp, int *perm, int n);
 extern int nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes);
 extern int nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm);
-extern int nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis);
+extern int nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis, int incrDim);
 extern int nrrdFlip(Nrrd *nout, Nrrd *nin, int axis);
 
 /******** measuring and projecting */

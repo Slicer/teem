@@ -1,10 +1,10 @@
 
 ASAP!!: 
+fix convert
+revisit slicer,
 save and retreive peripheral information in PNM comments
 gaussian kernel,
-sinc kernel,
 pow2pad super function,
-revisit slicer,
 split, reshape,
 resampling, blurring,  <-- document setting the float param[] vector
 weighted median filter

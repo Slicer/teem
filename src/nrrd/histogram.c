@@ -99,7 +99,7 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int axis, int bins) {
 
 int
 nrrdHisto(Nrrd *nout, Nrrd *nin, int bins) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdHisto";
+  char err[NRRD_MED_STRLEN], me[] = "nrrdHisto", cmt[NRRD_MED_STRLEN];
   int idx, *hist;
   NRRD_BIG_INT I;
   float min, max, val;
@@ -131,6 +131,9 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins) {
   if (max == min) {
     /* need this to insure that index generation isn't confused */
     max++;
+    sprintf(cmt, "%s: artificially increasing max from %g to %g", 
+	    me, min, max);
+    nrrdAddComment(nout, cmt);
   }
   nout->axisMin[0] = min;
   nout->axisMax[0] = max;

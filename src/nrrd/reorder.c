@@ -278,11 +278,11 @@ nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
 ** this leaks memory on error.  Still waiting for the "mop" library
 */
 int
-nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis) {
+nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis, int incrDim) {
   char me[]="nrrdJoin", err[NRRD_MED_STRLEN];
-  int mindim, maxdim, diffdim, inhom, outdim, 
+  int mindim, maxdim, diffdim, outdim, 
     i, d, *trs, outlen, permute[NRRD_MAX_DIM];
-  NRRD_BIG_INT outnum;
+  NRRD_BIG_INT outnum, chunksize;
   char *tmpdata;
   Nrrd *nperm, **ninperm;
 
@@ -302,7 +302,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis) {
   }
   for (i=0; i<=num-1; i++) {
     if (!(nin[i])) {
-      sprintf(err, "%s: input nrrd %d NULL", me, i);
+      sprintf(err, "%s: input nrrd #%d NULL", me, i);
       biffSet(NRRD, err); return 1;
     }
   }
@@ -312,6 +312,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis) {
     sprintf(err, "%s: couldn't alloc tmp arrays!", me);
     biffSet(NRRD, err); return 1;
   }
+
   mindim = NRRD_MAX_DIM+1;
   maxdim = -1;
   for (i=0; i<=num-1; i++) {
@@ -329,41 +330,26 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis) {
 	    me, axis, maxdim);
     biffSet(NRRD, err); return 1;
   }
-  /* fprintf(stderr, "%s: mindim = %d, maxdim = %d\n", me, mindim, maxdim); */
-
+  
   /* figure out dimension of output (outdim) */
   if (diffdim) {
+    /* case A */
     outdim = maxdim;
   }
   else {
     /* diffdim == 0 */
     if (axis == maxdim) {
+      /* case B */
       outdim = maxdim+1;
     }
     else {
-      /* axis < maxdim; maxdim == mindim */
-      inhom = 0;
-      for (i=0; i<=num-2; i++) {
-	inhom |= nin[i]->size[axis] != nin[i+1]->size[axis];
-	/* fprintf(stderr, "%d, %d\n", 
-	   nin[i]->size[axis], nin[i+1]->size[axis]); */
-      }
-      if (inhom) {
-	outdim = maxdim;
-      }
-      else {
-	/* all size[axis]'s were equal */
-	if (1 == nin[0]->size[axis]) {
-	  outdim = maxdim+1;
-	}
-	else {
-	  outdim = maxdim;
-	}
-      }
+      /* case C: axis < maxdim; maxdim == mindim */
+      /* case C1: simple join, outdim = maxdim */
+      /* case C2: stitch: outdim = maxdim+1 */
+      outdim = incrDim ? maxdim + 1 : maxdim;
     }
   }
-  /* fprintf(stderr, "%s: outdim = %d\n", me, outdim); */
-
+  
   /* do tacit reshaping, and possibly permuting, as needed */
   for (i=0; i<=outdim-1; i++) {
     permute[i] = (i < axis
@@ -385,7 +371,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis) {
       }
       nin[i]->size[mindim] = 1;
       nin[i]->dim++;
-      /*
+      /* 
       fprintf(stderr, "%s: reshaped part %d -> ", me, i);
       for (d=0; d<=nin[i]->dim-1; d++) {
 	fprintf(stderr, "%03d ", nin[i]->size[d]);
@@ -447,9 +433,9 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis) {
   tmpdata = nperm->data;
   for (i=0; i<=num-1; i++) {
     /* here is where the actual joining happens */
-    memcpy(tmpdata, ninperm[i]->data, 
-	   ninperm[i]->num*nrrdElementSize(ninperm[i]));
-    tmpdata += ninperm[i]->num*nrrdElementSize(ninperm[i]);
+    chunksize = ninperm[i]->num*nrrdElementSize(ninperm[i]);
+    memcpy(tmpdata, ninperm[i]->data, chunksize);
+    tmpdata += chunksize;
   }
   
   /* copy other axis-specific fields from nin[0] to nperm */
