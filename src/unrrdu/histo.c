@@ -28,7 +28,7 @@ unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *nwght;
-  int bins, type, pret, hack;
+  int bins, type, pret;
   double min, max;
   airArray *mop;
 
@@ -60,16 +60,13 @@ unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   
-  /* at some point Gordon was really annoyed with the "default" max
-     of a connected-component uchar volume being 255, instead of the
-     true answer */
-  hack = nrrdStateClever8BitMinMax;
-  nrrdStateClever8BitMinMax = AIR_FALSE;
-
   /* If the input nrrd never specified min and max, then they'll be
-     AIR_NAN, and nrrdMinMaxCleverSet will find them.  If the input nrrd
-     had a notion of min and max, we should respect it, but not if the
-     user specified something else. */
+     AIR_NAN, and nrrdMinMaxCleverSet will find them, and will do so
+     according to nrrdStateClever8BitMinMax.  Thus, you may be
+     interested in using the NRRD_STATE_CLEVER_8_BIT_MIN_MAX
+     environment variable.  If the input nrrd had a notion of min and
+     max, we should respect it, but not if the user specified
+     something else. */
   if (AIR_EXISTS(min))
     nin->min = min;
   if (AIR_EXISTS(max))
@@ -84,7 +81,6 @@ unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   SAVE(out, nout, NULL);
 
   airMopOkay(mop);
-  nrrdStateClever8BitMinMax = hack;
   return 0;
 }
 
