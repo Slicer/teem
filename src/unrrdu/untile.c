@@ -20,7 +20,7 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Used to do the inverse of the tile operation"
+#define INFO "Undo the action of \"unu tile\""
 char *_unrrdu_untileInfoL =
 (INFO
  ". To untile the data set you split two axes, permute the pieces "
@@ -38,8 +38,8 @@ unrrdu_untileMain(int argc, char **argv, char *me, hestParm *hparm) {
   int size[2], axes[3], pret;
   airArray *mop;
 
-  hestOptAdd(&opt, "a", "ax0 ax1 axSplit", airTypeInt, 3, 3, axes, NULL,
-	     "axSplit is divided and merged with ax0 and ax1");
+  hestOptAdd(&opt, "a", "axMerge ax0 ax1", airTypeInt, 3, 3, axes, NULL,
+	     "an axis is extracted from ax0 and ax1 and merged into axMerge");
   hestOptAdd(&opt, "s", "fast, slow sizes", airTypeInt, 2, 2, size, NULL,
 	     "fast and slow axis sizes to produce as result of splitting "
 	     "given axis.");
@@ -56,7 +56,7 @@ unrrdu_untileMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   
-  if (nrrdUntile(nout, nin, axes[0], axes[1], axes[2], size[0], size[1])) {
+  if (nrrdUntile2D(nout, nin, axes[1], axes[2], axes[0], size[0], size[1])) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error tiling nrrd:\n%s", me, err);
     airMopError(mop);
