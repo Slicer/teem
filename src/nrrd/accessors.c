@@ -546,13 +546,13 @@ float nrrdFClampUI(float v) {
   return v;
 }
 float nrrdFClampLLI(float v) {
-  if (v < LONGLONG_MIN) return LONGLONG_MIN;
-  if (v > LONGLONG_MAX) return LONGLONG_MAX;
+  if (v < NRRD_LLONG_MIN) return NRRD_LLONG_MIN;
+  if (v > NRRD_LLONG_MAX) return NRRD_LLONG_MAX;
   return v;
 }
 float nrrdFClampULLI(float v) {
   if (v < 0) return 0;
-  if (v > ULONGLONG_MAX) return ULONGLONG_MAX;
+  if (v > NRRD_ULLONG_MAX) return NRRD_ULLONG_MAX;
   return v;
 }
 float nrrdFClampF(float v) { return v; }
@@ -609,13 +609,13 @@ double nrrdDClampUI(double v) {
   return v;
 }
 double nrrdDClampLLI(double v) {
-  if (v < LONGLONG_MIN) return LONGLONG_MIN;
-  if (v > LONGLONG_MAX) return LONGLONG_MAX;
+  if (v < NRRD_LLONG_MIN) return NRRD_LLONG_MIN;
+  if (v > NRRD_LLONG_MAX) return NRRD_LLONG_MAX;
   return v;
 }
 double nrrdDClampULLI(double v) {
   if (v < 0) return 0;
-  if (v > ULONGLONG_MAX) return ULONGLONG_MAX;
+  if (v > NRRD_ULLONG_MAX) return NRRD_ULLONG_MAX;
   return v;
 }
 double nrrdDClampF(double v) { return v; }
