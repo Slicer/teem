@@ -29,6 +29,9 @@ extern "C" {
 
 #define LIMN "limn"
 
+/* most of the functionality here has been removed until it can
+   be re-done in a less clunky way */
+
 /* qn.c */
 extern void limn16QNtoV(float *vec, unsigned short qn, int doNorm);
 extern unsigned short limnVto16QN(float *vec);
