@@ -564,6 +564,11 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP,
       sprintf(err, "%s: couldn't find value range in nrrd", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
+    if (nin->min == nin->max) {
+      sprintf(err, "%s: invalid min and max in nrrd.  "
+	      "Min and max are equivalent (min,max = %g).", me, nin->min);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
     min = nin->min;
     max = nin->max;
     for (I=0; I<num; I++) {
