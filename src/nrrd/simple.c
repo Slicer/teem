@@ -58,7 +58,8 @@ nrrdPeripheralCopy (Nrrd *nout, Nrrd *nin) {
 int
 _nrrdContentSet_nva (Nrrd *nout, const char *func,
 		     char *content, const char *format, va_list arg) {
-  char me[]="_nrrdContentSet_nva", err[AIR_STRLEN_MED], buff[AIR_STRLEN_HUGE];
+  char me[]="_nrrdContentSet_nva", err[AIR_STRLEN_MED],
+    buff[AIR_STRLEN_HUGE] = "";
   
   nout->content = airFree(nout->content);
 
