@@ -603,12 +603,12 @@ nrrdCCAdjacency(Nrrd *nout, Nrrd *nin, int conny) {
 int
 nrrdCCMerge(Nrrd *nout, Nrrd *nin, Nrrd *_nval,
 	    int valDir, int maxSize, int maxNeighbor, int conny) {
-  char me[]="nrrdCCMerge", func[]="ccmerge", err[AIR_STRLEN_MED];
+  char me[]="nrrdCCMerge", func[]="ccmerge", err[AIR_STRLEN_MED], *valcnt;
   int _i, i, j, bigi=0, numid, *size, *sizeId, *id,
     *nn,  /* number of neighbors */
     *map, *val=NULL, *hit,
     (*lup)(void *, size_t), (*ins)(void *, size_t, int);
-  Nrrd *nadj, *nsize, *nval, *nnn;
+  Nrrd *nadj, *nsize, *nval=NULL, *nnn;
   unsigned char *adj;
   airArray *mop;
   size_t I, NN;
@@ -714,7 +714,15 @@ nrrdCCMerge(Nrrd *nout, Nrrd *nin, Nrrd *_nval,
     ins(nout->data, I, map[lup(nin->data, I)]);
   }
 
-  if (nrrdContentSet(nout, func, nin, "%d", conny)) {
+  valcnt = ((_nval && _nval->content) 
+	    ? _nval->content 
+	    : nrrdStateUnknownContent);
+  if ( (valDir && nrrdContentSet(nout, func, nin, "%c(%s),%d,%d,%d",
+				  (valDir > 0 ? '+' : '-'), valcnt,
+				  maxSize, maxNeighbor, conny))
+       ||
+       (!valDir && nrrdContentSet(nout, func, nin, ".,%d,%d,%d",
+				 maxSize, maxNeighbor, conny)) ) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
@@ -792,5 +800,10 @@ nrrdCCSettle(Nrrd *nout, Nrrd *nin) {
     ins(nout->data, I, map[lup(nin->data, I)]);
   }
   free(map);
+
+  if (nrrdContentSet(nout, func, nin, "")) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
   return 0;
 }
