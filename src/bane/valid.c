@@ -55,71 +55,73 @@ baneValidHVol(Nrrd *hvol) {
 }
 
 int
-baneValidInfo2D(Nrrd *info2D) {
-  char me[]="baneValidInfo2D", err[128];
+baneValidInfo(Nrrd *info, int wantDim) {
+  char me[]="baneValidInfo", err[128];
+  int gotDim;
 
-  if (3 != info2D->dim) {
-    sprintf(err, "%s: need 3 dimensions, not %d", me, info2D->dim);
+  if (!info) {
+    sprintf(err, "%s: got NULL pointer", me);
     biffSet(BANE, err); return 0;
   }
-  if (nrrdTypeFloat != info2D->type) {
+  gotDim = info->dim;
+  if (wantDim) {
+    if (!(1 == wantDim || 2 == wantDim)) {
+      sprintf(err, "%s: wantDim should be 1 or 2, not %d", me, wantDim);
+      biffSet(BANE, err); return 0;
+    }
+    if (wantDim+1 != gotDim) {
+      sprintf(err, "%s: dim is %d, not %d", me, gotDim, wantDim+1);
+      biffSet(BANE, err); return 0;
+    }
+  }
+  else {
+    if (!(2 == gotDim || 3 == gotDim)) {
+      sprintf(err, "%s: dim is %d, not 2 or 3", me, gotDim);
+      biffSet(BANE, err); return 0;
+    }
+  }
+  if (nrrdTypeFloat != info->type) {
     sprintf(err, "%s: need data of type float", me);
     biffSet(BANE, err); return 0;
   }
-  if (2 != info2D->size[0]) {
-    sprintf(err, "%s: 1st axis needs size 2 (not %d)", me, info2D->size[0]);
+  if (2 != info->size[0]) {
+    sprintf(err, "%s: 1st axis needs size 2 (not %d)", me, info->size[0]);
     biffSet(BANE, err); return 0;
   }
   return 1;
 }
 
 int
-baneValidInfo1D(Nrrd *info1D) {
-  char me[]="baneValidInfo1D", err[128];
-  
-  if (2 != info1D->dim) {
-    sprintf(err, "%s: need 2 dimensions, not %d", me, info1D->dim);
-    biffSet(BANE, err); return 0;
-  }
-  if (nrrdTypeFloat != info1D->type) {
-    sprintf(err, "%s: need data of type float", me);
-    biffSet(BANE, err); return 0;
-  }
-  if (2 != info1D->size[0]) {
-    sprintf(err, "%s: 1st axis needs size 2 (not %d)", me, info1D->size[0]);
-    biffSet(BANE, err); return 0;
-  }
-  return 1;
-}
+baneValidPos(Nrrd *pos, int wantDim) {
+  char me[]="baneValidPos", err[128];
+  int gotDim;
 
-int
-baneValidPos1D(Nrrd *pos1D) {
-  char me[]="baneValidPos1D", err[128];
-
-  if (1 != pos1D->dim) {
-    sprintf(err, "%s: need 1-dimensional (not %d)", me, pos1D->dim);
+  if (!pos) {
+    sprintf(err, "%s: got NULL pointer", me);
     biffSet(BANE, err); return 0;
   }
-  if (nrrdTypeFloat != pos1D->type) {
+  gotDim = pos->dim;
+  if (wantDim) {
+    if (!(1 == wantDim || 2 == wantDim)) {
+      sprintf(err, "%s: wantDim should be 1 or 2, not %d", me, wantDim);
+      biffSet(BANE, err); return 0;
+    }
+    if (wantDim != gotDim) {
+      sprintf(err, "%s: dim is %d, not %d", me, gotDim, wantDim);
+      biffSet(BANE, err); return 0;
+    }
+  }
+  else {
+    if (!(1 == gotDim || 2 == gotDim)) {
+      sprintf(err, "%s: dim is %d, not 1 or 2", me, gotDim);
+      biffSet(BANE, err); return 0;
+    }
+  }
+  if (nrrdTypeFloat != pos->type) {
     sprintf(err, "%s: need data of type float", me);
     biffSet(BANE, err); return 0;
   }
   /* HEY? check for values in axisMin[0] and axisMax[0] ? */
-  return 1;
-}
-
-int
-baneValidPos2D(Nrrd *pos2D) {
-  char me[]="baneValidPos2D", err[128];
-
-  if (2 != pos2D->dim) {
-    sprintf(err, "%s: need 2-dimensional (not %d)", me, pos2D->dim);
-    biffSet(BANE, err); return 0;
-  }
-  if (nrrdTypeFloat != pos2D->type) {
-    sprintf(err, "%s: need data of type float", me);
-    biffSet(BANE, err); return 0;
-  }
   /* HEY? check for values in axisMin[0] and axisMax[0] ? */
   /* HEY? check for values in axisMin[1] and axisMax[1] ? */
   return 1;

@@ -60,19 +60,10 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   fclose(file);
-  if (2 == info->dim) {
-    if (banePosCalc1D(pos = nrrdNew(), sigma, gthresh, info)) {
-      fprintf(stderr, "%s: trouble calculating p(v):\n%s\n", me,
-	      biffGet(BANE));
-      exit(1);
-    }
-  }
-  else {
-    if (banePosCalc2D(pos = nrrdNew(), sigma, gthresh, info)) {
-      fprintf(stderr, "%s: trouble calculating p(v,g):\n%s\n", me,
-	      biffGet(BANE));
-      exit(1);
-    }
+  if (banePosCalc(pos = nrrdNew(), sigma, gthresh, info)) {
+    fprintf(stderr, "%s: trouble calculating %s:\n%s\n", me,
+	    2 == info->dim ? "p(v,g)" : "p(v)", biffGet(BANE));
+    exit(1);
   }
   if (!(file = fopen(oStr, "w"))) {
     fprintf(stderr, "%s: couldn't open \"%s\" for writing\n", me, oStr);

@@ -76,7 +76,7 @@ main(int argc, char *argv[]) {
     usage();
   }
   fclose(file);
-  if (!baneValidPos2D(pos)) {
+  if (!baneValidPos(pos, 2)) {
     fprintf(stderr, "%s: %s isn't a valid p(v,g) file:\n%s\n", me, posStr,
 	    biffGet(BANE));
     usage();

@@ -58,17 +58,9 @@ main(int argc, char *argv[]) {
   }
   fclose(file);
 
-  if (1 == p->dim) {
-    if (baneOpacCalc1Dcpts(o = nrrdNew(), b, p)) {
-      fprintf(stderr, "%s: trouble calculating opac:\n%s", me, biffGet(BANE));
-      exit(1);
-    }
-  }
-  else {
-    if (baneOpacCalc2Dcpts(o = nrrdNew(), b, p)) {
-      fprintf(stderr, "%s: trouble calculating opac:\n%s", me, biffGet(BANE));
-      exit(1);
-    }
+  if (baneOpacCalc(o = nrrdNew(), b, p)) {
+    fprintf(stderr, "%s: trouble calculating opac:\n%s", me, biffGet(BANE));
+    exit(1);
   }
   if (!(file = fopen(oStr, "w"))) {
     fprintf(stderr, "%s: couldn't open %s for writing\n", me, oStr);

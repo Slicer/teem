@@ -244,30 +244,22 @@ extern int baneProbeDebug;
 
 /* valid.c */
 extern int baneValidHVol(Nrrd *hvol);
-extern int baneValidInfo2D(Nrrd *info2D);
-extern int baneValidInfo1D(Nrrd *info1D);
-extern int baneValidPos1D(Nrrd *pos1D);
-extern int baneValidPos2D(Nrrd *pos2D);
+extern int baneValidInfo(Nrrd *info2D, int wantDim);
+extern int baneValidPos(Nrrd *pos, int wantDim);
 extern int baneValidBcpts(Nrrd *Bcpts);
 
 /* trnsf.c */
-extern int bane2DOpacInfo(Nrrd *info2D, Nrrd *hvol);
-extern int bane1DOpacInfo(Nrrd *info1D, Nrrd *hvol);
+extern int baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim);
 extern int bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D);
-extern int baneSigmaCalc1D(float *sP, Nrrd *info1D);
-extern int baneSigmaCalc2D(float *sP, Nrrd *info2D);
-extern int banePosCalc1D(Nrrd *pos1D, 
-			 float sigma, float gthresh, Nrrd *info1D);
-extern int banePosCalc2D(Nrrd *pos2D, 
-			 float sigma, float gthresh, Nrrd *info2D);
-extern int baneOpacCalc1Dcpts(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos1D);
+extern int baneSigmaCalc(float *sP, Nrrd *info);
+extern int banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info);
 extern void _baneOpacCalcA(int lutLen, float *opacLut, 
 			   int numCpts, float *xo,
 			   float *pos);
 extern void _baneOpacCalcB(int lutLen, float *opacLut, 
 			   int numCpts, float *x, float *o,
 			   float *pos);
-extern int baneOpacCalc2Dcpts(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos2D);
+extern int baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos);
 
 /* trex.c */
 extern float *_baneTRexRead(char *fname);

@@ -48,23 +48,10 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble parsing %s as an int\n", me, dStr);
     usage();
   }
-  if (dim != 1 && dim != 2) {
-    fprintf(stderr, "%s need dim to be 1 or 2\n", me);
+  if (baneOpacInfo(info = nrrdNew(), hvol, dim)) {
+    fprintf(stderr, "%s: trouble calculting %d-D opacity info:\n%s\n",
+	    me, dim, biffGet(BANE));
     exit(1);
-  }
-  if (dim == 1) {
-    if (bane1DOpacInfo(info = nrrdNew(), hvol)) {
-      fprintf(stderr, "%s: trouble calculting 1D opacity info:\n%s\n", me,
-	      biffGet(BANE));
-      exit(1);
-    }
-  }
-  else {
-    if (bane2DOpacInfo(info = nrrdNew(), hvol)) {
-      fprintf(stderr, "%s: trouble calculting 2D opacity info:\n%s\n", me,
-	      biffGet(BANE));
-      exit(1);
-    }
   }
   if (nrrdSave(oStr, info)) {
     fprintf(stderr, "%s: trouble saving nrrd to %s:\n%s\n", me, oStr,
