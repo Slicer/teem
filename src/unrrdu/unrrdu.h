@@ -97,6 +97,8 @@ typedef struct {
 #define UNRRDU_LIST(C) &unrrdu_##C##Cmd,
 #define UNRRDU_MAP(F) \
 F(make) \
+F(head) \
+F(data) \
 F(convert) \
 F(resample) \
 F(cmedian) \

@@ -8,8 +8,6 @@ update ../README
 
 ----- teem 1.5 cut-off -----
 
-unu head, unu data
-
 make unu check on environment variables, so that nrrdDef* and nrrdState*
 variables can be set that way
 

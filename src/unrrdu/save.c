@@ -21,7 +21,6 @@
 #include "privateUnrrdu.h"
 
 /* bad bad bad Gordon */
-extern int _nrrdSplitName(char **dirP, char **baseP, const char *name);
 extern void _nrrdGuessFormat(NrrdIO *io, const char *filename);
 
 #define INFO "Write nrrd with specific file format or encoding"
@@ -84,7 +83,7 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
 	      airEnumStr(nrrdFormat, nrrdFormatNRRD));
       io->format = nrrdFormatNRRD;
     }
-    _nrrdSplitName(&(io->dir), &(io->base), out);
+    nrrdDirBaseSet(io, out);
     /* we know exactly what part of this function (since we know
        airEndsWith()) run, so we could copy the code, but let's not */
     _nrrdGuessFormat(io, out);
