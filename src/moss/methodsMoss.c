@@ -119,7 +119,7 @@ mossImageAlloc (Nrrd *image, int type, int sx, int sy, int ncol) {
   char me[]="mossImageAlloc", err[AIR_STRLEN_MED];
   int ret;
 
-  if (!(image && AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeBlock)
+  if (!(image && AIR_IN_OP(nrrdTypeUnknown, type, nrrdTypeBlock)
 	&& sx > 0 && sy > 0 && ncol > 0)) {
     sprintf(err, "%s: got NULL pointer or bad args", me);
     biffAdd(MOSS, err); return 1;

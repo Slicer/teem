@@ -169,8 +169,8 @@ mossSamplerSample (float *val, mossSampler *smplr, double xPos, double yPos) {
   if (nrrdBoundaryPad == smplr->boundary) {
     for (yi=0; yi<fdiam; yi++) {
       for (xi=0; xi<fdiam; xi++) {
-	if (AIR_INSIDE(0, smplr->xIdx[xi], sx-1)
-	    && AIR_INSIDE(0, smplr->yIdx[yi], sy-1)) {
+	if (AIR_IN_CL(0, smplr->xIdx[xi], sx-1)
+	    && AIR_IN_CL(0, smplr->yIdx[yi], sy-1)) {
 	  for (ci=0; ci<ncol; ci++) {
 	    smplr->ivc[xi + fdiam*(yi + fdiam*ci)] =
 	      lup(smplr->image->data,
