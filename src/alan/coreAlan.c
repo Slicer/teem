@@ -69,14 +69,19 @@ alanUpdate(alanContext *actx) {
   }
   actx->nlev[0] = nrrdNew();
   actx->nlev[1] = nrrdNew();
+  actx->nparm = nrrdNew();
   if (2 == actx->dim) {
     ret = (nrrdMaybeAlloc(actx->nlev[0], alan_nt, 3,
-			  4, actx->size[0], actx->size[1])
-	   || nrrdCopy(actx->nlev[1], actx->nlev[0]));
+			  2, actx->size[0], actx->size[1])
+	   || nrrdCopy(actx->nlev[1], actx->nlev[0])
+	   || nrrdMaybeAlloc(actx->nparm, alan_nt, 3,
+			     3, actx->size[0], actx->size[1]));
   } else {
     ret = (nrrdMaybeAlloc(actx->nlev[0], alan_nt, 4,
-			  4, actx->size[0], actx->size[1], actx->size[2])
-	   || nrrdCopy(actx->nlev[1], actx->nlev[0]));
+			  2, actx->size[0], actx->size[1], actx->size[2])
+	   || nrrdCopy(actx->nlev[1], actx->nlev[0])
+	   || nrrdMaybeAlloc(actx->nparm, alan_nt, 4,
+			     3, actx->size[0], actx->size[1], actx->size[2]));
   }
   if (ret) {
     sprintf(err, "%s: trouble allocating buffers", me);
@@ -87,53 +92,74 @@ alanUpdate(alanContext *actx) {
 }
 
 int 
-alanInit(alanContext *actx, const Nrrd *ninit) {
+alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
   char me[]="alanInit", err[AIR_STRLEN_MED];
-  alan_t *init=NULL, *lev0, *lev1;
+  alan_t *levInit=NULL, *lev0, *parmInit=NULL, *parm;
   size_t I, N;
 
   if (_alanCheck(actx)) {
     sprintf(err, "%s: ", me);
     biffAdd(ALAN, err); return 1;
   }
-  if (!( actx->nlev[0] && actx->nlev[0] )) {
+  if (!( actx->nlev[0] && actx->nlev[0] && actx->nparm )) {
     sprintf(err, "%s: nlev[0,1] not allocated: call alanUpdate", me);
     biffAdd(ALAN, err); return 1;
   }
   
-  if (ninit) {
-    if (nrrdCheck(ninit)) {
-      sprintf(err, "%s: given ninit has problems", me);
+  if (nlevInit) {
+    if (nrrdCheck(nlevInit)) {
+      sprintf(err, "%s: given nlevInit has problems", me);
       biffMove(ALAN, err, NRRD); return 1;
     }
-    if (!( alan_nt == ninit->type 
-	   && ninit->dim == 1 + actx->dim
-	   && actx->nlev[0]->axis[0].size == ninit->axis[0].size
-	   && actx->size[0] == ninit->axis[1].size
-	   && actx->size[1] == ninit->axis[2].size 
-	   && (2 == actx->dim || actx->size[2] == ninit->axis[3].size) )) {
-      sprintf(err, "%s: type/size mismatch with given ninit", me);
+    if (!( alan_nt == nlevInit->type 
+	   && nlevInit->dim == 1 + actx->dim
+	   && actx->nlev[0]->axis[0].size == nlevInit->axis[0].size
+	   && actx->size[0] == nlevInit->axis[1].size
+	   && actx->size[1] == nlevInit->axis[2].size 
+	   && (2 == actx->dim || actx->size[2] == nlevInit->axis[3].size) )) {
+      sprintf(err, "%s: type/size mismatch with given nlevInit", me);
       biffAdd(ALAN, err); return 1;
     }
-    init = (alan_t*)(ninit->data);
+    levInit = (alan_t*)(nlevInit->data);
+  }
+  if (nparmInit) {
+    if (nrrdCheck(nparmInit)) {
+      sprintf(err, "%s: given nparmInit has problems", me);
+      biffMove(ALAN, err, NRRD); return 1;
+    }
+    if (!( alan_nt == nparmInit->type 
+	   && nparmInit->dim == 1 + actx->dim
+	   && 3 == nparmInit->axis[0].size
+	   && actx->size[0] == nparmInit->axis[1].size
+	   && actx->size[1] == nparmInit->axis[2].size 
+	   && (2 == actx->dim || actx->size[2] == nparmInit->axis[3].size) )) {
+      sprintf(err, "%s: type/size mismatch with given nparmInit", me);
+      biffAdd(ALAN, err); return 1;
+    }
+    parmInit = (alan_t*)(nparmInit->data);
   }
 
-#define RRR AIR_AFFINE(0, airRand(), 1, -actx->randRange, actx->randRange)
+#define RAND AIR_AFFINE(0, airRand(), 1, -actx->randRange, actx->randRange)
 
   N = nrrdElementNumber(actx->nlev[0])/actx->nlev[0]->axis[0].size;
   lev0 = (alan_t*)(actx->nlev[0]->data);
-  lev1 = (alan_t*)(actx->nlev[1]->data);
+  parm = (alan_t*)(actx->nparm->data);
   for (I=0; I<N; I++) {
-    if (init) {
-      lev0[0 + 4*I] = init[0 + 4*I];
-      lev0[1 + 4*I] = init[1 + 4*I];
-      lev0[2 + 4*I] = init[2 + 4*I];
-      lev0[3 + 4*I] = init[3 + 4*I];
+    if (levInit) {
+      lev0[0 + 2*I] = levInit[0 + 2*I];
+      lev0[1 + 2*I] = levInit[1 + 2*I];
     } else {
-      lev0[0 + 4*I] = actx->initA + RRR;
-      lev0[1 + 4*I] = actx->initB + RRR;
-      lev0[2 + 4*I] = actx->alpha;
-      lev0[3 + 4*I] = actx->beta;
+      lev0[0 + 2*I] = actx->initA + RAND;
+      lev0[1 + 2*I] = actx->initB + RAND;
+    }
+    if (parmInit) {
+      parm[0 + 3*I] = parmInit[0 + 3*I];
+      parm[1 + 3*I] = parmInit[1 + 3*I];
+      parm[2 + 3*I] = parmInit[2 + 3*I];
+    } else {
+      parm[0 + 3*I] = actx->speed;
+      parm[1 + 3*I] = actx->alpha;
+      parm[2 + 3*I] = actx->beta;
     }
   }
   return 0;
@@ -147,13 +173,15 @@ alanInit(alanContext *actx, const Nrrd *ninit) {
 
 int
 _alanTuring2DIter(alanContext *actx) {
-  alan_t *lev0, *lev1, *v[9], lapA, lapB, deltaA, deltaB, diffA, diffB;
+  alan_t *lev0, *lev1, *parm, speed, alpha, beta, A, B,
+    *v[9], lapA, lapB, deltaA, deltaB, diffA, diffB;
   int idx, px, mx, py, my, sx, sy, x, y;
 
   sx = actx->size[0];
   sy = actx->size[1];
   lev0 = (alan_t*)(actx->nlev[actx->iter % 2]->data);
   lev1 = (alan_t*)(actx->nlev[(actx->iter+1) % 2]->data);
+  parm = (alan_t*)(actx->nparm->data);
 
   diffA = actx->diffA/(actx->H*actx->H);
   diffB = actx->diffB/(actx->H*actx->H);
@@ -162,36 +190,40 @@ _alanTuring2DIter(alanContext *actx) {
     py = AIR_MOD(y+1, sy);
     my = AIR_MOD(y-1, sy);
     for (x=0; x<sx; x++) {
-      idx = x + sx*(y);
       px = AIR_MOD(x+1, sx);
       mx = AIR_MOD(x-1, sx);
-      v[0] = lev0 + 4*(mx + sx*(my));
-      v[1] = lev0 + 4*( x + sx*(my));
-      v[2] = lev0 + 4*(px + sx*(my));
-      v[3] = lev0 + 4*(mx + sx*( y));
-      v[4] = lev0 + 4*( x + sx*( y));
-      v[5] = lev0 + 4*(px + sx*( y));
-      v[6] = lev0 + 4*(mx + sx*(py));
-      v[7] = lev0 + 4*( x + sx*(py));
-      v[8] = lev0 + 4*(px + sx*(py));
-      lapA = v[1][0] + v[3][0] + v[5][0] + v[7][0] - 4*v[4][0];
-      lapB = v[1][1] + v[3][1] + v[5][1] + v[7][1] - 4*v[4][1];
+      idx = x + sx*(y);
+      A = lev0[0 + 2*idx];
+      B = lev0[1 + 2*idx];
+      speed = parm[0 + 3*idx];
+      alpha = parm[1 + 3*idx];
+      beta = parm[2 + 3*idx];
+      v[0] = lev0 + 2*(mx + sx*(my));
+      v[1] = lev0 + 2*( x + sx*(my));
+      v[2] = lev0 + 2*(px + sx*(my));
+      v[3] = lev0 + 2*(mx + sx*( y));
+      v[5] = lev0 + 2*(px + sx*( y));
+      v[6] = lev0 + 2*(mx + sx*(py));
+      v[7] = lev0 + 2*( x + sx*(py));
+      v[8] = lev0 + 2*(px + sx*(py));
+      lapA = v[1][0] + v[3][0] + v[5][0] + v[7][0] - 4*A;
+      lapB = v[1][1] + v[3][1] + v[5][1] + v[7][1] - 4*B;
       
-      deltaA = actx->K*(v[4][2] - v[4][0]*v[4][1]) + diffA*lapA;
+      deltaA = actx->K*(alpha - A*B) + diffA*lapA;
       if (AIR_ABS(deltaA) > actx->maxAda) {
 	return alanStopDiverged;
       }
       actx->tada += AIR_ABS(deltaA);
-      deltaB = actx->K*(v[4][0]*v[4][1] - v[4][1] - v[4][3]) + diffB*lapB;
+      deltaB = actx->K*(A*B - B - beta) + diffB*lapB;
       if (!( AIR_EXISTS(deltaA) && AIR_EXISTS(deltaB) )) {
 	return alanStopNonExist;
       }
-      
-      lev1[0 + 4*idx] = actx->speed*deltaA + lev0[0 + 4*idx];
-      lev1[1 + 4*idx] = actx->speed*deltaB + lev0[1 + 4*idx];
-      lev1[1 + 4*idx] = AIR_MAX(0, lev1[1 + 4*idx]);
-      lev1[2 + 4*idx] = lev0[2 + 4*idx];
-      lev1[3 + 4*idx] = lev0[3 + 4*idx];
+
+      A += speed*deltaA;
+      B += speed*deltaB;  
+      B = AIR_MAX(0, B);
+      lev1[0 + 2*idx] = A;
+      lev1[1 + 2*idx] = B; 
     }
   }
   actx->tada *= 1.0/(sx*sy);

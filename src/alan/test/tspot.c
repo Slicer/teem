@@ -24,14 +24,27 @@ int
 main(int argc, char *argv[]) {
   alanContext *actx;
   char *err, *me;
-  Nrrd *ninit;
+  Nrrd *ninit, *nparm, *npri;
 
   me = argv[0];
 
-  ninit=nrrdNew();
+  ninit = nrrdNew();
   if (nrrdLoad(ninit, "init.nrrd", NULL)) {
     fprintf(stderr, "%s: load(init.nrrd) failed\n", me);
+    free(biffGetDone(NRRD));
     ninit = nrrdNuke(ninit);
+  }
+  nparm = nrrdNew();
+  if (nrrdLoad(nparm, "parm.nrrd", NULL)) {
+    fprintf(stderr, "%s: load(parm.nrrd) failed\n", me);
+    free(biffGetDone(NRRD));
+    nparm = nrrdNuke(nparm);
+  }
+  npri = nrrdNew();
+  if (nrrdLoad(npri, "pri.nrrd", NULL)) {
+    fprintf(stderr, "%s: load(pri.nrrd) failed\n", me);
+    free(biffGetDone(NRRD));
+    npri = nrrdNuke(npri);
   }
   airSrand();
   actx = alanContextNew();
@@ -40,12 +53,13 @@ main(int argc, char *argv[]) {
       || alanParmSet(actx, alanParmMaxIteration, 100000)
       || alanParmSet(actx, alanParmVerbose, 1)
       || alanParmSet(actx, alanParmTextureType, alanTextureTypeTuring)
-      || alanParmSet(actx, alanParmRandRange, 2.0)
+      || alanParmSet(actx, alanParmRandRange, 4.0)
       || alanParmSet(actx, alanParmK, 0.0125)
       || alanParmSet(actx, alanParmH, 1.2)
-      || alanParmSet(actx, alanParmAlpha, 16.0 + 0.05)
-      || alanParmSet(actx, alanParmBeta, 12.0 - 0.05)
-      || alanParmSet(actx, alanParmSpeed, 1.2)
+      || alanParmSet(actx, alanParmAlpha, 16.0)
+      || alanParmSet(actx, alanParmBeta, 12.0)
+      || alanParmSet(actx, alanParmSpeed, 1.3)
+      || alanParmSet(actx, alanParmMinTada, 0.00002)
       || alanParmSet(actx, alanParmSaveInterval, 500)
       || alanParmSet(actx, alanParmFrameInterval,100)
       ) {
@@ -55,7 +69,7 @@ main(int argc, char *argv[]) {
   }
 
   if (alanUpdate(actx) 
-      || alanInit(actx, ninit)) {
+      || alanInit(actx, ninit, nparm)) {
     err = biffGetDone(ALAN);
     fprintf(stderr, "%s: trouble: %s\n", me, err); 
     free(err); return 1;
@@ -63,8 +77,11 @@ main(int argc, char *argv[]) {
   alanRun(actx);
   fprintf(stderr, "%s: stop = %d: %s\n", me, actx->stop,
 	  airEnumDesc(alanStop, actx->stop));
+  /*
   nrrdSave("lev0.nrrd", actx->nlev[0], NULL);
   nrrdSave("lev1.nrrd", actx->nlev[1], NULL);
+  */
   
+  actx = alanContextNix(actx);
   return 0;
 }

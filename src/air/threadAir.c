@@ -37,7 +37,7 @@ airThreadCreate(airThread* thread, void *(*threadBody)(void *), void *arg) {
 #  ifdef __sgi
   pthread_attr_setscope(&attr, PTHREAD_SCOPE_BOUND_NP);
 #  endif
-  return pthread_create(thread->id, &attr, threadBody, arg);
+  return pthread_create(&(thread->id), &attr, threadBody, arg);
 }
 
 int

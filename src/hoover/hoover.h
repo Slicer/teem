@@ -42,7 +42,7 @@ extern "C" {
 
 #define HOOVER hooverBiffKey
 
-#define HOOVER_THREAD_MAX 128
+#define HOOVER_THREAD_MAX 512
 
 /* 
 ******** the mess of typedefs for callbacks used below

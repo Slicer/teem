@@ -61,6 +61,7 @@ alanContextInit(alanContext *actx) {
     actx->randRange = 0.01;
     actx->nlev[0] = nrrdNuke(actx->nlev[0]);
     actx->nlev[1] = nrrdNuke(actx->nlev[1]);
+    actx->nparm = nrrdNuke(actx->nparm);
     actx->nten = nrrdNuke(actx->nten);
   }
   return;
@@ -72,6 +73,7 @@ alanContextNew(void) {
 
   actx = (alanContext *)calloc(1, sizeof(alanContext));
   actx->nlev[0] = actx->nlev[1] = NULL;
+  actx->nparm = NULL;
   actx->nten = NULL;
   alanContextInit(actx);
   return actx;
@@ -83,6 +85,7 @@ alanContextNix(alanContext *actx) {
   if (actx) {
     actx->nlev[0] = nrrdNuke(actx->nlev[0]);
     actx->nlev[1] = nrrdNuke(actx->nlev[1]);
+    actx->nparm = nrrdNuke(actx->nparm);
     actx->nten = nrrdNuke(actx->nten);
     free(actx);
   }
@@ -276,6 +279,9 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
     break;
   case alanParmH:
     actx->H = parm;
+    break;
+  case alanParmMinTada:
+    actx->minTada = parm;
     break;
   case alanParmAlpha:
     actx->alpha = parm;

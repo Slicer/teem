@@ -63,7 +63,8 @@ typedef struct {
 } airThreadBarrier;
 #endif
 
-extern int airThreadCreate(airThread *thread, void *(*threadBody)(void *), void *arg);
+extern int airThreadCreate(airThread *thread, void *(*threadBody)(void *),
+			   void *arg);
 extern int airThreadJoin(airThread *thread, void **retP);
 
 #if 0

@@ -62,6 +62,7 @@ enum {
   alanParmK,
   alanParmF,
   alanParmH,
+  alanParmMinTada,
   alanParmAlpha,
   alanParmBeta,
   alanParmLast
@@ -120,7 +121,8 @@ typedef struct {
 
   /* INTERNAL -------------------------- */
   int iter;          /* current iteration */
-  Nrrd *nlev[2];     /* levels of all morphogens, alternating buffers */
+  Nrrd *nlev[2];     /* levels of morphogens, alternating buffers */
+  Nrrd *nparm;       /* alpha, beta values for all texels */
   double tada;       /* total abs() of differences in morphogen A */
 
   /* OUTPUT ---------------------------- */
@@ -143,7 +145,9 @@ extern alan_export airEnum *alanStop;
 
 /* coreAlan.c */
 extern int alanUpdate(alanContext *actx);
-extern int alanInit(alanContext *actx, const Nrrd *ninit);
+extern int alanInit(alanContext *actx,
+		    const Nrrd *nlevInit, const Nrrd *nparmInit);
+extern int alanPriorityParm(alanContext *actx, const Nrrd *npri);
 extern int alanRun(alanContext *actx);
 
 #ifdef __cplusplus
