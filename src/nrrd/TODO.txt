@@ -1,8 +1,9 @@
 
-ASAP!!: gaussian kernel, sinc kernel,
+ASAP!!: reshape, 
+	gaussian kernel, sinc kernel,
         pow2pad super function,
         revisit slicer,
-        stitch, revisit pad unrrdu interface,
+        stitch,
         join, split, reshape,
 	resampling, blurring,  <-- document setting the float param[] vector
 	weighted median filter
@@ -20,8 +21,8 @@ debug and scrutinize current implementation of all "nhdr" related behavior
 
 "tables": allow reading and writing of simple ascii tables, with no
 header or any kind of explicit size indication (ascii output of a
-spreadsheet program) --> this will enable suave to store its colormaps
-as nrrds <---
+spreadsheet program) 
+--> this will enable suave to store its colormaps as nrrds <---
 
 "mappings": create minimal support for creating and "evaluating"
 functions based on an array of control points.
@@ -45,9 +46,6 @@ quantities can only be "ints" and which need to be long long ints.
 The dimension of a nrrd must only be the former, the total number
 of elements in a nrrd can be large enough to require the later,
 but what about the number of elements along one axis?
-
-make sure reading and writing methods are consistent with notion
-of piping unrrdu programs together on the command line
 
 allow caller to learn mapping used by histogram equalization
 
