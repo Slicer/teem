@@ -19,7 +19,8 @@
 
 #include "../ell.h"
 
-char *invInfo = "Tests ell_Nm_inv and ell_Nm_pseudo_inv";
+char *invInfo = ("Tests ell_Nm_inv and ell_Nm_pseudo_inv, "
+		 "and ell_{3,4}inv_d where possible ");
 
 int
 main(int argc, char *argv[]) {
@@ -30,6 +31,7 @@ main(int argc, char *argv[]) {
   Nrrd *nin, *nmat, *ninv, *nidn;
   int (*func)(Nrrd *, Nrrd *);
 
+  double m3[9], m4[16];
   me = argv[0];
   mop = airMopNew();
   hparm = hestParmNew();
@@ -53,6 +55,20 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, nmat, (airMopper)nrrdNuke, airMopAlways);
   
   nrrdConvert(nmat, nin, nrrdTypeDouble);
+  if (3 == nmat->axis[0].size && 3 == nmat->axis[1].size) {
+    ell_3m_inv_d(m3, nmat->data);
+    fprintf(stderr, "%s: input:\n", me);
+    ell_3m_print_d(stderr, nmat->data);
+    fprintf(stderr, "%s: inverse:\n", me);
+    ell_3m_print_d(stderr, m3);
+  }
+  if (4 == nmat->axis[0].size && 4 == nmat->axis[1].size) {
+    ell_4m_inv_d(m4, nmat->data);
+    fprintf(stderr, "%s: input:\n", me);
+    ell_4m_print_d(stderr, nmat->data);
+    fprintf(stderr, "%s: inverse:\n", me);
+    ell_4m_print_d(stderr, m4);
+  }
   func = (nmat->axis[0].size == nmat->axis[1].size
 	  ? ell_Nm_inv
 	  : ell_Nm_pseudo_inv);

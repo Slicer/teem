@@ -118,7 +118,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
 	 normal when doing all curvature calculations */
       ELL_3M_SCALE(sHess, -(ctx->parm.curvNormalSide)/gmag, hess);
       
-      /* san->gten = nPerp * sHess * nPerp */
+      /* gten = nPerp * sHess * nPerp */
       ELL_3M_MUL(tmpMat, sHess, nPerp);
       ELL_3M_MUL(gten, nPerp, tmpMat);
 

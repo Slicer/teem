@@ -25,14 +25,14 @@
 #define Z 3
 
 /*
- 0  3  6
- 1  4  7
- 2  5  8 
+ 0  1  2
+ 3  4  5
+ 6  7  8
 
- 0   4   8  12
- 1   5   9  13
- 2   6  10  14
- 3   7  11  15
+ 0   1   2   3
+ 4   5   6   7
+ 8   9  10  11
+12  13  14  15
 */
 
 /*
@@ -50,12 +50,12 @@
   s[X] = 1 + m[i0] - m[i4] - m[i8];       \
   s[Y] = 1 - m[i0] + m[i4] - m[i8];       \
   s[Z] = 1 - m[i0] - m[i4] + m[i8];       \
-  wx = m[i5] - m[i7];                     \
-  wy = m[i6] - m[i2];                     \
-  wz = m[i1] - m[i3];                     \
-  xy = m[i1] + m[i3];                     \
-  xz = m[i2] + m[i6];                     \
-  yz = m[i5] + m[i7];                     \
+  wx = m[i7] - m[i5];                     \
+  wy = m[i2] - m[i6];                     \
+  wz = m[i3] - m[i1];                     \
+  xy = m[i3] + m[i1];                     \
+  xz = m[i6] + m[i2];                     \
+  yz = m[i7] + m[i5];                     \
   mi =  s[W] > s[X] ?  W : X;             \
   mi = s[mi] > s[Y] ? mi : Y;             \
   mi = s[mi] > s[Z] ? mi : Z;             \
@@ -108,15 +108,15 @@ ell_4m_to_q_d(double q[4], double m[16]) {
   ELL_4V_GET(w, x, y, z, u);         \
   ELL_3V_SET(m+0,                    \
              w*w + x*x - y*y - z*z,  \
-             2*(x*y + w*z),          \
-             2*(x*z - w*y));         \
-  ELL_3V_SET(m+3,                    \
              2*(x*y - w*z),          \
+             2*(x*z + w*y));         \
+  ELL_3V_SET(m+3,                    \
+             2*(x*y + w*z),          \
              w*w - x*x + y*y - z*z,  \
-             2*(y*z + w*x));         \
+             2*(y*z - w*x));         \
   ELL_3V_SET(m+6,                    \
-             2*(x*z + w*y),          \
-             2*(y*z - w*x),          \
+             2*(x*z - w*y),          \
+             2*(y*z + w*x),          \
              w*w - x*x - y*y + z*z)
 
 void 
@@ -136,17 +136,17 @@ ell_q_to_3m_d(double m[9], double q[4]) {
   ELL_4V_GET(w, x, y, z, u);         \
   ELL_4V_SET(m+0,                    \
              w*w + x*x - y*y - z*z,  \
-             2*(x*y + w*z),          \
-             2*(x*z - w*y),          \
+             2*(x*y - w*z),          \
+             2*(x*z + w*y),          \
              0);                     \
   ELL_4V_SET(m+4,                    \
-             2*(x*y - w*z),          \
+             2*(x*y + w*z),          \
              w*w - x*x + y*y - z*z,  \
-             2*(y*z + w*x),          \
+             2*(y*z - w*x),          \
              0);                     \
   ELL_4V_SET(m+8,                    \
-             2*(x*z + w*y),          \
-             2*(y*z - w*x),          \
+             2*(x*z - w*y),          \
+             2*(y*z + w*x),          \
              w*w - x*x - y*y + z*z,  \
              0);                     \
   ELL_4V_SET(m+12, 0, 0, 0, 1)

@@ -102,17 +102,17 @@ _ell_make_right_handed_d(double v[9]) {
 ******** ell_3m_1d_nullspace_d()
 **
 ** the given matrix is assumed to have a nullspace of dimension one.
-** The COLUMNS of the matrix are n+0, n+3, n+6.  A normalized vector
-** which spans the nullspace is put into ans.
+** A normalized vector which spans the nullspace is put into ans.
 **
 ** The given nullspace matrix is NOT modified.  
 **
 ** This does NOT use biff
 */
 void
-ell_3m_1d_nullspace_d(double ans[3], double n[9]) {
-  double t[9], norm;
+ell_3m_1d_nullspace_d(double ans[3], double _n[9]) {
+  double t[9], n[9], norm;
   
+  ELL_3M_TRANSPOSE(n, _n);
   /* find the three cross-products of pairs of column vectors of n */
   ELL_3V_CROSS(t+0, n+0, n+3);
   ELL_3V_CROSS(t+3, n+0, n+6);
@@ -133,7 +133,6 @@ ell_3m_1d_nullspace_d(double ans[3], double n[9]) {
 ******** ell_3m_2d_nullspace_d()
 **
 ** the given matrix is assumed to have a nullspace of dimension two.
-** The COLUMNS of the matrix are n+0, n+3, n+6
 **
 ** The given nullspace matrix is NOT modified 
 **
@@ -143,7 +142,7 @@ void
 ell_3m_2d_nullspace_d(double ans0[3], double ans1[3], double _n[9]) {
   double n[9], tmp[3], norm;
 
-  ELL_3M_COPY(n, _n);
+  ELL_3M_TRANSPOSE(n, _n);
   _ell_align3_d(n);
   ELL_3V_ADD3(tmp, n+0, n+3, n+6);
   ELL_3V_NORM(tmp, tmp, norm);
@@ -161,8 +160,6 @@ ell_3m_2d_nullspace_d(double ans0[3], double ans1[3], double _n[9]) {
 ******** ell_3m_eigenvalues_d()
 **
 ** finds eigenvalues of given matrix.
-**
-** m+0, m+3, m+6, are the COLUMNS of the matrix
 **
 ** returns information about the roots according to ellCubeRoot enum,
 ** see header for ellCubic for details.
@@ -189,12 +186,12 @@ ell_3m_eigenvalues_d(double _eval[3], double _m[9], int newton) {
   ** x^3 + A*x^2 + B*x + C.
   */
   A = -m[0] - m[4] - m[8];
-  B = m[0]*m[4] - m[1]*m[3] 
-    + m[0]*m[8] - m[2]*m[6] 
-    + m[4]*m[8] - m[5]*m[7];
-  C = (m[2]*m[4] - m[1]*m[5])*m[6]
-    + (m[0]*m[5] - m[2]*m[3])*m[7]
-    + (m[1]*m[3] - m[0]*m[4])*m[8];
+  B = m[0]*m[4] - m[3]*m[1] 
+    + m[0]*m[8] - m[6]*m[2] 
+    + m[4]*m[8] - m[7]*m[5];
+  C = (m[6]*m[4] - m[3]*m[7])*m[2]
+    + (m[0]*m[7] - m[6]*m[1])*m[5]
+    + (m[3]*m[1] - m[0]*m[4])*m[8];
   roots = ell_cubic(eval, A, B, C, newton);
   if (ell_cubic_root_three == roots 
       || ell_cubic_root_single_double == roots) {
@@ -207,8 +204,7 @@ ell_3m_eigenvalues_d(double _eval[3], double _m[9], int newton) {
 /*
 ******** ell_3m_eigensolve_d()
 **
-** finds eigenvalues and eigenvectors of given matrix m,
-** m+0, m+3, m+6, are the COLUMNS of the matrix.
+** finds eigenvalues and eigenvectors of given matrix m
 **
 ** returns information about the roots according to ellCubeRoot enum,
 ** see header for ellCubic for details.  When eval[i] is set, evec+3*i
@@ -227,9 +223,9 @@ ell_3m_eigensolve_d(double eval[3], double evec[9], double m[9], int newton) {
 
   /* if (ell_debug) {
     printf("ell_3m_eigensolve: input matrix:\n");
-    printf("{{%20.15f,\t%20.15f,\t%20.15f},\n", m[0], m[3], m[6]);
-    printf(" {%20.15f,\t%20.15f,\t%20.15f},\n", m[1], m[4], m[7]);
-    printf(" {%20.15f,\t%20.15f,\t%20.15f}};\n",m[2], m[5], m[8]);
+    printf("{{%20.15f,\t%20.15f,\t%20.15f},\n", m[0], m[1], m[2]);
+    printf(" {%20.15f,\t%20.15f,\t%20.15f},\n", m[3], m[4], m[5]);
+    printf(" {%20.15f,\t%20.15f,\t%20.15f}};\n",m[6], m[7], m[8]);
     } */
   
   roots = ell_3m_eigenvalues_d(eval, m, newton);

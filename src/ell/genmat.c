@@ -20,54 +20,33 @@
 
 #include "ell.h"
 
-/*
-** ========================
-** NOTE NOTE NOTE NOTE NOTE
-** ========================
-** All the functions in this file use a matrix ordering which
-** is opposite if the (current) ordering in the rest of ell.
-**
-** Rest of ell:
-**  0 . . .
-**  1 . . .
-**  2 . . .
-**  . . . .
-**
-** This file:
-**  0 1 2 .
-**  . . . .
-**  . . . .
-**  . . . .
-*/
-
 int
-ell_Nm_valid(Nrrd *mat) {
-  char me[]="ell_Nm_valid", err[AIR_STRLEN_MED];
+ell_Nm_check(Nrrd *mat) {
+  char me[]="ell_Nm_check", err[AIR_STRLEN_MED];
 
-  if (!mat) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(ELL, err); return 0;
+  if (nrrdCheck(mat)) {
+    sprintf(err, "%s: basic nrrd validity check failed", me);
+    biffMove(ELL, err, NRRD); return 1;
   }
-  /* nrrdCheck(mat)? */
   if (!( 2 == mat->dim )) {
     sprintf(err, "%s: nrrd must be 2-D (not %d-D)", me, mat->dim);
-    biffAdd(ELL, err); return 0;
+    biffAdd(ELL, err); return 1;
   }
   if (!( nrrdTypeDouble == mat->type )) {
     sprintf(err, "%s: nrrd must be type %s (not %s)", me,
 	    airEnumStr(nrrdType, nrrdTypeDouble),
 	    airEnumStr(nrrdType, mat->type));
-    biffAdd(ELL, err); return 0;
+    biffAdd(ELL, err); return 1;
   }
 
-  return 1;
+  return 0;
 }
 
 int
 ell_Nm_tran (Nrrd *ntrn, Nrrd *nmat) {
   char me[]="ell_Nm_tran", err[AIR_STRLEN_MED];
 
-  if (!( ntrn && ell_Nm_valid(nmat) )) {
+  if (!( ntrn && !ell_Nm_check(nmat) )) {
     sprintf(err, "%s: NULL or invalid args", me);
     biffAdd(ELL, err); return 1;
   }
@@ -97,7 +76,7 @@ ell_Nm_mul (Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
   double *A, *B, *AB, tmp;
   int LL, MM, NN, ll, mm, nn;
   
-  if (!( nAB && ell_Nm_valid(nA) && ell_Nm_valid(nB) )) {
+  if (!( nAB && !ell_Nm_check(nA) && !ell_Nm_check(nB) )) {
     sprintf(err, "%s: NULL or invalid args", me);
     biffAdd(ELL, err); return 1;
   }
@@ -312,7 +291,7 @@ ell_Nm_inv (Nrrd *ninv, Nrrd *nmat) {
   double *mat, *inv;
   int NN;
 
-  if (!( ninv && ell_Nm_valid(nmat) )) {
+  if (!( ninv && !ell_Nm_check(nmat) )) {
     sprintf(err, "%s: NULL or invalid args", me);
     biffAdd(ELL, err); return 1;
   }
@@ -352,7 +331,7 @@ ell_Nm_pseudo_inv (Nrrd *ninv, Nrrd *nA) {
   Nrrd *nAt, *nAtA, *nAtAi;
   int ret=0;
   
-  if (!( ninv && ell_Nm_valid(nA) )) {
+  if (!( ninv && !ell_Nm_check(nA) )) {
     sprintf(err, "%s: NULL or invalid args", me);
     biffAdd(ELL, err); return 1;
   }

@@ -50,7 +50,7 @@ enum {
 };
 
 /* 
-** Note: matrix element ordering is:
+** Note: *** PRE-TEEM 1.7 *** matrix element ordering was:
 **
 **     0   3   6
 **     1   4   7      for 3x3
@@ -61,7 +61,18 @@ enum {
 **   2   6  10  14
 **   3   7  11  15
 **
-** and all vectors are COLUMN vectors
+** as of TEEM 1.7, matrix element ordering is:
+**
+**     0   1   2
+**     3   4   5      for 3x3
+**     6   7   8
+**
+**   0   1   2   3
+**   4   5   6   7    for 4x4
+**   8   9  10  11
+**  12  13  14  15
+**
+** all vectors are still, logically, COLUMN vectors
 */
 
 /* miscEll.c */
@@ -163,20 +174,22 @@ TEEM_API void ell_q_avg4_d(double avg[4], double eps, double wght[4],
 			   double q3[4], double q4[4]);
 
 /* genmat.c */
-TEEM_API int ell_Nm_valid(Nrrd *mat);
+TEEM_API int ell_Nm_check(Nrrd *mat);
 TEEM_API int ell_Nm_tran(Nrrd *dest, Nrrd *src);
 TEEM_API int ell_Nm_mul(Nrrd *dest, Nrrd *A, Nrrd *B);
 TEEM_API int ell_Nm_inv(Nrrd *dest, Nrrd *src);
 TEEM_API int ell_Nm_pseudo_inv(Nrrd *dest, Nrrd *src);
 
 /* cubic.c */
-TEEM_API int ell_cubic(double root[3], double A, double B, double C, int newton);
+TEEM_API int ell_cubic(double root[3],
+		       double A, double B, double C, int newton);
 
 /* eigen.c */
 TEEM_API void ell_3m_1d_nullspace_d(double ans[3], double n[9]);
-TEEM_API void ell_3m_2d_nullspace_d(double ans0[3], double ans1[3], double n[9]);
-TEEM_API int ell_3m_eigenvalues_d(double eval[3], double m[9], 
-				  int newton);
+TEEM_API void ell_3m_2d_nullspace_d(double ans0[3],
+				    double ans1[3], double n[9]);
+TEEM_API int ell_3m_eigenvalues_d(double eval[3], 
+				  double m[9], int newton);
 TEEM_API int ell_3m_eigensolve_d(double eval[3], double evec[9], double m[9],
 				 int newton);
 
