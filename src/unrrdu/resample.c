@@ -67,6 +67,8 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "\t\t\"cubic:0,0.5\": Catmull-Rom; good interpolating kernel\n "
 	     "\b\bo \"quartic:A\": 1-parameter family of "
 	     "interpolating quartics (\"quartic:0.0834\" is most accurate)\n "
+	     "\b\bo \"hann:R\": Hann (cosine bell) windowed sinc, radius R\n "
+	     "\b\bo \"black:R\": Blackman windowed sinc, radius R\n "
 	     "\b\bo \"gauss:S,C\": Gaussian blurring, with standard deviation "
 	     "S and cut-off at C standard deviations",
 	     NULL, NULL, nrrdHestKernelSpec);
