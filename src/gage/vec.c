@@ -37,7 +37,7 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   */
 
   query = pvl->query;
-  van = (gageVecAnswer *)pvl->ans;
+  van = (gageVecAnswer *)pvl->ansStruct;
   if (1 & (query >> gageVecVector)) {
     /* done if doV */
     if (ctx->verbose) {
@@ -69,6 +69,11 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   }
   if (1 & (query >> gageVecDivergence)) {
     van->div[0] = van->jac[0] + van->jac[4] + van->jac[8];
+    if (ctx->verbose) {
+      fprintf(stderr, "%s: div = %g + %g + %g  = %g\n", me,
+	      van->jac[0], van->jac[4], van->jac[8],
+	      van->div[0]);
+    }
   }
   if (1 & (query >> gageVecCurl)) {
     van->curl[0] = van->jac[5] - van->jac[7];
@@ -87,7 +92,7 @@ _gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
   int fd;
 
   fd = ctx->fd;
-  van = (gageVecAnswer *)pvl->ans;
+  van = (gageVecAnswer *)pvl->ansStruct;
   fw00 = ctx->fw + fd*3*gageKernel00;
   fw11 = ctx->fw + fd*3*gageKernel11;
   fw22 = ctx->fw + fd*3*gageKernel22;
@@ -143,9 +148,9 @@ _gageVecIv3Fill(gageContext *ctx, gagePerVolume *pvl, void *here) {
     /* note that the vector component axis is being shifted 
        from the fastest to the slowest axis, to anticipate
        component-wise filtering operations */
-    pvl->iv3[i + fddd*0] = pvl->lup(here, ctx->off[0 + 3*i]);
-    pvl->iv3[i + fddd*1] = pvl->lup(here, ctx->off[1 + 3*i]);
-    pvl->iv3[i + fddd*2] = pvl->lup(here, ctx->off[2 + 3*i]);
+    pvl->iv3[i + fddd*0] = pvl->lup(here, 0 + 3*ctx->off[i]);
+    pvl->iv3[i + fddd*1] = pvl->lup(here, 1 + 3*ctx->off[i]);
+    pvl->iv3[i + fddd*2] = pvl->lup(here, 2 + 3*ctx->off[i]);
   }
 
   return;

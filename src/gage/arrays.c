@@ -168,7 +168,7 @@ _gageSclPrereq[GAGE_SCL_MAX+1] = {
 */
 int
 gageVecAnsLength[GAGE_VEC_MAX+1] = {
-  3,  1,  3,  9,  3,  3
+  3,  1,  3,  9,  1,  3
 };
 
 /*
@@ -178,7 +178,7 @@ gageVecAnsLength[GAGE_VEC_MAX+1] = {
 */
 int
 gageVecAnsOffset[GAGE_VEC_MAX+1] = {
-  0,  3,  4,  7, 16, 19 /* 22 */
+  0,  3,  4,  7, 16, 17 /* 20 */
 };
 
 /*

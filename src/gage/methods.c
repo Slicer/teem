@@ -126,7 +126,7 @@ gagePerVolumeNew(int needPad, gageKind *kind) {
     pvl->needK[i] = AIR_FALSE;
   }
 
-  pvl->ans = pvl->kind->ansNew();
+  pvl->ansStruct = pvl->kind->ansNew();
 
   return pvl;
 }
@@ -137,7 +137,7 @@ gagePerVolumeNix(gagePerVolume *pvl) {
   airFree(pvl->iv3);
   airFree(pvl->iv2);
   airFree(pvl->iv1);
-  pvl->kind->ansNix(pvl->ans);
+  pvl->kind->ansNix(pvl->ansStruct);
   return airFree(pvl);
 }
 

@@ -146,7 +146,7 @@ enum {
   gageVecLast
 };
 #define GAGE_VEC_MAX      5
-#define GAGE_VEC_TOTAL_ANS_LENGTH 22
+#define GAGE_VEC_TOTAL_ANS_LENGTH 20
 
 /*
 ******** gageVal... enum
@@ -272,7 +272,7 @@ typedef struct {
 				 (more immediately useful for 3pack) */
   int needK[GAGE_KERNEL_NUM]; /* which kernels are needed */
   /*  --------------------------------------- Output */
-  void *ans;                  /* an answer struct, such as gageSclAnswer */
+  void *ansStruct;            /* an answer struct, such as gageSclAnswer */
 } gagePerVolume;
 
 /*
@@ -289,6 +289,8 @@ typedef struct gageKind_t {
   int baseDim,                      /* dimension that x,y,z axes start on */
     valLen,                         /* number of scalars per data point */
     queryMax,                       /* such as GAGE_SCL_MAX */
+    *ansLength,                     /* such as gageSclAnsLength */
+    *ansOffset,                     /* such as gageSclAnsOffset */
     totalAnsLen,                    /* such as GAGE_SCL_TOTAL_ANS_LENGTH */
     *needDeriv;                     /* such as _gageSclNeedDeriv */
   unsigned int *queryPrereq;        /* such as _gageSclPrereq; */
@@ -326,8 +328,14 @@ typedef struct {
   gageContext *ctx;
   gagePerVolume *pvl;
   /*  --------------------------------------- Output */
-  void *ans;                  /* an answer struct, such as gageSclAnswer */
+  void *ansStruct;            /* an answer struct, such as gageSclAnswer */
+  gage_t *ansVec;             /* the main array of the answer struct */
 } gageSimple;
+
+/*
+** NB: All "answer" structs MUST have the main answer array
+** as the first element so that 
+*/
 
 /*
 ******** gageSclAnswer struct

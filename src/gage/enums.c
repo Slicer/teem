@@ -238,9 +238,9 @@ _gageVecVal[] = {
 
 char
 _gageVecStrEqv[][AIR_STRLEN_SMALL] = {
-  "vector", "vec",
-  "length", "len",
-  "normalized", "normalized vector",
+  "v", "vector", "vec",
+  "l", "length", "len",
+  "n", "normalized", "normalized vector",
   "jacobian", "jac", "j",
   "divergence", "div", "d",
   "curl", "c"
@@ -249,9 +249,9 @@ _gageVecStrEqv[][AIR_STRLEN_SMALL] = {
 
 int
 _gageVecValEqv[] = {
-  GV_V, GV_V,
-  GV_L, GV_L,
-  GV_N, GV_N,
+  GV_V, GV_V, GV_V,
+  GV_L, GV_L, GV_L,
+  GV_N, GV_N, GV_N,
   GV_J, GV_J, GV_J,
   GV_D, GV_D, GV_D,
   GV_C, GV_C

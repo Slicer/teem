@@ -40,7 +40,8 @@ gageSimpleNew() {
     if (!(spl->ctx = gageContextNew()))
       return NULL;
     spl->pvl = NULL;
-    spl->ans = NULL;
+    spl->ansStruct = NULL;
+    spl->ansVec = NULL;
   }
   return spl;
 }
@@ -48,7 +49,7 @@ gageSimpleNew() {
 int
 gageSimpleUpdate(gageSimple *spl) {
   char me[]="gageSimpleUpdate", err[AIR_STRLEN_MED];
-  int i, needPad, min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
+  int i, needPad, min[NRRD_DIM_MAX], max[NRRD_DIM_MAX], baseDim;
 
   if (!spl) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -74,17 +75,30 @@ gageSimpleUpdate(gageSimple *spl) {
     biffAdd(GAGE, err); return 1;
   }
   /* to create npad, the non-{x,y,z} axes are not altered */
-  for (i=0; i<spl->kind->baseDim; i++) {
+  baseDim = spl->kind->baseDim;
+  for (i=0; i<baseDim; i++) {
     min[i] = 0;
     max[i] = spl->nin->axis[i].size - 1;
+    /*
+    fprintf(stderr, "##%s: min, max[%d] = %d, %d\n", me, i, min[i], max[i]);
+    */
   }
   /* the x,y,z axes are padded by needPad above and below */
-  min[0 + spl->kind->baseDim] = -needPad;
-  min[1 + spl->kind->baseDim] = -needPad;
-  min[2 + spl->kind->baseDim] = -needPad;
-  max[0 + spl->kind->baseDim] = spl->nin->axis[0].size + needPad;
-  max[1 + spl->kind->baseDim] = spl->nin->axis[1].size + needPad;
-  max[2 + spl->kind->baseDim] = spl->nin->axis[2].size + needPad;
+  /* fprintf(stderr, "##%s: needPad = %d\n", me, needPad); */
+  min[0 + baseDim] = -needPad;
+  min[1 + baseDim] = -needPad;
+  min[2 + baseDim] = -needPad;
+  max[0 + baseDim] = spl->nin->axis[0 + baseDim].size - 1 + needPad;
+  max[1 + baseDim] = spl->nin->axis[1 + baseDim].size - 1 + needPad;
+  max[2 + baseDim] = spl->nin->axis[2 + baseDim].size - 1 + needPad;
+  /*
+  fprintf(stderr, "##%s: min, max[%d] = %d %d\n",
+	  me, 0 + baseDim, min[0 + baseDim], max[0 + baseDim]);
+  fprintf(stderr, "##%s: min, max[%d] = %d %d\n",
+	  me, 1 + baseDim, min[1 + baseDim], max[1 + baseDim]);
+  fprintf(stderr, "##%s: min, max[%d] = %d %d\n",
+	  me, 2 + baseDim, min[2 + baseDim], max[2 + baseDim]);
+  */
   if (nrrdPad(spl->npad=nrrdNew(), spl->nin, min, max, nrrdBoundaryBleed)) {
     sprintf(err, "%s: trouble padding input volume", me);
     biffMove(GAGE, err, NRRD); return 1;
@@ -97,7 +111,8 @@ gageSimpleUpdate(gageSimple *spl) {
     sprintf(err, "%s: trouble", me);
     biffAdd(GAGE, err); return 1;
   }
-  spl->ans = spl->pvl->ans;
+  spl->ansStruct = spl->pvl->ansStruct;
+  spl->ansVec = ((gageSclAnswer*)(spl->pvl->ansStruct))->ans;
 
   return 0;
 }
@@ -111,12 +126,6 @@ gageSimpleKernelSet(gageSimple *spl,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return 1;
   }
-  printf("%s: unknown = %d\n", me, airEnumUnknown(gageKernel));
-  printf("%s: valid(%d) = %d\n", me,-1, airEnumValidVal(gageKernel,-1));
-  printf("%s: valid(%d) = %d\n", me, 0, airEnumValidVal(gageKernel, 0));
-  printf("%s: valid(%d) = %d\n", me, 1, airEnumValidVal(gageKernel, 1));
-  printf("%s: valid(%d) = %d\n", me, 2, airEnumValidVal(gageKernel, 2));
-  printf("%s: valid(%d) = %d\n", me, 3, airEnumValidVal(gageKernel, 3));
   if (!airEnumValidVal(gageKernel, which)) {
     sprintf(err, "%s: \"which\" (%d) not in range [%d,%d]", me,
 	    which, gageKernelUnknown+1, gageKernelLast-1);

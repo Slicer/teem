@@ -26,6 +26,14 @@ extern "C" {
 #define NRRD_MACROS_HAS_BEEN_INCLUDED
 
 /*
+******** NRRD_SPACING
+**
+** returns nrrdDefSpacing if the argument doesn't exist, otherwise
+** returns the argument
+*/
+#define NRRD_SPACING(spc) (AIR_EXISTS(spc) ? spc: nrrdDefSpacing)
+
+/*
 ******** NRRD_AXIS_POS, NRRD_AXIS_IDX
 **
 ** the guts of nrrdAxisPos() and nrrdAxisIdx(), for converting

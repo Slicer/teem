@@ -30,7 +30,7 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
   gageSclAnswer *san;
 
   query = pvl->query;
-  san = (gageSclAnswer *)pvl->ans;
+  san = (gageSclAnswer *)pvl->ansStruct;
   if (1 & (query >> gageSclValue)) {
     /* done if doV */
     if (ctx->verbose) {
@@ -70,6 +70,11 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
   }
   if (1 & (query >> gageSclLaplacian)) {
     san->lapl[0] = san->hess[0] + san->hess[4] + san->hess[8];
+    if (ctx->verbose) {
+      fprintf(stderr, "%s: lapl = %g + %g + %g  = %g\n", me,
+	      san->hess[0], san->hess[4], san->hess[8],
+	      san->lapl[0]);
+    }
   }
   if (1 & (query >> gageSclHessEval)) {
     ELL_3M_COPY(tmpMat, san->hess);
@@ -157,7 +162,7 @@ _gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
   gage_t *fw00, *fw11, *fw22;
 
   fd = ctx->fd;
-  san = (gageSclAnswer *)pvl->ans;
+  san = (gageSclAnswer *)pvl->ansStruct;
   fw00 = ctx->fw + fd*3*gageKernel00;
   fw11 = ctx->fw + fd*3*gageKernel11;
   fw22 = ctx->fw + fd*3*gageKernel22;

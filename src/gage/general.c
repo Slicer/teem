@@ -379,7 +379,8 @@ _gageVolumeDependentSet(gageContext *ctx, Nrrd *npad, gageKind *kind) {
       for (i=0; i<fd; i++)
 	ctx->off[i + fd*(j + fd*k)] = i + ctx->sx*(j + ctx->sy*k);
   if (ctx->verbose > 2) {
-    fprintf(stderr, "%s: newly calculated offset array\n", me);
+    fprintf(stderr, "%s: offset array for %d x %d x %d volume:\n",
+	    me, ctx->sx, ctx->sy, ctx->sz);
     _gagePrint_off(ctx);
   }
 
@@ -540,29 +541,35 @@ gageProbe(gageContext *ctx, gagePerVolume *pvl,
   int newBidx;
   char *here;
   
+  /* fprintf(stderr, "##%s: bingo 0\n", me); */
   if (_gageLocationSet(ctx, &newBidx, x, y, z)) {
     /* we're outside the volume; leave gageErrStr and gageErrNum set
        (as they should be) */
     return 1;
   }
   
+  /* fprintf(stderr, "##%s: bingo 1\n", me); */
   /* if necessary, refill the iv3 cache */
   if (newBidx) {
     here = ((char*)(pvl->npad->data)
 	    + (ctx->bidx * pvl->kind->valLen * nrrdTypeSize[pvl->npad->type]));
     pvl->kind->iv3Fill(ctx, pvl, here);
   }
+  /* fprintf(stderr, "##%s: bingo 2\n", me); */
   if (ctx->verbose > 1) {
     fprintf(stderr,
 	    "%s: value cache with bidx = %d:\n", me, ctx->bidx);
     pvl->kind->iv3Print(ctx, pvl);
   }
 
+  /* fprintf(stderr, "##%s: bingo 3\n", me); */
   /* do filtering convolution to get basic answers */
   pvl->kind->filter(ctx, pvl);
 
+  /* fprintf(stderr, "##%s: bingo 4\n", me); */
   /* generate remaining answers */
   pvl->kind->answer(ctx, pvl);
   
+  /* fprintf(stderr, "##%s: bingo 5\n", me); */
   return 0;
 }
