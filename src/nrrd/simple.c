@@ -64,19 +64,20 @@ int
 _nrrdContentSet_nva (Nrrd *nout, const char *func,
 		     char *content, const char *format, va_list arg) {
   char me[]="_nrrdContentSet_nva", err[AIR_STRLEN_MED],
-    buff[AIR_STRLEN_HUGE] = "";
+    buff[128*AIR_STRLEN_HUGE] = "";
   
   nout->content = airFree(nout->content);
 
   /* we are currently praying that this won't overflow the "buff" array */
+  /* HEY: replace with vsnprintf or whatever when its available */
   vsprintf(buff, format, arg);
 
   nout->content = calloc(strlen("(,)")
-			 + strlen(func)
+			 + airStrlen(func)
 			 + 1                      /* '(' */
-			 + strlen(content)
+			 + airStrlen(content)
 			 + 1                      /* ',' */
-			 + strlen(buff)
+			 + airStrlen(buff)
 			 + 1                      /* ')' */
 			 + 1, sizeof(char));      /* '\0' */
   if (!nout->content) {
@@ -84,7 +85,7 @@ _nrrdContentSet_nva (Nrrd *nout, const char *func,
     biffAdd(NRRD, err); free(content); return 1;
   }
   sprintf(nout->content, "%s(%s%s%s)", func, content,
-	  strlen(buff) ? "," : "", buff);
+	  airStrlen(buff) ? "," : "", buff);
   return 0;
 }
 
