@@ -22,6 +22,110 @@
 #include "private.h"
 
 /*
+******** nrrdMinMaxSet()
+**
+** Sets nrrd->min and nrrd->max to the extremal (existant) values in
+** the given nrrd, by calling the appropriate member of nrrdFindMinMax[]
+**
+** calling this function will result in nrrd->hasNonExist being set
+** (because of the nrrdFindMinMax[] functions)
+**
+** decided NOT to use biff, so that this is a more distinct alternative to 
+** nrrdMinMaxClever().
+*/
+void
+nrrdMinMaxSet(Nrrd *nrrd) {
+  NRRD_TYPE_BIGGEST _min, _max;
+
+  if (nrrd) {
+    if (airEnumValidVal(nrrdType, nrrd->type)
+	&& nrrdTypeBlock != nrrd->type) {
+      nrrdFindMinMax[nrrd->type](&_min, &_max, nrrd);
+      nrrd->min = nrrdDLoad[nrrd->type](&_min);
+      nrrd->max = nrrdDLoad[nrrd->type](&_max);
+    }
+    else {
+      nrrd->min = nrrd->max = AIR_NAN;
+    }
+  }
+  return;
+}
+
+/*
+** nrrdMinMaxClever()
+**
+** basically a wrapper around nrrdMinMaxSet(), with bells + whistles:
+** 1) will call nrrdMinMaxSet only when one of nrrd->min and nrrd->max
+**    are non-existent, with the end result that only the non-existent
+**    values are over-written
+** 2) obeys the nrrdStateClever8BitMinMax global state to short-cut
+**    finding min and max for 8-bit data.
+** 3) reports error if there are no existent values in nrrd (AIR_EXISTS()
+**    fails on every value)
+**
+** Like nrrdMinMaxSet(), this will always set nrrd->hasNonExist.
+**
+** Uses biff.
+*/
+int
+nrrdMinMaxClever(Nrrd *nrrd) {
+  char me[]="nrrdMinMaxClever", err[AIR_STRLEN_MED];
+  double min, max;
+
+  if (!nrrd) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!airEnumValidVal(nrrdType, nrrd->type)) {
+    sprintf(err, "%s: input nrrd has invalid type (%d)", me, nrrd->type);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdTypeBlock == nrrd->type) {
+    sprintf(err, "%s: can't find min/max of type %s", me,
+	    airEnumStr(nrrdType, nrrdTypeBlock));
+  }
+  if (AIR_EXISTS(nrrd->min) && AIR_EXISTS(nrrd->max)) {
+    /* both of min and max already set, so we won't look for those, but
+       we have to comply with stated behavior of always setting hasNonExist */
+    nrrdHasNonExistSet(nrrd);
+    return 0;
+  }
+  if (nrrdStateClever8BitMinMax
+      && (nrrdTypeChar == nrrd->type || nrrdTypeUChar == nrrd->type)) {
+    if (nrrdTypeChar == nrrd->type) {
+      nrrd->min = SCHAR_MIN;
+      nrrd->max = SCHAR_MAX;
+    }
+    else {
+      nrrd->min = 0;
+      nrrd->max = UCHAR_MAX;
+    }
+    nrrdHasNonExistSet(nrrd);
+    return 0;
+  }
+
+  /* at this point we need to find either min and/or max (at least
+     one of them was non-existent on the way in) */
+
+  /* save incoming values in case they exist */
+  min = nrrd->min;
+  max = nrrd->max;
+  /* this will set hasNonExist */
+  nrrdMinMaxSet(nrrd);
+  if (!( AIR_EXISTS(nrrd->min) && AIR_EXISTS(nrrd->max) )) {
+    sprintf(err, "%s: no existent values!", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  /* re-enstate the existent incoming min and/or max values */
+  if (AIR_EXISTS(min))
+    nrrd->min = min;
+  if (AIR_EXISTS(max))
+    nrrd->max = max;
+
+  return 0;
+}
+
+/*
 ******** nrrdConvert()
 **
 ** copies values from one type of nrrd to another, without any
@@ -31,7 +135,7 @@
 */
 int
 nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
-  char me[] = "nrrdConvert", err[AIR_STRLEN_MED];
+  char me[] = "nrrdConvert", typeS[AIR_STRLEN_SMALL], err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX];
   nrrdBigInt num;
 
@@ -46,18 +150,42 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
 	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
+  if (nout == nin && nrrdTypeSize[type] != nrrdTypeSize[nin->type]) {
+    sprintf(err, "%s: nout==nin but input,output type sizes unequal", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdStateDisallowFixedPointNonExist 
+      && !nrrdTypeFixed[nin->type] && nrrdTypeFixed[type]) {
+    /* there's a risk of non-existant values getting converted to
+       non-sensical fixed point values */
+    if (nrrdHasNonExistSet(nin)) {
+      sprintf(err, "%s: can't convert to fixed point with "
+	      "non-existant values in input nrrd", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
 
   /* if we're actually converting to the same type, just do a copy */
   if (type == nin->type) {
-    if (nrrdCopy(nout, nin)) {
-      sprintf(err, "%s: couldn't copy input to output", me);
-      biffAdd(NRRD, err); return 1;
+    if (nout == nin) {
+      /* nout == nin is allowed if the input and output type are
+	 of the same size, which will certainly be the case if the
+	 input and output types are identical, so there's actually
+	 no work to do */
+    }
+    else {
+      if (nrrdCopy(nout, nin)) {
+	sprintf(err, "%s: couldn't copy input to output", me);
+	biffAdd(NRRD, err); return 1;
+      }
     }
     return 0;
   }
 
   /* allocate space if necessary */
   nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
+  /* MUST be nrrdMaybeAlloc_nva (not nrrdAlloc_nva) because we allow
+     nout==nin if type sizes match */
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
     sprintf(err, "%s: failed to allocate output", me);
     biffAdd(NRRD, err); return 1;
@@ -69,131 +197,21 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
 
   /* copy peripheral information */
   nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
-  nout->content = airFree(nout->content);
-  if (nin->content) {
-    nout->content = calloc(strlen("()()")
-			   + strlen(airEnumStr(nrrdType, nout->type))
-			   + strlen(nin->content)
-			   + 1, sizeof(char));
-    if (nout->content) {
-      sprintf(nout->content, "(%s)(%s)",
-	      airEnumStr(nrrdType, nout->type),
-	      nin->content);
-    }
-    else {
-      sprintf(err, "%s: couldn't allocate output content", me);
-      biffAdd(NRRD, err); return 1;
-    }
-  }
-
-  /* bye */
-  return 0;
-}
-
-/*
-******** nrrdSetMinMax()
-**
-** Sets nrrd->min and nrrd->max to the extremal (existant) values in
-** the given nrrd, by calling the appropriate member of nrrdFindMinMax[]
-**
-** calling this function will result in nrrd->hasNonExist being set
-** (because of the nrrdFindMinMax[] functions)
-*/
-int
-nrrdSetMinMax(Nrrd *nrrd) {
-  char me[] = "nrrdSetMinMax", err[AIR_STRLEN_MED];
-  NRRD_TYPE_BIGGEST _min, _max;
-
-  if (!nrrd) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (!airEnumValidVal(nrrdType, nrrd->type)) {
-    sprintf(err, "%s: input nrrd has invalid type (%d)", me, nrrd->type);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (nrrdTypeBlock == nrrd->type) {
-    sprintf(err, "%s: don't know how to find range for nrrd type %s", me,
-	    airEnumStr(nrrdType, nrrdTypeBlock));
-    biffAdd(NRRD, err); return 1;
-  }
-  /* else should be one of the scalar types */
-  nrrdFindMinMax[nrrd->type](&_min, &_max, nrrd);
-  nrrd->min = nrrdDLoad[nrrd->type](&_min);
-  nrrd->max = nrrdDLoad[nrrd->type](&_max);
-  return 0;
-}
-
-/*
-** nrrdCleverMinMax()
-**
-** basically a wrapper around nrrdSetMinMax(), with bells + whistles:
-** 1) will call nrrdSetMinMax only when one of nrrd->min and nrrd->max
-**    are non-existent, with the end result that only the non-existent
-**    values are over-written
-** 2) obeys the nrrdStateClever8BitMinMax global state to short-cut
-**    finding min and max for 8-bit data.
-** 3) reports error if there are no existent values in nrrd (AIR_EXISTS()
-**    fails on every value)
-**
-** Like nrrdSetMinMax(), this will always set nrrd->hasNonExist.
-**
-** Uses biff.
-*/
-int
-nrrdCleverMinMax(Nrrd *nrrd) {
-  char me[]="nrrdCleverMinMax", err[AIR_STRLEN_MED];
-  double min, max;
-
-  if (!nrrd) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (nrrdTypeBlock == nrrd->type) {
-    sprintf(err, "%s: can't find min/max of type %s", me,
-	    airEnumStr(nrrdType, nrrdTypeBlock));
-  }
-  if (AIR_EXISTS(nrrd->min) && AIR_EXISTS(nrrd->max)) {
-    /* both of min and max already set, so we won't look for those, but
-       we have to comply with stated behavior of always setting hasNonExist */
-    nrrdHasNonExist(nrrd);
-    return 0;
-  }
-  if (nrrdStateClever8BitMinMax
-      && (nrrdTypeChar == nrrd->type || nrrdTypeUChar == nrrd->type)) {
-    if (nrrdTypeChar == nrrd->type) {
-      nrrd->min = SCHAR_MIN;
-      nrrd->max = SCHAR_MAX;
-    }
-    else {
-      nrrd->min = 0;
-      nrrd->max = UCHAR_MAX;
-    }
-    nrrdHasNonExist(nrrd);
-    return 0;
-  }
-
-  /* at this point we need to find either min and/or max (at least
-     one of them was non-existent on the way in) */
-
-  /* save incoming values in case they exist */
-  min = nrrd->min;
-  max = nrrd->max;
-  /* this will set hasNonExist */
-  if (nrrdSetMinMax(nrrd)) {
+  sprintf(typeS, "(%s)", airEnumStr(nrrdType, nout->type));
+  if (nrrdContentSet(nout, typeS, nin, "")) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!( AIR_EXISTS(nrrd->min) && AIR_EXISTS(nrrd->max) )) {
-    sprintf(err, "%s: no existent values!", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  /* re-enstate the existent incoming min and/or max values */
-  if (AIR_EXISTS(min))
-    nrrd->min = min;
-  if (AIR_EXISTS(max))
-    nrrd->max = max;
+  /* the min and max have probably changed if there was a conversion
+     to fixed point, or to a lower precision representation */
+  nout->min = nout->max = AIR_NAN;
+  nout->oldMin = nout->oldMax = AIR_NAN;
+  nout->blockSize = 0;
+  nout->hasNonExist = (nrrdTypeFixed[nout->type]
+		       ? nrrdNonExistFalse
+		       : nin->hasNonExist);
 
+  /* bye */
   return 0;
 }
 
@@ -209,7 +227,7 @@ nrrdCleverMinMax(Nrrd *nrrd) {
 */
 int
 nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
-  char me[] = "nrrdQuantize", err[AIR_STRLEN_MED];
+  char me[] = "nrrdQuantize", func[]="quantize", err[AIR_STRLEN_MED];
   double valIn, min, max, eps;
   int valOut, type=nrrdTypeUnknown, size[NRRD_DIM_MAX];
   unsigned long long int valOutll;
@@ -227,14 +245,6 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
     sprintf(err, "%s: can't quantize type %s", me,
 	    airEnumStr(nrrdType, nrrdTypeBlock));
   }
-  if (nrrdCleverMinMax(nin)) {
-    sprintf(err, "%s: trouble setting min, max", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (nin->hasNonExist) {
-    sprintf(err, "%s: can't quantize non-existent values (NaN, +/-inf)", me);
-    biffAdd(NRRD, err); return 1;
-  }
 
   /* determine nrrd type from number of bits */
   switch (bits) {
@@ -242,9 +252,23 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   case 16: type = nrrdTypeUShort; break;
   case 32: type = nrrdTypeUInt;   break;
   }
+  if (nout == nin && nrrdTypeSize[type] != nrrdTypeSize[nin->type]) {
+    sprintf(err, "%s: nout==nin but input,output type sizes unequal", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdMinMaxClever(nin)) {
+    sprintf(err, "%s: trouble setting min, max", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdStateDisallowFixedPointNonExist && nin->hasNonExist) {
+    sprintf(err, "%s: can't quantize non-existent values (NaN, +/-inf)", me);
+    biffAdd(NRRD, err); return 1;
+  }
   
   /* allocate space if necessary */
   nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
+  /* MUST be nrrdMaybeAlloc_nva (not nrrdAlloc_nva) because we allow
+     nout==nin if type sizes match */
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
     sprintf(err, "%s: failed to create output", me);
     biffAdd(NRRD, err); return 1;
@@ -278,21 +302,14 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
   nout->oldMin = min;
   nout->oldMax = max;
-  nout->content = airFree(nout->content);
-  if (nin->content) {
-    nout->content = calloc(strlen("quantize(,)")
-			   + strlen(nin->content)
-			   + 11
-			   + 1, sizeof(char));
-    if (nout->content) {
-      sprintf(nout->content, "quantize(%s,%d)",
-	      nin->content, bits);
-    }
-    else {
-      sprintf(err, "%s: couldn't allocate output content", me);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (nrrdContentSet(nout, func, nin, "%d", bits)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
   }
+  nout->min = nout->max = AIR_NAN;
+  nout->oldMin = nout->oldMax = AIR_NAN;
+  nout->blockSize = 0;
+  nout->hasNonExist = nrrdNonExistFalse;
 
   /* bye */
   return 0;
@@ -344,8 +361,8 @@ _nrrdHistoEqCompare(const void *a, const void *b) {
 ** exactly one fixed value).  
 */
 int
-nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
-  char me[]="nrrdHistoEq", err[AIR_STRLEN_MED];
+nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
+  char me[]="nrrdHistoEq", func[]="heq", err[AIR_STRLEN_MED];
   Nrrd *nhist;
   double val, min, max, *xcoord = NULL, *ycoord = NULL, *last = NULL;
   int i, idx, *respect = NULL, *steady = NULL;
@@ -353,26 +370,31 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
   nrrdBigInt I, num;
   airArray *mop;
 
-  if (!nrrd) {
+  if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdTypeBlock == nrrd->type) {
+  if (nrrdTypeBlock == nin->type) {
     sprintf(err, "%s: can't histogram equalize type %s", me,
 	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
-  num = nrrdElementNumber(nrrd);
   if (!(bins > 2)) {
     sprintf(err, "%s: need # bins > 2 (not %d)", me, bins);
     biffAdd(NRRD, err); return 1;
   }
   mop = airMopInit();
+  if (nhistP) {
+    airMopAdd(mop, *nhistP, (airMopper)airSetNull, airMopOnError);
+  }
   if (smart <= 0) {
     nhist = nrrdNew();
-    if (nrrdHisto(nhist, nrrd, bins, nrrdTypeInt)) {
+    if (nrrdHisto(nhist, nin, bins, nrrdTypeInt)) {
       sprintf(err, "%s: failed to create histogram", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+    if (nhistP) {
+      airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopOnError);
     }
     hist = nhist->data;
     min = nhist->axis[0].min;
@@ -384,6 +406,9 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
     if (nrrdAlloc(nhist=nrrdNew(), nrrdTypeUInt, 1, bins)) {
       sprintf(err, "%s: failed to allocate histogram", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+    if (nhistP) {
+      airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopOnError);
     }
     hist = nhist->data;
     nhist->axis[0].size = bins;
@@ -404,15 +429,16 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
       steady[1 + 2*i] = i;
     }
     /* now create the histogram */
-    nrrd->min = nrrd->max = AIR_NAN;
-    if (nrrdCleverMinMax(nrrd)) {
+    nin->min = nin->max = AIR_NAN;
+    if (nrrdMinMaxClever(nin)) {
       sprintf(err, "%s: couldn't find value range in nrrd", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
-    min = nrrd->min;
-    max = nrrd->max;
+    min = nin->min;
+    max = nin->max;
+    num = nrrdElementNumber(nin);
     for (I=0; I<=num-1; I++) {
-      val = nrrdDLookup[nrrd->type](nrrd->data, I);
+      val = nrrdDLookup[nin->type](nin->data, I);
       if (AIR_EXISTS(val)) {
 	AIR_INDEX(min, val, max, bins, idx);
 	/*
@@ -474,24 +500,20 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
 
   /* map the nrrd values through the normalized histogram integral */
   for (i=0; i<=num-1; i++) {
-    val = nrrdDLookup[nrrd->type](nrrd->data, i);
+    val = nrrdDLookup[nin->type](nin->data, i);
     if (AIR_EXISTS(val)) {
       AIR_INDEX(min, val, max, bins, idx);
       val = AIR_AFFINE(xcoord[idx], val, xcoord[idx+1], 
 		       ycoord[idx], ycoord[idx+1]);
-      nrrdDInsert[nrrd->type](nrrd->data, i, val);
+      nrrdDInsert[nout->type](nout->data, i, val);
     }
   }
   
   /* if user is interested, set pointer to histogram nrrd,
-     otherwise destroy it */
+     otherwise it will be nixed by airMop */
   if (nhistP) {
     *nhistP = nhist;
   }
-  else {
-    nrrdNuke(nhist);
-  }
-  
   airMopOkay(mop);
   return(0);
 }

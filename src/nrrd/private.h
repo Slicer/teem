@@ -47,7 +47,7 @@ extern int _nrrdCenter(int center);
 extern void (*_nrrdConv[][NRRD_TYPE_MAX+1])(void *,void *, nrrdBigInt);
 
 /* map.c */
-extern int _nrrdSetMinMax(Nrrd *nrrd);
+extern int _nrrdMinMaxSet(Nrrd *nrrd);
 
 /* read.c */
 extern char _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL];

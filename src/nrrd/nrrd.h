@@ -275,6 +275,9 @@ extern int nrrdStateClever8BitMinMax;
 extern int nrrdStateMeasureType;
 extern int nrrdStateMeasureModeBins;
 extern int nrrdStateMeasureHistoType;
+extern int nrrdStateAlwaysSetContent;
+extern char nrrdStateUnknownContent[];
+extern int nrrdStateDisallowFixedPointNonExist;
 
 /******** all the airEnums used through-out nrrd */
 /* (the actual C enums are in nrrdEnums.h) */
@@ -301,8 +304,8 @@ extern int nrrdTypeFixed[];
 
 /******** pseudo-constructors, pseudo-destructors, and such */
 /* (methods.c) */
-extern void nrrdIOReset(NrrdIO *io);
 extern NrrdIO *nrrdIONew(void);
+extern void nrrdIOReset(NrrdIO *io);
 extern NrrdIO *nrrdIONix(NrrdIO *io);
 extern NrrdResampleInfo *nrrdResampleInfoNew(void);
 extern NrrdResampleInfo *nrrdResampleInfoNix(NrrdResampleInfo *info);
@@ -345,16 +348,18 @@ extern void nrrdAxisPosRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
 			     double loIdx, double hiIdx);
 extern void nrrdAxisIdxRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
 			     double loPos, double hiPos);
-extern void nrrdAxisSetSpacing(Nrrd *nrrd, int ax);
-extern void nrrdAxisSetMinMax(Nrrd *nrrd, int ax);
+extern void nrrdAxisSpacingSet(Nrrd *nrrd, int ax);
+extern void nrrdAxisMinMaxSet(Nrrd *nrrd, int ax);
 
 /******** simple things */
 /* simple.c */
+extern int nrrdContentSet(Nrrd *nout, const char *func,
+			  Nrrd *nin, const char *format, ...);
 extern void nrrdDescribe(FILE *file, Nrrd *nrrd);
 extern int nrrdValid(Nrrd *nrrd);
 extern int nrrdElementSize(Nrrd *nrrd);
 extern nrrdBigInt nrrdElementNumber(Nrrd *nrrd);
-extern int nrrdHasNonExist(Nrrd *nrrd);
+extern int nrrdHasNonExistSet(Nrrd *nrrd);
 extern int nrrdSanity(void);
 extern int nrrdSameSize(Nrrd *n1, Nrrd *n2, int useBiff);
 extern int nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff);
@@ -405,11 +410,12 @@ extern int nrrdWrite(FILE *file, Nrrd *nrrd, NrrdIO *io);
 
 /******** some of the point-wise value remapping, conversion, and such */
 /* map.c */
-extern int nrrdSetMinMax(Nrrd *nrrd);
-extern int nrrdCleverMinMax(Nrrd *nrrd);
+extern void nrrdMinMaxSet(Nrrd *nrrd);
+extern int nrrdMinMaxClever(Nrrd *nrrd);
 extern int nrrdConvert(Nrrd *nout, Nrrd *nin, int type);
 extern int nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits);
-extern int nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart);
+extern int nrrdHistoEq(Nrrd *nout, Nrrd *nin,
+		       Nrrd **nhistP, int bins, int smart);
 
 /******** rest of point-wise value remapping, and "color"mapping */
 /* apply.c */

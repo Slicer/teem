@@ -98,13 +98,18 @@ int
 nrrdAxesCopy(Nrrd *nout, Nrrd *nin, int *map, int bitflag) {
   int d, from;
   
-  if (!(nout && nin && nout != nin)) {
+  if (!(nout && nin)) {
     return 1;
+  }
+  if (nout == nin) {
+    /* this is a problem because we don't want to have to deal with
+       temp variables to re-arrange the axes */
+    return 2;
   }
   if (map) {
     for (d=0; d<=nout->dim-1; d++) {
       if (!AIR_INSIDE(-1, map[d], nin->dim-1)) {
-	return 2;
+	return 3;
       }
     }
   }
@@ -514,7 +519,7 @@ nrrdAxisIdxRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
 }
 
 void
-nrrdAxisSetSpacing(Nrrd *nrrd, int ax) {
+nrrdAxisSpacingSet(Nrrd *nrrd, int ax) {
   int center, size;
   double min, max, tmp;
 
@@ -543,7 +548,7 @@ nrrdAxisSetSpacing(Nrrd *nrrd, int ax) {
 }
 
 void
-nrrdAxisSetMinMax(Nrrd *nrrd, int ax) {
+nrrdAxisMinMaxSet(Nrrd *nrrd, int ax) {
   int center;
   double spacing;
 

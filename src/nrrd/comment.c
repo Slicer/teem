@@ -180,6 +180,10 @@ nrrdCommentCopy(Nrrd *nout, Nrrd *nin) {
     */
     return 1;
   }
+  if (nout == nin) {
+    /* can't satisfy semantics of copying with nout==nin */
+    return 2;
+  }
   nrrdCommentClear(nout);
   numc = nin->cmtArr->len;
   E = 0;

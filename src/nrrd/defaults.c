@@ -41,7 +41,7 @@ int nrrdDefWrtBareTable = AIR_FALSE;
 int nrrdDefWrtCharsPerLine = 75;
 int nrrdDefWrtValsPerLine = 8;
 int nrrdDefRsmpBoundary = nrrdBoundaryBleed;
-int nrrdDefRsmpType = nrrdTypeUnknown;  /* means "same as input" */
+int nrrdDefRsmpType = nrrdTypeUnknown;  /* sometimes means "same as input" */
 double nrrdDefRsmpScale = 1.0;    /* these two should probably be the same */
 double nrrdDefKernelParam0 = 1.0; 
 int nrrdDefRsmpRenormalize = AIR_TRUE;
@@ -59,6 +59,9 @@ int nrrdStateClever8BitMinMax = AIR_TRUE;
 int nrrdStateMeasureType = nrrdTypeFloat;
 int nrrdStateMeasureModeBins = 1024;
 int nrrdStateMeasureHistoType = nrrdTypeFloat;
+int nrrdStateAlwaysSetContent = AIR_TRUE;
+char nrrdStateUnknownContent[AIR_STRLEN_SMALL] = NRRD_UNKNOWN;
+int nrrdStateDisallowFixedPointNonExist = AIR_TRUE;
 
 /* should the acceptance (or not) of malformed NRRD header fields 
    embedded in PNM or table comments be controlled here? */

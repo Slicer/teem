@@ -297,7 +297,7 @@ nrrdCheapMedian(Nrrd *nout, Nrrd *nin, int radius, float wght, int bins) {
     sprintf(err, "%s: failed to create copy of input", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdCleverMinMax(nin)) {
+  if (nrrdMinMaxClever(nin)) {
     sprintf(err, "%s: couldn't learn value range", me);
     biffAdd(NRRD, err); return 1;
   }

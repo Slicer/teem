@@ -247,8 +247,8 @@ _nrrdWriteDataAscii(Nrrd *nrrd, NrrdIO *io) {
   return 0;
 }
 
-int
-(*nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
+int (*
+nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
   NULL,
   _nrrdWriteDataRaw,
   _nrrdWriteDataAscii

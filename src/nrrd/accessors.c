@@ -67,13 +67,16 @@ MAP(LOAD_DEF, IN)
 MAP(LOAD_DEF, FL)
 MAP(LOAD_DEF, DB)
 
-int (*nrrdILoad[NRRD_TYPE_MAX+1])(void*) = {
+int (*
+nrrdILoad[NRRD_TYPE_MAX+1])(void*) = {
   NULL, MAP(LOAD_LIST, IN) NULL
 };
-float (*nrrdFLoad[NRRD_TYPE_MAX+1])(void*) = {
+float (*
+nrrdFLoad[NRRD_TYPE_MAX+1])(void*) = {
   NULL, MAP(LOAD_LIST, FL) NULL
 };
-double (*nrrdDLoad[NRRD_TYPE_MAX+1])(void*) = {
+double (*
+nrrdDLoad[NRRD_TYPE_MAX+1])(void*) = {
   NULL, MAP(LOAD_LIST, DB) NULL
 };
 
@@ -97,13 +100,16 @@ MAP(STORE_DEF, IN)
 MAP(STORE_DEF, FL)
 MAP(STORE_DEF, DB)
 
-int (*nrrdIStore[NRRD_TYPE_MAX+1])(void *, int) = {
+int (*
+nrrdIStore[NRRD_TYPE_MAX+1])(void *, int) = {
   NULL, MAP(STORE_LIST, IN) NULL
 };
-float (*nrrdFStore[NRRD_TYPE_MAX+1])(void *, float) = {
+float (*
+nrrdFStore[NRRD_TYPE_MAX+1])(void *, float) = {
   NULL, MAP(STORE_LIST, FL) NULL
 };
-double (*nrrdDStore[NRRD_TYPE_MAX+1])(void *, double) = {
+double (*
+nrrdDStore[NRRD_TYPE_MAX+1])(void *, double) = {
   NULL, MAP(STORE_LIST, DB) NULL
 };
 
@@ -125,13 +131,16 @@ MAP(LOOKUP_DEF, IN)
 MAP(LOOKUP_DEF, FL)
 MAP(LOOKUP_DEF, DB)
 
-int (*nrrdILookup[NRRD_TYPE_MAX+1])(void *, nrrdBigInt) = {
+int (*
+nrrdILookup[NRRD_TYPE_MAX+1])(void *, nrrdBigInt) = {
   NULL, MAP(LOOKUP_LIST, IN) NULL
 };
-float (*nrrdFLookup[NRRD_TYPE_MAX+1])(void *, nrrdBigInt) = {
+float (*
+nrrdFLookup[NRRD_TYPE_MAX+1])(void *, nrrdBigInt) = {
   NULL, MAP(LOOKUP_LIST, FL) NULL
 };
-double (*nrrdDLookup[NRRD_TYPE_MAX+1])(void *, nrrdBigInt) = {
+double (*
+nrrdDLookup[NRRD_TYPE_MAX+1])(void *, nrrdBigInt) = {
   NULL, MAP(LOOKUP_LIST, DB) NULL
 };
 
@@ -155,13 +164,16 @@ MAP(INSERT_DEF, IN)
 MAP(INSERT_DEF, FL)
 MAP(INSERT_DEF, DB)
 
-int (*nrrdIInsert[NRRD_TYPE_MAX+1])(void *, nrrdBigInt, int) = {
+int (*
+nrrdIInsert[NRRD_TYPE_MAX+1])(void *, nrrdBigInt, int) = {
   NULL, MAP(INSERT_LIST, IN) NULL
 };
-float (*nrrdFInsert[NRRD_TYPE_MAX+1])(void *, nrrdBigInt, float) = {
+float (*
+nrrdFInsert[NRRD_TYPE_MAX+1])(void *, nrrdBigInt, float) = {
   NULL, MAP(INSERT_LIST, FL) NULL
 };
-double (*nrrdDInsert[NRRD_TYPE_MAX+1])(void *, nrrdBigInt, double) = {
+double (*
+nrrdDInsert[NRRD_TYPE_MAX+1])(void *, nrrdBigInt, double) = {
   NULL, MAP(INSERT_LIST, DB) NULL
 };
 
@@ -187,7 +199,8 @@ int _nrrdSprintFL(char *s, FL *v) {
   return(airSinglePrintf(NULL, s, "%.8g", (double)(*v))); }
 int _nrrdSprintDB(char *s, DB *v) {
   return(airSinglePrintf(NULL, s, "%.17g", *v)); }
-int (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, void *) = {
+int (*
+nrrdSprint[NRRD_TYPE_MAX+1])(char *, void *) = {
   NULL,
   (int (*)(char *, void *))_nrrdSprintCH,
   (int (*)(char *, void *))_nrrdSprintUC,
@@ -219,7 +232,8 @@ int _nrrdFprintFL(FILE *f, FL *v) {
   return(airSinglePrintf(f, NULL, "%.8g", (double)(*v))); }
 int _nrrdFprintDB(FILE *f, DB *v) {
   return(airSinglePrintf(f, NULL, "%.17g", *v)); }
-int (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, void *) = {
+int (*
+nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, void *) = {
   NULL,
   (int (*)(FILE *, void *))_nrrdFprintCH,
   (int (*)(FILE *, void *))_nrrdFprintUC,
@@ -251,7 +265,8 @@ float _nrrdFClampLL(FL v) { return AIR_CLAMP(NRRD_LLONG_MIN, v,
 float _nrrdFClampUL(FL v) { return AIR_CLAMP(0, v, NRRD_ULLONG_MAX);}
 float _nrrdFClampFL(FL v) { return v; }
 float _nrrdFClampDB(FL v) { return v; }
-float (*nrrdFClamp[NRRD_TYPE_MAX+1])(FL) = {
+float (*
+nrrdFClamp[NRRD_TYPE_MAX+1])(FL) = {
   NULL,
   _nrrdFClampCH,
   _nrrdFClampUC,
@@ -282,7 +297,8 @@ double _nrrdDClampLL(DB v) { return AIR_CLAMP(NRRD_LLONG_MIN, v,
 double _nrrdDClampUL(DB v) { return AIR_CLAMP(0, v, NRRD_ULLONG_MAX);}
 double _nrrdDClampFL(DB v) { return AIR_CLAMP(-FLT_MAX, v, FLT_MAX); }
 double _nrrdDClampDB(DB v) { return v; }
-double (*nrrdDClamp[NRRD_TYPE_MAX+1])(DB) = {
+double (*
+nrrdDClamp[NRRD_TYPE_MAX+1])(DB) = {
   NULL,
   _nrrdDClampCH,
   _nrrdDClampUC,
@@ -374,7 +390,7 @@ double (*nrrdDClamp[NRRD_TYPE_MAX+1])(DB) = {
   /* we continue searching knowing something to compare against, but     \
      still checking AIR_EXISTS at each value.  We don't want an          \
      infinity to corrupt min or max, in accordance with the stated       \
-     behavior of nrrdMinMax() */                                         \
+     behavior of nrrdMinMaxSet() */                                      \
   for (I=I+1; I<N; I++) {                                                \
     a = v[I];                                                            \
     if (AIR_EXISTS(a)) {                                                 \
@@ -412,10 +428,15 @@ void _nrrdMinMaxDB (_MM_ARGS(DB)) {_MM_FLOAT(DB)}
 ** the role of these is to allow finding the EXACT min and max of a nrrd,
 ** so that one does not have to rely on the potentially lossy storage
 ** of the min and max values in nrrd->min and nrrd->max, which are doubles.
+**
+** As such, it is purposely NOT named nrrdMinMaxFind, since that would
+** be too similar to nrrdMinMaxSet, which sets the nrrd->min, nrrd->max
+** fields.
 ** 
 ** These functions have as a side-effect the setting of nrrd->hasNonExist
 */
-void (*nrrdFindMinMax[NRRD_TYPE_MAX+1])(void *, void *, Nrrd *) = {
+void (*
+nrrdFindMinMax[NRRD_TYPE_MAX+1])(void *, void *, Nrrd *) = {
   NULL,
   (void (*)(void *, void *, Nrrd *))_nrrdMinMaxCH,
   (void (*)(void *, void *, Nrrd *))_nrrdMinMaxUC,
@@ -467,7 +488,8 @@ int _nrrdValCompareLL (_VC_ARGS(LL)) {return _VC_FIXED;}
 int _nrrdValCompareUL (_VC_ARGS(UL)) {return _VC_FIXED;}
 int _nrrdValCompareFL (_VC_ARGS(FL)) {_VC_FLOAT}
 int _nrrdValCompareDB (_VC_ARGS(DB)) {_VC_FLOAT}
-int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *) = {
+int (*
+nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *) = {
   NULL,
   (int (*)(const void *, const void *))_nrrdValCompareCH,
   (int (*)(const void *, const void *))_nrrdValCompareUC,

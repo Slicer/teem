@@ -24,6 +24,72 @@
 #include <limits.h>
 
 /*
+******** nrrdContentSet
+**
+** Kind of like sprintf, but for the content string of the nrrd.
+**
+** Whether or not we write a new content for an old nrrd ("nin") with
+** NULL content is decided here, according to
+** nrrdStateAlwaysSetContent.
+**
+** Does the string allocation and some attempts at error detection.
+** Does allow nout==nin, which requires some care.
+*/
+int
+nrrdContentSet(Nrrd *nout, const char *func,
+	       Nrrd *nin, const char *format, ...) {
+  char me[]="nrrdContentSet", err[AIR_STRLEN_MED], buff[AIR_STRLEN_HUGE];
+  va_list ap;
+  char *content;
+  
+  if (!(nout && func && nin && format)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!nin->content && !nrrdStateAlwaysSetContent) {
+    /* there's no input content, and we're not supposed to invent any
+       content, so after freeing nout's content we're done */
+    nout->content = airFree(nout->content);
+    return 0;
+  }
+  content = (nin->content
+	     ? airStrdup(nin->content)
+	     : airStrdup(nrrdStateUnknownContent));
+  if (!content) {
+    sprintf(err, "%s: couldn't copy input content!\n", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  /* we copied the input nrrd first, before blowing away the output,
+     in case nout == nin */
+  nout->content = airFree(nout->content);
+
+  /* we are currently praying that this won't overflow the "buff" array */
+  va_start(ap, format);
+  vsprintf(buff, format, ap);
+  va_end(ap);
+
+  if (strlen(buff)) {
+    nout->content = calloc(strlen("(,)")
+			   + strlen(func)
+			   + 1                      /* '(' */
+			   + strlen(content)
+			   + 1                      /* ',' */
+			   + strlen(buff)
+			   + 1                      /* ')' */
+			   + 1, sizeof(char));      /* '\0' */
+    if (!nout->content) {
+      sprintf(err, "%s: couln't alloc output content!", me);
+      biffAdd(NRRD, err); free(content); return 1;
+    }
+    sprintf(nout->content, "%s(%s%s%s)", func, content,
+	    strlen(buff) ? "," : "", buff);
+  }
+  free(content); 
+  return 0;
+}
+
+/*
 ******** nrrdDescribe
 ** 
 ** writes verbose description of nrrd to given file
@@ -62,6 +128,7 @@ nrrdDescribe(FILE *file, Nrrd *nrrd) {
     airSinglePrintf(file, NULL, "The old min, old max values are %lg",
 		     nrrd->oldMin);
     airSinglePrintf(file, NULL, ", %lg\n", nrrd->oldMax);
+    fprintf(file, "hasNonExist = %d\n", nrrd->hasNonExist);
     if (nrrd->cmtArr->len) {
       fprintf(file, "Comments:\n");
       for (i=0; i<=nrrd->cmtArr->len-1; i++) {
@@ -90,6 +157,7 @@ nrrdValid(Nrrd *nrrd) {
     sprintf(err, "%s: type (%d) of array is invalid", me, nrrd->type);
     biffAdd(NRRD, err); return 0;
   }
+  /* I should probably be using my own nrrdElementSize ... */
   if (nrrdTypeBlock == nrrd->type && (!(0 < nrrd->blockSize)) ) {
     sprintf(err, "%s: nrrd type is %s but nrrd->blockSize (%d) invalid", me,
 	    airEnumStr(nrrdType, nrrdTypeBlock),
@@ -152,6 +220,9 @@ nrrdSameSize(Nrrd *n1, Nrrd *n2, int useBiff) {
 ** to 0, just out of spite).  This function never returns a negative
 ** value; using (!nrrdElementSize(nrrd)) is a sufficient check for
 ** invalidity.
+**
+** Besides learning how many bytes long one element is, this function
+** is useful as a way of detecting an invalid blocksize on a block nrrd.
 */
 int
 nrrdElementSize(Nrrd *nrrd) {
@@ -180,15 +251,21 @@ nrrdElementSize(Nrrd *nrrd) {
 nrrdBigInt
 nrrdElementNumber(Nrrd *nrrd) {
   nrrdBigInt num;
-  int d;
+  int d, size[NRRD_DIM_MAX];
 
   if (!nrrd) {
     return 0;
   }
   /* else */
+  nrrdAxesGet_nva(nrrd, nrrdAxesInfoSize, size);
+  if (!_nrrdSizeValid(nrrd->dim, size)) {
+    /* well this is unfortunate: the nrrd's size information is invalid.
+       There's not much we can do except return 0 ("invalid") */
+    return 0;
+  }
   num = 1;
   for (d=0; d<=nrrd->dim-1; d++) {
-    num *= nrrd->axis[d].size;
+    num *= size[d];
   }
   return num;
 }
@@ -267,16 +344,27 @@ nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff) {
 }
 
 /*
-******** nrrdHasNonExist()
+******** nrrdHasNonExistSet()
 **
 ** This function will always (assuming type is valid) set the value of
 ** nrrd->hasNonExist to either nrrdNonExistTrue or nrrdNonExistFalse,
-** and it will return that value.  Blocks are considered to be
-** existant values.  This function will ALWAYS determine the correct
-** answer and set the value of nrrd->hasNonExist: it ignores the value
-** of nrrd->hasNonExist on the input nrrd.  */
+** and it will return that value.  For lack of a more sophisticated
+** policy, blocks are currently always considered to be existant
+** values.  This function will ALWAYS determine the correct answer and
+** set the value of nrrd->hasNonExist: it ignores the value of
+** nrrd->hasNonExist on the input nrrd.
+**
+** Because this will return either nrrdNonExistTrue or nrrdNonExistFalse,
+** and because the C boolean value of these are true and false (respectively),
+** it is possible (and encouraged) to use the return of this function
+** as the expression of a conditional:
+**
+**   if (nrrdHasNonExistSet(nrrd)) {
+**     ... handle existance of non-existant values ...
+**   }
+*/
 int
-nrrdHasNonExist(Nrrd *nrrd) {
+nrrdHasNonExistSet(Nrrd *nrrd) {
   nrrdBigInt I, N;
   float val;
 
@@ -508,3 +596,4 @@ nrrdSanity(void) {
   sanity = 1;
   return 1;
 }
+

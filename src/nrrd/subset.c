@@ -106,7 +106,7 @@ nrrdSample(void *val, Nrrd *nrrd, ...) {
 */
 int
 nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
-  char me[]="nrrdSlice", err[AIR_STRLEN_MED];
+  char me[]="nrrdSlice", func[]="slice", err[AIR_STRLEN_MED];
   nrrdBigInt 
     I, 
     rowLen,                  /* length of segment */
@@ -179,20 +179,9 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  nout->content = airFree(nout->content);
-  if (nin->content) {
-    nout->content = calloc(strlen("slice(,,)")
-			   + strlen(nin->content)
-			   + 11
-			   + 11
-			   + 1, sizeof(char));
-    if (nout->content) {
-      sprintf(nout->content, "slice(%s,%d,%d)", nin->content, axis, pos);
-    }
-    else {
-      sprintf(err, "%s: couldn't alloc content string", me);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (nrrdContentSet(nout, func, nin, "%d,%d", axis, pos)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
   }
   nout->min = nout->max = AIR_NAN;
   nout->oldMin = nout->oldMax = AIR_NAN;
@@ -210,7 +199,8 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
 */
 int
 nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
-  char me[]="nrrdCrop", err[AIR_STRLEN_MED], buff[AIR_STRLEN_SMALL];
+  char me[]="nrrdCrop", func[] = "crop", err[AIR_STRLEN_MED],
+    buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   int d, dim,
     lineSize,                /* #bytes in one scanline to be copied */
     typeSize,                /* size of data type */
@@ -302,25 +292,14 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
     nrrdAxisPosRange(&(nout->axis[d].min), &(nout->axis[d].max),
 		     nin, d, min[d], max[d]);
   }
-  nout->content = airFree(nout->content);
-  if (nin->content) {
-    nout->content = calloc(strlen("crop(,)")
-			   + strlen(nin->content)
-			   + dim*(strlen("[,]x") + 2*11)
-			   + 1, sizeof(char));
-    if (nout->content) {
-      sprintf(nout->content, "crop(%s,", nin->content);
-      for (d=0; d<=dim-1; d++) {
-	sprintf(buff, "%s[%d,%d]", (d ? "x" : ""), min[d], max[d]);
-	strcat(nout->content, buff);
-      }
-      sprintf(buff, ")");
-      strcat(nout->content, buff);    
-    }
-    else {
-      sprintf(err, "%s: couldn't alloc content string", me);
-      biffAdd(NRRD, err); return 1;
-    }
+  strcpy(buff1, "");
+  for (d=0; d<=dim-1; d++) {
+    sprintf(buff2, "%s[%d,%d]", (d ? "x" : ""), min[d], max[d]);
+    strcat(buff1, buff2);
+  }
+  if (nrrdContentSet(nout, func, nin, "%s", buff1)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
   }
   nout->min = nout->max = AIR_NAN;
   nout->oldMin = nout->oldMax = AIR_NAN;

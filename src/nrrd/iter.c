@@ -53,6 +53,11 @@ void
 nrrdIterSetNrrd(NrrdIter *iter, Nrrd *nrrd) {
 
   if (iter && nrrd && nrrd->data) {
+    if (nrrdTypeBlock == nrrd->type) {
+      /* we can't deal */
+      nrrdIterSetValue(iter, AIR_NAN);
+      return;
+    }
     iter->nrrd = nrrd;
     iter->val = AIR_NAN;
     iter->size = nrrdTypeSize[nrrd->type];

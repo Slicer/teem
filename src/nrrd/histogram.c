@@ -57,7 +57,7 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type) {
   }
   /* nout->axis[0].size set */
   nout->axis[0].spacing = AIR_NAN;
-  if (nrrdCleverMinMax(nin)) {
+  if (nrrdMinMaxClever(nin)) {
     sprintf(err, "%s: trouble setting min and max", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -142,7 +142,7 @@ nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy) {
     sprintf(err, "%s: nrrd can\'t be a histogram (dim %d)", me, nin->dim);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdHasNonExist(nin)) {
+  if (nrrdHasNonExistSet(nin)) {
     sprintf(err, "%s: given nrrd has non-existent values", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -261,7 +261,7 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins, int type) {
     sprintf(err, "%s: axis %d is not in range [0,%d]", me, ax, nin->dim-1);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdCleverMinMax(nin)) {
+  if (nrrdMinMaxClever(nin)) {
     sprintf(err, "%s: trouble setting min and max", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -378,7 +378,7 @@ nrrdHistoJoint(Nrrd *nout, Nrrd **nin,
       sprintf("%s: need bins[%d] >= 1 (not %d)", me, d, bins[d]);
       biffAdd(NRRD, err); return 1;
     }
-    if (nrrdCleverMinMax(nin[d])) {
+    if (nrrdMinMaxClever(nin[d])) {
       sprintf("%s: trouble setting min and max for nrrd %d\n", me, d);
       biffAdd(NRRD, err); return 1;
     }

@@ -290,6 +290,12 @@ _nrrdSizeValid(int dim, int *size) {
 ******** nrrdWrap_nva()
 **
 ** wraps a given Nrrd around a given array
+**
+** we don't touch any of the peripheral information (content, comments,
+** blocksize, min/max) because it is entirely reasonable to be setting
+** this before or after this call.  "type" could be passed as 
+** nrrdTypeBlock, in which case it is the user's responsibility to
+** set nrrd->blockSize at some other time.
 */
 int
 nrrdWrap_nva(Nrrd *nrrd, void *data, int type, int dim, int *size) {
@@ -340,10 +346,6 @@ nrrdWrap(Nrrd *nrrd, void *data, int type, int dim, ...) {
     size[d] = va_arg(ap, int);
   }
   va_end(ap);
-  if (!_nrrdSizeValid(dim, size)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
-  }
   
   return nrrdWrap_nva(nrrd, data, type, dim, size);
 }
@@ -360,6 +362,7 @@ nrrdUnwrap(Nrrd *nrrd) {
   return nrrdNix(nrrd);
 }
 
+/*
 void
 _nrrdTraverse(Nrrd *nrrd) {
   char *test, tval;
@@ -374,14 +377,77 @@ _nrrdTraverse(Nrrd *nrrd) {
     tval += test[I];
   }
 }
+*/
+
+/*
+******** nrrdCopy
+**
+** copy method for nrrds.  nout will end up as an "exact" copy of nin.
+** New space for data is allocated here, and output nrrd points to it.
+** Comments from old are added to comments for new, so these are also
+** newly allocated.  nout->ptr is not set, nin->ptr is not read.
+*/
+int
+nrrdCopy(Nrrd *nout, Nrrd *nin) {
+  char me[]="nrrdCopy", err[AIR_STRLEN_MED];
+  int size[NRRD_DIM_MAX];
+
+  if (!(nin && nout)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nout == nin) {
+    /* its not the case that we have nothing to do- the semantics of
+       copying can not be achieved if the input and output nrrd are
+       the same; this is an error */
+    sprintf(err, "%s: can't copy if nout==nin", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!nrrdElementSize(nin)) {
+    sprintf(err, "%s: input nrrd reports zero element size!", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
+  if (nrrdMaybeAlloc_nva(nout, nin->type, nin->dim, size)) {
+    sprintf(err, "%s: couldn't allocate data", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  memcpy(nout->data, nin->data, nrrdElementNumber(nin)*nrrdElementSize(nin));
+  nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+
+  nout->content = airStrdup(nin->content);
+  if (nin->content && !nout->content) {
+    sprintf(err, "%s: couldn't copy content", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  nout->blockSize = nin->blockSize;
+  nout->min = nin->min;
+  nout->max = nin->max;
+  nout->oldMin = nin->oldMin;
+  nout->oldMax = nin->oldMax;
+  /* nout->ptr = nin->ptr; */
+  nout->hasNonExist = nin->hasNonExist;
+    
+  if (nrrdCommentCopy(nout, nin)) {
+    sprintf(err, "%s: trouble copying comments", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  return 0;
+}
 
 /*
 ******** nrrdAlloc_nva()
 **
-** allocates data array and sets information.
+** allocates data array and sets information.  If this is a block type
+** nrrd, it is necessary to set nrrd->blockSize PRIOR to calling
+** this function.
 **
 ** This function will always allocate more memory (via calloc), but
 ** it will free() nrrd->data if it is non-NULL when passed in.
+**
+** This function takes the same "don't mess with peripheral information"
+** attitude as nrrdWrap().
 **
 ** Note to Gordon: don't get clever and change ANY axis-specific
 ** information here.  It may be very convenient to set that before
@@ -411,15 +477,20 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
     }
   }
   if (!AIR_INSIDE(1, dim, NRRD_DIM_MAX)) {
-    sprintf(err, "%s: dim (%d) in invalid", me, dim);
+    sprintf(err, "%s: dim (%d) not in valid range [1,%d]",
+	    me, dim, NRRD_DIM_MAX);
     biffAdd(NRRD, err); return 1;
   }
 
   nrrd->type = type;
   nrrd->data = airFree(nrrd->data);
+  if (!_nrrdSizeValid(dim, size)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
   num = 1;
   for (d=0; d<=dim-1; d++) {
-    num *= (nrrd->axis[d].size = size[d]);
+    num *= size[d];
   }
   esize = nrrdElementSize(nrrd);
   nrrd->data = calloc(num, esize);
@@ -471,6 +542,8 @@ nrrdAlloc(Nrrd *nrrd, int type, int dim, ...) {
 **
 ** calls nrrdAlloc_nva if the requested space is different than
 ** what is currently held
+**
+** also subscribes to the "don't mess with peripheral information" philosophy
 */
 int
 nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
@@ -487,6 +560,10 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdTypeBlock == type) {
+    if (nrrdTypeBlock == nrrd->type) {
+      sprintf(err, "%s: can't change from one block nrrd to another", me);
+      biffAdd(NRRD, err); return 1;
+    }
     if (!(0 < nrrd->blockSize)) {
       sprintf(err, "%s: given nrrd->blockSize %d invalid", 
 	      me, nrrd->blockSize);
@@ -506,7 +583,6 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
     for (d=0; d<=dim-1; d++) {
       numWant *= size[d];
     }
-    /* this shouldn't actually be necessary ... */
     if (!nrrdElementSize(nrrd)) {
       sprintf(err, "%s: nrrd reports zero element size!", me);
       biffAdd(NRRD, err); return 1;
@@ -568,63 +644,11 @@ nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim, ...) {
 }
 
 /*
-******** nrrdCopy
-**
-** copy method for nrrds.  nout will end up as an "exact" copy of nin.
-** New space for data is allocated here, and output nrrd points to it.
-** Comments from old are added to comments for new, so these are also
-** newly allocated.  nout->ptr is not set, nin->ptr is not read.
-*/
-int
-nrrdCopy(Nrrd *nout, Nrrd *nin) {
-  char me[]="nrrdCopy", err[AIR_STRLEN_MED];
-  int size[NRRD_DIM_MAX];
-
-  if (!(nin && nout)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (nout == nin) {
-    /* I guess there's nothing to do! */
-    return 0;
-  }
-  /* this shouldn't actually be necessary ... */
-  if (!nrrdElementSize(nin)) {
-    sprintf(err, "%s: input nrrd reports zero element size!", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
-  if (nrrdMaybeAlloc_nva(nout, nin->type, nin->dim, size)) {
-    sprintf(err, "%s: couldn't allocate data", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  memcpy(nout->data, nin->data, nrrdElementNumber(nin)*nrrdElementSize(nin));
-  nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
-
-  nout->content = airStrdup(nin->content);
-  if (nin->content && !nout->content) {
-    sprintf(err, "%s: couldn't copy content", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  nout->blockSize = nin->blockSize;
-  nout->min = nin->min;
-  nout->max = nin->max;
-  nout->oldMin = nin->oldMin;
-  nout->oldMax = nin->oldMax;
-  /* nout->ptr = nin->ptr; */
-    
-  if (nrrdCommentCopy(nout, nin)) {
-    sprintf(err, "%s: trouble copying comments", me);
-    biffAdd(NRRD, err); return 1;
-  }
-
-  return 0;
-}
-
-/*
 ******** nrrdPPM()
 **
 ** for making a nrrd suitable for holding PPM data
+**
+** "don't mess with peripheral information"
 */
 int
 nrrdPPM(Nrrd *ppm, int sx, int sy) {
@@ -645,6 +669,8 @@ nrrdPPM(Nrrd *ppm, int sx, int sy) {
 ******** nrrdPGM()
 **
 ** for making a nrrd suitable for holding PGM data
+**
+** "don't mess with peripheral information"
 */
 int
 nrrdPGM(Nrrd *pgm, int sx, int sy) {
@@ -667,6 +693,8 @@ nrrdPGM(Nrrd *pgm, int sx, int sy) {
 ******** nrrdTable()
 **
 ** for making a nrrd suitable for holding "table" data
+**
+** "don't mess with peripheral information"
 */
 int
 nrrdTable(Nrrd *table, int sx, int sy) {

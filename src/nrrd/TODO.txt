@@ -1,13 +1,23 @@
-do warning messages if the number of kernel parameters in a kernel
-specification string is _greater_ than useful
+test working with nout==nin
+nrrdContentSet
+nrrdConvert
+nrrdQuantize
+
+figure out trouble with Mariana
 
 figure out what of axes and content gets passed through
 with nrrdUnaryOp, nrrdBinaryOp, nrrdTernaryOp
 
-figure out trouble with Mariana
+1D mappings, regular and irregular
 
-mappings, regular and irregular
-  change nrrdHistoEq accordingly, allow learning of mapping used.
+allow nrrdBlock and nrrdUnblock to have nin==nout
+
+------- teem 1.4 cutoff ---------
+
+change nrrdHistoEq to use 1D regular maps, allow learning of mapping used.
+
+do warning messages if the number of kernel parameters in a kernel
+specification string is _greater_ than useful
 
 nrrdPad_nva, nrrdSimplePad_nva
 
@@ -23,10 +33,6 @@ try setting NRRD_DIM_MAX to 2 or 3 and doing lots of unrrdu stuff
 
 determine which of the things below should be transferred to rules.txt
 
-allow nrrdBlock and nrrdUnblock to have nin==nout
-
-determine exactly what is and is not thread-safe
-
 verify behavior WRT min/max/center:
   reorder.c, measr.c, histogram.c, map.c, arith.c, filt.c
 verify behavior WRT blocks:
@@ -39,8 +45,6 @@ finish writing format.txt
 make nrrdDescribe() a little prettier
 
 split
-
-better regular median filtering, weighted median filter
 
 debug and scrutinize current implementation of all "nhdr" related behavior
 

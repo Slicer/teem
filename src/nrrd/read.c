@@ -265,8 +265,8 @@ _nrrdReadDataAscii(Nrrd *nrrd, NrrdIO *io) {
 ** The data readers are responsible for memory allocation.
 ** This is necessitated by the memory restrictions of direct I/O
 */
-int
-(*nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
+int (*
+nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
   NULL,
   _nrrdReadDataRaw,
   _nrrdReadDataAscii

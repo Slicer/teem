@@ -67,7 +67,7 @@ nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
       info->param[d][p] = param[p];
     /* set the min/max for this axis if not already set to something */
     if (!( AIR_EXISTS(nin->axis[d].min) && AIR_EXISTS(nin->axis[d].max) ))
-      nrrdAxisSetMinMax(nin, d);
+      nrrdAxisMinMaxSet(nin, d);
     info->min[d] = nin->axis[d].min;
     info->max[d] = nin->axis[d].max;
   }

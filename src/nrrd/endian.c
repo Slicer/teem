@@ -102,7 +102,6 @@ void
   _nrrdSwap64Endian,       /*  8: unsigned 8-byte integer */
   _nrrdSwap32Endian,       /*  9:          4-byte floating point */
   _nrrdSwap64Endian,       /* 10:          8-byte floating point */
-  /* _nrrdNoopEndian,    HEY! PUNT: 11:        16-byte floating point */
   _nrrdBlockEndian         /* 11: size user defined at run time */
 };
 
@@ -116,6 +115,3 @@ nrrdSwapEndian(Nrrd *nrrd) {
   }
   return;
 }
-
-
-
