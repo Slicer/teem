@@ -171,6 +171,13 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
 	fprintf(stderr, "%s: panic 0\n", me);
       return 1;
     }
+    if (!( opt[op].valueP )) {
+      if (err)
+	sprintf(err, "%s!!!!!! opt[%d]'s valueP is NULL!", ME, op);
+      else
+	fprintf(stderr, "%s: panic 0.5\n", me);
+      return 1;
+    }
     if (-1 == opt[op].kind) {
       if (err)
 	sprintf(err, "%s!!!!!! opt[%d]'s min (%d) and max (%d) incompatible",

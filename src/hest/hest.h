@@ -183,7 +183,8 @@ TEEM_API int hestOptCheck(hestOpt *opt, char **errP);
 TEEM_API int hestParse(hestOpt *opt, int argc, char **argv,
 		       char **errP, hestParm *parm);
 TEEM_API void *hestParseFree(hestOpt *opt);
-TEEM_API void hestParseOrDie(hestOpt *opt, int argc, char **argv, hestParm *parm,
+TEEM_API void hestParseOrDie(hestOpt *opt, int argc, char **argv,
+			     hestParm *parm,
 			     char *me, char *info,
 			     int doInfo, int doUsage, int doGlossary);
 
