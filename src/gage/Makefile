@@ -22,7 +22,7 @@ LIB = gage
 HEADERS = gage.h
 PRIV_HEADERS = private.h
 LIB_OBJS = defaults.o enums.o arrays.o methods.o kinds.o general.o print.o \
-	filter.o scl.o sclfilter.o sclprint.o vec.o vecprint.o
+	filter.o scl.o sclfilter.o sclprint.o vec.o vecprint.o simple.o
 TEST_BINS = test/probe test/qbert test/gantry
 BINS = 
 BIN_LIBS = -lgage -lnrrd -lbiff -lell -lhest -lair -lm

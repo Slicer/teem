@@ -199,3 +199,44 @@ _gageVecAnswerNix(gageVecAnswer *van) {
 
   return airFree(van);
 }
+
+gageSimple *
+gageSimpleNew() {
+  gageSimple *spl;
+  int i, j;
+
+  spl = (gageSimple *)malloc(sizeof(gageSimple));
+  if (spl) {
+    spl->nin = NULL;
+    spl->kind = NULL;
+    for(i=gageKernelUnknown+1; i<gageKernelLast; i++) {
+      spl->k[i] = NULL;
+      for (j=0; j<NRRD_KERNEL_PARMS_NUM; j++)
+	spl->kparm[i][j] = AIR_NAN;
+    }
+    spl->query = 0;
+    spl->npad = NULL;
+    if (!(spl->ctx = gageContextNew()))
+      return NULL;
+    spl->pvl = NULL;
+    spl->ans = NULL;
+  }
+  return spl;
+}
+
+gageSimple *
+gageSimpleNix(gageSimple *spl) {
+
+  if (spl) {
+    if (spl->npad)     /* we did allocate this one */
+      spl->npad = nrrdNuke(spl->npad);
+    if (spl->ctx)      /* and this */
+      spl->ctx = gageContextNix(spl->ctx);
+    if (spl->pvl)      /* and this */
+      spl->pvl= gagePerVolumeNix(spl->pvl);
+    if (spl->ans)      /* and this */
+      spl->ans = spl->kind->ansNix(spl->ans);
+    free(spl);
+  }
+  return NULL;
+}

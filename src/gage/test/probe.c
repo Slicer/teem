@@ -19,6 +19,8 @@
 
 
 #include <stdio.h>
+#include <hest.h>
+#include <nrrd.h>
 #include "../gage.h"
 
 #define TEN_LIST2MAT(m, l) ( \
@@ -54,13 +56,12 @@ main(int argc, char *argv[]) {
   char *me, *ninS, *whatS, *scaleS, *k0S, *k1S, *k2S, *noutS;
   float x, y, z, scale;
   gage_t *out;
-  Nrrd *nin, *npad, *nout;
-  int a, idx, what, ansLen, offset, E, xi, yi, zi, pad,
-    six, siy, siz, sox, soy, soz, needPad;
-  double t0, t1, param[3][NRRD_KERNEL_PARMS_NUM];
-  gageContext *ctx;
-  gagePerVolume *pvl;
+  Nrrd *nin, *nout;
+  int a, idx, what, ansLen, offset, E, xi, yi, zi,
+    six, siy, siz, sox, soy, soz;
+  double t0, t1, kparm[3][NRRD_KERNEL_PARMS_NUM];
   gageSclAnswer *san;
+  gageSimple *gsl;
   NrrdKernel *k0, *k1, *k2;
 
   me = argv[0];
@@ -102,56 +103,43 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   E = 0;
-  if (!E) E |= nrrdKernelParse(&k0, param[0], k0S);
-  if (!E) E |= nrrdKernelParse(&k1, param[1], k1S);
-  if (!E) E |= nrrdKernelParse(&k2, param[2], k2S);
+  if (!E) E |= nrrdKernelParse(&k0, kparm[0], k0S);
+  if (!E) E |= nrrdKernelParse(&k1, kparm[1], k1S);
+  if (!E) E |= nrrdKernelParse(&k2, kparm[2], k2S);
   if (E) {
     fprintf(stderr, "%s: problem parsing kernels:\n%s\n", me, biffGet(NRRD));
     exit(1);
   }
 
-  ctx = gageContextNew();
-  gageValSet(ctx, gageValVerbose, 1);
-  gageValSet(ctx, gageValRenormalize, AIR_TRUE);
-  gageValSet(ctx, gageValCheckIntegrals, AIR_FALSE);
-  
+  /***
+  **** Except for the gageSimpleProbe() call in the inner loop below,
+  **** and the gageSimpleNix() call at the very end, all the gage
+  **** calls which set up the simple context and state are here.
+  ***/
+  gsl = gageSimpleNew();
+  gageValSet(gsl->ctx, gageValVerbose, 1);
+  gageValSet(gsl->ctx, gageValRenormalize, AIR_TRUE);
+  gageValSet(gsl->ctx, gageValCheckIntegrals, AIR_TRUE);
   E = 0;
-  /*
-  if (!E) E |= gageKernelSet(ctx, gageKernel00, k0, param[0]);
-  if (!E) E |= gageKernelSet(ctx, gageKernel10, k1, param[1]);
-  if (!E) E |= gageKernelSet(ctx, gageKernel11, k1, param[1]);
-  if (!E) E |= gageKernelSet(ctx, gageKernel20, k2, param[2]);
-  if (!E) E |= gageKernelSet(ctx, gageKernel21, k2, param[2]);
-  if (!E) E |= gageKernelSet(ctx, gageKernel22, k2, param[2]);
-  gageKernelReset(ctx);
-  */
-  if (!E) E |= gageKernelSet(ctx, gageKernel00, k0, param[0]);
-  if (!E) E |= gageKernelSet(ctx, gageKernel11, k1, param[1]);
-  if (!E) E |= gageKernelSet(ctx, gageKernel22, k2, param[2]);
-  needPad = gageValGet(ctx, gageValNeedPad);
-  fprintf(stderr, "%s: needPad = %d\n", me, needPad);
-  if (!E) E |= !(pvl = gagePerVolumeNew(needPad, gageKindScl));
-  if (!E) pvl->verbose = gageValGet(ctx, gageValVerbose);
-  if (!E) san = (gageSclAnswer *)(pvl->ans);
-  if (!E) E |= gageQuerySet(pvl, 1<<what);
+  if (!E) E |= gageSimpleKernelSet(gsl, gageKernel00, k0, kparm[0]);
+  if (!E) E |= gageSimpleKernelSet(gsl, gageKernel11, k1, kparm[1]);
+  if (!E) E |= gageSimpleKernelSet(gsl, gageKernel22, k2, kparm[2]);
   if (E) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));
     exit(1);
   }
-  /* we pad with something other than needed pad for stress testing */
-  pad = 1 + needPad;
-  printf("%s: kernel set requires padding by %d, we'll use %d\n",
-	 me, needPad, pad);
-  if (nrrdSimplePad(npad=nrrdNew(), nin, pad, nrrdBoundaryBleed)) {
-    fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(NRRD));
-    exit(1);
-  }
-  if (!E) E |= gageVolumeSet(ctx, pvl, npad, pad);
-  if (!E) E |= gageUpdate(ctx, pvl);
-  if (E) {
+  gsl->nin = nin;
+  gsl->kind = gageKindScl;
+  gsl->query = 1<<what;
+  if (gageSimpleUpdate(gsl)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));
     exit(1);
   }
+  gsl->pvl->verbose = gageValGet(gsl->ctx, gageValVerbose);
+  san = (gageSclAnswer *)(gsl->pvl->ans);
+  /***
+  **** end gage setup.
+  ***/
 
   six = nin->axis[0].size;
   siy = nin->axis[1].size;
@@ -187,13 +175,13 @@ main(int argc, char *argv[]) {
 	x = AIR_AFFINE(0, xi, sox-1, 0, six-1);
 	idx = xi + sox*(yi + soy*zi);
 
-	ctx->verbose = 3*( !xi && !yi && !zi ||
-			  /* ((100 == xi) && (8 == yi) && (8 == zi)) */
-			  ((61 == xi) && (51 == yi) && (46 == zi))
-			  /* ((40 == xi) && (30 == yi) && (62 == zi)) || */
-			  /* ((40 == xi) && (30 == yi) && (63 == zi)) */ ); 
+	gsl->ctx->verbose = 3*( !xi && !yi && !zi ||
+				/* ((100 == xi) && (8 == yi) && (8 == zi)) */
+				((61 == xi) && (51 == yi) && (46 == zi))
+				/* ((40==xi) && (30==yi) && (62==zi)) || */
+				/* ((40==xi) && (30==yi) && (63==zi)) */ ); 
 
-	if (gageProbe(ctx, pvl, x, y, z)) {
+	if (gageSimpleProbe(gsl, x, y, z)) {
 	  fprintf(stderr, 
 		  "%s: trouble at i=(%d,%d,%d) -> f=(%g,%g,%g):\n%s\n(%d)\n",
 		  me, xi, yi, zi, x, y, z, gageErrStr, gageErrNum);
@@ -227,9 +215,7 @@ main(int argc, char *argv[]) {
   nrrdSave(noutS, nout, NULL);
 
   nrrdNuke(nin);
-  nrrdNuke(npad);
   nrrdNuke(nout);
-  gageContextNix(ctx);
-  gagePerVolumeNix(pvl);
+  gageSimpleNix(gsl);
   exit(0);
 }

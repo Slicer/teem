@@ -282,6 +282,7 @@ typedef struct {
 ** kind of volume (such as scalar, vector, etc.)
 */
 typedef struct gageKind_t {
+  char str[AIR_STRLEN_SMALL];       /* short identifying string for kind */
   int baseDim,                      /* dimension that x,y,z axes start on */
     valLen,                         /* number of scalars per data point */
     queryMax,                       /* such as GAGE_SCL_MAX */
@@ -301,6 +302,29 @@ typedef struct gageKind_t {
     (*answer)(gageContext *,        /* such as _gageSclAnswer() */
 	      gagePerVolume *);
 } gageKind;
+
+/*
+******** gageSimpleStruct
+**
+** If all defaults are okay, and if padding by bleeding is okay,
+** and if there is only one volume per context, then this is a 
+** suitable basis for a simplified access to gage functionality.
+*/
+typedef struct {
+  Nrrd *nin;                  /* the input volume to probe */
+  gageKind *kind;             /* kind of volume */
+  NrrdKernel *k[GAGE_KERNEL_NUM];
+                              /* interp, 1st, 2nd deriv. kernels */
+  double kparm[GAGE_KERNEL_NUM][NRRD_KERNEL_PARMS_NUM];
+                              /* kernel parameters */
+  unsigned int query;         /* the bit-flag query */
+  /*  --------------------------------------- Internal state */
+  Nrrd *npad;                 /* padded input */
+  gageContext *ctx;
+  gagePerVolume *pvl;
+  /*  --------------------------------------- Output */
+  void *ans;                  /* an answer struct, such as gageSclAnswer */
+} gageSimple;
 
 /*
 ******** gageSclAnswer struct
@@ -359,6 +383,8 @@ extern gageContext *gageContextNew();
 extern gageContext *gageContextNix(gageContext *ctx);
 extern gagePerVolume *gagePerVolumeNew(int needPad, gageKind *kind);
 extern gagePerVolume *gagePerVolumeNix(gagePerVolume *pvl);
+extern gageSimple *gageSimpleNew();
+extern gageSimple *gageSimpleNix(gageSimple *spl);
 
 /* general.c */
 extern void gageValSet(gageContext *ctx, int which, int val);
@@ -372,6 +398,12 @@ extern int gageQuerySet(gagePerVolume *pvl, unsigned int query);
 extern int gageUpdate(gageContext *ctx, gagePerVolume *pvl);
 extern int gageProbe(gageContext *ctx, gagePerVolume *pvl,
 		     gage_t x, gage_t y, gage_t z);
+
+/* simple.c */
+extern int gageSimpleUpdate(gageSimple *gsl);
+extern int gageSimpleKernelSet(gageSimple *gsl,
+			       int which, NrrdKernel *k, double *kparm);
+extern int gageSimpleProbe(gageSimple *gsl, gage_t x, gage_t y, gage_t z);
 
 #endif /* GAGE_HAS_BEEN_INCLUDED */
 #ifdef __cplusplus
