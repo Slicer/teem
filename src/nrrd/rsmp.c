@@ -727,6 +727,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
 
   /* clean up second-to-last array and scanline buffers */
   if (passes > 1) {
+    airMopAdd(mop, arr[passes-1], NULL, airMopNever);
     arr[passes-1] = airFree(arr[passes-1]);
     /*
     printf("%s: now freeing arr[%d]\n", me, passes-1);
