@@ -1178,7 +1178,7 @@ nrrdKernelParse(const NrrdKernel **kernelP,
                 double *parm, const char *_str) {
   char me[]="nrrdKernelParse", err[128], str[AIR_STRLEN_HUGE],
     kstr[AIR_STRLEN_MED], *_pstr=NULL, *pstr, *tmfStr[3];
-  int i, j, NP, tmfD, tmfC, tmfA;
+  int j, haveParm, needParm, tmfD, tmfC, tmfA;
   
   if (!(kernelP && parm && _str)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -1242,12 +1242,33 @@ nrrdKernelParse(const NrrdKernel **kernelP,
       sprintf(err, "%s: kernel \"%s\" not recognized", me, kstr);
       biffAdd(NRRD, err); return 1;
     }
-    NP = (*kernelP)->numParm;
-    for (i=0; i<NP; i++) {
+    if ((*kernelP)->numParm > NRRD_KERNEL_PARMS_NUM) {
+      sprintf(err, "%s: kernel \"%s\" requests %d parameters > max %d",
+              me, kstr, (*kernelP)->numParm, NRRD_KERNEL_PARMS_NUM);
+      biffAdd(NRRD, err); return 1;
+    }
+    if (*kernelP == nrrdKernelGaussian ||
+        *kernelP == nrrdKernelGaussianD ||
+        *kernelP == nrrdKernelGaussianDD) {
+      /* for Gaussians, we need all the parameters given explicitly */
+      needParm = (*kernelP)->numParm;
+    } else {
+      /*  For everything else (note that TMF kernels are handled
+          separately), we can make do with one less than the required,
+          by using the default spacing  */
+      needParm = (*kernelP)->numParm - 1;
+    }
+    if (needParm > 0 && !pstr) {
+      sprintf(err, "%s: didn't get any of %d required doubles after "
+              "colon in \"%s\"",
+              me, needParm, kstr);
+      biffAdd(NRRD, err); return 1;
+    }
+    for (haveParm=0; haveParm<(*kernelP)->numParm; haveParm++) {
       if (!pstr)
         break;
-      if (1 != sscanf(pstr, "%lg", parm+i)) {
-        sprintf(err, "%s: trouble parsing \"%s\" (in \"%s\")",
+      if (1 != sscanf(pstr, "%lg", parm+haveParm)) {
+        sprintf(err, "%s: trouble parsing \"%s\" as double (in \"%s\")",
                 me, _pstr, _str);
         biffAdd(NRRD, err); return 1;
       }
@@ -1260,26 +1281,31 @@ nrrdKernelParse(const NrrdKernel **kernelP,
         }
       }
     }
-    if (i < NP-1) {
-      sprintf(err, "%s: couldn't parse needed %d doubles "
+    /* haveParm is now the number of parameters that were parsed. */
+    if (haveParm < needParm) {
+      sprintf(err, "%s: parsed only %d of %d required doubles "
               "from \"%s\" (in \"%s\")",
-              me, NP-1, _pstr, _str);
+              me, haveParm, needParm, _pstr, _str);
       biffAdd(NRRD, err); return 1;
-    }
-    if (i == NP-1) {
+    } else if (haveParm == needParm &&
+               needParm == (*kernelP)->numParm-1) {
       /* shift up parsed values, and set parm[0] to default */
-      for (j=NP-1; j>=1; j--) {
+      for (j=haveParm; j>=1; j--) {
         parm[j] = parm[j-1];
       }
       parm[0] = nrrdDefKernelParm0;
     } else {
       if (pstr) {
-        sprintf(err, "%s: \"%s\" (in \"%s\") has more than %d doubles",
-                me, _pstr, _str, NP);
-        biffAdd(NRRD, err); return 1;
+	sprintf(err, "%s: \"%s\" (in \"%s\") has more than %d doubles",
+		me, _pstr, _str, (*kernelP)->numParm);
+	biffAdd(NRRD, err); return 1;
       }
     }
   }
+  /*
+  fprintf(stderr, "%s: %g %g %g %g %g\n", me,
+          parm[0], parm[1], parm[2], parm[3], parm[4]);
+  */
   return 0;
 }
 
