@@ -91,6 +91,7 @@ _limnPSDrawFace(limnObj *obj, limnPart *r, limnFace *f,
 		limnCam *cam, Nrrd *nmap, limnWin *win) {
   int vi;
   limnPoint *p;
+  limnSP *sp;
   int qn;
   float *map, R, G, B;
 
@@ -99,17 +100,19 @@ _limnPSDrawFace(limnObj *obj, limnPart *r, limnFace *f,
     fprintf(win->file, "%g %g %s\n", 
 	    p->d[0], p->d[1], vi ? "L" : "M");
   }
-  R = r->rgba[0];
-  G = r->rgba[1];
-  B = r->rgba[2];
+  sp = obj->s + f->sp;
+  R = sp->k[0]*r->rgba[0];
+  G = sp->k[0]*r->rgba[1];
+  B = sp->k[0]*r->rgba[2];
   /* fprintf(stderr, "RGB = %g %g %g ->", R, G, B); */
   if (nmap) {
     qn = limnVtoQN[limnQN_16checker](f->wn);
     map = nmap->data;
-    R *= map[0 + 3*qn];
-    G *= map[1 + 3*qn];
-    B *= map[2 + 3*qn];
+    R += sp->k[1]*r->rgba[0]*map[0 + 3*qn];
+    G += sp->k[1]*r->rgba[1]*map[1 + 3*qn];
+    B += sp->k[1]*r->rgba[2]*map[2 + 3*qn];
   }
+  /* HEY: not evaluating phong specular for now */
   /* fprintf(stderr, "%g %g %g ->", R, G, B); */
   R = AIR_CLAMP(0, R, 1);
   G = AIR_CLAMP(0, G, 1);
@@ -213,6 +216,10 @@ limnObjPSDraw(limnObj *obj, limnCam *cam, Nrrd *nmap, limnWin *win) {
 	f->visib = (cam->rightHanded 
 		    ? f->sn[2] < 0
 		    : f->sn[2] > 0);
+	if (f->vNum == r->pNum && !f->visib) {
+	  f->visib = AIR_TRUE;
+	  ELL_3V_SCALE(f->wn, -1, f->wn);
+	}
 	if (f->visib) {
 	  _limnPSDrawFace(obj, r, f, cam, nmap, win);
 	}
@@ -223,16 +230,22 @@ limnObjPSDraw(limnObj *obj, limnCam *cam, Nrrd *nmap, limnWin *win) {
       for (ei=0; ei<r->eNum; ei++) {
 	e = &(obj->e[r->eBase + ei]);
 	f0 = &(obj->f[e->f0]);
-	f1 = &(obj->f[e->f1]);
-	vis0 = f0->visib;
-	vis1 = f1->visib;
-	angle = 180/M_PI*acos(ELL_3V_DOT(f0->wn, f1->wn));
-	if (vis0 && vis1) {
-	  e->visib = 4 - (angle > win->ps.creaseAngle);
-	} else if (!!vis0 ^ !!vis1) {
-	  e->visib = 2;
+	f1 = e->f1 != -1 ? &(obj->f[e->f1]) : NULL;
+	if (!f1) {
+	  /* not clear what to do with perimeter of lone faces;
+	     for now: front-facing non-crease edge */
+	  e->visib = 4;
 	} else {
-	  e->visib = (angle > win->ps.creaseAngle);
+	  vis0 = f0->visib;
+	  vis1 = f1->visib;
+	  angle = 180/M_PI*acos(ELL_3V_DOT(f0->wn, f1->wn));
+	  if (vis0 && vis1) {
+	    e->visib = 4 - (angle > win->ps.creaseAngle);
+	  } else if (!!vis0 ^ !!vis1) {
+	    e->visib = 2;
+	  } else {
+	    e->visib = (angle > win->ps.creaseAngle);
+	  }
 	}
 	_limnPSDrawEdge(obj, r, e, cam, win);
       }
