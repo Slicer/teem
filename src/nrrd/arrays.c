@@ -35,7 +35,7 @@ nrrdMagic2Str[][NRRD_SMALL_STRLEN] = {
 char 
 nrrdType2Str[][NRRD_SMALL_STRLEN] = {
   "(unknown type)",
-  "char",
+  "signed char",
   "unsigned char",
   "short",
   "unsigned short",
@@ -93,13 +93,6 @@ nrrdEncoding2Str[][NRRD_SMALL_STRLEN] = {
   "base85",
   "user"
   "",
-};
-
-char
-nrrdEndian2Str[][NRRD_SMALL_STRLEN] = {
-  "(unknown endian)",
-  "little",
-  "big"
 };
 
 int 
