@@ -121,7 +121,7 @@ main(int argc, char *argv[]) {
 	ell_3m_post_mul_d(mT, mRF);
 
 	tdata[0] = 1.0;
-	TEN_MAT2LIST(tdata, mT);
+	TEN_M2T(tdata, mT);
 	tdata += 7;
       }
     }

@@ -102,7 +102,7 @@ _tenFiberStep_TensorLine(tenFiberContext *tfx, double step[3]) {
 
   if (ELL_3V_DOT(tfx->lastDir, tfx->lastDir)) {
     ELL_3V_COPY(vin, tfx->lastDir);
-    TEN_3VLIST_MUL(vout, tfx->dten, tfx->lastDir);
+    TEN_T3V_MUL(vout, tfx->dten, tfx->lastDir);
     ELL_3V_NORM(vout, vout, len);
     _tenFiberAlign(tfx, vout);  /* HEY: is this needed? */
   } else {

@@ -102,7 +102,7 @@ tenExpand(Nrrd *nout, Nrrd *nin, float scale, float thresh) {
       ELL_3M_ZERO_SET(nine);
       continue;
     }
-    TEN_LIST2MAT(nine, seven);
+    TEN_T2M(nine, seven);
     ELL_3M_SCALE(nine, scale, nine);
   }
   if (nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_SIZE_BIT)) {
@@ -162,7 +162,7 @@ tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine) {
   nine = tnine->data;
   N = sx*sy*sz;
   for (I=0; I<N; I++) {
-    TEN_MAT2LIST(seven, nine);
+    TEN_M2T(seven, nine);
     seven[0] = conf ? conf[I] : 1.0;
     seven += 7;
     nine += 9;
@@ -197,7 +197,7 @@ tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
   double m[9], eval[3], evec[9], trc, iso[9];
   int ret;
   
-  TEN_LIST2MAT(m, t);
+  TEN_T2M(m, t);
   trc = ELL_3M_TRACE(m)/3.0;
   ELL_3M_IDENTITY_SET(iso);
   ELL_3M_SCALE(iso, trc, iso);
@@ -297,7 +297,7 @@ tenMakeOne(float ten[7], float conf, float eval[3], float evec[9]) {
   ELL_3M_MUL(tmpMat1, diag, evec);
   ELL_3M_MUL(tmpMat2, evecT, tmpMat1);
   ten[0] = conf;
-  TEN_MAT2LIST(ten, tmpMat2);
+  TEN_M2T(ten, tmpMat2);
   return;
 }
 
@@ -472,4 +472,45 @@ tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos, int dim) {
   return 0;
 }
 
+void
+tenShapeGradients_d(double mean[7],
+		    double var[7], double *varNorm,
+		    double skew[7], double *skewNorm,
+		    double evec[9], double eval[9], int *didEigen,
+		    double ten[7]) {
+  double meanDot, varDot;
+#define Txx (ten[1])
+#define Txy (ten[2])
+#define Txz (ten[3])
+#define Tyy (ten[4])
+#define Tyz (ten[5])
+#define Tzz (ten[6])
 
+  /* 0.57735027 == 1/sqrt(3) */
+  TEN_T_SET(mean, ten[0],
+	    0.57735027, 0, 0, 
+	    0.57735027, 0, 
+	    0.57735027);
+  TEN_T_SET(var, ten[0],
+	    2*Txx - Tyy - Tzz, 3*Txy, 3*Txz,
+	    2*Tyy - Txx - Tzz, 3*Tyz,
+	    2*Tzz - Txx - Tyy);
+  *varNorm = TEN_T_NORM(var);
+  if (*varNorm) {
+    TEN_T_SCALE(var, 1.0/(*varNorm), var);
+  }
+  TEN_T_SET(skew, ten[0],
+	    Tyy*Tzz - Tyz*Tyz, Txz*Tyz - Txy*Tzz, Txy*Tyz - Txz*Tyy,
+	    Txx*Tzz - Txz*Txz, Txy*Txz - Tyz*Txx,
+	    Txx*Tyy - Txy*Txy);
+  meanDot = TEN_T_DOT(skew, mean);
+  varDot = TEN_T_DOT(skew, var);
+  TEN_T_SCALE_INCR2(skew, -meanDot, mean, -varDot, var);
+  *skewNorm = TEN_T_NORM(skew);
+  if (*skewNorm) {
+    TEN_T_SCALE(skew, 1.0/(*skewNorm), skew);
+  }
+  
+  *didEigen = AIR_FALSE;
+  return;
+}

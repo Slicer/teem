@@ -169,7 +169,7 @@ main(int argc, char *argv[]) {
       tdata = (float*)nten->data + 
 	7*(2*(samp-1-xi) - (samp-1-yi) + (2*samp-1)*((samp-1-yi) + samp));
       tdata[0] = 1.0;
-      TEN_MAT2LIST(tdata, mT);
+      TEN_M2T(tdata, mT);
     }
   }
   nten->axis[1].spacing = 1;

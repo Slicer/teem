@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 /* 
-******** TEN_LIST2MAT, TEN_MAT2LIST
+******** TEN_T2M, TEN_M2T
 **
 ** for going between 7-element list and 9-element matrix
 ** representations of a symmetric tensor
@@ -39,48 +39,52 @@ extern "C" {
 **
 ** As in ell, the matrix ordering is given by:
 **
-**   0  3  6
-**   1  4  7
-**   2  5  8
+**   0  1  2
+**   3  4  5
+**   6  7  8
 **
-** Note that TEN_MAT2LIST does NOT set the threshold element (index 0),
-** and that the threshold value plays no role in TEN_LIST2MAT.
+** Note that TEN_M2T does NOT set the threshold element (index 0),
+** and that the threshold value plays no role in TEN_T2M.
 */
 
-#define TEN_LIST2MAT(m, l) ( \
-   (m)[0] = (l)[1],          \
-   (m)[1] = (l)[2],          \
-   (m)[2] = (l)[3],          \
-   (m)[3] = (l)[2],          \
-   (m)[4] = (l)[4],          \
-   (m)[5] = (l)[5],          \
-   (m)[6] = (l)[3],          \
-   (m)[7] = (l)[5],          \
-   (m)[8] = (l)[6] )
+#define TEN_T2M(m, t) ( \
+   (m)[0] = (t)[1], (m)[1] = (t)[2], (m)[2] = (t)[3], \
+   (m)[3] = (t)[2], (m)[4] = (t)[4], (m)[5] = (t)[5], \
+   (m)[6] = (t)[3], (m)[7] = (t)[5], (m)[8] = (t)[6] )
 
-#define TEN_MAT2LIST(l, m) ( \
-   (l)[1] = (m)[0],          \
-   (l)[2] = (m)[3],          \
-   (l)[3] = (m)[6],          \
-   (l)[4] = (m)[4],          \
-   (l)[5] = (m)[7],          \
-   (l)[6] = (m)[8] )
+#define TEN_M2T(t, m) ( \
+   (t)[1] = (m)[0], (t)[2] = (m)[1], (t)[3] = (m)[2], \
+                    (t)[4] = (m)[4], (t)[5] = (m)[5], \
+                                     (t)[6] = (m)[8] )
 
-#define TEN_LIST_COPY(d, s) ( \
-   (d)[0] = (s)[0],           \
-   (d)[1] = (s)[1],           \
-   (d)[2] = (s)[2],           \
-   (d)[3] = (s)[3],           \
-   (d)[4] = (s)[4],           \
-   (d)[5] = (s)[5],           \
+#define TEN_T_SET(t, conf, a, b, c, d, e, f) ( \
+   (t)[0] = (conf), \
+   (t)[1] = (a), (t)[2] = (b), (t)[3] = (c), \
+                 (t)[4] = (d), (t)[5] = (e), \
+                               (t)[6] = (f) )
+
+#define TEN_T_COPY(d, s) ( \
+   (d)[0] = (s)[0], \
+   (d)[1] = (s)[1], \
+   (d)[2] = (s)[2], \
+   (d)[3] = (s)[3], \
+   (d)[4] = (s)[4], \
+   (d)[5] = (s)[5], \
    (d)[6] = (s)[6] )
 
-#define TEN_LIST_DET(l) ( \
-  (l)[1]*((l)[4]*(l)[6] - (l)[5]*(l)[5]) \
-  + (l)[2]*((l)[5]*(l)[3] - (l)[2]*(l)[6]) \
-  + (l)[3]*((l)[2]*(l)[5] - (l)[3]*(l)[4]))
+#define TEN_T_DET(t) ( \
+  (t)[1]*((t)[4]*(t)[6] - (t)[5]*(t)[5]) \
+  + (t)[2]*((t)[5]*(t)[3] - (t)[2]*(t)[6]) \
+  + (t)[3]*((t)[2]*(t)[5] - (t)[3]*(t)[4]))
 
-#define TEN_LIST_SCALE(a, s, b) ( \
+#define TEN_T_DOT(A, B) ( \
+  (A)[1]*(B)[1] + 2*(A)[2]*(B)[2] + 2*(A)[3]*(B)[3] \
+                +   (A)[4]*(B)[4] + 2*(A)[5]*(B)[5] \
+                                  +   (A)[6]*(B)[6] )
+
+#define TEN_T_NORM(A) (sqrt(TEN_T_DOT(A,A)))
+
+#define TEN_T_SCALE(a, s, b) ( \
    (a)[0] = (b)[0],               \
    (a)[1] = (s)*(b)[1],           \
    (a)[2] = (s)*(b)[2],           \
@@ -89,10 +93,28 @@ extern "C" {
    (a)[5] = (s)*(b)[5],           \
    (a)[6] = (s)*(b)[6])
 
-#define TEN_3VLIST_MUL(b, l, a) (                         \
-  (b)[0] = (l)[1]*(a)[0] + (l)[2]*(a)[1] + (l)[3]*(a)[2], \
-  (b)[1] = (l)[2]*(a)[0] + (l)[4]*(a)[1] + (l)[5]*(a)[2], \
-  (b)[2] = (l)[3]*(a)[0] + (l)[5]*(a)[1] + (l)[6]*(a)[2])
+#define TEN_T_SCALE_INCR(a, s, b) ( \
+   (a)[0] = (b)[0],               \
+   (a)[1] += (s)*(b)[1],          \
+   (a)[2] += (s)*(b)[2],          \
+   (a)[3] += (s)*(b)[3],          \
+   (a)[4] += (s)*(b)[4],          \
+   (a)[5] += (s)*(b)[5],          \
+   (a)[6] += (s)*(b)[6])
+
+#define TEN_T_SCALE_INCR2(a, s, b, t, c) ( \
+   (a)[0] = AIR_MIN((b)[0], c[0]),    \
+   (a)[1] += (s)*(b)[1] + (t)*(c)[1], \
+   (a)[2] += (s)*(b)[2] + (t)*(c)[2], \
+   (a)[3] += (s)*(b)[3] + (t)*(c)[3], \
+   (a)[4] += (s)*(b)[4] + (t)*(c)[4], \
+   (a)[5] += (s)*(b)[5] + (t)*(c)[5], \
+   (a)[6] += (s)*(b)[6] + (t)*(c)[6])
+
+#define TEN_T3V_MUL(b, t, a) (                            \
+  (b)[0] = (t)[1]*(a)[0] + (t)[2]*(a)[1] + (t)[3]*(a)[2], \
+  (b)[1] = (t)[2]*(a)[0] + (t)[4]*(a)[1] + (t)[5]*(a)[2], \
+  (b)[2] = (t)[3]*(a)[0] + (t)[5]*(a)[1] + (t)[6]*(a)[2])
 
 #ifdef __cplusplus
 }

@@ -120,7 +120,7 @@ tend_helixDoit(Nrrd *nout, float bnd,
 	ELL_3M_MUL(mB, C2H, mA);
 	ELL_3M_MUL(mA, H2W, mB);
 	
-       	TEN_MAT2LIST(out + 7*idx, mA);
+       	TEN_M2T(out + 7*idx, mA);
 	(out + 7*idx)[0] = 1.0;
       }
     }
