@@ -56,7 +56,7 @@ coilContextNew() {
     cctx->nvol = NULL;
     cctx->finished = AIR_FALSE;
     cctx->task = NULL;
-    cctx->finishBarrier = NULL;
+    cctx->nextSliceMutex = NULL;
     cctx->filterBarrier = NULL;
     cctx->updateBarrier = NULL;
   }
@@ -206,6 +206,7 @@ coilContext *
 coilContextNix(coilContext *cctx) {
 
   if (cctx) {
+    /* thread machinery destroyed with coilFinish() */
     cctx->nvol = nrrdNuke(cctx->nvol);
     cctx = airFree(cctx);
   }

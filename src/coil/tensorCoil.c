@@ -20,7 +20,7 @@
 #include "coil.h"
 
 void
-_coilKind7TensorFilterTesting(coil_t *delta, coil_t *iv3, 
+_coilKind7TensorFilterTesting(coil_t *delta, coil_t **iv3, 
 			      double spacing[3],
 			      double parm[COIL_PARMS_NUM]) {
   delta[0] = 0;
@@ -33,9 +33,9 @@ _coilKind7TensorFilterTesting(coil_t *delta, coil_t *iv3,
 }
 
 void
-_coilKind7TensorFilterIsotropic(coil_t *delta, coil_t *iv3, 
-				double spacing[3],
-				double parm[COIL_PARMS_NUM]) {
+_coilKind7TensorFilterHomogeneous(coil_t *delta, coil_t **iv3, 
+				  double spacing[3],
+				  double parm[COIL_PARMS_NUM]) {
   
 }
 
@@ -57,7 +57,7 @@ _coilKindTensor = {
   7,
   {NULL,
    _coilKind7TensorFilterTesting,
-   _coilKind7TensorFilterIsotropic,
+   _coilKind7TensorFilterHomogeneous,
    NULL,
    NULL,
    NULL},

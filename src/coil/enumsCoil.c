@@ -23,8 +23,8 @@ char
 _coilMethodTypeStr[COIL_METHOD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_method)",
   "testing",
-  "isotropic",
-  "anisotropic",
+  "homogeneous",
+  "perona-malik",
   "modified curvature",
   "curvature flow"
 };
@@ -33,8 +33,8 @@ char
 _coilMethodTypeDesc[COIL_METHOD_TYPE_MAX+1][AIR_STRLEN_MED] = {
   "unknown_method",
   "nothing, actually, just here for testing",
-  "isotropic diffusion (Gaussian blurring)",
-  "anisotropic diffusion (Perona-Malik)",
+  "homogenous isotropic diffusion (Gaussian blurring)",
+  "Perona-Malik",
   "modified curvature diffusion",
   "curvature flow"
 };
@@ -42,8 +42,8 @@ _coilMethodTypeDesc[COIL_METHOD_TYPE_MAX+1][AIR_STRLEN_MED] = {
 char
 _coilMethodTypeStrEqv[][AIR_STRLEN_SMALL] = {
   "test", "testing",
-  "iso", "isotropic",
-  "aniso", "anisotropic",
+  "homog", "homogeneous",
+  "pm", "perona-malik",
   "mcde",
   "flow", 
   ""
@@ -52,8 +52,8 @@ _coilMethodTypeStrEqv[][AIR_STRLEN_SMALL] = {
 int
 _coilMethodTypeValEqv[] = {
   coilMethodTypeTesting, coilMethodTypeTesting,
-  coilMethodTypeIsotropic, coilMethodTypeIsotropic,
-  coilMethodTypeAnisotropic, coilMethodTypeAnisotropic,
+  coilMethodTypeHomogeneous, coilMethodTypeHomogeneous,
+  coilMethodTypePeronaMalik, coilMethodTypePeronaMalik,
   coilMethodTypeModifiedCurvature,
   coilMethodTypeCurvatureFlow
 };

@@ -28,22 +28,30 @@ _coilMethodTesting = {
 const coilMethod*
 coilMethodTesting = &_coilMethodTesting;
 
-
 const coilMethod
-_coilMethodIsotropic = {
-  "isotropic",
-  coilMethodTypeIsotropic,
+_coilMethodHomogeneous = {
+  "homogeneous",
+  coilMethodTypeHomogeneous,
   1
 };
 const coilMethod*
-coilMethodIsotropic = &_coilMethodIsotropic;
+coilMethodHomogeneous = &_coilMethodHomogeneous;
+
+const coilMethod
+_coilMethodPeronaMalik = {
+  "perona-malik",
+  coilMethodTypePeronaMalik,
+  2
+};
+const coilMethod*
+coilMethodPeronaMalik = &_coilMethodPeronaMalik;
 
 const coilMethod*
 coilMethodArray[COIL_METHOD_TYPE_MAX+1] = {
   NULL,
   &_coilMethodTesting,
-  &_coilMethodIsotropic,
-  NULL,
+  &_coilMethodHomogeneous,
+  &_coilMethodPeronaMalik,
   NULL,
   NULL
 };

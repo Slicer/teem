@@ -71,7 +71,7 @@ main(int argc, char *argv[]) {
   }
   if (coilContextAllSet(cctx, nin,
 			coilKindScalar, coilMethodArray[methodType],
-			radius, numThreads, AIR_TRUE,
+			radius, numThreads, 1 /* verbose */,
 			parm)
       || coilStart(cctx)
       || coilIterate(cctx, numIters)

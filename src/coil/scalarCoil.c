@@ -19,44 +19,100 @@
 
 #include "coil.h"
 
-/*
-**  x ----> X
-**   \   0  1  2 
-**  |  \   3  4  5
-**  |    Y   6  7  8
-**  |
-**  |    9 10 11   
-**  Z      12 13 14
-**           15 16 17
-**  
-**       18 19 20
-**         21 22 23
-**           24 25 26
-*/
-
 coil_t
-_coilLaplacian3(coil_t *iv3, double spacing[3]) {
+_coilLaplacian3(coil_t **iv3, double spacing[3]) {
   
-  return ((iv3[12] - 2*iv3[13] + iv3[14])/(spacing[0]*spacing[0])
-	  + (iv3[10] - 2*iv3[13] + iv3[16])/(spacing[1]*spacing[1])
-	  + (iv3[ 4] - 2*iv3[13] + iv3[22])/(spacing[2]*spacing[2]));
+  return (  (iv3[0][4] - 2*iv3[1][4] + iv3[2][4])/(spacing[0]*spacing[0])
+	  + (iv3[1][3] - 2*iv3[1][4] + iv3[1][5])/(spacing[1]*spacing[1])
+	  + (iv3[1][1] - 2*iv3[1][4] + iv3[1][7])/(spacing[2]*spacing[2]));
 }
 
 void
-_coilKindScalarFilterTesting(coil_t *delta, coil_t *iv3, 
+_coilKindScalarFilterTesting(coil_t *delta, coil_t **iv3, 
 			     double spacing[3],
 			     double parm[COIL_PARMS_NUM]) {
   delta[0] = 0;
 }
 
 void
-_coilKindScalarFilterIsotropic(coil_t *delta, coil_t *iv3,
-			       double spacing[3],
-			       double parm[COIL_PARMS_NUM]) {
-  coil_t lapl;
+_coilKindScalarFilterHomogeneous(coil_t *delta, coil_t **iv3,
+				 double spacing[3],
+				 double parm[COIL_PARMS_NUM]) {
+  
+  delta[0] = parm[0]*_coilLaplacian3(iv3, spacing);
+}
 
-  lapl = _coilLaplacian3(iv3, spacing);
-  delta[0] = parm[0]*lapl;
+/*
+**  x ----> X
+**   \   [0][0]  [1][0]  [2][0]
+**  |  \   [0][1]  [1][1]  [2][1]
+**  |    Y   [0][2]  [1][2]  [2][2]
+**  |
+**  |    [0][3]  [1][3]  [2][3]
+**  Z      [0][4]  [1][4]  [2][4]
+**           [0][5]  [1][5]  [2][5]
+**  
+**       [0][6]  [1][6]  [2][6]
+**         [0][7]  [1][7]  [2][7]
+**           [0][8]  [1][8]  [2][8]
+*/
+
+void
+_coilKindScalarFilterPeronaMalik(coil_t *delta, coil_t **i,
+				 double spacing[3],
+				 double parm[COIL_PARMS_NUM]) {
+  coil_t forwX[3], backX[3], forwY[3], backY[3], forwZ[3], backZ[3], 
+    KK, rspX, rspY, rspZ;
+
+  /* reciprocals of spacings in X, Y, and Z */
+  rspX = 1.0/spacing[0];
+  rspY = 1.0/spacing[1];
+  rspZ = 1.0/spacing[2];
+
+  /* gradients at forward and backward X */
+  forwX[0] = rspX*(i[2][4] - i[1][4]);
+  forwX[1] = rspY*(i[1][5] + i[2][5] - i[1][3] - i[2][3])/2;
+  forwX[2] = rspZ*(i[1][7] + i[2][7] - i[1][1] - i[2][1])/2;
+  backX[0] = rspX*(i[1][4] - i[0][4]);
+  backX[1] = rspY*(i[0][5] + i[1][5] - i[0][3] - i[1][3])/2;
+  backX[2] = rspZ*(i[0][7] + i[1][7] - i[0][1] - i[1][1])/2;
+
+  /* gradients at forward and backward Y */
+  forwY[0] = rspX*(i[2][4] + i[2][5] - i[0][4] - i[0][5])/2;
+  forwY[1] = rspY*(i[1][5] - i[1][4]);
+  forwY[2] = rspZ*(i[1][7] + i[1][8] - i[1][1] - i[1][2])/2;
+  backY[0] = rspX*(i[2][3] + i[2][4] - i[0][3] - i[0][4])/2;
+  backY[1] = rspY*(i[1][4] - i[1][3]);
+  backY[2] = rspZ*(i[1][6] + i[1][7] - i[1][0] - i[1][1])/2;
+
+  /* gradients at forward and backward Z */
+  forwZ[0] = rspX*(i[2][4] + i[2][7] - i[0][4] - i[0][7])/2;
+  forwZ[1] = rspY*(i[1][5] + i[1][8] - i[1][3] - i[1][6])/2;
+  forwZ[2] = rspZ*(i[1][7] - i[1][4]);
+  backZ[0] = rspX*(i[2][1] + i[2][4] - i[0][1] - i[0][4])/2;
+  backZ[1] = rspY*(i[1][2] + i[1][5] - i[1][0] - i[1][3])/2;
+  backZ[2] = rspZ*(i[1][4] - i[1][1]);
+
+  /* compute fluxes */
+  KK = parm[1]*parm[1];
+  /*
+  forwX[0] *= 1.0/(1.0 + ELL_3V_DOT(forwX, forwX)/KK);
+  forwY[1] *= 1.0/(1.0 + ELL_3V_DOT(forwY, forwY)/KK);
+  forwZ[2] *= 1.0/(1.0 + ELL_3V_DOT(forwZ, forwZ)/KK);
+  backX[0] *= 1.0/(1.0 + ELL_3V_DOT(backX, backX)/KK);
+  backY[1] *= 1.0/(1.0 + ELL_3V_DOT(backY, backY)/KK);
+  backZ[2] *= 1.0/(1.0 + ELL_3V_DOT(backZ, backZ)/KK);
+  */
+  forwX[0] *= exp(-0.5*ELL_3V_DOT(forwX, forwX)/KK);
+  forwY[1] *= exp(-0.5*ELL_3V_DOT(forwY, forwY)/KK);
+  forwZ[2] *= exp(-0.5*ELL_3V_DOT(forwZ, forwZ)/KK);
+  backX[0] *= exp(-0.5*ELL_3V_DOT(backX, backX)/KK);
+  backY[1] *= exp(-0.5*ELL_3V_DOT(backY, backY)/KK);
+  backZ[2] *= exp(-0.5*ELL_3V_DOT(backZ, backZ)/KK);
+
+  delta[0] = parm[0]*(rspX*(forwX[0] - backX[0])
+		      + rspY*(forwY[1] - backY[1])
+		      + rspZ*(forwZ[2] - backZ[2]));
 }
 
 void
@@ -71,8 +127,8 @@ _coilKindScalar = {
   1,
   {NULL,
    _coilKindScalarFilterTesting,
-   _coilKindScalarFilterIsotropic,
-   NULL,
+   _coilKindScalarFilterHomogeneous,
+   _coilKindScalarFilterPeronaMalik,
    NULL,
    NULL},
   _coilKindScalarUpdate

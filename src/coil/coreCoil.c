@@ -19,41 +19,111 @@
 
 #include "coil.h"
 
+#define _COIL_IV3_FILL(radius, diam, valLen) \
+  if (0 && x0) { \
+    /* cycle through slices */ \
+    tmp = iv3[0]; \
+    for (xni=0; xni<diam-1; xni++) { \
+      iv3[xni] = iv3[xni+1]; \
+    } \
+    iv3[diam-1] = tmp; \
+    /* refill only newest one */ \
+    xni = diam-1; \
+    xvi = AIR_CLAMP(0, xni-radius+x0, sizeX-1) - x0; \
+    for (zni=0; zni<diam; zni++) { \
+      zvi = AIR_CLAMP(0, zni-radius+z0, sizeZ-1) - z0; \
+      for (yni=0; yni<diam; yni++) { \
+	yvi = AIR_CLAMP(0, yni-radius+y0, sizeY-1) - y0; \
+	for (vi=0; vi<valLen; vi++) { \
+	  iv3[xni][vi + valLen*(yni + diam*zni)] =  \
+	    here[vi + valLen*(0 + 2*(xvi + sizeX*(yvi + sizeY*zvi)))]; \
+	} \
+      } \
+    } \
+  } else { \
+    /* have to re-fill entire thing */ \
+    for (zni=0; zni<diam; zni++) { \
+      zvi = AIR_CLAMP(0, zni-radius+z0, sizeZ-1) - z0; \
+      for (yni=0; yni<diam; yni++) { \
+	yvi = AIR_CLAMP(0, yni-radius+y0, sizeY-1) - y0; \
+	for (xni=0; xni<diam; xni++) { \
+	  xvi = AIR_CLAMP(0, xni-radius+x0, sizeX-1) - x0; \
+	  for (vi=0; vi<valLen; vi++) { \
+	    iv3[xni][vi + valLen*(yni + diam*zni)] =  \
+	      here[vi + valLen*(0 + 2*(xvi + sizeX*(yvi + sizeY*zvi)))]; \
+	  } \
+	} \
+      } \
+    } \
+  }
+
 /*
 ** 
 ** iv3 is: diam x diam x diam x valLen
+**
+** this should be parameterized on both radius and valLen
 */
 void
-_coilIv3Fill(coil_t *iv3, coil_t *here, int radius, int valLen,
-	     int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ) {
+_coilIv3Fill_R_L(coil_t **iv3, coil_t *here, int radius, int valLen,
+		 int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ) {
   int diam, vi,    /* value index */
     xni, yni, zni, /* neighborhood (iv3) indices */
     xvi, yvi, zvi; /* volume indices */
+  coil_t *tmp;
   
-  /* this should be parameterized on both radius and valLen */
-  /* this should shuffle values within iv3 when possible */
   diam = 1 + 2*radius;
-  for (zni=0; zni<diam; zni++) {
-    zvi = AIR_CLAMP(0, zni-radius+z0, sizeZ-1) - z0;
-    for (yni=0; yni<diam; yni++) {
-      yvi = AIR_CLAMP(0, yni-radius+y0, sizeY-1) - y0;
-      for (xni=0; xni<diam; xni++) {
-	xvi = AIR_CLAMP(0, xni-radius+x0, sizeX-1) - x0;
-	for (vi=0; vi<valLen; vi++) {
-	  iv3[xni + diam*(yni + diam*(zni + diam*vi))] = 
-	    here[vi + valLen*(0 + 2*(xvi + sizeX*(yvi + sizeY*zvi)))];
-	}
-      }
-    }
-  }
+  _COIL_IV3_FILL(radius, diam, valLen);
   return;
 }
 
 void
+_coilIv3Fill_1_1(coil_t **iv3, coil_t *here, int radius, int valLen,
+	     int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ) {
+  int vi,          /* value index */
+    xni, yni, zni, /* neighborhood (iv3) indices */
+    xvi, yvi, zvi; /* volume indices */
+  coil_t *tmp;
+
+  _COIL_IV3_FILL(1, 3, 1);
+  return;
+}
+
+int
+_coilThisZGet(coilTask *task, int doFilter) {
+  int thisZ, *thisFlag, *thatFlag;
+
+  if (doFilter) {
+    thisFlag = &(task->cctx->todoFilter);
+    thatFlag = &(task->cctx->todoUpdate);
+  } else {
+    thisFlag = &(task->cctx->todoUpdate);
+    thatFlag = &(task->cctx->todoFilter);
+  }
+
+  airThreadMutexLock(task->cctx->nextSliceMutex);
+  if (task->cctx->nextSlice == task->cctx->size[2]
+      && *thisFlag) {
+    /* we're the first thread to start this phase */
+    task->cctx->nextSlice = 0;
+    *thisFlag = AIR_FALSE;
+  }
+  thisZ = task->cctx->nextSlice;
+  if (task->cctx->nextSlice < task->cctx->size[2]) {
+    task->cctx->nextSlice++;
+    if (task->cctx->nextSlice == task->cctx->size[2]) {
+      /* we just grabbed the last slice of this phase */
+      *thatFlag = AIR_TRUE;
+    }
+  }
+  airThreadMutexUnlock(task->cctx->nextSliceMutex);
+  return thisZ;
+}
+
+void
 _coilProcess(coilTask *task, int doFilter) {
-  int xi, yi, zi, sizeX, sizeY, sizeZ, valLen, radius;
+  int xi, yi, sizeX, sizeY, thisZ, sizeZ, valLen, radius;
   coil_t *here;
-  void (*filter)(coil_t *delta, coil_t *iv3, 
+  void (*filter)(coil_t *delta, coil_t **iv3, 
 		 double spacing[3],
 		 double parm[COIL_PARMS_NUM]);
   
@@ -63,21 +133,30 @@ _coilProcess(coilTask *task, int doFilter) {
   valLen = task->cctx->kind->valLen;
   radius = task->cctx->radius;
   filter = task->cctx->kind->filter[task->cctx->method->type];
-  here = (coil_t*)(task->cctx->nvol->data);
-  here += 2*valLen*sizeX*sizeY*task->startZ;
   if (doFilter) {
-    for (zi=task->startZ; zi<=task->endZ; zi++) {
+    while (1) {
+      thisZ = _coilThisZGet(task, doFilter);
+      if (thisZ == sizeZ) {
+	break;
+      }
+      here = (coil_t*)(task->cctx->nvol->data) + 2*valLen*sizeX*sizeY*thisZ;
       for (yi=0; yi<sizeY; yi++) {
 	for (xi=0; xi<sizeX; xi++) {
-	  _coilIv3Fill(task->iv3, here + 0*valLen, radius, valLen,
-		       xi, yi, zi, sizeX, sizeY, sizeZ);
-	  filter(here + 1*valLen, task->iv3, task->cctx->spacing, task->cctx->parm);
+	  task->iv3Fill(task->iv3, here + 0*valLen, radius, valLen,
+			xi, yi, thisZ, sizeX, sizeY, sizeZ);
+	  filter(here + 1*valLen, task->iv3,
+		 task->cctx->spacing, task->cctx->parm);
 	  here += 2*valLen;
 	}
       }
     }
   } else {
-    for (zi=task->startZ; zi<=task->endZ; zi++) {
+    while (1) {
+      thisZ = _coilThisZGet(task, doFilter);
+      if (thisZ == sizeZ) {
+	break;
+      }
+      here = (coil_t*)(task->cctx->nvol->data) + 2*valLen*sizeX*sizeY*thisZ;
       for (yi=0; yi<sizeY; yi++) {
 	for (xi=0; xi<sizeX; xi++) {
 	  task->cctx->kind->update(here + 0*valLen, here + 1*valLen);
@@ -90,9 +169,9 @@ _coilProcess(coilTask *task, int doFilter) {
 }
 
 coilTask *
-_coilTaskNew(coilContext *cctx, int threadIdx, int sizeZ) {
+_coilTaskNew(coilContext *cctx, int threadIdx) {
   coilTask *task;
-  int len, diam;
+  int len, diam, xi;
 
   len = cctx->kind->valLen;
   diam = 1 + 2*cctx->radius;
@@ -100,10 +179,17 @@ _coilTaskNew(coilContext *cctx, int threadIdx, int sizeZ) {
   if (task) {
     task->cctx = cctx;
     task->thread = airThreadNew();
-    task->startZ = threadIdx*sizeZ/cctx->numThreads;
-    task->endZ = (threadIdx+1)*sizeZ/cctx->numThreads - 1;
     task->threadIdx = threadIdx;
-    task->iv3 = (coil_t*)calloc(len*diam*diam*diam, sizeof(coil_t));
+    task->_iv3 = (coil_t*)calloc(len*diam*diam*diam, sizeof(coil_t));
+    task->iv3 = (coil_t**)calloc(diam, sizeof(coil_t*));
+    for (xi=0; xi<diam; xi++) {
+      task->iv3[xi] = task->_iv3 + xi*len*diam*diam;
+    }
+    if (1 == cctx->radius && 1 == cctx->kind->valLen) {
+      task->iv3Fill = _coilIv3Fill_1_1;
+    } else {
+      task->iv3Fill = _coilIv3Fill_R_L;
+    }
     task->returnPtr = NULL;
   }
   return task;
@@ -114,6 +200,7 @@ _coilTaskNix(coilTask *task) {
 
   if (task) {
     task->thread = airThreadNix(task->thread);
+    task->_iv3 = airFree(task->_iv3);
     task->iv3 = airFree(task->iv3);
     free(task);
   }
@@ -129,34 +216,34 @@ _coilWorker(void *_task) {
 
   while (1) {
     /* wait until parent has set cctx->finished */
-    if (task->cctx->verbose) {
+    if (task->cctx->verbose > 1) {
       fprintf(stderr, "%s(%d): waiting to check finished\n",
 	      me, task->threadIdx);
     }
-    airThreadBarrierWait(task->cctx->finishBarrier);
+    airThreadBarrierWait(task->cctx->filterBarrier);
     if (task->cctx->finished) {
-      if (task->cctx->verbose) {
+      if (task->cctx->verbose > 1) {
 	fprintf(stderr, "%s(%d): done!\n", me, task->threadIdx);
       }
       break;
     }
-    /* else there's work */
+    /* else there's work to do ... */
 
     /* first: filter */
-    if (task->cctx->verbose) {
+    if (task->cctx->verbose > 1) {
       fprintf(stderr, "%s(%d): filtering ... \n",
 	      me, task->threadIdx);
     }
     _coilProcess(task, AIR_TRUE);
-    airThreadBarrierWait(task->cctx->filterBarrier);
 
     /* second: update */
-    if (task->cctx->verbose) {
+    airThreadBarrierWait(task->cctx->updateBarrier);
+    if (task->cctx->verbose > 1) {
       fprintf(stderr, "%s(%d): updating ... \n",
 	      me, task->threadIdx);
     }
     _coilProcess(task, AIR_FALSE);
-    airThreadBarrierWait(task->cctx->updateBarrier);
+
   }
 
   return _task;
@@ -181,7 +268,7 @@ coilStart(coilContext *cctx) {
   /* we create tasks for ALL threads, including me, thread 0 */
   cctx->task[0] = NULL;
   for (tidx=0; tidx<cctx->numThreads; tidx++) {
-    cctx->task[tidx] = _coilTaskNew(cctx, tidx, cctx->size[2]);
+    cctx->task[tidx] = _coilTaskNew(cctx, tidx);
     if (!(cctx->task[tidx])) {
       sprintf(err, "%s: couldn't allocate task %d", me, tidx);
       biffAdd(COIL, err); return 1;
@@ -190,23 +277,9 @@ coilStart(coilContext *cctx) {
   
   cctx->finished = AIR_FALSE;
   if (cctx->numThreads > 1) {
-    cctx->finishBarrier = airThreadBarrierNew(cctx->numThreads);
+    cctx->nextSliceMutex = airThreadMutexNew();
     cctx->filterBarrier = airThreadBarrierNew(cctx->numThreads);
     cctx->updateBarrier = airThreadBarrierNew(cctx->numThreads);
-  }
-
-  /* start threads 1 and up running (they won't get far) */
-  if (cctx->verbose) {
-    fprintf(stderr, "%s: parent doing slices Z=[%d,%d]\n", me, 
-	    cctx->task[0]->startZ, cctx->task[0]->endZ);
-  }
-  for (tidx=1; tidx<cctx->numThreads; tidx++) {
-    if (cctx->verbose) {
-      fprintf(stderr, "%s: spawning thread %d (Z=[%d,%d])\n", me, tidx,
-	      cctx->task[tidx]->startZ, cctx->task[tidx]->endZ);
-    }
-    airThreadStart(cctx->task[tidx]->thread, _coilWorker,
-		   (void *)(cctx->task[tidx]));
   }
 
   /* initialize the values in cctx->nvol */
@@ -225,20 +298,21 @@ coilStart(coilContext *cctx) {
     val += 2*valLen;
   }
   
-  return 0;
-}
-
-int
-_coilPause(int huge) {
-  int i, j, num;
-  
-  num = 0;
-  for (i=1; i<huge; i++) {
-    for (j=0; j<huge; j++) {
-      num *= i;
+  /* start threads 1 and up running; they'll all hit filterBarrier  */
+  for (tidx=1; tidx<cctx->numThreads; tidx++) {
+    if (cctx->verbose > 1) {
+      fprintf(stderr, "%s: spawning thread %d\n", me, tidx);
     }
+    airThreadStart(cctx->task[tidx]->thread, _coilWorker,
+		   (void *)(cctx->task[tidx]));
   }
-  return num;
+
+  /* set things as though we've just finished an update phase */
+  cctx->nextSlice = cctx->size[2];
+  cctx->todoFilter = AIR_TRUE;
+  cctx->todoUpdate = AIR_FALSE;
+  
+  return 0;
 }
 
 /*
@@ -252,38 +326,44 @@ int
 coilIterate(coilContext *cctx, int numIterations) {
   char me[]="coilIterate", err[AIR_STRLEN_MED];
   int iter;
+  double time0, time1;
 
   if (!cctx) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(COIL, err); return 1;
   }
   
+  time0 = airTime();
   for (iter=0; iter<numIterations; iter++) {
     if (cctx->verbose) {
-      fprintf(stderr, "%s: starting iter %d\n", me, iter);
+      fprintf(stderr, "%s: starting iter %d (of %d)\n", me, iter, 
+	      numIterations);
     }
     cctx->finished = AIR_FALSE;
     if (cctx->numThreads > 1) {
-      airThreadBarrierWait(cctx->finishBarrier);
+      airThreadBarrierWait(cctx->filterBarrier);
     }
     
     /* first: filter */
-    if (cctx->verbose) {
+    if (cctx->verbose > 1) {
       fprintf(stderr, "%s: filtering ... \n", me);
     }
     _coilProcess(cctx->task[0], AIR_TRUE);
-    if (cctx->numThreads > 1) {
-      airThreadBarrierWait(cctx->filterBarrier);
-    }
 
     /* second: update */
-    if (cctx->verbose) {
+    if (cctx->verbose > 1) {
       fprintf(stderr, "%s: updating ... \n", me);
     }
-    _coilProcess(cctx->task[0], AIR_FALSE);
     if (cctx->numThreads > 1) {
       airThreadBarrierWait(cctx->updateBarrier);
     }
+    _coilProcess(cctx->task[0], AIR_FALSE);
+
+  }
+  time1 = airTime();
+  if (cctx->verbose) {
+    fprintf(stderr, "%s: elapsed time = %g (%g/iter)\n", me,
+	    time1 - time0, (time1 - time0)/numIterations);
   }
   return 0;
 }
@@ -298,12 +378,12 @@ coilFinish(coilContext *cctx) {
     biffAdd(COIL, err); return 1;
   }
 
-  if (cctx->verbose) {
+  if (cctx->verbose > 1) {
     fprintf(stderr, "%s: finishing workers\n", me);
   }
   cctx->finished = AIR_TRUE;
   if (cctx->numThreads > 1) {
-    airThreadBarrierWait(cctx->finishBarrier);
+    airThreadBarrierWait(cctx->filterBarrier);
   }
   for (tidx=1; tidx<cctx->numThreads; tidx++) {
     airThreadJoin(cctx->task[tidx]->thread, &(cctx->task[tidx]->returnPtr));
@@ -313,6 +393,12 @@ coilFinish(coilContext *cctx) {
   cctx->task[0]->thread = airThreadNix(cctx->task[0]->thread);
   cctx->task[0] = _coilTaskNix(cctx->task[0]);
   cctx->task = airFree(cctx->task);
+
+  if (cctx->numThreads > 1) {
+    cctx->nextSliceMutex = airThreadMutexNix(cctx->nextSliceMutex);
+    cctx->filterBarrier = airThreadBarrierNix(cctx->filterBarrier);
+    cctx->updateBarrier = airThreadBarrierNix(cctx->updateBarrier);
+  }
 
   return 0;
 }

@@ -71,8 +71,8 @@ typedef float coil_t;
 enum {
   coilMethodTypeUnknown,            /* 0 */
   coilMethodTypeTesting,            /* 1: basically a no-op */
-  coilMethodTypeIsotropic,          /* 2 */
-  coilMethodTypeAnisotropic,        /* 3 */
+  coilMethodTypeHomogeneous,        /* 2 */
+  coilMethodTypePeronaMalik,        /* 3 */
   coilMethodTypeModifiedCurvature,  /* 4 */
   coilMethodTypeCurvatureFlow,      /* 5 */
   coilMethodTypeLast
@@ -123,7 +123,7 @@ typedef struct {
 				       1 for plain scalars (baseDim=0),
 				       or something else (baseDim=1) */
                                     /* all the available methods */
-  void (*filter[COIL_METHOD_TYPE_MAX+1])(coil_t *delta, coil_t *iv3,
+  void (*filter[COIL_METHOD_TYPE_MAX+1])(coil_t *delta, coil_t **iv3,
 					 double spacing[3],
 					 double parm[COIL_PARMS_NUM]);
   void (*update)(coil_t *val, coil_t *delta); /* how to apply update */
@@ -139,12 +139,15 @@ struct coilContext_t;
 typedef struct {
   struct coilContext_t *cctx;      /* parent's context */
   airThread *thread;               /* my thread */
-  int threadIdx,                   /* which thread am I */
-    startZ, endZ;                  /* my index range (inclusive) of slices */
-  coil_t *iv3;                     /* cache of local values, ordering same
-				      as in gage: any multiple values per
-				      voxel are the slowest axis, not the
-				      fastest */
+  int threadIdx;                   /* which thread am I */
+  coil_t *_iv3,                    /* underlying value cache */
+    **iv3;                         /* short array of pointers into 2-D value
+				      caches, in which the order is based on
+				      the volume order:
+				      values, then Y, then Z */
+                                   /* how to fill iv3 */
+  void (*iv3Fill)(coil_t **iv3, coil_t *here, int radius, int valLen,
+		  int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ);
   void *returnPtr;                 /* for airThreadJoin */
 } coilTask;
 
@@ -173,14 +176,21 @@ typedef struct coilContext_t {
   Nrrd *nvol;                      /* an interleaved volume of (1st) the last
 				      filtering result, and (2nd) the update
 				      values from the current iteration */
-  int finished;                    /* used to signal all threads to return */
+  int finished,                    /* used to signal all threads to return */
+    nextSlice,                     /* global indicator of next slice needing
+				      to be processed, either in filter or
+				      in update stage.  Stage is done when
+				      nextSlice == size[2] */
+    todoFilter, todoUpdate;        /* flags to signal which is scheduled to
+				      come next, used as part of doling out
+				      slices to workers */
+  airThreadMutex *nextSliceMutex;  /* mutex around nextSlice (and effectively,
+				      also the "todo" flags above) */
   coilTask **task;                 /* dynamically allocated array of tasks */
-  airThreadBarrier *filterBarrier, /* for when filtering is done, and the
-				      "update" values have been set */
-    *updateBarrier,                /* after the update values have been
-				      applied to current values */
-    *finishBarrier;                /* so that thread 0 can see if filtering
+  airThreadBarrier *filterBarrier, /* so that thread 0 can see if filtering
 				      should go onward, and set "finished" */
+    *updateBarrier;                /* after the update values have been
+				      applied to current values */
 } coilContext;
 
 /* defaultsCoil.c */
