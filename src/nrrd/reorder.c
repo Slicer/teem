@@ -210,17 +210,16 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes) {
     /* if lowPax == dim, then we were given the identity permutation, so
        there's nothing to do other than the copy already done.  Otherwise,
        here we are (actually, lowPax < dim-1) */
-    /* printf("!%s: lowPax = %d\n", me, lowPax); */
-    
-    /* copy axis info */
+    nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, szIn);
     if (nrrdAxisInfoCopy(nout, nin, axes, NRRD_AXIS_INFO_NONE)) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
+    nrrdAxisInfoGet_nva(nout, nrrdAxisInfoSize, szOut);
     /* the skinny */
     lineSize = 1;
     for (d=0; d<lowPax; d++) {
-      lineSize *= nin->axis[d].size;
+      lineSize *= szIn[d];
     }
     numLines = nrrdElementNumber(nin)/lineSize;
     lineSize *= nrrdElementSize(nin);
@@ -256,16 +255,18 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
-    if (nrrdBasicInfoCopy(nout, nin,
-                          NRRD_BASIC_INFO_DATA_BIT
-                          | NRRD_BASIC_INFO_TYPE_BIT
-                          | NRRD_BASIC_INFO_BLOCKSIZE_BIT
-                          | NRRD_BASIC_INFO_DIMENSION_BIT
-                          | NRRD_BASIC_INFO_CONTENT_BIT
-                          | NRRD_BASIC_INFO_COMMENTS_BIT
-                          | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
-      sprintf(err, "%s:", me);
-      biffAdd(NRRD, err); airMopError(mop); return 1;
+    if (nout != nin) {
+      if (nrrdBasicInfoCopy(nout, nin,
+                            NRRD_BASIC_INFO_DATA_BIT
+                            | NRRD_BASIC_INFO_TYPE_BIT
+                            | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                            | NRRD_BASIC_INFO_DIMENSION_BIT
+                            | NRRD_BASIC_INFO_CONTENT_BIT
+                            | NRRD_BASIC_INFO_COMMENTS_BIT
+                            | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+        sprintf(err, "%s:", me);
+        biffAdd(NRRD, err); airMopError(mop); return 1;
+      }
     }
   }
   airMopOkay(mop); 
@@ -1149,34 +1150,20 @@ int
 nrrdTile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
            int axSplit, int sizeFast, int sizeSlow) {
   char me[]="nrrdTile2D", err[AIR_STRLEN_MED];
-  Nrrd *ntmp;
   int E, axis[NRRD_DIM_MAX], i, pindex, ax0merge, ax1merge;
-  airArray *mop;
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
 
-  /* I'm not sure how to handle if ax1 == ax0.  I think for now, I
-     will prohibit it as it doesn't make sense to tile to the same
-     axis. */
+  /* I'm not sure how to handle if ax1 == ax0.  For now, prohibit it 
+     since it doesn't make sense to tile to the same axis. */
   if (ax0 == ax1) {
     sprintf(err, "%s: ax0 (%d) cannot equal ax1 (%d)", me, ax0, ax1);
     biffAdd(NRRD, err); return 1;
   }
   
-  /* This is the temporary nrrd used for intermediate values. */
-  ntmp = nrrdNew();
-  if (!ntmp) {
-    sprintf(err, "%s: failed to allocate temporary nrrd", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  mop = airMopNew();
-  airMopAdd(mop, ntmp, (airMopper)nrrdNix, airMopAlways);
-
-  /* Use _nrrdCopyShallow to just copy the header information without
-     copying the data. */
   if (nout != nin) {
     if (_nrrdCopy(nout, nin, (NRRD_BASIC_INFO_COMMENTS_BIT
                               | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
@@ -1184,32 +1171,17 @@ nrrdTile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
       biffAdd(NRRD, err); return 1;
     }
   }
-  E = AIR_FALSE;
-  /*
-  if (!E) E |= _nrrdCopyShallow(ntmp, nin);
-  */
 
   /* Split the axis we will tile */
-  /* if (!E) E |= nrrdAxesSplit(ntmp, ntmp, axSplit, sizeFast, sizeSlow); */
-  if (!E) E |= nrrdAxesSplit(nout, nout, axSplit, sizeFast, sizeSlow);
-
-  /* We'll go ahead now and check for errors now as there is a lot of
-     computation before the next nrrd call. */
-  if (E) {
+  if (nrrdAxesSplit(nout, nout, axSplit, sizeFast, sizeSlow)) {
     sprintf(err, "%s: trouble with initial set-up", me);
-    biffAdd(NRRD, err);
-    airMopError(mop);
-    return 1;
+    biffAdd(NRRD, err); return 1;
   }
   
-  /* update ax0 and ax1.  If the split axis was below ax0 or ax1 we
-     need to increment them */
-  if (axSplit < ax0) {
-    ax0++;
-  }
-  if (axSplit < ax1) {
-    ax1++;
-  }
+  /* increment ax0 and ax1 if they're above axSplit, since the
+     previous axis split has bumped up the corresponding axes */
+  ax0 += (axSplit < ax0);
+  ax1 += (axSplit < ax1);
   
   /******************************************************/
   /* Permute the axis.  This is the tricky part. */
@@ -1225,7 +1197,6 @@ nrrdTile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
   ax1merge = -1;
   /* The idea here is to loop over the input indices.  If the index
      is one of either ax0 or ax1 copy that index. */
-  /* for (i=0; i<ntmp->dim; i++) { */
   for (i=0; i<nout->dim; i++) {
     if (i == ax0) {
       axis[pindex] = i;
@@ -1249,33 +1220,27 @@ nrrdTile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
       pindex++;
     }
   }
-  /* */
+  /* Its slightly simpler to merge the slower axis first. */
+  if (ax0merge > ax1merge) {
+    int tmp = ax0merge;
+    ax0merge = ax1merge;
+    ax1merge = tmp;
+  }
+  /*
   fprintf(stderr, "%s: axis =", me); 
-  /* for (i=0; i<ntmp->dim; i++) { */
   for (i=0; i<nout->dim; i++) {
     fprintf(stderr, " %d", axis[i]);
   }
   fprintf(stderr, "; ax{0,1}merge = %d, %d\n", ax0merge, ax1merge);
-  /* */
+  */
 
-  /* if (!E) E |= nrrdAxesPermute(nout, ntmp, axis); */
+  E = AIR_FALSE;
   if (!E) E |= nrrdAxesPermute(nout, nout, axis);
-  
-  /* Join the axis */
-  if (!E) {
-    /* It's easier for bookkeeping if we merge the slower axis first. */
-    if (ax0merge > ax1merge) {
-      int axSwap = ax0merge;
-      ax0merge = ax1merge;
-      ax1merge = axSwap;
-    }
-    E |= nrrdAxesMerge(nout, nout, ax1merge);    
-  }
+  if (!E) E |= nrrdAxesMerge(nout, nout, ax1merge);    
   if (!E) E |= nrrdAxesMerge(nout, nout, ax0merge);
-
   if (E) {
     sprintf(err, "%s: trouble", me);
-    biffAdd(NRRD, err); airMopError(mop); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   /* HEY: set content */
   if (nrrdBasicInfoCopy(nout, nin,
@@ -1287,9 +1252,8 @@ nrrdTile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
                         | NRRD_BASIC_INFO_COMMENTS_BIT
                         | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); airMopError(mop); return 1;
+    biffAdd(NRRD, err); return 1;
   }
-  airMopOkay(mop);
   return 0;
 }
 
