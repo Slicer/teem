@@ -21,11 +21,13 @@
 #define MOSS_HAS_BEEN_INCLUDED
 
 #include <math.h>
+
 #include <air.h>
 #include <hest.h>
 #include <biff.h>
 #include <ell.h>
 #include <nrrd.h>
+#include <unrrdu.h>
 
 #if defined(WIN32) && !defined(TEEM_BUILD)
 #define moss_export __declspec(dllimport)

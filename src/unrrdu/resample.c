@@ -110,7 +110,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
       info->samples[d] = scale[1 + 2*d]*nin->axis[d].size;
       break;
     case 2:
-      /* example # of samples */
+      /* explicit # of samples */
       info->samples[d] = scale[1 + 2*d];
       break;
     }

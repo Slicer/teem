@@ -114,8 +114,7 @@ double *
 mossMatShearSet (double mat[6], double angleFixed, double angleShear) {
   double rot[6], shear[6];
 
-  angleShear *= M_PI/180.0;
-  MOSS_MAT_SET(shear, 1, 0, -tan(angleShear), 1, 0, 0);
+  MOSS_MAT_SET(shear, 1, 0, -tan(M_PI*angleShear/180), 1, 0, 0);
   mossMatIdentitySet(mat);
   mossMatPostMultiply(mat, mossMatRotateSet(rot, -angleFixed));
   mossMatPostMultiply(mat, shear);

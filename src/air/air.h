@@ -666,7 +666,6 @@ extern void airMopDebug(airArray *arr);
 #define AIR_ROUNDDOWN(x) ((int)(ceil((x)-0.5)))
 
 /*
-
 ******** _AIR_SIZE_T_FMT
 **
 ** This is the format string to use when printf/fprintf/sprintf-ing 
