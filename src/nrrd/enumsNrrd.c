@@ -488,7 +488,7 @@ _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL] = {
   "encoding",
   "line skip",
   "byte skip",
-  "strong bad LOVES key/value pairs"
+  "key/value"
 };
 
 char
