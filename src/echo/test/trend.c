@@ -458,7 +458,6 @@ main(int argc, char **argv) {
   /* makeSceneGlassMetal(cam, param, scene, lightArr); */
   /* makeSceneGlass(cam, param, scene, lightArr);  */
   makeSceneBVH(cam, param, scene, lightArr);
-  exit(0);
 
   E = 0;
   if (!E) E |= echoRender(nraw, cam, param, state, scene, lightArr);

@@ -35,12 +35,12 @@
 #if 1
 typedef float echoPos_t;
 #define echoPos_nrrdType nrrdTypeFloat
-#define ECHO_POS_MIN FLT_MIN
+#define ECHO_POS_MIN (-FLT_MAX)
 #define ECHO_POS_MAX FLT_MAX
 #else 
 typedef double echoPos_t;
 #define echoPos_nrrdType nrrdTypeDouble
-#define ECHO_POS_MIN DBL_MIN
+#define ECHO_POS_MIN (-DBL_MAX)
 #define ECHO_POS_MAX DBL_MAX
 #endif
 
@@ -233,24 +233,21 @@ typedef struct {
 
 typedef struct {
   ECHO_OBJECT_COMMON;
+  EchoObject **obj;
+  airArray *objArr;
   echoPos_t min[3], max[3];
-  int len;
-  EchoObject *obj[ECHO_AABBOX_OBJECT_MAX];
 } EchoObjectAABBox;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
   int axis;                 /* which axis is split */
-  echoPos_t split,          /* where the axis is split */
-    mina, maxa, minb, maxb, /* bounds on two non-split axes */
-    min0, max0,             /* bounds on lower half of split axis */
-    min1, max1;             /* bounds on upper half of split axis */
-  EchoObject *obj0, *obj1;
+  EchoObject *obj0, *obj1;  /* two splits, or two aabboxes */
 } EchoObjectSplit;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
-  EchoObject **obj;
+  EchoObject **obj;         /* it is important that this match the
+			       ordering in the struct of the aabbox */
   airArray *objArr;
 } EchoObjectList;  
 

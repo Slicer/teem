@@ -23,6 +23,7 @@
 #define SPLIT(obj)  ((EchoObjectSplit*)obj)
 #define LIST(obj)   ((EchoObjectList*)obj)
 #define SPHERE(obj) ((EchoObjectSphere*)obj)
+#define AABBOX(obj) ((EchoObjectAABBox*)obj)
 
 /* intx.c */
 #define INTX_ARGS(TYPE) EchoIntx *intx, EchoRay *ray,               \
