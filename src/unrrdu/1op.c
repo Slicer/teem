@@ -38,6 +38,7 @@ unrrdu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "\b\bo \"sin\", \"cos\", \"tan\", \"asin\", \"acos\", \"atan\": "
 	     "same as in C\n "
 	     "\b\bo \"exp\", \"log\", \"log10\", \"log1p\": same as in C\n "
+	     "\b\bo \"log2\": log base 2\n "
 	     "\b\bo \"sqrt\", \"cbrt\", \"ceil\", \"floor\": same as in C\n "
 	     "\b\bo \"erf\": error function (integral of Gaussian)\n "
 	     "\b\bo \"rup\", \"rdn\": round up or down to integral value\n "
