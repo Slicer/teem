@@ -418,7 +418,7 @@ airLog2(float n) {
     return 0;
   if (n < 2)
     return -1;
-  return airLog2(n/2.0);
+  return 1 + airLog2(n/2.0);
 }
 
 int
