@@ -82,15 +82,11 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
       return 1;
     }
     if (0 == pos) {
-      /* See if these slices would be better saved as PNM images.
+      /* See if these slices would be better saved as PNG images.
 	 Altering the file name will tell nrrdSave() to use a different
 	 file format. */
-      fit = nrrdFitsInFormat(nout, nrrdEncodingRaw, nrrdFormatPNM, AIR_FALSE);
-      if (2 == fit) {
-	strcpy(format + strlen(format) - 4, "pgm");
-      }
-      else if (3 == fit) {
-	strcpy(format + strlen(format) - 4, "ppm");
+      if (nrrdFitsInFormat(nout, nrrdEncodingRaw, nrrdFormatPNG, AIR_FALSE)) {
+	strcpy(format + strlen(format) - 4, "png");
       }
     }
     sprintf(out, format, base, pos);

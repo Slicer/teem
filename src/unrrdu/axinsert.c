@@ -30,12 +30,14 @@ char *_unrrdu_axinsertInfoL =
 int
 unrrdu_axinsertMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err;
+  char *out, *err, *label;
   Nrrd *nin, *nout;
   int axis, pret;
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "dimension (axis index) at which to insert the new axis");
+  hestOptAdd(&opt, "l", "label", airTypeString, 1, 1, &label, "",
+	     "label to associate with new axis");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -54,6 +56,10 @@ unrrdu_axinsertMain(int argc, char **argv, char *me, hestParm *hparm) {
     fprintf(stderr, "%s: error inserting axis:\n%s", me, err);
     airMopError(mop);
     return 1;
+  }
+  if (strlen(label)) {
+    AIR_FREE(nout->axis[axis].label);
+    nout->axis[axis].label = airStrdup(label);
   }
 
   SAVE(out, nout, NULL);

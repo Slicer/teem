@@ -118,6 +118,7 @@ F(permute) \
 F(swap) \
 F(shuffle) \
 F(flip) \
+F(axinfo) \
 F(axinsert) \
 F(axdelete) \
 F(block) \
