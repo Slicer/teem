@@ -20,42 +20,33 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Map nrrd through one *regular* univariate map (\"colormap\")"
-char *_unrrdu_rmapInfoL =
+#define INFO "Map nrrd through a whole nrrd of regular univariate maps"
+char *_unrrdu_mrmapInfoL =
 (INFO
- ". A map is regular if the control points are evenly "
- "spaced along the domain, and hence their position isn't "
- "explicitly represented in the map; the axis min, axis "
- "max, and number of points determine their location. "
- "The map can be a 1D nrrd (for \"grayscale\"), "
- "in which case the "
- "output has the same dimension as the input, "
- "or a 2D nrrd (for \"color\"), in which case "
- "the output has one more dimension than the input.  In "
- "either case, the output is the result of linearly "
- "interpolating between map points, either scalar values "
- "(\"grayscale\"), or scanlines along axis 0 "
- "(\"color\").");
+ ", one map per sample in input. The \"mmap\" nrrd has the same dimensional "
+ "constraints as the \"mlut\" nrrd for \"unu mlut\".  ");
 
 int
-unrrdu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_mrmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
-  Nrrd *nin, *nmap, *nout;
+  Nrrd *nin, **_nmmap, *nmmap, *nout;
   airArray *mop;
   NrrdRange *range=NULL;
-  int typeOut, rescale, pret;
+  int typeOut, rescale, pret, mapAxis, _nmmapLen;
   double min, max;
 
-  hestOptAdd(&opt, "m", "map", airTypeOther, 1, 1, &nmap, NULL,
-	     "regular map to map input nrrd through",
-	     NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&opt, "m", "mmap", airTypeOther, 1, -1, &_nmmap, NULL,
+	     "one nrrd of regular maps to map input nrrd through, or, "
+	     "list of nrrds which contain the individual entries of the map "
+	     "at each voxel, which will be joined together.",
+	     &_nmmapLen, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "r", NULL, airTypeInt, 0, 0, &rescale, NULL,
 	     "rescale the input values from the input range to the "
 	     "map domain.  The map domain is either explicitly "
 	     "defined by the axis min,max along axis 0 or 1, or, it "
-	     "is implicitly defined as zero to the length of "
-	     "that axis minus one.");
+	     "is implicitly defined as zero to one minus the length of "
+	     "that axis.");
   hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
 	     "Low end of input range. Defaults to lowest value "
 	     "found in input nrrd.  Explicitly setting this is useful "
@@ -78,22 +69,42 @@ unrrdu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unrrdu_rmapInfoL);
+  USAGE(_unrrdu_mrmapInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  /* here is a big difference between unu and nrrd: we enforce
-     rescaling any time that the map domain is implicit.  This
-     is how the pre-1.6 functionality is recreated.  Also, whenever
-     there is rescaling we pass a NrrdRange to reflect the (optional)
-     user range specification, instead of letting nrrdApply1DRegMap
-     find the input range itself (by passing a NULL NrrdRange).
-  */
-  if (!( AIR_EXISTS(nmap->axis[nmap->dim - 1].min) && 
-	 AIR_EXISTS(nmap->axis[nmap->dim - 1].max) )) {
+  /* see comment rmap.c */
+
+  /* by the end of this block we need to have nmmap and mapAxis */
+  if (1 == _nmmapLen) {
+    /* we got the mmap as a single nrrd */
+    nmmap = _nmmap[0];
+    mapAxis = nmmap->dim - nin->dim - 1;
+    /* its not our job to do real error checking ... */
+    mapAxis = AIR_CLAMP(0, mapAxis, nmmap->dim - 1);
+  } else {
+    /* we have to join together multiple nrrds to get the mmap */
+    nmmap = nrrdNew();
+    airMopAdd(mop, nmmap, (airMopper)nrrdNuke, airMopAlways);
+    /* assume that mmap component nrrds are all compatible sizes,
+       nrrdJoin will fail if they aren't */
+    mapAxis = _nmmap[0]->dim - nin->dim;
+    if (nrrdJoin(nmmap, (const Nrrd**)_nmmap, _nmmapLen, mapAxis, AIR_TRUE)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble joining mmap:\n%s", me, err);
+      airMopError(mop);
+      return 1;
+    }
+    /* set these if they were given, they'll be NaN otherwise */
+    nmmap->axis[mapAxis].min = min;
+    nmmap->axis[mapAxis].max = max;
+  }
+
+  if (!( AIR_EXISTS(nmmap->axis[mapAxis].min) && 
+	 AIR_EXISTS(nmmap->axis[mapAxis].max) )) {
     rescale = AIR_TRUE;
   }
   if (rescale) {
@@ -103,9 +114,9 @@ unrrdu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
 
   if (nrrdTypeDefault == typeOut) {
-    typeOut = nmap->type;
+    typeOut = nmmap->type;
   }
-  if (nrrdApply1DRegMap(nout, nin, range, nmap, typeOut, rescale)) {
+  if (nrrdApplyMulti1DRegMap(nout, nin, range, nmmap, typeOut, rescale)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble applying map:\n%s", me, err);
     airMopError(mop);
@@ -118,4 +129,4 @@ unrrdu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNRRDU_CMD(rmap, INFO);
+UNRRDU_CMD(mrmap, INFO);

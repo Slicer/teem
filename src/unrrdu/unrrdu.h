@@ -128,8 +128,10 @@ F(1op) \
 F(2op) \
 F(3op) \
 F(lut) \
+F(mlut) \
 F(subst) \
 F(rmap) \
+F(mrmap) \
 F(imap) \
 F(ccfind) \
 F(ccadj) \

@@ -20,7 +20,7 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Map nrrd through univariate substitution table"
+#define INFO "Map nrrd through a univariate substitution table"
 char *_unrrdu_substInfoL =
 (INFO
  " (itself represented as a nrrd). The substitution table "

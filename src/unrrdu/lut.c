@@ -20,7 +20,7 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Map nrrd through univariate lookup table"
+#define INFO "Map nrrd through one univariate lookup table"
 char *_unrrdu_lutInfoL =
 (INFO
  " (itself represented as a nrrd). The lookup table "
@@ -47,7 +47,8 @@ unrrdu_lutMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "rescale the input values from the input range to the "
 	     "lut domain.  The lut domain is either explicitly "
 	     "defined by the axis min,max along axis 0 or 1, or, it "
-	     "is implicitly defined as zero to the length of that axis.");
+	     "is implicitly defined as zero to the length of that axis "
+	     "minus one.");
   hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
 	     "Low end of input range. Defaults to lowest value "
 	     "found in input nrrd.  Explicitly setting this is useful "
