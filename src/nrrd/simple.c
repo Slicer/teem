@@ -228,6 +228,10 @@ nrrdCheck (Nrrd *nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
+  if (!(nrrd->data)) {
+    sprintf(err, "%s: nrrd has NULL data pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
   if (!airEnumValValid(nrrdType, nrrd->type)) {
     sprintf(err, "%s: type (%d) of array is invalid", me, nrrd->type);
     biffAdd(NRRD, err); return 1;
