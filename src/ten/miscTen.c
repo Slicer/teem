@@ -23,7 +23,7 @@
 
 int
 tenEvecRGB(Nrrd *nout, Nrrd *nin, int which, int aniso,
-	   float gamma, float bgGray, float isoGray) {
+	   double gamma, double bgGray, double isoGray) {
   char me[]="tenEvecRGB", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX];
   float *tdata, *cdata, eval[3], evec[9], R, G, B, an[TEN_ANISO_MAX+1], conf;
@@ -57,8 +57,8 @@ tenEvecRGB(Nrrd *nout, Nrrd *nin, int which, int aniso,
   tdata = nin->data;
   for (II=0; II<NN; II++) {
     /* tenVerbose = (II == (50 + 64*(32 + 64*0))); */
-    tenEigensolve(eval, evec, tdata);
-    tenAnisoCalc(an, eval);
+    tenEigensolve_f(eval, evec, tdata);
+    tenAnisoCalc_f(an, eval);
     R = AIR_ABS(evec[0 + 3*which]);
     G = AIR_ABS(evec[1 + 3*which]);
     B = AIR_ABS(evec[2 + 3*which]);
@@ -162,9 +162,9 @@ tenEvqVolume(Nrrd *nout, Nrrd *nin, int which, int aniso, int scaleByAniso) {
   tdata = nin->data;
   qdata = nout->data;
   for (I=0; I<N; I++) {
-    tenEigensolve(eval, evec, tdata);
+    tenEigensolve_f(eval, evec, tdata);
     if (scaleByAniso) {
-      tenAnisoCalc(c, eval);
+      tenAnisoCalc_f(c, eval);
       an = c[aniso];
     } else {
       an = 1.0;
@@ -214,7 +214,7 @@ tenBMatrixCheck(Nrrd *nbmat) {
 ** narrower then stdev for brain
 */
 int
-_tenFindValley(float *valP, Nrrd *nhist, float tweak, int save) {
+_tenFindValley(double *valP, Nrrd *nhist, double tweak, int save) {
   char me[]="_tenFindValley", err[AIR_STRLEN_MED];
   double gparm[NRRD_KERNEL_PARMS_NUM], dparm[NRRD_KERNEL_PARMS_NUM];
   Nrrd *ntmpA, *ntmpB, *nhistD, *nhistDD;

@@ -72,7 +72,7 @@ tenTensorCheck(Nrrd *nin, int wantType, int want4D, int useBiff) {
 }
 
 int
-tenExpand(Nrrd *nout, Nrrd *nin, float scale, float thresh) {
+tenExpand(Nrrd *nout, Nrrd *nin, double scale, double thresh) {
   char me[]="tenExpand", err[AIR_STRLEN_MED];
   size_t N, I;
   int sx, sy, sz;
@@ -178,7 +178,7 @@ tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine) {
 }
 
 /*
-******** tenEigensolve
+******** tenEigensolve_f
 **
 ** uses ell_3m_eigensolve_d to get the eigensystem of a single tensor
 ** disregards the confidence value t[0]
@@ -193,15 +193,15 @@ tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine) {
 ** This does NOT use biff
 */
 int
-tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
+tenEigensolve_f(float _eval[3], float _evec[9], float t[7]) {
   double m[9], eval[3], evec[9], trc, iso[9];
   int ret;
   
   TEN_T2M(m, t);
   trc = ELL_3M_TRACE(m)/3.0;
   ELL_3M_IDENTITY_SET(iso);
-  ELL_3M_SCALE(iso, trc, iso);
-  ELL_3M_SUB(m, m, iso);
+  ELL_3M_SCALE_SET(iso, -trc, -trc, -trc);
+  ELL_3M_ADD2(m, m, iso);
   if (_evec) {
     ret = ell_3m_eigensolve_d(eval, evec, m, AIR_TRUE);
     if (tenVerbose) {
@@ -248,6 +248,37 @@ tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
   return ret;
 }
 
+int
+tenEigensolve_d(double _eval[3], double evec[9], double t[7]) {
+  double m[9], eval[3], trc, iso[9];
+  int ret;
+  
+  TEN_T2M(m, t);
+  trc = ELL_3M_TRACE(m)/3.0;
+  ELL_3M_SCALE_SET(iso, -trc, -trc, -trc);
+  ELL_3M_ADD2(m, m, iso);
+  if (evec) {
+    ret = ell_3m_eigensolve_d(eval, evec, m, AIR_TRUE);
+    ELL_3V_SET(_eval, eval[0] + trc, eval[1] + trc, eval[2] + trc);
+    if (ell_cubic_root_single_double == ret) {
+      /* this was added to fix a stupid problem with very nearly
+	 isotropic glyphs, used for demonstration figures */
+      if (eval[0] == eval[1]) {
+	ELL_3V_CROSS(evec+6, evec+0, evec+3);
+      } else {
+	ELL_3V_CROSS(evec+0, evec+3, evec+6);
+      }
+    }
+  } else {
+    /* caller only wants eigenvalues */
+    ret = ell_3m_eigenvalues_d(eval, m, AIR_TRUE);
+    ELL_3V_SET(_eval, eval[0] + trc, eval[1] + trc, eval[2] + trc);
+  }    
+  return ret;
+}
+
+
+
 /*  lop A
     fprintf(stderr, "###################################  I = %d\n", (int)I);
     tenEigensolve(teval, tevec, out);
@@ -288,7 +319,7 @@ tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
 */
 
 void
-tenMakeOne(float ten[7], float conf, float eval[3], float evec[9]) {
+tenMakeOne_f(float ten[7], float conf, float eval[3], float evec[9]) {
   double tmpMat1[9], tmpMat2[9], diag[9], evecT[9];
 
   ELL_3M_ZERO_SET(diag);
@@ -377,7 +408,7 @@ tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec) {
   evec = (float *)nevec->data;
   out = (float *)nout->data;
   for (I=0; I<N; I++) {
-    tenMakeOne(out, conf[I], eval, evec);
+    tenMakeOne_f(out, conf[I], eval, evec);
     /* lop A */
     out += 7;
     eval += 3;

@@ -92,14 +92,14 @@ tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (1 == compLen) {
     ELL_3V_SET(map, 1, 2, 3);
     for (I=0; I<N; I++) {
-      tenEigensolve(eval, evec, tdata);
+      tenEigensolve_f(eval, evec, tdata);
       edata[I] = (tdata[0] >= thresh)*eval[comp[0]];
       tdata += 7;
     }
   } else {
     ELL_4V_SET(map, 0, 1, 2, 3);
     for (I=0; I<N; I++) {
-      tenEigensolve(eval, evec, tdata);
+      tenEigensolve_f(eval, evec, tdata);
       for (cc=0; cc<compLen; cc++)
 	edata[cc] = (tdata[0] >= thresh)*eval[comp[cc]];
       edata += compLen;

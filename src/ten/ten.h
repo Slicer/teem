@@ -434,11 +434,12 @@ TEEM_API int tenGlyphGen(limnObject *glyphs, echoScene *scene,
 /* tensor.c */
 TEEM_API int tenVerbose;
 TEEM_API int tenTensorCheck(Nrrd *nin, int wantType, int want4D, int useBiff);
-TEEM_API int tenExpand(Nrrd *tnine, Nrrd *tseven, float scale, float thresh);
+TEEM_API int tenExpand(Nrrd *tnine, Nrrd *tseven, double scale, double thresh);
 TEEM_API int tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine);
-TEEM_API int tenEigensolve(float eval[3], float evec[9], float ten[7]);
-TEEM_API void tenMakeOne(float ten[7],
-			 float conf, float eval[3], float evec[9]);
+TEEM_API int tenEigensolve_f(float eval[3], float evec[9], float ten[7]);
+TEEM_API int tenEigensolve_d(double eval[3], double evec[9], double ten[7]);
+TEEM_API void tenMakeOne_f(float ten[7],
+			   float conf, float eval[3], float evec[9]);
 TEEM_API int tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec);
 TEEM_API int tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos, int dim);
 
@@ -446,39 +447,38 @@ TEEM_API int tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos, int dim);
 /* old tenCalc* functions replaced by tenEstimate* */
 TEEM_API int tenBMatrixCalc(Nrrd *nbmat, Nrrd *ngrad);
 TEEM_API int tenEMatrixCalc(Nrrd *nemat, Nrrd *nbmat, int knownB0);
-TEEM_API void tenEstimateLinearSingle(float *ten, float *B0P, float *dwi,
-				      double *emat, int DD, int knownB0,
-				      float thresh, float soft, float b);
+TEEM_API void tenEstimateLinearSingle_f(float *ten, float *B0P, float *dwi,
+					double *emat, int DD, int knownB0,
+					float thresh, float soft, float b);
 TEEM_API int tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 				 Nrrd **ndwi, int dwiLen, 
 				 Nrrd *nbmat, int knownB0, 
-				 float thresh, float soft, float b);
+				 double thresh, double soft, double b);
 TEEM_API int tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 				 Nrrd *ndwi, Nrrd *_nbmat, int knownB0,
-				 float thresh, float soft, float b);
-TEEM_API void tenSimulateOne(float *dwi, float B0, float *ten,
-			     double *bmat, int DD, float b);
+				 double thresh, double soft, double b);
+TEEM_API void tenSimulateOne_f(float *dwi, float B0, float *ten,
+			       double *bmat, int DD, float b);
 TEEM_API int tenSimulate(Nrrd *ndwi, Nrrd *nT2, Nrrd *nten,
-			 Nrrd *nbmat, float b);
+			 Nrrd *nbmat, double b);
 
 /* aniso.c */
-TEEM_API float tenAnisoSigma;  /* added to denominator in Westin anisos */
-TEEM_API void tenAnisoCalc(float c[TEN_ANISO_MAX+1], float eval[3]);
+TEEM_API void tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], float eval[3]);
 TEEM_API int tenAnisoPlot(Nrrd *nout, int aniso, int res,
 			  int whole, int nanout);
-TEEM_API int tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, float thresh);
+TEEM_API int tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, double thresh);
 TEEM_API int tenAnisoHistogram(Nrrd *nout, Nrrd *nin,
 			       int version, int resolution);
 
 /* miscTen.c */
 TEEM_API int tenEvecRGB(Nrrd *nout, Nrrd *nin, int which, int aniso,
-			float gamma, float bgGray, float isoGray);
-TEEM_API short tenEvqOne(float vec[3], float scl);
+			double gamma, double bgGray, double isoGray);
+TEEM_API short tenEvqOne_f(float vec[3], float scl);
 TEEM_API int tenEvqVolume(Nrrd *nout, Nrrd *nin, int which,
 			  int aniso, int scaleByAniso);
 TEEM_API int tenBMatrixCheck(Nrrd *nbmat);
-TEEM_API int _tenFindValley(float *valP, Nrrd *nhist,
-			    float tweak, int save);
+TEEM_API int _tenFindValley(double *valP, Nrrd *nhist,
+			    double tweak, int save);
 
 /* fiberMethods.c */
 TEEM_API tenFiberContext *tenFiberContextNew(Nrrd *dtvol);
@@ -501,26 +501,28 @@ TEEM_API int tenFiberTrace(tenFiberContext *tfx, Nrrd *fiber, double start[3]);
 TEEM_API int tenEpiRegister3D(Nrrd **nout, Nrrd **ndwi,
 			      int dwiLen, Nrrd *ngrad,
 			      int reference,
-			      float bwX, float bwY, float fitFrac, float DWthr,
+			      double bwX, double bwY,
+			      double fitFrac, double DWthr,
 			      int doCC,
 			      const NrrdKernel *kern, double *kparm,
 			      int progress, int verbose);
 TEEM_API int tenEpiRegister4D(Nrrd *nout, Nrrd *nin, Nrrd *ngrad,
 			      int reference,
-			      float bwX, float bwY, float fitFrac,
-			      float DWthr, int doCC, 
+			      double bwX, double bwY,
+			      double fitFrac, double DWthr,
+			      int doCC, 
 			      const NrrdKernel *kern, double *kparm,
 			      int progress, int verbose);
 
 /* mod.c */
-TEEM_API int tenSizeNormalize(Nrrd *nout, Nrrd *nin, float weight[3],
-			      float amount, float target);
-TEEM_API int tenSizeScale(Nrrd *nout, Nrrd *nin, float amount);
-TEEM_API int tenAnisoScale(Nrrd *nout, Nrrd *nin, float amount,
+TEEM_API int tenSizeNormalize(Nrrd *nout, Nrrd *nin, double weight[3],
+			      double amount, double target);
+TEEM_API int tenSizeScale(Nrrd *nout, Nrrd *nin, double amount);
+TEEM_API int tenAnisoScale(Nrrd *nout, Nrrd *nin, double scale,
 			   int fixDet, int makePositive);
-TEEM_API int tenEigenvaluePower(Nrrd *nout, Nrrd *nin, float expo);
-TEEM_API int tenEigenvalueClamp(Nrrd *nout, Nrrd *nin, float min, float max);
-TEEM_API int tenEigenvalueAdd(Nrrd *nout, Nrrd *nin, float val);
+TEEM_API int tenEigenvaluePower(Nrrd *nout, Nrrd *nin, double expo);
+TEEM_API int tenEigenvalueClamp(Nrrd *nout, Nrrd *nin, double min, double max);
+TEEM_API int tenEigenvalueAdd(Nrrd *nout, Nrrd *nin, double val);
 
 /* tenGage.c */
 TEEM_API gageKind *tenGageKind;

@@ -263,9 +263,9 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
 	  continue;
       }
     }
-    tenEigensolve(eval, evec, tdata);
+    tenEigensolve_f(eval, evec, tdata);
     ELL_3M_TRANSPOSE(rotEvec, evec);
-    tenAnisoCalc(aniso, eval);
+    tenAnisoCalc_f(aniso, eval);
     if (parm->doSlice
 	&& pI[parm->sliceAxis] == parm->slicePos) {
       /* set sliceGray */

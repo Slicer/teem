@@ -162,7 +162,7 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
 
 #if !GAGE_TYPE_FLOAT
   int ci;
-  float tenAnsF[7], evalAnsF[3], evecAnsF[9], aniso[TEN_ANISO_MAX+1];
+  float evalAnsF[3], aniso[TEN_ANISO_MAX+1];
 #endif
 
   tenAns = pvl->directAnswer[tenGageTensor];
@@ -220,21 +220,16 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     /* we do the longer process to get eigenvectors, and in the process
        we always find the eigenvalues, whether or not they were asked for */
 #if GAGE_TYPE_FLOAT
-    tenEigensolve(evalAns, evecAns, tenAns);
+    tenEigensolve_f(evalAns, evecAns, tenAns);
 #else
-    TEN_T_COPY(tenAnsF, tenAns);
-    tenEigensolve(evalAnsF, evecAnsF, tenAnsF);
-    ELL_3V_COPY(evalAns, evalAnsF);
-    ELL_3M_COPY(evecAns, evecAnsF);
+    tenEigensolve_d(evalAns, evecAns, tenAns);
 #endif
   } else if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEval)) {
     /* else eigenvectors are NOT needed, but eigenvalues ARE needed */
 #if GAGE_TYPE_FLOAT
-    tenEigensolve(evalAns, NULL, tenAns);
+    tenEigensolve_f(evalAns, NULL, tenAns);
 #else
-    TEN_T_COPY(tenAnsF, tenAns);
-    tenEigensolve(evalAnsF, NULL, tenAnsF);
-    ELL_3V_COPY(evalAns, evalAnsF);
+    tenEigensolve_d(evalAns, NULL, tenAns);
 #endif
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorGrad)) {
@@ -444,9 +439,9 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   /* --- Aniso --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageAniso)) {
 #if GAGE_TYPE_FLOAT
-    tenAnisoCalc(pvl->directAnswer[tenGageAniso], evalAns);
+    tenAnisoCalc_f(pvl->directAnswer[tenGageAniso], evalAns);
 #else
-    tenAnisoCalc(aniso, evalAnsF);
+    tenAnisoCalc_f(aniso, evalAnsF);
     for (ci=0; ci<=TEN_ANISO_MAX; ci++) {
       pvl->directAnswer[tenGageAniso][ci] = aniso[ci];
     }

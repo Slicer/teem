@@ -22,8 +22,8 @@
 #include "privateTen.h"
 
 int
-tenSizeNormalize(Nrrd *nout, Nrrd *nin, float _weight[3],
-		 float amount, float target) {
+tenSizeNormalize(Nrrd *nout, Nrrd *nin, double _weight[3],
+		 double amount, double target) {
   char me[]="tenSizeNormalize", err[AIR_STRLEN_MED];
   float *tin, *tout, eval[3], evec[9], size, weight[3];
   size_t N, I;
@@ -58,7 +58,7 @@ tenSizeNormalize(Nrrd *nout, Nrrd *nin, float _weight[3],
   tout = (float*)(nout->data);
   N = nrrdElementNumber(nin)/7;
   for (I=0; I<=N-1; I++) {
-    tenEigensolve(eval, evec, tin);
+    tenEigensolve_f(eval, evec, tin);
     size = (weight[0]*AIR_ABS(eval[0])
 	    + weight[1]*AIR_ABS(eval[1])
 	    + weight[2]*AIR_ABS(eval[2]));
@@ -72,7 +72,7 @@ tenSizeNormalize(Nrrd *nout, Nrrd *nin, float _weight[3],
     /*
     fprintf(stderr, "%g %g %g\n", eval[0], eval[1], eval[2]);
     */
-    tenMakeOne(tout, tin[0], eval, evec);
+    tenMakeOne_f(tout, tin[0], eval, evec);
     tin += 7;
     tout += 7;
   }
@@ -81,7 +81,7 @@ tenSizeNormalize(Nrrd *nout, Nrrd *nin, float _weight[3],
 }
 
 int
-tenSizeScale(Nrrd *nout, Nrrd *nin, float amount) {
+tenSizeScale(Nrrd *nout, Nrrd *nin, double amount) {
   char me[]="tenSizeScale", err[AIR_STRLEN_MED];
   size_t I, N;
   float *tin, *tout;
@@ -124,7 +124,7 @@ tenSizeScale(Nrrd *nout, Nrrd *nin, float amount) {
 ** scales the "deviatoric" part of a tensor up or down
 */
 int
-tenAnisoScale(Nrrd *nout, Nrrd *nin, float scale,
+tenAnisoScale(Nrrd *nout, Nrrd *nin, double scale,
 	      int fixDet, int makePositive) {
   char me[]="tenAnisoScale", err[AIR_STRLEN_MED];
   size_t I, N;
@@ -148,7 +148,7 @@ tenAnisoScale(Nrrd *nout, Nrrd *nin, float scale,
   tout = (float *)(nout->data);
   N = nrrdElementNumber(nin)/7;
   for (I=0; I<N; I++) {
-    tenEigensolve(eval, evec, tin);
+    tenEigensolve_f(eval, evec, tin);
     if (fixDet) {
       eval[0] = AIR_MAX(eval[0], 0.00001);
       eval[1] = AIR_MAX(eval[1], 0.00001);
@@ -171,7 +171,7 @@ tenAnisoScale(Nrrd *nout, Nrrd *nin, float scale,
       eval[1] = AIR_MAX(eval[1], 0.0);
       eval[2] = AIR_MAX(eval[2], 0.0);
     }
-    tenMakeOne(tout, tin[0], eval, evec);
+    tenMakeOne_f(tout, tin[0], eval, evec);
     tin += 7;
     tout += 7;
   }
@@ -184,7 +184,7 @@ tenAnisoScale(Nrrd *nout, Nrrd *nin, float scale,
 ** enstates the given value as the lowest eigenvalue
 */
 int
-tenEigenvalueClamp(Nrrd *nout, Nrrd *nin, float min, float max) {
+tenEigenvalueClamp(Nrrd *nout, Nrrd *nin, double min, double max) {
   char me[]="tenEigenvalueClamp", err[AIR_STRLEN_MED];
   size_t I, N;
   float *tin, *tout, eval[3], evec[9];
@@ -207,7 +207,7 @@ tenEigenvalueClamp(Nrrd *nout, Nrrd *nin, float min, float max) {
   tout = (float *)(nout->data);
   N = nrrdElementNumber(nin)/7;
   for (I=0; I<N; I++) {
-    tenEigensolve(eval, evec, tin);
+    tenEigensolve_f(eval, evec, tin);
     if (AIR_EXISTS(min)) {
       eval[0] = AIR_MAX(eval[0], min);
       eval[1] = AIR_MAX(eval[1], min);
@@ -218,7 +218,7 @@ tenEigenvalueClamp(Nrrd *nout, Nrrd *nin, float min, float max) {
       eval[1] = AIR_MIN(eval[1], max);
       eval[2] = AIR_MIN(eval[2], max);
     }
-    tenMakeOne(tout, tin[0], eval, evec);
+    tenMakeOne_f(tout, tin[0], eval, evec);
     tin += 7;
     tout += 7;
   }
@@ -231,7 +231,7 @@ tenEigenvalueClamp(Nrrd *nout, Nrrd *nin, float min, float max) {
 ** raises the eigenvalues to some power
 */
 int
-tenEigenvaluePower(Nrrd *nout, Nrrd *nin, float expo) {
+tenEigenvaluePower(Nrrd *nout, Nrrd *nin, double expo) {
   char me[]="tenEigenvaluePower", err[AIR_STRLEN_MED];
   size_t I, N;
   float *tin, *tout, eval[3], evec[9];
@@ -254,11 +254,11 @@ tenEigenvaluePower(Nrrd *nout, Nrrd *nin, float expo) {
   tout = (float *)(nout->data);
   N = nrrdElementNumber(nin)/7;
   for (I=0; I<N; I++) {
-    tenEigensolve(eval, evec, tin);
+    tenEigensolve_f(eval, evec, tin);
     eval[0] = pow(eval[0], expo);
     eval[1] = pow(eval[1], expo);
     eval[2] = pow(eval[2], expo);
-    tenMakeOne(tout, tin[0], eval, evec);
+    tenMakeOne_f(tout, tin[0], eval, evec);
     tin += 7;
     tout += 7;
   }
@@ -271,7 +271,7 @@ tenEigenvaluePower(Nrrd *nout, Nrrd *nin, float expo) {
 ** adds something to all eigenvalues
 */
 int
-tenEigenvalueAdd(Nrrd *nout, Nrrd *nin, float val) {
+tenEigenvalueAdd(Nrrd *nout, Nrrd *nin, double val) {
   char me[]="tenEigenvalueAdd", err[AIR_STRLEN_MED];
   size_t I, N;
   float *tin, *tout, eval[3], evec[9];
@@ -294,11 +294,11 @@ tenEigenvalueAdd(Nrrd *nout, Nrrd *nin, float val) {
   tout = (float *)(nout->data);
   N = nrrdElementNumber(nin)/7;
   for (I=0; I<N; I++) {
-    tenEigensolve(eval, evec, tin);
+    tenEigensolve_f(eval, evec, tin);
     eval[0] += val;
     eval[1] += val;
     eval[2] += val;
-    tenMakeOne(tout, tin[0], eval, evec);
+    tenMakeOne_f(tout, tin[0], eval, evec);
     tin += 7;
     tout += 7;
   }

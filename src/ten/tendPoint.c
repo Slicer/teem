@@ -76,7 +76,7 @@ tend_pointMain(int argc, char **argv, char *me, hestParm *hparm) {
   fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", tdata[1], tdata[2], tdata[3]);
   fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", tdata[2], tdata[4], tdata[5]);
   fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", tdata[3], tdata[5], tdata[6]);
-  tenEigensolve(eval, evec, tdata);
+  tenEigensolve_f(eval, evec, tdata);
   fprintf(stderr, "eigensystem = (<eigenvalue> : <eigenvector>):\n");
   fprintf(stderr, "% 15.7f : % 15.7f % 15.7f % 15.7f\n",
 	  eval[0], evec[0], evec[1], evec[2]);
@@ -94,7 +94,7 @@ tend_pointMain(int argc, char **argv, char *me, hestParm *hparm) {
 	  mat[3], mat[4], mat[5]);
   fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n",
 	  mat[6], mat[7], mat[8]);
-  tenAnisoCalc(c, eval);
+  tenAnisoCalc_f(c, eval);
   fprintf(stderr, "anisotropies = \n");
   for (i=1; i<=TEN_ANISO_MAX; i++) {
     fprintf(stderr, "%s: % 15.7f\n",

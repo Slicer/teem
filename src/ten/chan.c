@@ -128,7 +128,7 @@ tenEMatrixCalc(Nrrd *nemat, Nrrd *_nbmat, int knownB0) {
 #define _TEN_MAX_DWI_NUM 128
 
 /*
-******** tenEstimateSingle
+******** tenEstimateSingle_f
 **
 ** estimate one single tensor
 **
@@ -152,9 +152,9 @@ tenEMatrixCalc(Nrrd *nemat, Nrrd *_nbmat, int knownB0) {
 ** ----------------------------------------------------
 */
 void
-tenEstimateLinearSingle(float *ten, float *B0P, float *dwi, double *emat,
-			int DD, int knownB0,
-			float thresh, float soft, float b) {
+tenEstimateLinearSingle_f(float *ten, float *B0P, float *dwi, double *emat,
+			  int DD, int knownB0,
+			  float thresh, float soft, float b) {
   double logB0, v[_TEN_MAX_DWI_NUM], tmp, mean;
   int i, j;
   
@@ -222,7 +222,7 @@ int
 tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 		    Nrrd **_ndwi, int dwiLen, 
 		    Nrrd *_nbmat, int knownB0, 
-		    float thresh, float soft, float b) {
+		    double thresh, double soft, double b) {
   char me[]="tenEstimateLinear3D", err[AIR_STRLEN_MED];
   Nrrd *ndwi;
   airArray *mop;
@@ -268,7 +268,7 @@ tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 int
 tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 		    Nrrd *ndwi, Nrrd *_nbmat, int knownB0,
-		    float thresh, float soft, float b) {
+		    double thresh, double soft, double b) {
   char me[]="tenEstimateLinear4D", err[AIR_STRLEN_MED];
   Nrrd *nemat, *nbmat, *ncrop, *nhist;
   airArray *mop;
@@ -387,8 +387,8 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
       if (tenVerbose)
 	fprintf(stderr, "%s: input dwi1[%d] = %g\n", me, d, dwi1[d]);
     }
-    tenEstimateLinearSingle(ten, &_B0,
-			    dwi1, emat, DD, knownB0, thresh, soft, b);
+    tenEstimateLinearSingle_f(ten, &_B0,
+			      dwi1, emat, DD, knownB0, thresh, soft, b);
     if (nB0P) {
       *B0 = _B0;
     }
@@ -399,7 +399,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     if (nterrP) {
       te = 0;
       if (knownB0) {
-	tenSimulateOne(dwi2, _B0, ten, bmat, DD, b);
+	tenSimulateOne_f(dwi2, _B0, ten, bmat, DD, b);
 	for (d=1; d<DD; d++) {
 	  d1 = AIR_MAX(dwi1[d], 1);
 	  d2 = AIR_MAX(dwi2[d], 1);
@@ -407,10 +407,10 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 	}
 	te /= (DD-1);
       } else {
-	tenSimulateOne(dwi2, _B0, ten, bmat, DD+1, b);
+	tenSimulateOne_f(dwi2, _B0, ten, bmat, DD+1, b);
 	for (d=0; d<DD; d++) {
 	  d1 = AIR_MAX(dwi1[d], 1);
-	  /* tenSimulateOne always puts the B0 in the beginning of
+	  /* tenSimulateOne_f always puts the B0 in the beginning of
 	     the dwi vector, but in this case we didn't have it in
 	     the input dwi vecctor */
 	  d2 = AIR_MAX(dwi2[d+1], 1);
@@ -436,7 +436,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 }
 
 /*
-******** tenSimulateOne
+******** tenSimulateOne_f
 **
 ** given a tensor, simulate the set of diffusion weighted measurements
 ** represented by the given B matrix
@@ -447,8 +447,8 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 **  so dwi[0] through dwi[DD-1] (DD values total) are set in the output.
 */
 void
-tenSimulateOne(float *dwi,
-	       float B0, float *ten, double *bmat, int DD, float b) {
+tenSimulateOne_f(float *dwi,
+		 float B0, float *ten, double *bmat, int DD, float b) {
   double vv;
   /* this is how we multiply the off-diagonal entries by 2 */
   double matwght[6] = {1, 2, 2, 1, 2, 1};
@@ -474,7 +474,7 @@ tenSimulateOne(float *dwi,
 }
 
 int
-tenSimulate(Nrrd *ndwi, Nrrd *nT2, Nrrd *nten, Nrrd *_nbmat, float b) {
+tenSimulate(Nrrd *ndwi, Nrrd *nT2, Nrrd *nten, Nrrd *_nbmat, double b) {
   char me[]="tenSimulate", err[AIR_STRLEN_MED];
   size_t II;
   Nrrd *nbmat;
@@ -519,7 +519,7 @@ tenSimulate(Nrrd *ndwi, Nrrd *nT2, Nrrd *nten, Nrrd *_nbmat, float b) {
   lup = nrrdFLookup[nT2->type];
   for (II=0; II<sx*sy*sz; II++) {
     /* tenVerbose = (II == 42 + 190*(96 + 196*0)); */
-    tenSimulateOne(dwi, lup(nT2->data, II), ten, bmat, DD, b);
+    tenSimulateOne_f(dwi, lup(nT2->data, II), ten, bmat, DD, b);
     dwi += DD;
     ten += 7;
   }

@@ -190,7 +190,7 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **ndwi, int dwiLen,
 }
 
 int
-_tenEpiRegFindThresh(float *DWthrP, Nrrd **nin, int ninLen, int save) {
+_tenEpiRegFindThresh(double *DWthrP, Nrrd **nin, int ninLen, int save) {
   char me[]="_tenEpiRegFindThresh", err[AIR_STRLEN_MED];
   Nrrd *nhist, *ntmp;
   airArray *mop;
@@ -246,7 +246,7 @@ _tenEpiRegFindThresh(float *DWthrP, Nrrd **nin, int ninLen, int save) {
 
 int
 _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, int ninLen,
-		    float DWthr, int verb, int progress) {
+		    double DWthr, int verb, int progress) {
   char me[]="_tenEpiRegThreshold", err[AIR_STRLEN_MED];
   airArray *mop;
   int I, sx, sy, sz, ni;
@@ -998,8 +998,8 @@ _tenEpiRegWarp(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
 int
 tenEpiRegister3D(Nrrd **nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
 		 int reference,
-		 float bwX, float bwY, float fitFrac,
-		 float DWthr, int doCC, 
+		 double bwX, double bwY, double fitFrac,
+		 double DWthr, int doCC, 
 		 const NrrdKernel *kern, double *kparm,
 		 int progress, int verbose) {
   char me[]="tenEpiRegister3D", err[AIR_STRLEN_MED];
@@ -1134,8 +1134,8 @@ tenEpiRegister3D(Nrrd **nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
 int
 tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *ngrad,
 		 int reference,
-		 float bwX, float bwY, float fitFrac,
-		 float DWthr, int doCC, 
+		 double bwX, double bwY, double fitFrac,
+		 double DWthr, int doCC, 
 		 const NrrdKernel *kern, double *kparm,
 		 int progress, int verbose) {
   char me[]="tenEpiRegister4D", err[AIR_STRLEN_MED];

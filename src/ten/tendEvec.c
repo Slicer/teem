@@ -87,7 +87,7 @@ tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
   tdata = nin->data;
   if (1 == compLen) {
     for (I=0; I<N; I++) {
-      tenEigensolve(eval, evec, tdata);
+      tenEigensolve_f(eval, evec, tdata);
       scl = tdata[0] >= thresh;
       ELL_3V_SCALE(edata, scl, evec+3*comp[0]);
       edata += 3;
@@ -95,7 +95,7 @@ tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
   } else {
     for (I=0; I<N; I++) {
-      tenEigensolve(eval, evec, tdata);
+      tenEigensolve_f(eval, evec, tdata);
       scl = tdata[0] >= thresh;
       for (cc=0; cc<compLen; cc++) {
 	ELL_3V_SCALE(edata+3*cc, scl, evec+3*comp[cc]);

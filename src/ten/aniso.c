@@ -20,15 +20,13 @@
 #include "ten.h"
 #include "privateTen.h"
 
-float tenAnisoSigma = 0.000001;
-
 /*
 ** learned: don't take sqrt(FLT_EPSILON) and expect it to still be
 ** negligible
 */
 
 /*
-******** tenAnisoCalc
+******** tenAnisoCalc_f
 **
 ** given an array of three SORTED (descending) eigenvalues "e",
 ** calculates the anisotropy coefficients of Westin et al.,
@@ -37,18 +35,18 @@ float tenAnisoSigma = 0.000001;
 ** This does NOT use biff.  
 */
 void
-tenAnisoCalc(float c[TEN_ANISO_MAX+1], float e[3]) {
+tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], float e[3]) {
   float e0, e1, e2, stdv, mean, sum, cl, cp, ca, ra, fa, vf, denom;
 
   float A, B, C, R, Q;
 
   if (!( e[0] >= e[1] && e[1] >= e[2] )) {
-    fprintf(stderr, "tenAnisoCalc: eigen values not sorted: "
+    fprintf(stderr, "tenAnisoCalc_f: eigen values not sorted: "
 	    "%g %g %g (%d %d)\n",
 	    e[0], e[1], e[2], e[0] >= e[1], e[1] >= e[2]);
   }
   if (tenVerbose && !( e[0] >= 0 && e[1] >= 0 && e[2] >= 0 )) {
-    fprintf(stderr, "tenAnisoCalc: eigen values not all >= 0: %g %g %g\n",
+    fprintf(stderr, "tenAnisoCalc_f: eigen values not all >= 0: %g %g %g\n",
 	    e[0], e[1], e[2]);
   }
   e0 = AIR_MAX(e[0], 0);
@@ -155,7 +153,7 @@ tenAnisoPlot(Nrrd *nout, int aniso, int res, int whole, int nanout) {
       e[1] = c0*m0[1] + c1*m1[1] + c2*m2[1];
       e[2] = c0*m0[2] + c1*m1[2] + c2*m2[2];
       ELL_SORT3(e[0], e[1], e[2], tmp); /* got some warnings w/out this */
-      tenAnisoCalc(c, e);
+      tenAnisoCalc_f(c, e);
       out[x + res*y] = c[aniso];
     }
     if (nanout) {
@@ -169,7 +167,7 @@ tenAnisoPlot(Nrrd *nout, int aniso, int res, int whole, int nanout) {
 }
 
 int
-tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, float thresh) {
+tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, double thresh) {
   char me[]="tenAnisoVolume", err[AIR_STRLEN_MED];
   size_t N, I, copyI;
   float *out, *in, *tensor, eval[3], evec[9], c[TEN_ANISO_MAX+1];
@@ -202,7 +200,7 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, float thresh) {
       out[I] = 0.0;
       continue;
     }
-    tenEigensolve(eval, evec, tensor);
+    tenEigensolve_f(eval, evec, tensor);
     if (!(AIR_EXISTS(eval[0]) && AIR_EXISTS(eval[1]) && AIR_EXISTS(eval[2]))) {
       copyI = I;
       NRRD_COORD_GEN(coord, size, 3, copyI);
@@ -212,7 +210,7 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, float thresh) {
 	      coord[0], coord[1], coord[2]);
       biffAdd(TEN, err); return 1;
     }
-    tenAnisoCalc(c, eval);
+    tenAnisoCalc_f(c, eval);
     out[I] = c[aniso];
   }
   ELL_3V_SET(map, 1, 2, 3);
@@ -261,8 +259,8 @@ tenAnisoHistogram(Nrrd *nout, Nrrd *nin, int version, int res) {
   }
   N = nrrdElementNumber(nin)/7;
   for (I=0; I<=N-1; I++) {
-    tenEigensolve(eval, evec, tdata);
-    tenAnisoCalc(c, eval);
+    tenEigensolve_f(eval, evec, tdata);
+    tenAnisoCalc_f(c, eval);
     cl = c[clIdx];
     cp = c[cpIdx];
     cs = c[csIdx];
