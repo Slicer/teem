@@ -71,7 +71,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "s", "sz0 sz1", airTypeInt, 1, -1, &size, NULL,
 	     "number of samples along each axis (and implicit indicator "
 	     "of dimension of nrrd)", &sizeLen);
-  hestOptAdd(&opt, "sp", "spc0 spc1", airTypeDouble, 1, -1, &spacing, NULL,
+  hestOptAdd(&opt, "sp", "spc0 spc1", airTypeDouble, 1, -1, &spacing, "nan",
 	     "spacing between samples on each axis.  Use \"nan\" for "
 	     "any non-spatial axes (e.g. spacing between red, green, and blue "
 	     "along axis 0 of interleaved RGB image data)", &spacingLen);
@@ -100,8 +100,9 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     encInfo, NULL, nrrdEncoding);
   hestOptAdd(&opt, "en", "endian", airTypeEnum, 1, 1, &(io->endian),
 	     airEnumStr(airEndian, airMyEndian),
-	     "Endianness of data; relevent for any raw data with value "
-	     "representation bigger than 8 bits: \"little\" for Intel and "
+	     "Endianness of data; relevent for any data with value "
+	     "representation bigger than 8 bits, with a non-ascii encoding: "
+	     "\"little\" for Intel and "
 	     "friends; \"big\" for everyone else. "
 	     "Defaults to endianness of this machine",
 	     NULL, airEndian);
@@ -120,7 +121,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
-  if (sizeLen != spacingLen) {
+  if (AIR_EXISTS(spacing[0]) && sizeLen != spacingLen) {
     fprintf(stderr,
 	    "%s: got different numbers of sizes (%d) and spacings (%d)\n",
 	    me, sizeLen, spacingLen);
@@ -129,7 +130,9 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   nrrd->dim = sizeLen;
   nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, size);
-  nrrdAxesSet_nva(nrrd, nrrdAxesInfoSpacing, spacing);
+  if (AIR_EXISTS(spacing[0])) {
+    nrrdAxesSet_nva(nrrd, nrrdAxesInfoSpacing, spacing);
+  }
   if (airStrlen(content)) {
     nrrd->content = airStrdup(content);
   }

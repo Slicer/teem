@@ -27,6 +27,7 @@ int hestElideSingleEnumType = AIR_FALSE;
 int hestElideSingleOtherType = AIR_FALSE;
 int hestElideSingleOtherDefault = AIR_FALSE;
 int hestElideSingleNonExistFloatDefault = AIR_FALSE;
+int hestElideMultipleNonExistFloatDefault = AIR_FALSE;
 int hestElideSingleEmptyStringDefault = AIR_FALSE;
 int hestGreedySingleString = AIR_TRUE;
 char hestRespFileFlag = '@';

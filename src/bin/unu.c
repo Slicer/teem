@@ -55,6 +55,7 @@ main(int argc, char **argv) {
   hparm->elideSingleOtherType = AIR_TRUE;
   hparm->elideSingleOtherDefault = AIR_TRUE;
   hparm->elideSingleNonExistFloatDefault = AIR_TRUE;
+  hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
   hparm->elideSingleEmptyStringDefault = AIR_TRUE;
   hparm->columns = unrrduDefNumColumns;
 

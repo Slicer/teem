@@ -341,6 +341,10 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
 	       && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
 	       && !AIR_EXISTS(airAtod(opt[i].dflt)) 
 	       && parm->elideSingleNonExistFloatDefault ))
+	&& (!( (3 == opt[i].kind || 5 == opt[i].kind) 
+	       && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
+	       && !AIR_EXISTS(airAtod(opt[i].dflt)) 
+	       && parm->elideMultipleNonExistFloatDefault ))
 	&& (!( 2 == opt[i].kind
 	       && airTypeOther == opt[i].type
 	       && parm->elideSingleOtherDefault ))

@@ -42,7 +42,7 @@ unrrdu_imapMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "m", "map", airTypeOther, 1, 1, &nmap, NULL,
-	     "regular map to map input nrrd through",
+	     "irregular map to map input nrrd through",
 	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "l", "aclLen", airTypeInt, 1, 1, &aclLen, "0",
 	     "length of accelerator array, used to try to speed-up "

@@ -133,6 +133,7 @@ typedef struct {
 					point (float or double) parameter
 					doesn't AIR_EXIST, then don't display
 					the default */
+    elideMultipleNonExistFloatDefault,
     elideSingleEmptyStringDefault, /* if default for a single string is empty
 				      (""), then don't display default */
     greedySingleString, /* when parsing a single string, whether or not
@@ -157,6 +158,7 @@ extern hest_export int hestElideSingleEnumType;
 extern hest_export int hestElideSingleOtherType;
 extern hest_export int hestElideSingleOtherDefault;
 extern hest_export int hestElideSingleNonExistFloatDefault;
+extern hest_export int hestElideMultipleNonExistFloatDefault;
 extern hest_export int hestElideSingleEmptyStringDefault;
 extern hest_export int hestGreedySingleString;
 extern hest_export int hestColumns;

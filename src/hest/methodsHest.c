@@ -35,6 +35,8 @@ hestParmNew() {
     parm->greedySingleString = hestGreedySingleString;
     parm->elideSingleNonExistFloatDefault =
       hestElideSingleNonExistFloatDefault;
+    parm->elideMultipleNonExistFloatDefault =
+      hestElideMultipleNonExistFloatDefault;
     parm->elideSingleEmptyStringDefault =
       hestElideSingleEmptyStringDefault;
     parm->columns = hestColumns;
