@@ -75,6 +75,13 @@ _nrrdZeroVF(float *f, float *x, int len, float *param) {
   }
 }
 
+nrrdKernel
+_nrrdKernelZero = {
+  _nrrdZeroSup, _nrrdZeroEF, _nrrdZeroVF, _nrrdZeroED, _nrrdZeroVD
+};
+nrrdKernel *
+nrrdKernelZero = &_nrrdKernelZero;
+
 /* ------------------------------------------------------------ */
 
 #define _BOX(x) (x > 0.5 ? 0 : (x < 0.5 ? 1 : 0.5))
@@ -130,6 +137,13 @@ _nrrdBoxVF(float *f, float *x, int len, float *param) {
   }
 }
 
+nrrdKernel
+_nrrdKernelBox = {
+  _nrrdBoxSup,  _nrrdBoxEF,  _nrrdBoxVF,  _nrrdBoxED,  _nrrdBoxVD
+};
+nrrdKernel *
+nrrdKernelBox = &_nrrdKernelBox;
+
 /* ------------------------------------------------------------ */
 
 #define _TENT(x) (x >= 1 ? 0 : 1 - x)
@@ -184,6 +198,13 @@ _nrrdTentVF(float *f, float *x, int len, float *param) {
     f[i] = _TENT(t)/S;
   }
 }
+
+nrrdKernel
+_nrrdKernelTent = {
+  _nrrdTentSup, _nrrdTentEF, _nrrdTentVF, _nrrdTentED, _nrrdTentVD
+};
+nrrdKernel *
+nrrdKernelTent = &_nrrdKernelTent;
 
 /* ------------------------------------------------------------ */
 
@@ -242,6 +263,13 @@ _nrrdFDVF(float *f, float *x, int len, float *param) {
   }
 }
 
+nrrdKernel
+_nrrdKernelFD = {
+  _nrrdFDSup,   _nrrdFDEF,   _nrrdFDVF,   _nrrdFDED,   _nrrdFDVD
+};
+nrrdKernel *
+nrrdKernelForwDiff = &_nrrdKernelFD;
+
 /* ------------------------------------------------------------ */
 
 #define _CENDIF(x) (x <= -2 ?  0         :        \
@@ -299,6 +327,13 @@ _nrrdCDVF(float *f, float *x, int len, float *param) {
     f[i] = _CENDIF(t)/S;
   }
 }
+
+nrrdKernel
+_nrrdKernelCD = {
+  _nrrdCDSup,   _nrrdCDEF,   _nrrdCDVF,   _nrrdCDED,   _nrrdCDVD
+};
+nrrdKernel *
+nrrdKernelCentDiff = &_nrrdKernelCD;
 
 /* ------------------------------------------------------------ */
 
@@ -362,12 +397,19 @@ _nrrdBCVF(float *f, float *x, int len, float *param) {
   }
 }
 
+nrrdKernel
+_nrrdKernelBC = {
+  _nrrdBCSup,   _nrrdBCEF,   _nrrdBCVF,   _nrrdBCED,   _nrrdBCVD
+};
+nrrdKernel *
+nrrdKernelBCCubic = &_nrrdKernelBC;
+
 /* ------------------------------------------------------------ */
 
-#define _BCCUBICD(x, B, C) (                                        \
-   x >= 2.0                                            \
-   ? 0 : (x >= 1.0                                     \
-          ? ((-B/2 - 3*C)*x + 2*B + 10*C)*x -2*B - 8*C              \
+#define _BCCUBICD(x, B, C) (                            \
+   x >= 2.0                                             \
+   ? 0 : (x >= 1.0                                      \
+          ? ((-B/2 - 3*C)*x + 2*B + 10*C)*x -2*B - 8*C  \
           : ((6 - 9*B/2 - 3*C)*x - 6 + 4*B + 2*C)*x))
 
 float
@@ -428,16 +470,81 @@ _nrrdBCDVF(float *f, float *x, int len, float *param) {
   }
 }
 
+nrrdKernel
+_nrrdKernelBCD = {
+  _nrrdBCDSup,  _nrrdBCDEF,  _nrrdBCDVF,  _nrrdBCDED,  _nrrdBCDVD
+};
+nrrdKernel *
+nrrdKernelBCCubicD = &_nrrdKernelBCD;
+
 /* ------------------------------------------------------------ */
 
-nrrdKernelMethods
-nrrdKernel[NRRD_KERNEL_MAX+1] = {
-  {NULL, NULL, NULL, NULL, NULL},
-  {_nrrdZeroSup, _nrrdZeroEF, _nrrdZeroVF, _nrrdZeroED, _nrrdZeroVD},
-  {_nrrdBoxSup,  _nrrdBoxEF,  _nrrdBoxVF,  _nrrdBoxED,  _nrrdBoxVD},
-  {_nrrdTentSup, _nrrdTentEF, _nrrdTentVF, _nrrdTentED, _nrrdTentVD},
-  {_nrrdFDSup,   _nrrdFDEF,   _nrrdFDVF,   _nrrdFDED,   _nrrdFDVD},
-  {_nrrdCDSup,   _nrrdCDEF,   _nrrdCDVF,   _nrrdCDED,   _nrrdCDVD},
-  {_nrrdBCSup,   _nrrdBCEF,   _nrrdBCVF,   _nrrdBCED,   _nrrdBCVD},
-  {_nrrdBCDSup,  _nrrdBCDEF,  _nrrdBCDVF,  _nrrdBCDED,  _nrrdBCDVD}
+#define _BCCUBICDD(x, B, C) (                        \
+   x >= 2.0                                          \
+   ? 0 : (x >= 1.0                                   \
+          ? (-B - 6*C)*x + 2*B + 10*C                \
+          : (12 - 9*B - 6*C)*x - 6 + 4*B + 2*C  ))
+
+float
+_nrrdBCDDSup(float *param) {
+  float S;
+
+  S = param[0];
+  return 2*S;
+}
+
+double
+_nrrdBCDDED(double x, float *param) {
+  float S;
+  double B, C;
+  
+  S = param[0]; B = param[1]; C = param[2]; 
+  x = AIR_ABS(x)/S;
+  return _BCCUBICDD(x, B, C)/S;
+}
+
+float
+_nrrdBCDDEF(float x, float *param) {
+  float B, C, S;
+  
+  S = param[0]; B = param[1]; C = param[2]; 
+  x = AIR_ABS(x)/S;
+  return _BCCUBICDD(x, B, C)/S;
+}
+
+void
+_nrrdBCDDVD(double *f, double *x, int len, float *param) {
+  float S;
+  double t, B, C;
+  int i;
+  
+  S = param[0]; B = param[1]; C = param[2]; 
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t)/S;
+    f[i] = _BCCUBICDD(t, B, C)/S;
+  }
+}
+
+void
+_nrrdBCDDVF(float *f, float *x, int len, float *param) {
+  float S, t, B, C;
+  int i;
+  
+  S = param[0]; B = param[1]; C = param[2]; 
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t)/S;
+    f[i] = _BCCUBICDD(t, B, C)/S;
+  }
+}
+
+nrrdKernel
+_nrrdKernelBCDD = {
+  _nrrdBCDDSup, _nrrdBCDDEF, _nrrdBCDDVF, _nrrdBCDDED, _nrrdBCDDVD
 };
+nrrdKernel *
+nrrdKernelBCCubicDD = &_nrrdKernelBCDD;
+
+/* ------------------------------------------------------------ */
+

@@ -662,14 +662,16 @@ _nrrdInitResample(nrrdResampleInfo *info) {
   int i, d;
 
   for (d=0; d<=NRRD_MAX_DIM-1; d++) {
-    info->kernel[d] = nrrdKernelUnknown;
+    info->kernel[d] = NULL;
     info->samples[d] = 0;
-    for (i=0; i<=NRRD_MAX_KERNEL_PARAMS-1; i++)
+    info->param[d][0] = 1.0;
+    for (i=1; i<=NRRD_MAX_KERNEL_PARAMS-1; i++)
       info->param[d][i] = airNanf();
     info->min[d] = info->max[d] = airNanf();
   }
   info->type = nrrdTypeUnknown;
-  info->pad = 0;
+  /* these may or may not be the best choices for default values */
+  info->boundary = nrrdBoundaryBleed;
   info->padValue = 0.0;
 }
 

@@ -32,7 +32,7 @@ main() {
   printf("v = [\n");
   for (i=0; i<=N-1; i++) {
     x = AIR_AFFINE(0, i, N-1, -bound, bound);
-    f = nrrdKernel[nrrdKernelBCCubic].eval(x, arg);
+    f = nrrdKernelBCCubic->eval(x, arg);
     printf("%g %g;\n", x, f);
   }
   printf("]\n");

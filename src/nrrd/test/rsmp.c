@@ -23,7 +23,7 @@ main(int argc, char **argv) {
   char *err;
   Nrrd *nin, *nout;
   int i;
-  NrrdResampleInfo *info[NRRD_MAX_DIM];
+  nrrdResampleInfo *info;
 
   if (2 != argc) {
     printf("gimme something\n");
@@ -34,21 +34,36 @@ main(int argc, char **argv) {
     printf("nrrdNewOpen failed:\n%s\n", err);
     exit(1);
   }
-  
+  info = nrrdResampleInfoNew();
+  info->boundary = nrrdBoundaryPad;
+  info->padValue = 128;
   for (i=0; i<=nin->dim-1; i++) {
-    info[i] = nrrdResampleInfoNew();
-    info[i]->samples = nin->size[i]/2;
-    printf("info[%d]->samples = %d\n", i, (int)info[i]->samples);
+    info->kernel[i] = nrrdKernelBCCubic;
+    info->param[i][1] = 0.0;
+    info->param[i][2] = 0.5;
+    info->samples[i] = nin->size[i]*2;
+    info->min[i] = 0;
+    info->max[i] = nin->size[i]-1;
+    printf("info->samples[%d] = %d\n", i, info->samples[i]);
   }
   /*
-  info[0] = nrrdResampleInfoNix(info[0]);
-  info[2] = nrrdResampleInfoNix(info[2]);
-  info[3] = nrrdResampleInfoNix(info[3]);
+  info->kernel[2] = NULL;
+  info->kernel[0] = NULL;
+  info->kernel[1] = NULL;
+  */
+  /*
+  info->samples[2] = 10;
   */
   nout = nrrdNew();
-  if (nrrdSpatialResample(nout, nin, info, 1)) {
+  if (nrrdSpatialResample(nout, nin, info)) {
     printf("%s\n", biffGet(NRRD));
   }
-  nrrdSave("out.nhdr", nout);
+  nout->encoding = nrrdEncodingRaw;
+  if (nrrdSave("out.nhdr", nout)) {
+    printf("%s\n", biffGet(NRRD));
+  }
+  nrrdResampleInfoNix(info);
+  nrrdNuke(nin);
+  nrrdNuke(nout);
   exit(0);
 }

@@ -131,14 +131,12 @@ typedef struct {
 } Nrrd;
 
 /*
-******** nrrdKernelMethods struct
+******** nrrdKernel struct
 **
 ** these are essentially the methods of the various kernels implemented.
-** instead of being methods, though, they are fields in one fixed array
-** of structs (nrrdKernel).
 **
-** All kernels are assumed to have symmetric support, but the kernels 
-** are not assumed to be even functions.
+** Nrrd's use of this sort of kernel always assumes support symmetric
+** around zero, but does not assume anything about even- or oddness
 */
 typedef struct {
   float (*support)(float *param);         /* smallest x (>0) such that
@@ -149,42 +147,41 @@ typedef struct {
   double (*evalD)(double x, float *param);/* evaluate once, double precision */
   void (*evalVecD)(double *f, double *x,  /* evaluate many times, double */
 		   int N, float *param);
-} nrrdKernelMethods;
-
-#define NRRD_KERNEL_MAX 7
-typedef enum {
-  nrrdKernelUnknown,             /* 0: nobody knows */
-  nrrdKernelZero,                /* 1: value is always zero */
-  nrrdKernelBox,                 /* 2: for nearest-neighbor interpolation */
-  nrrdKernelTent,                /* 3: for (bi,tri)linear interpolation */
-  nrrdKernelForwDiff,            /* 4: for forward difference 1st deriv. */
-  nrrdKernelCentDiff,            /* 5: for central difference 1st deriv. */
-  nrrdKernelBCCubic,             /* 6: the BC family of cubics polynomials */
-  nrrdKernelBCCubicD,            /* 7: first derivative of BC family */
-  nrrdKernelLast
-} nrrdKernelType;
-
-extern nrrdKernelMethods nrrdKernel[NRRD_KERNEL_MAX+1];
+} nrrdKernel;
 
 /*
 ******** nrrdResampleInfo struct
 **
 */
 typedef struct {
-  int kernel[NRRD_MAX_DIM];      /* from the nrrdKernelType enum; use
-				    nrrdKernelUnknown for "don't resample!" */
-  NRRD_BIG_INT samples[NRRD_MAX_DIM]; /* number of samples */
-  float param[NRRD_MAX_DIM][NRRD_MAX_KERNEL_PARAMS], 
-                                 /* kernel arguments */
+  nrrdKernel *kernel[NRRD_MAX_DIM];       /* kernels from nrrd, or something
+					     supplied by the user */
+  int samples[NRRD_MAX_DIM];              /* number of samples */
+  float param[NRRD_MAX_DIM][NRRD_MAX_KERNEL_PARAMS], /* kernel arguments */
     min[NRRD_MAX_DIM],
     max[NRRD_MAX_DIM];           /* range, in index space, along which to
 				    resample */
-  int pad,                       /* non-zero iff resampling outside original
-				    should involve padding (not bleeding) */
+  int boundary,                  /* value from the nrrdBoundary enum */
     type;                        /* desired type of output, use
 				    nrrdTypeUnknown for "same as input" */
   float padValue;                /* if padding, what value to pad with */
 } nrrdResampleInfo;
+
+/*
+******** nrrdBoundary struct
+**
+** when resampling, how to deal with the ends of a scanline
+*/
+typedef enum {
+  nrrdBoundaryUnknown,  /* 0: who knows? */
+  nrrdBoundaryPad,      /* 1: fill with some user-specified value */
+  nrrdBoundaryBleed,    /* 2: copy the last/first value out as needed */
+  nrrdBoundaryWrap,     /* 3: wrap-around */
+  nrrdBoundaryWeight,   /* 4: normalize the weighting on the existing samples;
+			   ONLY sensible for a strictly positive kernel
+			   which integrates to unity (as in blurring) */
+  nrrdBoundaryLast
+} nrrdBoundary;
 
 /*
 ******** nrrdMagic enum
@@ -484,6 +481,18 @@ extern int nrrdHistoEq(Nrrd *nin, Nrrd **nhistP, int bins, int smart);
 /* filt.c */
 extern int nrrdMedian(Nrrd *nin, Nrrd *nout, int radius, int bins);
 extern Nrrd *nrrdNewMedian(Nrrd *nin, int radius, int bins);
+extern int nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info);
+
+/******** kernels (interpolation, 1st and 2nd derivatives) */
+/* kernel.c */
+extern nrrdKernel *nrrdKernelZero, /* zero everywhere */
+  *nrrdKernelBox,                  /* box filter (nearest neighbor) */
+  *nrrdKernelTent,                 /* tent filter (linear interpolation) */
+  *nrrdKernelForwDiff,             /* forward-difference-ish 1st deriv. */
+  *nrrdKernelCentDiff,             /* central-difference-ish 1st deriv. */
+  *nrrdKernelBCCubic,              /* BC family of cubic polynomial splines */
+  *nrrdKernelBCCubicD,             /* 1st deriv. of BC family */
+  *nrrdKernelBCCubicDD;            /* 2nd deriv. of BC family */
 
 /******** conversions */
 /* convert.c */
