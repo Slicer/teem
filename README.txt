@@ -39,6 +39,13 @@ text of the GNU Lesser General Public License should be in the file
    however it is that you invoke a GNU make.  This MUST be GNU make.
    I am in fact using features unique to GNU make.
 
+4: "../${TEEM_ARCH}/bin/nrrdSanity"
+   This runs a little program which performs a sanity-check on the
+   nrrd library; specifically, all the assumptions about type sizes,
+   endienness, and such that are set at compile time.  If it doesn't
+   say "nrrd sanity check passed", then email me; there are serious
+   problems.
+
 If you want only the nrrd library and the related utilities (unrrdu)
 then type: "make just-nrrd".
 
