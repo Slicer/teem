@@ -32,14 +32,17 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *base, out[512], *err, format[512];
   Nrrd *nin, *nout;
-  int pos, axis, top, pret;
+  int pos, axis, top, pret, start;
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "axis to slice along");
   OPT_ADD_NIN(nin, "input nrrd");
+  hestOptAdd(&opt, "s", "start", airTypeInt, 1, 1, &start, "0",
+	     "integer value to start numbering with");
   hestOptAdd(&opt, "o", "prefix", airTypeString, 1, 1, &base, NULL,
 	     "output filename prefix. Output nrrds will be saved out as "
-	     "<prefix>00.nrrd, <prefix>01.nrrd, and so on. If this is a "
+	     "<prefix>00.nrrd, <prefix>01.nrrd, <prefix>02.nrrd, and so on "
+	     "(with \"-s\" option, numbering will be different). If this is a "
 	     "directory name, you probably want to end it with a \"/\".");
 
   mop = airMopNew();
@@ -49,6 +52,11 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
+  if (start < 0) {
+    fprintf(stderr, "%s: given start index (%d) less than zero\n", me, start);
+    airMopError(mop);
+    return 1;
+  }
   if (!(AIR_IN_CL(0, axis, nin->dim-1))) {
     fprintf(stderr, "%s: given axis (%d) outside range [0,%d]\n",
 	    me, axis, nin->dim-1);
@@ -56,8 +64,10 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
     return 1;
   }
 
-  top = nin->axis[axis].size-1;
-  if (top > 999999)
+  top = start + nin->axis[axis].size-1;
+  if (top > 9999999)
+    sprintf(format, "%%s%%08d.nrrd");
+  else if (top > 999999)
     sprintf(format, "%%s%%07d.nrrd");
   else if (top > 99999)
     sprintf(format, "%%s%%06d.nrrd");
@@ -89,7 +99,7 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
 	strcpy(format + strlen(format) - 4, "png");
       }
     }
-    sprintf(out, format, base, pos);
+    sprintf(out, format, base, pos+start);
     fprintf(stderr, "%s: %s ...\n", me, out);
     if (nrrdSave(out, nout, NULL)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
