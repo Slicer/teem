@@ -217,7 +217,7 @@ typedef struct limnPart_t {
 ** appearance, for points, edges, faces, etc.
 */
 typedef struct limnSP_t {
-  float rgba[4], thick;
+  float rgba[4];
   float k[3], spec;
 } limnSP;
 
@@ -243,7 +243,7 @@ typedef struct limnObj_t {
   
   limnPart *r;       /* array of part structs */
   airArray *rA;      /* arrArray around "r" */
-
+  
   limnSP *s;         /* array of surface properties */
   airArray *sA;      /* airArray around "s" */
 
