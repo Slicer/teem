@@ -174,10 +174,12 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
     mtt->directAnsMiteVal[miteValTi][0] = num;
     ELL_3V_COPY(mtt->directAnsMiteVal[miteValView], mtt->V);
     NN = mtt->directAnsMiteVal[miteValNormal];
-    if (1 == muu->normalSide) {
-      ELL_3V_SCALE(NN, -1, mtt->_normal);
-    } else {
-      ELL_3V_COPY(NN, mtt->_normal);
+    if (mtt->_normal) {
+      if (1 == muu->normalSide) {
+	ELL_3V_SCALE(NN, -1, mtt->_normal);
+      } else {
+	ELL_3V_COPY(NN, mtt->_normal);
+      }
     }
 
     if ((GAGE_QUERY_ITEM_TEST(mrr->queryMite, miteValNdotV)
