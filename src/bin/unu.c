@@ -36,6 +36,12 @@ main(int argc, char **argv) {
   nrrdDefGetenv();
   nrrdStateGetenv();
 
+  /* if user hasn't tried to set nrrdStateKindNoop by an environment
+     variable, we set it to false, since its probably what people expect */
+  if (!getenv("NRRD_STATE_KIND_NOOP")) {
+    nrrdStateKindNoop = AIR_FALSE;
+  }
+
   /* no harm done in making sure we're sane */
   if (!nrrdSanity()) {
     fprintf(stderr, "******************************************\n");
