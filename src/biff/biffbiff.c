@@ -68,6 +68,15 @@ _biffInit() {
   return;
 }
 
+void
+_biffNuke() {
+
+  if (_biffAA) {
+    airArrayNuke(_biffAA);
+  }
+  return;
+}
+
 /*
 ** _biffCheckKey()
 **
@@ -555,6 +564,7 @@ biffGetDone(const char *key) {
 
   ret = biffGet(key);
   biffDone(key);
+  _biffNuke();
 
   return ret;
 }
@@ -567,6 +577,7 @@ biffSetStrDone(char *str, const char *key) {
 
   biffSetStr(str, key);
   biffDone(key);
+  _biffNuke();
 
   return;
 }
