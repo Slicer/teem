@@ -1,0 +1,8 @@
+basic problems with hest:
+
+- there's no way to tell whether the information for any given option 
+came from the default string, or from the command line
+
+- there's no way to access the string that was parsed to get the
+information for an option (could be from default, or command-line,
+or response file)
