@@ -29,6 +29,7 @@ _nrrdIOInit(NrrdIO *io) {
   if (io) {
     strcpy(io->dir, "");
     strcpy(io->base, "");
+    strcpy(io->dataFN, "");
     strcpy(io->line, "");
     io->pos = 0;
     io->dataFile = NULL;
@@ -570,7 +571,7 @@ int
 nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
   char me[]="nrrdMaybeAlloc_nva", err[AIR_STRLEN_MED];
   nrrdBigInt sizeWant, sizeHave, numWant;
-  int d, need;
+  int d, need, elementSizeWant;
 
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -590,12 +591,16 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
 	      me, nrrd->blockSize);
       biffAdd(NRRD, err); return 1;
     }
+    elementSizeWant = nrrd->blockSize;
+  } else {
+    elementSizeWant = nrrdTypeSize[type];
   }
   if (!_nrrdSizeValid(dim, size)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
 
+  
   if (!(nrrd->data)) {
     need = 1;
   } else {
@@ -608,22 +613,27 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
       biffAdd(NRRD, err); return 1;
     }
     sizeHave = nrrdElementNumber(nrrd) * nrrdElementSize(nrrd);
-    sizeWant = numWant * nrrdElementSize(nrrd);
+    /* fprintf(stderr, "##%s: sizeHave = %d * %d = %d\n", me,
+	    (int)(nrrdElementNumber(nrrd)),
+	    (int)(nrrdElementSize(nrrd)), (int)sizeHave); */
+    sizeWant = numWant * elementSizeWant;
+    /* fprintf(stderr, "##%s: sizeWant = %d * %d = %d\n", me,
+	    (int)(numWant),
+	    (int)(elementSizeWant), (int)sizeWant); */
     need = sizeHave != sizeWant;
+    /* fprintf(stderr, "##%s: need = %d\n", me, need); */
   }
   if (need) {
     if (nrrdAlloc_nva(nrrd, type, dim, size)) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
+  } else {
+    /* this is essentially a reshape */
+    nrrd->type = type;
+    nrrd->dim = dim;
+    nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, size);
   }
-
-  /* we need to set these here because if need was NOT true above,
-     then these things would not be set by nrrdAlloc_nva(), but they
-     need to be set in accordance with the function arguments.
-     Blocksize would have been already set by caller. */
-  nrrd->type = type;
-  nrrd->dim = dim;
 
   return 0;
 }
