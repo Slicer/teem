@@ -20,10 +20,11 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Find connected components"
+#define INFO "Find connected components (CCs)"
 char *_unrrdu_ccfindInfoL =
 (INFO
- " (CCs). This works on 1, 2, or 4-byte integral values.");
+ ". This works on 1-byte and 2-byte integral values, as well as "
+ "4-byte ints.");
 
 int
 unrrdu_ccfindMain(int argc, char **argv, char *me, hestParm *hparm) {

@@ -754,3 +754,43 @@ nrrdCCRevalue (Nrrd *nout, Nrrd *nin, Nrrd *nval) {
 
   return 0;
 }
+
+int
+nrrdCCSettle(Nrrd *nout, Nrrd *nin) {
+  char me[]="nrrdCCSettle", func[]="ccsettle", err[AIR_STRLEN_MED];
+  int maxid, jd, id, (*lup)(void *, size_t), (*ins)(void *, size_t, int), *map;
+  size_t I, NN;
+
+  if (!( nout && nrrdCCValid(nin) )) {
+    sprintf(err, "%s: invalid args", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdCopy(nout, nin)) {
+    sprintf(err, "%s: initial copy failed", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  maxid = nrrdCCMax(nin);
+  lup = nrrdILookup[nin->type];
+  ins = nrrdIInsert[nin->type];
+  NN = nrrdElementNumber(nin);
+  map = (int *)calloc(maxid+1, sizeof(int));
+  if (!map) {
+    sprintf(err, "%s: couldn't allocate internal LUT", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  for (I=0; I<NN; I++) {
+    map[lup(nin->data, I)] = 1;
+  }
+  id = 0;
+  for (jd=0; jd<=maxid; jd++) {
+    if (map[jd]) {
+      map[jd] = id;
+      id++;
+    }
+  }
+  for (I=0; I<NN; I++) {
+    ins(nout->data, I, map[lup(nin->data, I)]);
+  }
+  free(map);
+  return 0;
+}

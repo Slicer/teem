@@ -139,6 +139,7 @@ F(imap) \
 F(ccfind) \
 F(ccadj) \
 F(ccmerge) \
+F(ccsettle) \
 F(save)
 
 /*

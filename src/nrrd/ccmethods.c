@@ -58,16 +58,6 @@ _nrrdCC_settle (int *map, int len) {
 }
 
 /*
-int
-nrrdCCSettle(Nrrd *nout, Nrrd *nin) {
-  char me[]="nrrdCCSettle", err[AIR_STRLEN_MED];
-
-  return 0;
-}
-*/
-
-
-/*
 ** _nrrdCC_eclass ()
 **
 ** takes the equivalence pairs in eqvArr, and an array of ints map of 
@@ -133,9 +123,10 @@ nrrdCCValid(Nrrd *nin) {
 }
 
 /*
-** things we could measure on CCs: 
-** size
-** # neighbors
+** things we could sensibly measure on CCs: 
+** - size
+** - # neighbors (needs conny argument)
+** - what else?
 */
 
 int
