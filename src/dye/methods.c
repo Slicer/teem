@@ -1,0 +1,175 @@
+/*
+  The contents of this file are subject to the University of Utah Public
+  License (the "License"); you may not use this file except in
+  compliance with the License.
+  
+  Software distributed under the License is distributed on an "AS IS"
+  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
+  the License for the specific language governing rights and limitations
+  under the License.
+
+  The Original Source Code is "teem", released March 23, 2001.
+  
+  The Original Source Code was developed by the University of Utah.
+  Portions created by UNIVERSITY are Copyright (C) 2001, 1998 University
+  of Utah. All Rights Reserved.
+*/
+
+
+#include "dye.h"
+
+char
+dyeSpaceToStr[][AIR_SMALL_STRLEN] = {
+  "(unknown)",
+  "HSV",
+  "HSL",
+  "RGB",
+  "XYZ",
+  "LAB",
+  "LUV"
+};
+
+int
+dyeStrToSpace(char *_str) {
+  int spc;
+  char *c, *str;
+
+  spc = dyeSpaceUnknown;
+  if (str = airStrdup(_str)) {
+    c = str;
+    while (*c) {
+      *c = toupper(*c);
+      c++;
+    }
+    for (spc=0; spc<dyeSpaceLast; spc++) {
+      if (!strcmp(str, dyeSpaceToStr[spc])) {
+	break;
+      }
+    }
+    if (dyeSpaceLast == spc)
+      spc = dyeSpaceUnknown;
+    str = airFree(str);
+  }
+  return spc;
+}
+
+dyeColor *
+dyeColorInit(dyeColor *col) {
+
+  if (col) {
+    ELL_3V_SET(col->val[0], AIR_NAN, AIR_NAN, AIR_NAN);
+    ELL_3V_SET(col->val[1], AIR_NAN, AIR_NAN, AIR_NAN);
+    col->xWhite = col->yWhite = AIR_NAN;
+    col->spc[0] = dyeSpaceUnknown;
+    col->spc[1] = dyeSpaceUnknown;
+    col->wch = 0;
+  }
+  return col;
+}
+
+dyeColor *
+dyeColorSet(dyeColor *col, int space, float v0, float v1, float v2) {
+  
+  if (col && AIR_BETWEEN(dyeSpaceUnknown, space, dyeSpaceLast)) {
+    col->wch = AIR_CLAMP(0, col->wch, 1);
+
+    /* We switch to the other one if the current one seems to be used.
+       If the other one is being used too, oh well.  */
+    if (dyeSpaceUnknown != col->spc[col->wch] &&
+	AIR_EXISTS(col->val[col->wch][0])) {
+      col->wch = 1-col->wch;
+    }
+
+    ELL_3V_SET(col->val[col->wch], v0, v1, v2);
+    col->spc[col->wch] = space;
+  }
+  return col;
+}
+
+int
+dyeColorGet(float *v0P, float *v1P, float *v2P, dyeColor *col) {
+  int spc;
+  
+  spc = dyeSpaceUnknown;
+  if (v0P && v1P && v2P && col) {
+    col->wch = AIR_CLAMP(0, col->wch, 1);
+    spc = col->spc[col->wch];
+    ELL_3V_GET(*v0P, *v1P, *v2P, col->val[col->wch]);
+  }
+  return spc;
+}
+
+dyeColor *
+dyeColorNew() {
+  dyeColor *col;
+
+  col = calloc(1, sizeof(dyeColor));
+  col = dyeColorInit(col);
+  return col;
+}
+
+dyeColor *
+dyeColorCopy(dyeColor *c1, dyeColor *c0) {
+  
+  if (c1 && c0) {
+    memcpy(c1, c0, sizeof(dyeColor));
+  }
+  return c1;
+}
+
+dyeColor *
+dyeColorNix(dyeColor *col) {
+
+  if (col) {
+    col = airFree(col);
+  }
+  return NULL;
+}
+
+int
+dyeColorParse(dyeColor *col, char *_str) {
+  char me[]="dyeColorParse", err[128], *str;
+  char *colon, *valS;
+  float v0, v1, v2;
+  int spc;
+  
+  if (!(col && _str)) {
+    sprintf(err, BIFF_NULL, me); biffAdd(DYE, err); return 1;
+  }
+  if (!(str = airStrdup(_str))) {
+    sprintf(err, "%s: couldn't strdup!", me);
+    biffAdd(DYE, err); return 1;
+  }
+  if (!(colon = strchr(str, ':'))) {
+    sprintf(err, "%s: given string \"%s\" didn't contain colon", me, str);
+    biffAdd(DYE, err); return 1;
+  }
+  *colon = '\0';
+  valS = colon+1;
+  if (3 != sscanf(valS, "%g,%g,%g", &v0, &v1, &v2)) {
+    sprintf(err, "%s: couldn't parse three floats from \"%s\"", me, valS);
+    biffAdd(DYE, err); return 1;
+  }
+  spc = dyeStrToSpace(str);
+  if (dyeSpaceUnknown == spc) {
+    sprintf(err, "%s: couldn't parse colorspace from \"%s\"", me, str);
+    biffAdd(DYE, err); return 1;
+  }
+  str = airFree(str);
+
+  dyeColorSet(col, spc, v0, v1, v2);
+  return 0;
+}
+
+char *
+dyeColorSprintf(char *str, dyeColor *col) {
+  
+  if (str && col) {
+    col->wch = AIR_CLAMP(0, col->wch, 1);
+    sprintf(str, "%s:%g,%g,%g", dyeSpaceToStr[col->spc[col->wch]],
+	    col->val[col->wch][0], 
+	    col->val[col->wch][1], 
+	    col->val[col->wch][2]);
+  }
+  return str;
+}
