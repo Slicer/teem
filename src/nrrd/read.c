@@ -1168,7 +1168,7 @@ nrrdRead (Nrrd *nrrd, FILE *file, NrrdIO *_io) {
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   if (!len) {
-    sprintf(err, "%s: immediately hit EOF", me);
+    sprintf(err, "%s: " _NRRD_IMM_EOF, me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   

@@ -40,7 +40,7 @@ _nrrdHestNrrdParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
     strncpy(err, nerr, AIR_STRLEN_HUGE-1);
     airMopError(mop);
-    return 1;
+    return (strstr(err, _NRRD_IMM_EOF) ? 2 : 1);
   }
   airMopOkay(mop);
   return 0;

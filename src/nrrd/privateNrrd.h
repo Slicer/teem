@@ -69,6 +69,7 @@ extern void (*_nrrdConv[][NRRD_TYPE_MAX+1])(void *,void *, size_t);
 extern int _nrrdMinMaxSet(Nrrd *nrrd);
 
 /* read.c */
+#define _NRRD_IMM_EOF "immediately hit EOF"
 extern char _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL];
 extern char _nrrdRelDirFlag[];
 extern char _nrrdFieldSep[];
