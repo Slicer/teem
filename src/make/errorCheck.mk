@@ -26,56 +26,46 @@
 KNOWN_ARCH = irix6.n32 irix6.64 linux cygwin solaris
 
 # there is no default architecture
-ifndef TEEM_ARCH
-  $(warning *)
-  $(warning *)
-  $(warning * Environment variable TEEM_ARCH not set.)
-  $(warning * Possible settings currently supported:)
-  $(warning * $(KNOWN_ARCH))
-  $(warning *)
-  $(warning *)
-  $(error Make quitting)
-endif
-
-# the architecture name may have two parts, ARCH and SUBARCH,
-# seperated by one period
-ARCH = $(basename $(TEEM_ARCH))
-SUBARCH = $(patsubst .%,%,$(suffix $(TEEM_ARCH)))
+checkArchSet = $(if $(TEEM_ARCH),,\
+$(warning *)\
+$(warning *)\
+$(warning * Environment variable TEEM_ARCH not set.)\
+$(warning * Possible settings currently supported:)\
+$(warning * $(KNOWN_ARCH))\
+$(warning *)\
+$(warning *)\
+$(error Make quitting))
 
 # verify that we can recognize the architecture setting
-ifeq (,$(strip $(findstring $(TEEM_ARCH),$(KNOWN_ARCH))))
-  $(warning *)
-  $(warning *)
-  $(warning * Environment variable TEEM_ARCH = "$(TEEM_ARCH)" unknown)
-  $(warning * Possible settings currently supported:)
-  $(warning * $(KNOWN_ARCH))
-  $(warning *)
-  $(warning *)
-  $(error Make quitting)
-endif
+checkArchValid = $(if $(strip $(findstring $(TEEM_ARCH),$(KNOWN_ARCH))),,\
+$(warning *)\
+$(warning *)\
+$(warning * Environment variable TEEM_ARCH="$(TEEM_ARCH)" unknown)\
+$(warning * Possible settings currently supported:)\
+$(warning * $(KNOWN_ARCH))\
+$(warning *)\
+$(warning *)\
+$(error Make quitting))
 
 ## Other error checking ...
 ##
-ifeq (true,$(TEEM_LINK_SHARED))
-  ifndef SHEXT
-    $(warning *)
-    $(warning *)
-    $(warning * Can't do shared library linking with SHEXT unset)
-    $(warning * See architecture-specific .mk file.)
-    $(warning *)
-    $(warning *)
-    $(error Make quitting)
-  endif
-endif
-ifeq (true,$(TEEM_PURIFY))
-  ifndef PURIFY
-    $(warning *)
-    $(warning *)
-    $(warning * Purification requested, but env variable PURIFY not set)
-    $(warning * Edit make/$(ARCH).mk in teem root directory)
-    $(warning *)
-    $(warning *)
-    $(error Make quitting)
-  endif
-endif
+checkShext = $(if $(filter undefined,$(origin TEEM_LINK_SHARED)),,\
+$(if $(TEEM_SHEXT),,\
+$(warning *)\
+$(warning *)\
+$(warning * Cannot do shared library linking with TEEM_SHEXT unset)\
+$(warning * Set it in teem/make/$(ARCH).mk or as environment var)\
+$(warning *)\
+$(warning *)\
+$(error Make quitting)))
+
+checkPurify = $(if $(filter undefined,$(origin TEEM_PURIFY)),,\
+$(if $(TEEM_PURIFY_CMD),,\
+$(warning *)\
+$(warning *)\
+$(warning * Purification requested, but TEEM_PURIFY_CMD not set)\
+$(warning * Set it in teem/make/$(ARCH).mk or as environment var)\
+$(warning *)\
+$(warning *)\
+$(error Make quitting)))
 

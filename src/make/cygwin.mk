@@ -20,7 +20,7 @@
 
 
 # this will stay unset until I figure out gcc creation of Windows DLLs
-SHEXT = 
+TEEM_SHEXT = 
 
 CC = gcc
 DOTEXE = .exe

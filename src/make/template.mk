@@ -22,19 +22,42 @@
 #### template.mk: Defines rules which have the same structure for each
 #### library, but which refer to the specific consituents and
 #### prerequisites of the library.  The variable L is assumed to
-#### contain the name of the library for which we're creating rules
-#### (this is set by the library GNUmakefile)
+#### contain the name of the library for which we're creating rules;
+#### L is an immediate set by the library GNUmakefile.
 ####
 ####
 
-## Apparently unfortunately necessary cleverness.  In a rule, the
-## contexts of the target and the prerequisite are immediate, the
-## contexts of the commands are deferred; there is no getting around
-## this.  Thus, if the commands to satisfy $(L)/clean include $(RM)
-## $(call OBJS.DEV,$(L)), then this will remove the object files for
-## library $(L), but the value of $(L) that is used is the one in
-## effect with WHEN THE COMMAND IS RUN, not the one when the rule was
-## read by make.  Not useful.
+## Either to avoid extra calls to need, or extra uses of call
+## $(L).need: recursively expanded version of $(L).NEED
+## $(L).need.usable: X/usable for all X needed for L
+## $(L).{hdrs,libs}.inst: full path to installed headers/libs for L
+## Keep in mind that these will be set for all libraries before ANY
+##   command's rules are executed
+##
+$(L).need := $(call need,$(L))
+$(L).meneed := $(L) $($(L).need)
+$(L).need.usable := $(call usable,$($(L).need))
+$(L).need.hdrs.inst := $(call hdrs.inst,$($(L).need))
+$(L).need.libs.inst := $(call libs.inst,$($(L).need))
+$(L).need.links := $(call link,$($(L).need))
+$(L).hdrs.inst := $(call hdrs.inst,$(L))
+$(L).libs.inst := $(call libs.inst,$(L))
+$(L).hdrs.dev := $(call hdrs.dev,$(L))
+$(L).libs.dev := $(call libs.dev,$(L))
+$(L).objs.dev := $(call objs.dev,$(L))
+$(L).tests.dev := $(call tests.dev,$(L))
+$(L).more.cflags := $(call more.cflags,$(L))
+$(L).ext.ipath := $(call ext.ipath,$($(L).meneed))
+$(L).ext.lpath := $(call ext.lpath,$($(L).meneed))
+$(L).ext.link := $(call ext.link,$($(L).meneed))
+
+## In a rule, the contexts of the target and the prerequisite are
+## immediate, the contexts of the commands are deferred; there is no
+## getting around this.  Thus, if the commands to satisfy $(L)/clean
+## include $(RM) $(call OBJS.DEV,$(L)), then this will remove the
+## object files for library $(L), but the value of $(L) that is used
+## is the one in effect with WHEN THE COMMAND IS RUN, not the one when
+## the rule was read by make.  Not useful.
 ##
 ## For all the "entry-point" targets, we enstate a pattern-specific
 ## immediate variable value _L.  This bridges the immediate and
@@ -45,112 +68,93 @@
 ## satisfying all prerequisites of $(L)/%, which is exactly what we
 ## want.
 ##
-## The real value of the .%.usable target, in fact, is to have
-## something off which to hang this assignment, so that, for instance,
-## the right MORE_CFLAGS is used when compiling sources for a library
-## that we need (say, air), but which isn't in fact that top-level
-## target (say, nrrd).
-##
 $(L)/% : _L := $(L)
-$(TEEM_SRC)/.$(L).usable : _L := $(L)
+$($(L).libs.dev) : _L := $(L)
 
-## These approximate the messages I had in the previous version of the
-## teem makefiles, giving some progress indication in terms of what
-## library we're working on.  Since we want this to be printed out
-## before we do the work of making the target, we need a double colon
-## rule preceeding all the others.  But it 
-##
-
-## $(L)/usable are the things that other teem libraries may rely on
-##
-$(L)/usable : $(TEEM_SRC)/.$(L).usable
-
-## The prequisites of .$(L).usable are the .usables of all our
+## The prequisites of .$(L).usable are the .usable's of all our
 ## prerequisites, and our own libs and headers, if either:
 ## 1) any of the libs and headers are missing, or
 ## 2) a prerequisite .usable is newer than ours.
 ## Naming our libs and headers should effectively trigger an install.
 ##
-used := $(call USED.INST,$(L))
-me := $(TEEM_SRC)/.$(L).usable
-need := $(call NEED.USABLE,$(L))
-$(TEEM_SRC)/.$(L).usable : $(call NEED.USABLE,$(L)) \
-$(if $(call MISSING,$(used)),$(used),$(if $(call NEWER.THAN,$(me),$(need)),$(used)))
+
+ifneq (undefined,$(origin TEEM_USABLE))
+  $(IDEST)/.$(L).hdr: $(call if.missing,$($(L).hdrs.inst))
+  $(LDEST)/.$(L).lib: \
+    $(call newer.than,$($(L).libs.inst),$($(L).need.hdrs.inst))
+endif
 
 ## $(L)/install depends on usable prerequisite libraries and $(L)'s
 ## installed libs and headers.
 ##
-$(L)/install : $(call NEED.USABLE,$(L)) \
-  $(call LIBS.INST,$(L)) $(call HDRS.INST,$(L))
+$(L)/install : $(call used,$($(L).need)) \
+  $($(L).libs.inst) $($(L).hdrs.inst)
 
 ## $(L)/dev depends on usable prerequisites and $(L)'s local
 ## development builds of the libs and tests
 ##
-$(L)/dev : $(call NEED.USABLE,$(L)) \
-  $(call LIBS.DEV,$(L)) $(call TESTS.DEV,$(L))
+$(L)/dev : $(call used,$($(L).need)) \
+  $($(L).libs.dev) $($(L).tests.dev)
 
 ## $(L)/clean undoes $(L)/dev.
 ##
 $(L)/clean :
-	$(RM) $(call OBJS.DEV,$(_L)) $(call LIBS.DEV,$(_L)) \
-	  $(call TESTS.DEV,$(_L))
+	$(RM) $($(_L).objs.dev) $($(_L).libs.dev) $($(_L).tests.dev)
 
 ## $(L)/clobber undoes $(L)/install.
 ##
 $(L)/clobber : $(L)/clean
-	$(RM) $(call LIBS.INST,$(_L)) $(call HDRS.INST,$(_L)) \
-	  $(TEEM_SRC)/.$(_L).usable
-
+	$(RM) $($(_L).libs.inst) $($(_L).hdrs.inst)
+	$(RM) $(IDEST)/.$(_L).hdr $(LDEST)/.$(_L).lib
 
 ## The objects of a lib depend on usable prerequisite libraries (for
 ## their headers specifically), and on our own headers.
 ##
-$(call OBJS.DEV,$(L)) : $(call NEED.USABLE,$(L)) $(call HDRS.DEV,$(L))
+$($(L).objs.dev) : $(call used.hdrs,$($(L).need)) $($(L).hdrs.dev)
 
 ## Development tests depend on usable prerequiste libraries, and the
 ## development libs (header dep. through objects, source dep. below)
 ##
-$(call TESTS.DEV,$(L)) : $(call NEED.USABLE,$(L)) $(call LIBS.DEV,$(L))
+$($(L).tests.dev) : $(call used,$($(L).need)) \
+  $($(L).hdrs.dev) $($(L).libs.dev)
 
-## How to create development static and shared libs (LIBS.DEV) from
+## How to create development static and shared libs (libs.dev) from
 ## the objects on which they depend.
 ##
-$(ODEST)/lib$(L).a : $(call OBJS.DEV,$(L))
+$(ODEST)/lib$(L).a : $($(L).objs.dev)
 	$(AR) $(ARFLAGS) $@ $^
-ifdef SHEXT
-$(ODEST)/lib$(L).$(SHEXT) : $(call OBJS.DEV,$(L))
+ifdef TEEM_SHEXT
+$(ODEST)/lib$(L).$(TEEM_SHEXT) : $($(L).objs.dev)
 	$(LD) -o $@ $(LDFLAGS) $(LPATH) $^
 endif
 
-## MAYBEBANNER(L)(obj) returns "echo ..." to show a library banner 
+## maybebanner(L)(obj) returns "echo ..." to show a library banner 
 ## progress indicator, but only if obj is the first object in $(L).OBJS.
 ## This mimics the behavior under the old recursive teem makefile.
 ##
-MAYBEBANNER.$(L) = $(if $(filter $(notdir $(1:.c=.o)),$(word 1,$($(_L).OBJS))),$(call BANNER,$(_L)))
+maybebanner.$(L) = $(if $(filter $(notdir $(1:.c=.o)),\
+$(word 1,$($(_L).OBJS))),$(call banner,$(_L)))
 
 ## How to compile a .o file. We're giving a pattern rule constrained
 ## to the objects we know we need to make for this library.  Or, we
 ## could use vpath to locate the sources in the library subdirectory,
 ## but why start cheating now.
 ##
-$(call OBJS.DEV,$(L)) : $(ODEST)/%.o : $(TEEM_SRC)/$(L)/%.c
-	@$(call MAYBEBANNER.$(_L),$<)
-	$(P) $(CC) $(CFLAGS) $(call MORE_CFLAGS,$(_L)) $(IPATH) -c $< -o $@
+$($(L).objs.dev) : $(ODEST)/%.o : $(TEEM_SRC)/$(L)/%.c
+	@$(call maybebanner.$(_L),$<)
+	$(P) $(CC) $(CFLAGS) $($(_L).more.cflags) $($(_L).ext.ipath) \
+	  $(IPATH) -c $< -o $@
 
 ## How to make development tests.  It doesn't actually matter in this
 ## case where the source files are, we just put the executable in the
 ## same place.
 ##
-$(call TESTS.DEV,$(L)) : % : %.c
-	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(call MORE_CFLAGS,$(_L)) \
-	  $(IPATH) -o $@ $< -L$(ODEST) -l$(_L) \
-	  $(LPATH) $(call NEED.LIBLINKS,$(_L)) -lz -lm
+$($(L).tests.dev) : % : %.c
+	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) \
+	  $(call more.cflags,$(_L)) $(IPATH) -o $@ $< -L$(ODEST) -l$(_L) \
+	  $(LPATH) $($(_L).need.links) $($(_L).ext.lpath) $($(_L).ext.link) -lm
 
-## Since the installed libs and headers are the "usables", we have to
-## touch .$(_L).usable every time any one of them is updated (since we
-## don't always know which ones are going to be updated)
-
-## How to install a libs (LIB.INST), static and shared: This really
+## How to install a libs (libs.inst), static and shared: This really
 ## should be in the top-level GNUmakefile, since there is really
 ## nothing library specific about this, but it looked funny to just
 ## have one rule there and all the rest in here.  In order to prevent
@@ -158,24 +162,30 @@ $(call TESTS.DEV,$(L)) : % : %.c
 ## artificially make the rule specific to the library with a static
 ## pattern rule.
 ##
-$(LDEST)/lib$(L).a : $(LDEST)/%.a : $(ODEST)/%.a
+$(LDEST)/lib$(L).a : $(LDEST)/% : $(ODEST)/%
 	$(CP) $< $@; $(CHMOD) 644 $@
 	$(if $(SIGH),$(SLEEP) $(SIGH); touch $@)
+ifneq (undefined,$(origin TEEM_USABLE))
 	$(if $(SIGH),$(SLEEP) $(SIGH))
-	touch $(TEEM_SRC)/.$(_L).usable
-ifdef SHEXT
-$(LDEST)/lib$(L).$SHEXT) : $(LDEST)/%.$(SHEXT) : $(ODEST)/%.$(SHEXT)
+	touch $(LDEST)/.$(_L).lib
+endif
+ifdef TEEM_SHEXT
+  $(LDEST)/lib$(L).$(TEEM_SHEXT) : $(LDEST)/% : $(ODEST)/%
 	$(CP) $< $@; $(CHMOD) 755 $@
 	$(if $(SIGH),$(SLEEP) $(SIGH); touch $@)
+ifneq (undefined,$(origin TEEM_USABLE))
 	$(if $(SIGH),$(SLEEP) $(SIGH))
-	touch $(TEEM_SRC)/.$(_L).usable
+	touch $(LDEST)/.$(_L).lib
+endif
 endif
 
 ## How to install headers: another instance where vpath could simplify
 ## things, but why bother.
 ##
-$(call HDRS.INST,$(L)) : $(IDEST)/%.h : $(TEEM_SRC)/$(L)/%.h
+$($(L).hdrs.inst) : $(IDEST)/%.h : $(TEEM_SRC)/$(L)/%.h
 	$(CP) $< $@; $(CHMOD) 644 $@
 	$(if $(SIGH),$(SLEEP) $(SIGH); touch $@)
 	$(if $(SIGH),$(SLEEP) $(SIGH))
-	touch $(TEEM_SRC)/.$(_L).usable
+ifneq (undefined,$(origin TEEM_USABLE))
+	touch $(IDEST)/.$(_L).hdr
+endif

@@ -1,4 +1,4 @@
-#
+#!/usr/bin/sh
 # teem: Gordon Kindlmann's research software
 # Copyright (C) 2002, 2001, 2000, 1999, 1998 University of Utah
 #
@@ -16,26 +16,41 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-#
 
-# Stoopid little shell script to determine if a .usable file needs
-# to name the installed headers and libs as prerequisites (thereby
-# triggering their re-install).  Before this is run, two variables
-# are set:
+# The sh path set above (#!/usr/bin/sh) is only for debugging this:
+# this shell is not run by make.  Its contents are read by the 
+# "." intrinsic command, from the shell that make spawns.
+
+# Little shell script to determine if installed headers and libs
+# should be named as prerequisites (thereby triggering their
+# re-install).  Before this is run, two variables are set: 
 #
-#   $me : .usable filename for "me", lib L
-#   $need : .usable filenames of every lib which L depends on
+#   $mes : filenames for "me", library L
+#   $needs : filenames for every library which L depends on
 #
 # The re-install is needed if:
-# (test 1) The needed .usable wasn't there, then the fact that its
-# already been named as a prerequisite to $me means that it will be
+# (test 1) A needed file wasn't there.   The fact that it will
+# named elsewhere as a prerequisite, and that its prerequisites in turn 
+# will also be named, means that the corresponding needed library will be
 # built, which means that L will have to re-installed, or
-# (test 2) The needed .usable file is newer than $me
+# (test 2) One of the needed files is newer than one of the $mes
+# (test 3) One of $mes doesn't exist.  This is handled as part of test 2
+#
+# If a re-install is needed, then $mes is returned, otherwise nothing
 
-for nd in $need
-do   # (test 1)    (  test 2 )
-  if [ ! -f $nd -o $nd -nt $me ]
-    then echo $nd
-  fi
+# initialized to empty string
+older=
+
+# loop over mes and needs
+for me in $mes
+do
+  for need in $needs
+  do #    ( test 1 )      (   test 2  )
+    if [  ! -f $need  -o  $need -nt $me ]
+      then older=yes
+    fi
+  done
 done
-
+if [ -n "$older" ]
+  then echo $mes
+fi
