@@ -20,9 +20,13 @@
 #include "gage.h"
 #include "private.h"
 
-
+/*
+******** gageSimpleNew()
+**
+** does not use biff
+*/
 gageSimple *
-gageSimpleNew() {
+gageSimpleNew(void) {
   gageSimple *spl;
   int i, j;
 
