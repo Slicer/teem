@@ -34,7 +34,7 @@ main(int argc, char *argv[]) {
   limnWindow *win;
   Nrrd *nmap;
   FILE *file;
-  int wire, concave, describe, reverse;
+  int wire, concave, describe, reverse, nobg;
 
   mop = airMopNew();
   cam = limnCameraNew();
@@ -72,6 +72,8 @@ main(int argc, char *argv[]) {
 	     "specified in clockwise order)");
   hestOptAdd(&hopt, "describe", NULL, airTypeInt, 0, 0, &describe, NULL,
 	     "for debugging: list object definition of OFF read");
+  hestOptAdd(&hopt, "nobg", NULL, airTypeInt, 0, 0, &nobg, NULL,
+	     "don't initially fill with background color");
   hestOptAdd(&hopt, "wd", "5 widths", airTypeFloat, 5, 5, edgeWidth,
 	     "0.0 0.0 3.0 2.0 0.0",
 	     "width of edges drawn for five kinds of "
@@ -104,11 +106,6 @@ main(int argc, char *argv[]) {
     airMopError(mop); return 1;
   }
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
-  lookIdx = airArrayIncrLen(obj->lookArr, 2);
-  look = obj->look + lookIdx + 0;
-  ELL_4V_SET(look->rgba, 1, 1, 1, 1);  /* this is kind of silly */
-  ELL_3V_SET(look->kads, 0.2, 0.8, 0);
-  look->spow = 0;
   if (limnObjectOFFRead(obj, file)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
@@ -140,10 +137,18 @@ main(int argc, char *argv[]) {
 
   win->ps.wireFrame = wire;
   win->ps.creaseAngle = creaseAngle;
+  win->ps.noBackground = nobg;
 
   win->file = airFopen(outS, stdout, "w");
   airMopAdd(mop, win, (airMopper)limnWindowNix, airMopAlways);
   win->scale = winscale;
+
+  for (lookIdx=0; lookIdx<obj->lookNum; lookIdx++) {
+    look = obj->look + lookIdx;
+    /* earlier version of limn/test/soid used (0.2,0.8,0.0), I think.
+       Now we assume that any useful shading is happening in the emap */
+    ELL_3V_SET(look->kads, 0.2, 0.8, 0);
+  }
 
   if (limnObjectRender(obj, cam, win)
       || (concave

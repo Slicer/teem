@@ -28,7 +28,7 @@ limnObjectLookAdd(limnObject *obj) {
   lookIdx = airArrayIncrLen(obj->lookArr, 1);
   look = &(obj->look[lookIdx]);
   ELL_4V_SET(look->rgba, 1, 1, 1, 1);
-  ELL_3V_SET(look->kads, 0.5, 0.5, 0.0);
+  ELL_3V_SET(look->kads, 0.0, 1.0, 0.0);
   look->spow = 50;
   return lookIdx;
 }

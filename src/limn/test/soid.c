@@ -52,7 +52,7 @@ washQtoM3(float m[9], float q[4]) {
 int
 main(int argc, char *argv[]) {
   char *me, *err, *outS;
-  float p[3], q[4], mR[9], eval[3], len, sh, cl, cp, qA, qB;
+  float p[3], q[4], mR[9], eval[3], scale[3], len, sh, cl, cp, qA, qB;
   float matA[16], matB[16], os, rad, edgeWidth[5], AB[2];
   hestOpt *hopt=NULL;
   airArray *mop;
@@ -67,7 +67,7 @@ main(int argc, char *argv[]) {
   edgeWidth[0] = 0;
   edgeWidth[1] = 0;
   me = argv[0];
-  hestOptAdd(&hopt, "sc", "scalings", airTypeFloat, 3, 3, eval, "1 1 1",
+  hestOptAdd(&hopt, "sc", "scalings", airTypeFloat, 3, 3, scale, "1 1 1",
 	     "axis-aligned scaling to do on ellipsoid");
   hestOptAdd(&hopt, "AB", "A, B exponents", airTypeFloat, 2, 2, AB, "nan nan",
 	     "Directly set the A, B parameters to the superquadric surface, "
@@ -121,16 +121,17 @@ main(int argc, char *argv[]) {
     qB = AB[1];
     axis = 2;
   } else {
-    ELL_3V_SCALE(eval, os, eval);
+    ELL_3V_SCALE(scale, os, scale);
+    ELL_3V_COPY(eval, scale);
     ELL_SORT3(eval[0], eval[1], eval[2], cl);
     cl = (eval[0] - eval[1])/(eval[0] + eval[1] + eval[2]);
     cp = 2*(eval[1] - eval[2])/(eval[0] + eval[1] + eval[2]);
     if (cl > cp) {
-      axis = ELL_MAX3_IDX(eval[0], eval[1], eval[2]);
+      axis = ELL_MAX3_IDX(scale[0], scale[1], scale[2]);
       qA = pow(1-cp, sh);
       qB = pow(1-cl, sh);
     } else {
-      axis = ELL_MIN3_IDX(eval[0], eval[1], eval[2]);
+      axis = ELL_MIN3_IDX(scale[0], scale[1], scale[2]);
       qA = pow(1-cl, sh);
       qB = pow(1-cp, sh);
     }
@@ -148,7 +149,7 @@ main(int argc, char *argv[]) {
   }
   part = obj->part + partIdx;
   ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, eval[0], eval[1], eval[2]);
+  ELL_4M_SCALE_SET(matB, scale[0], scale[1], scale[2]);
   ell_4m_post_mul_f(matA, matB);
   ELL_43M_INSET(matB, mR);
   ell_4m_post_mul_f(matA, matB);

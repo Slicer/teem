@@ -81,6 +81,7 @@ _limnOptsPSDefaults(limnOptsPS *ps) {
   ps->creaseAngle = 46;
   ps->showpage = AIR_FALSE;
   ps->wireFrame = AIR_FALSE;
+  ps->noBackground = AIR_FALSE;
   ELL_3V_SET(ps->bg, 1, 1, 1);
 }
 

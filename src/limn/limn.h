@@ -142,7 +142,8 @@ typedef struct {
     creaseAngle,      /* difference between crease and facet, in *degrees* */
     bg[3];            /* background color */
   int showpage,       /* finish with "showpage" */
-    wireFrame;          /* just render wire-frame */
+    wireFrame,        /* just render wire-frame */
+    noBackground;     /* refrain from initially filling with bg[] color */
 } limnOptsPS;
 
 typedef struct {
@@ -439,7 +440,7 @@ extern int limnObjectHomog(limnObject *obj, int space);
 extern int limnObjectNormals(limnObject *obj, int space);
 extern int limnObjectSpaceTransform(limnObject *obj, limnCamera *cam,
 				    limnWindow *win, int space);
-extern int limnObjectPartTransform(limnObject *obj, int ri, float tx[16]);
+extern int limnObjectPartTransform(limnObject *obj, int partIdx, float tx[16]);
 extern int limnObjectDepthSortParts(limnObject *obj);
 extern int limnObjectDepthSortFaces(limnObject *obj);
 extern int limnObjectFaceReverse(limnObject *obj);

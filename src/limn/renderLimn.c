@@ -66,8 +66,10 @@ _limnPSPreamble(limnObject *obj, limnCamera *cam, limnWindow *win) {
   fprintf(win->file, "%g %g lineto\n", win->bbox[2], win->bbox[3]);
   fprintf(win->file, "%g %g lineto\n", win->bbox[0], win->bbox[3]);
   fprintf(win->file, "closepath\n");
-  fprintf(win->file, "gsave %g %g %g setrgbcolor fill grestore\n",
-	  win->ps.bg[0], win->ps.bg[1], win->ps.bg[2]);
+  if (!win->ps.noBackground) {
+    fprintf(win->file, "gsave %g %g %g setrgbcolor fill grestore\n",
+	    win->ps.bg[0], win->ps.bg[1], win->ps.bg[2]);
+  }
   fprintf(win->file, "clip\n");
   fprintf(win->file, "gsave newpath\n");
   fprintf(win->file, "1 setlinejoin\n");
