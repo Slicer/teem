@@ -66,8 +66,12 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "tensor",
   "trace",
   "frob",
-  "eigenvalues",
-  "eigenvectors",
+  "eigenvalue0",
+  "eigenvalue1",
+  "eigenvalue2",
+  "eigenvector0",
+  "eigenvector1",
+  "eigenvector2",
   "tensor gradient",
   "Q anisotropy",
   "Q gradient vector",
@@ -86,8 +90,12 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "reconstructed tensor",
   "tensor trace",
   "frob(tensor)",
-  "tensor eigenvalues",
-  "tensor eigenvectors",
+  "tensor eigenvalue 0",
+  "tensor eigenvalue 1",
+  "tensor eigenvalue 2",
+  "tensor eigenvector 0",
+  "tensor eigenvector 1",
+  "tensor eigenvector 2",
   "tensor gradient",
   "Q anisotropy",
   "Q gradient vector",
@@ -106,8 +114,12 @@ _tenGageVal[] = {
   tenGageTensor,
   tenGageTrace,
   tenGageFrobTensor,
-  tenGageEval,
-  tenGageEvec,
+  tenGageEval0,
+  tenGageEval1,
+  tenGageEval2,
+  tenGageEvec0,
+  tenGageEvec1,
+  tenGageEvec2,
   tenGageTensorGrad,
   tenGageQ,
   tenGageQGradVec,
@@ -123,8 +135,12 @@ _tenGageVal[] = {
 #define TG_T    tenGageTensor
 #define TG_TR   tenGageTrace
 #define TG_FT   tenGageFrobTensor
-#define TG_AL   tenGageEval
-#define TG_EC   tenGageEvec
+#define TG_AL0   tenGageEval0
+#define TG_AL1   tenGageEval1
+#define TG_AL2   tenGageEval2
+#define TG_EC0   tenGageEvec0
+#define TG_EC1   tenGageEvec1
+#define TG_EC2   tenGageEvec2
 #define TG_TG   tenGageTensorGrad
 #define TG_Q    tenGageQ
 #define TG_QGV  tenGageQGradVec
@@ -141,8 +157,12 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "t", "ten", "tensor",
   "tr", "trace",
   "frt", "fro", "frob", "frobt",
-  "eval", "eigenvalues",
-  "evec", "eigenvectors",
+  "eval0", "eigenvalue0",
+  "eval1", "eigenvalue1",
+  "eval2", "eigenvalue2",
+  "evec0", "eigenvector0",
+  "evec1", "eigenvector1",
+  "evec2", "eigenvector2",
   "tg", "tgrad", "t grad", "tensor gradient",
   "q",
   "qv", "qgrad", "q grad", "q gradient vector",
@@ -161,8 +181,12 @@ _tenGageValEqv[] = {
   TG_T, TG_T, TG_T,
   TG_TR, TG_TR,
   TG_FT, TG_FT, TG_FT, TG_FT,
-  TG_AL, TG_AL,
-  TG_EC, TG_EC,
+  TG_AL0, TG_AL0,
+  TG_AL1, TG_AL1,
+  TG_AL2, TG_AL2,
+  TG_EC0, TG_EC0,
+  TG_EC1, TG_EC1,
+  TG_EC2, TG_EC2,
   TG_TG, TG_TG, TG_TG, TG_TG,
   TG_Q,
   TG_QGV, TG_QGV, TG_QGV, TG_QGV,
@@ -178,7 +202,7 @@ _tenGageValEqv[] = {
 airEnum
 _tenGage = {
   "tenGage",
-  TEN_GAGE_MAX+1,
+  TEN_GAGE_ITEM_MAX+1,
   _tenGageStr, _tenGageVal,
   _tenGageDesc,
   _tenGageStrEqv, _tenGageValEqv,

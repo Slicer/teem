@@ -44,8 +44,8 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nten, *emap, *nraw, *npos, *nslc;
   char *outS;
   limnCamera *cam;
-  limnObj *glyph;
-  limnWin *win;
+  limnObject *glyph;
+  limnWindow *win;
   echoScene *scene;
   echoRTParm *eparm;
   echoGlobalState *gstate;
@@ -60,12 +60,12 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopNew();
   cam = limnCameraNew();
   airMopAdd(mop, cam, (airMopper)limnCameraNix, airMopAlways);
-  glyph = limnObjNew(512, AIR_TRUE);
-  airMopAdd(mop, glyph, (airMopper)limnObjNix, airMopAlways);
+  glyph = limnObjectNew(512, AIR_TRUE);
+  airMopAdd(mop, glyph, (airMopper)limnObjectNix, airMopAlways);
   scene = echoSceneNew();
   airMopAdd(mop, scene, (airMopper)echoSceneNix, airMopAlways);
-  win = limnWinNew(limnDevicePS);
-  airMopAdd(mop, win, (airMopper)limnWinNix, airMopAlways);
+  win = limnWindowNew(limnDevicePS);
+  airMopAdd(mop, win, (airMopper)limnWindowNix, airMopAlways);
   gparm = tenGlyphParmNew();
   airMopAdd(mop, gparm, (airMopper)tenGlyphParmNix, airMopAlways);
   eparm = echoRTParmNew();
@@ -184,7 +184,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "10", "(* postscript only *) "
 	     "resolution of polygonalization of glyphs (all glyphs "
 	     "other than the default box)");
-  hestOptAdd(&hopt, "wd", "3 widths", airTypeFloat, 3, 3, gparm->edgeWidth + 2,
+  hestOptAdd(&hopt, "wd", "3 widths", airTypeFloat, 3, 3, gparm->edgeWidth,
 	     "0.8 0.4 0.0",  "(* postscript only *) "
 	     "width of edges drawn for three kinds of glyph "
 	     "edges: silohuette, crease, non-crease");
@@ -275,15 +275,15 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     cam->dist = 0;
     cam->faar = 0.0000000001;
     cam->atRelative = AIR_TRUE;
-    win->ps.edgeWidth[0] = gparm->edgeWidth[0];
-    win->ps.edgeWidth[1] = gparm->edgeWidth[1];
-    win->ps.edgeWidth[2] = gparm->edgeWidth[2];
-    win->ps.edgeWidth[3] = gparm->edgeWidth[3];
-    win->ps.edgeWidth[4] = gparm->edgeWidth[4];
+    win->ps.lineWidth[limnEdgeTypeBackFacet] = 0;
+    win->ps.lineWidth[limnEdgeTypeBackCrease] = 0;
+    win->ps.lineWidth[limnEdgeTypeContour] = gparm->edgeWidth[0];
+    win->ps.lineWidth[limnEdgeTypeFrontCrease] = gparm->edgeWidth[1];
+    win->ps.lineWidth[limnEdgeTypeFrontFacet] = gparm->edgeWidth[2];
     win->ps.creaseAngle = 70;
     ELL_3V_COPY(win->ps.bg, bg);
-    if (limnObjRender(glyph, cam, win)
-	|| limnObjPSDraw(glyph, cam, emap, win)) {
+    if (limnObjectRender(glyph, cam, win)
+	|| limnObjectPSDraw(glyph, cam, emap, win)) {
       airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble drawing glyphs:\n%s\n", me, err);
       airMopError(mop); return 1;

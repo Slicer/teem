@@ -157,7 +157,7 @@ tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten, Nrrd *npos, Nrrd *nslc) {
 }
 
 int
-tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
+tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
 	    tenGlyphParm *parm, Nrrd *nten, Nrrd *npos, Nrrd *nslc) {
   char me[]="tenGlyphGen", err[AIR_STRLEN_MED];
   gageShape *shape;
@@ -166,9 +166,8 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
   float cl, cp, *tdata, evec[9], eval[3], *cvec,
     aniso[TEN_ANISO_MAX+1], sRot[16], mA[16], mB[16],
     R, G, B, qA, qB, glyphAniso, sliceGray;
-  int slcCoord[3], slcIdx, idx, _idx=0, ri, axis, spi=0, numGlyphs, duh;
-  limnPart *lglyph;
-  limnSP *sp;
+  int slcCoord[3], idx, _idx=0, glyphIdx, axis, numGlyphs, duh;
+  limnLook *look; int lookIdx;
   echoObject *eglyph, *inst, *list=NULL, *split, *esquare;
   echoPos_t eM[16], originOffset[3], edge0[3], edge1[3];
   /*
@@ -240,16 +239,7 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
     originOffset[parm->sliceAxis] *= -2*parm->sliceOffset;
   }
   if (glyphsLimn) {
-    /* create limnSPs for diffuse (#0) and flat (#1) shading */
-    spi = airArrayIncrLen(glyphsLimn->sA, 2);
-    sp = glyphsLimn->s + spi + 0;
-    ELL_4V_SET(sp->rgba, 1, 1, 1, 1);
-    ELL_3V_SET(sp->k, 0, 1, 0);
-    sp->spec = 0;
-    sp = glyphsLimn->s + spi + 1;
-    ELL_4V_SET(sp->rgba, 1, 1, 1, 1);
-    ELL_3V_SET(sp->k, 1, 0, 0);
-    sp->spec = 0;
+    /* create limnLooks for diffuse and ambient-only shading */
   }
   if (glyphsEcho) {
     list = echoObjectNew(glyphsEcho, echoTypeList);
@@ -286,8 +276,9 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	  slcCoord[duh] = pI[duh+1];
 	}
 	ELL_3V_COPY(slcCoord, pI);
-	slcIdx = slcCoord[0] + nslc->axis[0].size*slcCoord[1];
-	sliceGray = nrrdFLookup[nslc->type](nslc->data, slcIdx);
+	sliceGray = 
+	  nrrdFLookup[nslc->type](nslc->data,
+				  slcCoord[0] + nslc->axis[0].size*slcCoord[1]);
       } else {
 	if (!( tdata[0] >= parm->confThresh ))
 	  continue;
@@ -303,7 +294,12 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
       }
       /* make slice contribution */
       if (glyphsLimn) {
-	ri = limnObjSquareAdd(glyphsLimn, spi + 1);
+	lookIdx = limnObjectLookAdd(glyphsLimn);
+	look = glyphsLimn->look + lookIdx;
+	ELL_4V_SET(look->rgba, sliceGray, sliceGray, sliceGray, 1);
+	ELL_3V_SET(look->kads, 1, 0, 0);
+	look->spow = 0;
+	glyphIdx = limnObjectSquareAdd(glyphsLimn, lookIdx);
 	ELL_4M_IDENTITY_SET(mA);
 	ell_4m_post_mul_f(mA, sRot);
 	if (!npos) {
@@ -320,9 +316,7 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 			     originOffset[1],
 			     originOffset[2]);
 	ell_4m_post_mul_f(mA, mB);
-	lglyph = glyphsLimn->r + ri;
-	ELL_4V_SET(lglyph->rgba, sliceGray, sliceGray, sliceGray, 1);
-	limnObjPartTransform(glyphsLimn, ri, mA);
+	limnObjectPartTransform(glyphsLimn, glyphIdx, mA);
       }
       if (glyphsEcho) {
 	esquare = echoObjectNew(glyphsEcho,echoTypeRectangle);
@@ -404,26 +398,31 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
     
     /* add the glyph */
     if (glyphsLimn) {
+      lookIdx = limnObjectLookAdd(glyphsLimn);
+      look = glyphsLimn->look + lookIdx;
+      ELL_4V_SET(look->rgba, R, G, B, 1);
+      ELL_3V_SET(look->kads, 0, 1, 0);
+      look->spow = 0;
       switch(parm->glyphType) {
       case tenGlyphTypeBox:
-	ri = limnObjCubeAdd(glyphsLimn, spi + 0);
+	glyphIdx = limnObjectCubeAdd(glyphsLimn, lookIdx);
 	break;
       case tenGlyphTypeSphere:
-	ri = limnObjPolarSphereAdd(glyphsLimn, spi + 0, axis,
-				   2*parm->facetRes, parm->facetRes);
+	glyphIdx = limnObjectPolarSphereAdd(glyphsLimn, lookIdx, axis,
+					    2*parm->facetRes, parm->facetRes);
 	break;
       case tenGlyphTypeCylinder:
-	ri = limnObjCylinderAdd(glyphsLimn, spi + 0, axis, parm->facetRes);
+	glyphIdx = limnObjectCylinderAdd(glyphsLimn, lookIdx, axis,
+					 parm->facetRes);
 	break;
       case tenGlyphTypeSuperquad:
       default:
-	ri = limnObjPolarSuperquadAdd(glyphsLimn, spi + 0, axis, qA, qB, 
-				      2*parm->facetRes, parm->facetRes);
+	glyphIdx = limnObjectPolarSuperquadAdd(glyphsLimn, lookIdx, axis,
+					       qA, qB, 2*parm->facetRes,
+					       parm->facetRes);
 	break;
       }
-      lglyph = glyphsLimn->r + ri;
-      ELL_4V_SET(lglyph->rgba, R, G, B, 1);
-      limnObjPartTransform(glyphsLimn, ri, mA);
+      limnObjectPartTransform(glyphsLimn, glyphIdx, mA);
     }
     if (glyphsEcho) {
       switch(parm->glyphType) {

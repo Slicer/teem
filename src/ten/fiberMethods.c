@@ -97,10 +97,10 @@ tenFiberContextNew(Nrrd *dtvol) {
     tfx->wPunct = tenDefFiberWPunct;
     tfx->stop = 0;
 
-    tfx->query = 0;
+    GAGE_QUERY_RESET(tfx->query);
     tfx->dten = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageTensor);
-    tfx->eval = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageEval);
-    tfx->evec = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageEvec);
+    tfx->eval = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageEval0);
+    tfx->evec = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageEvec0);
     tfx->aniso = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageAniso);
   }
   return tfx;
@@ -118,18 +118,22 @@ tenFiberTypeSet(tenFiberContext *tfx, int type) {
   qse = 0;
   switch(type) {
   case tenFiberTypeEvec1:
-    tfx->query |= (1 << tenGageEvec);
+    GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec0);
     break;
   case tenFiberTypeTensorLine:
-    tfx->query |= ((1 << tenGageTensor)
-		   | (1 << tenGageEval)  /* we'll compute c_l by hand */
-		   | (1 << tenGageEvec));
+    GAGE_QUERY_ITEM_ON(tfx->query, tenGageTensor);
+    GAGE_QUERY_ITEM_ON(tfx->query, tenGageEval0);
+    GAGE_QUERY_ITEM_ON(tfx->query, tenGageEval1);
+    GAGE_QUERY_ITEM_ON(tfx->query, tenGageEval2);
+    GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec0);
+    GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec1);
+    GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec2);
     break;
   case tenFiberTypePureLine:
-    tfx->query |= (1 << tenGageTensor);
+    GAGE_QUERY_ITEM_ON(tfx->query, tenGageTensor);
     break;
   case tenFiberTypeZhukov:
-    sprintf(err, "%s: sorry, not Zhukov oriented tensors implemented", me);
+    sprintf(err, "%s: sorry, Zhukov oriented tensors not implemented", me);
     biffAdd(TEN, err); return 1;
     break;
   default:
@@ -180,7 +184,7 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
       sprintf(err, "%s: given aniso threshold doesn't exist", me);
       biffAdd(TEN, err); ret = 1; goto end;
     }
-    tfx->query |= (1 << tenGageAniso);
+    GAGE_QUERY_ITEM_ON(tfx->query, tenGageAniso);
     break;
   case tenFiberStopLength:
     tfx->maxHalfLen = va_arg(ap, double);
@@ -204,7 +208,7 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
       sprintf(err, "%s: given confThresh doesn't exist", me);
       biffAdd(TEN, err); ret = 1; goto end;
     }
-    tfx->query |= (1 << tenGageTensor);
+    GAGE_QUERY_ITEM_ON(tfx->query, tenGageTensor);
     break;
   case tenFiberStopBounds:
     /* nothing to set; always used as a stop criterion */

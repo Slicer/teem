@@ -109,7 +109,7 @@ typedef struct {
      governed by edgeWidth[] */
   int glyphType, facetRes;
   float glyphScale, sqdSharp;
-  float edgeWidth[5];     /* same as limnOptsPS */
+  float edgeWidth[3];  /* 0: contour, 1: front crease, 2: front non-crease */
 
   /* glyphs are colored by eigenvector colEvec with the standard XYZ-RGB
      colormapping, with maximal saturation colMaxSat (use 0.0 to turn off
@@ -152,29 +152,31 @@ enum {
   tenGageTensor,        /*  0: "t", the reconstructed tensor: GT[7] */
   tenGageTrace,         /*  1: "tr", trace of tensor: *GT */
   tenGageFrobTensor,    /*  2: "fro", frobenius norm of tensor: *GT */
-  tenGageEval,          /*  3: "eval", eigenvalues of tensor
-			       (sorted descending) : GT[3] */
-  tenGageEvec,          /*  4: "evec", eigenvectors of tensor: GT[9] */
-  tenGageTensorGrad,    /*  5: "tg", all tensor component gradients, starting
+  tenGageEval0,         /*  3: "eval0", major eigenvalue of tensor : *GT */
+  tenGageEval1,         /*  4: "eval1", medium eigenvalue of tensor : *GT */
+  tenGageEval2,         /*  5: "eval2", minor eigenvalue of tensor : *GT */
+  tenGageEvec0,         /*  6: "evec0", major eigenvectors of tensor: GT[3] */
+  tenGageEvec1,         /*  7: "evec1", medium eigenvectors of tensor: GT[3] */
+  tenGageEvec2,         /*  8: "evec2", minor eigenvectors of tensor: GT[3] */
+  tenGageTensorGrad,    /*  9: "tg", all tensor component gradients, starting
 			       with the confidence value gradient: GT[21] */
-  tenGageQ,             /*  6: "q", Q anisotropy (or 9 times it): *GT */
-  tenGageQGradVec,      /*  7: "qv", gradient of Q anisotropy: GT[3] */
-  tenGageQGradMag,      /*  8: "qg", grad mag of Q anisotropy: *GT */
-  tenGageQNormal,       /*  9: "qn", normalized gradient of Q
+  tenGageQ,             /* 10: "q", Q anisotropy (or 9 times it): *GT */
+  tenGageQGradVec,      /* 11: "qv", gradient of Q anisotropy: GT[3] */
+  tenGageQGradMag,      /* 12: "qg", grad mag of Q anisotropy: *GT */
+  tenGageQNormal,       /* 13: "qn", normalized gradient of Q
 			       anisotropy: GT[3] */
-  tenGageMultiGrad,     /* 10: "mg", sum of outer products of the tensor 
-			       matrix elements, correctly counting the
+  tenGageMultiGrad,     /* 14: "mg", sum of outer products of gradients of 
+			       tensor elements, correctly counting the
 			       off-diagonal entries twice, but not counting
 			       the confidence value: GT[9] */
-  tenGageFrobMG,        /* 11: "frmg", frobenius norm of multi gradient: *GT */
-  tenGageMGEval,        /* 12: "mgeval", eigenvalues of multi gradient: GT[3]*/
-  tenGageMGEvec,        /* 13: "mgevec", eigenvectors of multi
+  tenGageFrobMG,        /* 15: "frmg", frobenius norm of multi gradient: *GT */
+  tenGageMGEval,        /* 16: "mgeval", eigenvalues of multi gradient: GT[3]*/
+  tenGageMGEvec,        /* 17: "mgevec", eigenvectors of multi
 			       gradient: GT[9] */
-  tenGageAniso,         /* 14: "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
+  tenGageAniso,         /* 18: "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
   tenGageLast
 };
-#define TEN_GAGE_MAX       14
-#define TEN_GAGE_TOTAL_ANS_LENGTH (72+TEN_ANISO_MAX+1)
+#define TEN_GAGE_ITEM_MAX  18
 
 /*
 ******** tenFiberType* enum
@@ -266,8 +268,8 @@ typedef struct {
   double confThresh;    /* confidence threshold */
   double wPunct;        /* knob for tensor lines */
   /* ---- internal ----- */
-  int query,            /* query we'll send to gageQuerySet */
-    dir;                /* current direction being computed (0 or 1) */
+  gageQuery query;      /* query we'll send to gageQuerySet */
+  int dir;              /* current direction being computed (0 or 1) */
   double wPos[3],       /* current world space location */
     wDir[3],            /* difference between this and last world space pos */
     lastDir[3];         /* previous value of wDir */
@@ -352,7 +354,7 @@ extern tenGlyphParm *tenGlyphParmNew();
 extern tenGlyphParm *tenGlyphParmNix(tenGlyphParm *parm);
 extern int tenGlyphParmCheck(tenGlyphParm *parm,
 			     Nrrd *nten, Nrrd *npos, Nrrd *nslc);
-extern int tenGlyphGen(limnObj *glyphs, echoScene *scene,
+extern int tenGlyphGen(limnObject *glyphs, echoScene *scene,
 		       tenGlyphParm *parm,
 		       Nrrd *nten, Nrrd *npos, Nrrd *nslc);
 

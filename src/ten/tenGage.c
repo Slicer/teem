@@ -21,112 +21,28 @@
 #include "ten.h"
 #include "privateTen.h"
 
-/*
-  tenGageTensor,        *  0: "t", the reconstructed tensor: GT[7] *
-  tenGageTrace,         *  1: "tr", trace of tensor: *GT *
-  tenGageFrobTensor,    *  2: "fro", frobenius norm of tensor: *GT *
-  tenGageEval,          *  3: "eval", eigenvalues of tensor
-			       (sorted descending) : GT[3] *
-  tenGageEvec,          *  4: "evec", eigenvectors of tensor: GT[9] *
-  tenGageTensorGrad,    *  5: "tg", all tensor component gradients, starting
-			       with the confidence value gradient: GT[21] *
-  tenGageQ,             *  6: "q", Q anisotropy: *GT *
-  tenGageQGradVec,      *  7: "qv", gradient of Q anisotropy: GT[3] *
-  tenGageQGradMag,      *  8: "qg", grad mag of Q anisotropy: *GT *
-  tenGageQNormal,       *  9: "qn", normalized gradient of Q
-			       anisotropy: GT[3] *
-  tenGageMultiGrad,     * 10: "mg", sum of outer products of the tensor 
-			       matrix elements, correctly counting the
-			       off-diagonal entries twice, but not counting
-			       the confidence value: GT[9] *
-  tenGageFrobMG,        * 11: "frmg", frobenius norm of multi gradient: *GT *
-  tenGageMGEval,        * 12: "mgeval", eigenvalues of multi gradient: GT[3]*
-  tenGageMGEvec,        * 13: "mgevec", eigenvectors of multi
-			       gradient: GT[9] *
-  tenGageAniso,         * 14: "an", all anisotropies: GT[TEN_ANISO_MAX+1] *
-  tenGageLast
-
-*/
-
-int
-tenGageAnsLength[TEN_GAGE_MAX+1] = {
-  7,  1,  1,  3,  9, 21, 1,  3,  1,  3,  9,  1,  3,  9, TEN_ANISO_MAX+1
-};
-
-int
-tenGageAnsOffset[TEN_GAGE_MAX+1] = {
-  0,  7,  8,  9, 12, 21, 42, 43, 46, 47, 50, 59, 60, 63, 72
-  /* --> 72+TEN_ANISO_MAX+1 == TEN_GAGE_TOTAL_ANS_LENGTH */
-};
-
-/*
-** _tenGageNeedDeriv[]
-**
-** each value is a BIT FLAG representing the different value/derivatives
-** that are needed to calculate the quantity.  
-**
-** 1: need value interpolation reconstruction (as with k00)
-** 2: need first derivatives (as with k11)
-** 4: need second derivatives (as with k22)
-*/
-int
-_tenGageNeedDeriv[TEN_GAGE_MAX+1] = {
-  1,  1,  1,  1,  1,  2,  1,  2,  2,  2,  2,  2,  2,  2,  1
-};
-
-/*
-** _tenGagePrereq[]
-** 
-** this records the measurements which are needed as ingredients for any
-** given measurement, but it is not necessarily the recursive expansion of
-** that requirement (that role is performed by gageQuerySet())
-*/
-unsigned int
-_tenGagePrereq[TEN_GAGE_MAX+1] = {
-  /* 0: tenGageTensor */
-  0,
-
-  /* 1: tenGageTrace */
-  (1<<tenGageTensor),
-
-  /* 2: tenGageFrobTensor */
-  (1<<tenGageTensor),
-
-  /* 3: tenGageEval */
-  (1<<tenGageTensor),
-
-  /* 4: tenGageEvec */
-  (1<<tenGageTensor),
-
-  /* 5: tenGageTensorGrad */
-  0,
-  
-  /* 6: tenGageQ */
-  (1<<tenGageTensor),
-
-  /* 7: tenGageQGradVec */
-  (1<<tenGageTensor) | (1<<tenGageTensorGrad),
-
-  /* 8: tenGageQGradMag */
-  (1<<tenGageQGradVec),
-
-  /* 9: tenGageQNormal */
-  (1<<tenGageQGradMag) | (1<<tenGageQGradVec),
-
-  /* 10: tenGageMultiGrad */
-  (1<<tenGageTensorGrad),
-
-  /* 11: tenGageFrobMG */
-  (1<<tenGageMultiGrad),
-  
-  /* 12: tenGageMGEval */
-  (1<<tenGageMultiGrad),
-
-  /* 13: tenGageMGEvec */
-  (1<<tenGageMultiGrad),
-
-  /* 14: tenGageAniso */
-  (1<<tenGageEval)
+gageItemEntry
+_tenGageTable[GAGE_SCL_ITEM_MAX+1] = {
+  /* enum value              len,deriv,  prereqs,                                       parent item, index*/
+  {tenGageTensor,              7,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
+  {tenGageTrace,               1,  0,  {tenGageTensor, -1, -1, -1, -1},                         -1,  -1},
+  {tenGageFrobTensor,          1,  0,  {tenGageTensor, -1, -1, -1, -1},                         -1,  -1},
+  {tenGageEval0,               1,  0,  {tenGageTensor, -1, -1, -1, -1},                         -1,  -1},
+  {tenGageEval1,               1,  0,  {tenGageTensor, -1, -1, -1, -1},                         -1,  -1},
+  {tenGageEval2,               1,  0,  {tenGageTensor, -1, -1, -1, -1},                         -1,  -1},
+  {tenGageEvec0,               3,  0,  {tenGageTensor, -1, -1, -1, -1},                         -1,  -1},
+  {tenGageEvec1,               3,  0,  {tenGageTensor, -1, -1, -1, -1},                         -1,  -1},
+  {tenGageEvec2,               3,  0,  {tenGageTensor, -1, -1, -1, -1},                         -1,  -1},
+  {tenGageTensorGrad,         21,  1,  {-1, -1, -1, -1, -1},                                    -1,  -1},
+  {tenGageQ,                   1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
+  {tenGageQGradVec,            3,  1,  {tenGageTensor, tenGageTensorGrad, -1, -1, -1},          -1,  -1},
+  {tenGageQGradMag,            1,  1,  {tenGageQGradVec, -1, -1, -1, -1},                       -1,  -1},
+  {tenGageQNormal,             3,  1,  {tenGageQGradVec, tenGageQGradMag, -1, -1, -1},          -1,  -1},
+  {tenGageMultiGrad,           9,  1,  {tenGageTensorGrad, -1, -1, -1, -1},                     -1,  -1},
+  {tenGageFrobMG,              1,  1,  {tenGageMultiGrad, -1, -1, -1, -1},                      -1,  -1},
+  {tenGageMGEval,              3,  1,  {tenGageMultiGrad, -1, -1, -1, -1},                      -1,  -1},
+  {tenGageMGEvec,              9,  1,  {tenGageMultiGrad, -1, -1, -1, -1},                      -1,  -1},
+  {tenGageAniso, TEN_ANISO_MAX+1,  0,  {tenGageEval0, tenGageEval1, tenGageEval2, -1, -1},      -1,  -1}
 };
 
 void
@@ -137,13 +53,13 @@ _tenGageIv3Print (FILE *file, gageContext *ctx, gagePerVolume *pvl) {
 
 void
 _tenGageFilter (gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="_gageVecFilter";
+  char me[]="_tenGageFilter";
   gage_t *fw00, *fw11, *fw22, *tensor, *tgrad;
   int fd;
 
   fd = GAGE_FD(ctx);
-  tensor = GAGE_ANSWER_POINTER(pvl, tenGageTensor);
-  tgrad = GAGE_ANSWER_POINTER(pvl, tenGageTensorGrad);
+  tensor = pvl->directAnswer[tenGageTensor];
+  tgrad = pvl->directAnswer[tenGageTensorGrad];
   if (!ctx->parm.k3pack) {
     fprintf(stderr, "!%s: sorry, 6pack filtering not implemented\n", me);
     return;
@@ -190,25 +106,22 @@ _tenGageFilter (gageContext *ctx, gagePerVolume *pvl) {
 void
 _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   /* char me[]="_tenGageAnswer"; */
-  unsigned int query;
   gage_t *ans, *tenAns, *tgradAns, *QgradAns, *evalAns, *evecAns, tmptmp=0,
     dtA=0, dtB=0, dtC=0, dtD=0, dtE=0, dtF=0, cbA, cbB;
-  int *offset;
+  int wantEvals, wantEvecs;
 
 #if !GAGE_TYPE_FLOAT
   int ci;
   float tenAnsF[7], evalAnsF[3], evecAnsF[9], aniso[TEN_ANISO_MAX+1];
 #endif
 
-  query = pvl->query;
-  ans = pvl->ans;
-  offset = tenGageKind->ansOffset;
-  tenAns = ans + offset[tenGageTensor];
-  tgradAns = ans + offset[tenGageTensorGrad];
-  QgradAns = ans + offset[tenGageQGradVec];
-  evalAns = ans + offset[tenGageEval];
-  evecAns = ans + offset[tenGageEvec];
-  if (1 & (query >> tenGageTensor)) {
+  ans = pvl->answer;
+  tenAns = pvl->directAnswer[tenGageTensor];
+  tgradAns = pvl->directAnswer[tenGageTensorGrad];
+  QgradAns = pvl->directAnswer[tenGageQGradVec];
+  evalAns = pvl->directAnswer[tenGageEval0];
+  evecAns = pvl->directAnswer[tenGageEvec0];
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensor)) {
     /* done if doV */
     dtA = tenAns[1];
     dtB = tenAns[2];
@@ -221,38 +134,54 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
 	      dtA, dtB, dtC, dtD, dtE, dtF);
     }
   }
-  if (1 & (query >> tenGageTrace)) {
-    ans[offset[tenGageTrace]] = dtA + dtD + dtF;
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTrace)) {
+    pvl->directAnswer[tenGageTrace][0] = dtA + dtD + dtF;
   }
-  if (1 & (query >> tenGageFrobTensor)) {
-    ans[offset[tenGageTrace]] = sqrt(dtA*dtA + 2*dtB*dtB + 2*dtC*dtC
-				     + dtD*dtD + 2*dtE*dtE + dtF*dtF);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFrobTensor)) {
+    pvl->directAnswer[tenGageFrobTensor][0] = sqrt(dtA*dtA + 2*dtB*dtB 
+						   + 2*dtC*dtC + dtD*dtD
+						   + 2*dtE*dtE + dtF*dtF);
   }
-  /* HEY: this is pretty sub-optimal if the only thing we want is the 
-     eigenvalues for doing anisotropy determination ... */
-  if ( (1 & (query >> tenGageEval)) || (1 & (query >> tenGageEvec)) ) {
+  wantEvals = ((GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEval0)) || 
+	       (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEval1)) ||
+	       (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEval2)));
+  wantEvecs = ((GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEvec0)) || 
+	       (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEvec1)) ||
+	       (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEvec2)));
+  if (wantEvecs) {
+    /* we do the longer process to get eigenvectors, and in the process
+       we always find the eigenvalues, whether or not they were asked for */
 #if GAGE_TYPE_FLOAT
-      tenEigensolve(evalAns, evecAns, tenAns);
+    tenEigensolve(evalAns, evecAns, tenAns);
 #else
-      TEN_LIST_COPY(tenAnsF, tenAns);
-      tenEigensolve(evalAnsF, evecAnsF, tenAnsF);
-      ELL_3V_COPY(evalAns, evalAnsF);
-      ELL_3M_COPY(evecAns, evecAnsF);
+    TEN_LIST_COPY(tenAnsF, tenAns);
+    tenEigensolve(evalAnsF, evecAnsF, tenAnsF);
+    ELL_3V_COPY(evalAns, evalAnsF);
+    ELL_3M_COPY(evecAns, evecAnsF);
+#endif
+  } else if (wantEvals) {
+    /* else eigenvectors are NOT needed, but eigenvalues ARE needed */
+#if GAGE_TYPE_FLOAT
+    tenEigensolve(evalAns, NULL, tenAns);
+#else
+    TEN_LIST_COPY(tenAnsF, tenAns);
+    tenEigensolve(evalAnsF, NULL, tenAnsF);
+    ELL_3V_COPY(evalAns, evalAnsF);
 #endif
   }
-  if (1 & (query >> tenGageTensorGrad)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorGrad)) {
     /* done if doD1 */
   }
-  if (1 & (query >> tenGageQ)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageQ)) {
     cbA = -(dtA + dtD + dtF);
     cbB = dtA*dtD - dtB*dtB + dtA*dtF - dtC*dtC + dtD*dtF - dtE*dtE;
     /*
     cbC = -(dtA*dtD*dtF + 2*dtB*dtE*dtC
 	    - dtC*dtC*dtD - dtB*dtB*dtF - dtA*dtE*dtE);
     */
-    ans[offset[tenGageQ]] = cbA*cbA - 3*cbB;
+    pvl->directAnswer[tenGageQ][0] = cbA*cbA - 3*cbB;
   }
-  if (1 & (query >> tenGageQGradVec)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageQGradVec)) {
     ELL_3V_SET(QgradAns, 0, 0, 0);
     ELL_3V_SCALE_INCR(QgradAns,   dtA, tgradAns + 1*3);
     ELL_3V_SCALE_INCR(QgradAns, 2*dtB, tgradAns + 2*3);
@@ -265,19 +194,19 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     ELL_3V_SCALE_INCR(QgradAns, tmptmp, tgradAns + 4*3);
     ELL_3V_SCALE_INCR(QgradAns, tmptmp, tgradAns + 6*3);
   }
-  if (1 & (query >> tenGageQGradMag)) {
-    tmptmp = ans[offset[tenGageQGradMag]] = ELL_3V_LEN(QgradAns);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageQGradMag)) {
+    tmptmp = pvl->directAnswer[tenGageQGradMag][0] = ELL_3V_LEN(QgradAns);
   }
-  if (1 & (query >> tenGageQNormal)) {
-    ELL_3V_SCALE(ans + offset[tenGageQNormal], 1.0/tmptmp, QgradAns);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageQNormal)) {
+    ELL_3V_SCALE(pvl->directAnswer[tenGageQNormal], 1.0/tmptmp, QgradAns);
   }
-  if (1 & (query >> tenGageAniso)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageAniso)) {
 #if GAGE_TYPE_FLOAT
-    tenAnisoCalc(ans + offset[tenGageAniso], evalAns);
+    tenAnisoCalc(pvl->directAnswer[tenGageAniso], evalAns);
 #else
     tenAnisoCalc(aniso, evalAnsF);
     for (ci=0; ci<=TEN_ANISO_MAX; ci++) {
-      (ans + offset[tenGageAniso])[ci] = aniso[ci];
+      pvl->directAnswer[tenGageAniso][ci] = aniso[ci];
     }
 #endif
   }
@@ -290,12 +219,8 @@ _tenGageKind = {
   &_tenGage,
   1,
   7,
-  TEN_GAGE_MAX,
-  tenGageAnsLength,
-  tenGageAnsOffset,
-  TEN_GAGE_TOTAL_ANS_LENGTH,
-  _tenGageNeedDeriv,
-  _tenGagePrereq,
+  TEN_GAGE_ITEM_MAX,
+  _tenGageTable,
   _tenGageIv3Print,
   _tenGageFilter,
   _tenGageAnswer
