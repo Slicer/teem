@@ -18,17 +18,18 @@
 #
 #
 
-# we'll figure shared libraries eventually...
+# we'll figure out shared libraries eventually...
 TEEM_SHEXT =
 
 AR = libtool
 ARFLAGS = -static -o
+RANLIB = ranlib
 
 OPT_CFLAG ?= -O2
 STATIC_CFLAG =
 SHARED_CFLAG =
 SHARED_LDFLAG =
-ARCH_CFLAG =
+ARCH_CFLAG = -Wall
 ARCH_LDFLAG =
 
 TEEM_32BIT = 1

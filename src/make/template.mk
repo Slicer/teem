@@ -115,6 +115,7 @@ $(call tests.dev,$(L)) : $(call used,$($(L).need)) \
 ##
 $(ODEST)/lib$(L).a : $(call objs.dev,$(L))
 	$(AR) $(ARFLAGS) $@ $^
+	$(if $(RANLIB),$(RANLIB) $@,)
 ifdef TEEM_SHEXT
 $(ODEST)/lib$(L).$(TEEM_SHEXT) : $(call objs.dev,$(L))
 	$(LD) -o $@ $(LDFLAGS) $(LPATH) $^
@@ -157,6 +158,7 @@ $(call tests.dev,$(L)) : % : %.c
 ##
 $(LDEST)/lib$(L).a : $(LDEST)/% : $(ODEST)/%
 	$(CP) $< $@; $(CHMOD) 644 $@
+	$(if $(RANLIB),$(RANLIB) $@,)
 	$(if $(SIGH),$(SLEEP) $(SIGH); touch $@)
 ifneq (undefined,$(origin TEEM_USABLE))
 	$(if $(SIGH),$(SLEEP) $(SIGH))
@@ -165,6 +167,7 @@ endif
 ifdef TEEM_SHEXT
   $(LDEST)/lib$(L).$(TEEM_SHEXT) : $(LDEST)/% : $(ODEST)/%
 	$(CP) $< $@; $(CHMOD) 755 $@
+	$(if $(RANLIB),$(RANLIB) $@,)
 	$(if $(SIGH),$(SLEEP) $(SIGH); touch $@)
 ifneq (undefined,$(origin TEEM_USABLE))
 	$(if $(SIGH),$(SLEEP) $(SIGH))
