@@ -140,7 +140,7 @@ int
 nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
   char me[] = "nrrdConvert", typeS[AIR_STRLEN_SMALL], err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX];
-  nrrdBigInt num;
+  size_t num;
 
   if (!( nin && nout 
 	 && airEnumValidVal(nrrdType, nin->type)
@@ -232,7 +232,10 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   double valIn, min, max, eps;
   int valOut, type=nrrdTypeUnknown, size[NRRD_DIM_MAX];
   unsigned long long int valOutll;
-  nrrdBigInt I, num;
+  size_t I, num;
+  unsigned char *outUC;
+  unsigned short *outUS;
+  unsigned int *outUI;
 
   if (!(nin && nout)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -280,23 +283,34 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   min = nin->min; 
   max = nin->max;
   eps = (min == max ? 1.0 : 0.0);
-  for (I=0; I<num; I++) {
-    valIn = nrrdDLookup[nin->type](nin->data, I);
-    valIn = AIR_CLAMP(min, valIn, max);
-    switch (bits) {
-    case 8:
+  outUC = (unsigned char*)nout->data;
+  outUS = (unsigned short*)nout->data;
+  outUI = (unsigned int*)nout->data;
+  switch(bits) {
+  case 8:
+    for (I=0; I<num; I++) {
+      valIn = nrrdDLookup[nin->type](nin->data, I);
+      valIn = AIR_CLAMP(min, valIn, max);
       AIR_INDEX(min, valIn, max+eps, 1 << 8, valOut);
-      nrrdDInsert[nrrdTypeUChar](nout->data, I, valOut);
-      break;
-    case 16:
-      AIR_INDEX(min, valIn, max+eps, 1 << 16, valOut);
-      nrrdDInsert[nrrdTypeUShort](nout->data, I, valOut);
-      break;
-    case 32:
-      AIR_INDEX(min, valIn, max+eps, 1LLU << 32, valOutll);
-      nrrdDInsert[nrrdTypeUInt](nout->data, I, valOutll);
-      break;
+      outUC[I] = valOut;
     }
+    break;
+  case 16:
+    for (I=0; I<num; I++) {
+      valIn = nrrdDLookup[nin->type](nin->data, I);
+      valIn = AIR_CLAMP(min, valIn, max);
+      AIR_INDEX(min, valIn, max+eps, 1 << 16, valOut);
+      outUS[I] = valOut;
+    }
+    break;
+  case 32:
+    for (I=0; I<num; I++) {
+      valIn = nrrdDLookup[nin->type](nin->data, I);
+      valIn = AIR_CLAMP(min, valIn, max);
+      AIR_INDEX(min, valIn, max+eps, 1LLU << 32, valOutll);
+      outUI[I] = valOutll;
+    }
+    break;
   }
 
   /* set information in new volume */
@@ -314,10 +328,8 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   nout->blockSize = 0;
   nout->hasNonExist = nrrdNonExistFalse;
 
-  /* bye */
   return 0;
 }
-
 
 /*
 ** _nrrdHistoEqCompare()
@@ -371,7 +383,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP, int bins, int smart) {
   double val, min, max, *last = NULL;
   int i, idx, *respect = NULL, lort, hirt;
   unsigned int *hist, *steady = NULL;
-  nrrdBigInt I, num;
+  size_t I, num;
   airArray *mop;
 
   if (!(nout && nin)) {
