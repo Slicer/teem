@@ -44,9 +44,9 @@ main(int argc, char *argv[]) {
 
   for (I=0; I<N; I++) {
     /* make a rotation (as a quaternion) */
-    ELL_3V_SET(axisA_f, 2*airRand()-1, 2*airRand()-1, 2*airRand()-1);
+    ELL_3V_SET(axisA_f, 2*airDrand48()-1, 2*airDrand48()-1, 2*airDrand48()-1);
     ELL_3V_NORM(axisA_f, axisA_f, tmp); /* yea, not uniform, so what */
-    angleA_f = AIR_PI*(2*airRand()-1);
+    angleA_f = AIR_PI*(2*airDrand48()-1);
     ell_aa_to_q_f(qA_f, angleA_f, axisA_f);
 
     /* convert to AA and back, and back */
@@ -84,7 +84,7 @@ main(int argc, char *argv[]) {
 	   CA + ELL_4V_LEN(qC_f), CA + ELL_4M_FROB(mat4C_f));
 
     /* make a point that we'll rotate */
-    ELL_3V_SET(pntA_f, 2*airRand()-1, 2*airRand()-1, 2*airRand()-1);
+    ELL_3V_SET(pntA_f, 2*airDrand48()-1, 2*airDrand48()-1, 2*airDrand48()-1);
     
     /* effect rotation in two different ways, and compare results */
     ELL_3MV_MUL(pntB_f, mat3A_f, pntA_f);

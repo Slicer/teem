@@ -31,9 +31,9 @@ main(int argc, char **argv) {
   nrrdAlloc(nval=nrrdNew(), nrrdTypeDouble, 1, BINS*BINS);
   val = nval->data;
 
-  airSrand();
+  airSrand48(airTime());
   for (i=0; i<BINS*BINS; i++) {
-    val[i] = airRand();
+    val[i] = airDrand48();
   }
   
   nrrdHisto(nhist=nrrdNew(), nval, NULL, NULL, BINS, nrrdTypeInt);

@@ -80,7 +80,7 @@ main(int argc, char *argv[]) {
   crct = 1-crct;
   yes = 0;
   E = 1;
-  airSrand();
+  airSrand48(airTime());
   while (E) {
     yes += runexp(year, N, M);
     if (!(E % P)) {

@@ -122,7 +122,7 @@ _hooverExtraContextNix(_hooverExtraContext *ec) {
 ** trouble (whichErr).
 */
 typedef struct {
-  /* ----------------------- intput */
+  /* ----------------------- input */
   hooverContext *ctx;
   _hooverExtraContext *ec;
   void *render;
@@ -400,7 +400,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   }
 
   for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
-    if ((ret = airThreadJoin(thread[threadIdx], (void **) (&errArg)))) {
+    if ((ret = airThreadJoin(thread[threadIdx], (void **)(&errArg)))) {
       *errCodeP = ret;
       *errThreadP = threadIdx;
       airMopError(mop);
