@@ -97,7 +97,7 @@ RNUM/LIBS = $(join $(RNUMS),$(LIBS:%=/%))
 ## these modes (for all libraries) as phony saves make the effort of
 ## trying implicit rules to update them.
 ##
-MODES = install usable dev clean clobber
+MODES = install dev clean clobber
 .PHONY : $(foreach LIB,teem $(LIBS),$(MODES:%=$(LIB)/%)) teem.dsp
 
 ## Top-level/default rules.  If make started with this file, then
@@ -108,7 +108,6 @@ MODES = install usable dev clean clobber
 ifeq (,$(DEF_TARGETS))
   install : teem/install
   dev     : teem/dev
-  usable  : teem/usable
   clean   : teem/clean
   clobber : teem/clobber
   DEF_TARGETS := true
@@ -118,7 +117,6 @@ endif
 ##
 teem/install : $(addsuffix /install,$(LIBS) bin) megalibs
 teem/dev     : $(addsuffix /dev,$(LIBS) bin)
-teem/usable  : $(addsuffix /usable,$(LIBS))
 teem/clean   : $(addsuffix /clean,$(LIBS) bin)
 teem/clobber : $(addsuffix /clobber,$(LIBS) bin) unmegalibs
 nothing : ;
@@ -246,10 +244,8 @@ $(call dmnl,\
 $(foreach LIB,$(1),$($(LIB).NEED))))))
 meneed = $(call deporder,$(1) $(call need,$(1)))
 
-## usable(libs): "LIB/usable" for all LIBs in libs
 ## link(libs): "-lLIB" for all LIBs in libs, in correct link order
 ##
-usable = $(foreach LIB,$(1),$(LIB)/usable)
 link = $(foreach LIB,$(call linkorder,$(1)),-l$(LIB))
 
 ## For XXX in: "ENDIAN", "QNANHIBIT", "DIO", "BIGBITFIELD"
@@ -286,13 +282,8 @@ newer.than = $(shell mes='$(1)' ; needs='$(2)' ; \
 #STL2LIB = $(patsubst lib%,%,$(notdir $(1:.a=)))
 #SHL2LIB = $(patsubst lib%,%,$(notdir $(1:.$(TEEM_SHEXT)=)))
 
-ifneq (undefined,$(origin TEEM_USABLE))
-  used.hdrs = $(foreach lib,$(1),$(IDEST)/.$(lib).hdr)
-  used.libs = $(foreach lib,$(1),$(LDEST)/.$(lib).lib)
-else
-  used.hdrs = $(foreach lib,$(1),$(call hdrs.inst,$(lib)))
-  used.libs = $(foreach lib,$(1),$(call libs.inst,$(lib)))
-endif
+used.hdrs = $(foreach lib,$(1),$(call hdrs.inst,$(lib)))
+used.libs = $(foreach lib,$(1),$(call libs.inst,$(lib)))
 used = $(call used.libs,$(1)) $(call used.hdrs,$(1))
 
 ## related to external optional libraries.  Called "xtern"s to avoid

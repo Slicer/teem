@@ -33,7 +33,6 @@ ifeq (,$(DEF_TARGETS))
 DEF_TARGETS = true
 dev     : $(L)/dev
 install : $(L)/install
-usable  : $(L)/usable
 clean   : $(L)/clean
 clobber : $(L)/clobber
 include ../GNUmakefile

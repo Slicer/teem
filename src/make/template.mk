@@ -64,14 +64,7 @@ $(call tests.dev,$(L)): _L := $(L)
 ## 2) a prerequisite .usable is newer than ours.
 ## Naming our libs and headers should effectively trigger an install.
 ##
-
-ifneq (undefined,$(origin TEEM_USABLE))
-$(IDEST)/.$(L).hdr: $(call if.missing,$(call hdrs.inst,$(L)))
-$(LDEST)/.$(L).lib: $(call newer.than,$(call libs.inst,$(L)),\
-$(call hdrs.inst,$(L).need))
-$(warning -----$(L)---- $(IDEST)/.$(L).hdr: $(call if.missing,$(call hdrs.inst,$(L))))
-$(warning -----$(L)---- $(LDEST)/.$(L).lib: $(call newer.than,$(call libs.inst,$(L)),$(call hdrs.inst,$(L).need)))
-endif
+## "usable" stuff nixed July 7, 2003
 
 ## $(L)/install depends on usable prerequisite libraries and $(L)'s
 ## installed libs and headers.
@@ -160,19 +153,11 @@ $(LDEST)/lib$(L).a : $(LDEST)/% : $(ODEST)/%
 	$(CP) $< $@; $(CHMOD) 644 $@
 	$(if $(RANLIB),$(RANLIB) $@,)
 	$(if $(SIGH),$(SLEEP) $(SIGH); touch $@)
-ifneq (undefined,$(origin TEEM_USABLE))
-	$(if $(SIGH),$(SLEEP) $(SIGH))
-	touch $(LDEST)/.$(_L).lib
-endif
 ifdef TEEM_SHEXT
   $(LDEST)/lib$(L).$(TEEM_SHEXT) : $(LDEST)/% : $(ODEST)/%
 	$(CP) $< $@; $(CHMOD) 755 $@
 	$(if $(RANLIB),$(RANLIB) $@,)
 	$(if $(SIGH),$(SLEEP) $(SIGH); touch $@)
-ifneq (undefined,$(origin TEEM_USABLE))
-	$(if $(SIGH),$(SLEEP) $(SIGH))
-	touch $(LDEST)/.$(_L).lib
-endif
 endif
 
 ## How to install headers: another instance where vpath could simplify
@@ -181,7 +166,3 @@ endif
 $(call hdrs.inst,$(L)) : $(IDEST)/%.h : $(TEEM_SRC)/$(L)/%.h
 	$(CP) $< $@; $(CHMOD) 644 $@
 	$(if $(SIGH),$(SLEEP) $(SIGH); touch $@)
-ifneq (undefined,$(origin TEEM_USABLE))
-	$(if $(SIGH),$(SLEEP) $(SIGH))
-	touch $(IDEST)/.$(_L).hdr
-endif
