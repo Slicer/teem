@@ -35,7 +35,7 @@
 extern "C" {
 #endif
 
-#define UNRRDU "unu"
+#define UNRRDU unrrduBiffKey
 
 #define UNRRDU_COLUMNS 78  /* how many chars per line do we allow hest */
 
@@ -162,10 +162,11 @@ unrrduCmd unrrdu_##name##Cmd = { #name, info, unrrdu_##name##Main }
 UNRRDU_MAP(UNRRDU_DECLARE)
 
 /* flotsam.c */
+extern unrrdu_export const char *unrrduBiffKey;
 extern unrrdu_export int unrrduDefNumColumns;
 /* addresses of all unrrdu_xxxCmd */
 extern unrrdu_export unrrduCmd *unrrduCmdList[]; 
-extern void unrrduUsage(char *me, hestParm *hparm);
+extern void unrrduUsage(const char *me, hestParm *hparm);
 extern unrrdu_export hestCB unrrduHestPosCB;
 extern unrrdu_export hestCB unrrduHestMaybeTypeCB;
 extern unrrdu_export hestCB unrrduHestScaleCB;
