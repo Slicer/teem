@@ -329,7 +329,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
           goto plain;
         }
         if (!nio->seen[ret] 
-            && _nrrdReadNrrdParseInfo[ret](nrrd, nio, AIR_FALSE)) {
+            && nrrdFieldInfoParse[ret](nrrd, nio, AIR_FALSE)) {
           if (nrrdStateVerboseIO) {
             fprintf(stderr, "(%s: unparsable info for field \"%s\" "
                     "--> plain comment)\n", me, fs);

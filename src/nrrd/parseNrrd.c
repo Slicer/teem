@@ -927,12 +927,12 @@ _nrrdReadNrrdParse_space_origin (Nrrd *nrrd, NrrdIoState *nio,
 }
 
 /*
-** _nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1]()
+******** nrrdFieldInfoParse[NRRD_FIELD_MAX+1]()
 **
 ** These are all for parsing the stuff AFTER the colon
 */
 int
-(*_nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1])(Nrrd *, NrrdIoState *, int) = {
+(*nrrdFieldInfoParse[NRRD_FIELD_MAX+1])(Nrrd *, NrrdIoState *, int) = {
   _nrrdReadNrrdParse_nonfield,
   _nrrdReadNrrdParse_comment,
   _nrrdReadNrrdParse_content,

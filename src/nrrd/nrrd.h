@@ -659,6 +659,10 @@ TEEM_API const NrrdEncoding *const nrrdEncodingBzip2;
 TEEM_API const NrrdEncoding *const nrrdEncodingUnknown;
 TEEM_API const NrrdEncoding *
   const nrrdEncodingArray[NRRD_ENCODING_TYPE_MAX+1];
+/* parseNrrd.c */
+TEEM_API int (*nrrdFieldInfoParse[NRRD_FIELD_MAX+1])(Nrrd *nrrd,
+                                                     NrrdIoState *nio,
+                                                     int useBiff);
 /* read.c */
 TEEM_API int nrrdLineSkip(NrrdIoState *io);
 TEEM_API int nrrdByteSkip(Nrrd *nrrd, NrrdIoState *io);

@@ -211,7 +211,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
         }
         return 1;
       }
-      if (_nrrdReadNrrdParseInfo[ret](nrrd, nio, AIR_TRUE)) {
+      if (nrrdFieldInfoParse[ret](nrrd, nio, AIR_TRUE)) {
         if ((err = (char*)malloc(AIR_STRLEN_MED))) {
           /* HEY: this error message should be printing out all the
              per-axis fields, not just the first */

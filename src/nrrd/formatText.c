@@ -117,7 +117,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     }
     /* when reading plain text, we simply ignore repetitions of a field */
     if (!nio->seen[ret]
-        && _nrrdReadNrrdParseInfo[ret](nrrd, nio, AIR_TRUE)) {
+        && nrrdFieldInfoParse[ret](nrrd, nio, AIR_TRUE)) {
       errS = biffGetDone(NRRD);
       if (nrrdStateVerboseIO) {
         fprintf(stderr, "%s: %s", me, errS);

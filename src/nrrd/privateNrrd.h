@@ -142,9 +142,6 @@ extern void _nrrdFprintFieldInfo(FILE *file, char *prefix,
 extern int _nrrdReshapeDownGrayscale(Nrrd *nimg);
 
 /* parseNrrd.c */
-extern int (*_nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1])(Nrrd *nrrd,
-                                                       NrrdIoState *nio,
-                                                       int useBiff);
 extern int _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIoState *nio, int useBiff);
 
 /* methodsNrrd.c */
