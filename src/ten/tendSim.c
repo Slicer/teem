@@ -24,8 +24,8 @@
 char *_tend_simInfoL =
   (INFO
    ".  The output will be in the same form as the input to \"tend estim\", "
-   ", and the gradient directions used are the same as for \"tend emat\". "
-   "The other required inputs are (\"-r \") the reference "
+   ", and the B matrix used is the output from \"tend bmat\". "
+   "The other required inputs are (\"-r\") the reference "
    "(non-diffusion-weighted) anatomical scalar volume, and (\"-i\") "
    "the corresponding volume of diffusion "
    "tensors. ");
@@ -37,12 +37,13 @@ tend_simMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  Nrrd *nin, *nT2, *ngrad, *nout;
+  Nrrd *nin, *nT2, *nbmat, *nout;
   char *outS;
   float b;
 
-  hestOptAdd(&hopt, "g", "grads", airTypeOther, 1, 1, &ngrad, NULL,
-	     "array of gradient directions", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "B", "B matrix", airTypeOther, 1, 1, &nbmat, NULL,
+	     "B matrix, one row per diffusion-weighted image", 
+	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "r", "reference field", airTypeOther, 1, 1, &nT2, "-",
 	     "reference anatomical scan, with no diffusion weighting",
 	     NULL, NULL, nrrdHestNrrd);
@@ -62,7 +63,7 @@ tend_simMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   
-  if (tenSimulate(nout, nT2, nin, ngrad, b)) {
+  if (tenSimulate(nout, nT2, nin, nbmat, b)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making DWI volume:\n%s\n", me, err);
     airMopError(mop); return 1;

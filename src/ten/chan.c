@@ -22,7 +22,7 @@
 #include "tenPrivate.h"
 
 /*
-******** tenWeightingMatrix
+******** tenBMatrix
 **
 ** given a list of gradient directions (arbitrary type), contructs a
 ** matrix which weights each element of the diffusion tensor in the 
@@ -30,56 +30,56 @@
 ** doubles.
 */
 int
-tenWeightingMatrix(Nrrd *nwmat, Nrrd *_ngrad) {
-  char me[]="tenWeightingMatrix", err[AIR_STRLEN_MED];
+tenBMatrix(Nrrd *nbmat, Nrrd *_ngrad) {
+  char me[]="tenBMatrix", err[AIR_STRLEN_MED];
   Nrrd *ngrad;
-  double *wmat, *G;
+  double *bmat, *G;
   int DD, dd;
   airArray *mop;
 
-  if (!(nwmat && _ngrad && !tenGradCheck(_ngrad))) {
+  if (!(nbmat && _ngrad && !tenGradCheck(_ngrad))) {
     sprintf(err, "%s: got NULL pointer or invalid arg", me);
     biffAdd(TEN, err); return 1;
   }
   mop = airMopNew();
   airMopAdd(mop, ngrad=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdConvert(ngrad, _ngrad, nrrdTypeDouble)
-      || nrrdMaybeAlloc(nwmat, nrrdTypeDouble, 2,
+      || nrrdMaybeAlloc(nbmat, nrrdTypeDouble, 2,
 			6, ngrad->axis[1].size)) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
 
   DD = ngrad->axis[1].size;
-  wmat = (double*)(nwmat->data);
+  bmat = (double*)(nbmat->data);
   for (dd=0; dd<DD; dd++) {
     G = (double*)(ngrad->data) + 3*dd;
-    ELL_6V_SET(wmat,
+    ELL_6V_SET(bmat,
 	       G[0]*G[0], 2*G[0]*G[1], 2*G[0]*G[2],
 	       G[1]*G[1], 2*G[1]*G[2],
 	       G[2]*G[2]);
-    wmat += 6;
+    bmat += 6;
   }
   
   return 0;
 }
 
-
 /*
-******** tenEstimationMatrix
+******** tenEMatrix
 **
 ** given a list of gradient directions (arbitrary type), computes
 ** the matrix for doing linear least squares estimation of the diffusion
 ** tensor from a set of diffusion weighted images.  This matrix will
 ** be doubles.
 */
+/*
 int
-tenEstimationMatrix(Nrrd *nemat, Nrrd *_ngrad) {
-  char me[]="tenEstimationMatrix", err[AIR_STRLEN_MED];
+tenEMatrix(Nrrd *nbmat, Nrrd *_ngrad) {
+  char me[]="tenBMatrix", err[AIR_STRLEN_MED];
   Nrrd *nwmat;
   airArray *mop;
   
-  if (!(nemat && _ngrad && !tenGradCheck(_ngrad))) {
+  if (!(nbmat && _ngrad && !tenGradCheck(_ngrad))) {
     sprintf(err, "%s: got NULL pointer or invalid arg", me);
     biffAdd(TEN, err); return 1;
   }
@@ -89,13 +89,14 @@ tenEstimationMatrix(Nrrd *nemat, Nrrd *_ngrad) {
     sprintf(err, "%s: trouble forming weighting matrix", me);
     biffAdd(TEN, err); return 1;
   }
-  if (ellNmPseudoInverse(nemat, nwmat)) {
+  if (ellNmPseudoInverse(nbmat, nwmat)) {
     sprintf(err, "%s: trouble inverting weighting matrix", me);
     biffMove(TEN, err, ELL); airMopError(mop); return 1;
   }
   airMopOkay(mop);
   return 0;
 }
+*/
 
 #define _TEN_MAX_DWI_NUM 128
 
@@ -106,7 +107,8 @@ tenEstimationMatrix(Nrrd *nemat, Nrrd *_ngrad) {
 **
 ** input:
 ** dwi[0] is the B0 image, dwi[1]..dwi[DD-1] are the (DD-1) DWI values
-** emat is the (DD-1)-by-6 estimation matrix
+** emat is the (DD-1)-by-6 estimation matrix which is the pseudo-inverse
+** of the B-matrix
 **
 ** output:
 ** ten[0]..ten[6] will be the confidence value followed by the tensor
@@ -146,19 +148,24 @@ tenEstimateOne(float *ten, float *dwi, double *emat, int DD,
 **
 ** The mean of the diffusion-weighted images is thresholded at "thresh" with
 ** softness parameter "soft".
+**
+** This takes the B-matrix (weighting matrix), such as formed by tenBMatrix,
+** or from a more complete account of the gradients present in an imaging
+** sequence, and then does the pseudo inverse to get the estimation matrix
 */
 int
-tenEstimate(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *_ngrad,
+tenEstimate(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *_nbmat,
 	    float thresh, float soft, float b) {
+  const char *bk;
   char me[]="tenEstimate", err[AIR_STRLEN_MED];
-  Nrrd *nemat, *nwmat, *ncrop, *nhist;
+  Nrrd *nbmat, *nemat, *ncrop, *nhist;
   airArray *mop;
   int E, DD, d, II, sx, sy, sz, cmin[4], cmax[4];
   float *ten, dwi1[_TEN_MAX_DWI_NUM], dwi2[_TEN_MAX_DWI_NUM], *terr=NULL, te,
     d1, d2, (*lup)(void *, size_t);
-  double *emat, *wmat;
+  double *bmat, *emat;
 
-  if (!(nten && ndwi && _ngrad)) {
+  if (!(nten && ndwi && _nbmat)) {
     /* nerrP can be NULL */
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
@@ -167,23 +174,23 @@ tenEstimate(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *_ngrad,
     sprintf(err, "%s: dwi should be 4-D array with axis 0 size >= 7", me);
     biffAdd(TEN, err); return 1;
   }
-  if (tenGradCheck(_ngrad)) {
-    sprintf(err, "%s: problem with given gradients", me);
+  if (tenBmatCheck(_nbmat)) {
+    sprintf(err, "%s: problem with B matrix", me);
     biffAdd(TEN, err); return 1;
   }
-  if (!( ndwi->axis[0].size == 1 + _ngrad->axis[1].size )) {
-    sprintf(err, "%s: # dwi (%d) != 1 + # gradient directions (1+%d)",
-	    me, ndwi->axis[0].size, _ngrad->axis[1].size);
+  if (!( ndwi->axis[0].size == 1 + _nbmat->axis[1].size )) {
+    sprintf(err, "%s: # dwi (%d) != 1 + # B matrix rows (1+%d)",
+	    me, ndwi->axis[0].size, _nbmat->axis[1].size);
     biffAdd(TEN, err); return 1;
   }
   
   mop = airMopNew();
+  airMopAdd(mop, nbmat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nemat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nwmat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  if (tenEstimationMatrix(nemat, _ngrad)
-      || tenWeightingMatrix(nwmat, _ngrad)) {
+  if ((bk=NRRD, nrrdConvert(nbmat, _nbmat, nrrdTypeDouble))
+      || (bk=ELL, ellNmPseudoInverse(nemat, nbmat))) {
     sprintf(err, "%s: problem calculating matrices", me);
-    biffAdd(TEN, err); return 1;
+    biffMove(TEN, err, bk); return 1;
   }
   
   DD = ndwi->axis[0].size;
@@ -205,7 +212,7 @@ tenEstimate(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *_ngrad,
       sprintf(err, "%s: trouble histograming to find DW threshold", me);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
-    if (_tenFindValley(&thresh, nhist, 0.7)) {
+    if (_tenFindValley(&thresh, nhist, 0.85)) {
       sprintf(err, "%s: problem finding DW histogram valley", me);
       biffAdd(TEN, err); airMopError(mop); return 1;
     }
@@ -227,10 +234,8 @@ tenEstimate(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *_ngrad,
     airMopAdd(mop, *nterrP, (airMopper)nrrdNuke, airMopOnError);
     terr = (float*)((*nterrP)->data);
   }
+  bmat = (double*)(nbmat->data);
   emat = (double*)(nemat->data);
-  wmat = (double*)(nwmat->data);
-  nrrdSave("emat.nrrd", nemat, NULL);
-  nrrdSave("wmat.nrrd", nwmat, NULL);
   ten = (float*)(nten->data);
   lup = nrrdFLookup[ndwi->type];
   for (II=0; II<sx*sy*sz; II++) {
@@ -245,7 +250,7 @@ tenEstimate(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *_ngrad,
       fprintf(stderr, "%s: output ten = (%g) %g,%g,%g  %g,%g  %g\n", me,
 	      ten[0], ten[1], ten[2], ten[3], ten[4], ten[5], ten[6]);
     if (nterrP) {
-      tenSimulateOne(dwi2, dwi1[0], ten, wmat, DD, b);
+      tenSimulateOne(dwi2, dwi1[0], ten, bmat, DD, b);
       te = 0;
       for (d=0; d<DD; d++) {
 	d1 = AIR_MAX(dwi1[d], 1);
@@ -274,7 +279,7 @@ tenEstimate(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *_ngrad,
 */
 void
 tenSimulateOne(float *dwi, float B0, float *ten,
-	       double *wmat, int DD, float b) {
+	       double *bmat, int DD, float b) {
   double v[_TEN_MAX_DWI_NUM];
   int i, j;
   
@@ -286,7 +291,7 @@ tenSimulateOne(float *dwi, float B0, float *ten,
   for (i=0; i<DD-1; i++) {
     v[i] = 0;
     for (j=0; j<6; j++) {
-      v[i] += wmat[j + 6*i]*ten[j+1];
+      v[i] += bmat[j + 6*i]*ten[j+1];
     }
     dwi[i+1] = AIR_MAX(B0, 1)*exp(-b*v[i]);
     if (tenVerbose) {
@@ -298,29 +303,29 @@ tenSimulateOne(float *dwi, float B0, float *ten,
 }
 
 int
-tenSimulate(Nrrd *ndwi, Nrrd *nT2, Nrrd *nten, Nrrd *_ngrad, float b) {
+tenSimulate(Nrrd *ndwi, Nrrd *nT2, Nrrd *nten, Nrrd *_nbmat, float b) {
   char me[]="tenSimulate", err[AIR_STRLEN_MED];
   size_t II;
-  Nrrd *nwmat;
+  Nrrd *nbmat;
   int DD, sx, sy, sz;
   airArray *mop;
-  double *wmat;
+  double *bmat;
   float *dwi, *ten, (*lup)(void *, size_t I);
   
-  if (!ndwi || !nT2 || !nten || !_ngrad
+  if (!ndwi || !nT2 || !nten || !_nbmat
       || tenTensorCheck(nten, nrrdTypeFloat, AIR_TRUE)
-      || tenGradCheck(_ngrad)) {
+      || tenBmatCheck(_nbmat)) {
     sprintf(err, "%s: got NULL pointer or invalid args", me);
     biffAdd(TEN, err); return 1;
   }
   mop = airMopNew();
-  airMopAdd(mop, nwmat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  if (tenWeightingMatrix(nwmat, _ngrad)) {
-    sprintf(err, "%s: couldn't compute weighting matrix", me);
-    biffAdd(TEN, err); return 1;
+  airMopAdd(mop, nbmat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  if (nrrdConvert(nbmat, _nbmat, nrrdTypeDouble)) {
+    sprintf(err, "%s: couldn't convert B matrix", me);
+    biffMove(TEN, err, NRRD); return 1;
   }
   
-  DD = _ngrad->axis[1].size+1;
+  DD = nbmat->axis[1].size+1;
   sx = nT2->axis[0].size;
   sy = nT2->axis[1].size;
   sz = nT2->axis[2].size;
@@ -339,11 +344,11 @@ tenSimulate(Nrrd *ndwi, Nrrd *nT2, Nrrd *nten, Nrrd *_ngrad, float b) {
   }
   dwi = (float*)(ndwi->data);
   ten = (float*)(nten->data);
-  wmat = (double*)(nwmat->data);
+  bmat = (double*)(nbmat->data);
   lup = nrrdFLookup[nT2->type];
   for (II=0; II<sx*sy*sz; II++) {
     /* tenVerbose = (II == 42 + 190*(96 + 196*0)); */
-    tenSimulateOne(dwi, lup(nT2->data, II), ten, wmat, DD, b);
+    tenSimulateOne(dwi, lup(nT2->data, II), ten, bmat, DD, b);
     dwi += DD;
     ten += 7;
   }
@@ -450,7 +455,7 @@ int
 tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
 	      float thresh, float slope, float b) {
   char me[] = "tenCalcTensor", err[128], cmt[128];
-  float *out, tens[6], chan[7];
+  float *out, tens[7], chan[7];
   int sx, sy, sz;
   size_t I;
   void (*calcten)(float tens[7], float chan[7], 
@@ -476,7 +481,7 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
     biffAdd(TEN, err); return 1;
     break;
   }
-  if (tenTensorCheck(nin, nrrdTypeUnknown, AIR_TRUE)) {
+  if (tenTensorCheck(nin, nrrdTypeDefault, AIR_TRUE)) {
     sprintf(err, "%s: wasn't given valid tensor nrrd", me);
     biffAdd(TEN, err); return 1;
   }

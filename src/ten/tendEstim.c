@@ -24,8 +24,10 @@
 char *_tend_estimInfoL =
   (INFO
    ".  The various DWI volumes must be stacked along axis 0 (as with the "
-   "output of \"tend epireg\").  The gradient directions associated with "
-   "each of the DWIs are given as a seperate array, see \"tend emat\" usage "
+   "output of \"tend epireg\").  The tensor coefficient weightings associated "
+   "with "
+   "each of the DWIs, the B matrix, is given as a seperate array, "
+   "see \"tend bmat\" usage "
    "info for details.  A \"confidence\" value is computed with the tensor, "
    "based on a soft thresholding of the sum of all the DWIs, according to "
    "the threshold and softness parameters. ");
@@ -37,7 +39,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err, *terrS;
   airArray *mop;
 
-  Nrrd *ndwi, *ngrad, *nterr=NULL, *nout;
+  Nrrd *ndwi, *nbmat, *nterr=NULL, *nout;
   char *outS;
   float thresh, soft, b;
 
@@ -53,12 +55,14 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "the threshold value is calculated automatically, based on "
 	     "histogram analysis.");
   hestOptAdd(&hopt, "s", "soft", airTypeFloat, 1, 1, &soft, "0",
-	     "how fuzzy confidence boundary should be.  By default, "
+	     "how fuzzy the confidence boundary should be.  By default, "
 	     "confidence boundary is perfectly sharp");
+  hestOptAdd(&hopt, "B", "B matrix", airTypeOther, 1, 1, &nbmat, NULL,
+	     "B matrix characterizing how tensor components are weighted "
+	     "with each gradient direction.  \"tend bmat\" is one source "
+	     "for such a matrix.", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "b", "b", airTypeFloat, 1, 1, &b, "1",
-	     "b value from scan");
-  hestOptAdd(&hopt, "g", "grads", airTypeOther, 1, 1, &ngrad, NULL,
-	     "array of gradient directions", NULL, NULL, nrrdHestNrrd);
+	     "additional b scaling factor ");
   hestOptAdd(&hopt, "i", "dwi", airTypeOther, 1, 1, &ndwi, "-",
 	     "4-D volume of all DWIs, stacked along axis 0, starting with "
 	     "the B=0 image", NULL, NULL, nrrdHestNrrd);
@@ -75,7 +79,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (tenEstimate(nout, airStrlen(terrS) ? &nterr : NULL, 
-		  ndwi, ngrad, thresh, soft, b)) {
+		  ndwi, nbmat, thresh, soft, b)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making tensor volume:\n%s\n", me, err);
     airMopError(mop); return 1;

@@ -131,7 +131,7 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **nin, int ninLen,
   ELL_3V_SET(rinfo->min, 0, 0, 0);
   ELL_3V_SET(rinfo->max, sx-1, sy-1, sz-1);
   rinfo->boundary = nrrdBoundaryBleed;
-  rinfo->type = nrrdTypeUnknown;
+  rinfo->type = nrrdTypeDefault;
   rinfo->renormalize = AIR_TRUE;
   rinfo->clamp = AIR_TRUE;
   if (verb) {
@@ -211,7 +211,7 @@ _tenEpiRegFindThresh(float *B0thrP, float *DWthrP, Nrrd **nin, int ninLen) {
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
   }
-  if (_tenFindValley(DWthrP, nhist, 0.85)) {
+  if (_tenFindValley(DWthrP, nhist, 0.9)) {
     sprintf(err, "%s: problem finding DWI histogram valley", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
@@ -312,7 +312,7 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
        the cortex, and sometimes in the temporal lobes */
     for (z=0; z<sz; z++) {
       if ( nrrdSlice(nslc, nthr[ni], 2, z)
-	   || nrrdCCFind(ncc, &nval, nslc, nrrdTypeUnknown, conny)
+	   || nrrdCCFind(ncc, &nval, nslc, nrrdTypeDefault, conny)
 	   || nrrdCCMerge(ncc, ncc, nval, 1, darkSize, 0, conny)
 	   || nrrdCCMerge(ncc, ncc, nval, -1, brightSize, 0, conny)
 	   || nrrdCCRevalue(nslc, ncc, nval)
@@ -333,7 +333,7 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
        and merge up (to bright) all small dark pieces, where
        (currently) small is big/2 */
     E = 0;
-    if (!E) E |= nrrdCCFind(ncc, &nval, nthr[ni], nrrdTypeUnknown, conny);
+    if (!E) E |= nrrdCCFind(ncc, &nval, nthr[ni], nrrdTypeDefault, conny);
     if (!E) E |= nrrdCCSize(nsize, ncc);
     if (!E) big = _tenEpiRegBB(nval, nsize);
     if (!E) E |= nrrdCCMerge(ncc, ncc, nval, -1, big-1, 0, conny);
@@ -344,7 +344,7 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
     }
     for (z=0; z<sz; z++) {
       if ( nrrdSlice(nslc, nthr[ni], 2, z)
-	   || nrrdCCFind(ncc, &nval, nslc, nrrdTypeUnknown, conny)
+	   || nrrdCCFind(ncc, &nval, nslc, nrrdTypeDefault, conny)
 	   || nrrdCCSize(nsize, ncc)
 	   || !(big = _tenEpiRegBB(nval, nsize))
 	   || nrrdCCMerge(ncc, ncc, nval, 1, big/2, 0, conny)
@@ -638,7 +638,7 @@ _tenEpiRegSmoothHST(Nrrd *nhst, float bwP) {
     ELL_2V_SET(rinfo->min, 0, 0);
     ELL_2V_SET(rinfo->max, sp-1, sz-1);
     rinfo->boundary = nrrdBoundaryBleed;
-    rinfo->type = nrrdTypeUnknown;
+    rinfo->type = nrrdTypeDefault;
     rinfo->renormalize = AIR_TRUE;
     rinfo->clamp = AIR_TRUE;
     

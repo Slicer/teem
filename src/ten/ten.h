@@ -44,7 +44,7 @@
 extern "C" {
 #endif
 
-#define TEN "ten"
+#define TEN tenBiffKey
 
 enum {
   tenAnisoUnknown,    /*  0: nobody knows */
@@ -257,6 +257,7 @@ typedef struct {
 } tenFiberContext;
 
 /* defaultsTen.c */
+extern ten_export const char *tenBiffKey;
 extern ten_export const char tenDefFiberKernel[];
 extern ten_export double tenDefFiberStepSize;
 extern ten_export int tenDefFiberOutputIndexSpace;
@@ -291,16 +292,16 @@ extern int tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec);
 
 /* chan.c */
 /* old tenCalc* functions replaced by tenEstimate* */
-extern int tenEstimationMatrix(Nrrd *nemat, Nrrd *ngrad);
-extern int tenWeightingMatrix(Nrrd *nwmat, Nrrd *ngrad);
+extern int tenBMatrix(Nrrd *nbmat, Nrrd *ngrad);
+/* extern int tenEstimationMatrix(Nrrd *nwmat, Nrrd *ngrad); */
 extern void tenEstimateOne(float *ten, float *dwi, double *emat, int NN,
 			   float thresh, float soft, float b);
-extern int tenEstimate(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *nemat,
+extern int tenEstimate(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *nbmat,
 		       float thresh, float soft, float b);
 extern void tenSimulateOne(float *dwi, float B0, float *ten,
-			   double *wmat, int DD, float b);
+			   double *bmat, int DD, float b);
 extern int tenSimulate(Nrrd *ndwi, Nrrd *nT2, Nrrd *nten,
-		       Nrrd *ngrad, float b);
+		       Nrrd *nbmat, float b);
 
 /* aniso.c */
 extern ten_export float tenAnisoSigma;  /* added to denominator
@@ -316,11 +317,11 @@ extern short tenEvqOne(float vec[3], float scl);
 extern int tenEvqVolume(Nrrd *nout, Nrrd *nin, int which,
 			int aniso, int scaleByAniso);
 extern int tenGradCheck(Nrrd *ngrad);
+extern int tenBmatCheck(Nrrd *nbmat);
 extern int _tenFindValley(float *valP, Nrrd *nhist, float tweak);
 extern int tenEigenvalueMin(Nrrd *nout, Nrrd *nin, float mineval);
 
 /* fiberMethods.c */
-/* extern const char tenDefFiberKernel[]; */
 extern tenFiberContext *tenFiberContextNew(Nrrd *dtvol);
 extern int tenFiberTypeSet(tenFiberContext *tfx, int type);
 extern int tenFiberKernelSet(tenFiberContext *tfx,
@@ -356,7 +357,7 @@ extern ten_export gageKind *tenGageKind;
 /* removed from below (superseded by estim): F(calc) \ */
 #define TEND_MAP(F) \
 F(epireg) \
-F(emat) \
+F(bmat) \
 F(estim) \
 F(sim) \
 F(make) \

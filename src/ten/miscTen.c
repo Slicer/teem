@@ -74,7 +74,7 @@ tenEvqVolume(Nrrd *nout, Nrrd *nin, int which, int aniso, int scaleByAniso) {
     biffAdd(TEN, err); return 1;
   }
   if (scaleByAniso) {
-    if (!airEnumValValid(tenAniso, aniso)) {
+    if (airEnumValCheck(tenAniso, aniso)) {
       sprintf(err, "%s: anisotropy metric %d not valid", me, aniso);
       biffAdd(TEN, err); return 1;
     }
@@ -135,6 +135,28 @@ tenGradCheck(Nrrd *ngrad) {
   return 0;
 }
 
+int
+tenBmatCheck(Nrrd *nbmat) {
+  char me[]="tenBmatCheck", err[AIR_STRLEN_MED];
+
+  if (nrrdCheck(nbmat)) {
+    sprintf(err, "%s: basic validity check failed", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  if (!( 6 == nbmat->axis[0].size && 2 == nbmat->dim )) {
+    sprintf(err, "%s: need a 6xN 2-D array (not a %dxN %d-D array)",
+	    me, nbmat->axis[0].size, nbmat->dim);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( 6 <= nbmat->axis[1].size )) {
+    sprintf(err, "%s: have only %d rows, need at least 6",
+	    me, nbmat->axis[1].size);
+    biffAdd(TEN, err); return 1;
+  }
+
+  return 0;
+}
+
 /*
 ******** _tenFindValley
 **
@@ -152,7 +174,7 @@ _tenFindValley(float *valP, Nrrd *nhist, float tweak) {
   Nrrd *ntmpA, *ntmpB, *nhistD, *nhistDD;
   float *hist, *histD, *histDD;
   airArray *mop;
-  int bb, bins;
+  int maxbb, bb, bins;
 
   mop = airMopNew();
   airMopAdd(mop, ntmpA=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
@@ -186,6 +208,7 @@ _tenFindValley(float *valP, Nrrd *nhist, float tweak) {
       break;
     }
   }
+  maxbb = bb;
   for (; bb<bins-1; bb++) {
     if (histD[bb]*histD[bb+1] < 0 && histDD[bb] > 0) {
       /* zero-crossing in 1st deriv, positive 2nd deriv */
@@ -197,7 +220,7 @@ _tenFindValley(float *valP, Nrrd *nhist, float tweak) {
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
 
-  *valP = nrrdAxisPos(nhist, 0, tweak*bb);
+  *valP = nrrdAxisPos(nhist, 0, AIR_AFFINE(0, tweak, 1, maxbb, bb));
 
   airMopOkay(mop);
   return 0;
