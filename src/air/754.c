@@ -65,7 +65,7 @@ typedef union {
 #else
     unsigned int sign : 1;
     unsigned int exp : 11;
-    long long frac : 52;
+    airULLong frac : 52;
 #endif
   } c;
 #endif
@@ -411,11 +411,14 @@ airFPClass_d(double val) {
   return airFPClass_f(val);
 #else
   _airDouble f;
-  int sign, exp, index, ret = 0;
+  unsigned int sign, exp, index, ret = 0;
   airULLong frac;
+  int hibit;
 
   f.v = val;
   FP_GET(sign, exp, frac, f);
+  hibit = frac >> 51;
+
   index = ((!!sign) << 2) | ((!!exp) << 1) | (!!frac);
   switch(index) {
   case 0: 
@@ -428,20 +431,22 @@ airFPClass_d(double val) {
     break;
   case 2: 
     /* only exponent field is non-zero */
-    if (0x7ff > exp)
+    if (0x7ff > exp) {
       ret = airFP_POS_NORM;
-    else
+    } else {
       ret = airFP_POS_INF;
+    }
     break;
   case 3:
     /* exponent and fractional fields are non-zero */
-    if (0x7ff > exp)
+    if (0x7ff > exp) {
       ret = airFP_POS_NORM;
-    else {
-      if (TEEM_QNANHIBIT == frac >> 52)
+    } else {
+      if (TEEM_QNANHIBIT == hibit) {
 	ret = airFP_QNAN;
-      else
+      } else {
 	ret = airFP_SNAN;
+      }
     }
     break;
   case 4: 
@@ -454,20 +459,22 @@ airFPClass_d(double val) {
     break;
   case 6:
     /* sign and exponent fields are non-zero */
-    if (0x7ff > exp)
+    if (0x7ff > exp) {
       ret = airFP_NEG_NORM;
-    else
+    } else {
       ret = airFP_NEG_INF;
+    }
     break;
   case 7:
     /* all fields are non-zero */
     if (0x7ff > exp)
       ret = airFP_NEG_NORM;
     else {
-      if (TEEM_QNANHIBIT == frac >> 52)
+      if (TEEM_QNANHIBIT == hibit) {
 	ret = airFP_QNAN;
-      else
+      } else {
 	ret = airFP_SNAN;
+      }
     }
     break;
   }
@@ -576,10 +583,12 @@ airFPFprintf_f(FILE *file, float val) {
     fprintf(file, " S < . . Exp . . > "
 	    "< . . . . . . . . . Frac. . . . . . . . . . >\n");
     fprintf(file, " %d ", sign);
-    for (i=7; i>=0; i--)
+    for (i=7; i>=0; i--) {
       fprintf(file, "%d ", (exp >> i) & 1);
-    for (i=22; i>=0; i--)
+    }
+    for (i=22; i>=0; i--) {
       fprintf(file, "%d ", (frac >> i) & 1);
+    }
     fprintf(file, "\n");
   }
 }
@@ -600,15 +609,17 @@ airFPFprintf_d(FILE *file, double val) {
             val, airFPClass_d(val), d.h.half1, d.h.half0);
     fprintf(file, "sign:0x%x, exp:0x%03x, frac:0x%05x%08x = \n",
 	    d.c2.sign, d.c2.exp, d.c2.frac1, d.c2.frac0);
-    fprintf(file, "S<...Exp...>"
-	    "<.......................Frac.......................>\n");
+    fprintf(file, "S<...Exp...><.......................Frac.......................>\n");
     fprintf(file, "%d", d.c2.sign);
-    for (i=10; i>=0; i--)
+    for (i=10; i>=0; i--) {
       fprintf(file, "%d", (d.c2.exp >> i) & 1);
-    for (i=19; i>=0; i--)
+    }
+    for (i=19; i>=0; i--) {
       fprintf(file, "%d", (d.c2.frac1 >> i) & 1);
-    for (i=31; i>=0; i--)
-      fprintf(file, "%d", (d.c2.frac0 >> i) & 1);
+    }
+    for (i=31; i>=0; i--) {
+      fprintf(file, "%d", (d.c2.frac0 >> i) & 1); 
+    }
     fprintf(file, "\n");
   }
 }
