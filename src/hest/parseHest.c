@@ -908,8 +908,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	  }
 	  if (parm->verbosity) {
 	    printf("!%s: nprm[%d] = %d\n", me, op, nprm[op]);
-	    printf("!%s: new array is at 0x%lx\n", me, 
-		   (unsigned long)(*((void**)vP)));
+	    printf("!%s: new array is at 0x%p\n", me, *((void**)vP));
 	  }
 	  airMopMem(pmop, vP, airMopOnError);
 	  *(opt[op].sawP) = nprm[op];
