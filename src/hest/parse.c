@@ -573,8 +573,10 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	  return 1;
 	}
 	if (airTypeString == opt[op].type) {
+	  /* vP is the address of a char* (a char **), but what we
+	     manage with airMop is really the char * */
 	  opt[op].alloc = 1;
-	  airMopMem(pmop, (char*)vP, airMopOnError);
+	  airMopMem(pmop, (char**)vP, airMopOnError);
 	}
 	else {
 	  /* we did parse a value, but it wasn't a string */
@@ -599,8 +601,10 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	  return 1;
 	}
 	if (airTypeString == opt[op].type) {
+	  /* vP is an array of char*s, (a char**), and what we manage
+	     with airMop are the individual vP[p] */
 	  for (p=0; p<=opt[op].min-1; p++) {
-	    airMopMem(pmop, ((char**)vP) + p, airMopOnError);
+	    airMopMem(pmop, &(((char**)vP)[p]), airMopOnError);
 	  }
 	  opt[op].alloc = 2;
 	}
@@ -635,6 +639,8 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	  }
 	}
 	if (airTypeString == type && opt[op].alloc) {
+	  /* vP is the address of a char* (a char**), and what we
+	     manage with airMop is the char * */
 	  airMopMem(pmop, (char**)vP, airMopOnError);
 	}
       }
@@ -665,8 +671,11 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	  *(opt[op].sawP) = nprm[op];
 	  opt[op].alloc = (airTypeString == opt[op].type ? 3 : 1);
 	  if (airTypeString == opt[op].type) {
+	    /* vP is the address of an array of char*s (a char ***), and
+	       what we manage with airMop is the individual (*vP)[p],
+	       as well as vP itself (above) */
 	    for (p=0; p<=nprm[op]-1; p++) {
-	      airMopMem(pmop, ((char***)vP)[p], airMopOnError);
+	      airMopMem(pmop, &(((char***)vP)[p]), airMopOnError);
 	    }
 	  }
 	}
