@@ -225,7 +225,7 @@ ifeq ($(TEEM_PURIFY),true)
     $(warning *)
     $(error Make quitting)
   endif
-  POPTS = -inuse-at-exit=yes -suppression-filenames=$(PCACHE)/.purify
+  POPTS = -inuse-at-exit=yes -add-suppression-files=$(PCACHE)/.purify
 #  POPTS += -always-use-cache-dir -cache-dir=$(PCACHE)
   P = $(PURIFY) $(POPTS)
 endif
