@@ -38,11 +38,15 @@ tend_expandMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   Nrrd *nin, *nout;
   char *outS;
-  float thresh;
+  float scale, thresh;
 
   hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "0.5",
 	     "confidence level to threshold output tensors at.  Should "
 	     "be between 0.0 and 1.0.");
+  hestOptAdd(&hopt, "s", "scale", airTypeFloat, 1, 1, &scale, "1.0",
+	     "how to scale values before saving as 9-value tensor.  Useful "
+	     "for visualization tools which assume certain characteristic "
+	     "ranges of eigenvalues");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
 	     "input diffusion tensor volume, with 7 values per sample",
 	     NULL, NULL, nrrdHestNrrd);
@@ -57,7 +61,7 @@ tend_expandMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (tenExpand(nout, nin, thresh)) {
+  if (tenExpand(nout, nin, scale, thresh)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble expanding tensors:\n%s\n", me, err);
     airMopError(mop); exit(1);

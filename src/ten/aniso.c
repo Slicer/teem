@@ -86,13 +86,15 @@ tenAnisoCalc(float c[TEN_ANISO_MAX+1], float e[3]) {
   vf = 1 - e0*e1*e2/(mean*mean*mean);
   vf = AIR_CLAMP(0.0, vf, 1.0);
   c[tenAniso_VF] = vf;
+  c[tenAniso_RR] = ((e0*e0 + e1*e1 + e2*e2 - e0*e1 - e0*e2 - e1*e2)
+		    /(tenAnisoSigma + e0*e0));
   return;
 }
 
 int
 tenAnisoPlot(Nrrd *nout, int aniso, int res) {
   char me[]="tenAnisoMap", err[AIR_STRLEN_MED];
-  float *out, c[TEN_ANISO_MAX+1];
+  float *out, c[TEN_ANISO_MAX+1], tmp;
   int x, y;
   float m0[3], m1[3], m2[3], c0, c1, c2, e[3];
   float S = 1/3.0, L = 1, P = 1/2.0;  /* these make Westin's original
@@ -124,6 +126,7 @@ tenAnisoPlot(Nrrd *nout, int aniso, int res) {
       e[0] = c0*m0[0] + c1*m1[0] + c2*m2[0];
       e[1] = c0*m0[1] + c1*m1[1] + c2*m2[1];
       e[2] = c0*m0[2] + c1*m1[2] + c2*m2[2];
+      ELL_SORT3(e[0], e[1], e[2], tmp); /* got some warnings w/out this */
       tenAnisoCalc(c, e);
       out[x + res*y] = c[aniso];
     }

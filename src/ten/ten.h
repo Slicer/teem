@@ -59,9 +59,10 @@ enum {
   tenAniso_RA,        /* 11: Bass+Pier's relative anisotropy */
   tenAniso_FA,        /* 12: (Bass+Pier's fractional anisotropy)/sqrt(2) */
   tenAniso_VF,        /* 13: volume fraction = 1-(Bass+Pier's volume ratio) */
+  tenAniso_RR,        /* 14: based on radius of circle in cubic solve */
   tenAnisoLast
 };
-#define TEN_ANISO_MAX    13
+#define TEN_ANISO_MAX    14
 
 typedef struct {
   Nrrd *vThreshVol;
@@ -94,7 +95,7 @@ extern tenGlyphParm *tenGlyphParmNix(tenGlyphParm *parm);
 /* tensor.c */
 extern ten_export int tenVerbose;
 extern int tenTensorCheck(Nrrd *nin, int wantType, int useBiff);
-extern int tenExpand(Nrrd *tnine, Nrrd *tseven, float thresh);
+extern int tenExpand(Nrrd *tnine, Nrrd *tseven, float scale, float thresh);
 extern int tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine);
 extern int tenEigensolve(float eval[3], float evec[9], float t[7]);
 extern int tenTensorMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec);

@@ -72,7 +72,7 @@ tenTensorCheck(Nrrd *nin, int wantType, int useBiff) {
 }
 
 int
-tenExpand(Nrrd *nout, Nrrd *nin, float thresh) {
+tenExpand(Nrrd *nout, Nrrd *nin, float scale, float thresh) {
   char me[]="tenExpand", err[AIR_STRLEN_MED];
   size_t N, I;
   int sx, sy, sz;
@@ -103,6 +103,7 @@ tenExpand(Nrrd *nout, Nrrd *nin, float thresh) {
       continue;
     }
     TEN_LIST2MAT(nine, seven);
+    ELL_3M_SCALE(nine, scale, nine);
   }
   if (nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_SIZE_BIT)) {
     sprintf(err, "%s: trouble", me);

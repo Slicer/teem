@@ -35,7 +35,8 @@ _tenAnisoStr[TEN_ANISO_MAX+1][AIR_STRLEN_SMALL] = {
   "Ct2",
   "RA",
   "FA",
-  "VF"
+  "VF",
+  "RR"
 };
 
 airEnum
