@@ -116,7 +116,7 @@ nrrdSwapEndian(Nrrd *nrrd) {
   
   if (nrrd 
       && nrrd->data 
-      && airEnumValValid(nrrdType, nrrd->type)) {
+      && !airEnumValCheck(nrrdType, nrrd->type)) {
     _nrrdSwapEndian[nrrd->type](nrrd->data, nrrdElementNumber(nrrd));
   }
   return;

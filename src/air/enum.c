@@ -61,9 +61,9 @@ _airEnumIndex(airEnum *enm, int val) {
 }
 
 int
-airEnumValValid(airEnum *enm, int val) {
+airEnumValCheck(airEnum *enm, int val) {
 
-  return (0 != _airEnumIndex(enm, val));
+  return (0 == _airEnumIndex(enm, val));
 }
 
 char *
@@ -147,7 +147,7 @@ airEnumFmtDesc(airEnum *enm, int val, int canon, const char *fmt) {
   if (!(enm && enm->desc && fmt)) {
     return airStrdup("(airEnumDesc: invalid args)");
   }
-  if (!airEnumValValid(enm, val)) {
+  if (airEnumValCheck(enm, val)) {
     val = airEnumUnknown(enm);
   }
   _ident = airEnumStr(enm, val);

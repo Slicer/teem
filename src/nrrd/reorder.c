@@ -1002,7 +1002,7 @@ nrrdUnblock(Nrrd *nout, Nrrd *nin, int type) {
 	    me, NRRD_DIM_MAX);
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValValid(nrrdType, type)) {
+  if (airEnumValCheck(nrrdType, type)) {
     sprintf(err, "%s: invalid requested type %d", me, type);
     biffAdd(NRRD, err); return 1;
   }

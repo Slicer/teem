@@ -50,7 +50,7 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, Nrrd *nwght, int bins, int type) {
     sprintf(err, "%s: bins value (%d) invalid", me, bins);
     biffAdd(NRRD, err); return 1;
   }
-  if (!( airEnumValValid(nrrdType, type) && nrrdTypeBlock != type )) {
+  if (airEnumValCheck(nrrdType, type) || nrrdTypeBlock == type) {
     sprintf(err, "%s: invalid nrrd type %d", me, type);
     biffAdd(NRRD, err); return 1;
   }
@@ -291,7 +291,7 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins, int type) {
     sprintf(err, "%s: bins value (%d) invalid", me, bins);
     biffAdd(NRRD, err); return 1;
   }
-  if (!( airEnumValValid(nrrdType, type) && nrrdTypeBlock != type )) {
+  if (airEnumValCheck(nrrdType, type) || nrrdTypeBlock == type) {
     sprintf(err, "%s: invalid nrrd type %d", me, type);
     biffAdd(NRRD, err); return 1;
   }
@@ -407,7 +407,7 @@ nrrdHistoJoint(Nrrd *nout, Nrrd **nin, int numNin,
       biffAdd(NRRD, err); return 1;
     }
   }
-  if (!( airEnumValValid(nrrdType, type) && nrrdTypeBlock != type )) {
+  if (airEnumValCheck(nrrdType, type) || nrrdTypeBlock == type) {
     sprintf(err, "%s: invalid nrrd type %d", me, type);
     biffAdd(NRRD, err); return 1;
   }

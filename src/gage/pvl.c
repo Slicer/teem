@@ -188,7 +188,7 @@ gage_t *
 gageAnswerPointer (gageContext *ctx, gagePerVolume *pvl, int measure) {
   gage_t *ret;
 
-  if (pvl && airEnumValValid(pvl->kind->enm, measure)) {
+  if (pvl && !airEnumValCheck(pvl->kind->enm, measure)) {
     ret = GAGE_ANSWER_POINTER(pvl, measure);
   } else {
     ret = NULL;

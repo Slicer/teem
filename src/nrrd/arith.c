@@ -171,7 +171,7 @@ nrrdArithUnaryOp(Nrrd *nout, int op, Nrrd *nin) {
 	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValValid(nrrdUnaryOp, op)) {
+  if (airEnumValCheck(nrrdUnaryOp, op)) {
     sprintf(err, "%s: unary op %d invalid", me, op);
     biffAdd(NRRD, err); return 1;
   }
@@ -268,7 +268,7 @@ nrrdArithBinaryOp(Nrrd *nout, int op, Nrrd *ninA, Nrrd *ninB) {
     sprintf(err, "%s: size mismatch between arguments", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValValid(nrrdBinaryOp, op)) {
+  if (airEnumValCheck(nrrdBinaryOp, op)) {
     sprintf(err, "%s: binary op %d invalid", me, op);
     biffAdd(NRRD, err); return 1;
   }
@@ -322,7 +322,7 @@ nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValValid(nrrdBinaryOp, op)) {
+  if (airEnumValCheck(nrrdBinaryOp, op)) {
     sprintf(err, "%s: binary op %d invalid", me, op);
     biffAdd(NRRD, err); return 1;
   }
@@ -430,7 +430,7 @@ nrrdArithTernaryOp(Nrrd *nout, int op, Nrrd *ninA, Nrrd *ninB, Nrrd *ninC) {
     sprintf(err, "%s: size mismatch between arguments", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValValid(nrrdTernaryOp, op)) {
+  if (airEnumValCheck(nrrdTernaryOp, op)) {
     sprintf(err, "%s: ternary op %d invalid", me, op);
     biffAdd(NRRD, err); return 1;
   }
@@ -491,7 +491,7 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValValid(nrrdTernaryOp, op)) {
+  if (airEnumValCheck(nrrdTernaryOp, op)) {
     sprintf(err, "%s: ternary op %d invalid", me, op);
     biffAdd(NRRD, err); return 1;
   }

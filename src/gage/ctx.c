@@ -169,7 +169,7 @@ gageKernelSet (gageContext *ctx,
     sprintf(err, "%s: can't operate on a context copy", me);
     biffAdd(GAGE, err); return 1;
   }
-  if (!airEnumValValid(gageKernel, which)) {
+  if (airEnumValCheck(gageKernel, which)) {
     sprintf(err, "%s: \"which\" (%d) not in range [%d,%d]", me,
 	    which, gageKernelUnknown+1, gageKernelLast-1);
     biffAdd(GAGE, err); return 1;

@@ -365,7 +365,7 @@ mrendGage(char *prefix) {
   
   /* 1st pass through- determine needed buffer size */
   len = 0;
-  for (i=airEnumUnknown(gageScl)+1; airEnumValValid(gageScl, i); i++) {
+  for (i=airEnumUnknown(gageScl)+1; !airEnumValCheck(gageScl, i); i++) {
     if (1 == gageKindScl->ansLength[i]) {
       line = airEnumFmtDesc(gageScl, i, AIR_FALSE, "\n \b\bo \"%s\": %s");
       len += strlen(line);
@@ -376,7 +376,7 @@ mrendGage(char *prefix) {
   if (ret) {
     strcpy(ret, prefix);
     /* 2nd pass through: create output */
-    for (i=airEnumUnknown(gageScl)+1; airEnumValValid(gageScl, i); i++) {
+    for (i=airEnumUnknown(gageScl)+1; !airEnumValCheck(gageScl, i); i++) {
       if (1 == gageKindScl->ansLength[i]) {
 	line = airEnumFmtDesc(gageScl, i, AIR_FALSE, "\n \b\bo \"%s\": %s");
 	strcat(ret, line);

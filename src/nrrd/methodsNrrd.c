@@ -551,7 +551,7 @@ nrrdAlloc_nva (Nrrd *nrrd, int type, int dim, int *size) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValValid(nrrdType, type)) {
+  if (airEnumValCheck(nrrdType, type)) {
     sprintf(err, "%s: type (%d) is invalid", me, type);
     biffAdd(NRRD, err); return 1;
   }
@@ -639,7 +639,7 @@ nrrdMaybeAlloc_nva (Nrrd *nrrd, int type, int dim, int *size) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!airEnumValValid(nrrdType, type)) {
+  if (airEnumValCheck(nrrdType, type)) {
     sprintf(err, "%s: type (%d) is invalid", me, type);
     biffAdd(NRRD, err); return 1;
   }

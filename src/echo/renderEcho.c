@@ -145,7 +145,7 @@ echoRTRenderCheck(Nrrd *nraw, limnCam *cam, echoScene *scene,
       biffMove(ECHO, err, LIMN); return 1;
     }
   }
-  if (!airEnumValValid(echoJitter, parm->jitterType)) {
+  if (airEnumValCheck(echoJitter, parm->jitterType)) {
     sprintf(err, "%s: jitter method (%d) invalid", me, parm->jitterType);
     biffAdd(ECHO, err); return 1;
   }

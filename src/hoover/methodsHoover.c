@@ -56,11 +56,11 @@ hooverContextCheck(hooverContext *ctx) {
     sprintf(err, "%s: trouble learning view transform matrix", me);
     biffMove(HOOVER, err, LIMN); return 1;
   }
-  if (!airEnumValValid(nrrdCenter, ctx->volCentering)) {
+  if (airEnumValCheck(nrrdCenter, ctx->volCentering)) {
     sprintf(err, "%s: voxelcentering (%d) invalid", me, ctx->volCentering);
     biffAdd(HOOVER, err); return 1;
   }
-  if (!airEnumValValid(nrrdCenter, ctx->imgCentering)) {
+  if (airEnumValCheck(nrrdCenter, ctx->imgCentering)) {
     sprintf(err, "%s: pixel centering (%d) invalid", me, ctx->imgCentering);
     biffAdd(HOOVER, err); return 1;
   }
