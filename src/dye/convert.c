@@ -337,7 +337,7 @@ dyeConvert(dyeColor *col, int outSpace) {
     biffAdd(DYE, err); return 1;
   }
 
-  if (simple = dyeSimpleConvert[inSpace][outSpace]) {
+  if ( (simple = dyeSimpleConvert[inSpace][outSpace]) ) {
     (*simple)(&o0, &o1, &o2, i0, i1, i2);
     dyeColorSet(col, outSpace, o0, o1, o2);
   }

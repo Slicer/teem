@@ -18,6 +18,7 @@
 */
 
 #include "bane.h"
+#include "private.h"
 
 Nrrd *
 _baneInc_EmptyHistNew(double *incParm) {
@@ -60,8 +61,36 @@ _baneInc_HistFill(Nrrd *n, double val, double *incParm) {
   }
 }
 
+/* ----------------- baneIncUnknown -------------------- */
+
+void
+_baneIncUnknown_Ans(double *minP, double *maxP,
+		     Nrrd *hist, double *incParm,
+		     baneRange *range) {
+  char me[]="_baneIncUnknown_Ans";
+  fprintf(stderr, "%s: a baneInc is unset somewhere ...\n", me);
+}
+
+baneInc
+_baneIncUnknown = {
+  "unknown",
+  baneIncUnknown_e,
+  0,
+  _baneInc_EmptyHistNew,
+  NULL,
+  NULL,
+  _baneIncUnknown_Ans
+};
+baneInc *
+baneIncUnknown = &_baneIncUnknown;
+  
 /* ----------------- baneIncAbsolute -------------------- */
 
+/*
+** _baneIncAbsolute_Ans
+**
+** Inclusion always set from incParm[0] to incParm[1]
+*/
 void
 _baneIncAbsolute_Ans(double *minP, double *maxP,
 		     Nrrd *hist, double *incParm,
@@ -119,7 +148,7 @@ baneInc
 _baneIncRangeRatio = {
   "range-ratio",
   baneIncRangeRatio_e,
-  2,
+  1,  /* HEY: only one is required */
   _baneInc_EmptyHistNew,
   NULL,
   NULL,
@@ -131,6 +160,15 @@ baneIncRangeRatio = &_baneIncRangeRatio;
 
 /* ----------------- baneIncPercentile -------------------- */
 
+/*
+** _baneIncPercentile_Ans
+**
+** nibble away at edges of histogram until some percentile of the hits
+** have been accounted for.  incParm[0] is the PERCENT of hits to
+** throw away.  incParm[1], if it exists, is used as the value towards
+** which to nibble, otherwise we use the midpoint of the output of the
+** given range function
+*/
 void
 _baneIncPercentile_Ans(double *minP, double *maxP,
 		       Nrrd *nhist, double *incParm,
@@ -151,6 +189,9 @@ _baneIncPercentile_Ans(double *minP, double *maxP,
   fprintf(stderr, "##%s: hist's size=%d, sum=%d --> out = %g\n", me,
 	  histSize, sum, out);
   range->ans(&min, &max, nhist->axis[0].min, nhist->axis[0].max);
+  fprintf(stderr, "##%s: hist's min,max (%g,%g) ---%s---> %g, %g\n",
+	  me, nhist->axis[0].min, nhist->axis[0].max,
+	  range->name, min, max);
   if (baneRangeFloat) {
     mid = AIR_EXISTS(incParm[1]) ? incParm[1] : (min + max)/2;
   } else {
@@ -160,8 +201,8 @@ _baneIncPercentile_Ans(double *minP, double *maxP,
        there is no marching up from below */
     mid = 0;
   }
-  fprintf(stderr, "##%s: hist (%g,%g) --> min,max = (%g,%g) --> mid = %g\n", me,
-	  nhist->axis[0].min, nhist->axis[0].max, min, max, mid);
+  fprintf(stderr, "##%s: hist (%g,%g) --> min,max = (%g,%g) --> mid = %g\n",
+	  me, nhist->axis[0].min, nhist->axis[0].max, min, max, mid);
   if (max-mid > mid-min) {
     /* the max is further from the mid than the min */
     maxIncr = 1;
@@ -175,8 +216,10 @@ _baneIncPercentile_Ans(double *minP, double *maxP,
     fprintf(stderr, "%s: PANIC: something is terribly wrong (part A)\n", me);
   }
   fprintf(stderr, "##%s: --> {min,max}Incr = %g,%g\n", me, minIncr, maxIncr);
-  minIdx = AIR_AFFINE(nhist->axis[0].min, min, nhist->axis[0].max, 0, histSize-1);
-  maxIdx = AIR_AFFINE(nhist->axis[0].min, max, nhist->axis[0].max, 0, histSize-1);
+  minIdx = AIR_AFFINE(nhist->axis[0].min, min, nhist->axis[0].max,
+		      0, histSize-1);
+  maxIdx = AIR_AFFINE(nhist->axis[0].min, max, nhist->axis[0].max,
+		      0, histSize-1);
   outsofar = 0;
   while (outsofar < out) {
     if (AIR_INSIDE(0, minIdx, histSize-1)) {
@@ -192,8 +235,10 @@ _baneIncPercentile_Ans(double *minP, double *maxP,
       exit(-1);
     }
   }
-  *minP = AIR_AFFINE(0, minIdx, histSize-1, nhist->axis[0].min, nhist->axis[0].max);
-  *maxP = AIR_AFFINE(0, maxIdx, histSize-1, nhist->axis[0].min, nhist->axis[0].max);
+  *minP = AIR_AFFINE(0, minIdx, histSize-1,
+		     nhist->axis[0].min, nhist->axis[0].max);
+  *maxP = AIR_AFFINE(0, maxIdx, histSize-1,
+		     nhist->axis[0].min, nhist->axis[0].max);
   fprintf(stderr, "##%s: --> output min, max = %g, %g\n", me, *minP, *maxP);
   return;
 
@@ -209,6 +254,8 @@ _baneIncPercentile = {
   _baneInc_HistFill,
   _baneIncPercentile_Ans,
 };
+baneInc *
+baneIncPercentile = &_baneIncPercentile;
 
 /* ----------------- baneIncStdv -------------------- */
 
@@ -302,6 +349,7 @@ baneIncStdv = &_baneIncStdv;
 /* -------------------------------------------------- */
 
 baneInc *baneIncArray[BANE_INC_MAX+1] = {
+  &_baneIncUnknown,
   &_baneIncAbsolute,
   &_baneIncRangeRatio,
   &_baneIncPercentile,

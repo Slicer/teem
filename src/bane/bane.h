@@ -40,7 +40,8 @@ extern "C" {
 /*
 ** The idea is that the baneRange, baneInc, baneClip, and baneMeasr,
 ** structs, and the pointers to them declared below, are glorified
-** constants.  All the parameters to these things (the various double
+** constants.  There is certainly nothing dynamically allocated in any
+** of them.  All the parameters to these things (the various double
 ** *xxxParm arrays) are kept in things which are dynamically allocated
 ** by the user.
 */
@@ -65,15 +66,16 @@ extern "C" {
 ** inclusion methods to be smart about things like this.
 */
 enum {
-  baneRangeUnknown=-1, /* -1: nobody knows */
-  baneRangePos_e,      /*  0: always positive: enforce that min == 0 */
-  baneRangeNeg_e,      /*  1: always negative: enforce that max == 0 */
-  baneRangeZeroCent_e, /*  2: positive and negative, centered around zero:
-			      enforce (conservative) centering of interval around 0 */
-  baneRangeFloat_e,    /*  3: anywhere: essentially a no-op */
+  baneRangeUnknown_e,  /* 0: nobody knows */
+  baneRangePos_e,      /* 1: always positive: enforce that min == 0 */
+  baneRangeNeg_e,      /* 2: always negative: enforce that max == 0 */
+  baneRangeZeroCent_e, /* 3: positive and negative, centered around
+			     zero: enforce (conservative) centering of
+			     interval around 0 */
+  baneRangeFloat_e,   /*  4: anywhere: essentially a no-op */
   baneRangeLast_e
 };
-#define BANE_RANGE_MAX     3
+#define BANE_RANGE_MAX    4
 /*
 ******** baneRange struct
 **
@@ -102,15 +104,18 @@ typedef struct {
 ** the baneRange they are associated with... 
 */
 enum {
-  baneIncUnknown_e=-1,   /* -1: nobody knows */
-  baneIncAbsolute_e,     /*  0: within explicitly specified bounds */
-  baneIncRangeRatio_e,   /*  1: some fraction of the total range */
-  baneIncPercentile_e,   /*  2: exclude some percentile */
-  baneIncStdv_e,         /*  3: some multiple of the standard deviation */
+  baneIncUnknown_e,     /* 0: nobody knows */
+  baneIncAbsolute_e,    /* 1: within explicitly specified bounds */
+  baneIncRangeRatio_e,  /* 2: some fraction of the total range */
+  baneIncPercentile_e,  /* 3: exclude some percentile */
+  baneIncStdv_e,        /* 4: some multiple of the standard deviation */
   baneIncLast_e
 };
-#define BANE_INC_MAX         3
+#define BANE_INC_MAX       4
 #define BANE_INC_PARM_NUM 3
+
+typedef void (baneIncPass)(Nrrd *hist, double val, double *incParm);
+
 /*
 ******** baneInc struct
 **
@@ -122,8 +127,8 @@ typedef struct {
   int which;
   int numParm;           /* assumed length of incParm in this ans() */
   Nrrd *(*histNew)(double *incParm);
-  void (*passA)(Nrrd *hist, double val, double *incParm);
-  void (*passB)(Nrrd *hist, double val, double *incParm);
+  baneIncPass *passA;
+  baneIncPass *passB;
   void (*ans)(double *minP, double *maxP,
 	      Nrrd *hist, double *incParm,
 	      baneRange *range);
@@ -140,14 +145,14 @@ typedef struct {
 ** with this is needed.
 */
 enum {
-  baneClipUnknown_e=-1, /* -1: nobody knows */
-  baneClipAbsolute_e,    /* 0: clip at explicitly specified bin count */
-  baneClipPeakRatio_e,   /* 1: some fraction of maximum #hits in any bin */
-  baneClipPercentile_e,  /* 2: percentile of values, sorted by hits */
-  baneClipTopN_e,        /* 3: ignore the N bins with the highest counts */
+  baneClipUnknown_e,     /* 0: nobody knows */
+  baneClipAbsolute_e,    /* 1: clip at explicitly specified bin count */
+  baneClipPeakRatio_e,   /* 2: some fraction of maximum #hits in any bin */
+  baneClipPercentile_e,  /* 3: percentile of values, sorted by hits */
+  baneClipTopN_e,        /* 4: ignore the N bins with the highest counts */
   baneClipLast
 };
-#define BANE_CLIP_MAX       3
+#define BANE_CLIP_MAX       4
 #define BANE_CLIP_PARM_NUM 1
 /*
 ******** baneClip struct
@@ -179,22 +184,25 @@ typedef struct {
 ** only thing its really good at avoiding is quantization noise in
 ** 8-bit data, but gage isn't limited to 8-bit data anyway.
 **
-** Eventually I'll use the parameters to the "ans" method in order to
-** do something useful...
+** The reason for not simply using the pre-defined gageScl values is
+** that eventually I'll want to do things which modify/combine those
+** values in a parameter-controlled way, something which will never be
+** in gage.  Hence the measrParm arrays, even though nothing currently
+** uses them.
 */
 enum {
-  baneMeasrUnknown_e=-1, /* -1: nobody knows */
-  baneMeasrVal_e,        /*  0: the data value */
-  baneMeasrGradMag_e,    /*  1: gradient magnitude */
-  baneMeasrLapl_e,       /*  2: Laplacian */
-  baneMeasrHess_e,       /*  3: Hessian-based measure of 2nd DD along
-                                gradient */
-  baneMeasrCurvedness_e, /*  4: L2 norm of K1, K2 principal curvatures
-			       (gageSclCurvedness) */
-  baneMeasrShapeTrace_e, /*  5: shape indicator (gageSclShapeTrace) */
+  baneMeasrUnknown_e,    /* 0: nobody knows */
+  baneMeasrVal_e,        /* 1: the data value */
+  baneMeasrGradMag_e,    /* 2: gradient magnitude */
+  baneMeasrLapl_e,       /* 3: Laplacian */
+  baneMeasrHess_e,       /* 4: Hessian-based measure of 2nd DD along
+                               gradient */
+  baneMeasrCurvedness_e, /* 5: L2 norm of K1, K2 principal curvatures
+			      (gageSclCurvedness) */
+  baneMeasrShapeTrace_e, /* 6: shape indicator (gageSclShapeTrace) */
   baneMeasrLast
 };
-#define BANE_MEASR_MAX       5
+#define BANE_MEASR_MAX      6
 #define BANE_MEASR_PARM_NUM 1
 /*
 ******** baneMeasr struct
@@ -205,6 +213,9 @@ typedef struct {
   char name[AIR_STRLEN_SMALL];
   int which;
   int numParm;           /* assumed length of measrParm in this ans() */
+  int query;             /* the gageScl query needed for this measure.
+			    Does not need to be the recursive
+			    prerequisite expansion). */
   baneRange *range;
   float (*ans)(gageSclAnswer *, double *measrParm);
 } baneMeasr;
@@ -217,7 +228,7 @@ typedef struct {
 ** Information for how to do measurement and inclusion along each axis
 ** of the histogram volume.
 **
-** No dynamically allocated stuff in here
+** No dynamically allocated stuff in here!!
 */
 typedef struct {
   int res;                            /* resolution = number of bins */
@@ -230,14 +241,18 @@ typedef struct {
 /*
 ******** baneHVolParm struct
 ** 
-** Information for how to create a histogram volume
+** Information for how to create a histogram volume.  NB: We have an
+** array of baneAxis structs, not pointers to them.  baneHVolParmNew
+** does initialization of them.
 **
+** No dynamically allocated stuff in here!!
 */
 typedef struct {
   int verbose;                         /* status messages to stderr */
-  baneAxis *ax[3];
+  baneAxis ax[3];                      /* NB: not pointers to baneAxis */
   NrrdKernel *k[GAGE_KERNEL_NUM];
   double kparm[GAGE_KERNEL_NUM][NRRD_KERNEL_PARMS_NUM];
+  int renormalize;                     /* use gage's mask renormalization */
   baneClip *clip;
   double clipParm[BANE_CLIP_PARM_NUM];
   double incLimit;                     /* lowest permissible fraction of the
@@ -246,10 +261,14 @@ typedef struct {
 } baneHVolParm;
 
 /* defaults.c */
+extern int baneDefVerbose;
 extern float baneDefIncLimit;
-extern int baneDefHistEqBins;
+extern int baneDefRenormalize;
+extern int baneStateHistEqBins;
+extern int baneStateHistEqSmart;
 
 /* range.c */
+extern baneRange *baneRangeUnknown;
 extern baneRange *baneRangePos;
 extern baneRange *baneRangeNeg;
 extern baneRange *baneRangeZeroCent;
@@ -257,6 +276,7 @@ extern baneRange *baneRangeFloat;
 extern baneRange *baneRangeArray[BANE_RANGE_MAX+1]; 
 
 /* inc.c */
+extern baneInc *baneIncUnknown;
 extern baneInc *baneIncAbsolute;
 extern baneInc *baneIncRangeRatio;
 extern baneInc *baneIncPercentile;
@@ -264,6 +284,7 @@ extern baneInc *baneIncStdv;
 extern baneInc *baneIncArray[BANE_INC_MAX+1];
 
 /* measr.c */
+extern baneMeasr *baneMeasrUnknown;
 extern baneMeasr *baneMeasrVal;
 extern baneMeasr *baneMeasrGradMag;
 extern baneMeasr *baneMeasrLapl;
@@ -273,6 +294,7 @@ extern baneMeasr *baneMeasrShadeTrace;
 extern baneMeasr *baneMeasrArray[BANE_MEASR_MAX+1];
 
 /* clip.c */
+extern baneClip *baneClipUnknown;
 extern baneClip *baneClipAbsolute;
 extern baneClip *baneClipPeakRatio;
 extern baneClip *baneClipPercentile;
@@ -281,21 +303,19 @@ extern baneClip *baneClipArray[BANE_CLIP_MAX+1];
 
 /* methods.c */
 extern baneHVolParm *baneHVolParmNew();
-extern baneHVolParm *baneHVolParmNix(baneHVolParm *hvp);
 extern void baneHVolParmGKMSInit(baneHVolParm *hvp);
-
-/* hvol.c */
-extern int baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp);
-extern int baneApplyMeasr(Nrrd *nout, Nrrd *nin, baneMeasr *measr,
-		  NrrdKernel *k[GAGE_KERNEL_NUM],
-		  double kparm[GAGE_KERNEL_NUM][NRRD_KERNEL_PARMS_NUM]);
-extern Nrrd *baneGKMSHVol(Nrrd *nin, float perc);
+extern baneHVolParm *baneHVolParmNix(baneHVolParm *hvp);
 
 /* valid.c */
+extern int baneValidInput(Nrrd *nin, baneHVolParm *hvp);
 extern int baneValidHVol(Nrrd *hvol);
 extern int baneValidInfo(Nrrd *info2D, int wantDim);
 extern int baneValidPos(Nrrd *pos, int wantDim);
 extern int baneValidBcpts(Nrrd *Bcpts);
+
+/* hvol.c */
+extern int baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp);
+extern Nrrd *baneGKMSHVol(Nrrd *nin, float gradPerc, float hessPerc);
 
 /* trnsf.c */
 extern int baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr);

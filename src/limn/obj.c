@@ -110,7 +110,7 @@ _limnEdgeInit(limnEdge *e, int sp, int face, int v0, int v1) {
 int
 limnObjEdgeAdd(limnObj *obj, int sp, int face, int v0, int v1) {
   int ret, t, i, eNum, eBase;
-  limnEdge *e;
+  limnEdge *e=NULL;
   
   eBase = obj->rCurr->eBase;
   eNum = obj->rCurr->eNum;

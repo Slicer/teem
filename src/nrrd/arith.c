@@ -19,6 +19,7 @@
 
 
 #include "nrrd.h"
+#include "private.h"
 
 /*
 ******** nrrdArithGamma()

@@ -19,6 +19,52 @@
 
 
 #include "bane.h"
+#include "private.h"
+
+int
+baneValidInput(Nrrd *nin, baneHVolParm *hvp) {
+  char me[]="baneValidVolume", err[AIR_STRLEN_MED];
+  int i;
+
+  if (!nrrdValid(nin)) {
+    sprintf(err, "%s: basic nrrd validity check failed", me);
+    biffMove(BANE, err, NRRD); return 0;
+  }
+  if (3 != nin->dim) {
+    sprintf(err, "%s: need a 3-dimensional nrrd (not %d)", me, nin->dim);
+    biffAdd(BANE, err); return 0;
+  }
+  if (nrrdTypeBlock == nin->type) {
+    sprintf(err, "%s: can't operate on block type", me);
+    biffAdd(BANE, err); return 0;
+  }
+  if (!( AIR_EXISTS(nin->axis[0].spacing) && nin->axis[0].spacing != 0 &&
+	 AIR_EXISTS(nin->axis[1].spacing) && nin->axis[1].spacing != 0 &&
+	 AIR_EXISTS(nin->axis[2].spacing) && nin->axis[2].spacing != 0 )) {
+    sprintf(err, "%s: must have non-zero existant spacing for all 3 axes", me);
+    biffAdd(BANE, err); return 0;
+  }
+  for (i=0; i<=2; i++) {
+    if (!_baneValidAxis(hvp->ax + i)) {
+      sprintf(err, "%s: trouble with axis %d", me, i);
+      biffAdd(BANE, err); return 0;
+    }
+  }
+  if (!hvp->clip) {
+    sprintf(err, "%s: got NULL baneClip", me);
+    biffAdd(BANE, err); return 0;
+  }
+  for (i=0; i<hvp->clip->numParm; i++) {
+    if (!AIR_EXISTS(hvp->clipParm[i])) {
+      sprintf(err, "%s: didn't get %d parms for %s clipping",
+	      me, hvp->clip->numParm, hvp->clip->name);
+      biffAdd(BANE, err); return 0;
+    }
+  }
+
+  /* all okay */
+  return 1;
+}
 
 int
 baneValidHVol(Nrrd *hvol) {
@@ -29,8 +75,9 @@ baneValidHVol(Nrrd *hvol) {
     biffAdd(BANE, err); return 0;
   }
   if (nrrdTypeUChar != hvol->type) {
-    sprintf(err, "%s: need type to be unsigned char (not %s)", 
-	    me, airEnumStr(nrrdType, hvol->type));
+    sprintf(err, "%s: need type to be %s (not %s)", 
+	    me, airEnumStr(nrrdType, nrrdTypeUChar),
+	    airEnumStr(nrrdType, hvol->type));
     biffAdd(BANE, err); return 0;
   }
   if (!( AIR_EXISTS(hvol->axis[0].min) && AIR_EXISTS(hvol->axis[0].max) && 
@@ -39,18 +86,20 @@ baneValidHVol(Nrrd *hvol) {
     sprintf(err, "%s: axisMin and axisMax must be set for all axes", me);
     biffAdd(BANE, err); return 0;
   }
-  if (strcmp(hvol->axis[0].label, "gradient-mag_cd")) {
-    sprintf(err, "%s: expected \"gradient-mag_cd\" on axis 0", me);
+  if (strcmp(hvol->axis[0].label, baneMeasrGradMag->name)) {
+    sprintf(err, "%s: expected \"%s\" on axis 0 label",
+	    me, baneMeasrGradMag->name);
     biffAdd(BANE, err); return 0;
   }
-  if (strcmp(hvol->axis[1].label, "Laplacian_cd") &&
-      strcmp(hvol->axis[1].label, "Hessian-2dd_cd") &&
-      strcmp(hvol->axis[1].label, "grad-mag-grad_cd")) {
-    sprintf(err, "%s: expected a second derivative measure on axis 1", me);
+  if (strcmp(hvol->axis[1].label, baneMeasrLapl->name) &&
+      strcmp(hvol->axis[1].label, baneMeasrHess->name)) {
+    sprintf(err, "%s: expected a 2nd deriv. measr on axis 1 (%s or %s)",
+	    me, baneMeasrHess->name, baneMeasrLapl->name);
     biffAdd(BANE, err); return 0;    
   }
-  if (strcmp(hvol->axis[2].label, "value")) {
-    sprintf(err, "%s: expected \"value\" on axis 2", me);
+  if (strcmp(hvol->axis[2].label, baneMeasrVal->name)) {
+    sprintf(err, "%s: expected \"%s\" on axis 2",
+	    me, baneMeasrVal->name);
     biffAdd(BANE, err); return 0;
   }
   return 1;

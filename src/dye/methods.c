@@ -37,7 +37,7 @@ dyeStrToSpace(char *_str) {
   char *c, *str;
 
   spc = dyeSpaceUnknown;
-  if (str = airStrdup(_str)) {
+  if ( (str = airStrdup(_str)) ) {
     c = str;
     while (*c) {
       *c = toupper(*c);

@@ -19,6 +19,7 @@
 
 
 #include "bane.h"
+#include "private.h"
 
 int
 baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
@@ -46,8 +47,10 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
 
   /* do histogram equalization on them */
   if (histEq) {
-    if (!E) E |= nrrdHistoEq(gA, NULL, BANE_HIST_EQ_BINS, 1);
-    if (!E) E |= nrrdHistoEq(hA, NULL, BANE_HIST_EQ_BINS, 1);
+    if (!E) E |= nrrdHistoEq(gA, gA, NULL,
+			     baneStateHistEqBins, baneStateHistEqSmart);
+    if (!E) E |= nrrdHistoEq(hA, hA, NULL,
+			     baneStateHistEqBins, baneStateHistEqSmart);
     if (E) {
       sprintf(err, "%s: couldn't histogram equalize scatterplots", me);
       biffMove(BANE, err, NRRD); return 1;
@@ -71,5 +74,9 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
     biffMove(BANE, err, NRRD); return 1;
   }
 
+  nrrdNuke(gA);
+  nrrdNuke(gB);
+  nrrdNuke(hA);
+  nrrdNuke(hB);
   return 0;
 }

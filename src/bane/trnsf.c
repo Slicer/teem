@@ -19,6 +19,7 @@
 
 
 #include "bane.h"
+#include "private.h"
 
 #define BIFF_NULL "%s: got NULL pointer"
 #define BIFF_NRRDALLOC "%s: couldn't allocate output nrrd"
@@ -72,7 +73,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
       sprintf(err, "%s: trouble projecting along gradient for g(v)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
-    for (i=0; i<=len-1; i++) {
+    for (i=0; i<len; i++) {
       data1D[0 + 2*i] = nrrdFLookup[proj1->type](proj1->data, i);
     }
     nrrdNuke(proj1);
@@ -88,7 +89,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
       sprintf(err, "%s: trouble projecting along 2nd deriv. for h(v)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
-    for (i=0; i<=len-1; i++) {
+    for (i=0; i<len; i++) {
       data1D[1 + 2*i] = nrrdFLookup[proj1->type](proj1->data, i);
     }
     nrrdNuke(proj1);
@@ -120,7 +121,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
       sprintf(err, "%s: trouble projecting (step 2) to create h(v,g)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
-    for (i=0; i<=sv*sg-1; i++) {
+    for (i=0; i<sv*sg; i++) {
       data2D[0 + 2*i] = nrrdFLookup[projT->type](projT->data, i);
     }
     nrrdNuke(proj2);
@@ -135,7 +136,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
       sprintf(err, "%s: trouble projecting (step 2) to create #(v,g)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
-    for (i=0; i<=sv*sg-1; i++) {
+    for (i=0; i<sv*sg; i++) {
       data2D[1 + 2*i] = nrrdFLookup[projT->type](projT->data, i);
     }
     nrrdNuke(proj2);
@@ -166,7 +167,7 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
   if (!E) E |= nrrdProject(projN=nrrdNew(), info2D, 2, nrrdMeasureSum);
   if (!E) E |= nrrdProject(projG1=nrrdNew(), info2D, 2, nrrdMeasureHistoMean);
   if (E) {
-    sprintf(err, "%s: trouble creating need projections", me);
+    sprintf(err, "%s: trouble creating needed projections", me);
     biffAdd(BANE, err); return 1;
   }
   
@@ -180,7 +181,7 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
   info1D->axis[1].max = info2D->axis[1].max;
   data1D = info1D->data;
 
-  for (i=0; i<=len-1; i++) {
+  for (i=0; i<len; i++) {
     data1D[0 + 2*i] = nrrdFLookup[projG1->type](projG1->data, 1 + 2*i);
     data1D[1 + 2*i] = (nrrdFLookup[projH1->type](projH1->data, i) / 
 		       nrrdFLookup[projN->type](projN->data, 1 + 2*i));
@@ -203,7 +204,7 @@ _baneSigmaCalc1D(float *sP, Nrrd *info1D) {
   maxg = -1;
   maxh = -1;
   minh = 1;
-  for (i=0; i<=len-1; i++) {
+  for (i=0; i<len; i++) {
     if (AIR_EXISTS(data[0 + 2*i]))
       maxg = AIR_MAX(maxg, data[0 + 2*i]);
     if (AIR_EXISTS(data[1 + 2*i])) {
@@ -282,7 +283,7 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
     pos->axis[0].max = info->axis[1].max;
     posData = pos->data;
     infoData = info->data;
-    for (i=0; i<=len-1; i++) {
+    for (i=0; i<len; i++) {
       /* from pg. 55 of GK's MS */
       g = infoData[0+2*i];
       h = infoData[1+2*i];
@@ -308,9 +309,9 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
     pos->axis[1].min = info->axis[2].min;
     pos->axis[1].max = info->axis[2].max;
     posData = pos->data;
-    for (gi=0; gi<=sg-1; gi++) {
+    for (gi=0; gi<sg; gi++) {
       g = AIR_AFFINE(0, gi, sg-1, info->axis[2].min, info->axis[2].max);
-      for (vi=0; vi<=sv-1; vi++) {
+      for (vi=0; vi<sv; vi++) {
 	h = nrrdFLookup[info->type](info->data, 0 + 2*(vi + sv*gi));
 	/* from pg. 61 of GK's MS */
 	if (AIR_EXISTS(h)) {
@@ -334,7 +335,7 @@ _baneOpacCalcA(int lutLen, float *opacLut,
   int i, j;
   float p;
 
-  for (i=0; i<=lutLen-1; i++) {
+  for (i=0; i<lutLen; i++) {
     p = pos[i];
     if (!AIR_EXISTS(p)) {
       opacLut[i] = 0;
@@ -348,16 +349,16 @@ _baneOpacCalcA(int lutLen, float *opacLut,
       opacLut[i] = xo[1 + 2*(numCpts-1)];
       continue;
     }
-    for (j=1; j<=numCpts-1; j++)
+    for (j=1; j<numCpts; j++)
       if (p < xo[0 + 2*j])
 	break;
     opacLut[i] = AIR_AFFINE(xo[0 + 2*(j-1)], p, xo[0 + 2*j], 
 			    xo[1 + 2*(j-1)], xo[1 + 2*j]);
   }
   /*
-  for (i=0; i<=numCpts-1; i++)
+  for (i=0; i<numCpts; i++)
     printf("b(%g) = %g\n", xo[0+2*i], xo[1+2*i]);
-  for (i=0; i<=lutLen-1; i++)
+  for (i=0; i<lutLen; i++)
     printf("p[%d] = %g -> o = %g\n", i, pos[i], opacLut[i]);
   */
 }
@@ -377,12 +378,12 @@ _baneOpacCalcB(int lutLen, float *opacLut,
 	 (unsigned long)pos);
   */
   /*
-  for (i=0; i<=numCpts-1; i++) {
+  for (i=0; i<numCpts; i++) {
     printf("%s: opac(%g) = %g\n", me, x[i], o[i]);
   }
   printf("----------\n");
   */
-  for (i=0; i<=lutLen-1; i++) {
+  for (i=0; i<lutLen; i++) {
     p = pos[i];
     /*
     printf("%s: pos[%d] = %g -->", me, i, p); fflush(stdout);
@@ -399,7 +400,7 @@ _baneOpacCalcB(int lutLen, float *opacLut,
       op = o[numCpts-1];
       goto endloop;
     }
-    for (j=1; j<=numCpts-1; j++)
+    for (j=1; j<numCpts; j++)
       if (p < x[j])
 	break;
     op = AIR_AFFINE(x[j-1], p, x[j], o[j-1], o[j]);

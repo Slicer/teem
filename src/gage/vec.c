@@ -25,7 +25,6 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageVecAnswer";
   gageVecAnswer *van;
   unsigned int query;
-  gage_t len;
 
   /*
   gageVecVector,      *  0: component-wise-interpolatd (CWI) vector: GT[3] *
@@ -46,11 +45,11 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
     }
   }
   if (1 & (query >> gageVecLength)) {
-    len = van->len[0] = ELL_3V_LEN(van->vec);
+    van->len[0] = ELL_3V_LEN(van->vec);
   }
   if (1 & (query >> gageVecNormalized)) {
-    if (len) {
-      ELL_3V_SCALE(van->norm, 1.0/len, van->vec);
+    if (van->len[0]) {
+      ELL_3V_SCALE(van->norm, 1.0/van->len[0], van->vec);
     } else {
       ELL_3V_COPY(van->norm, gageZeroNormal);
     }

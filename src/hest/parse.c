@@ -65,7 +65,7 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
       }
       len = airOneLine(file, line, AIR_STRLEN_HUGE);
       while (len > 0) {
-	if (pound = strchr(line, parm->respFileComment))
+	if ( (pound = strchr(line, parm->respFileComment)) )
 	  *pound = '\0';
 	airOneLinify(line);
 	*argcP += airStrntok(line, AIR_WHITESPACE);
@@ -115,7 +115,7 @@ _hestResponseFiles(char **newArgv, char **oldArgv, int nrf,
       while (len > 0) {
 	if (parm->verbosity)
 	  printf("_hestResponseFiles: line: |%s|\n", line);
-	if (pound = strchr(line, parm->respFileComment))
+	if ( (pound = strchr(line, parm->respFileComment)) )
 	  *pound = '\0';
 	if (parm->verbosity)
 	  printf("_hestResponseFiles: -0-> line: |%s|\n", line);

@@ -22,6 +22,7 @@
 
 void
 gageValSet(gageContext *ctx, int which, int val) {
+  char me[]="gageValSet";
   
   if (ctx && AIR_BETWEEN(gageValUnknown, which, gageValLast)) {
     switch (which) {
@@ -43,6 +44,9 @@ gageValSet(gageContext *ctx, int which, int val) {
     case gageValHavePad:
       ctx->havePad = val;
       break;
+    default:
+      fprintf(stderr, "%s: which = %d unknown!!\n", me, which);
+      break;
     }
   }
   return;
@@ -50,7 +54,8 @@ gageValSet(gageContext *ctx, int which, int val) {
 
 int
 gageValGet(gageContext *ctx, int which) {
-  int val;
+  char me[]="gageValGet";
+  int val=-1;
 
   if (ctx && AIR_BETWEEN(gageValUnknown, which, gageValLast)) {
     switch (which) {
@@ -71,6 +76,10 @@ gageValGet(gageContext *ctx, int which) {
       break;
     case gageValHavePad:
       val = ctx->havePad;
+      break;
+    default:
+      fprintf(stderr, "%s: which = %d unknown!!\n", me, which);
+      val = -1;
       break;
     }
   }

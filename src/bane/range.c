@@ -18,6 +18,25 @@
 */
 
 #include "bane.h"
+#include "private.h"
+
+/* ----------------- baneUnknown -------------------- */
+
+void
+_baneRangeUnknown_Ans(double *ominP, double *omaxP,
+		      double imin, double imax) {
+  char me[]="_baneRangeUnknown_Ans";
+  fprintf(stderr, "%s: a baneRange is unset somewhere ...\n", me);
+}
+
+baneRange
+_baneRangeUnknown = {
+  "unknown",
+  baneRangeUnknown_e,
+  _baneRangeUnknown_Ans
+};
+baneRange *
+baneRangeUnknown = &_baneRangeUnknown;
 
 /* ----------------- baneRangePos -------------------- */
 
@@ -108,6 +127,7 @@ baneRangeFloat = &_baneRangeFloat;
 
 baneRange *
 baneRangeArray[BANE_RANGE_MAX+1] = {
+  &_baneRangeUnknown,
   &_baneRangePos,
   &_baneRangeNeg,
   &_baneRangeZeroCent,

@@ -19,6 +19,26 @@
 
 
 #include "bane.h"
+#include "private.h"
+
+/* ----------------- baneClipUnknown -------------------- */
+
+int
+_baneClipUnknown_Ans(Nrrd *hvol, double *clipParm) {
+  char me[]="_baneClipUnknown_Ans";
+  fprintf(stderr, "%s: a baneClip is unset somewhere ...\n", me);
+  return -1;
+}
+
+baneClip
+_baneClipUnknown = {
+  "unknown",
+  baneClipUnknown_e,
+  0,
+  _baneClipUnknown_Ans
+};
+baneClip *
+baneClipUnknown = &_baneClipUnknown;
 
 /* ----------------- baneClipAbsolute -------------------- */
 
@@ -144,6 +164,7 @@ baneClipTopN = &_baneClipTopN;
 
 baneClip *
 baneClipArray[BANE_CLIP_MAX+1] = {
+  &_baneClipUnknown,
   &_baneClipAbsolute,
   &_baneClipPeakRatio,
   &_baneClipPercentile,

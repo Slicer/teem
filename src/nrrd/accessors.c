@@ -470,7 +470,7 @@ nrrdFindMinMax[NRRD_TYPE_MAX+1])(void *, void *, Nrrd *) = {
   switch (ex) {                                                          \
   case 2: ret = _VC_FIXED; break;                                        \
   case 1: ret = AIR_EXISTS(*A) ? 1 : -1; break;                          \
-  case 0: ret = 0;                                                       \
+  case 0: default: ret = 0;                                              \
   }                                                                      \
   return ret;
 

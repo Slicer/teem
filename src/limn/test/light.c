@@ -38,7 +38,7 @@ main(int argc, char *argv[]) {
   cam->vMin = -(cam->vMax = 3);
   cam->near = -5;
   cam->dist = 0;
-  cam->far =  5;
+  cam->faar =  5;
   cam->eyeRel = AIR_FALSE;
 
   lit = limnLightNew();

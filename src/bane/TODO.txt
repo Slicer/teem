@@ -1,5 +1,7 @@
 make sure that the NUM_PARM_MAX values are correct
 
+when 6pack filtering is in gage, support it in bane
+
 use hest for gkms
 
 use airMop

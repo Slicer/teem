@@ -25,7 +25,7 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageSclAnswer";
   unsigned int query;
   gage_t len, sHess[9], gp1[3], gp2[3], nPerp[9], 
-    ginv, gmag, T, N, D, K1, K2;
+    ginv, gmag=0, T, N, D;
   double tmpMat[9], tmpVec[3], hevec[9], heval[3];
   gageSclAnswer *san;
 
@@ -133,21 +133,28 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
     }
     D = AIR_MAX(D, 0);
     D = sqrt(D);
-    san->k1k2[0] = K1 = 0.5*(T + D);
-    san->k1k2[1] = K2 = 0.5*(T - D);
+    san->k1k2[0] = 0.5*(T + D);
+    san->k1k2[1] = 0.5*(T - D);
   }
   if (1 & (query >> gageSclShapeIndex)) {
-     san->Si[0] = -(2/M_PI)*atan2(K1 + K2, K1 - K2);
+     san->Si[0] = -(2/M_PI)*atan2(san->k1k2[0] + san->k1k2[1],
+				  san->k1k2[0] - san->k1k2[1]);
   }
   if (1 & (query >> gageSclCurvDir)) {
     /* HEY: this only works when K1, K2, 0 are all well mutually distinct,
        since these are the eigenvalues of the geometry tensor, and this
        code assumes that the eigenspaces are all one-dimensional */
     ELL_3M_COPY(tmpMat, san->gten);
-    ELL_3M_SET_DIAG(tmpMat, san->gten[0]-K1, san->gten[4]-K1, san->gten[8]-K1);
+    ELL_3M_SET_DIAG(tmpMat,
+		    san->gten[0]-san->k1k2[0],
+		    san->gten[4]-san->k1k2[0],
+		    san->gten[8]-san->k1k2[0]);
     ell3mNullspace1(tmpVec, tmpMat);
     ELL_3V_COPY(san->cdir+0, tmpVec);
-    ELL_3M_SET_DIAG(tmpMat, san->gten[0]-K2, san->gten[4]-K2, san->gten[8]-K2);
+    ELL_3M_SET_DIAG(tmpMat,
+		    san->gten[0]-san->k1k2[1],
+		    san->gten[4]-san->k1k2[1],
+		    san->gten[8]-san->k1k2[1]);
     ell3mNullspace1(tmpVec, tmpMat);
     ELL_3V_COPY(san->cdir+3, tmpVec);
   }

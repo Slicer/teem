@@ -42,7 +42,7 @@ _baneTRexRead(char *fname) {
 	    fname, biffGet(NRRD));
     return NULL;
   }
-  if (!_baneValidPos1D(npos)) {
+  if (!baneValidPos(npos, 1)) {
     fprintf(stderr, "%s: !!! didn't get a valid p(x) file:\n%s\n", me, 
 	    biffGet(BANE));
     return NULL;

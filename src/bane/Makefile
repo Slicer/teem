@@ -20,11 +20,13 @@
 
 TEEM_LIB = bane
 HEADERS = bane.h
-TEEM_LIB_OBJS = defaults.o range.o inc.o clip.o measr.o methods.o \
-	hvol.o trnsf.o trex.o valid.o scat.o
+PRIV_HEADERS = private.h
+TEEM_LIB_OBJS = defaults.o range.o inc.o clip.o measr.o valid.o \
+	methods.o trnsf.o scat.o hvol.o trex.o
 #TEST_BINS = test/apply test/tinfo test/sigma test/pos \
 #	test/opac
+TEST_BINS = test/tblah
 TEEM_BINS = bin/gkms
-TEEM_BIN_LIBS = -lbane -lnrrd -lbiff -lair -lm
+TEEM_BIN_LIBS = -lbane -lgage -lnrrd -lell -lbiff -lair -lm
 
 include ../make/Common.mk

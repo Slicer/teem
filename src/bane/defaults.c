@@ -17,8 +17,11 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "gage.h"
+#include "bane.h"
 
-int baneDefVerbose = 1;
+int baneDefVerbose = 0;
 float baneDefIncLimit = 0.80;  /* throwing away more than 20% is too much */
-int baneDefHistEqBins = 1024;
+int baneDefRenormalize = AIR_FALSE;
+
+int baneStateHistEqBins = 1024;
+int baneStateHistEqSmart = 1;

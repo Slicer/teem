@@ -21,6 +21,7 @@
 #include <stdio.h>
 
 #include <air.h>
+#include "../hest.h"
 
 char *me;
 
@@ -55,23 +56,23 @@ main() {
 
   fprintf(stdout, "This was found on my desk: ");
   _hestPrintStr(stdout, 10, strlen("This was found on my desk: "),
-		80, line);
+		80, line, AIR_FALSE);
 
   fprintf(stdout, "This was found on my desk: ");
   _hestPrintStr(stdout, 10, strlen("This was found on my desk: "),
-		79, line);
+		79, line, AIR_FALSE);
 
   fprintf(stdout, "This was found on my desk: ");
   _hestPrintStr(stdout, 10, strlen("This was found on my desk: "),
-		78, line);
+		78, line, AIR_FALSE);
 
   fprintf(stdout, "This was found on my desk: ");
   _hestPrintStr(stdout, 10, strlen("This was found on my desk: "),
-		77, line);
+		77, line, AIR_FALSE);
 
   fprintf(stdout, "This was found on my desk: ");
   _hestPrintStr(stdout, 10, strlen("This was found on my desk: "),
-		76, line);
+		76, line, AIR_FALSE);
   
   exit(0);
 }

@@ -85,7 +85,7 @@ _gagePrint_off(gageContext *ctx) {
    if (ctx->needK[gageKernel22]) { HOW(22,C); }
 
 void
-_gagePrint_fslw(gageContext *ctx, int doD1, int doD2) {
+_gagePrint_fslw(gageContext *ctx) {
   int i, fd;
   gage_t *fslx, *fsly, *fslz, *fw,
     *fw000, *fw001, *fw002, 

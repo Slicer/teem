@@ -24,7 +24,7 @@ NrrdIter *
 nrrdIterNew() {
   NrrdIter *iter;
 
-  if (iter = calloc(1, sizeof(NrrdIter))) {
+  if ( (iter = calloc(1, sizeof(NrrdIter))) ) {
     iter->nrrd = NULL;
     iter->val = AIR_NAN;
     iter->size = 0;

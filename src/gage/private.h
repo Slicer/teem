@@ -56,9 +56,7 @@ extern airEnum _gageVec;
 
 /* print.c */
 extern void _gagePrint_off(gageContext *ctx);
-  /*
-extern void _gageSclPrint_fslw(gageSclContext *ctx, int doD1, int doD2);
-  */
+extern void _gagePrint_fslw(gageContext *ctx);
 
 /* filter.c */
 extern int _gageLocationSet(gageContext *ctx, int *newBidxP,
@@ -96,6 +94,11 @@ extern void _gageScl3PFilterN(int fd,
 			      GT *fw00, GT *fw11, GT *fw22,
 			      GT *val, GT *gvec, GT *hess,
 			      int doV, int doD1, int doD2);
+
+/* general.c */
+extern int _gageKernelDependentSet(gageContext *ctx);
+extern int _gageVolumeDependentSet(gageContext *ctx, Nrrd *npad,
+				   gageKind *kind);
   
 #ifdef __cplusplus
 }

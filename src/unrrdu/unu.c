@@ -433,8 +433,9 @@ main(int argc, char **argv) {
     hestParmFree(hparm);
   } else {
     fprintf(stderr, "%s: unrecognized command: \"%s\"\n", argv[0], argv[1]);
+    ret = 0;
     usage(UNU);
   }
 
-  exit(ret);
+  return ret;
 }

@@ -19,32 +19,42 @@
 
 
 #include "bane.h"
+#include "private.h"
 
 void
-_baneInitMeasrParm(baneMeasrParm *axp) {
+_baneAxisInit(baneAxis *ax) {
   int i;
 
-  axp->res = -1;
-  axp->measr = baneMeasrUnknown;
-  axp->inc = baneIncUnknown;
-  for (i=0; i<=BANE_INC_NUM_PARM-1; i++) {
-    axp->incParm[i] = AIR_NAN;
+  ax->res = -1;
+  ax->measr = baneMeasrUnknown;
+  for (i=0; i<BANE_MEASR_PARM_NUM; i++) {
+    ax->measrParm[i] = AIR_NAN;
+  }
+  ax->inc = baneIncUnknown;
+  for (i=0; i<BANE_INC_PARM_NUM; i++) {
+    ax->incParm[i] = AIR_NAN;
   }
 }
 
 baneHVolParm *
 baneHVolParmNew() {
   baneHVolParm *hvp;
-  int i;
+  int i, j;
   
   hvp = calloc(1, sizeof(baneHVolParm));
   if (hvp) {
-    hvp->verb = 1;
-    _baneInitMeasrParm(hvp->axp + 0);
-    _baneInitMeasrParm(hvp->axp + 1);
-    _baneInitMeasrParm(hvp->axp + 2);
+    hvp->verbose = baneDefVerbose;
+    _baneAxisInit(hvp->ax + 0);
+    _baneAxisInit(hvp->ax + 1);
+    _baneAxisInit(hvp->ax + 2);
+    for(i=gageKernelUnknown+1; i<gageKernelLast; i++) {
+      hvp->k[i] = NULL;
+      for (j=0; j<NRRD_KERNEL_PARMS_NUM; j++)
+	hvp->kparm[i][j] = AIR_NAN;
+    }
+    hvp->renormalize = baneDefRenormalize;
     hvp->clip = baneClipUnknown;
-    for (i=0; i<=BANE_CLIP_NUM_PARM-1; i++) {
+    for (i=0; i<BANE_CLIP_PARM_NUM; i++) {
       hvp->clipParm[i] = AIR_NAN;
     }
     hvp->incLimit = baneDefIncLimit;
@@ -70,32 +80,40 @@ void
 baneHVolParmGKMSInit(baneHVolParm *hvp) {
 
   if (hvp) {
-    hvp->verb = 1;
-    hvp->axp[0].res = 256;
-    hvp->axp[0].measr = baneMeasrGradMag_cd;
-    hvp->axp[0].inc = baneIncPercentile;
-    hvp->axp[0].incParm[0] = 1024;
-    hvp->axp[0].incParm[1] = 0.15;
+    hvp->ax[0].res = 256;
+    hvp->ax[0].measr = baneMeasrGradMag;
+    hvp->ax[0].inc = baneIncPercentile;
+    hvp->ax[0].incParm[0] = 1024;
+    hvp->ax[0].incParm[1] = 0.15;
     /*
-    hvp->axp[0].inc = baneIncRangeRatio;
-    hvp->axp[0].incParm[0] = 1.0;
+    hvp->ax[0].inc = baneIncRangeRatio;
+    hvp->ax[0].incParm[0] = 1.0;
     */
 
-    hvp->axp[1].res = 256;
-    hvp->axp[1].measr = baneMeasrHess_cd;
-    hvp->axp[1].inc = baneIncPercentile;
-    hvp->axp[1].incParm[0] = 1024;
-    hvp->axp[1].incParm[1] = 0.15;
+    hvp->ax[1].res = 256;
+    hvp->ax[1].measr = baneMeasrHess;
+    hvp->ax[1].inc = baneIncPercentile;
+    hvp->ax[1].incParm[0] = 1024;
+    hvp->ax[1].incParm[1] = 0.2;
     /*
-    hvp->axp[1].inc = baneIncRangeRatio;
-    hvp->axp[1].incParm[0] = 1.0;
+    hvp->ax[1].inc = baneIncRangeRatio;
+    hvp->ax[1].incParm[0] = 1.0;
     */
 
-    hvp->axp[2].res = 256;
-    hvp->axp[2].measr = baneMeasrVal;
-    hvp->axp[2].inc = baneIncRangeRatio;
-    hvp->axp[2].incParm[0] = 1.0;
+    hvp->ax[2].res = 256;
+    hvp->ax[2].measr = baneMeasrVal;
+    hvp->ax[2].inc = baneIncRangeRatio;
+    hvp->ax[2].incParm[0] = 1.0;
+
+    hvp->verbose = 1;
     hvp->clip = baneClipAbsolute;
     hvp->clipParm[0] = 256;
+    
+    nrrdKernelParse(&(hvp->k[gageKernel00]), hvp->kparm[gageKernel00],
+		    "cubic:0,0.5");
+    nrrdKernelParse(&(hvp->k[gageKernel11]), hvp->kparm[gageKernel11],
+		    "cubicd:0,0.5");
+    nrrdKernelParse(&(hvp->k[gageKernel22]), hvp->kparm[gageKernel22],
+		    "cubicdd:1,0");
   }
 }
