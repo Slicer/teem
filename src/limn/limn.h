@@ -30,12 +30,6 @@
 #include <teem/ell.h>
 #include <teem/nrrd.h>
 
-#if defined(_WIN32) && !defined(TEEM_STATIC) && !defined(__CYGWIN__)
-#define limn_export __declspec(dllimport)
-#else
-#define limn_export
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -351,138 +345,137 @@ typedef struct limnSplineTypeSpec_t {
 } limnSplineTypeSpec;
 
 /* defaultsLimn.c */
-extern limn_export const char *limnBiffKey;
-extern limn_export int limnDefCameraAtRelative;
-extern limn_export int limnDefCameraOrthographic;
-extern limn_export int limnDefCameraRightHanded;
+TEEM_API const char *limnBiffKey;
+TEEM_API int limnDefCameraAtRelative;
+TEEM_API int limnDefCameraOrthographic;
+TEEM_API int limnDefCameraRightHanded;
 
 /* qn.c */
-extern limn_export int limnQNBins[LIMN_QN_MAX+1];
-extern limn_export void (*limnQNtoV_f[LIMN_QN_MAX+1])(float *vec, int qn);
-extern limn_export void (*limnQNtoV_d[LIMN_QN_MAX+1])(double *vec, int qn);
-extern limn_export int (*limnVtoQN_f[LIMN_QN_MAX+1])(float *vec);
-extern limn_export int (*limnVtoQN_d[LIMN_QN_MAX+1])(double *vec);
+TEEM_API int limnQNBins[LIMN_QN_MAX+1];
+TEEM_API void (*limnQNtoV_f[LIMN_QN_MAX+1])(float *vec, int qn);
+TEEM_API void (*limnQNtoV_d[LIMN_QN_MAX+1])(double *vec, int qn);
+TEEM_API int (*limnVtoQN_f[LIMN_QN_MAX+1])(float *vec);
+TEEM_API int (*limnVtoQN_d[LIMN_QN_MAX+1])(double *vec);
 
 
 /* light.c */
-extern void limnLightSet(limnLight *lit, int which, int vsp,
-			 float r, float g, float b,
-			 float x, float y, float z);
-extern void limnLightSetAmbient(limnLight *lit, float r, float g, float b);
-extern void limnLightSwitch(limnLight *lit, int which, int on);
-extern void limnLightReset(limnLight *lit);
-extern int limnLightUpdate(limnLight *lit, limnCamera *cam);
+TEEM_API void limnLightSet(limnLight *lit, int which, int vsp,
+			   float r, float g, float b,
+			   float x, float y, float z);
+TEEM_API void limnLightSetAmbient(limnLight *lit, float r, float g, float b);
+TEEM_API void limnLightSwitch(limnLight *lit, int which, int on);
+TEEM_API void limnLightReset(limnLight *lit);
+TEEM_API int limnLightUpdate(limnLight *lit, limnCamera *cam);
 
 /* env.c */
 typedef void (*limnEnvMapCB)(float rgb[3], float vec[3], void *data);
-extern int limnEnvMapFill(Nrrd *envMap, limnEnvMapCB cb, 
+TEEM_API int limnEnvMapFill(Nrrd *envMap, limnEnvMapCB cb, 
 			  int qnMethod, void *data);
-extern void limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit);
-extern int limnEnvMapCheck(Nrrd *envMap);
+TEEM_API void limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit);
+TEEM_API int limnEnvMapCheck(Nrrd *envMap);
 
 /* methodsLimn.c */
-extern limnLight *limnLightNew(void);
-extern void limnCameraInit(limnCamera *cam);
-extern limnLight *limnLightNix(limnLight *);
-extern limnCamera *limnCameraNew(void);
-extern limnCamera *limnCameraNix(limnCamera *cam);
-extern limnWindow *limnWindowNew(int device);
-extern limnWindow *limnWindowNix(limnWindow *win);
+TEEM_API limnLight *limnLightNew(void);
+TEEM_API void limnCameraInit(limnCamera *cam);
+TEEM_API limnLight *limnLightNix(limnLight *);
+TEEM_API limnCamera *limnCameraNew(void);
+TEEM_API limnCamera *limnCameraNix(limnCamera *cam);
+TEEM_API limnWindow *limnWindowNew(int device);
+TEEM_API limnWindow *limnWindowNix(limnWindow *win);
 
 /* hestLimn.c */
-extern void limnHestCameraOptAdd(hestOpt **hoptP, limnCamera *cam,
-				 char *frDef, char *atDef, char *upDef,
-				 char *dnDef, char *diDef, char *dfDef,
-				 char *urDef, char *vrDef);
+TEEM_API void limnHestCameraOptAdd(hestOpt **hoptP, limnCamera *cam,
+				   char *frDef, char *atDef, char *upDef,
+				   char *dnDef, char *diDef, char *dfDef,
+				   char *urDef, char *vrDef);
 
 /* cam.c */
-extern int limnCameraUpdate(limnCamera *cam);
-extern int limnCameraPathMake(limnCamera *cam, int numFrames,
-			      limnCamera *keycam, double *time,
-			      int numKeys, int trackFrom, 
-			      limnSplineTypeSpec *quatType,
-			      limnSplineTypeSpec *posType,
-			      limnSplineTypeSpec *distType,
-			      limnSplineTypeSpec *uvType);
+TEEM_API int limnCameraUpdate(limnCamera *cam);
+TEEM_API int limnCameraPathMake(limnCamera *cam, int numFrames,
+				limnCamera *keycam, double *time,
+				int numKeys, int trackFrom, 
+				limnSplineTypeSpec *quatType,
+				limnSplineTypeSpec *posType,
+				limnSplineTypeSpec *distType,
+				limnSplineTypeSpec *uvType);
 
 /* obj.c */
-extern int limnObjectLookAdd(limnObject *obj);
-extern limnObject *limnObjectNew(int incr, int doEdges);
-extern limnObject *limnObjectNix(limnObject *obj);
-extern int limnObjectPartAdd(limnObject *obj);
-extern int limnObjectVertexAdd(limnObject *obj, int partIdx, int lookIdx,
-			       float x, float y, float z);
-extern int limnObjectEdgeAdd(limnObject *obj, int partIdx, int lookIdx,
-			     int faceIdxIdx, int vertIdxIdx0, int vertIdxIdx1);
-extern int limnObjectFaceAdd(limnObject *obj, int partIdx,
-			     int lookIdx, int sideNum, int *vertIdxIdx);
+TEEM_API int limnObjectLookAdd(limnObject *obj);
+TEEM_API limnObject *limnObjectNew(int incr, int doEdges);
+TEEM_API limnObject *limnObjectNix(limnObject *obj);
+TEEM_API int limnObjectPartAdd(limnObject *obj);
+TEEM_API int limnObjectVertexAdd(limnObject *obj, int partIdx, int lookIdx,
+				 float x, float y, float z);
+TEEM_API int limnObjectEdgeAdd(limnObject *obj, int partIdx, int lookIdx,
+			       int faceIdxIdx, int vertIdxIdx0, int vertIdxIdx1);
+TEEM_API int limnObjectFaceAdd(limnObject *obj, int partIdx,
+			       int lookIdx, int sideNum, int *vertIdxIdx);
 
 /* io.c */
-extern int limnObjectDescribe(FILE *file, limnObject *obj);
-extern int limnObjectOFFRead(limnObject *obj, FILE *file);
-extern int limnObjectOFFWrite(FILE *file, limnObject *obj);
+TEEM_API int limnObjectDescribe(FILE *file, limnObject *obj);
+TEEM_API int limnObjectOFFRead(limnObject *obj, FILE *file);
+TEEM_API int limnObjectOFFWrite(FILE *file, limnObject *obj);
 
 /* shapes.c */
-extern int limnObjectCubeAdd(limnObject *obj, int lookIdx);
-extern int limnObjectSquareAdd(limnObject *obj, int lookIdx);
-extern int limnObjectLoneEdgeAdd(limnObject *obj, int lookIdx);
-extern int limnObjectCylinderAdd(limnObject *obj, int lookIdx,
-				 int axis,int res);
-extern int limnObjectPolarSphereAdd(limnObject *obj, int lookIdx, int axis,
-				    int thetaRes, int phiRes);
-extern int limnObjectConeAdd(limnObject *obj, int lookIdx, int axis, int res);
-extern int limnObjectPolarSuperquadAdd(limnObject *obj, int lookIdx, int axis,
-				       float A, float B,
-				       int thetaRes, int phiRes);
+TEEM_API int limnObjectCubeAdd(limnObject *obj, int lookIdx);
+TEEM_API int limnObjectSquareAdd(limnObject *obj, int lookIdx);
+TEEM_API int limnObjectLoneEdgeAdd(limnObject *obj, int lookIdx);
+TEEM_API int limnObjectCylinderAdd(limnObject *obj, int lookIdx,
+				   int axis,int res);
+TEEM_API int limnObjectPolarSphereAdd(limnObject *obj, int lookIdx, int axis,
+				      int thetaRes, int phiRes);
+TEEM_API int limnObjectConeAdd(limnObject *obj, int lookIdx, int axis, int res);
+TEEM_API int limnObjectPolarSuperquadAdd(limnObject *obj, int lookIdx, int axis,
+					 float A, float B,
+					 int thetaRes, int phiRes);
 
 /* transform.c */
-extern int limnObjectHomog(limnObject *obj, int space);
-extern int limnObjectNormals(limnObject *obj, int space);
-extern int limnObjectSpaceTransform(limnObject *obj, limnCamera *cam,
-				    limnWindow *win, int space);
-extern int limnObjectPartTransform(limnObject *obj, int partIdx, float tx[16]);
-extern int limnObjectDepthSortParts(limnObject *obj);
-extern int limnObjectDepthSortFaces(limnObject *obj);
-extern int limnObjectFaceReverse(limnObject *obj);
+TEEM_API int limnObjectHomog(limnObject *obj, int space);
+TEEM_API int limnObjectNormals(limnObject *obj, int space);
+TEEM_API int limnObjectSpaceTransform(limnObject *obj, limnCamera *cam,
+				      limnWindow *win, int space);
+TEEM_API int limnObjectPartTransform(limnObject *obj, int partIdx, float tx[16]);
+TEEM_API int limnObjectDepthSortParts(limnObject *obj);
+TEEM_API int limnObjectDepthSortFaces(limnObject *obj);
+TEEM_API int limnObjectFaceReverse(limnObject *obj);
 
 /* renderLimn.c */
-extern int limnObjectRender(limnObject *obj, limnCamera *cam, limnWindow *win);
-extern int limnObjectPSDraw(limnObject *obj, limnCamera *cam,
-			    Nrrd *envMap, limnWindow *win);
-extern int limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
-				   Nrrd *envMap, limnWindow *win);
+TEEM_API int limnObjectRender(limnObject *obj, limnCamera *cam, limnWindow *win);
+TEEM_API int limnObjectPSDraw(limnObject *obj, limnCamera *cam,
+			      Nrrd *envMap, limnWindow *win);
+TEEM_API int limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
+				     Nrrd *envMap, limnWindow *win);
 
 /* splineMethods.c */
-extern limnSplineTypeSpec *limnSplineTypeSpecNew(int type, ...);
-extern limnSplineTypeSpec *limnSplineTypeSpecNix(limnSplineTypeSpec *spec);
-extern limnSpline *limnSplineNew(Nrrd *ncpt, int info,
-				 limnSplineTypeSpec *spec);
-extern limnSpline *limnSplineNix(limnSpline *spline);
-extern int limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type);
-extern limnSpline *limnSplineCleverNew(Nrrd *ncpt, int info,
-				       limnSplineTypeSpec *spec);
-extern int limnSplineUpdate(limnSpline *spline, Nrrd *ncpt);
+TEEM_API limnSplineTypeSpec *limnSplineTypeSpecNew(int type, ...);
+TEEM_API limnSplineTypeSpec *limnSplineTypeSpecNix(limnSplineTypeSpec *spec);
+TEEM_API limnSpline *limnSplineNew(Nrrd *ncpt, int info,
+				   limnSplineTypeSpec *spec);
+TEEM_API limnSpline *limnSplineNix(limnSpline *spline);
+TEEM_API int limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type);
+TEEM_API limnSpline *limnSplineCleverNew(Nrrd *ncpt, int info,
+					 limnSplineTypeSpec *spec);
+TEEM_API int limnSplineUpdate(limnSpline *spline, Nrrd *ncpt);
 
 /* splineMisc.c */
-extern limn_export airEnum *limnSplineType;
-extern limn_export airEnum *limnSplineInfo;
-extern limnSpline *limnSplineParse(char *str);
-extern limnSplineTypeSpec *limnSplineTypeSpecParse(char *str);
-extern limn_export hestCB *limnHestSpline;
-extern limn_export hestCB *limnHestSplineTypeSpec;
-extern limn_export int limnSplineInfoSize[LIMN_SPLINE_INFO_MAX+1];
-extern limn_export
-  int limnSplineTypeHasImplicitTangents[LIMN_SPLINE_TYPE_MAX+1];
-extern int limnSplineNumPoints(limnSpline *spline);
-extern double limnSplineMinT(limnSpline *spline);
-extern double limnSplineMaxT(limnSpline *spline);
-extern void limnSplineBCSet(limnSpline *spline, double B, double C);
+TEEM_API airEnum *limnSplineType;
+TEEM_API airEnum *limnSplineInfo;
+TEEM_API limnSpline *limnSplineParse(char *str);
+TEEM_API limnSplineTypeSpec *limnSplineTypeSpecParse(char *str);
+TEEM_API hestCB *limnHestSpline;
+TEEM_API hestCB *limnHestSplineTypeSpec;
+TEEM_API int limnSplineInfoSize[LIMN_SPLINE_INFO_MAX+1];
+TEEM_API int limnSplineTypeHasImplicitTangents[LIMN_SPLINE_TYPE_MAX+1];
+TEEM_API int limnSplineNumPoints(limnSpline *spline);
+TEEM_API double limnSplineMinT(limnSpline *spline);
+TEEM_API double limnSplineMaxT(limnSpline *spline);
+TEEM_API void limnSplineBCSet(limnSpline *spline, double B, double C);
 
 /* splineEval.c */
-extern void limnSplineEvaluate(double *out, limnSpline *spline, double time);
-extern int limnSplineNrrdEvaluate(Nrrd *nout, limnSpline *spline, Nrrd *nin);
-extern int limnSplineSample(Nrrd *nout, limnSpline *spline,
-			    double minT, int M, double maxT);
+TEEM_API void limnSplineEvaluate(double *out, limnSpline *spline, double time);
+TEEM_API int limnSplineNrrdEvaluate(Nrrd *nout, limnSpline *spline, Nrrd *nin);
+TEEM_API int limnSplineSample(Nrrd *nout, limnSpline *spline,
+			      double minT, int M, double maxT);
 
 
 #ifdef __cplusplus

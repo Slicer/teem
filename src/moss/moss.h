@@ -28,12 +28,6 @@
 #include <teem/ell.h>
 #include <teem/nrrd.h>
 
-#if defined(_WIN32) && !defined(TEEM_STATIC) && !defined(__CYGWIN__)
-#define moss_export __declspec(dllimport)
-#else
-#define moss_export
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -74,51 +68,51 @@ typedef struct {
 } mossSampler;
 
 /* defaultsMoss.c */
-extern moss_export const char *mossBiffKey;
-extern moss_export int mossDefBoundary;
-extern moss_export int mossDefCenter;
-extern moss_export int mossVerbose;
+TEEM_API const char *mossBiffKey;
+TEEM_API int mossDefBoundary;
+TEEM_API int mossDefCenter;
+TEEM_API int mossVerbose;
 
 /* methodsMoss.c */
-extern mossSampler *mossSamplerNew();
-extern int mossSamplerFill(mossSampler *smplr, int fdiam, int ncol);
-extern void mossSamplerEmpty(mossSampler *smplr);
-extern mossSampler *mossSamplerNix(mossSampler *smplr);
-extern int mossImageCheck(Nrrd *image);
-extern int mossImageAlloc(Nrrd *image, int type, int sx, int sy, int ncol);
+TEEM_API mossSampler *mossSamplerNew();
+TEEM_API int mossSamplerFill(mossSampler *smplr, int fdiam, int ncol);
+TEEM_API void mossSamplerEmpty(mossSampler *smplr);
+TEEM_API mossSampler *mossSamplerNix(mossSampler *smplr);
+TEEM_API int mossImageCheck(Nrrd *image);
+TEEM_API int mossImageAlloc(Nrrd *image, int type, int sx, int sy, int ncol);
 
 /* sampler.c */
-extern int mossSamplerImageSet(mossSampler *smplr, Nrrd *image, float *bg);
-extern int mossSamplerKernelSet(mossSampler *smplr,
-				const NrrdKernel *kernel, double *kparm);
-extern int mossSamplerUpdate(mossSampler *smplr);
-extern int mossSamplerSample(float *val, mossSampler *smplr,
-			     double xPos, double yPos);
+TEEM_API int mossSamplerImageSet(mossSampler *smplr, Nrrd *image, float *bg);
+TEEM_API int mossSamplerKernelSet(mossSampler *smplr,
+				  const NrrdKernel *kernel, double *kparm);
+TEEM_API int mossSamplerUpdate(mossSampler *smplr);
+TEEM_API int mossSamplerSample(float *val, mossSampler *smplr,
+			       double xPos, double yPos);
 
 /* hestMoss.c */
-extern moss_export hestCB *mossHestTransform;
-extern moss_export hestCB *mossHestOrigin;
+TEEM_API hestCB *mossHestTransform;
+TEEM_API hestCB *mossHestOrigin;
 
 /* xform.c */
-extern void mossMatPrint(FILE *f, double *mat);
-extern double *mossMatRightMultiply(double *mat, double *x);
-extern double *mossMatLeftMultiply (double *mat, double *x);
-extern double *mossMatInvert(double *inv, double *mat);
-extern double *mossMatIdentitySet(double *mat);
-extern double *mossMatTranslateSet(double *mat, double tx, double ty);
-extern double *mossMatRotateSet(double *mat, double angle);
-extern double *mossMatFlipSet(double *mat, double angle);
-extern double *mossMatShearSet(double *mat, double angleFixed,
-			       double amount);
-extern double *mossMatScaleSet(double *mat, double sx, double sy);
-extern void mossMatApply(double *ox, double *oy, double *mat,
-			 double ix, double iy);
-extern int mossLinearTransform(Nrrd *nout, Nrrd *nin, float *bg,
-			       double *mat,
-			       mossSampler *msp,
-			       double xMin, double xMax,
-			       double yMin, double yMax,
-			       int sx, int sy);
+TEEM_API void mossMatPrint(FILE *f, double *mat);
+TEEM_API double *mossMatRightMultiply(double *mat, double *x);
+TEEM_API double *mossMatLeftMultiply (double *mat, double *x);
+TEEM_API double *mossMatInvert(double *inv, double *mat);
+TEEM_API double *mossMatIdentitySet(double *mat);
+TEEM_API double *mossMatTranslateSet(double *mat, double tx, double ty);
+TEEM_API double *mossMatRotateSet(double *mat, double angle);
+TEEM_API double *mossMatFlipSet(double *mat, double angle);
+TEEM_API double *mossMatShearSet(double *mat, double angleFixed,
+				 double amount);
+TEEM_API double *mossMatScaleSet(double *mat, double sx, double sy);
+TEEM_API void mossMatApply(double *ox, double *oy, double *mat,
+			   double ix, double iy);
+TEEM_API int mossLinearTransform(Nrrd *nout, Nrrd *nin, float *bg,
+				 double *mat,
+				 mossSampler *msp,
+				 double xMin, double xMax,
+				 double yMin, double yMax,
+				 int sx, int sy);
 
 
 #ifdef __cplusplus

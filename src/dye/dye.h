@@ -28,12 +28,6 @@
 #include <teem/biff.h>
 #include <teem/ell.h>
 
-#if defined(_WIN32) && !defined(TEEM_STATIC) && !defined(__CYGWIN__)
-#define dye_export __declspec(dllimport)
-#else
-#define dye_export
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -63,46 +57,46 @@ typedef struct {
 } dyeColor;
 
 /* methodsDye.c */
-extern dye_export const char *dyeBiffKey;
-extern dye_export char dyeSpaceToStr[][AIR_STRLEN_SMALL];
-extern int dyeStrToSpace(char *str);
-extern dyeColor *dyeColorInit(dyeColor *col);
-extern dyeColor *dyeColorSet(dyeColor *col, int space, 
+TEEM_API const char *dyeBiffKey;
+TEEM_API char dyeSpaceToStr[][AIR_STRLEN_SMALL];
+TEEM_API int dyeStrToSpace(char *str);
+TEEM_API dyeColor *dyeColorInit(dyeColor *col);
+TEEM_API dyeColor *dyeColorSet(dyeColor *col, int space, 
 			     float v0, float v1, float v2);
-extern int dyeColorGet(float *v0P, float *v1P, float *v2P, dyeColor *col);
-extern int dyeColorGetAs(float *v0P, float *v1P, float *v2P, 
+TEEM_API int dyeColorGet(float *v0P, float *v1P, float *v2P, dyeColor *col);
+TEEM_API int dyeColorGetAs(float *v0P, float *v1P, float *v2P, 
 			 dyeColor *col, int space);
-extern dyeColor *dyeColorNew();
-extern dyeColor *dyeColorCopy(dyeColor *c1, dyeColor *c0);
-extern dyeColor *dyeColorNix(dyeColor *col);
-extern int dyeColorParse(dyeColor *col, char *str);
-extern char *dyeColorSprintf(char *str, dyeColor *col);
+TEEM_API dyeColor *dyeColorNew();
+TEEM_API dyeColor *dyeColorCopy(dyeColor *c1, dyeColor *c0);
+TEEM_API dyeColor *dyeColorNix(dyeColor *col);
+TEEM_API int dyeColorParse(dyeColor *col, char *str);
+TEEM_API char *dyeColorSprintf(char *str, dyeColor *col);
 
 /* convertDye.c */
 typedef void (*dyeConverter)(float*, float*, float*, float, float, float);
-extern void dyeRGBtoHSV(float *H, float *S, float *V,
-			float  R, float  G, float  B);
-extern void dyeHSVtoRGB(float *R, float *G, float *B,
-			float  H, float  S, float  V);
-extern void dyeRGBtoHSL(float *H, float *S, float *L,
-			float  R, float  G, float  B);
-extern void dyeHSLtoRGB(float *R, float *G, float *B,
-			float  H, float  S, float  L);
-extern void dyeRGBtoXYZ(float *X, float *Y, float *Z,
-			float  R, float  G, float  B);
-extern void dyeXYZtoRGB(float *R, float *G, float *B,
-			float  X, float  Y, float  Z);
-extern void dyeXYZtoLAB(float *L, float *A, float *B,
-			float  X, float  Y, float  Z);
-extern void dyeXYZtoLUV(float *L, float *U, float *V,
-			float  X, float  Y, float  Z);
-extern void dyeLABtoXYZ(float *X, float *Y, float *Z,
-			float  L, float  A, float  B);
-extern void dyeLUVtoXYZ(float *X, float *Y, float *Z,
-			float  L, float  U, float  V);
-extern dye_export dyeConverter 
+TEEM_API void dyeRGBtoHSV(float *H, float *S, float *V,
+			  float  R, float  G, float  B);
+TEEM_API void dyeHSVtoRGB(float *R, float *G, float *B,
+			  float  H, float  S, float  V);
+TEEM_API void dyeRGBtoHSL(float *H, float *S, float *L,
+			  float  R, float  G, float  B);
+TEEM_API void dyeHSLtoRGB(float *R, float *G, float *B,
+			  float  H, float  S, float  L);
+TEEM_API void dyeRGBtoXYZ(float *X, float *Y, float *Z,
+			  float  R, float  G, float  B);
+TEEM_API void dyeXYZtoRGB(float *R, float *G, float *B,
+			  float  X, float  Y, float  Z);
+TEEM_API void dyeXYZtoLAB(float *L, float *A, float *B,
+			  float  X, float  Y, float  Z);
+TEEM_API void dyeXYZtoLUV(float *L, float *U, float *V,
+			  float  X, float  Y, float  Z);
+TEEM_API void dyeLABtoXYZ(float *X, float *Y, float *Z,
+			  float  L, float  A, float  B);
+TEEM_API void dyeLUVtoXYZ(float *X, float *Y, float *Z,
+			  float  L, float  U, float  V);
+TEEM_API dyeConverter 
 dyeSimpleConvert[DYE_MAX_SPACE+1][DYE_MAX_SPACE+1];
-extern int dyeConvert(dyeColor *col, int space);
+TEEM_API int dyeConvert(dyeColor *col, int space);
 
 #ifdef __cplusplus
 }

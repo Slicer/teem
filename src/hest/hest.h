@@ -31,12 +31,6 @@
 extern "C" {
 #endif
 
-#if defined(_WIN32) && !defined(TEEM_STATIC) && !defined(__CYGWIN__)
-#define hest_export __declspec(dllimport)
-#else
-#define hest_export
-#endif
-
 /*
 ******** hestCB struct
 **
@@ -157,51 +151,51 @@ typedef struct {
 } hestParm;
 
 /* defaultsHest.c */
-extern hest_export int hestVerbosity;
-extern hest_export int hestRespFileEnable;
-extern hest_export int hestElideSingleEnumType;
-extern hest_export int hestElideSingleOtherType;
-extern hest_export int hestElideSingleOtherDefault;
-extern hest_export int hestElideSingleNonExistFloatDefault;
-extern hest_export int hestElideMultipleNonExistFloatDefault;
-extern hest_export int hestElideSingleEmptyStringDefault;
-extern hest_export int hestElideMultipleEmptyStringDefault;
-extern hest_export int hestGreedySingleString;
-extern hest_export int hestCleverPluralizeOtherY;
-extern hest_export int hestColumns;
-extern hest_export char hestRespFileFlag;
-extern hest_export char hestRespFileComment;
-extern hest_export char hestVarParamStopFlag;
-extern hest_export char hestMultiFlagSep;
+TEEM_API int hestVerbosity;
+TEEM_API int hestRespFileEnable;
+TEEM_API int hestElideSingleEnumType;
+TEEM_API int hestElideSingleOtherType;
+TEEM_API int hestElideSingleOtherDefault;
+TEEM_API int hestElideSingleNonExistFloatDefault;
+TEEM_API int hestElideMultipleNonExistFloatDefault;
+TEEM_API int hestElideSingleEmptyStringDefault;
+TEEM_API int hestElideMultipleEmptyStringDefault;
+TEEM_API int hestGreedySingleString;
+TEEM_API int hestCleverPluralizeOtherY;
+TEEM_API int hestColumns;
+TEEM_API char hestRespFileFlag;
+TEEM_API char hestRespFileComment;
+TEEM_API char hestVarParamStopFlag;
+TEEM_API char hestMultiFlagSep;
 
 /* methodsHest.c */
-extern hestParm *hestParmNew(void);
-extern hestParm *hestParmFree(hestParm *parm);
-extern void hestOptAdd(hestOpt **optP, 
-		       char *flag, char *name,
-		       int type, int min, int max,
-		       void *valueP, const char *dflt, const char *info,
-		       ... /* int *sawP, airEnum *enm , hestCB *CB */);
-extern hestOpt *hestOptFree(hestOpt *opt);
-extern int hestOptCheck(hestOpt *opt, char **errP);
+TEEM_API hestParm *hestParmNew(void);
+TEEM_API hestParm *hestParmFree(hestParm *parm);
+TEEM_API void hestOptAdd(hestOpt **optP, 
+			 char *flag, char *name,
+			 int type, int min, int max,
+			 void *valueP, const char *dflt, const char *info,
+			 ... /* int *sawP, airEnum *enm , hestCB *CB */);
+TEEM_API hestOpt *hestOptFree(hestOpt *opt);
+TEEM_API int hestOptCheck(hestOpt *opt, char **errP);
 
 /* parseHest.c */
-extern int hestParse(hestOpt *opt, int argc, char **argv,
-		     char **errP, hestParm *parm);
-extern void *hestParseFree(hestOpt *opt);
-extern void hestParseOrDie(hestOpt *opt, int argc, char **argv, hestParm *parm,
-			   char *me, char *info,
-			   int doInfo, int doUsage, int doGlossary);
+TEEM_API int hestParse(hestOpt *opt, int argc, char **argv,
+		       char **errP, hestParm *parm);
+TEEM_API void *hestParseFree(hestOpt *opt);
+TEEM_API void hestParseOrDie(hestOpt *opt, int argc, char **argv, hestParm *parm,
+			     char *me, char *info,
+			     int doInfo, int doUsage, int doGlossary);
 
 /* usage.c */
-extern void _hestPrintStr(FILE *f, int indent, int already, int width,
-			  const char *_str, int bslash);
-extern int hestMinNumArgs(hestOpt *opt);
-extern void hestUsage(FILE *file, hestOpt *opt, const char *argv0,
-		      hestParm *parm);
-extern void hestGlossary(FILE *file, hestOpt *opt, hestParm *parm);
-extern void hestInfo(FILE *file, const char *argv0, const char *info,
-		     hestParm *parm);
+TEEM_API void _hestPrintStr(FILE *f, int indent, int already, int width,
+			    const char *_str, int bslash);
+TEEM_API int hestMinNumArgs(hestOpt *opt);
+TEEM_API void hestUsage(FILE *file, hestOpt *opt, const char *argv0,
+			hestParm *parm);
+TEEM_API void hestGlossary(FILE *file, hestOpt *opt, hestParm *parm);
+TEEM_API void hestInfo(FILE *file, const char *argv0, const char *info,
+		       hestParm *parm);
 
 #ifdef __cplusplus
 }

@@ -28,12 +28,6 @@
 #include <teem/ell.h>
 #include <teem/nrrd.h>
 
-#if defined(_WIN32) && !defined(TEEM_STATIC) && !defined(__CYGWIN__)
-#define alan_export __declspec(dllimport)
-#else
-#define alan_export
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -145,24 +139,24 @@ typedef struct alanContext_t {
 } alanContext;
 
 /* methodsAlan.c */
-extern alan_export const char *alanBiffKey;
-extern alanContext *alanContextNew();
-extern alanContext *alanContextNix(alanContext *actx);
-extern int alanDimensionSet(alanContext *actx, int dim);
-extern int alan2DSizeSet(alanContext *actx, int sizeX, int sizeY);
-extern int alan3DSizeSet(alanContext *actx, int sizeX, int sizeY, int sizeZ);
-extern int alanTensorSet(alanContext *actx, Nrrd *nten, int oversample);
-extern int alanParmSet(alanContext *actx, int whichParm, double parm);
+TEEM_API const char *alanBiffKey;
+TEEM_API alanContext *alanContextNew();
+TEEM_API alanContext *alanContextNix(alanContext *actx);
+TEEM_API int alanDimensionSet(alanContext *actx, int dim);
+TEEM_API int alan2DSizeSet(alanContext *actx, int sizeX, int sizeY);
+TEEM_API int alan3DSizeSet(alanContext *actx, int sizeX, int sizeY, int sizeZ);
+TEEM_API int alanTensorSet(alanContext *actx, Nrrd *nten, int oversample);
+TEEM_API int alanParmSet(alanContext *actx, int whichParm, double parm);
 
 /* enumsAlan.c */
-extern alan_export airEnum *alanStop;
+TEEM_API airEnum *alanStop;
 
 /* coreAlan.c */
-extern int alanUpdate(alanContext *actx);
-extern int alanInit(alanContext *actx,
-		    const Nrrd *nlevInit, const Nrrd *nparmInit);
-extern int alanPriorityParm(alanContext *actx, const Nrrd *npri);
-extern int alanRun(alanContext *actx);
+TEEM_API int alanUpdate(alanContext *actx);
+TEEM_API int alanInit(alanContext *actx,
+		      const Nrrd *nlevInit, const Nrrd *nparmInit);
+TEEM_API int alanPriorityParm(alanContext *actx, const Nrrd *npri);
+TEEM_API int alanRun(alanContext *actx);
 
 #ifdef __cplusplus
 }
