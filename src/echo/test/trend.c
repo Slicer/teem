@@ -27,6 +27,7 @@ makeSceneBVH(limnCam *cam, EchoParam *param,
   int i, N;
   float r, g, b;
   EchoObject *scene;
+  double time0, time1;
   
   *sceneP = scene = echoObjectNew(echoObjectList);
   *lightArrP = echoLightArrayNew();
@@ -53,7 +54,7 @@ makeSceneBVH(limnCam *cam, EchoParam *param,
   param->maxRecDepth = 10;
   param->shadow = AIR_FALSE;
 
-  N = 100000;
+  N = 10000000;
   /* airSrand(); */
   airArraySetLen(LIST(scene)->objArr, N);
   for (i=0; i<N; i++) {
@@ -66,23 +67,10 @@ makeSceneBVH(limnCam *cam, EchoParam *param,
     LIST(scene)->obj[i] = sphere;
   }
 
-  /*
-  rect = echoObjectNew(echoObjectRectangle);
-  echoObjectRectangleSet(rect,
-			 -0.3, -0.3, 2,
-			 0.6, 0, 0,
-			 0, 0.6, 0);
-  echoMatterLightSet(rect, 1, 1, 1);
-  echoObjectListAdd(scene, rect);
-  light = echoLightNew(echoLightArea);
-  echoLightAreaSet(light, rect);
-  echoLightArrayAdd(lightArr, light);
-  */
-
-  *sceneP = scene = echoObjectListSplit3(scene, 5);
-  /* *sceneP = scene = echoObjectListSplit3(scene, 4); */
-  printf("scene type = %d\n", scene->type);
-
+  time0 = airTime();
+  *sceneP = scene = echoObjectListSplit3(scene, 8);
+  time1 = airTime();
+  printf("BVH build time = %g seconds\n", time1 - time0);
 }
 
 void

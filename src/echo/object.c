@@ -46,12 +46,31 @@ _echoObject##TYPE##_new(void) {                                  \
   echoObjectLast
 */
 
-NEW_TMPL(Sphere,);
-NEW_TMPL(Cube,);
-NEW_TMPL(Triangle,);
-NEW_TMPL(Rectangle,);
-NEW_TMPL(TriMesh, /* ??? */ );
-NEW_TMPL(Isosurface, /* ??? */);
+NEW_TMPL(Sphere,
+	 obj->text = NULL;
+	 );
+NEW_TMPL(Cube,
+	 obj->text = NULL;
+	 );
+NEW_TMPL(Triangle,
+	 obj->text = NULL;
+	 );
+NEW_TMPL(Rectangle,
+	 obj->text = NULL;
+	 );
+NEW_TMPL(TriMesh,
+	 ELL_3V_SET(obj->min, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
+	 ELL_3V_SET(obj->max, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
+	 obj->text = NULL;
+	 obj->numV = obj->numF = 0;
+	 obj->pos = NULL;
+	 obj->vert = NULL;
+	 );
+NEW_TMPL(Isosurface,
+	 obj->volume = NULL;
+	 obj->value = 0.0;
+	 /* ??? */
+	 );
 NEW_TMPL(AABBox,
 	 obj->obj = NULL;
 	 obj->objArr = airArrayNew((void**)&(obj->obj), NULL,
@@ -516,8 +535,7 @@ echoObjectListSplit3(EchoObject *list, int depth) {
 
   if (!depth)
     return list;
-  
-  printf("echoObjectListSplit3: ------ depth = %d\n", depth);
+
   ret = echoObjectListSplit(list, 0);
 
 #define DOIT(obj, ax) ((obj) = echoObjectListSplit((obj), (ax)))

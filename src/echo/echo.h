@@ -57,7 +57,7 @@ typedef double echoCol_t;
 #define ECHO_IMG_CHANNELS 5
 #define ECHO_EPSILON 0.001        /* used for adjusting ray positions */
 #define ECHO_NEAR0 0.004          /* used for comparing transparency to zero */
-#define ECHO_LEN_SMALL_ENOUGH 4
+#define ECHO_LEN_SMALL_ENOUGH 16
 
 typedef struct {
   /* ray-tracing parameters */
@@ -185,7 +185,8 @@ enum {
   int type
 #define ECHO_OBJECT_MATTER              \
   int matter;                           \
-  echoCol_t mat[ECHO_MATTER_VALUE_NUM]
+  echoCol_t mat[ECHO_MATTER_VALUE_NUM]; \
+  Nrrd *text
 
 typedef struct {
   ECHO_OBJECT_COMMON;
@@ -223,7 +224,10 @@ typedef struct {
 typedef struct {
   ECHO_OBJECT_COMMON;
   ECHO_OBJECT_MATTER;
-  /* ??? */
+  echoPos_t min[3], max[3];
+  int numV, numF;
+  echoPos_t *pos;
+  int *vert;
 } EchoObjectTriMesh;
 
 typedef struct {

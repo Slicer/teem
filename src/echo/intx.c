@@ -254,6 +254,22 @@ _echoRayIntxTriangle(INTX_ARGS(Triangle)) {
 }
 
 int
+_echoRayIntxTriMesh(INTX_ARGS(TriMesh)) {
+  echoPos_t t, edge0[3], edge1[3];
+  EchoObjectTriMesh *trim;
+  int ax, dir;
+
+  trim = TRIMESH(obj);
+  if (!_echoRayIntxCubeTest(&t, &ax, &dir,
+			    trim->min[0], trim->max[0],
+			    trim->min[1], trim->max[1],
+			    trim->min[2], trim->max[2], ray)) {
+    return AIR_FALSE;
+  }
+  
+}
+
+int
 _echoRayIntxSplit(INTX_ARGS(Split)) {
   EchoObject *a, *b;
   echoPos_t *mina, *minb, *maxa, *maxb, t;
@@ -352,7 +368,7 @@ _echoRayIntx[ECHO_OBJECT_MAX+1] = {
   (_echoRayIntx_t)_echoRayIntxCube,
   (_echoRayIntx_t)_echoRayIntxTriangle,
   (_echoRayIntx_t)_echoRayIntxRectangle,
-  (_echoRayIntx_t)NULL,
+  (_echoRayIntx_t)_echoRayIntxTriMesh,
   (_echoRayIntx_t)NULL,
   (_echoRayIntx_t)_echoRayIntxList,  /* trickery */
   (_echoRayIntx_t)_echoRayIntxSplit,
