@@ -96,6 +96,7 @@ typedef struct {
 #define UNRRDU_DECLARE(C) extern unrrdu_export unrrduCmd unrrdu_##C##Cmd;
 #define UNRRDU_LIST(C) &unrrdu_##C##Cmd,
 #define UNRRDU_MAP(F) \
+F(about) \
 F(make) \
 F(head) \
 F(data) \

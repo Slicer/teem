@@ -53,7 +53,7 @@ unrrduUsage(char *me, hestParm *hparm) {
     maxlen = AIR_MAX(maxlen, strlen(unrrduCmdList[i]->name));
   }
 
-  sprintf(buff, "--- Utah Nrrd Utilities (unrrdu) command-line interface ---");
+  sprintf(buff, "--- unu: Utah Nrrd Utilities command-line interface ---");
   sprintf(fmt, "%%%ds\n",
 	  (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
