@@ -71,8 +71,36 @@ _ell_align3_d(double v[9]) {
   /* we can't guarantee that dot(v+3*ai,v+3*bi) > 0 ... */
 }
 
+/*
+** leaves v+3*0 untouched, but makes sure that v+3*0, v+3*1, and v+3*2
+** are mutually orthogonal.  Also leaves the magnitudes of all
+** vectors unchanged.
+*/
 void
-_ell_make_right_handed_d(double v[9]) {
+_ell_3m_enforce_orthogonality(double v[9]) {
+  double d00, d10, d11, d20, d21, d22, scl, tv[3];
+
+  d00 = ELL_3V_DOT(v+3*0, v+3*0);
+  d10 = ELL_3V_DOT(v+3*1, v+3*0);
+  d11 = ELL_3V_DOT(v+3*1, v+3*1);
+  ELL_3V_SCALE_ADD2(tv, 1, v+3*1, -d10/d00, v+3*0);
+  scl = sqrt(d11/ELL_3V_DOT(tv, tv));
+  ELL_3V_SCALE(v+3*1, scl, tv);
+  d20 = ELL_3V_DOT(v+3*2, v+3*0);
+  d21 = ELL_3V_DOT(v+3*2, v+3*1);
+  d22 = ELL_3V_DOT(v+3*2, v+3*2);
+  ELL_3V_SCALE_ADD2(tv, 1, v+3*2, -d20/d00, v+3*0, -d21/d00, v+3*1);
+  scl = sqrt(d22/ELL_3V_DOT(tv, tv));
+  ELL_3V_SCALE(v+3*2, scl, tv);
+  return;
+}
+
+/*
+** makes sure that v+3*2 has a positive dot product with
+** cross product of v+3*0 and v+3*1
+*/
+void
+_ell_3m_make_right_handed_d(double v[9]) {
   double x[3];
   
   ELL_3V_CROSS(x, v+3*0, v+3*1);
@@ -229,7 +257,8 @@ _ell_3m_evecs_d(double evec[9], double eval[3], int roots, double m[9]) {
     ell_3m_1d_nullspace_d(evec+3, n);
     ELL_3M_DIAG_SET(n, m[0]-e2, m[4]-e2, m[8]-e2);
     ell_3m_1d_nullspace_d(evec+6, n);
-    _ell_make_right_handed_d(evec);
+    _ell_3m_enforce_orthogonality(evec);
+    _ell_3m_make_right_handed_d(evec);
     ELL_3V_SET(eval, e0, e1, e2);
     break;
   case ell_cubic_root_single_double:
@@ -248,7 +277,8 @@ _ell_3m_evecs_d(double evec[9], double eval[3], int roots, double m[9]) {
       ELL_3M_DIAG_SET(n, m[0]-e2, m[4]-e2, m[8]-e2);
       ell_3m_1d_nullspace_d(evec+6, n);
     }
-    _ell_make_right_handed_d(evec);
+    _ell_3m_enforce_orthogonality(evec);
+    _ell_3m_make_right_handed_d(evec);
     ELL_3V_SET(eval, e0, e1, e2);
     break;
   case ell_cubic_root_triple:
