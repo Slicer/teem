@@ -875,12 +875,12 @@ int
 _nrrdWritePNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWritePNG", err[AIR_STRLEN_MED];
 #if TEEM_PNG
+  int depth, type, i, numtxt, csize;
   png_structp png;
   png_infop info;
   png_bytep *row;
   png_uint_32 width, height, rowsize;
   png_text txt[NRRD_FIELD_MAX+1];
-  int depth, type, i, numtxt=0, csize=0;
 
   /* no need to check type and format, done in FitsInFormat */
   /* create png struct with the error handlers above */
@@ -934,17 +934,22 @@ _nrrdWritePNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
       type = PNG_COLOR_TYPE_RGB_ALPHA;
       break;
       default:
-      /* we have already checked for this */
+      sprintf(err, "%s: nrrd->axis[0].size (%d) not compatible with PNG", me, nrrd->axis[0].size);
+      biffAdd(NRRD, err); return 1;
       break;
     }
     break;
     default:
+    sprintf(err, "%s: dimension (%d) not compatible with PNG", me, nrrd->dim);
+    biffAdd(NRRD, err); return 1;
     break;
   }
   /* set image header info */
   png_set_IHDR(png, info, width, height, depth, type,
 	       PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
   /* add nrrd fields to the text chunk */
+  numtxt = 0;
+  csize = 0;
   for (i=1; i<=NRRD_FIELD_MAX; i++) {
     if (_nrrdFieldValidInImage[i] && _nrrdFieldInteresting(nrrd, io, i)) { 
       txt[numtxt].key = NRRD_PNG_KEY;
@@ -988,8 +993,6 @@ _nrrdWritePNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   for (i=0; i<numtxt; i++) airFree(txt[i].text);    
   airFree(row);
   png_destroy_write_struct(&png, &info);
-  /* that's it */
-  airFclose(file);
 
   return 0;
 #else

@@ -17,6 +17,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+
 #include "nrrd.h"
 #include "privateNrrd.h"
 #include <teemPng.h>
@@ -1114,7 +1115,13 @@ _nrrdReadPNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
     if (!strcmp(txt[i].key, NRRD_PNG_KEY)) {
       int ret;
       io->pos = 0;
-      io->line = txt[i].text;
+      /* Reading PNGs teaches gordon that his scheme for parsing nrrd header
+	 information is inappropriately specific to reading PNMs and NRRDs,
+	 since in this case the text from which we parse a nrrd field
+	 descriptor did NOT come from a line of text as read by
+	 _nrrdOneLine */
+      airFree(io->line);
+      io->line = airStrdup(txt[i].text);
       ret = _nrrdReadNrrdParseField(nrrd, io, AIR_FALSE);
       if (ret) {
 	const char* fs = airEnumStr(nrrdField, ret);
@@ -1165,8 +1172,7 @@ _nrrdReadPNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   /* clean up */
   airFree(row);
   png_destroy_read_struct(&png, &info, png_infopp_NULL);
-  /* that's it */
-  airFclose(file);
+
   return 0;
 #else
   sprintf(err, "%s: sorry, this nrrd not compiled with PNG enabled", me);
@@ -1525,6 +1531,7 @@ nrrdLoad (Nrrd *nrrd, const char *filename) {
   NrrdIO *io;
   FILE *file;
   airArray *mop;
+
 
   if (!(nrrd && filename)) {
     sprintf(err, "%s: got NULL pointer", me);
