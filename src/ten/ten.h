@@ -124,6 +124,7 @@ extern int tenGlyphGen(limnObj *obj, Nrrd *nin, tenGlyphParm *parm);
 F(calc) \
 F(anplot) \
 F(anvol) \
+F(point) \
 F(eval) \
 F(evec) \
 F(evq) \

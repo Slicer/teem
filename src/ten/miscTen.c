@@ -21,7 +21,6 @@
 #include "ten.h"
 #include "tenPrivate.h"
 
-
 #define SQR(i) ((i)*(i))
 
 short

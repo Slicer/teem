@@ -128,10 +128,10 @@ tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
   int ret;
   
   TEN_LIST2MAT(m, t);
-  ret = ell3mEigensolve(eval, evec, m, AIR_FALSE);
+  ret = ell3mEigensolve(eval, evec, m, AIR_TRUE);
   ELL_3V_COPY(_eval, eval);
   ELL_3M_COPY(_evec, evec);
-  if (_eval[2] < 0) {
+  if (tenVerbose && _eval[2] < 0) {
     fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
 	    t[1], t[2], t[3]);
     fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 

@@ -32,10 +32,10 @@ tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int aniso, ret, *comp, compLen, cc, sx, sy, sz;
+  int ret, *comp, compLen, cc, sx, sy, sz;
   Nrrd *nin, *nout;
   char *outS;
-  float thresh, *edata, *tdata, eval[3], evec[9], scl, c[TEN_ANISO_MAX+1];
+  float thresh, *edata, *tdata, eval[3], evec[9], scl;
   size_t N, I;
 
   hestOptAdd(&hopt, "c", "c0 ", airTypeInt, 1, 3, &comp, NULL,
@@ -45,11 +45,6 @@ tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     &compLen);
   hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "0.5",
 	     "confidence threshold");
-  hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &aniso, "unknown",
-	     "Scale the vector(s) by this anisotropy metric.  By "
-	     "default (not using this option), the vector(s) are "
-	     "unit-length. " TEN_ANISO_DESC,
-	     NULL, tenAniso);
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
 	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
@@ -94,10 +89,6 @@ tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
     for (I=0; I<N; I++) {
       tenEigensolve(eval, evec, tdata);
       scl = tdata[0] >= thresh;
-      if (aniso) {
-	tenAnisoCalc(c, eval);
-	scl *= c[aniso];
-      }
       ELL_3V_SCALE(edata, scl, evec+3*comp[0]);
       edata += 3;
       tdata += 7;
@@ -106,10 +97,6 @@ tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
     for (I=0; I<N; I++) {
       tenEigensolve(eval, evec, tdata);
       scl = tdata[0] >= thresh;
-      if (aniso) {
-	tenAnisoCalc(c, eval);
-	scl *= c[aniso];
-      }
       for (cc=0; cc<compLen; cc++) {
 	ELL_3V_SCALE(edata+3*cc, scl, evec+3*comp[cc]);
       }
