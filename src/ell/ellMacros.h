@@ -589,6 +589,9 @@ extern "C" {
 #define ELL_5V_SET(v, a, b, c, d, e) \
   ((v)[0]=(a), (v)[1]=(b), (v)[2]=(c), (v)[3]=(d), (v)[4]=(e))
 
+#define ELL_6V_SET(v, a, b, c, d, e, f) \
+  ((v)[0]=(a), (v)[1]=(b), (v)[2]=(c), (v)[3]=(d), (v)[4]=(e), (v)[5]=(f))
+
 #ifdef __cplusplus
    }
 #endif

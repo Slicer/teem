@@ -44,11 +44,11 @@ $(L).SEEN := true
 #### Describe library here
 ####
 ####
-$(L).NEED = air
+$(L).NEED = nrrd biff air 
 $(L).PUBLIC_HEADERS = ell.h ellMacros.h
 $(L).PRIVATE_HEADERS =
-$(L).OBJS = cubicEll.o eigen.o miscEll.o vecEll.o mat.o
-$(L).TESTS = test/sort3
+$(L).OBJS = cubicEll.o eigen.o miscEll.o vecEll.o mat.o genmat.o
+$(L).TESTS = test/sort3 test/invert
 ####
 ####
 ####

@@ -21,7 +21,10 @@
 #define ELL_HAS_BEEN_INCLUDED
 
 #include <math.h>
+
 #include <air.h>
+#include <biff.h>
+#include <nrrd.h>
 
 #include "ellMacros.h"
 
@@ -36,6 +39,7 @@ extern "C" {
 #endif
 
 #define ELL "ell"
+#define ELL_EPS 1.0e-10
 
 /*
 ******** ellCubicRoot enum
@@ -91,6 +95,13 @@ extern float ell4mDet_f(float m[16]);
 extern double ell4mDet_d(double m[16]);
 extern void ell4mInvert_f(float i[16], float m[16]);
 extern void ell4mInvert_d(double i[16], double m[16]);
+
+/* genmat.c */
+extern int ellNmNrrdValid(Nrrd *mat);
+extern int ellNmTranspose(Nrrd *dest, Nrrd *src);
+extern int ellNmMultiply(Nrrd *dest, Nrrd *A, Nrrd *B);
+extern int ellNmInverse(Nrrd *dest, Nrrd *src);
+extern int ellNmPseudoInverse(Nrrd *dest, Nrrd *src);
 
 /* cubic.c */
 extern int ellCubic(double root[3], double A, double B, double C, int newton);
