@@ -46,10 +46,8 @@ $(L).SEEN := true
 
 ## BINS: all the command-line executables associated with teem
 ## 
-#BINS = airSanity affine cubic nrrdSanity overrgb idx2pos \
-#  pos2idx unu pprobe vprobe qbert mrender miter gkms ungantry ilk tend
 BINS = airSanity affine cubic nrrdSanity overrgb idx2pos \
-  pos2idx unu pprobe vprobe qbert mrender gkms ungantry ilk tend
+  pos2idx unu pprobe vprobe qbert mrender miter gkms ungantry ilk tend
 
 ## _binD(bins): list of development locations for given bins
 ## _binI(bins): list of install locations for given bins
