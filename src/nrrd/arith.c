@@ -399,6 +399,9 @@ nrrdArithTernaryOp(Nrrd *nout, int op,
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); free(contA); free(contB); free(contC); return 1;
   }
+  if (nout != nin) {
+    nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+  }
   free(contA);
   free(contB); 
   free(contC); 
