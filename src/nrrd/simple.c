@@ -64,8 +64,9 @@ int
 _nrrdContentSet_nva (Nrrd *nout, const char *func,
 		     char *content, const char *format, va_list arg) {
   char me[]="_nrrdContentSet_nva", err[AIR_STRLEN_MED],
-    buff[128*AIR_STRLEN_HUGE] = "";
-  
+    *buff;
+
+  buff = malloc(128*AIR_STRLEN_HUGE);
   AIR_FREE(nout->content);
 
   /* we are currently praying that this won't overflow the "buff" array */
@@ -80,12 +81,13 @@ _nrrdContentSet_nva (Nrrd *nout, const char *func,
 			 + airStrlen(buff)
 			 + 1                      /* ')' */
 			 + 1, sizeof(char));      /* '\0' */
-  if (!nout->content) {
+  if (!(buff && nout->content)) {
     sprintf(err, "%s: couln't alloc output content!", me);
     biffAdd(NRRD, err); free(content); return 1;
   }
   sprintf(nout->content, "%s(%s%s%s)", func, content,
 	  airStrlen(buff) ? "," : "", buff);
+  AIR_FREE(buff);
   return 0;
 }
 
@@ -459,6 +461,12 @@ nrrdFitsInFormat (Nrrd *nrrd, int encoding, int format, int useBiff) {
     }
     break;
   case nrrdFormatPNG:
+    if (!nrrdFormatIsAvailable[nrrdFormatPNG]) {
+      sprintf(err, "%s: %s format not available in this teem build", me,
+	      airEnumStr(nrrdFormat, nrrdFormatPNG));
+      biffMaybeAdd(NRRD, err, useBiff); 
+      return AIR_FALSE;
+    }
     if (!( nrrdTypeUChar == nrrd->type || nrrdTypeUShort == nrrd->type )) {
       sprintf(err, "%s: type must be %s or %s (not %s)", me,
 	      airEnumStr(nrrdType, nrrdTypeUChar),
@@ -490,6 +498,12 @@ nrrdFitsInFormat (Nrrd *nrrd, int encoding, int format, int useBiff) {
     }
     break;
   case nrrdFormatVTK:
+    if (!nrrdFormatIsAvailable[nrrdFormatVTK]) {
+      sprintf(err, "%s: %s format not available in this teem build", me,
+	      airEnumStr(nrrdFormat, nrrdFormatVTK));
+      biffMaybeAdd(NRRD, err, useBiff); 
+      return AIR_FALSE;
+    }
     if (!( nrrdEncodingRaw == encoding || nrrdEncodingAscii == encoding)) {
       sprintf(err, "%s: encoding can only be %s or %s", me,
 	      airEnumStr(nrrdEncoding, nrrdEncodingRaw),
