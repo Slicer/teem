@@ -1,25 +1,27 @@
 /*
-  The contents of this file are subject to the University of Utah Public
-  License (the "License"); you may not use this file except in
-  compliance with the License.
-  
-  Software distributed under the License is distributed on an "AS IS"
-  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
-  the License for the specific language governing rights and limitations
-  under the License.
+  teem: Gordon Kindlmann's research software
+  Copyright (C) 2002, 2001, 2000, 1999, 1998 University of Utah
 
-  The Original Source Code is "teem", released March 23, 2001.
-  
-  The Original Source Code was developed by the University of Utah.
-  Portions created by UNIVERSITY are Copyright (C) 2001, 1998 University
-  of Utah. All Rights Reserved.
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 
 #include "ten.h"
 
 /*
-******** tenAnistropy
+******** tenAnisoCalc
 **
 ** given an array of three SORTED (descending) eigenvalues "e",
 ** calculates the anisotropy coefficients of Westin et al.,
@@ -47,7 +49,7 @@
 ** This does NOT use biff.  
 */
 void
-tenAnisotropy(float c[TEN_MAX_ANISO+1], float e[3]) {
+tenAnisoCalc(float c[TEN_ANISO_MAX+1], float e[3]) {
   float stdv, mean, sum, cl, cp, ca, ra, fa, vf, denom;
   
   sum = e[0] + e[1] + e[2];
@@ -97,7 +99,7 @@ int
 tenAnisoVolume(Nrrd *nout, Nrrd *nin, float anisoType) {
   char me[]="tenAnisoVolume", err[128];
   nrrdBigInt N, I;
-  float *out, *in, *tensor, eval[3], evec[9], c[TEN_MAX_ANISO+1], cl, cp;
+  float *out, *in, *tensor, eval[3], evec[9], c[TEN_ANISO_MAX+1], cl, cp;
   int d, map[NRRD_DIM_MAX];
 
   if (!tenValidTensor(nin, nrrdTypeFloat, AIR_TRUE)) {
@@ -105,10 +107,10 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, float anisoType) {
     biffAdd(TEN, err); return 1;
   }
   N = nin->axis[1].size*nin->axis[2].size*nin->axis[3].size;
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 3,
-			nin->axis[1].size, 
-			nin->axis[2].size, 
-			nin->axis[3].size)) {
+  if (nrrdMaybeAlloc(nout, nrrdTypeFloat, 3,
+		     nin->axis[1].size,
+		     nin->axis[2].size,
+		     nin->axis[3].size)) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
@@ -124,7 +126,7 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, float anisoType) {
       continue;
     }
     tenEigensolve(eval, evec, tensor);
-    tenAnisotropy(c, eval);
+    tenAnisoCalc(c, eval);
     cl = c[tenAniso_Cl];
     cp = c[tenAniso_Cp];
     out[I] = AIR_LERP(anisoType, cl, cp);

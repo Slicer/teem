@@ -17,28 +17,26 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include <ten.h>
 
-#include "ten.h"
+char
+_tenAnisoStr[TEN_ANISO_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown aniso)",
+  "Cl",
+  "Cp",
+  "Ca",
+  "Cs",
+  "Ct",
+  "RA",
+  "FA",
+  "VF"
+};
 
-tenGlyphParm *
-tenGlyphParmNew() {
-  tenGlyphParm *parm;
-
-  parm = calloc(1, sizeof(tenGlyphParm));
-  if (parm) {
-    parm->anisoThresh = parm->anisoType = AIR_NAN;
-    parm->vThreshVol = NULL;
-    parm->dwiThresh = parm->vThresh = parm->useColor = AIR_NAN;
-    parm->thresh = parm->cscale = AIR_NAN;
-  }
-  return parm;
-}
-
-tenGlyphParm *
-tenGlyphParmNix(tenGlyphParm *parm) {
-
-  if (parm) {
-    free(parm);
-  }
-  return NULL;
-}
+airEnum
+tenAniso = {
+  "aniso",
+  TEN_ANISO_MAX,
+  _tenAnisoStr,  NULL,
+  NULL, NULL,
+  AIR_FALSE
+};
