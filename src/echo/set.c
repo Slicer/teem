@@ -58,13 +58,11 @@ echoRectangleSet(echoObject *rect,
 		 echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
 		 echoPos_t e0x, echoPos_t e0y, echoPos_t e0z,
 		 echoPos_t e1x, echoPos_t e1y, echoPos_t e1z) {
-  echoPos_t cross[3];
 
   if (rect && echoTypeRectangle == rect->type) {
     ELL_3V_SET(RECTANGLE(rect)->origin, ogx, ogy, ogz);
     ELL_3V_SET(RECTANGLE(rect)->edge0, e0x, e0y, e0z);
     ELL_3V_SET(RECTANGLE(rect)->edge1, e1x, e1y, e1z);
-    ELL_3V_CROSS(cross, RECTANGLE(rect)->edge0, RECTANGLE(rect)->edge1);
   }
   return;
 }

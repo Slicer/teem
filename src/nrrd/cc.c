@@ -603,7 +603,7 @@ nrrdCCMerge(Nrrd *nout, Nrrd *nin, Nrrd *_nval,
     *nn,  /* number of neighbors */
     *map, *val=NULL, *hit,
     (*lup)(void *, size_t), (*ins)(void *, size_t, int);
-  Nrrd *nadj, *nsize, *ntmp, *nval, *nnn;
+  Nrrd *nadj, *nsize, *nval, *nnn;
   unsigned char *adj;
   airArray *mop;
   size_t I, NN;
@@ -630,7 +630,6 @@ nrrdCCMerge(Nrrd *nout, Nrrd *nin, Nrrd *_nval,
   }
   airMopAdd(mop, nadj = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nsize = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, ntmp = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nnn = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   
   if (nrrdCCSize(nsize, nin)
