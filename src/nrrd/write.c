@@ -667,7 +667,13 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
       /* there is some ambiguity between a "LIST" of length one,
          and a single explicit data filename, but that's harmless */
       *strP = malloc(fslen + strlen(nio->dataFN[0]));
-      sprintf(*strP, "%s%s: %s", prefix, fs, nio->dataFN[0]);
+      sprintf(*strP, "%s%s: %s%s", prefix, fs, 
+              /* this is a favor to older readers that can deal with
+                 this NRRD file because its being saved in a NRRD0003
+                 (or below) version, so we don't want to confuse them 
+                 by not having the old explicit header-relative flag */
+              (_nrrdFormatNRRD_whichVersion(nrrd, nio) < 4 ? "./" : ""),
+              nio->dataFN[0]);
     }
     break;
   default:
