@@ -47,7 +47,7 @@
 extern "C" {
 #endif
 
-#define NRRD "nrrd"
+#define NRRD nrrdBiffKey
 
 /*
 ******** NrrdIO struct
@@ -439,6 +439,7 @@ extern void nrrdAxisMinMaxSet(Nrrd *nrrd, int ax, int defCenter);
 
 /******** simple things */
 /* simple.c */
+extern nrrd_export const char *nrrdBiffKey;
 extern int nrrdPeripheralInit(Nrrd *nrrd);
 extern int nrrdPeripheralCopy(Nrrd *nout, Nrrd *nin);
 extern int nrrdContentSet(Nrrd *nout, const char *func,
@@ -575,7 +576,7 @@ extern nrrd_export void (*nrrdMeasureLine[NRRD_MEASURE_MAX+1])(void *ans,
 						   void *line, int lineType,
 						   int lineLen, 
 						   double axMin, double axMax);
-extern int nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr);
+extern int nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr, int type);
 
 /********* various kinds of histograms */
 /* histogram.c */
