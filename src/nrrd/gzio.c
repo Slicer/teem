@@ -58,7 +58,7 @@
 #  define _NRRD_OS_CODE  0x0b
 #endif
 
-#if defined(MACOS) || defined(TARGET_OS_MAC)
+#if defined(MACOS) || defined(TARGET_OS_MAC) || defined(__APPLE_CC__)
 #  define _NRRD_OS_CODE  0x07
 #endif
 
