@@ -20,14 +20,93 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-/*
-  #include <sys/types.h>
-  #include <unistd.h>
-*/
-
 char _nrrdRelDirFlag[] = "./";
 char _nrrdFieldSep[] = " \t";
 char _nrrdTableSep[] = " ,\t";
+
+/*
+** _nrrdOneLine
+**
+** wrapper around airOneLine; does re-allocation of line buffer
+** ("line") in the NrrdIO if needed.  The return value semantics
+** are similar, except that what airOneLine would return, we put
+** in *lenP.  If there is an error (airOneLine returned -1, 
+** something couldn't be allocated), *lenP is set to 0, and 
+** we return 1.  Otherwise 0.
+**
+** Does use biff
+*/
+int
+_nrrdOneLine(int *lenP, NrrdIO *io, FILE *file) {
+  char me[]="_nrrdOneLine", err[AIR_STRLEN_MED], **line;
+  airArray *lineArr;
+  int len, lineIdx;
+
+  if (!( lenP && file && io )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (0 == io->lineLen) {
+    /* io->line hasn't been allocated for anything */
+    io->line = malloc(3);
+    io->lineLen = 3;
+  }
+  len = airOneLine(file, io->line, io->lineLen);
+  if (len <= io->lineLen) {
+    if (-1 == len) {
+      sprintf(err, "%s: invalid args to airOneLine()", me);
+      biffAdd(NRRD, err); *lenP = 0; return 1;
+    }
+    /* otherwise we hit EOF before a newline, or the line (possibly empty)
+       fit within the io->line, neither of which is an error here */
+    *lenP = len;
+    return 0;
+  }
+  /* else line didn't fit in buffer, so we have to increase line
+     buffer size and put the line together in pieces */
+  lineArr = airArrayNew((void**)(&line), NULL, sizeof(char *), 1);
+  if (!lineArr) {
+    sprintf(err, "%s: couldn't allocate airArray", me);
+    biffAdd(NRRD, err); *lenP = 0; return 1;
+  }
+  airArrayPointerCB(lineArr, airNull, airFree);
+  while (len == io->lineLen+1) {
+    lineIdx = airArrayIncrLen(lineArr, 1);
+    if (-1 == lineIdx) {
+      sprintf(err, "%s: couldn't increment line buffer array", me);
+      biffAdd(NRRD, err); *lenP = 0; return 1;
+    }
+    line[lineIdx] = io->line;
+    io->lineLen *= 2;
+    io->line = (char*)malloc(io->lineLen);
+    if (!io->line) {
+      sprintf(err, "%s: couldn't alloc %d-char line\n", me, io->lineLen);
+      biffAdd(NRRD, err); *lenP = 0; return 1;
+    }
+    len = airOneLine(file, io->line, io->lineLen);
+  }
+  /* last part did fit in io->line buffer, also save this into line[] */
+  lineIdx = airArrayIncrLen(lineArr, 1);
+  if (-1 == lineIdx) {
+    sprintf(err, "%s: couldn't increment line buffer array", me);
+    biffAdd(NRRD, err); *lenP = 0; return 1;
+  }
+  line[lineIdx] = io->line;
+  io->lineLen *= 3;  /* for good measure */
+  io->line = (char*)malloc(io->lineLen);
+  if (!io->line) {
+    sprintf(err, "%s: couldn't alloc %d-char line\n", me, io->lineLen);
+    biffAdd(NRRD, err); *lenP = 0; return 1;
+  }
+  /* now concatenate everything into a new io->line */
+  strcpy(io->line, "");
+  for (lineIdx=0; lineIdx<lineArr->len; lineIdx++) {
+    strcat(io->line, line[lineIdx]);
+  }
+  airArrayNuke(lineArr);
+  *lenP = strlen(io->line) + 1;
+  return 0;
+}
 
 /*
 ** _nrrdValidHeader
@@ -71,7 +150,7 @@ _nrrdValidHeader(Nrrd *nrrd, NrrdIO *io) {
 	    airEnumStr(nrrdField, nrrdField_endian));
     biffAdd(NRRD, err); return 0;    
   }
-  
+
   /* we don't really try to enforce anything with the min/max/center/size
      information on each axis, because we only really care that we know
      each axis size.  Past that, if the user messes it up, its not really
@@ -167,9 +246,9 @@ _nrrdReadDataRaw(Nrrd *nrrd, NrrdIO *io) {
     }
     ret = fread(nrrd->data, nrrdElementSize(nrrd), num, io->dataFile);
     if (ret != num) {
-      sprintf(err, "%s: fread() returned " AIR_SIZE_T_FMT
-	      " (not " AIR_SIZE_T_FMT ")", me,
-	      ret, num);
+      sprintf(err, "%s: fread() got only " AIR_SIZE_T_FMT " %d-byte things, "
+	      "not " AIR_SIZE_T_FMT ,
+	      me, ret, nrrdElementSize(nrrd), num);
       biffAdd(NRRD, err); return 1;
     }
   }
@@ -201,7 +280,7 @@ _nrrdReadDataRaw(Nrrd *nrrd, NrrdIO *io) {
 int
 _nrrdReadDataAscii(Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadDataAscii", err[AIR_STRLEN_MED],
-    numStr[NRRD_STRLEN_LINE];
+    numbStr[AIR_STRLEN_HUGE];  /* HEY: fix this */
   size_t I, num;
   char *data;
   int size, tmp;
@@ -228,27 +307,27 @@ _nrrdReadDataAscii(Nrrd *nrrd, NrrdIO *io) {
   data = nrrd->data;
   size = nrrdElementSize(nrrd);
   for (I=0; I<num; I++) {
-    if (1 != fscanf(io->dataFile, "%s", numStr)) {
+    if (1 != fscanf(io->dataFile, "%s", numbStr)) {
       sprintf(err, "%s: couldn't parse element " AIR_SIZE_T_FMT
 	      " of " AIR_SIZE_T_FMT, me, I+1, num);
       biffAdd(NRRD, err); return 1;
     }
     if (nrrd->type >= nrrdTypeInt) {
       /* sscanf supports putting value directly into this type */
-      if (1 != airSingleSscanf(numStr, nrrdTypeConv[nrrd->type], 
+      if (1 != airSingleSscanf(numbStr, nrrdTypeConv[nrrd->type], 
 			       (void*)(data + I*size))) {
 	sprintf(err, "%s: couln't parse %s " AIR_SIZE_T_FMT
 		" of " AIR_SIZE_T_FMT " (\"%s\")", me,
 		airEnumStr(nrrdType, nrrd->type),
-		I+1, num, numStr);
+		I+1, num, numbStr);
 	biffAdd(NRRD, err); return 1;
       }
     } else {
       /* sscanf value into an int first */
-      if (1 != airSingleSscanf(numStr, "%d", &tmp)) {
+      if (1 != airSingleSscanf(numbStr, "%d", &tmp)) {
 	sprintf(err, "%s: couln't parse element " AIR_SIZE_T_FMT
 		" of " AIR_SIZE_T_FMT " (\"%s\")",
-		me, I+1, num, numStr);
+		me, I+1, num, numbStr);
 	biffAdd(NRRD, err); return 1;
       }
       nrrdIInsert[nrrd->type](data, I, tmp);
@@ -275,7 +354,10 @@ nrrdLineSkip(NrrdIO *io) {
   char me[]="nrrdLineSkip", err[AIR_STRLEN_MED];
   
   for (i=1; i<=io->lineSkip; i++) {
-    skipRet = airOneLine(io->dataFile, io->line, NRRD_STRLEN_LINE);
+    if (_nrrdOneLine(&skipRet, io, io->dataFile)) {
+      sprintf(err, "%s: error skipping line %d of %d", me, i, io->lineSkip);
+      biffAdd(NRRD, err); return 1;
+    }
     if (!skipRet) {
       sprintf(err, "%s: hit EOF skipping line %d of %d", me, i, io->lineSkip);
       biffAdd(NRRD, err); return 1;
@@ -301,29 +383,44 @@ nrrdByteSkip(NrrdIO *io) {
 
 int
 _nrrdReadNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
-  char me[]="_nrrdReadNrrd", err[NRRD_STRLEN_LINE+AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrd", *err=NULL;
   int ret, len;
 
   /* parse header lines */
   while (1) {
     io->pos = 0;
-    len = airOneLine(file, io->line, NRRD_STRLEN_LINE);
+    if (_nrrdOneLine(&len, io, file)) {
+      if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+	sprintf(err, "%s: trouble getting line of header", me);
+	biffAdd(NRRD, err); free(err);
+      }
+      return 1;
+    }
     if (len > 1) {
       ret = _nrrdReadNrrdParseField(nrrd, io, AIR_TRUE);
       if (!ret) {
-	sprintf(err, "%s: trouble parsing field in \"%s\"", me, io->line);
-	biffAdd(NRRD, err); return 1;
+	if ((err = (char*)malloc(AIR_STRLEN_MED + strlen(io->line)))) {
+	  sprintf(err, "%s: trouble parsing field in \"%s\"", me, io->line);
+	  biffAdd(NRRD, err); free(err);
+	}
+	return 1;
       }
       /* the comment is the one field allowed more than once */
       if (ret != nrrdField_comment && io->seen[ret]) {
-	sprintf(err, "%s: already set field %s", me, 
-		airEnumStr(nrrdField, ret));
-	biffAdd(NRRD, err); return 1;
+	if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+	  sprintf(err, "%s: already set field %s", me, 
+		  airEnumStr(nrrdField, ret));
+	  biffAdd(NRRD, err); free(err);
+	}
+	return 1;
       }
       if (_nrrdReadNrrdParseInfo[ret](nrrd, io, AIR_TRUE)) {
-	sprintf(err, "%s: trouble parsing %s info \"%s\"", me,
-		airEnumStr(nrrdField, ret), io->line+io->pos);
-	biffAdd(NRRD, err); return 1;
+	if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+	  sprintf(err, "%s: trouble parsing %s info \"%s\"", me,
+		  airEnumStr(nrrdField, ret), io->line+io->pos);
+	  biffAdd(NRRD, err); free(err);
+	}
+	return 1;
       }
       io->seen[ret] = AIR_TRUE;
     } else {
@@ -334,16 +431,22 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
 
   if (!len                        /* we're at EOF ... */
       && !io->seperateHeader) {   /* but there's supposed to be data here! */
-    sprintf(err, "%s: hit end of header, but no \"%s\" given", me,
-	    airEnumStr(nrrdField, nrrdField_data_file));
-    biffAdd(NRRD, err); return 1;
+    if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+      sprintf(err, "%s: hit end of header, but no \"%s\" given", me,
+	      airEnumStr(nrrdField, nrrdField_data_file));
+      biffAdd(NRRD, err); free(err);
+    }
+    return 1;
   }
   
   if (!_nrrdValidHeader(nrrd, io)) {
-    sprintf(err, "%s: %s", me, 
-	    (len ? "finished reading header, but there were problems"
-	     : "hit EOF before seeing a complete header"));
-    biffAdd(NRRD, err); return 1;
+    if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+      sprintf(err, "%s: %s", me, 
+	      (len ? "finished reading header, but there were problems"
+	       : "hit EOF before seeing a complete header"));
+      biffAdd(NRRD, err); free(err);
+    }
+    return 1;
   }
   
   /* we seemed to have read a valid header; now read the data */
@@ -357,12 +460,18 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
   }
 
   if (nrrdLineSkip(io)) {
-    sprintf(err, "%s: couldn't skip lines", me);
-    biffAdd(NRRD, err); return 1;
+    if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+      sprintf(err, "%s: couldn't skip lines", me);
+      biffAdd(NRRD, err); free(err);
+    }
+    return 1;
   }
   if (nrrdByteSkip(io)) {
-    sprintf(err, "%s: couldn't skip bytes", me);
-    biffAdd(NRRD, err); return 1;
+    if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+      sprintf(err, "%s: couldn't skip bytes", me);
+      biffAdd(NRRD, err); free(err);
+    }
+    return 1;
   }
 
   if (!io->skipData) {
@@ -370,8 +479,11 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
       if (2 <= nrrdStateVerboseIO) {
 	fprintf(stderr, "error!\n");
       }
-      sprintf(err, "%s:", me);
-      biffAdd(NRRD, err); return 1;
+      if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+	sprintf(err, "%s:", me);
+	biffAdd(NRRD, err); free(err);
+      }
+      return 1;
     }
   } else {
     nrrd->data = NULL;
@@ -427,9 +539,12 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, NrrdIO *io) {
   want = 3;
   while (got < want) {
     io->pos = 0;
-    len = airOneLine(file, io->line, NRRD_STRLEN_LINE);
+    if (_nrrdOneLine(&len, io, file)) {
+      sprintf(err, "%s: failed to get line from PNM header", me);
+      biffAdd(NRRD, err); return 1;
+    }
     if (!(0 < len)) {
-      sprintf(err, "%s: line read failed, got %d of %d ints from header",
+      sprintf(err, "%s: hit EOF in header with %d of %d ints parsed",
 	      me, got, want);
       biffAdd(NRRD, err); return 1;
     }
@@ -562,7 +677,7 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
     nrrd->dim = 2;
   }
   /* first, we get through comments */
-  while (_NRRD_COMMENT_CHAR == io->line[0]) {
+  while (NRRD_COMMENT_CHAR == io->line[0]) {
     io->pos = 1;
     io->pos += strspn(io->line + io->pos, _nrrdFieldSep);
     ret = _nrrdReadNrrdParseField(nrrd, io, AIR_FALSE);
@@ -626,7 +741,10 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
 	biffAdd(NRRD, err); UNSETTWO; return 1;
       }
     }
-    len = airOneLine(file, io->line, NRRD_STRLEN_LINE);
+    if (_nrrdOneLine(&len, io, file)) {
+      sprintf(err, "%s: error getting a line", me);
+      biffAdd(NRRD, err); UNSETTWO; return 1;
+    }
     if (!len) {
       sprintf(err, "%s: hit EOF before any numbers parsed", me);
       biffAdd(NRRD, err); UNSETTWO; return 1;
@@ -684,7 +802,10 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
     }
     sy++;
     line++;
-    len = airOneLine(file, io->line, NRRD_STRLEN_LINE);
+    if (_nrrdOneLine(&len, io, file)) {
+      sprintf(err, "%s: error getting a line", me);
+      biffAdd(NRRD, err); UNSETTWO; return 1;
+    }
   }
   /*
   fprintf(stderr, "%s: nrrd->dim = %d, sx = %d; sy = %d\n",
@@ -754,7 +875,10 @@ nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *_io) {
   /* clear out anything in the given nrrd */
   nrrdInit(nrrd);
 
-  len = airOneLine(file, io->line, NRRD_STRLEN_LINE);
+  if (_nrrdOneLine(&len, io, file)) {
+    sprintf(err, "%s: error getting magic line", me);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
   if (!len) {
     sprintf(err, "%s: immediately hit EOF", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
@@ -783,7 +907,7 @@ nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *_io) {
     break;
   default:
     /* see if line is a comment, which implies its a table */
-    if (_NRRD_COMMENT_CHAR == io->line[0] 
+    if (NRRD_COMMENT_CHAR == io->line[0] 
 	|| airParseStrF(&oneFloat, io->line, _nrrdTableSep, 1)) {
       io->format = nrrdFormatTable;
       if (_nrrdReadTable(file, nrrd, io)) {
@@ -811,36 +935,36 @@ nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *_io) {
 /*
 ** _nrrdSplitName()
 **
-** slits a file name into a path and a base filename.  The directory
+** splits a file name into a path and a base filename.  The directory
 ** seperator is assumed to be '/'.  The division between the path
 ** and the base is the last '/' in the file name.  The path is
-** everything prior to this, and base is everythign after (so the
-** base does NOT start wiht '/').  If there is not a '/' in the name,
+** everything prior to this, and base is everything after (so the
+** base does NOT start with '/').  If there is not a '/' in the name,
 ** or if a '/' appears as the last character, then the path is set to
 ** ".", and the name is copied into base.
 */
 int
-_nrrdSplitName(char *path, char *base, const char *name) {
+_nrrdSplitName(char **pathP, char **baseP, const char *name) {
   int i, ret;
   
   i = strrchr(name, '/') - name;
   /* we found a valid break if the last directory character
      is somewhere in the string except the last character */
   if (i>=0 && i<strlen(name)-1) {
-    strcpy(path, name);
-    path[i] = 0;
-    strcpy(base, name + i + 1);
+    *pathP = airStrdup(name);
+    (*pathP)[i] = 0;
+    *baseP = airStrdup(name + i + 1);
     /*
-    printf("_nrrdSplitName: path = |%s|\n", path);
-    printf("_nrrdSplitName: base = |%s|\n", base);
+    printf("_nrrdSplitName: path = |%s|\n", *pathP);
+    printf("_nrrdSplitName: base = |%s|\n", *baseP);
     */
     ret = 1;
   } else {
     /* if the name had no slash, its in the current directory, which
        means that we need to explicitly store "." as the header
        directory in case we have header-relative data. */
-    strcpy(path, ".");
-    strcpy(base, name);
+    *pathP = airStrdup(".");
+    *baseP = airStrdup(name);
     ret = 0;
   }
   return ret;
@@ -877,7 +1001,7 @@ nrrdLoad(Nrrd *nrrd, const char *filename) {
      that if it turns out that its just a nhdr file, with
      a header-relative data file, then we will know how
      to find the data file */
-  _nrrdSplitName(io->dir, io->base, filename);
+  _nrrdSplitName(&(io->dir), &(io->base), filename);
   /* printf("!%s: |%s|%s|\n", me, io->dir, io->base); */
 
   if (!strcmp("-", filename)) {
