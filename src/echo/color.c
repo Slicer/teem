@@ -36,12 +36,12 @@ _echoLightColDirDirectional(COLDIR_ARGS(Directional)) {
 
 void
 _echoLightColDirArea(COLDIR_ARGS(Area)) {
-  EchoObjectRectangle *rect;
+  EchoRectangle *rect;
   echoPos_t at[3], *jitt, x, y;
   float colScale;
 
-  /* we assume light->obj is a EchoObjectRectangle with echoMatterLight */
-  rect = (EchoObjectRectangle *)light->obj;
+  /* we assume light->obj is a EchoRectangle with echoMatterLight */
+  rect = (EchoRectangle *)light->obj;
   ELL_3V_COPY(lcol, rect->mat);
   jitt = ((echoPos_t *)tstate->njitt->data) + samp*2*ECHO_SAMPLE_NUM;
   x = jitt[0 + 2*echoSampleAreaLight] + 0.5;

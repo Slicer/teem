@@ -25,23 +25,24 @@ extern "C" {
 #endif
 
 #define OBJECT(obj)   ((EchoObject*)obj)
-#define SPLIT(obj)    ((EchoObjectSplit*)obj)
-#define LIST(obj)     ((EchoObjectList*)obj)
-#define SPHERE(obj)   ((EchoObjectSphere*)obj)
-#define RECT(obj)     ((EchoObjectRectangle*)obj)
-#define AABBOX(obj)   ((EchoObjectAABBox*)obj)
-#define TRIMESH(obj)  ((EchoObjectTriMesh*)obj)
-#define TRIM(obj)     ((EchoObjectTriMesh*)obj)
-#define INSTANCE(obj) ((EchoObjectInstance*)obj)
+#define SPLIT(obj)    ((EchoSplit*)obj)
+#define LIST(obj)     ((EchoList*)obj)
+#define SPHERE(obj)   ((EchoSphere*)obj)
+#define RECT(obj)     ((EchoRectangle*)obj)
+#define AABBOX(obj)   ((EchoAABBox*)obj)
+#define TRIMESH(obj)  ((EchoTriMesh*)obj)
+#define TRIM(obj)     ((EchoTriMesh*)obj)
+#define TRI(obj)      ((EchoTriangle*)obj)
+#define INST(obj)     ((EchoInstance*)obj)
 
-#define ECHO_OBJECT_NEW(TYPE) \
-  (EchoObject##TYPE *)echoObjectNew(echoObject##Type)
+#define ECHO_NEW(TYPE) \
+  (EchoObject##TYPE *)echoNew(echoObject##Type)
 
 /* intx.c */
 #define INTX_ARGS(TYPE) EchoIntx *intx, EchoRay *ray,               \
-                        EchoParm *parm, EchoObject##TYPE *obj
+                        EchoParm *parm, Echo##TYPE *obj
 
-typedef int (*_echoRayIntx_t)(INTX_ARGS( ));
+typedef int (*_echoRayIntx_t)(INTX_ARGS(Object));
 extern _echoRayIntx_t _echoRayIntx[ECHO_OBJECT_MAX+1];
 
 typedef void (*_echoRayIntxUV_t)(EchoIntx *intx);
@@ -61,10 +62,10 @@ extern int _echoRefract(echoPos_t T[3], echoPos_t V[3],
 /* object.c */
 
 #define BNDS_ARGS(TYPE) echoPos_t lo[3], echoPos_t hi[3], \
-                        EchoObject##TYPE *obj
+                        Echo##TYPE *obj
 
-typedef void (*_echoObjectBounds_t)(BNDS_ARGS( ));
-extern _echoObjectBounds_t _echoObjectBounds[ECHO_OBJECT_MAX+1];
+typedef void (*_echoBounds_t)(BNDS_ARGS(Object));
+extern _echoBounds_t _echoBounds[ECHO_OBJECT_MAX+1];
 
 #ifdef __cplusplus
 }

@@ -20,11 +20,6 @@
 #include "echo.h"
 #include "privateEcho.h"
 
-/*
- define INTX_ARGS(TYPE) EchoIntx *intx, EchoRay *ray,               \
-                        EchoParm *parm, EchoObject##TYPE *obj
-*/
-
 #define SET_POS(intx, ray) \
   intx->pos[0] = ray->from[0] + intx->t*ray->dir[0]; \
   intx->pos[1] = ray->from[1] + intx->t*ray->dir[1]; \
@@ -84,7 +79,7 @@ _echoRayIntxUVSphere(EchoIntx *intx) {
 void
 _echoRayIntxUVTriMesh(EchoIntx *intx) {
   echoPos_t u, v, norm[3], len;
-  EchoObjectTriMesh *trim;
+  EchoTriMesh *trim;
 
   trim = TRIM(intx->obj);
   ELL_3V_SUB(norm, intx->pos, trim->origin);
@@ -285,7 +280,7 @@ int
 _echoRayIntxTriMesh(INTX_ARGS(TriMesh)) {
   echoPos_t *pos, vert0[3], edge0[3], edge1[3], pvec[3], qvec[3], tvec[3],
     det, t, u, v;
-  EchoObjectTriMesh *trim;
+  EchoTriMesh *trim;
   int i, ax, dir, ret;
 
   trim = TRIMESH(obj);
@@ -390,10 +385,10 @@ int
 _echoRayIntxList(INTX_ARGS(List)) {
   int i, ret, ax, dir;
   EchoObject *kid;
-  EchoObjectAABBox *box;
+  EchoAABBox *box;
   echoPos_t t;
 
-  if (echoObjectAABBox == obj->type) {
+  if (echoAABBox == obj->type) {
     box = AABBOX(obj);
     if (!_echoRayIntxCubeTest(&t, &ax, &dir,
 			      box->min[0], box->max[0],

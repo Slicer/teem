@@ -74,7 +74,7 @@ typedef double echoCol_t;
 #define ECHO_IMG_CHANNELS 5
 #define ECHO_EPSILON 0.001        /* used for adjusting ray positions */
 #define ECHO_NEAR0 0.004          /* used for comparing transparency to zero */
-#define ECHO_LEN_SMALL_ENOUGH 16
+#define ECHO_LEN_SMALL_ENOUGH 16  /* to control splitting for split objects */
 
 typedef struct {
   /* ray-tracing parmeters */
@@ -173,25 +173,29 @@ enum {
 #define ECHO_MATTER_VALUE_NUM 8
 
 /* enumsEcho.c ------------------------------------------ */
-extern echo_export airEnum *echoJitter;
-extern echo_export airEnum *echoObject;
+extern echo_export airEnum *echoJitter_ae;
+extern echo_export airEnum *echoObject_ae;
 
 /* object.c ---------------------------------------- */
 
+/* the enum values start with lower case e, the EchoObjects start with E,
+   the airEnum ends with _ae */
+
 enum {
   echoObjectUnknown,
-  echoObjectSphere,     /*  1 */
-  echoObjectCube,       /*  2 */
-  echoObjectTriangle,   /*  3 */
-  echoObjectRectangle,  /*  4 */
-  echoObjectTriMesh,    /*  5: only triangles in the mesh */
-  echoObjectIsosurface, /*  6 */
-  echoObjectAABBox,     /*  7 */
-  echoObjectSplit,      /*  8 */
-  echoObjectList,       /*  9 */
-  echoObjectInstance,   /* 10 */
+  echoSphere,     /*  1 */
+  echoCube,       /*  2 */
+  echoTriangle,   /*  3 */
+  echoRectangle,  /*  4 */
+  echoTriMesh,    /*  5: only triangles in the mesh */
+  echoIsosurface, /*  6 */
+  echoAABBox,     /*  7 */
+  echoSplit,      /*  8 */
+  echoList,       /*  9 */
+  echoInstance,   /* 10 */
   echoObjectLast
 };
+
 #define ECHO_OBJECT_MAX    10
 
 /* function: me, k, intx --> lit color */
@@ -213,23 +217,23 @@ typedef struct {
 typedef struct {
   ECHO_OBJECT_COMMON; ECHO_OBJECT_MATTER;
   echoPos_t pos[3], rad;
-} EchoObjectSphere;
+} EchoSphere;
 
 typedef struct {
   ECHO_OBJECT_COMMON; ECHO_OBJECT_MATTER;
-} EchoObjectCube;
+} EchoCube;
 
 typedef struct {
   ECHO_OBJECT_COMMON; ECHO_OBJECT_MATTER;
   echoPos_t vert[3][3];  /* e0 = vert[1]-vert[0],
 			    e1 = vert[2]-vert[0],
 			    normal = e0 x e1 */
-} EchoObjectTriangle;
+} EchoTriangle;
 
 typedef struct {
   ECHO_OBJECT_COMMON; ECHO_OBJECT_MATTER;
   echoPos_t origin[3], edge0[3], edge1[3], area;
-} EchoObjectRectangle;
+} EchoRectangle;
 
 typedef struct {
   ECHO_OBJECT_COMMON; ECHO_OBJECT_MATTER;
@@ -237,20 +241,20 @@ typedef struct {
   int numV, numF;
   echoPos_t *pos;
   int *vert;
-} EchoObjectTriMesh;
+} EchoTriMesh;
 
 typedef struct {
   ECHO_OBJECT_COMMON; ECHO_OBJECT_MATTER;
   Nrrd *volume;
   float value;
-} EchoObjectIsosurface;
+} EchoIsosurface;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
   EchoObject **obj;
   airArray *objArr;
   echoPos_t min[3], max[3];
-} EchoObjectAABBox;
+} EchoAABBox;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
@@ -258,48 +262,48 @@ typedef struct {
   echoPos_t min0[3], max0[3],
     min1[3], max1[3];         /* bboxes of two children */
   EchoObject *obj0, *obj1;    /* two splits, or two aabboxes */
-} EchoObjectSplit;
+} EchoSplit;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
   EchoObject **obj;         /* it is important that this match the
 			       ordering in the struct of the aabbox */
   airArray *objArr;
-} EchoObjectList;  
+} EchoList;  
 
 typedef struct {
   ECHO_OBJECT_COMMON;
   echoPos_t Mi[16], M[16];
   int own;
   EchoObject *obj;
-} EchoObjectInstance;  
+} EchoInstance;
 
-extern EchoObject *echoObjectNew(int type);
-extern EchoObject *echoObjectNix(EchoObject *obj);
-extern EchoObject *echoObjectNuke(EchoObject *obj);
-extern void echoObjectBounds(echoPos_t *lo, echoPos_t *hi, EchoObject *obj);
-extern int echoObjectIsContainer(EchoObject *obj);
-extern void echoObjectListAdd(EchoObject *parent, EchoObject *child);
-extern EchoObject *echoObjectListSplit(EchoObject *list, int axis);
-extern EchoObject *echoObjectListSplit3(EchoObject *list, int depth);
-extern void echoObjectSphereSet(EchoObject *sphere,
-				echoPos_t x, echoPos_t y,
-				echoPos_t z, echoPos_t rad);
-extern void echoObjectRectangleSet(EchoObject *_rect,
-				   echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
-				   echoPos_t x0, echoPos_t y0, echoPos_t z0,
-				   echoPos_t x1, echoPos_t y1, echoPos_t z1);
-extern void echoObjectTriangleSet(EchoObject *_tri,
-				  echoPos_t x0, echoPos_t y0, echoPos_t z0, 
-				  echoPos_t x1, echoPos_t y1, echoPos_t z1, 
-				  echoPos_t x2, echoPos_t y2, echoPos_t z2);
-extern void echoObjectTriMeshSet(EchoObject *_trim,
-				 int numV, echoPos_t *pos,
-				 int numF, int *vert);
-extern EchoObject *echoObjectRoughSphere(int theRes, int phiRes,
-					 echoPos_t *matx);
-extern void echoObjectInstanceSet(EchoObject *_inst,
-				  echoPos_t *M, EchoObject *obj, int own);
+extern EchoObject *echoNew(int type);
+extern EchoObject *echoNix(EchoObject *obj);
+extern EchoObject *echoNuke(EchoObject *obj);
+extern void echoBounds(echoPos_t *lo, echoPos_t *hi, EchoObject *obj);
+extern int echoIsContainer(EchoObject *obj);
+extern void echoListAdd(EchoObject *parent, EchoObject *child);
+extern EchoObject *echoListSplit(EchoObject *list, int axis);
+extern EchoObject *echoListSplit3(EchoObject *list, int depth);
+extern void echoSphereSet(EchoObject *sphere,
+			  echoPos_t x, echoPos_t y,
+			  echoPos_t z, echoPos_t rad);
+extern void echoRectangleSet(EchoObject *_rect,
+			     echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
+			     echoPos_t x0, echoPos_t y0, echoPos_t z0,
+			     echoPos_t x1, echoPos_t y1, echoPos_t z1);
+extern void echoTriangleSet(EchoObject *_tri,
+			    echoPos_t x0, echoPos_t y0, echoPos_t z0, 
+			    echoPos_t x1, echoPos_t y1, echoPos_t z1, 
+			    echoPos_t x2, echoPos_t y2, echoPos_t z2);
+extern void echoTriMeshSet(EchoObject *_trim,
+			   int numV, echoPos_t *pos,
+			   int numF, int *vert);
+extern void echoInstanceSet(EchoObject *_inst,
+			    echoPos_t *M, EchoObject *obj, int own);
+extern EchoObject *echoRoughSphere(int theRes, int phiRes,
+				   echoPos_t *matx);
 
 /* lightEcho.c ---------------------------------------- */
 
@@ -350,7 +354,7 @@ extern EchoGlobalState *echoGlobalStateNew();
 extern EchoGlobalState *echoGlobalStateNix(EchoGlobalState *state);
 extern EchoThreadState *echoThreadStateNew();
 extern EchoThreadState *echoThreadStateNix(EchoThreadState *state);
-extern limnCam *echoLimnCamNew();
+extern limnCam *echoLimnCamNew();   /* set some fields after limnCamNew() */
 
 /* renderEcho.c ---------------------------------------- */
 

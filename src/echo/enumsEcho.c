@@ -47,7 +47,7 @@ _echoJitterValEqv[] = {
 };
 
 airEnum
-_echoJitter = {
+_echoJitter_ae = {
   "jitter",
   ECHO_JITTER_MAX,
   _echoJitterStr,  NULL,
@@ -55,7 +55,7 @@ _echoJitter = {
   AIR_FALSE
 };
 airEnum *
-echoJitter = &_echoJitter;
+echoJitter_ae = &_echoJitter_ae;
 
 /* ------------------------------- object --------------------------- */
 
@@ -88,19 +88,19 @@ _echoObjectStrEqv[][AIR_STRLEN_SMALL] = {
 
 int
 _echoObjectValEqv[] = {
-  echoObjectSphere,
-  echoObjectCube,
-  echoObjectTriangle, echoObjectTriangle,
-  echoObjectRectangle, echoObjectRectangle,
-  echoObjectTriMesh, echoObjectTriMesh, echoObjectTriMesh,
-  echoObjectIsosurface,
-  echoObjectAABBox,
-  echoObjectSplit,
-  echoObjectList,
+  echoSphere,
+  echoCube,
+  echoTriangle, echoTriangle,
+  echoRectangle, echoRectangle,
+  echoTriMesh, echoTriMesh, echoTriMesh,
+  echoIsosurface,
+  echoAABBox,
+  echoSplit,
+  echoList,
 };
 
 airEnum
-_echoObject = {
+_echoObject_ae = {
   "object",
   ECHO_OBJECT_MAX,
   _echoObjectStr,  NULL,
@@ -108,4 +108,4 @@ _echoObject = {
   AIR_FALSE
 };
 airEnum *
-echoObject = &_echoObject;
+echoObject_ae = &_echoObject_ae;

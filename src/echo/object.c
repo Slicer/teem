@@ -20,31 +20,16 @@
 #include "echo.h"
 #include "privateEcho.h"
 
-#define NEW_TMPL(TYPE, BODY)                                     \
-EchoObject##TYPE *                                               \
-_echoObject##TYPE##_new(void) {                                  \
-  EchoObject##TYPE *obj;                                         \
-                                                                 \
-  obj = (EchoObject##TYPE *)calloc(1, sizeof(EchoObject##TYPE)); \
-  obj->type = echoObject##TYPE;                                  \
-  do { BODY } while (0);                                         \
-  return obj;                                                    \
+#define NEW_TMPL(TYPE, BODY)                         \
+Echo##TYPE *                                         \
+_echo##TYPE##_new(void) {                            \
+  Echo##TYPE *obj;                                   \
+                                                     \
+  obj = (Echo##TYPE *)calloc(1, sizeof(Echo##TYPE)); \
+  obj->type = echo##TYPE;                            \
+  do { BODY } while (0);                             \
+  return obj;                                        \
 }
-
-/*
-  echoObjectUnknown,
-  echoObjectSphere,     
-  echoObjectCube,       
-  echoObjectTriangle,   
-  echoObjectRectangle,  
-  echoObjectTriMesh,    
-  echoObjectIsosurface, 
-  echoObjectAABBox,     
-  echoObjectSplit,      
-  echoObjectList,       
-  echoObjectInstance,   
-  echoObjectLast
-*/
 
 NEW_TMPL(Sphere,
 	 obj->ntext = NULL;
@@ -78,7 +63,7 @@ NEW_TMPL(AABBox,
 				   ECHO_LIST_OBJECT_INCR);
 	 airArrayPointerCB(obj->objArr,
 			   airNull,
-			   (void *(*)(void *))echoObjectNix);
+			   (void *(*)(void *))echoNix);
 	 ELL_3V_SET(obj->min, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
 	 ELL_3V_SET(obj->max, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
 	 );
@@ -92,7 +77,7 @@ NEW_TMPL(List,
 				   ECHO_LIST_OBJECT_INCR);
 	 airArrayPointerCB(obj->objArr,
 			   airNull,
-			   (void *(*)(void *))echoObjectNix);
+			   (void *(*)(void *))echoNix);
 	 );
 NEW_TMPL(Instance,
 	 ELL_4M_SET_IDENTITY(obj->M);
@@ -102,24 +87,24 @@ NEW_TMPL(Instance,
 	 );
 
 EchoObject *(*
-_echoObjectNew[ECHO_OBJECT_MAX+1])(void) = {
+_echoNew[ECHO_OBJECT_MAX+1])(void) = {
   NULL,
-  (EchoObject *(*)(void))_echoObjectSphere_new,
-  (EchoObject *(*)(void))_echoObjectCube_new,
-  (EchoObject *(*)(void))_echoObjectTriangle_new,
-  (EchoObject *(*)(void))_echoObjectRectangle_new,
-  (EchoObject *(*)(void))_echoObjectTriMesh_new,
-  (EchoObject *(*)(void))_echoObjectIsosurface_new,
-  (EchoObject *(*)(void))_echoObjectAABBox_new,
-  (EchoObject *(*)(void))_echoObjectSplit_new,
-  (EchoObject *(*)(void))_echoObjectList_new,
-  (EchoObject *(*)(void))_echoObjectInstance_new
+  (EchoObject *(*)(void))_echoSphere_new,
+  (EchoObject *(*)(void))_echoCube_new,
+  (EchoObject *(*)(void))_echoTriangle_new,
+  (EchoObject *(*)(void))_echoRectangle_new,
+  (EchoObject *(*)(void))_echoTriMesh_new,
+  (EchoObject *(*)(void))_echoIsosurface_new,
+  (EchoObject *(*)(void))_echoAABBox_new,
+  (EchoObject *(*)(void))_echoSplit_new,
+  (EchoObject *(*)(void))_echoList_new,
+  (EchoObject *(*)(void))_echoInstance_new
 };
 
 EchoObject *
-echoObjectNew(int type) {
+echoNew(int type) {
   
-  return _echoObjectNew[type]();
+  return _echoNew[type]();
 }
 
 /* ---------------------------------------------------------- */
@@ -129,13 +114,13 @@ echoObjectNew(int type) {
 /* ---------------------------------------------------------- */
 /* ---------------------------------------------------------- */
 
-#define NIX_TMPL(TYPE, BODY)                                     \
-EchoObject##TYPE *                                               \
-_echoObject##TYPE##_nix(EchoObject##TYPE *obj) {                 \
-                                                                 \
-  do { BODY } while (0);                                         \
-  free(obj);                                                     \
-  return NULL;                                                   \
+#define NIX_TMPL(TYPE, BODY)                         \
+Echo##TYPE *                                         \
+_echo##TYPE##_nix(Echo##TYPE *obj) {                 \
+                                                     \
+  do { BODY } while (0);                             \
+  free(obj);                                         \
+  return NULL;                                       \
 }
 
 NIX_TMPL(TriMesh,
@@ -149,8 +134,8 @@ NIX_TMPL(AABBox,
 	 airArrayNuke(obj->objArr);
 	 );
 NIX_TMPL(Split,
-	 echoObjectNix(obj->obj0);
-	 echoObjectNix(obj->obj1);
+	 echoNix(obj->obj0);
+	 echoNix(obj->obj1);
 	 );
 NIX_TMPL(List,
 	 /* unset callbacks */
@@ -160,24 +145,27 @@ NIX_TMPL(List,
 NIX_TMPL(Instance, /* ??? */);
 
 EchoObject *(*
-_echoObjectNix[ECHO_OBJECT_MAX+1])(EchoObject *) = {
+_echoNix[ECHO_OBJECT_MAX+1])(EchoObject *) = {
   NULL,
   (EchoObject *(*)(EchoObject *))airFree,
   (EchoObject *(*)(EchoObject *))airFree,
   (EchoObject *(*)(EchoObject *))airFree,
   (EchoObject *(*)(EchoObject *))airFree,
-  (EchoObject *(*)(EchoObject *))_echoObjectTriMesh_nix,
-  (EchoObject *(*)(EchoObject *))_echoObjectIsosurface_nix,
-  (EchoObject *(*)(EchoObject *))_echoObjectAABBox_nix,
-  (EchoObject *(*)(EchoObject *))_echoObjectSplit_nix,
-  (EchoObject *(*)(EchoObject *))_echoObjectList_nix,
-  (EchoObject *(*)(EchoObject *))_echoObjectInstance_nix
+  (EchoObject *(*)(EchoObject *))_echoTriMesh_nix,
+  (EchoObject *(*)(EchoObject *))_echoIsosurface_nix,
+  (EchoObject *(*)(EchoObject *))_echoAABBox_nix,
+  (EchoObject *(*)(EchoObject *))_echoSplit_nix,
+  (EchoObject *(*)(EchoObject *))_echoList_nix,
+  (EchoObject *(*)(EchoObject *))_echoInstance_nix
 };
 
 EchoObject *
-echoObjectNix(EchoObject *obj) {
+echoNix(EchoObject *obj) {
 
-  return _echoObjectNix[obj->type](obj);
+  if (!obj) {
+    return NULL;
+  }
+  return _echoNix[obj->type](obj);
 }
 
 
@@ -188,13 +176,13 @@ echoObjectNix(EchoObject *obj) {
 /* ---------------------------------------------------------- */
 /* ---------------------------------------------------------- */
 
-#define NUK_TMPL(TYPE, BODY)                                     \
-EchoObject##TYPE *                                               \
-_echoObject##TYPE##_nuke(EchoObject##TYPE *obj) {                \
-                                                                 \
-  do { BODY } while (0);                                         \
-  free(obj);                                                     \
-  return NULL;                                                   \
+#define NUK_TMPL(TYPE, BODY)                         \
+Echo##TYPE *                                         \
+_echo##TYPE##_nuke(Echo##TYPE *obj) {                \
+                                                     \
+  do { BODY } while (0);                             \
+  free(obj);                                         \
+  return NULL;                                       \
 }
 
 NUK_TMPL(TriMesh,
@@ -207,8 +195,8 @@ NUK_TMPL(AABBox,
 	 airArrayNuke(obj->objArr);
 	 );
 NUK_TMPL(Split,
-	 echoObjectNuke(obj->obj0);
-	 echoObjectNuke(obj->obj1);
+	 echoNuke(obj->obj0);
+	 echoNuke(obj->obj1);
 	 );
 NUK_TMPL(List,
 	 /* due to airArray callbacks, this will nuke all kids */
@@ -216,29 +204,32 @@ NUK_TMPL(List,
 	 );
 NUK_TMPL(Instance,
 	 if (obj->own) {
-	   echoObjectNix(obj->obj);
+	   echoNix(obj->obj);
 	 }
 	 );
 
 EchoObject *(*
-_echoObjectNuke[ECHO_OBJECT_MAX+1])(EchoObject *) = {
+_echoNuke[ECHO_OBJECT_MAX+1])(EchoObject *) = {
   NULL,
   (EchoObject *(*)(EchoObject *))airFree,
   (EchoObject *(*)(EchoObject *))airFree,
   (EchoObject *(*)(EchoObject *))airFree,
   (EchoObject *(*)(EchoObject *))airFree,
-  (EchoObject *(*)(EchoObject *))_echoObjectTriMesh_nuke,
-  (EchoObject *(*)(EchoObject *))_echoObjectIsosurface_nuke,
-  (EchoObject *(*)(EchoObject *))_echoObjectAABBox_nuke,
-  (EchoObject *(*)(EchoObject *))_echoObjectSplit_nuke,
-  (EchoObject *(*)(EchoObject *))_echoObjectList_nuke,
-  (EchoObject *(*)(EchoObject *))_echoObjectInstance_nuke
+  (EchoObject *(*)(EchoObject *))_echoTriMesh_nuke,
+  (EchoObject *(*)(EchoObject *))_echoIsosurface_nuke,
+  (EchoObject *(*)(EchoObject *))_echoAABBox_nuke,
+  (EchoObject *(*)(EchoObject *))_echoSplit_nuke,
+  (EchoObject *(*)(EchoObject *))_echoList_nuke,
+  (EchoObject *(*)(EchoObject *))_echoInstance_nuke
 };
 
 EchoObject *
-echoObjectNuke(EchoObject *obj) {
+echoNuke(EchoObject *obj) {
 
-  return _echoObjectNuke[obj->type](obj);
+  if (!obj) {
+    return NULL;
+  }
+  return _echoNuke[obj->type](obj);
 }
 
 
@@ -249,31 +240,9 @@ echoObjectNuke(EchoObject *obj) {
 /* ---------------------------------------------------------- */
 /* ---------------------------------------------------------- */
 
-/*
-  echoObjectUnknown,
-  echoObjectSphere,     
-  echoObjectCube,       
-  echoObjectTriangle,   
-  echoObjectRectangle,  
-  echoObjectTriMesh,    
-  echoObjectIsosurface, 
-  echoObjectAABBox,     
-  echoObjectSplit,      
-  echoObjectList,       
-  echoObjectInstance,   
-  echoObjectLast
-*/
-
-/*
- define BNDS_ARGS(TYPE) echoPos_t lo[3], echoPos_t hi[3], \
-                        EchoObject##TYPE *obj
-
- typedef int (*_echoObjectBounds_t)(BNDS_ARGS( ));
-*/
-
 #define BNDS_TMPL(TYPE)                       \
 void                                          \
-_echoObject##TYPE##_bounds(BNDS_ARGS(TYPE))
+_echo##TYPE##_bounds(BNDS_ARGS(TYPE))
 
 #define BNDS_FINISH \
   lo[0] -= ECHO_EPSILON; \
@@ -331,7 +300,7 @@ BNDS_TMPL(AABBox) {
   BNDS_FINISH;
 }
 BNDS_TMPL(Split) {
-  fprintf(stderr, "_echoObjectSplit_bounds: unimplemented!\n");
+  fprintf(stderr, "_echoSplit_bounds: unimplemented!\n");
   BNDS_FINISH;
 }
 BNDS_TMPL(List) {
@@ -343,7 +312,7 @@ BNDS_TMPL(List) {
   ELL_3V_SET(hi, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
   for (i=0; i<obj->objArr->len; i++) {
     o = obj->obj[i];
-    _echoObjectBounds[o->type](l, h, o);
+    _echoBounds[o->type](l, h, o);
     ELL_3V_MIN(lo, lo, l);
     ELL_3V_MAX(hi, hi, h);
   }
@@ -352,7 +321,7 @@ BNDS_TMPL(List) {
 BNDS_TMPL(Instance) {
   echoPos_t a[8][4], b[8][4], l[3], h[3];
 
-  _echoObjectBounds[obj->obj->type](l, h, obj->obj);
+  _echoBounds[obj->obj->type](l, h, obj->obj);
   ELL_4V_SET(a[0], l[0], l[1], l[2], 1);
   ELL_4V_SET(a[1], h[0], l[1], l[2], 1);
   ELL_4V_SET(a[2], l[0], h[1], l[2], 1);
@@ -407,40 +376,25 @@ BNDS_TMPL(Instance) {
   BNDS_FINISH;
 }
 	  
-_echoObjectBounds_t
-_echoObjectBounds[ECHO_OBJECT_MAX+1] = {
+_echoBounds_t
+_echoBounds[ECHO_OBJECT_MAX+1] = {
   NULL,
-  (_echoObjectBounds_t)_echoObjectSphere_bounds,
-  (_echoObjectBounds_t)_echoObjectCube_bounds,
-  (_echoObjectBounds_t)_echoObjectTriangle_bounds,
-  (_echoObjectBounds_t)_echoObjectRectangle_bounds,
+  (_echoBounds_t)_echoSphere_bounds,
+  (_echoBounds_t)_echoCube_bounds,
+  (_echoBounds_t)_echoTriangle_bounds,
+  (_echoBounds_t)_echoRectangle_bounds,
   NULL,
   NULL,
-  (_echoObjectBounds_t)_echoObjectAABBox_bounds,
-  (_echoObjectBounds_t)_echoObjectSplit_bounds,
-  (_echoObjectBounds_t)_echoObjectList_bounds,
-  (_echoObjectBounds_t)_echoObjectInstance_bounds,
+  (_echoBounds_t)_echoAABBox_bounds,
+  (_echoBounds_t)_echoSplit_bounds,
+  (_echoBounds_t)_echoList_bounds,
+  (_echoBounds_t)_echoInstance_bounds,
 };
 
 void
-echoObjectBounds(echoPos_t *lo, echoPos_t *hi, EchoObject *obj) {
-  _echoObjectBounds[obj->type](lo, hi, obj);
+echoBounds(echoPos_t *lo, echoPos_t *hi, EchoObject *obj) {
+  _echoBounds[obj->type](lo, hi, obj);
 }
-
-/*
-  echoObjectUnknown,
-  echoObjectSphere,     
-  echoObjectCube,       
-  echoObjectTriangle,
-  echoObjectRectangle,
-  echoObjectTriMesh,
-  echoObjectIsosurface,
-  echoObjectAABBox,
-  echoObjectSplit,      
-  echoObjectList,       
-  echoObjectInstance,   
-  echoObjectLast
-*/
 
 /* ---------------------------------------------------------- */
 /* ---------------------------------------------------------- */
@@ -450,15 +404,15 @@ echoObjectBounds(echoPos_t *lo, echoPos_t *hi, EchoObject *obj) {
 /* ---------------------------------------------------------- */
 
 int
-echoObjectIsContainer(EchoObject *obj) {
+echoIsContainer(EchoObject *obj) {
   
   if (!obj)
     return AIR_FALSE;
 
-  if (echoObjectAABBox == obj->type ||
-      echoObjectInstance == obj->type ||
-      echoObjectSplit == obj->type ||
-      echoObjectList == obj->type) {
+  if (echoAABBox == obj->type ||
+      echoInstance == obj->type ||
+      echoSplit == obj->type ||
+      echoList == obj->type) {
     return AIR_TRUE;
   }
   else {
@@ -467,12 +421,12 @@ echoObjectIsContainer(EchoObject *obj) {
 }
 
 void
-echoObjectListAdd(EchoObject *list, EchoObject *child) {
+echoListAdd(EchoObject *list, EchoObject *child) {
   int idx;
   
   if (!( list && child &&
-	 (echoObjectList == list->type ||
-	  echoObjectAABBox == list->type) ))
+	 (echoList == list->type ||
+	  echoAABBox == list->type) ))
     return;
 
   idx = airArrayIncrLen(LIST(list)->objArr, 1);
@@ -488,21 +442,21 @@ _echoPosCompare(double *A, double *B) {
 }
 
 /*
-******** echoObjectListSplit()
+******** echoListSplit()
 **
 ** returns a EchoObjectSplit to point to the same things as pointed
 ** to by the given EchoObjectList
 */
 EchoObject *
-echoObjectListSplit(EchoObject *list, int axis) {
+echoListSplit(EchoObject *list, int axis) {
   echoPos_t lo[3], hi[3], loest0[3], hiest0[3],
     loest1[3], hiest1[3];
   double *mids;
   EchoObject *o, *split, *list0, *list1;
   int i, splitIdx, len;
 
-  if (!( echoObjectList == list->type ||
-	 echoObjectAABBox == list->type )) {
+  if (!( echoList == list->type ||
+	 echoAABBox == list->type )) {
     return list;
   }
 
@@ -512,9 +466,9 @@ echoObjectListSplit(EchoObject *list, int axis) {
     return list;
   }
 
-  split = echoObjectNew(echoObjectSplit);
-  list0 = echoObjectNew(echoObjectList);
-  list1 = echoObjectNew(echoObjectList);
+  split = echoNew(echoSplit);
+  list0 = echoNew(echoList);
+  list1 = echoNew(echoList);
   SPLIT(split)->axis = axis;
   SPLIT(split)->obj0 = list0;
   SPLIT(split)->obj1 = list1;
@@ -522,7 +476,7 @@ echoObjectListSplit(EchoObject *list, int axis) {
   mids = malloc(2 * len * sizeof(double));
   for (i=0; i<len; i++) {
     o = LIST(list)->obj[i];
-    _echoObjectBounds[o->type](lo, hi, o);
+    _echoBounds[o->type](lo, hi, o);
     mids[0 + 2*i] = (lo[axis] + hi[axis])/2;
     *((unsigned int *)(mids + 1 + 2*i)) = i;
   }
@@ -545,7 +499,7 @@ echoObjectListSplit(EchoObject *list, int axis) {
   for (i=0; i<splitIdx; i++) {
     o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
     LIST(list0)->obj[i] = o;
-    _echoObjectBounds[o->type](lo, hi, o);
+    _echoBounds[o->type](lo, hi, o);
     /*
     printf("000 lo = (%g,%g,%g), hi = (%g,%g,%g)\n",
 	   lo[0], lo[1], lo[2], hi[0], hi[1], hi[2]);
@@ -557,7 +511,7 @@ echoObjectListSplit(EchoObject *list, int axis) {
   for (i=splitIdx; i<len; i++) {
     o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
     LIST(list1)->obj[i-splitIdx] = o;
-    _echoObjectBounds[o->type](lo, hi, o);
+    _echoBounds[o->type](lo, hi, o);
     /*
     printf("111 lo = (%g,%g,%g), hi = (%g,%g,%g)\n",
 	   lo[0], lo[1], lo[2], hi[0], hi[1], hi[2]);
@@ -578,52 +532,52 @@ echoObjectListSplit(EchoObject *list, int axis) {
   ELL_3V_COPY(SPLIT(split)->min1, loest1);
   ELL_3V_COPY(SPLIT(split)->max1, hiest1);
 
-  echoObjectNix(list);
+  echoNix(list);
   free(mids);
   return split;
 }
 
 EchoObject *
-echoObjectListSplit3(EchoObject *list, int depth) {
+echoListSplit3(EchoObject *list, int depth) {
   EchoObject *ret, *tmp0, *tmp1;
 
-  if (!( echoObjectList == list->type ||
-	 echoObjectAABBox == list->type )) 
+  if (!( echoList == list->type ||
+	 echoAABBox == list->type )) 
     return NULL;
 
   if (!depth)
     return list;
 
-  ret = echoObjectListSplit(list, 0);
+  ret = echoListSplit(list, 0);
 
-#define DOIT(obj, ax) ((obj) = echoObjectListSplit((obj), (ax)))
-#define MORE(obj) echoObjectSplit == (obj)->type
+#define DOIT(obj, ax) ((obj) = echoListSplit((obj), (ax)))
+#define MORE(obj) echoSplit == (obj)->type
 
   if (MORE(ret)) {
     tmp0 = DOIT(SPLIT(ret)->obj0, 1);
     if (MORE(tmp0)) {
       tmp1 = DOIT(SPLIT(tmp0)->obj0, 2);
       if (MORE(tmp1)) {
-	SPLIT(tmp1)->obj0 = echoObjectListSplit3(SPLIT(tmp1)->obj0, depth-1);
-	SPLIT(tmp1)->obj1 = echoObjectListSplit3(SPLIT(tmp1)->obj1, depth-1);
+	SPLIT(tmp1)->obj0 = echoListSplit3(SPLIT(tmp1)->obj0, depth-1);
+	SPLIT(tmp1)->obj1 = echoListSplit3(SPLIT(tmp1)->obj1, depth-1);
       }
       tmp1 = DOIT(SPLIT(tmp0)->obj1, 2);
       if (MORE(tmp1)) {
-	SPLIT(tmp1)->obj0 = echoObjectListSplit3(SPLIT(tmp1)->obj0, depth-1);
-	SPLIT(tmp1)->obj1 = echoObjectListSplit3(SPLIT(tmp1)->obj1, depth-1);
+	SPLIT(tmp1)->obj0 = echoListSplit3(SPLIT(tmp1)->obj0, depth-1);
+	SPLIT(tmp1)->obj1 = echoListSplit3(SPLIT(tmp1)->obj1, depth-1);
       }
     }
     tmp0 = DOIT(SPLIT(ret)->obj1, 1);
     if (MORE(tmp0)) {
       tmp1 = DOIT(SPLIT(tmp0)->obj0, 2);
       if (MORE(tmp1)) {
-	SPLIT(tmp1)->obj0 = echoObjectListSplit3(SPLIT(tmp1)->obj0, depth-1);
-	SPLIT(tmp1)->obj1 = echoObjectListSplit3(SPLIT(tmp1)->obj1, depth-1);
+	SPLIT(tmp1)->obj0 = echoListSplit3(SPLIT(tmp1)->obj0, depth-1);
+	SPLIT(tmp1)->obj1 = echoListSplit3(SPLIT(tmp1)->obj1, depth-1);
       }
       tmp1 = DOIT(SPLIT(tmp0)->obj1, 2);
       if (MORE(tmp1)) {
-	SPLIT(tmp1)->obj0 = echoObjectListSplit3(SPLIT(tmp1)->obj0, depth-1);
-	SPLIT(tmp1)->obj1 = echoObjectListSplit3(SPLIT(tmp1)->obj1, depth-1);
+	SPLIT(tmp1)->obj0 = echoListSplit3(SPLIT(tmp1)->obj0, depth-1);
+	SPLIT(tmp1)->obj1 = echoListSplit3(SPLIT(tmp1)->obj1, depth-1);
       }
     }
   }
@@ -645,20 +599,18 @@ _echoSetPos(echoPos_t *p3, echoPos_t *matx, echoPos_t *p4) {
 }
 
 EchoObject *
-echoObjectRoughSphere(int theRes, int phiRes, echoPos_t *matx) {
-  EchoObject *ret;
-  EchoObjectTriMesh *trim;
+echoRoughSphere(int theRes, int phiRes, echoPos_t *matx) {
+  EchoObject *trim;
   echoPos_t *_pos, *pos, tmp[3];
   int *_vert, *vert, thidx, phidx, n;
   echoPos_t th, ph;
 
-  ret = echoObjectNew(echoObjectTriMesh);
-  trim = TRIM(ret);
-  trim->numV = 2 + (phiRes-1)*theRes;
-  trim->numF = (2 + 2*(phiRes-2))*theRes;
+  trim = echoNew(echoTriMesh);
+  TRIM(trim)->numV = 2 + (phiRes-1)*theRes;
+  TRIM(trim)->numF = (2 + 2*(phiRes-2))*theRes;
 
-  _pos = pos = calloc(3*trim->numV, sizeof(echoPos_t));
-  _vert = vert = calloc(3*trim->numF, sizeof(int));
+  _pos = pos = calloc(3*TRIM(trim)->numV, sizeof(echoPos_t));
+  _vert = vert = calloc(3*TRIM(trim)->numF, sizeof(int));
 
   ELL_3V_SET(tmp, 0, 0, 1); _echoSetPos(pos, matx, tmp); pos += 3;
   for (phidx=1; phidx<phiRes; phidx++) {
@@ -686,114 +638,88 @@ echoObjectRoughSphere(int theRes, int phiRes, echoPos_t *matx) {
   }
   for (thidx=0; thidx<theRes; thidx++) {
     n = AIR_MOD(thidx+1, theRes);
-    ELL_3V_SET(vert, 1+(phiRes-2)*theRes+thidx, trim->numV-1,
+    ELL_3V_SET(vert, 1+(phiRes-2)*theRes+thidx, TRIM(trim)->numV-1,
 	       1+(phiRes-2)*theRes+n); 
     vert += 3;
   }
 
-  echoObjectTriMeshSet(ret, trim->numV, _pos, trim->numF, _vert);
-  
-  return(ret);
+  echoTriMeshSet(trim, TRIM(trim)->numV, _pos, TRIM(trim)->numF, _vert);
+  return(trim);
 }
 
 void
-echoObjectSphereSet(EchoObject *_sphere,
-		    echoPos_t x, echoPos_t y, echoPos_t z, echoPos_t rad) {
-  EchoObjectSphere *sphere;
+echoSphereSet(EchoObject *sphere,
+	      echoPos_t x, echoPos_t y, echoPos_t z, echoPos_t rad) {
 
-  if (_sphere && echoObjectSphere == _sphere->type) {
-    sphere = (EchoObjectSphere *)_sphere;
-    ELL_3V_SET(sphere->pos, x, y, z);
-    sphere->rad = rad;
+  if (sphere && echoSphere == sphere->type) {
+    ELL_3V_SET(SPHERE(sphere)->pos, x, y, z);
+    SPHERE(sphere)->rad = rad;
   }
   return;
 }
 
 void
-echoObjectRectangleSet(EchoObject *_rect,
-		       echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
-		       echoPos_t e0x, echoPos_t e0y, echoPos_t e0z,
-		       echoPos_t e1x, echoPos_t e1y, echoPos_t e1z) {
-  EchoObjectRectangle *rect;
+echoRectangleSet(EchoObject *rect,
+		 echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
+		 echoPos_t e0x, echoPos_t e0y, echoPos_t e0z,
+		 echoPos_t e1x, echoPos_t e1y, echoPos_t e1z) {
 
-  if (_rect && echoObjectRectangle == _rect->type) {
-    rect = (EchoObjectRectangle *)_rect;
-    ELL_3V_SET(rect->origin, ogx, ogy, ogz);
-    ELL_3V_SET(rect->edge0, e0x, e0y, e0z);
-    ELL_3V_SET(rect->edge1, e1x, e1y, e1z);
-    rect->area = ELL_3V_LEN(rect->edge0) * ELL_3V_LEN(rect->edge1);
+  if (rect && echoRectangle == rect->type) {
+    ELL_3V_SET(RECT(rect)->origin, ogx, ogy, ogz);
+    ELL_3V_SET(RECT(rect)->edge0, e0x, e0y, e0z);
+    ELL_3V_SET(RECT(rect)->edge1, e1x, e1y, e1z);
+    RECT(rect)->area = 
+      ELL_3V_LEN(RECT(rect)->edge0) * ELL_3V_LEN(RECT(rect)->edge1);
   }
   return;
 }
 		       
 void
-echoObjectTriangleSet(EchoObject *_tri,
-		      echoPos_t x0, echoPos_t y0, echoPos_t z0, 
-		      echoPos_t x1, echoPos_t y1, echoPos_t z1, 
-		      echoPos_t x2, echoPos_t y2, echoPos_t z2) {
-  EchoObjectTriangle *tri;
+echoTriangleSet(EchoObject *tri,
+		echoPos_t x0, echoPos_t y0, echoPos_t z0, 
+		echoPos_t x1, echoPos_t y1, echoPos_t z1, 
+		echoPos_t x2, echoPos_t y2, echoPos_t z2) {
 
-  if (_tri && echoObjectTriangle == _tri->type) {
-    tri = (EchoObjectTriangle *)_tri;
-    ELL_3V_SET(tri->vert[0], x0, y0, z0);
-    ELL_3V_SET(tri->vert[1], x1, y1, z1);
-    ELL_3V_SET(tri->vert[2], x2, y2, z2);
+  if (tri && echoTriangle == tri->type) {
+    ELL_3V_SET(TRI(tri)->vert[0], x0, y0, z0);
+    ELL_3V_SET(TRI(tri)->vert[1], x1, y1, z1);
+    ELL_3V_SET(TRI(tri)->vert[2], x2, y2, z2);
   }
   return;
 }
 
 void
-echoObjectTriMeshSet(EchoObject *_trim,
-		     int numV, echoPos_t *pos,
-		     int numF, int *vert) {
-  EchoObjectTriMesh *trim;
+echoTriMeshSet(EchoObject *trim,
+	       int numV, echoPos_t *pos,
+	       int numF, int *vert) {
   int i;
 
-  if (_trim && echoObjectTriMesh == _trim->type) {
-    trim = TRIM(_trim);
-    trim->numV = numV;
-    trim->pos = pos;
-    trim->numF = numF;
-    trim->vert = vert;
-    ELL_3V_SET(trim->min, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
-    ELL_3V_SET(trim->max, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
-    ELL_3V_SET(trim->origin, 0.0, 0.0, 0.0);
+  if (trim && echoTriMesh == trim->type) {
+    TRIM(trim)->numV = numV;
+    TRIM(trim)->pos = pos;
+    TRIM(trim)->numF = numF;
+    TRIM(trim)->vert = vert;
+    ELL_3V_SET(TRIM(trim)->min, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
+    ELL_3V_SET(TRIM(trim)->max, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
+    ELL_3V_SET(TRIM(trim)->origin, 0.0, 0.0, 0.0);
     for (i=0; i<numV; i++) {
-      ELL_3V_MIN(trim->min, trim->min, pos + 3*i);
-      ELL_3V_MAX(trim->max, trim->max, pos + 3*i);
-      ELL_3V_ADD(trim->origin, trim->origin, pos + 3*i);
+      ELL_3V_MIN(TRIM(trim)->min, TRIM(trim)->min, pos + 3*i);
+      ELL_3V_MAX(TRIM(trim)->max, TRIM(trim)->max, pos + 3*i);
+      ELL_3V_ADD(TRIM(trim)->origin, TRIM(trim)->origin, pos + 3*i);
     }
-    ELL_3V_SCALE(trim->origin, 1.0/numV, trim->origin);
+    ELL_3V_SCALE(TRIM(trim)->origin, 1.0/numV, TRIM(trim)->origin);
   }
   return;
 }
 
 void
-echoObjectInstanceSet(EchoObject *_inst,
-		      echoPos_t *M, EchoObject *obj, int own) {
-  EchoObjectInstance *inst;
+echoInstanceSet(EchoObject *inst,
+		echoPos_t *M, EchoObject *obj, int own) {
   
-  if (_inst && echoObjectInstance == _inst->type) {
-    inst = INSTANCE(_inst);
-    ell4mInvert_p(inst->Mi, M);
-    ELL_4M_COPY(inst->M, M);
-    inst->obj = obj;
-    inst->own = own;
+  if (inst && echoInstance == inst->type) {
+    ell4mInvert_p(INST(inst)->Mi, M);
+    ELL_4M_COPY(INST(inst)->M, M);
+    INST(inst)->obj = obj;
+    INST(inst)->own = own;
   }
 }
-
-
-/*		       
-  echoObjectUnknown,
-  echoObjectSphere,   
-  echoObjectCube,     
-  echoObjectTriangle, 
-  echoObjectRectangle,
-  echoObjectTriMesh,   
-  echoObjectIsosurface,
-  echoObjectAABBox,    
-  echoObjectList,      
-  echoObjectInstance,  
-  echoObjectLast
-*/
-

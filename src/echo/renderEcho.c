@@ -207,7 +207,7 @@ echoCheck(Nrrd *nraw, limnCam *cam,
     sprintf(err, "%s: camera trouble", me);
     biffMove(ECHO, err, LIMN); return 1;
   }
-  if (!airEnumValidVal(echoJitter, parm->jitter)) {
+  if (!airEnumValidVal(echoJitter_ae, parm->jitter)) {
     sprintf(err, "%s: jitter method (%d) invalid", me, parm->jitter);
     biffAdd(ECHO, err); return 1;
   }
@@ -224,9 +224,9 @@ echoCheck(Nrrd *nraw, limnCam *cam,
     sprintf(err, "%s: aperture doesn't exist", me);
     biffAdd(ECHO, err); return 1;
   }
-  if (!echoObjectIsContainer(scene)) {
+  if (!echoIsContainer(scene)) {
     sprintf(err, "%s: can only render a container object (not a %s)",
-	    me, airEnumStr(echoObject, scene->type));
+	    me, airEnumStr(echoObject_ae, scene->type));
     biffAdd(ECHO, err); return 1;
   }
 
@@ -239,7 +239,7 @@ echoCheck(Nrrd *nraw, limnCam *cam,
     tmp = sqrt(parm->samples);
     if (tmp*tmp != parm->samples) {
       sprintf(err, "%s: need a square # samples for %s jitter method (not %d)",
-	      me, airEnumStr(echoJitter, parm->jitter), parm->samples);
+	      me, airEnumStr(echoJitter_ae, parm->jitter), parm->samples);
       biffAdd(ECHO, err); return 1;
     }
     break;

@@ -57,7 +57,7 @@ makeSceneDOF(limnCam *cam, EchoParm *parm,
   EchoObject *scene, *rect;
   Nrrd *ntext;
 
-  *sceneP = scene = echoObjectNew(echoObjectList);
+  *sceneP = scene = echoNew(echoList);
   *lightArrP = echoLightArrayNew();
 
   ELL_3V_SET(cam->from, 5, -5, 15);
@@ -86,35 +86,35 @@ makeSceneDOF(limnCam *cam, EchoParm *parm,
 
   nrrdLoad(ntext = nrrdNew(), "psq.nrrd");
 
-  rect = echoObjectNew(echoObjectRectangle);
-  echoObjectRectangleSet(rect,
+  rect = echoNew(echoRectangle);
+  echoRectangleSet(rect,
 			 -0.5, -2.5, -3,
 			 3, 0, 0,
 			 0, 3, 0);
   echoMatterPhongSet(rect, 1, 0.5, 0.5, 1.0,
 		     1.0, 0.0, 0.0, 1);
   echoMatterTextureSet(rect, ntext);
-  echoObjectListAdd(scene, rect);
+  echoListAdd(scene, rect);
 
-  rect = echoObjectNew(echoObjectRectangle);
-  echoObjectRectangleSet(rect,
+  rect = echoNew(echoRectangle);
+  echoRectangleSet(rect,
 			 -1.5, -1.5, 0,
 			 3, 0, 0,
 			 0, 3, 0);
   echoMatterPhongSet(rect, 0.5, 1, 0.5, 1.0,
 		     1.0, 0.0, 0.0, 1);
   echoMatterTextureSet(rect, ntext);
-  echoObjectListAdd(scene, rect);
+  echoListAdd(scene, rect);
 
-  rect = echoObjectNew(echoObjectRectangle);
-  echoObjectRectangleSet(rect,
+  rect = echoNew(echoRectangle);
+  echoRectangleSet(rect,
 			 -2.5, -0.5, 3,
 			 3, 0, 0,
 			 0, 3, 0);
   echoMatterPhongSet(rect, 0.5, 0.5, 1, 1.0,
 		     1.0, 0.0, 0.0, 1);
   echoMatterTextureSet(rect, ntext);
-  echoObjectListAdd(scene, rect);
+  echoListAdd(scene, rect);
 
   return;
 }
@@ -126,7 +126,7 @@ makeSceneAntialias(limnCam *cam, EchoParm *parm,
   EchoObject *scene, *rect;
   Nrrd *ntext;
 
-  *sceneP = scene = echoObjectNew(echoObjectList);
+  *sceneP = scene = echoNew(echoList);
   *lightArrP = echoLightArrayNew();
 
   ELL_3V_SET(cam->from, 0, 0, 10);
@@ -151,15 +151,15 @@ makeSceneAntialias(limnCam *cam, EchoParm *parm,
   parm->shadow = AIR_TRUE;
 
   nrrdLoad(ntext = nrrdNew(), "chirp.nrrd");
-  rect = echoObjectNew(echoObjectRectangle);
-  echoObjectRectangleSet(rect,
+  rect = echoNew(echoRectangle);
+  echoRectangleSet(rect,
 			 -3, -3, 0,
 			 6, 0, 0,
 			 0, 6, 0);
   echoMatterPhongSet(rect, 1, 1, 1, 1.0,
 		     1.0, 0.0, 0.0, 1);
   echoMatterTextureSet(rect, ntext);
-  echoObjectListAdd(scene, rect);
+  echoListAdd(scene, rect);
 
   return;
 }
@@ -171,7 +171,7 @@ makeSceneSimple(limnCam *cam, EchoParm *parm,
   EchoLight *light;
   airArray *lightArr;
 
-  *sceneP = scene = echoObjectNew(echoObjectList);
+  *sceneP = scene = echoNew(echoList);
   *lightArrP = lightArr = echoLightArrayNew();
 
   ELL_3V_SET(cam->from, 5, -5, 9);
@@ -195,67 +195,67 @@ makeSceneSimple(limnCam *cam, EchoParm *parm,
   parm->maxRecDepth = 10;
   parm->shadow = AIR_TRUE;
 
-  rect = echoObjectNew(echoObjectRectangle);
-  echoObjectRectangleSet(rect,
+  rect = echoNew(echoRectangle);
+  echoRectangleSet(rect,
 			 -3, -3, -2,
 			 6, 0, 0,
 			 0, 6, 0);
   echoMatterPhongSet(rect, 1, 1, 1, 1.0,
 		     0.1, 0.5, 0.9, 50);
-  echoObjectListAdd(scene, rect);
+  echoListAdd(scene, rect);
 
-  sphere = echoObjectNew(echoObjectSphere);
-  echoObjectSphereSet(sphere, 0, 0, 0, 1.7);
+  sphere = echoNew(echoSphere);
+  echoSphereSet(sphere, 0, 0, 0, 1.7);
   echoMatterPhongSet(sphere, 1, 0.7, 1, 1.0,
 		     0.0, 0.5, 0.9, 90);
-  echoObjectListAdd(scene, sphere);
+  echoListAdd(scene, sphere);
 
-  tri = echoObjectNew(echoObjectTriangle);
-  echoObjectTriangleSet(tri,
+  tri = echoNew(echoTriangle);
+  echoTriangleSet(tri,
 			0.1, 0.1, 2,
 			2, 2, 2,
 			0, 2, 2);
   echoMatterPhongSet(tri, 1, 0.2, 0.2, 1.0,
 		     0.4, 0.6, 0.0, 90);
-  echoObjectListAdd(scene, tri);
+  echoListAdd(scene, tri);
 
-  tri = echoObjectNew(echoObjectTriangle);
-  echoObjectTriangleSet(tri,
+  tri = echoNew(echoTriangle);
+  echoTriangleSet(tri,
 			-0.1, 0.1, 2,
 			-2, 2, 2,
 			-2, 0, 2);
   echoMatterPhongSet(tri, 0.2, 1.0, 0.2, 1.0,
 		     0.4, 0.6, 0.0, 90);
-  echoObjectListAdd(scene, tri);
+  echoListAdd(scene, tri);
 
-  tri = echoObjectNew(echoObjectTriangle);
-  echoObjectTriangleSet(tri,
+  tri = echoNew(echoTriangle);
+  echoTriangleSet(tri,
 			-0.1, -0.1, 2,
 			-2, -2, 2,
 			0, -2, 2);
   echoMatterPhongSet(tri, 0.2, 0.2, 1.0, 1.0,
 		     0.4, 0.6, 0.0, 90);
-  echoObjectListAdd(scene, tri);
+  echoListAdd(scene, tri);
 
   /*
 
   ELL_4M_SET_SCALE(matx, 3, 3, 3);
-  trim = echoObjectRoughSphere(80, 40, matx);
+  trim = echoRoughSphere(80, 40, matx);
   echoMatterPhongSet(trim, 1, 1, 1, 1.0,
 		     0.1, 0.5, 0.9, 50);
   echoMatterTextureSet(trim, ntext);
-  echoObjectListAdd(scene, trim);
+  echoListAdd(scene, trim);
   */
 
   
-  rect = echoObjectNew(echoObjectRectangle);
-  echoObjectRectangleSet(rect,
+  rect = echoNew(echoRectangle);
+  echoRectangleSet(rect,
 			 -0.4, -0.4, 6,
 			 0.8, 0.0, 0,
 			 0.0, 0.8, 0);
   parm->refDistance = 2;
   echoMatterLightSet(rect, 0.25, 0.25, 0.25);
-  echoObjectListAdd(scene, rect);
+  echoListAdd(scene, rect);
   light = echoLightNew(echoLightArea);
   echoLightAreaSet(light, rect);
   echoLightArrayAdd(lightArr, light);
@@ -271,7 +271,7 @@ makeSceneTexture(limnCam *cam, EchoParm *parm,
   airArray *lightArr;
   Nrrd *ntext;
 
-  *sceneP = scene = echoObjectNew(echoObjectList);
+  *sceneP = scene = echoNew(echoList);
   *lightArrP = lightArr = echoLightArrayNew();
 
   ELL_3V_SET(cam->from, 9, 9, 11);
@@ -296,44 +296,44 @@ makeSceneTexture(limnCam *cam, EchoParm *parm,
   parm->shadow = AIR_TRUE;
 
 
-  rect = echoObjectNew(echoObjectRectangle);
-  echoObjectRectangleSet(rect,
+  rect = echoNew(echoRectangle);
+  echoRectangleSet(rect,
 			 -2, -2, 0,
 			 4, 0, 0,
 			 0, 4, 0);
   echoMatterPhongSet(rect, 1, 1, 1, 1.0,
 		     0.1, 0.5, 0.9, 50);
-  echoObjectListAdd(scene, rect);
+  echoListAdd(scene, rect);
 
   nrrdLoad(ntext=nrrdNew(), "home.nrrd");
   echoMatterTextureSet(rect, ntext);
 
-  sphere = echoObjectNew(echoObjectSphere);
-  echoObjectSphereSet(sphere, 0, 0, 0, 3);
+  sphere = echoNew(echoSphere);
+  echoSphereSet(sphere, 0, 0, 0, 3);
   echoMatterPhongSet(sphere, 1, 1, 1, 1.0,
 		     0.1, 0.5, 0.9, 50);
   echoMatterTextureSet(sphere, ntext);
-  echoObjectListAdd(scene, sphere);
+  echoListAdd(scene, sphere);
 
   /*
 
   ELL_4M_SET_SCALE(matx, 3, 3, 3);
-  trim = echoObjectRoughSphere(80, 40, matx);
+  trim = echoRoughSphere(80, 40, matx);
   echoMatterPhongSet(trim, 1, 1, 1, 1.0,
 		     0.1, 0.5, 0.9, 50);
   echoMatterTextureSet(trim, ntext);
-  echoObjectListAdd(scene, trim);
+  echoListAdd(scene, trim);
   */
 
   
-  rect = echoObjectNew(echoObjectRectangle);
-  echoObjectRectangleSet(rect,
+  rect = echoNew(echoRectangle);
+  echoRectangleSet(rect,
 			 0, 0, 6,
 			 0, 2, 0,
 			 0, 0, 2);
   parm->refDistance = 0.5;
   echoMatterLightSet(rect, 1, 1, 1);
-  echoObjectListAdd(scene, rect);
+  echoListAdd(scene, rect);
   light = echoLightNew(echoLightArea);
   echoLightAreaSet(light, rect);
   echoLightArrayAdd(lightArr, light);
@@ -349,7 +349,7 @@ makeSceneInstance(limnCam *cam, EchoParm *parm,
   airArray *lightArr;
   echoPos_t matx[16], A[16], B[16];
   
-  *sceneP = scene = echoObjectNew(echoObjectList);
+  *sceneP = scene = echoNew(echoList);
   *lightArrP = lightArr = echoLightArrayNew();
 
   ELL_3V_SET(cam->from, 9*1.3, 9*1.3, 11*1.3);
@@ -387,59 +387,59 @@ makeSceneInstance(limnCam *cam, EchoParm *parm,
   ELL_4M_MUL(A, B, matx); ELL_4M_COPY(matx, A);
 
 
-  /* trim = echoObjectRoughSphere(50, 25, matx); */
+  /* trim = echoRoughSphere(50, 25, matx); */
   /*
-  trim = echoObjectRoughSphere(8, 4, matx);
+  trim = echoRoughSphere(8, 4, matx);
   echoMatterGlassSet(trim, 0.8, 0.8, 0.8,
 		     1.3, 0.0, 0.0);
   echoMatterPhongSet(trim, 1, 1, 1, 1.0,
 		     0.1, 0.5, 0.9, 50);
-  echoObjectListAdd(scene, trim);
+  echoListAdd(scene, trim);
   */
 
-  trim = echoObjectNew(echoObjectSphere);
-  echoObjectSphereSet(trim, 0, 0, 0, 1);
+  trim = echoNew(echoSphere);
+  echoSphereSet(trim, 0, 0, 0, 1);
   echoMatterGlassSet(trim, 0.8, 0.8, 0.8,
 		     1.3, 0.0, 0.0);
   echoMatterPhongSet(trim, 1, 1, 1, 1.0,
 		     0.1, 0.5, 0.9, 50);
-  inst = echoObjectNew(echoObjectInstance);
-  echoObjectInstanceSet(inst, matx, trim, AIR_TRUE);
-  echoObjectListAdd(scene, inst);
+  inst = echoNew(echoInstance);
+  echoInstanceSet(inst, matx, trim, AIR_TRUE);
+  echoListAdd(scene, inst);
 
-  rect = echoObjectNew(echoObjectRectangle);
-  echoObjectRectangleSet(rect,
+  rect = echoNew(echoRectangle);
+  echoRectangleSet(rect,
 			 -3.5, -3.5, -3.5,
 			 7, 0, 0,
 			 0, 7, 0);
   echoMatterPhongSet(rect, 1.0, 1.0, 1.0, 1.0,
 		     0.1, 0.5, 0.9, 50);
-  echoObjectListAdd(scene, rect);
-  rect = echoObjectNew(echoObjectRectangle);
-  echoObjectRectangleSet(rect,
+  echoListAdd(scene, rect);
+  rect = echoNew(echoRectangle);
+  echoRectangleSet(rect,
 			 -3.5, -3.5, -3.5,
 			 0, 7, 0,
 			 0, 0, 7);
   echoMatterPhongSet(rect, 1.0, 1.0, 1.0, 1.0,
 		     0.1, 0.5, 0.9, 50);
-  echoObjectListAdd(scene, rect);
+  echoListAdd(scene, rect);
   /*
-  rect = echoObjectNew(echoObjectRectangle);
-  echoObjectRectangleSet(rect,
+  rect = echoNew(echoRectangle);
+  echoRectangleSet(rect,
 			 -3.5, -3.5, -3.5,
 			 0, 0, 7,
 			 7, 0, 0);
   */
-  rect = echoObjectNew(echoObjectSphere);
-  echoObjectSphereSet(rect, 0, 0, 0, 1);
+  rect = echoNew(echoSphere);
+  echoSphereSet(rect, 0, 0, 0, 1);
   echoMatterPhongSet(rect, 1.0, 1.0, 1.0, 1.0,
 		     0.1, 0.5, 0.9, 50);
-  inst = echoObjectNew(echoObjectInstance);
+  inst = echoNew(echoInstance);
   ELL_4M_SET_SCALE(A, 20, 20, 20);
   ELL_4M_SET_TRANSLATE(B, 0, -(20+3.5), 0);
   ELL_4M_MUL(matx, B, A);
-  echoObjectInstanceSet(inst, matx, rect, AIR_TRUE);
-  echoObjectListAdd(scene, inst);
+  echoInstanceSet(inst, matx, rect, AIR_TRUE);
+  echoListAdd(scene, inst);
   
 
   light = echoLightNew(echoLightDirectional);
@@ -465,7 +465,7 @@ makeSceneBVH(limnCam *cam, EchoParm *parm,
   EchoObject *scene;
   double time0, time1;
   
-  *sceneP = scene = echoObjectNew(echoObjectList);
+  *sceneP = scene = echoNew(echoList);
   *lightArrP = echoLightArrayNew();
 
   ELL_3V_SET(cam->from, 9, 6, 0);
@@ -494,8 +494,8 @@ makeSceneBVH(limnCam *cam, EchoParm *parm,
   /* airSrand(); */
   airArraySetLen(LIST(scene)->objArr, N);
   for (i=0; i<N; i++) {
-    sphere = echoObjectNew(echoObjectSphere);
-    echoObjectSphereSet(sphere,
+    sphere = echoNew(echoSphere);
+    echoSphereSet(sphere,
 			4*airRand()-2, 4*airRand()-2, 4*airRand()-2, 0.005);
     _dyeHSVtoRGB(&r, &g, &b, AIR_AFFINE(0, i, N, 0.0, 1.0), 1.0, 1.0);
     echoMatterPhongSet(sphere, r, g, b, 1.0,
@@ -504,7 +504,7 @@ makeSceneBVH(limnCam *cam, EchoParm *parm,
   }
 
   time0 = airTime();
-  *sceneP = scene = echoObjectListSplit3(scene, 8);
+  *sceneP = scene = echoListSplit3(scene, 8);
   time1 = airTime();
   printf("BVH build time = %g seconds\n", time1 - time0);
 }
@@ -517,7 +517,7 @@ makeSceneGlass(limnCam *cam, EchoParm *parm,
   EchoObject *scene; airArray *lightArr;
   Nrrd *ntext;
   
-  *sceneP = scene = echoObjectNew(echoObjectList);
+  *sceneP = scene = echoNew(echoList);
   *lightArrP = lightArr = echoLightArrayNew();
 
   ELL_3V_SET(cam->from, 2, -3, 8);
@@ -544,25 +544,25 @@ makeSceneGlass(limnCam *cam, EchoParm *parm,
   parm->mrG = 0.0;
   parm->mrB = 1.0;
 
-  cube = echoObjectNew(echoObjectCube);
+  cube = echoNew(echoCube);
   printf("cube = %p\n", cube);
   echoMatterGlassSet(cube,
 		     1.0, 1.0, 1.0,
 		     1.5, 0.0, 0.0);
-  echoObjectListAdd(scene, cube);
+  echoListAdd(scene, cube);
 
   nrrdLoad(ntext=nrrdNew(), "psq.nrrd");
   
-  rect = echoObjectNew(echoObjectRectangle);
+  rect = echoNew(echoRectangle);
   printf("rect = %p\n", rect);
-  echoObjectRectangleSet(rect,
+  echoRectangleSet(rect,
 			 -1, -1, -0.51,
 			 2, 0, 0,
 			 0, 2, 0);
   echoMatterPhongSet(rect, 1.0, 1.0, 1.0, 1.0,
 		     0.1, 0.6, 0.3, 40);
   echoMatterTextureSet(rect, ntext);
-  echoObjectListAdd(scene, rect);
+  echoListAdd(scene, rect);
 
   light = echoLightNew(echoLightDirectional);
   echoLightDirectionalSet(light, 1, 1, 1, 0, 0, 1);
@@ -578,7 +578,7 @@ makeSceneGlass2(limnCam *cam, EchoParm *parm,
   Nrrd *ntext;
   echoPos_t matx[16];
   
-  *sceneP = scene = echoObjectNew(echoObjectList);
+  *sceneP = scene = echoNew(echoList);
   *lightArrP = lightArr = echoLightArrayNew();
 
   ELL_3V_SET(cam->from, 0, 0, 100);
@@ -606,28 +606,28 @@ makeSceneGlass2(limnCam *cam, EchoParm *parm,
   parm->mrB = 1.0;
 
   ELL_4M_SET_SCALE(matx, 0.5, 0.5, 0.5);
-  cube = echoObjectRoughSphere(80, 40, matx);
+  cube = echoRoughSphere(80, 40, matx);
   /*
-  cube = echoObjectNew(echoObjectSphere);
-  echoObjectSphereSet(cube, 0, 0, 0, 0.5);
+  cube = echoNew(echoSphere);
+  echoSphereSet(cube, 0, 0, 0, 0.5);
   */
   echoMatterGlassSet(cube,
 		     1.0, 1.0, 1.0,
 		     1.33333, 0.0, 0.0);
-  echoObjectListAdd(scene, cube);
+  echoListAdd(scene, cube);
 
   nrrdLoad(ntext=nrrdNew(), "check.nrrd");
   
-  rect = echoObjectNew(echoObjectRectangle);
+  rect = echoNew(echoRectangle);
   printf("rect = %p\n", rect);
-  echoObjectRectangleSet(rect,
+  echoRectangleSet(rect,
 			 -1, -1, -0.51,
 			 2, 0, 0,
 			 0, 2, 0);
   echoMatterPhongSet(rect, 1.0, 1.0, 1.0, 1.0,
 		     0.0, 1.0, 0.0, 40);
   echoMatterTextureSet(rect, ntext);
-  echoObjectListAdd(scene, rect);
+  echoListAdd(scene, rect);
 
   light = echoLightNew(echoLightDirectional);
   echoLightDirectionalSet(light, 1, 1, 1, 0, 0, 1);
@@ -641,7 +641,7 @@ makeSceneGlassMetal(limnCam *cam, EchoParm *parm,
   EchoLight *light;
   EchoObject *scene; airArray *lightArr;
   
-  *sceneP = scene = echoObjectNew(echoObjectList);
+  *sceneP = scene = echoNew(echoList);
   *lightArrP = lightArr = echoLightArrayNew();
 
   ELL_3V_SET(cam->from, 3, 0, 6);
@@ -667,27 +667,27 @@ makeSceneGlassMetal(limnCam *cam, EchoParm *parm,
   parm->seedRand = AIR_FALSE;
 
   /* create scene */
-  sphere = echoObjectNew(echoObjectSphere);
-  echoObjectSphereSet(sphere, 0.70, -0.3, -0.4, 0.1);
+  sphere = echoNew(echoSphere);
+  echoSphereSet(sphere, 0.70, -0.3, -0.4, 0.1);
   echoMatterPhongSet(sphere, 1, 0, 0, 1.0,
 		     0.1, 0.6, 0.3, 80);
-  echoObjectListAdd(scene, sphere);
+  echoListAdd(scene, sphere);
 
-  sphere = echoObjectNew(echoObjectSphere);
-  echoObjectSphereSet(sphere, 0.66, 0.0, -0.4, 0.1);
+  sphere = echoNew(echoSphere);
+  echoSphereSet(sphere, 0.66, 0.0, -0.4, 0.1);
   echoMatterPhongSet(sphere, 0, 1, 0, 1.0,
 		     0.1, 0.6, 0.3, 80);
   echoMatterGlassSet(sphere, 0, 1, 0,
 		     1.5, 0.0, 0.0);
-  echoObjectListAdd(scene, sphere);
+  echoListAdd(scene, sphere);
 
-  sphere = echoObjectNew(echoObjectSphere);
-  echoObjectSphereSet(sphere, 0.62, 0.3, -0.4, 0.1);
+  sphere = echoNew(echoSphere);
+  echoSphereSet(sphere, 0.62, 0.3, -0.4, 0.1);
   echoMatterPhongSet(sphere, 0, 0, 1, 1.0,
 		     0.1, 0.6, 0.3, 80);
-  echoObjectListAdd(scene, sphere);
+  echoListAdd(scene, sphere);
 
-  cube = echoObjectNew(echoObjectCube);
+  cube = echoNew(echoCube);
   echoMatterPhongSet(cube, 0.5, 1, 1, 1.0,
 		     0.1, 0.6, 0.3, 40);
   echoMatterGlassSet(cube,
@@ -696,36 +696,36 @@ makeSceneGlassMetal(limnCam *cam, EchoParm *parm,
   echoMatterMetalSet(cube,
 		     1.0, 1.0, 1.0,
 		     0.5, 0.3, 0.11);
-  echoObjectListAdd(scene, cube);
+  echoListAdd(scene, cube);
 
-  rect = echoObjectNew(echoObjectRectangle);
-  echoObjectRectangleSet(rect,
+  rect = echoNew(echoRectangle);
+  echoRectangleSet(rect,
 			 -2, -2, -1.5,
 			 3, 0, 0,
 			 0, 4, 0);
   echoMatterPhongSet(rect, 1.0, 1.0, 1.0, 1.0,
 		     0.1, 0.6, 0.3, 40);
-  echoObjectListAdd(scene, rect);
+  echoListAdd(scene, rect);
 
-  rect = echoObjectNew(echoObjectRectangle);
-  echoObjectRectangleSet(rect,
+  rect = echoNew(echoRectangle);
+  echoRectangleSet(rect,
 			 1.0, 0.2, 4,
 			 0.2, 0, 0,
 			 0, 0.2, 0);
   echoMatterLightSet(rect, 1, 1, 1);
-  echoObjectListAdd(scene, rect);
+  echoListAdd(scene, rect);
   light = echoLightNew(echoLightArea);
   echoLightAreaSet(light, rect);
   echoLightArrayAdd(lightArr, light);
 
   /*
-  rect = echoObjectNew(echoObjectRectangle);
-  echoObjectRectangleSet(rect,
+  rect = echoNew(echoRectangle);
+  echoRectangleSet(rect,
 			 4.5, -1, -4,
 			 0.0, 2, 0.0,
 			 0.0, 0.0, 2);
   echoMatterLightSet(rect, 0.02, 0.02, 0);
-  echoObjectListAdd(scene, rect);
+  echoListAdd(scene, rect);
   light = echoLightNew(echoLightArea);
   echoLightAreaSet(light, rect);
   echoLightArrayAdd(lightArr, light);
@@ -741,7 +741,7 @@ makeSceneShadow(limnCam *cam, EchoParm *parm,
   EchoLight *light;
   EchoObject *scene; airArray *lightArr;
 
-  *sceneP = scene = echoObjectNew(echoObjectList);
+  *sceneP = scene = echoNew(echoList);
   *lightArrP = lightArr = echoLightArrayNew();
 
   ELL_3V_SET(cam->from, 2, 0, 20);
@@ -763,49 +763,49 @@ makeSceneShadow(limnCam *cam, EchoParm *parm,
   parm->renderLights = AIR_TRUE;
 
   /* create scene */
-  sphere = echoObjectNew(echoObjectSphere);
-  echoObjectSphereSet(sphere, 0, -1, -1, 0.2);
+  sphere = echoNew(echoSphere);
+  echoSphereSet(sphere, 0, -1, -1, 0.2);
   echoMatterPhongSet(sphere, 0.5, 0.5, 1, 1.0,
 		     0.1, 0.6, 0.3, 40);
-  echoObjectListAdd(scene, sphere);
+  echoListAdd(scene, sphere);
 
-  sphere = echoObjectNew(echoObjectSphere);
-  echoObjectSphereSet(sphere, 0, 1, -1, 0.2);
+  sphere = echoNew(echoSphere);
+  echoSphereSet(sphere, 0, 1, -1, 0.2);
   echoMatterPhongSet(sphere, 1, 0.5, 0.5, 1.0,
 		     0.1, 0.6, 0.3, 40);
-  echoObjectListAdd(scene, sphere);
+  echoListAdd(scene, sphere);
 
-  sphere = echoObjectNew(echoObjectSphere);
-  echoObjectSphereSet(sphere, 0, 0, 1, 0.2);
+  sphere = echoNew(echoSphere);
+  echoSphereSet(sphere, 0, 0, 1, 0.2);
   echoMatterPhongSet(sphere, 0.5, 1, 0.5, 1.0,
 		     0.1, 0.6, 0.3, 40);
-  echoObjectListAdd(scene, sphere);
+  echoListAdd(scene, sphere);
 
-  tri = echoObjectNew(echoObjectTriangle);
-  echoObjectTriangleSet(tri,
+  tri = echoNew(echoTriangle);
+  echoTriangleSet(tri,
 			0, -1, -1,
 			0, 1, -1,
 			0, 0, 1);
   echoMatterPhongSet(tri, 1, 1, 0, 1.0,
 		     0.1, 0.6, 0.3, 40);
-  echoObjectListAdd(scene, tri);
+  echoListAdd(scene, tri);
   
   /*
-  sphere = echoObjectNew(echoObjectSphere);
-  echoObjectSphereSet(sphere, 0, 0, -1002, 1000);
+  sphere = echoNew(echoSphere);
+  echoSphereSet(sphere, 0, 0, -1002, 1000);
   echoMatterPhongSet(sphere, 1.0, 0.8, 1.0, 1.0,
 		     0.1, 0.5, 0.5, 200);
-  echoObjectListAdd(scene, sphere);
+  echoListAdd(scene, sphere);
   */
 
-  rect = echoObjectNew(echoObjectRectangle);
-  echoObjectRectangleSet(rect,
+  rect = echoNew(echoRectangle);
+  echoRectangleSet(rect,
 			 1.7, 1.7, -2,
 			 -3.4, 0, 0,
 			 0, -3.4, 0);
   echoMatterPhongSet(rect, 1.0, 0.8, 1.0, 1.0,
 		     0.1, 0.3, 0.7, 300);
-  echoObjectListAdd(scene, rect);
+  echoListAdd(scene, rect);
 
 
   /*
@@ -814,13 +814,13 @@ makeSceneShadow(limnCam *cam, EchoParm *parm,
   echoLightArrayAdd(lightArr, light);
   */
 
-  rect = echoObjectNew(echoObjectRectangle);
-  echoObjectRectangleSet(rect,
+  rect = echoNew(echoRectangle);
+  echoRectangleSet(rect,
 			 1.0, 0.2, 4,
 			 0.2, 0, 0,
 			 0, 0.2, 0);
   echoMatterLightSet(rect, 1, 1, 1);
-  echoObjectListAdd(scene, rect);
+  echoListAdd(scene, rect);
   light = echoLightNew(echoLightArea);
   echoLightAreaSet(light, rect);
   echoLightArrayAdd(lightArr, light);
@@ -837,7 +837,7 @@ makeSceneRainLights(limnCam *cam, EchoParm *parm,
   float r, g, b;
   EchoObject *scene; airArray *lightArr;
 
-  *sceneP = scene = echoObjectNew(echoObjectList);
+  *sceneP = scene = echoNew(echoList);
   *lightArrP = lightArr = echoLightArrayNew();
 
   ELL_3V_SET(cam->from, 2, 0, 4);
@@ -866,24 +866,24 @@ makeSceneRainLights(limnCam *cam, EchoParm *parm,
   parm->bgB = 0.1;
 
   /* create scene */
-  sphere = echoObjectNew(echoObjectSphere);
-  echoObjectSphereSet(sphere, 0, 0, 0, 1.0);
+  sphere = echoNew(echoSphere);
+  echoSphereSet(sphere, 0, 0, 0, 1.0);
   echoMatterPhongSet(sphere, 1.0, 1.0, 1.0, 1.0,
 		     0.02, 0.2, 1.0, 400);
-  echoObjectListAdd(scene, sphere);
+  echoListAdd(scene, sphere);
 
   N = 8;
   w = 1.7/N;
 
   for (i=0; i<N; i++) {
-    rect = echoObjectNew(echoObjectRectangle);
-    echoObjectRectangleSet(rect,
+    rect = echoNew(echoRectangle);
+    echoRectangleSet(rect,
 			   w/2, AIR_AFFINE(0, i, N-1, -1-w/2, 1-w/2), 1.5,
 			   0, w, 0,
 			   w, 0, 0);
     _dyeHSVtoRGB(&r, &g, &b, AIR_AFFINE(0, i, N, 0.0, 1.0), 1.0, 1.0);
     echoMatterLightSet(rect, r, g, b);
-    echoObjectListAdd(scene, rect);
+    echoListAdd(scene, rect);
     light = echoLightNew(echoLightArea);
     echoLightAreaSet(light, rect);
     echoLightArrayAdd(lightArr, light);
@@ -893,7 +893,7 @@ makeSceneRainLights(limnCam *cam, EchoParm *parm,
 
 int
 main(int argc, char **argv) {
-  Nrrd *nraw, *nimg, *nppm, *ntmp, *npgm;
+  Nrrd *nraw, *nimg, *nppm, *ntmp, *ntmp2, *npgm;
   limnCam *cam;
   EchoParm *parm;
   EchoGlobalState *state;
@@ -942,9 +942,9 @@ main(int argc, char **argv) {
   airMopAdd(mop, npgm, (airMopper)nrrdNuke, airMopAlways);
 
   /* makeSceneRainLights(cam, parm, &scene, &lightArr); */
-  /* makeSceneShadow(cam, parm, &scene, &lightArr); */
+  makeSceneShadow(cam, parm, &scene, &lightArr);
   /* makeSceneGlass(cam, parm, &scene, &lightArr); */
-  makeSceneGlass2(cam, parm, &scene, &lightArr);
+  /* makeSceneGlass2(cam, parm, &scene, &lightArr); */
   /* makeSceneGlassMetal(cam, parm, &scene, &lightArr); */
   /* makeSceneBVH(cam, parm, &scene, &lightArr); */
   /* makeSceneInstance(cam, parm, &scene, &lightArr); */
@@ -952,7 +952,7 @@ main(int argc, char **argv) {
   /* makeSceneSimple(cam, parm, &scene, &lightArr); */
   /* makeSceneAntialias(cam, parm, &scene, &lightArr); */
   /* makeSceneDOF(cam, parm, &scene, &lightArr); */
-  airMopAdd(mop, scene, (airMopper)echoObjectNuke, airMopAlways);
+  airMopAdd(mop, scene, (airMopper)echoNuke, airMopAlways);
   airMopAdd(mop, lightArr, (airMopper)echoLightArrayNix, airMopAlways);
 
   E = 0;
@@ -973,8 +973,8 @@ main(int argc, char **argv) {
   if (!E) E |= nrrdQuantize(npgm, ntmp, 8);
   if (!E) E |= nrrdSave("alpha.pgm", npgm, NULL);
   if (!E) E |= nrrdSlice(ntmp, nraw, 0, 4);
-  if (!E) E |= nrrdHistoEq(ntmp, ntmp, NULL, 2048, 2);
-  if (!E) E |= nrrdQuantize(npgm, ntmp, 8);
+  if (!E) E |= nrrdHistoEq(ntmp2=nrrdNew(), ntmp, NULL, 2048, 2);
+  if (!E) E |= nrrdQuantize(npgm, ntmp2, 8);
   if (!E) E |= nrrdSave("time.pgm", npgm, NULL);
   if (E) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
