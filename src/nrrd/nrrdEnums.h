@@ -28,13 +28,14 @@ extern "C" {
 */
 typedef enum {
   nrrdFormatUnknown,
-  nrrdFormatNRRD,       /* 1: "native" nrrd format */
+  nrrdFormatNRRD,       /* 1: basic nrrd format (associated with both
+			   magic nrrdMagicOldNRRD and nrrdMagicNRRD0001 */
   nrrdFormatPNM,        /* 2: PNM image */
   nrrdFormatTable,      /* 3: bare ASCII table */
   nrrdFormatLast
 } nrrdFormat;
 #define NRRD_FORMAT_MAX    3
-#define NRRD_FORMAT_DEFAULT nrrdFormatNRRD
+extern int nrrdFormatDefault; /*  = nrrdFormatNRRD; write.c */
 
 /*
 ******** nrrdBoundary enum
@@ -65,14 +66,15 @@ typedef enum {
 */
 typedef enum {
   nrrdMagicUnknown,
-  nrrdMagicNRRD0001,     /* 1: currently, the only "native" nrrd header */
-  nrrdMagicP2,           /* 2: ascii PGM */
-  nrrdMagicP3,           /* 3: ascii PPM */
-  nrrdMagicP5,           /* 4: binary PGM */
-  nrrdMagicP6,           /* 5: binary PPM */
+  nrrdMagicOldNRRD,      /* 1: "NRRD00.01" */
+  nrrdMagicNRRD0001,     /* 2: "NRRD0001" */
+  nrrdMagicP2,           /* 3: ascii PGM */
+  nrrdMagicP3,           /* 4: ascii PPM */
+  nrrdMagicP5,           /* 5: binary PGM */
+  nrrdMagicP6,           /* 6: binary PPM */
   nrrdMagicLast
 } nrrdMagic;
-#define NRRD_MAGIC_MAX      5
+#define NRRD_MAGIC_MAX      6
 
 /*
 ******** nrrdType enum
@@ -93,7 +95,7 @@ typedef enum {
   nrrdTypeULLong,        /*  8: unsigned 8-byte integer */
   nrrdTypeFloat,         /*  9:          4-byte floating point */
   nrrdTypeDouble,        /* 10:          8-byte floating point */
-  nrrdTypeBlock,         /* 11: size user defined at run time */
+  nrrdTypeBlock,         /* 11: size user defined at run time; MUST BE LAST */
   nrrdTypeLast
 } nrrdType;
 #define NRRD_TYPE_MAX       11 /* this has to agree with nrrdTypeBlock */
@@ -112,7 +114,7 @@ typedef enum {
   nrrdEncodingLast
 } nrrdEncoding;
 #define NRRD_ENCODING_MAX    2
-#define NRRD_ENCODING_DEFAULT nrrdEncodingRaw
+extern int nrrdEncodingDefault; /* = nrrdEncodingRaw; write.c */
 
 /*
 ******** nrrdMeasr enum
@@ -176,8 +178,14 @@ typedef enum {
 */
 typedef enum {
   nrrdCenterUnknown,
-  nrrdCenterNode,            /* 1: samples on corners of square support */
-  nrrdCenterCell,            /* 2: samples in middle of square support */
+  nrrdCenterNode,            /* 1: samples at corners of things
+				(how "voxels" are usually imagined)
+				|\______/|\______/|\______/|
+				X        X        X        X   */
+  nrrdCenterCell,            /* 2: samples at middles of things
+				(inherent nature of histogram bins)
+				 \___|___/\___|___/\___|___/
+				     X        X        X       */
   nrrdCenterLast
 } nrrdCenter;
 #define NRRD_CENTER_MAX         2
@@ -189,9 +197,9 @@ typedef enum {
   nrrdAxesInfoSpacing,         /* 2: spacing between samples */
 #define NRRD_AXESINFO_SPACING (1<<2)
   nrrdAxesInfoMin,             /* 3: minimum pos. assoc. w/ first sample */
-#define NRRD_AXESINFO_AMIN    (1<<3)
+#define NRRD_AXESINFO_AMIN    (1<<3) 
   nrrdAxesInfoMax,             /* 4: maximum pos. assoc. w/ last sample */
-#define NRRD_AXESINFO_AMAX    (1<<4)
+#define NRRD_AXESINFO_AMAX    (1<<4) /* _MAX would conflict with below */
 #define NRRD_AXESINFO_MINMAX ((1<<3)|(1<<4))
   nrrdAxesInfoCenter,          /* 5: cell vs. node */
 #define NRRD_AXESINFO_CENTER  (1<<5)
@@ -204,8 +212,8 @@ typedef enum {
 #define NRRD_AXESINFO_ALL         ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6))
 
 /*
-** This is somewhat silly- the "endian" enum is actually in air
-** but its very convenient to have it incorporated into the
+** This is somewhat silly- the "endian" enum is actually in the air
+** library but its very convenient to have it incorporated into the
 ** nrrd enum framework
 */
 #define NRRD_ENDIAN_MAX 2

@@ -65,11 +65,17 @@ for ((coord)[0]++, (d)=0;                          \
 ** and dimension "dim" (and temporary variable "d"), calculates
 ** the linear index, and stores it in I.  
 */
-#define NRRD_COORD_INDEX(coord, size, dim, d, I)   \
+#define NRRD_COORD_INDEX(I, coord, size, dim, d)   \
 for ((d)=(dim)-1, (I)=(coord)[(d)--];              \
      (d) >= 0;                                     \
      (d)--) {                                      \
   (I) = (coord)[(d)] + (size)[(d)]*(I);            \
+}
+
+#define NRRD_COORD_GEN(coord, size, dim, d, I)     \
+for ((d)=0; (d)<=(dim)-1; (d)++) {                 \
+  (coord)[(d)] = I % (size)[(d)];                  \
+  I /= (size)[(d)];                                \
 }
 
 /* extern C */

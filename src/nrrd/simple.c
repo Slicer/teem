@@ -37,8 +37,8 @@ nrrdDescribe(FILE *file, Nrrd *nrrd) {
     if (nrrdTypeBlock == nrrd->type) 
       fprintf(file, "The blocks have size %d\n", nrrd->blockSize);
     if (airStrlen(nrrd->content))
-      fprintf(file, "It is \"%s\"\n", nrrd->content);
-    fprintf(file, "It is a %d-dimensional array, with axes:\n", nrrd->dim);
+      fprintf(file, "Content = \"%s\"\n", nrrd->content);
+    fprintf(file, "%d-dimensional array, with axes:\n", nrrd->dim);
     for (i=0; i<=nrrd->dim-1; i++) {
       if (airStrlen(nrrd->axis[i].label))
 	fprintf(file, "%d: (\"%s\") ", i, nrrd->axis[i].label);
@@ -68,22 +68,32 @@ nrrdDescribe(FILE *file, Nrrd *nrrd) {
   }
 }
 
+/*
+******** nrrdValid()
+**
+** does some consistency checks for things that can go wrong in a nrrd
+*/
 int
 nrrdValid(Nrrd *nrrd) {
   char me[] = "nrrdValid", err[NRRD_STRLEN_MED];
   nrrdBigInt mult;
   int i;
 
-  if (!(nrrd->num >= 1)) {
-    sprintf(err, "%s: number of elements is %d", me, (int)nrrd->num);
+  if (!nrrd) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffSet(NRRD, err); return 0;
+  }
+  if (0 == nrrd->num) {
+    sprintf(err, "%s: number of elements is zero", me);
     biffSet(NRRD, err); return 0;
   }
   if (!AIR_BETWEEN(nrrdTypeUnknown, nrrd->type, nrrdTypeLast)) {
     sprintf(err, "%s: type (%d) of array is invalid", me, nrrd->type);
     biffSet(NRRD, err); return 0;
   }
-  if (nrrdTypeBlock == nrrd->type && -1 == nrrd->blockSize) {
-    sprintf(err, "%s: type is \"block\" but no blocksize given", me);
+  if (nrrdTypeBlock == nrrd->type && 0 == nrrd->blockSize) {
+    sprintf(err, "%s: nrrd type is %s but no nrrd->blockSize given", me,
+	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
     biffSet(NRRD, err); return 0;
   }
   if (!AIR_INSIDE(1, nrrd->dim, NRRD_DIM_MAX)) {
@@ -93,18 +103,28 @@ nrrdValid(Nrrd *nrrd) {
   }
   mult = 1;
   for (i=0; i<=nrrd->dim-1; i++) {
-    if (!(1 <= nrrd->axis[i].size))
-      mult = -1;
-    else
-      mult *= nrrd->axis[i].size;
+    if (!(1 <= nrrd->axis[i].size)) {
+      sprintf(err, "%s: axis %d has invalid size (%d)", me, i,
+	      nrrd->axis[i].size);
+      biffSet(NRRD, err); return 0;
+    }
+    mult *= nrrd->axis[i].size;
   }
   if (mult != nrrd->num) {
-    sprintf(err, "%s: # elements != product of axes sizes ", me);
+    sprintf(err, "%s: # elements (" NRRD_BIG_INT_PRINTF
+	    ") != product of axes sizes (" NRRD_BIG_INT_PRINTF ")", me,
+	    nrrd->num, mult);
     biffSet(NRRD, err); return 0;
   }
   return 1;
 }
 
+/*
+******** nrrdSameSize()
+**
+** returns 1 iff given two nrrds have same dimension and axes sizes.
+** This does NOT look at the type of the elements.
+*/
 int
 nrrdSameSize(Nrrd *n1, Nrrd *n2, int useBiff) {
   char me[]="nrrdSameSize", err[NRRD_STRLEN_MED];
@@ -174,12 +194,18 @@ nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff) {
   int ret;
 
   if (!(nrrd)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    if (useBiff) biffAdd(NRRD, err); return AIR_FALSE;
+    if (useBiff) {
+      sprintf(err, "%s: got NULL pointer", me);
+      biffAdd(NRRD, err); 
+    }
+    return AIR_FALSE;
   }
   if (!AIR_BETWEEN(nrrdFormatUnknown, format, nrrdFormatLast)) {
-    sprintf(err, "%s: format %d invalid", me, format);
-    if (useBiff) biffAdd(NRRD, err); return AIR_FALSE;
+    if (useBiff) {
+      sprintf(err, "%s: format %d invalid", me, format);
+      biffAdd(NRRD, err); 
+    }
+    return AIR_FALSE;
   }
   switch (format) {
   case nrrdFormatNRRD:
@@ -188,66 +214,52 @@ nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff) {
     break;
   case nrrdFormatPNM:
     if (nrrdTypeUChar != nrrd->type) {
-      sprintf(err, "%s: type is %s, not %s", me,
-	      nrrdEnumValToStr(nrrdEnumType, nrrd->type),
-	      nrrdEnumValToStr(nrrdEnumType, nrrdTypeUChar));
-      if (useBiff) biffAdd(NRRD, err); return AIR_FALSE;
+      if (useBiff) {
+	sprintf(err, "%s: type is %s, not %s", me,
+		nrrdEnumValToStr(nrrdEnumType, nrrd->type),
+		nrrdEnumValToStr(nrrdEnumType, nrrdTypeUChar));
+	biffAdd(NRRD, err); 
+      }
+      return AIR_FALSE;
     }
     /* else */
     if (2 == nrrd->dim) {
+      /* its a gray-scale image */
       ret = 2;
     }
     else if (3 == nrrd->dim) {
       if (3 != nrrd->axis[0].size) {
-	sprintf(err, "%s: dimension is 3, but first axis size is %d, not 3",
-		me, nrrd->axis[0].size);
-	if (useBiff) biffAdd(NRRD, err); return AIR_FALSE;
+	if (useBiff) {
+	  sprintf(err, "%s: dimension is 3, but first axis size is %d, not 3",
+		  me, nrrd->axis[0].size);
+	  biffAdd(NRRD, err); 
+	}
+	return AIR_FALSE;
       }
-      /* else */
+      /* else its an RGB image */
       ret = 3;
     }
     else {
-      sprintf(err, "%s: dimension is %d, not 2 or 3", me, nrrd->dim);
-      if (useBiff) biffAdd(NRRD, err); return AIR_FALSE;
+      if (useBiff) {
+	sprintf(err, "%s: dimension is %d, not 2 or 3", me, nrrd->dim);
+	biffAdd(NRRD, err); 
+      }
+      return AIR_FALSE;
     }
     break;
   case nrrdFormatTable:
     if (2 != nrrd->dim) {
-      sprintf(err, "%s: dimension is %d, not 2", me, nrrd->dim);
-      if (useBiff) biffAdd(NRRD, err); return AIR_FALSE;
+      if (useBiff) {
+	sprintf(err, "%s: dimension is %d, not 2", me, nrrd->dim);
+	biffAdd(NRRD, err); 
+      }
+      return AIR_FALSE;
     }
-    /* else */
-    /* any type is good */
+    /* any type is good for writing to a table, but it will be
+       read back in as floats (unless # headers say otherwise) */
     ret = AIR_TRUE;
     break;
   }
   return ret;
 }
 
-void
-nrrdAxisMinMax(double *nMinP, double *nMaxP, 
-	       double lo, double hi, int nSize,
-	       double oMin, double oMax, int oSize, int center) {
-  char me[]="nrrdAxisMinMax";
-  double tmp;
-
-  if (!(nMinP && nMaxP))
-    return;
-  
-  if (!(lo <= hi && nSize > 0
-	&& oMin <= oMax && oSize > 0
-	&& AIR_BETWEEN(nrrdCenterUnknown, center, nrrdCenterLast) )) {
-    *nMinP = *nMaxP = AIR_NAN;
-  }
-  
-  if (nrrdCenterNode == center) {
-    tmp = AIR_AFFINE(-0.5, lo, oSize-0.5, oMin, oMax);
-  }
-  else if (nrrdCenterCell == center) {
-    
-  }
-  else {
-    fprintf(stderr, "%s: WARNING: center %d unimplemented\n", me, center);
-    *nMinP = *nMaxP = AIR_NAN;
-  }
-}

@@ -116,14 +116,16 @@ main(int argc, char *argv[]) {
 
   nout = nrrdNew();
   t1 = airTime();
-  if (nrrdCrop(nout, nin, min, max)) {
+  if (nrrdPad(nout, nin, min, max, nrrdBoundaryWrap)) {
+  /* if (nrrdPad(nout, nin, min, max, nrrdBoundaryPad, 222.0)) { */
+  /* if (nrrdPad(nout, nin, min, max, nrrdBoundaryBleed)) { */
     err = biffGet(NRRD);
-    fprintf(stderr, "%s: error cropping nrrd:\n%s", me, err);
+    fprintf(stderr, "%s: error padding nrrd:\n%s", me, err);
     free(err);
     exit(1);
   }
   t2 = airTime();
-  printf("%s: nrrdCrop() took %g seconds\n", me, t2-t1);
+  printf("%s: nrrdPad() took %g seconds\n", me, t2-t1);
   if (nrrdSave(outStr, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error writing nrrd:\n%s", me, err);

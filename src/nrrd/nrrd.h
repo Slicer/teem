@@ -43,8 +43,8 @@ extern "C" {
 /*
 ******** nrrdBigInt typedef biggest unsigned integral type allowed on
 ** system; used to hold number of elements in a nrrd.  Value 0 is used
-** to represent "don't know" or "unset", since nrrd's need to hold
-** something
+** to represent "don't know" or "unset", since nrrds can't hold a zero
+** number of items.
 */
 typedef unsigned long long int nrrdBigInt;
 
@@ -55,14 +55,14 @@ typedef unsigned long long int nrrdBigInt;
 ** one axis of a nrrd
 */
 typedef struct {
-  unsigned int size;             /* number of elements along each axis */
+  int size;                      /* number of elements along each axis */
   double spacing;                /* if non-NaN, distance between samples */
   double min, max;               /* if non-NaN, values associated with
-                                    lowest and highest indices.
-                                    Obviously, one can set "spacing"
-                                    to something incompatible with
-                                    axisMin, axisMax.  No clear policy
-                                    on this one yet */
+                                    lowest and highest indices. Obviously, one
+				    can set "spacing" to something incompatible
+				    with axisMin, axisMax.  The idea is that
+				    only one (min/max, or spacing) should be
+				    taken to be significant at any time. */
   int center;                    /* cell vs. node */
   char *label;                   /* short info string for each axis */
 } nrrdAxis;
@@ -104,7 +104,8 @@ typedef struct {
     byteSkip,                    /* exactly like lineSkip, but bytes 
                                     instead of lines.  First the lines are
                                     skipped, then the bytes */
-    seperateHeader,              /* write seperate ".nhdr" and ".raw" files */
+    seperateHeader,              /* nrrd is split into distinct header and
+				    data (in either reading or writing) */
     bareTable,                   /* when writing a table, is there any
 				    effort made to record the nrrd struct
 				    info in the text file */
@@ -143,13 +144,14 @@ typedef struct {
     oldMin, oldMax;              /* if non-NaN, and if nrrd is of integral
 				    type, extremal values for the array
 				    BEFORE it was quantized */
-  void *ptr;                     /* generic pointer which is NEVER read or
-				    set (except to NULL) by nrrd library. 
+  void *ptr;                     /* generic pointer which is not read or
+				    set by nrrd library, except nrrdCopy(). 
 				    Use as you see fit. */
 
   /* 
   ** Comments.  Read from, and written to, header.
-  ** The comment array "cmt" is NOT NULL terminated.
+  ** The comment array "cmt" is NOT NULL-terminated.
+  ** The number of comments is cmtArr->len.
   */
   char **cmt;
   airArray *cmtArr;
@@ -164,18 +166,20 @@ typedef struct {
 ** around zero, but does not assume anything about even- or oddness
 */
 typedef struct {
-  int (*numParam)(void);                  /* number of parameters needed
-					     (# elements in param[] used) */
-  float (*support)(float *param);         /* smallest x (>0) such that
-					     k(y) = 0 for all y>x, y<-x */
-  float (*integral)(float *param);        /* integral of kernel from -support
-					     to +support */
-  float (*eval_f)(float x, float *param); /* evaluate the kernel once */
-  void (*evalVec_f)(float *f, float *x,   /* evaluate many times */
-		  int N, float *param);   
-  double (*eval_d)(double x, float *param); /* evaluate once, double prec. */
-  void (*evalVec_d)(double *f, double *x,   /* evaluate many times, double */
-		   int N, float *param);
+  int numParam;                          /* number of parameters needed
+					    (# elements in param[] used) */
+  double (*support)(double *param);      /* smallest x (>0) such that
+					    k(y) = 0 for all y > x, y < -x */
+  double (*integral)(double *param);     /* integral of kernel from -support
+					    to +support */
+  float (*eval1_f)(float x, 
+		   double *param);       /* evaluate once, single precision */
+  void (*evalN_f)(float *f, float *x,    /* evaluate many times */
+		  int N, double *param);   
+  double (*eval1_d)(double x, 
+		    double *param);      /* evaluate once, double precision */
+  void (*evalN_d)(double *f, double *x,  /* evaluate many times, double */
+		  int N, double *param);
 } nrrdKernel;
 
 /*
@@ -186,7 +190,7 @@ typedef struct {
   nrrdKernel *kernel[NRRD_DIM_MAX];       /* kernels from nrrd, or something
 					     supplied by the user */
   int samples[NRRD_DIM_MAX];              /* number of samples */
-  float param[NRRD_DIM_MAX][NRRD_KERNEL_PARAMS_MAX], /* kernel arguments */
+  double param[NRRD_DIM_MAX][NRRD_KERNEL_PARAMS_MAX], /* kernel arguments */
     min[NRRD_DIM_MAX],
     max[NRRD_DIM_MAX];           /* range, in index space, along which to
 				    resample */
@@ -197,8 +201,23 @@ typedef struct {
 				    non-zero integral, should we renormalize
 				    the weights to match the kernel integral
 				    so as to remove ripple */
-  float padValue;                /* if padding, what value to pad with */
+  double padValue;               /* if padding, what value to pad with */
 } nrrdResampleInfo;
+
+/******** defaults all kinds */
+/* defaults.c */
+extern int nrrdDefWrtFormat;
+extern int nrrdDefWrtEncoding;
+extern int nrrdDefWrtSeperateHeader;
+extern int nrrdDefWrtBareTable;
+extern int nrrdDefRsmpBoundary;
+extern int nrrdDefRsmpType;
+extern double nrrdDefRsmpScale;
+extern int nrrdDefRsmpRenormalize;
+extern double nrrdDefRsmpPadValue;
+extern int nrrdDefCenter;
+extern int nrrdDefIOCharsPerLine;
+extern int nrrdDefIOValsPerLine;
 
 /******** going between the enums' values and strings */
 /* arrays.c */
@@ -245,9 +264,13 @@ extern int nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff);
 extern nrrdAxis *nrrdAxisNew(void);
 extern nrrdAxis *nrrdAxisNix(nrrdAxis *axis);
 extern int nrrdAxesCopy(Nrrd *nout, Nrrd *nin, int *map, int bitflag);
-extern void nrrdAxesSet_va(Nrrd *nin, int axInfo, ...);
 extern void nrrdAxesSet(Nrrd *nin, int axInfo, void *info);
+extern void nrrdAxesSet_va(Nrrd *nin, int axInfo, ...);
 extern void nrrdAxesGet(Nrrd *nrrd, int axInfo, void *info);
+extern void nrrdAxesGet_va(Nrrd *nrrd, int axInfo, ...);
+extern double nrrdAxisLocation(Nrrd *nrrd, int ax, double idx);
+extern void nrrdAxisRange(double *loP, double *hiP,
+			  Nrrd *nrrd, int ax, double loIdx, double hiIdx);
 
 /******** comments related */
 /* comment.c */
@@ -284,7 +307,6 @@ extern double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double);
 
 /******** getting information to and from files */
 /* read.c */
-extern int nrrdStrictPNMComments;
 extern int nrrdRead(Nrrd *nrrd, FILE *file, nrrdIO *io);
 extern int nrrdLoad(Nrrd *nrrd, char *filename);
 /* write.c */
@@ -295,8 +317,9 @@ extern int nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io);
 /* subset.c */
 extern int nrrdSample(void *val, Nrrd *nin, int *coord);
 extern int nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos);
-extern int nrrdSubvolume(Nrrd *nout, Nrrd *nin, 
-			 int *minIdx, int *maxIdx, int clamp);
+extern int nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max);
+extern int nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, 
+		   int boundary, ...);
 
 /******** permuting and shuffling */
 /* reorder.c */
@@ -306,6 +329,10 @@ extern int nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2);
 extern int nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm);
 extern int nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis, int incrDim);
 extern int nrrdFlip(Nrrd *nout, Nrrd *nin, int axis);
+extern int nrrdReshape(Nrrd *nout, Nrrd *nin, int dim, int *size);
+extern int nrrdReshape_va(Nrrd *nout, Nrrd *nin, int dim, ...);
+extern int nrrdBlock(Nrrd *nout, Nrrd *nin);
+
 
 /******** measuring and projecting */
 /* measr.c */

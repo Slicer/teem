@@ -33,7 +33,7 @@ nrrdInvertPerm(int *invp, int *p, int n) {
 
   if (!(invp && p && n > 0)) {
     sprintf(err, "%s: got NULL pointer or non-positive n (%d)", me, n);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   
   /* use the given array "invp" as a temp buffer for validity checking */
@@ -42,7 +42,7 @@ nrrdInvertPerm(int *invp, int *p, int n) {
     if (!(AIR_INSIDE(0, p[i], n-1))) {
       sprintf(err, "%s: permutation element #%d == %d out of bounds [0,%d]",
 	      me, i, p[i], n-1);
-      biffSet(NRRD, err); return 1;
+      biffAdd(NRRD, err); return 1;
     }
     invp[p[i]]++;
   }
@@ -105,7 +105,7 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
 
   if (!(nin && nout && axes)) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   if (nrrdInvertPerm(ip, axes, nin->dim)) {
     sprintf(err, "%s: couldn't compute axis permutation inverse", me);
@@ -170,14 +170,14 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
   }
   nout->content = airFree(nout->content);
   if (nin->content) {
-    nout->content = calloc(strlen("permute()")
+    nout->content = calloc(strlen("permute(,())")
 			   + strlen(nin->content)
-			   + 3*nin->dim
+			   + nin->dim*(11 + strlen(","))
 			   + 1, sizeof(char));
     if (nout->content) {
-      sprintf(nout->content, "permute(%s", nin->content);
+      sprintf(nout->content, "permute(%s,(", nin->content);
       for (d=0; d<=nin->dim-1; d++) {
-	sprintf(tmpS, "%d%c", axes[d], d < nin->dim-1 ? ',' : ')');
+	sprintf(tmpS, "%d%s", axes[d], d < nin->dim-1 ? "," : "))");
 	strcat(nout->content, tmpS);
       }
     }
@@ -196,6 +196,13 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
   return 0;
 }
 
+/*
+******** nrrdSwapAxes()
+**
+** for when you just want to switch the order of two axes, without
+** going through the trouble of creating the permutation array 
+** need to call nrrdPermuteAxes()
+*/
 int
 nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2) {
   char me[]="nrrdSwapAxes", err[NRRD_STRLEN_MED];
@@ -203,13 +210,13 @@ nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2) {
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   if (!(AIR_INSIDE(0, ax1, nin->dim-1) 
 	&& AIR_INSIDE(0, ax2, nin->dim-1))) {
     sprintf(err, "%s: ax1 (%d) or ax2 (%d) out of bounds [0,%d]", 
 	    me, ax1, ax2, nin->dim-1);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
 
   for (i=0; i<=nin->dim-1; i++)
@@ -226,10 +233,10 @@ nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2) {
 /*
 ******** nrrdShuffle
 **
-** rearranges hyperslices of a nrrd along a given axis according
-** to given permutation.  This could be used, for example, to
-** re-order the elements along the 0th axis when the nrrd is a
-** 4D array representing a volume of vectors.
+** rearranges hyperslices of a nrrd along a given axis according to
+** given permutation.  This could be used to on a 4D array,
+** representing a 3D volume of vectors, to re-order the vector 
+** components.
 **
 ** the given permutation array must allocated for at least as long as
 ** the input nrrd along the chosen axis.  perm[j] = i means that the
@@ -251,13 +258,13 @@ nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
 
   if (!(nin && nout && perm)) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err);
+    biffAdd(NRRD, err);
     return 1;
   }
   if (!AIR_INSIDE(0, axis, nin->dim-1)) {
     sprintf(err, "%s: axis %d outside valid range [0,%d]", 
 	    me, axis, nin->dim-1);
-    biffSet(NRRD, err);
+    biffAdd(NRRD, err);
     return 1;
   }
   if (!(nout->data)) {
@@ -275,7 +282,7 @@ nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
   dim = nin->dim;
   dataI = nin->data;
   dataO = nout->data;
-  typesize = nrrdTypeSize[nin->type];
+  typesize = nrrdElementSize(nin);
   memset(ci, 0, (NRRD_DIM_MAX+1)*sizeof(int));
   memset(co, 0, (NRRD_DIM_MAX+1)*sizeof(int));
   for (I=0; I<=N-1; I++) {
@@ -339,28 +346,29 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis, int incrDim) {
   /* error checking */
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   if (!(num >= 1 && axis >= 0)) {
     sprintf(err, "%s: num (%d) or axis (%d) wacky", me, num, axis);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
+  /* HEY: think through the check on upper dimension limit!!! */
   if (axis >= NRRD_DIM_MAX) {
     sprintf(err, "%s: can't join along axis %d when NRRD_DIM_MAX=%d",
 	    me, axis, NRRD_DIM_MAX);
-    biffSet(NRRD, err); return 1;    
+    biffAdd(NRRD, err); return 1;    
   }
   for (i=0; i<=num-1; i++) {
     if (!(nin[i])) {
       sprintf(err, "%s: input nrrd #%d NULL", me, i);
-      biffSet(NRRD, err); return 1;
+      biffAdd(NRRD, err); return 1;
     }
   }
   ninperm = calloc(num, sizeof(Nrrd *));
   trs = calloc(2*num, sizeof(int));
   if (!(ninperm && trs)) {
     sprintf(err, "%s: couldn't alloc tmp arrays!", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
 
   mindim = NRRD_DIM_MAX+1;
@@ -373,12 +381,12 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis, int incrDim) {
   if (diffdim > 1) {
     sprintf(err, "%s: will only reshape up one dimension (not %d)",
 	    me, diffdim);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   if (axis > maxdim) {
     sprintf(err, "%s: can't join along axis %d with highest input dim = %d",
 	    me, axis, maxdim);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   
   /* figure out dimension of output (outdim) */
@@ -447,12 +455,12 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis, int incrDim) {
     if (ninperm[i]->type != ninperm[0]->type) {
       sprintf(err, "%s: type (%d) of part %d unlike first's (%d)",
 	      me, ninperm[i]->type, i, ninperm[0]->type);
-      biffSet(NRRD, err); return 1;
+      biffAdd(NRRD, err); return 1;
     }
     if (!(nrrdElementSize(ninperm[i]) > 0)) {
       sprintf(err, "%s: got wacky elements size (%d) for part %d",
 	      me, nrrdElementSize(ninperm[i]), i);
-      biffSet(NRRD, err); return 1;
+      biffAdd(NRRD, err); return 1;
     }
     /* HEY: blocks of differing sizes will slip by here */
     /* fprintf(stderr, "%s: part %03d shape: ", me, i); */
@@ -461,7 +469,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis, int incrDim) {
       if (ninperm[i]->axis[d].size != ninperm[0]->axis[d].size) {
 	sprintf(err, "%s: axis %d size (%d) of part %d unlike first's (%d)",
 		me, d, ninperm[i]->axis[d].size, i, ninperm[0]->axis[d].size);
-	biffSet(NRRD, err); return 1;
+	biffAdd(NRRD, err); return 1;
       }
     }
     /* fprintf(stderr, "%03d\n", ninperm[i]->axis[outdim-1].size); */
@@ -546,16 +554,16 @@ nrrdFlip(Nrrd *nout, Nrrd *nin, int axis) {
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   if (!(AIR_INSIDE(0, axis, nin->dim-1))) {
     sprintf(err, "%s: given axis (%d) is outside valid range ([0,%d])", 
 	    me, axis, nin->dim-1);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   if (!(perm = calloc(nin->axis[axis].size, sizeof(int)))) {
     sprintf(err, "%s: couldn't alloc permutation array", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   for (i=0; i<=nin->axis[axis].size-1; i++) {
     perm[i] = nin->axis[axis].size-1-i;
@@ -569,3 +577,206 @@ nrrdFlip(Nrrd *nout, Nrrd *nin, int axis) {
   perm = airFree(perm);
   return 0;
 }
+
+/*
+******** nrrdReshape()
+**
+*/
+int
+nrrdReshape(Nrrd *nout, Nrrd *nin, int dim, int *size) {
+  char me[]="nrrdReshape", err[NRRD_STRLEN_MED],
+    tmpS[NRRD_STRLEN_SMALL];
+  nrrdBigInt numOut;
+  int d;
+
+  if (!(nout && nin && size)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!(AIR_INSIDE(1, dim, NRRD_DIM_MAX))) {
+    sprintf(err, "%s: given dimension (%d) outside valid range [1,%d]",
+	    me, dim, NRRD_DIM_MAX);
+    biffAdd(NRRD, err); return 1;
+  }
+  numOut = 1;
+  for (d=0; d<=dim-1; d++) {
+    if (!(1 <= size[d])) {
+      sprintf(err, "%s: size[%d] (%d) invalid", me, d, size[d]);
+      biffAdd(NRRD, err); return 1;
+    }
+    numOut *= size[d];
+  }
+  if (numOut != nin->num) {
+    sprintf(err, "%s: new sizes product (" NRRD_BIG_INT_PRINTF ") "
+	    "!= # elements (" NRRD_BIG_INT_PRINTF ")",
+	    me, numOut, nin->num);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  /* HEY: non-essential, non-axis info (like comments) has been copied,
+     perhaps that's not appropriate */
+  if (nrrdCopy(nout, nin)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  nout->dim = dim;
+  for (d=0; d<=dim-1; d++) {
+    /* the ONLY thing we can say about the axes is the size */
+    _nrrdAxisInit(&(nout->axis[d]));
+    nout->axis[d].size = size[d];
+  }
+
+  nout->content = airFree(nout->content);
+  if (nin->content) {
+    nout->content = calloc(strlen("reshape(,)")
+			   + strlen(nin->content)
+			   + dim*(11 + strlen("x"))
+			   + 1, sizeof(char));
+    if (nout->content) {
+      sprintf(nout->content, "reshape(%s,", nin->content);
+      for (d=0; d<=dim-1; d++) {
+	sprintf(tmpS, "%d%s", size[d], d < dim-1 ? "x" : ")");
+	strcat(nout->content, tmpS);
+      }
+    }
+    else {
+      sprintf(err, "%s: couldn't allocate output content", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    
+  }
+
+  return 0;
+}
+
+int
+nrrdReshape_va(Nrrd *nout, Nrrd *nin, int dim, ...) {
+  char me[]="nrrdReshape_va", err[NRRD_STRLEN_MED];
+  int d, size[NRRD_DIM_MAX];
+  va_list ap;
+
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!(AIR_INSIDE(1, dim, NRRD_DIM_MAX))) {
+    sprintf(err, "%s: given dimension (%d) outside valid range [1,%d]",
+	    me, dim, NRRD_DIM_MAX);
+    biffAdd(NRRD, err); return 1;
+  }
+  va_start(ap, dim);
+  for (d=0; d<=dim-1; d++) {
+    size[d] = va_arg(ap, int);
+  }
+  va_end(ap);
+
+  if (nrrdReshape(nout, nin, dim, size)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  
+  return 0;
+}
+
+int
+nrrdBlock(Nrrd *nout, Nrrd *nin) {
+  char me[]="nrrdBlock", err[NRRD_STRLEN_MED];
+  int d, numEl, map[NRRD_DIM_MAX];
+
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (1 == nin->dim) {
+    sprintf(err, "%s: can't blockify 1-D nrrd", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  numEl = nin->axis[0].size;;
+  nout->blockSize = numEl*nrrdElementSize(nin);
+  for (d=0; d<=nin->dim-2; d++) {
+    map[d] = d+1;
+  }
+  
+  if (nrrdMaybeAlloc(nout, nin->num/numEl, nrrdTypeBlock, nin->dim-1)) {
+    sprintf(err, "%s: failed to allocate output", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_NONE)) {
+    sprintf(err, "%s: failed to copy axes", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  
+  nout->content = airFree(nout->content);
+  if (nin->content) {
+    nout->content = calloc(strlen("block()")
+			   + strlen(nin->content)
+			   + 1, sizeof(char));
+    if (nout->content) {
+      sprintf(nout->content, "block(%s)", nin->content);
+    }
+    else {
+      sprintf(err, "%s: couldn't allocate output content", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  return 0;
+}
+
+int
+nrrdUnblock(Nrrd *nout, Nrrd *nin, int type, int size) {
+  char me[]="nrrdUnblock", err[NRRD_STRLEN_MED];
+  int d, map[NRRD_DIM_MAX];
+
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast)) {
+    sprintf(err, "%s: invalid type %d", me, type);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdTypeBlock == type) {
+    sprintf(err, "%s: sorry, can't unblockify to block type", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nin->blockSize != size*nrrdTypeSize[type]) {
+    sprintf(err, "%s: size X nrrdTypeSize[%s] (%d X %d) != blockSize (%d)",
+	    me, nrrdEnumValToStr(nrrdEnumType, type), 
+	    size, nrrdTypeSize[type], nin->blockSize);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  for (d=0; d<=nin->dim; d++) {
+    map[d] = !d ? -1 : d-1;
+  }
+  if (nrrdMaybeAlloc(nout, nin->num*size, type, nin->dim+1)) {
+    sprintf(err, "%s: failed to allocate output", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_NONE)) {
+    sprintf(err, "%s: failed to copy axes", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  _nrrdAxisInit(&(nout->axis[0]));
+  nout->axis[0].size = size;
+  
+  nout->content = airFree(nout->content);
+  if (nin->content) {
+    nout->content = calloc(strlen("unblock(,,)")
+			   + strlen(nin->content)
+			   + strlen(nrrdEnumValToStr(nrrdEnumType, type))
+			   + 11
+			   + 1, sizeof(char));
+    if (nout->content) {
+      sprintf(nout->content, "block(%s,%s,%d)", 
+	      nin->content, nrrdEnumValToStr(nrrdEnumType, type), size);
+    }
+    else {
+      sprintf(err, "%s: couldn't allocate output content", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  return 0;
+}
+

@@ -26,7 +26,8 @@
 ** By its very nature, and by the simplicity of this implemention,
 ** this can be a slow process due to terrible memory locality.  User
 ** may want to permute axes before and after this, but that can be
-** slow too...  */
+** slow too...  
+*/
 int
 nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, unsigned int bins) {
   char err[NRRD_STRLEN_MED], me[] = "nrrdHistoAxis";
@@ -54,6 +55,9 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, unsigned int bins) {
     sprintf(err, "%s: failed to alloc output nrrd", me);
     biffAdd(NRRD, err); return 1;
   }
+  
+#    error this should be using nrrdAxesCopy 
+
   nrrdAxesGet(nin, nrrdAxesInfoSize, szIn);
   memcpy(szOut, szIn, nin->dim*sizeof(unsigned int));
   szOut[ax] = bins;
@@ -76,7 +80,7 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, unsigned int bins) {
     /* determine coordinate in output nrrd, update bin count */
     memcpy(coordOut, coordIn, nin->dim*sizeof(int));
     coordOut[ax] = hidx;
-    NRRD_COORD_INDEX(coordOut, szOut, nout->dim, d, hI);
+    NRRD_COORD_INDEX(hI, coordOut, szOut, nout->dim, d);
     if (hdata[hI] < 255) {
       hdata[hI]++;
     }
@@ -131,7 +135,7 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins) {
   data = nin->data;
 
   /* we only learn the range from the data if min or max is NaN */
-  if (!AIR_EXISTS(nin->min) || !AIR_EXISTS(nin->max)) {
+  if (!( AIR_EXISTS(nin->min) && !AIR_EXISTS(nin->max) )) {
     if (nrrdMinMaxFind(&nin->min, &nin->max, nin)) {
       sprintf(err, "%s: couldn't determine value range", me);
       biffSet(NRRD, err); return 1;

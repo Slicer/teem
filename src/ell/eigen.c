@@ -19,7 +19,7 @@
 #include "ell.h"
 
 /*
-******** ell3mNullspace1()()
+******** ell3mNullspace1()
 **
 ** the given matrix is assumed to have a nullspace of dimension one.
 ** The COLUMNS of the matrix are n+0, n+3, n+6.  A normalized vector

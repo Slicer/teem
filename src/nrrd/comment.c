@@ -76,7 +76,7 @@ nrrdCommentAdd(Nrrd *nrrd, char *_str, int useBiff) {
 /*
 ******** nrrdCommentClear()
 **
-** blows away comments only
+** blows away comments, but does not blow away the comment airArray
 */
 void
 nrrdCommentClear(Nrrd *nrrd) {
@@ -117,7 +117,7 @@ nrrdCommentScan(Nrrd *nrrd, char *key, char **valP) {
     return 1;
   }
   if (strchr(key, ':')) {
-    /* stupid key */
+    /* key contains colon- would confuse later steps */
     return 1;
   }
   for (i=0; i<=nrrd->cmtArr->len-1; i++) {

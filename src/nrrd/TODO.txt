@@ -1,6 +1,13 @@
-ASAP!!:
+finish writing format.txt
+determine/fix bug with piping failing
 
-write a little function which verifies things about endian, nan, and type sizes
+make nrrdDescribe() a little prettier
+
+make note of the fact that the 6-unique character thing is violated
+all over the place
+
+write a little function which verifies things about endian, nan, type sizes,
+and type min/maxs
   (to make sure teem built okay)
 
 read "a pixel is not a square" type papers,

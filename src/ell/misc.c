@@ -18,6 +18,12 @@
 
 #include "ell.h"
 
+/*
+******** ellDebug
+**
+** some functions may use this value to control printing of
+** verbose debugging information
+*/
 int ellDebug = 0;
 
 

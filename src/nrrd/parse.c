@@ -126,14 +126,8 @@ _nrrdReadNrrdParse_sizes(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
   info = io->line + io->pos;
   _CHECK_HAVE_DIM;
-  ret = airParseStrI(val, info, _nrrdFieldSep, nrrd->dim);
+  ret = airParseStrUI(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
-  for (i=0; i<=nrrd->dim-1; i++) {
-    if (!(val[i] > 0)) {
-      sprintf(err, "%s: axis %d size (%d) invalid", me, i, val[i]);
-      biffMaybeAdd(useBiff, NRRD, err); return 1;
-    }
-  }
   nrrdAxesSet(nrrd, nrrdAxesInfoSize, val);
   return 0;
 }
@@ -325,7 +319,9 @@ _nrrdReadNrrdParse_block_size(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
   info = io->line + io->pos;
   if (nrrdTypeBlock != nrrd->type) {
-    sprintf(err, "%s: known type is not block", me);
+    sprintf(err, "%s: known type (%s) is not (%s)", me,
+	    nrrdEnumValToStr(nrrdEnumType, nrrd->type),
+	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
     biffMaybeAdd(useBiff, NRRD, err); return 1;
   }
   _PARSE_ONE_VAL(nrrd->blockSize, "%d", "int");
@@ -398,6 +394,8 @@ _nrrdReadNrrdParse_data_file(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 	    me, dataName, strerror(errno));
     biffMaybeAdd(useBiff, NRRD, err); return 1;
   }
+  io->seperateHeader = AIR_TRUE;
+  /* the seperate data file will be closed in _nrrdReadNrrd() */
   return 0;
 }
 

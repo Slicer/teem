@@ -19,6 +19,8 @@
 #include "nrrd.h"
 #include "private.h"
 
+/* ------------------------------------------------------------ */
+
 void
 _nrrdIOInit(nrrdIO *io) {
 
@@ -29,13 +31,13 @@ _nrrdIOInit(nrrdIO *io) {
     io->pos = 0;
     io->dataFile = NULL;
     io->magic = nrrdMagicUnknown;
-    io->format = nrrdFormatNRRD;       /* sensible default */
-    io->encoding = nrrdEncodingRaw;    /* sensible default */
+    io->format = nrrdDefWrtFormat;
+    io->encoding = nrrdDefWrtEncoding;
     io->endian = airEndianUnknown;
     io->lineSkip = 0;
     io->byteSkip = 0;
-    io->bareTable = AIR_TRUE;
-    io->seperateHeader = AIR_FALSE;
+    io->seperateHeader = nrrdDefWrtSeperateHeader;
+    io->bareTable = nrrdDefWrtBareTable;
     memset(io->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
   }
 }
@@ -46,6 +48,7 @@ nrrdIONew(void) {
   
   io = calloc(1, sizeof(nrrdIO));
   if (io) {
+    /* explicitly sets pointers to NULL */
     _nrrdIOInit(io);
   }
   return io;
@@ -57,6 +60,8 @@ nrrdIONix(nrrdIO *io) {
   return airFree(io);
 }
 
+/* ------------------------------------------------------------ */
+
 void
 _nrrdResampleInfoInit(nrrdResampleInfo *info) {
   int i, d;
@@ -64,16 +69,15 @@ _nrrdResampleInfoInit(nrrdResampleInfo *info) {
   for (d=0; d<=NRRD_DIM_MAX-1; d++) {
     info->kernel[d] = NULL;
     info->samples[d] = 0;
-    info->param[d][0] = 1.0;
+    info->param[d][0] = nrrdDefRsmpScale;
     for (i=1; i<=NRRD_KERNEL_PARAMS_MAX-1; i++)
       info->param[d][i] = AIR_NAN;
     info->min[d] = info->max[d] = AIR_NAN;
   }
-  info->type = nrrdTypeUnknown;
-  /* HEY: these may or may not be the best choices for default values */
-  info->renormalize = AIR_TRUE;
-  info->boundary = nrrdBoundaryBleed;
-  info->padValue = 0.0;
+  info->boundary = nrrdDefRsmpBoundary;
+  info->type = nrrdDefRsmpType;
+  info->renormalize = nrrdDefRsmpRenormalize;
+  info->padValue = nrrdDefRsmpPadValue;
 }
 
 nrrdResampleInfo *
@@ -82,6 +86,7 @@ nrrdResampleInfoNew(void) {
 
   info = (nrrdResampleInfo*)(calloc(1, sizeof(nrrdResampleInfo)));
   if (info) {
+    /* explicitly sets pointers to NULL */
     _nrrdResampleInfoInit(info);
   }
   return info;
@@ -92,6 +97,12 @@ nrrdResampleInfoNix(nrrdResampleInfo *info) {
   
   return airFree(info);
 }
+
+/* ------------------------------------------------------------ */
+
+/* see axes.c for axis-specific "methods" */
+
+/* ------------------------------------------------------------ */
 
 /*
 ******* nrrdInit
@@ -105,20 +116,22 @@ nrrdInit(Nrrd *nrrd) {
 
   if (nrrd) {
     nrrd->data = airFree(nrrd->data);
-    nrrd->num = -1;
+    nrrd->num = 0;
     nrrd->type = nrrdTypeUnknown;
-    nrrd->dim = -1;
+    nrrd->dim = 0;
     
     for (i=0; i<=NRRD_DIM_MAX-1; i++) {
-      _nrrdAxisInit(nrrd->axis + i);
+      _nrrdAxisInit(&(nrrd->axis[i]));
     }
     
     nrrd->content = airFree(nrrd->content);
-    nrrd->blockSize = -1;
+    nrrd->blockSize = 0;
     nrrd->min = nrrd->max = AIR_NAN;
     nrrd->oldMin = nrrd->oldMax = AIR_NAN;
-    nrrd->ptr = NULL;
+    /* nrrd->ptr = NULL; */
     
+    /* the comment airArray has already been allocated, 
+       though perhaps empty */
     nrrdCommentClear(nrrd);
   }
 }
@@ -137,13 +150,18 @@ nrrdNew(void) {
   nrrd = (Nrrd*)(calloc(1, sizeof(Nrrd)));
   if (!nrrd)
     return NULL;
+
+  /* explicitly set pointers to NULL */
   nrrd->data = NULL;
   nrrd->content = NULL;
+
+  /* create comment airArray (even though it starts empty) */
   nrrd->cmtArr = airArrayNew((void**)(&(nrrd->cmt)), NULL, 
 			     sizeof(char *), NRRD_COMMENT_INCR);
   if (!nrrd->cmtArr)
     return NULL;
-  airArrayPointerCB(nrrd->cmtArr, NULL, airFree);
+  airArrayPointerCB(nrrd->cmtArr, airNull, airFree);
+
   nrrdInit(nrrd);
   return nrrd;
 }
@@ -174,7 +192,8 @@ nrrdNix(Nrrd *nrrd) {
 ******** nrrdEmpty()
 **
 ** frees data inside nrrd AND resets all its state, so its the
-** same as what comes from nrrdNew()
+** same as what comes from nrrdNew().  This includes free()ing
+** any comments.
 */
 Nrrd *
 nrrdEmpty(Nrrd *nrrd) {
@@ -203,12 +222,18 @@ nrrdNuke(Nrrd *nrrd) {
   return NULL;
 }
 
+/* ------------------------------------------------------------ */
+
 /*
 ******** nrrdWrap()
 **
 ** wraps a given Nrrd around a given array
 **
-** NOTE: does not touch any fields other than what the arguments imply
+** NOTE: does not touch any fields other than what the arguments imply,
+** which means that updating the axis[i]->size to agree with the num
+** argument is up to the user!!
+**
+** Thus, this function should be deprecated or something.
 */
 Nrrd *
 nrrdWrap(Nrrd *nrrd, void *data, nrrdBigInt num, int type, int dim) {
@@ -225,7 +250,10 @@ nrrdWrap(Nrrd *nrrd, void *data, nrrdBigInt num, int type, int dim) {
 /*
 ******** nrrdWrap_va()
 **
-** minimal var args wrapper around nrrdWrap
+** Minimal var args wrapper around nrrdWrap, with the advantage of 
+** taking all the axes sizes as the var args.
+**
+** This is THE BEST WAY to wrap a nrrd around existing raster data!
 */
 Nrrd *
 nrrdWrap_va(Nrrd *nrrd, void *data, int type, int dim, ...) {
@@ -242,6 +270,7 @@ nrrdWrap_va(Nrrd *nrrd, void *data, int type, int dim, ...) {
     nrrd->axis[d].size = va_arg(ap, int);
     num *= nrrd->axis[d].size;
   }
+  va_end(ap);
   return nrrdWrap(nrrd, data, num, type, dim);
 }
 
@@ -260,7 +289,7 @@ nrrdUnwrap(Nrrd *nrrd) {
 /*
 ******** nrrdAlloc()
 **
-** allocates data array and sets information
+** allocates data array and sets information.
 **
 ** This function will always allocate more memory (via calloc), but
 ** it will free() nrrd->data if it is non-NULL when passed in
@@ -279,17 +308,16 @@ nrrdAlloc(Nrrd *nrrd, nrrdBigInt num, int type, int dim) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(num > 0)) {
-    sprintf(err, "%s: invalid num (%d)", me, (int)num);
-    biffAdd(NRRD, err); return 1;
-  }
   if (!AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast)) {
     sprintf(err, "%s: type (%d) is invalid", me, type);
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdTypeBlock == type) {
-    sprintf(err, "%s: sorry, can't deal with nrrdTypeBlock here", me);
-    biffAdd(NRRD, err); return 1;
+    if (!(0 < nrrd->blockSize)) {
+      sprintf(err, "%s: given nrrd->blockSize %d invalid", 
+	      me, nrrd->blockSize);
+      biffAdd(NRRD, err); return 1;
+    }
   }
   if (!AIR_INSIDE(1, dim, NRRD_DIM_MAX)) {
     sprintf(err, "%s: dim (%d) in invalid", me, dim);
@@ -297,14 +325,14 @@ nrrdAlloc(Nrrd *nrrd, nrrdBigInt num, int type, int dim) {
   }
 
   nrrd->data = airFree(nrrd->data);
-  nrrd->data = calloc(num, nrrdTypeSize[type]);
+  nrrd->type = type;
+  nrrd->data = calloc(num, nrrdElementSize(nrrd));
   if (!(nrrd->data)) {
     sprintf(err, "%s: calloc(" NRRD_BIG_INT_PRINTF ",%d) failed", 
-	    me, num, nrrdTypeSize[type]);
+	    me, num, nrrdElementSize(nrrd));
     biffAdd(NRRD, err); return 1 ;
   }
   nrrd->num = num;
-  nrrd->type = type;
   nrrd->dim = dim;
 
   return 0;
@@ -333,6 +361,7 @@ nrrdAlloc_va(Nrrd *nrrd, int type, int dim, ...) {
     nrrd->axis[d].size = va_arg(ap, int);
     num *= nrrd->axis[d].size;
   }
+  va_end(ap);
   if (nrrdAlloc(nrrd, num, type, dim)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
@@ -367,15 +396,19 @@ nrrdMaybeAlloc(Nrrd *nrrd, nrrdBigInt num, int type, int dim) {
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdTypeBlock == type) {
-    sprintf(err, "%s: sorry, can't deal with nrrdTypeBlock here", me);
-    biffAdd(NRRD, err); return 1;
+    if (!(0 < nrrd->blockSize)) {
+      sprintf(err, "%s: given nrrd->blockSize %d invalid", 
+	      me, nrrd->blockSize);
+      biffAdd(NRRD, err); return 1;
+    }
   }
+
   if (!(nrrd->data)) {
     need = 1;
   }
   else {
     sizeHave = nrrd->num * nrrdElementSize(nrrd);
-    sizeWant = num * nrrdTypeSize[type];
+    sizeWant = num * nrrdElementSize(nrrd);
     need = sizeHave != sizeWant;
   }
   if (need) {
@@ -384,6 +417,14 @@ nrrdMaybeAlloc(Nrrd *nrrd, nrrdBigInt num, int type, int dim) {
       biffAdd(NRRD, err); return 1;
     }
   }
+
+  /* we need to set these here because if need was NOT true above,
+     then these things would not be set by nrrdAlloc(), but they
+     need to be set in accordance with the function arguments */
+  nrrd->num = num;
+  nrrd->type = type;
+  nrrd->dim = dim;
+
   return 0;
 }
 
@@ -410,6 +451,7 @@ nrrdMaybeAlloc_va(Nrrd *nrrd, int type, int dim, ...) {
     nrrd->axis[d].size = va_arg(ap, int);
     num *= nrrd->axis[d].size;
   }
+  va_end(ap);
   if (nrrdMaybeAlloc(nrrd, num, type, dim)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
@@ -420,8 +462,10 @@ nrrdMaybeAlloc_va(Nrrd *nrrd, int type, int dim, ...) {
 /*
 ******** nrrdCopy
 **
-** copy method for nrrds.  nout will end up as an exact copy of nin,
-** except that nout->ptr is NULL.
+** copy method for nrrds.  nout will end up as an "exact" copy of nin.
+** New space for data is allocated here, and output nrrd points to it.
+** Comments from old are added to comments for new, so these are also
+** newly allocated.
 */
 int
 nrrdCopy(Nrrd *nout, Nrrd *nin) {
@@ -452,7 +496,7 @@ nrrdCopy(Nrrd *nout, Nrrd *nin) {
   nout->max = nin->max;
   nout->oldMin = nin->oldMin;
   nout->oldMax = nin->oldMax;
-  nout->ptr = NULL;
+  nout->ptr = nin->ptr;
     
   if (nrrdCommentCopy(nout, nin, AIR_TRUE)) {
     sprintf(err, "%s: trouble copying comments", me);

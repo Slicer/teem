@@ -246,7 +246,7 @@ _nrrdResampleCheckInfo(Nrrd *nin, nrrdResampleInfo *info) {
     /* we only care about the axes being resampled */
     if (!k)
       continue;
-    np = k->numParam();
+    np = k->numParam;
     for (p=0; p<=np-1; p++) {
       if (!AIR_EXISTS(info->param[d][p])) {
 	sprintf(err, "%s: didn't set parameter %d for axis %d\n", me, p, d);
@@ -479,7 +479,7 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
     p0 = info->param[d][0];
     info->param[d][0] = p0/smpRatio;
   }
-  info->kernel[d]->evalVec_f(smp, smp, dotLen*lengthOut, info->param[d]);
+  info->kernel[d]->evalN_f(smp, smp, dotLen*lengthOut, info->param[d]);
   if (smpRatio < 1) {
     info->param[d][0] = p0;
   }

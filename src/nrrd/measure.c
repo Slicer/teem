@@ -480,6 +480,11 @@ nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr) {
     sprintf(err, "%s: got NULL pointer", me);
     biffSet(NRRD, err); return 1;
   }
+  if (nrrdTypeBlock == nin->type) {
+    sprintf(err, "%s: can't work on nrrd type %s", me,
+	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+    biffSet(NRRD, err); return 1;
+  }
   if (!AIR_BETWEEN(nrrdMeasureUnknown, measr, nrrdMeasureLast)) {
     sprintf(err, "%s: measure %d not recognized", me, measr);
     biffSet(NRRD, err); return 1;
@@ -510,6 +515,8 @@ nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   }
 
   /* allocate a scanline buffer */
+  /* using nrrdTypeSize[] instead of nrrdElementSize() here is 
+     justified by the above prohibition on using the block type */
   inElSize = nrrdTypeSize[nin->type];
   outElSize = nrrdTypeSize[type];
   if (!(line = calloc(nin->axis[axis].size, inElSize))) {

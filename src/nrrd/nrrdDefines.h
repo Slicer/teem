@@ -95,7 +95,6 @@ extern "C" {
 ** Chances are, you shouldn't mess with these
 */
 
-#define NRRD_HEADER "NRRD00.01"
 #define NRRD_COMMENT_INCR 16
 #define NRRD_PNM_COMMENT "#NRRD: "
 

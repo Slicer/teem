@@ -80,6 +80,14 @@ _nrrdNoopEndian(void *_data, nrrdBigInt N) {
 }
 
 void
+_nrrdBlockEndian(void *_data, nrrdBigInt N) {
+  char me[]="_nrrdBlockEndian";
+  
+  fprintf(stderr, "%s: WARNING: can't fix endiannes of nrrd type %s\n", me,
+	  nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+}
+
+void
 (*_nrrdSwapEndian[])(void *, nrrdBigInt) = {
   _nrrdNoopEndian,         /*  0: nobody knows! */
   _nrrdNoopEndian,         /*  1:   signed 1-byte integer */
@@ -93,7 +101,7 @@ void
   _nrrdSwap32Endian,       /*  9:          4-byte floating point */
   _nrrdSwap64Endian,       /* 10:          8-byte floating point */
   /* _nrrdNoopEndian,    HEY! PUNT: 11:        16-byte floating point */
-  _nrrdNoopEndian          /* HEY! PUNT: 11: size user defined at run time */
+  _nrrdBlockEndian         /* 11: size user defined at run time */
 };
 
 void

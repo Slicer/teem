@@ -16,12 +16,19 @@
 */
 
 
+#ifndef NRRD_PRIVATE_HAS_BEEN_INCLUDED
+#define NRRD_PRIVATE_HAS_BEEN_INCLUDED
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define _NRRD_COMMENT_CHAR '#'
 
 typedef union {
+  char **CP;
   int *I;
+  unsigned int *UI;
   double *D;
-  char **C;
   void *P;
 } _nrrdAxesInfoPtrs;
 
@@ -30,6 +37,9 @@ extern int _nrrdFieldValidInPNM[NRRD_FIELD_MAX+1];
 extern int _nrrdFieldValidInTable[NRRD_FIELD_MAX+1];
 extern char _nrrdEnumFieldStr[NRRD_FIELD_MAX+1][NRRD_STRLEN_SMALL];
 extern int _nrrdFieldRequired[NRRD_FIELD_MAX+1];
+
+/* axes.c */
+extern void _nrrdAxisInit(nrrdAxis *axis);
 
 /* convert.c */
 extern void (*_nrrdConv[][NRRD_TYPE_MAX+1])(void *,void *, nrrdBigInt);
@@ -49,3 +59,8 @@ extern int _nrrdSplitName(char *dir, char *base, char *name);
 extern int (*_nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1])(Nrrd *, nrrdIO *, int);
 extern int _nrrdReadNrrdParseField(Nrrd *nrrd, nrrdIO *io, int useBiff);
 
+/* extern C */
+#ifdef __cplusplus
+}
+#endif
+#endif /* NRRD_PRIVATE_HAS_BEEN_INCLUDED */

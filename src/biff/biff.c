@@ -19,6 +19,12 @@
 #include "biff.h"
 
 /*
+** This is mostly garbage.
+** It needs to be re-written.
+** I apologize.
+*/
+
+/*
 ** _biffEntry struct
 **
 ** hold information and messages associated with one key
@@ -280,7 +286,7 @@ biffAdd(char *key, char *err) {
 /*
 ******** biffMaybeAdd()
 **
-** wrapper around biffAdd() but doesn't actually do anything of !useBiff
+** wrapper around biffAdd() but doesn't actually do anything if !useBiff
 */
 void
 biffMaybeAdd(int useBiff, char *key, char *err) {
@@ -315,7 +321,7 @@ biffGet(char *key) {
     return(NULL);
   }
   if (!e->num) {
-    /* there's a key, but no error messages.  Odd */
+    /* there's a key, but no error messages.  Odd. */
     return(airStrdup(""));
   }
 
@@ -338,6 +344,27 @@ biffGet(char *key) {
   free(buf);
 
   return(ret);
+}
+
+/*
+******** biffCheck()
+**
+** sees how many messages there are for a given key
+** returns 0 if the key doesn't exist.
+*/
+int
+biffCheck(char *key) {
+  _biffEntry *e;
+
+  _biffInit();
+  _biffCheckKey(key);
+  
+  e = _biffFindKey(key);
+  if (!e) {
+    return 0;
+  }
+  
+  return e->num;
 }
 
 /*

@@ -19,6 +19,14 @@
 #include "nrrd.h"
 #include "private.h"
 
+#include <fcntl.h>
+
+
+/*
+  #include <sys/types.h>
+  #include <unistd.h>
+*/
+
 int
 _nrrdFieldInteresting(Nrrd *nrrd, nrrdIO *io, int field) {
   int d, ret;
@@ -33,7 +41,8 @@ _nrrdFieldInteresting(Nrrd *nrrd, nrrdIO *io, int field) {
   
   switch (field) {
   case nrrdField_comment:
-    /* comments are always handled differently */
+    /* comments are always handled differently (by being printed
+       explicity), so they are never "interesting" */
     ret = 0;
     break;
   case nrrdField_number:
@@ -54,27 +63,32 @@ _nrrdFieldInteresting(Nrrd *nrrd, nrrdIO *io, int field) {
     ret = (nrrdTypeBlock == nrrd->type);
     break;
   case nrrdField_spacings:
-    for (ret=d=0; d<=nrrd->dim-1; d++) {
+    ret = 0;
+    for (d=0; d<=nrrd->dim-1; d++) {
       ret |= AIR_EXISTS(nrrd->axis[d].spacing);
     }
     break;
   case nrrdField_axis_mins:
-    for (ret=d=0; d<=nrrd->dim-1; d++) {
+    ret = 0;
+    for (d=0; d<=nrrd->dim-1; d++) {
       ret |= AIR_EXISTS(nrrd->axis[d].min);
     }
     break;
   case nrrdField_axis_maxs:
-    for (ret=d=0; d<=nrrd->dim-1; d++) {
+    ret = 0;
+    for (d=0; d<=nrrd->dim-1; d++) {
       ret |= AIR_EXISTS(nrrd->axis[d].max);
     }
     break;
   case nrrdField_centers:
-    for (ret=d=0; d<=nrrd->dim-1; d++) {
-      ret |= !!(nrrd->axis[d].center);
+    ret = 0;
+    for (d=0; d<=nrrd->dim-1; d++) {
+      ret |= (nrrdCenterUnknown != nrrd->axis[d].center);
     }
     break;
   case nrrdField_labels:
-    for (ret=d=0; d<=nrrd->dim-1; d++) {
+    ret = 0;
+    for (d=0; d<=nrrd->dim-1; d++) {
       ret |= !!(airStrlen(nrrd->axis[d].label));
     }
     break;
@@ -120,14 +134,14 @@ _nrrdWriteDataRaw(Nrrd *nrrd, nrrdIO *io) {
   bsize = nrrd->num * nrrdElementSize(nrrd);
   size = bsize;
   if (size != bsize) {
-    fprintf(stderr, "%s: PANIC, sorry", me);
+    fprintf(stderr, "%s: PANIC: nrrdBigInt can't hold byte size of data.", me);
     exit(1);
   }
 
   dio = airDioTest(size, io->dataFile, nrrd->data);
   if (airNoDio_okay == dio) {
     if (nrrdFormatNRRD == io->format) {
-      fprintf(stderr, "using direct I/O ... "); fflush(stderr);
+      fprintf(stderr, "with direct I/O ... "); fflush(stderr);
     }
     ret = airDioWrite(io->dataFile, nrrd->data, size);
     if (size != ret) {
@@ -137,13 +151,22 @@ _nrrdWriteDataRaw(Nrrd *nrrd, nrrdIO *io) {
   }
   else {
     if (AIR_DIO && nrrdFormatNRRD == io->format) {
-      fprintf(stderr, "using fwrite() ... "); fflush(stderr);
+      fprintf(stderr, "with fwrite() ... "); fflush(stderr);
     }
+    fcntl( fileno(io->dataFile), F_SETFL, O_SYNC | O_DSYNC | O_RSYNC ) ; 
     ret = fwrite(nrrd->data, nrrdElementSize(nrrd), nrrd->num, io->dataFile);
+    /*
+    fprintf(stderr, "%s(%d): post-fwrite fsync(%d) returns %d\n", me,
+	    getpid(),
+	    fileno(io->dataFile), fsync(fileno(io->dataFile)));
+    */
     if (ret != nrrd->num) {
-      sprintf(err, "%s: unable to complete fwrite()", me);
+      sprintf(err, "%s: fwrite() returned " NRRD_BIG_INT_PRINTF
+	      " (not " NRRD_BIG_INT_PRINTF ")", me,
+	      (nrrdBigInt)ret, nrrd->num);
       biffAdd(NRRD, err); return 1;
     }
+    fflush(io->dataFile);
     /*
     if (ferror(io->dataFile)) {
       sprintf(err, "%s: ferror returned non-zero", me);
@@ -154,9 +177,6 @@ _nrrdWriteDataRaw(Nrrd *nrrd, nrrdIO *io) {
   return 0;
 }
 
-#define _NRRD_VALS_PER_LINE 6
-#define _NRRD_CHARS_PER_LINE 73
-
 int
 _nrrdWriteDataAscii(Nrrd *nrrd, nrrdIO *io) {
   char me[]="_nrrdWriteDataAscii", err[NRRD_STRLEN_MED], 
@@ -166,7 +186,8 @@ _nrrdWriteDataAscii(Nrrd *nrrd, nrrdIO *io) {
   nrrdBigInt I;
   
   if (nrrdTypeBlock == nrrd->type) {
-    sprintf(err, "%s: can't write blocks to ascii", me);
+    sprintf(err, "%s: can't write nrrd type %s to ascii", me,
+	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
   data = nrrd->data;
@@ -177,14 +198,14 @@ _nrrdWriteDataAscii(Nrrd *nrrd, nrrdIO *io) {
     if (1 == nrrd->dim) {
       fprintf(io->dataFile, "%s\n", buff);
     }
-    else if (nrrd->dim == 2 && nrrd->axis[0].size <= _NRRD_VALS_PER_LINE) {
+    else if (nrrd->dim == 2 && nrrd->axis[0].size <= nrrdDefIOValsPerLine) {
       fprintf(io->dataFile, "%s%c", buff,
 	      (I+1)%(nrrd->axis[0].size) ? ' ' : '\n');
     }
     else {
       bufflen = strlen(buff);
-      if (linelen < _NRRD_CHARS_PER_LINE
-	  && linelen+bufflen+1 >= _NRRD_CHARS_PER_LINE) {
+      if (linelen < nrrdDefIOCharsPerLine
+	  && linelen+bufflen+1 >= nrrdDefIOCharsPerLine) {
 	fprintf(io->dataFile, "%s\n", buff);
 	linelen = 0;
       }
@@ -362,8 +383,9 @@ _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     io->dataFile = file;
   }
 
-  fprintf(file, "%s\n", NRRD_HEADER);
+  fprintf(file, "%s\n", nrrdEnumValToStr(nrrdEnumMagic, nrrdMagicNRRD0001));
 
+  /* this is where the majority of the header printing happens */
   for (i=1; i<=NRRD_FIELD_MAX; i++)
     _PRINT_FIELD("", i);
 
@@ -375,7 +397,7 @@ _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     fprintf(file, "\n");
   }
 
-  fprintf(stderr, "(%s: writing %s data ... ", me, 
+  fprintf(stderr, "(%s: writing %s data ", me, 
 	  nrrdEnumValToStr(nrrdEnumEncoding, io->encoding));
   fflush(stderr);
   if (_nrrdWriteData[io->encoding](nrrd, io)) {
@@ -489,7 +511,7 @@ _nrrdGuessFormat(char *filename, Nrrd *nrrd, nrrdIO *io) {
   }
   else {
     /* filename does not suggest any particular format */
-    io->format = NRRD_FORMAT_DEFAULT;
+    io->format = nrrdDefWrtFormat;
   }
 }
 
@@ -593,7 +615,7 @@ nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
     
   }
   if (nrrdEncodingUnknown == io->encoding) {
-    io->encoding = NRRD_ENCODING_DEFAULT;
+    io->encoding = nrrdDefWrtEncoding;
   }
   else if (!AIR_BETWEEN(nrrdEncodingUnknown, io->encoding, 
 			nrrdEncodingLast)) {

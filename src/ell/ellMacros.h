@@ -112,10 +112,10 @@ extern "C" {
 #define ELL_3M_SETDIAG(m, a, b, c) \
   ((m)[0] = (a), (m)[4] = (b), (m)[8] = (c), (m))
 
-#define ELL_3M_TRANSP(m2, m1, t)                    \
-  ((t) = (m1)[1], (m2)[1] = (m1)[3], (m2)[3] = (t), \
-   (t) = (m1)[2], (m2)[2] = (m1)[6], (m2)[6] = (t), \
-   (t) = (m1)[5], (m2)[5] = (m1)[7], (m2)[7] = (t), (m2))
+#define ELL_3M_TRANSP(m, t)          \
+  (ELL_SWAP2((m)[1], (m)[3], (t)),   \
+   ELL_SWAP2((m)[2], (m)[6], (t)),   \
+   ELL_SWAP2((m)[5], (m)[7], (t)))
 
 #define ELL_3MV_MUL(v2, m, v1) \
   ((v2)[0] = (m)[0]*(v1)[0] + (m)[3]*(v1)[1] + (m)[6]*(v1)[2], \
@@ -189,6 +189,14 @@ extern "C" {
    ELL_4V_COPY((m2)+ 8, (m1)+ 8), \
    ELL_4V_COPY((m2)+12, (m1)+12), (m2))
 
+#define ELL_4M_TRANSP(m, t)            \
+  (ELL_SWAP2((m)[ 1], (m)[ 4], (t)),   \
+   ELL_SWAP2((m)[ 2], (m)[ 8], (t)),   \
+   ELL_SWAP2((m)[ 3], (m)[12], (t)),   \
+   ELL_SWAP2((m)[ 6], (m)[ 9], (t)),   \
+   ELL_SWAP2((m)[ 7], (m)[13], (t)),   \
+   ELL_SWAP2((m)[11], (m)[14], (t)))
+
 #define ELL_4MV_MUL(v2, m, v1)                                              \
   ((v2)[0]=(m)[ 0]*(v1)[0]+(m)[ 4]*(v1)[1]+(m)[ 8]*(v1)[2]+(m)[12]*(v1)[3], \
    (v2)[1]=(m)[ 1]*(v1)[0]+(m)[ 5]*(v1)[1]+(m)[ 9]*(v1)[2]+(m)[13]*(v1)[3], \
@@ -206,6 +214,8 @@ extern "C" {
 /*
 ** the ELL_4M_SET... macros are setting the matrix one _column_
 ** at a time- so the matrix components appear below in transpose
+**
+** These macros are intended to be used as aids with homogeneous transforms
 */
 
 #define ELL_4M_SET_COLS(m, a, b, c, d)  \

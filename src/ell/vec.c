@@ -18,6 +18,13 @@
 
 #include "ell.h"
 
+/*
+******** ell3vPerp()
+**
+** Given a 3-vector, produce one which is perpendicular.
+** Output length won't be same as input length, but it will always
+** be non-zero, if input length is non-zero.
+*/
 void
 ell3vPerp(float *a, float *b) {
   int idx;

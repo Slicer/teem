@@ -40,7 +40,9 @@ _nrrdEnumBoundaryStr[NRRD_BOUNDARY_MAX+1][NRRD_STRLEN_SMALL] = {
 char
 _nrrdEnumMagicStr[NRRD_MAGIC_MAX+1][NRRD_STRLEN_SMALL] = {
   "(unknown magic)",
-  NRRD_HEADER,
+  "NRRD00.01",
+  /* "NRRD0001", */
+  "NRRD00.01",
   "P2",
   "P3",
   "P5",
@@ -84,14 +86,14 @@ _nrrdEnumMeasureStr[NRRD_MEASURE_MAX+1][NRRD_STRLEN_SMALL] = {
   "L1",
   "L2",
   "Linf",
-  "histo min",
-  "histo max",
-  "histo mean",
-  "histo median",
-  "histo mode",
-  "histo product",
-  "histo sum",
-  "histo variance"
+  "histo-min",
+  "histo-max",
+  "histo-mean",
+  "histo-median",
+  "histo-mode",
+  "histo-product",
+  "histo-sum",
+  "histo-variance"
 };
 
 char
@@ -100,7 +102,7 @@ _nrrdEnumMinMaxStr[NRRD_MINMAX_MAX+1][NRRD_STRLEN_SMALL] = {
   "search",
   "search+set",
   "use",
-  "instead use"
+  "instead-use"
 };
 
 char

@@ -35,9 +35,9 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
     sprintf(err, "%s: invalid args", me);
     biffSet(NRRD, err); return 1;
   }
-  if (nin->type == nrrdTypeBlock
-      || type == nrrdTypeBlock) {
-    sprintf(err, "%s: sorry, can't deal with type block now", me);
+  if (nin->type == nrrdTypeBlock || type == nrrdTypeBlock) {
+    sprintf(err, "%s: can't convert to or from nrrd type %s", me,
+	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
     biffSet(NRRD, err); return 1;
   }
 
@@ -72,10 +72,10 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
 	      nrrdEnumValToStr(nrrdEnumType, nout->type),
 	      nin->content);
     }
-  }
-  else {
-    sprintf(err, "%s: couldn't allocate output content", me);
-    biffAdd(NRRD, err); return 1;
+    else {
+      sprintf(err, "%s: couldn't allocate output content", me);
+      biffAdd(NRRD, err); return 1;
+    }
   }
 
   /* bye */
@@ -106,8 +106,8 @@ nrrdMinMaxFind(double *minP, double *maxP, Nrrd *nrrd) {
     *maxP = nrrdDLoad[nrrd->type](_max);
   }
   else {
-    sprintf(err, "%s: don't know how to find range in type %d data",
-	    me, nrrd->type);
+    sprintf(err, "%s: don't know how to find range for nrrd type %s", me,
+	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
     biffSet(NRRD, err); return 1;
   }
   return 0;
@@ -187,7 +187,7 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits, int minmax) {
     sprintf(err, "%s: bits has to be 8, 16, or 32 (not %d)", me, bits);
     biffSet(NRRD, err); return 1;
   }
-  if (nrrdMinMaxDo(&min, &max, nin, AIR_NAN, AIR_NAN, minmax)) {
+  if (nrrdMinMaxDo(&min, &max, nin, minmax)) {
     sprintf(err, "%s: trouble setting min, max", me);
     biffAdd(NRRD, err); return 1;
   }

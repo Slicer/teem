@@ -36,18 +36,18 @@ nrrdSample(void *val, Nrrd *nrrd, int *coord) {
     biffSet(NRRD, err); return 1;
   }
   typeSize = nrrdElementSize(nrrd);
+  nrrdAxesGet(nrrd, nrrdAxesInfoSize, size);
   for (d=0; d<=nrrd->dim-1; d++) {
-    if (!(AIR_INSIDE(0, coord[d], nrrd->axis[d].size-1))) {
+    if (!(AIR_INSIDE(0, coord[d], size[d]-1))) {
       sprintf(err, "%s: coordinate %d on axis %d out of bounds (0 to %d)", 
-	      me, coord[d], d, nrrd->axis[d].size-1);
+	      me, coord[d], d, size[d]-1);
       biffSet(NRRD, err); return 1;
     }
   }
 
-  nrrdAxesGet(nrrd, nrrdAxesInfoSize, size);
-  NRRD_COORD_INDEX(coord, size, nrrd->dim, d, I);
+  NRRD_COORD_INDEX(I, coord, size, nrrd->dim, d);
 
-  memcpy((char*)val, (char*)(nrrd->data) + I*typeSize, typeSize);
+  memcpy(val, (char*)(nrrd->data) + I*typeSize, typeSize);
   return 0;
 }
 
@@ -81,7 +81,11 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
   char *src, *dest;
 
   if (!(nin && nout)) {
-    sprintf(err, "%s: invalid args", me);
+    sprintf(err, "%s: got NULL pointer", me);
+    biffSet(NRRD, err); return 1;
+  }
+  if (1 == nin->dim) {
+    sprintf(err, "%s: can't slice a 1-D nrrd (use nrrd{I|F|D}Lookup)", me);
     biffSet(NRRD, err); return 1;
   }
   if (!(AIR_INSIDE(0, axis, nin->dim-1))) {
@@ -121,6 +125,7 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
   dest = nout->data;
   src += offset;
   for (I=1; I<=numper; I++) {
+    /* perhaps replace with AIR_MEMCPY() */
     memcpy(dest, src, length);
     src += period;
     dest += length;
@@ -150,15 +155,26 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
     }
   }
   nout->blockSize = nin->blockSize;
+  nout->min = nout->max = AIR_NAN;
+  nout->oldMin = nout->oldMax = AIR_NAN;
+  /* leave comments alone */
 
   return(0);
 }
 
+/*
+******** nrrdCrop()
+**
+** select some sub-volume inside a given nrrd, producing an output
+** nrrd with the same dimensions, but with equal or smaller sizes
+** along each axis.
+*/
 int
 nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
-  char me[]="nrrdCrop", err[NRRD_STRLEN_MED];
-  int d,                     /* tmp */   
+  char me[]="nrrdCrop", err[NRRD_STRLEN_MED], buff[NRRD_STRLEN_SMALL];
+  int d, dim,                /* tmp */   
     lineSize,                /* #bytes in one scanline to be copied */
+    typeSize,                /* size of data type */
     cIn[NRRD_DIM_MAX],       /* coords for line start, in input */
     cOut[NRRD_DIM_MAX],      /* coords for line start, in output */
     szIn[NRRD_DIM_MAX],
@@ -174,7 +190,8 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
     sprintf(err, "%s: got NULL pointer", me);
     biffSet(NRRD, err); return 1;
   }
-  for (d=0; d<=nin->dim-1; d++) {
+  dim = nin->dim;
+  for (d=0; d<=dim-1; d++) {
     if (!(min[d] <= max[d])) {
       sprintf(err, "%s: axis %d min (%d) not <= max (%d)", 
 	      me, d, min[d], max[d]);
@@ -190,47 +207,236 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
 
   /* allocate */
   numOut = numLines = 1;
-  for (d=0; d<=nin->dim-1; d++) {
+  for (d=0; d<=dim-1; d++) {
+    /* here we take care of axis fields: size, center, min/max */
     nout->axis[d].size = max[d] - min[d] + 1;
     numOut *= nout->axis[d].size;
     if (d)
       numLines *= nout->axis[d].size;
+    nout->axis[d].center = nin->axis[d].center;
+    nrrdAxisRange(&(nout->axis[d].min), &(nout->axis[d].max),
+		  nout, d, min[d], max[d]);
   }
-  if (nrrdMaybeAlloc(nout, numOut, nin->type, nin->dim)) {
+  if (nrrdMaybeAlloc(nout, numOut, nin->type, dim)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
-  lineSize = nout->axis[0].size*nrrdElementSize(nin);
+  lineSize = nout->axis[0].size*nrrdTypeSize[nin->type];
   
   /* the skinny */
-  memset(cOut, 0, NRRD_DIM_MAX*sizeof(int));
+  typeSize = nrrdTypeSize[nin->type];
   dataIn = nin->data;
   dataOut = nout->data;
   nrrdAxesGet(nin, nrrdAxesInfoSize, szIn);
   nrrdAxesGet(nout, nrrdAxesInfoSize, szOut);
+  memset(cOut, 0, NRRD_DIM_MAX*sizeof(int));
   for (I=0; I<=numLines-1; I++) {
-    cOut[1]++; 
-    NRRD_COORD_UPDATE(cOut, szOut, nout->dim, d);
-    NRRD_COORD_INDEX(cOut, szOut, nout->dim, d, idxOut);
-    for (d=0; d<=nin->dim-1; d++)
+    for (d=0; d<=dim-1; d++)
       cIn[d] = cOut[d] + min[d];
-    NRRD_COORD_INDEX(cIn, szIn, nin->dim, d, idxIn);
-    memcpy(dataOut + idxOut, dataIn + idxIn, lineSize);
+    NRRD_COORD_INDEX(idxOut, cOut, szOut, dim, d);
+    NRRD_COORD_INDEX(idxIn, cIn, szIn, dim, d);
+    memcpy(dataOut + idxOut*typeSize, dataIn + idxIn*typeSize, lineSize);
+    cOut[1]++; 
+    NRRD_COORD_UPDATE(cOut+1, szOut+1, dim-1, d);
   }
   
-  if (nrrdAxesCopy(nout, nin, NULL, 
-		   NRRD_AXESINFO_MINMAX | NRRD_AXESINFO_SIZE)) {
+  if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE
+				     | NRRD_AXESINFO_CENTER
+				     | NRRD_AXESINFO_MINMAX ))) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
-    
+  nout->content = airFree(nout->content);
+  if (nin->content) {
+    nout->content = calloc(strlen("crop(,)")
+			   + strlen(nin->content)
+			   + dim*(strlen("[,]x") + 2*11)
+			   + 1, sizeof(char));
+    if (nout->content) {
+      sprintf(nout->content, "crop(%s,", nin->content);
+      for (d=0; d<=dim-1; d++) {
+	sprintf(buff, "%s[%d,%d]", (d ? "x" : ""), min[d], max[d]);
+	strcat(nout->content, buff);
+      }
+      sprintf(buff, ")");
+      strcat(nout->content, buff);    
+    }
+    else {
+      sprintf(err, "%s: couldn't alloc content string", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  nout->blockSize = nin->blockSize;
+  nout->min = nout->max = AIR_NAN;
+  nout->oldMin = nout->oldMax = AIR_NAN;
+  /* leave comments alone */
+
+  return 0;
+}
+
+int
+nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
+  char me[]="nrrdPad", err[NRRD_STRLEN_MED], buff[NRRD_STRLEN_SMALL];
+  double padValue;
+  int d, outside, dim, typeSize,
+    cIn[NRRD_DIM_MAX],       /* coords for line start, in input */
+    cOut[NRRD_DIM_MAX],      /* coords for line start, in output */
+    szIn[NRRD_DIM_MAX],
+    szOut[NRRD_DIM_MAX];
+  nrrdBigInt
+    idxIn, idxOut,           /* linear indices for input and output */
+    numOut;                  /* number of elements in output nrrd */
+  va_list ap;
+  char *dataIn, *dataOut;
   
+  if (!(nout && nin && min && max)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffSet(NRRD, err); return 1;
+  }
+  if (!AIR_BETWEEN(nrrdBoundaryUnknown, boundary, nrrdBoundaryLast)) {
+    sprintf(err, "%s: boundary behavior %d invalid", me, boundary);
+    biffSet(NRRD, err); return 1;
+  }
+  if (nrrdBoundaryWeight == boundary) {
+    sprintf(err, "%s: boundary %s non-sensical here", me,
+	    nrrdEnumValToStr(nrrdEnumBoundary, boundary));
+    biffSet(NRRD, err); return 1;
+  }
+  if (nrrdTypeBlock == nin->type
+      && (nrrdBoundaryPad == boundary)) {
+    sprintf(err, "%s: with nrrd type %s, boundary %s not valid", me,
+	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock),
+	    nrrdEnumValToStr(nrrdEnumBoundary, nrrdBoundaryPad));
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdBoundaryPad == boundary) {
+    va_start(ap, boundary);
+    padValue = va_arg(ap, double);
+    va_end(ap);
+    printf("!%s: padValue = %lg\n", me, padValue);
+  }
+  switch(boundary) {
+  case nrrdBoundaryPad: case nrrdBoundaryBleed: case nrrdBoundaryWrap:
+    break;
+  default:
+    fprintf(stderr, "%s: PANIC: boundary %d unimplemented\n", 
+	    me, boundary); exit(1); break;
+  }
+  dim = nin->dim;
+  for (d=0; d<=dim-1; d++) {
+    if (!(min[d] <= 0)) {
+      sprintf(err, "%s: axis %d min (%d) not <= 0", 
+	      me, d, min[d]);
+      biffSet(NRRD, err); return 1;
+    }
+    if (!(max[d] >= nin->axis[d].size-1)) {
+      sprintf(err, "%s: axis %d max (%d) not >= size-1 (%d)", 
+	      me, d, max[d], nin->axis[d].size-1);
+      biffSet(NRRD, err); return 1;
+    }
+  }
+
+  /* allocate */
+  numOut = 1;
+  for (d=0; d<=dim-1; d++) {
+    /* here we take care of axis fields: size, center, min/max */
+    nout->axis[d].size = -min[d] + max[d] + 1;
+    numOut *= nout->axis[d].size;
+    nout->axis[d].center = nin->axis[d].center;
+    nrrdAxisRange(&(nout->axis[d].min), &(nout->axis[d].max),
+		  nout, d, min[d], max[d]);
+  }
+  if (nrrdMaybeAlloc(nout, numOut, nin->type, dim)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return 1;
+  }
   
+  /* the skinny */
+  typeSize = nrrdTypeSize[nin->type];
+  dataIn = nin->data;
+  dataOut = nout->data;
+  nrrdAxesGet(nin, nrrdAxesInfoSize, szIn);
+  nrrdAxesGet(nout, nrrdAxesInfoSize, szOut);
+  memset(cOut, 0, NRRD_DIM_MAX*sizeof(int));
+  for (idxOut=0; idxOut<=numOut-1; idxOut++) {
+    outside = 0;
+    for (d=0; d<=dim-1; d++) {
+      cIn[d] = cOut[d] + min[d];
+      switch(boundary) {
+      case nrrdBoundaryPad:
+      case nrrdBoundaryBleed:
+	if (!AIR_INSIDE(0, cIn[d], szIn[d]-1)) {
+	  cIn[d] = AIR_CLAMP(0, cIn[d], szIn[d]-1);
+	  outside = 1;
+	}
+	break;
+      case nrrdBoundaryWrap:
+	if (!AIR_INSIDE(0, cIn[d], szIn[d]-1)) {
+	  cIn[d] = AIR_MOD(cIn[d], szIn[d]);
+	  outside = 1;
+	}
+	break;
+      }
+    }
+    NRRD_COORD_INDEX(idxIn, cIn, szIn, dim, d);
+    if (!outside) {
+      /* the cIn coords are within the input nrrd: memcpy() of scanline,
+	 and then artificially bump for-loop */
+      memcpy(dataOut + idxOut*typeSize, dataIn + idxIn*typeSize,
+	     nin->axis[0].size*typeSize);
+      idxOut += nin->axis[0].size-1;
+      cOut[0] += nin->axis[0].size-1;
+    }
+    else {
+      /* we copy only a single value */
+      if (nrrdBoundaryPad == boundary) {
+	nrrdDInsert[nout->type](dataOut, idxOut, padValue);
+      }
+      else {
+	memcpy(dataOut + idxOut*typeSize, dataIn + idxIn*typeSize, typeSize);
+      }
+    }
+    NRRD_COORD_INCR(cOut, szOut, dim, d);
+  }
+  if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE
+				     | NRRD_AXESINFO_CENTER
+				     | NRRD_AXESINFO_MINMAX ))) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  nout->content = airFree(nout->content);
+  if (nin->content) {
+    nout->content = calloc(strlen("pad(,)")
+			   + strlen(nin->content)
+			   + dim*(strlen("[,]x") + 2*11)
+			   + 1, sizeof(char));
+    if (nout->content) {
+      sprintf(nout->content, "pad(%s,", nin->content);
+      for (d=0; d<=dim-1; d++) {
+	sprintf(buff, "%s[%d,%d]", (d ? "x" : ""), min[d], max[d]);
+	strcat(nout->content, buff);
+      }
+      sprintf(buff, ")");
+      strcat(nout->content, buff);    
+    }
+    else {
+      sprintf(err, "%s: couldn't alloc content string", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  nout->blockSize = nin->blockSize;
+  nout->min = nout->max = AIR_NAN;
+  nout->oldMin = nout->oldMax = AIR_NAN;
+  /* leave comments alone */
+
   return 0;
 }
 
 /*
 ******** nrrdSubvolume
+**
+** THIS FUNCTION IS OFFICIALLY DEPRECATED.  ITS CORRECT OPERATION WITH
+** RESPECT TO ALL NRRD STRUCT AND AXIS STRUCT FIELDS IS NOT ASSURED.
 **
 ** This is a bit of a swiss-army function- allowing cropping, padding,
 ** and reversal of slices along axes.  The min and max arrays give
@@ -259,6 +465,9 @@ nrrdSubvolume(Nrrd *nout, Nrrd *nin, int *min, int *max, int clamp) {
 
     coord[NRRD_DIM_MAX];     /* array of original array coordinates */
   double half, amin, amax;
+
+  fprintf(stderr, 
+	  "%s: WARNING: Deprecated. (use nrrdCrop() and/or nrrdPad())\n", me);
 
   if (!(nin && nout && min && max)) {
     sprintf(err, "%s: invalid args", me);

@@ -20,10 +20,10 @@ HEADERS = nrrd.h nrrdDefines.h nrrdMacros.h nrrdEnums.h
 PRIV_HEADERS = private.h
 LIBOBJS = \
 	accessors.o  arith.o      arrays.o     axes.o       \
-        comment.o    convert.o    endian.o     filt.o       \
-	histogram.o  kernel.o     map.o        measure.o    \
-	methods.o    parse.o      read.o       reorder.o    \
-	simple.o     subset.o     write.o
+        comment.o    convert.o    defaults.o   endian.o     \
+	filt.o       histogram.o  kernel.o     map.o        \
+	measure.o    methods.o    parse.o      read.o       \
+	reorder.o    simple.o     subset.o     write.o
 
 #TEST_BINS = test/enum2str test/str2enum test/tio
 TEST_BINS = test/tio

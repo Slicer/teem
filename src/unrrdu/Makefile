@@ -19,7 +19,7 @@ LIB =
 HEADERS = 
 LIBOBJS = 
 TEST_BINS = 
-BINS = crop histo histax permute slice dice join \
+BINS = crop pad histo histax permute slice dice join reshape \
 	2a arith heq median nconvert quantize project \
 	mhisto rsmp
 BINLIBS = -lnrrd -lbiff -lair -lm
