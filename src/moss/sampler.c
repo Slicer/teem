@@ -37,8 +37,8 @@ mossSamplerImageSet (mossSampler *smplr, Nrrd *image, float *bg) {
   smplr->flag[mossFlagImage] = AIR_TRUE;
   ncol = MOSS_NCOL(image);
   smplr->bg = airFree(smplr->bg);
-  smplr->bg = (float*)calloc(ncol, sizeof(float));
   if (bg) {
+    smplr->bg = (float*)calloc(ncol, sizeof(float));
     for (ci=0; ci<ncol; ci++) {
       smplr->bg[ci] = bg[ci];
     }
