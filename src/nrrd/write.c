@@ -409,8 +409,8 @@ _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
     io->dataFile = file;
   }
 
-  /* fprintf(file, "%s\n", airEnumStr(nrrdMagic, nrrdMagicNRRD0001)); */
-  fprintf(file, "%s\n", airEnumStr(nrrdMagic, nrrdMagicOldNRRD));
+  fprintf(file, "%s\n", airEnumStr(nrrdMagic, nrrdMagicNRRD0001));
+  /* fprintf(file, "%s\n", airEnumStr(nrrdMagic, nrrdMagicOldNRRD)); */
 
   /* this is where the majority of the header printing happens */
   for (i=1; i<=NRRD_FIELD_MAX; i++) {
@@ -502,16 +502,28 @@ _nrrdWriteTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
   float val;
 
   sprintf(cmt, "%c ", _NRRD_COMMENT_CHAR);
+  /* If dimension is 1, we always print it. Dimension of 2 is 
+     otherwise assumed. */
+  if (1 == nrrd->dim) {
+    _PRINT_FIELD(cmt, nrrdField_dimension);
+  }
   if (!io->bareTable) {
     for (i=1; i<=NRRD_FIELD_MAX; i++) {
-      if (_nrrdFieldValidInTable[i]) {
+      /* dimension is handled above */
+      if (_nrrdFieldValidInTable[i] && nrrdField_dimension != i) {
 	_PRINT_FIELD(cmt, i);
       }
     }
   }
 
-  sx = nrrd->axis[0].size;
-  sy = nrrd->axis[1].size;
+  if (1 == nrrd->dim) {
+    sx = 1;
+    sy = nrrd->axis[0].size;
+  }
+  else {
+    sx = nrrd->axis[0].size;
+    sy = nrrd->axis[1].size;
+  }
   data = nrrd->data;
   I = 0;
   for (y=0; y<sy; y++) {
