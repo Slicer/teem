@@ -25,7 +25,10 @@ char *_tend_gradsInfoL =
   (INFO
    ", based on a simulation of anti-podal point pairs repelling each other "
    "on the unit sphere surface. This can either distribute more uniformly a given "
-   "set of gradients, or it can make a new distribution from scratch. ");
+   "set of gradients, or it can make a new distribution from scratch.  A more "
+   "clever implementation could decrease drag with time, as the solution converges, "
+   "to get closer to the minimum energy configuration faster.  In the mean time, you "
+   "can run a second pass on the output of the first pass, using lower drag. ");
 
 int
 tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
