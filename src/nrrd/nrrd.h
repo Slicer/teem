@@ -492,8 +492,11 @@ extern nrrdKernel *nrrdKernelZero, /* zero everywhere */
   *nrrdKernelForwDiff,             /* forward-difference-ish 1st deriv. */
   *nrrdKernelCentDiff,             /* central-difference-ish 1st deriv. */
   *nrrdKernelBCCubic,              /* BC family of cubic polynomial splines */
-  *nrrdKernelBCCubicD,             /* 1st deriv. of BC family */
-  *nrrdKernelBCCubicDD;            /* 2nd deriv. of BC family */
+  *nrrdKernelBCCubicD,             /* 1st deriv. of BC cubic family */
+  *nrrdKernelBCCubicDD,            /* 2nd deriv. of BC cubic family */
+  *nrrdKernelAQuartic,             /* A family of quartic C2 interp. splines */
+  *nrrdKernelAQuarticD,            /* 1st deriv. of A quartic family */
+  *nrrdKernelAQuarticDD;           /* 2nd deriv. of A quartic family */
 
 /******** conversions */
 /* convert.c */

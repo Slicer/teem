@@ -25,14 +25,13 @@ main() {
   float arg[3];
 
   arg[0] = 1.0;
-  arg[1] = 0;
-  arg[2] = 0.5;
-  N = 80;
-  bound = 2;
+  arg[1] = 0.25;
+  N = 100;
+  bound = 3;
   printf("v = [\n");
   for (i=0; i<=N-1; i++) {
     x = AIR_AFFINE(0, i, N-1, -bound, bound);
-    f = nrrdKernelBCCubic->eval(x, arg);
+    f = nrrdKernelAQuarticDD->eval(x, arg);
     printf("%g %g;\n", x, f);
   }
   printf("]\n");

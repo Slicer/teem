@@ -548,3 +548,218 @@ nrrdKernelBCCubicDD = &_nrrdKernelBCDD;
 
 /* ------------------------------------------------------------ */
 
+#define _AQUARTIC(x, A) (                                                    \
+   x >= 3.0                                                                  \
+   ? 0 : (x >= 2.0                                                           \
+         ? A*(-54 + x*(81 + x*(-45 + x*(11 - x))))                           \
+         : (x >= 1.0                                                         \
+            ? 4 - 6*A + x*(-10 + 25*A + x*(9 - 33*A +                        \
+					   x*(-3.5 + 17*A + x*(0.5 - 3*A)))) \
+            : 1 + x*x*(-3 + 6*A + x*((2.5 - 10*A) + x*(-0.5 + 4*A))))))
+
+float
+_nrrdA4Sup(float *param) {
+  float S;
+
+  S = param[0];
+  return 3*S;
+}
+
+double
+_nrrdA4ED(double x, float *param) {
+  float S;
+  double A;
+  
+  S = param[0]; A = param[1];
+  x = AIR_ABS(x)/S;
+  return _AQUARTIC(x, A)/S;
+}
+
+float
+_nrrdA4EF(float x, float *param) {
+  float A, S;
+  
+  S = param[0]; A = param[1];
+  x = AIR_ABS(x)/S;
+  return _AQUARTIC(x, A)/S;
+}
+
+void
+_nrrdA4VD(double *f, double *x, int len, float *param) {
+  float S;
+  double t, A;
+  int i;
+  
+  S = param[0]; A = param[1];
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t)/S;
+    f[i] = _AQUARTIC(t, A)/S;
+  }
+}
+
+void
+_nrrdA4VF(float *f, float *x, int len, float *param) {
+  float S, t, A;
+  int i;
+  
+  S = param[0]; A = param[1];
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t)/S;
+    f[i] = _AQUARTIC(t, A)/S;
+  }
+}
+
+nrrdKernel
+_nrrdKernelA4 = {
+  _nrrdA4Sup,   _nrrdA4EF,   _nrrdA4VF,   _nrrdA4ED,   _nrrdA4VD
+};
+nrrdKernel *
+nrrdKernelAQuartic = &_nrrdKernelA4;
+
+/* ------------------------------------------------------------ */
+
+#define _DAQUARTIC(x, A) (                                                   \
+   x >= 3.0                                                                  \
+   ? 0 : (x >= 2.0                                                           \
+         ? A*(81 + x*(-90 + x*(33 - 4*x)))                                   \
+         : (x >= 1.0                                                         \
+            ? -10 + 25*A + x*(18 - 66*A + x*(-10.5 + 51*A + x*(2 - 12*A)))   \
+            : x*(-6 + 12*A + x*(7.5 - 30*A + x*(-2 + 16*A))))))
+
+float
+_nrrdA4DSup(float *param) {
+  float S;
+
+  S = param[0];
+  return 3*S;
+}
+
+double
+_nrrdA4DED(double x, float *param) {
+  float S;
+  double A;
+  int sgn = 1;
+  
+  S = param[0]; A = param[1];
+  if (x < 0) { x = -x; sgn = -1; }
+  x /= S;
+  return sgn*_DAQUARTIC(x, A)/S;
+}
+
+float
+_nrrdA4DEF(float x, float *param) {
+  float A, S;
+  int sgn = 1;
+  
+  S = param[0]; A = param[1];
+  if (x < 0) { x = -x; sgn = -1; }
+  x /= S;
+  return sgn*_DAQUARTIC(x, A)/S;
+}
+
+void
+_nrrdA4DVD(double *f, double *x, int len, float *param) {
+  float S;
+  double t, A;
+  int i, sgn;
+  
+  S = param[0]; A = param[1];
+  for (i=0; i<len; i++) {
+    t = x[i]/S;
+    if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
+    f[i] = sgn*_DAQUARTIC(t, A)/S;
+  }
+}
+
+void
+_nrrdA4DVF(float *f, float *x, int len, float *param) {
+  float S, t, A;
+  int i, sgn;
+  
+  S = param[0]; A = param[1];
+  for (i=0; i<len; i++) {
+    t = x[i]/S;
+    if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
+    f[i] = sgn*_DAQUARTIC(t, A)/S;
+  }
+}
+
+nrrdKernel
+_nrrdKernelA4D = {
+  _nrrdA4DSup,  _nrrdA4DEF,  _nrrdA4DVF,  _nrrdA4DED,  _nrrdA4DVD
+};
+nrrdKernel *
+nrrdKernelAQuarticD = &_nrrdKernelA4D;
+
+/* ------------------------------------------------------------ */
+
+#define _DDAQUARTIC(x, A) (                                                  \
+   x >= 3.0                                                                  \
+   ? 0 : (x >= 2.0                                                           \
+         ? A*(-90 + x*(66 - x*12))                                           \
+         : (x >= 1.0                                                         \
+            ? 18 - 66*A + x*(-21 + 102*A + x*(6 - 36*A))                     \
+            : -6 + 12*A + x*(15 - 60*A + x*(-6 + 48*A)))))
+
+float
+_nrrdA4DDSup(float *param) {
+  float S;
+
+  S = param[0];
+  return 3*S;
+}
+
+double
+_nrrdA4DDED(double x, float *param) {
+  float S;
+  double A;
+  
+  S = param[0]; A = param[1];
+  x = AIR_ABS(x)/S;
+  return _DDAQUARTIC(x, A)/S;
+}
+
+float
+_nrrdA4DDEF(float x, float *param) {
+  float S, A;
+  
+  S = param[0]; A = param[1];
+  x = AIR_ABS(x)/S;
+  return _DDAQUARTIC(x, A)/S;
+}
+
+void
+_nrrdA4DDVD(double *f, double *x, int len, float *param) {
+  float S;
+  double t, A;
+  int i;
+  
+  S = param[0]; A = param[1];
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t)/S;
+    f[i] = _DDAQUARTIC(t, A)/S;
+  }
+}
+
+void
+_nrrdA4DDVF(float *f, float *x, int len, float *param) {
+  float S, t, A;
+  int i;
+  
+  S = param[0]; A = param[1];
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t)/S;
+    f[i] = _DDAQUARTIC(t, A)/S;
+  }
+}
+
+nrrdKernel
+_nrrdKernelA4DD = {
+  _nrrdA4DDSup, _nrrdA4DDEF, _nrrdA4DDVF, _nrrdA4DDED, _nrrdA4DDVD
+};
+nrrdKernel *
+nrrdKernelAQuarticDD = &_nrrdKernelA4DD;
