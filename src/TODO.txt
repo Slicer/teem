@@ -1,8 +1,3 @@
-teem.mk cleanup and documentation
-
---> go through all tests and bins and make sure that #include "../blah.h"
-is NOT used, this will be taken care of by the new makefiles
-
 Try purify again
 Test that shared libraries work everywhere
 
@@ -21,17 +16,13 @@ get mite working more usefully
 
 ------- teem 1.5 cutoff ---------
 
+figure out if parallel make will work with my pattern-specific variables
+
 leaf: the new newslicer brains
 
 ------- teem 1.6 cutoff ---------
 
 hest callback packs for dye, ten, others?
-
-make the "make" in the top level src directory be the same as
-a "make" in each sub-directory; there's no good reason for the 
-current weirdness
-
-make binaries depend on libraries- it would really simplify builds!
 
 air:  think about implementing a fabs() and dabs() with bitmasking
 limn: test new QN stuff
@@ -40,8 +31,3 @@ limn: test new QN stuff
 make sure that error detection code is as seperate as possible
 from code which gets something done
 
-implement "make vaporize" which cleans all the directories that
-should be empty after a make destroy, but which might not be,
-since filenames could have changed blah blah blah
-
-make it easy to add/remove libraries/architectures
