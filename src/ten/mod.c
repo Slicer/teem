@@ -66,9 +66,9 @@ tenSizeNormalize(Nrrd *nout, Nrrd *nin, float _weight[3],
     fprintf(stderr, "!%s: eval = %g %g %g --> size = %g --> ",
 	    me, eval[0], eval[1], eval[2], size);
     */
-    eval[0] = AIR_AFFINE(0, amount, 1, eval[0], eval[0]/size);
-    eval[1] = AIR_AFFINE(0, amount, 1, eval[1], eval[1]/size);
-    eval[2] = AIR_AFFINE(0, amount, 1, eval[2], eval[2]/size);
+    eval[0] = AIR_AFFINE(0, amount, 1, eval[0], target*eval[0]/size);
+    eval[1] = AIR_AFFINE(0, amount, 1, eval[1], target*eval[1]/size);
+    eval[2] = AIR_AFFINE(0, amount, 1, eval[2], target*eval[2]/size);
     /*
     fprintf(stderr, "%g %g %g\n", eval[0], eval[1], eval[2]);
     */
