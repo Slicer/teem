@@ -154,8 +154,9 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
 	}
 	return 1;
       }
-      /* the comment is the one field allowed more than once */
-      if (ret != nrrdField_comment && nio->seen[ret]) {
+      /* comments and key/values are allowed multiple times */
+      if (nio->seen[ret]
+	  && !(ret == nrrdField_comment || ret == nrrdField_keyvalue)) {
 	if ((err = (char*)malloc(AIR_STRLEN_MED))) {
 	  sprintf(err, "%s: already set field %s", me, 
 		  airEnumStr(nrrdField, ret));
@@ -330,8 +331,12 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIO *nio) {
     }
   }
 
+  /* comments and key/values handled differently */
   for (i=0; i<nrrd->cmtArr->len; i++) {
     fprintf(file, "%c %s\n", NRRD_COMMENT_CHAR, nrrd->cmt[i]);
+  }
+  for (i=0; i<nrrd->kvpArr->len; i++) {
+    _nrrdKeyValueFwrite(file, NULL, nrrd->kvp[0 + 2*i], nrrd->kvp[1 + 2*i]);
   }
 
   if (!nio->detachedHeader) {
