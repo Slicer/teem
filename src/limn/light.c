@@ -36,13 +36,10 @@ limnEnvMapFill(Nrrd *map, limnEnvMapCB cb, void *data, int qnMethod) {
   switch(qnMethod) {
   case limnQN16:
     sx = sy = 256;
-    if (nrrdMaybeAlloc(map, 3*sx*sy, nrrdTypeFloat, 3)) {
+    if (nrrdMaybeAlloc_va(map, 3*sx*sy, nrrdTypeFloat, 3, 3, sx, sy)) {
       sprintf(err, "%s: couldn't alloc output", me);
       biffMove(LIMN, err, NRRD); return 1;
     }
-    map->size[0] = 3;
-    map->size[1] = sx;
-    map->size[2] = sy;
     mapData = map->data;
     for (qn=0; qn<=sx*sy-1; qn++) {
       limnQN16toV(vec, qn, AIR_FALSE, AIR_TRUE);

@@ -96,7 +96,7 @@ limnObjPointAdd(limnObj *obj, int sp, float x, float y, float z) {
 
 void
 _limnEdgeInit(limnEdge *e, int sp, int face, int v0, int v1) {
-
+  
   e->v0 = v0;
   e->v1 = v1;
   e->f0 = face;

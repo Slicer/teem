@@ -281,6 +281,8 @@ extern int limnObjDescribe(FILE *file, limnObj *obj);
 
 /* shapes.c */
 extern int limnObjCubeAdd(limnObj *obj, int sp);
+extern int limnObjSquareAdd(limnObj *obj, int sp);
+extern int limnObjLoneEdgeAdd(limnObj *obj, int sp);
 extern int limnObjCylinderAdd(limnObj *obj, int sp, int res);
 extern int limnObjPolarSphereAdd(limnObj *obj, int sp, 
 				 int thetaRes, int phiRes);

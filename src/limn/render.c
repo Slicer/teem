@@ -96,7 +96,6 @@ _limnPSDrawFace(limnObj *obj, limnPart *r, limnFace *f,
 void
 _limnPSDrawEdge(limnObj *obj, limnPart *r, limnEdge *e, 
 		limnCam *cam, limnWin *win) {
-  static float width = 0;
   limnPoint *p0, *p1;
 
   if (win->ps.edgeWidth[e->visib]) {
@@ -104,10 +103,7 @@ _limnPSDrawEdge(limnObj *obj, limnPart *r, limnEdge *e,
     p1 = obj->p + e->v1;
     fprintf(win->file, "%g %g M ", p0->d[0], p0->d[1]);
     fprintf(win->file, "%g %g L ", p1->d[0], p1->d[1]);
-    if (width != win->ps.edgeWidth[e->visib]) {
-      fprintf(win->file, "%g W ", win->ps.edgeWidth[e->visib]);
-      width = win->ps.edgeWidth[e->visib];
-    }
+    fprintf(win->file, "%g W ", win->ps.edgeWidth[e->visib]);
     fprintf(win->file, "S\n");
   }
 }
@@ -115,7 +111,7 @@ _limnPSDrawEdge(limnObj *obj, limnPart *r, limnEdge *e,
 int
 limnObjPSRender(limnObj *obj, limnCam *cam, Nrrd *map, limnWin *win) {
   int vis0, vis1, inside;
-  float angle;
+  float angle, widthTmp;
   limnFace *f, *f0, *f1; int fi;
   limnEdge *e; int ei;
   limnPart *r; int ri;
@@ -136,32 +132,48 @@ limnObjPSRender(limnObj *obj, limnCam *cam, Nrrd *map, limnWin *win) {
     }
     
     if (inside) {
-      for (fi=0; fi<r->fNum; fi++) {
-	f = &(obj->f[r->fBase + fi]);
-	f->visib = f->sn[2] < 0;
-	if (f->visib)
-	  _limnPSDrawFace(obj, r, f, cam, map, win);
-      }
-      
-      fprintf(win->file, "0 setgray\n");
-      
-      for (ei=0; ei<r->eNum; ei++) {
-	e = &(obj->e[r->eBase + ei]);
-	f0 = &(obj->f[e->f0]);
-	f1 = &(obj->f[e->f1]);
-	vis0 = f0->visib;
-	vis1 = f1->visib;
-	angle = 180/M_PI*acos(ELL_3V_DOT(f0->wn, f1->wn));
-	if (vis0 && vis1) {
-	  e->visib = 3 + (angle > win->ps.creaseAngle);
-	}
-	else if (!!vis0 ^ !!vis1) {
-	  e->visib = 2;
-	}
-	else {
-	  e->visib = 1 - (angle > win->ps.creaseAngle);
-	}
+      if (1 == r->eNum) {
+	/* this part is just one lone edge */
+	e = &(obj->e[r->eBase]);
+	widthTmp = win->ps.edgeWidth[e->visib];
+	fprintf(win->file, "%g setgray\n", 1 - win->ps.bgGray);
+	win->ps.edgeWidth[e->visib] = 8;
 	_limnPSDrawEdge(obj, r, e, cam, win);
+	fprintf(win->file, "%g %g %g RGB\n", 
+		r->rgba[0]/255.0, r->rgba[1]/255.0, r->rgba[2]/255.0);
+	win->ps.edgeWidth[e->visib] = 4;
+	_limnPSDrawEdge(obj, r, e, cam, win);
+	win->ps.edgeWidth[e->visib] = widthTmp;
+      }
+      else {
+	/* this part is either a lone face or a solid */
+	for (fi=0; fi<r->fNum; fi++) {
+	  f = &(obj->f[r->fBase + fi]);
+	  f->visib = f->sn[2] < 0;
+	  if (f->visib)
+	    _limnPSDrawFace(obj, r, f, cam, map, win);
+	}
+	
+	fprintf(win->file, "0 setgray\n");
+	
+	for (ei=0; ei<r->eNum; ei++) {
+	  e = &(obj->e[r->eBase + ei]);
+	  f0 = &(obj->f[e->f0]);
+	  f1 = &(obj->f[e->f1]);
+	  vis0 = f0->visib;
+	  vis1 = f1->visib;
+	  angle = 180/M_PI*acos(ELL_3V_DOT(f0->wn, f1->wn));
+	  if (vis0 && vis1) {
+	    e->visib = 3 + (angle > win->ps.creaseAngle);
+	  }
+	  else if (!!vis0 ^ !!vis1) {
+	    e->visib = 2;
+	  }
+	  else {
+	    e->visib = 1 - (angle > win->ps.creaseAngle);
+	  }
+	  _limnPSDrawEdge(obj, r, e, cam, win);
+	}
       }
     }
   }
