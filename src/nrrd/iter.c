@@ -71,6 +71,9 @@ nrrdIterSetNrrd(NrrdIter *iter, const Nrrd *nrrd) {
   return;
 }
 
+/*
+** formerly known as nrrdIterSetNrrd
+*/
 void
 nrrdIterSetOwnNrrd(NrrdIter *iter, Nrrd *nrrd) {
 

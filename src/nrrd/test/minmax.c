@@ -31,6 +31,7 @@ int
 main(int argc, char **argv) {
   char *me, *err;
   Nrrd *nrrd;
+  NrrdRange *range;
 
   me = argv[0];
   if (2 != argc)
@@ -45,15 +46,10 @@ main(int argc, char **argv) {
     exit(1);
   }
 
-  if (nrrdMinMaxCleverSet(nrrd)) {
-    fprintf(stderr, "%s: trouble finding min/max \"%s\":\n%s", 
-	    me, argv[1], err = biffGet(NRRD));
-    free(err);
-    exit(1);
-  }
+  range = nrrdRangeNewSet(nrrd, nrrdBlind8BitRangeState);
 
-  printf("%s: min = %g; max = %g, nrrd->hasNonExist = %d\n", 
-	 me, nrrd->min, nrrd->max, nrrd->hasNonExist);
+  printf("%s: min = %g; max = %g, hasNonExist = %d\n", me,
+	 range->min, range->max, range->hasNonExist);
 
   nrrdNuke(nrrd);
 

@@ -36,7 +36,7 @@ main(int argc, char **argv) {
     val[i] = airRand();
   }
   
-  nrrdHisto(nhist=nrrdNew(), nval, NULL, BINS, nrrdTypeInt);
+  nrrdHisto(nhist=nrrdNew(), nval, NULL, NULL, BINS, nrrdTypeInt);
   nrrdHistoDraw(npgm=nrrdNew(), nhist, HGHT, AIR_FALSE, 0.0);
   nrrdSave("hist.pgm", npgm, NULL);
   

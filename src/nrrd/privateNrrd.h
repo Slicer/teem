@@ -39,6 +39,7 @@ extern "C" {
 
 #define _NRRD_TABLE_INCR 1024
 
+/* to access whatever nrrd there may be in in a NrrdIter */
 #define _NRRD_ITER_NRRD(iter) ((iter)->nrrd ? (iter)->nrrd : (iter)->ownNrrd)
 
 /*
