@@ -313,6 +313,7 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
   float *hist;
   Nrrd *nout, *nin;
   airArray *mop;
+  int minsize;
 
   if (!(_nin && _nout)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -329,6 +330,19 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
   if (!(AIR_IN_CL(1, _nin->dim, 3))) {
     sprintf(err, "%s: sorry, can only handle dim 1, 2, 3 (not %d)", 
             me, _nin->dim);
+    biffAdd(NRRD, err); return 1;    
+  }
+  minsize = _nin->axis[0].size;
+  if (_nin->dim > 1) {
+    minsize = AIR_MIN(minsize, _nin->axis[1].size);
+  }
+  if (_nin->dim > 2) {
+    minsize = AIR_MIN(minsize, _nin->axis[2].size);
+  }
+  if (!pad && minsize < 2*radius+1) {
+    sprintf(err, "%s: minimum nrrd size (%d) smaller than filtering window "
+            "size (%d) with radius %d; must enable padding", me,
+            minsize, 2*radius+1, radius);
     biffAdd(NRRD, err); return 1;    
   }
   if (_nout == _nin) {
@@ -368,8 +382,9 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   airMopAdd(mop, hist, airFree, airMopAlways);
-  if (!AIR_EXISTS(wght))
+  if (!AIR_EXISTS(wght)) {
     wght = 1.0;
+  }
   switch (nin->dim) {
   case 1:
     _nrrdCheapMedian1D(nout, nin, range, radius, wght, bins, mode, hist);
