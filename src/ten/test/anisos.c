@@ -75,21 +75,21 @@ main(int argc, char **argv) {
   tdata = nin->data;
   adata = nout->data;
   for (z=0; z<=sz-1; z++) {
-    printf("%s: on z=%d of %d\n", me, z, sz-1);
+    fprintf(stderr, "%s: on z=%d of %d\n", me, z, sz-1);
     for (y=0; y<=sy-1; y++) {
       for (x=0; x<=sx-1; x++) {
   	I = x + sx*(y + sy*z);
 	tensor = &(tdata[I*7]);
 	tenEigensolve(eval, evec, tensor);
 	if (6 == x && 6 == y && 12 == z) {
-	  printf("tensor (list): %g %g %g %g %g %g\n",
-		 tensor[1], tensor[2], tensor[3], 
-		 tensor[4], tensor[5], tensor[6]);
-	  printf(" --> evals: %g %g %g\n", eval[0], eval[1], eval[2]);
-	  printf(" --> evecs: (%g,%g,%g); (%g,%g,%g); (%g,%g,%g)\n",
-		 evec[0], evec[1], evec[2], 
-		 evec[3], evec[4], evec[5], 
-		 evec[6], evec[7], evec[8]);
+	  fprintf(stderr, "tensor (list): %g %g %g %g %g %g\n",
+		  tensor[1], tensor[2], tensor[3], 
+		  tensor[4], tensor[5], tensor[6]);
+	  fprintf(stderr, " --> evals: %g %g %g\n", eval[0], eval[1], eval[2]);
+	  fprintf(stderr, " --> evecs: (%g,%g,%g); (%g,%g,%g); (%g,%g,%g)\n",
+		  evec[0], evec[1], evec[2], 
+		  evec[3], evec[4], evec[5], 
+		  evec[6], evec[7], evec[8]);
 	}
 	tenAnisoCalc(c, eval);
 	adata[0 + 4*I] = tensor[0]*c[tenAniso_Cl];

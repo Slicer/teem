@@ -56,20 +56,22 @@ main(int argc, char **argv) {
   }
 
   if (nrrdLoad(nin=nrrdNew(), inS)) {
-    printf("%s: couldn't read input \"%s\":\n%s", me, inS, biffGet(NRRD));
+    fprintf(stderr, 
+	    "%s: couldn't read input \"%s\":\n%s", me, inS, biffGet(NRRD));
     exit(1);
   }
 
-  printf("calculating tensors ..."); fflush(stdout);
+  fprintf(stderr, "calculating tensors ..."); fflush(stdout);
   tenVerbose = 2;
   if (tenCalcTensor(nout=nrrdNew(), nin, thresh, slope, b)) {
-    printf("%s: tenCalcTensor failed:\n%s", me, biffGet(TEN));
+    fprintf(stderr, "%s: tenCalcTensor failed:\n%s", me, biffGet(TEN));
     exit(1);
   }
-  printf("done\n");
+  fprintf(stderr, "done\n");
 
   if (nrrdSave(outS, nout, NULL)) {
-    printf("%s: couldn't save output to \"%s\":\n%s", me, outS, biffGet(NRRD));
+    fprintf(stderr, "%s: couldn't save output to \"%s\":\n%s",
+	    me, outS, biffGet(NRRD));
     exit(1);
   }
 
