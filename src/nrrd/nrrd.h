@@ -54,6 +54,13 @@ extern "C" {
 ** one axis of a nrrd.  The only member which MUST be explicitly
 ** set to something meaningful is "size".
 **
+** If an axis lies conceptually along some direction in an enclosing
+** space of dimension nrrd->spaceDim, then the first nrrd->spaceDim
+** entries of spaceDirection[] must be non-NaN, and min, max, spacing,
+** and units must NOT be set;  thickness, center, and label can still
+** be used.  The mutual exclusion between axis-aligned and general
+** direction information is enforced per-axis, not per-array.
+**
 ** The min and max values give the range of positions "represented"
 ** by the samples along this axis.  In node-centering, "min" IS the
 ** position at the lowest index.  In cell-centering, the position at
@@ -65,29 +72,33 @@ extern "C" {
 ** (see nrrdField* enum in nrrdEnums.h), and the various methods in axis.c
 */
 typedef struct {
-  int size;                      /* number of elements along each axis */
-  double spacing;                /* if non-NaN, distance between samples */
-  double thickness;              /* if non-NaN, nominal thickness of region
-                                    represented by one sample along the axis.
-                                    No semantics relative to spacing are 
-                                    assumed or imposed, and unlike spacing,
-                                    there is no "right" way to alter thickness-
-                                    it is either copied (with cropping) or
-                                    set to NaN (with resampling). */
-  double min, max;               /* if non-NaN, range of positions spanned
-                                    by the samples on this axis.  Obviously,
-                                    one can set "spacing" to something
-                                    incompatible with min and max: the idea
-                                    is that only one (min and max, or
-                                    spacing) should be taken to be significant
-                                    at any time. */
-  int center;                    /* cell vs. node centering (value should be
-                                    one of nrrdCenter{Unknown,Node,Cell} */
-  int kind;                      /* what kind of information is along this
-                                    axis (from the nrrdKind* enum) */
-  char *label;                   /* short info string for each axis */
-  char *unit;                    /* short string for identifying the units 
-                                    used for measuring spacing and thickness */
+  int size;                 /* number of elements along each axis */
+  double spacing;           /* if non-NaN, distance between samples */
+  double thickness;         /* if non-NaN, nominal thickness of region
+                               represented by one sample along the axis. No
+                               semantics relative to spacing are assumed or
+                               imposed, and unlike spacing, there is no
+                               sensible way to alter thickness- it is either
+                               copied (as with cropping and slicing) or set to
+                               NaN (when resampled). */
+  double min, max;          /* if non-NaN, range of positions spanned by the
+                               samples on this axis.  Obviously, one can set
+                               "spacing" to something incompatible with min
+                               and max: the idea is that only one (min and
+                               max, or spacing) should be taken to be
+                               significant at any time. */
+  double spaceDirection[NRRD_DIM_MAX]; 
+                            /* the vector, in "space" (as described by
+                               nrrd->space and/or nrrd->spaceDim), from one
+                               sample to the next sample along this axis.  It
+                               is the column vector of the transform from
+                               index space to "space" space */
+  int center;               /* cell vs. node centering (value should be one of
+                               nrrdCenter{Unknown,Node,Cell} */
+  int kind;                 /* what kind of information is along this axis
+                               (from the nrrdKind* enum) */
+  char *label,              /* short info string for each axis */
+    *units;                 /* string identifying the unit */
 } NrrdAxisInfo;
 
 /*
@@ -101,31 +112,56 @@ typedef struct {
   ** generally set at the same time that either the nrrd is created,
   ** or at the time that the nrrd is wrapped around an existing array 
   */
-  void *data;                      /* the data in memory */
-  int type;                        /* a value from the nrrdType enum */
-  int dim;                         /* what is dimension of data */
+
+  void *data;                       /* the data in memory */
+  int type;                         /* a value from the nrrdType enum */
+  int dim;                          /* the dimension (rank) of the array */
 
   /* 
   ** All per-axis specific information
   */
-  NrrdAxisInfo axis[NRRD_DIM_MAX]; /* axis[0] is the fastest axis in the scan-
-                                      line ordering, the one who's coordinates
-                                      change the fastest as the elements are
-                                      accessed in the order in which they
-                                      appear in memory */
+  NrrdAxisInfo axis[NRRD_DIM_MAX];  /* axis[0] is the fastest axis in the scan-
+                                       line ordering, the one who's coordinates
+                                       change the fastest as the elements are
+                                       accessed in the order in which they
+                                       appear in memory */
 
   /* 
-  ** Information of dubious standing- descriptive of whole array, but
-  ** not necessary (meaningful only for some uses of a nrrd), but basic
-  ** enough to be part of the basic nrrd type
+  ** Optional information descriptive of whole array, some of which is
+  ** meaningfuly for only some uses of a nrrd
   */
-  char *content;                   /* brief account of what this data is */
-  int blockSize;                   /* for nrrdTypeBlock:, block byte size */
-  double oldMin, oldMax;           /* if non-NaN, and if nrrd is of integral
-                                      type, extremal values for the array
-                                      BEFORE it was quantized */
-  void *ptr;                       /* never read or set by nrrd; use/abuse
-                                      as you see fit */
+  char *content;                    /* brief account of what this data is */
+  char *sampleUnits;                /* units of measurement of the values 
+                                       stored in the array itself (not the 
+                                       array axes and not space coordinates).
+                                       The logical name might be "dataUnits",
+                                       but that's perhaps ambiguous.  Note that
+                                       these units may apply to non-scalar
+                                       kinds (e.g. coefficients of a vector
+                                       have the same units) */
+  int space;                        /* from nrrdSpace* enum, and often 
+                                       implies the value of spaceDim */
+  int spaceDim;                     /* if non-zero, the dimension of the space
+                                       in which the regular sampling grid
+                                       conceptually lies.  This is a seperate
+                                       variable because this dimension can be
+                                       different than the array dimension. 
+                                       The non-zero-ness of this value is in 
+                                       fact the primary indicator that space
+                                       and orientation information is set.
+                                       This identifies the number of entries in
+                                       "origin" and the per-axis "direction"
+                                       vectors that are taken as meaningful */
+  char *spaceUnits[NRRD_DIM_MAX];   /* units for coordinates of space */
+  double spaceOrigin[NRRD_DIM_MAX]; /* the location of the center the first
+                                       (lowest memory address) array sample,
+                                       regardless of node-vs-cell centering */
+  int blockSize;                    /* for nrrdTypeBlock:, block byte size */
+  double oldMin, oldMax;            /* if non-NaN, and if nrrd is of integral
+                                       type, extremal values for the array
+                                       BEFORE it was quantized */
+  void *ptr;                        /* never read or set by nrrd; use/abuse
+                                       as you see fit */
 
   /* 
   ** Comments.  Read from, and written to, header.
@@ -276,7 +312,7 @@ typedef struct NrrdIoState_t {
                                (be careful with this) */
     keepNrrdDataFileOpen,   /* ON READ: don't close nio->dataFile when
                                you otherwise would, when reading the
-                               nrrd format Probably used in conjunction with
+                               nrrd format. Probably used in conjunction with
                                skipData.  (currently for "unu data")
                                ON WRITE: no semantics */
     zlibLevel,              /* zlib compression level (0-9, -1 for
@@ -470,7 +506,11 @@ TEEM_API void nrrdStateGetenv(void);
 /* ---- END non-NrrdIO */
 
 /******** all the airEnums used through-out nrrd */
-/* (the actual C enums are in nrrdEnums.h) */
+/* 
+** the actual C enums are in nrrdEnums.h; experience has shown that it
+** is not particularly useful to name those enums, since the shortest
+** name is best used for the airEnums here
+*/
 /* enumsNrrd.c */
 TEEM_API airEnum *nrrdFormatType;
 TEEM_API airEnum *nrrdType;
@@ -478,6 +518,7 @@ TEEM_API airEnum *nrrdEncodingType;
 TEEM_API airEnum *nrrdCenter;
 TEEM_API airEnum *nrrdKind;
 TEEM_API airEnum *nrrdField;
+TEEM_API airEnum *nrrdSpace;
 /* ---- BEGIN non-NrrdIO */
 TEEM_API airEnum *nrrdBoundary;
 TEEM_API airEnum *nrrdMeasure;
@@ -521,6 +562,9 @@ TEEM_API int nrrdWrap_nva(Nrrd *nrrd, void *data, int type,
                           int dim, const int *size);
 TEEM_API int nrrdWrap(Nrrd *nrrd, void *data, int type, int dim,
                       ... /* sx, sy, .., axis(dim-1) size */);
+TEEM_API void nrrdBasicInfoInit(Nrrd *nrrd, int excludeBitflag);
+TEEM_API int nrrdBasicInfoCopy(Nrrd *nout, const Nrrd *nin,
+                               int excludeBitflag);
 TEEM_API int nrrdCopy(Nrrd *nout, const Nrrd *nin);
 TEEM_API int nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, const int *size);
 TEEM_API int nrrdAlloc(Nrrd *nrrd, int type, int dim,
@@ -536,7 +580,7 @@ TEEM_API int nrrdPGM(Nrrd *, int sx, int sy);
 /* axis.c */
 TEEM_API int nrrdKindSize(int kind);
 TEEM_API int nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin,
-                              const int *axmap, int bitflag);
+                              const int *axmap, int excludeBitflag);
 TEEM_API void nrrdAxisInfoSet_nva(Nrrd *nin, int axInfo, const void *info);
 TEEM_API void nrrdAxisInfoSet(Nrrd *nin, int axInfo,
                               ... /* const void* */);
@@ -557,13 +601,14 @@ TEEM_API void nrrdAxisInfoMinMaxSet(Nrrd *nrrd, int ax, int defCenter);
 /******** simple things */
 /* simple.c */
 TEEM_API const char *nrrdBiffKey;
-TEEM_API int nrrdPeripheralInit(Nrrd *nrrd);
-TEEM_API int nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin);
+TEEM_API int nrrdSpaceDimension(int space);
+TEEM_API int nrrdSpaceSet(Nrrd *nrrd, int space);
 TEEM_API int nrrdContentSet(Nrrd *nout, const char *func,
                             const Nrrd *nin, const char *format,
                             ... /* printf-style arg list */ );
 TEEM_API void nrrdDescribe(FILE *file, const Nrrd *nrrd);
 TEEM_API int nrrdCheck(const Nrrd *nrrd);
+TEEM_API int _nrrdCheck(const Nrrd *nrrd, int checkData);
 TEEM_API int nrrdElementSize(const Nrrd *nrrd);
 TEEM_API size_t nrrdElementNumber(const Nrrd *nrrd);
 TEEM_API int nrrdSanity(void);

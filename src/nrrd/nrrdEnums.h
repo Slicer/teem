@@ -213,30 +213,80 @@ enum {
 */
 enum {
   nrrdAxisInfoUnknown,
-  nrrdAxisInfoSize,                   /* 1: number of samples along axis */
-#define NRRD_AXIS_INFO_SIZE_BIT      (1<<1)
-  nrrdAxisInfoSpacing,                /* 2: spacing between samples */
-#define NRRD_AXIS_INFO_SPACING_BIT   (1<<2)
-  nrrdAxisInfoThickness,              /* 3: thickness of sample region */
-#define NRRD_AXIS_INFO_THICKNESS_BIT (1<<3)
-  nrrdAxisInfoMin,                    /* 4: min pos. assoc. w/ 1st sample */
-#define NRRD_AXIS_INFO_MIN_BIT       (1<<4) 
-  nrrdAxisInfoMax,                    /* 5: max pos. assoc. w/ last sample */
-#define NRRD_AXIS_INFO_MAX_BIT       (1<<5)
-  nrrdAxisInfoCenter,                 /* 6: cell vs. node */
-#define NRRD_AXIS_INFO_CENTER_BIT    (1<<6)
-  nrrdAxisInfoKind,                   /* 7: from the nrrdKind* enum */
-#define NRRD_AXIS_INFO_KIND_BIT      (1<<7)
-  nrrdAxisInfoLabel,                  /* 8: string describing the axis */
-#define NRRD_AXIS_INFO_LABEL_BIT     (1<<8)
-  nrrdAxisInfoUnit,                   /* 9: string identifying units */
-#define NRRD_AXIS_INFO_UNIT_BIT      (1<<9)
+  nrrdAxisInfoSize,                   /*  1: number of samples along axis */
+#define NRRD_AXIS_INFO_SIZE_BIT      (1<< 1)
+  nrrdAxisInfoSpacing,                /*  2: spacing between samples */
+#define NRRD_AXIS_INFO_SPACING_BIT   (1<< 2)
+  nrrdAxisInfoThickness,              /*  3: thickness of sample region */
+#define NRRD_AXIS_INFO_THICKNESS_BIT (1<< 3)
+  nrrdAxisInfoMin,                    /*  4: min pos. assoc. w/ 1st sample */
+#define NRRD_AXIS_INFO_MIN_BIT       (1<< 4) 
+  nrrdAxisInfoMax,                    /*  5: max pos. assoc. w/ last sample */
+#define NRRD_AXIS_INFO_MAX_BIT       (1<< 5)
+  nrrdAxisInfoSpaceDirection,         /*  6: inter-sample vector in "space" */
+#define NRRD_AXIS_INFO_SPACEDIRECTION_BIT (1<< 6)
+  nrrdAxisInfoCenter,                 /*  7: cell vs. node */
+#define NRRD_AXIS_INFO_CENTER_BIT    (1<< 7)
+  nrrdAxisInfoKind,                   /*  8: from the nrrdKind* enum */
+#define NRRD_AXIS_INFO_KIND_BIT      (1<< 8)
+  nrrdAxisInfoLabel,                  /*  9: string describing the axis */
+#define NRRD_AXIS_INFO_LABEL_BIT     (1<< 9)
+  nrrdAxisInfoUnits,                  /* 10: from the nrrdUnit* enum */
+#define NRRD_AXIS_INFO_UNITS_BIT     (1<<10)
   nrrdAxisInfoLast
 };
-#define NRRD_AXIS_INFO_MAX               9
+#define NRRD_AXIS_INFO_MAX               10
 #define NRRD_AXIS_INFO_ALL  \
-    ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6)|(1<<7)|(1<<8)|(1<<9))
+    ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6)|(1<<7)|(1<<8)|(1<<9)|(1<<10))
 #define NRRD_AXIS_INFO_NONE 0
+
+/*
+******** nrrdBasicInfo enum
+**
+** the non-per-axis (or per-array) pieces of information that could
+** meaningfully be copied between nrrds (hence the void *data is not
+** included).
+**
+** "Basic" is named after the "basic field specifications" described
+** in the NRRD file format definition
+*/
+enum {
+  nrrdBasicInfoUnknown,
+  nrrdBasicInfoData,                        /*  1 */
+#define NRRD_BASIC_INFO_DATA_BIT           (1<< 1)
+  nrrdBasicInfoType,                        /*  2 */
+#define NRRD_BASIC_INFO_TYPE_BIT           (1<< 2)
+  nrrdBasicInfoBlocksize,                   /*  3 */
+#define NRRD_BASIC_INFO_BLOCKSIZE_BIT      (1<< 3)
+  nrrdBasicInfoDimension,                   /*  4 */
+#define NRRD_BASIC_INFO_DIMENSION_BIT      (1<< 4)
+  nrrdBasicInfoContent,                     /*  5 */
+#define NRRD_BASIC_INFO_CONTENT_BIT        (1<< 5)
+  nrrdBasicInfoSampleUnits,                 /*  6 */
+#define NRRD_BASIC_INFO_SAMPLEUNITS_BIT    (1<< 6)
+  nrrdBasicInfoSpace,                       /*  7 */
+#define NRRD_BASIC_INFO_SPACE_BIT          (1<< 7)
+  nrrdBasicInfoSpaceDimension,              /*  8 */
+#define NRRD_BASIC_INFO_SPACEDIMENSION_BIT (1<< 8)
+  nrrdBasicInfoSpaceUnits,                  /*  9 */
+#define NRRD_BASIC_INFO_SPACEUNITS_BIT     (1<< 9)
+  nrrdBasicInfoOrigin,                      /* 10 */
+#define NRRD_BASIC_INFO_SPACEORIGIN_BIT    (1<<10)
+  nrrdBasicInfoOldMin,                      /* 11 */
+#define NRRD_BASIC_INFO_OLDMIN_BIT         (1<<11)
+  nrrdBasicInfoOldMax,                      /* 12 */ 
+#define NRRD_BASIC_INFO_OLDMAX_BIT         (1<<12)
+  nrrdBasicInfoComments,                    /* 13 */
+#define NRRD_BASIC_INFO_COMMENTS_BIT       (1<<13)
+  nrrdBasicInfoKeyValuePairs,               /* 14 */
+#define NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT  (1<<14)
+  nrrdBasicInfoLast
+};
+#define NRRD_BASIC_INFO_MAX                    14
+#define NRRD_BASIC_INFO_ALL  \
+    ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6)|(1<<7)|(1<<8)|(1<<9)|(1<<10)\
+     |(1<<11)|(1<<12)|(1<<13)|(1<<14))
+#define NRRD_BASIC_INFO_NONE 0
 
 /*
 ** the "endian" enum is actually in the air library, but it is very
@@ -261,37 +311,56 @@ enum {
 **    _nrrdFieldRequired[]
 ** parseNrrd.c:
 **    _nrrdReadNrrdParseInfo[]
+** enumsNrrd.c:
+**    nrrdField definition
+** simple.c:
+**    _nrrdFieldCheck[]
+** write.c:
+**    _nrrdFieldInteresting()
+**    _nrrdSprintFieldInfo()
+** to some extent, in this file:
+**    nrrdAxisInfo and nrrdBasicInfo enums
+** axis.c (for per-axis info):
+**    _nrrdAxisInfoCopy()
+** methodsNrrd.c:
+**    lots of functions, but you knew that ...
 */
 enum {
   nrrdField_unknown,
-  nrrdField_comment,         /*  1 */
-  nrrdField_content,         /*  2 */
-  nrrdField_number,          /*  3 */
-  nrrdField_type,            /*  4 */
-  nrrdField_block_size,      /*  5 */
-  nrrdField_dimension,       /*  6 */
-  nrrdField_sizes,           /*  7 */
-  nrrdField_spacings,        /*  8 */
-  nrrdField_thicknesses,     /*  9 */
-  nrrdField_axis_mins,       /* 10 */
-  nrrdField_axis_maxs,       /* 11 */
-  nrrdField_centers,         /* 12 */
-  nrrdField_kinds,           /* 13 */
-  nrrdField_labels,          /* 14 */
-  nrrdField_units,           /* 15 */
-  nrrdField_min,             /* 16 */
-  nrrdField_max,             /* 17 */
-  nrrdField_old_min,         /* 18 */
-  nrrdField_old_max,         /* 19 */
-  nrrdField_data_file,       /* 20 */
-  nrrdField_endian,          /* 21 */
-  nrrdField_encoding,        /* 22 */
-  nrrdField_line_skip,       /* 23 */
-  nrrdField_byte_skip,       /* 24 */
-  nrrdField_keyvalue,        /* 25 */
+  nrrdField_comment,          /*  1 */
+  nrrdField_content,          /*  2 */
+  nrrdField_number,           /*  3 */
+  nrrdField_type,             /*  4 */
+  nrrdField_block_size,       /*  5 */
+  nrrdField_dimension,        /*  6 */
+  nrrdField_space,            /*  7 */
+  nrrdField_space_dimension,  /*  8 */
+  nrrdField_sizes,            /*  9 ----- begin per-axis ----- */
+  nrrdField_spacings,         /* 10 */
+  nrrdField_thicknesses,      /* 11 */
+  nrrdField_axis_mins,        /* 12 */
+  nrrdField_axis_maxs,        /* 13 */
+  nrrdField_space_directions, /* 14 */
+  nrrdField_centers,          /* 15 */
+  nrrdField_kinds,            /* 16 */
+  nrrdField_labels,           /* 17 */
+  nrrdField_units,            /* 18 ------ end per-axis ------ */
+  nrrdField_min,              /* 19 */
+  nrrdField_max,              /* 20 */
+  nrrdField_old_min,          /* 21 */
+  nrrdField_old_max,          /* 22 */
+  nrrdField_data_file,        /* 23 */
+  nrrdField_endian,           /* 24 */
+  nrrdField_encoding,         /* 25 */
+  nrrdField_line_skip,        /* 26 */
+  nrrdField_byte_skip,        /* 27 */
+  nrrdField_keyvalue,         /* 28 */
+  nrrdField_sample_units,     /* 29 */
+  nrrdField_space_units,      /* 30 */
+  nrrdField_space_origin,     /* 31 */
   nrrdField_last
 };
-#define NRRD_FIELD_MAX          25
+#define NRRD_FIELD_MAX          31
 
 /* 
 ******** nrrdHasNonExist* enum
@@ -313,6 +382,37 @@ enum {
   nrrdHasNonExistLast
 };
 #define NRRD_HAS_NON_EXIST_MAX 3
+
+/*
+******** nrrdSpace* enum
+**
+** Identifies the space in which which the origin and direction
+** vectors have their coordinates measured.  When a direction is named
+** (as part of the nrrdSpace name), that implies a vector which points
+** in that direction (rather than one which starts from that direction)
+**
+** All of these spaces have a well-defined expected dimension, as
+** determined by nrrdSpaceDimension(), and setting a nrrd to be in
+** such a space, by nrrdSpaceSet(), will automatically set nrrd->spaceDim.
+**
+** The first six of these are clearly medically motivated, but there's
+** no reason why other domain-motivated spaces couldn't be added.
+*/
+enum {
+  nrrdSpaceUnknown,
+  nrrdSpaceRightAnteriorSuperior,     /*  1: NIFTI-1 (right-handed) */
+  nrrdSpaceLeftAnteriorSuperior,      /*  2: standard Analyze (left-handed) */
+  nrrdSpaceLeftPosteriorSuperior,     /*  3: DICOM (right-handed) */
+  nrrdSpaceRightAnteriorSuperiorTime, /*  4: */
+  nrrdSpaceLeftAnteriorSuperiorTime,  /*  5: */
+  nrrdSpaceLeftPosteriorSuperiorTime, /*  6: */
+  nrrdSpace3DRightHanded,             /*  7: */
+  nrrdSpace3DLeftHanded,              /*  8: */
+  nrrdSpace3DRightHandedTime,         /*  9: */
+  nrrdSpace3DLeftHandedTime,          /* 10: */
+  nrrdSpaceLast
+};
+#define NRRD_SPACE_MAX                   10
 
 /* ---- BEGIN non-NrrdIO */
 
@@ -379,7 +479,7 @@ enum {
 ******** nrrdBlind8BitRange
 **
 ** whether or not to blindly say that the range of 8-bit data is
-** [0-255] (uchar) or [SCHAR_MIN-SCHAR_MAX] (signed char)
+** [0,255] (uchar) or [SCHAR_MIN,SCHAR_MAX] (signed char)
 */
 enum {
   nrrdBlind8BitRangeUnknown,   /* 0 */

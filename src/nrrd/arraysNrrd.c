@@ -166,11 +166,14 @@ _nrrdFieldValidInImage[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_type */
   0, /* nrrdField_block_size */
   0, /* nrrdField_dimension */
+  1, /* nrrdField_space */
+  1, /* nrrdField_space_dimension */
   0, /* nrrdField_sizes */
   1, /* nrrdField_spacings */
   1, /* nrrdField_thicknesses */
   1, /* nrrdField_axis_mins */
   1, /* nrrdField_axis_maxs */
+  1, /* nrrdField_space_directions */
   1, /* nrrdField_centers */
   1, /* nrrdField_kinds */
   1, /* nrrdField_labels */
@@ -183,7 +186,11 @@ _nrrdFieldValidInImage[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_endian */
   0, /* nrrdField_encoding */
   0, /* nrrdField_line_skip */
-  0  /* nrrdField_byte_skip */
+  0, /* nrrdField_byte_skip */
+  1, /* nrrdField_keyvalue */
+  1, /* nrrdField_sample_units */
+  1, /* nrrdField_space_units */
+  1  /* nrrdField_space_origin */
 };
 
 /*
@@ -200,11 +207,14 @@ _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_type */
   0, /* nrrdField_block_size */
   0, /* nrrdField_dimension */
+  0, /* nrrdField_space */
+  0, /* nrrdField_space_dimension */
   1, /* nrrdField_sizes */
   1, /* nrrdField_spacings */
   1, /* nrrdField_thicknesses */
   1, /* nrrdField_axis_mins */
   1, /* nrrdField_axis_maxs */
+  1, /* nrrdField_space_directions */
   1, /* nrrdField_centers */
   1, /* nrrdField_kinds */
   1, /* nrrdField_labels */
@@ -217,7 +227,11 @@ _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_endian */
   0, /* nrrdField_encoding */
   0, /* nrrdField_line_skip */
-  0  /* nrrdField_byte_skip */
+  0, /* nrrdField_byte_skip */
+  0, /* nrrdField_keyvalue */
+  0, /* nrrdField_sample_units */
+  0, /* nrrdField_space_units */
+  0  /* nrrdField_space_origin */
 };
 
 /*
@@ -237,11 +251,14 @@ _nrrdFieldValidInText[NRRD_FIELD_MAX+1] = {
         (but I forget why ...) */
   0, /* nrrdField_block_size */
   1, /* nrrdField_dimension: but can only be 1 or 2 */
+  0, /* nrrdField_space */
+  0, /* nrrdField_space_dimension */
   0, /* nrrdField_sizes */
   1, /* nrrdField_spacings */
   1, /* nrrdField_thicknesses */
   1, /* nrrdField_axis_mins */
   1, /* nrrdField_axis_maxs */
+  1, /* nrrdField_space_directions */
   1, /* nrrdField_centers */
   1, /* nrrdField_kinds */
   1, /* nrrdField_labels */
@@ -254,7 +271,11 @@ _nrrdFieldValidInText[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_endian */
   0, /* nrrdField_encoding */
   0, /* nrrdField_line_skip */
-  0  /* nrrdField_byte_skip */
+  0, /* nrrdField_byte_skip */
+  0, /* nrrdField_keyvalue */
+  0, /* nrrdField_sample_units */
+  0, /* nrrdField_space_units */
+  0  /* nrrdField_space_origin */
 };
 
 /*
@@ -272,11 +293,14 @@ _nrrdFieldRequired[NRRD_FIELD_MAX+1] = {
   1, /* nrrdField_type */
   0, /* nrrdField_block size */
   1, /* nrrdField_dimension */
+  0, /* nrrdField_space */
+  0, /* nrrdField_space_dimension */
   1, /* nrrdField_sizes */
   0, /* nrrdField_spacings */
   0, /* nrrdField_thicknesses */
   0, /* nrrdField_axis mins */
   0, /* nrrdField_axis maxs */
+  0, /* nrrdField_space_directions */
   0, /* nrrdField_centers */
   0, /* nrrdField_kinds */
   0, /* nrrdField_labels */
@@ -288,7 +312,11 @@ _nrrdFieldRequired[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_data file */
   0, /* nrrdField_endian */
   1, /* nrrdField_encoding */
-  0, /* nrrdField_line skip */
-  0  /* nrrdField_byte skip */
+  0, /* nrrdField_line_skip */
+  0, /* nrrdField_byte_skip */
+  0, /* nrrdField_keyvalue */
+  0, /* nrrdField_sample_units */
+  0, /* nrrdField_space_units */
+  0  /* nrrdField_space_origin */
 };
 

@@ -21,11 +21,33 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
+#define MAGIC "NRRD"
 #define MAGIC0 "NRRD00.01"
 #define MAGIC1 "NRRD0001"
 #define MAGIC2 "NRRD0002"
 #define MAGIC3 "NRRD0003"
 #define MAGIC4 "NRRD0004"
+
+/* 
+** we try to use the oldest format that will hold the nrrd 
+*/
+int
+_nrrdFormatNRRD_whichVersion(const Nrrd *nrrd, NrrdIoState *nio) {
+  int ret;
+
+  if (_nrrdFieldInteresting(nrrd, nio, nrrdField_thicknesses)
+      || _nrrdFieldInteresting(nrrd, nio, nrrdField_space)
+      || _nrrdFieldInteresting(nrrd, nio, nrrdField_space_dimension)) {
+    ret = 4;
+  } else if (_nrrdFieldInteresting(nrrd, nio, nrrdField_kinds)) {
+    ret = 3;
+  } else if (nrrdKeyValueSize(nrrd)) {
+    ret = 2;
+  } else {
+    ret = 1;
+  }
+  return ret;
+}
 
 int
 _nrrdFormatNRRD_available(void) {
@@ -70,8 +92,13 @@ _nrrdFormatNRRD_contentStartsLike(NrrdIoState *nio) {
 /*
 ** _nrrdHeaderCheck()
 **
-** consistency checks on relationship between fields of nrrd, (only)
-** to be used after the headers is parsed, and before the data is read
+** minimal consistency checks on relationship between fields of nrrd,
+** only to be used after the headers is parsed, and before the data is
+** read, to make sure that information required for reading data is in
+** fact known
+**
+** NOTE: this is not the place to do the sort of checking done by 
+** nrrdCheck()
 **
 */
 int
@@ -88,7 +115,7 @@ _nrrdHeaderCheck (Nrrd *nrrd, NrrdIoState *nio) {
       biffAdd(NRRD, err); return 1;
     }
   }
-  if (nrrdTypeBlock == nrrd->type && 0 == nrrd->blockSize) {
+  if (nrrdTypeBlock == nrrd->type && !nio->seen[nrrdField_block_size]) {
     sprintf(err, "%s: type is %s, but missing field: %s", me,
             airEnumStr(nrrdType, nrrdTypeBlock),
             airEnumStr(nrrdField, nrrdField_block_size));
@@ -128,24 +155,31 @@ _nrrdHeaderCheck (Nrrd *nrrd, NrrdIoState *nio) {
 */
 int
 _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdFormatNRRD_read", *err=NULL;
-  /* NOTE: err has to be dynamically allocated because of the 
-     arbitrary-sized input lines that it may have to copy */
+  char me[]="_nrrdFormatNRRD_read", 
+    *err=NULL; /* NOTE: err really does have to be dynamically 
+                  allocated because of the arbitrary-sized input lines
+                  that it may have to copy */
   int ret, len;
 
   if (!_nrrdFormatNRRD_contentStartsLike(nio)) {
-    sprintf(err, "%s: this doesn't look like a %s file", me,
-            nrrdFormatNRRD->name);
-    biffAdd(NRRD, err); return 1;
+    if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+      sprintf(err, "%s: this doesn't look like a %s file", me,
+              nrrdFormatNRRD->name);
+      biffAdd(NRRD, err); free(err); 
+    }
+    return 1;
   }
 
   /* we use the non-NULL-ity nio->dataFile as the indicator (from
      _nrrdReadNrrdParse_data_file) that there was a detached data file,  
      so we'd better verify that it is already NULL */
   if (nio->dataFile) {
-    sprintf(err, "%s: nio->dataFile was *not* NULL on entry; something "
-            "is probably wrong", me);
-    biffAdd(NRRD, err); return 1;
+    if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+      sprintf(err, "%s: nio->dataFile was *not* NULL on entry; something "
+              "is probably wrong", me);
+      biffAdd(NRRD, err); free(err);
+    }
+    return 1;
   }
 
   /* parse header lines */
@@ -179,8 +213,10 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       }
       if (_nrrdReadNrrdParseInfo[ret](nrrd, nio, AIR_TRUE)) {
         if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+          /* HEY: this error message should be printing out all the
+             per-axis fields, not just the first */
           sprintf(err, "%s: trouble parsing %s info \"%s\"", me,
-                  airEnumStr(nrrdField, ret), nio->line+nio->pos);
+                  airEnumStr(nrrdField, ret), nio->line + nio->pos);
           biffAdd(NRRD, err); free(err);
         }
         return 1;
@@ -203,7 +239,8 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     }
     return 1;
   }
-  
+
+  /* HEY: should this be merged with nrrdCheck() ? */
   if (_nrrdHeaderCheck(nrrd, nio)) {
     if ((err = (char*)malloc(AIR_STRLEN_MED))) {
       sprintf(err, "%s: %s", me, 
@@ -335,15 +372,7 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     }
   }
   
-  /* we try to use the oldest format that will hold the nrrd */
-  fprintf(file, "%s\n",
-          (_nrrdFieldInteresting(nrrd, nio, nrrdField_thicknesses)
-           ? MAGIC4
-           : (_nrrdFieldInteresting(nrrd, nio, nrrdField_kinds)
-              ? MAGIC3
-              : (nrrdKeyValueSize(nrrd) 
-                 ? MAGIC2 
-                 : MAGIC1))));
+  fprintf(file, "%s%04d\n", MAGIC, _nrrdFormatNRRD_whichVersion(nrrd, nio));
 
   /* this is where the majority of the header printing happens */
   for (i=1; i<=NRRD_FIELD_MAX; i++) {

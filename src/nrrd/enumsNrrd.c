@@ -226,8 +226,7 @@ _nrrdEncodingTypeValEqv[] = {
   nrrdEncodingTypeAscii, nrrdEncodingTypeAscii, nrrdEncodingTypeAscii,
   nrrdEncodingTypeHex,
   nrrdEncodingTypeGzip, nrrdEncodingTypeGzip,
-  nrrdEncodingTypeBzip2, nrrdEncodingTypeBzip2,
-  nrrdEncodingTypeLast
+  nrrdEncodingTypeBzip2, nrrdEncodingTypeBzip2
 };
 
 airEnum
@@ -428,11 +427,14 @@ _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL] = {
   "type",
   "block size",
   "dimension",
+  "space",
+  "space dimension",
   "sizes",
   "spacings",
   "thicknesses",
   "axis mins",
   "axis maxs",
+  "space directions",
   "centers",
   "kinds",
   "labels",
@@ -446,23 +448,29 @@ _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL] = {
   "encoding",
   "line skip",
   "byte skip",
-  "key/value"
+  "key/value",
+  "sample units",
+  "space units",
+  "space origin"
 };
 
 char
 _nrrdFieldDesc[NRRD_FIELD_MAX+1][AIR_STRLEN_MED] = {
   "unknown field identifier",
   "comment",
-  "short description of whole array and/or its provinance",
+  "short description of whole array and/or its provenance",
   "total number of samples in array",
   "type of sample value",
   "number of bytes in one block (for block-type)",
   "number of axes in array",
+  "identifier for space in which array grid lies",
+  "dimension of space in which array grid lies",
   "list of number of samples along each axis, aka \"dimensions\" of the array",
   "list of sample spacings along each axis",
   "list of sample thicknesses along each axis",
   "list of minimum positions associated with each axis",
   "list of maximum positions associated with each axis",
+  "list of direction inter-sample vectors for each axis",
   "list of sample centerings for each axis",
   "list of kinds for each axis",
   "list of short descriptions for each axis",
@@ -476,7 +484,10 @@ _nrrdFieldDesc[NRRD_FIELD_MAX+1][AIR_STRLEN_MED] = {
   "encoding of data written in file",
   "number of lines to skip prior to byte skip and reading data",
   "number of bytes to skip after line skip and prior to reading data",
-  "string-based key/value pairs"
+  "string-based key/value pairs",
+  "units of measurement of (scalar) values inside array itself",
+  "list of units for measuring origin and direct vectors' coefficients",
+  "location in space of center of first (lowest memory address) sample"
 };
 
 char
@@ -487,11 +498,14 @@ _nrrdFieldStrEqv[][AIR_STRLEN_SMALL]  = {
   "type",
   "block size", "blocksize",
   "dimension",
+  "space",
+  "space dimension", "spacedimension",
   "sizes",
   "spacings",
   "thicknesses",
   "axis mins", "axismins",
   "axis maxs", "axismaxs",
+  "space directions", "spacedirections",
   "centers",
   "kinds",
   "labels",
@@ -506,6 +520,9 @@ _nrrdFieldStrEqv[][AIR_STRLEN_SMALL]  = {
   "line skip", "lineskip",
   "byte skip", "byteskip",
   /* nothing for keyvalue */
+  "sample units", "sampleunits",
+  "space units", "spaceunits",
+  "space origin", "spaceorigin",
   ""
 };
 
@@ -517,11 +534,14 @@ _nrrdFieldValEqv[] = {
   nrrdField_type,
   nrrdField_block_size, nrrdField_block_size,
   nrrdField_dimension,
+  nrrdField_space,
+  nrrdField_space_dimension, nrrdField_space_dimension,
   nrrdField_sizes,
   nrrdField_spacings,
   nrrdField_thicknesses,
   nrrdField_axis_mins, nrrdField_axis_mins,
   nrrdField_axis_maxs, nrrdField_axis_maxs,
+  nrrdField_space_directions, nrrdField_space_directions,
   nrrdField_centers,
   nrrdField_kinds,
   nrrdField_labels,
@@ -536,6 +556,9 @@ _nrrdFieldValEqv[] = {
   nrrdField_line_skip, nrrdField_line_skip,
   nrrdField_byte_skip, nrrdField_byte_skip,
   /* nothing for keyvalue */
+  nrrdField_sample_units, nrrdField_sample_units,
+  nrrdField_space_units, nrrdField_space_units,
+  nrrdField_space_origin, nrrdField_space_origin,
 };
 
 airEnum
@@ -545,10 +568,114 @@ _nrrdField = {
   _nrrdFieldStr, NULL,
   _nrrdFieldDesc,
   _nrrdFieldStrEqv, _nrrdFieldValEqv, 
-  AIR_FALSE
+  AIR_FALSE  /* field identifiers not case sensitive */
 };
 airEnum *
 nrrdField = &_nrrdField;
+
+/* ------------------------ nrrdSpace ------------------------- */
+
+/*
+  nrrdSpaceRightAnteriorSuperior,     *  1: NIFTI-1 *
+  nrrdSpaceLeftAnteriorSuperior,      *  2: standard Analyze *
+  nrrdSpaceLeftPosteriorSuperior,     *  3: DICOM *
+  nrrdSpaceRightAnteriorSuperiorTime, *  4: *
+  nrrdSpaceLeftAnteriorSuperiorTime,  *  5: *
+  nrrdSpaceLeftPosteriorSuperiorTime, *  6: *
+  nrrdSpace3DRightHanded,             *  7: *
+  nrrdSpace3DLeftHanded,              *  8: *
+  nrrdSpace3DRightHandedTime,         *  9: *
+  nrrdSpace3DLeftHandedTime,          * 10: *
+*/
+
+char
+_nrrdSpaceStr[NRRD_SPACE_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown_space)",
+  "right-anterior-superior",
+  "left-anterior-superior",
+  "left-posterior-superior",
+  "right-anterior-superior-time",
+  "left-anterior-superior-time",
+  "left-posterior-superior-time",
+  "3D-right-handed",
+  "3D-left-handed",
+  "3D-right-handed-time",
+  "3D-left-handed-time"
+};
+
+char
+_nrrdSpaceDesc[NRRD_SPACE_MAX+1][AIR_STRLEN_MED] = {
+  "unknown space",
+  "right-anterior-superior (used in NIFTI-1 and Slicer)",
+  "left-anterior-superior (used in Analyze 7.5)",
+  "left-posterior-superior (used in DICOM)",
+  "right-anterior-superior-time",
+  "left-anterior-superior-time",
+  "left-posterior-superior-time",
+  "3D-right-handed",
+  "3D-left-handed",
+  "3D-right-handed-time",
+  "3D-left-handed-time"
+};
+
+char
+_nrrdSpaceStrEqv[][AIR_STRLEN_SMALL] = {
+  "(unknown_space)",
+  "right-anterior-superior", "right anterior superior",
+      "rightanteriorsuperior", "RAS",
+  "left-anterior-superior", "left anterior superior",
+      "leftanteriorsuperior", "LAS",
+  "left-posterior-superior", "left posterior superior",
+      "leftposteriorsuperior", "LPS",
+  "right-anterior-superior-time", "right anterior superior time",
+      "rightanteriorsuperiortime", "RAST",
+  "left-anterior-superior-time", "left anterior superior time",
+      "leftanteriorsuperiortime", "LAST",
+  "left-posterior-superior-time", "left posterior superior time",
+      "leftposteriorsuperiortime", "LPST",
+  "3D-right-handed", "3D right handed", "3Drighthanded"
+  "3D-left-handed", "3D left handed", "3Dlefthanded",
+  "3D-right-handed-time", "3D right handed time",
+      "3Drighthandedtime",
+  "3D-left-handed-time", "3D left handed time",
+      "3Dlefthandedtime",
+  ""
+};
+
+int
+_nrrdSpaceValEqv[] = {
+  nrrdSpaceUnknown,
+  nrrdSpaceRightAnteriorSuperior, nrrdSpaceRightAnteriorSuperior,
+     nrrdSpaceRightAnteriorSuperior, nrrdSpaceRightAnteriorSuperior,
+  nrrdSpaceLeftAnteriorSuperior, nrrdSpaceLeftAnteriorSuperior,
+     nrrdSpaceLeftAnteriorSuperior, nrrdSpaceLeftAnteriorSuperior,
+  nrrdSpaceLeftPosteriorSuperior, nrrdSpaceLeftPosteriorSuperior,
+     nrrdSpaceLeftPosteriorSuperior, nrrdSpaceLeftPosteriorSuperior,
+  nrrdSpaceRightAnteriorSuperiorTime, nrrdSpaceRightAnteriorSuperiorTime,
+     nrrdSpaceRightAnteriorSuperiorTime, nrrdSpaceRightAnteriorSuperiorTime,
+  nrrdSpaceLeftAnteriorSuperiorTime, nrrdSpaceLeftAnteriorSuperiorTime,
+     nrrdSpaceLeftAnteriorSuperiorTime, nrrdSpaceLeftAnteriorSuperiorTime,
+  nrrdSpaceLeftPosteriorSuperiorTime, nrrdSpaceLeftPosteriorSuperiorTime,
+     nrrdSpaceLeftPosteriorSuperiorTime, nrrdSpaceLeftPosteriorSuperiorTime,
+  nrrdSpace3DRightHanded, nrrdSpace3DRightHanded, nrrdSpace3DRightHanded,
+  nrrdSpace3DLeftHanded, nrrdSpace3DLeftHanded, nrrdSpace3DLeftHanded,
+  nrrdSpace3DRightHandedTime, nrrdSpace3DRightHandedTime, 
+     nrrdSpace3DRightHandedTime,
+  nrrdSpace3DLeftHandedTime, nrrdSpace3DLeftHandedTime,
+     nrrdSpace3DLeftHandedTime
+};
+
+airEnum
+_nrrdSpace = {
+  "space",
+  NRRD_SPACE_MAX,
+  _nrrdSpaceStr, NULL,
+  _nrrdSpaceDesc,
+  _nrrdSpaceStrEqv, _nrrdSpaceValEqv,
+  AIR_FALSE
+};
+airEnum *
+nrrdSpace = &_nrrdSpace;
 
 /* ---- BEGIN non-NrrdIO */
 

@@ -30,6 +30,7 @@
 
 char _nrrdRelativePathFlag[] = "./";
 char _nrrdFieldSep[] = " \t";
+char _nrrdNoSpaceVector[] = "none";
 char _nrrdTextSep[] = " ,\t";
 
 /*
@@ -316,6 +317,14 @@ nrrdRead (Nrrd *nrrd, FILE *file, NrrdIoState *nio) {
     nio->oldDataSize = 0;
   }
 
+  /* finally, make sure that what we're returning isn't malformed somehow,
+     except that we (probably stupidly) allow nrrd->data to be NULL, given
+     the possibility of using nio->skipData */
+  if (_nrrdCheck(nrrd, AIR_FALSE)) {
+    sprintf(err, "%s: problem with nrrd after reading", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
   airMopOkay(mop);
   return 0;
 }
@@ -379,7 +388,6 @@ nrrdLoad (Nrrd *nrrd, const char *filename, NrrdIoState *nio) {
   char me[]="nrrdLoad", err[AIR_STRLEN_MED];
   FILE *file;
   airArray *mop;
-
 
   if (!(nrrd && filename)) {
     sprintf(err, "%s: got NULL pointer", me);
