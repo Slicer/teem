@@ -692,6 +692,9 @@ extern "C" {
 #define ELL_5V_SET(v, a, b, c, d, e) \
   ((v)[0]=(a), (v)[1]=(b), (v)[2]=(c), (v)[3]=(d), (v)[4]=(e))
 
+#define ELL_5V_COPY(v, w) \
+  ((v)[0]=(w)[0], (v)[1]=(w)[1], (v)[2]=(w)[2], (v)[3]=(w)[3], (v)[4]=(w)[4])
+
 #define ELL_6V_SET(v, a, b, c, d, e, f) \
   ((v)[0]=(a), (v)[1]=(b), (v)[2]=(c), (v)[3]=(d), (v)[4]=(e), (v)[5]=(f))
 
