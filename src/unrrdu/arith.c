@@ -17,6 +17,7 @@
 
 
 #include <nrrd.h>
+#include <math.h>
 
 char *me;
 
@@ -24,7 +25,7 @@ void
 usage() {
                       /*  0      1      2       3         4 */
   fprintf(stderr, "usage: %s <NameIn1> <op> <NameIn2> <NameOut>\n", me);
-  fprintf(stderr, "       <op> is '+', '-', '*', '/', 'm', 'M', 'e'\n");
+  fprintf(stderr, "       <op> is '+', '-', '*', '/', 'm', 'M', 'p', 'e'\n");
   exit(1);
 }
 
@@ -52,6 +53,7 @@ main(int argc, char *argv[]) {
 	op[0] == '/' ||
 	op[0] == 'm' ||
 	op[0] == 'M' ||
+	op[0] == 'p' ||
 	op[0] == 'e'
 	)) {
     fprintf(stderr, "%s: didn't get one of the supported operations\n", me);
@@ -146,6 +148,9 @@ main(int argc, char *argv[]) {
       break;
     case 'M':
       result = AIR_MAX(op1,op2);
+      break;
+    case 'p':
+      result = pow(op1, op2);
       break;
     case 'e':
       result = AIR_EXISTS(op1) ? op1 : op2;
