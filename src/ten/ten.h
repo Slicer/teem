@@ -450,6 +450,7 @@ F(slice) \
 F(fiber) \
 F(eval) \
 F(evec) \
+F(colevec) \
 F(evq) \
 F(expand) \
 F(shrink) \
