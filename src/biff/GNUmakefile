@@ -45,7 +45,7 @@ $(L).SEEN := true
 ####
 $(L).NEED = air
 $(L).PUBLIC_HEADERS = biff.h
-$(L).OBJS = biff.o
+$(L).OBJS = biffbiff.o
 $(L).TESTS = test/test
 ####
 ####
