@@ -61,30 +61,16 @@ unrrdu_dataMain(int argc, char **argv, char *me, hestParm *hparm) {
   io = nrrdIONew();
   airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
 
-  if (!strcmp("-", inS)) {
-    fin = stdin;
-#ifdef _WIN32
-    _setmode(_fileno(fin), _O_BINARY);
-#endif
-  } else {
-    if (!( fin = fopen(inS, "rb") )) {
-      fprintf(stderr, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", 
-	      me, inS, strerror(errno));
-      airMopError(mop); return 1;
-    }
-    nrrdDirBaseSet(io, inS);
+  if (!( fin = airFopen(inS, stdin, "rb") )) {
+    fprintf(stderr, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", 
+	    me, inS, strerror(errno));
+    airMopError(mop); return 1;
   }
-  if (!strcmp("-", outS)) {
-    fout = stdout;
-#ifdef _WIN32
-    _setmode(_fileno(fout), _O_BINARY);
-#endif
-  } else {
-    if (!( fout = fopen(outS, "wb") )) {
-      fprintf(stderr, "%s: couldn't fopen(\"%s\",\"wb\"): %s\n", 
-	      me, inS, strerror(errno));
-      airMopError(mop); return 1;
-    }
+  nrrdDirBaseSet(io, inS);
+  if (!( fout = airFopen(outS, stdout, "wb") )) {
+    fprintf(stderr, "%s: couldn't fopen(\"%s\",\"wb\"): %s\n", 
+	    me, inS, strerror(errno));
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, fin, (airMopper)airFclose, airMopAlways);
   airMopAdd(mop, fout, (airMopper)airFclose, airMopAlways);

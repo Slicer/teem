@@ -49,17 +49,10 @@ unrrduMakeRead(char *me, Nrrd *nrrd, NrrdIO *nio, char *fname,
   nio->lineSkip = lineSkip;
   nio->byteSkip = byteSkip;
   nio->encoding = encoding;
-  if (!strcmp("-", fname)) {
-    nio->dataFile  = stdin;
-#ifdef _WIN32
-    _setmode(_fileno(nio->dataFile), _O_BINARY);
-#endif
-  } else {
-    if (!( nio->dataFile = fopen(fname, "rb") )) {
-      sprintf(err, "%s:  couldn't fopen(\"%s\",\"rb\"): %s\n", 
-	      me, fname, strerror(errno));
-      biffAdd(me, err); return 1;
-    }
+  if (!( nio->dataFile = airFopen(fname, stdin, "rb") )) {
+    sprintf(err, "%s:  couldn't fopen(\"%s\",\"rb\"): %s\n", 
+	    me, fname, strerror(errno));
+    biffAdd(me, err); return 1;
   }
   if (nrrdLineSkip(nio)) {
     sprintf(err, "%s: couldn't skip lines", me);
@@ -229,19 +222,12 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     nio->endian = endian;
     /* we open and hand off the output FILE* to _nrrdWriteNrrd,
        which will not write any data (because of the AIR_FALSE) */
-    if (!strcmp("-", out)) {
-      fileOut = stdout;
-#ifdef _WIN32
-      _setmode(_fileno(fileOut), _O_BINARY);
-#endif
-    } else {
-      if (!( fileOut = fopen(out, "wb") )) {
-	fprintf(stderr, "%s: couldn't fopen(\"%s\",\"wb\"): %s\n", 
-		me, out, strerror(errno));
-	airMopError(mop); return 1;
-      }
-      airMopAdd(mop, fileOut, (airMopper)airFclose, airMopAlways);
+    if (!( fileOut = airFopen(out, stdout, "wb") )) {
+      fprintf(stderr, "%s: couldn't fopen(\"%s\",\"wb\"): %s\n", 
+	      me, out, strerror(errno));
+      airMopError(mop); return 1;
     }
+    airMopAdd(mop, fileOut, (airMopper)airFclose, airMopAlways);
     /* whatever line and byte skipping is required will be simply
        recorded in the header, and done by the next reader */
     _nrrdWriteNrrd(fileOut, nrrd, nio, AIR_FALSE /* don't write data */);

@@ -325,19 +325,10 @@ unrrduParseFile(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     return 1;
   }
   fileP = ptr;
-  if (!strcmp("-", str)) {
-    *fileP = stdin;
-#ifdef _WIN32
-    _setmode(_fileno(*fileP), _O_BINARY);
-#endif
-  }
-  else {
-    *fileP = fopen(str, "rb");
-    if (!*fileP) {
-      sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s",
-	      me, str, strerror(errno));
-      return 1;
-    }
+  if (!( *fileP = airFopen(str, stdin, "rb") )) {
+    sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s",
+	    me, str, strerror(errno));
+    return 1;
   }
   return 0;
 }

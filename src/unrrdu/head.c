@@ -25,11 +25,10 @@ extern int _nrrdOneLine(int *lenP, NrrdIO *io, FILE *file);
 
 #define INFO "Print header of a nrrd file"
 char *_unrrdu_headInfoL = 
-(INFO  ".  The value of this is simply to print the contents of a nrrd "
- "header, avoiding the use of \"head -N\", where N has to be determined "
- "manually, and thereby avoiding the risk of printing raw binary data "
- "(following the header) to screen, as this tends to be annoying and "
- "clobber terminal settings.");
+(INFO  ".  The value of this is simply to print the contents of nrrd "
+ "headers, thereby avoiding the use of \"head -N\" (where N has to be "
+ "determined manually), which always risks printing raw binary data "
+ "(following the header) to screen, which tends to be annoying.");
 
 int
 unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -57,29 +56,15 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
   io = nrrdIONew();
   airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
 
-  if (!strcmp("-", inS)) {
-    fin = stdin;
-#ifdef _WIN32
-    _setmode(_fileno(fin), _O_BINARY);
-#endif
-  } else {
-    if (!( fin = fopen(inS, "rb") )) {
-      fprintf(stderr, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", 
-	      me, inS, strerror(errno));
-      airMopError(mop); return 1;
-    }
+  if (!( fin = airFopen(inS, stdin, "rb") )) {
+    fprintf(stderr, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", 
+	    me, inS, strerror(errno));
+    airMopError(mop); return 1;
   }
-  if (!strcmp("-", outS)) {
-    fout = stdout;
-#ifdef _WIN32
-    _setmode(_fileno(fout), _O_BINARY);
-#endif
-  } else {
-    if (!( fout = fopen(outS, "wb") )) {
-      fprintf(stderr, "%s: couldn't fopen(\"%s\",\"wb\"): %s\n", 
-	      me, inS, strerror(errno));
-      airMopError(mop); return 1;
-    }
+  if (!( fout = airFopen(outS, stdout, "wb") )) {
+    fprintf(stderr, "%s: couldn't fopen(\"%s\",\"wb\"): %s\n", 
+	    me, inS, strerror(errno));
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, fin, (airMopper)airFclose, airMopAlways);
   airMopAdd(mop, fout, (airMopper)airFclose, airMopAlways);

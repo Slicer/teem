@@ -1388,19 +1388,12 @@ nrrdSave (const char *filename, Nrrd *nrrd, NrrdIO *io) {
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 
-  if (!strcmp("-", filename)) {
-    file = stdout;
-#ifdef _WIN32
-    _setmode(_fileno(file), _O_BINARY);
-#endif
-  } else {
-    if (!(file = fopen(filename, "wb"))) {
-      sprintf(err, "%s: couldn't fopen(\"%s\",\"wb\"): %s", 
-	      me, filename, strerror(errno));
-      biffAdd(NRRD, err); airMopError(mop); return 1;
-    }
-    airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
+  if (!( file = airFopen(filename, stdout, "wb") )) {
+    sprintf(err, "%s: couldn't fopen(\"%s\",\"wb\"): %s", 
+	    me, filename, strerror(errno));
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
+  airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
 
   if (nrrdWrite(file, nrrd, io)) {
     sprintf(err, "%s:", me);

@@ -1703,7 +1703,7 @@ _nrrdSplitName (char **dirP, char **baseP, const char *name) {
 void
 nrrdDirBaseSet (NrrdIO *io, const char *name) {
   
-  if (io && name) {
+  if (io && name && strcmp("-", name)) {
     _nrrdSplitName(&(io->dir), &(io->base), name);
   }
 }
@@ -1743,20 +1743,12 @@ nrrdLoad (Nrrd *nrrd, const char *filename) {
   _nrrdSplitName(&(io->dir), &(io->base), filename);
   /* printf("!%s: |%s|%s|\n", me, io->dir, io->base); */
 
-  if (!strcmp("-", filename)) {
-    file = stdin;
-#ifdef _WIN32
-    _setmode(_fileno(file), _O_BINARY);
-#endif
-  } else {
-    file = fopen(filename, "rb");
-    if (!file) {
-      sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s", 
-	      me, filename, strerror(errno));
-      biffAdd(NRRD, err); airMopError(mop); return 2;
-    }
-    airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
+  if (!( file = airFopen(filename, stdin, "rb") )) {
+    sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s", 
+	    me, filename, strerror(errno));
+    biffAdd(NRRD, err); airMopError(mop); return 2;
   }
+  airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
 
   if (nrrdRead(nrrd, file, io)) {
     sprintf(err, "%s:", me);
