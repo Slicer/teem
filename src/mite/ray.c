@@ -38,7 +38,7 @@ miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
   mtt->verbose = (uIndex == muu->verbUi && vIndex == muu->verbVi);
   mtt->RR = mtt->GG = mtt->BB = 0.0;
   mtt->TT = 1.0;
-  mtt->ZZ = -1.0;
+  mtt->ZZ = AIR_NAN;
   ELL_3V_SCALE(mtt->V, -1, rayDirWorld);
 
   return 0;
@@ -224,7 +224,7 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
   }
 
   /* set Z if it hasn't been set already */
-  if (1-mtt->TT >= muu->opacMatters && mtt->ZZ < 0) {
+  if (1-mtt->TT >= muu->opacMatters && !AIR_EXISTS(mtt->ZZ)) {
     mtt->ZZ = rayT;
   }
 
@@ -244,7 +244,7 @@ miteRayEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
     ELL_5V_SET(imgData + 5*idx, mtt->RR/A, mtt->GG/A, mtt->BB/A,
 	       A, mtt->ZZ);
   } else {
-    ELL_5V_SET(imgData + 5*idx, 0, 0, 0, 0, -1);
+    ELL_5V_SET(imgData + 5*idx, 0, 0, 0, 0, AIR_NAN);
   }
   return 0;
 }
