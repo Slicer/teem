@@ -43,7 +43,7 @@ _nrrdEncodingAscii_read(Nrrd *nrrd, NrrdIoState *nio) {
     biffAdd(NRRD, err); return 1;
   }
   num = nrrdElementNumber(nrrd);
-  if (_nrrdCalloc(nrrd)) {
+  if (_nrrdCalloc(nrrd, nio)) {
     sprintf(err, "%s: couldn't allocate sufficient memory for all data", me);
     biffAdd(NRRD, err); return 1;
   }

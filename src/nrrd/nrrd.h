@@ -275,6 +275,9 @@ typedef struct NrrdIoState_t {
     bzip2BlockSize;         /* block size used for compression, 
 			       roughly equivalent to better but slower
 			       (1-9, -1 for default[9]). */
+  void *oldData;            /* ON READ: data pointer that may have already been
+			       allocated for the right size to hold the data */
+  size_t oldDataSize;       /* ON READ: size of data pointed to by oldData */
   /* format and encoding.  These are initialized to nrrdFormatUnknown
      and nrrdEncodingUnknown, respectively. USE THESE VALUES for 
      any kind of initialization or flagging; DO NOT USE NULL */
@@ -314,7 +317,7 @@ typedef struct {
 ** Nrrd's use of this sort of kernel always assumes support symmetric
 ** around zero, but does not assume anything about even- or oddness
 **
-** It is a strong but very simplifying assumption that the paramater
+** It is a strong but very simplifying assumption that the parameter
 ** array ("parm") is always type double.  There is essentially no
 ** value in allowing flexibility between float and double, and much
 ** teem code assumes that it will always be type double.

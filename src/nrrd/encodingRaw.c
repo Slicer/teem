@@ -50,7 +50,11 @@ _nrrdEncodingRaw_read(Nrrd *nrrd, NrrdIoState *nio) {
   } else {
     dio = airNoDio_format;
   }
-  if (airNoDio_okay == dio) {
+  /* Notice that DIO will NOT be used if we are given pre-allocated memory
+     that fits the new nrrd.  The memory could be used if we were to check
+     its alignment here, but there currently is a laziness problem */
+  if (airNoDio_okay == dio 
+      && !(nio->oldData && bsize == nio->oldDataSize) ) {
     if (nio->format->usesDIO) {
       if (3 <= nrrdStateVerboseIO) {
 	fprintf(stderr, "with direct I/O ");
@@ -67,7 +71,13 @@ _nrrdEncodingRaw_read(Nrrd *nrrd, NrrdIoState *nio) {
       biffAdd(NRRD, err); return 1;
     }
   } else {
-    if (_nrrdCalloc(nrrd)) {
+    if (airNoDio_okay == dio && nio->oldData && bsize == nio->oldDataSize) {
+      if (nrrdStateVerboseIO) {
+	fprintf(stderr,
+		"%s: sorry, too lazy to use existing memory for DIO\n", me); 
+      }
+    }
+    if (_nrrdCalloc(nrrd, nio)) {
       sprintf(err, "%s: couldn't allocate sufficient memory for all data", me);
       biffAdd(NRRD, err); return 1;
     }

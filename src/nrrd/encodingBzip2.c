@@ -56,7 +56,7 @@ _nrrdEncodingBzip2_read(Nrrd *nrrd, NrrdIoState *nio) {
   }
 
   /* Allocate memory for the incoming data. */
-  if (_nrrdCalloc(nrrd)) {
+  if (_nrrdCalloc(nrrd, nio)) {
     sprintf(err, "%s: couldn't allocate sufficient memory for all data", me);
     biffAdd(NRRD, err); return 1;
   }

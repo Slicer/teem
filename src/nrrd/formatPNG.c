@@ -164,7 +164,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   png_bytep *row;
   png_uint_32 width, height, rowsize;
   png_text* txt;
-  int depth, type, i, channels, numtxt;
+  int depth, type, i, channels, numtxt, ret;
   int ntype, ndim, nsize[3];
 #endif /* TEEM_PNG */
 
@@ -245,19 +245,20 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   /* allocate memory for the image data */
   ntype = depth > 8 ? nrrdTypeUShort : nrrdTypeUChar;
   switch (type) {
-    case PNG_COLOR_TYPE_GRAY:
+  case PNG_COLOR_TYPE_GRAY:
     ndim = 2; nsize[0] = width; nsize[1] = height;
+    nsize[2] = 1;  /* to simplify code below */
     break;
-    case PNG_COLOR_TYPE_GRAY_ALPHA:
+  case PNG_COLOR_TYPE_GRAY_ALPHA:
     ndim = 3; nsize[0] = 2; nsize[1] = width; nsize[2] = height;
     break;
-    case PNG_COLOR_TYPE_RGB:
+  case PNG_COLOR_TYPE_RGB:
     ndim = 3; nsize[0] = 3; nsize[1] = width; nsize[2] = height;
     break;
-    case PNG_COLOR_TYPE_RGB_ALPHA:
+  case PNG_COLOR_TYPE_RGB_ALPHA:
     ndim = 3; nsize[0] = 4; nsize[1] = width; nsize[2] = height;
     break;
-    case PNG_COLOR_TYPE_PALETTE:
+  case PNG_COLOR_TYPE_PALETTE:
     /* TODO: merge this with the outer switch, needs to be tested */
     channels = png_get_channels(png, info);
     if (channels < 2) {
@@ -266,13 +267,20 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       ndim = 3; nsize[0] = channels; nsize[1] = width; nsize[2] = height;
     }
     break;
-    default:
+  default:
     png_destroy_read_struct(&png, &info, NULL);
     sprintf(err, "%s: unknown png type: %d", me, type);
     biffAdd(NRRD, err); return 1;
     break;
   }
-  if (nrrdMaybeAlloc_nva(nrrd, ntype, ndim, nsize)) {
+  if (nio->oldData
+      && (nio->oldDataSize
+	  == nrrdTypeSize[ntype]*nsize[0]*nsize[1]*nsize[2])) {
+    ret = nrrdWrap_nva(nrrd, nio->oldData, ntype, ndim, nsize);
+  } else {
+    ret = nrrdMaybeAlloc_nva(nrrd, ntype, ndim, nsize);
+  }
+  if (ret) {
     png_destroy_read_struct(&png, &info, NULL);
     sprintf(err, "%s: failed to allocate nrrd", me);
     biffAdd(NRRD, err); return 1;

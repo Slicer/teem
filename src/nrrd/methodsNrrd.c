@@ -49,6 +49,8 @@ nrrdIoStateInit (NrrdIoState *nio) {
     nio->bzip2BlockSize = -1;
     nio->skipData = AIR_FALSE;
     nio->keepNrrdDataFileOpen = AIR_FALSE;
+    nio->oldData = NULL;
+    nio->oldDataSize = 0;
     memset(nio->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
   }
   return;
@@ -80,6 +82,7 @@ nrrdIoStateNix (NrrdIoState *nio) {
   AIR_FREE(nio->dataFN);
   AIR_FREE(nio->line);
   AIR_FREE(nio);
+  /* the NrrdIoState never owned nio->oldData; we don't free it */
   return NULL;
 }
 

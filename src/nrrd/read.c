@@ -120,20 +120,29 @@ _nrrdOneLine (int *lenP, NrrdIoState *nio, FILE *file) {
 /*
 ** _nrrdCalloc()
 **
-** allocates the data for the array.  Only to be called by data readers,
+** allocates the data for the array, but only if necessary (as informed by
+** nio->oldData and nio->oldDataSate).  Only to be called by data readers,
 ** since it assume the validity of size information, as enforced by
 ** _nrrdHeaderCheck().
 */
 int
-_nrrdCalloc (Nrrd *nrrd) {
+_nrrdCalloc (Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdCalloc", err[AIR_STRLEN_MED];
+  size_t needDataSize;
 
-  AIR_FREE(nrrd->data);
-  nrrd->data = calloc(nrrdElementNumber(nrrd), nrrdElementSize(nrrd));
-  if (!nrrd->data) {
-    sprintf(err, "%s: couldn't calloc(" _AIR_SIZE_T_FMT
-	    ", %d)", me, nrrdElementNumber(nrrd), nrrdElementSize(nrrd));
-    biffAdd(NRRD, err); return 1;
+  needDataSize = nrrdElementNumber(nrrd)*nrrdElementSize(nrrd);
+  if (nio->oldData && needDataSize == nio->oldDataSize) {
+    nrrd->data = nio->oldData;
+    /* make the data look like it came from calloc() */
+    memset(nrrd->data, 0, needDataSize);
+  } else {
+    AIR_FREE(nrrd->data);
+    nrrd->data = calloc(nrrdElementNumber(nrrd), nrrdElementSize(nrrd));
+    if (!nrrd->data) {
+      sprintf(err, "%s: couldn't calloc(" _AIR_SIZE_T_FMT
+	      ", %d)", me, nrrdElementNumber(nrrd), nrrdElementSize(nrrd));
+      biffAdd(NRRD, err); return 1;
+    }
   }
   return 0;
 }
@@ -225,7 +234,7 @@ int
 nrrdRead (Nrrd *nrrd, FILE *file, NrrdIoState *nio) {
   char me[]="nrrdRead", err[AIR_STRLEN_MED];
   int len, fi;
-  airArray *mop;
+  airArray *mop; 
 
   /* sanity check, for good measure */
   if (!nrrdSanity()) {
@@ -246,8 +255,20 @@ nrrdRead (Nrrd *nrrd, FILE *file, NrrdIoState *nio) {
     }
     airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
   }
+  
+  /* remember old data pointer and allocated size.  Whether or not to 
+     free() this memory will be decided later */
+  nio->oldData = nrrd->data;
+  nio->oldDataSize = (nio->oldData 
+		      ? nrrdElementNumber(nrrd)*nrrdElementSize(nrrd) 
+		      : 0);
+  /*
+  fprintf(stderr, "!%s: nio->oldData = %p, oldDataSize = %d\n", me,
+	  nio->oldData, (int)(nio->oldDataSize));
+  */
+  nrrd->data = NULL;
 
-  /* clear out anything in the given nrrd */
+  /* initialize given nrrd (but we have thwarted freeing existing memory)  */
   nrrdInit(nrrd);
 
   if (_nrrdOneLine(&len, nio, file)) {
@@ -286,6 +307,12 @@ nrrdRead (Nrrd *nrrd, FILE *file, NrrdIoState *nio) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
+  }
+
+  /* free prior memory if we didn't end up using it */
+  if (nio->oldData != nrrd->data) {
+    AIR_FREE(nio->oldData);
+    nio->oldDataSize = 0;
   }
 
   airMopOkay(mop);

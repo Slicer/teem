@@ -66,7 +66,8 @@ int
 _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatText_read", err[AIR_STRLEN_MED], *errS;
   const char *fs;
-  int line, len, ret, sx, sy, settwo = 0, gotOnePerAxis = AIR_FALSE;
+  int line, len, ret, sx, sy, settwo = 0, gotOnePerAxis = AIR_FALSE,
+    size[NRRD_DIM_MAX];
   /* fl: first line, al: all lines */
   airArray *flArr, *alArr;
   float *fl, *al, oneFloat;
@@ -194,6 +195,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     sprintf(err, "%s: wanted 1-D nrrd, but got %d values on 1st line", me, sx);
     biffAdd(NRRD, err); UNSETTWO; return 1;
   }
+  /* else sx == 1 when nrrd->dim == 1 */
   
   /* now see how many more lines there are */
   alArr = airArrayNew((void**)&al, NULL, sx*sizeof(float), _NRRD_TEXT_INCR);
@@ -224,24 +226,27 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   fprintf(stderr, "%s: nrrd->dim = %d, sx = %d; sy = %d\n",
 	  me, nrrd->dim, sx, sy);
   */
-  
-  switch (nrrd->dim) {
-  case 2:
-    if (nrrdMaybeAlloc(nrrd, nrrdTypeFloat, 2, sx, sy)) {
-      sprintf(err, "%s: couldn't allocate plain text data", me);
-      biffAdd(NRRD, err); UNSETTWO; return 1;
-    }
-    break;
-  case 1:
-    if (nrrdMaybeAlloc(nrrd, nrrdTypeFloat, 1, sy)) {
-      sprintf(err, "%s: couldn't allocate plain text data", me);
-      biffAdd(NRRD, err); UNSETTWO; return 1;
-    }
-    break;
-  default:
+
+  if (!( 1 == nrrd->dim || 2 == nrrd->dim )) {
     fprintf(stderr, "%s: PANIC about to save, but dim = %d\n", me, nrrd->dim);
     exit(1);
-    break;
+  }
+  if (1 == nrrd->dim) {
+    size[0] = sy;
+  } else {
+    size[0] = sx;
+    size[1] = sy;
+  }
+  
+  if (nio->oldData
+      && nio->oldDataSize == sx*sy*nrrdTypeSize[nrrdTypeFloat]) {
+    ret = nrrdWrap_nva(nrrd, nio->oldData, nrrdTypeFloat, nrrd->dim, size);
+  } else {
+    ret = nrrdMaybeAlloc_nva(nrrd, nrrdTypeFloat, nrrd->dim, size);
+  }
+  if (ret) {
+    sprintf(err, "%s: couldn't create nrrd for plain text data", me);
+    biffAdd(NRRD, err); UNSETTWO; return 1;
   }
   memcpy(nrrd->data, al, sx*sy*sizeof(float));
   

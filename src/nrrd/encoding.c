@@ -26,9 +26,10 @@
 **    like nrrdElementNumber and nrrdElementSize will work correctly.
 **
 ** what a NrrdEncoding has to do:
-** -- allocate nrrd->data for the amount of space required (very likely
-**    via _nrrdCalloc).  That this has to be done here is because of the
-**    restrictions imposed by DirectIO (used by nrrdEncodingRaw).
+** -- allocate nrrd->data for the amount of space required, or use existing
+**    memory described by nio->oldData and nio->oldDataSize.  This is most
+**    easily done via _nrrdCalloc(). Allocation has to be done here because
+**    of the restrictions imposed by DirectIO (used by nrrdEncodingRaw).
 ** -- do nothing on read/write if nio->skipData
 ** -- read data from nio->dataFile into nrrd->data, or vice versa.
 ** -- respect nrrdStateVerboseIO with messages to stderr, if possible
