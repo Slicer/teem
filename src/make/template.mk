@@ -51,7 +51,7 @@
 ## that we need, but which isn't in fact that top-level target.
 ##
 $(L)/% : _L := $(L)
-.$(L).usable : _L := $(L)
+$(TEEM_SRC)/.$(L).usable : _L := $(L)
 
 ## These approximate the messages I had in the previous version of the
 ## teem makefiles, giving some progress indication in terms of what
@@ -62,10 +62,11 @@ $(L)/% : _L := $(L)
 
 ## $(L)/usable are the things that other teem libraries may rely on
 ##
-$(L)/usable : .$(L).usable
+$(L)/usable : $(TEEM_SRC)/.$(L).usable
 
 ## We name as prequisite our own libs and headers if they don't exist
-.$(L).usable : $(call WHATS.USED.EXISTS,$(L)) $(call NEED.USABLE,$(L))
+$(TEEM_SRC)/.$(L).usable : \
+  $(call WHATS.USED.EXISTS,$(L)) $(call NEED.USABLE,$(L))
 
 ## $(L)/install depends on usable prerequisite libraries and $(L)'s
 ## installed libs and headers.
