@@ -215,7 +215,7 @@ main(int argc, char *argv[]) {
   hestParm *hparm;
   airArray *mop;
   
-  double tval[6], ABC[3], geom[3], xroot[3], yroot[3], bbox[4], psc;
+  double tval[6], ABC[3], geom[3], xroot[3], yroot[3], bbox[4], htick, psc;
   wheelPS wps;
   int correct, labels;
 
@@ -239,6 +239,8 @@ main(int argc, char *argv[]) {
 	     "acos(sqrt(2)*skew)/3 is going to be");
   hestOptAdd(&hopt, "labels", NULL, airTypeInt, 0, 0, &labels, NULL,
 	     "put little labels on things; fix with psfrag in LaTeX");
+  hestOptAdd(&hopt, "htick", "pos", airTypeDouble, 1, 1, &htick, "nan",
+	     "location of single tick mark on horizontal axis");
   hestOptAdd(&hopt, "bb", "bbox", airTypeDouble, 4, 4, bbox, 
 	     "nan nan nan nan", "bounding box, in world space around the "
 	     "region of the graph that should be drawn to EPS");
@@ -343,6 +345,11 @@ main(int argc, char *argv[]) {
   wheelLine(&wps, xroot[0], -0.02*geom[1], xroot[0], 0.02*geom[1]);
   wheelLine(&wps, xroot[1], -0.02*geom[1], xroot[1], 0.02*geom[1]);
   wheelLine(&wps, xroot[2], -0.02*geom[1], xroot[2], 0.02*geom[1]);
+  if (AIR_EXISTS(htick)) {
+    wheelWidth(&wps, 10);
+    wheelLine(&wps, htick, -0.04, htick, 0.04);
+  }
+
 
   /* labels, if wanted */
   if (labels) {
