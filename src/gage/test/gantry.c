@@ -20,43 +20,7 @@
 #include <air.h>
 #include <hest.h>
 #include <nrrd.h>
-#include <gage.h>
-
-int
-gantryParseNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "gantryParseNrrd", *nerr;
-  Nrrd **nrrdP;
-  airArray *mop;
-  
-  if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  nrrdP = ptr;
-  mop = airMopInit();
-  *nrrdP = nrrdNew();
-  airMopAdd(mop, *nrrdP, (airMopper)nrrdNuke, airMopOnError);
-  if (nrrdLoad(*nrrdP, str)) {
-    airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
-    strncpy(err, nerr, AIR_STRLEN_HUGE-1);
-    airMopError(mop);
-    return 1;
-  }
-  if (3 != (*nrrdP)->dim) {
-    sprintf(err, "%s: need a 3-D nrrd (not %d)", me, (*nrrdP)->dim);
-    airMopError(mop);
-    return 1;
-  }
-  airMopOkay(mop);
-  return 0;
-}
-
-hestCB gantryNrrdHestCB = {
-  sizeof(Nrrd *),
-  "nrrd",
-  gantryParseNrrd,
-  (airMopper)nrrdNuke
-}; 
+#include "../gage.h"
 
 char info[]="Gantry tilt be gone!  This program is actually of limited "
 "utility: it can only change the tilt by shearing with the "
