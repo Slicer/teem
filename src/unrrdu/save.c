@@ -50,9 +50,13 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
 	 "output file format. Possibilities include:"
 	 "\n \b\bo \"raw\": raw encoding"
 	 "\n \b\bo \"ascii\": print data in ascii");
-  if (nrrdEncodingAvailable[nrrdEncodingGzip]) {
+  if (nrrdEncodingIsAvailable[nrrdEncodingGzip]) {
     strcat(encInfo, 
 	   "\n \b\bo \"gzip\", \"gz\": gzip compressed raw data");
+  }
+  if (nrrdEncodingIsAvailable[nrrdEncodingBzip2]) {
+    strcat(encInfo, 
+	   "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
   }
   hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &encoding, "raw",
 	     encInfo, NULL, nrrdEncoding);
