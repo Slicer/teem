@@ -20,7 +20,7 @@
 #include "private.h"
 
 char *rmapName = "rmap";
-#define INFO "Map a nrrd through a regular univariate map (\"colormap\")"
+#define INFO "Map nrrd through *regular* univariate map (\"colormap\")"
 char *rmapInfo = INFO;
 char *rmapInfoL = (INFO
 		   ". A map is regular if the control points are evenly "
@@ -30,9 +30,11 @@ char *rmapInfoL = (INFO
 		   "The map can be 1D (\"grayscale\"), in which case the "
 		   "output has the same dimension as the input, "
 		   "or 2D (\"color\"), in which case "
-		   "the output has one more dimension than the input, and "
-		   "each value is replaced by the result of interpolating "
-		   "between scanlines from the map.");
+		   "the output has one more dimension than the input.  In "
+		   "either case, the output is the result of linearly "
+		   "interpolating between map points, either scalar values "
+		   "(\"grayscale\"), or scanlines along axis 0 "
+		   "(\"color\").");
 
 int
 rmapMain(int argc, char **argv, char *me) {
@@ -61,12 +63,12 @@ rmapMain(int argc, char **argv, char *me) {
   mapax = nmap->dim - 1;
   if (!(AIR_EXISTS(nmap->axis[mapax].min) &&
 	AIR_EXISTS(nmap->axis[mapax].max))) {
-    /* set the map min and max to the data range */
-    nrrdMinMaxClever(nin);
+    /* gracelessly set the map min and max to the data range */
+    nrrdMinMaxCleverSet(nin);
     nmap->axis[mapax].min = nin->min;
     nmap->axis[mapax].max = nin->max;
   }
-  if (nrrdApply1DRegMap(nout, nin, nmap, NULL, NULL)) {
+  if (nrrdApply1DRegMap(nout, nin, nmap, AIR_FALSE)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble applying map:\n%s", me, err);
     airMopError(mop);
