@@ -241,7 +241,7 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	    echoSuperquadSet(eglyph, axis, qA, qB);
 	    break;
 	  }
-	  ELL_4V_SET(eglyph->rgba, R, G, B, 1);
+	  echoColorSet(eglyph, R, G, B, 1);
 	  echoMatterPhongSet(glyphsEcho, eglyph, 0, 1, 0, 40);
 	  inst = echoObjectNew(glyphsEcho, echoTypeInstance);
 	  ELL_4M_COPY(eM, mA);

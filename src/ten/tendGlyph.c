@@ -196,9 +196,6 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     eparm->seedRand = AIR_FALSE;
     ELL_3V_COPY(scene->bkgr, bg);
     scene->envmap = emap;
-    if (!emap) {
-      
-    }
     if (echoRTRender(nraw, cam, scene, eparm, gstate)) {
       airMopAdd(mop, err = biffGetDone(ECHO), airFree, airMopAlways);
       fprintf(stderr, "%s: %s\n", me, err);
