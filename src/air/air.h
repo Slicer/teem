@@ -311,6 +311,7 @@ extern const char *airInsaneErr(int insane);
 extern int airSanity();
 
 /* miscAir.c */
+extern air_export const char *airTeemVersion;
 extern air_export const char airMyFmt_size_t[];
 extern air_export const int airMy32Bit;
 extern void airSrand(void);

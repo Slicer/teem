@@ -36,6 +36,15 @@ const char airMyFmt_size_t[] = "%lu";
 #endif
 
 /*
+******** airTeemVersion
+**
+** updated with each release to contain a string representation of 
+** the teem version number.  Originated in version 1.5.
+*/
+const char *
+airTeemVersion = "1.5";
+
+/*
 ******** airSrand()
 **
 ** uses clock to seed srand()
