@@ -43,7 +43,8 @@ unrrdu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "\b\bo \"rup\", \"rdn\": round up or down to integral value\n "
 	     "\b\bo \"abs\": absolute value\n "
 	     "\b\bo \"sgn\": -1, 0, 1 if value is <0, ==0, or >0\n "
-	     "\b\bo \"exists\": 1 iff not NaN or +/-Inf, 0 otherwise",
+	     "\b\bo \"exists\": 1 iff not NaN or +/-Inf, 0 otherwise\n "
+	     "\b\bo \"rand\": random number in [0.0,1.0), no relation to input",
 	     NULL, nrrdUnaryOp);
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "default",
 	     "convert input nrrd to this type prior to "
@@ -76,6 +77,9 @@ unrrdu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
   } else {
     ntmp = nin;
+  }
+  if (nrrdUnaryOpRand == op) {
+    airSrand();
   }
   if (nrrdArithUnaryOp(nout, op, ntmp)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);

@@ -610,6 +610,7 @@ nrrdField = &_nrrdField;
 #define nuAbs nrrdUnaryOpAbs
 #define nuSgn nrrdUnaryOpSgn
 #define nuExs nrrdUnaryOpExists
+#define nuRnd nrrdUnaryOpRand
 
 char 
 _nrrdUnaryOpStr[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
@@ -635,7 +636,8 @@ _nrrdUnaryOpStr[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "rounddown",
   "abs",
   "sgn",
-  "exists"
+  "exists",
+  "rand"
 };
 
 char 
@@ -662,7 +664,8 @@ _nrrdUnaryOpDesc[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_MED] = {
   "round to closest integer (0.5 rounded to 0)",
   "absolute value",
   "sign of value (-1, 0, or 1)",
-  "value is not infinity or NaN"
+  "value is not infinity or NaN",
+  "random value between 0 and 1"
 };
 
 char
@@ -689,6 +692,7 @@ _nrrdUnaryOpStrEqv[][AIR_STRLEN_SMALL] = {
   "abs", "fabs",
   "sgn", "sign",
   "exists",
+  "rand",
   ""
 };
 
@@ -715,7 +719,8 @@ _nrrdUnaryOpValEqv[] = {
   nuRdn, nuRdn, nuRdn,
   nuAbs, nuAbs,
   nuSgn, nuSgn,
-  nuExs
+  nuExs,
+  nuRnd
 };
 
 airEnum
