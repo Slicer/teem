@@ -480,7 +480,8 @@ _nrrdHistoEqCompare(const void *a, const void *b) {
 ** exactly one fixed value).  
 */
 int
-nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP, int bins, int smart) {
+nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP,
+	    int bins, int smart, float amount) {
   char me[]="nrrdHistoEq", func[]="heq", err[AIR_STRLEN_MED];
   Nrrd *nhist, *nmap;
   float *ycoord = NULL;
@@ -642,8 +643,12 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP, int bins, int smart) {
       ycoord[bins] += ycoord[bins-1] - ycoord[bins-2];
     }
   }
+  /* rescale the histogram integration to span the original
+     value range, and affect the influence of "amount" */
   for (i=0; i<=bins; i++) {
-    ycoord[i] = AIR_AFFINE(0, ycoord[i], ycoord[bins], min, max);
+    ycoord[i] = AIR_AFFINE(0.0, ycoord[i], ycoord[bins], min, max);
+    ycoord[i] = AIR_AFFINE(0.0, amount, 1.0,
+			   AIR_AFFINE(0, i, bins, min, max), ycoord[i]);
   }
 
   /* map the nrrd values through the normalized histogram integral */

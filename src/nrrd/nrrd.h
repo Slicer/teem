@@ -486,8 +486,8 @@ extern int nrrdMinMaxCleverSet(Nrrd *nrrd);
 extern int nrrdConvert(Nrrd *nout, Nrrd *nin, int type);
 extern int nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits);
 extern int nrrdUnquantize(Nrrd *nout, Nrrd *nin, int type);
-extern int nrrdHistoEq(Nrrd *nout, Nrrd *nin,
-		       Nrrd **nhistP, int bins, int smart);
+extern int nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP,
+		       int bins, int smart, float amount);
 
 /******** rest of point-wise value remapping, and "color"mapping */
 /* apply1D.c */
