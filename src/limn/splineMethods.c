@@ -93,10 +93,10 @@ _limnSplineTimeWarpSet(limnSpline *spline) {
     cpt[0 + 3*(N-1)] = ((cpt[1+3*(N-1)] - cpt[1+3*(N-2)])
 			* (time[N-1] - time[N-2]));
   }
-
+  /*
   fprintf(stderr, "s[0]=%g, post = %g; s[1]=%g pre = %g\n", 
 	  cpt[1 + 3*0], cpt[2 + 3*0], cpt[1 + 3*1], cpt[0 + 3*1]);
-
+  */
   return 0;
 }
 
