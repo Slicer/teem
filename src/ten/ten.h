@@ -66,7 +66,7 @@ enum {
   tenAniso_Tr,        /* 22: plain old trace */
   tenAnisoLast
 };
-#define TEN_ANISO_MAX    22
+#define TEN_ANISO_MAX    25
 
 /*
 ******** tenGlyphType* enum
@@ -133,8 +133,8 @@ typedef struct {
   "\b\bo \"ca1\", \"ca2\": Westin's linear + planar\n " \
   "\b\bo \"cs1\", \"cs2\": Westin's spherical (1-ca)\n " \
   "\b\bo \"ct1\", \"ct2\": GK's anisotropy type (cp/ca)\n " \
-  "\b\bo \"ra\": Basser/Pierpaoli relative anisotropy\n " \
-  "\b\bo \"fa\": Basser/Pierpaoli fractional anisotropy/sqrt(2)\n " \
+  "\b\bo \"ra\": Basser/Pierpaoli relative anisotropy/sqrt(2)\n " \
+  "\b\bo \"fa\": Basser/Pierpaoli fractional anisotropy\n " \
   "\b\bo \"vf\": volume fraction = 1-(Basser/Pierpaoli volume ratio)\n " \
   "\b\bo \"tr\": trace"
 
