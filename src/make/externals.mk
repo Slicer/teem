@@ -36,8 +36,8 @@ XTERNS = PNG ZLIB BZIP2 PTHREAD
 ## format.  Using zlib enables the "gzip" nrrd data encoding.  Header
 ## file is <zlib.h>.
 ##
-## Arch-specific .mk files may need to set TEEM_ZLIB.IPATH and
-## TEEM_ZLIB.LPATH to "-I<path>" and "-L<path>" for the compile and
+## Arch-specific .mk files may need to set TEEM_ZLIB_IPATH and
+## TEEM_ZLIB_LPATH to "-I<path>" and "-L<path>" for the compile and
 ## link lines, respectively.
 ZLIB.LINK = -lz
 nrrd.XTERN += ZLIB
