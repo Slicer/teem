@@ -214,15 +214,10 @@ airDioMalloc(size_t size, int fd) {
 #if TEEM_DIO == 0
   return NULL;
 #else
-  void *ptr;
   int align, min, max;
   
   airDioInfo(&align, &min, &max, fd);
-  ptr = memalign(align, size);
-  if (ptr) {
-    bzero(ptr, size);
-  }
-  return ptr;
+  return memalign(align, size);
 #endif
 }
 
