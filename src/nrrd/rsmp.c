@@ -661,7 +661,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
        array: so that there is a simple consistent (non-branchy) way
        to incorporate the pad values */
     in = (float *)calloc(sizeIn+1, sizeof(float));
-    /* airMopAdd(mop, in, airFree, airMopAlways); */
+    airMopAdd(mop, in, airFree, airMopAlways);
     in[sizeIn] = info->padValue;
 
     dotLen = _nrrdResampleMakeWeightIndex(&weight, &index, &ratio,
@@ -671,8 +671,8 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
       biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
     }
     ratios[d] = ratio;
-    /* airMopAdd(mop, weight, airFree, airMopAlways); */
-    /* airMopAdd(mop, index, airFree, airMopAlways); */
+    airMopAdd(mop, weight, airFree, airMopAlways);
+    airMopAdd(mop, index, airFree, airMopAlways);
 
     /* the skinny: resample all the scanlines */
     _in = arr[pass];
@@ -746,10 +746,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   }
   printf("!%s: nout: dim = %d; sz[] = %d %d %d\n", me,
 	 dim, sz[passes][0],  sz[passes][1],  sz[passes][2]);
-  /*
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopOnError);
-  airMopAdd(mop, TEST, TESTPRINT, airMopOnError);
-  */
   nrrdAxesCopy(nout, nin, NULL, 
 	       (NRRD_AXESINFO_SIZE
 		| NRRD_AXESINFO_AMINMAX
