@@ -43,8 +43,8 @@ makeSceneBVH(limnCam *cam, EchoParam *param,
   param->jitter = echoJitterNone;
   param->verbose = 0;
   param->samples = 1;
-  param->imgResU = 400;
-  param->imgResV = 400;
+  param->imgResU = 100;
+  param->imgResV = 100;
   param->aperture = 0.0;
   param->gamma = 2.0;
   param->refDistance = 1;
@@ -76,7 +76,7 @@ makeSceneBVH(limnCam *cam, EchoParam *param,
   echoLightAreaSet(light, rect);
   echoLightArrayAdd(lightArr, light);
 
-  *sceneP = scene = echoObjectListSplit3(scene, 1);
+  *sceneP = scene = echoObjectListSplit3(scene, 2);
   printf("scene type = %d\n", scene->type);
 
 }
