@@ -110,7 +110,7 @@ main(int argc, char *argv[]) {
  kparsed:
   if (argc-4 != nin->dim) {
     fprintf(stderr, "%s: read in %d-D nrrd, but got %d resampling sizes\n",
-	    me, argc-4, nin->dim);
+	    me, nin->dim, argc-4);
     exit(1);
   }
   /* for the curious, the constraints/simplifications in this unrrdu,
