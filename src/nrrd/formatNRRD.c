@@ -173,6 +173,7 @@ _nrrdFormatNRRD_whichVersion(const Nrrd *nrrd, NrrdIoState *nio) {
   if (_nrrdFieldInteresting(nrrd, nio, nrrdField_thicknesses)
       || _nrrdFieldInteresting(nrrd, nio, nrrdField_space)
       || _nrrdFieldInteresting(nrrd, nio, nrrdField_space_dimension)
+      || _nrrdFieldInteresting(nrrd, nio, nrrdField_sample_units)
       || airStrlen(nio->dataFNFormat) || nio->dataFNArr->len > 1) {
     ret = 4;
   } else if (_nrrdFieldInteresting(nrrd, nio, nrrdField_kinds)) {
