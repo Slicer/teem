@@ -475,30 +475,35 @@ _nrrdReadNrrdParse_data_file (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_data_file", err[AIR_STRLEN_MED], *dataName;
   char *info;
 
-  if (!io->skipData) {
-    info = io->line + io->pos;
-    if (!strncmp(info, _nrrdRelDirFlag, strlen(_nrrdRelDirFlag))) {
-      /* data file directory is relative to header directory */
-      if (!io->dir) {
-	sprintf(err, "%s: want header-relative data file, but don't know "
-		"directory of header", me);
-	biffMaybeAdd(NRRD, err, useBiff); return 1;
-      }
-      info += strlen(_nrrdRelDirFlag);
-      dataName = malloc(strlen(io->dir) + strlen(info) + 2);
-      sprintf(dataName, "%s/%s", io->dir, info);
-    } else {
-      /* data file's name is absolute (not header-relative) */
-      dataName = airStrdup(info);
-    }
-    if (!(io->dataFile = fopen(dataName, "rb"))) {
-      sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s",
-	      me, dataName, strerror(errno));
+  /* 17 Sept 2003: removed the check on io->skipData, because it meant
+     that "unu data" didn't work on detached header nrrds: we do want
+     to skip data (because reading the data is unu data's job, but that
+     doesn't mean that we can avoid opening the data file */
+  /* if (!io->skipData) { */
+  info = io->line + io->pos;
+  if (!strncmp(info, _nrrdRelDirFlag, strlen(_nrrdRelDirFlag))) {
+    /* data file directory is relative to header directory */
+    if (!io->dir) {
+      sprintf(err, "%s: want header-relative data file, but don't know "
+	      "directory of header", me);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
-    /* the seperate data file will be closed in _nrrdReadNrrd() */
-    free(dataName);
+    info += strlen(_nrrdRelDirFlag);
+    dataName = malloc(strlen(io->dir) + strlen(info) + 2);
+    sprintf(dataName, "%s/%s", io->dir, info);
+  } else {
+    /* data file's name is absolute (not header-relative) */
+    dataName = airStrdup(info);
   }
+  if (!(io->dataFile = fopen(dataName, "rb"))) {
+    sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s",
+	    me, dataName, strerror(errno));
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
+  }
+  /* the seperate data file will be closed in _nrrdReadNrrd() */
+  free(dataName);
+  /* fprintf(stderr, "!%s: io->dataFile = %p\n", me, io->dataFile); */
+  /* } if (!io->skipData) */
   io->seperateHeader = AIR_TRUE;
   return 0;
 }
