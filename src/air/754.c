@@ -102,12 +102,10 @@ typedef union {
 
 #if TEEM_QNANHIBIT == 1
 const int airMyQNaNHiBit = 1;
-const airFloat airFloatNaN  = {0x7fffffff};
 const airFloat airFloatQNaN = {0x7fffffff};
 const airFloat airFloatSNaN = {0x7fbfffff};
 #else
 const int airMyQNaNHiBit = 0;
-const airFloat airFloatNaN  = {0x7fbfffff};
 const airFloat airFloatQNaN = {0x7fbfffff};
 const airFloat airFloatSNaN = {0x7fffffff};
 #endif

@@ -219,7 +219,6 @@ extern int airFPClass_f(float val);
 extern int airFPClass_d(double val);
 extern void airFPFprintf_f(FILE *file, float val);
 extern void airFPFprintf_d(FILE *file, double val);
-extern air_export const airFloat airFloatNaN;   /* same as airFloatQNaN */
 extern air_export const airFloat airFloatQNaN;
 extern air_export const airFloat airFloatSNaN;
 extern air_export const airFloat airFloatPosInf;
@@ -428,7 +427,7 @@ extern void airMopDebug(airArray *arr);
 ** the NaNs, however, they are only one of many possible
 ** representations.
 */
-#define AIR_NAN (airFloatNaN.f)   /* same as airFloatQNaN.f */
+#define AIR_NAN  (airFloatQNaN.f)
 #define AIR_QNAN (airFloatQNaN.f)
 #define AIR_SNAN (airFloatSNaN.f)
 #define AIR_POS_INF (airFloatPosInf.f)
