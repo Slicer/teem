@@ -1,31 +1,41 @@
+ASAP!!:
 
-ASAP!!: 
-fix convert
+write a little function which verifies things about endian, nan, and type sizes
+  (to make sure teem built okay)
+
+read "a pixel is not a square" type papers,
+cell vs. node centered, on a per-axis basis
+  (which will effect the resampler)
+
+table-reader (needed for colormaps)
+rewrite most of io.c, using some sort of "io context" struct which
+seperates io-specific state from the nrrd itself, since that info
+has no value outside the context of io operations
+
+
+figure out which (if any) of float args should be doubles
+
 revisit slicer,
+
 save and retreive peripheral information in PNM comments
+
 gaussian kernel,
-pow2pad super function,
+
 split, reshape,
+
 resampling, blurring,  <-- document setting the float param[] vector
-weighted median filter
 
-standardize order of "nin" and "nout" (nrrd input and nrrd output)
-arguments to functions which take both.
+better regular median filtering, weighted median filter
 
-be good about setting pointers to null by their own destruction
-
-implement nrrdMaybeAlloc(), and change all nrrd functions 
-from nrrdAlloc to that
+a function call to take a block nrrd, and a callback, 
+and create a new one nrrd... (but that will be it as far as block stuff)
 
 For everything in reorder.c, whenever possible, 
 make them friendly to the input and output nrrds being the _same_
 
-look into doing int or double assingments as an alternative
-to doing memcpy()s on 4- and 8- byte quantities
-
-rewrite most of io.c, using some sort of "io context" struct which
-seperates io-specific state from the nrrd itself, since that info
-has no value outside the context of io operations
+look into doing char, short, int, long long int assingments as an
+alternative to doing memcpy()s on 1-, 2-, 4- and 8- byte quantities
+(this will work with ints, but NOT with floats or doubles (thanks intel))
 
 for things which can produce a nrrd of one higher dimension, 
 make sure it isn't bumping up against NRRD_MAX_DIM
@@ -38,15 +48,10 @@ debug and scrutinize current implementation of all "nhdr" related behavior
 "tables": allow reading and writing of simple ascii tables, with no
 header or any kind of explicit size indication (ascii output of a
 spreadsheet program) 
---> this will enable suave to store its colormaps as nrrds <---
+--> this will enable dye to store its colormaps as nrrds <---
 
 "mappings": create minimal support for creating and "evaluating"
 functions based on an array of control points.
-
-facilitate a means of mapping from a "block" to a single scalar,
-so that things like histogramming, filtering, and measuring are 
-possible.  Does the nrrd contain a callback pointer for doing
-this?
 
 check for handling of size of type "block"- when does the user have to
 specify it.
@@ -61,8 +66,6 @@ of elements in a nrrd can be large enough to require the later,
 but what about the number of elements along one axis?
 
 allow caller to learn mapping used by histogram equalization
-
-convert.c: fix badness with forcing everything through a double
 
 clarify policy regarding when data in the nrrd will be free()ed
 
@@ -84,6 +87,4 @@ given the dimension of the nrrd (0 or 1, maybe 2 dimensional)?
 where does nrrd check to see it got a reasonable size,
 how and when does nrrd set the default size to -1
 
-Make sure that io.c stuff can work with a non-fseek-able stream
-(to facilitate nrrd operations by piping), and
 decide whether or not to keep NrrdReadDataType and NrrdWriteDataType
