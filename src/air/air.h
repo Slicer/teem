@@ -32,14 +32,14 @@
 extern "C" {
 #endif
 
-#if defined(WIN32) && !defined(TEEM_BUILD)
+#if defined(_WIN32) && !defined(TEEM_BUILD)
 #define air_export __declspec(dllimport)
 #else
 #define air_export
 #endif
 
-#ifdef WIN32
-#ifdef TEEM_VC6
+#ifdef _WIN32
+#if _MSC_VER < 1300 || !defined(_USE_MATH_DEFINES)
 #define M_PI 3.14159265358979323846
 #define M_E  2.71828182845904523536
 #endif
@@ -470,7 +470,7 @@ extern void airMopDebug(airArray *arr);
 ** The reason for using airExists_d and not airExists_f is for
 ** doubles > FLT_MAX: airExists_f would say these are infinity.
 */
-#ifdef WIN32
+#ifdef _WIN32
 #define AIR_EXISTS(x) (airExists_d(x))
 #else
 #define AIR_EXISTS(x) (!((x) - (x)))

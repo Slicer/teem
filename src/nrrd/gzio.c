@@ -54,7 +54,7 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-#ifdef WIN32 /* Window 95 & Windows NT */
+#ifdef _WIN32 /* Window 95 & Windows NT */
 #  define _NRRD_OS_CODE  0x0b
 #endif
 

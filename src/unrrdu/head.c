@@ -39,7 +39,7 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
   int len, magic, pret;
   FILE *fin, *fout;
-#ifdef WIN32
+#ifdef _WIN32
   int c;
 #endif
 
@@ -59,7 +59,7 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   if (!strcmp("-", inS)) {
     fin = stdin;
-#ifdef WIN32
+#ifdef _WIN32
     _setmode(_fileno(fin), _O_BINARY);
 #endif
   } else {
@@ -71,7 +71,7 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   if (!strcmp("-", outS)) {
     fout = stdout;
-#ifdef WIN32
+#ifdef _WIN32
     _setmode(_fileno(fout), _O_BINARY);
 #endif
   } else {
@@ -103,7 +103,7 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
     _nrrdOneLine(&len, io, fin);
   };
   
-#ifdef WIN32
+#ifdef _WIN32
   /* seems that only on windows does the writing process's fwrite() to
      stdout fail if we exit without consuming everything from stdin */
   c = fgetc(fin);

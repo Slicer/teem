@@ -150,7 +150,7 @@ main(int argc, char *argv[]) {
   ctx = gageContextNew();
   airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
   gageSet(ctx, gageParmGradMagMin, gmc);
-  gageSet(ctx, gageParmVerbose, 3);
+  gageSet(ctx, gageParmVerbose, 30);
   gageSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
   gageSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;

@@ -63,7 +63,7 @@ unrrdu_dataMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   if (!strcmp("-", inS)) {
     fin = stdin;
-#ifdef WIN32
+#ifdef _WIN32
     _setmode(_fileno(fin), _O_BINARY);
 #endif
   } else {
@@ -76,7 +76,7 @@ unrrdu_dataMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   if (!strcmp("-", outS)) {
     fout = stdout;
-#ifdef WIN32
+#ifdef _WIN32
     _setmode(_fileno(fout), _O_BINARY);
 #endif
   } else {

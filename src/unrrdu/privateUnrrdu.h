@@ -20,7 +20,7 @@
 #ifndef UNRRDU_PRIVATE_HAS_BEEN_INCLUDED
 #define UNRRDU_PRIVATE_HAS_BEEN_INCLUDED
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <io.h>
 #include <fcntl.h>
 #endif

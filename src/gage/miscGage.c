@@ -200,7 +200,11 @@ void
 gagePointReset(gagePoint *point) {
 
   if (point) {
-    point->xf = point->yf = point->zf = AIR_NAN;
+    /* learned: can't initialize the floating point to AIR_NAN, 
+       non-dot-net windows compilers proclaim that QNAN == x
+       for any existant x!!!  For some reason thought, infinity
+       is handled correctly */
+    point->xf = point->yf = point->zf = AIR_POS_INF;
     point->xi = point->yi = point->zi = -1;
   }
   return;

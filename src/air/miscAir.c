@@ -21,7 +21,7 @@
 #include "air.h"
 #include <teem32bit.h>
 /* timer functions */
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
 #include <mmsystem.h>
 #else
@@ -235,7 +235,7 @@ airDoneStr(float start, float here, float end, char *str) {
 */
 double
 airTime() {
-#ifdef WIN32
+#ifdef _WIN32
   long t;
 
   t = timeGetTime();
@@ -275,7 +275,7 @@ airLog2(float n) {
 */
 double
 airCbrt(double v) {
-#ifdef WIN32
+#ifdef _WIN32
   return pow(v,1.0/3.0);
 #else
   return cbrt(v);

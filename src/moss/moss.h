@@ -29,7 +29,7 @@
 #include <nrrd.h>
 #include <unrrdu.h>
 
-#if defined(WIN32) && !defined(TEEM_BUILD)
+#if defined(_WIN32) && !defined(TEEM_BUILD)
 #define moss_export __declspec(dllimport)
 #else
 #define moss_export

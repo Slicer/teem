@@ -30,7 +30,7 @@
 #include <ell.h>
 #include <nrrd.h>
 
-#if defined(WIN32) && !defined(TEEM_BUILD)
+#if defined(_WIN32) && !defined(TEEM_BUILD)
 #define gage_export __declspec(dllimport)
 #else
 #define gage_export

@@ -178,7 +178,7 @@ airFPPartsToVal_d(int sign, int exp, airULLong frac) {
 ** Disable the 'local variable used without having been initialized'
 ** warning produced by the MSVC compiler
 */
-#ifdef WIN32
+#ifdef _WIN32
 #pragma warning(push)
 #pragma warning(disable : 4700)
 #endif
@@ -195,7 +195,7 @@ airFPValToParts_d(int *signP, int *expP, airULLong *fracP, double v) {
   FP_GET(*signP, *expP, *fracP, d);
 #endif
 }
-#ifdef WIN32
+#ifdef _WIN32
 #pragma warning(pop)
 #endif
 
@@ -393,7 +393,7 @@ airFPClass_f(float val) {
 ** Disable the 'local variable used without having been initialized'
 ** warning produced by the MSVC compiler
 */ 
-#ifdef WIN32
+#ifdef _WIN32
 #pragma warning(push)
 #pragma warning(disable : 4700)
 #endif
@@ -483,7 +483,7 @@ airFPClass_d(double val) {
   return ret;
 #endif
 }
-#ifdef WIN32
+#ifdef _WIN32
 #pragma warning(pop)
 #endif
 
@@ -544,13 +544,13 @@ airIsInf_d(double d) {
 ** returns 1 iff given float/double is not NaN and is not an infinity,
 ** otherwize 0.
 */
-#ifdef WIN32
+#ifdef _WIN32
 __inline
 #endif
 int
 airExists_f(float f) { return AIR_EXISTS_F(f); }
 
-#ifdef WIN32
+#ifdef _WIN32
 __inline
 #endif
 int

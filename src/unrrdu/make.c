@@ -50,7 +50,7 @@ unrrduMakeRead(char *me, Nrrd *nrrd, NrrdIO *nio, char *fname,
   nio->encoding = encoding;
   if (!strcmp("-", fname)) {
     nio->dataFile  = stdin;
-#ifdef WIN32
+#ifdef _WIN32
     _setmode(_fileno(nio->dataFile), _O_BINARY);
 #endif
   } else {
@@ -227,7 +227,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
        which will not write any data (because of the AIR_FALSE) */
     if (!strcmp("-", out)) {
       fileOut = stdout;
-#ifdef WIN32
+#ifdef _WIN32
       _setmode(_fileno(fileOut), _O_BINARY);
 #endif
     } else {

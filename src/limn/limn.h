@@ -29,7 +29,7 @@
 #include <ell.h>
 #include <nrrd.h>
 
-#if defined(WIN32) && !defined(TEEM_BUILD)
+#if defined(_WIN32) && !defined(TEEM_BUILD)
 #define limn_export __declspec(dllimport)
 #else
 #define limn_export

@@ -857,7 +857,7 @@ _nrrdWriteWarningHandlerPNG (png_structp png, png_const_charp message)
 
 /* we need to use the file I/O callbacks on windows
    to make sure we can mix VC6 libpng with VC7 teem */
-#ifdef WIN32
+#ifdef _WIN32
 static void
 _nrrdWriteDataPNG (png_structp png, png_bytep data, png_size_t len)
 {
@@ -872,7 +872,7 @@ _nrrdFlushDataPNG (png_structp png)
    FILE *io_ptr = (FILE*)(png->io_ptr);
    if (io_ptr != NULL) fflush(io_ptr);
 }
-#endif /* WIN32 */
+#endif /* _WIN32 */
 #endif /* TEEM_PNG */
 
 int
@@ -911,7 +911,7 @@ _nrrdWritePNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
     return 1;
   }
   /* initialize png I/O */
-#ifdef WIN32
+#ifdef _WIN32
   png_set_write_fn(png, file, _nrrdWriteDataPNG, _nrrdFlushDataPNG);
 #else
   png_init_io(png, file);        
@@ -1382,7 +1382,7 @@ nrrdSave (const char *filename, Nrrd *nrrd, NrrdIO *io) {
 
   if (!strcmp("-", filename)) {
     file = stdout;
-#ifdef WIN32
+#ifdef _WIN32
     _setmode(_fileno(file), _O_BINARY);
 #endif
   } else {

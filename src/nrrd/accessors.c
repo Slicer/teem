@@ -34,7 +34,7 @@ typedef signed int JN;
 typedef unsigned int UI;
 typedef airLLong LL;
 /* ui64 to double conversion is not implemented, sorry */
-#ifdef TEEM_VC6
+#if _MSC_VER < 1300
 typedef airLLong UL;
 #else
 typedef airULLong UL;

@@ -24,7 +24,7 @@
 #include <windows.h>
 #endif
 
-#if TEEM_PTHREAD
+#if TEEM_PTHREAD || defined(_WIN32)
 const int hooverMyPthread = 1;
 #else
 const int hooverMyPthread = 0;
@@ -434,32 +434,42 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
     }
   }
 #elif defined(_WIN32)
-  for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
-    thread[threadIdx] = CreateThread(0, 0, _hooverThreadBody, (void*)&args[threadIdx], 0, 0);
-    if (NULL == thread[threadIdx]) {
-      *errCodeP = GetLastError();
-      *errThreadP = threadIdx;
-      airMopError(mop);
-      return hooverErrThreadCreate;
-    }
-  }
-  for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
-    if (WAIT_FAILED == WaitForSingleObject(thread[threadIdx], INFINITE)) {
-      *errCodeP = GetLastError();
-      *errThreadP = threadIdx;
-      airMopError(mop);
-      return hooverErrThreadJoin;
-    }
-    if (0 == GetExitCodeThread(thread[threadIdx], &errCode)) {
-      *errCodeP = GetLastError();
-      *errThreadP = threadIdx;
-      airMopError(mop);
-      return hooverErrThreadJoin;
-    }
-    if (0 != errCode) {
+  if (1 == ctx->numThreads) {
+    errCode = _hooverThreadBody(&(args[0]));
+    if (errCode) {
       *errCodeP = errCode;
-      *errThreadP = threadIdx;
-      return args[threadIdx].whichErr;
+      airMopError(mop);
+      return args[0].whichErr;
+    }
+  } else {
+    for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
+      thread[threadIdx] = CreateThread(0, 0, _hooverThreadBody,
+				       (void*)&args[threadIdx], 0, 0);
+      if (NULL == thread[threadIdx]) {
+	*errCodeP = GetLastError();
+	*errThreadP = threadIdx;
+	airMopError(mop);
+	return hooverErrThreadCreate;
+      }
+    }
+    for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
+      if (WAIT_FAILED == WaitForSingleObject(thread[threadIdx], INFINITE)) {
+	*errCodeP = GetLastError();
+	*errThreadP = threadIdx;
+	airMopError(mop);
+	return hooverErrThreadJoin;
+      }
+      if (0 == GetExitCodeThread(thread[threadIdx], &errCode)) {
+	*errCodeP = GetLastError();
+	*errThreadP = threadIdx;
+	airMopError(mop);
+	return hooverErrThreadJoin;
+      }
+      if (0 != errCode) {
+	*errCodeP = errCode;
+	*errThreadP = threadIdx;
+	return args[threadIdx].whichErr;
+      }
     }
   }
 #else

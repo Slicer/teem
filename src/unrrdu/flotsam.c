@@ -327,7 +327,7 @@ unrrduParseFile(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   fileP = ptr;
   if (!strcmp("-", str)) {
     *fileP = stdin;
-#ifdef WIN32
+#ifdef _WIN32
     _setmode(_fileno(*fileP), _O_BINARY);
 #endif
   }
