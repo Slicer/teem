@@ -613,6 +613,7 @@ nrrdReadData(FILE *file, Nrrd *nrrd) {
   if (nrrd->dataFile) {
     /* if there was a seperate data file, close it now */
     fclose(dataFile);
+    nrrd->dataFile = NULL;
   }
   printf("done)\n");
 
