@@ -200,6 +200,7 @@ int
 _nrrdReadDataRaw (Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadDataRaw", err[AIR_STRLEN_MED];
   size_t num, bsize, size, ret, dio;
+  int car;
   
   num = nrrdElementNumber(nrrd);
   bsize = num * nrrdElementSize(nrrd);
@@ -255,6 +256,12 @@ _nrrdReadDataRaw (Nrrd *nrrd, NrrdIO *io) {
 	      me, ret, nrrdElementSize(nrrd), num);
       biffAdd(NRRD, err); return 1;
     }
+  }
+  car = fgetc(io->dataFile);
+  if (EOF != car) {
+    fprintf(stderr, "%s: WARNING: finished reading raw data, "
+	    "but file not at EOF\n", me);
+    ungetc(car, io->dataFile);
   }
 
   return 0;
