@@ -39,6 +39,7 @@ typedef union {
 /* arrays.c */
 extern int _nrrdFieldValidInPNM[NRRD_FIELD_MAX+1];
 extern int _nrrdFieldValidInTable[NRRD_FIELD_MAX+1];
+extern int _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1];
 extern char _nrrdEnumFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL];
 extern int _nrrdFieldRequired[NRRD_FIELD_MAX+1];
 extern int _nrrdFormatUsesDIO[NRRD_FORMAT_MAX+1];
