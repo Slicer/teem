@@ -223,11 +223,11 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
     switch(parm->sliceAxis) {
     case 0:
       edge0[1] = edge1[2] = 0;
-      ELL_4M_ROTATE_Y_SET(sRot, M_PI/2);
+      ELL_4M_ROTATE_Y_SET(sRot, AIR_PI/2);
       break;
     case 1:
       edge0[0] = edge1[2] = 0;
-      ELL_4M_ROTATE_X_SET(sRot, M_PI/2);
+      ELL_4M_ROTATE_X_SET(sRot, AIR_PI/2);
       break;
     case 2: default:
       edge0[0] = edge1[1] = 0;

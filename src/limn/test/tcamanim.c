@@ -75,7 +75,7 @@ _limnReadCamanim(int imgSize[2], limnCamera **keycamP, double **timeP,
     ELL_3V_COPY((*keycamP)[ki].from, fr);
     ELL_3V_COPY((*keycamP)[ki].at, at);
     ELL_3V_COPY((*keycamP)[ki].up, up);
-    vm = tan((M_PI/180)*(va/2))*di;
+    vm = tan((AIR_PI/180)*(va/2))*di;
     um = vm*imgSize[0]/imgSize[1];
     (*keycamP)[ki].uRange[0] = -um;
     (*keycamP)[ki].uRange[1] = um;
@@ -89,7 +89,7 @@ _limnReadCamanim(int imgSize[2], limnCamera **keycamP, double **timeP,
   tmp = (double*)calloc(*numKeysP, sizeof(double));
   *timeP = (double*)calloc(*numKeysP, sizeof(double));
   for (ki=0; ki<*numKeysP; ki++) {
-    tmp[ki] = tan(AIR_AFFINE(-0.01, dwell[ki], 2.01, 0.0, M_PI/2));
+    tmp[ki] = tan(AIR_AFFINE(-0.01, dwell[ki], 2.01, 0.0, AIR_PI/2));
   }
   (*timeP)[0] = 0;
   for (ki=1; ki<*numKeysP; ki++) {
@@ -115,7 +115,7 @@ _limnWriteCamanim(FILE *fout, int imgSize[2], double isoValue,
   for (fi=0; fi<numFrames; fi++) {
     di = cam[fi].dist;
     vm = cam[fi].vRange[1];
-    va = 2*atan2(vm, di)/(M_PI/180);
+    va = 2*atan2(vm, di)/(AIR_PI/180);
     fprintf(fout, "isoValue %g cam.di %g cam.at {%g %g %g } "
 	    "cam.up {%g %g %g } cam.dn %g cam.df %g cam.va %g "
 	    "relDwell 1.0 cam.fr {%g %g %g }\n",

@@ -49,13 +49,6 @@ extern "C" {
 #  pragma warning ( disable : 4305 )
 #  pragma warning ( disable : 4309 )
 #  pragma warning ( disable : 4273 )
-/* add essential math definitions */
-#  ifndef M_PI
-#    define M_PI 3.14159265358979323846
-#  endif
-#  ifndef M_E
-#    define M_E  2.71828182845904523536
-#  endif
 #endif
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -73,6 +66,10 @@ typedef unsigned long long airULLong;
 #define AIR_LLONG(x) x##ll
 #define AIR_ULLONG(x) x##ull
 #endif
+
+/* This is annoying, thanks to windows */
+#define AIR_PI 3.14159265358979323846
+#define AIR_E  2.71828182845904523536
 
 #define AIR_STRLEN_SMALL (128+1)
 #define AIR_STRLEN_MED   (256+1)

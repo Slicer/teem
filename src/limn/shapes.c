@@ -89,7 +89,7 @@ limnObjectCylinderAdd(limnObject *obj, int lookIdx, int axis, int res) {
   vII = (int *)calloc(res, sizeof(int));
 
   for (ii=0; ii<=res-1; ii++) {
-    theta = AIR_AFFINE(0, ii, res, 0, 2*M_PI);
+    theta = AIR_AFFINE(0, ii, res, 0, 2*AIR_PI);
     switch(axis) {
     case 0:
       tmp = limnObjectVertexAdd(obj, partIdx, lookIdx, 
@@ -145,7 +145,7 @@ limnObjectConeAdd(limnObject *obj, int lookIdx, int axis, int res) {
 
   partIdx = limnObjectPartAdd(obj);
   for (ii=0; ii<=res-1; ii++) {
-    th = AIR_AFFINE(0, ii, res, 0, 2*M_PI);
+    th = AIR_AFFINE(0, ii, res, 0, 2*AIR_PI);
     switch(axis) {
     case 0:
       tmp = limnObjectVertexAdd(obj, partIdx, lookIdx, 0, -sin(th), cos(th));
@@ -208,9 +208,9 @@ limnObjectPolarSphereAdd(limnObject *obj, int lookIdx, int axis,
     break;
   }
   for (pi=1; pi<=phiRes-1; pi++) {
-    p = AIR_AFFINE(0, pi, phiRes, 0, M_PI);
+    p = AIR_AFFINE(0, pi, phiRes, 0, AIR_PI);
     for (ti=0; ti<=thetaRes-1; ti++) {
-      t = AIR_AFFINE(0, ti, thetaRes, 0, 2*M_PI);
+      t = AIR_AFFINE(0, ti, thetaRes, 0, 2*AIR_PI);
       switch(axis) {
       case 0:
 	limnObjectVertexAdd(obj, partIdx, 0, cos(p), -sin(t)*sin(p), cos(t)*sin(p));
@@ -280,9 +280,9 @@ limnObjectPolarSuperquadAdd(limnObject *obj, int lookIdx, int axis,
     break;
   }
   for (pi=1; pi<=phiRes-1; pi++) {
-    p = AIR_AFFINE(0, pi, phiRes, 0, M_PI);
+    p = AIR_AFFINE(0, pi, phiRes, 0, AIR_PI);
     for (ti=0; ti<=thetaRes-1; ti++) {
-      t = AIR_AFFINE(0, ti, thetaRes, 0, 2*M_PI);
+      t = AIR_AFFINE(0, ti, thetaRes, 0, 2*AIR_PI);
       switch(axis) {
       case 0:
 	x = airSgnPow(cos(p),B);

@@ -173,7 +173,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclShapeIndex)) {
     pvl->directAnswer[gageSclShapeIndex][0] = 
-      -(2/M_PI)*atan2(*k1 + *k2, *k1 - *k2);
+      -(2/AIR_PI)*atan2(*k1 + *k2, *k1 - *k2);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclCurvDir1)) {
     /* HEY: this only works when K1, K2, 0 are all well mutually distinct,

@@ -50,9 +50,9 @@ echoRoughSphereNew(echoScene *scene, int theRes, int phiRes, echoPos_t *matx) {
 
   ELL_3V_SET(tmp, 0, 0, 1); _echoPosSet(pos, matx, tmp); pos += 3;
   for (phidx=1; phidx<phiRes; phidx++) {
-    ph = AIR_AFFINE(0, phidx, phiRes, 0.0, M_PI);
+    ph = AIR_AFFINE(0, phidx, phiRes, 0.0, AIR_PI);
     for (thidx=0; thidx<theRes; thidx++) {
-      th = AIR_AFFINE(0, thidx, theRes, 0.0, 2*M_PI);
+      th = AIR_AFFINE(0, thidx, theRes, 0.0, 2*AIR_PI);
       ELL_3V_SET(tmp, cos(th)*sin(ph), sin(th)*sin(ph), cos(ph));
       _echoPosSet(pos, matx, tmp); pos += 3;
     }

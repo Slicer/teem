@@ -61,7 +61,7 @@ tend_helixDoit(Nrrd *nout, float bnd,
       for (xi=0; xi<sx; xi++, idx++) {
 	vpos[0] = AIR_AFFINE(0, xi, sx-1, nout->axis[1].min,nout->axis[1].max);
 
-#define WPOS(pos, th) ELL_3V_SET((pos), R*cos(th), R*sin(th), S*(th)/(2*M_PI))
+#define WPOS(pos, th) ELL_3V_SET((pos), R*cos(th), R*sin(th), S*(th)/(2*AIR_PI))
 #define VAL(th) (WPOS(wpos, th), ELL_3V_DIST(wpos, vpos))
 #define RR 0.61803399
 #define CC (1.0-RR)
@@ -69,11 +69,11 @@ tend_helixDoit(Nrrd *nout, float bnd,
 #define SHIFT2(a,b,c)   (a)=(b); (b)=(c)
 	
 	th = atan2(vpos[1], vpos[0]);
-	th += 2*M_PI*floor(0.5 + vpos[2]/S - th/(2*M_PI));
-	if (S*th/(2*M_PI) > vpos[2]) {
-	  t0 = th - M_PI; t3 = th;
+	th += 2*AIR_PI*floor(0.5 + vpos[2]/S - th/(2*AIR_PI));
+	if (S*th/(2*AIR_PI) > vpos[2]) {
+	  t0 = th - AIR_PI; t3 = th;
 	} else {
-	  t0 = th; t3 = th + M_PI;
+	  t0 = th; t3 = th + AIR_PI;
 	}
 	t1 = RR*t0 + CC*t3;
 	t2 = CC*t0 + RR*t3;
@@ -93,7 +93,7 @@ tend_helixDoit(Nrrd *nout, float bnd,
 
 	WPOS(wpos, t1);
 	ELL_3V_SUB(wpos, vpos, wpos);
-	ELL_3V_SET(fv, -R*sin(t1), R*cos(t1), S/M_PI);
+	ELL_3V_SET(fv, -R*sin(t1), R*cos(t1), S/AIR_PI);
 	ELL_3V_NORM(fv, fv, len);
 	ELL_3V_COPY(rv, wpos);
 	ELL_3V_NORM(rv, rv, len);

@@ -157,9 +157,9 @@ _echoRayIntxUV_Sphere(echoIntx *intx) {
 
   if (intx->norm[0] || intx->norm[1]) {
     u = atan2(intx->norm[1], intx->norm[0]);
-    intx->u = AIR_AFFINE(-M_PI, u, M_PI, 0.0, 1.0);
+    intx->u = AIR_AFFINE(-AIR_PI, u, AIR_PI, 0.0, 1.0);
     v = -asin(intx->norm[2]);
-    intx->v = AIR_AFFINE(-M_PI/2, v, M_PI/2, 0.0, 1.0);
+    intx->v = AIR_AFFINE(-AIR_PI/2, v, AIR_PI/2, 0.0, 1.0);
   }
   else {
     intx->u = 0;
@@ -486,9 +486,9 @@ _echoRayIntxUV_TriMesh(echoIntx *intx) {
   ELL_3V_NORM(norm, norm, len);
   if (norm[0] || norm[1]) {
     u = atan2(norm[1], norm[0]);
-    intx->u = AIR_AFFINE(-M_PI, u, M_PI, 0.0, 1.0);
+    intx->u = AIR_AFFINE(-AIR_PI, u, AIR_PI, 0.0, 1.0);
     v = -asin(norm[2]);
-    intx->v = AIR_AFFINE(-M_PI/2, v, M_PI/2, 0.0, 1.0);
+    intx->v = AIR_AFFINE(-AIR_PI/2, v, AIR_PI/2, 0.0, 1.0);
   }
   else {
     intx->u = 0;

@@ -256,8 +256,8 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
 	if (!face1) {
 	  edge->type = limnEdgeTypeBorder;
 	} else {
-	  angle = 180/M_PI*acos(ELL_3V_DOT(face0->worldNormal, 
-					   face1->worldNormal));
+	  angle = 180/AIR_PI*acos(ELL_3V_DOT(face0->worldNormal, 
+					     face1->worldNormal));
 	  if (face0->visible && face1->visible) {
 	    edge->type = (angle > win->ps.creaseAngle
 			  ? limnEdgeTypeFrontCrease
@@ -333,8 +333,8 @@ limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
     if (!face1) {
       edge->type = limnEdgeTypeBorder;
     } else {
-      angle = 180/M_PI*acos(ELL_3V_DOT(face0->worldNormal,
-				       face1->worldNormal));
+      angle = 180/AIR_PI*acos(ELL_3V_DOT(face0->worldNormal,
+					 face1->worldNormal));
       if (face0->visible && face1->visible) {
 	edge->type = (angle > win->ps.creaseAngle
 		      ? limnEdgeTypeFrontCrease

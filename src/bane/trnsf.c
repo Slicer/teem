@@ -220,7 +220,7 @@ _baneSigmaCalc1D(float *sP, Nrrd *info1D) {
   /* This is after the typo report by Fernando Vega Higuera;
      the previous version of the code had a bug caused by
      mindless transcription of the erroneous equation 5.8 */
-  *sP = 2*maxg/(sqrt(M_E)*(maxh - minh));
+  *sP = 2*maxg/(sqrt(AIR_E)*(maxh - minh));
 
   return 0;
 }

@@ -482,7 +482,7 @@ double
 airGaussian(double x, double mean, double stdv) {
   
   x = x - mean;
-  return exp(-(x*x)/(2*stdv*stdv))/(stdv*sqrt(2*M_PI));
+  return exp(-(x*x)/(2*stdv*stdv))/(stdv*sqrt(2*AIR_PI));
 }
 
 const char

@@ -93,7 +93,7 @@ mossMatTranslateSet (double *mat, double tx, double ty) {
 double *
 mossMatRotateSet (double *mat, double angle) {
 
-  angle *= M_PI/180.0;
+  angle *= AIR_PI/180.0;
   MOSS_MAT_SET(mat, cos(angle), sin(angle), -sin(angle), cos(angle), 0, 0);
   return mat;
 }

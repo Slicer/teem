@@ -46,7 +46,7 @@ main(int argc, char *argv[]) {
     /* make a rotation (as a quaternion) */
     ELL_3V_SET(axisA_f, 2*airRand()-1, 2*airRand()-1, 2*airRand()-1);
     ELL_3V_NORM(axisA_f, axisA_f, tmp); /* yea, not uniform, so what */
-    angleA_f = M_PI*(2*airRand()-1);
+    angleA_f = AIR_PI*(2*airRand()-1);
     ell_aa_to_q_f(qA_f, angleA_f, axisA_f);
 
     /* convert to AA and back, and back */

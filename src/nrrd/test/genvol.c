@@ -25,7 +25,7 @@ char *genvolInfo = ("generates test volumes.  Not very flexible as long as "
 
 float
 rho(float r) {
-  return cos(2*M_PI*6.0*cos(M_PI*r/2));
+  return cos(2*AIR_PI*6.0*cos(AIR_PI*r/2));
 }
 
 float
@@ -37,11 +37,12 @@ genvolFunc(float x, float y, float z) {
   B = 1;
   */
   /* marschner-lobb, the real thing
-  return ((1 - sin(M_PI*z/2))
+  return ((1 - sin(AIR_PI*z/2))
 	  + 0.25*(1 + rho(sqrt(x*x + y*y))))/(2*(1 + 0.25));
 	   */
   /* marschner-lobb, linear variation in Z */
-  return (1 - (M_PI*z + 3)/5) + 0.25*(1 + rho(sqrt(x*x + y*y)))/(2*(1 + 0.25));
+  return (1 - (AIR_PI*z + 3)/5
+	  + 0.25*(1 + rho(sqrt(x*x + y*y)))/(2*(1 + 0.25)));
 
   /* cone 
   return z - 2*sqrt(x*x + y*y) + 0.5;
