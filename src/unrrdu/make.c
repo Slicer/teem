@@ -85,11 +85,13 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "number of ascii lines to skip before reading data");
   hestOptAdd(&opt, "bs", "byteskip", airTypeInt, 1, 1, &(io->byteSkip), "0",
 	     "number of bytes to skip (after skipping ascii lines, if any) "
-	     "before reading data");
+	     "before reading data.  Can use \"-bs -1\" to skip a binary "
+	     "header of unknown length in raw-encoded data");
   strcpy(encInfo,
 	 "output file format. Possibilities include:"
 	 "\n \b\bo \"raw\": raw encoding"
-	 "\n \b\bo \"ascii\": print data in ascii"
+	 "\n \b\bo \"ascii\": ascii values, one scanline per line of text, "
+	 "values within line are delimited by space, tab, or comma"
 	 "\n \b\bo \"hex\": two hex digits per byte");
   if (nrrdEncodingIsAvailable[nrrdEncodingGzip]) {
     strcat(encInfo, 
@@ -197,7 +199,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
       biffAdd(NRRD, err); return 1;
     }
     if (!nrrdEncodingIsCompression[io->encoding]) {
-      if (nrrdByteSkip(io)) {
+      if (nrrdByteSkip(nrrd, io)) {
 	sprintf(err, "%s: couldn't skip bytes", me);
 	biffAdd(NRRD, err); return 1;
       }
