@@ -120,10 +120,11 @@ typedef struct {
   /* if doSlice, a slice of anisotropy sliceAnisoType will be depicted
      in grayscale as a sheet of grayscale squares, one per sample. As
      with glyphs, these are thresholded by confThresh and maskThresh
-     (but not anisoThresh).  The squares will be at their
-     corresponding sample locations, but offset by sliceOffset */
+     (but not anisoThresh).  Things can be lightened up with a
+     sliceAnisoGamma > 1.  The squares will be at their corresponding
+     sample locations, but offset by sliceOffset */
   int doSlice, sliceAxis, slicePos, sliceAnisoType;
-  float sliceOffset;
+  float sliceOffset, sliceAnisoGamma;
 } tenGlyphParm;
 
 #define TEN_ANISO_DESC \
