@@ -22,8 +22,7 @@
 #include <teem32bit.h>
 /* timer functions */
 #ifdef _WIN32
-#include <windows.h>
-#include <mmsystem.h>
+#include <time.h>
 #else
 #include <sys/time.h>
 #endif
@@ -236,10 +235,7 @@ airDoneStr(float start, float here, float end, char *str) {
 double
 airTime() {
 #ifdef _WIN32
-  long t;
-
-  t = timeGetTime();
-  return ((double)t)/1000.0;
+  return (double)clock()/CLOCKS_PER_SEC;
 #else
   struct timeval tv;
   struct timezone tz;

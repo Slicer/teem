@@ -101,7 +101,7 @@ RNUM/LIBS = $(join $(RNUMS),$(LIBS:%=/%))
 ## trying implicit rules to update them.
 ##
 MODES = install usable dev clean clobber
-.PHONY : $(foreach LIB,teem $(LIBS),$(MODES:%=$(LIB)/%))
+.PHONY : $(foreach LIB,teem $(LIBS),$(MODES:%=$(LIB)/%)) teem.dsp
 
 ## Top-level/default rules.  If make started with this file, then
 ## these will be the first rules that make sees, so that "make"
@@ -123,7 +123,7 @@ teem/install : $(addsuffix /install,$(LIBS) bin) megalibs
 teem/dev     : $(addsuffix /dev,$(LIBS) bin)
 teem/usable  : $(addsuffix /usable,$(LIBS))
 teem/clean   : $(addsuffix /clean,$(LIBS) bin)
-teem/clobber : $(addsuffix /clobber,$(LIBS) bin) nomegalibs
+teem/clobber : $(addsuffix /clobber,$(LIBS) bin) unmegalibs
 nothing : ;
 
 ## if.missing(stuff): returns a $stuff if one or more of the files
@@ -366,5 +366,66 @@ ifdef TEEM_SHEXT
 $(LDEST)/libteem.$(TEEM_SHEXT) : $(foreach lib,$(LIBS),$(call objs.dev,$(lib)))
 	$(LD) -o $@ $(LDFLAGS) $(LPATH) $^
 endif
-nomegalibs:
+unmegalibs:
 	$(RM) $(foreach ext,$(LIBEXTS),$(LDEST)/libteem.$(ext))
+
+## all the windows project file stuff
+## 
+## need to make project files for the teem dll, one for each teem binary, and
+## one for the workspace containing all these...
+##
+project: teem.dsp bins.dsp workspace install_lib.bat
+
+sortedObjs = $(sort $(foreach lib,$(LIBS),$(addsuffix /$(lib),$($(lib).OBJS))))
+flipOnSlash = ..\\\\..\\\\src\\\\$(notdir $(1))\\\\$(subst /,,$(dir $(1)))
+teem.dsp:
+	@echo s/TEEMALLDOTC/$(patsubst %.o,\# Begin Source File\\n\\nSOURCE=%.c\\n\# End Source File\\n,$(foreach obj,$(sortedObjs),$(call flipOnSlash,$(obj))))/g > cmd.ed
+	@echo s/TEEMALLDOTH/$(patsubst %.h,\# Begin Source File\\n\\nSOURCE=%.h\\n\# End Source File\\n,$(foreach lib,$(LIBS),$(addprefix ..\\\\..\\\\src\\\\$(lib)\\\\,$($(lib).PUBLIC_HEADERS) $($(lib).PRIVATE_HEADERS))))/g >> cmd.ed
+	@echo s/TEEMALLINC/$(foreach lib,$(LIBS),\\/I \"..\\/..\\/src\\/$(lib)\")/g >> cmd.ed
+	@echo "s/ #/#/g" >> cmd.ed
+	@sed -f cmd.ed ../win32/make/teem.dsp.tmpl > ../win32/make/teem.dsp
+	@sed -f cmd.ed ../win32/make/teem_s.dsp.tmpl > ../win32/make/teem_s.dsp
+	@unix2dos ../win32/make/teem.dsp 2> /dev/null
+	@unix2dos ../win32/make/teem_s.dsp 2> /dev/null
+	@rm -rf cmd.ed
+
+bins.dsp: $(foreach bin,$(BINS),teembin.$(bin).dsp)
+
+# NB: pattern-specific variable BIN is set once per binary
+teembin.%.dsp: BIN = $(patsubst teembin.%.dsp,%,$@)
+teembin.%.dsp:
+	@echo s/TEEMBINNAME/$(BIN)/g > cmd.ed
+	@echo s/TEEMALLINC/$(foreach lib,$(LIBS),\\/I \"..\\/..\\/src\\/$(lib)\")/g >> cmd.ed
+	@echo s/TEEMBINDOTC/\# Begin Source File\\n\\nSOURCE=..\\\\..\\\\src\\\\bin\\\\$(BIN).c\\n\# End Source File\\n/g >> cmd.ed
+	@echo "s/ #/#/g" >> cmd.ed
+	@sed -f cmd.ed ../win32/make/teem_bin.dsp.tmpl > ../win32/make/$(BIN).dsp
+	@unix2dos ../win32/make/$(BIN).dsp 2> /dev/null
+	@rm -rf cmd.ed
+
+workspace:
+	@echo s/TEEMBINPROJECT/$(foreach bin,$(BINS),\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\\n\\nProject: "$(bin)"=.\\\\$(bin).dsp - Package Owner=\<4\>\\n\\nPackage=\<5\>\\n{{{\\n}}}\\n\\nPackage=\<4\>\\n{{{\\n    Begin Project Dependency\\n    Project_Dep_Name teem_s\\n    End Project Dependency\\n}}}\\n\\n)/g > cmd.ed
+	@echo "s/ #/#/g" >> cmd.ed
+	@sed -f cmd.ed ../win32/make/teem.dsw.tmpl > ../win32/make/teem.dsw
+	@unix2dos ../win32/make/teem.dsw 2> /dev/null
+	@rm -rf cmd.ed
+
+install_lib.bat:
+	@echo s/TEEMALLDOTH/$(foreach hdr,$(foreach lib,$(LIBS),$(addprefix $(lib)\\\\,$($(lib).PUBLIC_HEADERS))),copy \\/y \\/b ..\\\\..\\\\src\\\\$(hdr) \"\%__hdest\%\"\\n)/g > cmd.ed
+	@echo "s/ copy/copy/g" >> cmd.ed
+	@sed -f cmd.ed ../win32/make/install_lib.bat.tmpl > ../win32/make/install_lib.bat
+	@unix2dos ../win32/make/install_lib.bat 2> /dev/null
+	@rm -rf cmd.ed
+
+def: teem.dsp
+	@-msdev ../win32/make/teem.dsp /make "teem - Win32 Release" /rebuild
+	@dlltool --export-all-symbols --output-def teem.def ../win32/make/Release/*.obj
+	@grep -v '; dlltool' teem.def | grep -v '_real' | grep -v '??' | grep -v '_hooverThreadBody' > ../win32/make/teem.def
+	@rm teem.def
+
+unproject:
+	rm -rf ../win32/make/*.dsp ../win32/make/*.dsw ../win32/make/teem.def ../win32/make/install_lib.bat
+
+#win32: #project def
+#	msdev ../win32/make/teem.dsw /make "teem - Win32 Release" all /clean
+#	msdev ../win32/make/teem.dsw /make "teem - Win32 Release" all
+
