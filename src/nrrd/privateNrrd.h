@@ -124,10 +124,12 @@ extern void _nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX],
                                    const double vecA[NRRD_SPACE_DIM_MAX],
                                    double sclB, 
                                    const double vecB[NRRD_SPACE_DIM_MAX]);
+/* ---- END non-NrrdIO */
 extern void _nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX], 
                                double scl, 
                                const double vec[NRRD_SPACE_DIM_MAX]);
-/* ---- END non-NrrdIO */
+extern double _nrrdSpaceVecNorm(int sdim,
+                                const double vec[NRRD_SPACE_DIM_MAX]);
 
 /* axis.c */
 extern int _nrrdKindAltered(int kindIn);

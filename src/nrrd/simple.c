@@ -101,6 +101,8 @@ _nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX],
   }
 }
                        
+/* ---- END non-NrrdIO */
+
 void
 _nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX], 
                    double scl, const double vec[NRRD_SPACE_DIM_MAX]) {
@@ -113,7 +115,17 @@ _nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX],
   }
 }
 
-/* ---- END non-NrrdIO */
+double
+_nrrdSpaceVecNorm(int sdim, const double vec[NRRD_SPACE_DIM_MAX]) {
+  int di;
+  double nn;
+
+  nn = 0;
+  for (di=0; di<sdim; di++) {
+    nn += vec[di]*vec[di];
+  }
+  return sqrt(nn);
+}
 
 /*
 ** _nrrdContentGet
@@ -745,18 +757,18 @@ int
 };
 
 int
-_nrrdCheck (const Nrrd *nrrd, int checkData) {
+_nrrdCheck (const Nrrd *nrrd, int checkData, int useBiff) {
   char me[]="_nrrdCheck", err[AIR_STRLEN_MED];
   int fi;
 
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   if (checkData) {
     if (!(nrrd->data)) {
       sprintf(err, "%s: nrrd has NULL data pointer", me);
-      biffAdd(NRRD, err); return 1;
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
   }
   for (fi=nrrdField_unknown+1; fi<nrrdField_last; fi++) {
@@ -764,7 +776,7 @@ _nrrdCheck (const Nrrd *nrrd, int checkData) {
     if (_nrrdFieldCheck[fi](nrrd, AIR_TRUE)) {
       sprintf(err, "%s: trouble with %s field", me,
               airEnumStr(nrrdField, fi));
-      biffAdd(NRRD, err); return 1;
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
   }
   return 0;
@@ -784,7 +796,7 @@ int
 nrrdCheck (const Nrrd *nrrd) {
   char me[]="nrrdCheck", err[AIR_STRLEN_MED];
 
-  if (_nrrdCheck(nrrd, AIR_TRUE)) {
+  if (_nrrdCheck(nrrd, AIR_TRUE, AIR_TRUE)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }

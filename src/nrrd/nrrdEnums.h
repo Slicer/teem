@@ -452,6 +452,29 @@ enum {
 };
 #define NRRD_SPACE_MAX                   12
 
+/*
+******** nrrdSpacingStatus* enum
+**
+** a way of describing how spacing information is known or not known for a 
+** given axis, as determined by nrrdSpacingCalculate
+*/
+enum {
+  nrrdSpacingStatusUnknown,           /* 0: nobody knows,
+                                         or invalid axis choice */
+  nrrdSpacingStatusNone,              /* 1: neither axis->spacing nor
+                                         axis->spaceDirection is set */
+  nrrdSpacingStatusScalarNoSpace,     /* 2: axis->spacing set,
+                                         w/out space info */
+  nrrdSpacingStatusScalarWithSpace,   /* 3: axis->spacing set, but there *is*
+                                         space info, which means the spacing
+                                         does *not* live in the surrounding
+                                         space */
+  nrrdSpacingStatusVector,            /* 4: axis->spaceDirection set, and 
+                                         measured according to surrounding
+                                         space */
+  nrrdSpacingStatusLast
+};
+
 /* ---- BEGIN non-NrrdIO */
 
 /*
