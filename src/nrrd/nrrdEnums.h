@@ -284,12 +284,14 @@ enum {
   nrrdUnaryOpSqrt,       /* 12 */
   nrrdUnaryOpCeil,       /* 13 */
   nrrdUnaryOpFloor,      /* 14 */
-  nrrdUnaryOpAbs,        /* 15 */
-  nrrdUnaryOpSgn,        /* 16 */
-  nrrdUnaryOpExists,     /* 17 */
+  nrrdUnaryOpRoundUp,    /* 15 */
+  nrrdUnaryOpRoundDown,  /* 16 */
+  nrrdUnaryOpAbs,        /* 17 */
+  nrrdUnaryOpSgn,        /* 18 */
+  nrrdUnaryOpExists,     /* 19 */
   nrrdUnaryOpLast
 };
-#define NRRD_UNARY_OP_MAX   17
+#define NRRD_UNARY_OP_MAX   19
 
 
 /*

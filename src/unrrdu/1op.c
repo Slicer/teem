@@ -40,6 +40,7 @@ uopMain(int argc, char **argv, char *me) {
 	     "same as in C\n "
 	     "\b\bo \"exp\", \"log\", \"log10\": same as in C\n "
 	     "\b\bo \"sqrt\", \"ceil\", \"floor\": same as in C\n "
+	     "\b\bo \"rup\", \"rdn\": round or down to integral value\n "
 	     "\b\bo \"abs\": absolute value\n "
 	     "\b\bo \"sgn\": -1, 0, 1 if value is <0, ==0, or >0\n "
 	     "\b\bo \"exists\": 1 iff not NaN or +/-Inf, 0 otherwise",

@@ -398,6 +398,8 @@ _nrrdNonExistStr[NRRD_NON_EXIST_MAX+1][AIR_STRLEN_SMALL] = {
 #define nuSqt nrrdUnaryOpSqrt
 #define nuCil nrrdUnaryOpCeil
 #define nuFlr nrrdUnaryOpFloor
+#define nuRup nrrdUnaryOpRoundUp
+#define nuRdn nrrdUnaryOpRoundDown
 #define nuAbs nrrdUnaryOpAbs
 #define nuSgn nrrdUnaryOpSgn
 #define nuExs nrrdUnaryOpExists
@@ -419,6 +421,8 @@ _nrrdUnaryOpStr[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "sqrt",
   "ceil",
   "floor",
+  "roundup",
+  "rounddown",
   "abs",
   "sgn",
   "exists"
@@ -440,6 +444,8 @@ _nrrdUnaryOpStrEqv[][AIR_STRLEN_SMALL] = {
   "sqrt",
   "ceil",
   "floor",
+  "roundup", "rup",
+  "rounddown", "rdown", "rdn",
   "abs", "fabs",
   "sgn", "sign",
   "exists",
@@ -462,6 +468,8 @@ _nrrdUnaryOpValEqv[] = {
   nuSqt,
   nuCil,
   nuFlr,
+  nuRup, nuRup,
+  nuRdn, nuRdn, nuRdn,
   nuAbs, nuAbs,
   nuSgn, nuSgn,
   nuExs

@@ -125,7 +125,7 @@ resampleMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int d, scaleLen, bb;
+  int d, scaleLen, type, bb;
   airArray *mop;
   float *scale;
   double padVal;
@@ -163,6 +163,10 @@ resampleMain(int argc, char **argv, char *me) {
 	     NULL, &nrrdBoundary);
   hestOptAdd(&opt, "v", "value", airTypeDouble, 1, 1, &padVal, "0.0",
 	     "for \"pad\" boundary behavior, pad with this value");
+  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "unknown",
+	     "type to save output as. By default (not using this option), "
+	     "the output type is the same as the input type.",
+             NULL, NULL, &unuMaybeTypeHestCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
@@ -205,7 +209,7 @@ resampleMain(int argc, char **argv, char *me) {
     info->max[d] = nin->axis[d].max;
   }
   info->boundary = bb;
-  info->type = nin->type;
+  info->type = type;
   info->padValue = padVal;
 
   nout = nrrdNew();
