@@ -693,6 +693,8 @@ nrrdMaybeAlloc_nva (Nrrd *nrrd, int type, int dim, int *size) {
     nrrd->type = type;
     nrrd->dim = dim;
     nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, size);
+    /* but we do have to initialize memory! */
+    memset(nrrd->data, 0, nrrdElementNumber(nrrd)*nrrdElementSize(nrrd));
   }
 
   return 0;
