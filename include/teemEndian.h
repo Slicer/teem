@@ -30,6 +30,6 @@
 #  if TEEM_ENDIAN == 4321
 #    /* its big endian */
 #  else
-#    error TEEM_ENDIAN not set to 1234 or 4321, see arch .mk file
+#    error TEEM_ENDIAN not set to 1234 or 4321, see architecture-specific .mk file or check compilation options
 #  endif
 #endif

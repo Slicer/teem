@@ -30,6 +30,6 @@
 #  if TEEM_DIO == 0
 #    /* its 0 */
 #  else
-#    error TEEM_DIO not set to 0 or 1, see arch .mk file
+#    error TEEM_DIO not set to 0 or 1, see architecture-specific .mk file or check compilation options
 #  endif
 #endif
