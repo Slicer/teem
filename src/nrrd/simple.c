@@ -67,6 +67,10 @@ _nrrdContentSet_nva (Nrrd *nout, const char *func,
     *buff;
 
   buff = malloc(128*AIR_STRLEN_HUGE);
+  if (!buff) {
+    sprintf(err, "%s: couln't alloc buffer!", me);
+    biffAdd(NRRD, err); return 1;
+  }
   AIR_FREE(nout->content);
 
   /* we are currently praying that this won't overflow the "buff" array */
@@ -81,9 +85,9 @@ _nrrdContentSet_nva (Nrrd *nout, const char *func,
 			 + airStrlen(buff)
 			 + 1                      /* ')' */
 			 + 1, sizeof(char));      /* '\0' */
-  if (!(buff && nout->content)) {
+  if (!nout->content) {
     sprintf(err, "%s: couln't alloc output content!", me);
-    biffAdd(NRRD, err); free(content); return 1;
+    biffAdd(NRRD, err); AIR_FREE(buff); return 1;
   }
   sprintf(nout->content, "%s(%s%s%s)", func, content,
 	  airStrlen(buff) ? "," : "", buff);
@@ -563,7 +567,7 @@ nrrdFitsInFormat (Nrrd *nrrd, int encoding, int format, int useBiff) {
 ** nrrd->hasNonExist to either nrrdNonExistTrue or nrrdNonExistFalse,
 ** and it will return that value.  For lack of a more sophisticated
 ** policy, blocks are currently always considered to be existant
-** values (because nrrdTypeInteger[nrrdTypeBlock] is currently true).
+** values (because nrrdTypeIsIntegral[nrrdTypeBlock] is currently true).
 ** This function will ALWAYS determine the correct answer and set the
 ** value of nrrd->hasNonExist: it ignores the value of
 ** nrrd->hasNonExist on the input nrrd.  Exception: if nrrd is null or
@@ -587,7 +591,7 @@ nrrdHasNonExistSet (Nrrd *nrrd) {
   if (!nrrd || !airEnumValValid(nrrdType, nrrd->type))
     return nrrdNonExistUnknown;
 
-  if (nrrdTypeInteger[nrrd->type]) {
+  if (nrrdTypeIsIntegral[nrrd->type]) {
     nrrd->hasNonExist = nrrdNonExistFalse;
   } else {
     nrrd->hasNonExist = nrrdNonExistFalse;
@@ -820,7 +824,7 @@ nrrdSanity (void) {
     biffAdd(NRRD, err); return 0;
   }
 
-  if (!nrrdTypeInteger[nrrdTypeBlock]) {
+  if (!nrrdTypeIsIntegral[nrrdTypeBlock]) {
     sprintf(err, "%s: nrrdTypeInteger[nrrdTypeBlock] is not true, things "
 	    "could get wacky", me);
     biffAdd(NRRD, err); return 0;
