@@ -289,12 +289,17 @@ extern int tenEigensolve(float eval[3], float evec[9], float t[7]);
 extern int tenTensorMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec);
 
 /* chan.c */
+extern int tenEstimationMatrix(Nrrd *nemat, Nrrd *ngrad);
 extern void tenCalcOneTensor1(float tens[7], float chan[7], 
 			      float thresh, float slope, float b);
 extern void tenCalcOneTensor2(float tens[7], float chan[7], 
 			      float thresh, float slope, float b);
 extern int tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
 			 float thresh, float slope, float b);
+extern void tenEstimateOne(float *ten, float *dwi, float *emat, int NN,
+			   float thresh, float soft, float b);
+extern int tenEstimate(Nrrd *nten, Nrrd *ndwi, Nrrd *_nemat,
+		       float thresh, float soft, float b);
 
 /* aniso.c */
 extern ten_export float tenAnisoSigma;  /* added to denominator
@@ -342,9 +347,11 @@ extern ten_export gageKind *tenGageKind;
 #define TEND_DECLARE(C) extern ten_export unrrduCmd tend_##C##Cmd;
 #define TEND_LIST(C) &tend_##C##Cmd,
 #define TEND_MAP(F) \
-F(make) \
 F(epireg) \
+F(emat) \
+F(estim) \
 F(calc) \
+F(make) \
 F(sten) \
 F(glyph) \
 F(anplot) \

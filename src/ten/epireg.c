@@ -31,8 +31,8 @@ _tenEpiRegisterCheck(Nrrd *nout, Nrrd **nin, int ninLen, int reference,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  if (!( ninLen >= 2 )) {
-    sprintf(err, "%s: given ninLen (%d) not >= 2", me, ninLen);
+  if (!( ninLen >= 3 )) {
+    sprintf(err, "%s: given ninLen (%d) not >= 3", me, ninLen);
     biffAdd(TEN, err); return 1;
   }
   for (ni=0; ni<ninLen; ni++) {
@@ -45,14 +45,14 @@ _tenEpiRegisterCheck(Nrrd *nout, Nrrd **nin, int ninLen, int reference,
       biffMove(TEN, err, NRRD); return 1;
     }
   }
-  if (!( AIR_IN_CL(0, reference, ninLen-1) )) {
-    sprintf(err, "%s: reference index %d not in valid range [0,%d]", 
-	    me, reference, ninLen-1);
-    biffAdd(TEN, err); return 1;
-  }
   if (!( 3 == nin[0]->dim )) {
     sprintf(err, "%s: didn't get a set of 3-D arrays (got %d-D)", me,
 	    nin[0]->dim);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( AIR_IN_CL(1, reference, ninLen-1) )) {
+    sprintf(err, "%s: reference index %d not in valid range [1,%d]", 
+	    me, reference, ninLen-1);
     biffAdd(TEN, err); return 1;
   }
   if (!( AIR_EXISTS(bw) && AIR_EXISTS(thresh) && AIR_EXISTS(soft) )) {
@@ -141,7 +141,7 @@ _tenEpiRegisterBlur(Nrrd **nblur, Nrrd **nin, int ninLen, float bw, int verb) {
 
 int
 _tenEpiRegisterThreshold(Nrrd **nthresh, Nrrd **nblur, int ninLen,
-		      float thresh, float soft, int verb) {
+			 float b0thr, float dwithr, float soft, int verb) {
   char me[]="_tenEpiRegisterThreshold", err[AIR_STRLEN_MED];
   airArray *mop;
   int I, sx, sy, sz, ni;
@@ -164,7 +164,8 @@ _tenEpiRegisterThreshold(Nrrd **nthresh, Nrrd **nblur, int ninLen,
     }
     thr = (float*)(nthresh[ni]->data);
     for (I=0; I<sx*sy*sz; I++) {
-      val = nrrdFLookup[nblur[ni]->type](nblur[ni]->data, I) - thresh;
+      val = nrrdFLookup[nblur[ni]->type](nblur[ni]->data, I);
+      val -= ni ? dwithr : b0thr;
       val = airErf(val/(soft + 0.00000001));
       thr[I] = AIR_AFFINE(-1.0, val, 1.0, 0.0, 1.0);
     }
@@ -310,11 +311,11 @@ _tenEpiRegisterPairXforms(Nrrd *npxfr, Nrrd **nmom, int ninLen) {
 
 int
 _tenEpiRegisterDoit(Nrrd **ndone, Nrrd *npxfr, Nrrd **nin, int ninLen,
-		 int ref, NrrdKernel *kern, double *kparm,
-		 int verb) {
+		    int fixb0, int ref, NrrdKernel *kern, double *kparm,
+		    int verb) {
   char me[]="_tenEpiRegisterDoit", err[AIR_STRLEN_MED];
   gageContext *gtx;
-  gagePerVolume *pvl;
+  gagePerVolume *pvl=NULL;
   airArray *mop;
   int E, ni, xi, yi, zi, sx, sy, sz;
   gage_t *val;
@@ -329,21 +330,6 @@ _tenEpiRegisterDoit(Nrrd **ndone, Nrrd *npxfr, Nrrd **nin, int ninLen,
   gageSet(gtx, gageParmRequireAllSpacings, AIR_FALSE);
   gageSet(gtx, gageParmRequireEqualCenters, AIR_FALSE);
   gageSet(gtx, gageParmDefaultCenter, nrrdCenterCell);
-  E = 0;
-  if (!E) E |= !(pvl = gagePerVolumeNew(gtx, nin[0], gageKindScl));
-  if (!E) E |= gagePerVolumeAttach(gtx, pvl);
-  if (!E) E |= gageKernelSet(gtx, gageKernel00, kern, kparm);
-  if (!E) E |= gageQuerySet(gtx, pvl, 1 << gageSclValue);
-  if (!E) E |= gageUpdate(gtx);
-  if (E) {
-    sprintf(err, "%s: trouble with initial gage set-up", me);
-    biffMove(TEN, err, GAGE); airMopError(mop); return 1;
-  }
-  val = gageAnswerPointer(gtx, pvl, gageSclValue);
-  if (gageProbe(gtx, 0, 0, 0)) {
-    sprintf(err, "%s: gage failed initial probe: %s", me, gageErrStr);
-    biffAdd(TEN, err); airMopError(mop); return 1;
-  }
 
   if (verb) {
     fprintf(stderr, "%s:\n            ", me); fflush(stderr);
@@ -359,19 +345,31 @@ _tenEpiRegisterDoit(Nrrd **ndone, Nrrd *npxfr, Nrrd **nin, int ninLen,
       sprintf(err, "%s: couldn't do initial copy of nin[%d]", me, ni);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
-    if (ni) {
-      E = 0;
+    if (!ni && fixb0) {
+      /* we've just copied the B=0 image, and that's all we're supposed 
+	 to do, so we're done.  All successive dwi volumes will have to
+	 deal with gage */
+      continue;
+    }
+    E = 0;
+    if (pvl) {
       if (!E) E |= gagePerVolumeDetach(gtx, pvl);
       if (!E) gagePerVolumeNix(pvl);
-      if (!E) E |= !(pvl = gagePerVolumeNew(gtx, nin[ni], gageKindScl));
-      if (!E) E |= gageQuerySet(gtx, pvl, 1 << gageSclValue);
-      if (!E) E |= gagePerVolumeAttach(gtx, pvl);
-      if (!E) E |= gageUpdate(gtx);
-      if (E) {
-	sprintf(err, "%s: trouble with gage on nin[%d]", me, ni);
-	biffMove(TEN, err, GAGE); airMopError(mop); return 1;
-      }
-      val = gageAnswerPointer(gtx, pvl, gageSclValue);
+    }
+    if (!E) E |= !(pvl = gagePerVolumeNew(gtx, nin[ni], gageKindScl));
+    if (!E) E |= gageQuerySet(gtx, pvl, 1 << gageSclValue);
+    /* this next one is needlessly repeated */
+    if (!E) E |= gageKernelSet(gtx, gageKernel00, kern, kparm);
+    if (!E) E |= gagePerVolumeAttach(gtx, pvl);
+    if (!E) E |= gageUpdate(gtx);
+    if (E) {
+      sprintf(err, "%s: trouble with gage on nin[%d]", me, ni);
+      biffMove(TEN, err, GAGE); airMopError(mop); return 1;
+    }
+    val = gageAnswerPointer(gtx, pvl, gageSclValue);
+    if (gageProbe(gtx, 0, 0, 0)) {
+      sprintf(err, "%s: gage failed initial probe: %s", me, gageErrStr);
+      biffAdd(TEN, err); airMopError(mop); return 1;
     }
     for (zi=0; zi<sz; zi++) {
       xfr = (double*)(npxfr->data) + 5*(zi + sz*(ref + ninLen*ni));
@@ -400,9 +398,9 @@ _tenEpiRegisterDoit(Nrrd **ndone, Nrrd *npxfr, Nrrd **nin, int ninLen,
 
 int
 tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, int reference,
-	    float bw, float thresh, float soft,
-	    NrrdKernel *kern, double *kparm,
-	    int progress, int verbose) {
+	       float bw, float thresh, float soft,
+	       NrrdKernel *kern, double *kparm,
+	       int progress, int verbose) {
   char me[]="tenEpiRegister", err[AIR_STRLEN_MED];
   airArray *mop;
   Nrrd **nbuffA, **nbuffB, *npxfr, *nprog;
@@ -449,7 +447,8 @@ tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, int reference,
   }
 
   /* ------ threshold */
-  if (_tenEpiRegisterThreshold(nbuffB, nbuffA, ninLen, thresh, soft, verbose)) {
+  if (_tenEpiRegisterThreshold(nbuffB, nbuffA, ninLen, 
+			       0, thresh, soft, verbose)) {
     sprintf(err, "%s: trouble thresholding", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
@@ -492,7 +491,7 @@ tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, int reference,
   /* ------ doit */
   /* filter/regularize transforms? */
   if (_tenEpiRegisterDoit(nbuffB, npxfr, nin, ninLen,
-		       reference, kern, kparm, verbose)) {
+			  AIR_TRUE, reference, kern, kparm, verbose)) {
     sprintf(err, "%s: trouble performing final registration", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }

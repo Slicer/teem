@@ -43,7 +43,7 @@ $(L).SEEN := true
 
 #### Describe library here
 ####
-$(L).NEED = echo limn gage dye unrrdu nrrd ell biff air
+$(L).NEED = echo limn gage dye unrrdu ell nrrd biff air
 $(L).PUBLIC_HEADERS = ten.h tenMacros.h
 $(L).PRIVATE_HEADERS = tenPrivate.h
 $(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o miscTen.o \
@@ -51,7 +51,7 @@ $(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o miscTen.o \
 	tendFlotsam.o tendAnplot.o tendAnvol.o tendEval.o \
 	tendEvec.o tendCalc.o tendSten.o tendExpand.o tendEvq.o tendPoint.o \
 	tendAnhist.o tendMake.o tendSatin.o tendShrink.o tendGlyph.o \
-	tendFiber.o tendEpireg.o
+	tendFiber.o tendEpireg.o tendEmat.o tendEstim.o
 $(L).TESTS = test/tg test/tt
 ####
 ####

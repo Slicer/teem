@@ -21,6 +21,59 @@
 #include "ten.h"
 #include "tenPrivate.h"
 
+int
+tenEstimationMatrix(Nrrd *nemat, Nrrd *ngrad) {
+  char me[]="tenEstimationMatrix", err[AIR_STRLEN_MED];
+  Nrrd *nrow;
+  int NN, nn;
+  double *row, G[3], len;
+  
+  if (!(nemat && ngrad)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!(2 == ngrad->dim && 3 == ngrad->axis[0].size &&
+	(nrrdTypeFloat == ngrad->type || nrrdTypeDouble == ngrad->type))) {
+    sprintf(err, "%s: given nrrd isn't 3-by-N array of floats or doubles", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!(ngrad->axis[1].size >= 6)) {
+    sprintf(err, "%s: can't estimate tensors w/ %d gradients, need at least 6",
+	    me, ngrad->axis[1].size);
+    biffAdd(TEN, err); return 1;
+  }
+  if (nrrdMaybeAlloc(nrow = nrrdNew(), nrrdTypeDouble, 2,
+		     6, ngrad->axis[1].size)) {
+    sprintf(err, "%s: trouble", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+
+  NN = ngrad->axis[1].size;
+  row = (double*)(nrow->data);
+  for (nn=0; nn<NN; nn++) {
+    ELL_3V_SET(G,
+	       nrrdDLookup[ngrad->type](ngrad->data, 0 + 3*nn),
+	       nrrdDLookup[ngrad->type](ngrad->data, 1 + 3*nn),
+	       nrrdDLookup[ngrad->type](ngrad->data, 2 + 3*nn));
+    ELL_3V_NORM(G, G, len);
+    if (!len) {
+      sprintf(err, "%s: gradient[%d] has zero length", me, nn);
+      biffAdd(TEN, err); return 1;
+    }
+    ELL_6V_SET(row,
+	       G[0]*G[0], 2*G[0]*G[1], 2*G[0]*G[2],
+	       G[1]*G[1], 2*G[1]*G[2],
+	       G[2]*G[2]);
+    row += 6;
+  }
+  if (ellNmPseudoInverse(nemat, nrow)) {
+    sprintf(err, "%s: trouble", me);
+    biffMove(TEN, err, ELL); nrrdNuke(nrow); return 1;
+  }
+  nrrdNuke(nrow);
+  return 0;
+}
+
 /*
 ******** tenCalcOneTensor1
 **
@@ -57,7 +110,7 @@ tenCalcOneTensor1(float tens[7], float chan[7],
 }
 
 /*
-******** tenCalcOneTensor1
+******** tenCalcOneTensor2
 **
 ** using gradient directions used by EK
 */
@@ -82,11 +135,11 @@ tenCalcOneTensor2(float tens[7], float chan[7],
   d5 = (log(c[0]) - log(c[5]))/b;
   d6 = (log(c[0]) - log(c[6]))/b;
   tens[1] =  d1;                 /* Dxx */
-  tens[4] =  d2;                 /* Dyy */
-  tens[6] =  d3;                 /* Dzz */
-  tens[5] =  d4 - (d2 + d3)/2;   /* Dyz */
-  tens[3] =  d5 - (d1 + d3)/2;   /* Dxz */
   tens[2] =  d6 - (d1 + d2)/2;   /* Dxy */
+  tens[3] =  d5 - (d1 + d3)/2;   /* Dxz */
+  tens[4] =  d2;                 /* Dyy */
+  tens[5] =  d4 - (d2 + d3)/2;   /* Dyz */
+  tens[6] =  d3;                 /* Dzz */
   return;
 }
 
@@ -136,7 +189,7 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
     sprintf(err, "%s: couldn't alloc output", me);
     biffMove(TEN, err, NRRD); return 1;
   }
-  nout->axis[0].label = airStrdup("matrix");
+  nout->axis[0].label = airStrdup("c,Dxx,Dxy,Dxz,Dyy,Dyz,Dzz");
   nout->axis[1].label = airStrdup("x");
   nout->axis[2].label = airStrdup("y");
   nout->axis[3].label = airStrdup("z");
@@ -176,5 +229,107 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
     out[5 + 7*I] = tens[5];
     out[6 + 7*I] = tens[6];
   }
+  return 0;
+}
+
+#define _TEN_MAX_DWI_NUM 128
+
+/*
+******** tenEstimateOne
+**
+** estimate one tensor
+**
+** output:
+** ten[0]..ten[6] will be the confidence value followed by the tensor
+**
+** input:
+** dwi[0] is the B0 image, dwi[1]..dwi[NN] are the DW image values
+** emat is the (NN-1)-by-6 estimation matrix
+*/
+void
+tenEstimateOne(float *ten, float *dwi, float *emat, int NN,
+	       float thresh, float soft, float b) {
+  double v0, v[_TEN_MAX_DWI_NUM], sum;
+  int i, j;
+
+  v0 = log(AIR_MAX(dwi[0], 1));
+  sum = 0;
+  for (i=1; i<=NN; i++) {
+    sum += (v[i-1] = AIR_MAX(dwi[i], 1));
+    v[i-1] = (v0 - log(v[i-1]))/b;
+  }
+  ten[0] = AIR_AFFINE(-1, airErf((sum - thresh)/(soft + 0.0000001)), 1, 0, 1);
+  for (j=1; j<=6; j++) {
+    ten[j] = 0;
+    for (i=0; i<NN; i++) {
+      ten[j] += emat[i + (NN-1)*(j-1)]*v[i];
+    }
+  }
+  return;
+}
+
+/*
+******** tenEstimate
+**
+** given a stack of DWI volumes (ndwi) and the estimation matrix for computing
+** the diffusion tensor elements (nemat), compute and store diffusion tensors
+** into nten.
+**
+** The sum of the diffusion-weighted images is thresholded at "thresh" with
+** softness parameter "soft".
+*/
+int
+tenEstimate(Nrrd *nten, Nrrd *_ndwi, Nrrd *_nemat,
+	    float thresh, float soft, float b) {
+  char me[]="tenEstimate", err[AIR_STRLEN_MED];
+  Nrrd *nemat, *ndwi;
+  airArray *mop;
+  int NN, II, sx, sy, sz;
+  float *emat, *ten, *dwi;
+
+  if (!(nten && _ndwi && _nemat)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( 4 == _ndwi->dim && 7 <= _ndwi->axis[0].size )) {
+    sprintf(err, "%s: dwi should be 4-D array with axis 0 size >= 7", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( 2 == _nemat->dim && 6 == _nemat->axis[1].size )) {
+    sprintf(err, "%s: emat should be a N-by-6 matrix (2-D array)", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( _ndwi->axis[0].size == 1 + _nemat->axis[0].size )) {
+    sprintf(err, "%s: # dwi (%d) != 1 + # columns in estimation matrix (1+%d)",
+	    me, _ndwi->axis[0].size, _nemat->axis[0].size);
+    biffAdd(TEN, err); return 1;
+  }
+
+  mop = airMopNew();
+  nemat = nrrdNew();
+  airMopAdd(mop, nemat, (airMopper)nrrdNuke, airMopAlways);
+  ndwi = nrrdNew();
+  airMopAdd(mop, ndwi, (airMopper)nrrdNuke, airMopAlways);
+
+  NN = _ndwi->axis[0].size;
+  sx = _ndwi->axis[1].size;
+  sy = _ndwi->axis[2].size;
+  sz = _ndwi->axis[3].size;
+  if (nrrdConvert(nemat, _nemat, nrrdTypeFloat)
+      || nrrdConvert(ndwi, _ndwi, nrrdTypeFloat)
+      || nrrdMaybeAlloc(nten, nrrdTypeFloat, 4, 7, sx, sy, sz)) {
+    sprintf(err, "%s: trouble", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  emat = (float*)(nemat->data);
+  ten = (float*)(nten->data);
+  dwi = (float*)(ndwi->data);
+  for (II=0; II<sx*sy*sz; II++) {
+    tenEstimateOne(ten, dwi, emat, NN, thresh, soft, b);
+    ten += 7;
+    dwi += NN;
+  }
+
+  airMopOkay(mop);
   return 0;
 }

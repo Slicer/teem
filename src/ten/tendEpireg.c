@@ -45,11 +45,11 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   int ref, ninLen, verbose, progress;
   float bw, thresh, soft;
   
-  hestOptAdd(&hopt, "i", "dwi1 dwi2", airTypeOther, 2, -1, &nin, NULL,
+  hestOptAdd(&hopt, "i", "b0 dwi1 dwi2", airTypeOther, 3, -1, &nin, NULL,
 	     "all the DWIs, as seperate nrrds",
 	     &ninLen, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "r", "reference", airTypeInt, 1, 1, &ref, NULL,
-	     "which of the inputs (zero-based numbering) should be used "
+	     "which of the DW volumes (one-based numbering) should be used "
 	     "as the standard, to which all other images are transformed. ");
   hestOptAdd(&hopt, "v", NULL, airTypeInt, 0, 0, &verbose, NULL,
 	     "verbose mode; show progress through steps of processing");
