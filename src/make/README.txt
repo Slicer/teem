@@ -19,12 +19,18 @@ TEEM_LINK_SHARED: if set to "true" then binaries, when linked, will be
 TEEM_DEV: if set to "true", then a larger set of teem libraries will be
   build by the top-level make, more than just the standard stable ones.
 
+TEEM_PURIFY: if set to "true", run purify on all compiles and links
+  (the architecture-specific makefile must define PURIFY (see below)
+
 =========================
 The variables that can/must be set by the individual architecture
 .mk files.  Those which must be set are marked by a (*):
 =========================
 
 CC, LD, AR, RM, INSTALL, CHMOD (*): programs used during make
+
+PURIFY:  the "purify" command name (with full path if needed).  This must
+  be set if TEEM_PURIFY is "true"
 
 SHEXT: the extension on the name of shared libraries (.so, .sl, .dll)
 
@@ -54,7 +60,7 @@ LDFLAGS: any flags to $(LD) for making shared libraries, in addition
 
 OTHER_CLEAN: other files that might have been created automatically 
   as part of compilation, but which should be deleted if "make clean"
-  is to be true to its word
+  is to be true to its word (e.g. "so_locations" on SGI)
 
 =========================
 The variables that can be set by the individual library Makefile's
