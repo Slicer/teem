@@ -161,25 +161,30 @@ limn15QNtoV(float *vec, unsigned short qn, int doNorm) {
   int ui, vi, zi;
   float u, v, x, y, z, n;
   
-  ui = qn & 0x7F;
-  vi = (qn >> 7) & 0x7F;
-  zi = (qn >> 14) & 0x01;
-  u = AIR_AFFINE(-0.5, ui, 127.5, -0.5, 0.5);
-  v = AIR_AFFINE(-0.5, vi, 127.5, -0.5, 0.5);
-  x =  u + v;
-  y =  u - v;
-  z = 1 - AIR_ABS(x) - AIR_ABS(y);
-  z *= (zi << 1) - 1;
-  if (doNorm) {
-    n = 1.0/sqrt(x*x + y*y + z*z);
-    vec[0] = x*n; 
-    vec[1] = y*n; 
-    vec[2] = z*n;
+  if (qn) {
+    ui = qn & 0x7F;
+    vi = (qn >> 7) & 0x7F;
+    zi = (qn >> 14) & 0x01;
+    u = AIR_AFFINE(-0.5, ui, 127.5, -0.5, 0.5);
+    v = AIR_AFFINE(-0.5, vi, 127.5, -0.5, 0.5);
+    x =  u + v;
+    y =  u - v;
+    z = 1 - AIR_ABS(x) - AIR_ABS(y);
+    z *= (zi << 1) - 1;
+    if (doNorm) {
+      n = 1.0/sqrt(x*x + y*y + z*z);
+      vec[0] = x*n; 
+      vec[1] = y*n; 
+      vec[2] = z*n;
+    }
+    else {
+      vec[0] = x;
+      vec[1] = y;
+      vec[2] = z;
+    }
   }
   else {
-    vec[0] = x;
-    vec[1] = y;
-    vec[2] = z;
+    vec[0] = vec[1] = vec[2] = 0.0;
   }
 }
 
@@ -187,6 +192,7 @@ unsigned short
 limnVto15QN(float *vec) {
   float L, u, v, x, y, z;
   int ui, vi, zi;
+  unsigned short ret;
   
   x = vec[0];
   y = vec[1];
@@ -195,13 +201,18 @@ limnVto15QN(float *vec) {
   if (L) {
     x /= L;
     y /= L;
+    u = x + y;
+    v = x - y;
+    AIR_INDEX(-1, u, 1, 128, ui);
+    AIR_INDEX(-1, v, 1, 128, vi);
+    zi = (z > 0);
+    ret = (zi << 14) | (vi << 7) | ui;
+    ret += !ret;
+    return ret;
   }
-  u = x + y;
-  v = x - y;
-  AIR_INDEX(-1, u, 1, 128, ui);
-  AIR_INDEX(-1, v, 1, 128, vi);
-  zi = (z > 0);
-  return (zi << 14) | (vi << 7) | ui;
+  else {
+    return 0;
+  }
 }
 
 
