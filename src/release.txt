@@ -1,5 +1,14 @@
 Things to do with each teem release:
 
+-1) Bring documentation up-to-date with source tree
+make sure all the unrrdu pages agree with unu usage info?
+cp README.txt html/tree/
+cp src/README.txt html/tree/src/
+cp src/CHANGES.txt html/tree/src/
+cp src/TODO.txt html/tree/src/
+cp src/LICENSE.txt html/tree/src/
+cd html; cvs commit -m blah
+
 0) Check namespace safety
   a) Make sure all library symbols are properly prefixed.  On linux,
   this should return nothing:
@@ -100,7 +109,7 @@ and without compression encodings.
 7) Move all the binary builds to the web server
 
 8) update online documentation (which may be done more often than releases)
-cvs checkout teem; cd teem/html
+cvs -d /usr/sci/projects/teem/cvs co teem; cd teem/html
 find . -name CVS  -exec rm -rf {} \; ; cd ..
 mv html teem-${VERSION}-html
 tar czvf teem-${VERSION}-html.tgz teem-${VERSION}-html
@@ -112,5 +121,6 @@ cd web; tar xzvf teem-*-html.tgz
 yes | rm -rf teem; mv teem-*-html teem
 yes | rm -rf teem-*-html*
 exit
+
 cd ..
 rm -rf teem
