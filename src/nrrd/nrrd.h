@@ -242,14 +242,14 @@ typedef enum {
 ** how data might be encoded into a bytestream
 */
 typedef enum {
-  nrrdEncodingUnknown,       /* 0: nobody knows */
-  nrrdEncodingRaw,           /* 1: file reflects memory (fread/fwrite) */
-  nrrdEncodingZlib,          /* 2: using the zlib compression library */
-  nrrdEncodingAscii,         /* 3: decimal values are spelled out in ascii */
-  nrrdEncodingHex,           /* 4: hexadecimal encoding (two chars per byte) */
-  nrrdEncodingBase85,        /* 5: using base-85 (as in Postscript Level 2) */
-  nrrdEncodingUser,          /* 6: something the user choses and sets */
-  nrrdEncodingLast           /* 7: after last valid one */
+  nrrdEncodingUnknown,    /* 0: nobody knows */
+  nrrdEncodingRaw,        /* 1: file reflects memory (fread/fwrite) */
+  nrrdEncodingZlib,       /* 2: using the zlib compression library */
+  nrrdEncodingAscii,      /* 3: decimal values are spelled out in ascii */
+  nrrdEncodingHex,        /* 4: hexadecimal encoding (two chars per byte) */
+  nrrdEncodingBase85,     /* 5: using base-85 (as in Postscript Level 2) */
+  nrrdEncodingUser,       /* 6: something the user choses and sets */
+  nrrdEncodingLast        /* 7: after last valid one */
 } nrrdEncoding;
 
 /*
