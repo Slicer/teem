@@ -136,7 +136,7 @@ char _airBadInsane[] = "(invalid insane value)";
 const char *
 airInsaneErr(int insane) {
   
-  if (AIR_INSIDE(0, insane, AIR_INSANE_MAX)) {
+  if (AIR_WITHIN_CL(0, insane, AIR_INSANE_MAX)) {
     return _airInsaneErr[insane];
   }
   else {

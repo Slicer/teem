@@ -143,6 +143,13 @@ _airBoolStr[][AIR_STRLEN_SMALL] = {
   "true"
 };
 
+char
+_airBoolDesc[][AIR_STRLEN_MED] = {
+  "unknown boolean",
+  "false",
+  "true"
+};
+
 int
 _airBoolVal[] = {
   -1,
@@ -169,6 +176,7 @@ _airBool = {
   2,
   _airBoolStr,
   _airBoolVal,
+  _airBoolDesc,
   _airBoolStrEqv,
   _airBoolValEqv,
   AIR_FALSE

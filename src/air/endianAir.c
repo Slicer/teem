@@ -39,6 +39,13 @@ _airEndianStr[][AIR_STRLEN_SMALL] = {
   "big"
 };
 
+char
+_airEndianDesc[][AIR_STRLEN_MED] = {
+  "unknown endianness",
+  "Intel and compatible",
+  "Everyone besides Intel and compatible"
+};
+
 int
 _airEndianVal[] = {
   airEndianUnknown,
@@ -51,6 +58,7 @@ _airEndian = {
   "endian",
   2,
   _airEndianStr, _airEndianVal,
+  _airEndianDesc,
   NULL, NULL,
   AIR_FALSE
 };

@@ -67,17 +67,21 @@ typedef unsigned long long airULLong;
 typedef struct {
   char name[AIR_STRLEN_SMALL];
                /* what are these things? */
-  int M;       /* If "val" is NULL, the the valid enum values are from 1 to
- 	          M (represented by strings str[1] through str[M]) and the
+  int M;       /* If "val" is NULL, the the valid enum values are from 1 to M
+ 	          (represented by strings str[1] through str[M]), and the
  	          unknown/invalid value is 0.  If "val" is non-NULL, the
- 	          valid enum values are from val[1] to val[M], represented
- 	          by strings str[1] through str[M], and the unknown/invalid
- 	          value is val[0].  In both cases, str[0] is the string to
- 	          represent an unknown/invalid value */
+ 	          valid enum values are from val[1] to val[M] (but again, 
+		  represented by strings str[1] through str[M]), and the
+		  unknown/invalid value is val[0].  In both cases, str[0]
+		  is the string to represent an unknown/invalid value */
   char (*str)[AIR_STRLEN_SMALL]; 
-               /* textual representation of the enum values */
-  int *val;    /* non-NULL iff values in the enum are set explicitly, or
-		  value for unknown/invalid is not zero */
+               /* "canonical" textual representation of the enum values */
+  int *val;    /* non-NULL iff valid values in the enum are not [1..M], and/or
+		  if value for unknown/invalid is not zero */
+  char (*desc)[AIR_STRLEN_MED];
+               /* desc[i] is a short description of the enum values represented
+		  by str[i] (thereby starting with the unknown value), to be
+		  used to by things like hest */
   char (*strEqv)[AIR_STRLEN_SMALL];  
                /* All the variations in strings recognized in mapping from
 		  string to value (the values in valEqv).  This **MUST** be
@@ -95,9 +99,11 @@ typedef struct {
   int sense;   /* require case matching on strings */
 } airEnum;
 extern int airEnumUnknown(airEnum *enm);
-extern int airEnumValidVal(airEnum *enm, int val);
+extern int airEnumValValid(airEnum *enm, int val);
 extern char *airEnumStr(airEnum *enm, int val);
+extern char *airEnumDesc(airEnum *enm, int val);
 extern int airEnumVal(airEnum *enm, const char *str);
+extern char *airEnumFmtDesc(airEnum *enm, int val, int canon, const char *fmt);
 
 /*
 ******** airEndian enum
@@ -354,6 +360,7 @@ enum {
   airNoDio_test,    /* 11: couldn't memalign() even a small bit of memory */
   airNoDio_disable  /* 12: someone disabled it with airDisableDio */
 };
+#define AIR_NODIO_MAX  12
 extern const char *airNoDioErr(int noDio);
 extern air_export const int airMyDio;
 extern air_export int airDisableDio;
@@ -532,13 +539,13 @@ extern void airMopDebug(airArray *arr);
                              : 0))
 
 /*
-******** AIR_INSIDE(a,b,c), AIR_BETWEEN(a,b,c)
+******** AIR_WITHIN_OP(a,b,c), AIR_WITHIN_CL(a,b,c)
 **
 ** is true if the middle argument is in the closed/open interval
 ** defined by the first and third arguments
 */
-#define AIR_INSIDE(a,b,c) ((a) <= (b) && (b) <= (c))    /* closed interval */
-#define AIR_BETWEEN(a,b,c)  ((a) < (b) && (b) < (c))    /* open interval */
+#define AIR_WITHIN_OP(a,b,c) ((a) < (b) && (b) < (c))     /* closed interval */
+#define AIR_WITHIN_CL(a,b,c) ((a) <= (b) && (b) <= (c))   /* open interval */
 
 /*
 ******** AIR_CLAMP(a,b,c)
@@ -682,12 +689,16 @@ extern void airMopDebug(airArray *arr);
 ** no expectation that other projects which use teem will be defining
 ** TEEM_32BIT, this is not useful outside teem, thus the leading _.
 */
-#if TEEM_32BIT == 1
-#  define _AIR_SIZE_T_FMT "%u"
-#elif TEEM_32BIT == 0
+#ifdef __APPLE__
 #  define _AIR_SIZE_T_FMT "%lu"
 #else
-#  define _AIR_SIZE_T_FMT "(no _AIR_SIZE_T_FMT w/out TEEM_32BIT %*d)"
+#  if TEEM_32BIT == 0
+#    define _AIR_SIZE_T_FMT "%lu"
+#  elif TEEM_32BIT == 1
+#    define _AIR_SIZE_T_FMT "%u"
+#  else
+#    define _AIR_SIZE_T_FMT "(no _AIR_SIZE_T_FMT w/out TEEM_32BIT %*d)"
+#  endif
 #endif
 
 /*

@@ -166,7 +166,7 @@ airDioTest(size_t size, FILE *file, void *ptr) {
 }
 
 const char
-_airNoDioErr[14][AIR_STRLEN_SMALL] = {
+_airNoDioErr[AIR_NODIO_MAX+2][AIR_STRLEN_SMALL] = {
   "(invalid noDio value)",
   "CAN TOO do direct I/O!",
   "direct I/O apparently not available on this architecture",
@@ -187,7 +187,7 @@ _airNoDioErr[14][AIR_STRLEN_SMALL] = {
 const char *
 airNoDioErr(int noDio) {
 
-  if (AIR_INSIDE(0, noDio, 12)) {
+  if (AIR_WITHIN_CL(0, noDio, AIR_NODIO_MAX)) {
     return _airNoDioErr[noDio+1];
   }
   else {

@@ -19,10 +19,15 @@
 
 #include "air.h"
 
+/*
+******** airEnumUnknown
+**
+** return the value representing "unknown" in an enum
+*/
 int
 airEnumUnknown(airEnum *enm) {
-
-  if (enm->val) {
+  
+  if (enm && enm->val) {
     return enm->val[0];
   }
   else {
@@ -30,51 +35,52 @@ airEnumUnknown(airEnum *enm) {
   }
 }
 
+/*
+** _airEnumIndex()
+**
+** given an enum "enm" and value "val", return the index into enm->str[] 
+** and enm->desc[] which correspond to that value.  To be safe, when
+** given an invalid enum value, we return zero.
+*/
 int
-airEnumValidVal(airEnum *enm, int val) {
-  int i, valid;
+_airEnumIndex(airEnum *enm, int val) {
+  int i, ret;
 
-  valid = AIR_FALSE;
+  ret = 0;
   if (enm->val) {
-    /* we need to check against the given values */
     for (i=1; i<=enm->M; i++) {
       if (val == enm->val[i]) {
-	valid = AIR_TRUE;
+	ret = i;
 	break;
       }
     }
-  }
-  else {
-    valid = AIR_INSIDE(1, val, enm->M);
-  }
-  return valid;
-}
-
-char *
-airEnumStr(airEnum *enm, int val) {
-  int i;
-  char *ret = NULL;
-
-  if (!airEnumValidVal(enm, val))
-    return enm->str[0];
-
-  if (enm->val) {
-    /* we need to check against the given values */
-    for (i=0; i<=enm->M; i++) {
-      if (val == enm->val[i]) {
-	ret = enm->str[i];
-	break;
-      }
-    }
-    ret = ret ? ret : enm->str[0];
-  }
-  else {
-    /* no value list, simply lookup string */
-    ret = enm->str[val];
+  } else {
+    ret = AIR_WITHIN_CL(0, val, enm->M) ? val : 0;
   }
   return ret;
 }
 
+int
+airEnumValValid(airEnum *enm, int val) {
+
+  return (0 != _airEnumIndex(enm, val));
+}
+
+char *
+airEnumStr(airEnum *enm, int val) {
+  int idx = 0;
+
+  idx = _airEnumIndex(enm, val);
+  return enm->str[idx];
+}
+
+char *
+airEnumDesc(airEnum *enm, int val) {
+  int idx = 0;
+
+  idx = _airEnumIndex(enm, val);
+  return enm->desc[idx];
+}
 
 int 
 airEnumVal(airEnum *enm, const char *str) {
@@ -118,4 +124,56 @@ airEnumVal(airEnum *enm, const char *str) {
   /* else we never matched a string */
   free(strCpy);
   return airEnumUnknown(enm);
+}
+
+/*
+******** airEnumFmtDesc()
+**
+** Formats a description line for one element "val" of airEnum "enm",
+** and puts the result in a NEWLY ALLOCATED string which is the return
+** of this function.  The formatting is done via sprintf(), as governed
+** by "fmt", which should contain to "%s" conversion sequences, the
+** first for the string version "val", and the second for the
+** description If "canon", then the canonical string representation
+** will be used (the one in enm->str[]), otherwise the shortest string
+** representation will be used (which differs from the canonical one
+** when there is a strEqv[]/valEqv[] pair defining a shorter string)
+*/
+char *
+airEnumFmtDesc(airEnum *enm, int val, int canon, const char *fmt) {
+  char *buff, *_ident, *desc, ident[AIR_STRLEN_SMALL];
+  int i, len;
+
+  if (!(enm && enm->desc && fmt)) {
+    return airStrdup("(airEnumDesc: invalid args)");
+  }
+  if (!airEnumValValid(enm, val)) {
+    val = airEnumUnknown(enm);
+  }
+  _ident = airEnumStr(enm, val);
+  if (!canon && enm->strEqv) {
+    len = strlen(_ident);
+    for (i=0; strlen(enm->strEqv[i]); i++) {
+      if (val != enm->valEqv[i]) {
+	/* this isn't a string representing the value we care about */
+	continue;
+      }
+      if (strlen(enm->strEqv[i]) < len) {
+	/* this one is shorter */
+	len = strlen(enm->strEqv[i]);
+	_ident = enm->strEqv[i];
+      }
+    }
+  }
+  strcpy(ident, _ident);
+  if (!enm->sense) {
+    airToLower(ident);
+  }
+  desc = enm->desc[_airEnumIndex(enm, val)];
+  buff = (char *)calloc(strlen(fmt) + strlen(ident) + strlen(desc) + 1,
+			sizeof(char));
+  if (buff) {
+    sprintf(buff, fmt, ident, desc);
+  }
+  return buff;
 }
