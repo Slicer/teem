@@ -23,9 +23,10 @@
 #define MITE_INFO "Modify opacity function to work with \"mite\""
 char *_baneGkms_miteInfoL =
   (MITE_INFO
-   ". If using the \"mite\" teem library, or the \"miter\" command-line "
-   "renderer.  This involves adding a \"stub\" axis 0, and setting the "
-   "axis labels to identify the domain and range of the opacity function.");
+   ". Useful when using the \"mite\" teem library, or the \"miter\" "
+   "command-line renderer.  This adds a \"stub\" axis 0, and setting the "
+   "axis labels to identify the domain and range of the opacity function. "
+   "The underlying opacity function is not modified.");
 int
 baneGkms_miteMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
