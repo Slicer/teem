@@ -347,16 +347,16 @@ _hestErrStrlen(hestOpt *opt, int argc, char **argv) {
   other = AIR_FALSE;
   if (argv) {
     for (a=0; a<=argc-1; a++) {
-      ret = AIR_MAX(ret, airStrlen(argv[a]));
+      ret = AIR_MAX(ret, (int)airStrlen(argv[a]));
     }
   }
   for (a=0; a<=numOpts-1; a++) {
-    ret = AIR_MAX(ret, airStrlen(opt[a].flag));
-    ret = AIR_MAX(ret, airStrlen(opt[a].name));
+    ret = AIR_MAX(ret, (int)airStrlen(opt[a].flag));
+    ret = AIR_MAX(ret, (int)airStrlen(opt[a].name));
     other |= opt[a].type == airTypeOther;
   }
   for (a=airTypeUnknown+1; a<=airTypeLast-1; a++) {
-    ret = AIR_MAX(ret, airStrlen(airTypeStr[a]));
+    ret = AIR_MAX(ret, (int)airStrlen(airTypeStr[a]));
   }
   if (other) {
     /* the callback's error() function may sprintf an error message
@@ -683,9 +683,9 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
     _hestIdent(ident, opt+op, parm, AIR_TRUE);
     type = opt[op].type;
     size = (airTypeEnum == type
-            ? sizeof(int)
+            ? (int)sizeof(int)
             : (airTypeOther == type
-               ? opt[op].CB->size
+               ? (int)opt[op].CB->size
                : airTypeSize[type]));
     cP = vP = opt[op].valueP;
     if (parm->verbosity) {

@@ -30,6 +30,10 @@
 extern "C" {
 #endif
 
+#define _NRRD_TEXT_INCR 1024
+
+/* ---- BEGIN non-NrrdIO */
+
 #if NRRD_RESAMPLE_FLOAT
 #  define nrrdResample_nrrdType nrrdTypeFloat
 #  define EVALN evalN_f               /* NrrdKernel method */
@@ -38,10 +42,10 @@ extern "C" {
 #  define EVALN evalN_d               /* NrrdKernel method */
 #endif
 
-#define _NRRD_TEXT_INCR 1024
-
 /* to access whatever nrrd there may be in in a NrrdIter */
 #define _NRRD_ITER_NRRD(iter) ((iter)->nrrd ? (iter)->nrrd : (iter)->ownNrrd)
+
+/* ---- END non-NrrdIO */
 
 /*
 ** _NRRD_SPACING
@@ -114,6 +118,7 @@ extern int _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd,
 extern int (*_nrrdFieldCheck[NRRD_FIELD_MAX+1])(const Nrrd *nrrd, int useBiff);
 extern void _nrrdSplitSizes(size_t *pieceSize, size_t *pieceNum, 
                             Nrrd *nrrd, int listDim);
+/* ---- BEGIN non-NrrdIO */
 extern void _nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX], 
                                    double sclA, 
                                    const double vecA[NRRD_SPACE_DIM_MAX],
@@ -122,6 +127,7 @@ extern void _nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX],
 extern void _nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX], 
                                double scl, 
                                const double vec[NRRD_SPACE_DIM_MAX]);
+/* ---- END non-NrrdIO */
 
 /* axis.c */
 extern int _nrrdKindAltered(int kindIn);
@@ -140,7 +146,9 @@ extern char _nrrdRelativePathFlag[];
 extern char _nrrdFieldSep[];
 extern char _nrrdNoSpaceVector[];
 extern char _nrrdTextSep[];
+/* ---- BEGIN non-NrrdIO */
 extern int _nrrdReshapeUpGrayscale(Nrrd *nimg);
+/* ---- END non-NrrdIO */
 extern void _nrrdSplitName(char **dirP, char **baseP, const char *name);
 
 /* write.c */
@@ -152,11 +160,13 @@ extern void _nrrdSprintFieldInfo(char **strP, char *prefix,
 extern void _nrrdFprintFieldInfo(FILE *file, char *prefix,
                                  const Nrrd *nrrd, NrrdIoState *nio,
                                  int field);
+/* ---- BEGIN non-NrrdIO */
 extern int _nrrdReshapeDownGrayscale(Nrrd *nimg);
+/* ---- END non-NrrdIO */
 
 /* parseNrrd.c */
 extern int _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIoState *nio, int useBiff);
-extern int _nrrdDataFNNumber(NrrdIoState *nio);
+extern unsigned int _nrrdDataFNNumber(NrrdIoState *nio);
 
 /* methodsNrrd.c */
 extern void nrrdPeripheralInit(Nrrd *nrrd);
@@ -178,9 +188,11 @@ extern int _nrrdGzWrite(gzFile file, const voidp buf, unsigned int len,
                         unsigned int* written);
 #endif
 
+/* ---- BEGIN non-NrrdIO */
 /* ccmethods.c */
 extern int _nrrdCC_settle(int *map, int len);
 extern int _nrrdCC_eclass(int *map, int len, airArray *eqvArr);
+/* ---- END non-NrrdIO */
 
 #ifdef __cplusplus
 }

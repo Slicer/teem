@@ -537,7 +537,8 @@ _nrrdDBCN_d(double *f, const double *x, size_t len, const double *parm) {
 void
 _nrrdDBCN_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, B, C;
-  int i, sgn;
+  int sgn;
+  size_t i;
   
   S = parm[0]; B = parm[1]; C = parm[2]; 
   for (i=0; i<len; i++) {

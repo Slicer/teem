@@ -186,8 +186,8 @@ nrrdCCMax(const Nrrd *nin) {
 
 int
 nrrdCCNum(const Nrrd *nin) {
-  int (*lup)(const void *, size_t), max, num=-1;
-  size_t I, NN;
+  int (*lup)(const void *, size_t), num=-1;
+  size_t I, max, NN;
   unsigned char *hist;
   
   if (!nrrdCCValid(nin)) {

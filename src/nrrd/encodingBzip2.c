@@ -40,8 +40,8 @@ _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum,
                         Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingBzip2_read", err[AIR_STRLEN_MED];
 #if TEEM_BZIP2
-  size_t bsize, total_read;
-  int block_size, read, i, bzerror=BZ_OK;
+  size_t bsize, total_read, block_size;
+  int read, i, bzerror=BZ_OK;
   char *data;
   BZFILE* bzfin;
   
@@ -76,7 +76,7 @@ _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum,
      Therefore it must be read in chunks if the size is larger 
      than INT_MAX. */
   if (bsize <= INT_MAX) {
-    block_size = (int)bsize;
+    block_size = bsize;
   } else {
     block_size = INT_MAX;
   }
@@ -99,8 +99,9 @@ _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum,
        we don't want.  This will reduce block_size when we get to the last
        block (which may be smaller than block_size).
     */
-    if (bsize - total_read < block_size)
-      block_size = (int)(bsize - total_read);
+    if (bsize >= total_read 
+        && bsize - total_read < block_size)
+      block_size = bsize - total_read;
   }
   
   if (!( BZ_OK == bzerror || BZ_STREAM_END == bzerror )) {
@@ -140,8 +141,8 @@ _nrrdEncodingBzip2_write(FILE *file, const void *_data, size_t elNum,
                          const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingBzip2_write", err[AIR_STRLEN_MED];
 #if TEEM_BZIP2
-  size_t bsize, total_written;
-  int block_size, bs, bzerror=BZ_OK;
+  size_t bsize, total_written, block_size;
+  int bs, bzerror=BZ_OK;
   char *data;
   BZFILE* bzfout;
 
@@ -169,7 +170,7 @@ _nrrdEncodingBzip2_write(FILE *file, const void *_data, size_t elNum,
      Therefore it must be read in chunks if the bsize is larger 
      than INT_MAX. */
   if (bsize <= INT_MAX) {
-    block_size = (int)bsize;
+    block_size = bsize;
   } else {
     block_size = INT_MAX;
   }
@@ -192,7 +193,7 @@ _nrrdEncodingBzip2_write(FILE *file, const void *_data, size_t elNum,
   /* write the last (possibly smaller) block when its humungous data;
      write the whole data when its small */
   if (BZ_OK == bzerror) {
-    block_size = (int)(bsize - total_written);
+    block_size = bsize >= total_written ? bsize - total_written : 0;
     BZ2_bzWrite(&bzerror, bzfout, data, block_size);
     total_written += block_size;
   }

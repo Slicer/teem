@@ -104,8 +104,9 @@ nrrdIterValue(NrrdIter *iter) {
     ret = iter->load(iter->data);
     if (iter->nrrd || iter->ownNrrd) {
       iter->data += iter->size;
-      iter->left -= 1;
-      if (-1 == iter->left) {
+      if (iter->left) {
+        iter->left -= 1;
+      } else {
         iter->data = (_NRRD_ITER_NRRD(iter)->data);
         iter->left = nrrdElementNumber(_NRRD_ITER_NRRD(iter))-1;
       }

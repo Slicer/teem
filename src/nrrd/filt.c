@@ -119,14 +119,14 @@ _nrrdCheapMedian1D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     }
     /* _nrrdCM_printhist(hist, bins, "after init"); */
     /* find median at each point using existing histogram */
-    for (X=radius; X<num-radius; X++) {
+    for (X=radius; X<(int)num-radius; X++) {
       /* _nrrdCM_printhist(hist, bins, "----------"); */
       idx = mode ? _nrrdCM_mode(hist, bins) : _nrrdCM_median(hist, half);
       val = NRRD_NODE_POS(range->min, range->max, bins, idx);
       /* printf(" median idx = %d -> val = %g\n", idx, val); */
       nrrdDInsert[nout->type](nout->data, X, val);
       /* probably update histogram for next iteration */
-      if (X < num-radius-1) {
+      if (X < (int)num-radius-1) {
         hist[INDEX(nin, range, lup, X+radius+1, bins, val, idx)]++;
         hist[INDEX(nin, range, lup, X-radius, bins, val, idx)]--;
       }
@@ -135,7 +135,7 @@ _nrrdCheapMedian1D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     /* non-uniform weighting --> slow and stupid */
     wt = _nrrdCM_wtAlloc(radius, wght);
     half = 0.5;
-    for (X=radius; X<num-radius; X++) {
+    for (X=radius; X<(int)num-radius; X++) {
       memset(hist, 0, bins*sizeof(float));
       for (I=-radius; I<=radius; I++) {
         hist[INDEX(nin, range, lup, I+X, bins, val, idx)] += wt[I+radius];

@@ -91,7 +91,7 @@ airSanity(void) {
   ninfF = ninf;
   airFPValToParts_f(&sign, &exp, &mant, nanF);
   mant >>= 22;
-  if (AIR_QNANHIBIT != mant) {
+  if (AIR_QNANHIBIT != (int)mant) {
     return airInsane_QNaNHiBit;
   }
   if (!(airFP_QNAN == airFPClass_f(nanF)

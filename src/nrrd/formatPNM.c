@@ -102,7 +102,8 @@ int
 _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatPNM_read", err[AIR_STRLEN_MED], *perr;
   const char *fs;
-  int i, color, got, want, len, ret, val[5], sx, sy, max, magic;
+  int color, got, want, len, ret, val[5], sx, sy, max, magic;
+  unsigned int i;
 
   if (!_nrrdFormatPNM_contentStartsLike(nio)) {
     sprintf(err, "%s: this doesn't look like a %s file", me, 

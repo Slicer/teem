@@ -163,7 +163,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   png_structp png;
   png_infop info;
   png_bytep *row;
-  png_uint_32 width, height, rowsize;
+  png_uint_32 width, height, rowsize, hi;
   png_text* txt;
   int depth, type, i, channels, numtxt, ret;
   int ntype, ndim, nsize[3];
@@ -276,7 +276,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   if (nio->oldData
       && (nio->oldDataSize
-          == nrrdTypeSize[ntype]*nsize[0]*nsize[1]*nsize[2])) {
+          == (size_t)(nrrdTypeSize[ntype]*nsize[0]*nsize[1]*nsize[2]))) {
     ret = nrrdWrap_nva(nrrd, nio->oldData, ntype, ndim, nsize);
   } else {
     ret = nrrdMaybeAlloc_nva(nrrd, ntype, ndim, nsize);
@@ -296,8 +296,9 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   /* set up row pointers */
   row = (png_bytep*)malloc(sizeof(png_bytep)*height);
-  for (i=0; i<height; i++)
-    row[i] = &((png_bytep)nrrd->data)[i*rowsize];
+  for (hi=0; hi<height; hi++) {
+    row[hi] = &((png_bytep)nrrd->data)[hi*rowsize];
+  }
   /* read the entire image in one pass */
   png_read_image(png, row);
   /* read all text fields from the text chunk */
@@ -388,7 +389,7 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   png_structp png;
   png_infop info;
   png_bytep *row;
-  png_uint_32 width, height, rowsize;
+  png_uint_32 width, height, rowsize, hi;
   png_text txt[NRRD_FIELD_MAX+1];
 
   /* no need to check type and format, done in FitsInFormat */
@@ -511,8 +512,9 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     png_set_swap(png);
   /* set up row pointers */
   row = (png_bytep*)malloc(sizeof(png_bytep)*height);
-  for (i=0; i<height; i++)
-    row[i] = &((png_bytep)nrrd->data)[i*rowsize];
+  for (hi=0; hi<height; hi++) {
+    row[hi] = &((png_bytep)nrrd->data)[hi*rowsize];
+  }
   png_set_rows(png, info, row);
   /* write the entire image in one pass */
   png_write_image(png, row);

@@ -95,7 +95,7 @@ _hestPrintStr(FILE *f, int indent, int already, int width, const char *_str,
     ws = airStrtok(!wrd ? str : NULL, " ", &last);
     /* ... but then convert tabs to spaces */
     airStrtrans(ws, '\t', ' ');
-    if (pos + 1 + strlen(ws) <= width - !!bslash) {
+    if ((int)(pos + 1 + strlen(ws)) <= width - !!bslash) {
       /* if this word would still fit on the current line */
       if (wrd && !newed) fprintf(f, " ");
       fprintf(f, "%s", ws);
@@ -263,7 +263,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
   for (i=0; i<=numOpts-1; i++) {
     strcpy(buff, "");
     _hestSetBuff(buff, opt + i, parm, AIR_TRUE);
-    maxlen = AIR_MAX(strlen(buff), maxlen);
+    maxlen = AIR_MAX((int)strlen(buff), maxlen);
   }
   if (parm && parm->respFileEnable) {
     sprintf(buff, "%cfile ...", parm->respFileFlag);

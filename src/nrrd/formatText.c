@@ -248,7 +248,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   
   if (nio->oldData
-      && nio->oldDataSize == sx*sy*nrrdTypeSize[nrrdTypeFloat]) {
+      && nio->oldDataSize == (size_t)(nrrdTypeSize[nrrdTypeFloat]*sx*sy)) {
     ret = nrrdWrap_nva(nrrd, nio->oldData, nrrdTypeFloat, nrrd->dim, size);
   } else {
     ret = nrrdMaybeAlloc_nva(nrrd, nrrdTypeFloat, nrrd->dim, size);
