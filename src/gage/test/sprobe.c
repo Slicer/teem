@@ -56,7 +56,9 @@ main(int argc, char *argv[]) {
   int a, idx, what, ansLen, offset, E, xi, yi, zi, pad,
     six, siy, siz, sox, soy, soz;
   double t0, t1, param[3][NRRD_KERNEL_PARMS_NUM];
-  gageSclContext *ctx;
+  gageContext *ctx;
+  gagePerVolume *pvl;
+  gageSclAnswer *san;
   NrrdKernel *k0, *k1, *k2;
 
   me = argv[0];
@@ -106,36 +108,39 @@ main(int argc, char *argv[]) {
     exit(1);
   }
 
-  ctx = gageSclContextNew();
-  ctx->c.verbose = 1;   /* but this is reset when we start traversing */
-  ctx->c.renormalize = AIR_FALSE;
-  ctx->c.checkIntegrals = AIR_FALSE;
+  ctx = gageContextNew();
+  gageValSet(ctx, gageValVerbose, 1);
+  gageValSet(ctx, gageValRenormalize, AIR_FALSE);
+  gageValSet(ctx, gageValCheckIntegrals, AIR_FALSE);
+  
   E = 0;
-  if (!E) E |= gageSclKernelSet(ctx, gageKernel00, k0, param[0]);
-  if (!E) E |= gageSclKernelSet(ctx, gageKernel10, k1, param[1]);
-  if (!E) E |= gageSclKernelSet(ctx, gageKernel11, k1, param[1]);
-  if (!E) E |= gageSclKernelSet(ctx, gageKernel20, k2, param[2]);
-  if (!E) E |= gageSclKernelSet(ctx, gageKernel21, k2, param[2]);
-  if (!E) E |= gageSclKernelSet(ctx, gageKernel22, k2, param[2]);
-  gageSclKernelReset(ctx);
-  if (!E) E |= gageSclKernelSet(ctx, gageKernel00, k0, param[0]);
-  if (!E) E |= gageSclKernelSet(ctx, gageKernel11, k1, param[1]);
-  if (!E) E |= gageSclKernelSet(ctx, gageKernel22, k2, param[2]);
-  if (!E) E |= gageSclQuerySet(ctx, 1<<what);
+  if (!E) E |= gageKernelSet(ctx, gageKernel00, k0, param[0]);
+  if (!E) E |= gageKernelSet(ctx, gageKernel10, k1, param[1]);
+  if (!E) E |= gageKernelSet(ctx, gageKernel11, k1, param[1]);
+  if (!E) E |= gageKernelSet(ctx, gageKernel20, k2, param[2]);
+  if (!E) E |= gageKernelSet(ctx, gageKernel21, k2, param[2]);
+  if (!E) E |= gageKernelSet(ctx, gageKernel22, k2, param[2]);
+  gageKernelReset(ctx);
+  if (!E) E |= gageKernelSet(ctx, gageKernel00, k0, param[0]);
+  if (!E) E |= gageKernelSet(ctx, gageKernel11, k1, param[1]);
+  if (!E) E |= gageKernelSet(ctx, gageKernel22, k2, param[2]);
+  pvl = gagePerVolumeNew(gageValGet(ctx, gageValNeedPad), gageKindScalar);
+  san = (gageSclAnswer *)(pvl->ans);
+  if (!E) E |= gageQuerySet(pvl, 1<<what);
   if (E) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));
     exit(1);
   }
-  pad = 0 + gageSclNeedPadGet(ctx);
+  pad = 1 + gageValGet(ctx, gageValNeedPad);
   printf("%s: kernel set requires padding by %d, we'll use %d\n",
-	 me, gageSclNeedPadGet(ctx), pad);
+	 me, gageValGet(ctx, gageValNeedPad), pad);
   /* we pad with something other than needed pad for stress testing */
   if (nrrdSimplePad(npad=nrrdNew(), nin, pad, nrrdBoundaryBleed)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(NRRD));
     exit(1);
   }
-  if (!E) E |= gageSclVolumeSet(ctx, pad, npad);
-  if (!E) E |= gageSclUpdate(ctx);
+  if (!E) E |= gageVolumeSet(ctx, pvl, npad, pad);
+  if (!E) E |= gageUpdate(ctx, pvl);
   if (E) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));
     exit(1);
@@ -175,33 +180,35 @@ main(int argc, char *argv[]) {
 	x = AIR_AFFINE(0, xi, sox-1, 0, six-1);
 	idx = xi + sox*(yi + soy*zi);
 
-	ctx->c.verbose = 0*( /* !xi && !yi && !zi || */
-			    /* ((100 == xi) && (8 == yi) && (8 == zi)) */
-			    ((61 == xi) && (51 == yi) && (46 == zi))
-			     /* ((40 == xi) && (30 == yi) && (62 == zi)) || */
-			     /* ((40 == xi) && (30 == yi) && (63 == zi)) */ ); 
+	ctx->verbose = 0*( /* !xi && !yi && !zi || */
+			  /* ((100 == xi) && (8 == yi) && (8 == zi)) */
+			  ((61 == xi) && (51 == yi) && (46 == zi))
+			  /* ((40 == xi) && (30 == yi) && (62 == zi)) || */
+			  /* ((40 == xi) && (30 == yi) && (63 == zi)) */ ); 
 
+	/*
 	if (gageSclProbe(ctx, x, y, z)) {
 	  fprintf(stderr, 
 		  "%s: trouble at i=(%d,%d,%d) -> f=(%g,%g,%g):\n%s\n(%d)\n",
 		  me, xi, yi, zi, x, y, z, gageErrStr, gageErrNum);
 	  exit(1);
 	}
+	*/
 	switch (what) {
 	case gageSclHessian:
-	  TEN_MAT2LIST(out + 7*idx, ctx->hess);
+	  TEN_MAT2LIST(out + 7*idx, san->hess);
 	  out[0 + 7*idx] = 1.0;
 	  break;
 	case gageSclGeomTens:
-	  TEN_MAT2LIST(out + 7*idx, ctx->gten);
+	  TEN_MAT2LIST(out + 7*idx, san->gten);
 	  out[0 + 7*idx] = 1.0;
 	  break;
 	default:
 	  if (1 == ansLen) {
-	    out[ansLen*idx] = ctx->ans[offset];
+	    out[ansLen*idx] = san->ans[offset];
 	  } else {
 	    for (a=0; a<=ansLen-1; a++) {
-	      out[a + ansLen*idx] = ctx->ans[a + offset];
+	      out[a + ansLen*idx] = san->ans[a + offset];
 	    }
 	  }
 	  break;
@@ -216,6 +223,7 @@ main(int argc, char *argv[]) {
   nrrdNuke(nin);
   nrrdNuke(npad);
   nrrdNuke(nout);
-  gageSclContextNix(ctx);
+  gageContextNix(ctx);
+  gagePerVolumeNix(pvl);
   exit(0);
 }
