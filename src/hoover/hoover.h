@@ -37,6 +37,42 @@ extern "C" {
 
 #define HOOV_THREAD_MAX 128
 
+/* 
+******** the mess of typedefs for callbacks used below
+*/
+typedef int (hoovRenderBegin_t)(void **renderInfoP,
+				void *userInfo);
+typedef int (hoovThreadBegin_t)(void **threadInfoP,
+				void *renderInfo,
+				void *userInfo,
+				int whichThread);
+typedef int (hoovRayBegin_t)(void *threadInfo,
+			     void *renderInfo,
+			     void *userInfo,
+			     int uIndex,    /* img coords of current ray */
+			     int vIndex, 
+			     double rayLen, /* length of ray segment between
+					       near and far planes,  */
+			     double rayStartWorld[3],
+			     double rayStartIndex[3],
+			     double rayDirWorld[3],
+			     double rayDirIndex[3]);
+typedef double (hoovSample_t)(void *threadInfo,
+			      void *renderInfo,
+			      void *userInfo,
+			      int num,     /* which sample this is, 0-based */
+			      double rayT, /* position along ray */
+			      int inside,  /* sample is inside the volume */
+			      double samplePosWorld[3],
+			      double samplePosIndex[3]);
+typedef int (hoovRayEnd_t)(void *threadInfo,
+			   void *renderInfo,
+			   void *userInfo);
+typedef int (hoovThreadEnd_t)(void *threadInfo,
+			      void *renderInfo,
+			      void *userInfo);
+typedef int (hoovRenderEnd_t)(void *rendInfo, void *userInfo);
+
 /*
 ******** hoovContext struct
 **
@@ -93,17 +129,21 @@ typedef struct {
   ** *renderInfoP is passed to all following calls as "renderInfo".
   ** Any mechanisms for inter-thread communication go nicely in 
   ** the renderInfo.
+  **
+  ** int (*renderBegin)(void **renderInfoP, void *userInfo);
   */
-  int (*renderBegin)(void **renderInfoP, void *userInfo);
+  hoovRenderBegin_t *renderBegin;
   
   /* 
   ** threadBegin() 
   **
   ** called once per thread, and *threadInfoP is passed to all
   ** following calls as "threadInfo".
+  **
+  ** int (*threadBegin)(void **threadInfoP, void *renderInfo, void *userInfo,
+  **                    int whichThread);
   */
-  int (*threadBegin)(void **threadInfoP, 
-		     void *renderInfo, void *userInfo, int whichThread);
+  hoovThreadBegin_t *threadBegin;
   
   /*
   ** rayBegin()
@@ -111,16 +151,14 @@ typedef struct {
   ** called once at the beginning of each ray.  This function will be
   ** called regardless of whether the ray actually intersects the
   ** volume, but this will change in the future.
+  **
+  ** int (*rayBegin)(void *threadInfo, void *renderInfo, void *userInfo,
+  **                 int uIndex, int vIndex, 
+  **                 double rayLen,
+  **                 double rayStartWorld[3], double rayStartIndex[3],
+  **                 double rayDirWorld[3], double rayDirIndex[3]);
   */
-  int (*rayBegin)(void *threadInfo, void *renderInfo, void *userInfo,
-		  int uIndex,          /* image coordinates of current ray */
-		  int vIndex, 
-		  double rayLen,       /* length of ray segment between near
-					  and far planes, in world space */
-		  double rayStartWorld[3],
-		  double rayStartIndex[3],
-		  double rayDirWorld[3],
-		  double rayDirIndex[3]);
+  hoovRayBegin_t *rayBegin;
 
   /* 
   ** sample()
@@ -145,13 +183,13 @@ typedef struct {
   ** At some point now or in the future, an effort will be made to
   ** never call this function if the ray does not in fact intersect
   ** the volume at all.
+  **
+  ** double (*sample)(void *threadInfo, void *renderInfo, void *userInfo,
+  **                  int num, double rayT, int inside,
+  **                  double samplePosWorld[3],
+  **                  double samplePosIndex[3]);
   */
-  double (*sample)(void *threadInfo, void *renderInfo, void *userInfo,
-		   int num,               /* which sample this is (0-based) */
-		   double rayT,           /* position along ray */
-		   int inside,            /* sample is inside the volume */
-		   double samplePosWorld[3],
-		   double samplePosIndex[3]);
+  hoovSample_t *sample;
 
   /*
   ** rayEnd()
@@ -159,22 +197,28 @@ typedef struct {
   ** called at the end of the ray.  The end of a ray is:
   ** 1) sample returns 0.0, or,
   ** 2) when the sample location goes behind far plane
+  **
+  ** int (*rayEnd)(void *threadInfo, void *renderInfo, void *userInfo);
   */
-  int (*rayEnd)(void *threadInfo,void *renderInfo, void *userInfo);
+  hoovRayEnd_t *rayEnd;
 
   /* 
   ** threadEnd()
   **
   ** called at end of thread
+  **
+  ** int (*threadEnd)(void *threadInfo, void *renderInfo, void *userInfo);
   */
-  int (*threadEnd)(void *threadInfo, void *renderInfo, void *userInfo);
+  hoovThreadEnd_t *threadEnd;
   
   /* 
   ** renderEnd()
   ** 
   ** called once at end of whole rendering
+  **
+  ** int (*renderEnd)(void *rendInfo, void *userInfo);
   */
-  int (*renderEnd)(void *rendInfo, void *userInfo);
+  hoovRenderEnd_t *renderEnd;
 
 } hoovContext;
 
@@ -210,28 +254,13 @@ extern void hoovContextNix(hoovContext *ctx);
 extern int hoovRender(hoovContext *ctx, int *errCodeP, int *errThreadP);
 
 /* stub.c */
-extern int hoovStubRenderBegin(void **renderInfoP, void *userInfo);
-extern int hoovStubThreadBegin(void **threadInfoP, 
-			       void *renderInfo, void *userInfo,
-			       int whichThread);
-extern int hoovStubRayBegin(void *threadInfo, void *renderInfo, void *userInfo,
-			    int uIndex,
-			    int vIndex, 
-			    double rayLen,
-			    double rayStartWorld[3],
-			    double rayStartIndex[3],
-			    double rayDirWorld[3],
-			    double rayDirIndex[3]);
-extern double hoovStubSample(void *threadInfo, void *renderInfo,
-			     void *userInfo,
-			     int num, double rayT,
-			     int inside,
-			     double samplePosWorld[3],
-			     double samplePosIndex[3]);
-extern int hoovStubRayEnd(void *threadInfo, void *renderInfo, void *userInfo);
-extern int hoovStubThreadEnd(void *threadInfo, void *renderInfo,
-			     void *userInfo);
-extern int hoovStubRenderEnd(void *renderInfo, void *userInfo);
+extern hoovRenderBegin_t hoovStubRenderBegin;
+extern hoovThreadBegin_t hoovStubThreadBegin;
+extern hoovRayBegin_t hoovStubRayBegin;
+extern hoovSample_t hoovStubSample;
+extern hoovRayEnd_t hoovStubRayEnd;
+extern hoovThreadEnd_t hoovStubThreadEnd;
+extern hoovRenderEnd_t hoovStubRenderEnd;
 
 #endif /* HOOV_HAS_BEEN_INCLUDED */
 
