@@ -1,7 +1,34 @@
+nrrd: add orientation fields and information
+
+fix "gkms pvg": try to reproduce problem with mouse data
+
+qbert: downsmpl x+y, upsmplpad on Z error about unequal centers
+
+qbert on cygwin: running out of memory w/out error
+
+biff call for pre-allocated buffer
+
+tend epireg: figure out how to do fitting without HST estimation
+
+mite big changes -----------------
+- do precomputation of opacity volume when required for tensor shading
+
+gage changes into bane:
+teem\src\bane\hvol.c(167) : warning C4700: local variable 'hist' used
+  without having been initialized
+- try gkms hvol with three explicit ranges
+- remove excess NULL pointer checks between answer and answer wrapper
+- valgrind
+
+
+
+finish big changes
+- ADD gkms back into teem bins!
+
 teem: fix bugs in teem makefile stuff: 
-- HUGE PROBLEM: make a change in nrrdEnums.h, which unrrdu/project.c uses directly.
-  recompile, and nrrd gets compiled, but not unrrdu, so unu doesn't get updated
-  correctly!
+- HUGE PROBLEM: make a change in nrrdEnums.h, which unrrdu/project.c 
+  uses directly. recompile, and nrrd gets compiled, but not unrrdu,
+  so unu doesn't get updated correctly!
 - want seperate directories for static and shared libraries
 - want bin/dev and bin/install targets
 

@@ -29,9 +29,9 @@ link ("ld") line.
 air:    general utilities which everyone needs
 hest:   command-line parsing
 biff:   general error reporting utility
-nrrd:	nearly raw raster data
+nrrd:   nearly raw raster data
 ell:    assorted linear algebra stuff
-unrrdu:	"unu": powerful command-line interface to nrrd
+unrrdu: "unu": powerful command-line interface to nrrd
 dye:    color conversions (and eventually color maps)
 gage:   for measuring things in volumes (currently only scalar volumes)
         (includes "qbert" for generating VGH volumes for simian)

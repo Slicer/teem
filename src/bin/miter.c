@@ -59,21 +59,21 @@ main(int argc, char *argv[]) {
              "one or more transfer functions",
              &(muu->ntxfNum), NULL, nrrdHestNrrd);
   limnHestCameraOptAdd(&hopt, muu->hctx->cam,
-		       NULL, "0 0 0", "0 0 1",
-		       NULL, NULL, NULL,
-		       "nan nan", "nan nan", "20");
+                       NULL, "0 0 0", "0 0 1",
+                       NULL, NULL, NULL,
+                       "nan nan", "nan nan", "20");
   hestOptAdd(&hopt, "offfr", NULL, airTypeInt, 0, 0, &offfr, NULL,
-	     "the given eye point (\"-fr\") is to be interpreted "
-	     "as an offset from the at point.");
+             "the given eye point (\"-fr\") is to be interpreted "
+             "as an offset from the at point.");
   hestOptAdd(&hopt, "ffr", "fake from", airTypeDouble, 3, 3,
-	     &(muu->fakeFrom), "nan nan nan",
-	     "eye point to use for view-dependent transfer functions. "
-	     "By default (not using this option), the point used is the "
-	     "normally specified camera eye point.");
+             &(muu->fakeFrom), "nan nan nan",
+             "eye point to use for view-dependent transfer functions. "
+             "By default (not using this option), the point used is the "
+             "normally specified camera eye point.");
   hestOptAdd(&hopt, "turn", "angle", airTypeDouble, 1, 1, &turn, "0.0",
-	     "angle (degrees) by which to rotate the from point around "
-	     "true up, for making stereo pairs.  Positive means move "
-	     "towards positive U (the right)");
+             "angle (degrees) by which to rotate the from point around "
+             "true up, for making stereo pairs.  Positive means move "
+             "towards positive U (the right)");
   hestOptAdd(&hopt, "am", "ambient", airTypeFloat, 3, 3, muu->lit->amb,
              "1 1 1", "ambient light color");
   hestOptAdd(&hopt, "ld", "light pos", airTypeFloat, 3, 3, muu->lit->_dir[0],
@@ -194,8 +194,8 @@ main(int argc, char *argv[]) {
     ELL_3V_SUB(eye, muu->hctx->cam->from, muu->hctx->cam->at);
     ELL_3V_NORM(eye, eye, eyedist);
     ELL_3V_SCALE_ADD2(muu->hctx->cam->from,
-		      cos(turn), eye,
-		      sin(turn), muu->hctx->cam->U);
+                      cos(turn), eye,
+                      sin(turn), muu->hctx->cam->U);
     ELL_3V_SCALE(muu->hctx->cam->from, eyedist, muu->hctx->cam->from);
     if (limnCameraUpdate(muu->hctx->cam)) {
       airMopAdd(mop, errS = biffGetDone(LIMN), airFree, airMopAlways);

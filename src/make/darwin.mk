@@ -18,7 +18,8 @@
 #
 #
 
-TEEM_SHEXT = dylib
+# TEEM_SHEXT = dylib
+TEEM_SHEXT = 
 
 AR = libtool
 ARFLAGS = -static -o

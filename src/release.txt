@@ -1,5 +1,15 @@
 Things for Gordon to do with each teem release:
 
+-2) make sure there are no tabs:
+cat > tab.txt
+(tab) (return)
+^D
+
+find . -name \*.c -exec grep -f tab.txt {} \; -print
+find . -name \*.h -exec grep -f tab.txt {} \; -print
+find . -name \*.txt -exec grep -f tab.txt {} \; -print
+rm -f tab.txt
+
 -1) update airTeemVersion and airTeemReleaseDate in air/misc.c
 
 0) Bring documentation up-to-date with source tree

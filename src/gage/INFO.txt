@@ -69,7 +69,7 @@ For scalar fields:
   gageSclHessEvec,    /*  7: Hessian's eigenvectors: GT[9] */
   gageScl2ndDD,       /*  8: 2nd dir.deriv. along gradient: *GT */
   gageSclGeomTens,    /*  9: symm. matrix w/ evals 0,K1,K2 and evecs grad,
-			     curvature directions: GT[9] */
+                             curvature directions: GT[9] */
   gageSclCurvedness,  /* 10: L2 norm of K1, K2 (not Koen.'s "C"): *GT */
   gageSclShapeTrace,  /* 11, (K1+K2)/Curvedness: *GT */
   gageSclShapeIndex,  /* 12: Koen.'s shape index, ("S"): *GT */
@@ -81,9 +81,9 @@ For 3-vector fields:
   gageVecLength,      /*  1: length of CWI vector: *GT */
   gageVecNormalized,  /*  2: normalized CWI vector: GT[3] */
   gageVecJacobian,    /*  3: component-wise Jacobian: GT[9]
-			     0:dv_x/dx  3:dv_x/dy  6:dv_x/dz
-			     1:dv_y/dx  4:dv_y/dy  7:dv_y/dz
-			     2:dv_z/dx  5:dv_z/dy  8:dv_z/dz */
+                             0:dv_x/dx  3:dv_x/dy  6:dv_x/dz
+                             1:dv_y/dx  4:dv_y/dy  7:dv_y/dz
+                             2:dv_z/dx  5:dv_z/dy  8:dv_z/dz */
   gageVecDivergence,  /*  4: divergence (based on Jacobian): *GT */
   gageVecCurl,        /*  5: curl (based on Jacobian): *GT */
 

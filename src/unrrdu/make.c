@@ -130,7 +130,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
              "along axis 0 of interleaved RGB image data)", &spacingLen);
   hestOptAdd(&opt, "th", "th0 th1", airTypeDouble, 1, -1, &thickness, "nan",
              "thickness of region represented by one sample along each axis. "
-	     "  As with spacing, use \"nan\" for "
+             "  As with spacing, use \"nan\" for "
              "any non-spatial axes.", &thicknessLen);
   hestOptAdd(&opt, "l", "lb0 lb1", airTypeString, 1, -1, &label, "",
              "short string labels for each of the axes", &labelLen);
@@ -203,7 +203,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     return 1;
   }
   gotThickness = (thicknessLen > 1 ||
-		  (sizeLen == 1 && AIR_EXISTS(thickness[0])));
+                  (sizeLen == 1 && AIR_EXISTS(thickness[0])));
   if (gotThickness && thicknessLen != sizeLen) {
     fprintf(stderr,
             "%s: got different numbers of sizes (%d) and thicknesses (%d)\n",

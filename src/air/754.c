@@ -458,6 +458,9 @@ airIsNaN(float g) {
 ** returns 1 if input is positive infinity,
 ** -1 if negative infinity, 
 ** or 0 otherwise (including NaN)
+**
+** thus the non-zero-ness of the return is an easy way to do a 
+** boolean check of whether the value is infinite
 */
 int
 airIsInf_f(float f) {

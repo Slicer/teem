@@ -452,10 +452,8 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRotTans)) {
-    double phi1[7], phi2[7], phi3[7], 
-      eval[3], evec[9];
+    double phi1[7], phi2[7], phi3[7], evec[9];
 
-    ELL_3V_COPY(eval, evalAns);
     ELL_9V_COPY(evec, evecAns);
     tenRotationTangents_d(phi1, phi2, phi3, evec);
     vecTmp[0] = TEN_T_DOT(phi1, gradDdXYZ + 0*7);
