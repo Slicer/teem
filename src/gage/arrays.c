@@ -20,10 +20,15 @@
 #include "gage.h"
 #include "private.h"
 
+char gageErrStr[AIR_STRLEN_LARGE];
+int gageErrNum;
+
+gage_t gageSclZeroNormal[3] = {0,0,1};
+
 /*
 ******** gageSclAnsLength[]
 **
-** the number of GPTs used for each answer
+** the number of gage_t used for each answer
 */
 int
 gageSclAnsLength[GAGE_SCL_MAX+1] = {
@@ -72,23 +77,23 @@ _gageSclPrereq[GAGE_SCL_MAX+1] = {
   /* gageSclNormal */
   (1<<gageSclGradVec) | (1<<gageSclGradMag),
 
-  /* gageSclHess */
+  /* gageSclHessian */
   0,
 
-  /* gageSclLapl */
-  (1<<gageSclHess),
+  /* gageSclLaplacian */
+  (1<<gageSclHessian),   /* not really true, but this is simpler */
 
   /* gageSclHessEval */
-  (1<<gageSclHess),
+  (1<<gageSclHessian),
 
   /* gageSclHessEvec */
-  (1<<gageSclHess) | (1<<gageSclHessEval),
+  (1<<gageSclHessian) | (1<<gageSclHessEval),
 
   /* gageScl2ndDD */
-  (1<<gageSclHess) | (1<<gageSclNormal),
+  (1<<gageSclHessian) | (1<<gageSclNormal),
 
   /* gageSclGeomTens */
-  (1<<gageSclHess) | (1<<gageSclNormal) | (1<<gageSclGradMag),
+  (1<<gageSclHessian) | (1<<gageSclNormal) | (1<<gageSclGradMag),
   
   /* gageSclK1K2 */
   (1<<gageSclGeomTens),

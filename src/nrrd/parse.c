@@ -273,8 +273,7 @@ _nrrdReadNrrdParse_labels(Nrrd *nrrd, NrrdIO *io, int useBiff) {
       if ('\\' == h[len] && '\"' == h[len+1]) {
 	tmpS[len] = '\"';
 	len += 2;
-      }
-      else {
+      } else {
 	tmpS[len] = h[len];
 	len += 1;
       }
@@ -409,8 +408,7 @@ _nrrdReadNrrdParse_data_file(Nrrd *nrrd, NrrdIO *io, int useBiff) {
     }
     info += strlen(_nrrdRelDirFlag);
     sprintf(dataName, "%s/%s", io->dir, info);
-  }
-  else {
+  } else {
     /* data file's name is absolute (not header-relative) */
     strcpy(dataName, info);
   }

@@ -20,69 +20,45 @@
 #include "gage.h"
 #include "private.h"
 
-#define RESET(p) p = airFree(p)
 
 /*
 ******** gageSclContextNew()
 **
-** creates and initializes a probing context, and returns a pointer to it.
-** NULL-return is erroneous, does not use biff.
+** creates and initializes a scalar probing context, and returns a
+** pointer to it.  NULL-return is erroneous, does not use biff.
 */
 gageSclContext *
 gageSclContextNew() {
   int i;
-  gageSclContext *ctx;
+  gageSclContext *sctx;
 
-  ctx = malloc(sizeof(gageSclContext));
-  if (ctx) {
-    ctx->query = 0;
-    ctx->iv3 = ctx->iv2 = ctx->iv1 = NULL;
-    ctx->fsl = NULL;
-    ctx->fw00 = NULL;
-    ctx->fw10 = ctx->fw11 = NULL;
-    ctx->fw20 = ctx->fw21 = ctx->fw22 = NULL;
-    ctx->off = NULL;
-    gageSclResetKernels(ctx);
-    ctx->npad = NULL;
-    ctx->verbose = gageDefVerbose;
-    ctx->epsilon = gageDefEpsilon;
-    ctx->renormalize = gageDefRenormalize;
-    
-    ctx->maxDeriv = -1;
-    ctx->needPad = -1;
-    ctx->k3pack = AIR_TRUE;
-    ctx->fr = ctx->fd = 0;
-    ctx->iv3 = ctx->iv2 = ctx->iv1 = NULL;
-    ctx->fsl = NULL;
-    ctx->fw00 = NULL;
-    ctx->fw10 = ctx->fw11 = NULL;
-    ctx->fw20 = ctx->fw21 = ctx->fw21 = NULL;
-    ctx->havePad = -1;
-    ctx->lup = NULL;
-    ctx->sx = ctx->sy = ctx->sz = 0;
-    ctx->xs = ctx->ys = ctx->zs = AIR_NAN;
-    ctx->bidx = -1;
-    ctx->off = NULL;
-    ctx->xf = ctx->xf = ctx->xf = AIR_NAN;
-    
+  sctx = malloc(sizeof(gageSclContext));
+  if (sctx) {
+    _gageContextInit(&sctx->c);
+    sctx->npad = NULL;
+    sctx->query = 0;
+    sctx->epsilon = gageDefSclEpsilon;
+    memset(sctx->needK, 0, GAGE_KERNEL_NUM*sizeof(int));
+    sctx->iv3 = sctx->iv2 = sctx->iv1 = NULL;
+    sctx->lup = NULL;
     for (i=0; i<GAGE_SCL_TOTAL_ANS_LENGTH; i++)
-      ctx->ans[i] = AIR_NAN;
-    ctx->val   = &(ctx->ans[gageSclAnsOffset[gageSclValue]]);
-    ctx->gvec  = &(ctx->ans[gageSclAnsOffset[gageSclGradVec]]);
-    ctx->gmag  = &(ctx->ans[gageSclAnsOffset[gageSclGradMag]]);
-    ctx->norm  = &(ctx->ans[gageSclAnsOffset[gageSclNormal]]);
-    ctx->hess  = &(ctx->ans[gageSclAnsOffset[gageSclHess]]);
-    ctx->lapl  = &(ctx->ans[gageSclAnsOffset[gageSclLapl]]);
-    ctx->heval = &(ctx->ans[gageSclAnsOffset[gageSclHessEval]]);
-    ctx->hevec = &(ctx->ans[gageSclAnsOffset[gageSclHessEvec]]);
-    ctx->scnd  = &(ctx->ans[gageSclAnsOffset[gageScl2ndDD]]);
-    ctx->gten  = &(ctx->ans[gageSclAnsOffset[gageSclGeomTens]]);
-    ctx->k1k2  = &(ctx->ans[gageSclAnsOffset[gageSclK1K2]]);
-    ctx->cdir  = &(ctx->ans[gageSclAnsOffset[gageSclCurvDir]]);
-    ctx->S     = &(ctx->ans[gageSclAnsOffset[gageSclShapeIndex]]);
-    ctx->C     = &(ctx->ans[gageSclAnsOffset[gageSclCurvedness]]);
+      sctx->ans[i] = AIR_NAN;
+    sctx->val   = &(sctx->ans[gageSclAnsOffset[gageSclValue]]);
+    sctx->gvec  = &(sctx->ans[gageSclAnsOffset[gageSclGradVec]]);
+    sctx->gmag  = &(sctx->ans[gageSclAnsOffset[gageSclGradMag]]);
+    sctx->norm  = &(sctx->ans[gageSclAnsOffset[gageSclNormal]]);
+    sctx->hess  = &(sctx->ans[gageSclAnsOffset[gageSclHessian]]);
+    sctx->lapl  = &(sctx->ans[gageSclAnsOffset[gageSclLaplacian]]);
+    sctx->heval = &(sctx->ans[gageSclAnsOffset[gageSclHessEval]]);
+    sctx->hevec = &(sctx->ans[gageSclAnsOffset[gageSclHessEvec]]);
+    sctx->scnd  = &(sctx->ans[gageSclAnsOffset[gageScl2ndDD]]);
+    sctx->gten  = &(sctx->ans[gageSclAnsOffset[gageSclGeomTens]]);
+    sctx->k1k2  = &(sctx->ans[gageSclAnsOffset[gageSclK1K2]]);
+    sctx->cdir  = &(sctx->ans[gageSclAnsOffset[gageSclCurvDir]]);
+    sctx->S     = &(sctx->ans[gageSclAnsOffset[gageSclShapeIndex]]);
+    sctx->C     = &(sctx->ans[gageSclAnsOffset[gageSclCurvedness]]);
   }
-  return ctx;
+  return sctx;
 }
 
 /*
@@ -91,22 +67,81 @@ gageSclContextNew() {
 ** destructor method for gageSclContext
 */
 gageSclContext *
-gageSclContextNix(gageSclContext *ctx) {
+gageSclContextNix(gageSclContext *sctx) {
 
-  if (ctx) {
-    RESET(ctx->iv3); RESET(ctx->iv2); RESET(ctx->iv1);
-    RESET(ctx->fsl);
-    RESET(ctx->fw00);
-    RESET(ctx->fw10); RESET(ctx->fw11); 
-    RESET(ctx->fw20); RESET(ctx->fw21); RESET(ctx->fw22);
-    RESET(ctx->off);
-    airFree(ctx);
+  if (sctx) {
+    _gageContextDone(&sctx->c);
+    sctx->npad = NULL;  /* nothing else */
+    RESET(sctx->iv3);
+    RESET(sctx->iv2);
+    RESET(sctx->iv1);
+    airFree(sctx);
   }
   return NULL;
 }
 
 /*
-******** gageSclSetQuery()
+******** gageSclKernelSet()
+**
+** tell the prober what kernels to use for the various tasks
+*/
+int
+gageSclKernelSet(gageSclContext *sctx,
+		 int which, NrrdKernel *k, double *kparm) {
+  char me[]="gageSclKernelSet", err[AIR_STRLEN_MED];
+  
+  if (_gageKernelSet(&sctx->c, which, k, kparm)) {
+    sprintf(err, "%s:", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  if (_gageSclKernelDependentSet(sctx)) {
+    sprintf(err, "%s:", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  
+  return 0;
+}
+
+/*
+******** _gageSclKernelDependentSet()
+**
+** Sets all things immediately and solely dependent on kernels:
+** k3pack, iv{3,2,1}
+*/
+int
+_gageSclKernelDependentSet(gageSclContext *sctx) {
+  char me[]="_gageSclKernelDependentSet", err[AIR_STRLEN_MED];
+  int i, fd, E;
+
+  sctx->k3pack = AIR_TRUE;
+  for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
+    if (sctx->c.k[i]) {
+      if (gageKernel10 == i || gageKernel20 == i || gageKernel21 == i)
+	sctx->k3pack = AIR_FALSE;
+    }
+  }
+  /* it is in fact somewhat silly to be freeing and reallocating these
+     every time a new kernel is set, especially since we may not actually
+     need all of them for the current query, but it simplifies the task of
+     preparing things prior to the gageSclCheck() and gageSclProbe() calls */
+  RESET(sctx->iv3);
+  RESET(sctx->iv2);
+  RESET(sctx->iv1);
+  E = 0;
+  fd = sctx->c.fd;
+  if (!E) E |= !(sctx->iv3 = calloc(fd*fd*fd, sizeof(gage_t)));
+  if (!E) E |= !(sctx->iv2 = calloc(fd*fd, sizeof(gage_t)));
+  if (!E) E |= !(sctx->iv1 = calloc(fd, sizeof(gage_t)));
+  if (E) {
+    sprintf(err, "%s: couldn't allocate all caches for fd=%d", me, fd);
+    biffAdd(GAGE, err); return 1;
+  }
+  
+  return 0;
+}
+
+/*
+******** gageSclQuerySet()
 **
 ** sets query (either the first one, or a new one) for probing.  However,
 ** you may find that the query stored in the context after calling this
@@ -116,16 +151,16 @@ gageSclContextNix(gageSclContext *ctx) {
 ** 
 ** This function was implemented in a simple and stupid way, because
 ** the expectation is that it will not be very called very often 
-** (as compared to calling gageScl())
+** (as compared to calling gageSclProbe())
 **
 ** returns non-zero on error, does use biff.
 */
 int
-gageSclSetQuery(gageSclContext *ctx, unsigned int query) {
-  char me[]="gageSclSetQuery", err[128];
+gageSclQuerySet(gageSclContext *sctx, unsigned int query) {
+  char me[]="gageSclQuerySet", err[128];
   unsigned int lastq, q, mask;
   
-  if (!ctx) {
+  if (!sctx) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return 1;
   }
@@ -133,252 +168,117 @@ gageSclSetQuery(gageSclContext *ctx, unsigned int query) {
     sprintf(err, "%s: why probe if you have no query?", me);
     biffAdd(GAGE, err); return 1;
   }
-  mask = (1 << (GAGE_SCL_MAX+1)) - 1;
+  mask = (1U << (GAGE_SCL_MAX+1)) - 1;
   if (query != (query & mask)) {
     sprintf(err, "%s: invalid bits set in query", me);
     biffAdd(GAGE, err); return 1;
   }
   
   /* do recursive expansion of pre-requisites */
-  ctx->query = query;
-  fprintf(stderr, "!%s: original query = %u ...\n", me, ctx->query);
-  _gageSclPrint_query(ctx->query);
+  /* HEY: this functionality is (eventually) not scalar-specific */
+  sctx->query = query;
+  fprintf(stderr, "!%s: original query = %u ...\n", me, sctx->query);
+  _gageSclPrint_query(sctx->query);
   do {
-    lastq = ctx->query;
+    lastq = sctx->query;
     q = GAGE_SCL_MAX+1;
     do {
       q--;
-      if ((1<<q) & ctx->query)
-	ctx->query |= _gageSclPrereq[q];
+      if ((1<<q) & sctx->query)
+	sctx->query |= _gageSclPrereq[q];
     } while (q);
-  } while (ctx->query != lastq);
-  fprintf(stderr, "!%s: expanded query = %u ...\n", me, ctx->query);
-  _gageSclPrint_query(ctx->query);
+  } while (sctx->query != lastq);
+  fprintf(stderr, "!%s: expanded query = %u ...\n", me, sctx->query);
+  _gageSclPrint_query(sctx->query);
 
-  _gageSclSetQueryDependent(ctx);
-
-  return 0;
-}
-
-/*
-** _gageSclSetQueryDependent()
-**
-** sets things immediately and solely dependent on query:
-** maxDeriv
-*/
-void
-_gageSclSetQueryDependent(gageSclContext *ctx) {
-  unsigned int q;
-  
-  /* set maxDeriv, based on query */
-  ctx->maxDeriv = 0;
-  q = GAGE_SCL_MAX+1;
-  do {
-    q--;
-    if (ctx->query & (1 << q))
-      ctx->maxDeriv = AIR_MAX(ctx->maxDeriv, _gageSclNeedDeriv[q]);
-  } while (q);
-  fprintf(stderr, "!%s: maxDeriv = %d\n",
-	  "_gageSclSetQueryDependent", ctx->maxDeriv);
-  return;
-}
-
-/*
-******** gageSclResetKernels()
-**
-** sets all the kernels to NULL and their params to AIR_NAN
-*/
-void
-gageSclResetKernels(gageSclContext *ctx) {
-  int i, j;
-
-  if (ctx) {
-    for(i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-      ctx->k[i] = NULL;
-      for (j=0; j<=NRRD_KERNEL_PARAMS_MAX; j++)
-	ctx->kparam[i][j] = AIR_NAN;
-    }
-    _gageSclResetKernelDependent(ctx);
-  }
-  return;
-}
-
-/*
-******** _gageSclResetKernelDependent()
-**
-** resets (to same state as after gageSclContextNew()) all things
-** immediately and solely dependent on kernels:
-** needPad, k3pack, fr, fd, iv{3,2,1}, fsl, fw{00,10,11,20,21,22}, off
-*/
-void
-_gageSclResetKernelDependent(gageSclContext *ctx) {
-
-  ctx->needPad = -1;
-  ctx->k3pack = AIR_TRUE;
-  ctx->fr = ctx->fd = 0;
-  RESET(ctx->iv3); RESET(ctx->iv2); RESET(ctx->iv1);
-  RESET(ctx->fsl);
-  RESET(ctx->fw00);
-  RESET(ctx->fw10); RESET(ctx->fw11); 
-  RESET(ctx->fw20); RESET(ctx->fw21); RESET(ctx->fw22);
-  RESET(ctx->off);
-}
-
-/*
-******** gageSclSetKernel()
-**
-** tell the prober what kernels to use for the various tasks
-*/
-int
-gageSclSetKernel(gageSclContext *ctx, int which,
-		 NrrdKernel *k, double *param) {
-  char me[]="gageSclSetKernel", err[AIR_STRLEN_MED];
-  int numParam;
-  double support, integral;
-
-  if (!(ctx && k && param)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
-  }
-  if (!(AIR_BETWEEN(gageKernelUnknown, which, gageKernelLast))) {
-    sprintf(err, "%s: \"which\" not in range [%d,%d]", me,
-	    gageKernelUnknown+1, gageKernelLast-1);
-    biffAdd(GAGE, err); return 1;
-  }
-  numParam = k->numParam;
-  if (numParam > NRRD_KERNEL_PARAMS_MAX) {
-    sprintf(err, "%s: kernel's numParam=%d > NRRD_KERNEL_PARAMS_MAX=%d",
-	    me, numParam, NRRD_KERNEL_PARAMS_MAX);
-    biffAdd(GAGE, err); return 1;
-  }
-  support = k->support(param);
-  if (!( support > 0 )) {
-    sprintf(err, "%s: kernel's support (%g) not > 0", me, support);
-    biffAdd(GAGE, err); return 1;
-  }
-  if (gageKernel00 == which ||
-      gageKernel10 == which ||
-      gageKernel20 == which) {
-    integral = k->integral(param);
-    if (!( integral > 0 )) {
-      sprintf(err, "%s: reconstructionkernel's integral (%g) not > 0",
-	      me, integral);
-      biffAdd(GAGE, err); return 1;
-    }
-  }
-
-  /* okay, fine, set the kernel */
-  ctx->k[which] = k;
-  memcpy(ctx->kparam[which], param, numParam*sizeof(double));
-
-  if (_gageSclSetKernelDependent(ctx)) {
+  if (_gageSclQueryDependentSet(sctx)) {
     sprintf(err, "%s:", me);
     biffAdd(GAGE, err); return 1;
   }
-  
+
   return 0;
 }
 
 /*
-******** _gageSclSetKernelDependent()
+** _gageSclQueryDependentSet()
 **
-** Sets all things immediately and solely dependent on kernels:
-** needPad, k3pack, fr, fd, iv{3,2,1}, fsl, fw{00,10,11,20,21,22}, off
+** sets needK
+**
+** currently, always returns 0, but that might change
 */
 int
-_gageSclSetKernelDependent(gageSclContext *ctx) {
-  char me[]="_gageSclSetKernelDependent", err[AIR_STRLEN_MED];
-  float maxRad;
-  int fd, k, E;
-
-  maxRad = 0;
-  for (k=gageKernel00; k<=gageKernel22; k++) {
-    if (ctx->k[k]) {
-      if (gageKernel10 == k || gageKernel20 == k || gageKernel21 == k)
-	ctx->k3pack = AIR_FALSE;
-      maxRad = AIR_MAX(maxRad, ctx->k[k]->support(ctx->kparam[k]));
-    }
-  }
-  ctx->fr = AIR_ROUNDUP(maxRad);
-  ctx->needPad = ctx->fr-1;
-  ctx->fd = 2*ctx->fr;
-  fprintf(stderr, "!%s: fr = %d, needPad = %d, fd = %d\n",
-	  "_gageSclSetKernelDependent", ctx->fr, ctx->needPad, ctx->fd);
-	  
-
-  /* it is in fact somewhat silly to be freeing and reallocating these
-     every time a new kernel is set, especially since we may not actually
-     need all of them for the current query, but it simplifies the task of
-     preparing things prior to the gageSclCheck() and gageScl() calls */
-  RESET(ctx->iv3); RESET(ctx->iv2); RESET(ctx->iv1);
-  RESET(ctx->fsl);
-  RESET(ctx->fsl);
-  RESET(ctx->fw00);
-  RESET(ctx->fw10); RESET(ctx->fw11); 
-  RESET(ctx->fw20); RESET(ctx->fw21); RESET(ctx->fw22);
-  RESET(ctx->off);
-  E = 0;
-  fd = ctx->fd;
-  if (!E) E |= !(ctx->iv3 = calloc(fd*fd*fd, sizeof(GT)));
-  if (!E) E |= !(ctx->iv2 = calloc(fd*fd, sizeof(GT)));
-  if (!E) E |= !(ctx->iv1 = calloc(fd, sizeof(GT)));
-  if (!E) E |= !(ctx->fsl = calloc(fd*3, sizeof(GT)));
-  /* we allocate all of these regardless of the query for generality */
-  if (!E) E |= !(ctx->fw00 = calloc(fd*3, sizeof(GT)));
-  if (!E) E |= !(ctx->fw10 = calloc(fd*3, sizeof(GT)));
-  if (!E) E |= !(ctx->fw11 = calloc(fd*3, sizeof(GT)));
-  if (!E) E |= !(ctx->fw20 = calloc(fd*3, sizeof(GT)));
-  if (!E) E |= !(ctx->fw21 = calloc(fd*3, sizeof(GT)));
-  if (!E) E |= !(ctx->fw22 = calloc(fd*3, sizeof(GT)));
-  if (!E) E |= !(ctx->off = calloc(fd*fd*fd, sizeof(int)));
-  if (E) {
-    sprintf(err, "%s: couldn't allocate all caches for fd=%d", me, fd);
-    biffAdd(GAGE, err); return 1;
-  }
+_gageSclQueryDependentSet(gageSclContext *sctx) {
+  /* char me[]="_gageSclQueryDependentSet", err[AIR_STRLEN_MED]; */
+  unsigned int q;
   
+  memset(sctx->needK, 0, GAGE_KERNEL_NUM*sizeof(int));
+  sctx->doV = sctx->doD1 = sctx->doD2 = AIR_FALSE;
+  q = GAGE_SCL_MAX+1;
+  do {
+    q--;
+    if (sctx->query & (1 << q)) {
+      switch(_gageSclNeedDeriv[q]) {
+      case 0:
+	sctx->doV = AIR_TRUE;
+	sctx->needK[gageKernel00] = AIR_TRUE;
+	break;
+      case 1:
+	sctx->doD1 = AIR_TRUE;
+	sctx->needK[gageKernel11] = AIR_TRUE;
+	if (!sctx->k3pack) {
+	  sctx->needK[gageKernel11] = AIR_TRUE;
+	}
+	break;
+      case 2:
+	sctx->doD2 = AIR_TRUE;
+	sctx->needK[gageKernel22] = AIR_TRUE;
+	if (!sctx->k3pack) {
+	  sctx->needK[gageKernel20] = AIR_TRUE;
+	  sctx->needK[gageKernel21] = AIR_TRUE;
+	}
+	break;
+      }
+    }
+  } while (q);
+  fprintf(stderr, "!%s: needK = %d ; %d %d ; %d %d %d\n",
+	  "_gageSclQueryDependentSet",
+	  sctx->needK[gageKernel00],
+	  sctx->needK[gageKernel10],
+	  sctx->needK[gageKernel11],
+	  sctx->needK[gageKernel20],
+	  sctx->needK[gageKernel21],
+	  sctx->needK[gageKernel22]);
+
   return 0;
 }
 
-int
-gageSclGetNeedPad(gageSclContext *ctx) {
 
-  return ctx ? ctx->needPad : -1;
+int
+gageSclNeedPadGet(gageSclContext *sctx) {
+
+  return sctx ? sctx->c.needPad : -1;
 }
 
 int
-gageSclSetPaddedVolume(gageSclContext *ctx, int pad, Nrrd *npad) {
-  char me[]="gageSclSetPaddedVolume", err[AIR_STRLEN_MED];
+gageSclVolumeSet(gageSclContext *sctx, int pad, Nrrd *npad) {
+  char me[]="gageSclVolumeSet", err[AIR_STRLEN_MED];
 
-  if (!( ctx && npad )) {
+  if (!( sctx && npad )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return 1;
-  }
-  if (!( ctx->needPad >= 0 )) {
-    sprintf(err, "%s: known needed padding (%d) invalid", me, ctx->needPad);
-    biffAdd(GAGE, err); return 1;
-  }
-  if (!( pad >= ctx->needPad)) {
-    sprintf(err, "%s: given pad (%d) not >= needed padding (%d)", 
-	    me, pad, ctx->needPad);
-    biffAdd(GAGE, err); return 1;
-  }
-  if (!nrrdValid(npad)) {
-    sprintf(err, "%s: basic nrrd validity check failed", me);
-    biffMove(GAGE, err, NRRD); return 1;
   }
   if (3 != npad->dim) {
     sprintf(err, "%s: need a 3-dimensional nrrd (not %d)", me, npad->dim);
     biffAdd(GAGE, err); return 1;
   }
-  if (nrrdTypeBlock == npad->dim) {
-    sprintf(err, "%s: need a non-block type nrrd", me);
+  if (_gageVolumeSet(&sctx->c, pad, npad, 0)) {
+    sprintf(err, "%s:", me);
     biffAdd(GAGE, err); return 1;
   }
 
-  ctx->havePad = pad;
-  ctx->npad = npad;
+  sctx->npad = npad;
 
-  if (_gageSclSetVolumeDependent(ctx)) {
+  if (_gageSclVolumeDependentSet(sctx)) {
     sprintf(err, "%s:", me);
     biffAdd(GAGE, err); return 1;
   }
@@ -387,115 +287,76 @@ gageSclSetPaddedVolume(gageSclContext *ctx, int pad, Nrrd *npad) {
 }
 
 /*
-** _gageSclSetVolumeDependent()
+** _gageSclVolumeDependentSet()
 **
-** Sets all things immediately and solely dependent on the volume
-** lup, {x,y,z}s, s{x,y,z}, o2, o4
 */
 int
-_gageSclSetVolumeDependent(gageSclContext *ctx) {
-  char me[]="_gageSclSetVolumeDependent", err[AIR_STRLEN_MED];
-  int i, j, k, fd;
+_gageSclVolumeDependentSet(gageSclContext *sctx) {
+  /* char me[]="_gageSclVolumeDependentSet", err[AIR_STRLEN_MED]; */
 
-#if GT_FLOAT
-  ctx->lup = nrrdFLookup[ctx->npad->type];
-#else
-  ctx->lup = nrrdDLookup[ctx->npad->type];
-#endif
-  ctx->sx = ctx->npad->axis[0].size;
-  ctx->sy = ctx->npad->axis[1].size;
-  ctx->sz = ctx->npad->axis[2].size;
-  ctx->xs = ctx->npad->axis[0].spacing;
-  ctx->ys = ctx->npad->axis[1].spacing;
-  ctx->zs = ctx->npad->axis[2].spacing;
-  ctx->xs = AIR_EXISTS(ctx->xs) ? ctx->xs : nrrdDefSpacing;
-  ctx->ys = AIR_EXISTS(ctx->ys) ? ctx->ys : nrrdDefSpacing;
-  ctx->zs = AIR_EXISTS(ctx->zs) ? ctx->zs : nrrdDefSpacing;
-  if (!ctx->off) {
-    sprintf(err, "%s: offset array (ctx->off) not allocated", me);
-    biffAdd(GAGE, err); return 1;
-  }
-  fd = ctx->fd;
-  for (k=0; k<fd; k++)
-    for (j=0; j<fd; j++)
-      for (i=0; i<fd; i++)
-	ctx->off[i+fd*(j+fd*k)] = i + ctx->sx*(j + ctx->sy*k);
+  sctx->lup = nrrdLOOKUP[sctx->npad->type];
   return 0;
 }
 
 /*
-******** gageSclCheck()
+******** gageSclUpdate()
 **
-** makes sure that everything needed by gageScl() is set, and set to
-** something reasonable, so that gageScl() doesn't have to do any
+** makes sure that everything needed by gageSclProbe() is set, and set to
+** something reasonable, so that gageSclProbe() doesn't have to do any
 ** error checking.
+**
+** May at some point actually create new information based on input
+** paramters, but for the time being this responsibility has been
+** pushed towards the Set methods.
 */
 int
-gageSclUpdate(gageSclContext *ctx) {
+gageSclUpdate(gageSclContext *sctx) {
   char me[]="gageSclUpdate", err[AIR_STRLEN_MED];
 
-  if (!ctx) {
+  if (!sctx) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return 1;
   }
-  if (!ctx->query) {
+  if (!sctx->npad) {
+    sprintf(err, "%s: no padded volume has been set", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  if (!sctx->query) {
     sprintf(err, "%s: no query has been set", me);
     biffAdd(GAGE, err); return 1;
   }
-  if (!( ctx->havePad >= ctx->needPad)) {
-    sprintf(err, "%s: current padding (%d) not >= needed padding (%d)", 
-	    me, ctx->havePad, ctx->needPad);
+  /* this will check on kernels */
+  if (_gageUpdate(&sctx->c, sctx->needK)) {
+    sprintf(err, "%s:", me);
     biffAdd(GAGE, err); return 1;
   }
-  if (0 == ctx->fr) {
-    sprintf(err, "%s: calculated max filter radius to be 0", me);
-    biffAdd(GAGE, err); return 1;
-  }
-  if (2 == ctx->maxDeriv) {
-    if (!ctx->k[gageKernel22]) {
-      sprintf(err, "%s: need 2nd deriv. for query, but no kernel set", me);
-      biffAdd(GAGE, err); return 1;
-    }
-    if (!!ctx->k[gageKernel20] ^ !!ctx->k[gageKernel21]) {
-      sprintf(err, "%s: need both or neither of gageKernel20, gageKernel21",
-	      me);
-      biffAdd(GAGE, err); return 1;
-    }
-  }
-  else if (1 == ctx->maxDeriv) {
-    if (!ctx->k[gageKernel11]) {
-      sprintf(err, "%s: need 1st deriv. for query, but no kernel set", me);
-      biffAdd(GAGE, err); return 1;
-    }
-  }
-  
   
   return 0;
 }
 
 gageSclContext *
-gageSclContextCopy(gageSclContext *ctx) {
-  char me[]="gageSclContextClone", err[AIR_STRLEN_MED];
-  gageSclContext *nctx;
-  int E, k;
+gageSclContextCopy(gageSclContext *sctx) {
+  char me[]="gageSclContextCopy", err[AIR_STRLEN_MED];
+  gageSclContext *nsctx;
+  int E, i;
   
-  if (!ctx) {
+  if (!sctx) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return NULL;
   }
-  nctx = gageSclContextNew();
+  nsctx = gageSclContextNew();
   E = 0;
-  if (!E) E |= gageSclSetQuery(nctx, ctx->query);
-  for (k=gageKernelUnknown+1; k<gageKernelLast; k++) {
-    if (ctx->k[k]) {
-      if (!E) E |= gageSclSetKernel(nctx, k, ctx->k[k], ctx->kparam[k]);
+  for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
+    if (sctx->c.k[i]) {
+      if (!E) E |= gageSclKernelSet(nsctx, i, sctx->c.k[i], sctx->c.kparm[i]);
     }
   }
-  if (!E) E |= gageSclSetPaddedVolume(nctx, ctx->havePad, ctx->npad);
-  if (!E) E |= gageSclUpdate(nctx);
+  if (!E) E |= gageSclVolumeSet(nsctx, sctx->c.havePad, sctx->npad);
+  if (!E) E |= gageSclQuerySet(nsctx, sctx->query);
+  if (!E) E |= gageSclUpdate(nsctx);
   if (E) {
     sprintf(err, "%s:", me);
     biffAdd(GAGE, err); return NULL;
   }
-  return nctx;
+  return nsctx;
 }

@@ -20,13 +20,15 @@
 #include "gage.h"
 #include "private.h"
 
-void
-_gageScl3PFilter2(GT *iv3, GT *iv2, GT *iv1,
-		  GT *fw0, GT *fw1, GT *fw2,
-		  GT *val, GT *gvec, GT *hess,
-		  int doD1, int doD2) {
+#define X 0
+#define Y 1
+#define Z 2
 
-#define D2(a, b) ((a)[0]*(b)[0] + (a)[1]*(b)[1])
+void
+_gageScl3PFilter2(gage_t *ivX, gage_t *ivY, gage_t *ivZ,
+		  gage_t *fw0, gage_t *fw1, gage_t *fw2,
+		  gage_t *val, gage_t *gvec, gage_t *hess,
+		  int doV, int doD1, int doD2) {
 
   /* fw? + 2*?
        |     |  
@@ -34,267 +36,89 @@ _gageScl3PFilter2(GT *iv3, GT *iv2, GT *iv1,
        |
        + what information (0:value, 1:1st deriv, 2:2nd deriv)
 
-     iv3: 3D cube cache of original volume values
-     iv2: 2D square cache of intermediate filter results
-     iv1: 1D linear cache of intermediate filter results
+     ivX: 3D cube cache of original volume values
+          (its scanlines are along the X axis)
+     ivY: 2D square cache of intermediate filter results
+          (its scanlines are along the Y axis)
+     ivZ: 1D linear cache of intermediate filter results
+          (it is a scanline along the Z axis)
   */
 
+#define DOT2(a, b) ((a)[0]*(b)[0] + (a)[1]*(b)[1])
+#define VL_2(i, axis) (DOT2(fw0 + (axis)*2, iv##axis + i*2))
+#define D1_2(i, axis) (DOT2(fw1 + (axis)*2, iv##axis + i*2))
+#define D2_2(i, axis) (DOT2(fw2 + (axis)*2, iv##axis + i*2))
+
   /* x0 */
-  iv2[0] = D2(fw0 + 2*0, iv3 + 2*0);
-  iv2[1] = D2(fw0 + 2*0, iv3 + 2*1);
-  iv2[2] = D2(fw0 + 2*0, iv3 + 2*2);
-  iv2[3] = D2(fw0 + 2*0, iv3 + 2*3);
+  ivY[0] = VL_2(0,X); /* interpolate values of 0th scanline along X axis */
+  ivY[1] = VL_2(1,X);
+  ivY[2] = VL_2(2,X);
+  ivY[3] = VL_2(3,X);
   /* x0y0 */
-  iv1[0] = D2(fw0 + 2*1, iv2 + 2*0);           
-  iv1[1] = D2(fw0 + 2*1, iv2 + 2*1);
-  *val = D2(fw0 + 2*2, iv1);                   /* f */
-  if (doD1) {
-    gvec[2] = D2(fw1 + 2*2, iv1);              /* g_z */
-    if (doD2) {
-      hess[8] = D2(fw2 + 2*2, iv1);            /* h_zz */
-    }
-    /* x0y1 */
-    iv1[0] = D2(fw1 + 2*1, iv2 + 2*0);           
-    iv1[1] = D2(fw1 + 2*1, iv2 + 2*1);   
-    gvec[1] = D2(fw0 + 2*2, iv1);              /* g_y */
-    if (doD2) {
-      hess[5] = hess[7] = D2(fw1 + 2*2, iv1);  /* h_yz */
-      /* x0y2 */
-      iv1[0] = D2(fw2 + 2*1, iv2 + 2*0);           
-      iv1[1] = D2(fw2 + 2*1, iv2 + 2*1);
-      hess[4] = D2(fw0 + 2*2, iv1);            /* h_yy */
-    }
-    /* x1 */
-    iv2[0] = D2(fw1 + 2*0, iv3 + 2*0);
-    iv2[1] = D2(fw1 + 2*0, iv3 + 2*1);
-    iv2[2] = D2(fw1 + 2*0, iv3 + 2*2);
-    iv2[3] = D2(fw1 + 2*0, iv3 + 2*3);
-    /* x1y0 */
-    iv1[0] = D2(fw0 + 2*1, iv2 + 2*0);           
-    iv1[1] = D2(fw0 + 2*1, iv2 + 2*1);
-    gvec[0] = D2(fw0 + 2*2, iv1);              /* g_x */
-    if (doD2) {
-      hess[2] = hess[6] = D2(fw1 + 2*2, iv1);  /* h_xz */
-      /* x1y1 */
-      iv1[0] = D2(fw1 + 2*1, iv2 + 2*0);           
-      iv1[1] = D2(fw1 + 2*1, iv2 + 2*1);
-      hess[1] = hess[3] = D2(fw0 + 2*2, iv1);  /* h_xy */
-      /* x2 */
-      iv2[0] = D2(fw2 + 2*0, iv3 + 2*0);
-      iv2[1] = D2(fw2 + 2*0, iv3 + 2*1);
-      iv2[2] = D2(fw2 + 2*0, iv3 + 2*2);
-      iv2[3] = D2(fw2 + 2*0, iv3 + 2*3);
-      /* x2y0 */
-      iv1[0] = D2(fw0 + 2*1, iv2 + 2*0);           
-      iv1[1] = D2(fw0 + 2*1, iv2 + 2*1);
-      hess[0] = D2(fw0 + 2*2, iv1);            /* h_xx */
-    }
+  ivZ[0] = VL_2(0,Y);
+  ivZ[1] = VL_2(1,Y);
+  /* x0y0z0 */
+  /* if (doV) ... but just do it anyway */
+  *val = VL_2(0,Z);                            /* f */
+
+  if (!( doD1 || doD2 ))
+    return;
+
+  /* x0y0z1 */
+  /* if (doD1) */
+  gvec[2] = D1_2(0,Z);                         /* g_z */
+  if (doD2) {
+    /* x0y0z2 */
+    hess[8] = D2_2(0,Z);                       /* h_zz */
   }
+  /* x0y1 */
+  ivZ[0] = D1_2(0,Y);
+  ivZ[1] = D1_2(1,Y);
+  /* x0y1z0 */
+  /* if (doD1) */
+  gvec[1] = VL_2(0,Z);                         /* g_y */
+  if (doD2) {
+    /* x0y1z1 */
+    hess[5] = hess[7] = D1_2(0,Z);             /* h_yz */
+    /* x0y2 */
+    ivZ[0] = D2_2(0,Y);
+    ivZ[1] = D2_2(1,Y);
+    /* x0y2z0 */
+    hess[4] = VL_2(0,Z);                       /* h_yy */
+  }
+  /* x1 */
+  ivY[0] = D1_2(0,X);
+  ivY[1] = D1_2(1,X);
+  ivY[2] = D1_2(2,X);
+  ivY[3] = D1_2(3,X);
+  /* x1y0 */
+  ivZ[0] = VL_2(0,Y);
+  ivZ[1] = VL_2(1,Y);
+  /* x1y0z0 */
+  /* if (doD1) */
+  gvec[0] = VL_2(0,Z);                         /* g_x */
+
+  if (!doD2)
+    return;
+
+  /* x1y0z1 */
+  hess[2] = hess[6] = D1_2(0,Z);               /* h_xz */
+  /* x1y1 */
+  ivZ[0] = D1_2(0,Y);
+  ivZ[1] = D1_2(1,Y);
+  /* x1y1z0 */
+  hess[1] = hess[3] = VL_2(0,Z);               /* h_xy */
+  /* x2 */
+  ivY[0] = D2_2(0,X);
+  ivY[1] = D2_2(1,X);
+  ivY[2] = D2_2(2,X);
+  ivY[3] = D2_2(3,X);
+  /* x2y0 */
+  ivZ[0] = VL_2(0,Y);
+  ivZ[1] = VL_2(1,Y);
+  /* x2y0z0 */
+  hess[0] = VL_2(0,Z);                         /* h_xx */
+
   return;
 }
 
-void
-_gageScl3PFilter4(GT *iv3, GT *iv2, GT *iv1,
-		  GT *fw0, GT *fw1, GT *fw2,
-		  GT *val, GT *gvec, GT *hess,
-		  int doD1, int doD2) {
-#define D4(a,b) ((a)[0]*(b)[0]+(a)[1]*(b)[1]+(a)[2]*(b)[2]+(a)[3]*(b)[3])
-  /* x0 */
-  iv2[ 0] = D4(fw0 + 4*0, iv3 + 4* 0);
-  iv2[ 1] = D4(fw0 + 4*0, iv3 + 4* 1);
-  iv2[ 2] = D4(fw0 + 4*0, iv3 + 4* 2);
-  iv2[ 3] = D4(fw0 + 4*0, iv3 + 4* 3);
-  iv2[ 4] = D4(fw0 + 4*0, iv3 + 4* 4);
-  iv2[ 5] = D4(fw0 + 4*0, iv3 + 4* 5);
-  iv2[ 6] = D4(fw0 + 4*0, iv3 + 4* 6);
-  iv2[ 7] = D4(fw0 + 4*0, iv3 + 4* 7);
-  iv2[ 8] = D4(fw0 + 4*0, iv3 + 4* 8);
-  iv2[ 9] = D4(fw0 + 4*0, iv3 + 4* 9);
-  iv2[10] = D4(fw0 + 4*0, iv3 + 4*10);
-  iv2[11] = D4(fw0 + 4*0, iv3 + 4*11);
-  iv2[12] = D4(fw0 + 4*0, iv3 + 4*12);
-  iv2[13] = D4(fw0 + 4*0, iv3 + 4*13);
-  iv2[14] = D4(fw0 + 4*0, iv3 + 4*14);
-  iv2[15] = D4(fw0 + 4*0, iv3 + 4*15);
-  /* x0y0 */
-  iv1[0] = D4(fw0 + 4*1, iv2 + 4*0);
-  iv1[1] = D4(fw0 + 4*1, iv2 + 4*1);
-  iv1[2] = D4(fw0 + 4*1, iv2 + 4*2);
-  iv1[3] = D4(fw0 + 4*1, iv2 + 4*3);
-  *val = D4(fw0 + 4*2, iv1);                   /* f */
-  if (doD1) {
-    gvec[2] = D4(fw1 + 4*2, iv1);              /* g_z */
-    if (doD2) {
-      hess[8] = D4(fw2 + 4*2, iv1);            /* h_zz */
-    }
-    /* x0y1 */
-    iv1[0] = D4(fw1 + 4*1, iv2 + 4*0);
-    iv1[1] = D4(fw1 + 4*1, iv2 + 4*1);
-    iv1[2] = D4(fw1 + 4*1, iv2 + 4*2);
-    iv1[3] = D4(fw1 + 4*1, iv2 + 4*3);
-    gvec[1] = D4(fw0 + 4*2, iv1);              /* g_y */
-    if (doD2) {
-      hess[5] = hess[7] = D4(fw1 + 4*2, iv1);  /* h_yz */
-      /* x0y2 */
-      iv1[0] = D4(fw2 + 4*1, iv2 + 4*0);
-      iv1[1] = D4(fw2 + 4*1, iv2 + 4*1);
-      iv1[2] = D4(fw2 + 4*1, iv2 + 4*2);
-      iv1[3] = D4(fw2 + 4*1, iv2 + 4*3);
-      hess[4] = D4(fw0 + 4*2, iv1);            /* h_yy */
-    }
-    /* x1 */
-    iv2[ 0] = D4(fw1 + 4*0, iv3 + 4* 0);
-    iv2[ 1] = D4(fw1 + 4*0, iv3 + 4* 1);
-    iv2[ 2] = D4(fw1 + 4*0, iv3 + 4* 2);
-    iv2[ 3] = D4(fw1 + 4*0, iv3 + 4* 3);
-    iv2[ 4] = D4(fw1 + 4*0, iv3 + 4* 4);
-    iv2[ 5] = D4(fw1 + 4*0, iv3 + 4* 5);
-    iv2[ 6] = D4(fw1 + 4*0, iv3 + 4* 6);
-    iv2[ 7] = D4(fw1 + 4*0, iv3 + 4* 7);
-    iv2[ 8] = D4(fw1 + 4*0, iv3 + 4* 8);
-    iv2[ 9] = D4(fw1 + 4*0, iv3 + 4* 9);
-    iv2[10] = D4(fw1 + 4*0, iv3 + 4*10);
-    iv2[11] = D4(fw1 + 4*0, iv3 + 4*11);
-    iv2[12] = D4(fw1 + 4*0, iv3 + 4*12);
-    iv2[13] = D4(fw1 + 4*0, iv3 + 4*13);
-    iv2[14] = D4(fw1 + 4*0, iv3 + 4*14);
-    iv2[15] = D4(fw1 + 4*0, iv3 + 4*15);
-    /* x1y0 */
-    iv1[ 0] = D4(fw0 + 4*1, iv2 + 4*0);
-    iv1[ 1] = D4(fw0 + 4*1, iv2 + 4*1);
-    iv1[ 2] = D4(fw0 + 4*1, iv2 + 4*2);
-    iv1[ 3] = D4(fw0 + 4*1, iv2 + 4*3);
-    gvec[0] = D4(fw0 + 4*2, iv1);              /* g_x */
-    if (doD2) {
-      hess[2] = hess[6] = D4(fw1 + 4*2, iv1);  /* h_xz */
-      /* x1y1 */
-      iv1[ 0] = D4(fw1 + 4*1, iv2 + 4*0);
-      iv1[ 1] = D4(fw1 + 4*1, iv2 + 4*1);
-      iv1[ 2] = D4(fw1 + 4*1, iv2 + 4*2);
-      iv1[ 3] = D4(fw1 + 4*1, iv2 + 4*3);
-      hess[1] = hess[3] = D4(fw0 + 4*2, iv1);  /* h_xy */
-      /* x2 (damn h_xx) */
-      iv2[ 0] = D4(fw2 + 4*0, iv3 + 4* 0);
-      iv2[ 1] = D4(fw2 + 4*0, iv3 + 4* 1);
-      iv2[ 2] = D4(fw2 + 4*0, iv3 + 4* 2);
-      iv2[ 3] = D4(fw2 + 4*0, iv3 + 4* 3);
-      iv2[ 4] = D4(fw2 + 4*0, iv3 + 4* 4);
-      iv2[ 5] = D4(fw2 + 4*0, iv3 + 4* 5);
-      iv2[ 6] = D4(fw2 + 4*0, iv3 + 4* 6);
-      iv2[ 7] = D4(fw2 + 4*0, iv3 + 4* 7);
-      iv2[ 8] = D4(fw2 + 4*0, iv3 + 4* 8);
-      iv2[ 9] = D4(fw2 + 4*0, iv3 + 4* 9);
-      iv2[10] = D4(fw2 + 4*0, iv3 + 4*10);
-      iv2[11] = D4(fw2 + 4*0, iv3 + 4*11);
-      iv2[12] = D4(fw2 + 4*0, iv3 + 4*12);
-      iv2[13] = D4(fw2 + 4*0, iv3 + 4*13);
-      iv2[14] = D4(fw2 + 4*0, iv3 + 4*14);
-      iv2[15] = D4(fw2 + 4*0, iv3 + 4*15);
-      /* x2y0 */
-      iv1[ 0] = D4(fw0 + 4*1, iv2 + 4*0);
-      iv1[ 1] = D4(fw0 + 4*1, iv2 + 4*1);
-      iv1[ 2] = D4(fw0 + 4*1, iv2 + 4*2);
-      iv1[ 3] = D4(fw0 + 4*1, iv2 + 4*3);
-      hess[0] = D4(fw0 + 4*2, iv1);            /* h_xx */
-    }
-  }
-  return;
-}
-
-void
-_gageScl3PFilterN(int fd,
-		  GT *iv3, GT *iv2, GT *iv1,
-		  GT *fw0, GT *fw1, GT *fw2,
-		  GT *val, GT *gvec, GT *hess,
-		  int doD1, int doD2) {
-  int i, j, k;
-  double F;
-
-  /* x0 */
-  for (k=0; k<fd; k++)
-    for (j=0; j<fd; j++) {
-      for (F=i=0; i<fd; i++) F += fw0[i + fd*0]*iv3[i + fd*(j + fd*k)];
-      iv2[j + fd*k] = F;
-    }
-  /* x0y0 */
-  for (k=0; k<fd; k++) {
-    for (F=j=0; j<fd; j++) F += fw0[j + fd*1]*iv2[j + fd*k];
-    iv1[k] = F;
-  }
-  /* f */
-  for (F=i=0; i<fd; i++) F += fw0[i + fd*2]*iv1[i];
-  *val = F;
-  if (doD1) {
-    /* g_z */
-    for (F=i=0; i<fd; i++) F += fw1[i + fd*2]*iv1[i];
-    gvec[2] = F;
-    if (doD2) {
-      /* h_zz */
-      for (F=i=0; i<fd; i++) F += fw2[i + fd*2]*iv1[i];
-      hess[8] = F;
-    }
-    /* x0y1 */
-    for (k=0; k<fd; k++) {
-      for (F=j=0; j<fd; j++) F += fw1[j + fd*1]*iv2[j + fd*k];
-      iv1[k] = F;
-    }
-    /* g_y */
-    for (F=i=0; i<fd; i++) F += fw0[i + fd*2]*iv1[i];
-    gvec[1] = F;
-    if (doD2) {
-      /* h_yz */
-      for (F=i=0; i<fd; i++) F += fw1[i + fd*2]*iv1[i];
-      hess[7] = hess[5] = F;
-      /* x0y2 */
-      for (k=0; k<fd; k++) {
-	for (F=j=0; j<fd; j++) F += fw2[j + fd*1]*iv2[j + fd*k];
-	iv1[k] = F;
-      }
-      /* h_yy */
-      for (F=i=0; i<fd; i++) F += fw0[i + fd*2]*iv1[i];
-      hess[4] = F;
-    }
-    /* x1 */
-    for (k=0; k<fd; k++)
-      for (j=0; j<fd; j++) {
-	for (F=i=0; i<fd; i++) F += fw1[i + fd*0]*iv3[i + fd*(j + fd*k)];
-	iv2[j + fd*k] = F;
-      }
-    /* x1y0 */
-    for (k=0; k<fd; k++) {
-      for (F=j=0; j<fd; j++) F += fw0[j + fd*1]*iv2[j + fd*k];
-      iv1[k] = F;
-    }
-    /* g_x */
-    for (F=i=0; i<fd; i++) F += fw0[i + fd*2]*iv1[i];
-    gvec[0] = F;
-    if (doD2) {
-      /* h_xz */
-      for (F=i=0; i<fd; i++) F += fw1[i + fd*2]*iv1[i];
-      hess[2] = hess[6] = F;
-      /* x1y1 */
-      for (k=0; k<fd; k++) {
-	for (F=j=0; j<fd; j++) F += fw1[j + fd*1]*iv2[j + fd*k];
-	iv1[k] = F;
-      }
-      /* h_xy */
-      for (F=i=0; i<fd; i++) F += fw0[i + fd*2]*iv1[i];
-      hess[1] = hess[3] = F;
-      /* x2 (damn h_xx) */
-      for (k=0; k<fd; k++)
-	for (j=0; j<fd; j++) {
-	  for (F=i=0; i<fd; i++) F += fw2[i + fd*0]*iv3[i + fd*(j + fd*k)];
-	  iv2[j + fd*k] = F;
-	}
-      /* x2y0 */
-      for (k=0; k<fd; k++) {
-	for (F=j=0; j<fd; j++) F += fw0[j + fd*1]*iv2[j + fd*k];
-	iv1[k] = F;
-      }
-      /* h_xx */
-      for (F=i=0; i<fd; i++) F += fw0[i + fd*2]*iv1[i];
-      hess[0] = F;
-    }
-  }
-  return;
-}

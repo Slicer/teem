@@ -43,7 +43,7 @@ rmapMain(int argc, char **argv, char *me) {
   int mapax;
 
   OPT_ADD_NIN(nin, "input nrrd");
-  hestOptAdd(&opt, "m", "nin", airTypeOther, 1, 1, &nmap, NULL,
+  hestOptAdd(&opt, "m", "map", airTypeOther, 1, 1, &nmap, NULL,
 	     "regular map to map input nrrd through",
 	     NULL, NULL, &unuNrrdHestCB);
   OPT_ADD_NOUT(out, "output nrrd");

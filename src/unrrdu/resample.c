@@ -42,7 +42,7 @@ char *resampleInfoL = (INFO
 */
 typedef struct {
   NrrdKernel *kernel;
-  double param[NRRD_KERNEL_PARAMS_MAX];
+  double parm[NRRD_KERNEL_PARMS_NUM];
 } unuNrrdKernel;
 
 int
@@ -55,7 +55,7 @@ unuParseKernel(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     return 1;
   }
   ker = ptr;
-  if (nrrdKernelParse(&(ker->kernel), ker->param, str)) {
+  if (nrrdKernelParse(&(ker->kernel), ker->parm, str)) {
     nerr = biffGetDone(NRRD);
     strncpy(err, nerr, AIR_STRLEN_HUGE-1);
     free(nerr);
@@ -196,7 +196,7 @@ resampleMain(int argc, char **argv, char *me) {
       info->samples[d] = scale[1 + 2*d];
       break;
     }
-    memcpy(info->param[d], unuk.param, NRRD_KERNEL_PARAMS_MAX*sizeof(double));
+    memcpy(info->parm[d], unuk.parm, NRRD_KERNEL_PARMS_NUM*sizeof(double));
     if (info->kernel[d] &&
 	(!( AIR_EXISTS(nin->axis[d].min) && AIR_EXISTS(nin->axis[d].max))) ) {
       nrrdAxisMinMaxSet(nin, d);

@@ -73,8 +73,7 @@ nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, double min, double max) {
       val = AIR_AFFINE(1.0, val, 0.0, min, max);
       ins(nout->data, I, val);
     }
-  }
-  else {
+  } else {
     for (I=0; I<num; I++) {
       val = lup(nin->data, I);
       val = AIR_AFFINE(min, val, max, 0.0, 1.0);
@@ -280,8 +279,7 @@ double _nrrdTernaryOpLerp(double a, double b, double c) {
     return b;
   } else if (1.0 == a) {
     return c;
-  }
-  else {
+  } else {
     return AIR_LERP(a, b, c);
   }
 }

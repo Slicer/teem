@@ -264,8 +264,7 @@ nrrdApply1DIrregMap(Nrrd *nout, Nrrd *nmap, Nrrd *nacl, Nrrd *nin) {
     }
     acl = nacl->data;
     acllen = nacl->axis[1]->size;
-  }
-  else {
+  } else {
     acl = NULL;
     acllen = 0;
   }
@@ -286,18 +285,15 @@ nrrdApply1DIrregMap(Nrrd *nout, Nrrd *nmap, Nrrd *nacl, Nrrd *nin) {
     if (val < mapmin) {
       idx = 0;
       idxf = 0.0;
-    }
-    else if (val > mapmax) {
+    } else if (val > mapmax) {
       idx = maplen-2;
       idxf = 1.0;
-    }
-    else {
+    } else {
       if (acl) {
 	AIR_INDEX(mapmin, val, mapmax, maplen, idx);
 	lo = acl[0 + 2*idx];
 	hi = acl[1 + 2*idx];
-      }
-      else {
+      } else {
 	lo = 0;
 	hi = maplen-1;
       }

@@ -21,5 +21,5 @@
 #include "private.h"
 
 int gageDefVerbose = 0;
-double gageDefEpsilon = 0.00001;
 int gageDefRenormalize = AIR_TRUE;
+double gageDefSclEpsilon = 0.00001;

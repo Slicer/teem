@@ -46,8 +46,7 @@ _nrrdMeasureMin(void *line, int lineType, int len,
       val = nrrdDLookup[lineType](line, i);
       M = AIR_MIN(M, val);
     }
-  }
-  else {
+  } else {
     M = AIR_NAN;
     for (i=0; !AIR_EXISTS(M) && i<len; i++)
       M = nrrdDLookup[lineType](line, i);
@@ -74,8 +73,7 @@ _nrrdMeasureMax(void *line, int lineType, int len,
       val = nrrdDLookup[lineType](line, i);
       M = AIR_MAX(M, val);
     }
-  }
-  else {
+  } else {
     M = AIR_NAN;
     for (i=0; !AIR_EXISTS(M) && i<len; i++)
       M = nrrdDLookup[lineType](line, i);
@@ -101,8 +99,7 @@ _nrrdMeasureProduct(void *line, int lineType, int len,
     for (i=0; i<len; i++) {
       P *= nrrdDLookup[lineType](line, i);
     }
-  }
-  else {
+  } else {
     P = AIR_NAN;
     /* the point of this is to ensure that that if there are NO
        existant values, then the return is NaN */
@@ -130,8 +127,7 @@ _nrrdMeasureSum(void *line, int lineType, int len,
     for (i=0; i<len; i++) {
       S += nrrdDLookup[lineType](line, i);
     }
-  }
-  else {
+  } else {
     S = AIR_NAN;
     for (i=0; !AIR_EXISTS(S) && i<len; i++)
       S = nrrdDLookup[lineType](line, i);
@@ -158,8 +154,7 @@ _nrrdMeasureMean(void *line, int lineType, int len,
       S += nrrdDLookup[lineType](line, i);
     }
     M = S/len;
-  }
-  else {
+  } else {
     S = AIR_NAN;
     for (i=0; !AIR_EXISTS(S) && i<len; i++)
       S = nrrdDLookup[lineType](line, i);
@@ -174,8 +169,7 @@ _nrrdMeasureMean(void *line, int lineType, int len,
 	}
       }
       M = S/count;
-    }
-    else {
+    } else {
       /* there were NO existant values */
       M = AIR_NAN;
     }
@@ -241,8 +235,7 @@ _nrrdMeasureMedian(void *line, int lineType, int len,
     if (len % 2) {
       /* len is odd, there is a middle value, its at mid */
       M = nrrdDLookup[lineType](line, i+mid);
-    }
-    else {
+    } else {
       /* len is even, two middle values are at mid-1 and mid */
       M = nrrdDLookup[lineType](line, i+mid-1);
       M += nrrdDLookup[lineType](line, i+mid);
@@ -265,8 +258,7 @@ _nrrdMeasureL1(void *line, int lineType, int len,
       val = nrrdDLookup[lineType](line, i);
       S += AIR_ABS(val);
     }
-  }
-  else {
+  } else {
     S = AIR_NAN;
     for (i=0; !AIR_EXISTS(S) && i<len; i++)
       S = nrrdDLookup[lineType](line, i);
@@ -294,8 +286,7 @@ _nrrdMeasureL2(void *line, int lineType, int len,
       val = nrrdDLookup[lineType](line, i);
       S += val*val;
     }
-  }
-  else {
+  } else {
     S = AIR_NAN;
     for (i=0; !AIR_EXISTS(S) && i<len; i++)
       S = nrrdDLookup[lineType](line, i);
@@ -325,8 +316,7 @@ _nrrdMeasureLinf(void *line, int lineType, int len,
       val = AIR_ABS(val);
       M = AIR_MAX(M, val);
     }
-  }
-  else {
+  } else {
     M = AIR_NAN;
     for (i=0; !AIR_EXISTS(M) && i<len; i++)
       M = nrrdDLookup[lineType](line, i);
@@ -358,8 +348,7 @@ _nrrdMeasureVariance(void *line, int lineType, int len,
     }
     S /= len;
     SS /= len;
-  }
-  else {
+  } else {
     count = 0;
     for (i=0; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
@@ -372,8 +361,7 @@ _nrrdMeasureVariance(void *line, int lineType, int len,
     if (count) {
       S /= count;
       SS /= count;
-    }
-    else {
+    } else {
       S = SS = AIR_NAN;
     }
   }
@@ -749,8 +737,7 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   for (d=0; d<nin->dim; d++) {
     if (d < axis) {
       colNum *= iSize[d];
-    }
-    else if (d > axis) {
+    } else if (d > axis) {
       rowNum *= iSize[d];
     }
   }

@@ -373,8 +373,7 @@ nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff) {
     if (2 == nrrd->dim) {
       /* its a gray-scale image */
       ret = 2;
-    }
-    else if (3 == nrrd->dim) {
+    } else if (3 == nrrd->dim) {
       if (3 != nrrd->axis[0].size) {
 	sprintf(err, "%s: dimension is 3, but first axis size is %d, not 3",
 		me, nrrd->axis[0].size);
@@ -383,8 +382,7 @@ nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff) {
       }
       /* else its an RGB image */
       ret = 3;
-    }
-    else {
+    } else {
       sprintf(err, "%s: dimension is %d, not 2 or 3", me, nrrd->dim);
       biffMaybeAdd(NRRD, err, useBiff); 
       return AIR_FALSE;
@@ -435,8 +433,7 @@ nrrdHasNonExistSet(Nrrd *nrrd) {
     return nrrdNonExistUnknown;
   if (nrrdTypeFixed[nrrd->type]) {
     nrrd->hasNonExist = nrrdNonExistFalse;
-  }
-  else {
+  } else {
     nrrd->hasNonExist = nrrdNonExistFalse;
     N = nrrdElementNumber(nrrd);
     for (I=0; I<N; I++) {

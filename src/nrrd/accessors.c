@@ -345,8 +345,7 @@ nrrdDClamp[NRRD_TYPE_MAX+1])(DB) = {
     if (a < b) {                                                         \
       min = AIR_MIN(a, min);                                             \
       max = AIR_MAX(b, max);                                             \
-    }                                                                    \
-    else {                                                               \
+    } else {                                                             \
       max = AIR_MAX(a, max);                                             \
       min = AIR_MIN(b, min);                                             \
     }                                                                    \
@@ -382,8 +381,7 @@ nrrdDClamp[NRRD_TYPE_MAX+1])(DB) = {
     if (AIR_EXISTS(a)) {                                                 \
       min = max = a;                                                     \
       break;                                                             \
-    }                                                                    \
-    else {                                                               \
+    } else {                                                             \
       nrrd->hasNonExist = nrrdNonExistTrue;                              \
     }                                                                    \
   }                                                                      \
@@ -396,14 +394,12 @@ nrrdDClamp[NRRD_TYPE_MAX+1])(DB) = {
     if (AIR_EXISTS(a)) {                                                 \
       if (a < min) {                                                     \
         min = a;                                                         \
-      }                                                                  \
-      else {                                                             \
+      } else {                                                           \
         if (a > max) {                                                   \
           max = a;                                                       \
         }                                                                \
       }                                                                  \
-    }                                                                    \
-    else {                                                               \
+    } else {                                                             \
       nrrd->hasNonExist = nrrdNonExistTrue;                              \
     }                                                                    \
   }                                                                      \

@@ -102,9 +102,9 @@ _nrrdResampleInfoInit(NrrdResampleInfo *info) {
   for (d=0; d<NRRD_DIM_MAX; d++) {
     info->kernel[d] = NULL;
     info->samples[d] = 0;
-    info->param[d][0] = nrrdDefRsmpScale;
-    for (i=1; i<NRRD_KERNEL_PARAMS_MAX; i++)
-      info->param[d][i] = AIR_NAN;
+    info->parm[d][0] = nrrdDefRsmpScale;
+    for (i=1; i<NRRD_KERNEL_PARMS_NUM; i++)
+      info->parm[d][i] = AIR_NAN;
     info->min[d] = info->max[d] = AIR_NAN;
   }
   info->boundary = nrrdDefRsmpBoundary;
@@ -575,8 +575,7 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
 
   if (!(nrrd->data)) {
     need = 1;
-  }
-  else {
+  } else {
     numWant = 1;
     for (d=0; d<dim; d++) {
       numWant *= size[d];

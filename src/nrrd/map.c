@@ -43,8 +43,7 @@ nrrdMinMaxSet(Nrrd *nrrd) {
       nrrdFindMinMax[nrrd->type](&_min, &_max, nrrd);
       nrrd->min = nrrdDLoad[nrrd->type](&_min);
       nrrd->max = nrrdDLoad[nrrd->type](&_max);
-    }
-    else {
+    } else {
       nrrd->min = nrrd->max = AIR_NAN;
     }
   }
@@ -95,8 +94,7 @@ nrrdMinMaxClever(Nrrd *nrrd) {
     if (nrrdTypeChar == nrrd->type) {
       nrrd->min = SCHAR_MIN;
       nrrd->max = SCHAR_MAX;
-    }
-    else {
+    } else {
       nrrd->min = 0;
       nrrd->max = UCHAR_MAX;
     }
@@ -172,8 +170,7 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
 	 of the same size, which will certainly be the case if the
 	 input and output types are identical, so there's actually
 	 no work to do */
-    }
-    else {
+    } else {
       if (nrrdCopy(nout, nin)) {
 	sprintf(err, "%s: couldn't copy input to output", me);
 	biffAdd(NRRD, err); return 1;
@@ -407,8 +404,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
     hist = nhist->data;
     min = nhist->axis[0].min;
     max = nhist->axis[0].max;
-  }
-  else {
+  } else {
     /* for "smart" mode, we have to some extra work in creating
        the histogram to look for bins always hit with the same value */
     if (nrrdAlloc(nhist=nrrdNew(), nrrdTypeUInt, 1, bins)) {
@@ -493,8 +489,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
     xcoord[i] = AIR_AFFINE(0, i, bins, min, max);
     if (i == 0) {
       ycoord[i] = 0;
-    }
-    else {
+    } else {
       ycoord[i] = ycoord[i-1] + hist[i-1]*(smart 
 					   ? respect[i-1] 
 					   : 1);

@@ -132,8 +132,7 @@ _nrrdReadDataRaw(Nrrd *nrrd, NrrdIO *io) {
 
   if (_nrrdFormatUsesDIO[io->format]) {
     dio = airDioTest(size, io->dataFile, NULL);
-  }
-  else {
+  } else {
     dio = airNoDio_format;
   }
   if (airNoDio_okay == dio) {
@@ -152,8 +151,7 @@ _nrrdReadDataRaw(Nrrd *nrrd, NrrdIO *io) {
       sprintf(err, "%s: airDioRead() failed", me);
       biffAdd(NRRD, err); return 1;
     }
-  }
-  else {
+  } else {
     if (_nrrdCalloc(nrrd)) {
       sprintf(err, "%s:", me); biffAdd(NRRD, err); return 1;
     }
@@ -247,8 +245,7 @@ _nrrdReadDataAscii(Nrrd *nrrd, NrrdIO *io) {
 		I+1, num, numStr);
 	biffAdd(NRRD, err); return 1;
       }
-    }
-    else {
+    } else {
       /* sscanf value into an int first */
       if (1 != airSingleSscanf(numStr, "%d", &tmp)) {
 	sprintf(err, "%s: couln't parse element "NRRD_BIG_INT_PRINTF
@@ -301,8 +298,7 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
 	biffAdd(NRRD, err); return 1;
       }
       io->seen[ret] = AIR_TRUE;
-    }
-    else {
+    } else {
       /* len <= 1 */
       break;
     }
@@ -359,8 +355,7 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
   }
   if (io->seperateHeader && stdin != io->dataFile) {
     io->dataFile = airFclose(io->dataFile);
-  }
-  else {
+  } else {
     /* put things back the way we found them */
     io->dataFile = NULL;
   }
@@ -503,8 +498,7 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, NrrdIO *io) {
   /* we know what we need in order to set nrrd fields and read data */
   if (color) {
     nrrdAxesSet(nrrd, nrrdAxesInfoSize, 3, sx, sy);
-  }
-  else {
+  } else {
     nrrdAxesSet(nrrd, nrrdAxesInfoSize, sx, sy);
   }
   io->dataFile = file;
@@ -672,8 +666,7 @@ nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *_io) {
   mop = airMopInit();
   if (_io) {
     io = _io;
-  }
-  else {
+  } else {
     io = nrrdIONew();
     if (!io) {
       sprintf(err, "%s: couldn't alloc I/O struct", me);
@@ -721,8 +714,7 @@ nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *_io) {
 	sprintf(err, "%s: trouble reading table", me);
 	biffAdd(NRRD, err); airMopError(mop); return 1;
       }
-    }
-    else {
+    } else {
       /* there's no hope */
       sprintf(err, "%s: couldn't parse \"%s\" as magic of any format",
 	      me, io->line);
@@ -767,8 +759,7 @@ _nrrdSplitName(char *path, char *base, const char *name) {
     printf("_nrrdSplitName: base = |%s|\n", base);
     */
     ret = 1;
-  }
-  else {
+  } else {
     /* if the name had no slash, its in the current directory, which
        means that we need to explicitly store "." as the header
        directory in case we have header-relative data. */
@@ -815,8 +806,7 @@ nrrdLoad(Nrrd *nrrd, const char *filename) {
 
   if (!strcmp("-", filename)) {
     file = stdin;
-  }
-  else {
+  } else {
     file = fopen(filename, "rb");
     if (!file) {
       sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s", 

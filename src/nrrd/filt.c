@@ -111,8 +111,7 @@ _nrrdCheapMedian1D(Nrrd *nout, Nrrd *nin, int radius, float wght,
 	hist[INDEX(nin, lup, X-radius, bins, val, idx)]--;
       }
     }
-  }
-  else {
+  } else {
     /* non-uniform weighting --> slow and stupid */
     wt = _nrrdCM_wtAlloc(radius, wght);
     half = 0.5;
@@ -169,8 +168,7 @@ _nrrdCheapMedian2D(Nrrd *nout, Nrrd *nin, int radius, float wght,
 	}
       }
     }
-  }
-  else {
+  } else {
     /* non-uniform weighting --> slow and stupid */
     wt = _nrrdCM_wtAlloc(radius, wght);
     half = 0.5;
@@ -241,8 +239,7 @@ _nrrdCheapMedian3D(Nrrd *nout, Nrrd *nin, int radius, float wght,
 	}
       }
     }
-  }
-  else {
+  } else {
     /* non-uniform weighting --> slow and stupid */
     wt = _nrrdCM_wtAlloc(radius, wght);
     half = 0.5;

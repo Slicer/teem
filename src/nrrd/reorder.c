@@ -458,8 +458,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
     /* case A: (example) 2D slices and 3D slabs are being joined
      together to make a bigger 3D volume */
     outdim = maxdim;
-  }
-  else {
+  } else {
     /* diffdim == 0 */
     if (axis == maxdim) {
       /* case B: this is like the old "stitch": a bunch of equal-sized
@@ -467,8 +466,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
 	 N+1 dimensional volume, which in terms memory, is essentially
 	 just the result of concatenating the memory of individual inputs */
       outdim = maxdim + 1;
-    }
-    else {
+    } else {
       /* case C: axis < maxdim; maxdim == mindim */
       /* case C1 (!incrDim): a bunch of N-D slabs are being joined
 	 together to make a bigger N-D volume.  The axis along which
@@ -520,8 +518,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
 		me, i);
 	biffAdd(NRRD, err); airMopError(mop); return 1;    
       }
-    }
-    else {
+    } else {
       /* on this part, we permute (no need for a reshape) */
       airMopAdd(mop, ninperm[i], (airMopper)nrrdNuke, airMopAlways);
       if (nrrdPermuteAxes(ninperm[i], nin[i], permute)) {

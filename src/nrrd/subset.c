@@ -148,8 +148,7 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
   for (i=0; i<nin->dim; i++) {
     if (i < axis) {
       rowLen *= nin->axis[i].size;
-    }
-    else if (i > axis) {
+    } else if (i > axis) {
       colLen *= nin->axis[i].size;
     }
   }

@@ -18,7 +18,7 @@
 #include "../nrrd.h"
 
 /*
-** this program demonstrates parsing a string into a kernel with params,
+** this program demonstrates parsing a string into a kernel with parms,
 ** verifies that all the kernel methods are consistent and/or equal, 
 ** and produces a text file of the kernel evaluated many times, which
 ** can be graphed in matlab with:
@@ -40,7 +40,7 @@ int
 main(int argc, char *argv[]) {
   char *me, *kS, *minS, *stepS, *maxS, *outS;
   NrrdKernel *k;
-  double param[NRRD_KERNEL_PARAMS_MAX], min, step, max, integral,
+  double parm[NRRD_KERNEL_PARMS_NUM], min, step, max, integral,
     *dom_d, *ran_d;
   float *dom_f, *ran_f, v, r_f, r_d;
   FILE *fout;
@@ -55,7 +55,7 @@ main(int argc, char *argv[]) {
   maxS = argv[4];
   outS = argv[5];
   
-  if (nrrdKernelParse(&k, param, kS)) {
+  if (nrrdKernelParse(&k, parm, kS)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(NRRD));
     exit(1);
   }
@@ -66,9 +66,9 @@ main(int argc, char *argv[]) {
 	    me, minS, stepS, maxS);
     exit(1);
   }
-  if (!( min <= -k->support(param) && max >= k->support(param) )) {
+  if (!( min <= -k->support(parm) && max >= k->support(parm) )) {
     fprintf(stderr, "%s: support=%g => lower min (%g) or raise max (%g)\n",
-	    me, k->support(param), min, max);
+	    me, k->support(parm), min, max);
     exit(1);
   }
 
@@ -95,15 +95,15 @@ main(int argc, char *argv[]) {
     i++;
   }
   /* do the vector evaluations */
-  k->evalN_f(ran_f, dom_f, len, param);
-  k->evalN_d(ran_d, dom_d, len, param);
+  k->evalN_f(ran_f, dom_f, len, parm);
+  k->evalN_d(ran_d, dom_d, len, parm);
   /* do the single evaluations, and make sure everything agrees */
   i = 0;
   integral = 0;
   for (v=min; v<=max; v+=step) {
     /* compare two single evaluations */
-    r_f = k->eval1_f(v, param);
-    r_d = k->eval1_d(v, param);
+    r_f = k->eval1_f(v, parm);
+    r_d = k->eval1_d(v, parm);
     if (!CLOSE(r_f,r_d)) {
       fprintf(stderr, "%s: (eval1_f(%g)== %f) != (eval1_d(%g)== %f)\n",
 	      me, v, r_f, v, r_d);
@@ -125,9 +125,9 @@ main(int argc, char *argv[]) {
     integral += step*ran_d[i];
     i++;
   }
-  if (!KINDACLOSE(integral, k->integral(param))) {
+  if (!KINDACLOSE(integral, k->integral(parm))) {
     fprintf(stderr, 
-	    "discrete integral %f != %f\n", integral, k->integral(param));
+	    "discrete integral %f != %f\n", integral, k->integral(parm));
     /* not a fatal error */
   }
   

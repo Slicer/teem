@@ -449,8 +449,7 @@ nrrdAxisPosRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
   if (nrrdCenterCell == center) {
     *loP = AIR_AFFINE(0, loIdx, size, min, max);
     *hiP = AIR_AFFINE(0, hiIdx+1, size, min, max);
-  }
-  else {
+  } else {
     *loP = AIR_AFFINE(0, loIdx, size-1, min, max);
     *hiP = AIR_AFFINE(0, hiIdx, size-1, min, max);
   }
@@ -501,13 +500,11 @@ nrrdAxisIdxRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
     if (min < max) {
       *loP = AIR_AFFINE(min, loPos, max, 0, size);
       *hiP = AIR_AFFINE(min, hiPos, max, -1, size-1);
-    }
-    else {
+    } else {
       *loP = AIR_AFFINE(min, loPos, max, -1, size-1);
       *hiP = AIR_AFFINE(min, hiPos, max, 0, size);
     }
-  }
-  else {
+  } else {
     *loP = AIR_AFFINE(min, loPos, max, 0, size-1);
     *hiP = AIR_AFFINE(min, hiPos, max, 0, size-1);
   }
@@ -562,8 +559,7 @@ nrrdAxisMinMaxSet(Nrrd *nrrd, int ax) {
   if (nrrdCenterCell == center) {
     nrrd->axis[ax].min = 0;
     nrrd->axis[ax].max = spacing*nrrd->axis[ax].size;
-  }
-  else {
+  } else {
     nrrd->axis[ax].min = 0;
     nrrd->axis[ax].max = spacing*(nrrd->axis[ax].size - 1);
   }

@@ -46,8 +46,8 @@ _gageSclVal[] = {
   gageSclGradVec,
   gageSclGradMag,
   gageSclNormal,
-  gageSclHess,
-  gageSclLapl,
+  gageSclHessian,
+  gageSclLaplacian,
   gageSclHessEval,
   gageSclHessEvec,
   gageScl2ndDD,
@@ -62,8 +62,8 @@ _gageSclVal[] = {
 #define GS_GV gageSclGradVec
 #define GS_GM gageSclGradMag
 #define GS_N  gageSclNormal
-#define GS_H  gageSclHess
-#define GS_L  gageSclLapl
+#define GS_H  gageSclHessian
+#define GS_L  gageSclLaplacian
 #define GS_HA gageSclHessEval
 #define GS_HE gageSclHessEvec
 #define GS_2D gageScl2ndDD

@@ -41,7 +41,16 @@ extern "C" {
 				      ascii tables with lots of data */
 #define NRRD_STRLEN_COMMENT 129    /* longest comment strings allowed */
 
-#define NRRD_KERNEL_PARAMS_MAX 5   /* max # arguments to a kernel */
+#define NRRD_KERNEL_PARMS_NUM 8    /* max # arguments to a kernel-
+				      this is weird: it isn't the max
+				      of any of the NrrdKernels
+				      defined by the nrrd library
+				      (that is more like 3), but is
+				      the max number of parms of any
+				      NrrdKernel used by anyone using
+				      teem, such as in gage.
+				      Enforcing one global max
+				      simplifies implementation. */
 
 
 /* 

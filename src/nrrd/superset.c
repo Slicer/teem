@@ -146,13 +146,11 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
 	     szIn[0]*typeSize);
       idxOut += nin->axis[0].size-1;
       cOut[0] += nin->axis[0].size-1;
-    }
-    else {
+    } else {
       /* we copy only a single value */
       if (nrrdBoundaryPad == boundary) {
 	nrrdDInsert[nout->type](dataOut, idxOut, padValue);
-      }
-      else {
+      } else {
 	memcpy(dataOut + idxOut*typeSize, dataIn + idxIn*typeSize, typeSize);
       }
     }
@@ -206,8 +204,7 @@ nrrdSimplePad(Nrrd *nout, Nrrd *nin, int pad, int boundary, ...) {
     padValue = va_arg(ap, double);
     va_end(ap);
     ret = nrrdPad(nout, nin, min, max, boundary, padValue);
-  }
-  else {
+  } else {
     ret = nrrdPad(nout, nin, min, max, boundary);
   }
   if (ret) {

@@ -144,8 +144,7 @@ _nrrdWriteDataRaw(Nrrd *nrrd, NrrdIO *io) {
 
   if (_nrrdFormatUsesDIO[io->format]) {
     dio = airDioTest(size, io->dataFile, nrrd->data);
-  }
-  else {
+  } else {
     dio = airNoDio_format;
   }
   if (airNoDio_okay == dio) {
@@ -163,8 +162,7 @@ _nrrdWriteDataRaw(Nrrd *nrrd, NrrdIO *io) {
       sprintf(err, "%s: airDioWrite failed", me);
       biffAdd(NRRD, err); return 1;
     }
-  }
-  else {
+  } else {
     if (AIR_DIO && _nrrdFormatUsesDIO[io->format]) {
       if (3 <= nrrdStateVerboseIO) {
 	fprintf(stderr, "with fwrite()");
@@ -222,19 +220,16 @@ _nrrdWriteDataAscii(Nrrd *nrrd, NrrdIO *io) {
     nrrdSprint[nrrd->type](buff, data);
     if (1 == nrrd->dim) {
       fprintf(io->dataFile, "%s\n", buff);
-    }
-    else if (nrrd->dim == 2 
-	     && nrrd->axis[0].size <= io->valsPerLine) {
+    } else if (nrrd->dim == 2 
+	       && nrrd->axis[0].size <= io->valsPerLine) {
       fprintf(io->dataFile, "%s%c", buff,
 	      (I+1)%(nrrd->axis[0].size) ? ' ' : '\n');
-    }
-    else {
+    } else {
       bufflen = strlen(buff);
       if (linelen+bufflen+1 <= io->charsPerLine) {
 	fprintf(io->dataFile, "%s%s", I ? " " : "", buff);
 	linelen += (I ? 1 : 0) + bufflen;
-      }
-      else {
+      } else {
 	fprintf(io->dataFile, "\n%s", buff);
 	linelen = bufflen;
       }
@@ -410,8 +405,7 @@ _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
 	      me, tmpName, strerror(errno));
       biffAdd(NRRD, err); return 1;
     }
-  }
-  else {
+  } else {
     io->dataFile = file;
   }
 
@@ -449,8 +443,7 @@ _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
 
   if (io->seperateHeader) {
     io->dataFile = airFclose(io->dataFile);
-  }
-  else {
+  } else {
     io->dataFile = NULL;
   }
 
@@ -470,8 +463,7 @@ _nrrdWritePNM(FILE *file, Nrrd *nrrd, NrrdIO *io) {
 	     : nrrdMagicP5);
     sx = nrrd->axis[0].size;
     sy = nrrd->axis[1].size;
-  }
-  else {
+  } else {
     magic = (nrrdEncodingAscii == io->encoding
 	     ? nrrdMagicP3
 	     : nrrdMagicP6);
@@ -557,15 +549,12 @@ _nrrdGuessFormat(NrrdIO *io, const char *filename) {
 	   airEnumStr(nrrdEncoding, io->encoding));
     io->seperateHeader = AIR_TRUE;
     io->format = nrrdFormatNRRD;
-  }
-  else if (airEndsWith(filename, NRRD_EXT_PGM) 
-	   || airEndsWith(filename, NRRD_EXT_PPM)) {
+  } else if (airEndsWith(filename, NRRD_EXT_PGM) 
+	     || airEndsWith(filename, NRRD_EXT_PPM)) {
     io->format = nrrdFormatPNM;
-  }
-  else if (airEndsWith(filename, NRRD_EXT_TABLE)) {
+  } else if (airEndsWith(filename, NRRD_EXT_TABLE)) {
     io->format = nrrdFormatTable;
-  }
-  else {
+  } else {
     /* nothing obvious */
     io->format = nrrdFormatUnknown;
   }
@@ -597,8 +586,7 @@ _nrrdFixFormat(NrrdIO *io, Nrrd *nrrd) {
 	fprintf(stderr, "(%s: Can't be a PNM image -> saving as NRRD)\n", me); 
       }
       io->format = nrrdFormatNRRD;
-    }
-    else {
+    } else {
       if (2 == fits && airEndsWith(io->base, NRRD_EXT_PPM)) {
 	if (nrrdStateVerboseIO) {
 	  fprintf(stderr, "(%s: Image is grayscale; saving as PGM)\n", me); 
@@ -699,9 +687,8 @@ nrrdSave(const char *filename, Nrrd *nrrd, NrrdIO *io) {
   }
   if (nrrdEncodingUnknown == io->encoding) {
     io->encoding = nrrdDefWrtEncoding;
-  }
-  else if (!AIR_BETWEEN(nrrdEncodingUnknown, io->encoding, 
-			nrrdEncodingLast)) {
+  } else if (!AIR_BETWEEN(nrrdEncodingUnknown, io->encoding, 
+			  nrrdEncodingLast)) {
     sprintf(err, "%s: invalid encoding %d\n", me, io->encoding);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
@@ -718,8 +705,7 @@ nrrdSave(const char *filename, Nrrd *nrrd, NrrdIO *io) {
 
   if (!strcmp("-", filename)) {
     file = stdout;
-  }
-  else {
+  } else {
     if (!(file = fopen(filename, "wb"))) {
       sprintf(err, "%s: couldn't fopen(\"%s\",\"wb\"): %s", 
 	      me, filename, strerror(errno));

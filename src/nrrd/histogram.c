@@ -281,13 +281,11 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins, int type) {
 				  + 1, sizeof(char));
     if (nout->axis[ax].label) {
       sprintf(nout->axis[ax].label, "histax(%s)", nin->axis[ax].label);
-    }
-    else {
+    } else {
       sprintf(err, "%s: couldn't allocate output label", me);
       biffAdd(NRRD, err); return 1;
     }
-  }
-  else {
+  } else {
     nout->axis[ax].label = NULL;
   }
 
@@ -407,13 +405,11 @@ nrrdHistoJoint(Nrrd *nout, Nrrd **nin,
 				   + 1, sizeof(char));
       if (nout->axis[d].label) {
 	sprintf(nout->axis[d].label, "histo(%s,%d)", nin[d]->content, bins[d]);
-      }
-      else {
+      } else {
 	sprintf(err, "%s: couldn't allocate output label #%d", me, d);
 	biffAdd(NRRD, err); return 1;
       }
-    }
-    else {
+    } else {
       nout->axis[d].label = airFree(nout->axis[d].label);
       totalContentStrlen += 2;
     }
@@ -437,8 +433,7 @@ nrrdHistoJoint(Nrrd *nout, Nrrd **nin,
       if (!AIR_INSIDE(nin[d]->min, val, nin[d]->max)) {
 	if (clamp[d]) {
 	  val = AIR_CLAMP(nin[d]->min, val, nin[d]->max);
-	}
-	else {
+	} else {
 	  skip = 1;
 	  break;
 	}
@@ -471,8 +466,7 @@ nrrdHistoJoint(Nrrd *nout, Nrrd **nin,
 	nout->content[len] = d < numNin-1 ? ',' : ')';
       }
       nout->content[len+1] = '\0';
-    }
-    else {
+    } else {
       sprintf(err, "%s: couldn't allocate output content", me);
       biffAdd(NRRD, err); return 1;
     }

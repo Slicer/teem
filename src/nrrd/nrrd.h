@@ -198,22 +198,27 @@ typedef struct {
 **
 ** Nrrd's use of this sort of kernel always assumes support symmetric
 ** around zero, but does not assume anything about even- or oddness
+**
+** It is a strong but very simplifying assumption that the paramater
+** array ("parm") is always type double.  There is essentially no
+** value in allowing flexibility between float and double, and much
+** teem code assumes that it will always bee type double.
 */
 typedef struct {
-  int numParam;                          /* number of parameters needed
-					    (# elements in param[] used) */
-  double (*support)(double *param);      /* smallest x (x > 0) such that
+  int numParm;                           /* number of parameters needed
+					    (# elements in parm[] used) */
+  double (*support)(double *parm);       /* smallest x (x > 0) such that
 					    k(y) = 0 for all y > x, y < -x */
-  double (*integral)(double *param);     /* integral of kernel from -support
+  double (*integral)(double *parm);      /* integral of kernel from -support
 					    to +support */
   float (*eval1_f)(float x,              /* evaluate once, single precision */
-		   double *param);
+		   double *parm);
   void (*evalN_f)(float *f, float *x,    /* evaluate N times, single prec. */
-		  int N, double *param);   
+		  int N, double *parm);   
   double (*eval1_d)(double x,            /* evaluate once, double precision */
-		    double *param);
+		    double *parm);
   void (*evalN_d)(double *f, double *x,  /* evaluate N times, double prec. */
-		  int N, double *param);
+		  int N, double *parm);
 } NrrdKernel;
 
 /*
@@ -222,11 +227,11 @@ typedef struct {
 ** a struct to contain the many parameters needed for nrrdSpatialResample()
 */
 typedef struct {
-  /* kernel, samples, and param are all per-axis */
+  /* kernel, samples, and parm are all per-axis */
   NrrdKernel *kernel[NRRD_DIM_MAX]; /* kernels from nrrd (or something
 				       supplied by the user) */
   int samples[NRRD_DIM_MAX];        /* number of samples */
-  double param[NRRD_DIM_MAX][NRRD_KERNEL_PARAMS_MAX], /* kernel arguments */
+  double parm[NRRD_DIM_MAX][NRRD_KERNEL_PARMS_NUM], /* kernel arguments */
     min[NRRD_DIM_MAX],
     max[NRRD_DIM_MAX];              /* min[i] and max[i] are the range, in
 				       index space, along which to resample
@@ -277,7 +282,7 @@ extern int nrrdDefRsmpClamp;
 extern double nrrdDefRsmpPadValue;
 extern int nrrdDefCenter;
 extern double nrrdDefSpacing;
-extern double nrrdDefKernelParam0;
+extern double nrrdDefKernelParm0;
 extern int nrrdStateVerboseIO;
 extern int nrrdStateClever8BitMinMax;
 extern int nrrdStateMeasureType;
@@ -432,7 +437,7 @@ extern int nrrdHistoEq(Nrrd *nout, Nrrd *nin,
 /* apply.c */
 extern int nrrdApply1DLut(Nrrd *nout, Nrrd *nin, Nrrd *nlut);
 extern int nrrdApply1DRegMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
-			     NrrdKernel *kernel, double *param);
+			     NrrdKernel *kernel, double *parm);
 
 /******** sampling, slicing, cropping */
 /* subset.c */
@@ -490,7 +495,7 @@ extern int nrrdCheapMedian(Nrrd *nout, Nrrd *nin,
 /* resample.c */
 extern int nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info);
 extern int nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
-			      NrrdKernel *kernel, double *param,
+			      NrrdKernel *kernel, double *parm,
 			      int *samples, double *scalings);
 
 /******** kernels (interpolation, 1st and 2nd derivatives) */
@@ -509,7 +514,7 @@ extern NrrdKernel *nrrdKernelZero, /* zero everywhere */
   *nrrdKernelGaussian,             /* Gaussian */
   *nrrdKernelGaussianD,            /* 1st derivative of Gaussian */
   *nrrdKernelGaussianDD;           /* 2nd derivative of Gaussian */
-extern int nrrdKernelParse(NrrdKernel **kernelP, double *param,
+extern int nrrdKernelParse(NrrdKernel **kernelP, double *parm,
 			   const char *str);
 
 #endif /* NRRD_HAS_BEEN_INCLUDED */
