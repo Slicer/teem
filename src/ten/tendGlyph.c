@@ -292,6 +292,8 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     win->ps.lineWidth[limnEdgeTypeContour] = gparm->edgeWidth[0];
     win->ps.lineWidth[limnEdgeTypeFrontCrease] = gparm->edgeWidth[1];
     win->ps.lineWidth[limnEdgeTypeFrontFacet] = gparm->edgeWidth[2];
+    win->ps.lineWidth[limnEdgeTypeBorder] = 
+      win->ps.lineWidth[limnEdgeTypeFrontCrease];
     win->ps.creaseAngle = 70;
     win->ps.noBackground = nobg;
     ELL_3V_COPY(win->ps.bg, bg);
