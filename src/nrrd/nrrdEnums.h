@@ -175,20 +175,19 @@ enum {
 /*
 ******** nrrdKind enum
 **
-** The very cautious (and last) step nrrd takes towards semantics, to 
-** describe the information along one axis of an array.  This is most
-** important for clarifying the representation of non-scalar data, in
-** order to distinguish between axes that are genuine image domain axes,
-** and axes that exist just to store the multiple attributes per sample.
-** One could argue that this information should be per-array and not
-** per-axis, but you still have to indicate which one of the axes is the
-** attribute axis.  And, if you have, say, the gradient of RGB colors,
-** you want the per-pixel 3x3 array to have those two attribute axes 
-** tagged accordingly.
+** For describing the information along one axis of an array.  This is
+** most important for clarifying the representation of non-scalar
+** data, in order to distinguish between axes that are genuine image
+** domain axes, and axes that exist just to store the multiple
+** attributes per sample.  One could argue that this information
+** should be per-array and not per-axis, but you still have to
+** indicate which one of the axes is the attribute axis.  And, if you
+** have, say, the gradient of RGB colors, you want the per-pixel 3x3
+** array to have those two attribute axes tagged accordingly.
 **
 ** More of these may be added in the future, as when nrrd supports bricking.
 **
-** NB: The nrrdKindSize() function returns the suggested length for these.
+** NOTE: The nrrdKindSize() function returns the suggested length for these.
 **
 ** Keep in sync:
 **   enumsNrrd.c: nrrdKind airEnum
@@ -365,15 +364,15 @@ enum {
   nrrdField_max,              /* 20 */
   nrrdField_old_min,          /* 21 */
   nrrdField_old_max,          /* 22 */
-  nrrdField_data_file,        /* 23 */
-  nrrdField_endian,           /* 24 */
-  nrrdField_encoding,         /* 25 */
-  nrrdField_line_skip,        /* 26 */
-  nrrdField_byte_skip,        /* 27 */
-  nrrdField_keyvalue,         /* 28 */
-  nrrdField_sample_units,     /* 29 */
-  nrrdField_space_units,      /* 30 */
-  nrrdField_space_origin,     /* 31 */
+  nrrdField_endian,           /* 23 */
+  nrrdField_encoding,         /* 24 */
+  nrrdField_line_skip,        /* 25 */
+  nrrdField_byte_skip,        /* 26 */
+  nrrdField_keyvalue,         /* 27 */
+  nrrdField_sample_units,     /* 28 */
+  nrrdField_space_units,      /* 29 */
+  nrrdField_space_origin,     /* 30 */
+  nrrdField_data_file,        /* 31 */
   nrrdField_last
 };
 #define NRRD_FIELD_MAX          31
@@ -404,31 +403,50 @@ enum {
 **
 ** Identifies the space in which which the origin and direction
 ** vectors have their coordinates measured.  When a direction is named
-** (as part of the nrrdSpace name), that implies a vector which points
-** in that direction (rather than one which starts from that direction)
+** here (like "Left" or "Anterior"), that implies a basis vector that
+** points in that direction, along which that coordinate becomes *larger*
+** (this is the opposite of MetaIO, for example).
 **
 ** All of these spaces have a well-defined expected dimension, as
 ** determined by nrrdSpaceDimension(), and setting a nrrd to be in
 ** such a space, by nrrdSpaceSet(), will automatically set nrrd->spaceDim.
 **
-** The first six of these are clearly medically motivated, but there's
-** no reason why other domain-motivated spaces couldn't be added.
+** The first six spaces here are PATIENT-ORIENTED spaces, which are
+** properly speaking aligned with the patient, and not the scanner
+** itself.  But nrrdSpaceScannerXYZ and nrrdSpaceScannerXYZTime are
+** DEVICE-ORIENTED spaces, irrespective of the patient, used in a
+** previous version of the DICOM standard.  When the two spaces are
+** lined up with normal patient orientation in the scanner,
+** nrrdSpaceScannerXYZ is the same as nrrdSpaceLeftPosteriorSuperior.
+** To quote Part 3 (Information Object Definitions) of the DICOM spec
+** (page 275): "If a patient lies parallel to the ground, face-up on
+** the table, with his feet-to-head direction same as the
+** front-to-back direction of the imaging equipment, the direction of
+** the axes of this patient based coordinate system and the equipment
+** based coordinate system in previous versions of this Standard will
+** coincide."
+**
+** Keep in sync:
+**   enumsNrrd.c: nrrdSpace airEnum
+**      simple.c: int nrrdSpaceDimension(int space)
 */
 enum {
   nrrdSpaceUnknown,
   nrrdSpaceRightAnteriorSuperior,     /*  1: NIFTI-1 (right-handed) */
   nrrdSpaceLeftAnteriorSuperior,      /*  2: standard Analyze (left-handed) */
-  nrrdSpaceLeftPosteriorSuperior,     /*  3: DICOM (right-handed) */
+  nrrdSpaceLeftPosteriorSuperior,     /*  3: DICOM 3.0 (right-handed) */
   nrrdSpaceRightAnteriorSuperiorTime, /*  4: */
   nrrdSpaceLeftAnteriorSuperiorTime,  /*  5: */
   nrrdSpaceLeftPosteriorSuperiorTime, /*  6: */
-  nrrdSpace3DRightHanded,             /*  7: */
-  nrrdSpace3DLeftHanded,              /*  8: */
-  nrrdSpace3DRightHandedTime,         /*  9: */
-  nrrdSpace3DLeftHandedTime,          /* 10: */
+  nrrdSpaceScannerXYZ,                /*  7: ACR/NEMA 2.0 (pre-DICOM 3.0) */
+  nrrdSpaceScannerXYZTime,            /*  8: */
+  nrrdSpace3DRightHanded,             /*  9: */
+  nrrdSpace3DLeftHanded,              /* 10: */
+  nrrdSpace3DRightHandedTime,         /* 11: */
+  nrrdSpace3DLeftHandedTime,          /* 12: */
   nrrdSpaceLast
 };
-#define NRRD_SPACE_MAX                   10
+#define NRRD_SPACE_MAX                   12
 
 /* ---- BEGIN non-NrrdIO */
 

@@ -454,7 +454,6 @@ _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL] = {
   "max",
   "old min",
   "old max",
-  "data file",
   "endian",
   "encoding",
   "line skip",
@@ -463,6 +462,7 @@ _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL] = {
   "sample units",
   "space units",
   "space origin"
+  "data file",
 };
 
 char
@@ -490,7 +490,6 @@ _nrrdFieldDesc[NRRD_FIELD_MAX+1][AIR_STRLEN_MED] = {
   "supposed maximum array value",
   "minimum array value prior to quantization",
   "maximum array value prior to quantization",
-  "with detached headers, where is data to be found",
   "endiannes of data as written in file",
   "encoding of data written in file",
   "number of lines to skip prior to byte skip and reading data",
@@ -498,7 +497,8 @@ _nrrdFieldDesc[NRRD_FIELD_MAX+1][AIR_STRLEN_MED] = {
   "string-based key/value pairs",
   "units of measurement of (scalar) values inside array itself",
   "list of units for measuring origin and direct vectors' coefficients",
-  "location in space of center of first (lowest memory address) sample"
+  "location in space of center of first (lowest memory address) sample",
+  "with detached headers, where is data to be found",
 };
 
 char
@@ -525,7 +525,6 @@ _nrrdFieldStrEqv[][AIR_STRLEN_SMALL]  = {
   "max",
   "old min", "oldmin",
   "old max", "oldmax",
-  "data file", "datafile",
   "endian",
   "encoding",
   "line skip", "lineskip",
@@ -534,6 +533,7 @@ _nrrdFieldStrEqv[][AIR_STRLEN_SMALL]  = {
   "sample units", "sampleunits",
   "space units", "spaceunits",
   "space origin", "spaceorigin",
+  "data file", "datafile",
   ""
 };
 
@@ -561,7 +561,6 @@ _nrrdFieldValEqv[] = {
   nrrdField_max,
   nrrdField_old_min, nrrdField_old_min,
   nrrdField_old_max, nrrdField_old_max,
-  nrrdField_data_file, nrrdField_data_file,
   nrrdField_endian,
   nrrdField_encoding,
   nrrdField_line_skip, nrrdField_line_skip,
@@ -570,6 +569,7 @@ _nrrdFieldValEqv[] = {
   nrrdField_sample_units, nrrdField_sample_units,
   nrrdField_space_units, nrrdField_space_units,
   nrrdField_space_origin, nrrdField_space_origin,
+  nrrdField_data_file, nrrdField_data_file,
 };
 
 airEnum
@@ -587,16 +587,20 @@ nrrdField = &_nrrdField;
 /* ------------------------ nrrdSpace ------------------------- */
 
 /*
-  nrrdSpaceRightAnteriorSuperior,     *  1: NIFTI-1 *
-  nrrdSpaceLeftAnteriorSuperior,      *  2: standard Analyze *
-  nrrdSpaceLeftPosteriorSuperior,     *  3: DICOM *
+  nrrdSpaceUnknown,
+  nrrdSpaceRightAnteriorSuperior,     *  1: NIFTI-1 (right-handed) *
+  nrrdSpaceLeftAnteriorSuperior,      *  2: standard Analyze (left-handed) *
+  nrrdSpaceLeftPosteriorSuperior,     *  3: DICOM 3.0 (right-handed) *
   nrrdSpaceRightAnteriorSuperiorTime, *  4: *
   nrrdSpaceLeftAnteriorSuperiorTime,  *  5: *
   nrrdSpaceLeftPosteriorSuperiorTime, *  6: *
-  nrrdSpace3DRightHanded,             *  7: *
-  nrrdSpace3DLeftHanded,              *  8: *
-  nrrdSpace3DRightHandedTime,         *  9: *
-  nrrdSpace3DLeftHandedTime,          * 10: *
+  nrrdSpaceScannerXYZ,                *  7: ACR/NEMA 2.0 (pre-DICOM 3.0) *
+  nrrdSpaceScannerXYZTime,            *  8: *
+  nrrdSpace3DRightHanded,             *  9: *
+  nrrdSpace3DLeftHanded,              * 10: *
+  nrrdSpace3DRightHandedTime,         * 11: *
+  nrrdSpace3DLeftHandedTime,          * 12: *
+  nrrdSpaceLast
 */
 
 char
@@ -608,6 +612,8 @@ _nrrdSpaceStr[NRRD_SPACE_MAX+1][AIR_STRLEN_SMALL] = {
   "right-anterior-superior-time",
   "left-anterior-superior-time",
   "left-posterior-superior-time",
+  "scanner-xyz",
+  "scanner-xyz-time",
   "3D-right-handed",
   "3D-left-handed",
   "3D-right-handed-time",
@@ -617,12 +623,14 @@ _nrrdSpaceStr[NRRD_SPACE_MAX+1][AIR_STRLEN_SMALL] = {
 char
 _nrrdSpaceDesc[NRRD_SPACE_MAX+1][AIR_STRLEN_MED] = {
   "unknown space",
-  "right-anterior-superior (used in NIFTI-1 and Slicer)",
+  "right-anterior-superior (used in NIFTI-1 and SPL's 3D Slicer)",
   "left-anterior-superior (used in Analyze 7.5)",
-  "left-posterior-superior (used in DICOM)",
+  "left-posterior-superior (used in DICOM 3)",
   "right-anterior-superior-time",
   "left-anterior-superior-time",
   "left-posterior-superior-time",
+  "scanner-xyz (used in ACR/NEMA 2.0)",
+  "scanner-xyz-time",
   "3D-right-handed",
   "3D-left-handed",
   "3D-right-handed-time",
@@ -644,6 +652,8 @@ _nrrdSpaceStrEqv[][AIR_STRLEN_SMALL] = {
       "leftanteriorsuperiortime", "LAST",
   "left-posterior-superior-time", "left posterior superior time",
       "leftposteriorsuperiortime", "LPST",
+  "scanner-xyz",
+  "scanner-xyz-time", "scanner-xyzt", 
   "3D-right-handed", "3D right handed", "3Drighthanded"
   "3D-left-handed", "3D left handed", "3Dlefthanded",
   "3D-right-handed-time", "3D right handed time",
@@ -668,6 +678,8 @@ _nrrdSpaceValEqv[] = {
      nrrdSpaceLeftAnteriorSuperiorTime, nrrdSpaceLeftAnteriorSuperiorTime,
   nrrdSpaceLeftPosteriorSuperiorTime, nrrdSpaceLeftPosteriorSuperiorTime,
      nrrdSpaceLeftPosteriorSuperiorTime, nrrdSpaceLeftPosteriorSuperiorTime,
+  nrrdSpaceScannerXYZ,
+  nrrdSpaceScannerXYZTime, nrrdSpaceScannerXYZTime, 
   nrrdSpace3DRightHanded, nrrdSpace3DRightHanded, nrrdSpace3DRightHanded,
   nrrdSpace3DLeftHanded, nrrdSpace3DLeftHanded, nrrdSpace3DLeftHanded,
   nrrdSpace3DRightHandedTime, nrrdSpace3DRightHandedTime, 
