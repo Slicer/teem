@@ -717,9 +717,9 @@ nrrdSanity (void) {
     biffAdd(NRRD, err); return 0;
   }
 
-  if (airEnumValCheck(nrrdEncoding, nrrdDefWrtEncoding)) {
-    sprintf(err, "%s: nrrdDefWrtEncoding (%d) not in valid range [%d,%d]",
-	    me, nrrdDefWrtEncoding,
+  if (airEnumValCheck(nrrdEncoding, nrrdDefWriteEncoding)) {
+    sprintf(err, "%s: nrrdDefWriteEncoding (%d) not in valid range [%d,%d]",
+	    me, nrrdDefWriteEncoding,
 	    nrrdEncodingUnknown+1, nrrdEncodingLast-1);
     biffAdd(NRRD, err); return 0;
   }

@@ -36,14 +36,14 @@ _nrrdIOInit (NrrdIO *io) {
     io->dataFile = NULL;
     io->magic = nrrdMagicUnknown;
     io->format = nrrdFormatUnknown;
-    io->encoding = nrrdDefWrtEncoding;
+    io->encoding = nrrdDefWriteEncoding;
     io->endian = airEndianUnknown;
     io->lineSkip = 0;
     io->byteSkip = 0;
-    io->seperateHeader = nrrdDefWrtSeperateHeader;
-    io->bareTable = nrrdDefWrtBareTable;
-    io->charsPerLine = nrrdDefWrtCharsPerLine;
-    io->valsPerLine = nrrdDefWrtValsPerLine;
+    io->seperateHeader = nrrdDefWriteSeperateHeader;
+    io->bareTable = nrrdDefWriteBareTable;
+    io->charsPerLine = nrrdDefWriteCharsPerLine;
+    io->valsPerLine = nrrdDefWriteValsPerLine;
     io->zlibLevel = -1;
     io->zlibStrategy = nrrdZlibStrategyDefault;
     io->bzip2BlockSize = -1;
@@ -88,13 +88,13 @@ nrrdIOReset (NrrdIO *io) {
       io->dataFile = NULL;
       io->magic = nrrdMagicUnknown;
     }
-    /* io->format = nrrdDefWrtFormat; */
-    /* io->encoding = nrrdDefWrtEncoding; */
+    /* io->format = nrrdDefWriteFormat; */
+    /* io->encoding = nrrdDefWriteEncoding; */
     io->endian = airEndianUnknown;
     io->lineSkip = 0;
     io->byteSkip = 0;
-    /* io->seperateHeader = nrrdDefWrtSeperateHeader; */
-    /* io->bareTable = nrrdDefWrtBareTable; */
+    /* io->seperateHeader = nrrdDefWriteSeperateHeader; */
+    /* io->bareTable = nrrdDefWriteBareTable; */
     memset(io->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
   }
 }

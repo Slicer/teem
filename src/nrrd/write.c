@@ -1216,7 +1216,7 @@ _nrrdFixFormat (NrrdIO *io, Nrrd *nrrd) {
   case nrrdFormatUnknown:
     /* if they still don't know what format to use, then enforce NRRD.
        There is no point in having a "default" format (which would be
-       called nrrdDefWrtFormat) because the point of nrrd is that it is
+       called nrrdDefWriteFormat) because the point of nrrd is that it is
        the mother of all nearly raw raster data file formats */
     io->format = nrrdFormatNRRD;
     break;
@@ -1300,7 +1300,7 @@ nrrdWrite (FILE *file, Nrrd *nrrd, NrrdIO *io) {
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdEncodingUnknown == io->encoding) {
-    io->encoding = nrrdDefWrtEncoding;
+    io->encoding = nrrdDefWriteEncoding;
   } else if (!AIR_IN_OP(nrrdEncodingUnknown, io->encoding, 
 			  nrrdEncodingLast)) {
     sprintf(err, "%s: invalid encoding %d\n", me, io->encoding);
@@ -1368,7 +1368,7 @@ nrrdSave (const char *filename, Nrrd *nrrd, NrrdIO *io) {
     airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
   }
   if (nrrdEncodingUnknown == io->encoding) {
-    io->encoding = nrrdDefWrtEncoding;
+    io->encoding = nrrdDefWriteEncoding;
   } else if (!AIR_IN_OP(nrrdEncodingUnknown, io->encoding, 
 			  nrrdEncodingLast)) {
     sprintf(err, "%s: invalid encoding %d\n", me, io->encoding);
