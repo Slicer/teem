@@ -64,6 +64,22 @@ airSrand48_r(airDrand48State *state, int seed) {
   return;
 }
 
+airDrand48State *
+airDrand48StateNew(int seed) {
+  airDrand48State *ret;
+
+  ret = (airDrand48State *)calloc(1, sizeof(airDrand48State));
+  airSrand48_r(ret, seed);
+  return ret;
+}
+
+airDrand48State *
+airDrand48StateNix(airDrand48State *state) {
+
+  airFree(state);
+  return NULL;
+}
+
 void
 airSrand48(int seed) {
 

@@ -271,6 +271,15 @@ airRandInt(int N) {
   return i;
 }
 
+int
+airRandInt_r(airDrand48State *state, int N) {
+  int i;
+  
+  AIR_INDEX(0.0, airDrand48_r(state), 1.0, N, i);
+  i = AIR_CLAMP(0, i, N-1);
+  return i;
+}
+
 /*
 ******** airShuffle()
 **
@@ -289,6 +298,25 @@ airShuffle(int *buff, int N, int perm) {
   if (perm) {
     for (i=0; i<N; i++) {
       swp = i + airRandInt(N - i);
+      tmp = buff[swp];
+      buff[swp] = buff[i];
+      buff[i] = tmp;
+    }
+  }
+}
+
+void
+airShuffle_r(airDrand48State *state, int *buff, int N, int perm) {
+  int i, swp, tmp;
+
+  if (!(buff && N > 0))
+    return;
+    
+  for (i=0; i<N; i++)
+    buff[i] = i;
+  if (perm) {
+    for (i=0; i<N; i++) {
+      swp = i + airRandInt_r(state, N - i);
       tmp = buff[swp];
       buff[swp] = buff[i];
       buff[i] = tmp;

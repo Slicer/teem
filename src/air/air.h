@@ -306,6 +306,8 @@ typedef struct {
 } airDrand48State;
 /* rand48.c */
 TEEM_API airDrand48State *airDrand48StateGlobal;
+TEEM_API airDrand48State *airDrand48StateNew(int seed);
+TEEM_API airDrand48State *airDrand48StateNix(airDrand48State *state);
 TEEM_API void airSrand48_r(airDrand48State *state, int seed);
 TEEM_API double airDrand48_r(airDrand48State *state);
 TEEM_API void airSrand48(int seed);
@@ -407,7 +409,9 @@ TEEM_API const int airMy32Bit;
 /* ---- BEGIN non-NrrdIO */
 TEEM_API const char airMyFmt_size_t[];
 TEEM_API int airRandInt(int N);
+TEEM_API int airRandInt_r(airDrand48State *state, int N);
 TEEM_API void airShuffle(int *buff, int N, int perm);
+TEEM_API void airShuffle_r(airDrand48State *state, int *buff, int N, int perm);
 TEEM_API char *airDoneStr(float start, float here, float end, char *str);
 TEEM_API double airTime();
 TEEM_API double airCbrt(double);
