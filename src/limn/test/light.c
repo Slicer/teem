@@ -34,17 +34,17 @@ main(int argc, char *argv[]) {
   ELL_3V_SET(cam->from, 10, 0, 0);
   ELL_3V_SET(cam->at, 0, 0, 0);
   ELL_3V_SET(cam->up, 0, 0, 1);
-  cam->uMin = -(cam->uMax = 4);
-  cam->vMin = -(cam->vMax = 3);
+  cam->uRange[0] = -(cam->uRange[1] = 4);
+  cam->vRange[0] = -(cam->vRange[1] = 3);
   cam->near = -5;
   cam->dist = 0;
   cam->faar =  5;
-  cam->eyeRel = AIR_FALSE;
+  cam->atRel = AIR_TRUE;
 
   lit = limnLightNew();
-  limnLightSet(lit, AIR_TRUE, 1, 0, 0, 1, 0, 0);
-  limnLightSet(lit, AIR_TRUE, 0, 1, 0, 0, 1, 0);
-  limnLightSet(lit, AIR_TRUE, 0, 0, 1, 0, 0, 1);
+  limnLightSet(lit, 0, AIR_TRUE, 1, 0, 0, 1, 0, 0);
+  limnLightSet(lit, 1, AIR_TRUE, 0, 1, 0, 0, 1, 0);
+  limnLightSet(lit, 2, AIR_TRUE, 0, 0, 1, 0, 0, 1);
   limnLightUpdate(lit, cam);
   
   if (limnEnvMapFill(map=nrrdNew(), 
