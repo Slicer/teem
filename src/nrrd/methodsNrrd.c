@@ -65,8 +65,8 @@ nrrdIoStateNew (void) {
     nio->dataFN = NULL;
     nio->line = NULL;
     nio->dataFile = NULL;
-    nio->format = NULL;
-    nio->encoding = NULL;
+    nio->format = nrrdFormatUnknown;
+    nio->encoding = nrrdEncodingUnknown;
     nrrdIoStateInit(nio);
   }
   return nio;

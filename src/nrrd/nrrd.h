@@ -362,6 +362,7 @@ typedef struct NrrdIoState_t {
     byteSkip,               /* exactly like lineSkip, but bytes
 			       instead of lines.  First the lines are
 			       skipped, then the bytes */
+    seen[NRRD_FIELD_MAX+1], /* for error checking in header parsing */
     detachedHeader,         /* ON READ+WRITE: nrrd is split into distinct
 			       header and data (for nrrd format only) */
     bareText,               /* when writing a plain text file, is there any
@@ -400,16 +401,35 @@ typedef struct NrrdIoState_t {
     zlibStrategy,           /* zlib compression strategy, can be one
 			       of the nrrdZlibStrategy enums, default is
 			       nrrdZlibStrategyDefault. */
-    bzip2BlockSize,         /* block size used for compression, 
+    bzip2BlockSize;         /* block size used for compression, 
 			       roughly equivalent to better but slower
 			       (1-9, -1 for default[9]). */
-    seen[NRRD_FIELD_MAX+1]; /* for error checking in header parsing */
   /* format and encoding.  These are initialized to nrrdFormatUnknown
      and nrrdEncodingUnknown, respectively. USE THESE VALUES for 
      any kind of initialization or flagging; DO NOT USE NULL */
   const NrrdFormat *format;
   const NrrdEncoding *encoding;
 } NrrdIoState;
+
+/*
+******** nrrdIoState* enum
+** 
+** the various things it makes sense to get and set in nrrdIoState struct
+** via nrrdIoStateGet and nrrdIoStateSet
+*/
+enum {
+  nrrdIoStateUnknown,
+  nrrdIoStateDetachedHeader,
+  nrrdIoStateBareText,
+  nrrdIoStateCharsPerLine,
+  nrrdIoStateValsPerLine,
+  nrrdIoStateSkipData,
+  nrrdIoStateKeepNrrdDataFileOpen,
+  nrrdIoStateZlibLevel,
+  nrrdIoStateZlibStrategy,
+  nrrdIoStateBzip2BlockSize,
+  nrrdIoStateLast
+};
 
 /******** defaults (nrrdDef..) and state (nrrdState..) */
 /* defaultsNrrd.c */
@@ -632,6 +652,14 @@ extern int nrrdByteSkip(Nrrd *nrrd, NrrdIoState *io);
 extern int nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *io);
 extern int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIoState *io);
 /* write.c */
+extern int nrrdIoStateSet(NrrdIoState *io, int parm, int value);
+extern int nrrdIoStateSetEncoding(NrrdIoState *io,
+				  const NrrdEncoding *encoding);
+extern int nrrdIoStateSetFormat(NrrdIoState *io, 
+				const NrrdFormat *format);
+extern int nrrdIoStateGet(NrrdIoState *io, int parm);
+extern const NrrdEncoding *nrrdIoStateGetEncoding(NrrdIoState *io);
+extern const NrrdFormat *nrrdIoStateBetFormat(NrrdIoState *io);
 extern int nrrdSave(const char *filename, const Nrrd *nrrd, NrrdIoState *io);
 extern int nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIoState *io);
 

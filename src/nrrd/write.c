@@ -27,6 +27,184 @@
 */
 
 int
+nrrdIoStateSet (NrrdIoState *nio, int parm, int value) {
+  char me[]="nrrdIoStateSet", err[AIR_STRLEN_MED];
+  
+  if (!nio) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!( AIR_IN_OP(nrrdIoStateUnknown, parm, nrrdIoStateLast) )) {
+    sprintf(err, "%s: identifier %d not in valid range [%d,%d]", me,
+	    parm, nrrdIoStateUnknown+1, nrrdIoStateLast-1);
+    biffAdd(NRRD, err); return 1;
+  }
+  switch (parm) {
+  case nrrdIoStateDetachedHeader:
+    nio->detachedHeader = !!value;
+    break;
+  case nrrdIoStateBareText:
+    nio->bareText = !!value;
+    break;
+  case nrrdIoStateCharsPerLine:
+    if (value < 40) {
+      sprintf(err, "%s: %d charsPerLine is awfully small", me, value);
+      biffAdd(NRRD, err); return 1;
+    }
+    nio->charsPerLine = value;
+    break;
+  case nrrdIoStateValsPerLine:
+    if (value < 4) {
+      sprintf(err, "%s: %d valsPerLine is awfully small", me, value);
+      biffAdd(NRRD, err); return 1;
+    }
+    nio->valsPerLine = value;
+    break;
+  case nrrdIoStateSkipData:
+    nio->skipData = !!value;
+    break;
+  case nrrdIoStateKeepNrrdDataFileOpen:
+    nio->keepNrrdDataFileOpen = !!value;
+    break;
+  case nrrdIoStateZlibLevel:
+    if (!( AIR_IN_CL(-1, value, 9) )) {
+      sprintf(err, "%s: zlibLevel %d invalid", me, value);
+      biffAdd(NRRD, err); return 1;
+    }
+    nio->zlibLevel = value;
+    break;
+  case nrrdIoStateZlibStrategy:
+    if (!( AIR_IN_OP(nrrdZlibStrategyUnknown, value, nrrdZlibStrategyLast) )) {
+      sprintf(err, "%s: zlibStrategy %d invalid", me, value);
+      biffAdd(NRRD, err); return 1;
+    }
+    nio->zlibStrategy = value;
+    break;
+  case nrrdIoStateBzip2BlockSize:
+    if (!( AIR_IN_CL(-1, value, 9) )) {
+      sprintf(err, "%s: bzip2BlockSize %d invalid", me, value);
+      biffAdd(NRRD, err); return 1;
+    }
+    nio->bzip2BlockSize = value;
+    break;
+  default:
+    fprintf(stderr, "!%s: PANIC: didn't recognize parm %d\n", me, parm);
+    exit(1);
+  }
+  return 0;
+}
+
+int
+nrrdIoStateSetEncoding (NrrdIoState *nio, const NrrdEncoding *encoding) {
+  char me[]="nrrdIoStateSetEncoding", err[AIR_STRLEN_MED];
+
+  if (!( nio && encoding )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    if (nio) {
+      nio->encoding = nrrdEncodingUnknown;
+    }
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!encoding->available()) {
+    sprintf(err, "%s: %s encoding isn't actually available", me,
+	    encoding->name);
+    nio->encoding = nrrdEncodingUnknown;
+    biffAdd(NRRD, err); return 1;
+  }
+  nio->encoding = encoding;
+  return 0;
+}
+
+int
+nrrdIoStateSetFormat (NrrdIoState *nio, const NrrdFormat *format) {
+  char me[]="nrrdIoStateSetFormat", err[AIR_STRLEN_MED];
+
+  if (!( nio && format )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    if (nio) {
+      nio->format = nrrdFormatUnknown;
+    }
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!format->available()) {
+    sprintf(err, "%s: %s format isn't actually available", me, format->name);
+    nio->format = nrrdFormatUnknown;
+    biffAdd(NRRD, err); return 1;
+  }
+  nio->format = format;
+  return 0;
+}
+
+/*
+** no biff
+*/
+int
+nrrdIoStateGet (NrrdIoState *nio, int parm) {
+  char me[]="nrrdIoStateGet";
+  int value;
+  
+  if (!nio) {
+    /* got NULL pointer */
+    return -1;
+  }
+  if (!( AIR_IN_OP(nrrdIoStateUnknown, parm, nrrdIoStateLast) )) {
+    /* got bogus parameter identifier */
+    return -1;
+  }
+  switch (parm) {
+  case nrrdIoStateDetachedHeader:
+    value = !!nio->detachedHeader;
+    break;
+  case nrrdIoStateBareText:
+    value = !!nio->bareText;
+    break;
+  case nrrdIoStateCharsPerLine:
+    value = nio->charsPerLine;
+    break;
+  case nrrdIoStateValsPerLine:
+    value = nio->valsPerLine;
+    break;
+  case nrrdIoStateSkipData:
+    value = !!nio->skipData;
+    break;
+  case nrrdIoStateKeepNrrdDataFileOpen:
+    value = !!nio->keepNrrdDataFileOpen;
+    break;
+  case nrrdIoStateZlibLevel:
+    value = nio->zlibLevel;
+    break;
+  case nrrdIoStateZlibStrategy:
+    value = nio->zlibStrategy;
+    break;
+  case nrrdIoStateBzip2BlockSize:
+    value = nio->bzip2BlockSize;
+    break;
+  default:
+    fprintf(stderr, "!%s: PANIC: didn't recognize parm %d\n", me, parm);
+    exit(1);
+  }
+  return value;
+}
+
+/*
+** no biff
+*/
+const NrrdEncoding *
+nrrdIoStateGetEncoding (NrrdIoState *nio) {
+
+  return nio ? nio->encoding : nrrdEncodingUnknown;
+}
+
+/*
+** no biff
+*/
+const NrrdFormat *
+nrrdIoStateGetFormat (NrrdIoState *nio) {
+
+  return nio ? nio->format : nrrdFormatUnknown;
+}
+
+int
 _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIoState *nio, int field) {
   int d, ret;
   
@@ -365,7 +543,8 @@ _nrrdEncodingMaybeSet(NrrdIoState *nio) {
 ** we must set nio->format to something useful/non-trivial
 */
 int
-_nrrdFormatMaybeGuess (const Nrrd *nrrd, NrrdIoState *nio, const char *filename) {
+_nrrdFormatMaybeGuess (const Nrrd *nrrd, NrrdIoState *nio,
+		       const char *filename) {
   char me[]="_nrrdFormatMaybeGuess", err[AIR_STRLEN_MED], mesg[AIR_STRLEN_MED];
   int fi, guessed, available, fits;
 
