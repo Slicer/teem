@@ -67,12 +67,9 @@ extern "C" {
 #define NRRD_COORD_UPDATE(coord, size, dim)    \
 do {                                           \
   int d;                                       \
-  printf("NRRD_COORD_UPDATE: hello; dim-1 = %d; c[1],s[1] = %d,%d\n", \
-         (dim)-1, (coord)[1], (size)[1]); \
   for (d=0;                                    \
        d < (dim)-1 && (coord)[d] == (size)[d]; \
        d++) {                                  \
-    printf("     d = %d; size[%d] = %d\n", d, d, (size)[d]); \
     (coord)[d] = 0;                            \
     (coord)[d+1]++;                            \
   }                                            \
