@@ -38,7 +38,7 @@ main(int argc, char *argv[]) {
     printf("nrrdTypeMax: % 31.15f\n", nrrdTypeMax[tt]);
     printf("nrrdTypeNumberValues: % 31.15f\n", nrrdTypeNumberValues[tt]);
   }
-  printf("sizeof(size_t) = %d\n", sizeof(size_t));
+  printf("sizeof(size_t) = %d\n", (int)sizeof(size_t));
 
   /*
   c = -10;
