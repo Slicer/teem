@@ -7,8 +7,6 @@ type  same and different than map type.
 
 nrrdSplice, nrrdInset
 
-2D luts/rmaps
-
 check resampler getting info with NULL kernel on each axis
 (bug that Joe and I had with qbert when no resmapling was needed)
 
@@ -24,13 +22,19 @@ nrrdUnquantize
 
 write a select() function to replace qsort() in median calculation
 
-gzip encoding
+gzip encoding: with detached headers, the data file name should be
+.raw.gz, not just .gz
 
-be sure to test all non-boolean state/default variables .
+be sure to test all non-boolean state/default variables
 
 add one-line descriptions to function declarations in nrrd.h
 
 ----- teem 1.5 cut-off -----
+
+2D luts/rmaps
+
+see if the use of airSinglePrintf in accessors.c, with %.8g or whatever,
+is really the right thing to do in the most general case
 
 see which of the nrrdDef* variables are actually used, but this
 is harder than just grepping through files for the nrrdDef* name;
@@ -59,17 +63,15 @@ fourier+hartley transforms, integration with fftw
 
 other encodings- base 85, hex
 
-test suite
-
 no other big things for nrrd planned...
 
 ----- teem 1.7 cut-off -----
 
+test suite
+
 make nrrdDescribe() a little prettier
 
 create textual representation of resampling parameters
-
-nrrdPad_nva, nrrdSimplePad_nva? but then what about nrrdCrop?
 
 revisit resampler, one last time
 go through all functions to:
