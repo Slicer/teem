@@ -21,6 +21,7 @@
 #include "air.h"
 #include <teemEndian.h>
 #include <teemQnanhibit.h>
+#include <teemBigbitfield.h>
 
 /*
 ** all this is based on a reading of
@@ -29,6 +30,12 @@
 **
 ** and some assorted web pages
 */
+
+#if TEEM_BIGBITFIELD == 1
+const int airMyBigBitField = 1;
+#else
+const int airMyBigBitField = 0;
+#endif
 
 /*
 ** _airFloat, _airDouble
@@ -56,17 +63,18 @@ typedef union {
 
 typedef union {
   airULLong i;
-#ifndef __sparc
+#if TEEM_BIGBITFIELD == 1
+  /* #ifndef __sparc */
   struct {
-#if TEEM_ENDIAN == 1234
+# if TEEM_ENDIAN == 1234
     airULLong frac : 52;
     unsigned int exp : 11;
     unsigned int sign : 1;
-#else
+# else
     unsigned int sign : 1;
     unsigned int exp : 11;
     airULLong frac : 52;
-#endif
+# endif
   } c;
 #endif
   /* these next two members are used for printing in airFPFprintf_d */
@@ -162,7 +170,8 @@ airFPValToParts_f(int *signP, int *expP, int *fracP, float v) {
 
 double
 airFPPartsToVal_d(int sign, int exp, airULLong frac) {
-#ifdef __sparc
+#if TEEM_BIGBITFIELD == 0
+  /* #ifdef __sparc */
   _airFloat f;
   fprintf(stderr, "airFPPartsToVal_d: WARNING: using float, not double\n");
   FP_SET(f, sign, exp, frac);
@@ -184,7 +193,8 @@ airFPPartsToVal_d(int sign, int exp, airULLong frac) {
 #endif
 void
 airFPValToParts_d(int *signP, int *expP, airULLong *fracP, double v) {
-#ifdef __sparc
+#if TEEM_BIGBITFIELD == 0
+  /* #ifdef __sparc */
   _airFloat f;
   fprintf(stderr, "airFPPartsToVal_d: WARNING: using float, not double\n");
   f.v = v;
@@ -260,7 +270,8 @@ airFPGen_f(int cls) {
 */
 double
 airFPGen_d(int cls) {
-#ifdef __sparc
+#if TEEM_BIGBITFIELD == 0
+  /* #ifdef __sparc */
   fprintf(stderr, "airFPGen_d: WARNING: using float, not double\n");
   return airFPGen_f(cls);
 #else
@@ -268,19 +279,19 @@ airFPGen_d(int cls) {
   switch(cls) {
   case airFP_SNAN:
     /* sgn: anything, frc: anything non-zero with high bit !TEEM_QNANHIBIT */
-#if TEEM_QNANHIBIT == 1
+# if TEEM_QNANHIBIT == 1
     FP_SET(f, 0, 0x7ff, (AIR_ULLONG(0) << 52) | 0x3fffff);
-#else
+# else
     FP_SET(f, 0, 0x7ff, (AIR_ULLONG(1) << 52) | 0x3fffff);
-#endif
+# endif
     break;
   case airFP_QNAN:
     /* sgn: anything, frc: anything non-zero with high bit TEEM_QNANHIBIT */
-#if TEEM_QNANHIBIT == 1
+# if TEEM_QNANHIBIT == 1
     FP_SET(f, 0, 0x7ff, (AIR_ULLONG(1) << 52) | 0x3fffff);
-#else
+# else
     FP_SET(f, 0, 0x7ff, (AIR_ULLONG(0) << 52) | 0x3fffff);
-#endif
+# endif
     break;
   case airFP_POS_INF:
     FP_SET(f, 0, 0x7ff, 0);
@@ -404,7 +415,8 @@ airFPClass_f(float val) {
 */
 int
 airFPClass_d(double val) {
-#ifdef __sparc
+#if TEEM_BIGBITFIELD == 0
+  /* #ifdef __sparc */
   fprintf(stderr, "airFPClass_d: WARNING: using float, not double\n");
   return airFPClass_f(val);
 #else
@@ -415,9 +427,10 @@ airFPClass_d(double val) {
 
   f.v = val;
   sign = f.c2.sign; 
-  exp = f.c2.exp;    /* this seems to be a WIN32 bug: on a quiet-NaN, f.c.exp should 
-			be non-zero, but it was completely zero, so that this function
-			returned airFP_NEG_DENORM instead of airFP_QNAN */
+  exp = f.c2.exp;    /* this seems to be a WIN32 bug: on a quiet-NaN, f.c.exp
+			should be non-zero, but it was completely zero, so that
+			this function returned airFP_NEG_DENORM instead of
+			airFP_QNAN */
   frac = f.c.frac;
   hibit = frac >> 51;
 
@@ -625,3 +638,4 @@ airFPFprintf_d(FILE *file, double val) {
     fprintf(file, "\n");
   }
 }
+

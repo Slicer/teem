@@ -208,6 +208,7 @@ typedef union {
   double d;
 } airDouble;
 extern air_export const int airMyQNaNHiBit;
+extern air_export const int airMyBigBitField;
 extern float airFPPartsToVal_f(int sign, int exp, int frac);
 extern void airFPValToParts_f(int *signP, int *expP, int *fracP, float v);
 extern double airFPPartsToVal_d(int sign, int exp, airULLong frac);
@@ -400,7 +401,7 @@ extern void airMopDebug(airArray *arr);
 #define AIR_WHITESPACE " \t\n\r\v\f"       /* K+R pg. 157 */
 
 /*
-******** AIR_ENDIAN, AIR_QNANHIBIT, AIR_DIO
+******** AIR_ENDIAN, AIR_QNANHIBIT, AIR_DIO, AIR_BIGBITFIELD
 **
 ** These reflect particulars of hardware which we're running on.
 ** The reason to have these in addition to TEEM_ENDIAN, TEEM_DIO, etc.,
@@ -415,6 +416,7 @@ extern void airMopDebug(airArray *arr);
 #define AIR_QNANHIBIT (airMyQNaNHiBit)
 #define AIR_DIO (airMyDio)
 #define AIR_32BIT (airMy32Bit)
+#define AIR_BIGBITFIELD (airMyBigBitField)
 
 /*
 ******** AIR_NAN, AIR_QNAN, AIR_SNAN, AIR_POS_INF, AIR_NEG_INF
@@ -467,6 +469,7 @@ extern void airMopDebug(airArray *arr);
 ** 1) Its a function call (but WIN32 can __inline it)
 ** 2) (via AIR_EXISTS_G) It requires bit-wise operations on 64-bit
 ** ints, which might be terribly slow.
+**
 ** The reason for using airExists_d and not airExists_f is for
 ** doubles > FLT_MAX: airExists_f would say these are infinity.
 */
