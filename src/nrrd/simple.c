@@ -202,7 +202,7 @@ nrrdSpaceOriginGet(const Nrrd *nrrd,
 int
 nrrdOriginCalculate3D(const Nrrd *nrrd, int ax0, int ax1, int ax2,
                       int defaultCenter, double origin[3]) {
-  const NrrdAxisInfo *axis[0];
+  const NrrdAxisInfo *axis[3];
   int ai, center, size;
   double min, spacing;
 
