@@ -357,7 +357,8 @@ _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIoState *nio, int field) {
     }
     break;
   case nrrdField_space_origin:
-    ret = nrrd->spaceDim > 0;
+    ret = (nrrd->spaceDim > 0 
+           && AIR_EXISTS(nrrd->spaceOrigin[0]));
     break;
   case nrrdField_data_file:
     /* detached header was either requested or is required */

@@ -85,6 +85,8 @@ nrrdSpaceSet(Nrrd *nrrd, int space) {
   return 0;
 }
 
+/* ---- BEGIN non-NrrdIO */
+
 void
 _nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX], 
                        double sclA, const double vecA[NRRD_SPACE_DIM_MAX],
@@ -110,7 +112,8 @@ _nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX],
     out[ii] = scl*v;
   }
 }
-                       
+
+/* ---- END non-NrrdIO */
 
 /*
 ** _nrrdContentGet
@@ -321,21 +324,25 @@ _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int checkOrigin, int useBiff) {
         biffMaybeAdd(NRRD, err, useBiff); return 1;
       }
     }
-    if (checkOrigin) {
-      exists = AIR_TRUE;
-      for (ii=0; ii<nrrd->spaceDim; ii++) {
-        exists &= AIR_EXISTS(nrrd->spaceOrigin[ii]);
-      }
-      if (!exists) {
-        sprintf(err, "%s: coefficients of origin vector must all exist", me);
+    exists = AIR_EXISTS(nrrd->spaceOrigin[0]);
+    for (ii=0; ii<nrrd->spaceDim; ii++) {
+      if (exists ^ AIR_EXISTS(nrrd->spaceOrigin[ii])) {
+        sprintf(err, "%s: existance of space origin coefficients must "
+                "be consistent (val[0] not like val[%d])", me, ii);
         biffMaybeAdd(NRRD, err, useBiff); return 1;
       }
+    }
+    /* this is a relic of those few pre-Fri Feb 11 04:25:36 EST 2005
+       weeks when I though that spaceOrigin must be known */
+    if (checkOrigin && !exists) {
+      sprintf(err, "%s: coefficients of origin vector must all exist", me);
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
     for (dd=0; dd<nrrd->dim; dd++) {
       exists = AIR_EXISTS(nrrd->axis[dd].spaceDirection[0]);
       for (ii=1; ii<nrrd->spaceDim; ii++) {
         if (exists ^ AIR_EXISTS(nrrd->axis[dd].spaceDirection[ii])) {
-          sprintf(err, "%s: existance of all space vector coefficients must "
+          sprintf(err, "%s: existance of space direction coefficients must "
                   "be consistent (val[0] not like val[%d])", me, ii);
           biffMaybeAdd(NRRD, err, useBiff); return 1;
         }
@@ -674,7 +681,11 @@ int
 _nrrdFieldCheck_space_origin(const Nrrd *nrrd, int useBiff) {
   char me[]="_nrrdFieldCheck_space_origin", err[AIR_STRLEN_MED];
 
-  if (_nrrdFieldCheckSpaceInfo(nrrd, AIR_TRUE, useBiff)) {
+  /* pre-Fri Feb 11 04:25:36 EST 2005, I thought that 
+     the spaceOrigin must be known to describe the 
+     space/orientation stuff, but that's too restrictive,
+     which is why below says AIR_FALSE instead of AIR_TRUE */
+  if (_nrrdFieldCheckSpaceInfo(nrrd, AIR_FALSE, useBiff)) {
     sprintf(err, "%s: space info problem", me);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
