@@ -93,7 +93,7 @@ main(int argc, char *argv[]) {
     needRsmp, needPad,
     vhist[HIST_SIZE], ghist[HIST_SIZE], hhist[HIST_SIZE];
   float perc[3], *vghF, v, g, h, minv, maxv, ming, maxg, minh, maxh;
-  double t0, t1;
+  double t0, t1, spcX, spcY, spcZ;
   hestParm *hparm;
   hestOpt *hopt = NULL;
   gageSclContext *ctx;
@@ -208,9 +208,13 @@ main(int argc, char *argv[]) {
   }
   printf("done\n");
   rsmpInfo = nrrdResampleInfoNix(rsmpInfo);
-
+  /* these are the spacings that we'll use at the very end */
+  spcX = nrsmp->axis[0].spacing;
+  spcY = nrsmp->axis[1].spacing;
+  spcZ = nrsmp->axis[2].spacing;
+  /*
   nrrdSave("rsmp.nrrd", nrsmp, NULL);
-
+  */
   
   /* padding; to get up to (sz[i]) */
   for (i=0; i<=2; i++) {
@@ -223,9 +227,9 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   printf("done\n");
-
-  nrrdSave("pad1.nrrd", npad, NULL);
-
+  /* 
+  nrrdSave("npad.nrrd", npad, NULL);
+  */
 
   /* probing to make triple volume */
   ctx = gageSclContextNew();
@@ -253,7 +257,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(NRRD));
     exit(1);
   }
-  nrrdEmpty(npad);
+  nrrdNuke(npad);
   if (!E) E |= gageSclVolumeSet(ctx, needPad, npad2);
   if (!E) E |= gageSclQuerySet(ctx,
 			       (1 << gageSclValue) | 
@@ -296,9 +300,9 @@ main(int argc, char *argv[]) {
   t1 = airTime();
   npad2 = nrrdNuke(npad2);
   printf("done (probe rate = %g/sec)\n", sz[0]*sz[1]*sz[2]/(t1-t0));
-
+  /*
   nrrdSave("vghF.nrrd", nvghF, NULL);
-
+  */
 
 
   /* make histograms to determine inclusion ranges */
@@ -410,9 +414,9 @@ main(int argc, char *argv[]) {
   nvgh->axis[1].label = airStrdup("x");
   nvgh->axis[2].label = airStrdup("y");
   nvgh->axis[3].label = airStrdup("z");
-  nvgh->axis[1].spacing = npad->axis[0].spacing;
-  nvgh->axis[2].spacing = npad->axis[1].spacing;
-  nvgh->axis[3].spacing = npad->axis[2].spacing;
+  nvgh->axis[1].spacing = spcX;
+  nvgh->axis[2].spacing = spcY;
+  nvgh->axis[3].spacing = spcZ;
   sprintf(cmt, "exclusions (v/g/h): %g/%g/%g", perc[0], perc[1], perc[2]);
   nrrdCommentAdd(nvgh, cmt);
   sprintf(cmt, "minv: %g", minv);  nrrdCommentAdd(nvgh, cmt);
@@ -429,7 +433,6 @@ main(int argc, char *argv[]) {
   nvghF = nrrdNuke(nvghF);
   nrsmp = nrrdNuke(nrsmp);
   nvgh = nrrdNuke(nvgh);
-  npad = nrrdNuke(npad);
   ctx = gageSclContextNix(ctx);
 
   exit(0);
