@@ -46,7 +46,7 @@ const char airMyFmt_size_t[] = "%lu";
 const char *
 airTeemVersion = "1.5 pre-release";
 const char *
-airTeemReleaseDate = "8 July 2003";
+airTeemReleaseDate = "24 July 2003";
 
 /*
 ******** airSrand()

@@ -31,7 +31,7 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
     "library in the \"teem\" group of libraries, which is the software "
     "Gordon Kindlmann writes in support of his research.  More information "
     "about teem and all its constituent libraries is at "
-    "<http://www.cs.utah.edu/~gk/teem>.\n";
+    "<http://teem.sourceforge.net>.\n";
   char par2[] = "\t\t\t\t"
     "The utility of unu is mainly as a pre-processing tool for getting "
     "data into a type, encoding, format, or dimensions best suited for some "
@@ -78,7 +78,7 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
     "\"Dataset processing performed with the {\\tt unu} tool "
     "(or the {\\tt nrrd} library), "
     "part of the {\\tt teem} toolkit available at "
-    "{\\tt\t$<$http://www.cs.utah.edu/$\\sim$gk/teem$>$}\"\n ";
+    "{\\tt\t$<$http://teem.sourceforge.net$>$}\"\n ";
   char par7[] = "\t\t\t\t"
     "Feedback, questions, requests welcome: gk@cs.utah.edu.\n";
 
