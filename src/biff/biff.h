@@ -20,9 +20,6 @@
 
 #ifndef BIFF_HAS_BEEN_INCLUDED
 #define BIFF_HAS_BEEN_INCLUDED
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include <stdio.h>
 #include <string.h>
@@ -41,8 +38,4 @@ extern void biffMove(char *destKey, char *err, char *srcKey);
 extern char *biffGet(char *key);
 extern char *biffGetDone(char *key);
 
-/* extern C */
-#ifdef __cplusplus
-}
-#endif
 #endif /* BIFF_HAS_BEEN_INCLUDED */
