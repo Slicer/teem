@@ -21,10 +21,10 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Convert nrrd to another type (as if by per-value cast)"
-char *_unu_convertInfoL = INFO;
+char *_unrrdu_convertInfoL = INFO;
 
 int
-unu_convertMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_convertMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -38,7 +38,7 @@ unu_convertMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_convertInfoL);
+  USAGE(_unrrdu_convertInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -58,4 +58,4 @@ unu_convertMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(convert, INFO);
+UNRRDU_CMD(convert, INFO);

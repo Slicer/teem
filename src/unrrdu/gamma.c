@@ -21,14 +21,14 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Brighten or darken values with a gamma"
-char *_unu_gammaInfoL =
+char *_unrrdu_gammaInfoL =
 (INFO
  ". Just as in xv, the gamma value here is actually the "
  "reciprocal of the exponent actually used to transform "
  "the values.");
 
 int
-unu_gammaMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_gammaMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -50,7 +50,7 @@ unu_gammaMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_gammaInfoL);
+  USAGE(_unrrdu_gammaInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -78,4 +78,4 @@ unu_gammaMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(gamma, INFO);
+UNRRDU_CMD(gamma, INFO);

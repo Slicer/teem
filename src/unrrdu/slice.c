@@ -21,12 +21,12 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Slice at a position along an axis"
-char *_unu_sliceInfoL = (INFO
+char *_unrrdu_sliceInfoL = (INFO
 			". Output nrrd dimension is one less than input nrrd "
 			"dimension.  Per-axis information is preserved.");
 
 int
-unu_sliceMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_sliceMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -40,13 +40,13 @@ unu_sliceMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "\b\bo <int> gives 0-based index\n "
 	     "\b\bo M-<int> give index relative "
 	     "to the last sample on the axis (M == #samples-1).",
-	     NULL, NULL, &unuPosHestCB);
+	     NULL, NULL, &unrrduPosHestCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_sliceInfoL);
+  USAGE(_unrrdu_sliceInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
   if (!( AIR_INSIDE(0, axis, nin->dim-1) )) {
@@ -75,4 +75,4 @@ unu_sliceMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(slice, INFO);
+UNRRDU_CMD(slice, INFO);

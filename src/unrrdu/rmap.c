@@ -21,7 +21,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through *regular* univariate map (\"colormap\")"
-char *_unu_rmapInfoL =
+char *_unrrdu_rmapInfoL =
 (INFO
  ". A map is regular if the control points are evenly "
  "spaced along the domain, and hence their position isn't "
@@ -38,7 +38,7 @@ char *_unu_rmapInfoL =
  "(\"color\").");
 
 int
-unu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nmap, *nout;
@@ -57,13 +57,13 @@ unu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "output nrrd. "
 	     "By default (not using this option), the output type "
 	     "is the map's type.",
-             NULL, NULL, &unuMaybeTypeHestCB);
+             NULL, NULL, &unrrduMaybeTypeHestCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_rmapInfoL);
+  USAGE(_unrrdu_rmapInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -105,4 +105,4 @@ unu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(rmap, INFO);
+UNRRDU_CMD(rmap, INFO);

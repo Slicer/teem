@@ -25,7 +25,7 @@ extern int _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io, int writeData);
 
 
 #define INFO "Create a nrrd (or nrrd header) from scratch"
-char *_unu_makeInfoL =
+char *_unrrdu_makeInfoL =
 (INFO
  ".  The data can be in a file or coming from stdin. "
  "This provides an easy way of providing the bare minimum "
@@ -36,7 +36,7 @@ char *_unu_makeInfoL =
  "or writing data. ");
 
 int
-unu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *dataFileName, *content;
   Nrrd *nrrd;
@@ -96,7 +96,7 @@ unu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   OPT_ADD_NOUT(out, "output filename");
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_makeInfoL);
+  USAGE(_unrrdu_makeInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -145,7 +145,7 @@ unu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
     _nrrdWriteNrrd(fileOut, nrrd, io, AIR_FALSE /* don't write data */);
   } else {
-    /* we're not actually using the handy unuFileHestCB above,
+    /* we're not actually using the handy unrrduFileHestCB above,
        since we have to open the input data file by hand */
     if (!strcmp("-", dataFileName)) {
       io->dataFile  = stdin;
@@ -180,4 +180,4 @@ unu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(make, INFO);
+UNRRDU_CMD(make, INFO);

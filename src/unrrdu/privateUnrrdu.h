@@ -17,8 +17,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef UNU_PRIVATE_HAS_BEEN_INCLUDED
-#define UNU_PRIVATE_HAS_BEEN_INCLUDED
+#ifndef UNRRDU_PRIVATE_HAS_BEEN_INCLUDED
+#define UNRRDU_PRIVATE_HAS_BEEN_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,7 +50,7 @@ extern "C" {
 /* int *var; int saw */
 #define OPT_ADD_BOUND(name, var, desc, saw) \
   hestOptAdd(&opt, name, "pos0", airTypeOther, 1, -1, &(var), NULL, desc, \
-	     &(saw), NULL, &unuPosHestCB)
+	     &(saw), NULL, &unrrduPosHestCB)
 
 /* int var */
 #define OPT_ADD_TYPE(var, desc, dflt) \
@@ -103,4 +103,4 @@ extern "C" {
 }
 #endif
 
-#endif /* UNU_PRIVATE_HAS_BEEN_INCLUDED */
+#endif /* UNRRDU_PRIVATE_HAS_BEEN_INCLUDED */

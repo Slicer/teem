@@ -21,7 +21,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Filtering and {up,down}sampling with a seperable kernel"
-char *_unu_resampleInfoL =
+char *_unrrdu_resampleInfoL =
 (INFO
  ". Provides simplified access to nrrdSpatialResample() "
  "by assuming (among other things) that the same kernel "
@@ -35,7 +35,7 @@ char *_unu_resampleInfoL =
  "node-centered data.");
 
 int
-unu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -55,7 +55,7 @@ unu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "\b\bo \"x<float>\": number of output samples is some scaling of "
 	     " the number samples in input, multiplied by <float>\n "
 	     "\b\bo \"<int>\": exact number of samples",
-	     &scaleLen, NULL, &unuScaleHestCB);
+	     &scaleLen, NULL, &unrrduScaleHestCB);
   hestOptAdd(&opt, "k", "kern", airTypeOther, 1, 1, &unuk, "quartic:0.0834",
 	     "The kernel to use for resampling.  Possibilities include:\n "
 	     "\b\bo \"box\": nearest neighbor interpolation\n "
@@ -80,7 +80,7 @@ unu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "unknown",
 	     "type to save output as. By default (not using this option), "
 	     "the output type is the same as the input type.",
-             NULL, NULL, &unuMaybeTypeHestCB);
+             NULL, NULL, &unrrduMaybeTypeHestCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
@@ -88,7 +88,7 @@ unu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   info = nrrdResampleInfoNew();
   airMopAdd(mop, info, (airMopper)nrrdResampleInfoNix, airMopAlways);
   
-  USAGE(_unu_resampleInfoL);
+  USAGE(_unrrdu_resampleInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -143,4 +143,4 @@ unu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(resample, INFO);
+UNRRDU_CMD(resample, INFO);

@@ -21,33 +21,33 @@
 
 /* number of columns that hest will used */
 int
-unuDefNumColumns = 78;
+unrrduDefNumColumns = 78;
 
 /*
-******** unuCmdList[]
+******** unrrduCmdList[]
 **
-** NULL-terminated array of unuCmd pointers, as ordered by UNU_MAP macro
+** NULL-terminated array of unrrduCmd pointers, as ordered by UNRRDU_MAP macro
 */
-unuCmd *
-unuCmdList[] = {
-  UNU_MAP(UNU_LIST)
+unrrduCmd *
+unrrduCmdList[] = {
+  UNRRDU_MAP(UNRRDU_LIST)
   NULL
 };
 
 /*
-******** unuUsage
+******** unrrduUsage
 **
 ** prints out a little banner, and a listing of all available commands
 ** with their one-line descriptions
 */
 void
-unuUsage(char *me, hestParm *hparm) {
+unrrduUsage(char *me, hestParm *hparm) {
   int i, maxlen, len, c;
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
 
   maxlen = 0;
-  for (i=0; unuCmdList[i]; i++) {
-    maxlen = AIR_MAX(maxlen, strlen(unuCmdList[i]->name));
+  for (i=0; unrrduCmdList[i]; i++) {
+    maxlen = AIR_MAX(maxlen, strlen(unrrduCmdList[i]->name));
   }
 
   sprintf(buff, "--- Utah Nrrd Utilities (unrrdu) command-line interface ---");
@@ -55,24 +55,24 @@ unuUsage(char *me, hestParm *hparm) {
 	  (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
   
-  for (i=0; unuCmdList[i]; i++) {
-    len = strlen(unuCmdList[i]->name);
+  for (i=0; unrrduCmdList[i]; i++) {
+    len = strlen(unrrduCmdList[i]->name);
     strcpy(buff, "");
     for (c=len; c<maxlen; c++)
       strcat(buff, " ");
     strcat(buff, me);
     strcat(buff, " ");
-    strcat(buff, unuCmdList[i]->name);
+    strcat(buff, unrrduCmdList[i]->name);
     strcat(buff, " ... ");
     len = strlen(buff);
     fprintf(stderr, "%s", buff);
     _hestPrintStr(stderr, len, len, hparm->columns,
-		  unuCmdList[i]->info, AIR_FALSE);
+		  unrrduCmdList[i]->info, AIR_FALSE);
   }
 }
 
 /*
-******** unuPosHestCB
+******** unrrduPosHestCB
 **
 ** For parsing position along an axis. Can be a simple integer,
 ** or M to signify last position along axis (#samples-1), or
@@ -93,8 +93,8 @@ unuUsage(char *me, hestParm *hparm) {
 ** pos[0] == -1: pos[1] gives the position relative to a "minimum" position
 */
 int
-unuParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unuParsePos";
+unrrduParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[]="unrrduParsePos";
   int *pos;
 
   if (!(ptr && str)) {
@@ -145,15 +145,15 @@ unuParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unuPosHestCB = {
+hestCB unrrduPosHestCB = {
   2*sizeof(int),
   "position",
-  unuParsePos,
+  unrrduParsePos,
   NULL
 };
 
 /*
-******** unuMaybeTypeHestCB
+******** unrrduMaybeTypeHestCB
 **
 ** although nrrdType is an airEnum that hest already knows how
 ** to parse, we want the ability to have "unknown" be a valid
@@ -162,8 +162,8 @@ hestCB unuPosHestCB = {
 ** "same type as the input, whatever that is".
 */
 int
-unuParseMaybeType(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unuParseMaybeType";
+unrrduParseMaybeType(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[]="unrrduParseMaybeType";
   int *typeP;
 
   /* fprintf(stderr, "!%s: str = \"%s\"\n", me, str); */
@@ -185,21 +185,21 @@ unuParseMaybeType(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unuMaybeTypeHestCB = {
+hestCB unrrduMaybeTypeHestCB = {
   sizeof(int),
   "type",
-  unuParseMaybeType,
+  unrrduParseMaybeType,
   NULL
 };
 
 /*
-******** unuBitsHestCB
+******** unrrduBitsHestCB
 ** 
 ** for parsing an int that can be 8, 16, or 32
 */
 int
-unuParseBits(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unuParseBits";
+unrrduParseBits(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[]="unrrduParseBits";
   int *bitsP;
 
   if (!(ptr && str)) {
@@ -218,22 +218,22 @@ unuParseBits(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unuBitsHestCB = {
+hestCB unrrduBitsHestCB = {
   sizeof(int),
   "quantization bits",
-  unuParseBits,
+  unrrduParseBits,
   NULL
 };
 
 /*
-******** unuParseScale
+******** unrrduParseScale
 **
 ** parse "=", "x<float>", and "<int>".  These possibilities are represented
 ** for axis i by setting scale[0 + 2*i] to 0, 1, or 2, respectively.
 */
 int
-unuParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unuParseScale";
+unrrduParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[]="unrrduParseScale";
   float *scale;
   int num;
   
@@ -267,22 +267,22 @@ unuParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unuScaleHestCB = {
+hestCB unrrduScaleHestCB = {
   2*sizeof(float),
   "sampling specification",
-  unuParseScale,
+  unrrduParseScale,
   NULL
 };
 
 /*
-******** unuFileHestCB
+******** unrrduFileHestCB
 **
 ** for parsing a filename, which means opening it in "rb" mode and
 ** getting a FILE *.  "-" is interpreted as stdin, which is not
 ** fclose()ed at the end, unlike all other files.
 */
 void *
-unuMaybeFclose(void *_file) {
+unrrduMaybeFclose(void *_file) {
   FILE *file;
   
   file = _file;
@@ -293,8 +293,8 @@ unuMaybeFclose(void *_file) {
 }
 
 int
-unuParseFile(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unuParseFile";
+unrrduParseFile(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[]="unrrduParseFile";
   FILE **fileP;
 
   if (!(ptr && str)) {
@@ -316,10 +316,10 @@ unuParseFile(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unuFileHestCB = {
+hestCB unrrduFileHestCB = {
   sizeof(FILE *),
   "filename",
-  unuParseFile,
-  unuMaybeFclose,
+  unrrduParseFile,
+  unrrduMaybeFclose,
 };
 

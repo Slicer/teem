@@ -21,10 +21,10 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Unary operation on a nrrd"
-char *_unu_1opInfoL = (INFO);
+char *_unrrdu_1opInfoL = (INFO);
 
 int
-unu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -50,7 +50,7 @@ unu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_1opInfoL);
+  USAGE(_unrrdu_1opInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -70,4 +70,4 @@ unu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(1op, INFO);
+UNRRDU_CMD(1op, INFO);

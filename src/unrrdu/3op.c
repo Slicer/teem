@@ -21,7 +21,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Ternary operation on three nrrds or constants"
-char *_unu_3opInfoL =
+char *_unrrdu_3opInfoL =
 (INFO
  ". Can have one, two, or three nrrds, but not zero. "
  "Use \"-\" for an operand to signify "
@@ -29,7 +29,7 @@ char *_unu_3opInfoL =
  "that \"-\" can probably only be used once (reliably).");
 
 int
-unu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   NrrdIter *in1, *in2, *in3;
@@ -63,13 +63,13 @@ unu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "doing operation.  This also determines output type. "
 	     "By default (not using this option), the types of the input "
 	     "nrrds are left unchanged.",
-             NULL, NULL, &unuMaybeTypeHestCB);
+             NULL, NULL, &unrrduMaybeTypeHestCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_3opInfoL);
+  USAGE(_unrrdu_3opInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -118,5 +118,5 @@ unu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(3op, INFO);
+UNRRDU_CMD(3op, INFO);
 

@@ -21,7 +21,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Permute samples along one axis"
-char *_unu_shuffleInfoL = 
+char *_unrrdu_shuffleInfoL = 
 (INFO
  ". Slices along one axis are re-arranged as units "
  "according to the given permutation (or its inverse). "
@@ -34,7 +34,7 @@ char *_unu_shuffleInfoL =
  "\"response file\".");
 
 int
-unu_shuffleMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_shuffleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -56,7 +56,7 @@ unu_shuffleMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_shuffleInfoL);
+  USAGE(_unrrdu_shuffleInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -105,4 +105,4 @@ unu_shuffleMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(shuffle, INFO);
+UNRRDU_CMD(shuffle, INFO);

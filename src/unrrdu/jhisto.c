@@ -21,7 +21,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Create joint histogram of two or more nrrds"
-char *_unu_jhistoInfoL =
+char *_unrrdu_jhistoInfoL =
 (INFO
  ". Each axis of the output corresponds to one of the "
  "input nrrds, and each bin in the output records the "
@@ -30,7 +30,7 @@ char *_unu_jhistoInfoL =
  "of the bin.");
 
 int
-unu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd **nin, *nout;
@@ -53,7 +53,7 @@ unu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_jhistoInfoL);
+  USAGE(_unrrdu_jhistoInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -90,4 +90,4 @@ unu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(jhisto, INFO);
+UNRRDU_CMD(jhisto, INFO);

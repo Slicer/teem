@@ -21,7 +21,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Perform histogram equalization"
-char *_unu_heqInfoL =
+char *_unrrdu_heqInfoL =
 (INFO
  ". If this seems to be doing nothing, try increasing the "
  "number of histograms bins by an order of magnitude or "
@@ -31,7 +31,7 @@ char *_unu_heqInfoL =
  "in the equalization histogram will produce poor results.");
 
 int
-unu_heqMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_heqMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *mapS;
   Nrrd *nin, *nout, *nmap;
@@ -58,7 +58,7 @@ unu_heqMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_heqInfoL);
+  USAGE(_unrrdu_heqInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -81,4 +81,4 @@ unu_heqMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(heq, INFO);
+UNRRDU_CMD(heq, INFO);

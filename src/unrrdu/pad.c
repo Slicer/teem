@@ -21,10 +21,10 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Pad along each axis to make a bigger nrrd"
-char *_unu_padInfoL = INFO;
+char *_unrrdu_padInfoL = INFO;
 
 int
-unu_padMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_padMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -57,7 +57,7 @@ unu_padMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_padInfoL);
+  USAGE(_unrrdu_padInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -105,4 +105,4 @@ unu_padMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(pad, INFO);
+UNRRDU_CMD(pad, INFO);

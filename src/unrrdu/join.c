@@ -21,13 +21,13 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Connect slices and/or slabs into a bigger nrrd"
-char *_unu_joinInfoL =
+char *_unrrdu_joinInfoL =
 (INFO
  ". Can stich images into volumes, or tile images side "
  "by side, or attach images onto volumes.");
 
 int
-unu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd **nin, *nout;
@@ -49,7 +49,7 @@ unu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_joinInfoL);
+  USAGE(_unrrdu_joinInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -69,4 +69,4 @@ unu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(join, INFO);
+UNRRDU_CMD(join, INFO);

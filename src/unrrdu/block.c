@@ -21,7 +21,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Condense axis-0 scanlines into \"blocks\""
-char *_unu_blockInfoL = 
+char *_unrrdu_blockInfoL = 
 (INFO
  ". Output nrrd will be of type \"block\": the type "
  "for an opaque chunk of "
@@ -34,7 +34,7 @@ char *_unu_blockInfoL =
  "is unchanged.");
 
 int
-unu_blockMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_blockMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -50,7 +50,7 @@ unu_blockMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_blockInfoL);
+  USAGE(_unrrdu_blockInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -70,4 +70,4 @@ unu_blockMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(block, INFO);
+UNRRDU_CMD(block, INFO);

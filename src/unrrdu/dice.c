@@ -21,14 +21,14 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Slice *everywhere* along one axis"
-char *_unu_diceInfoL = 
+char *_unrrdu_diceInfoL = 
 (INFO
  ". Calls \"unu slice\" for each position "
  "along the indicated axis, and saves out a different "
  "nrrd for each position. ");
 
 int
-unu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *base, out[512], *err, format[512];
   Nrrd *nin, *nout;
@@ -45,7 +45,7 @@ unu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_diceInfoL);
+  USAGE(_unrrdu_diceInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -107,4 +107,4 @@ unu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(dice, INFO);
+UNRRDU_CMD(dice, INFO);

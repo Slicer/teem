@@ -21,7 +21,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Binary operation on two nrrds, or on a nrrd and a constant"
-char *_unu_2opInfoL =
+char *_unrrdu_2opInfoL =
 (INFO
  ". Either the first or second operand can be a float, "
  "but not both.  Use \"-\" for an operand to signify "
@@ -29,7 +29,7 @@ char *_unu_2opInfoL =
  "that \"-\" can probably only be used once (reliably).");
 
 int
-unu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   NrrdIter *in1, *in2;
@@ -61,13 +61,13 @@ unu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "doing operation.  This also determines output type. "
 	     "By default (not using this option), the types of the input "
 	     "nrrds are left unchanged.",
-             NULL, NULL, &unuMaybeTypeHestCB);
+             NULL, NULL, &unrrduMaybeTypeHestCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_2opInfoL);
+  USAGE(_unrrdu_2opInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -112,4 +112,4 @@ unu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(2op, INFO);
+UNRRDU_CMD(2op, INFO);

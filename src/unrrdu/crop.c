@@ -21,10 +21,10 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Crop along each axis to make a smaller nrrd"
-char *_unu_cropInfoL = INFO;
+char *_unrrdu_cropInfoL = INFO;
 
 int
-unu_cropMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_cropMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -48,7 +48,7 @@ unu_cropMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_cropInfoL);
+  USAGE(_unrrdu_cropInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -96,4 +96,4 @@ unu_cropMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(crop, INFO);
+UNRRDU_CMD(crop, INFO);

@@ -21,7 +21,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Cheap histogram-based median filtering"
-char *_unu_cmedianInfoL =
+char *_unrrdu_cmedianInfoL =
 (INFO
  ". Only works on 1, 2, or 3 dimensions.  The window "
  "over which filtering is done is always square, and "
@@ -37,7 +37,7 @@ char *_unu_cmedianInfoL =
  "these locations are simply copied from input.");
 
 int
-unu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *ntmp, *nout;
@@ -66,7 +66,7 @@ unu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_cmedianInfoL);
+  USAGE(_unrrdu_cmedianInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -116,4 +116,4 @@ unu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(cmedian, INFO);
+UNRRDU_CMD(cmedian, INFO);

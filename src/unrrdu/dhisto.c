@@ -21,10 +21,10 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Create (PGM) image of 1-D value histogram"
-char *_unu_dhistoInfoL = INFO;
+char *_unrrdu_dhistoInfoL = INFO;
 
 int
-unu_dhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_dhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -40,7 +40,7 @@ unu_dhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_dhistoInfoL);
+  USAGE(_unrrdu_dhistoInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -60,4 +60,4 @@ unu_dhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(dhisto, INFO);
+UNRRDU_CMD(dhisto, INFO);

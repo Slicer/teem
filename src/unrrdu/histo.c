@@ -21,10 +21,10 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Create 1-D histogram of values in a nrrd"
-char *_unu_histoInfoL = INFO;
+char *_unrrdu_histoInfoL = INFO;
 
 int
-unu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -47,7 +47,7 @@ unu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_histoInfoL);
+  USAGE(_unrrdu_histoInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -75,4 +75,4 @@ unu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(histo, INFO);
+UNRRDU_CMD(histo, INFO);

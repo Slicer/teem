@@ -17,8 +17,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef UNU_HAS_BEEN_INCLUDED
-#define UNU_HAS_BEEN_INCLUDED
+#ifndef UNRRDU_HAS_BEEN_INCLUDED
+#define UNRRDU_HAS_BEEN_INCLUDED
 
 #include <air.h>
 #include <biff.h>
@@ -26,26 +26,21 @@
 #include <nrrd.h>
 
 #if defined(WIN32) && !defined(TEEM_BUILD)
-#define unu_export __declspec(dllimport)
+#define unrrdu_export __declspec(dllimport)
 #else
-#define unu_export
+#define unrrdu_export
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* 
-** this violates the convention of what is and isn't shortened
-** with long library names, but this is because (currently) the
-** library basically exists to serve unu and nothing else
-*/
-#define UNU "unu"
+#define UNRRDU "unu"
 
-#define UNU_COLUMNS 78  /* how many characters per line do we allow hest */
+#define UNRRDU_COLUMNS 78  /* how many chars per line do we allow hest */
 
 /*
-******** unuCmd
+******** unrrduCmd
 **
 ** How we associate the one word for the unu command ("name"),
 ** the one-line info string ("info"), and the single function we
@@ -54,10 +49,10 @@ extern "C" {
 typedef struct {
   const char *name, *info;
   int (*main)(int argc, char **argv, char *me, hestParm *hparm);
-} unuCmd;
+} unrrduCmd;
 
 /*
-** UNU_DECLARE, UNU_LIST, UNU_MAP
+** UNRRDU_DECLARE, UNRRDU_LIST, UNRRDU_MAP
 ** 
 ** Twisted C-preprocessor tricks.  The idea is to make it as simple
 ** as possible to add new commands to unu, so that the new commands
@@ -69,38 +64,38 @@ typedef struct {
 ** the short (approx. one-line) description of its function, and the
 ** "main" function to call with the appropriate argc, argv.  It would
 ** be nice to use a struct to hold this information, and we can: the
-** unuCmd struct is defined above.  It would also be nice to have all
-** the command's information be held in one array of unuCmds.
+** unrrduCmd struct is defined above.  It would also be nice to have
+** all the command's information be held in one array of unrrduCmds.
 ** Unfortunately, declaring this is not possible unless all the
-** unuCmds and their fields are IN THIS FILE, because otherwise
+** unrrduCmds and their fields are IN THIS FILE, because otherwise
 ** they're not constant expressions, so they can't initialize an
-** aggregate data type.  So, we instead make an array of unuCmd
+** aggregate data type.  So, we instead make an array of unrrduCmd
 ** POINTERS, which can be initialized with the addresses of individual
-** unuCmd structs, declared and defined in the global scope. is done
-** in flotsam.c.  Each of the source files for the various unu
+** unrrduCmd structs, declared and defined in the global scope. is
+** done in flotsam.c.  Each of the source files for the various unu
 ** commands are responsible for setting the fields (at compile-time)
-** of their associated unuCmd.
+** of their associated unrrduCmd.
 **
 ** We use three macros to automate this somewhat:
-** UNU_DECLARE: declares unu_xxxCmd as an extern unuCmd (defined in xxx.c),
-**              used later in this header file.
-** UNU_LIST:    the address of unu_xxxCmd, for listing in the array of
-**              unuCmd structs in the (compile-time) definition of 
-**              unuCmdList[].  This is used in flotsam.c.
+** UNRRDU_DECLARE: declares unrrdu_xxxCmd as an extern unrrduCmd
+**                 (defined in xxx.c), used later in this header file.
+** UNRRDU_LIST:    the address of unrrdu_xxxCmd, for listing in the array of
+**                 unrrduCmd structs in the (compile-time) definition of 
+**                 unrrduCmdList[].  This is used in flotsam.c.
 **
 ** Then, to facilitate running these macros on each of the different
-** commands, there is a UNU_MAP macro which is used to essentially map
+** commands, there is a UNRRDU_MAP macro which is used to essentially map
 ** the two macros above over the list of unu commands.  Functional
 ** programming meets the C pre-processor.  Therefore:
 ***********************************************************
     You add commands to unu by:
-    1) adjusting the definition of UNU_MAP()
+    1) adjusting the definition of UNRRDU_MAP()
     2) listing the appropriate object in Makefile
     That's it.
 ********************************************************** */
-#define UNU_DECLARE(C) extern unu_export unuCmd unu_##C##Cmd;
-#define UNU_LIST(C) &unu_##C##Cmd,
-#define UNU_MAP(F) \
+#define UNRRDU_DECLARE(C) extern unrrdu_export unrrduCmd unrrdu_##C##Cmd;
+#define UNRRDU_LIST(C) &unrrdu_##C##Cmd,
+#define UNRRDU_MAP(F) \
 F(make) \
 F(convert) \
 F(resample) \
@@ -135,33 +130,34 @@ F(imap) \
 F(save)
 
 /*
-******** UNU_CMD
+******** UNRRDU_CMD
 **
 ** This is used at the very end of the various command sources
-** ("xxx.c") to simplify defining a unuCmd.  "name" should just be the
-** command, UNQUOTED, such as flip or slice.
+** ("xxx.c") to simplify defining a unrrduCmd.  "name" should just be
+** the command, UNQUOTED, such as flip or slice.
 */
-#define UNU_CMD(name, info) \
-unuCmd unu_##name##Cmd = { #name, info, unu_##name##Main };
+#define UNRRDU_CMD(name, info) \
+unrrduCmd unrrdu_##name##Cmd = { #name, info, unrrdu_##name##Main };
 
 /* xxx.c */
-/* Declare the extern unuCmds unu_xxxCmd, for all xxx.  These are
+/* Declare the extern unrrduCmds unrrdu_xxxCmd, for all xxx.  These are
    defined in as many different source files as there are commands. */
-UNU_MAP(UNU_DECLARE)
+UNRRDU_MAP(UNRRDU_DECLARE)
 
 /* flotsam.c */
-extern unu_export int unuDefNumColumns;
-extern unu_export unuCmd *unuCmdList[];    /* addresses of all unu_xxxCmd */
-extern void unuUsage(char *me, hestParm *hparm);
-extern unu_export hestCB unuPosHestCB;
-extern unu_export hestCB unuMaybeTypeHestCB;
-extern unu_export hestCB unuScaleHestCB;
-extern unu_export hestCB unuBitsHestCB;
-extern unu_export hestCB unuFileHestCB;
+extern unrrdu_export int unrrduDefNumColumns;
+/* addresses of all unrrdu_xxxCmd */
+extern unrrdu_export unrrduCmd *unrrduCmdList[]; 
+extern void unrrduUsage(char *me, hestParm *hparm);
+extern unrrdu_export hestCB unrrduPosHestCB;
+extern unrrdu_export hestCB unrrduMaybeTypeHestCB;
+extern unrrdu_export hestCB unrrduScaleHestCB;
+extern unrrdu_export hestCB unrrduBitsHestCB;
+extern unrrdu_export hestCB unrrduFileHestCB;
 
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* UNU_HAS_BEEN_INCLUDED */
+#endif /* UNRRDU_HAS_BEEN_INCLUDED */

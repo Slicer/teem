@@ -21,11 +21,11 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Interchange scan-line ordering of two axes"
-char *_unu_swapInfoL = (INFO
+char *_unrrdu_swapInfoL = (INFO
 		       ". Special case of \"unu\tpermute\".");
 
 int
-unu_swapMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_swapMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -40,7 +40,7 @@ unu_swapMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_swapInfoL);
+  USAGE(_unrrdu_swapInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -60,4 +60,4 @@ unu_swapMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(swap, INFO);
+UNRRDU_CMD(swap, INFO);

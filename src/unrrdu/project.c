@@ -21,7 +21,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Collapse scanlines to scalars along some axis"
-char *_unu_projectInfoL = (INFO
+char *_unrrdu_projectInfoL = (INFO
 			   ". The scanline is reduced to a single scalar by "
 			   "\"measuring\" all the values in the scanline "
 			   "with some measure.  The output nrrd has dimension "
@@ -29,7 +29,7 @@ char *_unu_projectInfoL = (INFO
 			   "the measure.");
 
 int
-unu_projectMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_projectMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -58,7 +58,7 @@ unu_projectMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_projectInfoL);
+  USAGE(_unrrdu_projectInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -78,4 +78,4 @@ unu_projectMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(project, INFO);
+UNRRDU_CMD(project, INFO);

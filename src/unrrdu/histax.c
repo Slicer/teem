@@ -21,11 +21,11 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Replace each scanline along an axis with its histogram"
-char *_unu_histaxInfoL = (INFO
+char *_unrrdu_histaxInfoL = (INFO
 			 ". ");
 
 int
-unu_histaxMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_histaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -42,7 +42,7 @@ unu_histaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_histaxInfoL);
+  USAGE(_unrrdu_histaxInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -63,4 +63,4 @@ unu_histaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(histax, INFO);
+UNRRDU_CMD(histax, INFO);

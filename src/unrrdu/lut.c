@@ -21,7 +21,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through univariate lookup table"
-char *_unu_lutInfoL =
+char *_unrrdu_lutInfoL =
 (INFO
  " (itself represented as a nrrd). The lookup table "
  "can be 1D, in which case the output "
@@ -31,7 +31,7 @@ char *_unu_lutInfoL =
  "lookup table.");
 
 int
-unu_lutMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_lutMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nlut, *nout;
@@ -50,13 +50,13 @@ unu_lutMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "output nrrd. "
 	     "By default (not using this option), the output type "
 	     "is the lut's type.",
-             NULL, NULL, &unuMaybeTypeHestCB);
+             NULL, NULL, &unrrduMaybeTypeHestCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_lutInfoL);
+  USAGE(_unrrdu_lutInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -98,4 +98,4 @@ unu_lutMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(lut, INFO);
+UNRRDU_CMD(lut, INFO);

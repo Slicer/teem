@@ -25,13 +25,13 @@ extern int _nrrdSplitName(char **dirP, char **baseP, const char *name);
 extern void _nrrdGuessFormat(NrrdIO *io, const char *filename);
 
 #define INFO "Write nrrd with specific file format or encoding"
-char *_unu_saveInfoL =
+char *_unrrdu_saveInfoL =
 (INFO
  ". Use \"unu\tsave\t-f\tpnm\t|\txv\t-\" to view PPM- or "
  "PGM-compatible nrrds");
 
 int
-unu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -54,7 +54,7 @@ unu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_saveInfoL);
+  USAGE(_unrrdu_saveInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -85,4 +85,4 @@ unu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(save, INFO);
+UNRRDU_CMD(save, INFO);

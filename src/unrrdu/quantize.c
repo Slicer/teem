@@ -21,10 +21,10 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Quantize floating-point values to 8, 16, or 32 bits"
-char *_unu_quantizeInfoL = INFO;
+char *_unrrdu_quantizeInfoL = INFO;
 
 int
-unu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -39,7 +39,7 @@ unu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "\b\bo \"8\": unsigned char\n "
 	     "\b\bo \"16\": unsigned short\n "
 	     "\b\bo \"32\": unsigned int",
-	     NULL, NULL, &unuBitsHestCB);
+	     NULL, NULL, &unrrduBitsHestCB);
   hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
 	     "Value to map to zero. Defaults to lowest value found in "
 	     "input nrrd.");
@@ -51,7 +51,7 @@ unu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(_unu_quantizeInfoL);
+  USAGE(_unrrdu_quantizeInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
@@ -79,4 +79,4 @@ unu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
   return 0;
 }
 
-UNU_CMD(quantize, INFO);
+UNRRDU_CMD(quantize, INFO);
