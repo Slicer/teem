@@ -31,7 +31,7 @@ limnEnvMapFill(Nrrd *map, limnEnvMapCB cb, void *data, int qnMethod) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(LIMN, err); return 1;
   }
-  if (!AIR_BETWEEN(limnQN_Unknown, qnMethod, limnQN_Last)) {
+  if (!AIR_IN_OP(limnQN_Unknown, qnMethod, limnQN_Last)) {
     sprintf(err, "%s: QN method %d invalid", me, qnMethod);
     biffAdd(LIMN, err); return 1;
   }
@@ -93,7 +93,7 @@ limnLightSet(limnLight *lit, int which, int vsp,
 	     float r, float g, float b,
 	     float x, float y, float z) {
   
-  if (lit && AIR_INSIDE(0, which, LIMN_LITE_NUM-1)) {
+  if (lit && AIR_IN_CL(0, which, LIMN_LITE_NUM-1)) {
     lit->on[which] = 1;
     lit->vsp[which] = vsp;
     ELL_3V_SET(lit->col[which], r, g, b);
@@ -161,7 +161,7 @@ limnLightUpdate(limnLight *lit, limnCam *cam) {
 void
 limnLightSwitch(limnLight *lit, int which, int on) {
 
-  if (lit && AIR_INSIDE(0, which, LIMN_LITE_NUM-1)) {
+  if (lit && AIR_IN_CL(0, which, LIMN_LITE_NUM-1)) {
     lit->on[which] = on;
   }
 }

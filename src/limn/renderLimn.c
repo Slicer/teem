@@ -127,8 +127,8 @@ limnObjPSRender(limnObj *obj, limnCam *cam, Nrrd *map, limnWin *win) {
     inside = 0;
     for (pi=0; pi<r->pNum; pi++) {
       p = &(obj->p[r->pBase + pi]);
-      inside |= (AIR_INSIDE(win->bbox[0], p->d[0], win->bbox[2]) &&
-		 AIR_INSIDE(win->bbox[1], p->d[1], win->bbox[3]));
+      inside |= (AIR_IN_CL(win->bbox[0], p->d[0], win->bbox[2]) &&
+		 AIR_IN_CL(win->bbox[1], p->d[1], win->bbox[3]));
       if (inside)
 	break;
     }

@@ -28,6 +28,7 @@
 ** at: cam->at
 ** up: cam->up
 ** rh: cam->rightHanded
+** or: cam->ortho
 ** dn: cam->neer
 ** di: cam->dist
 ** df: cam->faar
@@ -48,9 +49,11 @@ limnHestCamOptAdd(hestOpt **hoptP, limnCam *cam,
   hestOptAdd(&hopt, "at", "at pos", airTypeDouble, 3, 3, cam->at,
 	     atDef, "camera look-at point");
   hestOptAdd(&hopt, "up", "up dir", airTypeDouble, 3, 3, cam->up,
-	     upDef, "camera pseudo up vector");
+	     upDef, "camera pseudo-up vector");
   hestOptAdd(&hopt, "rh", NULL, airTypeInt, 0, 0, &(cam->rightHanded), NULL,
 	     "use a right-handed UVN frame (V points down)");
+  hestOptAdd(&hopt, "or", NULL, airTypeInt, 0, 0, &(cam->ortho), NULL,
+	     "orthogonal (not perspective) projection");
   hestOptAdd(&hopt, "dn", "near", airTypeDouble, 1, 1, &(cam->neer),
 	     dnDef, "distance to near clipping plane");
   hestOptAdd(&hopt, "di", "image", airTypeDouble, 1, 1, &(cam->dist),
