@@ -118,7 +118,7 @@ _nrrdCheapMedian1D(Nrrd *nout, Nrrd *nin, int radius, float wght,
     for (X=radius; X<num-radius; X++) {
       /* _nrrdCM_printhist(hist, bins, "----------"); */
       idx = mode ? _nrrdCM_mode(hist, bins) : _nrrdCM_median(hist, half);
-      val = NRRD_CELL_POS(nin->min, nin->max, bins, idx);
+      val = NRRD_NODE_POS(nin->min, nin->max, bins, idx);
       /* printf(" median idx = %d -> val = %g\n", idx, val); */
       nrrdDInsert[nout->type](nout->data, X, val);
       /* probably update histogram for next iteration */
@@ -137,7 +137,7 @@ _nrrdCheapMedian1D(Nrrd *nout, Nrrd *nin, int radius, float wght,
 	hist[INDEX(nin, lup, I+X, bins, val, idx)] += wt[I+radius];
       }
       idx = mode ? _nrrdCM_mode(hist, bins) : _nrrdCM_median(hist, half);
-      val = NRRD_CELL_POS(nin->min, nin->max, bins, idx);
+      val = NRRD_NODE_POS(nin->min, nin->max, bins, idx);
       nrrdDInsert[nout->type](nout->data, X, val);
     }
     free(wt);
@@ -173,7 +173,7 @@ _nrrdCheapMedian2D(Nrrd *nout, Nrrd *nin, int radius, float wght,
       /* find median at each point using existing histogram */
       for (X=radius; X<sx-radius; X++) {
 	idx = mode ? _nrrdCM_mode(hist, bins) : _nrrdCM_median(hist, half);
-	val = NRRD_CELL_POS(nin->min, nin->max, bins, idx);
+	val = NRRD_NODE_POS(nin->min, nin->max, bins, idx);
 	nrrdDInsert[nout->type](nout->data, X + sx*Y, val);
 	/* probably update histogram for next iteration */
 	if (X < sx-radius-1) {
@@ -198,7 +198,7 @@ _nrrdCheapMedian2D(Nrrd *nout, Nrrd *nin, int radius, float wght,
 	  }
 	}
 	idx = mode ? _nrrdCM_mode(hist, bins) : _nrrdCM_median(hist, half);
-	val = NRRD_CELL_POS(nin->min, nin->max, bins, idx);
+	val = NRRD_NODE_POS(nin->min, nin->max, bins, idx);
 	nrrdDInsert[nout->type](nout->data, X + sx*Y, val);
       }
     }
@@ -239,7 +239,7 @@ _nrrdCheapMedian3D(Nrrd *nout, Nrrd *nin, int radius, float wght,
 	/* find median at each point using existing histogram */
 	for (X=radius; X<sx-radius; X++) {
 	  idx = mode ? _nrrdCM_mode(hist, bins) : _nrrdCM_median(hist, half);
-	  val = NRRD_CELL_POS(nin->min, nin->max, bins, idx);
+	  val = NRRD_NODE_POS(nin->min, nin->max, bins, idx);
 	  nrrdDInsert[nout->type](nout->data, X + sx*(Y + sy*Z), val);
 	  /* probably update histogram for next iteration */
 	  if (X < sx-radius-1) {
@@ -274,7 +274,7 @@ _nrrdCheapMedian3D(Nrrd *nout, Nrrd *nin, int radius, float wght,
 	    }
 	  }
 	  idx = mode ? _nrrdCM_mode(hist, bins) : _nrrdCM_median(hist, half);
-	  val = NRRD_CELL_POS(nin->min, nin->max, bins, idx);
+	  val = NRRD_NODE_POS(nin->min, nin->max, bins, idx);
 	  nrrdDInsert[nout->type](nout->data, X + sx*(Y + sy*Z), val);
 	}
       }
