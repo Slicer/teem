@@ -78,7 +78,9 @@ void
 _biffNuke(void) {
 
   if (_biffAA) {
-    airArrayNuke(_biffAA);
+    /* setting to NULL is needed to put biff back in initial state
+       so that next calls to biff re-trigger _biffInit() */
+    _biffAA = airArrayNuke(_biffAA);
   }
   return;
 }
