@@ -31,10 +31,12 @@ _miteValStr[][AIR_STRLEN_SMALL] = {
   "Zi",
   "Tw",
   "Ti",
+  "V",
+  "N",
   "NdotV",
   "NdotL",
-  "GTdotV",
   "VrefN",
+  "GTdotV",
   "VdefT",
   "VdefTdotV"
 };
@@ -50,10 +52,12 @@ _miteValVal[] = {
   miteValZi,
   miteValTw,
   miteValTi,
+  miteValView,
+  miteValNormal,
   miteValNdotV,
   miteValNdotL,
-  miteValGTdotV,
   miteValVrefN,
+  miteValGTdotV,
   miteValVdefT,
   miteValVdefTdotV
 };
@@ -68,10 +72,12 @@ _miteValStrEqv[][AIR_STRLEN_SMALL] = {
   "zi",
   "tw",
   "ti",
+  "view", "v",
+  "normal", "n", 
   "ndotv", "vdotn",
   "ndotl", "ldotn",
-  "gtdotv",
   "vrefn",
+  "gtdotv",
   "vdeft",
   "vdeftdotv"
   ""
@@ -87,10 +93,12 @@ _miteValValEqv[] = {
   miteValZi,
   miteValTw,
   miteValTi,
+  miteValView, miteValView, 
+  miteValNormal, miteValNormal,
   miteValNdotV, miteValNdotV,
   miteValNdotL, miteValNdotL,
-  miteValGTdotV,
   miteValVrefN,
+  miteValGTdotV,
   miteValVdefT,
   miteValVdefTdotV
 };
@@ -124,10 +132,12 @@ _miteValTable[MITE_VAL_ITEM_MAX+1] = {
   {miteValZi,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
   {miteValTw,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
   {miteValTi,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
+  {miteValView,          3,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
+  {miteValNormal,        3,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
   {miteValNdotV,         1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
   {miteValNdotL,         1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValGTdotV,        1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
   {miteValVrefN,         3,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
+  {miteValGTdotV,        1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
   {miteValVdefT,         3,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
   {miteValVdefTdotV,     1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1}
 };

@@ -28,6 +28,53 @@
 char
 miteRangeChar[MITE_RANGE_NUM] = "ARGBEadsp";
 
+char
+_miteStageOpStr[][AIR_STRLEN_SMALL] = {
+  "(unknown miteStageOp)",
+  "min",
+  "max",
+  "add",
+  "multiply"
+};
+
+int
+_miteStageOpVal[] = {
+  miteStageOpUnknown,
+  miteStageOpMin,
+  miteStageOpMax,
+  miteStageOpAdd,
+  miteStageOpMultiply
+};
+
+char
+_miteStageOpStrEqv[][AIR_STRLEN_SMALL] = {
+  "min",
+  "max",
+  "add", "+",
+  "multiply", "*", "x"
+};
+
+int
+_miteStageOpValEqv[] = {
+  miteStageOpUnknown,
+  miteStageOpMin,
+  miteStageOpMax,
+  miteStageOpAdd, miteStageOpAdd,
+  miteStageOpMultiply, miteStageOpMultiply, miteStageOpMultiply
+};
+
+airEnum
+_miteStageOp = {
+  "miteStageOp",
+  MITE_STAGE_OP_MAX+1,
+  _miteStageOpStr, _miteStageOpVal,
+  NULL,
+  _miteStageOpStrEqv, _miteStageOpValEqv,
+  AIR_FALSE
+};
+airEnum *
+miteStageOp = &_miteStageOp;
+
 /*
 ******** miteVariableParse()
 **
@@ -35,6 +82,7 @@ miteRangeChar[MITE_RANGE_NUM] = "ARGBEadsp";
 ** to determine the gageItemSpec from it (which means finding the
 ** kind and item).  The valid formats are:
 **
+**   ""                  : NULL kind, -1 item
 **   <item>              : miteValGageKind (DEPRECATED)
 **   mite(<item>)        : miteValGageKind
 **   gage(<item>)        : gageKindScl (DEPRECATED)
@@ -56,6 +104,14 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(MITE, err); return 1;
   }
+  if (0 == strlen(label)) {
+    /* nothing was specified; we try to indicate that by mimicing 
+       the return of gageItemSpecNew() */
+    isp->item = -1;
+    isp->kind = NULL;
+    return 0;
+  }
+  /* else given string was non-empty */
   mop = airMopNew();
   buff = airStrdup(label);
   if (!buff) {
@@ -143,10 +199,12 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
 void
 miteVariablePrint(char *buff, const gageItemSpec *isp) {
   char me[]="miteVariablePrint";
-  
-  if (gageKindScl == isp->kind
-      || gageKindVec == isp->kind
-      || tenGageKind == isp->kind) {
+
+  if (!(isp->kind)) {
+    strcpy(buff, "");
+  } else if (gageKindScl == isp->kind
+	     || gageKindVec == isp->kind
+	     || tenGageKind == isp->kind) {
     sprintf(buff, "gage(%s:%s)", isp->kind->name, 
 	    airEnumStr(isp->kind->enm, isp->item));
   } else if (miteValGageKind == isp->kind) {
@@ -280,7 +338,9 @@ miteQueryAdd(gageQuery queryScl, gageQuery queryVec,
 	     gageItemSpec *isp) {
   char me[]="miteQueryAdd";
   
-  if (gageKindScl == isp->kind) {
+  if (NULL == isp->kind) {
+    /* nothing to add */
+  } else if (gageKindScl == isp->kind) {
     GAGE_QUERY_ITEM_ON(queryScl, isp->item);
   } else if (gageKindVec == isp->kind) {
     GAGE_QUERY_ITEM_ON(queryVec, isp->item);
@@ -297,17 +357,16 @@ miteQueryAdd(gageQuery queryScl, gageQuery queryVec,
        functions, it is currently not possible in *tensor* volumes
        (for instance, using the gradient of fractional anisotropy) */
     switch(isp->item) {
+    case miteValVrefN:
     case miteValNdotV: 
-      GAGE_QUERY_ITEM_ON(queryScl, gageSclNormal);
-      break;
     case miteValNdotL:
-      GAGE_QUERY_ITEM_ON(queryScl, gageSclNormal);
+      /* the "N" can be a normalized vector from any of the
+	 available kinds (except miteValGageKind!), and its
+	 associated query will be handled elsewhere, so there's
+	 nothing to add here */
       break;
     case miteValGTdotV:
       GAGE_QUERY_ITEM_ON(queryScl, gageSclGeomTens);
-      break;
-    case miteValVrefN:
-      GAGE_QUERY_ITEM_ON(queryScl, gageSclNormal);
       break;
     case miteValVdefT:
       GAGE_QUERY_ITEM_ON(queryTen, tenGageTensor);
@@ -316,7 +375,7 @@ miteQueryAdd(gageQuery queryScl, gageQuery queryVec,
       break;
     }
   } else {
-    fprintf(stderr, "%s: PANIC: unrecognized non-null gageKind\n", me);
+    fprintf(stderr, "%s: PANIC: unrecognized non-NULL gageKind\n", me);
     exit(1);
   }
   return;
@@ -349,15 +408,19 @@ _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
 	      airEnumStr(nrrdType, nrrdTypeDouble));
       biffAdd(MITE, err); return 1;
     }
+    /* note that key/values need to be copied for the sake of
+       identifying a non-default miteStageOp */
     switch(muu->ntxf[ni]->type) {
     case nrrdTypeUChar:
       if (!E) E |= nrrdUnquantize(mrr->ntxf[ni], muu->ntxf[ni], nrrdTypeUChar);
+      if (!E) E |= nrrdKeyValueCopy(mrr->ntxf[ni], muu->ntxf[ni]);
       break;
     case mite_nt:
       if (!E) E |= nrrdCopy(mrr->ntxf[ni], muu->ntxf[ni]);
       break;
     default:  /* will be either float or double (whatever mite_nt isn't) */
       if (!E) E |= nrrdConvert(mrr->ntxf[ni], muu->ntxf[ni], mite_nt);
+      if (!E) E |= nrrdKeyValueCopy(mrr->ntxf[ni], muu->ntxf[ni]);
       break;
     }
   }
@@ -433,6 +496,12 @@ _miteAnswerPointer(miteThread *mtt, gageItemSpec *isp) {
   char me[]="_miteAnswerPointer";
   gage_t *ret;
 
+  if (!isp->kind) {
+    /* we got a NULL kind (as happens with output of
+       gageItemSpecNew()); only NULL return is sensible */
+    return NULL;
+  }
+
   if (gageKindScl == isp->kind) {
     ret = mtt->ansScl;
   } else if (gageKindVec == isp->kind) {
@@ -456,7 +525,7 @@ _miteAnswerPointer(miteThread *mtt, gageItemSpec *isp) {
 */
 int
 _miteStageSet(miteThread *mtt, miteRender *mrr) {
-  char me[]="_miteStageSet", err[AIR_STRLEN_MED];
+  char me[]="_miteStageSet", err[AIR_STRLEN_MED], *value;
   int ni, di, stageIdx, rii, stageNum, log2;
   Nrrd *ntxf;
   miteStage *stage;
@@ -491,7 +560,15 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
 	stage->data = NULL;
       } else {
 	stage->data = ntxf->data;
-	stage->op = miteStageOpMultiply;
+	value = nrrdKeyValueGet(ntxf, "miteStageOp");
+	if (value) {
+	  stage->op = airEnumVal(miteStageOp, value);
+	  if (miteStageOpUnknown == stage->op) {
+	    stage->op = miteStageOpMultiply;
+	  }
+	} else {
+	  stage->op = miteStageOpMultiply;
+	}
 	if (1 == isp.kind->table[isp.item].answerLength) {
 	  stage->qn = NULL;
 	} else if (3 == isp.kind->table[isp.item].answerLength) {

@@ -38,6 +38,7 @@ miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
   mtt->verbose = (uIndex == muu->verbUi && vIndex == muu->verbVi);
   mtt->RR = mtt->GG = mtt->BB = 0.0;
   mtt->TT = 1.0;
+  mtt->ZZ = -1.0;
   ELL_3V_SCALE(mtt->V, -1, rayDirWorld);
 
   return 0;
@@ -61,19 +62,18 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
   kd = mtt->range[miteRangeKd];
   ks = mtt->range[miteRangeKs];
   ELL_3V_SCALE(ad, ka, muu->lit->amb);
-  switch (mrr->shpec->method) {
+  switch (mrr->shadeSpec->method) {
   case miteShadeMethodNone:
     /* nothing to do */
     break;
   case miteShadeMethodPhong:
-    /* this is dicey- we're *writing* to the answer buffer */
     if (kd || ks) {
-      ELL_3V_NORM(mtt->shadeVec0, mtt->shadeVec0, tmp);
-      if (muu->normalSide) {
-	ELL_3V_SCALE(N, -muu->normalSide, mtt->shadeVec0);
-      } else {
-	ELL_3V_COPY(N, mtt->shadeVec0);
+      ELL_3V_NORM(N, mtt->shadeVec0, tmp);
+      if (1 == muu->normalSide) {
+	ELL_3V_SCALE(N, -1, N);
       }
+      /* else -1==side --> N = -1*-1*N = N
+	 or 0==side --> N = N, so there's nothing to do */
       if (kd) {
 	LdotN = ELL_3V_DOT(muu->lit->dir[0], N);
 	if (!muu->normalSide) {
@@ -103,7 +103,7 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
     break;
   default:
     fprintf(stderr, "!%s: PANIC, shadeMethod %d unimplemented\n", 
-	    me, mrr->shpec->method);
+	    me, mrr->shadeSpec->method);
     exit(1);
     break;
   }
@@ -131,7 +131,8 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
 	   double samplePosIndex[3]) {
   char me[]="miteSample", err[AIR_STRLEN_MED];
   mite_t R, G, B, A;
-  double kn[3], knd[3], len;
+  gage_t *NN;
+  double NdotV, kn[3], knd[3], ref[3], len;
 
   if (!inside) {
     return mtt->rayStep;
@@ -151,6 +152,7 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
     sprintf(err, "%s: gage trouble: %s (%d)", me, gageErrStr, gageErrNum);
     biffAdd(MITE, err); return AIR_NAN;
   }
+  
   if (mrr->queryMiteNonzero) {
     /* There is some optimal trade-off between slowing things down
        with too many branches on all possible checks of queryMite,
@@ -164,27 +166,37 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
     mtt->directAnsMiteVal[miteValZi][0] = samplePosIndex[2];
     mtt->directAnsMiteVal[miteValTw][0] = rayT;
     mtt->directAnsMiteVal[miteValTi][0] = num;
+    ELL_3V_COPY(mtt->directAnsMiteVal[miteValView], mtt->V);
+    NN = mtt->directAnsMiteVal[miteValNormal];
+    if (1 == muu->normalSide) {
+      ELL_3V_SCALE(NN, -1, mtt->_normal);
+    } else {
+      ELL_3V_COPY(NN, mtt->_normal);
+    }
 
-    if (mtt->shadeVec0 && 
-	(GAGE_QUERY_ITEM_TEST(mrr->queryMite, miteValNdotV)
-	 || GAGE_QUERY_ITEM_TEST(mrr->queryMite, miteValNdotL))) {
+    if ((GAGE_QUERY_ITEM_TEST(mrr->queryMite, miteValNdotV)
+	 || GAGE_QUERY_ITEM_TEST(mrr->queryMite, miteValNdotL)
+	 || GAGE_QUERY_ITEM_TEST(mrr->queryMite, miteValVrefN))) {
       mtt->directAnsMiteVal[miteValNdotV][0] =
-	-muu->normalSide*ELL_3V_DOT(mtt->shadeVec0, mtt->V);
+	ELL_3V_DOT(NN, mtt->V);
       mtt->directAnsMiteVal[miteValNdotL][0] =
-	-muu->normalSide*ELL_3V_DOT(mtt->shadeVec0, muu->lit->dir[0]);
+	ELL_3V_DOT(NN, muu->lit->dir[0]);
       if (!muu->normalSide) {
-	mtt->directAnsMiteVal[miteValNdotV][0] = 
+	mtt->directAnsMiteVal[miteValNdotV][0] =
 	  AIR_ABS(mtt->directAnsMiteVal[miteValNdotV][0]);
 	mtt->directAnsMiteVal[miteValNdotL][0] = 
 	  AIR_ABS(mtt->directAnsMiteVal[miteValNdotL][0]);
       }
+      NdotV = mtt->directAnsMiteVal[miteValNdotV][0];
+      ELL_3V_SCALE_ADD2(ref, 2*NdotV, NN, -1, mtt->V);
+      ELL_3V_NORM(mtt->directAnsMiteVal[miteValVrefN], ref, len);
     }
 
     if (GAGE_QUERY_ITEM_TEST(mrr->queryMite, miteValGTdotV)) {
       ELL_3MV_MUL(kn, mtt->nPerp, mtt->V);
       ELL_3V_NORM(kn, kn, len);
       ELL_3MV_MUL(knd, mtt->geomTens, kn);
-      mtt->ansMiteVal[miteValGTdotV] = ELL_3V_DOT(knd, kn);
+      mtt->directAnsMiteVal[miteValGTdotV][0] = ELL_3V_DOT(knd, kn);
     }
   }
   
@@ -211,21 +223,28 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
     /* fprintf(stderr, "%s: mtt->TT = %g\n", me, mtt->TT); */
   }
 
+  /* set Z if it hasn't been set already */
+  if (1-mtt->TT >= muu->opacMatters && mtt->ZZ < 0) {
+    mtt->ZZ = rayT;
+  }
+
   return mtt->rayStep;
 }
 
 int 
 miteRayEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
   int idx;
-  mite_t *imgData, A;
+  mite_t *imgData;
+  double A;
   
   idx = mtt->ui + (muu->nout->axis[1].size)*mtt->vi;
   imgData = (mite_t*)muu->nout->data;
   A = 1 - mtt->TT;
   if (A) {
-    ELL_4V_SET(imgData + 5*idx, mtt->RR/A, mtt->GG/A, mtt->BB/A, A);
+    ELL_5V_SET(imgData + 5*idx, mtt->RR/A, mtt->GG/A, mtt->BB/A,
+	       A, mtt->ZZ);
   } else {
-    ELL_4V_SET(imgData + 5*idx, 0, 0, 0, 0);
+    ELL_5V_SET(imgData + 5*idx, 0, 0, 0, 0, -1);
   }
   return 0;
 }

@@ -34,6 +34,7 @@ miteThreadNew() {
 
   mtt->gctx = NULL;
   mtt->ansScl = mtt->ansVec = mtt->ansTen = NULL;
+  mtt->_normal = NULL;
   mtt->shadeVec0 = NULL;
   mtt->shadeVec1 = NULL;
   mtt->shadeScl0 = NULL;
@@ -118,24 +119,25 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
   (*mttP)->thrid = whichThread;
   (*mttP)->samples = 0;
   (*mttP)->verbose = 0;
+  (*mttP)->_normal = _miteAnswerPointer(*mttP, mrr->normalSpec);
   
   /* set up shading answers */
-  switch(mrr->shpec->method) {
+  switch(mrr->shadeSpec->method) {
   case miteShadeMethodNone:
     /* nothing to do */
     break;
   case miteShadeMethodPhong:
-    (*mttP)->shadeVec0 = _miteAnswerPointer(*mttP, mrr->shpec->vec0);
+    (*mttP)->shadeVec0 = _miteAnswerPointer(*mttP, mrr->shadeSpec->vec0);
     break;
   case miteShadeMethodLitTen:
-    (*mttP)->shadeVec0 = _miteAnswerPointer(*mttP, mrr->shpec->vec0);
-    (*mttP)->shadeVec1 = _miteAnswerPointer(*mttP, mrr->shpec->vec1);
-    (*mttP)->shadeScl0 = _miteAnswerPointer(*mttP, mrr->shpec->scl0);
-    (*mttP)->shadeScl1 = _miteAnswerPointer(*mttP, mrr->shpec->scl1);
+    (*mttP)->shadeVec0 = _miteAnswerPointer(*mttP, mrr->shadeSpec->vec0);
+    (*mttP)->shadeVec1 = _miteAnswerPointer(*mttP, mrr->shadeSpec->vec1);
+    (*mttP)->shadeScl0 = _miteAnswerPointer(*mttP, mrr->shadeSpec->scl0);
+    (*mttP)->shadeScl1 = _miteAnswerPointer(*mttP, mrr->shadeSpec->scl1);
     break;
   default:
     sprintf(err, "%s: shade method %d not implemented!",
-	    me, mrr->shpec->method);
+	    me, mrr->shadeSpec->method);
     biffAdd(MITE, err); return 1;
     break;
   }

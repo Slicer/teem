@@ -119,7 +119,23 @@ typedef struct {
 			    just like we won't nrrdNuke nsin, nvin, ntin, or
 			    any of the ntxf[i] */
   int ntxfNum;           /* allocated and valid length of ntxf[] */
-  char shadeStr[AIR_STRLEN_MED];  /* how to do shading */
+  /* the issue of regular shading, txf-based shading, and surface normals:
+     phong and lit-tensor shading ("regular shading") methods need to specify
+     one or more vectors that are used for shading calculations.  These will
+     be parsed from muu->shadeStr into mrr->shadeSpec, which in turn will 
+     determine the pointer values of mtt->shade{Vec,Scl}{0,1}.
+     ENTIRELY SEPERATE FROM THIS, a "surface normal" can be specified in
+     muu->normalStr, which (if non-empty), will be parsed into mrr->normalSpec,
+     which in turn will determine the pointer values of mtt->normal.  This
+     normal is used for the miteVal quantities involving "N".  
+     Both shading and normal specifications can be given, since they are
+     used in seperate computations.  If the user wants to do miteVal-based
+     stuff with the same quantity specified in (say) a phong shading 
+     specification, its up to them to verify that the normalStr and the
+     shadeStr refer to the same vector.
+  */
+  char shadeStr[AIR_STRLEN_MED], /* how to do shading */
+    normalStr[AIR_STRLEN_MED];   /* what is the "surface normal" */
   /* for each possible element of the txf range, what value should it
      start at prior to rendering. Mainly needed to store non-unity values
      for the quantities not covered by a transfer function */
@@ -217,7 +233,8 @@ typedef struct {
     tenPvlIdx;                /* indices of the different gageKinds of 
 				 volumes in the gageContext's array of
 				 gagePerVolumes.  Probably a hack */
-  miteShadeSpec *shpec;       /* information based on muu->shadeStr */
+  miteShadeSpec *shadeSpec;   /* information based on muu->shadeStr */
+  gageItemSpec *normalSpec;   /* information based on muu->normalStr */
   double time0;               /* rendering start time */
   gageQuery queryMite;        /* record of the miteVal quantities which 
 				 we'll need to compute per-sample */
@@ -235,18 +252,26 @@ typedef struct {
 /*
 ******** miteStageOp* enum
 **
-** the kinds of things we can do per txf to modify the range variables.
-** previously mite only supported seperable transfer functions (i.e.,
-** multiplication only)
+** the kinds of things we can do per txf to modify the range
+** variables.  previously mite only supported seperable transfer
+** functions (i.e., multiplication only).  It is tempting to use all
+** the operations available as nrrdBinaryOps, but that would lead to
+** goofy ones like Mod and GreaterThan, which either require or create
+** integral values which aren't of much use in transfer functions.
+** More generality in how opacities and colors are assigned will
+** likely be supported by some simple programmability, supported by
+** the likes of the funk library, which will be entirely seperate from
+** the miteStageOp mechanism.
 */
 enum {
-  miteStageOpUnknown,
-  miteStageOpMin,
-  miteStageOpMax,
-  miteStageOpAdd,
-  miteStageOpMultiply,
+  miteStageOpUnknown,   /* 0 */
+  miteStageOpMin,       /* 1 */
+  miteStageOpMax,       /* 2 */
+  miteStageOpAdd,       /* 3 */
+  miteStageOpMultiply,  /* 4 */
   miteStageOpLast
 };
+#define MITE_STAGE_OP_MAX  4
 
 typedef struct {
   gage_t *val;                  /* the txf axis variable, computed either by
@@ -294,23 +319,28 @@ enum {
   miteValZi,            /*  5: "Zi", Z     "   , index   "   (gage_t[1]) */
   miteValTw,            /*  6: "Tw", ray position (gage_t[1]) */
   miteValTi,            /*  7: "Ti", ray index (ray sample #) (gage_t[1]) */
-  miteValNdotV,         /*  8: "NdotV", surface normal dotted w/ view vector
-			        (towards eye) (gage_t[1]) */
-  miteValNdotL,         /*  9: "NdotL", surface normal dotted w/ light vector
-			        (towards the light source) (gage_t[1]) */
-  miteValGTdotV,        /* 10: "GTdotV", normal curvature in view direction,
-			        the contraction of the geometry tensor along
-				the view vector (gage_t[1]) */
-  miteValVrefN,         /* 11: "VrefN", view vector (towards eye) reflected
-			       across surface normal (gage_t[3]) */
-  miteValVdefT,         /* 12: "VdefT", view direction, deflected by tensor,
+  miteValView,          /*  8: "V", the view vector (gage_t[3]) */
+  miteValNormal,        /*  9: "N", the nominal surface normal, as measured
+			       by a scalar, vector, or tensor kind, and then
+			       determined by the semantics of
+			       muu->normalSide */
+  miteValNdotV,         /* 10: "NdotV", surface normal dotted w/ view vector
+			       (towards eye) (gage_t[1]) */
+  miteValNdotL,         /* 11: "NdotL", surface normal dotted w/ light vector
+			       (towards the light source) (gage_t[1]) */
+  miteValVrefN,         /* 12: "VrefN", view vector reflected across normal
+			       (gage_t[3]) */
+  miteValGTdotV,        /* 13: "GTdotV", normal curvature in view direction,
+			       the contraction of the geometry tensor along
+				he view vector (gage_t[1]) */
+  miteValVdefT,         /* 14: "defT", view direction, deflected by tensor,
 			       then normalized (gage_t[3]) */
-  miteValVdefTdotV,     /* 13: "VdefTdotV", VdefT dotted back with V, not the
+  miteValVdefTdotV,     /* 15: "VdefTdotV", VdefT dotted back with V, not the
 			       same as the tensor contraction along V,
 			       (gage_t[1]) */
   miteValLast
 };
-#define MITE_VAL_ITEM_MAX  13
+#define MITE_VAL_ITEM_MAX  15
 
 /*
 ******** miteThread
@@ -327,6 +357,10 @@ typedef struct miteThread_t {
 				   unlike ans{Scl,Vec,Ten} is allocated by
 				   mite instead of by gage */
     **directAnsMiteVal,         /* pointers into ansMiteVal */
+    *_normal,                   /* pointer into ans{Scl,Vec,Ten} array above,
+				   (NOT ansMiteVal); this will determine the
+				   value of miteValNormal according to the
+				   semantics of muu->normalSide */
     *shadeVec0, *shadeVec1, 
     *shadeScl0, *shadeScl1;     /* pointers into the ans* arrays above,
 				   used for shading */
@@ -343,7 +377,9 @@ typedef struct miteThread_t {
     rayStep,                    /* per-ray step (may need to be different for
 				   each ray to enable sampling on planes) */
     V[3],                       /* per-ray view direction */
-    RR, GG, BB, TT;             /* per-ray composited values */
+    RR, GG, BB, TT,             /* per-ray composited values */
+    ZZ;                         /* for storing ray-depth when opacity passed
+				   muu->opacMatters */
 } miteThread;
 
 /* defaultsMite.c */
@@ -359,6 +395,7 @@ TEEM_API airEnum *miteVal;
 TEEM_API gageKind *miteValGageKind;
 
 /* txf.c */
+TEEM_API airEnum *miteStageOp;
 TEEM_API char miteRangeChar[MITE_RANGE_NUM];
 TEEM_API int miteVariableParse(gageItemSpec *isp, const char *label);
 TEEM_API void miteVariablePrint(char *buff, const gageItemSpec *isp);
