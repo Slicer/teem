@@ -94,6 +94,9 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
 	      pvl->directAnswer[gageSclLaplacian][0]);
     }
   }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessFrob)) {
+    pvl->directAnswer[gageSclHessFrob][0] = ELL_3M_FROB(hess);
+  }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessEval)) {
     ELL_3M_COPY(tmpMat, hess);
     /* HEY: look at the return value for root multiplicity? */

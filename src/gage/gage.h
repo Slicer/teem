@@ -241,30 +241,31 @@ enum {
   gageSclNPerp,       /*  4: "np", projection onto tangent plane: GT[9] */
   gageSclHessian,     /*  5: "h", Hessian: GT[9] (column-order) */
   gageSclLaplacian,   /*  6: "l", Laplacian: Dxx + Dyy + Dzz: GT[1] */
-  gageSclHessEval,    /*  7: "heval", Hessian's eigenvalues: GT[3] */
-  gageSclHessEval0,   /*  8: "heval0", Hessian's 1st eigenvalue: GT[1] */
-  gageSclHessEval1,   /*  9: "heval1", Hessian's 2nd eigenvalue: GT[1] */
-  gageSclHessEval2,   /* 10: "heval2", Hessian's 3rd eigenvalue: GT[1] */
-  gageSclHessEvec,    /* 11: "hevec", Hessian's eigenvectors: GT[9] */
-  gageSclHessEvec0,   /* 12: "hevec0", Hessian's 1st eigenvector: GT[3] */
-  gageSclHessEvec1,   /* 13: "hevec1", Hessian's 2nd eigenvector: GT[3] */
-  gageSclHessEvec2,   /* 14: "hevec2", Hessian's 3rd eigenvector: GT[3] */
-  gageScl2ndDD,       /* 15: "2d", 2nd dir.deriv. along gradient: GT[1] */
-  gageSclGeomTens,    /* 16: "gten", sym. matx w/ evals {0, K1, K2} and
+  gageSclHessFrob,    /*  7: "hf", Frobenius normal of Hessian: GT[1] */
+  gageSclHessEval,    /*  8: "heval", Hessian's eigenvalues: GT[3] */
+  gageSclHessEval0,   /*  9: "heval0", Hessian's 1st eigenvalue: GT[1] */
+  gageSclHessEval1,   /* 10: "heval1", Hessian's 2nd eigenvalue: GT[1] */
+  gageSclHessEval2,   /* 11: "heval2", Hessian's 3rd eigenvalue: GT[1] */
+  gageSclHessEvec,    /* 12: "hevec", Hessian's eigenvectors: GT[9] */
+  gageSclHessEvec0,   /* 13: "hevec0", Hessian's 1st eigenvector: GT[3] */
+  gageSclHessEvec1,   /* 14: "hevec1", Hessian's 2nd eigenvector: GT[3] */
+  gageSclHessEvec2,   /* 15: "hevec2", Hessian's 3rd eigenvector: GT[3] */
+  gageScl2ndDD,       /* 16: "2d", 2nd dir.deriv. along gradient: GT[1] */
+  gageSclGeomTens,    /* 17: "gten", sym. matx w/ evals {0, K1, K2} and
 			     evecs {grad, cdir0, cdir1}: GT[9] */
-  gageSclK1,          /* 17: "k1", 1st principle curvature: GT[1] */
-  gageSclK2,          /* 18: "k2", 2nd principle curvature (k2 <= k1): GT[1] */
-  gageSclTotalCurv,   /* 19: "tc", L2 norm(K1,K2) (not Koen.'s "C"): GT[1] */
-  gageSclShapeTrace,  /* 20, "st", (K1+K2)/Curvedness: GT[1] */
-  gageSclShapeIndex,  /* 21: "si", Koen.'s shape index, ("S"): GT[1] */
-  gageSclMeanCurv,    /* 22: "mc", mean curvature (K1 + K2)/2: GT[1] */
-  gageSclGaussCurv,   /* 23: "gc", gaussian curvature K1*K2: GT[1] */
-  gageSclCurvDir1,    /* 24: "cdir1", 1st principle curv direction: GT[3] */
-  gageSclCurvDir2,    /* 25: "cdir2", 2nd principle curv direction: GT[3] */
-  gageSclFlowlineCurv,/* 26: "fc", curvature of normal streamline: GT[1] */
+  gageSclK1,          /* 18: "k1", 1st principle curvature: GT[1] */
+  gageSclK2,          /* 19: "k2", 2nd principle curvature (k2 <= k1): GT[1] */
+  gageSclTotalCurv,   /* 20: "tc", L2 norm(K1,K2) (not Koen.'s "C"): GT[1] */
+  gageSclShapeTrace,  /* 21, "st", (K1+K2)/Curvedness: GT[1] */
+  gageSclShapeIndex,  /* 22: "si", Koen.'s shape index, ("S"): GT[1] */
+  gageSclMeanCurv,    /* 23: "mc", mean curvature (K1 + K2)/2: GT[1] */
+  gageSclGaussCurv,   /* 24: "gc", gaussian curvature K1*K2: GT[1] */
+  gageSclCurvDir1,    /* 25: "cdir1", 1st principle curv direction: GT[3] */
+  gageSclCurvDir2,    /* 26: "cdir2", 2nd principle curv direction: GT[3] */
+  gageSclFlowlineCurv,/* 27: "fc", curvature of normal streamline: GT[1] */
   gageSclLast
 };
-#define GAGE_SCL_ITEM_MAX     26
+#define GAGE_SCL_ITEM_MAX     27
 
 /*
 ******** gageVec* enum

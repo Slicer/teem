@@ -41,6 +41,7 @@ _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
   {gageSclNPerp,         9,  1,  {gageSclNormal, -1, -1, -1, -1},                         -1,  -1},
   {gageSclHessian,       9,  2,  {gageSclHessian, -1, -1, -1, -1},                        -1,  -1},
   {gageSclLaplacian,     1,  2,  {gageSclHessian, -1, -1, -1, -1},                        -1,  -1},
+  {gageSclHessFrob,      1,  2,  {gageSclHessian, -1, -1, -1, -1},                        -1,  -1},
   {gageSclHessEval,      3,  2,  {gageSclHessian, -1, -1, -1, -1},                        -1,  -1},
   {gageSclHessEval0,     1,  2,  {gageSclHessEval, -1, -1, -1, -1},                       gageSclHessEval,  0},
   {gageSclHessEval1,     1,  2,  {gageSclHessEval, -1, -1, -1, -1},                       gageSclHessEval,  1},
@@ -73,6 +74,7 @@ _gageSclStr[][AIR_STRLEN_SMALL] = {
   "tangent projector",
   "Hessian",
   "Laplacian",
+  "Frob(Hessian)",
   "Hessian eigenvalues",
   "Hessian eigenvalue[0]",
   "Hessian eigenvalue[1]",
@@ -105,6 +107,7 @@ _gageSclDesc[][AIR_STRLEN_MED] = {
   "normalized gradient vector",
   "3x3 Hessian matrix",
   "Laplacian",
+  "Frobenius norm of Hessian",
   "Hessian's eigenvalues",
   "Hessian's 1st eigenvalue",
   "Hessian's 2nd eigenvalue",
@@ -137,6 +140,7 @@ _gageSclVal[] = {
   gageSclNPerp,
   gageSclHessian,
   gageSclLaplacian,
+  gageSclHessFrob,
   gageSclHessEval,
   gageSclHessEval0,
   gageSclHessEval1,
@@ -166,6 +170,7 @@ _gageSclVal[] = {
 #define GS_NP  gageSclNPerp
 #define GS_H   gageSclHessian
 #define GS_L   gageSclLaplacian
+#define GS_HF  gageSclHessFrob
 #define GS_HA  gageSclHessEval
 #define GS_HA0 gageSclHessEval0
 #define GS_HA1 gageSclHessEval1
@@ -197,6 +202,7 @@ _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
   "np", "nperp", 
   "h", "hess", "hessian",
   "l", "lapl", "laplacian",
+  "hf",
   "heval", "h eval", "hessian eval", "hessian eigenvalues",
   "heval0",
   "heval1",
@@ -229,6 +235,7 @@ _gageSclValEqv[] = {
   GS_NP, GS_NP,
   GS_H, GS_H, GS_H, 
   GS_L, GS_L, GS_L, 
+  GS_HF,
   GS_HA, GS_HA, GS_HA, GS_HA, 
   GS_HA0,
   GS_HA1,
