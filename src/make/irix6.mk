@@ -32,10 +32,12 @@ SHARED_LDFLAG = -shared
 ifeq ($(SUBARCH),n32)
   ARCH_CFLAG = -n32
   ARCH_LDFLAG = -n32
+  TEEM_32BIT = 1
 else
   ifeq ($(SUBARCH),64)
     ARCH_CFLAG = -64
     ARCH_LDFLAG = -64
+    TEEM_32BIT = 0
   else 
     $(error irix6 mode $(SUBARCH) not recognized) 
   endif
