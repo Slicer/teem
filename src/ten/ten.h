@@ -93,15 +93,37 @@ enum {
 ** all input parameters to tenGlyphGen
 */
 typedef struct {
-  int glyphType;          /* from tenGlyphType* enum */
-  float sqSharp;          /* how much to turn on edges in superquadrics */
+  /* glyphs will be shown at samples that have confidence >= confThresh,
+     and anisotropy anisoType >= anisoThresh, and if nmask is non-NULL,
+     then the corresponding mask value must be >= maskThresh. */
   Nrrd *nmask;
-  int anisoType, colEvec, res;
-  float colSat, colGamma;
+  int anisoType;
+  float confThresh, anisoThresh, maskThresh;
+
+  /* glyphs have shape glyphType and size glyphScale. Superquadrics
+     are tuned by sqdSharp, and things that must polygonalize do so
+     according to facetRes.  Postscript rendering of glyph edges is
+     governed by edgeWidth[] */
+  int glyphType, facetRes;
+  float glyphScale, sqdSharp;
   float edgeWidth[5];     /* same as limnOptsPS */
-  float anisoThresh, confThresh, useColor;
-  float maskThresh, glyphScale;
-  int dim;
+
+  /* glyphs are colored by eigenvector colEvec with the standard XYZ-RGB
+     colormapping, with maximal saturation colMaxSat (use 0.0 to turn off
+     coloring).  Saturation is modulated by anisotropy anisoType, to a
+     degree controlled by anisoModulate (if 0, saturation is not at all
+     modulated by anistropy).  Post-saturation, there is a per-channel
+     gamma of colGamma. */
+  int colEvec;
+  float colMaxSat, colGamma, anisoModulate;
+
+  /* if doSlice, a slice of anisotropy sliceAnisoType will be depicted
+     in grayscale as a sheet of grayscale squares, one per sample. As
+     with glyphs, these are thresholded by confThresh and maskThresh
+     (but not anisoThresh).  The squares will be at their
+     corresponding sample locations, but offset by sliceOffset */
+  int doSlice, sliceAxis, slicePos, sliceAnisoType;
+  float sliceOffset;
 } tenGlyphParm;
 
 #define TEN_ANISO_DESC \

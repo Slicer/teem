@@ -114,7 +114,7 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
   float x, y, z, min[3], max[3];
 
   if (torus) {
-    ELL_3V_SET(size, wsize, wsize, wsize/2);
+    ELL_3V_SET(size, 2*wsize, 2*wsize, wsize);
     ELL_3V_SET(min, -2, -2, -1);
     ELL_3V_SET(max, 2, 2, 1);
   } else {
@@ -204,7 +204,7 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "parameter governing how thick region of high anisotropy is");
   hestOptAdd(&hopt, "s", "size", airTypeInt, 1, 1, &wsize, "32",
 	     "dimensions of output volume.  For size N, the output is "
-	     "N\tx\tN\tx\tN for spheres, and N\tx\tN\tx\t(N/2) for toruses");
+	     "N\tx\tN\tx\tN for spheres, and 2N\tx\t2N\tx\tN for toruses");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
 	     "output filename");
 

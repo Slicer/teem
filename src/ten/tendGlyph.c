@@ -40,7 +40,7 @@ char *_tend_glyphInfoL =
    "in LaTeX, or viewing with ghostview, or distilling into PDF. "
    "The ray-traced output is a 5 channel (R,G,B,A,T) float nrrd, suitable for "
    "\"unu crop -min 0 0 0 -max 2 M M \" followed by "
-   "\"unu gamma\" and \"unu quantize -b 8\".");
+   "\"unu gamma\" and/or \"unu quantize -b 8\".");
 
 int
 tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -59,7 +59,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   echoGlobalState *gstate;
   tenGlyphParm *gparm;
   float bg[3];
-  int ires[2];
+  int ires[2], slice[2];
 
   /* so that command-line options can be read from file */
   hparm->respFileEnable = AIR_TRUE;
@@ -89,7 +89,8 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     &(gparm->confThresh), "0.5",
 	     "Glyphs will be drawn only for tensors with confidence "
 	     "values greater than this threshold");
-  hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &(gparm->anisoType), "fa",
+  hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1,
+	     &(gparm->anisoType), "fa",
 	     "Which anisotropy metric to use for thresholding the data "
 	     "points to be drawn", NULL, tenAniso);
   hestOptAdd(&hopt, "atr", "aniso thresh", airTypeFloat, 1, 1,
@@ -112,15 +113,15 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "include \"box\", \"sphere\", \"cylinder\", and "
 	     "\"superquad\"", NULL, tenGlyphType);
   hestOptAdd(&hopt, "sh", "sharpness", airTypeFloat, 1, 1,
-	     &(gparm->sqSharp), "3.0",
+	     &(gparm->sqdSharp), "3.0",
 	     "for superquadric glyphs, how much to sharp edges form as a "
 	     "function of differences between eigenvalues.  Higher values "
 	     "mean that edges form more easily");
   hestOptAdd(&hopt, "gsc", "scale", airTypeFloat, 1, 1, &(gparm->glyphScale),
 	     "0.01", "over-all glyph size in world-space");
   hestOptAdd(&hopt, "sat", "saturation", airTypeFloat, 1, 1,
-	     &(gparm->colSat), "1.0",
-	     "saturation to use on glyph colors (use 0.0 for B+W)");
+	     &(gparm->colMaxSat), "1.0",
+	     "maximal saturation to use on glyph colors (use 0.0 for B+W)");
   hestOptAdd(&hopt, "gam", "gamma", airTypeFloat, 1, 1, &(gparm->colGamma),
 	     "0.7", "gamma to use on color components (after saturation)");
   hestOptAdd(&hopt, "emap", "env map", airTypeOther, 1, 1, &emap, "",
@@ -129,8 +130,18 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "bg", "background", airTypeFloat, 3, 3, bg, "1 1 1",
 	     "background RGB color; each component in range [0.0,1.0]");
 
+  /* parameters for showing a dataset slice */
+  hestOptAdd(&hopt, "slc", "axis pos", airTypeInt, 2, 2, slice, "-1 -1",
+	     "For showing a gray-scale slice of anisotropy: the axis "
+	     "and position along which to slice.  Use \"-1 -1\" to signify "
+	     "that no slice should be shown");
+  hestOptAdd(&hopt, "off", "slice offset", airTypeFloat, 1, 1, 
+	     &(gparm->sliceOffset), "0.0",
+	     "Offset from slice position to render slice at (so that it "
+	     "doesn't occlude glyphs).");
+
   /* camera */
-  hestOptAdd(&hopt, "fr", "from point", airTypeDouble, 3, 3, cam->from,"4 4 4",
+  hestOptAdd(&hopt, "fr", "from point", airTypeDouble, 3, 3, cam->from, NULL,
 	     "position of camera, used to determine view vector");
   hestOptAdd(&hopt, "at", "at point", airTypeDouble, 3, 3, cam->at, "0 0 0",
 	     "camera look-at point, used to determine view vector");
@@ -146,7 +157,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "-1 1", "range in V direction of image plane");
 
   /* postscript-specific options */
-  hestOptAdd(&hopt, "gr", "glyph res", airTypeInt, 1, 1, &(gparm->res),
+  hestOptAdd(&hopt, "gr", "glyph res", airTypeInt, 1, 1, &(gparm->facetRes),
 	     "10", "(* postscript only *) "
 	     "resolution of polygonalization of glyphs (all glyphs "
 	     "other than the default box)");
@@ -177,6 +188,15 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   USAGE(_tend_glyphInfoL);
   PARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
+
+  /* set up slicing stuff */
+  if (!( -1 == slice[0] && -1 == slice[1] )) {
+    gparm->doSlice = AIR_TRUE;
+    gparm->sliceAxis = slice[0];
+    gparm->slicePos = slice[1];
+    gparm->sliceAnisoType = gparm->anisoType;
+    /* gparm->sliceOffset set by hest */
+  }
 
   if (tenGlyphGen(doRT ? NULL : glyph, 
 		  doRT ? scene : NULL,
@@ -217,8 +237,8 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
       return 1;
     }
   } else {
-    if (!(win->file = airFopen(outS, stdout, "w"))) {
-      fprintf(stderr, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", 
+    if (!(win->file = airFopen(outS, stdout, "wb"))) {
+      fprintf(stderr, "%s: couldn't fopen(\"%s\",\"wb\"): %s\n", 
 	      me, outS, strerror(errno));
       airMopError(mop); return 1;
     }

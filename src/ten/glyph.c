@@ -26,22 +26,28 @@ tenGlyphParmNew() {
 
   parm = calloc(1, sizeof(tenGlyphParm));
   if (parm) {
+    parm->nmask = NULL;
     parm->anisoType = tenAnisoUnknown;
-    parm->glyphType = tenGlyphTypeUnknown;
-    parm->colEvec = 0;  /* first */
-    parm->colSat = 1; 
-    parm->res = 10;
-    parm->sqSharp = 3.0;
-    parm->colGamma = 1;
-    parm->edgeWidth[0] = 0.0;
-    parm->edgeWidth[1] = 0.0;
-    parm->edgeWidth[2] = 0.4;
-    parm->edgeWidth[3] = 0.2;
-    parm->edgeWidth[4] = 0.1;
+    parm->confThresh = AIR_NAN;
     parm->anisoThresh = AIR_NAN;
-    parm->confThresh = parm->useColor = AIR_NAN;
     parm->maskThresh = AIR_NAN;
+
+    parm->glyphType = tenGlyphTypeUnknown;
+    parm->facetRes = 10;
     parm->glyphScale = 1.0;
+    parm->sqdSharp = 3.0;
+    ELL_5V_SET(parm->edgeWidth, 0.0, 0.0, 0.4, 0.2, 0.1);
+
+    parm->colEvec = 0;  /* first */
+    parm->colMaxSat = 1; 
+    parm->colGamma = 1;
+    parm->anisoModulate = 0;
+
+    parm->doSlice = AIR_FALSE;
+    parm->sliceAxis = -1;
+    parm->slicePos = -1;
+    parm->sliceAnisoType = tenAnisoUnknown;
+    parm->sliceOffset = 0.0;
   }
   return parm;
 }
@@ -60,12 +66,12 @@ tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  if (!( AIR_IN_OP(tenAnisoUnknown, parm->anisoType, tenAnisoLast) )) {
+  if (airEnumValCheck(tenAniso, parm->anisoType)) {
     sprintf(err, "%s: unset (or invalid) anisoType (%d)", me, parm->anisoType);
     biffAdd(TEN, err); return 1;
   }
-  if (!( parm->res >= 3 )) {
-    sprintf(err, "%s: resolution %d not >= 3", me, parm->res);
+  if (!( parm->facetRes >= 3 )) {
+    sprintf(err, "%s: facet resolution %d not >= 3", me, parm->facetRes);
     biffAdd(TEN, err); return 1;
   }
   if (!( AIR_IN_OP(tenGlyphTypeUnknown, parm->glyphType,
@@ -92,6 +98,23 @@ tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten) {
     sprintf(err, "%s: anisoThresh and confThresh haven't both been set", me);
     biffAdd(TEN, err); return 1;
   }
+  if (parm->doSlice) {
+    if (!( AIR_IN_CL(0, parm->sliceAxis, 2) )) {
+      sprintf(err, "%s: slice axis %d invalid", me, parm->sliceAxis);
+      biffAdd(TEN, err); return 1;
+    }
+    if (!( AIR_IN_CL(0, parm->slicePos,
+		     nten->axis[1+parm->sliceAxis].size) )) {
+      sprintf(err, "%s: slice pos %d not in valid range [0..%d]", me,
+	      parm->slicePos, nten->axis[1+parm->sliceAxis].size);
+      biffAdd(TEN, err); return 1;
+    }
+    if (airEnumValCheck(tenAniso, parm->sliceAnisoType)) {
+      sprintf(err, "%s: unset (or invalid) sliceAnisoType (%d)",
+	      me, parm->sliceAnisoType);
+      biffAdd(TEN, err); return 1;
+    }
+  }
   return 0;
 }
 
@@ -103,11 +126,11 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
   airArray *mop;
   double I[3], W[3];
   float cl, cp, *tdata, evec[9], eval[3], *cvec, aniso[TEN_ANISO_MAX+1],
-    mA[16], mB[16], R, G, B, qA, qB;
+    sRot[16], mA[16], mB[16], R, G, B, qA, qB, glyphAniso, sliceAniso;
   int idx, ri, axis;
   limnPart *lglyph;
-  echoObject *eglyph, *inst, *list=NULL, *split;
-  echoPos_t eM[16];
+  echoObject *eglyph, *inst, *list=NULL, *split, *esquare;
+  echoPos_t eM[16], originOffset[3], edge0[3], edge1[3];
   /*
   int eret;
   double tmp1[3], tmp2[3];  
@@ -133,6 +156,28 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, GAGE); airMopError(mop); return 1;
   }
+  if (parm->doSlice) {
+    ELL_3V_COPY(edge0, shape->voxLen);
+    ELL_3V_COPY(edge1, shape->voxLen);
+    edge0[parm->sliceAxis] = edge1[parm->sliceAxis] = 0.0;
+    switch(parm->sliceAxis) {
+    case 0:
+      edge0[1] = edge1[2] = 0;
+      ELL_4M_ROTATE_Y_SET(sRot, M_PI/2);
+      break;
+    case 1:
+      edge0[0] = edge1[2] = 0;
+      ELL_4M_ROTATE_X_SET(sRot, M_PI/2);
+      break;
+    case 2: default:
+      edge0[0] = edge1[1] = 0;
+      ELL_4M_IDENTITY_SET(sRot);
+      break;
+    }
+    ELL_3V_COPY(originOffset, shape->voxLen);
+    ELL_3V_SCALE(originOffset, -0.5, originOffset);
+    originOffset[parm->sliceAxis] *= 2*parm->sliceOffset;
+  }
   idx = 0;
   if (glyphsEcho) {
     list = echoObjectNew(glyphsEcho, echoTypeList);
@@ -148,12 +193,42 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 		 >= parm->maskThresh ))
 	    continue;
 	}
-	/* eret = */
+	gageShapeUnitItoW(shape, W, I);
 	tenEigensolve(eval, evec, tdata);
 	tenAnisoCalc(aniso, eval);
-	if (!( aniso[parm->anisoType] >= parm->anisoThresh ))
+	if (parm->doSlice
+	    && I[parm->sliceAxis] == parm->slicePos) {
+	  sliceAniso = aniso[parm->sliceAnisoType];
+	  if (glyphsLimn) {
+	    ri = limnObjSquareAdd(glyphsLimn, 0);
+	    ELL_4M_IDENTITY_SET(mA);
+	    ELL_4M_SCALE_SET(mB,
+			     0.5*shape->voxLen[0],
+			     0.5*shape->voxLen[1],
+			     0.5*shape->voxLen[2]);
+	    ell4mPostMul_f(mA, mB);
+	    ell4mPostMul_f(mA, sRot);
+	    ELL_4M_TRANSLATE_SET(mB, W[0], W[1], W[2]);
+	    ell4mPostMul_f(mA, mB);
+	    lglyph = glyphsLimn->r + ri;
+	    ELL_4V_SET(lglyph->rgba, sliceAniso, sliceAniso, sliceAniso, 1);
+	    /*
+	    limnObjPartTransform(glyphsLimn, ri, mA);
+	    */
+	  }
+	  if (glyphsEcho) {
+	    esquare = echoObjectNew(glyphsEcho,echoTypeRectangle);
+	    ELL_3V_ADD(((echoRectangle*)esquare)->origin, W, originOffset);
+	    ELL_3V_COPY(((echoRectangle*)esquare)->edge0, edge0);
+	    ELL_3V_COPY(((echoRectangle*)esquare)->edge1, edge1);
+	    echoColorSet(esquare, sliceAniso, sliceAniso, sliceAniso, 1);
+	    echoMatterPhongSet(glyphsEcho, esquare, 1, 0, 0, 40);
+	    echoListAdd(list, esquare);
+	  }
+	}
+	glyphAniso = aniso[parm->anisoType];
+	if (!( glyphAniso >= parm->anisoThresh ))
 	  continue;
-	gageShapeUnitItoW(shape, W, I);
 	/*
 	fprintf(stderr, "%s: eret = %d; evals = %g %g %g\n", me,
 		eret, eval[0], eval[1], eval[2]);
@@ -179,10 +254,22 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	R = AIR_ABS(cvec[0]);                           /* standard mapping */
 	G = AIR_ABS(cvec[1]);
 	B = AIR_ABS(cvec[2]);
-	R = AIR_AFFINE(0.0, parm->colSat, 1.0, 1.0, R); /* desaturate */
-	G = AIR_AFFINE(0.0, parm->colSat, 1.0, 1.0, G);
-	B = AIR_AFFINE(0.0, parm->colSat, 1.0, 1.0, B);
-	R = pow(R, parm->colGamma);                     /* gamma */
+	/* desaturate by colMaxSet */
+	R = AIR_AFFINE(0.0, parm->colMaxSat, 1.0, 1.0, R);
+	G = AIR_AFFINE(0.0, parm->colMaxSat, 1.0, 1.0, G);
+	B = AIR_AFFINE(0.0, parm->colMaxSat, 1.0, 1.0, B);
+	/* desaturate some by anisotropy */
+	R = AIR_AFFINE(0.0, parm->anisoModulate, 1.0,
+		       R, AIR_AFFINE(0.0, glyphAniso, 1.0, 1.0, R));
+	G = AIR_AFFINE(0.0, parm->anisoModulate, 1.0,
+		       G, AIR_AFFINE(0.0, glyphAniso, 1.0, 1.0, G));
+	B = AIR_AFFINE(0.0, parm->anisoModulate, 1.0,
+		       B, AIR_AFFINE(0.0, glyphAniso, 1.0, 1.0, B));
+	/* clamp and do gamma */
+	R = AIR_CLAMP(0.0, R, 1.0);
+	G = AIR_CLAMP(0.0, G, 1.0);
+	B = AIR_CLAMP(0.0, B, 1.0);
+	R = pow(R, parm->colGamma);
 	G = pow(G, parm->colGamma);
 	B = pow(B, parm->colGamma);
 	
@@ -191,12 +278,12 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	cp = AIR_MIN(0.99, aniso[tenAniso_Cp1]);
 	if (cl > cp) {
 	  axis = 0;
-	  qA = pow(1-cp, parm->sqSharp);
-	  qB = pow(1-cl, parm->sqSharp);
+	  qA = pow(1-cp, parm->sqdSharp);
+	  qB = pow(1-cl, parm->sqdSharp);
 	} else {
 	  axis = 2;
-	  qA = pow(1-cl, parm->sqSharp);
-	  qB = pow(1-cp, parm->sqSharp);
+	  qA = pow(1-cl, parm->sqdSharp);
+	  qB = pow(1-cp, parm->sqdSharp);
 	}
 
 	/* add the glyph */
@@ -207,15 +294,15 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	    break;
 	  case tenGlyphTypeSphere:
 	    ri = limnObjPolarSphereAdd(glyphsLimn, 0, axis,
-				       2*parm->res, parm->res);
+				       2*parm->facetRes, parm->facetRes);
 	    break;
 	  case tenGlyphTypeCylinder:
-	    ri = limnObjCylinderAdd(glyphsLimn, 0, axis, parm->res);
+	    ri = limnObjCylinderAdd(glyphsLimn, 0, axis, parm->facetRes);
 	    break;
 	  case tenGlyphTypeSuperquad:
 	  default:
 	    ri = limnObjPolarSuperquadAdd(glyphsLimn, 0, axis, qA, qB, 
-					  2*parm->res, parm->res);
+					  2*parm->facetRes, parm->facetRes);
 	    break;
 	  }
 	  lglyph = glyphsLimn->r + ri;
