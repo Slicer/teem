@@ -214,7 +214,7 @@ main(int argc, char *argv[]) {
 	   clamp z to find inside old volume */
 	
 	y = (yi - sy/2.0)*ys;
-	z = zi*zs + y*sin(-angle*3.141592653/180.0);
+	z = (zi*zs + y*sin(-angle*3.141592653/180.0))/zs;
 	z = AIR_CLAMP(0, z, sz-1);
 	gageSclProbe(ctx, xi, yi, z);
 	insert(out, xi + sx*(yi + sy*zi), *(ctx->val));
