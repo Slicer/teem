@@ -57,7 +57,7 @@ $(L).OBJS  += flip.o slice.o convert.o crop.o pad.o permute.o histo.o \
 	jhisto.o dice.o heq.o histax.o gamma.o make.o 1op.o 2op.o 3op.o \
 	lut.o subst.o rmap.o imap.o save.o head.o data.o splice.o inset.o \
 	axinsert.o axdelete.o axinfo.o ccfind.o ccadj.o ccmerge.o \
-	ccsettle.o about.o axsplit.o axmerge.o mlut.o mrmap.o tile.o
+	ccsettle.o about.o axsplit.o axmerge.o mlut.o mrmap.o tile.o untile.o
 ####
 ####
 ####
