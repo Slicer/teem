@@ -43,11 +43,12 @@ genvolFunc(float x, float y, float z) {
   /* marschner-lobb, linear variation in Z
   return (1 - (M_PI*z + 3)/5) + 0.25*(1 + rho(sqrt(x*x + y*y)))/(2*(1 + 0.25));
  */
-  /* cone */
+  /* cone 
   return z - 2*sqrt(x*x + y*y) + 0.5;
-  /* pin-cushion
-  return x*x + y*y + z*z - x*x*x*x - y*y*y*y - z*z*z*z;
   */
+  /* pin-cushion */
+  return x*x + y*y + z*z - x*x*x*x - y*y*y*y - z*z*z*z;
+
   /* quadratic surface (moved to quadvol.c)
   return A*x*x + B*y*y - z;
   */
