@@ -780,6 +780,6 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   }
 
   /* enough already */
-  airMopDone(mop, AIR_FALSE);
+  /* airMopDone(mop, AIR_FALSE); */
   return 0;
 }
