@@ -632,12 +632,12 @@ extern nrrd_export int nrrdKernelTMF_maxD;
 extern nrrd_export int nrrdKernelTMF_maxC;
 extern nrrd_export int nrrdKernelTMF_maxA;
 /* winKernel.c : various kinds of windowed sincs */
-extern nrrd_export NrrdKernel *nrrdKernelHann;
-extern nrrd_export NrrdKernel *nrrdKernelHannD;
-extern nrrd_export NrrdKernel *nrrdKernelHannDD;
-extern nrrd_export NrrdKernel *nrrdKernelBlackman;
-extern nrrd_export NrrdKernel *nrrdKernelBlackmanD;
-extern nrrd_export NrrdKernel *nrrdKernelBlackmanDD;
+extern nrrd_export NrrdKernel *nrrdKernelHann, /* Hann (cosine-bell) windowed sinc */
+  *nrrdKernelHannD;                /* 1st derivative of Hann windowed since */
+  *nrrdKernelHannDD;               /* 2nd derivative */
+  *nrrdKernelBlackman;             /* Blackman windowed sinc */
+  *nrrdKernelBlackmanD;            /* 1st derivative of Blackman windowed sinc */
+  *nrrdKernelBlackmanDD;           /* 2nd derivative */
 /* kernel.c */
 extern nrrd_export NrrdKernel *nrrdKernelZero, /* zero everywhere */
   *nrrdKernelBox,                  /* box filter (nearest neighbor) */
