@@ -57,7 +57,7 @@ main(int argc, char *argv[]) {
     return 1;
   }
 
-  if (nrrdReshape(nout=nrrdNew(), nin, dim, size)) {
+  if (nrrdReshape_nva(nout=nrrdNew(), nin, dim, size)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error reshaping nrrd:\n%s", me, err);
     free(err);

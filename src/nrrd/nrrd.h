@@ -195,7 +195,7 @@ typedef struct {
 typedef struct {
   int numParam;                          /* number of parameters needed
 					    (# elements in param[] used) */
-  double (*support)(double *param);      /* smallest x (>0) such that
+  double (*support)(double *param);      /* smallest x (x > 0) such that
 					    k(y) = 0 for all y > x, y < -x */
   double (*integral)(double *param);     /* integral of kernel from -support
 					    to +support */
@@ -247,6 +247,7 @@ extern double nrrdDefRsmpScale;
 extern int nrrdDefRsmpRenormalize;
 extern double nrrdDefRsmpPadValue;
 extern int nrrdDefCenter;
+extern double nrrdDefSpacing;
 extern double nrrdDefKernelParam0;
 extern int nrrdStateVerboseIO;
 extern int nrrdStateClever8BitMinMax;
@@ -299,6 +300,8 @@ extern void nrrdAxisPosRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
 			     double loIdx, double hiIdx);
 extern void nrrdAxisIdxRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
 			     double loPos, double hiPos);
+extern void nrrdAxisSetSpacing(Nrrd *nrrd, int ax);
+extern void nrrdAxisSetMinMax(Nrrd *nrrd, int ax);
 
 /******** simple things */
 /* simple.c */
@@ -393,7 +396,7 @@ extern int nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr);
 extern int nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type);
 extern int nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy);
 extern int nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int axis, int bins, int type);
-extern int nrrdHistoMulti(Nrrd *nout, Nrrd **nin, 
+extern int nrrdHistoJoint(Nrrd *nout, Nrrd **nin, 
 			  int numNrrds, int *bins, int type, int *clamp);
 
 /******** arithmetic and math on nrrds */
@@ -404,7 +407,11 @@ extern int nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma,
 /******** filtering and re-sampling */
 /* filt.c */
 extern int nrrdCheapMedian(Nrrd *nout, Nrrd *nin, int radius, int bins);
+/* rsmp.c */
 extern int nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info);
+extern int nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
+			      nrrdKernel *kernel, double *param,
+			      int *samples, double *scalings);
 
 /******** kernels (interpolation, 1st and 2nd derivatives) */
 /* kernel.c */

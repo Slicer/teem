@@ -116,6 +116,8 @@ main(int argc, char *argv[]) {
     memcpy(info->param[d], param, NRRD_KERNEL_PARAMS_MAX*sizeof(float));
     info->min[d] = 0;
     info->max[d] = nin->axis[d].size-1;
+    if (!( AIR_EXISTS(nin->axis[d].min) && AIR_EXISTS(nin->axis[d].max) ))
+      nrrdAxisSetMinMax(nin, d);
   }
   info->boundary = nrrdBoundaryBleed;
   info->type = nin->type;

@@ -21,7 +21,7 @@ LIBOBJS =
 TEST_BINS = 
 BINS = crop pad histo histax permute slice dice join reshape \
 	2a arith heq median nconvert quantize project \
-	mhisto rsmp block unblock flip
+	jhisto rsmp block unblock flip
 BINLIBS = -lnrrd -lbiff -lair -lm
 
 include ../make/Common.mk

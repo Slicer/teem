@@ -320,13 +320,13 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins, int type) {
       if (AIR_INSIDE(0, hidx, bins-1)) {
 	memcpy(coordOut, coordIn, nin->dim*sizeof(int));
 	coordOut[ax] = hidx;
-	NRRD_COORD_INDEX(hI, coordOut, szOut, nout->dim, d);
+	NRRD_COORD_INDEX(hI, coordOut, szOut, nout->dim);
 	count = nrrdDLookup[nout->type](nout->data, hI);
 	count = nrrdDClamp[nout->type](count + 1);
 	nrrdDInsert[nout->type](nout->data, hI, count);
       }
     }
-    NRRD_COORD_INCR(coordIn, szIn, nin->dim, d);
+    NRRD_COORD_INCR(coordIn, szIn, nin->dim);
   }
 
   if (nin->content) {
@@ -348,9 +348,9 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins, int type) {
 }
 
 int 
-nrrdHistoMulti(Nrrd *nout, Nrrd **nin, 
+nrrdHistoJoint(Nrrd *nout, Nrrd **nin, 
 	       int numNrrds, int *bins, int type, int *clamp) {
-  char me[]="nrrdHistoMulti", err[NRRD_STRLEN_MED];
+  char me[]="nrrdHistoJoint", err[NRRD_STRLEN_MED];
   int d, coord[NRRD_DIM_MAX], skip, hadContent, totalContentStrlen, len;
   double val, count;
   nrrdBigInt Iin, Iout, numEl;
@@ -456,7 +456,7 @@ nrrdHistoMulti(Nrrd *nout, Nrrd **nin,
     if (skip)
       continue;
     /* printf("\n"); */
-    NRRD_COORD_INDEX(Iout, coord, bins, numNrrds, d);
+    NRRD_COORD_INDEX(Iout, coord, bins, numNrrds);
     count = nrrdDLookup[nout->type](nout->data, Iout);
     count = nrrdDClamp[nout->type](count + 1);
     nrrdDInsert[nout->type](nout->data, Iout, count);

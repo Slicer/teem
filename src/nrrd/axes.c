@@ -341,8 +341,9 @@ nrrdAxesGet(Nrrd *nrrd, int axInfo, ...) {
 ** for nrrdCenterCell and nrrdCenterNode, return will be the same
 ** as input.  Converts nrrdCenterUnknown into nrrdDefCenter,
 ** and then clamps to (nrrdCenterUnknown+1, nrrdCenterLast-1).
+**
 ** Thus, this ALWAYS returns nrrdCenterNode or nrrdCenterCell
-** (as long as those are the only two centering schemes)
+** (as long as those are the only two centering schemes).
 */
 int
 _nrrdCenter(int center) {
@@ -376,12 +377,7 @@ nrrdAxisPos(Nrrd *nrrd, int ax, double idx) {
   max = nrrd->axis[ax].max;
   size = nrrd->axis[ax].size;
   
-  if (nrrdCenterCell == center) {
-    return AIR_AFFINE(0, idx + 0.5, size, min, max);
-  }
-  else {
-    return AIR_AFFINE(0, idx, size-1, min, max);
-  }
+  return NRRD_AXIS_POS(center, min, max, size, idx);
 }
 
 /*
@@ -405,13 +401,8 @@ nrrdAxisIdx(Nrrd *nrrd, int ax, double pos) {
   min = nrrd->axis[ax].min;
   max = nrrd->axis[ax].max;
   size = nrrd->axis[ax].size;
-  
-  if (nrrdCenterCell == center) {
-    return AIR_AFFINE(min, pos, max, 0, size) - 0.5;
-  }
-  else {
-    return AIR_AFFINE(min, pos, max, 0, size-1);
-  }
+
+  return NRRD_AXIS_IDX(center, min, max, size, pos);
 }
 
 /*
@@ -509,5 +500,54 @@ nrrdAxisIdxRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
     tmp = *loP; *loP = *hiP; *hiP = tmp;
   }
 
+  return;
+}
+
+void
+nrrdAxisSetSpacing(Nrrd *nrrd, int ax) {
+  int center, size;
+  double min, max, tmp;
+
+  if (!( nrrd && AIR_INSIDE(0, ax, nrrd->dim-1) ))
+    return;
+  
+  min = nrrd->axis[ax].min;
+  max = nrrd->axis[ax].max;
+  if (min < max) {
+    tmp = min; min = max; max = tmp;
+  }
+  center = _nrrdCenter(nrrd->axis[ax].center);
+  size = nrrd->axis[ax].size;
+
+  if (!( AIR_EXISTS(min) && AIR_EXISTS(max) )) {
+    /* there's no actual basis on which to set the spacing information,
+       but we have to set it something, so here goes ... */
+    nrrd->axis[ax].spacing = nrrdDefSpacing;
+    return;
+  }
+
+  /* the skinny */
+  nrrd->axis[ax].spacing = NRRD_AXIS_SPACING(center, min, max, size);
+
+  return;
+}
+
+void
+nrrdAxisSetMinMax(Nrrd *nrrd, int ax) {
+  int center;
+
+  if (!( nrrd && AIR_INSIDE(0, ax, nrrd->dim-1) ))
+    return;
+  
+  center = _nrrdCenter(nrrd->axis[ax].center);
+  if (nrrdCenterCell == center) {
+    nrrd->axis[ax].min = 0;
+    nrrd->axis[ax].max = nrrd->axis[ax].size;
+  }
+  else {
+    nrrd->axis[ax].min = 0;
+    nrrd->axis[ax].max = nrrd->axis[ax].size - 1;
+  }
+  
   return;
 }

@@ -169,9 +169,9 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
   for (iOut=0; iOut<=numLines-1; iOut++) {
     for (d=0; d<=dim-1; d++)
       cIn[axes[d]] = cOut[d];
-    NRRD_COORD_INDEX(iIn, cIn+lowPax, szIn+lowPax, dim-lowPax, d);
+    NRRD_COORD_INDEX(iIn, cIn+lowPax, szIn+lowPax, dim-lowPax);
     memcpy(dest + iOut*lineSize, src + iIn*lineSize, lineSize);
-    NRRD_COORD_INCR(cOut+lowPax, szOut+lowPax, dim-lowPax, d);
+    NRRD_COORD_INCR(cOut+lowPax, szOut+lowPax, dim-lowPax);
   }
 
   /* other peripheral info */
@@ -322,10 +322,10 @@ nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
   for (I=0; I<=num-1; I++) {
     memcpy(ci, co, NRRD_DIM_MAX*sizeof(int));
     ci[axis] = perm[co[axis]];
-    NRRD_COORD_INDEX(idxI, ci, size, dim, d);
-    NRRD_COORD_INDEX(idxO, co, size, dim, d);
+    NRRD_COORD_INDEX(idxI, ci, size, dim);
+    NRRD_COORD_INDEX(idxO, co, size, dim);
     memcpy(dataO + typesize*idxO, dataI + typesize*idxI, typesize);
-    NRRD_COORD_INCR(co, size, dim, d);
+    NRRD_COORD_INCR(co, size, dim);
   }
 
   /* peripheral information */

@@ -23,7 +23,8 @@ LIBOBJS = \
         comment.o    convert.o    defaults.o   endian.o     \
 	filt.o       histogram.o  kernel.o     map.o        \
 	measure.o    methods.o    parse.o      read.o       \
-	reorder.o    simple.o     subset.o     write.o
+	reorder.o    rsmp.o       simple.o     subset.o     \
+        write.o
 
 #TEST_BINS = test/enum2str test/str2enum 
 TEST_BINS = test/shuff test/ax test/io test/minmax test/tkernel

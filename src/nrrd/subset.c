@@ -50,7 +50,7 @@ nrrdSample_nva(void *val, Nrrd *nrrd, int *coord) {
     }
   }
 
-  NRRD_COORD_INDEX(I, coord, size, nrrd->dim, d);
+  NRRD_COORD_INDEX(I, coord, size, nrrd->dim);
 
   memcpy(val, (char*)(nrrd->data) + I*typeSize, typeSize);
   return 0;
@@ -272,13 +272,13 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
   for (I=0; I<=numLines-1; I++) {
     for (d=0; d<=dim-1; d++)
       cIn[d] = cOut[d] + min[d];
-    NRRD_COORD_INDEX(idxOut, cOut, szOut, dim, d);
-    NRRD_COORD_INDEX(idxIn, cIn, szIn, dim, d);
+    NRRD_COORD_INDEX(idxOut, cOut, szOut, dim);
+    NRRD_COORD_INDEX(idxIn, cIn, szIn, dim);
     memcpy(dataOut + idxOut*typeSize, dataIn + idxIn*typeSize, lineSize);
     /* the lowest coordinate in cOut[] will stay zero, since we are 
        copying one (1-D) scanline at a time */
     cOut[1]++; 
-    NRRD_COORD_UPDATE(cOut, szOut, dim, d);
+    NRRD_COORD_UPDATE(cOut, szOut, dim);
   }
   if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE
 				     | NRRD_AXESINFO_AMINMAX ))) {
@@ -426,7 +426,7 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
 	break;
       }
     }
-    NRRD_COORD_INDEX(idxIn, cIn, szIn, dim, d);
+    NRRD_COORD_INDEX(idxIn, cIn, szIn, dim);
     if (!outside) {
       /* the cIn coords are within the input nrrd: do memcpy() of whole
 	 1-D scanline, then artificially bump for-loop to the end of
@@ -445,7 +445,7 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
 	memcpy(dataOut + idxOut*typeSize, dataIn + idxIn*typeSize, typeSize);
       }
     }
-    NRRD_COORD_INCR(cOut, szOut, dim, d);
+    NRRD_COORD_INCR(cOut, szOut, dim);
   }
   if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE
 				     | NRRD_AXESINFO_AMINMAX ))) {
