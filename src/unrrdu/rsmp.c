@@ -22,9 +22,9 @@ char *me;
 
 void
 usage() {
-  /*              0    1      2      3        4        (argc-1) */
+  /*              0    1      2      3       4       (argc-1) */
   fprintf(stderr, 
-	  "usage: %s <nin> <kern> <ratio0> <ratio1> ... <nout>\n\n", me);
+	  "usage: %s <nin> <kern> <size0> <size1> ... <nout>\n\n", me);
   fprintf(stderr, "<kern> is the resampling kernel to use; options are:\n");
   fprintf(stderr, "  \"box\": box filter (nearest neighbor upsampling)\n");
   fprintf(stderr, "  \"tent\": tent filter (trilinear upsampling)\n");
@@ -33,22 +33,23 @@ usage() {
   fprintf(stderr, "     \"cubic:0.0,0.5\": Catmull-Rom kernel\n");
   fprintf(stderr, "    (\"cubic:0.0,C\": all interpolating cubics)\n");
   fprintf(stderr, "  \"quartic:A\": Gordon's family of interpolating quartics\n");
-  fprintf(stderr, "     \"quartic:0.25\": most sinc()-like; use this!\n");
-  fprintf(stderr, "<ratio0>, <ratio1>, ... are resampling ratios\n");
-  fprintf(stderr, "  ratio < 1.0: downsampling, ratio > 1.0: upsampling\n");
-  fprintf(stderr, "  ratio = \"x\": don't resampling along this axis at all\n");
+  fprintf(stderr, "     \"quartic:0.25\": most sinc()-like; use this!\n\n");
+  fprintf(stderr, "<size0>, <size1>, ... are sizes along each axis of output\n");
+  fprintf(stderr, "  These can be either less than or greater than original axis size\n");
+  fprintf(stderr, "  size = \"x\": don't resampling along this axis at all\n");
+  fprintf(stderr, "  For non-interpolating kernels, this is different than having\n");
+  fprintf(stderr, "  old size == new size\n\n");
   exit(1);
 }
 
 int
 main(int argc, char *argv[]) {
-  char *in, *out, *err, *kernS, tkS[128], *ratioS;
+  char *in, *out, *err, *kernS, tkS[128], *sizeS;
   Nrrd *nin, *nout;
-  float ratio;
   nrrdResampleInfo *info;
   nrrdKernel *kern;
   float param[NRRD_MAX_KERNEL_PARAMS];
-  int d;
+  int d, size;
 
   info = nrrdResampleInfoNew();
   
@@ -64,11 +65,6 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble reading nrrd from \"%s\":%s\n", me, in, err);
     free(err);
     usage();
-  }
-  if (argc-4 != nin->dim) {
-    fprintf(stderr, "%s: got %d-D nrrd, but %d resampling ratios\n",
-	    me, argc-4, nin->dim);
-    exit(1);
   }
   memset(param, 0, NRRD_MAX_KERNEL_PARAMS*sizeof(float));
   param[0] = 1.0;
@@ -112,6 +108,11 @@ main(int argc, char *argv[]) {
   usage();
   
  kparsed:
+  if (argc-4 != nin->dim) {
+    fprintf(stderr, "%s: read in %d-D nrrd, but got %d resampling sizes\n",
+	    me, argc-4, nin->dim);
+    exit(1);
+  }
   /* for the curious, the constraints/simplifications in this unrrdu,
      compared to the full options for resampler are:
      - always resampling full length of axis (min = 0, max = size-1)
@@ -123,27 +124,27 @@ main(int argc, char *argv[]) {
      - renormalization hack always on 
   */
   for (d=0; d<=nin->dim-1; d++) {
-    ratioS = argv[3+d];
-    if (!strcmp("x", ratioS)) {
+    sizeS = argv[3+d];
+    if (!strcmp("x", sizeS)) {
       /* no resampling on this axis desired */
       info->kernel[d] = NULL;
     }
     else {
-      if (1 != sscanf(ratioS, "%f", &ratio)) {
-	fprintf(stderr, "%s: couldn't parse ratio %d \"%s\" as float\n", me,
-		d, ratioS);
+      if (1 != sscanf(sizeS, "%d", &size)) {
+	fprintf(stderr, "%s: couldn't parse size %d \"%s\" as int\n", me,
+		d, sizeS);
+	usage();
+      }
+      if (!(size > 0)) {
+	fprintf(stderr, "%s: invalid # samples (%d) for axis %d\n", 
+		me, size, d);
 	usage();
       }
       info->kernel[d] = kern;
       memcpy(info->param[d], param, NRRD_MAX_KERNEL_PARAMS*sizeof(float));
       info->min[d] = 0;
       info->max[d] = nin->size[d]-1;
-      info->samples[d] = nin->size[d]*ratio;
-      if (!(info->samples[d] > 0)) {
-	fprintf(stderr, "%s: bad # samples (%d) for axis %d (ratio = %g)\n",
-		me, info->samples[d], d, ratio);
-	usage();
-      }
+      info->samples[d] = size;
     }
   }
   info->boundary = nrrdBoundaryBleed;
