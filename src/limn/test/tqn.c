@@ -133,30 +133,34 @@ main() {
   fprintf(f1, "256 512\n");
   fprintf(f1, "255\n");
   for (yi=0; yi<=255; yi++) {
-    v[1] = AIR_AFFINE(1, yi, 254, -1, 1);
+    v[1] = AIR_AFFINE(0, yi, 255, -1, 1);
     for (xi=0; xi<=255; xi++) {
-      v[0] = AIR_AFFINE(1, xi, 254, -1, 1);
+      v[0] = AIR_AFFINE(0, xi, 255, -1, 1);
       r = v[0]*v[0] + v[1]*v[1];
       if (r <= 1) {
 	v[2] = sqrt(1-r);
-	qn = limnVto16QN(v);
+	qn = limnVto16QN1PB(v);
 	fputc(rgb[qn][0], f2);
 	fputc(rgb[qn][1], f2);
 	fputc(rgb[qn][2], f2);
+	if (159 == xi && 250 == yi) {
+	  printf("%d %d %d\n", rgb[qn][0], rgb[qn][1], rgb[qn][2]);
+	}
       }
       else {
 	fputc(128, f2);	fputc(128, f2);	fputc(128, f2);
       }
+      
     }
   }
   for (yi=0; yi<=255; yi++) {
-    v[1] = AIR_AFFINE(1, yi, 254, -1, 1);
+    v[1] = AIR_AFFINE(0, yi, 255, -1, 1);
     for (xi=0; xi<=255; xi++) {
-      v[0] = AIR_AFFINE(1, xi, 254, -1, 1);
+      v[0] = AIR_AFFINE(0, xi, 255, -1, 1);
       r = v[0]*v[0] + v[1]*v[1];
       if (r <= 1) {
 	v[2] = -sqrt(1-r);
-	qn = limnVto16QN(v);
+	qn = limnVto16QN1PB(v);
 	fputc(rgb[qn][0], f2);
 	fputc(rgb[qn][1], f2);
 	fputc(rgb[qn][2], f2);

@@ -35,33 +35,40 @@
 void
 limn16QNtoV(float *vec, unsigned short qn, int doNorm) {
   int ui, vi;
-  float u, v, x, y, z, n;
+  double u, v, x, y, z, n;
   
-  ui = qn & 0xFF;
-  vi = qn >> 8;
-  u = AIR_AFFINE(-0.5, ui, 255.5, -0.5, 0.5);
-  v = AIR_AFFINE(-0.5, vi, 255.5, -0.5, 0.5);
-  x =  u + v;
-  y =  u - v;
-  z = 1 - AIR_ABS(x) - AIR_ABS(y);
-  z *= (((ui ^ vi) & 0x01) << 1) - 1;
-  if (doNorm) {
-    n = 1.0/sqrt(x*x + y*y + z*z);
-    vec[0] = x*n; 
-    vec[1] = y*n; 
-    vec[2] = z*n;
+  if (qn) {
+    ui = qn & 0xFF;
+    vi = qn >> 8;
+    u = AIR_AFFINE(-0.5, ui, 255.5, -0.5, 0.5);
+    v = AIR_AFFINE(-0.5, vi, 255.5, -0.5, 0.5);
+    x =  u + v;
+    y =  u - v;
+    z = 1 - AIR_ABS(x) - AIR_ABS(y);
+    z *= (((ui ^ vi) & 0x01) << 1) - 1;
+    if (doNorm) {
+      n = 1.0/sqrt(x*x + y*y + z*z);
+      vec[0] = x*n; 
+      vec[1] = y*n; 
+      vec[2] = z*n;
+    }
+    else {
+      vec[0] = x;
+      vec[1] = y;
+      vec[2] = z;
+    }
   }
   else {
-    vec[0] = x;
-    vec[1] = y;
-    vec[2] = z;
+    vec[0] = vec[1] = vec[2] = 0;
   }
 }
 
 unsigned short
 limnVto16QN(float *vec) {
-  float L, u, v, x, y, z;
+  double L, u, v, x, y, z;
   int ui, vi, zi;
+  unsigned short ret;
+  char me[]="limnVto16QN";
   
   x = vec[0];
   y = vec[1];
@@ -70,26 +77,31 @@ limnVto16QN(float *vec) {
   if (L) {
     x /= L;
     y /= L;
+    u = x + y;
+    v = x - y;
+    AIR_INDEX(-1, u, 1, 256, ui);
+    AIR_INDEX(-1, v, 1, 256, vi);
+    zi = (ui ^ vi) & 0x01;
+    if (!zi && z > 1.0/128.0) {
+      ui -= (((ui >> 7) & 0x01) << 1) - 1;
+    } 
+    else if (zi && z < -1.0/128.0) {
+      vi -= (((vi >> 7) & 0x01) << 1) - 1;
+    }
+    zi = (ui ^ vi) & 0x01;
+    if (!zi && z > 1.0/128.0) {
+      printf("%s: panic01\n", me);
+    } 
+    else if (zi && z < -1.0/128.0) {
+      printf("%s: panic02\n", me);
+    }
+    ret = (vi << 8) | ui;
+    ret += !ret;
+    return ret;
   }
-  u = x + y;
-  v = x - y;
-  AIR_INDEX(-1, u, 1, 256, ui);
-  AIR_INDEX(-1, v, 1, 256, vi);
-  zi = (ui ^ vi) & 0x01;
-  if (!zi && z > 1.0/128.0) {
-    ui -= (((ui >> 7) & 0x01) << 1) - 1;
-  } 
-  else if (zi && z < -1.0/128.0) {
-    vi -= (((vi >> 7) & 0x01) << 1) - 1;
+  else {
+    return 0;
   }
-  zi = (ui ^ vi) & 0x01;
-  if (!zi && z > 1.0/128.0) {
-    printf("panic01\n");
-  } 
-  else if (zi && z < -1.0/128.0) {
-    printf("panic02\n");
-  }
-  return (vi << 8) | ui;
 }
 
 /* ----------------------------------------------------------------  */
@@ -97,33 +109,40 @@ limnVto16QN(float *vec) {
 void
 limn16QN1PBtoV(float *vec, unsigned short qn, int doNorm) {
   int ui, vi;
-  float u, v, x, y, z, n;
+  double u, v, x, y, z, n;
   
-  ui = qn & 0xFF;
-  vi = qn >> 8;
-  u = AIR_AFFINE(0.5, ui, 254.5, -0.5, 0.5);
-  v = AIR_AFFINE(0.5, vi, 254.5, -0.5, 0.5);
-  x =  u + v;
-  y =  u - v;
-  z = 1 - AIR_ABS(x) - AIR_ABS(y);
-  z *= (((ui ^ vi) & 0x01) << 1) - 1;
-  if (doNorm) {
-    n = 1.0/sqrt(x*x + y*y + z*z);
-    vec[0] = x*n; 
-    vec[1] = y*n; 
-    vec[2] = z*n;
+  if (qn) {
+    ui = qn & 0xFF;
+    vi = qn >> 8;
+    u = AIR_AFFINE(0.5, ui, 254.5, -0.5, 0.5);
+    v = AIR_AFFINE(0.5, vi, 254.5, -0.5, 0.5);
+    x =  u + v;
+    y =  u - v;
+    z = 1 - AIR_ABS(x) - AIR_ABS(y);
+    z *= (((ui ^ vi) & 0x01) << 1) - 1;
+    if (doNorm) {
+      n = 1.0/sqrt(x*x + y*y + z*z);
+      vec[0] = x*n; 
+      vec[1] = y*n; 
+      vec[2] = z*n;
+    }
+    else {
+      vec[0] = x;
+      vec[1] = y;
+      vec[2] = z;
+    }
   }
   else {
-    vec[0] = x;
-    vec[1] = y;
-    vec[2] = z;
+    vec[0] = vec[1] = vec[2] = 0;
   }
 }
 
 unsigned short
 limnVto16QN1PB(float *vec) {
-  float L, u, v, x, y, z;
+  double L, u, v, x, y, z;
   int ui, vi, zi;
+  unsigned short ret;
+  char me[]="limnVto16QN1PB";
   
   x = vec[0];
   y = vec[1];
@@ -132,26 +151,31 @@ limnVto16QN1PB(float *vec) {
   if (L) {
     x /= L;
     y /= L;
+    u = x + y;
+    v = x - y;
+    AIR_INDEX(-1, u, 1, 254, ui); ui++;
+    AIR_INDEX(-1, v, 1, 254, vi); vi++;
+    zi = (ui ^ vi) & 0x01;
+    if (!zi && z > 1.0/128.0) {
+      ui -= (((ui >> 7) & 0x01) << 1) - 1;
+    } 
+    else if (zi && z < -1.0/128.0) {
+      vi -= (((vi >> 7) & 0x01) << 1) - 1;
+    }
+    zi = (ui ^ vi) & 0x01;
+    if (!zi && z > 1.0/127.0) {
+      printf("%s: panic01\n", me);
+    } 
+    else if (zi && z < -1.0/127.0) {
+      printf("%s: panic02\n", me);
+    }
+    ret = (vi << 8) | ui;
+    ret += !ret;
+    return ret;
   }
-  u = x + y;
-  v = x - y;
-  AIR_INDEX(-1, u, 1, 254, ui); ui++;
-  AIR_INDEX(-1, v, 1, 254, vi); vi++;
-  zi = (ui ^ vi) & 0x01;
-  if (!zi && z > 1.0/127.0) {
-    ui -= (((ui >> 7) & 0x01) << 1) - 1;
-  } 
-  else if (zi && z < -1.0/127.0) {
-    vi -= (((vi >> 7) & 0x01) << 1) - 1;
+  else {
+    return 0;
   }
-  zi = (ui ^ vi) & 0x01;
-  if (!zi && z > 1.0/127.0) {
-    printf("panic01\n");
-  } 
-  else if (zi && z < -1.0/127.0) {
-    printf("panic02\n");
-  }
-  return (vi << 8) | ui;
 }
 
 /* ----------------------------------------------------------------  */
@@ -159,7 +183,7 @@ limnVto16QN1PB(float *vec) {
 void
 limn15QNtoV(float *vec, unsigned short qn, int doNorm) {
   int ui, vi, zi;
-  float u, v, x, y, z, n;
+  double u, v, x, y, z, n;
   
   if (qn) {
     ui = qn & 0x7F;
@@ -190,7 +214,7 @@ limn15QNtoV(float *vec, unsigned short qn, int doNorm) {
 
 unsigned short
 limnVto15QN(float *vec) {
-  float L, u, v, x, y, z;
+  double L, u, v, x, y, z;
   int ui, vi, zi;
   unsigned short ret;
   
