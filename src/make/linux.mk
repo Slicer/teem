@@ -28,17 +28,23 @@ SHARED_LDFLAG = -shared
 TEEM_ENDIAN = 1234
 TEEM_QNANHIBIT = 1
 TEEM_DIO = 0
-ifeq ($(SUBARCH),64)
+ifeq ($(SUBARCH),ia64)
   TEEM_32BIT = 0
   ARCH_CFLAG = -fPIC -Wall
   ARCH_LDFLAG =
 else
-  ifeq ($(SUBARCH),32)
-    TEEM_32BIT = 1
-    ARCH_CFLAG = -Wall
-    ARCH_LDFLAG = 
+  ifeq ($(SUBARCH),amd64)
+    TEEM_32BIT = 0
+    ARCH_CFLAG = -fPIC -Wall
+    ARCH_LDFLAG =
   else
-    $(error linux sub-architecture "$(SUBARCH)" not recognized)
+    ifeq ($(SUBARCH),32)
+      TEEM_32BIT = 1
+      ARCH_CFLAG = -Wall
+      ARCH_LDFLAG = 
+    else
+      $(error linux sub-architecture "$(SUBARCH)" not recognized)
+    endif
   endif
 endif
 TEEM_BIGBITFIELD = 1
