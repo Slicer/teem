@@ -592,11 +592,11 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 }
 
 int
-hestParse(hestOpt *opt, char **_argv,
+hestParse(hestOpt *opt, int _argc, char **_argv,
 	  char *err, hestParm *_parm) {
   char me[]="hestParse: ";
   char **argv, **prms;
-  int a, argc, argr, *nprm, *appr, *udflt, nrf, numOpts, _argc;
+  int a, argc, argr, *nprm, *appr, *udflt, nrf, numOpts;
   airArray *mop;
   hestParm *parm;
   
@@ -635,7 +635,6 @@ hestParse(hestOpt *opt, char **_argv,
   if (_hestArgsInResponseFiles(&argr, &nrf, _argv, err, parm)) {
     airMopDone(mop, AIR_TRUE); return 1;
   }
-  _argc = _hestArgc(_argv);
   argc = argr + _argc - nrf;
   /*
   printf("!%s: nrf = %d; argr = %d; _argc = %d --> argc = %d\n", 

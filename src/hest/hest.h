@@ -101,7 +101,8 @@ extern void hestUsage(FILE *file, hestOpt *opt, char *argv0, hestParm *parm);
 extern void hestGlossary(FILE *file, hestOpt *opt, hestParm *parm);
 
 /* parse.c */
-extern int hestParse(hestOpt *opt, char **argv, char *err, hestParm *parm);
+extern int hestParse(hestOpt *opt, int argc, char **argv,
+		     char *err, hestParm *parm);
 
 #ifdef __cplusplus
 }
