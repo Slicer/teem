@@ -192,7 +192,7 @@ limnObjPSDraw(limnObj *obj, limnCam *cam, Nrrd *nmap, limnWin *win) {
       win->ps.edgeWidth[e->visib] = 8;
       _limnPSDrawEdge(obj, r, e, cam, win);
       fprintf(win->file, "%g %g %g RGB\n", 
-	      r->rgba[0]/255.0, r->rgba[1]/255.0, r->rgba[2]/255.0);
+	      r->rgba[0], r->rgba[1], r->rgba[2]);
       win->ps.edgeWidth[e->visib] = 4;
       _limnPSDrawEdge(obj, r, e, cam, win);
       win->ps.edgeWidth[e->visib] = widthTmp;

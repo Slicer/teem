@@ -79,7 +79,7 @@ limnObjPartStart(limnObj *obj) {
   r->eBase = obj->eA->len;  r->eNum = 0;
   r->pBase = obj->pA->len;  r->pNum = 0;
   r->origIdx = rBase;
-  ELL_4V_SET(r->rgba, 255, 255, 255, 255);
+  ELL_4V_SET(r->rgba, 1.0, 1.0, 1.0, 1.0);
   obj->rCurr = r;
 
   return rBase;
