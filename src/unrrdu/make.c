@@ -74,6 +74,7 @@ unrrduMakeRead(char *me, Nrrd *nrrd, NrrdIO *nio, char *fname,
     sprintf(err, "%s: error reading data", me);
     AIR_FCLOSE(nio->dataFile); biffMove(me, err, NRRD); return 1;
   }
+  AIR_FCLOSE(nio->dataFile);
   return 0;
 }
 
@@ -108,7 +109,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "is reading the nrrd).  Detached headers are incompatible with "
 	     "using stdin as the data source, or using multiple data "
 	     "files");
-  hestOptAdd(&opt, "i", "file", airTypeString, 1, -1, &dataFileNames, NULL,
+  hestOptAdd(&opt, "i", "file", airTypeString, 1, -1, &dataFileNames, "-",
 	     "Filename(s) of data file(s); use \"-\" for stdin. ", &nameLen);
   hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &type, NULL,
 	     "type of data (e.g. \"uchar\", \"int\", \"float\", "
