@@ -243,15 +243,15 @@ gageKernelReset (gageContext *ctx) {
 }
 
 /*
-******** gageSet()
+******** gageParmSet()
 **
 ** for setting the boolean-ish flags in the context in a safe and
 ** intelligent manner, since changing some of them can have many
 ** consequences
 */
 void
-gageSet (gageContext *ctx, int which, gage_t val) {
-  char me[]="gageSet";
+gageParmSet (gageContext *ctx, int which, gage_t val) {
+  char me[]="gageParmSet";
   int p;
   
   if (ctx->thisIsACopy) {

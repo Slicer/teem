@@ -323,14 +323,14 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   /* create the gageSimple and initialize it */
   ctx = gageContextNew();
   pvl = gagePerVolumeNew(ctx, nin, gageKindScl);
-  gageSet(ctx, gageParmVerbose, 0);
-  gageSet(ctx, gageParmRenormalize, hvp->renormalize);
-  gageSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
+  gageParmSet(ctx, gageParmVerbose, 0);
+  gageParmSet(ctx, gageParmRenormalize, hvp->renormalize);
+  gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   if (!hvp->k3pack) {
     sprintf(err, "%s: code currently assumes k3pack", me);
     biffAdd(BANE, err); return 1;
   }
-  gageSet(ctx, gageParmK3Pack, hvp->k3pack);
+  gageParmSet(ctx, gageParmK3Pack, hvp->k3pack);
   E = 0;
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   if (!E) E |= gageKernelSet(ctx, gageKernel00, hvp->k[gageKernel00],
