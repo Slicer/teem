@@ -797,8 +797,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
 		   (NRRD_AXIS_INFO_SIZE_BIT |
 		    NRRD_AXIS_INFO_MIN_BIT |
 		    NRRD_AXIS_INFO_MAX_BIT |
-		    NRRD_AXIS_INFO_SPACING_BIT | 
-		    NRRD_AXIS_INFO_CENTER_BIT));
+		    NRRD_AXIS_INFO_SPACING_BIT));
   for (d=0; d<dim; d++) {
     if (info->kernel[d]) {
       nout->axis[d].min = info->min[d];
