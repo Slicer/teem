@@ -47,7 +47,7 @@ C, I don't consider those tools necessary.
 
 However, you may need to alter the appropriate architecture-specific
 ".mk" file in the "src/make" directory.  If you feel there is a bug
-in those files, please email me at gk@cs.utah.edu
+in those files, please email me at gk_AT_cs.utah.edu
 
 =============== General Info
 
@@ -65,8 +65,10 @@ extensions, or libraries to teem, please keep in mind that they will
 undergo my scrutiny before they will be added to the official CVS
 tree.
 
-I'm not averse to C++, I just think its a disaster.  Bill Joy agrees
-with me on this one.  As do other people I respect.
+I'm not especially averse to C++, I just think its a bit of a
+disaster.  Bill Joy agrees with me on this one.  As do other people I
+respect.  C++ has its time and place, no doubt.  I'm just generally not
+in those times or places.  My loss, I'm sure.
 
 =============== Directory Structure
 
@@ -76,6 +78,10 @@ src/
   directory which is just for makefile (.mk) files.
 include/
   the include (.h) files for all the libraries (such as nrrd.h)
+  get put here (but don't originate from here)
+    include/teem
+      include/teem/need: header files which help verifying that 
+      certain compiler variables are set
 irix6.64/
 irix6.n32/
 linux/
@@ -97,9 +103,10 @@ cygwin/
           a slight performance penalty.
 
 ---> Upon getting a copy of the CVS tree, the ONLY directory which
----> should contain anything is the "src" directory- the compilations
----> of the various libraries will put header, library, and object
----> files as needed in all the appropriate directories.
+---> should contain anything is the "src" directory (except for "teem"
+---> in include)- the compilations of the various libraries will put
+---> header, library, and object files as needed in all the
+---> appropriate directories.
 
 See the README.txt in the "src" directory for library-specific
 information.
@@ -112,12 +119,12 @@ other people follow them as well if they contribute to teem.
 
 aspects of GNU style (http://www.gnu.org/prep/standards.html) which I like:
 (but don't necessarily always follow)
-- avoid arbitrary limits on (memory) sizes of things (this is hard)
+- avoid arbitrary limits on (memory) sizes of things (this is very hard)
 - be robust about handling of non-ASCII input where ASCII is expected
 - be super careful about handling of erroneous system call return,
   and always err on the side of being anal in matters of error detection
   and reporting.
-- check every single malloc, calloc for NULL return
+- check every single malloc/calloc for NULL return
 - make sure all symbols visible in the library
   start with "<lib>" or "_<lib>" where <lib> is the library name or
   some obvious but non-trivial shortening of it
