@@ -354,7 +354,7 @@ extern int tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine);
 extern int tenEigensolve(float eval[3], float evec[9], float ten[7]);
 extern void tenMakeOne(float ten[7], float conf, float eval[3], float evec[9]);
 extern int tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec);
-extern int tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos);
+extern int tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos, int dim);
 
 /* chan.c */
 /* old tenCalc* functions replaced by tenEstimate* */
@@ -387,7 +387,6 @@ extern int tenEvqVolume(Nrrd *nout, Nrrd *nin, int which,
 extern int tenGradCheck(Nrrd *ngrad);
 extern int tenBmatCheck(Nrrd *nbmat);
 extern int _tenFindValley(float *valP, Nrrd *nhist, float tweak);
-extern int tenEigenvalueMin(Nrrd *nout, Nrrd *nin, float mineval);
 
 /* fiberMethods.c */
 extern tenFiberContext *tenFiberContextNew(Nrrd *dtvol);
@@ -421,6 +420,13 @@ extern int tenEpiRegister4D(Nrrd *nout, Nrrd *nin, Nrrd *ngrad,
 			    NrrdKernel *kern, double *kparm,
 			    int progress, int verbose);
 
+/* mod.c */
+extern int tenSizeNormalize(Nrrd *nout, Nrrd *nin, float weight[3],
+			    float amount, float target);
+extern int tenAnisoScale(Nrrd *nout, Nrrd *nin, float amount);
+extern int tenEigenvaluePower(Nrrd *nout, Nrrd *nin, float expo);
+extern int tenEigenvalueClamp(Nrrd *nout, Nrrd *nin, float min, float max);
+
 /* tenGage.c */
 extern ten_export gageKind *tenGageKind;
 
@@ -444,13 +450,17 @@ F(glyph) \
 F(ellipse) \
 F(anplot) \
 F(anvol) \
+F(anscale) \
 F(anhist) \
 F(point) \
 F(slice) \
 F(fiber) \
+F(norm) \
 F(eval) \
+F(evalpow) \
+F(evalclamp) \
 F(evec) \
-F(colevec) \
+F(evecrgb) \
 F(evq) \
 F(expand) \
 F(shrink) \
