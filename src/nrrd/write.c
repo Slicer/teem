@@ -788,36 +788,13 @@ _nrrdWriteNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io, int writeData) {
 }
 
 int
-_nrrdReshapeDownGrayscale (Nrrd *nimg) {
-  char me[]="_nrrdReshapeDownGrayscale", err[AIR_STRLEN_MED];
-  int axmap[2] = {1, 2}, ret;
-  Nrrd *ntmp;  /* just a holder for axis information */
-  
-  ntmp = nrrdNew();
-  ntmp->dim = 3;
-  if ( (ret = nrrdAxesCopy(ntmp, nimg, NULL, NRRD_AXESINFO_NONE)) ) {
-    sprintf(err, "%s: nrrdAxesCopy() returned %d", me, ret);
-    biffAdd(NRRD, err);
-    nrrdNuke(ntmp); return 1;
-  }
-  nimg->dim = 2;
-  if ( (ret = nrrdAxesCopy(nimg, ntmp, axmap, NRRD_AXESINFO_NONE)) ) {
-    sprintf(err, "%s: nrrdAxesCopy() returned %d", me, ret);
-    biffAdd(NRRD, err);
-    nrrdNuke(ntmp); return 1;
-  }
-  nrrdNuke(ntmp);
-  return 0;
-}
-
-int
 _nrrdWritePNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWritePNM", err[AIR_STRLEN_MED], *line;
   int i, color, sx, sy, magic;
   
   if (3 == nrrd->dim && 1 == nrrd->axis[0].size) {
-    if (_nrrdReshapeDownGrayscale(nrrd)) {
-      sprintf(err, "%s: trouble reshaping grayscale image", me);
+    if (nrrdAxesDelete(nrrd, nrrd, 0)) {
+      sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
   }

@@ -119,6 +119,7 @@ F(swap) \
 F(shuffle) \
 F(flip) \
 F(axinsert) \
+F(axdelete) \
 F(block) \
 F(unblock) \
 F(histo) \

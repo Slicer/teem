@@ -666,6 +666,54 @@ nrrdAxesInsert(Nrrd *nout, Nrrd *nin, int ax) {
   return 0;
 }
 
+/*
+******** nrrdAxesDelete
+**
+** like reshape, but preserves axis information on old axes, and
+** this is only for removing a "stub" axis with length 1.
+*/
+int
+nrrdAxesDelete(Nrrd *nout, Nrrd *nin, int ax) {
+  char me[]="nrrdAxesDelete", func[] = "axdelete", err[AIR_STRLEN_MED];
+  int d;
+  
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!AIR_IN_CL(0, ax, nin->dim-1)) {
+    sprintf(err, "%s: given axis (%d) outside valid range [0, %d]",
+	    me, ax, nin->dim-1);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (1 == nin->dim) {
+    sprintf(err, "%s: given nrrd at lowest dimension (1)", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (1 != nin->axis[ax].size) {
+    sprintf(err, "%s: size along axis %d is %d, not 1",
+	    me, ax, nin->axis[ax].size);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nout != nin) {
+    if (nrrdCopy(nout, nin)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    /* HEY: comments have been copied, perhaps that's not appropriate */
+  }
+  nout->dim = nin->dim - 1;
+  for (d=ax; d<nin->dim-1; d++) {
+    _nrrdAxisCopy(&(nout->axis[d]), &(nin->axis[d+1]), NRRD_AXESINFO_NONE);
+  }
+  if (nrrdContentSet(nout, func, nin, "%d", ax)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  nrrdPeripheralCopy(nout, nin);
+  return 0;
+}
+
 
 /*
 ******** nrrdReshape_nva()
