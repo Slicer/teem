@@ -186,15 +186,16 @@ typedef struct {
 */
 enum {
   miteSclUnknown=-1,    /* -1: nobody knows */
-  miteSclXw,            /*  0: X position, world space */
-  miteSclXi,            /*  1: X     "   , index   "   */
-  miteSclYw,            /*  2: Y     "   , world   "   */
-  miteSclYi,            /*  3: Y     "   , index   "   */
-  miteSclZw,            /*  4: Z     "   , world   "   */
-  miteSclZi,            /*  5: Z     "   , index   "   */
-  miteSclTw,            /*  6: ray position */
-  miteSclTi,            /*  7: ray index (ray sample #) */
-  miteSclNdotV,         /*  8: surface normal dotted w/ view (towards eye) */
+  miteSclXw,            /*  0: "Xw", X position, world space */
+  miteSclXi,            /*  1: "Xi", X     "   , index   "   */
+  miteSclYw,            /*  2: "Yw", Y     "   , world   "   */
+  miteSclYi,            /*  3: "Yi", Y     "   , index   "   */
+  miteSclZw,            /*  4: "Zw", Z     "   , world   "   */
+  miteSclZi,            /*  5: "Zi", Z     "   , index   "   */
+  miteSclTw,            /*  6: "Tw", ray position */
+  miteSclTi,            /*  7: "Ti", ray index (ray sample #) */
+  miteSclNdotV,         /*  8: "NdotV", surface normal dotted w/ view vector
+			        (towards eye) */
   miteSclLast
 };
 #define MITE_SCL_MAX        8

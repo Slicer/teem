@@ -124,10 +124,11 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
   mtt->mscl[miteSclZi] = samplePosIndex[2];
   mtt->mscl[miteSclTw] = rayT;
   mtt->mscl[miteSclTi] = num;
-  mtt->mscl[miteSclNdotV] = ELL_3V_DOT(mtt->V, mtt->norm);
+  mtt->mscl[miteSclNdotV] = -muu->normalSide*ELL_3V_DOT(mtt->V, mtt->norm);
   memcpy(mtt->range, muu->rangeInit, MITE_RANGE_NUM*sizeof(mite_t));
   _miteStageRun(mtt);
   if (mtt->range[miteRangeAlpha]) {
+    /* fprintf(stderr, "%s: mtt->TT = %g\n", me, mtt->TT); */
     if (mtt->verbose) {
       fprintf(stderr, "%s: before compositing: RGBT = %g,%g,%g,%g\n",
 	      me, mtt->RR, mtt->GG, mtt->BB, mtt->TT);
@@ -148,10 +149,7 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
       fprintf(stderr, "%s: after compositing: RGBT = %g,%g,%g,%g\n",
 	      me, mtt->RR, mtt->GG, mtt->BB, mtt->TT);
     }
-  }
-
-  if (mtt->verbose) {
-    exit(1);
+    /* fprintf(stderr, "%s: mtt->TT = %g\n", me, mtt->TT); */
   }
 
   return mtt->rayStep;
