@@ -434,14 +434,12 @@ echoObjectListSplit(EchoObject *list, int axis) {
   SPLIT(split)->axis = axis;
   SPLIT(split)->obj0 = box0;
   SPLIT(split)->obj1 = box1;
-  printf("echoObjectListSplit: bingo 0\n");
 
   len = LIST(list)->objArr->len;
   if (!len) {
     echoObjectNix(list);
     return split;
   }
-  printf("echoObjectListSplit: bingo 1\n");
 
   mids = malloc(2 * len * sizeof(double));
   for (i=0; i<len; i++) {
@@ -465,7 +463,6 @@ echoObjectListSplit(EchoObject *list, int axis) {
   ELL_3V_SET(loest1, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
   ELL_3V_SET(hiest0, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
   ELL_3V_SET(hiest1, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
-  printf("echoObjectListSplit: bingo 2; POS_MIN = %g\n", ECHO_POS_MIN);
   for (i=0; i<splitIdx; i++) {
     o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
     echoObjectListAdd(box0, o);
@@ -477,7 +474,6 @@ echoObjectListSplit(EchoObject *list, int axis) {
     ELL_3V_MIN(loest0, loest0, lo);
     ELL_3V_MAX(hiest0, hiest0, hi);
   }
-  printf("echoObjectListSplit: bingo 3\n");
   for (i=splitIdx; i<len; i++) {
     o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
     echoObjectListAdd(box1, o);
@@ -489,7 +485,6 @@ echoObjectListSplit(EchoObject *list, int axis) {
     ELL_3V_MIN(loest1, loest1, lo);
     ELL_3V_MAX(hiest1, hiest1, hi);
   }
-  printf("echoObjectListSplit: bingo 4\n");
 
   printf("0: loest = (%g,%g,%g); hiest = (%g,%g,%g)\n",
 	 loest0[0], loest0[1], loest0[2], 
@@ -507,6 +502,44 @@ echoObjectListSplit(EchoObject *list, int axis) {
   free(mids);
   return split;
 }
+
+EchoObject *
+echoObjectListSplit3(EchoObject *list, int depth) {
+  EchoObject *tmp, *ret;
+
+  if (!( echoObjectList == list->type ||
+	 echoObjectAABBox == list->type )) 
+    return NULL;
+  
+  if (0 == depth)
+    return list;
+  
+  ret = tmp = echoObjectListSplit(list, 0);
+  SPLIT(tmp)->obj0 = echoObjectListSplit(SPLIT(tmp)->obj0, 1);
+  SPLIT(tmp)->obj1 = echoObjectListSplit(SPLIT(tmp)->obj1, 1);
+  tmp = SPLIT(SPLIT(tmp)->obj0)->obj0;
+  SPLIT(tmp)->obj0 = echoObjectListSplit(SPLIT(tmp)->obj0, 2);
+  SPLIT(tmp)->obj1 = echoObjectListSplit(SPLIT(tmp)->obj1, 2);
+  tmp = SPLIT(SPLIT(tmp)->obj0)->obj1;
+  SPLIT(tmp)->obj0 = echoObjectListSplit(SPLIT(tmp)->obj0, 2);
+  SPLIT(tmp)->obj1 = echoObjectListSplit(SPLIT(tmp)->obj1, 2);
+  tmp = SPLIT(SPLIT(tmp)->obj1)->obj0;
+  SPLIT(tmp)->obj0 = echoObjectListSplit(SPLIT(tmp)->obj0, 2);
+  SPLIT(tmp)->obj1 = echoObjectListSplit(SPLIT(tmp)->obj1, 2);
+  tmp = SPLIT(SPLIT(tmp)->obj1)->obj1;
+  SPLIT(tmp)->obj0 = echoObjectListSplit(SPLIT(tmp)->obj0, 2);
+  SPLIT(tmp)->obj1 = echoObjectListSplit(SPLIT(tmp)->obj1, 2);
+  echoObjectListSplit3(SPLIT(SPLIT(SPLIT(ret)->obj0)->obj0)->obj0, depth-1);
+  echoObjectListSplit3(SPLIT(SPLIT(SPLIT(ret)->obj0)->obj0)->obj1, depth-1);
+  echoObjectListSplit3(SPLIT(SPLIT(SPLIT(ret)->obj0)->obj1)->obj0, depth-1);
+  echoObjectListSplit3(SPLIT(SPLIT(SPLIT(ret)->obj0)->obj1)->obj1, depth-1);
+  echoObjectListSplit3(SPLIT(SPLIT(SPLIT(ret)->obj1)->obj0)->obj0, depth-1);
+  echoObjectListSplit3(SPLIT(SPLIT(SPLIT(ret)->obj1)->obj0)->obj1, depth-1);
+  echoObjectListSplit3(SPLIT(SPLIT(SPLIT(ret)->obj1)->obj1)->obj0, depth-1);
+  echoObjectListSplit3(SPLIT(SPLIT(SPLIT(ret)->obj1)->obj1)->obj1, depth-1);
+  return ret;
+}
+
 
 void
 echoObjectSphereSet(EchoObject *_sphere,

@@ -267,6 +267,7 @@ extern void echoObjectBounds(echoPos_t *lo, echoPos_t *hi, EchoObject *obj);
 extern int echoObjectIsContainer(EchoObject *obj);
 extern void echoObjectListAdd(EchoObject *parent, EchoObject *child);
 extern EchoObject *echoObjectListSplit(EchoObject *list, int axis);
+extern EchoObject *echoObjectListSplit3(EchoObject *list, int depth);
 extern void echoObjectSphereSet(EchoObject *sphere,
 				echoPos_t x, echoPos_t y,
 				echoPos_t z, echoPos_t rad);
