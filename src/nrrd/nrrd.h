@@ -499,6 +499,10 @@ extern int nrrdUnblock(Nrrd *nout, Nrrd *nin, int type);
 
 /******** measuring and projecting */
 /* measure.c */
+extern void (*nrrdMeasureLine[NRRD_MEASURE_MAX+1])(void *ans, int ansType,
+						   void *line, int lineType,
+						   int lineLen, 
+						   double axMin, double axMax);
 extern int nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr);
 
 /********* various kinds of histograms */
