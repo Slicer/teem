@@ -436,9 +436,12 @@ extern int tenEpiRegister4D(Nrrd *nout, Nrrd *nin, Nrrd *ngrad,
 /* mod.c */
 extern int tenSizeNormalize(Nrrd *nout, Nrrd *nin, float weight[3],
 			    float amount, float target);
-extern int tenAnisoScale(Nrrd *nout, Nrrd *nin, float amount, int fixDet);
+extern int tenSizeScale(Nrrd *nout, Nrrd *nin, float amount);
+extern int tenAnisoScale(Nrrd *nout, Nrrd *nin, float amount,
+			 int fixDet, int makePositive);
 extern int tenEigenvaluePower(Nrrd *nout, Nrrd *nin, float expo);
 extern int tenEigenvalueClamp(Nrrd *nout, Nrrd *nin, float min, float max);
+extern int tenEigenvalueAdd(Nrrd *nout, Nrrd *nin, float val);
 
 /* tenGage.c */
 extern ten_export gageKind *tenGageKind;
@@ -472,6 +475,7 @@ F(norm) \
 F(eval) \
 F(evalpow) \
 F(evalclamp) \
+F(evaladd) \
 F(evec) \
 F(evecrgb) \
 F(evq) \
