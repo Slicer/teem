@@ -175,12 +175,8 @@ _nrrdWriteDataRaw(Nrrd *nrrd, nrrdIO *io) {
 	fflush(stderr);
       }
     }
-    /*
     ret = fwrite(nrrd->data, nrrdElementSize(nrrd),
 		 nrrdElementNumber(nrrd), io->dataFile);
-    */
-    ret = fwrite(nrrd->data, nrrdElementSize(nrrd),
-		 nrrdElementNumber(nrrd), stdout);
     if (ret != nrrdElementNumber(nrrd)) {
       sprintf(err, "%s: fwrite() returned " NRRD_BIG_INT_PRINTF
 	      " (not " NRRD_BIG_INT_PRINTF ")", me,
