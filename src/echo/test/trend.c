@@ -51,7 +51,7 @@ makeSceneGlassMetal(limnCam *cam, EchoParam *param,
   echoObjectListAdd(scene, sphere);
 
   cube = echoObjectNew(echoObjectCube);
-  echoMatterMetalSet(cube, 1, 1, 1, 0, 0);
+  /* echoMatterMetalSet(cube, 1, 1, 1, 0, 0); */
   echoMatterPhongSet(cube, 0.5, 0.5, 1, 1.0,
 		     0.1, 0.6, 0.3, 40);
   echoObjectListAdd(scene, cube);
@@ -61,7 +61,7 @@ makeSceneGlassMetal(limnCam *cam, EchoParam *param,
 			 -2, -2, -2,
 			 4, 0, 0,
 			 0, 4, 0);
-  echoMatterMetalSet(rect, 1, 1, 1, 0, 0);
+  /* echoMatterMetalSet(rect, 1, 1, 1, 0, 0); */
   echoMatterPhongSet(rect, 0.5, 0.5, 1, 1.0,
 		     0.1, 0.6, 0.3, 40);
   echoObjectListAdd(scene, rect);
