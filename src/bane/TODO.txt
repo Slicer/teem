@@ -4,6 +4,8 @@ probe through the volume over and over again.
 use hest for gkms, and make all the constants that GKMSInit sets
 be global defaults, so that gkms can see them too.
 
+--- teem1.5beta1 cutoff ---
+
 --- teem1.5 cutoff ---
 
 make sure that the NUM_PARM_MAX values are correct

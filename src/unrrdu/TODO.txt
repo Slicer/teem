@@ -3,6 +3,8 @@ and compression levels for gzip and bzip2
 
 add -min and -max flags to unu lut, rmap, imap
 
+----- teem 1.5beta1 cut-off -----
+
 ----- teem 1.5 cut-off -----
 
 make unu check on environment variables, so that nrrdDef* and nrrdState*

@@ -1,22 +1,24 @@
-change verbosity to warning when nrrd headers in PPM and tables are botched,
-and to get indication of successful DIO reading
-
-test regular and irregular colormaps with only 2 points, 
-purify unu {lut, rmap, imap} with scalar and nonscalar,
-type  same and different than map type.
-
 nrrdSplice, nrrdInset
-
-check resampler getting info with NULL kernel on each axis
-(bug that Joe and I had with qbert when no resmapling was needed)
-
-VTK file input and output!
 
 test working with nout==nin
 nrrdContentSet
 nrrdConvert
 nrrdQuantize
 nrrdUnquantize
+
+test regular and irregular colormaps with only 2 points, 
+purify unu {lut, rmap, imap} with scalar and nonscalar,
+type  same and different than map type.
+
+check resampler getting info with NULL kernel on each axis
+(bug that Joe and I had with qbert when no resmapling was needed)
+
+change verbosity to warning when nrrd headers in PPM and tables are botched,
+and to get indication of successful DIO reading
+
+----- teem 1.5beta1 cut-off -----
+
+VTK file input and output!
 
 write a select() function to replace qsort() in median calculation
 

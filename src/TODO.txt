@@ -1,22 +1,24 @@
 figure out shared libraries on cygwin.
 
-Test that shared libraries work everywhere they should.
-
-make sure that test programs actually link against the development
-library instead of the installed one.
-
-other_clean (so_locations on SGI)
-
-Fix TEEM_USABLE
-
-get mite working more usefully
-
 DTInspect: resurrect
  - add plane of glyphs
  - fix normals on isosurface
  - trouble building "anisovol" in ten/test directory
 
 lumin integration
+
+------- teem 1.5beta1 cutoff ---------
+
+Test that shared libraries work everywhere they should.
+
+make sure that test programs actually link against the development
+library instead of the installed one.
+
+Fix TEEM_USABLE
+
+get mite working more usefully
+
+other_clean (so_locations on SGI)
 
 ------- teem 1.5 cutoff ---------
 
