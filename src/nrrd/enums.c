@@ -200,6 +200,7 @@ _nrrdMeasureStr[NRRD_MEASURE_MAX+1][AIR_STRLEN_SMALL] = {
   "L2",
   "Linf",
   "variance",
+  "SD",
   "histo-min",
   "histo-max",
   "histo-mean",

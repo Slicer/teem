@@ -149,27 +149,38 @@ void
 _nrrdMeasureMean(void *line, int lineType, int len, 
 		 double axmin, double axmax,
 		 void *ans, int ansType) {
-  double val, S;
-  int i;
+  double val, S, M;
+  int i, count;
 
   if (nrrdTypeFixed[lineType]) {
     S = 0.0;
     for (i=0; i<len; i++) {
       S += nrrdDLookup[lineType](line, i);
     }
+    M = S/len;
   }
   else {
     S = AIR_NAN;
     for (i=0; !AIR_EXISTS(S) && i<len; i++)
       S = nrrdDLookup[lineType](line, i);
-    for (; i<len; i++) {
-      val = nrrdDLookup[lineType](line, i);
-      if (AIR_EXISTS(val)) {
-	S += val;
+    if (i<len) {
+      /* there was an existant value */
+      count = 1;
+      for (; i<len; i++) {
+	val = nrrdDLookup[lineType](line, i);
+	if (AIR_EXISTS(val)) {
+	  count++;
+	  S += val;
+	}
       }
+      M = S/count;
+    }
+    else {
+      /* there were NO existant values */
+      M = AIR_NAN;
     }
   }
-  nrrdDStore[ansType](ans, S/len);
+  nrrdDStore[ansType](ans, M);
 }
 
 /* stupid little forward declaration */
@@ -259,6 +270,7 @@ _nrrdMeasureL1(void *line, int lineType, int len,
     S = AIR_NAN;
     for (i=0; !AIR_EXISTS(S) && i<len; i++)
       S = nrrdDLookup[lineType](line, i);
+    S = AIR_ABS(S);
     for (; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
       if (AIR_EXISTS(val)) {
@@ -287,6 +299,7 @@ _nrrdMeasureL2(void *line, int lineType, int len,
     S = AIR_NAN;
     for (i=0; !AIR_EXISTS(S) && i<len; i++)
       S = nrrdDLookup[lineType](line, i);
+    S *= S;
     for (; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
       if (AIR_EXISTS(val)) {
@@ -356,10 +369,26 @@ _nrrdMeasureVariance(void *line, int lineType, int len,
 	SS += val*val;
       }
     }
-    S /= count;
-    SS /= count;
+    if (count) {
+      S /= count;
+      SS /= count;
+    }
+    else {
+      S = SS = AIR_NAN;
+    }
   }
   nrrdDStore[ansType](ans, SS - S*S);
+}
+
+void
+_nrrdMeasureSD(void *line, int lineType, int len, 
+	       double axmin, double axmax,
+	       void *ans, int ansType) {
+  double var;
+
+  _nrrdMeasureVariance(line, lineType, len, axmin, axmax, ans, ansType);
+  var = nrrdDLoad[ansType](ans);
+  nrrdDStore[ansType](ans, sqrt(var));
 }
 
 /*
@@ -367,7 +396,7 @@ _nrrdMeasureVariance(void *line, int lineType, int len,
 ** being a histogram, the input array will not have any non-existant
 ** values.  It can be floating point, because it is plausible to have
 ** some histogram composed of fractionally weighted hits, but there is
-** no way that it is reasonable to have NaN in a bit, and it is extremely
+** no way that it is reasonable to have NaN in a bin, and it is extremely
 ** unlikely that Inf could actually be created in a floating point
 ** histogram.
 **
@@ -622,6 +651,7 @@ void (*_nrrdMeasureAxis[NRRD_MEASURE_MAX+1])(void *, int, int,
   _nrrdMeasureL2,
   _nrrdMeasureLinf,
   _nrrdMeasureVariance,
+  _nrrdMeasureSD,
   _nrrdMeasureHistoMin,
   _nrrdMeasureHistoMax,
   _nrrdMeasureHistoMean,
@@ -657,6 +687,7 @@ _nrrdMeasureType(Nrrd *nin, int measr) {
   case nrrdMeasureL2:
   case nrrdMeasureLinf:
   case nrrdMeasureVariance:
+  case nrrdMeasureSD:
     type = nrrdStateMeasureType;
     break;
   case nrrdMeasureHistoMin:
