@@ -35,6 +35,22 @@ char *overInfo = (
   "background image does not have to be the same size as the input "
   "image; it will be resampled (with linear interpolation) to fit. ");
 
+double
+docontrast(double val, double cfp, double cpow) {
+  double v;
+
+  if (val < cfp) {
+    v = AIR_AFFINE(0.0, val, cfp, 0.0, 1.0);
+    v = pow(v, cpow);
+    val = AIR_AFFINE(0.0, v, 1.0, 0.0, cfp);
+  } else {
+    v = AIR_AFFINE(cfp, val, 1.0, 1.0, 0.0);
+    v = pow(v, cpow);
+    val = AIR_AFFINE(1.0, v, 0.0, cfp, 1.0);
+  }
+  return val;
+}
+
 int
 main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
@@ -44,7 +60,7 @@ main(int argc, char *argv[]) {
     *nbg,              /* resampled background image */
     *nrgbaD;           /* rgba input as double */
   char *me, *outS, *errS;
-  double gamma, back[3], *rgbaD, r, g, b, a;
+  double gamma, contr, cfp, cpow, back[3], *rgbaD, r, g, b, a;
   airArray *mop;
   int E, min[3], max[3], i, rI, gI, bI, sx, sy;
   unsigned char *outUC, *bgUC;
@@ -54,8 +70,14 @@ main(int argc, char *argv[]) {
   mop = airMopNew();
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
 	     "input nrrd to composite", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "c", "contrast", airTypeDouble, 1, 1, &contr, "0.0",
+	     "contrast to apply to RGB values, before gamma. \"0.0\" "
+	     "means no change, \"1.0\" means thresholding, \"-1.0\" "
+	     "means a complete washout.");
+  hestOptAdd(&hopt, "cfp", "fixed point", airTypeDouble, 1, 1, &cfp, "0.5",
+	     "component level that doesn't change with contrast");
   hestOptAdd(&hopt, "g", "gamma", airTypeDouble, 1, 1, &gamma, "1.0",
-	     "gamma to apply to image data");
+	     "gamma to apply to image data, after contrast");
   hestOptAdd(&hopt, "b", "background", airTypeDouble, 3, 3, back, "0 0 0",
 	     "background color to composite against; white is "
 	     "1 1 1, not 255 255 255.");
@@ -145,7 +167,9 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s", me, errS = biffGetDone(NRRD));
     free(errS); return 1;
   }
-  
+
+  contr = AIR_CLAMP(-1, contr, 1);
+  cpow = tan(AIR_AFFINE(-1.000001, contr, 1.000001, 0, AIR_PI/2));
   outUC = (unsigned char*)nout->data;
   bgUC = nbg ? nbg->data : NULL;
   rgbaD = (double *)nrgbaD->data;
@@ -154,6 +178,11 @@ main(int argc, char *argv[]) {
     g = AIR_CLAMP(0, rgbaD[1], 1);
     b = AIR_CLAMP(0, rgbaD[2], 1);
     a = AIR_CLAMP(0, rgbaD[3], 1);
+    if (1 != cpow) {
+      r = docontrast(r, cfp, cpow);
+      g = docontrast(g, cfp, cpow);
+      b = docontrast(b, cfp, cpow);
+    }
     r = pow(r, 1.0/gamma);
     g = pow(g, 1.0/gamma);
     b = pow(b, 1.0/gamma);
