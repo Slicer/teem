@@ -23,6 +23,7 @@
 
 /* bad bad bad Gordon */
 extern int _nrrdOneLine(int *lenP, NrrdIoState *io, FILE *file);
+extern int _nrrdDataFNNumber(NrrdIoState *nio);
 
 #define INFO "Print data segment of a nrrd file"
 char *_unrrdu_dataInfoL = 
@@ -66,6 +67,12 @@ unrrdu_dataMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (nrrdLoad(nin, inS, nio)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error reading header:\n%s", me, err);
+    airMopError(mop);
+    return 1;
+  }
+  if (_nrrdDataFNNumber(nio) > 1) {
+    fprintf(stderr, "%s: sorry, currently can't operate with multiple "
+            "detached datafiles\n", me);
     airMopError(mop);
     return 1;
   }
