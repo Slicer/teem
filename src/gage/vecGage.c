@@ -29,7 +29,7 @@ _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
   {gageVecJacobian,      9,  1,  {-1, -1, -1, -1, -1},                                           -1,  -1},
   {gageVecDivergence,    1,  1,  {gageVecJacobian, -1, -1, -1, -1},                              -1,  -1},
   {gageVecCurl,          3,  1,  {gageVecJacobian, -1, -1, -1, -1},                              -1,  -1},
-  /* HEY: if teem matrices go to row-major, these will change to sub-items */
+  /* HEY: these should change to sub-items!!! */
   {gageVecGradient0,     3,  1,  {gageVecJacobian, -1, -1, -1, -1},                              -1,  -1},
   {gageVecGradient1,     3,  1,  {gageVecJacobian, -1, -1, -1, -1},                              -1,  -1},
   {gageVecGradient2,     3,  1,  {gageVecJacobian, -1, -1, -1, -1},                              -1,  -1},
@@ -85,14 +85,6 @@ _gageVecFilter (gageContext *ctx, gagePerVolume *pvl) {
     break;
   }
 
-  if (pvl->needD[1]) {
-    /* because we operated component-at-a-time, and because matrices are
-       in column order, the 1st column currently contains the three
-       derivatives of the X component; this should be the 1st row, and
-       likewise for the 2nd and 3rd column/rows.  */
-    ELL_3M_TRANSPOSE_IP(jac, tmp);
-  }
-
   return;
 }
 
@@ -125,9 +117,9 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecJacobian)) {
     /* done if doV1 */
     /*
-      0:dv_x/dx  3:dv_x/dy  6:dv_x/dz
-      1:dv_y/dx  4:dv_y/dy  7:dv_y/dz
-      2:dv_z/dx  5:dv_z/dy  8:dv_z/dz
+      0:dv_x/dx  1:dv_x/dy  2:dv_x/dz
+      3:dv_y/dx  4:dv_y/dy  5:dv_y/dz
+      6:dv_z/dx  7:dv_z/dy  8:dv_z/dz
     */
     if (ctx->verbose) {
       fprintf(stderr, "%s: jac = \n", me);
@@ -144,26 +136,26 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecCurl)) {
     ELL_3V_SET(pvl->directAnswer[gageVecCurl],
-	       jacAns[5] - jacAns[7],
-	       jacAns[6] - jacAns[2],
-	       jacAns[1] - jacAns[3]);
+	       jacAns[7] - jacAns[5],
+	       jacAns[2] - jacAns[6],
+	       jacAns[3] - jacAns[1]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecGradient0)) {
     ELL_3V_SET(pvl->directAnswer[gageVecGradient0],
 	       jacAns[0],
-	       jacAns[3],
-	       jacAns[6]);
+	       jacAns[1],
+	       jacAns[2]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecGradient1)) {
     ELL_3V_SET(pvl->directAnswer[gageVecGradient1],
-	       jacAns[1],
+	       jacAns[3],
 	       jacAns[4],
-	       jacAns[7]);
+	       jacAns[5]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecGradient2)) {
     ELL_3V_SET(pvl->directAnswer[gageVecGradient2],
-	       jacAns[2],
-	       jacAns[5],
+	       jacAns[6],
+	       jacAns[7],
 	       jacAns[8]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecMultiGrad)) {
