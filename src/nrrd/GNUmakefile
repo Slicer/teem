@@ -56,7 +56,7 @@ hestNrrd.o   histogram.o iter.o         kernel.o         \
 	read.o       reorder.o   resampleNrrd.o simple.o         \
 	subset.o     superset.o  write.o 
 $(L).TESTS = test/trand test/ax test/io test/minmax test/tkernel \
-	test/typestest test/tline test/tread test/pete
+	test/typestest test/tline test/tread
 ####
 ####
 ####
