@@ -770,6 +770,7 @@ nrrdLoad(Nrrd *nrrd, char *filename) {
   char me[]="nrrdLoad", err[NRRD_STRLEN_MED];
   nrrdIO *io;
   FILE *file;
+  airArray *mop;
 
   if (!(nrrd && filename)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -780,6 +781,8 @@ nrrdLoad(Nrrd *nrrd, char *filename) {
     sprintf(err, "%s: couldn't alloc I/O struct", me);
     biffAdd(NRRD, err); return 1;
   }
+  mop = airMopInit();
+  airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
 
   /* we save the directory of the filename given to us so
      that if it turns out that its just a nhdr file, with
@@ -796,8 +799,9 @@ nrrdLoad(Nrrd *nrrd, char *filename) {
     if (!file) {
       sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s", 
 	      me, filename, strerror(errno));
-      biffAdd(NRRD, err); return 1;
+      biffAdd(NRRD, err); airMopError(mop); return 1;
     }
+    airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
   }
 
   /* YOOHOO */
@@ -806,12 +810,10 @@ nrrdLoad(Nrrd *nrrd, char *filename) {
 
   if (nrrdRead(nrrd, file, io)) {
     sprintf(err, "%s: trouble", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 
-  if (file != stdin)
-    fclose(file);
-  io = nrrdIONix(io);
+  airMopOkay(mop);
   return 0;
 }
 
