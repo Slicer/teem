@@ -72,6 +72,7 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "Q",
   "FA",
   "R",
+  "P",
 
   "evals",
   "eval0",
@@ -112,6 +113,10 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "R grad mag",
   "R normal",
 
+  "P grad vec",
+  "P grad mag",
+  "P normal",
+
   "anisotropies"
 };
 
@@ -126,6 +131,7 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "Q",
   "FA",
   "R",
+  "P",
   "3 eigenvalues",
   "eigenvalue 0",
   "eigenvalue 1",
@@ -156,51 +162,58 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "R grad vec",
   "R grad mag",
   "R normal",
+  "P grad vec",
+  "P grad mag",
+  "P normal",
   "anisotropies"
 };
 
 int
 _tenGageVal[] = {
   tenGageUnknown,
-  tenGageTensor,        /*  0: "t", the reconstructed tensor: GT[7] */
-  tenGageTrace,         /*  1: "tr", trace of tensor: GT[1] */
-  tenGageB,             /*  2: "b": GT[1] */
-  tenGageDet,           /*  3: "det", determinant of tensor: GT[1] */
-  tenGageS,             /*  4: "s", square of frobenius norm: GT[1] */
-  tenGageQ,             /*  5: "q", (S - B)/9: GT[1] */
-  tenGageFA,            /*  6: "fa", fractional anisotropy: GT[1] */
-  tenGageR,             /*  7: "r", 9*A*B - 2*A^3 - 27*C: GT[1] */
-  tenGageEval,          /*  8: "eval", all eigenvalues of tensor : GT[3] */
-  tenGageEval0,         /*  9: "eval0", major eigenvalue of tensor : GT[1] */
-  tenGageEval1,         /* 10: "eval1", medium eigenvalue of tensor : GT[1] */
-  tenGageEval2,         /* 11: "eval2", minor eigenvalue of tensor : GT[1] */
-  tenGageEvec,          /* 12: "evec", major eigenvectors of tensor: GT[9] */
-  tenGageEvec0,         /* 13: "evec0", major eigenvectors of tensor: GT[3] */
-  tenGageEvec1,         /* 14: "evec1", medium eigenvectors of tensor: GT[3] */
-  tenGageEvec2,         /* 15: "evec2", minor eigenvectors of tensor: GT[3] */
-  tenGageTensorGrad,    /* 16: "tg, all tensor component gradients: GT[21] */
-  tenGageTraceGradVec,  /* 17: "trgv": gradient (vector) of trace: GT[3] */
-  tenGageTraceGradMag,  /* 18: "trgm": gradient magnitude of trace: GT[1] */
-  tenGageTraceNormal,   /* 19: "trn": normal of trace: GT[3] */
-  tenGageBGradVec,      /* 20: "bgv", gradient (vector) of B: GT[3] */
-  tenGageBGradMag,      /* 21: "bgm", gradient magnitude of B: GT[1] */
-  tenGageBNormal,       /* 22: "bn", normal of B: GT[3] */
-  tenGageDetGradVec,    /* 23: "detgv", gradient (vector) of Det: GT[3] */
-  tenGageDetGradMag,    /* 24: "detgm", gradient magnitude of Det: GT[1] */
-  tenGageDetNormal,     /* 25: "detn", normal of Det: GT[3] */
-  tenGageSGradVec,      /* 26: "sgv", gradient (vector) of S: GT[3] */
-  tenGageSGradMag,      /* 27: "sgm", gradient magnitude of S: GT[1] */
-  tenGageSNormal,       /* 28: "sn", normal of S: GT[3] */
-  tenGageQGradVec,      /* 29: "qgv", gradient vector of Q: GT[3] */
-  tenGageQGradMag,      /* 30: "qgm", gradient magnitude of Q: GT[1] */
-  tenGageQNormal,       /* 31: "qn", normalized gradient of Q: GT[3] */
-  tenGageFAGradVec,     /* 32: "fagv", gradient vector of FA: GT[3] */
-  tenGageFAGradMag,     /* 33: "fagm", gradient magnitude of FA: GT[1] */
-  tenGageFANormal,      /* 34: "fan", normalized gradient of FA: GT[3] */
-  tenGageRGradVec,      /* 35: "rgv", gradient vector of Q: GT[3] */
-  tenGageRGradMag,      /* 36: "rgm", gradient magnitude of Q: GT[1] */
-  tenGageRNormal,       /* 37: "rn", normalized gradient of Q: GT[3] */
-  tenGageAniso          /* 38: "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
+  tenGageTensor,        /* "t", the reconstructed tensor: GT[7] */
+  tenGageTrace,         /* "tr", trace of tensor: GT[1] */
+  tenGageB,             /* "b": GT[1] */
+  tenGageDet,           /* "det", determinant of tensor: GT[1] */
+  tenGageS,             /* "s", square of frobenius norm: GT[1] */
+  tenGageQ,             /* "q", (S - B)/9: GT[1] */
+  tenGageFA,            /* "fa", fractional anisotropy: GT[1] */
+  tenGageR,             /* "r", 9*A*B - 2*A^3 - 27*C: GT[1] */
+  tenGageP,             /* "p", arccos(R/sqrt(Q^3)): GT[1] */
+  tenGageEval,          /* "eval", all eigenvalues of tensor : GT[3] */
+  tenGageEval0,         /* "eval0", major eigenvalue of tensor : GT[1] */
+  tenGageEval1,         /* "eval1", medium eigenvalue of tensor : GT[1] */
+  tenGageEval2,         /* "eval2", minor eigenvalue of tensor : GT[1] */
+  tenGageEvec,          /* "evec", major eigenvectors of tensor: GT[9] */
+  tenGageEvec0,         /* "evec0", major eigenvectors of tensor: GT[3] */
+  tenGageEvec1,         /* "evec1", medium eigenvectors of tensor: GT[3] */
+  tenGageEvec2,         /* "evec2", minor eigenvectors of tensor: GT[3] */
+  tenGageTensorGrad,    /* "tg, all tensor component gradients: GT[21] */
+  tenGageTraceGradVec,  /* "trgv": gradient (vector) of trace: GT[3] */
+  tenGageTraceGradMag,  /* "trgm": gradient magnitude of trace: GT[1] */
+  tenGageTraceNormal,   /* "trn": normal of trace: GT[3] */
+  tenGageBGradVec,      /* "bgv", gradient (vector) of B: GT[3] */
+  tenGageBGradMag,      /* "bgm", gradient magnitude of B: GT[1] */
+  tenGageBNormal,       /* "bn", normal of B: GT[3] */
+  tenGageDetGradVec,    /* "detgv", gradient (vector) of Det: GT[3] */
+  tenGageDetGradMag,    /* "detgm", gradient magnitude of Det: GT[1] */
+  tenGageDetNormal,     /* "detn", normal of Det: GT[3] */
+  tenGageSGradVec,      /* "sgv", gradient (vector) of S: GT[3] */
+  tenGageSGradMag,      /* "sgm", gradient magnitude of S: GT[1] */
+  tenGageSNormal,       /* "sn", normal of S: GT[3] */
+  tenGageQGradVec,      /* "qgv", gradient vector of Q: GT[3] */
+  tenGageQGradMag,      /* "qgm", gradient magnitude of Q: GT[1] */
+  tenGageQNormal,       /* "qn", normalized gradient of Q: GT[3] */
+  tenGageFAGradVec,     /* "fagv", gradient vector of FA: GT[3] */
+  tenGageFAGradMag,     /* "fagm", gradient magnitude of FA: GT[1] */
+  tenGageFANormal,      /* "fan", normalized gradient of FA: GT[3] */
+  tenGageRGradVec,      /* "rgv", gradient vector of Q: GT[3] */
+  tenGageRGradMag,      /* "rgm", gradient magnitude of Q: GT[1] */
+  tenGageRNormal,       /* "rn", normalized gradient of Q: GT[3] */
+  tenGagePGradVec,      /* "pgv", gradient vector of P: GT[3] */
+  tenGagePGradMag,      /* "pgm", gradient magnitude of P: GT[1] */
+  tenGagePNormal,       /* "pn", normalized gradient of P: GT[3] */
+  tenGageAniso          /* "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
 };
 
 char
@@ -213,6 +226,7 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "q",
   "fa",
   "r",
+  "p",
   "eval",
   "eval0",
   "eval1",
@@ -243,6 +257,9 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "rgv", "r grad vec",
   "rgm", "r grad mag",
   "rn", "r normal",
+  "pgv", "p grad vec",
+  "pgm", "p grad mag",
+  "pn", "p normal",
   "an", "aniso", "anisotropies",
   ""
 };
@@ -257,6 +274,7 @@ _tenGageValEqv[] = {
   tenGageQ,
   tenGageFA,
   tenGageR,
+  tenGageP,
   tenGageEval,
   tenGageEval0,
   tenGageEval1,
@@ -287,6 +305,9 @@ _tenGageValEqv[] = {
   tenGageRGradVec, tenGageRGradVec,
   tenGageRGradMag, tenGageRGradMag,
   tenGageRNormal, tenGageRNormal,
+  tenGagePGradVec, tenGagePGradVec,
+  tenGagePGradMag, tenGagePGradMag,
+  tenGagePNormal, tenGagePNormal,
   tenGageAniso, tenGageAniso, tenGageAniso
 };
 
