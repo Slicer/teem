@@ -554,7 +554,7 @@ _nrrdFieldCheck_kinds(const Nrrd *nrrd, int useBiff) {
   nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoKind, val);
   for (i=0; i<nrrd->dim; i++) {
     if (!( nrrdKindUnknown == val[i]
-           || !airEnumValCheck(nrrdCenter, val[i]) )) {
+           || !airEnumValCheck(nrrdKind, val[i]) )) {
       sprintf(err, "%s: axis %d kind %d invalid", me, i, val[i]);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
