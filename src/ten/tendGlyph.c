@@ -118,11 +118,17 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "\"0\", \"1\", \"2\" are principal, medium, and minor");
   hestOptAdd(&hopt, "sat", "saturation", airTypeFloat, 1, 1,
 	     &(gparm->colMaxSat), "1.0",
-	     "maximal saturation to use on glyph colors (use 0.0 for B+W)");
+	     "maximal saturation to use on glyph colors (use 0.0 to "
+	     "create a black and white image)");
+  hestOptAdd(&hopt, "ga", "aniso", airTypeEnum, 1, 1,
+	     &(gparm->colAnisoType), "fa",
+	     "Which anisotropy metric to use for modulating the "
+	     "saturation of the glyph color", NULL, tenAniso);
   hestOptAdd(&hopt, "am", "aniso mod", airTypeFloat, 1, 1,
-	     &(gparm->anisoModulate),
-	     "0.0", "How much to modulate saturation by anisotropy (as "
-	     "chosen by \"-a\").  If 1.0, then glyphs for zero anisotropy "
+	     &(gparm->colAnisoModulate),
+	     "0.0", "How much to modulate glyph color saturation by "
+	     "anisotropy (as chosen by \"-ga\").  "
+	     "If 1.0, then glyphs for zero anisotropy "
 	     "data points will have no hue. ");
   hestOptAdd(&hopt, "gam", "gamma", airTypeFloat, 1, 1, &(gparm->colGamma),
 	     "0.7", "gamma to use on color components (after saturation)");

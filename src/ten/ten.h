@@ -110,12 +110,12 @@ typedef struct {
 
   /* glyphs are colored by eigenvector colEvec with the standard XYZ-RGB
      colormapping, with maximal saturation colMaxSat (use 0.0 to turn off
-     coloring).  Saturation is modulated by anisotropy anisoType, to a
-     degree controlled by anisoModulate (if 0, saturation is not at all
+     coloring).  Saturation is modulated by anisotropy colAnisoType, to a
+     degree controlled by colAnisoModulate (if 0, saturation is not at all
      modulated by anistropy).  Post-saturation, there is a per-channel
      gamma of colGamma. */
-  int colEvec;
-  float colMaxSat, colGamma, anisoModulate;
+  int colEvec, colAnisoType;
+  float colMaxSat, colGamma, colAnisoModulate;
 
   /* if doSlice, a slice of anisotropy sliceAnisoType will be depicted
      in grayscale as a sheet of grayscale squares, one per sample. As

@@ -41,7 +41,8 @@ tenGlyphParmNew() {
     parm->colEvec = 0;  /* first */
     parm->colMaxSat = 1; 
     parm->colGamma = 1;
-    parm->anisoModulate = 0;
+    parm->colAnisoType = tenAnisoUnknown;
+    parm->colAnisoModulate = 0;
 
     parm->doSlice = AIR_FALSE;
     parm->sliceAxis = -1;
@@ -69,6 +70,11 @@ tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten) {
   }
   if (airEnumValCheck(tenAniso, parm->anisoType)) {
     sprintf(err, "%s: unset (or invalid) anisoType (%d)", me, parm->anisoType);
+    biffAdd(TEN, err); return 1;
+  }
+  if (airEnumValCheck(tenAniso, parm->colAnisoType)) {
+    sprintf(err, "%s: unset (or invalid) colAnisoType (%d)",
+	    me, parm->colAnisoType);
     biffAdd(TEN, err); return 1;
   }
   if (!( parm->facetRes >= 3 )) {
@@ -213,6 +219,9 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	if (parm->doSlice
 	    && I[parm->sliceAxis] == parm->slicePos) {
 	  sliceAniso = aniso[parm->sliceAnisoType];
+	  /* HEY: look, a visualization parameter (0.03) that is not
+	     exposed anywhere in an API, just super ... */
+	  sliceAniso = AIR_AFFINE(0, sliceAniso, 1, 0.03, 1);
 	  if (parm->sliceAnisoGamma > 0) {
 	    sliceAniso = pow(sliceAniso, 1.0/parm->sliceAnisoGamma);
 	  } else {
@@ -248,9 +257,9 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	    echoListAdd(list, esquare);
 	  }
 	}
-	glyphAniso = aniso[parm->anisoType];
-	if (!( glyphAniso >= parm->anisoThresh ))
+	if (!( aniso[parm->anisoType] >= parm->anisoThresh ))
 	  continue;
+	glyphAniso = aniso[parm->colAnisoType];
 	/*
 	fprintf(stderr, "%s: eret = %d; evals = %g %g %g\n", me,
 		eret, eval[0], eval[1], eval[2]);
@@ -281,11 +290,11 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	G = AIR_AFFINE(0.0, parm->colMaxSat, 1.0, 1.0, G);
 	B = AIR_AFFINE(0.0, parm->colMaxSat, 1.0, 1.0, B);
 	/* desaturate some by anisotropy */
-	R = AIR_AFFINE(0.0, parm->anisoModulate, 1.0,
+	R = AIR_AFFINE(0.0, parm->colAnisoModulate, 1.0,
 		       R, AIR_AFFINE(0.0, glyphAniso, 1.0, 1.0, R));
-	G = AIR_AFFINE(0.0, parm->anisoModulate, 1.0,
+	G = AIR_AFFINE(0.0, parm->colAnisoModulate, 1.0,
 		       G, AIR_AFFINE(0.0, glyphAniso, 1.0, 1.0, G));
-	B = AIR_AFFINE(0.0, parm->anisoModulate, 1.0,
+	B = AIR_AFFINE(0.0, parm->colAnisoModulate, 1.0,
 		       B, AIR_AFFINE(0.0, glyphAniso, 1.0, 1.0, B));
 	/* clamp and do gamma */
 	R = AIR_CLAMP(0.0, R, 1.0);
