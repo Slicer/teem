@@ -191,7 +191,7 @@ typedef struct {
 
 /* methods.c */
 extern baneHVolParm *baneHVolParmNew();
-extern void baneHVolParmNix(baneHVolParm *hvp);
+extern baneHVolParm *baneHVolParmNix(baneHVolParm *hvp);
 extern void baneHVolParmGKMSInit(baneHVolParm *hvp);
 extern baneProbeK3Pack *baneProbeK3PackNew();
 extern baneProbeK3Pack *baneProbeK3PackNix(baneProbeK3Pack *);

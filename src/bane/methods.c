@@ -50,12 +50,13 @@ baneHVolParmNew() {
   return hvp;
 }
 
-void
+baneHVolParm *
 baneHVolParmNix(baneHVolParm *hvp) {
   
   if (hvp) {
     free(hvp);
   }
+  return NULL;
 }
 
 void
