@@ -17,9 +17,10 @@ set __ddest=..\..\lib
 :install
 echo Installing teem headers into %__hdest%
 mkdir "%__hdest%"
-TEEMALLDOTHecho Installing %1.lib into %__ldest%
+TEEMALLDOTHecho Installing %1.lib and %1_s.lib into %__ldest%
 mkdir "%__ldest%"
 copy /y /b ..\lib\%1.lib "%__ldest%"
+copy /y /b ..\lib\%1_s.lib "%__ldest%"
 echo Installing %1.dll into %__ddest%
 mkdir "%__ddest%"
 copy /y /b ..\lib\%1.dll "%__ddest%"
