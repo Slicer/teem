@@ -472,7 +472,7 @@ main(int argc, char **argv) {
   /* makeSceneGlassMetal(cam, param, &scene, &lightArr); */
   /* makeSceneGlass(cam, param, &scene, &lightArr);  */
   makeSceneBVH(cam, param, &scene, &lightArr);
-  airMopAdd(mop, scene, (airMopper)echoObjectNix, airMopAlways);
+  airMopAdd(mop, scene, (airMopper)echoObjectNuke, airMopAlways);
   airMopAdd(mop, lightArr, (airMopper)echoLightArrayNix, airMopAlways);
 
   E = 0;
