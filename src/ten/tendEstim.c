@@ -26,7 +26,7 @@ char *_tend_estimInfoL =
    ". The various DWI volumes must be stacked along axis 0 (as with the "
    "output of \"tend epireg\").  The tensor coefficient weightings associated "
    "with "
-   "each of the DWIs, the B matrix, is given as a seperate array, "
+   "each of the DWIs, the B-matrix, is given as a seperate array, "
    "see \"tend bmat\" usage "
    "info for details.  A \"confidence\" value is computed with the tensor, "
    "based on a soft thresholding of the sum of all the DWIs, according to "
@@ -39,10 +39,10 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err, *terrS;
   airArray *mop;
 
-  Nrrd **nin, *nbmat, *nterr=NULL, *nout;
+  Nrrd **nin, *nbmat, *nterr=NULL, *nB0=NULL, *nout;
   char *outS;
   float thresh, soft, b;
-  int ninLen, eret;
+  int ninLen, eret, knownB0;
 
   hestOptAdd(&hopt, "e", "filename", airTypeString, 1, 1, &terrS, "",
 	     "Giving a filename here allows you to save out the tensor "
@@ -58,12 +58,27 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "s", "soft", airTypeFloat, 1, 1, &soft, "0",
 	     "how fuzzy the confidence boundary should be.  By default, "
 	     "confidence boundary is perfectly sharp");
-  hestOptAdd(&hopt, "B", "B matrix", airTypeOther, 1, 1, &nbmat, NULL,
-	     "B matrix characterizing how tensor components are weighted "
-	     "with each gradient direction.  \"tend bmat\" is one source "
-	     "for such a matrix.", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "B", "B-matrix", airTypeOther, 1, 1, &nbmat, NULL,
+	     "6-by-N B-matrix characterizing the diffusion weighting for each "
+	     "image.  \"tend bmat\" is one source for such a matrix; see "
+	     "its usage info for specifics on how the coefficients of "
+	     "the B-matrix are ordered. "
+	     "An unadorned plain text file is a great way to "
+	     "specify the B-matrix", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "b", "b", airTypeFloat, 1, 1, &b, "1",
 	     "additional b scaling factor ");
+  hestOptAdd(&hopt, "knownB0", "bool",
+	     airTypeBool, 1, 1, &knownB0, NULL,
+	     "Determines of the B=0 non-diffusion-weighted reference image "
+	     "is known, or if it has to be estimated along with the tensor "
+	     "elements.\n "
+	     "\b\bo if \"true\": the B=0 image is "
+	     "the FIRST input image given to \"-i\", and hence the B-matrix "
+	     "has ONE LESS row than the number of of input images.\n "
+	     "\b\bo if \"false\": there is no \"reference\" image; "
+	     "all the input "
+	     "images are diffusion-weighted in some way or another, and there "
+	     "exactly as many rows in the B-matrix as there are input images");
   hestOptAdd(&hopt, "i", "dwi0 dwi1", airTypeOther, 1, -1, &nin, NULL,
 	     "all the diffusion-weighted images (DWIs), as seperate 3D nrrds, "
 	     "**OR**: One 4D nrrd of all DWIs stacked along axis 0",
@@ -81,11 +96,11 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (1 == ninLen) {
-    eret = tenEstimate4D(nout, airStrlen(terrS) ? &nterr : NULL, 
-			 nin[0], nbmat, thresh, soft, b);
+    eret = tenEstimateLinear4D(nout, airStrlen(terrS) ? &nterr : NULL, &nB0,
+			       nin[0], nbmat, knownB0, thresh, soft, b);
   } else {
-    eret = tenEstimate3D(nout, airStrlen(terrS) ? &nterr : NULL, 
-			 nin, ninLen, nbmat, thresh, soft, b);
+    eret = tenEstimateLinear3D(nout, airStrlen(terrS) ? &nterr : NULL, &nB0,
+			       nin, ninLen, nbmat, knownB0, thresh, soft, b);
   }
   if (eret) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
@@ -99,6 +114,13 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
       airMopError(mop); return 1;
     }
   }
+
+  /* HEY: this is stupid */
+  /*
+  nrrdSave("estimB0.nrrd", nB0, NULL);
+  nrrdNuke(nB0);
+  */
+
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);

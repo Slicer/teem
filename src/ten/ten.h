@@ -364,14 +364,18 @@ extern int tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos, int dim);
 
 /* chan.c */
 /* old tenCalc* functions replaced by tenEstimate* */
-extern int tenBMatrix(Nrrd *nbmat, Nrrd *ngrad);
-/* extern int tenEstimationMatrix(Nrrd *nwmat, Nrrd *ngrad); */
-extern void tenEstimateSingle(float *ten, float *dwi, double *emat, int NN,
-			      float thresh, float soft, float b);
-extern int tenEstimate3D(Nrrd *nten, Nrrd **nterrP, Nrrd **ndwi, int dwiLen, 
-			 Nrrd *nbmat, float thresh, float soft, float b);
-extern int tenEstimate4D(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi,
-			 Nrrd *nbmat, float thresh, float soft, float b);
+extern int tenBMatrixCalc(Nrrd *nbmat, Nrrd *ngrad);
+extern int tenEMatrixCalc(Nrrd *nemat, Nrrd *nbmat, int knownB0);
+extern void tenEstimateLinearSingle(float *ten, float *B0P, float *dwi,
+				    double *emat, int DD, int knownB0,
+				    float thresh, float soft, float b);
+extern int tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
+			       Nrrd **ndwi, int dwiLen, 
+			       Nrrd *nbmat, int knownB0, 
+			       float thresh, float soft, float b);
+extern int tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
+			       Nrrd *ndwi, Nrrd *_nbmat, int knownB0,
+			       float thresh, float soft, float b);
 extern void tenSimulateOne(float *dwi, float B0, float *ten,
 			   double *bmat, int DD, float b);
 extern int tenSimulate(Nrrd *ndwi, Nrrd *nT2, Nrrd *nten,
@@ -393,7 +397,7 @@ extern short tenEvqOne(float vec[3], float scl);
 extern int tenEvqVolume(Nrrd *nout, Nrrd *nin, int which,
 			int aniso, int scaleByAniso);
 extern int tenGradCheck(Nrrd *ngrad);
-extern int tenBmatCheck(Nrrd *nbmat);
+extern int tenBMatrixCheck(Nrrd *nbmat);
 extern int _tenFindValley(float *valP, Nrrd *nhist, float tweak);
 
 /* fiberMethods.c */

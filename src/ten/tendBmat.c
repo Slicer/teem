@@ -30,9 +30,9 @@ char *_tend_bmatInfoL =
    "easy way to specify this information. "
    "The gradient vector coefficients are used as is, without normalization "
    "(since different gradient strengths are sometimes desired). "
-   "The output is "
-   "a matrix suitable for least-squares estimation of the six tensor "
-   "components, in the order Dxx, Dxy, Dxz, Dyy, Dyz, Dzz.");
+   "The output has one row of the B-matrix per line, with coefficient "
+   "ordering Bxx, Bxy, Bxz, Byy, Byz, Bzz, and with the off-diagonal "
+   "elements NOT pre-multiplied by 2.");
 
 int
 tend_bmatMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -57,12 +57,11 @@ tend_bmatMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (tenBMatrix(nout, ngrad)) {
+  if (tenBMatrixCalc(nout, ngrad)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making B matrix:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
-
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);

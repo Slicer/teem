@@ -198,8 +198,8 @@ tenGradCheck(Nrrd *ngrad) {
 }
 
 int
-tenBmatCheck(Nrrd *nbmat) {
-  char me[]="tenBmatCheck", err[AIR_STRLEN_MED];
+tenBMatrixCheck(Nrrd *nbmat) {
+  char me[]="tenBMatrixCheck", err[AIR_STRLEN_MED];
 
   if (nrrdCheck(nbmat)) {
     sprintf(err, "%s: basic validity check failed", me);
