@@ -329,6 +329,12 @@ extern tenFiberContext *tenFiberContextNix(tenFiberContext *tfx);
 extern int tenFiberTrace(tenFiberContext *tfx, Nrrd *fiber,
 			 double startX, double startY, double startZ);
 
+/* reg.c */
+extern int tenRegister(Nrrd *nout, Nrrd **nin, int ninLen, int reference,
+		       float bw, float thresh, float soft,
+		       NrrdKernel *kern, double *kparm,
+		       int progress, int verbose);
+
 /* tenGage.c */
 extern ten_export gageKind *tenGageKind;
 
@@ -337,6 +343,7 @@ extern ten_export gageKind *tenGageKind;
 #define TEND_LIST(C) &tend_##C##Cmd,
 #define TEND_MAP(F) \
 F(make) \
+F(reg) \
 F(calc) \
 F(sten) \
 F(glyph) \

@@ -35,13 +35,13 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *perr, *err;
   airArray *mop;
+  char *outS;
 
   tenFiberContext *tfx;
   NrrdKernelSpec *ksp;
   double start[3], step, *_stop, *stop;
   int si, stopLen, E;
   Nrrd *nin, *nout;
-  char *outS;
   
   hestOptAdd(&hopt, "s", "seed point", airTypeDouble, 3, 3, start, NULL,
 	     "seed point for fiber; it will propogate in two opposite "

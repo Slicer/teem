@@ -70,7 +70,7 @@ tenFiberContextNew(Nrrd *dtvol) {
     tfx->dtvol = dtvol;
     tfx->ksp = nrrdKernelSpecNew();
     tfx->gtx = gageContextNew();
-    if ( !(pvl = gagePerVolumeNew(dtvol, tenGageKind)) 
+    if ( !(pvl = gagePerVolumeNew(tfx->gtx, dtvol, tenGageKind)) 
 	 || (gagePerVolumeAttach(tfx->gtx, pvl)) ) {
       sprintf(err, "%s: gage trouble", me);
       biffMove(TEN, err, GAGE); return NULL;
@@ -97,9 +97,9 @@ tenFiberContextNew(Nrrd *dtvol) {
     tfx->stop = 0;
 
     tfx->query = 0;
-    tfx->dten = gageAnswerPointer(tfx->gtx->pvl[0], tenGageTensor);
-    tfx->evec = gageAnswerPointer(tfx->gtx->pvl[0], tenGageEvec);
-    tfx->aniso = gageAnswerPointer(tfx->gtx->pvl[0], tenGageAniso);
+    tfx->dten = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageTensor);
+    tfx->evec = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageEvec);
+    tfx->aniso = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageAniso);
   }
   return tfx;
 }
@@ -310,7 +310,7 @@ tenFiberUpdate(tenFiberContext *tfx) {
     sprintf(err, "%s: no fiber stopping criteria set", me);
     biffAdd(TEN, err); return 1;
   }
-  if (gageQuerySet(tfx->gtx->pvl[0], tfx->query)
+  if (gageQuerySet(tfx->gtx, tfx->gtx->pvl[0], tfx->query)
       || gageUpdate(tfx->gtx)) {
     sprintf(err, "%s: trouble with gage", me);
     biffMove(TEN, err, GAGE); return 1;
