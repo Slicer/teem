@@ -118,7 +118,7 @@ hestOptNix(hestOpt *opt) {
     return NULL;
 
   num = _hestNumOpts(opt);
-  if (opt[num+1].min) {
+  if (opt[num].min) {
     /* we only try to free this if it looks like something we allocated */
     for (op=0; op<=num-1; op++) {
       _hestOptFree(opt+op);
@@ -281,7 +281,6 @@ _hestNumOpts(hestOpt *opt) {
   while (opt[num].flag || opt[num].name || opt[num].type) {
     num++;
   }
-  printf("_hestNumOpts: %d\n", num);
   return num;
 }
 
