@@ -812,7 +812,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
          sampled and the skipped regions of space becomes complicated:
          no single scalar can represent it, or we could be upsampling,
          in which the notion of "skip" could be rendered meaningless */
-      out->axis[d].thickness = AIR_NAN;
+      nout->axis[d].thickness = AIR_NAN;
       nout->axis[d].kind = _nrrdKindAltered(nin->axis[d].kind);
     } else {
       /* this axis remains untouched */
