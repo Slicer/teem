@@ -24,7 +24,7 @@ PRIV_HEADERS = private.h
 LIB_OBJS = defaults.o enums.o arrays.o methods.o kinds.o general.o print.o \
 	filter.o scl.o sclfilter.o sclprint.o vec.o vecprint.o simple.o
 TEST_BINS = test/qbert test/gantry
-BINS = bin/probe
+BINS = bin/vprobe
 BIN_LIBS = -lgage -lnrrd -lbiff -lell -lhest -lair -lm
 
 include ../make/Common.mk
