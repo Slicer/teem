@@ -1,3 +1,1 @@
 postscript generation of 1D data plots
-
-camera paths, and other general animation stuff

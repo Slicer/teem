@@ -1,4 +1,4 @@
-DESTROY the airType* enum!  I wasted quite awhile debugging a problem caused by:
+DESTROY the airType* enum! I wasted quite awhile debugging a problem caused by:
   if (nrrdAlloc(nout, airTypeFloat, 3, size[0], size[1], size[2])) { ...
 Do you see the problem?  Grrr.
 
@@ -27,9 +27,6 @@ unit world space, since many programs only care about unit world space
 
 bin: create "segprobe" analog to vprobe and pprobe
 
-todo: making volume datasets
-todo: nhdrs for volvis.org
-
 todo: figure out shared libraries on cygwin.
 todo: Test that shared libraries work everywhere they should.
 
@@ -49,8 +46,6 @@ make: make sure that test programs actually link against the development
 make: finish documenting how GNUMake works for teem
 
 unrrdu: standardize hest framework for doing unu/gkms/tend style programs
-
-mrender: deal with vectors
 
 air: make airOneLine return number of bytes read; current return
   of string length is entirely redundant with return of strlen()

@@ -1,5 +1,3 @@
-test gageContextCopy
-
 add flags for explicitly specifying gmax, hmax, vrange
 
 ------- teem 1.5 cutoff ---------
