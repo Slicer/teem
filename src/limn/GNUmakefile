@@ -47,10 +47,10 @@ $(L).NEED = ell nrrd biff hest air
 $(L).PUBLIC_HEADERS = limn.h
 $(L).PRIVATE_HEADERS =
 $(L).OBJS = defaultsLimn.o qn.o light.o env.o cam.o methodsLimn.o obj.o io.o \
-	hestLimn.o transform.o renderLimn.o shapes.o \
+	hestLimn.o transform.o shapes.o renderLimn.o \
 	splineMisc.o splineMethods.o splineEval.o
 $(L).TESTS = test/map test/light test/tcam test/tps test/tspline test/tbc \
-	test/tcamanim test/soid
+	test/tcamanim test/soid test/off2eps
 ####
 ####
 ####
