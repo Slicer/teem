@@ -417,8 +417,6 @@ _nrrdReadNrrdParse_space_directions (Nrrd *nrrd, NrrdIoState *nio,
               me, dd+1, nrrd->dim);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
-    fprintf(stderr, "(%d) |%s| %d %d\n", dd, info,
-            (int)strlen(info), (int)strspn(info, _nrrdFieldSep));
   }
   if (strlen(info) != strspn(info, _nrrdFieldSep)) {
     sprintf(err, "%s: seem to have more than expected %d directions",
