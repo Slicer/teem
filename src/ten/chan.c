@@ -271,11 +271,12 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   int E, DD, d, II, sx, sy, sz, cmin[4], cmax[4], amap[4] = {-1,1,2,3};
   float *ten, dwi1[_TEN_MAX_DWI_NUM], *terr=NULL, 
     *B0=NULL, (*lup)(const void *, size_t);
-  double *bmat, *emat;
+  double *emat;
   NrrdRange *range;
 
   /*
   HEY: uncomment with tenSimulate stuff is working for unknown B0 case
+  double *bmat;
   const char *bk;
   float dwi2[_TEN_MAX_DWI_NUM], te, d1, d2;
   */
@@ -385,7 +386,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     airMopAdd(mop, *nB0P, (airMopper)nrrdNuke, airMopOnError);
     B0 = (float*)((*nB0P)->data);
   }
-  bmat = (double*)(nbmat->data);
+  /* bmat = (double*)(nbmat->data); */
   emat = (double*)(nemat->data);
   ten = (float*)(nten->data);
   lup = nrrdFLookup[ndwi->type];
