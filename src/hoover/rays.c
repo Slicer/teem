@@ -150,7 +150,13 @@ _hoovThreadBody(void *_arg) {
     vOff[3], uOff[3];    /* offsets in arg->ec->wU and arg->ec->wV
 			    directions towards start of ray */
 
+  int tmp0, tmp1, tmp2, tmp3;
+
   arg = (_hoovThreadArg *)_arg;
+  tmp0 = (int)(&threadInfo);
+  tmp1 = (int)(arg->renderInfo);
+  tmp2 = (int)(arg->ctx->userInfo);
+  tmp3 = (int)(arg->whichThread);
   if ( (ret = (arg->ctx->threadBegin)(&threadInfo, 
 				      arg->renderInfo, 
 				      arg->ctx->userInfo,
@@ -179,7 +185,7 @@ _hoovThreadBody(void *_arg) {
 
   /* for now, the load-balancing among P processors is simplistic: the
      Nth thread (0-based numbering) gets scanlines N, N+P, N+2P, N+3P,
-     etc. */
+     etc., until it goes beyond the last scanline */
   vI = arg->whichThread;
   while (vI < arg->ctx->imgSize[1]) {
     v = uvScale*AIR_AFFINE(-0.5, vI, arg->ctx->imgSize[1]-0.5,
