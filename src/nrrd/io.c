@@ -866,7 +866,7 @@ nrrdNewOpen(char *name) {
 
 int 
 nrrdSave(char *name, Nrrd *nrrd) {
-  char err[NRRD_MED_STRLEN], me[]="nrrdNewOpen", *ext, *dir, *base, *rawfn;
+  char err[NRRD_MED_STRLEN], me[]="nrrdSave", *ext, *dir, *base, *rawfn;
   FILE *file;
   int (*writer)(FILE *, Nrrd *);
   
