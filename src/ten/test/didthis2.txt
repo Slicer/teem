@@ -15,7 +15,7 @@ test/tt -n 7 -p -0.45 0.2 -0.35 \
  | unu crop -min 0 0 0 -max 2 M M \
  | unu quantize -b 8 -min 0 -max 1 -o tri-sph.png &
 test/tt -n 7 -p -0.45 0.2 -0.35 \
- | DOIT -rt -g c -is 720 540 -gsc 0.27 \
+ | DOIT -rt -g c -is 720 540 -gsc 0.25 \
  | unu crop -min 0 0 0 -max 2 M M \
  | unu quantize -b 8 -min 0 -max 1 -o tri-cyl.png &
 test/tt -n 7 -p -0.45 0.2 -0.35 \

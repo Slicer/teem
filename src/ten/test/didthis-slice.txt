@@ -15,14 +15,14 @@ echo "1   1 1 1   -1 -1 -3" \
 
 alias CROP unu crop -min 0 0 0 -max 2 M M 
 
-tend glyph -i test.nrrd -a ca1 -atr 0.5 \
+valgrind tend glyph -i test.nrrd -a ca1 -atr 0.5 \
    -emap emap.nrrd  -bg 1 1 0 \
-   -gsc 0.04 \
+   -gsc 0.06 \
    -or -rh -fr $FR -ur -0.8 0.8 -vr -0.8 0.8 \
-   -slc 2 7 -off 0.5 \
+   -slc 2 7 -off -0.5 \
    -o tmp.ps
+echo '   -rt -is 400 400 | CROP | unu quantize -b 8 -o tmp.png'
 
-echo '   -rt -is 300 300 | CROP | unu quantize -b 8 -o tmp.png'
 
 
 

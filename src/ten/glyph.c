@@ -127,8 +127,9 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
   double I[3], W[3];
   float cl, cp, *tdata, evec[9], eval[3], *cvec, aniso[TEN_ANISO_MAX+1],
     sRot[16], mA[16], mB[16], R, G, B, qA, qB, glyphAniso, sliceAniso;
-  int idx, ri, axis;
+  int idx, ri, axis, si;
   limnPart *lglyph;
+  limnSP *sp;
   echoObject *eglyph, *inst, *list=NULL, *split, *esquare;
   echoPos_t eM[16], originOffset[3], edge0[3], edge1[3];
   /*
@@ -176,9 +177,21 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
     }
     ELL_3V_COPY(originOffset, shape->voxLen);
     ELL_3V_SCALE(originOffset, -0.5, originOffset);
-    originOffset[parm->sliceAxis] *= 2*parm->sliceOffset;
+    originOffset[parm->sliceAxis] *= -2*parm->sliceOffset;
   }
   idx = 0;
+  if (glyphsLimn) {
+    /* create limnSPs for diffuse (#0) and flat (#1) shading */
+    si = airArrayIncrLen(glyphsLimn->sA, 2);
+    sp = glyphsLimn->s + si + 0;
+    ELL_4V_SET(sp->rgba, 1, 1, 1, 1);
+    ELL_3V_SET(sp->k, 0, 1, 0);
+    sp->spec = 0;
+    sp = glyphsLimn->s + si + 1;
+    ELL_4V_SET(sp->rgba, 1, 1, 1, 1);
+    ELL_3V_SET(sp->k, 1, 0, 0);
+    sp->spec = 0;
+  }
   if (glyphsEcho) {
     list = echoObjectNew(glyphsEcho, echoTypeList);
   }
@@ -200,21 +213,24 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	    && I[parm->sliceAxis] == parm->slicePos) {
 	  sliceAniso = aniso[parm->sliceAnisoType];
 	  if (glyphsLimn) {
-	    ri = limnObjSquareAdd(glyphsLimn, 0);
+	    ri = limnObjSquareAdd(glyphsLimn, si + 1);
 	    ELL_4M_IDENTITY_SET(mA);
 	    ELL_4M_SCALE_SET(mB,
-			     0.5*shape->voxLen[0],
-			     0.5*shape->voxLen[1],
-			     0.5*shape->voxLen[2]);
+			     shape->voxLen[0],
+			     shape->voxLen[1],
+			     shape->voxLen[2]);
 	    ell4mPostMul_f(mA, mB);
 	    ell4mPostMul_f(mA, sRot);
 	    ELL_4M_TRANSLATE_SET(mB, W[0], W[1], W[2]);
 	    ell4mPostMul_f(mA, mB);
+	    ELL_4M_TRANSLATE_SET(mB,
+				 originOffset[0],
+				 originOffset[1],
+				 originOffset[2]);
+	    ell4mPostMul_f(mA, mB);
 	    lglyph = glyphsLimn->r + ri;
 	    ELL_4V_SET(lglyph->rgba, sliceAniso, sliceAniso, sliceAniso, 1);
-	    /*
 	    limnObjPartTransform(glyphsLimn, ri, mA);
-	    */
 	  }
 	  if (glyphsEcho) {
 	    esquare = echoObjectNew(glyphsEcho,echoTypeRectangle);
@@ -290,18 +306,18 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	if (glyphsLimn) {
 	  switch(parm->glyphType) {
 	  case tenGlyphTypeBox:
-	    ri = limnObjCubeAdd(glyphsLimn, 0);
+	    ri = limnObjCubeAdd(glyphsLimn, si + 0);
 	    break;
 	  case tenGlyphTypeSphere:
-	    ri = limnObjPolarSphereAdd(glyphsLimn, 0, axis,
+	    ri = limnObjPolarSphereAdd(glyphsLimn, si + 0, axis,
 				       2*parm->facetRes, parm->facetRes);
 	    break;
 	  case tenGlyphTypeCylinder:
-	    ri = limnObjCylinderAdd(glyphsLimn, 0, axis, parm->facetRes);
+	    ri = limnObjCylinderAdd(glyphsLimn, si + 0, axis, parm->facetRes);
 	    break;
 	  case tenGlyphTypeSuperquad:
 	  default:
-	    ri = limnObjPolarSuperquadAdd(glyphsLimn, 0, axis, qA, qB, 
+	    ri = limnObjPolarSuperquadAdd(glyphsLimn, si + 0, axis, qA, qB, 
 					  2*parm->facetRes, parm->facetRes);
 	    break;
 	  }
