@@ -1078,7 +1078,10 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
 
   /* currently, any left over arguments indicate error */
   if (argc) {
-    sprintf(err, "%sunexpected arg: \"%s\"", ME, argv[0]);
+    sprintf(err, "%sunexpected arg%s: \"%s\"", ME,
+	    ('-' == argv[0][0]
+	     ? " (or unrecognized flag)"
+	     : ""), argv[0]);
     airMopError(mop); return 1;
   }
 
