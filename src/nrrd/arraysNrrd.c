@@ -20,7 +20,7 @@
 #include "nrrd.h"
 
 char
-nrrdTypeConv[NRRD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
+nrrdTypePrintfStr[NRRD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "%*d",  /* what else? sscanf: skip, printf: use "minimum precision" */
   "%d",
   "%u",
@@ -55,7 +55,7 @@ nrrdTypeSize[NRRD_TYPE_MAX+1] = {
 };
 
 int 
-nrrdTypeInteger[NRRD_TYPE_MAX+1] = {
+nrrdTypeIsIntegral[NRRD_TYPE_MAX+1] = {
   0,  /* unknown */
   1,  /* char */
   1,  /* unsigned char */
@@ -71,7 +71,7 @@ nrrdTypeInteger[NRRD_TYPE_MAX+1] = {
 };
 
 int 
-nrrdTypeUnsigned[NRRD_TYPE_MAX+1] = {
+nrrdTypeIsUnsigned[NRRD_TYPE_MAX+1] = {
   0,  /* unknown */
   0,  /* char */
   1,  /* unsigned char */
@@ -127,14 +127,14 @@ nrrdTypeMax[NRRD_TYPE_MAX+1] = {
 };
 
 /*
-******** nrrdTypeNumberValues[]
+******** nrrdTypeNumberOfValues[]
 **
 ** only meaningful for integral values, and only correct for
 ** 32-bit values; tells the number of different integral values that
 ** can be represented by the type
 */
 double
-nrrdTypeNumberValues[NRRD_TYPE_MAX+1] = {
+nrrdTypeNumberOfValues[NRRD_TYPE_MAX+1] = {
   0,                         /* unknown */
   UCHAR_MAX+1,               /* char */
   UCHAR_MAX+1,               /* unsigned char */

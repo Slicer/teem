@@ -78,7 +78,7 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   E = 0;
-  if (nrrdTypeInteger[nin->type]) {
+  if (nrrdTypeIsIntegral[nin->type]) {
     if (!E) E |= nrrdUnquantize(ninD, nin, nrrdTypeDouble);
   } else if (nrrdTypeFloat == nin->type) {
     if (!E) E |= nrrdConvert(ninD, nin, nrrdTypeDouble);

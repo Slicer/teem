@@ -360,7 +360,7 @@ _nrrdReadDataAscii (Nrrd *nrrd, NrrdIO *io) {
     }
     if (nrrd->type >= nrrdTypeInt) {
       /* sscanf supports putting value directly into this type */
-      if (1 != airSingleSscanf(numbStr, nrrdTypeConv[nrrd->type], 
+      if (1 != airSingleSscanf(numbStr, nrrdTypePrintfStr[nrrd->type], 
 			       (void*)(data + I*size))) {
 	sprintf(err, "%s: couln't parse %s " _AIR_SIZE_T_FMT
 		" of " _AIR_SIZE_T_FMT " (\"%s\")", me,

@@ -241,7 +241,7 @@ qbertMakeVghHists(Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
      ringing kernel can have produced negative values, so this change to
      minv can actually restrict the range, in contrast to to the changes
      to ming, minh, and maxh below */
-  if (nrrdTypeUnsigned[nin->type]) {
+  if (nrrdTypeIsUnsigned[nin->type]) {
     minv = AIR_MAX(minv, 0.0);
   }
   fprintf(stderr, "[%g .. %g]\n", minv, maxv);

@@ -829,7 +829,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
 	      "rounding of %s output type due to int-based implementation "
 	      "of rounding\n", me, airEnumStr(nrrdType, typeOut));
     }
-    doRound = nrrdTypeInteger[typeOut];
+    doRound = nrrdTypeIsIntegral[typeOut];
   } else {
     doRound = AIR_FALSE;
   }

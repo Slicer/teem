@@ -31,11 +31,11 @@ main(int argc, char *argv[]) {
   for (tt=nrrdTypeChar; tt<=nrrdTypeDouble; tt++) {
     printf(" ----- %s -----\n", airEnumStr(nrrdType, tt));
     printf("nrrdTypeSize: %d\n", nrrdTypeSize[tt]);
-    printf("nrrdTypeUnsigned: %d\n", nrrdTypeUnsigned[tt]);
-    printf("nrrdTypeInteger: %d\n", nrrdTypeInteger[tt]);
+    printf("nrrdTypeIsUnsigned: %d\n", nrrdTypeIsUnsigned[tt]);
+    printf("nrrdTypeIsIntegral: %d\n", nrrdTypeIsIntegral[tt]);
     printf("nrrdTypeMin: % 31.15f\n", nrrdTypeMin[tt]);
     printf("nrrdTypeMax: % 31.15f\n", nrrdTypeMax[tt]);
-    printf("nrrdTypeNumberValues: % 31.15f\n", nrrdTypeNumberValues[tt]);
+    printf("nrrdTypeNumberOfValues: % 31.15f\n", nrrdTypeNumberOfValues[tt]);
   }
   printf("sizeof(size_t) = %d\n", (int)sizeof(size_t));
 

@@ -355,18 +355,18 @@ extern nrrd_export airEnum *nrrdTernaryOp;
 
 /******** arrays of things (poor-man's functions/predicates) */
 /* arraysNrrd.c */
-extern nrrd_export char nrrdTypeConv[][AIR_STRLEN_SMALL];
 extern nrrd_export int nrrdFormatIsAvailable[];
 extern nrrd_export int nrrdFormatIsImage[];
 extern nrrd_export int nrrdEncodingEndianMatters[];
 extern nrrd_export int nrrdEncodingIsCompression[];
 extern nrrd_export int nrrdEncodingIsAvailable[];
+extern nrrd_export char nrrdTypePrintfStr[][AIR_STRLEN_SMALL];
 extern nrrd_export int nrrdTypeSize[];
-extern nrrd_export int nrrdTypeInteger[];
-extern nrrd_export int nrrdTypeUnsigned[];
 extern nrrd_export double nrrdTypeMin[];
 extern nrrd_export double nrrdTypeMax[];
-extern nrrd_export double nrrdTypeNumberValues[];
+extern nrrd_export int nrrdTypeIsIntegral[];
+extern nrrd_export int nrrdTypeIsUnsigned[];
+extern nrrd_export double nrrdTypeNumberOfValues[];
 
 /******** things useful with hest */
 /* hestNrrd.c */

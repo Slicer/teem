@@ -157,7 +157,7 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdStateDisallowIntegerNonExist 
-      && !nrrdTypeInteger[nin->type] && nrrdTypeInteger[type]) {
+      && !nrrdTypeIsIntegral[nin->type] && nrrdTypeIsIntegral[type]) {
     /* there's a risk of non-existant values getting converted to
        non-sensical integral values */
     if (nrrdHasNonExistSet(nin)) {
@@ -207,7 +207,7 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
      to integral values, or to a lower precision representation */
   nrrdPeripheralInit(nout);
   nout->blockSize = 0;
-  nout->hasNonExist = (nrrdTypeInteger[nout->type]
+  nout->hasNonExist = (nrrdTypeIsIntegral[nout->type]
 		       ? nrrdNonExistFalse
 		       : nin->hasNonExist);
 
@@ -375,7 +375,7 @@ nrrdUnquantize(Nrrd *nout, Nrrd *nin, int type) {
 	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
-  if (!nrrdTypeInteger[nin->type]) {
+  if (!nrrdTypeIsIntegral[nin->type]) {
     sprintf(err, "%s: can only unquantize integral types, not %s", me,
 	    airEnumStr(nrrdType, nin->type));
     biffAdd(NRRD, err); return 1;
@@ -391,7 +391,7 @@ nrrdUnquantize(Nrrd *nout, Nrrd *nin, int type) {
     biffAdd(NRRD, err); return 1;
   }
   minIn = nrrdTypeMin[nin->type];
-  numValIn = nrrdTypeNumberValues[nin->type];
+  numValIn = nrrdTypeNumberOfValues[nin->type];
   if (AIR_EXISTS(nin->oldMin) && AIR_EXISTS(nin->oldMax)) {
     minOut = nin->oldMin;
     maxOut = nin->oldMax;

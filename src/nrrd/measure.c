@@ -38,7 +38,7 @@ _nrrdMeasureMin(void *ans, int ansType,
   double val, M;
   int i;
 
-  if (nrrdTypeInteger[lineType]) {
+  if (nrrdTypeIsIntegral[lineType]) {
     M = nrrdDLookup[lineType](line, 0);
     for (i=1; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
@@ -66,7 +66,7 @@ _nrrdMeasureMax(void *ans, int ansType,
   double val, M;
   int i;
 
-  if (nrrdTypeInteger[lineType]) {
+  if (nrrdTypeIsIntegral[lineType]) {
     M = nrrdDLookup[lineType](line, 0);
     for (i=1; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
@@ -93,7 +93,7 @@ _nrrdMeasureProduct(void *ans, int ansType,
   double val, P;
   int i;
 
-  if (nrrdTypeInteger[lineType]) {
+  if (nrrdTypeIsIntegral[lineType]) {
     P = 1.0;
     for (i=0; i<len; i++) {
       P *= nrrdDLookup[lineType](line, i);
@@ -121,7 +121,7 @@ _nrrdMeasureSum(void *ans, int ansType,
   double val, S;
   int i;
 
-  if (nrrdTypeInteger[lineType]) {
+  if (nrrdTypeIsIntegral[lineType]) {
     S = 0.0;
     for (i=0; i<len; i++) {
       S += nrrdDLookup[lineType](line, i);
@@ -147,7 +147,7 @@ _nrrdMeasureMean(void *ans, int ansType,
   double val, S, M;
   int i, count;
 
-  if (nrrdTypeInteger[lineType]) {
+  if (nrrdTypeIsIntegral[lineType]) {
     S = 0.0;
     for (i=0; i<len; i++) {
       S += nrrdDLookup[lineType](line, i);
@@ -251,7 +251,7 @@ _nrrdMeasureL1(void *ans, int ansType,
   double val, S;
   int i;
 
-  if (nrrdTypeInteger[lineType]) {
+  if (nrrdTypeIsIntegral[lineType]) {
     S = 0.0;
     for (i=0; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
@@ -279,7 +279,7 @@ _nrrdMeasureL2(void *ans, int ansType,
   double val, S;
   int i;
 
-  if (nrrdTypeInteger[lineType]) {
+  if (nrrdTypeIsIntegral[lineType]) {
     S = 0.0;
     for (i=0; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
@@ -307,7 +307,7 @@ _nrrdMeasureLinf(void *ans, int ansType,
   double val, M;
   int i;
 
-  if (nrrdTypeInteger[lineType]) {
+  if (nrrdTypeIsIntegral[lineType]) {
     val = nrrdDLookup[lineType](line, 0);
     M = AIR_ABS(val);
     for (i=1; i<len; i++) {
@@ -339,7 +339,7 @@ _nrrdMeasureVariance(void *ans, int ansType,
   int i, count;
 
   SS = S = 0.0;
-  if (nrrdTypeInteger[lineType]) {
+  if (nrrdTypeIsIntegral[lineType]) {
     for (i=0; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
       S += val;
