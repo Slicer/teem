@@ -26,7 +26,7 @@ tenEvecRGB(Nrrd *nout, Nrrd *nin, int which, int aniso,
 	   float gamma, float bgGray, float isoGray) {
   char me[]="tenEvecRGB", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX];
-  float *tdata, *cdata, eval[3], evec[9], R, G, B, an[TEN_ANISO_MAX], conf;
+  float *tdata, *cdata, eval[3], evec[9], R, G, B, an[TEN_ANISO_MAX+1], conf;
   size_t II, NN;
 
   if (!(nout && nin)) {
