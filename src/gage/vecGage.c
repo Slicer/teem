@@ -118,15 +118,25 @@ _gageVecPrereq[GAGE_VEC_MAX+1] = {
 };
 
 void
-_gageVecIv3Fill(gageContext *ctx, gagePerVolume *pvl, void *here) {
-  int i, fd, fddd;
-  
-  fd = ctx->fd;
+_gageVecIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
+  int i, sx, sy, sz, bidx, fd, fddd;
+  void *here;
+
+  PADSIZE(sx, sy, sz, ctx);
+  fd = GAGE_FD(ctx);
   fddd = fd*fd*fd;
+  /* the reason to "- ctx->havePad" is that we need to locate the lowest
+     corner of the cube of values needed for this probe location, which,
+     due to filter size, is lower than the location of the probe itself */
+  bidx = (ctx->point.xi - ctx->havePad 
+	  + sx*(ctx->point.yi - ctx->havePad 
+		+ sy*(ctx->point.zi - ctx->havePad)));
+  here = ((char*)(pvl->npad->data) + (bidx * pvl->kind->valLen * 
+				      nrrdTypeSize[pvl->npad->type]));
   for (i=0; i<fddd; i++) {
-    /* note that the vector component axis is being shifted 
-       from the fastest to the slowest axis, to anticipate
-       component-wise filtering operations */
+    /* the vector component axis is being shifted from the fastest to
+       the slowest axis, to anticipate component-wise filtering
+       operations */
     pvl->iv3[i + fddd*0] = pvl->lup(here, 0 + 3*ctx->off[i]);
     pvl->iv3[i + fddd*1] = pvl->lup(here, 1 + 3*ctx->off[i]);
     pvl->iv3[i + fddd*2] = pvl->lup(here, 2 + 3*ctx->off[i]);
@@ -136,25 +146,25 @@ _gageVecIv3Fill(gageContext *ctx, gagePerVolume *pvl, void *here) {
 }
 
 void
-_gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
+_gageVecFilter (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageVecFilter";
-  gageVecAnswer *van;
-  gage_t *fw00, *fw11, *fw22, tmp;
+  gage_t *fw00, *fw11, *fw22, *vec, *jac, tmp;
   int fd;
 
-  fd = ctx->fd;
-  van = (gageVecAnswer *)pvl->ansStruct;
+  fd = GAGE_FD(ctx);
+  vec = ANSWER(pvl, gageVecVector);
+  jac = ANSWER(pvl, gageVecJacobian);
   fw00 = ctx->fw + fd*3*gageKernel00;
   fw11 = ctx->fw + fd*3*gageKernel11;
   fw22 = ctx->fw + fd*3*gageKernel22;
   /* perform the filtering */
-  if (ctx->k3pack) {
+  if (ctx->parm.k3pack) {
     switch (fd) {
     case 2:
 #define DOIT_2(J) \
       _gageScl3PFilter2(pvl->iv3 + J*8, pvl->iv2 + J*4, pvl->iv1 + J*2, \
 			fw00, fw11, fw22, \
-                        van->vec + J, van->jac + J*3, NULL, \
+                        vec + J, jac + J*3, NULL, \
 			pvl->needD[0], pvl->needD[1], AIR_FALSE)
       DOIT_2(0); DOIT_2(1); DOIT_2(2); 
       break;
@@ -162,7 +172,7 @@ _gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
 #define DOIT_4(J) \
       _gageScl3PFilter4(pvl->iv3 + J*64, pvl->iv2 + J*16, pvl->iv1 + J*4, \
 			fw00, fw11, fw22, \
-                        van->vec + J, van->jac + J*3, NULL, \
+                        vec + J, jac + J*3, NULL, \
 			pvl->needD[0], pvl->needD[1], AIR_FALSE)
       DOIT_4(0); DOIT_4(1); DOIT_4(2); 
       break;
@@ -172,7 +182,7 @@ _gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
                         pvl->iv3 + J*fd*fd*fd, \
                         pvl->iv2 + J*fd*fd, pvl->iv1 + J*fd, \
 			fw00, fw11, fw22, \
-                        van->vec + J, van->jac + J*3, NULL, \
+                        vec + J, jac + J*3, NULL, \
 			pvl->needD[0], pvl->needD[1], AIR_FALSE)
       DOIT_N(0); DOIT_N(1); DOIT_N(2); 
       break;
@@ -186,18 +196,18 @@ _gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
        in column order, the 1st column currently contains the three
        derivatives of the X component; this should be the 1st row, and
        likewise for the 2nd and 3rd column/rows.  */
-    ELL_3M_TRANSPOSE_IP(van->jac, tmp);
+    ELL_3M_TRANSPOSE_IP(jac, tmp);
   }
 
   return;
 }
 
 void
-_gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
+_gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageVecAnswer";
-  gageVecAnswer *van;
   unsigned int query;
   double tmpMat[9], mgevec[9], mgeval[3];
+  gage_t *ans, *vecAns, *normAns, *jacAns;
 
   /*
   gageVecVector,      *  0: component-wise-interpolatd (CWI) vector: GT[3] *
@@ -217,22 +227,25 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   */
 
   query = pvl->query;
-  van = (gageVecAnswer *)pvl->ansStruct;
+  ans = pvl->ans;
+  vecAns = ans + gageVecVector;
+  jacAns = ans + gageVecJacobian;
+  normAns = ans + gageVecNormalized;
   if (1 & (query >> gageVecVector)) {
     /* done if doV */
     if (ctx->verbose) {
       fprintf(stderr, "vec = ");
-      ell3vPRINT(stderr, van->vec);
+      ell3vPRINT(stderr, vecAns);
     }
   }
   if (1 & (query >> gageVecLength)) {
-    van->len[0] = ELL_3V_LEN(van->vec);
+    ans[gageVecLength] = ELL_3V_LEN(vecAns);
   }
   if (1 & (query >> gageVecNormalized)) {
-    if (van->len[0]) {
-      ELL_3V_SCALE(van->norm, 1.0/van->len[0], van->vec);
+    if (ans[gageVecLength]) {
+      ELL_3V_SCALE(normAns, 1.0/ans[gageVecLength], vecAns);
     } else {
-      ELL_3V_COPY(van->norm, gageZeroNormal);
+      ELL_3V_COPY(normAns, gageZeroNormal);
     }
   }
   if (1 & (query >> gageVecJacobian)) {
@@ -244,54 +257,56 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
     */
     if (ctx->verbose) {
       fprintf(stderr, "%s: jac = \n", me);
-      ell3mPRINT(stderr, van->jac);
+      ell3mPRINT(stderr, jacAns);
     }
   }
   if (1 & (query >> gageVecDivergence)) {
-    van->div[0] = van->jac[0] + van->jac[4] + van->jac[8];
+    ans[gageVecDivergence] = jacAns[0] + jacAns[4] + jacAns[8];
     if (ctx->verbose) {
       fprintf(stderr, "%s: div = %g + %g + %g  = %g\n", me,
-	      van->jac[0], van->jac[4], van->jac[8],
-	      van->div[0]);
+	      jacAns[0], jacAns[4], jacAns[8], ans[gageVecDivergence]);
     }
   }
   if (1 & (query >> gageVecCurl)) {
-    van->curl[0] = van->jac[5] - van->jac[7];
-    van->curl[1] = van->jac[6] - van->jac[2];
-    van->curl[2] = van->jac[1] - van->jac[3];
+    (ans + gageVecCurl)[0] = jacAns[5] - jacAns[7];
+    (ans + gageVecCurl)[1] = jacAns[6] - jacAns[2];
+    (ans + gageVecCurl)[2] = jacAns[1] - jacAns[3];
   }
   if (1 & (query >> gageVecGradient0)) {
-    van->g0[0] = van->jac[0];
-    van->g0[1] = van->jac[3];
-    van->g0[2] = van->jac[6];
+    (ans + gageVecGradient0)[0] = jacAns[0];
+    (ans + gageVecGradient0)[1] = jacAns[3];
+    (ans + gageVecGradient0)[2] = jacAns[6];
   }
   if (1 & (query >> gageVecGradient1)) {
-    van->g1[0] = van->jac[1];
-    van->g1[1] = van->jac[4];
-    van->g1[2] = van->jac[7];
+    (ans + gageVecGradient1)[0] = jacAns[1];
+    (ans + gageVecGradient1)[1] = jacAns[4];
+    (ans + gageVecGradient1)[2] = jacAns[7];
   }
   if (1 & (query >> gageVecGradient2)) {
-    van->g2[0] = van->jac[2];
-    van->g2[1] = van->jac[5];
-    van->g2[2] = van->jac[8];
+    (ans + gageVecGradient2)[0] = jacAns[2];
+    (ans + gageVecGradient2)[1] = jacAns[5];
+    (ans + gageVecGradient2)[2] = jacAns[8];
   }
   if (1 & (query >> gageVecMultiGrad)) {
-    ELL_3M_SET_IDENTITY(van->mg);
-    ELL_3MV_OUTERADD(van->mg, van->g0, van->g0);
-    ELL_3MV_OUTERADD(van->mg, van->g1, van->g1);
-    ELL_3MV_OUTERADD(van->mg, van->g2, van->g2);
+    ELL_3M_SET_IDENTITY(ans + gageVecMultiGrad);
+    ELL_3MV_OUTERADD(ans + gageVecMultiGrad,
+		     ans + gageVecGradient0, ans + gageVecGradient0);
+    ELL_3MV_OUTERADD(ans + gageVecMultiGrad,
+		     ans + gageVecGradient1, ans + gageVecGradient1);
+    ELL_3MV_OUTERADD(ans + gageVecMultiGrad,
+		     ans + gageVecGradient2, ans + gageVecGradient2);
   }
   if (1 & (query >> gageVecL2MG)) {
-    *(van->l2mg) = ELL_3M_L2NORM(van->mg);
+    ans[gageVecL2MG] = ELL_3M_L2NORM(ans + gageVecMultiGrad);
   }
   if (1 & (query >> gageVecMGEval)) {
-    ELL_3M_COPY(tmpMat, van->mg);
+    ELL_3M_COPY(tmpMat, ans + gageVecMultiGrad);
     /* HEY: look at the return value for root multiplicity? */
     ell3mEigensolve(mgeval, mgevec, tmpMat, AIR_TRUE);
-    ELL_3V_COPY(van->mgeval, mgeval);
+    ELL_3V_COPY(ans + gageVecMGEval, mgeval);
   }
   if (1 & (query >> gageVecMGEvec)) {
-    ELL_3M_COPY(van->mgevec, mgevec);
+    ELL_3M_COPY(ans + gageVecMGEvec, mgevec);
   }
 
   return;
@@ -309,10 +324,28 @@ _gageVecStr[][AIR_STRLEN_SMALL] = {
   "gradient0",
   "gradient1",
   "gradient2",
-  "multi-gradient",
-  "L2(multi-gradient)",
-  "multi-gradient eigenvalues",
-  "multi-gradient eigenvectors",
+  "multigrad",
+  "L2(multigrad)",
+  "multigrad eigenvalues",
+  "multigrad eigenvectors",
+};
+
+char
+_gageVecDesc[][AIR_STRLEN_MED] = {
+  "unknown gageVec query",
+  "component-wise-interpolated vector",
+  "length of vector",
+  "normalized vector",
+  "3x3 Jacobian",
+  "divergence",
+  "curl",
+  "gradient of 1st component of vector",
+  "gradient of 2nd component of vector",
+  "gradient of 3rd component of vector",
+  "multi-gradient: sum of outer products of gradients",
+  "L2 norm of multi-gradient",
+  "eigenvalues of multi-gradient",
+  "eigenvectors of multi-gradient"
 };
 
 int
@@ -387,43 +420,12 @@ _gageVec = {
   "gageVec",
   GAGE_VEC_MAX+1,
   _gageVecStr, _gageVecVal,
+  _gageVecDesc,
   _gageVecStrEqv, _gageVecValEqv,
   AIR_FALSE
 };
 airEnum *
 gageVec = &_gageVec;
-
-gageVecAnswer *
-_gageVecAnswerNew() {
-  gageVecAnswer *van;
-  int i;
-
-  van = (gageVecAnswer *)calloc(1, sizeof(gageVecAnswer));
-  if (van) {
-    for (i=0; i<GAGE_VEC_TOTAL_ANS_LENGTH; i++)
-      van->ans[i] = AIR_NAN;
-    van->vec    = &(van->ans[gageVecAnsOffset[gageVecVector]]);
-    van->len    = &(van->ans[gageVecAnsOffset[gageVecLength]]);
-    van->norm   = &(van->ans[gageVecAnsOffset[gageVecNormalized]]);
-    van->jac    = &(van->ans[gageVecAnsOffset[gageVecJacobian]]);
-    van->div    = &(van->ans[gageVecAnsOffset[gageVecDivergence]]);
-    van->curl   = &(van->ans[gageVecAnsOffset[gageVecCurl]]);
-    van->g0     = &(van->ans[gageVecAnsOffset[gageVecGradient0]]);
-    van->g1     = &(van->ans[gageVecAnsOffset[gageVecGradient1]]);
-    van->g2     = &(van->ans[gageVecAnsOffset[gageVecGradient2]]);
-    van->mg     = &(van->ans[gageVecAnsOffset[gageVecMultiGrad]]);
-    van->l2mg   = &(van->ans[gageVecAnsOffset[gageVecL2MG]]);
-    van->mgeval = &(van->ans[gageVecAnsOffset[gageVecMGEval]]);
-    van->mgevec = &(van->ans[gageVecAnsOffset[gageVecMGEvec]]);
-  }
-  return van;
-}
-
-gageVecAnswer *
-_gageVecAnswerNix(gageVecAnswer *van) {
-
-  return airFree(van);
-}
 
 gageKind
 _gageKindVec = {
@@ -438,8 +440,6 @@ _gageKindVec = {
   _gageVecNeedDeriv,
   _gageVecPrereq,
   _gageVecPrint_query,
-  (void *(*)(void))_gageVecAnswerNew,
-  (void *(*)(void*))_gageVecAnswerNix,
   _gageVecIv3Fill,
   _gageVecIv3Print,
   _gageVecFilter,

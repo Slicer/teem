@@ -20,53 +20,110 @@
 #include "gage.h"
 #include "privateGage.h"
 
-/*
-** _gageNeedDSet()
-**
-** goes through pervolumes to find collective needD[], and checks
-** to see if this has changed
-**
-** Sets: ctx->needD[]
-*/
 int
-_gageNeedDSet(gageContext *ctx) {
-  int needD[3], i;
+_gagePvlFlagCheck(gageContext *ctx, int pvlFlag) {
+  int i, ret;
   
-  needD[0] = needD[1] = needD[2] = AIR_FALSE;
+  ret = AIR_FALSE;
   for (i=0; i<ctx->numPvl; i++) {
-    needD[0] |= ctx->pvl[i]->needD[0];
-    needD[1] |= ctx->pvl[i]->needD[1];
-    needD[2] |= ctx->pvl[i]->needD[2];
+    ret |= ctx->pvl[i]->flag[pvlFlag];
   }
-  /*
-  if (!( needD[0] || needD[1] || needD[2] )) {
-    sprintf(err, "%s: none of the pervolumes need any measurements", me);
-    biffAdd(GAGE, err); return 1;
+  return ret;
+}
+
+void
+_gagePvlFlagDown(gageContext *ctx, int pvlFlag) {
+  int i;
+  
+  for (i=0; i<ctx->numPvl; i++) {
+    ctx->pvl[i]->flag[pvlFlag] = AIR_FALSE;
   }
-  */
-  if ( (needD[0] != ctx->needD[0]) ||
-       (needD[1] != ctx->needD[1]) ||
-       (needD[2] != ctx->needD[2]) ) {
-    ctx->needD[0] = needD[0];
-    ctx->needD[1] = needD[1];
-    ctx->needD[2] = needD[2];
-    ctx->flag[gageFlagNeedD] = AIR_TRUE;
+}
+
+/* 
+** One could go from all the pvls' queries to the context's needD in
+** one shot, but doing it in two steps (as below) seems a little clearer,
+** and it means that pvl->needD isn't needlessly re-computed for 
+** pvl's whose query hasn't changed.
+*/
+
+/*
+** for each pvl: pvl's query --> pvl's needD
+*/
+void
+_gagePvlNeedDUpdate(gageContext *ctx) {
+  char me[]="_gagePvlNeedDUpdate";
+  gagePerVolume *pvl;
+  int i, q, d, needD[3];
+
+  if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
+  for (i=0; i<ctx->numPvl; i++) {
+    pvl = ctx->pvl[i];
+    if (pvl->flag[gagePvlFlagQuery]) {
+      ELL_3V_SET(needD, 0, 0, 0);
+      q = pvl->kind->queryMax+1;
+      do {
+	q--;
+	if (pvl->query & (1 << q)) {
+	  for (d=0; d<=2; d++) {
+	    needD[d]  |= (pvl->kind->needDeriv[q] & (1 << d));
+	  }
+	}
+      } while (q);
+      if (!ELL_3V_EQUAL(needD, pvl->needD)) {
+	if (ctx->verbose) {
+	  fprintf(stderr, "%s: updating pvl[%d]'s needD to (%d,%d,%d)\n",
+		  me, i, needD[0], needD[1], needD[2]);
+	}
+	ELL_3V_COPY(pvl->needD, needD);
+	pvl->flag[gagePvlFlagNeedD] = AIR_TRUE;
+      }
+    }
   }
-  return 0;
+  if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
+
+  return;
 }
 
 /*
-** _gageNeedKSet()
-**
-** looks at needD[] and k3pack to determine needK[], and sees if
-** the new value differs from the one already in the context
-**
-** Sets: ctx->needK[]
+** all pvls' needD --> ctx's needD
 */
 void
-_gageNeedKSet(gageContext *ctx) {
+_gageNeedDUpdate(gageContext *ctx) {
+  char me[]="_gageNeedDUpdate";
+  gagePerVolume *pvl;
+  int i, needD[3];
+
+  if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
+  ELL_3V_SET(needD, 0, 0, 0);
+  for (i=0; i<ctx->numPvl; i++) {
+    pvl = ctx->pvl[i];
+    needD[0] |= pvl->needD[0];
+    needD[1] |= pvl->needD[1];
+    needD[2] |= pvl->needD[2];
+  }
+  if (!ELL_3V_EQUAL(needD, ctx->needD)) {
+    if (ctx->verbose) {
+      fprintf(stderr, "%s: updating ctx's needD to (%d,%d,%d)\n",
+	      me, needD[0], needD[1], needD[2]);
+    }
+    ELL_3V_COPY(ctx->needD, needD);
+    ctx->flag[gageCtxFlagNeedD] = AIR_TRUE;
+  }
+  if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
+
+  return;
+}
+
+/*
+** ctx's needD & k3pack --> needK
+*/
+void
+_gageNeedKUpdate (gageContext *ctx) {
+  char me[]="_gageNeedKUpdate";
   int k, needK[GAGE_KERNEL_NUM], change;
   
+  if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
   for (k=0; k<GAGE_KERNEL_NUM; k++) {
     needK[k] = AIR_FALSE;
   }
@@ -75,7 +132,7 @@ _gageNeedKSet(gageContext *ctx) {
   }
   if (ctx->needD[1]) {
     needK[gageKernel11] = AIR_TRUE;
-    if (ctx->k3pack) {
+    if (ctx->parm.k3pack) {
       needK[gageKernel00] = AIR_TRUE;
     } else {
       needK[gageKernel10] = AIR_TRUE;
@@ -83,7 +140,7 @@ _gageNeedKSet(gageContext *ctx) {
   }
   if (ctx->needD[2]) {
     needK[gageKernel22] = AIR_TRUE;
-    if (ctx->k3pack) {
+    if (ctx->parm.k3pack) {
       needK[gageKernel00] = AIR_TRUE;
       needK[gageKernel11] = AIR_TRUE;
     } else {
@@ -96,35 +153,54 @@ _gageNeedKSet(gageContext *ctx) {
     change |= (needK[k] != ctx->needK[k]);
   }
   if (change) {
+    if (ctx->verbose) {
+      fprintf(stderr, "%s: changing needK to (%d,%d,%d,%d,%d,%d)\n",
+	      me, needK[0], needK[1], needK[2], needK[3], needK[4], needK[5]);
+    }
     for (k=0; k<GAGE_KERNEL_NUM; k++) {
       ctx->needK[k] = needK[k];
     }
-    ctx->flag[gageFlagNeedK] = AIR_TRUE;
+    ctx->flag[gageCtxFlagNeedK] = AIR_TRUE;
   }
+  if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
+
+  return;
 }
 
 /*
-** _gageNeedPadSet()
+** ctx's ksp[] & needK --> needPad & havePad
 **
-** determines padding required from needK[] and current kernel set
-** 
-** Sets: ctx->needPad
+** the combined setting of needPad and havePad is based on the fact
+** that besides needPad, there is no other state which, when changed
+** triggers a change in havePad.  Changing noRepadWhenSmaller only
+** changes future behavior; we won't repad an existing and usable volume
+** just because there's a change in policy on how to repad based on 
+** future changes to the needed padding.
 */
 int
-_gageNeedPadSet(gageContext *ctx) {
-  char me[]="_gageNeedPadSet", err[AIR_STRLEN_MED];
+_gageHavePadUpdate (gageContext *ctx) {
+  char me[]="_gageHavePadUpdate", err[AIR_STRLEN_MED];
   int k, fr, needPad;
-  double maxRad;
+  double maxRad, rad;
+  NrrdKernelSpec *ksp;
 
+  if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
   maxRad = 0;
   for (k=0; k<GAGE_KERNEL_NUM; k++) {
     if (ctx->needK[k]) {
-      if (!ctx->k[k]) {
+      ksp = ctx->ksp[k];
+      if (!ksp) {
 	sprintf(err, "%s: need kernel %s but it hasn't been set", 
 		me, airEnumStr(gageKernel, k));
 	biffAdd(GAGE, err); return 1;
       }
-      maxRad = AIR_MAX(maxRad, ctx->k[k]->support(ctx->kparm[k]));
+      rad = ksp->kernel->support(ksp->parm);
+      maxRad = AIR_MAX(maxRad, rad);
+      if (ctx->verbose) {
+	fprintf(stderr, "%s: k[%s]=%s -> rad = %g -> maxRad = %g\n", me,
+		airEnumStr(gageKernel, k), ksp->kernel->name,
+		rad, maxRad);
+      }
     }
   }
   fr = AIR_ROUNDUP(maxRad);
@@ -132,253 +208,154 @@ _gageNeedPadSet(gageContext *ctx) {
      we in fact don't need any kernels, then we need to do this to 
      ensure that we generate a valid (trivial) padding */
   fr = AIR_MAX(fr, 1);
-  needPad = fr - 1;
+  needPad = fr - 1 + (nrrdCenterCell == ctx->shape.center);
   if (needPad != ctx->needPad) {
+    if (ctx->verbose) {
+      fprintf(stderr, "%s: changing needPad from %d to %d\n",
+	      me, ctx->needPad, needPad);
+    }
     ctx->needPad = needPad;
-    ctx->flag[gageFlagNeedPad] = AIR_TRUE;
   }
+  if (ctx->havePad < needPad
+      || (ctx->havePad > needPad && !ctx->parm.noRepadWhenSmaller)) {
+    if (ctx->verbose) {
+      fprintf(stderr, "%s: changing havePad from %d to %d\n",
+	      me, ctx->havePad, needPad);
+    }
+    ctx->havePad = needPad;
+    ctx->flag[gageCtxFlagHavePad] = AIR_TRUE;
+  }
+  if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
 
   return 0;
 }
 
 /*
-** _gageHavePadSet()
-**
-** sets havePad based on noRepadWhenSmaller and needPad, and everything
-** else which immediately and solely depends on havePad
-**
-** Sets ctx->havePad, as well as ctx->fr, ctx->fd, as well as allocating
-** ctx->fsl, ctx->fw, and ctx->off, as well as allocating 
-** pvl->iv3, pvl->iv2, and pvl->iv1 in all attached pervolumes
+** for all pvls: pvl's padder & padInfo, ctx's havePad --> pvl's npad
 */
 int
-_gageHavePadSet(gageContext *ctx) {
-  char me[]="_gageHavePadSet", err[AIR_STRLEN_MED];
-  int havePad, fd, i;
+_gageNpadUpdate (gageContext *ctx) {
+  char me[]="_gageNpadUpdate", err[AIR_STRLEN_MED];
   gagePerVolume *pvl;
+  gageShape shp1, shp2;
+  int i;
+
+  if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
+  for (i=0; i<ctx->numPvl; i++) {
+    pvl = ctx->pvl[i];
+    if (pvl->thisIsACopy) {
+      /* this should never happen */
+      sprintf(err, "%s: can't operate on a pervolume copy", me);
+      biffAdd(GAGE, err); return 1;
+    }
+    /* if we *don't* need to repad this volume, then continue */
+    if (!( ctx->flag[gageCtxFlagHavePad] 
+	   || pvl->flag[gagePvlFlagPadder]
+	   || pvl->flag[gagePvlFlagPadInfo])) {
+      if (ctx->verbose) {
+	fprintf(stderr, "%s: pvl[%d] left as is\n", me, i);
+      }
+      continue;
+    }
+    if (ctx->verbose) {
+      fprintf(stderr, "%s: pvl[%d] being repadded ... \n", me, i);
+    }
+    if (pvl->nixer && pvl->npad) {
+      pvl->nixer(pvl->npad, pvl->kind, pvl);
+      pvl->npad = NULL;
+    }
+    if (pvl->padder) {
+      pvl->npad = pvl->padder(pvl->nin, pvl->kind, ctx->havePad, pvl);
+      if (!pvl->npad) {
+	sprintf(err, "%s: trouble in padder callback", me);
+	biffAdd(GAGE, err); return 1;
+      }
+      if (!nrrdValid(pvl->npad)) {
+	sprintf(err, "%s: padder generated bad nrrd", me);
+	biffMove(GAGE, err, NRRD); return 1;
+      }
+      if (pvl->nin->dim != pvl->npad->dim) {
+	sprintf(err, "%s: whoa: padder made %d-dim out of %d-dim nrrd", 
+		me, pvl->npad->dim, pvl->nin->dim);
+	biffAdd(GAGE, err); return 1;
+      }
+      /* the only that should have changed was the size */
+      gageShapeSet(&shp1, pvl->nin, pvl->kind);
+      shp1.sx += 2*ctx->havePad;
+      shp1.sy += 2*ctx->havePad;
+      shp1.sz += 2*ctx->havePad;
+      gageShapeSet(&shp2, pvl->npad, pvl->kind);
+      if (!gageShapeEqual(&shp1, "padding target", &shp2, "padding result")) {
+	sprintf(err, "%s: padder didn't comply with havePad = %d",
+		me, ctx->havePad);
+	biffAdd(GAGE, err); return 1;
+      }
+      /* it seems that padder did all the right things. Having done
+	 the padding, there are no more flags to set here */
+      if (ctx->verbose > 1) {
+	nrrdSave("npad.nrrd", pvl->npad, NULL);
+      }
+    }
+  }
+  if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
+
+  return 0;
+}
+
+int
+_gageCacheSizeUpdate(gageContext *ctx) {
+  char me[]="_gageCacheSizeUpdate", err[AIR_STRLEN_MED];
+  int i, fd;
+  gagePerVolume *pvl;
+
+  if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
+  fd = GAGE_FD(ctx);
+  airFree(ctx->fsl);
+  airFree(ctx->fw);
+  airFree(ctx->off);
+  ctx->fsl = (gage_t *)calloc(fd*3, sizeof(gage_t));
+  ctx->fw = (gage_t *)calloc(fd*3*GAGE_KERNEL_NUM, sizeof(gage_t));
+  ctx->off = (unsigned int *)calloc(fd*fd*fd, sizeof(unsigned int));
+  if (!(ctx->fsl && ctx->fw && ctx->off)) {
+    sprintf(err, "%s: couldn't allocate filter caches for fd=%d", me, fd);
+    biffAdd(GAGE, err); return 1;
+  }
+  for (i=0; i<ctx->numPvl; i++) {
+    pvl = ctx->pvl[i];
+    airFree(pvl->iv3);
+    airFree(pvl->iv2);
+    airFree(pvl->iv1);
+    pvl->iv3 = (gage_t *)calloc(fd*fd*fd*pvl->kind->valLen, sizeof(gage_t));
+    pvl->iv2 = (gage_t *)calloc(fd*fd*pvl->kind->valLen, sizeof(gage_t));
+    pvl->iv1 = (gage_t *)calloc(fd*pvl->kind->valLen, sizeof(gage_t));
+    if (!(pvl->iv3 && pvl->iv2 && pvl->iv1)) {
+      sprintf(err, "%s: couldn't allocate pvl[%d]'s value caches for fd=%d",
+	      me, i, fd);
+      biffAdd(GAGE, err); return 1;
+    }
+  }
+  if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
   
-  if (ctx->noRepadWhenSmaller) {
-    havePad = AIR_MAX(ctx->needPad, ctx->havePad);
-  } else {
-    havePad = ctx->needPad;
-  }
-  if (havePad != ctx->havePad) {
-    ctx->havePad = havePad;
-    ctx->fr = havePad + 1;
-    fd = ctx->fd = 2*ctx->fr;
-    airFree(ctx->fsl);
-    airFree(ctx->fw);
-    airFree(ctx->off);
-    ctx->fsl = calloc(fd*3, sizeof(gage_t));
-    ctx->fw = calloc(fd*3*GAGE_KERNEL_NUM, sizeof(gage_t));
-    ctx->off = calloc(fd*fd*fd, sizeof(unsigned int));
-    if (!(ctx->fsl && ctx->fw && ctx->off)) {
-      sprintf(err, "%s: couldn't allocate filter caches for fd=%d", me, fd);
-      biffAdd(GAGE, err); return 1;
-    }
-    for (i=0; i<ctx->numPvl; i++) {
-      pvl = ctx->pvl[i];
-      airFree(pvl->iv3);
-      airFree(pvl->iv2);
-      airFree(pvl->iv1);
-      pvl->iv3 = calloc(fd*fd*fd*pvl->kind->valLen, sizeof(gage_t));
-      pvl->iv2 = calloc(fd*fd*pvl->kind->valLen, sizeof(gage_t));
-      pvl->iv1 = calloc(fd*pvl->kind->valLen, sizeof(gage_t));
-      if (!(ctx->pvl[i]->iv3 && ctx->pvl[i]->iv2 && ctx->pvl[i]->iv1)) {
-	sprintf(err, "%s: couldn't allocate pvl[%d]'s value caches for fd=%d",
-		me, i, fd);
-	biffAdd(GAGE, err); return 1;
-      }
-    }
-    ctx->flag[gageFlagHavePad] = AIR_TRUE;
-  }
-
   return 0;
 }
 
-/*
-** _gageSpacingSet()
-**
-** This is kind of an odd function- (1) its has an error checking
-** role, in making sure that all the pervolumes have a nin, and that
-** all nins match in size and spacing, and (2) the role of setting
-** information immediately and solely dependent on that size and
-** spacing, namely ctx->{sx,sy,sz,fwScale}.  The error checking is
-** delayed until now because we can't do it until we know that all
-** nins have been supposedly set in all pervolumes.
-**
-** Sets: ctx->xs, ctx->ys, ctx->zs, ctx->fwScale[] (values)
-*/
-int
-_gageSpacingSet(gageContext *ctx) {
-  char me[]="_gageSpacingSet", err[AIR_STRLEN_MED];
-  int i, sx=0, sy=0, sz=0, bd;
-  double xs=1, ys=1, zs=1;
-  gagePerVolume *pvl;
-
-  for (i=0; i<ctx->numPvl; i++) {
-    pvl = ctx->pvl[i];
-    bd = pvl->kind->baseDim;
-    if (!pvl->nin) {
-      sprintf(err, "%s: no volume set in pervolume %d", me, i);
-      biffAdd(GAGE, err); return 1;
-    }
-    if (0 == i) {
-      sx = pvl->nin->axis[bd+0].size;
-      sy = pvl->nin->axis[bd+1].size;
-      sz = pvl->nin->axis[bd+2].size;
-      xs = pvl->nin->axis[bd+0].spacing;
-      ys = pvl->nin->axis[bd+1].spacing;
-      zs = pvl->nin->axis[bd+2].spacing;
-    }
-    else {
-      if (!( sx == pvl->nin->axis[bd+0].size &&
-	     sy == pvl->nin->axis[bd+1].size &&
-	     sz == pvl->nin->axis[bd+2].size )) {
-	sprintf(err, "%s: dimensions of volume %d (%d,%d,%d) != "
-		"those of volume 0 (%d,%d,%d)",
-		me, i, sx, sy, sz,
-		pvl->nin->axis[bd+0].size,
-		pvl->nin->axis[bd+1].size,
-		pvl->nin->axis[bd+2].size);
-	biffAdd(GAGE, err); return 1;
-      }
-      if (!( xs == pvl->nin->axis[bd+0].spacing &&
-	     ys == pvl->nin->axis[bd+1].spacing &&
-	     zs == pvl->nin->axis[bd+2].spacing )) {
-	sprintf(err, "%s: spacings of volume %d (%g,%g,%g) != "
-		"those of volume 0 (%g,%g,%g)",
-		me, i, xs, ys, zs,
-		pvl->nin->axis[bd+0].spacing,
-		pvl->nin->axis[bd+1].spacing,
-		pvl->nin->axis[bd+2].spacing);
-	biffAdd(GAGE, err); return 1;
-      }
-    }
-  }
-  if (ctx->numPvl) {
-    ctx->xs = xs;
-    ctx->ys = ys;
-    ctx->zs = zs;
-    for (i=0; i<GAGE_KERNEL_NUM; i++) {
-      switch (i) {
-      case gageKernel00:
-      case gageKernel10:
-      case gageKernel20:
-	/* interpolation requires no re-weighting for non-unit spacing */
-	ctx->fwScale[i][0] = 1.0;
-	ctx->fwScale[i][1] = 1.0;
-	ctx->fwScale[i][2] = 1.0;
-	break;
-      case gageKernel11:
-      case gageKernel21:
-	ctx->fwScale[i][0] = 1.0/xs;
-	ctx->fwScale[i][1] = 1.0/ys;
-	ctx->fwScale[i][2] = 1.0/zs;
-	break;
-      case gageKernel22:
-	ctx->fwScale[i][0] = 1.0/(xs*xs);
-	ctx->fwScale[i][1] = 1.0/(ys*ys);
-	ctx->fwScale[i][2] = 1.0/(zs*zs);
-	break;
-      }
-    }
-  }
-  return 0;
-}
-
-/*
-** _gageNpadSet()
-**
-** brings all npads up to date with nins, padder, and havePad.  If
-** padder or havePad changed, then all npads have to created/replaced.
-** But if neither padder nor havePad changed, then only some npads have
-** to be created/replaced.  pvl->flagNin is the way to see if a nin changed.
-**
-** Sets: pvl->npad
-*/
-int
-_gageNpadSet(gageContext *ctx) {
-  char me[]="_gageNpadSet", err[AIR_STRLEN_MED];
-  int i, padall, bd, ninSize[NRRD_DIM_MAX], npadSize[NRRD_DIM_MAX];
-  void *padInfo;
-  gagePerVolume *pvl;
-
-  padall = (ctx->flag[gageFlagPadder] && ctx->flag[gageFlagHavePad]);
-  for (i=0; i<ctx->numPvl; i++) {
-    pvl = ctx->pvl[i];
-    if (padall || pvl->flagNin) {
-      if (ctx->nixer) {
-	padInfo = (ctx->nixer == _gageStandardNixer
-		   ? NULL
-		   : pvl->padInfo);
-	ctx->nixer(pvl->npad, pvl->kind, padInfo);
-	pvl->npad = NULL;
-      }
-      if (ctx->padder) {
-	padInfo = (ctx->padder == _gageStandardPadder
-		   ? NULL
-		   : pvl->padInfo);
-	pvl->npad = nrrdNew();       /* doesn't use biff */
-	if (ctx->padder(pvl->npad, pvl->nin, pvl->kind,
-			ctx->havePad, padInfo)) {
-	  sprintf(err, "%s: trouble in padder callback", me);
-	  biffAdd(GAGE, err); return 1;
-	}
-	/* trust no one: make sure that the padder did the right
-	   amount of padding */
-	if (pvl->nin->dim != pvl->npad->dim) {
-	  sprintf(err, "%s: whoa: padder made %d-dim out of %d-dim nrrd", 
-		  me, pvl->npad->dim, pvl->nin->dim);
-	  biffAdd(GAGE, err); return 1;
-	}
-	bd = pvl->kind->baseDim;
-	nrrdAxesGet_nva(pvl->nin, nrrdAxesInfoSize, ninSize);
-	nrrdAxesGet_nva(pvl->npad, nrrdAxesInfoSize, npadSize);
-	if (!( (ninSize[bd+0] + 2*ctx->havePad == npadSize[bd+0]) &&
-	       (ninSize[bd+1] + 2*ctx->havePad == npadSize[bd+1]) &&
-	       (ninSize[bd+2] + 2*ctx->havePad == npadSize[bd+2]) )) {
-	  sprintf(err, "%s: padder padded sizes (%d,%d,%d) to (%d,%d,%d) "
-		  "instead of (%d,%d,%d) (havePad = %d)", me,
-		  ninSize[bd+0], ninSize[bd+1], ninSize[bd+2], 
-		  npadSize[bd+0], npadSize[bd+1], npadSize[bd+2],
-		  ninSize[bd+0] + 2*ctx->havePad,
-		  ninSize[bd+1] + 2*ctx->havePad,
-		  ninSize[bd+2] + 2*ctx->havePad, ctx->havePad);
-	  biffAdd(GAGE, err); return 1;
-	}
-	ctx->pvlFlag[gageFlagNpad] = AIR_TRUE;
-      }
-      pvl->flagNin = AIR_FALSE;
-    }
-  }
-  return 0;
-}
-
-/*
-** _gageSizesSet()
-**
-** dumb little function- just sets sx, sy, sz, and off[] values in the
-** context based on one of the padded volumes, but only if there are any
-**
-** Sets: ctx->sx, ctx->sy, ctx->sz, ctx->off[] (values)
-*/
 void
-_gageSizesSet(gageContext *ctx) {
-  int i, j, k, bd;
-  gagePerVolume *pvl;
+_gageOffValueUpdate(gageContext *ctx) {
+  char me[]="_gageOffValueUpdate";
+  int fd, i, j, k, sx, sy, sz;
 
-  if (ctx->numPvl) {
-    pvl = ctx->pvl[0];
-    bd = pvl->kind->baseDim;
-    ctx->sx = pvl->npad->axis[bd+0].size;
-    ctx->sy = pvl->npad->axis[bd+1].size;
-    ctx->sz = pvl->npad->axis[bd+2].size;
-    for (k=0; k<ctx->fd; k++)
-      for (j=0; j<ctx->fd; j++)
-	for (i=0; i<ctx->fd; i++)
-	  ctx->off[i + ctx->fd*(j + ctx->fd*k)] = i + ctx->sx*(j + ctx->sy*k);
-  }
+  if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
+  PADSIZE(sx, sy, sz, ctx);
+  fd = GAGE_FD(ctx);
+  /* HEY: look into special casing this for small fd */
+  for (k=0; k<fd; k++)
+    for (j=0; j<fd; j++)
+      for (i=0; i<fd; i++)
+	ctx->off[i + fd*(j + fd*k)] = i + sx*(j + sy*k);
+  /* no flags to set for further action */
+  if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
+  
+  return;
 }
 
 /*
@@ -387,89 +364,82 @@ _gageSizesSet(gageContext *ctx) {
 ** call just before probing begins.
 */
 int
-gageUpdate(gageContext *ctx) {
+gageUpdate (gageContext *ctx) {
   char me[]="gageUpdate", err[AIR_STRLEN_MED];
+  int i;
 
   if (!( ctx )) {
     sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  if (ctx->thisIsACopy) {
+    sprintf(err, "%s: can't operate on a context copy", me);
     biffAdd(GAGE, err); return 1;
   }
   if (0 == ctx->numPvl) {
     sprintf(err, "%s: context has no attached pervolumes", me);
     biffAdd(GAGE, err); return 1;
   }
-  if (ctx->pvlFlag[gageFlagNeedD]) {
-    if (ctx->verbose) {
-      fprintf(stderr, "%s: calling _gageNeedDSet()\n", me);
-    }
-    _gageNeedDSet(ctx);
-    ctx->pvlFlag[gageFlagNeedD] = AIR_FALSE;
-  }
-  if (ctx->flag[gageFlagNeedD] || ctx->flag[gageFlagK3Pack]) {
-    if (ctx->verbose) {
-      fprintf(stderr, "%s: calling _gageNeedKSet()\n", me);
-    }
-    _gageNeedKSet(ctx);
-    ctx->flag[gageFlagNeedD] = AIR_FALSE;
-    ctx->flag[gageFlagK3Pack] = AIR_FALSE;
-  }
-  if (ctx->flag[gageFlagNeedK] || ctx->flag[gageFlagKernel]) {
-    if (ctx->verbose) {
-      fprintf(stderr, "%s: calling _gageNeedPadSet()\n", me);
-    }
-    if (_gageNeedPadSet(ctx)) {
-      sprintf(err, "%s: ", me); biffAdd(GAGE, err); return 1;
-    }
-    ctx->flag[gageFlagNeedK] = AIR_FALSE;
-    ctx->flag[gageFlagKernel] = AIR_FALSE;
-  }
-  if (ctx->flag[gageFlagNRWS] || ctx->flag[gageFlagNeedPad]) {
-    if (ctx->verbose) {
-      fprintf(stderr, "%s: calling _gageHavePadSet()\n", me);
-    }
-    if (_gageHavePadSet(ctx)) {
-      sprintf(err, "%s: ", me); biffAdd(GAGE, err); return 1;
-    }
-    ctx->flag[gageFlagNRWS] = AIR_FALSE;
-    ctx->flag[gageFlagNeedPad] = AIR_FALSE;
-  }
-  if (ctx->verbose) 
-    fprintf(stderr, "%s: needPad = %d, havePad = %d\n", 
-	    me, ctx->needPad, ctx->havePad);
-  if (ctx->pvlFlag[gageFlagNin]) {
-    if (ctx->verbose) {
-      fprintf(stderr, "%s: calling _gageSpacingSet()\n", me);
-    }
-    if (_gageSpacingSet(ctx)) {
-      sprintf(err, "%s: ", me); biffAdd(GAGE, err); return 1;
-    }
-  }
-  if (ctx->pvlFlag[gageFlagNin] ||
-      ctx->flag[gageFlagPadder] ||
-      ctx->flag[gageFlagHavePad]) {
-    if (ctx->verbose) {
-      fprintf(stderr, "%s: calling _gageNpadSet()\n", me);
-    }
-    if (_gageNpadSet(ctx)) {
-      sprintf(err, "%s: ", me); biffAdd(GAGE, err); return 1;
-    }
-    ctx->pvlFlag[gageFlagNin] = AIR_FALSE;
-    ctx->flag[gageFlagPadder] = AIR_FALSE;
-    ctx->flag[gageFlagHavePad] = AIR_FALSE;
-  }
-  if (ctx->pvlFlag[gageFlagNpad]) {
-    if (ctx->verbose) {
-      fprintf(stderr, "%s: calling _gageSizesSet()\n", me);
-    }
-    _gageSizesSet(ctx);
-    ctx->pvlFlag[gageFlagNpad] = AIR_FALSE;
-  }
 
+  /* start traversing the whole update graph ... */
+  if (ctx->verbose) {
+    fprintf(stderr, "%s: hello ____________________ \n", me);
+    fprintf(stderr, "    context flags:");
+    for (i=gageCtxFlagUnknown+1; i<gageCtxFlagLast; i++) {
+      fprintf(stderr, " %d=%d", i, ctx->flag[i]);
+    }
+    fprintf(stderr, "\n");
+    fprintf(stderr, "    pvl flags:");
+    for (i=gagePvlFlagUnknown+1; i<gagePvlFlagLast; i++) {
+      fprintf(stderr, " %d=%d", i, _gagePvlFlagCheck(ctx, i));
+    }
+    fprintf(stderr, "\n");
+  }
+  if (_gagePvlFlagCheck(ctx, gagePvlFlagQuery)) {
+    _gagePvlNeedDUpdate(ctx);
+    _gagePvlFlagDown(ctx, gagePvlFlagQuery);
+  }
+  if (_gagePvlFlagCheck(ctx, gagePvlFlagNeedD)) {
+    _gageNeedDUpdate(ctx);
+    _gagePvlFlagDown(ctx, gagePvlFlagNeedD);
+  }
+  if (ctx->flag[gageCtxFlagNeedD] || ctx->flag[gageCtxFlagK3Pack]) {
+    _gageNeedKUpdate(ctx);
+    ctx->flag[gageCtxFlagNeedD] = AIR_FALSE;
+    ctx->flag[gageCtxFlagK3Pack] = AIR_FALSE;
+  }
+  if (ctx->flag[gageCtxFlagKernel] || ctx->flag[gageCtxFlagNeedK]) {
+    if (_gageHavePadUpdate(ctx)) {
+      sprintf(err, "%s: trouble", me); biffAdd(GAGE, err); return 1;
+    }
+    ctx->flag[gageCtxFlagKernel] = AIR_FALSE;
+    ctx->flag[gageCtxFlagNeedK] = AIR_FALSE;
+  }
+  if (ctx->flag[gageCtxFlagHavePad]
+      || _gagePvlFlagCheck(ctx, gagePvlFlagPadder)
+      || _gagePvlFlagCheck(ctx, gagePvlFlagPadInfo)) {
+    if (_gageNpadUpdate(ctx)) {
+      sprintf(err, "%s: trouble", me); biffAdd(GAGE, err); return 1;
+    }
+    _gagePvlFlagDown(ctx, gagePvlFlagPadder);
+    _gagePvlFlagDown(ctx, gagePvlFlagPadInfo);
+  }
+  if (ctx->flag[gageCtxFlagHavePad]) {
+    if (_gageCacheSizeUpdate(ctx)) {
+      sprintf(err, "%s: trouble", me); biffAdd(GAGE, err); return 1;
+    }
+  }
+  if (ctx->flag[gageCtxFlagHavePad]
+      || ctx->flag[gageCtxFlagShape]) {
+    _gageOffValueUpdate(ctx);
+    ctx->flag[gageCtxFlagShape] = AIR_FALSE;
+  }
+  ctx->flag[gageCtxFlagHavePad] = AIR_FALSE;
+    
   /* chances are, something above has invalidated the state maintained
      during successive calls to gageProbe() */
-  ctx->xf = ctx->yf = ctx->zf = AIR_NAN;
-  ctx->bidx = -1;
+  gagePointReset(&ctx->point);
+  if (ctx->verbose) fprintf(stderr, "%s: bye ^^^^^^^^^^^^^^^^^^^ \n", me);
 
   return 0;
 }
-

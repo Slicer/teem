@@ -42,4 +42,7 @@ int
 gageDefK3Pack = AIR_TRUE;
 
 double
-gageDefIntegralNearZero = 0.0001;
+gageDefKernelIntegralNearZero = 0.0001;
+
+int
+gageDefCenter = nrrdCenterNode;

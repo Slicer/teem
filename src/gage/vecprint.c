@@ -21,7 +21,7 @@
 #include "privateGage.h"
 
 void
-_gageVecPrint_query(FILE *file, unsigned int query) {
+_gageVecPrint_query (FILE *file, unsigned int query) {
   unsigned int q;
 
   fprintf(file, "query = %u ...\n", query);
@@ -35,7 +35,7 @@ _gageVecPrint_query(FILE *file, unsigned int query) {
 }
 
 void
-_gageVecIv3Print(FILE *file, gageContext *ctx, gagePerVolume *pvl) {
+_gageVecIv3Print (FILE *file, gageContext *ctx, gagePerVolume *pvl) {
   
   fprintf(file, "_gageVecIv3Print() not implemented\n");
 }

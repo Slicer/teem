@@ -31,18 +31,18 @@
 ** nrrdKernelForwDiff) is a good example of this.
 */
 void
-_gageFslSet(gageContext *ctx) {
+_gageFslSet (gageContext *ctx) {
   int fr, i;
   gage_t *fslx, *fsly, *fslz;
   gage_t xf, yf, zf;
 
-  fr = ctx->fr;
+  fr = GAGE_FR(ctx);
   fslx = ctx->fsl + 0*2*fr;
   fsly = ctx->fsl + 1*2*fr;
   fslz = ctx->fsl + 2*2*fr;
-  xf = ctx->xf;
-  yf = ctx->yf;
-  zf = ctx->zf;
+  xf = ctx->point.xf;
+  yf = ctx->point.yf;
+  zf = ctx->point.zf;
   switch (fr) {
   case 1:
     fslx[0] = xf; fslx[1] = xf-1;
@@ -72,15 +72,15 @@ _gageFslSet(gageContext *ctx) {
 ** integral of the kernel
 */
 void
-_gageFwValueRenormalize(gageContext *ctx, int wch) {
+_gageFwValueRenormalize (gageContext *ctx, int wch) {
   gage_t integral, sumX, sumY, sumZ, *fwX, *fwY, *fwZ;
   int i, fd;
 
-  fd = ctx->fd;
+  fd = GAGE_FD(ctx);
   fwX = ctx->fw + 0 + fd*(0 + 3*wch);
   fwY = ctx->fw + 0 + fd*(1 + 3*wch);
   fwZ = ctx->fw + 0 + fd*(2 + 3*wch);
-  integral = ctx->k[wch]->integral(ctx->kparm[wch]);
+  integral = ctx->ksp[wch]->kernel->integral(ctx->ksp[wch]->parm);
   sumX = sumY = sumZ = 0;
   for (i=0; i<fd; i++) {
     sumX += fwX[i];
@@ -101,13 +101,13 @@ _gageFwValueRenormalize(gageContext *ctx, int wch) {
 ** sign of individual weights must be preserved
 */
 void
-_gageFwDerivRenormalize(gageContext *ctx, int wch) {
+_gageFwDerivRenormalize (gageContext *ctx, int wch) {
   char me[]="_gageFwDerivRenormalize";
   gage_t negX, negY, negZ, posX, posY, posZ, fixX, fixY, fixZ,
     *fwX, *fwY, *fwZ;
   int i, fd;
 
-  fd = ctx->fd;
+  fd = GAGE_FD(ctx);
   fwX = ctx->fw + 0 + fd*(0 + 3*wch);
   fwY = ctx->fw + 0 + fd*(1 + 3*wch);
   fwZ = ctx->fw + 0 + fd*(2 + 3*wch);
@@ -137,24 +137,25 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
 }
 
 void
-_gageFwSet(gageContext *ctx) {
+_gageFwSet (gageContext *ctx) {
   char me[]="_gageFwSet";
   int i, j, fd;
   gage_t *fwX, *fwY, *fwZ;
 
-  fd = ctx->fd;
+  fd = GAGE_FD(ctx);
   for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
     if (!ctx->needK[i])
       continue;
     /* we evaluate weights for all three axes with one call */
-    ctx->k[i]->EVALN(ctx->fw + 3*fd*i, ctx->fsl, 3*ctx->fd, ctx->kparm[i]);
+    ctx->ksp[i]->kernel->EVALN(ctx->fw + 3*fd*i, ctx->fsl,
+			       3*fd, ctx->ksp[i]->parm);
   }
 
   if (ctx->verbose > 1) {
     fprintf(stderr, "%s: filter weights after kernel evaluation:\n", me);
     _gagePrint_fslw(stderr, ctx);
   }
-  if (ctx->renormalize) {
+  if (ctx->parm.renormalize) {
     for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       if (!ctx->needK[i])
 	continue;
@@ -176,7 +177,9 @@ _gageFwSet(gageContext *ctx) {
   }
 
   /* fix weightings for non-unit-spacing samples */
-  if (!( 1.0 == ctx->xs && 1.0 == ctx->ys && 1.0 == ctx->zs )) {
+  if (!( 1.0 == ctx->shape.xs &&
+	 1.0 == ctx->shape.ys &&
+	 1.0 == ctx->shape.zs )) {
     for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       if (!ctx->needK[i])
 	continue;
@@ -186,9 +189,9 @@ _gageFwSet(gageContext *ctx) {
       fwY = ctx->fw + 0 + fd*(1 + 3*i);
       fwZ = ctx->fw + 0 + fd*(2 + 3*i);
       for (j=0; j<fd; j++) {
-	fwX[j] *= ctx->fwScale[i][0];
-	fwY[j] *= ctx->fwScale[i][1];
-	fwZ[j] *= ctx->fwScale[i][2];
+	fwX[j] *= ctx->shape.fwScale[i][0];
+	fwY[j] *= ctx->shape.fwScale[i][1];
+	fwZ[j] *= ctx->shape.fwScale[i][2];
       }
     }
     if (ctx->verbose > 1) {
@@ -203,67 +206,78 @@ _gageFwSet(gageContext *ctx) {
 **
 ** updates probe location in general context, and things which
 ** depend on it:
-** bidx, fsl, fw
+** fsl, fw
+**
+** (x,y,z) is in the unpadded volume
 **
 ** does NOT use biff, but returns 1 on error and 0 if all okay
 ** Currently only error is probing outside volume, which sets
 ** gageErrNum=0 and sprints message into gageErrStr.
 */
 int
-_gageLocationSet(gageContext *ctx, int *newBidxP,
-		 gage_t x, gage_t y, gage_t z) {
+_gageLocationSet (gageContext *ctx, gage_t x, gage_t y, gage_t z) {
   char me[]="_gageProbeLocationSet";
-  int tx, ty, tz,     /* "top" x, y, z: highest valid floating point
-			 value for position in unpadded volume */
-    xi, yi, zi,       /* computed integral positions in unpadded
-                         volume */
-    dif,              /* difference between coordinates between 
-			 "havePad"- and "needPad"-padded volumes */
-    bidx;             /* base index in padded volume */   
+  int tx, ty, tz,  /* "top" x, y, z: highest valid index in UNPADDED volume */
+    xi, yi, zi;    /* computed integral positions in PADDED volume */
   gage_t xf, yf, zf;
-  
-  tx = ctx->sx - 2*ctx->havePad - 1;
-  ty = ctx->sy - 2*ctx->havePad - 1;
-  tz = ctx->sz - 2*ctx->havePad - 1;
-  if (!( AIR_INSIDE(0,x,tx) && AIR_INSIDE(0,y,ty) && AIR_INSIDE(0,z,tz) )) {
-    sprintf(gageErrStr, "%s: position (%g,%g,%g) outside bounds "
-	    "[0..%d,0..%d,0..%d]",
-	    me, (float)x, (float)y, (float)z, tx, ty, tz);
-    gageErrNum = 0;
-    return 1;
-  }
-  /* else */
 
-  xi = x; xi -= xi == tx; xf = x - xi;
-  yi = y; yi -= yi == ty; yf = y - yi;
-  zi = z; zi -= zi == tz; zf = z - zi;
-  dif = ctx->havePad - ctx->needPad;
-  bidx = xi + dif + ctx->sx*(yi + dif + ctx->sy*(zi + dif));
+  tx = ctx->shape.sx - 1;
+  ty = ctx->shape.sy - 1;
+  tz = ctx->shape.sz - 1;
+  /* 
+  ** the {x,y,z}i integral positions are first computed in unpadded
+  ** space (as are the {x,y,z}f fractional positions) ... 
+  */
+  if (nrrdCenterNode == ctx->shape.center) {
+    if (!( AIR_IN_CL(0,x,tx) && 
+	   AIR_IN_CL(0,y,ty) && 
+	   AIR_IN_CL(0,z,tz) )) {
+      sprintf(gageErrStr, "%s: position (%g,%g,%g) outside (node-centered) "
+	      "bounds [0,%d]x[0,%d]x[0,%d]",
+	      me, (float)x, (float)y, (float)z, tx, ty, tz);
+      gageErrNum = 0;
+      return 1;
+    }
+    xi = x; xi -= xi == tx; xf = x - xi;
+    yi = y; yi -= yi == ty; yf = y - yi;
+    zi = z; zi -= zi == tz; zf = z - zi;
+  } else {
+    if (!( AIR_IN_CL(-0.5,x,tx+0.5) &&
+	   AIR_IN_CL(-0.5,y,ty+0.5) &&
+	   AIR_IN_CL(-0.5,z,tz+0.5) )) {
+      sprintf(gageErrStr, "%s: position (%g,%g,%g) outside (cell-centered) "
+	      "bounds [-0.5,%f]x[-0.5,%f]x[-0.5,%f]",
+	      me, (float)x, (float)y, (float)z, tx+0.5, ty+0.5, tz+0.5);
+      gageErrNum = 0;
+      return 1;
+    }
+    xi = (int)(x+1)-1; xi = AIR_CLAMP(0, xi, tx-1); xf = x - xi;
+    yi = (int)(y+1)-1; yi = AIR_CLAMP(0, yi, ty-1); yf = y - yi;
+    zi = (int)(z+1)-1; zi = AIR_CLAMP(0, zi, tz-1); zf = z - zi;
+  }
+  /* now {x,y,z}i are shifted to padded space */
+  ctx->point.xi = xi + ctx->havePad;
+  ctx->point.yi = yi + ctx->havePad;
+  ctx->point.zi = zi + ctx->havePad;
   if (ctx->verbose > 1) {
     fprintf(stderr, "%s: \n"
-	    "        pos (% 15.7f,% 15.7f,% 15.7f) \n"
+	    "        pos (% 15.7f,% 15.7f,% 15.7f) (unpadded) \n"
 	    "        -> i(%5d,%5d,%5d) (unpadded) \n"
 	    "        -> i(%5d,%5d,%5d) (padded) \n"
-	    "         + f(% 15.7f,% 15.7f,% 15.7f) \n"
-	    "        -> bidx = %d\n",
+	    "         + f(% 15.7f,% 15.7f,% 15.7f) \n",
 	    me,
 	    (float)x, (float)y, (float)z,
 	    xi, yi, zi,
-	    xi + dif, yi + dif, zi + dif,
-	    (float)xf, (float)yf, (float)zf,
-	    bidx);
-  }
-  if (ctx->bidx != bidx) {
-    *newBidxP = AIR_TRUE;
-    ctx->bidx = bidx;
-  } else {
-    *newBidxP = AIR_FALSE;
+	    ctx->point.xi, ctx->point.yi, ctx->point.zi,
+	    (float)xf, (float)yf, (float)zf);
   }
   
-  if (!( ctx->xf == xf && ctx->yf == yf && ctx->zf == zf )) {
-    ctx->xf = xf;
-    ctx->yf = yf;
-    ctx->zf = zf;
+  if (!( ctx->point.xf == xf &&
+	 ctx->point.yf == yf &&
+	 ctx->point.zf == zf )) {
+    ctx->point.xf = xf;
+    ctx->point.yf = yf;
+    ctx->point.zf = zf;
     /* these may take some time (especially if using renormalization),
        hence the conditional above */
     _gageFslSet(ctx);

@@ -21,7 +21,7 @@
 #include "privateGage.h"
 
 void
-_gageSclPrint_query(FILE *file, unsigned int query) {
+_gageSclPrint_query (FILE *file, unsigned int query) {
   unsigned int q;
 
   fprintf(file, "query = %u ...\n", query);
@@ -35,12 +35,12 @@ _gageSclPrint_query(FILE *file, unsigned int query) {
 }
 
 void
-_gageSclIv3Print(FILE *file, gageContext *ctx, gagePerVolume *pvl) {
+_gageSclIv3Print (FILE *file, gageContext *ctx, gagePerVolume *pvl) {
   gage_t *iv3;
   int i, fd;
 
   iv3 = pvl->iv3;
-  fd = ctx->fd;
+  fd = GAGE_FD(ctx);
   fprintf(file, "iv3[]:\n");
   switch(fd) {
   case 2:

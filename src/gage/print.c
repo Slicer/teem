@@ -21,11 +21,11 @@
 #include "privateGage.h"
 
 void
-_gagePrint_off(FILE *file, gageContext *ctx) {
+_gagePrint_off (FILE *file, gageContext *ctx) {
   int i, fd;
   unsigned int *off;
 
-  fd = ctx->fd;
+  fd = GAGE_FD(ctx);
   off = ctx->off;
   fprintf(stderr, "off[]:\n");
   switch(fd) {
@@ -86,7 +86,7 @@ _gagePrint_off(FILE *file, gageContext *ctx) {
    if (ctx->needK[gageKernel22]) { HOW(22,C); }
 
 void
-_gagePrint_fslw(FILE *file, gageContext *ctx) {
+_gagePrint_fslw (FILE *file, gageContext *ctx) {
   int i, fd;
   gage_t *fslx, *fsly, *fslz, *fw,
     *fw000, *fw001, *fw002, 
@@ -98,7 +98,7 @@ _gagePrint_fslw(FILE *file, gageContext *ctx) {
 
   /* float *p; */
 
-  fd = ctx->fd;
+  fd = GAGE_FD(ctx);
   fslx = ctx->fsl + fd*0;
   fsly = ctx->fsl + fd*1;
   fslz = ctx->fsl + fd*2;
@@ -162,4 +162,3 @@ _gagePrint_fslw(FILE *file, gageContext *ctx) {
   }
   return;
 }
-

@@ -48,6 +48,17 @@ _gageKernelStr[][AIR_STRLEN_SMALL] = {
   "22"
 };
 
+char
+_gageKernelDesc[][AIR_STRLEN_MED] = {
+  "unknown kernel",
+  "kernel for reconstructing values",
+  "kernel for reconstruction values when doing 1st derivatives",
+  "kernel for measuring 1st derivatives when doing 1st derivatives",
+  "kernel for reconstruction values when doing 2nd derivatives",
+  "kernel for measuring 1st derivatives when doing 2nd derivatives",
+  "kernel for measuring 2nd derivatives when doing 2nd derivatives"
+};
+
 int
 _gageKernelVal[] = {
   gageKernelUnknown,
@@ -85,24 +96,12 @@ _gageKernel_enum = {
   "kernel",
   GAGE_KERNEL_NUM,
   _gageKernelStr, _gageKernelVal,
+  _gageKernelDesc,
   _gageKernelStrEqv, _gageKernelValEqv,
   AIR_FALSE
 };
 airEnum *
 gageKernel = &_gageKernel_enum;
-
-int
-_gagePerVolumeAttached(gageContext *ctx, gagePerVolume *pvl) {
-  int i, ret;
-
-  ret = AIR_FALSE;
-  for (i=0; i<ctx->numPvl; i++) {
-    if (pvl == ctx->pvl[i]) {
-      ret = AIR_TRUE;
-    }
-  }
-  return ret;
-}
 
 /*
 ** _gageStandardPadder()
@@ -115,39 +114,47 @@ _gagePerVolumeAttached(gageContext *ctx, gagePerVolume *pvl) {
 **
 ** Any padder used in gage must, if it generates biff errors, 
 ** accumulate them under the GAGE key.  This padder is a shining
-** example of this.  */
-int
-_gageStandardPadder(Nrrd *npad, Nrrd *nin, gageKind *kind, 
-		    int padding, void *_info) {
+** example of this.
+*/
+Nrrd *
+_gageStandardPadder (Nrrd *nin, gageKind *kind, 
+		     int padding, gagePerVolume *pvl) {
+  Nrrd *npad;
   char me[]="_gageStandardPadder", err[AIR_STRLEN_MED];
   int i, min[NRRD_DIM_MAX], max[NRRD_DIM_MAX], baseDim;
 
-  if (!(npad && nin && kind)) {
+  if (!(nin && kind)) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
+    biffAdd(GAGE, err); return NULL;
   }
 
   baseDim = kind->baseDim;
   if (!( padding >= 0 )) {
     sprintf(err, "%s: given padding %d invalid", me, padding);
-    biffAdd(GAGE, err); return 1;
+    biffAdd(GAGE, err); return NULL;
   }
-  for (i=0; i<baseDim; i++) {
-    min[i] = 0;
-    max[i] = nin->axis[i].size - 1;
+  if (0 == padding) {
+    /* we can use the original volume if we promise not to blow it away,
+       see _gageStandardNixer() */
+    return nin;
+  } else {
+    npad = nrrdNew();
+    for (i=0; i<baseDim; i++) {
+      min[i] = 0;
+      max[i] = nin->axis[i].size - 1;
+    }
+    min[0 + baseDim] = -padding;
+    min[1 + baseDim] = -padding;
+    min[2 + baseDim] = -padding;
+    max[0 + baseDim] = nin->axis[0 + baseDim].size - 1 + padding;
+    max[1 + baseDim] = nin->axis[1 + baseDim].size - 1 + padding;
+    max[2 + baseDim] = nin->axis[2 + baseDim].size - 1 + padding;
+    if (nrrdPad(npad, nin, min, max, nrrdBoundaryBleed)) {
+      sprintf(err, "%s: trouble padding input volume", me);
+      biffMove(GAGE, err, NRRD); return NULL;
+    }
   }
-  min[0 + baseDim] = -padding;
-  min[1 + baseDim] = -padding;
-  min[2 + baseDim] = -padding;
-  max[0 + baseDim] = nin->axis[0 + baseDim].size - 1 + padding;
-  max[1 + baseDim] = nin->axis[1 + baseDim].size - 1 + padding;
-  max[2 + baseDim] = nin->axis[2 + baseDim].size - 1 + padding;
-  if (nrrdPad(npad, nin, min, max, nrrdBoundaryBleed)) {
-    sprintf(err, "%s: trouble padding input volume", me);
-    biffMove(GAGE, err, NRRD); return 1;
-  }
-  
-  return 0;
+  return npad;
 }
 
 /*
@@ -166,7 +173,34 @@ _gageStandardPadder(Nrrd *npad, Nrrd *nin, gageKind *kind,
 ** is a shining example of this.
 */
 void
-_gageStandardNixer(Nrrd *npad, gageKind *kind, void *_info) {
+_gageStandardNixer (Nrrd *npad, gageKind *kind, gagePerVolume *pvl) {
 
-  nrrdNuke(npad);
+  if (npad != pvl->nin) {
+    nrrdNuke(npad);
+  }
+}
+
+void
+gageParmReset(gageParm *parm) {
+
+  if (parm) {
+    parm->renormalize = gageDefRenormalize;
+    parm->checkIntegrals = gageDefCheckIntegrals;
+    parm->noRepadWhenSmaller = gageDefNoRepadWhenSmaller;
+    parm->k3pack = gageDefK3Pack;
+    parm->gradMagMin = gageDefGradMagMin;
+    parm->gradMagCurvMin = gageDefGradMagCurvMin;
+    parm->kernelIntegralNearZero = gageDefKernelIntegralNearZero;
+  }
+  return;
+}
+
+void
+gagePointReset(gagePoint *point) {
+
+  if (point) {
+    point->xf = point->yf = point->zf = AIR_NAN;
+    point->xi = point->yi = point->zi = -1;
+  }
+  return;
 }

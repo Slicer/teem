@@ -40,27 +40,28 @@ extern "C" {
 #  define EVALN evalN_d               /* NrrdKernel method */
 #endif
 
-#define RESET(p) p = airFree(p)
+#define PADSIZE(sx, sy, sz, ctx) \
+  ((sx) = (ctx)->shape.sx + 2*((ctx)->havePad), \
+   (sy) = (ctx)->shape.sy + 2*((ctx)->havePad), \
+   (sz) = (ctx)->shape.sz + 2*((ctx)->havePad))
+#define ANSWER(pvl, m) \
+  ((pvl)->ans + (pvl)->kind->ansOffset[(m)])
+
+/* pvl.c */
+extern gagePerVolume *_gagePerVolumeCopy(gagePerVolume *pvl, int fd);
 
 /* print.c */
 extern void _gagePrint_off(FILE *, gageContext *ctx);
 extern void _gagePrint_fslw(FILE *, gageContext *ctx);
 
 /* filter.c */
-extern int _gageLocationSet(gageContext *ctx, int *newBidxP,
-			    gage_t x, gage_t y, gage_t z);
-
-/* scl.c */
-extern int _gageSclNeedDeriv[GAGE_SCL_MAX+1];
-extern unsigned int _gageSclPrereq[GAGE_SCL_MAX+1];
-  /* extern airEnum _gageScl; */
+extern int _gageLocationSet(gageContext *ctx, gage_t x, gage_t y, gage_t z);
 
 /* sclprint.c */
 extern void _gageSclPrint_query(FILE *, unsigned int query);
 extern void _gageSclIv3Print(FILE *, gageContext *ctx, gagePerVolume *pvl);
 
 /* sclfilter.c */
-extern void _gageSclIv3Fill(gageContext *ctx, gagePerVolume *pvl, void *here);
 extern void _gageScl3PFilter2(GT *iv3, GT *iv2, GT *iv1,
 			      GT *fw00, GT *fw11, GT *fw22,
 			      GT *val, GT *gvec, GT *hess,
@@ -84,10 +85,10 @@ extern void _gageVecPrint_query(FILE *, unsigned int query);
 extern void _gageVecIv3Print(FILE *, gageContext *ctx, gagePerVolume *pvl);
 
 /* misc.c */
-extern int _gagePerVolumeAttached(gageContext *ctx, gagePerVolume *pvl);
-extern int _gageStandardPadder(Nrrd *npad, Nrrd *nin, gageKind *kind,
-			       int padding, void *_info);
-extern void _gageStandardNixer(Nrrd *npad, gageKind *kind, void *_info);
+extern Nrrd* _gageStandardPadder(Nrrd *nin, gageKind *kind,
+				 int padding, gagePerVolume *pvl);
+extern void _gageStandardNixer(Nrrd *npad, gageKind *kind,
+			       gagePerVolume *pvl);
 
 #ifdef __cplusplus
 }

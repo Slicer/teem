@@ -21,84 +21,96 @@
 #include "privateGage.h"
 
 void
-_gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
+_gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageSclAnswer";
   unsigned int query;
-  gage_t len, sHess[9], gp1[3], gp2[3], nPerp[9], 
-    ginv, gmag=0;
-  double tmpMat[9], tmpVec[3], hevec[9], heval[3], T, N, D;
-  gageSclAnswer *san;
+  gage_t *ans, gmag=0, *hess, *norm, *gvec, *gten, *k1, *k2, sHess[9], curv=0;
+  double tmpMat[9], tmpVec[3], hevec[9], heval[3];
+  int *offset;
+
+  gage_t len, gp1[3], gp2[3], nPerp[9];
+  double T, N, D;
 
   query = pvl->query;
-  san = (gageSclAnswer *)pvl->ansStruct;
+  ans = pvl->ans;
+  /* convenience pointers for work below */
+  offset = gageKindScl->ansOffset;
+  hess = ans + offset[gageSclHessian];
+  gvec = ans + offset[gageSclGradVec];
+  norm = ans + offset[gageSclNormal];
+  gten = ans + offset[gageSclGeomTens];
+  k1 = ans + offset[gageSclK1];
+  k2 = ans + offset[gageSclK2];
+  
   if (1 & (query >> gageSclValue)) {
     /* done if doV */
     if (ctx->verbose) {
-      fprintf(stderr, "val = % 15.7f\n", (double)(san->val[0]));
+      fprintf(stderr, "val = % 15.7f\n", (double)(ans[offset[gageSclValue]]));
     }
   }
   if (1 & (query >> gageSclGradVec)) {
     /* done if doD1 */
     if (ctx->verbose) {
       fprintf(stderr, "gvec = ");
-      ell3vPRINT(stderr, san->gvec);
+      ell3vPRINT(stderr, gvec);
     }
   }
   if (1 & (query >> gageSclGradMag)) {
-    san->gmag[0] = sqrt(ELL_3V_DOT(san->gvec, san->gvec));
+    /* this is the true value of gradient magnitude */
+    gmag = ans[offset[gageSclGradMag]] = sqrt(ELL_3V_DOT(gvec, gvec));
   }
+
+  /* NB: it would seem that gageParmGradMagMin is completely ignored ... */
+
   if (1 & (query >> gageSclNormal)) {
-    /* this will always set gmag */
-    if (san->gmag[0]) {
-      ELL_3V_SCALE(san->norm, 1.0/san->gmag[0], san->gvec);
+    if (gmag) {
+      ELL_3V_SCALE(norm, 1.0/gmag, gvec);
       /* polishing ... 
-      len = sqrt(ELL_3V_DOT(san->norm, san->norm));
-      ELL_3V_SCALE(san->norm, 1.0/len, san->norm);
+      len = sqrt(ELL_3V_DOT(norm, norm));
+      ELL_3V_SCALE(norm, 1.0/len, norm);
       */
-      gmag = san->gmag[0];
     } else {
-      ELL_3V_COPY(san->norm, gageZeroNormal);
-      gmag = ctx->gradMagMin;
+      ELL_3V_COPY(norm, gageZeroNormal);
     }
   }
   if (1 & (query >> gageSclHessian)) {
     /* done if doD2 */
     if (ctx->verbose) {
       fprintf(stderr, "%s: hess = \n", me);
-      ell3mPRINT(stderr, san->hess);
+      ell3mPRINT(stderr, hess);
     }
   }
   if (1 & (query >> gageSclLaplacian)) {
-    san->lapl[0] = san->hess[0] + san->hess[4] + san->hess[8];
+    ans[offset[gageSclLaplacian]] = hess[0] + hess[4] + hess[8];
     if (ctx->verbose) {
       fprintf(stderr, "%s: lapl = %g + %g + %g  = %g\n", me,
-	      san->hess[0], san->hess[4], san->hess[8],
-	      san->lapl[0]);
+	      hess[0], hess[4], hess[8], ans[offset[gageSclLaplacian]]);
     }
   }
   if (1 & (query >> gageSclHessEval)) {
-    ELL_3M_COPY(tmpMat, san->hess);
+    ELL_3M_COPY(tmpMat, hess);
     /* HEY: look at the return value for root multiplicity? */
+    /* NB: we have solve and then copy because of possible type
+       mismatch between double and gage_t */
     ell3mEigensolve(heval, hevec, tmpMat, AIR_TRUE);
-    ELL_3V_COPY(san->heval, heval);
+    ELL_3V_COPY(ans+offset[gageSclHessEval], heval);
   }
   if (1 & (query >> gageSclHessEvec)) {
-    ELL_3M_COPY(san->hevec, hevec);
+    ELL_3M_COPY(ans+offset[gageSclHessEvec], hevec);
   }
   if (1 & (query >> gageScl2ndDD)) {
-    ELL_3MV_MUL(tmpVec, san->hess, san->norm);
-    san->scnd[0] = ELL_3V_DOT(san->norm, tmpVec);
+    ELL_3MV_MUL(tmpVec, hess, norm);
+    ans[offset[gageScl2ndDD]] = ELL_3V_DOT(norm, tmpVec);
   }
   if (1 & (query >> gageSclGeomTens)) {
-    if (gmag - ctx->gradMagMin >= ctx->gradMagCurvMin) {
-      ginv = 1.0/gmag;
+    if (gmag >= ctx->parm.gradMagCurvMin) {
       /* we flip the sign as well as scaling the Hessian, so that when
 	 values "inside" an isosurface are higher, we get the expected
 	 sense: the normal points outwards from a surface */
-      ELL_3M_SCALE(sHess, -ginv, san->hess);
+      ELL_3M_SCALE(sHess, -1.0/gmag, hess);
       /* nPerp = I - outer(norm, norm): matrix which projects onto the
 	 plane perpendicular to the normal */
-      ELL_3MV_OUTER(nPerp, san->norm, san->norm);
+      ELL_3MV_OUTER(nPerp, norm, norm);
       ELL_3M_SCALE(nPerp, -1, nPerp);
       nPerp[0] += 1;
       nPerp[4] += 1;
@@ -106,76 +118,71 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
       
       /* san->gten = nPerp * sHess * nPerp */
       ELL_3M_MUL(tmpMat, sHess, nPerp);
-      ELL_3M_MUL(san->gten, nPerp, tmpMat);
-      
+      ELL_3M_MUL(gten, nPerp, tmpMat);
 
       if (ctx->verbose) {
 	fprintf(stderr, "gten: \n");
-	ell3mPRINT(stderr, san->gten);
-	ELL_3MV_MUL(tmpVec, san->gten, san->norm); len = ELL_3V_LEN(tmpVec);
+	ell3mPRINT(stderr, gten);
+	ELL_3MV_MUL(tmpVec, gten, norm);
+	len = ELL_3V_LEN(tmpVec);
 	fprintf(stderr, "should be small: %30.15f\n", (double)len);
-	ell3vPERP(gp1, san->norm);
-	ELL_3MV_MUL(tmpVec, san->gten, gp1); len = ELL_3V_LEN(tmpVec);
+	ell3vPERP(gp1, norm);
+	ELL_3MV_MUL(tmpVec, gten, gp1);
+	len = ELL_3V_LEN(tmpVec);
 	fprintf(stderr, "should be bigger: %30.15f\n", (double)len);
-	ELL_3V_CROSS(gp2, gp1, san->norm);
-	ELL_3MV_MUL(tmpVec, san->gten, gp2); len = ELL_3V_LEN(tmpVec);
-	fprintf(stderr, "should be bigger: %30.15f\n", (double)len);
+	ELL_3V_CROSS(gp2, gp1, norm);
+	ELL_3MV_MUL(tmpVec, gten, gp2);
+	len = ELL_3V_LEN(tmpVec);
+	fprintf(stderr, "should (also) be bigger: %30.15f\n", (double)len);
       }
     } else {
-      ELL_3M_SET_ZERO(san->gten);
+      ELL_3M_SET_ZERO(gten);
     }
   }
   if (1 && (query >> gageSclCurvedness)) {
-    san->C[0] = ELL_3M_L2NORM(san->gten);
+    curv = ans[offset[gageSclCurvedness]] = ELL_3M_L2NORM(gten);
   }
   if (1 && (query >> gageSclShapeTrace)) {
-    san->St[0] = (san->C[0] 
-		  ? ELL_3M_TRACE(san->gten)/san->C[0]
-		  : 0);
+    ans[offset[gageSclShapeTrace]] = (curv
+				      ? ELL_3M_TRACE(gten)/curv
+				      : 0);
   }
-  if (1 && (query >> gageSclK1K2)) {
-    T = ELL_3M_TRACE(san->gten);
-    N = san->C[0];
+  if ( (1 && (query >> gageSclK1)) ||
+       (1 && (query >> gageSclK2)) ){
+    T = ELL_3M_TRACE(gten);
+    N = curv;
     D = 2*N*N - T*T;
     if (D < -0.0000001) {
       fprintf(stderr, "%s: %g %g\n", me, T, N);
       fprintf(stderr, "%s: !!! D curv determinant % 22.10f < 0.0\n", me, D);
-	fprintf(stderr, "gten: \n");
-	ell3mPRINT(stderr, san->gten);
+      fprintf(stderr, "gten: \n");
+      ell3mPRINT(stderr, gten);
     }
     D = AIR_MAX(D, 0);
     D = sqrt(D);
-    san->k1k2[0] = 0.5*(T + D);
-    san->k1k2[1] = 0.5*(T - D);
+    k1[0] = 0.5*(T + D);
+    k2[0] = 0.5*(T - D);
   }
   if (1 && (query >> gageSclMeanCurv)) {
-    san->mc[0] = (san->k1k2[0] + san->k1k2[1])/2;
+    ans[offset[gageSclMeanCurv]] = (*k1 + *k2)/2;
   }
   if (1 && (query >> gageSclGaussCurv)) {
-    san->gc[0] = san->k1k2[0]*san->k1k2[1];
+    ans[offset[gageSclGaussCurv]] = (*k1)*(*k2);
   }
   if (1 && (query >> gageSclShapeIndex)) {
-    san->Si[0] = -(2/M_PI)*atan2(san->k1k2[0] + san->k1k2[1],
-				 san->k1k2[0] - san->k1k2[1]);
+    ans[offset[gageSclShapeIndex]] = -(2/M_PI)*atan2(*k1 + *k2, *k1 - *k2);
   }
   if (1 & (query >> gageSclCurvDir)) {
     /* HEY: this only works when K1, K2, 0 are all well mutually distinct,
        since these are the eigenvalues of the geometry tensor, and this
        code assumes that the eigenspaces are all one-dimensional */
-    ELL_3M_COPY(tmpMat, san->gten);
-    ELL_3M_SET_DIAG(tmpMat,
-		    san->gten[0]-san->k1k2[0],
-		    san->gten[4]-san->k1k2[0],
-		    san->gten[8]-san->k1k2[0]);
+    ELL_3M_COPY(tmpMat, gten);
+    ELL_3M_SET_DIAG(tmpMat, gten[0] - *k1, gten[4]- *k1, gten[8] - *k1);
     ell3mNullspace1(tmpVec, tmpMat);
-    ELL_3V_COPY(san->cdir+0, tmpVec);
-    ELL_3M_SET_DIAG(tmpMat,
-		    san->gten[0]-san->k1k2[1],
-		    san->gten[4]-san->k1k2[1],
-		    san->gten[8]-san->k1k2[1]);
+    ELL_3V_COPY(ans+offset[gageSclCurvDir]+0, tmpVec);
+    ELL_3M_SET_DIAG(tmpMat, gten[0] - *k2, gten[4] - *k2, gten[8] - *k2);
     ell3mNullspace1(tmpVec, tmpMat);
-    ELL_3V_COPY(san->cdir+3, tmpVec);
+    ELL_3V_COPY(ans+offset[gageSclCurvDir]+3, tmpVec);
   }
   return;
 }
-
