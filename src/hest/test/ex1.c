@@ -61,7 +61,6 @@ main(int argc, char **argv) {
     hestUsage(stderr, opt, argv[0], parm);
     hestGlossary(stderr, opt, parm);
     parm = hestParmNix(parm);
-    free(err);
     exit(1);
   }
 
