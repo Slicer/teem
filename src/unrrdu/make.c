@@ -119,7 +119,6 @@ makeMain(int argc, char **argv, char *me) {
   OPT_ADD_NOUT(out, "output nrrd");
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  fprintf(stderr, "%s: argc = %d\n", me, argc);
   USAGE(makeInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);

@@ -1,5 +1,3 @@
-fix/purify bug in passing axis information in unu 2op: label[0] == " %lg"
-
 test working with nout==nin
 nrrdContentSet
 nrrdConvert

@@ -29,8 +29,8 @@ text of the GNU Lesser General Public License should be in the file
    "irix6.n32": for irix in n32 mode
    "irix6.64": for irix in 64-bit mode
    "linux": for linux boxes
-   "solarix": for solarix boxes
-   (cygwin and hpux support are in the works)
+   "solaris": for solaris boxes
+   "cygwin": if you have cygwin (www.cygwin.com) on a windows box
 
 2: "cd src"
 
@@ -45,8 +45,8 @@ then type: "make just-nrrd".
 What?  No configure or auto-conf script?  That's right.  Because the
 architecture specific stuff is all set with a file in the "src/make"
 directory, and because this never "installs" anything to a location
-outside this directory tree, and because this is all very vanilla ANSI
-C, I don't consider those tools necessary.
+outside this directory tree, and because this is nearly all very
+vanilla ANSI C, I don't consider those tools necessary.
 
 However, you may need to alter the appropriate architecture-specific
 ".mk" file in the "src/make" directory.  This is unlikely.  If you
@@ -110,7 +110,7 @@ cygwin/
           be compiled as position-independent code, even if that incurs
           a slight performance penalty.
 
----> Upon getting a copy of the CVS tree, the ONLY directory which
+---> After you have untarred the teem tree, the ONLY directory which
 ---> should contain anything is the "src" directory (except for "teem"
 ---> in include)- the compilations of the various libraries will put
 ---> header, library, and object files as needed in all the
