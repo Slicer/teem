@@ -40,7 +40,7 @@ char *_unrrdu_dataInfoL =
 int
 unrrdu_dataMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *err, *inS=NULL, *outS=NULL;
+  char *err, *inS=NULL, *outS="-";
   Nrrd *nin;
   NrrdIO *io;
   airArray *mop;
@@ -50,8 +50,6 @@ unrrdu_dataMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopNew();
   hestOptAdd(&opt, NULL, "nin", airTypeString, 1, 1, &inS, NULL,
 	     "input nrrd");
-  hestOptAdd(&opt, NULL, "out", airTypeString, 0, 1, &outS, "-",
-	     "output file");
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(_unrrdu_dataInfoL);
