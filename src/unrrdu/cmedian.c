@@ -50,7 +50,9 @@ unrrdu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "enables mode filtering, in which the most common value is "
 	     "used as output");
   hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, "2048",
-	     "# of bins in histogram");
+	     "# of bins in histogram.  It is in your interest to minimize "
+	     "this number, since big histograms mean slower execution "
+	     "times.  8-bit data needs at most 256 bins, for example.");
   hestOptAdd(&opt, "w", "weight", airTypeFloat, 1, 1, &wght, "1.0",
 	     "How much higher to preferentially weight samples that are "
 	     "closer to the center of the window.  \"1.0\" weight means that "
