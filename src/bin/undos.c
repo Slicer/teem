@@ -79,7 +79,7 @@ undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
   car = getc(fin);
   if (EOF == car) {
     if (!quiet) {
-      fprintf(stderr, "%s: \"%s\" was empty, skipping ...\n", me, name);
+      fprintf(stderr, "%s: \"%s\" is empty, skipping ...\n", me, name);
     }
     airMopError(mop); return;
   }
