@@ -27,6 +27,7 @@ OPT_CFLAG = -O2
 STATIC_CFLAG = -Wl,-Bstatic
 SHARED_CFLAG = -Wl,-Bdynamic
 SHARED_LDFLAG = -shared
+ARCH_CFLAG = 
 ARCH_CFLAG = -Wall
 ARCH_LDFLAG = 
 
