@@ -32,22 +32,24 @@
 extern "C" {
 #endif
 
-/* Get rid of some warnings on VC++ */
-#ifdef _MSC_VER
+/* define TEEMAPI */
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
+#if defined(TEEM_BUILD)
+#define TEEMAPI extern __declspec(dllexport)
+#else
+#define TEEMAPI extern __declspec(dllimport)
+#endif
+#else /* TEEM_STATIC || UNIX */
+#define TEEMAPI extern
+#endif
+
+#if defined(_MSC_VER)
+/* get rid of some warnings on VC++ */
 #pragma warning ( disable : 4244 )
 #pragma warning ( disable : 4305 )
 #pragma warning ( disable : 4309 )
 #pragma warning ( disable : 4273 )
-#endif /* _MSC_VER */
-
-#if defined(_WIN32) && !defined(TEEM_STATIC) && !defined(__CYGWIN__)
-#define air_export __declspec(dllimport)
-#else
-#define air_export
-#endif
-
-#ifdef _WIN32
-#if _MSC_VER < 1300 || !defined(_USE_MATH_DEFINES)
+/* add essential math definitions */
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -113,12 +115,12 @@ typedef struct {
 		  NULL. */
   int sense;   /* require case matching on strings */
 } airEnum;
-extern int airEnumUnknown(airEnum *enm);
-extern int airEnumValCheck(airEnum *enm, int val);
-extern char *airEnumStr(airEnum *enm, int val);
-extern char *airEnumDesc(airEnum *enm, int val);
-extern int airEnumVal(airEnum *enm, const char *str);
-extern char *airEnumFmtDesc(airEnum *enm, int val, int canon, const char *fmt);
+TEEMAPI int airEnumUnknown(airEnum *enm);
+TEEMAPI int airEnumValCheck(airEnum *enm, int val);
+TEEMAPI char *airEnumStr(airEnum *enm, int val);
+TEEMAPI char *airEnumDesc(airEnum *enm, int val);
+TEEMAPI int airEnumVal(airEnum *enm, const char *str);
+TEEMAPI char *airEnumFmtDesc(airEnum *enm, int val, int canon, const char *fmt);
 
 /*
 ******** airEndian enum
@@ -134,8 +136,8 @@ enum {
   airEndianLast
 };
 /* endianAir.c */
-extern air_export airEnum *airEndian;
-extern air_export const int airMyEndian;
+TEEMAPI airEnum *airEndian;
+TEEMAPI const int airMyEndian;
 
 /* array.c: poor-man's dynamically resizable arrays */
 typedef struct {
@@ -175,15 +177,15 @@ typedef struct {
   void (*doneCB)(void *);  /* called on addresses of invalidated elements */
 
 } airArray;
-extern airArray *airArrayNew(void **dataP, int *lenP, size_t unit, int incr);
-extern void airArrayStructCB(airArray *a, 
+TEEMAPI airArray *airArrayNew(void **dataP, int *lenP, size_t unit, int incr);
+TEEMAPI void airArrayStructCB(airArray *a, 
 			     void (*initCB)(void *), void (*doneCB)(void *));
-extern void airArrayPointerCB(airArray *a, 
+TEEMAPI void airArrayPointerCB(airArray *a, 
 			      void *(*allocCB)(void), void *(*freeCB)(void *));
-extern int airArraySetLen(airArray *a, int newlen);
-extern int airArrayIncrLen(airArray *a, int delta);
-extern airArray *airArrayNix(airArray *a);
-extern airArray *airArrayNuke(airArray *a);
+TEEMAPI int airArraySetLen(airArray *a, int newlen);
+TEEMAPI int airArrayIncrLen(airArray *a, int delta);
+TEEMAPI airArray *airArrayNix(airArray *a);
+TEEMAPI airArray *airArrayNuke(airArray *a);
 
 /* ---- BEGIN non-NrrdIO */
 
@@ -194,7 +196,7 @@ extern airArray *airArrayNuke(airArray *a);
 ** if non-zero: we have some kind of multi-threading available, either
 ** via pthreads, or via Windows stuff
 */
-extern air_export const int airThreadCapable;
+TEEMAPI const int airThreadCapable;
 
 /*
 ******** airThreadNoopWarning
@@ -204,7 +206,7 @@ extern air_export const int airThreadCapable;
 ** no-ops. When this variable is non-zero, we fprintf(stderr) a
 ** warning to this effect when those constructs are used
 */
-extern air_export int airThreadNoopWarning; 
+TEEMAPI int airThreadNoopWarning; 
 
 /* opaque typedefs for OS-specific stuff */
 typedef struct _airThread airThread;
@@ -216,26 +218,26 @@ typedef struct {
   airThreadCond *doneCond;
 } airThreadBarrier;
 
-extern airThread *airThreadNew(void);
-extern int airThreadStart(airThread *thread, 
+TEEMAPI airThread *airThreadNew(void);
+TEEMAPI int airThreadStart(airThread *thread, 
 			  void *(*threadBody)(void *), void *arg);
-extern int airThreadJoin(airThread *thread, void **retP);
-extern airThread *airThreadNix(airThread *thread);
+TEEMAPI int airThreadJoin(airThread *thread, void **retP);
+TEEMAPI airThread *airThreadNix(airThread *thread);
 
-extern airThreadMutex *airThreadMutexNew();
-extern int airThreadMutexLock(airThreadMutex *mutex);
-extern int airThreadMutexUnlock(airThreadMutex *mutex);
-extern airThreadMutex *airThreadMutexNix(airThreadMutex *mutex);
+TEEMAPI airThreadMutex *airThreadMutexNew();
+TEEMAPI int airThreadMutexLock(airThreadMutex *mutex);
+TEEMAPI int airThreadMutexUnlock(airThreadMutex *mutex);
+TEEMAPI airThreadMutex *airThreadMutexNix(airThreadMutex *mutex);
 
-extern airThreadCond *airThreadCondNew();
-extern int airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex);
-extern int airThreadCondSignal(airThreadCond *cond);
-extern int airThreadCondBroadcast(airThreadCond *cond);
-extern airThreadCond *airThreadCondNix(airThreadCond *cond);
+TEEMAPI airThreadCond *airThreadCondNew();
+TEEMAPI int airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex);
+TEEMAPI int airThreadCondSignal(airThreadCond *cond);
+TEEMAPI int airThreadCondBroadcast(airThreadCond *cond);
+TEEMAPI airThreadCond *airThreadCondNix(airThreadCond *cond);
 
-extern airThreadBarrier *airThreadBarrierNew(unsigned numUsers);
-extern int airThreadBarrierWait(airThreadBarrier *barrier);
-extern airThreadBarrier *airThreadBarrierNix(airThreadBarrier *barrier);
+TEEMAPI airThreadBarrier *airThreadBarrierNew(unsigned numUsers);
+TEEMAPI int airThreadBarrierWait(airThreadBarrier *barrier);
+TEEMAPI airThreadBarrier *airThreadBarrierNix(airThreadBarrier *barrier);
 
 /* ---- END non-NrrdIO */
 
@@ -276,29 +278,29 @@ typedef union {
   airULLong i;
   double d;
 } airDouble;
-extern air_export const int airMyQNaNHiBit;
-extern air_export const int airMyBigBitField;
-extern float airFPPartsToVal_f(int sign, int exp, int frac);
-extern void airFPValToParts_f(int *signP, int *expP, int *fracP, float v);
-extern double airFPPartsToVal_d(int sign, int exp, airULLong frac);
-extern void airFPValToParts_d(int *signP, int *expP, airULLong *fracP,
+TEEMAPI const int airMyQNaNHiBit;
+TEEMAPI const int airMyBigBitField;
+TEEMAPI float airFPPartsToVal_f(int sign, int exp, int frac);
+TEEMAPI void airFPValToParts_f(int *signP, int *expP, int *fracP, float v);
+TEEMAPI double airFPPartsToVal_d(int sign, int exp, airULLong frac);
+TEEMAPI void airFPValToParts_d(int *signP, int *expP, airULLong *fracP,
 			      double v);
-extern float airFPGen_f(int cls);
-extern double airFPGen_d(int cls);
-extern int airFPClass_f(float val);
-extern int airFPClass_d(double val);
-extern void airFPFprintf_f(FILE *file, float val);
-extern void airFPFprintf_d(FILE *file, double val);
-extern air_export const airFloat airFloatQNaN;
-extern air_export const airFloat airFloatSNaN;
-extern air_export const airFloat airFloatPosInf;
-extern air_export const airFloat airFloatNegInf;
-extern float airNaN();
-extern int airIsNaN(float f);
-extern int airIsInf_f(float f);
-extern int airIsInf_d(double d);
-extern int airExists_f(float f);
-extern int airExists_d(double d);
+TEEMAPI float airFPGen_f(int cls);
+TEEMAPI double airFPGen_d(int cls);
+TEEMAPI int airFPClass_f(float val);
+TEEMAPI int airFPClass_d(double val);
+TEEMAPI void airFPFprintf_f(FILE *file, float val);
+TEEMAPI void airFPFprintf_d(FILE *file, double val);
+TEEMAPI const airFloat airFloatQNaN;
+TEEMAPI const airFloat airFloatSNaN;
+TEEMAPI const airFloat airFloatPosInf;
+TEEMAPI const airFloat airFloatNegInf;
+TEEMAPI float airNaN();
+TEEMAPI int airIsNaN(float f);
+TEEMAPI int airIsInf_f(float f);
+TEEMAPI int airIsInf_d(double d);
+TEEMAPI int airExists_f(float f);
+TEEMAPI int airExists_d(double d);
 
 /*
 ******** airType
@@ -321,40 +323,40 @@ enum {
 };
 #define AIR_TYPE_MAX   8
 /* parseAir.c */
-extern double airAtod(const char *str);
-extern int airSingleSscanf(const char *str, const char *fmt, void *ptr);
-extern airEnum *airBool;
-extern int airParseStrB(int *out, const char *s,
+TEEMAPI double airAtod(const char *str);
+TEEMAPI int airSingleSscanf(const char *str, const char *fmt, void *ptr);
+TEEMAPI airEnum *airBool;
+TEEMAPI int airParseStrB(int *out, const char *s,
 			const char *ct, int n, ... /* nothing used */);
-extern int airParseStrI(int *out, const char *s,
+TEEMAPI int airParseStrI(int *out, const char *s,
 			const char *ct, int n, ... /* nothing used */);
-extern int airParseStrF(float *out, const char *s,
+TEEMAPI int airParseStrF(float *out, const char *s,
 			const char *ct, int n, ... /* nothing used */);
-extern int airParseStrD(double *out, const char *s,
+TEEMAPI int airParseStrD(double *out, const char *s,
 			const char *ct, int n, ... /* nothing used */);
-extern int airParseStrC(char *out, const char *s,
+TEEMAPI int airParseStrC(char *out, const char *s,
 			const char *ct, int n, ... /* nothing used */);
-extern int airParseStrS(char **out, const char *s,
+TEEMAPI int airParseStrS(char **out, const char *s,
 			const char *ct, int n, ... /* REQUIRED, even if n>1:
 						      int greedy */);
-extern int airParseStrE(int *out, const char *s,
+TEEMAPI int airParseStrE(int *out, const char *s,
 			const char *ct, int n, ... /* REQUIRED: airEnum *e */);
-extern air_export int (*airParseStr[AIR_TYPE_MAX+1])(void *, const char *,
+TEEMAPI int (*airParseStr[AIR_TYPE_MAX+1])(void *, const char *,
 					  const char *, int, ...);
 
 /* string.c */
-extern char *airStrdup(const char *s);
-extern size_t airStrlen(const char *s);
-extern air_export int airStrtokQuoting;
-extern char *airStrtok(char *s, const char *ct, char **last);
-extern int airStrntok(const char *s, const char *ct);
-extern char *airStrtrans(char *s, char from, char to);
-extern int airEndsWith(const char *s, const char *suff);
-extern char *airUnescape(char *s);
-extern char *airOneLinify(char *s);
-extern char *airToLower(char *str);
-extern char *airToUpper(char *str);
-extern int airOneLine(FILE *file, char *line, int size);
+TEEMAPI char *airStrdup(const char *s);
+TEEMAPI size_t airStrlen(const char *s);
+TEEMAPI int airStrtokQuoting;
+TEEMAPI char *airStrtok(char *s, const char *ct, char **last);
+TEEMAPI int airStrntok(const char *s, const char *ct);
+TEEMAPI char *airStrtrans(char *s, char from, char to);
+TEEMAPI int airEndsWith(const char *s, const char *suff);
+TEEMAPI char *airUnescape(char *s);
+TEEMAPI char *airOneLinify(char *s);
+TEEMAPI char *airToLower(char *str);
+TEEMAPI char *airToUpper(char *str);
+TEEMAPI int airOneLine(FILE *file, char *line, int size);
 
 /* sane.c */
 /*
@@ -379,43 +381,43 @@ enum {
   airInsane_DLSize         /* 11: sizeof(double), sizeof(airLLong) not 8 */
 };
 #define AIR_INSANE_MAX        11
-extern const char *airInsaneErr(int insane);
-extern int airSanity();
+TEEMAPI const char *airInsaneErr(int insane);
+TEEMAPI int airSanity();
 
 /* miscAir.c */
-extern air_export const char *airTeemVersion;
-extern air_export const char *airTeemReleaseDate;
-extern void *airNull(void);
-extern void *airSetNull(void **ptrP);
-extern void *airFree(void *ptr);
-extern void *airFreeP(void *_ptrP);
-extern FILE *airFopen(const char *name, FILE *std, const char *mode);
-extern FILE *airFclose(FILE *file);
-extern int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
-extern air_export const int airMy32Bit;
+TEEMAPI const char *airTeemVersion;
+TEEMAPI const char *airTeemReleaseDate;
+TEEMAPI void *airNull(void);
+TEEMAPI void *airSetNull(void **ptrP);
+TEEMAPI void *airFree(void *ptr);
+TEEMAPI void *airFreeP(void *_ptrP);
+TEEMAPI FILE *airFopen(const char *name, FILE *std, const char *mode);
+TEEMAPI FILE *airFclose(FILE *file);
+TEEMAPI int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
+TEEMAPI const int airMy32Bit;
 /* ---- BEGIN non-NrrdIO */
-extern air_export const char airMyFmt_size_t[];
-extern void airSrand(void);
-extern double airRand(void);
-extern int airRandInt(int N);
-extern void airShuffle(int *buff, int N, int perm);
-extern char *airDoneStr(float start, float here, float end, char *str);
-extern double airTime();
-extern double airCbrt(double);
-extern double airSgnPow(double, double);
-extern int airSgn(double);
-extern int airLog2(float n);
-extern void airBinaryPrintUInt(FILE *file, int digits, unsigned int N);
-extern double airErf(double x);
-extern double airGaussian(double x, double mean, double stdv);
-extern air_export const char airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL];
-extern air_export const int airTypeSize[AIR_TYPE_MAX+1];
-extern int airILoad(void *v, int t);
-extern float airFLoad(void *v, int t);
-extern double airDLoad(void *v, int t);
-extern int airIStore(void *v, int t, int i);
-extern float airFStore(void *v, int t, float f);
-extern double airDStore(void *v, int t, double d);
+TEEMAPI const char airMyFmt_size_t[];
+TEEMAPI void airSrand(void);
+TEEMAPI double airRand(void);
+TEEMAPI int airRandInt(int N);
+TEEMAPI void airShuffle(int *buff, int N, int perm);
+TEEMAPI char *airDoneStr(float start, float here, float end, char *str);
+TEEMAPI double airTime();
+TEEMAPI double airCbrt(double);
+TEEMAPI double airSgnPow(double, double);
+TEEMAPI int airSgn(double);
+TEEMAPI int airLog2(float n);
+TEEMAPI void airBinaryPrintUInt(FILE *file, int digits, unsigned int N);
+TEEMAPI double airErf(double x);
+TEEMAPI double airGaussian(double x, double mean, double stdv);
+TEEMAPI const char airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL];
+TEEMAPI const int airTypeSize[AIR_TYPE_MAX+1];
+TEEMAPI int airILoad(void *v, int t);
+TEEMAPI float airFLoad(void *v, int t);
+TEEMAPI double airDLoad(void *v, int t);
+TEEMAPI int airIStore(void *v, int t, int i);
+TEEMAPI float airFStore(void *v, int t, float f);
+TEEMAPI double airDStore(void *v, int t, double d);
 /* ---- END non-NrrdIO */
 
 /* dio.c */
@@ -441,13 +443,13 @@ enum {
   airNoDio_disable  /* 12: someone disabled it with airDisableDio */
 };
 #define AIR_NODIO_MAX  12
-extern const char *airNoDioErr(int noDio);
-extern air_export const int airMyDio;
-extern air_export int airDisableDio;
-extern int airDioInfo(int *mem, int *min, int *max, FILE *file);
-extern int airDioTest(size_t size, FILE *file, void *ptr);
-extern size_t airDioRead(FILE *file, void **ptrP, size_t size);
-extern size_t airDioWrite(FILE *file, void *ptr, size_t size);
+TEEMAPI const char *airNoDioErr(int noDio);
+TEEMAPI const int airMyDio;
+TEEMAPI int airDisableDio;
+TEEMAPI int airDioInfo(int *mem, int *min, int *max, FILE *file);
+TEEMAPI int airDioTest(size_t size, FILE *file, void *ptr);
+TEEMAPI size_t airDioRead(FILE *file, void **ptrP, size_t size);
+TEEMAPI size_t airDioWrite(FILE *file, void *ptr, size_t size);
 
 /* mop.c: clean-up utilities */
 enum {
@@ -462,17 +464,17 @@ typedef struct {
   airMopper mop;     /* the function to which does the processing */
   int when;          /* from the airMopWhen enum */
 } airMop;
-extern airArray *airMopNew(void);
-extern void airMopAdd(airArray *arr,
+TEEMAPI airArray *airMopNew(void);
+TEEMAPI void airMopAdd(airArray *arr,
 		      void *ptr, airMopper mop, int when);
-extern void airMopSub(airArray *arr, void *ptr, airMopper mop);
-extern void airMopMem(airArray *arr, void *_ptrP, int when);
-extern void airMopUnMem(airArray *arr, void *_ptrP);
-extern void airMopPrint(airArray *arr, void *_str, int when);
-extern void airMopDone(airArray *arr, int error);
-extern void airMopError(airArray *arr);
-extern void airMopOkay(airArray *arr);
-extern void airMopDebug(airArray *arr);
+TEEMAPI void airMopSub(airArray *arr, void *ptr, airMopper mop);
+TEEMAPI void airMopMem(airArray *arr, void *_ptrP, int when);
+TEEMAPI void airMopUnMem(airArray *arr, void *_ptrP);
+TEEMAPI void airMopPrint(airArray *arr, void *_str, int when);
+TEEMAPI void airMopDone(airArray *arr, int error);
+TEEMAPI void airMopError(airArray *arr);
+TEEMAPI void airMopOkay(airArray *arr);
+TEEMAPI void airMopDebug(airArray *arr);
 
 /*******     the interminable sea of defines and macros     *******/
 
