@@ -192,7 +192,7 @@ typedef enum {
 ** ways to "measure" some portion of the array
 ** NEEDS TO BE IN SYNC WITH nrrdMeasr array in measr.c
 */
-#define NRRD_MEASR_MAX 17
+#define NRRD_MEASR_MAX 18
 typedef enum {
   nrrdMeasrUnknown,          /* 0: nobody knows */
   nrrdMeasrMin,              /* 1: smallest value */
@@ -216,6 +216,7 @@ typedef enum {
   nrrdMeasrHistoMean,        /* 15 */
   nrrdMeasrHistoMedian,      /* 16 */
   nrrdMeasrHistoMode,        /* 17 */
+  nrrdMeasrHistoVariance,    /* 18 */
   nrrdMeasrLast
 } nrrdMeasrs;
 
