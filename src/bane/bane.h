@@ -1,3 +1,21 @@
+/*
+  The contents of this file are subject to the University of Utah Public
+  License (the "License"); you may not use this file except in
+  compliance with the License.
+  
+  Software distributed under the License is distributed on an "AS IS"
+  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
+  the License for the specific language governing rights and limitations
+  under the License.
+
+  The Original Source Code is "teem", released March 23, 2001.
+  
+  The Original Source Code was developed by the University of Utah.
+  Portions created by UNIVERSITY are Copyright (C) 2001, 1998 University
+  of Utah. All Rights Reserved.
+*/
+
+
 #ifndef BANE_HAS_BEEN_INCLUDED
 #define BANE_HAS_BEEN_INCLUDED
 #ifdef __cplusplus
@@ -156,10 +174,19 @@ typedef struct {
 } baneHVolParm;
 #define BANE_DEF_INCLIMIT 0.8
 
+typedef struct {
+  int k0, k1, k2;
+  float param0[NRRD_MAX_KERNEL_PARAMS],
+    param1[NRRD_MAX_KERNEL_PARAMS],
+    param2[NRRD_MAX_KERNEL_PARAMS];
+} baneProbeK3Pack;
+
 /* methods.c */
 extern baneHVolParm *baneNewHVolParm();
 extern void baneNixHVolParm(baneHVolParm *hvp);
 extern void baneGKMSInitHVolParm(baneHVolParm *hvp);
+extern baneProbeK3Pack *baneProbeK3PackNew();
+extern baneProbeK3Pack *baneProbeK3PackNix(baneProbeK3Pack *);
 
 /* hvol.c */
 extern int baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp);
@@ -168,12 +195,45 @@ extern Nrrd *baneNewApplyMeasr(Nrrd *nin, int measr);
 extern Nrrd *baneGKMSHVol(Nrrd *nin, float perc);
 
 /* probe.c */
-extern void baneProbeGrad(float *grad, Nrrd *nin,
-			  double (*kernel)(double x, double *arg),
-			  float x, float y, float z);
-extern void baneProbeHess(float *hess, Nrrd *nin, 
-			  double (*kernel)(double x, double *arg),
-			  float x, float y, float z);
+/* 
+** obviously the baneProbes enum, the BANE_PROBE_* #defines, and 
+** the baneProbAnsLen, baneProbeAnsOffset arrays (in probe.c) 
+** MUST be kept in sync 
+*/
+#define BANE_PROBE_MAX 11
+#define BANE_PROBE_ANSLEN 40
+typedef enum {
+  baneProbeVal,          /* 0: data value (*float) */
+  baneProbeGradVec,      /* 1: gradient vector, un-normalized (float[3])*/
+  baneProbeGradMag,      /* 2: gradient magnitude (*float) */
+  baneProbeNormal,       /* 3: gradient vector, normalized (float[3]) */
+  baneProbeHess,         /* 4: Hessian (float[9]) */
+  baneProbeHessEvec,     /* 5: Hessian's eigenvectors (float[9]) */
+  baneProbeHessEval,     /* 6: Hessian's eigenvalues (float[3]) */
+  baneProbe2ndDD,        /* 7: 2nd dir.deriv. along gradient (*float) */
+  baneProbeCurvVecs,     /* 8: principle curvature directions (float[6]) */
+  baneProbeK1K2,         /* 9: principle curvature magnitudes (float[2]) */
+  baneProbeShapeIndex,   /* 10: Koen.'s shape index, (S") (*float) */
+  baneProbeCurvedness    /* 11: L2 norm of K1, K2 (not Koen.'s "C") (*float) */
+} baneProbes;
+#define BANE_PROBE_VAL        (1<<0)
+#define BANE_PROBE_GRADVEC    (1<<1)
+#define BANE_PROBE_GRADMAG    (1<<2)
+#define BANE_PROBE_NORMAL     (1<<3)
+#define BANE_PROBE_HESS       (1<<4)
+#define BANE_PROBE_HESSEVEC   (1<<5)
+#define BANE_PROBE_HESSEVAL   (1<<6)
+#define BANE_PROBE_2NDDD      (1<<7)
+#define BANE_PROBE_CURVVECS   (1<<8)
+#define BANE_PROBE_K1K2       (1<<9)
+#define BANE_PROBE_SHAPEINDEX (1<<10)
+#define BANE_PROBE_CURVEDNESS (1<<11)
+extern int baneProbeAnsLen[BANE_PROBE_MAX+1];
+extern int baneProbeAnsOffset[BANE_PROBE_MAX+1];
+extern void baneProbe(float *ans, Nrrd *nin, int query,
+		      baneProbeK3Pack *pack,
+		      float x, float y, float z);
+extern int baneProbeDebug;
 
 /* trnsf.c */
 extern int bane2DOpacInfo(Nrrd *info2D, Nrrd *hvol);
