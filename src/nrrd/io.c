@@ -1030,8 +1030,10 @@ nrrdWriteHeader(FILE *file, Nrrd *nrrd) {
   fprintf(file, "encoding: %s\n", nrrdEncoding2Str[nrrd->encoding]);
   /* if chosen encoding exposes endianness, then we need to
      record endianness in the header */
-  if (nrrdEncodingEndianMatters[nrrd->encoding]) {
-    nrrd->fileEndian = nrrdMyEndian();
+  nrrd->fileEndian = nrrdMyEndian();
+  printf("%s: element size = %d\n", me, nrrdElementSize(nrrd));
+  if (nrrdEncodingEndianMatters[nrrd->encoding]
+      && 1 != nrrdElementSize(nrrd)) {
     fprintf(file, "endian: %s\n", nrrdEndian2Str[nrrd->fileEndian]);
   }
   if (nrrdEncodingUser == nrrd->encoding)
