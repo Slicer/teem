@@ -4,8 +4,13 @@
 # settings.  Currently, just replaces angle brackets with the their
 # equivalent character sequences.
 
+$line = 0;
 while (<>) {
     s/</&lt;/g;
     s/>/&gt;/g;
-    print;
+    s/  [\b][\b]//g;
+    if ($line) {
+	print;
+    }
+    $line += 1;
 }
