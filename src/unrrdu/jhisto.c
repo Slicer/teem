@@ -46,7 +46,8 @@ jhistoMain(int argc, char **argv, char *me) {
 	     &binLen);
   OPT_ADD_TYPE(type, "type to use for output (the type used to store hit "
 	       "counts in the joint histogram).  Clamping is done on hit "
-	       "counts so that they never overflow a fixed-point type.");
+	       "counts so that they never overflow a fixed-point type.",
+	       "uint");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
