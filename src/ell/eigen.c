@@ -48,7 +48,7 @@ ell3mNullspace1(double n[9], double ans[3]) {
   ELL_3V_ADD3(ans, t0, t1, t2);
 
   /* normalize */
-  ELL_3V_NORM(ans, norm);
+  ELL_3V_NORM(ans, ans, norm);
 
   return;
 }
@@ -78,12 +78,12 @@ ell3mNullspace2(double _n[9], double ans0[3], double ans1[3]) {
 
   /* add them up (longer, hence more accurate, ones will dominate) */
   ELL_3V_ADD3(tmp, n+0, n+3, n+6);
-  ELL_3V_NORM(tmp, norm);
+  ELL_3V_NORM(tmp, tmp, norm);
   
   /* any two vectors which are perpendicular to the (supposedly 1D)
      span of the column vectors span the nullspace */
   ell3vPerp(ans0, tmp);
-  ELL_3V_NORM(ans0, norm);
+  ELL_3V_NORM(ans0, ans0, norm);
   ELL_3V_CROSS(ans1, tmp, ans0);
 
   return;

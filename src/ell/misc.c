@@ -16,4 +16,20 @@
 */
 
 
+#include "ell.h"
+
 int ellDebug = 0;
+
+
+void
+ell4mPrint(FILE *f, float s[16]) {
+
+  fprintf(f, " % 15.10f   % 15.10f   % 15.10f   % 15.10f\n", 
+	  s[0], s[4], s[8], s[12]);
+  fprintf(f, " % 15.10f   % 15.10f   % 15.10f   % 15.10f\n", 
+	  s[1], s[5], s[9], s[13]);
+  fprintf(f, " % 15.10f   % 15.10f   % 15.10f   % 15.10f\n", 
+	  s[2], s[6], s[10], s[14]);
+  fprintf(f, " % 15.10f   % 15.10f   % 15.10f   % 15.10f\n", 
+	  s[3], s[7], s[11], s[15]);
+}
