@@ -1,8 +1,14 @@
+unu minmax, unu head takes multiple arguments
+
+enable the unu 2op and 3op operations that output integers to save
+the output as, say, signed char, instead of float.  This is different
+than being able to change input type, for operations like "gt".
+
 ----- teem 1.5beta1 cut-off -----
 
-unu cmedian -perslice
-
 ----- teem 1.5 cut-off -----
+
+unu squeeze (like matlab)
 
 make unu check on environment variables, so that nrrdDef* and nrrdState*
 variables can be set that way
