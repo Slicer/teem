@@ -104,3 +104,12 @@ $(warning *)\
 $(warning *)\
 $(error Make quitting)))
 
+checkTeemDest = $(if $(TEEM_DEST),\
+$(if $(filter-out /%,$(TEEM_DEST)),\
+$(warning *)\
+$(warning *)\
+$(warning * TEEM_DEST must be an absolute path (not $(TEEM_DEST)))\
+$(warning *)\
+$(warning *)\
+$(error Make quitting)\
+),)
