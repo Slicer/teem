@@ -24,7 +24,6 @@
 */
 
 #include "alan.h"
-#include <pthread.h>
 
 int
 _alanCheck(alanContext *actx) {

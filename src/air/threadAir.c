@@ -193,8 +193,9 @@ airThreadNew(void) {
 
   thread = (airThread *)calloc(1, sizeof(airThread));
   /* HEY: any useful way to initialized a HANDLE? */
+  thread->handle = NULL;
   thread->body = NULL;
-  thread->arg = thread->reg = NULL;
+  thread->arg = thread->ret = NULL;
   return thread;
 }
 
@@ -212,7 +213,7 @@ airThreadStart(airThread *thread, void *(*threadBody)(void *), void *arg) {
   thread->body = threadBody;
   thread->arg = arg;
   thread->handle = CreateThread(0, 0, _airThreadWin32Body, 
-				(void *)&thread, 0, 0);
+				(void *)thread, 0, 0);
   return NULL == thread->handle;
 }
 
@@ -227,7 +228,11 @@ airThreadJoin(airThread *thread, void **retP) {
 
 airThread *
 airThreadNix(airThread *_thread) {
+  char me[] = "airThreadNix";
 
+  if (0 == CloseHandle(_thread->handle)) {
+    fprintf(stderr, "%s: CloseHandle failed, something is wrong\n", me);
+  }
   return airFree(_thread);
 }
 
@@ -237,7 +242,7 @@ airThreadMutexNew() {
 
   mutex = (airThreadMutex *)calloc(1, sizeof(airThreadMutex));
   if (mutex) {
-    if (!(mutex->handle = CreateMutex(NULL, TRUE, NULL))) {
+    if (!(mutex->handle = CreateMutex(NULL, FALSE, NULL))) { 
       return airFree(mutex);
     }
   }
@@ -259,9 +264,8 @@ airThreadMutexUnlock(airThreadMutex *mutex) {
 airThreadMutex *
 airThreadMutexNix(airThreadMutex *mutex) {
 
-  if (0 == CloseHandle(mutex->handle)) {
-    mutex = airFree(mutex);
-  }
+  CloseHandle(mutex->handle);
+  mutex = airFree(mutex);
   return mutex;
 }
 
