@@ -133,7 +133,7 @@ baneProbe(float *_ans, Nrrd *nin, int query,
 				   to other 2^3 corners of a voxel */
     o4[64],                     /* offsets for 4^3 samples */
     fr, fd;                     /* maximum filter radius and diameter among
-				   k0, k1, k2 (determines val[] dimensions) */
+				   k[0], k[1], k[2] (determines val[] dims) */
   static void *data;            /* copy of nin->data */
   static char *ptr;             /* address of data[lidx] */
   
@@ -178,9 +178,9 @@ baneProbe(float *_ans, Nrrd *nin, int query,
 	tquery |= (1 << i) | baneProbePrereq[i];
       }
     }
-    tmpF = pack->k0->support(pack->param0); 
-    tmpF = AIR_MAX(tmpF, pack->k1->support(pack->param1));
-    tmpF = AIR_MAX(tmpF, pack->k2->support(pack->param2));
+    tmpF = pack->k[0]->support(pack->param[0]); 
+    tmpF = AIR_MAX(tmpF, pack->k[1]->support(pack->param[1]));
+    tmpF = AIR_MAX(tmpF, pack->k[2]->support(pack->param[2]));
     fr = AIR_ROUNDUP(tmpF);
     if (baneProbeDebug) {
       printf("%s: tmpF=%g --> fr = %d\n", me, tmpF, fr);
@@ -329,9 +329,9 @@ baneProbe(float *_ans, Nrrd *nin, int query,
     break;
   }
   /* does evaluations for x, y, z all at once to minimize calling overhead */
-  pack->k0->evalVec(fw0, fsl, 3*fd, pack->param0);
-  pack->k1->evalVec(fw1, fsl, 3*fd, pack->param1);
-  pack->k2->evalVec(fw2, fsl, 3*fd, pack->param2);
+  pack->k[0]->evalVec(fw0, fsl, 3*fd, pack->param[0]);
+  pack->k[1]->evalVec(fw1, fsl, 3*fd, pack->param[1]);
+  pack->k[2]->evalVec(fw2, fsl, 3*fd, pack->param[2]);
   /* fix scalings for anisotropic voxels */
   for (i=0; i<=fd-1; i++) {
     fw1x[i] /= xs;  fw2x[i] /= xs*xs;

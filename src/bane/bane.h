@@ -175,10 +175,8 @@ typedef struct {
 #define BANE_DEF_INCLIMIT 0.8
 
 typedef struct {
-  nrrdKernel *k0, *k1, *k2;
-  float param0[NRRD_MAX_KERNEL_PARAMS],
-    param1[NRRD_MAX_KERNEL_PARAMS],
-    param2[NRRD_MAX_KERNEL_PARAMS];
+  nrrdKernel *k[3];
+  float param[3][NRRD_MAX_KERNEL_PARAMS];
 } baneProbeK3Pack;
 
 /* methods.c */
