@@ -24,10 +24,12 @@ usage(char *me) {
   /*                       0   1        2       3        4        5  (6) */
   fprintf(stderr, "usage: %s <minIn> <value> <maxIn> <minOut> <maxOut>\n", me);
   fprintf(stderr, "\n");
-  fprintf(stderr, "This will use air's AIR_AFFINE macro to print out\n");
-  fprintf(stderr, "the value which stands in the same relationship to the\n");
-  fprintf(stderr, "interval [<minOut>, <maxOut>] as <value> is to \n");
-  fprintf(stderr, "the interval [minIn, maxOut].\n");
+  fprintf(stderr,
+	  "This uses air's AIR_AFFINE macro to print out the value which stands in\n");
+  fprintf(stderr,
+	  "the same relationship with the interval [<minOut>, <maxOut>] as <value>\n");
+  fprintf(stderr,
+	  "has with the interval [minIn, maxOut].\n");
   exit(1);
 }
 

@@ -53,7 +53,7 @@ main(int argc, char *argv[]) {
   hparm->respFileEnable = AIR_TRUE;
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &(muu->nin), NULL,
 	     "input nrrd to render", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "tf", "nin", airTypeOther, 1, 1, &(muu->ntf), NULL,
+  hestOptAdd(&hopt, "tf", "nin", airTypeOther, 1, 1, &(muu->ntxf), NULL,
 	     "nrrd containing transfer function", NULL, NULL, nrrdHestNrrd);
   limnHestCamOptAdd(&hopt, ctx->cam,
 		    NULL, "0 0 0", "0 0 1",
@@ -83,8 +83,17 @@ main(int argc, char *argv[]) {
 	     "Ignore opacity and composite simply by summing.");
   hestOptAdd(&hopt, "step", "size", airTypeDouble, 1, 1, &(muu->rayStep),
 	     "0.01", "step size along ray in world space");
+  hestOptAdd(&hopt, "ref", "size", airTypeDouble, 1, 1, &(muu->refStep),
+	     "0.01", "\"reference\" step size (world space) for doing"
+	     "opacity correction in compositing");
   hestOptAdd(&hopt, "n1", "near1", airTypeDouble, 1, 1, &(muu->near1),
 	     "0.99", "close enough to 1.0 to terminate ray");
+  if (hooverMyPthread) {
+    hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1, &(ctx->numThreads),
+	       "1", "number of threads hoover should use");
+  } else {
+    ctx->numThreads = 1;
+  }
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &(muu->outS),
 	     NULL, "file to write output nrrd to");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
@@ -111,10 +120,6 @@ main(int argc, char *argv[]) {
 
   nrrdAxesGet_nva(muu->nin, nrrdAxesInfoSize, ctx->volSize);
   nrrdAxesGet_nva(muu->nin, nrrdAxesInfoSpacing, ctx->volSpacing);
-  ctx->numThreads = 1;
-  /* HEY: until gageSimpleCopy is implemented, we can only do 
-     a single thread, since multiple threads would each have their
-     own padded copy of the volume */
   ctx->userInfo = muu;
   ctx->renderBegin = (hooverRenderBegin_t *)miteRenderBegin;
   ctx->threadBegin = (hooverThreadBegin_t *)miteThreadBegin;

@@ -43,7 +43,7 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, int *sz,
 	    NrrdKernelSpec *uk) {
   char me[]="qbertPadStage1", err[AIR_STRLEN_MED];
   int i, need, padMin[3], padMax[3];
-  NrrdResampleInfo *rsmpInfo;
+  /* NrrdResampleInfo *rsmpInfo; */
 
   need = 0;
   for (i=0; i<=2; i++) {
@@ -144,14 +144,13 @@ qbertProbe(Nrrd *nout, Nrrd *nin, int *sz) {
   int E, i, j, k;
 
   ctx = gageContextNew();
-  pvl = gagePerVolumeNew(gageKindScl);
-  gageSet(ctx, gageVerbose, 0);
-  gageSet(ctx, gageRenormalize, AIR_TRUE);
-  gageSet(ctx, gageCheckIntegrals, AIR_TRUE);
+  pvl = gagePerVolumeNew(nin, gageKindScl);
+  gageSet(ctx, gageParmVerbose, 0);
+  gageSet(ctx, gageParmRenormalize, AIR_TRUE);
+  gageSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   kparm[0] = 1.0; kparm[1] = 1.0; kparm[2] = 0.0;
   E = 0;
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
-  if (!E) E |= gageVolumeSet(ctx, pvl, nin);
   /* about kernel setting for probing: currently, the way that probing is
      done is ONLY on grid locations, and never in between voxels.  That 
      means that the kernels set below are really only use for creating
@@ -164,7 +163,7 @@ qbertProbe(Nrrd *nout, Nrrd *nin, int *sz) {
   /* 2nd derivative of B-spline generates second central differences */
   kparm[0] = 1.0; kparm[1] = 1.0; kparm[2] = 0.0;
   if (!E) E |= gageKernelSet(ctx, gageKernel22, nrrdKernelBCCubicDD, kparm);
-  if (!E) E |= gageQuerySet(ctx, pvl,
+  if (!E) E |= gageQuerySet(pvl,
 			    (1 << gageSclValue) | 
 			    (1 << gageSclGradMag) |
 			    (1 << gageScl2ndDD));
@@ -173,7 +172,7 @@ qbertProbe(Nrrd *nout, Nrrd *nin, int *sz) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));
     exit(1);
   }
-  gageSet(ctx, gageVerbose, 0);
+  gageSet(ctx, gageParmVerbose, 0);
   val = gageAnswerPointer(pvl, gageSclValue);
   gmag = gageAnswerPointer(pvl, gageSclGradMag);
   scnd = gageAnswerPointer(pvl, gageScl2ndDD);

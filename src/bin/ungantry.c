@@ -97,21 +97,20 @@ main(int argc, char *argv[]) {
   insert = nrrdDInsert[nout->type];
 
   ctx = gageContextNew();
-  gageSet(ctx, gageVerbose, 1);
-  gageSet(ctx, gageRenormalize, AIR_TRUE);
+  gageSet(ctx, gageParmVerbose, 1);
+  gageSet(ctx, gageParmRenormalize, AIR_TRUE);
   E = 0;
-  if (!E) E |= !(pvl = gagePerVolumeNew(gageKindScl));
+  if (!E) E |= !(pvl = gagePerVolumeNew(nin, gageKindScl));
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   if (!E) E |= gageKernelSet(ctx, gageKernel00,
 			     gantric->kernel, gantric->parm);
-  if (!E) E |= gageQuerySet(ctx, pvl, 1 << gageSclValue);
-  if (!E) E |= gageVolumeSet(ctx, pvl, nin);
+  if (!E) E |= gageQuerySet(pvl, 1 << gageSclValue);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));
     exit(1);
   }
-  gageSet(ctx, gageVerbose, 0);
+  gageSet(ctx, gageParmVerbose, 0);
   val = gageAnswerPointer(pvl, gageSclValue);
   
   for (zi=0; zi<sz; zi++) {

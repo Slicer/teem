@@ -36,37 +36,6 @@
    (l)[6] = (m)[8] )
 
 int
-probeParseNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "probeParseNrrd", *nerr;
-  Nrrd **nrrdP;
-  airArray *mop;
-  
-  if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  nrrdP = ptr;
-  mop = airMopInit();
-  *nrrdP = nrrdNew();
-  airMopAdd(mop, *nrrdP, (airMopper)nrrdNuke, airMopOnError);
-  if (nrrdLoad(*nrrdP, str)) {
-    airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
-    strncpy(err, nerr, AIR_STRLEN_HUGE-1);
-    airMopError(mop);
-    return 1;
-  }
-  airMopOkay(mop);
-  return 0;
-}
-
-hestCB probeNrrdHestCB = {
-  sizeof(Nrrd *),
-  "nrrd",
-  probeParseNrrd,
-  (airMopper)nrrdNuke
-}; 
-
-int
 probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[] = "probeParseKind";
   gageKind **kindP;
@@ -120,8 +89,7 @@ main(int argc, char *argv[]) {
   hparm = hestParmNew();
   hparm->elideSingleOtherType = AIR_TRUE;
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-	     "input volume",
-	     NULL, NULL, &probeNrrdHestCB);
+	     "input volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
 	     "\"kind\" of volume (\"scalar\" or \"vector\")",
 	     NULL, NULL, &probeKindHestCB);
@@ -172,16 +140,9 @@ main(int argc, char *argv[]) {
   sox = scale*six;
   soy = scale*siy;
   soz = scale*siz;
-  nin->axis[0+iBaseDim].spacing = (AIR_EXISTS(nin->axis[0+iBaseDim].spacing)
-				   ? nin->axis[0+iBaseDim].size : 1.0);
-  nin->axis[1+iBaseDim].spacing = (AIR_EXISTS(nin->axis[1+iBaseDim].spacing)
-				   ? nin->axis[1+iBaseDim].size : 1.0);
-  nin->axis[2+iBaseDim].spacing = (AIR_EXISTS(nin->axis[2+iBaseDim].spacing)
-				   ? nin->axis[2+iBaseDim].size : 1.0);
-  /*
-  fprintf(stderr, "##%s: ansLen = %d; iBaseDim = %d; oBaseDim = %d\n",
-	  me, ansLen, iBaseDim, oBaseDim);
-  */
+  nin->axis[0+iBaseDim].spacing = SPACING(nin->axis[0+iBaseDim].spacing);
+  nin->axis[1+iBaseDim].spacing = SPACING(nin->axis[1+iBaseDim].spacing);
+  nin->axis[2+iBaseDim].spacing = SPACING(nin->axis[2+iBaseDim].spacing);
 
   /***
   **** Except for the gageProbe() call in the inner loop below,
@@ -189,30 +150,30 @@ main(int argc, char *argv[]) {
   **** calls which set up the context and state are here.
   ***/
   ctx = gageContextNew();
-  ctx->gradMagCurvMin = gmc;
-  gageSet(ctx, gageVerbose, 1);
-  gageSet(ctx, gageRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
-  gageSet(ctx, gageCheckIntegrals, AIR_TRUE);
+  gageSet(ctx, gageParmGradMagCurvMin, gmc);
+  gageSet(ctx, gageParmVerbose, 1);
+  gageSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
+  gageSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
-  if (!E) E |= !(pvl = gagePerVolumeNew(kind));
+  if (!E) E |= !(pvl = gagePerVolumeNew(nin, kind));
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm); 
   if (!E) E |= gageKernelSet(ctx, gageKernel22, k22->kernel, k22->parm);
-  if (!E) E |= gageVolumeSet(ctx, pvl, nin);
-  if (!E) E |= gageQuerySet(ctx, pvl, 1 << what);
+  if (!E) E |= gageQuerySet(pvl, 1 << what);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));
     exit(1);
   }
   answer = gageAnswerPointer(pvl, what);
-  gageSet(ctx, gageVerbose, 0);
+  gageSet(ctx, gageParmVerbose, 0);
   /***
   **** end gage setup.
   ***/
 
-  fprintf(stderr, "%s: kernel support = %d^3 samples\n", me, ctx->fd);
+  fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
+	  2*(ctx->havePad + 1));
   if (ansLen > 1) {
     fprintf(stderr, "%s: creating %d x %d x %d x %d output\n", 
 	   me, ansLen, sox, soy, soz);
