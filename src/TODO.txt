@@ -1,3 +1,4 @@
+image registration tool for small translational errors
 
 apparent problem w/ gage probing (0,0,0) in a cell-centered thickness-1 volume
 gageIv3Fill: padded size = (258,258,3);
@@ -6,8 +7,12 @@ gageIv3Fill: padded size = (258,258,3);
 nrrd: verbose message to confirm directIO success
 
 nrrd: extract min, max, hasNonExist from nrrd struct, create nrrdRange
+  decide if oldMin and oldMax stay as is
 
 nrrd: key/value pairs
+
+nrrd: enable imagemagick-style format flagging on filenames ("PNM:-"),
+thereby obviating "unu save -f pnm" steps in pipes to standard out 
 
 air: make floating point stuff more like C++: lots of per-arch #defines
 
@@ -24,10 +29,6 @@ mite: add diffuse and specular envmape
 gage: consider changing gageProbe() to take position both in index and
 unit world space, since many programs only care about unit world space
 
-limn: make it smarter- so that joining parts together is possible in a
-way that facilitates transformations and correct drawing.  This really
-requires general data structures for 2-D graphics primatives...
-
 bin: create "segprobe" analog to vprobe and pprobe
 
 todo: making volume datasets
@@ -40,17 +41,18 @@ DTInspect:
  - add plane of glyphs
  - fix normals on isosurface
 
+leaf: do it
+
+limn: make it smarter- so that joining parts together is possible in a
+way that facilitates transformations and correct drawing.  This really
+requires general data structures for 2-D graphics primatives...
+
 make: make sure that test programs actually link against the development
       library instead of the installed one.
 
 make: finish documenting how GNUMake works for teem
 
-leaf: do it
-
 unrrdu: standardize hest framework for doing unu/gkms/tend style programs
-
-nrrd: enable imagemagick-style format flagging on filenames, thereby
-obviating "unu save -f pnm" steps in pipes to standard out
 
 mrender: deal with vectors
 
