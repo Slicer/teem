@@ -54,7 +54,7 @@ main(int argc, char *argv[]) {
   printf("%s: printf/airSinglePrintf as float:\n%f\n%s\n", me, f, buff);
   airSinglePrintf(NULL, buff, "%f", d);
   printf("\n");
-  printf("%s: printf/airSinglePrintf as double:\n%lf\n%s\n", me, d, buff);
+  printf("%s: printf/airSinglePrintf as double:\n%f\n%s\n", me, d, buff);
   printf("\n");
   printf("%s: airFPFprintf_f:\n", me);
   airFPFprintf_f(stderr, f);
