@@ -428,18 +428,18 @@ echoObjectListSplit(EchoObject *list, int axis) {
 	 echoObjectAABBox == list->type )) 
     return NULL;
 
+  len = LIST(list)->objArr->len;
+  if (0 == len || 1 == len) {
+    /* there is nothing or only one object */
+    return list;
+  }
+
   split = echoObjectNew(echoObjectSplit);
   list0 = echoObjectNew(echoObjectList);
   list1 = echoObjectNew(echoObjectList);
   SPLIT(split)->axis = axis;
   SPLIT(split)->obj0 = list0;
   SPLIT(split)->obj1 = list1;
-
-  len = LIST(list)->objArr->len;
-  if (!len) {
-    echoObjectNix(list);
-    return split;
-  }
 
   mids = malloc(2 * len * sizeof(double));
   for (i=0; i<len; i++) {
@@ -458,14 +458,12 @@ echoObjectListSplit(EchoObject *list, int axis) {
   */
   
   splitIdx = len/2;
-  printf("splitIdx = %d\n", splitIdx);
+  /* printf("splitIdx = %d\n", splitIdx); */
   ELL_3V_SET(loest0, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
   ELL_3V_SET(loest1, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
   ELL_3V_SET(hiest0, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
   ELL_3V_SET(hiest1, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
   airArraySetLen(LIST(list0)->objArr, splitIdx);
-  printf("list0 new len = %d --> %p\n",
-	 LIST(list0)->objArr->len, LIST(list0)->obj);
   for (i=0; i<splitIdx; i++) {
     o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
     LIST(list0)->obj[i] = o;
@@ -478,11 +476,9 @@ echoObjectListSplit(EchoObject *list, int axis) {
     ELL_3V_MAX(hiest0, hiest0, hi);
   }
   airArraySetLen(LIST(list1)->objArr, len-splitIdx);
-  printf("list1 new len = %d --> %p\n",
-	 LIST(list1)->objArr->len, LIST(list1)->obj);
   for (i=splitIdx; i<len; i++) {
     o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
-    LIST(list1)->obj[i] = o;
+    LIST(list1)->obj[i-splitIdx] = o;
     _echoObjectBounds[o->type](lo, hi, o);
     /*
     printf("111 lo = (%g,%g,%g), hi = (%g,%g,%g)\n",
