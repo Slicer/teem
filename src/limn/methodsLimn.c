@@ -63,9 +63,9 @@ _limnOptsPSDefaults(limnOptsPS *ps) {
 
   ps->edgeWidth[0] = 0.0;
   ps->edgeWidth[1] = 0.0;
-  ps->edgeWidth[2] = 2;
-  ps->edgeWidth[3] = 0.0;
-  ps->edgeWidth[4] = 2;
+  ps->edgeWidth[2] = 2.0;
+  ps->edgeWidth[3] = 1.0;
+  ps->edgeWidth[4] = 0.0;
   ps->creaseAngle = 46;
   ps->bgGray = 1.0;
 }

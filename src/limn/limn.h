@@ -120,8 +120,8 @@ typedef struct {
 			  0 : non-crease edge, backfacing
 			  1 : crease edge, backfacing
 			  2 : silhouette edge (crease or non-crease)
-			  3 : non-crease edge, front-facing
-			  4 : crease edge: front-facing */
+			  3 : crease edge: front-facing
+			  4 : non-crease edge, front-facing */
     creaseAngle,
     bgGray;
 } limnOptsPS;
@@ -326,10 +326,13 @@ extern int limnObjDescribe(FILE *file, limnObj *obj);
 extern int limnObjCubeAdd(limnObj *obj, int sp);
 extern int limnObjSquareAdd(limnObj *obj, int sp);
 extern int limnObjLoneEdgeAdd(limnObj *obj, int sp);
-extern int limnObjCylinderAdd(limnObj *obj, int sp, int res);
-extern int limnObjPolarSphereAdd(limnObj *obj, int sp, 
+extern int limnObjCylinderAdd(limnObj *obj, int sp, int axis,int res);
+extern int limnObjPolarSphereAdd(limnObj *obj, int sp, int axis,
 				 int thetaRes, int phiRes);
-extern int limnObjConeAdd(limnObj *obj, int sp, int res);
+extern int limnObjConeAdd(limnObj *obj, int sp, int axis, int res);
+extern int limnObjPolarSuperquadAdd(limnObj *obj, int sp, int axis,
+				    float A, float B,
+				    int thetaRes, int phiRes);
 
 /* transform.c */
 extern int limnObjHomog(limnObj *obj, int space);

@@ -101,6 +101,7 @@ _limnPSDrawFace(limnObj *obj, limnPart *r, limnFace *f,
   R = r->rgba[0];
   G = r->rgba[1];
   B = r->rgba[2];
+  /* fprintf(stderr, "RGB = %g %g %g ->", R, G, B); */
   if (nmap) {
     qn = limnVtoQN[limnQN_16checker](f->wn);
     map = nmap->data;
@@ -108,9 +109,11 @@ _limnPSDrawFace(limnObj *obj, limnPart *r, limnFace *f,
     G *= map[1 + 3*qn];
     B *= map[2 + 3*qn];
   }
+  /* fprintf(stderr, "%g %g %g ->", R, G, B); */
   R = AIR_CLAMP(0, R, 1);
   G = AIR_CLAMP(0, G, 1);
   B = AIR_CLAMP(0, B, 1);
+  /* fprintf(stderr, "%g %g %g\n", R, G, B); */
   if (R == G && G == B) {
     fprintf(win->file, "CP %g Gr F\n", R);
   }
@@ -224,7 +227,7 @@ limnObjPSDraw(limnObj *obj, limnCam *cam, Nrrd *nmap, limnWin *win) {
 	vis1 = f1->visib;
 	angle = 180/M_PI*acos(ELL_3V_DOT(f0->wn, f1->wn));
 	if (vis0 && vis1) {
-	  e->visib = 3 + (angle > win->ps.creaseAngle);
+	  e->visib = 4 - (angle > win->ps.creaseAngle);
 	} else if (!!vis0 ^ !!vis1) {
 	  e->visib = 2;
 	} else {
