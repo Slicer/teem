@@ -174,7 +174,7 @@ ell_3m_2d_nullspace_d(double ans0[3], double ans1[3], double _n[9]) {
 */
 int
 ell_3m_eigenvalues_d(double _eval[3], double _m[9], int newton) {
-  double A, B, C, scale, frob, m[9], eval[3], tmp;
+  double A, B, C, scale, frob, m[9], eval[3];
   int roots;
 
   frob = ELL_3M_FROB(_m);

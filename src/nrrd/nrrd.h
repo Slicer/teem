@@ -710,9 +710,15 @@ TEEM_API int nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nhistP,
 TEEM_API int nrrdApply1DLut(Nrrd *nout,
 			    const Nrrd *nin, const NrrdRange *range,
 			    const Nrrd *nlut, int typeOut, int rescale);
+TEEM_API int nrrdApplyMulti1DLut(Nrrd *nout, const Nrrd *nin,
+				 const NrrdRange *_range, const Nrrd *nmlut,
+				 int typeOut, int rescale);
 TEEM_API int nrrdApply1DRegMap(Nrrd *nout,
 			       const Nrrd *nin, const NrrdRange *range,
 			       const Nrrd *nmap, int typeOut, int rescale);
+TEEM_API int nrrdApplyMulti1DRegMap(Nrrd *nout, const Nrrd *nin,
+				    const NrrdRange *_range, const Nrrd *nmmap,
+				    int typeOut, int rescale);
 TEEM_API int nrrd1DIrregMapCheck(const Nrrd *nmap);
 TEEM_API int nrrd1DIrregAclGenerate(Nrrd *nacl, const Nrrd *nmap, int aclLen);
 TEEM_API int nrrd1DIrregAclCheck(const Nrrd *nacl);
