@@ -46,10 +46,9 @@ $(L).SEEN := true
 
 ## BINS: all the command-line executables associated with teem
 ## 
-#BINS = airSanity affine cubic nrrdSanity overrgb idx2pos emap undos talkweb \
-#  pos2idx unu pprobe vprobe qbert mrender miter gkms ungantry ilk tend spots
 BINS = airSanity affine cubic nrrdSanity overrgb idx2pos emap undos talkweb \
-  pos2idx unu pprobe vprobe qbert mrender miter gkms ungantry ilk tend spots
+  pos2idx unu pprobe vprobe qbert mrender miter gkms ungantry ilk tend spots \
+  ninspect
 
 ## _binD(bins): list of development locations for given bins
 ## _binI(bins): list of install locations for given bins
@@ -94,6 +93,7 @@ qbert.need      = $(call meneed,bane gage nrrd hest air)
 ilk.need        = $(call meneed,moss unrrdu nrrd ell biff hest air)
 emap.need       = $(call meneed,limn nrrd ell biff hest air)
 gkms.need       = $(call meneed,bane nrrd biff air)
+ninspect.need   = $(call meneed,nrrd biff hest air)
 unu.need        = $(call meneed,unrrdu nrrd biff hest air)
 miter.need      = $(call meneed,mite hoover limn nrrd ell biff air)
 ungantry.need   = $(call meneed,gage nrrd biff hest air)
@@ -125,6 +125,7 @@ $(call _binDI,emap)       : $(call used,$(emap.need))
 $(call _binDI,vprobe)     : $(call used,$(vprobe.need))
 $(call _binDI,pprobe)     : $(call used,$(pprobe.need))
 $(call _binDI,gkms)       : $(call used,$(gkms.need))
+$(call _binDI,ninspect)   : $(call used,$(ninspect.need))
 $(call _binDI,unu)        : $(call used,$(unu.need))
 $(call _binDI,mrender)    : $(call used,$(mrender.need))
 $(call _binDI,miter)      : $(call used,$(miter.need))
