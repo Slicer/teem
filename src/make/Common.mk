@@ -88,7 +88,7 @@ CC = cc
 LD = ld
 AR = ar
 RM = rm -f
-INSTALL = install
+CP = cp
 CHMOD = chmod
 PURIFY = purify
 
@@ -299,15 +299,18 @@ $(_BIN): $(OBJS)
 
 # This rule is to satisfy the target $(INSTALL_HDRS)
 $(IDEST)/%: %
-	$(INSTALL) -m 644 $< $(IDEST)
+	$(CP) $< $(IDEST)
+	$(CHMOD) 644 $(IDEST)/$<
 
 # This rule is to satisfy the target $(INSTALL_LIBS)
 $(LDEST)/%: $(OBJ_PREF)/%
-	$(INSTALL) -m 755 $< $(LDEST)
+	$(CP) $< $(LDEST)
+	$(CHMOD) 755 $(LDEST)/$<
 
 # This rule is to satisfy the target $(INSTALL_BIN)
 $(BDEST)/$(_BIN): $(_BIN)
-	$(INSTALL) -m 755 $(_BIN) $(BDEST)
+	$(CP) $(_BIN) $(BDEST)
+	$(CHMOD) 755 $(BDEST)/$(_BIN)
 
 # This rule is to satisfy the target $(INSTALL_BINS)
 # The binaries which are to be installed should link against the
