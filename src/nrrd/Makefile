@@ -16,10 +16,10 @@
 #
 #
 LIB = nrrd
-HEADERS = nrrd.h nrrdDefines.h nrrdAccessors.h
+HEADERS = nrrd.h nrrdDefines.h
 LIBOBJS = types.o arrays.o accessors.o io.o methods.o \
-	subset.o reorder.o measr.o histogram.o filt.o \
-	endian.o kernel.o map.o
+	subset.o reorder.o measure.o histogram.o filt.o \
+	endian.o kernel.o map.o convert.o arith.o
 #TEST_BINS = test/subtest test/iotest test/typestest
 TEST_BINS = test/ktest test/shuff test/subtest
 BINS = 
