@@ -24,6 +24,10 @@
 /* bad Gordon */
 extern int _nrrdReadNrrdParse_keyvalue(Nrrd *nrrd, NrrdIoState *io,
                                        int useBiff);
+extern int _nrrdReadNrrdParse_space_origin(Nrrd *nrrd, NrrdIoState *io,
+                                           int useBiff);
+extern int _nrrdReadNrrdParse_space_directions(Nrrd *nrrd, NrrdIoState *io,
+                                               int useBiff);
 
 #define INFO "Create a nrrd (or nrrd header) from scratch"
 char *_unrrdu_makeInfoL =
@@ -84,14 +88,14 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nrrd;
   Nrrd **nslice;
   int *size, sizeLen,
-    nameLen, kvpLen, ki, spacingLen, thicknessLen, labelLen,
+    nameLen, kvpLen, ki, spacingLen, thicknessLen, labelLen, unitsLen,
     headerOnly, pret, lineSkip, byteSkip, endian, slc, type,
-    encodingType, gotSpacing, gotThickness;
+    encodingType, gotSpacing, gotThickness, space;
   double *spacing, *thickness;
   airArray *mop;
   NrrdIoState *nio;
   FILE *fileOut;
-  char **label;
+  char **label, **units, *spcStr, *_origStr, *origStr, *_dirStr, *dirStr;
   const NrrdEncoding *encoding;
 
   /* so that long lists of filenames can be read from file */
@@ -135,6 +139,8 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
              "any non-spatial axes.", &thicknessLen);
   hestOptAdd(&opt, "l", "lb0 lb1", airTypeString, 1, -1, &label, "",
              "short string labels for each of the axes", &labelLen);
+  hestOptAdd(&opt, "u", "un0 un1", airTypeString, 1, -1, &units, "",
+             "short strings giving units for each of the axes", &unitsLen);
   hestOptAdd(&opt, "c", "content", airTypeString, 1, 1, &content, "",
              "Specifies the content string of the nrrd, which is built upon "
              "by many nrrd function to record a history of operations");
@@ -175,6 +181,21 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
              "if the key or the value contain spaces).  The format of each "
              "pair is \"<key>:=<value>\", with no spaces before or after "
              "\":=\".", &kvpLen);
+  hestOptAdd(&opt, "spc", "space", airTypeString, 1, 1, &spcStr, "",
+             "identify the space in which the array conceptually lives, "
+             "from the nrrdSpace airEnum, which in turn determines the "
+             "dimension of the space");
+  hestOptAdd(&opt, "orig", "origin", airTypeString, 1, 1, &_origStr, "",
+             "the origin in space of the array: the location of the center "
+             "of the first sample, of the form \"(x,y,z)\" (or however "
+             "many coefficients are needed for the chosen space). You will "
+             "probably want to put this in quotes to prevent the shell's "
+             "attempts at expansion.");
+  hestOptAdd(&opt, "dirs", "dir0 dir1 ...", airTypeString, 1, 1, &_dirStr, "",
+             "(HAVE TO PUT ALL THESE INSIDE QUOTES) the \"space directions\", "
+             "the vectors in space spanned by incrementing (by one) each "
+             "axis index (the column vectors of the index-to-world "
+             "matrix transform) or \"none\" for non-spatial axes");
   OPT_ADD_NOUT(out, "output filename");
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
@@ -217,6 +238,13 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
+  if (airStrlen(units[0]) && sizeLen != unitsLen) {
+    fprintf(stderr,
+            "%s: got different numbers of sizes (%d) and units (%d)\n",
+            me, sizeLen, unitsLen);
+    airMopError(mop);
+    return 1;
+  }
   if (nameLen > 1 && nameLen != size[sizeLen-1]) {
     fprintf(stderr, "%s: got %d slice filenames but the last axis has %d "
             "elements\n", me, nameLen, size[sizeLen-1]);
@@ -235,6 +263,9 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (airStrlen(label[0])) {
     nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoLabel, label);
   }
+  if (airStrlen(units[0])) {
+    nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoUnits, units);
+  }
   if (airStrlen(content)) {
     nrrd->content = airStrdup(content);
   }
@@ -246,7 +277,8 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
          memory, we must be careful to unset the pointer prior to 
          NrrdIoStateNix being called by the mop. */
       nio->line = kvp[ki];
-      if (_nrrdReadNrrdParse_keyvalue (nrrd, nio, AIR_TRUE)) {
+      nio->pos = 0;
+      if (_nrrdReadNrrdParse_keyvalue(nrrd, nio, AIR_TRUE)) {
         airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble with key/value %d \"%s\":\n%s",
                 me, ki, kvp[ki], err);
@@ -254,6 +286,63 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
       }
       nio->line = NULL;
     }
+  }
+  if (airStrlen(spcStr)) {
+    space = airEnumVal(nrrdSpace, spcStr);
+    if (!space) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: couldn't parse \"%s\" as a nrrdSpace:\n%s",
+              me, spcStr, err);
+      airMopError(mop); return 1;
+    }
+  } else {
+    space = nrrdSpaceUnknown;
+  }
+  nrrdSpaceSet(nrrd, space);
+  if (airStrlen(_origStr)) {
+    /* why this is necessary is a bit confusing to me, both the check for
+       enclosing quotes, and the need to use to a seperate variable (isn't
+       hest doing memory management of addresses, not variables?) */
+    if ('\"' == _origStr[0] && '\"' == _origStr[strlen(_origStr)-1]) {
+      _origStr[strlen(_origStr)-1] = 0;
+      origStr = _origStr + 1;
+    } else {
+      origStr = _origStr;
+    }
+    /* same hack about using NrrdIoState->line as basis for parsing */
+    nio->line = origStr;
+    nio->pos = 0;
+    if (_nrrdReadNrrdParse_space_origin(nrrd, nio, AIR_TRUE)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble with origin \"%s\":\n%s",
+              me, origStr, err);
+      nio->line = NULL; airMopError(mop); return 1;
+    }
+    nio->line = NULL;
+  }
+  if (airStrlen(_dirStr)) {
+    /* same confusion as above */
+    if ('\"' == _dirStr[0] && '\"' == _dirStr[strlen(_dirStr)-1]) {
+      _dirStr[strlen(_dirStr)-1] = 0;
+      dirStr = _dirStr + 1;
+    } else {
+      dirStr = _dirStr;
+    }
+    /* same hack about using NrrdIoState->line as basis for parsing */
+    nio->line = dirStr;
+    nio->pos = 0;
+    if (_nrrdReadNrrdParse_space_directions(nrrd, nio, AIR_TRUE)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble with space directions \"%s\":\n%s",
+              me, dirStr, err);
+      nio->line = NULL; airMopError(mop); return 1;
+    }
+    nio->line = NULL;
+  }
+  if (_nrrdCheck(nrrd, AIR_FALSE)) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: problems with nrrd as set up:\n%s", me, err);
+    airMopError(mop); return 1;
   }
   
   if (headerOnly) {
@@ -349,6 +438,9 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
       }
       if (airStrlen(label[0])) {
         nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoLabel, label);
+      }
+      if (airStrlen(units[0])) {
+        nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoUnits, units);
       }
       if (airStrlen(content)) {
         nrrd->content = airStrdup(content);
