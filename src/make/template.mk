@@ -84,6 +84,7 @@ $(L)/dev : $(call used,$($(L).need)) \
 $(L)/clean :
 	$(RM) $(call objs.dev,$(_L)) $(call libs.dev,$(_L)) \
 	  $(addsuffix $(DOTEXE),$(call tests.dev,$(_L)))
+	$(if $(TEEM_LITTER),$(RM) $(TEEM_ROOT)/src/$(_L)/$(TEEM_LITTER))
 
 ## $(L)/clobber undoes $(L)/install.
 ##

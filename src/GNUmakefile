@@ -118,7 +118,8 @@ endif
 teem/install : $(addsuffix /install,$(LIBS) bin) megalibs
 teem/dev     : $(addsuffix /dev,$(LIBS) bin)
 teem/clean   : $(addsuffix /clean,$(LIBS) bin)
-teem/clobber : $(addsuffix /clobber,$(LIBS) bin) unmegalibs
+	$(if $(TEEM_LITTER),$(RM) $(TEEM_ROOT)/src/$(TEEM_LITTER))
+teem/clobber : teem/clean $(addsuffix /clobber,$(LIBS) bin) unmegalibs
 nothing : ;
 
 ## if.missing(stuff): returns $stuff if one or more of the files
