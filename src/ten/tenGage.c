@@ -481,6 +481,7 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
 #if GAGE_TYPE_FLOAT
     tenAnisoCalc_f(pvl->directAnswer[tenGageAniso], evalAns);
 #else
+    ELL_3V_COPY(evalAnsF, evalAns);
     tenAnisoCalc_f(aniso, evalAnsF);
     for (ci=0; ci<=TEN_ANISO_MAX; ci++) {
       pvl->directAnswer[tenGageAniso][ci] = aniso[ci];
