@@ -41,7 +41,8 @@
   gageSclMeanCurv,       15: "mc", mean curvature (K1 + K2)/2: *GT   
   gageSclGaussCurv,      16: "gc", gaussian curvature K1*K2: *GT   
   gageSclCurvDir,        17: "cdir", principle curvature directions: GT[6]   
-  0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17
+  gageSclNormalCurv,     18: "nc", curvature of normal streamline: *GT
+  0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18
 */
 
 /*
@@ -51,7 +52,7 @@
 */
 int
 gageSclAnsLength[GAGE_SCL_MAX+1] = {
-  1,  3,  1,  3,  9,  1,  3,  9,  1,  9,  1,  1,  1,  1,  1,  1,  1,  6
+  1,  3,  1,  3,  9,  1,  3,  9,  1,  9,  1,  1,  1,  1,  1,  1,  1,  6,  1
 };
 
 /*
@@ -61,7 +62,8 @@ gageSclAnsLength[GAGE_SCL_MAX+1] = {
 */
 int
 gageSclAnsOffset[GAGE_SCL_MAX+1] = {
-  0,  1,  4,  5,  8, 17, 18, 21, 30, 31, 40, 41, 42, 43, 44, 45, 46, 47 /*53*/
+  0,  1,  4,  5,  8, 17, 18, 21, 30, 31, 40, 41, 42, 43, 44, 45, 46, 47, 53
+  /* --> 54 == GAGE_SCL_TOTAL_ANS_LENGTH*/
 };
 
 /*
@@ -72,7 +74,7 @@ gageSclAnsOffset[GAGE_SCL_MAX+1] = {
 */
 int
 _gageSclNeedDeriv[GAGE_SCL_MAX+1] = {
-  1,  2,  2,  2,  4,  4,  4,  4,  6,  6,  6,  6,  6,  6,  6,  6,  6
+  1,  2,  2,  2,  4,  4,  4,  4,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6
 };
 
 /*
@@ -137,6 +139,10 @@ _gageSclPrereq[GAGE_SCL_MAX+1] = {
 
   /* 17: gageSclCurvDir */
   (1<<gageSclGeomTens) | (1<<gageSclK1) | (1<<gageSclK2),
+
+  /* 18: gageSclNormalCurv */
+  /* this is because of how answer code uses sHess, nPerp, nProj */
+  (1<<gageSclGeomTens) 
   
 };
 
@@ -160,7 +166,8 @@ _gageSclStr[][AIR_STRLEN_SMALL] = {
   "shape index",
   "mean curvature",
   "Gaussian curvature",
-  "curvature directions"
+  "curvature directions",
+  "normal curvature"
 };
 
 char
@@ -183,7 +190,8 @@ _gageSclDesc[][AIR_STRLEN_MED] = {
   "Koenderink's shape index",
   "mean curvature = (K1+K2)/2",
   "gaussian curvature = K1*K2",
-  "curvature directions"
+  "curvature directions",
+  "curvature of normal streamline"
 };
 
 int
@@ -206,7 +214,8 @@ _gageSclVal[] = {
   gageSclShapeIndex,
   gageSclMeanCurv,
   gageSclGaussCurv,
-  gageSclCurvDir
+  gageSclCurvDir,
+  gageSclNormalCurv
 };
 
 #define GS_V  gageSclValue
@@ -227,6 +236,7 @@ _gageSclVal[] = {
 #define GS_MC gageSclMeanCurv
 #define GS_GC gageSclGaussCurv
 #define GS_CD gageSclCurvDir
+#define GS_NC gageSclNormalCurv
 
 char
 _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
@@ -249,6 +259,7 @@ _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
   "mc", "mcurv", "meancurv", "mean curvature",
   "gc", "gcurv", "gausscurv", "gaussian curvature",
   "cdir", "c dir", "curvdir", "curv dir", "curvature directions",
+  "nc", "normalcurv", "normal curv", "normal curvature",
   ""
 };
 
@@ -271,7 +282,8 @@ _gageSclValEqv[] = {
   GS_SI, GS_SI,
   GS_MC, GS_MC, GS_MC, GS_MC,
   GS_GC, GS_GC, GS_GC, GS_GC,
-  GS_CD, GS_CD, GS_CD, GS_CD, GS_CD
+  GS_CD, GS_CD, GS_CD, GS_CD, GS_CD,
+  GS_NC, GS_NC, GS_NC, GS_NC
 };
 
 airEnum

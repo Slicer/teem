@@ -28,7 +28,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   double tmpMat[9], tmpVec[3], hevec[9], heval[3];
   int *offset;
 
-  gage_t len, gp1[3], gp2[3], nPerp[9];
+  gage_t len, gp1[3], gp2[3], nPerp[9], nProj[9], ncTen[9];
   double T, N, D;
 
   query = pvl->query;
@@ -109,8 +109,8 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
       ELL_3M_SCALE(sHess, -(ctx->parm.curvNormalSide)/gmag, hess);
       /* nPerp = I - outer(norm, norm): matrix which projects onto the
 	 plane perpendicular to the normal */
-      ELL_3MV_OUTER(nPerp, norm, norm);
-      ELL_3M_SCALE(nPerp, -1, nPerp);
+      ELL_3MV_OUTER(nProj, norm, norm);
+      ELL_3M_SCALE(nPerp, -1, nProj);
       nPerp[0] += 1;
       nPerp[4] += 1;
       nPerp[8] += 1;
@@ -183,5 +183,19 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     ell3mNullspace1(tmpVec, tmpMat);
     ELL_3V_COPY(ans+offset[gageSclCurvDir]+3, tmpVec);
   }
+  if (1 & (query >> gageSclNormalCurv)) {
+    if (gmag >= ctx->parm.gradMagCurvMin) {
+      /* because of the gageSclGeomTens prerequisite, sHess, nPerp, and
+	 nProj are all already set */
+      /* ncTen = nPerp * sHess * nProj */
+      ELL_3M_MUL(tmpMat, sHess, nProj);
+      ELL_3M_MUL(ncTen, nPerp, tmpMat);
+
+    } else {
+      ELL_3M_ZERO_SET(ncTen);
+    }
+    ans[offset[gageSclNormalCurv]] = ELL_3M_L2NORM(ncTen);
+  }
   return;
 }
+

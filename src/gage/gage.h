@@ -215,10 +215,11 @@ enum {
   gageSclMeanCurv,    /* 15: "mc", mean curvature (K1 + K2)/2: *GT */
   gageSclGaussCurv,   /* 16: "gc", gaussian curvature K1*K2: *GT */
   gageSclCurvDir,     /* 17: "cdir", principle curvature directions: GT[6] */
+  gageSclNormalCurv,  /* 18: "nc", curvature of normal streamline: *GT */
   gageSclLast
 };
-#define GAGE_SCL_MAX     17
-#define GAGE_SCL_TOTAL_ANS_LENGTH 53
+#define GAGE_SCL_MAX     18
+#define GAGE_SCL_TOTAL_ANS_LENGTH 54
 
 /*
 ******** GAGE_SCL_*_BIT #defines
@@ -245,6 +246,7 @@ enum {
 #define GAGE_SCL_MEANCURV_BIT   (1<<15)
 #define GAGE_SCL_GAUSSCURV_BIT  (1<<16)
 #define GAGE_SCL_CURVDIR_BIT    (1<<17)
+#define GAGE_SCL_NORMALCURV_BIT (1<<18)
 
 /*
 ******** gageVec* enum
