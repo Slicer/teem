@@ -184,7 +184,7 @@ dyeHSLtoRGB(float *R, float *G, float *B,
   }
   /* else there is hue */
   if (L <= 0.5)
-    m2 = L*(1+S);
+    m2 = L*(1+S);  /* the book says L*(L+S) which is ?? wrong ?? */
   else
     m2 = L + S - L*S;
   m1 = 2*L - m2;
