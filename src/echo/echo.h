@@ -36,16 +36,22 @@ extern "C" {
 #include <nrrd.h>
 #include <dye.h>
 
-#if 1
+#if 0
 typedef float echoPos_t;
 #define echoPos_nrrdType nrrdTypeFloat
 #define echoPos_airType airTypeFloat
+#define ell4mInvert_p ell4mInvert_f
+#define ell4mPrint_p ell4mPrint_f
+#define ell4mDet_p ell4mDet_f
 #define ECHO_POS_MIN (-FLT_MAX)
 #define ECHO_POS_MAX FLT_MAX
 #else 
 typedef double echoPos_t;
 #define echoPos_nrrdType nrrdTypeDouble
 #define echoPos_airType airTypeDouble
+#define ell4mInvert_p ell4mInvert_d
+#define ell4mPrint_p ell4mPrint_d
+#define ell4mDet_p ell4mDet_d
 #define ECHO_POS_MIN (-DBL_MAX)
 #define ECHO_POS_MAX DBL_MAX
 #endif
@@ -80,8 +86,7 @@ typedef struct {
     seedRand;          /* call airSrand() (don't if repeatability wanted) */
   float aperture,      /* shallowness of field */
     timeGamma,         /* gamma for values in time image */
-    refDistance,       /* reference distance for 1/(r*r)'ing area lights */
-    areaLightHack;     /* don't ask */
+    refDistance;       /* reference distance for 1/(r*r)'ing area lights */
   echoCol_t
     mrR, mrG, mrB,     /* color used when max recursion depth is met */
     amR, amG, amB;     /* ambient light color */
@@ -267,8 +272,8 @@ typedef struct {
 
 typedef struct {
   ECHO_OBJECT_COMMON;
-  echoPos_t Mi[16], M[16], mot[9];
-  int own, motion;
+  echoPos_t Mi[16], M[16];
+  int own;
   EchoObject *obj;
 } EchoObjectInstance;  
 
@@ -299,8 +304,7 @@ extern void echoObjectTriMeshSet(EchoObject *_trim,
 extern EchoObject *echoObjectRoughSphere(int theRes, int phiRes,
 					 echoPos_t *matx);
 extern void echoObjectInstanceSet(EchoObject *_inst,
-				  echoPos_t *M, echoPos_t *mot,
-				  EchoObject *obj, int own);
+				  echoPos_t *M, EchoObject *obj, int own);
 
 /* light.c ---------------------------------------- */
 
@@ -322,7 +326,10 @@ typedef struct {
 typedef struct {
   ECHO_LIGHT_COMMON;
   echoCol_t col[3];
-  echoPos_t dir[3];          /* normalized by echoLightDirectionalSet */
+  echoPos_t dir[3];          /* either the position of the light
+				relative to the origin, or the
+				direction TOWARDS the light;
+				normalized by echoLightDirectionalSet */
 } EchoLightDirectional;
 
 typedef struct {

@@ -45,7 +45,6 @@ echoParmNew(void) {
   parm->renderLights = AIR_TRUE;
   parm->renderBoxes = AIR_FALSE;
   parm->refDistance = 1.0;
-  parm->areaLightHack = 35;
   parm->seedRand = AIR_TRUE;
 
   /* these will have to be user-set */

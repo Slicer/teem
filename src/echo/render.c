@@ -339,7 +339,7 @@ int
 echoRender(Nrrd *nraw, limnCam *cam,
 	   EchoParm *parm, EchoGlobalState *gstate,
 	   EchoObject *scene, airArray *lightArr) {
-  char me[]="echoRender", err[AIR_STRLEN_MED];
+  char me[]="echoRender", err[AIR_STRLEN_MED], done[20];
   int imgUi, imgVi,         /* integral pixel indices */
     samp;                   /* which sample are we doing */
   echoPos_t tmp0, tmp1,
@@ -393,15 +393,17 @@ echoRender(Nrrd *nraw, limnCam *cam,
   ray.depth = 0;
   ray.shadow = AIR_FALSE;
   img = (echoCol_t *)nraw->data;
+  printf("      ");
   for (imgVi=0; imgVi<parm->imgResV; imgVi++) {
     imgV = NRRD_AXIS_POS(nrrdCenterCell, cam->vMin, cam->vMax,
 			 parm->imgResV, imgVi);
+    printf("%s", airDoneStr(0, imgVi, parm->imgResV-1, done)); fflush(stdout);
     for (imgUi=0; imgUi<parm->imgResU; imgUi++) {
       imgU = NRRD_AXIS_POS(nrrdCenterCell, cam->uMin, cam->uMax,
 			   parm->imgResU, imgUi);
 
-      parm->verbose = ( (67 == imgUi && 54 == imgVi) ||
-			(64 == imgUi && 57 == imgVi) );
+      parm->verbose = ( (148 == imgUi && 248 == imgVi) ||
+			(151 == imgUi && 248 == imgVi) );
 
       if (parm->verbose) {
 	printf("\n");

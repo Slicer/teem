@@ -394,7 +394,7 @@ _echoRayIntxList(INTX_ARGS(List)) {
 			      box->min[0], box->max[0],
 			      box->min[1], box->max[1],
 			      box->min[2], box->max[2], ray)) {
-      if (parm->verbose) {
+      if (0 && parm->verbose) {
 	printf("_echoRayIntxList: missed box (%g,%g,%g)--(%g,%g,%g)\n",
 	       box->min[0], box->min[1], box->min[2],
 	       box->max[0], box->max[1], box->max[2]);
@@ -410,18 +410,18 @@ _echoRayIntxList(INTX_ARGS(List)) {
   }
   for (i=0; i<obj->objArr->len; i++) {
     kid = obj->obj[i];
-    if (parm->verbose) {
+    if (0 && parm->verbose) {
       printf("_echoRayIntxList: testing a %d ... ", kid->type);
     }
     if (_echoRayIntx[kid->type](intx, ray, parm, kid)) {
       ray->far = intx->t;
       ret = AIR_TRUE;
-      if (parm->verbose) {
+      if (0 && parm->verbose) {
 	printf("YES\n");
       }
     }
     else {
-      if (parm->verbose) {
+      if (0 && parm->verbose) {
 	printf("YES\n");
       }
     }
@@ -442,7 +442,7 @@ _echoRayIntxInstance(INTX_ARGS(Instance)) {
   ELL_4V_SET(a, ray->from[0], ray->from[1], ray->from[2], 1);
   ELL_4MV_MUL(b, obj->Mi, a);  ELL_34V_HOMOG(iray.from, b);
   if (0 && parm->verbose) {
-    ell4mPrint_f(stdout, obj->Mi);
+    ell4mPrint_p(stdout, obj->Mi);
     printf("from (%g,%g,%g)\n   -- Mi --> (%g,%g,%g,%g)\n   --> (%g,%g,%g)\n",
 	   a[0], a[1], a[2],
 	   b[0], b[1], b[2], b[3], 
@@ -466,6 +466,12 @@ _echoRayIntxInstance(INTX_ARGS(Instance)) {
     ELL_4V_SET(a, intx->norm[0], intx->norm[1], intx->norm[2], 0);
     ELL_4MV_TMUL(b, obj->Mi, a);
     ELL_3V_COPY(intx->norm, b);
+    if (parm->verbose) {
+      printf("hit a %d with M == \n", obj->obj->type);
+      ell4mPrint_p(stdout, obj->M);
+      printf(" (det = %f), and Mi == \n", ell4mDet_p(obj->M));
+      ell4mPrint_p(stdout, obj->Mi);
+    }
     return AIR_TRUE;
   }
   /* else */

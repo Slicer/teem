@@ -50,7 +50,7 @@ _echoLightColDirArea(COLDIR_ARGS(Area)) {
   ELL_3V_SUB(ldir, at, intx->pos);
   *distP = ELL_3V_LEN(ldir);
   colScale = parm->refDistance/(*distP);
-  colScale *= colScale*parm->areaLightHack*rect->area;
+  colScale *= colScale*rect->area;
   ELL_3V_SCALE(lcol, colScale, lcol);
   ELL_3V_SCALE(ldir, 1.0/(*distP), ldir);
   return;

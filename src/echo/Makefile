@@ -24,8 +24,8 @@ PRIV_HEADERS = private.h
 LIB_OBJS = methods.o enum.o object.o light.o render.o intx.o color.o
 #TEST_BINS = test/proj1 test/mod4
 #TEST_BINS = test/test test/trend
-TEST_BINS = test/trend test/glyph
 TEST_BINS = test/glyph
+TEST_BINS = test/trend test/glyph
 BINS = 
 BIN_LIBS = -lten -lecho -llimn -ldye -lnrrd -lell -lbiff -lhest -lair -lm
 

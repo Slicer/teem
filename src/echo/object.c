@@ -97,9 +97,7 @@ NEW_TMPL(List,
 NEW_TMPL(Instance,
 	 ELL_4M_SET_IDENTITY(obj->M);
 	 ELL_4M_SET_IDENTITY(obj->Mi);
-	 ELL_3M_SET_IDENTITY(obj->mot);
 	 obj->own = AIR_FALSE;
-	 obj->motion = AIR_FALSE;
 	 obj->obj = NULL;
 	 );
 
@@ -352,7 +350,7 @@ BNDS_TMPL(List) {
   BNDS_FINISH;
 }
 BNDS_TMPL(Instance) {
-  echoPos_t a[8][4], b[8][4], l[3], h[3], min[3], max[3];
+  echoPos_t a[8][4], b[8][4], l[3], h[3];
 
   _echoObjectBounds[obj->obj->type](l, h, obj->obj);
   ELL_4V_SET(a[0], l[0], l[1], l[2], 1);
@@ -363,14 +361,25 @@ BNDS_TMPL(Instance) {
   ELL_4V_SET(a[5], h[0], l[1], h[2], 1);
   ELL_4V_SET(a[6], l[0], h[1], h[2], 1);
   ELL_4V_SET(a[7], h[0], h[1], h[2], 1);
-  ELL_4M_MUL(b[0], obj->M, a[0]); ELL_4V_HOMOG(b[0], b[0]);
-  ELL_4M_MUL(b[1], obj->M, a[1]); ELL_4V_HOMOG(b[1], b[1]);
-  ELL_4M_MUL(b[2], obj->M, a[2]); ELL_4V_HOMOG(b[2], b[2]);
-  ELL_4M_MUL(b[3], obj->M, a[3]); ELL_4V_HOMOG(b[3], b[3]);
-  ELL_4M_MUL(b[4], obj->M, a[4]); ELL_4V_HOMOG(b[4], b[4]);
-  ELL_4M_MUL(b[5], obj->M, a[5]); ELL_4V_HOMOG(b[5], b[5]);
-  ELL_4M_MUL(b[6], obj->M, a[6]); ELL_4V_HOMOG(b[6], b[6]);
-  ELL_4M_MUL(b[7], obj->M, a[7]); ELL_4V_HOMOG(b[7], b[7]);
+  /*
+  printf(" ---- corners in local space\n");
+  printf(" %g %g %g %g\n", a[0][0], a[0][1], a[0][2], a[0][3]);
+  printf(" %g %g %g %g\n", a[1][0], a[1][1], a[1][2], a[1][3]);
+  printf(" %g %g %g %g\n", a[2][0], a[2][1], a[2][2], a[2][3]);
+  printf(" %g %g %g %g\n", a[3][0], a[3][1], a[3][2], a[3][3]);
+  printf(" %g %g %g %g\n", a[4][0], a[4][1], a[4][2], a[4][3]);
+  printf(" %g %g %g %g\n", a[5][0], a[5][1], a[5][2], a[5][3]);
+  printf(" %g %g %g %g\n", a[6][0], a[6][1], a[6][2], a[6][3]);
+  printf(" %g %g %g %g\n", a[7][0], a[7][1], a[7][2], a[7][3]);
+  */
+  ELL_4MV_MUL(b[0], obj->M, a[0]); ELL_4V_HOMOG(b[0], b[0]);
+  ELL_4MV_MUL(b[1], obj->M, a[1]); ELL_4V_HOMOG(b[1], b[1]);
+  ELL_4MV_MUL(b[2], obj->M, a[2]); ELL_4V_HOMOG(b[2], b[2]);
+  ELL_4MV_MUL(b[3], obj->M, a[3]); ELL_4V_HOMOG(b[3], b[3]);
+  ELL_4MV_MUL(b[4], obj->M, a[4]); ELL_4V_HOMOG(b[4], b[4]);
+  ELL_4MV_MUL(b[5], obj->M, a[5]); ELL_4V_HOMOG(b[5], b[5]);
+  ELL_4MV_MUL(b[6], obj->M, a[6]); ELL_4V_HOMOG(b[6], b[6]);
+  ELL_4MV_MUL(b[7], obj->M, a[7]); ELL_4V_HOMOG(b[7], b[7]);
   /*
   printf(" ---- corners in global space\n");
   printf(" %g %g %g %g\n", b[0][0], b[0][1], b[0][2], b[0][3]);
@@ -382,22 +391,19 @@ BNDS_TMPL(Instance) {
   printf(" %g %g %g %g\n", b[6][0], b[6][1], b[6][2], b[6][3]);
   printf(" %g %g %g %g\n", b[7][0], b[7][1], b[7][2], b[7][3]);
   */
-  ELL_3V_MIN(min, b[0], b[1]);
-  ELL_3V_MIN(min, min, b[2]); ELL_3V_MIN(min, min, b[3]);
-  ELL_3V_MIN(min, min, b[4]); ELL_3V_MIN(min, min, b[5]);
-  ELL_3V_MIN(min, min, b[6]); ELL_3V_MIN(min, min, b[7]);
-  ELL_3V_MAX(max, b[0], b[1]);
-  ELL_3V_MAX(max, max, b[2]); ELL_3V_MAX(max, max, b[3]);
-  ELL_3V_MAX(max, max, b[4]); ELL_3V_MAX(max, max, b[5]);
-  ELL_3V_MAX(max, max, b[6]); ELL_3V_MAX(max, max, b[7]);
-  ELL_3V_COPY(l, min);
-  ELL_3V_COPY(h, max);
+  ELL_3V_MIN(lo, b[0], b[1]);
+  ELL_3V_MIN(lo, lo, b[2]); ELL_3V_MIN(lo, lo, b[3]);
+  ELL_3V_MIN(lo, lo, b[4]); ELL_3V_MIN(lo, lo, b[5]);
+  ELL_3V_MIN(lo, lo, b[6]); ELL_3V_MIN(lo, lo, b[7]);
+  ELL_3V_MAX(hi, b[0], b[1]);
+  ELL_3V_MAX(hi, hi, b[2]); ELL_3V_MAX(hi, hi, b[3]);
+  ELL_3V_MAX(hi, hi, b[4]); ELL_3V_MAX(hi, hi, b[5]);
+  ELL_3V_MAX(hi, hi, b[6]); ELL_3V_MAX(hi, hi, b[7]);
   /*
   printf(" --- new corners:\n");
-  printf(" %g %g %g\n", l[0], l[1], l[2]);
-  printf(" %g %g %g\n", h[0], h[1], h[2]);
+  printf(" %g %g %g\n", lo[0], lo[1], lo[2]);
+  printf(" %g %g %g\n", hi[0], hi[1], hi[2]);
   */
-  
   BNDS_FINISH;
 }
 	  
@@ -764,32 +770,13 @@ echoObjectTriMeshSet(EchoObject *_trim,
 
 void
 echoObjectInstanceSet(EchoObject *_inst,
-		      echoPos_t *M, echoPos_t *mot,
-		      EchoObject *obj, int own) {
+		      echoPos_t *M, EchoObject *obj, int own) {
   EchoObjectInstance *inst;
   
   if (_inst && echoObjectInstance == _inst->type) {
     inst = INSTANCE(_inst);
-    if (M) {
-#if nrrdTypeFloat == echoPos_nrrdType
-      ell4mInvert_f(inst->Mi, M);
-#else
-      ell4mInvert_d(inst->Mi, M);
-#endif  
-      ELL_4M_COPY(inst->M, M);
-    }
-    else {
-      ELL_4M_SET_IDENTITY(inst->Mi);
-      ELL_4M_SET_IDENTITY(inst->M);
-    }
-    if (mot) {
-      ELL_3M_COPY(inst->mot, mot);
-      inst->motion = AIR_TRUE;
-    }
-    else {
-      ELL_3M_SET_IDENTITY(inst->mot);
-      inst->motion = AIR_FALSE;
-    }
+    ell4mInvert_p(inst->Mi, M);
+    ELL_4M_COPY(inst->M, M);
     inst->obj = obj;
     inst->own = own;
   }
