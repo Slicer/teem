@@ -576,7 +576,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
       biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
     }
     arr[0] = floatNin->data;
-    /* airMopAdd(mop, floatNin, (airMopper)nrrdNuke, airMopOnError); */
+    airMopAdd(mop, floatNin, (airMopper)nrrdNuke, airMopOnError);
   }
   else {
     floatNin = NULL;
