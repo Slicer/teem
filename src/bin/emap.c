@@ -40,8 +40,8 @@ main(int argc, char *argv[]) {
   Nrrd *nlight, *nmap, *ndebug;
   char *me, *outS, *errS, *debugS;
   airArray *mop;
-  float amb[3], *linfo, *debug, *map, W[3], V[3] /* , diff */;
-  int li, ui, vi, qn, bits, method;
+  float amb[3], *linfo, *debug, *map, W[3], V[3], diff;
+  int li, ui, vi, qn, bits, method, doerr;
   limnLight *light;
   limnCamera *cam;
   double u, v, r, w, V2W[9];
@@ -77,6 +77,9 @@ main(int argc, char *argv[]) {
 	     "as shaded with the new environment map.  U increases "
 	     "right-ward, V increases downward.  The back sphere half is "
 	     "rendered as though the front half was removed");
+  hestOptAdd(&hopt, "err", NULL, airTypeInt, 0, 0, &doerr, NULL,
+	     "If using \"-d\", make the image represent the error between the "
+	     "real and quantized vector");
   hestParseOrDie(hopt, argc-1, argv+1, hparm, me, emapInfo,
 		 AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -161,27 +164,27 @@ main(int argc, char *argv[]) {
 	ELL_3V_SET(V, u, v, -w);
 	ELL_3MV_MUL(W, V2W, V);
 	qn = limnVtoQN_f[method](W);
-	/* 
-	limnQNtoV_f[method](V, qn);
-	ELL_3V_SUB(W, W, V);
-	diff = ELL_3V_LEN(W);
-	ELL_3V_SET(debug + 3*(ui + 1024*vi), diff, diff, diff);
-	*/
-	ELL_3V_COPY(debug + 3*(ui + 1024*vi), map + 3*qn);
+	if (doerr) {
+	  limnQNtoV_f[method](V, qn);
+	  ELL_3V_SUB(W, W, V);
+	  diff = ELL_3V_LEN(W);
+	  ELL_3V_SET(debug + 3*(ui + 1024*vi), diff, diff, diff);
+	} else {
+	  ELL_3V_COPY(debug + 3*(ui + 1024*vi), map + 3*qn);
+	}
 
-	
 	/* second, the far side of the sphere */
 	ELL_3V_SET(V, u, v, w);
 	ELL_3MV_MUL(W, V2W, V);
 	qn = limnVtoQN_f[method](W);
-	/*
-	limnQNtoV_f[method](V, qn);
-	ELL_3V_SUB(W, W, V);
-	diff = ELL_3V_LEN(W);
-	ELL_3V_SET(debug + 3*(ui + 512 + 1024*vi), diff, diff, diff);
-	*/
-	ELL_3V_COPY(debug + 3*(ui + 512 + 1024*vi), map + 3*qn);
-
+	if (doerr) {
+	  limnQNtoV_f[method](V, qn);
+	  ELL_3V_SUB(W, W, V);
+	  diff = ELL_3V_LEN(W);
+	  ELL_3V_SET(debug + 3*(ui + 512 + 1024*vi), diff, diff, diff);
+	} else {
+	  ELL_3V_COPY(debug + 3*(ui + 512 + 1024*vi), map + 3*qn);
+	}
       }
     }
     nrrdSave(debugS, ndebug, NULL);
