@@ -262,29 +262,29 @@ _alanTuring2DWorker(void *_task) {
 	speed = parm[0 + 3*idx];
 	alpha = parm[1 + 3*idx];
 	beta = parm[2 + 3*idx];
-	v[0] = lev0 + 2*(mx + sx*(my));
 	v[1] = lev0 + 2*( x + sx*(my));
-	v[2] = lev0 + 2*(px + sx*(my));
 	v[3] = lev0 + 2*(mx + sx*( y));
 	v[5] = lev0 + 2*(px + sx*( y));
-	v[6] = lev0 + 2*(mx + sx*(py));
 	v[7] = lev0 + 2*( x + sx*(py));
-	v[8] = lev0 + 2*(px + sx*(py));
 	if (tendata) {
 	  /*
-	  **  0 1 2   -Dxy/2          Dyy         Dxy/2
+	  **  0 1 2    Dxy/2          Dyy        -Dxy/2
 	  **  3 4 5     Dxx     -2*(Dxx + Dyy)     Dxx
-	  **  6 7 8    Dxy/2          Dyy        -Dxy/2
+	  **  6 7 8   -Dxy/2          Dyy         Dxy/2
 	  */
+	  v[0] = lev0 + 2*(mx + sx*(my));
+	  v[2] = lev0 + 2*(px + sx*(my));
+	  v[6] = lev0 + 2*(mx + sx*(py));
+	  v[8] = lev0 + 2*(px + sx*(py));
 	  Dxx = ten[1];
 	  Dxy = ten[2];
 	  Dyy = ten[3];
-	  lapA = (Dxy*(v[2][0] + v[6][0] - v[0][0] - v[8][0])/2
+	  lapA = (Dxy*(v[0][0] + v[8][0] - v[2][0] - v[6][0])/2
 		  + Dxx*(v[3][0] + v[5][0]) + Dyy*(v[1][0] + v[7][0])
 		  - 2*(Dxx + Dyy)*A);
-	  lapB = (Dxy*(v[2][1] + v[6][1] - v[0][1] - v[8][1])/2
+	  lapB = (Dxy*(v[0][1] + v[8][1] - v[2][1] - v[6][1])/2
 		  + Dxx*(v[3][1] + v[5][1]) + Dyy*(v[1][1] + v[7][1])
-		  - 2*(Dxx + Dyy)*A);
+		  - 2*(Dxx + Dyy)*B);
 	  react = ten[0];
 	} else {
 	  lapA = v[1][0] + v[3][0] + v[5][0] + v[7][0] - 4*A;

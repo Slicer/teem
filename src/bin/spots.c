@@ -44,7 +44,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "s", "sx sy", airTypeInt, 2, 3, &size, "128 128",
 	     "size of texture, and also determines its dimension", 
 	     &sizeLen);
-  hestOptAdd(&hopt, "ten", "tensors", airTypeOther, 1, 1, &nten, "",
+  hestOptAdd(&hopt, "i", "tensors", airTypeOther, 1, 1, &nten, "",
 	     "diffusion tensors to use for guiding the texture generation. "
 	     "If used, over-rides the \"-s\" option, both for setting "
 	     "texture dimension and size (in connection with \"-ovs\")",
