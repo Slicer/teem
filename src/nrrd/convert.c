@@ -31,7 +31,6 @@ int
 nrrdConvert(Nrrd *nin, Nrrd *nout, int type) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdConvert";
   int d;
-  double val;
   NRRD_BIG_INT I;
 
   if (!(nin && nout &&
@@ -63,10 +62,10 @@ nrrdConvert(Nrrd *nin, Nrrd *nout, int type) {
   }
   nout->type = type;
   
-  /* copy the values */
+  /* copy (cast, really) the values */
   for (I=0; I<=nin->num-1; I++) {
-    val = nrrdDLookup[nin->type](nin->data, I);
-    nrrdDInsert[nout->type](nout->data, I, val);
+    nrrdDInsert[nout->type](nout->data, I, 
+			    nrrdDLookup[nin->type](nin->data, I));
   }
 
   /* set information in new volume */

@@ -1,13 +1,20 @@
 nrrd:
 ASAP!!: shuffle, 
-	resampling, blurring, weighted median filter
         join, split, reshape,
+	resampling, blurring,  <-- document setting the float param[] vector
+	weighted median filter
 
 be smarter about filling in "content" of something created from
 something else with no "content" (like nrrdConvert)
 
 standardize order of "nin" and "nout" (nrrd input and nrrd output)
 arguments to functions which take both.
+
+clarify policy regarding (and make code changes as needed) on what
+quantities can only be "ints" and which need to be long long ints.
+The dimension of a nrrd must only be the former, the total number
+of elements in a nrrd can be large enough to require the later,
+but what about the number of elements along one axis?
 
 make sure reading and writing methods are consistent with notion
 of piping unrrdu programs together on the command line
