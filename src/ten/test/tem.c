@@ -42,6 +42,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "ts", "two stage", airTypeInt, 0, 0,
 	     &(biparm->twoStage), NULL,
 	     "use two-stage processing");
+  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &(biparm->verbose), "1",
+	     "verbosity level");
   hestOptAdd(&hopt, "mp", "minprob 1,2", airTypeDouble, 2, 2, minprob, "0 0",
 	     "minimum significant posterior probabilies, for first and "
 	     "second stages");
@@ -52,8 +54,7 @@ main(int argc, char *argv[]) {
   
   biparm->minProb = minprob[0];
   biparm->minProb2 = minprob[1];
-  biparm->verbose = 2;
-  
+
   if (tenEMBimodal(biparm, nhisto)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing fitting:\n%s", me, err);

@@ -101,9 +101,9 @@ tenEMatrix(Nrrd *nbmat, Nrrd *_ngrad) {
 #define _TEN_MAX_DWI_NUM 128
 
 /*
-******** tenEstimateOne
+******** tenEstimateSingle
 **
-** estimate one tensor
+** estimate one single tensor
 **
 ** input:
 ** dwi[0] is the B0 image, dwi[1]..dwi[DD-1] are the (DD-1) DWI values
@@ -114,8 +114,8 @@ tenEMatrix(Nrrd *nbmat, Nrrd *_ngrad) {
 ** ten[0]..ten[6] will be the confidence value followed by the tensor
 */
 void
-tenEstimateOne(float *ten, float *dwi, double *emat, int DD,
-	       float thresh, float soft, float b) {
+tenEstimateSingle(float *ten, float *dwi, double *emat, int DD,
+		  float thresh, float soft, float b) {
   double logB0, v[_TEN_MAX_DWI_NUM], tmp, mean;
   int i, j;
 
@@ -139,8 +139,35 @@ tenEstimateOne(float *ten, float *dwi, double *emat, int DD,
   return;
 }
 
+int
+tenEstimate3D(Nrrd *nten, Nrrd **nterrP, Nrrd **_ndwi, int dwiLen, 
+	      Nrrd *_nbmat, float thresh, float soft, float b) {
+  char me[]="tenEstimate", err[AIR_STRLEN_MED];
+  Nrrd *ndwi;
+  airArray *mop;
+
+  if (!(_ndwi)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  mop = airMopNew();
+  ndwi = nrrdNew();
+  airMopAdd(mop, ndwi, (airMopper)nrrdNuke, airMopAlways);
+  if (nrrdJoin(ndwi, (const Nrrd**)_ndwi, dwiLen, 0, AIR_TRUE)) {
+    sprintf(err, "%s: trouble joining inputs", me);
+    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+  }
+  if (tenEstimate4D(nten, nterrP, ndwi, _nbmat, thresh, soft, b)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(TEN, err); airMopError(mop); return 1;
+  }
+  
+  airMopOkay(mop);
+  return 0;
+}
+
 /*
-******** tenEstimate
+******** tenEstimate4D
 **
 ** given a stack of DWI volumes (ndwi) and the list of gradient directions
 ** used for acquisiton (_ngrad), computes and stores diffusion tensors in
@@ -154,10 +181,10 @@ tenEstimateOne(float *ten, float *dwi, double *emat, int DD,
 ** sequence, and then does the pseudo inverse to get the estimation matrix
 */
 int
-tenEstimate(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *_nbmat,
-	    float thresh, float soft, float b) {
+tenEstimate4D(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *_nbmat,
+	      float thresh, float soft, float b) {
   const char *bk;
-  char me[]="tenEstimate", err[AIR_STRLEN_MED];
+  char me[]="tenEstimate4D", err[AIR_STRLEN_MED];
   Nrrd *nbmat, *nemat, *ncrop, *nhist;
   airArray *mop;
   int E, DD, d, II, sx, sy, sz, cmin[4], cmax[4];
@@ -247,7 +274,7 @@ tenEstimate(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *_nbmat,
       if (tenVerbose)
 	fprintf(stderr, "%s: input dwi1[%d] = %g\n", me, d, dwi1[d]);
     }
-    tenEstimateOne(ten, dwi1, emat, DD, thresh, soft, b);
+    tenEstimateSingle(ten, dwi1, emat, DD, thresh, soft, b);
     if (tenVerbose) 
       fprintf(stderr, "%s: output ten = (%g) %g,%g,%g  %g,%g  %g\n", me,
 	      ten[0], ten[1], ten[2], ten[3], ten[4], ten[5], ten[6]);

@@ -35,19 +35,20 @@ char *_tend_epiregInfoL =
 
 int
 tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
-  int pret;
+  int pret, rret;
   hestOpt *hopt = NULL;
   char *perr, *err;
   airArray *mop;
   char *outS, *buff;
 
   NrrdKernelSpec *ksp;
-  Nrrd **nin, **nout, *ngrad;
+  Nrrd **nin, **nout3D, *nout4D, *ngrad;
   int ref, ninLen, noverbose, progress, nocc, ni, baseNum;
   float bw[2], thr, fitFrac;
   
-  hestOptAdd(&hopt, "i", "dwi0 dwi1", airTypeOther, 3, -1, &nin, NULL,
-	     "all the diffusion-weighted images (DWIs), as seperate nrrds",
+  hestOptAdd(&hopt, "i", "dwi0 dwi1", airTypeOther, 1, -1, &nin, NULL,
+	     "all the diffusion-weighted images (DWIs), as seperate 3D nrrds, "
+	     "OR: one 4D nrrd of all DWIs stacked along axis 0",
 	     &ninLen, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "g", "grads", airTypeOther, 1, 1, &ngrad, NULL,
 	     "array of gradient directions, in the same order as the "
@@ -84,7 +85,7 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "thresholding output into something much closer to a "
 	     "real segmentation");
   hestOptAdd(&hopt, "f", "fit frac", airTypeFloat, 1, 1, &fitFrac, "0.70",
-	     "(only meaningful with \"-r 0\") When doing linear fitting "
+	     "(only meaningful with \"-r -1\") When doing linear fitting "
 	     "of the intrinsic distortion parameters, it is good "
 	     "to ignore the slices for which the segmentation was poor.  A "
 	     "heuristic is used to rank the slices according to segmentation "
@@ -95,50 +96,73 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "kernel for resampling DWIs along the phase-encoding "
 	     "direction during final registration stage",
 	     NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "bn", "base #", airTypeInt, 1, 1, &baseNum, "1",
+  hestOptAdd(&hopt, "s", "start #", airTypeInt, 1, 1, &baseNum, "1",
 	     "first number to use in numbered sequence of output files.");
-  hestOptAdd(&hopt, "o", "prefix", airTypeString, 1, 1, &outS, NULL,
-	     "prefix for output filenames.  Will save out one (registered) "
-	     "DWI for each input DWI, using the same type as the input.");
+  hestOptAdd(&hopt, "o", "output/prefix", airTypeString, 1, 1, &outS, NULL,
+	     "For seperate 3D DWI volume inputs: prefix for output filenames; "
+	     "will save out one (registered) "
+	     "DWI for each input DWI, using the same type as the input. "
+	     "For single 4D DWI input: output file name. ");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_tend_epiregInfoL);
   PARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-  
-  nout = (Nrrd **)calloc(ninLen, sizeof(Nrrd *));
+
+  nout3D = (Nrrd **)calloc(ninLen, sizeof(Nrrd *));
+  nout4D = nrrdNew();
   buff = (char *)calloc(airStrlen(outS) + 10, sizeof(char));
-  if (!( nout && buff )) {
+  if (!( nout3D && nout4D && buff )) {
     fprintf(stderr, "%s: couldn't allocate buffers", me);
     airMopError(mop); return 1;
   }
-  airMopAdd(mop, nout, airFree, airMopAlways);
+  airMopAdd(mop, nout4D, (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nout3D, airFree, airMopAlways);
   airMopAdd(mop, buff, airFree, airMopAlways);
   for (ni=0; ni<ninLen; ni++) {
-    airMopAdd(mop, nout[ni]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+    nout3D[ni]=nrrdNew();
+    airMopAdd(mop, nout3D[ni], (airMopper)nrrdNuke, airMopAlways);
   }
-  if (tenEpiRegister(nout, nin, ninLen, ngrad,
-		     ref,
-		     bw[0], bw[1], fitFrac, thr, !nocc,
-		     ksp->kernel, ksp->parm,
-		     progress, !noverbose)) {
-    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); exit(1);
+  if (1 == ninLen) {
+    rret = tenEpiRegister4D(nout4D, nin[0], ngrad,
+			    ref,
+			    bw[0], bw[1], fitFrac, thr, !nocc,
+			    ksp->kernel, ksp->parm,
+			    progress, !noverbose);
+  } else {
+    rret = tenEpiRegister3D(nout3D, nin, ninLen, ngrad,
+			    ref,
+			    bw[0], bw[1], fitFrac, thr, !nocc,
+			    ksp->kernel, ksp->parm,
+			    progress, !noverbose);
   }
-  for (ni=0; ni<ninLen; ni++) {
-    if (ninLen+baseNum > 99) {
-      sprintf(buff, "%s%05d.nrrd", outS, ni+baseNum);
-    } else if (ninLen+baseNum > 9) {
-      sprintf(buff, "%s%02d.nrrd", outS, ni+baseNum);
-    } else {
-      sprintf(buff, "%s%d.nrrd", outS, ni+baseNum);
-    }
-    if (nrrdSave(buff, nout[ni], NULL)) {
+  if (rret) {
+    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble doing epireg \"%s\":\n%s\n", me, buff, err);
+    airMopError(mop); return 1;
+  }
+
+  if (1 == ninLen) {
+    if (nrrdSave(outS, nout4D, NULL)) {
       airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble writing \"%s\":\n%s\n", me, buff, err);
+      fprintf(stderr, "%s: trouble writing \"%s\":\n%s\n", me, outS, err);
       airMopError(mop); return 1;
+    }
+  } else {
+    for (ni=0; ni<ninLen; ni++) {
+      if (ninLen+baseNum > 99) {
+	sprintf(buff, "%s%05d.nrrd", outS, ni+baseNum);
+      } else if (ninLen+baseNum > 9) {
+	sprintf(buff, "%s%02d.nrrd", outS, ni+baseNum);
+      } else {
+	sprintf(buff, "%s%d.nrrd", outS, ni+baseNum);
+      }
+      if (nrrdSave(buff, nout3D[ni], NULL)) {
+	airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+	fprintf(stderr, "%s: trouble writing \"%s\":\n%s\n", me, buff, err);
+	airMopError(mop); return 1;
+      }
     }
   }
   

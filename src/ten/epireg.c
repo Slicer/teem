@@ -874,13 +874,13 @@ _tenEpiRegWarp(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
 }
 
 int
-tenEpiRegister(Nrrd **nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
-	       int reference,
-	       float bwX, float bwY, float fitFrac,
-	       float DWthr, int doCC, 
-	       NrrdKernel *kern, double *kparm,
-	       int progress, int verbose) {
-  char me[]="tenEpiRegister", err[AIR_STRLEN_MED];
+tenEpiRegister3D(Nrrd **nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
+		 int reference,
+		 float bwX, float bwY, float fitFrac,
+		 float DWthr, int doCC, 
+		 NrrdKernel *kern, double *kparm,
+		 int progress, int verbose) {
+  char me[]="tenEpiRegister3D", err[AIR_STRLEN_MED];
   airArray *mop;
   Nrrd **nbuffA, **nbuffB, *npxfr, *nhst, *ngrad;
   int i, hack1, hack2;
@@ -1005,5 +1005,64 @@ tenEpiRegister(Nrrd **nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
   airMopOkay(mop);
   nrrdStateAlwaysSetContent = hack1;
   nrrdStateDisableContent = hack2;
+  return 0;
+}
+
+int
+tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *ngrad,
+		 int reference,
+		 float bwX, float bwY, float fitFrac,
+		 float DWthr, int doCC, 
+		 NrrdKernel *kern, double *kparm,
+		 int progress, int verbose) {
+  char me[]="tenEpiRegister4D", err[AIR_STRLEN_MED];
+  int ni, ninLen;
+  Nrrd **nout, **nin;
+  airArray *mop;
+
+  if (!(_nout && _nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (4 != _nin->dim) {
+    sprintf(err, "%s: need a 4-D input array, not %d-D", me, _nin->dim);
+    biffAdd(TEN, err); return 1;
+  }
+  ninLen = _nin->axis[0].size;
+  if (!( AIR_IN_CL(6, ninLen, 60) )) {
+    sprintf(err, "%s: %d (size of axis 0 and # DWIs) is unreasonable", 
+	    me, ninLen);
+    biffAdd(TEN, err); return 1;
+  }
+  mop = airMopNew();
+  nin = (Nrrd **)calloc(ninLen, sizeof(Nrrd*));
+  nout = (Nrrd **)calloc(ninLen, sizeof(Nrrd*));
+  airMopAdd(mop, nin, airFree, airMopAlways);
+  airMopAdd(mop, nout, airFree, airMopAlways);
+  for (ni=0; ni<ninLen; ni++) {
+    nin[ni] = nrrdNew();
+    nout[ni] = nrrdNew();
+    airMopAdd(mop, nin[ni], (airMopper)nrrdNuke, airMopAlways);
+    airMopAdd(mop, nout[ni], (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdSlice(nin[ni], _nin, 0, ni)) {
+      sprintf(err, "%s: trouble slicing at %d on axis 0", me, ni);
+      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+    }
+  }
+  if (tenEpiRegister3D(nout, nin, ninLen, ngrad,
+		       reference,
+		       bwX, bwY, fitFrac, DWthr,
+		       doCC,
+		       kern, kparm,
+		       progress, verbose)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(TEN, err); airMopError(mop); return 1;
+  }
+  if (nrrdJoin(_nout, (const Nrrd**)nout, ninLen, 0, AIR_TRUE)) {
+    sprintf(err, "%s: trouble joining output", me);
+    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+  }
+  
+  airMopOkay(mop);
   return 0;
 }

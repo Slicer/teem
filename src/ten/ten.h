@@ -359,10 +359,12 @@ extern int tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec);
 /* old tenCalc* functions replaced by tenEstimate* */
 extern int tenBMatrix(Nrrd *nbmat, Nrrd *ngrad);
 /* extern int tenEstimationMatrix(Nrrd *nwmat, Nrrd *ngrad); */
-extern void tenEstimateOne(float *ten, float *dwi, double *emat, int NN,
-			   float thresh, float soft, float b);
-extern int tenEstimate(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *nbmat,
-		       float thresh, float soft, float b);
+extern void tenEstimateSingle(float *ten, float *dwi, double *emat, int NN,
+			      float thresh, float soft, float b);
+extern int tenEstimate3D(Nrrd *nten, Nrrd **nterrP, Nrrd **ndwi, int dwiLen, 
+			 Nrrd *nbmat, float thresh, float soft, float b);
+extern int tenEstimate4D(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi,
+			 Nrrd *nbmat, float thresh, float soft, float b);
 extern void tenSimulateOne(float *dwi, float B0, float *ten,
 			   double *bmat, int DD, float b);
 extern int tenSimulate(Nrrd *ndwi, Nrrd *nT2, Nrrd *nten,
@@ -405,12 +407,18 @@ extern int tenFiberTrace(tenFiberContext *tfx, Nrrd *fiber,
 			 double startX, double startY, double startZ);
 
 /* epireg.c */
-extern int tenEpiRegister(Nrrd **nout, Nrrd **ndwi, int dwiLen, Nrrd *ngrad,
-			  int reference,
-			  float bwX, float bwY, float fitFrac, float DWthr,
-			  int doCC,
-			  NrrdKernel *kern, double *kparm,
-			  int progress, int verbose);
+extern int tenEpiRegister3D(Nrrd **nout, Nrrd **ndwi, int dwiLen, Nrrd *ngrad,
+			    int reference,
+			    float bwX, float bwY, float fitFrac, float DWthr,
+			    int doCC,
+			    NrrdKernel *kern, double *kparm,
+			    int progress, int verbose);
+extern int tenEpiRegister4D(Nrrd *nout, Nrrd *nin, Nrrd *ngrad,
+			    int reference,
+			    float bwX, float bwY, float fitFrac,
+			    float DWthr, int doCC, 
+			    NrrdKernel *kern, double *kparm,
+			    int progress, int verbose);
 
 /* tenGage.c */
 extern ten_export gageKind *tenGageKind;

@@ -39,9 +39,10 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err, *terrS;
   airArray *mop;
 
-  Nrrd *ndwi, *nbmat, *nterr=NULL, *nout;
+  Nrrd **nin, *nbmat, *nterr=NULL, *nout;
   char *outS;
   float thresh, soft, b;
+  int ninLen, eret;
 
   hestOptAdd(&hopt, "e", "filename", airTypeString, 1, 1, &terrS, "",
 	     "Giving a filename here allows you to save out the tensor "
@@ -63,9 +64,10 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "for such a matrix.", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "b", "b", airTypeFloat, 1, 1, &b, "1",
 	     "additional b scaling factor ");
-  hestOptAdd(&hopt, "i", "dwi", airTypeOther, 1, 1, &ndwi, "-",
-	     "4-D volume of all volumes, joined along axis 0, starting with "
-	     "the non-diffusion-weighted image", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "i", "dwi0 dwi1", airTypeOther, 1, -1, &nin, NULL,
+	     "all the diffusion-weighted images (DWIs), as seperate 3D nrrds, "
+	     "OR: one 4D nrrd of all DWIs stacked along axis 0",
+	     &ninLen, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
 	     "output image (floating point)");
 
@@ -78,8 +80,14 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (tenEstimate(nout, airStrlen(terrS) ? &nterr : NULL, 
-		  ndwi, nbmat, thresh, soft, b)) {
+  if (1 == ninLen) {
+    eret = tenEstimate4D(nout, airStrlen(terrS) ? &nterr : NULL, 
+			 nin[0], nbmat, thresh, soft, b);
+  } else {
+    eret = tenEstimate3D(nout, airStrlen(terrS) ? &nterr : NULL, 
+			 nin, ninLen, nbmat, thresh, soft, b);
+  }
+  if (eret) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making tensor volume:\n%s\n", me, err);
     airMopError(mop); return 1;
