@@ -478,7 +478,7 @@ extern void airMopDebug(airArray *arr);
 ** The reason for using airExists_d and not airExists_f is for
 ** doubles > FLT_MAX: airExists_f would say these are infinity.
 */
-#ifdef _WIN32
+#if defined(_MSC_VER) && _MSC_VER < 1300
 #define AIR_EXISTS(x) (airExists_d(x))
 #else
 #define AIR_EXISTS(x) (!((x) - (x)))

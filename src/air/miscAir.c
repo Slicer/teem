@@ -22,6 +22,7 @@
 #include <teem32bit.h>
 /* timer functions */
 #ifdef _WIN32
+#include <fcntl.h>
 #include <time.h>
 #else
 #include <sys/time.h>
