@@ -379,14 +379,22 @@ nrrdElementNumber(Nrrd *nrrd) {
 ** stating whether or not a nrrd would fit.  To help with this,
 ** instead of returning AIR_TRUE, we return 2 if given nrrd would fit
 ** in a PGM image, and 3 if it would fit in a PPM image.
+**
+** Recently added encoding as a variable that determines if it fits
+** in this format....
 */
 int
-nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff) {
+nrrdFitsInFormat(Nrrd *nrrd, int encoding, int format, int useBiff) {
   char me[]="nrrdFitsInFormat", err[AIR_STRLEN_MED];
   int ret=AIR_FALSE;
 
   if (!(nrrd)) {
     sprintf(err, "%s: got NULL pointer", me);
+    biffMaybeAdd(NRRD, err, useBiff); 
+    return AIR_FALSE;
+  }
+  if (!airEnumValidVal(nrrdEncoding, encoding)) {
+    sprintf(err, "%s: encoding %d invalid", me, encoding);
     biffMaybeAdd(NRRD, err, useBiff); 
     return AIR_FALSE;
   }
@@ -405,6 +413,13 @@ nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff) {
       sprintf(err, "%s: type is %s, not %s", me,
 	      airEnumStr(nrrdType, nrrd->type),
 	      airEnumStr(nrrdType, nrrdTypeUChar));
+      biffMaybeAdd(NRRD, err, useBiff); 
+      return AIR_FALSE;
+    }
+    if (!( nrrdEncodingRaw == encoding || nrrdEncodingAscii == encoding)) {
+      sprintf(err, "%s: encoding can only be %s or %s", me,
+	      airEnumStr(nrrdEncoding, nrrdEncodingRaw),
+	      airEnumStr(nrrdEncoding, nrrdEncodingAscii));
       biffMaybeAdd(NRRD, err, useBiff); 
       return AIR_FALSE;
     }
@@ -428,6 +443,7 @@ nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff) {
     }
     break;
   case nrrdFormatTable:
+    /* encoding ignored- always ascii */
     if (!(1  == nrrd->dim || 2 == nrrd->dim)) {
       sprintf(err, "%s: dimension is %d, not 1 or 2", me, nrrd->dim);
       biffMaybeAdd(NRRD, err, useBiff); 
