@@ -287,16 +287,14 @@ limnObjectDepthSortParts(limnObject *obj) {
   return 0;
 }
 
-limnFace *_limnFaceHack;
-
 int
 _limnFaceDepthCompare(const void *_a, const void *_b) {
-  int *a;
-  int *b;
+  limnFace **a;
+  limnFace **b;
 
-  a = (int *)_a;
-  b = (int *)_b;
-  return -AIR_COMPARE(_limnFaceHack[*a].depth, _limnFaceHack[*b].depth);
+  a = (limnFace **)_a;
+  b = (limnFace **)_b;
+  return -AIR_COMPARE((*a)->depth, (*b)->depth);
 }
 
 int
@@ -306,7 +304,7 @@ limnObjectDepthSortFaces(limnObject *obj) {
   limnPart *part;
   int faceIdx, vii;
 
-  obj->faceSort = (int*)calloc(obj->faceNum, sizeof(int));
+  obj->faceSort = (limnFace **)calloc(obj->faceNum, sizeof(limnFace *));
   for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
     face = obj->face + faceIdx;
     part = obj->part[face->partIdx];
@@ -316,11 +314,11 @@ limnObjectDepthSortFaces(limnObject *obj) {
       face->depth += vert->screen[2];
     }
     face->depth /= face->sideNum;
-    obj->faceSort[faceIdx] = faceIdx;
+    obj->faceSort[faceIdx] = face;
   }
 
-  _limnFaceHack = obj->face;
-  qsort(obj->faceSort, obj->faceNum, sizeof(int), _limnFaceDepthCompare);
+  qsort(obj->faceSort, obj->faceNum,
+	sizeof(limnFace *), _limnFaceDepthCompare);
 
   return 0;
 }

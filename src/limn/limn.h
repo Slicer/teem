@@ -270,7 +270,7 @@ typedef struct {
 
   limnFace *face; int faceNum;
   airArray *faceArr;
-  int *faceSort;     /* indices into "face", sorted by depth */
+  limnFace **faceSort;    /* pointers into "face", sorted by depth */
   
   limnPart **part; int partNum;  /* double indirection, see above */
   airArray *partArr;

@@ -351,7 +351,7 @@ limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
   /* draw front-faces and their edges
      (contours, front crease, front non-crease) */
   for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
-    face = obj->face + obj->faceSort[faceIdx];
+    face = obj->faceSort[faceIdx];
     part = obj->part[face->partIdx];
     if (!face->visible) {
       continue;
