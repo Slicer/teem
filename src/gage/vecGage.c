@@ -289,7 +289,7 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
     (ans + gageVecGradient2)[2] = jacAns[8];
   }
   if (1 & (query >> gageVecMultiGrad)) {
-    ELL_3M_SET_IDENTITY(ans + gageVecMultiGrad);
+    ELL_3M_IDENTITY_SET(ans + gageVecMultiGrad);
     ELL_3MV_OUTERADD(ans + gageVecMultiGrad,
 		     ans + gageVecGradient0, ans + gageVecGradient0);
     ELL_3MV_OUTERADD(ans + gageVecMultiGrad,

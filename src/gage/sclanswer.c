@@ -135,7 +135,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
 	fprintf(stderr, "should (also) be bigger: %30.15f\n", (double)len);
       }
     } else {
-      ELL_3M_SET_ZERO(gten);
+      ELL_3M_ZERO_SET(gten);
     }
   }
   if (1 && (query >> gageSclCurvedness)) {
@@ -176,10 +176,10 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
        since these are the eigenvalues of the geometry tensor, and this
        code assumes that the eigenspaces are all one-dimensional */
     ELL_3M_COPY(tmpMat, gten);
-    ELL_3M_SET_DIAG(tmpMat, gten[0] - *k1, gten[4]- *k1, gten[8] - *k1);
+    ELL_3M_DIAG_SET(tmpMat, gten[0] - *k1, gten[4]- *k1, gten[8] - *k1);
     ell3mNullspace1(tmpVec, tmpMat);
     ELL_3V_COPY(ans+offset[gageSclCurvDir]+0, tmpVec);
-    ELL_3M_SET_DIAG(tmpMat, gten[0] - *k2, gten[4] - *k2, gten[8] - *k2);
+    ELL_3M_DIAG_SET(tmpMat, gten[0] - *k2, gten[4] - *k2, gten[8] - *k2);
     ell3mNullspace1(tmpVec, tmpMat);
     ELL_3V_COPY(ans+offset[gageSclCurvDir]+3, tmpVec);
   }
