@@ -75,6 +75,27 @@ gageKernel = {
 
 /* ---------------------------- scl ------------------------- */
 
+/*
+  gageSclUnknown=-1,  * -1: nobody knows *
+  gageSclValue,       *  0: data value: *GT *
+  gageSclGradVec,     *  1: gradient vector, un-normalized: GT[3] *
+  gageSclGradMag,     *  2: gradient magnitude: *GT *
+  gageSclNormal,      *  3: gradient vector, normalized: GT[3] *
+  gageSclHessian,     *  4: Hessian: GT[9] *
+  gageSclLaplacian,   *  5: Laplacian: Dxx + Dyy + Dzz: *GT *
+  gageSclHessEval,    *  6: Hessian's eigenvalues: GT[3] *
+  gageSclHessEvec,    *  7: Hessian's eigenvectors: GT[9] *
+  gageScl2ndDD,       *  8: 2nd dir.deriv. along gradient: *GT *
+  gageSclGeomTens,    *  9: symm. matrix w/ evals 0,K1,K2 and evecs grad,
+			     curvature directions: GT[9] *
+  gageSclCurvedness,  * 10: L2 norm of K1, K2 (not Koen.'s "C"): *GT *
+  gageSclShapeTrace,  * 11, (K1+K2)/Curvedness: *GT *
+  gageSclShapeIndex,  * 12: Koen.'s shape index, ("S"): *GT *
+  gageSclK1K2,        * 13: principle curvature magnitudes: GT[2] *
+  gageSclCurvDir,     * 14: principle curvature directions: GT[6] *
+  gageSclLast
+*/
+
 char
 _gageSclStr[][AIR_STRLEN_SMALL] = {
   "(unknown gageScl)",
@@ -88,10 +109,11 @@ _gageSclStr[][AIR_STRLEN_SMALL] = {
   "Hessian eigenvectors",
   "2nd DD along gradient",
   "geometry tensor",
-  "kappa1 kappa2",
-  "curvature directions",
+  "curvedness",
+  "shape trace",
   "shape index",
-  "curvedness"
+  "kappa1 kappa2",
+  "curvature directions"
 };
 
 int
@@ -107,10 +129,11 @@ _gageSclVal[] = {
   gageSclHessEvec,
   gageScl2ndDD,
   gageSclGeomTens,
-  gageSclK1K2,
-  gageSclCurvDir,
+  gageSclCurvedness,
+  gageSclShapeTrace,
   gageSclShapeIndex,
-  gageSclCurvedness
+  gageSclK1K2,
+  gageSclCurvDir
 };
 
 #define GS_V  gageSclValue
@@ -123,17 +146,18 @@ _gageSclVal[] = {
 #define GS_HE gageSclHessEvec
 #define GS_2D gageScl2ndDD
 #define GS_GT gageSclGeomTens
+#define GS_CV gageSclCurvedness
+#define GS_ST gageSclShapeTrace
+#define GS_SI gageSclShapeIndex
 #define GS_KK gageSclK1K2
 #define GS_CD gageSclCurvDir
-#define GS_SI gageSclShapeIndex
-#define GS_CV gageSclCurvedness
 
 char
 _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
   "v", "val", "value", 
   "gvec", "gradvec", "grad vec", "gradient vector",
-  "g", "gmag", "gradmag", "grad mag", "gradient magnitude",
-  "normal", "n", "gnorm", "normg", "norm", "normgrad", \
+  "g", "gm", "gmag", "gradmag", "grad mag", "gradient magnitude",
+  "n", "normal", "gnorm", "normg", "norm", "normgrad", \
        "norm grad", "normalized gradient",
   "h", "hess", "hessian",
   "l", "lapl", "laplacian",
@@ -141,10 +165,11 @@ _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
   "hevec", "h evec", "hessian evec", "hessian eigenvectors",
   "2d", "2dd", "2nddd", "2nd", "2nd dd", "2nd dd along gradient",
   "gten", "geoten", "geomten", "geometry tensor",
+  "cv", "curvedness",
+  "st", "shape trace",
+  "si", "shape index",
   "k1k2", "k1 k2", "kappa1kappa2", "kappa1 kappa2",
   "cdir", "c dir", "curvdir", "curv dir", "curvature directions",
-  "si", "shape index",
-  "cv", "curvedness",
   ""
 };
 
@@ -152,7 +177,7 @@ int
 _gageSclValEqv[] = {
   GS_V, GS_V, GS_V,
   GS_GV, GS_GV, GS_GV, GS_GV, 
-  GS_GM, GS_GM, GS_GM, GS_GM, GS_GM,
+  GS_GM, GS_GM, GS_GM, GS_GM, GS_GM, GS_GM,
   GS_N, GS_N, GS_N, GS_N, GS_N, GS_N, GS_N, GS_N,
   GS_H, GS_H, GS_H, 
   GS_L, GS_L, GS_L, 
@@ -160,10 +185,11 @@ _gageSclValEqv[] = {
   GS_HE, GS_HE, GS_HE, GS_HE, 
   GS_2D, GS_2D, GS_2D, GS_2D, GS_2D, GS_2D,
   GS_GT, GS_GT, GS_GT, GS_GT, 
-  GS_KK, GS_KK, GS_KK, GS_KK, 
-  GS_CD, GS_CD, GS_CD, GS_CD, GS_CD, 
+  GS_CV, GS_CV,
+  GS_ST, GS_ST,
   GS_SI, GS_SI,
-  GS_CV, GS_CV
+  GS_KK, GS_KK, GS_KK, GS_KK, 
+  GS_CD, GS_CD, GS_CD, GS_CD, GS_CD
 };
 
 airEnum

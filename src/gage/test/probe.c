@@ -177,7 +177,7 @@ main(int argc, char *argv[]) {
   fprintf(stderr, "%s: si{x,y,z} = %d, %d, %d\n", me, six, siy, siz);
   fprintf(stderr, "%s: so{x,y,z} = %d, %d, %d\n", me, sox, soy, soz);
   for (zi=0; zi<=soz-1; zi++) {
-    /* printf("%s: z = % 3d/%d\n", me, zi, soz-1); */
+    printf("%d/%d ", zi, soz-1); fflush(stdout);
     z = AIR_AFFINE(0, zi, soz-1, 0, siz-1);
     for (yi=0; yi<=soy-1; yi++) {
       y = AIR_AFFINE(0, yi, soy-1, 0, siy-1);
@@ -219,6 +219,7 @@ main(int argc, char *argv[]) {
       }
     }
   }
+  printf("\n");
   t1 = airTime();
   printf("probe rate = %g/sec\n", sox*soy*soz/(t1-t0));
   nrrdSave(noutS, nout, NULL);

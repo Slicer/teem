@@ -88,6 +88,14 @@ enum {
 #define GAGE_KERNEL_NUM    6
 
 /*
+** modifying the enums below (scalar, vector, etc query quantities)
+** necesitates modifying the associated arrays in arrays.c, the
+** arrays in enums.c, the fields in the associated answer struct,
+** the constructor for the answer struct, and obviously the "answer"
+** method itself.
+*/
+
+/*
 ******** gageScl... enum
 **
 ** all the things that gage can measure in a scalar volume.  The query is
@@ -114,14 +122,15 @@ enum {
   gageScl2ndDD,       /*  8: 2nd dir.deriv. along gradient: *GT */
   gageSclGeomTens,    /*  9: symm. matrix w/ evals 0,K1,K2 and evecs grad,
 			     curvature directions: GT[9] */
-  gageSclK1K2,        /* 10: principle curvature magnitudes: GT[2] */
-  gageSclCurvDir,     /* 11: principle curvature directions: GT[6] */
+  gageSclCurvedness,  /* 10: L2 norm of K1, K2 (not Koen.'s "C"): *GT */
+  gageSclShapeTrace,  /* 11, (K1+K2)/Curvedness: *GT */
   gageSclShapeIndex,  /* 12: Koen.'s shape index, ("S"): *GT */
-  gageSclCurvedness,  /* 13: L2 norm of K1, K2 (not Koen.'s "C"): *GT */
+  gageSclK1K2,        /* 13: principle curvature magnitudes: GT[2] */
+  gageSclCurvDir,     /* 14: principle curvature directions: GT[6] */
   gageSclLast
 };
-#define GAGE_SCL_MAX     13
-#define GAGE_SCL_TOTAL_ANS_LENGTH 50
+#define GAGE_SCL_MAX     14
+#define GAGE_SCL_TOTAL_ANS_LENGTH 51
 
 enum {
   gageVecUnknown=-1,  /* -1: nobody knows */
@@ -164,8 +173,8 @@ enum {
 typedef struct {
   /*  --------------------------------------- Input parameters */
   int verbose;                /* verbosity */
-  gage_t gradMagMin;          /* vector lengths can never be smaller 
-				 than this */
+  gage_t gradMagMin;          /* gradient vector lengths can never be
+				 smaller than this */
   double integralNearZero;    /* tolerance with checkIntegrals */
   NrrdKernel *k[GAGE_KERNEL_NUM];
                               /* interp, 1st, 2nd deriv. kernels */
@@ -292,7 +301,7 @@ typedef struct {
     *val, *gvec,                     /* convenience pointers into ans[] */
     *gmag, *norm,      
     *hess, *lapl, *heval, *hevec, *scnd,
-    *gten, *k1k2, *cdir, *S, *C;
+    *gten, *C, *St, *Si, *k1k2, *cdir;
 } gageSclAnswer;
 
 /*

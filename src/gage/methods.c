@@ -160,10 +160,11 @@ _gageSclAnswerNew() {
     san->hevec = &(san->ans[gageSclAnsOffset[gageSclHessEvec]]);
     san->scnd  = &(san->ans[gageSclAnsOffset[gageScl2ndDD]]);
     san->gten  = &(san->ans[gageSclAnsOffset[gageSclGeomTens]]);
+    san->C     = &(san->ans[gageSclAnsOffset[gageSclCurvedness]]);
+    san->St    = &(san->ans[gageSclAnsOffset[gageSclShapeTrace]]);
+    san->Si    = &(san->ans[gageSclAnsOffset[gageSclShapeIndex]]);
     san->k1k2  = &(san->ans[gageSclAnsOffset[gageSclK1K2]]);
     san->cdir  = &(san->ans[gageSclAnsOffset[gageSclCurvDir]]);
-    san->S     = &(san->ans[gageSclAnsOffset[gageSclShapeIndex]]);
-    san->C     = &(san->ans[gageSclAnsOffset[gageSclCurvedness]]);
   }
   return san;
 }

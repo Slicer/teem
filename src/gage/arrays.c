@@ -28,13 +28,35 @@ int gageErrNum;
 gage_t gageSclZeroNormal[3] = {1,0,0};
 
 /*
+  gageSclUnknown=-1,  * -1: nobody knows *
+  gageSclValue,       *  0: data value: *GT *
+  gageSclGradVec,     *  1: gradient vector, un-normalized: GT[3] *
+  gageSclGradMag,     *  2: gradient magnitude: *GT *
+  gageSclNormal,      *  3: gradient vector, normalized: GT[3] *
+  gageSclHessian,     *  4: Hessian: GT[9] *
+  gageSclLaplacian,   *  5: Laplacian: Dxx + Dyy + Dzz: *GT *
+  gageSclHessEval,    *  6: Hessian's eigenvalues: GT[3] *
+  gageSclHessEvec,    *  7: Hessian's eigenvectors: GT[9] *
+  gageScl2ndDD,       *  8: 2nd dir.deriv. along gradient: *GT *
+  gageSclGeomTens,    *  9: symm. matrix w/ evals 0,K1,K2 and evecs grad,
+			     curvature directions: GT[9] *
+  gageSclCurvedness,  * 10: L2 norm of K1, K2 (not Koen.'s "C"): *GT *
+  gageSclShapeTrace,  * 11, (K1+K2)/Curvedness: *GT *
+  gageSclShapeIndex,  * 12: Koen.'s shape index, ("S"): *GT *
+  gageSclK1K2,        * 13: principle curvature magnitudes: GT[2] *
+  gageSclCurvDir,     * 14: principle curvature directions: GT[6] *
+  gageSclLast
+  0   1   2   3   4   5   6   7   8   9  10  11  12  13  14
+*/
+
+/*
 ******** gageSclAnsLength[]
 **
 ** the number of gage_t used for each answer
 */
 int
 gageSclAnsLength[GAGE_SCL_MAX+1] = {
-  1,  3,  1,  3,  9,  1,  3,  9,  1,  9,  2,  6,  1,  1
+  1,  3,  1,  3,  9,  1,  3,  9,  1,  9,  1,  1,  1,  2,  6
 };
 
 /*
@@ -44,7 +66,7 @@ gageSclAnsLength[GAGE_SCL_MAX+1] = {
 */
 int
 gageSclAnsOffset[GAGE_SCL_MAX+1] = {
-  0,  1,  4,  5,  8, 17, 18, 21, 30, 31, 40, 42, 48, 49  /* 50 */
+  0,  1,  4,  5,  8, 17, 18, 21, 30, 31, 40, 41, 42, 43, 45  /* 51 */
 };
 
 /*
@@ -55,9 +77,8 @@ gageSclAnsOffset[GAGE_SCL_MAX+1] = {
 */
 int
 _gageSclNeedDeriv[GAGE_SCL_MAX+1] = {
-  1,  2,  2,  2,  4,  4,  4,  4,  6,  4,  4,  4,  4,  4
+  1,  2,  2,  2,  4,  4,  4,  4,  6,  6,  6,  6,  6,  6,  6
 };
-
 
 /*
 ** _gageSclPrereq[]
@@ -98,17 +119,21 @@ _gageSclPrereq[GAGE_SCL_MAX+1] = {
   /* gageSclGeomTens */
   (1<<gageSclHessian) | (1<<gageSclNormal) | (1<<gageSclGradMag),
   
-  /* gageSclK1K2 */
+  /* gageSclCurvedness */
   (1<<gageSclGeomTens),
 
-  /* gageSclCurvDir */
-  (1<<gageSclGeomTens) | (1<<gageSclNormal),
-  
+  /* gageSclShapeTrace */
+  (1<<gageSclGeomTens),
+
   /* gageSclShapeIndex */
   (1<<gageSclK1K2),
 
-  /* gageSclCurvedness */
-  (1<<gageSclK1K2)
+  /* gageSclK1K2 */
+  (1<<gageSclCurvedness) | (1<<gageSclShapeTrace),
+
+  /* gageSclCurvDir */
+  (1<<gageSclGeomTens) | (1<<gageSclK1K2)
+  
 };
 
 /* --------------------------- vec ------------------------- */
