@@ -1,6 +1,8 @@
-colormapping of float data- 
-  lookup tables, or full ramps
-  (but this all needs the nrrd io.c re-write)
+Nix the stuff that I'm ignorant about
+
+Verify RGB-to-everything (especially HSL) with dense sampling
+of RGB cube.
+
 
 
 

@@ -1,4 +1,8 @@
-test regular and irregular colormaps with only 2 points
+make decision on whether nrrdBigInt should simply be size_t
+
+test regular and irregular colormaps with only 2 points, 
+purify unu {lut, rmap, imap} with scalar and nonscalar,
+type  same and different than map type.
 
 2D luts/rmaps
 
@@ -19,6 +23,10 @@ write a select() function to replace qsort() in median calculation
 gzip encoding
 
 change verbosity to get back the "reading data ..." messages.
+AND CERTAINLY get it back to warn when nrrd headers in PPM and tables
+are botched
+
+be sure to test all non-boolean state/default variables .
 
 ----- teem 1.5 cut-off -----
 
