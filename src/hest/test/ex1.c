@@ -51,6 +51,7 @@ main(int argc, char **argv) {
     hestInfo(stderr, argv[0], info, parm);
     hestUsage(stderr, opt, argv[0], parm);
     hestGlossary(stderr, opt, parm);
+    parm = hestParmNix(parm);
     exit(1);
   }
 
@@ -59,6 +60,7 @@ main(int argc, char **argv) {
     printf("ERROR: %s\n", err);
     hestUsage(stderr, opt, argv[0], parm);
     hestGlossary(stderr, opt, parm);
+    parm = hestParmNix(parm);
     exit(1);
   }
 
@@ -71,6 +73,7 @@ main(int argc, char **argv) {
   }
   printf("\n");
 
-  hestFree(opt, NULL);
+  hestFree(opt, parm);
+  parm = hestParmNix(parm);
   exit(0);
 }
