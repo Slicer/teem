@@ -164,6 +164,8 @@ extern int limnWriteAsOBJ(FILE *file, limnObj *obj);
 /* qn.c */
 extern void limn16QNtoV(float *vec, unsigned short qn, int doNorm);
 extern unsigned short limnVto16QN(float *vec);
+extern void limn16QN1PBtoV(float *vec, unsigned short qn, int doNorm);
+extern unsigned short limnVto16QN1PB(float *vec);
 extern void limn15QNtoV(float *vec, unsigned short qn, int doNorm);
 extern unsigned short limnVto15QN(float *vec);
 
