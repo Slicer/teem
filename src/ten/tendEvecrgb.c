@@ -32,12 +32,10 @@ tend_evecrgbMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int aniso, ret, cc, sx, sy, sz;
+  int aniso, cc;
   Nrrd *nin, *nout;
   char *outS;
-  float *cdata, *tdata, eval[3], evec[9], 
-    bg, gray, gamma, R, G, B, an[TEN_ANISO_MAX], conf;
-  size_t N, I;
+  float bg, gray, gamma;
 
   hestOptAdd(&hopt, "c", "evec index", airTypeInt, 1, 1, &cc, NULL,
 	     "which eigenvector will be colored. \"0\" for the "
@@ -64,60 +62,13 @@ tend_evecrgbMain(int argc, char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!AIR_IN_CL(0, cc, 2)) {
-    fprintf(stderr, "%s: requested component %d not in [0..2]\n", me, cc);
-    airMopError(mop); return 1;
-  }
-  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
-    fprintf(stderr, "%s: didn't get a valid DT volume:\n%s\n", me, err);
-    airMopError(mop); return 1;
-  }
-  
-  sx = nin->axis[1].size;
-  sy = nin->axis[2].size;
-  sz = nin->axis[3].size;
-
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  ret = nrrdMaybeAlloc(nout, nrrdTypeFloat, 4, 3, sx, sy, sz);
-  if (ret) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble allocating output:\n%s\n", me, err);
+  if (tenEvecRGB(nout, nin, cc, aniso, gamma, bg, gray)) {
+    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble doing colormapping:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
-
-  N = sx*sy*sz;
-  cdata = nout->data;
-  tdata = nin->data;
-  for (I=0; I<N; I++) {
-    tenEigensolve(eval, evec, tdata);
-    tenAnisoCalc(an, eval);
-    R = AIR_ABS(evec[0 + 3*cc]);
-    G = AIR_ABS(evec[1 + 3*cc]);
-    B = AIR_ABS(evec[2 + 3*cc]);
-    R = pow(R, 1.0/gamma);
-    G = pow(G, 1.0/gamma);
-    B = pow(B, 1.0/gamma);
-    R = AIR_AFFINE(0.0, an[aniso], 1.0, gray, R);
-    G = AIR_AFFINE(0.0, an[aniso], 1.0, gray, G);
-    B = AIR_AFFINE(0.0, an[aniso], 1.0, gray, B);
-    conf = AIR_CLAMP(0, tdata[0], 1);
-    R = AIR_AFFINE(0.0, conf, 1.0, bg, R);
-    G = AIR_AFFINE(0.0, conf, 1.0, bg, G);
-    B = AIR_AFFINE(0.0, conf, 1.0, bg, B);
-    ELL_3V_SET(cdata, R, G, B);
-    cdata += 3;
-    tdata += 7;
-  }
-  if (nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_SIZE_BIT)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
-  }
-  AIR_FREE(nout->axis[0].label);
-  nout->axis[0].label = airStrdup("rgb");
-
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);

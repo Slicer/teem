@@ -21,6 +21,68 @@
 #include "ten.h"
 #include "tenPrivate.h"
 
+int
+tenEvecRGB(Nrrd *nout, Nrrd *nin, int which, int aniso,
+	   float gamma, float bgGray, float isoGray) {
+  char me[]="tenEvecRGB", err[AIR_STRLEN_MED];
+  int size[NRRD_DIM_MAX];
+  float *tdata, *cdata, eval[3], evec[9], R, G, B, an[TEN_ANISO_MAX], conf;
+  size_t II, NN;
+
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!(AIR_IN_CL(0, which, 2))) {
+    sprintf(err, "%s: eigenvector index %d not in range [0..2]", me, which);
+    biffAdd(TEN, err); return 1;
+  }
+  if (airEnumValCheck(tenAniso, aniso)) {
+    sprintf(err, "%s: anisotropy metric %d not valid", me, aniso);
+    biffAdd(TEN, err); return 1;
+  }
+  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_FALSE, AIR_TRUE)) {
+    sprintf(err, "%s: didn't get a valid DT volume", me);
+    biffAdd(TEN, err); return 1;
+  }
+
+  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
+  size[0] = 3;
+  if (nrrdMaybeAlloc_nva(nout, nrrdTypeFloat, nin->dim, size)) {
+    sprintf(err, "%s: couldn't alloc output", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  NN = nrrdElementNumber(nin)/7;
+  cdata = nout->data;
+  tdata = nin->data;
+  for (II=0; II<NN; II++) {
+    tenEigensolve(eval, evec, tdata);
+    tenAnisoCalc(an, eval);
+    R = AIR_ABS(evec[0 + 3*which]);
+    G = AIR_ABS(evec[1 + 3*which]);
+    B = AIR_ABS(evec[2 + 3*which]);
+    R = pow(R, 1.0/gamma);
+    G = pow(G, 1.0/gamma);
+    B = pow(B, 1.0/gamma);
+    R = AIR_LERP(an[aniso], isoGray, R);
+    G = AIR_LERP(an[aniso], isoGray, G);
+    B = AIR_LERP(an[aniso], isoGray, B);
+    conf = AIR_CLAMP(0, tdata[0], 1);
+    R = AIR_LERP(conf, bgGray, R);
+    G = AIR_LERP(conf, bgGray, G);
+    B = AIR_LERP(conf, bgGray, B);
+    ELL_3V_SET(cdata, R, G, B);
+    cdata += 3;
+    tdata += 7;
+  }
+  if (nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_SIZE_BIT)) {
+    sprintf(err, "%s: couldn't copy axis info", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  
+  return 0;
+}
+
 #define SQR(i) ((i)*(i))
 
 short
