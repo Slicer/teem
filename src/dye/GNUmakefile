@@ -37,7 +37,6 @@ install : $(L)/install
 usable  : $(L)/usable
 clean   : $(L)/clean
 clobber : $(L)/clobber
-nothing :
 DEF_TARGETS = true
 endif
 ifeq (,$(INCLUDED))
@@ -47,7 +46,7 @@ endif
 #### Describe library here
 #### (needs ell for macros)
 ####
-$(L).NEED_LIBS = ell biff air
+$(L).NEED = ell biff air
 $(L).PUBLIC_HEADERS = dye.h
 $(L).PRIVATE_HEADERS =
 $(L).OBJS = methodsDye.o convertDye.o

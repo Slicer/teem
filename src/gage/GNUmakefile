@@ -37,7 +37,6 @@ install : $(L)/install
 usable  : $(L)/usable
 clean   : $(L)/clean
 clobber : $(L)/clobber
-nothing :
 DEF_TARGETS = true
 endif
 ifeq (,$(INCLUDED))
@@ -47,7 +46,7 @@ endif
 #### Describe library here
 ####
 ####
-$(L).NEED_LIBS = nrrd biff ell air
+$(L).NEED = nrrd biff ell air
 $(L).PUBLIC_HEADERS = gage.h
 $(L).PRIVATE_HEADERS = privateGage.h
 $(L).OBJS = defaultsGage.o miscGage.o print.o filter.o methodsGage.o \

@@ -37,7 +37,6 @@ install : $(L)/install
 usable  : $(L)/usable
 clean   : $(L)/clean
 clobber : $(L)/clobber
-nothing :
 DEF_TARGETS = true
 endif
 ifeq (,$(INCLUDED))
@@ -47,7 +46,7 @@ endif
 #### Describe library here
 #### (ell for macros)
 ####
-$(L).NEED_LIBS = hoover limn gage nrrd ell biff air
+$(L).NEED = hoover limn gage nrrd ell biff air
 $(L).PUBLIC_HEADERS = mite.h
 $(L).PRIVATE_HEADERS =
 $(L).OBJS = defaultsMite.o user.o renderMite.o thread.o ray.o

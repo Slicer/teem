@@ -104,11 +104,6 @@ $(call OBJS.DEV,$(L)) : $(call NEED.USABLE,$(L)) $(call HDRS.DEV,$(L))
 ##
 $(call TESTS.DEV,$(L)) : $(call NEED.USABLE,$(L)) $(call LIBS.DEV,$(L))
 
-## Install binaries depend on usable prerequisite libraries, and our
-## own install libs
-##
-$(call BINS.INST,$(L)) : $(call NEED.USABLE,$(L)) $(call LIBS.INST,$(L))
-
 ## How to create development static and shared libs (LIBS.DEV) from
 ## the objects on which they depend.
 ##

@@ -37,7 +37,6 @@ install : $(L)/install
 usable  : $(L)/usable
 clean   : $(L)/clean
 clobber : $(L)/clobber
-nothing :
 DEF_TARGETS := true
 endif
 ifeq (,$(INCLUDED))
@@ -47,7 +46,7 @@ endif
 #### Describe library here
 ####
 ####
-$(L).NEED_LIBS = air
+$(L).NEED = air
 $(L).PUBLIC_HEADERS = hest.h
 $(L).PRIVATE_HEADERS = privateHest.h
 $(L).OBJS = defaultsHest.o methodsHest.o usage.o parseHest.o

@@ -37,7 +37,6 @@ install : $(L)/install
 usable  : $(L)/usable
 clean   : $(L)/clean
 clobber : $(L)/clobber
-nothing :
 DEF_TARGETS = true
 endif
 ifeq (,$(INCLUDED))
@@ -47,7 +46,7 @@ endif
 #### Describe library here
 ####
 ####
-$(L).NEED_LIBS = limn nrrd ell biff air
+$(L).NEED = limn nrrd ell biff air
 $(L).PUBLIC_HEADERS = echo.h
 $(L).PRIVATE_HEADERS = privateEcho.h
 $(L).OBJS = methodsEcho.o enumsEcho.o object.o lightEcho.o \

@@ -37,7 +37,6 @@ install : $(L)/install
 usable  : $(L)/usable
 clean   : $(L)/clean
 clobber : $(L)/clobber
-nothing :
 DEF_TARGETS = true
 endif
 ifeq (,$(INCLUDED))
@@ -47,7 +46,7 @@ endif
 #### Describe library here
 ####
 ####
-$(L).NEED_LIBS = nrrd biff hest air
+$(L).NEED = nrrd biff hest air
 $(L).PUBLIC_HEADERS = unrrdu.h
 $(L).PRIVATE_HEADERS = privateUnrrdu.h
 $(L).OBJS = flotsam.o

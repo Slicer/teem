@@ -37,7 +37,6 @@ install : $(L)/install
 usable  : $(L)/usable
 clean   : $(L)/clean
 clobber : $(L)/clobber
-nothing :
 DEF_TARGETS = true
 endif
 ifeq (,$(INCLUDED))
@@ -48,7 +47,7 @@ endif
 #### For time being, glyph (glyph.o, test/boxes, test/slices)
 #### stuff is nixed.
 ####
-$(L).NEED_LIBS = limn dye nrrd ell biff air
+$(L).NEED = limn dye nrrd ell biff air
 $(L).PUBLIC_HEADERS = ten.h tenMacros.h
 $(L).PRIVATE_HEADERS =
 $(L).OBJS = tensor.o chan.o aniso.o methodsTen.o arraysTen.o

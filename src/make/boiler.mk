@@ -39,7 +39,6 @@ install : $(L).install
 usable  : $(L).usable
 clean   : $(L).clean
 clobber : $(L).clobber
-nothing :
 DEF_TARGETS = true
 endif
 ifeq (,$(INCLUDED))
@@ -54,7 +53,6 @@ $(L).PUBLIC_HEADERS =
 $(L).PRIVATE_HEADERS =
 $(L).OBJS =
 $(L).TESTS =
-$(L).BINS =
 
 $(L).NEED_ENDIAN =
 $(L).NEED_QNANHIBIT =

@@ -26,7 +26,7 @@ L := bin
 #### We're not a library at all actually ...
 ####
 
-# boilerplate: default targets and include tricks
+# boilerplate: default targets (except usable) and include tricks
 ifeq (,$($(L).SEEN))
 $(L).SEEN := true
 TEEM_ROOT ?= ../..

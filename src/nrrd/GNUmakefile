@@ -37,7 +37,6 @@ install : $(L)/install
 usable  : $(L)/usable
 clean   : $(L)/clean
 clobber : $(L)/clobber
-nothing :
 DEF_TARGETS = true
 endif
 ifeq (,$(INCLUDED))
@@ -47,7 +46,7 @@ endif
 #### Describe library here
 #### (hest needed for callback declaration)
 #### 
-$(L).NEED_LIBS = biff hest air
+$(L).NEED = biff hest air
 $(L).PUBLIC_HEADERS = nrrd.h nrrdDefines.h nrrdMacros.h nrrdEnums.h
 $(L).PRIVATE_HEADERS = privateNrrd.h
 $(L).OBJS = \
