@@ -833,12 +833,10 @@ _nrrdWriteTable (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   float val;
 
   sprintf(cmt, "%c ", NRRD_COMMENT_CHAR);
-  /* If dimension is 1, we always print it. Dimension of 2 is 
-     otherwise assumed. */
-  if (1 == nrrd->dim) {
-    _PRINT_FIELD(cmt, nrrdField_dimension);
-  }
   if (!io->bareTable) {
+    if (1 == nrrd->dim) {
+      _PRINT_FIELD(cmt, nrrdField_dimension);
+    }
     for (i=1; i<=NRRD_FIELD_MAX; i++) {
       /* dimension is handled above */
       if (_nrrdFieldValidInTable[i] && nrrdField_dimension != i) {
