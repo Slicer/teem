@@ -119,7 +119,7 @@ enum {
   nrrdEncodingUnknown,
   nrrdEncodingRaw,        /* 1: same as memory layout (modulo endianness) */
   nrrdEncodingAscii,      /* 2: decimal values are spelled out in ascii */
-  nrrdEncodingGzip,       /* 3: gzipped raw data */
+  nrrdEncodingZlib,       /* 3: gzipped raw data */
   nrrdEncodingLast
 };
 #define NRRD_ENCODING_MAX    3
