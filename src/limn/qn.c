@@ -218,24 +218,6 @@ _limnQN16border1_VtoQN_f(float *vec) {
   (vec)[1] = y*n; \
   (vec)[2] = z*n
 
-void
-_limnQN16checker_QNtoV_f(float *vec, int qn) {
-  int ui, vi;
-  double u, v, x, y, z, n;
-
-  /* _16_QtoV(vec, qn); */
-  _EVEN_QtoV(8, vec, qn);
-}
-
-void
-_limnQN16checker_QNtoV_d(double *vec, int qn) {
-  int ui, vi;
-  double u, v, x, y, z, n;
-
-  /* _16_QtoV(vec, qn); */
-  _EVEN_QtoV(8, vec, qn);
-}
-
 #define _16_VtoQ(vec) \
   x = (vec)[0]; \
   y = (vec)[1]; \
@@ -259,15 +241,27 @@ _limnQN16checker_QNtoV_d(double *vec, int qn) {
     vi = xi - yi + 127; \
   }
 
+void
+_limnQN16checker_QNtoV_f(float *vec, int qn) {
+  int ui, vi;
+  double u, v, x, y, z, n;
+
+  _EVEN_QtoV(8, vec, qn);
+}
+
+void
+_limnQN16checker_QNtoV_d(double *vec, int qn) {
+  int ui, vi;
+  double u, v, x, y, z, n;
+
+  _EVEN_QtoV(8, vec, qn);
+}
+
 int
 _limnQN16checker_VtoQN_f(float *vec) {
   double L, x, y, z;
   int xi, yi, ui, vi;
   
-  /*
-  _16_VtoQ(vec);
-  return (vi << 8) | ui;
-  */
   _EVEN_VtoQ(8, vec);
 }
 
@@ -276,33 +270,60 @@ _limnQN16checker_VtoQN_d(double *vec) {
   double L, x, y, z;
   int xi, yi, ui, vi;
 
-  /*
-  _16_VtoQ(vec);
-  return (vi << 8) | ui;
-  */
   _EVEN_VtoQ(8, vec);
 }
 
 /* ----------------------------------------------------------------  */
+
+/* 15 bit --> HNB == 7 */
+
+#define _ODD_QtoV(HNB, vec, qn) \
+  ui = qn & ((1<<HNB)-1); \
+  vi = (qn >> HNB) & ((1<<HNB)-1); \
+  zi = (qn >> (2*HNB)) & 0x01; \
+  u = AIR_AFFINE(-0.5, ui, ((1<<HNB)-1)+0.5, -0.5, 0.5); \
+  v = AIR_AFFINE(-0.5, vi, ((1<<HNB)-1)+0.5, -0.5, 0.5); \
+  x =  u + v; \
+  y =  u - v; \
+  z = 1 - AIR_ABS(x) - AIR_ABS(y); \
+  z *= (zi << 1) - 1; \
+  n = 1.0/sqrt(x*x + y*y + z*z); \
+  vec[0] = x*n; \
+  vec[1] = y*n; \
+  vec[2] = z*n
+
+#define _ODD_VtoQ(HNB, vec) \
+  x = vec[0]; \
+  y = vec[1]; \
+  z = vec[2]; \
+  L = AIR_ABS(x) + AIR_ABS(y) + AIR_ABS(z); \
+  if (!L) { \
+    return 0; \
+  } \
+  x /= L; \
+  y /= L; \
+  u = x + y; \
+  v = x - y; \
+  AIR_INDEX(-1, u, 1, (1<<HNB), ui); \
+  AIR_INDEX(-1, v, 1, (1<<HNB), vi); \
+  zi = (z > 0); \
+  return (zi << (2*HNB)) | (vi << HNB) | ui
+
 
 void
 _limnQN15checker_QNtoV_f(float *vec, int qn) {
   int ui, vi, zi;
   float u, v, x, y, z, n;
   
-  ui = qn & 0x7F;
-  vi = (qn >> 7) & 0x7F;
-  zi = (qn >> 14) & 0x01;
-  u = AIR_AFFINE(-0.5, ui, 127.5, -0.5, 0.5);
-  v = AIR_AFFINE(-0.5, vi, 127.5, -0.5, 0.5);
-  x =  u + v;
-  y =  u - v;
-  z = 1 - AIR_ABS(x) - AIR_ABS(y);
-  z *= (zi << 1) - 1;
-  n = 1.0/sqrt(x*x + y*y + z*z);
-  vec[0] = x*n; 
-  vec[1] = y*n; 
-  vec[2] = z*n;
+  _ODD_QtoV(7, vec, qn);
+}
+
+void
+_limnQN15checker_QNtoV_d(double *vec, int qn) {
+  int ui, vi, zi;
+  double u, v, x, y, z, n;
+  
+  _ODD_QtoV(7, vec, qn);
 }
 
 int
@@ -310,21 +331,15 @@ _limnQN15checker_VtoQN_f(float *vec) {
   float L, u, v, x, y, z;
   int ui, vi, zi;
   
-  x = vec[0];
-  y = vec[1];
-  z = vec[2];
-  L = AIR_ABS(x) + AIR_ABS(y) + AIR_ABS(z);
-  if (!L) {
-    return 0;
-  }
-  x /= L;
-  y /= L;
-  u = x + y;
-  v = x - y;
-  AIR_INDEX(-1, u, 1, 128, ui);
-  AIR_INDEX(-1, v, 1, 128, vi);
-  zi = (z > 0);
-  return (zi << 14) | (vi << 7) | ui;
+  _ODD_VtoQ(7, vec);
+}
+
+int
+_limnQN15checker_VtoQN_d(double *vec) {
+  double L, u, v, x, y, z;
+  int ui, vi, zi;
+  
+  _ODD_VtoQ(7, vec);
 }
 
 /* ----------------------------------------------------------- */
@@ -364,6 +379,40 @@ _limnQN14checker_VtoQN_d(double *vec) {
 /* ----------------------------------------------------------- */
 
 void
+_limnQN13checker_QNtoV_f(float *vec, int qn) {
+  int ui, vi, zi;
+  float u, v, x, y, z, n;
+  
+  _ODD_QtoV(6, vec, qn);
+}
+
+void
+_limnQN13checker_QNtoV_d(double *vec, int qn) {
+  int ui, vi, zi;
+  double u, v, x, y, z, n;
+  
+  _ODD_QtoV(6, vec, qn);
+}
+
+int
+_limnQN13checker_VtoQN_f(float *vec) {
+  float L, u, v, x, y, z;
+  int ui, vi, zi;
+  
+  _ODD_VtoQ(6, vec);
+}
+
+int
+_limnQN13checker_VtoQN_d(double *vec) {
+  double L, u, v, x, y, z;
+  int ui, vi, zi;
+  
+  _ODD_VtoQ(6, vec);
+}
+
+/* ----------------------------------------------------------- */
+
+void
 _limnQN12checker_QNtoV_f(float *vec, int qn) {
   int ui, vi;
   double u, v, x, y, z, n;
@@ -397,6 +446,141 @@ _limnQN12checker_VtoQN_d(double *vec) {
 
 /* ----------------------------------------------------------- */
 
+void
+_limnQN11checker_QNtoV_f(float *vec, int qn) {
+  int ui, vi, zi;
+  float u, v, x, y, z, n;
+  
+  _ODD_QtoV(5, vec, qn);
+}
+
+void
+_limnQN11checker_QNtoV_d(double *vec, int qn) {
+  int ui, vi, zi;
+  double u, v, x, y, z, n;
+  
+  _ODD_QtoV(5, vec, qn);
+}
+
+int
+_limnQN11checker_VtoQN_f(float *vec) {
+  float L, u, v, x, y, z;
+  int ui, vi, zi;
+  
+  _ODD_VtoQ(5, vec);
+}
+
+int
+_limnQN11checker_VtoQN_d(double *vec) {
+  double L, u, v, x, y, z;
+  int ui, vi, zi;
+  
+  _ODD_VtoQ(5, vec);
+}
+
+/* ----------------------------------------------------------- */
+
+void
+_limnQN10checker_QNtoV_f(float *vec, int qn) {
+  int ui, vi;
+  double u, v, x, y, z, n;
+
+  _EVEN_QtoV(5, vec, qn);
+}
+
+void
+_limnQN10checker_QNtoV_d(double *vec, int qn) {
+  int ui, vi;
+  double u, v, x, y, z, n;
+
+  _EVEN_QtoV(5, vec, qn);
+}
+
+int
+_limnQN10checker_VtoQN_f(float *vec) {
+  double L, x, y, z;
+  int xi, yi, ui, vi;
+  
+  _EVEN_VtoQ(5, vec);
+}
+
+int
+_limnQN10checker_VtoQN_d(double *vec) {
+  double L, x, y, z;
+  int xi, yi, ui, vi;
+  
+  _EVEN_VtoQ(5, vec);
+}
+
+/* ----------------------------------------------------------- */
+void
+_limnQN9checker_QNtoV_f(float *vec, int qn) {
+  int ui, vi, zi;
+  float u, v, x, y, z, n;
+  
+  _ODD_QtoV(4, vec, qn);
+}
+
+void
+_limnQN9checker_QNtoV_d(double *vec, int qn) {
+  int ui, vi, zi;
+  double u, v, x, y, z, n;
+  
+  _ODD_QtoV(4, vec, qn);
+}
+
+int
+_limnQN9checker_VtoQN_f(float *vec) {
+  float L, u, v, x, y, z;
+  int ui, vi, zi;
+  
+  _ODD_VtoQ(4, vec);
+}
+
+int
+_limnQN9checker_VtoQN_d(double *vec) {
+  double L, u, v, x, y, z;
+  int ui, vi, zi;
+  
+  _ODD_VtoQ(4, vec);
+}
+
+/* ----------------------------------------------------------- */
+
+void
+_limnQN8checker_QNtoV_f(float *vec, int qn) {
+  int ui, vi;
+  double u, v, x, y, z, n;
+
+  _EVEN_QtoV(4, vec, qn);
+}
+
+void
+_limnQN8checker_QNtoV_d(double *vec, int qn) {
+  int ui, vi;
+  double u, v, x, y, z, n;
+
+  _EVEN_QtoV(4, vec, qn);
+}
+
+int
+_limnQN8checker_VtoQN_f(float *vec) {
+  double L, x, y, z;
+  int xi, yi, ui, vi;
+  
+  _EVEN_VtoQ(4, vec);
+}
+
+int
+_limnQN8checker_VtoQN_d(double *vec) {
+  double L, x, y, z;
+  int xi, yi, ui, vi;
+  
+  _EVEN_VtoQ(4, vec);
+}
+
+/* ----------------------------------------------------------- */
+
 void (*
 limnQNtoV_f[LIMN_QN_MAX+1])(float *, int) = {
   NULL,
@@ -405,11 +589,12 @@ limnQNtoV_f[LIMN_QN_MAX+1])(float *, int) = {
   _limnQN16checker_QNtoV_f,
   _limnQN15checker_QNtoV_f,
   _limnQN14checker_QNtoV_f,
+  _limnQN13checker_QNtoV_f,
   _limnQN12checker_QNtoV_f,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
+  _limnQN11checker_QNtoV_f,
+  _limnQN10checker_QNtoV_f,
+  _limnQN9checker_QNtoV_f,
+  _limnQN8checker_QNtoV_f
 };
   
 void (*
@@ -418,13 +603,14 @@ limnQNtoV_d[LIMN_QN_MAX+1])(double *, int) = {
   NULL,
   NULL,
   _limnQN16checker_QNtoV_d,
-  NULL,
+  _limnQN15checker_QNtoV_d,
   _limnQN14checker_QNtoV_d,
+  _limnQN13checker_QNtoV_d,
   _limnQN12checker_QNtoV_d,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
+  _limnQN11checker_QNtoV_d,
+  _limnQN10checker_QNtoV_d,
+  _limnQN9checker_QNtoV_d,
+  _limnQN8checker_QNtoV_d
 };
   
 int (*
@@ -435,12 +621,12 @@ limnVtoQN_f[LIMN_QN_MAX+1])(float *vec) = {
   _limnQN16checker_VtoQN_f,
   _limnQN15checker_VtoQN_f,
   _limnQN14checker_VtoQN_f,
-  NULL,
+  _limnQN13checker_VtoQN_f,
   _limnQN12checker_VtoQN_f,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  _limnQN11checker_VtoQN_f,
+  _limnQN10checker_VtoQN_f,
+  _limnQN9checker_VtoQN_f,
+  _limnQN8checker_VtoQN_f
 };
 
 int (*
@@ -449,14 +635,14 @@ limnVtoQN_d[LIMN_QN_MAX+1])(double *vec) = {
   NULL,
   NULL,
   _limnQN16checker_VtoQN_d,
-  NULL,
+  _limnQN15checker_VtoQN_d,
   _limnQN14checker_VtoQN_d,
-  NULL,
+  _limnQN13checker_VtoQN_d,
   _limnQN12checker_VtoQN_d,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  _limnQN11checker_VtoQN_d,
+  _limnQN10checker_VtoQN_d,
+  _limnQN9checker_VtoQN_d,
+  _limnQN8checker_VtoQN_d
 };
 
 int
@@ -467,6 +653,7 @@ limnQNBins[LIMN_QN_MAX+1] = {
   (1 << 16),
   (1 << 15),
   (1 << 14),
+  (1 << 13),
   (1 << 12),
   (1 << 11),
   (1 << 10),

@@ -40,7 +40,7 @@ main(int argc, char *argv[]) {
   Nrrd *nlight, *nmap, *ndebug;
   char *me, *outS, *errS, *debugS;
   airArray *mop;
-  float amb[3], *linfo, *debug, *map, W[3], V[3], diff;
+  float amb[3], *linfo, *debug, *map, W[3], V[3] /* , diff */;
   int li, ui, vi, qn, bits, method;
   limnLight *light;
   limnCamera *cam;
@@ -145,6 +145,7 @@ main(int argc, char *argv[]) {
     ELL_34M_EXTRACT(V2W, cam->V2W);
     ndebug = nrrdNew();
     nrrdMaybeAlloc(ndebug, nrrdTypeFloat, 3, 3, 1024, 512);
+    airMopAdd(mop, ndebug, (airMopper)nrrdNuke, airMopAlways);
     debug = ndebug->data;
     for (vi=0; vi<=511; vi++) {
       v = AIR_AFFINE(0, vi, 511, -0.999, 0.999);
