@@ -59,6 +59,7 @@ int
 unrrduEpsSave(char *out, NrrdIO *io, Nrrd *nout) {
   char me[]="unrrduEpsSave", err[AIR_STRLEN_MED];
   int color, sx, sy, fit;
+  float aspect, minX, minY, maxX, maxY, scale;
 
   fit = nrrdFitsInFormat(nout, nrrdEncodingAscii, nrrdFormatPNM, AIR_TRUE);
   if (!fit) {
@@ -72,13 +73,32 @@ unrrduEpsSave(char *out, NrrdIO *io, Nrrd *nout) {
 	    airEnumStr(nrrdType, nrrdTypeUChar));
     biffAdd(UNRRDU, err); return 1;
   }
-  if (2 == nout->dim) {
-    sx = nout->axis[0].size;
-    sy = nout->axis[1].size;
-  } else {
+  if (color) {
     sx = nout->axis[1].size;
     sy = nout->axis[2].size;
+  } else {
+    sx = nout->axis[0].size;
+    sy = nout->axis[1].size;
   }
+  aspect = sx/sy;
+  if (aspect > 7.5/10) {
+    /* image has a wider aspect ratio than safely printable page area */
+    minX = 0.5;
+    maxX = 8.0;
+    minY = 5.50 - 7.5*sy/sx/2;
+    maxY = 5.50 + 7.5*sy/sx/2;
+    scale = 7.5/sx;
+  } else {
+    /* image is taller ... */
+    minX = 4.25 - 10.0*sx/sy/2;
+    maxX = 4.25 + 10.0*sx/sy/2;
+    minY = 0.5;
+    maxY = 10.5;
+    scale = 10.0/sy;
+  }
+  minX *= 72; minY *= 72;
+  maxX *= 72; maxY *= 72;
+  scale *= 72;
 
   if (!( io->dataFile = airFopen(out, stdout, "w") )) {
     sprintf(err, "%s: fopen(\"%s\", \"w\") failed: %s", me,
@@ -86,20 +106,27 @@ unrrduEpsSave(char *out, NrrdIO *io, Nrrd *nout) {
     biffAdd(UNRRDU, err); return 1;
   }
 
-  fprintf(io->dataFile, "%%!PS-Adobe-2.0 EPSF-2.0\n");
-  fprintf(io->dataFile, "%%%%Creator: unu\n");
+  fprintf(io->dataFile, "%%!PS-Adobe-3.0 EPSF-3.0\n");
+  fprintf(io->dataFile, "%%%%Creator: Nrrd Utilities From the "
+	  "Great Nation of Deseret\n");
   fprintf(io->dataFile, "%%%%Title: %s\n",
 	  nout->content ? nout->content : NRRD_UNKNOWN);
   fprintf(io->dataFile, "%%%%Pages: 1\n");
-  fprintf(io->dataFile, "%%%%BoundingBox: 0 0 %d %d\n", sx, sy);
+  fprintf(io->dataFile, "%%%%BoundingBox: %d %d %d %d\n",
+	  (int)floor(minX), (int)floor(minY),
+	  (int)ceil(maxX), (int)ceil(maxY));
+  fprintf(io->dataFile, "%%%%HiResBoundingBox: %g %g %g %g\n", 
+	  minX, minY, maxX, maxY);
   fprintf(io->dataFile, "%%%%EndComments\n");
+  fprintf(io->dataFile, "%%%%BeginProlog\n");
   fprintf(io->dataFile, "%% linestr creates an empty string to hold "
 	  "one scanline\n");
   fprintf(io->dataFile, "/linestr %d string def\n", sx*(color ? 3 : 1));
   fprintf(io->dataFile, "%%%%EndProlog\n");
   fprintf(io->dataFile, "%%%%Page: 1 1\n");
   fprintf(io->dataFile, "gsave\n");
-  fprintf(io->dataFile, "%d %d scale\n", sx, sy);
+  fprintf(io->dataFile, "%g %g translate\n", minX, minY);
+  fprintf(io->dataFile, "%g %g scale\n", sx*scale, sy*scale);
   fprintf(io->dataFile, "%d %d 8\n", sx, sy);
   fprintf(io->dataFile, "[%d 0 0 -%d 0 %d]\n", sx, sy, sy);
   fprintf(io->dataFile, "{currentfile linestr readhexstring pop} %s\n",
@@ -108,7 +135,6 @@ unrrduEpsSave(char *out, NrrdIO *io, Nrrd *nout) {
   fprintf(io->dataFile, "\n");
   fprintf(io->dataFile, "grestore\n");
 
-  
   return 0;
 }
 
@@ -117,7 +143,10 @@ char *_unrrdu_saveInfoL =
 (INFO
  ". Use \"unu\tsave\t-f\tpnm\t|\txv\t-\" to view PPM- or "
  "PGM-compatible nrrds on unix.  Support for the EPS format is limited "
- "to this unu command only.");
+ "to this unu command only.  EPS output is a EPSF-3.0 file has BoundingBox "
+ "and HiResBoundingBox DSC comments, and is suitable for inclusion into "
+ "other PostScript documents.  As a stand-alone file, the image is "
+ "conveniently centered on an 8.5x11 inch page, with 0.5 inch margins");
 
 int
 unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
