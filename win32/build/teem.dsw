@@ -1,0 +1,312 @@
+Microsoft Developer Studio Workspace File, Format Version 6.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "teem_shared"=.\teem_shared.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "teem_static"=.\teem_static.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "airSanity"=.\airSanity.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name teem_static
+    End Project Dependency
+}}}
+
+###############################################################################
+ 
+Project: "affine"=.\affine.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name teem_static
+    End Project Dependency
+}}}
+
+###############################################################################
+ 
+Project: "cubic"=.\cubic.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name teem_static
+    End Project Dependency
+}}}
+
+###############################################################################
+ 
+Project: "nrrdSanity"=.\nrrdSanity.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name teem_static
+    End Project Dependency
+}}}
+
+###############################################################################
+ 
+Project: "overrgb"=.\overrgb.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name teem_static
+    End Project Dependency
+}}}
+
+###############################################################################
+ 
+Project: "idx2pos"=.\idx2pos.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name teem_static
+    End Project Dependency
+}}}
+
+###############################################################################
+ 
+Project: "emap"=.\emap.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name teem_static
+    End Project Dependency
+}}}
+
+###############################################################################
+ 
+Project: "pos2idx"=.\pos2idx.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name teem_static
+    End Project Dependency
+}}}
+
+###############################################################################
+ 
+Project: "unu"=.\unu.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name teem_static
+    End Project Dependency
+}}}
+
+###############################################################################
+ 
+Project: "pprobe"=.\pprobe.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name teem_static
+    End Project Dependency
+}}}
+
+###############################################################################
+ 
+Project: "vprobe"=.\vprobe.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name teem_static
+    End Project Dependency
+}}}
+
+###############################################################################
+ 
+Project: "qbert"=.\qbert.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name teem_static
+    End Project Dependency
+}}}
+
+###############################################################################
+ 
+Project: "mrender"=.\mrender.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name teem_static
+    End Project Dependency
+}}}
+
+###############################################################################
+ 
+Project: "miter"=.\miter.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name teem_static
+    End Project Dependency
+}}}
+
+###############################################################################
+ 
+Project: "gkms"=.\gkms.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name teem_static
+    End Project Dependency
+}}}
+
+###############################################################################
+ 
+Project: "ungantry"=.\ungantry.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name teem_static
+    End Project Dependency
+}}}
+
+###############################################################################
+ 
+Project: "ilk"=.\ilk.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name teem_static
+    End Project Dependency
+}}}
+
+###############################################################################
+ 
+Project: "tend"=.\tend.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name teem_static
+    End Project Dependency
+}}}
+
+###############################################################################
+
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+
