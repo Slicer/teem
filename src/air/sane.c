@@ -79,17 +79,17 @@ airSanity(void) {
   nanF = nan;
   pinfF = pinf;
   ninfF = ninf;
+  airFPValToParts_f(&sign, &exp, &frac, nanF);
+  frac >>= 22;
+  if (AIR_QNANHIBIT != frac) {
+    return airInsane_QNaNHiBit;
+  }
   if (!(airFP_QNAN == airFPClass_f(nanF)
 	&& airFP_POS_INF == airFPClass_f(pinfF)
 	&& airFP_NEG_INF == airFPClass_f(ninfF))) {
     /* really, this is verifying that assigning from a double to a 
        float maintains the FPClass for non-existant values */
     return airInsane_FltDblFPClass;
-  }
-  airFPValToParts_f(&sign, &exp, &frac, nanF);
-  frac >>= 22;
-  if (AIR_QNANHIBIT != frac) {
-    return airInsane_QNaNHiBit;
   }
   
   /* just make sure AIR_DIO is reasonably set 
