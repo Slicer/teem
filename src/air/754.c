@@ -482,7 +482,6 @@ airFPClass_d(double val) {
     }
     break;
   }
-  fprintf(stderr, "airFPClass_d(%g): returning %d\n", val, ret); fflush(stderr);
   return ret;
 #endif
 }
