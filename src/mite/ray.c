@@ -18,43 +18,10 @@
 */
 
 #include "mite.h"
-
-void
-_miteRGBACalc(double *rr, double *gg, double *bb, double *aa,
-	      miteThreadInfo *mtt, miteRenderInfo *mrr, miteUserInfo *muu,
-	      double samplePosWorld[3], double samplePosIndex[3]) {
-  double val, lr, lg, lb;
-  int tfi;
-  float *tf, min, max, dot;
-  gage_t *norm;
-
-  norm = mtt->san + gageKindScl->ansOffset[gageSclNormal];
-  dot = ELL_3V_DOT(norm, muu->lit->dir[0]);
-  dot = AIR_ABS(dot);
-  lr = muu->lit->amb[0] + 0.0*dot;
-  lg = muu->lit->amb[1] + 0.0*dot;
-  lb = muu->lit->amb[2] + 0.0*dot;
-
-  min = muu->ntxf->axis[1].min;
-  max = muu->ntxf->axis[1].max;
-  val = AIR_CLAMP(min, mtt->san[gageKindScl->ansOffset[gageSclValue]], max);
-  tf = muu->ntxf->data;
-  AIR_INDEX(min, val, max, muu->ntxf->axis[1].size, tfi);
-  
-  *rr = lr*tf[0 + 4*tfi];
-  *gg = lg*tf[1 + 4*tfi];
-  *bb = lb*tf[2 + 4*tfi];
-  *aa = tf[3 + 4*tfi];
-  *rr = AIR_CLAMP(0, *rr, 1);
-  *gg = AIR_CLAMP(0, *gg, 1);
-  *bb = AIR_CLAMP(0, *bb, 1);
-  *aa = AIR_CLAMP(0, *aa, 1);
-
-  return;
-}
+#include "privateMite.h"
 
 int
-miteRayBegin(miteThreadInfo *mtt, miteRenderInfo *mrr, miteUserInfo *muu,
+miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
 	     int uIndex, int vIndex, 
 	     double rayLen,
 	     double rayStartWorld[3], double rayStartIndex[3],
@@ -62,69 +29,133 @@ miteRayBegin(miteThreadInfo *mtt, miteRenderInfo *mrr, miteUserInfo *muu,
 
   mtt->ui = uIndex;
   mtt->vi = vIndex;
+  mtt->rayStep = (muu->rayStep*rayLen /
+		  (muu->hctx->cam->vspFaar - muu->hctx->cam->vspNeer));
   if (!uIndex) {
-    fprintf(stderr, "%d/%d ", vIndex, muu->ctx->imgSize[1]);
+    fprintf(stderr, "%d/%d ", vIndex, muu->hctx->imgSize[1]);
     fflush(stderr);
   }
-
-  mtt->R = mtt->G = mtt->B = mtt->A = 0;
+  mtt->verbose = 0*(uIndex == 2 && vIndex == 2);
+  mtt->RR = mtt->GG = mtt->BB = 0.0;
+  mtt->TT = 1.0;
+  ELL_3V_SCALE(mtt->V, -1, rayDirWorld);
 
   return 0;
 }
 
+void
+_miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
+	      miteThread *mtt, miteRender *mrr, miteUser *muu) {
+  char me[]="_miteRGBACalc";
+  mite_t tmp,
+    ad[3],                          /* ambient+diffuse light contribution */
+    s[3] = {0,0,0},                 /* specular light contribution */
+    col[3], E, ka, kd, ks, sp,      /* txf-determined rendering variables */
+    LdotN, HdotN, H[3], N[3];       /* for lighting calculation */
+
+  col[0] = mtt->range[miteRangeRed];
+  col[1] = mtt->range[miteRangeGreen];
+  col[2] = mtt->range[miteRangeBlue];
+  E = mtt->range[miteRangeEmissivity];
+  ka = mtt->range[miteRangeKa];
+  kd = mtt->range[miteRangeKd];
+  ks = mtt->range[miteRangeKs];
+  ELL_3V_SCALE(ad, ka, muu->lit->amb);
+  if (!muu->noDirLight && (kd || ks)) {
+    ELL_3V_SCALE(N, -muu->normalSide, mtt->norm);
+    if (kd) {
+      LdotN = ELL_3V_DOT(muu->lit->dir[0], N);
+      if (LdotN > 0) {
+	ELL_3V_SCALEADD(ad, 1.0, ad, LdotN*kd, muu->lit->col[0]);
+      }
+    }
+    if (ks) {
+      sp = mtt->range[miteRangeSP];
+      ELL_3V_ADD(H, muu->lit->dir[0], mtt->V);
+      ELL_3V_NORM(H, H, tmp);
+      HdotN = ELL_3V_DOT(H, N);
+      if (HdotN > 0) {
+	HdotN = pow(HdotN, sp);
+	ELL_3V_SCALE(s, HdotN*ks, muu->lit->col[0]);
+      }
+    }
+  }
+  *R = (E - 1 + ad[0])*col[0] + s[0];
+  *G = (E - 1 + ad[1])*col[1] + s[1];
+  *B = (E - 1 + ad[2])*col[2] + s[2];
+  *A = mtt->range[miteRangeAlpha];
+  if (mtt->verbose) {
+    fprintf(stderr, "%s: col[] = %g,%g,%g; A,E = %g,%g; Kads = %g,%g,%g\n", me,
+	    col[0], col[1], col[2], mtt->range[miteRangeAlpha], E, ka, kd, ks);
+    fprintf(stderr, "%s: ad[] = %g,%g,%g\n", me, ad[0], ad[1], ad[2]);
+    fprintf(stderr, "%s:  --> R,G,B,A = %g,%g,%g,%g\n", me, *R, *G, *B, *A);
+  }
+  return;
+}
+
 double
-miteSample(miteThreadInfo *mtt, miteRenderInfo *mrr, miteUserInfo *muu,
+miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
 	   int num, double rayT, int inside,
 	   double samplePosWorld[3],
 	   double samplePosIndex[3]) {
   char me[]="miteSample", err[AIR_STRLEN_MED];
-  double rr, gg, bb, aa, T;
+  mite_t R, G, B, A;
 
   if (!inside)
-    return muu->rayStep;
+    return mtt->rayStep;
 
-  if (mtt->A >= muu->near1) {
+  if (1-mtt->TT >= muu->near1 && !muu->justSum) {
     /* early ray termination */
+    mtt->TT = 0.0;
     return 0.0;
   }
-
-  if (gageProbe(mtt->gtx,
-		samplePosIndex[0],
-		samplePosIndex[1],
-		samplePosIndex[2])) {
+  mtt->samples += 1;
+  if (gageProbe(mtt->gctx,
+		samplePosIndex[0], samplePosIndex[1], samplePosIndex[2])) {
     sprintf(err, "%s: gage trouble: %s (%d)", me, gageErrStr, gageErrNum);
-    biffAdd(MITE, err);
-    return AIR_NAN;
+    biffAdd(MITE, err); return AIR_NAN;
+  }
+  memcpy(mtt->range, muu->rangeInit, MITE_RANGE_NUM*sizeof(mite_t));
+  _miteStageRun(mtt);
+  if (mtt->range[miteRangeAlpha]) {
+    if (mtt->verbose) {
+      fprintf(stderr, "%s: before compositing: RGBT = %g,%g,%g,%g\n",
+	      me, mtt->RR, mtt->GG, mtt->BB, mtt->TT);
+    }
+    _miteRGBACalc(&R, &G, &B, &A, mtt, mrr, muu);
+    if (muu->justSum) {
+      mtt->RR += A*R;
+      mtt->GG += A*G;
+      mtt->BB += A*B;
+      mtt->TT += A;
+    } else {
+      mtt->RR += mtt->TT*A*R;
+      mtt->GG += mtt->TT*A*G;
+      mtt->BB += mtt->TT*A*B;
+      mtt->TT *= 1-A;
+    }
+    if (mtt->verbose) {
+      fprintf(stderr, "%s: after compositing: RGBT = %g,%g,%g,%g\n",
+	      me, mtt->RR, mtt->GG, mtt->BB, mtt->TT);
+    }
   }
 
-  _miteRGBACalc(&rr, &gg, &bb, &aa, mtt, mrr, muu,
-		samplePosWorld, samplePosIndex);
-  if (muu->sum) {
-    /*
-    mtt->R += aa*rr;
-    mtt->G += aa*gg;
-    mtt->B += aa*bb;
-    mtt->A += aa;
-    */
-    mtt->R = AIR_MAX(mtt->R, aa*rr);
-    mtt->G = AIR_MAX(mtt->G, aa*gg);
-    mtt->B = AIR_MAX(mtt->B, aa*bb);
-    mtt->A = AIR_MAX(mtt->A, aa);
-  } else {
-    T = 1 - mtt->A;
-    mtt->R = mtt->A*mtt->R + T*aa*rr;
-    mtt->G = mtt->A*mtt->G + T*aa*gg;
-    mtt->B = mtt->A*mtt->B + T*aa*bb;
-    mtt->A = 1 - T*(1-aa);
-  }
-
-  return muu->rayStep;
+  return mtt->rayStep;
 }
 
 int 
-miteRayEnd(miteThreadInfo *mtt, miteRenderInfo *mrr, miteUserInfo *muu) {
+miteRayEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
+  int idx;
+  mite_t *imgData, A;
   
-  ELL_4V_SET(mrr->imgData + 4*((mtt->ui) + (mrr->sx)*(mtt->vi)),
-	     mtt->R, mtt->G, mtt->B, mtt->A);
+  idx = mtt->ui + (muu->nout->axis[1].size)*mtt->vi;
+  imgData = (mite_t*)muu->nout->data;
+  A = 1 - mtt->TT;
+  if (A) {
+    ELL_4V_SET(imgData + 4*idx, mtt->RR/A, mtt->GG/A, mtt->BB/A, A);
+  } else {
+    ELL_4V_SET(imgData + 4*idx, 0, 0, 0, 0);
+  }
   return 0;
 }
+

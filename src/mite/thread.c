@@ -18,28 +18,38 @@
 */
 
 #include "mite.h"
+#include "privateMite.h"
 
 int 
-miteThreadBegin(miteThreadInfo **mttP, miteRenderInfo *mrr,
-		miteUserInfo *muu, int whichThread) {
-
+miteThreadBegin(miteThread **mttP, miteRender *mrr,
+		miteUser *muu, int whichThread) {
+  char me[]="miteThreadBegin", err[AIR_STRLEN_MED];
+  
   (*mttP) = mrr->tt[whichThread];
   if (!whichThread) {
     /* this is the first thread- it just points to the parent gageContext */
-    (*mttP)->gtx = mrr->gtx0;
+    (*mttP)->gctx = muu->gctx0;
   } else {
     /* we have to generate a new gageContext */
-    (*mttP)->gtx = gageContextCopy(mrr->gtx0);
+    (*mttP)->gctx = gageContextCopy(muu->gctx0);
+    if (!(*mttP)->gctx) {
+      sprintf(err, "%s: couldn't set up thread %d", me, whichThread);
+      biffMove(MITE, err, GAGE); return 1;
+    }
   }
-  (*mttP)->san = (*mttP)->gtx->pvl[0]->ans;
-
+  (*mttP)->ans = (*mttP)->gctx->pvl[0]->ans;
+  (*mttP)->norm = (*mttP)->ans + gageKindScl->ansOffset[gageSclNormal];
   (*mttP)->thrid = whichThread;
+  (*mttP)->samples = 0;
+  (*mttP)->verbose = 0;
+  _miteStageSet(*mttP, mrr, gageKindScl);
+  fprintf(stderr, "!%s: end thread begin\n", me);
   return 0;
 }
 
 int 
-miteThreadEnd(miteThreadInfo *mtt, miteRenderInfo *mrr,
-	      miteUserInfo *muu) {
+miteThreadEnd(miteThread *mtt, miteRender *mrr,
+	      miteUser *muu) {
 
   return 0;
 }

@@ -18,6 +18,7 @@
 */
 
 #include "mite.h"
+#include "privateMite.h"
 
 miteUser *
 miteUserNew() {
@@ -28,30 +29,31 @@ miteUserNew() {
   if (!muu)
     return NULL;
 
+  muu->umop = airMopNew();
   muu->nin = NULL;
-  for (i=0; i<MITE_TXF_NUM; i++) {
-    muu->txf[i] = NULL;
-  }
-  muu->txfNum = 0;
+  muu->ntxf = NULL;              /* managed by user (with miter: hest) */
+  muu->nout = NULL;              /* managed by user (with miter: hest) */
+  muu->ntxfNum = 0;
   for (i=0; i<MITE_RANGE_NUM; i++) {
     muu->rangeInit[i] = 1.0;
   }
+  muu->normalSide = miteDefNormalSide;
   muu->refStep = miteDefRefStep;
   muu->rayStep = AIR_NAN;
   muu->near1 = miteDefNear1;
   muu->hctx = hooverContextNew();
+  airMopAdd(muu->umop, muu->hctx, (airMopper)hooverContextNix, airMopAlways);
   for (i=0; i<GAGE_KERNEL_NUM; i++) {
     muu->ksp[i] = NULL;
   }
   muu->gctx0 = gageContextNew();
+  airMopAdd(muu->umop, muu->gctx0, (airMopper)gageContextNix, airMopAlways);
   muu->lit = limnLightNew();
+  airMopAdd(muu->umop, muu->lit, (airMopper)limnLightNix, airMopAlways);
   muu->justSum = AIR_FALSE;
   muu->noDirLight = AIR_FALSE;
-  muu->outS = NULL;  /* managed by hest */
-  muu->mop = airMopNew();
-  airMopAdd(muu->mop, muu->hctx, (airMopper)hooverContextNix, airMopAlways);
-  airMopAdd(muu->mop, muu->gctx0, (airMopper)gageContextNix, airMopAlways);
-  airMopAdd(muu->mop, muu->lit, (airMopper)limnLightNix, airMopAlways);
+  muu->rendTime = 0;
+  muu->sampRate = 0;
   return muu;
 }
 
@@ -59,23 +61,40 @@ miteUser *
 miteUserNix(miteUser *muu) {
 
   if (muu) {
-    airMopOkay(muu->mop);
+    airMopOkay(muu->umop);
     AIR_FREE(muu);
   }
   return NULL;
 }
 
 int
-miteUserValid(miteUser *muu) { 
-  char me[]="miteUserValid", err[AIR_STRLEN_MED];
-
-  if (!gageVolumeValid(muu->nin, gageKindScl)) {
+_miteUserCheck(miteUser *muu) {
+  char me[]="miteUserCheck", err[AIR_STRLEN_MED];
+  int T;
+  
+  if (!muu) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(MITE, err); return 1;
+  }
+  if (!( muu->ntxfNum >= 1 )) {
+    sprintf(err, "%s: need at least one transfer function", me);
+    biffAdd(MITE, err); return 1;
+  }
+  for (T=0; T<muu->ntxfNum; T++) {
+    if (miteNtxfCheck(muu->ntxf[T], gageKindScl)) {
+      sprintf(err, "%s: ntxf[%d] (%d of %d) can't be used as a txf",
+	      me, T, T+1, muu->ntxfNum);
+      biffAdd(MITE, err); return 1;
+    }
+  }
+  if (!muu->nout) {
+    sprintf(err, "%s: rendered image nrrd is NULL", me);
+    biffAdd(MITE, err); return 1;
+  }
+  if (gageVolumeCheck(muu->nin, gageKindScl)) {
     sprintf(err, "%s: trouble with input volume", me);
-    biffMove(MITE, err, GAGE); return 0;
+    biffMove(MITE, err, GAGE); return 1;
   }
-  if (!muu->txfNum) {
-    sprintf(err, "%s: no transfer functions set", me);
-    biffAdd(MITE, err); return 0;
-  }
-  return 1;
+
+  return 0;
 }

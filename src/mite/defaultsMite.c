@@ -18,12 +18,16 @@
 */
 
 #include "mite.h"
+#include "privateMite.h"
 
 double
 miteDefRefStep = 0.01;
 
 int
 miteDefRenorm = AIR_FALSE;
+
+int
+miteDefNormalSide = 1;
 
 double
 miteDefNear1 = 0.99;

@@ -22,6 +22,7 @@
 
 #include <air.h>
 #include <biff.h>
+#include <ell.h>
 #include <nrrd.h>
 #include <gage.h>
 #include <limn.h>
@@ -39,6 +40,23 @@ extern "C" {
 
 #define MITE "mite"
 
+/*
+******** mite_t
+** 
+*/
+
+
+/*
+typedef float mite_t;
+#define mite_nt nrrdTypeFloat
+#define mite_at airTypeFloat
+*/
+
+typedef double mite_t;
+#define mite_nt nrrdTypeDouble
+#define mite_at airTypeDouble
+
+
 enum {
   miteRangeUnknown = -1,
   miteRangeAlpha,        /* 0: "A", opacity */
@@ -55,24 +73,11 @@ enum {
 #define MITE_RANGE_NUM      9
 
 /*
-******** #define MITE_TXF_NUM
-**
-** This number constrains the sum of the dimensions of all the transfer
-** functions used.  For instance, if MITE_TXF_NUM is 3, then three 1-D
-** transfer functions can be used, or one 1-D and one 2-D, or just
-** one 3-D transfer function.  It also serves to limit the dimension
-** of any single transfer function.
-*/
-#define MITE_TXF_NUM 4
-
-/*
-******** miteTxf
-**
-** A transfer function (as nrrd) and information about it which
-** facilitates accessing the information in it.  There are some
-** constraints on how the transfer function is stored and used:
+** There are some constraints on how the nrrd as transfer function is
+** stored and used:
 ** 1) all transfer functions are lookup tables: there is no 
-** interpolation other than nearest neighbor. 
+** interpolation other than nearest neighbor (actually, someday linear
+** interpolation may be supported, but that's it)
 ** 2) regardless of the centerings of the axes of nxtf, the lookup table
 ** axes will be treated as though they were cell centered.
 ** 3) the logical dimension of the transfer function is always one less
@@ -83,13 +88,6 @@ enum {
 ** So, ntxf->dim-1 is the number of variables in the domain of the transfer
 ** function, and ntxf->axis[0].size is the number of variables in the range.
 */
-typedef struct {
-  Nrrd *ntxf;                    /* nrrd containing transfer function */
-  int *rangeIdx,                 /* indices of the ntxf->axis[0].size
-				    transfer function range quantities */
-    domainIdx[MITE_TXF_NUM];     /* integer indentifiers for the ntxf->dim-1
-				    transfer function domain variables */
-} miteTxf;
 
 /*
 ******** miteUser struct
@@ -101,13 +99,19 @@ typedef struct {
 */
 typedef struct {
   Nrrd *nin,             /* volume being rendered */
-    *ntxf[MITE_TXF_NUM]; /* nrrds containing transfer functions */
-  int ntxfNum;           /* number of nrrds set in ntxf[] */
+    **ntxf,              /* array of nrrds containing transfer functions,
+			    these are never altered (in contrast to ntxf
+			    in miteRender) */
+    *nout;               /* output image container: we'll nrrdMaybeAlloc all
+			    the image data and put it in here, but we won't
+			    nrrdNuke(nout), just like we won't nrrdNuke
+			    nin or any of the ntxf[i] */
+  int ntxfNum;           /* allocated and valid length of ntxf[] */
   /* for each possible element of the txf range, what value should it
      start at prior to multiplying by the values (if any) learned from
      the txf.  Mainly needed to store non-unity values for the
      quantities not covered by a transfer function */
-  float rangeInit[MITE_RANGE_NUM]; 
+  mite_t rangeInit[MITE_RANGE_NUM]; 
   double refStep,        /* length of "unity" for doing opacity correction */
     rayStep,             /* distance between sampling planes */
     near1;               /* close enough to unity for the sake of doing early
@@ -120,11 +124,20 @@ typedef struct {
 			    including all kernels.  This is gageContextCopy'd
 			    for multi-threaded use (hence the 0) */
   limnLight *lit;        /* a struct for all lighting info */
-  int justSum,           /* don't use opacity: just sum colors */
+  int normalSide,        /* determines direction of gradient that is used
+			    as normal for shading:
+			    1 for normal pointing to lower values (higher
+			    values are more "inside"); -1 for normal
+			    pointing to higher values (low values more
+			    "inside") */
+    justSum,             /* don't use opacity: just sum colors */
     noDirLight;          /* forget directional phong lighting, using only
 			    the ambient component */
-  char *outS;            /* name of output file */
-  airArray *mop;         /* mop for all resources allocated for rendering */
+  airArray *umop;        /* for things allocated which are used across
+			    multiple renderings */
+  /* output information from last rendering */
+  double rendTime,       /* rendering time, in seconds */
+    sampRate;            /* rate (KHz) at which sampler callback was called */
 } miteUser;
 
 struct miteThread_t;
@@ -132,33 +145,35 @@ struct miteThread_t;
 /*
 ******** miteRender
 **
-** non-thread-specific state relevant for mite's internal use
+** rendering-parameter-set-specific, but non-thread-specific,
+** state relevant for mite's internal use
 */
 typedef struct {
-  miteTxf *txf[MITE_TXF_NUM]; /* transfer functions */
-  int txfNum;                 /* number of transfer functions */
-  double time0, time1;        /* rendering start and end times */
-  int sx, sy,                 /* image dimensions */
-    totalSamples;             /* total # samples used for all rays */
-  Nrrd *nout;                 /* output image nrrd */
-  float *imgData;             /* output image data */
+  Nrrd **ntxf;                /* array of transfer function nrrds.  The only
+				 difference from those in miteUser is that 
+				 opacity correction has been applied to
+				 these */
+  int ntxfNum;                /* allocated and valid length of ntxf[] */
+  double time0;               /* rendering start time */
 
   /* as long as there's no mutex around how the miteThreads are
-     airMopAdded to the miteUser's mop, these have to be allocated in
-     mrendRenderBegin instead of mrendThreadBegin */
+     airMopAdded to the miteUser's mop, these have to be _allocated_ in
+     mrendRenderBegin, instead of mrendThreadBegin, which still has the
+     role of initializing them */
   struct miteThread_t *tt[HOOVER_THREAD_MAX];  
+  airArray *rmop;             /* for things allocated which are rendering
+				 (or rendering parameter) specific */
 } miteRender;
 
 typedef struct {
-  gage_t *val;            /* the gage-measured txf axis variable */
-  int size;               /* number of samples */
-  float min, max,         /* min, max (copied from nrrd axis) */
-    *data,                /* pointer to txf data.  If non-NULL, the
-			     rest of the variables are meaningful */
-    *range[MITE_TXF_NUM]; /* pointers to thread-specific rendering variables
-			     that will be determined by the txf */
-  int num;                /* number of range variables set by the txf
-			     == number of pointers in range[] to use */
+  gage_t *val;                  /* the gage-measured txf axis variable */
+  int size;                     /* number of entries */
+  double min, max;              /* min, max (copied from nrrd axis) */
+  mite_t *data;                 /* pointer to txf data.  If non-NULL, the
+				   rest of the variables are meaningful */
+  int rangeIdx[MITE_RANGE_NUM], /* indices into miteThread's range */
+    rangeNum;                   /* number of range variables set by the txf
+				   == number of pointers in range[] to use */
 } miteStage;
 
 /*
@@ -167,22 +182,34 @@ typedef struct {
 ** thread-specific state for mite's internal use
 */
 typedef struct miteThread_t {
-  miteStage stage[MITE_TXF_NUM]; /* all stages for txf computation */
-  gageContext *gctx;     /* per-thread context */
-  gage_t *ans,           /* shortcut to gctx->pvl[0]->ans */
-    *norm;               /* shortcut to ans[...normal...] */
-  int thrid,             /* thread ID */
-    ui, vi;              /* image coords */
+  gageContext *gctx;            /* per-thread context */
+  gage_t *ans,                  /* shortcut to gctx->pvl[0]->ans */
+    *norm;                      /* shortcut to ans[...normal...] */
+  int verbose,                  /* blah blah blah */
+    thrid,                      /* thread ID */
+    ui, vi,                     /* image coords */
+    samples;                    /* number of samples handled so far
+				   by this thread */
+  miteStage *stage;             /* array of stages for txf computation */
+  int stageNum;                 /* number of stages == length of stage[] */
+  mite_t range[MITE_RANGE_NUM], /* rendering variables, which are either
+				   copied from miteUser's rangeInit[], or
+				   over-written by txf evaluation */
+    rayStep,                    /* per-ray step, to implement sampling
+				   on planes */
+    V[3],                       /* per-ray view direction */
+    RR, GG, BB, TT;             /* per-ray composited values */
 } miteThread;
 
 /* defaultsMite.c */
 extern mite_export double miteDefRefStep;
+extern mite_export int miteDefRenorm;
+extern mite_export int miteDefNormalSide;
 extern mite_export double miteDefNear1;
 
 /* txf.c */
 extern mite_export char miteRangeChar[MITE_RANGE_NUM];
-extern miteTxf *miteTxfNew(Nrrd *ntxf);
-extern miteTxf *miteTxfNix(miteTxf *txf);
+extern int miteNtxfCheck(Nrrd *ntxf, gageKind *kind);
 
 /* user.c */
 extern miteUser *miteUserNew();

@@ -17,14 +17,20 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+/* learned: don't confuse allocate an array of structs with an array
+   of pointers to structs.  Don't be surprised when you bus error
+   because of the difference 
+*/
+
 #include "mite.h"
+#include "privateMite.h"
 
 char
 miteRangeChar[MITE_RANGE_NUM] = "ARGBEadsp";
 
 int
-_miteDomainParse(char *label) {
-  char me[]="_miteDomainParse", err[AIR_STRLEN_MED], *buff;
+_miteDomainParse(char *label, gageKind *kind) {
+  char me[]="_miteDomainParse", err[AIR_STRLEN_MED], *buff, *paren, *qstr;
   int domI;
 
   if (!label) {
@@ -38,24 +44,25 @@ _miteDomainParse(char *label) {
       sprintf(err, "%s: this is so annoying", me);
       biffAdd(MITE, err); return -1;
     }
-    if (1 != sscanf(label, "gage(%s)", buff)) {
+    if (!(paren = strstr(buff, ")"))) {
       sprintf(err, "%s: didn't see close paren after \"gage(\"", me);
       biffAdd(MITE, err); return -1;
     }
-    domI = airEnumVal(gageScl, buff);
+    *paren = 0;
+    qstr = buff + strlen("gage(");
+    domI = airEnumVal(gageScl, qstr);
     if (gageSclUnknown == domI) {
-      sprintf(err, "%s: couldn't parse \"%s\" as a gageScl varable", 
-	      me, buff);
+      sprintf(err, "%s: couldn't parse \"%s\" as a gageScl varable", me, qstr);
       biffAdd(MITE, err); free(buff); return -1;
     }
-    if (1 != gageKindScl->ansLength[domI]) {
+    if (1 != kind->ansLength[domI]) {
       sprintf(err, "%s: %s isn't a scalar, so it can't a txf domain variable",
 	      me, airEnumStr(gageScl, domI));
       biffAdd(MITE, err); free(buff); return -1;
     }
   } else {
     /* txf domain variable is not directly measured by gage */
-    sprintf(err, "%s: sorry, only txf domain variable currently supported "
+    sprintf(err, "%s: sorry, only txf domain variables currently supported "
 	    "are those directly measured by gage", me);
     biffAdd(MITE, err); return -1;
   }
@@ -63,24 +70,31 @@ _miteDomainParse(char *label) {
 }
 
 int
-_miteNtxfValid(Nrrd *ntxf) {
-  char me[]="_miteNtxfValid", err[AIR_STRLEN_MED], *range, *domS;
+miteNtxfCheck(Nrrd *ntxf, gageKind *kind) {
+  char me[]="miteNtxfCheck", err[AIR_STRLEN_MED], *range, *domS;
   int i;
-  
+
+  if (!( ntxf && kind )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(MITE, err); return 1;
+  }
   if (!nrrdValid(ntxf)) {
     sprintf(err, "%s: basic nrrd validity check failed", me);
     biffMove(MITE, err, NRRD); return 1;
   }
-  if (nrrdTypeFloat != ntxf->type) {
-    sprintf(err, "%s: need a type %s nrrd (not %s)", me,
+  if (!( nrrdTypeFloat == ntxf->type || 
+	 nrrdTypeDouble == ntxf->type || 
+	 nrrdTypeUChar == ntxf->type )) {
+    sprintf(err, "%s: need a type %s, %s or %s nrrd (not %s)", me,
 	    airEnumStr(nrrdType, nrrdTypeFloat),
+	    airEnumStr(nrrdType, nrrdTypeDouble),
+	    airEnumStr(nrrdType, nrrdTypeUChar),
 	    airEnumStr(nrrdType, ntxf->type));
     biffAdd(MITE, err); return 1;
   }
-  if (!( AIR_IN_CL(2, ntxf->dim, MITE_TXF_NUM+1) )) {
-    sprintf(err, "%s: nrrd dim (%d) isn't between 2 and %d, for "
-	    "txf dim between 1 and %d",
-	    me, ntxf->dim, MITE_TXF_NUM+1, MITE_TXF_NUM);
+  if (!( 2 <= ntxf->dim )) {
+    sprintf(err, "%s: nrrd dim (%d) isn't at least 2 (for a 1-D txf)",
+	    me, ntxf->dim);
     biffAdd(MITE, err); return 1;
   }
   if (1 == ntxf->dim) {
@@ -94,7 +108,7 @@ _miteNtxfValid(Nrrd *ntxf) {
   }
   if (airStrlen(range) != ntxf->axis[0].size) {
     sprintf(err, "%s: axis[0]'s size is %d, but label specifies %d values",
-	    me, ntxf->axis[0].size, airStrlen(range));
+	    me, ntxf->axis[0].size, (int)airStrlen(range));
     biffAdd(MITE, err); return 1;
   }
   for (i=0; i<airStrlen(range); i++) {
@@ -106,13 +120,26 @@ _miteNtxfValid(Nrrd *ntxf) {
     }
   }
   for (i=1; i<ntxf->dim; i++) {
+    if (!( AIR_EXISTS(ntxf->axis[i].min) && AIR_EXISTS(ntxf->axis[i].max) )) {
+      sprintf(err, "%s: min and max of axis %d aren't both set", me, i);
+      biffAdd(MITE, err); return 1;
+    }
+    if (!( ntxf->axis[i].min < ntxf->axis[i].max )) {
+      sprintf(err, "%s: min (%g) not less than max (%g) on axis %d", 
+	      me, ntxf->axis[i].min, ntxf->axis[i].max, i);
+      biffAdd(MITE, err); return 1;
+    }
+    if (1 == ntxf->axis[i].size) {
+      sprintf(err, "%s: # samples on axis %d must be > 1", me, i);
+      biffAdd(MITE, err); return 1;
+    }
     domS = ntxf->axis[i].label;
     if (0 == airStrlen(domS)) {
       sprintf(err, "%s: axis[%d] of txf didn't specify a domain variable",
 	      me, i);
       biffAdd(MITE, err); return 1;
     }
-    if (-1 == _miteDomainParse(domS)) {
+    if (-1 == _miteDomainParse(domS, kind)) {
       sprintf(err, "%s: problem with txf domain \"%s\" for axis %d\n", 
 	      me, domS, i);
       biffAdd(MITE, err); return 1;
@@ -122,45 +149,169 @@ _miteNtxfValid(Nrrd *ntxf) {
   return 0;
 }
 
-miteTxf *
-miteTxfNew(Nrrd *ntxf) {
-  char me[]="miteTxfNew", err[AIR_STRLEN_MED];
-  miteTxf *txf;
-  int i, *rangeIdx;
+unsigned int
+_miteNtxfQuery(Nrrd *ntxf, gageKind *kind) {
+  int i;
+  unsigned int query;
 
-  if (!_miteNtxfValid(ntxf)) {
-    sprintf(err, "%s: given nrrd can't be used as a transfer function", me);
-    biffAdd(MITE, err); return NULL;
-  }
-  txf = (miteTxf *)calloc(1, sizeof(miteTxf));
-  rangeIdx = (int *)calloc(ntxf->axis[0].size, sizeof(int));
-  if (!( txf && rangeIdx )) {
-    sprintf(err, "%s: couldn't alloc txf!", me);
-    biffAdd(MITE, err); return NULL; 
-  }
-  txf->data = (float*)ntxf->data;
-  txf->rangeIdx = rangeIdx;
-  for (i=0; i<ntxf->axis[0].size; i++) {
-    txf->rangeIdx[i] = (strchr(miteRangeChar, ntxf->axis[0].label[i])
-			- miteRangeChar);
-    fprintf(stderr, "!%s: range: %c -> %d\n", me,
-	    ntxf->axis[0].label[i], txf->rangeIdx[i]);
-  }
+  query = 0;
   for (i=1; i<ntxf->dim; i++) {
-    txf->domainIdx[i-1] = _miteDomainParse(ntxf->axis[i].label);
-    fprintf(stderr, "!%s: domain: %s -> %d\n", me,
-	    ntxf->axis[i].label, txf->domainIdx[i]);
+    query |= 1 << _miteDomainParse(ntxf->axis[i].label, kind);
   }
-  return txf;
+  return query;
 }
 
-miteTxf *
-miteTxfNix(miteTxf *txf) {
-
-  if (txf) {
-    AIR_FREE(txf->rangeIdx);
-    AIR_FREE(txf);
+int
+_miteNtxfCopy(miteRender *mrr, miteUser *muu) {
+  char me[]="_miteNtxfCopy", err[AIR_STRLEN_MED];
+  int ni, E;
+  
+  mrr->ntxf = (Nrrd **)calloc(muu->ntxfNum, sizeof(Nrrd *));
+  if (!mrr->ntxf) {
+    sprintf(err, "%s: couldn't calloc %d ntxf pointers", me, muu->ntxfNum);
+    biffAdd(MITE, err); return 1;
   }
-  return NULL;
+  mrr->ntxfNum = muu->ntxfNum;
+  airMopAdd(mrr->rmop, mrr->ntxf, airFree, airMopAlways);
+  E = 0;
+  for (ni=0; ni<mrr->ntxfNum; ni++) {
+    mrr->ntxf[ni] = nrrdNew();
+    if (!E) airMopAdd(mrr->rmop, mrr->ntxf[ni],
+		      (airMopper)nrrdNuke, airMopAlways);
+    /* this assumes that ntxf type is float, double, or uchar */
+    switch(muu->ntxf[ni]->type) {
+    case nrrdTypeUChar:
+      if (!( AIR_EXISTS(muu->ntxf[ni]->min) &&
+	     AIR_EXISTS(muu->ntxf[ni]->max) )) {
+	muu->ntxf[ni]->min = 0.0;
+	muu->ntxf[ni]->max = 1.0;
+      }
+      if (!E) E |= nrrdUnquantize(mrr->ntxf[ni], muu->ntxf[ni], nrrdTypeUChar);
+      break;
+    case mite_nt:
+      if (!E) E |= nrrdCopy(mrr->ntxf[ni], muu->ntxf[ni]);
+      break;
+    default:
+      if (!E) E |= nrrdConvert(mrr->ntxf[ni], muu->ntxf[ni], mite_nt);
+      break;
+    }
+  }
+  if (E) {
+    sprintf(err, "%s: troubling copying/converting all ntxfs", me);
+    biffMove(MITE, err, NRRD); return 1;
+  }
+  return 0;
 }
 
+int
+_miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu) {
+  char me[]="_miteNtxfAlphaAdjust", err[AIR_STRLEN_MED];
+  int ni, ei, ri, rnum;
+  Nrrd *ntxf;
+  mite_t *data, alpha, frac;
+  
+  if (_miteNtxfCopy(mrr, muu)) {
+    sprintf(err, "%s: trouble copying/converting transfer functions", me);
+    biffAdd(MITE, err); return 1;
+  }
+  frac = muu->rayStep/muu->refStep;
+  for (ni=0; ni<mrr->ntxfNum; ni++) {
+    ntxf = mrr->ntxf[ni];
+    if (!strchr(ntxf->axis[0].label, miteRangeChar[miteRangeAlpha]))
+      continue;
+    /* else this txf sets opacity */
+    data = ntxf->data;
+    rnum = ntxf->axis[0].size;
+    for (ei=0; ei<nrrdElementNumber(ntxf)/rnum; ei++) {
+      for (ri=0; ri<rnum; ri++) {
+	if (ntxf->axis[0].label[ri] == miteRangeChar[miteRangeAlpha]) {
+	  alpha = data[ri + rnum*ei];
+	  data[ri + rnum*ei] = 1 - pow(1 - alpha, frac);
+	}
+      }
+    }
+  }
+  return 0;
+}
+
+int
+_miteStageNum(miteRender *mrr) {
+  int num, ni;
+
+  num = 0;
+  for (ni=0; ni<mrr->ntxfNum; ni++) {
+    num += mrr->ntxf[ni]->dim - 1;
+  }
+  return num;
+}
+
+int
+_miteStageSet(miteThread *mtt, miteRender *mrr, gageKind *kind) {
+  char me[]="_miteStageSet", err[AIR_STRLEN_MED];
+  int ni, di, si, rii, dom, stageNum;
+  Nrrd *ntxf;
+  miteStage *stage;
+  char rc;
+  
+  stageNum = _miteStageNum(mrr);
+  fprintf(stderr, "!%s: stageNum = %d\n", me, stageNum);
+  mtt->stage = (miteStage *)calloc(stageNum, sizeof(miteStage));
+  if (!mtt->stage) {
+    sprintf(err, "%s: couldn't alloc array of %d stages", me, stageNum);
+    biffAdd(MITE, err); return 1;
+  }
+  airMopAdd(mrr->rmop, mtt->stage, airFree, airMopAlways);
+  mtt->stageNum = stageNum;
+  si = 0;
+  for (ni=0; ni<mrr->ntxfNum; ni++) {
+    ntxf = mrr->ntxf[ni];
+    for (di=ntxf->dim-1; di>=1; di--) {
+      stage = mtt->stage + si;
+      dom = _miteDomainParse(ntxf->axis[di].label, kind);
+      stage->val = mtt->ans + kind->ansOffset[dom];
+      fprintf(stderr, "!%s: ans=%p + offset[%d]=%d == %p\n", me,
+	      mtt->ans, dom, kind->ansOffset[dom], stage->val);
+      stage->size = ntxf->axis[di].size;
+      stage->min =  ntxf->axis[di].min;
+      stage->max =  ntxf->axis[di].max;
+      if (di > 1) {
+	stage->data = NULL;
+      } else {
+	stage->data = ntxf->data;
+	stage->rangeNum = ntxf->axis[0].size;
+	for (rii=0; rii<stage->rangeNum; rii++) {
+	  rc = ntxf->axis[0].label[rii];
+	  stage->rangeIdx[rii] = strchr(miteRangeChar, rc) - miteRangeChar;
+	  fprintf(stderr, "!%s: range: %c -> %d\n", "_miteStageSet",
+		  ntxf->axis[0].label[rii], stage->rangeIdx[rii]);
+	}
+      }
+      si++;
+    }
+  }
+  return 0;
+}
+
+void
+_miteStageRun(miteThread *mtt) {
+  int si, ri, rii, idx, index;
+  miteStage *stage;
+  mite_t *rangeData;
+
+  index = 0;
+  for (si=0; si<mtt->stageNum; si++) {
+    stage = &(mtt->stage[si]);
+    AIR_INDEX(stage->min, *(stage->val), stage->max, stage->size, idx);
+    idx = AIR_CLAMP(0, idx, stage->size-1);
+    index = stage->size*index + idx;
+    if (stage->data) {
+      rangeData = stage->data + stage->rangeNum*index;
+      for (rii=0; rii<stage->rangeNum; rii++) {
+	ri = stage->rangeIdx[rii];
+	mtt->range[ri] *= rangeData[rii];
+      }
+      index = 0;
+    }
+  }
+  return;
+}
