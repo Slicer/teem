@@ -335,8 +335,9 @@ typedef struct {
 } gageSimple;
 
 /*
-** NB: All "answer" structs MUST have the main answer array
-** as the first element so that 
+** NB: All "answer" structs MUST have the main answer vector "ans"
+** as the first element so the vector of any kind's answer can be
+** obtained by casting to gageSclAnswer.
 */
 
 /*
