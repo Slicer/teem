@@ -127,13 +127,13 @@ main(int argc, char *argv[]) {
     g = pow(g, 1.0/gamma);
     b = pow(b, 1.0/gamma);
     if (bgUC) {
+      r = a*r + (1-a)*bgUC[0 + 3*i]/255;
+      g = a*g + (1-a)*bgUC[1 + 3*i]/255;
+      b = a*b + (1-a)*bgUC[2 + 3*i]/255;
+    } else {
       r = a*r + (1-a)*back[0];
       g = a*g + (1-a)*back[1];
       b = a*b + (1-a)*back[2];
-    } else {
-      r = a*r + (1-a)*bgUC[0 + 3*i]/255;
-      g = a*g + (1-a)*bgUC[0 + 3*i]/255;
-      b = a*b + (1-a)*bgUC[0 + 3*i]/255;
     }
     AIR_INDEX(0.0, r, 1.0, 256, rI);
     AIR_INDEX(0.0, g, 1.0, 256, gI);
