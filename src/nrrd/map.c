@@ -113,7 +113,7 @@ nrrdMinMaxCleverSet(Nrrd *nrrd) {
   /* save incoming values in case they exist */
   min = nrrd->min;
   max = nrrd->max;
-  /* this will set hasNonExist */
+  /* this will set nrrd->min, nrrd->max, and hasNonExist */
   nrrdMinMaxSet(nrrd);
   if (!( AIR_EXISTS(nrrd->min) && AIR_EXISTS(nrrd->max) )) {
     sprintf(err, "%s: no existent values!", me);
@@ -328,7 +328,7 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
 int 
 _nrrdHistoEqCompare(const void *a, const void *b) {
 
-  return *((int*)b) - *((int*)a);
+  return *((unsigned int*)b) - *((unsigned int*)a);
 }
 
 /*
@@ -364,12 +364,13 @@ _nrrdHistoEqCompare(const void *a, const void *b) {
 ** exactly one fixed value).  
 */
 int
-nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
+nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP, int bins, int smart) {
   char me[]="nrrdHistoEq", func[]="heq", err[AIR_STRLEN_MED];
-  Nrrd *nhist;
-  double val, min, max, *xcoord = NULL, *ycoord = NULL, *last = NULL;
-  int i, idx, *respect = NULL, *steady = NULL;
-  unsigned int *hist;
+  Nrrd *nhist, *nmap;
+  float *ycoord = NULL;
+  double val, min, max, *last = NULL;
+  int i, idx, *respect = NULL;
+  unsigned int *hist, *steady = NULL;
   nrrdBigInt I, num;
   airArray *mop;
 
@@ -397,35 +398,34 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
     }
   }
   mop = airMopInit();
-  if (nhistP) {
-    airMopAdd(mop, *nhistP, (airMopper)airSetNull, airMopOnError);
+  if (nmapP) {
+    airMopAdd(mop, *nmapP, (airMopper)airSetNull, airMopOnError);
   }
   num = nrrdElementNumber(nin);
   if (smart <= 0) {
     nhist = nrrdNew();
-    if (nrrdHisto(nhist, nin, bins, nrrdTypeInt)) {
+    if (nrrdHisto(nhist, nin, bins, nrrdTypeUInt)) {
       sprintf(err, "%s: failed to create histogram", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
-    airMopAdd(mop, nhist, (airMopper)nrrdNuke,
-	      nhistP ? airMopOnError : airMopAlways);
+    airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
     hist = nhist->data;
     min = nhist->axis[0].min;
     max = nhist->axis[0].max;
   } else {
-    /* for "smart" mode, we have to some extra work in creating
-       the histogram to look for bins always hit with the same value */
+    /* for "smart" mode, we have to some extra work while creating the
+       histogram to look for bins incessantly hit with the exact same
+       value */
     if (nrrdAlloc(nhist=nrrdNew(), nrrdTypeUInt, 1, bins)) {
       sprintf(err, "%s: failed to allocate histogram", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
-    airMopAdd(mop, nhist, (airMopper)nrrdNuke,
-	      nhistP ? airMopOnError : airMopAlways);
+    airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
     hist = nhist->data;
     nhist->axis[0].size = bins;
     /* allocate the respect, steady, and last arrays */
     respect = calloc(bins, sizeof(int));
-    steady = calloc(bins*2, sizeof(int));
+    steady = calloc(2*bins, sizeof(unsigned int));
     last = calloc(bins, sizeof(double));
     airMopMem(mop, &respect, airMopAlways);
     airMopMem(mop, &steady, airMopAlways);
@@ -434,6 +434,8 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
       sprintf(err, "%s: couldn't allocate smart arrays", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
+    /* steady[0 + 2*i] == how many times has bin i seen the same value
+       steady[1 + 2*i] == i (steady will be rearranged by qsort()) */
     for (i=0; i<bins; i++) {
       last[i] = AIR_NAN;
       respect[i] = 1;
@@ -451,16 +453,10 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
       val = nrrdDLookup[nin->type](nin->data, I);
       if (AIR_EXISTS(val)) {
 	AIR_INDEX(min, val, max, bins, idx);
-	/*
-	if (!AIR_INSIDE(0, idx, bins-1)) {
-	  printf("%s: I=%d; val=%g, [%g,%g] ===> %d\n", 
-		 me, (int)I, val, min, max, idx);
-	}
-	*/
 	++hist[idx];
 	if (AIR_EXISTS(last[idx])) {
 	  steady[0 + 2*idx] = (last[idx] == val
-			       ? steady[0 + 2*idx]+1
+			       ? 1 + steady[0 + 2*idx]
 			       : 0);
 	}
 	last[idx] = val;
@@ -472,7 +468,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
     }
     */
     /* now sort the steady array */
-    qsort(steady, bins, 2*sizeof(int), _nrrdHistoEqCompare);
+    qsort(steady, bins, 2*sizeof(unsigned int), _nrrdHistoEqCompare);
     /*
     for (i=0; i<=20; i++) {
       printf("sorted steady(%d/%d) = %d\n", i, steady[1+2*i], steady[0+2*i]);
@@ -483,18 +479,18 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
       respect[steady[1+2*i]] = 0;
     }
   }
-  xcoord = calloc(bins + 1, sizeof(double));
-  ycoord = calloc(bins + 1, sizeof(double));
-  airMopMem(mop, &xcoord, airMopAlways);
-  airMopMem(mop, &ycoord, airMopAlways);
-  if (!(xcoord && ycoord)) {
-    sprintf(err, "%s: failed to create xcoord, ycoord arrays", me);
+  if (nrrdAlloc(nmap=nrrdNew(), nrrdTypeFloat, 1, bins+1)) {
+    sprintf(err, "%s: failed to create map nrrd", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
+  airMopAdd(mop, nmap, (airMopper)nrrdNuke,
+	    nmapP ? airMopOnError : airMopAlways);
+  nmap->axis[0].min = min;
+  nmap->axis[0].max = max;
+  ycoord = nmap->data;
 
   /* integrate the histogram then normalize it */
   for (i=0; i<=bins; i++) {
-    xcoord[i] = AIR_AFFINE(0, i, bins, min, max);
     if (i == 0) {
       ycoord[i] = 0;
     } else {
@@ -508,22 +504,26 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
   }
 
   /* map the nrrd values through the normalized histogram integral */
+  if (nrrdApply1DRegMap(nout, nin, nmap, nin->type, AIR_FALSE)) {
+    sprintf(err, "%s: problem remapping", me);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
+  /*
   for (I=0; I<num; I++) {
     val = nrrdDLookup[nin->type](nin->data, I);
     if (AIR_EXISTS(val)) {
       AIR_INDEX(min, val, max, bins, idx);
-      /* fprintf(stderr, "!%s: val=%g -> idx=%d -> ", me, val, idx); */
       val = AIR_AFFINE(xcoord[idx], val, xcoord[idx+1], 
 		       ycoord[idx], ycoord[idx+1]);
-      /* fprintf(stderr, "%g\n", val); */
     }
     nrrdDInsert[nout->type](nout->data, I, val);
   }
+  */
 
-  /* if user is interested, set pointer to histogram nrrd,
+  /* if user is interested, set pointer to map nrrd,
      otherwise it will be nixed by airMop */
-  if (nhistP) {
-    *nhistP = nhist;
+  if (nmapP) {
+    *nmapP = nmap;
   }
 
   /* fiddling with content is the only thing we'll do */
