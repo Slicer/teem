@@ -8,7 +8,7 @@
 # Usage is:
 #
 # cd src
-# ls -1 {air,hest,biff,ell,nrrd,unrrdu,dye,gage,bane,limn,hoover,echo,mite,ten}/*.c | names.pl | sort | more
+# ls -1 {air,hest,biff,ell,nrrd,unrrdu,dye,moss,gage,bane,limn,hoover,mite,ten,echo}/*.c | ./names.pl | sort | more
 
 while (<>) {
     chomp;
