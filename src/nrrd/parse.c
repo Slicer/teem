@@ -154,7 +154,7 @@ _nrrdReadNrrdParse_spacings(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   _CHECK_GOT_ALL_VALUES;
   for (i=0; i<=nrrd->dim-1; i++) {
     if ( airIsInf(val[i]) || (AIR_EXISTS(val[i]) && !val[i]) ) {
-      sprintf(err, "%s: spacing %d (%lg) invalid", me, i, val[i]);
+      sprintf(err, "%s: spacing %d (%g) invalid", me, i, val[i]);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
   }

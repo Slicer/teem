@@ -1123,7 +1123,7 @@ _nrrdKernelStrToKern(char *str) {
 int
 nrrdKernelParse(nrrdKernel **kernelP, double *param, char *_str) {
   char me[]="nrrdKernelParse", err[128], str[NRRD_STRLEN_HUGE],
-    kstr[NRRD_STRLEN_MED], *_pstr, *pstr;
+    kstr[NRRD_STRLEN_MED], *_pstr=NULL, *pstr;
   int i, j, NP;
   
   if (!(kernelP && param && _str)) {
@@ -1152,7 +1152,7 @@ nrrdKernelParse(nrrdKernel **kernelP, double *param, char *_str) {
       sprintf(err, "%s: trouble parsing \"%s\"", me, _pstr);
       biffAdd(NRRD, err); return 1;
     }
-    if (pstr = strchr(pstr, ',')) {
+    if ((pstr = strchr(pstr, ','))) {
       pstr++;
       if (!*pstr) {
 	sprintf(err, "%s: nothing after last comma in \"%s\"", me, _pstr);

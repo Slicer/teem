@@ -623,7 +623,7 @@ _nrrdFixFormat(Nrrd *nrrd, nrrdIO *io) {
 int
 nrrdWrite(FILE *file, Nrrd *nrrd, nrrdIO *io) {
   char me[]="nrrdWrite", err[NRRD_STRLEN_MED];
-  int ret;
+  int ret=0;
 
   if (!(file && nrrd && io)) {
     sprintf(err, "%s: got NULL pointer", me);

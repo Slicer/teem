@@ -210,7 +210,7 @@ nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy) {
   if (!E) E |= nrrdCommentAdd(nout, cmt);
   sprintf(cmt, "max value: %g\n", nout->axis[0].max);
   if (!E) E |= nrrdCommentAdd(nout, cmt);
-  sprintf(cmt, "max hits: %lg, around value %lg\n", maxhits,
+  sprintf(cmt, "max hits: %g, around value %g\n", maxhits,
 	  nrrdAxisPos(nout, 0, maxhitidx));
   if (!E) E |= nrrdCommentAdd(nout, cmt);
   if (E) {
@@ -351,7 +351,7 @@ int
 nrrdHistoJoint(Nrrd *nout, Nrrd **nin, 
 	       int numNrrds, int *bins, int type, int *clamp) {
   char me[]="nrrdHistoJoint", err[NRRD_STRLEN_MED];
-  int d, coord[NRRD_DIM_MAX], skip, hadContent, totalContentStrlen, len;
+  int d, coord[NRRD_DIM_MAX], skip, hadContent, totalContentStrlen, len=0;
   double val, count;
   nrrdBigInt Iin, Iout, numEl;
 

@@ -17,6 +17,7 @@
 
 
 #include "nrrd.h"
+#include "private.h"
 
 int
 nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
@@ -250,7 +251,7 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
 			     Nrrd *nin, nrrdResampleInfo *info, int d) {
   char me[]="_nrrdResampleMakeWeightIndex", err[NRRD_STRLEN_MED];
   int sizeIn, sizeOut, center, dotLen, halfLen, *index, base, idx;
-  double minIn, maxIn, minOut, maxOut, spcIn, spcOut, param0;
+  double minIn, maxIn, minOut, maxOut, spcIn, spcOut, param0=0.0;
   float ratio, support, integral, *weight, pos, idxF, wght;
 
   int e, i;

@@ -204,7 +204,7 @@ nrrdElementNumber(Nrrd *nrrd) {
 int
 nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff) {
   char me[]="nrrdFitsInFormat", err[NRRD_STRLEN_MED];
-  int ret;
+  int ret=AIR_FALSE;
 
   if (!(nrrd)) {
     sprintf(err, "%s: got NULL pointer", me);

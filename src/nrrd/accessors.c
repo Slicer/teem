@@ -454,7 +454,7 @@ double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double) = {
   v = (type*)(nrrd->data);                                               \
                                                                          \
   /* we have to explicitly search for the first non-NaN value */         \
-  min = min = AIR_NAN;                                                   \
+  max = min = AIR_NAN;                                                   \
   for (I=0; I<N; I++) {                                                  \
     a = v[I];                                                            \
     if (AIR_EXISTS(a)) {                                                 \

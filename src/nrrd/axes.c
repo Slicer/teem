@@ -204,27 +204,35 @@ nrrdAxesSet(Nrrd *nrrd, int axInfo, ...) {
     switch (axInfo) {
     case nrrdAxesInfoSize:
       info.I[d] = va_arg(ap, int);
+      /*
       printf("!%s: got int[%d] = %d\n", "nrrdAxesSet_va", d, info.I[d]);
+      */
       break;
     case nrrdAxesInfoCenter:
       info.I[d] = va_arg(ap, int);
+      /*
       printf("!%s: got int[%d] = %d\n", 
 	     "nrrdAxesSet_va", d, info.I[d]);
+      */
       break;
     case nrrdAxesInfoSpacing:
     case nrrdAxesInfoMin:
     case nrrdAxesInfoMax:
       info.D[d] = va_arg(ap, double);
-      printf("!%s: got double[%d] = %lg\n", 
+      /*
+      printf("!%s: got double[%d] = %g\n", 
 	     "nrrdAxesSet_va", d, info.D[d]); 
+      */
       break;
     case nrrdAxesInfoLabel:
       /* we DO NOT do the airStrdup() here because this pointer value is
 	 just going to be handed to nrrdAxesSet_nva(), which WILL do the
 	 airStrdup(); we're not violating the rules for axis labels */
       info.CP[d] = va_arg(ap, char *);
+      /*
       printf("!%s: got char*[%d] = |%s|\n", 
 	     "nrrdAxesSet_va", d, info.CP[d]);
+      */
       break;
     }
   }

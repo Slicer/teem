@@ -107,7 +107,7 @@ char *
 nrrdCommentScan(Nrrd *nrrd, char *key) {
   /* char me[]="nrrdCommentScan";  */
   int i;
-  char *cmt, *k, *c, *t, *ret;
+  char *cmt, *k, *c, *t, *ret=NULL;
 
   if (!(nrrd && airStrlen(key)))
     return NULL;

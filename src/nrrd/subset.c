@@ -324,7 +324,7 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
 int
 nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
   char me[]="nrrdPad", err[NRRD_STRLEN_MED], buff[NRRD_STRLEN_SMALL];
-  double padValue;
+  double padValue=AIR_NAN;
   int d, outside, dim, typeSize,
     cIn[NRRD_DIM_MAX],       /* coords for line start, in input */
     cOut[NRRD_DIM_MAX],      /* coords for line start, in output */

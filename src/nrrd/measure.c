@@ -431,7 +431,7 @@ void (*_nrrdMeasureAxis[NRRD_MEASURE_MAX+1])(void *, int, int,
 
 int
 _nrrdMeasureType(Nrrd *nin, int measr) {
-  int type;
+  int type=nrrdTypeUnknown;
 
   switch(measr) {
   case nrrdMeasureMin:

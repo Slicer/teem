@@ -206,7 +206,7 @@ int
 nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   char me[] = "nrrdQuantize", err[NRRD_STRLEN_MED];
   double valIn, min, max;
-  int valOut, type, size[NRRD_DIM_MAX];
+  int valOut, type=nrrdTypeUnknown, size[NRRD_DIM_MAX];
   unsigned long long int valOutll;
   nrrdBigInt I, num;
 

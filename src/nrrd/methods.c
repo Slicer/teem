@@ -433,7 +433,7 @@ nrrdAlloc(Nrrd *nrrd, int type, int dim, ...) {
   va_end(ap);
   if (!_nrrdSizeValid(dim, size)) {
     sprintf(err, "%s: trouble", me);
-    biffAdd(NRRD, err); return NULL;
+    biffAdd(NRRD, err); return 1;
   }
   if (nrrdAlloc_nva(nrrd, type, dim, size)) {
     sprintf(err, "%s: trouble", me);
@@ -472,7 +472,7 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
   }
   if (!_nrrdSizeValid(dim, size)) {
     sprintf(err, "%s: trouble", me);
-    biffAdd(NRRD, err); return NULL;
+    biffAdd(NRRD, err); return 1;
   }
 
   if (!(nrrd->data)) {
@@ -534,7 +534,7 @@ nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim, ...) {
   va_end(ap);
   if (!_nrrdSizeValid(dim, size)) {
     sprintf(err, "%s: trouble", me);
-    biffAdd(NRRD, err); return NULL;
+    biffAdd(NRRD, err); return 1;
   }
   nrrdAxesGet_nva(nrrd, nrrdAxesInfoSize, size);
   if (nrrdMaybeAlloc_nva(nrrd, type, dim, size)) {
