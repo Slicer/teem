@@ -1,8 +1,12 @@
-nrrd:
-ASAP!!: shuffle, 
+
+ASAP!!: gaussian kernel,
+        shuffle, 
         join, split, reshape,
 	resampling, blurring,  <-- document setting the float param[] vector
 	weighted median filter
+
+create a new nrrdNewAlloc() which supports taking the axis sizes as
+the last arguments, using var args.  This would be very convenient.
 
 be smarter about filling in "content" of something created from
 something else with no "content" (like nrrdConvert)
