@@ -45,10 +45,10 @@ tend_calcMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "d(confidence)/dv at threshold");
   hestOptAdd(&hopt, "b", "b", airTypeFloat, 1, 1, &b, "1",
 	     "b value from scan");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
 	     "input volume of diffusion-weighted images",
 	     NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
 	     "output image (floating point)");
 
   mop = airMopNew();

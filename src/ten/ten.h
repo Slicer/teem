@@ -96,6 +96,7 @@ extern ten_export int tenVerbose;
 extern int tenTensorCheck(Nrrd *nin, int wantType, int useBiff);
 extern int tenExpand(Nrrd *tnine, Nrrd *tseven, float thresh);
 extern int tenEigensolve(float eval[3], float evec[9], float t[7]);
+extern int tenTensorMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec);
 
 /* chan.c */
 extern void tenCalcOneTensor(float tens[7], float chan[7], 
@@ -109,6 +110,8 @@ extern ten_export float tenAnisoSigma;  /* added to denominator
 extern void tenAnisoCalc(float c[TEN_ANISO_MAX+1], float eval[3]);
 extern int tenAnisoPlot(Nrrd *nout, int aniso, int res);
 extern int tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, float thresh);
+extern int tenAnisoHistogram(Nrrd *nout, Nrrd *nin,
+			     int version, int resolution);
 
 /* miscTen.c */
 extern short tenEvqOne(float vec[3], float scl);
@@ -121,14 +124,17 @@ extern int tenGlyphGen(limnObj *obj, Nrrd *nin, tenGlyphParm *parm);
 #define TEND_DECLARE(C) extern ten_export unrrduCmd tend_##C##Cmd;
 #define TEND_LIST(C) &tend_##C##Cmd,
 #define TEND_MAP(F) \
+F(make) \
 F(calc) \
 F(anplot) \
 F(anvol) \
+F(anhist) \
 F(point) \
 F(eval) \
 F(evec) \
 F(evq) \
-F(expand)
+F(expand) \
+F(satin)
 TEND_MAP(TEND_DECLARE)
 extern ten_export unrrduCmd *tendCmdList[]; 
 extern void tendUsage(char *me, hestParm *hparm);

@@ -42,7 +42,7 @@ tend_anplotMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &aniso, NULL,
 	     "Which anisotropy metric to plot.  " TEN_ANISO_DESC,
 	     NULL, tenAniso);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
 	     "output image (floating point)");
 
   mop = airMopNew();

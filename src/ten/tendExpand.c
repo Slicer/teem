@@ -43,7 +43,7 @@ tend_expandMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "0.5",
 	     "confidence level to threshold output tensors at.  Should "
 	     "be between 0.0 and 1.0.");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
 	     "input diffusion tensor volume, with 7 values per sample",
 	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,

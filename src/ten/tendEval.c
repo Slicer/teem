@@ -45,9 +45,9 @@ tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     &compLen);
   hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "0.5",
 	     "confidence threshold");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
 	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
 	     "output image (floating point)");
 
   mop = airMopNew();
@@ -76,9 +76,9 @@ tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (1 == compLen) {
-    ret = nrrdAlloc(nout, nrrdTypeFloat, 3, sx, sy, sz);
+    ret = nrrdMaybeAlloc(nout, nrrdTypeFloat, 3, sx, sy, sz);
   } else {
-    ret = nrrdAlloc(nout, nrrdTypeFloat, 4, compLen, sx, sy, sz);
+    ret = nrrdMaybeAlloc(nout, nrrdTypeFloat, 4, compLen, sx, sy, sz);
   }
   if (ret) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);

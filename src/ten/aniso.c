@@ -180,4 +180,55 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, float thresh) {
   return 0;
 }
 
+int
+tenAnisoHistogram(Nrrd *nout, Nrrd *nin, int version, int res) {
+  char me[]="tenAnisoHistogram", err[AIR_STRLEN_MED];
+  size_t N, I;
+  int csIdx, clIdx, cpIdx, xi, yi;
+  float *tdata, *out, eval[3], evec[9], c[TEN_ANISO_MAX+1],
+    cs, cl, cp;
+
+  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE)) {
+    sprintf(err, "%s: didn't get a tensor nrrd", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( 1 == version || 2 == version )) {
+    sprintf(err, "%s: version (%d) wasn't 1 or 2", me, version);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!(res > 2)) {
+    sprintf(err, "%s: resolution (%d) invalid", me, res);
+    biffAdd(TEN, err); return 1;
+  }
+  if (nrrdMaybeAlloc(nout, nrrdTypeFloat, 2, res, res)) {
+    sprintf(err, "%s: ", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  out = nout->data;
+  tdata = nin->data;
+  if (1 == version) {
+    clIdx = tenAniso_Cl1;
+    cpIdx = tenAniso_Cp1;
+    csIdx = tenAniso_Cs1;
+  } else {
+    clIdx = tenAniso_Cl2;
+    cpIdx = tenAniso_Cp2;
+    csIdx = tenAniso_Cs2;
+  }
+  N = nrrdElementNumber(nin)/7;
+  for (I=0; I<=N-1; I++) {
+    tenEigensolve(eval, evec, tdata);
+    tenAnisoCalc(c, eval);
+    cl = c[clIdx];
+    cp = c[cpIdx];
+    cs = c[csIdx];
+    xi = cs*0 + cl*0 + cp*(res-1);
+    yi = cs*0 + cl*(res-1) + cp*(res-1);
+    out[xi + res*yi] += tdata[0];
+    tdata += 7;
+  }
+  
+  return 0;
+}
+
 

@@ -38,7 +38,7 @@ tend_pointMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   hestOptAdd(&hopt, "p", "x y z", airTypeInt, 3, 3, loc, NULL,
 	     "coordinates of sample to be described");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
 	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
 
   mop = airMopNew();

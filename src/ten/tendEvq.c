@@ -50,9 +50,9 @@ tend_evqMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "Which anisotropy metric to scale the eigenvector "
 	     "with.  " TEN_ANISO_DESC,
 	     NULL, tenAniso);
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
 	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
 	     "output image (floating point)");
 
   mop = airMopNew();
