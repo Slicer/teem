@@ -56,11 +56,17 @@ tenEvecRGB(Nrrd *nout, Nrrd *nin, int which, int aniso,
   cdata = nout->data;
   tdata = nin->data;
   for (II=0; II<NN; II++) {
+    /* tenVerbose = (II == (50 + 64*(32 + 64*0))); */
     tenEigensolve(eval, evec, tdata);
     tenAnisoCalc(an, eval);
     R = AIR_ABS(evec[0 + 3*which]);
     G = AIR_ABS(evec[1 + 3*which]);
     B = AIR_ABS(evec[2 + 3*which]);
+    /*
+    if (tenVerbose) {
+      fprintf(stderr, "!%s: --> RGB = %g %g %g\n", me, R, G, B);
+    }
+    */
     R = pow(R, 1.0/gamma);
     G = pow(G, 1.0/gamma);
     B = pow(B, 1.0/gamma);
