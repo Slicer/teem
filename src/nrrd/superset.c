@@ -121,9 +121,7 @@ nrrdSplice(Nrrd *nout, Nrrd *nin, Nrrd *nslice, int axis, int pos) {
     dest += rowLen;
   }
   
-  sliceCont = (nslice->content
-	       ? airStrdup(nslice->content)
-	       : airStrdup(nrrdStateUnknownContent));
+  sliceCont = nslice->content ? nslice->content : nrrdStateUnknownContent;
   if (!sliceCont) {
     sprintf(err, "%s: couldn't copy slice content!", me);
     biffAdd(NRRD, err); return 1;
@@ -132,7 +130,6 @@ nrrdSplice(Nrrd *nout, Nrrd *nin, Nrrd *nslice, int axis, int pos) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  free(sliceCont);
 
   nrrdPeripheralInit(nout);
 
@@ -248,9 +245,7 @@ nrrdInset(Nrrd *nout, Nrrd *nin, Nrrd *nsub, int *min) {
     strcat(buff1, buff2);
   }
   strcat(buff1, "]");
-  subCont = (nsub->content
-	     ? airStrdup(nsub->content)
-	     : airStrdup(nrrdStateUnknownContent));
+  subCont = nsub->content ? nsub->content : nrrdStateUnknownContent;
   if (!subCont) {
     sprintf(err, "%s: couldn't copy subvolume content!", me);
     biffAdd(NRRD, err); return 1;
@@ -259,7 +254,6 @@ nrrdInset(Nrrd *nout, Nrrd *nin, Nrrd *nsub, int *min) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  free(subCont);
 
   nrrdPeripheralInit(nout);
 

@@ -251,13 +251,7 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
     sprintf(err, "%s: trouble copying axes", me);
     biffAdd(NRRD, err); return 1;
   }
-  mapcnt = (nmap->content
-	    ? airStrdup(nmap->content)
-	    : airStrdup(nrrdStateUnknownContent));
-  if (!mapcnt) {
-    sprintf(err, "%s: couldn't copy %s content!", me, nounStr[kind]);
-    biffAdd(NRRD, err); return 1;
-  }
+  mapcnt = nmap->content ? nmap->content : nrrdStateUnknownContent;
   if (nrrdContentSet(nout, verbStr[kind], nin, "%s", mapcnt)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;

@@ -148,9 +148,7 @@ nrrdContentSet (Nrrd *nout, const char *func,
   }
   /* we copy the input nrrd content first, before blowing away the
      output content, in case nout == nin */
-  content = (nin->content
-	     ? airStrdup(nin->content)
-	     : airStrdup(nrrdStateUnknownContent));
+  content = nin->content ? nin->content : nrrdStateUnknownContent;
   if (!content) {
     sprintf(err, "%s: couldn't copy input content!", me);
     biffAdd(NRRD, err); return 1;
@@ -164,7 +162,6 @@ nrrdContentSet (Nrrd *nout, const char *func,
   }
   va_end(ap);
 
-  free(content); 
   return 0;
 }
 

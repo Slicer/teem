@@ -334,7 +334,7 @@ extern nrrd_export int nrrdStateMeasureModeBins;
 extern nrrd_export int nrrdStateMeasureHistoType;
 extern nrrd_export int nrrdStateAlwaysSetContent;
 extern nrrd_export int nrrdStateDisableContent;
-extern nrrd_export char nrrdStateUnknownContent[];
+extern nrrd_export char *nrrdStateUnknownContent;
 extern nrrd_export int nrrdStateDisallowIntegerNonExist;
 extern nrrd_export int nrrdStateGrayscaleImage3D;
 
@@ -596,7 +596,8 @@ extern int nrrdArithTernaryOp(Nrrd *nout, int op,
 /******** filtering and re-sampling */
 /* filt.c */
 extern int nrrdCheapMedian(Nrrd *nout, Nrrd *nin,
-			   int radius, float wght, int bins);
+			   int mode, int radius, float wght, int bins);
+
 /*
 ******** nrrdResample_t typedef
 **
