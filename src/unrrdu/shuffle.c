@@ -20,7 +20,7 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Permute samples along one axis"
+#define INFO "Permute slices along one axis"
 char *_unrrdu_shuffleInfoL = 
 (INFO
  ". Slices along one axis are re-arranged as units "

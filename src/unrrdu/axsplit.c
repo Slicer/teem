@@ -20,7 +20,7 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Split one axis into two"
+#define INFO "Split one axis into two axes"
 char *_unrrdu_axsplitInfoL =
 (INFO
  ". More general version of \"unu axinsert\", since a given axis can "

@@ -20,7 +20,7 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Reverse order of samples along one axis"
+#define INFO "Reverse order of slices along one axis"
 char *_unrrdu_flipInfoL = (INFO
 		       ". Special case of \"unu\tshuffle\".");
 
