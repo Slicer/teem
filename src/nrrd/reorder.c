@@ -19,97 +19,167 @@
 #include "nrrd.h"
 
 /*
+******** nrrdInvertPerm()
+**
+** given an array (p) which represents a permutation of n elements,
+** compute the inverse permutation ip
+*/
+int
+nrrdInvertPerm(int *invp, int *p, int n) {
+  char me[]="nrrdInvertPerm", err[NRRD_MED_STRLEN];
+  int problem, i;
+
+  if (!(invp && p && n > 0)) {
+    sprintf(err, "%s: got NULL pointer or non-positive n (%d)", me, n);
+    biffSet(NRRD, err); return 1;
+  }
+  
+  /* use the given array "invp" as a temp buffer for validity checking */
+  memset(invp, 0, n*sizeof(int));
+  for (i=0; i<=n-1; i++) {
+    if (!(AIR_INSIDE(0, p[i], n-1))) {
+      sprintf(err, "%s: permutation element #%d == %d out of bounds [0,%d]",
+	      me, i, p[i], n-1);
+      biffSet(NRRD, err); return 1;
+    }
+    invp[p[i]]++;
+  }
+  problem = AIR_FALSE;
+  for (i=0; i<=n-1; i++) {
+    if (1 != invp[i]) {
+      sprintf(err, "%s: element #%d mapped to %d times (should be once)",
+	      me, i, invp[i]);
+      biffAdd(NRRD, err); problem = AIR_TRUE;
+    }
+  }
+  if (problem) {
+    return 1;
+  }
+
+  /* now for the hard part */
+  for (i=0; i<=n-1; i++) {
+    invp[p[i]] = i;
+  }
+
+  return 0;
+}
+
+
+/*
 ******** nrrdPermuteAxes
 **
 ** changes the scanline ordering of the data in a nrrd
 ** 
-** This is a newer version of the function which is simpler and 
-** requires no memory overhead, compared to the older version.
-** However, it creates the new nrrd one element at a time, not
-** taking advantage of any memory coherence that may be better
-** served by memcpy().
+** The basic means by which data is moved around is with memcpy().
+** The goal is to call memcpy() as few times as possible, on memory 
+** segments as large as possible.  Currently, this is done by 
+** detecting how many of the low-index axes are left untouched by 
+** the permutation- this constitutes a "scanline" which can be
+** copied around as a unit.  For permuting the y and z axes of a
+** matrix-x-y-z order tensor volume, this optimization produced a
+** factor of 5 speed up.
+**
+** The axes[] array determines the permutation of the axes.
+** axis[i] = j means: axis i in the output will be the input's axis j
+** (axis[i] answers: "what do I put here", from the standpoint of the output,
+** not "where do I put this", from the standpoint of the input)
 */
 int
 nrrdPermuteAxes(Nrrd *nin, Nrrd *nout, int *axes) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdPermuteAxes", tmpstr[512];
-  NRRD_BIG_INT I,            /* I don't need to justify every single var */
-    tmp;                     /* divided and mod'ed to produce coords */
+  NRRD_BIG_INT 
+    srcI, dstI,              /* indices into input and output nrrds */
+    lineSize,                /* size of block of memory which can be
+				moved contiguously from input to output,
+				thought of as a "scanline" */
+    numLines;                /* how many "scanlines" there are to permute */
   char *src, *dest;
-  int used[NRRD_MAX_DIM],    /* records times a given axis is listed
-				in permuted order (should only be once) */
-    coord[NRRD_MAX_DIM],     /* holder for coordinates (in new nrrd) of 
-				current point */
+  int coord[NRRD_MAX_DIM+1], /* coordinates in output nrrd */
+    ip[NRRD_MAX_DIM+1],      /* inverse of permutation in "axes */
+    topFax,                  /* highest axis which is fixed in permutation */
     d,                       /* running index along dimensions */
-    elSize;                  /* size of one element */
+    dim;                     /* copy of nin->dim */
 
   if (!(nin && nout && axes)) {
-    sprintf(err, "%s: invalid args", me);
+    sprintf(err, "%s: got NULL pointer", me);
     biffSet(NRRD, err); return 1;
   }
-  memset(used, 0, NRRD_MAX_DIM*sizeof(int));
-  for (d=0; d<=nin->dim-1; d++) {
-    if (!AIR_INSIDE(0, axes[d], nin->dim-1)) {
-      sprintf(err, "%s: axis#%d == %d out of bounds", me, d, axes[d]);
-      biffSet(NRRD, err); return 1;
-    }
-    used[axes[d]] += 1;
+  if (nrrdInvertPerm(ip, axes, nin->dim)) {
+    sprintf(err, "%s: couldn't compute axis permutation inverse", me);
+    biffAdd(NRRD, err); return 1;
   }
-  for (d=0; d<=nin->dim-1; d++) {
-    if (1 != used[d]) {
-      sprintf(err, "%s: axis %d used %d times, instead of once", 
-	      me, d, used[d]);
-      biffSet(NRRD, err); return 1;
+  
+  dim = nin->dim;
+  for (d=0; axes[d] == d && d<=dim-1; d++)
+    ;
+  topFax = d-1;
+
+  if (topFax == dim-1) {
+    /* we were given the identity permutation, just copy whole thing */
+    if (nrrdCopy(nin, nout)) {
+      sprintf(err, "%s: trouble copying input", me);
+      biffAdd(NRRD, err); return 1;      
     }
+    return 0;
   }
+  
+  /* else topFax < dim-1 (actually, topFax < dim-2) */
+  
+  /* set information in new volume */
   if (!(nout->data)) {
     if (nrrdAlloc(nout, nin->num, nin->type, nin->dim)) {
-      sprintf(err, "%s: nrrdAlloc() failed to create slice", me);
+      sprintf(err, "%s: failed to allocate output", me);
       biffAdd(NRRD, err); return 1;
     }
   }
-
-  /* produce array of coordinates inside original array of the
-  ** elements that comprise the volume.  We go linearly through the
-  ** indices of the permuted volume, and then div and mod this to
-  ** produce the necessary coordinates (of successive elements of
-  ** the permuted volume, in the coordinate space of the original)
-  **
-  ** We are not (at this point) trying to be clever about memory
-  ** coherence- the chunks being memcpy()d are the size of elements,
-  ** not scanlines, or anything else larger.
-  */
-  src = nin->data;
-  dest = nout->data;
-  elSize = nrrdElementSize(nin);
-  for (I=0; I<=nin->num-1; I++) {
-    tmp = I;
-    for (d=0; d<=nin->dim-1; d++) {
-      coord[axes[d]] = tmp % nin->size[axes[d]];
-      tmp /= nin->size[axes[d]];
-    }
-    /* now go from coordinates to linear index (in new space) */
-    tmp = coord[nin->dim-1];
-    for (d=nin->dim-2; d>=0; d--)
-      tmp = coord[d] + nin->size[d]*tmp;
-    memcpy(dest + I*elSize, src + tmp*elSize, elSize);
-  }
-
-  /* set information in new volume */
-  for (d=0; d<=nin->dim-1; d++) {
+  for (d=0; d<=dim-1; d++) {
     nout->size[d] = nin->size[axes[d]];
     nout->spacing[d] = nin->spacing[axes[d]];
     nout->axisMin[d] = nin->axisMin[axes[d]];
     nout->axisMax[d] = nin->axisMax[axes[d]];
     strcpy(nout->label[d], nin->label[axes[d]]);
   }
-  sprintf(nout->content, "permute(%s,", nin->content);
+
+  lineSize = 1;
+  for (d=0; d<=topFax; d++) {
+    lineSize *= nin->size[d];
+  }
+  numLines = nin->num/lineSize;
+  lineSize *= nrrdElementSize(nin);
+  src = nin->data;
+  dest = nout->data;
+  memset(coord, 0, NRRD_MAX_DIM*sizeof(int));
+  /* we march through linear index space of input nrrd */
+  for (srcI=0; srcI<=numLines-1; srcI++) {
+    /* from coordinates in output nrrd, find linear index into input */
+    dstI = coord[dim-1];
+    for (d=dim-2; d>topFax; d--)
+      dstI = coord[d] + nout->size[d]*dstI;
+
+    /* copy */
+    /* memcpy(dest + dstI*elSize, src + srcI*elSize, elSize); */
+    memcpy(dest + dstI*lineSize, src + srcI*lineSize, lineSize);
+
+    /* increment coordinates in output nrrd */
+    d = topFax+1;
+    coord[ip[d]]++;
+    while (d <= dim-1 && coord[ip[d]] == nout->size[ip[d]]) {
+      coord[ip[d]] = 0;
+      coord[ip[++d]]++; 
+    }
+  }
+
+  sprintf(nout->content, "permute(%s,", 
+	  strlen(nin->content) ? nin->content : NRRD_NO_CONTENT);
   for (d=0; d<=nin->dim-1; d++) {
     sprintf(tmpstr, "%d%c", axes[d], d == nin->dim-1 ? ')' : ',');
     strcat(nout->content, tmpstr);
   }
   nout->blockSize = nin->blockSize;
-  nin->min = airNand();
-  nin->max = airNand();
+  nout->min = nin->min;
+  nout->max = nin->max;
+  nout->oldMin = nin->oldMin;
+  nout->oldMax = nin->oldMax;
 
   /* bye */
   return 0;
@@ -147,14 +217,15 @@ nrrdNewPermuteAxes(Nrrd *nin, int *axes) {
 ** re-order the elements along the 0th axis when the nrrd is a
 ** 4D array representing a volume of vectors.
 **
-** the given permutation array must allocated for at least as long
-** as the input nrrd along the chosen axis.  perm[j] = i means that
-** the value at position j in the _new_ array should come from
-** position i in the _old_array.  The standpoint is from the new,
-** looking at where to find the values amid the old array.  This
-** allows multiple positions in the new array to copy from the same
-** old position, and insures that there is an source for all positions
-** along the new array.
+** the given permutation array must allocated for at least as long as
+** the input nrrd along the chosen axis.  perm[j] = i means that the
+** value at position j in the _new_ array should come from position i
+** in the _old_array.  The standpoint is from the new, looking at
+** where to find the values amid the old array (perm answers "what do
+** I put here", not "where do I put this").  This allows multiple
+** positions in the new array to copy from the same old position, and
+** insures that there is an source for all positions along the new
+** array.
 */
 int
 nrrdShuffle(Nrrd *nin, Nrrd *nout, int axis, int *perm) {
@@ -176,6 +247,8 @@ nrrdShuffle(Nrrd *nin, Nrrd *nout, int axis, int *perm) {
   }
   if (!(nout->data)) {
     /* HEY!!: this is just a hack for the time being */
+    /* though it does save us the trouble of copying all the fields
+       which don't change as part of the shuffle */
     if (nrrdCopy(nin, nout)) {
       sprintf(err, "%s: failed to allocate output", me);
       biffAdd(NRRD, err); return 1;
@@ -211,3 +284,227 @@ nrrdShuffle(Nrrd *nin, Nrrd *nout, int axis, int *perm) {
   return 0;
 }
 
+/*
+******** nrrdJoin()
+**
+** this leaks memory on error.  Still waiting for the "mop" library
+*/
+int
+nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis) {
+  char me[]="nrrdJoin", err[NRRD_MED_STRLEN];
+  int mindim, maxdim, diffdim, inhom, outdim, 
+    i, d, *trs, outlen, permute[NRRD_MAX_DIM];
+  NRRD_BIG_INT outnum;
+  char *tmpdata;
+  Nrrd *nperm, **ninperm;
+
+  /* error checking */
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffSet(NRRD, err); return 1;
+  }
+  if (!(num >= 1 && axis >= 0)) {
+    sprintf(err, "%s: num (%d) or axis (%d) wacky", me, num, axis);
+    biffSet(NRRD, err); return 1;
+  }
+  if (axis >= NRRD_MAX_DIM) {
+    sprintf(err, "%s: can't join along axis %d when NRRD_MAX_DIM=%d",
+	    me, axis, NRRD_MAX_DIM);
+    biffSet(NRRD, err); return 1;    
+  }
+  for (i=0; i<=num-1; i++) {
+    if (!(nin[i])) {
+      sprintf(err, "%s: input nrrd %d NULL", me, i);
+      biffSet(NRRD, err); return 1;
+    }
+  }
+  ninperm = calloc(num, sizeof(Nrrd *));
+  trs = calloc(2*num, sizeof(int));
+  if (!(ninperm && trs)) {
+    sprintf(err, "%s: couldn't alloc temp arrays array!", me);
+    biffSet(NRRD, err); return 1;
+  }
+  mindim = NRRD_MAX_DIM+1;
+  maxdim = -1;
+  for (i=0; i<=num-1; i++) {
+    mindim = AIR_MIN(mindim, nin[i]->dim);
+    maxdim = AIR_MAX(maxdim, nin[i]->dim);
+  }
+  diffdim = maxdim - mindim;
+  if (diffdim > 1) {
+    sprintf(err, "%s: will only reshape up one dimension (not %d)",
+	    me, diffdim);
+    biffSet(NRRD, err); return 1;
+  }
+  if (axis > maxdim) {
+    sprintf(err, "%s: can't join along axis %d with highest input dim = %d",
+	    me, axis, maxdim);
+    biffSet(NRRD, err); return 1;
+  }
+  /* fprintf(stderr, "%s: mindim = %d, maxdim = %d\n", me, mindim, maxdim); */
+
+  /* figure out dimension of output (outdim) */
+  if (diffdim) {
+    outdim = maxdim;
+  }
+  else {
+    /* diffdim == 0 */
+    if (axis == maxdim) {
+      outdim = maxdim+1;
+    }
+    else {
+      /* axis < maxdim; maxdim == mindim */
+      inhom = 0;
+      for (i=0; i<=num-2; i++) {
+	inhom |= nin[i]->size[axis] != nin[i+1]->size[axis];
+      }
+      if (inhom) {
+	outdim = maxdim;
+      }
+      else {
+	/* all size[axis]'s were equal */
+	if (1 == nin[0]->size[axis]) {
+	  outdim = maxdim;
+	}
+	else {
+	  outdim = maxdim+1;
+	}
+      }
+    }
+  }
+  /* fprintf(stderr, "%s: outdim = %d\n", me, outdim); */
+
+  /* do tacit reshaping, and possibly permuting, as needed */
+  for (i=0; i<=outdim-1; i++) {
+    permute[i] = (i < axis
+		  ? i 
+		  : (i < outdim-1
+		     ? i + 1
+		     : axis));
+    /* fprintf(stderr, "%s: 1st permute[%d] = %d\n", me, i, permute[i]); */
+  }
+  for (i=0; i<=num-1; i++) {
+    trs[0 + 2*i] = outdim - nin[i]->dim;
+    if (trs[0 + 2*i]) {
+      /* we do a tacit reshaping, which actually includes
+	 a tacit permuting, so we don't have to call permute
+	 on the parts that don't actually need it */
+      trs[1 + 2*i] = nin[i]->size[NRRD_MAX_DIM-1];
+      for (d=NRRD_MAX_DIM-1; d>=mindim+1; d--) {
+	nin[i]->size[d] = nin[i]->size[d-1];
+      }
+      nin[i]->size[mindim] = 1;
+      nin[i]->dim++;
+      /*
+      fprintf(stderr, "%s: reshaped part %d -> ", me, i);
+      for (d=0; d<=nin[i]->dim-1; d++) {
+	fprintf(stderr, "%03d ", nin[i]->size[d]);
+      }
+      fprintf(stderr, "\n");
+      */
+      ninperm[i] = nin[i];
+    }
+    else {
+      /* on this part, we permute (no need for a reshape) */
+      if (!(ninperm[i] = nrrdNewPermuteAxes(nin[i], permute))) {
+	sprintf(err, "%s: trouble permuting input part %d", me, i);
+	biffAdd(NRRD, err); return 1;
+      }
+    }
+  }
+
+  /* make sure all parts are compatible in type and shape,
+     determine length of final output along axis (outlen) */
+  outlen = 0;
+  for (i=0; i<=num-1; i++) {
+    if (ninperm[i]->type != ninperm[0]->type) {
+      sprintf(err, "%s: type (%d) of part %d unlike first's (%d)",
+	      me, ninperm[i]->type, i, ninperm[0]->type);
+      biffSet(NRRD, err); return 1;
+    }
+    if (!(nrrdElementSize(ninperm[i]) > 0)) {
+      sprintf(err, "%s: got wacky elements size (%d) for part %d",
+	      me, nrrdElementSize(ninperm[i]), i);
+      biffSet(NRRD, err); return 1;
+    }
+    /* HEY: blocks of differing sizes will slip by here */
+    /* fprintf(stderr, "%s: part %03d shape: ", me, i); */
+    for (d=0; d<=outdim-2; d++) {
+      /* fprintf(stderr, "%03d ", ninperm[i]->size[d]); */
+      if (ninperm[i]->size[d] != ninperm[0]->size[d]) {
+	sprintf(err, "%s: axis %d size (%d) of part %d unlike first's (%d)",
+		me, d, ninperm[i]->size[d], i, ninperm[0]->size[d]);
+	biffSet(NRRD, err); return 1;
+      }
+    }
+    /* fprintf(stderr, "%03d\n", ninperm[i]->size[outdim-1]); */
+    outlen += ninperm[i]->size[outdim-1];
+  }
+  /* fprintf(stderr, "%s: outlen = %d\n", me, outlen); */
+
+  /* allocate temporary nrrd and concat input into it */
+  outnum = 1;
+  for (d=0; d<=outdim-2; d++) {
+    outnum *= ninperm[0]->size[d];
+  }
+  outnum *= outlen;
+  nperm = nrrdNew();
+  if (nrrdAlloc(nperm, outnum, ninperm[0]->type, outdim)) {
+    sprintf(err, "%s: trouble allocating temporory nrrd", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  tmpdata = nperm->data;
+  for (i=0; i<=num-1; i++) {
+    memcpy(tmpdata, ninperm[i]->data, 
+	   ninperm[i]->num*nrrdElementSize(ninperm[i]));
+    tmpdata += ninperm[i]->num*nrrdElementSize(ninperm[i]);
+  }
+  
+  /* copy other axis-specific fields from nin[0] to nperm */
+  for (d=0; d<=outdim-2; d++) {
+    nperm->size[d] = ninperm[0]->size[d];
+    nperm->spacing[d] = ninperm[0]->spacing[d];
+    nperm->axisMin[d] = ninperm[0]->axisMin[d];
+    nperm->axisMax[d] = ninperm[0]->axisMax[d];
+    strcpy(nperm->label[d], ninperm[0]->label[d]);
+  }
+  nperm->size[outdim-1] = outlen;
+
+  nrrdSave("nperm.nrrd", nperm);
+
+  /* do the permutation required to get output in right order */
+  for (i=0; i<=outdim-1; i++) {
+    permute[i] = (i < axis 
+		  ? i 
+		  : (i == axis
+		     ? outdim-1
+		     : i - 1));
+    /* fprintf(stderr, "%s: 2nd permute[%d] = %d\n", me, i, permute[i]); */
+  }
+  if (nrrdPermuteAxes(nperm, nout, permute)) {
+    sprintf(err, "%s: error permuting temporary nrrd", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  /* undo the trickery involved in tacit reshaping/permuting */
+  for (i=0; i<=num-1; i++) {
+    if (trs[0 + 2*i]) {
+      for (d=mindim+1; d<=NRRD_MAX_DIM-1; d++) {
+	nin[i]->size[d-1] = nin[i]->size[d];
+      }
+      nin[i]->size[NRRD_MAX_DIM-1] = trs[1 + 2*i];
+      nin[i]->dim--;
+    }
+  }
+
+  /* clean up */
+  free(trs);
+  for (i=0; i<=num-1; i++) {
+    if (ninperm[i]) {
+      ninperm[i] = nrrdNuke(ninperm[i]);
+    }
+  }
+  nperm = nrrdNuke(nperm);
+
+  return 0;
+}
