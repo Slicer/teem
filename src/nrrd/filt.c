@@ -102,7 +102,7 @@ _nrrdCheapMedian1D(Nrrd *nout, Nrrd *nin, int radius, float wght,
     for (X=radius; X<num-radius; X++) {
       /* _nrrdCM_printhist(hist, bins, "----------"); */
       idx = _nrrdCM_median(hist, half);
-      val = NRRD_AXIS_POS(nrrdCenterCell, nin->min, nin->max, bins, idx);
+      val = NRRD_AXIS_CELL_POS(nin->min, nin->max, bins, idx);
       /* printf(" median idx = %d -> val = %g\n", idx, val); */
       nrrdDInsert[nout->type](nout->data, X, val);
       /* probably update histogram for next iteration */
@@ -121,7 +121,7 @@ _nrrdCheapMedian1D(Nrrd *nout, Nrrd *nin, int radius, float wght,
 	hist[INDEX(nin, lup, I+X, bins, val, idx)] += wt[I+radius];
       }
       idx = _nrrdCM_median(hist, half);
-      val = NRRD_AXIS_POS(nrrdCenterCell, nin->min, nin->max, bins, idx);
+      val = NRRD_AXIS_CELL_POS(nin->min, nin->max, bins, idx);
       nrrdDInsert[nout->type](nout->data, X, val);
     }
     free(wt);
@@ -157,7 +157,7 @@ _nrrdCheapMedian2D(Nrrd *nout, Nrrd *nin, int radius, float wght,
       /* find median at each point using existing histogram */
       for (X=radius; X<sx-radius; X++) {
 	idx = _nrrdCM_median(hist, half);
-	val = NRRD_AXIS_POS(nrrdCenterCell, nin->min, nin->max, bins, idx);
+	val = NRRD_AXIS_CELL_POS(nin->min, nin->max, bins, idx);
 	nrrdDInsert[nout->type](nout->data, X + sx*Y, val);
 	/* probably update histogram for next iteration */
 	if (X < sx-radius-1) {
@@ -182,7 +182,7 @@ _nrrdCheapMedian2D(Nrrd *nout, Nrrd *nin, int radius, float wght,
 	  }
 	}
 	idx = _nrrdCM_median(hist, half);
-	val = NRRD_AXIS_POS(nrrdCenterCell, nin->min, nin->max, bins, idx);
+	val = NRRD_AXIS_CELL_POS(nin->min, nin->max, bins, idx);
 	nrrdDInsert[nout->type](nout->data, X + sx*Y, val);
       }
     }
@@ -223,7 +223,7 @@ _nrrdCheapMedian3D(Nrrd *nout, Nrrd *nin, int radius, float wght,
 	/* find median at each point using existing histogram */
 	for (X=radius; X<sx-radius; X++) {
 	  idx = _nrrdCM_median(hist, half);
-	  val = NRRD_AXIS_POS(nrrdCenterCell, nin->min, nin->max, bins, idx);
+	  val = NRRD_AXIS_CELL_POS(nin->min, nin->max, bins, idx);
 	  nrrdDInsert[nout->type](nout->data, X + sx*(Y + sy*Z), val);
 	  /* probably update histogram for next iteration */
 	  if (X < sx-radius-1) {
@@ -258,7 +258,7 @@ _nrrdCheapMedian3D(Nrrd *nout, Nrrd *nin, int radius, float wght,
 	    }
 	  }
 	  idx = _nrrdCM_median(hist, half);
-	  val = NRRD_AXIS_POS(nrrdCenterCell, nin->min, nin->max, bins, idx);
+	  val = NRRD_AXIS_CELL_POS(nin->min, nin->max, bins, idx);
 	  nrrdDInsert[nout->type](nout->data, X + sx*(Y + sy*Z), val);
 	}
       }
@@ -303,7 +303,7 @@ nrrdCheapMedian(Nrrd *nout, Nrrd *nin, int radius, float wght, int bins) {
     sprintf(err, "%s: failed to create copy of input", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdMinMaxClever(nin)) {
+  if (nrrdMinMaxCleverSet(nin)) {
     sprintf(err, "%s: couldn't learn value range", me);
     biffAdd(NRRD, err); return 1;
   }
