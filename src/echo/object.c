@@ -129,14 +129,11 @@ NIX_TMPL(Split,
 	 echoObjectNix(obj->obj1);
 	 );
 NIX_TMPL(List,
-	 /* due to airArray callbacks, this will nuke all kids */
+	 /* unset callbacks */
+	 airArrayPointerCB(obj->objArr, NULL, NULL);
 	 airArrayNuke(obj->objArr);
 	 );
-NIX_TMPL(Instance,
-	 if (obj->own) {
-	   echoObjectNix(obj->obj);
-	 }
-	 );
+NIX_TMPL(Instance, /* ??? */);
 
 EchoObject *(*
 _echoObjectNix[ECHO_OBJECT_MAX+1])(EchoObject *) = {
@@ -157,6 +154,66 @@ EchoObject *
 echoObjectNix(EchoObject *obj) {
 
   return _echoObjectNix[obj->type](obj);
+}
+
+
+/* ---------------------------------------------------------- */
+/* ---------------------------------------------------------- */
+/* ---------------------------------------------------------- */
+/* ---------------------------------------------------------- */
+/* ---------------------------------------------------------- */
+/* ---------------------------------------------------------- */
+
+#define NUK_TMPL(TYPE, BODY)                                     \
+EchoObject##TYPE *                                               \
+_echoObject##TYPE##_nuke(EchoObject##TYPE *obj) {                \
+                                                                 \
+  do { BODY } while (0);                                         \
+  free(obj);                                                     \
+  return NULL;                                                   \
+}
+
+NUK_TMPL(TriMesh, /* ??? */);
+NUK_TMPL(Isosurface, /* ??? */);
+NUK_TMPL(AABBox,
+	 int i;
+	 for (i=0; i<obj->len; i++) {
+	   echoObjectNuke(obj->obj[i]);
+	 }
+	 );
+NUK_TMPL(Split,
+	 echoObjectNuke(obj->obj0);
+	 echoObjectNuke(obj->obj1);
+	 );
+NUK_TMPL(List,
+	 /* due to airArray callbacks, this will nuke all kids */
+	 airArrayNuke(obj->objArr);
+	 );
+NUK_TMPL(Instance,
+	 if (obj->own) {
+	   echoObjectNix(obj->obj);
+	 }
+	 );
+
+EchoObject *(*
+_echoObjectNuke[ECHO_OBJECT_MAX+1])(EchoObject *) = {
+  NULL,
+  (EchoObject *(*)(EchoObject *))airFree,
+  (EchoObject *(*)(EchoObject *))airFree,
+  (EchoObject *(*)(EchoObject *))airFree,
+  (EchoObject *(*)(EchoObject *))airFree,
+  (EchoObject *(*)(EchoObject *))_echoObjectTriMesh_nuke,
+  (EchoObject *(*)(EchoObject *))_echoObjectIsosurface_nuke,
+  (EchoObject *(*)(EchoObject *))_echoObjectAABBox_nuke,
+  (EchoObject *(*)(EchoObject *))_echoObjectSplit_nuke,
+  (EchoObject *(*)(EchoObject *))_echoObjectList_nuke,
+  (EchoObject *(*)(EchoObject *))_echoObjectInstance_nuke
+};
+
+EchoObject *
+echoObjectNuke(EchoObject *obj) {
+
+  return _echoObjectNuke[obj->type](obj);
 }
 
 
@@ -216,17 +273,6 @@ BNDS_TMPL(Cube) {
   ELL_3V_SET(hi,  0.5+ECHO_EPSILON,  0.5+ECHO_EPSILON,  0.5+ECHO_EPSILON);
   BNDS_FINISH;
 }
-
-#define ELL_3V_MIN(a,b,c)     \
-  a[0] = AIR_MIN(b[0], c[0]); \
-  a[1] = AIR_MIN(b[1], c[1]); \
-  a[2] = AIR_MIN(b[2], c[2])
-
-#define ELL_3V_MAX(a,b,c)     \
-  a[0] = AIR_MAX(b[0], c[0]); \
-  a[1] = AIR_MAX(b[1], c[1]); \
-  a[2] = AIR_MAX(b[2], c[2])
-
 
 BNDS_TMPL(Triangle) {
   ELL_3V_COPY(lo, obj->vert[0]);
@@ -359,7 +405,7 @@ echoObjectListAdd(EchoObject *parent, EchoObject *child) {
 }
 
 int
-_echoPosCompare(echoPos_t *A, echoPos_t *B) {
+_echoPosCompare(double *A, double *B) {
   
   return *A < *B ? -1 : (*A > *B ? 1 : 0);
 }
@@ -372,9 +418,11 @@ _echoPosCompare(echoPos_t *A, echoPos_t *B) {
 */
 EchoObject *
 echoObjectListSplit(EchoObject *list, int axis) {
-  echoPos_t lo[3], hi[3], *mids;
+  echoPos_t lo[3], hi[3], loest0[3], hiest0[3],
+    loest1[3], hiest1[3];
+  double *mids;
   EchoObject *o, *split, *list0, *list1;
-  int i, splitIdx, len;
+  int i, splitIdx, len, axa, axb;
 
   if (echoObjectList != list->type)
     return NULL;
@@ -385,28 +433,94 @@ echoObjectListSplit(EchoObject *list, int axis) {
   SPLIT(split)->axis = axis;
   SPLIT(split)->obj0 = list0;
   SPLIT(split)->obj1 = list1;
+  printf("echoObjectListSplit: bingo 0\n");
 
   len = LIST(list)->objArr->len;
-  if (!len)
+  if (!len) {
+    echoObjectNix(list);
     return split;
+  }
+  printf("echoObjectListSplit: bingo 1\n");
 
-  mids = malloc(2 * len * sizeof(echoPos_t));
+  mids = malloc(2 * len * sizeof(double));
   for (i=0; i<len; i++) {
     o = LIST(list)->obj[i];
     _echoObjectBounds[o->type](lo, hi, o);
+
+    printf("%d: center = (%g,%g,%g), radius = %g\n", 
+	   i, SPHERE(o)->pos[0], SPHERE(o)->pos[1],
+	   SPHERE(o)->pos[2], SPHERE(o)->rad);
+    printf("    lo = (%g,%g,%g), hi = (%g,%g,%g)\n",
+	   lo[0], lo[1], lo[2], hi[0], hi[1], hi[2]);
     mids[0 + 2*i] = (lo[axis] + hi[axis])/2;
-    mids[1 + 2*i] = i;
+    *((unsigned int *)(mids + 1 + 2*i)) = i;
   }
   /* overkill, I know, I know */
-  qsort(mids, len, 2*sizeof(echoPos_t),
+  qsort(mids, len, 2*sizeof(double),
 	(int (*)(const void *, const void *))_echoPosCompare);
-  
-  splitIdx = len/2;
-  SPLIT(split)->split = mids[0 + 2*splitIdx];
-  for (i=0; i<splitIdx; i++) {
-    
+
+  for (i=0; i<len; i++) {
+    printf("%d -> %g\n", i, mids[0 + 2*i]);
   }
 
+  
+  splitIdx = len/2;
+  printf("splitIdx = %d\n", splitIdx);
+  SPLIT(split)->split = mids[0 + 2*splitIdx];
+  ELL_3V_SET(loest0, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
+  ELL_3V_SET(loest1, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
+  ELL_3V_SET(hiest0, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
+  ELL_3V_SET(hiest1, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
+  printf("echoObjectListSplit: bingo 2\n");
+  for (i=0; i<splitIdx; i++) {
+    o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
+    echoObjectListAdd(list0, o);
+    _echoObjectBounds[o->type](lo, hi, o);
+    printf("000 lo = (%g,%g,%g), hi = (%g,%g,%g)\n",
+	   lo[0], lo[1], lo[2], hi[0], hi[1], hi[2]);
+    ELL_3V_MIN(loest0, loest0, lo);
+    printf(" ---- hiest0[0] = %g --> ", hiest0[0]);
+    ELL_3V_MAX(hiest0, hiest0, hi);
+    printf("%g\n", hiest0[0]);
+  }
+  printf("echoObjectListSplit: bingo 3\n");
+  for (i=splitIdx; i<len; i++) {
+    o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
+    echoObjectListAdd(list1, o);
+    _echoObjectBounds[o->type](lo, hi, o);
+    printf("111 lo = (%g,%g,%g), hi = (%g,%g,%g)\n",
+	   lo[0], lo[1], lo[2], hi[0], hi[1], hi[2]);
+    ELL_3V_MIN(loest1, loest1, lo);
+    ELL_3V_MAX(hiest1, hiest1, hi);
+  }
+  printf("echoObjectListSplit: bingo 4\n");
+
+  printf("0: loest = (%g,%g,%g); hiest = (%g,%g,%g)\n",
+	 loest0[0], loest0[1], loest0[2], 
+	 hiest0[0], hiest0[1], hiest0[2]);
+  printf("1: loest = (%g,%g,%g); hiest = (%g,%g,%g)\n",
+	 loest1[0], loest1[1], loest1[2], 
+	 hiest1[0], hiest1[1], hiest1[2]);
+
+  switch(axis) {
+  case 0:
+    axa = 1; axb = 2; break;
+  case 1:
+    axa = 0; axb = 2; break;
+  case 2:
+    axa = 0; axb = 1; break;
+  }
+
+  SPLIT(split)->mina = AIR_MIN(loest0[axa], loest1[axa]);
+  SPLIT(split)->maxa = AIR_MAX(hiest0[axa], hiest1[axa]);
+  SPLIT(split)->minb = AIR_MIN(loest0[axb], loest1[axb]);
+  SPLIT(split)->maxb = AIR_MAX(hiest0[axb], hiest1[axb]);
+  SPLIT(split)->min0 = loest0[axis];
+  SPLIT(split)->max0 = hiest0[axis];
+  SPLIT(split)->min1 = loest1[axis];
+  SPLIT(split)->max1 = hiest1[axis];
+  
+  echoObjectNix(list);
   free(mids);
   return split;
 }

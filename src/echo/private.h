@@ -20,8 +20,9 @@
 #ifndef ECHO_PRIVATE_HAS_BEEN_INCLUDED
 #define ECHO_PRIVATE_HAS_BEEN_INCLUDED
 
-#define SPLIT(obj) ((EchoObjectSplit*)obj)
-#define LIST(obj)  ((EchoObjectList*)obj)
+#define SPLIT(obj)  ((EchoObjectSplit*)obj)
+#define LIST(obj)   ((EchoObjectList*)obj)
+#define SPHERE(obj) ((EchoObjectSphere*)obj)
 
 /* intx.c */
 #define INTX_ARGS(TYPE) EchoIntx *intx, EchoRay *ray,               \

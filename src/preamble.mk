@@ -18,14 +18,3 @@
 #
 #
 
-LIB = echo
-HEADERS = echo.h
-PRIV_HEADERS = private.h
-LIB_OBJS = methods.o enum.o object.o light.o render.o intx.o color.o
-#TEST_BINS = test/proj1 test/mod4
-#TEST_BINS = test/test test/trend
-TEST_BINS = test/trend
-BINS = 
-BIN_LIBS = -lecho -llimn -ldye -lnrrd -lell -lbiff -lair -lm
-
-include ../make/Common.mk

@@ -223,7 +223,8 @@ echoCheck(Nrrd *nraw, limnCam *cam,
     biffAdd(ECHO, err); return 1;
   }
   if (!echoObjectIsContainer(scene)) {
-    sprintf(err, "%s: can only render a container object", me);
+    sprintf(err, "%s: can only render a container object (not a %s)",
+	    me, airEnumStr(echoObject, scene->type));
     biffAdd(ECHO, err); return 1;
   }
 
@@ -389,8 +390,8 @@ echoRender(Nrrd *nraw, limnCam *cam,
       imgU = NRRD_AXIS_POS(nrrdCenterCell, cam->uMin, cam->uMax,
 			   param->imgResU, imgUi);
 
-      param->verbose = ( (112 == imgUi && 94 == imgVi) ||
-			 (-221 == imgUi && 80 == imgVi) );
+      param->verbose = ( (264 == imgUi && 160 == imgVi) ||
+			 (263 == imgUi && 160 == imgVi) );
 
       /* initialize things on first "scanline" */
       jitt = (echoPos_t *)tstate->njitt->data;

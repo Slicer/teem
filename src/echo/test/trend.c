@@ -21,6 +21,63 @@
 #include "../private.h"
 
 void
+makeSceneBVH(limnCam *cam, EchoParam *param,
+	       EchoObject *scene, airArray *lightArr) {
+  EchoObject *sphere, *rect;
+  EchoLight *light;
+  int i, N;
+  float r, g, b;
+  
+  ELL_3V_SET(cam->from, 10, 20, 30);
+  ELL_3V_SET(cam->at,   0, 0, 0);
+  ELL_3V_SET(cam->up,   0, 0, 1);
+  cam->uMin = -3;
+  cam->uMax = 3;
+  cam->vMin = -3;
+  cam->vMax = 3;
+
+  param->jitter = echoJitterNone;
+  param->verbose = 0;
+  param->samples = 1;
+  param->imgResU = 400;
+  param->imgResV = 400;
+  param->aperture = 0.0;
+  param->gamma = 2.0;
+  param->refDistance = 1;
+  param->renderLights = AIR_TRUE;
+  param->seedRand = AIR_FALSE;
+  param->maxRecDepth = 10;
+  param->shadow = AIR_FALSE;
+
+  N = 6;
+  airSrand();
+  for (i=0; i<N; i++) {
+    sphere = echoObjectNew(echoObjectSphere);
+    echoObjectSphereSet(sphere,
+			4*airRand()-2, 4*airRand()-2, 4*airRand()-2, 0.2);
+    dyeHSVtoRGB(&r, &g, &b, AIR_AFFINE(0, i, N, 0.0, 1.0), 1.0, 1.0);
+    echoMatterPhongSet(sphere, r, g, b, 1.0,
+		       0.1, 0.6, 0.3, 50);
+    echoObjectListAdd(scene, sphere);
+  }
+
+  rect = echoObjectNew(echoObjectRectangle);
+  echoObjectRectangleSet(rect,
+			 -0.3, -0.3, 2,
+			 0.6, 0, 0,
+			 0, 0.6, 0);
+  echoMatterLightSet(rect, 1, 1, 1);
+  echoObjectListAdd(scene, rect);
+  light = echoLightNew(echoLightArea);
+  echoLightAreaSet(light, rect);
+  echoLightArrayAdd(lightArr, light);
+
+  scene = echoObjectListSplit(scene, 0);
+  printf("scene type = %d\n", scene->type);
+
+}
+
+void
 makeSceneGlass(limnCam *cam, EchoParam *param,
 	       EchoObject *scene, airArray *lightArr) {
   EchoObject *cube, *rect;
@@ -399,7 +456,9 @@ main(int argc, char **argv) {
   /* makeSceneRainLights(cam, param, scene, lightArr); */
   /* makeSceneShadow(cam, param, scene, lightArr); */
   /* makeSceneGlassMetal(cam, param, scene, lightArr); */
-  makeSceneGlass(cam, param, scene, lightArr); 
+  /* makeSceneGlass(cam, param, scene, lightArr);  */
+  makeSceneBVH(cam, param, scene, lightArr);
+  exit(0);
 
   E = 0;
   if (!E) E |= echoRender(nraw, cam, param, state, scene, lightArr);

@@ -32,7 +32,7 @@
 #include <nrrd.h>
 #include <dye.h>
 
-#if 0
+#if 1
 typedef float echoPos_t;
 #define echoPos_nrrdType nrrdTypeFloat
 #define ECHO_POS_MIN FLT_MIN
@@ -55,7 +55,7 @@ typedef double echoCol_t;
 #define ECHO_AABBOX_OBJECT_MAX 8
 #define ECHO_LIST_OBJECT_INCR 8
 #define ECHO_IMG_CHANNELS 5
-#define ECHO_EPSILON 0.00001      /* used for adjusting ray positions */
+#define ECHO_EPSILON 0.001        /* used for adjusting ray positions */
 #define ECHO_NEAR0 0.004          /* used for comparing transparency to zero */
 
 typedef struct {
@@ -242,9 +242,9 @@ typedef struct {
   ECHO_OBJECT_COMMON;
   int axis;                 /* which axis is split */
   echoPos_t split,          /* where the axis is split */
-    amin, amax, bmin, bmax, /* bounds on two non-split axes */
-    lomin, lomax,           /* bounds on lower half of split axis */
-    himin, himax;           /* bounds on upper half of split axis */
+    mina, maxa, minb, maxb, /* bounds on two non-split axes */
+    min0, max0,             /* bounds on lower half of split axis */
+    min1, max1;             /* bounds on upper half of split axis */
   EchoObject *obj0, *obj1;
 } EchoObjectSplit;
 
@@ -265,9 +265,11 @@ extern EchoObject *echoObjectNew(int type);
 #define ECHO_OBJECT_NEW(TYPE) \
   (EchoObject##TYPE *)echoObjectNew(echoObject##Type)
 extern EchoObject *echoObjectNix(EchoObject *obj);
+extern EchoObject *echoObjectNuke(EchoObject *obj);
 extern void echoObjectBounds(echoPos_t *lo, echoPos_t *hi, EchoObject *obj);
 extern int echoObjectIsContainer(EchoObject *obj);
 extern void echoObjectListAdd(EchoObject *parent, EchoObject *child);
+extern EchoObject *echoObjectListSplit(EchoObject *list, int axis);
 extern void echoObjectSphereSet(EchoObject *sphere,
 				echoPos_t x, echoPos_t y,
 				echoPos_t z, echoPos_t rad);
