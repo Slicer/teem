@@ -150,13 +150,14 @@ _hoovThreadBody(void *_arg) {
     vOff[3], uOff[3];    /* offsets in arg->ec->wU and arg->ec->wV
 			    directions towards start of ray */
 
-  int tmp0, tmp1, tmp2, tmp3;
+  nrrdBigInt tmp0, tmp1, tmp2, tmp3, tmp4;
 
   arg = (_hoovThreadArg *)_arg;
-  tmp0 = (int)(&threadInfo);
-  tmp1 = (int)(arg->renderInfo);
-  tmp2 = (int)(arg->ctx->userInfo);
-  tmp3 = (int)(arg->whichThread);
+  tmp4 = (nrrdBigInt)(arg->ctx->threadBegin);
+  tmp0 = (nrrdBigInt)(&threadInfo);
+  tmp1 = (nrrdBigInt)(arg->renderInfo);
+  tmp2 = (nrrdBigInt)(arg->ctx->userInfo);
+  tmp3 = (nrrdBigInt)(arg->whichThread);
   if ( (ret = (arg->ctx->threadBegin)(&threadInfo, 
 				      arg->renderInfo, 
 				      arg->ctx->userInfo,
