@@ -228,6 +228,7 @@ double _nrrdBinaryOpSubtract(double a, double b)  {return a - b;}
 double _nrrdBinaryOpMultiply(double a, double b)  {return a * b;}
 double _nrrdBinaryOpDivide(double a, double b)    {return a / b;}
 double _nrrdBinaryOpPow(double a, double b)       {return pow(a,b);}
+double _nrrdBinaryOpSgnPow(double a, double b)    {return airSgnPow(a,b);}
 double _nrrdBinaryOpMod(double a, double b) {
   return AIR_MOD((int)a,(int)b);}
 double _nrrdBinaryOpFmod(double a, double b)      {return fmod(a,b);}
@@ -252,6 +253,7 @@ double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
   _nrrdBinaryOpMultiply,
   _nrrdBinaryOpDivide,
   _nrrdBinaryOpPow,
+  _nrrdBinaryOpSgnPow,
   _nrrdBinaryOpMod,
   _nrrdBinaryOpFmod,
   _nrrdBinaryOpAtan2,

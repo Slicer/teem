@@ -853,6 +853,7 @@ _nrrdBinaryOpStr[NRRD_BINARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "x",
   "/",
   "^",
+  "spow",
   "%",
   "fmod",
   "atan2",
@@ -876,6 +877,7 @@ _nrrdBinaryOpDesc[NRRD_BINARY_OP_MAX+1][AIR_STRLEN_MED] = {
   "multiply",
   "divide",
   "power",
+  "signed power",
   "integer modulo",
   "fractional modulo",
   "two-argment arctangent based on atan2()",
@@ -896,6 +898,7 @@ _nrrdBinaryOpDesc[NRRD_BINARY_OP_MAX+1][AIR_STRLEN_MED] = {
 #define nbMul nrrdBinaryOpMultiply
 #define nbDiv nrrdBinaryOpDivide
 #define nbPow nrrdBinaryOpPow
+#define nbSpw nrrdBinaryOpSgnPow
 #define nbMod nrrdBinaryOpMod
 #define nbFmd nrrdBinaryOpFmod
 #define nbAtn nrrdBinaryOpAtan2
@@ -917,6 +920,7 @@ _nrrdBinaryOpStrEqv[][AIR_STRLEN_SMALL] = {
   "x", "*", "times", "multiply", "product",
   "/", "divide", "quotient",
   "^", "pow", "power",
+  "spow", "sgnpow", "sgnpower",
   "%", "mod", "modulo",
   "fmod",
   "atan2", 
@@ -940,6 +944,7 @@ _nrrdBinaryOpValEqv[] = {
   nbMul, nbMul, nbMul, nbMul, nbMul, 
   nbDiv, nbDiv, nbDiv, 
   nbPow, nbPow, nbPow,
+  nbSpw, nbSpw, nbSpw,
   nbMod, nbMod, nbMod, 
   nbFmd,
   nbAtn,

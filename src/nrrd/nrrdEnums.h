@@ -428,22 +428,23 @@ enum {
   nrrdBinaryOpMultiply,   /*  3 */
   nrrdBinaryOpDivide,     /*  4 */
   nrrdBinaryOpPow,        /*  5 */
-  nrrdBinaryOpMod,        /*  6 */
-  nrrdBinaryOpFmod,       /*  7 */
-  nrrdBinaryOpAtan2,      /*  8 */
-  nrrdBinaryOpMin,        /*  9 */
-  nrrdBinaryOpMax,        /* 10 */
-  nrrdBinaryOpLT,         /* 11 */
-  nrrdBinaryOpLTE,        /* 12 */
-  nrrdBinaryOpGT,         /* 13 */
-  nrrdBinaryOpGTE,        /* 14 */
-  nrrdBinaryOpCompare,    /* 15 */
-  nrrdBinaryOpEqual,      /* 16 */
-  nrrdBinaryOpNotEqual,   /* 17 */
-  nrrdBinaryOpExists,     /* 18 */
+  nrrdBinaryOpSgnPow,     /*  6 */
+  nrrdBinaryOpMod,        /*  7 */
+  nrrdBinaryOpFmod,       /*  8 */
+  nrrdBinaryOpAtan2,      /*  9 */
+  nrrdBinaryOpMin,        /* 10 */
+  nrrdBinaryOpMax,        /* 11 */
+  nrrdBinaryOpLT,         /* 12 */
+  nrrdBinaryOpLTE,        /* 13 */
+  nrrdBinaryOpGT,         /* 14 */
+  nrrdBinaryOpGTE,        /* 15 */
+  nrrdBinaryOpCompare,    /* 16 */
+  nrrdBinaryOpEqual,      /* 17 */
+  nrrdBinaryOpNotEqual,   /* 18 */
+  nrrdBinaryOpExists,     /* 19 */
   nrrdBinaryOpLast
 };
-#define NRRD_BINARY_OP_MAX   18
+#define NRRD_BINARY_OP_MAX   19
 
 /*
 ******** nrrdTernaryOp
