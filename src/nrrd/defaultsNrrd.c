@@ -55,7 +55,7 @@ double nrrdDefSpacing = 1.0;
    like defaults, they are not thread-safe if different threads ever
    set them differently. */
 int nrrdStateVerboseIO = 1;
-int nrrdStateClever8BitMinMax = AIR_TRUE;
+int nrrdStateBlind8BitRange = AIR_TRUE;
 int nrrdStateMeasureType = nrrdTypeFloat;
 int nrrdStateMeasureModeBins = 1024;
 int nrrdStateMeasureHistoType = nrrdTypeFloat;
@@ -96,9 +96,9 @@ nrrdStateGetenv(void) {
       && (-1 != (valI = airEnumVal(airBool, envS)))) {
     nrrdStateVerboseIO = valI;
   }
-  if ((envS = getenv("NRRD_STATE_CLEVER_8_BIT_MIN_MAX"))
+  if ((envS = getenv("NRRD_STATE_BLIND_8_BIT_RANGE"))
       && (-1 != (valI = airEnumVal(airBool, envS)))) {
-    nrrdStateClever8BitMinMax = valI;
+    nrrdStateBlind8BitRange = valI;
   }
   if ((envS = getenv("NRRD_STATE_ALWAYS_SET_CONTENT"))
       && (-1 != (valI = airEnumVal(airBool, envS)))) {

@@ -30,9 +30,9 @@ int _nrrdCC_EqvIncr = 128;
 int _nrrdCC_verb;
 
 int
-_nrrdCCFind_1(Nrrd *nout, int *numid, Nrrd *nin) {
+_nrrdCCFind_1(Nrrd *nout, int *numid, const Nrrd *nin) {
   /* char me[]="_nrrdCCFind_1", err[AIR_STRLEN_MED]; */
-  int id, lval, val, *out, (*lup)(void *, size_t);
+  int id, lval, val, *out, (*lup)(const void *, size_t);
   int sx, I;
 
   lup = nrrdILookup[nin->type];
@@ -84,10 +84,10 @@ _nrrdCCEqvAdd(airArray *eqvArr, int j, int k) {
 
 int
 _nrrdCCFind_2(Nrrd *nout, int *numid, airArray *eqvArr,
-	      Nrrd *nin, int conny) {
+	      const Nrrd *nin, int conny) {
   char me[]="_nrrdCCFind_2"  /* , err[AIR_STRLEN_MED]*/ ; 
   double pvl[5], vl=0;
-  int id, pid[5], (*lup)(void *, size_t), *out;
+  int id, pid[5], (*lup)(const void *, size_t), *out;
   int p, x, y, sx, sy;
 
   id = 0; /* sssh! compiler warnings */
@@ -156,10 +156,10 @@ _nrrdCCFind_2(Nrrd *nout, int *numid, airArray *eqvArr,
 
 int
 _nrrdCCFind_3(Nrrd *nout, int *numid, airArray *eqvArr,
-	      Nrrd *nin, int conny) {
+	      const Nrrd *nin, int conny) {
   /* char me[]="_nrrdCCFind_2", err[AIR_STRLEN_MED] ; */
   double pvl[14], vl=0;
-  int id, pid[14], *out, (*lup)(void *, size_t);
+  int id, pid[14], *out, (*lup)(const void *, size_t);
   int p, x, y, z, sx, sy, sz;  
 
   id = 0; /* sssh! compiler warnings */
@@ -235,7 +235,7 @@ _nrrdCCFind_3(Nrrd *nout, int *numid, airArray *eqvArr,
 
 int
 _nrrdCCFind_N(Nrrd *nfpid, int *maxid, airArray *eqvArr,
-	      Nrrd *nin, int conny) {
+	      const Nrrd *nin, int conny) {
   char me[]="_nrrdCCFind_N", err[AIR_STRLEN_MED];
 
   sprintf(err, "%s: sorry, not implemented yet", me);
@@ -263,12 +263,12 @@ _nrrdCCFind_N(Nrrd *nfpid, int *maxid, airArray *eqvArr,
 ** as nin, so that nval->data[I] is the value in nin inside CC #I.
 */
 int
-nrrdCCFind(Nrrd *nout, Nrrd **nvalP, Nrrd *nin, int type, int conny) {
+nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type, int conny) {
   char me[]="nrrdCCFind", func[]="ccfind", err[AIR_STRLEN_MED];
   Nrrd *nfpid;  /* first-pass IDs */
   airArray *mop, *eqvArr;
   int ret, *map, *fpid, numid, maxid,
-    (*lup)(void *, size_t), (*ins)(void *, size_t, int);
+    (*lup)(const void *, size_t), (*ins)(void *, size_t, int);
   size_t I, NN;
   void *val;
   
@@ -394,14 +394,14 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, Nrrd *nin, int type, int conny) {
 }
 
 int
-_nrrdCCAdj_1(unsigned char *out, int numid, Nrrd *nin) {
+_nrrdCCAdj_1(unsigned char *out, int numid, const Nrrd *nin) {
 
   return 0;
 }
 
 int
-_nrrdCCAdj_2(unsigned char *out, int numid, Nrrd *nin, int conny) {
-  int (*lup)(void *, size_t), x, y, sx, sy, id=0;
+_nrrdCCAdj_2(unsigned char *out, int numid, const Nrrd *nin, int conny) {
+  int (*lup)(const void *, size_t), x, y, sx, sy, id=0;
   double pid[5];
   
   lup = nrrdILookup[nin->type];
@@ -438,8 +438,8 @@ _nrrdCCAdj_2(unsigned char *out, int numid, Nrrd *nin, int conny) {
 }
 
 int
-_nrrdCCAdj_3(unsigned char *out, int numid, Nrrd *nin, int conny) {
-  int (*lup)(void *, size_t), x, y, z, sx, sy, sz, id=0;
+_nrrdCCAdj_3(unsigned char *out, int numid, const Nrrd *nin, int conny) {
+  int (*lup)(const void *, size_t), x, y, z, sx, sy, sz, id=0;
   double pid[14];
   
   lup = nrrdILookup[nin->type];
@@ -493,7 +493,7 @@ _nrrdCCAdj_3(unsigned char *out, int numid, Nrrd *nin, int conny) {
 }
 
 int
-_nrrdCCAdj_N(unsigned char *out, int numid, Nrrd *nin, int conny) {
+_nrrdCCAdj_N(unsigned char *out, int numid, const Nrrd *nin, int conny) {
   char me[]="_nrrdCCAdj_N", err[AIR_STRLEN_MED];
   
   if (1) {
@@ -505,7 +505,7 @@ _nrrdCCAdj_N(unsigned char *out, int numid, Nrrd *nin, int conny) {
 }
 
 int
-nrrdCCAdjacency(Nrrd *nout, Nrrd *nin, int conny) {
+nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, int conny) {
   char me[]="nrrdCCAdjacency", func[]="ccadj", err[AIR_STRLEN_MED];
   int ret, maxid;
   unsigned char *out;
@@ -600,13 +600,13 @@ nrrdCCAdjacency(Nrrd *nout, Nrrd *nin, int conny) {
 ** needlessly invalidate the nval value store.
 */
 int
-nrrdCCMerge(Nrrd *nout, Nrrd *nin, Nrrd *_nval,
+nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
 	    int valDir, int maxSize, int maxNeighbor, int conny) {
   char me[]="nrrdCCMerge", func[]="ccmerge", err[AIR_STRLEN_MED], *valcnt;
   int _i, i, j, bigi=0, numid, *size, *sizeId, *id,
     *nn,  /* number of neighbors */
     *map, *val=NULL, *hit,
-    (*lup)(void *, size_t), (*ins)(void *, size_t, int);
+    (*lup)(const void *, size_t), (*ins)(void *, size_t, int);
   Nrrd *nadj, *nsize, *nval=NULL, *nnn;
   unsigned char *adj;
   airArray *mop;
@@ -737,10 +737,10 @@ nrrdCCMerge(Nrrd *nout, Nrrd *nin, Nrrd *_nval,
 ** is so special purpose that it seemed simpler to code from scratch
 */
 int
-nrrdCCRevalue (Nrrd *nout, Nrrd *nin, Nrrd *nval) {
+nrrdCCRevalue (Nrrd *nout, const Nrrd *nin, const Nrrd *nval) {
   char me[]="nrrdCCRevalue", err[AIR_STRLEN_MED];
   size_t I, NN;
-  int (*vlup)(void *, size_t), (*ilup)(void *, size_t),
+  int (*vlup)(const void *, size_t), (*ilup)(const void *, size_t),
     (*ins)(void *, size_t, int);
   
   if (!( nout && nrrdCCValid(nin) && nval )) {
@@ -763,10 +763,10 @@ nrrdCCRevalue (Nrrd *nout, Nrrd *nin, Nrrd *nval) {
 }
 
 int
-nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, Nrrd *nin) {
+nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin) {
   char me[]="nrrdCCSettle", func[]="ccsettle", err[AIR_STRLEN_MED];
   int numid, maxid, jd, id, *map,
-    (*lup)(void *, size_t), (*ins)(void *, size_t, int);
+    (*lup)(const void *, size_t), (*ins)(void *, size_t, int);
   void *val=NULL;
   size_t I, NN;
   airArray *mop;

@@ -21,17 +21,17 @@
 #include "privateNrrd.h"
 
 /*
-******** nrrdMinMaxSet()
+** RETIRED: nrrdMinMaxSet()
 **
 ** Sets nrrd->min and nrrd->max to the extremal (existant) values in
-** the given nrrd, by calling the appropriate member of nrrdFindMinMax[]
+** the given nrrd, by calling the appropriate member of nrrdMinMaxExactFind[]
 **
 ** calling this function will result in nrrd->hasNonExist being set
 ** (because of the nrrdFindMinMax[] functions)
 **
 ** decided NOT to use biff, so that this is a more distinct alternative to 
 ** nrrdMinMaxCleverSet().
-*/
+
 void
 nrrdMinMaxSet(Nrrd *nrrd) {
   NRRD_TYPE_BIGGEST _min, _max;
@@ -48,9 +48,10 @@ nrrdMinMaxSet(Nrrd *nrrd) {
   }
   return;
 }
+*/
 
 /*
-** nrrdMinMaxCleverSet()
+** RETIRED: nrrdMinMaxCleverSet()
 **
 ** basically a wrapper around nrrdMinMaxSet(), with bells + whistles:
 ** 1) will call nrrdMinMaxSet only when one of nrrd->min and nrrd->max
@@ -65,7 +66,7 @@ nrrdMinMaxSet(Nrrd *nrrd) {
 ** Like nrrdMinMaxSet(), this will always set nrrd->hasNonExist.
 **
 ** Uses biff.
-*/
+
 int
 nrrdMinMaxCleverSet(Nrrd *nrrd) {
   char me[]="nrrdMinMaxCleverSet", err[AIR_STRLEN_MED];
@@ -84,8 +85,8 @@ nrrdMinMaxCleverSet(Nrrd *nrrd) {
 	    airEnumStr(nrrdType, nrrdTypeBlock));
   }
   if (AIR_EXISTS(nrrd->min) && AIR_EXISTS(nrrd->max)) {
-    /* both of min and max already set, so we won't look for those, but
-       we have to comply with stated behavior of always setting hasNonExist */
+    / * both of min and max already set, so we won't look for those, but
+       we have to comply with stated behavior of always setting hasNonExist * /
     nrrdHasNonExistSet(nrrd);
     return 0;
   }
@@ -106,19 +107,19 @@ nrrdMinMaxCleverSet(Nrrd *nrrd) {
     return 0;
   }
 
-  /* at this point we need to find either min and/or max (at least
-     one of them was non-existent on the way in) */
+  / * at this point we need to find either min and/or max (at least
+     one of them was non-existent on the way in) * /
 
-  /* save incoming values in case they exist */
+  / * save incoming values in case they exist * /
   min = nrrd->min;
   max = nrrd->max;
-  /* this will set nrrd->min, nrrd->max, and hasNonExist */
+  / * this will set nrrd->min, nrrd->max, and hasNonExist * /
   nrrdMinMaxSet(nrrd);
   if (!( AIR_EXISTS(nrrd->min) && AIR_EXISTS(nrrd->max) )) {
     sprintf(err, "%s: no existent values!", me);
     biffAdd(NRRD, err); return 1;
   }
-  /* re-enstate the existent incoming min and/or max values */
+  / * re-enstate the existent incoming min and/or max values * /
   if (AIR_EXISTS(min))
     nrrd->min = min;
   if (AIR_EXISTS(max))
@@ -126,6 +127,7 @@ nrrdMinMaxCleverSet(Nrrd *nrrd) {
 
   return 0;
 }
+*/
 
 /*
 ******** nrrdConvert()
@@ -136,7 +138,7 @@ nrrdMinMaxCleverSet(Nrrd *nrrd) {
 ** with casts and assignments.
 */
 int
-nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
+nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
   char me[] = "nrrdConvert", typeS[AIR_STRLEN_SMALL], err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX];
   size_t num;
@@ -160,7 +162,7 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
       && !nrrdTypeIsIntegral[nin->type] && nrrdTypeIsIntegral[type]) {
     /* there's a risk of non-existant values getting converted to
        non-sensical integral values */
-    if (nrrdHasNonExistSet(nin)) {
+    if (nrrdHasNonExist(nin)) {
       sprintf(err, "%s: can't convert to integral values (%s) with "
 	      "non-existant values in input", me,
 	      airEnumStr(nrrdType, type));
@@ -208,10 +210,6 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
      to integral values, or to a lower precision representation */
   nrrdPeripheralInit(nout);
   nout->blockSize = 0;
-  nout->hasNonExist = (nrrdTypeIsIntegral[nout->type]
-		       ? nrrdNonExistFalse
-		       : nin->hasNonExist);
-
   /* bye */
   return 0;
 }
@@ -227,7 +225,7 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
 ** value holder, which may mean needless loss of precision
 */
 int
-nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
+nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, int bits) {
   char me[] = "nrrdQuantize", func[]="quantize", err[AIR_STRLEN_MED];
   double valIn, minIn, maxIn, eps;
   int valOut, type=nrrdTypeUnknown, size[NRRD_DIM_MAX];
@@ -236,6 +234,8 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   unsigned char *outUC;
   unsigned short *outUS;
   unsigned int *outUI;
+  airArray *mop;
+  NrrdRange *range;
 
   if (!(nin && nout)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -259,11 +259,15 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
     sprintf(err, "%s: nout==nin but input,output type sizes unequal", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdMinMaxCleverSet(nin)) {
-    sprintf(err, "%s: trouble setting min, max", me);
-    biffAdd(NRRD, err); return 1;
+  mop = airMopNew();
+  if (_range) {
+    range = nrrdRangeCopy(_range);
+    nrrdRangeSafeSet(range, nin, nrrdBlind8BitRangeState);
+  } else {
+    range = nrrdRangeNewSet(nin, nrrdBlind8BitRangeState);
   }
-  if (nrrdStateDisallowIntegerNonExist && nin->hasNonExist) {
+  airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
+  if (nrrdStateDisallowIntegerNonExist && range->hasNonExist) {
     sprintf(err, "%s: can't quantize non-existent values (NaN, +/-inf)", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -279,8 +283,8 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
 
   /* the skinny */
   num = nrrdElementNumber(nin);
-  minIn = nin->min; 
-  maxIn = nin->max;
+  minIn = range->min; 
+  maxIn = range->max;
   eps = (minIn == maxIn ? 1.0 : 0.0);
   outUC = (unsigned char*)nout->data;
   outUS = (unsigned short*)nout->data;
@@ -317,7 +321,6 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   if (nout != nin) {
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   }
-  nout->min = nout->max = AIR_NAN;
   nout->oldMin = minIn;
   nout->oldMax = maxIn;
   if (nrrdContentSet(nout, func, nin, "%d", bits)) {
@@ -325,7 +328,6 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
     biffAdd(NRRD, err); return 1;
   }
   nout->blockSize = 0;
-  nout->hasNonExist = nrrdNonExistFalse;
 
   return 0;
 }
@@ -342,13 +344,13 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
 ** V will be mapped to:
 ** NRRD_CELL_POS(0.0, 1.0, 256, V) ==
 ** AIR_AFFINE(0, V + 0.5, 256, 0.0, 1.0) ==
-** ((double)(1.0)-(0.0))*((double)(V+0.5)-(0)) / ((double)(256)-(0)) + (0.0))
+** ((double)(1.0)-(0.0))*((double)(V+0.5)-(0))/((double)(256)-(0)) + (0.0) ==
 ** (1.0)*(V+0.5) / (256.0) + (0.0) ==
-** (V+1)/512
+** (V+0.5)/256
 ** so a 0 will be mapped to 1/512 = 0.00195
 */
 int
-nrrdUnquantize(Nrrd *nout, Nrrd *nin, int type) {
+nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
   char me[]="nrrdUnquantize", func[]="unquantize", err[AIR_STRLEN_MED];
   float *outF;
   double *outD, minIn, numValIn, minOut, maxOut, valIn;
@@ -422,15 +424,12 @@ nrrdUnquantize(Nrrd *nout, Nrrd *nin, int type) {
   if (nout != nin) {
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   }
-  nout->min = NRRD_CELL_POS(minOut, maxOut, numValIn, 0);
-  nout->max = NRRD_CELL_POS(minOut, maxOut, numValIn, numValIn-1);
   nout->oldMin = nout->oldMax = AIR_NAN;
   if (nrrdContentSet(nout, func, nin, "")) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   nout->blockSize = 0;
-  nout->hasNonExist = nrrdNonExistFalse;
   return 0;
 }
 
@@ -480,7 +479,7 @@ _nrrdHistoEqCompare(const void *a, const void *b) {
 ** exactly one fixed value).  
 */
 int
-nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP,
+nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
 	    int bins, int smart, float amount) {
   char me[]="nrrdHistoEq", func[]="heq", err[AIR_STRLEN_MED];
   Nrrd *nhist, *nmap;
@@ -490,7 +489,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP,
   unsigned int *hist, *steady = NULL;
   size_t I, num;
   airArray *mop;
-
+  NrrdRange *range;
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -507,8 +506,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP,
   }
   /* we start by simply copying, because the only thing we're 
      changing is the values themselves, and all peripheral
-     information is unchanged by this value remapping, even
-     min and max. */
+     information is unchanged by this value remapping */
   if (nout != nin) {
     if (nrrdCopy(nout, nin)) {
       sprintf(err, "%s:", me); 
@@ -523,7 +521,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP,
   num = nrrdElementNumber(nin);
   if (smart <= 0) {
     nhist = nrrdNew();
-    if (nrrdHisto(nhist, nin, NULL, bins, nrrdTypeUInt)) {
+    if (nrrdHisto(nhist, nin, NULL, NULL, bins, nrrdTypeUInt)) {
       sprintf(err, "%s: failed to create histogram", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
@@ -561,18 +559,14 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP,
       steady[1 + 2*i] = i;
     }
     /* now create the histogram */
-    nin->min = nin->max = AIR_NAN;
-    if (nrrdMinMaxCleverSet(nin)) {
-      sprintf(err, "%s: couldn't find value range in nrrd", me);
-      biffAdd(NRRD, err); airMopError(mop); return 1;
-    }
-    if (nin->min == nin->max) {
+    range = nrrdRangeNewSet(nin, nrrdBlind8BitRangeState);
+    if (range->min == range->max) {
       sprintf(err, "%s: invalid min and max in nrrd.  "
-	      "Min and max are equivalent (min,max = %g).", me, nin->min);
+	      "Min and max are equivalent (min,max = %g).", me, range->min);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
-    min = nin->min;
-    max = nin->max;
+    min = range->min;
+    max = range->max;
     for (I=0; I<num; I++) {
       val = nrrdDLookup[nin->type](nin->data, I);
       if (AIR_EXISTS(val)) {
@@ -659,7 +653,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP,
   }
 
   /* map the nrrd values through the normalized histogram integral */
-  if (nrrdApply1DRegMap(nout, nin, nmap, nin->type, AIR_FALSE)) {
+  if (nrrdApply1DRegMap(nout, nin, NULL, nmap, nin->type, AIR_FALSE)) {
     sprintf(err, "%s: problem remapping", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
@@ -686,8 +680,6 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP,
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  nout->min = nin->min;
-  nout->max = nin->max;
 
   airMopOkay(mop);
   return 0;

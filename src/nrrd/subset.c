@@ -27,7 +27,7 @@
 ** single element into given *val
 */
 int
-nrrdSample_nva(void *val, Nrrd *nrrd, int *coord) {
+nrrdSample_nva(void *val, const Nrrd *nrrd, const int *coord) {
   char me[]="nrrdSample_nva", err[AIR_STRLEN_MED];
   int typeSize, size[NRRD_DIM_MAX], d;
   size_t I;
@@ -64,7 +64,7 @@ nrrdSample_nva(void *val, Nrrd *nrrd, int *coord) {
 ** var-args version of nrrdSample_nva()
 */
 int
-nrrdSample(void *val, Nrrd *nrrd, ...) {
+nrrdSample(void *val, const Nrrd *nrrd, ...) {
   char me[]="nrrdSample", err[AIR_STRLEN_MED];
   int d, coord[NRRD_DIM_MAX];
   va_list ap;
@@ -101,7 +101,7 @@ nrrdSample(void *val, Nrrd *nrrd, ...) {
 ** the period (period), and the number of periods (numper). 
 */
 int
-nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
+nrrdSlice(Nrrd *nout, const Nrrd *nin, int axis, int pos) {
   char me[]="nrrdSlice", func[]="slice", err[AIR_STRLEN_MED];
   size_t 
     I, 
@@ -196,7 +196,7 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
 ** along each axis.
 */
 int
-nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
+nrrdCrop(Nrrd *nout, const Nrrd *nin, int *min, int *max) {
   char me[]="nrrdCrop", func[] = "crop", err[AIR_STRLEN_MED],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   int d,
@@ -314,7 +314,7 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
 **
 */
 int
-nrrdSimpleCrop(Nrrd *nout, Nrrd *nin, int crop) {
+nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, int crop) {
   char me[]="nrrdSimpleCrop", err[AIR_STRLEN_MED];
   int d, min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
 

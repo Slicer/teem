@@ -33,15 +33,28 @@
 ** min and max (like in xv).
 */
 int
-nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, double min, double max) {
+nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
+	       const NrrdRange *_range, double gamma) {
   char me[]="nrrdArithGamma", func[]="gamma", err[AIR_STRLEN_MED];
-  double val;
+  double val, min, max;
   size_t I, num;
-  double (*lup)(void *, size_t);
+  NrrdRange *range;
+  airArray *mop;
+  double (*lup)(const void *, size_t);
   double (*ins)(void *, size_t, double);
 
   if (!(nout && nin)) {
+    /* _range can be NULL */
     sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!( AIR_EXISTS(gamma) )) {
+    sprintf(err, "%s: gamma doesn't exist", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!( nrrdTypeBlock != nin->type && nrrdTypeBlock != nout->type )) {
+    sprintf(err, "%s: can't deal with %s type", me,
+	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
   if (nout != nin) {
@@ -50,16 +63,16 @@ nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, double min, double max) {
       biffAdd(NRRD, err); return 1;
     }
   }
-  if (!( AIR_EXISTS(gamma) && AIR_EXISTS(min) && AIR_EXISTS(max) )) {
-    sprintf(err, "%s: not all of gamma, min, max exist", me);
-    biffAdd(NRRD, err); return 1;
+  mop = airMopNew();
+  if (_range) {
+    range = nrrdRangeCopy(_range);
+    nrrdRangeSafeSet(range, nin, nrrdBlind8BitRangeState);
+  } else {
+    range = nrrdRangeNewSet(nin, nrrdBlind8BitRangeTrue);
   }
-  if (!( nrrdTypeBlock != nin->type && nrrdTypeBlock != nout->type )) {
-    sprintf(err, "%s: can't deal with %s type", me,
-	    airEnumStr(nrrdType, nrrdTypeBlock));
-    biffAdd(NRRD, err); return 1;
-  }
-
+  airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
+  min = range->min;
+  max = range->max;
   lup = nrrdDLookup[nin->type];
   ins = nrrdDInsert[nout->type];
   gamma = 1/gamma;
@@ -82,14 +95,15 @@ nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, double min, double max) {
       ins(nout->data, I, val);
     }
   }
-  if (nrrdContentSet(nout, func, nin, "%g,%g,%g", gamma, min, max)) {
+  if (nrrdContentSet(nout, func, nin, "%g,%g,%g", min, max, gamma)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   if (nout != nin) {
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   }
-  
+
+  airMopOkay(mop);
   return 0;
 }
 
@@ -155,12 +169,12 @@ double (*_nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
 };
 
 int
-nrrdArithUnaryOp(Nrrd *nout, int op, Nrrd *nin) {
+nrrdArithUnaryOp(Nrrd *nout, int op, const Nrrd *nin) {
   char me[]="nrrdArithUnaryOp", err[AIR_STRLEN_MED];
   size_t N, I;
   int size[NRRD_DIM_MAX];
   double (*insert)(void *v, size_t I, double d), 
-    (*lookup)(void *v, size_t I), (*uop)(double), val;
+    (*lookup)(const void *v, size_t I), (*uop)(double), val;
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -253,12 +267,13 @@ double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
 ** the NrrdIter nonsense
 */
 int
-nrrdArithBinaryOp(Nrrd *nout, int op, Nrrd *ninA, Nrrd *ninB) {
+nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
   char me[]="nrrdArithBinaryOp", err[AIR_STRLEN_MED], *contA, *contB;
   size_t N, I;
   int size[NRRD_DIM_MAX];
-  double (*ins)(void *v, size_t I, double d), (*lupA)(void *v, size_t I), 
-    (*lupB)(void *v, size_t I), (*bop)(double a, double b), valA, valB;
+  double (*ins)(void *v, size_t I, double d),
+    (*lupA)(const void *v, size_t I), (*lupB)(const void *v, size_t I),
+    (*bop)(double a, double b), valA, valB;
 
   if (!( nout && !nrrdCheck(ninA) && !nrrdCheck(ninB) )) {
     sprintf(err, "%s: NULL pointer or invalid args", me);
@@ -316,7 +331,7 @@ nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
   int type, size[NRRD_DIM_MAX];
   double (*insert)(void *v, size_t I, double d), 
     (*bop)(double a, double b), valA, valB;
-  Nrrd *nin;
+  const Nrrd *nin;
 
   if (!(nout && inA && inB)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -326,7 +341,9 @@ nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
     sprintf(err, "%s: binary op %d invalid", me, op);
     biffAdd(NRRD, err); return 1;
   }
-  nin = inA->nrrd ? inA->nrrd : inB->nrrd;
+  nin = (_NRRD_ITER_NRRD(inA) 
+	 ? _NRRD_ITER_NRRD(inA) 
+	 : _NRRD_ITER_NRRD(inB));
   if (!nin) {
     sprintf(err, "%s: can't operate on two fixed values", me);
     biffAdd(NRRD, err); return 1;
@@ -369,8 +386,26 @@ nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
 
 /* ---------------------------- ternary -------------- */
 
+double _nrrdTernaryOpAdd(double a, double b, double c) {
+  return a + b + c;
+}
+double _nrrdTernaryOpMultiply(double a, double b, double c)  {
+  return a * b * c;
+}
+double _nrrdTernaryOpMin(double a, double b, double c) { 
+  b = AIR_MIN(b, c);
+  return AIR_MIN(a, b);
+}
+double _nrrdTernaryOpMax(double a, double b, double c) { 
+  b = AIR_MAX(b, c);
+  return AIR_MAX(a, b);
+}
 double _nrrdTernaryOpClamp(double a, double b, double c) {
-  return AIR_CLAMP(a, b, c);}
+  return AIR_CLAMP(a, b, c);
+}
+double _nrrdTernaryOpIfElse(double a, double b, double c) {
+  return (a ? b : c);
+}
 double _nrrdTernaryOpLerp(double a, double b, double c) {
   /* we do something more than the simple lerp here because
      we want to facilitate usage as something which can get around
@@ -396,7 +431,12 @@ double _nrrdTernaryOpInClosed(double a, double b, double c) {
 }
 double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
   NULL,
+  _nrrdTernaryOpAdd,
+  _nrrdTernaryOpMultiply,
+  _nrrdTernaryOpMin,
+  _nrrdTernaryOpMax,
   _nrrdTernaryOpClamp,
+  _nrrdTernaryOpIfElse,
   _nrrdTernaryOpLerp,
   _nrrdTernaryOpExists,
   _nrrdTernaryOpInOpen,
@@ -406,19 +446,21 @@ double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
 /*
 ******** nrrdArithTerneryOp
 **
-** UNTESTED UNTESTED UNTESTED UNTESTED UNTESTED UNTESTED UNTESTED UNTESTED
+** HEY: UNTESTED UNTESTED UNTESTED UNTESTED UNTESTED UNTESTED UNTESTED
 **
 ** this is a simplified version of nrrdArithIterTernaryOp, written after
 ** that, in a hurry, to operate directly on three nrrds, instead with
 ** the NrrdIter nonsense
 */
 int
-nrrdArithTernaryOp(Nrrd *nout, int op, Nrrd *ninA, Nrrd *ninB, Nrrd *ninC) {
+nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA, 
+		   const Nrrd *ninB, const Nrrd *ninC) {
   char me[]="nrrdArithTernaryOp", err[AIR_STRLEN_MED], *contA, *contB, *contC;
   size_t N, I;
   int size[NRRD_DIM_MAX];
-  double (*ins)(void *v, size_t I, double d), (*lupA)(void *v, size_t I), 
-    (*lupB)(void *v, size_t I), (*lupC)(void *v, size_t I),
+  double (*ins)(void *v, size_t I, double d),
+    (*lupA)(const void *v, size_t I), (*lupB)(const void *v, size_t I),
+    (*lupC)(const void *v, size_t I),
     (*top)(double a, double b, double c), valA, valB, valC;
 
   if (!( nout && !nrrdCheck(ninA) && !nrrdCheck(ninB) && !nrrdCheck(ninC) )) {
@@ -485,7 +527,7 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
   int type, size[NRRD_DIM_MAX];
   double (*insert)(void *v, size_t I, double d), 
     (*top)(double a, double b, double c), valA, valB, valC;
-  Nrrd *nin;
+  const Nrrd *nin;
 
   if (!(nout && inA && inB && inC)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -495,7 +537,11 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
     sprintf(err, "%s: ternary op %d invalid", me, op);
     biffAdd(NRRD, err); return 1;
   }
-  nin = inA->nrrd ? inA->nrrd : (inB->nrrd ? inB->nrrd : inC->nrrd);
+  nin = (_NRRD_ITER_NRRD(inA) 
+	 ? _NRRD_ITER_NRRD(inA) 
+	 : (_NRRD_ITER_NRRD(inB) 
+	    ? _NRRD_ITER_NRRD(inB) 
+	    : _NRRD_ITER_NRRD(inC)));
   if (!nin) {
     sprintf(err, "%s: can't operate on three fixed values", me);
     biffAdd(NRRD, err); return 1;

@@ -159,7 +159,7 @@ nrrdCommentScan(Nrrd *nrrd, const char *key) {
 ** This does NOT use biff.
 */
 int
-nrrdCommentCopy(Nrrd *nout, Nrrd *nin) {
+nrrdCommentCopy(Nrrd *nout, const Nrrd *nin) {
   /* char me[]="nrrdCommentCopy", err[512]; */
   int numc, i, E;
 

@@ -166,7 +166,7 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   iterP = (NrrdIter **)ptr;
   mop = airMopNew();
   *iterP = nrrdIterNew();
-  airMopAdd(mop, *iterP, (airMopper)nrrdIterNuke, airMopOnError);
+  airMopAdd(mop, *iterP, (airMopper)nrrdIterNix, airMopOnError);
 
   /* the challenge here is determining if a given string represents a
      filename or a number.  Obviously there are cases where it could
@@ -186,7 +186,7 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   ret = nrrdLoad(nrrd, str, NULL);
   if (!ret) {
     /* first attempt at nrrdLoad() was SUCCESSFUL */
-    nrrdIterSetNrrd(*iterP, nrrd);
+    nrrdIterSetOwnNrrd(*iterP, nrrd);
   } else {
     /* so it didn't load as a nrrd- if its because fopen() failed,
        then we'll try it as a number.  If its for another reason,
@@ -234,7 +234,7 @@ _nrrdHestIter = {
   sizeof(NrrdIter *),
   "nrrd/value",
   _nrrdHestIterParse,
-  (airMopper)nrrdIterNuke
+  (airMopper)nrrdIterNix
 }; 
 
 hestCB *

@@ -91,7 +91,7 @@ F(A, DB)
 ** get from scalars.
 */
 #define CONV_DEF(TA, TB) \
-void _nrrdConv##TA##TB(TA *a, TB *b, IT N) { while (N--) a[N]=b[N]; }
+void _nrrdConv##TA##TB(TA *a, const TB *b, IT N) { while (N--) a[N]=b[N]; }
 
 /* 
 ** the individual converter's appearance in the array initialization,
@@ -115,7 +115,7 @@ void _nrrdConv##TA##TB(TA *a, TB *b, IT N) { while (N--) a[N]=b[N]; }
 /*
 ** This typedef makes the definition of _nrrdConv[][] shorter
 */
-typedef void (*CF)(void *, void *, IT);
+typedef void (*CF)(void *, const void *, IT);
 
 /* 
 ** Define all 100 of the individual converters. 

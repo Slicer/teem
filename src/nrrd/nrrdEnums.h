@@ -294,23 +294,44 @@ enum {
 };
 #define NRRD_FIELD_MAX          22
 
-/* oh look, I'm violating my rules outline above for how the enum values
-** should be ordered.  The reason for this is that its just too bizarro
-** to have the logical value of both nrrdNonExistFalse and nrrdNonExistTrue
-** to be (in C) true.  For instance, nrrdHasNonExist() should be able to
-** return a value from this enum which also functions in a C expressions
-** as the expected boolean value.  If someone makes the mistake of testing
-** one of these values as a C truth value, they will probably be harmlessly
-** conservative in thinking that non-existant values do exist.
+/* 
+******** nrrdHasNonExist* enum
+**
+** oh look, I'm violating my rules outline above for how the enum values
+** should be ordered.  The reason for this is that its just too bizarro to
+** have the logical value of both nrrdHasNonExistFalse and nrrdHasNonExistTrue
+** to be (in C) true.  For instance, nrrdHasNonExist() should be able to 
+** return a value from this enum which also functions in a C expressions as
+** the expected boolean value.  If for some reason (outide the action of
+** nrrdHasNonExist(), nrrdHasNonExistUnknown is interpreted as true, that's
+** probably harmlessly conservative.  Time will tell.
 */
 enum {
-  nrrdNonExistFalse,      /* 0 */
-  nrrdNonExistTrue,       /* 1 */
-  nrrdNonExistUnknown,    /* 2 */
-  nrrdNonExistLast
+  nrrdHasNonExistFalse,     /* 0: no non-existent values were seen */
+  nrrdHasNonExistTrue,      /* 1: some non-existent values were seen */
+  nrrdHasNonExistOnly,      /* 2: NOTHING BUT non-existant values were seen */
+  nrrdHasNonExistUnknown,   /* 3 */
+  nrrdHasNonExistLast
 };
-#define NRRD_NON_EXIST_MAX   2
+#define NRRD_HAS_NON_EXIST_MAX 3
 
+/*
+******** nrrdBlind8BitRange
+**
+** whether or not to blindly say that the range of 8-bit data is
+** [0-255] (uchar) or [SCHAR_MIN-SCHAR_MAX] (signed char)
+*/
+enum {
+  nrrdBlind8BitRangeUnknown,   /* 0 */
+  nrrdBlind8BitRangeTrue,      /* 1: blindly use the widest extrema (e.g.,
+				  [0-255] for uchar, regardless of what's
+				  really present in the data values */
+  nrrdBlind8BitRangeFalse,     /* 2: use the exact value range in the data */
+  nrrdBlind8BitRangeState,     /* 3: defer to nrrdStateBlind8BitMinMax */
+  nrrdBlind8BitRangeLast
+};
+#define NRRD_BLIND_8BIT_RANGE_MAX 3
+  
 /*
 ******** nrrdUnaryOp enum
 **
@@ -381,14 +402,19 @@ enum {
 */
 enum {
   nrrdTernaryOpUnknown,
-  nrrdTernaryOpClamp,     /* 1 */
-  nrrdTernaryOpLerp,      /* 2 */
-  nrrdTernaryOpExists,    /* 3 */
-  nrrdTernaryOpInOpen,    /* 4 */
-  nrrdTernaryOpInClosed,  /* 5 */
+  nrrdTernaryOpAdd,      /*  1 */
+  nrrdTernaryOpMultiply, /*  2 */
+  nrrdTernaryOpMin,      /*  3 */
+  nrrdTernaryOpMax,      /*  4 */
+  nrrdTernaryOpClamp,    /*  5 */
+  nrrdTernaryOpIfElse,   /*  6 */
+  nrrdTernaryOpLerp,     /*  7 */
+  nrrdTernaryOpExists,   /*  8 */
+  nrrdTernaryOpInOpen,   /*  9 */
+  nrrdTernaryOpInClosed, /* 10 */
   nrrdTernaryOpLast
 };
-#define NRRD_TERNARY_OP_MAX  5
+#define NRRD_TERNARY_OP_MAX 10
 
 #ifdef __cplusplus
 }

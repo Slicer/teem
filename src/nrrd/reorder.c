@@ -31,7 +31,7 @@
 ** provides.
 */
 int
-nrrdInvertPerm(int *invp, int *p, int n) {
+nrrdInvertPerm(int *invp, const int *p, int n) {
   char me[]="nrrdInvertPerm", err[AIR_STRLEN_MED];
   int problem, i;
 
@@ -90,7 +90,7 @@ nrrdInvertPerm(int *invp, int *p, int n) {
 ** not "where do I put this", from the standpoint of the input)
 */
 int
-nrrdAxesPermute(Nrrd *nout, Nrrd *nin, int *axes) {
+nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes) {
   char me[]="nrrdAxesPermute", func[]="permute", err[AIR_STRLEN_MED],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   size_t idxOut, idxIn,      /* indices for input and output scanlines */
@@ -215,8 +215,8 @@ nrrdAxesPermute(Nrrd *nout, Nrrd *nin, int *axes) {
 ** needed to call nrrdAxesPermute()
 */
 int
-nrrdAxesSwap(Nrrd *nout, Nrrd *nin, int ax1, int ax2) {
-  char me[]="nrrdAxesSwap", func[]="swap", err[AIR_STRLEN_MED], *incontent;
+nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, int ax1, int ax2) {
+  char me[]="nrrdAxesSwap", func[]="swap", err[AIR_STRLEN_MED];
   int i, axes[NRRD_DIM_MAX];
 
   if (!(nout && nin)) {
@@ -234,14 +234,8 @@ nrrdAxesSwap(Nrrd *nout, Nrrd *nin, int ax1, int ax2) {
     axes[i] = i;
   axes[ax2] = ax1;
   axes[ax1] = ax2;
-  incontent = nin->content;
-  nin->content = NULL;
-  if (nrrdAxesPermute(nout, nin, axes)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); nin->content = incontent; return 1;
-  }
-  nin->content = incontent;
-  if (nrrdContentSet(nout, func, nin, "%d,%d", ax1, ax2)) {
+  if (nrrdAxesPermute(nout, nin, axes)
+      || nrrdContentSet(nout, func, nin, "%d,%d", ax1, ax2)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -268,7 +262,7 @@ nrrdAxesSwap(Nrrd *nout, Nrrd *nin, int ax1, int ax2) {
 ** array.
 */
 int
-nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
+nrrdShuffle(Nrrd *nout, const Nrrd *nin, int axis, const int *perm) {
   char me[]="nrrdShuffle", func[]="shuffle", err[AIR_STRLEN_MED],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   int size[NRRD_DIM_MAX], *lsize,
@@ -362,8 +356,8 @@ nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
 ** of setting nout->axis[axis].min and .max)
 */
 int
-nrrdFlip(Nrrd *nout, Nrrd *nin, int axis) {
-  char me[]="nrrdFlip", func[]="flip", err[AIR_STRLEN_MED], *incontent;
+nrrdFlip(Nrrd *nout, const Nrrd *nin, int axis) {
+  char me[]="nrrdFlip", func[]="flip", err[AIR_STRLEN_MED];
   int i, *perm;
 
   if (!(nout && nin)) {
@@ -382,14 +376,8 @@ nrrdFlip(Nrrd *nout, Nrrd *nin, int axis) {
   for (i=0; i<nin->axis[axis].size; i++) {
     perm[i] = nin->axis[axis].size-1-i;
   }
-  incontent = nin->content;
-  nin->content = NULL;
-  if (nrrdShuffle(nout, nin, axis, perm)) {
-    sprintf(err, "%s: trouble doing shuffle", me);
-    biffAdd(NRRD, err); nin->content = incontent; return 1;
-  }
-  nin->content = incontent;
-  if (nrrdContentSet(nout, func, nin, "%d", axis)) {
+  if (nrrdShuffle(nout, nin, axis, perm)
+      || nrrdContentSet(nout, func, nin, "%d", axis)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -400,7 +388,8 @@ nrrdFlip(Nrrd *nout, Nrrd *nin, int axis) {
 }
 
 int
-nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
+nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin,
+	 int axis, int incrDim) {
   char me[]="nrrdJoin", err[AIR_STRLEN_MED];
   int mindim, maxdim, diffdim, outdim, map[NRRD_DIM_MAX], size[NRRD_DIM_MAX],
     i, d, outlen, permute[NRRD_DIM_MAX], ipermute[NRRD_DIM_MAX],
@@ -627,7 +616,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
 ** axis attributes are initialized as usual.
 */
 int
-nrrdAxesInsert(Nrrd *nout, Nrrd *nin, int ax) {
+nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax) {
   char me[]="nrrdAxesInsert", func[]="axinsert", err[AIR_STRLEN_MED];
   int d;
   
@@ -674,7 +663,8 @@ nrrdAxesInsert(Nrrd *nout, Nrrd *nin, int ax) {
 ** like reshape, but only for splitting one axis into a fast and slow part.
 */
 int
-nrrdAxesSplit(Nrrd *nout, Nrrd *nin, int ax, int sizeFast, int sizeSlow) {
+nrrdAxesSplit(Nrrd *nout, const Nrrd *nin,
+	      int ax, int sizeFast, int sizeSlow) {
   char me[]="nrrdAxesSplit", func[]="axsplit", err[AIR_STRLEN_MED];
   int d;
   
@@ -731,7 +721,7 @@ nrrdAxesSplit(Nrrd *nout, Nrrd *nin, int ax, int sizeFast, int sizeSlow) {
 ** this is only for removing a "stub" axis with length 1.
 */
 int
-nrrdAxesDelete(Nrrd *nout, Nrrd *nin, int ax) {
+nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, int ax) {
   char me[]="nrrdAxesDelete", func[]="axdelete", err[AIR_STRLEN_MED];
   int d;
   
@@ -780,7 +770,7 @@ nrrdAxesDelete(Nrrd *nout, Nrrd *nin, int ax) {
 ** merges axis ax and ax+1 into one 
 */
 int
-nrrdAxesMerge(Nrrd *nout, Nrrd *nin, int ax) {
+nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, int ax) {
   char me[]="nrrdAxesMerge", func[]="axmerge", err[AIR_STRLEN_MED];
   int d, sizeFast, sizeSlow;
   
@@ -828,7 +818,7 @@ nrrdAxesMerge(Nrrd *nout, Nrrd *nin, int ax) {
 **
 */
 int
-nrrdReshape_nva(Nrrd *nout, Nrrd *nin, int dim, int *size) {
+nrrdReshape_nva(Nrrd *nout, const Nrrd *nin, int dim, const int *size) {
   char me[]="nrrdReshape_nva", func[]="reshape", err[AIR_STRLEN_MED],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   size_t numOut;
@@ -891,7 +881,7 @@ nrrdReshape_nva(Nrrd *nout, Nrrd *nin, int dim, int *size) {
 ** var-args version of nrrdReshape_nva()
 */
 int
-nrrdReshape(Nrrd *nout, Nrrd *nin, int dim, ...) {
+nrrdReshape(Nrrd *nout, const Nrrd *nin, int dim, ...) {
   char me[]="nrrdReshape", err[AIR_STRLEN_MED];
   int d, size[NRRD_DIM_MAX];
   va_list ap;
@@ -927,7 +917,7 @@ nrrdReshape(Nrrd *nout, Nrrd *nin, int dim, ...) {
 ** All information for other axes is shifted down one axis.
 */
 int
-nrrdBlock(Nrrd *nout, Nrrd *nin) {
+nrrdBlock(Nrrd *nout, const Nrrd *nin) {
   char me[]="nrrdBlock", func[]="block", err[AIR_STRLEN_MED];
   int d, numEl, map[NRRD_DIM_MAX], size[NRRD_DIM_MAX];
 
@@ -984,7 +974,7 @@ nrrdBlock(Nrrd *nout, Nrrd *nin) {
 ** type "type", and shifts other axis information up by one axis
 */
 int
-nrrdUnblock(Nrrd *nout, Nrrd *nin, int type) {
+nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type) {
   char me[]="nrrdUnblock", func[]="unblock", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX], d, map[NRRD_DIM_MAX], outElSz;
 

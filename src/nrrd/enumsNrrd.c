@@ -901,7 +901,12 @@ nrrdBinaryOp = &_nrrdBinaryOp_enum;
 char 
 _nrrdTernaryOpStr[NRRD_TERNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_ternary_op)",
+  "add",
+  "multiply",
+  "min",
+  "max",
   "clamp",
+  "ifelse",
   "lerp",
   "exists",
   "in_op",
@@ -911,11 +916,48 @@ _nrrdTernaryOpStr[NRRD_TERNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
 char 
 _nrrdTernaryOpDesc[NRRD_TERNARY_OP_MAX+1][AIR_STRLEN_MED] = {
   "unknown ternary op",
+  "add three values",
+  "multiply three values",
+  "minimum of three values",
+  "maximum of three values",
   "clamp 2nd value to closed interval between 1st and 3rd",
+  "if 1st value is non-zero, then 2nd value, else 3rd value",
   "linearly interpolate between 2nd value (1st = 0.0) and 3rd (1st = 1.0)",
   "if 1st value exists, the 2nd value, else the 3rd",
   "2nd value is inside OPEN interval range between 1st and 3rd",
   "2nd value is inside CLOSED interval range between 1st and 3rd"
+};
+
+#define ntAdd nrrdTernaryOpAdd
+#define ntMul nrrdTernaryOpMultiply
+
+char
+_nrrdTernaryOpStrEqv[][AIR_STRLEN_SMALL] = {
+  "+", "plus", "add",
+  "x", "*", "times", "multiply", "product",
+  "min",
+  "max",
+  "clamp",
+  "ifelse", "if",
+  "lerp",
+  "exists",
+  "in_op",
+  "in_cl",
+  ""
+};
+
+int
+_nrrdTernaryOpValEqv[] = {
+  ntAdd, ntAdd, ntAdd,
+  ntMul, ntMul, ntMul, ntMul, ntMul, 
+  nrrdTernaryOpMin,
+  nrrdTernaryOpMax,
+  nrrdTernaryOpClamp,
+  nrrdTernaryOpIfElse, nrrdTernaryOpIfElse,
+  nrrdTernaryOpLerp,
+  nrrdTernaryOpExists,
+  nrrdTernaryOpInOpen,
+  nrrdTernaryOpInClosed
 };
 
 airEnum
@@ -924,7 +966,7 @@ _nrrdTernaryOp_enum = {
   NRRD_TERNARY_OP_MAX,
   _nrrdTernaryOpStr, NULL,
   _nrrdTernaryOpDesc,
-  NULL, NULL,
+  _nrrdTernaryOpStrEqv, _nrrdTernaryOpValEqv, 
   AIR_FALSE
 };
 airEnum *

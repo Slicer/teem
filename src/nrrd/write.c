@@ -35,7 +35,7 @@
 */
 
 int
-_nrrdFieldInteresting (Nrrd *nrrd, NrrdIO *io, int field) {
+_nrrdFieldInteresting (const Nrrd *nrrd, NrrdIO *io, int field) {
   int d, ret=0;
   
   if (!( nrrd
@@ -113,10 +113,10 @@ _nrrdFieldInteresting (Nrrd *nrrd, NrrdIO *io, int field) {
     ret = !!(airStrlen(nrrd->content));
     break;
   case nrrdField_min:
-    ret = AIR_EXISTS(nrrd->min);
+    ret = AIR_FALSE; /* AIR_EXISTS(nrrd->min); */
     break;
   case nrrdField_max:
-    ret = AIR_EXISTS(nrrd->max);
+    ret = AIR_FALSE; /* AIR_EXISTS(nrrd->max); */
     break;
   case nrrdField_old_min:
     ret = AIR_EXISTS(nrrd->oldMin);
@@ -139,7 +139,7 @@ _nrrdFieldInteresting (Nrrd *nrrd, NrrdIO *io, int field) {
 }
 
 int
-_nrrdWriteDataRaw (Nrrd *nrrd, NrrdIO *io) {
+_nrrdWriteDataRaw (const Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteDataRaw", err[AIR_STRLEN_MED];
   size_t size, ret, dio;
   
@@ -213,7 +213,7 @@ _nrrdWriteHexTable[16] = {
 };
 
 int
-_nrrdWriteDataHex (Nrrd *nrrd, NrrdIO *io) {
+_nrrdWriteDataHex (const Nrrd *nrrd, NrrdIO *io) {
   /* char me[]="_nrrdWriteDataAscii", err[AIR_STRLEN_MED]; */
   unsigned char *data;
   size_t byteIdx, byteNum;
@@ -233,7 +233,7 @@ _nrrdWriteDataHex (Nrrd *nrrd, NrrdIO *io) {
 }
 
 int
-_nrrdWriteDataAscii (Nrrd *nrrd, NrrdIO *io) {
+_nrrdWriteDataAscii (const Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteDataAscii", err[AIR_STRLEN_MED], 
     buff[AIR_STRLEN_MED];
   int size, bufflen, linelen;
@@ -281,7 +281,7 @@ _nrrdWriteDataAscii (Nrrd *nrrd, NrrdIO *io) {
 }
 
 int
-_nrrdWriteDataGzip (Nrrd *nrrd, NrrdIO *io) {
+_nrrdWriteDataGzip (const Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteDataGzip", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
   size_t num, bsize, size, total_written;
@@ -398,7 +398,7 @@ _nrrdWriteDataGzip (Nrrd *nrrd, NrrdIO *io) {
 }
 
 int
-_nrrdWriteDataBzip2 (Nrrd *nrrd, NrrdIO *io) {
+_nrrdWriteDataBzip2 (const Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteDataBzip2", err[AIR_STRLEN_MED];
 #if TEEM_BZIP2
   size_t num, bsize, size, total_written;
@@ -508,7 +508,7 @@ _nrrdWriteDataBzip2 (Nrrd *nrrd, NrrdIO *io) {
 
 
 int (*
-nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
+nrrdWriteData[NRRD_ENCODING_MAX+1])(const Nrrd *, NrrdIO *) = {
   NULL,
   _nrrdWriteDataRaw,
   _nrrdWriteDataAscii,
@@ -530,7 +530,7 @@ nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
 ** HEY: this function is an utter mess.  re-write it pronto.
 */
 void
-_nrrdSprintFieldInfo (char **strP, Nrrd *nrrd, NrrdIO *io, int field) {
+_nrrdSprintFieldInfo (char **strP, const Nrrd *nrrd, NrrdIO *io, int field) {
   char buff[AIR_STRLEN_MED];
   const char *fs;
   int i, D, fslen, fdlen, endi;
@@ -669,16 +669,20 @@ _nrrdSprintFieldInfo (char **strP, Nrrd *nrrd, NrrdIO *io, int field) {
     sprintf(*strP, "%s: %d", fs, nrrd->blockSize);
     break;
   case nrrdField_min:
+    /*
     *strP = malloc(fslen + 30);
     sprintf(*strP, "%s: ", fs);
     airSinglePrintf(NULL, buff, "%lg", nrrd->min);
     strcat(*strP, buff);
+    */
     break;
   case nrrdField_max:
+    /*
     *strP = malloc(fslen + 30);
     sprintf(*strP, "%s: ", fs);
     airSinglePrintf(NULL, buff, "%lg", nrrd->max);
     strcat(*strP, buff);
+    */
     break;
   case nrrdField_old_min:
     *strP = malloc(fslen + 30);
@@ -723,7 +727,7 @@ if (_nrrdFieldInteresting(nrrd, io, field)) { \
 }
 
 int
-_nrrdWriteNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io, int writeData) {
+_nrrdWriteNrrd (FILE *file, const Nrrd *nrrd, NrrdIO *io, int writeData) {
   char me[]="_nrrdWriteNrrd", err[AIR_STRLEN_MED], *tmpName, *line;
   int i;
   
@@ -786,14 +790,22 @@ _nrrdWriteNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io, int writeData) {
 }
 
 int
-_nrrdWritePNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
+_nrrdWritePNM (FILE *file, const Nrrd *_nrrd, NrrdIO *io) {
   char me[]="_nrrdWritePNM", err[AIR_STRLEN_MED], *line;
   int i, color, sx, sy, magic;
+  Nrrd *nrrd;
+  airArray *mop;
   
+  mop = airMopNew();
+  airMopAdd(mop, nrrd = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  if (nrrdCopy(nrrd, _nrrd)) {
+    sprintf(err, "%s: couldn't make private copy", me);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
   if (3 == nrrd->dim && 1 == nrrd->axis[0].size) {
     if (nrrdAxesDelete(nrrd, nrrd, 0)) {
       sprintf(err, "%s:", me);
-      biffAdd(NRRD, err); return 1;
+      biffAdd(NRRD, err); airMopError(mop); return 1;
     }
   }
   color = (3 == nrrd->dim);
@@ -826,9 +838,10 @@ _nrrdWritePNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   io->dataFile = file;
   if (nrrdWriteData[io->encoding](nrrd, io)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   
+  airMopError(mop); 
   return 0;
 }
 
@@ -875,7 +888,7 @@ _nrrdFlushDataPNG (png_structp png)
 #endif /* TEEM_PNG */
 
 int
-_nrrdWritePNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
+_nrrdWritePNG (FILE *file, const Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWritePNG", err[AIR_STRLEN_MED];
 #if TEEM_PNG
   int depth, type, i, numtxt, csize;
@@ -1015,17 +1028,26 @@ _nrrdWritePNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
 
 /* this strongly assumes that nrrdFitsInFormat() was true */
 int
-_nrrdWriteVTK (FILE *file, Nrrd *nrrd, NrrdIO *io) {
+_nrrdWriteVTK (FILE *file, const Nrrd *_nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteVTK", err[AIR_STRLEN_MED];
   int i, sx, sy, sz, sax;
   double xs, ys, zs, xm, ym, zm;
   char type[AIR_STRLEN_MED], name[AIR_STRLEN_SMALL];
+  Nrrd *nrrd;
+  airArray *mop;
 
+  /* HEY: should this copy be done more conservatively */
+  mop = airMopNew();
+  airMopAdd(mop, nrrd=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  if (nrrdCopy(nrrd, _nrrd)) {
+    sprintf(err, "%s: couldn't make private copy", me);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
   if (!( 3 == nrrd->dim || 
 	 (4 == nrrd->dim && (3 == nrrd->axis[0].size ||
 			     9 == nrrd->axis[0].size)) )) {
     sprintf(err, "%s: doesn't seem to be scalar, vector, or tensor", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   sax = nrrd->dim - 3;
   xs = nrrd->axis[sax+0].spacing;
@@ -1063,7 +1085,7 @@ _nrrdWriteVTK (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   default:
     sprintf(err, "%s: can't put %s-type nrrd into VTK", me, 
 	    airEnumStr(nrrdType, nrrd->type));
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   fprintf(file, "%s\n", airEnumStr(nrrdMagic, nrrdMagicVTK20));
   /* there is a file-format-imposed limit on the length of the "content" */
@@ -1108,14 +1130,15 @@ _nrrdWriteVTK (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   io->dataFile = file;
   if (nrrdWriteData[io->encoding](nrrd, io)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 
+  airMopOkay(mop); 
   return 0;
 }
 
 int
-_nrrdWriteTable (FILE *file, Nrrd *nrrd, NrrdIO *io) {
+_nrrdWriteTable (FILE *file, const Nrrd *nrrd, NrrdIO *io) {
   char cmt[AIR_STRLEN_SMALL], *line, buff[AIR_STRLEN_SMALL];
   size_t I;
   int i, x, y, sx, sy;
@@ -1208,7 +1231,7 @@ _nrrdGuessFormat (NrrdIO *io, const char *filename) {
 }
 
 void
-_nrrdFixFormat (NrrdIO *io, Nrrd *nrrd) {
+_nrrdFixFormat (NrrdIO *io, const Nrrd *nrrd) {
   char me[]="_nrrdFixFormat";
   int fits;
 
@@ -1283,7 +1306,7 @@ _nrrdFixFormat (NrrdIO *io, Nrrd *nrrd) {
 }
 
 int
-nrrdWrite (FILE *file, Nrrd *nrrd, NrrdIO *io) {
+nrrdWrite (FILE *file, const Nrrd *nrrd, NrrdIO *io) {
   char me[]="nrrdWrite", err[AIR_STRLEN_MED];
   int ret=0;
 
@@ -1349,7 +1372,7 @@ nrrdWrite (FILE *file, Nrrd *nrrd, NrrdIO *io) {
 }
 
 int
-nrrdSave (const char *filename, Nrrd *nrrd, NrrdIO *io) {
+nrrdSave (const char *filename, const Nrrd *nrrd, NrrdIO *io) {
   char me[]="nrrdSave", err[AIR_STRLEN_MED];
   FILE *file;
   airArray *mop;

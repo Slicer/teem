@@ -22,7 +22,7 @@
 #define _SINC(x) (sin(M_PI*x)/(M_PI*x))
 
 double
-_nrrdWindSincInt(double *parm) {
+_nrrdWindSincInt(const double *parm) {
 
   /* This isn't true, but there aren't good accurate, closed-form
      approximations for these integrals ... */
@@ -30,14 +30,14 @@ _nrrdWindSincInt(double *parm) {
 }
 
 double
-_nrrdDWindSincInt(double *parm) {
+_nrrdDWindSincInt(const double *parm) {
 
   /* ... or their derivatives */
   return 0.0;
 }
 
 double
-_nrrdWindSincSup(double *parm) {
+_nrrdWindSincSup(const double *parm) {
   double S;
 
   S = parm[0];
@@ -45,12 +45,12 @@ _nrrdWindSincSup(double *parm) {
 }
 
 #define POW1(S) (S)
-#define POW2(S) (S*S)
-#define POW3(S) (S*S*S)
+#define POW2(S) ((S)*(S))
+#define POW3(S) ((S)*(S)*(S))
 
 #define WS_1_F(name, mac, spow)              \
 float                                        \
-_nrrd##name##_1_f(float x, double *parm) {   \
+_nrrd##name##_1_f(float x, const double *parm) {   \
   float R, S;                                \
                                              \
   S = parm[0]; R = parm[1];                  \
@@ -60,7 +60,7 @@ _nrrd##name##_1_f(float x, double *parm) {   \
 
 #define WS_N_F(name, mac, spow)                                     \
 void                                                                \
-_nrrd##name##_N_f(float *f, float *x, size_t len, double *parm) {   \
+_nrrd##name##_N_f(float *f, const float *x, size_t len, const double *parm) {   \
   float S, R, t;                                                    \
   size_t i;                                                         \
                                                                     \
@@ -73,7 +73,7 @@ _nrrd##name##_N_f(float *f, float *x, size_t len, double *parm) {   \
 
 #define WS_1_D(name, mac, spow)             \
 double                                      \
-_nrrd##name##_1_d(double x, double *parm) { \
+_nrrd##name##_1_d(double x, const double *parm) { \
   double R, S;                              \
                                             \
   S = parm[0]; R = parm[1];                 \
@@ -83,7 +83,7 @@ _nrrd##name##_1_d(double x, double *parm) { \
 
 #define WS_N_D(name, mac, spow)                                     \
 void                                                                \
-_nrrd##name##_N_d(double *f, double *x, size_t len, double *parm) { \
+_nrrd##name##_N_d(double *f, const double *x, size_t len, const double *parm) { \
   double S, R, t;                                                   \
   size_t i;                                                         \
                                                                     \
@@ -115,7 +115,7 @@ _nrrdKernelHann = {
   2, _nrrdWindSincSup,  _nrrdWindSincInt,   
   _nrrdHann_1_f, _nrrdHann_N_f, _nrrdHann_1_d, _nrrdHann_N_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelHann = &_nrrdKernelHann;
 
 /* ------------------------------------------------------------ */
@@ -139,7 +139,7 @@ _nrrdKernelDHann = {
   2, _nrrdWindSincSup, _nrrdDWindSincInt,  
   _nrrdDHann_1_f,  _nrrdDHann_N_f,  _nrrdDHann_1_d,  _nrrdDHann_N_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelHannD = &_nrrdKernelDHann;
 
 /* ------------------------------------------------------------ */
@@ -168,7 +168,7 @@ _nrrdKernelDDHann = {
   2, _nrrdWindSincSup, _nrrdDWindSincInt,  
   _nrrdDDHann_1_f, _nrrdDDHann_N_f, _nrrdDDHann_1_d, _nrrdDDHann_N_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelHannDD = &_nrrdKernelDDHann;
 
 /* ------------------------------------------------------------ */
@@ -191,7 +191,7 @@ _nrrdKernelBlackman = {
   2, _nrrdWindSincSup,  _nrrdWindSincInt,   
   _nrrdBlack_1_f, _nrrdBlack_N_f, _nrrdBlack_1_d, _nrrdBlack_N_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelBlackman = &_nrrdKernelBlackman;
 
 /* ------------------------------------------------------------ */
@@ -220,7 +220,7 @@ _nrrdKernelDBlack = {
   2, _nrrdWindSincSup, _nrrdDWindSincInt,  
   _nrrdDBlack_1_f,  _nrrdDBlack_N_f,  _nrrdDBlack_1_d,  _nrrdDBlack_N_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelBlackmanD = &_nrrdKernelDBlack;
 
 /* ------------------------------------------------------------ */
@@ -254,5 +254,6 @@ _nrrdKernelDDBlack = {
   2, _nrrdWindSincSup, _nrrdDWindSincInt,  
   _nrrdDDBlack_1_f, _nrrdDDBlack_N_f, _nrrdDDBlack_1_d, _nrrdDDBlack_N_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelBlackmanDD = &_nrrdKernelDDBlack;
+

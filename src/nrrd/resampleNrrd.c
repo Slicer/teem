@@ -49,8 +49,8 @@ two will have very different results!
 
 int
 nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
-		   NrrdKernel *kernel, double *parm,
-		   int *samples, double *scalings) {
+		   const NrrdKernel *kernel, const double *parm,
+		   const int *samples, const double *scalings) {
   char me[]="nrrdSimpleResample", err[AIR_STRLEN_MED];
   NrrdResampleInfo *info;
   int d, p, np, center;
@@ -104,9 +104,9 @@ nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
 ** - both min[d] and max[d] for all axes d
 */
 int
-_nrrdResampleCheckInfo(Nrrd *nin, NrrdResampleInfo *info) {
+_nrrdResampleCheckInfo(const Nrrd *nin, const NrrdResampleInfo *info) {
   char me[] = "_nrrdResampleCheckInfo", err[AIR_STRLEN_MED];
-  NrrdKernel *k;
+  const NrrdKernel *k;
   int center, p, d, np, minsmp;
 
   if (nrrdTypeBlock == nin->type || nrrdTypeBlock == info->type) {
@@ -172,8 +172,8 @@ _nrrdResampleComputePermute(int permute[],
 			    int ax[NRRD_DIM_MAX][NRRD_DIM_MAX], 
 			    int sz[NRRD_DIM_MAX][NRRD_DIM_MAX], 
 			    int *topRax, int *botRax, int *passes,
-			    Nrrd *nin,
-			    NrrdResampleInfo *info) {
+			    const Nrrd *nin,
+			    const NrrdResampleInfo *info) {
   /* char me[]="_nrrdResampleComputePermute"; */
   int a, p, d, dim;
   
@@ -276,12 +276,14 @@ _nrrdResampleComputePermute(int permute[],
 int
 _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
 			     int **indexP, double *ratioP,
-			     Nrrd *nin, NrrdResampleInfo *info, int d) {
+			     const Nrrd *nin, const NrrdResampleInfo *info,
+			     int d) {
   char me[]="_nrrdResampleMakeWeightIndex", err[AIR_STRLEN_MED];
   int sizeIn, sizeOut, center, dotLen, halfLen, *index, base, idx;
-  nrrdResample_t minIn, maxIn, minOut, maxOut, spcIn, spcOut, parm0=0.0,
+  nrrdResample_t minIn, maxIn, minOut, maxOut, spcIn, spcOut,
     ratio, support, integral, pos, idxD, wght;
   nrrdResample_t *weight;
+  double parm[NRRD_KERNEL_PARMS_NUM];
 
   int e, i;
 
@@ -382,14 +384,11 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
 
   /* run the sample locations through the chosen kernel.  We play a 
      sneaky trick on the kernel parameter 0 in case of downsampling. */
+  memcpy(parm, info->parm[d], NRRD_KERNEL_PARMS_NUM*sizeof(double));
   if (ratio < 1) {
-    parm0 = info->parm[d][0];
-    info->parm[d][0] = parm0/ratio;
+    parm[0] /= ratio;
   }
-  info->kernel[d]->EVALN(weight, weight, dotLen*sizeOut, info->parm[d]);
-  if (ratio < 1) {
-    info->parm[d][0] = parm0;
-  }
+  info->kernel[d]->EVALN(weight, weight, dotLen*sizeOut, parm);
 
   if (nrrdBoundaryWeight == info->boundary) {
     if (integral) {
@@ -483,7 +482,8 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
 ** of such axis permutation overhead.
 */
 int
-nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
+nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
+		    const NrrdResampleInfo *info) {
   char me[]="nrrdSpatialResample", func[]="resample", err[AIR_STRLEN_MED];
   nrrdResample_t
     *array[NRRD_DIM_MAX],      /* intermediate copies of the input data

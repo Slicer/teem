@@ -39,6 +39,8 @@ extern "C" {
 
 #define _NRRD_TABLE_INCR 1024
 
+#define _NRRD_ITER_NRRD(iter) ((iter)->nrrd ? (iter)->nrrd : (iter)->ownNrrd)
+
 /*
 ** _NRRD_SPACING
 **
@@ -52,8 +54,16 @@ typedef union {
   int *I;
   unsigned int *UI;
   double *D;
+  const void *P;
+} _nrrdAxisInfoSetPtrs;
+
+typedef union {
+  char **CP;
+  int *I;
+  unsigned int *UI;
+  double *D;
   void *P;
-} _nrrdAxisInfoPtrs;
+} _nrrdAxisInfoGetPtrs;
 
 /* arrays.c */
 extern int _nrrdFieldValidInImage[NRRD_FIELD_MAX+1];
@@ -64,7 +74,7 @@ extern int _nrrdFieldRequired[NRRD_FIELD_MAX+1];
 extern int _nrrdFormatUsesDIO[NRRD_FORMAT_MAX+1];
 
 /* simple.c */
-extern char *_nrrdContentGet(Nrrd *nin);
+extern char *_nrrdContentGet(const Nrrd *nin);
 extern int _nrrdContentSet_nva(Nrrd *nout, const char *func,
 			       char *content, const char *format,
 			       va_list arg);
@@ -73,17 +83,14 @@ extern int _nrrdContentSet(Nrrd *nout, const char *func,
 
 
 /* axis.c */
-extern void _nrrdAxisInfoCopy(NrrdAxis *dest, NrrdAxis *src,
+extern void _nrrdAxisInfoCopy(NrrdAxis *dest, const NrrdAxis *src,
 			      int bitflag);
 extern void _nrrdAxisInfoInit(NrrdAxis *axis);
 extern int _nrrdCenter(int center);
 extern int _nrrdCenter2(int center, int def);
 
 /* convert.c */
-extern void (*_nrrdConv[][NRRD_TYPE_MAX+1])(void *,void *, size_t);
-
-/* map.c */
-extern int _nrrdMinMaxSet(Nrrd *nrrd);
+extern void (*_nrrdConv[][NRRD_TYPE_MAX+1])(void *, const void *, size_t);
 
 /* read.c */
 #define _NRRD_IMM_EOF "immediately hit EOF"
@@ -102,7 +109,7 @@ extern int (*_nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1])(Nrrd *, NrrdIO *, int);
 extern int _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIO *io, int useBiff);
 
 /* methods.c */
-extern int _nrrdSizeCheck(int dim, int *size, int useBiff);
+extern int _nrrdSizeCheck(int dim, const int *size, int useBiff);
 extern void _nrrdTraverse(Nrrd *nrrd);
 
 #if TEEM_ZLIB

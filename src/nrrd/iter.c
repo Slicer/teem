@@ -26,6 +26,7 @@ nrrdIterNew() {
 
   if ( (iter = calloc(1, sizeof(NrrdIter))) ) {
     iter->nrrd = NULL;
+    iter->ownNrrd = NULL;
     iter->val = AIR_NAN;
     iter->size = 0;
     iter->data = NULL;
@@ -40,6 +41,7 @@ nrrdIterSetValue(NrrdIter *iter, double val) {
 
   if (iter) {
     iter->nrrd = NULL;
+    iter->ownNrrd = iter->ownNrrd ? nrrdNuke(iter->ownNrrd) : NULL;
     iter->val = val;
     iter->size = nrrdTypeSize[nrrdTypeDouble];
     iter->data = (void*)&(iter->val);
@@ -50,7 +52,7 @@ nrrdIterSetValue(NrrdIter *iter, double val) {
 }
 
 void
-nrrdIterSetNrrd(NrrdIter *iter, Nrrd *nrrd) {
+nrrdIterSetNrrd(NrrdIter *iter, const Nrrd *nrrd) {
 
   if (iter && nrrd && nrrd->data) {
     if (nrrdTypeBlock == nrrd->type) {
@@ -59,6 +61,28 @@ nrrdIterSetNrrd(NrrdIter *iter, Nrrd *nrrd) {
       return;
     }
     iter->nrrd = nrrd;
+    iter->ownNrrd = iter->ownNrrd ? nrrdNuke(iter->ownNrrd) : NULL;
+    iter->val = AIR_NAN;
+    iter->size = nrrdTypeSize[nrrd->type];
+    iter->data = nrrd->data;
+    iter->left = nrrdElementNumber(nrrd)-1;
+    iter->load = nrrdDLoad[nrrd->type];
+  }
+  return;
+}
+
+void
+nrrdIterSetOwnNrrd(NrrdIter *iter, Nrrd *nrrd) {
+
+  if (iter && nrrd && nrrd->data) {
+    if (nrrdTypeBlock == nrrd->type) {
+      /* we can't deal */
+      nrrdIterSetValue(iter, AIR_NAN);
+      return;
+    }
+    iter->nrrd = NULL;
+    iter->ownNrrd = iter->ownNrrd ? nrrdNuke(iter->ownNrrd) : NULL;
+    iter->ownNrrd = nrrd;
     iter->val = AIR_NAN;
     iter->size = nrrdTypeSize[nrrd->type];
     iter->data = nrrd->data;
@@ -74,12 +98,12 @@ nrrdIterValue(NrrdIter *iter) {
 
   if (iter) {
     ret = iter->load(iter->data);
-    if (iter->nrrd) {
+    if (iter->nrrd || iter->ownNrrd) {
       iter->data += iter->size;
       iter->left -= 1;
       if (-1 == iter->left) {
-	iter->data = iter->nrrd->data;
-	iter->left = nrrdElementNumber(iter->nrrd)-1;
+	iter->data = (_NRRD_ITER_NRRD(iter)->data);
+	iter->left = nrrdElementNumber(_NRRD_ITER_NRRD(iter))-1;
       }
     }
   }
@@ -99,8 +123,8 @@ nrrdIterContent(NrrdIter *iter) {
 
   ret = NULL;
   if (iter) {
-    if (iter->nrrd) {
-      ret = _nrrdContentGet(iter->nrrd);
+    if (_NRRD_ITER_NRRD(iter)) {
+      ret = _nrrdContentGet(_NRRD_ITER_NRRD(iter));
     } else {
       airSinglePrintf(NULL, buff, "%g", iter->val);
       ret = airStrdup(buff);
@@ -114,18 +138,9 @@ nrrdIterNix(NrrdIter *iter) {
 
   if (iter) {
     free(iter);
-  }
-  return NULL;
-}
-
-NrrdIter *
-nrrdIterNuke(NrrdIter *iter) {
-
-  if (iter) {
-    if (iter->nrrd) {
-      iter->nrrd = nrrdNuke(iter->nrrd);
+    if (iter->ownNrrd) {
+      iter->ownNrrd = nrrdNuke(iter->ownNrrd);
     }
-    free(iter);
   }
   return NULL;
 }

@@ -26,13 +26,13 @@
 #define _ZERO(x) 0
 
 double
-_nrrdZeroInt(double *parm) {
+_nrrdZeroInt(const double *parm) {
   
   return 0.0;
 }
 
 double
-_nrrdZeroSup(double *parm) {
+_nrrdZeroSup(const double *parm) {
   double S;
   
   S = parm[0];
@@ -40,7 +40,7 @@ _nrrdZeroSup(double *parm) {
 }
 
 double
-_nrrdZero1_d(double x, double *parm) {
+_nrrdZero1_d(double x, const double *parm) {
   double S;
 
   S = parm[0];
@@ -49,7 +49,7 @@ _nrrdZero1_d(double x, double *parm) {
 }
 
 float
-_nrrdZero1_f(float x, double *parm) {
+_nrrdZero1_f(float x, const double *parm) {
   float S;
 
   S = parm[0];
@@ -58,7 +58,7 @@ _nrrdZero1_f(float x, double *parm) {
 }
 
 void
-_nrrdZeroN_d(double *f, double *x, size_t len, double *parm) {
+_nrrdZeroN_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t;
   size_t i;
@@ -71,7 +71,7 @@ _nrrdZeroN_d(double *f, double *x, size_t len, double *parm) {
 }
 
 void
-_nrrdZeroN_f(float *f, float *x, size_t len, double *parm) {
+_nrrdZeroN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
   
@@ -88,7 +88,7 @@ _nrrdKernelZero = {
   1, _nrrdZeroSup, _nrrdZeroInt,
   _nrrdZero1_f, _nrrdZeroN_f, _nrrdZero1_d, _nrrdZeroN_d
 };
-NrrdKernel *
+NrrdKernel *const 
 nrrdKernelZero = &_nrrdKernelZero;
 
 /* ------------------------------------------------------------ */
@@ -96,13 +96,13 @@ nrrdKernelZero = &_nrrdKernelZero;
 #define _BOX(x) (x > 0.5 ? 0 : (x < 0.5 ? 1 : 0.5))
 
 double
-_nrrdBoxInt(double *parm) {
+_nrrdBoxInt(const double *parm) {
   
   return 1.0;
 }
 
 double
-_nrrdBoxSup(double *parm) {
+_nrrdBoxSup(const double *parm) {
   double S;
   
   S = parm[0];
@@ -112,7 +112,7 @@ _nrrdBoxSup(double *parm) {
 }
 
 double
-_nrrdBox1_d(double x, double *parm) {
+_nrrdBox1_d(double x, const double *parm) {
   double S;
 
   S = parm[0];
@@ -121,7 +121,7 @@ _nrrdBox1_d(double x, double *parm) {
 }
 
 float
-_nrrdBox1_f(float x, double *parm) {
+_nrrdBox1_f(float x, const double *parm) {
   float S;
 
   S = parm[0];
@@ -130,7 +130,7 @@ _nrrdBox1_f(float x, double *parm) {
 }
 
 void
-_nrrdBoxN_d(double *f, double *x, size_t len, double *parm) {
+_nrrdBoxN_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t;
   size_t i;
@@ -143,7 +143,7 @@ _nrrdBoxN_d(double *f, double *x, size_t len, double *parm) {
 }
 
 void
-_nrrdBoxN_f(float *f, float *x, size_t len, double *parm) {
+_nrrdBoxN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
   
@@ -160,7 +160,7 @@ _nrrdKernelBox = {
   1, _nrrdBoxSup, _nrrdBoxInt,  
   _nrrdBox1_f,  _nrrdBoxN_f,  _nrrdBox1_d,  _nrrdBoxN_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelBox = &_nrrdKernelBox;
 
 /* ------------------------------------------------------------ */
@@ -168,13 +168,13 @@ nrrdKernelBox = &_nrrdKernelBox;
 #define _TENT(x) (x >= 1 ? 0 : 1 - x)
 
 double
-_nrrdTentInt(double *parm) {
+_nrrdTentInt(const double *parm) {
   
   return 1.0;
 }
 
 double
-_nrrdTentSup(double *parm) {
+_nrrdTentSup(const double *parm) {
   double S;
   
   S = parm[0];
@@ -182,7 +182,7 @@ _nrrdTentSup(double *parm) {
 }
 
 double
-_nrrdTent1_d(double x, double *parm) {
+_nrrdTent1_d(double x, const double *parm) {
   double S;
   
   S = parm[0];
@@ -191,7 +191,7 @@ _nrrdTent1_d(double x, double *parm) {
 }
 
 float
-_nrrdTent1_f(float x, double *parm) {
+_nrrdTent1_f(float x, const double *parm) {
   float S;
   
   S = parm[0];
@@ -200,7 +200,7 @@ _nrrdTent1_f(float x, double *parm) {
 }
 
 void
-_nrrdTentN_d(double *f, double *x, size_t len, double *parm) {
+_nrrdTentN_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t;
   size_t i;
@@ -213,7 +213,7 @@ _nrrdTentN_d(double *f, double *x, size_t len, double *parm) {
 }
 
 void
-_nrrdTentN_f(float *f, float *x, size_t len, double *parm) {
+_nrrdTentN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
   
@@ -230,7 +230,7 @@ _nrrdKernelTent = {
   1, _nrrdTentSup,_nrrdTentInt, 
   _nrrdTent1_f, _nrrdTentN_f, _nrrdTent1_d, _nrrdTentN_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelTent = &_nrrdKernelTent;
 
 /* ------------------------------------------------------------ */
@@ -240,13 +240,13 @@ nrrdKernelTent = &_nrrdKernelTent;
                    (x <  1 ? -1 : 0 )))
 
 double
-_nrrdFDInt(double *parm) {
+_nrrdFDInt(const double *parm) {
   
   return 0.0;
 }
 
 double
-_nrrdFDSup(double *parm) {
+_nrrdFDSup(const double *parm) {
   double S;
   
   S = parm[0];
@@ -254,7 +254,7 @@ _nrrdFDSup(double *parm) {
 }
 
 double
-_nrrdFD1_d(double x, double *parm) {
+_nrrdFD1_d(double x, const double *parm) {
   double S;
   
   S = parm[0];
@@ -263,7 +263,7 @@ _nrrdFD1_d(double x, double *parm) {
 }
 
 float
-_nrrdFD1_f(float x, double *parm) {
+_nrrdFD1_f(float x, const double *parm) {
   float S;
   
   S = parm[0];
@@ -272,7 +272,7 @@ _nrrdFD1_f(float x, double *parm) {
 }
 
 void
-_nrrdFDN_d(double *f, double *x, size_t len, double *parm) {
+_nrrdFDN_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t;
   size_t i;
@@ -285,7 +285,7 @@ _nrrdFDN_d(double *f, double *x, size_t len, double *parm) {
 }
 
 void
-_nrrdFDN_f(float *f, float *x, size_t len, double *parm) {
+_nrrdFDN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
   
@@ -302,7 +302,7 @@ _nrrdKernelFD = {
   1, _nrrdFDSup,  _nrrdFDInt,   
   _nrrdFD1_f,   _nrrdFDN_f,   _nrrdFD1_d,   _nrrdFDN_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelForwDiff = &_nrrdKernelFD;
 
 /* ------------------------------------------------------------ */
@@ -313,13 +313,13 @@ nrrdKernelForwDiff = &_nrrdKernelFD;
                    (x <=  2 ?  0.5*x - 1 : 0 ))))
 
 double
-_nrrdCDInt(double *parm) {
+_nrrdCDInt(const double *parm) {
   
   return 0.0;
 }
 
 double
-_nrrdCDSup(double *parm) {
+_nrrdCDSup(const double *parm) {
   double S;
   
   S = parm[0];
@@ -327,7 +327,7 @@ _nrrdCDSup(double *parm) {
 }
 
 double
-_nrrdCD1_d(double x, double *parm) {
+_nrrdCD1_d(double x, const double *parm) {
   double S;
   
   S = parm[0];
@@ -336,7 +336,7 @@ _nrrdCD1_d(double x, double *parm) {
 }
 
 float
-_nrrdCD1_f(float x, double *parm) {
+_nrrdCD1_f(float x, const double *parm) {
   float S;
   
   S = parm[0];
@@ -345,7 +345,7 @@ _nrrdCD1_f(float x, double *parm) {
 }
 
 void
-_nrrdCDN_d(double *f, double *x, size_t len, double *parm) {
+_nrrdCDN_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t;
   size_t i;
@@ -358,7 +358,7 @@ _nrrdCDN_d(double *f, double *x, size_t len, double *parm) {
 }
 
 void
-_nrrdCDN_f(float *f, float *x, size_t len, double *parm) {
+_nrrdCDN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
   
@@ -375,7 +375,7 @@ _nrrdKernelCD = {
   1, _nrrdCDSup,  _nrrdCDInt,   
   _nrrdCD1_f,   _nrrdCDN_f,   _nrrdCD1_d,   _nrrdCDN_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelCentDiff = &_nrrdKernelCD;
 
 /* ------------------------------------------------------------ */
@@ -387,13 +387,13 @@ nrrdKernelCentDiff = &_nrrdKernelCD;
    : ((2 - 3*B/2 - C)*x - 3 + 2*B + C)*x*x + 1 - B/3))
 
 double
-_nrrdBCInt(double *parm) {
+_nrrdBCInt(const double *parm) {
 
   return 1.0;
 }
 
 double
-_nrrdBCSup(double *parm) {
+_nrrdBCSup(const double *parm) {
   double S;
 
   S = parm[0];
@@ -401,7 +401,7 @@ _nrrdBCSup(double *parm) {
 }
 
 double
-_nrrdBC1_d(double x, double *parm) {
+_nrrdBC1_d(double x, const double *parm) {
   double S;
   double B, C;
   
@@ -411,7 +411,7 @@ _nrrdBC1_d(double x, double *parm) {
 }
 
 float
-_nrrdBC1_f(float x, double *parm) {
+_nrrdBC1_f(float x, const double *parm) {
   float B, C, S;
   
   S = parm[0]; B = parm[1]; C = parm[2]; 
@@ -420,7 +420,7 @@ _nrrdBC1_f(float x, double *parm) {
 }
 
 void
-_nrrdBCN_d(double *f, double *x, size_t len, double *parm) {
+_nrrdBCN_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t, B, C;
   size_t i;
@@ -434,7 +434,7 @@ _nrrdBCN_d(double *f, double *x, size_t len, double *parm) {
 }
 
 void
-_nrrdBCN_f(float *f, float *x, size_t len, double *parm) {
+_nrrdBCN_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, B, C;
   size_t i;
   
@@ -452,7 +452,7 @@ _nrrdKernelBC = {
   3, _nrrdBCSup,  _nrrdBCInt,   
   _nrrdBC1_f,   _nrrdBCN_f,   _nrrdBC1_d,   _nrrdBCN_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelBCCubic = &_nrrdKernelBC;
 
 /* ------------------------------------------------------------ */
@@ -464,13 +464,13 @@ nrrdKernelBCCubic = &_nrrdKernelBC;
     : ((6 - 9*B/2 - 3*C)*x - 6 + 4*B + 2*C)*x))
 
 double
-_nrrdDBCInt(double *parm) {
+_nrrdDBCInt(const double *parm) {
 
   return 0.0;
 }
 
 double
-_nrrdDBCSup(double *parm) {
+_nrrdDBCSup(const double *parm) {
   double S;
 
   S = parm[0];
@@ -478,7 +478,7 @@ _nrrdDBCSup(double *parm) {
 }
 
 double
-_nrrdDBC1_d(double x, double *parm) {
+_nrrdDBC1_d(double x, const double *parm) {
   double S;
   double B, C;
   int sgn = 1;
@@ -490,7 +490,7 @@ _nrrdDBC1_d(double x, double *parm) {
 }
 
 float
-_nrrdDBC1_f(float x, double *parm) {
+_nrrdDBC1_f(float x, const double *parm) {
   float B, C, S;
   int sgn = 1;
   
@@ -501,7 +501,7 @@ _nrrdDBC1_f(float x, double *parm) {
 }
 
 void
-_nrrdDBCN_d(double *f, double *x, size_t len, double *parm) {
+_nrrdDBCN_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t, B, C;
   size_t i;
@@ -516,7 +516,7 @@ _nrrdDBCN_d(double *f, double *x, size_t len, double *parm) {
 }
 
 void
-_nrrdDBCN_f(float *f, float *x, size_t len, double *parm) {
+_nrrdDBCN_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, B, C;
   int i, sgn;
   
@@ -534,7 +534,7 @@ _nrrdKernelDBC = {
   3, _nrrdDBCSup, _nrrdDBCInt,  
   _nrrdDBC1_f,  _nrrdDBCN_f,  _nrrdDBC1_d,  _nrrdDBCN_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelBCCubicD = &_nrrdKernelDBC;
 
 /* ------------------------------------------------------------ */
@@ -546,13 +546,13 @@ nrrdKernelBCCubicD = &_nrrdKernelDBC;
     : (12 - 9*B - 6*C)*x - 6 + 4*B + 2*C  ))
 
 double
-_nrrdDDBCInt(double *parm) {
+_nrrdDDBCInt(const double *parm) {
 
   return 0.0;
 }
 
 double
-_nrrdDDBCSup(double *parm) {
+_nrrdDDBCSup(const double *parm) {
   double S;
 
   S = parm[0];
@@ -560,7 +560,7 @@ _nrrdDDBCSup(double *parm) {
 }
 
 double
-_nrrdDDBC1_d(double x, double *parm) {
+_nrrdDDBC1_d(double x, const double *parm) {
   double S;
   double B, C;
   
@@ -570,7 +570,7 @@ _nrrdDDBC1_d(double x, double *parm) {
 }
 
 float
-_nrrdDDBC1_f(float x, double *parm) {
+_nrrdDDBC1_f(float x, const double *parm) {
   float B, C, S;
   
   S = parm[0]; B = parm[1]; C = parm[2]; 
@@ -579,7 +579,7 @@ _nrrdDDBC1_f(float x, double *parm) {
 }
 
 void
-_nrrdDDBCN_d(double *f, double *x, size_t len, double *parm) {
+_nrrdDDBCN_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t, B, C;
   size_t i;
@@ -593,7 +593,7 @@ _nrrdDDBCN_d(double *f, double *x, size_t len, double *parm) {
 }
 
 void
-_nrrdDDBCN_f(float *f, float *x, size_t len, double *parm) {
+_nrrdDDBCN_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, B, C;
   size_t i;
   
@@ -611,7 +611,7 @@ _nrrdKernelDDBC = {
   3, _nrrdDDBCSup,_nrrdDDBCInt, 
   _nrrdDDBC1_f, _nrrdDDBCN_f, _nrrdDDBC1_d, _nrrdDDBCN_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelBCCubicDD = &_nrrdKernelDDBC;
 
 /* ------------------------------------------------------------ */
@@ -626,13 +626,13 @@ nrrdKernelBCCubicDD = &_nrrdKernelDDBC;
        : 1 + x*x*(-3 + 6*A + x*((2.5 - 10*A) + x*(-0.5 + 4*A))))))
 
 double
-_nrrdA4Int(double *parm) {
+_nrrdA4Int(const double *parm) {
 
   return 1.0;
 }
 
 double
-_nrrdA4Sup(double *parm) {
+_nrrdA4Sup(const double *parm) {
   double S;
 
   S = parm[0];
@@ -640,7 +640,7 @@ _nrrdA4Sup(double *parm) {
 }
 
 double
-_nrrdA41_d(double x, double *parm) {
+_nrrdA41_d(double x, const double *parm) {
   double S;
   double A;
   
@@ -650,7 +650,7 @@ _nrrdA41_d(double x, double *parm) {
 }
 
 float
-_nrrdA41_f(float x, double *parm) {
+_nrrdA41_f(float x, const double *parm) {
   float A, S;
   
   S = parm[0]; A = parm[1];
@@ -659,7 +659,7 @@ _nrrdA41_f(float x, double *parm) {
 }
 
 void
-_nrrdA4N_d(double *f, double *x, size_t len, double *parm) {
+_nrrdA4N_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t, A;
   size_t i;
@@ -673,7 +673,7 @@ _nrrdA4N_d(double *f, double *x, size_t len, double *parm) {
 }
 
 void
-_nrrdA4N_f(float *f, float *x, size_t len, double *parm) {
+_nrrdA4N_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, A;
   size_t i;
   
@@ -691,7 +691,7 @@ _nrrdKernelA4 = {
   2, _nrrdA4Sup,  _nrrdA4Int,   
   _nrrdA41_f,   _nrrdA4N_f,   _nrrdA41_d,   _nrrdA4N_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelAQuartic = &_nrrdKernelA4;
 
 /* ------------------------------------------------------------ */
@@ -705,13 +705,13 @@ nrrdKernelAQuartic = &_nrrdKernelA4;
        : x*(-6 + 12*A + x*(7.5 - 30*A + x*(-2 + 16*A))))))
 
 double
-_nrrdDA4Int(double *parm) {
+_nrrdDA4Int(const double *parm) {
 
   return 0.0;
 }
 
 double
-_nrrdDA4Sup(double *parm) {
+_nrrdDA4Sup(const double *parm) {
   double S;
 
   S = parm[0];
@@ -719,7 +719,7 @@ _nrrdDA4Sup(double *parm) {
 }
 
 double
-_nrrdDA41_d(double x, double *parm) {
+_nrrdDA41_d(double x, const double *parm) {
   double S;
   double A;
   int sgn = 1;
@@ -731,7 +731,7 @@ _nrrdDA41_d(double x, double *parm) {
 }
 
 float
-_nrrdDA41_f(float x, double *parm) {
+_nrrdDA41_f(float x, const double *parm) {
   float A, S;
   int sgn = 1;
   
@@ -742,7 +742,7 @@ _nrrdDA41_f(float x, double *parm) {
 }
 
 void
-_nrrdDA4N_d(double *f, double *x, size_t len, double *parm) {
+_nrrdDA4N_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t, A;
   size_t i;
@@ -757,7 +757,7 @@ _nrrdDA4N_d(double *f, double *x, size_t len, double *parm) {
 }
 
 void
-_nrrdDA4N_f(float *f, float *x, size_t len, double *parm) {
+_nrrdDA4N_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, A;
   size_t i;
   int sgn;
@@ -776,7 +776,7 @@ _nrrdKernelDA4 = {
   2, _nrrdDA4Sup, _nrrdDA4Int,  
   _nrrdDA41_f,  _nrrdDA4N_f,  _nrrdDA41_d,  _nrrdDA4N_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelAQuarticD = &_nrrdKernelDA4;
 
 /* ------------------------------------------------------------ */
@@ -790,13 +790,13 @@ nrrdKernelAQuarticD = &_nrrdKernelDA4;
        : -6 + 12*A + x*(15 - 60*A + x*(-6 + 48*A)))))
 
 double
-_nrrdDDA4Int(double *parm) {
+_nrrdDDA4Int(const double *parm) {
 
   return 0.0;
 }
 
 double
-_nrrdDDA4Sup(double *parm) {
+_nrrdDDA4Sup(const double *parm) {
   double S;
 
   S = parm[0];
@@ -804,7 +804,7 @@ _nrrdDDA4Sup(double *parm) {
 }
 
 double
-_nrrdDDA41_d(double x, double *parm) {
+_nrrdDDA41_d(double x, const double *parm) {
   double S;
   double A;
   
@@ -814,7 +814,7 @@ _nrrdDDA41_d(double x, double *parm) {
 }
 
 float
-_nrrdDDA41_f(float x, double *parm) {
+_nrrdDDA41_f(float x, const double *parm) {
   float S, A;
   
   S = parm[0]; A = parm[1];
@@ -823,7 +823,7 @@ _nrrdDDA41_f(float x, double *parm) {
 }
 
 void
-_nrrdDDA4N_d(double *f, double *x, size_t len, double *parm) {
+_nrrdDDA4N_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t, A;
   size_t i;
@@ -837,7 +837,7 @@ _nrrdDDA4N_d(double *f, double *x, size_t len, double *parm) {
 }
 
 void
-_nrrdDDA4N_f(float *f, float *x, size_t len, double *parm) {
+_nrrdDDA4N_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, A;
   size_t i;
   
@@ -855,7 +855,7 @@ _nrrdKernelDDA4 = {
   2, _nrrdDDA4Sup,_nrrdDDA4Int, 
   _nrrdDDA41_f, _nrrdDDA4N_f, _nrrdDDA41_d, _nrrdDDA4N_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelAQuarticDD = &_nrrdKernelDDA4;
 
 /* ------------------------------------------------------------ */
@@ -865,7 +865,7 @@ nrrdKernelAQuarticDD = &_nrrdKernelDDA4;
    : exp(-x*x/(2.0*sig*sig))/(sig*2.50662827463100050241))
 
 double
-_nrrdGInt(double *parm) {
+_nrrdGInt(const double *parm) {
   double cut;
   
   cut = parm[1];
@@ -873,7 +873,7 @@ _nrrdGInt(double *parm) {
 }
 
 double
-_nrrdGSup(double *parm) {
+_nrrdGSup(const double *parm) {
   double sig, cut;
 
   sig = parm[0];
@@ -882,7 +882,7 @@ _nrrdGSup(double *parm) {
 }
 
 double
-_nrrdG1_d(double x, double *parm) {
+_nrrdG1_d(double x, const double *parm) {
   double sig, cut;
   
   sig = parm[0];
@@ -892,7 +892,7 @@ _nrrdG1_d(double x, double *parm) {
 }
 
 float
-_nrrdG1_f(float x, double *parm) {
+_nrrdG1_f(float x, const double *parm) {
   float sig, cut;
   
   sig = parm[0];
@@ -902,7 +902,7 @@ _nrrdG1_f(float x, double *parm) {
 }
 
 void
-_nrrdGN_d(double *f, double *x, size_t len, double *parm) {
+_nrrdGN_d(double *f, const double *x, size_t len, const double *parm) {
   double sig, cut, t;
   size_t i;
   
@@ -916,7 +916,7 @@ _nrrdGN_d(double *f, double *x, size_t len, double *parm) {
 }
 
 void
-_nrrdGN_f(float *f, float *x, size_t len, double *parm) {
+_nrrdGN_f(float *f, const float *x, size_t len, const double *parm) {
   float sig, cut, t;
   size_t i;
   
@@ -935,7 +935,7 @@ _nrrdKernelG = {
   2, _nrrdGSup,  _nrrdGInt,   
   _nrrdG1_f,   _nrrdGN_f,   _nrrdG1_d,   _nrrdGN_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelGaussian = &_nrrdKernelG;
 
 /* ------------------------------------------------------------ */
@@ -945,13 +945,13 @@ nrrdKernelGaussian = &_nrrdKernelG;
    : -exp(-x*x/(2.0*sig*sig))*x/(sig*sig*sig*2.50662827463100050241))
 
 double
-_nrrdDGInt(double *parm) {
+_nrrdDGInt(const double *parm) {
   
   return 0;
 }
 
 double
-_nrrdDGSup(double *parm) {
+_nrrdDGSup(const double *parm) {
   double sig, cut;
 
   sig = parm[0];
@@ -960,7 +960,7 @@ _nrrdDGSup(double *parm) {
 }
 
 double
-_nrrdDG1_d(double x, double *parm) {
+_nrrdDG1_d(double x, const double *parm) {
   double sig, cut;
   int sgn = 1;
   
@@ -971,7 +971,7 @@ _nrrdDG1_d(double x, double *parm) {
 }
 
 float
-_nrrdDG1_f(float x, double *parm) {
+_nrrdDG1_f(float x, const double *parm) {
   float sig, cut;
   int sgn = 1;
   
@@ -982,7 +982,7 @@ _nrrdDG1_f(float x, double *parm) {
 }
 
 void
-_nrrdDGN_d(double *f, double *x, size_t len, double *parm) {
+_nrrdDGN_d(double *f, const double *x, size_t len, const double *parm) {
   double sig, cut, t;
   size_t i;
   int sgn;
@@ -997,7 +997,7 @@ _nrrdDGN_d(double *f, double *x, size_t len, double *parm) {
 }
 
 void
-_nrrdDGN_f(float *f, float *x, size_t len, double *parm) {
+_nrrdDGN_f(float *f, const float *x, size_t len, const double *parm) {
   float sig, cut, t;
   size_t i;
   int sgn;
@@ -1017,7 +1017,7 @@ _nrrdKernelDG = {
   2, _nrrdDGSup,  _nrrdDGInt,   
   _nrrdDG1_f,   _nrrdDGN_f,   _nrrdDG1_d,   _nrrdDGN_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelGaussianD = &_nrrdKernelDG;
 
 /* ------------------------------------------------------------ */
@@ -1028,7 +1028,7 @@ nrrdKernelGaussianD = &_nrrdKernelDG;
      (sig*sig*sig*sig*sig*2.50662827463100050241))
 
 double
-_nrrdDDGInt(double *parm) {
+_nrrdDDGInt(const double *parm) {
   double sig, cut;
   
   sig = parm[0];
@@ -1037,7 +1037,7 @@ _nrrdDDGInt(double *parm) {
 }
 
 double
-_nrrdDDGSup(double *parm) {
+_nrrdDDGSup(const double *parm) {
   double sig, cut;
 
   sig = parm[0];
@@ -1046,7 +1046,7 @@ _nrrdDDGSup(double *parm) {
 }
 
 double
-_nrrdDDG1_d(double x, double *parm) {
+_nrrdDDG1_d(double x, const double *parm) {
   double sig, cut;
   
   sig = parm[0];
@@ -1056,7 +1056,7 @@ _nrrdDDG1_d(double x, double *parm) {
 }
 
 float
-_nrrdDDG1_f(float x, double *parm) {
+_nrrdDDG1_f(float x, const double *parm) {
   float sig, cut;
   
   sig = parm[0];
@@ -1066,7 +1066,7 @@ _nrrdDDG1_f(float x, double *parm) {
 }
 
 void
-_nrrdDDGN_d(double *f, double *x, size_t len, double *parm) {
+_nrrdDDGN_d(double *f, const double *x, size_t len, const double *parm) {
   double sig, cut, t;
   size_t i;
   
@@ -1080,7 +1080,7 @@ _nrrdDDGN_d(double *f, double *x, size_t len, double *parm) {
 }
 
 void
-_nrrdDDGN_f(float *f, float *x, size_t len, double *parm) {
+_nrrdDDGN_f(float *f, const float *x, size_t len, const double *parm) {
   float sig, cut, t;
   size_t i;
   
@@ -1099,7 +1099,7 @@ _nrrdKernelDDG = {
   2, _nrrdDDGSup,  _nrrdDDGInt,   
   _nrrdDDG1_f,   _nrrdDDGN_f,   _nrrdDDG1_d,   _nrrdDDGN_d
 };
-NrrdKernel *
+NrrdKernel *const
 nrrdKernelGaussianDD = &_nrrdKernelDDG;
 
 
@@ -1173,7 +1173,8 @@ _nrrdKernelParseTMFInt(int *val, char *str) {
 }
 
 int
-nrrdKernelParse(NrrdKernel **kernelP, double *parm, const char *_str) {
+nrrdKernelParse(NrrdKernel **kernelP, 
+		double *parm, const char *_str) {
   char me[]="nrrdKernelParse", err[128], str[AIR_STRLEN_HUGE],
     kstr[AIR_STRLEN_MED], *_pstr=NULL, *pstr, *tmfStr[3];
   int i, j, NP, tmfD, tmfC, tmfA;

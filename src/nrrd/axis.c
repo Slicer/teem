@@ -63,7 +63,7 @@ nrrdAxisInfoNix(NrrdAxis *axis) {
 /* ------------------------------------------------------------ */
 
 void
-_nrrdAxisInfoCopy(NrrdAxis *dest, NrrdAxis *src, int bitflag) {
+_nrrdAxisInfoCopy(NrrdAxis *dest, const NrrdAxis *src, int bitflag) {
 
   if (!(NRRD_AXIS_INFO_SIZE_BIT & bitflag)) {
     dest->size = src->size;
@@ -115,7 +115,7 @@ _nrrdAxisInfoCopy(NrrdAxis *dest, NrrdAxis *src, int bitflag) {
 ** indicates error.
 */
 int
-nrrdAxisInfoCopy(Nrrd *nout, Nrrd *nin, int *map, int bitflag) {
+nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin, const int *map, int bitflag) {
   int d, from;
   
   if (!(nout && nin)) {
@@ -154,8 +154,8 @@ nrrdAxisInfoCopy(Nrrd *nout, Nrrd *nin, int *map, int bitflag) {
 ** Simple means of setting fields of the axis array in the nrrd.
 */
 void
-nrrdAxisInfoSet_nva(Nrrd *nrrd, int axInfo, void *_info) {
-  _nrrdAxisInfoPtrs info;
+nrrdAxisInfoSet_nva(Nrrd *nrrd, int axInfo, const void *_info) {
+  _nrrdAxisInfoSetPtrs info;
   int d;
   
   if (!( nrrd 
@@ -204,7 +204,7 @@ nrrdAxisInfoSet_nva(Nrrd *nrrd, int axInfo, void *_info) {
 void
 nrrdAxisInfoSet(Nrrd *nrrd, int axInfo, ...) {
   NRRD_TYPE_BIGGEST *space[NRRD_DIM_MAX];
-  _nrrdAxisInfoPtrs info;
+  _nrrdAxisInfoSetPtrs info;
   int d;
   va_list ap;
 
@@ -275,8 +275,8 @@ nrrdAxisInfoSet(Nrrd *nrrd, int axInfo, ...) {
 ** them.
 */
 void
-nrrdAxisInfoGet_nva(Nrrd *nrrd, int axInfo, void *_info) {
-  _nrrdAxisInfoPtrs info;
+nrrdAxisInfoGet_nva(const Nrrd *nrrd, int axInfo, void *_info) {
+  _nrrdAxisInfoGetPtrs info;
   int d;
   
   if (!( nrrd 
@@ -318,9 +318,9 @@ nrrdAxisInfoGet_nva(Nrrd *nrrd, int axInfo, void *_info) {
 }
 
 void
-nrrdAxisInfoGet(Nrrd *nrrd, int axInfo, ...) {
+nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo, ...) {
   void *space[NRRD_DIM_MAX], *ptr;
-  _nrrdAxisInfoPtrs info;
+  _nrrdAxisInfoGetPtrs info;
   int d;
   va_list ap;
 
@@ -413,7 +413,7 @@ _nrrdCenter2(int center, int defCenter) {
 ** does not use biff
 */
 double
-nrrdAxisPos(Nrrd *nrrd, int ax, double idx) {
+nrrdAxisPos(const Nrrd *nrrd, int ax, double idx) {
   int center, size;
   double min, max;
   
@@ -438,7 +438,7 @@ nrrdAxisPos(Nrrd *nrrd, int ax, double idx) {
 ** does not use biff
 */
 double
-nrrdAxisIdx(Nrrd *nrrd, int ax, double pos) {
+nrrdAxisIdx(const Nrrd *nrrd, int ax, double pos) {
   int center, size;
   double min, max;
   
@@ -461,7 +461,8 @@ nrrdAxisIdx(Nrrd *nrrd, int ax, double pos) {
 ** The opposite of nrrdAxisIdxRange()
 */
 void
-nrrdAxisPosRange(double *loP, double *hiP, Nrrd *nrrd, int ax, 
+nrrdAxisPosRange(double *loP, double *hiP,
+		 const Nrrd *nrrd, int ax, 
 		 double loIdx, double hiIdx) {
   int center, size, flip = 0;
   double min, max, tmp;
@@ -511,7 +512,8 @@ nrrdAxisPosRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
 ** to nrrdAxisIdxRange()) loPos < hiPos, but *loP > *hiP.
 */
 void
-nrrdAxisIdxRange(double *loP, double *hiP, Nrrd *nrrd, int ax, 
+nrrdAxisIdxRange(double *loP, double *hiP,
+		 const Nrrd *nrrd, int ax, 
 		 double loPos, double hiPos) {
   int center, size, flip = 0;
   double min, max, tmp;

@@ -102,7 +102,7 @@ _nrrdCC_eclass (int *map, int len, airArray *eqvArr) {
 }
 
 int
-nrrdCCValid(Nrrd *nin) {
+nrrdCCValid(const Nrrd *nin) {
   char me[]="nrrdCCValid", err[AIR_STRLEN_MED];
   
   if (nrrdCheck(nin)) {
@@ -130,9 +130,9 @@ nrrdCCValid(Nrrd *nin) {
 */
 
 int
-nrrdCCSize(Nrrd *nout, Nrrd *nin) {
+nrrdCCSize(Nrrd *nout, const Nrrd *nin) {
   char me[]="nrrdCCSize", func[]="ccsize", err[AIR_STRLEN_MED];
-  int *out, maxid, (*lup)(void *, size_t);
+  int *out, maxid, (*lup)(const void *, size_t);
   size_t I, NN;
 
   if (!( nout && nrrdCCValid(nin) )) {
@@ -166,8 +166,8 @@ nrrdCCSize(Nrrd *nout, Nrrd *nin) {
 ** does NOT use biff
 */
 int
-nrrdCCMax(Nrrd *nin) {
-  int (*lup)(void *, size_t), id, max;
+nrrdCCMax(const Nrrd *nin) {
+  int (*lup)(const void *, size_t), id, max;
   size_t I, NN;
 
   if (!nrrdCCValid(nin)) {
@@ -184,8 +184,8 @@ nrrdCCMax(Nrrd *nin) {
 }
 
 int
-nrrdCCNum(Nrrd *nin) {
-  int (*lup)(void *, size_t), max, num=-1;
+nrrdCCNum(const Nrrd *nin) {
+  int (*lup)(const void *, size_t), max, num=-1;
   size_t I, NN;
   unsigned char *hist;
   

@@ -27,7 +27,8 @@
 ** another nrrd.  Will allocate memory for output only if nout != nin.
 */
 int
-nrrdSplice(Nrrd *nout, Nrrd *nin, Nrrd *nslice, int axis, int pos) {
+nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
+	   int axis, int pos) {
   char me[]="nrrdSplice", func[]="splice", err[AIR_STRLEN_MED];
   size_t 
     I, 
@@ -142,7 +143,7 @@ nrrdSplice(Nrrd *nout, Nrrd *nin, Nrrd *nslice, int axis, int pos) {
 **
 */
 int
-nrrdInset(Nrrd *nout, Nrrd *nin, Nrrd *nsub, int *min) {
+nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const int *min) {
   char me[]="nrrdInset", func[] = "inset", err[AIR_STRLEN_MED],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   int d,
@@ -261,7 +262,8 @@ nrrdInset(Nrrd *nout, Nrrd *nin, Nrrd *nsub, int *min) {
 ** strictly for padding
 */
 int
-nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
+nrrdPad(Nrrd *nout, const Nrrd *nin,
+	const int *min, const int *max, int boundary, ...) {
   char me[]="nrrdPad", func[]="pad", err[AIR_STRLEN_MED],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_MED];
   double padValue=AIR_NAN;
@@ -430,7 +432,7 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
 ** nrrdPad() instead of the other way around.
 */
 int
-nrrdPad_nva(Nrrd *nout, Nrrd *nin, int *min, int *max,
+nrrdPad_nva(Nrrd *nout, const Nrrd *nin, const int *min, const int *max,
 	    int boundary, double padValue) {
   char me[]="nrrdPad_nva", err[AIR_STRLEN_MED];
   int E;
@@ -458,7 +460,7 @@ nrrdPad_nva(Nrrd *nout, Nrrd *nin, int *min, int *max,
 ** pads by a given amount on top and bottom of EVERY axis
 */
 int
-nrrdSimplePad(Nrrd *nout, Nrrd *nin, int pad, int boundary, ...) {
+nrrdSimplePad(Nrrd *nout, const Nrrd *nin, int pad, int boundary, ...) {
   char me[]="nrrdSimplePad", err[AIR_STRLEN_MED];
   int d, min[NRRD_DIM_MAX], max[NRRD_DIM_MAX], ret;
   double padValue;
@@ -494,7 +496,7 @@ nrrdSimplePad(Nrrd *nout, Nrrd *nin, int pad, int boundary, ...) {
 ** around nrrdSimplePad() instead of the other way around.
 */
 int
-nrrdSimplePad_nva(Nrrd *nout, Nrrd *nin, int pad,
+nrrdSimplePad_nva(Nrrd *nout, const Nrrd *nin, int pad,
 		  int boundary, double padValue) {
   char me[]="nrrdSimplePad_nva", err[AIR_STRLEN_MED];
   int E;

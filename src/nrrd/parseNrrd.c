@@ -411,23 +411,29 @@ _nrrdReadNrrdParse_block_size (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   return 0;
 }
 
+/*
+** HEY: these two are severly useless with the advent of NrrdRange
+*/
 int
 _nrrdReadNrrdParse_min (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+  /*
   char me[]="_nrrdReadNrrdParse_min", err[AIR_STRLEN_MED];
   char *info;
 
   info = io->line + io->pos;
   _PARSE_ONE_VAL(nrrd->min, "%lg", "double");
+  */
   return 0;
 }
-
 int
 _nrrdReadNrrdParse_max (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+  /*
   char me[]="_nrrdReadNrrdParse_max", err[AIR_STRLEN_MED];
   char *info;
 
   info = io->line + io->pos;
   _PARSE_ONE_VAL(nrrd->max, "%lg", "double");
+  */
   return 0;
 }
 

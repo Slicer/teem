@@ -27,6 +27,26 @@ const char *
 nrrdBiffKey = "nrrd";
 
 /*
+******** nrrdCNPP
+**
+** As far as I can tell, a function like this is unfortunately
+** necessary to pass a <Nrrd**> to a function expecting a 
+** <const Nrrd**> (a "CNPP").  This function just creates a new
+** array of the right type and copies all the pointers into it.  
+*/
+const Nrrd **
+nrrdCNPP(Nrrd **nin, int N) {
+  const Nrrd **ret;
+  int i;
+
+  ret = (const Nrrd **)calloc(N, sizeof(Nrrd *));
+  for (i=0; i<N; i++) {
+    ret[i] = nin[i];
+  }
+  return ret;
+}
+
+/*
 ******** nrrdPeripheralInit
 **
 ** resets peripheral information
@@ -37,9 +57,9 @@ nrrdPeripheralInit (Nrrd *nrrd) {
   if (!nrrd) 
     return 1;
 
-  nrrd->min = nrrd->max = AIR_NAN;
+  /* nrrd->min = nrrd->max = AIR_NAN; */
   nrrd->oldMin = nrrd->oldMax = AIR_NAN;
-  nrrd->hasNonExist = nrrdNonExistUnknown;
+  /* nrrd->hasNonExist = nrrdNonExistUnknown; */
   return 0;
 }
 
@@ -49,17 +69,19 @@ nrrdPeripheralInit (Nrrd *nrrd) {
 ** copies peripheral information
 */
 int
-nrrdPeripheralCopy (Nrrd *nout, Nrrd *nin) {
+nrrdPeripheralCopy (Nrrd *nout, const Nrrd *nin) {
 
   if (!( nout && nin ))
     return 1;
 
   /* HEY: who copies the content? */
+  /*
   nout->min = nin->min;
   nout->max = nin->max;
+  */
   nout->oldMin = nin->oldMin;
   nout->oldMax = nin->oldMax;
-  nout->hasNonExist = nin->hasNonExist;
+  /* nout->hasNonExist = nin->hasNonExist; */
   return 0;
 }
 
@@ -70,7 +92,7 @@ nrrdPeripheralCopy (Nrrd *nout, Nrrd *nin) {
 ** panics and exits if allocation failed
 */
 char *
-_nrrdContentGet(Nrrd *nin) {
+_nrrdContentGet(const Nrrd *nin) {
   char me[]="_nrrdContentGet";
   char *ret;
   
@@ -150,7 +172,7 @@ _nrrdContentSet (Nrrd *nout, const char *func,
 */
 int
 nrrdContentSet (Nrrd *nout, const char *func,
-		Nrrd *nin, const char *format, ...) {
+		const Nrrd *nin, const char *format, ...) {
   char me[]="nrrdContentSet", err[AIR_STRLEN_MED];
   va_list ap;
   char *content;
@@ -190,7 +212,7 @@ nrrdContentSet (Nrrd *nout, const char *func,
 ** writes verbose description of nrrd to given file
 */
 void
-nrrdDescribe (FILE *file, Nrrd *nrrd) {
+nrrdDescribe (FILE *file, const Nrrd *nrrd) {
   int i;
 
   if (file && nrrd) {
@@ -217,13 +239,15 @@ nrrdDescribe (FILE *file, Nrrd *nrrd) {
 		       nrrd->axis[i].min);
       airSinglePrintf(file, NULL, "%lg)\n", nrrd->axis[i].max);
     }
+    /*
     airSinglePrintf(file, NULL, "The min, max values are %lg",
 		     nrrd->min);
     airSinglePrintf(file, NULL, ", %lg\n", nrrd->max);
+    */
     airSinglePrintf(file, NULL, "The old min, old max values are %lg",
 		     nrrd->oldMin);
     airSinglePrintf(file, NULL, ", %lg\n", nrrd->oldMax);
-    fprintf(file, "hasNonExist = %d\n", nrrd->hasNonExist);
+    /* fprintf(file, "hasNonExist = %d\n", nrrd->hasNonExist); */
     if (nrrd->cmtArr->len) {
       fprintf(file, "Comments:\n");
       for (i=0; i<nrrd->cmtArr->len; i++) {
@@ -240,7 +264,7 @@ nrrdDescribe (FILE *file, Nrrd *nrrd) {
 ** does some consistency checks for things that can go wrong in a nrrd
 */
 int
-nrrdCheck (Nrrd *nrrd) {
+nrrdCheck (const Nrrd *nrrd) {
   char me[] = "nrrdCheck", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX], i, ret;
   double val[NRRD_DIM_MAX];
@@ -305,6 +329,7 @@ nrrdCheck (Nrrd *nrrd) {
     sprintf(err, "%s: old max %sinf invalid", me, 1==ret ? "+" : "-");
     biffAdd(NRRD, err); return 1;
   }
+  /*
   if ((ret=airIsInf_d(nrrd->min))) {
     sprintf(err, "%s: min %sinf invalid", me, 1==ret ? "+" : "-");
     biffAdd(NRRD, err); return 1;
@@ -313,6 +338,7 @@ nrrdCheck (Nrrd *nrrd) {
     sprintf(err, "%s: max %sinf invalid", me, 1==ret ? "+" : "-");
     biffAdd(NRRD, err); return 1;
   }
+  */
   return 0;
 }
 
@@ -323,7 +349,7 @@ nrrdCheck (Nrrd *nrrd) {
 ** This does NOT look at the type of the elements.
 */
 int
-nrrdSameSize (Nrrd *n1, Nrrd *n2, int useBiff) {
+nrrdSameSize (const Nrrd *n1, const Nrrd *n2, int useBiff) {
   char me[]="nrrdSameSize", err[AIR_STRLEN_MED];
   int i;
 
@@ -364,7 +390,7 @@ nrrdSameSize (Nrrd *n1, Nrrd *n2, int useBiff) {
 ** is useful as a way of detecting an invalid blocksize on a block nrrd.
 */
 int
-nrrdElementSize (Nrrd *nrrd) {
+nrrdElementSize (const Nrrd *nrrd) {
 
   if (!( nrrd && !airEnumValCheck(nrrdType, nrrd->type) )) {
     return 0;
@@ -377,7 +403,7 @@ nrrdElementSize (Nrrd *nrrd) {
     return nrrd->blockSize;
   }
   /* else we got an invalid block size */
-  nrrd->blockSize = 0;
+  /* nrrd->blockSize = 0; */
   return 0;
 }
 
@@ -391,7 +417,7 @@ nrrdElementSize (Nrrd *nrrd) {
 ** does NOT use biff
 */
 size_t
-nrrdElementNumber (Nrrd *nrrd) {
+nrrdElementNumber (const Nrrd *nrrd) {
   size_t num;
   int d, size[NRRD_DIM_MAX];
 
@@ -426,7 +452,7 @@ nrrdElementNumber (Nrrd *nrrd) {
 ** in this format....
 */
 int
-nrrdFitsInFormat (Nrrd *nrrd, int encoding, int format, int useBiff) {
+nrrdFitsInFormat (const Nrrd *nrrd, int encoding, int format, int useBiff) {
   char me[]="nrrdFitsInFormat", err[AIR_STRLEN_MED];
   int ret=AIR_FALSE;
 
@@ -608,6 +634,7 @@ nrrdFitsInFormat (Nrrd *nrrd, int encoding, int format, int useBiff) {
 **     ... handle existance of non-existant values ...
 **   }
 */
+/*
 int
 nrrdHasNonExistSet (Nrrd *nrrd) {
   size_t I, N;
@@ -631,6 +658,7 @@ nrrdHasNonExistSet (Nrrd *nrrd) {
   }
   return nrrd->hasNonExist;
 }
+*/
 
 int
 _nrrdCheckEnums (void) {
@@ -665,8 +693,8 @@ _nrrdCheckEnums (void) {
   if (nrrdField_last-1 != NRRD_FIELD_MAX) {
     strcpy(which, "nrrdField"); goto err;
   }
-  if (nrrdNonExistLast-1 != NRRD_NON_EXIST_MAX) {
-    strcpy(which, "nrrdNonExist"); goto err;
+  if (nrrdHasNonExistLast-1 != NRRD_HAS_NON_EXIST_MAX) {
+    strcpy(which, "nrrdHasNonExist"); goto err;
   }
   if (nrrdUnaryOpLast-1 != NRRD_UNARY_OP_MAX) {
     strcpy(which, "nrrdUnaryOp"); goto err;

@@ -229,10 +229,8 @@ nrrdInit (Nrrd *nrrd) {
     
     AIR_FREE(nrrd->content);
     nrrd->blockSize = 0;
-    nrrd->min = nrrd->max = AIR_NAN;
     nrrd->oldMin = nrrd->oldMax = AIR_NAN;
     /* nrrd->ptr = NULL; */
-    nrrd->hasNonExist = nrrdNonExistUnknown;
     
     /* the comment airArray should be already been allocated, 
        though perhaps empty */
@@ -341,7 +339,7 @@ nrrdNuke (Nrrd *nrrd) {
 /* ------------------------------------------------------------ */
 
 int
-_nrrdSizeCheck (int dim, int *size, int useBiff) {
+_nrrdSizeCheck (int dim, const int *size, int useBiff) {
   char me[]="_nrrdSizeCheck", err[AIR_STRLEN_MED];
   size_t num, pre;
   int d;
@@ -376,7 +374,7 @@ _nrrdSizeCheck (int dim, int *size, int useBiff) {
 ** set nrrd->blockSize at some other time.
 */
 int
-nrrdWrap_nva (Nrrd *nrrd, void *data, int type, int dim, int *size) {
+nrrdWrap_nva (Nrrd *nrrd, void *data, int type, int dim, const int *size) {
   char me[] = "nrrdWrap_nva", err[AIR_STRLEN_MED];
   int d;
   
@@ -466,7 +464,7 @@ _nrrdTraverse (Nrrd *nrrd) {
 ** newly allocated.  nout->ptr is not set, nin->ptr is not read.
 */
 int
-nrrdCopy (Nrrd *nout, Nrrd *nin) {
+nrrdCopy (Nrrd *nout, const Nrrd *nin) {
   char me[]="nrrdCopy", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX];
 
@@ -507,12 +505,9 @@ nrrdCopy (Nrrd *nout, Nrrd *nin) {
     biffAdd(NRRD, err); return 1;
   }
   nout->blockSize = nin->blockSize;
-  nout->min = nin->min;
-  nout->max = nin->max;
   nout->oldMin = nin->oldMin;
   nout->oldMax = nin->oldMax;
   /* nout->ptr = nin->ptr; */
-  nout->hasNonExist = nin->hasNonExist;
     
   if (nrrdCommentCopy(nout, nin)) {
     sprintf(err, "%s: trouble copying comments", me);
@@ -542,7 +537,7 @@ nrrdCopy (Nrrd *nout, Nrrd *nin) {
 ** Note: This function DOES use biff
 */
 int 
-nrrdAlloc_nva (Nrrd *nrrd, int type, int dim, int *size) {
+nrrdAlloc_nva (Nrrd *nrrd, int type, int dim, const int *size) {
   char me[] = "nrrdAlloc_nva", err[AIR_STRLEN_MED];
   size_t num;
   int esize;
@@ -630,7 +625,7 @@ nrrdAlloc (Nrrd *nrrd, int type, int dim, ...) {
 ** also subscribes to the "don't mess with peripheral information" philosophy
 */
 int
-nrrdMaybeAlloc_nva (Nrrd *nrrd, int type, int dim, int *size) {
+nrrdMaybeAlloc_nva (Nrrd *nrrd, int type, int dim, const int *size) {
   char me[]="nrrdMaybeAlloc_nva", err[AIR_STRLEN_MED];
   size_t sizeWant, sizeHave, numWant;
   int d, need, elementSizeWant;
