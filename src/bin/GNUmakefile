@@ -127,7 +127,7 @@ $(call _binDI,mrender)    : $(call used,$(mrender.need))
 $(call _binDI,miter)      : $(call used,$(miter.need))
 $(call _binDI,ungantry)   : $(call used,$(ungantry.need))
 $(call _binDI,tend)       : $(call used,$(tend.need))
-$(call _binDI,spots)      : $(call used,$(tend.spots))
+$(call _binDI,spots)      : $(call used,$(spots.need))
 
 ## How to make bins.dev and bins.inst: both kinds link against the
 ## same (installed) libraries and include the same (installed)
