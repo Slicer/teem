@@ -233,7 +233,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
      use doubles, because I wanted the most generality */
   double val[3], min[3], max[3], *measrParm[3];
   baneMeasr *measr[3];
-  nrrdBigInt hidx, included;
+  size_t hidx, included;
   float fracIncluded;
   unsigned char *nhvdata;
   Nrrd *rawhvol;

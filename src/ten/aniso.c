@@ -98,7 +98,7 @@ tenAnisoCalc(float c[TEN_ANISO_MAX+1], float e[3]) {
 int
 tenAnisoVolume(Nrrd *nout, Nrrd *nin, float anisoType) {
   char me[]="tenAnisoVolume", err[128];
-  nrrdBigInt N, I;
+  size_t N, I;
   float *out, *in, *tensor, eval[3], evec[9], c[TEN_ANISO_MAX+1], cl, cp;
   int d, map[NRRD_DIM_MAX];
 

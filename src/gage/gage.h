@@ -282,7 +282,7 @@ typedef struct gageContext_t {
 				 3D intermediate value cache. Allocated size is
 				 dependent on kernels, values inside are
 				 dependent on the dimensions of the volume. It
-				 may be more correct to be using nrrdBigInt
+				 may be more correct to be using size_t
 				 instead of uint, but the X and Y dimensions of
 				 the volume would have to be super-outrageous
 				 for that to be a problem */
@@ -331,7 +331,7 @@ typedef struct gagePerVolume_t {
 				 concern, as filling iv3 is up to iv3Fill in
 				 the gageKind struct.  Use of iv2 and iv1 is
 				 entirely up the kind's filter method. */
-  gage_t (*lup)(void *ptr, nrrdBigInt I); 
+  gage_t (*lup)(void *ptr, size_t I); 
                               /* nrrd{F,D}Lookup[] element, according to
 				 npad->type and gage_t */
   int needD[3];               /* which derivatives need to be calculated for

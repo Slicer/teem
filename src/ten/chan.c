@@ -65,7 +65,7 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin,
   char me[] = "tenCalcTensor", err[128], cmt[128];
   float *out, tens[6], chan[7];
   int sx, sy, sz;
-  nrrdBigInt I;
+  size_t I;
   
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
