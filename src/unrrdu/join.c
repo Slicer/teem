@@ -1,0 +1,105 @@
+/*
+  The contents of this file are subject to the University of Utah Public
+  License (the "License"); you may not use this file except in
+  compliance with the License.
+  
+  Software distributed under the License is distributed on an "AS IS"
+  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
+  the License for the specific language governing rights and limitations
+  under the License.
+
+  The Original Source Code is "teem", released March 23, 2001.
+  
+  The Original Source Code was developed by the University of Utah.
+  Portions created by UNIVERSITY are Copyright (C) 2001, 1998 University
+  of Utah. All Rights Reserved.
+*/
+
+
+#include <nrrd.h>
+
+char *me; 
+
+void
+usage() {
+              /*  0    1    2  ...  argc-5   argc-4 argc-3  argc-2    argc-1 */
+  fprintf(stderr, 
+	  "usage: %s <n0> <n1> ... <n(n-1)> <axis> <label> <spacing> <nout>\n",
+	  me);
+  fprintf(stderr, "       <n0> <n1> ... <n(n-1)> are Nrrds to be joined\n");
+  fprintf(stderr, "       <axis> is which axis the given parts should\n");
+  fprintf(stderr, "       lie along in the new (output) nrrd, that is,\n");
+  fprintf(stderr, "       which axis along which you'd slice/crop the new\n");
+  fprintf(stderr, "       nrrd to get back the given parts\n");
+  fprintf(stderr, "       <label> and <spacing> are for the new axis\n");
+  exit(1);
+}
+
+int
+main(int argc, char *argv[]) {
+  char *err, *label, *axisS, *spacingS, *out;
+  int i, axis, num;
+  float spacing;
+  Nrrd **nin, *nout;
+
+  me = argv[0];
+  num = argc-5;
+  if (!(num >= 1))
+    usage();
+  axisS = argv[argc-4];
+  label = argv[argc-3];
+  spacingS = argv[argc-2];
+  out = argv[argc-1];
+  
+  if (1 != sscanf(axisS, "%d", &axis)) {
+    fprintf(stderr, "%s: couldn't parse \"%s\" as axis\n", me, axisS);
+    exit(1);
+  }
+  if (1 != sscanf(spacingS, "%f", &spacing)) {
+    fprintf(stderr, "%s: couldn't parse \"%s\" as spacing\n", me, spacingS);
+    exit(1);
+  }
+  fprintf(stderr, "%s: planning to join %d parts\n", me, num);
+  if (!(nin = (Nrrd **)calloc(num, sizeof(Nrrd *)))) {
+    fprintf(stderr, "%s: couldn't alloc array of input Nrrd pointers\n", me);
+    exit(1);
+  }
+  for (i=0; i<=num-1; i++) {
+    if (!(nin[i] = nrrdNewLoad(argv[1+i]))) {
+      err = biffGet(NRRD);
+      fprintf(stderr, "%s: error loading nrrd #%d from \"%s\":\n%s\n",
+	      me, i, argv[1+i], err);
+      free(err); 
+      exit(1);
+    }
+  }
+
+  /* do the deed */
+  nout = nrrdNew();
+  if (nrrdJoin(nout, nin, num, axis)) {
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: trouble joining all inputs:\n%s\n", me, err);
+    free(err); 
+    exit(1);
+  }
+  nout->spacing[axis] = spacing;
+  strcpy(nout->label[axis], label);
+
+  /* nuke all the inputs */
+  for (i=0; i<=num-1; i++) {
+    nin[i] = nrrdNuke(nin[i]);
+  }
+  free(nin);
+
+  /* save the output */
+  nout->encoding = nrrdEncodingRaw;
+  if (nrrdSave(out, nout)) {
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s", me, out, err);
+    free(err);
+    exit(1);
+  }
+  nout = nrrdNuke(nout);
+  
+  exit(0);
+}
