@@ -44,7 +44,7 @@ $(L).SEEN := true
 #### Describe library here
 ####
 ####
-$(L).NEED = limn nrrd ell biff air
+$(L).NEED = limn ell nrrd biff air
 $(L).PUBLIC_HEADERS = echo.h
 $(L).PRIVATE_HEADERS = privateEcho.h
 $(L).OBJS = enumsEcho.o methodsEcho.o objmethods.o bounds.o set.o model.o \

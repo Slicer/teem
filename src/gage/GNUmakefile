@@ -44,7 +44,7 @@ $(L).SEEN := true
 #### Describe library here
 ####
 ####
-$(L).NEED = nrrd biff ell air
+$(L).NEED = ell nrrd biff air
 $(L).PUBLIC_HEADERS = gage.h
 $(L).PRIVATE_HEADERS = privateGage.h
 $(L).OBJS = defaultsGage.o miscGage.o print.o filter.o update.o \
