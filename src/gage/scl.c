@@ -57,7 +57,7 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
       */
       gmag = san->gmag[0];
     } else {
-      ELL_3V_COPY(san->norm, gageSclZeroNormal);
+      ELL_3V_COPY(san->norm, gageZeroNormal);
       gmag = ctx->gradMagMin;
     }
   }
@@ -154,34 +154,32 @@ _gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageSclFilter";
   int fd;
   gageSclAnswer *san;
+  gage_t *fw00, *fw11, *fw22;
 
   fd = ctx->fd;
   san = (gageSclAnswer *)pvl->ans;
+  fw00 = ctx->fw + fd*3*gageKernel00;
+  fw11 = ctx->fw + fd*3*gageKernel11;
+  fw22 = ctx->fw + fd*3*gageKernel22;
   /* perform the filtering */
   if (ctx->k3pack) {
     switch (fd) {
     case 2:
       _gageScl3PFilter2(pvl->iv3, pvl->iv2, pvl->iv1, 
-			ctx->fw + fd*3*gageKernel00,
-			ctx->fw + fd*3*gageKernel11,
-			ctx->fw + fd*3*gageKernel22,
+			fw00, fw11, fw22,
 			san->val, san->gvec, san->hess,
 			pvl->doV, pvl->doD1, pvl->doD2);
       break;
     case 4:
       _gageScl3PFilter4(pvl->iv3, pvl->iv2, pvl->iv1, 
-			ctx->fw + fd*3*gageKernel00,
-			ctx->fw + fd*3*gageKernel11,
-			ctx->fw + fd*3*gageKernel22,
+			fw00, fw11, fw22,
 			san->val, san->gvec, san->hess,
 			pvl->doV, pvl->doD1, pvl->doD2);
       break;
     default:
-      _gageScl3PFilterN(ctx->fd,
+      _gageScl3PFilterN(fd,
 			pvl->iv3, pvl->iv2, pvl->iv1, 
-			ctx->fw + fd*3*gageKernel00,
-			ctx->fw + fd*3*gageKernel11,
-			ctx->fw + fd*3*gageKernel22,
+			fw00, fw11, fw22,
 			san->val, san->gvec, san->hess,
 			pvl->doV, pvl->doD1, pvl->doD2);
       break;
@@ -192,3 +190,21 @@ _gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
 
   return;
 }
+
+void
+_gageSclIv3Fill(gageContext *ctx, gagePerVolume *pvl, void *here) {
+  int i, fd;
+  
+  fd = ctx->fd;
+  for (i=0; i<fd*fd*fd; i++)
+    pvl->iv3[i] = pvl->lup(here, ctx->off[i]);
+
+  return;
+}
+/*
+    if (1 == valLen) {
+    } else {
+      for (i=0; i<fd*fd*fd; i++)
+	memcpy(pvl->iv3 + i, here + valLen*ctx->off[i], valLen);
+    }
+*/

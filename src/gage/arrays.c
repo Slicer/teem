@@ -20,12 +20,24 @@
 #include "gage.h"
 #include "private.h"
 
-char gageErrStr[AIR_STRLEN_LARGE];
-int gageErrNum;
+char
+gageErrStr[AIR_STRLEN_LARGE];
+
+int
+gageErrNum;
+
+/*
+******** gageZeroNormal[]
+**
+** this is the vector to supply when someone wants the normalized
+** version of a vector with zero length.  We could be nasty and
+** set this to {AIR_NAN, AIR_NAN, AIR_NAN}, but simply passing
+** NANs around can make things fantastically slow ...
+*/
+gage_t
+gageZeroNormal[3] = {1,0,0};
 
 /* --------------------------- scl ------------------------- */
-
-gage_t gageSclZeroNormal[3] = {1,0,0};
 
 /*
   gageSclUnknown=-1,  * -1: nobody knows *
@@ -137,6 +149,17 @@ _gageSclPrereq[GAGE_SCL_MAX+1] = {
 };
 
 /* --------------------------- vec ------------------------- */
+
+/*
+  gageVecVector,      *  0: component-wise-interpolatd (CWI) vector: GT[3] *
+  gageVecLength,      *  1: length of CWI vector: *GT *
+  gageVecNormalized,  *  2: normalized CWI vector: GT[3] *
+  gageVecJacobian,    *  3: component-wise Jacobian: GT[9] *
+  gageVecDivergence,  *  4: divergence (based on Jacobian): *GT *
+  gageVecCurl,        *  5: curl (based on Jacobian): *GT *
+  gageVecLast
+  0   1   2   3   4   5
+*/
 
 /*
 ******** gageVecAnsLength[]

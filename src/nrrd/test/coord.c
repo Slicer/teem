@@ -1,18 +1,20 @@
 /*
-  The contents of this file are subject to the University of Utah Public
-  License (the "License"); you may not use this file except in
-  compliance with the License.
-  
-  Software distributed under the License is distributed on an "AS IS"
-  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
-  the License for the specific language governing rights and limitations
-  under the License.
+  teem: Gordon Kindlmann's research software
+  Copyright (C) 2002, 2001, 2000, 1999, 1998 University of Utah
 
-  The Original Source Code is "teem", released March 23, 2001.
-  
-  The Original Source Code was developed by the University of Utah.
-  Portions created by UNIVERSITY are Copyright (C) 2001, 1998 University
-  of Utah. All Rights Reserved.
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 #include <stdio.h>

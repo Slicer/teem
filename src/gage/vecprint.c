@@ -35,7 +35,7 @@ _gageVecPrint_query(unsigned int query) {
 }
 
 void
-_gageVecPrint_iv3(gageContext *ctx, gagePerVolume *pvl) {
+_gageVecIv3Print(gageContext *ctx, gagePerVolume *pvl) {
   
-  fprintf(stderr, "_gageVecPrint_iv3() not implemented\n");
+  fprintf(stderr, "_gageVecIv3Print() not implemented\n");
 }

@@ -198,7 +198,7 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   E = 0;
-  if (!E) E |= !(pvl = gagePerVolumeNew(needPad, gageKindScalar));
+  if (!E) E |= !(pvl = gagePerVolumeNew(needPad, gageKindScl));
   if (!E) san = (gageSclAnswer *)pvl->ans;
   if (!E) E |= gageVolumeSet(ctx, pvl, npad, needPad);
   if (!E) E |= gageQuerySet(pvl, 1 << gageSclValue);

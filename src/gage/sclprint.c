@@ -35,7 +35,7 @@ _gageSclPrint_query(unsigned int query) {
 }
 
 void
-_gageSclPrint_iv3(gageContext *ctx, gagePerVolume *pvl) {
+_gageSclIv3Print(gageContext *ctx, gagePerVolume *pvl) {
   gage_t *iv3;
   int i, fd;
 

@@ -529,12 +529,15 @@ gageUpdate(gageContext *ctx, gagePerVolume *pvl) {
 ******** gageProbe()
 **
 ** how to do probing
+**
+** doesn't actually do much more than call callbacks in the gageKind
+** struct.
 */
 int
 gageProbe(gageContext *ctx, gagePerVolume *pvl,
 	  gage_t x, gage_t y, gage_t z) {
   char me[]="gageProbe";
-  int i, newBidx, valLen, fd;
+  int newBidx;
   char *here;
   
   if (_gageLocationSet(ctx, &newBidx, x, y, z)) {
@@ -545,17 +548,9 @@ gageProbe(gageContext *ctx, gagePerVolume *pvl,
   
   /* if necessary, refill the iv3 cache */
   if (newBidx) {
-    fd = ctx->fd;
-    valLen = pvl->kind->valLen;
     here = ((char*)(pvl->npad->data)
-	    + valLen*ctx->bidx*nrrdTypeSize[pvl->npad->type]);
-    if (1 == valLen) {
-      for (i=0; i<fd*fd*fd; i++)
-	pvl->iv3[i] = pvl->lup(here, ctx->off[i]);
-    } else {
-      for (i=0; i<fd*fd*fd; i++)
-	memcpy(pvl->iv3 + i, here + valLen*ctx->off[i], valLen);
-    }
+	    + (ctx->bidx * pvl->kind->valLen * nrrdTypeSize[pvl->npad->type]));
+    pvl->kind->iv3Fill(ctx, pvl, here);
   }
   if (ctx->verbose > 1) {
     fprintf(stderr,

@@ -115,7 +115,7 @@ enum {
   gageSclGradVec,     /*  1: gradient vector, un-normalized: GT[3] */
   gageSclGradMag,     /*  2: gradient magnitude: *GT */
   gageSclNormal,      /*  3: gradient vector, normalized: GT[3] */
-  gageSclHessian,     /*  4: Hessian: GT[9] */
+  gageSclHessian,     /*  4: Hessian: GT[9] (column-order) */
   gageSclLaplacian,   /*  5: Laplacian: Dxx + Dyy + Dzz: *GT */
   gageSclHessEval,    /*  6: Hessian's eigenvalues: GT[3] */
   gageSclHessEvec,    /*  7: Hessian's eigenvectors: GT[9] */
@@ -137,7 +137,10 @@ enum {
   gageVecVector,      /*  0: component-wise-interpolatd (CWI) vector: GT[3] */
   gageVecLength,      /*  1: length of CWI vector: *GT */
   gageVecNormalized,  /*  2: normalized CWI vector: GT[3] */
-  gageVecJacobian,    /*  3: component-wise Jacobian: GT[9] */
+  gageVecJacobian,    /*  3: component-wise Jacobian: GT[9]
+			     0:dv_x/dx  3:dv_x/dy  6:dv_x/dz
+			     1:dv_y/dx  4:dv_y/dy  7:dv_y/dz
+			     2:dv_z/dx  5:dv_z/dy  8:dv_z/dz */
   gageVecDivergence,  /*  4: divergence (based on Jacobian): *GT */
   gageVecCurl,        /*  5: curl (based on Jacobian): *GT */
   gageVecLast
@@ -251,7 +254,13 @@ typedef struct {
 				 nrrdNuke() and nrrdNix() not called */
   /*  --------------------------------------- Internal state */
   /*  ------------ kernel-dependent */
-  gage_t *iv3, *iv2, *iv1;    /* 3D, 2D, 1D, value caches */
+  gage_t *iv3, *iv2, *iv1;    /* 3D, 2D, 1D, value caches.  Exactly how
+				 values are arranged in iv3 (non-scalar
+				 volumes can have the component axis
+				 be the slowest or the fastest) is not
+				 strictly speaking gage's concern, as
+				 filling iv3 is up to iv3Fill in the
+				 gageKind struct */
   /*  ------------ volume-dependent */
   struct gageKind_t *kind;
   gage_t (*lup)(void *ptr, nrrdBigInt I); 
@@ -282,7 +291,10 @@ typedef struct gageKind_t {
   void (*queryPrint)(unsigned int), /* such as _gageSclPrint_query() */
     *(*ansNew)(void),               /* such as _gageSclAnswerNew() */
     *(*ansNix)(void *),             /* such as _gageSclAnswerNix() */
-    (*iv3Print)(gageContext *,      /* such as _gageSclPrint_iv3() */
+    (*iv3Fill)(gageContext *,       /* such as _gageSclIv3Fill() */
+	       gagePerVolume *,
+	       void *),
+    (*iv3Print)(gageContext *,      /* such as _gageSclIv3Print() */
 		gagePerVolume *),
     (*filter)(gageContext *,        /* such as _gageSclFilter() */
 	      gagePerVolume *),
@@ -330,17 +342,17 @@ extern airEnum gageScl;
 extern airEnum gageVec;
 
 /* arrays.c */
+extern gage_t gageZeroNormal[3];
 extern char gageErrStr[AIR_STRLEN_LARGE];
 extern int gageErrNum;
-extern gage_t gageSclZeroNormal[3];
 extern int gageSclAnsLength[GAGE_SCL_MAX+1];
 extern int gageSclAnsOffset[GAGE_SCL_MAX+1];
 extern int gageVecAnsLength[GAGE_VEC_MAX+1];
 extern int gageVecAnsOffset[GAGE_VEC_MAX+1];
 
 /* kinds.c */
-extern gageKind *gageKindScalar;
-extern gageKind *gageKindVector;
+extern gageKind *gageKindScl;
+extern gageKind *gageKindVec;
 
 /* methods.c */
 extern gageContext *gageContextNew();

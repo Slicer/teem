@@ -20,8 +20,17 @@
 #include "gage.h"
 #include "private.h"
 
-int gageDefVerbose = 0;
-gage_t gageDefGradMagMin = 0.00001;
-int gageDefRenormalize = AIR_FALSE;
-int gageDefCheckIntegrals = AIR_TRUE;
-int gageDefK3Pack = AIR_TRUE;
+int
+gageDefVerbose = 0;
+
+gage_t
+gageDefGradMagMin = 0.00001;
+
+int
+gageDefRenormalize = AIR_FALSE;
+
+int
+gageDefCheckIntegrals = AIR_TRUE;
+
+int
+gageDefK3Pack = AIR_TRUE;

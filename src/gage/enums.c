@@ -237,9 +237,9 @@ _gageVecStrEqv[][AIR_STRLEN_SMALL] = {
   "vector", "vec",
   "length", "len",
   "normalized", "normalized vector",
-  "jacobian", "jac",
-  "divergence", "div",
-  "curl",
+  "jacobian", "jac", "j",
+  "divergence", "div", "d",
+  "curl", "c"
   ""
 };
 
@@ -248,9 +248,9 @@ _gageVecValEqv[] = {
   GV_V, GV_V,
   GV_L, GV_L,
   GV_N, GV_N,
-  GV_J, GV_J,
-  GV_D, GV_D,
-  GV_C
+  GV_J, GV_J, GV_J,
+  GV_D, GV_D, GV_D,
+  GV_C, GV_C
 };
 
 airEnum

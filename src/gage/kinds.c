@@ -21,7 +21,7 @@
 #include "private.h"
 
 gageKind
-_gageKindScalar = {
+_gageKindScl = {
   0,
   1,
   GAGE_SCL_MAX,
@@ -31,16 +31,16 @@ _gageKindScalar = {
   _gageSclPrint_query,
   (void *(*)(void))_gageSclAnswerNew,
   (void *(*)(void*))_gageSclAnswerNix,
-  _gageSclPrint_iv3,
+  _gageSclIv3Fill,
+  _gageSclIv3Print,
   _gageSclFilter,
   _gageSclAnswer
-  
 };
 gageKind *
-gageKindScalar = &_gageKindScalar;
+gageKindScl = &_gageKindScl;
 
 gageKind
-_gageKindVector = {
+_gageKindVec = {
   1,
   3,
   GAGE_VEC_MAX,
@@ -50,10 +50,11 @@ _gageKindVector = {
   _gageVecPrint_query,
   (void *(*)(void))_gageVecAnswerNew,
   (void *(*)(void*))_gageVecAnswerNix,
-  _gageVecPrint_iv3,
-  NULL,
-  NULL
+  _gageVecIv3Fill,
+  _gageVecIv3Print,
+  _gageVecFilter,
+  _gageVecAnswer
 };
 gageKind *
-gageKindVector = &_gageKindVector;
+gageKindVec = &_gageKindVec;
 

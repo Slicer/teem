@@ -258,7 +258,7 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   needPad = gageValGet(ctx, gageValNeedPad);
-  pvl = gagePerVolumeNew(needPad, gageKindScalar);
+  pvl = gagePerVolumeNew(needPad, gageKindScl);
   san = (gageSclAnswer *)pvl->ans;
   if (nrrdSimplePad(npad2=nrrdNew(), npad, needPad, nrrdBoundaryBleed)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(NRRD));
