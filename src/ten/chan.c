@@ -1,0 +1,128 @@
+/*
+  The contents of this file are subject to the University of Utah Public
+  License (the "License"); you may not use this file except in
+  compliance with the License.
+  
+  Software distributed under the License is distributed on an "AS IS"
+  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
+  the License for the specific language governing rights and limitations
+  under the License.
+
+  The Original Source Code is "teem", released March 23, 2001.
+  
+  The Original Source Code was developed by the University of Utah.
+  Portions created by UNIVERSITY are Copyright (C) 2001, 1998 University
+  of Utah. All Rights Reserved.
+*/
+
+
+#include "ten.h"
+
+/*
+******** tenCalcOneTensor
+**
+** make one diffusion tensor from the measured at one voxel
+*/
+void
+tenCalcOneTensor(float tens[7], float chan[7], 
+		 float thresh, float slope, float b) {
+  double c[7], sum, d1, d2, d3, d4, d5, d6;
+  
+  c[0] = AIR_MAX(chan[0], 1);
+  c[1] = AIR_MAX(chan[1], 1);
+  c[2] = AIR_MAX(chan[2], 1);
+  c[3] = AIR_MAX(chan[3], 1);
+  c[4] = AIR_MAX(chan[4], 1);
+  c[5] = AIR_MAX(chan[5], 1);
+  c[6] = AIR_MAX(chan[6], 1);
+  sum = c[1] + c[2] + c[3] + c[4] + c[5] + c[6];
+  tens[0] = (1 + erf(slope*(sum - thresh)))/2.0;
+  d1 = (log(c[0]) - log(c[1]))/b;
+  d2 = (log(c[0]) - log(c[2]))/b;
+  d3 = (log(c[0]) - log(c[3]))/b;
+  d4 = (log(c[0]) - log(c[4]))/b;
+  d5 = (log(c[0]) - log(c[5]))/b;
+  d6 = (log(c[0]) - log(c[6]))/b;
+  tens[1] =  d1 + d2 - d3 - d4 + d5 + d6;    /* Dxx */
+  tens[2] =  d5 - d6;                        /* Dxy */
+  tens[3] =  d1 - d2;                        /* Dxz */
+  tens[4] = -d1 - d2 + d3 + d4 + d5 + d6;    /* Dyy */
+  tens[5] =  d3 - d4;                        /* Dyz */
+  tens[6] =  d1 + d2 + d3 + d4 - d5 - d6;    /* Dzz */
+  return;
+}
+
+/*
+******** tenCalcTensor
+**
+** Calculate a volume of tensors from measured data
+*/
+int
+tenCalcTensor(Nrrd *nout, Nrrd *nin, 
+	      float thresh, float slope, float b) {
+  char me[] = "tenCalcTensor", err[128], cmt[128];
+  float *out, tens[6], chan[7];
+  int sx, sy, sz;
+  NRRD_BIG_INT I;
+  
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!tenValidTensor(nin, nrrdTypeUnknown, AIR_TRUE)) {
+    sprintf(err, "%s: wasn't given valid tensor nrrd", me);
+    biffAdd(TEN, err); return 1;
+  }
+  sx = nin->size[1];
+  sy = nin->size[2];
+  sz = nin->size[3];
+  if (nrrdMaybeAlloc(nout, 7*sx*sy*sz, nrrdTypeFloat, 4)) {
+    sprintf(err, "%s: couldn't alloc output", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  nout->size[0] = 7;
+  nout->size[1] = sx;
+  nout->size[2] = sy;
+  nout->size[3] = sz;
+  strcpy(nout->label[0], "matrix");
+  strcpy(nout->label[1], "x");
+  strcpy(nout->label[2], "y");
+  strcpy(nout->label[3], "z");
+  nout->spacing[0] = AIR_NAN;
+  if (AIR_EXISTS(nin->spacing[1]) && 
+      AIR_EXISTS(nin->spacing[2]) &&
+      AIR_EXISTS(nin->spacing[3])) {
+    nout->spacing[1] = nin->spacing[1];
+    nout->spacing[2] = nin->spacing[2];
+    nout->spacing[3] = nin->spacing[3];
+  }
+  else {
+    nout->spacing[1] = 1.0;
+    nout->spacing[2] = 1.0;
+    nout->spacing[3] = 1.0;
+  }    
+  sprintf(cmt, "%s: using thresh = %g, slope = %g, b = %g\n", 
+	  me, thresh, slope, b);
+  nrrdCommentAdd(nout, cmt);
+  out = nout->data;
+  for (I=0; I<=sx*sy*sz-1; I++) {
+    if (tenVerbose && !(I % (sx*sy)))
+      fprintf(stderr, "%s: z = %d of %d\n", me, ((int)I)/(sx*sy), sz-1);
+    chan[0] = nrrdFLookup[nin->type](nin->data, 0 + 7*I);
+    chan[1] = nrrdFLookup[nin->type](nin->data, 1 + 7*I);
+    chan[2] = nrrdFLookup[nin->type](nin->data, 2 + 7*I);
+    chan[3] = nrrdFLookup[nin->type](nin->data, 3 + 7*I);
+    chan[4] = nrrdFLookup[nin->type](nin->data, 4 + 7*I);
+    chan[5] = nrrdFLookup[nin->type](nin->data, 5 + 7*I);
+    chan[6] = nrrdFLookup[nin->type](nin->data, 6 + 7*I);
+    tenCalcOneTensor(tens, chan, thresh, slope, b);
+    out[0 + 7*I] = tens[0];
+    out[1 + 7*I] = tens[1];
+    out[2 + 7*I] = tens[2];
+    out[3 + 7*I] = tens[3];
+    out[4 + 7*I] = tens[4];
+    out[5 + 7*I] = tens[5];
+    out[6 + 7*I] = tens[6];
+  }
+  return 0;
+}
