@@ -1,0 +1,17 @@
+Changes from 1.4:
+
+- TOTAL API CHANGE: All but the low-level filtering code has been
+re-written.  Basically, whereas before I refused to have gage do any
+of the padding required to produce the volume that was probed, now
+gage has _gageStandardPadder() and _gageStandardNixer() as the default
+means of creating and destroying padded volumes.  Alternate padders
+and nixers could be set, but this has yet to be exploited or tested.
+This change means that gage can be more automated, so as to keep track
+of all the dependencies (like query, kernels, and k3pack) which
+determine how much padding is needed, and can generate the padded
+volume as part of gageUpdate().  This allows you to change querying
+parameters after gageProbe(), then call gageUpdate(), and then go back
+to probing.  A new flag in the gageContext, noRepadWhenSmaller, does
+what it says, so that one padding can be used for queries requiring
+different amounts of padding.
+
