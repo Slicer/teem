@@ -411,6 +411,7 @@ unrrduParseEncoding(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
       opt++;
     }
   }
+  airMopOkay(mop);
   return 0;
 }
 
