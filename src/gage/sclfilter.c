@@ -306,7 +306,7 @@ gageScl3PFilterN (int fd,
   int i, j;
   gage_t T;
 
-  /* fw? + 4*?
+  /* fw? + N*?
        |     |  
        |     +- along which axis (0:x, 1:y, 2:z)
        |
