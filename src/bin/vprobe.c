@@ -166,12 +166,12 @@ main(int argc, char *argv[]) {
   gageSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
   gageSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
-  if (!E) E |= !(pvl = gagePerVolumeNew(nin, kind));
+  if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm); 
   if (!E) E |= gageKernelSet(ctx, gageKernel22, k22->kernel, k22->parm);
-  if (!E) E |= gageQuerySet(pvl, 1 << what);
+  if (!E) E |= gageQuerySet(ctx, pvl, 1 << what);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
@@ -179,7 +179,7 @@ main(int argc, char *argv[]) {
     airMopError(mop);
     return 1;
   }
-  answer = gageAnswerPointer(pvl, what);
+  answer = gageAnswerPointer(ctx, pvl, what);
   gageSet(ctx, gageParmVerbose, 0);
   /***
   **** end gage setup.

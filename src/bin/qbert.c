@@ -144,7 +144,7 @@ qbertProbe(Nrrd *nout, Nrrd *nin, int *sz) {
   int E, i, j, k;
 
   ctx = gageContextNew();
-  pvl = gagePerVolumeNew(nin, gageKindScl);
+  pvl = gagePerVolumeNew(ctx, nin, gageKindScl);
   gageSet(ctx, gageParmVerbose, 0);
   gageSet(ctx, gageParmRenormalize, AIR_TRUE);
   gageSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
@@ -163,7 +163,7 @@ qbertProbe(Nrrd *nout, Nrrd *nin, int *sz) {
   /* 2nd derivative of B-spline generates second central differences */
   kparm[0] = 1.0; kparm[1] = 1.0; kparm[2] = 0.0;
   if (!E) E |= gageKernelSet(ctx, gageKernel22, nrrdKernelBCCubicDD, kparm);
-  if (!E) E |= gageQuerySet(pvl,
+  if (!E) E |= gageQuerySet(ctx, pvl,
 			    (1 << gageSclValue) | 
 			    (1 << gageSclGradMag) |
 			    (1 << gageScl2ndDD));
@@ -173,9 +173,9 @@ qbertProbe(Nrrd *nout, Nrrd *nin, int *sz) {
     exit(1);
   }
   gageSet(ctx, gageParmVerbose, 0);
-  val = gageAnswerPointer(pvl, gageSclValue);
-  gmag = gageAnswerPointer(pvl, gageSclGradMag);
-  scnd = gageAnswerPointer(pvl, gageScl2ndDD);
+  val = gageAnswerPointer(ctx, pvl, gageSclValue);
+  gmag = gageAnswerPointer(ctx, pvl, gageSclGradMag);
+  scnd = gageAnswerPointer(ctx, pvl, gageScl2ndDD);
   if (nrrdMaybeAlloc(nout, nrrdTypeFloat, 4, 3, sz[0], sz[1], sz[2])) {
     sprintf(err, "%s: couldn't allocate floating point VGH volume", me);
     biffMove(QBERT, err, NRRD); return 1;

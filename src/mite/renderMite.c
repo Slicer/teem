@@ -79,7 +79,7 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   gageQueryPrint(stderr, gageKindScl, query);
 
   E = 0;
-  if (!E) E |= !(pvl = gagePerVolumeNew(muu->nin, gageKindScl));
+  if (!E) E |= !(pvl = gagePerVolumeNew(muu->gctx0, muu->nin, gageKindScl));
   if (!E) E |= gagePerVolumeAttach(muu->gctx0, pvl);
   if (!E) E |= gageKernelSet(muu->gctx0, gageKernel00,
 			     muu->ksp[gageKernel00]->kernel,
@@ -90,7 +90,7 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   if (!E) E |= gageKernelSet(muu->gctx0, gageKernel22,
 			     muu->ksp[gageKernel22]->kernel,
 			     muu->ksp[gageKernel22]->parm);
-  if (!E) E |= gageQuerySet(pvl, query);
+  if (!E) E |= gageQuerySet(muu->gctx0, pvl, query);
   if (!E) E |= gageUpdate(muu->gctx0);
   if (E) {
     sprintf(err, "%s: gage trouble", me);

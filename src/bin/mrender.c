@@ -160,7 +160,7 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   (*rrP)->time0 = airTime();
 
   E = 0;
-  if (!E) E |= !(pvl = gagePerVolumeNew(uu->nin, gageKindScl));
+  if (!E) E |= !(pvl = gagePerVolumeNew(uu->gctx0, uu->nin, gageKindScl));
   if (!E) E |= gagePerVolumeAttach(uu->gctx0, pvl);
   if (!E) E |= gageKernelSet(uu->gctx0, gageKernel00,
 			     uu->ksp[gageKernel00]->kernel,
@@ -171,7 +171,7 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   if (!E) E |= gageKernelSet(uu->gctx0, gageKernel22,
 			     uu->ksp[gageKernel22]->kernel,
 			     uu->ksp[gageKernel22]->parm);
-  if (!E) E |= gageQuerySet(pvl, 1 << uu->whatq);
+  if (!E) E |= gageQuerySet(uu->gctx0, pvl, 1 << uu->whatq);
   if (!E) E |= gageUpdate(uu->gctx0);
   if (E) {
     sprintf(err, "%s: gage trouble", me);
@@ -248,7 +248,8 @@ mrendThreadBegin(mrendThread **ttP,
     /* we have to generate a new gageContext */
     (*ttP)->gctx = gageContextCopy(uu->gctx0);
   }
-  (*ttP)->answer = gageAnswerPointer((*ttP)->gctx->pvl[0], uu->whatq);
+  (*ttP)->answer = gageAnswerPointer((*ttP)->gctx,
+				     (*ttP)->gctx->pvl[0], uu->whatq);
   (*ttP)->val = NULL;
   (*ttP)->valLen = 0;
   (*ttP)->valNum = 0;

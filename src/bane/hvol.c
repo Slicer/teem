@@ -322,7 +322,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
 
   /* create the gageSimple and initialize it */
   ctx = gageContextNew();
-  pvl = gagePerVolumeNew(nin, gageKindScl);
+  pvl = gagePerVolumeNew(ctx, nin, gageKindScl);
   gageSet(ctx, gageParmVerbose, 0);
   gageSet(ctx, gageParmRenormalize, hvp->renormalize);
   gageSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
@@ -339,9 +339,9 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
 			     hvp->kparm[gageKernel11]);
   if (!E) E |= gageKernelSet(ctx, gageKernel22, hvp->k[gageKernel22],
 			     hvp->kparm[gageKernel22]);
-  if (!E) E |= gageQuerySet(pvl, (hvp->ax[0].measr->query |
-				  hvp->ax[1].measr->query |
-				  hvp->ax[2].measr->query));
+  if (!E) E |= gageQuerySet(ctx, pvl, (hvp->ax[0].measr->query |
+				       hvp->ax[1].measr->query |
+				       hvp->ax[2].measr->query));
   if (!E) E |= gageUpdate(ctx);
   if (E) {
     sprintf(err, "%s: trouble setting up gage", me);

@@ -91,7 +91,7 @@ _miteUserCheck(miteUser *muu) {
     sprintf(err, "%s: rendered image nrrd is NULL", me);
     biffAdd(MITE, err); return 1;
   }
-  if (gageVolumeCheck(muu->nin, gageKindScl)) {
+  if (gageVolumeCheck(muu->gctx0, muu->nin, gageKindScl)) {
     sprintf(err, "%s: trouble with input volume", me);
     biffMove(MITE, err, GAGE); return 1;
   }

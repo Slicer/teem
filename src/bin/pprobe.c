@@ -157,12 +157,12 @@ main(int argc, char *argv[]) {
   gageSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
   gageSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
-  if (!E) E |= !(pvl = gagePerVolumeNew(nin, kind));
+  if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm); 
   if (!E) E |= gageKernelSet(ctx, gageKernel22, k22->kernel, k22->parm);
-  if (!E) E |= gageQuerySet(pvl, 1 << what);
+  if (!E) E |= gageQuerySet(ctx, pvl, 1 << what);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
@@ -172,7 +172,7 @@ main(int argc, char *argv[]) {
   }
 
   /* test with original context */
-  answer = gageAnswerPointer(ctx->pvl[0], what);
+  answer = gageAnswerPointer(ctx, ctx->pvl[0], what);
   if (gageProbe(ctx, pos[0], pos[1], pos[2])) {
     fprintf(stderr, "%s: trouble:\n%s\n(%d)\n", me, gageErrStr, gageErrNum);
     airMopError(mop);
@@ -193,7 +193,7 @@ main(int argc, char *argv[]) {
       return 1;
     }
     airMopAdd(mop, ctx2, (airMopper)gageContextNix, airMopAlways);
-    answer2 = gageAnswerPointer(ctx2->pvl[0], what);
+    answer2 = gageAnswerPointer(ctx, ctx2->pvl[0], what);
     if (gageProbe(ctx2, pos[0], pos[1], pos[2])) {
       fprintf(stderr, "%s: trouble:\n%s\n(%d)\n", me, gageErrStr, gageErrNum);
       airMopError(mop);
