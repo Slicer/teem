@@ -1,0 +1,23 @@
+(this is only a high-level description, see CHANGES.txt in
+the individual library directories)
+
+Changes from 1.4:
+
+- Along with TEEM_DIO, TEEM_ENDIAN, TEEM_QNANHIBIT, there is
+now also TEEM_32BIT, which is 1 if 4 == sizeof(size_t) and
+0 if 8 == sizeof(size_t).  Accordingly, there is also now
+AIR_32BIT which is available simply by including air.h and
+linking against the air library.
+- Top-level Makefile now correctly handles "-j" option on
+recursive makes.
+- mite: a new library, with "miter" program: simple scalar
+volume renderer.
+- nrrd: can now read and write 1D data from plain text files,
+known as "tables", since previously the data read from 
+plain text files was strictly 2D.
+- nrrd: can now do irregular as well as regular univariate
+colormaps.
+- gage: total re-write, so that now gageUpdate() does the
+padding necessary based on query and kernels.  This makes
+using gage much much simpler.  bane, mite, and 
+hoover/bin/mrender all cheer.
