@@ -100,7 +100,7 @@ hestOptAdd(hestOpt **optP,
   ret[num+1].min = 1;
   if (*optP)
     free(*optP);
-
+  *optP = ret;
   return ret;
 }
 
