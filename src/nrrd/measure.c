@@ -394,6 +394,77 @@ _nrrdMeasureSD(void *ans, int ansType,
 }
 
 void
+_nrrdMeasureLineFit(double *intc, double *slope,
+                    const void *line, int lineType, int len, 
+                    double axmin, double axmax) {
+  double x, y, xi=0, yi=0, xiyi=0, xisq=0, det;
+  int ii;
+
+  if (!( AIR_EXISTS(axmin) && AIR_EXISTS(axmax) )) {
+    axmin = 0;
+    axmax = len-1;
+  }
+  if (1 == len) {
+    *slope = 0;
+    *intc = nrrdDLookup[lineType](line, 0);
+  } else {
+    for (ii=0; ii<len; ii++) {
+      x = NRRD_NODE_POS(axmin, axmax, len, ii);
+      y = nrrdDLookup[lineType](line, ii);
+      xi += x;
+      yi += y;
+      xiyi += x*y;
+      xisq += x*x;
+    }
+    det = len*xisq - xi*xi;
+    *slope = (len*xiyi - xi*yi)/det;
+    *intc = (-xi*xiyi + xisq*yi)/det;
+  }
+}
+
+void
+_nrrdMeasureLineSlope(void *ans, int ansType,
+                      const void *line, int lineType, int len, 
+                      double axmin, double axmax) {
+  double slope, intc;
+  
+  _nrrdMeasureLineFit(&intc, &slope, line, lineType, len, axmin, axmax);
+  nrrdDStore[ansType](ans, slope);
+}
+
+void
+_nrrdMeasureLineIntercept(void *ans, int ansType,
+                          const void *line, int lineType, int len, 
+                          double axmin, double axmax) {
+  double slope, intc;
+  
+  _nrrdMeasureLineFit(&intc, &slope, line, lineType, len, axmin, axmax);
+  nrrdDStore[ansType](ans, intc);
+}
+
+void
+_nrrdMeasureLineError(void *ans, int ansType,
+                      const void *line, int lineType, int len, 
+                      double axmin, double axmax) {
+  double x, y, slope, intc, tmp, err=0;
+  int ii;
+  
+  _nrrdMeasureLineFit(&intc, &slope, line, lineType, len, axmin, axmax);
+
+  if (!( AIR_EXISTS(axmin) && AIR_EXISTS(axmax) )) {
+    axmin = 0;
+    axmax = len-1;
+  }
+  for (ii=0; ii<len; ii++) {
+    x = NRRD_NODE_POS(axmin, axmax, len, ii);
+    y = nrrdDLookup[lineType](line, ii);
+    tmp = slope*x + intc - y;
+    err += tmp*tmp;
+  }
+  nrrdDStore[ansType](ans, err);
+}
+
+void
 _nrrdMeasureSkew(void *ans, int ansType,
                  const void *line, int lineType, int len, 
                  double axmin, double axmax) {
@@ -762,6 +833,9 @@ nrrdMeasureLine[NRRD_MEASURE_MAX+1])(void *, int,
   _nrrdMeasureVariance,
   _nrrdMeasureSD,
   _nrrdMeasureSkew,
+  _nrrdMeasureLineSlope,
+  _nrrdMeasureLineIntercept,
+  _nrrdMeasureLineError,
   _nrrdMeasureHistoMin,
   _nrrdMeasureHistoMax,
   _nrrdMeasureHistoMean,
@@ -802,6 +876,9 @@ _nrrdMeasureType(const Nrrd *nin, int measr) {
   case nrrdMeasureVariance:
   case nrrdMeasureSD:
   case nrrdMeasureSkew:
+  case nrrdMeasureLineSlope:
+  case nrrdMeasureLineIntercept:
+  case nrrdMeasureLineError:
     type = nrrdStateMeasureType;
     break;
   case nrrdMeasureHistoMin:

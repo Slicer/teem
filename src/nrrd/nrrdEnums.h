@@ -333,27 +333,32 @@ enum {
   nrrdMeasureVariance,       /* 11 */
   nrrdMeasureSD,             /* 12: standard deviation */
   nrrdMeasureSkew,           /* 13: skew */
+  nrrdMeasureLineSlope,      /* 14: slope of line of best fit */
+  nrrdMeasureLineIntercept,  /* 15: y-intercept of line of best fit */
+  nrrdMeasureLineError,      /* 16: error of line fitting */
   /* 
   ** the nrrduMeasureHisto... measures interpret the array as a
   ** histogram of some implied value distribution
   */
-  nrrdMeasureHistoMin,       /* 14 */
-  nrrdMeasureHistoMax,       /* 15 */
-  nrrdMeasureHistoMean,      /* 16 */
-  nrrdMeasureHistoMedian,    /* 17 */
-  nrrdMeasureHistoMode,      /* 18 */
-  nrrdMeasureHistoProduct,   /* 19 */
-  nrrdMeasureHistoSum,       /* 20 */
-  nrrdMeasureHistoL2,        /* 21 */
-  nrrdMeasureHistoVariance,  /* 22 */
-  nrrdMeasureHistoSD,        /* 23 */
+  nrrdMeasureHistoMin,       /* 17 */
+  nrrdMeasureHistoMax,       /* 18 */
+  nrrdMeasureHistoMean,      /* 19 */
+  nrrdMeasureHistoMedian,    /* 20 */
+  nrrdMeasureHistoMode,      /* 21 */
+  nrrdMeasureHistoProduct,   /* 22 */
+  nrrdMeasureHistoSum,       /* 23 */
+  nrrdMeasureHistoL2,        /* 24 */
+  nrrdMeasureHistoVariance,  /* 25 */
+  nrrdMeasureHistoSD,        /* 26 */
   nrrdMeasureLast
 };
-#define NRRD_MEASURE_MAX        23
+#define NRRD_MEASURE_MAX        26
 #define NRRD_MEASURE_DESC \
    "Possibilities include:\n " \
    "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", \"variance\", " \
      "\"skew\"\n (self-explanatory)\n " \
+   "\b\bo \"intc\", \"slope\", \"error\": " \
+     "intercept, slope, and error from line fitting\n " \
    "\b\bo \"sd\": standard deviation\n " \
    "\b\bo \"product\", \"sum\": product or sum of all values\n " \
    "\b\bo \"L1\", \"L2\", \"Linf\": different norms\n " \
