@@ -33,12 +33,15 @@ _miteRenderNew(void) {
     }
     mrr->ntxf = NULL;
     mrr->ntxfNum = 0;
-    mrr->shpec = miteShadeSpecNew();
     mrr->sclPvlIdx = -1;
     mrr->vecPvlIdx = -1;
     mrr->tenPvlIdx = -1;
+    mrr->shpec = miteShadeSpecNew();
     airMopAdd(mrr->rmop, mrr->shpec,
 	      (airMopper)miteShadeSpecNix, airMopAlways);
+    mrr->time0 = AIR_NAN;
+    GAGE_QUERY_RESET(mrr->queryMite);
+    mrr->queryMiteNonzero = AIR_FALSE;
   }
   return mrr;
 }
@@ -81,14 +84,17 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   GAGE_QUERY_RESET(queryScl);
   GAGE_QUERY_RESET(queryVec);
   GAGE_QUERY_RESET(queryTen);
+  GAGE_QUERY_RESET((*mrrP)->queryMite);
   for (T=0; T<muu->ntxfNum; T++) {
     for (axi=1; axi<muu->ntxf[T]->dim; axi++) {
       miteVariableParse(&isp, muu->ntxf[T]->axis[axi].label);
-      miteQueryAdd(queryScl, queryVec, queryTen, &isp);
+      miteQueryAdd(queryScl, queryVec, queryTen, (*mrrP)->queryMite, &isp);
     }
   }
   miteShadeSpecParse((*mrrP)->shpec, muu->shadeStr);
-  miteShadeSpecQueryAdd(queryScl, queryVec, queryTen, (*mrrP)->shpec);
+  miteShadeSpecQueryAdd(queryScl, queryVec, queryTen, (*mrrP)->queryMite,
+			(*mrrP)->shpec);
+  (*mrrP)->queryMiteNonzero = GAGE_QUERY_NONZERO((*mrrP)->queryMite);
 
   E = 0;
   pvlIdx = 0;

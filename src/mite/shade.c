@@ -192,22 +192,22 @@ miteShadeSpecPrint(char *buff, const miteShadeSpec *shpec) {
 }
 
 void
-miteShadeSpecQueryAdd(gageQuery queryScl, 
-		      gageQuery queryVec, 
-		      gageQuery queryTen, miteShadeSpec *shpec) {
+miteShadeSpecQueryAdd(gageQuery queryScl, gageQuery queryVec, 
+		      gageQuery queryTen, gageQuery queryMite,
+		      miteShadeSpec *shpec) {
   if (shpec) {
     switch(shpec->method) {
     case miteShadeMethodNone:
       /* no queries to add */
       break;
     case miteShadeMethodPhong:
-      miteQueryAdd(queryScl, queryVec, queryTen, shpec->vec0);
+      miteQueryAdd(queryScl, queryVec, queryTen, queryMite, shpec->vec0);
       break;
     case miteShadeMethodLitTen:
-      miteQueryAdd(queryScl, queryVec, queryTen, shpec->vec0);
-      miteQueryAdd(queryScl, queryVec, queryTen, shpec->vec1);
-      miteQueryAdd(queryScl, queryVec, queryTen, shpec->scl0);
-      miteQueryAdd(queryScl, queryVec, queryTen, shpec->scl1);
+      miteQueryAdd(queryScl, queryVec, queryTen, queryMite, shpec->vec0);
+      miteQueryAdd(queryScl, queryVec, queryTen, queryMite, shpec->vec1);
+      miteQueryAdd(queryScl, queryVec, queryTen, queryMite, shpec->scl0);
+      miteQueryAdd(queryScl, queryVec, queryTen, queryMite, shpec->scl1);
       break;
     default:
       break;

@@ -77,7 +77,7 @@ _miteUserCheck(miteUser *muu) {
   char me[]="miteUserCheck", err[AIR_STRLEN_MED];
   int T, axi, gotOpac;
   gageItemSpec isp;
-  gageQuery queryScl, queryVec, queryTen;
+  gageQuery queryScl, queryVec, queryTen, queryMite;
   miteShadeSpec *shpec;
   airArray *mop;
   
@@ -94,6 +94,7 @@ _miteUserCheck(miteUser *muu) {
   GAGE_QUERY_RESET(queryScl);
   GAGE_QUERY_RESET(queryVec);
   GAGE_QUERY_RESET(queryTen);
+  GAGE_QUERY_RESET(queryMite);  /* not actually used here */
   for (T=0; T<muu->ntxfNum; T++) {
     if (miteNtxfCheck(muu->ntxf[T])) {
       sprintf(err, "%s: ntxf[%d] (%d of %d) can't be used as a txf",
@@ -103,7 +104,7 @@ _miteUserCheck(miteUser *muu) {
     /* NOTE: no error checking because miteNtxfCheck succeeded */
     for (axi=1; axi<muu->ntxf[T]->dim; axi++) {
       miteVariableParse(&isp, muu->ntxf[T]->axis[axi].label);
-      miteQueryAdd(queryScl, queryVec, queryTen, &isp);
+      miteQueryAdd(queryScl, queryVec, queryTen, queryMite, &isp);
     }
     gotOpac |= !!strchr(muu->ntxf[T]->axis[0].label, 'A');
   }
@@ -122,7 +123,7 @@ _miteUserCheck(miteUser *muu) {
 	    me, muu->shadeStr);
     biffAdd(MITE, err); airMopError(mop); return 1;
   }
-  miteShadeSpecQueryAdd(queryScl, queryVec, queryTen, shpec);
+  miteShadeSpecQueryAdd(queryScl, queryVec, queryTen, queryMite, shpec);
   if (GAGE_QUERY_NONZERO(queryScl) && !(muu->nsin)) {
     sprintf(err, "%s: txf or shading require %s volume, but don't have one",
 	    me, gageKindScl->name);

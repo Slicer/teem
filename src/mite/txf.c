@@ -269,11 +269,15 @@ miteNtxfCheck(const Nrrd *ntxf) {
 ** arguments here, which is part of the reason that mite may end
 ** up explicitly depending on the libraries supplying those gageKinds
 ** (like how mite now must depend on ten)
+**
+** The queryMite argument is a little odd- its not a real gage kind,
+** but we use it to organize which of the miteVal quantities we take
+** the time to compute in miteSample().
 */
 void
-miteQueryAdd(gageQuery queryScl, 
-	     gageQuery queryVec, 
-	     gageQuery queryTen, gageItemSpec *isp) {
+miteQueryAdd(gageQuery queryScl, gageQuery queryVec, 
+	     gageQuery queryTen, gageQuery queryMite,
+	     gageItemSpec *isp) {
   char me[]="miteQueryAdd";
   
   if (gageKindScl == isp->kind) {
@@ -283,6 +287,10 @@ miteQueryAdd(gageQuery queryScl,
   } else if (tenGageKind == isp->kind) {
     GAGE_QUERY_ITEM_ON(queryTen, isp->item);
   } else if (miteValGageKind == isp->kind) {
+    /* regardless of whether the mite query requires scl, vec, or ten
+       queries, we add it to the quantites that have to be computed
+       per-sample */
+    GAGE_QUERY_ITEM_ON(queryMite, isp->item);
     /* HEY: some these have useful analogs for tensor data, but I
        won't be able to express them.  This means that while Phong
        shading of *scalar* volumes can be implemented with transfer

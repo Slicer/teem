@@ -219,6 +219,9 @@ typedef struct {
 				 gagePerVolumes.  Probably a hack */
   miteShadeSpec *shpec;       /* information based on muu->shadeStr */
   double time0;               /* rendering start time */
+  gageQuery queryMite;        /* record of the miteVal quantities which 
+				 we'll need to compute per-sample */
+  int queryMiteNonzero;       /* shortcut miteVal computation if possible */
 
   /* as long as there's no mutex around how the miteThreads are
      airMopAdded to the miteUser's mop, these have to be _allocated_ in
@@ -317,11 +320,13 @@ enum {
 typedef struct miteThread_t {
   gageContext *gctx;            /* per-thread context */
   gage_t *ansScl,               /* pointer to gageKindScl answer vector */
+    *nPerp, *geomTens,          /* convenience pointers into ansScl */
     *ansVec,                    /* pointer to gageKindVec answer vector */
     *ansTen,                    /* pointer to tenGageKind answer vector */
     *ansMiteVal,                /* room for all the miteVal answers, which
 				   unlike ans{Scl,Vec,Ten} is allocated by
 				   mite instead of by gage */
+    **directAnsMiteVal,         /* pointers into ansMiteVal */
     *shadeVec0, *shadeVec1, 
     *shadeScl0, *shadeScl1;     /* pointers into the ans* arrays above,
 				   used for shading */
@@ -358,9 +363,9 @@ TEEM_API char miteRangeChar[MITE_RANGE_NUM];
 TEEM_API int miteVariableParse(gageItemSpec *isp, const char *label);
 TEEM_API void miteVariablePrint(char *buff, const gageItemSpec *isp);
 TEEM_API int miteNtxfCheck(const Nrrd *ntxf);
-TEEM_API void miteQueryAdd(gageQuery queryScl, 
-			   gageQuery queryVec, 
-			   gageQuery queryTen, gageItemSpec *isp);
+TEEM_API void miteQueryAdd(gageQuery queryScl, gageQuery queryVec, 
+			   gageQuery queryTen, gageQuery queryMite,
+			   gageItemSpec *isp);
 
 
 /* user.c */
@@ -372,9 +377,9 @@ TEEM_API miteShadeSpec *miteShadeSpecNew();
 TEEM_API miteShadeSpec *miteShadeSpecNix(miteShadeSpec *);
 TEEM_API int miteShadeSpecParse(miteShadeSpec *shpec, char *shadeStr);
 TEEM_API void miteShadeSpecPrint(char *buff, const miteShadeSpec *shpec);
-TEEM_API void miteShadeSpecQueryAdd(gageQuery queryScl, 
-				    gageQuery queryVec, 
-				    gageQuery queryTen, miteShadeSpec *shpec);
+TEEM_API void miteShadeSpecQueryAdd(gageQuery queryScl, gageQuery queryVec, 
+				    gageQuery queryTen, gageQuery queryMite,
+				    miteShadeSpec *shpec);
 
 /* renderMite.c */
 TEEM_API int miteRenderBegin(miteRender **mrrP, miteUser *muu);

@@ -22,20 +22,37 @@
 
 miteThread *
 miteThreadNew() {
+  char me[]="miteThreadNew", err[AIR_STRLEN_MED];
   miteThread *mtt;
+  int ii;
   
   mtt = (miteThread *)calloc(1, sizeof(miteThread));
   if (!mtt) {
-    return NULL;
+    sprintf(err, "%s: couldn't calloc miteThread", me);
+    biffAdd(MITE, err); return NULL;
   }
 
   mtt->gctx = NULL;
   mtt->ansScl = mtt->ansVec = mtt->ansTen = NULL;
-  mtt->shadeVec0 = mtt->shadeVec1 = NULL;
-  mtt->shadeScl0 = mtt->shadeScl1 = NULL;
+  mtt->shadeVec0 = NULL;
+  mtt->shadeVec1 = NULL;
+  mtt->shadeScl0 = NULL;
+  mtt->shadeScl1 = NULL;
+  /* were miteVal a full-fledged gageKind, the following would
+     be done by gagePerVolumeNew */
   mtt->ansMiteVal = 
     (gage_t *)calloc(gageKindTotalAnswerLength(miteValGageKind), 
 		     sizeof(gage_t));
+  mtt->directAnsMiteVal = 
+    (gage_t **)calloc(miteValGageKind->itemMax+1, sizeof(gage_t*));
+  if (!(mtt->ansMiteVal && mtt->directAnsMiteVal)) {
+    sprintf(err, "%s: couldn't calloc miteVal answer arrays", me);
+    biffAdd(MITE, err); return NULL;
+  }
+  for (ii=0; ii<=miteValGageKind->itemMax; ii++) {
+    mtt->directAnsMiteVal[ii] = mtt->ansMiteVal 
+      + gageKindAnswerOffset(miteValGageKind, ii);
+  }
   mtt->verbose = 0;
   mtt->thrid = -1;
   mtt->ui = mtt->vi = -1;
@@ -80,21 +97,23 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
     }
   }
 
-  (*mttP)->ansScl = (-1 != mrr->sclPvlIdx
-		     ? (*mttP)->gctx->pvl[mrr->sclPvlIdx]->answer
-		     : NULL);
+  if (-1 != mrr->sclPvlIdx) {
+    (*mttP)->ansScl = (*mttP)->gctx->pvl[mrr->sclPvlIdx]->answer;
+    (*mttP)->nPerp = ((*mttP)->ansScl 
+		      + gageKindAnswerOffset(gageKindScl, gageSclNPerp));
+    (*mttP)->geomTens = ((*mttP)->ansScl
+			 + gageKindAnswerOffset(gageKindScl, gageSclGeomTens));
+  } else {
+    (*mttP)->ansScl = NULL;
+    (*mttP)->nPerp = NULL;
+    (*mttP)->geomTens = NULL;
+  }
   (*mttP)->ansVec = (-1 != mrr->vecPvlIdx
 		     ? (*mttP)->gctx->pvl[mrr->vecPvlIdx]->answer
 		     : NULL);
   (*mttP)->ansTen = (-1 != mrr->tenPvlIdx
 		     ? (*mttP)->gctx->pvl[mrr->tenPvlIdx]->answer
 		     : NULL);
-
-#if 0
-  (*mttP)->nPerp = (*mttP)->ans + gageKindScl->ansOffset[gageSclNPerp];
-  (*mttP)->gten = (*mttP)->ans + gageKindScl->ansOffset[gageSclGeomTens];
-#endif
-
   (*mttP)->thrid = whichThread;
   (*mttP)->samples = 0;
   (*mttP)->verbose = 0;

@@ -137,51 +137,62 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
     return mtt->rayStep;
   }
 
+  /* early ray termination */
   if (1-mtt->TT >= muu->opacNear1) {
-    /* early ray termination */
     mtt->TT = 0.0;
     return 0.0;
   }
+
+  /* do probing at this location to determine values of everything
+     that might appear in the txf domain */
   mtt->samples += 1;
   if (gageProbe(mtt->gctx,
 		samplePosIndex[0], samplePosIndex[1], samplePosIndex[2])) {
     sprintf(err, "%s: gage trouble: %s (%d)", me, gageErrStr, gageErrNum);
     biffAdd(MITE, err); return AIR_NAN;
   }
-  /* HEY: NONE of this should be done if the txfs don't need any miteVal */
-  mtt->ansMiteVal[miteValXw] = samplePosWorld[0];
-  mtt->ansMiteVal[miteValXi] = samplePosIndex[0];
-  mtt->ansMiteVal[miteValYw] = samplePosWorld[1];
-  mtt->ansMiteVal[miteValYi] = samplePosIndex[1];
-  mtt->ansMiteVal[miteValZw] = samplePosWorld[2];
-  mtt->ansMiteVal[miteValZi] = samplePosIndex[2];
-  mtt->ansMiteVal[miteValTw] = rayT;
-  mtt->ansMiteVal[miteValTi] = num;
-#if 0
+  if (mrr->queryMiteNonzero) {
+    /* There is some optimal trade-off between slowing things down
+       with too many branches on all possible checks of queryMite,
+       and slowing things down with doing the work of setting them all.
+       This code has not been profiled whatsoever */
+    mtt->directAnsMiteVal[miteValXw][0] = samplePosWorld[0];
+    mtt->directAnsMiteVal[miteValXi][0] = samplePosIndex[0];
+    mtt->directAnsMiteVal[miteValYw][0] = samplePosWorld[1];
+    mtt->directAnsMiteVal[miteValYi][0] = samplePosIndex[1];
+    mtt->directAnsMiteVal[miteValZw][0] = samplePosWorld[2];
+    mtt->directAnsMiteVal[miteValZi][0] = samplePosIndex[2];
+    mtt->directAnsMiteVal[miteValTw][0] = rayT;
+    mtt->directAnsMiteVal[miteValTi][0] = num;
 
-  what if shading is none?
+    if (mtt->shadeVec0 && 
+	(GAGE_QUERY_ITEM_TEST(mrr->queryMite, miteValNdotV)
+	 || GAGE_QUERY_ITEM_TEST(mrr->queryMite, miteValNdotL))) {
+      mtt->directAnsMiteVal[miteValNdotV][0] =
+	-muu->normalSide*ELL_3V_DOT(mtt->shadeVec0, mtt->V);
+      mtt->directAnsMiteVal[miteValNdotL][0] =
+	-muu->normalSide*ELL_3V_DOT(mtt->shadeVec0, muu->lit->dir[0]);
+      if (!muu->normalSide) {
+	mtt->directAnsMiteVal[miteValNdotV][0] = 
+	  AIR_ABS(mtt->directAnsMiteVal[miteValNdotV][0]);
+	mtt->directAnsMiteVal[miteValNdotL][0] = 
+	  AIR_ABS(mtt->directAnsMiteVal[miteValNdotL][0]);
+      }
+    }
 
-  mtt->ansMiteVal[miteValNdotV] =
-    -muu->normalSide*ELL_3V_DOT(mtt->V, mtt->shadeVec0);
-  mtt->ansMiteVal[miteValNdotL] =
-    -muu->normalSide*ELL_3V_DOT(mtt->shadeVec0, muu->lit->dir[0]);
-#endif
-  if (!muu->normalSide) {
-    mtt->ansMiteVal[miteValNdotV] = AIR_ABS(mtt->ansMiteVal[miteValNdotV]);
-    mtt->ansMiteVal[miteValNdotL] = AIR_ABS(mtt->ansMiteVal[miteValNdotL]);
+    if (GAGE_QUERY_ITEM_TEST(mrr->queryMite, miteValGTdotV)) {
+      ELL_3MV_MUL(kn, mtt->nPerp, mtt->V);
+      ELL_3V_NORM(kn, kn, len);
+      ELL_3MV_MUL(knd, mtt->geomTens, kn);
+      mtt->ansMiteVal[miteValGTdotV] = ELL_3V_DOT(knd, kn);
+    }
   }
-
-#if 0
-  this is bullshit
-
-  ELL_3MV_MUL(kn, mtt->nPerp, mtt->V);
-  ELL_3V_NORM(kn, kn, len);
-  ELL_3MV_MUL(knd, mtt->gten, kn);
-  mtt->ansMiteVal[miteValGTdotV] = ELL_3V_DOT(knd, kn);
-#endif
   
+  /* initialize txf range quantities, and apply all txfs */
   memcpy(mtt->range, muu->rangeInit, MITE_RANGE_NUM*sizeof(mite_t));
   _miteStageRun(mtt);
+
+  /* if there's opacity, do shading and compositing */
   if (mtt->range[miteRangeAlpha]) {
     /* fprintf(stderr, "%s: mtt->TT = %g\n", me, mtt->TT); */
     if (mtt->verbose) {

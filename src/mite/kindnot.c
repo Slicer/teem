@@ -108,9 +108,9 @@ airEnum *
 miteVal = &_miteVal;
 
 /*
-** again, this is not a true gageKind- mainly because these items
+** again, this is not a true gageKind- mainly because these items may
 ** depend on items in different gageKinds (scalar and vector).  So,
-** the prerequisites here are all blank.  Go look in _miteQueryAdd()
+** the prerequisites here are all blank.  Go look in miteQueryAdd()
 ** to see these items' true prereqs
 */
 gageItemEntry
