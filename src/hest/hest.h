@@ -173,6 +173,9 @@ extern int hestOptCheck(hestOpt *opt, char **errP);
 extern int hestParse(hestOpt *opt, int argc, char **argv,
 		     char **errP, hestParm *parm);
 extern void *hestParseFree(hestOpt *opt);
+extern void hestParseOrDie(hestOpt *opt, int argc, char **argv, hestParm *parm,
+			   char *me, char *info,
+			   int doInfo, int doUsage, int doGlossary);
 
 /* usage.c */
 extern void _hestPrintStr(FILE *f, int indent, int already, int width,

@@ -1222,3 +1222,45 @@ hestParseFree(hestOpt *opt) {
   }
   return NULL;
 }
+
+/*
+******** hestParseOrDie()
+**
+** dumb little function which encapsulate a common usage of hest:
+** first, make sure hestOpt is valid with hestOptCheck().  Then,
+** if argc is 0: maybe show info, usage, and glossary, all according
+**    to the given boolean flags, then exit(1)
+** if parsing failed: show error message, and maybe usage and glossary,
+**    again according to boolean flags, then exit(1)
+** if parsing succeeded: return
+*/
+void
+hestParseOrDie(hestOpt *opt, int argc, char **argv, hestParm *parm,
+	       char *me, char *info,
+	       int doInfo, int doUsage, int doGlossary) {
+  int E;
+  char *errS;
+
+  if (opt) {
+    if (hestOptCheck(opt, &errS)) {
+      fprintf(stderr, "ERROR in hest usage:\n%s\n", errS); free(errS);
+      exit(1);
+    }
+    E = 0;
+    if ( (!argc) ||
+	 (E = hestParse(opt, argc, argv, &errS, parm)) ) {
+      if (E) {
+	fprintf(stderr, "ERROR: %s\n", errS); free(errS);
+      } else {
+	if (doInfo && info) hestInfo(stderr, me?me:"", info, parm);
+      }
+      if (doUsage) hestUsage(stderr, opt, me?me:"", parm);
+      if (doGlossary) hestGlossary(stderr, opt, parm);
+      hestParmFree(parm);
+      hestOptFree(opt);
+      exit(1);
+    }
+  }
+  
+  return;
+}
