@@ -31,6 +31,7 @@ _nrrdEncodingRaw_read(Nrrd *nrrd, NrrdIO *nio) {
   char me[]="_nrrdEncodingRaw_read", err[AIR_STRLEN_MED];
   size_t num, bsize, size, ret, dio;
   int car;
+  long savePos;
 
   if (nio->skipData) {
     return 0;
@@ -95,6 +96,14 @@ _nrrdEncodingRaw_read(Nrrd *nrrd, NrrdIO *nio) {
     fprintf(stderr, "%s: WARNING: finished reading raw data, "
 	    "but file not at EOF\n", me);
     ungetc(car, nio->dataFile);
+  }
+  if (nrrdStateVerboseIO && nio->byteSkip && stdin != nio->dataFile) {
+    savePos = ftell(nio->dataFile);
+    if (!fseek(nio->dataFile, 0, SEEK_END)) {
+      fprintf(stderr, "(%s: used %g%% of file for nrrd data)\n",
+	      me, (double)100*bsize/(ftell(nio->dataFile) + 1));
+      fseek(nio->dataFile, savePos, SEEK_SET);
+    }
   }
 
   return 0;

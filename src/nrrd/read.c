@@ -192,6 +192,10 @@ nrrdByteSkip (Nrrd *nrrd, NrrdIO *nio) {
 	      ", SEEK_END)", me, numbytes);
       biffAdd(NRRD, err); return 1;      
     }
+    if (nrrdStateVerboseIO) {
+      fprintf(stderr, "(%s: actually skipped %d bytes)\n",
+	      me, (int)ftell(nio->dataFile));
+    }
   } else {
     for (i=1; i<=nio->byteSkip; i++) {
       skipRet = fgetc(nio->dataFile);
