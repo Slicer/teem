@@ -35,10 +35,12 @@ char *_unrrdu_makeInfoL =
  "or to save to disk.  However, with \"-h\", this creates "
  "only a detached nrrd header file, without ever reading "
  "or writing data. When reading multiple files, each file must contain "
- "the data for one slice along the slowest axis.  Nearly all the options below "
- "refer to the finished nrrd resulting from joining all the slices together, "
- "with the exception of \"-ls\", \"-bs\", and \"-e\", which apply "
- "to every input slice file. ");
+ "the data for one slice along the slowest axis.  Nearly all the options "
+ "below refer to the finished nrrd resulting from joining all the slices "
+ "together, with the exception of \"-ls\", \"-bs\", and \"-e\", which apply "
+ "to every input slice file.  When reading data from many seperate files, it "
+ "may be easier to put their filenames in a response file; there can be one "
+ "or more filenames per line of the response file. ");
 
 int
 unrrduMakeRead(char *me, Nrrd *nrrd, NrrdIO *nio, char *fname,
@@ -85,6 +87,9 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   FILE *fileOut;
   char **label;
 
+  /* so that long lists of filenames can be read from file */
+  hparm->respFileEnable = AIR_TRUE;
+
   mop = airMopNew();
   nio = nrrdIONew();
   airMopAdd(mop, nio, (airMopper)nrrdIONix, airMopAlways);
@@ -96,7 +101,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "don't even bother reading the input data, just output the "
 	     "detached nrrd header file (usually with a \".nhdr\" "
 	     "extension) determined by the options below. "
-	     "The filename given with \"-i\" should probably start "
+	     "*NOTE*: The filename given with \"-i\" should probably start "
 	     "with \"./\" to indicate that the "
 	     "data file is to be found relative to the header file "
 	     "(as opposed to the current working directory of whomever "
@@ -272,7 +277,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
 	  airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
 	  fprintf(stderr, "%s: trouble reading from \"%s\" "
 		  "(file %d of %d):\n%s",
-		  me, dataFileNames[0], slc+1, nameLen, err);
+		  me, dataFileNames[slc], slc+1, nameLen, err);
 	  airMopError(mop); return 1;
 	}
       }
