@@ -66,12 +66,12 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
     if (kd) {
       LdotN = ELL_3V_DOT(muu->lit->dir[0], N);
       if (LdotN > 0) {
-	ELL_3V_SCALE_ADD(ad, 1.0, ad, LdotN*kd, muu->lit->col[0]);
+	ELL_3V_SCALE_ADD2(ad, 1.0, ad, LdotN*kd, muu->lit->col[0]);
       }
     }
     if (ks) {
       sp = mtt->range[miteRangeSP];
-      ELL_3V_ADD(H, muu->lit->dir[0], mtt->V);
+      ELL_3V_ADD2(H, muu->lit->dir[0], mtt->V);
       ELL_3V_NORM(H, H, tmp);
       HdotN = ELL_3V_DOT(H, N);
       if (HdotN > 0) {

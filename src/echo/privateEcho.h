@@ -62,7 +62,7 @@ extern "C" {
 
 #define _ECHO_REFLECT(refl, norm, view, tmp) \
   (tmp) = 2*ELL_3V_DOT((view), (norm)); \
-  ELL_3V_SCALE_ADD((refl), -1.0, (view), (tmp), (norm))
+  ELL_3V_SCALE_ADD2((refl), -1.0, (view), (tmp), (norm))
 
 #define ECHO_NEW(TYPE) \
   (echoObject##TYPE *)echoNew(echoObject##Type)

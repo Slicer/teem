@@ -108,7 +108,7 @@ echoTriMeshSet(echoObject *trim,
     for (i=0; i<numV; i++) {
       ELL_3V_MIN(TRIMESH(trim)->min, TRIMESH(trim)->min, pos + 3*i);
       ELL_3V_MAX(TRIMESH(trim)->max, TRIMESH(trim)->max, pos + 3*i);
-      ELL_3V_ADD(TRIMESH(trim)->meanvert, TRIMESH(trim)->meanvert, pos + 3*i);
+      ELL_3V_INCR(TRIMESH(trim)->meanvert, pos + 3*i);
     }
     ELL_3V_SCALE(TRIMESH(trim)->meanvert, 1.0/numV, TRIMESH(trim)->meanvert);
   }

@@ -141,13 +141,13 @@ _tenFiberIntegrate_RK4(tenFiberContext *tfx, double forwDir[3]) {
   c1 = h/6.0; c2 = h/3.0; c3 = h/3.0; c4 = h/6.0;
 
   _tenFiberStep[tfx->fiberType](tfx, k1);
-  ELL_3V_SCALE_ADD(loc, 1, tfx->wPos, 0.5*h, k1);
+  ELL_3V_SCALE_ADD2(loc, 1, tfx->wPos, 0.5*h, k1);
   if (_tenFiberProbe(tfx, loc)) return 1;
   _tenFiberStep[tfx->fiberType](tfx, k2);
-  ELL_3V_SCALE_ADD(loc, 1, tfx->wPos, 0.5*h, k2);
+  ELL_3V_SCALE_ADD2(loc, 1, tfx->wPos, 0.5*h, k2);
   if (_tenFiberProbe(tfx, loc)) return 1;
   _tenFiberStep[tfx->fiberType](tfx, k3);
-  ELL_3V_SCALE_ADD(loc, 1, tfx->wPos, h, k3);
+  ELL_3V_SCALE_ADD2(loc, 1, tfx->wPos, h, k3);
   if (_tenFiberProbe(tfx, loc)) return 1;
   _tenFiberStep[tfx->fiberType](tfx, k4);
 
@@ -241,7 +241,7 @@ tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber,
 	break;
       }
       ELL_3V_COPY(tfx->lastDir, forwDir);
-      ELL_3V_ADD(tfx->wPos, tfx->wPos, forwDir);
+      ELL_3V_ADD2(tfx->wPos, tfx->wPos, forwDir);
       tfx->halfLen[tfx->dir] += ELL_3V_LEN(forwDir);
     }
   }

@@ -143,7 +143,7 @@ _echoRayIntx_Sphere(RAYINTX_ARGS(Sphere)) {
   }
   /* else one of the intxs is in [neer,faar] segment */
   intx->t = t;
-  ELL_3V_SCALE_ADD(pos, 1, ray->from, t, ray->dir);
+  ELL_3V_SCALE_ADD2(pos, 1, ray->from, t, ray->dir);
   ELL_3V_SUB(intx->norm, pos, obj->pos);
   ELL_3V_NORM(intx->norm, intx->norm, tmp);
   intx->obj = OBJECT(obj);
@@ -236,7 +236,7 @@ _echoRayIntx_Cylinder(RAYINTX_ARGS(Cylinder)) {
   if (tidx < 2) {
     /* at least one of the two intersections is with the endcaps */
     t = (-ff - 1)/ee;
-    ELL_3V_SCALE_ADD(pos, 1, ray->from, t, ray->dir);
+    ELL_3V_SCALE_ADD2(pos, 1, ray->from, t, ray->dir);
     aa = pos[radi0]; bb = pos[radi1]; cc = aa*aa + bb*bb;
     if (cc <= 1) {
       twot[tidx] = t;
@@ -246,7 +246,7 @@ _echoRayIntx_Cylinder(RAYINTX_ARGS(Cylinder)) {
     if (tidx < 2) {
       /* try other endcap */
       t = (-ff + 1)/ee;
-      ELL_3V_SCALE_ADD(pos, 1, ray->from, t, ray->dir);
+      ELL_3V_SCALE_ADD2(pos, 1, ray->from, t, ray->dir);
       aa = pos[radi0]; bb = pos[radi1]; cc = aa*aa + bb*bb;
       if (cc <= 1) {
 	twot[tidx] = t;
@@ -276,7 +276,7 @@ _echoRayIntx_Cylinder(RAYINTX_ARGS(Cylinder)) {
   }
   /* else one of the intxs is in [neer,faar] segment */
   intx->t = t;
-  ELL_3V_SCALE_ADD(pos, 1, ray->from, t, ray->dir);
+  ELL_3V_SCALE_ADD2(pos, 1, ray->from, t, ray->dir);
   switch(obj->axis) {
   case 0:
     ELL_3V_SET(intx->norm,     cap*pos[0], (1-cap)*pos[1], (1-cap)*pos[2]);
@@ -712,7 +712,7 @@ echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene,
   }
   if (ret) {
     /* being here means we're not a shadow ray */
-    ELL_3V_SCALE_ADD(intx->pos, 1, ray->from, intx->t, ray->dir);
+    ELL_3V_SCALE_ADD2(intx->pos, 1, ray->from, intx->t, ray->dir);
     ELL_3V_SCALE(intx->view, -1, ray->dir);
     ELL_3V_NORM(intx->view, intx->view, tmp);
     /* this is needed for phong materials; for glass and metal,

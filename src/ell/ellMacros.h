@@ -109,7 +109,12 @@ extern "C" {
 #define ELL_3V_COPY(v2, v1) \
   ((v2)[0] = (v1)[0], (v2)[1] = (v1)[1], (v2)[2] = (v1)[2])
 
-#define ELL_3V_ADD(v3, v1, v2)  \
+#define ELL_3V_INCR(v2, v1) \
+  ((v2)[0] += (v1)[0],      \
+   (v2)[1] += (v1)[1],      \
+   (v2)[2] += (v1)[2])
+
+#define ELL_3V_ADD2(v3, v1, v2) \
   ((v3)[0] = (v1)[0] + (v2)[0], \
    (v3)[1] = (v1)[1] + (v2)[1], \
    (v3)[2] = (v1)[2] + (v2)[2])
@@ -132,9 +137,9 @@ extern "C" {
    (v2)[1] = (a)*(v1)[1],       \
    (v2)[2] = (a)*(v1)[2])
 
-#define ELL_3V_SCALE_ADD(v2, s0, v0, s1, v1) \
-  ((v2)[0] = (s0)*(v0)[0] + (s1)*(v1)[0],    \
-   (v2)[1] = (s0)*(v0)[1] + (s1)*(v1)[1],    \
+#define ELL_3V_SCALE_ADD2(v2, s0, v0, s1, v1) \
+  ((v2)[0] = (s0)*(v0)[0] + (s1)*(v1)[0],     \
+   (v2)[1] = (s0)*(v0)[1] + (s1)*(v1)[1],     \
    (v2)[2] = (s0)*(v0)[2] + (s1)*(v1)[2])
 
 #define ELL_3V_SCALE_INCR(v2, s0, v0) \
@@ -182,12 +187,12 @@ extern "C" {
    ELL_3V_SCALE((m2)+3, (s), (m1)+3), \
    ELL_3V_SCALE((m2)+6, (s), (m1)+6))
 
-#define ELL_3M_SCALE_ADD(m2, s0, m0, s1, m1) \
-  (ELL_3V_SCALE_ADD((m2)+0, (s0), (m0)+0, (s1), (m1)+0), \
-   ELL_3V_SCALE_ADD((m2)+3, (s0), (m0)+3, (s1), (m1)+3), \
-   ELL_3V_SCALE_ADD((m2)+6, (s0), (m0)+6, (s1), (m1)+6))
+#define ELL_3M_SCALE_ADD2(m2, s0, m0, s1, m1) \
+  (ELL_3V_SCALE_ADD2((m2)+0, (s0), (m0)+0, (s1), (m1)+0), \
+   ELL_3V_SCALE_ADD2((m2)+3, (s0), (m0)+3, (s1), (m1)+3), \
+   ELL_3V_SCALE_ADD2((m2)+6, (s0), (m0)+6, (s1), (m1)+6))
 
-#define ELL_3M_ADD(m3, m1, m2) \
+#define ELL_3M_ADD2(m3, m1, m2) \
   ((m3)[0] = (m1)[0] + (m2)[0],  \
    (m3)[1] = (m1)[1] + (m2)[1],  \
    (m3)[2] = (m1)[2] + (m2)[2],  \
@@ -304,9 +309,9 @@ extern "C" {
    ELL_3V_SCALE((m)+6, (v2)[2], (v1)))
 
 #define ELL_3MV_OUTER_ADD(m, v1, v2) \
-  (ELL_3V_SCALE_ADD((m)+0, 1, (m)+0, (v2)[0], (v1)), \
-   ELL_3V_SCALE_ADD((m)+3, 1, (m)+3, (v2)[1], (v1)), \
-   ELL_3V_SCALE_ADD((m)+6, 1, (m)+6, (v2)[2], (v1)))
+  (ELL_3V_SCALE_ADD2((m)+0, 1, (m)+0, (v2)[0], (v1)), \
+   ELL_3V_SCALE_ADD2((m)+3, 1, (m)+3, (v2)[1], (v1)), \
+   ELL_3V_SCALE_ADD2((m)+6, 1, (m)+6, (v2)[2], (v1)))
 
 #define ELL_3MV_MUL(v2, m, v1) \
   ((v2)[0] = (m)[0]*(v1)[0] + (m)[3]*(v1)[1] + (m)[6]*(v1)[2], \
@@ -353,7 +358,7 @@ extern "C" {
    (v2)[2] = (v1)[2],       \
    (v2)[3] = (v1)[3])
 
-#define ELL_4V_ADD(v3, v1, v2)  \
+#define ELL_4V_ADD2(v3, v1, v2)  \
   ((v3)[0] = (v1)[0] + (v2)[0], \
    (v3)[1] = (v1)[1] + (v2)[1], \
    (v3)[2] = (v1)[2] + (v2)[2], \
@@ -372,16 +377,40 @@ extern "C" {
   ((v2)[0] = (v1)[0]*a, (v2)[1] = (v1)[1]*a, \
    (v2)[2] = (v1)[2]*a, (v2)[3] = (v1)[3]*a)
 
+#define ELL_4V_SCALE_ADD2(v2, s0, v0, s1, v1) \
+  ((v2)[0] = (s0)*(v0)[0] + (s1)*(v1)[0],    \
+   (v2)[1] = (s0)*(v0)[1] + (s1)*(v1)[1],    \
+   (v2)[2] = (s0)*(v0)[2] + (s1)*(v1)[2],    \
+   (v2)[3] = (s0)*(v0)[3] + (s1)*(v1)[3])
+
+#define ELL_4V_SCALE_ADD3(v2, s0, v0, s1, v1, s2, v2)    \
+  ((v2)[0] = (s0)*(v0)[0] + (s1)*(v1)[0] + (s2)*(v2)[0], \
+   (v2)[1] = (s0)*(v0)[1] + (s1)*(v1)[1] + (s2)*(v2)[1], \
+   (v2)[2] = (s0)*(v0)[2] + (s1)*(v1)[2] + (s2)*(v2)[2], \
+   (v2)[3] = (s0)*(v0)[3] + (s1)*(v1)[3] + (s2)*(v2)[3])
+
+#define ELL_4V_SCALE_ADD4(v2, s0, v0, s1, v1, s2, v2, s3, v3)           \
+  ((v2)[0] = (s0)*(v0)[0] + (s1)*(v1)[0] + (s2)*(v2)[0] + (s3)*(v3)[0], \
+   (v2)[1] = (s0)*(v0)[1] + (s1)*(v1)[1] + (s2)*(v2)[1] + (s3)*(v3)[1], \
+   (v2)[2] = (s0)*(v0)[2] + (s1)*(v1)[2] + (s2)*(v2)[2] + (s3)*(v3)[2], \
+   (v2)[3] = (s0)*(v0)[3] + (s1)*(v1)[3] + (s2)*(v2)[3] + (s3)*(v3)[3])
+
+#define ELL_4V_SCALE_INCR(v2, s0, v0) \
+  ((v2)[0] += (s0)*(v0)[0], \
+   (v2)[1] += (s0)*(v0)[1], \
+   (v2)[2] += (s0)*(v0)[2], \
+   (v2)[3] += (s0)*(v0)[3])
+
 #define ELL_4V_LEN(v) (sqrt(ELL_4V_DOT((v),(v))))
 
 #define ELL_4V_NORM(v2, v1, length) \
   (length = ELL_4V_LEN(v1), ELL_4V_SCALE(v2, 1.0/length, v1))
 
-#define ELL_4M_ADD(m3, m1, m2)            \
-  (ELL_4V_ADD((m3)+ 0, (m1)+ 0, (m2)+ 0), \
-   ELL_4V_ADD((m3)+ 4, (m1)+ 4, (m2)+ 4), \
-   ELL_4V_ADD((m3)+ 8, (m1)+ 8, (m2)+ 8), \
-   ELL_4V_ADD((m3)+12, (m1)+12, (m2)+12))
+#define ELL_4M_ADD2(m3, m1, m2)            \
+  (ELL_4V_ADD2((m3)+ 0, (m1)+ 0, (m2)+ 0), \
+   ELL_4V_ADD2((m3)+ 4, (m1)+ 4, (m2)+ 4), \
+   ELL_4V_ADD2((m3)+ 8, (m1)+ 8, (m2)+ 8), \
+   ELL_4V_ADD2((m3)+12, (m1)+12, (m2)+12))
 
 #define ELL_4M_SUB(m3, m1, m2)            \
   (ELL_4V_SUB((m3)+ 0, (m1)+ 0, (m2)+ 0), \

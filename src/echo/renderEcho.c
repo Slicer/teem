@@ -323,7 +323,7 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
   ELL_4MV_ROW0_GET(U, cam->W2V);
   ELL_4MV_ROW1_GET(V, cam->W2V);
   ELL_4MV_ROW2_GET(N, cam->W2V);
-  ELL_3V_SCALE_ADD(imgOrig, 1.0, eye, cam->vspDist, N);
+  ELL_3V_SCALE_ADD2(imgOrig, 1.0, eye, cam->vspDist, N);
   
   /* determine size of a single pixel (based on cell-centering) */
   pixUsz = (cam->uRange[1] - cam->uRange[0])/(parm->imgResU);

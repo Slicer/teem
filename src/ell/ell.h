@@ -121,7 +121,10 @@ extern void ell_4m_inv_d(double i[16], double m[16]);
 **  where w is the real component and (x,y,z) is the imaginary component
 **
 ** Nowhere in ell is there the assumption that any given quaternion is
-** a unit-length quaternion.  
+** a unit-length quaternion.  Sometimes returned quaternions will be 
+** unit-length, and sometimes given quaternions must be normalized internally
+** prior to doing some operation, but its not something that ell users
+** need worry about.
 */
 
 /* quat.c */
@@ -151,6 +154,8 @@ extern void ell_q_inv_f( float qi[4],  float q[4]);
 extern void ell_q_inv_d(double qi[4], double q[4]);
 extern void ell_q_pow_f( float q2[4],  float q1[4],  float p);
 extern void ell_q_pow_d(double q2[4], double q1[4], double p);
+extern void ell_q_div_f( float q3[4],  float q1[4],  float q2[4]);
+extern void ell_q_div_d(double q3[4], double q1[4], double q2[4]);
 extern void ell_q_exp_f( float q2[4],  float q1[4]);
 extern void ell_q_exp_d(double q2[4], double q1[4]);
 extern void ell_q_log_f( float q2[4],  float q1[4]);
@@ -159,6 +164,9 @@ extern void ell_q_3v_rotate_f( float v2[3],  float q[4],  float v1[3]);
 extern void ell_q_3v_rotate_d(double v2[3], double q[4], double v1[3]);
 extern void ell_q_4v_rotate_f( float v2[4],  float q[4],  float v1[4]);
 extern void ell_q_4v_rotate_d(double v2[4], double q[4], double v1[4]);
+extern void ell_q_avg4_d(double avg[4], double eps, double wght[4],
+			 double q1[4], double q2[4],
+			 double q3[4], double q4[4]);
 
 /* genmat.c */
 extern int ell_Nm_valid(Nrrd *mat);

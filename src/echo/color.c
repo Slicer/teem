@@ -254,7 +254,7 @@ _echoRefract(echoPos_t T[3], echoPos_t V[3],
 	    cosTh, index, cosPh);
   }
   tmp1 = -1.0/index; tmp2 = cosTh/index - cosPh; 
-  ELL_3V_SCALE_ADD(T, tmp1, V, tmp2, N);
+  ELL_3V_SCALE_ADD2(T, tmp1, V, tmp2, N);
   ELL_3V_NORM(T, T, tmp1);
   return AIR_TRUE;
 }

@@ -240,7 +240,7 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	  }
 	  if (glyphsEcho) {
 	    esquare = echoObjectNew(glyphsEcho,echoTypeRectangle);
-	    ELL_3V_ADD(((echoRectangle*)esquare)->origin, W, originOffset);
+	    ELL_3V_ADD2(((echoRectangle*)esquare)->origin, W, originOffset);
 	    ELL_3V_COPY(((echoRectangle*)esquare)->edge0, edge0);
 	    ELL_3V_COPY(((echoRectangle*)esquare)->edge1, edge1);
 	    echoColorSet(esquare, sliceAniso, sliceAniso, sliceAniso, 1);

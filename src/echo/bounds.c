@@ -77,9 +77,9 @@ BNDS_TMPL(Rectangle,
 	  echoPos_t v[3][3];
 
 	  ELL_3V_COPY(lo, obj->origin);
-	  ELL_3V_ADD(v[0], lo, obj->edge0);
-	  ELL_3V_ADD(v[1], lo, obj->edge1);
-	  ELL_3V_ADD(v[2], v[0], obj->edge1);
+	  ELL_3V_ADD2(v[0], lo, obj->edge0);
+	  ELL_3V_ADD2(v[1], lo, obj->edge1);
+	  ELL_3V_ADD2(v[2], v[0], obj->edge1);
 	  ELL_3V_MIN(lo, lo, v[0]);
 	  ELL_3V_MIN(lo, lo, v[1]);
 	  ELL_3V_MIN(lo, lo, v[2]);

@@ -297,7 +297,26 @@ ell_q_inv_d(double qi[4], double q[4]) {
 }
 
 /*
-** this is good for *ALL* quanternions, any length, including zero.
+**  div(a, b) = a^-1 * b
+*/
+void
+ell_q_div_f(float q3[4], float q1[4], float q2[4]) {
+  float N, q1i[4];
+
+  ELL_Q_INV(q1i, q1, N);
+  ELL_Q_MUL(q3, q1i, q2);
+}
+
+void
+ell_q_div_d(double q3[4], double q1[4], double q2[4]) {
+  float N, q1i[4];
+
+  ELL_Q_INV(q1i, q1, N);
+  ELL_Q_MUL(q3, q1i, q2);
+}
+
+/*
+** this is good for *ALL* quaternions, any length, including zero.
 ** the behavior on the zero quaternion is governed by the behavior
 ** of the log() and atan2() functions in the math library
 **
@@ -411,5 +430,50 @@ void
 ell_q_4v_rotate_d(double v2[4], double q[4], double v1[4]) {
   _ELL_Q3V_ROT(float);
   v2[3] = v1[3];
+}
+
+#define _ELL_Q_AVG_ITER_MAX 30
+
+void
+ell_q_avg4_d(double m[4], double eps, double _wght[4],
+	     double _q1[4], double _q2[4], double _q3[4], double _q4[4]) {
+  double N, err, a[4], b[4], c[4], d[4], 
+    tmp[4], la[4], lb[4], lc[4], ld[4], u[4], wght[4];
+  int iter;
+  
+  /* normalize (wrt L2) all given quaternions */
+  ELL_4V_NORM(a, _q1, N);
+  ELL_4V_NORM(b, _q2, N);
+  ELL_4V_NORM(c, _q3, N);
+  ELL_4V_NORM(d, _q4, N);
+
+  /* normalize (wrt L1) the given weights */
+  ELL_4V_COPY(wght, _wght);
+  N = wght[0] + wght[1] + wght[2] + wght[3];
+  ELL_4V_SCALE(wght, 1/N, wght);
+
+  /* initialize mean to normalized euclidean mean */
+  ELL_4V_SCALE_ADD4(m, wght[0], a, wght[1], b, wght[2], c, wght[3], d);
+  ELL_4V_NORM(m, m, N);
+
+  iter = 0;
+  do {
+    /* take log of everyone */
+    ell_q_div_d(tmp, m, a); ell_q_log_d(la, tmp);
+    ell_q_div_d(tmp, m, b); ell_q_log_d(lb, tmp);
+    ell_q_div_d(tmp, m, c); ell_q_log_d(lc, tmp);
+    ell_q_div_d(tmp, m, d); ell_q_log_d(ld, tmp);
+    /* average, and find length */
+    ELL_4V_SCALE_ADD4(u, wght[0], la, wght[1], lb, wght[2], lc, wght[3], ld);
+    err = ELL_4V_LEN(u);
+    /* use exp to put it back on S^3 */
+    ell_q_exp_d(tmp, u); ell_q_mul_d(m, m, tmp);
+    iter++;
+  } while (iter < _ELL_Q_AVG_ITER_MAX && err > eps);
+  if (err > eps) {
+    fprintf(stderr, "%s: still have error %g after %d iterations\n", 
+	    "ell_q_avg4_d", err, _ELL_Q_AVG_ITER_MAX);
+  }
+  return;
 }
 
