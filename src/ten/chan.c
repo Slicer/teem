@@ -43,7 +43,7 @@ tenBMatrixCalc(Nrrd *nbmat, Nrrd *_ngrad) {
   int DD, dd;
   airArray *mop;
 
-  if (!(nbmat && _ngrad && !tenGradCheck(_ngrad))) {
+  if (!(nbmat && _ngrad && !tenGradientCheck(_ngrad, nrrdTypeUnknown, 1))) {
     sprintf(err, "%s: got NULL pointer or invalid arg", me);
     biffAdd(TEN, err); return 1;
   }

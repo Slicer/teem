@@ -379,7 +379,7 @@ typedef struct {
     dt,
     minVelocity,
     jitter; 
-  int snap, single, minIteration, maxIteration;
+  int srand, snap, single, minIteration, maxIteration;
 } tenGradientParm;
 
 /* defaultsTen.c */
@@ -394,6 +394,13 @@ TEEM_API int tenDefFiberIntg;
 TEEM_API double tenDefFiberWPunct;
 
 /* grads.c */
+TEEM_API tenGradientParm *tenGradientParmNew(void);
+TEEM_API tenGradientParm *tenGradientParmNix(tenGradientParm *tgparm);
+TEEM_API int tenGradientCheck(Nrrd *ngrad, int type, int minnum);
+TEEM_API int tenGradientRandom(Nrrd *ngrad, int num, int srand);
+TEEM_API int tenGradientJitter(Nrrd *nout, Nrrd *nin, double dist);
+TEEM_API int tenGradientDistribute(Nrrd *nout, Nrrd *nin, tenGradientParm *tgparm);
+TEEM_API int tenGradientGenerate(Nrrd *nout, int num, tenGradientParm *tgparm);
 
 /* enumsTen.c */
 TEEM_API airEnum *tenAniso;
@@ -456,7 +463,6 @@ TEEM_API int tenEvecRGB(Nrrd *nout, Nrrd *nin, int which, int aniso,
 TEEM_API short tenEvqOne(float vec[3], float scl);
 TEEM_API int tenEvqVolume(Nrrd *nout, Nrrd *nin, int which,
 			  int aniso, int scaleByAniso);
-TEEM_API int tenGradCheck(Nrrd *ngrad);
 TEEM_API int tenBMatrixCheck(Nrrd *nbmat);
 TEEM_API int _tenFindValley(float *valP, Nrrd *nhist, float tweak);
 

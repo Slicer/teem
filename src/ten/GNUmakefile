@@ -46,7 +46,7 @@ $(L).SEEN := true
 $(L).NEED = echo limn gage dye unrrdu ell nrrd biff air
 $(L).PUBLIC_HEADERS = ten.h tenMacros.h
 $(L).PRIVATE_HEADERS = privateTen.h
-$(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o miscTen.o mod.o \
+$(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o grads.o miscTen.o mod.o \
 	tenGage.o fiberMethods.o fiber.o epireg.o defaultsTen.o bimod.o \
 	tendFlotsam.o tendGrads.o tendAnplot.o tendAnvol.o tendEval.o \
 	tendEvec.o tendSten.o tendExpand.o tendEvq.o tendPoint.o \

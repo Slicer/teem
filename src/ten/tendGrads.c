@@ -24,7 +24,8 @@
 char *_tend_gradsInfoL =
   (INFO
    ", based on a simulation of anti-podal point pairs repelling each other "
-   "on the unit sphere surface. ");
+   "on the unit sphere surface. This can either distribute more uniformly a given "
+   "set of gradients, or it can make a new distribution from scratch. ");
 
 int
 tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -33,15 +34,44 @@ tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  Nrrd *ngrad, *nout;
+  int num, E, nosrand;
+  Nrrd *nin, *nout;
   char *outS;
-
-  hestOptAdd(&hopt, "i", "grads", airTypeOther, 1, 1, &ngrad, NULL,
-	     "array of gradient directions", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output B matrix");
+  tenGradientParm *tgparm;
 
   mop = airMopNew();
+  tgparm = tenGradientParmNew();
+  airMopAdd(mop, tgparm, (airMopper)tenGradientParmNix, airMopAlways);
+
+  hestOptAdd(&hopt, "n", "# dir", airTypeInt, 1, 1, &num, "6",
+	     "desired number of diffusion gradient directions");
+  hestOptAdd(&hopt, "i", "grads", airTypeOther, 1, 1, &nin, "",
+	     "initial gradient directions to start with, instead "
+	     "of default random initial directions (overrides \"-n\")",
+             NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "nosrand", NULL, airTypeInt, 0, 0, &nosrand, NULL,
+	     "do NOT call srand() to initialize random number generator");
+  hestOptAdd(&hopt, "dt", "dt", airTypeDouble, 1, 1, &(tgparm->dt), "0.05",
+	     "time increment in solver");
+  hestOptAdd(&hopt, "drag", "drag", airTypeDouble, 1, 1, &(tgparm->drag), "0.01",
+	     "viscous drag, to keep things stable");
+  hestOptAdd(&hopt, "charge", "charge", airTypeDouble, 1, 1, &(tgparm->charge), "0.2",
+	     "amount of charge on each particle");
+  hestOptAdd(&hopt, "single", NULL, airTypeInt, 0, 0, &(tgparm->single), NULL,
+	     "instead of the default behavior of tracking a pair of "
+	     "antipodal points (appropriate for determining DWI gradients), "
+	     "use only single points (appropriate for who knows what).");
+  hestOptAdd(&hopt, "snap", "interval", airTypeInt, 1, 1, &(tgparm->snap), "0",
+	     "specifies an interval between which snapshots of the point "
+	     "positions should be saved out.  By default (not using this "
+	     "option), there is no such snapshot behavior");
+  hestOptAdd(&hopt, "jitter", "jitter", airTypeDouble, 1, 1, &(tgparm->jitter), "0.05",
+	     "amount by which to perturb points when given an input nrrd");
+  hestOptAdd(&hopt, "maxiter", "# iters", airTypeInt, 1, 1,
+	     &(tgparm->maxIteration), "1000000",
+	     "max number of iterations for which to run the simulation");
+  hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
+	     "file to write output nrrd to");
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_tend_gradsInfoL);
   PARSE();
@@ -49,6 +79,15 @@ tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
+  tgparm->srand = !nosrand;
+  E = (nin
+       ? tenGradientDistribute(nout, nin, tgparm)
+       : tenGradientGenerate(nout, num, tgparm));
+  if (E) {
+    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble making distribution:\n%s\n", me, err);
+    airMopError(mop); return 1;
+  }
   
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
