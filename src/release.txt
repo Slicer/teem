@@ -106,7 +106,7 @@ setenv TEEM_ZLIB_LPATH -L/home/gk/lib
 setenv TEEM_ZLIB_IPATH -I/home/gk/include
 
 4) Create source-only tgz:
-cvs checkout teem; cd teem
+cvs -d /usr/sci/projects/teem/cvs co teem; cd teem
 find . -name CVS  -exec rm -rf {} \;
 cd ..; mv teem teem-${VERSION}
 tar czvf teem-${VERSION}.tgz teem-${VERSION}
