@@ -137,10 +137,10 @@ main(int argc, char *argv[]) {
       result = op1 / op2;
       break;
     case 'm':
-      result = NRRD_MIN(op1,op2);
+      result = AIR_MIN(op1,op2);
       break;
     case 'M':
-      result = NRRD_MAX(op1,op2);
+      result = AIR_MAX(op1,op2);
       break;
     case 'e':
       result = AIR_EXISTS(op1) ? op1 : op2;
