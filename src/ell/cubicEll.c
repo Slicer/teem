@@ -42,7 +42,7 @@
 */
 int
 ellCubic(double root[3], double A, double B, double C, int newton) {
-  double epsilon = 1.0E-11, sq_A, p, q, cb_p, D, sqrt_D, 
+  double epsilon = 1.0E-11, sq_A, p, q, cb_p, D, sqrt_D, der,
     u, v, x, phi, t, sub;
 
   sub = 1.0/3.0*A;
@@ -61,7 +61,7 @@ ellCubic(double root[3], double A, double B, double C, int newton) {
     root[2] = t*cos(phi - 2*M_PI/3.0) - sub;
     /*
     if (!AIR_EXISTS(root[0])) {
-      printf("ellCubic: %g %g %g --> nan!!!\n", A, B, C);
+      fprintf(stderr, "ellCubic: %g %g %g --> nan!!!\n", A, B, C);
     }
     */
     return ellCubicRootThree;
@@ -78,23 +78,32 @@ ellCubic(double root[3], double A, double B, double C, int newton) {
       root[1] = root[2] = AIR_NAN;
       return ellCubicRootSingle;
     }
+
     /* else refine x, the known root, with newton-raphson, so as to get the 
        most accurate possible calculation for nr, the possible new root */
-    x = x - (((x + A)*x + B)*x + C)/((3.0*x + 2.0*A)*x + B);
-    x = x - (((x + A)*x + B)*x + C)/((3.0*x + 2.0*A)*x + B);
+    x -= (der = (3*x + 2*A)*x + B, ((x/der + A/der)*x + B/der)*x + C/der);
+    x -= (der = (3*x + 2*A)*x + B, ((x/der + A/der)*x + B/der)*x + C/der);
+    x -= (der = (3*x + 2*A)*x + B, ((x/der + A/der)*x + B/der)*x + C/der);
+    x -= (der = (3*x + 2*A)*x + B, ((x/der + A/der)*x + B/der)*x + C/der);
+    x -= (der = (3*x + 2*A)*x + B, ((x/der + A/der)*x + B/der)*x + C/der);
+    x -= (der = (3*x + 2*A)*x + B, ((x/der + A/der)*x + B/der)*x + C/der);
     nr = -(A + x)/2.0;
     fnr = ((nr + A)*nr + B)*nr + C;  /* the polynomial evaluated at nr */
-    /* if (ellDebug) {
-      printf("ellCubic(): root = %g -> %g, nr=% 20.15f; fnr=% 20.15f\n", 
-	     x, (((x + A)*x + B)*x + C), nr, fnr);
-	     } */
+    /*
+    if (ellDebug) {
+      fprintf(stderr, "ellCubic(): root = %g -> %g, nr=% 20.15f\n"
+	      "   fnr=% 20.15f\n", 
+	      x, (((x + A)*x + B)*x + C), nr, fnr);
+    }
+    */
     if (fnr < -epsilon || fnr > epsilon) {
       root[0] = x;
+      root[1] = root[2] = AIR_NAN;
       return ellCubicRootSingle;
     }
     else {
       if (ellDebug) {
-	printf("ellCubic(): rescued double root:% 20.15f\n", nr);
+	fprintf(stderr, "ellCubic(): rescued double root:% 20.15f\n", nr);
       } 
       root[0] = x;
       root[1] = nr;
