@@ -24,7 +24,7 @@ HEADERS = limn.h
 #	transform.o render.o
 TEEM_LIB_OBJS = qn.o light.o cam.o methods.o obj.o io.o \
 	transform.o render.o
-TEST_BINS = test/map test/des test/light
+TEST_BINS = test/map test/light
 TEEM_BINS =
 TEEM_BIN_LIBS = -llimn -lell -lnrrd -lbiff -lair -lm
 
