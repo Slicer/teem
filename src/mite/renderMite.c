@@ -20,21 +20,48 @@
 #include "mite.h"
 
 int 
-miteRenderBegin(miteRenderInfo **mrrP, miteUserInfo *muu) {
+miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   char me[]="miteRenderBegin", err[AIR_STRLEN_MED];
   gagePerVolume *pvl;
-  int E, thr;
+  int T, E, thr, td;
+  miteTxf *txf;
  
-  fprintf(stderr, "%s: hi %p %p\n", me, mrrP, muu);
   if (!(mrrP && muu)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  if (!( *mrrP = (miteRenderInfo *)calloc(1, sizeof(miteRenderInfo)) )) {
+  if (!gageVolumeValid(muu->nin, gageKindScl)) {
+    sprintf(err, "%s: trouble with input volume", me);
+    biffMove(MITE, err, GAGE); return 1;
+  }
+  if (!( *mrrP = (miteRender *)calloc(1, sizeof(miteRenderInfo)) )) {
     sprintf(err, "%s: couldn't alloc miteRenderInfo", me);
     return 1;
   }
   airMopAdd(muu->mop, *mrrP, airFree, airMopAlways);
+  if (!muu->ntxfNum) {
+    sprintf(err, "%s: no transfer functions set", me);
+    biffAdd(MITE, err); return 1;
+  }
+  td = 0;
+  for (T=0; T<muu->ntxfNum; T++) {
+    txf = miteTxfNew(muu->ntxf[T]);
+    if (!txf) {
+      sprintf(err, "%s: trouble with ntxf %d as transfer function", me, T);
+      biffAdd(MITE, err); return 1;
+    }
+    airMopAdd(muu->mop, txf, (airMopper)miteTxfNix, airMopAlways);
+    td += txf->ntxf->dim - 1;
+    if (td > MITE_TXF_NUM) {
+      sprintf(err, "%s: ntxf %d (with dim %d --> %d) exceeded total txf "
+	      "dimensionality of %d",
+	      me, T, txf->ntxf->dim - 1, txf->ntxf->dim, MITE_TXF_NUM);
+      biffAdd(MITE, err); return 1;
+    }
+    (*mrrP)->txf[T] = txf;
+  }
+  (*mrrP)->txfNum = muu->ntxfNum;
+
   pvl = gagePerVolumeNew(muu->nin, gageKindScl);
 
   E = 0;
@@ -85,7 +112,7 @@ miteRenderBegin(miteRenderInfo **mrrP, miteUserInfo *muu) {
 }
 
 int
-miteRenderEnd(miteRenderInfo *mrr, miteUserInfo *muu) {
+miteRenderEnd(miteRenderInfo *mrr, miteUser *muu) {
   char me[]="miteRenderEnd", err[AIR_STRLEN_MED];
 
   mrr->time1 = airTime();

@@ -85,7 +85,6 @@ enum {
 */
 typedef struct {
   Nrrd *ntxf;                    /* nrrd containing transfer function */
-  float *data;                   /* shortcut to ntxf->data */
   int *rangeIdx,                 /* indices of the ntxf->axis[0].size
 				    transfer function range quantities */
     domainIdx[MITE_TXF_NUM];     /* integer indentifiers for the ntxf->dim-1
@@ -101,13 +100,13 @@ typedef struct {
 ** struct and set them yourself. 
 */
 typedef struct {
-  Nrrd *nin;             /* volume being rendered */
-  miteTxf *txf[MITE_TXF_NUM]; /* transfer functions */
+  Nrrd *nin,             /* volume being rendered */
+    *ntxf[MITE_TXF_NUM]; /* nrrds containing transfer functions */
+  int ntxfNum;           /* number of nrrds set in ntxf[] */
   /* for each possible element of the txf range, what value should it
      start at prior to multiplying by the values (if any) learned from
      the txf.  Mainly needed to store non-unity values for the
      quantities not covered by a transfer function */
-  int txfNum;            /* number of transfer functions set */
   float rangeInit[MITE_RANGE_NUM]; 
   double refStep,        /* length of "unity" for doing opacity correction */
     rayStep,             /* distance between sampling planes */
@@ -136,11 +135,13 @@ struct miteThread_t;
 ** non-thread-specific state relevant for mite's internal use
 */
 typedef struct {
-  double time0, time1;   /* rendering start and end times */
-  int sx, sy;            /* ???? */
-
-  Nrrd *nout;            /* output image nrrd */
-  float *imgData;        /* ???? */
+  miteTxf *txf[MITE_TXF_NUM]; /* transfer functions */
+  int txfNum;                 /* number of transfer functions */
+  double time0, time1;        /* rendering start and end times */
+  int sx, sy,                 /* image dimensions */
+    totalSamples;             /* total # samples used for all rays */
+  Nrrd *nout;                 /* output image nrrd */
+  float *imgData;             /* output image data */
 
   /* as long as there's no mutex around how the miteThreads are
      airMopAdded to the miteUser's mop, these have to be allocated in
@@ -148,17 +149,28 @@ typedef struct {
   struct miteThread_t *tt[HOOVER_THREAD_MAX];  
 } miteRender;
 
+typedef struct {
+  gage_t *val;            /* the gage-measured txf axis variable */
+  int size;               /* number of samples */
+  float min, max,         /* min, max (copied from nrrd axis) */
+    *data,                /* pointer to txf data.  If non-NULL, the
+			     rest of the variables are meaningful */
+    *range[MITE_TXF_NUM]; /* pointers to thread-specific rendering variables
+			     that will be determined by the txf */
+  int num;                /* number of range variables set by the txf
+			     == number of pointers in range[] to use */
+} miteStage;
+
 /*
 ******** miteThread
 **
 ** thread-specific state for mite's internal use
 */
 typedef struct miteThread_t {
+  miteStage stage[MITE_TXF_NUM]; /* all stages for txf computation */
   gageContext *gctx;     /* per-thread context */
-  gage_t *ans,           /* vector of all gage answers */
-    *norm,               /* shortcut to normalized gradient answer */
-    /* domain[t][i] is the address of the i'th argument to the t'th txf */
-    *domain[MITE_TXF_NUM][MITE_TXF_NUM]; 				    
+  gage_t *ans,           /* shortcut to gctx->pvl[0]->ans */
+    *norm;               /* shortcut to ans[...normal...] */
   int thrid,             /* thread ID */
     ui, vi;              /* image coords */
 } miteThread;
@@ -175,7 +187,6 @@ extern miteTxf *miteTxfNix(miteTxf *txf);
 /* user.c */
 extern miteUser *miteUserNew();
 extern miteUser *miteUserNix(miteUser *muu);
-extern int miteUserValid(miteUser *muu);
 
 /* renderMite.c */
 extern int miteRenderBegin(miteRender **mrrP, miteUser *muu);
