@@ -119,6 +119,7 @@ F(axsplit) \
 F(axdelete) \
 F(axmerge) \
 F(tile) \
+F(untile) \
 F(histo) \
 F(dhisto) \
 F(jhisto) \
