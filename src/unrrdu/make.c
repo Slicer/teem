@@ -209,7 +209,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
      so as to simulate having read the information from a header */
   if (!( AIR_IN_CL(1, sizeLen, NRRD_DIM_MAX) )) {
     fprintf(stderr, "%s: # axis sizes (%d) not in valid nrrd dimension "
-            "range ([1,%d])\n", me, sizeLen, NRRD_DIM_MAX);
+            "range [1,NRRD_DIM_MAX] = [1,%d]\n", me, sizeLen, NRRD_DIM_MAX);
     airMopError(mop);
     return 1;
   }
