@@ -25,7 +25,12 @@
 
 char *info = ("Converts from DOS text files to normal (converting LF-CR pairs "
 	      "to just CR), or, with the \"-r\" option, convert back to DOS, "
-	      "for whatever sick and twisted reason you'd have to do that. ");
+	      "for whatever sick and twisted reason you'd have to do that. "
+	      "Unlike the simple sed or perl scripts for this purpose, "
+	      "this program is careful to be idempotent.  Also, this makes "
+	      "an effort to not meddle with binary files (on which this may "
+	      "be mistakenly invoked).  A message is printed "
+	      "to stderr for all the files actually modified. ");
 
 #define CR 10
 #define LF 13
@@ -37,7 +42,7 @@ undosConvert(char *me, char *name, int reverse) {
   FILE *fin, *fout;
   char *data=NULL;
   airArray *dataArr;
-  int ci, car, numBad;
+  int ci, car, numBad, willConvert;
 
   mop = airMopNew();
   if (!airStrlen(name)) {
@@ -45,7 +50,8 @@ undosConvert(char *me, char *name, int reverse) {
     airMopError(mop); return;
   }
 
-  /* open input file */
+  /* -------------------------------------------------------- */
+  /* open input file  */
   fin = airFopen(name, stdin, "rb");
   if (!fin) {
     fprintf(stderr, "%s: couldn't open \"%s\" for reading: \"%s\"\n", 
@@ -54,6 +60,7 @@ undosConvert(char *me, char *name, int reverse) {
   }
   airMopAdd(mop, fin, (airMopper)airFclose, airMopOnError);
 
+  /* -------------------------------------------------------- */
   /* create buffer */
   dataArr = airArrayNew((void**)&data, NULL, sizeof(char), AIR_STRLEN_HUGE);
   if (!dataArr) {
@@ -62,6 +69,7 @@ undosConvert(char *me, char *name, int reverse) {
   }
   airMopAdd(mop, dataArr, (airMopper)airArrayNuke, airMopAlways);
 
+  /* -------------------------------------------------------- */
   /* read input file, testing for binary-ness along the way */
   numBad = 0;
   car = getc(fin);
@@ -86,6 +94,36 @@ undosConvert(char *me, char *name, int reverse) {
   }
   fin = airFclose(fin);
 
+  /* -------------------------------------------------------- */
+  /* see if we really need to do anything */
+  willConvert = AIR_FALSE;
+  if (!strcmp("-", name)) {
+    willConvert = AIR_TRUE;
+  } else if (reverse) {
+    for (ci=0; ci<dataArr->len; ci++) {
+      if (CR == data[ci] && (ci && LF != data[ci-1])) {
+	willConvert = AIR_TRUE;
+	break;
+      }
+    }
+  } else {
+    for (ci=0; ci<dataArr->len; ci++) {
+      if (LF == data[ci] && (ci+1<dataArr->len && CR == data[ci+1])) {
+	willConvert = AIR_TRUE;
+	break;
+      }
+    }
+  }
+  if (!willConvert) {
+    /* no, we don't need to do anything; quietly quit */
+    airMopOkay(mop);
+    return;
+  } else {
+    fprintf(stderr, "%s: converting \"%s\" %s DOS ... \n", me, name,
+	    reverse ? "to" : "from");
+  }
+
+  /* -------------------------------------------------------- */
   /* open output file */
   fout = airFopen(name, stdout, "wb");
   if (!fout) {
@@ -95,11 +133,12 @@ undosConvert(char *me, char *name, int reverse) {
   }
   airMopAdd(mop, fout, (airMopper)airFclose, airMopOnError);
 
+  /* -------------------------------------------------------- */
   /* write output file */
   car = 'a';
   if (reverse) {
     for (ci=0; ci<dataArr->len; ci++) {
-      if (CR == data[ci]) {
+      if (CR == data[ci] && (ci && LF != data[ci-1])) {
 	car = putc(LF, fout);
 	if (EOF != car) {
 	  car = putc(CR, fout);
@@ -139,8 +178,7 @@ main(int argc, char *argv[]) {
 	     "convert back to DOS, instead of convert from DOS to normal");
   hestOptAdd(&hopt, NULL, "file1 ", airTypeString, 1, -1, &name, NULL,
 	     "all the files to convert.  Each file will be over-written "
-	     "with its converted contents.  Makes an effort to not meddle "
-	     "with binary files.  Use \"-\" to read from stdin "
+	     "with its converted contents.  Use \"-\" to read from stdin "
 	     "and write to stdout", &lenName);
   hestParseOrDie(hopt, argc-1, argv+1, NULL, me, info,
 		 AIR_TRUE, AIR_TRUE, AIR_TRUE);
