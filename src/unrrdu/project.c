@@ -55,12 +55,14 @@ main(int argc, char *argv[]) {
   if (!(nout = nrrdNewMeasureAxis(nin, axis, measr))) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error projecting nrrd:\n%s\n", me, err);
+    free(err);
     exit(1);
   }
   nout->encoding = nin->encoding;
   if (nrrdSave(out, nout)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error writing nrrd:\n%s\n", me, err);
+    free(err);
     exit(1);
   }
 

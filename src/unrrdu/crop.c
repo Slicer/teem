@@ -28,46 +28,47 @@ usage() {
 	  "usage: %s <nIn> <ax0min> <ax0max> <ax1min> ... <axN-1max> <nOut>\n",
 	  me);
   fprintf(stderr, 
-	  "       axis min and max can be positive, negative, or \"-\"\n");
+	  "       min and max should be either a signed integer, or \n");
+  fprintf(stderr, 
+	  "       \"M\", \"M+n\", or \"M-n\", where M signifies top\n");
+  fprintf(stderr, 
+	  "       position along its respective axis, and +n/-n is an\n");
+  fprintf(stderr,
+	  "       offset from that position\n");
   exit(1);
 }
 
 int
 getint(char *str, int *n, int *offset) {
-  
+
   *offset = 0;
-  if (!strcmp(str, "-")) {
+  if ('M' == str[0]) {
     *n = INT_MAX;
-    return(0);
-  }
-  else if (!strcmp(str, "--")) {
-    *n = INT_MIN;
-    return(0);
-  }
-  else if ('-' == str[0]) {
-    if (1 != sscanf(str+1, "%d", n))
-      return(1);
-    *n = -*n;
-    *offset = 1;
-    return(0);
-  }
-  else if ('+' == str[0]) {
-    if (1 != sscanf(str+1, "%d", n))
-      return(1);
-    *offset = 1;
-    return(0);
-  }
-  else if (1 != sscanf(str, "%d", n)) {
-    return(1);
+    if (1 < strlen(str)) {
+      if (('+' == str[1] || '-' == str[1])) {
+	if (1 != sscanf(str+1, "%d", offset)) {
+	  return 1;
+	}
+	/* else we succesfully parsed the offset */
+      }
+      else {
+	/* something other that '+' or '-' after 'M' */
+	return 1;
+      }
+    }
   }
   else {
-    return(0);
+    if (1 != sscanf(str, "%d", n)) {
+      return 1;
+    }
+    /* else we successfully parsed n */
   }
+  return 0;
 }
 
 int
 main(int argc, char *argv[]) {
-  char *inStr, *outStr, *errStr;
+  char *inStr, *outStr, *err;
   int i, udim, min[NRRD_MAX_DIM], max[NRRD_MAX_DIM], 
     minoffset[NRRD_MAX_DIM], maxoffset[NRRD_MAX_DIM];
   Nrrd *nin, *nout;
@@ -95,8 +96,9 @@ main(int argc, char *argv[]) {
     }
   }
   if (!(nin = nrrdNewOpen(inStr))) {
-    errStr = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble reading input:%s\n", me, errStr);
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: trouble reading input:%s\n", me, err);
+    free(err);
     exit(1);
   }
   if (udim != nin->dim) {
@@ -105,31 +107,27 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   for (i=0; i<=udim-1; i++) {
-    if (minoffset[i]) {
-      min[i] = -min[i];
-    }
-    else {
-      min[i] = min[i] == INT_MAX ? 0 : min[i];
-      min[i] = min[i] == INT_MIN ? nin->size[i] - 1 : min[i];
-    }
-    if (maxoffset[i]) {
-      max[i] += nin->size[i]-1;
-    }
-    else {
-      max[i] = max[i] == INT_MAX ? nin->size[i] - 1 : max[i];
-      max[i] = max[i] == INT_MIN ? 0 : max[i];
-    }
-    printf("%s: axis %d: %d --> %d\n", me, i, min[i], max[i]);
+    if (INT_MAX == min[i])
+      min[i] = nin->size[i] - 1 + minoffset[i];
+    if (INT_MAX == max[i])
+      max[i] = nin->size[i] - 1 + maxoffset[i];
+    fprintf(stderr, "%s: axis % 2d: %d -> %d\n", me, i, min[i], max[i]);
   }
+  
   if (!(nout = nrrdNewSubvolume(nin, min, max, 1))) {
-    fprintf(stderr, "%s: error cropping nrrd:\n%s", me, biffGet(NRRD));
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: error cropping nrrd:\n%s", me, err);
+    free(err);
     exit(1);
   }
-  nout->encoding = nin->encoding;
+  nout->encoding = nrrdEncodingRaw;
   if (nrrdSave(outStr, nout)) {
-    fprintf(stderr, "%s: error writing nrrd:\n%s", me, biffGet(NRRD));
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: error writing nrrd:\n%s", me, err);
+    free(err);
     exit(1);
   }
+
   nrrdNuke(nin);
   nrrdNuke(nout);
   exit(0);

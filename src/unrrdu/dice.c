@@ -72,6 +72,7 @@ main(int argc, char *argv[]) {
     if (!(nout = nrrdNewSlice(nin, axis, pos))) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: error slicing nrrd:%s\n", me, err);
+      free(err);
       exit(1);
     }
     nout->encoding = nrrdEncodingRaw;

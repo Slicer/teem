@@ -57,8 +57,9 @@ main(int argc, char **argv) {
   }
   
   if (!(nout = nrrdNewHistoAxis(nin, axis, bins))) {
-    fprintf(stderr, "%s: trouble in nrrdNewHistoAxis:\n%s\n", 
-	    me, biffGet(NRRD));
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: trouble in nrrdNewHistoAxis:\n%s\n", me, err);
+    free(err);
     exit(1);
   }
   nout->encoding = nrrdEncodingRaw;

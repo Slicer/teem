@@ -61,8 +61,11 @@ main(int argc, char **argv) {
 
   for (d=0; d<=n-1; d++) {
     if (nrrdRange(&nin[d]->min, &nin[d]->max, nin[d])) {
+      err = biffGet(NRRD);
       fprintf(stderr, "%s: trouble determining range in nrrd %d (%s):\n%s\n",
-	      me, d, argv[1+d], biffGet(NRRD));
+	      me, d, argv[1+d], err);
+      free(err);
+      exit(1);
     }
     min[d] = nin[d]->min;
     max[d] = nin[d]->max;

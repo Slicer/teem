@@ -61,7 +61,9 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   if (!(nout = nrrdNewMedian(nin, radius, bins))) {
-    fprintf(stderr, "%s: error in median filtering:\n%s", me, biffGet(NRRD));
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: error in median filtering:\n%s", me, err);
+    free(err);
     exit(1);
   }
   nout->encoding = nrrdEncodingRaw;

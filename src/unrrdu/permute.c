@@ -64,7 +64,9 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   if (!(nout = nrrdNewPermuteAxes(nin, axis))) {
-    fprintf(stderr, "%s: error permuting nrrd:\n%s", me, biffGet(NRRD));
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: error permuting nrrd:\n%s", me, err);
+    free(err);
     exit(1);
   }
   nout->encoding = nin->encoding;

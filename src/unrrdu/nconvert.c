@@ -53,8 +53,9 @@ main(int argc, char **argv) {
     exit(1);
   }
   if (!(nout = nrrdNewConvert(nin, type))) {
-    fprintf(stderr, "%s: couldn't create output nrrd:\n%s", 
-	    me, biffGet(NRRD));
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: couldn't create output nrrd:\n%s", me, err);
+    free(err);
     exit(1);
   }
 

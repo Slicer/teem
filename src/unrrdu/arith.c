@@ -60,7 +60,9 @@ main(int argc, char *argv[]) {
   if (fin = fopen(in1Str, "r")) {
     fclose(fin);
     if (!(nin1 = nrrdNewOpen(in1Str))) {
-      fprintf(stderr, "%s: error reading first nrrd:%s\n", me, biffGet(NRRD));
+      err = biffGet(NRRD);
+      fprintf(stderr, "%s: error reading first nrrd:%s\n", me, err);
+      free(err);
       exit(1);
     }
   }
@@ -75,7 +77,9 @@ main(int argc, char *argv[]) {
   if (fin = fopen(in2Str, "r")) {
     fclose(fin);
     if (!(nin2 = nrrdNewOpen(in2Str))) {
-      fprintf(stderr, "%s: error reading second nrrd:%s\n", me, biffGet(NRRD));
+      err = biffGet(NRRD);
+      fprintf(stderr, "%s: error reading second nrrd:%s\n", me, err);
+      free(err);
       exit(1);
     }
   }
@@ -108,8 +112,9 @@ main(int argc, char *argv[]) {
 
   /* we copy even though we'll be over-writing the data */
   if (!(nout = nrrdNewCopy(nin))) {
-    fprintf(stderr, "%s: nrrdNewCopy failed:\n%s\n", 
-	    me, biffGet(NRRD));
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: nrrdNewCopy failed:\n%s\n", me, err);
+    free(err);
     exit(1);
   }
 
@@ -158,15 +163,18 @@ main(int argc, char *argv[]) {
       exit(1);
     }
     if (nrrdWritePNM(fout, nout)) {
-      fprintf(stderr, "%s: trouble writing as PGM:\n%s\n", me, 
-	      biffGet(NRRD));
+      err = biffGet(NRRD);
+      fprintf(stderr, "%s: trouble writing as PGM:\n%s\n", me, err);
+      free(err);
       exit(1);
     }
     fclose(fout);
   }
   else {
     if (nrrdSave(outStr, nout)) {
-      fprintf(stderr, "%s: trouble in nrrdSave:\n%s\n", me, biffGet(NRRD));
+      err = biffGet(NRRD);
+      fprintf(stderr, "%s: trouble in nrrdSave:\n%s\n", me, err);
+      free(err);
       exit(1);
     }
   }

@@ -72,8 +72,9 @@ main(int argc, char **argv) {
   }
   if (!( AIR_EXISTS(min) && AIR_EXISTS(max) )) {
     if (nrrdRange(&nin->min, &nin->max, nin)) {
-      fprintf(stderr, "%s: trouble with nrrdRange:\n%s",
-	      me, biffGet(NRRD));
+      err = biffGet(NRRD);
+      fprintf(stderr, "%s: trouble with nrrdRange:\n%s", me, err);
+      free(err);
       exit(1);
     }
     if (!AIR_EXISTS(min))
@@ -83,8 +84,9 @@ main(int argc, char **argv) {
     fprintf(stderr, "%s: using min=%g, max=%g\n", me, min, max);
   }
   if (!(nout = nrrdNewQuantize(nin, min, max, bits))) {
-    fprintf(stderr, "%s: couldn't create output nrrd:\n%s", 
-	    me, biffGet(NRRD));
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: couldn't create output nrrd:\n%s", me, err);
+    free(err);
     exit(1);
   }
 
