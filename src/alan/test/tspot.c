@@ -59,7 +59,7 @@ main(int argc, char *argv[]) {
       || alanParmSet(actx, alanParmAlpha, 16.0)
       || alanParmSet(actx, alanParmBeta, 12.0)
       || alanParmSet(actx, alanParmSpeed, 1.3)
-      || alanParmSet(actx, alanParmMinTada, 0.00002)
+      || alanParmSet(actx, alanParmMinAverageChange, 0.00002)
       || alanParmSet(actx, alanParmSaveInterval, 500)
       || alanParmSet(actx, alanParmFrameInterval,100)
       ) {

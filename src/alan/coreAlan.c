@@ -172,91 +172,164 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
 */
 
 int
-_alanTuring2DIter(alanContext *actx) {
+_alanPerIteration(alanContext *actx, int iter) {
+  char me[]="_alanPerIteration", fname[AIR_STRLEN_MED];
+  Nrrd *nslc, *nimg;
+
+  if (actx->saveInterval && !(iter % actx->saveInterval)) {
+    fprintf(stderr, "%s: iter = %d, averageChange = %g\n",
+	    me, iter, actx->averageChange);
+    sprintf(fname, "%06d.nrrd", iter);
+    nrrdSave(fname, actx->nlev[iter % 2], NULL);
+  }
+  if (actx->frameInterval && !(iter % actx->frameInterval)) {
+    nrrdSlice(nslc=nrrdNew(), actx->nlev[iter % 2], 0, 0);
+    nrrdQuantize(nimg=nrrdNew(), nslc, NULL, 8);
+    sprintf(fname, "%06d.png", iter);
+    nrrdSave(fname, nimg, NULL);
+    nrrdNuke(nslc);
+    nrrdNuke(nimg);
+  }
+  return 0;
+}
+
+
+typedef struct {
+  /* these two are genuine input to each worker thread */
+  alanContext *actx;  
+  int idx;
+  /* this is just a convenient place to put airThread (so that alanRun()
+     doesn't have to make multiple arrays of per-thread items) */
+  airThread thread;
+  /* pointless: a pointer to this is passed to airThreadJoin */
+  void *me;
+} alanTask;
+
+void *
+_alanTuring2DWorker(void *_task) {
   alan_t *lev0, *lev1, *parm, speed, alpha, beta, A, B,
-    *v[9], lapA, lapB, deltaA, deltaB, diffA, diffB;
-  int idx, px, mx, py, my, sx, sy, x, y;
+    *v[9], lapA, lapB, deltaA, deltaB, diffA, diffB, change;
+  int iter, stop, startY, endY, idx, px, mx, py, my, sx, sy, x, y;
+  alanTask *task;
 
-  sx = actx->size[0];
-  sy = actx->size[1];
-  lev0 = (alan_t*)(actx->nlev[actx->iter % 2]->data);
-  lev1 = (alan_t*)(actx->nlev[(actx->iter+1) % 2]->data);
-  parm = (alan_t*)(actx->nparm->data);
+  task = (alanTask *)_task;
+  sx = task->actx->size[0];
+  sy = task->actx->size[1];
+  parm = (alan_t*)(task->actx->nparm->data);
+  diffA = task->actx->diffA/(task->actx->H*task->actx->H);
+  diffB = task->actx->diffB/(task->actx->H*task->actx->H);
+  startY = task->idx*sy/task->actx->numThreads;
+  endY = (task->idx+1)*sy/task->actx->numThreads;
 
-  diffA = actx->diffA/(actx->H*actx->H);
-  diffB = actx->diffB/(actx->H*actx->H);
-  actx->tada = 0;
-  for (y=0; y<sy; y++) {
-    py = AIR_MOD(y+1, sy);
-    my = AIR_MOD(y-1, sy);
-    for (x=0; x<sx; x++) {
-      px = AIR_MOD(x+1, sx);
-      mx = AIR_MOD(x-1, sx);
-      idx = x + sx*(y);
-      A = lev0[0 + 2*idx];
-      B = lev0[1 + 2*idx];
-      speed = parm[0 + 3*idx];
-      alpha = parm[1 + 3*idx];
-      beta = parm[2 + 3*idx];
-      v[0] = lev0 + 2*(mx + sx*(my));
-      v[1] = lev0 + 2*( x + sx*(my));
-      v[2] = lev0 + 2*(px + sx*(my));
-      v[3] = lev0 + 2*(mx + sx*( y));
-      v[5] = lev0 + 2*(px + sx*( y));
-      v[6] = lev0 + 2*(mx + sx*(py));
-      v[7] = lev0 + 2*( x + sx*(py));
-      v[8] = lev0 + 2*(px + sx*(py));
-      lapA = v[1][0] + v[3][0] + v[5][0] + v[7][0] - 4*A;
-      lapB = v[1][1] + v[3][1] + v[5][1] + v[7][1] - 4*B;
-      
-      deltaA = actx->K*(alpha - A*B) + diffA*lapA;
-      if (AIR_ABS(deltaA) > actx->maxAda) {
-	return alanStopDiverged;
+  for (iter = 0; 
+       alanStopNot == task->actx->stop && iter < task->actx->maxIteration; 
+       iter++) {
+
+    lev0 = (alan_t*)(task->actx->nlev[iter % 2]->data);
+    lev1 = (alan_t*)(task->actx->nlev[(iter+1) % 2]->data);
+    stop = alanStopNot;
+    change = 0;
+    for (y = startY;
+	 alanStopNot == stop && y < endY; 
+	 y++) {
+      if (task->actx->wrap) {
+	py = AIR_MOD(y+1, sy);
+	my = AIR_MOD(y-1, sy);
+      } else {
+	py = AIR_MIN(y+1, sy-1);
+	my = AIR_MAX(y-1, 0);
       }
-      actx->tada += AIR_ABS(deltaA);
-      deltaB = actx->K*(A*B - B - beta) + diffB*lapB;
-      if (!( AIR_EXISTS(deltaA) && AIR_EXISTS(deltaB) )) {
-	return alanStopNonExist;
+      for (x = 0; 
+	   alanStopNot == stop && x < sx; 
+	   x++) {
+	if (task->actx->wrap) {
+	  px = AIR_MOD(x+1, sx);
+	  mx = AIR_MOD(x-1, sx);
+	} else {
+	  px = AIR_MIN(x+1, sx-1);
+	  mx = AIR_MAX(x-1, 0);
+	}
+	idx = x + sx*(y);
+	A = lev0[0 + 2*idx];
+	B = lev0[1 + 2*idx];
+	speed = parm[0 + 3*idx];
+	alpha = parm[1 + 3*idx];
+	beta = parm[2 + 3*idx];
+	v[0] = lev0 + 2*(mx + sx*(my));
+	v[1] = lev0 + 2*( x + sx*(my));
+	v[2] = lev0 + 2*(px + sx*(my));
+	v[3] = lev0 + 2*(mx + sx*( y));
+	v[5] = lev0 + 2*(px + sx*( y));
+	v[6] = lev0 + 2*(mx + sx*(py));
+	v[7] = lev0 + 2*( x + sx*(py));
+	v[8] = lev0 + 2*(px + sx*(py));
+	lapA = v[1][0] + v[3][0] + v[5][0] + v[7][0] - 4*A;
+	lapB = v[1][1] + v[3][1] + v[5][1] + v[7][1] - 4*B;
+	
+	deltaA = task->actx->K*(alpha - A*B) + diffA*lapA;
+	if (AIR_ABS(deltaA) > task->actx->maxPixelChange) {
+	  stop = alanStopDiverged;
+	  break;
+	}
+	change += AIR_ABS(deltaA);
+	deltaB = task->actx->K*(A*B - B - beta) + diffB*lapB;
+	if (!( AIR_EXISTS(deltaA) && AIR_EXISTS(deltaB) )) {
+	  stop = alanStopNonExist;
+	  break;
+	}
+	
+	A += speed*deltaA;
+	B += speed*deltaB;  
+	B = AIR_MAX(0, B);
+	lev1[0 + 2*idx] = A;
+	lev1[1 + 2*idx] = B; 
       }
-
-      A += speed*deltaA;
-      B += speed*deltaB;  
-      B = AIR_MAX(0, B);
-      lev1[0 + 2*idx] = A;
-      lev1[1 + 2*idx] = B; 
     }
+
+    /* add change to global sum in a threadsafe way */
+    airThreadMutexLock(&(task->actx->changeMutex));
+    task->actx->averageChange += change*(endY - startY)/(sx*sy);
+    task->actx->changeCount += 1;
+    if (task->actx->changeCount == task->actx->numThreads) {
+      /* I must be the last thread to reach this point; all 
+	 others must have passed the mutex unlock, and are
+	 sitting at the barrier */
+      if (task->actx->averageChange < task->actx->minAverageChange) {
+	/* we converged */
+	task->actx->stop = alanStopConverged;
+      } else if (alanStopNot != stop) {
+	/* we stopped for some reason */
+	task->actx->stop = stop;
+      } else {
+	/* we keep going */
+	_alanPerIteration(task->actx, iter);
+	if (task->actx->perIteration) {
+	  task->actx->perIteration(task->actx, iter);
+	}
+      }
+      task->actx->averageChange = 0;
+      task->actx->changeCount = 0;
+    }
+    airThreadMutexUnlock(&(task->actx->changeMutex));
+
+    /* force all threads to line up here, once per iteration */
+    airThreadBarrierWait(&(task->actx->iterBarrier));
   }
-  actx->tada *= 1.0/(sx*sy);
-  if (actx->tada < actx->minTada) {
-    return alanStopConverged;
+  
+  if (iter == task->actx->maxIteration) {
+    /* HEY: all threads will agree on this, right? */
+    task->actx->stop = alanStopMaxIteration;
   }
-  return alanStopNot;
-}
-
-int
-_alanGrayScott2DIter(alanContext *actx) {
-  
-  return alanStopNot;
-}
-
-int
-_alanTuring3DIter(alanContext *actx) {
-  
-  return alanStopNot;
-}
-
-int
-_alanGrayScott3DIter(alanContext *actx) {
-  
-  return alanStopNot;
+  /* else: we bailed because of !(task->actx->keepWorking); some thread
+     should have set task->actx->stop as part of killing things */
+  return _task;
 }
 
 int
 alanRun(alanContext *actx) {
-  char me[]="alanRun", err[AIR_STRLEN_MED], fname[AIR_STRLEN_MED];
-  int stop, (*iter)(alanContext *)=NULL;
-  Nrrd *nslc, *nimg;
-  airArray *mop;
+  char me[]="alanRun", err[AIR_STRLEN_MED];
+  int tid;
+  alanTask task[ALAN_THREAD_MAX];
 
   if (_alanCheck(actx)) {
     sprintf(err, "%s: ", me);
@@ -268,45 +341,23 @@ alanRun(alanContext *actx) {
     biffAdd(ALAN, err); return 1;
   }
   
-  switch(actx->textureType) {
-  case alanTextureTypeTuring:
-    iter = (2 == actx->dim 
-	    ? _alanTuring2DIter 
-	    : _alanTuring3DIter);
-    break;
-  case alanTextureTypeGrayScott:
-    iter = (2 == actx->dim 
-	    ? _alanGrayScott2DIter 
-	    : _alanGrayScott3DIter);
-    break;
+
+  airThreadMutexInit(&(actx->changeMutex));
+  airThreadBarrierInit(&(actx->iterBarrier), actx->numThreads);
+  task->actx->averageChange = 0;
+  task->actx->changeCount = 0;
+  for (tid=0; tid<actx->numThreads; tid++) {
+    task[tid].actx = actx;
+    task[tid].idx = tid;
+    airThreadCreate(&(task[tid].thread), _alanTuring2DWorker,
+		    (void *)&(task[tid]));
   }
-  
-  mop = airMopNew();
-  nslc = nrrdNew();
-  nimg = nrrdNew();
-  airMopAdd(mop, nslc, (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nimg, (airMopper)nrrdNuke, airMopAlways);
-  for (actx->iter=0; actx->iter<actx->maxIteration; actx->iter++) {
-    if (actx->saveInterval && !(actx->iter % actx->saveInterval)) {
-      fprintf(stderr, "%s: iter = %d, tada = %g\n",
-	      me, actx->iter, actx->tada);
-      sprintf(fname, "%06d.nrrd", actx->iter);
-      nrrdSave(fname, actx->nlev[actx->iter % 2], NULL);
-    }
-    if (actx->frameInterval && !(actx->iter % actx->frameInterval)) {
-      nrrdSlice(nslc, actx->nlev[actx->iter % 2], 0, 0);
-      nrrdQuantize(nimg, nslc, NULL, 8);
-      sprintf(fname, "%06d.png", actx->iter);
-      nrrdSave(fname, nimg, NULL);
-    }
-    stop = iter(actx);
-    if (alanStopNot != stop) {
-      actx->stop = stop;
-      return 0;
-    }
+  for (tid=0; tid<actx->numThreads; tid++) {
+    airThreadJoin(&(task[tid].thread), &(task[tid].me));
   }
-  actx->stop = alanStopMaxIteration;
-  
-  airMopOkay(mop);
+  airThreadBarrierDone(&(actx->iterBarrier));
+  airThreadMutexDone(&(actx->changeMutex));
+
+  /* we assume that someone set actx->stop */
   return 0;
 }

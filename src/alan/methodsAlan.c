@@ -20,19 +20,6 @@
 
 #include "alan.h"
 
-#if TEEM_PTHREAD
-#include <pthread.h>
-#elif defined(_WIN32)
-#include <windows.h>
-#endif
-
-#if TEEM_PTHREAD || defined(_WIN32)
-const int alanMyPthread = 1;
-#else
-const int alanMyPthread = 0;
-#endif
-
-
 const char *
 alanBiffKey = "alan";
 
@@ -48,8 +35,8 @@ alanContextInit(alanContext *actx) {
     actx->frameInterval = 10;
     actx->saveInterval = 100;
     actx->maxIteration = 100000;
-    actx->minTada = 0.00002;
-    actx->maxAda = 6;
+    actx->minAverageChange = 0.00002;
+    actx->maxPixelChange = 6;
     actx->K = AIR_NAN;
     actx->F = AIR_NAN;
     actx->H = 1.25;
@@ -58,6 +45,7 @@ alanContextInit(alanContext *actx) {
     actx->speed = 1.0;
     actx->initA = actx->initB = 0;
     actx->diffA = actx->diffB = 0;
+    actx->perIteration = NULL;
     actx->randRange = 0.01;
     actx->nlev[0] = nrrdNuke(actx->nlev[0]);
     actx->nlev[1] = nrrdNuke(actx->nlev[1]);
@@ -240,8 +228,8 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
     break;
   case alanParmNumThreads:
     parmI = parm;
-    if (!alanMyPthread) {
-      fprintf(stderr, "%s: WARNING: no pthreads, so 1 thread "
+    if (!airThreadCapable) {
+      fprintf(stderr, "%s: WARNING: no multi-threading available, so 1 thread "
 	      "will be used, not %d\n", me, parmI);
       parmI = 1;
     }
@@ -280,8 +268,11 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
   case alanParmH:
     actx->H = parm;
     break;
-  case alanParmMinTada:
-    actx->minTada = parm;
+  case alanParmMinAverageChange:
+    actx->minAverageChange = parm;
+    break;
+  case alanParmMaxPixelChange:
+    actx->maxPixelChange = parm;
     break;
   case alanParmAlpha:
     actx->alpha = parm;

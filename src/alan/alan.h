@@ -24,6 +24,7 @@
 #include <math.h>
 
 #include <teem/air.h>
+#include <teem/airThread.h>
 #include <teem/biff.h>
 #include <teem/ell.h>
 #include <teem/nrrd.h>
@@ -39,6 +40,7 @@ extern "C" {
 #endif
 
 #define ALAN alanBiffKey
+#define ALAN_THREAD_MAX 256
 
 enum {
   alanTextureTypeUnknown,
@@ -62,7 +64,8 @@ enum {
   alanParmK,
   alanParmF,
   alanParmH,
-  alanParmMinTada,
+  alanParmMinAverageChange,
+  alanParmMaxPixelChange,
   alanParmAlpha,
   alanParmBeta,
   alanParmLast
@@ -93,44 +96,51 @@ typedef double alan_t;
 #define ALAN_FLOAT 0
 #endif
 
-typedef struct {
+typedef struct alanContext_t {
   /* INPUT ----------------------------- */
   int verbose,
-    textureType,     /* what kind are we (from alanTextureType* enum) */
-    dim,             /* either 2 or 3 */
-    size[3],         /* number of texels in X, Y, (Z) */
-    oversample,      /* oversampling of tensors to texels */
-    numThreads,      /* number of threads, of pthreads available here */
-    frameInterval,   /* number of iterations between which to an image */
-    saveInterval,    /* number of iterations between which to save all state */
-    maxIteration;    /* limit to number of iterations */
-  alan_t K, F,       /* simulation variables */
-    H,               /* size of spatial grid discretization */
-    minTada,         /* minimum worthwhile tada value (see below), assume
-			convergence if tada falls below this */
-    maxAda,          /* maximum allowed ada (abs() of diff in morpho A, for 
-			any single pixels), assume unstable divergence if 
-			this is exceeded */
-    alpha, beta,     /* variables for turing */
-    speed,           /* euler integration step size */
-    initA, initB,    /* initial (constant) values for each morphogen */
-    diffA, diffB,    /* base diffusion rates for each morphogen */
-    randRange;       /* amplitude of noise to destabalize Turing */
-  Nrrd *nten;        /* tensors guiding texture.  May have 1+3 or 1+6 values
-			per sample, depending on dim */
+    wrap,             /* do toroidal boundary wrapping */
+    textureType,      /* what kind are we (from alanTextureType* enum) */
+    dim,              /* either 2 or 3 */
+    size[3],          /* number of texels in X, Y, (Z) */
+    oversample,       /* oversampling of tensors to texels */
+    numThreads,       /* # of threads, if airThreadCapable */
+    frameInterval,    /* # of iterations between which to an image */
+    saveInterval,     /* # of iterations between which to save all state */
+    maxIteration;     /* cap on # of iterations */
+  alan_t K, F,        /* simulation variables */
+    H,                /* size of spatial grid discretization */
+    minAverageChange, /* min worthwhile "avergageChange" value (see below),
+			 assume convergence if it falls below this */
+    maxPixelChange,   /* maximum allowed change in the first morphogen (on
+			 any single pixels), assume unstable divergence if 
+			 this is exceeded */
+    alpha, beta,      /* variables for turing */
+    speed,            /* euler integration step size */
+    initA, initB,     /* initial (constant) values for each morphogen */
+    diffA, diffB,     /* base diffusion rates for each morphogen */
+    randRange;        /* amplitude of noise to destabalize Turing */
+  Nrrd *nten;         /* tensors guiding texture.  May have 1+3 or 1+6 values
+			 per sample, depending on dim */
+  /* if non-NULL, this is called once per iteration, at its completion */
+  int (*perIteration)(struct alanContext_t *, int iter);
 
   /* INTERNAL -------------------------- */
-  int iter;          /* current iteration */
-  Nrrd *nlev[2];     /* levels of morphogens, alternating buffers */
-  Nrrd *nparm;       /* alpha, beta values for all texels */
-  double tada;       /* total abs() of differences in morphogen A */
+  Nrrd *nlev[2];      /* levels of morphogens, alternating buffers */
+  Nrrd *nparm;        /* alpha, beta values for all texels */
+  alan_t 
+    averageChange;    /* average amount of "change" in last iteration */
+  int changeCount;    /* # of contributions to averageChange */
+  airThreadMutex 
+    changeMutex;      /* to control update of averageChange and changeCount */
+  airThreadBarrier
+    iterBarrier;      /* to synchronize seperate iterations of simulation */
 
   /* OUTPUT ---------------------------- */
   int stop;          /* why we stopped */
 } alanContext;
 
 /* methodsAlan.c */
-extern alan_export const int alanMyPthread;
 extern alan_export const char *alanBiffKey;
 extern alanContext *alanContextNew();
 extern alanContext *alanContextNix(alanContext *actx);
