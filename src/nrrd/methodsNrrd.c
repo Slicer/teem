@@ -503,16 +503,9 @@ nrrdCopy (Nrrd *nout, const Nrrd *nin) {
     biffAdd(NRRD, err); return 1;
   }
 
-  /* HEY: Replace this with something more efficient */
-  for (i=0; i<nrrdKeyValueSize(nin); i++) {
-    char *key, *value;
-    nrrdKeyValueIndex(nin, &key, &value, i);
-    if (NULL != key && NULL != value) {
-      if (nrrdKeyValueAdd(nout, key, value)) {
-	sprintf(err, "%s: couldn't add key/value pair", me);
-	biffAdd(NRRD, err); return 1;
-      }
-    }
+  if (nrrdKeyValueCopy(nout, nin)) {
+    sprintf(err, "%s: trouble copying key/value pairs", me);
+    biffAdd(NRRD, err); return 1;
   }
 
   return 0;

@@ -20,6 +20,12 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
+/***
+**** NONE of the nrrdKeyValue functions use biff.
+**** They don't use them now, and they never should.
+**** Unless I change my mind.
+***/
+
 /*
 ******** nrrdKeyValueSize
 **
@@ -40,8 +46,10 @@ nrrdKeyValueSize(const Nrrd *nrrd) {
 ** given an int in [0 .. #key/value pairs - 1], sets *keyP and *valueP
 ** to put to the corresponding key and value.
 **
-** NOTE: like nrrdKeyValueGet, these results point to strings 
-** INTERNAL to the nrrd struct.  DO NOT FREE THEM.
+** NOTE: whether or not *keyP and *valueP are set to pointers to memory
+** "inside" the nrrd struct (pointers which you had better not free()!)
+** is controlled by nrrdStateKeyValueReturnInternalPointers, which defaults
+** to AIR_FALSE
 */
 void
 nrrdKeyValueIndex(const Nrrd *nrrd, char **keyP, char **valueP, int ki) {
@@ -52,8 +60,13 @@ nrrdKeyValueIndex(const Nrrd *nrrd, char **keyP, char **valueP, int ki) {
     if (valueP) *valueP = NULL;
     return;
   }
-  *keyP = nrrd->kvp[0 + 2*ki];
-  *valueP = nrrd->kvp[1 + 2*ki];
+  if (nrrdStateKeyValueReturnInternalPointers) {
+    *keyP = nrrd->kvp[0 + 2*ki];
+    *valueP = nrrd->kvp[1 + 2*ki];
+  } else {
+    *keyP = airStrdup(nrrd->kvp[0 + 2*ki]);
+    *valueP = airStrdup(nrrd->kvp[1 + 2*ki]);
+  }
   return;
 }
 
@@ -144,9 +157,10 @@ nrrdKeyValueAdd(Nrrd *nrrd, const char *key, const char *value) {
 /*
 ******** nrrdKeyValueGet
 **
-** This will return a pointer to a string INSIDE the given
-** nrrd struct; DO NOT FREE IT.  This is for the sake of
-** convenience, not perfect safety (obviously)
+** NOTE: whether or not *keyP and *valueP are set to pointers to memory
+** "inside" the nrrd struct (pointers which you had better not free()!)
+** is controlled by nrrdStateKeyValueReturnInternalPointers, which defaults
+** to AIR_FALSE
 */
 char *
 nrrdKeyValueGet(const Nrrd *nrrd, const char *key) {
@@ -158,7 +172,11 @@ nrrdKeyValueGet(const Nrrd *nrrd, const char *key) {
     return NULL;
   }
   if (-1 != (ki = _nrrdKeyValueIdxFind(nrrd, key))) {
-    ret = nrrd->kvp[1 + 2*ki];
+    if (nrrdStateKeyValueReturnInternalPointers) {
+      ret = nrrd->kvp[1 + 2*ki];
+    } else {
+      ret = airStrdup(nrrd->kvp[1 + 2*ki]);
+    }
   } else {
     ret = NULL;
   }
@@ -205,5 +223,37 @@ _nrrdKeyValueFwrite(FILE *file, const char *prefix,
   fprintf(file, ":=");
   _nrrdFwriteEscaped(file, value);
   fprintf(file, "\n");
+  return 0;
+}
+
+/*
+******** nrrdKeyValueCopy()
+**
+** copies key/value pairs from one nrrd to another
+** Existing key/value pairs in nout are blown away
+*/
+int
+nrrdKeyValueCopy(Nrrd *nout, const Nrrd *nin) {
+  char *key, *value;
+  int ki;
+
+  if (!(nout && nin)) {
+    /* got NULL pointer */
+    return 1;
+  }
+  if (nout == nin) {
+    /* can't satisfy semantics of copying with nout==nin */
+    return 2;
+  }
+
+  nrrdKeyValueClear(nout);
+  for (ki=0; ki<nin->kvpArr->len; ki++) {
+    key = nin->kvp[0 + 2*ki];
+    value = nin->kvp[1 + 2*ki];
+    if (nrrdKeyValueAdd(nout, key, value)) {
+      return 3;
+    }
+  }
+
   return 0;
 }
