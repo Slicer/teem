@@ -53,7 +53,13 @@ main(int argc, char **argv) {
   hestOptAdd(&opt, "B",     "x1,y1 x2,y2 x3,y3", airTypeOther, 3,  3, triple,
 	     "1,2 3,4 5,6", "testing B",         NULL,         &cbinfo);
   hestOptAdd(&opt, "C",     "mx,my",             airTypeOther, 0,  1, maybe,
-	     "-0.1,-0.2",   "testing C",         NULL,         &cbinfo);
+	     "-0.1,-0.2",   "testing C. The utility of this can be better "
+	     "demonstrated in the following manner:\n "
+	     "- wash the dishes\n "
+	     "- put the dishes in the cupboard\n "
+	     "- watch football on TV\n "
+	     "- remember to walk the dog",
+	     NULL,         &cbinfo);
   hestOptAdd(&opt, "D",     "nx,ny",             airTypeOther, 1, -1, &many,
 	     "8,8 7,7",     "testing D",         &howMany,     &cbinfo);
   hestOptAdd(&opt, "int",    "N",                airTypeInt,   1,  1, &N,

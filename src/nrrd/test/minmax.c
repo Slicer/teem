@@ -50,8 +50,10 @@ main(int argc, char **argv) {
     exit(1);
   }
 
-  printf("%s: min = %lg; max = %lg, nrrd->hasNonExist = %d\n", 
+  printf("%s: min = %g; max = %g, nrrd->hasNonExist = %d\n", 
 	 me, nrrd->min, nrrd->max, nrrd->hasNonExist);
+
+  nrrdNuke(nrrd);
 
   exit(0);
 }

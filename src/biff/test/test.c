@@ -58,6 +58,8 @@ main() {
   printf("%s\n", (tmp = biffGet("axis")));
   free(tmp);
   biffDone("axis");
+
+  exit(0);
 }
 
 

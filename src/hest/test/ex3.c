@@ -38,7 +38,7 @@ main(int argc, char **argv) {
   parm->verbosity = 3;
 
   opt = NULL;
-  hestOptAdd(&opt, "v|verbose",     "level", airTypeInt,    0,  1,  &v,   "0",
+  hestOptAdd(&opt, "v,verbose",     "level", airTypeInt,    0,  1,  &v,   "0",
 	     "verbosity level");
   hestOptAdd(&opt, "out",   "file",  airTypeString, 1,  1,  &out, "output.ppm",
 	     "PPM image output");

@@ -105,20 +105,20 @@ main(int argc, char *argv[]) {
     r_f = k->eval1_f(v, param);
     r_d = k->eval1_d(v, param);
     if (!CLOSE(r_f,r_d)) {
-      fprintf(stderr, "%s: (eval1_f(%lg)== %f) != (eval1_d(%lg)== %f)\n",
+      fprintf(stderr, "%s: (eval1_f(%g)== %f) != (eval1_d(%g)== %f)\n",
 	      me, v, r_f, v, r_d);
       exit(1);
     }
     /* compare single float with vector float */
     if (!CLOSE(r_f,ran_f[i])) {
-      fprintf(stderr, "%s: (eval1_f(%lg)== %f) != (evalN_f[%d]== %f)\n",
+      fprintf(stderr, "%s: (eval1_f(%g)== %f) != (evalN_f[%d]== %f)\n",
 	      me, v, r_f, i, ran_f[i]);
       exit(1);
     }
     /* compare single float with vector double */
     r_d = ran_d[i];
     if (!CLOSE(r_f,r_d)) {
-      fprintf(stderr, "%s: (eval1_f(%lg)== %f) != (evalN_d[%d]== %f)\n",
+      fprintf(stderr, "%s: (eval1_f(%g)== %f) != (evalN_d[%d]== %f)\n",
 	      me, v, r_f, i, r_d);
       exit(1);
     }
@@ -127,7 +127,7 @@ main(int argc, char *argv[]) {
   }
   if (!KINDACLOSE(integral, k->integral(param))) {
     fprintf(stderr, 
-	    "discrete integral %lf != %lf\n", integral, k->integral(param));
+	    "discrete integral %f != %f\n", integral, k->integral(param));
     /* not a fatal error */
   }
   

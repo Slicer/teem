@@ -1,20 +1,11 @@
-make mhisto allow non-uchar types
+try setting NRRD_DIM_MAX to 2 or 3 and doing lots of unrrdu stuff
 
-make a nrrdSimpleResample which is simpler
+determine which of the things below should be transferred to rules.txt
 
-allow "datafile" and "data file" and "line skip" and "lineskip", etc ...
-
-figure out why _nrrdMinMaxFind[nrrdTypeUInt] was broken, and why 
-changing FIXED to FLOAT fixed it
+allow nrrdBlock and nrrdUnblock to have nin==nout
 
 determine exactly what is and is not thread-safe
 
-figure out a way to lose all but the most necessary "useBiff" arguments.
-Its just too stupid looking
-
-finish the re-write: should fix resampler
-
-clean up nrrdJoin()
 verify behavior WRT min/max/center:
   reorder.c, measr.c, histogram.c, map.c, arith.c, filt.c
 verify behavior WRT blocks:
@@ -27,34 +18,18 @@ finish writing format.txt
 
 make nrrdDescribe() a little prettier
 
-make note of the fact that the 6-unique character thing is violated
-all over the place
-
 make nrrdHistoEq permit learning what mapping was used to acheive equalization
 
 revisit slicer,
 
-gaussian kernel,
-
 split
 
-resampling, blurring,  <-- document setting the float param[] vector
-
 better regular median filtering, weighted median filter
-
-make sure blockSize (and maybe any other non-per-axis information??)
-is copied in all basic nrrd functions
 
 debug and scrutinize current implementation of all "nhdr" related behavior
 
 "mappings": create minimal support for creating and "evaluating"
 functions based on an array of control points.
-
-clarify policy regarding (and make code changes as needed) on what
-quantities can only be "ints" and which need to be long long ints.
-The dimension of a nrrd must only be the former, the total number
-of elements in a nrrd can be large enough to require the later,
-but what about the number of elements along one axis?
 
 clarify policy regarding when data in the nrrd will be free()ed
 
@@ -69,9 +44,5 @@ try to enforce the policy that variables which exist solely to be
 a local copy of values in nrrds should be **eliminated**.  This
 simplifies understanding how a procedure works.
 
-under what circumstances does an operation not make sense
-given the dimension of the nrrd (0 or 1, maybe 2 dimensional)?
-(more error handling checks)
-
-where does nrrd check to see it got a reasonable size,
-how and when does nrrd set the default size to -1
+where does nrrd check to see it got a reasonable axis size,
+how and when does nrrd set the default size to 0

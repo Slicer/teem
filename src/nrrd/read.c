@@ -351,7 +351,7 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
   if (2 <= nrrdStateVerboseIO) {
     fprintf(stderr, "done)\n");
   }
-  if (io->seperateHeader) {
+  if (io->seperateHeader && stdin != io->dataFile) {
     io->dataFile = airFclose(io->dataFile);
   }
   else {
@@ -644,7 +644,7 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 ******** nrrdRead()
 **
 ** read in nrrd from a given file.  We don't yet know the format or
-** anythign else about how the data is written.  The only use for the
+** anything else about how the data is written.  The only use for the
 ** nrrdIO struct "_io" here is to contain the base directory in which
 ** we'll look for a seperate data file, if that's desired.  Currently
 ** no other communication to us is done via the nrrdIO, so _io can be
@@ -810,10 +810,6 @@ nrrdLoad(Nrrd *nrrd, char *filename) {
     }
     airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
   }
-
-  /* YOOHOO */
-  io->endian = airEndianBig;
-  /* YOOHOO */
 
   if (nrrdRead(nrrd, file, io)) {
     sprintf(err, "%s:", me);

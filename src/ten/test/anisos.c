@@ -80,11 +80,21 @@ main(int argc, char **argv) {
   	I = x + sx*(y + sy*z);
 	tensor = &(tdata[I*7]);
 	tenEigensolve(eval, evec, tensor);
+	if (6 == x && 6 == y && 12 == z) {
+	  printf("tensor (list): %g %g %g %g %g %g\n",
+		 tensor[1], tensor[2], tensor[3], 
+		 tensor[4], tensor[5], tensor[6]);
+	  printf(" --> evals: %g %g %g\n", eval[0], eval[1], eval[2]);
+	  printf(" --> evecs: (%g,%g,%g); (%g,%g,%g); (%g,%g,%g)\n",
+		 evec[0], evec[1], evec[2], 
+		 evec[3], evec[4], evec[5], 
+		 evec[6], evec[7], evec[8]);
+	}
 	tenAnisotropy(c, eval);
-	adata[0 + 4*I] = tensor[0]*AIR_CLAMP(0, c[tenAnisoC_l], 1);
-	adata[1 + 4*I] = tensor[0]*AIR_CLAMP(0, c[tenAnisoC_p], 1);
-	adata[2 + 4*I] = tensor[0]*AIR_CLAMP(0, c[tenAnisoC_a], 1);
-	adata[3 + 4*I] = tensor[0]*AIR_CLAMP(0, c[tenAnisoC_t], 1);
+	adata[0 + 4*I] = tensor[0]*c[tenAniso_Cl];
+	adata[1 + 4*I] = tensor[0]*c[tenAniso_Cp];
+	adata[2 + 4*I] = tensor[0]*c[tenAniso_Ca];
+	adata[3 + 4*I] = tensor[0]*c[tenAniso_Ct];
       }
     }
   }
