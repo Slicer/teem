@@ -55,6 +55,14 @@ typedef int (*_echoRayIntx_t)(RAYINTX_ARGS(Object));
 extern _echoRayIntx_t _echoRayIntx[/* object type idx */];
 typedef void (*_echoRayIntxUV_t)(echoIntx *intx);
 extern _echoRayIntxUV_t _echoRayIntxUV[/* object type idx */];
+extern int _echoRayIntx_CubeSolid(echoPos_t *tminP, echoPos_t *tmaxP, 
+				  echoPos_t xmin, echoPos_t xmax,
+				  echoPos_t ymin, echoPos_t ymax,
+				  echoPos_t zmin, echoPos_t zmax,
+				  echoRay *ray);
+
+/* sqd.c */
+extern int _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad));
 
 /* color.c */
 extern char _echoBuff[];

@@ -47,7 +47,7 @@ $(L).NEED = limn ell nrrd biff air
 $(L).PUBLIC_HEADERS = echo.h
 $(L).PRIVATE_HEADERS = privateEcho.h
 $(L).OBJS = enumsEcho.o methodsEcho.o objmethods.o bounds.o set.o model.o \
-	matter.o renderEcho.o intx.o list.o color.o lightEcho.o
+	matter.o renderEcho.o intx.o sqd.o list.o color.o lightEcho.o
 $(L).TESTS = test/test test/trend
 ####
 ####
