@@ -116,7 +116,7 @@ _tenFiberStep_TensorLine(tenFiberContext *tfx, double step[3]) {
 		    cl, evec0,
 		    (1-cl)*(1-tfx->wPunct), vin,
 		    (1-cl)*tfx->wPunct, vout);
-  _tenFiberAlign(tfx, step);
+  /* _tenFiberAlign(tfx, step); */
   ELL_3V_NORM(step, step, len);
 }
 
