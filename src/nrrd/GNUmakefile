@@ -62,7 +62,7 @@ $(L).OBJS = \
 	write.o        keyvalue.o
 $(L).TESTS = test/tread test/trand test/ax test/io test/minmax test/tkernel \
 	test/typestest test/tline test/genvol test/quadvol test/convo test/kv \
-	test/reuse
+	test/reuse test/histrad
 
 ####
 ####
