@@ -86,15 +86,15 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   switch(bits) {
-  case 16: method = limnQN16checker; break;
-  case 15: method = limnQN15checker; break;
-  case 14: method = limnQN14checker; break;
-  case 13: method = limnQN13checker; break;
-  case 12: method = limnQN12checker; break;
-  case 11: method = limnQN11checker; break;
-  case 10: method = limnQN10checker; break;
-  case 9: method = limnQN9checker; break;
-  case 8: method = limnQN8checker; break;
+  case 16: method = limnQN16octa; break;
+  case 15: method = limnQN15octa; break;
+  case 14: method = limnQN14octa; break;
+  case 13: method = limnQN13octa; break;
+  case 12: method = limnQN12octa; break;
+  case 11: method = limnQN11octa; break;
+  case 10: method = limnQN10octa; break;
+  case 9: method = limnQN9octa; break;
+  case 8: method = limnQN8octa; break;
   default:
     fprintf(stderr, "%s: requested #bits (%d) not in valid range [8,16]\n",
 	    me, bits);

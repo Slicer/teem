@@ -273,17 +273,22 @@ enum {
   limnQN16simple,    /*  1 */
   limnQN16border1,   /*  2 */
   limnQN16checker,   /*  3 */
-  limnQN15checker,   /*  4 */
-  limnQN14checker,   /*  5 */
-  limnQN13checker,   /*  6 */
-  limnQN12checker,   /*  7 */
-  limnQN11checker,   /*  8 */
-  limnQN10checker,   /*  9 */
-  limnQN9checker,    /* 10 */
-  limnQN8checker,    /* 11 */
+  limnQN16octa,      /*  4 */
+  limnQN15octa,      /*  5 */
+  limnQN14checker,   /*  6 */
+  limnQN14octa,      /*  7 */
+  limnQN13octa,      /*  8 */
+  limnQN12checker,   /*  9 */
+  limnQN12octa,      /* 10 */
+  limnQN11octa,      /* 11 */
+  limnQN10checker,   /* 12 */
+  limnQN10octa,      /* 13 */
+  limnQN9octa,       /* 14 */
+  limnQN8checker,    /* 15 */
+  limnQN8octa,       /* 16 */
   limnQNLast
 };
-#define LIMN_QN_MAX     11
+#define LIMN_QN_MAX     16
 
 enum {
   limnSplineTypeUnknown,     /* 0 */

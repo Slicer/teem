@@ -497,15 +497,15 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
 	} else if (3 == isp.kind->table[isp.item].answerLength) {
 	  log2 = airLog2(ntxf->axis[di].size);
 	  switch(log2) {
-	  case 8:  stage->qn = limnVtoQN_GT[ limnQN8checker]; break;
-	  case 9:  stage->qn = limnVtoQN_GT[ limnQN9checker]; break;
-	  case 10: stage->qn = limnVtoQN_GT[limnQN10checker]; break;
-	  case 11: stage->qn = limnVtoQN_GT[limnQN11checker]; break;
-	  case 12: stage->qn = limnVtoQN_GT[limnQN12checker]; break;
-	  case 13: stage->qn = limnVtoQN_GT[limnQN13checker]; break;
-	  case 14: stage->qn = limnVtoQN_GT[limnQN14checker]; break;
-	  case 15: stage->qn = limnVtoQN_GT[limnQN15checker]; break;
-	  case 16: stage->qn = limnVtoQN_GT[limnQN16checker]; break;
+	  case 8:  stage->qn = limnVtoQN_GT[ limnQN8octa]; break;
+	  case 9:  stage->qn = limnVtoQN_GT[ limnQN9octa]; break;
+	  case 10: stage->qn = limnVtoQN_GT[limnQN10octa]; break;
+	  case 11: stage->qn = limnVtoQN_GT[limnQN11octa]; break;
+	  case 12: stage->qn = limnVtoQN_GT[limnQN12octa]; break;
+	  case 13: stage->qn = limnVtoQN_GT[limnQN13octa]; break;
+	  case 14: stage->qn = limnVtoQN_GT[limnQN14octa]; break;
+	  case 15: stage->qn = limnVtoQN_GT[limnQN15octa]; break;
+	  case 16: stage->qn = limnVtoQN_GT[limnQN16octa]; break;
 	  default:
 	    sprintf(err, "%s: txf axis %d size %d not usable for vector "
 		    "txf domain variable %s", me,

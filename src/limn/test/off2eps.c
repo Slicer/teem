@@ -58,7 +58,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "vr", "vMin vMax", airTypeDouble, 2, 2, cam->vRange,
 	     "-1 1", "range in V direction of image plane");
   hestOptAdd(&hopt, "e", "envmap", airTypeOther, 1, 1, &nmap, "",
-	     "16checker-based environment map",
+	     "16octa-based environment map",
 	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "ws", "winscale", airTypeFloat, 1, 1, &winscale,
 	     "200", "world to points (PostScript) scaling");

@@ -117,7 +117,7 @@ _limnPSDrawFace(limnObject *obj, limnFace *face,
   G = look->kads[0]*look->rgba[1];
   B = look->kads[0]*look->rgba[2];
   if (nmap) {
-    qn = limnVtoQN_f[limnQN16checker](face->worldNormal);
+    qn = limnVtoQN_f[limnQN16octa](face->worldNormal);
     map = nmap->data;
     R += look->kads[1]*look->rgba[0]*map[0 + 3*qn];
     G += look->kads[1]*look->rgba[1]*map[1 + 3*qn];

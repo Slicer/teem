@@ -36,33 +36,38 @@ limnEnvMapFill(Nrrd *map, limnEnvMapCB cb, int qnMethod, void *data) {
   }
   switch(qnMethod) {
   case limnQN16checker:
+  case limnQN16octa:
     sx = sy = 256;
     break;
   case limnQN14checker:
+  case limnQN14octa:
     sx = sy = 128;
     break;
   case limnQN12checker:
+  case limnQN12octa:
     sx = sy = 64;
     break;
   case limnQN10checker:
+  case limnQN10octa:
     sx = sy = 32;
     break;
   case limnQN8checker:
+  case limnQN8octa:
     sx = sy = 16;
     break;
-  case limnQN15checker:
+  case limnQN15octa:
     sx = 128;
     sy = 256;
     break;
-  case limnQN13checker:
+  case limnQN13octa:
     sx = 64;
     sy = 128;
     break;
-  case limnQN11checker:
+  case limnQN11octa:
     sx = 32;
     sy = 64;
     break;
-  case limnQN9checker:
+  case limnQN9octa:
     sx = 16;
     sy = 32;
     break;
