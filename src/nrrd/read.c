@@ -962,6 +962,7 @@ _nrrdReadPNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   return 0;
 }
 
+#if TEEM_PNG
 void
 _nrrdReadErrorHandlerPNG (png_structp png, png_const_charp message)
 {
@@ -982,6 +983,7 @@ _nrrdReadWarningHandlerPNG (png_structp png, png_const_charp message)
   biffAdd(NRRD, err);
   /* no longjump, execution continues */
 }
+#endif
 
 int
 _nrrdReadPNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
