@@ -69,30 +69,18 @@ ell_3m_det_d(double m[9]) {
   return ELL_3M_DET(m);
 }
 
-#define _3INV \
-  det = ELL_3M_DET(m); \
-  i[0] =  _ELL_2M_DET((m)[4],(m)[5],(m)[7],(m)[8])/det; \
-  i[1] = -_ELL_2M_DET((m)[1],(m)[2],(m)[7],(m)[8])/det; \
-  i[2] =  _ELL_2M_DET((m)[1],(m)[2],(m)[4],(m)[5])/det; \
-  i[3] = -_ELL_2M_DET((m)[3],(m)[5],(m)[6],(m)[8])/det; \
-  i[4] =  _ELL_2M_DET((m)[0],(m)[2],(m)[6],(m)[8])/det; \
-  i[5] = -_ELL_2M_DET((m)[0],(m)[2],(m)[3],(m)[5])/det; \
-  i[6] =  _ELL_2M_DET((m)[3],(m)[4],(m)[6],(m)[7])/det; \
-  i[7] = -_ELL_2M_DET((m)[0],(m)[1],(m)[6],(m)[7])/det; \
-  i[8] =  _ELL_2M_DET((m)[0],(m)[1],(m)[3],(m)[4])/det
-
 void
 ell_3m_inv_f(float i[9], float m[9]) {
   float det;
-  
-  _3INV;
+
+  ELL_3M_INV(i, m, det);
 }
 
 void
 ell_3m_inv_d(double i[9], double m[9]) {
   double det;
 
-  _3INV;
+  ELL_3M_INV(i, m, det);
 }
 
 /* -------------------------------------------------------------------- */
