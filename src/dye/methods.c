@@ -19,7 +19,7 @@
 #include "dye.h"
 
 char
-dyeSpaceToStr[][AIR_SMALL_STRLEN] = {
+dyeSpaceToStr[][AIR_STRLEN_SMALL] = {
   "(unknown)",
   "HSV",
   "HSL",

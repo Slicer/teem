@@ -55,7 +55,7 @@ typedef struct {
 
 
 /* methods.c */
-extern char dyeSpaceToStr[][AIR_SMALL_STRLEN];
+extern char dyeSpaceToStr[][AIR_STRLEN_SMALL];
 extern int dyeStrToSpace(char *str);
 extern dyeColor *dyeColorInit(dyeColor *col);
 extern dyeColor *dyeColorSet(dyeColor *col, int space, 
