@@ -25,9 +25,12 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageSclAnswer";
   gage_t gmag=0, *hess, *norm, *gvec, *gten, *k1, *k2, sHess[9], curv=0;
   double tmpMat[9], tmpVec[3], hevec[9], heval[3];
-
   gage_t len, gp1[3], gp2[3], *nPerp, nProj[9], ncTen[9];
   double T, N, D;
+#define FD_MEDIAN_MAX 16
+  int fd, nidx, xi, yi, zi;
+  gage_t *fw, iv3wght[2*FD_MEDIAN_MAX*FD_MEDIAN_MAX*FD_MEDIAN_MAX],
+    wghtSum, wght;
 
   /* convenience pointers for work below */
   hess = pvl->directAnswer[gageSclHessian];
@@ -207,6 +210,40 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
       ELL_3M_ZERO_SET(ncTen);
     }
     pvl->directAnswer[gageSclFlowlineCurv][0] = sqrt(ELL_3M_FROB(ncTen));
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclMedian)) {
+    /* this item is currently a complete oddball in that it does not
+       benefit from anything done in the "filter" stage, which is in
+       fact a waste of time if the query consists only  of this item */
+    fd = GAGE_FD(ctx);
+    if (fd > FD_MEDIAN_MAX) {
+      fprintf(stderr, "%s: PANIC: current filter diameter = %d "
+	      "> FD_MEDIAN_MAX = %d\n", me, fd, FD_MEDIAN_MAX);
+      exit(1);
+    }
+    fw = ctx->fw + fd*3*gageKernel00;
+    /* HEY: this needs some optimization help */
+    wghtSum = 0;
+    nidx = 0;
+    for (xi=0; xi<fd; xi++) {
+      for (yi=0; yi<fd; yi++) {
+	for (zi=0; zi<fd; zi++) {
+	  iv3wght[0 + 2*nidx] = pvl->iv3[nidx];
+	  iv3wght[1 + 2*nidx] = fw[xi + 0*fd]*fw[yi + 1*fd]*fw[zi + 2*fd];
+	  wghtSum += iv3wght[1 + 2*nidx];
+	  nidx++;
+	}
+      }
+    }
+    qsort(iv3wght, fd*fd*fd, 2*sizeof(gage_t), nrrdValCompare[gage_nrrdType]);
+    wght = 0;
+    for (nidx=0; nidx<fd*fd*fd; nidx++) {
+      wght += iv3wght[1 + 2*nidx];
+      if (wght > wghtSum/2) {
+	break;
+      }
+    }
+    pvl->directAnswer[gageSclMedian][0] = iv3wght[0 + 2*nidx];
   }
   return;
 }

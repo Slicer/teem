@@ -263,9 +263,10 @@ enum {
   gageSclCurvDir1,    /* 25: "cdir1", 1st principle curv direction: GT[3] */
   gageSclCurvDir2,    /* 26: "cdir2", 2nd principle curv direction: GT[3] */
   gageSclFlowlineCurv,/* 27: "fc", curvature of normal streamline: GT[1] */
+  gageSclMedian,      /* 28: "med", median filter */
   gageSclLast
 };
-#define GAGE_SCL_ITEM_MAX     27
+#define GAGE_SCL_ITEM_MAX     28
 
 /*
 ******** gageVec* enum

@@ -61,7 +61,8 @@ _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
   {gageSclGaussCurv,     1,  2,  {gageSclK1, gageSclK2, -1, -1, -1},                      -1,  -1},
   {gageSclCurvDir1,      3,  2,  {gageSclGeomTens, gageSclK1, gageSclK2, -1, -1},         -1,  -1},
   {gageSclCurvDir2,      3,  2,  {gageSclGeomTens, gageSclK1, gageSclK2, -1, -1},         -1,  -1},
-  {gageSclFlowlineCurv,  1,  2,  {gageSclGeomTens, -1, -1, -1, -1},                       -1,  -1}
+  {gageSclFlowlineCurv,  1,  2,  {gageSclGeomTens, -1, -1, -1, -1},                       -1,  -1},
+  {gageSclMedian,        1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1}
 };
 
 char
@@ -94,7 +95,8 @@ _gageSclStr[][AIR_STRLEN_SMALL] = {
   "Gaussian curvature",
   "1st curvature direction",
   "2nd curvature direction",
-  "flowline curvature"
+  "flowline curvature",
+  "median"
 };
 
 char
@@ -127,7 +129,8 @@ _gageSclDesc[][AIR_STRLEN_MED] = {
   "gaussian curvature = K1*K2",
   "1st principal curvature direction",
   "2nd principal curvature direction",
-  "curvature of normal streamline"
+  "curvature of normal streamline",
+  "median of iv3 cache (not weighted by any filter (yet))"
 };
 
 int
@@ -160,7 +163,8 @@ _gageSclVal[] = {
   gageSclGaussCurv,
   gageSclCurvDir1,
   gageSclCurvDir2,
-  gageSclFlowlineCurv
+  gageSclFlowlineCurv,
+  gageSclMedian
 };
 
 #define GS_V   gageSclValue
@@ -191,6 +195,7 @@ _gageSclVal[] = {
 #define GS_C1  gageSclCurvDir1
 #define GS_C2  gageSclCurvDir2
 #define GS_FC  gageSclFlowlineCurv
+#define GS_MD  gageSclMedian
 
 char
 _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
@@ -223,6 +228,7 @@ _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
   "cdir1", "c dir1", "curvdir1", "curv dir1", "curvature direction 1",
   "cdir2", "c dir2", "curvdir2", "curv dir2", "curvature direction 2",
   "fc", "flowlinecurv", "flowline curv", "flowline curvature",
+  "med", "median",
   ""
 };
 
@@ -255,7 +261,8 @@ _gageSclValEqv[] = {
   GS_GC, GS_GC, GS_GC, GS_GC,
   GS_C1, GS_C1, GS_C1, GS_C1, GS_C1,
   GS_C2, GS_C2, GS_C2, GS_C2, GS_C2,
-  GS_FC, GS_FC, GS_FC, GS_FC
+  GS_FC, GS_FC, GS_FC, GS_FC,
+  GS_MD, GS_MD
 };
 
 airEnum
