@@ -84,6 +84,7 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
   *G = (E - 1 + ad[1])*col[1] + s[1];
   *B = (E - 1 + ad[2])*col[2] + s[2];
   *A = mtt->range[miteRangeAlpha];
+  *A = AIR_CLAMP(0.0, *A, 1.0);
   if (mtt->verbose) {
     fprintf(stderr, "%s: col[] = %g,%g,%g; A,E = %g,%g; Kads = %g,%g,%g\n", me,
 	    col[0], col[1], col[2], mtt->range[miteRangeAlpha], E, ka, kd, ks);
