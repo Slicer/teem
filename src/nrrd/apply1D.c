@@ -872,30 +872,31 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 ** substitution
 */
 int
-nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *nsubst) {
+nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *_nsubst) {
   char me[]="nrrdApply1DSubstitution", err[AIR_STRLEN_MED];
   double (*lup)(const void *, size_t);
   double (*ins)(void *, size_t, double);
-  Nrrd *dsubst;
-  double val, sval, *d;
+  Nrrd *nsubst;
+  double val, *subst;
   size_t ii, num;
   int jj, asize0, asize1, changed;
+  airArray *mop;
 
-  if (!(nout && nsubst && nin)) {
+  if (!(nout && _nsubst && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdTypeBlock == nin->type || nrrdTypeBlock == nsubst->type) {
+  if (nrrdTypeBlock == nin->type || nrrdTypeBlock == _nsubst->type) {
     sprintf(err, "%s: input or substitution type is %s, need scalar",
 	    me, airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
-  if (2 != nsubst->dim) {
+  if (2 != _nsubst->dim) {
     sprintf(err, "%s: substitution table has to be 2-D, not %d-D",
-	    me, nsubst->dim);
+	    me, _nsubst->dim);
     biffAdd(NRRD, err); return 1;
   }
-  nrrdAxisInfoGet(nsubst, nrrdAxisInfoSize, &asize0, &asize1);
+  nrrdAxisInfoGet(_nsubst, nrrdAxisInfoSize, &asize0, &asize1);
   if (2 != asize0) {
     sprintf(err, "%s: substitution table has to be 2xN, not %dxN",
 	    me, asize0);
@@ -907,21 +908,24 @@ nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *nsubst) {
       biffAdd(NRRD, err); return 1;
     }
   }
-  if (nrrdConvert(dsubst = nrrdNew(), nsubst, nrrdTypeDouble)) {
+
+  mop = airMopNew();
+  nsubst = nrrdNew();
+  airMopAdd(mop, nsubst, (airMopper)nrrdNuke, airMopAlways);
+  if (nrrdConvert(nsubst, _nsubst, nrrdTypeDouble)) {
     sprintf(err, "%s: couldn't create double copy of substitution table", me);
-    biffAdd(NRRD, err); dsubst = nrrdNuke(dsubst); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   lup = nrrdDLookup[nout->type];
   ins = nrrdDInsert[nout->type];
+  subst = (double *)nsubst->data;
   num = nrrdElementNumber(nout);
-  d = (double *)dsubst->data;
   for (ii=0; ii<num; ii++) {
     val = lup(nout->data, ii);
     changed = AIR_FALSE;
     for (jj=0; jj<asize1; jj++) {
-      sval = d[jj*2+0];
-      if (val == sval) {
-	val = d[jj*2+1];
+      if (val == subst[jj*2+0]) {
+	val = subst[jj*2+1];
 	changed = AIR_TRUE;
       }
     }
@@ -929,6 +933,7 @@ nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *nsubst) {
       ins(nout->data, ii, val);
     }
   }
-  dsubst = nrrdNuke(dsubst);
+
+  airMopOkay(mop);
   return 0;
 }
