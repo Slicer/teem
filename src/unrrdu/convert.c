@@ -25,7 +25,7 @@ char *_unrrdu_convertInfoL =
 (INFO ". This does not transform, scale, clamp, or intelligently quantize "
  "values; it just copies them from one type to another, which replicates "
  "exactly what you'd get in C when you assign from a variable of one type to "
- "another, or when you cast to a differet type.  See also \"unu quantize\","
+ "another, or when you cast to a different type.  See also \"unu quantize\","
  "\"unu 2op x\", and \"unu 3op clamp\".");
 
 int
