@@ -47,9 +47,6 @@ limnObjNew(int incr, int edges) {
 			sizeof(limnSP), incr);
   obj->rCurr = NULL;
 
-  /* initialize three sp's, for points, edges, and faces */
-  airArrayIncrLen(obj->sA, 3);
-
   obj->edges = edges;
     
   return obj;
