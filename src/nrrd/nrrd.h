@@ -312,11 +312,11 @@ typedef struct {
 
 /******** defaults (nrrdDef..) and state (nrrdState..) */
 /* defaultsNrrd.c */
-extern nrrd_export int nrrdDefWrtEncoding;
-extern nrrd_export int nrrdDefWrtSeperateHeader;
-extern nrrd_export int nrrdDefWrtBareTable;
-extern nrrd_export int nrrdDefWrtCharsPerLine;
-extern nrrd_export int nrrdDefWrtValsPerLine;
+extern nrrd_export int nrrdDefWriteEncoding;
+extern nrrd_export int nrrdDefWriteSeperateHeader;
+extern nrrd_export int nrrdDefWriteBareTable;
+extern nrrd_export int nrrdDefWriteCharsPerLine;
+extern nrrd_export int nrrdDefWriteValsPerLine;
 extern nrrd_export int nrrdDefRsmpBoundary;
 extern nrrd_export int nrrdDefRsmpType;
 extern nrrd_export double nrrdDefRsmpScale;
@@ -337,6 +337,8 @@ extern nrrd_export int nrrdStateDisableContent;
 extern nrrd_export char *nrrdStateUnknownContent;
 extern nrrd_export int nrrdStateDisallowIntegerNonExist;
 extern nrrd_export int nrrdStateGrayscaleImage3D;
+extern void nrrdDefGetenv(void);
+extern void nrrdStateGetenv(void);
 
 /******** all the airEnums used through-out nrrd */
 /* (the actual C enums are in nrrdEnums.h) */

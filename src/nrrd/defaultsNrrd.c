@@ -34,11 +34,11 @@
 ** explicitly.
 */
 
-int nrrdDefWrtEncoding = nrrdEncodingRaw;
-int nrrdDefWrtSeperateHeader = AIR_FALSE;
-int nrrdDefWrtBareTable = AIR_TRUE;
-int nrrdDefWrtCharsPerLine = 75;
-int nrrdDefWrtValsPerLine = 8;
+int nrrdDefWriteEncoding = nrrdEncodingRaw;
+int nrrdDefWriteSeperateHeader = AIR_FALSE;
+int nrrdDefWriteBareTable = AIR_TRUE;
+int nrrdDefWriteCharsPerLine = 75;
+int nrrdDefWriteValsPerLine = 8;
 int nrrdDefRsmpBoundary = nrrdBoundaryBleed;
 int nrrdDefRsmpType = nrrdTypeDefault;
 double nrrdDefRsmpScale = 1.0;    /* these two should probably be the same */
@@ -70,3 +70,56 @@ int nrrdStateGrayscaleImage3D = AIR_FALSE;
 
 /* Are there other assumptions currently built into nrrd which could
    stand to be user-controllable? */
+
+void
+nrrdDefGetenv(void) {
+  char *envS;
+  int valI;
+  
+  if ((envS = getenv("NRRD_DEF_CENTER"))
+      && (valI = airEnumVal(nrrdCenter, envS))) {
+    nrrdDefCenter = valI;
+  }
+  if ((envS = getenv("NRRD_DEF_WRITE_BARE_TABLE"))
+      && (valI = airEnumVal(airBool, envS))) {
+    nrrdDefWriteBareTable = valI;
+  }
+  return;
+}
+
+void
+nrrdStateGetenv(void) {
+  char *envS;
+  int valI;
+  
+  if ((envS = getenv("NRRD_STATE_VERBOSE_IO"))
+      && (-1 != (valI = airEnumVal(airBool, envS)))) {
+    nrrdStateVerboseIO = valI;
+  }
+  if ((envS = getenv("NRRD_STATE_CLEVER_8_BIT_MIN_MAX"))
+      && (-1 != (valI = airEnumVal(airBool, envS)))) {
+    nrrdStateAlwaysSetContent = valI;
+  }
+  if ((envS = getenv("NRRD_STATE_ALWAYS_SET_CONTENT"))
+      && (-1 != (valI = airEnumVal(airBool, envS)))) {
+    nrrdStateAlwaysSetContent = valI;
+  }
+  if ((envS = getenv("NRRD_STATE_DISABLE_CONTENT"))
+      && (-1 != (valI = airEnumVal(airBool, envS)))) {
+    nrrdStateDisableContent = valI;
+  }
+  if ((envS = getenv("NRRD_STATE_MEASURE_TYPE"))
+      && (nrrdTypeUnknown != (valI = airEnumVal(nrrdType, envS)))) {
+    nrrdStateMeasureType = valI;
+  }
+  if ((envS = getenv("NRRD_STATE_MEASURE_MODE_BINS"))
+      && (1 == sscanf(envS, "%d", &valI))) {
+    nrrdStateMeasureModeBins = valI;
+  }
+  if ((envS = getenv("NRRD_STATE_MEASURE_HISTO_TYPE"))
+      && (nrrdTypeUnknown != (valI = airEnumVal(nrrdType, envS)))) {
+    nrrdStateMeasureHistoType = valI;
+  }
+  return;
+}
+
