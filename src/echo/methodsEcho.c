@@ -19,95 +19,123 @@
 
 #include "echo.h"
 
-EchoRTParm *
+echoRTParm *
 echoRTParmNew(void) {
-  EchoRTParm *parm;
+  echoRTParm *parm;
   
-  parm = (EchoRTParm *)calloc(1, sizeof(EchoRTParm));
-  parm->jitter = echoJitterNone;
-  parm->shadow = AIR_TRUE;
-  parm->samples = 1;
-  parm->imgResU = parm->imgResV = 256;
-  parm->maxRecDepth = 5;
-  parm->reuseJitter = AIR_FALSE;
-  parm->permuteJitter = AIR_TRUE;
-  parm->renderLights = AIR_TRUE;
-  parm->renderBoxes = AIR_FALSE;
-  parm->seedRand = AIR_TRUE;
-  parm->aperture = 0.0;     /* pinhole camera by default */
-  parm->timeGamma = 6.0;
-  parm->refDistance = 1.0;
-  parm->mrR = 1.0;
-  parm->mrG = 0.0;
-  parm->mrB = 1.0;
-  parm->amR = 1.0;
-  parm->amG = 1.0;
-  parm->amB = 1.0;
-  parm->bgR = 0.0;
-  parm->bgG = 0.0;
-  parm->bgB = 0.0;
-  parm->gamma = 2.2;
+  parm = (echoRTParm *)calloc(1, sizeof(echoRTParm));
+  if (parm) {
+    parm->jitterType = echoJitterNone;
+    parm->reuseJitter = AIR_FALSE;
+    parm->permuteJitter = AIR_TRUE;
+    parm->doShadows = AIR_TRUE;
+    parm->numSamples = 1;
+    parm->imgResU = parm->imgResV = 256;
+    parm->maxRecDepth = 5;
+    parm->renderLights = AIR_TRUE;
+    parm->renderBoxes = AIR_FALSE;
+    parm->seedRand = AIR_TRUE;
+    parm->aperture = 0.0;     /* pinhole camera by default */
+    parm->timeGamma = 6.0;
+    parm->refDistance = 1.0;
+    ELL_3V_SET(parm->mr, 1.0, 0.0, 1.0);
+  }
   return parm;
 }
 
-EchoRTParm *
-echoRTParmNix(EchoRTParm *parm) {
+echoRTParm *
+echoRTParmNix(echoRTParm *parm) {
 
-  free(parm);
+  AIR_FREE(parm);
 
   return NULL;
 }
 
-EchoGlobalState *
+echoGlobalState *
 echoGlobalStateNew(void) {
-  EchoGlobalState *state;
+  echoGlobalState *state;
   
-  state = (EchoGlobalState *)calloc(1, sizeof(EchoGlobalState));
-  state->time = 0;
+  state = (echoGlobalState *)calloc(1, sizeof(echoGlobalState));
+  if (state) {
+    state->time = 0;
+  }
   return state;
 }
 
-EchoGlobalState *
-echoGlobalStateNix(EchoGlobalState *state) {
+echoGlobalState *
+echoGlobalStateNix(echoGlobalState *state) {
 
-  if (state) {
-    airFree(state);
-  }
+  AIR_FREE(state);
   return NULL;
 }
 
-EchoThreadState *
+echoThreadState *
 echoThreadStateNew(void) {
-  EchoThreadState *state;
+  echoThreadState *state;
   
-  state = (EchoThreadState *)calloc(1, sizeof(EchoThreadState));
-  state->njitt = nrrdNew();
-  state->nperm = nrrdNew();
-  state->permBuff = NULL;
-  state->chanBuff = NULL;
+  state = (echoThreadState *)calloc(1, sizeof(echoThreadState));
+  if (state) {
+    state->verbose = 0;
+    state->njitt = nrrdNew();
+    state->nperm = nrrdNew();
+    state->permBuff = NULL;
+    state->chanBuff = NULL;
+  }
   return state;
 }
 
-EchoThreadState *
-echoThreadStateNix(EchoThreadState *state) {
+echoThreadState *
+echoThreadStateNix(echoThreadState *state) {
 
   if (state) {
     nrrdNuke(state->njitt);
     nrrdNuke(state->nperm);
-    airFree(state->permBuff);
-    airFree(state->chanBuff);
-    airFree(state);
+    AIR_FREE(state->permBuff);
+    AIR_FREE(state->chanBuff);
+    AIR_FREE(state);
   }
   return NULL;
 }
 
-limnCam *
-echoLimnCamNew(void) {
-  limnCam *cam;
+echoScene *
+echoSceneNew(void) {
+  echoScene *ret;
+  
+  ret = (echoScene *)calloc(1, sizeof(echoScene));
+  if (ret) {
+    ret->obj = NULL;
+    ret->objArr = airArrayNew((void**)&(ret->obj), NULL,
+			      sizeof(echoObject *),
+			      ECHO_LIST_OBJECT_INCR);
+    airArrayPointerCB(ret->objArr,
+		      airNull,
+		      (void *(*)(void *))echoObjectNix);
+    ret->lit = NULL;
+    ret->litArr = airArrayNew((void**)&(ret->lit), NULL,
+			      sizeof(echoObject *),
+			      ECHO_LIST_OBJECT_INCR);
+    /* no pointers set; objects are nixed on delete by above */
+    ret->nrrd = NULL;
+    ret->nrrdArr = airArrayNew((void**)&(ret->nrrd), NULL,
+			       sizeof(Nrrd *),
+			       ECHO_LIST_OBJECT_INCR);
+    airArrayPointerCB(ret->nrrdArr,
+		      airNull,
+		      (void *(*)(void *))nrrdNuke);
+    ELL_3V_SET(ret->am, 1.0, 1.0, 1.0);
+    ELL_3V_SET(ret->bg, 0.0, 0.0, 0.0);
+  }
+  return ret;
+}
 
-  cam = limnCamNew();
-  cam->atRel = AIR_TRUE;
-  cam->rightHanded = AIR_TRUE;
-
-  return cam;
+echoScene *
+echoSceneNix(echoScene *scene) {
+  
+  if (scene) {
+    airArrayNuke(scene->objArr);
+    airArrayNuke(scene->litArr);
+    airArrayNuke(scene->nrrdArr);
+    AIR_FREE(scene);
+  }
+  return NULL;
 }

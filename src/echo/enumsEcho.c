@@ -22,7 +22,7 @@
 /* ------------------------------- jitter --------------------------- */
 
 char
-_echoJitterStr[ECHO_JITTER_MAX+1][AIR_STRLEN_SMALL] = {
+_echoJitterStr[ECHO_JITTER_NUM+1][AIR_STRLEN_SMALL] = {
   "(unknown_jitter)",
   "none",
   "grid",
@@ -30,13 +30,22 @@ _echoJitterStr[ECHO_JITTER_MAX+1][AIR_STRLEN_SMALL] = {
   "random"
 };
 
+int
+_echoJitterVal[ECHO_JITTER_NUM+1] = {
+  echoJitterUnknown,
+  echoJitterNone,
+  echoJitterGrid,
+  echoJitterJitter,
+  echoJitterRandom
+};
+
 char
-_echoJitterDesc[ECHO_JITTER_MAX+1][AIR_STRLEN_MED] = {
-  "unknown_jitter",
-  "no jittering; samples are always at center of region",
-  "samples are at regular grid vertices",
-  "samples are randomly located with grid cells",
-  "samples are just random"
+_echoJitterDesc[ECHO_JITTER_NUM+1][AIR_STRLEN_MED] = {
+  "unknown jitter",
+  "nothing- samples are ALWAYS at center of region",
+  "no jittering- samples are at regular grid vertices",
+  "normal jittering- samples are randomly located within grid cells",
+  "samples are randomly located within region"
 };
 
 char
@@ -44,7 +53,8 @@ _echoJitterStrEqv[][AIR_STRLEN_SMALL] = {
   "none",
   "grid", "regular",
   "jitter",
-  "random"
+  "random",
+  ""
 };
 
 int
@@ -56,21 +66,21 @@ _echoJitterValEqv[] = {
 };
 
 airEnum
-_echoJitter_ae = {
+_echoJitter = {
   "jitter",
-  ECHO_JITTER_MAX,
-  _echoJitterStr,  NULL,
+  ECHO_JITTER_NUM,
+  _echoJitterStr,  _echoJitterVal,
   _echoJitterDesc,
   _echoJitterStrEqv, _echoJitterValEqv,
   AIR_FALSE
 };
 airEnum *
-echoJitter_ae = &_echoJitter_ae;
+echoJitter = &_echoJitter;
 
-/* ------------------------------- object --------------------------- */
+/* ------------------------------- object type --------------------------- */
 
 char
-_echoObjectStr[ECHO_OBJECT_MAX+1][AIR_STRLEN_SMALL] = {
+_echoTypeStr[ECHO_TYPE_NUM+1][AIR_STRLEN_SMALL] = {
   "(unknown_object)",
   "sphere",
   "cube",
@@ -84,15 +94,30 @@ _echoObjectStr[ECHO_OBJECT_MAX+1][AIR_STRLEN_SMALL] = {
   "instance"
 };
 
+int
+_echoTypeVal[ECHO_TYPE_NUM+1] = {
+  echoTypeUnknown,
+  echoTypeSphere,
+  echoTypeCube,
+  echoTypeTriangle,
+  echoTypeRectangle,
+  echoTypeTriMesh,
+  echoTypeIsosurface,
+  echoTypeAABBox,
+  echoTypeSplit,
+  echoTypeList,
+  echoTypeInstance
+};
+
 char
-_echoObjectDesc[ECHO_OBJECT_MAX+1][AIR_STRLEN_MED] = {
+_echoTypeDesc[ECHO_TYPE_NUM+1][AIR_STRLEN_MED] = {
   "unknown_object",
   "sphere",
   "unit cube, centered at the origin",
   "triangle",
   "rectangle",
   "mesh of triangles",
-  "isosurface of some volume dataset",
+  "isosurface of scalar volume",
   "axis-aligned bounding box",
   "split",
   "list",
@@ -100,41 +125,83 @@ _echoObjectDesc[ECHO_OBJECT_MAX+1][AIR_STRLEN_MED] = {
 };
 
 char
-_echoObjectStrEqv[][AIR_STRLEN_SMALL] = {
+_echoTypeStrEqv[][AIR_STRLEN_SMALL] = {
   "sphere",
   "cube",
   "triangle", "tri",
   "rectangle", "rect",
   "mesh", "tri-mesh", "trimesh",
   "isosurface",
-  "AABoundingBox",
+  "aabbox", "AABoundingBox",
   "split",
   "list",
-  "instance"
+  "instance",
+  ""
 };
 
 int
-_echoObjectValEqv[] = {
-  echoSphere,
-  echoCube,
-  echoTriangle, echoTriangle,
-  echoRectangle, echoRectangle,
-  echoTriMesh, echoTriMesh, echoTriMesh,
-  echoIsosurface,
-  echoAABBox,
-  echoSplit,
-  echoList,
-  echoInstance
+_echoTypeValEqv[] = {
+  echoTypeSphere,
+  echoTypeCube,
+  echoTypeTriangle, echoTypeTriangle,
+  echoTypeRectangle, echoTypeRectangle,
+  echoTypeTriMesh, echoTypeTriMesh, echoTypeTriMesh,
+  echoTypeIsosurface,
+  echoTypeAABBox, echoTypeAABBox,
+  echoTypeSplit,
+  echoTypeList,
+  echoTypeInstance
 };
 
 airEnum
-_echoObject_ae = {
-  "object",
-  ECHO_OBJECT_MAX,
-  _echoObjectStr,  NULL,
-  _echoObjectDesc,
-  _echoObjectStrEqv, _echoObjectValEqv,
+_echoType = {
+  "object type",
+  ECHO_TYPE_NUM,
+  _echoTypeStr,  NULL,
+  _echoTypeDesc,
+  _echoTypeStrEqv, _echoTypeValEqv,
   AIR_FALSE
 };
 airEnum *
-echoObject_ae = &_echoObject_ae;
+echoType = &_echoType;
+
+/* ------------------------------- material types --------------------------- */
+
+char
+_echoMatterStr[ECHO_MATTER_NUM+1][AIR_STRLEN_SMALL] = {
+  "(unknown_matter)",
+  "phong",
+  "glass",
+  "metal",
+  "light"
+};
+
+int
+_echoMatterVal[ECHO_MATTER_NUM+1] = {
+  echoMatterUnknown,
+  echoMatterPhong,
+  echoMatterGlass,
+  echoMatterMetal,
+  echoMatterLight
+};
+
+char
+_echoMatterDesc[ECHO_MATTER_NUM+1][AIR_STRLEN_MED] = {
+  "unknown material",
+  "phong shaded surface",
+  "glass",
+  "metal",
+  "light emitter"
+};
+
+airEnum
+_echoMatter = {
+  "matter",
+  ECHO_MATTER_NUM,
+  _echoMatterStr,  _echoMatterVal,
+  _echoMatterDesc,
+  NULL, NULL,
+  AIR_FALSE
+};
+airEnum *
+echoMatter = &_echoMatter;

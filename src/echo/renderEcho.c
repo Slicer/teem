@@ -20,87 +20,9 @@
 #include "echo.h"
 #include "privateEcho.h"
 
-int echoVerbose = 0;
-
-/*
-******** echoComposite
-**
-**
-*/
 int
-echoComposite(Nrrd *nimg, Nrrd *nraw, EchoRTParm *parm) {
-  char me[]="echoComposite", err[AIR_STRLEN_MED];
-  echoCol_t *raw, *img, R, G, B, A;
-  int i, N;
-
-  if (!(nimg && nraw && parm)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(ECHO, err); return 1;
-  }
-  if (nrrdMaybeAlloc(nimg, echoCol_nt, 3,
-		     3, nraw->axis[1].size, nraw->axis[2].size)) {
-    sprintf(err, "%s:", me);
-    biffMove(ECHO, err, NRRD); return 1;
-  }
-  nrrdAxesSet(nimg, nrrdAxesInfoLabel, "rgb", "x", "y");
-  
-  raw = nraw->data;
-  img = nimg->data;
-  N = nraw->axis[1].size * nraw->axis[2].size;
-  for (i=0; i<N; i++) {
-    R = raw[0 + 5*i];
-    G = raw[1 + 5*i];
-    B = raw[2 + 5*i];
-    A = raw[3 + 5*i];
-    img[0 + 3*i] = A*R + (1-A)*parm->bgR;
-    img[1 + 3*i] = A*G + (1-A)*parm->bgG;
-    img[2 + 3*i] = A*B + (1-A)*parm->bgB;
-  }
-
-  return 0;
-}
-
-/*
-******** echoPPM
-**
-**
-*/
-int
-echoPPM(Nrrd *nppm, Nrrd *nimg, EchoRTParm *parm) {
-  char me[]="echoPPM", err[AIR_STRLEN_MED];
-  echoCol_t val, *img;
-  unsigned char *ppm;
-  int i, c, v, N;
-
-  if (!(nppm && nimg && parm)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(ECHO, err); return 1;
-  }
-  if (nrrdMaybeAlloc(nppm, nrrdTypeUChar, 3,
-		     3, nimg->axis[1].size, nimg->axis[2].size)) {
-    sprintf(err, "%s:", me);
-    biffMove(ECHO, err, NRRD); return 1;
-  }
-  nrrdAxesSet(nimg, nrrdAxesInfoLabel, "rgb", "x", "y");
-  
-  img = nimg->data;
-  ppm = nppm->data;
-  N = nimg->axis[1].size * nimg->axis[2].size;
-  for (i=0; i<N; i++) {
-    for (c=0; c<3; c++) {
-      val = AIR_CLAMP(0.0, img[c + 3*i], 1.0);
-      val = pow(val, 1.0/parm->gamma);
-      AIR_INDEX(0.0, val, 1.0, 256, v); 
-      ppm[c + 3*i] = v;
-    }
-  }
-
-  return 0;
-}
-
-int
-echoThreadStateInit(EchoThreadState *tstate,
-		    EchoRTParm *parm, EchoGlobalState *gstate) {
+echoThreadStateInit(echoThreadState *tstate,
+		    echoRTParm *parm, echoGlobalState *gstate) {
   char me[]="echoThreadStateInit", err[AIR_STRLEN_MED];
 
   if (!(tstate && parm && gstate)) {
@@ -108,23 +30,23 @@ echoThreadStateInit(EchoThreadState *tstate,
     biffAdd(ECHO, err); return 1;
   }
   if (nrrdMaybeAlloc(tstate->nperm, nrrdTypeInt, 2,
-		     ECHO_SAMPLE_NUM, parm->samples)) {
+		     ECHO_JITABLE_NUM, parm->numSamples)) {
     sprintf(err, "%s: couldn't allocate jitter permutation array", me);
     biffMove(ECHO, err, NRRD); return 1;
   }
   nrrdAxesSet(tstate->nperm, nrrdAxesInfoLabel, "info", "sample");
   if (nrrdMaybeAlloc(tstate->njitt, echoPos_nt, 3,
-		     2, ECHO_SAMPLE_NUM, parm->samples)) {
+		     2, ECHO_JITABLE_NUM, parm->numSamples)) {
     sprintf(err, "%s: couldn't allocate jitter array", me);
     biffMove(ECHO, err, NRRD); return 1;
   }
   nrrdAxesSet(tstate->njitt, nrrdAxesInfoLabel, "x,y", "info", "sample");
-  if (!( tstate->permBuff = (int*)calloc(parm->samples, sizeof(int)) )) {
+  if (!( tstate->permBuff = (int*)calloc(parm->numSamples, sizeof(int)) )) {
     sprintf(err, "%s: couldn't allocate permutation buffer", me);
     biffAdd(ECHO, err); return 1;
   }
   if (!( tstate->chanBuff =
-	 (echoCol_t*)calloc(ECHO_IMG_CHANNELS * parm->samples,
+	 (echoCol_t*)calloc(ECHO_IMG_CHANNELS * parm->numSamples,
 			    sizeof(echoCol_t)) )) {
     sprintf(err, "%s: couldn't allocate img channel sample buffer", me);
     biffAdd(ECHO, err); return 1;
@@ -139,24 +61,26 @@ echoThreadStateInit(EchoThreadState *tstate,
 **
 */
 void
-echoJitterCompute(EchoRTParm *parm, EchoThreadState *tstate) {
+echoJitterCompute(echoRTParm *parm, echoThreadState *tstate) {
   echoPos_t *jitt, w;
   int s, i, j, xi, yi, n, N, *perm;
 
-  jitt = (echoPos_t *)tstate->njitt->data;
-  perm = (int *)tstate->nperm->data;
-  N = parm->samples;
+  N = parm->numSamples;
   n = sqrt(N);
   w = 1.0/n;
-  for (j=0; j<ECHO_SAMPLE_NUM; j++) {
-    airShuffle(tstate->permBuff, parm->samples, parm->permuteJitter);
+  /* each row in perm[] is for one sample, to through all jitables.
+     each column is a different permutation of [0..parm->numSamples-1] */
+  perm = (int *)tstate->nperm->data;
+  for (j=0; j<ECHO_JITABLE_NUM; j++) {
+    airShuffle(tstate->permBuff, parm->numSamples, parm->permuteJitter);
     for (s=0; s<N; s++) {
-      perm[j + ECHO_SAMPLE_NUM*s] = tstate->permBuff[s];
+      perm[j + ECHO_JITABLE_NUM*s] = tstate->permBuff[s];
     }
   }
+  jitt = (echoPos_t *)tstate->njitt->data;
   for (s=0; s<N; s++) {
-    for (j=0; j<ECHO_SAMPLE_NUM; j++) {
-      i = perm[j + ECHO_SAMPLE_NUM*s];
+    for (j=0; j<ECHO_JITABLE_NUM; j++) {
+      i = perm[j + ECHO_JITABLE_NUM*s];
       xi = i % n;
       yi = i / n;
       switch(parm->jitter) {
@@ -180,7 +104,7 @@ echoJitterCompute(EchoRTParm *parm, EchoThreadState *tstate) {
 	break;
       }
     }
-    jitt += 2*ECHO_SAMPLE_NUM;
+    jitt += 2*ECHO_JITABLE_NUM;
   }
 
   return;
@@ -194,8 +118,8 @@ echoJitterCompute(EchoRTParm *parm, EchoThreadState *tstate) {
 */
 int
 echoCheck(Nrrd *nraw, limnCam *cam, 
-	  EchoRTParm *parm, EchoGlobalState *gstate,
-	  EchoObject *scene, airArray *lightArr) {
+	  echoRTParm *parm, echoGlobalState *gstate,
+	  echoScene *scene, airArray *lightArr) {
   char me[]="echoCheck", err[AIR_STRLEN_MED];
   int tmp;
 
@@ -207,12 +131,12 @@ echoCheck(Nrrd *nraw, limnCam *cam,
     sprintf(err, "%s: camera trouble", me);
     biffMove(ECHO, err, LIMN); return 1;
   }
-  if (!airEnumValValid(echoJitter_ae, parm->jitter)) {
+  if (!airEnumValValid(echoJitter, parm->jitter)) {
     sprintf(err, "%s: jitter method (%d) invalid", me, parm->jitter);
     biffAdd(ECHO, err); return 1;
   }
-  if (!(parm->samples > 0)) {
-    sprintf(err, "%s: # samples (%d) invalid", me, parm->samples);
+  if (!(parm->numSamples > 0)) {
+    sprintf(err, "%s: # samples (%d) invalid", me, parm->numSamples);
     biffAdd(ECHO, err); return 1;
   }
   if (!(parm->imgResU > 0 && parm->imgResV)) {
@@ -224,29 +148,24 @@ echoCheck(Nrrd *nraw, limnCam *cam,
     sprintf(err, "%s: aperture doesn't exist", me);
     biffAdd(ECHO, err); return 1;
   }
-  if (!echoIsContainer(scene)) {
-    sprintf(err, "%s: can only render a container object (not a %s)",
-	    me, airEnumStr(echoObject_ae, scene->type));
-    biffAdd(ECHO, err); return 1;
-  }
-
+  
   switch (parm->jitter) {
   case echoJitterNone:
   case echoJitterRandom:
     break;
   case echoJitterGrid:
   case echoJitterJitter:
-    tmp = sqrt(parm->samples);
-    if (tmp*tmp != parm->samples) {
+    tmp = sqrt(parm->numSamples);
+    if (tmp*tmp != parm->numSamples) {
       sprintf(err, "%s: need a square # samples for %s jitter method (not %d)",
-	      me, airEnumStr(echoJitter_ae, parm->jitter), parm->samples);
+	      me, airEnumStr(echoJitter, parm->jitter), parm->numSamples);
       biffAdd(ECHO, err); return 1;
     }
     break;
   }
   
   if (ECHO_IMG_CHANNELS != 5) {
-    fprintf(stderr, "%s: ECHO_IMG_CHANNELS != 5\n", me);
+    sprintf(err, "%s: ECHO_IMG_CHANNELS != 5", me);
     biffAdd(ECHO, err); return 1;
   }
   
@@ -256,22 +175,22 @@ echoCheck(Nrrd *nraw, limnCam *cam,
 
 void
 echoChannelAverage(echoCol_t *img,
-		   EchoRTParm *parm, EchoThreadState *tstate) {
+		   echoRTParm *parm, echoThreadState *tstate) {
   int s;
   echoCol_t R, G, B, A, T;
   
   R = G = B = A = T = 0;
-  for (s=0; s<parm->samples; s++) {
+  for (s=0; s<parm->numSamples; s++) {
     R += tstate->chanBuff[0 + ECHO_IMG_CHANNELS*s];
     G += tstate->chanBuff[1 + ECHO_IMG_CHANNELS*s];
     B += tstate->chanBuff[2 + ECHO_IMG_CHANNELS*s];
     A += tstate->chanBuff[3 + ECHO_IMG_CHANNELS*s];
     T += tstate->chanBuff[4 + ECHO_IMG_CHANNELS*s];
   }
-  img[0] = R / parm->samples;
-  img[1] = G / parm->samples;
-  img[2] = B / parm->samples;
-  img[3] = A / parm->samples;
+  img[0] = R / parm->numSamples;
+  img[1] = G / parm->numSamples;
+  img[2] = B / parm->numSamples;
+  img[3] = A / parm->numSamples;
   img[4] = T;
   
   return;
@@ -285,11 +204,11 @@ echoChannelAverage(echoCol_t *img,
 ** As such, it is never called on shadow rays.  
 */
 void
-echoRayColor(echoCol_t *chan, int samp, EchoRay *ray,
-	     EchoRTParm *parm, EchoThreadState *tstate,
-	     EchoObject *scene, airArray *lightArr) {
+echoRayColor(echoCol_t *chan, int samp, echoRay *ray,
+	     echoRTParm *parm, echoThreadState *tstate,
+	     echoObject *scene, airArray *lightArr) {
   float tmp;
-  EchoIntx intx;
+  echoIntx intx;
   
   if (ray->depth > parm->maxRecDepth) {
     /* we've exceeded the recursion depth, so no more rays for you */
@@ -341,8 +260,8 @@ echoRayColor(echoCol_t *chan, int samp, EchoRay *ray,
 */
 int
 echoRTRender(Nrrd *nraw, limnCam *cam,
-	     EchoRTParm *parm, EchoGlobalState *gstate,
-	     EchoObject *scene, airArray *lightArr) {
+	     echoRTParm *parm, echoGlobalState *gstate,
+	     echoObject *scene, airArray *lightArr) {
   char me[]="echoRTRender", err[AIR_STRLEN_MED], done[20];
   int imgUi, imgVi,         /* integral pixel indices */
     samp;                   /* which sample are we doing */
@@ -354,10 +273,10 @@ echoRTRender(Nrrd *nraw, limnCam *cam,
     imgU, imgV,             /* floating point pixel center locations */
     imgOrig[3],             /* image origin */
     *jitt;                  /* current scanline of master jitter array */
-  EchoThreadState *tstate;  /* only one thread for now */
+  echoThreadState *tstate;  /* only one thread for now */
   echoCol_t *img, *chan;    /* current scanline of channel buffer array */
   double time0;             /* to record per ray sample time */
-  EchoRay ray;              /* (not a pointer) */
+  echoRay ray;              /* (not a pointer) */
 
   if (echoCheck(nraw, cam, parm, gstate, scene, lightArr)) {
     sprintf(err, "%s: problem with input", me);
@@ -424,18 +343,18 @@ echoRTRender(Nrrd *nraw, limnCam *cam,
       chan = tstate->chanBuff;
 
       /* go through samples */
-      for (samp=0; samp<parm->samples; samp++) {
+      for (samp=0; samp<parm->numSamples; samp++) {
 	/* set ray.from[] */
 	ELL_3V_COPY(ray.from, eye);
 	if (parm->aperture) {
-	  tmp0 = parm->aperture*jitt[0 + 2*echoSampleLens];
-	  tmp1 = parm->aperture*jitt[1 + 2*echoSampleLens];
+	  tmp0 = parm->aperture*jitt[0 + 2*echoJitableLens];
+	  tmp1 = parm->aperture*jitt[1 + 2*echoJitableLens];
 	  ELL_3V_SCALEADD3(ray.from, 1, ray.from, tmp0, U, tmp1, V);
 	}
 	
 	/* set at[] */
-	tmp0 = imgU + pixUsz*jitt[0 + 2*echoSamplePixel];
-	tmp1 = imgV + pixVsz*jitt[1 + 2*echoSamplePixel];
+	tmp0 = imgU + pixUsz*jitt[0 + 2*echoJitablePixel];
+	tmp1 = imgV + pixVsz*jitt[1 + 2*echoJitablePixel];
 	ELL_3V_SCALEADD3(at, 1, imgOrig, tmp0, U, tmp1, V);
 
 	/* do it! */
@@ -458,7 +377,7 @@ echoRTRender(Nrrd *nraw, limnCam *cam,
 	chan[4] = airTime() - time0;
 	
 	/* move to next "scanlines" */
-	jitt += 2*ECHO_SAMPLE_NUM;
+	jitt += 2*ECHO_JITABLE_NUM;
 	chan += ECHO_IMG_CHANNELS;
       }
       echoChannelAverage(img, parm, tstate);

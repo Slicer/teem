@@ -24,29 +24,18 @@
 extern "C" {
 #endif
 
-#define OBJECT(obj)    ((EchoObject*)obj)
-#define SPLIT(obj)     ((EchoSplit*)obj)
-#define LIST(obj)      ((EchoList*)obj)
-#define SPHERE(obj)    ((EchoSphere*)obj)
-#define RECTANGLE(obj) ((EchoRectangle*)obj)
-#define AABBOX(obj)    ((EchoAABBox*)obj)
-#define TRIMESH(obj)   ((EchoTriMesh*)obj)
-#define TRIANGLE(obj)  ((EchoTriangle*)obj)
-#define INSTANCE(obj)  ((EchoInstance*)obj)
+#define OBJECT(obj)    ((echoObject*)obj)
+#define SPLIT(obj)     ((echoSplit*)obj)
+#define LIST(obj)      ((echoList*)obj)
+#define SPHERE(obj)    ((echoSphere*)obj)
+#define RECTANGLE(obj) ((echoRectangle*)obj)
+#define AABBOX(obj)    ((echoAABBox*)obj)
+#define TRIMESH(obj)   ((echoTriMesh*)obj)
+#define TRIANGLE(obj)  ((echoTriangle*)obj)
+#define INSTANCE(obj)  ((echoInstance*)obj)
 
 #define ECHO_NEW(TYPE) \
-  (EchoObject##TYPE *)echoNew(echoObject##Type)
-
-/* color.c */
-#define COLOR_ARGS echoCol_t *chan, EchoIntx *intx, int samp,       \
-                   EchoRTParm *parm, EchoThreadState *tstate,       \
-                   EchoObject *scene, airArray *lightArr
-
-typedef void (*_echoIntxColor_t) (COLOR_ARGS);
-extern _echoIntxColor_t _echoIntxColor[ECHO_MATTER_MAX+1];
-
-extern int _echoRefract(echoPos_t T[3], echoPos_t V[3],
-			echoPos_t N[3], echoCol_t index);
+  (echoObject##TYPE *)echoNew(echoObject##Type)
 
 #ifdef __cplusplus
 }
