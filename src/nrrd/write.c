@@ -21,6 +21,10 @@
 #include "privateNrrd.h"
 #include <teem32bit.h>
 
+#if TEEM_BZLIB
+#include <bzlib.h>
+#endif
+
 /*
   #include <sys/types.h>
   #include <unistd.h>
@@ -295,11 +299,9 @@ _nrrdWriteDataGzip(Nrrd *nrrd, NrrdIO *io) {
   /* zlib can handle data sizes up to UINT_MAX, so we can't just 
      pass in the size, because it might be too large for an 
      unsigned int.  Therefore it must be read in chunks 
-     if the size is larger than UINT_MAX.
-  */
-
+     if the size is larger than UINT_MAX. */
   if (size <= UINT_MAX) {
-    block_size = (int)size;
+    block_size = (unsigned int)size;
   } else {
     block_size = UINT_MAX;
   }
@@ -321,7 +323,7 @@ _nrrdWriteDataGzip(Nrrd *nrrd, NrrdIO *io) {
        be smaller than block_size).
     */
     if (size - total_written < block_size)
-      block_size = (int)(size - total_written);
+      block_size = (unsigned int)(size - total_written);
   }
   
   /* Close the gzFile.  Since _nrrdGzClose does not close the FILE* we
@@ -348,6 +350,110 @@ _nrrdWriteDataGzip(Nrrd *nrrd, NrrdIO *io) {
 #endif
 }
 
+int
+_nrrdWriteDataBzip2(Nrrd *nrrd, NrrdIO *io) {
+  char me[]="_nrrdWriteDataBzip2", err[AIR_STRLEN_MED];
+#if TEEM_BZLIB
+  size_t num, bsize, size, total_written;
+  int block_size, wrote, bs, bzerror=BZ_OK;
+  char *data;
+  BZFILE* bzfout;
+
+  /* this shouldn't actually be necessary ... */
+  if (!nrrdElementSize(nrrd)) {
+    sprintf(err, "%s: nrrd reports zero element size!", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  num = nrrdElementNumber(nrrd);
+  if (!num) {
+    sprintf(err, "%s: calculated number of elements to be zero!", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  bsize = num * nrrdElementSize(nrrd);
+  size = bsize;
+  if (num != bsize/nrrdElementSize(nrrd)) {
+    fprintf(stderr,
+	    "%s: PANIC: \"size_t\" can't represent byte-size of data.\n", me);
+    exit(1);
+  }
+
+  /* Set compression block size. */
+  if (1 <= io->bzlibBlockSize && io->bzlibBlockSize <= 9) {
+    bs = io->bzlibBlockSize;
+  } else {
+    bs = 9;
+  }
+  /* Open bzfile for writing. Verbosity and work factor are set
+     to default values. */
+  bzfout = BZ2_bzWriteOpen(&bzerror, io->dataFile, bs, 0, 0);
+  if (bzerror != BZ_OK) {
+    sprintf(err, "%s: error opening BZFILE: %s", me, 
+	    BZ2_bzerror(bzfout, &bzerror));
+    biffAdd(NRRD, err);
+    BZ2_bzWriteClose(&bzerror, bzfout, 0, NULL, NULL);
+    return 1;
+  }
+
+  /* bzip2 can handle data sizes up to INT_MAX, so we can't just 
+     pass in the size, because it might be too large for an int.
+     Therefore it must be read in chunks if the size is larger 
+     than INT_MAX. */
+  if (size <= INT_MAX) {
+    block_size = (int)size;
+  } else {
+    block_size = INT_MAX;
+  }
+
+  /* This counter will help us to make sure that we write as much data
+     as we think we should. */
+  total_written = 0;
+  /* Pointer to the blocks as we write them. */
+  data = nrrd->data;
+  
+  /* Ok, now we can begin writing. */
+  bzerror = BZ_OK;
+  while (size - total_written > block_size) {
+    BZ2_bzWrite(&bzerror, bzfout, data, block_size);
+    if (bzerror != BZ_OK) break;
+    /* Increment the data pointer to the next available spot. */
+    data += block_size; 
+    total_written += block_size;
+  }
+  block_size = (int)(size - total_written);
+  BZ2_bzWrite(&bzerror, bzfout, data, block_size);
+
+  if (bzerror != BZ_OK) {
+    sprintf(err, "%s: error writing to BZFILE: %s",
+	    me, BZ2_bzerror(bzfout, &bzerror));
+    biffAdd(NRRD, err);
+    return 1;
+  }
+
+  /* Close the BZFILE. */
+  BZ2_bzWriteClose(&bzerror, bzfout, 0, NULL, NULL);
+  if (bzerror != BZ_OK) {
+    sprintf(err, "%s: error closing BZFILE", me,
+	    BZ2_bzerror(bzfout, &bzerror));
+    biffAdd(NRRD, err);
+    return 1;
+  }
+  
+  /* Check to see if we got out as much as we thought we should. */
+  if (total_written != size) {
+    sprintf(err, "%s: expected " _AIR_SIZE_T_FMT " to write bytes, but only "
+	    " wrote " _AIR_SIZE_T_FMT " bytes",
+	    me, size, total_written);
+    biffAdd(NRRD, err);
+    return 1;
+  }
+  
+  return 0;
+#else
+  sprintf(err, "%s: sorry, this nrrd not compiled with bzip2 enabled", me);
+  biffAdd(NRRD, err); return 1;
+#endif
+}
+
 
 int (*
 nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
@@ -355,6 +461,7 @@ nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
   _nrrdWriteDataRaw,
   _nrrdWriteDataAscii,
   _nrrdWriteDataGzip,
+  _nrrdWriteDataBzip2
 };
 
 /*

@@ -191,6 +191,7 @@ _nrrdEncodingStrEqv[][AIR_STRLEN_SMALL] = {
   "raw",
   "ascii",
   "gz", "gzip",
+  "bz2", "bzip2",
   ""
 };
 
@@ -200,6 +201,8 @@ _nrrdEncodingValEqv[] = {
   nrrdEncodingRaw,
   nrrdEncodingAscii,
   nrrdEncodingGzip, nrrdEncodingGzip,
+  nrrdEncodingBzip2, nrrdEncodingBzip2,
+  nrrdEncodingLast
 };
 
 airEnum

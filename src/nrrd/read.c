@@ -20,6 +20,10 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
+#if TEEM_BZLIB
+#include <bzlib.h>
+#endif
+
 #include <teem32bit.h>
 
 char _nrrdRelDirFlag[] = "./";
@@ -394,11 +398,9 @@ _nrrdReadDataGzip(Nrrd *nrrd, NrrdIO *io) {
   /* zlib can handle data sizes up to UINT_MAX, so we can't just 
      pass in the size, because it might be too large for an 
      unsigned int.  Therefore it must be read in chunks 
-     if the size is larger than UINT_MAX.
-  */
-
+     if the size is larger than UINT_MAX. */
   if (size <= UINT_MAX) {
-    block_size = (int)size;
+    block_size = (unsigned int)size;
   } else {
     block_size = UINT_MAX;
   }
@@ -420,7 +422,7 @@ _nrrdReadDataGzip(Nrrd *nrrd, NrrdIO *io) {
        block (which may be smaller than block_size).
     */
     if (size - total_read < block_size)
-      block_size = (int)(size - total_read);
+      block_size = (unsigned int)(size - total_read);
   }
   
   /* Close the gzFile.  Since _nrrdGzClose does not close the FILE* we
@@ -468,6 +470,147 @@ _nrrdReadDataGzip(Nrrd *nrrd, NrrdIO *io) {
 #endif
 }
 
+int
+_nrrdReadDataBzip2(Nrrd *nrrd, NrrdIO *io) {
+  char me[]="_nrrdReadDataBzip2", err[AIR_STRLEN_MED];
+#if TEEM_BZLIB
+  size_t num, bsize, size, total_read;
+  int block_size, read, i, bzerror=BZ_OK;
+  char *data;
+  BZFILE* bzfin;
+  
+  /* this shouldn't actually be necessary ... */
+  if (!nrrdElementSize(nrrd)) {
+    sprintf(err, "%s: nrrd reports zero element size!", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  num = nrrdElementNumber(nrrd);
+  if (!num) {
+    sprintf(err, "%s: calculated number of elements to be zero!", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  bsize = num * nrrdElementSize(nrrd);
+  size = bsize;
+  if (num != bsize/nrrdElementSize(nrrd)) {
+    fprintf(stderr,
+	    "%s: PANIC: \"size_t\" can't represent byte-size of data.\n", me);
+    exit(1);
+  }
+
+  /* Allocate memory for the incoming data. */
+  if (_nrrdCalloc(nrrd)) {
+    sprintf(err, "%s:", me); biffAdd(NRRD, err); return 1;
+  }
+
+  /* Create the BZFILE* for reading in the gzipped data. */
+  bzfin = BZ2_bzReadOpen(&bzerror, io->dataFile, 0, 0, NULL, 0);
+  if (bzerror != BZ_OK) {
+    /* there was a problem */
+    sprintf(err, "%s: error opening BZFILE: %s", me, 
+	    BZ2_bzerror(bzfin, &bzerror));
+    biffAdd(NRRD, err);
+    BZ2_bzReadClose(&bzerror, bzfin);
+    return 1;
+  }
+
+  /* Here is where we do the byte skipping. */
+  for(i = 0; i < io->byteSkip; i++) {
+    unsigned char b;
+    /* Check to see if a single byte was able to be read. */
+    read = BZ2_bzRead(&bzerror, bzfin, &b, 1);
+    if (read != 1 || bzerror != BZ_OK) {
+      sprintf(err, "%s: hit an error skipping byte %d of %d: %s",
+	      me, i, io->byteSkip, BZ2_bzerror(bzfin, &bzerror));
+      biffAdd(NRRD, err);
+      return 1;
+    }
+  }
+  
+  /* bzip2 can handle data sizes up to INT_MAX, so we can't just 
+     pass in the size, because it might be too large for an int.
+     Therefore it must be read in chunks if the size is larger 
+     than INT_MAX. */
+  if (size <= INT_MAX) {
+    block_size = (int)size;
+  } else {
+    block_size = INT_MAX;
+  }
+
+  /* This counter will help us to make sure that we read as much data
+     as we think we should. */
+  total_read = 0;
+  /* Pointer to the blocks as we read them. */
+  data = nrrd->data;
+  
+  /* Ok, now we can begin reading. */
+  bzerror = BZ_OK;
+  while ((read = BZ2_bzRead(&bzerror, bzfin, data, block_size))
+	  && bzerror == BZ_OK) {
+    /* Increment the data pointer to the next available spot. */
+    data += read;
+    total_read += read;
+    /* We only want to read as much data as we need, so we need to check
+       to make sure that we don't request data that might be there but that
+       we don't want.  This will reduce block_size when we get to the last
+       block (which may be smaller than block_size).
+    */
+    if (size - total_read < block_size)
+      block_size = (int)(size - total_read);
+  }
+  
+  if (bzerror != BZ_OK || bzerror != BZ_STREAM_END) {
+    sprintf(err, "%s: error reading from BZFILE: %s",
+	    me, BZ2_bzerror(bzfin, &bzerror));
+    biffAdd(NRRD, err);
+    return 1;
+  }
+
+  /* Close the BZFILE. */
+  BZ2_bzReadClose(&bzerror, bzfin);
+  if (bzerror != BZ_OK) {
+    sprintf(err, "%s: error closing BZFILE", me,
+	    BZ2_bzerror(bzfin, &bzerror));
+    biffAdd(NRRD, err);
+    return 1;
+  }
+  
+  /* Check to see if we got out as much as we thought we should. */
+  if (total_read != size) {
+    sprintf(err, "%s: expected " _AIR_SIZE_T_FMT " bytes and received "
+	    _AIR_SIZE_T_FMT " bytes",
+	    me, size, total_read);
+    biffAdd(NRRD, err);
+    return 1;
+  }
+  
+  if (airEndianUnknown != io->endian) {
+    /* we positively know the endianness of data just read */
+    if (io->endian != AIR_ENDIAN && 1 < nrrdElementSize(nrrd)) {
+      /* the endiannesses of the data and the architecture are different,
+	 and, the size of the data elements is bigger than a byte */
+      if (2 <= nrrdStateVerboseIO) {
+	/*
+	fprintf(stderr, "!%s: io->endian = %d, AIR_ENDIAN = %d\n", 
+		me, io->endian, AIR_ENDIAN);
+	*/
+	fprintf(stderr, "(%s: fixing endianness ... ", me);
+	fflush(stderr);
+      }
+      nrrdSwapEndian(nrrd);
+      if (2 <= nrrdStateVerboseIO) {
+	fprintf(stderr, "done)");
+	fflush(stderr);
+      }
+    }
+  }
+  
+  return 0;
+#else
+  sprintf(err, "%s: sorry, this nrrd not compiled with bzlib enabled", me);
+  biffAdd(NRRD, err); return 1;
+#endif
+}
+
 /*
 ** The data readers are responsible for memory allocation.
 ** This is necessitated by the memory restrictions of direct I/O
@@ -478,6 +621,7 @@ nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
   _nrrdReadDataRaw,
   _nrrdReadDataAscii,
   _nrrdReadDataGzip,
+  _nrrdReadDataBzip2
 };
 
 int
