@@ -399,7 +399,10 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
   for (d=0; d<=dim-1; d++) {
     num *= (nrrd->axis[d].size = size[d]);
   }
+  /*
   nrrd->data = calloc(num, nrrdElementSize(nrrd));
+  */
+  nrrd->data = calloc(100*num, nrrdElementSize(nrrd));
   if (!(nrrd->data)) {
     sprintf(err, "%s: calloc(" NRRD_BIG_INT_PRINTF ",%d) failed", 
 	    me, num, nrrdElementSize(nrrd));
