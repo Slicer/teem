@@ -54,7 +54,7 @@ _printhist(unsigned char *hist, int bins, char *desc) {
 }
 
 void
-_nrrdMedian1D(Nrrd *nin, Nrrd *nout, int radius, 
+_nrrdMedian1D(Nrrd *nout, Nrrd *nin, int radius, 
 	      int bins, unsigned char *hist) {
   /* char me[] = "_nrrdMedian1D"; */
   NRRD_BIG_INT X;
@@ -83,7 +83,7 @@ _nrrdMedian1D(Nrrd *nin, Nrrd *nout, int radius,
 }
 
 void
-_nrrdMedian2D(Nrrd *nin, Nrrd *nout, int radius, 
+_nrrdMedian2D(Nrrd *nout, Nrrd *nin, int radius, 
 	      int bins, unsigned char *hist) {
   /* char me[] = "_nrrdMedian2D"; */
   NRRD_BIG_INT X, Y, I, J;
@@ -119,7 +119,7 @@ _nrrdMedian2D(Nrrd *nin, Nrrd *nout, int radius,
 }
 
 void
-_nrrdMedian3D(Nrrd *nin, Nrrd *nout, int radius, 
+_nrrdMedian3D(Nrrd *nout, Nrrd *nin, int radius, 
 	      int bins, unsigned char *hist) {
   /* char me[] = "_nrrdMedian3D"; */
   NRRD_BIG_INT X, Y, Z, I, J, K;
@@ -163,7 +163,7 @@ _nrrdMedian3D(Nrrd *nin, Nrrd *nout, int radius,
 
 
 int
-nrrdMedian(Nrrd *nin, Nrrd *nout, int radius, int bins) {
+nrrdMedian(Nrrd *nout, Nrrd *nin, int radius, int bins) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdMedian";
   unsigned char *hist;
   int d;
@@ -202,13 +202,13 @@ nrrdMedian(Nrrd *nin, Nrrd *nout, int radius, int bins) {
   }
   switch (nin->dim) {
   case 1:
-    _nrrdMedian1D(nin, nout, radius, bins, hist);
+    _nrrdMedian1D(nout, nin, radius, bins, hist);
     break;
   case 2:
-    _nrrdMedian2D(nin, nout, radius, bins, hist);
+    _nrrdMedian2D(nout, nin, radius, bins, hist);
     break;
   case 3:
-    _nrrdMedian3D(nin, nout, radius, bins, hist);
+    _nrrdMedian3D(nout, nin, radius, bins, hist);
     break;
   default:
     sprintf(err, "%s: can't handle dimensions %d", me, nin->dim);
@@ -225,23 +225,6 @@ nrrdMedian(Nrrd *nin, Nrrd *nout, int radius, int bins) {
   sprintf(nout->content, "median(%s,%d,%d)", nin->content, radius, bins);
   free(hist);
   return(0);
-}
-
-Nrrd *
-nrrdNewMedian(Nrrd *nin, int radius, int bins) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdNewMedian";
-  Nrrd *nout;
-
-  if (!(nout = nrrdNew())) {
-    sprintf(err, "%s: nrrdNew() failed", me);
-    biffAdd(NRRD, err); return NULL;
-  }
-  if (nrrdMedian(nin, nout, radius, bins)) {
-    sprintf(err, "%s: nrrdMedian() failed", me);
-    nrrdNuke(nout);
-    biffAdd(NRRD, err); return NULL;
-  }
-  return nout;
 }
 
 int
@@ -263,8 +246,18 @@ _nrrdResampleCheckInfo(Nrrd *nin, nrrdResampleInfo *info) {
       }
     }
     if (!(AIR_EXISTS(info->min[d]) && AIR_EXISTS(info->max[d]))) {
-      sprintf(err, "%s: didn't set min and max domain limits for axis %d\n",
+      sprintf(err, "%s: didn't set min and max domain limits for axis %d",
 	      me, d);
+      biffSet(NRRD, err); return 1;
+    }
+    if (!(info->min[d] != info->max[d])) {
+      sprintf(err, "%s: need to have axis %d min (%g) and max (%g) distinct",
+	      me, d, info->min[d], info->max[d]);
+      biffSet(NRRD, err); return 1;
+    }
+    if (!(info->samples[d] > 1)) {
+      sprintf(err, "%s: axis %d # samples (%d) invalid", 
+	      me, d, info->samples[d]);
       biffSet(NRRD, err); return 1;
     }
   }
@@ -638,8 +631,8 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
 
   /* convert input nrrd to float if necessary */
   if (nrrdTypeFloat != typeIn) {
-    floatNin = nrrdNewConvert(nin, nrrdTypeFloat);
-    if (!floatNin) {
+    floatNin = nrrdNew();
+    if (nrrdConvert(floatNin, nin, nrrdTypeFloat)) {
       sprintf(err, "%s: couldn't create float copy of input", me);
       biffAdd(NRRD, err); return 1;
     }

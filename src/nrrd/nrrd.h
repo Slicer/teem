@@ -394,7 +394,7 @@ extern int nrrdScanComments(Nrrd *nrrd, char *key, char **valP);
 extern void nrrdDescribe(FILE *file, Nrrd *nrrd);
 extern int nrrdCheck(Nrrd *nrrd);
 extern int nrrdRange(double *minP, double *maxP, Nrrd *nrrd);
-extern int nrrdCopy(Nrrd *nin, Nrrd *nout);
+extern int nrrdCopy(Nrrd *nout, Nrrd *nin);
 extern Nrrd *nrrdNewCopy(Nrrd *nin);
 extern int nrrdSameSize(Nrrd *n1, Nrrd *n2);
 extern nrrdResampleInfo *nrrdResampleInfoNew(void);
@@ -458,47 +458,36 @@ extern void   (*nrrdMinMax[13])(void *, void *, NRRD_BIG_INT, void *);
 /******** sampling, slicing, cropping+padding, permuting, shuffling */
 /* subset.c */
 extern int nrrdSample(Nrrd *nin, int *coord, void *val);
-extern int nrrdSlice(Nrrd *nin, Nrrd *nout, int axis, int pos);
-extern Nrrd *nrrdNewSlice(Nrrd *nin, int axis, int pos);
-extern int nrrdSubvolume(Nrrd *nin, Nrrd *nout, 
+extern int nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos);
+extern int nrrdSubvolume(Nrrd *nout, Nrrd *nin, 
 			 int *minIdx, int *maxIdx, int clamp);
-extern Nrrd *nrrdNewSubvolume(Nrrd *nin, int *minIdx, int *maxIdx, int clamp);
 
 /******** permuting and shuffling */
 /* reorder.c */
 extern int nrrdInvertPerm(int *invp, int *perm, int n);
-extern int nrrdPermuteAxes(Nrrd *nin, Nrrd *nout, int *axes);
-extern Nrrd *nrrdNewPermuteAxes(Nrrd *nin, int *axes);
-extern int nrrdShuffle(Nrrd *nin, Nrrd *nout, int axis, int *perm);
+extern int nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes);
+extern int nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm);
 extern int nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis);
 
 /******** measuring and projecting */
 /* measr.c */
 extern void (*nrrdMeasr[NRRD_MEASR_MAX+1])(void *, int, int, float, float,
 					   void *, int);
-extern int nrrdMeasureAxis(Nrrd *nin, Nrrd *nout, int axis, int measr);
-extern Nrrd *nrrdNewMeasureAxis(Nrrd *nin, int axis, int measr);
+extern int nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr);
 
 /********* HISTOGRAMS!!! */
 /* histogram.c */
-extern int nrrdHistoAxis(Nrrd *nin, Nrrd *nout, int axis, int bins);
-extern Nrrd *nrrdNewHistoAxis(Nrrd *nin, int axis, int bins);
-extern int nrrdMultiHisto(Nrrd **nin, int num,
-			  int *bin, float *min, float *max,
-			  int *clamp, Nrrd *nout);
-extern Nrrd *nrrdNewMultiHisto(Nrrd **nin, int num,
-			       int *bin, float *min, float *max, 
-			       int *clamp);
-extern int nrrdHisto(Nrrd *nin, Nrrd *nout, int bins);
-extern Nrrd *nrrdNewHisto(Nrrd *nin, int bins);
-extern int nrrdDrawHisto(Nrrd *nin, Nrrd *nout, int sy);
-extern Nrrd *nrrdNewDrawHisto(Nrrd *nin, int sy);
+extern int nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int axis, int bins);
+extern int nrrdMultiHisto(Nrrd *nout, Nrrd **nin, 
+			  int num, int *bin, 
+			  float *min, float *max, int *clamp);
+extern int nrrdHisto(Nrrd *nout, Nrrd *nin, int bins);
+extern int nrrdDrawHisto(Nrrd *nout, Nrrd *nin, int sy);
 extern int nrrdHistoEq(Nrrd *nin, Nrrd **nhistP, int bins, int smart);
 
 /******** filtering and re-sampling */
 /* filt.c */
-extern int nrrdMedian(Nrrd *nin, Nrrd *nout, int radius, int bins);
-extern Nrrd *nrrdNewMedian(Nrrd *nin, int radius, int bins);
+extern int nrrdMedian(Nrrd *nout, Nrrd *nin, int radius, int bins);
 extern int nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info);
 
 /******** kernels (interpolation, 1st and 2nd derivatives) */
@@ -517,10 +506,8 @@ extern nrrdKernel *nrrdKernelZero, /* zero everywhere */
 
 /******** conversions */
 /* convert.c */
-extern int nrrdConvert(Nrrd *nin, Nrrd *nout, int type);
-extern Nrrd *nrrdNewConvert(Nrrd *nin, int type);
-extern int nrrdQuantize(Nrrd *nin, Nrrd *nout, float min, float max, int bits);
-extern Nrrd *nrrdNewQuantize(Nrrd *nin, float min, float max, int bits);
+extern int nrrdConvert(Nrrd *nout, Nrrd *nin, int type);
+extern int nrrdQuantize(Nrrd *nout, Nrrd *nin, float min, float max, int bits);
 
 
 /* extern C */

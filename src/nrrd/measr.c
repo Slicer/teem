@@ -456,7 +456,7 @@ _nrrdMeasureType(Nrrd *nin, int measr) {
 }
 
 int
-nrrdMeasureAxis(Nrrd *nin, Nrrd *nout, int axis, int measr) {
+nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdMeasureAxis";
   int type;
   int i, j, length, numperiod, lambda, period, inElSize, outElSize;
@@ -544,23 +544,3 @@ nrrdMeasureAxis(Nrrd *nin, Nrrd *nout, int axis, int measr) {
   free(line);
   return 0;
 }
-
-Nrrd *
-nrrdNewMeasureAxis(Nrrd *nin, int axis, int measr) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdNewMeasureAxis";
-  Nrrd *nout;
-
-  if (!(nout = nrrdNew())) {
-    sprintf(err, "%s: nrrdNew() failed", me);
-    biffAdd(NRRD, err);
-    return NULL;
-  }
-  if (nrrdMeasureAxis(nin, nout, axis, measr)) {
-    sprintf(err, "%s: nrrdMeasureAxis() failed", me);
-    biffAdd(NRRD, err);
-    nrrdNuke(nout);
-    return NULL;
-  }
-  return nout;
-}
-

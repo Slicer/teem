@@ -85,7 +85,7 @@ nrrdInvertPerm(int *invp, int *p, int n) {
 ** not "where do I put this", from the standpoint of the input)
 */
 int
-nrrdPermuteAxes(Nrrd *nin, Nrrd *nout, int *axes) {
+nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdPermuteAxes", tmpstr[512];
   NRRD_BIG_INT 
     srcI, dstI,              /* indices into input and output nrrds */
@@ -116,7 +116,7 @@ nrrdPermuteAxes(Nrrd *nin, Nrrd *nout, int *axes) {
 
   if (topFax == dim-1) {
     /* we were given the identity permutation, just copy whole thing */
-    if (nrrdCopy(nin, nout)) {
+    if (nrrdCopy(nout, nin)) {
       sprintf(err, "%s: trouble copying input", me);
       biffAdd(NRRD, err); return 1;      
     }
@@ -186,30 +186,6 @@ nrrdPermuteAxes(Nrrd *nin, Nrrd *nout, int *axes) {
 }
 
 /*
-******** nrrdNewPermuteAxes
-**
-*/
-Nrrd *
-nrrdNewPermuteAxes(Nrrd *nin, int *axes) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdNewPermuteAxes";
-  Nrrd *nout;
-
-  if (!(nout = nrrdNew())) {
-    sprintf(err, "%s: nrrdNew() failed", me);
-    biffAdd(NRRD, err);
-    return NULL;
-  }
-  if (nrrdPermuteAxes(nin, nout, axes)) {
-    sprintf(err, "%s: nrrdPermuteAxes() failed", me);
-    biffAdd(NRRD, err);
-    nrrdNuke(nout);
-    return NULL;
-  }
-  return nout;
-}
-
-
-/*
 ******** nrrdShuffle
 **
 ** rearranges hyperslices of a nrrd along a given axis according
@@ -228,7 +204,7 @@ nrrdNewPermuteAxes(Nrrd *nin, int *axes) {
 ** array.
 */
 int
-nrrdShuffle(Nrrd *nin, Nrrd *nout, int axis, int *perm) {
+nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
   char err[NRRD_MED_STRLEN], me[]="nrrdShuffle";
   int typesize, *size, d, dim, ci[NRRD_MAX_DIM+1], co[NRRD_MAX_DIM+1];
   NRRD_BIG_INT I, idxI, idxO, N;
@@ -249,7 +225,7 @@ nrrdShuffle(Nrrd *nin, Nrrd *nout, int axis, int *perm) {
     /* HEY!!: this is just a hack for the time being */
     /* though it does save us the trouble of copying all the fields
        which don't change as part of the shuffle */
-    if (nrrdCopy(nin, nout)) {
+    if (nrrdCopy(nout, nin)) {
       sprintf(err, "%s: failed to allocate output", me);
       biffAdd(NRRD, err); return 1;
     }
@@ -357,6 +333,8 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis) {
       inhom = 0;
       for (i=0; i<=num-2; i++) {
 	inhom |= nin[i]->size[axis] != nin[i+1]->size[axis];
+	/* fprintf(stderr, "%d, %d\n", 
+	   nin[i]->size[axis], nin[i+1]->size[axis]); */
       }
       if (inhom) {
 	outdim = maxdim;
@@ -364,10 +342,10 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis) {
       else {
 	/* all size[axis]'s were equal */
 	if (1 == nin[0]->size[axis]) {
-	  outdim = maxdim;
+	  outdim = maxdim+1;
 	}
 	else {
-	  outdim = maxdim+1;
+	  outdim = maxdim;
 	}
       }
     }
@@ -406,7 +384,8 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis) {
     }
     else {
       /* on this part, we permute (no need for a reshape) */
-      if (!(ninperm[i] = nrrdNewPermuteAxes(nin[i], permute))) {
+      ninperm[i] = nrrdNew();
+      if (nrrdPermuteAxes(ninperm[i], nin[i], permute)) {
 	sprintf(err, "%s: trouble permuting input part %d", me, i);
 	biffAdd(NRRD, err); return 1;
       }
@@ -480,7 +459,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis) {
 		     : i - 1));
     /* fprintf(stderr, "%s: 2nd permute[%d] = %d\n", me, i, permute[i]); */
   }
-  if (nrrdPermuteAxes(nperm, nout, permute)) {
+  if (nrrdPermuteAxes(nout, nperm, permute)) {
     sprintf(err, "%s: error permuting temporary nrrd", me);
     biffAdd(NRRD, err); return 1;
   }

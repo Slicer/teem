@@ -85,7 +85,7 @@ nrrdSample(Nrrd *nrrd, int *coord, void *val) {
 ** the period (period), and the number of periods (numper). 
 */
 int
-nrrdSlice(Nrrd *nin, Nrrd *nout, int axis, int pos) {
+nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdSlice";
   NRRD_BIG_INT 
     I, 
@@ -162,30 +162,6 @@ nrrdSlice(Nrrd *nin, Nrrd *nout, int axis, int pos) {
 }
 
 /*
-******** nrrdNewSlice()
-**
-** slicer which calls nrrdNew first
-*/
-Nrrd *
-nrrdNewSlice(Nrrd *nin, int axis, int pos) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdNewSlice";
-  Nrrd *nout;
-
-  if (!(nout = nrrdNew())) {
-    sprintf(err, "%s: nrrdNew() failed", me);
-    biffAdd(NRRD, err);
-    return NULL;
-  }
-  if (nrrdSlice(nin, nout, axis, pos)) {
-    sprintf(err, "%s: nrrdSlice() failed", me);
-    biffAdd(NRRD, err);
-    nrrdNuke(nout);
-    return NULL;
-  }
-  return nout;
-}
-
-/*
 ******** nrrdSubvolume
 **
 ** This is a bit of a swiss-army function- allowing cropping, padding,
@@ -200,7 +176,7 @@ nrrdNewSlice(Nrrd *nin, int axis, int pos) {
 ** the original volume will have value 0.0
 */
 int
-nrrdSubvolume(Nrrd *nin, Nrrd *nout, int *min, int *max, int clamp) {
+nrrdSubvolume(Nrrd *nout, Nrrd *nin, int *min, int *max, int clamp) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdSubvolume", tmpstr[512];
   NRRD_BIG_INT num,          /* number of elements in volume */
     i,                       /* index through elements in slice */
@@ -302,27 +278,3 @@ nrrdSubvolume(Nrrd *nin, Nrrd *nout, int *min, int *max, int clamp) {
 
   return 0;
 }
-
-/*
-******** nrrdNewSubvolume
-**
-*/
-Nrrd *
-nrrdNewSubvolume(Nrrd *nin, int *min, int *max, int clamp) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdNewSubvolume";
-  Nrrd *nout;
-
-  if (!(nout = nrrdNew())) {
-    sprintf(err, "%s: nrrdNew() failed", me);
-    biffAdd(NRRD, err);
-    return NULL;
-  }
-  if (nrrdSubvolume(nin, nout, min, max, clamp)) {
-    sprintf(err, "%s: nrrdSubvolume() failed", me);
-    biffAdd(NRRD, err);
-    nrrdNuke(nout);
-    return NULL;
-  }
-  return nout;
-}
-

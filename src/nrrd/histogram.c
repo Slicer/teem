@@ -20,7 +20,7 @@
 #include <math.h>
 
 int
-nrrdHistoAxis(Nrrd *nin, Nrrd *nout, int axis, int bins) {
+nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int axis, int bins) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdHistoAxis";
   int coord[NRRD_MAX_DIM], hcoord[NRRD_MAX_DIM], hidx, d;
   NRRD_BIG_INT I, hI;
@@ -97,27 +97,8 @@ nrrdHistoAxis(Nrrd *nin, Nrrd *nout, int axis, int bins) {
   return(0);
 }
 
-Nrrd *
-nrrdNewHistoAxis(Nrrd *nin, int axis, int bins) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdNewHistoAxis";
-  Nrrd *nout;
-
-  if (!(nout = nrrdNew())) {
-    sprintf(err, "%s: nrrdNew() failed", me);
-    biffAdd(NRRD, err);
-    return NULL;
-  }
-  if (nrrdHistoAxis(nin, nout, axis, bins)) {
-    sprintf(err, "%s: nrrdHistoAxis() failed", me);
-    biffAdd(NRRD, err);
-    nrrdNuke(nout);
-    return NULL;
-  }
-  return nout;
-}
-
 int
-nrrdHisto(Nrrd *nin, Nrrd *nout, int bins) {
+nrrdHisto(Nrrd *nout, Nrrd *nin, int bins) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdHisto";
   int idx, *hist;
   NRRD_BIG_INT I;
@@ -162,29 +143,10 @@ nrrdHisto(Nrrd *nin, Nrrd *nout, int bins) {
   return 0;
 }
 
-Nrrd *
-nrrdNewHisto(Nrrd *nin, int bins) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdNewHisto";
-  Nrrd *nout;
-
-  if (!(nout = nrrdNew())) {
-    sprintf(err, "%s: nrrdNew() failed", me);
-    biffAdd(NRRD, err);
-    return NULL;
-  }
-  if (nrrdHisto(nin, nout, bins)) {
-    sprintf(err, "%s: nrrdHisto() failed", me);
-    biffAdd(NRRD, err);
-    nrrdNuke(nout);
-    return NULL;
-  }
-  return nout;
-}
-
 int 
-nrrdMultiHisto(Nrrd **nin, int num,
-	       int *bin, float *min, float *max,
-	       int *clamp, Nrrd *nout) {
+nrrdMultiHisto(Nrrd *nout, Nrrd **nin, 
+	       int num, int *bin, 
+	       float *min, float *max, int *clamp) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdMultiHisto";
   int i, d, size, coord[NRRD_MAX_DIM], idx, *out, skip;
   float val;
@@ -281,29 +243,8 @@ nrrdMultiHisto(Nrrd **nin, int num,
   return 0;
 }
 
-Nrrd *
-nrrdNewMultiHisto(Nrrd **nin, int num,
-		  int *bin, float *min, float *max,
-		  int *clamp) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdNewMultiHisto";
-  Nrrd *nout;
-
-  if (!(nout = nrrdNew())) {
-    sprintf(err, "%s: nrrdNew() failed", me);
-    biffAdd(NRRD, err);
-    return NULL;
-  }
-  if (nrrdMultiHisto(nin, num, bin, min, max, clamp, nout)) {
-    sprintf(err, "%s: nrrdMultiHisto() failed", me);
-    biffAdd(NRRD, err);
-    nrrdNuke(nout);
-    return NULL;
-  }
-  return nout;
-}
-
 int
-nrrdDrawHisto(Nrrd *nin, Nrrd *nout, int sy) {
+nrrdDrawHisto(Nrrd *nout, Nrrd *nin, int sy) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdDrawHisto", cmt[NRRD_MED_STRLEN];
   int *hist, k, sx, x, y, maxhits, maxhitidx,
     numticks, *Y, *logY, tick, *ticks;
@@ -377,25 +318,6 @@ nrrdDrawHisto(Nrrd *nin, Nrrd *nout, int sy) {
   return 0;
 }
 
-Nrrd *
-nrrdNewDrawHisto(Nrrd *nin, int sy) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdNewDrawHisto";
-  Nrrd *nout;
-
-  if (!(nout = nrrdNew())) {
-    sprintf(err, "%s: nrrdNew() failed", me);
-    biffAdd(NRRD, err);
-    return NULL;
-  }
-  if (nrrdDrawHisto(nin, nout, sy)) {
-    sprintf(err, "%s: nrrdDrawHisto() failed", me);
-    biffAdd(NRRD, err);
-    nrrdNuke(nout);
-    return NULL;
-  }
-  return nout;
-}
-
 /*
 ** _nrrdHistoEqCompare
 **
@@ -458,7 +380,8 @@ nrrdHistoEq(Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
     biffSet(NRRD, err); return 1;
   }
   if (smart <= 0) {
-    if (!(nhist = nrrdNewHisto(nin, bins))) {
+    nhist = nrrdNew();
+    if (nrrdHisto(nhist, nin, bins)) {
       sprintf(err, "%s: failed to create histogram", me);
       biffAdd(NRRD, err); return 1;
     }

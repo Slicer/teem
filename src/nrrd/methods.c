@@ -225,7 +225,7 @@ nrrdNewSetInfo(NRRD_BIG_INT num, int type, int dim) {
 }
 
 int
-nrrdCopy(Nrrd *nin, Nrrd *nout) {
+nrrdCopy(Nrrd *nout, Nrrd *nin) {
   char me[]="nrrdCopy", err[NRRD_MED_STRLEN];
   int numComments, i;
 

@@ -28,7 +28,7 @@
 ** value holder, which may mean needless loss of precision
 */
 int
-nrrdConvert(Nrrd *nin, Nrrd *nout, int type) {
+nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdConvert";
   int d;
   NRRD_BIG_INT I;
@@ -46,7 +46,7 @@ nrrdConvert(Nrrd *nin, Nrrd *nout, int type) {
 
   /* if we're actually converting to the same type, just do a copy */
   if (type == nin->type) {
-    if (nrrdCopy(nin, nout)) {
+    if (nrrdCopy(nout, nin)) {
       sprintf(err, "%s: couldn't copy input to output", me);
       biffSet(NRRD, err); return 1;
     }
@@ -83,24 +83,6 @@ nrrdConvert(Nrrd *nin, Nrrd *nout, int type) {
   return 0;
 }
 
-Nrrd *
-nrrdNewConvert(Nrrd *nin, int type) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdNewConvert";
-  Nrrd *nout;
-
-  if (!(nout = nrrdNew())) {
-    sprintf(err, "%s: nrrdNew() failed", me);
-    biffAdd(NRRD, err); return NULL;
-  }
-  if (nrrdConvert(nin, nout, type)) {
-    sprintf(err, "%s: nrrdConvert() failed", me);
-    biffAdd(NRRD, err);
-    nrrdNuke(nout);
-    return NULL;
-  }
-  return nout;
-}
-
 /*
 ******** nrrdQuantize
 **
@@ -112,7 +94,7 @@ nrrdNewConvert(Nrrd *nin, int type) {
 ** value holder, which may mean needless loss of precision
 */
 int
-nrrdQuantize(Nrrd *nin, Nrrd *nout, float min, float max, int bits) {
+nrrdQuantize(Nrrd *nout, Nrrd *nin, float min, float max, int bits) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdQuantize";
   double valIn;
   int valOut;
@@ -188,22 +170,4 @@ nrrdQuantize(Nrrd *nin, Nrrd *nout, float min, float max, int bits) {
 
   /* bye */
   return(0);
-}
-
-Nrrd *
-nrrdNewQuantize(Nrrd *nin, float min, float max, int bits) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdNewQuantize";
-  Nrrd *nout;
-
-  if (!(nout = nrrdNew())) {
-    sprintf(err, "%s: nrrdNew() failed", me);
-    biffAdd(NRRD, err); return NULL;
-  }
-  if (nrrdQuantize(nin, nout, min, max, bits)) {
-    sprintf(err, "%s: nrrdQuantize() failed", me);
-    biffAdd(NRRD, err);
-    nrrdNuke(nout);
-    return NULL;
-  }
-  return nout;
 }
