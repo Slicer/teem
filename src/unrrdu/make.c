@@ -53,7 +53,7 @@ char *_unrrdu_makeInfoL =
  "\"-fd\"."
  "\n \n "
  "NOTE: for the \"-l\" (labels), \"-u\" (units), and \"-spu\" (space units) "
- "options below, you can use a single unquoted period (\".\") to signify "
+ "options below, you can use a single unquoted period (.) to signify "
  "an empty string.  This creates a convenient way to convey something that "
  "the shell doesn't make it easy to convey.  Shell expansion weirdness "
  "also requires the use of quotes around the arguments to \"-orig\" (space "

@@ -24,9 +24,13 @@
 #define INFO "Tile slices of one axis into two other axes"
 char *_unrrdu_tileInfoL =
 (INFO
- ". To tile the data set you split one axis, permute the pieces "
- "against two others.  The axes are then merged.  The net result "
- "is a nrrd with one fewer dimension with a tiled look.");
+ ". Tiling an array means splitting one axis into fast and slow parts, "
+ "and then interleaving those parts into other (existing) axes by doing "
+ "two axis merges, which combine an existing axis with part of the split "
+ "axis.  This reduces the dimension by one.  The three axis arguments all "
+ "identify axes in the input array as is.  This provides, for example, "
+ "a simple way of viewing the 128 slices along the slow axis of a 3-D volume "
+ "as a 16x8 tiled array of 2-D slices, as with \"-a 2 0 1 -s 16 8\".");
 
 int
 unrrdu_tileMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -38,9 +42,9 @@ unrrdu_tileMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   hestOptAdd(&opt, "a", "axSplit ax0 ax1", airTypeInt, 3, 3, axes, NULL,
              "axSplit is divided and merged with ax0 and ax1");
-  hestOptAdd(&opt, "s", "fast, slow sizes", airTypeInt, 2, 2, size, NULL,
+  hestOptAdd(&opt, "s", "fast slow", airTypeInt, 2, 2, size, NULL,
              "fast and slow axis sizes to produce as result of splitting "
-             "given axis.");
+             "the axSplit axis.");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

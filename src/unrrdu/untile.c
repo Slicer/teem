@@ -21,15 +21,17 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Undo the action of \"unu tile\""
+#define INFO "Undo \"unu tile\": merge slow parts of two axis splits"
 char *_unrrdu_untileInfoL =
 (INFO
- ". To untile the data set you split two axes, permute the pieces "
- "to a new dimenstion.  The axes are then merged.  The net result "
- "is a nrrd with one more dimension.  To undo the tile operation "
- "the arguments can be nearly the same.  For example, if you tiled "
- "to a higher axis with tile (i.e. axis 1 to axis 0 and 2), you "
- "need to subtract 1 from that higher axis on the untile (-a 0 1 1).");
+ ". Untiling an array means spliting two axes, permuting the slow parts "
+ "of those axes to be adjecent in the axis ordering, and then merging "
+ "them.  This increases the dimension by one.  Undoing a \"unu tile\" "
+ "uses the same \"-s\" argument, and sometimes a different \"-a\" argument, "
+ "as demonstrated here for a 3-D array:\n "
+ "\"unu untile -a 2 0 1\" undoes \"unu tile -a 2 0 1\"\n "
+ "\"unu untile -a 1 0 1\" undoes \"unu tile -a 1 0 2\"\n "
+ "\"unu untile -a 0 0 1\" undoes \"unu tile -a 0 1 2\". ");
 
 int
 unrrdu_untileMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -40,10 +42,12 @@ unrrdu_untileMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   hestOptAdd(&opt, "a", "axMerge ax0 ax1", airTypeInt, 3, 3, axes, NULL,
-             "an axis is extracted from ax0 and ax1 and merged into axMerge");
-  hestOptAdd(&opt, "s", "fast, slow sizes", airTypeInt, 2, 2, size, NULL,
-             "fast and slow axis sizes to produce as result of splitting "
-             "given axis.");
+             "the slow parts of axes ax0 and ax1 are merged into a (new) "
+             "axis axMerge, with the axis ax0 part being faster than ax1.");
+  hestOptAdd(&opt, "s", "size0 size1", airTypeInt, 2, 2, size, NULL,
+             "the slow parts of axes ax0 and ax1 are taken to have size "
+             "size0 and size1, respectively, and axis axMerge will have "
+             "size size0*size1.");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
