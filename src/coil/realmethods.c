@@ -33,7 +33,7 @@ const coilMethod
 _coilMethodIsotropic = {
   "isotropic",
   coilMethodTypeIsotropic,
-  0
+  1
 };
 const coilMethod*
 coilMethodIsotropic = &_coilMethodIsotropic;

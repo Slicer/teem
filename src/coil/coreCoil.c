@@ -34,14 +34,14 @@ _coilIv3Fill(coil_t *iv3, coil_t *here, int radius, int valLen,
   /* this should shuffle values within iv3 when possible */
   diam = 1 + 2*radius;
   for (zni=0; zni<diam; zni++) {
-    zvi = AIR_CLAMP(0, zni-radius+z0, sizeZ-1);
+    zvi = AIR_CLAMP(0, zni-radius+z0, sizeZ-1) - z0;
     for (yni=0; yni<diam; yni++) {
-      yvi = AIR_CLAMP(0, yni-radius+y0, sizeY-1);
+      yvi = AIR_CLAMP(0, yni-radius+y0, sizeY-1) - y0;
       for (xni=0; xni<diam; xni++) {
-	xvi = AIR_CLAMP(0, xni-radius+x0, sizeX-1);
+	xvi = AIR_CLAMP(0, xni-radius+x0, sizeX-1) - x0;
 	for (vi=0; vi<valLen; vi++) {
 	  iv3[xni + diam*(yni + diam*(zni + diam*vi))] = 
-	    here[vi + valLen*(xvi + sizeX*(yvi + sizeY*zvi))];
+	    here[vi + valLen*(0 + 2*(xvi + sizeX*(yvi + sizeY*zvi)))];
 	}
       }
     }
@@ -50,24 +50,28 @@ _coilIv3Fill(coil_t *iv3, coil_t *here, int radius, int valLen,
 }
 
 void
-_coilProcess(coilTask *task, int filter) {
+_coilProcess(coilTask *task, int doFilter) {
   int xi, yi, zi, sizeX, sizeY, sizeZ, valLen, radius;
   coil_t *here;
+  void (*filter)(coil_t *delta, coil_t *iv3, 
+		 double spacing[3],
+		 double parm[COIL_PARMS_NUM]);
   
   sizeX = task->cctx->size[0];
   sizeY = task->cctx->size[1];
   sizeZ = task->cctx->size[2];
   valLen = task->cctx->kind->valLen;
   radius = task->cctx->radius;
+  filter = task->cctx->kind->filter[task->cctx->method->type];
   here = (coil_t*)(task->cctx->nvol->data);
   here += 2*valLen*sizeX*sizeY*task->startZ;
-  if (filter) {
+  if (doFilter) {
     for (zi=task->startZ; zi<=task->endZ; zi++) {
       for (yi=0; yi<sizeY; yi++) {
 	for (xi=0; xi<sizeX; xi++) {
-	  _coilIv3Fill(task->iv3, here, radius, valLen,
+	  _coilIv3Fill(task->iv3, here + 0*valLen, radius, valLen,
 		       xi, yi, zi, sizeX, sizeY, sizeZ);
-	  /* filter */
+	  filter(here + 1*valLen, task->iv3, task->cctx->spacing, task->cctx->parm);
 	  here += 2*valLen;
 	}
       }
@@ -185,9 +189,11 @@ coilStart(coilContext *cctx) {
   }
   
   cctx->finished = AIR_FALSE;
-  cctx->finishBarrier = airThreadBarrierNew(cctx->numThreads);
-  cctx->filterBarrier = airThreadBarrierNew(cctx->numThreads);
-  cctx->updateBarrier = airThreadBarrierNew(cctx->numThreads);
+  if (cctx->numThreads > 1) {
+    cctx->finishBarrier = airThreadBarrierNew(cctx->numThreads);
+    cctx->filterBarrier = airThreadBarrierNew(cctx->numThreads);
+    cctx->updateBarrier = airThreadBarrierNew(cctx->numThreads);
+  }
 
   /* start threads 1 and up running (they won't get far) */
   if (cctx->verbose) {
@@ -257,21 +263,27 @@ coilIterate(coilContext *cctx, int numIterations) {
       fprintf(stderr, "%s: starting iter %d\n", me, iter);
     }
     cctx->finished = AIR_FALSE;
-    airThreadBarrierWait(cctx->finishBarrier);
+    if (cctx->numThreads > 1) {
+      airThreadBarrierWait(cctx->finishBarrier);
+    }
     
     /* first: filter */
     if (cctx->verbose) {
       fprintf(stderr, "%s: filtering ... \n", me);
     }
     _coilProcess(cctx->task[0], AIR_TRUE);
-    airThreadBarrierWait(cctx->filterBarrier);
+    if (cctx->numThreads > 1) {
+      airThreadBarrierWait(cctx->filterBarrier);
+    }
 
     /* second: update */
     if (cctx->verbose) {
       fprintf(stderr, "%s: updating ... \n", me);
     }
     _coilProcess(cctx->task[0], AIR_FALSE);
-    airThreadBarrierWait(cctx->updateBarrier);
+    if (cctx->numThreads > 1) {
+      airThreadBarrierWait(cctx->updateBarrier);
+    }
   }
   return 0;
 }
@@ -290,12 +302,17 @@ coilFinish(coilContext *cctx) {
     fprintf(stderr, "%s: finishing workers\n", me);
   }
   cctx->finished = AIR_TRUE;
-  airThreadBarrierWait(cctx->finishBarrier);
+  if (cctx->numThreads > 1) {
+    airThreadBarrierWait(cctx->finishBarrier);
+  }
   for (tidx=1; tidx<cctx->numThreads; tidx++) {
     airThreadJoin(cctx->task[tidx]->thread, &(cctx->task[tidx]->returnPtr));
     cctx->task[tidx]->thread = airThreadNix(cctx->task[tidx]->thread);
+    cctx->task[tidx] = _coilTaskNix(cctx->task[tidx]);
   }
   cctx->task[0]->thread = airThreadNix(cctx->task[0]->thread);
+  cctx->task[0] = _coilTaskNix(cctx->task[0]);
+  cctx->task = airFree(cctx->task);
 
   return 0;
 }

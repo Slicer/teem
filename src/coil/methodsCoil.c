@@ -73,6 +73,7 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
   double xsp, ysp, zsp;
   airArray *mop;
   
+  cctx->verbose = verbose;
   if (!( cctx && nin && kind && method )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(COIL, err); return 1;
@@ -146,6 +147,10 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
     }
   }
   ELL_3V_SET(cctx->spacing, xsp, ysp, zsp);
+  if (cctx->verbose) {
+    fprintf(stderr, "%s: spacings: %g %g %g\n", me, 
+	    cctx->spacing[0], cctx->spacing[1], cctx->spacing[2]);
+  }
   
   /* allocate nvol */
   if (0 == baseDim) {
@@ -165,7 +170,6 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
   cctx->method = method;
   cctx->radius = radius;
   cctx->numThreads = numThreads;
-  cctx->verbose = verbose;
 
   airMopOkay(mop);
   return 0;

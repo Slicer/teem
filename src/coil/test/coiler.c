@@ -28,10 +28,10 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
   
-  int numIters, numThreads, methodType;
+  int numIters, numThreads, methodType, _parmLen, pi, radius;
   Nrrd *nin, *nout;
   coilContext *cctx;
-  double parm[COIL_PARMS_NUM];
+  double *_parm, parm[COIL_PARMS_NUM];
   
   mop = airMopNew();
   me = argv[0];
@@ -41,6 +41,10 @@ main(int argc, char *argv[]) {
 	     "number of threads to run");
   hestOptAdd(&hopt, "m", "method", airTypeEnum, 1, 1, &methodType, "test",
 	     "what kind of filtering to perform", NULL, coilMethodType);
+  hestOptAdd(&hopt, "p", "parms", airTypeDouble, 1, -1, &_parm, NULL,
+	     "all the parameters required for filtering method", &_parmLen);
+  hestOptAdd(&hopt, "r", "radius", airTypeInt, 1, 1, &radius, "1",
+	     "radius of filtering neighborhood");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &(nin), "",
 	     "input volume to filter", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
@@ -55,9 +59,19 @@ main(int argc, char *argv[]) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   
+  if (_parmLen != coilMethodArray[methodType]->numParm) {
+    fprintf(stderr, "%s: %s method wants %d parms, but got %d\n", me, 
+	    coilMethodArray[methodType]->name,
+	    coilMethodArray[methodType]->numParm, _parmLen);
+    airMopError(mop); 
+    return 1;
+  }
+  for (pi=0; pi<_parmLen; pi++) {
+    parm[pi] = _parm[pi];
+  }
   if (coilContextAllSet(cctx, nin,
 			coilKindScalar, coilMethodArray[methodType],
-			3, numThreads, AIR_TRUE,
+			radius, numThreads, AIR_TRUE,
 			parm)
       || coilStart(cctx)
       || coilIterate(cctx, numIters)
