@@ -46,7 +46,7 @@ _nrrdCCFind_1(Nrrd *nout, int *numid, Nrrd *nin) {
     val = lup(nin->data, I);
     if (lval != val) {
       id++;
-      *numid++;
+      (*numid)++;
     }
     out[I] = id;
     lval = val;
@@ -137,7 +137,7 @@ _nrrdCCFind_2(Nrrd *nout, int *numid, airArray *eqvArr,
       if (!p) {
 	/* didn't match anything previous */
 	id = *numid;
-	*numid += 1;
+	(*numid)++;
       }
       if (_nrrdCC_verb) {
 	fprintf(stderr, "%s: pvl: %g %g %g %g (vl = %g)\n", me,
@@ -223,7 +223,7 @@ _nrrdCCFind_3(Nrrd *nout, int *numid, airArray *eqvArr,
 	if (!p) {
 	  /* didn't match anything previous */
 	  id = *numid;
-	  *numid += 1;
+	  (*numid)++;
 	}
 	out[x + sx*(y + sy*z)] = id;
       }
