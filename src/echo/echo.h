@@ -32,7 +32,7 @@
 #include <nrrd.h>
 #include <dye.h>
 
-#if 1
+#if 0
 typedef float echoPos_t;
 #define echoPos_nrrdType nrrdTypeFloat
 #define POS_MAX FLT_MAX
@@ -42,7 +42,7 @@ typedef double echoPos_t;
 #define POS_MAX DBL_MAX
 #endif
 
-#if 1
+#if 0
 typedef float echoCol_t;
 #define echoCol_nrrdType nrrdTypeFloat
 #else
@@ -53,19 +53,22 @@ typedef double echoCol_t;
 #define ECHO_AABBOX_OBJECT_MAX 8
 #define ECHO_LIST_OBJECT_INCR 8
 #define ECHO_IMG_CHANNELS 5
+#define ECHO_EPSILON 0.000001
 
 typedef struct {
   /* ray-tracing parameters */
   int verbose,         /* verbosity level */
     jitter,            /* what kind of jittering to do */
+    shadow,            /* do shadowing */
     samples,           /* # samples per pixel */
     imgResU, imgResV,  /* horizontal and vertical image resolution */
     recDepth,          /* max recursion depth */
     reuseJitter,       /* don't recompute jitter offsets per pixel */
-    permuteJitter;     /* properly permute the various jitter arrays */
-  float epsilon,       /* somewhat bigger than zero */
-    aperture,          /* shallowness of field */
-    timeGamma;         /* gamma for values in time image */
+    permuteJitter,     /* properly permute the various jitter arrays */
+    renderLights;      /* render the area lights */
+  float aperture,      /* shallowness of field */
+    timeGamma,         /* gamma for values in time image */
+    refDistance;       /* reference distance for 1/(r*r)'ing area lights */
   echoCol_t
     amR, amG, amB;     /* ambient light color */
 
@@ -192,7 +195,9 @@ typedef struct {
 typedef struct {
   ECHO_OBJECT_COMMON;
   ECHO_OBJECT_MATTER;
-  echoPos_t vert[3][3];
+  echoPos_t vert[3][3];  /* e0 = vert[1]-vert[0],
+			    e1 = vert[2]-vert[0],
+			    normal = e0 x e1 */
 } EchoObjectTriangle;
 
 typedef struct {
@@ -245,6 +250,10 @@ extern void echoObjectRectangleSet(EchoObject *_rect,
 				   echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
 				   echoPos_t x0, echoPos_t y0, echoPos_t z0,
 				   echoPos_t x1, echoPos_t y1, echoPos_t z1);
+extern void echoObjectTriangleSet(EchoObject *_tri,
+				  echoPos_t x0, echoPos_t y0, echoPos_t z0, 
+				  echoPos_t x1, echoPos_t y1, echoPos_t z1, 
+				  echoPos_t x2, echoPos_t y2, echoPos_t z2);
 
 /* light.c ---------------------------------------- */
 
@@ -297,14 +306,20 @@ extern limnCam *echoLimnCamNew();
 /* render.c ---------------------------------------- */
 
 typedef struct {
-  echoPos_t pos[3];
-  echoPos_t dir[3];
+  echoPos_t from[3],    /* ray comes from this point */
+    dir[3],             /* ray goes in this (not normalized) direction */
+    near, far;          /* look for intx in this interval */
+  int depth,            /* recursion depth */
+    shadow;             /* this is a shadow ray */
 } EchoRay;
 
 typedef struct {
-  echoPos_t t, u, v;
-  echoPos_t view[3], norm[3], pos[3];
-  EchoObject *obj;
+  EchoObject *obj;      /* computed with every intersection */
+  echoPos_t t,          /* computed with every intersection */
+    u, v;               /* sometimes needed for texturing */
+  echoPos_t norm[3],    /* computed with every intersection */
+    view[3],            /* always used with coloring */
+    pos[3];             /* always used with coloring (and perhaps texturing) */
   /* ??? extra information for where in tri mesh it hit? */
 } EchoIntx;
 
@@ -314,13 +329,11 @@ extern int echoThreadStateInit(EchoThreadState *tstate,
 			       EchoParam *param, EchoGlobalState *gstate);
 extern void echoJitterSet(EchoParam *param, EchoThreadState *state);
 extern int echoRender(Nrrd *nraw, limnCam *cam,
-		      EchoParam *param, EchoGlobalState *state,
+		      EchoParam *param, EchoGlobalState *gstate,
 		      EchoObject *scene, airArray *lightArr);
 
 /* intx.c ------------------------------------------- */
-extern void echoRayColor(echoCol_t *chan, int samp,
-			 echoPos_t from[3], echoPos_t dir[3],
-			 echoPos_t near, echoPos_t far,
+extern void echoRayColor(echoCol_t *chan, int samp, EchoRay *ray,
 			 EchoParam *param, EchoThreadState *tstate,
 			 EchoObject *scene, airArray *lightArr);
 
@@ -340,3 +353,4 @@ extern void echoMatterLightSet(EchoObject *obj,
 
 
 #endif /* ECHO_HAS_BEEN_INCLUDED */
+

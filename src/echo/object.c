@@ -196,5 +196,22 @@ echoObjectRectangleSet(EchoObject *_rect,
     ELL_3V_SET(rect->edge0, e0x, e0y, e0z);
     ELL_3V_SET(rect->edge1, e1x, e1y, e1z);
   }
+  return;
+}
+		       
+void
+echoObjectTriangleSet(EchoObject *_tri,
+		      echoPos_t x0, echoPos_t y0, echoPos_t z0, 
+		      echoPos_t x1, echoPos_t y1, echoPos_t z1, 
+		      echoPos_t x2, echoPos_t y2, echoPos_t z2) {
+  EchoObjectTriangle *tri;
+
+  if (_tri && echoObjectTriangle == _tri->type) {
+    tri = (EchoObjectTriangle *)_tri;
+    ELL_3V_SET(tri->vert[0], x0, y0, z0);
+    ELL_3V_SET(tri->vert[1], x1, y1, z1);
+    ELL_3V_SET(tri->vert[2], x2, y2, z2);
+  }
+  return;
 }
 		       

@@ -137,19 +137,19 @@ echoThreadStateInit(EchoThreadState *tstate,
 **
 */
 void
-echoJitterSet(EchoParam *param, EchoThreadState *state) {
+echoJitterSet(EchoParam *param, EchoThreadState *tstate) {
   echoPos_t *jitt, w;
   int s, i, j, xi, yi, n, N, *perm;
 
-  jitt = (echoPos_t *)state->njitt->data;
-  perm = (int *)state->nperm->data;
+  jitt = (echoPos_t *)tstate->njitt->data;
+  perm = (int *)tstate->nperm->data;
   N = param->samples;
   n = sqrt(N);
   w = 1.0/n;
   for (j=0; j<ECHO_SAMPLE_NUM; j++) {
-    airShuffle(state->permBuff, param->samples, param->permuteJitter);
+    airShuffle(tstate->permBuff, param->samples, param->permuteJitter);
     for (s=0; s<N; s++) {
-      perm[j + ECHO_SAMPLE_NUM*s] = state->permBuff[s];
+      perm[j + ECHO_SAMPLE_NUM*s] = tstate->permBuff[s];
     }
   }
   for (s=0; s<N; s++) {
@@ -192,12 +192,12 @@ echoJitterSet(EchoParam *param, EchoThreadState *state) {
 */
 int
 echoCheck(Nrrd *nraw, limnCam *cam, 
-	  EchoParam *param, EchoGlobalState *state,
+	  EchoParam *param, EchoGlobalState *gstate,
 	  EchoObject *scene, airArray *lightArr) {
   char me[]="echoCheck", err[AIR_STRLEN_MED];
   int tmp;
 
-  if (!(nraw && cam && param && state && scene && lightArr)) {
+  if (!(nraw && cam && param && gstate && scene && lightArr)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(ECHO, err); return 1;
   }
@@ -218,8 +218,8 @@ echoCheck(Nrrd *nraw, limnCam *cam,
 	    param->imgResU, param->imgResV);
     biffAdd(ECHO, err); return 1;
   }
-  if (!(AIR_EXISTS(param->epsilon) && AIR_EXISTS(param->aperture))) {
-    sprintf(err, "%s: epsilon or aperture doesn't exist", me);
+  if (!AIR_EXISTS(param->aperture)) {
+    sprintf(err, "%s: aperture doesn't exist", me);
     biffAdd(ECHO, err); return 1;
   }
   if (!echoObjectIsContainer(scene)) {
@@ -275,22 +275,21 @@ echoChannelAverage(echoCol_t *img,
 }
 
 void
-echoRayColor(echoCol_t *chan, int samp,
-	     echoPos_t from[3], echoPos_t dir[3],
-	     echoPos_t near, echoPos_t far,
+echoRayColor(echoCol_t *chan, int samp, EchoRay *ray,
 	     EchoParam *param, EchoThreadState *tstate,
-	     EchoObject *obj, airArray *lightArr) {
+	     EchoObject *scene, airArray *lightArr) {
   
   EchoIntx intx;  /* NOT a pointer */
   
-  if (!_echoRayIntx[obj->type](&intx, from, dir, near, far, param, obj)) {
-    /* ray hits nothing in obj */
+  if (!_echoRayIntx[scene->type](&intx, ray, param, scene)) {
+    /* ray hits nothing in scene */
     ELL_4V_SET(chan, 0, 0, 0, 0);
     return;
   }
   /* else we actually hit something */
+  _echoRayIntxFinish[intx.obj->type](&intx, ray, AIR_FALSE);
   _echoIntxColor[intx.obj->matter](chan, &intx, samp, param,
-				   tstate, obj, lightArr);
+				   tstate, scene, lightArr);
 
   return;
 }
@@ -310,10 +309,7 @@ echoRender(Nrrd *nraw, limnCam *cam,
     samp;                   /* which sample are we doing */
   echoPos_t tmp,
     eye[3],                 /* eye center before jittering */
-    from[3],                /* ray origination (eye after jittering */
     at[3],                  /* ray destination (pixel center post-jittering) */
-    dir[3],                 /* ray direction */
-    near, far,              /* ray segment */
     U[4], V[4], N[4],       /* view space basis (only first 3 elements used) */
     pixUsz, pixVsz,         /* U and V dimensions of a pixel */
     imgU, imgV,             /* floating point pixel center locations */
@@ -322,6 +318,7 @@ echoRender(Nrrd *nraw, limnCam *cam,
   EchoThreadState *tstate;  /* only one thread for now */
   echoCol_t *img, *chan;    /* current scanline of channel buffer array */
   double time0;             /* to record per ray sample time */
+  EchoRay ray;              /* (not a pointer) */
 
   if (echoCheck(nraw, cam, param, gstate, scene, lightArr)) {
     sprintf(err, "%s: problem with input", me);
@@ -357,6 +354,8 @@ echoRender(Nrrd *nraw, limnCam *cam,
   pixUsz = (cam->uMax - cam->uMin)/(param->imgResU);
   pixVsz = (cam->vMax - cam->vMin)/(param->imgResV);
 
+  ray.depth = 0;
+  ray.shadow = AIR_FALSE;
   img = (echoCol_t *)nraw->data;
   for (imgVi=0; imgVi<param->imgResV; imgVi++) {
     imgV = NRRD_AXIS_POS(nrrdCenterCell, cam->vMin, cam->vMax,
@@ -365,7 +364,8 @@ echoRender(Nrrd *nraw, limnCam *cam,
       imgU = NRRD_AXIS_POS(nrrdCenterCell, cam->uMin, cam->uMax,
 			   param->imgResU, imgUi);
 
-      param->verbose = (33 == imgUi && 63 == imgVi);
+      param->verbose = ( (126 == imgUi && 74 == imgVi) ||
+			 (221 == imgUi && 80 == imgVi) );
 
       /* initialize things on first "scanline" */
       jitt = (echoPos_t *)tstate->njitt->data;
@@ -373,12 +373,14 @@ echoRender(Nrrd *nraw, limnCam *cam,
 
       /* go through samples */
       for (samp=0; samp<param->samples; samp++) {
-	/* set from[] */
-	ELL_3V_COPY(from, eye);
-	tmp = param->aperture*jitt[0 + 2*echoSampleLens];
-	ELL_3V_SCALEADD(from, U, tmp);
-	tmp = param->aperture*jitt[1 + 2*echoSampleLens];
-	ELL_3V_SCALEADD(from, V, tmp);
+	/* set ray.from[] */
+	ELL_3V_COPY(ray.from, eye);
+	if (param->aperture) {
+	  tmp = param->aperture*jitt[0 + 2*echoSampleLens];
+	  ELL_3V_SCALEADD(ray.from, U, tmp);
+	  tmp = param->aperture*jitt[1 + 2*echoSampleLens];
+	  ELL_3V_SCALEADD(ray.from, V, tmp);
+	}
 	
 	/* set at[] */
 	ELL_3V_COPY(at, imgOrig);
@@ -388,9 +390,9 @@ echoRender(Nrrd *nraw, limnCam *cam,
 	ELL_3V_SCALEADD(at, V, tmp);
 
 	/* do it! */
-	ELL_3V_SUB(dir, at, from);
-	near = 0.0;
-	far = POS_MAX;
+	ELL_3V_SUB(ray.dir, at, ray.from);
+	ray.near = 0.0;
+	ray.far = POS_MAX;
 	/*
 	printf("!%s:(%d,%d): from=(%g,%g,%g); at=(%g,%g,%g); dir=(%g,%g,%g)\n",
 	       me, imgUi, imgVi, from[0], from[1], from[2],
@@ -398,9 +400,7 @@ echoRender(Nrrd *nraw, limnCam *cam,
 	*/
 	time0 = airTime();
 #if 1
-	echoRayColor(chan, samp,
-		     from, dir,
-		     near, far,
+	echoRayColor(chan, samp, &ray,
 		     param, tstate,
 		     scene, lightArr);
 #else
