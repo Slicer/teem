@@ -386,7 +386,7 @@ nrrdMaybeAlloc(Nrrd *nrrd, nrrdBigInt num, int type, int dim) {
   char err[NRRD_STRLEN_MED], me[]="nrrdMaybeAlloc";
   nrrdBigInt sizeWant, sizeHave;
   int need;
-  
+
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
@@ -410,6 +410,8 @@ nrrdMaybeAlloc(Nrrd *nrrd, nrrdBigInt num, int type, int dim) {
     sizeHave = nrrd->num * nrrdElementSize(nrrd);
     sizeWant = num * nrrdElementSize(nrrd);
     need = sizeHave != sizeWant;
+    fprintf(stderr, "%s: need = %d != %d = %d\n", me,
+	    (int)sizeHave, (int)sizeWant, need);
   }
   if (need) {
     if (nrrdAlloc(nrrd, num, type, dim)) {

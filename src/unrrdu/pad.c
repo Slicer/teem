@@ -125,7 +125,7 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   t2 = airTime();
-  printf("%s: nrrdPad() took %g seconds\n", me, t2-t1);
+  fprintf(stderr, "%s: nrrdPad() took %g seconds\n", me, t2-t1);
   if (nrrdSave(outStr, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error writing nrrd:\n%s", me, err);

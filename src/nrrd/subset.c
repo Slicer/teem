@@ -223,15 +223,18 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
-  lineSize = nout->axis[0].size*nrrdTypeSize[nin->type];
+  lineSize = nout->axis[0].size*nrrdElementSize(nin);
+  fprintf(stderr, "%s: lineSize = %d = %d*%d\n", me, 
+	  (int)lineSize, nout->axis[0].size, nrrdElementSize(nin));
   
   /* the skinny */
-  typeSize = nrrdTypeSize[nin->type];
+  typeSize = nrrdElementSize(nin);
   dataIn = nin->data;
   dataOut = nout->data;
   nrrdAxesGet(nin, nrrdAxesInfoSize, szIn);
   nrrdAxesGet(nout, nrrdAxesInfoSize, szOut);
   memset(cOut, 0, NRRD_DIM_MAX*sizeof(int));
+  fprintf(stderr, "%s: hell 0\n", me);
   for (I=0; I<=numLines-1; I++) {
     for (d=0; d<=dim-1; d++)
       cIn[d] = cOut[d] + min[d];
@@ -241,6 +244,7 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
     cOut[1]++; 
     NRRD_COORD_UPDATE(cOut+1, szOut+1, dim-1, d);
   }
+  fprintf(stderr, "%s: hell 1\n", me);
   
   if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE
 				     | NRRD_AXESINFO_CENTER
@@ -248,6 +252,7 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
+  fprintf(stderr, "%s: hell\n", me);
   nout->content = airFree(nout->content);
   if (nin->content) {
     nout->content = calloc(strlen("crop(,)")
@@ -348,6 +353,7 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
     nrrdAxisRange(&(nout->axis[d].min), &(nout->axis[d].max),
 		  nout, d, min[d], max[d]);
   }
+  nout->blockSize = nin->blockSize;
   if (nrrdMaybeAlloc(nout, numOut, nin->type, dim)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
@@ -487,6 +493,7 @@ nrrdSubvolume(Nrrd *nout, Nrrd *nin, int *min, int *max, int clamp) {
     len[d] = AIR_ABS(max[d] - min[d]) + 1;
     num *= len[d];
   }
+  nout->blockSize = nin->blockSize;
   if (nrrdMaybeAlloc(nout, num, nin->type, dim)) {
     sprintf(err, "%s: failed to create slice", me);
     biffAdd(NRRD, err); return 1;

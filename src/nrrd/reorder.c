@@ -129,6 +129,7 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
   /* else topFax < dim-1 (actually, topFax < dim-2) */
   
   /* set information in new volume */
+  nout->blockSize = nin->blockSize;
   if (nrrdMaybeAlloc(nout, nin->num, nin->type, nin->dim)) {
     sprintf(err, "%s: failed to allocate output", me);
     biffAdd(NRRD, err); return 1;
@@ -699,7 +700,8 @@ nrrdBlock(Nrrd *nout, Nrrd *nin) {
   for (d=0; d<=nin->dim-2; d++) {
     map[d] = d+1;
   }
-  
+
+  /* nout->blockSize set above */
   if (nrrdMaybeAlloc(nout, nin->num/numEl, nrrdTypeBlock, nin->dim-1)) {
     sprintf(err, "%s: failed to allocate output", me);
     biffAdd(NRRD, err); return 1;
@@ -766,6 +768,7 @@ nrrdUnblock(Nrrd *nout, Nrrd *nin, int type) {
   for (d=0; d<=nin->dim; d++) {
     map[d] = !d ? -1 : d-1;
   }
+  /* if nout->blockSize is need, we've checked that its set */
   if (nrrdMaybeAlloc(nout, nin->num*size, type, nin->dim+1)) {
     sprintf(err, "%s: failed to allocate output", me);
     biffAdd(NRRD, err); return 1;

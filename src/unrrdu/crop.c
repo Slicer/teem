@@ -114,22 +114,27 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: axis % 2d: %d -> %d\n", me, i, min[i], max[i]);
   }
 
-  nout = nrrdNew();
+  fprintf(stderr, "bingo\n");
   t1 = airTime();
-  if (nrrdCrop(nout, nin, min, max)) {
+  fprintf(stderr, "bingo\n");
+  if (nrrdCrop(nout=nrrdNew(), nin, min, max)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error cropping nrrd:\n%s", me, err);
     free(err);
     exit(1);
   }
+  fprintf(stderr, "bingo\n");
   t2 = airTime();
-  printf("%s: nrrdCrop() took %g seconds\n", me, t2-t1);
+  fprintf(stderr, "bingo\n");
+  fprintf(stderr, "%s: nrrdCrop() took %g seconds\n", me, t2-t1);
+  fprintf(stderr, "bingo\n");
   if (nrrdSave(outStr, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error writing nrrd:\n%s", me, err);
     free(err);
     exit(1);
   }
+  fprintf(stderr, "bingo\n");
 
   nrrdNuke(nin);
   nrrdNuke(nout);
