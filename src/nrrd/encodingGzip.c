@@ -36,7 +36,7 @@ _nrrdEncodingGzip_read(FILE *file, void *buf, size_t elNum,
                        Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingGzip_read", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
-  size_t num, bsize, total_read;
+  size_t bsize, total_read;
   int block_size, i, error=0;
   unsigned int read;
   char *data;
@@ -132,7 +132,7 @@ _nrrdEncodingGzip_write(FILE *file, const void *buf, size_t elNum,
                         const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingGzip_write", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
-  size_t num, bsize, total_written;
+  size_t bsize, total_written;
   int block_size, fmt_i=0, error=0;
   char *data, fmt[4];
   gzFile gzfout;

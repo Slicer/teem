@@ -40,7 +40,7 @@ _nrrdEncodingBzip2_read(FILE *file, void *buf, size_t elNum,
                         Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingBzip2_read", err[AIR_STRLEN_MED];
 #if TEEM_BZIP2
-  size_t num, bsize, total_read;
+  size_t bsize, total_read;
   int block_size, read, i, bzerror=BZ_OK;
   char *data;
   BZFILE* bzfin;
@@ -140,7 +140,7 @@ _nrrdEncodingBzip2_write(FILE *file, const void *buf, size_t elNum,
                          const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingBzip2_write", err[AIR_STRLEN_MED];
 #if TEEM_BZIP2
-  size_t num, bsize, total_written;
+  size_t bsize, total_written;
   int block_size, bs, bzerror=BZ_OK;
   char *data;
   BZFILE* bzfout;
