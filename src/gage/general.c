@@ -101,6 +101,7 @@ _gageFwValueRenormalize(gageContext *ctx, int wch) {
 */
 void
 _gageFwDerivRenormalize(gageContext *ctx, int wch) {
+  char me[]="_gageFwDerivRenormalize";
   gage_t negX, negY, negZ, posX, posY, posZ, fixX, fixY, fixZ,
     *fwX, *fwY, *fwZ;
   int i, fd;
@@ -122,12 +123,12 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
   fixX = sqrt(-posX/negX);
   fixY = sqrt(-posY/negY);
   fixZ = sqrt(-posZ/negZ);
+  if (ctx->verbose > 1) {
+    fprintf(stderr, "%s: fixX = % 10.4f, fixY = % 10.4f, fixX = % 10.4f\n",
+	    me, (float)fixX, (float)fixY, (float)fixZ);
+  }
   for (i=0; i<fd; i++) {
     if (fwX[i] <= 0) { fwX[i] *= fixX; } else { fwX[i] /= fixX; }
-    if (!AIR_EXISTS(fwX[i])) {
-      printf("!%s: posX = %g, negX = %g -> fixX = %g\n",
-	     "_gageFwDerivRenormalize", posX, negX, fixX);
-    }
     if (fwY[i] <= 0) { fwY[i] *= fixY; } else { fwY[i] /= fixY; }
     if (fwZ[i] <= 0) { fwZ[i] *= fixZ; } else { fwZ[i] /= fixZ; }
   }
@@ -139,7 +140,6 @@ _gageFwSet(gageContext *ctx) {
   int i, j, fd;
   gage_t *fwX, *fwY, *fwZ;
 
-  /* "The horror! The horror!" */
 #if GT_FLOAT
 #  define EVALN evalN_f
 #else
@@ -152,8 +152,8 @@ _gageFwSet(gageContext *ctx) {
     ctx->k[i]->EVALN(ctx->fw[i], ctx->fsl, 3*ctx->fd, ctx->kparm[i]);
   }
 
-  if (ctx->verbose) {
-    printf("%s: filter weights immediately after evaluation:\n", me);
+  if (ctx->verbose > 1) {
+    fprintf(stderr, "%s: filter weights immediately after evaluation:\n", me);
     _gagePrint_fslw(ctx);
   }
   if (ctx->renormalize) {
@@ -171,10 +171,10 @@ _gageFwSet(gageContext *ctx) {
 	break;
       }
     }
-  }
-  if (ctx->verbose) {
-    printf("%s: filter weights after renormalization:\n", me);
-    _gagePrint_fslw(ctx);
+    if (ctx->verbose > 1) {
+      fprintf(stderr, "%s: filter weights after renormalization:\n", me);
+      _gagePrint_fslw(ctx);
+    }
   }
 
   /* fix weightings for non-unit-spacing samples */
@@ -194,10 +194,10 @@ _gageFwSet(gageContext *ctx) {
 	fwZ[j] *= ctx->fwScl[i][2];
       }
     }
-  }
-  if (ctx->verbose) {
-    printf("%s: filter weights after non-unit fix:\n", me);
-    _gagePrint_fslw(ctx);
+    if (ctx->verbose > 1) {
+      fprintf(stderr, "%s: filter weights after non-unit fix:\n", me);
+      _gagePrint_fslw(ctx);
+    }
   }
 }
 
@@ -237,8 +237,7 @@ _gageLocationSet(gageContext *ctx, int *newBidxP,
   dif = ctx->havePad - ctx->fr + 1;
   bidx = xi + dif + ctx->sx*(yi + dif + ctx->sy*(zi + dif));
   if (ctx->verbose > 1) {
-    fprintf(stderr, 
-	    "%s: \n"
+    fprintf(stderr, "%s: \n"
 	    "        pos (% 15.7f,% 15.7f,% 15.7f) \n"
 	    "        -> i(%5d,%5d,%5d) \n"
 	    "         + f(% 15.7f,% 15.7f,% 15.7f) \n"
@@ -257,7 +256,7 @@ _gageLocationSet(gageContext *ctx, int *newBidxP,
     ctx->xf = xf;
     ctx->yf = yf;
     ctx->zf = zf;
-    /* this is essentially LocationDependentSet */
+    /* this is essentially _gageLocationDependentSet() */
     _gageFslSet(ctx);
     _gageFwSet(ctx);
   }

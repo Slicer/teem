@@ -78,7 +78,8 @@ _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
   "v", "val", "value", 
   "gvec", "gradvec", "grad vec", "gradient vector",
   "g", "gmag", "gradmag", "grad mag", "gradient magnitude",
-  "n", "gnorm", "normg", "norm", "normgrad", "norm grad","normalized gradient",
+  "normal", "n", "gnorm", "normg", "norm", "normgrad", \
+       "norm grad", "normalized gradient",
   "h", "hess", "hessian",
   "l", "lapl", "laplacian",
   "heval", "h eval", "hessian eval", "hessian eigenvalues",
@@ -95,8 +96,8 @@ int
 _gageSclValEqv[] = {
   GS_V, GS_V, GS_V,
   GS_GV, GS_GV, GS_GV, GS_GV, 
-  GS_GM, GS_GM, GS_GM, GS_GM, GS_GM, 
-  GS_N, GS_N, GS_N, GS_N, GS_N, GS_N, GS_N,
+  GS_GM, GS_GM, GS_GM, GS_GM, GS_GM,
+  GS_N, GS_N, GS_N, GS_N, GS_N, GS_N, GS_N, GS_N,
   GS_H, GS_H, GS_H, 
   GS_L, GS_L, GS_L, 
   GS_HA, GS_HA, GS_HA, GS_HA, 
