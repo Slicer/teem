@@ -190,7 +190,7 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **ndwi, int dwiLen,
 }
 
 int
-_tenEpiRegFindThresh(float *DWthrP, Nrrd **nin, int ninLen) {
+_tenEpiRegFindThresh(float *DWthrP, Nrrd **nin, int ninLen, int save) {
   char me[]="_tenEpiRegFindThresh", err[AIR_STRLEN_MED];
   Nrrd *nhist, *ntmp;
   airArray *mop;
@@ -231,7 +231,10 @@ _tenEpiRegFindThresh(float *DWthrP, Nrrd **nin, int ninLen) {
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
   }
-  if (_tenFindValley(DWthrP, nhist, 0.85)) {
+  if (save) {
+    nrrdSave("regtmp-dwihist.nrrd", nhist, NULL);
+  }
+  if (_tenFindValley(DWthrP, nhist, 0.65, save)) {
     sprintf(err, "%s: problem finding DWI histogram valley", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
@@ -243,7 +246,7 @@ _tenEpiRegFindThresh(float *DWthrP, Nrrd **nin, int ninLen) {
 
 int
 _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, int ninLen,
-		    float DWthr, int verb) {
+		    float DWthr, int verb, int progress) {
   char me[]="_tenEpiRegThreshold", err[AIR_STRLEN_MED];
   airArray *mop;
   int I, sx, sy, sz, ni;
@@ -251,7 +254,7 @@ _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, int ninLen,
   unsigned char *thr;
 
   if (!( AIR_EXISTS(DWthr) )) {
-    if (_tenEpiRegFindThresh(&DWthr, nblur, ninLen)) {
+    if (_tenEpiRegFindThresh(&DWthr, nblur, ninLen, progress)) {
       sprintf(err, "%s: trouble with automatic threshold determination", me);
       biffAdd(TEN, err); return 1;
     }
@@ -931,7 +934,7 @@ tenEpiRegister3D(Nrrd **nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
 
   /* ------ threshold */
   if (_tenEpiRegThreshold(nbuffB, nbuffA, ninLen, 
-			  DWthr, verbose)) {
+			  DWthr, verbose, progress)) {
     sprintf(err, "%s: trouble thresholding", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
