@@ -46,7 +46,7 @@ $(L).SEEN := true
 
 ## BINS: all the command-line executables associated with teem
 ## 
-BINS = airSanity affine cubic nrrdSanity overrgb idx2pos \
+BINS = airSanity affine cubic nrrdSanity overrgb idx2pos emap \
   pos2idx unu pprobe vprobe qbert mrender miter gkms ungantry ilk tend
 
 ## _binD(bins): list of development locations for given bins
@@ -89,6 +89,7 @@ pos2idx.need    = $(call meneed,nrrd hest air)
 overrgb.need    = $(call meneed,nrrd hest biff air)
 qbert.need      = $(call meneed,bane gage nrrd hest air)
 ilk.need        = $(call meneed,moss nrrd ell biff hest air)
+emap.need       = $(call meneed,limn nrrd ell biff hest air)
 gkms.need       = $(call meneed,bane nrrd biff air)
 unu.need        = $(call meneed,unrrdu nrrd biff hest air)
 mrender.need    = $(call meneed,hoover limn gage nrrd biff hest air)
@@ -114,6 +115,7 @@ $(call _binDI,pos2idx)    : $(call used,$(pos2idx.need))
 $(call _binDI,overrgb)    : $(call used,$(overrgb.need))
 $(call _binDI,qbert)      : $(call used,$(qbert.need))
 $(call _binDI,ilk)        : $(call used,$(ilk.need))
+$(call _binDI,emap)       : $(call used,$(emap.need))
 $(call _binDI,vprobe)     : $(call used,$(vprobe.need))
 $(call _binDI,pprobe)     : $(call used,$(pprobe.need))
 $(call _binDI,gkms)       : $(call used,$(gkms.need))
@@ -129,8 +131,9 @@ $(call _binDI,tend)       : $(call used,$(tend.need))
 ## 
 $(TEEM_SRC)/bin/% $(BDEST)/% : $(TEEM_SRC)/bin/%.c
 	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) -o $@ $< \
-	  $(LPATH) $(call link,$($(notdir $@).need)) \
-	  $(call xtern.Lpath,$($(notdir $@).need)) $(call xtern.link,$($(notdir $@).need)) -lm
+	$(LPATH) $(call link,$($(notdir $@).need)) \
+	$(call xtern.Lpath,$($(notdir $@).need)) \
+	$(call xtern.link,$($(notdir $@).need)) -lm
 
 # we're not a library; template.mk doesn't apply to us
 endif
