@@ -177,7 +177,7 @@ _biffAddKey(char *key) {
   newIdx = i;
   /* printf("HEY: index(new key \"%s\") = %d\n", key, i); */
   
-  if (airArrayIncrLen(_biffAA, 1)) {
+  if (-1 == airArrayIncrLen(_biffAA, 1)) {
     fprintf(stderr, "%s: PANIC: couldn't accomodate one more key\n", me);
     exit(1);
   }
@@ -205,7 +205,7 @@ _biffAddErr(_biffEntry *e, char *err) {
   int i, len;
 
   /* printf("%s: HEY(before): err[%s]->num = %d\n", me, e->key, e->num); */
-  if (airArrayIncrLen(e->AA, 1)) {
+  if (-1 == airArrayIncrLen(e->AA, 1)) {
     fprintf(stderr, "%s: PANIC: couldn't add message for key %s\n",
 	    me, e->key);
     exit(1);
