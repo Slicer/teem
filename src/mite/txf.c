@@ -162,7 +162,7 @@ int
 miteNtxfCheck(const Nrrd *ntxf) {
   char me[]="miteNtxfCheck", err[AIR_STRLEN_MED], *rangeStr, *domStr;
   gageItemSpec isp;
-  int rii, axi;
+  int rii, axi, log2;
 
   if (nrrdCheck(ntxf)) {
     sprintf(err, "%s: basic nrrd validity check failed", me);
@@ -225,14 +225,17 @@ miteNtxfCheck(const Nrrd *ntxf) {
     }
     if (3 == isp.kind->table[isp.item].answerLength) {
       /* has to be right length for one of the quantization schemes */
-      if (!( limnQNBins[limnQN16checker] == ntxf->axis[axi].size ||
-	     limnQNBins[limnQN14checker] == ntxf->axis[axi].size ||
-	     limnQNBins[limnQN12checker] == ntxf->axis[axi].size )) {
-	sprintf(err, "%s: vector %s can be quantized into %d, %d, or %d bins "
-		"but not %d", me, domStr, limnQNBins[limnQN16checker],
-		limnQNBins[limnQN14checker], limnQNBins[limnQN12checker],
-		ntxf->axis[axi].size);
+      log2 = airLog2(ntxf->axis[axi].size);
+      if (-1 == log2) {
+	sprintf(err, "%s: txf axis size for %s must be power of 2 (not %d)",
+		me, domStr, ntxf->axis[axi].size);
 	biffAdd(MITE, err); return 1;
+      } else {
+	if (!( AIR_IN_CL(8, log2, 16) )) {
+	  sprintf(err, "%s: log_2 of txf axis size for %s should be in "
+		  "range [8,16] (not %d)", me, domStr, log2);
+	  biffAdd(MITE, err); return 1;
+	}
       }
     } else {
       if (!( AIR_EXISTS(ntxf->axis[axi].min) && 
@@ -446,7 +449,7 @@ _miteAnswerPointer(miteThread *mtt, gageItemSpec *isp) {
 int
 _miteStageSet(miteThread *mtt, miteRender *mrr) {
   char me[]="_miteStageSet", err[AIR_STRLEN_MED];
-  int ni, di, stageIdx, rii, stageNum;
+  int ni, di, stageIdx, rii, stageNum, log2;
   Nrrd *ntxf;
   miteStage *stage;
   gageItemSpec isp;
@@ -484,17 +487,23 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
 	if (1 == isp.kind->table[isp.item].answerLength) {
 	  stage->qn = NULL;
 	} else if (3 == isp.kind->table[isp.item].answerLength) {
-	  if (limnQNBins[limnQN16checker] == ntxf->axis[di].size) {
-	    stage->qn = limnVtoQN_GT[limnQN16checker];
-	  } else if (limnQNBins[limnQN14checker] == ntxf->axis[di].size) {
-	    stage->qn = limnVtoQN_GT[limnQN14checker];
-	  } else if (limnQNBins[limnQN12checker] == ntxf->axis[di].size) {
-	    stage->qn = limnVtoQN_GT[limnQN12checker];
-	  } else {
+	  log2 = airLog2(ntxf->axis[di].size);
+	  switch(log2) {
+	  case 8:  stage->qn = limnVtoQN_GT[ limnQN8checker]; break;
+	  case 9:  stage->qn = limnVtoQN_GT[ limnQN9checker]; break;
+	  case 10: stage->qn = limnVtoQN_GT[limnQN10checker]; break;
+	  case 11: stage->qn = limnVtoQN_GT[limnQN11checker]; break;
+	  case 12: stage->qn = limnVtoQN_GT[limnQN12checker]; break;
+	  case 13: stage->qn = limnVtoQN_GT[limnQN13checker]; break;
+	  case 14: stage->qn = limnVtoQN_GT[limnQN14checker]; break;
+	  case 15: stage->qn = limnVtoQN_GT[limnQN15checker]; break;
+	  case 16: stage->qn = limnVtoQN_GT[limnQN16checker]; break;
+	  default:
 	    sprintf(err, "%s: txf axis %d size %d not usable for vector "
 		    "txf domain variable %s", me,
 		    di, ntxf->axis[di].size, ntxf->axis[di].label);
 	    biffAdd(MITE, err); return 1;
+	    break;
 	  }
 	} else {
 	  sprintf(err, "%s: %s not scalar or vector (len = %d): can't be "
