@@ -515,72 +515,69 @@ tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos, int dim) {
 ** we may compute the eigensystem
 */
 void
-tenShapeGradients_d(double mean[7],
-		    double var[7], double *varNorm,
-		    double skew[7], double *skewNorm,
-		    double eval[3], double evec[9], int *didEigen,
+tenShapeGradients_d(double mu1[7],
+		    double mu2[7], double *mu2Norm,
+		    double skw[7], double *skwNorm,
 		    double ten[7]) {
-  double meanDot, varDot, dot, mev, third, matR[9],
+  double eval[3], evec[9];
+  double mu1Dot, mu2Dot, dot, mev, third, matR[9],
     matA[9], matB[9], norm, epsilon;
 
   /* largest allowable dot product betwen two normals */
   epsilon = 0.00001;
 
-  *didEigen = AIR_FALSE;
-
-  TEN_T_SET(mean, ten[0],
+  TEN_T_SET(mu1, ten[0],
 	    0.57735027, 0, 0,      /* sqrt(1/3) = 0.57735027 */
 	    0.57735027, 0, 
 	    0.57735027);
-  TEN_T_SET(var, ten[0],
+  TEN_T_SET(mu2, ten[0],
 	    2*Txx - Tyy - Tzz, 3*Txy, 3*Txz,
 	    2*Tyy - Txx - Tzz, 3*Tyz,
 	    2*Tzz - Txx - Tyy);
-  *varNorm = TEN_T_NORM(var);
-  if (*varNorm < epsilon) {
+  *mu2Norm = TEN_T_NORM(mu2);
+  if (*mu2Norm < epsilon) {
     /* they gave us a diagonal matrix */
-    TEN_T_SET(var, ten[0],
-	      0, 0, 0,
-	      0.707106781, 0,      /* sqrt(1/2) = 0.707106781 */
-	      -0.707106781);
-    TEN_T_SET(skew, ten[0],
+    TEN_T_SET(mu2, ten[0],
 	      0.816496581, 0, 0,   /* sqrt(2/3) = 0.816496581 */
 	      -0.408248290, 0,     /* sqrt(1/6) = 0.408248290 */
 	      -0.408248290);
-    *skewNorm = 0;  /* have to invent a value, this works */
+    TEN_T_SET(skw, ten[0],
+	      0, 0, 0,
+	      0.707106781, 0,      /* sqrt(1/2) = 0.707106781 */
+	      -0.707106781);
+    *skwNorm = 0;  /* have to invent a value, this works */
   } else {
     /* we have some variance */
-    TEN_T_SCALE(var, 1.0/(*varNorm), var);
-    /* make damn sure var is orthogonal to mean */
-    dot = TEN_T_DOT(var, mean);
+    TEN_T_SCALE(mu2, 1.0/(*mu2Norm), mu2);
+    /* make damn sure mu2 is orthogonal to mu1 */
+    dot = TEN_T_DOT(mu2, mu1);
     if (AIR_ABS(dot) > epsilon) {
-      TEN_T_SCALE_INCR(var, -dot, mean);
-      norm = TEN_T_NORM(var);
-      TEN_T_SCALE(var, 1.0/(norm), var);
+      TEN_T_SCALE_INCR(mu2, -dot, mu1);
+      norm = TEN_T_NORM(mu2);
+      TEN_T_SCALE(mu2, 1.0/(norm), mu2);
     }
-    TEN_T_SET(skew, ten[0],
+    TEN_T_SET(skw, ten[0],
 	      Tyy*Tzz - Tyz*Tyz, Txz*Tyz - Txy*Tzz, Txy*Tyz - Txz*Tyy,
 	      Txx*Tzz - Txz*Txz, Txy*Txz - Tyz*Txx,
 	      Txx*Tyy - Txy*Txy);
-    meanDot = TEN_T_DOT(skew, mean);
-    varDot = TEN_T_DOT(skew, var);
-    TEN_T_SCALE_INCR2(skew, -meanDot, mean, -varDot, var);
-    *skewNorm = TEN_T_NORM(skew);
-    if (*skewNorm < epsilon) {
-      /* skew is at an extremum, have to diagonalize */
+    mu1Dot = TEN_T_DOT(skw, mu1);
+    mu2Dot = TEN_T_DOT(skw, mu2);
+    TEN_T_SCALE_INCR2(skw, -mu1Dot, mu1, -mu2Dot, mu2);
+    *skwNorm = TEN_T_NORM(skw);
+    if (*skwNorm < epsilon) {
+      /* skw is at an extremum, have to diagonalize */
       tenEigensolve_d(eval, evec, ten);
-      *didEigen = AIR_TRUE;
       mev = (eval[0] + eval[1] + eval[2])/3;
       third = ((eval[0] - mev)*(eval[0] - mev)*(eval[0] - mev)
 	       + (eval[1] - mev)*(eval[1] - mev)*(eval[1] - mev)
 	       + (eval[2] - mev)*(eval[2] - mev)*(eval[2] - mev))/3;
       if (third > 0) {
-	/* skew is positive: linear: eval[1] = eval[2] */
+	/* skw is positive: linear: eval[1] = eval[2] */
 	ELL_3V_SET(matA + 0*3, 0, 0, 0);
 	ELL_3V_SET(matA + 1*3, 0, 0.707106781, 0);
 	ELL_3V_SET(matA + 2*3, 0, 0, -0.707106781);
       } else {
-	/* skew is negative: planar: eval[0] = eval[1] */
+	/* skw is negative: planar: eval[0] = eval[1] */
 	ELL_3V_SET(matA + 0*3, 0.707106781, 0, 0);
 	ELL_3V_SET(matA + 1*3, 0, -0.707106781, 0);
 	ELL_3V_SET(matA + 2*3, 0, 0, 0);
@@ -588,47 +585,47 @@ tenShapeGradients_d(double mean[7],
       ELL_3M_TRANSPOSE(matR, evec);
       ELL_3M_MUL(matB, matA, evec);
       ELL_3M_MUL(matA, matR, matB);
-      TEN_M2T(skew, matA);
+      TEN_M2T(skw, matA);
     } else {
-      /* skew not at extremum */
-      TEN_T_SCALE(skew, 1.0/(*skewNorm), skew);
-      /* make damn sure skew is orthogonal to mean ... */
-      dot = TEN_T_DOT(skew, mean);
+      /* skw not at extremum */
+      TEN_T_SCALE(skw, 1.0/(*skwNorm), skw);
+      /* make damn sure skw is orthogonal to mu1 ... */
+      dot = TEN_T_DOT(skw, mu1);
       if (AIR_ABS(dot) > epsilon) {
-	TEN_T_SCALE_INCR(skew, -dot, mean);
+	TEN_T_SCALE_INCR(skw, -dot, mu1);
       }
-      /* ... and to var */
-      dot = TEN_T_DOT(skew, var);
+      /* ... and to mu2 */
+      dot = TEN_T_DOT(skw, mu2);
       if (AIR_ABS(dot) > epsilon) {
-	TEN_T_SCALE_INCR(skew, -dot, var);
+	TEN_T_SCALE_INCR(skw, -dot, mu2);
       }
-      norm = TEN_T_NORM(skew);
-      TEN_T_SCALE(skew, 1.0/(norm), skew);
+      norm = TEN_T_NORM(skw);
+      TEN_T_SCALE(skw, 1.0/(norm), skw);
     }
   }
-  if (fabs(TEN_T_DOT(skew, mean)) > 0.7) {
+  if (fabs(TEN_T_DOT(skw, mu1)) > 0.7) {
     fprintf(stderr, "tenShapeGradients_d : PANIC\n");
     fprintf(stderr, "dots = %g %g %g\n",
-	    TEN_T_DOT(mean, var),
-	    TEN_T_DOT(mean, skew),
-	    TEN_T_DOT(var, skew));
+	    TEN_T_DOT(mu1, mu2),
+	    TEN_T_DOT(mu1, skw),
+	    TEN_T_DOT(mu2, skw));
     fprintf(stderr, "ten = (%g) %g %g %g   %g %g   %g\n",
 	    ten[0],
 	    ten[1], ten[2], ten[3],
 	    ten[4], ten[5],
 	    ten[6]);
-    fprintf(stderr, "varNorm = %g; var = (%g) %g %g %g   %g %g   %g\n",
-	    *varNorm,
-	    var[0],
-	    var[1], var[2], var[3],
-	    var[4], var[5],
-	    var[6]);
-    fprintf(stderr, "skewNorm = %g; skew = (%g) %g %g %g   %g %g   %g\n",
-	    *skewNorm,
-	    skew[0],
-	    skew[1], skew[2], skew[3],
-	    skew[4], skew[5],
-	    skew[6]);
+    fprintf(stderr, "mu2Norm = %g; mu2 = (%g) %g %g %g   %g %g   %g\n",
+	    *mu2Norm,
+	    mu2[0],
+	    mu2[1], mu2[2], mu2[3],
+	    mu2[4], mu2[5],
+	    mu2[6]);
+    fprintf(stderr, "skwNorm = %g; skw = (%g) %g %g %g   %g %g   %g\n",
+	    *skwNorm,
+	    skw[0],
+	    skw[1], skw[2], skw[3],
+	    skw[4], skw[5],
+	    skw[6]);
     exit(0);
   }
 
@@ -639,9 +636,9 @@ tenShapeGradients_d(double mean[7],
 ** eval and evec must be pre-computed and given to us
 */
 void
-tenRotationTangents_d(double ups1[7], double *ups1Mag,
-		      double ups2[7], double *ups2Mag,
-		      double ups3[7], double *ups3Mag,
+tenRotationTangents_d(double phi1[7], double *phi1Mag,
+		      double phi2[7], double *phi2Mag,
+		      double phi3[7], double *phi3Mag,
 		      double eval[3], double evec[9],
 		      double ten[7]) {
   double anti[9], mat[9], wM[9], Mw[9], diff[9];
@@ -652,27 +649,28 @@ tenRotationTangents_d(double ups1[7], double *ups1Mag,
     /* the matrix macros for setting/getting rows
        are pretty stupid, so unfortunately they aren't
        being used here */
-    ELL_3V_SET(anti + 0*3, 0, -(evec + ii*3)[2], (evec + ii*3)[1]);
-    ELL_3V_SET(anti + 1*3, (evec + ii*3)[2], 0, -(evec + ii*3)[0]);
-    ELL_3V_SET(anti + 2*3, -(evec + ii*3)[1], (evec + ii*3)[0], 0);
+    ELL_3V_SET(anti + 0*3,                 0, -(evec + ii*3)[2],  (evec + ii*3)[1]);
+    ELL_3V_SET(anti + 1*3,  (evec + ii*3)[2],                 0, -(evec + ii*3)[0]);
+    ELL_3V_SET(anti + 2*3, -(evec + ii*3)[1],  (evec + ii*3)[0],                 0);
     ELL_3M_MUL(wM, anti, mat);
     ELL_3M_MUL(Mw, mat, anti);
     ELL_3M_SUB(diff, wM, Mw);
     switch (ii) {
     case 0:
-      TEN_M2T(ups1, diff); ups1[0] = 1;
+      TEN_M2T(phi1, diff); phi1[0] = 1;
       break;
     case 1:
-      TEN_M2T(ups2, diff); ups2[0] = 1;
+      TEN_M2T(phi2, diff); phi2[0] = 1;
       break;
     case 2:
-      TEN_M2T(ups3, diff); ups3[0] = 1;
+      TEN_M2T(phi3, diff); phi3[0] = 1;
       break;
     }
   }
-  *ups1Mag = eval[1] - eval[2];
-  *ups2Mag = eval[0] - eval[2];
-  *ups3Mag = eval[0] - eval[1];
+  
+  *phi1Mag = 1.414214*(eval[1] - eval[2]);
+  *phi2Mag = 1.414214*(eval[0] - eval[2]);
+  *phi3Mag = 1.414214*(eval[0] - eval[1]);
   
   return;
 }

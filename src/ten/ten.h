@@ -452,15 +452,13 @@ TEEM_API void tenMakeOne_f(float ten[7],
 			   float conf, float eval[3], float evec[9]);
 TEEM_API int tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec);
 TEEM_API int tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos, int dim);
-TEEM_API void tenShapeGradients_d(double mean[7],
-				  double var[7], double *varNorm,
-				  double skew[7], double *skewNorm,
-				  double eval[3], double evec[9],
-				  int *didEigen,
+TEEM_API void tenShapeGradients_d(double mu1[7],
+				  double mu2[7], double *mu2Norm,
+				  double skw[7], double *skwNorm,
 				  double ten[7]);
-TEEM_API void tenRotationTangents_d(double ups1[7], double *ups1Mag,
-				    double ups2[7], double *ups2Mag,
-				    double ups3[7], double *ups3Mag,
+TEEM_API void tenRotationTangents_d(double phi1[7], double *phi1Mag,
+				    double phi2[7], double *phi2Mag,
+				    double phi3[7], double *phi3Mag,
 				    double eval[3], double evec[9],
 				    double ten[7]);
 
