@@ -24,6 +24,8 @@ OPT_CFLAG ?= -O2
 STATIC_CFLAG = -Wl,-Bstatic
 SHARED_CFLAG = -Wl,-Bdynamic
 SHARED_LDFLAG = -shared
+# there is no space at the end of the following!
+SHARED_LINK_NAME = -Wl,-rpath -Wl,
 
 TEEM_ENDIAN = 1234
 TEEM_QNANHIBIT = 1
