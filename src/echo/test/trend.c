@@ -26,23 +26,22 @@ makeSceneGlass(limnCam *cam, EchoParam *param,
   EchoObject *cube, *rect;
   EchoLight *light;
   
-  ELL_3V_SET(cam->from, 0, -2, 10);
+  ELL_3V_SET(cam->from, 2, -2, 7.5);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, 1, 0);
-  cam->uMin = -2;
-  cam->uMax = 2;
-  cam->vMin = -2;
-  cam->vMax = 2;
+  cam->uMin = -1.0;
+  cam->uMax = 1.0;
+  cam->vMin = -0.9;
+  cam->vMax = 1.1;
 
   param->jitter = echoJitterJitter;
-  param->jitter = echoJitterNone;
   param->verbose = 0;
-  param->samples = 36;
-  param->imgResU = 400;
-  param->imgResV = 400;
-  param->samples = 16;
+  param->samples = 4;
   param->imgResU = 200;
   param->imgResV = 200;
+  param->samples = 1;
+  param->imgResU = 400;
+  param->imgResV = 400;
   param->aperture = 0.0;
   param->gamma = 2.0;
   param->refDistance = 4;
@@ -52,13 +51,13 @@ makeSceneGlass(limnCam *cam, EchoParam *param,
 
   cube = echoObjectNew(echoObjectCube);
   echoMatterGlassSet(cube,
-		     1.0, 0.1, 0.1,
-		     2, 0.0, 0.0);
+		     0.7, 0.7, 1.0,
+		     1.5, 0.0, 0.12);
   echoObjectListAdd(scene, cube);
   
   rect = echoObjectNew(echoObjectRectangle);
   echoObjectRectangleSet(rect,
-			 -2, -2, -2,
+			 -2.2, -1.8, -1.5,
 			 4, 0, 0,
 			 0, 4, 0);
   echoMatterPhongSet(rect, 1.0, 1.0, 1.0, 1.0,
@@ -67,28 +66,28 @@ makeSceneGlass(limnCam *cam, EchoParam *param,
 
   rect = echoObjectNew(echoObjectRectangle);
   echoObjectRectangleSet(rect,
-			 -2, 0.4, -1.995,
+			 -2.2, 0.3, -1.495,
 			 4, 0, 0,
 			 0, 0.2, 0);
   echoMatterPhongSet(rect, 1.0, 0.0, 0.0, 1.0,
-		     1.0, 0.0, 0.0, 40);
+		     0.1, 0.6, 0.3, 40);
   echoObjectListAdd(scene, rect);
 
   rect = echoObjectNew(echoObjectRectangle);
   echoObjectRectangleSet(rect,
-			 -0.1, -2, -1.990,
+			 -0.3, -1.8, -1.490,
 			 0.2, 0, 0,
 			 0, 4, 0);
   echoMatterPhongSet(rect, 0.0, 1.0, 0.0, 1.0,
-		     1.0, 0.0, 0.0, 40);
+		     0.1, 0.6, 0.3, 40);
   echoObjectListAdd(scene, rect);
 
   rect = echoObjectNew(echoObjectRectangle);
   echoObjectRectangleSet(rect,
-			 0.8, -0.8, 4,
-			 0.2, 0, 0,
-			 0, 0.2, 0);
-  echoMatterLightSet(rect, 1, 1, 1);
+			 0.6, -0.6, 4,
+			 0.4, 0, 0,
+			 0, 0.4, 0);
+  echoMatterLightSet(rect, 0.25, 0.25, 0.25);
   echoObjectListAdd(scene, rect);
   light = echoLightNew(echoLightArea);
   echoLightAreaSet(light, rect);
