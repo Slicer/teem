@@ -22,7 +22,9 @@ RM = /bin/rm -f
 INSTALL = /usr/bin/install
 CHMOD = /bin/chmod
 
-SHEXT = so
+# this will stay unset until I figure out gcc creation of Windows DLLs
+SHEXT = 
+
 OPT_CFLAG = -O2
 STATIC_CFLAG = -Wl,-Bstatic
 SHARED_CFLAG = -Wl,-Bdynamic

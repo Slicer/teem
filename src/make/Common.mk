@@ -87,9 +87,13 @@ ifdef LIB
   OBJS = $(addprefix $(OBJ_PREF)/,$(LIBOBJS))
   LIB_BASENAME ?= lib$(LIB)
   _LIB.A = $(LIB_BASENAME).a
-  _LIB.S = $(LIB_BASENAME).$(SHEXT)
   LIB.A = $(OBJ_PREF)/$(_LIB.A)
-  LIB.S = $(OBJ_PREF)/$(_LIB.S)
+  # if SHEXT is not defined to any non-zero length string, then these
+  # variables are not set, and no shared libraries are created at all
+  ifdef SHEXT
+    _LIB.S = $(LIB_BASENAME).$(SHEXT)
+    LIB.S = $(OBJ_PREF)/$(_LIB.S)
+  endif
 endif
 
 # the complete path names for headers and libraries to be installed
@@ -113,6 +117,15 @@ VPATH = $(sort $(dir $(BINS)))
 ifeq ($(TEEM_LINK_SHARED),true)
   BIN_CFLAGS += $(SHARED_CFLAG)
   ifdef LIB
+    ifndef SHEXT
+      $(warning *)
+      $(warning *)
+      $(warning *    Can't do shared library linking with SHEXT unset)
+      $(warning *    See architecture-specific .mk file.)
+      $(warning *)
+      $(warning *)
+      $(error Make quitting)
+    endif
     THISLIB = $(LIB.S)
     THISLIB_LPATH = -L$(OBJ_PREF)
   endif
