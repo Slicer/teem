@@ -207,7 +207,7 @@ nrrdDescribe(FILE *file, Nrrd *nrrd) {
 int
 nrrdValid(Nrrd *nrrd) {
   char me[] = "nrrdValid", err[AIR_STRLEN_MED];
-  int size[NRRD_DIM_MAX], i;
+  int size[NRRD_DIM_MAX], i, ret;
   double val[NRRD_DIM_MAX];
 
   if (!nrrd) {
@@ -239,31 +239,39 @@ nrrdValid(Nrrd *nrrd) {
      _nrrdReadNrrdParse_* */
   nrrdAxesGet_nva(nrrd, nrrdAxesInfoSpacing, val);
   for (i=0; i<=nrrd->dim-1; i++) {
-    if (!( !airIsInf(val[i]) && (airIsNaN(val[i]) || (0 != val[i])) )) {
+    if (!( !airIsInf_d(val[i]) && (airIsNaN(val[i]) || (0 != val[i])) )) {
       sprintf(err, "%s: spacing %d (%g) invalid", me, i, val[i]);
       biffAdd(NRRD, err); return 1;
     }
   }
   nrrdAxesGet_nva(nrrd, nrrdAxesInfoMin, val);
   for (i=0; i<=nrrd->dim-1; i++) {
-    if (airIsInf(val[i])) {
-      sprintf(err, "%s: axis min %d (%g) invalid", me, i, val[i]);
+    if ((ret=airIsInf_d(val[i]))) {
+      sprintf(err, "%s: axis min %d %sinf invalid", me, i, 1==ret ? "+" : "-");
       biffAdd(NRRD, err); return 1;
     }
   }
   nrrdAxesGet_nva(nrrd, nrrdAxesInfoMax, val);
   for (i=0; i<=nrrd->dim-1; i++) {
-    if (airIsInf(val[i])) {
-      sprintf(err, "%s: axis ax %d (%g) invalid", me, i, val[i]);
+    if ((ret=airIsInf_d(val[i]))) {
+      sprintf(err, "%s: axis ax %d %sinf invalid", me, i, 1==ret ? "+" : "-");
       biffAdd(NRRD, err); return 1;
     }
   }
-  if (airIsInf(nrrd->oldMin)) {
-    sprintf(err, "%s: old min (%g) invalid", me, nrrd->oldMin);
+  if ((ret=airIsInf_d(nrrd->oldMin))) {
+    sprintf(err, "%s: old min %sinf invalid", me, 1==ret ? "+" : "-");
     biffAdd(NRRD, err); return 1;
   }
-  if (airIsInf(nrrd->oldMax)) {
-    sprintf(err, "%s: old max (%g) invalid", me, nrrd->oldMax);
+  if ((ret=airIsInf_d(nrrd->oldMax))) {
+    sprintf(err, "%s: old max %sinf invalid", me, 1==ret ? "+" : "-");
+    biffAdd(NRRD, err); return 1;
+  }
+  if ((ret=airIsInf_d(nrrd->min))) {
+    sprintf(err, "%s: min %sinf invalid", me, 1==ret ? "+" : "-");
+    biffAdd(NRRD, err); return 1;
+  }
+  if ((ret=airIsInf_d(nrrd->max))) {
+    sprintf(err, "%s: max %sinf invalid", me, 1==ret ? "+" : "-");
     biffAdd(NRRD, err); return 1;
   }
   return 1;

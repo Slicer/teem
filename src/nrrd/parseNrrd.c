@@ -152,7 +152,7 @@ _nrrdReadNrrdParse_spacings(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   ret = airParseStrD(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
   for (i=0; i<=nrrd->dim-1; i++) {
-    if (!( !airIsInf(val[i]) && (airIsNaN(val[i]) || (0 != val[i])) )) {
+    if (!( !airIsInf_d(val[i]) && (airIsNaN(val[i]) || (0 != val[i])) )) {
       sprintf(err, "%s: spacing %d (%g) invalid", me, i, val[i]);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
@@ -164,7 +164,7 @@ _nrrdReadNrrdParse_spacings(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 int
 _nrrdReadNrrdParse_axis_mins(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_axis_mins", err[AIR_STRLEN_MED];
-  int ret, i;
+  int ret, i, sgn;
   double val[NRRD_DIM_MAX];
   char *info;
 
@@ -173,8 +173,8 @@ _nrrdReadNrrdParse_axis_mins(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   ret = airParseStrD(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
   for (i=0; i<=nrrd->dim-1; i++) {
-    if (airIsInf(val[i])) {
-      sprintf(err, "%s: axis min %d (%g) invalid", me, i, val[i]);
+    if ((sgn=airIsInf_d(val[i]))) {
+      sprintf(err, "%s: axis min %d %sinf invalid", me, i, 1==sgn ? "+" : "-");
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
   }
@@ -185,7 +185,7 @@ _nrrdReadNrrdParse_axis_mins(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 int
 _nrrdReadNrrdParse_axis_maxs(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_axis_maxs", err[AIR_STRLEN_MED];
-  int ret, i;
+  int ret, i, sgn;
   double val[NRRD_DIM_MAX];
   char *info;
 
@@ -194,8 +194,8 @@ _nrrdReadNrrdParse_axis_maxs(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   ret = airParseStrD(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
   for (i=0; i<=nrrd->dim-1; i++) {
-    if (airIsInf(val[i])) {
-      sprintf(err, "%s: axis max %d (%g) invalid", me, i, val[i]);
+    if ((sgn=airIsInf_d(val[i]))) {
+      sprintf(err, "%s: axis max %d %sinf invalid", me, i, 1==sgn ? "+" : "-");
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
   }
@@ -392,11 +392,12 @@ int
 _nrrdReadNrrdParse_old_min(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_old_min", err[AIR_STRLEN_MED];
   char *info;
+  int sgn;
 
   info = io->line + io->pos;
   _PARSE_ONE_VAL(nrrd->oldMin, "%lg", "double");
-  if (airIsInf(nrrd->oldMin)) {
-    sprintf(err, "%s: old min (%g) invalid", me, nrrd->oldMin);
+  if ((sgn=airIsInf_d(nrrd->oldMin))) {
+    sprintf(err, "%s: old min %sinf invalid", me, 1==sgn ? "+" : "-");
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   return 0;
@@ -406,11 +407,12 @@ int
 _nrrdReadNrrdParse_old_max(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_old_max", err[AIR_STRLEN_MED];
   char *info;
+  int sgn;
 
   info = io->line + io->pos;
   _PARSE_ONE_VAL(nrrd->oldMax, "%lg", "double");
-  if (airIsInf(nrrd->oldMax)) {
-    sprintf(err, "%s: old max (%g) invalid", me, nrrd->oldMax);
+  if ((sgn=airIsInf_d(nrrd->oldMax))) {
+    sprintf(err, "%s: old max %sinf invalid", me, 1==sgn ? "+" : "-");
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   return 0;
