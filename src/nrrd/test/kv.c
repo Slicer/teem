@@ -42,7 +42,7 @@ main(int argc, char **argv) {
   
   if (nrrdLoad(nrrd=nrrdNew(), argv[1], NULL)) {
     fprintf(stderr, "%s: trouble loading \"%s\":\n%s", 
-	    me, argv[1], err = biffGet(NRRD));
+	    me, argv[1], err = biffGetDone(NRRD));
     free(err);
     exit(1);
   }
