@@ -38,10 +38,10 @@ char *info = ("A demonstration of hoover, gage, and nrrd measures. "
 /* -------------------------------------------------------------- */
 
 /* Even though the gageContext is really thread-specific, and
-   therefore doesn't really belong in mrendUserInfo, the first context
+   therefore doesn't really belong in mrendUser, the first context
    from which all others is copied is logically shared across threads,
    as are the input parameter it contains. There is a per-thread
-   gageContext pointer in mrendThreadInfo */
+   gageContext pointer in mrendThread */
 
 typedef struct {
   Nrrd *nin;            /* input volume to render */
@@ -58,14 +58,14 @@ typedef struct {
   char *outS;           /* (managed by hest) output filename */
 
   airArray *mrmop;
-} mrendUserInfo;
+} mrendUser;
 
-mrendUserInfo *
-mrendUserInfoNew() {
-  mrendUserInfo *uu;
+mrendUser *
+mrendUserNew() {
+  mrendUser *uu;
   int i;
 
-  uu = (mrendUserInfo *)calloc(1, sizeof(mrendUserInfo));
+  uu = (mrendUser *)calloc(1, sizeof(mrendUser));
   uu->nin = NULL;
   uu->rayStep = 0.0;
   uu->whatq = gageSclUnknown;
@@ -82,8 +82,8 @@ mrendUserInfoNew() {
   return uu;
 }
 
-mrendUserInfo *
-mrendUserInfoNix(mrendUserInfo *uu) {
+mrendUser *
+mrendUserNix(mrendUser *uu) {
 
   if (uu) {
     airMopOkay(uu->mrmop);
@@ -93,8 +93,8 @@ mrendUserInfoNix(mrendUserInfo *uu) {
 }
 
 int
-mrendUserInfoValid(mrendUserInfo *uu) {
-  char me[]="mrendUserInfoValid", err[AIR_STRLEN_MED];
+mrendUserValid(mrendUser *uu) {
+  char me[]="mrendUserValid", err[AIR_STRLEN_MED];
   
   if (3 != uu->nin->dim) {
     sprintf(err, "%s: input nrrd needs 3 dimensions, not %d", 
@@ -120,16 +120,16 @@ mrendUserInfoValid(mrendUserInfo *uu) {
 
 /* -------------------------------------------------------------- */
 
-typedef struct mrendRenderInfo_t {
+typedef struct mrendRender_t {
   double time0, time1;  /* render start and end times */
   Nrrd *nout;           /* output image: always 2D array of floats */
   float *imgData;       /* output image data */
   int sx, sy,           /* image dimensions */
     totalSamples;       /* total number of samples used for all rays */
-  struct mrendThreadInfo_t *tinfo[HOOVER_THREAD_MAX];
-} mrendRenderInfo;
+  struct mrendThread_t *tinfo[HOOVER_THREAD_MAX];
+} mrendRender;
 
-typedef struct mrendThreadInfo_t {
+typedef struct mrendThread_t {
   float *val,        /* array of ray samples */
     rayLen,          /* length of ray segment between near and far */
     rayStep;         /* ray step needed FOR THIS RAY, to acheive sampling on
@@ -143,17 +143,17 @@ typedef struct mrendThreadInfo_t {
   gageContext *gctx; /* thread-specific gage context (or copy of uu->gctx0
 			for the first thread) */
   gage_t *answer;    /* pointer to the SINGLE answer we care about */
-} mrendThreadInfo;
+} mrendThread;
 
 int
-mrendRenderBegin(mrendRenderInfo **rrP, mrendUserInfo *uu) {
+mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   char me[]="mrendRenderBegin", err[AIR_STRLEN_MED];
   gagePerVolume *pvl;
   int E, thr;
 
-  /* this assumes that mrendUserInfoValid(uu) has passed */
+  /* this assumes that mrendUserValid(uu) has passed */
 
-  *rrP = (mrendRenderInfo *)calloc(1, sizeof(mrendRenderInfo));
+  *rrP = (mrendRender *)calloc(1, sizeof(mrendRender));
   airMopAdd(uu->mrmop, *rrP, airFree, airMopAlways);
   pvl = gagePerVolumeNew(uu->nin, gageKindScl);
   /* pvl managed via parent context */
@@ -197,7 +197,7 @@ mrendRenderBegin(mrendRenderInfo **rrP, mrendUserInfo *uu) {
   (*rrP)->sy = uu->hctx->imgSize[1];
 
   for (thr=0; thr<uu->hctx->numThreads; thr++) {
-    (*rrP)->tinfo[thr] = (mrendThreadInfo *)calloc(1, sizeof(mrendThreadInfo));
+    (*rrP)->tinfo[thr] = (mrendThread *)calloc(1, sizeof(mrendThread));
     airMopAdd(uu->mrmop, (*rrP)->tinfo[thr], airFree, airMopAlways);
   }
 
@@ -205,7 +205,7 @@ mrendRenderBegin(mrendRenderInfo **rrP, mrendUserInfo *uu) {
 }
 
 int
-mrendRenderEnd(mrendRenderInfo *rr, mrendUserInfo *uu) {
+mrendRenderEnd(mrendRender *rr, mrendUser *uu) {
   char me[]="mrendRenderEnd", err[AIR_STRLEN_MED];
   int thr;
 
@@ -233,12 +233,12 @@ mrendRenderEnd(mrendRenderInfo *rr, mrendUserInfo *uu) {
 /* -------------------------------------------------------------- */
 
 int
-mrendThreadBegin(mrendThreadInfo **ttP,
-		 mrendRenderInfo *rr, mrendUserInfo *uu, int whichThread) {
+mrendThreadBegin(mrendThread **ttP,
+		 mrendRender *rr, mrendUser *uu, int whichThread) {
 
-  /* allocating the mrendThreadInfos should be part of the thread body,
+  /* allocating the mrendThreads should be part of the thread body,
      but as long as there isn't a mutex around registering them with
-     the airMop in the mrendRenderInfo, then all that needs to be done
+     the airMop in the mrendRender, then all that needs to be done
      as part of mrendRenderBegin (see above) */
   (*ttP) = rr->tinfo[whichThread];
   if (!whichThread) {
@@ -259,7 +259,7 @@ mrendThreadBegin(mrendThreadInfo **ttP,
 }
 
 int
-mrendThreadEnd(mrendThreadInfo *tt, mrendRenderInfo *rr, mrendUserInfo *uu) {
+mrendThreadEnd(mrendThread *tt, mrendRender *rr, mrendUser *uu) {
   
   AIR_FREE(tt->val);
 
@@ -269,7 +269,7 @@ mrendThreadEnd(mrendThreadInfo *tt, mrendRenderInfo *rr, mrendUserInfo *uu) {
 /* -------------------------------------------------------------- */
 
 int
-mrendRayBegin(mrendThreadInfo *tt, mrendRenderInfo *rr, mrendUserInfo *uu,
+mrendRayBegin(mrendThread *tt, mrendRender *rr, mrendUser *uu,
 	      int uIndex,
 	      int vIndex,
 	      double rayLen,
@@ -301,7 +301,7 @@ mrendRayBegin(mrendThreadInfo *tt, mrendRenderInfo *rr, mrendUserInfo *uu,
 }
 
 int
-mrendRayEnd(mrendThreadInfo *tt, mrendRenderInfo *rr, mrendUserInfo *uu) {
+mrendRayEnd(mrendThread *tt, mrendRender *rr, mrendUser *uu) {
   float answer;
 
   if (tt->valNum) {
@@ -325,7 +325,7 @@ mrendRayEnd(mrendThreadInfo *tt, mrendRenderInfo *rr, mrendUserInfo *uu) {
 /* -------------------------------------------------------------- */
 
 double
-mrendSample(mrendThreadInfo *tt, mrendRenderInfo *rr, mrendUserInfo *uu,
+mrendSample(mrendThread *tt, mrendRender *rr, mrendUser *uu,
 	    int num, double rayT,
 	    int inside,
 	    double samplePosWorld[3],
@@ -351,14 +351,14 @@ mrendSample(mrendThreadInfo *tt, mrendRenderInfo *rr, mrendUserInfo *uu,
 /*
 ** learned: if you're playing games with strings with two passes, where
 ** you first generate the set of strings in order to calculate their
-** cumulative lenght, and then (2nd pass) concatenate the strings
-** together, be very sure that the generation of the strints on the
+** cumulative length, and then (2nd pass) concatenate the strings
+** together, be very sure that the generation of the strings on the
 ** two passes is identical.  Had a very troublesome memory error because
 ** I was using short version of the description string to determine
 ** allocation, and then the long version in the second pass...
 */
 char *
-mrendGageInfo(char *prefix) {
+mrendGage(char *prefix) {
   char *line, *ret;
   int i, len;
   
@@ -392,7 +392,7 @@ main(int argc, char *argv[]) {
   hestParm *hparm;
   int E, Ecode, renorm;
   char *me, *errS, *buff;
-  mrendUserInfo *uu;
+  mrendUser *uu;
   airArray *mop;
   double gmc;
 
@@ -400,13 +400,13 @@ main(int argc, char *argv[]) {
   mop = airMopNew();
   hparm = hestParmNew();
   hparm->respFileEnable = AIR_TRUE;
-  uu = mrendUserInfoNew();
+  uu = mrendUserNew();
 
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
-  airMopAdd(mop, uu, (airMopper)mrendUserInfoNix, airMopAlways);
+  airMopAdd(mop, uu, (airMopper)mrendUserNix, airMopAlways);
 
-  buff = mrendGageInfo("the quantity to measure at sample points along " \
-		       "rays. Possibilities include:");
+  buff = mrendGage("the quantity to measure at sample points along " \
+		   "rays. Possibilities include:");
   airMopAdd(mop, buff, airFree, airMopAlways);
 
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &(uu->nin), NULL,
@@ -460,7 +460,7 @@ main(int argc, char *argv[]) {
 		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!mrendUserInfoValid(uu)) {
+  if (!mrendUserValid(uu)) {
     fprintf(stderr, "%s: problem with input parameters:\n%s\n",
 	    me, errS = biffGetDone(MREND)); free(errS);
     airMopError(mop);
@@ -482,7 +482,7 @@ main(int argc, char *argv[]) {
   }
   /* this is reasonable for now */
   uu->hctx->imgCentering = nrrdCenterCell;
-  uu->hctx->userInfo = uu;
+  uu->hctx->user = uu;
   uu->hctx->renderBegin = (hooverRenderBegin_t *)mrendRenderBegin;
   uu->hctx->threadBegin = (hooverThreadBegin_t *)mrendThreadBegin;
   uu->hctx->rayBegin = (hooverRayBegin_t *)mrendRayBegin;
