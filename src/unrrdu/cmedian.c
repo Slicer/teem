@@ -26,12 +26,12 @@ char *_unrrdu_cmedianInfoL =
  ". Only works on 1, 2, or 3 dimensions.  The window "
  "over which filtering is done is always square, and "
  "only a simplistic weighting scheme is available. "
- "The filtering works "
- "by forming a histogram of the values in "
- "the window, and updating it as the window slides "
- "through the volume.  Because of this histogramming, "
- "precision will be lost on anything other than "
- "8-bit data (assuming a sane # bins \"-b\").");
+ "The method is cheap because it does the median "
+ "or mode based on a histogram, which enforces a quantization to the number "
+ "of bins in the histogram, which probably means a loss of precision for "
+ "anything except 8-bit data.  Also, 8-bit integer values can be recovered "
+ "exactly only when the number of bins is exactly min-max+1 (as reported "
+ "by \"unu minmax\"). ");
 
 int
 unrrdu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -49,10 +49,10 @@ unrrdu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "By default, median filtering is done.  Using this option "
 	     "enables mode filtering, in which the most common value is "
 	     "used as output");
-  hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, "2048",
+  hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, "256",
 	     "# of bins in histogram.  It is in your interest to minimize "
 	     "this number, since big histograms mean slower execution "
-	     "times.  8-bit data needs at most 256 bins, for example.");
+	     "times.  8-bit data needs at most 256 bins.");
   hestOptAdd(&opt, "w", "weight", airTypeFloat, 1, 1, &wght, "1.0",
 	     "How much higher to preferentially weight samples that are "
 	     "closer to the center of the window.  \"1.0\" weight means that "
