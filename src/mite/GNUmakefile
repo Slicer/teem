@@ -48,7 +48,7 @@ $(L).NEED = hoover limn gage nrrd ell biff air
 $(L).PUBLIC_HEADERS = mite.h
 $(L).PRIVATE_HEADERS =
 $(L).OBJS = defaultsMite.o user.o renderMite.o thread.o ray.o
-$(L).OBJS = defaultsMite.o 
+$(L).OBJS = defaultsMite.o txf.o user.o
 ####
 ####
 ####

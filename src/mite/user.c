@@ -19,42 +19,44 @@
 
 #include "mite.h"
 
-char
-miteTxfIdent[] = "RGBAEadsp";
-
-miteUserInfo *
-miteUserInfoNew() {
-  miteUserInfo *muu;
+miteUser *
+miteUserNew() {
+  miteUser *muu;
   int i;
 
-  muu = (miteUserInfo *)calloc(1, sizeof(miteUserInfo));
-  if (muu) {
-    muu->nin = NULL;
-    for (i=0; i<GAGE_KERNEL_NUM; i++) {
-      muu->ntxf[i] = NULL;
-    }
-    muu->refStep = miteDefRefStep;
-    muu->rayStep = AIR_NAN;
-    muu->near1 = miteDefNear1;
-    muu->hctx = hooverContextNew();
-    for (i=0; i<GAGE_KERNEL_NUM; i++) {
-      muu->ksp[i] = NULL;
-    }
-    muu->gctx0 = gageContextNew();
-    muu->lit = limnLightNew();
-    muu->justSum = AIR_FALSE;
-    muu->noDirLight = AIR_FALSE;
-    muu->outS = NULL;  /* managed by hest */
-    muu->mop = airMopNew();
-    airMopAdd(muu->mop, muu->hctx, (airMopper)hooverContextNix, airMopAlways);
-    airMopAdd(muu->mop, muu->gctx0, (airMopper)gageContextNix, airMopAlways);
-    airMopAdd(muu->mop, muu->gctx0, (airMopper)limnLightNix, airMopAlways);
+  muu = (miteUser *)calloc(1, sizeof(miteUser));
+  if (!muu)
+    return NULL;
+
+  muu->nin = NULL;
+  for (i=0; i<MITE_TXF_NUM; i++) {
+    muu->txf[i] = NULL;
   }
+  muu->txfNum = 0;
+  for (i=0; i<MITE_RANGE_NUM; i++) {
+    muu->rangeInit[i] = 1.0;
+  }
+  muu->refStep = miteDefRefStep;
+  muu->rayStep = AIR_NAN;
+  muu->near1 = miteDefNear1;
+  muu->hctx = hooverContextNew();
+  for (i=0; i<GAGE_KERNEL_NUM; i++) {
+    muu->ksp[i] = NULL;
+  }
+  muu->gctx0 = gageContextNew();
+  muu->lit = limnLightNew();
+  muu->justSum = AIR_FALSE;
+  muu->noDirLight = AIR_FALSE;
+  muu->outS = NULL;  /* managed by hest */
+  muu->mop = airMopNew();
+  airMopAdd(muu->mop, muu->hctx, (airMopper)hooverContextNix, airMopAlways);
+  airMopAdd(muu->mop, muu->gctx0, (airMopper)gageContextNix, airMopAlways);
+  airMopAdd(muu->mop, muu->lit, (airMopper)limnLightNix, airMopAlways);
   return muu;
 }
 
-miteUserInfo *
-miteUserInfoNix(miteUserInfo *muu) {
+miteUser *
+miteUserNix(miteUser *muu) {
 
   if (muu) {
     airMopOkay(muu->mop);
@@ -64,37 +66,16 @@ miteUserInfoNix(miteUserInfo *muu) {
 }
 
 int
-_miteNtxfValid(Nrrd *ntxf) {
-  char me[]="_miteNtxfValid", err[AIR_STRLEN_MED];
-  int i;
-  
-  if (!nrrdValid(ntxf)) {
-    sprintf(err, "%s: basic nrrd validity check failed", me);
-    biffMove(GAGE, err, NRRD); return 1;
-  }
-  if (nrrdTypeFloat != ntxf->type) {
-    sprintf(err, "%s: need a type %s nrrd (not %s)", me,
-	    airEnumStr(nrrdType, nrrdTypeFloat),
-	    airEnumStr(nrrdType, ntxf->type));
-    biffAdd(GAGE, err); return 1;
-  }
-  if (0 == airStrlen(ntxf->content)) {
-    sprintf(err, "%s: given nrrd's \"content\" doesn't specify txf range", me);
-    biffAdd(GAGE, err); return 1;
-  }
-  
-  return 0;
-}
-
-int
-miteUserInfoValid(miteUserInfo *muu) { 
-  char me[]="miteUserInfoValid", err[AIR_STRLEN_MED];
+miteUserValid(miteUser *muu) { 
+  char me[]="miteUserValid", err[AIR_STRLEN_MED];
 
   if (!gageVolumeValid(muu->nin, gageKindScl)) {
     sprintf(err, "%s: trouble with input volume", me);
     biffMove(MITE, err, GAGE); return 0;
   }
+  if (!muu->txfNum) {
+    sprintf(err, "%s: no transfer functions set", me);
+    biffAdd(MITE, err); return 0;
+  }
   return 1;
 }
-
-
