@@ -52,6 +52,8 @@ unrrdu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
              "\b\bo \"eq\", \"neq\": same as C's == and !=\n "
              "\b\bo \"comp\": -1, 0, or 1 if 1st value is less than, "
              "equal to, or greater than 2nd value\n "
+             "\b\bo \"if\": if 1st value is non-zero, use it, "
+             "else use 2nd value\n "
              "\b\bo \"exists\": if 1st value exists, use it, "
              "else use 2nd value",
              NULL, nrrdBinaryOp);

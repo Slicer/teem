@@ -248,6 +248,7 @@ double _nrrdBinaryOpEqual(double a, double b)     {return (a == b);}
 double _nrrdBinaryOpNotEqual(double a, double b)  {return (a != b);}
 double _nrrdBinaryOpExists(double a, double b)    {return (AIR_EXISTS(a) 
                                                            ? a : b);}
+double _nrrdBinaryOpIf(double a, double b)        {return (a ? a : b);}
 
 double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
   NULL,
@@ -269,7 +270,8 @@ double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
   _nrrdBinaryOpCompare,
   _nrrdBinaryOpEqual,
   _nrrdBinaryOpNotEqual,
-  _nrrdBinaryOpExists
+  _nrrdBinaryOpExists,
+  _nrrdBinaryOpIf
 };
 
 /*
