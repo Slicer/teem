@@ -37,6 +37,7 @@ char *me;
 int
 main(int argc, char *argv[]) {
   Nrrd *map, *ppm;
+  NrrdRange *range;
 
   me = argv[0];
 
@@ -44,9 +45,8 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s", me, biffGet(LIMN));
     exit(1);
   }
-  map->min = 0;
-  map->max = 1;
-  if (nrrdQuantize(ppm=nrrdNew(), map, 8)) {
+  range = nrrdRangeNew(0, 1);
+  if (nrrdQuantize(ppm=nrrdNew(), map, range, 8)) {
     fprintf(stderr, "%s: trouble:\n%s", me, biffGet(NRRD));
     exit(1);
   }
@@ -57,5 +57,6 @@ main(int argc, char *argv[]) {
 
   nrrdNuke(map);
   nrrdNuke(ppm);
+  nrrdRangeNix(range);
   exit(0);
 }
