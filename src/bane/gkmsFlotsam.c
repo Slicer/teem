@@ -147,6 +147,7 @@ baneGkmsParseBEF(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     (*nrrdP)->ptr = NULL;
   }
 
+  airMopOkay(mop);
   return 0;
 }
 
