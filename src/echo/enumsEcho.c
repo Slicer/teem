@@ -165,10 +165,10 @@ _echoType = {
 airEnum *
 echoType = &_echoType;
 
-/* ------------------------------- material types --------------------------- */
+/* ------------------------------ material types --------------------------- */
 
 char
-_echoMatterStr[ECHO_MATTER_NUM+1][AIR_STRLEN_SMALL] = {
+_echoMatterStr[ECHO_MATTER_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_matter)",
   "phong",
   "glass",
@@ -176,17 +176,8 @@ _echoMatterStr[ECHO_MATTER_NUM+1][AIR_STRLEN_SMALL] = {
   "light"
 };
 
-int
-_echoMatterVal[ECHO_MATTER_NUM+1] = {
-  echoMatterUnknown,
-  echoMatterPhong,
-  echoMatterGlass,
-  echoMatterMetal,
-  echoMatterLight
-};
-
 char
-_echoMatterDesc[ECHO_MATTER_NUM+1][AIR_STRLEN_MED] = {
+_echoMatterDesc[ECHO_MATTER_MAX+1][AIR_STRLEN_MED] = {
   "unknown material",
   "phong shaded surface",
   "glass",
@@ -197,8 +188,8 @@ _echoMatterDesc[ECHO_MATTER_NUM+1][AIR_STRLEN_MED] = {
 airEnum
 _echoMatter = {
   "matter",
-  ECHO_MATTER_NUM,
-  _echoMatterStr,  _echoMatterVal,
+  ECHO_MATTER_MAX,
+  _echoMatterStr,  NULL,
   _echoMatterDesc,
   NULL, NULL,
   AIR_FALSE

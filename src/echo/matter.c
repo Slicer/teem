@@ -87,6 +87,8 @@ echoMatterLightSet(echoScene *scene, echoObject *obj,
   if (scene && obj && echoObjectHasMatter[obj->type]) {
     obj->matter = echoMatterLight;
     obj->mat[echoMatterLightPower] = power;
+    /* HEY: god forbid we should change the material of the light after this */
+    fprintf(stderr, "%s: hello\n", "echoMatterLightSet");
     _echoSceneLightAdd(scene, obj);
   }
 }

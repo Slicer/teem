@@ -108,12 +108,12 @@ typedef struct {
 
 typedef struct {
   int verbose;
-  Nrrd *nperm,         /* ECHO_JITABLE_NUM permutations of integers 
+  Nrrd *nperm,         /* ECHO_JITTABLE_NUM permutations of integers 
 			  [0..parm->numSamples-1], used to re-order the 
 			  parm->numSamples jitter vectors for their various
 			  purposes */
-    *njitt;            /* ECHO_JITABLE_NUM*parm->samples 2-vectors of type echoPos_t
-			  in domain [-1/2,1/2]x[-1/2,1/2] */
+    *njitt;            /* ECHO_JITTABLE_NUM*parm->samples 2-vectors of 
+			  type echoPos_t in domain [-1/2,1/2]x[-1/2,1/2] */
   int *permBuff;       /* temp array for creating permutations */
   echoCol_t *chanBuff; /* for storing ray color and other parameters for each
 			  of the parm->numSamples rays in current pixel */
@@ -137,23 +137,23 @@ enum {
 #define ECHO_JITTER_NUM    4
 
 /*
-******** echoJitable* enum
+******** echoJittable* enum
 **
 ** the different quantities to which the jitter two-vector may be
 ** applied.  
 */
 enum {
-  echoJitableUnknown=-1,
-  echoJitablePixel,      /* 0 */
-  echoJitableLight,      /* 1 */
-  echoJitableLens,       /* 2 */
-  echoJitableNormalA,    /* 3 */
-  echoJitableNormalB,    /* 4 */
-  echoJitableMotionA,    /* 5 */
-  echoJitableMotionB,    /* 6 */
-  echoJitableLast
+  echoJittableUnknown=-1,
+  echoJittablePixel,      /* 0 */
+  echoJittableLight,      /* 1 */
+  echoJittableLens,       /* 2 */
+  echoJittableNormalA,    /* 3 */
+  echoJittableNormalB,    /* 4 */
+  echoJittableMotionA,    /* 5 */
+  echoJittableMotionB,    /* 6 */
+  echoJittableLast
 };
-#define ECHO_JITABLE_NUM    7
+#define ECHO_JITTABLE_NUM    7
 
 /*
 ******** echoMatter* enum
@@ -165,14 +165,14 @@ enum {
 ** supported on rectangles.
 */
 enum {
-  echoMatterUnknown=-1,
-  echoMatterPhong,      /* 0 */
-  echoMatterGlass,      /* 1 */
-  echoMatterMetal,      /* 2 */
-  echoMatterLight,      /* 3 */
+  echoMatterUnknown=0,
+  echoMatterPhong,      /* 1 */
+  echoMatterGlass,      /* 2 */
+  echoMatterMetal,      /* 3 */
+  echoMatterLight,      /* 4 */
   echoMatterLast
 };
-#define ECHO_MATTER_NUM    4
+#define ECHO_MATTER_MAX    4
 
 enum {
   echoMatterPhongKa,    /* 0 */
@@ -229,7 +229,7 @@ enum {
   signed char type
 
 #define ECHO_OBJECT_MATTER              \
-  signed char matter;                   \
+  unsigned char matter;                 \
   echoCol_t rgba[4];                    \
   echoCol_t mat[ECHO_MATTER_PARM_NUM];  \
   Nrrd *ntext
@@ -316,12 +316,14 @@ typedef struct {
 ** this is the central list of all objects in a scene, and all nrrds
 ** used for textures and isosurface volumes.  The scene "owns" all 
 ** the objects it points to, so that nixing it will cause all objects
-** nrrds to be nixed and nuked, respectively.
+** and nrrds to be nixed and nuked, respectively.
 */
 typedef struct {
-  echoObject **obj;    /* array of all objects and all lights */
-  airArray *objArr;
-  echoObject **lit;    /* convenience pointers to lights within obj[] */
+  echoObject **cat;    /* array of ALL objects and all lights */
+  airArray *catArr;
+  echoObject **rend;   /* array of top-level objects to be rendered */
+  airArray *rendArr;
+  echoObject **lit;    /* convenience pointers to lights within cat[] */
   airArray *litArr;
   Nrrd **nrrd;         /* nrrds for textures and isosurfaces */
   airArray *nrrdArr;
@@ -358,7 +360,8 @@ typedef struct {
     view[3],            /* always used with coloring */
     pos[3];             /* always used with coloring (and perhaps texturing) */
   int depth,            /* the depth of the ray that generated this intx */
-    face,               /* in intx with cube, which face was hit (for textures) */
+    face,               /* in intx with cube, which face was hit 
+			   (used for textures) */
     boxhits;            /* how many bounding boxes we hit */
 } echoIntx;
 
@@ -379,6 +382,7 @@ extern echoScene *echoSceneNix(echoScene *scene);
 
 /* objmethods.c --------------------------------------- */
 extern echoObject *echoObjectNew(echoScene *scene, signed char type);
+extern int echoObjectAdd(echoScene *scene, echoObject *obj);
 extern echoObject *echoObjectNix(echoObject *obj);
 
 /* model.c ---------------------------------------- */
@@ -390,8 +394,10 @@ extern void echoBoundsGet(echoPos_t *lo, echoPos_t *hi, echoObject *obj);
 
 /* list.c --------------------------------------- */
 extern void echoListAdd(echoObject *parent, echoObject *child);
-extern echoObject *echoListSplit(echoObject *list, int axis);
-extern echoObject *echoListSplit3(echoObject *list, int depth);
+extern echoObject *echoListSplit(echoScene *scene,
+				 echoObject *list, int axis);
+extern echoObject *echoListSplit3(echoScene *scene,
+				  echoObject *list, int depth);
 
 /* set.c --------------------------------------- */
 extern void echoSphereSet(echoObject *sphere,
@@ -432,19 +438,18 @@ extern int echoRayIntx(echoIntx *intx, echoRay *ray,
 		       echoScene *scene, echoRTParm *parm);
 
 /* renderEcho.c ---------------------------------------- */
-
 extern int echoThreadStateInit(echoThreadState *tstate,
 			       echoRTParm *parm, echoGlobalState *gstate);
 extern void echoJitterCompute(echoRTParm *parm, echoThreadState *state);
 extern void echoRayColor(echoCol_t *chan, int samp, echoRay *ray,
-			 echoScene *scene, echoRTParm *parm, echoThreadState *tstate);
+			 echoScene *scene, echoRTParm *parm,
+			 echoThreadState *tstate);
 extern void echoChannelAverage(echoCol_t *img,
 			       echoRTParm *parm, echoThreadState *tstate);
 extern int echoRTRenderCheck(Nrrd *nraw, limnCam *cam, echoScene *scene,
 			     echoRTParm *parm, echoGlobalState *gstate);
 extern int echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
 			echoRTParm *parm, echoGlobalState *gstate);
-			
 
 #ifdef __cplusplus
 }

@@ -377,7 +377,7 @@ _echoRayIntx_Split(RAYINTX_ARGS(Split)) {
     minb = obj->min0;
     maxb = obj->max0;
   }
-
+  
   if (ray->verbose) {
     printf("_echoRayIntx_Split (shadow = %d):\n", ray->shadow);
     printf("_echoRayIntx_Split: 1st: (%g,%g,%g) -- (%g,%g,%g) (obj %d)\n", 
@@ -535,8 +535,8 @@ echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene, echoRTParm *parm) {
   echoObject *kid;
   
   ret = AIR_FALSE;
-  for (idx=0; idx<scene->objArr->len; idx++) {
-    kid = scene->obj[idx];
+  for (idx=0; idx<scene->rendArr->len; idx++) {
+    kid = scene->rend[idx];
     if (_echoRayIntx[kid->type](intx, ray, kid, parm)) {
       ray->faar = intx->t;
       ret = AIR_TRUE;

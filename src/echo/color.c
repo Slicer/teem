@@ -20,34 +20,48 @@
 #include "echo.h"
 #include "privateEcho.h"
 
+/*
+** _echoLightColDir
+**
+** computes a light color and direction corresponding to a given
+** sample of an area light
+*/
 void
 _echoLightColDir(echoCol_t *lcol, echoPos_t ldir[3],
 		 echoPos_t *distP, echoRTParm *parm,
-		 echoRectangle *light, int samp,
+		 echoObject *_light, int samp,
 		 echoIntx *intx, echoThreadState *tstate) {
   echoPos_t at[3], *jitt, x, y;
   float colScale;
-  int i;
+  echoRectangle *light;
 
-  jitt = ((echoPos_t *)tstate->njitt->data) + samp*2*ECHO_SAMPLE_NUM;
-  x = jitt[0 + 2*echoSampleAreaLight] + 0.5;
-  y = jitt[1 + 2*echoSampleAreaLight] + 0.5;
+  if (!( echoTypeRectangle == _light->type )) {
+    fprintf(stderr, "%s: currently only support echoTypeRectangle lights", 
+	    "_echoLightColDir");
+    return;
+  } 
+
+  light = RECTANGLE(_light);
+  jitt = ((echoPos_t *)tstate->njitt->data) + samp*2*ECHO_JITTABLE_NUM;
+  x = jitt[0 + 2*echoJittableLight] + 0.5;
+  y = jitt[1 + 2*echoJittableLight] + 0.5;
   ELL_3V_SCALEADD3(at, 1.0, light->origin, x, light->edge0, y, light->edge1);
   ELL_3V_SUB(ldir, at, intx->pos);
   *distP = ELL_3V_LEN(ldir);
   ELL_3V_SCALE(ldir, 1.0/(*distP), ldir);
   colScale = parm->refDistance/(*distP);
   colScale *= colScale*light->mat[echoMatterLightPower];
-  for (i=0; i<ECHO_COLOR_NUM; i++) {
-    lcol[i] = colScale * light->col[i];
-  }
+  lcol[0] = colScale * light->rgba[0];
+  lcol[1] = colScale * light->rgba[1];
+  lcol[2] = colScale * light->rgba[2];
   return;
 }
 
 void
-_echoIntxColorNone(COLOR_ARGS) {
+_echoIntxColorUnknown(INTXCOLOR_ARGS) {
   
-  fprintf(stderr, "%s: can't color material 0 !!!\n", "_echoIntxColorNone");
+  fprintf(stderr, "%s: can't color intx with object with unset material\n",
+	  "_echoIntxColorNone");
 }
 
 void
@@ -64,21 +78,20 @@ _echoIntxUVColor(echoCol_t *chan, echoIntx *intx) {
     AIR_INDEX(0.0, intx->u, 1.0, su, ui); ui = AIR_CLAMP(0, ui, su-1);
     AIR_INDEX(0.0, intx->v, 1.0, sv, vi); vi = AIR_CLAMP(0, vi, sv-1);
     tdata = intx->obj->ntext->data;
-    chan[0] = mat[echoMatterR]*(tdata[0 + 4*(ui + su*vi)]/255.0);
-    chan[1] = mat[echoMatterG]*(tdata[1 + 4*(ui + su*vi)]/255.0);
-    chan[2] = mat[echoMatterB]*(tdata[2 + 4*(ui + su*vi)]/255.0);
+    chan[0] = intx->obj->rgba[0]*(tdata[0 + 4*(ui + su*vi)]/255.0);
+    chan[1] = intx->obj->rgba[1]*(tdata[1 + 4*(ui + su*vi)]/255.0);
+    chan[2] = intx->obj->rgba[2]*(tdata[2 + 4*(ui + su*vi)]/255.0);
     chan[3] = 1.0;
-  }
-  else {
-    chan[0] = mat[echoMatterR];
-    chan[1] = mat[echoMatterG];
-    chan[2] = mat[echoMatterB];
+  } else {
+    chan[0] = intx->obj->rgba[0];
+    chan[1] = intx->obj->rgba[1];
+    chan[2] = intx->obj->rgba[2];
     chan[3] = 1.0;
   }
 }
 
 void
-_echoIntxColorPhong(COLOR_ARGS) {
+_echoIntxColorPhong(INTXCOLOR_ARGS) {
   echoCol_t *mat,        /* pointer to object's material info */
     icol[4],             /* "intersection color" */
     oa,                  /* object opacity */
@@ -100,47 +113,47 @@ _echoIntxColorPhong(COLOR_ARGS) {
   shRay.shadow = AIR_TRUE;
 
   mat = intx->obj->mat;
-  oa = mat[echoMatterPhongAlpha];
-  ka = mat[echoMatterKa];
+  oa = intx->obj->rgba[3];
+  ka = mat[echoMatterPhongKa];
   kd = mat[echoMatterPhongKd];
   ks = mat[echoMatterPhongKs];
-  sh = mat[echoMatterPhongSh];
+  sh = mat[echoMatterPhongSp];
 
   ELL_3V_NORM(norm, intx->norm, tmp);
   ELL_3V_NORM(view, intx->view, tmp);
   tmp = 2*ELL_3V_DOT(view, norm);
   ELL_3V_SCALEADD(refl, -1, view, tmp, norm);
 
-  d[0] = ka*parm->amR;
-  d[1] = ka*parm->amG;
-  d[2] = ka*parm->amG;
+  d[0] = ka*scene->am[0];
+  d[1] = ka*scene->am[1];
+  d[2] = ka*scene->am[2];
   s[0] = s[1] = s[2] = 0.0;
   ELL_3V_COPY(shRay.from, intx->pos);
   shRay.neer = ECHO_EPSILON;
-  for (lt=0; lt<lightArr->len; lt++) {
-    light = ((echoLight_ **)lightArr->data)[lt];
-    _echoLightColDir[light->type](lcol, ldir, &ldist, parm,
-				  light, samp, intx, tstate);
+  for (lt=0; lt<scene->litArr->len; lt++) {
+    light = scene->lit[lt];
+    _echoLightColDir(lcol, ldir, &ldist, parm,
+		     light, samp, intx, tstate);
     tmp = ELL_3V_DOT(ldir, norm);
     if (tmp <= 0)
       continue;
-    if (parm->shadow) {
+    if (parm->doShadows) {
       ELL_3V_COPY(shRay.dir, ldir);
       shRay.faar = ldist;
-      if (echoVerbose) {
-	printf("%d: from (%g,%g,%g) to (%g,%g,%g) for [%g,%g] (scene %d)\n",
+      if (tstate->verbose) {
+	printf("%d: from (%g,%g,%g) to (%g,%g,%g) for [%g,%g]\n",
 	       lt, shRay.from[0], shRay.from[1], shRay.from[2],
 	       shRay.dir[0], shRay.dir[1], shRay.dir[2],
-	       shRay.neer, shRay.faar, scene->type);
+	       shRay.neer, shRay.faar);
       }
-      if (_echoRayIntx[scene->type](&shIntx, &shRay, parm, scene)) {
+      if (echoRayIntx(&shIntx, &shRay, scene, parm)) {
 	/* the shadow ray hit something, nevermind */
-	if (echoVerbose) {
+	if (tstate->verbose) {
 	  printf("       SHADOWED\n");
 	}
-	continue;
+	continue; /* to next light */
       }
-      if (echoVerbose) {
+      if (tstate->verbose) {
 	printf(" I see the light\n");
       }
     }
@@ -157,7 +170,6 @@ _echoIntxColorPhong(COLOR_ARGS) {
       }
     }
   }
-
   _echoIntxUVColor(icol, intx);
   chan[0] = icol[0]*d[0] + s[0];
   chan[1] = icol[1]*d[1] + s[1];
@@ -188,7 +200,7 @@ _echoFuzzifyNormal(echoPos_t norm[3], echoCol_t fuzz,
 }
 
 void
-_echoIntxColorMetal(COLOR_ARGS) {
+_echoIntxColorMetal(INTXCOLOR_ARGS) {
   echoCol_t *mat,        /* pointer to object's material info */
     RS, RD,
     d[3],
@@ -204,11 +216,13 @@ _echoIntxColorMetal(COLOR_ARGS) {
   echoRay rfRay, shRay;
   echoIntx shIntx;
   int lt;
+  /*
   echoLight_ *light;
+  */
 
   mat = intx->obj->mat;
 
-  if (0 && echoVerbose) {
+  if (0 && tstate->verbose) {
     printf("depth = %d, t = %g\n", intx->depth, intx->t);
   }
   ELL_3V_NORM(intx->norm, intx->norm, tmp);
@@ -222,12 +236,12 @@ _echoIntxColorMetal(COLOR_ARGS) {
   fuzz = mat[echoMatterMetalFuzzy];
   if (fuzz) {
     jitt = ((echoPos_t *)tstate->njitt->data
-	    + 2*(samp*ECHO_SAMPLE_NUM + echoSampleNormalA));
+	    + 2*(samp*ECHO_JITTABLE_NUM + echoJittableNormalA));
     _echoFuzzifyNormal(norm, fuzz, jitt, view);
   }
   tmp = 2*ELL_3V_DOT(view, norm);
   ELL_3V_SCALEADD(rfRay.dir, -1.0, view, tmp, norm);
-  echoRayColor(rfCol, samp, &rfRay, parm, tstate, scene, lightArr);
+  echoRayColor(rfCol, samp, &rfRay, scene, parm, tstate);
   
   c = 1 - ELL_3V_DOT(norm, view);
   c = c*c*c*c*c;
@@ -235,6 +249,7 @@ _echoIntxColorMetal(COLOR_ARGS) {
   RS = RS + (1 - RS)*c;
   RD = mat[echoMatterMetalKd]*(1-RS);
   d[0] = d[1] = d[2] = 0.0;
+#if 0
   if (RD) {
     /* compute the diffuse component */
     ELL_3V_COPY(shRay.from, intx->pos);
@@ -246,10 +261,10 @@ _echoIntxColorMetal(COLOR_ARGS) {
       tmp = ELL_3V_DOT(ldir, norm);
       if (tmp <= 0)
 	continue;
-      if (0 && echoVerbose) {
+      if (tstate->verbose) {
 	printf("light %d: dot = %g\n", lt, tmp);
       }
-      if (parm->shadow) {
+      if (parm->doShadows) {
 	ELL_3V_COPY(shRay.dir, ldir);
 	shRay.faar = ldist;
 	if (_echoRayIntx[scene->type](&shIntx, &shRay, parm, scene)) {
@@ -260,9 +275,10 @@ _echoIntxColorMetal(COLOR_ARGS) {
       ELL_3V_SCALEADD(d, 1, d, tmp, lcol);
     }
   }
-  chan[0] = mat[echoMatterR]*(RD*d[0] + RS*rfCol[0]);
-  chan[1] = mat[echoMatterG]*(RD*d[1] + RS*rfCol[1]);
-  chan[2] = mat[echoMatterB]*(RD*d[2] + RS*rfCol[2]);
+#endif
+  chan[0] = intx->obj->rgba[0]*(RD*d[0] + RS*rfCol[0]);
+  chan[1] = intx->obj->rgba[1]*(RD*d[1] + RS*rfCol[1]);
+  chan[2] = intx->obj->rgba[2]*(RD*d[2] + RS*rfCol[2]);
   chan[3] = 1.0;
 
   return;
@@ -289,7 +305,7 @@ _echoRefract(echoPos_t T[3], echoPos_t V[3],
 }
 
 void
-_echoIntxColorGlass(COLOR_ARGS) {
+_echoIntxColorGlass(INTXCOLOR_ARGS) {
   echoCol_t *mat,     /* pointer to object's material info */
     RS, R0,
     k[3], r, g, b,
@@ -320,12 +336,12 @@ _echoIntxColorGlass(COLOR_ARGS) {
   index = mat[echoMatterGlassIndex];
   tmp = ELL_3V_DOT(view, norm);
   if (fuzz) {
-    jitt = (echoPos_t *)tstate->njitt->data+ 2*samp*ECHO_SAMPLE_NUM;
-    jitt += 2*(echoSampleNormalA + (tmp > 0));
+    jitt = (echoPos_t *)tstate->njitt->data+ 2*samp*ECHO_JITTABLE_NUM;
+    jitt += 2*(echoJittableNormalA + (tmp > 0));
     _echoFuzzifyNormal(norm, fuzz, jitt, view);
   }
   ELL_3V_SCALEADD(refl, -1, view, 2*tmp, norm);
-  if (echoVerbose) {
+  if (tstate->verbose) {
     printf("(glass; depth = %d); \n"
 	   "    view = (%g,%g,%g); norm = (%g,%g,%g)\n"
 	   "    view . norm = %g\n", 
@@ -337,7 +353,7 @@ _echoIntxColorGlass(COLOR_ARGS) {
     /* "d.n < 0": we're bouncing off the outside */
     _echoRefract(tran, view, norm, index);
     c = tmp;
-    if (echoVerbose) {
+    if (tstate->verbose) {
       printf("   outside bounce tran = (%g,%g,%g); c = %g\n",
 	     tran[0], tran[1], tran[2], c);
     }
@@ -345,16 +361,16 @@ _echoIntxColorGlass(COLOR_ARGS) {
   }
   else {
     /* we're bouncing off the inside */
-    r = mat[echoMatterR];
-    g = mat[echoMatterG];
-    b = mat[echoMatterB];
+    r = intx->obj->rgba[0];
+    g = intx->obj->rgba[1];
+    b = intx->obj->rgba[2];
     k[0] = r*exp((r-1)*intx->t);
     k[1] = g*exp((g-1)*intx->t);
     k[2] = b*exp((b-1)*intx->t);
     ELL_3V_SCALE(norm, -1, norm);
     if (_echoRefract(tran, view, norm, 1/index)) {
       c = -ELL_3V_DOT(tran, norm);
-      if (echoVerbose) {
+      if (tstate->verbose) {
 	printf("   inside bounce tran = (%g,%g,%g); c = %g\n",
 	       tran[0], tran[1], tran[2], c);
       }
@@ -362,7 +378,7 @@ _echoIntxColorGlass(COLOR_ARGS) {
     else {
       /* holy moly, its total internal reflection time */
       ELL_3V_COPY(rfRay.dir, refl);
-      echoRayColor(chan, samp, &rfRay, parm, tstate, scene, lightArr);
+      echoRayColor(chan, samp, &rfRay, scene, parm, tstate);
       chan[0] *= k[0];
       chan[1] *= k[1];
       chan[2] *= k[2];
@@ -374,14 +390,14 @@ _echoIntxColorGlass(COLOR_ARGS) {
   c = 1 - c;
   c = c*c*c*c*c;
   RS = R0 + (1-R0)*c;
-  if (0 && echoVerbose) {
+  if (tstate->verbose) {
     printf("index = %g, R0 = %g, RS = %g\n", index, R0, RS);
     printf("k = %g %g %g\n", k[0], k[1], k[2]);
   }
   ELL_3V_COPY(rfRay.dir, refl);
-  echoRayColor(rfCol, samp, &rfRay, parm, tstate, scene, lightArr);
+  echoRayColor(rfCol, samp, &rfRay, scene, parm, tstate);
   ELL_3V_COPY(trRay.dir, tran);
-  echoRayColor(trCol, samp, &trRay, parm, tstate, scene, lightArr);
+  echoRayColor(trCol, samp, &trRay, scene, parm, tstate);
   ELL_3V_SCALEADD(chan, RS, rfCol, 1-RS, trCol);
   chan[0] *= k[0];
   chan[1] *= k[1];
@@ -391,18 +407,17 @@ _echoIntxColorGlass(COLOR_ARGS) {
 }
 
 void
-_echoIntxColorLight(COLOR_ARGS) {
-  echoCol_t *mat;        /* pointer to object's material info */
+_echoIntxColorLight(INTXCOLOR_ARGS) {
   
-  mat = intx->obj->mat;
-  chan[0] = mat[echoMatterR];
-  chan[1] = mat[echoMatterG];
-  chan[2] = mat[echoMatterB];
+  chan[0] = intx->obj->rgba[0];
+  chan[1] = intx->obj->rgba[1];
+  chan[2] = intx->obj->rgba[2];
   chan[3] = 1.0;
 }
 
 _echoIntxColor_t
-_echoIntxColor[ECHO_MATTER_NUM] = {
+_echoIntxColor[ECHO_MATTER_MAX+1] = {
+  _echoIntxColorUnknown,
   _echoIntxColorPhong,
   _echoIntxColorGlass,
   _echoIntxColorMetal,

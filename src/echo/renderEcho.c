@@ -34,18 +34,18 @@ echoThreadStateInit(echoThreadState *tstate,
   tstate->verbose = gstate->verbose;
 
   if (nrrdMaybeAlloc(tstate->nperm, nrrdTypeInt, 2,
-		     ECHO_JITABLE_NUM, parm->numSamples)) {
+		     ECHO_JITTABLE_NUM, parm->numSamples)) {
     sprintf(err, "%s: couldn't allocate jitter permutation array", me);
     biffMove(ECHO, err, NRRD); return 1;
   }
-  nrrdAxesSet(tstate->nperm, nrrdAxesInfoLabel, "jitable", "sample");
+  nrrdAxesSet(tstate->nperm, nrrdAxesInfoLabel, "jittable", "sample");
 
   if (nrrdMaybeAlloc(tstate->njitt, echoPos_nt, 3,
-		     2, ECHO_JITABLE_NUM, parm->numSamples)) {
+		     2, ECHO_JITTABLE_NUM, parm->numSamples)) {
     sprintf(err, "%s: couldn't allocate jitter array", me);
     biffMove(ECHO, err, NRRD); return 1;
   }
-  nrrdAxesSet(tstate->njitt, nrrdAxesInfoLabel, "x,y", "jitable", "sample");
+  nrrdAxesSet(tstate->njitt, nrrdAxesInfoLabel, "x,y", "jittable", "sample");
 
   AIR_FREE(tstate->permBuff);
   if (!( tstate->permBuff = (int*)calloc(parm->numSamples, sizeof(int)) )) {
@@ -77,19 +77,19 @@ echoJitterCompute(echoRTParm *parm, echoThreadState *tstate) {
   N = parm->numSamples;
   n = sqrt(N);
   w = 1.0/n;
-  /* each row in perm[] is for one sample, to through all jitables.
+  /* each row in perm[] is for one sample, to through all jittables.
      each column is a different permutation of [0..parm->numSamples-1] */
   perm = (int *)tstate->nperm->data;
-  for (j=0; j<ECHO_JITABLE_NUM; j++) {
+  for (j=0; j<ECHO_JITTABLE_NUM; j++) {
     airShuffle(tstate->permBuff, parm->numSamples, parm->permuteJitter);
     for (s=0; s<N; s++) {
-      perm[j + ECHO_JITABLE_NUM*s] = tstate->permBuff[s];
+      perm[j + ECHO_JITTABLE_NUM*s] = tstate->permBuff[s];
     }
   }
   jitt = (echoPos_t *)tstate->njitt->data;
   for (s=0; s<N; s++) {
-    for (j=0; j<ECHO_JITABLE_NUM; j++) {
-      i = perm[j + ECHO_JITABLE_NUM*s];
+    for (j=0; j<ECHO_JITTABLE_NUM; j++) {
+      i = perm[j + ECHO_JITTABLE_NUM*s];
       xi = i % n;
       yi = i / n;
       switch(parm->jitterType) {
@@ -113,7 +113,7 @@ echoJitterCompute(echoRTParm *parm, echoThreadState *tstate) {
 	break;
       }
     }
-    jitt += 2*ECHO_JITABLE_NUM;
+    jitt += 2*ECHO_JITTABLE_NUM;
   }
 
   return;
@@ -233,8 +233,7 @@ echoRayColor(echoCol_t *chan, int samp, echoRay *ray,
     /* ray hits nothing in scene */
     if (!parm->renderBoxes) {
       ELL_4V_SET(chan, scene->bg[0], scene->bg[1], scene->bg[2], 1.0);
-    }
-    else {
+    } else {
       tmp = 1.0 - pow(1.0 - parm->boxOpac, intx.boxhits);
       ELL_4V_SET(chan, 1.0, 1.0, 1.0, tmp);
     }
@@ -254,10 +253,7 @@ echoRayColor(echoCol_t *chan, int samp, echoRay *ray,
 	   intx.pos[0], intx.pos[1], intx.pos[2]);
   }
   intx.depth = ray->depth;
-  /*
   _echoIntxColor[intx.obj->matter](chan, samp, &intx, scene, parm, tstate);
-  */
-  ELL_4V_COPY(chan, intx.obj->rgba);
 
   return;
 }
@@ -328,19 +324,25 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
   ray.depth = 0;
   ray.shadow = AIR_FALSE;
   img = (echoCol_t *)nraw->data;
-  printf("      ");  /* prep for printing airDoneStr */
+  fprintf(stderr, "%s:       ", me);  /* prep for printing airDoneStr */
   for (imgVi=0; imgVi<parm->imgResV; imgVi++) {
     imgV = NRRD_POS(nrrdCenterCell, cam->vRange[0], cam->vRange[1],
 		    parm->imgResV, imgVi);
-    printf("%s", airDoneStr(0, imgVi, parm->imgResV-1, done)); fflush(stdout);
+    if (!(imgVi % 5)) {
+      fprintf(stderr, "%s", airDoneStr(0, imgVi, parm->imgResV-1, done));
+      fflush(stderr);
+    }
     for (imgUi=0; imgUi<parm->imgResU; imgUi++) {
       imgU = NRRD_POS(nrrdCenterCell, cam->uRange[0], cam->uRange[1],
 		      parm->imgResU, imgUi);
 
+      tstate->verbose = AIR_FALSE;
+      /*
       tstate->verbose = ( (205 == imgUi && 103 == imgVi) ||
 			  (0 && 150 == imgUi && 232 == imgVi) ||
 			  (0 && 149 == imgUi && 233 == imgVi) ||
 			  (0 && 150 == imgUi && 233 == imgVi) );
+      */
       
       if (tstate->verbose) {
 	printf("\n");
@@ -359,14 +361,14 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
 	/* set ray.from[] */
 	ELL_3V_COPY(ray.from, eye);
 	if (parm->aperture) {
-	  tmp0 = parm->aperture*jitt[0 + 2*echoJitableLens];
-	  tmp1 = parm->aperture*jitt[1 + 2*echoJitableLens];
+	  tmp0 = parm->aperture*jitt[0 + 2*echoJittableLens];
+	  tmp1 = parm->aperture*jitt[1 + 2*echoJittableLens];
 	  ELL_3V_SCALEADD3(ray.from, 1, ray.from, tmp0, U, tmp1, V);
 	}
 	
 	/* set at[] */
-	tmp0 = imgU + pixUsz*jitt[0 + 2*echoJitablePixel];
-	tmp1 = imgV + pixVsz*jitt[1 + 2*echoJitablePixel];
+	tmp0 = imgU + pixUsz*jitt[0 + 2*echoJittablePixel];
+	tmp1 = imgV + pixVsz*jitt[1 + 2*echoJittablePixel];
 	ELL_3V_SCALEADD3(at, 1, imgOrig, tmp0, U, tmp1, V);
 
 	/* do it! */
@@ -388,7 +390,7 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
 	chan[4] = airTime() - time0;
 	
 	/* move to next "scanlines" */
-	jitt += 2*ECHO_JITABLE_NUM;
+	jitt += 2*ECHO_JITTABLE_NUM;
 	chan += ECHO_IMG_CHANNELS;
       }
       echoChannelAverage(img, parm, tstate);
@@ -398,6 +400,7 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
     }
   }
   gstate->time = airTime() - gstate->time;
+  fprintf(stderr, "\n%s: time = %g\n", me, gstate->time);
   
   tstate = echoThreadStateNix(tstate);
 

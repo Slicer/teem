@@ -105,18 +105,23 @@ echoSceneNew(void) {
   
   ret = (echoScene *)calloc(1, sizeof(echoScene));
   if (ret) {
-    ret->obj = NULL;
-    ret->objArr = airArrayNew((void**)&(ret->obj), NULL,
+    ret->cat = NULL;
+    ret->catArr = airArrayNew((void**)&(ret->cat), NULL,
 			      sizeof(echoObject *),
 			      ECHO_LIST_OBJECT_INCR);
-    airArrayPointerCB(ret->objArr,
+    airArrayPointerCB(ret->catArr,
 		      airNull,
 		      (void *(*)(void *))echoObjectNix);
+    ret->rend = NULL;
+    ret->rendArr = airArrayNew((void**)&(ret->rend), NULL,
+			       sizeof(echoObject *),
+			       ECHO_LIST_OBJECT_INCR);
+    /* no callbacks set, renderable objecs are nixed from catArr */
     ret->lit = NULL;
     ret->litArr = airArrayNew((void**)&(ret->lit), NULL,
 			      sizeof(echoObject *),
 			      ECHO_LIST_OBJECT_INCR);
-    /* no pointers set; light objects are nixed on delete by above */
+    /* no callbacks set; light objects are nixed from catArr */
     ret->nrrd = NULL;
     ret->nrrdArr = airArrayNew((void**)&(ret->nrrd), NULL,
 			       sizeof(Nrrd *),
@@ -138,10 +143,10 @@ _echoSceneLightAdd(echoScene *scene, echoObject *obj) {
     if (obj == scene->lit[idx]) {
       break;
     }
-    if (scene->litArr->len == idx) {
-      idx = airArrayIncrLen(scene->litArr, 1);
-      scene->lit[idx] = obj;
-    }
+  }
+  if (scene->litArr->len == idx) {
+    idx = airArrayIncrLen(scene->litArr, 1);
+    scene->lit[idx] = obj;
   }
 }
 
@@ -164,7 +169,8 @@ echoScene *
 echoSceneNix(echoScene *scene) {
   
   if (scene) {
-    airArrayNuke(scene->objArr);
+    airArrayNuke(scene->catArr);
+    airArrayNuke(scene->rendArr);
     airArrayNuke(scene->litArr);
     airArrayNuke(scene->nrrdArr);
     AIR_FREE(scene);
