@@ -403,7 +403,7 @@ teembin.%.dsp:
 	@rm -rf cmd.ed
 
 workspace:
-	@echo s/TEEMBINPROJECT/$(foreach bin,$(BINS),\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\\n\\nProject: "$(bin)"=.\\\\$(bin).dsp - Package Owner=\<4\>\\n\\nPackage=\<5\>\\n{{{\\n}}}\\n\\nPackage=\<4\>\\n{{{\\n    Begin Project Dependency\\n    Project_Dep_Name teem_s\\n    End Project Dependency\\n}}}\\n\\n)/g > cmd.ed
+	@echo s/TEEMBINPROJECT/$(foreach bin,$(BINS),\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\\n\\nProject: \"$(bin)\"=.\\\\$(bin).dsp - Package Owner=\<4\>\\n\\nPackage=\<5\>\\n{{{\\n}}}\\n\\nPackage=\<4\>\\n{{{\\n\ \ \ \ Begin Project Dependency\\n\ \ \ \ Project_Dep_Name teem_s\\n\ \ \ \ End Project Dependency\\n}}}\\n\\n)/g > cmd.ed
 	@echo "s/ #/#/g" >> cmd.ed
 	@sed -f cmd.ed ../win32/make/teem.dsw.tmpl > ../win32/make/teem.dsw
 	@unix2dos ../win32/make/teem.dsw 2> /dev/null
