@@ -155,7 +155,7 @@ _echoIntxColorPhong(COLOR_ARGS) {
     if (parm->shadow) {
       ELL_3V_COPY(shRay.dir, ldir);
       shRay.far = ldist;
-      if (parm->verbose) {
+      if (echoVerbose) {
 	printf("%d: from (%g,%g,%g) to (%g,%g,%g) for [%g,%g] (scene %d)\n",
 	       lt, shRay.from[0], shRay.from[1], shRay.from[2],
 	       shRay.dir[0], shRay.dir[1], shRay.dir[2],
@@ -163,12 +163,12 @@ _echoIntxColorPhong(COLOR_ARGS) {
       }
       if (_echoRayIntx[scene->type](&shIntx, &shRay, parm, scene)) {
 	/* the shadow ray hit something, nevermind */
-	if (parm->verbose) {
+	if (echoVerbose) {
 	  printf("       SHADOWED\n");
 	}
 	continue;
       }
-      if (parm->verbose) {
+      if (echoVerbose) {
 	printf(" I see the light\n");
       }
     }
@@ -236,7 +236,7 @@ _echoIntxColorMetal(COLOR_ARGS) {
 
   mat = intx->obj->mat;
 
-  if (0 && parm->verbose) {
+  if (0 && echoVerbose) {
     printf("depth = %d, t = %g\n", intx->depth, intx->t);
   }
   ELL_3V_NORM(intx->norm, intx->norm, tmp);
@@ -274,7 +274,7 @@ _echoIntxColorMetal(COLOR_ARGS) {
       tmp = ELL_3V_DOT(ldir, norm);
       if (tmp <= 0)
 	continue;
-      if (0 && parm->verbose) {
+      if (0 && echoVerbose) {
 	printf("light %d: dot = %g\n", lt, tmp);
       }
       if (parm->shadow) {
@@ -353,21 +353,21 @@ _echoIntxColorGlass(COLOR_ARGS) {
     _echoFuzzifyNormal(norm, fuzz, jitt, view);
   }
   ELL_3V_SCALEADD(refl, -1, view, 2*tmp, norm);
-  if (0 && parm->verbose) {
-    printf("(glass; depth = %d)\n", intx->depth);
-    printf("view . norm = %g\n", tmp);
+  if (echoVerbose) {
+    printf("(glass; depth = %d); \n"
+	   "    view = (%g,%g,%g); norm = (%g,%g,%g)\n"
+	   "    view . norm = %g\n", 
+	   intx->depth, view[0], view[1], view[2],
+	   norm[0], norm[1], norm[2], tmp);
   }
   
   if (tmp > 0) {
     /* "d.n < 0": we're bouncing off the outside */
     _echoRefract(tran, view, norm, index);
     c = tmp;
-    if (0 && parm->verbose) {
-      printf("view = (%g,%g,%g)\n",
-	     view[0], view[1], view[2]);
-      printf("tran = (%g,%g,%g)\n",
-	     tran[0], tran[1], tran[2]);
-      printf("c = %g\n", c);
+    if (echoVerbose) {
+      printf("   outside bounce tran = (%g,%g,%g); c = %g\n",
+	     tran[0], tran[1], tran[2], c);
     }
     ELL_3V_SET(k, 1, 1, 1);
   }
@@ -382,6 +382,10 @@ _echoIntxColorGlass(COLOR_ARGS) {
     ELL_3V_SCALE(norm, -1, norm);
     if (_echoRefract(tran, view, norm, 1/index)) {
       c = -ELL_3V_DOT(tran, norm);
+      if (echoVerbose) {
+	printf("   inside bounce tran = (%g,%g,%g); c = %g\n",
+	       tran[0], tran[1], tran[2], c);
+      }
     }
     else {
       /* holy moly, its total internal reflection time */
@@ -398,7 +402,7 @@ _echoIntxColorGlass(COLOR_ARGS) {
   c = 1 - c;
   c = c*c*c*c*c;
   RS = R0 + (1-R0)*c;
-  if (0 && parm->verbose) {
+  if (0 && echoVerbose) {
     printf("index = %g, R0 = %g, RS = %g\n", index, R0, RS);
     printf("k = %g %g %g\n", k[0], k[1], k[2]);
   }

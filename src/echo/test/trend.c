@@ -41,7 +41,7 @@ makeSceneDOF(limnCam *cam, EchoParm *parm,
   cam->dist = -2.1;
 
   parm->jitter = echoJitterJitter;
-  parm->verbose = 0;
+  echoVerbose = 0;
   parm->samples = 36;
   parm->imgResU = 300;
   parm->imgResV = 300;
@@ -107,7 +107,7 @@ makeSceneAntialias(limnCam *cam, EchoParm *parm,
   cam->vMax = 3.7;
 
   parm->jitter = echoJitterGrid;
-  parm->verbose = 0;
+  echoVerbose = 0;
   parm->samples = 1;
   parm->imgResU = 300;
   parm->imgResV = 300;
@@ -152,7 +152,7 @@ makeSceneSimple(limnCam *cam, EchoParm *parm,
   cam->vMax = 3.7;
 
   parm->jitter = echoJitterJitter;
-  parm->verbose = 0;
+  echoVerbose = 0;
   parm->samples = 36;
   parm->imgResU = 400;
   parm->imgResV = 400;
@@ -252,7 +252,7 @@ makeSceneTexture(limnCam *cam, EchoParm *parm,
   cam->vMax = 4;
 
   parm->jitter = echoJitterNone;
-  parm->verbose = 0;
+  echoVerbose = 0;
   parm->samples = 1;
   parm->imgResU = 300;
   parm->imgResV = 300;
@@ -330,7 +330,7 @@ makeSceneInstance(limnCam *cam, EchoParm *parm,
   cam->vMax = 5;
 
   parm->jitter = echoJitterNone;
-  parm->verbose = 0;
+  echoVerbose = 0;
   parm->samples = 1;
   parm->imgResU = 300;
   parm->imgResV = 300;
@@ -446,7 +446,7 @@ makeSceneBVH(limnCam *cam, EchoParm *parm,
   cam->vMax = 3;
 
   parm->jitter = echoJitterNone;
-  parm->verbose = 0;
+  echoVerbose = 0;
   parm->samples = 1;
   parm->imgResU = 500;
   parm->imgResV = 500;
@@ -489,19 +489,16 @@ makeSceneGlass(limnCam *cam, EchoParm *parm,
   *sceneP = scene = echoObjectNew(echoObjectList);
   *lightArrP = lightArr = echoLightArrayNew();
 
-  ELL_3V_SET(cam->from, -2, 2, 8);
+  ELL_3V_SET(cam->from, 2, -3, 8);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, 0, 1);
   cam->uMin = -1.0;
   cam->uMax = 1.0;
   cam->vMin = -1.0;
-  cam->vMax = 1.1;
+  cam->vMax = 1.0;
 
   parm->jitter = echoJitterNone;
-  parm->verbose = 0;
-  parm->samples = 4;
-  parm->imgResU = 200;
-  parm->imgResV = 200;
+  echoVerbose = 0;
   parm->samples = 1;
   parm->imgResU = 300;
   parm->imgResV = 300;
@@ -512,22 +509,87 @@ makeSceneGlass(limnCam *cam, EchoParm *parm,
   parm->shadow = AIR_FALSE;
   parm->seedRand = AIR_FALSE;
   parm->maxRecDepth = 10;
+  parm->mrR = 1.0;
+  parm->mrG = 0.0;
+  parm->mrB = 1.0;
 
   cube = echoObjectNew(echoObjectCube);
+  printf("cube = %p\n", cube);
   echoMatterGlassSet(cube,
 		     1.0, 1.0, 1.0,
-		     1.7, 0.0, 0.0);
+		     1.5, 0.0, 0.0);
   echoObjectListAdd(scene, cube);
 
   nrrdLoad(ntext=nrrdNew(), "psq.nrrd");
   
   rect = echoObjectNew(echoObjectRectangle);
+  printf("rect = %p\n", rect);
   echoObjectRectangleSet(rect,
 			 -1, -1, -0.51,
 			 2, 0, 0,
 			 0, 2, 0);
   echoMatterPhongSet(rect, 1.0, 1.0, 1.0, 1.0,
 		     0.1, 0.6, 0.3, 40);
+  echoMatterTextureSet(rect, ntext);
+  echoObjectListAdd(scene, rect);
+
+  light = echoLightNew(echoLightDirectional);
+  echoLightDirectionalSet(light, 1, 1, 1, 0, 0, 1);
+  echoLightArrayAdd(lightArr, light);
+}
+
+void
+makeSceneGlass2(limnCam *cam, EchoParm *parm,
+		EchoObject **sceneP, airArray **lightArrP) {
+  EchoObject *cube, *rect;
+  EchoLight *light;
+  EchoObject *scene; airArray *lightArr;
+  Nrrd *ntext;
+  
+  *sceneP = scene = echoObjectNew(echoObjectList);
+  *lightArrP = lightArr = echoLightArrayNew();
+
+  ELL_3V_SET(cam->from, 0, 0, 100);
+  ELL_3V_SET(cam->at,   0, 0, 0);
+  ELL_3V_SET(cam->up,   0, 1, 0);
+  cam->uMin = -1.0;
+  cam->uMax = 1.0;
+  cam->vMin = -1.0;
+  cam->vMax = 1.0;
+
+  parm->jitter = echoJitterNone;
+  echoVerbose = 0;
+  parm->samples = 1;
+  parm->imgResU = 300;
+  parm->imgResV = 300;
+  parm->aperture = 0.0;
+  parm->gamma = 2.0;
+  parm->refDistance = 4;
+  parm->renderLights = AIR_FALSE;
+  parm->shadow = AIR_FALSE;
+  parm->seedRand = AIR_FALSE;
+  parm->maxRecDepth = 10;
+  parm->mrR = 1.0;
+  parm->mrG = 0.0;
+  parm->mrB = 1.0;
+
+  cube = echoObjectNew(echoObjectSphere);
+  echoObjectSphereSet(cube, 0, 0, 0, 0.5);
+  echoMatterGlassSet(cube,
+		     1.0, 1.0, 1.0,
+		     1.33333, 0.0, 0.0);
+  echoObjectListAdd(scene, cube);
+
+  nrrdLoad(ntext=nrrdNew(), "check.nrrd");
+  
+  rect = echoObjectNew(echoObjectRectangle);
+  printf("rect = %p\n", rect);
+  echoObjectRectangleSet(rect,
+			 -1, -1, -0.51,
+			 2, 0, 0,
+			 0, 2, 0);
+  echoMatterPhongSet(rect, 1.0, 1.0, 1.0, 1.0,
+		     0.0, 1.0, 0.0, 40);
   echoMatterTextureSet(rect, ntext);
   echoObjectListAdd(scene, rect);
 
@@ -555,7 +617,7 @@ makeSceneGlassMetal(limnCam *cam, EchoParm *parm,
   cam->vMax = 1.3;
 
   parm->jitter = echoJitterJitter;
-  parm->verbose = 0;
+  echoVerbose = 0;
   parm->samples = 36;
   parm->imgResU = 400;
   parm->imgResV = 400;
@@ -655,7 +717,7 @@ makeSceneShadow(limnCam *cam, EchoParm *parm,
   cam->vMax = 1.8;
 
   parm->jitter = echoJitterJitter;
-  parm->verbose = 0;
+  echoVerbose = 0;
   parm->samples = 4;
   parm->imgResU = 200;
   parm->imgResV = 200;
@@ -751,7 +813,7 @@ makeSceneRainLights(limnCam *cam, EchoParm *parm,
   cam->vMax = 1.8;
 
   parm->jitter = echoJitterJitter;
-  parm->verbose = 0;
+  echoVerbose = 0;
   parm->samples = 36;
   parm->imgResU = 1000;
   parm->imgResV = 1000;
@@ -845,7 +907,8 @@ main(int argc, char **argv) {
 
   /* makeSceneRainLights(cam, parm, &scene, &lightArr); */
   /* makeSceneShadow(cam, parm, &scene, &lightArr); */
-  makeSceneGlass(cam, parm, &scene, &lightArr);
+  /* makeSceneGlass(cam, parm, &scene, &lightArr); */
+  makeSceneGlass2(cam, parm, &scene, &lightArr);
   /* makeSceneGlassMetal(cam, parm, &scene, &lightArr); */
   /* makeSceneBVH(cam, parm, &scene, &lightArr); */
   /* makeSceneInstance(cam, parm, &scene, &lightArr); */

@@ -73,8 +73,7 @@ typedef double echoCol_t;
 
 typedef struct {
   /* ray-tracing parmeters */
-  int verbose,         /* verbosity level */
-    jitter,            /* what kind of jittering to do */
+  int jitter,          /* what kind of jittering to do */
     shadow,            /* do shadowing */
     samples,           /* # samples per pixel */
     imgResU, imgResV,  /* horizontal and vertical image resolution */
@@ -207,34 +206,28 @@ typedef struct {
 } EchoObject;
 
 typedef struct {
-  ECHO_OBJECT_COMMON;
-  ECHO_OBJECT_MATTER;
-  echoPos_t pos[3];
-  echoPos_t rad;
+  ECHO_OBJECT_COMMON; ECHO_OBJECT_MATTER;
+  echoPos_t pos[3], rad;
 } EchoObjectSphere;
 
 typedef struct {
-  ECHO_OBJECT_COMMON;
-  ECHO_OBJECT_MATTER;
+  ECHO_OBJECT_COMMON; ECHO_OBJECT_MATTER;
 } EchoObjectCube;
 
 typedef struct {
-  ECHO_OBJECT_COMMON;
-  ECHO_OBJECT_MATTER;
+  ECHO_OBJECT_COMMON; ECHO_OBJECT_MATTER;
   echoPos_t vert[3][3];  /* e0 = vert[1]-vert[0],
 			    e1 = vert[2]-vert[0],
 			    normal = e0 x e1 */
 } EchoObjectTriangle;
 
 typedef struct {
-  ECHO_OBJECT_COMMON;
-  ECHO_OBJECT_MATTER;
+  ECHO_OBJECT_COMMON; ECHO_OBJECT_MATTER;
   echoPos_t origin[3], edge0[3], edge1[3], area;
 } EchoObjectRectangle;
 
 typedef struct {
-  ECHO_OBJECT_COMMON;
-  ECHO_OBJECT_MATTER;
+  ECHO_OBJECT_COMMON; ECHO_OBJECT_MATTER;
   echoPos_t origin[3], min[3], max[3];
   int numV, numF;
   echoPos_t *pos;
@@ -242,8 +235,7 @@ typedef struct {
 } EchoObjectTriMesh;
 
 typedef struct {
-  ECHO_OBJECT_COMMON;
-  ECHO_OBJECT_MATTER;
+  ECHO_OBJECT_COMMON; ECHO_OBJECT_MATTER;
   Nrrd *volume;
   float value;
 } EchoObjectIsosurface;
@@ -278,8 +270,6 @@ typedef struct {
 } EchoObjectInstance;  
 
 extern EchoObject *echoObjectNew(int type);
-#define ECHO_OBJECT_NEW(TYPE) \
-  (EchoObject##TYPE *)echoObjectNew(echoObject##Type)
 extern EchoObject *echoObjectNix(EchoObject *obj);
 extern EchoObject *echoObjectNuke(EchoObject *obj);
 extern void echoObjectBounds(echoPos_t *lo, echoPos_t *hi, EchoObject *obj);
@@ -358,6 +348,8 @@ extern EchoThreadState *echoThreadStateNix(EchoThreadState *state);
 extern limnCam *echoLimnCamNew();
 
 /* render.c ---------------------------------------- */
+
+extern int echoVerbose;
 
 typedef struct {
   echoPos_t from[3],    /* ray comes from this point */

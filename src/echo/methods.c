@@ -24,7 +24,6 @@ echoParmNew(void) {
   EchoParm *parm;
   
   parm = (EchoParm *)calloc(1, sizeof(EchoParm));
-  parm->verbose = 1;
   parm->jitter = echoJitterNone;
   parm->samples = 1;
   parm->shadow = AIR_TRUE;

@@ -109,35 +109,40 @@ _echoRayIntxCubeTest(echoPos_t *tP, int *axP, int *dirP,
 		     EchoRay *ray) {
   echoPos_t txmin, tymin, tzmin, txmax, tymax, tzmax,
     dx, dy, dz, ox, oy, oz, tmin, tmax;
-  int axmin, axmax;
+  int axmin, axmax, sgn[3];
 
   ELL_3V_GET(dx, dy, dz, ray->dir);
   ELL_3V_GET(ox, oy, oz, ray->from);
-  if (dx >= 0) { txmin = (xmin - ox)/dx; txmax = (xmax - ox)/dx; }
-  else {         txmin = (xmax - ox)/dx; txmax = (xmin - ox)/dx; }
-  if (dy >= 0) { tymin = (ymin - oy)/dy; tymax = (ymax - oy)/dy; }
-  else {         tymin = (ymax - oy)/dy; tymax = (ymin - oy)/dy; }
-  if (dz >= 0) { tzmin = (zmin - oz)/dz; tzmax = (zmax - oz)/dz; }
-  else {         tzmin = (zmax - oz)/dz; tzmax = (zmin - oz)/dz; }
+  if (dx >= 0) { txmin = (xmin - ox)/dx; txmax = (xmax - ox)/dx; sgn[0] = -1; }
+  else         { txmin = (xmax - ox)/dx; txmax = (xmin - ox)/dx; sgn[0] =  1; }
+  if (dy >= 0) { tymin = (ymin - oy)/dy; tymax = (ymax - oy)/dy; sgn[1] = -1; }
+  else         { tymin = (ymax - oy)/dy; tymax = (ymin - oy)/dy; sgn[1] =  1; }
+  if (dz >= 0) { tzmin = (zmin - oz)/dz; tzmax = (zmax - oz)/dz; sgn[2] = -1; }
+  else         { tzmin = (zmax - oz)/dz; tzmax = (zmin - oz)/dz; sgn[2] =  1; }
   if (txmin > tymin) { tmin = txmin; axmin = 0; }
-  else {               tmin = tymin; axmin = 1; }
-  if (tzmin > tmin) {  tmin = tzmin; axmin = 2; }
+  else               { tmin = tymin; axmin = 1; }
+  if (tzmin > tmin)  { tmin = tzmin; axmin = 2; }
   if (txmax < tymax) { tmax = txmax; axmax = 0; }
-  else {               tmax = tymax; axmax = 1; }
-  if (tzmax < tmax) {  tmax = tzmax; axmax = 2; }
-  /*
-  printf("tx: %g,%g ; ty: %g,%g ; tz: %g,%g  ---> %g,%g (%d)\n",
-	 txmin, txmax, tymin, tymax, tzmin, tzmax, tmin, tmax, tmin >= tmax);
-  */
+  else               { tmax = tymax; axmax = 1; }
+  if (tzmax < tmax)  { tmax = tzmax; axmax = 2; }
+  if (0 && echoVerbose) {
+    printf("%s: dir = (%g,%g,%g); tx: %g,%g ; ty: %g,%g ; tz: %g,%g \n"
+	   "  ---> %g,%g (%d)\n"
+	   "  axmin = %d, axmax = %d\n",
+	   "_echoRayIntxCubeTest",
+	   dx, dy, dz,
+	   txmin, txmax, tymin, tymax, tzmin, tzmax,
+	   tmin, tmax, tmin < tmax, axmin, axmax);
+  }
   if (tmin >= tmax)
     return AIR_FALSE;
   *tP = tmin;
   *axP = axmin;
-  *dirP = 1;
+  *dirP = sgn[axmin];
   if (!AIR_INSIDE(ray->near, *tP, ray->far)) {
     *tP = tmax;
     *axP = axmax;
-    *dirP = -1;
+    *dirP = sgn[axmax];
     if (!AIR_INSIDE(ray->near, *tP, ray->far)) {
       return AIR_FALSE;
     }
@@ -163,7 +168,7 @@ _echoRayIntxCube(INTX_ARGS(Cube)) {
   case 2: ELL_3V_SET(intx->norm, 0, 0, dir); break;
   }
   intx->face = ax;
-  if (0 && parm->verbose) {
+  if (0 && echoVerbose) {
     printf("%s: ax = %d --> norm = (%g,%g,%g)\n",
 	   "_echoRayIntxCube", ax,
 	   intx->norm[0], intx->norm[1], intx->norm[2]);
@@ -288,7 +293,7 @@ _echoRayIntxTriMesh(INTX_ARGS(TriMesh)) {
 			    trim->min[0], trim->max[0],
 			    trim->min[1], trim->max[1],
 			    trim->min[2], trim->max[2], ray)) {
-    if (parm->verbose) {
+    if (echoVerbose) {
       printf("(trimesh bbox (%g,%g,%g) --> (%g,%g,%g) not hit)\n",
 	     trim->min[0], trim->min[1], trim->min[2],
 	     trim->max[0], trim->max[1], trim->max[2]);
@@ -344,7 +349,7 @@ _echoRayIntxSplit(INTX_ARGS(Split)) {
     maxb = obj->max0;
   }
 
-  if (parm->verbose) {
+  if (echoVerbose) {
     printf("_echoRayIntxSplit (shadow = %d):\n", ray->shadow);
     printf("_echoRayIntxSplit: 1st: (%g,%g,%g) -- (%g,%g,%g) (obj %d)\n", 
 	   mina[0], mina[1], mina[2],
@@ -394,7 +399,7 @@ _echoRayIntxList(INTX_ARGS(List)) {
 			      box->min[0], box->max[0],
 			      box->min[1], box->max[1],
 			      box->min[2], box->max[2], ray)) {
-      if (0 && parm->verbose) {
+      if (0 && echoVerbose) {
 	printf("_echoRayIntxList: missed box (%g,%g,%g)--(%g,%g,%g)\n",
 	       box->min[0], box->min[1], box->min[2],
 	       box->max[0], box->max[1], box->max[2]);
@@ -405,23 +410,24 @@ _echoRayIntxList(INTX_ARGS(List)) {
   }
   
   ret = AIR_FALSE;
-  if (parm->verbose) {
-    printf("_echoRayIntxList: have %d kids to test\n", obj->objArr->len);
+  if (echoVerbose) {
+    printf("_echoRayIntxList(d=%d): have %d kids to test\n",
+	   ray->depth, obj->objArr->len);
   }
   for (i=0; i<obj->objArr->len; i++) {
     kid = obj->obj[i];
-    if (0 && parm->verbose) {
+    if (0 && echoVerbose) {
       printf("_echoRayIntxList: testing a %d ... ", kid->type);
     }
     if (_echoRayIntx[kid->type](intx, ray, parm, kid)) {
       ray->far = intx->t;
       ret = AIR_TRUE;
-      if (0 && parm->verbose) {
+      if (0 && echoVerbose) {
 	printf("YES\n");
       }
     }
     else {
-      if (0 && parm->verbose) {
+      if (0 && echoVerbose) {
 	printf("YES\n");
       }
     }
@@ -441,7 +447,7 @@ _echoRayIntxInstance(INTX_ARGS(Instance)) {
   */
   ELL_4V_SET(a, ray->from[0], ray->from[1], ray->from[2], 1);
   ELL_4MV_MUL(b, obj->Mi, a);  ELL_34V_HOMOG(iray.from, b);
-  if (0 && parm->verbose) {
+  if (0 && echoVerbose) {
     ell4mPrint_p(stdout, obj->Mi);
     printf("from (%g,%g,%g)\n   -- Mi --> (%g,%g,%g,%g)\n   --> (%g,%g,%g)\n",
 	   a[0], a[1], a[2],
@@ -450,7 +456,7 @@ _echoRayIntxInstance(INTX_ARGS(Instance)) {
   }
   ELL_4V_SET(a, ray->dir[0], ray->dir[1], ray->dir[2], 0);
   ELL_4MV_MUL(b, obj->Mi, a);   ELL_3V_COPY(iray.dir, b);
-  if (0 && parm->verbose) {
+  if (0 && echoVerbose) {
     printf("dir (%g,%g,%g)\n   -- Mi --> (%g,%g,%g,%g)\n   --> (%g,%g,%g)\n",
 	   a[0], a[1], a[2],
 	   b[0], b[1], b[2], b[3], 
@@ -466,7 +472,7 @@ _echoRayIntxInstance(INTX_ARGS(Instance)) {
     ELL_4V_SET(a, intx->norm[0], intx->norm[1], intx->norm[2], 0);
     ELL_4MV_TMUL(b, obj->Mi, a);
     ELL_3V_COPY(intx->norm, b);
-    if (parm->verbose) {
+    if (echoVerbose) {
       printf("hit a %d with M == \n", obj->obj->type);
       ell4mPrint_p(stdout, obj->M);
       printf(" (det = %f), and Mi == \n", ell4mDet_p(obj->M));

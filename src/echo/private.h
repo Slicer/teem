@@ -34,6 +34,9 @@ extern "C" {
 #define TRIM(obj)     ((EchoObjectTriMesh*)obj)
 #define INSTANCE(obj) ((EchoObjectInstance*)obj)
 
+#define ECHO_OBJECT_NEW(TYPE) \
+  (EchoObject##TYPE *)echoObjectNew(echoObject##Type)
+
 /* intx.c */
 #define INTX_ARGS(TYPE) EchoIntx *intx, EchoRay *ray,               \
                         EchoParm *parm, EchoObject##TYPE *obj
