@@ -62,8 +62,14 @@ typedef struct limnCamera_t {
                          to the "true" up) */
     uRange[2],        /* range of U values to put on horiz. image axis */
     vRange[2],        /* range of V values to put on vert. image axis */
-    neer, faar,       /* neer and far clipping plane distances
-                         (misspelled for the sake of McRosopht) */
+    fov,              /* if non-NaN, and aspect is non-NaN, then {u,v}Range
+			 will be set accordingly by limnCameraUpdate().
+			 "fov" is the angle, in degrees, vertically subtended
+			 by the view window */
+    aspect,           /* the ratio of horizontal to vertical size of the 
+			 view window */
+    neer, faar,       /* near and far clipping plane distances
+                         (misspelled for the sake of a McRosopht compiler) */
     dist;             /* distance to image plane */
   int atRelative,     /* if non-zero: given neer, faar, and dist
                          quantities indicate distance relative to the
@@ -320,7 +326,8 @@ enum {
 				 spline for camera directions towards at */
   limnCameraPathTrackAt,      /* 2: 3-D spline for *at* points, quaternion 
 				 spline for directions back to camera */
-  limnCameraPathTrackBoth,    /* 3: 2 3-D splines: one for from, one for at */
+  limnCameraPathTrackBoth,    /* 3: three 3-D splines: for from point, at
+				 point, and the up vector */
   limnCameraPathTrackLast
 };
 #define LIMN_CAMERA_PATH_TRACK_MAX 3
@@ -361,13 +368,15 @@ TEEM_API int limnDefCameraAtRelative;
 TEEM_API int limnDefCameraOrthographic;
 TEEM_API int limnDefCameraRightHanded;
 
+/* enumsLimn.c */
+TEEM_API airEnum *limnCameraPathTrack;
+
 /* qn.c */
 TEEM_API int limnQNBins[LIMN_QN_MAX+1];
 TEEM_API void (*limnQNtoV_f[LIMN_QN_MAX+1])(float *vec, int qn);
 TEEM_API void (*limnQNtoV_d[LIMN_QN_MAX+1])(double *vec, int qn);
 TEEM_API int (*limnVtoQN_f[LIMN_QN_MAX+1])(float *vec);
 TEEM_API int (*limnVtoQN_d[LIMN_QN_MAX+1])(double *vec);
-
 
 /* light.c */
 TEEM_API void limnLightSet(limnLight *lit, int which, int vsp,
@@ -398,9 +407,11 @@ TEEM_API limnWindow *limnWindowNix(limnWindow *win);
 TEEM_API void limnHestCameraOptAdd(hestOpt **hoptP, limnCamera *cam,
 				   char *frDef, char *atDef, char *upDef,
 				   char *dnDef, char *diDef, char *dfDef,
-				   char *urDef, char *vrDef);
+				   char *urDef, char *vrDef, char *fvDef);
 
 /* cam.c */
+TEEM_API int limnCameraAspectSet(limnCamera *cam,
+				 int horz, int vert, int centering);
 TEEM_API int limnCameraUpdate(limnCamera *cam);
 TEEM_API int limnCameraPathMake(limnCamera *cam, int numFrames,
 				limnCamera *keycam, double *time,
@@ -408,7 +419,7 @@ TEEM_API int limnCameraPathMake(limnCamera *cam, int numFrames,
 				limnSplineTypeSpec *quatType,
 				limnSplineTypeSpec *posType,
 				limnSplineTypeSpec *distType,
-				limnSplineTypeSpec *uvType);
+				limnSplineTypeSpec *viewType);
 
 /* obj.c */
 TEEM_API int limnObjectLookAdd(limnObject *obj);

@@ -43,6 +43,10 @@ limnCameraInit(limnCamera *cam) {
     cam->atRelative = limnDefCameraAtRelative;
     cam->orthographic = limnDefCameraOrthographic;
     cam->rightHanded = limnDefCameraRightHanded;
+    cam->uRange[0] = cam->uRange[1] = AIR_NAN;
+    cam->vRange[0] = cam->vRange[1] = AIR_NAN;
+    cam->fov = AIR_NAN;
+    cam->aspect = AIR_NAN;
   }
   return;
 }

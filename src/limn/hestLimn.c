@@ -35,12 +35,13 @@
 ** ar: cam->atRelative
 ** ur: cam->uRange
 ** vr: cam->vRange
+** fv: cam->fov
 */
 void
 limnHestCameraOptAdd(hestOpt **hoptP, limnCamera *cam,
 		     char *frDef, char *atDef, char *upDef,
 		     char *dnDef, char *diDef, char *dfDef,
-		     char *urDef, char *vrDef) {
+		     char *urDef, char *vrDef, char *fvDef) {
   hestOpt *hopt;
   
   hopt = *hoptP;
@@ -67,6 +68,8 @@ limnHestCameraOptAdd(hestOpt **hoptP, limnCamera *cam,
 	     urDef, "range in U direction of image plane");
   hestOptAdd(&hopt, "vr", "vMin vMax", airTypeDouble, 2, 2, cam->vRange,
 	     vrDef, "range in V direction of image plane");
+  hestOptAdd(&hopt, "fv", "field of view", airTypeDouble, 1, 1, &(cam->fov),
+	     fvDef, "angle (in degrees) vertically subtended by view window");
   *hoptP = hopt;
   return;
 }
