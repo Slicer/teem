@@ -66,22 +66,30 @@ NUM.LIBS = $(join $(NUMS),$(LIBS:%=.%))
 ## trying implicit rules to update them.
 ##
 MODES = install usable dev clean clobber
-.PHONY : $(foreach LIB,$(LIBS),$(MODES:%=$(LIB)/%))
+.PHONY : $(foreach LIB,teem $(LIBS),$(MODES:%=$(LIB)/%))
 
-## Top-level rules.  If make started with this file, then these will
-## be the first rules that make sees, so that "make" defaults to "make
-## X.install" for *every* library X.  If make started in a library
-## subdirectory, these won't be seen at all.
+## Top-level/default rules.  If make started with this file, then
+## these will be the first rules that make sees, so that "make"
+## defaults to "make X.install" for *every* library X.  If make
+## started in a library subdirectory, these won't be seen at all.
 ##
 ifeq (,$(DEF_TARGETS))
-  install : $(LIBS:%=%/install)
-  dev     : $(LIBS:%=%/dev)
-  usable  : $(LIBS:%=%/usable)
-  clean   : $(LIBS:%=%/clean)
-  clobber : $(LIBS:%=%/clobber)
-  nothing :
+  install : teem/install
+  dev     : teem/dev
+  usable  : teem/usable
+  clean   : teem/clean
+  clobber : teem/clobber
   DEF_TARGETS := true
 endif
+
+## Top-level rules, available regardless of where make started
+##
+teem/install : $(addsuffix /install,$(LIBS) bin)
+teem/dev     : $(addsuffix /dev,$(LIBS) bin)
+teem/usable  : $(addsuffix /usable,$(LIBS) bin)
+teem/clean   : $(addsuffix /clean,$(LIBS) bin)
+teem/clobber : $(addsuffix /clobber,$(LIBS) bin)
+nothing : ;
 
 ## Set directory-related variables: where to install things, as well
 ## as the directories used in conjunction with the -I and -L path
@@ -183,11 +191,12 @@ HDRS.DEV = $(addprefix $(TEEM_SRC)/$(1)/,$($(1).PUBLIC_HEADERS)) \
 ## or indirect recursion in variable names.
 ## 
 ## Since we rely on $(sort) to remove redundancies, we need a way of
-## putting the libraries back in dependency order (NOT lexical order).
-## We prefix the library names with [0..D], re-sort them, and then
-## lose the prefix.
+## putting the libraries back in dependency order (!= lexical order).
+## So, we prefix the library names with [0..D] (via $(join), to create
+## NUM.LIBS, and finally _ND.NLS), re-sort them, and then lose the
+## prefix (to create NEED.LIBS).
 ## 
-_ND.0 = $($(1).NEED_LIBS)
+_ND.0 = $($(1).NEED)
 _ND.1 = $(sort $(foreach LIB,$(call _ND.0,$(1)),$(LIB) $(call _ND.0,$(LIB))))
 _ND.2 = $(sort $(foreach LIB,$(call _ND.1,$(1)),$(LIB) $(call _ND.0,$(LIB))))
 _ND.3 = $(sort $(foreach LIB,$(call _ND.2,$(1)),$(LIB) $(call _ND.0,$(LIB))))
@@ -245,7 +254,7 @@ ifneq (,$(L))
 endif
 INCLUDED = true
 include $(foreach LIB,$(LIBS),$(TEEM_SRC)/$(LIB)/GNUmakefile)
+include $(TEEM_SRC)/bin/GNUmakefile
 ifneq (,$(L.SAVE))
   L := $(L.SAVE)
 endif
-

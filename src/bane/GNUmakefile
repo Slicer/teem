@@ -37,7 +37,6 @@ install : $(L)/install
 usable  : $(L)/usable
 clean   : $(L)/clean
 clobber : $(L)/clobber
-nothing :
 DEF_TARGETS = true
 endif
 ifeq (,$(INCLUDED))
@@ -47,7 +46,7 @@ endif
 #### Describe library here
 ####
 ####
-$(L).NEED_LIBS = gage nrrd biff air
+$(L).NEED = gage nrrd biff air
 $(L).PUBLIC_HEADERS = bane.h
 $(L).PRIVATE_HEADERS = privateBane.h
 $(L).OBJS = defaultsBane.o range.o inc.o clip.o measr.o valid.o \

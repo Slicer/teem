@@ -18,7 +18,6 @@
 #
 #
 
-
 #### Name of the library goes here.
 #### 
 #### 
@@ -53,11 +52,14 @@ BINS = airSanity affine cubic nrrdSanity overrgb idx2pos \
 BINS.DEV = $(addprefix $(TEEM_SRC)/bin/,$(BINS))
 BINS.INST = $(addprefix $(BDEST)/,$(BINS))
 
+bin/install ::
+	@echo ">>>>>>>>>>>>>>>>>>>>" bin "<<<<<<<<<<<<<<<<<<<<"
+
 ## Dntry-point targets for binaries.  There is no "usable" for
 ## binaries, since they aren't libraries.
 ##
 bin/dev: $(BINS.DEV)
-bin/install: $(BINS.INST)
+bin/install:: $(BINS.INST)
 bin/clean: 
 	$(RM) $(BINS.DEV)
 bin/clobber: bin/clean
@@ -82,10 +84,11 @@ mrender.NEED    = hoover limn gage nrrd biff hest air
 miter.NEED      = mite hoover limn nrrd ell biff air
 gantry.NEED     = gage nrrd biff hest air
 
-## Both development and install bins link against the same (installed)
-## libraries, so the commands aren't actually any different ...
+## How to make BINS.DEV and BINS.INST: both kinds link against the
+## same (installed) libraries and include the same (installed)
+## headers, so the commands aren't actually any different ...
 ## 
-$(TEEM_SRC)/bin/% $(BDEST)/% : %.c
+$(TEEM_SRC)/bin/% $(BDEST)/% : $(TEEM_SRC)/bin/%.c
 	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) -o $@ $< \
 	  $(LPATH) $(call NEED.LIBLINKS,$(notdir $@)) -lm
 
