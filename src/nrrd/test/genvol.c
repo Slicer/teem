@@ -40,15 +40,15 @@ genvolFunc(float x, float y, float z) {
   return ((1 - sin(M_PI*z/2))
 	  + 0.25*(1 + rho(sqrt(x*x + y*y))))/(2*(1 + 0.25));
 	   */
-  /* marschner-lobb, linear variation in Z
+  /* marschner-lobb, linear variation in Z */
   return (1 - (M_PI*z + 3)/5) + 0.25*(1 + rho(sqrt(x*x + y*y)))/(2*(1 + 0.25));
- */
+
   /* cone 
   return z - 2*sqrt(x*x + y*y) + 0.5;
   */
-  /* pin-cushion */
+  /* pin-cushion
   return x*x + y*y + z*z - x*x*x*x - y*y*y*y - z*z*z*z;
-
+  */
   /* quadratic surface (moved to quadvol.c)
   return A*x*x + B*y*y - z;
   */
@@ -111,6 +111,8 @@ main(int argc, char *argv[]) {
 
   nrrdAxesSet(nout, nrrdAxesInfoMin, min[0], min[1], min[2]);
   nrrdAxesSet(nout, nrrdAxesInfoMax, max[0], max[1], max[2]);
+  nrrdAxesSet(nout, nrrdAxesInfoCenter, 
+	      nrrdCenterNode, nrrdCenterNode, nrrdCenterNode);
   nrrdAxisSpacingSet(nout, 0);
   nrrdAxisSpacingSet(nout, 1);
   nrrdAxisSpacingSet(nout, 2);
