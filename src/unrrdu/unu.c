@@ -174,7 +174,11 @@ hestCB unuPosHestCB = {
   NULL
 };
 
-
+/*
+** although nrrdType is an airEnum that hest already knows how
+** to parse, we want the ability to have "unknown" be a valid
+** parsable value, contrary to how airEnums usually work with hest.
+*/
 int
 unuParseMaybeType(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="unuParseMaybeType";
@@ -217,7 +221,7 @@ usage(char *me) {
     maxlen = AIR_MAX(maxlen, strlen(cmdList[i]->name));
   }
 
-  sprintf(buff, "--- %s: Utah nrrd utilities (unrrdu) command-line interface ---", me);
+  sprintf(buff, "--- %s: Utah Nrrd Utilities command-line interface ---", me);
   sprintf(fmt, "%%%ds\n",
 	  (int)((UNRRDU_COLUMNS-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
@@ -263,6 +267,7 @@ main(int argc, char **argv) {
     hparm->elideSingleOtherType = AIR_TRUE;
     hparm->elideSingleOtherDefault = AIR_TRUE;
     hparm->elideSingleNonExistFloatDefault = AIR_TRUE;
+    hparm->elideSingleEmptyStringDefault = AIR_TRUE;
     hparm->columns = UNRRDU_COLUMNS;
     argv0 = malloc(strlen(UNU) + strlen(argv[1]) + 2);
     sprintf(argv0, "%s %s", UNU, argv[1]);
