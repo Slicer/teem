@@ -142,7 +142,7 @@ nrrdKernelSpecNew() {
   ksp = (NrrdKernelSpec *)calloc(1, sizeof(NrrdKernelSpec));
   if (ksp) {
     ksp->kernel = NULL;
-    for (i=0; i<=NRRD_KERNEL_PARMS_NUM; i++) {
+    for (i=0; i<NRRD_KERNEL_PARMS_NUM; i++) {
       ksp->parm[i] = AIR_NAN;
     }
   }
