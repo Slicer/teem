@@ -38,7 +38,7 @@ main(int argc, char **argv) {
 	    "platform, or (more likely)\n");
     fprintf(stderr, "  there was an error in the compilation options "
 	    "and variable definitions\n");
-    fprintf(stderr, "  for teem.\n");
+    fprintf(stderr, "  for how teem was built here.\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "  %s\n", err = biffGetDone(NRRD));
     fprintf(stderr, "\n");
@@ -62,7 +62,7 @@ main(int argc, char **argv) {
 
   /* if there are no arguments, then we give general usage information */
   if (1 >= argc) {
-    unrrduUsage(UNRRDU, hparm);
+    unrrduUsage("unu", hparm);
     airMopError(mop);
     exit(1);
   }
