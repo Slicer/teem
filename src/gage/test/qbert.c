@@ -158,8 +158,7 @@ main(int argc, char *argv[]) {
   }
   printf("%s: padding (stage 1) ... ", me); fflush(stdout);
   npad = nrrdNew();
-  /* if (nrrdPad(npad, nin, padMin, padMax, nrrdBoundaryPad, 0.0)) { */
-  if (nrrdPad(npad, nin, padMin, padMax, nrrdBoundaryBleed)) {
+  if (nrrdPad(npad, nin, padMin, padMax, nrrdBoundaryPad, 0.0)) {
     fprintf(stderr, "%s: trouble padding:\n%s\n", me, biffGet(NRRD));
     exit(1);
   }
@@ -223,9 +222,8 @@ main(int argc, char *argv[]) {
     padMax[i] = sz[i] - border - 1;
   }
   printf("%s: padding (stage 2) ... ", me); fflush(stdout);
-  /*  if (nrrdPad(npad=nrrdNew(), nrsmp, padMin, padMax,
-      nrrdBoundaryPad, 0.0)) { */
-  if (nrrdPad(npad=nrrdNew(), nrsmp, padMin, padMax, nrrdBoundaryBleed)) {
+  if (nrrdPad(npad=nrrdNew(), nrsmp, padMin, padMax,
+	      nrrdBoundaryPad, 0.0)) {
     fprintf(stderr, "%s: trouble padding:\n%s\n", me, biffGet(NRRD));
     exit(1);
   }
