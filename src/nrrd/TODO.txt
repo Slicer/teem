@@ -1,4 +1,7 @@
 unu heq should not DIE if min==max, it should just be a no-op.
+unu heq -s 2 shouldn't DIE if there are only 2 bins with any hits
+
+strip min,max,hasNonExist from nrrd struct
 
 when reading raw data, make sure that after all data has been
 accounted for by nrrdReadDataRaw(), make sure that a subsequent
@@ -8,9 +11,7 @@ NrrdIO->thinkofosomething is enabled
 follow heq with clamp so that there's no value wrap-around
 (noticed this with unu heq -a -1)
 
-nrrdSplice, nrrdInset
-
-test working with nout==nin
+test working with nout==ninsdfs
 nrrdContentSet
 nrrdConvert
 nrrdQuantize
@@ -18,13 +19,12 @@ nrrdUnquantize
 
 test regular and irregular colormaps with only 2 points, 
 purify unu {lut, rmap, imap} with scalar and nonscalar,
-type  same and different than map type.
+                                  type  same and different than map type.
 
 check resampler getting info with NULL kernel on each axis
 (bug that Joe and I had with qbert when no resmapling was needed)
 
-change verbosity to warning when nrrd headers in PPM and tables are botched,
-and to get indication of successful DIO reading
+change IO verbosity to get indication of successful DIO reading
 
 write a select() function to replace qsort() in median calculation
 
@@ -45,8 +45,6 @@ see which of the nrrdDef* variables are actually used, but this
 is harder than just grepping through files for the nrrdDef* name;
 you have to see where the variable is used that initially is set
 to the nrrdDef* value.
-
-allow web-friendly image output: BMP, and maybe uncompressed GIF
 
 Bricking!
 
