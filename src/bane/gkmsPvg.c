@@ -87,7 +87,6 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *outS, *perr, err[AIR_STRLEN_MED], *mapS;
   Nrrd *ninfo, *nposA, *nposB, *ndon, *npvg;
-  NrrdIO *nio;
   airArray *mop;
   int i, pret, invert, sv, sg, smlI;
   float *pos, p, min, max, sml, newsml, newmin, newmax;
@@ -113,7 +112,6 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nposA=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nposB=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, npvg=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nio=nrrdIONew(), (airMopper)nrrdIONix, airMopAlways);
 
   if (airStrlen(mapS)) {
     if (nrrdSave(mapS, ndon, NULL)) {
@@ -197,8 +195,7 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
     biffMove(BANE, err, NRRD); airMopError(mop); return 1;
   }
 
-  nio->format = nrrdFormatPNM;
-  if (nrrdSave(outS, npvg, nio)) {
+  if (nrrdSave(outS, npvg, NULL)) {
     sprintf(err, "%s: trouble saving pvg image", me);
     biffMove(BANE, err, NRRD); airMopError(mop); return 1;
   }
