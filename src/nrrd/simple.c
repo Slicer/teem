@@ -389,13 +389,13 @@ nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff) {
     }
     break;
   case nrrdFormatTable:
-    if (2 != nrrd->dim) {
-      sprintf(err, "%s: dimension is %d, not 2", me, nrrd->dim);
+    if (!(1  == nrrd->dim || 2 == nrrd->dim)) {
+      sprintf(err, "%s: dimension is %d, not 1 or 2", me, nrrd->dim);
       biffMaybeAdd(NRRD, err, useBiff); 
       return AIR_FALSE;
     }
-    /* any type is good for writing to a table, but it will be
-       read back in as floats (unless # headers say otherwise) */
+    /* any type is good for writing to a table, but it will
+       always be read back in as floats */
     ret = AIR_TRUE;
     break;
   }
@@ -409,9 +409,12 @@ nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff) {
 ** nrrd->hasNonExist to either nrrdNonExistTrue or nrrdNonExistFalse,
 ** and it will return that value.  For lack of a more sophisticated
 ** policy, blocks are currently always considered to be existant
-** values.  This function will ALWAYS determine the correct answer and
-** set the value of nrrd->hasNonExist: it ignores the value of
-** nrrd->hasNonExist on the input nrrd.
+** values (because nrrdTypeFixed[nrrdTypeBlock] is currently true).
+** This function will ALWAYS determine the correct answer and set the
+** value of nrrd->hasNonExist: it ignores the value of
+** nrrd->hasNonExist on the input nrrd.  Exception: if nrrd is null or
+** type is bogus, no action is taken and nrrdNonExistUnknown is
+** returned.
 **
 ** Because this will return either nrrdNonExistTrue or nrrdNonExistFalse,
 ** and because the C boolean value of these are true and false (respectively),
@@ -427,10 +430,9 @@ nrrdHasNonExistSet(Nrrd *nrrd) {
   nrrdBigInt I, N;
   float val;
 
-  if (!nrrd)
+  if (!nrrd || !airEnumValidVal(nrrdType, nrrd->type))
     return nrrdNonExistUnknown;
-  if (!airEnumValidVal(nrrdType, nrrd->type))
-    return nrrdNonExistUnknown;
+
   if (nrrdTypeFixed[nrrd->type]) {
     nrrd->hasNonExist = nrrdNonExistFalse;
   } else {
@@ -652,6 +654,12 @@ nrrdSanity(void) {
   if (!( NRRD_DIM_MAX >= 3 )) {
     sprintf(err, "%s: NRRD_DIM_MAX == %d seems awfully small, doesn't it?",
 	    me, NRRD_DIM_MAX);
+    biffAdd(NRRD, err); return 0;
+  }
+
+  if (!nrrdTypeFixed[nrrdTypeBlock]) {
+    sprintf(err, "%s: nrrdTypeFixed[nrrdTypeBlock] is not true, things "
+	    "could get wacky", me);
     biffAdd(NRRD, err); return 0;
   }
 
