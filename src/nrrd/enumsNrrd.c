@@ -183,6 +183,7 @@ _nrrdEncodingStr[NRRD_ENCODING_MAX+1][AIR_STRLEN_SMALL] = {
   "raw",
   "ascii",
   "gz",
+  "bz2"
 };
 
 char

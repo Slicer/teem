@@ -119,8 +119,8 @@ enum {
   nrrdEncodingUnknown,
   nrrdEncodingRaw,        /* 1: same as memory layout (modulo endianness) */
   nrrdEncodingAscii,      /* 2: decimal values are spelled out in ascii */
-  nrrdEncodingGzip,       /* 3: gzipped raw data */
-  nrrdEncodingBzip2,      /* 4: bzipped raw data */
+  nrrdEncodingGzip,       /* 3: gzip'ed raw data */
+  nrrdEncodingBzip2,      /* 4: bzip2'ed raw data */
   nrrdEncodingLast
 };
 #define NRRD_ENCODING_MAX    4
@@ -137,7 +137,7 @@ enum {
   nrrdZlibStrategyFiltered,  /* 3: specialized for filtered data */
   nrrdZlibStrategyLast
 };
-#define NRRD_ZLIB_STRATEGY_MAX    3
+#define NRRD_ZLIB_STRATEGY_MAX  3
 
 /*
 ******** nrrdMeasure enum

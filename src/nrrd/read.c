@@ -568,7 +568,7 @@ _nrrdReadDataBzip2(Nrrd *nrrd, NrrdIO *io) {
   /* Close the BZFILE. */
   BZ2_bzReadClose(&bzerror, bzfin);
   if (bzerror != BZ_OK) {
-    sprintf(err, "%s: error closing BZFILE", me,
+    sprintf(err, "%s: error closing BZFILE: %s", me,
 	    BZ2_bzerror(bzfin, &bzerror));
     biffAdd(NRRD, err);
     return 1;
