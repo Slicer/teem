@@ -95,7 +95,7 @@ _nrrdContentSet(Nrrd *nout, const char *func,
   }
   va_end(ap);
 
-  free(content); 
+  /* free(content);  */
   return 0;
 }
 

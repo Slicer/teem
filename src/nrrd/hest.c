@@ -167,8 +167,9 @@ _nrrdHestNrrdIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
      sscanf() is not that test.  In any case, if there are to be
      improved smarts about this matter, they need to be implemented
      below and nowhere else. */
-
-  ret = nrrdLoad(nrrd = nrrdNew(), str);
+  
+  nrrd = nrrdNew();
+  ret = nrrdLoad(nrrd, str);
   if (!ret) {
     /* first attempt at nrrdLoad() was SUCCESSFUL */
     nrrdIterSetNrrd(*iterP, nrrd);
@@ -176,6 +177,7 @@ _nrrdHestNrrdIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     /* so it didn't load as a nrrd- if its because fopen() failed,
        then we'll try it as a number.  If its for another reason,
        then we complain */
+    nrrdNuke(nrrd);
     if (2 != ret) {
       /* it failed because of something besides the fopen(), so complain */
       nerr = biffGetDone(NRRD);
