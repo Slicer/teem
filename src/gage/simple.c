@@ -47,6 +47,51 @@ gageSimpleNew() {
 }
 
 int
+gageSimpleKernelSet(gageSimple *spl,
+		    int which, NrrdKernel *k, double *kparm) {
+  char me[]="gageSimpleKernelSet", err[AIR_STRLEN_MED];
+  
+  if (!(spl && k && kparm)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  if (!airEnumValidVal(gageKernel, which)) {
+    sprintf(err, "%s: \"which\" (%d) not in range [%d,%d]", me,
+	    which, gageKernelUnknown+1, gageKernelLast-1);
+    biffAdd(GAGE, err); return 1;
+  }
+
+  spl->k[which] = k;
+  memcpy(spl->kparm[which], kparm, NRRD_KERNEL_PARMS_NUM*sizeof(double));
+  return 0;
+}
+
+int
+gageSimpleVolumeSet(gageSimple *spl, Nrrd *nrrd, gageKind *kind) {
+  char me[]="gageSimpleVolumeSet", err[AIR_STRLEN_MED];
+
+  if (!(spl && nrrd && kind)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  spl->nin = nrrd;
+  spl->kind = kind;
+  return 0;
+}
+
+int
+gageSimpleQuerySet(gageSimple *spl, unsigned int query) {
+  char me[]="gageSimpleQuerySet", err[AIR_STRLEN_MED];
+  
+  if (!(spl)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  spl->query = query;
+  return 0;
+}
+
+int
 gageSimpleUpdate(gageSimple *spl) {
   char me[]="gageSimpleUpdate", err[AIR_STRLEN_MED];
   int i, needPad, min[NRRD_DIM_MAX], max[NRRD_DIM_MAX], baseDim;
@@ -112,28 +157,10 @@ gageSimpleUpdate(gageSimple *spl) {
     biffAdd(GAGE, err); return 1;
   }
   spl->ansStruct = spl->pvl->ansStruct;
+  /* this will work assuming that all answer structs start
+     with the answer array as gage.h beseeches them to */
   spl->ansVec = ((gageSclAnswer*)(spl->pvl->ansStruct))->ans;
 
-  return 0;
-}
-
-int
-gageSimpleKernelSet(gageSimple *spl,
-		    int which, NrrdKernel *k, double *kparm) {
-  char me[]="gageSimpleKernelSet", err[AIR_STRLEN_MED];
-  
-  if (!(spl && k && kparm)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
-  }
-  if (!airEnumValidVal(gageKernel, which)) {
-    sprintf(err, "%s: \"which\" (%d) not in range [%d,%d]", me,
-	    which, gageKernelUnknown+1, gageKernelLast-1);
-    biffAdd(GAGE, err); return 1;
-  }
-
-  spl->k[which] = k;
-  memcpy(spl->kparm[which], kparm, NRRD_KERNEL_PARMS_NUM*sizeof(double));
   return 0;
 }
 

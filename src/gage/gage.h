@@ -413,6 +413,8 @@ extern gageSimple *gageSimpleNew();
 extern int gageSimpleUpdate(gageSimple *spl);
 extern int gageSimpleKernelSet(gageSimple *spl,
 			       int which, NrrdKernel *k, double *kparm);
+extern int gageSimpleVolumeSet(gageSimple *spl, Nrrd *nrrd, gageKind *kind);
+extern int gageSimpleQuerySet(gageSimple *spl, unsigned int query);
 extern int gageSimpleProbe(gageSimple *spl, gage_t x, gage_t y, gage_t z);
 extern gageSimple *gageSimpleNix(gageSimple *spl);
 

@@ -1,0 +1,7 @@
+retest comparison of upsampling by probing and by unu resample
+
+scalar 6pack filtering
+make sure that setting a zero-query is kosher
+make the curvature direction code (scl.c) more robust
+
+(be sure to set verbose in pvl for debugging)
