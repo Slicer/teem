@@ -26,13 +26,14 @@ WIN32.DEST := ../win32/build
 
 project: project.build
 unproject: project.clean
+def: def.build
 
 sortedObjs = $(sort $(foreach lib,$(LIBS),$(addsuffix /$(lib),$($(lib).OBJS))))
 flipSlash = ..\\\\..\\\\src\\\\$(notdir $(1))\\\\$(subst /,,$(dir $(1)))
 
-project.build: teem.dsp.build headers.copy teem.dsw.build bins.dsp.build def.build
+project.build: teem.dsp.build headers.copy teem.dsw.build bins.dsp.build 
 project.clean: headers.clean
-	$(RM) $(WIN32.DEST)/*.dsp $(WIN32.DEST)/*.dsw $(WIN32.DEST)/teem.def $(WIN32.DEST)/*.plg
+	$(RM) $(WIN32.DEST)/*.dsp $(WIN32.DEST)/*.dsw $(WIN32.DEST)/*.plg
 
 flipSlash = ..\\\\..\\\\src\\\\$(notdir $(1))\\\\$(subst /,,$(dir $(1)))
 
