@@ -1,13 +1,10 @@
-This are the files required to incorporate Torsten Moeller's
-kernels into nrrd.  Actually, only tmFilters_raw.c is needed,
-and is used to create ../tmfKernel.c as follows:
+These are the files required to incorporate Torsten Moeller's
+kernels into nrrd.  The tmFilters_raw.c file is directly from
+an email from Torsten.  The file ../tmfKernel.c is created
+as follows:
 
-  tar xzvf gk.tgz
   ./fix1.pl tmFilters_raw.c \
     | ./fix2.pl \
     | cat ../../preamble.c - \
-    > ../tmfKernel.c
-  rm -f *.c *.cpp *.h
+    >! ../tmfKernel.c
 
-The all the C++ source and header files came from email from
-Torsten Moeller, the perl scripts were by Gordon.

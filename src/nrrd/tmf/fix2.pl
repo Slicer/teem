@@ -42,11 +42,8 @@ print "};\n";
 print "NrrdKernel *\n";
 print "nrrdKernel_TMFBAD = &_nrrdKernel_TMFBAD;\n\n";
 
-# generate hash of nrrdKernels that have already been declared 
-# ("done") and has of nrrdKernels that must be declared AFTER their
-# dependant kernel has been declared ("post")
-%done = ();
-%post = ();
+%needk = ();
+%support = ();
 
 $maxD = 0;
 $maxC = 0;
@@ -57,7 +54,7 @@ while (<>) {
 	print;
 	next;
     }
-    if (/float (d[012]_c[n0123]_[1234]ef)\(float a/) {
+    if (/float (d[n012]_c[n0123]_[1234]ef)\(float a/) {
 	$kern = "TMF_$1";
 	if ($_ =~ m/d([012])_c([0123])_([1234])ef/) {
 	    $maxD = $1 > $maxD ? $1 : $maxD;
@@ -67,35 +64,16 @@ while (<>) {
 	print "\n/* ------------------------ $kern --------------------- */\n\n";
 	print "\#define ${kern}(a, i, t) ( \\\n";
 	while (<>) {
-	    # for when the filter is just a wrapper around another filter
-	    if (/return (d[012]_c[n0123]_[1234]ef)\(a, t\)/) {
-		$depk = "TMF_$1";
-		# we don't need the #define, but at this point we need to finish it
-		print "  ${depk}(a, i, t))\n\n";
-		# create string to represent kernel definition;
-		$def = ("NrrdKernel\n" .
-			"_nrrdKernel_${kern} = {\n" .
-			"  \"${kern}\",\n" .
-			"  1, _nrrd_${depk}_Sup, _nrrd_${depk}_Int,\n" .
-			"  _nrrd_${depk}_1_f,  _nrrd_${depk}_N_f,\n" .
-			"  _nrrd_${depk}_1_d,  _nrrd_${depk}_N_d\n" .
-			"};\n\n");
-		if (exists $done{$depk}) {
-		    print "/* exists done{$depk} */\n";
-		    print "$def";
-		}
-		else {
-		    if (not exists $post{$depk}) {
-			$post{$depk} = "";
-		    }
-		    $post{$depk} .= $def;
-		}
+	    # for when $kern is just a wrapper around $_needk
+	    if (/return (d[n012]_c[n0123]_[1234]ef)\((.+), *t\)/) {
+		$_needk = "TMF_$1";
+		# finish the #define, and pass in the correct first arg
+		print "  ${_needk}((double)($2), i, t))\n\n";
+
+		# remember that this kernel needs another in order to know the support
+		$needk{$kern} = $_needk;
 		last;
 	    }
-
-	    # fix typos
-	    s/result = result = /result = /g;
-	    s/case 1: 1-t/case 1: result = 1-t/g;
 
 	    # process the switch cases
 	    s/case ([0-9]): +result *= *(.+); +break;$/\(i == $1 ? $2 : \\/g;
@@ -114,90 +92,9 @@ while (<>) {
 		
 		# and one more end paren to finish the #define
 		print ")\n\n";
-
-		# and now define the C functions ...
-		# integral
-		print "double\n";
-		print "_nrrd_${kern}_Int\(double *parm\) {\n";
-		if ($kern =~ m/_d0_/) {
-		    # not a derivative (zero-eth derivative)
-		    print "  return 1.0;\n";
-		} else {
-		    # is some sort of derivative
-		    print "  return 0.0;\n";
-		}
-	        print "}\n\n";
-
-		# support
-		print "double\n";
-		print "_nrrd_${kern}_Sup\(double *parm\) {\n";
-		print "  return $sup;\n";
-	        print "}\n\n";
-
-		# 1_d
-		print "double\n";
-		print "_nrrd_${kern}_1_d\(double x, double *parm\) {\n";
-		print "  int i;\n\n";
-		print "  x += $sup;\n";
-		print "  i = (x<0) ? x-1 : x;\n";
-		print "  x -= i;\n";
-		print "  return ${kern}\(parm[0], i, x\);\n";
-		print "}\n\n";
-
-		# 1_f
-		print "float\n";
-		print "_nrrd_${kern}_1_f\(float x, double *parm\) {\n";
-		print "  int i;\n\n";
-		print "  x += $sup;\n";
-		print "  i = (x<0) ? x-1 : x;\n";
-		print "  x -= i;\n";
-		print "  return ${kern}\(parm[0], i, x\);\n";
-		print "}\n\n";
-
-		# N_d
-		print "void\n";
-		print "_nrrd_${kern}_N_d(double *f, double *x, size_t len, double *parm) {\n";
-		print "  double t;\n";
-		print "  size_t I;\n";
-		print "  int i;\n\n";
-		print "  for \(I=0; I<len; I++\) {\n";
-		print "    t = x[I] + $sup;\n";
-		print "    i = (t<0) ? t-1 : t;\n";
-		print "    t -= i;\n";
-		print "    f[I] = ${kern}\(parm[0], i, t\);\n";
-		print "  }\n";
-		print "}\n\n";
-
-		# N_f
-		print "void\n";
-		print "_nrrd_${kern}_N_f(float *f, float *x, size_t len, double *parm) {\n";
-		print "  float t;\n";
-		print "  size_t I;\n";
-		print "  int i;\n\n";
-		print "  for \(I=0; I<len; I++\) {\n";
-		print "    t = x[I] + $sup;\n";
-		print "    i = (t<0) ? t-1 : t;\n";
-		print "    t -= i;\n";
-		print "    f[I] = ${kern}\(parm[0], i, t\);\n";
-		print "  }\n";
-		print "}\n\n";
-
-		# nrrdKernel
-		print "NrrdKernel\n";
-		print "_nrrdKernel_${kern} = {\n";
-		print "  \"${kern}\",\n";
-		print "  1, _nrrd_${kern}_Sup, _nrrd_${kern}_Int,\n";
-		print "  _nrrd_${kern}_1_f,  _nrrd_${kern}_N_f,\n";
-		print "  _nrrd_${kern}_1_d,  _nrrd_${kern}_N_d\n";
-		print "};\n";
-
-		$done{$kern} = True;
-		# any kernels which depend on this one
-		if (exists $post{$kern}) {
-		    print "/* exists post{$kern} */\n";
-		    print "$post{$kern}";
-		}
-
+		
+		# remember what the support is
+		$support{$kern} = $sup;
 		last;
 	    }
 
@@ -207,7 +104,6 @@ while (<>) {
 }
 
 # generate 3-D array of all TMFs
-print "\nNrrdKernel *\n";
 
 if (2 != $maxD) {
     print "teem/src/nrrd/tmf/fix2.pl error: maxD = $maxD, not 2\n";
@@ -221,14 +117,33 @@ if (4 != $maxA) {
     print "teem/src/nrrd/tmf/fix2.pl error: maxA = $maxA, not 4\n";
     exit;
 }
-print "nrrdKernelTMF[3][4][5] = {\n";
-for ($d=0; $d<=2; $d++) {
+
+# print out code for all kernels
+for ($_d=0; $_d<=3; $_d++) {
+    $d = (($_d > 0) ? $_d-1 : "n");
+    for ($_c=0; $_c<=4; $_c++) {
+	$c = (($_c > 0) ? $_c-1 : "n");
+	for ($ef=1; $ef<=4; $ef++) {
+	    $kern = "TMF_d${d}_c${c}_${ef}ef";
+	    print "\n/* ------------------------ $kern --------------------- */\n\n";
+	    print blah($kern);
+	}
+    }
+}
+
+# create master array of all kernels
+print "\nNrrdKernel *\n";
+print "nrrdKernelTMF[4][5][5] = {\n";
+for ($_d=0; $_d<=3; $_d++) {
+    $d = (($_d > 0) ? $_d-1 : "n");
     print "  {            /* d = $d */ \n";
-    for ($c=0; $c<=3; $c++) {
+    for ($_c=0; $_c<=4; $_c++) {
+	$c = (($_c > 0) ? $_c-1 : "n");
 	print "    {\n";
 	print "       &_nrrdKernel_TMFBAD,\n";
 	for ($ef=1; $ef<=4; $ef++) {
-	    print "       &_nrrdKernel_TMF_d${d}_c${c}_${ef}ef,\n";
+	    $kern = "TMF_d${d}_c${c}_${ef}ef";
+	    print "       &_nrrdKernel_${kern},\n";
 	}
 	print "    },\n";
     }
@@ -239,3 +154,77 @@ print "};\n\n";
 print "int nrrdKernelTMF_maxD = $maxD;\n";
 print "int nrrdKernelTMF_maxC = $maxC;\n";
 print "int nrrdKernelTMF_maxA = $maxA;\n";
+
+sub blah {
+    $kern = $_[0];
+    # there seems to be at most two levels of indirection
+    $sup = (exists $support{$kern}
+	    ? $support{$kern}
+	    : (exists $support{$needk{$kern}}
+	       ? $support{$needk{$kern}}
+	       : $support{$needk{$needk{$kern}}}));
+    $integral = ("double "
+		 . "_nrrd_${kern}_Int\(double *parm\) { "
+		 . (($kern =~ m/_d0_/ || $kern =~ m/_dn_/)
+		    ? "return 1.0; "
+		    : "return 0.0; ")
+		 . "}\n\n");
+    $support = ("double "
+		. "_nrrd_${kern}_Sup\(double *parm\) { "
+		. "return ${sup}; "
+		. "}\n\n");
+    $_1_d = ("double\n"
+	     . "_nrrd_${kern}_1_d\(double x, double *parm\) {\n"
+	     . "  int i;\n\n"
+	     . "  x += $sup;\n"
+	     . "  i = (x<0) ? x-1 : x;\n"
+	     . "  x -= i;\n"
+	     . "  return ${kern}\(parm[0], i, x\);\n"
+	     . "}\n\n");
+    $_1_f = ("float\n"
+	     . "_nrrd_${kern}_1_f\(float x, double *parm\) {\n"
+	     . "  int i;\n\n"
+	     . "  x += $sup;\n"
+	     . "  i = (x<0) ? x-1 : x;\n"
+	     . "  x -= i;\n"
+	     . "  return ${kern}\(parm[0], i, x\);\n"
+	     . "}\n\n");
+    $_N_d = ("void\n"
+	     . "_nrrd_${kern}_N_d(double *f, double *x, size_t len, double *parm) {\n"
+	     . "  double t;\n"
+	     . "  size_t I;\n"
+	     . "  int i;\n\n"
+	     . "  for \(I=0; I<len; I++\) {\n"
+	     . "    t = x[I] + $sup;\n"
+	     . "    i = (t<0) ? t-1 : t;\n"
+	     . "    t -= i;\n"
+	     . "    f[I] = ${kern}\(parm[0], i, t\);\n"
+	     . "  }\n"
+	     . "}\n\n");
+    $_N_f = ("void\n"
+	     . "_nrrd_${kern}_N_f(float *f, float *x, size_t len, double *parm) {\n"
+	     . "  float t;\n"
+	     . "  size_t I;\n"
+	     . "  int i;\n\n"
+	     . "  for \(I=0; I<len; I++\) {\n"
+	     . "    t = x[I] + $sup;\n"
+	     . "    i = (t<0) ? t-1 : t;\n"
+	     . "    t -= i;\n"
+	     . "    f[I] = ${kern}\(parm[0], i, t\);\n"
+	     . "  }\n"
+	     . "}\n\n");
+    $kdef = ("NrrdKernel\n"
+	     . "_nrrdKernel_${kern} = {\n"
+	     . "  \"${kern}\",\n"
+	     . "  1, _nrrd_${kern}_Sup, _nrrd_${kern}_Int,\n"
+	     . "  _nrrd_${kern}_1_f,  _nrrd_${kern}_N_f,\n"
+	     . "  _nrrd_${kern}_1_d,  _nrrd_${kern}_N_d\n"
+	     . "};\n\n");
+    ($integral 
+     . $support 
+     . $_1_d 
+     . $_1_f
+     . $_N_d
+     . $_N_f
+     . $kdef);
+}
