@@ -56,36 +56,6 @@ limnEnvMapFill(Nrrd *map, limnEnvMapCB cb, void *data, int qnMethod) {
   return 0;
 }
 
-/*
-******** limnLightUpdate()
-**
-** copies information from the dir vectors to the _dir vectors
-** This needs to be called even if there are no viewspace lights,
-** in which case "cam" can be passed as NULL
-*/
-int
-limnLightUpdate(limnLight *lit, limnCam *cam) {
-  float dir[3], _dir[3], uvn[9], norm;
-  int i;
-  
-  if (cam) {
-    limnCamUpdate(cam);
-    ELL_34M_EXTRACT(uvn, cam->W2V);
-  }
-  for (i=0; i<=lit->lNum-1; i++) {
-    ELL_3V_COPY(dir, lit->dir[i]);
-    if (cam && lit->vsp[i]) {
-      ELL_3MV_TMUL(_dir, uvn, dir);
-    }
-    else {
-      ELL_3V_COPY(_dir, dir);
-    }
-    ELL_3V_NORM(_dir, _dir, norm);
-    ELL_3V_COPY(lit->_dir[i], _dir);
-  }
-  return 0;
-}
-
 void
 limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit) {
   float dot, r, g, b, norm;
@@ -97,8 +67,10 @@ limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit) {
   r = lit->amb[0];
   g = lit->amb[1];
   b = lit->amb[2];
-  for (i=0; i<lit->lNum; i++) {
-    dot = ELL_3V_DOT(vec, lit->_dir[i]);
+  for (i=0; i<LIMN_LITE_NUM; i++) {
+    if (!lit->on[i])
+      continue;
+    dot = ELL_3V_DOT(vec, lit->dir[i]);
     dot = AIR_MAX(0, dot);
     r += dot*lit->col[i][0];
     g += dot*lit->col[i][1];
@@ -113,42 +85,69 @@ limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit) {
 /*
 ******** limnLightSet()
 ** 
-** turns on another light
+** turns on a light
 **
-** returns -1 on error, index of new light (>=0) if okay
 */
-int
-limnLightSet(limnLight *lit, int vsp,
+void
+limnLightSet(limnLight *lit, int which, int vsp,
 	     float r, float g, float b,
 	     float x, float y, float z) {
-  int i;
-
-  i = lit->lNum;
-  if (i == LIMN_MAXLIT) {
-    fprintf(stderr, "limnLightSet: reached max of %d lights!", i);
-    return -1;
-  }
-  lit->on[i] = 1;
-  lit->vsp[i] = vsp;
-  ELL_3V_SET(lit->col[i], r, g, b);
-  ELL_3V_SET(lit->dir[i], x, y, z);
-  lit->lNum++;
   
-  return i;
+  if (lit && AIR_INSIDE(0, which, LIMN_LITE_NUM-1)) {
+    lit->on[which] = 1;
+    lit->vsp[which] = vsp;
+    ELL_3V_SET(lit->col[which], r, g, b);
+    ELL_3V_SET(lit->_dir[which], x, y, z);
+  }
 }
 
 /*
 ******** limnLightSetAmbient()
 **
 ** sets the ambient light color
-**
-** returns 1 on error, 0 if okay
 */
-int
+void
 limnLightSetAmbient(limnLight *lit, float r, float g, float b) {
   
-  ELL_3V_SET(lit->amb, r, g, b);
+  if (lit) {
+    ELL_3V_SET(lit->amb, r, g, b);
+  }
+}
 
+/*
+******** limnLightUpdate()
+**
+** copies information from the _dir vectors to the dir vectors. This
+** needs to be called even if there are no viewspace lights, so that
+** the dir vectors are set and normalized, in which case "cam" can be
+** passed as NULL.
+** 
+** returns 1 if there was a problem in the camera, otherwise 0.
+*/
+int
+limnLightUpdate(limnLight *lit, limnCam *cam) {
+  char me[]="limnLightUpdate", err[AIR_STRLEN_MED];
+  float dir[3], _dir[3], uvn[9], norm;
+  int i;
+  
+  if (cam) {
+    if (limnCamUpdate(cam)) {
+      sprintf(err, "%s: trouble in camera", me);
+      biffAdd(LIMN, err); return 1;
+    }
+    ELL_34M_EXTRACT(uvn, cam->V2W);
+  }
+  for (i=0; i<LIMN_LITE_NUM; i++) {
+    ELL_3V_COPY(_dir, lit->_dir[i]);
+    if (cam && lit->vsp[i]) {
+      ELL_3MV_MUL(dir, uvn, _dir);
+    }
+    else {
+      ELL_3V_COPY(dir, _dir);
+    }
+    ELL_3V_NORM(dir, dir, norm);
+    ELL_3V_COPY(lit->dir[i], dir);
+  }
   return 0;
 }
 
@@ -159,14 +158,26 @@ limnLightSetAmbient(limnLight *lit, float r, float g, float b) {
 **
 ** returns 1 on error, 0 if okay
 */
-int
-limnLightToggle(limnLight *lit, int idx, int on) {
+void
+limnLightSwitch(limnLight *lit, int which, int on) {
 
-  if (!AIR_INSIDE(0, idx, lit->lNum-1)) {
-    fprintf(stderr, "limnLightToggle: light index %d out of range (0 to %d)", 
-	    idx, lit->lNum-1);
+  if (lit && AIR_INSIDE(0, which, LIMN_LITE_NUM-1)) {
+    lit->on[which] = on;
   }
-  lit->on[idx] = on;
+}
 
-  return 0;
+void
+limnLightReset(limnLight *lit) {
+  int i;
+
+  if (lit) {
+    ELL_3V_SET(lit->amb, 0, 0, 0);
+    for (i=0; i<LIMN_LITE_NUM; i++) {
+      ELL_3V_SET(lit->_dir[i], 0, 0, 0);
+      ELL_3V_SET(lit->dir[i], 0, 0, 0);
+      ELL_3V_SET(lit->col[i], 0, 0, 0);
+      lit->on[i] = AIR_FALSE;
+      lit->vsp[i] = AIR_FALSE;
+    }
+  }
 }
