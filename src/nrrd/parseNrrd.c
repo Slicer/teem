@@ -532,12 +532,15 @@ _nrrdReadNrrdParse_keyvalue (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 
   /* we know this will find something */
   line = airStrdup(io->line);
-  if (line) {
-    keysep = strstr(line, ":=");
+  if (!line) {
+    sprintf(err, "%s: can't allocate parse line", me);
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
-  if (!line || !keysep) {
-    sprintf(err, "%s: CONFUSION: can't allocate parse line", me);
-    airFree(line); biffMaybeAdd(NRRD, err, useBiff); return 1;
+  keysep = strstr(line, ":=");
+  if (!keysep) {
+    sprintf(err, "%s: didn't see \":=\" key/value delimiter in \"%s\"",
+	    me, line);
+    free(line); biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   keysep[0] = 0;
   keysep[1] = 0;
