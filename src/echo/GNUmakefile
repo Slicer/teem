@@ -49,9 +49,7 @@ $(L).PUBLIC_HEADERS = echo.h
 $(L).PRIVATE_HEADERS = privateEcho.h
 $(L).OBJS = enumsEcho.o methodsEcho.o objmethods.o bounds.o set.o model.o \
 	matter.o renderEcho.o intx.o list.o color.o
-$(L).TESTS = test/trend test/bang
-
-$(L).TESTS = test/test
+$(L).TESTS = test/test test/trend
 ####
 ####
 ####

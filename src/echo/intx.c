@@ -421,7 +421,7 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
      to A and B being very low), the smaller those steps should be.
      This setting was determined emperically. */
   divs = AIR_MAX(parm->sqDiv,
-		 1.0/(0.001 + AIR_MIN(obj->A, obj->B)));
+		 0.75/(0.001 + AIR_MIN(obj->A, obj->B)));
   T0 = tmin;
   VAL(V0, ray->from, T0, ray->dir);
   for (iter=1; iter<=divs; iter++) {
@@ -438,8 +438,8 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
     return AIR_FALSE;
   }
 
-  /* else there was a zero-crossing between T0 and T1; find it
-     with newton-raphson */
+  /* else there was a zero-crossing between T0 and T1;
+     first try to find it with newton-raphson */
   tmin = T0;
   tmax = T1;
   iter = 0;
@@ -451,10 +451,10 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
     VALGRAD(V1, grad, dV, ray->from, T1, ray->dir);
   }
 
-  /* in case we didn't converge, resort to stupid bisection, but start
-     with an even finer segmentation of [tmin,tmax], to try to ensure
-     that we're getting the first root */
   if (AIR_ABS(V1) > parm->sqTol) {
+    /* we didn't converge, so we resort to stupid bisection, but start
+       with an even finer segmentation of [tmin,tmax], to try to ensure
+       that we're getting the first root */
     T0 = tmin;
     VAL(V0, ray->from, T0, ray->dir);
     for (iter=1; iter<=divs*divs; iter++) {
@@ -899,7 +899,6 @@ _echoRayIntxUV[ECHO_TYPE_NUM] = {
   _echoRayIntxUV_Noop,
   _echoRayIntxUV_Noop
 };
-
 
 int
 echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene,
