@@ -566,6 +566,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
       biffAdd(NRRD, err); return 1;
     }
     numOut = nrrdElementNumber(nout);
+    printf("%s: numOut = %d\n", me, (int)numOut);
     for (I=0; I<=numOut-1; I++) {
       tmpF = nrrdFLookup[nin->type](nin->data, I);
       tmpF = nrrdFClamp[typeOut](tmpF);
