@@ -96,9 +96,11 @@ enum {
 typedef struct {
   /* glyphs will be shown at samples that have confidence >= confThresh,
      and anisotropy anisoType >= anisoThresh, and if nmask is non-NULL,
-     then the corresponding mask value must be >= maskThresh. */
+     then the corresponding mask value must be >= maskThresh.  If 
+     onlyPositive, then samples with a non-positive eigenvalue will 
+     be skipped, regardless of their purported anisotropy */
   Nrrd *nmask;
-  int anisoType;
+  int anisoType, onlyPositive;
   float confThresh, anisoThresh, maskThresh;
 
   /* glyphs have shape glyphType and size glyphScale. Superquadrics
@@ -116,7 +118,7 @@ typedef struct {
      modulated by anistropy).  Post-saturation, there is a per-channel
      gamma of colGamma. */
   int colEvec, colAnisoType;
-  float colMaxSat, colGamma, colAnisoModulate;
+  float colMaxSat, colIsoGray, colGamma, colAnisoModulate;
 
   /* if doSlice, a slice of anisotropy sliceAnisoType will be depicted
      in grayscale as a sheet of grayscale squares, one per sample. As
