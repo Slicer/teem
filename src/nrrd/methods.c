@@ -180,11 +180,12 @@ nrrdWrap(Nrrd *nrrd, void *data, NRRD_BIG_INT num, int type, int dim) {
 */
 Nrrd *
 nrrdNewWrap(void *data, NRRD_BIG_INT num, int type, int dim) {
+  char me[]="nrrdNewWrap", err[NRRD_MED_STRLEN];
   Nrrd *nrrd;
 
   if (!(nrrd = nrrdNew())) {
-    biffAdd(NRRD, "nrrdNewWrap: nrrdNew() failed");
-    return(NULL);
+    sprintf(err, "%s: nrrdNew() failed", me);
+    biffAdd(NRRD, err); return(NULL);
   }
   nrrdWrap(nrrd, data, num, type, dim);
   return(nrrd);
@@ -212,11 +213,12 @@ nrrdSetInfo(Nrrd *nrrd, NRRD_BIG_INT num, int type, int dim) {
 */
 Nrrd *
 nrrdNewSetInfo(NRRD_BIG_INT num, int type, int dim) {
+  char me[]="nrrdNewSetInfo", err[NRRD_MED_STRLEN];
   Nrrd *nrrd;
 
   if (!(nrrd = nrrdNew())) {
-    biffAdd(NRRD, "nrrdNewSetInfo: nrrdNew() failed");
-    return(NULL);
+    sprintf(err, "%s: nrrdNew() failed", me);
+    biffAdd(NRRD, err); return(NULL);
   }
   nrrdSetInfo(nrrd, num, type, dim);
   return(nrrd);
@@ -224,11 +226,12 @@ nrrdNewSetInfo(NRRD_BIG_INT num, int type, int dim) {
 
 int
 nrrdCopy(Nrrd *nin, Nrrd *nout) {
+  char me[]="nrrdCopy", err[NRRD_MED_STRLEN];
   int numComments, i;
 
   if (!(nin && nout)) {
-    biffSet(NRRD, "nrrdCopy: got NULL pointer");
-    return(1);
+    sprintf(err, "%s: got NULL pointer", me);
+    biffSet(NRRD, err); return(1);
   }
   if (nout->data)
     free(nout->data);
@@ -240,17 +243,19 @@ nrrdCopy(Nrrd *nin, Nrrd *nout) {
   numComments = nout->numComments = nin->numComments;
   if (numComments) {
     if (!(nout->comment = calloc(numComments+1, sizeof(char*)))) {
-      biffSet(NRRD, "nrrdCopy: calloc() for comment char** failed!");
-      return(1);
+      sprintf(err, "%s: calloc() for comment char** failed!", me);
+      biffSet(NRRD, err); return(1);
     }
     for (i=0; i<=numComments-1; i++) {
       nout->comment[i] = strdup(nin->comment[i]);
     }
     nout->comment[numComments] = NULL;
   }
-  if (nrrdAlloc(nout, nin->num, nin->type, nin->dim)) {
-    biffAdd(NRRD, "nrrdCopy: couldn't allocate data");
-    return(1);
+  if (!nout->data) {
+    if (nrrdAlloc(nout, nin->num, nin->type, nin->dim)) {
+      sprintf(err, "%s: couldn't allocate data", me);
+      biffAdd(NRRD, err); return(1);
+    }
   }
   memcpy(nout->data, nin->data, nin->num*nrrdTypeSize[nin->type]);
   return(0);
@@ -258,15 +263,16 @@ nrrdCopy(Nrrd *nin, Nrrd *nout) {
 
 Nrrd *
 nrrdNewCopy(Nrrd *nin) {
+  char me[]="nrrdNewCopy", err[NRRD_MED_STRLEN];
   Nrrd *nout;
 
   if (!(nout = nrrdNew())) {
-    biffAdd(NRRD, "nrrdNewCopy: nrrdNew() failed");
-    return(NULL);
+    sprintf(err, "%s: nrrdNew() failed", me);
+    biffAdd(NRRD, err); return(NULL);
   }
   if (nrrdCopy(nin, nout)) {
-    biffAdd(NRRD, "nrrdNewCopy: trouble copying nrrd");
-    return(NULL);
+    sprintf(err, "%s: trouble copying nrrd", me);
+    biffAdd(NRRD, err); return(NULL);
   }
   return(nout);
 }
@@ -274,9 +280,10 @@ nrrdNewCopy(Nrrd *nin) {
 /*
 ******** nrrdAlloc()
 **
-** allocates data array and sets information 
+** allocates data array and sets information
 **
-** initially frees nrrd->data if it is non-NULL
+** This function will always allocate more memory (via calloc), but
+** it will free() nrrd->data if it is non-NULL when passed in
 **
 ** Note: This function DOES use biff
 */
@@ -292,8 +299,7 @@ nrrdAlloc(Nrrd *nrrd, NRRD_BIG_INT num, int type, int dim) {
   if (!(nrrd->data = calloc(num, nrrdTypeSize[type]))) {
     sprintf(err, "%s: calloc(" NRRD_BIG_INT_PRINTF ",%d) failed", 
 	    me, num, nrrdTypeSize[type]);
-    biffSet(NRRD, err);
-    return(1);
+    biffSet(NRRD, err); return(1);
   }
   /* printf("%s: DONE callocing(%d, %d)\n", me, num, nrrdTypeSize[type]); */
   nrrd->num = num;
@@ -309,14 +315,16 @@ nrrdAlloc(Nrrd *nrrd, NRRD_BIG_INT num, int type, int dim) {
 */
 Nrrd *
 nrrdNewAlloc(NRRD_BIG_INT num, int type, int dim) {
+  char me[]="nrrdNewAlloc", err[NRRD_MED_STRLEN];
   Nrrd *nrrd;
   
   if (!(nrrd = nrrdNew())) {
-    biffAdd(NRRD, "nrrdNewAlloc: nrrdNew() failed");
-    return(NULL);
+    sprintf(err, "%s: nrrdNew() failed", me);
+    biffAdd(NRRD, err); return(NULL);
   }
   if (nrrdAlloc(nrrd, num, type, dim)) {
-    biffAdd(NRRD, "nrrdNewAlloc: nrrdAlloc() failed");
+    sprintf(err, "%s: nrrdAlloc() failed", me);
+    biffAdd(NRRD, err); 
     nrrdNix(nrrd);
     return(NULL);
   }    
@@ -661,8 +669,8 @@ _nrrdInitResample(nrrdResampleInfo *info) {
     info->min[d] = info->max[d] = airNanf();
   }
   info->type = nrrdTypeUnknown;
-  info->renormalize = AIR_FALSE;
   /* these may or may not be the best choices for default values */
+  info->renormalize = AIR_TRUE;
   info->boundary = nrrdBoundaryBleed;
   info->padValue = 0.0;
 }
