@@ -97,8 +97,9 @@ _nrrdEncodingRaw_read(Nrrd *nrrd, NrrdIoState *nio) {
     ret = fread(nrrd->data, nrrdElementSize(nrrd), num, nio->dataFile);
     if (ret != num) {
       sprintf(err, "%s: fread() got only " _AIR_SIZE_T_FMT " %d-byte things, "
-              "not " _AIR_SIZE_T_FMT ,
-              me, ret, nrrdElementSize(nrrd), num);
+              "not " _AIR_SIZE_T_FMT " (%g%% of expected)",
+              me, ret, nrrdElementSize(nrrd), num,
+              100.0*ret/num);
       biffAdd(NRRD, err); return 1;
     }
   }
