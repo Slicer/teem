@@ -161,8 +161,8 @@ baneProbe(float *_ans, Nrrd *nin, int query,
     ys = nin->spacing[1]; ys = AIR_EXISTS(ys) ? ys : 1.0;
     zs = nin->spacing[2]; zs = AIR_EXISTS(zs) ? zs : 1.0;
     if (baneProbeDebug) {
-      printf("%s: sx,sy,sz = (%d,%d,%d); xs,ys,zs = (%g,%g,%g)\n",
-	     me, sx, sy, sz, xs, ys, zs);
+      fprintf(stderr, "%s: sx,sy,sz = (%d,%d,%d); xs,ys,zs = (%g,%g,%g)\n",
+	      me, sx, sy, sz, xs, ys, zs);
     }
     for (k=0; k<=1; k++)
       for (j=0; j<=1; j++)
@@ -183,7 +183,7 @@ baneProbe(float *_ans, Nrrd *nin, int query,
     tmpF = AIR_MAX(tmpF, pack->k[2]->support(pack->param[2]));
     fr = AIR_ROUNDUP(tmpF);
     if (baneProbeDebug) {
-      printf("%s: tmpF=%g --> fr = %d\n", me, tmpF, fr);
+      fprintf(stderr, "%s: tmpF=%g --> fr = %d\n", me, tmpF, fr);
     }
     if (0 == fr) {
       fprintf(stderr, "%s: calculated fr == 0!!!\n", me);
@@ -215,9 +215,9 @@ baneProbe(float *_ans, Nrrd *nin, int query,
   zi = z; zi -= zi == sz-1; zf = z - zi;
   tmpI = xi + sx*(yi + sy*zi);
   if (baneProbeDebug) {
-    printf("%s: x, y, z = (%g,%g,%g)\n", me, x, y, z);
-    printf("%s: xi, yi, zi = (%d,%d,%d), xf,yf,zf = (%g,%g,%g)\n",
-	   me, xi, yi, zi, xf, yf, zf);
+    fprintf(stderr, "%s: x, y, z = (%g,%g,%g)\n", me, x, y, z);
+    fprintf(stderr, "%s: xi, yi, zi = (%d,%d,%d), xf,yf,zf = (%g,%g,%g)\n",
+	    me, xi, yi, zi, xf, yf, zf);
   }
 
   /* have we changed which voxel we're inside? */
@@ -262,19 +262,19 @@ baneProbe(float *_ans, Nrrd *nin, int query,
       if (baneProbeDebug) {
 	printf("val[]:\n");
 	for (i=3; i>=0; i--) {
-	  printf("% 10.4f   % 10.4f   % 10.4f   % 10.4f\n", 
-		 val[12+16*i], val[13+16*i], val[14+16*i], val[15+16*i]);
-	  printf("   % 10.4f  %c% 10.4f   % 10.4f%c   % 10.4f\n", 
-		 val[ 8+16*i], (i==1||i==2)?'\\':' ',
-		 val[ 9+16*i], val[10+16*i], (i==1||i==2)?'\\':' ',
-		 val[11+16*i]);
-	  printf("      % 10.4f  %c% 10.4f   % 10.4f%c   % 10.4f\n", 
-		 val[ 4+16*i], (i==1||i==2)?'\\':' ',
-		 val[ 5+16*i], val[ 6+16*i], (i==1||i==2)?'\\':' ',
-		 val[ 7+16*i]);
-	  printf("         % 10.4f   % 10.4f   % 10.4f   % 10.4f\n", 
-		 val[ 0+16*i], val[ 1+16*i], val[ 2+16*i], val[ 3+16*i]);
-	  if (i) printf("\n");
+	  fprintf(stderr, "% 10.4f   % 10.4f   % 10.4f   % 10.4f\n", 
+		  val[12+16*i], val[13+16*i], val[14+16*i], val[15+16*i]);
+	  fprintf(stderr, "   % 10.4f  %c% 10.4f   % 10.4f%c   % 10.4f\n", 
+		  val[ 8+16*i], (i==1||i==2)?'\\':' ',
+		  val[ 9+16*i], val[10+16*i], (i==1||i==2)?'\\':' ',
+		  val[11+16*i]);
+	  fprintf(stderr, "      % 10.4f  %c% 10.4f   % 10.4f%c   % 10.4f\n", 
+		  val[ 4+16*i], (i==1||i==2)?'\\':' ',
+		  val[ 5+16*i], val[ 6+16*i], (i==1||i==2)?'\\':' ',
+		  val[ 7+16*i]);
+	  fprintf(stderr, "         % 10.4f   % 10.4f   % 10.4f   % 10.4f\n", 
+		  val[ 0+16*i], val[ 1+16*i], val[ 2+16*i], val[ 3+16*i]);
+	  if (i) fprintf(stderr, "\n");
 	}
       }
       break;
@@ -299,10 +299,10 @@ baneProbe(float *_ans, Nrrd *nin, int query,
     fsly[0] = -yf; fsly[1] = -yf+1;
     fslz[0] = -zf; fslz[1] = -zf+1;
     if (baneProbeDebug) {
-      printf("fsl:\n");
-      printf("x[]: % 10.4f   % 10.4f\n", fslx[0], fslx[1]);
-      printf("y[]: % 10.4f   % 10.4f\n", fsly[0], fsly[1]);
-      printf("z[]: % 10.4f   % 10.4f\n", fslz[0], fslz[1]);
+      fprintf(stderr, "fsl:\n");
+      fprintf(stderr, "x[]: % 10.4f   % 10.4f\n", fslx[0], fslx[1]);
+      fprintf(stderr, "y[]: % 10.4f   % 10.4f\n", fsly[0], fsly[1]);
+      fprintf(stderr, "z[]: % 10.4f   % 10.4f\n", fslz[0], fslz[1]);
     }
     break;
   case 4:
@@ -310,13 +310,13 @@ baneProbe(float *_ans, Nrrd *nin, int query,
     fsly[0] = -yf-1; fsly[1] = -yf; fsly[2] = -yf+1; fsly[3] = -yf+2;
     fslz[0] = -zf-1; fslz[1] = -zf; fslz[2] = -zf+1; fslz[3] = -zf+2;
     if (baneProbeDebug) {
-      printf("fsl:\n");
-      printf("x[]:% 10.4f  % 10.4f  % 10.4f  % 10.4f\n", 
-	     fslx[0], fslx[1], fslx[2], fslx[3]);
-      printf("y[]:% 10.4f  % 10.4f  % 10.4f  % 10.4f\n", 
-	     fsly[0], fsly[1], fsly[2], fsly[3]);
-      printf("z[]:% 10.4f  % 10.4f  % 10.4f  % 10.4f\n", 
-	     fslz[0], fslz[1], fslz[2], fslz[3]);
+      fprintf(stderr, "fsl:\n");
+      fprintf(stderr, "x[]:% 10.4f  % 10.4f  % 10.4f  % 10.4f\n", 
+	      fslx[0], fslx[1], fslx[2], fslx[3]);
+      fprintf(stderr, "y[]:% 10.4f  % 10.4f  % 10.4f  % 10.4f\n", 
+	      fsly[0], fsly[1], fsly[2], fsly[3]);
+      fprintf(stderr, "z[]:% 10.4f  % 10.4f  % 10.4f  % 10.4f\n", 
+	      fslz[0], fslz[1], fslz[2], fslz[3]);
     }
     break;
   default:
@@ -339,20 +339,20 @@ baneProbe(float *_ans, Nrrd *nin, int query,
     fw1z[i] /= zs;  fw2z[i] /= zs*zs;
   }
   if (baneProbeDebug) {
-    printf("fw0:\n");
+    fprintf(stderr, "fw0:\n");
     switch (fd) {
     case 2:
-      printf("x[]: % 10.4f   % 10.4f\n", fw0x[0], fw0x[1]);
-      printf("y[]: % 10.4f   % 10.4f\n", fw0y[0], fw0y[1]);
-      printf("z[]: % 10.4f   % 10.4f\n", fw0z[0], fw0z[1]);
+      fprintf(stderr, "x[]: % 10.4f   % 10.4f\n", fw0x[0], fw0x[1]);
+      fprintf(stderr, "y[]: % 10.4f   % 10.4f\n", fw0y[0], fw0y[1]);
+      fprintf(stderr, "z[]: % 10.4f   % 10.4f\n", fw0z[0], fw0z[1]);
       break;
     case 4:
-      printf("x[]:% 10.4f  % 10.4f  % 10.4f  % 10.4f\n", 
-	     fw0x[0], fw0x[1], fw0x[2], fw0x[3]);
-      printf("y[]:% 10.4f  % 10.4f  % 10.4f  % 10.4f\n", 
-	     fw0y[0], fw0y[1], fw0y[2], fw0y[3]);
-      printf("z[]:% 10.4f  % 10.4f  % 10.4f  % 10.4f\n", 
-	     fw0z[0], fw0z[1], fw0z[2], fw0z[3]);
+      fprintf(stderr, "x[]:% 10.4f  % 10.4f  % 10.4f  % 10.4f\n", 
+	      fw0x[0], fw0x[1], fw0x[2], fw0x[3]);
+      fprintf(stderr, "y[]:% 10.4f  % 10.4f  % 10.4f  % 10.4f\n", 
+	      fw0y[0], fw0y[1], fw0y[2], fw0y[3]);
+      fprintf(stderr, "z[]:% 10.4f  % 10.4f  % 10.4f  % 10.4f\n", 
+	      fw0z[0], fw0z[1], fw0z[2], fw0z[3]);
       break;
     default:
       break;

@@ -186,10 +186,10 @@ _baneFindInclusion(double min[3], double max[3],
   if (hvp->verb)
     fprintf(stderr, "\b\b\b\b\b\b  done\n");
   if (hvp->verb > 1) {
-    printf("%s: after initA; ranges: [%g,%g] [%g,%g] [%g,%g]\n", me,
-	   n0->axisMin[0], n0->axisMax[0], 
-	   n1->axisMin[0], n1->axisMax[0], 
-	   n2->axisMin[0], n2->axisMax[0]);
+    fprintf(stderr, "%s: after initA; ranges: [%g,%g] [%g,%g] [%g,%g]\n", me,
+	    n0->axisMin[0], n0->axisMax[0], 
+	    n1->axisMin[0], n1->axisMax[0], 
+	    n2->axisMin[0], n2->axisMax[0]);
   }
 
   /* second stage of initialization, includes creating histograms */
@@ -222,10 +222,10 @@ _baneFindInclusion(double min[3], double max[3],
   if (hvp->verb)
     fprintf(stderr, "\b\b\b\b\b\b  done\n");
   if (hvp->verb > 1) {
-    printf("%s: after initB; ranges: [%g,%g] [%g,%g] [%g,%g]\n", me,
-	   n0->axisMin[0], n0->axisMax[0], 
-	   n1->axisMin[0], n1->axisMax[0], 
-	   n2->axisMin[0], n2->axisMax[0]);
+    fprintf(stderr, "%s: after initB; ranges: [%g,%g] [%g,%g] [%g,%g]\n", me,
+	    n0->axisMin[0], n0->axisMax[0], 
+	    n1->axisMin[0], n1->axisMax[0], 
+	    n2->axisMin[0], n2->axisMax[0]);
   }
 
   /* now the real work of determining the inclusion */
@@ -310,8 +310,8 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
 	      me, min[2], min[2], min[2], max[2]);
   }
   if (hvp->verb)
-    printf("%s: inclusion: 0:[%g,%g], 1:[%g,%g], 2:[%g,%g]\n", me,
-	   min[0], max[0], min[1], max[1], min[2], max[2]);
+    fprintf(stderr, "%s: inclusion: 0:[%g,%g], 1:[%g,%g], 2:[%g,%g]\n", me,
+	    min[0], max[0], min[1], max[1], min[2], max[2]);
   
   /* construct the "raw" (un-clipped) histogram volume */
   if (hvp->verb) {
