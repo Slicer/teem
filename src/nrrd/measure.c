@@ -181,22 +181,19 @@ _nrrdMeasureMode(void *line, int lineType, int len,
 		 double axmin, double axmax,
 		 void *ans, int ansType) {
   Nrrd *nline, *nhist;
-  airArray *mop;
 
-  mop = airMopInit();
   nline = nrrdNew();
-  airMopAdd(mop, nline, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdWrap(nline, line, lineType, 1, len)) {
     free(biffGetDone(NRRD));
-    airMopError(mop);
+    nrrdNix(nline);
     nrrdDStore[ansType](ans, AIR_NAN);
     return;
   }
   nhist = nrrdNew();
-  airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdHisto(nhist, nline, nrrdStateMeasureModeBins, nrrdTypeInt)) {
     free(biffGetDone(NRRD));
-    airMopError(mop);
+    nrrdNuke(nhist);
+    nrrdNix(nline);
     nrrdDStore[ansType](ans, AIR_NAN);
     return;
   }
@@ -205,7 +202,8 @@ _nrrdMeasureMode(void *line, int lineType, int len,
   _nrrdMeasureHistoMode(nhist->data, nrrdTypeInt, nrrdStateMeasureModeBins,
 			nhist->axis[0].min, nhist->axis[0].max,
 			ans, ansType);
-  airMopOkay(mop);
+  nrrdNuke(nhist);
+  nrrdNix(nline);
   return;
 }
 
