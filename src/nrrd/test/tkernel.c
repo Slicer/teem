@@ -108,20 +108,17 @@ main(int argc, char *argv[]) {
     if (!CLOSE(r_f,r_d)) {
       fprintf(stderr, "%s: (eval1_f(%g)== %f) != (eval1_d(%g)== %f)\n",
 	      me, v, r_f, v, r_d);
-      exit(1);
     }
     /* compare single float with vector float */
     if (!CLOSE(r_f,ran_f[i])) {
       fprintf(stderr, "%s: (eval1_f(%g)== %f) != (evalN_f[%d]== %f)\n",
 	      me, v, r_f, i, ran_f[i]);
-      exit(1);
     }
     /* compare single float with vector double */
     r_d = ran_d[i];
     if (!CLOSE(r_f,r_d)) {
       fprintf(stderr, "%s: (eval1_f(%g)== %f) != (evalN_d[%d]== %f)\n",
 	      me, v, r_f, i, r_d);
-      exit(1);
     }
     integral += step*ran_d[i];
     i++;

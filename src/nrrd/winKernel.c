@@ -70,6 +70,7 @@ _nrrd##name##_N_f(float *f, float *x, size_t len, double *parm) {   \
     f[i] = mac(t, R)/spow(S);                                       \
   }                                                                 \
 }
+
 #define WS_1_D(name, mac, spow)             \
 double                                      \
 _nrrd##name##_1_d(double x, double *parm) { \
@@ -188,7 +189,9 @@ nrrdKernelBlackman = &_nrrdKernelBlackman;
 #define _DBLACK_B(x, R)                                                     \
   sin(M_PI*x)*(-0.84*R - R*cos(M_PI*x/R) - 0.16*R*cos(2*M_PI*x/R) -         \
                M_PI*x*sin(M_PI*x/R) - 1.0053096491487339*x*sin(2*M_PI*x/R))
-#define _DBLACK(x, R) (_DBLACK_A(x,R) + _DBLACK_B(x,R))/(2*M_PI*R*x*x)
+#define _DBLACK(x, R)                                 \
+  (x > R ? 0.0 : (x < -R ? 0.0 : (x == 0 ? 0.0 :      \
+    (_DBLACK_A(x,R) + _DBLACK_B(x,R))/(2*M_PI*R*x*x))))
 
 WS_1_D(DBlack, _DBLACK, POW2)
 WS_1_F(DBlack, _DBLACK, POW2)
@@ -206,18 +209,20 @@ nrrdKernelBlackmanD = &_nrrdKernelDBlack;
 
 /* ------------------------------------------------------------ */
 
-#define _DDBLACK(x, R)                                                              \
-  ((R*x*cos(M_PI*x)*(-2.638937829015426*R - M_PI*R*cos((M_PI*x)/R)                  \
-		    - 0.5026548245743669*R*cos((2*M_PI*x)/R)                        \
-		    - M_PI*M_PI*x*sin((M_PI*x)/R)                                   \
-		    - 3.158273408348595*x*sin((2*M_PI*x)/R))                        \
-   + sin(M_PI*x)*((-4.934802200544679*x*x                                           \
-		   + R*R*(1 - 4.934802200544679*x*x))*cos((M_PI*x)/R)               \
-		  + (-3.158273408348595*x*x                                         \
-		     + R*R*(0.16 - 0.7895683520871487*x*x))*cos((2*M_PI*x)/R)       \
-		  + R*(0.84*R - 4.14523384845753*R*x*x                              \
-		       + M_PI*x*sin((M_PI*x)/R)                                     \
-		       + 1.0053096491487339*x*sin((2*M_PI*x)/R))))/(M_PI*R*R*x*x*x))
+#define _DDBLACK(x, R)                                                         \
+  (x > R ? 0.0 : (x < -R ? 0.0 : (x == 0                                       \
+   ? -3.289868133696453 - 8.093075608893276/(R*R)                              \
+   : ((R*x*cos(M_PI*x)*(-2.638937829015426*R - M_PI*R*cos((M_PI*x)/R)          \
+	    - 0.5026548245743669*R*cos((2*M_PI*x)/R)                           \
+	    - M_PI*M_PI*x*sin((M_PI*x)/R)                                      \
+	    - 3.158273408348595*x*sin((2*M_PI*x)/R))                           \
+  + sin(M_PI*x)*((-4.934802200544679*x*x                                       \
+	   + R*R*(1 - 4.934802200544679*x*x))*cos((M_PI*x)/R)                  \
+	  + (-3.158273408348595*x*x                                            \
+	     + R*R*(0.16 - 0.7895683520871487*x*x))*cos((2*M_PI*x)/R)          \
+	  + R*(0.84*R - 4.14523384845753*R*x*x                                 \
+	       + M_PI*x*sin((M_PI*x)/R)                                        \
+	       + 1.0053096491487339*x*sin((2*M_PI*x)/R))))/(M_PI*R*R*x*x*x)))))
 
 WS_1_D(DDBlack, _DDBLACK, POW3)
 WS_1_F(DDBlack, _DDBLACK, POW3)
