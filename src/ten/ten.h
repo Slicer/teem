@@ -89,6 +89,8 @@ enum {
 ** all input parameters to tenGlyphGen
 */
 typedef struct {
+  int verbose; 
+  
   /* glyphs will be shown at samples that have confidence >= confThresh,
      and anisotropy anisoType >= anisoThresh, and if nmask is non-NULL,
      then the corresponding mask value must be >= maskThresh.  If 
@@ -546,6 +548,11 @@ TEEM_API int tenEigenvaluePower(Nrrd *nout, Nrrd *nin, double expo);
 TEEM_API int tenEigenvalueClamp(Nrrd *nout, Nrrd *nin, double min, double max);
 TEEM_API int tenEigenvalueAdd(Nrrd *nout, Nrrd *nin, double val);
 
+/* bvec.c */
+TEEM_API int tenBVecNonLinearFit(Nrrd *nout, Nrrd *nin, 
+                                 double *bb, double *ww,
+                                 int iterMax, double eps);
+
 /* tenGage.c */
 TEEM_API gageKind *tenGageKind;
 
@@ -586,6 +593,7 @@ F(evecrgb) \
 F(evq) \
 F(expand) \
 F(shrink) \
+F(bfit) \
 F(satin)
 TEND_MAP(TEND_DECLARE)
 TEEM_API unrrduCmd *tendCmdList[]; 
