@@ -106,29 +106,29 @@ makeMain(int argc, char **argv, char *me) {
 	     "data file is to be found relative to the header file "
 	     "(as opposed to the current working directory of whomever "
 	     "is reading the nrrd)");
-  hestOptAdd(&opt, "t,type", "type", airTypeEnum, 1, 1, &(nrrd->type),
+  hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &(nrrd->type),
 	     NULL, "type of data (e.g. \"uchar\", \"int\", \"float\", "
 	     "\"double\", etc.)",
 	     NULL, nrrdType);
-  hestOptAdd(&opt, "s,size", "size0 size1", airTypeInt, 1, -1, &size, NULL,
+  hestOptAdd(&opt, "s", "sz0 sz1", airTypeInt, 1, -1, &size, NULL,
 	     "number of samples along each axis (and implicit indicator "
 	     "of dimension of nrrd)", &sizeLen);
-  hestOptAdd(&opt, "sp,spacing", "spc0 spc1", airTypeDouble, 1, -1, &spacing,
+  hestOptAdd(&opt, "sp", "spc0 spc1", airTypeDouble, 1, -1, &spacing,
 	     NULL, "spacing between samples on each axis.  Use \"nan\" for "
 	     "any non-spatial axes (e.g. spacing between red, green, and blue "
 	     "along axis 0 of interleaved RGB image data)", &spacingLen);
-  hestOptAdd(&opt, "ls,lineskip", "skip", airTypeInt, 1, 1,
+  hestOptAdd(&opt, "ls", "lineskip", airTypeInt, 1, 1,
 	     &(io->lineSkip), "0",
 	     "number of ascii lines to skip before reading data");
-  hestOptAdd(&opt, "bs,byteskip", "skip", airTypeInt, 1, 1,
+  hestOptAdd(&opt, "bs", "byteskip", airTypeInt, 1, 1,
 	     &(io->byteSkip), "0",
 	     "number of bytes to skip (after skipping ascii lines, if any) "
 	     "before reading data");
-  hestOptAdd(&opt, "e,encoding", "encoding", airTypeEnum, 1, 1,
+  hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1,
 	     &(io->encoding), "raw",
 	     "data encoding. Possibilities are \"raw\" and \"ascii\"",
 	     NULL, nrrdEncoding);
-  hestOptAdd(&opt, "en,endian", "endian", airTypeEnum, 1, 1, &(io->endian),
+  hestOptAdd(&opt, "en", "endian", airTypeEnum, 1, 1, &(io->endian),
 	     airEnumStr(airEndian, airMyEndian),
 	     "Endianness of data; relevent for any raw data with value "
 	     "representation bigger than 8 bits: \"little\" for Intel and "
