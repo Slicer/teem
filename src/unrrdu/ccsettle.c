@@ -28,15 +28,19 @@ char *_unrrdu_ccsettleInfoL =
 int
 unrrdu_ccsettleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err;
-  Nrrd *nin, *nout;
+  char *out, *err, *valS;
+  Nrrd *nin, *nout, *nval=NULL;
   airArray *mop;
   int pret;
 
   mop = airMopNew();
-  hestOptAdd(&opt, NULL, "nin", airTypeOther, 1, 1, &nin, NULL,
+  hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
 	     "input nrrd",
 	     NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&opt, "v", "filename", airTypeString, 1, 1, &valS, "",
+	     "Giving a filename here allows you to save out the mapping "
+	     "from new (settled) values to old values, in the form of a "
+	     "1-D lookup table");
   OPT_ADD_NOUT(out, "output nrrd");
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
@@ -47,13 +51,19 @@ unrrdu_ccsettleMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdCCSettle(nout, nin)) {
+  if (nrrdCCSettle(nout, airStrlen(valS) ? &nval : NULL, nin)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error settling connected components:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
+  if (nval) {
+    airMopAdd(mop, nval, (airMopper)nrrdNuke, airMopAlways);
+  }
 
+  if (airStrlen(valS)) {
+    SAVE(valS, nval, NULL);
+  }
   SAVE(out, nout, NULL);
 
   airMopOkay(mop);

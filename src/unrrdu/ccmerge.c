@@ -20,13 +20,14 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Merge islands into their surrounding"
+#define INFO "Merge CCs with their neighbors, under various contraints"
 char *_unrrdu_ccmergeInfoL =
 (INFO
  ".  This operates on the output of \"ccfind\". "
- "Connected components (CCs) with only one adjacent CC (that is, islands) "
- "are absorbed into their surrounding if they are smaller than the "
- "surround, and are smaller then some given maximum significant size. ");
+ "Merging of a CC is always done into its largest neighbor. "
+ "Whether or not to merge can be constrained by one or more of: "
+ "CC size (\"-s\"), original CC value being brighter or darker (\"-d\"), "
+ "and number of neighbors (\"-n\"). ");
 
 int
 unrrdu_ccmergeMain(int argc, char **argv, char *me, hestParm *hparm) {

@@ -638,7 +638,7 @@ extern int nrrdCCAdjacency(Nrrd *nout, Nrrd *nin, int conny);
 extern int nrrdCCMerge(Nrrd *nout, Nrrd *nin, Nrrd *nval,
 		       int dir, int maxSize, int maxNeighbor, int conny);
 extern int nrrdCCRevalue (Nrrd *nout, Nrrd *nin, Nrrd *nval);
-extern int nrrdCCSettle(Nrrd *nout, Nrrd *nin);
+extern int nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, Nrrd *nin);
   
 /******** kernels (interpolation, 1st and 2nd derivatives) */
 /* tmfKernel.c

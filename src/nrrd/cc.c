@@ -265,7 +265,7 @@ _nrrdCCFind_N(Nrrd *nfpid, int *maxid, airArray *eqvArr,
 int
 nrrdCCFind(Nrrd *nout, Nrrd **nvalP, Nrrd *nin, int type, int conny) {
   char me[]="nrrdCCFind", func[]="ccfind", err[AIR_STRLEN_MED];
-  Nrrd *nfpid, *nval=NULL;  /* first-pass IDs */
+  Nrrd *nfpid;  /* first-pass IDs */
   airArray *mop, *eqvArr;
   int ret, *map, *fpid, numid, maxid,
     (*lup)(void *, size_t), (*ins)(void *, size_t, int);
@@ -353,8 +353,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, Nrrd *nin, int type, int conny) {
     }
     airMopAdd(mop, nvalP, (airMopper)airSetNull, airMopOnError);
     airMopAdd(mop, *nvalP, (airMopper)nrrdNuke, airMopOnError);
-    nval = *nvalP;
-    val = nval->data;
+    val = (*nvalP)->data;
     lup = nrrdILookup[nin->type];
     ins = nrrdIInsert[nin->type];
     /* I'm not sure if its more work to do all the redundant assignments
@@ -764,18 +763,23 @@ nrrdCCRevalue (Nrrd *nout, Nrrd *nin, Nrrd *nval) {
 }
 
 int
-nrrdCCSettle(Nrrd *nout, Nrrd *nin) {
+nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, Nrrd *nin) {
   char me[]="nrrdCCSettle", func[]="ccsettle", err[AIR_STRLEN_MED];
-  int maxid, jd, id, (*lup)(void *, size_t), (*ins)(void *, size_t, int), *map;
+  int numid, maxid, jd, id, 
+    (*lup)(void *, size_t), (*ins)(void *, size_t, int),
+    *map, *val=NULL;
   size_t I, NN;
+  airArray *mop;
 
+  mop = airMopNew();
   if (!( nout && nrrdCCValid(nin) )) {
+    /* nvalP can be NULL */
     sprintf(err, "%s: invalid args", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   if (nrrdCopy(nout, nin)) {
     sprintf(err, "%s: initial copy failed", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   maxid = nrrdCCMax(nin);
   lup = nrrdILookup[nin->type];
@@ -784,26 +788,51 @@ nrrdCCSettle(Nrrd *nout, Nrrd *nin) {
   map = (int *)calloc(maxid+1, sizeof(int));
   if (!map) {
     sprintf(err, "%s: couldn't allocate internal LUT", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
+  airMopAdd(mop, map, airFree, airMopAlways);
   for (I=0; I<NN; I++) {
     map[lup(nin->data, I)] = 1;
   }
+  numid = 0;
+  for (jd=0; jd<=maxid; jd++) {
+    numid += map[jd];
+  }
+
+  if (nvalP) {
+    if (!(*nvalP)) {
+      *nvalP = nrrdNew();
+    }
+    if (nrrdMaybeAlloc(*nvalP, nin->type, 1, numid)) {
+      sprintf(err, "%s: couldn't allocate output value list", me);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+    airMopAdd(mop, nvalP, (airMopper)airSetNull, airMopOnError);
+    airMopAdd(mop, *nvalP, (airMopper)nrrdNuke, airMopOnError);
+    val = (int*)((*nvalP)->data);
+  }
+
   id = 0;
   for (jd=0; jd<=maxid; jd++) {
     if (map[jd]) {
       map[jd] = id;
+      if (nvalP) {
+	val[id] = jd;
+      }
       id++;
     }
   }
   for (I=0; I<NN; I++) {
     ins(nout->data, I, map[lup(nin->data, I)]);
   }
-  free(map);
 
+  fprintf(stderr, "%s: bingo 0\n", me);
   if (nrrdContentSet(nout, func, nin, "")) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
+  fprintf(stderr, "%s: bingo 1\n", me);
+  airMopOkay(mop); 
+  fprintf(stderr, "%s: bingo\n", me);
   return 0;
 }
