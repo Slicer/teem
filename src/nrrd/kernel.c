@@ -59,10 +59,10 @@ _nrrdZero1_f(float x, double *parm) {
 }
 
 void
-_nrrdZeroN_d(double *f, double *x, int len, double *parm) {
+_nrrdZeroN_d(double *f, double *x, size_t len, double *parm) {
   double S;
   double t;
-  int i;
+  size_t i;
   
   S = parm[0];
   for (i=0; i<len; i++) {
@@ -72,9 +72,9 @@ _nrrdZeroN_d(double *f, double *x, int len, double *parm) {
 }
 
 void
-_nrrdZeroN_f(float *f, float *x, int len, double *parm) {
+_nrrdZeroN_f(float *f, float *x, size_t len, double *parm) {
   float t, S;
-  int i;
+  size_t i;
   
   S = parm[0];
   for (i=0; i<len; i++) {
@@ -130,10 +130,10 @@ _nrrdBox1_f(float x, double *parm) {
 }
 
 void
-_nrrdBoxN_d(double *f, double *x, int len, double *parm) {
+_nrrdBoxN_d(double *f, double *x, size_t len, double *parm) {
   double S;
   double t;
-  int i;
+  size_t i;
   
   S = parm[0];
   for (i=0; i<len; i++) {
@@ -143,9 +143,9 @@ _nrrdBoxN_d(double *f, double *x, int len, double *parm) {
 }
 
 void
-_nrrdBoxN_f(float *f, float *x, int len, double *parm) {
+_nrrdBoxN_f(float *f, float *x, size_t len, double *parm) {
   float t, S;
-  int i;
+  size_t i;
   
   S = parm[0];
   for (i=0; i<len; i++) {
@@ -199,10 +199,10 @@ _nrrdTent1_f(float x, double *parm) {
 }
 
 void
-_nrrdTentN_d(double *f, double *x, int len, double *parm) {
+_nrrdTentN_d(double *f, double *x, size_t len, double *parm) {
   double S;
   double t;
-  int i;
+  size_t i;
   
   S = parm[0];
   for (i=0; i<len; i++) {
@@ -212,9 +212,9 @@ _nrrdTentN_d(double *f, double *x, int len, double *parm) {
 }
 
 void
-_nrrdTentN_f(float *f, float *x, int len, double *parm) {
+_nrrdTentN_f(float *f, float *x, size_t len, double *parm) {
   float t, S;
-  int i;
+  size_t i;
   
   S = parm[0];
   for (i=0; i<len; i++) {
@@ -270,10 +270,10 @@ _nrrdFD1_f(float x, double *parm) {
 }
 
 void
-_nrrdFDN_d(double *f, double *x, int len, double *parm) {
+_nrrdFDN_d(double *f, double *x, size_t len, double *parm) {
   double S;
   double t;
-  int i;
+  size_t i;
   
   S = parm[0];
   for (i=0; i<len; i++) {
@@ -283,9 +283,9 @@ _nrrdFDN_d(double *f, double *x, int len, double *parm) {
 }
 
 void
-_nrrdFDN_f(float *f, float *x, int len, double *parm) {
+_nrrdFDN_f(float *f, float *x, size_t len, double *parm) {
   float t, S;
-  int i;
+  size_t i;
   
   S = parm[0];
   for (i=0; i<len; i++) {
@@ -342,10 +342,10 @@ _nrrdCD1_f(float x, double *parm) {
 }
 
 void
-_nrrdCDN_d(double *f, double *x, int len, double *parm) {
+_nrrdCDN_d(double *f, double *x, size_t len, double *parm) {
   double S;
   double t;
-  int i;
+  size_t i;
   
   S = parm[0];
   for (i=0; i<len; i++) {
@@ -355,9 +355,9 @@ _nrrdCDN_d(double *f, double *x, int len, double *parm) {
 }
 
 void
-_nrrdCDN_f(float *f, float *x, int len, double *parm) {
+_nrrdCDN_f(float *f, float *x, size_t len, double *parm) {
   float t, S;
-  int i;
+  size_t i;
   
   S = parm[0];
   for (i=0; i<len; i++) {
@@ -416,10 +416,10 @@ _nrrdBC1_f(float x, double *parm) {
 }
 
 void
-_nrrdBCN_d(double *f, double *x, int len, double *parm) {
+_nrrdBCN_d(double *f, double *x, size_t len, double *parm) {
   double S;
   double t, B, C;
-  int i;
+  size_t i;
   
   S = parm[0]; B = parm[1]; C = parm[2]; 
   for (i=0; i<len; i++) {
@@ -430,9 +430,9 @@ _nrrdBCN_d(double *f, double *x, int len, double *parm) {
 }
 
 void
-_nrrdBCN_f(float *f, float *x, int len, double *parm) {
+_nrrdBCN_f(float *f, float *x, size_t len, double *parm) {
   float S, t, B, C;
-  int i;
+  size_t i;
   
   S = parm[0]; B = parm[1]; C = parm[2]; 
   for (i=0; i<len; i++) {
@@ -496,10 +496,11 @@ _nrrdDBC1_f(float x, double *parm) {
 }
 
 void
-_nrrdDBCN_d(double *f, double *x, int len, double *parm) {
+_nrrdDBCN_d(double *f, double *x, size_t len, double *parm) {
   double S;
   double t, B, C;
-  int i, sgn;
+  size_t i;
+  int sgn;
   
   S = parm[0]; B = parm[1]; C = parm[2]; 
   for (i=0; i<len; i++) {
@@ -510,7 +511,7 @@ _nrrdDBCN_d(double *f, double *x, int len, double *parm) {
 }
 
 void
-_nrrdDBCN_f(float *f, float *x, int len, double *parm) {
+_nrrdDBCN_f(float *f, float *x, size_t len, double *parm) {
   float S, t, B, C;
   int i, sgn;
   
@@ -572,10 +573,10 @@ _nrrdDDBC1_f(float x, double *parm) {
 }
 
 void
-_nrrdDDBCN_d(double *f, double *x, int len, double *parm) {
+_nrrdDDBCN_d(double *f, double *x, size_t len, double *parm) {
   double S;
   double t, B, C;
-  int i;
+  size_t i;
   
   S = parm[0]; B = parm[1]; C = parm[2]; 
   for (i=0; i<len; i++) {
@@ -586,9 +587,9 @@ _nrrdDDBCN_d(double *f, double *x, int len, double *parm) {
 }
 
 void
-_nrrdDDBCN_f(float *f, float *x, int len, double *parm) {
+_nrrdDDBCN_f(float *f, float *x, size_t len, double *parm) {
   float S, t, B, C;
-  int i;
+  size_t i;
   
   S = parm[0]; B = parm[1]; C = parm[2]; 
   for (i=0; i<len; i++) {
@@ -651,10 +652,10 @@ _nrrdA41_f(float x, double *parm) {
 }
 
 void
-_nrrdA4N_d(double *f, double *x, int len, double *parm) {
+_nrrdA4N_d(double *f, double *x, size_t len, double *parm) {
   double S;
   double t, A;
-  int i;
+  size_t i;
   
   S = parm[0]; A = parm[1];
   for (i=0; i<len; i++) {
@@ -665,9 +666,9 @@ _nrrdA4N_d(double *f, double *x, int len, double *parm) {
 }
 
 void
-_nrrdA4N_f(float *f, float *x, int len, double *parm) {
+_nrrdA4N_f(float *f, float *x, size_t len, double *parm) {
   float S, t, A;
-  int i;
+  size_t i;
   
   S = parm[0]; A = parm[1];
   for (i=0; i<len; i++) {
@@ -733,10 +734,11 @@ _nrrdDA41_f(float x, double *parm) {
 }
 
 void
-_nrrdDA4N_d(double *f, double *x, int len, double *parm) {
+_nrrdDA4N_d(double *f, double *x, size_t len, double *parm) {
   double S;
   double t, A;
-  int i, sgn;
+  size_t i;
+  int sgn;
   
   S = parm[0]; A = parm[1];
   for (i=0; i<len; i++) {
@@ -747,9 +749,10 @@ _nrrdDA4N_d(double *f, double *x, int len, double *parm) {
 }
 
 void
-_nrrdDA4N_f(float *f, float *x, int len, double *parm) {
+_nrrdDA4N_f(float *f, float *x, size_t len, double *parm) {
   float S, t, A;
-  int i, sgn;
+  size_t i;
+  int sgn;
   
   S = parm[0]; A = parm[1];
   for (i=0; i<len; i++) {
@@ -811,10 +814,10 @@ _nrrdDDA41_f(float x, double *parm) {
 }
 
 void
-_nrrdDDA4N_d(double *f, double *x, int len, double *parm) {
+_nrrdDDA4N_d(double *f, double *x, size_t len, double *parm) {
   double S;
   double t, A;
-  int i;
+  size_t i;
   
   S = parm[0]; A = parm[1];
   for (i=0; i<len; i++) {
@@ -825,9 +828,9 @@ _nrrdDDA4N_d(double *f, double *x, int len, double *parm) {
 }
 
 void
-_nrrdDDA4N_f(float *f, float *x, int len, double *parm) {
+_nrrdDDA4N_f(float *f, float *x, size_t len, double *parm) {
   float S, t, A;
-  int i;
+  size_t i;
   
   S = parm[0]; A = parm[1];
   for (i=0; i<len; i++) {
@@ -889,9 +892,9 @@ _nrrdG1_f(float x, double *parm) {
 }
 
 void
-_nrrdGN_d(double *f, double *x, int len, double *parm) {
+_nrrdGN_d(double *f, double *x, size_t len, double *parm) {
   double sig, cut, t;
-  int i;
+  size_t i;
   
   sig = parm[0];
   cut = parm[1];
@@ -903,9 +906,9 @@ _nrrdGN_d(double *f, double *x, int len, double *parm) {
 }
 
 void
-_nrrdGN_f(float *f, float *x, int len, double *parm) {
+_nrrdGN_f(float *f, float *x, size_t len, double *parm) {
   float sig, cut, t;
-  int i;
+  size_t i;
   
   sig = parm[0];
   cut = parm[1];
@@ -968,9 +971,10 @@ _nrrdDG1_f(float x, double *parm) {
 }
 
 void
-_nrrdDGN_d(double *f, double *x, int len, double *parm) {
+_nrrdDGN_d(double *f, double *x, size_t len, double *parm) {
   double sig, cut, t;
-  int i, sgn;
+  size_t i;
+  int sgn;
   
   sig = parm[0];
   cut = parm[1];
@@ -982,9 +986,10 @@ _nrrdDGN_d(double *f, double *x, int len, double *parm) {
 }
 
 void
-_nrrdDGN_f(float *f, float *x, int len, double *parm) {
+_nrrdDGN_f(float *f, float *x, size_t len, double *parm) {
   float sig, cut, t;
-  int i, sgn;
+  size_t i;
+  int sgn;
   
   sig = parm[0];
   cut = parm[1];
@@ -1049,9 +1054,9 @@ _nrrdDDG1_f(float x, double *parm) {
 }
 
 void
-_nrrdDDGN_d(double *f, double *x, int len, double *parm) {
+_nrrdDDGN_d(double *f, double *x, size_t len, double *parm) {
   double sig, cut, t;
-  int i;
+  size_t i;
   
   sig = parm[0];
   cut = parm[1];
@@ -1063,9 +1068,9 @@ _nrrdDDGN_d(double *f, double *x, int len, double *parm) {
 }
 
 void
-_nrrdDDGN_f(float *f, float *x, int len, double *parm) {
+_nrrdDDGN_f(float *f, float *x, size_t len, double *parm) {
   float sig, cut, t;
-  int i;
+  size_t i;
   
   sig = parm[0];
   cut = parm[1];
