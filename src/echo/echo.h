@@ -53,23 +53,34 @@ typedef double echoCol_t;
 #define ECHO_OBJECT_INCR 20
 
 typedef struct {
+  /* ray-tracing parameters */
   int verbose,         /* verbosity level */
     jitter,            /* what kind of jittering to do */
     samples,           /* # samples per pixel */
     imgResU, imgResV,  /* horizontal and vertical image resolution */
     recDepth,          /* max recursion depth */
-    reuseJitter;       /* don't recompute jitter offsets per pixel */
+    reuseJitter,       /* don't recompute jitter offsets per pixel */
+    permuteJitter;     /* properly permute the various jitter arrays */
   float epsilon,       /* somewhat bigger than zero */
     aperture;          /* shallowness of field */
+
+  /* RGB image generation parameters */
   echoCol_t
     bgR, bgG, bgB;     /* background color */
+  float gamma;         /* display device gamma */
 } EchoParam;
 
 typedef struct {
-  Nrrd *njitt;         /* 2 x ECHO_JITTER_NUM x samples values of 
-			  type echoPos_t in [-1/2,1/2] */
   double time0, time1; /* start and end time for whole image rendering */
-} EchoState;
+} EchoGlobalState;
+
+typedef struct {
+  Nrrd *nperm,         /* ECHO_JITTER_NUM permutations (length param->samples)
+			  used to order jittering */
+    *njitt;            /* 2 x ECHO_JITTER_NUM x param->samples values of 
+			  type echoPos_t in [-1/2,1/2] */
+  int *permBuff;       /* temp array for creating permutations */
+} EchoThreadState;
 
 enum {
   echoJitterUnknown,
@@ -201,8 +212,10 @@ extern EchoLight *echoLightNix(EchoLight *light);
 /* methods.c --------------------------------------- */
 extern EchoParam *echoParamNew();
 extern EchoParam *echoParamNix(EchoParam *param);
-extern EchoState *echoStateNew();
-extern EchoState *echoStateNix(EchoState *state);
+extern EchoGlobalState *echoGlobalStateNew();
+extern EchoGlobalState *echoGlobalStateNix(EchoGlobalState *state);
+extern EchoThreadState *echoThreadStateNew();
+extern EchoThreadState *echoThreadStateNix(EchoThreadState *state);
 extern limnCam *echoLimnCamNew();
 
 /* render.c ---------------------------------------- */
@@ -221,8 +234,11 @@ typedef struct {
 
 extern int echoComposite(Nrrd *nimg, Nrrd *nraw, EchoParam *param);
 extern int echoPPM(Nrrd *nppm, Nrrd *nimg, EchoParam *param);
-extern int echoRender(Nrrd *nout, limnCam *cam,
-		      EchoParam *param, EchoState *state,
+extern int echoThreadStateInit(EchoThreadState *tstate,
+			       EchoParam *param, EchoGlobalState *gstate);
+extern void echoJitterSet(EchoParam *param, EchoThreadState *state);
+extern int echoRender(Nrrd *nraw, limnCam *cam,
+		      EchoParam *param, EchoGlobalState *state,
 		      EchoObject *scene, airArray *lightArr);
 
 

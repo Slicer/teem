@@ -84,12 +84,93 @@ echoPPM(Nrrd *nppm, Nrrd *nimg, EchoParam *param) {
   for (i=0; i<N; i++) {
     for (c=0; c<3; c++) {
       val = AIR_CLAMP(0.0, img[c + 3*i], 1.0);
+      val = pow(val, 1.0/param->gamma);
       AIR_INDEX(0.0, val, 1.0, 256, v); 
       ppm[c + 3*i] = v;
     }
   }
 
   return 0;
+}
+
+int
+echoThreadStateInit(EchoThreadState *tstate,
+		    EchoParam *param, EchoGlobalState *gstate) {
+  char me[]="echoThreadStateInit", err[AIR_STRLEN_MED];
+
+  if (!(tstate && param && gstate)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(ECHO, err); return 1;
+  }
+  if (nrrdMaybeAlloc(tstate->nperm, nrrdTypeInt, 2,
+		     ECHO_SAMPLE_NUM, param->samples)) {
+    sprintf(err, "%s: couldn't allocate jitter permutation array", me);
+    biffMove(ECHO, err, NRRD); return 1;
+  }
+  if (nrrdMaybeAlloc(tstate->njitt, echoPos_nrrdType, 3,
+		     2, ECHO_SAMPLE_NUM, param->samples)) {
+    sprintf(err, "%s: couldn't allocate jitter array", me);
+    biffMove(ECHO, err, NRRD); return 1;
+  }
+  if (!( tstate->permBuff = (int*)calloc(param->samples, sizeof(int)) )) {
+    sprintf(err, "%s: couldn't allocate permutation buffer", me);
+    biffAdd(ECHO, err); return 1;
+  }
+  
+  return 0;
+}
+
+/*
+******** echoJitterSet()
+**
+**
+*/
+void
+echoJitterSet(EchoParam *param, EchoThreadState *state) {
+  echoPos_t *jitt, w;
+  int s, i, j, xi, yi, n, N, *perm;
+
+  jitt = (echoPos_t *)state->njitt->data;
+  perm = (int *)state->nperm->data;
+  N = param->samples;
+  n = sqrt(N);
+  w = 1.0/n;
+  for (j=0; j<ECHO_SAMPLE_NUM; j++) {
+    airShuffle(state->permBuff, param->samples, param->permuteJitter);
+    for (s=0; s<N; s++) {
+      perm[j + ECHO_SAMPLE_NUM*s] = state->permBuff[s];
+    }
+  }
+  for (s=0; s<N; s++) {
+    for (j=0; j<ECHO_SAMPLE_NUM; j++) {
+      i = perm[j + ECHO_SAMPLE_NUM*s];
+      xi = i % n;
+      yi = i / n;
+      switch(param->jitter) {
+      case echoJitterNone:
+	jitt[0 + 2*j] = 0.0;
+	jitt[1 + 2*j] = 0.0;
+	break;
+      case echoJitterGrid:
+	jitt[0 + 2*j] = NRRD_AXIS_POS(nrrdCenterCell, -0.5, 0.5, n, xi);
+	jitt[1 + 2*j] = NRRD_AXIS_POS(nrrdCenterCell, -0.5, 0.5, n, yi);
+	break;
+      case echoJitterJitter:
+	jitt[0 + 2*j] = NRRD_AXIS_POS(nrrdCenterCell, -0.5, 0.5, n, xi);
+	jitt[0 + 2*j] += AIR_AFFINE(0.0, airRand(), 1.0, -w/2, w/2);
+	jitt[1 + 2*j] = NRRD_AXIS_POS(nrrdCenterCell, -0.5, 0.5, n, yi);
+	jitt[1 + 2*j] += AIR_AFFINE(0.0, airRand(), 1.0, -w/2, w/2);
+	break;
+      case echoJitterRandom:
+	jitt[0 + 2*j] = airRand() - 0.5;
+	jitt[1 + 2*j] = airRand() - 0.5;
+	break;
+      }
+    }
+    jitt += 2*ECHO_SAMPLE_NUM;
+  }
+
+  return;
 }
 
 /*
@@ -100,12 +181,12 @@ echoPPM(Nrrd *nppm, Nrrd *nimg, EchoParam *param) {
 */
 int
 echoCheck(Nrrd *nraw, limnCam *cam, 
-	  EchoParam *param, EchoState *state,
+	  EchoParam *param, EchoGlobalState *state,
 	  EchoObject *scene, airArray *lightArr) {
   char me[]="echoCheck", err[AIR_STRLEN_MED];
   int tmp;
 
-  if (!(nraw && cam && param && scene && lightArr)) {
+  if (!(nraw && cam && param && state && scene && lightArr)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(ECHO, err); return 1;
   }
@@ -155,42 +236,6 @@ echoCheck(Nrrd *nraw, limnCam *cam,
   return 0;
 }
 
-void
-echoJitterSet(EchoParam *param, EchoState *state) {
-  echoPos_t *jitt, w;
-  int i, xi, yi, n, N;
-
-  jitt = (echoPos_t *)state->njitt->data;
-  N = param->samples;
-  n = sqrt(N);
-  w = 1.0/n;
-  for (i=0; i<ECHO_SAMPLE_NUM*N; i++) {
-    xi = i % n; yi = i / n;
-    switch(param->jitter) {
-    case echoJitterNone:
-      jitt[0 + 2*i] = 0.0;
-      jitt[1 + 2*i] = 0.0;
-      break;
-    case echoJitterGrid:
-      jitt[0 + 2*i] = NRRD_AXIS_POS(nrrdCenterCell, -0.5, 0.5, n, xi);
-      jitt[1 + 2*i] = NRRD_AXIS_POS(nrrdCenterCell, -0.5, 0.5, n, yi);
-      break;
-    case echoJitterJitter:
-      jitt[0 + 2*i] = NRRD_AXIS_POS(nrrdCenterCell, -0.5, 0.5, n, xi);
-      jitt[0 + 2*i] += AIR_AFFINE(0.0, airRand(), 1.0, -w/2, w/2);
-      jitt[1 + 2*i] = NRRD_AXIS_POS(nrrdCenterCell, -0.5, 0.5, n, yi);
-      jitt[1 + 2*i] += AIR_AFFINE(0.0, airRand(), 1.0, -w/2, w/2);
-      break;
-    case echoJitterRandom:
-      jitt[0 + 2*i] = airRand() - 0.5;
-      jitt[1 + 2*i] = airRand() - 0.5;
-      break;
-    }
-  }
-
-  return;
-}
-
 /*
 ******** echoRender
 **
@@ -199,22 +244,23 @@ echoJitterSet(EchoParam *param, EchoState *state) {
 */
 int
 echoRender(Nrrd *nraw, limnCam *cam,
-	   EchoParam *param, EchoState *state,
+	   EchoParam *param, EchoGlobalState *gstate,
 	   EchoObject *scene, airArray *lightArr) {
   char me[]="echoRender", err[AIR_STRLEN_MED];
-  int imgUi, imgVi,     /* integral pixel indices */
-    samp;               /* which sample are we doing */
+  int imgUi, imgVi,         /* integral pixel indices */
+    samp;                   /* which sample are we doing */
   echoPos_t tmp,
-    eye[3],             /* eye center before jittering */
-    from[3],            /* ray origination (eye after jittering */
-    at[3],              /* ray destination (pixel center after jittering) */
-    U[4], V[4], N[4],   /* view space basis (only first 3 elements used) */
-    pixUsz, pixVsz,     /* U and V dimensions of a pixel */
-    imgU, imgV,         /* floating point pixel center locations */
-    imgOrig[3],         /* image origin */
-    *jitt;              /* current scanline of master jitter array */
+    eye[3],                 /* eye center before jittering */
+    from[3],                /* ray origination (eye after jittering */
+    at[3],                  /* ray destination (pixel center post-jittering) */
+    U[4], V[4], N[4],       /* view space basis (only first 3 elements used) */
+    pixUsz, pixVsz,         /* U and V dimensions of a pixel */
+    imgU, imgV,             /* floating point pixel center locations */
+    imgOrig[3],             /* image origin */
+    *jitt;                  /* current scanline of master jitter array */
+  EchoThreadState *tstate;  /* only one thread for now */
 
-  if (echoCheck(nraw, cam, param, state, scene, lightArr)) {
+  if (echoCheck(nraw, cam, param, gstate, scene, lightArr)) {
     sprintf(err, "%s: problem with input", me);
     biffAdd(ECHO, err); return 1;
   }
@@ -223,16 +269,18 @@ echoRender(Nrrd *nraw, limnCam *cam,
     sprintf(err, "%s: couldn't allocate output image", me);
     biffMove(ECHO, err, NRRD); return 1;
   }
-  if (nrrdMaybeAlloc(state->njitt, echoPos_nrrdType, 3,
-		     2, ECHO_SAMPLE_NUM, param->samples)) {
-    sprintf(err, "%s: couldn't allocate jitter array", me);
-    biffMove(ECHO, err, NRRD); return 1;
+  tstate = echoThreadStateNew();
+  if (echoThreadStateInit(tstate, param, gstate)) {
+    sprintf(err, "%s:", me);
+    biffAdd(ECHO, err); return 1;
   }
 
-  state->time0 = airTime();
+  gstate->time0 = airTime();
   airSrand();
-  echoJitterSet(param, state);
-
+  echoJitterSet(param, tstate);
+  if (param->verbose > 2)
+    nrrdSave("jitt.nrrd", tstate->njitt, NULL);
+  
   /* set eye, U, V, N, imgOrig */
   ELL_3V_COPY(eye, cam->from);
   ELL_4MV_GET_ROW0(U, cam->W2V);
@@ -252,7 +300,7 @@ echoRender(Nrrd *nraw, limnCam *cam,
       imgU = NRRD_AXIS_POS(nrrdCenterCell, cam->uMin, cam->uMax,
 			   param->imgResU, imgUi);
       /* initialize jitt on first "scanline" */
-      jitt = (echoPos_t *)state->njitt->data;
+      jitt = (echoPos_t *)tstate->njitt->data;
 
       /* go through samples */
       for (samp=0; samp<param->samples; samp++) {
@@ -271,16 +319,16 @@ echoRender(Nrrd *nraw, limnCam *cam,
 	ELL_3V_SCALEADD(at, V, tmp);
 
 	
-
 	/* move jitt to next "scanline" */
 	jitt += 2*ECHO_SAMPLE_NUM;
       }
       if (!param->reuseJitter) 
-	echoJitterSet(param, state);
+	echoJitterSet(param, tstate);
     }
   }
-  state->time1 = airTime();
+  gstate->time1 = airTime();
   
+  tstate = echoThreadStateNix(tstate);
 
   return 0;
 }

@@ -29,9 +29,11 @@ echoParamNew(void) {
   param->samples = 1;
   param->recDepth = 1;
   param->reuseJitter = AIR_FALSE;
+  param->permuteJitter = AIR_TRUE;
   param->bgR = 0.0;
   param->bgG = 0.0;
   param->bgB = 0.0;
+  param->gamma = 2.2;
 
   /* these will have to be user-set */
   param->imgResU = param->imgResV = 0;
@@ -49,22 +51,40 @@ echoParamNix(EchoParam *param) {
   return NULL;
 }
 
-EchoState *
-echoStateNew(void) {
-  EchoState *state;
+EchoGlobalState *
+echoGlobalStateNew(void) {
+  EchoGlobalState *state;
   
-  state = (EchoState *)calloc(1, sizeof(EchoState));
-  state->njitt = nrrdNew();
+  state = (EchoGlobalState *)calloc(1, sizeof(EchoGlobalState));
   state->time0 = AIR_NAN;
   state->time1 = AIR_NAN;
   
   return state;
 }
 
-EchoState *
-echoStateNix(EchoState *state) {
+EchoGlobalState *
+echoGlobalStateNix(EchoGlobalState *state) {
+
+  free(state);
+  return NULL;
+}
+
+EchoThreadState *
+echoThreadStateNew(void) {
+  EchoThreadState *state;
+  
+  state = (EchoThreadState *)calloc(1, sizeof(EchoThreadState));
+  state->njitt = nrrdNew();
+  state->nperm = nrrdNew();
+  
+  return state;
+}
+
+EchoThreadState *
+echoThreadStateNix(EchoThreadState *state) {
 
   nrrdNuke(state->njitt);
+  nrrdNuke(state->nperm);
   free(state);
   return NULL;
 }

@@ -24,7 +24,7 @@ main(int argc, char **argv) {
   Nrrd *nraw, *nimg, *nppm;
   limnCam *cam;
   EchoParam *param;
-  EchoState *state;
+  EchoGlobalState *state;
   EchoObject *scene;
   airArray *lightArr, *mop;
   EchoLight **light;
@@ -50,13 +50,16 @@ main(int argc, char **argv) {
 
   param = echoParamNew();
   airMopAdd(mop, param, (airMopper)echoParamNix, airMopAlways);
+  param->jitter = echoJitterNone;
+  param->verbose = 3;
+  param->samples = 1;
   param->imgResU = 256;
   param->imgResV = 256;
   param->epsilon = 0.000001;
   param->aperture = 0.0;
 
-  state = echoStateNew();
-  airMopAdd(mop, state, (airMopper)echoStateNix, airMopAlways);
+  state = echoGlobalStateNew();
+  airMopAdd(mop, state, (airMopper)echoGlobalStateNix, airMopAlways);
 
   scene = echoObjectNew(echoObjectAABox);
   airMopAdd(mop, scene, (airMopper)echoObjectNix, airMopAlways);
