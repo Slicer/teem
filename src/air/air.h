@@ -299,6 +299,8 @@ TEEM_API int airIsInf_d(double d);
 TEEM_API int airExists_f(float f);
 TEEM_API int airExists_d(double d);
 
+/* ---- BEGIN non-NrrdIO */
+
 typedef struct {
   airULLong a;          /* Factor in congruential formula.  */
   unsigned short c,     /* Additive const. in congruential formula. */
@@ -312,6 +314,8 @@ TEEM_API void airSrand48_r(airDrand48State *state, int seed);
 TEEM_API double airDrand48_r(airDrand48State *state);
 TEEM_API void airSrand48(int seed);
 TEEM_API double airDrand48();
+
+/* ---- END non-NrrdIO */
 
 /*
 ******** airType
