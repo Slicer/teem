@@ -20,6 +20,43 @@
 #include "gage.h"
 #include "privateGage.h"
 
+/*
+ * highly inefficient computation of the imaginary part of complex 
+ * conjugate eigenvalues of a 3x3 non-symmetric matrix
+ */ 
+double
+gage_imaginary_part_eigenvalues( gage_t *M )
+{
+    double A, B, C, scale, frob, m[9], _eval[3];
+    double beta, gamma;
+    int roots;
+
+    frob = ELL_3M_FROB(M);
+    scale = frob > 10 ? 10.0/frob : 1.0;
+    ELL_3M_SCALE(m, scale, M);
+    /* 
+    ** from gordon with mathematica; these are the coefficients of the
+    ** cubic polynomial in x: det(x*I - M).  The full cubic is
+    ** x^3 + A*x^2 + B*x + C.
+    */
+    A = -m[0] - m[4] - m[8];
+    B = m[0]*m[4] - m[3]*m[1] 
+	+ m[0]*m[8] - m[6]*m[2] 
+	+ m[4]*m[8] - m[7]*m[5];
+    C = (m[6]*m[4] - m[3]*m[7])*m[2]
+	+ (m[0]*m[7] - m[6]*m[1])*m[5]
+	+ (m[3]*m[1] - m[0]*m[4])*m[8];
+    roots = ell_cubic(_eval, A, B, C, AIR_TRUE);
+    if ( roots != ell_cubic_root_single )
+	return 0.;
+
+    /* 2 complex conjuguate eigenvalues */
+    beta = A + _eval[0];
+    gamma = -C/_eval[0];
+    return sqrt( 4.*gamma - beta*beta );
+}
+
+
 gageItemEntry
 _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
   /* enum value        len,deriv,  prereqs,                                             parent item, index*/
@@ -29,10 +66,13 @@ _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
   {gageVecJacobian,      9,  1,  {-1, -1, -1, -1, -1},                                           -1,  -1},
   {gageVecDivergence,    1,  1,  {gageVecJacobian, -1, -1, -1, -1},                              -1,  -1},
   {gageVecCurl,          3,  1,  {gageVecJacobian, -1, -1, -1, -1},                              -1,  -1},
+  {gageVecCurlNorm,      1,  1,  {gageVecCurl, -1, -1, -1, -1},                                  -1,  -1},
   {gageVecHelicity,      1,  1,  {gageVecVector, gageVecCurl, -1, -1, -1},                       -1,  -1},
   {gageVecNormHelicity,  1,  1,  {gageVecNormalized, gageVecCurl, -1, -1, -1},                   -1,  -1},
   {gageVecLambda2,       1,  1,  {gageVecJacobian, -1, -1, -1, -1},                              -1,  -1},
+  {gageVecImaginaryPart, 1,  1,  {gageVecJacobian, -1, -1, -1, -1},                              -1,  -1}, 
   {gageVecHessian,      27,  2,  {-1, -1, -1, -1, -1},                                           -1,  -1},
+  {gageVecDivGradient,   3,  1,  {gageVecHessian, -1, -1, -1, -1},                              -1,  -1},
   {gageVecCurlGradient,  9,  2,  {gageVecHessian, -1, -1, -1, -1},                               -1,  -1},
   {gageVecCurlNormGrad,  3,  2,  {gageVecHessian, gageVecCurl, -1, -1, -1},                      -1,  -1},
   {gageVecNCurlNormGrad, 3,  2,  {gageVecCurlNormGrad, -1, -1, -1, -1},                          -1,  -1},
@@ -58,9 +98,9 @@ _gageVecFilter (gageContext *ctx, gagePerVolume *pvl) {
   int fd;
 
   fd = GAGE_FD(ctx);
-  vec = pvl->directAnswer[gageVecVector];
-  jac = pvl->directAnswer[gageVecJacobian];
-  hes = pvl->directAnswer[gageVecHessian];
+  vec  = pvl->directAnswer[gageVecVector];
+  jac  = pvl->directAnswer[gageVecJacobian];
+  hes  = pvl->directAnswer[gageVecHessian];
   if (!ctx->parm.k3pack) {
     fprintf(stderr, "!%s: sorry, 6pack filtering not implemented\n", me);
     return;
@@ -164,6 +204,10 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
 	       jacAns[2] - jacAns[6],
 	       jacAns[3] - jacAns[1]);
   }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecCurlNorm)) {
+    pvl->directAnswer[gageVecCurlNorm][0] =
+	ELL_3V_LEN( curlAns );	
+  }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecHelicity)) {
     pvl->directAnswer[gageVecHelicity][0] = 
 	ELL_3V_DOT(vecAns, curlAns);
@@ -190,6 +234,10 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
       asw = ell_3m_eigenvalues_d(eval, symm, AIR_TRUE);
       pvl->directAnswer[gageVecLambda2][0] = eval[1];
   }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecImaginaryPart)) {
+      pvl->directAnswer[gageVecImaginaryPart][0] =
+	  gage_imaginary_part_eigenvalues( jacAns ); 
+  }
   /* 2nd order vector derivative continued */ 
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecHessian)) {
       /* done if doD2 */
@@ -205,6 +253,11 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
       fprintf(stderr, "%s: hes = \n", me);
       ell_3m_PRINT(stderr, hesAns); /* ?? */
     }
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecDivGradient)) {
+      pvl->directAnswer[gageVecDivGradient][0] = hesAns[0] + hesAns[12] + hesAns[24];
+      pvl->directAnswer[gageVecDivGradient][1] = hesAns[1] + hesAns[13] + hesAns[25];
+      pvl->directAnswer[gageVecDivGradient][2] = hesAns[2] + hesAns[14] + hesAns[26];
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecCurlGradient)) {
       pvl->directAnswer[gageVecCurlGradient][0] = hesAns[21]-hesAns[15];
@@ -334,10 +387,12 @@ _gageVecStr[][AIR_STRLEN_SMALL] = {
   "Jacobian",
   "divergence",
   "curl",
+  "curl norm",
   "helicity",
   "normalized helicity",
   "lambda2",
   "vector hessian",
+  "div gradient",
   "curl gradient",
   "curl norm gradient",
   "normalized curl norm gradient",
@@ -362,10 +417,12 @@ _gageVecDesc[][AIR_STRLEN_MED] = {
   "3x3 Jacobian",
   "divergence",
   "curl",
+  "curl magnitude",
   "helicity: dot(vector,curl)",
   "normalized helicity",
   "lambda2 value for vortex characterization",
   "3x3x3 second-order vector derivative",
+  "gradient of divergence",
   "3x3 derivative of curl",
   "gradient of curl norm",
   "normalized gradient of curl norm",
@@ -390,10 +447,13 @@ _gageVecVal[] = {
   gageVecJacobian,
   gageVecDivergence,
   gageVecCurl,
+  gageVecCurlNorm,
   gageVecHelicity,
   gageVecNormHelicity,
   gageVecLambda2,
+  gageVecImaginaryPart,
   gageVecHessian,
+  gageVecDivGradient,
   gageVecCurlGradient,
   gageVecCurlNormGrad,
   gageVecNCurlNormGrad,
@@ -415,10 +475,13 @@ _gageVecVal[] = {
 #define GV_J   gageVecJacobian
 #define GV_D   gageVecDivergence
 #define GV_C   gageVecCurl
+#define GV_CM  gageVecCurlNorm
 #define GV_H   gageVecHelicity
 #define GV_NH  gageVecNormHelicity
 #define GV_LB  gageVecLambda2
+#define GV_IM  gageVecImaginaryPart
 #define GV_VH  gageVecHessian
+#define GV_DG  gageVecDivGradient
 #define GV_CG  gageVecCurlGradient
 #define GV_CNG gageVecCurlNormGrad
 #define GV_NCG gageVecNCurlNormGrad
@@ -441,10 +504,13 @@ _gageVecStrEqv[][AIR_STRLEN_SMALL] = {
   "jacobian", "jac", "j",
   "divergence", "div", "d",
   "curl", "c",
+  "curlnorm", "curl magnitude", "cm",
   "h", "hel", "hell",
   "nh", "nhel", "normhel", "normhell",
   "lbda2", "lambda2",
+  "imag", "imagpart",
   "vh", "vhes", "vhessian", "vector hessian",
+  "dg", "divgrad",
   "cg", "curlgrad", "curlg", "curljac", "curl gradient",
   "cng", "curl norm gradient",
   "ncng", "norm curl norm gradient",
@@ -469,10 +535,13 @@ _gageVecValEqv[] = {
   GV_J, GV_J, GV_J,
   GV_D, GV_D, GV_D,
   GV_C, GV_C,
+  GV_CM, GV_CM, GV_CM,
   GV_H, GV_H, GV_H,
   GV_NH, GV_NH, GV_NH, GV_NH,
   GV_LB, GV_LB,
+  GV_IM, GV_IM,
   GV_VH, GV_VH, GV_VH, GV_VH,
+  GV_DG, GV_DG,
   GV_CG, GV_CG, GV_CG, GV_CG, GV_CG,
   GV_CNG, GV_CNG,
   GV_NCG, GV_NCG,
