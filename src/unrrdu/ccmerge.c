@@ -37,13 +37,6 @@ unrrdu_ccmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
   int conny, pret, maxSize, dir, maxNeigh, revalue;
 
-  hestOptAdd(&opt, "v", "values", airTypeOther, 1, 1, &nval, "",
-	     "result of using \"ccfind -v\", the record of which values "
-	     "were originally associated with each CC.  This is required "
-	     "for value-directed merging (with non-zero \"-d\" option), "
-	     "and if the \"-revalue\" option is given, "
-	     "but is not needed otherwise",
-	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "d", "dir", airTypeInt, 1, 1, &dir, "0",
 	     "do value-driven merging.  Using (positive) \"1\" says that "
 	     "dark islands get merged with bright surrounds, while \"-1\" "
@@ -65,8 +58,15 @@ unrrdu_ccmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "revalue", NULL, airTypeInt, 0, 0, &revalue, NULL,
 	     "If this option is given, then after the merging, the CCs "
 	     "are re-assigned their original datavalues, as given by "
-	     "the \"-v\" option above");
+	     "the \"-v\" option");
   OPT_ADD_NIN(nin, "input nrrd");
+  hestOptAdd(&opt, "v", "values", airTypeOther, 1, 1, &nval, "",
+	     "result of using \"ccfind -v\", the record of which values "
+	     "were originally associated with each CC.  This is required "
+	     "for value-directed merging (with non-zero \"-d\" option), "
+	     "and if the \"-revalue\" option is given, "
+	     "but is not needed otherwise",
+	     NULL, NULL, nrrdHestNrrd);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
