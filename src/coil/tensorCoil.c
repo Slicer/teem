@@ -124,7 +124,7 @@ _coilKind7TensorFilterSelf(coil_t *delta, coil_t **iv3,
   TENS(tens, iv3);
   tenEigensolve_f(eval, evec, tens);
   lin = (eval[0] - eval[1])/(eval[0] - eval[2] + 0.000001);
-  TEN_T3V_OUTER(tens, evec + 3*0, evec + 3*0);
+  TEN_T3V_OUTER(tens, evec + 3*0);
   delta[0] = 0;
   HESS(hess, iv3, 1, rspX, rspY, rspZ); delta[1] = lin*parm[0]*tens[0]*TEN_T_DOT(hess, tens);
   HESS(hess, iv3, 2, rspX, rspY, rspZ); delta[2] = lin*parm[0]*tens[0]*TEN_T_DOT(hess, tens);

@@ -215,8 +215,8 @@ typedef struct {
 void *
 _alanTuringWorker(void *_task) {
   alan_t *tendata, *ten, react,
-    conf, Dxx, Dxy, Dyy, Dxz, Dyz,
-    *tpx, *tmx, *tpy, *tmy, *tpz, *tmz,
+    conf, Dxx, Dxy, Dyy, /* Dxz, Dyz, */
+    *tpx, *tmx, *tpy, *tmy, /* *tpz, *tmz, */
     *lev0, *lev1, *parm, deltaT, alpha, beta, A, B,
     *v[27], lapA, lapB, corrA, corrB, 
     deltaA, deltaB, diffA, diffB, change;
