@@ -5,31 +5,31 @@ print "\n\#include \"nrrd.h\"\n\n";
 # generate a stub kernel for when the user incorrectly indexes
 # into ef == 0, which is undefined; ef must be >= 1
 print "double\n";
-print "_nrrd_TMFBAD_Int(double *parm) {\n";
+print "_nrrd_TMFBAD_Int(const double *parm) {\n";
 print "  fprintf\(stderr, \"_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\\n\"\);\n";
 print "  return 0.0;\n";
 print "}\n\n";
 print "double\n";
-print "_nrrd_TMFBAD_Sup(double *parm) {\n";
+print "_nrrd_TMFBAD_Sup(const double *parm) {\n";
 print "  fprintf\(stderr, \"_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\\n\"\);\n";
 print "  return 0.0;\n";
 print "}\n\n";
 print "double\n";
-print "_nrrd_TMFBAD_1_d(double x, double *parm) {\n";
+print "_nrrd_TMFBAD_1_d(double x, const double *parm) {\n";
 print "  fprintf\(stderr, \"_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\\n\"\);\n";
 print "  return 0.0;\n";
 print "}\n\n";
 print "float\n";
-print "_nrrd_TMFBAD_1_f(float x, double *parm) {\n";
+print "_nrrd_TMFBAD_1_f(float x, const double *parm) {\n";
 print "  fprintf\(stderr, \"_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\\n\"\);\n";
 print "  return 0.0;\n";
 print "}\n\n";
 print "void\n";
-print "_nrrd_TMFBAD_N_d(double *f, double *x, size_t len, double *parm) {\n";
+print "_nrrd_TMFBAD_N_d(double *f, const double *x, size_t len, const double *parm) {\n";
 print "  fprintf\(stderr, \"_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\\n\"\);\n";
 print "}\n\n";
 print "void\n";
-print "_nrrd_TMFBAD_N_f(float *f, float *x, size_t len, double *parm) {\n";
+print "_nrrd_TMFBAD_N_f(float *f, const float *x, size_t len, const double *parm) {\n";
 print "  fprintf\(stderr, \"_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\\n\"\);\n";
 print "}\n\n";
 print "NrrdKernel\n";
@@ -39,7 +39,7 @@ print "  1, _nrrd_TMFBAD_Sup, _nrrd_TMFBAD_Int,\n";
 print "  _nrrd_TMFBAD_1_f, _nrrd_TMFBAD_N_f,\n";
 print "  _nrrd_TMFBAD_1_d, _nrrd_TMFBAD_N_d\n";
 print "};\n";
-print "NrrdKernel *\n";
+print "NrrdKernel *const\n";
 print "nrrdKernel_TMFBAD = &_nrrdKernel_TMFBAD;\n\n";
 
 %needk = ();
@@ -132,7 +132,7 @@ for ($_d=0; $_d<=3; $_d++) {
 }
 
 # create master array of all kernels
-print "\nNrrdKernel *\n";
+print "\nNrrdKernel *const\n";
 print "nrrdKernelTMF[4][5][5] = {\n";
 for ($_d=0; $_d<=3; $_d++) {
     $d = (($_d > 0) ? $_d-1 : "n");
@@ -164,17 +164,17 @@ sub blah {
 	       ? $support{$needk{$kern}}
 	       : $support{$needk{$needk{$kern}}}));
     $integral = ("double "
-		 . "_nrrd_${kern}_Int\(double *parm\) { "
+		 . "_nrrd_${kern}_Int\(const double *parm\) { "
 		 . (($kern =~ m/_d0_/ || $kern =~ m/_dn_/)
 		    ? "return 1.0; "
 		    : "return 0.0; ")
 		 . "}\n\n");
     $support = ("double "
-		. "_nrrd_${kern}_Sup\(double *parm\) { "
+		. "_nrrd_${kern}_Sup\(const double *parm\) { "
 		. "return ${sup}; "
 		. "}\n\n");
     $_1_d = ("double\n"
-	     . "_nrrd_${kern}_1_d\(double x, double *parm\) {\n"
+	     . "_nrrd_${kern}_1_d\(double x, const double *parm\) {\n"
 	     . "  int i;\n\n"
 	     . "  x += $sup;\n"
 	     . "  i = (x<0) ? x-1 : x;\n"
@@ -182,7 +182,7 @@ sub blah {
 	     . "  return ${kern}\(parm[0], i, x\);\n"
 	     . "}\n\n");
     $_1_f = ("float\n"
-	     . "_nrrd_${kern}_1_f\(float x, double *parm\) {\n"
+	     . "_nrrd_${kern}_1_f\(float x, const double *parm\) {\n"
 	     . "  int i;\n\n"
 	     . "  x += $sup;\n"
 	     . "  i = (x<0) ? x-1 : x;\n"
@@ -190,7 +190,7 @@ sub blah {
 	     . "  return ${kern}\(parm[0], i, x\);\n"
 	     . "}\n\n");
     $_N_d = ("void\n"
-	     . "_nrrd_${kern}_N_d(double *f, double *x, size_t len, double *parm) {\n"
+	     . "_nrrd_${kern}_N_d(double *f, const double *x, size_t len, const double *parm) {\n"
 	     . "  double t;\n"
 	     . "  size_t I;\n"
 	     . "  int i;\n\n"
@@ -202,7 +202,7 @@ sub blah {
 	     . "  }\n"
 	     . "}\n\n");
     $_N_f = ("void\n"
-	     . "_nrrd_${kern}_N_f(float *f, float *x, size_t len, double *parm) {\n"
+	     . "_nrrd_${kern}_N_f(float *f, const float *x, size_t len, const double *parm) {\n"
 	     . "  float t;\n"
 	     . "  size_t I;\n"
 	     . "  int i;\n\n"
