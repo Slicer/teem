@@ -389,10 +389,15 @@ _echo_LogSuperquadZ_vg(echoPos_t grad[3],
 
 int
 _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
-  echoPos_t T0, T1=0, tmin, tmax, pos[3], V0, V1=0, dV, dV0, grad[3], tmp,
+  echoPos_t T0, T1=0, tmin, tmax, pos[3],
+    Vmin, Vmax, V0, V1=0, dV, dVmin, dVmax, grad[3], tmp,
     (*vg)(echoPos_t[3],
 	  echoPos_t, echoPos_t, echoPos_t,
-	  echoPos_t, echoPos_t);
+	  echoPos_t, echoPos_t),
+    (*lvg)(echoPos_t[3],
+	   echoPos_t, echoPos_t, echoPos_t,
+	   echoPos_t, echoPos_t);
+  echoPos_t close, cltmin, cltmax;
   int iter, divs;
   
   if (!_echoRayIntx_CubeSolid(&tmin, &tmax,
@@ -403,103 +408,115 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
   }
   switch(obj->axis) {
     case 0:
-      vg = _echo_LogSuperquadX_vg;
+      vg = _echo_SuperquadX_vg;
+      lvg = _echo_LogSuperquadX_vg;
       break;
     case 1:
-      vg = _echo_LogSuperquadY_vg;
+      vg = _echo_SuperquadY_vg;
+      lvg = _echo_LogSuperquadY_vg;
       break;
     case 2: default:
-      vg = _echo_LogSuperquadZ_vg;
+      vg = _echo_SuperquadZ_vg;
+      lvg = _echo_LogSuperquadZ_vg;
       break;
   }
+  if (tstate->verbose) {
+    fprintf(stderr, "tmin, tmax = %g, %g, ax = %d\n", tmin, tmax, obj->axis);
+  }
 
-#define VALGRAD(VV, GRAD, DV, FROM, TT, DIR)                 \
+#define LVALGRAD(VV, GRAD, DV, FROM, TT, DIR)                 \
+  ELL_3V_SCALEADD(pos, 1, (FROM), (TT), (DIR));               \
+  (VV) = lvg((GRAD), pos[0], pos[1], pos[2], obj->A, obj->B); \
+  (DV) = ELL_3V_DOT(grad, (DIR))
+
+#define LVAL(VV, FROM, TT, DIR)                              \
   ELL_3V_SCALEADD(pos, 1, (FROM), (TT), (DIR));              \
-  (VV) = vg((GRAD), pos[0], pos[1], pos[2], obj->A, obj->B); \
+  (VV) = lvg(NULL, pos[0], pos[1], pos[2], obj->A, obj->B)
+
+#define VALGRAD(VV, GRAD, DV, FROM, TT, DIR)                  \
+  ELL_3V_SCALEADD(pos, 1, (FROM), (TT), (DIR));               \
+  (VV) = vg((GRAD), pos[0], pos[1], pos[2], obj->A, obj->B);  \
   (DV) = ELL_3V_DOT(grad, (DIR))
 
 #define VAL(VV, FROM, TT, DIR)                               \
   ELL_3V_SCALEADD(pos, 1, (FROM), (TT), (DIR));              \
   (VV) = vg(NULL, pos[0], pos[1], pos[2], obj->A, obj->B)
 
-  /* if the segment starts and ends positive, with derivatives having
-     the same sign, there can't be a root */
-  VALGRAD(V0, grad, dV0, ray->from, tmin, ray->dir);
-  VALGRAD(V1, grad, dV, ray->from, tmax, ray->dir);
-  if (V0 > 0 && V1 > 0 && dV0*dV > 0) {
+  /* if the segment start and end are both positive or both negative,
+     and if the derivatives also don't change sign, there's no root.
+     Also, due to convexity, if values at start and end are negative,
+     then there can't be an intersection */
+  VALGRAD(Vmin, grad, dVmin, ray->from, tmin, ray->dir);
+  VALGRAD(Vmax, grad, dVmax, ray->from, tmax, ray->dir);
+  if ((Vmin*Vmax >= 0 && dVmin*dVmax >= 0) || (Vmin <= 0 && Vmax <= 0)) {
     return AIR_FALSE;
   }
+  if (tstate->verbose) {
+    fprintf(stderr, "Vmin*Vmax = %g, dVmin*dVmax = %g, Vmin = %g, Vmax = %g\n",
+	    Vmin*Vmax, dVmin*dVmax, Vmin, Vmax);
+  }
 
-  /* we're going to take a number of small steps through [tmin,tmax]
-     in order to bracket the root.  The sharper the edges are (due
-     to A and B being very low), the smaller those steps should be.
-     This setting was determined emperically. */
-  divs = AIR_MAX(parm->sqDiv,
-		 0.75/(0.001 + AIR_MIN(obj->A, obj->B)));
-  T0 = tmin;
-  VAL(V0, ray->from, T0, ray->dir);
-  for (iter=1; iter<=divs; iter++) {
-    T1 = AIR_AFFINE(0, iter, divs, tmin, tmax);
-    VAL(V1, ray->from, T1, ray->dir);
-    if (V0*V1 < 0) {
-      break;
+  /* either the value changed sign, or the derivative changed sign,
+     or both.  If the derivative changed sign, we need to limit the
+     interval based on the minimum distance.  This is really slow!  */
+  if (dVmin*dVmax < 0) {
+    cltmin = tmin;
+    cltmax = tmax;
+    T1 = (cltmin + cltmax)/2;
+    LVALGRAD(V1, grad, dV, ray->from, T1, ray->dir);
+    for (iter=1; (AIR_ABS(dV) > parm->sqTol); iter++) {
+      if (tstate->verbose) {
+	fprintf(stderr, "T1 = %g -> V1 = %g, dV = %g\n", T1, V1, dV);
+      }
+      if (dVmin*dV > 0) {
+	dVmin = dV;
+	cltmin = T1;
+      } else {
+	dVmax = dV;
+	cltmax = T1;
+      }
+      T1 = (cltmin + cltmax)/2;
+      LVALGRAD(V1, grad, dV, ray->from, T1, ray->dir);
     }
-    V0 = V1;
-    T0 = T1;
-  }
-  if (iter == divs+1) {
-    /* no zero-crossings */
-    return AIR_FALSE;
+    if (V1 > 0) {
+      return AIR_FALSE;
+    }
+    /* minimum V1 is at T1 */
+    if (Vmin*V1 < 0) {
+      Vmax = V1;
+      tmax = T1;
+    } else {
+      Vmin = V1;
+      tmin = T1;
+    }
   }
 
-  /* else there was a zero-crossing between T0 and T1;
-     first try to find it with newton-raphson */
-  tmin = T0;
-  tmax = T1;
+  /* now the value is monotonic between tmin and tmax, and we know that
+     there must be a root. Do some bisection, finish with newton-raphson */
   iter = 0;
   T1 = (tmin + tmax)/2;
-  VALGRAD(V1, grad, dV, ray->from, T1, ray->dir);
-  while (AIR_ABS(V1) > parm->sqTol && iter < parm->sqNRI) {
-    iter++;
-    T1 -= V1/dV;
-    VALGRAD(V1, grad, dV, ray->from, T1, ray->dir);
-  }
-
-  if (AIR_ABS(V1) > parm->sqTol) {
-    /* we didn't converge, so we resort to stupid bisection, but start
-       with an even finer segmentation of [tmin,tmax], to try to ensure
-       that we're getting the first root */
-    T0 = tmin;
-    VAL(V0, ray->from, T0, ray->dir);
-    for (iter=1; iter<=divs*divs; iter++) {
-      T1 = AIR_AFFINE(0, iter, divs*divs, tmin, tmax);
-      VAL(V1, ray->from, T1, ray->dir);
-      if (V0*V1 < 0) {
-	break;
-      }
-      V0 = V1;
-      T0 = T1;
-    }
-    tmin = T0;
-    tmax = T1;
-    VAL(V0, ray->from, tmin, ray->dir);
-    VAL(V1, ray->from, tmax, ray->dir);
-    if (V1 < V0) {
-      ELL_SWAP2(tmin, tmax, T1);
-      ELL_SWAP2(V0, V1, T1);
+  VAL(V1, ray->from, T1, ray->dir);
+  for (iter=1; (AIR_ABS(V1) > parm->sqTol) && iter<=4; iter++) {
+    if (Vmin*V1 < 0) {
+      Vmax = V1; tmax = T1;
+    } else {
+      Vmin = V1; tmin = T1;
     }
     T1 = (tmin + tmax)/2;
     VAL(V1, ray->from, T1, ray->dir);
-    while (AIR_ABS(V1) > parm->sqTol) {
-      if (V1 > 0) {
-	tmax = T1;
-      } else {
-	tmin = T1;
-      }
-      T1 = (tmin + tmax)/2;
-      VAL(V1, ray->from, T1, ray->dir);
-    }
   }
+  iter = 0;
+  LVALGRAD(V1, grad, dV, ray->from, T1, ray->dir);
+  while (AIR_ABS(V1) > parm->sqTol && iter < parm->sqNRI) {
+    if (tstate->verbose) {
+      fprintf(stderr, "iter = %d: T1 = %g, V1 = %g, dV = %g\n",
+	      iter, T1, V1, dV);
+    }
+    iter++;
+    T1 -= V1/dV;
+    LVALGRAD(V1, grad, dV, ray->from, T1, ray->dir);
+  }
+
   intx->t = T1;
   VALGRAD(V1, intx->norm, dV, ray->from, T1, ray->dir);
   ELL_3V_NORM(intx->norm, intx->norm, tmp);
