@@ -237,7 +237,7 @@ baneGkmsUsage(char *me, hestParm *hparm) {
 
   maxlen = 0;
   for (i=0; baneGkmsCmdList[i]; i++) {
-    maxlen = AIR_MAX(maxlen, strlen(baneGkmsCmdList[i]->name));
+    maxlen = AIR_MAX(maxlen, (int)strlen(baneGkmsCmdList[i]->name));
   }
 
   sprintf(buff, "--- Semi-Automatic Generation of Transfer Functions ---");
@@ -286,6 +286,7 @@ _baneGkmsMeasr = {
   "measurement",
   5,
   _baneGkmsMeasrStr, _baneGkmsMeasrVal,
+  NULL,
   NULL, NULL,
   AIR_FALSE
 };

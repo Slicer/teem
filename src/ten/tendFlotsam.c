@@ -46,7 +46,7 @@ tendUsage(char *me, hestParm *hparm) {
 
   maxlen = 0;
   for (i=0; tendCmdList[i]; i++) {
-    maxlen = AIR_MAX(maxlen, strlen(tendCmdList[i]->name));
+    maxlen = AIR_MAX(maxlen, (int)strlen(tendCmdList[i]->name));
   }
 
   sprintf(buff, "--- Diffusion Tensor Processing and Analysis ---");

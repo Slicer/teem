@@ -55,7 +55,7 @@ unrrduUsage(const char *me, hestParm *hparm) {
 
   maxlen = 0;
   for (i=0; unrrduCmdList[i]; i++) {
-    maxlen = AIR_MAX(maxlen, strlen(unrrduCmdList[i]->name));
+    maxlen = AIR_MAX(maxlen, (int)strlen(unrrduCmdList[i]->name));
   }
 
   sprintf(buff, "--- unu: Utah Nrrd Utilities command-line interface ---");

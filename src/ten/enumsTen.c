@@ -58,6 +58,7 @@ _tenAniso = {
   "anisotropy metric",
   TEN_ANISO_MAX,
   _tenAnisoStr,  NULL,
+  NULL,
   NULL, NULL,
   AIR_FALSE
 };

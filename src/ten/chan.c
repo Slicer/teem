@@ -542,7 +542,7 @@ tenSimulate(Nrrd *ndwi, Nrrd *nT2, Nrrd *nten, Nrrd *_nbmat, double b) {
   ten = (float*)(nten->data);
   bmat = (double*)(nbmat->data);
   lup = nrrdFLookup[nT2->type];
-  for (II=0; II<sx*sy*sz; II++) {
+  for (II=0; II<(size_t)(sx*sy*sz); II++) {
     /* tenVerbose = (II == 42 + 190*(96 + 196*0)); */
     tenSimulateOne_f(dwi, lup(nT2->data, II), ten, bmat, DD, b);
     dwi += DD;
@@ -709,7 +709,7 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
           me, thresh, slope, b);
   nrrdCommentAdd(nout, cmt);
   out = nout->data;
-  for (I=0; I<=sx*sy*sz-1; I++) {
+  for (I=0; I<(size_t)(sx*sy*sz); I++) {
     if (tenVerbose && !(I % (sx*sy))) {
       fprintf(stderr, "%s: z = %d of %d\n", me, ((int)I)/(sx*sy), sz-1);
     }

@@ -247,12 +247,12 @@ miteNtxfCheck(const Nrrd *ntxf) {
     sprintf(err, "%s: axis[0]'s label doesn't specify txf range", me);
     biffAdd(MITE, err); return 1;
   }
-  if (airStrlen(rangeStr) != ntxf->axis[0].size) {
+  if ((int)airStrlen(rangeStr) != ntxf->axis[0].size) {
     sprintf(err, "%s: axis[0]'s size is %d, but label specifies %d values",
             me, ntxf->axis[0].size, (int)airStrlen(rangeStr));
     biffAdd(MITE, err); return 1;
   }
-  for (rii=0; rii<airStrlen(rangeStr); rii++) {
+  for (rii=0; rii<(int)airStrlen(rangeStr); rii++) {
     if (!strchr(miteRangeChar, rangeStr[rii])) {
       sprintf(err, "%s: char %d of axis[0]'s label (\"%c\") isn't a valid "
               "transfer function range specifier (not in \"%s\")",

@@ -91,7 +91,7 @@ _baneClipAnswer_TopN(int *countP, Nrrd *hvol, double *clipParm) {
   hits = copy->data;
   num = nrrdElementNumber(copy);
   qsort(hits, num, sizeof(int), nrrdValCompare[nrrdTypeInt]);
-  tmp = AIR_CLAMP(0, (int)clipParm[0], num-1);
+  tmp = AIR_CLAMP(0, (int)clipParm[0], (int)num-1);
   *countP = hits[num-tmp-1];
   nrrdNuke(copy);
 
