@@ -650,7 +650,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
 	      " for output of pass %d", me, numOut, pass);
       biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
     }
-    /* airMopAdd(mop, arr[pass+1], airFree, airMopAlways); */
+    airMopAdd(mop, arr[pass+1], airFree, airMopAlways);
     /*
     printf("%s: allocated arr[%d]\n", me, pass+1);
     */
