@@ -39,7 +39,7 @@ _baneMeasrGradMag_cd(Nrrd *n, nrrdBigInt idx) {
 
   lookup = nrrdDLookup[n->type]; 
   sx = n->axis[0].size; sxy = sx*n->axis[1].size;
-  nrrdAxesGet(n, nrrdAxesInfoSpacing, spc);
+  nrrdAxesGet_nva(n, nrrdAxesInfoSpacing, spc);
 
   dx = (lookup(n->data, idx   +1) - lookup(n->data, idx   -1))/(2*spc[0]);
   dy = (lookup(n->data, idx  +sx) - lookup(n->data, idx  -sx))/(2*spc[1]);
