@@ -401,8 +401,9 @@ nrrdPad(Nrrd *nout, const Nrrd *nin,
     biffAdd(NRRD, err); return 1;
   }
   for (d=0; d<dim; d++) {
-    nrrdAxisPosRange(&(nout->axis[d].min), &(nout->axis[d].max),
-		     nin, d, min[d], max[d]);
+    nrrdAxisInfoPosRange(&(nout->axis[d].min), &(nout->axis[d].max),
+			 nin, d, min[d], max[d]);
+    nout->axis[d].kind = _nrrdKindAltered(nin->axis[d].kind);
   }
   strcpy(buff1, "");
   for (d=0; d<dim; d++) {

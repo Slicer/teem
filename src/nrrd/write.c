@@ -260,6 +260,11 @@ _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIoState *nio, int field) {
       ret |= (nrrdCenterUnknown != nrrd->axis[d].center);
     }
     break;
+  case nrrdField_kinds:
+    for (d=0; d<nrrd->dim; d++) {
+      ret |= (nrrdKindUnknown != nrrd->axis[d].kind);
+    }
+    break;
   case nrrdField_labels:
     for (d=0; d<nrrd->dim; d++) {
       ret |= !!(airStrlen(nrrd->axis[d].label));
@@ -409,6 +414,17 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
       sprintf(buff, " %s",
 	      (nrrd->axis[i].center 
 	       ? airEnumStr(nrrdCenter, nrrd->axis[i].center)
+	       : NRRD_UNKNOWN));
+      strcat(*strP, buff);
+    }
+    break;
+  case nrrdField_kinds:
+    *strP = malloc(fslen + D*10);
+    sprintf(*strP, "%s%s:", prefix, fs);
+    for (i=0; i<D; i++) {
+      sprintf(buff, " %s",
+	      (nrrd->axis[i].kind
+	       ? airEnumStr(nrrdKind, nrrd->axis[i].kind)
 	       : NRRD_UNKNOWN));
       strcat(*strP, buff);
     }

@@ -269,6 +269,93 @@ _nrrdCenter_enum = {
 airEnum *
 nrrdCenter = &_nrrdCenter_enum;
 
+/* ------------------------ nrrdKind ------------------------- */
+
+
+char
+_nrrdKindStr[NRRD_KIND_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown_kind)",
+  "domain",
+  "list",
+  "stub",
+  "scalar",
+  "complex",
+  "3-color",
+  "4-color",
+  "3-vector",
+  "3-normal",
+  "6-tensor",
+  "7-tensor",
+  "9-tensor",
+  "9-matrix"
+};
+
+char
+_nrrdKindDesc[NRRD_KIND_MAX+1][AIR_STRLEN_MED] = {
+  "unknown kind",
+  "a domain variable of the function which the nrrd samples",
+  "a list of attributes; it makes no sense to resample along these",
+  "a place-holder axis with a single sample",
+  "axis used to indicate that the nrrd contains a scalar value",
+  "real and imaginary parts of a value",
+  "any 3-component color value",
+  "any 4-component color value",
+  "any 3-element vector",
+  "a 3-element vector which is assumed normalized",
+  "any 4-element vector",
+  "6 unique elements of a symmetric tensor",
+  "\"confidence\" plus 6 unique elements of a symmetric tensor",
+  "9 elements of a 3x3 tensor",
+  "9 elements of a 3x3 matrix"
+};
+
+char
+_nrrdKindStr_Eqv[][AIR_STRLEN_SMALL] = {
+  "domain",
+  "list",
+  "stub",
+  "scalar",
+  "complex",
+  "3-color", "3color",
+  "4-color", "4color",
+  "3-vector", "3vector",
+  "3-normal", "3normal",
+  "6-tensor", "6tensor",
+  "7-tensor", "7tensor",
+  "9-tensor", "9tensor",
+  "9-matrix", "9matrix",
+  ""
+};
+
+int
+_nrrdKindVal_Eqv[] = {
+  nrrdKindDomain,
+  nrrdKindList,
+  nrrdKindStub,
+  nrrdKindScalar,
+  nrrdKindComplex,
+  nrrdKind3Color, nrrdKind3Color,
+  nrrdKind4Color, nrrdKind4Color,
+  nrrdKind3Vector, nrrdKind3Vector,
+  nrrdKind3Normal, nrrdKind3Normal,
+  nrrdKind6Tensor, nrrdKind6Tensor,
+  nrrdKind7Tensor, nrrdKind7Tensor,
+  nrrdKind9Tensor, nrrdKind9Tensor,
+  nrrdKind9Matrix, nrrdKind9Matrix
+};
+
+airEnum
+_nrrdKind_enum = {
+  "kind",
+  NRRD_KIND_MAX,
+  _nrrdKindStr, NULL,
+  _nrrdKindDesc,
+  _nrrdKindStr_Eqv, _nrrdKindVal_Eqv,
+  AIR_FALSE
+};
+airEnum *
+nrrdKind = &_nrrdKind_enum;
+
 /* ------------------------ nrrdField ------------------------- */
 
 char
@@ -285,6 +372,7 @@ _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL] = {
   "axis mins",
   "axis maxs",
   "centers",
+  "kinds",
   "labels",
   "units",
   "min",
@@ -313,6 +401,7 @@ _nrrdFieldDesc[NRRD_FIELD_MAX+1][AIR_STRLEN_MED] = {
   "list of minimum positions associated with each axis",
   "list of maximum positions associated with each axis",
   "list of sample centerings for each axis",
+  "list of kinds for each axis",
   "list of short descriptions for each axis",
   "list of units in which each axes' spacing is measured",
   "supposed minimum array value",
@@ -340,6 +429,7 @@ _nrrdFieldStrEqv[][AIR_STRLEN_SMALL]  = {
   "axis mins", "axismins",
   "axis maxs", "axismaxs",
   "centers",
+  "kinds",
   "labels",
   "units",
   "min",
@@ -368,6 +458,7 @@ _nrrdFieldValEqv[] = {
   nrrdField_axis_mins, nrrdField_axis_mins,
   nrrdField_axis_maxs, nrrdField_axis_maxs,
   nrrdField_centers,
+  nrrdField_kinds,
   nrrdField_labels,
   nrrdField_units,
   nrrdField_min,

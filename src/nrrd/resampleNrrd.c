@@ -80,7 +80,7 @@ nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
       info->parm[d][p] = parm[p];
     /* set the min/max for this axis if not already set to something */
     if (!( AIR_EXISTS(nin->axis[d].min) && AIR_EXISTS(nin->axis[d].max) ))
-      nrrdAxisMinMaxSet(nin, d, nrrdDefCenter);
+      nrrdAxisInfoMinMaxSet(nin, d, nrrdDefCenter);
     info->min[d] = nin->axis[d].min;
     info->max[d] = nin->axis[d].max;
   }
@@ -794,20 +794,27 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
   }
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopOnError);
   nrrdAxisInfoCopy(nout, nin, NULL, 
-		   (NRRD_AXIS_INFO_SIZE_BIT |
-		    NRRD_AXIS_INFO_MIN_BIT |
-		    NRRD_AXIS_INFO_MAX_BIT |
-		    NRRD_AXIS_INFO_SPACING_BIT));
+		   (NRRD_AXIS_INFO_SIZE_BIT
+		    | NRRD_AXIS_INFO_MIN_BIT
+		    | NRRD_AXIS_INFO_MAX_BIT
+		    | NRRD_AXIS_INFO_SPACING_BIT
+		    | NRRD_AXIS_INFO_KIND_BIT));
   for (d=0; d<dim; d++) {
+    fprintf(stderr, "%s: nin->axis[%d].kind = %s\n", me, d,
+	    airEnumStr(nrrdKind, nin->axis[d].kind));
     if (info->kernel[d]) {
       nout->axis[d].min = info->min[d];
       nout->axis[d].max = info->max[d];
       nout->axis[d].spacing = nin->axis[d].spacing/ratios[d];
+      nout->axis[d].kind = _nrrdKindAltered(nin->axis[d].kind);
     } else {
       nout->axis[d].min = nin->axis[d].min;
       nout->axis[d].max = nin->axis[d].max;
       nout->axis[d].spacing = nin->axis[d].spacing;
+      nout->axis[d].kind = nin->axis[d].kind;
     }
+    fprintf(stderr, "%s: nout->axis[%d].kind = %s\n", me, d,
+	    airEnumStr(nrrdKind, nout->axis[d].kind));
   }
   /* HEY: need to create textual representation of resampling parameters */
   if (nrrdContentSet(nout, func, nin, "")) {

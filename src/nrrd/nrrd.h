@@ -69,10 +69,13 @@ typedef struct {
 				    is that only one (min and max, or
 				    spacing) should be taken to be significant
 				    at any time. */
-  int center;                    /* cell vs. node centering */
+  int center;                    /* cell vs. node centering (value should be
+				    one of nrrdCenter{Unknown,Node,Cell} */
+  int kind;                      /* what kind of information is along this
+				    axis (from the nrrdKind* enum) */
   char *label;                   /* short info string for each axis */
   char *unit;                    /* short string for identifying units */
-} NrrdAxis;
+} NrrdAxisInfo;
 
 /*
 ******** Nrrd struct
@@ -85,31 +88,31 @@ typedef struct {
   ** generally set at the same time that either the nrrd is created,
   ** or at the time that the nrrd is wrapped around an existing array 
   */
-  void *data;                    /* the data in memory */
-  int type;                      /* a value from the nrrdType enum */
-  int dim;                       /* what is dimension of data */
+  void *data;                      /* the data in memory */
+  int type;                        /* a value from the nrrdType enum */
+  int dim;                         /* what is dimension of data */
 
   /* 
   ** All per-axis specific information
   */
-  NrrdAxis axis[NRRD_DIM_MAX];   /* axis[0] is the fastest axis in the scan-
-				    line ordering, the one who's coordinates
-				    change the fastest as the elements are
-				    accessed in the order in which they appear
-				    in memory */
+  NrrdAxisInfo axis[NRRD_DIM_MAX]; /* axis[0] is the fastest axis in the scan-
+				      line ordering, the one who's coordinates
+				      change the fastest as the elements are
+				      accessed in the order in which they
+				      appear in memory */
 
   /* 
   ** Information of dubious standing- descriptive of whole array, but
   ** not necessary (meaningful only for some uses of a nrrd), but basic
   ** enough to be part of the basic nrrd type
   */
-  char *content;                 /* briefly, just what the hell is this data */
-  int blockSize;                 /* for nrrdTypeBlock array, block byte size */
-  double oldMin, oldMax;         /* if non-NaN, and if nrrd is of integral
-				    type, extremal values for the array
-				    BEFORE it was quantized */
-  void *ptr;                     /* never read or set by nrrd; use/abuse
-				    as you see fit */
+  char *content;                   /* brief account of what this data is */
+  int blockSize;                   /* for nrrdTypeBlock:, block byte size */
+  double oldMin, oldMax;           /* if non-NaN, and if nrrd is of integral
+				      type, extremal values for the array
+				      BEFORE it was quantized */
+  void *ptr;                       /* never read or set by nrrd; use/abuse
+				      as you see fit */
 
   /* 
   ** Comments.  Read from, and written to, header.
@@ -446,6 +449,7 @@ TEEM_API int nrrdStateDisableContent;
 TEEM_API char *nrrdStateUnknownContent;
 TEEM_API int nrrdStateGrayscaleImage3D;
 TEEM_API int nrrdStateKeyValueReturnInternalPointers;
+TEEM_API int nrrdStateKindNoop;
 /* ---- BEGIN non-NrrdIO */
 TEEM_API void nrrdDefGetenv(void);
 TEEM_API void nrrdStateGetenv(void);
@@ -458,6 +462,7 @@ TEEM_API airEnum *nrrdFormatType;
 TEEM_API airEnum *nrrdType;
 TEEM_API airEnum *nrrdEncodingType;
 TEEM_API airEnum *nrrdCenter;
+TEEM_API airEnum *nrrdKind;
 TEEM_API airEnum *nrrdField;
 /* ---- BEGIN non-NrrdIO */
 TEEM_API airEnum *nrrdBoundary;
@@ -515,6 +520,7 @@ TEEM_API int nrrdPGM(Nrrd *, int sx, int sy);
 
 /******** axis info related */
 /* axis.c */
+TEEM_API int nrrdKindSize(int kind);
 TEEM_API int nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin,
 			      const int *axmap, int bitflag);
 TEEM_API void nrrdAxisInfoSet_nva(Nrrd *nin, int axInfo, const void *info);
@@ -523,16 +529,16 @@ TEEM_API void nrrdAxisInfoSet(Nrrd *nin, int axInfo,
 TEEM_API void nrrdAxisInfoGet_nva(const Nrrd *nrrd, int axInfo, void *info);
 TEEM_API void nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo,
 			      ... /* void* */);
-TEEM_API double nrrdAxisPos(const Nrrd *nrrd, int ax, double idx);
-TEEM_API double nrrdAxisIdx(const Nrrd *nrrd, int ax, double pos);
-TEEM_API void nrrdAxisPosRange(double *loP, double *hiP,
-			       const Nrrd *nrrd, int ax,
-			       double loIdx, double hiIdx);
-TEEM_API void nrrdAxisIdxRange(double *loP, double *hiP,
-			       const Nrrd *nrrd, int ax,
-			       double loPos, double hiPos);
-TEEM_API void nrrdAxisSpacingSet(Nrrd *nrrd, int ax);
-TEEM_API void nrrdAxisMinMaxSet(Nrrd *nrrd, int ax, int defCenter);
+TEEM_API double nrrdAxisInfoPos(const Nrrd *nrrd, int ax, double idx);
+TEEM_API double nrrdAxisInfoIdx(const Nrrd *nrrd, int ax, double pos);
+TEEM_API void nrrdAxisInfoPosRange(double *loP, double *hiP,
+				   const Nrrd *nrrd, int ax,
+				   double loIdx, double hiIdx);
+TEEM_API void nrrdAxisInfoIdxRange(double *loP, double *hiP,
+				   const Nrrd *nrrd, int ax,
+				   double loPos, double hiPos);
+TEEM_API void nrrdAxisInfoSpacingSet(Nrrd *nrrd, int ax);
+TEEM_API void nrrdAxisInfoMinMaxSet(Nrrd *nrrd, int ax, int defCenter);
 
 /******** simple things */
 /* simple.c */

@@ -69,6 +69,7 @@ char *nrrdStateUnknownContent = NRRD_UNKNOWN;
 int nrrdStateGrayscaleImage3D = AIR_FALSE;
 /* there is no sane reason to change this default initialization */
 int nrrdStateKeyValueReturnInternalPointers = AIR_FALSE;
+int nrrdStateKindNoop = AIR_TRUE;
 
 /* should the acceptance (or not) of malformed NRRD header fields 
    embedded in PNM or text comments be controlled here? */
@@ -98,6 +99,10 @@ nrrdStateGetenv(void) {
   char *envS;
   int valI;
   
+  if ((envS = getenv("NRRD_STATE_KIND_NOOP"))
+      && (-1 != (valI = airEnumVal(airBool, envS)))) {
+    nrrdStateKindNoop = valI;
+  }
   if ((envS = getenv("NRRD_STATE_VERBOSE_IO"))
       && (-1 != (valI = airEnumVal(airBool, envS)))) {
     nrrdStateVerboseIO = valI;

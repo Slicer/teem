@@ -60,7 +60,7 @@ enum {
 enum {
   nrrdFormatTypeUnknown,
   nrrdFormatTypeNRRD,   /* 1: basic nrrd format (associated with any of
-                           the magics starting with "NRRD" */
+                           the magics starting with "NRRD") */
   nrrdFormatTypePNM,    /* 2: PNM image */
   nrrdFormatTypePNG,    /* 3: PNG image */
   nrrdFormatTypeVTK,    /* 4: VTK Structured Points datasets (v1.0 and 2.0) */
@@ -172,6 +172,36 @@ enum {
 #define NRRD_CENTER_MAX         2
 
 /*
+******** nrrdKind enum
+**
+** The very cautious (and last?) step nrrd takes towards sementics.
+**
+** More of these may be added in the future, as when nrrd supports bricking.
+**
+** NB: The nrrdKindSize() function returns the suggested length for these.
+*/
+enum {
+  nrrdKindUnknown,
+  nrrdKindDomain,    /*  1: "It makes sense to resample along here" */
+  nrrdKindList,      /*  2: "It makes NO sense to resample along here" */
+  nrrdKindStub,      /*  3: axis with one sample */
+  nrrdKindScalar,    /*  4: same as a stub */
+  nrrdKindComplex,   /*  5: real and imaginary components of a number */
+  nrrdKind3Color,    /*  6: ANY 3-component color value */
+  nrrdKind4Color,    /*  7: ANY 4-component color value */
+  nrrdKind3Vector,   /*  8: any 3-vector */
+  nrrdKind3Normal,   /*  9: 3-vectors which are assumed normalized */
+  nrrdKind4Vector,   /* 10: any 4-vector */
+  nrrdKind6Tensor,   /* 11: the 6 unique elements of a symmetric 3x3 tensor */
+  nrrdKind7Tensor,   /* 12: some scalar "confidence" or "valid" value, and
+			    the 6 unique elements of a symmetric 3x3 tensor */
+  nrrdKind9Tensor,   /* 13: all 9 elements of a 3x3 tensor */
+  nrrdKind9Matrix,   /* 14: all 9 elements of a 3x3 matrix */
+  nrrdKindLast
+};
+#define NRRD_KIND_MAX   14
+
+/*
 ******** nrrdAxisInfo enum
 **
 ** the different pieces of per-axis information recorded in a nrrd
@@ -188,14 +218,17 @@ enum {
 #define NRRD_AXIS_INFO_MAX_BIT     (1<<4)
   nrrdAxisInfoCenter,               /* 5: cell vs. node */
 #define NRRD_AXIS_INFO_CENTER_BIT  (1<<5)
-  nrrdAxisInfoLabel,                /* 6: string describing the axis */
-#define NRRD_AXIS_INFO_LABEL_BIT   (1<<6)
-  nrrdAxisInfoUnit,                 /* 7: string identifying units */
-#define NRRD_AXIS_INFO_UNIT_BIT    (1<<7)
+  nrrdAxisInfoKind,                 /* 6: from the nrrdKind* enum */
+#define NRRD_AXIS_INFO_KIND_BIT    (1<<6)
+  nrrdAxisInfoLabel,                /* 7: string describing the axis */
+#define NRRD_AXIS_INFO_LABEL_BIT   (1<<7)
+  nrrdAxisInfoUnit,                 /* 8: string identifying units */
+#define NRRD_AXIS_INFO_UNIT_BIT    (1<<8)
   nrrdAxisInfoLast
 };
-#define NRRD_AXIS_INFO_MAX             7
-#define NRRD_AXIS_INFO_ALL  ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6)|(1<<7))
+#define NRRD_AXIS_INFO_MAX             8
+#define NRRD_AXIS_INFO_ALL  \
+    ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6)|(1<<7)|(1<<8))
 #define NRRD_AXIS_INFO_NONE 0
 
 /*
@@ -226,21 +259,22 @@ enum {
   nrrdField_axis_mins,       /*  9 */
   nrrdField_axis_maxs,       /* 10 */
   nrrdField_centers,         /* 11 */
-  nrrdField_labels,          /* 12 */
-  nrrdField_units,           /* 13 */
-  nrrdField_min,             /* 14 */
-  nrrdField_max,             /* 15 */
-  nrrdField_old_min,         /* 16 */
-  nrrdField_old_max,         /* 17 */
-  nrrdField_data_file,       /* 18 */
-  nrrdField_endian,          /* 19 */
-  nrrdField_encoding,        /* 20 */
-  nrrdField_line_skip,       /* 21 */
-  nrrdField_byte_skip,       /* 22 */
-  nrrdField_keyvalue,        /* 23 */
+  nrrdField_kinds,           /* 12 */
+  nrrdField_labels,          /* 13 */
+  nrrdField_units,           /* 14 */
+  nrrdField_min,             /* 15 */
+  nrrdField_max,             /* 16 */
+  nrrdField_old_min,         /* 17 */
+  nrrdField_old_max,         /* 18 */
+  nrrdField_data_file,       /* 19 */
+  nrrdField_endian,          /* 20 */
+  nrrdField_encoding,        /* 21 */
+  nrrdField_line_skip,       /* 22 */
+  nrrdField_byte_skip,       /* 23 */
+  nrrdField_keyvalue,        /* 24 */
   nrrdField_last
 };
-#define NRRD_FIELD_MAX          23
+#define NRRD_FIELD_MAX          24
 
 /* 
 ******** nrrdHasNonExist* enum

@@ -608,13 +608,13 @@ main(int argc, char *argv[]) {
     airMopError(mop); exit(1);
   }
   if (!AIR_EXISTS(nin->axis[0].spacing)) {
-    nrrdAxisSpacingSet(nin, 0);
+    nrrdAxisInfoSpacingSet(nin, 0);
   }
   if (!AIR_EXISTS(nin->axis[1].spacing)) {
-    nrrdAxisSpacingSet(nin, 1);
+    nrrdAxisInfoSpacingSet(nin, 1);
   }
   if (!AIR_EXISTS(nin->axis[2].spacing)) {
-    nrrdAxisSpacingSet(nin, 2);
+    nrrdAxisInfoSpacingSet(nin, 2);
   }
 
   npad = nrrdNew();

@@ -114,9 +114,9 @@ main(int argc, char *argv[]) {
   nrrdAxisInfoSet(nout, nrrdAxisInfoMax, max[0], max[1], max[2]);
   nrrdAxisInfoSet(nout, nrrdAxisInfoCenter, 
 		  nrrdCenterNode, nrrdCenterNode, nrrdCenterNode);
-  nrrdAxisSpacingSet(nout, 0);
-  nrrdAxisSpacingSet(nout, 1);
-  nrrdAxisSpacingSet(nout, 2);
+  nrrdAxisInfoSpacingSet(nout, 0);
+  nrrdAxisInfoSpacingSet(nout, 1);
+  nrrdAxisInfoSpacingSet(nout, 2);
   if (nrrdSave(out, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: problem saving output:\n%s\n", me, err);

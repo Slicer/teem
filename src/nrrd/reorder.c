@@ -62,6 +62,10 @@ nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax) {
   }
   /* the ONLY thing we can say about the new axis is its size */
   _nrrdAxisInfoInit(&(nout->axis[ax]));
+  if (!nrrdStateKindNoop) {
+    /* except maybe the kind */
+    nout->axis[ax].kind = nrrdKindStub;
+  }
   nout->axis[ax].size = 1;
   if (nrrdContentSet(nout, func, nin, "%d", ax)) {
     sprintf(err, "%s:", me);
@@ -363,6 +367,7 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, int axis, const int *perm) {
   }
   /* the min and max along the shuffled axis are now meaningless */
   nout->axis[axis].min = nout->axis[axis].max = AIR_NAN;
+  nout->axis[axis].kind = _nrrdKindAltered(nin->axis[axis].kind);
   nrrdPeripheralCopy(nout, nin);
   strcpy(buff1, "");
   for (d=0; d<nin->dim; d++) {

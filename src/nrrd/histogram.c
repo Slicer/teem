@@ -139,6 +139,9 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   }
   nout->axis[0].label = airFree(nout->axis[0].label);
   nout->axis[0].label = airStrdup(nout->content);
+  if (!nrrdStateKindNoop) {
+    nout->axis[0].kind = nrrdKindDomain;
+  }
 
   airMopOkay(mop);
   return 0;
@@ -252,7 +255,7 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin, int sy, int showLog, double max) {
   sprintf(cmt, "max value: %g\n", nout->axis[0].max);
   if (!E) E |= nrrdCommentAdd(nout, cmt);
   sprintf(cmt, "max hits: %g, in bin %d, around value %g\n",
-	  maxhits, maxhitidx, nrrdAxisPos(nout, 0, maxhitidx));
+	  maxhits, maxhitidx, nrrdAxisInfoPos(nout, 0, maxhitidx));
   if (!E) E |= nrrdCommentAdd(nout, cmt);
   if (!E) E |= nrrdContentSet(nout, func, nin, "%d", sy);
   if (E) {
@@ -349,6 +352,9 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     }
   } else {
     nout->axis[ax].label = NULL;
+  }
+  if (!nrrdStateKindNoop) {
+    nout->axis[ax].kind = nrrdKindDomain;
   }
 
   /* the skinny: we traverse the input samples in linear order, and
@@ -491,6 +497,9 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
     nout->axis[d].min = range[d]->min;
     nout->axis[d].max = range[d]->max;
     nout->axis[d].center = nrrdCenterCell;
+    if (!nrrdStateKindNoop) {
+      nout->axis[d].kind = nrrdKindDomain;
+    }
     if (nin[d]->content) {
       hadContent = 1;
       totalContentStrlen += strlen(nin[d]->content);

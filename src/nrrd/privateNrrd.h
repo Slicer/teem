@@ -106,9 +106,10 @@ extern int _nrrdContentSet(Nrrd *nout, const char *func,
 
 
 /* axis.c */
-extern void _nrrdAxisInfoCopy(NrrdAxis *dest, const NrrdAxis *src,
+extern int _nrrdKindAltered(int kindIn);
+extern void _nrrdAxisInfoCopy(NrrdAxisInfo *dest, const NrrdAxisInfo *src,
 			      int bitflag);
-extern void _nrrdAxisInfoInit(NrrdAxis *axis);
+extern void _nrrdAxisInfoInit(NrrdAxisInfo *axis);
 extern int _nrrdCenter(int center);
 extern int _nrrdCenter2(int center, int def);
 

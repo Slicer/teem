@@ -73,7 +73,7 @@ int
 _gageShapeSet (gageContext *ctx, gageShape *shape, Nrrd *nin, int baseDim) {
   char me[]="_gageShapeSet", err[AIR_STRLEN_MED];
   int i, ai, minsize, cx, cy, cz, sx, sy, sz, num[3], defCenter;
-  NrrdAxis *ax[3];
+  NrrdAxisInfo *ax[3];
   double maxLen, xs, ys, zs, defSpacing;
 
   /* ------ basic error checking */

@@ -246,6 +246,39 @@ _nrrdReadNrrdParse_centers (Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
   return 0;
 }
 
+int
+_nrrdReadNrrdParse_kinds (Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  char me[]="_nrrdReadNrrdParse_kinds", err[AIR_STRLEN_MED];
+  int i;
+  char *tok;
+  char *info, *last;
+
+  info = nio->line + nio->pos;
+  _CHECK_HAVE_DIM;
+  for (i=0; i<=nrrd->dim-1; i++) {
+    tok = airStrtok(!i ? info : NULL, _nrrdFieldSep, &last);
+    if (!tok) {
+      sprintf(err, "%s: couldn't extract string for kind %d of %d",
+	      me, i+1, nrrd->dim);
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
+    }
+    if (!strcmp(tok, NRRD_UNKNOWN)) {
+      nrrd->axis[i].kind = nrrdKindUnknown;
+      continue;
+    }
+    if (!(nrrd->axis[i].kind = airEnumVal(nrrdKind, tok))) {
+      sprintf(err, "%s: couldn't parse \"%s\" kind %d of %d",
+	      me, tok, i+1, nrrd->dim);
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
+    }
+    /*
+    fprintf(stderr, "!%s: nrrd->axis[%d].kind = %d\n",
+	    me, i, nrrd->axis[i].kind);
+    */
+  }
+  return 0;
+}
+
 char *
 _nrrdGetQuotedString(char **hP, int useBiff) {
   char me[]="_nrrdGetQuotedString", err[AIR_STRLEN_MED], *h, *buff, *ret;
@@ -576,6 +609,7 @@ int
   _nrrdReadNrrdParse_axis_mins,
   _nrrdReadNrrdParse_axis_maxs,
   _nrrdReadNrrdParse_centers,
+  _nrrdReadNrrdParse_kinds,
   _nrrdReadNrrdParse_labels,
   _nrrdReadNrrdParse_units,
   _nrrdReadNrrdParse_min,

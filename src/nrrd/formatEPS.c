@@ -160,6 +160,13 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   fprintf(file, "%%%%EndProlog\n");
   fprintf(file, "%%%%Page: 1 1\n");
   fprintf(file, "gsave\n");
+  fprintf(file, "%g %g moveto\n", minX, minY);
+  fprintf(file, "%g %g lineto\n", maxX, minY);
+  fprintf(file, "%g %g lineto\n", maxX, maxY);
+  fprintf(file, "%g %g lineto\n", minX, maxY);
+  fprintf(file, "closepath\n");
+  fprintf(file, "clip\n");
+  fprintf(file, "gsave newpath\n");
   fprintf(file, "%g %g translate\n", minX, minY);
   fprintf(file, "%g %g scale\n", sx*scale, sy*scale);
   fprintf(file, "%d %d 8\n", sx, sy);
@@ -170,6 +177,7 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   nrrdEncodingHex->write(nrrd, nio);
   nio->dataFile = NULL;
   fprintf(file, "\n");
+  fprintf(file, "grestore\n");
   fprintf(file, "grestore\n");
   
   airMopError(mop); 

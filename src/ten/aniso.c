@@ -23,6 +23,11 @@
 float tenAnisoSigma = 0.000001;
 
 /*
+** learned: don't take sqrt(FLT_EPSILON) and expect it to still be
+** negligible
+*/
+
+/*
 ******** tenAnisoCalc
 **
 ** given an array of three SORTED (descending) eigenvalues "e",
@@ -52,18 +57,18 @@ tenAnisoCalc(float c[TEN_ANISO_MAX+1], float e[3]) {
   sum = e0 + e1 + e2;
   
   /* first version of cl, cp, cs */
-  cl = (e0 - e1)/(tenAnisoSigma + sum);
+  cl = (e0 - e1)/(FLT_EPSILON + sum);
   c[tenAniso_Cl1] = cl;
-  cp = 2*(e1 - e2)/(tenAnisoSigma + sum);
+  cp = 2*(e1 - e2)/(FLT_EPSILON + sum);
   c[tenAniso_Cp1] = cp;
   ca = cl + cp;
   c[tenAniso_Ca1] = ca;
   c[tenAniso_Cs1] = 1 - ca;
   c[tenAniso_Ct1] = ca ? cp/ca : 0;
   /* second version of cl, cp, cs */
-  cl = (e0 - e1)/(tenAnisoSigma + e0);
+  cl = (e0 - e1)/(FLT_EPSILON + e0);
   c[tenAniso_Cl2] = cl;
-  cp = (e1 - e2)/(tenAnisoSigma + e0);
+  cp = (e1 - e2)/(FLT_EPSILON + e0);
   c[tenAniso_Cp2] = cp;
   ca = cl + cp;
   c[tenAniso_Ca2] = ca;
@@ -74,9 +79,10 @@ tenAnisoCalc(float c[TEN_ANISO_MAX+1], float e[3]) {
   stdv = sqrt((mean-e0)*(mean-e0)   /* okay, not exactly standard dev */
 	      + (mean-e1)*(mean-e1) 
 	      + (mean-e2)*(mean-e2));
-  ra = stdv/(tenAnisoSigma + mean*sqrt(6.0));  ra = AIR_CLAMP(0.0, ra, 1.0);
+  ra = stdv/(FLT_EPSILON + mean*sqrt(6.0));
+  ra = AIR_CLAMP(0.0, ra, 1.0);
   c[tenAniso_RA] = ra;
-  denom = tenAnisoSigma + 2.0*(e0*e0 + e1*e1 + e2*e2);
+  denom = 2.0*(e0*e0 + e1*e1 + e2*e2);
   if (denom) {
     fa = stdv*sqrt(3.0/denom);
     fa = AIR_CLAMP(0.0, fa, 1.0);
@@ -89,18 +95,18 @@ tenAnisoCalc(float c[TEN_ANISO_MAX+1], float e[3]) {
   c[tenAniso_VF] = vf;
 
   A = (-e0 - e1 - e2);
-  B = e0*e1 + e0*e2 + e1*e2;
+  B = c[tenAniso_B] = e0*e1 + e0*e2 + e1*e2;
   C = -e0*e1*e2;
   Q = c[tenAniso_Q] = (A*A - 3*B)/9;
-  R = c[tenAniso_R] = (2*A*A*A - 9*A*B + 27*C)/54;
+  R = c[tenAniso_R] = (-2*A*A*A + 9*A*B - 27*C)/54;
   c[tenAniso_S] = e0*e0 + e1*e1 + e2*e2;
-  c[tenAniso_Skew] = R/sqrt(tenAnisoSigma + 2*Q*Q*Q);
+  c[tenAniso_Skew] = R/(FLT_EPSILON + sqrt(2*Q*Q*Q));
   c[tenAniso_Th] = acos(sqrt(2)*c[tenAniso_Skew])/3;
-  c[tenAniso_Cz] = ((e0 + e1)/(tenAnisoSigma + e2) 
-		    + (e1 + e2)/(tenAnisoSigma + e0) 
-		    + (e0 + e2)/(tenAnisoSigma + e1))/6;
+  c[tenAniso_Cz] = ((e0 + e1)/(FLT_EPSILON + e2) 
+		    + (e1 + e2)/(FLT_EPSILON + e0) 
+		    + (e0 + e2)/(FLT_EPSILON + e1))/6;
   c[tenAniso_Det] = e0*e1*e2;
-  c[tenAniso_Tr] = sum;
+  c[tenAniso_Tr] = e0 + e1 + e2;
   return;
 }
 

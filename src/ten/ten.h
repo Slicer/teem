@@ -55,17 +55,18 @@ enum {
   tenAniso_RA,        /* 11: Bass+Pier's relative anisotropy */
   tenAniso_FA,        /* 12: (Bass+Pier's fractional anisotropy)/sqrt(2) */
   tenAniso_VF,        /* 13: volume fraction = 1-(Bass+Pier's volume ratio) */
-  tenAniso_Q,         /* 14: radius of root circle is 2*sqrt(Q) */
-  tenAniso_R,         /* 15: half of third moment of eigenvalues */
-  tenAniso_S,         /* 16: frobenius norm, squared */
-  tenAniso_Skew,      /* 17: R/sqrt(2*Q^3) */
-  tenAniso_Th,        /* 18: acos(sqrt(2)*skew)/3 */
-  tenAniso_Cz,        /* 19: Zhukov's invariant-based anisotropy metric */
-  tenAniso_Det,       /* 20: plain old determinant */
-  tenAniso_Tr,        /* 21: plain old trace */
+  tenAniso_B,         /* 14: linear term in cubic characteristic polynomial */
+  tenAniso_Q,         /* 15: radius of root circle is 2*sqrt(Q) */
+  tenAniso_R,         /* 16: half of third moment of eigenvalues */
+  tenAniso_S,         /* 17: frobenius norm, squared */
+  tenAniso_Skew,      /* 18: R/sqrt(2*Q^3) */
+  tenAniso_Th,        /* 19: acos(sqrt(2)*skew)/3 */
+  tenAniso_Cz,        /* 20: Zhukov's invariant-based anisotropy metric */
+  tenAniso_Det,       /* 21: plain old determinant */
+  tenAniso_Tr,        /* 22: plain old trace */
   tenAnisoLast
 };
-#define TEN_ANISO_MAX    21
+#define TEN_ANISO_MAX    22
 
 /*
 ******** tenGlyphType* enum

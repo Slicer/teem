@@ -279,7 +279,7 @@ _tenFindValley(float *valP, Nrrd *nhist, float tweak, int save) {
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
 
-  *valP = nrrdAxisPos(nhist, 0, AIR_AFFINE(0, tweak, 1, maxbb, bb));
+  *valP = nrrdAxisInfoPos(nhist, 0, AIR_AFFINE(0, tweak, 1, maxbb, bb));
 
   airMopOkay(mop);
   return 0;

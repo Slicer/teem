@@ -82,7 +82,8 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err, **dataFileNames, **kvp, *content, encInfo[AIR_STRLEN_LARGE];
   Nrrd *nrrd;
   Nrrd **nslice;
-  int *size, nameLen, kvpLen, ki, sizeLen, spacingLen, labelLen,
+  int *size, sizeLen,
+    nameLen, kvpLen, ki, spacingLen, labelLen,
     headerOnly, pret, lineSkip, byteSkip, endian, slc, type,
     encodingType, gotSpacing;
   double *spacing;
