@@ -42,7 +42,7 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   NrrdKernelSpec *ksp;
   Nrrd **nin, *nout, *ngrad;
-  int ref, ninLen, maxSize, noverbose, progress;
+  int ref, ninLen, ccsize[2], noverbose, progress;
   float bw[2], thr[2];
   
   hestOptAdd(&hopt, "i", "b0 dwi1 dwi2", airTypeOther, 3, -1, &nin, NULL,
@@ -65,9 +65,15 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "t", "B0, DWI threshold", airTypeFloat, 2, 2, &thr, NULL,
 	     "Threshold values to use on B0 and DW images, respectively, "
 	     "to seperate brain and non-brain");
-  hestOptAdd(&hopt, "ccs", "max cc size", airTypeInt, 1, 1, &maxSize, "0",
-	     "size of connected component that is allowed to be merged "
-	     "with its surroundings, when it has no other neighbors");
+  hestOptAdd(&hopt, "cc", "dark, bright size", airTypeInt, 2, 2, ccsize,
+	     "400 20",
+	     "when doing connected component (CC) analysis, dark CCs are "
+	     "merged with bright surround if their size is less than the "
+	     "first number, and bright CCs are merged with dark surround "
+	     "if their size is less than the second number.  The former "
+	     "includes regions of CSF and highly diffusion-weighted white "
+	     "mater; the latter includes noise and scalp.  Or, use \"0 0\" "
+	     "to bypass CC analysis.");
   hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &ksp, "cubic:0,0.5",
 	     "kernel for resampling DWI during registration",
 	     NULL, NULL, nrrdHestKernelSpec);
@@ -84,7 +90,7 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenEpiRegister(nout, nin, ninLen, ngrad,
 		     ref,
-		     bw[0], bw[1], thr[0], thr[1], maxSize,
+		     bw[0], bw[1], thr[0], thr[1], ccsize[0], ccsize[1],
 		     ksp->kernel, ksp->parm,
 		     progress, !noverbose)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);

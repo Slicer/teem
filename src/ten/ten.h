@@ -338,7 +338,8 @@ extern int tenFiberTrace(tenFiberContext *tfx, Nrrd *fiber,
 extern int tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *ngrad,
 			  int reference,
 			  float bwX, float bwY,
-			  float B0thr, float DWthr, int maxSize,
+			  float B0thr, float DWthr,
+			  int darkSize, int brightSize,
 			  NrrdKernel *kern, double *kparm,
 			  int progress, int verbose);
 
