@@ -123,6 +123,7 @@ double _nrrdUnaryOpAcos(double a)       {return acos(a);}
 double _nrrdUnaryOpAtan(double a)       {return atan(a);}
 double _nrrdUnaryOpExp(double a)        {return exp(a);}
 double _nrrdUnaryOpLog(double a)        {return log(a);}
+double _nrrdUnaryOpLog2(double a)       {return log(a)/0.69314718;}
 double _nrrdUnaryOpLog10(double a)      {return log10(a);}
 double _nrrdUnaryOpLog1p(double a)      {
   double b;
@@ -159,6 +160,7 @@ double (*_nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
   _nrrdUnaryOpAtan,
   _nrrdUnaryOpExp,
   _nrrdUnaryOpLog,
+  _nrrdUnaryOpLog2,
   _nrrdUnaryOpLog10,
   _nrrdUnaryOpLog1p,
   _nrrdUnaryOpSqrt,

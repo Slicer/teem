@@ -698,6 +698,7 @@ nrrdMeasure = &_nrrdMeasure;
 #define nuAtn nrrdUnaryOpAtan
 #define nuExp nrrdUnaryOpExp
 #define nuLge nrrdUnaryOpLog
+#define nuLg2 nrrdUnaryOpLog2
 #define nuLgt nrrdUnaryOpLog10
 #define nuL1p nrrdUnaryOpLog1p
 #define nuSqt nrrdUnaryOpSqrt
@@ -725,6 +726,7 @@ _nrrdUnaryOpStr[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "atan",
   "exp",
   "log",
+  "log2",
   "log10",
   "log1p",
   "sqrt",
@@ -753,6 +755,7 @@ _nrrdUnaryOpDesc[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_MED] = {
   "arctan",
   "e raised to something",
   "natural (base e) logarithm",
+  "base 2 logarithm",
   "base 10 logarithm",
   "ln(1+x), accurate for small x",
   "square root",
@@ -780,6 +783,7 @@ _nrrdUnaryOpStrEqv[][AIR_STRLEN_SMALL] = {
   "atan", "arctan",
   "exp",
   "ln", "log",
+  "log2",
   "log10",
   "ln1p", "log1p",
   "sqrt",
@@ -808,6 +812,7 @@ _nrrdUnaryOpValEqv[] = {
   nuAtn, nuAtn,
   nuExp,
   nuLge, nuLge,
+  nuLg2,
   nuLgt,
   nuL1p, nuL1p,
   nuSqt,

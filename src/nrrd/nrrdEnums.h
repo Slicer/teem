@@ -397,22 +397,23 @@ enum {
   nrrdUnaryOpAtan,       /*  8 */
   nrrdUnaryOpExp,        /*  9 */
   nrrdUnaryOpLog,        /* 10 */
-  nrrdUnaryOpLog10,      /* 11 */
-  nrrdUnaryOpLog1p,      /* 12 */
-  nrrdUnaryOpSqrt,       /* 13 */
-  nrrdUnaryOpCbrt,       /* 14 */
-  nrrdUnaryOpErf,        /* 15 */
-  nrrdUnaryOpCeil,       /* 16 */
-  nrrdUnaryOpFloor,      /* 17 */
-  nrrdUnaryOpRoundUp,    /* 18 */
-  nrrdUnaryOpRoundDown,  /* 19 */
-  nrrdUnaryOpAbs,        /* 20 */
-  nrrdUnaryOpSgn,        /* 21 */
-  nrrdUnaryOpExists,     /* 22 */
-  nrrdUnaryOpRand,       /* 23 */
+  nrrdUnaryOpLog2,       /* 11 */
+  nrrdUnaryOpLog10,      /* 12 */
+  nrrdUnaryOpLog1p,      /* 13 */
+  nrrdUnaryOpSqrt,       /* 14 */
+  nrrdUnaryOpCbrt,       /* 15 */
+  nrrdUnaryOpErf,        /* 16 */
+  nrrdUnaryOpCeil,       /* 17 */
+  nrrdUnaryOpFloor,      /* 18 */
+  nrrdUnaryOpRoundUp,    /* 19 */
+  nrrdUnaryOpRoundDown,  /* 20 */
+  nrrdUnaryOpAbs,        /* 21 */
+  nrrdUnaryOpSgn,        /* 22 */
+  nrrdUnaryOpExists,     /* 23 */
+  nrrdUnaryOpRand,       /* 24 */
   nrrdUnaryOpLast
 };
-#define NRRD_UNARY_OP_MAX   23
+#define NRRD_UNARY_OP_MAX   24
 
 /*
 ******** nrrdBinaryOp enum
