@@ -639,16 +639,39 @@ nrrdLineSkip (NrrdIO *io) {
 }
 
 int
-nrrdByteSkip (NrrdIO *io) {
+nrrdByteSkip (Nrrd *nrrd, NrrdIO *io) {
   int i, skipRet;
   char me[]="nrrdByteSkip", err[AIR_STRLEN_MED];
+  size_t numbytes;
 
-  for (i=1; i<=io->byteSkip; i++) {
-    skipRet = fgetc(io->dataFile);
-    if (EOF == skipRet) {
-      sprintf(err, "%s: hit EOF skipping byte %d of %d",
-	      me, i, io->byteSkip);
+  if (!( nrrd && io )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (-1 == io->byteSkip) {
+    if (nrrdEncodingRaw != io->encoding) {
+      sprintf(err, "%s: can't backwards byte skipping in %s encoding",
+	      me, airEnumStr(nrrdEncoding, io->encoding));
       biffAdd(NRRD, err); return 1;
+    }
+    if (stdin == io->dataFile) {
+      sprintf(err, "%s: can't fseek on stdin", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    numbytes = nrrdElementNumber(nrrd)*nrrdElementSize(nrrd);
+    if (fseek(io->dataFile, -numbytes, SEEK_END)) {
+      sprintf(err, "%s: failed to fseek(dataFile, " _AIR_SIZE_T_FMT
+	      ", SEEK_END)", me, numbytes);
+      biffAdd(NRRD, err); return 1;      
+    }
+  } else {
+    for (i=1; i<=io->byteSkip; i++) {
+      skipRet = fgetc(io->dataFile);
+      if (EOF == skipRet) {
+	sprintf(err, "%s: hit EOF skipping byte %d of %d",
+		me, i, io->byteSkip);
+	biffAdd(NRRD, err); return 1;
+      }
     }
   }
   return 0;
@@ -740,7 +763,7 @@ _nrrdReadNrrd (FILE *file, Nrrd *nrrd, NrrdIO *io) {
     return 1;
   }
   if (!nrrdEncodingIsCompression[io->encoding]) {
-    if (nrrdByteSkip(io)) {
+    if (nrrdByteSkip(nrrd, io)) {
       if ((err = (char*)malloc(AIR_STRLEN_MED))) {
 	sprintf(err, "%s: couldn't skip bytes", me);
 	biffAdd(NRRD, err); free(err);
@@ -1131,7 +1154,7 @@ _nrrdReadPNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
     if (!strcmp(txt[i].key, NRRD_PNG_KEY)) {
       int ret;
       io->pos = 0;
-      /* Reading PNGs teaches gordon that his scheme for parsing nrrd header
+      /* Reading PNGs teaches Gordon that his scheme for parsing nrrd header
 	 information is inappropriately specific to reading PNMs and NRRDs,
 	 since in this case the text from which we parse a nrrd field
 	 descriptor did NOT come from a line of text as read by

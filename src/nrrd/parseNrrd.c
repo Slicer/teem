@@ -517,7 +517,7 @@ _nrrdReadNrrdParse_byte_skip (Nrrd *nrrd, NrrdIO *io, int useBiff) {
 
   info = io->line + io->pos;
   _PARSE_ONE_VAL(io->byteSkip, "%d", "int");
-  if (!(0 <= io->byteSkip)) {
+  if (!(-1 <= io->byteSkip)) {
     sprintf(err, "%s: byteSkip value %d invalid", me, io->byteSkip);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
