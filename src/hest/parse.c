@@ -548,7 +548,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	       char *err, hestParm *parm, airArray *pmop) {
   char ident[AIR_STRLEN_HUGE], me[]="_hestSetValues: ";
   double tmpD;
-  int op, type, numOpts;
+  int op, type, numOpts, p;
   void *vP;
 
   numOpts = _hestNumOpts(opt);
@@ -572,9 +572,18 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 		  airTypeStr[type], ident);
 	  return 1;
 	}
-	opt[op].alloc = (opt[op].type == airTypeString ? 1 : 0);
+	if (airTypeString == opt[op].type) {
+	  opt[op].alloc = 1;
+	  airMopMem(pmop, (char*)vP, airMopOnError);
+	}
+	else {
+	  /* we did parse a value, but it wasn't a string */
+	  opt[op].alloc = 0;
+	}
       }
       else {
+	/* either we didn't get information for this option, or we
+	   weren't supposed to save any information */
 	opt[op].alloc = 0;
       }
       break;
@@ -589,7 +598,16 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 		  opt[op].min > 1 ? "s" : "", ident);
 	  return 1;
 	}
-	opt[op].alloc = (opt[op].type == airTypeString ? 2 : 0);
+	if (airTypeString == opt[op].type) {
+	  for (p=0; p<=opt[op].min-1; p++) {
+	    airMopMem(pmop, ((char**)vP) + p, airMopOnError);
+	  }
+	  opt[op].alloc = 2;
+	}
+	else {
+	  /* we parsed multiple values, none of them strings */
+	  opt[op].alloc = 0;
+	}
       }
       else {
 	opt[op].alloc = 0;
@@ -616,6 +634,9 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	    airIStore(vP, type, tmpD ? 0 : 1);
 	  }
 	}
+	if (airTypeString == type && opt[op].alloc) {
+	  airMopMem(pmop, (char**)vP, airMopOnError);
+	}
       }
       else {
 	opt[op].alloc = 0;
@@ -632,6 +653,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	else {
 	  /* printf("!%s: nprm[%d] = %d\n", me, op, nprm[op]); */
 	  *((void**)vP) = calloc(nprm[op], airTypeSize[type]);
+	  airMopMem(pmop, vP, airMopOnError);
 	  if (nprm[op] != 
 	      airParseStr[type](*((void**)vP), prms[op], " ", nprm[op])) {
 	    sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s",
@@ -642,6 +664,11 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	  }
 	  *(opt[op].sawP) = nprm[op];
 	  opt[op].alloc = (airTypeString == opt[op].type ? 3 : 1);
+	  if (airTypeString == opt[op].type) {
+	    for (p=0; p<=nprm[op]-1; p++) {
+	      airMopMem(pmop, ((char***)vP)[p], airMopOnError);
+	    }
+	  }
 	}
       }
       else {
@@ -701,7 +728,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
 
   /* -------- check on validity of the hestOpt array */
   if (_hestPanic(opt, err, parm)) {
-    airMopDone(mop, AIR_TRUE); return 1;
+    airMopError(mop); return 1;
   }
 
   /* -------- Create all the local arrays used to save state during
@@ -719,7 +746,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
      on the args from the actual argv (getting this right the first time
      greatly simplifies the problem of eliminating memory leaks) */
   if (_hestArgsInResponseFiles(&argr, &nrf, _argv, err, parm)) {
-    airMopDone(mop, AIR_TRUE); return 1;
+    airMopError(mop); return 1;
   }
   argc = argr + _argc - nrf;
   /*
@@ -732,7 +759,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
   /* -------- process response files (if any) and set the remaining
      elements of argv */
   if (_hestResponseFiles(argv, _argv, nrf, err, parm, mop)) {
-    airMopDone(mop, AIR_TRUE); return 1;
+    airMopError(mop); return 1;
   }
   /*
   _hestPrintArgv(argc, argv);
@@ -742,7 +769,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
 			   &argc, argv, 
 			   opt,
 			   err, parm, mop)) {
-    airMopDone(mop, AIR_TRUE); return 1;
+    airMopError(mop); return 1;
   }
   /*
   _hestPrintArgv(argc, argv);
@@ -752,30 +779,30 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
 			    &argc, argv,
 			    opt,
 			    err, parm, mop)) {
-    airMopDone(mop, AIR_TRUE); return 1;
+    airMopError(mop); return 1;
   }
 
   /* currently, any left over arguments indicate error */
   if (argc) {
     sprintf(err, "%sunexpected arg: \"%s\"", ME, argv[0]);
-    airMopDone(mop, AIR_TRUE); return 1;
+    airMopError(mop); return 1;
   }
 
   /* -------- learn defaults */
   if (_hestDefaults(prms, udflt, nprm, appr,
 		    opt,
 		    err, parm, mop)) {
-    airMopDone(mop, AIR_TRUE); return 1;
+    airMopError(mop); return 1;
   }
   
   /* -------- now, the actual parsing of values */
   if (_hestSetValues(prms, udflt, nprm, appr,
 		     opt,
 		     err, parm, mop)) {
-    airMopDone(mop, AIR_TRUE); return 1;
+    airMopError(mop); return 1;
   }
 
-  airMopDone(mop, AIR_FALSE);
+  airMopOkay(mop);
   return 0;
 }
 
