@@ -117,7 +117,6 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
 
   tenFiberParmSet(tfx, tenFiberParmStepSize, step);
-  tenFiberParmSet(tfx, tenFiberParmUseIndexSpace, AIR_TRUE);
 
   if (tenFiberTrace(tfx, nout, start)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
