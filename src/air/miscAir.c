@@ -190,7 +190,6 @@ airFclose(FILE *file) {
 char *
 airDoneStr(float start, float here, float end, char *str) {
   int perc=0;
-  static int len = -1;
 
   if (str) {
     if (end != start)
@@ -212,6 +211,9 @@ airDoneStr(float start, float here, float end, char *str) {
     }
   }
 
+  /* what the heck was all this for ? 
+  static int len = -1;
+
   if (-1 == len) {
     len = strlen(str);
   }
@@ -222,6 +224,7 @@ airDoneStr(float start, float here, float end, char *str) {
       exit(1);
     }
   }
+  */
   return(str);
 }
 
