@@ -115,7 +115,7 @@ ell3mNullspace2(double ans0[3], double ans1[3], double _n[9]) {
 ** This does NOT use biff
 */
 int
-ell3mEigenvalues(double eval[3], double m[9], int polish) {
+ell3mEigenvalues(double eval[3], double m[9], int newton) {
   double A, B, C;
 
   /* 
@@ -130,7 +130,7 @@ ell3mEigenvalues(double eval[3], double m[9], int polish) {
   C = (m[2]*m[4] - m[1]*m[5])*m[6]
     + (m[0]*m[5] - m[2]*m[3])*m[7]
     + (m[1]*m[3] - m[0]*m[4])*m[8];
-  return ellCubic(eval, A, B, C, polish);
+  return ellCubic(eval, A, B, C, newton);
 }
 
 /*
@@ -150,7 +150,7 @@ ell3mEigenvalues(double eval[3], double m[9], int polish) {
 ** This does NOT use biff
 */
 int
-ell3mEigensolve(double eval[3], double evec[9], double m[9], int polish) {
+ell3mEigensolve(double eval[3], double evec[9], double m[9], int newton) {
   double n[9], e0, e1, e2, t /* , tmpv[3] */ ;
   int roots;
 
@@ -161,7 +161,7 @@ ell3mEigensolve(double eval[3], double evec[9], double m[9], int polish) {
     printf(" {%20.15f,\t%20.15f,\t%20.15f}};\n",m[2], m[5], m[8]);
     } */
   
-  roots = ell3mEigenvalues(eval, m, polish);
+  roots = ell3mEigenvalues(eval, m, newton);
   ELL_3V_GET(e0, e1, e2, eval);
   /* if (linealDebug) {
     printf("lineal3Eigensolve: numroots = %d\n", numroots);

@@ -41,7 +41,7 @@
 ** This does NOT use biff
 */
 int
-ellCubic(double root[3], double A, double B, double C, int polish) {
+ellCubic(double root[3], double A, double B, double C, int newton) {
   double epsilon = 1.0E-11, sq_A, p, q, cb_p, D, sqrt_D, 
     u, v, x, phi, t, sub;
 
@@ -73,12 +73,12 @@ ellCubic(double root[3], double A, double B, double C, int polish) {
     u = airCbrt(sqrt_D-q);
     v = -airCbrt(sqrt_D+q);
     x = u+v - sub;
-    if (!polish) {
+    if (!newton) {
       root[0] = x;
       root[1] = root[2] = AIR_NAN;
       return ellCubicRootSingle;
     }
-    /* else polish the hell out of x, the known root, so as to get the 
+    /* else refine x, the known root, with newton-raphson, so as to get the 
        most accurate possible calculation for nr, the possible new root */
     x = x - (((x + A)*x + B)*x + C)/((3.0*x + 2.0*A)*x + B);
     x = x - (((x + A)*x + B)*x + C)/((3.0*x + 2.0*A)*x + B);

@@ -93,15 +93,15 @@ extern void ell4mInvert_f(float i[16], float m[16]);
 extern void ell4mInvert_d(double i[16], double m[16]);
 
 /* cubic.c */
-extern int ellCubic(double root[3], double A, double B, double C, int polish);
+extern int ellCubic(double root[3], double A, double B, double C, int newton);
 
 /* eigen.c */
 extern void ell3mNullspace1(double ans[3], double n[9]);
 extern void ell3mNullspace2(double ans0[3], double ans1[3], double n[9]);
 extern int ell3mEigenvalues(double eval[3], double m[9], 
-			    int polish);
+			    int newton);
 extern int ell3mEigensolve(double eval[3], double evec[9], double m[9],
-			   int polish);
+			   int newton);
 
 #ifdef __cplusplus
 }
