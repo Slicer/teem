@@ -23,13 +23,13 @@ char *heqName = "heq";
 #define INFO "Perform histogram equalization"
 char *heqInfo = INFO;
 char *heqInfoL = (INFO
-		   ". ");
+		  ". ");
 
 int
 heqMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
-  char *out, *err;
-  Nrrd *nin, *nout;
+  char *out, *err, *mapS;
+  Nrrd *nin, *nout, *nmap;
   int bins, smart;
   airArray *mop;
 
@@ -43,6 +43,11 @@ heqMain(int argc, char **argv, char *me) {
 	     "when the values that fall in them are constant.  This is an "
 	     "effective way to prevent large regions of background value "
 	     "from distorting the equalization mapping.");
+  hestOptAdd(&opt, "m", "filename", airTypeString, 1, 1, &mapS, "",
+	     "The value mapping used to achieve histogram equalization is "
+	     "represented by a univariate regular map.  By giving a filename "
+	     "here, that map can be saved out and applied to other nrrds "
+	     "with \"unu rmap\"");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
@@ -55,14 +60,17 @@ heqMain(int argc, char **argv, char *me) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdHistoEq(nout, nin, NULL, bins, smart)) {
+  if (nrrdHistoEq(nout, nin, airStrlen(mapS) ? &nmap : NULL, bins, smart)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble histogram equalizing:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
 
-  SAVE(nout, NULL);
+  if (airStrlen(mapS)) {
+    SAVE(mapS, nmap, NULL);
+  }
+  SAVE(out, nout, NULL);
 
   airMopOkay(mop);
   return 0;
