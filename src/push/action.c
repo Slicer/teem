@@ -321,13 +321,12 @@ _pushUpdate(pushTask *task, int batch,
             double parm[PUSH_STAGE_PARM_MAX]) {
   push_t *posVel, *velAcc;
   int pi, ppb;
-  double dt, vel, move;
+  double dt, move;
 
   ppb = task->pctx->pointsPerBatch;
   dt = task->pctx->step;
   posVel = (push_t *)task->pctx->nPosVel->data;
   velAcc = (push_t *)task->pctx->nVelAcc->data;
-  vel = 0;
   for (pi=batch*ppb; pi<(batch+1)*ppb; pi++) {
     _pushProbe(task->pctx, task->gctx,
                (posVel + 3*(0 + 2*pi))[0],
@@ -337,16 +336,16 @@ _pushUpdate(pushTask *task, int batch,
     ELL_3V_SCALE_INCR(posVel + 3*(0 + 2*pi), move*dt, velAcc + 3*(0 + 2*pi));
     ELL_3V_SCALE_INCR(posVel + 3*(1 + 2*pi), move*dt, velAcc + 3*(1 + 2*pi));
     ELL_3V_SCALE(posVel + 3*(1 + 2*pi), move, posVel + 3*(1 + 2*pi));
-    vel += ELL_3V_LEN(posVel + 3*(1 + 2*pi));
+    task->sumVel += ELL_3V_LEN(posVel + 3*(1 + 2*pi));
   }
-  task->meanVel += vel/ppb;
   return;
 }
 
 int
 pushRun(pushContext *pctx) {
-  char me[]="pushRun", err[AIR_STRLEN_MED], outS[AIR_STRLEN_MED];
-  Nrrd *ntmp;
+  char me[]="pushRun", err[AIR_STRLEN_MED],
+    poutS[AIR_STRLEN_MED], toutS[AIR_STRLEN_MED];
+  Nrrd *npos, *nten;
   int iter;
 
   iter = 0;
@@ -357,19 +356,23 @@ pushRun(pushContext *pctx) {
       biffAdd(PUSH, err); return 1;
     }
     if (pctx->snap && !(iter % pctx->snap)) {
-      ntmp = nrrdNew();
-      sprintf(outS, "snap-%06d.nrrd", iter);
-      if (pushOutputGet(ntmp, NULL, pctx)) {
+      nten = nrrdNew();
+      npos = nrrdNew();
+      sprintf(poutS, "snap-%06d-pos.nrrd", iter);
+      sprintf(toutS, "snap-%06d-ten.nrrd", iter);
+      if (pushOutputGet(npos, nten, pctx)) {
         sprintf(err, "%s: couldn't get snapshot for iter %d", me, iter);
         biffAdd(PUSH, err); return 1;
       }
       fprintf(stderr, "%s: saving snapshot %s (meanVel = %g)\n",
-              me, outS, pctx->meanVel);
-      if (nrrdSave(outS, ntmp, NULL)) {
+              me, poutS, pctx->meanVel);
+      if (nrrdSave(poutS, npos, NULL)
+          || nrrdSave(toutS, nten, NULL)) {
         sprintf(err, "%s: couldn't save snapshot for iter %d", me, iter);
         biffMove(PUSH, err, NRRD); return 1;
       }
-      ntmp = nrrdNuke(ntmp);
+      nten = nrrdNuke(nten);
+      npos = nrrdNuke(npos);
     }
     iter++;
   } while (pctx->meanVel > pctx->minMeanVel

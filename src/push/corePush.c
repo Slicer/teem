@@ -275,7 +275,7 @@ pushIterate(pushContext *pctx) {
   pctx->stage=0;
   pctx->batch=0;
   for (ti=0; ti<pctx->numThread; ti++) {
-    pctx->task[ti]->meanVel = 0;
+    pctx->task[ti]->sumVel = 0;
   }
   do {
     if (pctx->numThread > 1) {
@@ -294,9 +294,9 @@ pushIterate(pushContext *pctx) {
   } while (pctx->stage < pctx->numStage);
   pctx->meanVel = 0;
   for (ti=0; ti<pctx->numThread; ti++) {
-    pctx->meanVel += pctx->task[ti]->meanVel;
+    pctx->meanVel += pctx->task[ti]->sumVel;
   }
-  pctx->meanVel /= pctx->numThread;
+  pctx->meanVel /= (pctx->pointsPerBatch * pctx->numBatch);
   
   return 0;
 }

@@ -56,7 +56,7 @@ typedef struct pushTask_t {
   gage_t *tenAns;                  /* result of gage probing */
   airThread *thread;               /* my thread */
   int threadIdx;                   /* which thread am I */
-  double meanVel;                  /* mean velocity for points in my batches */
+  double sumVel;                   /* sum of velocities for points in my batches */
   void *returnPtr;                 /* for airThreadJoin */
 } pushTask;
 
