@@ -21,7 +21,6 @@
 TEEM_SHEXT = so
 
 OPT_CFLAG ?= -O2
-OPT_CFLAG ?= -g -O2
 STATIC_CFLAG = -Wl,-Bstatic
 SHARED_CFLAG = -Wl,-Bdynamic
 SHARED_LDFLAG = -shared
