@@ -187,7 +187,7 @@ _gageKernelDependentSet(gageContext *ctx) {
   airFree(ctx->off);
   E = 0;
   if (!E) E |= !(ctx->fsl = calloc(ctx->fd*3, sizeof(gage_t)));
-  if (!E) E |= !(ctx->off = calloc(ctx->fd*3, sizeof(int)));
+  if (!E) E |= !(ctx->off = calloc(ctx->fd*ctx->fd*ctx->fd, sizeof(int)));
   if (E) {
     sprintf(err, "%s: couldn't allocate caches for fd=%d", me, ctx->fd);
     biffAdd(GAGE, err); return 1;
