@@ -31,20 +31,24 @@ char *overInfo = (
   "is floating point, the values are taken at face value; "
   "if it is fixed point, the values interpreted as having "
   "been quantized (so that 8-bit RGBA images will act as "
-  "you expect).");
+  "you expect).  When compositing with a background image, the given "
+  "background image does not have to be the same size as the input "
+  "image; it will be resampled (with linear interpolation) to fit. ");
 
 int
 main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   Nrrd *nin, *nout,    /* initial input and final output */
     *ninD,             /* input converted to double */
-    *nbg,              /* background image (optional) */
+    *_nbg,             /* given background image (optional) */
+    *nbg,              /* resampled background image */
     *nrgbaD;           /* rgba input as double */
   char *me, *outS, *errS;
   double gamma, back[3], *rgbaD, r, g, b, a;
   airArray *mop;
   int E, min[3], max[3], i, rI, gI, bI, sx, sy;
   unsigned char *outUC, *bgUC;
+  NrrdResampleInfo *rinfo;
 
   me = argv[0];
   mop = airMopNew();
@@ -55,7 +59,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "b", "background", airTypeDouble, 3, 3, back, "0 0 0",
 	     "background color to composite against; white is "
 	     "1 1 1, not 255 255 255.");
-  hestOptAdd(&hopt, "bi", "nbg", airTypeOther, 1, 1, &nbg, "",
+  hestOptAdd(&hopt, "bi", "nbg", airTypeOther, 1, 1, &_nbg, "",
 	     "8-bit RGB background image to composite against",
 	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS,
@@ -77,16 +81,43 @@ main(int argc, char *argv[]) {
 
   sx = nin->axis[1].size;
   sy = nin->axis[2].size;
-  if (nbg) {
-    if (!(3 == nbg->dim 
-	  && 3 == nbg->axis[0].size
-	  && sx == nbg->axis[1].size 
-	  && sy == nbg->axis[2].size
-	  && nrrdTypeUChar == nbg->type)) {
-      fprintf(stderr, "%s: background image not %dx%d 8-bit RGB\n",
-	      me, sx, sy);
+  if (_nbg) {
+    if (!(3 == _nbg->dim 
+	  && 3 == _nbg->axis[0].size
+	  && 2 <= _nbg->axis[1].size
+	  && 2 <= _nbg->axis[2].size
+	  && nrrdTypeUChar == _nbg->type)) {
+      fprintf(stderr, "%s: background not an 8-bit RGB image\n", me);
       airMopError(mop); return 1;
     }
+    nbg = nrrdNew();
+    airMopAdd(mop, nbg, (airMopper)nrrdNuke, airMopAlways);
+    if (sx == _nbg->axis[1].size && sy == _nbg->axis[2].size) {
+      /* no resampling needed, just copy */
+      E = nrrdCopy(nbg, _nbg);
+    } else {
+      /* have to resample background image to fit ... */
+      rinfo = nrrdResampleInfoNew();
+      airMopAdd(mop, rinfo, (airMopper)nrrdResampleInfoNix, airMopAlways);
+      rinfo->kernel[0] = NULL;
+      nrrdKernelParse(&(rinfo->kernel[1]), rinfo->parm[1], "tent");
+      rinfo->min[1] = _nbg->axis[1].min = 0;
+      rinfo->max[1] = _nbg->axis[1].max = _nbg->axis[1].size-1;
+      rinfo->samples[1] = sx;
+      nrrdKernelParse(&(rinfo->kernel[2]), rinfo->parm[2], "tent");
+      rinfo->min[2] = _nbg->axis[2].min = 0;
+      rinfo->max[2] = _nbg->axis[2].max = _nbg->axis[2].size-1;
+      rinfo->samples[2] = sy;
+      rinfo->renormalize = AIR_TRUE;
+      rinfo->round = AIR_TRUE;
+      E = nrrdSpatialResample(nbg, _nbg, rinfo);
+    }
+    if (E) {
+      fprintf(stderr, "%s: trouble:\n%s", me, errS = biffGetDone(NRRD));
+      free(errS); return 1;
+    }      
+  } else {
+    nbg = NULL;
   }
 
   ninD = nrrdNew();
