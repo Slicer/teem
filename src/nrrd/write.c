@@ -19,6 +19,9 @@
 
 #include "nrrd.h"
 #include "privateNrrd.h"
+#ifdef TEEM_ZLIB
+#  include <zlib.h> /* needed to write gzipped raw data */
+#endif
 
 /*
   #include <sys/types.h>
@@ -113,10 +116,10 @@ _nrrdFieldInteresting(Nrrd *nrrd, NrrdIO *io, int field) {
     ret = io->seperateHeader;
     break;
   case nrrdField_line_skip:
-    ret = !!(io->lineSkip);
+    ret = AIR_FALSE;
     break;
   case nrrdField_byte_skip:
-    ret = !!(io->byteSkip);
+    ret = AIR_FALSE;
     break;
   }
 
@@ -239,11 +242,115 @@ _nrrdWriteDataAscii(Nrrd *nrrd, NrrdIO *io) {
   return 0;
 }
 
+#ifdef TEEM_ZLIB
+int
+_nrrdWriteDataGzip(Nrrd *nrrd, NrrdIO *io) {
+  char me[]="_nrrdWriteDataGzip", err[AIR_STRLEN_MED];
+  size_t num, bsize, size, total_written;
+  int block_size, wrote, zerrnum;
+  char *data;
+  gzFile gzfout;
+  
+  /* this shouldn't actually be necessary ... */
+  if (!nrrdElementSize(nrrd)) {
+    sprintf(err, "%s: nrrd reports zero element size!", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  num = nrrdElementNumber(nrrd);
+  if (!num) {
+    sprintf(err, "%s: calculated number of elements to be zero!", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  bsize = num * nrrdElementSize(nrrd);
+  size = bsize;
+  if (num != bsize/nrrdElementSize(nrrd)) {
+    fprintf(stderr,
+	    "%s: PANIC: \"size_t\" can't represent byte-size of data.\n", me);
+    exit(1);
+  }
+
+  /* Create the gzFile for writing in the gzipped data. */
+  if (!(gzfout = _nrrdGzOpen(io->dataFile, "w"))) {
+    /* there was a problem */
+    sprintf(err, "%s: error opening gzFile", me);
+    biffAdd(NRRD, err);
+    return 1;
+  }
+
+  /* _nrrdGzWrite takes an unsigned int for the number of bytes to write,
+     but it returns an int for the number that was actually written.  This is
+     really stupid, but you do what you can do.  I can't just pass in
+     the size, because it will be too large for an int.  Therefore it
+     must be written in chunks if the size is larger than INT_MAX.
+  */
+
+  if (size <= INT_MAX) {
+    block_size = (int)size;
+  } else {
+    block_size = INT_MAX;
+  }
+
+  /* This counter will help us to make sure that we write as much data
+     as we think we should. */
+  total_written = 0;
+  /* Pointer to the blocks as we write them. */
+  data = nrrd->data;
+  
+  /* Ok, now we can begin writing. */
+  while ((wrote = _nrrdGzWrite(gzfout, data, block_size))) {
+    /* Increment the data pointer to the next available spot. */
+    data += wrote; 
+    total_written += wrote;
+    /* We only want to write as much data as we need, so we need to check
+       to make sure that we don't write more data than is there.  This
+       will reduce block_size when we get to the last block (which may
+       be smaller than block_size).
+    */
+    if (size - total_written < block_size)
+      block_size = (int)(size - total_written);
+  }
+  
+  /* Close the gzFile.  Since _nrrdGzClose does not close the FILE* we
+     will not encounter problems when io->dataFile is closed later. */
+  zerrnum = _nrrdGzClose(gzfout);
+  if (zerrnum != 0) {
+    /* _nrrdGzClose is based on the zlib interface, so if there was an
+       error, we need to get the message corresponding to error code
+       from zlib. */
+    const char* errstring= gzerror(gzfout, &zerrnum);
+    if (zerrnum != Z_ERRNO) {
+      sprintf(err, "%s: error closing gzFile: %s",
+	      me, errstring);
+    } else {
+      /* If we wanted we could get the error from the system, but I
+	 dont' want to. :) */
+      sprintf(err, "%s: system error closing gzFile:", me);
+    }
+    biffAdd(NRRD, err);
+    return 1;
+  }
+  
+  /* Check to see if we got out as much as we thought we should. */
+  if (total_written != size) {
+    sprintf(err, "%s: expected " AIR_SIZE_T_FMT " to write bytes, but only "
+	    " wrote " AIR_SIZE_T_FMT " bytes",
+	    me, size, total_written);
+    biffAdd(NRRD, err);
+    return 1;
+  }
+  
+  return 0;
+}
+#endif
+
 int (*
 nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
   NULL,
   _nrrdWriteDataRaw,
-  _nrrdWriteDataAscii
+  _nrrdWriteDataAscii,
+#ifdef TEEM_ZLIB
+  _nrrdWriteDataGzip,
+#endif
 };
 
 /*
@@ -639,7 +746,7 @@ _nrrdFixFormat(NrrdIO *io, Nrrd *nrrd) {
        invalid nrrds will get caught sooner or later ... */
     break;
   case nrrdFormatPNM:
-    fits = nrrdFitsInFormat(nrrd, nrrdFormatPNM, AIR_FALSE);
+    fits = nrrdFitsInFormat(nrrd, io->encoding, nrrdFormatPNM, AIR_FALSE);
     if (!fits) {
       if (nrrdStateVerboseIO) {
 	fprintf(stderr, "(%s: Can't be a PNM image -> saving as NRRD)\n", me); 
@@ -660,7 +767,7 @@ _nrrdFixFormat(NrrdIO *io, Nrrd *nrrd) {
     }
     break;
   case nrrdFormatTable:
-    if (!nrrdFitsInFormat(nrrd, nrrdFormatTable, AIR_FALSE)) {
+    if (!nrrdFitsInFormat(nrrd, io->encoding, nrrdFormatTable, AIR_FALSE)) {
       if (nrrdStateVerboseIO) {
 	fprintf(stderr, "(%s: Can't be a table -> saving as NRRD)\n", me);
       }
@@ -693,13 +800,24 @@ nrrdWrite(FILE *file, Nrrd *nrrd, NrrdIO *io) {
     sprintf(err, "%s: invalid encoding %d", me, io->encoding);
     biffAdd(NRRD, err); return 1;
   }
+  if (nrrdEncodingUnknown == io->encoding) {
+    io->encoding = nrrdDefWrtEncoding;
+  } else if (!AIR_BETWEEN(nrrdEncodingUnknown, io->encoding, 
+			  nrrdEncodingLast)) {
+    sprintf(err, "%s: invalid encoding %d\n", me, io->encoding);
+    biffAdd(NRRD, err); return 1;
+  }
   if (!AIR_BETWEEN(nrrdFormatUnknown, io->format, nrrdFormatLast)) {
     sprintf(err, "%s: invalid format %d", me, io->format);
     biffAdd(NRRD, err); return 1;
   }
-  if (!nrrdFitsInFormat(nrrd, io->format, AIR_TRUE)) {
+  if (!nrrdFitsInFormat(nrrd, io->encoding, io->format, AIR_TRUE)) {
     sprintf(err, "%s: doesn't fit in %s format", me,
 	    airEnumStr(nrrdFormat, io->format));
+    biffAdd(NRRD, err); return 1;
+  }
+  if (io->byteSkip || io->lineSkip) {
+    sprintf(err, "%s: can't generate line or byte skips on data write", me);
     biffAdd(NRRD, err); return 1;
   }
 
