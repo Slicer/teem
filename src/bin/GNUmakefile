@@ -90,7 +90,7 @@ gantry.NEED     = gage nrrd biff hest air
 ## 
 $(TEEM_SRC)/bin/% $(BDEST)/% : $(TEEM_SRC)/bin/%.c
 	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) -o $@ $< \
-	  $(LPATH) $(call NEED.LIBLINKS,$(notdir $@)) -lm
+	  $(LPATH) $(call NEED.LIBLINKS,$(notdir $@)) -lz -lm
 
 # we're not a library, template.mk doesn't apply to us
 endif

@@ -129,7 +129,7 @@ $(call OBJS.DEV,$(L)) : $(ODEST)/%.o : $(TEEM_SRC)/$(L)/%.c
 $(call TESTS.DEV,$(L)) : % : %.c
 	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(call MORE_CFLAGS,$(_L)) \
 	  $(IPATH) -o $@ $< -L$(ODEST) -l$(_L) \
-	  $(LPATH) $(call NEED.LIBLINKS,$(_L)) -lm
+	  $(LPATH) $(call NEED.LIBLINKS,$(_L)) -lz -lm
 
 ## Since the installed libs and headers are the "usables", we have to
 ## touch .$(_L).usable every time any one of them is updated (since we
