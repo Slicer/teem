@@ -25,6 +25,12 @@
 #define _ZERO(x) 0
 
 float
+_nrrdZeroInt(float *param) {
+  
+  return 0.0;
+}
+
+float
 _nrrdZeroSup(float *param) {
   float S;
   
@@ -77,7 +83,8 @@ _nrrdZeroVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelZero = {
-  _nrrdZeroSup, _nrrdZeroEF, _nrrdZeroVF, _nrrdZeroED, _nrrdZeroVD
+  _nrrdZeroSup,_nrrdZeroInt,
+  _nrrdZeroEF, _nrrdZeroVF, _nrrdZeroED, _nrrdZeroVD
 };
 nrrdKernel *
 nrrdKernelZero = &_nrrdKernelZero;
@@ -85,6 +92,12 @@ nrrdKernelZero = &_nrrdKernelZero;
 /* ------------------------------------------------------------ */
 
 #define _BOX(x) (x > 0.5 ? 0 : (x < 0.5 ? 1 : 0.5))
+
+float
+_nrrdBoxInt(float *param) {
+  
+  return 1.0;
+}
 
 float
 _nrrdBoxSup(float *param) {
@@ -139,7 +152,8 @@ _nrrdBoxVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelBox = {
-  _nrrdBoxSup,  _nrrdBoxEF,  _nrrdBoxVF,  _nrrdBoxED,  _nrrdBoxVD
+  _nrrdBoxSup, _nrrdBoxInt,  
+  _nrrdBoxEF,  _nrrdBoxVF,  _nrrdBoxED,  _nrrdBoxVD
 };
 nrrdKernel *
 nrrdKernelBox = &_nrrdKernelBox;
@@ -147,6 +161,12 @@ nrrdKernelBox = &_nrrdKernelBox;
 /* ------------------------------------------------------------ */
 
 #define _TENT(x) (x >= 1 ? 0 : 1 - x)
+
+float
+_nrrdTentInt(float *param) {
+  
+  return 1.0;
+}
 
 float
 _nrrdTentSup(float *param) {
@@ -201,7 +221,8 @@ _nrrdTentVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelTent = {
-  _nrrdTentSup, _nrrdTentEF, _nrrdTentVF, _nrrdTentED, _nrrdTentVD
+  _nrrdTentSup,_nrrdTentInt, 
+  _nrrdTentEF, _nrrdTentVF, _nrrdTentED, _nrrdTentVD
 };
 nrrdKernel *
 nrrdKernelTent = &_nrrdKernelTent;
@@ -211,6 +232,12 @@ nrrdKernelTent = &_nrrdKernelTent;
 #define _FORDIF(x) (x <= -1 ?  0 :        \
                    (x <=  0 ? -1 :        \
                    (x <=  1 ?  1 : 0 )))
+
+float
+_nrrdFDInt(float *param) {
+  
+  return 0.0;
+}
 
 float
 _nrrdFDSup(float *param) {
@@ -265,7 +292,8 @@ _nrrdFDVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelFD = {
-  _nrrdFDSup,   _nrrdFDEF,   _nrrdFDVF,   _nrrdFDED,   _nrrdFDVD
+  _nrrdFDSup,  _nrrdFDInt,   
+  _nrrdFDEF,   _nrrdFDVF,   _nrrdFDED,   _nrrdFDVD
 };
 nrrdKernel *
 nrrdKernelForwDiff = &_nrrdKernelFD;
@@ -276,6 +304,12 @@ nrrdKernelForwDiff = &_nrrdKernelFD;
                    (x <= -1 ? -0.5*x - 1 :        \
 		   (x <=  1 ?  0.5*x     :        \
                    (x <=  2 ? -0.5*x + 1 : 0 ))))
+
+float
+_nrrdCDInt(float *param) {
+  
+  return 0.0;
+}
 
 float
 _nrrdCDSup(float *param) {
@@ -330,7 +364,8 @@ _nrrdCDVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelCD = {
-  _nrrdCDSup,   _nrrdCDEF,   _nrrdCDVF,   _nrrdCDED,   _nrrdCDVD
+  _nrrdCDSup,  _nrrdCDInt,   
+  _nrrdCDEF,   _nrrdCDVF,   _nrrdCDED,   _nrrdCDVD
 };
 nrrdKernel *
 nrrdKernelCentDiff = &_nrrdKernelCD;
@@ -342,6 +377,12 @@ nrrdKernelCentDiff = &_nrrdKernelCD;
    ? 0 : (x >= 1.0                                                  \
           ? (((-B/6 - C)*x + B + 5*C)*x -2*B - 8*C)*x + 4*B/3 + 4*C \
           : ((2 - 3*B/2 - C)*x - 3 + 2*B + C)*x*x + 1 - B/3))
+
+float
+_nrrdBCInt(float *param) {
+
+  return 1.0;
+}
 
 float
 _nrrdBCSup(float *param) {
@@ -399,7 +440,8 @@ _nrrdBCVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelBC = {
-  _nrrdBCSup,   _nrrdBCEF,   _nrrdBCVF,   _nrrdBCED,   _nrrdBCVD
+  _nrrdBCSup,  _nrrdBCInt,   
+  _nrrdBCEF,   _nrrdBCVF,   _nrrdBCED,   _nrrdBCVD
 };
 nrrdKernel *
 nrrdKernelBCCubic = &_nrrdKernelBC;
@@ -411,6 +453,12 @@ nrrdKernelBCCubic = &_nrrdKernelBC;
    ? 0 : (x >= 1.0                                      \
           ? ((-B/2 - 3*C)*x + 2*B + 10*C)*x -2*B - 8*C  \
           : ((6 - 9*B/2 - 3*C)*x - 6 + 4*B + 2*C)*x))
+
+float
+_nrrdBCDInt(float *param) {
+
+  return 0.0;
+}
 
 float
 _nrrdBCDSup(float *param) {
@@ -472,7 +520,8 @@ _nrrdBCDVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelBCD = {
-  _nrrdBCDSup,  _nrrdBCDEF,  _nrrdBCDVF,  _nrrdBCDED,  _nrrdBCDVD
+  _nrrdBCDSup, _nrrdBCDInt,  
+  _nrrdBCDEF,  _nrrdBCDVF,  _nrrdBCDED,  _nrrdBCDVD
 };
 nrrdKernel *
 nrrdKernelBCCubicD = &_nrrdKernelBCD;
@@ -484,6 +533,12 @@ nrrdKernelBCCubicD = &_nrrdKernelBCD;
    ? 0 : (x >= 1.0                                   \
           ? (-B - 6*C)*x + 2*B + 10*C                \
           : (12 - 9*B - 6*C)*x - 6 + 4*B + 2*C  ))
+
+float
+_nrrdBCDDInt(float *param) {
+
+  return 0.0;
+}
 
 float
 _nrrdBCDDSup(float *param) {
@@ -541,7 +596,8 @@ _nrrdBCDDVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelBCDD = {
-  _nrrdBCDDSup, _nrrdBCDDEF, _nrrdBCDDVF, _nrrdBCDDED, _nrrdBCDDVD
+  _nrrdBCDDSup,_nrrdBCDDInt, 
+  _nrrdBCDDEF, _nrrdBCDDVF, _nrrdBCDDED, _nrrdBCDDVD
 };
 nrrdKernel *
 nrrdKernelBCCubicDD = &_nrrdKernelBCDD;
@@ -556,6 +612,12 @@ nrrdKernelBCCubicDD = &_nrrdKernelBCDD;
             ? 4 - 6*A + x*(-10 + 25*A + x*(9 - 33*A +                        \
 					   x*(-3.5 + 17*A + x*(0.5 - 3*A)))) \
             : 1 + x*x*(-3 + 6*A + x*((2.5 - 10*A) + x*(-0.5 + 4*A))))))
+
+float
+_nrrdA4Int(float *param) {
+
+  return 1.0;
+}
 
 float
 _nrrdA4Sup(float *param) {
@@ -613,7 +675,8 @@ _nrrdA4VF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelA4 = {
-  _nrrdA4Sup,   _nrrdA4EF,   _nrrdA4VF,   _nrrdA4ED,   _nrrdA4VD
+  _nrrdA4Sup,  _nrrdA4Int,   
+  _nrrdA4EF,   _nrrdA4VF,   _nrrdA4ED,   _nrrdA4VD
 };
 nrrdKernel *
 nrrdKernelAQuartic = &_nrrdKernelA4;
@@ -627,6 +690,12 @@ nrrdKernelAQuartic = &_nrrdKernelA4;
          : (x >= 1.0                                                         \
             ? -10 + 25*A + x*(18 - 66*A + x*(-10.5 + 51*A + x*(2 - 12*A)))   \
             : x*(-6 + 12*A + x*(7.5 - 30*A + x*(-2 + 16*A))))))
+
+float
+_nrrdA4DInt(float *param) {
+
+  return 0.0;
+}
 
 float
 _nrrdA4DSup(float *param) {
@@ -688,7 +757,8 @@ _nrrdA4DVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelA4D = {
-  _nrrdA4DSup,  _nrrdA4DEF,  _nrrdA4DVF,  _nrrdA4DED,  _nrrdA4DVD
+  _nrrdA4DSup, _nrrdA4DInt,  
+  _nrrdA4DEF,  _nrrdA4DVF,  _nrrdA4DED,  _nrrdA4DVD
 };
 nrrdKernel *
 nrrdKernelAQuarticD = &_nrrdKernelA4D;
@@ -702,6 +772,12 @@ nrrdKernelAQuarticD = &_nrrdKernelA4D;
          : (x >= 1.0                                                         \
             ? 18 - 66*A + x*(-21 + 102*A + x*(6 - 36*A))                     \
             : -6 + 12*A + x*(15 - 60*A + x*(-6 + 48*A)))))
+
+float
+_nrrdA4DDInt(float *param) {
+
+  return 0.0;
+}
 
 float
 _nrrdA4DDSup(float *param) {
@@ -759,7 +835,8 @@ _nrrdA4DDVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelA4DD = {
-  _nrrdA4DDSup, _nrrdA4DDEF, _nrrdA4DDVF, _nrrdA4DDED, _nrrdA4DDVD
+  _nrrdA4DDSup,_nrrdA4DDInt, 
+  _nrrdA4DDEF, _nrrdA4DDVF, _nrrdA4DDED, _nrrdA4DDVD
 };
 nrrdKernel *
 nrrdKernelAQuarticDD = &_nrrdKernelA4DD;

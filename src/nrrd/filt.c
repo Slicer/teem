@@ -251,7 +251,7 @@ _nrrdResampleComputePermute(int permute[],
 			    int *topRax, int *botRax, int *passes,
 			    Nrrd *nin,
 			    nrrdResampleInfo *info) {
-  char me[]="_nrrdResampleComputePermute";
+  /* char me[]="_nrrdResampleComputePermute"; */
   int a, p, d, dim;
   
   dim = nin->dim;
@@ -335,7 +335,7 @@ int
 _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
 			  Nrrd *nin, nrrdResampleInfo *info, int d) {
   char me[]="_nrrdResampleFillSmpIndex", err[NRRD_BIG_STRLEN];
-  float smpRatio, suppF, *smp, tmpF, p0;
+  float smpRatio, suppF, *smp, tmpF, p0, integral;
   int e, i, ind, lengthIn, lengthOut, dotLen, *index;
   
   if (!(info->kernel[d])) {
@@ -347,6 +347,7 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
   lengthOut = info->samples[d];
   smpRatio = (lengthOut-1)/(info->max[d] - info->min[d]);
   suppF = info->kernel[d]->support(info->param[d]);
+  integral = info->kernel[d]->integral(info->param[d]);
   printf("%s(%d): suppF = %g; smpRatio = %g\n", me, d, suppF, smpRatio);
   if (smpRatio >= 1) {
     dotLen = 2*AIR_ROUNDUP(suppF);
@@ -371,7 +372,6 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
   */
 
   /* calculate sample locations and do first pass on indices */
-  /* interestingly, this is all the same for both up and down sampling */
   for (i=0; i<=lengthOut-1; i++) {
     tmpF = AIR_AFFINE(0, i, lengthOut-1, info->min[d], info->max[d]);
     for (e=0; e<=dotLen-1; e++) {
@@ -379,6 +379,8 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
       smp[e + dotLen*i] = tmpF - index[e + dotLen*i];
     }
     /*
+    if (!i)
+      printf("%s: sample locations:\n", me);
     printf("%s: %d\n        ", me, i);
     for (e=0; e<=dotLen-1; e++)
       printf("%d/%g ", index[e + dotLen*i], smp[e + dotLen*i]);
@@ -386,7 +388,7 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
     */
   }
 
-  /* figure out what to do with the out of range indices */
+  /* figure out what to do with the out-of-range indices */
   for (i=0; i<=dotLen*lengthOut-1; i++) {
     ind = index[i];
     if (ind < 0 || ind > lengthIn-1) {
@@ -419,12 +421,31 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
     info->param[d][0] = p0;
   }
 
+  /* try to remove ripple/grating on downsampling */
+  if (smpRatio < 1 && AIR_TRUE == info->renormalize && integral) {
+    for (i=0; i<=lengthOut-1; i++) {
+      tmpF = 0;
+      for (e=0; e<=dotLen-1; e++) {
+	tmpF += smp[e + dotLen*i];
+      }
+      if (tmpF) {
+	for (e=0; e<=dotLen-1; e++) {
+	  smp[e + dotLen*i] *= integral/tmpF;
+	}
+      }
+    }
+  }
+
   /*
+  printf("%s: sample weights:\n", me);
   for (i=0; i<=lengthOut-1; i++) {
     printf("%s: %d\n        ", me, i);
-    for (e=0; e<=dotLen-1; e++)
+    tmpF = 0;
+    for (e=0; e<=dotLen-1; e++) {
       printf("%d/%g ", index[e + dotLen*i], smp[e + dotLen*i]);
-    printf("\n");
+      tmpF += smp[e + dotLen*i];
+    }
+    printf(" (sum = %g)\n", tmpF);
   }
   */
 
@@ -455,6 +476,7 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
 ** on the cost of such axis permutation overhead.
 **
 ** The above paragraph does not pertain to reality.  Ignore it.
+** The above sentence is only partly correct.  This situation needs fixing.
 **
 ** on error, this often leaks memory like a sieve.  Fixing this will
 ** have to wait until I implement the "mop" library 
@@ -519,8 +541,9 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     strideBIn, strideBOut,
     numOut;                   /* # of _samples_, total, in output volume;
 				 this is for allocating the output */
-  
+  /*
   Nrrd *tmp;
+  */
 
   if (!(nout && nin && info)) {
     sprintf(err, "%s: got NULL pointer", me);

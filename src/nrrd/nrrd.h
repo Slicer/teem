@@ -141,6 +141,8 @@ typedef struct {
 typedef struct {
   float (*support)(float *param);         /* smallest x (>0) such that
 					     k(y) = 0 for all y>x, y<-x */
+  float (*integral)(float *param);        /* integral of kernel from -support
+					     to +support */
   float (*eval)(float x, float *param);   /* evaluate the kernel once */
   void (*evalVec)(float *f, float *x,     /* evaluate many times */
 		  int N, float *param);   
@@ -162,8 +164,12 @@ typedef struct {
     max[NRRD_MAX_DIM];           /* range, in index space, along which to
 				    resample */
   int boundary,                  /* value from the nrrdBoundary enum */
-    type;                        /* desired type of output, use
+    type,                        /* desired type of output, use
 				    nrrdTypeUnknown for "same as input" */
+    renormalize;                 /* when downsampling with a kernel with
+				    non-zero integral, should we renormalize
+				    the weights to match the kernel integral
+				    so as to remove ripple */
   float padValue;                /* if padding, what value to pad with */
 } nrrdResampleInfo;
 

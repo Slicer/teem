@@ -681,6 +681,7 @@ _nrrdInitResample(nrrdResampleInfo *info) {
     info->min[d] = info->max[d] = airNanf();
   }
   info->type = nrrdTypeUnknown;
+  info->renormalize = AIR_FALSE;
   /* these may or may not be the best choices for default values */
   info->boundary = nrrdBoundaryBleed;
   info->padValue = 0.0;

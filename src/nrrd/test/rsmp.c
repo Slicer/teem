@@ -37,24 +37,31 @@ main(int argc, char **argv) {
   info = nrrdResampleInfoNew();
   info->boundary = nrrdBoundaryBleed;
   info->padValue = 128;
+  info->type = nrrdTypeFloat;
+  /* info->renormalize = AIR_TRUE; */
   for (i=0; i<=nin->dim-1; i++) {
     /*
     info->kernel[i] = nrrdKernelAQuartic;
     info->param[i][1] = 0.25;
     */
+    /*
     info->kernel[i] = nrrdKernelBCCubic;
     info->param[i][1] = 0.0;
     info->param[i][2] = 0.5;
+    */
+
+    info->kernel[i] = nrrdKernelTent;
+
     /* info->samples[i] = 222; */
-    info->samples[i] = 90;
+    info->samples[i] = 7;
     info->min[i] = 0;
     info->max[i] = nin->size[i]-1;
     printf("info->samples[%d] = %d\n", i, info->samples[i]);
   }
   info->kernel[1] = NULL;
   /*
+  info->kernel[1] = NULL;
   info->kernel[2] = NULL;
-  info->kernel[0] = NULL;
   */
   /*
   info->samples[2] = 10;
