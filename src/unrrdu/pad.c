@@ -15,124 +15,91 @@
   of Utah. All Rights Reserved.
 */
 
+#include "private.h"
 
-#include <nrrd.h>
-#include <limits.h>
-
-int
-usage(char *me) {
-  /*               0   1      2        3                    argc-2   argc-1  */
-  fprintf(stderr, 
-	  "usage: %s <nIn> <ax0min> <ax0max> <ax1min> ... <axN-1max> <nOut>\n",
-	  me);
-  fprintf(stderr, 
-	  "       min and max should be either a signed integer, or \n");
-  fprintf(stderr, 
-	  "       \"M\", \"M+n\", or \"M-n\", where M signifies top\n");
-  fprintf(stderr, 
-	  "       position along its respective axis (#samples - 1),\n");
-  fprintf(stderr, 
-	  "       and +n/-n is an offset from that position\n");
-  return 1;
-}
+char *padName = "pad";
+char *padInfo = "Pad along each axis to make a bigger nrrd";
 
 int
-getint(char *str, int *n, int *offset) {
+unuParseBoundary(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[]="unuParseBoundary";
+  int *typeP;
 
-  *offset = 0;
-  if ('M' == str[0]) {
-    *n = INT_MAX;
-    if (1 < strlen(str)) {
-      if (('+' == str[1] || '-' == str[1])) {
-	if (1 != sscanf(str+1, "%d", offset)) {
-	  return 1;
-	}
-	/* else we succesfully parsed the offset */
-      }
-      else {
-	/* something other that '+' or '-' after 'M' */
-	return 1;
-      }
-    }
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
   }
-  else {
-    if (1 != sscanf(str, "%d", n)) {
-      return 1;
-    }
-    /* else we successfully parsed n */
+  typeP = ptr;
+  *typeP = nrrdEnumStrToVal(nrrdEnumBoundary, str);
+  if (nrrdTypeUnknown == *typeP) {
+    sprintf(err, "%s: \"%s\" is not a recognized boundary behavior", me, str);
+    return 1;
   }
   return 0;
 }
 
-int
-main(int argc, char *argv[]) {
-  char *inStr, *outStr, *err, *me;
-  int i, udim, min[NRRD_DIM_MAX], max[NRRD_DIM_MAX], 
-    minoffset[NRRD_DIM_MAX], maxoffset[NRRD_DIM_MAX];
-  Nrrd *nin, *nout;
-  double t1, t2;
+hestCB unuBoundaryHestCB = {
+  sizeof(int),
+  "boundary behavior",
+  unuParseBoundary,
+  NULL
+};
 
-  me = argv[0];
-  if (0 != (argc-3) % 2) {
-    return usage(me);
-  }
-  udim = (argc - 3)/2;
-  if (!(udim > 1)) {
-    return usage(me);
-  }
-  inStr = argv[1];
-  outStr = argv[argc-1];
-  for (i=0; i<=udim-1; i++) {
-    if (getint(argv[2 + 2*i + 0], min + i, minoffset + i)) {
-      printf("%s: Couldn't parse min for axis %d, \"%s\"\n",
-	     me, i, argv[2 + 2*i + 0]);
-      return usage(me);
-    }
-    if (getint(argv[2 + 2*i + 1], max + i, maxoffset + i)) {
-      printf("%s: Couldn't parse max for axis %d, \"%s\"\n",
-	     me, i, argv[2 + 2*i + 1]);
-      return usage(me);
-    }
-  }
-  if (nrrdLoad(nin=nrrdNew(), inStr)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble reading input:%s\n", me, err);
-    free(err);
+int
+padMain(int argc, char **argv, char *me) {
+  hestOpt *opt = NULL;
+  char *out, *err;
+  Nrrd *nin, *nout;
+  int *minOff, numMin, *maxOff, numMax, ax, bb, ret,
+    min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
+  double padVal;
+  airArray *mop;
+
+  OPT_ADD_NIN(nin, "input");
+  OPT_ADD_BOUND("min", minOff, "low corner of bounding box", numMin);
+  OPT_ADD_BOUND("max", maxOff, "high corner of bounding box", numMax);
+  hestOptAdd(&opt, "b|boundary", "bb", airTypeOther, 1, 1, &bb, "bleed",
+	     "behavior at boundary: pad, bleed, or wrap");
+  hestOptAdd(&opt, "v|value", "val", airTypeDouble, 1, 1, &padVal, "0.0",
+	     "for \"pad\" boundary behavior, pad with this value");
+  OPT_ADD_NOUT(out, "output nrrd");
+
+  mop = airMopInit();
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+
+  USAGE(padInfo);
+  PARSE();
+
+  if (!( numMin == nin->dim && numMax == nin->dim )) {
+    fprintf(stderr,
+	    "%s: # min coords (%d) or max coords (%d) != nrrd dim (%d)\n",
+	    me, numMin, numMax, nin->dim);
+    airMopError(mop);
     return 1;
   }
-  if (udim != nin->dim) {
-    fprintf(stderr, "%s: input nrrd has dimension %d, but given %d axes\n",
-	    me, nin->dim, udim);
-    return 1;
-  }
-  for (i=0; i<=udim-1; i++) {
-    if (INT_MAX == min[i])
-      min[i] = nin->axis[i].size - 1 + minoffset[i];
-    if (INT_MAX == max[i])
-      max[i] = nin->axis[i].size - 1 + maxoffset[i];
-    fprintf(stderr, "%s: axis % 2d: %d -> %d\n", me, i, min[i], max[i]);
+  for (ax=0; ax<=nin->dim-1; ax++) {
+    min[ax] = minOff[0 + 2*ax]*(nin->axis[ax].size-1) + minOff[1 + 2*ax];
+    max[ax] = maxOff[0 + 2*ax]*(nin->axis[ax].size-1) + maxOff[1 + 2*ax];
+    fprintf(stderr, "%s: ax %2d: min = %4d, max = %4d\n",
+	    me, ax, min[ax], max[ax]);
   }
 
   nout = nrrdNew();
-  t1 = airTime();
-  /* if (nrrdPad(nout, nin, min, max, nrrdBoundaryBleed)) { */
-  /* if (nrrdPad(nout, nin, min, max, nrrdBoundaryWrap)) { */
-  if (nrrdPad(nout, nin, min, max, nrrdBoundaryPad, 255.0)) {
-    err = biffGet(NRRD);
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+
+  if (nrrdBoundaryPad == bb)
+    ret = nrrdPad(nout, nin, min, max, bb, padVal);
+  else
+    ret = nrrdPad(nout, nin, min, max, bb);
+  if (ret) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error padding nrrd:\n%s", me, err);
-    free(err);
-    return 1;
-  }
-  t2 = airTime();
-  fprintf(stderr, "%s: nrrdPad() took %g seconds\n", me, t2-t1);
-  if (nrrdSave(outStr, nout, NULL)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: error writing nrrd:\n%s", me, err);
-    free(err);
+    airMopError(mop);
     return 1;
   }
 
-  nrrdNuke(nin);
-  nrrdNuke(nout);
+  SAVE();
+
+  airMopOkay(mop);
   return 0;
 }

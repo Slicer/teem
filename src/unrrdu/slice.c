@@ -38,25 +38,12 @@ sliceMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  if (!argc) {
-    hestInfo(stderr, me, sliceInfo, hparm);
-    hestUsage(stderr, opt, me, hparm);
-    hestGlossary(stderr, opt, hparm);
-    airMopError(mop);
-    return 1;
-  }
-
-  if (hestParse(opt, argc, argv, &err, hparm)) {
-    fprintf(stderr, "%s: %s\n", me, err); free(err);
-    hestUsage(stderr, opt, me, hparm);
-    hestGlossary(stderr, opt, hparm);
-    airMopError(mop);
-    return 1;
-  }
-  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
+  USAGE(sliceInfo);
+  PARSE();
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+
   if (nrrdSlice(nout, nin, axis, pos)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error slicing nrrd:\n%s", me, err);
@@ -64,12 +51,7 @@ sliceMain(int argc, char **argv, char *me) {
     return 1;
   }
 
-  if (nrrdSave(out, nout, NULL)) {
-    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s\n", me, out, err);
-    airMopError(mop);
-    return 1;
-  }
+  SAVE();
 
   airMopOkay(mop);
   return 0;

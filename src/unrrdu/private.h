@@ -63,3 +63,32 @@ typedef struct {
   int (*main)(int, char **, char*);
 } unuCmd;
 
+/*
+**
+*/
+#define USAGE(info) \
+  if (!argc) { \
+    hestInfo(stderr, me, (info), hparm); \
+    hestUsage(stderr, opt, me, hparm); \
+    hestGlossary(stderr, opt, hparm); \
+    airMopError(mop); \
+    return 1; \
+  }
+
+#define PARSE() \
+  if (hestParse(opt, argc, argv, &err, hparm)) { \
+    fprintf(stderr, "%s: %s\n", me, err); free(err); \
+    hestUsage(stderr, opt, me, hparm); \
+    hestGlossary(stderr, opt, hparm); \
+    airMopError(mop); \
+    return 1; \
+  } \
+  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways)
+
+#define SAVE() \
+  if (nrrdSave(out, nout, NULL)) { \
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways); \
+    fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s\n", me, out, err); \
+    airMopError(mop); \
+    return 1; \
+  }

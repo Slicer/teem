@@ -71,10 +71,11 @@ hestParm *hparm;
     That's it.
 **********************************************************/
 #define MAP(F) \
-F(convert) \
 F(slice) \
 F(crop) \
-F(flip)
+F(pad) \
+F(flip) \
+F(convert)
 /*********************************************************/
 
 #define DECLARE(C) \

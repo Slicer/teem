@@ -35,25 +35,12 @@ convertMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  if (!argc) {
-    hestInfo(stderr, me, convertInfo, hparm);
-    hestUsage(stderr, opt, me, hparm);
-    hestGlossary(stderr, opt, hparm);
-    airMopError(mop);
-    return 1;
-  }
-
-  if (hestParse(opt, argc, argv, &err, hparm)) {
-    fprintf(stderr, "%s: %s\n", me, err); free(err);
-    hestUsage(stderr, opt, me, hparm);
-    hestGlossary(stderr, opt, hparm);
-    airMopError(mop);
-    return 1;
-  }
-  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
+  USAGE(convertInfo);
+  PARSE();
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+
   if (nrrdConvert(nout, nin, type)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error converting nrrd:\n%s", me, err);
@@ -61,12 +48,7 @@ convertMain(int argc, char **argv, char *me) {
     return 1;
   }
 
-  if (nrrdSave(out, nout, NULL)) {
-    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s\n", me, out, err);
-    airMopError(mop);
-    return 1;
-  }
+  SAVE();
 
   airMopOkay(mop);
   return 0;
