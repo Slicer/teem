@@ -86,6 +86,20 @@ extern "C" {
       ? 2                        \
       : 1))
 
+#define ELL_2V_SET(v, a, b) \
+  ((v)[0]=(a), (v)[1]=(b))
+
+#define ELL_2V_DOT(v1, v2) ((v1)[0]*(v2)[0] + (v1)[1]*(v2)[1])
+
+#define ELL_2V_LEN(v) (sqrt(ELL_2V_DOT((v),(v))))
+
+#define ELL_2V_SCALE(v2, a, v1) \
+  ((v2)[0] = (a)*(v1)[0],       \
+   (v2)[1] = (a)*(v1)[1])
+
+#define ELL_2V_NORM(v2, v1, length) \
+  (length = ELL_2V_LEN(v1), ELL_2V_SCALE(v2, 1.0/length, v1))
+
 #define _ELL_2M_DET(a,b,c,d) ((a)*(d) - (b)*(c))
 
 #define ELL_2M_DET(m) _ELL_2M_DET((m)[0],(m)[1],(m)[2],(m)[3])
@@ -731,9 +745,6 @@ extern "C" {
              0),                                                            \
   ELL_4V_SET((m)+12, 0, 0, 0, 1))
 
-#define ELL_2V_SET(v, a, b) \
-  ((v)[0]=(a), (v)[1]=(b))
-
 #define ELL_5V_SET(v, a, b, c, d, e) \
   ((v)[0]=(a), (v)[1]=(b), (v)[2]=(c), (v)[3]=(d), (v)[4]=(e))
 
@@ -743,18 +754,21 @@ extern "C" {
 #define ELL_6V_SET(v, a, b, c, d, e, f) \
   ((v)[0]=(a), (v)[1]=(b), (v)[2]=(c), (v)[3]=(d), (v)[4]=(e), (v)[5]=(f))
 
-#define ELL_7V_SET(v, a, b, c, d, e, f, g) \
-  ((v)[0]=(a), (v)[1]=(b), (v)[2]=(c), (v)[3]=(d), \
-   (v)[4]=(e), (v)[5]=(f), (v)[6]=(g))
+#define ELL_6V_SCALE_INCR2(v2, s0, v0, s1, v1) \
+  ((v2)[0] += (s0)*(v0)[0] + (s1)*(v1)[0],     \
+   (v2)[1] += (s0)*(v0)[1] + (s1)*(v1)[1],     \
+   (v2)[2] += (s0)*(v0)[2] + (s1)*(v1)[2],     \
+   (v2)[3] += (s0)*(v0)[3] + (s1)*(v1)[3],     \
+   (v2)[4] += (s0)*(v0)[4] + (s1)*(v1)[4],     \
+   (v2)[5] += (s0)*(v0)[5] + (s1)*(v1)[5])
 
-#define ELL_7V_COPY(v2, v1) \
-  ((v2)[0] = (v1)[0],       \
-   (v2)[1] = (v1)[1],       \
-   (v2)[2] = (v1)[2],       \
-   (v2)[3] = (v1)[3],       \
-   (v2)[4] = (v1)[4],       \
-   (v2)[5] = (v1)[5],       \
-   (v2)[6] = (v1)[6])
+#define ELL_6V_SCALE(v2, a, v1) \
+  ((v2)[0] = (a)*(v1)[0],       \
+   (v2)[1] = (a)*(v1)[1],       \
+   (v2)[2] = (a)*(v1)[2],       \
+   (v2)[3] = (a)*(v1)[3],       \
+   (v2)[4] = (a)*(v1)[4],       \
+   (v2)[5] = (a)*(v1)[5])
 
 #define ELL_9V_SET(v, a, b, c, d, e, f, g, h, i) \
   ((v)[0]=(a), (v)[1]=(b), (v)[2]=(c), \
