@@ -24,6 +24,12 @@
 
 #define _ZERO(x) 0
 
+int
+_nrrdZeroNP(void) {
+  
+  return 1;
+}
+
 float
 _nrrdZeroInt(float *param) {
   
@@ -34,7 +40,7 @@ float
 _nrrdZeroSup(float *param) {
   float S;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   return S;
 }
 
@@ -42,7 +48,7 @@ double
 _nrrdZeroED(double x, float *param) {
   float S;
 
-  S = param ? *param : 1.0;
+  S = param[0];
   x = AIR_ABS(x)/S;
   return _ZERO(x)/S;
 }
@@ -51,7 +57,7 @@ float
 _nrrdZeroEF(float x, float *param) {
   float S;
 
-  S = param ? *param : 1.0;
+  S = param[0];
   x = AIR_ABS(x)/S;
   return _ZERO(x)/S;
 }
@@ -62,7 +68,7 @@ _nrrdZeroVD(double *f, double *x, int len, float *param) {
   double t;
   int i;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   for (i=0; i<len; i++) {
     t = x[i]; t = AIR_ABS(t)/S;
     f[i] = _ZERO(t)/S;
@@ -74,7 +80,7 @@ _nrrdZeroVF(float *f, float *x, int len, float *param) {
   float t, S;
   int i;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   for (i=0; i<len; i++) {
     t = x[i]; t = AIR_ABS(t)/S;
     f[i] = _ZERO(t)/S;
@@ -83,7 +89,7 @@ _nrrdZeroVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelZero = {
-  _nrrdZeroSup,_nrrdZeroInt,
+  _nrrdZeroNP, _nrrdZeroSup, _nrrdZeroInt,
   _nrrdZeroEF, _nrrdZeroVF, _nrrdZeroED, _nrrdZeroVD
 };
 nrrdKernel *
@@ -92,6 +98,12 @@ nrrdKernelZero = &_nrrdKernelZero;
 /* ------------------------------------------------------------ */
 
 #define _BOX(x) (x > 0.5 ? 0 : (x < 0.5 ? 1 : 0.5))
+
+int
+_nrrdBoxNP(void) {
+  
+  return 1;
+}
 
 float
 _nrrdBoxInt(float *param) {
@@ -103,15 +115,17 @@ float
 _nrrdBoxSup(float *param) {
   float S;
   
-  S = param ? *param : 1.0;
-  return S/2;
+  S = param[0];
+  /* adding the 0.5 is to insure that weights computed within the
+     support really do catch all the non-zero values */
+  return S/2 + 0.5;
 }
 
 double
 _nrrdBoxED(double x, float *param) {
   float S;
 
-  S = param ? *param : 1.0;
+  S = param[0];
   x = AIR_ABS(x)/S;
   return _BOX(x)/S;
 }
@@ -120,7 +134,7 @@ float
 _nrrdBoxEF(float x, float *param) {
   float S;
 
-  S = param ? *param : 1.0;
+  S = param[0];
   x = AIR_ABS(x)/S;
   return _BOX(x)/S;
 }
@@ -131,7 +145,7 @@ _nrrdBoxVD(double *f, double *x, int len, float *param) {
   double t;
   int i;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   for (i=0; i<len; i++) {
     t = x[i]; t = AIR_ABS(t)/S;
     f[i] = _BOX(t)/S;
@@ -143,7 +157,7 @@ _nrrdBoxVF(float *f, float *x, int len, float *param) {
   float t, S;
   int i;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   for (i=0; i<len; i++) {
     t = x[i]; t = AIR_ABS(t)/S;
     f[i] = _BOX(t)/S;
@@ -152,7 +166,7 @@ _nrrdBoxVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelBox = {
-  _nrrdBoxSup, _nrrdBoxInt,  
+  _nrrdBoxNP, _nrrdBoxSup, _nrrdBoxInt,  
   _nrrdBoxEF,  _nrrdBoxVF,  _nrrdBoxED,  _nrrdBoxVD
 };
 nrrdKernel *
@@ -161,6 +175,12 @@ nrrdKernelBox = &_nrrdKernelBox;
 /* ------------------------------------------------------------ */
 
 #define _TENT(x) (x >= 1 ? 0 : 1 - x)
+
+int
+_nrrdTentNP(void) {
+  
+  return 1;
+}
 
 float
 _nrrdTentInt(float *param) {
@@ -172,7 +192,7 @@ float
 _nrrdTentSup(float *param) {
   float S;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   return S;
 }
 
@@ -180,7 +200,7 @@ double
 _nrrdTentED(double x, float *param) {
   float S;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   x = AIR_ABS(x)/S;
   return _TENT(x)/S;
 }
@@ -189,7 +209,7 @@ float
 _nrrdTentEF(float x, float *param) {
   float S;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   x = AIR_ABS(x)/S;
   return _TENT(x)/S;
 }
@@ -200,7 +220,7 @@ _nrrdTentVD(double *f, double *x, int len, float *param) {
   double t;
   int i;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   for (i=0; i<len; i++) {
     t = x[i]; t = AIR_ABS(t)/S;
     f[i] = _TENT(t)/S;
@@ -212,7 +232,7 @@ _nrrdTentVF(float *f, float *x, int len, float *param) {
   float t, S;
   int i;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   for (i=0; i<len; i++) {
     t = x[i]; t = AIR_ABS(t)/S;
     f[i] = _TENT(t)/S;
@@ -221,7 +241,7 @@ _nrrdTentVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelTent = {
-  _nrrdTentSup,_nrrdTentInt, 
+  _nrrdTentNP, _nrrdTentSup,_nrrdTentInt, 
   _nrrdTentEF, _nrrdTentVF, _nrrdTentED, _nrrdTentVD
 };
 nrrdKernel *
@@ -233,6 +253,12 @@ nrrdKernelTent = &_nrrdKernelTent;
                    (x <=  0 ? -1 :        \
                    (x <=  1 ?  1 : 0 )))
 
+int
+_nrrdFDNP(void) {
+  
+  return 1;
+}
+
 float
 _nrrdFDInt(float *param) {
   
@@ -243,7 +269,7 @@ float
 _nrrdFDSup(float *param) {
   float S;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   return S;
 }
 
@@ -251,7 +277,7 @@ double
 _nrrdFDED(double x, float *param) {
   float S;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   x /= S;
   return _FORDIF(x)/S;
 }
@@ -260,7 +286,7 @@ float
 _nrrdFDEF(float x, float *param) {
   float S;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   x /= S;
   return _FORDIF(x)/S;
 }
@@ -271,7 +297,7 @@ _nrrdFDVD(double *f, double *x, int len, float *param) {
   double t;
   int i;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   for (i=0; i<len; i++) {
     t = x[i]/S;
     f[i] = _FORDIF(t)/S;
@@ -283,7 +309,7 @@ _nrrdFDVF(float *f, float *x, int len, float *param) {
   float t, S;
   int i;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   for (i=0; i<len; i++) {
     t = x[i]/S;
     f[i] = _FORDIF(t)/S;
@@ -292,7 +318,7 @@ _nrrdFDVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelFD = {
-  _nrrdFDSup,  _nrrdFDInt,   
+  _nrrdFDNP, _nrrdFDSup,  _nrrdFDInt,   
   _nrrdFDEF,   _nrrdFDVF,   _nrrdFDED,   _nrrdFDVD
 };
 nrrdKernel *
@@ -305,6 +331,12 @@ nrrdKernelForwDiff = &_nrrdKernelFD;
 		   (x <=  1 ?  0.5*x     :        \
                    (x <=  2 ? -0.5*x + 1 : 0 ))))
 
+int
+_nrrdCDNP(void) {
+  
+  return 1;
+}
+
 float
 _nrrdCDInt(float *param) {
   
@@ -315,7 +347,7 @@ float
 _nrrdCDSup(float *param) {
   float S;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   return 2*S;
 }
 
@@ -323,7 +355,7 @@ double
 _nrrdCDED(double x, float *param) {
   float S;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   x /= S;
   return _CENDIF(x)/S;
 }
@@ -332,7 +364,7 @@ float
 _nrrdCDEF(float x, float *param) {
   float S;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   x /= S;
   return _CENDIF(x)/S;
 }
@@ -343,7 +375,7 @@ _nrrdCDVD(double *f, double *x, int len, float *param) {
   double t;
   int i;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   for (i=0; i<len; i++) {
     t = x[i]/S;
     f[i] = _CENDIF(t)/S;
@@ -355,7 +387,7 @@ _nrrdCDVF(float *f, float *x, int len, float *param) {
   float t, S;
   int i;
   
-  S = param ? *param : 1.0;
+  S = param[0];
   for (i=0; i<len; i++) {
     t = x[i]/S;
     f[i] = _CENDIF(t)/S;
@@ -364,7 +396,7 @@ _nrrdCDVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelCD = {
-  _nrrdCDSup,  _nrrdCDInt,   
+  _nrrdCDNP, _nrrdCDSup,  _nrrdCDInt,   
   _nrrdCDEF,   _nrrdCDVF,   _nrrdCDED,   _nrrdCDVD
 };
 nrrdKernel *
@@ -377,6 +409,12 @@ nrrdKernelCentDiff = &_nrrdKernelCD;
    ? 0 : (x >= 1.0                                                  \
           ? (((-B/6 - C)*x + B + 5*C)*x -2*B - 8*C)*x + 4*B/3 + 4*C \
           : ((2 - 3*B/2 - C)*x - 3 + 2*B + C)*x*x + 1 - B/3))
+
+int
+_nrrdBCNP(void) {
+
+  return 3;
+}
 
 float
 _nrrdBCInt(float *param) {
@@ -440,7 +478,7 @@ _nrrdBCVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelBC = {
-  _nrrdBCSup,  _nrrdBCInt,   
+  _nrrdBCNP, _nrrdBCSup,  _nrrdBCInt,   
   _nrrdBCEF,   _nrrdBCVF,   _nrrdBCED,   _nrrdBCVD
 };
 nrrdKernel *
@@ -453,6 +491,12 @@ nrrdKernelBCCubic = &_nrrdKernelBC;
    ? 0 : (x >= 1.0                                      \
           ? ((-B/2 - 3*C)*x + 2*B + 10*C)*x -2*B - 8*C  \
           : ((6 - 9*B/2 - 3*C)*x - 6 + 4*B + 2*C)*x))
+
+int
+_nrrdBCDNP(void) {
+
+  return 3;
+}
 
 float
 _nrrdBCDInt(float *param) {
@@ -520,7 +564,7 @@ _nrrdBCDVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelBCD = {
-  _nrrdBCDSup, _nrrdBCDInt,  
+  _nrrdBCNP, _nrrdBCDSup, _nrrdBCDInt,  
   _nrrdBCDEF,  _nrrdBCDVF,  _nrrdBCDED,  _nrrdBCDVD
 };
 nrrdKernel *
@@ -533,6 +577,12 @@ nrrdKernelBCCubicD = &_nrrdKernelBCD;
    ? 0 : (x >= 1.0                                   \
           ? (-B - 6*C)*x + 2*B + 10*C                \
           : (12 - 9*B - 6*C)*x - 6 + 4*B + 2*C  ))
+
+int
+_nrrdBCDDNP(void) {
+
+  return 3;
+}
 
 float
 _nrrdBCDDInt(float *param) {
@@ -596,7 +646,7 @@ _nrrdBCDDVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelBCDD = {
-  _nrrdBCDDSup,_nrrdBCDDInt, 
+  _nrrdBCDDNP, _nrrdBCDDSup,_nrrdBCDDInt, 
   _nrrdBCDDEF, _nrrdBCDDVF, _nrrdBCDDED, _nrrdBCDDVD
 };
 nrrdKernel *
@@ -612,6 +662,12 @@ nrrdKernelBCCubicDD = &_nrrdKernelBCDD;
             ? 4 - 6*A + x*(-10 + 25*A + x*(9 - 33*A +                        \
 					   x*(-3.5 + 17*A + x*(0.5 - 3*A)))) \
             : 1 + x*x*(-3 + 6*A + x*((2.5 - 10*A) + x*(-0.5 + 4*A))))))
+
+int
+_nrrdA4NP(void) {
+
+  return 2;
+}
 
 float
 _nrrdA4Int(float *param) {
@@ -675,7 +731,7 @@ _nrrdA4VF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelA4 = {
-  _nrrdA4Sup,  _nrrdA4Int,   
+  _nrrdA4NP, _nrrdA4Sup,  _nrrdA4Int,   
   _nrrdA4EF,   _nrrdA4VF,   _nrrdA4ED,   _nrrdA4VD
 };
 nrrdKernel *
@@ -690,6 +746,12 @@ nrrdKernelAQuartic = &_nrrdKernelA4;
          : (x >= 1.0                                                         \
             ? -10 + 25*A + x*(18 - 66*A + x*(-10.5 + 51*A + x*(2 - 12*A)))   \
             : x*(-6 + 12*A + x*(7.5 - 30*A + x*(-2 + 16*A))))))
+
+int
+_nrrdA4DNP(void) {
+
+  return 2;
+}
 
 float
 _nrrdA4DInt(float *param) {
@@ -757,7 +819,7 @@ _nrrdA4DVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelA4D = {
-  _nrrdA4DSup, _nrrdA4DInt,  
+  _nrrdA4NP, _nrrdA4DSup, _nrrdA4DInt,  
   _nrrdA4DEF,  _nrrdA4DVF,  _nrrdA4DED,  _nrrdA4DVD
 };
 nrrdKernel *
@@ -772,6 +834,12 @@ nrrdKernelAQuarticD = &_nrrdKernelA4D;
          : (x >= 1.0                                                         \
             ? 18 - 66*A + x*(-21 + 102*A + x*(6 - 36*A))                     \
             : -6 + 12*A + x*(15 - 60*A + x*(-6 + 48*A)))))
+
+float
+_nrrdA4DDNP(void) {
+
+  return 2;
+}
 
 float
 _nrrdA4DDInt(float *param) {
@@ -835,8 +903,101 @@ _nrrdA4DDVF(float *f, float *x, int len, float *param) {
 
 nrrdKernel
 _nrrdKernelA4DD = {
-  _nrrdA4DDSup,_nrrdA4DDInt, 
+  _nrrdA4NP, _nrrdA4DDSup,_nrrdA4DDInt, 
   _nrrdA4DDEF, _nrrdA4DDVF, _nrrdA4DDED, _nrrdA4DDVD
 };
 nrrdKernel *
 nrrdKernelAQuarticDD = &_nrrdKernelA4DD;
+
+/* ------------------------------------------------------------ */
+
+#define _GAUSS(x, sig, cut) (                                                \
+   x >= sig*cut ? 0                                                          \
+   : exp(-x*x/(2.0*sig*sig))/(sig*2.50662827463100050241))
+
+#define _DGAUSS(x, sig, cut) (                                               \
+   x >= sig*cut ? 0                                                          \
+   : -exp(-x*x/(2.0*sig*sig))*x/(sig*sig*sig*2.50662827463100050241))
+
+#define _DDGAUSS(x, sig, cut) (                                              \
+   x >= sig*cut ? 0                                                          \
+   : -exp(-x*x/(2.0*sig*sig))*(x*x-sig*sig) /                                \
+      (sig*sig*sig*sig*sig*2.50662827463100050241))
+
+int
+_nrrdGNP(void) {
+
+  return 3;
+}
+
+float
+_nrrdGInt(float *param) {
+  float cut;
+
+  cut = param[2];
+  return cut;
+}
+
+float
+_nrrdGSup(float *param) {
+  float S, cut;
+
+  S = param[0];
+  cut = param[2];
+  return S*cut;
+}
+
+double
+_nrrdGED(double x, float *param) {
+  float S;
+  double A;
+  
+  S = param[0]; A = param[1];
+  x = AIR_ABS(x)/S;
+  return _AQUARTIC(x, A)/S;
+}
+
+float
+_nrrdGEF(float x, float *param) {
+  float A, S;
+  
+  S = param[0]; A = param[1];
+  x = AIR_ABS(x)/S;
+  return _AQUARTIC(x, A)/S;
+}
+
+void
+_nrrdGVD(double *f, double *x, int len, float *param) {
+  float S;
+  double t, A;
+  int i;
+  
+  S = param[0]; A = param[1];
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t)/S;
+    f[i] = _AQUARTIC(t, A)/S;
+  }
+}
+
+void
+_nrrdGVF(float *f, float *x, int len, float *param) {
+  float S, t, A;
+  int i;
+  
+  S = param[0]; A = param[1];
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t)/S;
+    f[i] = _AQUARTIC(t, A)/S;
+  }
+}
+
+nrrdKernel
+_nrrdKernelG = {
+  _nrrdGNP, _nrrdGSup,  _nrrdGInt,   
+  _nrrdGEF,   _nrrdGVF,   _nrrdGED,   _nrrdGVD
+};
+nrrdKernel *
+nrrdKernelGaussian = &_nrrdKernelG;
+
