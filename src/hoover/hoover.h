@@ -30,7 +30,7 @@
 #include <teem/nrrd.h>
 #include <teem/limn.h>
 
-#if defined(_WIN32) && !defined(TEEM_STATIC)
+#if defined(_WIN32) && !defined(TEEM_STATIC) && !defined(__CYGWIN__)
 #define hoover_export __declspec(dllimport)
 #else
 #define hoover_export

@@ -31,7 +31,7 @@
 #include <teem/unrrdu.h>
 #include <teem/gage.h>
 
-#if defined(_WIN32) && !defined(TEEM_STATIC)
+#if defined(_WIN32) && !defined(TEEM_STATIC) && !defined(__CYGWIN__)
 #define bane_export __declspec(dllimport)
 #else
 #define bane_export

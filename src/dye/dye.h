@@ -28,7 +28,7 @@
 #include <teem/biff.h>
 #include <teem/ell.h>
 
-#if defined(_WIN32) && !defined(TEEM_STATIC)
+#if defined(_WIN32) && !defined(TEEM_STATIC) && !defined(__CYGWIN__)
 #define dye_export __declspec(dllimport)
 #else
 #define dye_export

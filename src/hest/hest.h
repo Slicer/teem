@@ -31,7 +31,7 @@
 extern "C" {
 #endif
 
-#if defined(_WIN32) && !defined(TEEM_STATIC)
+#if defined(_WIN32) && !defined(TEEM_STATIC) && !defined(__CYGWIN__)
 #define hest_export __declspec(dllimport)
 #else
 #define hest_export
