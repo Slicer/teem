@@ -341,6 +341,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 	if (!ret) {
 	  if (nrrdCommentAdd(nrrd, nio->line)) {
 	    sprintf(err, "%s: couldn't add comment", me);
+            png_destroy_read_struct(&png, &info, NULL);
 	    biffAdd(NRRD, err); return 1;
 	  }
 	}
@@ -351,6 +352,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       while (c) {
 	if (nrrdCommentAdd(nrrd, c)) {
 	  sprintf(err, "%s: couldn't add comment", me);
+          png_destroy_read_struct(&png, &info, NULL);
 	  biffAdd(NRRD, err); return 1;
 	}
 	c = airStrtok(NULL, "\n", &p);
@@ -358,6 +360,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     } else {
       if (nrrdKeyValueAdd(nrrd, txt[i].key, txt[i].text)) {
 	sprintf(err, "%s: couldn't add key/value pair", me);
+        png_destroy_read_struct(&png, &info, NULL);
 	biffAdd(NRRD, err); return 1;
       }
     }
@@ -408,7 +411,7 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   {
     /* the error is reported inside the error handler, 
        but we still need to clean up an return with an error */
-    png_destroy_read_struct(&png, &info, NULL);
+    png_destroy_write_struct(&png, &info);
     return 1;
   }
   /* initialize png I/O */
@@ -446,12 +449,14 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       default:
       sprintf(err, "%s: nrrd->axis[0].size (%d) not compatible with PNG",
 	      me, nrrd->axis[0].size);
+      png_destroy_write_struct(&png, &info);
       biffAdd(NRRD, err); return 1;
       break;
     }
     break;
     default:
     sprintf(err, "%s: dimension (%d) not compatible with PNG", me, nrrd->dim);
+    png_destroy_write_struct(&png, &info);
     biffAdd(NRRD, err); return 1;
     break;
   }
