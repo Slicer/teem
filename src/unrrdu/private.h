@@ -59,7 +59,7 @@ extern "C" {
 /* int var */
 #define OPT_ADD_TYPE(var, desc) \
   hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &(var), NULL, desc, \
-             NULL, &nrrdType)
+             NULL, nrrdType)
 
 extern hestParm *hparm;
 extern hestCB unuNrrdHestCB;
