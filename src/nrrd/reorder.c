@@ -1150,17 +1150,28 @@ int
 nrrdTile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
            int axSplit, int sizeFast, int sizeSlow) {
   char me[]="nrrdTile2D", err[AIR_STRLEN_MED];
-  int E, axis[NRRD_DIM_MAX], i, pindex, ax0merge, ax1merge;
+  int E,                     /* error flag */
+    insAxis[2*NRRD_DIM_MAX], /* array for inserting the two axes resulting
+                                from the initial split amongst the other
+                                axes: inserted axes go in odd slots, 
+                                other axes go in even slots */
+    map[NRRD_DIM_MAX],       /* axis map for axis permute */
+    mapIdx,                  /* index for filling map[] */
+    merge[2],                /* two axes to be merged post-permute */
+    mergeIdx,                /* index for filling merge[] */
+    ii;                      /* loop variable */
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
 
-  /* I'm not sure how to handle if ax1 == ax0.  For now, prohibit it 
-     since it doesn't make sense to tile to the same axis. */
-  if (ax0 == ax1) {
-    sprintf(err, "%s: ax0 (%d) cannot equal ax1 (%d)", me, ax0, ax1);
+  /* at least for now, axSplit, ax0, and ax1 need to be distinct */
+  if (!( axSplit != ax0 
+         && axSplit != ax1 
+         && ax0 != ax1 )) {
+    sprintf(err, "%s: axSplit, ax0, ax1 (%d,%d,%d) must be distinct",
+            me, axSplit, ax0, ax1);
     biffAdd(NRRD, err); return 1;
   }
   
@@ -1172,72 +1183,46 @@ nrrdTile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
     }
   }
 
-  /* Split the axis we will tile */
-  if (nrrdAxesSplit(nout, nout, axSplit, sizeFast, sizeSlow)) {
-    sprintf(err, "%s: trouble with initial set-up", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  
   /* increment ax0 and ax1 if they're above axSplit, since the
-     previous axis split has bumped up the corresponding axes */
+     initial axis split will bump up the corresponding axes */
   ax0 += (axSplit < ax0);
   ax1 += (axSplit < ax1);
-  
-  /******************************************************/
-  /* Permute the axis.  This is the tricky part. */
-  
-  /* This is the index used to write into axis.  pindex is set to the
-     next available spot in axis.  After writing to it you need to
-     increment it. */
-  pindex = 0;
-  /* These are place holders for which axis needs merging.  These are
-     the indicies where ax0 and ax1 are placed into axis.  For now
-     initialize these to -1 to make sure they get set. */
-  ax0merge = -1;
-  ax1merge = -1;
-  /* The idea here is to loop over the input indices.  If the index
-     is one of either ax0 or ax1 copy that index. */
-  for (i=0; i<nout->dim; i++) {
-    if (i == ax0) {
-      axis[pindex] = i;
-      /* Cache this position for merging later */
-      ax0merge = pindex;
-      pindex++;
-      /* Set the next axis to the fast part of our split axis */
-      axis[pindex] = axSplit;
-      pindex++;
-    } else if (i == ax1) {
-      axis[pindex] = i;
-      ax1merge = pindex;
-      pindex++;
-      axis[pindex] = axSplit+1;
-      pindex++;
-    } else if (i == axSplit || i == axSplit+1) {
-      /* Ignore these as they will get incorporated above.  Do not
-         increment pindex. */
+
+  /* initialize insAxis to all invalid (blank) values */
+  for (ii=0; ii<2*(nout->dim+1); ii++) {
+    insAxis[ii] = -1;
+  }
+  /* run through post-split axes, inserting axSplit and axSplit+1
+     into the slots after ax0 and ax1 respectively, otherwise
+     set the identity map */
+  for (ii=0; ii<(nout->dim+1); ii++) {
+    if (axSplit == ii) {
+      insAxis[2*ax0 + 1] = axSplit;
+    } else if (axSplit+1 == ii) {
+      insAxis[2*ax1 + 1] = axSplit+1;
     } else {
-      axis[pindex] = i;
-      pindex++;
+      insAxis[2*ii + 0] = ii;
     }
   }
-  /* Its slightly simpler to merge the slower axis first. */
-  if (ax0merge > ax1merge) {
-    int tmp = ax0merge;
-    ax0merge = ax1merge;
-    ax1merge = tmp;
+  /* settle the values from insAxis[] into map[] by removing the -1's */
+  mergeIdx = mapIdx = 0;
+  for (ii=0; ii<2*(nout->dim+1); ii++) {
+    if (insAxis[ii] != -1) {
+      if (1 == ii % 2) {
+        /* its an odd entry in insAxis[], so the previous axis is to be
+           merged.  Using mapIdx-1 is legit because we disallow
+           axSplit == ax{0,1} */
+        merge[mergeIdx++] = mapIdx-1;
+      }
+      map[mapIdx++] = insAxis[ii];
+    }
   }
-  /*
-  fprintf(stderr, "%s: axis =", me); 
-  for (i=0; i<nout->dim; i++) {
-    fprintf(stderr, " %d", axis[i]);
-  }
-  fprintf(stderr, "; ax{0,1}merge = %d, %d\n", ax0merge, ax1merge);
-  */
 
   E = AIR_FALSE;
-  if (!E) E |= nrrdAxesPermute(nout, nout, axis);
-  if (!E) E |= nrrdAxesMerge(nout, nout, ax1merge);    
-  if (!E) E |= nrrdAxesMerge(nout, nout, ax0merge);
+  if (!E) E |= nrrdAxesSplit(nout, nout, axSplit, sizeFast, sizeSlow);
+  if (!E) E |= nrrdAxesPermute(nout, nout, map);
+  if (!E) E |= nrrdAxesMerge(nout, nout, merge[1]);    
+  if (!E) E |= nrrdAxesMerge(nout, nout, merge[0]);
   if (E) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
