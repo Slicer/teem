@@ -549,13 +549,19 @@ _nrrdFieldCheck_centers(const Nrrd *nrrd, int useBiff) {
 int
 _nrrdFieldCheck_kinds(const Nrrd *nrrd, int useBiff) {
   char me[]="_nrrdFieldCheck_kinds", err[AIR_STRLEN_MED];
-  int i, val[NRRD_DIM_MAX];
+  int i, wantLen, val[NRRD_DIM_MAX];
 
   nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoKind, val);
   for (i=0; i<nrrd->dim; i++) {
     if (!( nrrdKindUnknown == val[i]
            || !airEnumValCheck(nrrdKind, val[i]) )) {
       sprintf(err, "%s: axis %d kind %d invalid", me, i, val[i]);
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
+    }
+    wantLen = nrrdKindSize(val[i]);
+    if (wantLen && wantLen != nrrd->axis[i].size) {
+      sprintf(err, "%s: axis %d kind %s requires size %d, but have %d", me,
+              i, airEnumStr(nrrdKind, val[i]), wantLen, nrrd->axis[i].size);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
   }

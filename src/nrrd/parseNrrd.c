@@ -512,10 +512,14 @@ _nrrdReadNrrdParse_kinds (Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
             me, nrrd->dim);
     biffMaybeAdd(NRRD, err, useBiff); airMopError(mop); return 1;
   }
+  /* can't run this now because kinds can come before sizes, in which
+     case the kind/size check in _nrrdFieldCheck_kinds will incorrectly
+     flag an error ...
   if (_nrrdFieldCheck[nrrdField_kinds](nrrd, useBiff)) {
     sprintf(err, "%s: trouble", me);
     biffMaybeAdd(NRRD, err, useBiff); airMopError(mop); return 1;
   }
+  */
   airMopOkay(mop); 
   return 0;
 }
