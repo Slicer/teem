@@ -24,6 +24,7 @@
 int
 main(int argc, char *argv[]) {
   char *me, *err;
+  int enc;
 
   me = argv[0];
   if (!nrrdSanity()) {
@@ -33,6 +34,12 @@ main(int argc, char *argv[]) {
   }
   else {
     printf("%s: nrrd sanity check passed.\n", me);
+    printf("\n");
+    printf("%s: encodings supported in this build:\n", me);
+    for (enc=nrrdEncodingUnknown+1; enc<nrrdEncodingLast; enc++) {
+      printf("%s: %s\n", airEnumStr(nrrdEncoding, enc),
+	     nrrdEncodingAvailable[enc] ? "yes" : "not available");
+    }
   }
 
   return 0;
