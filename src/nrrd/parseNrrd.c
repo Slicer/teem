@@ -40,6 +40,7 @@ _nrrdReadNrrdParse_comment(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char *info;
   
   info = io->line + io->pos;
+  /* this skips the '#' at io->line[io->pos] and any other ' ' and '#' */
   if (nrrdCommentAdd(nrrd, info)) {
     sprintf(err, "%s: trouble adding comment", me);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
@@ -151,7 +152,7 @@ _nrrdReadNrrdParse_spacings(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   ret = airParseStrD(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
   for (i=0; i<=nrrd->dim-1; i++) {
-    if ( airIsInf(val[i]) || (AIR_EXISTS(val[i]) && !val[i]) ) {
+    if (!( !airIsInf(val[i]) && (airIsNaN(val[i]) || (0 != val[i])) )) {
       sprintf(err, "%s: spacing %d (%g) invalid", me, i, val[i]);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
@@ -163,7 +164,7 @@ _nrrdReadNrrdParse_spacings(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 int
 _nrrdReadNrrdParse_axis_mins(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_axis_mins", err[AIR_STRLEN_MED];
-  int ret;
+  int ret, i;
   double val[NRRD_DIM_MAX];
   char *info;
 
@@ -171,6 +172,12 @@ _nrrdReadNrrdParse_axis_mins(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   _CHECK_HAVE_DIM;
   ret = airParseStrD(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
+  for (i=0; i<=nrrd->dim-1; i++) {
+    if (airIsInf(val[i])) {
+      sprintf(err, "%s: axis min %d (%g) invalid", me, i, val[i]);
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
+    }
+  }
   nrrdAxesSet_nva(nrrd, nrrdAxesInfoMin, val);
   return 0;
 }
@@ -178,7 +185,7 @@ _nrrdReadNrrdParse_axis_mins(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 int
 _nrrdReadNrrdParse_axis_maxs(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_axis_maxs", err[AIR_STRLEN_MED];
-  int ret;
+  int ret, i;
   double val[NRRD_DIM_MAX];
   char *info;
 
@@ -186,6 +193,12 @@ _nrrdReadNrrdParse_axis_maxs(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   _CHECK_HAVE_DIM;
   ret = airParseStrD(val, info, _nrrdFieldSep, nrrd->dim);
   _CHECK_GOT_ALL_VALUES;
+  for (i=0; i<=nrrd->dim-1; i++) {
+    if (airIsInf(val[i])) {
+      sprintf(err, "%s: axis max %d (%g) invalid", me, i, val[i]);
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
+    }
+  }
   nrrdAxesSet_nva(nrrd, nrrdAxesInfoMax, val);
   return 0;
 }
@@ -227,10 +240,11 @@ _nrrdReadNrrdParse_centers(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 
 int
 _nrrdReadNrrdParse_labels(Nrrd *nrrd, NrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_labels", err[AIR_STRLEN_MED],
-    tmpS[NRRD_STRLEN_LINE];
-  char *h;
+  char me[]="_nrrdReadNrrdParse_labels", err[AIR_STRLEN_MED], *tmp;
+  char *h;  /* this is the "here" pointer which gradually progresses
+	       through all the labels (for all axes) */
   int i, len;
+  airArray *tmpArr;
   char *info;
 
   /* because we have to correctly interpret quote marks, we
@@ -260,34 +274,38 @@ _nrrdReadNrrdParse_labels(Nrrd *nrrd, NrrdIO *io, int useBiff) {
     h++;
     
     /* parse string until end quote */
-    strcpy(tmpS, "");
-    len = 0;
-    while (h[len] && len <= NRRD_STRLEN_LINE-2) {
+    tmp = NULL;
+    tmpArr = airArrayNew((void**)(&tmp), NULL, sizeof(char), 2);
+    if (!tmpArr) {
+      sprintf(err, "%s: couldn't create airArray for label %d of %d\n",
+	      me, i+1, nrrd->dim);
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
+    }
+    len = airArrayIncrLen(tmpArr, 1);  /* len should be 0 */
+    while (h[len]) {
       /* printf("!%s: (%d) h+%d |%s|\n", me, i, len, h+len); */
       if ('\"' == h[len]) {
 	break;
       }
       if ('\\' == h[len] && '\"' == h[len+1]) {
-	tmpS[len] = '\"';
-	len += 2;
-      } else {
-	tmpS[len] = h[len];
-	len += 1;
+	h += 1;
       }
+      tmp[len] = h[len];
+      len = airArrayIncrLen(tmpArr, 1);
     }
     if ('\"' != h[len]) {
       sprintf(err, "%s: parsing label %d of %d, didn't see ending \" "
 	      "soon enough", me, i+1, nrrd->dim);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
-    tmpS[len] = 0;
-    nrrd->axis[i].label = airStrdup(tmpS);
+    tmp[len] = 0;
+    nrrd->axis[i].label = airStrdup(tmp);
     if (!nrrd->axis[i].label) {
       sprintf(err, "%s: couldn't allocate label %d", me, i);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
     h += len+1;
-    nrrd->axis[i].label[len] = '\0';
+    airArrayNuke(tmpArr);
     /* printf("!%s: out[%d] |%s|\n", me, i, nrrd->axis[i].label); */
   }
 
@@ -309,9 +327,13 @@ _nrrdReadNrrdParse_number(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 
   /* It was decided to just completely ignore this field.  "number" is
   ** entirely redundant with with (required) sizes field, and there no
-  ** need to save it to, or learn it from, the header.  It may seem
-  ** strange that "number: Uncle Hank is a total redneck" is a valid
-  ** field, but whatever ...
+  ** need to save it to, or learn it from, the header.  In fact the "num"
+  ** field was eliminated from the Nrrd struct some time ago, in favor of
+  ** the nrrdElementNumber() function.  It may seem odd or unfortunate that
+  ** 
+  **     number: Hank Hill sells propane and propane accessories
+  **
+  ** is a valid field specification, but whatever ...
   */
 
   return 0;
@@ -373,6 +395,10 @@ _nrrdReadNrrdParse_old_min(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 
   info = io->line + io->pos;
   _PARSE_ONE_VAL(nrrd->oldMin, "%lg", "double");
+  if (airIsInf(nrrd->oldMin)) {
+    sprintf(err, "%s: old min (%g) invalid", me, nrrd->oldMin);
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
+  }
   return 0;
 }
 
@@ -383,6 +409,10 @@ _nrrdReadNrrdParse_old_max(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 
   info = io->line + io->pos;
   _PARSE_ONE_VAL(nrrd->oldMax, "%lg", "double");
+  if (airIsInf(nrrd->oldMax)) {
+    sprintf(err, "%s: old max (%g) invalid", me, nrrd->oldMax);
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
+  }
   return 0;
 }
 
@@ -391,8 +421,7 @@ _nrrdReadNrrdParse_old_max(Nrrd *nrrd, NrrdIO *io, int useBiff) {
 */
 int
 _nrrdReadNrrdParse_data_file(Nrrd *nrrd, NrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_data_file", err[AIR_STRLEN_MED],
-    dataName[NRRD_STRLEN_LINE];
+  char me[]="_nrrdReadNrrdParse_data_file", err[AIR_STRLEN_MED], *dataName;
   char *info;
 
   info = io->line + io->pos;
@@ -404,10 +433,11 @@ _nrrdReadNrrdParse_data_file(Nrrd *nrrd, NrrdIO *io, int useBiff) {
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
     info += strlen(_nrrdRelDirFlag);
+    dataName = malloc(strlen(io->dir) + strlen(info) + 2);
     sprintf(dataName, "%s/%s", io->dir, info);
   } else {
     /* data file's name is absolute (not header-relative) */
-    strcpy(dataName, info);
+    dataName = airStrdup(info);
   }
   if (!(io->dataFile = fopen(dataName, "rb"))) {
     sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s",
@@ -416,6 +446,7 @@ _nrrdReadNrrdParse_data_file(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   }
   io->seperateHeader = AIR_TRUE;
   /* the seperate data file will be closed in _nrrdReadNrrd() */
+  free(dataName);
   return 0;
 }
 
@@ -491,7 +522,7 @@ _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   next = io->line + io->pos;
 
   /* determining if its a comment is simple */
-  if (_NRRD_COMMENT_CHAR == next[0]) {
+  if (NRRD_COMMENT_CHAR == next[0]) {
     return nrrdField_comment;
   }
 
