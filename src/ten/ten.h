@@ -320,7 +320,7 @@ extern int _tenFindValley(float *valP, Nrrd *nhist, float tweak);
 extern int tenEigenvalueMin(Nrrd *nout, Nrrd *nin, float mineval);
 
 /* fiberMethods.c */
-extern const char tenDefFiberKernel[];
+/* extern const char tenDefFiberKernel[]; */
 extern tenFiberContext *tenFiberContextNew(Nrrd *dtvol);
 extern int tenFiberTypeSet(tenFiberContext *tfx, int type);
 extern int tenFiberKernelSet(tenFiberContext *tfx,
