@@ -425,8 +425,9 @@ echoObjectListSplit(EchoObject *list, int axis) {
   int i, splitIdx, len;
 
   if (!( echoObjectList == list->type ||
-	 echoObjectAABBox == list->type )) 
-    return NULL;
+	 echoObjectAABBox == list->type )) {
+    return list;
+  }
 
   len = LIST(list)->objArr->len;
   if (0 == len || 1 == len) {
