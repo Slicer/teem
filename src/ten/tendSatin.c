@@ -28,24 +28,22 @@ char *_tend_satinInfoL =
 
 void
 tend_satinSphereEigen(float *eval, float *evec, float x, float y, float z,
-		      float parm, float level, float thick) {
-  double bound, bound1, bound2, r, norm, tmp[3], meval;
+		      float parm, float mina, float maxa,
+		      float thick, float bnd) {
+  double aniso, bound1, bound2, r, norm, tmp[3];
 
   r = sqrt(x*x + y*y + z*z);
-  bound1 = 0.5 - 0.5*airErf(20*(r-0.9));  /* 1 on inside, 0 on outside */
-  bound2 = 0.5 - 0.5*airErf(20*(0.9-thick-r));
-  bound = AIR_MIN(bound1, bound2);        /* and 0 on the very inside too */
+  /* 1 on inside, 0 on outside */
+  bound1 = 0.5 - 0.5*airErf((r-0.9)/(bnd + 0.0001));
+  /* other way around */
+  bound2 = 0.5 - 0.5*airErf((0.9-thick-r)/(bnd + 0.0001));
+  aniso = AIR_AFFINE(0, AIR_MIN(bound1, bound2), 1, mina, maxa);
 
-#define BLAH(B, V) AIR_AFFINE(0.0, (B), 1.0, 1.0/3.0, (V))
-  
-  eval[0] = 5*BLAH(bound, AIR_AFFINE(0.0, parm, 2.0, 1.0, 0.0001));
-  eval[1] = 5*BLAH(bound, AIR_AFFINE(0.0, parm, 2.0, 0.0001, 1.0));
-  eval[2] = 5*BLAH(bound, 0.0001);
-  meval = (eval[0] + eval[1] + eval[2])/3;
-  eval[0] = AIR_AFFINE(0.0, level, 1.0, meval, eval[0]);
-  eval[1] = AIR_AFFINE(0.0, level, 1.0, meval, eval[1]);
-  eval[2] = AIR_AFFINE(0.0, level, 1.0, meval, eval[2]);
-
+  ELL_3V_SET(eval,
+	     AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 1.0, 0.0)),
+	     AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 0.0, 1.0)),
+	     AIR_LERP(aniso, 1.0/3.0, 0));
+	     
   /* v0: looking down positive Z, points counter clockwise */
   if (x || y) {
     ELL_3V_SET(evec + 3*0, y, -x, 0);
@@ -67,21 +65,21 @@ tend_satinSphereEigen(float *eval, float *evec, float x, float y, float z,
 
 void
 tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z,
-		     float parm, float level, float thick) {
-  double bound, R, r, norm, out[3], up[3], meval;
+		     float parm, float mina, float maxa,
+		     float thick, float bnd) {
+  double bound, R, r, norm, out[3], up[3], aniso;
 
   thick *= 2;
   R = sqrt(x*x + y*y);
   r = sqrt((R-1)*(R-1) + z*z);
-  bound = 0.5 - 0.5*airErf(20*(r-thick));  /* 1 on inside, 0 on outside */
+  /* 1 on inside, 0 on outside */
+  bound = 0.5 - 0.5*airErf((r-thick)/(bnd + 0.0001));
+  aniso = AIR_AFFINE(0, bound, 1, mina, maxa);
 
-  eval[0] = 5*BLAH(bound, AIR_AFFINE(0.0, parm, 2.0, 1.0, 0.0001));
-  eval[1] = 5*BLAH(bound, AIR_AFFINE(0.0, parm, 2.0, 0.0001, 1.0));
-  eval[2] = 5*BLAH(bound, 0.0001);
-  meval = (eval[0] + eval[1] + eval[2])/3;
-  eval[0] = AIR_AFFINE(0.0, level, 1.0, meval, eval[0]);
-  eval[1] = AIR_AFFINE(0.0, level, 1.0, meval, eval[1]);
-  eval[2] = AIR_AFFINE(0.0, level, 1.0, meval, eval[2]);
+  ELL_3V_SET(eval,
+	     AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 1.0, 0.0)),
+	     AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 0.0, 1.0)),
+	     AIR_LERP(aniso, 1.0/3.0, 0));
 
   ELL_3V_SET(up, 0, 0, 1);
 
@@ -107,8 +105,8 @@ tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z,
 }
 
 int
-tend_satinGen(Nrrd *nout, float parm, float level, int wsize,
-	      float thick, int torus) {
+tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
+	      float thick, float bnd, int torus) {
   char me[]="tend_satinGen", err[AIR_STRLEN_MED], buff[AIR_STRLEN_SMALL];
   Nrrd *nconf, *neval, *nevec;
   float *conf, *eval, *evec;
@@ -145,9 +143,11 @@ tend_satinGen(Nrrd *nout, float parm, float level, int wsize,
 	x = AIR_AFFINE(0, xi, size[0]-1, min[0], max[0]);
 	*conf = 1.0;
 	if (torus) {
-	  tend_satinTorusEigen(eval, evec, x, y, z, parm, level, thick);
+	  tend_satinTorusEigen(eval, evec, x, y, z, parm,
+			       mina, maxa, thick, bnd);
 	} else {
-	  tend_satinSphereEigen(eval, evec, x, y, z, parm, level, thick);
+	  tend_satinSphereEigen(eval, evec, x, y, z, parm,
+				mina, maxa, thick, bnd);
 	}
 	conf += 1;
 	eval += 3;
@@ -166,7 +166,7 @@ tend_satinGen(Nrrd *nout, float parm, float level, int wsize,
   nrrdNuke(nevec);
   nrrdAxesSet(nout, nrrdAxesInfoSpacing, AIR_NAN, 1.0, 1.0, 1.0);
   nrrdAxesSet(nout, nrrdAxesInfoLabel, "tensor", "x", "y", "z");
-  sprintf(buff, "satin(%g,%g)", parm, level);
+  sprintf(buff, "satin(%g,%g,%g)", parm, mina, maxa);
   nout->content = airStrdup(buff);
   return 0;
 }
@@ -179,7 +179,7 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   int wsize, torus;
-  float parm, level, thick;
+  float parm, maxa, mina, thick, bnd;
   Nrrd *nout;
   char *outS;
   
@@ -191,10 +191,16 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "toruses), 1.0 for planar, 2.0 for the other direction of linear "
 	     "(from pole to pole for spheres, or along the smaller "
 	     "circumference for toruses)");
-  hestOptAdd(&hopt, "ca1", "aniso level", airTypeFloat, 1, 1, &level, "1.0",
-	     "the non-spherical-ness of the anisotropy used.  \"1.0\" means "
+  hestOptAdd(&hopt, "max", "max ca1", airTypeFloat, 1, 1, &maxa, "1.0",
+	     "maximum anisotropy in dataset, according to the \"ca1\" "
+	     "anisotropy metric.  \"1.0\" means "
 	     "completely linear or completely planar anisotropy");
-  hestOptAdd(&hopt, "th", "thickness", airTypeFloat, 1, 1, &thick, "0.25",
+  hestOptAdd(&hopt, "min", "min ca1", airTypeFloat, 1, 1, &mina, "0.0",
+	     "minimum anisotropy in dataset");
+  hestOptAdd(&hopt, "b", "boundary", airTypeFloat, 1, 1, &bnd, "0.05",
+	     "parameter governing how fuzzy the boundary between high and "
+	     "low anisotropy is. Use \"-b 0\" for no fuzziness");
+  hestOptAdd(&hopt, "th", "thickness", airTypeFloat, 1, 1, &thick, "0.3",
 	     "parameter governing how thick region of high anisotropy is");
   hestOptAdd(&hopt, "s", "size", airTypeInt, 1, 1, &wsize, "32",
 	     "dimensions of output volume.  For size N, the output is "
@@ -211,7 +217,7 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (tend_satinGen(nout, parm, level, wsize, thick, torus)) {
+  if (tend_satinGen(nout, parm, mina, maxa, wsize, thick, bnd, torus)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making volume:\n%s\n", me, err);
     airMopError(mop); return 1;
