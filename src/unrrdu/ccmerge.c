@@ -33,14 +33,15 @@ int
 unrrdu_ccmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
-  Nrrd *nin, *nout, *nval;
+  Nrrd *nin, *nout, *nout2, *nval;
   airArray *mop;
-  int conny, pret, maxSize, dir, maxNeigh;
+  int conny, pret, maxSize, dir, maxNeigh, revalue;
 
   hestOptAdd(&opt, "v", "values", airTypeOther, 1, 1, &nval, "",
 	     "result of using \"ccfind -v\", the record of which values "
 	     "were originally associated with each CC.  This is required "
 	     "for value-directed merging (with non-zero \"-d\" option), "
+	     "and if the \"-revalue\" option is given, "
 	     "but is not needed otherwise",
 	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "d", "dir", airTypeInt, 1, 1, &dir, "0",
@@ -61,6 +62,10 @@ unrrdu_ccmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "what kind of connectivity to use: the number of coordinates "
 	     "that vary in order to traverse the neighborhood of a given "
 	     "sample.  In 2D: \"1\": 4-connected, \"2\": 8-connected");
+  hestOptAdd(&opt, "revalue", NULL, airTypeInt, 0, 0, &revalue, NULL,
+	     "If this option is given, then after the merging, the CCs "
+	     "are re-assigned their original datavalues, as given by "
+	     "the \"-v\" option above");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -71,8 +76,8 @@ unrrdu_ccmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  nout = nrrdNew();
-  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nout=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nout2=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
 
   if (nrrdCCMerge(nout, nin, nval, dir, maxSize, maxNeigh, conny)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
@@ -80,8 +85,14 @@ unrrdu_ccmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
+  if (revalue && nrrdCCRevalue(nout2, nout, nval)) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: error doing CC revalue:\n%s", me, err);
+    airMopError(mop);
+    return 1;
+  }
 
-  SAVE(out, nout, NULL);
+  SAVE(out, revalue ? nout2 : nout, NULL);
 
   airMopOkay(mop);
   return 0;
