@@ -71,5 +71,8 @@ main(int argc, char **argv) {
     free(err);
     exit(1);
   }
+
+  nrrdNuke(nin);
+  nrrdNuke(nout);
   exit(0);
 }
