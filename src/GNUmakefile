@@ -428,7 +428,7 @@ def: teem.dsp
 	@-msdev ../win32/make/teem_shared.dsp /make "teem - Win32 Release" /clean
 
 unproject:
-	rm -rf ../win32/make/*.dsp ../win32/make/*.dsw ../win32/make/teem.def ../win32/make/install_lib.bat
+	rm -rf ../win32/make/*.dsp ../win32/make/*.dsw ../win32/make/install_lib.bat
 
 win32:
 	@-msdev ../win32/make/teem.dsw /make all /build
