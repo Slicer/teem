@@ -15,105 +15,54 @@
   of Utah. All Rights Reserved.
 */
 
+#include "private.h"
 
-#include <nrrd.h>
-
-int
-usage(char *me) {
-  /*                      0      1       2        3        4  */
-  fprintf(stderr, "usage: %s <nrrdIn> <# bins> <smart> <nrrdOut>\n", me);
-  return 1;
-}
+char *heqName = "heq";
+#define INFO "Perform histogram equalization"
+char *heqInfo = INFO;
+char *heqInfoL = (INFO
+		   ". ");
 
 int
-main(int argc, char **argv) {
-  Nrrd *nrrd, *hist;
-  /* Nrrd *pgm; */
-  int smart, bins;
-  char *me, *err;
-  
-  me = argv[0];
-  if (5 != argc)
-    return usage(me);
+heqMain(int argc, char **argv, char *me) {
+  hestOpt *opt = NULL;
+  char *out, *err;
+  Nrrd *nin, *nout;
+  int bins, smart;
+  airArray *mop;
 
-  if (1 != sscanf(argv[2], "%d", &bins)) {
-    fprintf(stderr, "%s: couldn't parse \"%s\" as int\n", me, argv[2]);
+  OPT_ADD_NIN(nin, "input nrrd");
+  hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, NULL,
+	     "# bins to use in histogram that is created in order to "
+	     "calculate the mapping that achieves the equalization. Values "
+	     "around 1024 are good.");
+  hestOptAdd(&opt, "s", "bins", airTypeInt, 0, 1, &smart, "0",
+	     "# bins in value histogram to ignore in calculating the mapping. "
+	     "Bins are ignored when they get more hits than other bins, and "
+	     "when the values that fall in them are constant.  This is an "
+	     "effective way to prevent large regions of background value "
+	     "from distorting the equalization mapping.");
+  OPT_ADD_NOUT(out, "output nrrd");
+
+  mop = airMopInit();
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+
+  USAGE(heqInfoL);
+  PARSE();
+  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
+
+  nout = nrrdNew();
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+
+  if (nrrdHistoEq(nout, NULL, bins, smart)) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble histogram equalizing:\n%s", me, err);
+    airMopError(mop);
     return 1;
   }
-  if (1 != sscanf(argv[3], "%d", &smart)) {
-    fprintf(stderr, "%s: couldn't parse \"%s\" as int\n", me, argv[3]);
-    return 1;
-  }
-  if (nrrdLoad(nrrd=nrrdNew(), argv[1])) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble reading nrrd from %s:\n%s", 
-	    me, argv[1], err);
-    free(err);
-    return 1;
-  }
-  if (nrrdHistoEq(nrrd, &hist, bins, smart)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble doing histogram equalization:\n%s", me, err);
-    free(err);
-    return 1;
-  }
-  /*
-  if (file = fopen("hist0.pgm", "w")) {
-    pgm = nrrdNew();
-    if (nrrdHistoDraw(pgm, hist, 800)) {
-      err = biffGet(NRRD);
-      fprintf(stderr, "%s: trouble drawing data histogram:\n%s", me, err);
-      free(err);
-      return 1;
-    }
-    pgm->encoding = nrrdEncodingRaw;
-    if (nrrdWritePNM(file, pgm)) {
-      err = biffGet(NRRD);
-      fprintf(stderr, "%s: trouble writing histogram image:\n%s", me, err);
-      free(err);
-      return 1;
-    }
-    fprintf(stderr, "%s: wrote \"BEFORE\" histogram image in hist0.pgm\n", me);
-    fclose(file);
-    nrrdNuke(pgm);
-    nrrdNuke(hist);
-  }
-  if (file = fopen("hist1.pgm", "w")) {
-    hist = nrrdNew();
-    if (nrrdHisto(hist, nrrd, bins)) {
-      err = biffGet(NRRD);
-      fprintf(stderr, "%s: trouble generating post-HEQ histogram:\n%s",
-	      me, err);
-      free(err);
-      return 1;
-    }
-    pgm = nrrdNew();
-    if (nrrdHistoDraw(pgm, hist, 800)) {
-      err = biffGet(NRRD);
-      fprintf(stderr, "%s: trouble drawing data histogram:\n%s", me, err);
-      free(err);
-      return 1;
-    }
-    pgm->encoding = nrrdEncodingRaw;
-    if (nrrdWritePNM(file, pgm)) {
-      err = biffGet(NRRD);
-      fprintf(stderr, "%s: trouble writing histogram image:\n%s", me, err);
-      free(err);
-      return 1;
-    }
-    fprintf(stderr, "%s: wrote \"AFTER\" histogram image in hist1.pgm\n", me);
-    fclose(file);
-    nrrdNuke(pgm);
-    nrrdNuke(hist);
-  } 
-  */   
-  
-  if (nrrdSave(argv[4], nrrd, NULL)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble writing nrrd:\n%s", me, err);
-    free(err);
-    return 1;
-  }
-  nrrdNuke(nrrd);
+
+  SAVE(NULL);
+
+  airMopOkay(mop);
   return 0;
 }

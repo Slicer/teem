@@ -17,44 +17,35 @@
 
 #include "private.h"
 
-char *unblockName = "unblock";
-#define INFO "Expand \"blocks\" into scanlines on axis 0"
-char *unblockInfo = INFO;
-char *unblockInfoL = (INFO
-		      ". Based on the requested output type, the number of "
-		      "samples along axis 0 will be determined automatically. "
-		      "Axis N information will be bumped up to axis N+1. "
-		      "Underlying data is unchanged.");
+char *dhistName = "dhist";
+char *dhistInfo = "Create (PGM) image of 1-D value histogram";
 
 int
-unblockMain(int argc, char **argv, char *me) {
+dhistMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int type, blockSize;
+  int size;
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input nrrd");
-  OPT_ADD_TYPE(type, "type to unblock to");
-  hestOptAdd(&opt, "bs", "blocksize", airTypeInt, 1, 1, &blockSize, "0",
-	     "Useful only if *output* type is also block: the size of "
-	     "blocks in output nrrd");
+  hestOptAdd(&opt, NULL, "sizeY", airTypeInt, 1, 1, &size, NULL,
+	     "size of output image");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(unblockInfo);
+  USAGE(dhistInfo);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
-  nout->blockSize = blockSize;
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdUnblock(nout, nin, type)) {
+  if (nrrdHistoDraw(nout, nin, size)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: error unblocking nrrd:\n%s", me, err);
+    fprintf(stderr, "%s: error drawing histogram nrrd:\n%s", me, err);
     airMopError(mop);
     return 1;
   }

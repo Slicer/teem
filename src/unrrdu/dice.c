@@ -15,42 +15,44 @@
   of Utah. All Rights Reserved.
 */
 
+#include "private.h"
 
-#include <nrrd.h>
+char *diceName = "dice";
+#define INFO "Slice *everywhere* along one axis"
+char *diceInfo = INFO;
+char *diceInfoL = (INFO
+		   ". Calls \"unu slice\" for each position "
+		   "along the indicated axis, and saves out a different "
+		   "nrrd for each position.");
 
 int
-usage(char *me) {
-                      /*  0     1       2          3    */
-  fprintf(stderr, "usage: %s <nrrdIn> <axis> <baseNameOut>\n", me);
-  return 1;
-}
+diceMain(int argc, char **argv, char *me) {
+  hestOpt *opt = NULL;
+  char *base, out[512], *err, format[512];
+  Nrrd *nin, *nout;
+  int fit, pos, axis, top;
+  airArray *mop;
 
-int
-main(int argc, char *argv[]) {
-  char *me, *in, *base, out[128], *err, format[128];
-  int top, axis, pos, fit;
-  Nrrd *nin, *nout = NULL;
+  OPT_ADD_NIN(nin, "input nrrd");
+  OPT_ADD_AXIS(axis, "axis to slice along");
+  hestOptAdd(&opt, "o", "prefix", airTypeString, 1, 1, &base, NULL,
+	     "output filename prefix. Output nrrds will be saved out as "
+	     "<prefix>00.nrrd, <prefix>01.nrrd, and so on." );
 
-  me = argv[0];
-  if (4 != argc)
-    return usage(me);
-  if (1 != sscanf(argv[2], "%d", &axis)) {
-    fprintf(stderr, "%s: couldn't parse %s as axis\n", me, argv[2]);
-    return 1;
-  }
-  in = argv[1];
-  base = argv[3];
-  if (nrrdLoad(nin=nrrdNew(), in)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: error reading nrrd from \"%s\":%s\n", me, in, err);
-    free(err);
-    return 1;
-  }
+  mop = airMopInit();
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+
+  USAGE(diceInfoL);
+  PARSE();
+  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
+
   if (!(AIR_INSIDE(0, axis, nin->dim-1))) {
     fprintf(stderr, "%s: given axis (%d) outside range [0,%d]\n",
 	    me, axis, nin->dim-1);
+    airMopError(mop);
     return 1;
   }
+
   top = nin->axis[axis].size-1;
   if (top > 99999)
     sprintf(format, "%%s%%06d.nrrd");
@@ -65,15 +67,17 @@ main(int argc, char *argv[]) {
   else
     sprintf(format, "%%s%%01d.nrrd");
   nout = nrrdNew();
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+
   for (pos=0; pos<=top; pos++) {
     if (nrrdSlice(nout, nin, axis, pos)) {
-      err = biffGet(NRRD);
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: error slicing nrrd:%s\n", me, err);
-      free(err);
+      airMopError(mop);
       return 1;
     }
     if (0 == pos) {
-      /* Wee if these slices would be better saved as PNM images.
+      /* See if these slices would be better saved as PNM images.
 	 Altering the file name will tell nrrdSave() to use a different
 	 file format. */
       fit = nrrdFitsInFormat(nout, nrrdFormatPNM, AIR_FALSE);
@@ -85,15 +89,15 @@ main(int argc, char *argv[]) {
       }
     }
     sprintf(out, format, base, pos);
-    fprintf(stderr, "%s\n", out);
+    fprintf(stderr, "%s: %s ...\n", me, out);
     if (nrrdSave(out, nout, NULL)) {
-      err = biffGet(NRRD);
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: error writing nrrd to \"%s\":%s\n", me, out, err);
-      free(err);
+      airMopError(mop);
       return 1;
     }
   }
-  nrrdNuke(nout);
-  nrrdNuke(nin);
+
+  airMopOkay(mop);
   return 0;
 }

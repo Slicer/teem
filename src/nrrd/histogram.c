@@ -394,7 +394,7 @@ nrrdHistoJoint(Nrrd *nout, Nrrd **nin,
 
   /* allocate output nrrd */
   if (nrrdMaybeAlloc_nva(nout, type, numNrrds, bins)) {
-    sprintf("%s: couldn't allocate multi-dimensional histogram", me);
+    sprintf("%s: couldn't allocate output histogram", me);
     biffAdd(NRRD, err); return 1;
   }
   hadContent = 0;

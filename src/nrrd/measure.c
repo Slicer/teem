@@ -226,12 +226,14 @@ _nrrdMeasureMedian(void *line, int lineType, int len,
     len -= i;
     mid = len/2;
     if (len % 2) {
+      /* len is odd, there is a middle value, its at mid */
       M = nrrdDLookup[lineType](line, i+mid);
-      M += nrrdDLookup[lineType](line, i+mid+1);
-      M /= 2.0;
     }
     else {
-      M = nrrdDLookup[lineType](line, i+mid);
+      /* len is even, two middle values are at mid-1 and mid */
+      M = nrrdDLookup[lineType](line, i+mid-1);
+      M += nrrdDLookup[lineType](line, i+mid);
+      M /= 2.0;
     }
   }
   nrrdDStore[ansType](ans, M);

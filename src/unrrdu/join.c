@@ -21,7 +21,8 @@ char *joinName = "join";
 #define INFO "Connect slices and/or slabs into a bigger nrrd"
 char *joinInfo = INFO;
 char *joinInfoL = (INFO
-		   ". ");
+		   ". Can stich images into volumes, or tile images side "
+		   "by side, or attach images onto volumes.");
 
 int
 joinMain(int argc, char **argv, char *me) {

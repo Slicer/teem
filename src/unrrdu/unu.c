@@ -76,6 +76,7 @@ F(convert) \
 F(quantize) \
 F(project) \
 F(slice) \
+F(dice) \
 F(join) \
 F(crop) \
 F(pad) \
@@ -87,6 +88,9 @@ F(flip) \
 F(block) \
 F(unblock) \
 F(histo) \
+F(dhist) \
+F(jhist) \
+F(heq) \
 F(save)
 /*********************************************************/
 
