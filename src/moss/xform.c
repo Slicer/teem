@@ -176,9 +176,11 @@ mossLinearTransform (Nrrd *nout, Nrrd *nin, float *bg,
   }
   val = (float*)calloc(ncol, sizeof(float));
   if (nrrdCenterUnknown == nout->axis[ax0+0].center)
-    xCent = nout->axis[ax0+0].center = _mossCenter(nin->axis[ax0+0].center);
+    nout->axis[ax0+0].center = _mossCenter(nin->axis[ax0+0].center);
+  xCent = nout->axis[ax0+0].center;
   if (nrrdCenterUnknown == nout->axis[ax0+1].center)
-    yCent = nout->axis[ax0+1].center = _mossCenter(nin->axis[ax0+1].center);
+    nout->axis[ax0+1].center = _mossCenter(nin->axis[ax0+1].center);
+  yCent = nout->axis[ax0+1].center;
   nout->axis[ax0+0].min = xMin;
   nout->axis[ax0+0].max = xMax;
   nout->axis[ax0+1].min = yMin;
