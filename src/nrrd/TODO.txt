@@ -116,3 +116,16 @@ simplifies understanding how a procedure works.
 
 where does nrrd check to see it got a reasonable axis size,
 how and when does nrrd set the default size to 0
+
+----------------
+these were random thoughts about tests that might be needed for NrrdIO in ITK
+key/value pairs persistant
+semantics of vectors and tensors preserved
+other kinds of multi-valued pixels?
+NRRD_DIM_MAX exceeded
+
+encodings: raw/little, raw/big, gzip/little, gzip/big, ascii
+types: all except long longs
+handling of block type
+handling of centers
+handling of unknown spacing (what happens to NaNs)

@@ -496,6 +496,7 @@ airIsInf_d(double d) {
 #ifdef _WIN32
 __inline
 #endif
+#endif
 int
 airExists_f(float f) { return AIR_EXISTS_F(f); }
 
