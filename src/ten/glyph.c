@@ -334,7 +334,10 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
 	ELL_3V_COPY(((echoRectangle*)esquare)->edge0, edge0);
 	ELL_3V_COPY(((echoRectangle*)esquare)->edge1, edge1);
 	echoColorSet(esquare, sliceGray, sliceGray, sliceGray, 1);
-	echoMatterPhongSet(glyphsEcho, esquare, 1, 0, 0, 40);
+	/* this is pretty arbitrary- but I want shadows to have some effect.
+	   Previously, the material was all ambient: (A,D,S) = (1,0,0),
+	   which avoided all shadow effects. */
+	echoMatterPhongSet(glyphsEcho, esquare, 0.4, 0.6, 0, 40);
 	echoListAdd(list, esquare);
       }
     }
