@@ -57,6 +57,8 @@ typedef void (*_echoRayIntxUV_t)(echoIntx *intx);
 extern _echoRayIntxUV_t _echoRayIntxUV[/* object type idx */];
 
 /* color.c */
+extern char _echoBuff[];
+extern char *_echoDot(int depth);
 #define INTXCOLOR_ARGS echoCol_t rgba[4], echoIntx *intx,  \
                        echoScene *scene, echoRTParm *parm, \
                        echoThreadState *tstate

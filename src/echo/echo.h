@@ -85,7 +85,7 @@ typedef double echoCol_t;
 
 #define ECHO_LIST_OBJECT_INCR 32
 #define ECHO_IMG_CHANNELS 5
-#define ECHO_EPSILON 0.001        /* used for adjusting ray positions */
+#define ECHO_EPSILON 0.00005      /* used for adjusting ray positions */
 #define ECHO_NEAR0 0.004          /* used for comparing transparency to zero */
 #define ECHO_LEN_SMALL_ENOUGH 5   /* to control splitting for split objects */
 
@@ -108,10 +108,14 @@ typedef struct {
 			  finding superquadric root (within tolorance sqTol) */
   echoPos_t
     sqTol;             /* how close newtwon-raphson must get to zero */
+  echoCol_t
+    glassC;            /* should really be an additional material parameter:
+			  Beer's law attenuation in glass */
   float aperture,      /* shallowness of field */
     timeGamma,         /* gamma for values in time image */
     boxOpac;           /* opacity of bounding boxes with renderBoxes */
-  echoCol_t mr[3];     /* color of max recursion depth being hit */
+  echoCol_t
+    maxRecCol[3];      /* color of max recursion depth being hit */
 } echoRTParm;
 
 typedef struct {
@@ -120,7 +124,8 @@ typedef struct {
 } echoGlobalState;
 
 typedef struct {
-  int verbose;
+  int verbose,
+    depth;             /* how many recursion levels are we at */
   Nrrd *nperm,         /* ECHO_JITTABLE_NUM x parm->numSamples array 
 			  of ints, each column is a (different) random
 			  permutation of [0 .. parm->numSamples-1], each
@@ -381,8 +386,7 @@ typedef struct {
   echoPos_t from[3],    /* ray comes from this point */
     dir[3],             /* ray goes in this (not normalized) direction */
     neer, faar;         /* look for intx in this interval */
-    int depth,          /* recursion depth */
-    shadow;             /* this is a shadow ray */
+  int shadow;           /* this is a shadow ray */
   echoCol_t transp;     /* for shadow rays, the transparency so far; starts
 			   at 1.0, goes down to 0.0 */
 } echoRay;
@@ -400,8 +404,7 @@ typedef struct {
     view[3],            /* always used with coloring */
     refl[3],            /* reflection of view across line spanned by normal */
     pos[3];             /* always used with coloring (and perhaps texturing) */
-  int depth,            /* the depth of the ray that generated this intx */
-    face,               /* in intx with cube, which face was hit 
+  int face,             /* in intx with cube, which face was hit 
 			   (used for textures) */
     boxhits;            /* how many bounding boxes we hit */
 } echoIntx;
@@ -492,11 +495,10 @@ extern void echoEnvmapLookup(echoCol_t rgb[3], echoPos_t norm[3],
 /* color.c ------------------------------------------- */
 extern void echoTextureLookup(echoCol_t rgba[4], Nrrd *ntext,
 			      echoPos_t u, echoPos_t v, echoRTParm *parm);
-extern void echoIntxSurfaceColor(echoCol_t rgba[4], echoIntx *intx,
-				 echoRTParm *parm);
+extern void echoIntxMaterialColor(echoCol_t rgba[4], echoIntx *intx,
+				  echoRTParm *parm);
 extern void echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3],
-			       echoCol_t spec[3],
-			       echoCol_t sp,
+			       echoCol_t spec[3], echoCol_t sp,
 			       echoIntx *intx, echoScene *scene,
 			       echoRTParm *parm, echoThreadState *tstate);
 extern void echoIntxFuzzify(echoIntx *intx, echoCol_t fuzz,

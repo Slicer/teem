@@ -55,7 +55,7 @@ _echoMatterInit(echoObject *obj) {
 NEW_TMPL(Sphere,
 	 _echoMatterInit(OBJECT(obj));
 	 ELL_3V_SET(obj->pos, 0, 0, 0);
-	 obj->rad = 0.5;
+	 obj->rad = 1.0;
 	 )
 
 NEW_TMPL(Cylinder,

@@ -20,6 +20,19 @@
 #include "echo.h"
 #include "privateEcho.h"
 
+char _echoBuff[128];
+
+char *
+_echoDot(int depth) {
+  int i;
+
+  _echoBuff[0] = '\0';
+  for (i=1; i<=depth; i++) {
+    strcat(_echoBuff, ".  ");
+  }
+  return _echoBuff;
+}
+
 void
 echoTextureLookup(echoCol_t rgba[4], Nrrd *ntext,
 		  echoPos_t u, echoPos_t v, echoRTParm *parm) {
@@ -58,7 +71,7 @@ echoTextureLookup(echoCol_t rgba[4], Nrrd *ntext,
 }
 
 void
-echoIntxSurfaceColor(echoCol_t rgba[4], echoIntx *intx, echoRTParm *parm) {
+echoIntxMaterialColor(echoCol_t rgba[4], echoIntx *intx, echoRTParm *parm) {
 
   if (intx->obj->ntext) {
     _echoRayIntxUV[intx->obj->type](intx);
@@ -91,8 +104,7 @@ echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3], echoCol_t spec[3],
   echoCol_t Lcol[3];
 
   if (parm->doShadows) {
-    /* from, neer, shadow, depth */
-    shadRay.depth = 0;
+    /* from, neer, shadow */
     shadRay.shadow = AIR_TRUE;
     ELL_3V_COPY(shadRay.from, intx->pos);
     shadRay.neer = ECHO_EPSILON;
@@ -153,7 +165,7 @@ _echoIntxColorPhong(INTXCOLOR_ARGS) {
   ks = intx->obj->mat[echoMatterPhongKs];
   sp = intx->obj->mat[echoMatterPhongSp];
 
-  echoIntxSurfaceColor(rgba, intx, parm);
+  echoIntxMaterialColor(rgba, intx, parm);
   ELL_3V_SET(spec, 0, 0, 0);
   echoIntxLightColor(ambi, diff, ks ? spec : NULL, sp,
 		     intx, scene, parm, tstate);
@@ -165,47 +177,50 @@ _echoIntxColorPhong(INTXCOLOR_ARGS) {
 
 void
 _echoIntxColorMetal(INTXCOLOR_ARGS) {
-  echoCol_t RA, RD, RS, ambi[3], diff[3], spec[4];
+  echoCol_t ka, kd, kp, RA, RD, RS, ambi[3], diff[3], spec[4];
   echoPos_t c;
   echoRay reflRay;
 
   if (0 && tstate->verbose) {
-    printf("depth = %d, t = %g\n", intx->depth, intx->t);
+    fprintf(stderr, "%s%s: t = %g\n",
+	    _echoDot(tstate->depth), "_echoIntxColorMetal", intx->t);
   }
 
-  ELL_3V_SET(ambi, 0, 0, 0);
-  ELL_3V_SET(diff, 0, 0, 0);
   ELL_3V_SET(spec, 0, 0, 0);
-  echoIntxSurfaceColor(rgba, intx, parm);
+  echoIntxMaterialColor(rgba, intx, parm);
   c = ELL_3V_DOT(intx->view, intx->norm);
   if (c <= 0) {
-    /* only see surface color on backside of metal */
+    /* see only surface color on backside of metal */
     return;
   }
   c = 1 - c;
   c = c*c*c*c*c;
   RS = intx->obj->mat[echoMatterMetalR0];
   RS = RS + (1 - RS)*c;
-  RA = (1 - RS)*intx->obj->mat[echoMatterMetalKa];
-  RD = (1 - RS)*intx->obj->mat[echoMatterMetalKd];
-  if (RS) {
-    /* neer, faar, depth, shadow, from, dir */
-    ELL_3V_COPY(reflRay.from, intx->pos);
-    ELL_3V_COPY(reflRay.dir, intx->refl);
-    reflRay.neer = ECHO_EPSILON;
-    reflRay.faar = ECHO_POS_MAX;
-    reflRay.depth = intx->depth + 1;
-    reflRay.shadow = AIR_FALSE;
-    echoRayColor(spec, &reflRay, scene, parm, tstate);
-  }
-  if (RA || RD) {
+  ka = intx->obj->mat[echoMatterMetalKa];
+  kd = intx->obj->mat[echoMatterMetalKd];
+  kp = ka + kd;
+  /* neer, faar, shadow, from, dir */
+  ELL_3V_COPY(reflRay.from, intx->pos);
+  ELL_3V_COPY(reflRay.dir, intx->refl);
+  reflRay.neer = ECHO_EPSILON;
+  reflRay.faar = ECHO_POS_MAX;
+  reflRay.shadow = AIR_FALSE;
+  echoRayColor(spec, &reflRay, scene, parm, tstate);
+  if (kp) {
+    RA = (1 - RS)*ka/kp;
+    RD = (1 - RS)*kd/kp;
     echoIntxLightColor(ambi, diff, NULL, 0.0,
 		       intx, scene, parm, tstate);
+    /* NB: surface color does attenuate reflected color (unlike phong) */
+    rgba[0] *= RA*ambi[0] + RD*diff[0] + RS*spec[0];
+    rgba[1] *= RA*ambi[1] + RD*diff[1] + RS*spec[1];
+    rgba[2] *= RA*ambi[2] + RD*diff[2] + RS*spec[2];
+  } else {
+    rgba[0] *= RS*spec[0];
+    rgba[1] *= RS*spec[1];
+    rgba[2] *= RS*spec[2];
   }
-  /* NB: surface color does attenuate reflected color (unlike phong) */
-  rgba[0] *= RA*ambi[0] + RD*diff[0] + RS*spec[0];
-  rgba[1] *= RA*ambi[1] + RD*diff[1] + RS*spec[1];
-  rgba[2] *= RA*ambi[2] + RD*diff[2] + RS*spec[2];
 
   return;
 }
@@ -223,13 +238,20 @@ _echoRefract(echoPos_t T[3], echoPos_t V[3],
   cosTh = ELL_3V_DOT(V, N);
   sinPhSq = (1 - cosTh*cosTh)/(index*index);
   cosPhSq = 1 - sinPhSq;
-  if (cosPhSq < 0) 
+  if (cosPhSq < 0) {
+    if (tstate->verbose) {
+      fprintf(stderr, "%s%s: cosTh = %g --%g--> TIR!!\n",
+	      _echoDot(tstate->depth), "_echoRefract",
+	      cosTh, index);
+    }
     return AIR_FALSE;
+  }
   /* else we do not have total internal reflection */
   cosPh = sqrt(cosPhSq);
   if (tstate->verbose) {
-    fprintf(stderr, "%s: cosTh = %g --> cosPh = %g\n", "_echoRefract",
-	    cosTh, cosPh);
+    fprintf(stderr, "%s%s: cosTh = %g --%g--> cosPh = %g\n",
+	    _echoDot(tstate->depth), "_echoRefract",
+	    cosTh, index, cosPh);
   }
   tmp1 = -1.0/index; tmp2 = cosTh/index - cosPh; 
   ELL_3V_SCALEADD(T, tmp1, V, tmp2, N);
@@ -241,30 +263,32 @@ void
 _echoIntxColorGlass(INTXCOLOR_ARGS) {
   char me[]="_echoIntxColorGlass";
   echoCol_t
-    RS, R0,
-    k[3],
-    index,
-    reflCol[5],         /* color from reflected ray */
-    tranCol[5];         /* color from transmitted ray */
-  echoPos_t           /* since I don't want to branch to call ell3vPerp_? */
-    tmp,
+    ambi[3], diff[3],
+    ka, kd, RP, RS, RT, R0,
+    index,         /* (index of material we're going into) /
+		      (index of material we're leaving) */
+    k[3],          /* attenuation of color due to travel through medium */
+    matlCol[4],    /* inherent color */
+    reflCol[4],    /* color from reflected ray */
+    tranCol[4];    /* color from transmitted ray */
+  echoPos_t tmp,
     negnorm[3];
   double c;
   echoRay tranRay, reflRay;
 
-  echoIntxSurfaceColor(rgba, intx, parm);
+  echoIntxMaterialColor(matlCol, intx, parm);
 
-  /* from, neer, faar, depth, shadow */
+  /* from, neer, faar, shadow */
   ELL_3V_COPY(tranRay.from, intx->pos);
   ELL_3V_COPY(reflRay.from, intx->pos);
   tranRay.neer = reflRay.neer = ECHO_EPSILON;
   tranRay.faar = reflRay.faar = ECHO_POS_MAX;
-  tranRay.depth = reflRay.depth = intx->depth + 1;
   tranRay.shadow = reflRay.shadow = AIR_FALSE;
   ELL_3V_COPY(reflRay.dir, intx->refl);
   /* tranRay.dir set below */
   index = intx->obj->mat[echoMatterGlassIndex];
 
+  RS = 0.0;  /* this is a flag meaning: "AFAIK, there's no total int refl" */
   tmp = ELL_3V_DOT(intx->norm, intx->view);
   if (tmp > 0) {
     /* "d.n < 0": we're coming from outside the glass, and we
@@ -272,8 +296,9 @@ _echoIntxColorGlass(INTXCOLOR_ARGS) {
        which means there is NO total internal reflection */
     _echoRefract(tranRay.dir, intx->view, intx->norm, index, tstate);
     if (tstate->verbose) {
-      fprintf(stderr, "%s: V=(%g,%g,%g),N=(%g,%g,%g),n=%g -> T=(%g,%g,%g)\n",
-	      me, intx->view[0], intx->view[1], intx->view[2],
+      fprintf(stderr, "%s%s: V=(%g,%g,%g),N=(%g,%g,%g),n=%g -> T=(%g,%g,%g)\n",
+	      _echoDot(tstate->depth), me,
+	      intx->view[0], intx->view[1], intx->view[2],
 	      intx->norm[0], intx->norm[1], intx->norm[2], index,
 	      tranRay.dir[0], tranRay.dir[1], tranRay.dir[2]);
     }
@@ -281,33 +306,70 @@ _echoIntxColorGlass(INTXCOLOR_ARGS) {
     ELL_3V_SET(k, 1, 1, 1);
   } else {
     /* we're coming from inside the glass */
-    k[0] = rgba[0]*exp((rgba[0]-1)*intx->t);
-    k[1] = rgba[1]*exp((rgba[1]-1)*intx->t);
-    k[2] = rgba[2]*exp((rgba[2]-1)*intx->t);
+    /* the reasoning for my Beer's law implementation is this: if a
+       channel (r, g, or b) is full on (1.0), then there should be no
+       attenuation in its color.  The more the color is below 1.0, the
+       more it should be damped with distance. */
+    k[0] = exp(parm->glassC*(matlCol[0]-1)*intx->t);
+    k[1] = exp(parm->glassC*(matlCol[1]-1)*intx->t);
+    k[2] = exp(parm->glassC*(matlCol[2]-1)*intx->t);
+    if (tstate->verbose) {
+      fprintf(stderr, "%s%s: internal refl @ t = %g -> k = %g %g %g\n",
+	      _echoDot(tstate->depth), me, intx->t, k[0], k[1], k[2]);
+    }
     ELL_3V_SCALE(negnorm, -1, intx->norm);
     if (_echoRefract(tranRay.dir, intx->view, negnorm, 1/index, tstate)) {
       c = -ELL_3V_DOT(tranRay.dir, negnorm);
     } else {
-      /* holy moly, its total internal reflection time */
-      echoRayColor(rgba, &reflRay, scene, parm, tstate);
-      rgba[0] *= k[0];
-      rgba[1] *= k[1];
-      rgba[2] *= k[2];
-      rgba[3] = 1.0;   /* HEY ? */
-      return;
+      /* its total internal reflection time! */
+      c = 0.0;
+      RS = 1.0;
     }
   }
-  R0 = (index - 1)/(index + 1);
-  R0 *= R0;
-  c = 1 - c;
-  c = c*c*c*c*c;
-  RS = R0 + (1-R0)*c;
+
+  if (RS) {
+    /* total internal reflection */
+    RT = 0;
+  } else {
+    R0 = (index - 1)/(index + 1);
+    R0 *= R0;
+    c = 1 - c;
+    c = c*c*c*c*c;
+    RS = R0 + (1-R0)*c;
+    RT = 1 - RS;
+  }
+  ka = intx->obj->mat[echoMatterMetalKa];
+  kd = intx->obj->mat[echoMatterMetalKd];
+  RP = ka + kd;
+  if (RP) {
+    RS *= 1 - RP;
+    RT *= 1 - RP;
+    echoIntxLightColor(ambi, diff, NULL, 0.0,
+		       intx, scene, parm, tstate);
+  } else {
+    ELL_3V_SET(ambi, 0, 0, 0);
+    ELL_3V_SET(diff, 0, 0, 0);
+  }
+  if (tstate->verbose) {
+    fprintf(stderr, "%s%s: --- reflRay (reflected)\n",
+	    _echoDot(tstate->depth), me);
+  }
   echoRayColor(reflCol, &reflRay, scene, parm, tstate);
-  echoRayColor(tranCol, &tranRay, scene, parm, tstate);
-  ELL_3V_SCALEADD(rgba, RS, reflCol, 1-RS, tranCol);
-  rgba[0] *= k[0];
-  rgba[1] *= k[1];
-  rgba[2] *= k[2];
+  if (RT) {
+    if (tstate->verbose) {
+      fprintf(stderr, "%s%s: --- tranRay (refracted)\n",
+	      _echoDot(tstate->depth), me);
+    }
+    echoRayColor(tranCol, &tranRay, scene, parm, tstate);
+  } else {
+    ELL_3V_SET(tranCol, 0, 0, 0);
+  }
+  rgba[0] = (matlCol[0]*(ka*ambi[0] + kd*diff[0])  +
+	     k[0]*(RS*reflCol[0] + RT*tranCol[0]));
+  rgba[1] = (matlCol[1]*(ka*ambi[1] + kd*diff[1])  +
+	     k[1]*(RS*reflCol[1] + RT*tranCol[1]));
+  rgba[2] = (matlCol[2]*(ka*ambi[2] + kd*diff[2])  +
+	     k[2]*(RS*reflCol[2] + RT*tranCol[2]));
   rgba[3] = 1.0;
   return;
 }
@@ -315,14 +377,14 @@ _echoIntxColorGlass(INTXCOLOR_ARGS) {
 void
 _echoIntxColorLight(INTXCOLOR_ARGS) {
   
-  echoIntxSurfaceColor(rgba, intx, parm);
+  echoIntxMaterialColor(rgba, intx, parm);
 }
 
 void
 _echoIntxColorUnknown(INTXCOLOR_ARGS) {
   
-  fprintf(stderr, "%s: can't color intx with object with unset material\n",
-	  "_echoIntxColorNone");
+  fprintf(stderr, "%s%s: can't color intx with object with unset material\n",
+	  _echoDot(tstate->depth), "_echoIntxColorNone");
 }
 
 _echoIntxColor_t
@@ -344,7 +406,9 @@ echoIntxFuzzify(echoIntx *intx, echoCol_t fuzz, echoThreadState *tstate) {
   echoPos_t tmp, *jitt, oldNorm[3], perp0[3], perp1[3], j0, j1;
   int side;
 
-  /* this forces different normals for going into and out of glass */
+  /* at some point I thought this was important to avoid bias when
+     going through glass, but now I'm not so sure ... It is likely
+     totally moot if jitter vectors are NOT reused between pixels. */
   if (ELL_3V_DOT(intx->norm, intx->view) > 0) {
     jitt = tstate->jitt + 2*echoJittableNormalA;
   } else {
@@ -364,6 +428,12 @@ echoIntxFuzzify(echoIntx *intx, echoCol_t fuzz, echoThreadState *tstate) {
     ELL_3V_SCALEADD3(intx->norm, 1, oldNorm, -j0, perp0, -j1, perp1);
     ELL_3V_NORM(intx->norm, intx->norm, tmp);
     ECHO_REFLECT(intx->refl, intx->norm, intx->view, tmp);
+  }
+  if (tstate->verbose) {
+    fprintf(stderr, "%s%s: fuzz[%g](%g,%g,%g) --> (%g,%g,%g)\n",
+	    _echoDot(tstate->depth), "echoIntxFuzzify", fuzz,
+	    oldNorm[0], oldNorm[1], oldNorm[2],
+	    intx->norm[0], intx->norm[1], intx->norm[2]);
   }
   return;
 }

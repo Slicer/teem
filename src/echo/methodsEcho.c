@@ -42,7 +42,8 @@ echoRTParmNew(void) {
     parm->aperture = 0.0;     /* pinhole camera by default */
     parm->timeGamma = 6.0;
     parm->boxOpac = 0.2;
-    ELL_3V_SET(parm->mr, 1.0, 0.0, 1.0);
+    parm->glassC = 3;
+    ELL_3V_SET(parm->maxRecCol, 1.0, 0.0, 1.0);
   }
   return parm;
 }

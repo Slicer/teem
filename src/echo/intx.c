@@ -25,6 +25,8 @@
 ** needed for shadow rays 
 */
 
+int _echoVerbose;
+
 /*
 ** ALL of the intersection functions are responsible for setting 
 ** 1) intx->norm to a NORMALIZED direction
@@ -75,7 +77,7 @@ _echoRayIntx_CubeSurf(echoPos_t *tP, int *axP, int *dirP,
   if (!AIR_IN_CL(ray->neer, tmin, ray->faar)) {
     *tP = tmax;
     *axP = axmax;
-    *dirP = sgn[axmax];
+    *dirP = -sgn[axmax];
     if (!AIR_IN_CL(ray->neer, tmax, ray->faar)) {
       return AIR_FALSE;
     }
@@ -527,10 +529,10 @@ _echoRayIntx_Cube(RAYINTX_ARGS(Cube)) {
   case 2: ELL_3V_SET(intx->norm, 0, 0, dir); break;
   }
   intx->face = ax + 3*(dir + 1)/2;
-  if (0 && tstate->verbose) {
-    printf("%s: ax = %d --> norm = (%g,%g,%g)\n",
-	   "_echoRayIntx_Cube", ax,
-	   intx->norm[0], intx->norm[1], intx->norm[2]);
+  if (tstate->verbose) {
+    fprintf(stderr, "%s%s: ax = %d --> norm = (%g,%g,%g)\n",
+	    _echoDot(tstate->depth), "_echoRayIntx_Cube", ax,
+	    intx->norm[0], intx->norm[1], intx->norm[2]);
   }
   /* does NOT set u, v */
   return AIR_TRUE;
@@ -658,9 +660,10 @@ _echoRayIntx_TriMesh(RAYINTX_ARGS(TriMesh)) {
 			      trim->min[1], trim->max[1],
 			      trim->min[2], trim->max[2], ray)) {
     if (tstate->verbose) {
-      printf("(trimesh bbox (%g,%g,%g) --> (%g,%g,%g) not hit)\n",
-	     trim->min[0], trim->min[1], trim->min[2],
-	     trim->max[0], trim->max[1], trim->max[2]);
+      fprintf(stderr, "%s%s: trimesh bbox (%g,%g,%g) --> (%g,%g,%g) not hit\n",
+	      _echoDot(tstate->depth), "_echoRayIntx_TriMesh",
+	      trim->min[0], trim->min[1], trim->min[2],
+	      trim->max[0], trim->max[1], trim->max[2]);
     }
     return AIR_FALSE;
   }
@@ -731,6 +734,7 @@ _echoRayIntx_AABBox(RAYINTX_ARGS(AABBox)) {
 
 int
 _echoRayIntx_Split(RAYINTX_ARGS(Split)) {
+  char me[]="_echoRayIntx_Split";
   echoObject *a, *b;
   echoPos_t *mina, *minb, *maxa, *maxb, t, tmax;
   int ret;
@@ -753,13 +757,16 @@ _echoRayIntx_Split(RAYINTX_ARGS(Split)) {
   }
   
   if (tstate->verbose) {
-    printf("_echoRayIntx_Split (shadow = %d):\n", ray->shadow);
-    printf("_echoRayIntx_Split: 1st: (%g,%g,%g) -- (%g,%g,%g) (obj %d)\n", 
-	   mina[0], mina[1], mina[2],
-	   maxa[0], maxa[1], maxa[2], a->type);
-    printf("_echoRayIntx_Split: 2nd: (%g,%g,%g) -- (%g,%g,%g) (obj %d)\n",
-	   minb[0], minb[1], minb[2],
-	   maxb[0], maxb[1], maxb[2], b->type);
+    fprintf(stderr, "%s%s: (shadow = %d):\n",
+	    _echoDot(tstate->depth), me, ray->shadow);
+    fprintf(stderr, "%s%s: 1st: (%g,%g,%g) -- (%g,%g,%g) (obj %d)\n", 
+	    _echoDot(tstate->depth), me,
+	    mina[0], mina[1], mina[2],
+	    maxa[0], maxa[1], maxa[2], a->type);
+    fprintf(stderr, "%s%s: 2nd: (%g,%g,%g) -- (%g,%g,%g) (obj %d)\n",
+	    _echoDot(tstate->depth), me,
+	    minb[0], minb[1], minb[2],
+	    maxb[0], maxb[1], maxb[2], b->type);
   }
 
   ret = AIR_FALSE;
@@ -822,26 +829,20 @@ _echoRayIntx_Instance(RAYINTX_ARGS(Instance)) {
   ELL_4V_SET(a, ray->from[0], ray->from[1], ray->from[2], 1);
   ELL_4MV_MUL(b, obj->Mi, a);
   ELL_34V_HOMOG(iray.from, b);
-  if (0 && tstate->verbose) {
-    ell4mPRINT(stdout, obj->Mi);
-    printf("from (%g,%g,%g)\n   -- Mi --> (%g,%g,%g,%g)\n   --> (%g,%g,%g)\n",
-	   a[0], a[1], a[2],
-	   b[0], b[1], b[2], b[3], 
-	   iray.from[0], iray.from[1], iray.from[2]);
-  }
   ELL_4V_SET(a, ray->dir[0], ray->dir[1], ray->dir[2], 0);
   ELL_4MV_MUL(b, obj->Mi, a); 
   ELL_3V_COPY(iray.dir, b);
-  if (0 && tstate->verbose) {
-    printf("dir (%g,%g,%g)\n   -- Mi --> (%g,%g,%g,%g)\n   --> (%g,%g,%g)\n",
-	   a[0], a[1], a[2],
-	   b[0], b[1], b[2], b[3], 
-	   iray.dir[0], iray.dir[1], iray.dir[2]);
+  if (tstate->verbose) {
+    fprintf(stderr, "%s%s: dir (%g,%g,%g)\n%s   -- Mi --> "
+	    "(%g,%g,%g,%g)\n%s   --> (%g,%g,%g)\n",
+	    _echoDot(tstate->depth), "_echoRayIntx_Instance",
+	    a[0], a[1], a[2], _echoDot(tstate->depth),
+	    b[0], b[1], b[2], b[3], _echoDot(tstate->depth), 
+	    iray.dir[0], iray.dir[1], iray.dir[2]);
   }
   
   iray.neer = ray->neer;
   iray.faar = ray->faar;
-  iray.depth = ray->depth;
   iray.shadow = ray->shadow;
 
   if (_echoRayIntx[obj->obj->type](intx, &iray, obj->obj, parm, tstate)) {
@@ -850,10 +851,13 @@ _echoRayIntx_Instance(RAYINTX_ARGS(Instance)) {
     ELL_3V_COPY(intx->norm, b);
     ELL_3V_NORM(intx->norm, intx->norm, tmp);
     if (tstate->verbose) {
-      printf("hit a %d with M == \n", obj->obj->type);
-      ell4mPRINT(stdout, obj->M);
-      printf(" (det = %f), and Mi == \n", ell4mDET(obj->M));
-      ell4mPRINT(stdout, obj->Mi);
+      fprintf(stderr, "%s%s: hit a %d (at t=%g) with M == \n", 
+	      _echoDot(tstate->depth), "_echoRayIntx_Instance",
+	      obj->obj->type, intx->t);
+      ell4mPRINT(stderr, obj->M);
+      fprintf(stderr, "%s   ... (det = %f), and Mi == \n",
+	      _echoDot(tstate->depth), ell4mDET(obj->M));
+      ell4mPRINT(stderr, obj->Mi);
     }
     return AIR_TRUE;
   }
@@ -908,7 +912,9 @@ echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene,
   int idx, ret;
   echoObject *kid;
   echoPos_t tmp;
-  
+
+  _echoVerbose = tstate->verbose;
+
   ret = AIR_FALSE;
   for (idx=0; idx<scene->rendArr->len; idx++) {
     kid = scene->rend[idx];
@@ -926,7 +932,7 @@ echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene,
     ELL_3V_SCALEADD(intx->pos, 1, ray->from, intx->t, ray->dir);
     ELL_3V_SCALE(intx->view, -1, ray->dir);
     ELL_3V_NORM(intx->view, intx->view, tmp);
-    /* this is needed for phong materials, and for glass and metal,
+    /* this is needed for phong materials; for glass and metal,
        it is either used directly, or as a reference in fuzzification */
     ECHO_REFLECT(intx->refl, intx->norm, intx->view, tmp);
   }

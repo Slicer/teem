@@ -222,41 +222,42 @@ echoChannelAverage(echoCol_t *img,
 void
 echoRayColor(echoCol_t *chan, echoRay *ray,
 	     echoScene *scene, echoRTParm *parm, echoThreadState *tstate) {
-  double time0;
+  char me[]="echoRayColor";
   echoCol_t rgba[4];
   echoIntx intx;
   
-  time0 = airTime();
-  if (ray->depth > parm->maxRecDepth) {
+  tstate->depth++;
+  if (tstate->depth > parm->maxRecDepth) {
     /* we've exceeded the recursion depth, so no more rays for you */
-    ELL_4V_SET(chan, parm->mr[0], parm->mr[1], parm->mr[2], 1.0);
-    chan[4] = airTime() - time0;
-    return;
+    ELL_4V_SET(chan, parm->maxRecCol[0], parm->maxRecCol[1],
+	       parm->maxRecCol[2], 1.0);
+    goto done;
   }
 
   intx.boxhits = 0;
   if (!echoRayIntx(&intx, ray, scene, parm, tstate)) {
     if (tstate->verbose) {
-      printf("echoRayColor: (nothing was hit)\n");
+      fprintf(stderr, "%s%s: (nothing was hit)\n", _echoDot(tstate->depth), me);
     }
     /* ray hits nothing in scene */
     ELL_4V_SET(chan, scene->bkgr[0], scene->bkgr[1], scene->bkgr[2],
 	       (parm->renderBoxes
 		? 1.0 - pow(1.0 - parm->boxOpac, intx.boxhits)
 		: 1.0));
-    chan[4] = airTime() - time0;
-    return;
+    goto done;
   }
 
   if (tstate->verbose) {
-    printf("echoRayColor: hit a %d (%p) at (%g,%g,%g)\n",
-	   intx.obj->type, intx.obj,
-	   intx.pos[0], intx.pos[1], intx.pos[2]);
+    fprintf(stderr, "%s%s: hit a %d (%p) at (%g,%g,%g)\n"
+	    "%s    = %g along (%g,%g,%g)\n", _echoDot(tstate->depth), me,
+	    intx.obj->type, intx.obj,
+	    intx.pos[0], intx.pos[1], intx.pos[2], _echoDot(tstate->depth),
+	    intx.t, ray->dir[0], ray->dir[1], ray->dir[2]);
   }
-  intx.depth = ray->depth;
   echoIntxColor(rgba, &intx, scene, parm, tstate);
   ELL_4V_COPY(chan, rgba);
-  chan[4] = airTime() - time0;
+ done:
+  tstate->depth--;
   return;
 }
 
@@ -283,6 +284,7 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
   echoThreadState *tstate;  /* only one thread for now */
   echoCol_t *img, *chan;    /* current scanline of channel buffer array */
   echoRay ray;              /* (not a pointer) */
+  double time0;
 
   if (echoRTRenderCheck(nraw, cam, scene, parm, gstate)) {
     sprintf(err, "%s: problem with input", me);
@@ -322,7 +324,7 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
   pixUsz = (cam->uRange[1] - cam->uRange[0])/(parm->imgResU);
   pixVsz = (cam->vRange[1] - cam->vRange[0])/(parm->imgResV);
 
-  ray.depth = 0;
+  tstate->depth = 0;
   ray.shadow = AIR_FALSE;
   img = (echoCol_t *)nraw->data;
   fprintf(stderr, "%s:       ", me);  /* prep for printing airDoneStr */
@@ -338,14 +340,14 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
       imgU = NRRD_POS(nrrdCenterCell, cam->uRange[0], cam->uRange[1],
 		      parm->imgResU, imgUi);
 
-      tstate->verbose = ( (150 == imgUi && 150 == imgVi) );
+      tstate->verbose = ( (160 == imgUi && 160 == imgVi) );
       
       if (tstate->verbose) {
-	printf("\n");
-	printf("-----------------------------------------------------\n");
-	printf("------------------- (%3d, %3d) ----------------------\n",
-	       imgUi, imgVi);
-	printf("-----------------------------------------------------\n\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "-----------------------------------------------\n");
+	fprintf(stderr, "----------------- (%3d, %3d) ------------------\n",
+		imgUi, imgVi);
+	fprintf(stderr, "-----------------------------------------------\n\n");
       }
 
       /* initialize things on first "scanline" */
@@ -369,15 +371,13 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
 
 	/* do it! */
 	ELL_3V_SUB(ray.dir, at, ray.from);
+	ELL_3V_NORM(ray.dir, ray.dir, tmp0);
 	ray.neer = 0.0;
 	ray.faar = ECHO_POS_MAX;
-	/*
-	printf("!%s:(%d,%d): from=(%g,%g,%g); at=(%g,%g,%g); dir=(%g,%g,%g)\n",
-	       me, imgUi, imgVi, from[0], from[1], from[2],
-	       at[0], at[1], at[2], dir[0], dir[1], dir[2]);
-	*/
 #if 1
+	time0 = airTime();
 	echoRayColor(chan, &ray, scene, parm, tstate);
+	chan[4] = airTime() - time0;
 #else
 	memset(chan, 0, ECHO_IMG_CHANNELS*sizeof(echoCol_t));
 #endif
