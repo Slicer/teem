@@ -25,6 +25,15 @@ extern "C" {
 #ifndef NRRD_PRIVATE_HAS_BEEN_INCLUDED
 #define NRRD_PRIVATE_HAS_BEEN_INCLUDED
 
+#if NRRD_RESAMPLE_FLOAT
+#  define nrrdResample_nrrdType nrrdTypeFloat
+#  define EVALN evalN_f               /* NrrdKernel method */
+#else
+#  define nrrdResample_nrrdType nrrdTypeDouble
+#  define EVALN evalN_d               /* NrrdKernel method */
+#endif
+
+
 #define _NRRD_COMMENT_CHAR '#'
 #define _NRRD_TABLE_INCR 256
 
@@ -57,7 +66,7 @@ extern void _nrrdAxisInit(NrrdAxis *axis);
 extern int _nrrdCenter(int center);
 
 /* convert.c */
-extern void (*_nrrdConv[][NRRD_TYPE_MAX+1])(void *,void *, nrrdBigInt);
+extern void (*_nrrdConv[][NRRD_TYPE_MAX+1])(void *,void *, size_t);
 
 /* map.c */
 extern int _nrrdMinMaxSet(Nrrd *nrrd);
