@@ -701,7 +701,6 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
       break;
     }
   }
-  printf("%s done!\n", me);
   return 0;
 }
 
@@ -844,7 +843,6 @@ hestParseFree(hestOpt *opt) {
 
   numOpts = _hestNumOpts(opt);
   for (op=0; op<=numOpts-1; op++) {
-    printf("hestParseFree: op %d of (0,%d) ...\n", op, numOpts-1);
     vP = opt[op].valueP;
     str = opt[op].valueP;
     strP = opt[op].valueP;
@@ -868,7 +866,6 @@ hestParseFree(hestOpt *opt) {
       break;
     }
   }
-  printf("hestParseFree: done!\n");
   return;
 }
 
