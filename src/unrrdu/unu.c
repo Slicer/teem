@@ -76,6 +76,7 @@ hestParm *hparm;
 F(make) \
 F(convert) \
 F(resample) \
+F(cmedian) \
 F(quantize) \
 F(project) \
 F(slice) \
@@ -91,14 +92,16 @@ F(flip) \
 F(block) \
 F(unblock) \
 F(histo) \
-F(dhist) \
-F(jhist) \
+F(dhisto) \
+F(jhisto) \
 F(histax) \
 F(heq) \
 F(gamma) \
 F(uop) \
 F(bop) \
 F(top) \
+F(lut) \
+F(rmap) \
 F(save)
 /*********************************************************/
 
@@ -196,7 +199,7 @@ hestCB unuNrrdIterHestCB = {
   sizeof(NrrdIter *),
   "nrrd/value",
   unuParseNrrdIter,
-  (airMopper)nrrdIterNix
+  (airMopper)nrrdIterNuke
 }; 
 
 int
@@ -241,6 +244,40 @@ hestCB unuPosHestCB = {
   unuParsePos,
   NULL
 };
+
+
+int
+unuParseMaybeType(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[]="unuParseMaybeType";
+  int *typeP;
+
+  fprintf(stderr, "!%s: str = \"%s\"\n", me, str);
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  typeP = ptr;
+  if (!strcmp("unknown", str)) {
+    *typeP = nrrdTypeUnknown;
+  }
+  else {
+    *typeP = airEnumVal(nrrdType, str);
+    if (nrrdTypeUnknown == *typeP) {
+      sprintf(err, "%s: can't parse \"%s\" as type", me, str);
+      return 1;
+    }
+  }
+  fprintf(stderr, "!%s: *typeP = %d\n", me, *typeP);
+  return 0;
+}
+
+hestCB unuMaybeTypeHestCB = {
+  sizeof(int),
+  "type",
+  unuParseMaybeType,
+  NULL
+};
+
 
 void
 usage(char *me) {
@@ -294,6 +331,7 @@ main(int argc, char **argv) {
     hparm = hestParmNew();
     hparm->elideSingleEnumType = AIR_TRUE;
     hparm->elideSingleOtherType = AIR_TRUE;
+    hparm->elideSingleOtherDefault = AIR_TRUE;
     hparm->elideSingleNonExistFloatDefault = AIR_TRUE;
     argv0 = malloc(strlen(UNU) + strlen(argv[1]) + 2);
     sprintf(argv0, "%s %s", UNU, argv[1]);

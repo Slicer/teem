@@ -25,7 +25,7 @@ char *diceInfo = INFO;
 char *diceInfoL = (INFO
 		   ". Calls \"unu slice\" for each position "
 		   "along the indicated axis, and saves out a different "
-		   "nrrd for each position.");
+		   "nrrd for each position. ");
 
 int
 diceMain(int argc, char **argv, char *me) {
@@ -39,7 +39,8 @@ diceMain(int argc, char **argv, char *me) {
   OPT_ADD_AXIS(axis, "axis to slice along");
   hestOptAdd(&opt, "o", "prefix", airTypeString, 1, 1, &base, NULL,
 	     "output filename prefix. Output nrrds will be saved out as "
-	     "<prefix>00.nrrd, <prefix>01.nrrd, and so on." );
+	     "<prefix>00.nrrd, <prefix>01.nrrd, and so on. If this is a "
+	     "directory name, you probably want to end it with a \"/\".");
 
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
@@ -56,7 +57,9 @@ diceMain(int argc, char **argv, char *me) {
   }
 
   top = nin->axis[axis].size-1;
-  if (top > 99999)
+  if (top > 999999)
+    sprintf(format, "%%s%%07d.nrrd");
+  else if (top > 99999)
     sprintf(format, "%%s%%06d.nrrd");
   else if (top > 9999)
     sprintf(format, "%%s%%05d.nrrd");

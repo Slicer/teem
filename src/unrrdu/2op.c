@@ -33,8 +33,8 @@ bopMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
   NrrdIter *in1, *in2;
-  Nrrd *nout;
-  int op;
+  Nrrd *nout, *ntmp;
+  int op, type, E;
   airArray *mop;
 
   hestOptAdd(&opt, NULL, "operator", airTypeEnum, 1, 1, &op, NULL,
@@ -56,6 +56,12 @@ bopMain(int argc, char **argv, char *me) {
   hestOptAdd(&opt, NULL, "in2", airTypeOther, 1, 1, &in2, NULL,
 	     "Second input.  Can be float or nrrd.",
 	     NULL, NULL, &unuNrrdIterHestCB);
+  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "unknown",
+	     "type to convert all nrrd inputs to, prior to "
+	     "doing operation.  This also determines output type. "
+	     "By default (not using this option), the types of the input "
+	     "nrrds are left unchanged.",
+             NULL, NULL, &unuMaybeTypeHestCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
@@ -73,6 +79,28 @@ bopMain(int argc, char **argv, char *me) {
   fprintf(stderr, "%s: in1->left = %d, in2->left = %d\n", me, 
 	  (int)(in1->left), (int)(in2->left));
   */
+  if (nrrdTypeUnknown != type) {
+    /* they wanted to convert nrrds to some other type first */
+    E = 0;
+    if (in1->nrrd) {
+      if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in1->nrrd, type);
+      if (!E) { nrrdNuke(in1->nrrd); in1->nrrd = ntmp; }
+      /* nrrdSave("in1.nrrd", in1->nrrd, NULL); */
+    }
+    if (in2->nrrd) {
+      if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in2->nrrd, type);
+      if (!E) { nrrdNuke(in2->nrrd); in2->nrrd = ntmp; }
+      /* nrrdSave("in2.nrrd", in1->nrrd, NULL); */
+    }
+    if (E) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: error converting input nrrd(s):\n%s", me, err);
+      airMopError(mop);
+      return 1;
+    }
+    /* this will still leave a nrrd in the NrrdIter for nrrdIterNuke()
+       (called by hestParseFree() called be airMopOkay()) to clear up */
+  }
   if (nrrdArithBinaryOp(nout, op, in1, in2)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing binary operation:\n%s", me, err);

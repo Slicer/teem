@@ -19,11 +19,11 @@
 
 #include "private.h"
 
-char *dhistName = "dhist";
-char *dhistInfo = "Create (PGM) image of 1-D value histogram";
+char *dhistoName = "dhisto";
+char *dhistoInfo = "Create (PGM) image of 1-D value histogram";
 
 int
-dhistMain(int argc, char **argv, char *me) {
+dhistoMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -39,7 +39,7 @@ dhistMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(dhistInfo);
+  USAGE(dhistoInfo);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 

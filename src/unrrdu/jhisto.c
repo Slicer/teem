@@ -19,10 +19,10 @@
 
 #include "private.h"
 
-char *jhistName = "jhist";
+char *jhistoName = "jhisto";
 #define INFO "Create joint histogram of two or more nrrds"
-char *jhistInfo = INFO;
-char *jhistInfoL = (INFO
+char *jhistoInfo = INFO;
+char *jhistoInfoL = (INFO
 		    ". Each axis of the output corresponds to one of the "
 		    "input nrrds, and each bin in the output records the "
 		    "number of corresponding positions in the inputs with "
@@ -30,7 +30,7 @@ char *jhistInfoL = (INFO
 		    "of the bin.");
 
 int
-jhistMain(int argc, char **argv, char *me) {
+jhistoMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd **nin, *nout;
@@ -52,7 +52,7 @@ jhistMain(int argc, char **argv, char *me) {
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
-  USAGE(jhistInfo);
+  USAGE(jhistoInfo);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
