@@ -35,11 +35,10 @@ echoObjectHasMatter[ECHO_TYPE_NUM] = {
 };
 
 void
-echoColorSet(echoScene *scene, echoObject *obj,
-	     echoCol_t R, echoCol_t G, echoCol_t B,
-	     echoCol_t A) {
+echoColorSet(echoObject *obj,
+	     echoCol_t R, echoCol_t G, echoCol_t B, echoCol_t A) {
 
-  if (scene && obj && echoObjectHasMatter[obj->type]) {
+  if (obj && echoObjectHasMatter[obj->type]) {
     ELL_4V_SET(obj->rgba, R, G, B, A);
   }
 }
