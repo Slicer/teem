@@ -128,6 +128,10 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins) {
   }
   min = nin->min;
   max = nin->max;
+  if (max == min) {
+    /* need this to insure that index generation isn't confused */
+    max++;
+  }
   nout->axisMin[0] = min;
   nout->axisMax[0] = max;
   
