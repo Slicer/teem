@@ -355,6 +355,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
     ELL_4M_IDENTITY_SET(mA);                        /* reset */
     ELL_3V_SCALE(eval, parm->glyphScale, eval);     /* scale by evals */
     ELL_4M_SCALE_SET(mB, eval[0], eval[1], eval[2]);
+
     ell_4m_post_mul_f(mA, mB);
     ELL_43M_INSET(mB, rotEvec);                     /* rotate by evecs */
     ell_4m_post_mul_f(mA, mB);

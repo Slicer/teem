@@ -109,7 +109,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   echoRTParm *eparm;
   echoGlobalState *gstate;
   tenGlyphParm *gparm;
-  float bg[3], buvne[5];
+  float bg[3], buvne[5], shadow;
   int ires[2], slice[2], nobg, hacknumcam, hackci,
     hackmin[3]={0,0,0}, hackmax[3]={2,0,0};
   char *hackFN, hackoutFN[AIR_STRLEN_SMALL];
@@ -290,6 +290,8 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "Requires lots more samples \"-ns\" to converge.  Use "
 	     "brightness 0 (the default) to turn this off, and use "
 	     "environment map-based shading (\"-emap\") instead. ");
+  hestOptAdd(&hopt, "shadow", "s", airTypeFloat, 1, 1, &shadow, "1.0",
+	     "the extent to which shadowing occurs");
   hestOptAdd(&hopt, "hack", "hack", airTypeString, 1, 1, &hackFN, "",
 	     "don't mind me");
 
@@ -335,6 +337,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     cam->dist = 0;
     cam->faar = 2;
     cam->atRelative = AIR_TRUE;
+    eparm->shadow = shadow;
     if (buvne[0] > 0) {
 
       if (limnCameraUpdate(cam)) {
@@ -354,13 +357,12 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
       rect = echoObjectNew(scene, echoTypeRectangle);
       echoRectangleSet(rect,
 		       corn[0], corn[1], corn[2],
-		       edir[0]*2, edir[1]*2, edir[2]*2,
-		       fdir[0]*2, fdir[1]*2, fdir[2]*2);
+		       -edir[0]*2, -edir[1]*2, -edir[2]*2,
+		       -fdir[0]*2, -fdir[1]*2, -fdir[2]*2);
       echoColorSet(rect, 1, 1, 1, 1);
       echoMatterLightSet(scene, rect, buvne[0], 0);
       echoObjectAdd(scene, rect);
     }
-
     eparm->imgResU = ires[0];
     eparm->imgResV = ires[1];
     eparm->jitterType = (eparm->numSamples > 1
