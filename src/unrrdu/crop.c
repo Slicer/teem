@@ -25,12 +25,13 @@ cropMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int *min, numMin, *max, numMax;
+  int *minOff, numMin, *maxOff, numMax, ax,
+    min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input");
-  OPT_ADD_BOUND("min", min, "low corner of bounding box", numMin);
-  OPT_ADD_BOUND("max", max, "high corner of bounding box", numMax);
+  OPT_ADD_BOUND("min", minOff, "low corner of bounding box", numMin);
+  OPT_ADD_BOUND("max", maxOff, "high corner of bounding box", numMax);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
@@ -53,10 +54,23 @@ cropMain(int argc, char **argv, char *me) {
   }
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  /*
+  if (!( numMin == nin->dim && numMax == nin->dim )) {
+    fprintf(stderr,
+	    "%s: # min coords (%d) or max coords (%d) != nrrd dim (%d)\n",
+	    me, numMin, numMax, nin->dim);
+    airMopError(mop);
+    return 1;
+  }
+  for (ax=0; ax<=nin->dim-1; ax++) {
+    min[ax] = minOff[0 + 2*ax]*(nin->axis[ax].size-1) + minOff[1 + 2*ax];
+    max[ax] = maxOff[0 + 2*ax]*(nin->axis[ax].size-1) + maxOff[1 + 2*ax];
+    fprintf(stderr, "%s: ax %2d: min = %4d, max = %4d\n",
+	    me, ax, min[ax], max[ax]);
+  }
+
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrd(nout, nin, axis)) {
+  if (nrrdCrop(nout, nin, min, max)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error cropping nrrd:\n%s", me, err);
     airMopError(mop);
@@ -69,7 +83,6 @@ cropMain(int argc, char **argv, char *me) {
     airMopError(mop);
     return 1;
   }
-  */
 
   airMopOkay(mop);
   return 0;
