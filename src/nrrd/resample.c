@@ -596,6 +596,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
       nrrdFInsert[typeOut](nout->data, I, tmpF);
     }
     nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+    /* HEY: need to create textual representation of resampling parameters */
     if (nrrdContentSet(nout, func, nin, "")) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
@@ -799,6 +800,11 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
       nout->axis[d].max = nin->axis[d].max;
       nout->axis[d].spacing = nin->axis[d].spacing;
     }
+  }
+  /* HEY: need to create textual representation of resampling parameters */
+  if (nrrdContentSet(nout, func, nin, "")) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
   }
 
   /* maybe copy the resampling final result into the output nrrd,

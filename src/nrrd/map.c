@@ -403,7 +403,6 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
       sprintf(err, "%s: failed to create histogram", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
-    nrrdSave("hist.nrrd", nhist, NULL);
     if (nhistP) {
       airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopOnError);
     }
@@ -521,8 +520,6 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
     nrrdDInsert[nout->type](nout->data, I, val);
   }
 
-  nrrdSave("out.nrrd", nout, NULL);
-  
   /* if user is interested, set pointer to histogram nrrd,
      otherwise it will be nixed by airMop */
   if (nhistP) {
