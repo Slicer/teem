@@ -31,7 +31,7 @@ Nrrd *npos;
 
 #define TREX_LUTLEN 256
 
-float _baneTesting[256];
+float _baneTesting[256]="";
 
 float *
 _baneTRexRead(char *fname) {

@@ -21,10 +21,10 @@
 #include "privateGage.h"
 
 char
-gageErrStr[AIR_STRLEN_LARGE];
+gageErrStr[AIR_STRLEN_LARGE]="";
 
 int
-gageErrNum;
+gageErrNum=-1;
 
 /*
 ******** gageZeroNormal[]
