@@ -29,6 +29,7 @@ echoRTParmNew(void) {
     parm->reuseJitter = AIR_FALSE;
     parm->permuteJitter = AIR_TRUE;
     parm->doShadows = AIR_TRUE;
+    parm->textureNN = AIR_TRUE;
     parm->numSamples = 1;
     parm->imgResU = parm->imgResV = 256;
     parm->maxRecDepth = 5;
@@ -40,7 +41,6 @@ echoRTParmNew(void) {
     parm->sqTol = 0.0001;
     parm->aperture = 0.0;     /* pinhole camera by default */
     parm->timeGamma = 6.0;
-    parm->refDistance = 1.0;
     parm->boxOpac = 0.2;
     ELL_3V_SET(parm->mr, 1.0, 0.0, 1.0);
   }
@@ -84,6 +84,7 @@ echoThreadStateNew(void) {
     state->njitt = nrrdNew();
     state->nperm = nrrdNew();
     state->permBuff = NULL;
+    state->jitt = NULL;
     state->chanBuff = NULL;
   }
   return state;
@@ -120,10 +121,10 @@ echoSceneNew(void) {
 			       sizeof(echoObject *),
 			       ECHO_LIST_OBJECT_INCR);
     /* no callbacks set, renderable objecs are nixed from catArr */
-    ret->lit = NULL;
-    ret->litArr = airArrayNew((void**)&(ret->lit), NULL,
-			      sizeof(echoObject *),
-			      ECHO_LIST_OBJECT_INCR);
+    ret->light = NULL;
+    ret->lightArr = airArrayNew((void**)&(ret->light), NULL,
+				sizeof(echoObject *),
+				ECHO_LIST_OBJECT_INCR);
     /* no callbacks set; light objects are nixed from catArr */
     ret->nrrd = NULL;
     ret->nrrdArr = airArrayNew((void**)&(ret->nrrd), NULL,
@@ -143,14 +144,14 @@ void
 _echoSceneLightAdd(echoScene *scene, echoObject *obj) {
   int idx;
   
-  for (idx=0; idx<scene->litArr->len; idx++) {
-    if (obj == scene->lit[idx]) {
+  for (idx=0; idx<scene->lightArr->len; idx++) {
+    if (obj == scene->light[idx]) {
       break;
     }
   }
-  if (scene->litArr->len == idx) {
-    idx = airArrayIncrLen(scene->litArr, 1);
-    scene->lit[idx] = obj;
+  if (scene->lightArr->len == idx) {
+    idx = airArrayIncrLen(scene->lightArr, 1);
+    scene->light[idx] = obj;
   }
 }
 
@@ -175,7 +176,7 @@ echoSceneNix(echoScene *scene) {
   if (scene) {
     airArrayNuke(scene->catArr);
     airArrayNuke(scene->rendArr);
-    airArrayNuke(scene->litArr);
+    airArrayNuke(scene->lightArr);
     airArrayNuke(scene->nrrdArr);
     /* don't touch envmap nrrd */
     AIR_FREE(scene);

@@ -36,19 +36,16 @@ extern "C" {
 #define TRIANGLE(obj)  ((echoTriangle*)obj)
 #define INSTANCE(obj)  ((echoInstance*)obj)
 
+#define ECHO_REFLECT(refl, norm, view, tmp) \
+  (tmp) = 2*ELL_3V_DOT((view), (norm)); \
+  ELL_3V_SCALEADD((refl), -1.0, (view), (tmp), (norm))
+
 #define ECHO_NEW(TYPE) \
   (echoObject##TYPE *)echoNew(echoObject##Type)
 
 /* methodsEcho.c */
 extern void _echoSceneLightAdd(echoScene *scene, echoObject *obj);
 extern void _echoSceneNrrdAdd(echoScene *scene, Nrrd *nrrd);
-
-/* color.c */
-#define INTXCOLOR_ARGS echoCol_t *chan, int samp, echoIntx *intx,  \
-                       echoScene *scene, echoRTParm *parm,        \
-                       echoThreadState *tstate
-typedef void (*_echoIntxColor_t)(INTXCOLOR_ARGS);
-extern _echoIntxColor_t _echoIntxColor[/* matter idx */];
 
 /* intx.c */
 #define RAYINTX_ARGS(TYPE) echoIntx *intx, echoRay *ray, \
@@ -58,6 +55,13 @@ typedef int (*_echoRayIntx_t)(RAYINTX_ARGS(Object));
 extern _echoRayIntx_t _echoRayIntx[/* object type idx */];
 typedef void (*_echoRayIntxUV_t)(echoIntx *intx);
 extern _echoRayIntxUV_t _echoRayIntxUV[/* object type idx */];
+
+/* color.c */
+#define INTXCOLOR_ARGS echoCol_t rgba[4], echoIntx *intx,  \
+                       echoScene *scene, echoRTParm *parm, \
+                       echoThreadState *tstate
+typedef void (*_echoIntxColor_t)(INTXCOLOR_ARGS);
+extern _echoIntxColor_t _echoIntxColor[/* matter idx */];
 
 #ifdef __cplusplus
 }

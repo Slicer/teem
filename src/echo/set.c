@@ -65,7 +65,6 @@ echoRectangleSet(echoObject *rect,
     ELL_3V_SET(RECTANGLE(rect)->edge0, e0x, e0y, e0z);
     ELL_3V_SET(RECTANGLE(rect)->edge1, e1x, e1y, e1z);
     ELL_3V_CROSS(cross, RECTANGLE(rect)->edge0, RECTANGLE(rect)->edge1);
-    RECTANGLE(rect)->area = ELL_3V_LEN(cross);
   }
   return;
 }

@@ -18,110 +18,80 @@
 */
 
 #include "echo.h"
+#include "privateEcho.h"
 
-#define NEW_TMPL(TYPE, BODY)                                     \
-EchoLight##TYPE *                                                \
-_echoLight##TYPE##_new(void) {                                   \
-  int dummy=0;                                                   \
-  EchoLight##TYPE *light;                                        \
-                                                                 \
-  light = (EchoLight##TYPE *)calloc(1, sizeof(EchoLight##TYPE)); \
-  light->type = echoLight##TYPE;                                 \
-  do { BODY dummy=dummy; } while (0);                            \
-  return light;                                                  \
-}
-
-NEW_TMPL(Directional,dummy=dummy;) /* _echoLightDirectional_new */
-NEW_TMPL(Area,                     /* _echoLightArea_new */
-	 light->obj = NULL;
-	 )
-
-EchoLight_ *(*
-_echoLightNew[ECHO_LIGHT_MAX+1])(void) = {
-  NULL,
-  (EchoLight_ *(*)(void))_echoLightDirectional_new,
-  (EchoLight_ *(*)(void))_echoLightArea_new
-};
-
-EchoLight_ *
-echoLightNew(int type) {
+/*
+******* echoLightPosition()
+**
+** sets "pos" to xyz position for current sample of given light
+*/
+void
+echoLightPosition(echoPos_t pos[3], echoObject *light,
+		  echoThreadState *tstate) {
+  char me[]="echoLightPos";
+  echoPos_t x, y;
+  echoRectangle *rectLight;
   
-  return _echoLightNew[type]();
+  x = tstate->jitt[0 + 2*echoJittableLight] + 0.5;
+  y = tstate->jitt[1 + 2*echoJittableLight] + 0.5;
+  switch(light->type) {
+  case echoTypeRectangle:
+    rectLight = RECTANGLE(light);
+    ELL_3V_SCALEADD3(pos, 1, rectLight->origin,
+		     x, rectLight->edge0,
+		     y, rectLight->edge1);
+    break;
+  default:
+    fprintf(stderr, "%s: currently only support echoTypeRectangle lights", me);
+    break;
+  }
+  return;
 }
 
-/* ---------------------------------------------------- */
-
-EchoLightArea *
-_echoLightArea_nix(EchoLightArea *area) {
+/*
+******* echoLightColor()
+**
+** sets "col" to RGB color for current sample of given light, which
+** is at distance Ldist.  Knowing distance allows computation of the 
+** inverse square fall-off of light intensity
+*/
+void
+echoLightColor(echoCol_t rgb[3], echoPos_t Ldist,
+	       echoObject *light, echoRTParm *parm, echoThreadState *tstate) {
+  echoCol_t rgba[4], falloff;
+  echoPos_t x, y;
   
-  /* ??? */
-  free(area);
-  return NULL;
-}
-
-EchoLight_ *(*
-_echoLightNix[ECHO_LIGHT_MAX+1])(EchoLight_ *) = {
-  NULL,
-  (EchoLight_ *(*)(EchoLight_ *))airFree,
-  (EchoLight_ *(*)(EchoLight_ *))_echoLightArea_nix
-};
-
-EchoLight_ *
-echoLightNix(EchoLight_ *light) {
-
-  return _echoLightNix[light->type](light);
-}
-
-airArray *
-echoLightArrayNew() {
-  airArray *ret;
-
-  ret = airArrayNew(NULL, NULL, sizeof(EchoLight_ *), 1);
-  airArrayPointerCB(ret, airNull, (void *(*)(void *))echoLightNix);
-  return ret;
+  x = tstate->jitt[0 + 2*echoJittableLight] + 0.5;
+  y = tstate->jitt[1 + 2*echoJittableLight] + 0.5;
+  if (light->ntext) {
+    echoTextureLookup(rgba, light->ntext, x, y, parm);
+    ELL_3V_COPY(rgb, rgba);
+  } else {
+    ELL_3V_COPY(rgb, light->rgba);
+  }
+  ELL_3V_SCALE(rgb, light->mat[echoMatterLightPower], rgb);
+  if (light->mat[echoMatterLightUnit]) {
+    falloff = light->mat[echoMatterLightUnit]/Ldist;
+    falloff *= falloff;
+    ELL_3V_SCALE(rgb, falloff, rgb);
+  }
+  
+  return;
 }
 
 void
-echoLightArrayAdd(airArray *lightArr, EchoLight_ *light) {
-  int idx;
-  
-  if (!(lightArr && light))
-    return;
+echoEnvmapLookup(echoCol_t rgb[3], echoPos_t norm[3], Nrrd *envmap) {
+  int qn;
+  float *data;
 
-  idx = airArrayIncrLen(lightArr, 1);
-  ((EchoLight_ **)lightArr->data)[idx] = light;
+#if !ECHO_POS_FLOAT
+  float norm_f[3];
+  ELL_3V_COPY(norm_f, norm);
+  qn = limnVtoQN[limnQN_16checker](norm_f);
+#else
+  qn = limnVtoQN[limnQN_16checker](norm);
+#endif
+  data = (float*)(envmap->data) + 3*qn;
+  ELL_3V_COPY(rgb, data);
 }
 
-airArray *
-echoLightArrayNix(airArray *lightArr) {
-  
-  if (lightArr) {
-    airArrayNuke(lightArr);
-  }
-  return NULL;
-}
-
-void
-echoLightDirectionalSet(EchoLight_ *_light,
-			echoCol_t r, echoCol_t g, echoCol_t b,
-			echoPos_t x, echoPos_t y, echoPos_t z) {
-  EchoLightDirectional *light;
-  echoPos_t tmp;
-
-  if (_light && echoLightDirectional == _light->type) {
-    light = (EchoLightDirectional *)_light;
-    ELL_3V_SET(light->col, r, g, b);
-    ELL_3V_SET(light->dir, x, y, z);
-    ELL_3V_NORM(light->dir, light->dir, tmp);
-  }
-}
-  
-void
-echoLightAreaSet(EchoLight_ *_light, EchoObject *obj) {
-  EchoLightArea *light;
-
-  if (_light && echoLightArea == _light->type) {
-    light = (EchoLightArea *)_light;
-    light->obj = obj;
-  }
-}

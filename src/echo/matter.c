@@ -60,11 +60,13 @@ echoMatterPhongSet(echoScene *scene, echoObject *obj,
 		   
 void
 echoMatterGlassSet(echoScene *scene, echoObject *obj,
-		   echoCol_t index, echoCol_t kd, echoCol_t fuzzy) {
+		   echoCol_t index, echoCol_t ka,
+		   echoCol_t kd, echoCol_t fuzzy) {
 
   if (scene && obj && echoObjectHasMatter[obj->type]) {
     obj->matter = echoMatterGlass;
     obj->mat[echoMatterGlassIndex] = index;
+    obj->mat[echoMatterGlassKa] = ka;
     obj->mat[echoMatterGlassKd] = kd;
     obj->mat[echoMatterGlassFuzzy] = fuzzy;
   }
@@ -72,11 +74,13 @@ echoMatterGlassSet(echoScene *scene, echoObject *obj,
 
 void
 echoMatterMetalSet(echoScene *scene, echoObject *obj,
-		   echoCol_t R0, echoCol_t kd, echoCol_t fuzzy) {
+		   echoCol_t R0, echoCol_t ka, 
+		   echoCol_t kd, echoCol_t fuzzy) {
 
   if (scene && obj && echoObjectHasMatter[obj->type]) {
     obj->matter = echoMatterMetal;
     obj->mat[echoMatterMetalR0] = R0;
+    obj->mat[echoMatterMetalKa] = ka;
     obj->mat[echoMatterMetalKd] = kd;
     obj->mat[echoMatterMetalFuzzy] = fuzzy;
   }
@@ -84,13 +88,13 @@ echoMatterMetalSet(echoScene *scene, echoObject *obj,
 
 void
 echoMatterLightSet(echoScene *scene, echoObject *obj,
-		   echoCol_t power) {
+		   echoCol_t power, echoCol_t unit) {
   
   if (scene && obj && echoObjectHasMatter[obj->type]) {
     obj->matter = echoMatterLight;
     obj->mat[echoMatterLightPower] = power;
+    obj->mat[echoMatterLightUnit] = unit;
     /* HEY: god forbid we should change the material of the light after this */
-    fprintf(stderr, "%s: hello\n", "echoMatterLightSet");
     _echoSceneLightAdd(scene, obj);
   }
 }

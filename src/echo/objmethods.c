@@ -85,7 +85,6 @@ NEW_TMPL(Rectangle,
 	 ELL_3V_SET(obj->origin, 0, 0, 0);
 	 ELL_3V_SET(obj->edge0, 0, 0, 0);
 	 ELL_3V_SET(obj->edge1, 0, 0, 0);
-	 obj->area = 0;
 	 )
 
 NEW_TMPL(TriMesh,
@@ -182,18 +181,18 @@ echoObjectAdd(echoScene *scene, echoObject *obj) {
 
 echoObject *(*
 _echoObjectNix[ECHO_TYPE_NUM])(echoObject *) = {
-  (echoObject *(*)(echoObject *))airFree,
-  (echoObject *(*)(echoObject *))airFree,
-  (echoObject *(*)(echoObject *))airFree,
-  (echoObject *(*)(echoObject *))airFree,
-  (echoObject *(*)(echoObject *))airFree,
-  (echoObject *(*)(echoObject *))_echoTriMesh_nix,
-  (echoObject *(*)(echoObject *))airFree,
-  (echoObject *(*)(echoObject *))airFree,
-  (echoObject *(*)(echoObject *))airFree,
-  (echoObject *(*)(echoObject *))airFree,
-  (echoObject *(*)(echoObject *))_echoList_nix,
-  (echoObject *(*)(echoObject *))airFree
+  (echoObject *(*)(echoObject *))airFree,          /* echoTypeSphere */
+  (echoObject *(*)(echoObject *))airFree,          /* echoTypeCylinder */
+  (echoObject *(*)(echoObject *))airFree,          /* echoTypeSuperquad */
+  (echoObject *(*)(echoObject *))airFree,          /* echoTypeCube */
+  (echoObject *(*)(echoObject *))airFree,          /* echoTypeTriangle */
+  (echoObject *(*)(echoObject *))airFree,          /* echoTypeRectangle */
+  (echoObject *(*)(echoObject *))_echoTriMesh_nix, /* echoTypeTriMesh */
+  (echoObject *(*)(echoObject *))airFree,          /* echoTypeIsosurface */
+  (echoObject *(*)(echoObject *))airFree,          /* echoTypeAABBox */
+  (echoObject *(*)(echoObject *))airFree,          /* echoTypeSplit */
+  (echoObject *(*)(echoObject *))_echoList_nix,    /* echoTypeList */
+  (echoObject *(*)(echoObject *))airFree           /* echoTypeInstance */
 };
 
 echoObject *

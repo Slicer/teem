@@ -67,7 +67,7 @@ main(int argc, char **argv) {
 		   0.5, 0, 0,
 		   0, 0.5, 0);
   echoColorSet(rect, 1, 1, 1, 1);
-  echoMatterLightSet(scene, rect, 3);
+  echoMatterLightSet(scene, rect, 3, 1);
   
 
   nraw = nrrdNew();

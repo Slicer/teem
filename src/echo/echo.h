@@ -53,6 +53,8 @@ typedef float echoPos_t;
 #define ell4mINVERT ell4mInvert_f
 #define ell4mPRINT ell4mPrint_f
 #define ell4mDET ell4mDet_f
+#define ell3vPERP ell3vPerp_f
+#define ell4mPOSTMUL ell4mPostMul_f
 #define ECHO_POS_MIN (-FLT_MAX)
 #define ECHO_POS_MAX FLT_MAX
 #else 
@@ -63,6 +65,8 @@ typedef double echoPos_t;
 #define ell4mINVERT ell4mInvert_d
 #define ell4mPRINT ell4mPrint_d
 #define ell4mDET ell4mDet_d
+#define ell3vPERP ell3vPerp_d
+#define ell4mPOSTMUL ell4mPostMul_d
 #define ECHO_POS_MIN (-DBL_MAX)
 #define ECHO_POS_MAX DBL_MAX
 #endif
@@ -90,6 +94,8 @@ typedef struct {
     reuseJitter,       /* don't recompute jitter offsets per pixel */
     permuteJitter,     /* properly permute the various jitter arrays */
     doShadows,         /* do shadowing with shadow rays */
+    textureNN,         /* use nearest-neighbor for texture lookups 
+			  (rather than bilinear interpolation) */
     numSamples,        /* rays per pixel */
     imgResU, imgResV,  /* horz. and vert. image resolution */
     maxRecDepth,       /* max recursion depth */
@@ -104,7 +110,6 @@ typedef struct {
     sqTol;             /* how close newtwon-raphson must get to zero */
   float aperture,      /* shallowness of field */
     timeGamma,         /* gamma for values in time image */
-    refDistance,       /* reference distance for 1/(r*r)'ing area lights */
     boxOpac;           /* opacity of bounding boxes with renderBoxes */
   echoCol_t mr[3];     /* color of max recursion depth being hit */
 } echoRTParm;
@@ -116,13 +121,17 @@ typedef struct {
 
 typedef struct {
   int verbose;
-  Nrrd *nperm,         /* ECHO_JITTABLE_NUM permutations of integers 
-			  [0..parm->numSamples-1], used to re-order the 
-			  parm->numSamples jitter vectors for their various
-			  purposes */
-    *njitt;            /* ECHO_JITTABLE_NUM*parm->samples 2-vectors of 
-			  type echoPos_t in domain [-1/2,1/2]x[-1/2,1/2] */
+  Nrrd *nperm,         /* ECHO_JITTABLE_NUM x parm->numSamples array 
+			  of ints, each column is a (different) random
+			  permutation of [0 .. parm->numSamples-1], each
+			  row corresponds to the different jittables for
+			  a single sample */
+    *njitt;            /* 2 x ECHO_JITTABLE_NUM x parm->numSamples array
+			  of echoPos_t's in domain [-1/2,1/2]; like the nperm
+			  array, each row is comprised of the jitter vectors
+			  (for all possible jittables) to use for one sample */
   int *permBuff;       /* temp array for creating permutations */
+  echoPos_t *jitt;     /* pointer into njitt, good for current sample */
   echoCol_t *chanBuff; /* for storing ray color and other parameters for each
 			  of the parm->numSamples rays in current pixel */
 } echoThreadState;
@@ -190,16 +199,23 @@ enum {
 };
 enum {
   echoMatterGlassIndex, /* 0 */
-  echoMatterGlassKd,    /* 1 */
-  echoMatterGlassFuzzy  /* 2 */
+  echoMatterGlassKa,    /* 1 */
+  echoMatterGlassKd,    /* 2 */
+  echoMatterGlassFuzzy  /* 3 */
 };
 enum {
   echoMatterMetalR0,    /* 0 */
-  echoMatterMetalKd,    /* 1 */
-  echoMatterMetalFuzzy  /* 2 */
+  echoMatterMetalKa,    /* 1 */
+  echoMatterMetalKd,    /* 2 */
+  echoMatterMetalFuzzy  /* 3 */
 };
 enum {
-  echoMatterLightPower  /* 0 */
+  echoMatterLightPower, /* 0 */
+  echoMatterLightUnit   /* 1 : (takes over role of old parm->refDistance)
+			   distance to be considered unity when calculating
+			   inverse square fall-off of light intensity, or,
+			   use 0.0 to mean "this is a directional light"
+			   (with no fall-off at all) */
 };
 
 #define ECHO_MATTER_PARM_NUM 4
@@ -287,7 +303,7 @@ typedef struct {
 typedef struct {
   ECHO_OBJECT_COMMON;
   ECHO_OBJECT_MATTER;
-  echoPos_t origin[3], edge0[3], edge1[3], area;
+  echoPos_t origin[3], edge0[3], edge1[3];
 } echoRectangle;
 
 typedef struct {
@@ -346,8 +362,8 @@ typedef struct {
   airArray *catArr;
   echoObject **rend;   /* array of top-level objects to be rendered */
   airArray *rendArr;
-  echoObject **lit;    /* convenience pointers to lights within cat[] */
-  airArray *litArr;
+  echoObject **light;  /* convenience pointers to lights within cat[] */
+  airArray *lightArr;
   Nrrd **nrrd;         /* nrrds for textures and isosurfaces */
   airArray *nrrdArr;
   Nrrd *envmap;        /* 16checker-based diffuse environment map,
@@ -382,6 +398,7 @@ typedef struct {
     u, v;               /* sometimes needed for texturing */
   echoPos_t norm[3],    /* computed with every intersection */
     view[3],            /* always used with coloring */
+    refl[3],            /* reflection of view across line spanned by normal */
     pos[3];             /* always used with coloring (and perhaps texturing) */
   int depth,            /* the depth of the ray that generated this intx */
     face,               /* in intx with cube, which face was hit 
@@ -453,23 +470,50 @@ extern void echoMatterPhongSet(echoScene *scene, echoObject *obj,
 			       echoCol_t ka, echoCol_t kd,
 			       echoCol_t ks, echoCol_t sp);
 extern void echoMatterGlassSet(echoScene *scene, echoObject *obj,
-			       echoCol_t index, echoCol_t kd, echoCol_t fuzzy);
+			       echoCol_t index, echoCol_t ka,
+			       echoCol_t kd, echoCol_t fuzzy);
 extern void echoMatterMetalSet(echoScene *scene, echoObject *obj,
-			       echoCol_t R0, echoCol_t kd, echoCol_t fuzzy);
+			       echoCol_t R0, echoCol_t ka,
+			       echoCol_t kd, echoCol_t fuzzy);
 extern void echoMatterLightSet(echoScene *scene, echoObject *obj,
-			       echoCol_t power);
+			       echoCol_t power, echoCol_t unit);
 extern void echoMatterTextureSet(echoScene *scene, echoObject *obj,
 				 Nrrd *ntext);
+
+/* lightEcho.c ------------------------------------------- */
+extern void echoLightPosition(echoPos_t pos[3], echoObject *light,
+			      echoThreadState *tstate);
+extern void echoLightColor(echoCol_t rgb[3], echoPos_t Ldist,
+			   echoObject *light, echoRTParm *parm,
+			   echoThreadState *tstate);
+extern void echoEnvmapLookup(echoCol_t rgb[3], echoPos_t norm[3],
+			     Nrrd *envmap);
+
+/* color.c ------------------------------------------- */
+extern void echoTextureLookup(echoCol_t rgba[4], Nrrd *ntext,
+			      echoPos_t u, echoPos_t v, echoRTParm *parm);
+extern void echoIntxSurfaceColor(echoCol_t rgba[4], echoIntx *intx,
+				 echoRTParm *parm);
+extern void echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3],
+			       echoCol_t spec[3],
+			       echoCol_t sp,
+			       echoIntx *intx, echoScene *scene,
+			       echoRTParm *parm, echoThreadState *tstate);
+extern void echoIntxFuzzify(echoIntx *intx, echoCol_t fuzz,
+			    echoThreadState *tstate);
 
 /* intx.c ------------------------------------------- */
 extern int echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene,
 		       echoRTParm *parm, echoThreadState *tstate);
+extern void echoIntxColor(echoCol_t rgba[4], echoIntx *intx,
+			  echoScene *scene, echoRTParm *parm,
+			  echoThreadState *tstate);
 
 /* renderEcho.c ---------------------------------------- */
 extern int echoThreadStateInit(echoThreadState *tstate,
 			       echoRTParm *parm, echoGlobalState *gstate);
 extern void echoJitterCompute(echoRTParm *parm, echoThreadState *state);
-extern void echoRayColor(echoCol_t *chan, int samp, echoRay *ray,
+extern void echoRayColor(echoCol_t rgba[4], echoRay *ray,
 			 echoScene *scene, echoRTParm *parm,
 			 echoThreadState *tstate);
 extern void echoChannelAverage(echoCol_t *img,

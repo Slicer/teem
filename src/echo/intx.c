@@ -20,6 +20,23 @@
 #include "echo.h"
 #include "privateEcho.h"
 
+/*
+** TODO: do whatever possible to minimize the amount of work 
+** needed for shadow rays 
+*/
+
+/*
+** ALL of the intersection functions are responsible for setting 
+** 1) intx->norm to a NORMALIZED direction
+** 2) intx->t
+** 3) intx->obj
+** Specifically, these things must be set for non-shadow rays.  Setting
+** them for shadow rays is optional. Setting intx->u and intx->v texture
+** coords is always optional.
+**
+** Setting intx->pos and intx->view (normalized) is done by echoRayIntx
+*/
+
 int
 _echoRayIntx_Noop(RAYINTX_ARGS(Object)) {
 
@@ -102,7 +119,7 @@ _echoRayIntx_CubeSolid(echoPos_t *tminP, echoPos_t *tmaxP,
 
 int
 _echoRayIntx_Sphere(RAYINTX_ARGS(Sphere)) {
-  echoPos_t t, A, B, C, r[3], dscr, pos[3];
+  echoPos_t t, A, B, C, r[3], dscr, pos[3], tmp;
 
   ELL_3V_SUB(r, ray->from, obj->pos);
   A = ELL_3V_DOT(ray->dir, ray->dir);
@@ -126,19 +143,16 @@ _echoRayIntx_Sphere(RAYINTX_ARGS(Sphere)) {
   intx->t = t;
   ELL_3V_SCALEADD(pos, 1, ray->from, t, ray->dir);
   ELL_3V_SUB(intx->norm, pos, obj->pos);
+  ELL_3V_NORM(intx->norm, intx->norm, tmp);
   intx->obj = OBJECT(obj);
-  /* set in intx:
-     yes: t, norm
-     no: u, v, view, pos
-  */
+  /* does NOT set u, v */
   return AIR_TRUE;
 }
 
 void
 _echoRayIntxUV_Sphere(echoIntx *intx) {
-  echoPos_t len, u, v;
+  echoPos_t u, v;
 
-  ELL_3V_NORM(intx->norm, intx->norm, len);
   if (intx->norm[0] || intx->norm[1]) {
     u = atan2(intx->norm[1], intx->norm[0]);
     intx->u = AIR_AFFINE(-M_PI, u, M_PI, 0.0, 1.0);
@@ -156,7 +170,7 @@ _echoRayIntxUV_Sphere(echoIntx *intx) {
 int
 _echoRayIntx_Cylinder(RAYINTX_ARGS(Cylinder)) {
   echoPos_t A, B, C, aa, bb, cc, dd, ee, ff, dscr, cylt1, cylt2, t, tmax,
-    twot[2], cylp1, cylp2, pos[3];
+    twot[2], cylp1, cylp2, pos[3], tmp;
   int tidx, radi0, radi1, twocap[2], cap;
 
   if (!_echoRayIntx_CubeSolid(&t, &tmax,
@@ -272,11 +286,9 @@ _echoRayIntx_Cylinder(RAYINTX_ARGS(Cylinder)) {
     ELL_3V_SET(intx->norm, (1-cap)*pos[0], (1-cap)*pos[1],     cap*pos[2]);
     break;
   }
+  ELL_3V_NORM(intx->norm, intx->norm, tmp);
   intx->obj = OBJECT(obj);
-  /* set in intx:
-     yes: t, norm
-     no: u, v, view, pos
-  */
+  /* does NOT set u, v */
   return AIR_TRUE;
 }
 
@@ -375,7 +387,7 @@ _echo_LogSuperquadZ_vg(echoPos_t grad[3],
 
 int
 _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
-  echoPos_t T0, T1=0, tmin, tmax, pos[3], V0, V1=0, dV, dV0, grad[3],
+  echoPos_t T0, T1=0, tmin, tmax, pos[3], V0, V1=0, dV, dV0, grad[3], tmp,
     (*vg)(echoPos_t[3],
 	  echoPos_t, echoPos_t, echoPos_t,
 	  echoPos_t, echoPos_t);
@@ -488,32 +500,13 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
   }
   intx->t = T1;
   VALGRAD(V1, intx->norm, dV, ray->from, T1, ray->dir);
+  ELL_3V_NORM(intx->norm, intx->norm, tmp);
   intx->obj = OBJECT(obj);
   /* set in intx:
      yes: t, norm
-     no: u, v, view, pos
+     no: u, v
   */
   return AIR_TRUE;
-}
-
-void
-_echoRayIntxUV_TriMesh(echoIntx *intx) {
-  echoPos_t u, v, norm[3], len;
-  echoTriMesh *trim;
-
-  trim = TRIMESH(intx->obj);
-  ELL_3V_SUB(norm, intx->pos, trim->meanvert);
-  ELL_3V_NORM(norm, norm, len);
-  if (norm[0] || norm[1]) {
-    u = atan2(norm[1], norm[0]);
-    intx->u = AIR_AFFINE(-M_PI, u, M_PI, 0.0, 1.0);
-    v = -asin(norm[2]);
-    intx->v = AIR_AFFINE(-M_PI/2, v, M_PI/2, 0.0, 1.0);
-  }
-  else {
-    intx->u = 0;
-    intx->v = AIR_AFFINE(1.0, norm[2], -1.0, 0.0, 1.0);
-  }
 }
 
 int
@@ -539,10 +532,7 @@ _echoRayIntx_Cube(RAYINTX_ARGS(Cube)) {
 	   "_echoRayIntx_Cube", ax,
 	   intx->norm[0], intx->norm[1], intx->norm[2]);
   }
-  /* set in intx:
-     yes: t, norm, face
-     no: u, v, view, pos
-  */
+  /* does NOT set u, v */
   return AIR_TRUE;
 }
 
@@ -615,7 +605,7 @@ _echoRayIntxUV_Cube(echoIntx *intx) {
 
 int
 _echoRayIntx_Rectangle(RAYINTX_ARGS(Rectangle)) {
-  echoPos_t pvec[3], qvec[3], tvec[3], det, t, u, v, *edge0, *edge1;
+  echoPos_t pvec[3], qvec[3], tvec[3], det, t, u, v, *edge0, *edge1, tmp;
   
   if (echoMatterLight == obj->matter
       && (ray->shadow || !parm->renderLights)) {
@@ -630,17 +620,15 @@ _echoRayIntx_Rectangle(RAYINTX_ARGS(Rectangle)) {
   intx->u = u;
   intx->v = v;
   ELL_3V_CROSS(intx->norm, edge0, edge1);
+  ELL_3V_NORM(intx->norm, intx->norm, tmp);
   intx->obj = OBJECT(obj);
-  /* set in intx:
-     yes: t, u, v, norm
-     no: pos, view
-  */
+  /* DOES set u, v */
   return AIR_TRUE;
 }
 
 int
 _echoRayIntx_Triangle(RAYINTX_ARGS(Triangle)) {
-  echoPos_t pvec[3], qvec[3], tvec[3], det, t, u, v, edge0[3], edge1[3];
+  echoPos_t pvec[3], qvec[3], tvec[3], det, t, u, v, edge0[3], edge1[3], tmp;
   
   ELL_3V_SUB(edge0, obj->vert[1], obj->vert[0]);
   ELL_3V_SUB(edge1, obj->vert[2], obj->vert[0]);
@@ -651,18 +639,16 @@ _echoRayIntx_Triangle(RAYINTX_ARGS(Triangle)) {
   intx->u = u;
   intx->v = v;
   ELL_3V_CROSS(intx->norm, edge0, edge1);
+  ELL_3V_NORM(intx->norm, intx->norm, tmp);
   intx->obj = (echoObject *)obj;
-  /* set in intx:
-     yes: t, u, v, norm
-     no: pos, view
-  */
+  /* DOES set u, v */
   return AIR_TRUE;
 }
 
 int
 _echoRayIntx_TriMesh(RAYINTX_ARGS(TriMesh)) {
   echoPos_t *pos, vert0[3], edge0[3], edge1[3], pvec[3], qvec[3], tvec[3],
-    det, t, tmax, u, v;
+    det, t, tmax, u, v, tmp;
   echoTriMesh *trim;
   int i, ret;
 
@@ -694,14 +680,34 @@ _echoRayIntx_TriMesh(RAYINTX_ARGS(TriMesh)) {
       return AIR_TRUE;
     }
     intx->t = ray->faar = t;
-    intx->u = u;
-    intx->v = v;
     ELL_3V_CROSS(intx->norm, edge0, edge1);
+    ELL_3V_NORM(intx->norm, intx->norm, tmp);
     intx->obj = (echoObject *)obj;
     intx->face = i;
     ret = AIR_TRUE;
   }
+  /* does NOT set u, v */
   return ret;
+}
+
+void
+_echoRayIntxUV_TriMesh(echoIntx *intx) {
+  echoPos_t u, v, norm[3], len;
+  echoTriMesh *trim;
+
+  trim = TRIMESH(intx->obj);
+  ELL_3V_SUB(norm, intx->pos, trim->meanvert);
+  ELL_3V_NORM(norm, norm, len);
+  if (norm[0] || norm[1]) {
+    u = atan2(norm[1], norm[0]);
+    intx->u = AIR_AFFINE(-M_PI, u, M_PI, 0.0, 1.0);
+    v = -asin(norm[2]);
+    intx->v = AIR_AFFINE(-M_PI/2, v, M_PI/2, 0.0, 1.0);
+  }
+  else {
+    intx->u = 0;
+    intx->v = AIR_AFFINE(1.0, norm[2], -1.0, 0.0, 1.0);
+  }
 }
 
 int
@@ -789,25 +795,14 @@ _echoRayIntx_List(RAYINTX_ARGS(List)) {
   echoObject *kid;
 
   ret = AIR_FALSE;
-  if (tstate->verbose) {
-    printf("_echoRayIntx_List(d=%d): have %d kids to test\n",
-	   ray->depth, obj->objArr->len);
-  }
   for (i=0; i<obj->objArr->len; i++) {
     kid = obj->obj[i];
-    if (0 && tstate->verbose) {
-      printf("_echoRayIntx_List: testing a %d ... ", kid->type);
-    }
     if (_echoRayIntx[kid->type](intx, ray, kid, parm, tstate)) {
       ray->faar = intx->t;
       ret = AIR_TRUE;
-      if (0 && tstate->verbose) {
-	printf("YES\n");
-      }
-    }
-    else {
-      if (0 && tstate->verbose) {
-	printf("YES\n");
+      if (ray->shadow) {
+	/* no point in testing any further */
+	return ret;
       }
     }
   }
@@ -817,7 +812,7 @@ _echoRayIntx_List(RAYINTX_ARGS(List)) {
 
 int
 _echoRayIntx_Instance(RAYINTX_ARGS(Instance)) {
-  echoPos_t a[4], b[4];
+  echoPos_t a[4], b[4], tmp;
   echoRay iray;
 
   /*
@@ -825,7 +820,8 @@ _echoRayIntx_Instance(RAYINTX_ARGS(Instance)) {
   ELL_3V_COPY(iray.dir, ray->dir);
   */
   ELL_4V_SET(a, ray->from[0], ray->from[1], ray->from[2], 1);
-  ELL_4MV_MUL(b, obj->Mi, a);  ELL_34V_HOMOG(iray.from, b);
+  ELL_4MV_MUL(b, obj->Mi, a);
+  ELL_34V_HOMOG(iray.from, b);
   if (0 && tstate->verbose) {
     ell4mPRINT(stdout, obj->Mi);
     printf("from (%g,%g,%g)\n   -- Mi --> (%g,%g,%g,%g)\n   --> (%g,%g,%g)\n",
@@ -834,7 +830,8 @@ _echoRayIntx_Instance(RAYINTX_ARGS(Instance)) {
 	   iray.from[0], iray.from[1], iray.from[2]);
   }
   ELL_4V_SET(a, ray->dir[0], ray->dir[1], ray->dir[2], 0);
-  ELL_4MV_MUL(b, obj->Mi, a);   ELL_3V_COPY(iray.dir, b);
+  ELL_4MV_MUL(b, obj->Mi, a); 
+  ELL_3V_COPY(iray.dir, b);
   if (0 && tstate->verbose) {
     printf("dir (%g,%g,%g)\n   -- Mi --> (%g,%g,%g,%g)\n   --> (%g,%g,%g)\n",
 	   a[0], a[1], a[2],
@@ -851,6 +848,7 @@ _echoRayIntx_Instance(RAYINTX_ARGS(Instance)) {
     ELL_4V_SET(a, intx->norm[0], intx->norm[1], intx->norm[2], 0);
     ELL_4MV_TMUL(b, obj->Mi, a);
     ELL_3V_COPY(intx->norm, b);
+    ELL_3V_NORM(intx->norm, intx->norm, tmp);
     if (tstate->verbose) {
       printf("hit a %d with M == \n", obj->obj->type);
       ell4mPRINT(stdout, obj->M);
@@ -867,7 +865,11 @@ void
 _echoRayIntxUV_Noop(echoIntx *intx) {
 
 }
-	      
+
+/*
+** NB: the intersections with real objects need to normalize
+** intx->norm
+*/      
 _echoRayIntx_t
 _echoRayIntx[ECHO_TYPE_NUM] = {
   (_echoRayIntx_t)_echoRayIntx_Sphere,
@@ -886,18 +888,18 @@ _echoRayIntx[ECHO_TYPE_NUM] = {
 
 _echoRayIntxUV_t
 _echoRayIntxUV[ECHO_TYPE_NUM] = {
-  _echoRayIntxUV_Sphere,
-  _echoRayIntxUV_Noop,
-  _echoRayIntxUV_Noop,
-  _echoRayIntxUV_Cube,
-  _echoRayIntxUV_Noop,
-  _echoRayIntxUV_Noop,
-  _echoRayIntxUV_TriMesh,
-  _echoRayIntxUV_Noop,
-  _echoRayIntxUV_Noop,
-  _echoRayIntxUV_Noop,
-  _echoRayIntxUV_Noop,
-  _echoRayIntxUV_Noop
+  _echoRayIntxUV_Sphere,  /* echoTypeSphere */
+  _echoRayIntxUV_Noop,    /* echoTypeCylinder */
+  _echoRayIntxUV_Noop,    /* echoTypeSuperquad */
+  _echoRayIntxUV_Cube,    /* echoTypeCube */
+  _echoRayIntxUV_Noop,    /* echoTypeTriangle */
+  _echoRayIntxUV_Noop,    /* echoTypeRectangle */
+  _echoRayIntxUV_TriMesh, /* echoTypeTriMesh */
+  _echoRayIntxUV_Noop,    /* echoTypeIsosurface */
+  _echoRayIntxUV_Noop,    /* echoTypeAABBox */
+  _echoRayIntxUV_Noop,    /* echoTypeSplit */
+  _echoRayIntxUV_Noop,    /* echoTypeList */
+  _echoRayIntxUV_Noop     /* echoTypeInstance */
 };
 
 int
@@ -905,6 +907,7 @@ echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene,
 	    echoRTParm *parm, echoThreadState *tstate) {
   int idx, ret;
   echoObject *kid;
+  echoPos_t tmp;
   
   ret = AIR_FALSE;
   for (idx=0; idx<scene->rendArr->len; idx++) {
@@ -912,7 +915,20 @@ echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene,
     if (_echoRayIntx[kid->type](intx, ray, kid, parm, tstate)) {
       ray->faar = intx->t;
       ret = AIR_TRUE;
+      if (ray->shadow) {
+	/* no point in testing any further */
+	return ret;
+      }
     }
+  }
+  if (ret) {
+    /* being here means we're not a shadow ray */
+    ELL_3V_SCALEADD(intx->pos, 1, ray->from, intx->t, ray->dir);
+    ELL_3V_SCALE(intx->view, -1, ray->dir);
+    ELL_3V_NORM(intx->view, intx->view, tmp);
+    /* this is needed for phong materials, and for glass and metal,
+       it is either used directly, or as a reference in fuzzification */
+    ECHO_REFLECT(intx->refl, intx->norm, intx->view, tmp);
   }
 
   return ret;
