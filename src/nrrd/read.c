@@ -19,6 +19,9 @@
 
 #include "nrrd.h"
 #include "privateNrrd.h"
+#ifdef TEEM_ZLIB
+#  include <zlib.h> /* needed to read gzipped raw data */
+#endif
 
 char _nrrdRelDirFlag[] = "./";
 char _nrrdFieldSep[] = " \t";
@@ -337,6 +340,145 @@ _nrrdReadDataAscii(Nrrd *nrrd, NrrdIO *io) {
   return 0;
 }
 
+#ifdef TEEM_ZLIB
+int
+_nrrdReadDataZip(Nrrd *nrrd, NrrdIO *io) {
+  char me[]="_nrrdReadDataZip", err[AIR_STRLEN_MED];
+  size_t num, bsize, size, total_read;
+  int block_size, read, zerrnum, i;
+  char *data;
+  gzFile gzfin;
+  
+  /* this shouldn't actually be necessary ... */
+  if (!nrrdElementSize(nrrd)) {
+    sprintf(err, "%s: nrrd reports zero element size!", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  num = nrrdElementNumber(nrrd);
+  if (!num) {
+    sprintf(err, "%s: calculated number of elements to be zero!", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  bsize = num * nrrdElementSize(nrrd);
+  size = bsize;
+  if (num != bsize/nrrdElementSize(nrrd)) {
+    fprintf(stderr,
+	    "%s: PANIC: \"size_t\" can't represent byte-size of data.\n", me);
+    exit(1);
+  }
+
+  /* Allocate memory for the incoming data. */
+  if (_nrrdCalloc(nrrd)) {
+    sprintf(err, "%s:", me); biffAdd(NRRD, err); return 1;
+  }
+
+  /* Create the gzFile for reading in the gzipped data. */
+  if (!(gzfin = _nrrdGzOpen(io->dataFile, "r"))) {
+    /* there was a problem */
+    sprintf(err, "%s: error opening gzFile", me);
+    biffAdd(NRRD, err);
+    return 1;
+  }
+
+  /* Here is where we do the byte skipping. */
+  for(i = 0; i < io->byteSkip; i++) {
+    unsigned char b;
+    /* Check to see if a single byte was able to be read. */
+    if (_nrrdGzRead(gzfin, &b, 1) != 1) {
+      sprintf(err, "%s: hit an error skipping byte %d of %d",
+	      me, i, io->byteSkip);
+      biffAdd(NRRD, err);
+      return 1;
+    }
+  }
+  
+  /* _nrrdGzRead takes an unsigned int for the number of bytes to read,
+     but it returns an int for the number that was actually read.  This is
+     really stupid, but you do what you can do.  I can't just pass in
+     the size, because it will be too large for an int.  Therefore it
+     must be read in chunks if the size is larger than INT_MAX.
+  */
+
+  if (size <= INT_MAX) {
+    block_size = (int)size;
+  } else {
+    block_size = INT_MAX;
+  }
+
+  /* This counter will help us to make sure that we read as much data
+     as we think we should. */
+  total_read = 0;
+  /* Pointer to the blocks as we read them. */
+  data = nrrd->data;
+  
+  /* Ok, now we can begin reading. */
+  while ((read = _nrrdGzRead(gzfin, data, block_size))) {
+    /* Increment the data pointer to the next available spot. */
+    data += read; 
+    total_read += read;
+    /* We only want to read as much data as we need, so we need to check
+       to make sure that we don't request data that might be there but that
+       we don't want.  This will reduce block_size when we get to the last
+       block (which may be smaller than block_size).
+    */
+    if (size - total_read < block_size)
+      block_size = (int)(size - total_read);
+  }
+  
+  /* Close the gzFile.  Since _nrrdGzClose does not close the FILE* we
+     will not encounter problems when io->dataFile is closed later. */
+  zerrnum = _nrrdGzClose(gzfin);
+  if (zerrnum != 0) {
+    /* _nrrdGzClose is based on the zlib interface, so if there was an
+       error, we need to get the message corresponding to error code
+       from zlib. */
+    const char* errstring= gzerror(gzfin, &zerrnum);
+    if (zerrnum != Z_ERRNO) {
+      sprintf(err, "%s: error closing gzFile: %s",
+	      me, errstring);
+    } else {
+      /* If we wanted we could get the error from the system, but I
+	 dont' want to. :) */
+      sprintf(err, "%s: system error closing gzFile:", me);
+    }
+    biffAdd(NRRD, err);
+    return 1;
+  }
+  
+  /* Check to see if we got out as much as we thought we should. */
+  if (total_read != size) {
+    sprintf(err, "%s: expected " AIR_SIZE_T_FMT " bytes and received "
+	    AIR_SIZE_T_FMT " bytes",
+	    me, size, total_read);
+    biffAdd(NRRD, err);
+    return 1;
+  }
+  
+  if (airEndianUnknown != io->endian) {
+    /* we positively know the endianness of data just read */
+    if (io->endian != AIR_ENDIAN && 1 < nrrdElementSize(nrrd)) {
+      /* the endiannesses of the data and the architecture are different,
+	 and, the size of the data elements is bigger than a byte */
+      if (2 <= nrrdStateVerboseIO) {
+	/*
+	fprintf(stderr, "!%s: io->endian = %d, AIR_ENDIAN = %d\n", 
+		me, io->endian, AIR_ENDIAN);
+	*/
+	fprintf(stderr, "(%s: fixing endianness ... ", me);
+	fflush(stderr);
+      }
+      nrrdSwapEndian(nrrd);
+      if (2 <= nrrdStateVerboseIO) {
+	fprintf(stderr, "done)");
+	fflush(stderr);
+      }
+    }
+  }
+  
+  return 0;
+}
+#endif
+
 /*
 ** The data readers are responsible for memory allocation.
 ** This is necessitated by the memory restrictions of direct I/O
@@ -345,13 +487,20 @@ int (*
 nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
   NULL,
   _nrrdReadDataRaw,
-  _nrrdReadDataAscii
+  _nrrdReadDataAscii,
+#ifdef TEEM_ZLIB
+  _nrrdReadDataZip,
+#endif
 };
 
 int
 nrrdLineSkip(NrrdIO *io) {
   int i, skipRet;
   char me[]="nrrdLineSkip", err[AIR_STRLEN_MED];
+
+  /* Just a note for gzipped data.  If you don't actually have ascii
+     headers on top of your gzipped data then you will get junk from
+     your data.  Quoting Gordon: "Junk in, junk out." */
   
   for (i=1; i<=io->lineSkip; i++) {
     if (_nrrdOneLine(&skipRet, io, io->dataFile)) {
@@ -374,7 +523,8 @@ nrrdByteSkip(NrrdIO *io) {
   for (i=1; i<=io->byteSkip; i++) {
     skipRet = fgetc(io->dataFile);
     if (EOF == skipRet) {
-      sprintf(err, "%s: hit EOF skipping byte %d of %d", me, i, io->byteSkip);
+      sprintf(err, "%s: hit EOF skipping byte %d of %d",
+	      me, i, io->byteSkip);
       biffAdd(NRRD, err); return 1;
     }
   }
@@ -466,12 +616,14 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
     }
     return 1;
   }
-  if (nrrdByteSkip(io)) {
-    if ((err = (char*)malloc(AIR_STRLEN_MED))) {
-      sprintf(err, "%s: couldn't skip bytes", me);
-      biffAdd(NRRD, err); free(err);
+  if (!nrrdEncodingCompression[io->encoding]) {
+    if (nrrdByteSkip(io)) {
+      if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+	sprintf(err, "%s: couldn't skip bytes", me);
+	biffAdd(NRRD, err); free(err);
+      }
+      return 1;
     }
-    return 1;
   }
 
   if (!io->skipData) {
