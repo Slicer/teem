@@ -101,10 +101,15 @@ _limnPSDrawFace(limnObj *obj, limnPart *r, limnFace *f,
 	    p->d[0], p->d[1], vi ? "L" : "M");
   }
   sp = obj->s + f->sp;
+  /*
+  fprintf(stderr, "RGB = %g %g %g ->", r->rgba[0], r->rgba[1], r->rgba[2]);
+  */
   R = sp->k[0]*r->rgba[0];
   G = sp->k[0]*r->rgba[1];
   B = sp->k[0]*r->rgba[2];
-  /* fprintf(stderr, "RGB = %g %g %g ->", R, G, B); */
+  /*
+  fprintf(stderr, "RGB = %g %g %g ->", R, G, B);
+  */
   if (nmap) {
     qn = limnVtoQN[limnQN_16checker](f->wn);
     map = nmap->data;
@@ -113,11 +118,15 @@ _limnPSDrawFace(limnObj *obj, limnPart *r, limnFace *f,
     B += sp->k[1]*r->rgba[2]*map[2 + 3*qn];
   }
   /* HEY: not evaluating phong specular for now */
-  /* fprintf(stderr, "%g %g %g ->", R, G, B); */
+  /*
+  fprintf(stderr, "%g %g %g ->", R, G, B);
+  */
   R = AIR_CLAMP(0, R, 1);
   G = AIR_CLAMP(0, G, 1);
   B = AIR_CLAMP(0, B, 1);
-  /* fprintf(stderr, "%g %g %g\n", R, G, B); */
+  /*
+  fprintf(stderr, "%g %g %g\n", R, G, B);
+  */
   if (R == G && G == B) {
     fprintf(win->file, "CP %g Gr F\n", R);
   }
