@@ -75,10 +75,10 @@ tenSizeNormalize(Nrrd *nout, Nrrd *nin, float _weight[3],
 ** scales the "deviatoric" part of a tensor up or down
 */
 int
-tenAnisoScale(Nrrd *nout, Nrrd *nin, float scale) {
+tenAnisoScale(Nrrd *nout, Nrrd *nin, float scale, int fixDet) {
   char me[]="tenAnisoScale", err[AIR_STRLEN_MED];
   size_t I, N;
-  float *tin, *tout, ttr;
+  float *tin, *tout, mean, eval[3], evec[9];
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -98,14 +98,33 @@ tenAnisoScale(Nrrd *nout, Nrrd *nin, float scale) {
   tout = (float *)(nout->data);
   N = nrrdElementNumber(nin)/7;
   for (I=0; I<N; I++) {
-    ttr = (tin[1] + tin[4] + tin[6])/3.0;
-    tout[0] = tin[0];
-    tout[1] = AIR_AFFINE(0, scale, 1, ttr, tin[1]);
-    tout[2] = AIR_AFFINE(0, scale, 1,   0, tin[2]);
-    tout[3] = AIR_AFFINE(0, scale, 1,   0, tin[3]);
-    tout[4] = AIR_AFFINE(0, scale, 1, ttr, tin[4]);
-    tout[5] = AIR_AFFINE(0, scale, 1,   0, tin[5]);
-    tout[6] = AIR_AFFINE(0, scale, 1, ttr, tin[6]);
+    tenEigensolve(eval, evec, tin);
+    eval[0] = AIR_MAX(eval[0], 0.00001);
+    eval[1] = AIR_MAX(eval[1], 0.00001);
+    eval[2] = AIR_MAX(eval[2], 0.00001);
+    if (fixDet) {
+      eval[0] = log(eval[0]);
+      eval[1] = log(eval[1]);
+      eval[2] = log(eval[2]);
+    }
+    mean = (eval[0] + eval[1] + eval[2])/3.0;
+    eval[0] = AIR_LERP(scale, mean, eval[0]);
+    eval[1] = AIR_LERP(scale, mean, eval[1]);
+    eval[2] = AIR_LERP(scale, mean, eval[2]);
+    if (fixDet) {
+      eval[0] = exp(eval[0]);
+      eval[1] = exp(eval[1]);
+      eval[2] = exp(eval[2]);
+    }
+    if (eval[2] < 0) {
+      fprintf(stderr, "%s: WARNING: re-enforcing semi-positive-"
+	      "definiteness on eigenvalues (%g, %g, %g) at sample %d\n", me,
+	      eval[0], eval[1], eval[2], (int)I);
+      eval[0] = AIR_MAX(eval[0], 0.00001);
+      eval[1] = AIR_MAX(eval[1], 0.00001);
+      eval[2] = AIR_MAX(eval[2], 0.00001);
+    }
+    tenMakeOne(tout, tin[0], eval, evec);
     tin += 7;
     tout += 7;
   }

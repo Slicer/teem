@@ -24,7 +24,8 @@
 char *_tend_anscaleInfoL =
   (INFO
    ". This maintains the isotropic component of the tensor, and fixes "
-   "the trace, while scaling up (or down) the \"deviatoric\" component "
+   "either the trace or determinant, "
+   "while scaling up (or down) the \"deviatoric\" component "
    "of the tensor.  Good for exaggerating the shape of nearly isotropic "
    "tensors.");
 
@@ -38,9 +39,13 @@ tend_anscaleMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin, *nout;
   char *outS;
   float scale;
+  int fixDet;
   
   hestOptAdd(&hopt, "s", "scale", airTypeFloat, 1, 1, &scale, NULL,
 	     "Amount by which to scale deviatoric component of tensor.");
+  hestOptAdd(&hopt, "fd", NULL, airTypeInt, 0, 0, &fixDet, NULL,
+	     "instead of fixing the per-sample trace (the default), fix the "
+	     "determinant (ellipsoid volume)");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
 	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
@@ -54,7 +59,7 @@ tend_anscaleMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (tenAnisoScale(nout, nin, scale)) {
+  if (tenAnisoScale(nout, nin, scale, fixDet)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;
