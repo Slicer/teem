@@ -87,7 +87,7 @@ main(int argc, char *argv[]) {
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22;
   float pos[3];
-  int what, ansLen, E=0, iBaseDim, oBaseDim, renorm;
+  int what, ansLen, E=0, iBaseDim, renorm;
   gage_t *answer, *answer2;
   Nrrd *nin;
   gageContext *ctx, *ctx2;
@@ -143,7 +143,6 @@ main(int argc, char *argv[]) {
 
   ansLen = kind->ansLength[what];
   iBaseDim = gageKindScl == kind ? 0 : 1;
-  oBaseDim = 1 == ansLen ? 0 : 1;
   nin->axis[0+iBaseDim].spacing = SPACING(nin->axis[0+iBaseDim].spacing);
   nin->axis[1+iBaseDim].spacing = SPACING(nin->axis[1+iBaseDim].spacing);
   nin->axis[2+iBaseDim].spacing = SPACING(nin->axis[2+iBaseDim].spacing);
