@@ -96,8 +96,7 @@ extern char hestRespFileComment;
 /* methods.c */
 extern hestParm *hestParmNew(void);
 extern hestParm *hestParmNix(hestParm *parm);
-extern hestOpt *hestOptNew(void);
-extern hestOpt *hestOptAdd(hestOpt *opt, 
+extern hestOpt *hestOptAdd(hestOpt **optP, 
 			   char *flag, char *name,
 			   int type, int min, int max,
 			   void *valueP, char *dflt, char *info, ...);

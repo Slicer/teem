@@ -51,6 +51,7 @@ _hestOptInit(hestOpt *opt) {
   opt->kind = opt->alloc = 0;
 }
 
+/*
 hestOpt *
 hestOptNew(void) {
   hestOpt *opt;
@@ -62,9 +63,10 @@ hestOptNew(void) {
   }
   return opt;
 }
+*/
 
 hestOpt *
-hestOptAdd(hestOpt *opt, 
+hestOptAdd(hestOpt **optP, 
 	   char *flag, char *name,
 	   int type, int min, int max,
 	   void *valueP, char *dflt, char *info, ...) {
@@ -72,15 +74,15 @@ hestOptAdd(hestOpt *opt,
   int num;
   va_list ap;
 
-  if (!opt)
+  if (!optP)
     return NULL;
 
-  num = _hestNumOpts(opt);
+  num = *optP ? _hestNumOpts(*optP) : 0;
   if (!(ret = calloc(num+2, sizeof(hestOpt))))
     return NULL;
 
   if (num)
-    memcpy(ret, opt, num*sizeof(hestOpt));
+    memcpy(ret, *optP, num*sizeof(hestOpt));
   ret[num].flag = airStrdup(flag);
   ret[num].name = airStrdup(name);
   ret[num].type = type;
@@ -96,7 +98,8 @@ hestOptAdd(hestOpt *opt,
   }
   _hestOptInit(&(ret[num+1]));
   ret[num+1].min = 1;
-  free(opt);
+  if (*optP)
+    free(*optP);
 
   return ret;
 }

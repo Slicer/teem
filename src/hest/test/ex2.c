@@ -22,10 +22,10 @@
 
 int
 main(int argc, char **argv) {
-  static int res[2], v, numIn;
-  static char **in, *out;
+  int res[2], v, numIn;
+  char **in, *out;
   int n;
-  hestOpt *opt;
+  hestOpt *opt = NULL;
   hestParm *parm;
   char *err = NULL, info[] = 
     "This program does nothing in particular, though it does attempt "
@@ -36,21 +36,23 @@ main(int argc, char **argv) {
   parm = hestParmNew();
   parm->respFileEnable = AIR_TRUE;
 
-  opt = hestOptNew();
-  opt = hestOptAdd(opt, "res",   "sx sy", airTypeInt,    2,  2,   res,
-		   NULL,         "image resolution");
-  opt = hestOptAdd(opt, "v",     "level", airTypeInt,    0,  1,   &v,
-		   "0",          "verbosity level");
-  opt = hestOptAdd(opt, "out",   "file",  airTypeString, 1,  1,   &out,
-		   "output.ppm", "PPM image output");
-  opt = hestOptAdd(opt, NULL,    "input", airTypeString, 1, -1,   &in,
-		   NULL,         "input image file(s)", &numIn);
+  hestOptAdd(&opt, "res",   "sx sy", airTypeInt,    2,  2,  res,  NULL,
+	     "image resolution");
+  hestOptAdd(&opt, "v",     "level", airTypeInt,    0,  1,  &v,   "0",
+	     "verbosity level");
+  hestOptAdd(&opt, "out",   "file",  airTypeString, 1,  1,  &out, "output.ppm",
+	     "PPM image output");
+  hestOptAdd(&opt, NULL,    "input", airTypeString, 1, -1,  &in,  NULL,
+	     "input image file(s)", &numIn);
   
   if (1 == argc) {
     /* didn't get anything at all on command line */
+    /* print program information ... */
     hestInfo(stderr, argv[0], info, parm);
+    /* ... and usage information ... */
     hestUsage(stderr, opt, argv[0], parm);
     hestGlossary(stderr, opt, parm);
+    /* ... and avoid memory leaks */
     opt = hestOptNix(opt);
     parm = hestParmNix(parm);
     exit(1);
@@ -59,8 +61,10 @@ main(int argc, char **argv) {
   /* else we got something, see if we can parse it */
   if (hestParse(opt, argc-1, argv+1, NULL, parm)) {
     fprintf(stderr, "ERROR: %s\n", err);
+    /* print usage information ... */
     hestUsage(stderr, opt, argv[0], parm);
     hestGlossary(stderr, opt, parm);
+    /* ... and then avoid memory leaks */
     opt = hestOptNix(opt);
     parm = hestParmNix(parm);
     exit(1);
@@ -76,7 +80,9 @@ main(int argc, char **argv) {
   }
   printf("\n");
 
+  /* free the memory allocated by parsing ... */
   hestParseFree(opt, parm);
+  /* ... and the other stuff */
   opt = hestOptNix(opt);
   parm = hestParmNix(parm);
   exit(0);
