@@ -20,6 +20,8 @@
 #include "hoover.h"
 #if TEEM_PTHREAD
 #include <pthread.h>
+#elif defined(_WIN32)
+#include <windows.h>
 #endif
 
 #if TEEM_PTHREAD
@@ -137,7 +139,11 @@ typedef struct {
   int errCode;
 } _hooverThreadArg;
 
+#if !TEEM_PTHREAD && defined(_WIN32)
+int WINAPI
+#else
 void *
+#endif
 _hooverThreadBody(void *_arg) {
   _hooverThreadArg *arg;
   void *thread;
@@ -175,7 +181,11 @@ _hooverThreadBody(void *_arg) {
 				      arg->whichThread)) ) {
     arg->errCode = ret;
     arg->whichErr = hooverErrThreadBegin;
+#if !TEEM_PTHREAD && defined(_WIN32)
+    return ret;
+#else
     return arg;
+#endif
   }
   lx = arg->ec->volHLen[0];
   ly = arg->ec->volHLen[1];
@@ -250,7 +260,11 @@ _hooverThreadBody(void *_arg) {
 				       rayDirW, rayDirI)) ) {
 	arg->errCode = ret;
 	arg->whichErr = hooverErrRayBegin;
+#if !TEEM_PTHREAD && defined(_WIN32)
+	return ret;
+#else
 	return arg;
+#endif
       }
       
       sampleI = 0;
@@ -271,7 +285,11 @@ _hooverThreadBody(void *_arg) {
 	  /* sampling failed */
 	  arg->errCode = 0;
 	  arg->whichErr = hooverErrSample;
+#if !TEEM_PTHREAD && defined(_WIN32)
+	  return ret;
+#else
 	  return arg;
+#endif
 	}
 	if (!rayStep) {
 	  /* ray decided to finish itself */
@@ -291,7 +309,11 @@ _hooverThreadBody(void *_arg) {
 				     arg->ctx->user)) ) {
 	arg->errCode = ret;
 	arg->whichErr = hooverErrRayEnd;
+#if !TEEM_PTHREAD && defined(_WIN32)
+	return ret;
+#else
 	return arg;
+#endif
       }
     }  /* end this scanline */
     vI += arg->ctx->numThreads;
@@ -302,11 +324,19 @@ _hooverThreadBody(void *_arg) {
 				    arg->ctx->user)) ) {
     arg->errCode = ret;
     arg->whichErr = hooverErrThreadEnd;
+#if !TEEM_PTHREAD && defined(_WIN32)
+    return ret;
+#else
     return arg;
+#endif
   }
   
   /* returning NULL actually indicates that there was NOT an error */
-  return NULL;
+#if !TEEM_PTHREAD && defined(_WIN32)
+    return 0;
+#else
+    return NULL;
+#endif
 }
 
 /*
@@ -324,6 +354,9 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
 #if TEEM_PTHREAD
   pthread_t thread[HOOVER_THREAD_MAX];
   pthread_attr_t attr;
+#elif defined(_WIN32)
+  HANDLE thread[HOOVER_THREAD_MAX];
+  int errCode;
 #endif
 
   void *render;
@@ -398,6 +431,35 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
       *errCodeP = errArg->errCode;
       *errThreadP = threadIdx;
       return errArg->whichErr;
+    }
+  }
+#elif defined(_WIN32)
+  for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
+    thread[threadIdx] = CreateThread(0, 0, _hooverThreadBody, (void*)&args[threadIdx], 0, 0);
+    if (NULL == thread[threadIdx]) {
+      *errCodeP = GetLastError();
+      *errThreadP = threadIdx;
+      airMopError(mop);
+      return hooverErrThreadCreate;
+    }
+  }
+  for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
+    if (WAIT_FAILED == WaitForSingleObject(thread[threadIdx], INFINITE)) {
+      *errCodeP = GetLastError();
+      *errThreadP = threadIdx;
+      airMopError(mop);
+      return hooverErrThreadJoin;
+    }
+    if (0 == GetExitCodeThread(thread[threadIdx], &errCode)) {
+      *errCodeP = GetLastError();
+      *errThreadP = threadIdx;
+      airMopError(mop);
+      return hooverErrThreadJoin;
+    }
+    if (0 != errCode) {
+      *errCodeP = errCode;
+      *errThreadP = threadIdx;
+      return args[threadIdx].whichErr;
     }
   }
 #else
