@@ -21,6 +21,14 @@
 extern "C" {
 #endif
 
+/*******
+******** NONE of these enums should have values set explicitly in their
+******** definition.  The values should simply start at 0 (for Unknown)
+******** and increase one integer per value.  The _nrrdCheckEnums()
+******** sanity check assumes this, and there is no reason to use 
+******** explicit values for any of the enums.
+*******/
+
 /*
 ******** nrrdFormat enum
 **
@@ -93,8 +101,11 @@ typedef enum {
   nrrdTypeBlock,         /* 11: size user defined at run time; MUST BE LAST */
   nrrdTypeLast
 } nrrdType;
-#define NRRD_TYPE_MAX       11 /* this has to agree with nrrdTypeBlock */
-#define NRRD_TYPE_SIZE_MAX   8 /* sizeof() for largest scalar type supported */
+#define NRRD_TYPE_MAX       11
+#define NRRD_TYPE_SIZE_MAX   8    /* sizeof() largest scalar type */
+#define NRRD_TYPE_BIGGEST double  /* this should be a basic C type which
+				     requires for storage the maximum size
+				     of all the basic C types */
 
 /*
 ******** nrrdEncoding enum
@@ -155,7 +166,7 @@ typedef enum {
 				|\______/|\______/|\______/|
 				X        X        X        X   */
   nrrdCenterCell,            /* 2: samples at middles of things
-				(inherent nature of histogram bins)
+				(characteristic of histogram bins)
 				 \___|___/\___|___/\___|___/
 				     X        X        X       */
   nrrdCenterLast
@@ -190,7 +201,11 @@ typedef enum {
 
 /*
 ** the "endian" enum is actually in the air library, but it is very
-** convenient to have it incorporated into the nrrd enum framework 
+** convenient to have it incorporated into the nrrd enum framework for
+** the purposes of string<-->int conversion.  Unfortunately, the
+** little and big values are 1234 and 4321 respectively, so
+** NRRD_ENDIAN_MAX is not actually the highest valid value, but only
+** an indicator of how many valid values there are.
 */
 #define NRRD_ENDIAN_MAX 2
 
@@ -226,13 +241,20 @@ typedef enum {
 } nrrdField;
 #define NRRD_FIELD_MAX          21
 
+/* oh look, I'm violating my rules outline above for how the enum values
+** should be ordered.  The reason for this is that its just too bizarro
+** to have the logical value of both nrrdNonExistFalse and nrrdNonExistTrue
+** to be (in C) true.  For instance, nrrdHasNonExist() should be able to
+** return a value from this enum which also functions in a C expressions
+** as the expected boolean value
+*/
 typedef enum {
-  nrrdNonExistUnknown,    /* 0 */
+  nrrdNonExistFalse,      /* 0 */
   nrrdNonExistTrue,       /* 1 */
-  nrrdNonExistFalse,      /* 2 */
+  nrrdNonExistUnknown,    /* 2 */
   nrrdNonExistLast
 } nrrdNonExist;
-#define NRRD_NON_EXIST_MAX  2
+#define NRRD_NON_EXIST_MAX   2
 
 /*
 ******** nrrdEnum enum

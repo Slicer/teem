@@ -41,8 +41,7 @@ char
 _nrrdEnumMagicStr[NRRD_MAGIC_MAX+1][NRRD_STRLEN_SMALL] = {
   "(unknown_magic)",
   "NRRD00.01",
-  /* "NRRD0001", */
-  "NRRD00.01",
+  "NRRD00.01",  /* "NRRD0001", */
   "P2",
   "P3",
   "P5",
@@ -444,7 +443,7 @@ nrrdTypeConv[NRRD_TYPE_MAX+1][NRRD_STRLEN_SMALL] = {
 };
 
 /*
-** the setting of NRRD_BIGGEST_TYPE has to be in accordance with this
+** the setting of NRRD_TYPE_BIGGEST has to be in accordance with this
 */
 int 
 nrrdTypeSize[NRRD_TYPE_MAX+1] = {

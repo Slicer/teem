@@ -18,25 +18,23 @@
 
 #include <nrrd.h>
 
-char *me;
-
-void
-usage() {
-  /*                0      1        2      3        4   */  
+int
+usage(char *me) {
+  /*               0      1        2      3        4   */  
   fprintf(stderr,
-	  "usage: histax <nrrdIn> <axis> <bins> <nrrdOut>\n");
-  exit(1);
+	  "usage: %s <nrrdIn> <axis> <bins> <nrrdOut>\n", me);
+  return 1;
 }
 
 int
 main(int argc, char **argv) {
-  char *err, *inStr, *axStr, *binStr, *outStr;
+  char *me, *err, *inStr, *axStr, *binStr, *outStr;
   int axis, bins;
   Nrrd *nin, *nout;
 
   me = argv[0];
   if (5 != argc)
-    usage();
+    return usage(me);
   inStr = argv[1];
   axStr = argv[2];
   binStr = argv[3];
@@ -46,32 +44,32 @@ main(int argc, char **argv) {
       1 != sscanf(binStr, "%d", &bins)) {
     fprintf(stderr, "%s: couldn't parse %s as axis or %s as bins\n",
 	    me, axStr, binStr);
-    exit(1);
+    return 1;
   }
   if (nrrdLoad(nin=nrrdNew(), inStr)) {
     err = biffGet(NRRD);
     fprintf(stderr, 
 	    "%s: trouble reading nrrd from \"%s\":\n%s\n", me, inStr, err);
     free(err);
-    exit(1);
+    return 1;
   }
   
   nout = nrrdNew();
-  if (nrrdHistoAxis(nout, nin, axis, bins)) {
+  if (nrrdHistoAxis(nout, nin, axis, bins, nrrdTypeUChar)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble in nrrdHistoAxis:\n%s\n", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
   if (nrrdSave(outStr, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble writing output to \"%s\":\n%s\n",
 	    me, outStr, err);
     free(err);
-    exit(1);
+    return 1;
   }
 
   nrrdNuke(nin);
   nrrdNuke(nout);
-  exit(0);
+  return 0;
 }

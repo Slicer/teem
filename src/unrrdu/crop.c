@@ -19,10 +19,8 @@
 #include <nrrd.h>
 #include <limits.h>
 
-char *me; 
-
-void
-usage() {
+int
+usage(char *me) {
                       
   fprintf(stderr, /* 0  1        2        3                 argc-2  argc-1*/ 
 	  "usage: %s <nIn> <ax0min> <ax0max> <ax1min> ... <axN-1max> <nOut>\n",
@@ -34,7 +32,7 @@ usage() {
   fprintf(stderr, 
 	  "       position along its respective axis (#samples - 1),\n");
   fprintf(stderr, "and +n/-n is an offset from that position\n");
-  exit(1);
+  return 1;
 }
 
 int
@@ -67,7 +65,7 @@ getint(char *str, int *n, int *offset) {
 
 int
 main(int argc, char *argv[]) {
-  char *inStr, *outStr, *err;
+  char *me, *inStr, *outStr, *err;
   int i, udim, min[NRRD_DIM_MAX], max[NRRD_DIM_MAX], 
     minoffset[NRRD_DIM_MAX], maxoffset[NRRD_DIM_MAX];
   Nrrd *nin, *nout;
@@ -75,11 +73,11 @@ main(int argc, char *argv[]) {
 
   me = argv[0];
   if (0 != (argc-3) % 2) {
-    usage();
+    return usage(me);
   }
   udim = (argc - 3)/2;
   if (!(udim > 1)) {
-    usage();
+    return usage(me);
   }
   inStr = argv[1];
   outStr = argv[argc-1];
@@ -87,24 +85,24 @@ main(int argc, char *argv[]) {
     if (getint(argv[2 + 2*i + 0], min + i, minoffset + i)) {
       printf("%s: Couldn't parse min for axis %d, \"%s\"\n",
 	     me, i, argv[2 + 2*i + 0]);
-      usage();
+      return usage(me);
     }
     if (getint(argv[2 + 2*i + 1], max + i, maxoffset + i)) {
       printf("%s: Couldn't parse max for axis %d, \"%s\"\n",
 	     me, i, argv[2 + 2*i + 1]);
-      usage();
+      return usage(me);
     }
   }
   if (nrrdLoad(nin=nrrdNew(), inStr)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble reading input:%s\n", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
   if (udim != nin->dim) {
     fprintf(stderr, "%s: input nrrd has dimension %d, but given %d axes\n",
 	    me, nin->dim, udim);
-    exit(1);
+    return 1;
   }
   for (i=0; i<=udim-1; i++) {
     if (INT_MAX == min[i])
@@ -114,29 +112,23 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: axis % 2d: %d -> %d\n", me, i, min[i], max[i]);
   }
 
-  fprintf(stderr, "bingo\n");
   t1 = airTime();
-  fprintf(stderr, "bingo\n");
   if (nrrdCrop(nout=nrrdNew(), nin, min, max)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error cropping nrrd:\n%s", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
-  fprintf(stderr, "bingo\n");
   t2 = airTime();
-  fprintf(stderr, "bingo\n");
   fprintf(stderr, "%s: nrrdCrop() took %g seconds\n", me, t2-t1);
-  fprintf(stderr, "bingo\n");
   if (nrrdSave(outStr, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error writing nrrd:\n%s", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
-  fprintf(stderr, "bingo\n");
 
   nrrdNuke(nin);
   nrrdNuke(nout);
-  exit(0);
+  return 0;
 }

@@ -18,10 +18,8 @@
 
 #include <nrrd.h>
 
-char *me; 
-
 void
-usage() {
+usage(char *me) {
   /*              0    1      2      3       4       (argc-1) */
   fprintf(stderr, 
 	  "usage: %s <nin> <kern> <size0> <size1> ... <nout>\n\n", me);
@@ -43,16 +41,17 @@ usage() {
 
 int
 main(int argc, char *argv[]) {
-  char *in, *out, *err, *kernS, tkS[128], *sizeS;
+  char *me, *in, *out, *err, *kernS, *sizeS;
   Nrrd *nin, *nout;
   nrrdResampleInfo *info;
   nrrdKernel *kern;
-  float param[NRRD_KERNEL_PARAMS_MAX], ratio;
+  double param[NRRD_KERNEL_PARAMS_MAX];
+  float ratio;
   int d, size;
 
   me = argv[0];
   if (!(argc >= 5)) {
-    usage();
+    usage(me);
   }
   in = argv[1];
   kernS = argv[2];
@@ -61,50 +60,16 @@ main(int argc, char *argv[]) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble reading nrrd from \"%s\":%s\n", me, in, err);
     free(err);
-    usage();
+    usage(me);
   }
   memset(param, 0, NRRD_KERNEL_PARAMS_MAX*sizeof(float));
-  param[0] = 1.0;
   
   /* parse the kernel */
-  strcpy(tkS, "box");
-  if (!strcmp(tkS, kernS)) {
-    kern = nrrdKernelBox;
-    goto kparsed;
+  if (nrrdKernelParse(&kern, param, kernS)) {
+    fprintf(stderr, "%s: trouble parsing kernel:\n%s\n", me, biffGet(NRRD));
+    exit(1);
   }
 
-  strcpy(tkS, "tent");
-  if (!strcmp(tkS, kernS)) {
-    kern = nrrdKernelTent;
-    goto kparsed;
-  }
-
-  strcpy(tkS, "cubic");
-  if (!strncmp(tkS, kernS, strlen(tkS))) {
-    kern = nrrdKernelBCCubic;
-    if (2 != sscanf(kernS+strlen(tkS), ":%f,%f", param+1, param+2)) {
-      fprintf(stderr, "%s: couldn't parameters \"%s\" for %s kernel\n", 
-	      me, kernS+strlen(tkS), tkS);
-      usage();
-    }
-    goto kparsed;
-  }
-
-  strcpy(tkS, "quartic");
-  if (!strncmp(tkS, kernS, strlen(tkS))) {
-    kern = nrrdKernelAQuartic;
-    if (1 != sscanf(kernS+strlen(tkS), ":%f", param+1)) {
-      fprintf(stderr, "%s: couldn't parameters \"%s\" for %s kernel\n", 
-	      me, kernS+strlen(tkS), tkS);
-      usage();
-    }
-    goto kparsed;
-  }
-
-  fprintf(stderr, "%s: couldn't parse kernel \"%s\"\n", me, kernS);
-  usage();
-  
- kparsed:
   info = nrrdResampleInfoNew();
   if (argc-4 != nin->dim) {
     fprintf(stderr, "%s: read in %d-D nrrd, but got %d resampling sizes\n",
@@ -131,19 +96,19 @@ main(int argc, char *argv[]) {
     if ('x' == sizeS[0]) {
       if (1 != sscanf(sizeS+1, "%g", &ratio)) {
 	fprintf(stderr, "%s: couldn't parse float in \"%s\"\n",	me, sizeS);
-	usage();
+	usage(me);
       }
       info->samples[d] = nin->axis[d].size*ratio;
       if (!(info->samples[d] > 0)) {
 	fprintf(stderr, "%s: invalid # samples (%d), axis %d (ratio=%g)\n", 
 		me, info->samples[d], d, ratio);
-	usage();
+	usage(me);
       }
     }
     else {
       if (1 != sscanf(sizeS, "%d", &size)) {
 	fprintf(stderr, "%s: couldn't parse int in \"%s\"\n", me, sizeS);
-	usage();
+	usage(me);
       }
       info->samples[d] = size;
     }

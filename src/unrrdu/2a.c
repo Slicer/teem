@@ -18,31 +18,30 @@
 
 #include <nrrd.h>
 
-char *me;
-
-void
-usage() {
+int
+usage(char *me) {
   /*             0      1        2     */
   fprintf(stderr,
-	  "usage: 2a <nrrdIn> <nrrdOut>\n");
-  exit(1);
+	  "usage: %s <nrrdIn> <nrrdOut>\n", me);
+  return 1;
 }
 
 int
 main(int argc, char **argv) {
   Nrrd *nin;
-  char *err;
+  char *me, *err;
   nrrdIO *io;
 
   me = argv[0];
   if (3 != argc)
-    usage();
+    return usage(me);
+  nrrdStateVerboseIO = 0;
   if (nrrdLoad(nin=nrrdNew(), argv[1])) {
     err = biffGet(NRRD);
     fprintf(stderr, 
 	    "%s: trouble reading nrrd from \"%s\":\n%s\n", me, argv[1], err);
     free(err);
-    exit(1);
+    return 1;
   }
   io = nrrdIONew();
   io->encoding = nrrdEncodingAscii;
@@ -51,9 +50,9 @@ main(int argc, char **argv) {
     fprintf(stderr, "%s: trouble writing nrrd to \"%s\":\n%s\n",
 	    me, argv[2], err);
     free(err);
-    exit(1);
+    return 1;
   }
   
   nrrdNuke(nin);
-  exit(0);
+  return 0;
 }

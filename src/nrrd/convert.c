@@ -39,7 +39,7 @@ typedef nrrdBigInt BI;
 ** I don't think that I can get out of defining this macro twice,
 ** because of the rules off C preprocessor macro expansion.  If
 ** you can figure out a way to not use two identical macros, then
-** email me (gk_at_cs.utah.edu) and I'll send you money for dinner.
+** email me (gk@cs.utah.edu) and I'll send you money for dinner.
 **
 ** >>> MAP1 and MAP2 need to be identical <<<
 */
@@ -79,8 +79,8 @@ F(A, DB)
 ** cast.  See K+R Appendix A6 (pg. 197) for the details of what that
 ** entails.  There are plenty of situations where the results are
 ** "undefined" (assigning -23 to an unsigned char); the point here is
-** to make available on arrays all the same behavior you can get from
-** scalars 
+** simply to make available on arrays all the same behavior you can
+** get from scalars.
 */
 #define CONV_DEF(TA, TB) \
 void _nrrdConv##TA##TB(TA *a, TB *b, BI N) { while (N--) a[N]=b[N]; }
@@ -117,7 +117,7 @@ MAP1(MAP2, CONV_DEF)
 /* 
 ** Initialize the whole converter array.
 ** 
-** This generates an incredibly long line of text, which hopefully will not
+** This generates one incredibly long line of text, which hopefully will not
 ** break a stupid compiler with assumptions about line-length...
 */
 CF _nrrdConv[NRRD_TYPE_MAX+1][NRRD_TYPE_MAX+1] = {

@@ -18,26 +18,24 @@
 
 #include <nrrd.h>
 
-char *me;
-
-void
-usage() {
+int
+usage(char *me) {
   /*              0      1        2      3        4   */  
   fprintf(stderr,
 	  "usage: %s <nrrdIn> <sizeX> <sizeY> <pgmOut>\n", me);
-  exit(1);
+  return 1;
 }
 
 int
 main(int argc, char **argv) {
-  char *err, *xStr, *yStr, *inStr, *outStr;
+  char *me, *err, *xStr, *yStr, *inStr, *outStr;
   int sx, sy;
   Nrrd *nin, *nhist, *nimg;
   nrrdIO *io;
 
   me = argv[0];
   if (5 != argc)
-    usage();
+    return usage(me);
   inStr = argv[1];
   xStr = argv[2];
   yStr = argv[3];
@@ -47,31 +45,31 @@ main(int argc, char **argv) {
       1 != sscanf(yStr, "%d", &sy)) {
     fprintf(stderr, "%s: couldn't parse %s, %s as histo image dimensions\n",
 	    me, xStr, yStr);
-    exit(1);
+    return 1;
   }
   if (!strcmp(outStr, "-")) {
     fprintf(stderr, "%s: sorry, can't write PNMs to stdout yet\n", me);
-    exit(1);
+    return 1;
   }
   if (nrrdLoad(nin=nrrdNew(), inStr)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: can't read nrrd from \"%s\":\n%s", me, inStr, err);
     free(err);
-    exit(1);
+    return 1;
   }
   nhist = nrrdNew();
-  if (nrrdHisto(nhist, nin, sx)) {
+  if (nrrdHisto(nhist, nin, sx, nrrdTypeInt)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble making histogram:\n%s\n", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
   nimg = nrrdNew();
   if (nrrdHistoDraw(nimg, nhist, sy)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble drawing histogram:\n%s\n", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
   io = nrrdIONew();
   if (nrrdSave(outStr, nimg, io)) {
@@ -79,11 +77,11 @@ main(int argc, char **argv) {
     fprintf(stderr, "%s: trouble writing histogram image to \"%s\":\n%s\n",
 	    me, outStr, err);
     free(err);
-    exit(1);
+    return 1;
   }
 
   nrrdNuke(nin);
   nrrdNuke(nhist);
   nrrdNuke(nimg);
-  exit(0);
+  return 0;
 }

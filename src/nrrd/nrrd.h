@@ -31,7 +31,6 @@ extern "C" {
 #include <math.h>
 #include <ctype.h>
 #include <errno.h>
-#include <string.h>
 
 #include <air.h>
 #include <biff.h>
@@ -52,7 +51,8 @@ typedef unsigned long long int nrrdBigInt;
 /*
 ******** nrrdIO struct
 **
-** everything transient relating to how the nrrd is read and written
+** Everything transient relating to how the nrrd is read and written.
+** Once the nrrd has been read or written, this information is moot.
 */
 typedef struct {
   char dir[NRRD_STRLEN_LINE],    /* allows us to remember the directory
@@ -117,9 +117,9 @@ typedef struct {
 **
 ** The min and max values give the range of positions "represented"
 ** by the samples along this axis.  In node-centering, "min" IS the
-** position at the lowest index, in cell-centering, the position at
-** the lowest index is between min and max (a little bigger than min if 
-** min < max).
+** position at the lowest index.  In cell-centering, the position at
+** the lowest index is between min and max (a touch bigger than min,
+** assuming min < max).
 */
 typedef struct {
   int size;                      /* number of elements along each axis */
@@ -131,7 +131,7 @@ typedef struct {
 				    is that only one (min and max, or
 				    spacing) should be taken to be significant
 				    at any time. */
-  int center;                    /* cell vs. node */
+  int center;                    /* cell vs. node centering */
   char *label;                   /* short info string for each axis */
 } nrrdAxis;
 
@@ -164,8 +164,8 @@ typedef struct {
   int blockSize;                 /* for nrrdTypeBlock array, block byte size */
   double min, max,               /* if non-NaN, nominally: extremal values for
 				    array, but practically: the min and max 
-				    values to use for the nrrd call for which
-				    this nrrd is an input argument */
+				    values to use for nrrd calls for which
+				    a min and max values are used */
     oldMin, oldMax;              /* if non-NaN, and if nrrd is of integral
 				    type, extremal values for the array
 				    BEFORE it was quantized */
@@ -173,8 +173,7 @@ typedef struct {
 				    set by nrrd library. Use as you see fit. */
   int hasNonExist;               /* set to one of the nrrdNonExist enum values
 				    by all of the nrrd functions which call
-				    AIR_EXISTS on all the values saw that
-				    there were non-existent values */
+				    AIR_EXISTS on all the values */
 
   /* 
   ** Comments.  Read from, and written to, header.
@@ -289,8 +288,6 @@ extern int nrrdTable(Nrrd *table, int sx, int sy);
 
 /******** axes related */
 /* axes.c */
-extern nrrdAxis *nrrdAxisNew(void);
-extern nrrdAxis *nrrdAxisNix(nrrdAxis *axis);
 extern int nrrdAxesCopy(Nrrd *nout, Nrrd *nin, int *map, int bitflag);
 extern void nrrdAxesSet(Nrrd *nin, int axInfo, ...);
 extern void nrrdAxesSet_nva(Nrrd *nin, int axInfo, void *info);
@@ -300,7 +297,7 @@ extern double nrrdAxisPos(Nrrd *nrrd, int ax, double idx);
 extern double nrrdAxisIdx(Nrrd *nrrd, int ax, double pos);
 extern void nrrdAxisPosRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
 			     double loIdx, double hiIdx);
-extern void nrrdAxisIndRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
+extern void nrrdAxisIdxRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
 			     double loPos, double hiPos);
 
 /******** simple things */
@@ -309,8 +306,8 @@ extern void nrrdDescribe(FILE *file, Nrrd *nrrd);
 extern int nrrdValid(Nrrd *nrrd);
 extern int nrrdElementSize(Nrrd *nrrd);
 extern nrrdBigInt nrrdElementNumber(Nrrd *nrrd);
-extern int nrrdFixedType(Nrrd *nrrd);
-extern int nrrdFloatingType(Nrrd *nrrd);
+extern int nrrdTypeFixed(Nrrd *nrrd);
+extern int nrrdTypeFloating(Nrrd *nrrd);
 extern int nrrdHasNonExist(Nrrd *nrrd);
 extern int nrrdSanity(void);
 extern int nrrdSameSize(Nrrd *n1, Nrrd *n2, int useBiff);
@@ -328,7 +325,7 @@ extern char *nrrdCommentScan(Nrrd *nrrd, char *key);
 extern void nrrdSwapEndian(Nrrd *nrrd);
 
 /******** getting value into and out of an array of general type, and
-   other simplistic functionality pseudo-parameterized by type */
+   all other simplistic functionality pseudo-parameterized by type */
 /* accessors.c */
 extern int    (*nrrdILoad[NRRD_TYPE_MAX+1])(void *v);
 extern float  (*nrrdFLoad[NRRD_TYPE_MAX+1])(void *v);

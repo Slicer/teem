@@ -58,7 +58,7 @@ nrrdInvertPerm(int *invp, int *p, int n) {
     return 1;
   }
 
-  /* now for the hard part */
+  /* now for the really hard part */
   for (i=0; i<=n-1; i++) {
     invp[p[i]] = i;
   }
@@ -79,7 +79,7 @@ nrrdInvertPerm(int *invp, int *p, int n) {
 ** the permutation- this constitutes a "scanline" which can be
 ** copied around as a unit.  For permuting the y and z axes of a
 ** matrix-x-y-z order tensor volume, this optimization produced a
-** factor of 5 speed up.
+** factor of 5 speed up (exhaustive multi-platform tests, of course).
 **
 ** The axes[] array determines the permutation of the axes.
 ** axis[i] = j means: axis i in the output will be the input's axis j
@@ -110,6 +110,10 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
+  if (nin == nout) {
+    sprintf(err, "%s: can't permute from a nrrd into itself", me);
+    biffAdd(NRRD, err); return 1;
+  }
   /* we don't actually need ip[], computing it is an error check */
   if (nrrdInvertPerm(ip, axes, nin->dim)) {
     sprintf(err, "%s: couldn't compute axis permutation inverse", me);
@@ -136,19 +140,16 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
   }
   
   /* else lowPax < dim (actually, lowPax < dim-1) */
-  fprintf(stderr, "%s: lowPax = %d\n", me, lowPax);
+  printf("!%s: lowPax = %d\n", me, lowPax);
   
-  /* set information in new volume */
+  /* allocate output */
+  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, szIn);
   nout->blockSize = nin->blockSize;
   for (d=0; d<=dim-1; d++) {
-    szOut[d] = szOut[axes[d]];
+    szOut[d] = szIn[axes[d]];
   }
   if (nrrdMaybeAlloc_nva(nout, nin->type, nin->dim, szOut)) {
     sprintf(err, "%s: failed to allocate output", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (nrrdAxesCopy(nout, nin, axes, NRRD_AXESINFO_NONE)) {
-    sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
   
@@ -158,13 +159,12 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
   }
   numLines = nrrdElementNumber(nin)/lineSize;
   lineSize *= nrrdElementSize(nin);
+  printf("!%s: numLines = %d, lineSize = %d\n", me,
+	 (int)numLines, (int)lineSize);
+
+  /* the skinny */
   src = nin->data;
   dest = nout->data;
-  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, szIn);
-  nrrdAxesGet_nva(nout, nrrdAxesInfoSize, szOut);
-  fprintf(stderr, "%s: szOut = %d %d %d\n", me, szOut[0], szOut[1], szOut[2]);
-  fprintf(stderr, "%s: numLines = %d, lineSize = %d\n", me,
-	  (int)numLines, (int)lineSize);
   memset(cOut, 0, NRRD_DIM_MAX*sizeof(int));
   for (iOut=0; iOut<=numLines-1; iOut++) {
     for (d=0; d<=dim-1; d++)
@@ -174,6 +174,11 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
     NRRD_COORD_INCR(cOut+lowPax, szOut+lowPax, dim-lowPax, d);
   }
 
+  /* other peripheral info */
+  if (nrrdAxesCopy(nout, nin, axes, NRRD_AXESINFO_NONE)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return 1;
+  }
   nout->content = airFree(nout->content);
   if (nin->content) {
     nout->content = calloc(strlen("permute(,())")
@@ -206,7 +211,7 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
 **
 ** for when you just want to switch the order of two axes, without
 ** going through the trouble of creating the permutation array 
-** need to call nrrdPermuteAxes()
+** needed to call nrrdPermuteAxes()
 */
 int
 nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2) {
@@ -229,7 +234,7 @@ nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2) {
   axes[ax2] = ax1;
   axes[ax1] = ax2;
   if (nrrdPermuteAxes(nout, nin, axes)) {
-    sprintf(err, "%s: trouble swapping axes", me);
+    sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
   return 0;
@@ -264,6 +269,10 @@ nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
 
   if (!(nin && nout && perm)) {
     sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nin == nout) {
+    sprintf(err, "%s: can't shuffle from a nrrd into itself", me);
     biffAdd(NRRD, err); return 1;
   }
   if (!AIR_INSIDE(0, axis, nin->dim-1)) {
@@ -706,6 +715,13 @@ nrrdReshape(Nrrd *nout, Nrrd *nin, int dim, ...) {
   return 0;
 }
 
+/*
+******** nrrdBlock()
+**
+** collapse the first axis (axis 0) of the nrrd into a block, making
+** an output nrrd of type nrrdTypeBlock.  The input type can be block.
+** All information for other axes is shifted down one axis.
+*/
 int
 nrrdBlock(Nrrd *nout, Nrrd *nin) {
   char me[]="nrrdBlock", err[NRRD_STRLEN_MED];
@@ -761,6 +777,12 @@ nrrdBlock(Nrrd *nout, Nrrd *nin) {
   return 0;
 }
 
+/*
+******** nrrdUnblock()
+**
+** takes a nrrdTypeBlock nrrd and breaks the blocks into elements of 
+** type "type", and shifts other axis information up by one axis
+*/
 int
 nrrdUnblock(Nrrd *nout, Nrrd *nin, int type) {
   char me[]="nrrdUnblock", err[NRRD_STRLEN_MED];

@@ -268,6 +268,21 @@ nrrdNuke(Nrrd *nrrd) {
 
 /* ------------------------------------------------------------ */
 
+int
+_nrrdSizeValid(int dim, int *size) {
+  char me[]="_nrrdSizeValid", err[NRRD_STRLEN_MED];
+  int d;
+  
+  for (d=0; d<=dim-1; d++) {
+    if (!(size[d] > 0)) {
+      sprintf(err, "%s: invalid size (%d) for axis %d (of %d)",
+	      me, size[d], d, dim-1);
+      biffAdd(NRRD, err); return AIR_FALSE;
+    }
+  }
+  return AIR_TRUE;
+}
+
 /*
 ******** nrrdWrap_nva()
 **
@@ -285,6 +300,10 @@ nrrdWrap_nva(Nrrd *nrrd, void *data, int type, int dim, int *size) {
   nrrd->data = data;
   nrrd->type = type;
   nrrd->dim = dim;
+  if (!_nrrdSizeValid(dim, size)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return NULL;
+  }
   for (d=0; d<=dim-1; d++) {
     nrrd->axis[d].size = size[d];
   }
@@ -294,10 +313,11 @@ nrrdWrap_nva(Nrrd *nrrd, void *data, int type, int dim, int *size) {
 /*
 ******** nrrdWrap()
 **
-** Minimal var args wrapper around nrrdWrap, with the advantage of 
+** Minimal var args wrapper around nrrdWrap_nva, with the advantage of 
 ** taking all the axes sizes as the var args.
 **
-** This is THE BEST WAY to wrap a nrrd around existing raster data!
+** This is THE BEST WAY to wrap a nrrd around existing raster data,
+** assuming that the dimension is known at compile time.
 */
 Nrrd *
 nrrdWrap(Nrrd *nrrd, void *data, int type, int dim, ...) {
@@ -311,13 +331,13 @@ nrrdWrap(Nrrd *nrrd, void *data, int type, int dim, ...) {
   va_start(ap, dim);
   for (d=0; d<=dim-1; d++) {
     size[d] = va_arg(ap, int);
-    if (!(size[d] > 0)) {
-      sprintf(err, "%s: invalid size (%d) for axis %d (of %d)",
-	      me, size, d, dim-1);
-      biffAdd(NRRD, err); return NULL;
-    }
   }
   va_end(ap);
+  if (!_nrrdSizeValid(dim, size)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return NULL;
+  }
+  
   return nrrdWrap_nva(nrrd, data, type, dim, size);
 }
 
@@ -342,7 +362,7 @@ nrrdUnwrap(Nrrd *nrrd) {
 ** it will free() nrrd->data if it is non-NULL when passed in.
 **
 ** Note to Gordon: don't get clever and change ANY axis-specific
-** information here.  It may be very conveniant to set that before
+** information here.  It may be very convenient to set that before
 ** nrrdAlloc() or nrrdMaybeAlloc()
 **
 ** Note: This function DOES use biff
@@ -409,13 +429,12 @@ nrrdAlloc(Nrrd *nrrd, int type, int dim, ...) {
   va_start(ap, dim);
   for (d=0; d<=dim-1; d++) {
     size[d] = va_arg(ap, int);
-    if (!(size[d] > 0)) {
-      sprintf(err, "%s: invalid size (%d) for axis %d (of %d)",
-	      me, size, d, dim-1);
-      biffAdd(NRRD, err); return 1;
-    }
   }
   va_end(ap);
+  if (!_nrrdSizeValid(dim, size)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return NULL;
+  }
   if (nrrdAlloc_nva(nrrd, type, dim, size)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
@@ -451,6 +470,10 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
       biffAdd(NRRD, err); return 1;
     }
   }
+  if (!_nrrdSizeValid(dim, size)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return NULL;
+  }
 
   if (!(nrrd->data)) {
     need = 1;
@@ -478,7 +501,8 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
 
   /* we need to set these here because if need was NOT true above,
      then these things would not be set by nrrdAlloc_nva(), but they
-     need to be set in accordance with the function arguments */
+     need to be set in accordance with the function arguments.
+     Blocksize would have been already set by caller. */
   nrrd->type = type;
   nrrd->dim = dim;
 
@@ -505,10 +529,13 @@ nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim, ...) {
   num = 1;
   va_start(ap, dim);
   for (d=0; d<=dim-1; d++) {
-    nrrd->axis[d].size = va_arg(ap, int);
-    num *= nrrd->axis[d].size;
+    num *= (size[d] = va_arg(ap, int));
   }
   va_end(ap);
+  if (!_nrrdSizeValid(dim, size)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return NULL;
+  }
   nrrdAxesGet_nva(nrrd, nrrdAxesInfoSize, size);
   if (nrrdMaybeAlloc_nva(nrrd, type, dim, size)) {
     sprintf(err, "%s: trouble", me);

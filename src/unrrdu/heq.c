@@ -18,48 +18,44 @@
 
 #include <nrrd.h>
 
-char *me;
-
-void
-usage() {
+int
+usage(char *me) {
   /*                      0      1       2        3        4  */
   fprintf(stderr, "usage: %s <nrrdIn> <# bins> <smart> <nrrdOut>\n", me);
-  exit(1);
+  return 1;
 }
 
 int
 main(int argc, char **argv) {
-  FILE *file;
   Nrrd *nrrd, *hist;
   /* Nrrd *pgm; */
   int smart, bins;
-  char *err;
+  char *me, *err;
   
   me = argv[0];
-
   if (5 != argc)
-    usage();
+    return usage(me);
 
   if (1 != sscanf(argv[2], "%d", &bins)) {
     fprintf(stderr, "%s: couldn't parse \"%s\" as int\n", me, argv[2]);
-    exit(1);
+    return 1;
   }
   if (1 != sscanf(argv[3], "%d", &smart)) {
     fprintf(stderr, "%s: couldn't parse \"%s\" as int\n", me, argv[3]);
-    exit(1);
+    return 1;
   }
   if (nrrdLoad(nrrd=nrrdNew(), argv[1])) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble reading nrrd from %s:\n%s", 
 	    me, argv[1], err);
     free(err);
-    exit(1);
+    return 1;
   }
   if (nrrdHistoEq(nrrd, &hist, bins, smart)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble doing histogram equalization:\n%s", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
   /*
   if (file = fopen("hist0.pgm", "w")) {
@@ -68,14 +64,14 @@ main(int argc, char **argv) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: trouble drawing data histogram:\n%s", me, err);
       free(err);
-      exit(1);
+      return 1;
     }
     pgm->encoding = nrrdEncodingRaw;
     if (nrrdWritePNM(file, pgm)) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: trouble writing histogram image:\n%s", me, err);
       free(err);
-      exit(1);
+      return 1;
     }
     fprintf(stderr, "%s: wrote \"BEFORE\" histogram image in hist0.pgm\n", me);
     fclose(file);
@@ -89,21 +85,21 @@ main(int argc, char **argv) {
       fprintf(stderr, "%s: trouble generating post-HEQ histogram:\n%s",
 	      me, err);
       free(err);
-      exit(1);
+      return 1;
     }
     pgm = nrrdNew();
     if (nrrdHistoDraw(pgm, hist, 800)) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: trouble drawing data histogram:\n%s", me, err);
       free(err);
-      exit(1);
+      return 1;
     }
     pgm->encoding = nrrdEncodingRaw;
     if (nrrdWritePNM(file, pgm)) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: trouble writing histogram image:\n%s", me, err);
       free(err);
-      exit(1);
+      return 1;
     }
     fprintf(stderr, "%s: wrote \"AFTER\" histogram image in hist1.pgm\n", me);
     fclose(file);
@@ -116,8 +112,8 @@ main(int argc, char **argv) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble writing nrrd:\n%s", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
   nrrdNuke(nrrd);
-  exit(0);
+  return 0;
 }

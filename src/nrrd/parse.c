@@ -193,19 +193,18 @@ _nrrdReadNrrdParse_axis_maxs(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 }
 
 /*
-** strtok: not thread-safe
 */
 int
 _nrrdReadNrrdParse_centers(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParse_centers", err[NRRD_STRLEN_MED];
   int i;
   char *tok;
-  char *info;
+  char *info, *last;
 
   info = io->line + io->pos;
   _CHECK_HAVE_DIM;
   for (i=0; i<=nrrd->dim-1; i++) {
-    tok = strtok(!i ? info : NULL, _nrrdFieldSep);
+    tok = airStrtok(!i ? info : NULL, _nrrdFieldSep, &last);
     if (!tok) {
       sprintf(err, "%s: couldn't parse center %d of %d",
 	      me, i+1, nrrd->dim);

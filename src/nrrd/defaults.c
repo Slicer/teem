@@ -40,11 +40,11 @@ int nrrdDefWrtCharsPerLine = 75;
 int nrrdDefWrtValsPerLine = 8;
 int nrrdDefRsmpBoundary = nrrdBoundaryBleed;
 int nrrdDefRsmpType = nrrdTypeUnknown;  /* means "same as input" */
-double nrrdDefRsmpScale = 1.0;
+double nrrdDefRsmpScale = 1.0;    /* these two should probably be the same */
+double nrrdDefKernelParam0 = 1.0; 
 int nrrdDefRsmpRenormalize = AIR_TRUE;
 double nrrdDefRsmpPadValue = 0.0;
 int nrrdDefCenter = nrrdCenterNode;
-double nrrdDefKernelParam0 = 1.0;
 
 /* these aren't really "defaults" because there's no other channel for
    specifying this information.  It is just global state.  Obviously,

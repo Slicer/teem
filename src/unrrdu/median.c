@@ -18,26 +18,24 @@
 
 #include <nrrd.h>
 
-char *me; 
-
-void
-usage() {
+int
+usage(char *me) {
   /*               0    1        2       3       4     (5) */
   fprintf(stderr, 
 	  "usage: %s <nrrdIn> <radius> <bins> <nrrdOut>\n",
 	  me);
-  exit(1);
+  return 1;
 }
 
 int
 main(int argc, char *argv[]) {
-  char *inStr, *outStr, *radiusStr, *binsStr, *err;
+  char *me, *inStr, *outStr, *radiusStr, *binsStr, *err;
   int radius, bins;
   Nrrd *nin, *nout;
 
   me = argv[0];
   if (argc != 5) {
-    usage();
+    return usage(me);
   }
 
   inStr = argv[1];
@@ -47,34 +45,34 @@ main(int argc, char *argv[]) {
 
   if (1 != sscanf(radiusStr, "%d", &radius)) {
     fprintf(stderr, "%s: couldn't parse %s as int\n", me, radiusStr);
-    exit(1);
+    return 1;
   }
   if (1 != sscanf(binsStr, "%d", &bins)) {
     fprintf(stderr, "%s: couldn't parse %s as int\n", me, binsStr);
-    exit(1);
+    return 1;
   }
 
   if (nrrdLoad(nin=nrrdNew(), inStr)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error reading nrrd from \"%s\":%s\n", me, inStr, err);
     free(err);
-    exit(1);
+    return 1;
   }
   nout = nrrdNew();
-  if (nrrdMedian(nout, nin, radius, bins)) {
+  if (nrrdCheapMedian(nout, nin, radius, bins)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error in median filtering:\n%s", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
   if (nrrdSave(outStr, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error writing nrrd to \"%s\":\n%s", me, outStr, err);
     free(err);
-    exit(1);
+    return 1;
   }
 
   nrrdNuke(nin);
   nrrdNuke(nout);
-  exit(0);
+  return 0;
 }

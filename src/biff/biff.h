@@ -39,11 +39,6 @@ extern void biffMove(char *destKey, char *err, char *srcKey);
 extern char *biffGet(char *key);
 extern char *biffGetDone(char *key);
 
-/* some common error messages */
-#define BIFF_NULL "%s: got NULL pointer"
-#define BIFF_NRRDNEW "%s: couldn't create output nrrd struct"
-#define BIFF_NRRDALLOC "%s: couldn't allocate space for output nrrd data"
-
 /* extern C */
 #ifdef __cplusplus
 }

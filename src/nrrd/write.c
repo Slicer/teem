@@ -415,8 +415,9 @@ _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
   fprintf(file, "%s\n", nrrdEnumValToStr(nrrdEnumMagic, nrrdMagicNRRD0001));
 
   /* this is where the majority of the header printing happens */
-  for (i=1; i<=NRRD_FIELD_MAX; i++)
+  for (i=1; i<=NRRD_FIELD_MAX; i++) {
     _PRINT_FIELD("", i);
+  }
 
   for (i=0; i<=nrrd->cmtArr->len-1; i++) {
     fprintf(file, "%c %s\n", _NRRD_COMMENT_CHAR, nrrd->cmt[i]);

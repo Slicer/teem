@@ -18,54 +18,52 @@
 
 #include <nrrd.h>
 
+char *me; 
+
 int
-usage(char *me) {
-  /*                      0       1        2       3    (4) */
-  fprintf(stderr, "usage: %s <nrrdIn> <type> <nrrdOut>\n", me);
+usage() {
+                      /*  0     1       2       3    (4) */
+  fprintf(stderr, "usage: %s <nrrdIn> <axis> <nrrdOut>\n", me);
   return 1;
 }
 
 int
-main(int argc, char **argv) {
+main(int argc, char *argv[]) {
+  char *in, *out, *err;
+  int axis;
   Nrrd *nin, *nout;
-  int type;
-  char *me, *in, *out, *typeStr, *err;
 
   me = argv[0];
   if (4 != argc)
-    return usage(me);
-  
-  in = argv[1];
-  typeStr = argv[2];
-  out = argv[3];
-  if (nrrdTypeUnknown == 
-      (type = nrrdEnumStrToVal(nrrdEnumType, typeStr))) {
-    fprintf(stderr, "%s: didn't recognize \"%s\" as a type\n", me, typeStr);
+    return usage();
+
+  if (1 != sscanf(argv[2], "%d", &axis)) {
+    fprintf(stderr, "%s: couldn't parse %s as axis\n", me, argv[2]);
     return 1;
   }
+  in = argv[1];
+  out = argv[3];
 
   if (nrrdLoad(nin=nrrdNew(), in)) {
     err = biffGet(NRRD);
-    fprintf(stderr, 
-	    "%s: trouble reading nrrd from \"%s\":\n%s\n", me, in, err);
+    fprintf(stderr, "%s: couldn't get nrrd from %s:\n%s\n", me, in, err);
     free(err);
     return 1;
   }
   nout = nrrdNew();
-  if (nrrdConvert(nout, nin, type)) {
+  if (nrrdFlip(nout, nin, axis)) {
     err = biffGet(NRRD);
-    fprintf(stderr, "%s: couldn't create output nrrd:\n%s", me, err);
+    fprintf(stderr, "%s: error flipping nrrd:\n%s\n", me, err);
     free(err);
     return 1;
   }
-
   if (nrrdSave(out, nout, NULL)) {
     err = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble writing nrrd to \"%s\":\n%s\n", me, out, err);
+    fprintf(stderr, "%s: error saving nrrd to %s:\n%s\n", me, out, err);
     free(err);
     return 1;
   }
-
+    
   nrrdNuke(nin);
   nrrdNuke(nout);
   return 0;

@@ -21,13 +21,13 @@
 
 char *me; 
 
-void
+int
 usage() {
   /*              0    1     2      3     (4) */
   fprintf(stderr, 
 	  "usage: %s <nIn> <type> <nOut>\n",
 	  me);
-  exit(1);
+  return 1;
 }
 
 int
@@ -38,35 +38,35 @@ main(int argc, char *argv[]) {
 
   me = argv[0];
   if (4 != argc) {
-    usage();
+    return usage();
   }
   inStr = argv[1];
   outStr = argv[3];
   type = nrrdEnumStrToVal(nrrdEnumType, argv[2]);
   if (!AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast)) {
     fprintf(stderr, "%s: couldn't parse \"%s\" as type\n", me, argv[2]);
-    exit(1);
+    return 1;
   }
   if (nrrdLoad(nin=nrrdNew(), inStr)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble reading input:%s\n", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
   if (nrrdUnblock(nout = nrrdNew(), nin, type)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error unblockifying nrrd:\n%s", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
   if (nrrdSave(outStr, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error writing nrrd:\n%s", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
 
   nrrdNuke(nin);
   nrrdNuke(nout);
-  exit(0);
+  return 0;
 }

@@ -506,8 +506,8 @@ void _nrrdMinMaxD   (_MM_ARGS(double))         { _MM_FLOAT(double) }
 ******** nrrdMinMaxFind[]
 **
 ** the role of these is to allow finding the EXACT min and max of a nrrd,
-** including cases where the value of min or max can not be losslessly
-** stored in the nrrd->min and nrrd->max fields, which are of type double.
+** so that one does not have to rely on the potentially lossy storage
+** of the min and max values in nrrd->min and nrrd->max, which are doubles.
 ** 
 ** These functions have as a side-effect the setting of nrrd->hasNonExist
 */

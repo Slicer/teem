@@ -21,13 +21,13 @@
 
 char *me;
 
-void
+int
 usage() {
   /*                      0     1        2     3     4       5  */
   fprintf(stderr, "usage: %s <nrrdIn> <min> <max> <bits> <nrrdOut>\n", me);
   fprintf(stderr, "     <min> and/or <max> can be given as \"#\" so as to\n");
   fprintf(stderr, "     to use the min and/or max value within the data\n");
-  exit(1);
+  return 1;
 }
 
 int
@@ -39,7 +39,7 @@ main(int argc, char **argv) {
 
   me = argv[0];
   if (6 != argc)
-    usage();
+    return usage();
   ninStr = argv[1];
   minStr = argv[2];
   maxStr = argv[3];
@@ -50,58 +50,49 @@ main(int argc, char **argv) {
   if (strcmp(minStr, "#")) {
     if (1 != sscanf(minStr, "%lg", &min)) {
       fprintf(stderr, "%s: can't parse %s as a double\n", me, minStr);
-      exit(1);
+      return 1;
     }
   }
   if (strcmp(maxStr, "#")) {
     if (1 != sscanf(maxStr, "%lg", &max)) {
       fprintf(stderr, "%s: can't parse %s as a double\n", me, maxStr);
-      exit(1);
+      return 1;
     }
   }
   if (1 != sscanf(bitStr, "%d", &bits)) {
     fprintf(stderr, "%s: didn't recognize \"%s\" as an int\n", me, bitStr);
-    exit(1);
+    return 1;
   }
   if (nrrdLoad(nin=nrrdNew(), ninStr)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble reading nrrd from \"%s\":\n%s\n", 
 	    me, ninStr, err);
     free(err);
-    exit(1);
-  }
-  if (!( AIR_EXISTS(min) && AIR_EXISTS(max) )) {
-    if (nrrdMinMaxFind(&nin->min, &nin->max, nin)) {
-      err = biffGet(NRRD);
-      fprintf(stderr, "%s: trouble with nrrdRange:\n%s", me, err);
-      free(err);
-      exit(1);
-    }
-    if (!AIR_EXISTS(min))
-      min = nin->min;
-    if (!AIR_EXISTS(max))
-      max = nin->max;
-    fprintf(stderr, "%s: using min=%g, max=%g\n", me, min, max);
+    return 1;
   }
   nin->min = min;
   nin->max = max;
-  nout = nrrdNew();
-  if (nrrdQuantize(nout, nin, bits, nrrdMinMaxUse)) {
+  if (nrrdCleverMinMax(nin)) {
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s: trouble:\n%s", me, err);
+    free(err);
+    return 1;
+  }
+  if (nrrdQuantize(nout=nrrdNew(), nin, bits)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: couldn't create output nrrd:\n%s", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
-
   if (nrrdSave(noutStr, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble writing nrrd to \"%s\":\n%s\n",
 	    me, noutStr, err);
     free(err);
-    exit(1);
+    return 1;
   }
 
   nrrdNuke(nin);
   nrrdNuke(nout);
-  exit(0);
+  return 0;
 }

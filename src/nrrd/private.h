@@ -42,6 +42,7 @@ extern int _nrrdFormatUsesDIO[NRRD_FORMAT_MAX+1];
 
 /* axes.c */
 extern void _nrrdAxisInit(nrrdAxis *axis);
+extern int _nrrdCenter(int center);
 
 /* convert.c */
 extern void (*_nrrdConv[][NRRD_TYPE_MAX+1])(void *,void *, nrrdBigInt);
@@ -59,6 +60,9 @@ extern int _nrrdSplitName(char *dir, char *base, char *name);
 /* parse.c */
 extern int (*_nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1])(Nrrd *, nrrdIO *, int);
 extern int _nrrdReadNrrdParseField(Nrrd *nrrd, nrrdIO *io, int useBiff);
+
+/* methods.c */
+extern int _nrrdSizeValid(int dim, int *size);
 
 /* extern C */
 #ifdef __cplusplus

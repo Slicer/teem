@@ -485,20 +485,20 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   
   if (!(nin && nout)) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   if (nrrdTypeBlock == nin->type) {
     sprintf(err, "%s: can't work on nrrd type %s", me,
 	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   if (!AIR_BETWEEN(nrrdMeasureUnknown, measr, nrrdMeasureLast)) {
     sprintf(err, "%s: measure %d not recognized", me, measr);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   if (!(AIR_INSIDE(0, axis, nin->dim-1))) {
     sprintf(err, "%s: axis %d not in range [0,%d]", me, axis, nin->dim-1);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   
   type = _nrrdMeasureType(nin, measr);
@@ -533,7 +533,7 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   if (!(line = calloc(nin->axis[axis].size, inElSize))) {
     sprintf(err, "%s: couldn't calloc(%d,%d) scanline buffer",
 	    me, nin->axis[axis].size, inElSize);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
 
   /* here's the skinny */

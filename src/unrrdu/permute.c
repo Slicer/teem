@@ -18,27 +18,25 @@
 
 #include <nrrd.h>
 
-char *me; 
-
-void
-usage() {
+int
+usage(char *me) {
   /*               0    1        2        3           argc-2     argc-1 */ 
   fprintf(stderr, 
 	  "usage: %s <nrrdIn> <axis_0> <axis_1> ... <axis_n-1> <nrrdOut>\n",
 	  me);
-  exit(1);
+  return 1;
 }
 
 int
 main(int argc, char *argv[]) {
-  char *in, *out, *err;
+  char *me, *in, *out, *err;
   int i, ax, udim, axis[NRRD_DIM_MAX], used[NRRD_DIM_MAX];
   Nrrd *nin, *nout;
 
   me = argv[0];
   udim = argc - 3;
   if (!(udim > 1)) {
-    usage();
+    return usage(me);
   }
 
   in = argv[1];
@@ -48,7 +46,7 @@ main(int argc, char *argv[]) {
     if (1 != sscanf(argv[i+2], "%d", &ax)) {
       fprintf(stderr, "%s: couldn't parse axis \"%s\" as int\n",
 	      me, argv[i+2]);
-      exit(1);
+      return 1;
     }
     axis[i] = ax;
   }
@@ -56,29 +54,29 @@ main(int argc, char *argv[]) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error reading nrrd from \"%s\":\n%s\n", me, in, err);
     free(err);
-    exit(1);
+    return 1;
   }
   if (udim != nin->dim) {
     fprintf(stderr, "%s: input nrrd has dimension %d, but given %d axes\n",
 	    me, nin->dim, udim);
-    exit(1);
+    return 1;
   }
   nout = nrrdNew();
   if (nrrdPermuteAxes(nout, nin, axis)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error permuting nrrd:\n%s", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
 
   if (nrrdSave(out, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error writing nrrd to \"%s\":\n%s\n", me, out, err);
     free(err);
-    exit(1);
+    return 1;
   }
     
   nrrdNuke(nin);
   nrrdNuke(nout);
-  exit(0);
+  return 0;
 }

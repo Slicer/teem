@@ -37,19 +37,19 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
 	 && AIR_BETWEEN(nrrdTypeUnknown, nin->type, nrrdTypeLast)
 	 && AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast) )) {
     sprintf(err, "%s: invalid args", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   if (nin->type == nrrdTypeBlock || type == nrrdTypeBlock) {
     sprintf(err, "%s: can't convert to or from nrrd type %s", me,
 	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
 
   /* if we're actually converting to the same type, just do a copy */
   if (type == nin->type) {
     if (nrrdCopy(nout, nin)) {
       sprintf(err, "%s: couldn't copy input to output", me);
-      biffSet(NRRD, err); return 1;
+      biffAdd(NRRD, err); return 1;
     }
     return 0;
   }
@@ -58,7 +58,7 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
   nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
     sprintf(err, "%s: failed to allocate output", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
 
   /* call the appropriate converter */
@@ -100,13 +100,13 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
 int
 nrrdSetMinMax(Nrrd *nrrd) {
   char me[] = "nrrdSetMinMax", err[NRRD_STRLEN_MED];
-  NRRD_BIGGEST_TYPE _min, _max;
+  NRRD_TYPE_BIGGEST _min, _max;
 
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
-  if (nrrdTypeUnknown < nrrd->type && nrrd->type < nrrdTypeBlock) {
+  if (AIR_BETWEEN(nrrdTypeUnknown, nrrd->type, nrrdTypeBlock)) {
     nrrdMinMaxFind[nrrd->type](&_min, &_max, nrrd);
     nrrd->min = nrrdDLoad[nrrd->type](&_min);
     nrrd->max = nrrdDLoad[nrrd->type](&_max);
@@ -114,7 +114,7 @@ nrrdSetMinMax(Nrrd *nrrd) {
   else {
     sprintf(err, "%s: don't know how to find range for nrrd type %s", me,
 	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   return 0;
 }
@@ -142,9 +142,15 @@ nrrdCleverMinMax(Nrrd *nrrd) {
 
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdTypeBlock == nrrd->type) {
+    sprintf(err, "%s: can't find min/max of type %s", me,
+	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
   }
   if (AIR_EXISTS(nrrd->min) && AIR_EXISTS(nrrd->max)) {
+    /* both of min and max already set, so we won't look for those, but
+       we have to comply with stated behavior of always setting hasNonExist */
     nrrdHasNonExist(nrrd);
     return 0;
   }
@@ -168,14 +174,16 @@ nrrdCleverMinMax(Nrrd *nrrd) {
   /* save incoming values in case they exist */
   min = nrrd->min;
   max = nrrd->max;
+  /* this will set hasNonExist */
   if (nrrdSetMinMax(nrrd)) {
     sprintf(err, "%s: trouble", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   if (!( AIR_EXISTS(nrrd->min) && AIR_EXISTS(nrrd->max) )) {
     sprintf(err, "%s: no existent values!", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
+  /* re-enstate the existent incoming min and/or max values */
   if (AIR_EXISTS(min))
     nrrd->min = min;
   if (AIR_EXISTS(max))
@@ -196,75 +204,66 @@ nrrdCleverMinMax(Nrrd *nrrd) {
 */
 int
 nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
-  char me[] = "nrrdQuantize", err[NRRD_STRLEN_MED], buff[NRRD_STRLEN_SMALL];
+  char me[] = "nrrdQuantize", err[NRRD_STRLEN_MED];
   double valIn, min, max;
   int valOut, type, size[NRRD_DIM_MAX];
-  long long valOutll;
+  unsigned long long int valOutll;
   nrrdBigInt I, num;
 
   if (!(nin && nout)) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   if (!(8 == bits || 16 == bits || 32 == bits)) {
     sprintf(err, "%s: bits has to be 8, 16, or 32 (not %d)", me, bits);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdTypeBlock == nin->type) {
+    sprintf(err, "%s: can't quantize type %s", me,
+	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
   }
   if (nrrdCleverMinMax(nin)) {
     sprintf(err, "%s: trouble setting min, max", me);
     biffAdd(NRRD, err); return 1;
   }
   if (nin->hasNonExist) {
-    sprintf(err, "%s: can't quantize non-existent values (nan, +/-inf)", me);
+    sprintf(err, "%s: can't quantize non-existent values (NaN, +/-inf)", me);
     biffAdd(NRRD, err); return 1;
   }
 
   /* determine nrrd type from number of bits */
   switch (bits) {
-  case 8:
-    type = nrrdTypeUChar;
-    break;
-  case 16:
-    type = nrrdTypeUShort;
-    break;
-  case 32:
-    type = nrrdTypeUInt;
-    break;
-  default:
-    sprintf(err, "%s: %d bits not implemented, sorry", me, bits);
-    biffAdd(NRRD, err); return 1;
-    break;
+  case 8:  type = nrrdTypeUChar;  break;
+  case 16: type = nrrdTypeUShort; break;
+  case 32: type = nrrdTypeUInt;   break;
   }
   
   /* allocate space if necessary */
   nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
     sprintf(err, "%s: failed to create output", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
 
-  /* copy the values */
+  /* the skinny */
   num = nrrdElementNumber(nin);
+  min = nin->min; 
+  max = nin->max;
   for (I=0; I<=num-1; I++) {
     valIn = nrrdDLookup[nin->type](nin->data, I);
-    if (!AIR_EXISTS(valIn)) {
-      airSinglePrintf(NULL, buff, "%f", valIn);
-      sprintf(err, "%s: can't quantize non-existent value[" 
-	      NRRD_BIG_INT_PRINTF "] = %s", me, I, buff);
-      biffSet(NRRD, err); return 1;
-    }
+    valIn = AIR_CLAMP(min, valIn, max);
     switch (bits) {
     case 8:
+      AIR_INDEX(min, valIn, max, 1 << 8, valOut);
+      nrrdDInsert[nrrdTypeUChar](nout->data, I, valOut);
+      break;
     case 16:
-      AIR_INDEX(min, valIn, max, 1 << bits, valOut);
-      valOut = AIR_CLAMP(0, valOut, (1 << bits)-1);
-      nrrdDInsert[nout->type](nout->data, I, valOut);
+      AIR_INDEX(min, valIn, max, 1 << 16, valOut);
+      nrrdDInsert[nrrdTypeUShort](nout->data, I, valOut);
       break;
     case 32:
       AIR_INDEX(min, valIn, max, 1LLU << 32, valOutll);
-      /* this line isn't compiling on my intel laptop */
-      valOutll = AIR_CLAMP(0, valOutll, (1LLU << 32)-1);
-      nrrdDInsert[nout->type](nout->data, I, valOutll);
+      nrrdDInsert[nrrdTypeUInt](nout->data, I, valOutll);
       break;
     }
   }
@@ -346,21 +345,27 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
   int i, idx, *respect = NULL, *steady = NULL;
   unsigned int *hist;
   nrrdBigInt I, num;
+  airArray *mop;
 
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdTypeBlock == nrrd->type) {
+    sprintf(err, "%s: can't histogram equalize type %s", me,
+	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
   }
   num = nrrdElementNumber(nrrd);
   if (!(bins > 2)) {
     sprintf(err, "%s: need # bins > 2 (not %d)", me, bins);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
+  mop = airMopInit();
   if (smart <= 0) {
     nhist = nrrdNew();
     if (nrrdHisto(nhist, nrrd, bins, nrrdTypeInt)) {
       sprintf(err, "%s: failed to create histogram", me);
-      biffAdd(NRRD, err); return 1;
+      biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
     }
     hist = nhist->data;
     min = nhist->axis[0].min;
@@ -369,18 +374,22 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
   else {
     /* for "smart" mode, we have to some extra work in creating
        the histogram to look for bins always hit with the same value */
-    if (nrrdAlloc(nhist=nrrdNew(), bins, nrrdTypeUInt, 1)) {
+    if (nrrdAlloc(nhist=nrrdNew(), nrrdTypeUInt, 1, bins)) {
       sprintf(err, "%s: failed to allocate histogram", me);
-      biffAdd(NRRD, err); return 1;
+      biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
     }
     hist = nhist->data;
     nhist->axis[0].size = bins;
     /* allocate the respect, steady, and last arrays */
-    if ( !(respect = calloc(bins, sizeof(int))) ||
-	 !(steady = calloc(bins*2, sizeof(int))) ||
-	 !(last = calloc(bins, sizeof(double))) ) {
+    respect = calloc(bins, sizeof(int));
+    steady = calloc(bins*2, sizeof(int));
+    last = calloc(bins, sizeof(double));
+    airMopMem(mop, &respect, airMopAlways);
+    airMopMem(mop, &steady, airMopAlways);
+    airMopMem(mop, &last, airMopAlways);
+    if (!(respect && steady && last)) {
       sprintf(err, "%s: couldn't allocate smart arrays", me);
-      biffSet(NRRD, err); return 1;
+      biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
     }
     for (i=0; i<=bins-1; i++) {
       last[i] = AIR_NAN;
@@ -391,7 +400,7 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
     nrrd->min = nrrd->max = AIR_NAN;
     if (nrrdCleverMinMax(nrrd)) {
       sprintf(err, "%s: couldn't find value range in nrrd", me);
-      biffAdd(NRRD, err); return 1;
+      biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
     }
     min = nrrd->min;
     max = nrrd->max;
@@ -431,10 +440,13 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
       respect[steady[1+2*i]] = 0;
     }
   }
-  if (!( (xcoord = calloc(bins + 1, sizeof(double))) &&
-	 (ycoord = calloc(bins + 1, sizeof(double))) )) {
+  xcoord = calloc(bins + 1, sizeof(double));
+  ycoord = calloc(bins + 1, sizeof(double));
+  airMopMem(mop, &xcoord, airMopAlways);
+  airMopMem(mop, &ycoord, airMopAlways);
+  if (!(xcoord && ycoord)) {
     sprintf(err, "%s: failed to create xcoord, ycoord arrays", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
   }
 
   /* integrate the histogram then normalize it */
@@ -473,11 +485,6 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
     nrrdNuke(nhist);
   }
   
-  /* clean up, bye */
-  xcoord = airFree(xcoord);
-  ycoord = airFree(ycoord);
-  respect = airFree(respect);
-  steady = airFree(steady);
-  last = airFree(last);
+  airMopDone(mop, AIR_FALSE);
   return(0);
 }

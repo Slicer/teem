@@ -39,12 +39,12 @@ nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, double min, double max) {
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return 1;
+    biffAdd(NRRD, err); return 1;
   }
   if (nout != nin) {
     if (nrrdCopy(nout, nin)) {
       sprintf(err, "%s: couldn't initialize by copy to output", me);
-      biffSet(NRRD, err); return 1;
+      biffAdd(NRRD, err); return 1;
     }
   }
 

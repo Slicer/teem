@@ -353,7 +353,7 @@ nrrdHistoMulti(Nrrd *nout, Nrrd **nin,
   char me[]="nrrdHistoMulti", err[NRRD_STRLEN_MED];
   int d, coord[NRRD_DIM_MAX], skip, hadContent, totalContentStrlen, len;
   double val, count;
-  nrrdBigInt Iin, Iout, size, numEl;
+  nrrdBigInt Iin, Iout, numEl;
 
   /* error checking */
   if (!(numNrrds >= 1)) {
@@ -393,10 +393,6 @@ nrrdHistoMulti(Nrrd *nout, Nrrd **nin,
   }
 
   /* allocate output nrrd */
-  size = 1;
-  for (d=0; d<=numNrrds-1; d++) {
-    size *= bins[d];
-  }
   if (nrrdMaybeAlloc_nva(nout, type, numNrrds, bins)) {
     sprintf("%s: couldn't allocate multi-dimensional histogram", me);
     biffAdd(NRRD, err); return 1;
@@ -434,8 +430,12 @@ nrrdHistoMulti(Nrrd *nout, Nrrd **nin,
   numEl = nrrdElementNumber(nin[0]);
   for (Iin=0; Iin<=numEl-1; Iin++) {
     skip = 0;
+    /*
+    printf("%s: Iin = " NRRD_BIG_INT_PRINTF "; ", me, Iin); fflush(stdout);
+    */
     for (d=0; d<=numNrrds-1; d++) {
       val = nrrdDLookup[nin[d]->type](nin[d]->data, Iin);
+      /* printf("val[%d] = %g", d, val); fflush(stdout); */
       if (!AIR_EXISTS(val)) {
 	/* coordinate d in the multi-histo can't be determined
 	   if nin[d] has a non-existent value here */
@@ -451,9 +451,11 @@ nrrdHistoMulti(Nrrd *nout, Nrrd **nin,
 	}
       }
       AIR_INDEX(nin[d]->min, val, nin[d]->max, bins[d], coord[d]);
+      /* printf(" -> coord = %d; ", coord[d]); fflush(stdout); */
     }
     if (skip)
       continue;
+    /* printf("\n"); */
     NRRD_COORD_INDEX(Iout, coord, bins, numNrrds, d);
     count = nrrdDLookup[nout->type](nout->data, Iout);
     count = nrrdDClamp[nout->type](count + 1);
@@ -466,7 +468,7 @@ nrrdHistoMulti(Nrrd *nout, Nrrd **nin,
 			   + totalContentStrlen
 			   + 1, sizeof(char));
     if (nout->content) {
-      sprintf(nout->content, "histomulti(");
+      sprintf(nout->content, "mhisto(");
       for (d=0; d<=numNrrds-1; d++) {
 	len = strlen(nout->content);
 	strcpy(nout->content + len,

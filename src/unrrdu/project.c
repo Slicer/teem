@@ -20,11 +20,11 @@
 
 char *me; 
 
-void
+int
 usage() {
                       /*  0     1       2       3       4    (5) */
   fprintf(stderr, "usage: %s <nrrdIn> <axis> <measr> <nrrdOut>\n", me);
-  exit(1);
+  return 1;
 }
 
 int
@@ -36,13 +36,13 @@ main(int argc, char *argv[]) {
 
   me = argv[0];
   if (5 != argc)
-    usage();
+    return usage();
 
   if (2 != (sscanf(argv[2], "%d", &axis) + 
 	    sscanf(argv[3], "%d", &measr))) {
     fprintf(stderr, "%s: couldn't parse (%s,%s) as (axis,measr)\n", 
 	    me, argv[2], argv[3]);
-    exit(1);
+    return 1;
   }
   in = argv[1];
   out = argv[4];
@@ -51,14 +51,14 @@ main(int argc, char *argv[]) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error reading nrrd from \"%s\":\n%s\n", me, in, err);
     free(err);
-    exit(1);
+    return 1;
   }
   t1 = airTime();
-  if (nrrdMeasureAxis(nout = nrrdNew(), nin, axis, measr)) {
+  if (nrrdProject(nout = nrrdNew(), nin, axis, measr)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error projecting nrrd:\n%s\n", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
   t2 = airTime();
   printf("%s: projection took %g seconds\n", me, t2-t1);
@@ -66,10 +66,10 @@ main(int argc, char *argv[]) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error writing nrrd:\n%s\n", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
 
   nrrdNuke(nin);
   nrrdNuke(nout);
-  exit(0);
+  return 0;
 }

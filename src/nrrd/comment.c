@@ -193,5 +193,3 @@ nrrdCommentCopy(Nrrd *nout, Nrrd *nin) {
   }
   return 0;
 }
-
-

@@ -249,39 +249,9 @@ _nrrdResampleCheckInfo(Nrrd *nin, nrrdResampleInfo *info) {
   nrrdKernel *k;
   int center, p, d, np;
 
-  for (d=0; d<=nin->dim-1; d++) {
-    k = info->kernel[d];
-    /* we only care about the axes being resampled */
-    if (!k)
-      continue;
-    if (!(info->samples[d] > 1)) {
-      sprintf(err, "%s: axis %d # samples (%d) invalid", 
-	      me, d, info->samples[d]);
-      biffAdd(NRRD, err); return 1;
-    }
-    np = k->numParam;
-    for (p=0; p<=np-1; p++) {
-      if (!AIR_EXISTS(info->param[d][p])) {
-	sprintf(err, "%s: didn't set parameter %d for axis %d\n", me, p, d);
-	biffAdd(NRRD, err); return 1;
-      }
-    }
-    if (!( AIR_EXISTS(info->min[d]) && AIR_EXISTS(info->max[d]) )) {
-      sprintf(err, "%s: axis %d min and max not both set", me, d);
-      biffAdd(NRRD, err); return 1;
-    }
-    /*
-    if (info->min[d] == info->max[d] && nrrdCenterCell != nin->axis[d]) {
-      sprintf(err, "%s: 
-    }
-    center = (nrrdCenterNode == nin->axis[d].center
-	      ? nrrdCenterNode
-	      : (nrrdCenterCell == nin->axis[d].center
-		 ? nrrdCenterCell
-		 : nrrdDefCenter));
-    if ( (nrrdCenterCell == center && !(info->samples[d] >= 1)) ||
-	 (nrrdCenterNode == center && !(info->samples[d] >= 2)) )
-    */
+  if (nrrdTypeBlock == nin->type || nrrdTypeBlock == info->type) {
+    sprintf(err, "%s: can't resample to or from type %s", me,
+	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
   }
   if (nrrdBoundaryUnknown == info->boundary) {
     sprintf(err, "%s: didn't set boundary behavior\n", me);
@@ -291,6 +261,36 @@ _nrrdResampleCheckInfo(Nrrd *nin, nrrdResampleInfo *info) {
     sprintf(err, "%s: asked for boundary padding, but no pad value set\n", me);
     biffAdd(NRRD, err); return 1;
   }
+  for (d=0; d<=nin->dim-1; d++) {
+    k = info->kernel[d];
+    /* we only care about the axes being resampled */
+    if (!k)
+      continue;
+    if (!(info->samples[d] > 0)) {
+      sprintf(err, "%s: axis %d # samples (%d) invalid", 
+	      me, d, info->samples[d]);
+      biffAdd(NRRD, err); return 1;
+    }
+    np = k->numParam;
+    for (p=0; p<=np-1; p++) {
+      if (!AIR_EXISTS(info->param[d][p])) {
+	sprintf(err, "%s: didn't set parameter %d (of %d) for axis %d\n",
+		me, p, np, d);
+	biffAdd(NRRD, err); return 1;
+      }
+    }
+    if (!( AIR_EXISTS(info->min[d]) && AIR_EXISTS(info->max[d]) )) {
+      sprintf(err, "%s: axis %d min and max not both set", me, d);
+      biffAdd(NRRD, err); return 1;
+    }
+    center = _nrrdCenter(nin->axis[d].center);
+    if ( (nrrdCenterCell == center && !(info->samples[d] >= 1)) ||
+	 (nrrdCenterNode == center && !(info->samples[d] >= 2)) ) {
+      sprintf(err, "%s: # samples (%d) invalid for %s centering",
+	      me, info->samples[d], nrrdEnumValToStr(nrrdEnumCenter, center));
+      biffAdd(NRRD, err); return 1;
+    }
+  }
   return 0;
 }
 
@@ -299,7 +299,7 @@ _nrrdResampleCheckInfo(Nrrd *nin, nrrdResampleInfo *info) {
 ** _nrrdResampleComputePermute()
 **
 ** figures out information related to how the axes in a nrrd are
-** permuted during resampling: topRax, botRax, passes, ax[][], sz[][]
+** permuted during resampling: permute, topRax, botRax, passes, ax[][], sz[][]
 */
 void
 _nrrdResampleComputePermute(int permute[], 
@@ -327,7 +327,7 @@ _nrrdResampleComputePermute(int permute[],
   /* figure out total number of passes needed, and construct the
      permute[] array.  permute[i] = j means that the axis in position
      i of the old array will be in position j of the new one
-     (permute answers "where do I put this", not "what do I put here").
+     (permute[] answers "where do I put this", not "what do I put here").
   */
   *passes = a = 0;
   for (d=0; d<=dim-1; d++) {
@@ -558,15 +558,15 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
 /*
 ******** nrrdSpatialResample()
 **
-** general-purpose array-resampler: resamples a nrrd of any type and
-** any dimension along any or all of its axes, with any combination of
-** up- or down-sampling along the axes, with any kernel (specified by
-** callback), with potentially a different kernel for each axis.
-** Whether or not to resample along axis d is controlled by the
-** non-NULL-ity of info->kernel[d].  Where to sample on the axis
-** is controlled by info->min[d] and info->max[d], and if these 
-** are not set, then the lowest and highest positions along the axis
-** are used (that is, no cropping or padding is done).
+** general-purpose array-resampler: resamples a nrrd of any type
+** (except block) and any dimension along any or all of its axes, with
+** any combination of up- or down-sampling along the axes, with any
+** kernel (specified by callback), with potentially a different kernel
+** for each axis.  Whether or not to resample along axis d is
+** controlled by the non-NULL-ity of info->kernel[d].  Where to sample
+** on the axis is controlled by info->min[d] and info->max[d], and if
+** these are not set, then the lowest and highest positions along the
+** axis are used (that is, no cropping or padding is done).
 ** 
 ** we cyclically permute those axes being resampled, and never touch
 ** the position (in axis ordering) of axes along which we are not
@@ -580,20 +580,19 @@ _nrrdResampleFillSmpIndex(float **smpP, int **indexP, float *smpRatioP,
 ** and then puts them back in place afterwards, depending on the cost
 ** of such axis permutation overhead.
 **
-** The above paragraph does not pertain to reality.  Ignore it.
-** The above sentence is only partly correct.  This situation needs fixing.
+** The above paragraphs do not pertain to reality.  Ignore them.
 **
-** on error, this often leaks memory like a sieve.  Fixing this will
-** have to wait until I implement the "mop" library
+** The above sentence is only partly correct.  This situation needs fixing.
 */
 int
 nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   char me[]="nrrdSpatialResample", err[NRRD_STRLEN_MED];
-  float *arr[NRRD_DIM_MAX],   /* intermediate copies of the array; we don't
-				 need a full-fledged nrrd for these.  Only
-				 about two of these arrays will be allocated
-				 at a time; intermediate results will be
-				 free()d when not needed */
+  float *arr[NRRD_DIM_MAX],   /* intermediate copies of the input data
+				 undergoing resampling; we don't need a full-
+				 fledged nrrd for these.  Only about two of
+				 these arrays will be allocated at a time;
+				 intermediate results will be free()d when not
+				 needed */
     *_in,                     /* current input vector being resampled;
 				 not necessarily contiguous in memory
 				 (if strideIn != 1) */
@@ -609,7 +608,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     topLax,
     topRax,                   /* the lowest index of an axis which is
 				 resampled.  If all axes are being resampled,
-				 that this is 0.  If for some reason the
+				 then this is 0.  If for some reason the
 				 "x" axis (fastest stride) is not being
 				 resampled, but "y" is, then topRax is 1 */
     botRax,                   /* index of highest axis being resampled */
@@ -630,6 +629,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
 				 space), then overwritten with sample 
 				 weights */
   int 
+    size[NRRD_DIM_MAX+1],     /* copy of input vectors axis sizes */
     ci[NRRD_DIM_MAX+1],
     co[NRRD_DIM_MAX+1],
     lengthIn, lengthOut,      /* lengths of input and output vectors */
@@ -646,6 +646,8 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     strideBIn, strideBOut,
     numOut;                   /* # of _samples_, total, in output volume;
 				 this is for allocating the output */
+  airArray *mop;              /* for cleaning up */
+  
   if (!(nout && nin && info)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
@@ -670,12 +672,18 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   topLax = topRax ? 0 : 1;
 
   if (0 == passes) {
-    /* actually, no resampling was desired.  Copy input to output */
-    /* HEY! this could mean that fixed-point output types suffer
-       wrap-around.  Should this be clamped? */
-    if (nrrdConvert(nout, nin, typeOut)) {
-      sprintf(err, "%s: couldn't copy input to output", me);
+    /* actually, no resampling was desired.  Copy input to output,
+       but with the clamping that we normally do at the end of resampling */
+    nrrdAxesGet_nva(nout, nrrdAxesInfoSize, size);
+    if (nrrdMaybeAlloc_nva(nout, typeOut, nin->dim, size)) {
+      sprintf(err, "%s: couldn't allocate output", me);
       biffAdd(NRRD, err); return 1;
+    }
+    numOut = nrrdElementNumber(nin);
+    for (I=0; I<=numOut-1; I++) {
+      tmpF = nrrdFLookup[nin->type](nin->data, I);
+      tmpF = nrrdFClamp[typeOut](tmpF);
+      nrrdFInsert[typeOut](nout->data, I, tmpF);
     }
     return 0;
   }
@@ -688,6 +696,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
       biffAdd(NRRD, err); return 1;
     }
     arr[0] = (float*)floatNin->data;
+    
   }
   else {
     arr[0] = (float*)nin->data;
@@ -711,9 +720,9 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
 
   /* go! */
   for (p=0; p<=passes-1; p++) {
-    /*
+    /* */
     printf("%s: --- pass %d --- \n", me, p);
-    */
+    /* */
     numOut = numLines = strideBIn = strideBOut = 1;
     for (d=0; d<=dim-1; d++) {
       if (d <= topRax)

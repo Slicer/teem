@@ -18,31 +18,29 @@
 
 #include <nrrd.h>
 
-char *me;
-
-void
-usage() {
+int
+usage(char *me) {
   /*              0    1      2    ...  n+1    n+2   ...  2*n+1  (2*n+2) */
   fprintf(stderr,
 	  "usage: %s <nin0> <nin1> ... <bin0> <bin1> ... <nout>\n", me);
-  exit(1);
+  return 1;
 }
 
 int
 main(int argc, char **argv) {
-  char *err;
+  char *me, *err;
   Nrrd *nin[NRRD_DIM_MAX], *nout;
   int d, n, bin[NRRD_DIM_MAX], clamp[NRRD_DIM_MAX];
-  float min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
+  double min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
 
   me = argv[0];
   if (argc < 4 || 0 != argc%2) 
-    usage();
+    return usage(me);
   n = (argc-2)/2;
   if (n > NRRD_DIM_MAX) {
     fprintf(stderr, "%s: sorry, can only deal with up to %d nrrds\n", 
 	    me, NRRD_DIM_MAX);
-    exit(1);
+    return 1;
   }
   fprintf(stderr, "%s: will try to parse 2*%d args\n", me, n);
   for (d=0; d<=n-1; d++) {
@@ -51,21 +49,21 @@ main(int argc, char **argv) {
       fprintf(stderr, "%s: trouble reading nrrd %d from \"%s\":\n%s\n", me,
 	      d, argv[1+d], err);
       free(err);
-      exit(1);
+      return 1;
     }
     if (1 != sscanf(argv[1+n+d], "%d", bin+d)) {
       fprintf(stderr, "%s: couldn't parse %s as in int\n", me, argv[1+n+d]);
-      exit(1);
+      return 1;
     }
   }
 
   for (d=0; d<=n-1; d++) {
-    if (nrrdMinMaxFind(&nin[d]->min, &nin[d]->max, nin[d])) {
+    if (nrrdSetMinMax(nin[d])) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: trouble determining range in nrrd %d (%s):\n%s\n",
 	      me, d, argv[1+d], err);
       free(err);
-      exit(1);
+      return 1;
     }
     min[d] = nin[d]->min;
     max[d] = nin[d]->max;
@@ -76,10 +74,10 @@ main(int argc, char **argv) {
   
   fprintf(stderr, "%s: computing multi-histogram ... ", me); fflush(stdout);
   nout = nrrdNew();
-  if (nrrdHistoMulti(nout, nin, n, bin, min, max, clamp)) {
+  if (nrrdHistoMulti(nout, nin, n, bin, nrrdTypeUShort, clamp)) {
     fprintf(stderr, "%s: trouble doing multi-histogram:\n%s\n", 
 	    me, biffGet(NRRD));
-    exit(1);
+    return 1;
   }
   fprintf(stderr, "done\n");
   for (d=0; d<=n-1; d++) {
@@ -90,9 +88,9 @@ main(int argc, char **argv) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble writing output nrrd to \"%s\":\n%s\n", 
 	    me, argv[2*n+1], err);
-    exit(1);
+    return 1;
   }
   
   nrrdNuke(nout);
-  exit(0);
+  return 0;
 }

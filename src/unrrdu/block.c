@@ -19,25 +19,23 @@
 #include <nrrd.h>
 #include <limits.h>
 
-char *me; 
-
-void
-usage() {
+int
+usage(char *me) {
   /*              0    1     2   (3) */
   fprintf(stderr, 
 	  "usage: %s <nIn> <nOut>\n",
 	  me);
-  exit(1);
+  return 1;
 }
 
 int
 main(int argc, char *argv[]) {
-  char *inStr, *outStr, *err;
+  char *me, *inStr, *outStr, *err;
   Nrrd *nin, *nout;
 
   me = argv[0];
   if (3 != argc) {
-    usage();
+    return usage(me);
   }
   inStr = argv[1];
   outStr = argv[2];
@@ -45,22 +43,22 @@ main(int argc, char *argv[]) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble reading input:%s\n", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
   if (nrrdBlock(nout = nrrdNew(), nin)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error blockifying nrrd:\n%s", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
   if (nrrdSave(outStr, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error writing nrrd:\n%s", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
 
   nrrdNuke(nin);
   nrrdNuke(nout);
-  exit(0);
+  return 0;
 }

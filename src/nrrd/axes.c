@@ -19,8 +19,6 @@
 #include "nrrd.h"
 #include "private.h"
 
-int nrrdAxisCopyStrings = AIR_TRUE;
-
 /* ------------------------------------------------------------ */
 
 void
@@ -35,7 +33,7 @@ _nrrdAxisInit(nrrdAxis *axis) {
   }
 }
 
-nrrdAxis *
+/*
 nrrdAxisNew(void) {
   nrrdAxis *axis;
 
@@ -56,6 +54,7 @@ nrrdAxisNix(nrrdAxis *axis) {
   }
   return NULL;
 }
+*/
 
 /* ------------------------------------------------------------ */
 
@@ -79,31 +78,31 @@ nrrdAxisCopy(nrrdAxis *ax1, nrrdAxis *ax0) {
 **
 ** For copying all the per-axis peripheral information.  Takes a
 ** permutation "map"; map[d] tells from which axis in input should the
-** output axis d should copy its information.  The length of this
-** permutation array is nout->dim.  If map is NULL, the identity
-** permutation is assumed.  The "bitflag" field controls which
+** output axis d copy its information.  The length of this permutation
+** array is nout->dim.  If map is NULL, the identity permutation is
+** assumed.  If map[i]==-1 for any i in [0,dim-1], then nothing for
+** that dimension is copied.  The "bitflag" field controls which
 ** per-axis fields will NOT be copied; if bitflag==0, then all fields
 ** are copied.  The value of bitflag should be |'s of NRRD_AXESINFO_*
-** defines. If map[i]==-1 for any i in [0,dim-1], then nothing for
-** that dimension is copied.
+** defines.
 **
 ** Decided to Not use Biff, since many times map will be NULL, in
-** which case the only error is getting a NULL nrrd, which will
-** probably be unlikely given the contexts in which this is called.
-** The given map array can have invalid entries. For the paranoid, the
-** integer return value indicates error.
+** which case the only error is getting a NULL nrrd, or an invalid map
+** permutation, which will probably be unlikely given the contexts in
+** which this is called.  For the paranoid, the integer return value
+** indicates error.
 */
 int
 nrrdAxesCopy(Nrrd *nout, Nrrd *nin, int *map, int bitflag) {
   int d, from;
   
-  if (!(nout && nin)) {
+  if (!(nout && nin && nout != nin)) {
     return 1;
   }
   if (map) {
     for (d=0; d<=nout->dim-1; d++) {
       if (!AIR_INSIDE(-1, map[d], nin->dim-1)) {
-	return 1;
+	return 2;
       }
     }
   }
@@ -188,7 +187,7 @@ nrrdAxesSet_nva(Nrrd *nrrd, int axInfo, void *_info) {
 */
 void
 nrrdAxesSet(Nrrd *nrrd, int axInfo, ...) {
-  void *space[NRRD_DIM_MAX];
+  NRRD_TYPE_BIGGEST *space[NRRD_DIM_MAX];
   _nrrdAxesInfoPtrs info;
   int d;
   va_list ap;
@@ -209,23 +208,23 @@ nrrdAxesSet(Nrrd *nrrd, int axInfo, ...) {
       break;
     case nrrdAxesInfoCenter:
       info.I[d] = va_arg(ap, int);
-      /* printf("!%s: got int[%d] = %d\n", 
-	 "nrrdAxesSet_va", d, info.I[d]); */
+      printf("!%s: got int[%d] = %d\n", 
+	     "nrrdAxesSet_va", d, info.I[d]);
       break;
     case nrrdAxesInfoSpacing:
     case nrrdAxesInfoMin:
     case nrrdAxesInfoMax:
       info.D[d] = va_arg(ap, double);
-      /* printf("!%s: got double[%d] = %lg\n", 
-	 "nrrdAxesSet_va", d, info.D[d]); */
+      printf("!%s: got double[%d] = %lg\n", 
+	     "nrrdAxesSet_va", d, info.D[d]); 
       break;
     case nrrdAxesInfoLabel:
       /* we DO NOT do the airStrdup() here because this pointer value is
-	 just going to be handed to nrrdAxesSet(), which WILL do the
+	 just going to be handed to nrrdAxesSet_nva(), which WILL do the
 	 airStrdup(); we're not violating the rules for axis labels */
       info.CP[d] = va_arg(ap, char *);
-      /* printf("!%s: got char*[%d] = |%s|\n", 
-	 "nrrdAxesSet_va", d, info.CP[d]); */
+      printf("!%s: got char*[%d] = |%s|\n", 
+	     "nrrdAxesSet_va", d, info.CP[d]);
       break;
     }
   }
@@ -337,6 +336,25 @@ nrrdAxesGet(Nrrd *nrrd, int axInfo, ...) {
 }
 
 /*
+** _nrrdCenter()
+**
+** for nrrdCenterCell and nrrdCenterNode, return will be the same
+** as input.  Converts nrrdCenterUnknown into nrrdDefCenter,
+** and then clamps to (nrrdCenterUnknown+1, nrrdCenterLast-1).
+** Thus, this ALWAYS returns nrrdCenterNode or nrrdCenterCell
+** (as long as those are the only two centering schemes)
+*/
+int
+_nrrdCenter(int center) {
+  
+  center =  (nrrdCenterUnknown == center
+	     ? nrrdDefCenter
+	     : center);
+  center = AIR_CLAMP(nrrdCenterUnknown+1, center, nrrdCenterLast-1);
+  return center;
+}
+
+/*
 ******** nrrdAxisPos()
 ** 
 ** given a nrrd, an axis, and a (floating point) index space position,
@@ -353,12 +371,7 @@ nrrdAxisPos(Nrrd *nrrd, int ax, double idx) {
   if (!( nrrd && AIR_INSIDE(0, ax, nrrd->dim-1) )) {
     return AIR_NAN;
   }
-  center = (nrrdCenterUnknown == nrrd->axis[ax].center
-	    ? nrrdDefCenter
-	    : nrrd->axis[ax].center);
-  if (!( AIR_INSIDE(nrrdCenterUnknown+1, center, nrrdCenterLast-1) )) {
-    return AIR_NAN;
-  }
+  center = _nrrdCenter(nrrd->axis[ax].center);
   min = nrrd->axis[ax].min;
   max = nrrd->axis[ax].max;
   size = nrrd->axis[ax].size;
@@ -388,12 +401,7 @@ nrrdAxisIdx(Nrrd *nrrd, int ax, double pos) {
   if (!( nrrd && AIR_INSIDE(0, ax, nrrd->dim-1) )) {
     return AIR_NAN;
   }
-  center = (nrrdCenterUnknown == nrrd->axis[ax].center
-	    ? nrrdDefCenter
-	    : nrrd->axis[ax].center);
-  if (!( AIR_INSIDE(nrrdCenterUnknown+1, center, nrrdCenterLast-1) )) {
-    return AIR_NAN;
-  }
+  center = _nrrdCenter(nrrd->axis[ax].center);
   min = nrrd->axis[ax].min;
   max = nrrd->axis[ax].max;
   size = nrrd->axis[ax].size;
@@ -423,13 +431,7 @@ nrrdAxisPosRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
     *loP = *hiP = AIR_NAN;
     return;
   }
-  center = (nrrdCenterUnknown == nrrd->axis[ax].center
-	    ? nrrdDefCenter
-	    : nrrd->axis[ax].center);
-  if (!( AIR_INSIDE(nrrdCenterUnknown+1, center, nrrdCenterLast-1) )) {
-    *loP = *hiP = AIR_NAN;
-    return;
-  }
+  center = _nrrdCenter(nrrd->axis[ax].center);
   min = nrrd->axis[ax].min;
   max = nrrd->axis[ax].max;
   size = nrrd->axis[ax].size;
@@ -480,13 +482,7 @@ nrrdAxisIdxRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
     *loP = *hiP = AIR_NAN;
     return;
   }
-  center = (nrrdCenterUnknown == nrrd->axis[ax].center
-	    ? nrrdDefCenter
-	    : nrrd->axis[ax].center);
-  if (!( AIR_INSIDE(nrrdCenterUnknown+1, center, nrrdCenterLast-1) )) {
-    *loP = *hiP = AIR_NAN;
-    return;
-  }
+  center = _nrrdCenter(nrrd->axis[ax].center);
   min = nrrd->axis[ax].min;
   max = nrrd->axis[ax].max;
   size = nrrd->axis[ax].size;

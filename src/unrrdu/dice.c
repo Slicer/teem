@@ -18,27 +18,25 @@
 
 #include <nrrd.h>
 
-char *me; 
-
-void
-usage() {
+int
+usage(char *me) {
                       /*  0     1       2          3    */
   fprintf(stderr, "usage: %s <nrrdIn> <axis> <baseNameOut>\n", me);
-  exit(1);
+  return 1;
 }
 
 int
 main(int argc, char *argv[]) {
-  char *in, *base, out[128], *err, format[10];
-  int top, axis, pos;
+  char *me, *in, *base, out[128], *err, format[128];
+  int top, axis, pos, fit;
   Nrrd *nin, *nout = NULL;
 
   me = argv[0];
   if (4 != argc)
-    usage();
+    return usage(me);
   if (1 != sscanf(argv[2], "%d", &axis)) {
     fprintf(stderr, "%s: couldn't parse %s as axis\n", me, argv[2]);
-    exit(1);
+    return 1;
   }
   in = argv[1];
   base = argv[3];
@@ -46,12 +44,12 @@ main(int argc, char *argv[]) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error reading nrrd from \"%s\":%s\n", me, in, err);
     free(err);
-    exit(1);
+    return 1;
   }
   if (!(AIR_INSIDE(0, axis, nin->dim-1))) {
     fprintf(stderr, "%s: given axis (%d) outside range [0,%d]\n",
 	    me, axis, nin->dim-1);
-    exit(1);
+    return 1;
   }
   top = nin->axis[axis].size-1;
   if (top > 99999)
@@ -68,22 +66,34 @@ main(int argc, char *argv[]) {
     sprintf(format, "%%s%%01d.nrrd");
   nout = nrrdNew();
   for (pos=0; pos<=top; pos++) {
-    sprintf(out, format, base, pos);
-    fprintf(stderr, "%s\n", out);
     if (nrrdSlice(nout, nin, axis, pos)) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: error slicing nrrd:%s\n", me, err);
       free(err);
-      exit(1);
+      return 1;
     }
+    if (0 == pos) {
+      /* Wee if these slices would be better saved as PNM images.
+	 Altering the file name will tell nrrdSave() to use a different
+	 file format. */
+      fit = nrrdFitsInFormat(nout, nrrdFormatPNM, AIR_FALSE);
+      if (2 == fit) {
+	strcpy(format + strlen(format) - 4, "pgm");
+      }
+      else if (3 == fit) {
+	strcpy(format + strlen(format) - 4, "ppm");
+      }
+    }
+    sprintf(out, format, base, pos);
+    fprintf(stderr, "%s\n", out);
     if (nrrdSave(out, nout, NULL)) {
       err = biffGet(NRRD);
       fprintf(stderr, "%s: error writing nrrd to \"%s\":%s\n", me, out, err);
       free(err);
-      exit(1);
+      return 1;
     }
   }
   nrrdNuke(nout);
   nrrdNuke(nin);
-  exit(0);
+  return 0;
 }

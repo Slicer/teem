@@ -21,13 +21,13 @@
 
 char *me; 
 
-void
+int
 usage() {
   /*              0    1      2      3        4        argc-1 */ 
   fprintf(stderr, 
 	  "usage: %s <nIn> <size0> <size1> <size2> ... <nOut>\n",
 	  me);
-  exit(1);
+  return 1;
 }
 
 int
@@ -38,7 +38,7 @@ main(int argc, char *argv[]) {
   
   me = argv[0];
   if (!( argc >= 4 ))
-    usage();
+    return usage();
   inStr = argv[1];
   outStr = argv[argc-1];
 
@@ -46,7 +46,7 @@ main(int argc, char *argv[]) {
   for (d=0; d<=dim-1; d++) {
     if (1 != sscanf(argv[d+2], "%d", &(size[d]))) {
       fprintf(stderr, "%s: can't parse \"%s\" as int\n", me, argv[d+2]);
-      usage();
+      return usage();
     }
   }
 
@@ -54,24 +54,24 @@ main(int argc, char *argv[]) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble reading input:%s\n", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
 
   if (nrrdReshape(nout=nrrdNew(), nin, dim, size)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error reshaping nrrd:\n%s", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
 
   if (nrrdSave(outStr, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error writing nrrd:\n%s", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
 
   nrrdNuke(nin);
   nrrdNuke(nout);
-  exit(0);
+  return 0;
 }

@@ -20,11 +20,11 @@
 
 char *me; 
 
-void
+int
 usage() {
                       /*  0     1       2      3       4    (5) */
   fprintf(stderr, "usage: %s <nrrdIn> <axis> <pos> <nrrdOut>\n", me);
-  exit(1);
+  return 1;
 }
 
 int
@@ -35,13 +35,13 @@ main(int argc, char *argv[]) {
 
   me = argv[0];
   if (5 != argc)
-    usage();
+    return usage();
 
   if (2 != (sscanf(argv[2], "%d", &axis) + 
 	    sscanf(argv[3], "%d", &pos))) {
     fprintf(stderr, "%s: couldn't parse (%s,%s) as (axis,pos)\n", 
 	    me, argv[2], argv[3]);
-    exit(1);
+    return 1;
   }
   in = argv[1];
   out = argv[4];
@@ -50,23 +50,23 @@ main(int argc, char *argv[]) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: couldn't get nrrd from %s:\n%s\n", me, in, err);
     free(err);
-    exit(1);
+    return 1;
   }
   nout = nrrdNew();
   if (nrrdSlice(nout, nin, axis, pos)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error slicing nrrd:\n%s\n", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
   if (nrrdSave(out, nout, NULL)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error saving nrrd to %s:\n%s\n", me, out, err);
     free(err);
-    exit(1);
+    return 1;
   }
     
   nrrdNuke(nin);
   nrrdNuke(nout);
-  exit(0);
+  return 0;
 }

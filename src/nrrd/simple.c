@@ -78,33 +78,31 @@ nrrdDescribe(FILE *file, Nrrd *nrrd) {
 int
 nrrdValid(Nrrd *nrrd) {
   char me[] = "nrrdValid", err[NRRD_STRLEN_MED];
-  int i;
+  int  size[NRRD_DIM_MAX];
 
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 0;
   }
   if (!AIR_BETWEEN(nrrdTypeUnknown, nrrd->type, nrrdTypeLast)) {
     sprintf(err, "%s: type (%d) of array is invalid", me, nrrd->type);
-    biffSet(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 0;
   }
   if (nrrdTypeBlock == nrrd->type && (!(0 < nrrd->blockSize)) ) {
     sprintf(err, "%s: nrrd type is %s but nrrd->blockSize (%d) invalid", me,
 	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock),
 	    nrrd->blockSize);
-    biffSet(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 0;
   }
   if (!AIR_INSIDE(1, nrrd->dim, NRRD_DIM_MAX)) {
     sprintf(err, "%s: dimension %d is outside valid range [1,%d]",
 	    me, nrrd->dim, NRRD_DIM_MAX);
-    biffSet(NRRD, err); return 0;
+    biffAdd(NRRD, err); return 0;
   }
-  for (i=0; i<=nrrd->dim-1; i++) {
-    if (!(1 <= nrrd->axis[i].size)) {
-      sprintf(err, "%s: axis %d has invalid size (%d)", me, i,
-	      nrrd->axis[i].size);
-      biffSet(NRRD, err); return 0;
-    }
+  nrrdAxesGet_nva(nrrd, nrrdAxesInfoSize, size);
+  if (!_nrrdSizeValid(nrrd->dim, size)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return 0;
   }
   return 1;
 }
@@ -267,29 +265,27 @@ nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff) {
 }
 
 /*
-******** nrrdFixedType()
+******** nrrdTypeFixed()
 **
 ** returns non-zero iff type is a fixed-point scalar
 */
 int
-nrrdFixedType(Nrrd *nrrd) {
+nrrdTypeFixed(Nrrd *nrrd) {
   int t, ret;
   
-  if (nrrd) {
-    t = nrrd->type;
-    if (t == nrrdTypeChar ||
-	t == nrrdTypeUChar ||
-	t == nrrdTypeShort ||
-	t == nrrdTypeUShort ||
-	t == nrrdTypeInt ||
-	t == nrrdTypeUInt ||
-	t == nrrdTypeLLong ||
-	t == nrrdTypeULLong) {
-      t = AIR_TRUE;
-    }
-    else {
-      ret = AIR_FALSE;
-    }
+  if (!nrrd)
+    return AIR_FALSE;
+
+  t = nrrd->type;
+  if (nrrdTypeChar == t
+      || nrrdTypeUChar == t
+      || nrrdTypeShort == t
+      || nrrdTypeUShort == t
+      || nrrdTypeInt == t
+      || nrrdTypeUInt == t
+      || nrrdTypeLLong == t
+      || nrrdTypeULLong == t) {
+    ret = AIR_TRUE;
   }
   else {
     ret = AIR_FALSE;
@@ -299,23 +295,21 @@ nrrdFixedType(Nrrd *nrrd) {
 }
 
 /*
-******** nrrdFloatingType()
+******** nrrdTypeFloating()
 **
 ** returns non-zero iff type is a floating-point scalar
 */
 int
-nrrdFloatingType(Nrrd *nrrd) {
+nrrdTypeFloating(Nrrd *nrrd) {
   int t, ret;
   
-  if (nrrd) {
-    t = nrrd->type;
-    if (t == nrrdTypeFloat ||
-	t == nrrdTypeDouble) {
-      t = AIR_TRUE;
-    }
-    else {
-      ret = AIR_FALSE;
-    }
+  if (!nrrd)
+    return AIR_FALSE;
+
+  t = nrrd->type;
+  if (nrrdTypeFloat == t
+      || nrrdTypeDouble == t) {
+    ret = AIR_TRUE;
   }
   else {
     ret = AIR_FALSE;
@@ -327,13 +321,11 @@ nrrdFloatingType(Nrrd *nrrd) {
 /*
 ******** nrrdHasNonExist()
 **
-** returns non-zero iff there are values for which AIR_EXISTS() fails.
-** This function will also always set the value of nrrd->hasNonExist,
-** but the return value is not the same as what nrrd->hasNonExist is
-** set to (since nrrd->hasNonExist is set from the nrrdNonExist enum)
-** This function will ALWAYS determine the correct answer and set the
-** value of nrrd->hasNonExist: it ignores the value of
-** nrrd->hasNonExist on the input nrrd
+** This function will always set the value of nrrd->hasNonExist to
+** either nrrdNonExistTrue or nrrdNonExistFalse, and it will return
+** that value.  This function will ALWAYS determine the correct answer
+** and set the value of nrrd->hasNonExist: it ignores the value of
+** nrrd->hasNonExist on the input nrrd.
 */
 int
 nrrdHasNonExist(Nrrd *nrrd) {
@@ -341,8 +333,8 @@ nrrdHasNonExist(Nrrd *nrrd) {
   float val;
 
   if (!nrrd)
-    return 0;
-  if (nrrdFixedType(nrrd)) {
+    return nrrdNonExistUnknown;
+  if (nrrdTypeFixed(nrrd)) {
     nrrd->hasNonExist = nrrdNonExistFalse;
   }
   else {
@@ -356,7 +348,55 @@ nrrdHasNonExist(Nrrd *nrrd) {
       }
     }
   }
-  return nrrdNonExistTrue == nrrd->hasNonExist ? AIR_TRUE : AIR_FALSE;
+  return nrrd->hasNonExist;
+}
+
+int
+_nrrdCheckEnums() {
+  char me[]="_nrrdCheckEnums", err[NRRD_STRLEN_MED],
+    which[NRRD_STRLEN_SMALL];
+
+  if (nrrdFormatLast-1 != NRRD_FORMAT_MAX) {
+    strcpy(which, "nrrdFormat"); goto err;
+  }
+  if (nrrdBoundaryLast-1 != NRRD_BOUNDARY_MAX) {
+    strcpy(which, "nrrdBoundary"); goto err;
+  }
+  if (nrrdMagicLast-1 != NRRD_MAGIC_MAX) {
+    strcpy(which, "nrrdMagic"); goto err;
+  }
+  if (nrrdTypeLast-1 != NRRD_TYPE_MAX) {
+    strcpy(which, "nrrdType"); goto err;
+  }
+  if (nrrdEncodingLast-1 != NRRD_ENCODING_MAX) {
+    strcpy(which, "nrrdEncoding"); goto err;
+  }
+  if (nrrdMeasureLast-1 != NRRD_MEASURE_MAX) {
+    strcpy(which, "nrrdMeasure"); goto err;
+  }
+  if (nrrdCenterLast-1 != NRRD_CENTER_MAX) {
+    strcpy(which, "nrrdCenter"); goto err;
+  }
+  if (nrrdAxesInfoLast-1 != NRRD_AXESINFO_MAX) {
+    strcpy(which, "nrrdAxesInfo"); goto err;
+  }
+  /* can't really check on endian enum */
+  if (nrrdField_last-1 != NRRD_FIELD_MAX) {
+    strcpy(which, "nrrdField"); goto err;
+  }
+  if (nrrdNonExistLast-1 != NRRD_NON_EXIST_MAX) {
+    strcpy(which, "nrrdNonExist"); goto err;
+  }
+  if (nrrdEnumLast-1 != NRRD_ENUM_MAX) {
+    strcpy(which, "nrrdEnum"); goto err;
+  }
+  
+  /* no errors so far */
+  return 0;
+
+ err:
+  sprintf(err, "%s: Last vs. MAX incompatibility for %s enum", me, which);
+  biffAdd(NRRD, err); return 1;
 }
 
 /*
@@ -437,11 +477,11 @@ nrrdSanity(void) {
     biffAdd(NRRD, err); return 0;
   }
 
-  /* check on NRRD_BIGGEST_TYPE */
-  if (maxsize != sizeof(NRRD_BIGGEST_TYPE)) {
+  /* check on NRRD_TYPE_BIGGEST */
+  if (maxsize != sizeof(NRRD_TYPE_BIGGEST)) {
     sprintf(err, "%s: actual max type size is %d != "
-	    "%d == sizeof(NRRD_BIGGEST_TYPE)",
-	    me, maxsize, sizeof(NRRD_BIGGEST_TYPE));
+	    "%d == sizeof(NRRD_TYPE_BIGGEST)",
+	    me, maxsize, sizeof(NRRD_TYPE_BIGGEST));
     biffAdd(NRRD, err); return 0;
   }
   
@@ -471,11 +511,14 @@ nrrdSanity(void) {
 	    NRRD_ULLONG_MAX);
     biffAdd(NRRD, err); return 0;
   }
-  
+
+  if (_nrrdCheckEnums()) {
+    sprintf(err, "%s: problem with enum definition", me);
+    biffAdd(NRRD, err); return 0;
+  }
+
   /* HEY: any other assumptions built into teem? */
-  /* perhaps check that all the _MAX #defines agree with the 
-     highest valid enum values? */
-  
+
   sanity = 1;
   return 1;
 }

@@ -20,20 +20,18 @@
 #include <math.h>
 #include <string.h>
 
-char *me;
-
-void
-usage() {
+int
+usage(char *me) {
                       /*  0      1      2       3         4 */
   fprintf(stderr, "usage: %s <NameIn1> <op> <NameIn2> <NameOut>\n", me);
-  fprintf(stderr, "       <op> is '+', '-', '*', '/', 'm', 'M', 'p', 'e'\n");
-  exit(1);
+  fprintf(stderr, "       <op> is '+', '-', '*', '/', '%%', 'm', 'M', 'p', 'e'\n");
+  return 1;
 }
 
 int
 main(int argc, char *argv[]) {
   FILE *fin = NULL;
-  char *err, *op, *in1Str, *in2Str, *outStr;
+  char *me, *err, *op, *in1Str, *in2Str, *outStr;
   Nrrd *nin = NULL, *nin1 = NULL, *nin2 = NULL, *nout = NULL;
   double op1, op2, result;
   nrrdBigInt i, len;
@@ -42,7 +40,7 @@ main(int argc, char *argv[]) {
 
   me = argv[0];
   if (!(argc == 5))
-    usage();
+    return usage(me);
 
   in1Str = argv[1];
   op = argv[2];
@@ -52,13 +50,14 @@ main(int argc, char *argv[]) {
 	op[0] == '-' ||
 	op[0] == '*' ||
 	op[0] == '/' ||
+	op[0] == '%' ||
 	op[0] == 'm' ||
 	op[0] == 'M' ||
 	op[0] == 'p' ||
 	op[0] == 'e'
 	)) {
     fprintf(stderr, "%s: didn't get one of the supported operations\n", me);
-    usage();
+    return usage(me);
   }
   /* fprintf(stderr, "%s: in1Str = |%s| (%d)\n", 
      me, in1Str, !strcmp(in1Str, "-")); */
@@ -67,15 +66,15 @@ main(int argc, char *argv[]) {
       fclose(fin);
     if (nrrdLoad(nin1=nrrdNew(), in1Str)) {
       err = biffGet(NRRD);
-      fprintf(stderr, "%s: error reading first nrrd:%s\n", me, err);
+      fprintf(stderr, "%s: error reading first nrrd:\n%s\n", me, err);
       free(err);
-      exit(1);
+      return 1;
     }
   }
   else {
     if (!(1 == sscanf(in1Str, "%lg", &op1))) {
       fprintf(stderr, "%s: can't open %s or parse it as float\n", me, in1Str);
-      exit(1);
+      return 1;
     }
     fprintf(stderr, "%s: op1 is constant %g\n", me, op1);
   }
@@ -87,15 +86,15 @@ main(int argc, char *argv[]) {
       fclose(fin);
     if (nrrdLoad(nin2=nrrdNew(), in2Str)) {
       err = biffGet(NRRD);
-      fprintf(stderr, "%s: error reading second nrrd:%s\n", me, err);
+      fprintf(stderr, "%s: error reading second nrrd:\n%s\n", me, err);
       free(err);
-      exit(1);
+      return 1;
     }
   }
   else {
     if (!(1 == sscanf(in2Str, "%lg", &op2))) {
       fprintf(stderr, "%s: can't open %s or parse it as float\n", me, in2Str);
-      exit(1);
+      return 1;
     }
     fprintf(stderr, "%s: op2 is constant %g\n", me, op2);
   }
@@ -103,19 +102,20 @@ main(int argc, char *argv[]) {
   if (!(nin1 || nin2)) {
     /* we do need at least one nrrd */
     fprintf(stderr, "%s: need at least one nrrd, got two constants\n", me);
-    exit(1);
+    return 1;
   }
   nin = nin1 ? nin1 : nin2;
 
   if (nin1 && nin2) {
     /* see if they are compatible
        took out the enforcement of type equality */
-    if (!(nin1->num == nin2->num &&
+    
+    if (!(nrrdElementNumber(nin1) == nrrdElementNumber(nin2) &&
 	  nin1->dim == nin2->dim)) {
       fprintf(stderr, "%s: (num,type,dim): (%d,%d,%d) != (%d,%d,%d)\n", me,
-	      (int)nin1->num, nin1->type, nin1->dim,
-	      (int)nin2->num, nin2->type, nin2->dim);
-      exit(1);
+	      (int)nrrdElementNumber(nin1), nin1->type, nin1->dim,
+	      (int)nrrdElementNumber(nin2), nin2->type, nin2->dim);
+      return 1;
     }
   }
 
@@ -124,12 +124,12 @@ main(int argc, char *argv[]) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: nrrdNewCopy failed:\n%s\n", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
 
   look1 = nin1 ? nrrdDLookup[nin1->type] : NULL;
   look2 = nin2 ? nrrdDLookup[nin2->type] : NULL;
-  len = nin->num;
+  len = nrrdElementNumber(nin);
   for (i=0; i<=len-1; i++) {
     if (look1) {
       op1 = look1(nin1->data, i);
@@ -149,6 +149,9 @@ main(int argc, char *argv[]) {
       break;
     case '/':
       result = op1 / op2;
+      break;
+    case '%':
+      result = ((int)op1) % ((int)op2);
       break;
     case 'm':
       result = AIR_MIN(op1,op2);
@@ -170,11 +173,11 @@ main(int argc, char *argv[]) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: trouble in nrrdSave:\n%s\n", me, err);
     free(err);
-    exit(1);
+    return 1;
   }
 
   nrrdNuke(nin1);
   nrrdNuke(nin2);
   nrrdNuke(nout);
-  exit(0);
+  return 0;
 }

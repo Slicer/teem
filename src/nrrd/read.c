@@ -163,7 +163,7 @@ _nrrdReadDataRaw(Nrrd *nrrd, nrrdIO *io) {
 	}
       }
       if (2 <= nrrdStateVerboseIO) {
-	fprintf(stderr, "... ");
+	fprintf(stderr, " ... ");
 	fflush(stderr);
       }
     }
@@ -620,7 +620,7 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 
   nrrd->axis[0].size = sx;
   nrrd->axis[1].size = sy;
-  if (nrrdAlloc(nrrd, sx*sy, nrrdTypeFloat, 2)) {
+  if (nrrdAlloc(nrrd, nrrdTypeFloat, 2, sx, sy)) {
     sprintf(err, "%s: couldn't allocate table data", me);
     biffAdd(NRRD, err); return 1;
   }

@@ -20,6 +20,6 @@ HEADERS = biff.h
 LIBOBJS = biff.o
 TEST_BINS = test/test
 BINS = 
-BINLIBS = -lbiff -lair
+BINLIBS = -lbiff -lair -lm
 
 include ../make/Common.mk
