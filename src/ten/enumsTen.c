@@ -211,7 +211,7 @@ _tenFiberTypeStrEqv[][AIR_STRLEN_SMALL] = {
   "ev1", "evec1",
   "tline", "tensorline",
   "pline", "pureline",
-  "z", "zhukov"
+  "z", "zhukov",
   ""
 };
 
@@ -299,21 +299,26 @@ _tenGlyphTypeStr[][AIR_STRLEN_SMALL] = {
   "superquad"
 };
 
+#define BOX tenGlyphTypeBox
+#define SPH tenGlyphTypeSphere
+#define CYL tenGlyphTypeCylinder
+#define SQD tenGlyphTypeSuperquad
+
 char
 _tenGlyphTypeStrEqv[][AIR_STRLEN_SMALL] = {
   "b", "box",
-  "s", "sphere",
-  "c", "cylinder",
-  "q", "superquad", "superquadrics",
+  "s", "sph", "sphere",
+  "c", "cyl", "cylind", "cylinder",
+  "q", "superq", "sqd", "superquad", "superquadric",
   ""
 };
 
 int
 _tenGlyphTypeValEqv[] = {
-  tenGlyphTypeBox, tenGlyphTypeBox,
-  tenGlyphTypeSphere, tenGlyphTypeSphere,
-  tenGlyphTypeCylinder, tenGlyphTypeCylinder,
-  tenGlyphTypeSuperquad, tenGlyphTypeSuperquad, tenGlyphTypeSuperquad
+  BOX, BOX,
+  SPH, SPH, SPH,
+  CYL, CYL, CYL, CYL,
+  SQD, SQD, SQD, SQD, SQD
 };
 
 char

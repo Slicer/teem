@@ -20,6 +20,14 @@
 #include "ten.h"
 #include "tenPrivate.h"
 
+/* learned: a huge problem with hest and its var-arg-based hestOptAdd
+   is that it can't tell when you've based multiple strings for the
+   detailed usage information by accident.  I had accidentally inserted
+   a comma into my multi-line string for the "info" arg, relying on the
+   automatic string concatenation, and ended up passing total garbage
+   to hestOptAdd for the airEnum pointer, causing me to think that the
+   tenGlyphType airEnum was malformed, when it was in fact fine ... */
+
 #define INFO "Generate postscript or ray-traced renderings of box glyphs"
 char *_tend_glyphInfoL =
   (INFO
@@ -30,7 +38,8 @@ char *_tend_glyphInfoL =
    "aren't changing between invocations. "
    "The postscript output is an EPS file, suitable for including as a figure "
    "in LaTeX, or viewing with ghostview, or distilling into PDF. "
-   "The ray-traced output is a 3 channel float nrrd, suitable for "
+   "The ray-traced output is a 5 channel (R,G,B,A,T) float nrrd, suitable for "
+   "\"unu crop -min 0 0 0 -max 2 M M \" followed by "
    "\"unu gamma\" and \"unu quantize -b 8\".");
 
 int
@@ -40,7 +49,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  Nrrd *nten, *emap, *nraw, *nrgb;
+  Nrrd *nten, *emap, *nraw;
   char *outS;
   limnCam *cam;
   limnObj *glyph;
@@ -50,14 +59,13 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   echoGlobalState *gstate;
   tenGlyphParm *gparm;
   float bg[3];
-  int ires[2], cropmin[3], cropmax[3];
+  int ires[2];
 
   /* so that command-line options can be read from file */
   hparm->respFileEnable = AIR_TRUE;
   hparm->elideSingleEmptyStringDefault = AIR_TRUE;
 
   mop = airMopNew();
-  airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   cam = limnCamNew();
   airMopAdd(mop, cam, (airMopper)limnCamNix, airMopAlways);
   glyph = limnObjNew(512, AIR_TRUE);
@@ -165,6 +173,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
 	     "output file");
 
+  airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_tend_glyphInfoL);
   PARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
@@ -179,8 +188,6 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (doRT) {
     nraw = nrrdNew();
     airMopAdd(mop, nraw, (airMopper)nrrdNuke, airMopAlways);
-    nrgb = nrrdNew();
-    airMopAdd(mop, nrgb, (airMopper)nrrdNuke, airMopAlways);
     gstate = echoGlobalStateNew();
     airMopAdd(mop, gstate, (airMopper)echoGlobalStateNix, airMopAlways);
     cam->neer = -2;
@@ -203,19 +210,12 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
       airMopError(mop);
       return 1;
     }
-    ELL_3V_SET(cropmin, 0, 0, 0);
-    ELL_3V_SET(cropmax, 2, nraw->axis[1].size-1, nraw->axis[2].size-1);
-    if (nrrdCrop(nrgb, nraw, cropmin, cropmax)
-	|| nrrdSave(outS, nrgb, NULL)) {
+    if (nrrdSave(outS, nraw, NULL)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: %s\n", me, err);
       airMopError(mop);
       return 1;
     }
-    /*
-    nrrdSlice(nrgb, nraw, 0, 4);
-    nrrdSave("time.nrrd", nrgb, NULL);
-    */
   } else {
     if (!(win->file = airFopen(outS, stdout, "w"))) {
       fprintf(stderr, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", 

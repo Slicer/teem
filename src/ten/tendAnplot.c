@@ -41,9 +41,10 @@ tend_anplotMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "r", "res", airTypeInt, 1, 1, &res, "256",
 	     "resolution of anisotropy plot");
   hestOptAdd(&hopt, "w", NULL, airTypeInt, 0, 0, &whole, NULL,
-	     "sample the whole triangle of constant trace, instead of just the "
-	     "sixth of it in which the eigenvalues have the traditional sorted "
-	     "order. ");
+	     "sample the whole triangle of constant trace, "
+	     "instead of just the "
+	     "sixth of it in which the eigenvalues have the "
+	     "traditional sorted order. ");
   hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &aniso, NULL,
 	     "Which anisotropy metric to plot.  " TEN_ANISO_DESC,
 	     NULL, tenAniso);
