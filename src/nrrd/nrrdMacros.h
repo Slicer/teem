@@ -140,6 +140,10 @@ do {                                          \
 **
 ** opposite of NRRD_INDEX_GEN: going from linear index "I" to
 ** coordinate array "coord".
+**
+** HUGE NOTE: the I argument will end up as ZERO when this is done!
+** If passing a loop control variable, pass a copy instead!
+** Hello, side-effects!  This is awful!
 */
 #define NRRD_COORD_GEN(coord, size, dim, I)   \
 do {                                          \
