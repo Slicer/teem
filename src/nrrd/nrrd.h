@@ -113,18 +113,60 @@ typedef struct {
 } Nrrd;
 
 /*
-******** NrrdResampleInfo struct
+******** nrrdKernelMethods struct
 **
-** information to be specified per axis in order to do spatial-domain
-** (as opposed to frequency domain) resampling
+** these are essentially the methods of the various kernels implemented.
+** instead of being methods, though, they are fields in one fixed array
+** of structs (nrrdKernel).
+**
+** All kernels are assumed to have symmetric support, but the kernels 
+** are not assumed to be even functions.
 */
 typedef struct {
-  double (*kernel)(double, double*); /* the kernel call-back */
-  double args[NRRD_MAX_KERNEL_ARGS], /* kernel arguments */
-    min, max;                    /* range, in index space, along which to
+  float (*support)(float *param);         /* smallest x (>0) such that
+					     k(y) = 0 for all y>x, y<-x */
+  float (*eval)(float x, float *param);   /* evaluate the kernel once */
+  void (*evalVec)(float *f, float *x,     /* evaluate many times */
+		  int N, float *param);   
+  double (*evalD)(double x, float *param);/* evaluate once, double precision */
+  void (*evalVecD)(double *f, double *x,  /* evaluate many times, double */
+		   int N, float *param);
+} nrrdKernelMethods;
+
+#define NRRD_KERNEL_MAX 7
+typedef enum {
+  nrrdKernelUnknown,             /* 0: nobody knows */
+  nrrdKernelZero,                /* 1: value is always zero */
+  nrrdKernelBox,                 /* 2: for nearest-neighbor interpolation */
+  nrrdKernelTent,                /* 3: for (bi,tri)linear interpolation */
+  nrrdKernelForwDiff,            /* 4: for forward difference 1st deriv. */
+  nrrdKernelCentDiff,            /* 5: for central difference 1st deriv. */
+  nrrdKernelBCCubic,             /* 6: the BC family of cubics polynomials */
+  nrrdKernelBCCubicD,            /* 7: first derivative of BC family */
+  nrrdKernelLast
+} nrrdKernelType;
+
+extern nrrdKernelMethods nrrdKernel[NRRD_KERNEL_MAX+1];
+
+/*
+******** nrrdResampleInfo struct
+**
+*/
+typedef struct {
+  int kernel[NRRD_MAX_DIM];      /* from the nrrdKernelType enum; use
+				    nrrdKernelUnknown for "don't resample!" */
+  NRRD_BIG_INT samples[NRRD_MAX_DIM]; /* number of samples */
+  float param[NRRD_MAX_DIM][NRRD_MAX_KERNEL_PARAMS], 
+                                 /* kernel arguments */
+    min[NRRD_MAX_DIM],
+    max[NRRD_MAX_DIM];           /* range, in index space, along which to
 				    resample */
-  NRRD_BIG_INT samples;          /* number of samples */
-} NrrdResampleInfo;
+  int pad,                       /* non-zero iff resampling outside original
+				    should involve padding (not bleeding) */
+    type;                        /* desired type of output, use
+				    nrrdTypeUnknown for "same as input" */
+  float padValue;                /* if padding, what value to pad with */
+} nrrdResampleInfo;
 
 /*
 ******** nrrdMagic enum
@@ -146,7 +188,7 @@ typedef enum {
   nrrdMagicP5,           /* 6: binary PGM */
   nrrdMagicP6,           /* 7: binary PPM */
   nrrdMagicLast          /* 8: after the last valid magic */
-} nrrdMagic;
+} nrrdMagicType;
 
 /*
 ******** nrrdType enum
@@ -230,7 +272,8 @@ typedef enum {
 typedef enum {
   nrrdEndianUnknown,         /* 0: nobody knows */
   nrrdEndianLittle,          /* 1: Intel and friends */
-  nrrdEndianBig              /* 2: the rest */
+  nrrdEndianBig,             /* 2: the rest */
+  nrrdEndianLast
 } nrrdEndians;
 
 /*
@@ -328,8 +371,8 @@ extern int nrrdRange(Nrrd *nrrd);
 extern int nrrdCopy(Nrrd *nin, Nrrd *nout);
 extern Nrrd *nrrdNewCopy(Nrrd *nin);
 extern int nrrdSameSize(Nrrd *n1, Nrrd *n2);
-extern NrrdResampleInfo *nrrdResampleInfoNew(void);
-extern NrrdResampleInfo *nrrdResampleInfoNix(NrrdResampleInfo *info);
+extern nrrdResampleInfo *nrrdResampleInfoNew(void);
+extern nrrdResampleInfo *nrrdResampleInfoNix(nrrdResampleInfo *info);
 
 /******** getting information to and from files */
 /* io.c */
@@ -341,6 +384,7 @@ typedef int (*NrrdReadDataType)(FILE *file, Nrrd *nrrd);
 typedef int (*NrrdWriteDataType)(FILE *file, Nrrd *nrrd);
 extern int nrrdRead(FILE *file, Nrrd *nrrd);
 extern Nrrd *nrrdNewRead(FILE *file);
+extern int nrrdReadMagic(FILE *file);
 extern int nrrdReadHeader(FILE *file, Nrrd *nrrd); 
 extern Nrrd *nrrdNewReadHeader(FILE *file); 
 extern int nrrdReadData(FILE *file, Nrrd *nrrd);
@@ -360,7 +404,7 @@ extern int nrrdWriteDataHex(FILE *file, Nrrd *nrrd);
 extern int nrrdWriteDataBase85(FILE *file, Nrrd *nrrd);
 extern int (*nrrdWriteDataFptr[])(FILE *, Nrrd *);
 extern int nrrdValidPNM(Nrrd *pnm);
-extern int nrrdReadPNMHeader(FILE *file, Nrrd *nrrd, nrrdMagic magic);
+extern int nrrdReadPNMHeader(FILE *file, Nrrd *nrrd, int magic);
 extern int nrrdWritePNM(FILE *file, Nrrd *nrrd);
 
 /* getting value into and out of an array of general type, and
@@ -422,11 +466,6 @@ extern int nrrdHistoEq(Nrrd *nin, Nrrd **nhistP, int bins, int smart);
 /* filt.c */
 extern int nrrdMedian(Nrrd *nin, Nrrd *nout, int radius, int bins);
 extern Nrrd *nrrdNewMedian(Nrrd *nin, int radius, int bins);
-extern double nrrdBCCubicKernel(double x, double *arg);
-extern double nrrdACubicKernel(double x, double *arg);
-extern double nrrdGaussianKernel(double x, double *arg);
-extern double nrrdTentKernel(double x, double *arg);
-extern double nrrdBoxKernel(double x, double *arg);
 
 /******** conversions */
 /* convert.c */
