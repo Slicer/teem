@@ -21,7 +21,7 @@
 TEEM_LIB = echo
 HEADERS = echo.h
 PRIV_HEADERS = privateEcho.h
-TEEM_LIB_OBJS = methodsEcho.o enumEcho.o object.o lightEcho.o \
+TEEM_LIB_OBJS = methodsEcho.o enumsEcho.o object.o lightEcho.o \
 	renderEcho.o intx.o color.o
 #TEST_BINS = test/proj1 test/mod4
 #TEST_BINS = test/test test/trend

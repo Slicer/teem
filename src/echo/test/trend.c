@@ -18,7 +18,7 @@
 */
 
 #include "../echo.h"
-#include "../private.h"
+#include "../privateEcho.h"
 
 void
 makeSceneDOF(limnCam *cam, EchoParm *parm,
@@ -32,10 +32,10 @@ makeSceneDOF(limnCam *cam, EchoParm *parm,
   ELL_3V_SET(cam->from, 5, -5, 15);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, -1, 0);
-  cam->uMin = -3.7;
-  cam->uMax = 3.7;
-  cam->vMin = -3.7;
-  cam->vMax = 3.7;
+  cam->uRange[0] = -3.7;
+  cam->uRange[1] = 3.7;
+  cam->vRange[0] = -3.7;
+  cam->vRange[1] = 3.7;
   cam->dist = 2.1;
   cam->dist = 0.0;
   cam->dist = -2.1;
@@ -101,10 +101,10 @@ makeSceneAntialias(limnCam *cam, EchoParm *parm,
   ELL_3V_SET(cam->from, 0, 0, 10);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, 1, 0);
-  cam->uMin = -3.7;
-  cam->uMax = 3.7;
-  cam->vMin = -3.7;
-  cam->vMax = 3.7;
+  cam->uRange[0] = -3.7;
+  cam->uRange[1] = 3.7;
+  cam->vRange[0] = -3.7;
+  cam->vRange[1] = 3.7;
 
   parm->jitter = echoJitterGrid;
   echoVerbose = 0;
@@ -146,10 +146,10 @@ makeSceneSimple(limnCam *cam, EchoParm *parm,
   ELL_3V_SET(cam->from, 5, -5, 9);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, 0, 1);
-  cam->uMin = -3.7;
-  cam->uMax = 3.7;
-  cam->vMin = -3.7;
-  cam->vMax = 3.7;
+  cam->uRange[0] = -3.7;
+  cam->uRange[1] = 3.7;
+  cam->vRange[0] = -3.7;
+  cam->vRange[1] = 3.7;
 
   parm->jitter = echoJitterJitter;
   echoVerbose = 0;
@@ -246,10 +246,10 @@ makeSceneTexture(limnCam *cam, EchoParm *parm,
   ELL_3V_SET(cam->from, 9, 9, 11);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, 0, 1);
-  cam->uMin = -4;
-  cam->uMax = 4;
-  cam->vMin = -4;
-  cam->vMax = 4;
+  cam->uRange[0] = -4;
+  cam->uRange[1] = 4;
+  cam->vRange[0] = -4;
+  cam->vRange[1] = 4;
 
   parm->jitter = echoJitterNone;
   echoVerbose = 0;
@@ -324,10 +324,10 @@ makeSceneInstance(limnCam *cam, EchoParm *parm,
   ELL_3V_SET(cam->from, 9*1.3, 9*1.3, 11*1.3);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, 0, 1);
-  cam->uMin = -5;
-  cam->uMax = 5;
-  cam->vMin = -5;
-  cam->vMax = 5;
+  cam->uRange[0] = -5;
+  cam->uRange[1] = 5;
+  cam->vRange[0] = -5;
+  cam->vRange[1] = 5;
 
   parm->jitter = echoJitterNone;
   echoVerbose = 0;
@@ -440,10 +440,10 @@ makeSceneBVH(limnCam *cam, EchoParm *parm,
   ELL_3V_SET(cam->from, 9, 6, 0);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, 0, 1);
-  cam->uMin = -3;
-  cam->uMax = 3;
-  cam->vMin = -3;
-  cam->vMax = 3;
+  cam->uRange[0] = -3;
+  cam->uRange[1] = 3;
+  cam->vRange[0] = -3;
+  cam->vRange[1] = 3;
 
   parm->jitter = echoJitterNone;
   echoVerbose = 0;
@@ -492,10 +492,10 @@ makeSceneGlass(limnCam *cam, EchoParm *parm,
   ELL_3V_SET(cam->from, 2, -3, 8);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, 0, 1);
-  cam->uMin = -1.0;
-  cam->uMax = 1.0;
-  cam->vMin = -1.0;
-  cam->vMax = 1.0;
+  cam->uRange[0] = -1.0;
+  cam->uRange[1] = 1.0;
+  cam->vRange[0] = -1.0;
+  cam->vRange[1] = 1.0;
 
   parm->jitter = echoJitterNone;
   echoVerbose = 0;
@@ -553,10 +553,10 @@ makeSceneGlass2(limnCam *cam, EchoParm *parm,
   ELL_3V_SET(cam->from, 0, 0, 100);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, 1, 0);
-  cam->uMin = -1.0;
-  cam->uMax = 1.0;
-  cam->vMin = -1.0;
-  cam->vMax = 1.0;
+  cam->uRange[0] = -1.0;
+  cam->uRange[1] = 1.0;
+  cam->vRange[0] = -1.0;
+  cam->vRange[1] = 1.0;
 
   parm->jitter = echoJitterNone;
   echoVerbose = 0;
@@ -616,10 +616,10 @@ makeSceneGlassMetal(limnCam *cam, EchoParm *parm,
   ELL_3V_SET(cam->from, 3, 0, 6);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   -1, 0, 0);
-  cam->uMin = -0.9;
-  cam->uMax = 0.7;
-  cam->vMin = -0.3;
-  cam->vMax = 1.3;
+  cam->uRange[0] = -0.9;
+  cam->uRange[1] = 0.7;
+  cam->vRange[0] = -0.3;
+  cam->vRange[1] = 1.3;
 
   parm->jitter = echoJitterJitter;
   echoVerbose = 0;
@@ -716,10 +716,10 @@ makeSceneShadow(limnCam *cam, EchoParm *parm,
   ELL_3V_SET(cam->from, 2, 0, 20);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   -1, 0, 0);
-  cam->uMin = -1.8;
-  cam->uMax = 1.8;
-  cam->vMin = -1.8;
-  cam->vMax = 1.8;
+  cam->uRange[0] = -1.8;
+  cam->uRange[1] = 1.8;
+  cam->vRange[0] = -1.8;
+  cam->vRange[1] = 1.8;
 
   parm->jitter = echoJitterJitter;
   echoVerbose = 0;
@@ -812,10 +812,10 @@ makeSceneRainLights(limnCam *cam, EchoParm *parm,
   ELL_3V_SET(cam->from, 2, 0, 4);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, 0, 1);
-  cam->uMin = -1.8;
-  cam->uMax = 1.8;
-  cam->vMin = -1.8;
-  cam->vMax = 1.8;
+  cam->uRange[0] = -1.8;
+  cam->uRange[1] = 1.8;
+  cam->vRange[0] = -1.8;
+  cam->vRange[1] = 1.8;
 
   parm->jitter = echoJitterJitter;
   echoVerbose = 0;
@@ -891,7 +891,7 @@ main(int argc, char **argv) {
   cam->near = 0;
   cam->dist = 0;
   cam->faar = 0;
-  cam->eyeRel = AIR_FALSE;
+  cam->atRel = AIR_TRUE;
 
   parm = echoParmNew();
   airMopAdd(mop, parm, (airMopper)echoParmNix, airMopAlways);

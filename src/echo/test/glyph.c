@@ -18,7 +18,7 @@
 */
 
 #include "../echo.h"
-#include "../private.h"
+#include "../privateEcho.h"
 #include <hest.h>
 #include <ten.h>
 
@@ -258,7 +258,7 @@ main(int argc, char *argv[]) {
   cam->near = 0;
   cam->dist = 0;
   cam->faar = 0;
-  cam->eyeRel = AIR_FALSE;
+  cam->atRel = AIR_TRUE;
 
   state = echoGlobalStateNew();
   airMopAdd(mop, state, (airMopper)echoGlobalStateNix, airMopAlways);
@@ -329,10 +329,10 @@ main(int argc, char *argv[]) {
   }
 
   /* finish dealing with parsed information */
-  cam->uMin = ur[0];
-  cam->uMax = ur[1];
-  cam->vMin = vr[0];
-  cam->vMax = vr[1];
+  cam->uRange[0] = ur[0];
+  cam->uRange[1] = ur[1];
+  cam->vRange[0] = vr[0];
+  cam->vRange[1] = vr[1];
   eparm->imgResU = is[0];
   eparm->imgResV = is[1];
   eparm->jitter = (1 == eparm->samples ? echoJitterNone : echoJitterJitter);
