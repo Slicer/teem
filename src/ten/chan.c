@@ -266,7 +266,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 		    Nrrd *ndwi, Nrrd *_nbmat, int knownB0,
 		    float thresh, float soft, float b) {
   char me[]="tenEstimateLinear4D", err[AIR_STRLEN_MED];
-  Nrrd *nbmat, *nemat, *ncrop, *nhist;
+  Nrrd *nemat, *ncrop, *nhist;
   airArray *mop;
   int E, DD, d, II, sx, sy, sz, cmin[4], cmax[4], amap[4] = {-1,1,2,3};
   float *ten, dwi1[_TEN_MAX_DWI_NUM], *terr=NULL, 
@@ -276,6 +276,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 
   /*
   HEY: uncomment with tenSimulate stuff is working for unknown B0 case
+  Nrrd *nbmat;
   double *bmat;
   const char *bk;
   float dwi2[_TEN_MAX_DWI_NUM], te, d1, d2;
@@ -319,7 +320,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   mop = airMopNew();
   /* HEY, right now, nbmat is not used for anything (not tenSimulate stuff)
      because tenSimulate currently can't handle the unknown B0 case */
-  airMopAdd(mop, nbmat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  /* airMopAdd(mop, nbmat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways); */
   airMopAdd(mop, nemat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (tenEMatrixCalc(nemat, _nbmat, knownB0)) {
     sprintf(err, "%s: trouble computing estimation matrix", me);
