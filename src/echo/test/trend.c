@@ -79,7 +79,7 @@ makeSceneAntialias(limnCamera *cam, echoRTParm *parm,
   parm->renderBoxes = AIR_FALSE;
   parm->seedRand = AIR_FALSE;
   parm->maxRecDepth = 10;
-  parm->doShadows = AIR_TRUE;
+  parm->shadow = 1.0;
 
   nrrdLoad(ntext = nrrdNew(), "chirp.nrrd", NULL);
   rect = echoObjectNew(echoRectangle);
@@ -122,7 +122,7 @@ makeSceneBVH(limnCamera *cam, echoRTParm *parm, echoObject **sceneP) {
   parm->renderBoxes = AIR_FALSE;
   parm->seedRand = AIR_FALSE;
   parm->maxRecDepth = 10;
-  parm->doShadows = AIR_FALSE;
+  parm->shadow = 0.0;
 
   N = 1000000;
   airArraySetLen(LIST(scene)->objArr, N);
@@ -164,7 +164,7 @@ makeSceneGlass(limnCamera *cam, echoRTParm *parm, echoObject **sceneP) {
   parm->imgResV = 300;
   parm->aperture = 0.0;
   parm->renderLights = AIR_FALSE;
-  parm->doShadows = AIR_FALSE;
+  parm->shadow = 0.0;
   parm->seedRand = AIR_FALSE;
   parm->maxRecDepth = 10;
   parm->mrR = 1.0;
@@ -221,7 +221,7 @@ makeSceneGlass2(limnCamera *cam, echoRTParm *parm, echoObject **sceneP) {
   parm->imgResV = 300;
   parm->aperture = 0.0;
   parm->renderLights = AIR_FALSE;
-  parm->doShadows = AIR_FALSE;
+  parm->shadow = 0.0;
   parm->seedRand = AIR_FALSE;
   parm->maxRecDepth = 10;
   parm->mrR = 1.0;
@@ -283,7 +283,7 @@ makeSceneInstance(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   parm->renderBoxes = AIR_FALSE;
   parm->seedRand = AIR_FALSE;
   parm->maxRecDepth = 10;
-  parm->doShadows = AIR_TRUE;
+  parm->shadow = 1.0;
   
   ELL_4M_IDENTITY_SET(matx);
   ELL_4M_SCALE_SET(B, 2.5, 1.5, 0.8);
@@ -391,7 +391,7 @@ makeSceneGlassTest(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   parm->renderLights = AIR_FALSE;
   parm->seedRand = AIR_FALSE;
   ELL_3V_SET(scene->bkgr, 0.2, 0.3, 0.4);
-  /* parm->doShadows = AIR_FALSE; */
+  /* parm->shadow = 0.0; */
 
   /* create scene */
   N = 11;
@@ -526,7 +526,7 @@ makeSceneTexture(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   parm->renderBoxes = AIR_FALSE;
   parm->seedRand = AIR_FALSE;
   parm->maxRecDepth = 10;
-  parm->doShadows = AIR_TRUE;
+  parm->shadow = 1.0;
 
   rect = echoObjectNew(scene, echoTypeRectangle);
   echoRectangleSet(rect,
@@ -589,7 +589,7 @@ makeSceneDOF(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   parm->renderBoxes = AIR_FALSE;
   parm->seedRand = AIR_FALSE;
   parm->maxRecDepth = 10;
-  parm->doShadows = AIR_TRUE;
+  parm->shadow = 1.0;
 
   nrrdLoad(ntext = nrrdNew(), "tmp.png", NULL);
 
@@ -638,12 +638,13 @@ makeSceneShadow(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   cam->vRange[0] = -1.8;
   cam->vRange[1] = 1.8;
 
-  parm->jitterType = echoJitterJitter;
-  parm->numSamples = 4;
+  parm->jitterType = echoJitterGrid;
+  parm->numSamples = 9;
   parm->imgResU = 200;
   parm->imgResV = 200;
   parm->aperture = 0.0;
-  parm->renderLights = AIR_TRUE;
+  parm->renderLights = AIR_FALSE;
+  parm->shadow = 0.5;
 
   /* create scene */
   sphere = echoObjectNew(scene, echoTypeSphere);
@@ -689,7 +690,7 @@ makeSceneShadow(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
 		   0, 0.2, 0);
   echoColorSet(rect, 1, 1, 1, 1);
   echoMatterLightSet(scene, rect, 1, 0);
-
+  echoObjectAdd(scene, rect);
 }
 
 void
@@ -706,7 +707,7 @@ makeSceneSimple(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   cam->vRange[1] = 3.6;
 
   parm->jitterType = echoJitterJitter;
-  parm->numSamples = 25;
+  parm->numSamples = 9;
   parm->imgResU = 300;
   parm->imgResV = 300;
   parm->aperture = 0.0;
@@ -716,7 +717,7 @@ makeSceneSimple(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   parm->seedRand = AIR_TRUE;
   parm->maxRecDepth = 10;
   ELL_3V_SET(parm->maxRecCol, 0, 0, 0);
-  parm->doShadows = AIR_TRUE;
+  parm->shadow = 1.0;
 
   rect = echoObjectNew(scene, echoTypeRectangle);
   echoRectangleSet(rect,
@@ -804,7 +805,7 @@ makeSceneRainLights(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   parm->imgResV = 200;
   parm->aperture = 0.0;
   parm->renderLights = AIR_TRUE;
-  parm->doShadows = AIR_FALSE;
+  parm->shadow = 0.0;
   ELL_3V_SET(scene->bkgr, 0.1, 0.1, 0.1);
 
   /* create scene */
@@ -874,10 +875,10 @@ main(int argc, char **argv) {
   /* makeSceneBVH(cam, parm, scene); */
   /* makeSceneInstance(cam, parm, scene); */
   /* makeSceneTexture(cam, parm, scene); */
-  makeSceneSimple(cam, parm, scene);
+  /* makeSceneSimple(cam, parm, scene);  */
   /* makeSceneRainLights(cam, parm, scene); */
   /* makeSceneAntialias(cam, parm, scene); */
-  /* makeSceneShadow(cam, parm, scene); */
+  makeSceneShadow(cam, parm, scene); 
   /* makeSceneDOF(cam, parm, scene); */
 
   if ((env = getenv("NT"))) {

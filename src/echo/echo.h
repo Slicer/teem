@@ -72,7 +72,6 @@ typedef struct {
   int jitterType,      /* from echoJitter* enum below */
     reuseJitter,       /* don't recompute jitter offsets per pixel */
     permuteJitter,     /* properly permute the various jitter arrays */
-    doShadows,         /* do shadowing with shadow rays */
     textureNN,         /* use nearest-neighbor for texture lookups 
 			  (rather than bilinear interpolation) */
     numSamples,        /* rays per pixel */
@@ -87,6 +86,10 @@ typedef struct {
   echoPos_t
     sqTol;             /* how close newtwon-raphson must get to zero */
   echoCol_t
+    shadow,            /* the extent to which shadows are seen:
+			  0: no shadow rays cast
+			  >0: shadow rays cast, results weighed by shadow
+			  1: full shadowing */
     glassC;            /* should really be an additional material parameter:
 			  Beer's law attenuation in glass */
   float aperture,      /* shallowness of field */

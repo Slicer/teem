@@ -20,7 +20,7 @@
 #include "echo.h"
 #include "privateEcho.h"
 
-char _echoBuff[128];
+char _echoBuff[128] = "";
 
 char *
 _echoDot(int depth) {
@@ -97,13 +97,13 @@ echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3], echoCol_t spec[3],
 		   echoCol_t sp,
 		   echoIntx *intx, echoScene *scene, echoRTParm *parm, 
 		   echoThreadState *tstate) {
-  int Lidx;
+  int Lidx, blocked;
   echoRay shadRay;
   echoIntx shadIntx;
   echoPos_t Ldist, Ldir[3], Lpos[3], Ldot;
-  echoCol_t Lcol[3];
+  echoCol_t Lcol[3], fracseen;
 
-  if (parm->doShadows) {
+  if (parm->shadow) {
     /* from, neer, shadow */
     shadRay.shadow = AIR_TRUE;
     ELL_3V_COPY(shadRay.from, intx->pos);
@@ -135,21 +135,30 @@ echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3], echoCol_t spec[3],
 	 that there aren't diffuse or specular contributions on the
 	 backsides of even semi-transparent surfaces */
     }
-    if (parm->doShadows) {
+    if (parm->shadow) {
       ELL_3V_COPY(shadRay.dir, Ldir);
       shadRay.faar = Ldist;
       if (echoRayIntx(&shadIntx, &shadRay, scene, parm, tstate)) {
-	continue;
-	/* to next light, this one is obscured by something */
+	if (1.0 == parm->shadow) {
+	  /* skip to next light, this one is obscured by something,
+	     and we don't do any partial shadowing */
+	  continue;
+	}
+	blocked = AIR_TRUE;
+      } else {
+	blocked = AIR_FALSE;
       }
+    } else {
+      blocked = AIR_FALSE;
     }
+    fracseen = blocked ? 1.0 - parm->shadow : 1.0;
     echoLightColor(Lcol, Ldist, scene->light[Lidx], parm, tstate);
-    ELL_3V_SCALE_INCR(diff, Ldot, Lcol);
+    ELL_3V_SCALE_INCR(diff, fracseen*Ldot, Lcol);
     if (spec) {
       Ldot = ELL_3V_DOT(Ldir, intx->refl);
       if (Ldot > 0) {
 	Ldot = pow(Ldot, sp);
-	ELL_3V_SCALE_INCR(spec, Ldot, Lcol);
+	ELL_3V_SCALE_INCR(spec, fracseen*Ldot, Lcol);
       }
     }
   }

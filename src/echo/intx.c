@@ -25,7 +25,7 @@
 ** needed for shadow rays 
 */
 
-int _echoVerbose;
+int _echoVerbose = 0;
 
 /*
 ** ALL of the intersection functions are responsible for setting 
