@@ -234,13 +234,23 @@ MORE_CFLAGS = $(if $($(1).NEED_ENDIAN),-DTEEM_ENDIAN=$(TEEM_ENDIAN))\
  $(if $($(1).NEED_DIO),-DTEEM_DIO=$(TEEM_DIO))\
  $(if $($(1).NEED_QNANHIBIT),-DTEEM_QNANHIBIT=$(TEEM_QNANHIBIT))
 
-WHATS.USED.EXISTS = \
-$(if $(strip $(foreach x,$(call USED.INST,$(1)),$(if $(wildcard $(x)),,no))),$(call USED.INST,$(1)))
-
 ## For progress indication; see template.mk.  The double colon rules
 ## previously used to print this fatally confused parallel builds
 ##
-BANNER = echo ">>>>>>>>>>>>>>>>>>>>" $(1) "<<<<<<<<<<<<<<<<<<<<"
+BANNER = echo "--------------------" $(1) "--------------------"
+
+## MISSING(stuff) : returns non-empty string iff one or more of the
+## files in "stuff" doesn't exist
+##
+MISSING = $(strip $(foreach x,$(1),$(if $(wildcard $(x)),,gone)))
+
+##             1   2
+## NEWER.THAN(me,need) : returns non-empty string iff any if the files
+## named in $(need) either don't exist, or are newer than $(me). See
+## comments in compare.sh for more info.
+##
+NEWER.THAN = $(if $(strip $(2)),$(shell me=$(1) ; need='$(2)' ; \
+  . $(TEEM_SRC)/make/compare.sh))
 
 #SRC2LIB = $(notdir $(patsubst %/,%,$(dir $(1:.c=))))
 #HDR2LIB = $(notdir $(patsubst %/,%,$(dir $(1:.h=))))

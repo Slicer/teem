@@ -48,7 +48,8 @@
 ## The real value of the .%.usable target, in fact, is to have
 ## something off which to hang this assignment, so that, for instance,
 ## the right MORE_CFLAGS is used when compiling sources for a library
-## that we need, but which isn't in fact that top-level target.
+## that we need (say, air), but which isn't in fact that top-level
+## target (say, nrrd).
 ##
 $(L)/% : _L := $(L)
 $(TEEM_SRC)/.$(L).usable : _L := $(L)
@@ -64,9 +65,17 @@ $(TEEM_SRC)/.$(L).usable : _L := $(L)
 ##
 $(L)/usable : $(TEEM_SRC)/.$(L).usable
 
-## We name as prequisite our own libs and headers if they don't exist
-$(TEEM_SRC)/.$(L).usable : \
-  $(call WHATS.USED.EXISTS,$(L)) $(call NEED.USABLE,$(L))
+## The prequisites of .$(L).usable are the .usables of all our
+## prerequisites, and our own libs and headers, if either:
+## 1) any of the libs and headers are missing, or
+## 2) a prerequisite .usable is newer than ours.
+## Naming our libs and headers should effectively trigger an install.
+##
+used := $(call USED.INST,$(L))
+me := $(TEEM_SRC)/.$(L).usable
+need := $(call NEED.USABLE,$(L))
+$(TEEM_SRC)/.$(L).usable : $(call NEED.USABLE,$(L)) \
+$(if $(call MISSING,$(used)),$(used),$(if $(call NEWER.THAN,$(me),$(need)),$(used)))
 
 ## $(L)/install depends on usable prerequisite libraries and $(L)'s
 ## installed libs and headers.
