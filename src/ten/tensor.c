@@ -189,13 +189,31 @@ tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine) {
 */
 int
 tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
-  double m[9], eval[3], evec[9];
+  double m[9], eval[3], evec[9], trc, iso[9];
   int ret;
   
   TEN_LIST2MAT(m, t);
+  trc = ELL_3M_TRACE(m)/3.0;
+  ELL_3M_IDENTITY_SET(iso);
+  ELL_3M_SCALE(iso, trc, iso);
+  ELL_3M_SUB(m, m, iso);
   if (_evec) {
     ret = ell3mEigensolve(eval, evec, m, AIR_TRUE);
-    ELL_3V_COPY(_eval, eval);
+    if (ellCubicRootThree != ret && tenVerbose) {
+      fprintf(stderr, "---- cubic ret = %d\n", ret);
+      fprintf(stderr, "tensor = {\n");
+      fprintf(stderr, "    % 15.7f,\n", t[1]);
+      fprintf(stderr, "    % 15.7f,\n", t[2]);
+      fprintf(stderr, "    % 15.7f,\n", t[3]);
+      fprintf(stderr, "    % 15.7f,\n", t[4]);
+      fprintf(stderr, "    % 15.7f,\n", t[5]);
+      fprintf(stderr, "    % 15.7f}\n", t[6]);
+      fprintf(stderr, "roots = \n");
+      fprintf(stderr, "    % 31.15f\n", trc + eval[0]);
+      fprintf(stderr, "    % 31.15f\n", trc + eval[1]);
+      fprintf(stderr, "    % 31.15f\n", trc + eval[2]);
+    }
+    ELL_3V_SET(_eval, eval[0] + trc, eval[1] + trc, eval[2] + trc);
     ELL_3M_COPY(_evec, evec);
     if (ellCubicRootSingleDouble == ret) {
       /* this was added to fix a stupid problem with very nearly
@@ -220,7 +238,7 @@ tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
   } else {
     /* caller only wants eigenvalues */
     ret = ell3mEigenvalues(eval, m, AIR_TRUE);
-    ELL_3V_COPY(_eval, eval);
+    ELL_3V_SET(_eval, eval[0] + trc, eval[1] + trc, eval[2] + trc);
   }    
   return ret;
 }

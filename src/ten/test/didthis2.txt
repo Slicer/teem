@@ -1,4 +1,4 @@
-alias DOIT "tend glyph -bg 0.2 0.3 0.4 -rt -sat 0 -fr 0 0 -30 -up 0 1 0 -rh -ur -1.2 1.2 -vr -1.2 1.2 -or -emap emap.nrrd -atr 0 -gsc 0.25 -is 512 512 -ns 16"
+alias DOIT "tend glyph -bg 0.2 0.3 0.4 -rt -sat 0 -fr 0 0 -30 -up 0 1 0 -rh -ur -1.2 1.2 -vr -1.2 1.2 -or -emap emap.nrrd -atr 0 -gsc 0.25 -is 512 512 -ns 1"
 
 test/tt -n 7 -p -0.45 0.2 -0.35 | DOIT -g q \
  | unu quantize -b 8 -min 0 -max 1 -o sqd.png
