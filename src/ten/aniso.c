@@ -101,7 +101,7 @@ tenAnisoCalc(float c[TEN_ANISO_MAX+1], float e[3]) {
   R = c[tenAniso_R] = (-2*A*A*A + 9*A*B - 27*C)/54;
   c[tenAniso_S] = e0*e0 + e1*e1 + e2*e2;
   c[tenAniso_Skew] = R/(FLT_EPSILON + sqrt(2*Q*Q*Q));
-  c[tenAniso_Th] = acos(sqrt(2)*c[tenAniso_Skew])/3;
+  c[tenAniso_Th] = acos(AIR_CLAMP(-1, sqrt(2)*c[tenAniso_Skew], 1))/3;
   c[tenAniso_Cz] = ((e0 + e1)/(FLT_EPSILON + e2) 
 		    + (e1 + e2)/(FLT_EPSILON + e0) 
 		    + (e0 + e2)/(FLT_EPSILON + e1))/6;
