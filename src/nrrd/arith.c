@@ -405,5 +405,3 @@ nrrdArithTernaryOp(Nrrd *nout, int op,
   return 0;
 }
 
-
-
