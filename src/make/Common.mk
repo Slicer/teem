@@ -225,8 +225,9 @@ ifeq ($(TEEM_PURIFY),true)
     $(warning *)
     $(error Make quitting)
   endif
-  POPTS = -inuse-at-exit=yes -chain-length=12
-  P = $(PURIFY) $(POPTS) -always-use-cache-dir -cache-dir=$(PCACHE)
+  POPTS = -inuse-at-exit=yes -suppression-filenames=$(PCACHE)/.purify
+#  POPTS += -always-use-cache-dir -cache-dir=$(PCACHE)
+  P = $(PURIFY) $(POPTS)
 endif
 
 #
@@ -311,8 +312,8 @@ $(LDEST)/%: $(OBJ_PREF)/%
 
 # This rule is to satisfy the target $(INSTALL_BIN)
 $(BDEST)/$(_BIN): $(_BIN)
-	$(CP) $(_BIN) $(BDEST)
-	$(CHMOD) 755 $(BDEST)/$(_BIN)
+	$(CP) $(_BIN)$(DOTEXE) $(BDEST)
+	$(CHMOD) 755 $(BDEST)/$(_BIN)$(DOTEXE)
 
 # This rule is to satisfy the target $(INSTALL_BINS)
 # The binaries which are to be installed should link against the
