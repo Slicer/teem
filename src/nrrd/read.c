@@ -650,11 +650,13 @@ nrrdRead(Nrrd *nrrd, FILE *file, nrrdIO *_io) {
   int len;
   float oneFloat;
   nrrdIO *io;
+  airArray *mop;
 
   if (!(file && nrrd)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
+  mop = airMopInit();
   if (_io) {
     io = _io;
   }
@@ -664,6 +666,7 @@ nrrdRead(Nrrd *nrrd, FILE *file, nrrdIO *_io) {
       sprintf(err, "%s: couldn't alloc I/O struct", me);
       biffAdd(NRRD, err); return 1;
     }
+    airMopAdd(mop, io, (airMopper)nrrdIONix, airMopAlways);
   }
 
   /* clear out anything in the given nrrd */
@@ -672,7 +675,7 @@ nrrdRead(Nrrd *nrrd, FILE *file, nrrdIO *_io) {
   len = airOneLine(file, io->line, NRRD_STRLEN_LINE);
   if (!len) {
     sprintf(err, "%s: immediately hit EOF", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   
   /* we have one line, see if there's magic, or comments, or numbers */
@@ -683,7 +686,7 @@ nrrdRead(Nrrd *nrrd, FILE *file, nrrdIO *_io) {
     io->format = nrrdFormatNRRD;
      if (_nrrdReadNrrd(file, nrrd, io)) {
       sprintf(err, "%s: trouble reading NRRD", me);
-      biffAdd(NRRD, err); return 1;
+      biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     break;
   case nrrdMagicP2:
@@ -693,7 +696,7 @@ nrrdRead(Nrrd *nrrd, FILE *file, nrrdIO *_io) {
     io->format = nrrdFormatPNM;
     if (_nrrdReadPNM(file, nrrd, io)) {
       sprintf(err, "%s: trouble reading PNM", me);
-      biffAdd(NRRD, err); return 1;
+      biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     break;
   default:
@@ -703,25 +706,23 @@ nrrdRead(Nrrd *nrrd, FILE *file, nrrdIO *_io) {
       io->format = nrrdFormatTable;
       if (_nrrdReadTable(file, nrrd, io)) {
 	sprintf(err, "%s: trouble reading table", me);
-	biffAdd(NRRD, err); return 1;
+	biffAdd(NRRD, err); airMopError(mop); return 1;
       }
     }
     else {
       /* there's no hope */
       sprintf(err, "%s: couldn't parse any format (NRRD, PNM, or table)", me);
-      biffAdd(NRRD, err); return 1;
+      biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     break;
   }
 
-  if (!_io) {
-    io = nrrdIONix(io);
-  }
-  else {
+  if (_io) {
     /* reset the given nrrdIO so that it can be used again */
     nrrdIOReset(_io);
   }
 
+  airMopOkay(mop);
   return 0;
 }
 

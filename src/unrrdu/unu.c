@@ -103,18 +103,23 @@ int
 parseNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[] = "parseNrrd", *nerr;
   Nrrd **nrrdP;
+  airArray *mop;
   
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
   nrrdP = ptr;
-  if (nrrdLoad(*nrrdP = nrrdNew(), str)) {
+  mop = airMopInit();
+  *nrrdP = nrrdNew();
+  airMopAdd(mop, *nrrdP, (airMopper)nrrdNuke, airMopOnError);
+  if (nrrdLoad(*nrrdP, str)) {
     nerr = biffGetDone(NRRD);
+    airMopAdd(mop, nerr, airFree, airMopOnError);
     if (strlen(nerr) > AIR_STRLEN_HUGE - 1)
       nerr[AIR_STRLEN_HUGE - 1] = '\0';
     strcpy(err, nerr);
-    free(nerr);
+    airMopError(mop);
     return 1;
   }
   return 0;

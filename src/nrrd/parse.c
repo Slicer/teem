@@ -21,16 +21,15 @@
 
 int 
 _nrrdReadNrrdParse_nonfield(Nrrd *nrrd, nrrdIO *io, int useBiff) { 
+  /*
   char c;
 
-  /*
   c= 10; write(2,&c,1); c= 69; write(2,&c,1); c=108; write(2,&c,1);
   c= 32; write(2,&c,1); c= 67; write(2,&c,1); c=104; write(2,&c,1);
   c=101; write(2,&c,1); c= 32; write(2,&c,1); c= 86; write(2,&c,1);
   c=105; write(2,&c,1); c=118; write(2,&c,1); c=101; write(2,&c,1);
   c= 33; write(2,&c,1); c= 10; write(2,&c,1); c= 10; write(2,&c,1);
   */
-
   return 0;
 }
 
