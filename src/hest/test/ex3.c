@@ -43,6 +43,8 @@ main(int argc, char **argv) {
 	     "PPM image output");
   hestOptAdd(&opt, NULL,    "input", airTypeString, 1, -1,  &in,  NULL,
 	     "input image file(s)", &numIn);
+  hestOptAdd(&opt, "blah",  "input", airTypeString, 3,  3,  &in,  NULL,
+	     "input image file(s)", &numIn);
   hestOptAdd(&opt, "res",   "sx sy", airTypeInt,    2,  2,  res,  NULL,
 	     "image resolution");
   
