@@ -48,7 +48,8 @@ main(int argc, char **argv) {
   }
 
   if ((value = nrrdKeyValueGet(nrrd, key))) {
-    fprintf(stderr, "%s: '%s':='%s' (%d)\n", me, key, value, strlen(value));
+    fprintf(stderr, "%s: '%s':='%s' (%d)\n", me, key, value, 
+	    (int)strlen(value));
   } else {
     fprintf(stderr, "%s: value not found for key: %s\n", me, key);
   }
