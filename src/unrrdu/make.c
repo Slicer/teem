@@ -89,9 +89,9 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   const NrrdEncoding *encoding;
 
   /* so that long lists of filenames can be read from file */
+  airStrtokQuoting = AIR_TRUE;
   hparm->respFileEnable = AIR_TRUE;
   hparm->greedySingleString = AIR_TRUE;
-  hparm->verbosity = 3;
 
   mop = airMopNew();
   nio = nrrdIONew();
@@ -217,14 +217,17 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   if (kvpLen) {
     for (ki=0; ki<kvpLen; ki++) {
-      fprintf(stderr, "!%s: kvp[%d] = \"%s\"\n", me, ki, kvp[ki]);
-      /* a hack: use the NrrdIO has the channel to communicate the k/v pair */
+      /* a hack: have to use NrrdIO->line as the channel to communicate
+	 the key/value pair, since we have to emulate it having been
+	 read from a NRRD header.  But because nio doesn't own the 
+	 memory, we must be careful to unset the pointer prior to 
+	 NrrdIONuke being called by the mop. */
       nio->line = kvp[ki];
       if (_nrrdReadNrrdParse_keyvalue (nrrd, nio, AIR_TRUE)) {
 	airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
 	fprintf(stderr, "%s: trouble with key/value %d \"%s\":\n%s",
 		me, ki, kvp[ki], err);
-	airMopError(mop); return 1;
+	nio->line = NULL; airMopError(mop); return 1;
       }
       nio->line = NULL;
     }

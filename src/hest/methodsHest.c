@@ -398,6 +398,8 @@ _hestExtract(int *argcP, char **argv, int a, int np) {
     if (strstr(argv[a+n], " ")) {
       strcat(ret, "\"");
     }
+    /* HEY: if there is a '\"' character in this string, quoted or
+       not, its going to totally confuse later parsing */
     strcat(ret, argv[a+n]);
     if (strstr(argv[a+n], " ")) {
       strcat(ret, "\"");

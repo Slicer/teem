@@ -88,12 +88,13 @@ airStrtok(char *s, const char *ct, char **last) {
   if ('\"' == *h && airStrtokQuoting) {
     /* something is trying to be quoted, and, we'll respect that */
     /* have to find the next un-escaped '\"' */
-    q = h + 1;
+    h++;
+    q = h;
     while (*q && !('\"' == *q && '\\' != q[-1])) {
       q++;
     }
     if (*q) {
-      /* we found an unescaped " */
+      /* we found an unescaped '\"' */
       e = q;
     } else {
       /* give up; pretend we never tried to do this quoting stuff */
