@@ -343,6 +343,9 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
 	&& (!( 2 == opt[i].kind
 	       && airTypeOther == opt[i].type
 	       && parm->elideSingleOtherDefault ))
+	&& (!( 2 == opt[i].kind
+	       && airTypeString == opt[i].type
+	       && parm->elideSingleEmptyStringDefault ))
 	) {
       /* if there are newlines in the info, then we want to clarify the
 	 default by printing it on its own line */

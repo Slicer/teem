@@ -126,6 +126,8 @@ typedef struct {
 					point (float or double) parameter
 					doesn't AIR_EXIST, then don't display
 					the default */
+    elideSingleEmptyStringDefault, /* if default for a single string is empty
+				      (""), then don't display default */
     greedySingleString, /* when parsing a single string, whether or not
 			   to be greedy (as per airParseStrS) */
     columns;            /* number of printable columns in output */
@@ -148,6 +150,7 @@ extern int hestElideSingleEnumType;
 extern int hestElideSingleOtherType;
 extern int hestElideSingleOtherDefault;
 extern int hestElideSingleNonExistFloatDefault;
+extern int hestElideSingleEmptyStringDefault;
 extern int hestGreedySingleString;
 extern int hestColumns;
 extern char hestRespFileFlag;
