@@ -66,8 +66,8 @@ main(int argc, char **argv) {
   scene = echoObjectNew(echoObjectList);
   airMopAdd(mop, scene, (airMopper)echoObjectNix, airMopAlways);
   
-  lightArr = airArrayNew(NULL, NULL, sizeof(EchoLight *), 1);
-  airMopAdd(mop, lightArr, (airMopper)airArrayNuke, airMopAlways);
+  lightArr = echoLightArrayNew();
+  airMopAdd(mop, lightArr, (airMopper)echoLightArrayNix, airMopAlways);
 
   nraw = nrrdNew();
   nimg = nrrdNew();

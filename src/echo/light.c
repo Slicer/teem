@@ -71,6 +71,15 @@ echoLightNix(EchoLight *light) {
   return _echoLightNix[light->type](light);
 }
 
+airArray *
+echoLightArrayNew() {
+  airArray *ret;
+
+  ret = airArrayNew(NULL, NULL, sizeof(EchoLight *), 1);
+  airArrayPointerCB(ret, airNull, (void *(*)(void *))echoLightNix);
+  return ret;
+}
+
 void
 echoLightArrayAdd(airArray *lightArr, EchoLight *light) {
   int idx;
@@ -80,6 +89,15 @@ echoLightArrayAdd(airArray *lightArr, EchoLight *light) {
 
   idx = airArrayIncrLen(lightArr, 1);
   ((EchoLight **)lightArr->data)[idx] = light;
+}
+
+airArray *
+echoLightArrayNix(airArray *lightArr) {
+  
+  if (lightArr) {
+    airArrayNuke(lightArr);
+  }
+  return NULL;
 }
 
 void

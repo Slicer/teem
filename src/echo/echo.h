@@ -272,6 +272,9 @@ typedef struct {
 
 extern EchoLight *echoLightNew(int type);
 extern EchoLight *echoLightNix(EchoLight *light);
+extern airArray *echoLightArrayNew();
+extern void echoLightArrayAdd(airArray *lightArr, EchoLight *light);
+extern airArray *echoLightArrayNix(airArray *lightArr);
 extern void echoLightDirectionalSet(EchoLight *_light,
 				    echoCol_t r, echoCol_t g, echoCol_t b,
 				    echoPos_t x, echoPos_t y, echoPos_t z);
