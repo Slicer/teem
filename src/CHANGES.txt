@@ -18,6 +18,8 @@ been a problem.
 "unu save" can now take arguments controlling the compression
 encodings: level and strategy.
 
+Various "unu" commands' usage information expanded.
+
 Changes from 1.4 ---------------------------------------------------
 
 The complete HTML documentation for teem is now included with the
