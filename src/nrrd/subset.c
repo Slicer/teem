@@ -107,10 +107,9 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
   char me[]="nrrdSlice", err[NRRD_STRLEN_MED];
   nrrdBigInt 
     I, 
-    offset,                  /* index of first segment of slice */
-    length,                  /* length of segment */
-    period,                  /* distance between start of each segment */
-    numper;                  /* number of periods */
+    rowLen,                  /* length of segment */
+    colStep,                 /* distance between start of each segment */
+    colLen;                  /* number of periods */
   int i, outdim, map[NRRD_DIM_MAX], szOut[NRRD_DIM_MAX];
   char *src, *dest;
 
@@ -139,21 +138,19 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
   }
 
   /* set up control variables */
-  length = numper = 1;
+  rowLen = colLen = 1;
   for (i=0; i<=nin->dim-1; i++) {
     if (i < axis) {
-      length *= nin->axis[i].size;
+      rowLen *= nin->axis[i].size;
     }
     else if (i > axis) {
-      numper *= nin->axis[i].size;
+      colLen *= nin->axis[i].size;
     }
   }
-  length *= nrrdElementSize(nin);
-  offset = length*pos;
-  period = length*nin->axis[axis].size;
+  rowLen *= nrrdElementSize(nin);
+  colStep = rowLen*nin->axis[axis].size;
 
   outdim = nin->dim-1;
-  /* allocate space if necessary */
   for (i=0; i<=outdim-1; i++) {
     map[i] = i + (i >= axis);
     szOut[i] = nin->axis[map[i]].size;
@@ -167,12 +164,12 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
   /* the skinny */
   src = nin->data;
   dest = nout->data;
-  src += offset;
-  for (I=1; I<=numper; I++) {
+  src += rowLen*pos;
+  for (I=0; I<colLen; I++) {
     /* HEY: replace with AIR_MEMCPY() or similar, when applicable */
-    memcpy(dest, src, length);
-    src += period;
-    dest += length;
+    memcpy(dest, src, rowLen);
+    src += colStep;
+    dest += rowLen;
   }
 
   /* copy the peripheral information */

@@ -792,6 +792,6 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
     }
   }
 
-  line = airFree(line);
+  airFree(_line);
   return 0;
 }

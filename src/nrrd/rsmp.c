@@ -20,6 +20,7 @@
 #include "private.h"
 
 /*
+  (this was written before airMopSub ... )
 learned: if you start using airMop stuff, and you register a free, but
 then you free the memory yourself, YOU HAVE GOT TO register a NULL in
 place of the original free.  The next malloc may end up at the same
