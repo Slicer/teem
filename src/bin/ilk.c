@@ -70,7 +70,8 @@ main(int argc, char *argv[]) {
 	     "the pixels along a direction <fix> degrees from the X axis\n "
 	     "\b\bo \"flip:ang\": flip along axis an angle <ang> degrees from "
 	     "the X axis\n "
-	     "\b\bo \"a,b,c,d,tx,ty\": specify the transform explicitly ",
+	     "\b\bo \"a,b,tx,c,d,ty\": specify the transform explicitly "
+	     "in row-major order (opposite of PostScript) ",
 	     &matListLen, NULL, mossHestTransform);
   hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &ksp,
 	     "cubic:0,0.5", "reconstruction kernel",

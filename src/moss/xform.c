@@ -22,16 +22,16 @@
 
 /*
 
- 0  3  6
- 1  4  7
- 2  5  8
+ 0  1  2
+ 3  4  5
+ 6  7  8
 
  a  c  tx
  b  d  ty
  0  0  1
 
- 0  2  4
- 1  3  5
+ 0  1  2
+ 3  4  5
 
 */
 
@@ -39,9 +39,9 @@ void
 mossMatPrint (FILE *f, double *mat) {
 
   fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
-	  (float)mat[0], (float)mat[2], (float)mat[4]);
+	  (float)mat[0], (float)mat[1], (float)mat[2]);
   fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
-	  (float)mat[1], (float)mat[3], (float)mat[5]);
+	  (float)mat[3], (float)mat[4], (float)mat[5]);
 }
 
 double *
@@ -79,14 +79,14 @@ mossMatInvert (double *inv, double *mat) {
 double *
 mossMatIdentitySet (double *mat) {
 
-  MOSS_MAT_SET(mat, 1, 0, 0, 1, 0, 0);
+  MOSS_MAT_SET(mat, 1, 0, 0, 0, 1, 0);
   return mat;
 }
 
 double *
 mossMatTranslateSet (double *mat, double tx, double ty) {
 
-  MOSS_MAT_SET(mat, 1, 0, 0, 1, tx, ty);
+  MOSS_MAT_SET(mat, 1, 0, tx, 0, 1, ty);
   return mat;
 }
 
@@ -94,7 +94,7 @@ double *
 mossMatRotateSet (double *mat, double angle) {
 
   angle *= AIR_PI/180.0;
-  MOSS_MAT_SET(mat, cos(angle), sin(angle), -sin(angle), cos(angle), 0, 0);
+  MOSS_MAT_SET(mat, cos(angle), -sin(angle), 0, sin(angle), cos(angle), 0);
   return mat;
 }
 
@@ -102,7 +102,7 @@ double *
 mossMatFlipSet (double *mat, double angle) {
   double rot[6], flip[6];
 
-  MOSS_MAT_SET(flip, -1, 0, 0, 1, 0, 0);
+  MOSS_MAT_SET(flip, -1, 0, 0, 0, 1, 0);
   mossMatIdentitySet(mat);
   mossMatLeftMultiply(mat, mossMatRotateSet(rot, -angle));
   mossMatLeftMultiply(mat, flip);
@@ -114,7 +114,7 @@ double *
 mossMatShearSet (double *mat, double angleFixed, double amount) {
   double rot[6], shear[6];
 
-  MOSS_MAT_SET(shear, 1, 0, amount, 1, 0, 0);
+  MOSS_MAT_SET(shear, 1, amount, 0, 0, 1, 0);
   mossMatIdentitySet(mat);
   mossMatLeftMultiply(mat, mossMatRotateSet(rot, -angleFixed));
   mossMatLeftMultiply(mat, shear);
@@ -125,15 +125,15 @@ mossMatShearSet (double *mat, double angleFixed, double amount) {
 double *
 mossMatScaleSet (double *mat, double sx, double sy) {
 
-  MOSS_MAT_SET(mat, sx, 0, 0, sy, 0, 0);
+  MOSS_MAT_SET(mat, sx, 0, 0, 0, sy, 0);
   return mat;
 }
 
 void
 mossMatApply (double *ox, double *oy, double *mat, double ix, double iy) {
   
-  *ox = mat[0]*ix + mat[2]*iy + mat[4];
-  *oy = mat[1]*ix + mat[3]*iy + mat[5];
+  *ox = mat[0]*ix + mat[1]*iy + mat[2];
+  *oy = mat[3]*ix + mat[4]*iy + mat[5];
 }
 
 int
