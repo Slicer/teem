@@ -20,47 +20,21 @@
 #include "gage.h"
 #include "privateGage.h"
 
+/*
+******** gageVolumeCheck()
+**
+** checks whether a given volume is valid for the given kind
+** and the given parameter settings in the context
+*/
 int
-gageVolumeCheck (Nrrd *nin, gageKind *kind) {
+gageVolumeCheck (gageContext *ctx, Nrrd *nin, gageKind *kind) {
   char me[]="gageVolumeCheck", err[AIR_STRLEN_MED];
-  double xs, ys, zs;
-  int baseDim;
+  gageShape shape;
 
-  if (nrrdCheck(nin)) {
-    sprintf(err, "%s: basic nrrd validity check failed", me);
-    biffMove(GAGE, err, NRRD); return 1;
-  }
-  if (nrrdTypeBlock == nin->type) {
-    sprintf(err, "%s: need a non-block type nrrd", me);
-    biffAdd(GAGE, err); return 1;
-  }
-  baseDim = kind->baseDim;
-  if (3 + baseDim != nin->dim) {
-    sprintf(err, "%s: nrrd should have dimension %d, not %d",
-	    me, 3 + baseDim, nin->dim);
-    biffAdd(GAGE, err); return 1;
-  }
-  xs = nin->axis[baseDim+0].spacing;
-  ys = nin->axis[baseDim+1].spacing;
-  zs = nin->axis[baseDim+2].spacing;
-  if (!( AIR_EXISTS(xs) && AIR_EXISTS(ys) && AIR_EXISTS(zs) )) {
-    sprintf(err, "%s: spacings for axes %d,%d,%d don't all exist",
-	    me, baseDim+0, baseDim+1, baseDim+2);
-    biffAdd(GAGE, err); return 1;
-  }
-  if (!( xs != 0 && ys != 0 && zs != 0 )) {
-    sprintf(err, "%s: spacings (%g,%g,%g) for axes %d,%d,%d not all non-zero",
-	    me, xs, ys, zs, baseDim+0, baseDim+1, baseDim+2);
-    biffAdd(GAGE, err); return 1;
-  }
-  if (!( nin->axis[baseDim+0].center == nin->axis[baseDim+1].center &&
-	 nin->axis[baseDim+0].center == nin->axis[baseDim+2].center )) {
-    sprintf(err, "%s: axes %d,%d,%d centerings (%s,%s,%s) not equal", me,
-	    baseDim+0, baseDim+1, baseDim+2,
-	    airEnumStr(nrrdCenter, nin->axis[baseDim+0].center),
-	    airEnumStr(nrrdCenter, nin->axis[baseDim+1].center),
-	    airEnumStr(nrrdCenter, nin->axis[baseDim+2].center));
-    biffAdd(GAGE, err); return 1;
+  gageShapeReset(&shape);
+  if (_gageShapeSet(ctx, &shape, nin, kind->baseDim)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(GAGE, err); return 1;;
   }
   return 0;
 }
@@ -74,7 +48,7 @@ gageVolumeCheck (Nrrd *nin, gageKind *kind) {
 ** uses biff primarily because of the error checking in gageVolumeCheck()
 */
 gagePerVolume *
-gagePerVolumeNew (Nrrd *nin, gageKind *kind) {
+gagePerVolumeNew (gageContext *ctx, Nrrd *nin, gageKind *kind) {
   char me[]="gagePerVolumeNew", err[AIR_STRLEN_MED];
   gagePerVolume *pvl;
   int i;
@@ -83,7 +57,7 @@ gagePerVolumeNew (Nrrd *nin, gageKind *kind) {
     sprintf(err, "%s: got NULL pointer", me);
     return NULL;
   }
-  if (gageVolumeCheck(nin, kind)) {
+  if (gageVolumeCheck(ctx, nin, kind)) {
     sprintf(err, "%s: problem with given volume", me);
     biffAdd(GAGE, err); return NULL;
   }
@@ -112,6 +86,7 @@ gagePerVolumeNew (Nrrd *nin, gageKind *kind) {
     sprintf(err, "%s: couldn't alloc answer array", me);
     biffAdd(GAGE, err); return NULL;
   }
+  pvl->flag[gagePvlFlagVolume] = AIR_TRUE;
 
   return pvl;
 }
@@ -182,7 +157,7 @@ gagePerVolumeNix (gagePerVolume *pvl) {
 **
 */
 void
-gagePadderSet (gagePerVolume *pvl, gagePadder_t *padder) {
+gagePadderSet (gageContext *ctx, gagePerVolume *pvl, gagePadder_t *padder) {
 
   if (pvl) {
     pvl->padder = padder;
@@ -195,7 +170,7 @@ gagePadderSet (gagePerVolume *pvl, gagePadder_t *padder) {
 **
 */
 void
-gageNixerSet (gagePerVolume *pvl, gageNixer_t *nixer) {
+gageNixerSet (gageContext *ctx, gagePerVolume *pvl, gageNixer_t *nixer) {
   
   if (pvl) {
     pvl->nixer = nixer;
@@ -210,7 +185,7 @@ gageNixerSet (gagePerVolume *pvl, gageNixer_t *nixer) {
 ** Basically just a wrapper around GAGE_ANSWER_POINTER with error checking
 */
 gage_t *
-gageAnswerPointer (gagePerVolume *pvl, int measure) {
+gageAnswerPointer (gageContext *ctx, gagePerVolume *pvl, int measure) {
   gage_t *ret;
 
   if (pvl && airEnumValValid(pvl->kind->enm, measure)) {
@@ -230,7 +205,7 @@ gageAnswerPointer (gagePerVolume *pvl, int measure) {
 ** Sets: pvl->query
 */
 int
-gageQuerySet (gagePerVolume *pvl, unsigned int query) {
+gageQuerySet (gageContext *ctx, gagePerVolume *pvl, unsigned int query) {
   char me[]="gageQuerySet", err[AIR_STRLEN_MED];
   unsigned int mask, lastq, q;
   

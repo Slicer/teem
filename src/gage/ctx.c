@@ -276,6 +276,10 @@ gageSet (gageContext *ctx, int which, gage_t val) {
     ctx->parm.checkIntegrals = val ? AIR_TRUE : AIR_FALSE;
     /* no flags to set, simply affects future calls to gageKernelSet() */
     break;
+  case gageParmNoRepadWhenSmaller:
+    ctx->parm.noRepadWhenSmaller = AIR_TRUE;
+    /* no flag to set, but does affect future calls to _gageHavePadUpdate() */
+    break;
   case gageParmK3Pack:
     ctx->parm.k3pack = val ? AIR_TRUE : AIR_FALSE;
     ctx->flag[gageCtxFlagK3Pack] = AIR_TRUE;
@@ -288,16 +292,28 @@ gageSet (gageContext *ctx, int which, gage_t val) {
     ctx->parm.gradMagCurvMin = val;
     /* no flag to set, simply affects future calls to gageProbe() */
     break;
+  case gageParmDefaultSpacing:
+    ctx->parm.defaultSpacing = val;
+    /* no flag to set, simply affects future calls to gageProbe() */
+    break;
+  case gageParmCurvNormalSide:
+    ctx->parm.curvNormalSide = val;
+    /* no flag to set, simply affects future calls to gageProbe() */
+    break;
   case gageParmKernelIntegralNearZero:
     ctx->parm.kernelIntegralNearZero = val;
     /* no flag to set, simply affects future calls to gageKernelSet() */
     break;
-  case gageParmNoRepadWhenSmaller:
-    ctx->parm.noRepadWhenSmaller = AIR_TRUE;
-    /* no flag to set, but does affect future calls to _gageHavePadUpdate() */
+  case gageParmRequireAllSpacings:
+    ctx->parm.requireAllSpacings = val;
+    /* no flag to set, simply affects future calls to gageProbe() */
     break;
-  case gageParmCurvNormalSide:
-    ctx->parm.curvNormalSide = val;
+  case gageParmRequireEqualCenters:
+    ctx->parm.requireEqualCenters = val;
+    /* no flag to set, simply affects future calls to gageProbe() */
+    break;
+  case gageParmDefaultCenter:
+    ctx->parm.defaultCenter = val;
     /* no flag to set, simply affects future calls to gageProbe() */
     break;
   default:
@@ -357,14 +373,20 @@ gagePerVolumeAttach (gageContext *ctx, gagePerVolume *pvl) {
     /* the volume "shape" is context state that we set now, because unlike 
        everything else (handled by gageUpdate()), it does not effect
        the kind or amount of padding done */
-    gageShapeSet(ctx->shape, pvl->nin, pvl->kind->baseDim);
+    if (_gageShapeSet(ctx, ctx->shape, pvl->nin, pvl->kind->baseDim)) {
+      sprintf(err, "%s: trouble", me); 
+      biffAdd(GAGE, err); return 1;
+    }
     ctx->flag[gageCtxFlagShape] = AIR_TRUE;
   } else {
     /* have to check to that new pvl matches first one.  Since all
        attached pvls were at some point the "new" one, they all
        should match each other */
     shape = gageShapeNew();
-    gageShapeSet(shape, pvl->nin, pvl->kind->baseDim);
+    if (_gageShapeSet(ctx, shape, pvl->nin, pvl->kind->baseDim)) {
+      sprintf(err, "%s: trouble", me); 
+      biffAdd(GAGE, err); return 1;
+    }
     if (!gageShapeEqual(ctx->shape, "existing context", shape, "new volume")) {
       sprintf(err, "%s: trouble", me);
       biffAdd(GAGE, err); gageShapeNix(shape); return 1;
@@ -412,7 +434,7 @@ gagePerVolumeDetach (gageContext *ctx, gagePerVolume *pvl) {
   }
   ctx->pvl[ctx->numPvl--] = NULL;
   if (0 == ctx->numPvl) {
-    /* leave things the way that started */
+    /* leave things the way that they started */
     gageShapeReset(ctx->shape);
     ctx->flag[gageCtxFlagShape] = AIR_TRUE;
   }
@@ -430,7 +452,8 @@ gageIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="gageIv3Fill";
   int i, sx, sy, sz, fd, fddd, bidx, tup;
   void *here;
-  
+
+  if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
   sx = PADSIZE_X(ctx);
   sy = PADSIZE_Y(ctx);
   sz = PADSIZE_Z(ctx);
@@ -444,12 +467,21 @@ gageIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
 	  + sx*(ctx->point.yi - ctx->havePad
 		+ sy*(ctx->point.zi - ctx->havePad)));
   if (ctx->verbose) {
-    fprintf(stderr, "%s: padded size = (%d,%d,%d);\n"
-	    "  fd = %d; point (padded) coord = (%d,%d,%d) --> bidx = %d\n", me,
-	    sx, sy, sz, fd, ctx->point.xi, ctx->point.yi, ctx->point.zi, bidx);
+    fprintf(stderr, "%s: hello, valLen = %d, pvl->npad = %p, data = %p\n",
+	    me, pvl->kind->valLen, pvl->npad, pvl->npad->data);
   }
   here = ((char*)(pvl->npad->data) + (bidx * pvl->kind->valLen * 
 				      nrrdTypeSize[pvl->npad->type]));
+  if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
+  if (ctx->verbose) {
+    fprintf(stderr, "%s: padded size = (%d,%d,%d);\n"
+	    "    fd = %d; point (pad: %d) coord = (%d,%d,%d) --> bidx = %d\n",
+	    me, sx, sy, sz,
+	    fd, ctx->havePad, ctx->point.xi, ctx->point.yi, ctx->point.zi,
+	    bidx);
+    fprintf(stderr, "%s: here = %p; iv3 = %p; off[0] = %d\n",
+	    me, here, pvl->iv3, ctx->off[0]);
+  }
   switch(pvl->kind->valLen) {
   case 1:
     for (i=0; i<fddd; i++) {
@@ -487,6 +519,7 @@ gageIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
     }
     break;
   }
+  if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
   return;
 }
 

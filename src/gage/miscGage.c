@@ -181,7 +181,7 @@ _gageStandardNixer (Nrrd *npad, gageKind *kind, gagePerVolume *pvl) {
 }
 
 void
-gageParmReset(gageParm *parm) {
+gageParmReset (gageParm *parm) {
 
   if (parm) {
     parm->renormalize = gageDefRenormalize;
@@ -190,14 +190,18 @@ gageParmReset(gageParm *parm) {
     parm->k3pack = gageDefK3Pack;
     parm->gradMagMin = gageDefGradMagMin;
     parm->gradMagCurvMin = gageDefGradMagCurvMin;
+    parm->defaultSpacing = gageDefDefaultSpacing;
     parm->curvNormalSide = gageDefCurvNormalSide;
     parm->kernelIntegralNearZero = gageDefKernelIntegralNearZero;
+    parm->requireAllSpacings = gageDefRequireAllSpacings;
+    parm->requireEqualCenters = gageDefRequireEqualCenters;
+    parm->defaultCenter = gageDefDefaultCenter;
   }
   return;
 }
 
 void
-gagePointReset(gagePoint *point) {
+gagePointReset (gagePoint *point) {
 
   if (point) {
     /* learned: can't initialize the floating point to AIR_NAN, 

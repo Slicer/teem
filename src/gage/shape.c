@@ -21,12 +21,12 @@
 #include "privateGage.h"
 
 void
-gageShapeReset(gageShape *shape) {
+gageShapeReset (gageShape *shape) {
   int i, ai;
   
   if (shape) {
     ELL_3V_SET(shape->size, -1, -1, -1);
-    shape->defCenter = gageDefCenter;
+    shape->defaultCenter = gageDefDefaultCenter;
     shape->center = nrrdCenterUnknown;
     ELL_3V_SET(shape->spacing, AIR_NAN, AIR_NAN, AIR_NAN);
     for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
@@ -42,7 +42,7 @@ gageShapeReset(gageShape *shape) {
 }
 
 gageShape *
-gageShapeNew() {
+gageShapeNew () {
   gageShape *shape;
   
   shape = (gageShape *)calloc(1, sizeof(gageShape));
@@ -53,64 +53,131 @@ gageShapeNew() {
 }
 
 gageShape *
-gageShapeNix(gageShape *shape) {
+gageShapeNix (gageShape *shape) {
   
   return airFree(shape);
 }
 
-
+/*
+** _gageShapeSet
+**
+** we are serving two masters here.  If ctx is non-NULL, we are being called
+** from within gage, and we are to be lax or strict according to the settings
+** of ctx->parm.requireAllSpacings and ctx->parm.requireEqualCenters.  If
+** ctx is non-NULL, gageShapeSet was called, in which case we go with lax
+** behavior (nothing "required")
+**
+** This function has subsumed the old gageVolumeCheck.
+*/
 int
-gageShapeSet(gageShape *shape, Nrrd *nin, int baseDim) {
-  char me[]="gageShapeSet", err[AIR_STRLEN_MED];
-  int i, ai, ms, num[3];
+_gageShapeSet (gageContext *ctx, gageShape *shape, Nrrd *nin, int baseDim) {
+  char me[]="_gageShapeSet", err[AIR_STRLEN_MED];
+  int i, ai, minsize, cx, cy, cz, sx, sy, sz, num[3], defCenter;
   NrrdAxis *ax[3];
-  double maxLen;
+  double maxLen, xs, ys, zs, defSpacing;
 
+  /* ------ basic error checking */
   if (!( shape && nin )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err);  if (shape) { gageShapeReset(shape); }
     return 1;
   }
-
+  if (nrrdCheck(nin)) {
+    sprintf(err, "%s: basic nrrd validity check failed", me);
+    biffMove(GAGE, err, NRRD); gageShapeReset(shape);
+    return 1;
+  }
+  if (nrrdTypeBlock == nin->type) {
+    sprintf(err, "%s: need a non-block type nrrd", me);
+    biffAdd(GAGE, err); gageShapeReset(shape);
+    return 1;
+  }
   if (!(nin->dim == 3 + baseDim)) {
     sprintf(err, "%s: nrrd should be %d-D, not %d-D",
 	    me, 3 + baseDim, nin->dim);
     biffAdd(GAGE, err); gageShapeReset(shape);
     return 1;
   }
-  for (ai=0; ai<=2; ai++) {
-    ax[ai] = &(nin->axis[baseDim+ai]);
-  }
+  ax[0] = &(nin->axis[baseDim+0]);
+  ax[1] = &(nin->axis[baseDim+1]);
+  ax[2] = &(nin->axis[baseDim+2]);
 
-  /* equality of axis centers is checked by gageVolumeCheck(), but
-     we do something more here for same reasons as above */
-  if (ax[0]->center == ax[1]->center && ax[1]->center == ax[2]->center) {
-    shape->center = (nrrdCenterUnknown == ax[0]->center
-		     ? shape->defCenter
-		     : ax[0]->center);
+  /* ------ find centering */
+  cx = ax[0]->center;
+  cy = ax[1]->center;
+  cz = ax[2]->center;
+  if (ctx && ctx->parm.requireEqualCenters) {
+    if (!( cx == cy && cx == cz )) {
+      sprintf(err, "%s: axes %d,%d,%d centerings (%s,%s,%s) not equal", me,
+	      baseDim+0, baseDim+1, baseDim+2,
+	      airEnumStr(nrrdCenter, cx),
+	      airEnumStr(nrrdCenter, cy),
+	      airEnumStr(nrrdCenter, cz));
+      biffAdd(GAGE, err); gageShapeReset(shape);
+      return 1;
+    }
   } else {
-    /* regular gage use wouldn't allow this ... but it should */
-    shape->center = shape->defCenter;
+    if ( (nrrdCenterUnknown != cx && nrrdCenterUnknown != cy && cx != cy) ||
+	 (nrrdCenterUnknown != cy && nrrdCenterUnknown != cz && cy != cz) ||
+	 (nrrdCenterUnknown != cx && nrrdCenterUnknown != cz && cx != cz) ) {
+      sprintf(err, "%s: two known centerings (of %s,%s,%s) are unequal", me,
+	      airEnumStr(nrrdCenter, cx),
+	      airEnumStr(nrrdCenter, cy),
+	      airEnumStr(nrrdCenter, cz));
+      biffAdd(GAGE, err); gageShapeReset(shape);
+      return 1;
+    }
   }
-  ms = (nrrdCenterCell == shape->center ? 1 : 2);
-  if (!(ax[0]->size >= ms && ax[0]->size >= ms && ax[0]->size >= ms )) {
+  defCenter = ctx ? ctx->parm.defaultCenter : shape->defaultCenter;
+  shape->center = (nrrdCenterUnknown != cx ? cx
+		   : (nrrdCenterUnknown != cy ? cy
+		      : (nrrdCenterUnknown != cz ? cz
+			 : defCenter)));
+
+  /* ------ find sizes */
+  sx = ax[0]->size;
+  sy = ax[1]->size;
+  sz = ax[2]->size;
+  minsize = (nrrdCenterCell == shape->center ? 1 : 2);
+  if (!(sx >= minsize && sy >= minsize && sz >= minsize )) {
     sprintf(err, "%s: sizes (%d,%d,%d) must all be greater than %d "
-	    "(minimum # of %s-centered samples)", me, 
-	    ax[0]->size, ax[1]->size, ax[2]->size, ms,
-	    airEnumStr(nrrdCenter, shape->center));
+	    "(min number of %s-centered samples)", me, 
+	    sx, sy, sz, minsize, airEnumStr(nrrdCenter, shape->center));
     biffAdd(GAGE, err); gageShapeReset(shape);
     return 1;
   }
-  for (ai=0; ai<=2; ai++) {
-    shape->size[ai] = ax[ai]->size;
+  shape->size[0] = sx;
+  shape->size[1] = sy;
+  shape->size[2] = sz;
+
+  /* ------ find spacings */
+  xs = ax[0]->spacing;
+  ys = ax[1]->spacing;
+  zs = ax[2]->spacing;
+  if (ctx && ctx->parm.requireAllSpacings) {
+    if (!( AIR_EXISTS(xs) && AIR_EXISTS(ys) && AIR_EXISTS(zs) )) {
+      sprintf(err, "%s: spacings for axes %d,%d,%d don't all exist",
+	      me, baseDim+0, baseDim+1, baseDim+2);
+      biffAdd(GAGE, err); gageShapeReset(shape);
+      return 1;
+    }
   }
-  /* regular gage usage would require all spacings to exist, we do this
-     to allow gageShapeSet to be used on other contexts */
-  for (ai=0; ai<=2; ai++) {
-    shape->spacing[ai] = (AIR_EXISTS(ax[ai]->spacing) 
-			  ? ax[ai]->spacing 
-			  : nrrdDefSpacing);
+  /* there is no shape->defaultSpacing, we'll go out on a limb ... */
+  defSpacing = ctx ? ctx->parm.defaultSpacing : nrrdDefSpacing;
+  xs = AIR_EXISTS(xs) ? xs : defSpacing;
+  ys = AIR_EXISTS(ys) ? ys : defSpacing;
+  zs = AIR_EXISTS(zs) ? zs : defSpacing;
+  if (!( xs != 0 && ys != 0 && zs != 0 )) {
+    sprintf(err, "%s: spacings (%g,%g,%g) for axes %d,%d,%d not all "
+	    "non-zero", me, xs, ys, zs, baseDim+0, baseDim+1, baseDim+2);
+    biffAdd(GAGE, err); gageShapeReset(shape);
+    return 1;
   }
+  shape->spacing[0] = xs;
+  shape->spacing[1] = ys;
+  shape->spacing[2] = zs; 
+  
+  /* ------ set spacing-dependent filter weight scalings */
   for (i=0; i<GAGE_KERNEL_NUM; i++) {
     switch (i) {
     case gageKernel00:
@@ -136,7 +203,7 @@ gageShapeSet(gageShape *shape, Nrrd *nin, int baseDim) {
     }
   }
 
-  /* learn lengths for bounding nrrd in bi-unit cube */
+  /* ------ learn lengths for bounding nrrd in bi-unit cube */
   maxLen = 0.0;
   for (ai=0; ai<=2; ai++) {
     num[ai] = (nrrdCenterNode == shape->center
@@ -153,8 +220,19 @@ gageShapeSet(gageShape *shape, Nrrd *nin, int baseDim) {
   return 0;
 }
 
+int
+gageShapeSet (gageShape *shape, Nrrd *nin, int baseDim) {
+  char me[]="gageShapeSet", err[AIR_STRLEN_MED];
+
+  if (_gageShapeSet(NULL, shape, nin, baseDim)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  return 0;
+}
+
 void
-gageShapeUnitWtoI(gageShape *shape, double index[3], double world[3]) {
+gageShapeUnitWtoI (gageShape *shape, double index[3], double world[3]) {
   int i;
   
   if (nrrdCenterNode == shape->center) {
@@ -171,7 +249,7 @@ gageShapeUnitWtoI(gageShape *shape, double index[3], double world[3]) {
 }
 
 void
-gageShapeUnitItoW(gageShape *shape, double world[3], double index[3]) {
+gageShapeUnitItoW (gageShape *shape, double world[3], double index[3]) {
   int i;
   
   if (nrrdCenterNode == shape->center) {
@@ -188,8 +266,8 @@ gageShapeUnitItoW(gageShape *shape, double world[3], double index[3]) {
 }
 
 int
-gageShapeEqual(gageShape *shape1, char *_name1,
-	       gageShape *shape2, char *_name2) {
+gageShapeEqual (gageShape *shape1, char *_name1,
+		gageShape *shape2, char *_name2) {
   char me[]="_gageShapeEqual", err[AIR_STRLEN_MED],
     *name1, *name2, what[] = "???";
 

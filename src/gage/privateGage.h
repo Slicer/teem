@@ -44,6 +44,10 @@ extern "C" {
 #define PADSIZE_Y(ctx) ((ctx)->shape->size[1] + 2*((ctx)->havePad))
 #define PADSIZE_Z(ctx) ((ctx)->shape->size[2] + 2*((ctx)->havePad))
 
+/* shape.c */
+extern int _gageShapeSet(gageContext *ctx, gageShape *shape,
+			 Nrrd *nin, int baseDim);
+
 /* pvl.c */
 extern gagePerVolume *_gagePerVolumeCopy(gagePerVolume *pvl, int fd);
 

@@ -41,6 +41,9 @@ gageDefNoRepadWhenSmaller = AIR_FALSE;
 int
 gageDefK3Pack = AIR_TRUE;
 
+gage_t
+gageDefDefaultSpacing = 1.0;
+
 int
 gageDefCurvNormalSide = 1;
 
@@ -48,4 +51,10 @@ double
 gageDefKernelIntegralNearZero = 0.0001;
 
 int
-gageDefCenter = nrrdCenterNode;
+gageDefRequireAllSpacings = AIR_TRUE;
+
+int
+gageDefRequireEqualCenters = AIR_TRUE;
+
+int
+gageDefDefaultCenter = nrrdCenterNode;

@@ -164,7 +164,7 @@ _gagePrint_fslw (FILE *file, gageContext *ctx) {
 }
 
 void
-gageQueryPrint(FILE *file, gageKind *kind, unsigned int query) {
+gageQueryPrint (FILE *file, gageKind *kind, unsigned int query) {
   unsigned int q;
 
   fprintf(file, "%s query = %u ...\n", kind->name, query);

@@ -21,7 +21,7 @@
 #include "privateGage.h"
 
 int
-_gagePvlFlagCheck(gageContext *ctx, int pvlFlag) {
+_gagePvlFlagCheck (gageContext *ctx, int pvlFlag) {
   int i, ret;
   
   ret = AIR_FALSE;
@@ -32,7 +32,7 @@ _gagePvlFlagCheck(gageContext *ctx, int pvlFlag) {
 }
 
 void
-_gagePvlFlagDown(gageContext *ctx, int pvlFlag) {
+_gagePvlFlagDown (gageContext *ctx, int pvlFlag) {
   int i;
   
   for (i=0; i<ctx->numPvl; i++) {
@@ -51,7 +51,7 @@ _gagePvlFlagDown(gageContext *ctx, int pvlFlag) {
 ** for each pvl: pvl's query --> pvl's needD
 */
 void
-_gagePvlNeedDUpdate(gageContext *ctx) {
+_gagePvlNeedDUpdate (gageContext *ctx) {
   char me[]="_gagePvlNeedDUpdate";
   gagePerVolume *pvl;
   int i, q, d, needD[3];
@@ -89,7 +89,7 @@ _gagePvlNeedDUpdate(gageContext *ctx) {
 ** all pvls' needD --> ctx's needD
 */
 void
-_gageNeedDUpdate(gageContext *ctx) {
+_gageNeedDUpdate (gageContext *ctx) {
   char me[]="_gageNeedDUpdate";
   gagePerVolume *pvl;
   int i, needD[3];
@@ -211,6 +211,9 @@ _gageHavePadUpdate (gageContext *ctx) {
   needPad = fr - 1 + (nrrdCenterCell == ctx->shape->center);
   if (needPad != ctx->needPad) {
     if (ctx->verbose) {
+      fprintf(stderr, "%s: fr = %d, %s-(%d)-centering -> needPad=%d\n", me,
+	      fr, airEnumStr(nrrdCenter, ctx->shape->center), 
+	      ctx->shape->center, needPad);
       fprintf(stderr, "%s: changing needPad from %d to %d\n",
 	      me, ctx->needPad, needPad);
     }
@@ -238,7 +241,7 @@ _gageNpadUpdate (gageContext *ctx) {
   char me[]="_gageNpadUpdate", err[AIR_STRLEN_MED];
   gagePerVolume *pvl;
   gageShape *shape1, *shape2;
-  int i;
+  int i, osx, osy, osz;
   airArray *mop;
 
   mop = airMopNew();
@@ -252,6 +255,7 @@ _gageNpadUpdate (gageContext *ctx) {
     }
     /* if we *don't* need to repad this volume, then continue */
     if (!( ctx->flag[gageCtxFlagHavePad] 
+	   || pvl->flag[gagePvlFlagVolume]
 	   || pvl->flag[gagePvlFlagPadder]
 	   || pvl->flag[gagePvlFlagPadInfo])) {
       if (ctx->verbose) {
@@ -286,11 +290,20 @@ _gageNpadUpdate (gageContext *ctx) {
       shape2 = gageShapeNew();
       airMopAdd(mop, shape1, (airMopper)gageShapeNix, airMopAlways);
       airMopAdd(mop, shape2, (airMopper)gageShapeNix, airMopAlways);
-      gageShapeSet(shape1, pvl->nin, pvl->kind->baseDim);
+      if (_gageShapeSet(ctx, shape1, pvl->nin, pvl->kind->baseDim)) {
+	sprintf(err, "%s: trouble", me); 
+	biffAdd(GAGE, err); airMopError(mop); return 1;
+      }
+      osx = shape1->size[0];
+      osy = shape1->size[1];
+      osz = shape1->size[2];
       shape1->size[0] += 2*ctx->havePad;
       shape1->size[1] += 2*ctx->havePad;
       shape1->size[2] += 2*ctx->havePad;
-      gageShapeSet(shape2, pvl->npad, pvl->kind->baseDim);
+      if (_gageShapeSet(ctx, shape2, pvl->npad, pvl->kind->baseDim)) {
+	sprintf(err, "%s: trouble", me); 
+	biffAdd(GAGE, err); airMopError(mop); return 1;
+      }
       if (!gageShapeEqual(shape1, "padding target",
 			  shape2, "padding result")) {
 	sprintf(err, "%s: padder didn't comply with havePad = %d",
@@ -299,8 +312,14 @@ _gageNpadUpdate (gageContext *ctx) {
       }
       /* it seems that padder did all the right things. Having done
 	 the padding, there are no more flags to set here */
-      if (ctx->verbose > 1) {
-	nrrdSave("npad.nrrd", pvl->npad, NULL);
+      if (ctx->verbose) {
+	fprintf(stderr, "%s: padded (%d,%d,%d) --> (%d,%d,%d) okay\n", me,
+		osx, osy, osz, shape1->size[0],
+		shape1->size[1], shape1->size[2]);
+	fprintf(stderr, "%s: npad data = %p\n", me, pvl->npad->data);
+	if (ctx->verbose > 1) {
+	  nrrdSave("npad.nrrd", pvl->npad, NULL);
+	}
       }
     }
   }
@@ -311,7 +330,7 @@ _gageNpadUpdate (gageContext *ctx) {
 }
 
 int
-_gageCacheSizeUpdate(gageContext *ctx) {
+_gageCacheSizeUpdate (gageContext *ctx) {
   char me[]="_gageCacheSizeUpdate", err[AIR_STRLEN_MED];
   int i, fd;
   gagePerVolume *pvl;
@@ -348,7 +367,7 @@ _gageCacheSizeUpdate(gageContext *ctx) {
 }
 
 void
-_gageOffValueUpdate(gageContext *ctx) {
+_gageOffValueUpdate (gageContext *ctx) {
   char me[]="_gageOffValueUpdate";
   int fd, i, j, k, sx, sy;
 
@@ -425,6 +444,7 @@ gageUpdate (gageContext *ctx) {
     ctx->flag[gageCtxFlagNeedK] = AIR_FALSE;
   }
   if (ctx->flag[gageCtxFlagHavePad]
+      || _gagePvlFlagCheck(ctx, gagePvlFlagVolume)
       || _gagePvlFlagCheck(ctx, gagePvlFlagPadder)
       || _gagePvlFlagCheck(ctx, gagePvlFlagPadInfo)) {
     if (_gageNpadUpdate(ctx)) {
@@ -433,7 +453,13 @@ gageUpdate (gageContext *ctx) {
     _gagePvlFlagDown(ctx, gagePvlFlagPadder);
     _gagePvlFlagDown(ctx, gagePvlFlagPadInfo);
   }
-  if (ctx->flag[gageCtxFlagHavePad]) {
+  if (ctx->flag[gageCtxFlagHavePad]
+      /* HEY HEY HEY: this is a total hack: right now its possible for a 
+	 new pvl to have unallocated iv3,iv2,iv1, if it was attached to a
+	 context which had already been probing, as was the case with
+	 _tenRegisterDoit.  So, with this hack we reallocate ALL caches
+	 just because a new pervolume was attached ... */
+      || _gagePvlFlagCheck(ctx, gagePvlFlagVolume)) {
     if (_gageCacheSizeUpdate(ctx)) {
       sprintf(err, "%s: trouble", me); biffAdd(GAGE, err); return 1;
     }

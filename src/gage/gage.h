@@ -96,7 +96,14 @@ typedef double gage_t;
 ******** gageParm... enum
 **
 ** these are passed to gageSet.  Look for like-wise named field of
-** gageContext for documentation on what these mean
+** gageParm for documentation on what these mean.
+**
+** The following things have to agree:
+** - gageParm* enum
+** - fields of gageParm struct
+** - analagous gageDef* defaults (their declaration and setting)
+** - action of gageSet
+** - action of gageParmReset
 */
 enum {
   gageParmUnknown,
@@ -107,8 +114,12 @@ enum {
   gageParmK3Pack,                 /* int */
   gageParmGradMagMin,             /* gage_t */
   gageParmGradMagCurvMin,         /* gage_t */
+  gageParmDefaultSpacing,         /* gage_t */
   gageParmCurvNormalSide,         /* int */
   gageParmKernelIntegralNearZero, /* gage_t */
+  gageParmRequireAllSpacings,     /* int */
+  gageParmRequireEqualCenters,    /* int */
+  gageParmDefaultCenter,          /* int */
   gageParmLast
 };
 
@@ -141,13 +152,14 @@ enum {
 
 enum {
   gagePvlFlagUnknown=-1,
-  gagePvlFlagQuery,      /*  0: what do you really care about */
-  gagePvlFlagNeedD,      /*  1: derivatives required for query */
-  gagePvlFlagPadder,     /*  2: how to pad volumes */
-  gagePvlFlagPadInfo,    /*  3: supplemental pad/nix info */
+  gagePvlFlagVolume,     /*  0: got a new volume */
+  gagePvlFlagQuery,      /*  1: what do you really care about */
+  gagePvlFlagNeedD,      /*  2: derivatives required for query */
+  gagePvlFlagPadder,     /*  3: how to pad volumes */
+  gagePvlFlagPadInfo,    /*  4: supplemental pad/nix info */
   gagePvlFlagLast
 };
-#define GAGE_PVL_FLAG_NUM    4
+#define GAGE_PVL_FLAG_NUM    5
   
 
 /*
@@ -319,7 +331,7 @@ typedef void (gageNixer_t)(Nrrd *npad, struct gageKind_t *kind,
 */
 typedef struct gageShape_t {
   int size[3],                /* dimensions of UNPADDED volume */
-    defCenter,                /* default centering to use when given volume
+    defaultCenter,            /* default centering to use when given volume
 				 has no centering set */
     center;                   /* the sample centering of the volume(s)- this
 				 is an issue for determing the extent of the
@@ -370,16 +382,30 @@ typedef struct gageParm_t {
 				 gradient magnitude is less than this. Yes,
 				 this is scalar-kind-specific, but there's
 				 no other good place for it */
-    kernelIntegralNearZero;   /* tolerance with checkIntegrals on derivative
+    kernelIntegralNearZero,   /* tolerance with checkIntegrals on derivative
 				 kernels */
-  int curvNormalSide;         /* determines direction of gradient that is used
+    defaultSpacing;           /* when requireAllSpacings is zero, what spacing
+				 to use when we have to invent one */
+  int curvNormalSide,         /* determines direction of gradient that is used
 				 as normal in curvature calculations, exactly
 				 the same as miteUser's normalSide: 1 for
 				 normal pointing to lower values (higher
 				 values are more "inside"); -1 for normal
 				 pointing to higher values (low values more
 				 "inside") */
-
+    requireAllSpacings,       /* if non-zero, require that spacings on all 3
+				 spatial axes are set, and are equal; this is
+				 the traditional way of gage.  If zero, then 
+				 one, two, or all three axes' spacing can be
+				 unset, and we'll use defaultSpacing instead */
+    requireEqualCenters,      /* if non-zero, all centerings on spatial axes 
+				 must be the same (including the possibility 
+				 of all being nrrdCenterUnknown). If zero, its
+				 okay for axes' centers to be unset, but two
+				 that are set cannot be unequal */
+    defaultCenter;            /* only meaningful when requireAllSpacings is
+				 zero- what centering to use when you have to
+				 invent one, because its not set */
 } gageParm;
 
 /*
@@ -535,9 +561,12 @@ extern gage_export int gageDefRenormalize;
 extern gage_export int gageDefCheckIntegrals;
 extern gage_export int gageDefNoRepadWhenSmaller;
 extern gage_export int gageDefK3Pack;
+extern gage_export gage_t gageDefDefaultSpacing;
 extern gage_export int gageDefCurvNormalSide;
 extern gage_export double gageDefKernelIntegralNearZero;
-extern gage_export int gageDefCenter;
+extern gage_export int gageDefRequireAllSpacings;
+extern gage_export int gageDefRequireEqualCenters;
+extern gage_export int gageDefDefaultCenter;
 
 /* miscGage.c */
 /* gageErrStr and gageErrNum are for describing errors that happen in
@@ -594,16 +623,22 @@ extern void gageShapeUnitItoW(gageShape *shape,
 extern int gageShapeEqual(gageShape *shp1, char *name1,
 			  gageShape *shp2, char *name2);
 
-/* the organization of the next two files is according to what
-   the first argument is, not what appears in the function name */
+/* the organization of the next two files used to be according to
+   what the first argument is, not what appears in the function name,
+   but that's just a complete mess now */
 /* pvl.c */
-extern int gageVolumeCheck(Nrrd *nin, gageKind *kind);
-extern gagePerVolume *gagePerVolumeNew(Nrrd *nin, gageKind *kind);
+extern int gageVolumeCheck(gageContext *ctx, Nrrd *nin, gageKind *kind);
+extern gagePerVolume *gagePerVolumeNew(gageContext *ctx,
+				       Nrrd *nin, gageKind *kind);
 extern gagePerVolume *gagePerVolumeNix(gagePerVolume *pvl);
-extern void gagePadderSet(gagePerVolume *pvl, gagePadder_t *padder);
-extern void gageNixerSet(gagePerVolume *pvl, gageNixer_t *nixer);
-extern gage_t *gageAnswerPointer(gagePerVolume *pvl, int measure);
-extern int gageQuerySet(gagePerVolume *pvl, unsigned int query);
+extern void gagePadderSet(gageContext *ctx,
+			  gagePerVolume *pvl, gagePadder_t *padder);
+extern void gageNixerSet(gageContext *ctx, 
+			 gagePerVolume *pvl, gageNixer_t *nixer);
+extern gage_t *gageAnswerPointer(gageContext *ctx, 
+				 gagePerVolume *pvl, int measure);
+extern int gageQuerySet(gageContext *ctx, 
+			gagePerVolume *pvl, unsigned int query);
 
 /* ctx.c */
 extern gageContext *gageContextNew();

@@ -23,7 +23,7 @@
 #define GAGE_CACHE_LEN 1013
 
 unsigned int
-_gageHash(int x, int y, int z) {
+_gageHash (int x, int y, int z) {
   unsigned int h, g;
   unsigned char s[6];
   int i;
@@ -47,9 +47,9 @@ _gageHash(int x, int y, int z) {
 }
 
 void
-_gageCacheProbe(gageContext *ctx, gage_t *grad,
-		int *cc, gage_t *gc, 
-		int x, int y, int z) {
+_gageCacheProbe (gageContext *ctx, gage_t *grad,
+		 int *cc, gage_t *gc, 
+		 int x, int y, int z) {
   int hi;
 
   hi = _gageHash(x, y, z);
@@ -81,8 +81,8 @@ _gageCacheProbe(gageContext *ctx, gage_t *grad,
 ** an appropriate iScale > 1, so that you don't undersample.
 */
 int
-gageStructureTensor(Nrrd *nout, Nrrd *nin,
-		    int dScale, int iScale, int dsmp) {
+gageStructureTensor (Nrrd *nout, Nrrd *nin,
+		     int dScale, int iScale, int dsmp) {
   char me[]="gageStructureTensor", err[AIR_STRLEN_MED];
   NrrdKernelSpec *gk0, *gk1, *ik0;
   int E, rad, diam, osx, osy, osz, oxi, oyi, ozi,
@@ -136,17 +136,17 @@ gageStructureTensor(Nrrd *nout, Nrrd *nin,
   airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
   gageSet(ctx, gageParmRenormalize, AIR_TRUE);
   E = 0;
-  if (!E) E |= !(pvl = gagePerVolumeNew(nin, gageKindScl));
+  if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, gageKindScl));
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   if (!E) E |= gageKernelSet(ctx, gageKernel00, gk0->kernel, gk0->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel11, gk1->kernel, gk1->parm);
-  if (!E) E |= gageQuerySet(pvl, 1 << gageSclGradVec);
+  if (!E) E |= gageQuerySet(ctx, pvl, 1 << gageSclGradVec);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
     sprintf(err, "%s: ", me);
     biffAdd(GAGE, err); airMopError(mop); return 1;
   }
-  grad = gageAnswerPointer(pvl, gageSclGradVec);
+  grad = gageAnswerPointer(ctx, pvl, gageSclGradVec);
   
   xs = nin->axis[0].spacing;
   ys = nin->axis[1].spacing;
