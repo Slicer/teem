@@ -30,7 +30,7 @@
 #include <ell.h>
 #include <nrrd.h>
 
-#if defined(_WIN32) && !defined(TEEM_BUILD)
+#if defined(_WIN32) && defined(TEEM_DLL)
 #define gage_export __declspec(dllimport)
 #else
 #define gage_export
@@ -65,15 +65,15 @@ extern "C" {
 ** set of lines below.
 */
 
-/*
 typedef float gage_t;
 #define gage_nrrdType nrrdTypeFloat
 #define GAGE_TYPE_FLOAT 1
-*/
 
+/*
 typedef double gage_t;
 #define gage_nrrdType nrrdTypeDouble
 #define GAGE_TYPE_FLOAT 0
+*/
 
 /*
 ******** GAGE_FD, GAGE_FR #defines
