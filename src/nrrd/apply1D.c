@@ -42,9 +42,9 @@
 ** functions in this file only
 */
 enum {
-  typeLut=0,
-  typeRmap=1,
-  typeImap=2
+  kindLut=0,
+  kindRmap=1,
+  kindImap=2
 };
 
 /*
@@ -143,7 +143,8 @@ nrrd1DIrregMapValid(Nrrd *nmap) {
 ** and set peripheral information.  The rest is just error checking.
 */
 int
-_nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap, int type, int rescale) {
+_nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
+		  int kind, int typeOut, int rescale) {
   char me[]="_nrrdApply1DSetUp", err[AIR_STRLEN_MED], *mapcnt;
   char nounStr[][AIR_STRLEN_SMALL]={"lut",
 				    "regular map",
@@ -157,8 +158,12 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap, int type, int rescale) {
     sprintf(err, "%s: due to laziness, nout==nin always disallowed", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdTypeBlock == nin->type) {
-    sprintf(err, "%s: input is %s type, need scalar",
+  if (!airEnumValidVal(nrrdType, typeOut)) {
+    sprintf(err, "%s: invalid requested output type %d", me, typeOut);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdTypeBlock == nin->type || nrrdTypeBlock == typeOut) {
+    sprintf(err, "%s: input or requested output type is %s, need scalar",
 	    me, airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
@@ -166,22 +171,17 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap, int type, int rescale) {
     sprintf(err, "%s: want rescaling but not both nin->{min,max} exist", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (typeLut == type || typeRmap == type) {
-    if (typeRmap == type && nrrdTypeBlock == nmap->type) {
-      sprintf(err, "%s: %s has type %s, need scalar", me,
-	      nounStr[type], airEnumStr(nrrdType, nrrdTypeBlock));
-      biffAdd(NRRD, err); return 1;
-    }
+  if (kindLut == kind || kindRmap == kind) {
     mapAxis = nmap->dim - 1;
     if (!(0 == mapAxis || 1 == mapAxis)) {
       sprintf(err, "%s: dimension of %s should be 1 or 2, not %d", 
-	      me, nounStr[type], nmap->dim);
+	      me, nounStr[kind], nmap->dim);
       biffAdd(NRRD, err); return 1;
     }
     if (!(AIR_EXISTS(nmap->axis[mapAxis].min) &&
 	  AIR_EXISTS(nmap->axis[mapAxis].max))) {
       sprintf(err, "%s: axis min and max not both set on axis %d of %s",
-	      me, mapAxis, nounStr[type]);
+	      me, mapAxis, nounStr[kind]);
       biffAdd(NRRD, err); return 1;
     }
     if (!(nmap->axis[mapAxis].min < nmap->axis[mapAxis].max)) {
@@ -191,7 +191,7 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap, int type, int rescale) {
     }
     if (nrrdHasNonExistSet(nmap)) {
       sprintf(err, "%s: %s nrrd has non-existent values",
-	      me, nounStr[type]);
+	      me, nounStr[kind]);
       biffAdd(NRRD, err); return 1;
     }
     colLen = mapAxis ? nmap->axis[0].size : 1;
@@ -208,7 +208,7 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap, int type, int rescale) {
   if (mapAxis + nin->dim > NRRD_DIM_MAX) {
     sprintf(err, "%s: input nrrd dim %d through non-scalar %s exceeds "
 	    "NRRD_DIM_MAX %d",
-	    me, nin->dim, nounStr[type], NRRD_DIM_MAX);
+	    me, nin->dim, nounStr[kind], NRRD_DIM_MAX);
     biffAdd(NRRD, err); return 1;
   }
   
@@ -220,10 +220,21 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap, int type, int rescale) {
   for (d=0; d<nin->dim; d++) {
     axisMap[d+mapAxis] = d;
   }
-  if (nrrdMaybeAlloc_nva(nout, nmap->type, mapAxis + nin->dim, size)) {
+  fprintf(stderr, "##%s: pre maybe alloc: nout->data = %p\n", me, nout->data);
+  for (d=0; d<mapAxis + nin->dim; d++) {
+    fprintf(stderr, "    size[%d] = %d\n", d, size[d]);
+  }
+  fprintf(stderr, "   nout->dim = %d; nout->type = %d = %s; sizes = %d,%d\n", 
+	  nout->dim, nout->type,
+	  airEnumStr(nrrdType, nout->type),
+	  nout->axis[0].size, nout->axis[1].size);
+  fprintf(stderr, "   typeOut = %d = %s\n", typeOut,
+	  airEnumStr(nrrdType, typeOut));
+  if (nrrdMaybeAlloc_nva(nout, typeOut, mapAxis + nin->dim, size)) {
     sprintf(err, "%s: couldn't allocate output nrrd", me);
     biffAdd(NRRD, err); return 1;
   }
+  fprintf(stderr, "##%s: post maybe alloc: nout->data = %p\n", me, nout->data);
 
   if (nrrdAxesCopy(nout, nin, axisMap, NRRD_AXESINFO_NONE)) {
     sprintf(err, "%s: trouble copying axes", me);
@@ -233,10 +244,10 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap, int type, int rescale) {
 	    ? airStrdup(nmap->content)
 	    : airStrdup(nrrdStateUnknownContent));
   if (!mapcnt) {
-    sprintf(err, "%s: couldn't copy %s content!", me, nounStr[type]);
+    sprintf(err, "%s: couldn't copy %s content!", me, nounStr[kind]);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdContentSet(nout, verbStr[type], nin, "%s", mapcnt)) {
+  if (nrrdContentSet(nout, verbStr[kind], nin, "%s", mapcnt)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -246,20 +257,29 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap, int type, int rescale) {
 }
 
 /*
-** _nrrdApply1DLutOrRmap()
+** _nrrdApply1DLutOrRegMap()
 **
 ** the guts of nrrdApply1DLut and nrrdApply1DRegMap
+**
+** yikes, does NOT use biff, since we're only supposed to be called
+** after copious error checking.  
+**
+** FOR INSTANCE, this allows nout == nin, which could be a big
+** problem if mapAxis == 1.
+**
+** we don't need a typeOut arg because nout has already been allocated
+** as some specific type; we'll look at that.
 */
 int
-_nrrdApply1DLutOrRmap(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
-		      int interp, int rescale) {
-  /* char me[]="nrrdApply1DLutOrRmap", err[AIR_STRLEN_MED]; */
+_nrrdApply1DLutOrRegMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
+			int interp, int rescale) {
+  /* char me[]="nrrdApply1DLutOrRegMap" , err[AIR_STRLEN_MED] ;  */
   char *inData, *outData, *mapData, *entData0, *entData1;
   nrrdBigInt N, I;
   double (*inLoad)(void *v), (*mapLup)(void *v, nrrdBigInt I),
     (*outInsert)(void *v, nrrdBigInt I, double d),
     val, mapIdxFrac, mapMin, mapMax;
-  int i, mapAxis, mapLen, mapIdx, entSize, entLen, inSize;
+  int i, mapAxis, mapLen, mapIdx, entSize, entLen, inSize, outSize;
 
   mapAxis = nmap->dim - 1;             /* axis of nmap containing entries */
   mapData = nmap->data;                /* map data, as char* */
@@ -275,40 +295,43 @@ _nrrdApply1DLutOrRmap(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
   entLen = (mapAxis                    /* number of elements in one entry */
 	    ? nmap->axis[0].size
 	    : 1);
-  entSize = entLen*nrrdElementSize(nmap); /* size of one entry */
+  outSize = entLen*nrrdElementSize(nout); /* size of entry in output */
+  entSize = entLen*nrrdElementSize(nmap); /* size of entry in map */
 
   /* In below, we do quantize-then-clamp, because clamp-then-quantize
      won't correctly handle non-existant values */
   N = nrrdElementNumber(nin);       /* the number of values to be mapped */
+  /* _VV = 0; */
   if (interp) {
     /* regular map */
     for (I=0; I<N; I++) {
-      /* _VV = 0*(I == 23698); */
+      /* _VV = 0*(I > 73600); */
+      /* if (_VV && !(I % 100)) fprintf(stderr, "I = %d\n", (int)I); */
       val = inLoad(inData);
-      /* if (_VV) fprintf(stderr, "##%s: val = \n% 31.15f --> ", me, val); */
+      /* if (_VV) fprintf(stderr, "##%s: val = \na% 31.15f --> ", me, val); */
       if (rescale) {
 	val = AIR_AFFINE(nin->min, val, nin->max, mapMin, mapMax);
-	/* if (_VV) fprintf(stderr, "\n% 31.15f --> ", val); */
+	/* if (_VV) fprintf(stderr, "\nb% 31.15f --> ", val); */
       }
-      /* if (_VV) fprintf(stderr, "\n% 31.15f --> ", val); */
+      /* if (_VV) fprintf(stderr, "\nc% 31.15f --> ", val); */
       mapIdxFrac = AIR_AFFINE(mapMin, val, mapMax, 0, mapLen-1);
-      /* if (_VV) fprintf(stderr, "mapIdxFrac = \n% 31.15f --> ",
+      /* if (_VV) fprintf(stderr, "mapIdxFrac = \nd% 31.15f --> ",
 	 mapIdxFrac); */
       mapIdx = mapIdxFrac;
       mapIdx -= mapIdx == mapLen-1;
       mapIdxFrac -= mapIdx;
-      /* if (_VV) fprintf(stderr, "(%d,\n% 31.15f) --> ", mapIdx,
+      /* if (_VV) fprintf(stderr, "(%d,\ne% 31.15f) --> ", mapIdx,
 	 mapIdxFrac); */
       entData0 = mapData + mapIdx*entSize;
       entData1 = mapData + (mapIdx+1)*entSize;
       for (i=0; i<entLen; i++) {
 	val = ((1-mapIdxFrac)*mapLup(entData0, i) + 
 	       mapIdxFrac*mapLup(entData1, i));
-	/* if (_VV) fprintf(stderr, "\n% 31.15f\n", val); */
 	outInsert(outData, i, val);
+	/* if (_VV) fprintf(stderr, "\nf% 31.15f\n", val); */
       }
       inData += inSize;
-      outData += entSize;
+      outData += outSize;
     }    
   } else {
     /* lookup table */
@@ -319,10 +342,12 @@ _nrrdApply1DLutOrRmap(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
       }
       AIR_INDEX(mapMin, val, mapMax, mapLen, mapIdx);
       mapIdx = AIR_CLAMP(0, mapIdx, mapLen-1);
-      /* memcpy handles blocks correctly */
-      memcpy(outData, mapData + mapIdx*entSize, entSize);
+      entData0 = mapData + mapIdx*entSize;
+      for (i=0; i<entLen; i++) {
+	outInsert(outData, i, mapLup(entData0, i));
+      }
       inData += inSize;
-      outData += entSize;
+      outData += outSize;
     }
   }
 
@@ -347,18 +372,19 @@ _nrrdApply1DLutOrRmap(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
 ** This allows lut length to be simply 1.
 */
 int
-nrrdApply1DLut(Nrrd *nout, Nrrd *nin, Nrrd *nlut, int rescale) {
+nrrdApply1DLut(Nrrd *nout, Nrrd *nin, Nrrd *nlut,
+	       int typeOut, int rescale) {
   char me[]="nrrdApply1DLut", err[AIR_STRLEN_MED];
   
   if (!(nout && nlut && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (_nrrdApply1DSetUp(nout, nin, nlut, typeLut, rescale)) {
+  if (_nrrdApply1DSetUp(nout, nin, nlut, kindLut, typeOut, rescale)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (_nrrdApply1DLutOrRmap(nout, nin, nlut, AIR_FALSE, rescale)) {
+  if (_nrrdApply1DLutOrRegMap(nout, nin, nlut, AIR_FALSE, rescale)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -392,18 +418,19 @@ nrrdApply1DLut(Nrrd *nout, Nrrd *nin, Nrrd *nlut, int rescale) {
 ** This allows map length to be simply 1.
 */
 int
-nrrdApply1DRegMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap, int rescale) {
+nrrdApply1DRegMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
+		  int typeOut, int rescale) {
   char me[]="nrrdApply1DRegMap", err[AIR_STRLEN_MED];
 
   if (!(nout && nmap && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (_nrrdApply1DSetUp(nout, nin, nmap, typeRmap, rescale)) {
+  if (_nrrdApply1DSetUp(nout, nin, nmap, kindRmap, typeOut, rescale)) {
     sprintf(err, "%s: ", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (_nrrdApply1DLutOrRmap(nout, nin, nmap, AIR_TRUE, rescale)) {
+  if (_nrrdApply1DLutOrRegMap(nout, nin, nmap, AIR_TRUE, rescale)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -423,9 +450,9 @@ nrrd1DIrregAclValid(Nrrd *nacl) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 0;
   }
-  if (nrrdTypeInt != nacl->type) {
+  if (nrrdTypeUShort != nacl->type) {
     sprintf(err, "%s: type should be %s, not %s", me,
-	    airEnumStr(nrrdType, nrrdTypeInt),
+	    airEnumStr(nrrdType, nrrdTypeUShort),
 	    airEnumStr(nrrdType, nacl->type));
     biffAdd(NRRD, err); return 0;
   }
@@ -545,18 +572,19 @@ _nrrd1DIrregFindInterval(double *pos, double p, int loI, int hiI) {
 int
 nrrd1DIrregAclGenerate(Nrrd *nacl, Nrrd *nmap, int aclLen) {
   char me[]="nrrd1DIrregAclGenerate", err[AIR_STRLEN_MED];
-  int *acl, i, posLen;
+  int i, posLen;
+  unsigned short *acl;
   double lo, hi, min, max, *pos;
 
   if (!(nacl && nmap)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(aclLen > 2)) {
+  if (!(aclLen >= 2)) {
     sprintf(err, "%s: given acl length (%d) is too small", me, aclLen);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdMaybeAlloc(nacl, nrrdTypeInt, 2, 2, aclLen)) {
+  if (nrrdMaybeAlloc(nacl, nrrdTypeUShort, 2, 2, aclLen)) {
     sprintf(err, "%s: ", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -604,7 +632,7 @@ nrrd1DIrregAclGenerate(Nrrd *nacl, Nrrd *nmap, int aclLen) {
 */
 int
 nrrdApply1DIrregMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap, Nrrd *nacl,
-		    int rescale) {
+		    int typeOut, int rescale) {
   char me[]="nrrdApply1DIrregMap", err[AIR_STRLEN_MED];
   nrrdBigInt N, I;
   int i, *acl, entLen, posLen, aclLen, mapIdx, aclIdx,
@@ -618,7 +646,7 @@ nrrdApply1DIrregMap(Nrrd *nout, Nrrd *nin, Nrrd *nmap, Nrrd *nacl,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (_nrrdApply1DSetUp(nout, nin, nmap, typeImap, rescale)) {
+  if (_nrrdApply1DSetUp(nout, nin, nmap, kindImap, typeOut, rescale)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
