@@ -242,6 +242,42 @@ _nrrdMeasrHistoMean(void *line, int lineType, int len,
 }
 
 void
+_nrrdMeasrHistoVariance(void *line, int lineType, int len, 
+			float axmin, float axmax,
+			void *ans, int ansType) {
+  double mean, count, hits, val, vari, diff;
+  int i;
+  
+  if (!(AIR_EXISTS(axmin) && AIR_EXISTS(axmax))) {
+    axmin = 0;
+    axmax = len-1;
+  }
+  mean = count = 0;
+  for (i=0; i<=len-1; i++) {
+    hits = nrrdDLookup[lineType](line, i);
+    count += hits;
+    mean += hits*AIR_AFFINE(0, i, len-1, axmin, axmax);
+  }
+  if (!count) {
+    nrrdDStore[ansType](ans, airNand());
+    return;
+  }
+  mean /= count;
+  vari = 0;
+  for (i=0; i<=len-1; i++) {
+    hits = nrrdDLookup[lineType](line, i);
+    count += hits;
+    val = AIR_AFFINE(0, i, len-1, axmin, axmax);
+    diff = val - mean;
+    vari += hits*diff*diff;
+  }
+  if (count > 1) {
+    vari /= count-1;
+  }
+  nrrdDStore[ansType](ans, vari);
+}
+
+void
 _nrrdMeasrHistoProduct(void *line, int lineType, int len, 
 		       float axmin, float axmax,
 		       void *ans, int ansType) {
@@ -352,7 +388,8 @@ void (*nrrdMeasr[NRRD_MEASR_MAX+1])(void *, int, int, float, float,
   _nrrdMeasrHistoSum,
   _nrrdMeasrHistoMean,
   _nrrdMeasrHistoMedian,
-  _nrrdMeasrHistoMode
+  _nrrdMeasrHistoMode,
+  _nrrdMeasrHistoVariance
 };
 
 int
@@ -388,6 +425,7 @@ _nrrdMeasureType(Nrrd *nin, int measr) {
   case nrrdMeasrHistoMean:
   case nrrdMeasrHistoMedian:
   case nrrdMeasrHistoMode:
+  case nrrdMeasrHistoVariance:
     /* We (currently) don't keep track of the type of the original
        values which generated the histogram, and we may not even
        have access to that information.  Float is a defensible 
