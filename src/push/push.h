@@ -56,7 +56,7 @@ typedef struct pushTask_t {
   gage_t *tenAns;                  /* result of gage probing */
   airThread *thread;               /* my thread */
   int threadIdx;                   /* which thread am I */
-  double sumVel;                   /* sum of velocities for points in my batches */
+  double sumVel;                   /* sum of velocities of pts in my batches */
   void *returnPtr;                 /* for airThreadJoin */
 } pushTask;
 
@@ -68,11 +68,13 @@ typedef struct pushContext_t {
   Nrrd *nin;                       /* image of 2D or 3D masked tensors */
   double drag,                     /* magnitude of viscosity term */
     step,                          /* time step in integration */
+    mass,                          /* mass of particles */
     minMeanVel;                    /* stop if mean velocity drops below this */
   int pointsPerBatch,              /* number points per "batch" */
     numBatch,                      /* total number of batches in simulation */
     numThread,                     /* number of threads to use */
     numStage,                      /* number of stages */
+    minIter,                       /* if non-zero, min number of iterations */
     maxIter,                       /* if non-zero, max number of iterations */
     snap,                          /* if non-zero, interval between iterations
                                       at which output snapshots are saved */
@@ -104,6 +106,7 @@ typedef struct pushContext_t {
     *stageBarrierB;
   /* OUTPUT ---------------------------- */
   double time;                     /* how long it took to run */
+  int iter;                        /* how many iterations were needed */
   Nrrd *noutPos,                   /* list of 2D or 3D positions */
     *noutTen;                      /* list of 2D or 3D masked tensors */
 } pushContext;

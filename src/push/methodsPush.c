@@ -30,6 +30,7 @@ pushContextNew(void) {
   pctx = (pushContext *)calloc(1, sizeof(pushContext));
   if (pctx) {
     pctx->nin = NULL;
+    pctx->mass = 1.0;
     for (ii=0; ii<PUSH_STAGE_MAX; ii++) {
       pctx->process[ii] = _pushProcessDummy;
     }

@@ -30,22 +30,24 @@ main(int argc, char *argv[]) {
   airArray *mop;
   
   char *outS[2];
-  int numIters, numThread, numBatch, ptsPerBatch, snap;
+  int numThread, numBatch, ptsPerBatch, snap, maxIter;
   pushContext *pctx;
   Nrrd *nin, *nPosOut, *nTenOut;
-  double step, drag, minMeanVel;
+  double step, drag, mass, minMeanVel;
   NrrdKernelSpec *kk;
   
   mop = airMopNew();
   me = argv[0];
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "",
              "input volume to filter", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "iter", "# iters", airTypeInt, 1, 1, &numIters, "5",
-             "number of iterations to do processing for");
-  hestOptAdd(&hopt, "dt", "step", airTypeDouble, 1, 1, &step, "0.01",
+  hestOptAdd(&hopt, "mi", "# iters", airTypeInt, 1, 1, &maxIter, "0",
+             "if non-zero, max number of iterations to do processing for");
+  hestOptAdd(&hopt, "step", "step", airTypeDouble, 1, 1, &step, "0.01",
              "time step in integration");
   hestOptAdd(&hopt, "drag", "drag", airTypeDouble, 1, 1, &drag, "0.01",
              "amount of drag");
+  hestOptAdd(&hopt, "mass", "mass", airTypeDouble, 1, 1, &mass, "1",
+             "mass of each particle");
   hestOptAdd(&hopt, "mmv", "mean vel", airTypeDouble, 1, 1, &minMeanVel,
              "0.1", "minimum mean velocity that signifies convergence");
   hestOptAdd(&hopt, "snap", "iters", airTypeInt, 1, 1, &snap, "0",
@@ -76,8 +78,11 @@ main(int argc, char *argv[]) {
   
   pctx->nin = nin;
   pctx->numThread = numThread;
+  pctx->maxIter = maxIter;
+  pctx->minIter = 100;
   pctx->drag = drag;
   pctx->step = step;
+  pctx->mass = mass;
   pctx->minMeanVel = minMeanVel;
   pctx->snap = snap;
   pctx->numBatch = numBatch;
@@ -96,7 +101,8 @@ main(int argc, char *argv[]) {
     airMopError(mop); 
     return 1;
   }
-  fprintf(stderr, "%s: time to compute = %g secs\n", me, pctx->time);
+  fprintf(stderr, "%s: time for %d iterations= %g secs; meanVel = %g\n",
+          me, pctx->iter, pctx->time, pctx->meanVel);
   if (nrrdSave(outS[0], nPosOut, NULL)
       || nrrdSave(outS[1], nTenOut, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);

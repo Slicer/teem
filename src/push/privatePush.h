@@ -25,6 +25,9 @@
 extern "C" {
 #endif
 
+/* defaultsPush.c */
+extern int _pushVerbose;
+
 /* corePush.c */
 extern void _pushProcessDummy(pushTask *task, int batch, 
                               double parm[PUSH_STAGE_PARM_MAX]);

@@ -257,29 +257,79 @@ _pushInitialize(pushContext *pctx) {
 }
 
 void
-_pushForceIncr(push_t force[3],
-               push_t myten[7], push_t mypos[3], push_t *there) {
-  push_t diff[3], tmp[3], ctr, len;
-  
-  ELL_3V_SUB(diff, mypos, there);
-  ELL_3V_NORM(diff, diff, len);
+_pushForceIncr(pushTask *task, push_t sumForce[3], push_t scale,
+               push_t ten[7], push_t mypos[3], push_t *there) {
+  char me[]="_pushForceIncr";
+  float force[3], mat[9], inv[9], 
+    U[3], nU[3], lenU,
+    V[3], nV[3], lenV,
+    ff;
+  float tmp[3], cntr;
+
+  TEN_T2M(mat, ten);
+  if (2 == task->pctx->dimIn) {
+    mat[8] = 1.0;
+  }
+  ell_3m_inv_f(inv, mat);
+  if (2 == task->pctx->dimIn) {
+    mat[8] = inv[8] = 0.0;
+  }
+  ELL_3V_SUB(U, mypos, there);
+  ELL_3V_NORM(nU, U, lenU);
+  ELL_3MV_MUL(V, inv, U);
+  ELL_3V_NORM(nV, V, lenV);
+  if (!lenU) {
+    fprintf(stderr, "%s: mypos == there == (%g,%g,%g)\n", me,
+            mypos[0], mypos[1], mypos[2]);
+    return;
+  }
+
+  /* distorted world */
+  /*
+  ff = AIR_MAX(0, 0.5 - lenV);
+  ff = ff*ff;
+  ELL_3V_SCALE(force, ff, nU);
+  */
+
+  /* true packing? */
+  ELL_3MV_MUL(tmp, mat, nV);
+  cntr = ELL_3V_LEN(tmp);
+  ff = AIR_MAX(0, 0.6*cntr - lenU);
+  ff = ff*lenV/lenU;
+  ff = ff*ff;
+  ELL_3V_SCALE(force, ff, nV);
+
   /*  (0)
    *   1  2  3
    *   2  4  5
    *   3  5  6 
    */
-  tmp[0] = myten[1]*diff[0] + myten[2]*diff[1] + myten[3]*diff[2];
-  tmp[1] = myten[2]*diff[0] + myten[4]*diff[1] + myten[5]*diff[2];
-  tmp[2] = myten[3]*diff[0] + myten[5]*diff[1] + myten[6]*diff[2];
-  ctr = ELL_3V_DOT(tmp, diff);
-  ELL_3V_SCALE_INCR(force, ctr/(len*len), diff);
+  /*
+  */
+  /*
+  ff = ctr/(len*len);
+  ELL_3V_SCALE(force, ff, nV);
+  */
+  /*
+  ff = AIR_MAX(0, ctr/2.3 - len);
+  ff = ff*ff;
+  ELL_3V_SCALE(force, ff, nU);
+  */
+
+  if (_pushVerbose) {
+    fprintf(stderr, "mypos = %g %g %g\n", mypos[0], mypos[1], mypos[2]);
+    fprintf(stderr, "U = %g %g %g\n", U[0], U[1], U[2]);
+    fprintf(stderr, "ten = %g %g %g %g %g %g %g\n", ten[0],
+            ten[1], ten[2], ten[3], ten[4], ten[5], ten[6]);
+  }
+  ELL_3V_SCALE_INCR(sumForce, scale, force);
   return;
 }
 
 void
 _pushRepel(pushTask *task, int batch,
            double parm[PUSH_STAGE_PARM_MAX]) {
-  push_t *mypos, myten[7], *posVel, *velAcc, force[3], tmp[3];
+  push_t *mypos, TT[7], *posVel, *velAcc, force[3], tmp[3];
   int pi, pj, npt, ppb;
 
   npt = task->pctx->nPosVel->axis[1].size;
@@ -289,29 +339,40 @@ _pushRepel(pushTask *task, int batch,
   for (pi=batch*ppb; pi<(batch+1)*ppb; pi++) {
     mypos = posVel + 3*(0 + 2*pi);
     _pushProbe(task->pctx, task->gctx, mypos[0], mypos[1], mypos[2]);
-    TEN_T_COPY(myten, task->tenAns);
+    TEN_T_COPY(TT, task->tenAns);
     ELL_3V_SET(force, 0, 0, 0);
     for (pj=0; pj<npt; pj++) {
       if (pi == pj) {
         continue;
       }
-      _pushForceIncr(force, myten, mypos, posVel + 3*(0 + 2*pj));
+      /*
+      _pushVerbose = (94 == task->pctx->iter 
+                      && 4 == batch 
+                      && 95 == pi 
+                      && 183 == pj);
+      */
+      _pushForceIncr(task, force, 1.0, TT, mypos, posVel + 3*(0 + 2*pj));
     }
     ELL_3V_COPY(tmp, mypos);
     tmp[0] = 2*task->pctx->minPos[0] - tmp[0];
-    _pushForceIncr(force, myten, mypos, tmp);
+    /* tmp[0] = task->pctx->minPos[0]; */
+    _pushForceIncr(task, force, 4.0, TT, mypos, tmp);
     ELL_3V_COPY(tmp, mypos);
     tmp[0] = 2*task->pctx->maxPos[0] - tmp[0];
-    _pushForceIncr(force, myten, mypos, tmp);
+    /* tmp[0] = task->pctx->maxPos[0]; */
+    _pushForceIncr(task, force, 4.0, TT, mypos, tmp);
     ELL_3V_COPY(tmp, mypos);
     tmp[1] = 2*task->pctx->minPos[1] - tmp[1];
-    _pushForceIncr(force, myten, mypos, tmp);
+    /* tmp[1] = task->pctx->minPos[1]; */
+    _pushForceIncr(task, force, 4.0, TT, mypos, tmp);
     ELL_3V_COPY(tmp, mypos);
     tmp[1] = 2*task->pctx->maxPos[1] - tmp[1];
-    _pushForceIncr(force, myten, mypos, tmp);
+    /* tmp[1] = task->pctx->maxPos[1]; */
+    _pushForceIncr(task, force, 4.0, TT, mypos, tmp);
     ELL_3V_SCALE_INCR(force, -task->pctx->drag, posVel + 3*(1 + 2*pi));
     ELL_3V_COPY(velAcc + 3*(0 + 2*pi), posVel + 3*(1 + 2*pi));
     ELL_3V_COPY(velAcc + 3*(1 + 2*pi), force);
+
   }
   return;
 }
@@ -319,24 +380,30 @@ _pushRepel(pushTask *task, int batch,
 void
 _pushUpdate(pushTask *task, int batch,
             double parm[PUSH_STAGE_PARM_MAX]) {
-  push_t *posVel, *velAcc;
+  push_t *posVel, *velAcc, *newPos, *newVel, *oldVel, *oldAcc;
   int pi, ppb;
-  double dt, move;
+  double step, move;
 
   ppb = task->pctx->pointsPerBatch;
-  dt = task->pctx->step;
+  step = task->pctx->step;
   posVel = (push_t *)task->pctx->nPosVel->data;
   velAcc = (push_t *)task->pctx->nVelAcc->data;
   for (pi=batch*ppb; pi<(batch+1)*ppb; pi++) {
-    _pushProbe(task->pctx, task->gctx,
-               (posVel + 3*(0 + 2*pi))[0],
-               (posVel + 3*(0 + 2*pi))[1],
-               (posVel + 3*(0 + 2*pi))[2]);
+    newPos = posVel + 3*(0 + 2*pi);
+    newVel = posVel + 3*(1 + 2*pi);
+    oldVel = velAcc + 3*(0 + 2*pi);
+    oldAcc = velAcc + 3*(1 + 2*pi);
+    _pushProbe(task->pctx, task->gctx, newPos[0], newPos[1], newPos[2]);
     move = task->tenAns[0] > 0.5;
-    ELL_3V_SCALE_INCR(posVel + 3*(0 + 2*pi), move*dt, velAcc + 3*(0 + 2*pi));
-    ELL_3V_SCALE_INCR(posVel + 3*(1 + 2*pi), move*dt, velAcc + 3*(1 + 2*pi));
-    ELL_3V_SCALE(posVel + 3*(1 + 2*pi), move, posVel + 3*(1 + 2*pi));
-    task->sumVel += ELL_3V_LEN(posVel + 3*(1 + 2*pi));
+    ELL_3V_SCALE_INCR(newPos, move*step, oldVel);
+    /*
+    newPos[0] = AIR_CLAMP(-0.99, newPos[0], 0.99);
+    newPos[1] = AIR_CLAMP(-0.99, newPos[1], 0.99);
+    newPos[2] = AIR_CLAMP(-0.99, newPos[2], 0.99);
+    */
+    ELL_3V_SCALE_INCR(newVel, move*step/(task->pctx->mass), oldAcc);
+    ELL_3V_SCALE(newVel, move, newVel);
+    task->sumVel += ELL_3V_LEN(newVel);
   }
   return;
 }
@@ -346,38 +413,55 @@ pushRun(pushContext *pctx) {
   char me[]="pushRun", err[AIR_STRLEN_MED],
     poutS[AIR_STRLEN_MED], toutS[AIR_STRLEN_MED];
   Nrrd *npos, *nten;
-  int iter;
+  double vel[2], meanVel;
 
-  iter = 0;
+  pctx->iter = 0;
   pctx->time0 = airTime();
+  vel[0] = AIR_NAN;
+  vel[1] = AIR_NAN;
   do {
     if (pushIterate(pctx)) {
-      sprintf(err, "%s: trouble on iter %d", me, iter);
+      sprintf(err, "%s: trouble on iter %d", me, pctx->iter);
       biffAdd(PUSH, err); return 1;
     }
-    if (pctx->snap && !(iter % pctx->snap)) {
+    /* this goofiness is because it seems like stupid Euler 
+       integration can lead to real motion only happening on
+       every other iteration ... */
+    if (0 == pctx->iter) {
+      vel[0] = pctx->meanVel;
+      meanVel = pctx->meanVel;
+    } else if (1 == pctx->iter) {
+      vel[1] = pctx->meanVel;
+      meanVel = (vel[0] + vel[1])/2;
+    } else {
+      vel[0] = vel[1];
+      vel[1] = pctx->meanVel;
+      meanVel = (vel[0] + vel[1])/2;
+    }
+    if (pctx->snap && !(pctx->iter % pctx->snap)) {
       nten = nrrdNew();
       npos = nrrdNew();
-      sprintf(poutS, "snap-%06d-pos.nrrd", iter);
-      sprintf(toutS, "snap-%06d-ten.nrrd", iter);
+      sprintf(poutS, "snap-%06d-pos.nrrd", pctx->iter);
+      sprintf(toutS, "snap-%06d-ten.nrrd", pctx->iter);
       if (pushOutputGet(npos, nten, pctx)) {
-        sprintf(err, "%s: couldn't get snapshot for iter %d", me, iter);
+        sprintf(err, "%s: couldn't get snapshot for iter %d", me, pctx->iter);
         biffAdd(PUSH, err); return 1;
       }
       fprintf(stderr, "%s: saving snapshot %s (meanVel = %g)\n",
-              me, poutS, pctx->meanVel);
+              me, poutS, meanVel);
       if (nrrdSave(poutS, npos, NULL)
           || nrrdSave(toutS, nten, NULL)) {
-        sprintf(err, "%s: couldn't save snapshot for iter %d", me, iter);
+        sprintf(err, "%s: couldn't save snapshot for iter %d", me, pctx->iter);
         biffMove(PUSH, err, NRRD); return 1;
       }
       nten = nrrdNuke(nten);
       npos = nrrdNuke(npos);
     }
-    iter++;
-  } while (pctx->meanVel > pctx->minMeanVel
-           && (0 == pctx->maxIter
-               || iter < pctx->maxIter));
+    pctx->iter++;
+  } while ( (pctx->iter < pctx->minIter)
+            || (meanVel > pctx->minMeanVel
+                && (0 == pctx->maxIter
+                    || pctx->iter < pctx->maxIter)) );
   pctx->time1 = airTime();
   pctx->time = pctx->time1 - pctx->time0;
 
