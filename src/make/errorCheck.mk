@@ -23,7 +23,7 @@
 ####
 
 # all the architectures currently supported
-KNOWN_ARCH = irix6.n32 irix6.64 linux cygwin solaris darwin aix
+KNOWN_ARCH = irix6.n32 irix6.64 linux.32 linux.64 cygwin solaris darwin aix
 
 # there is no default architecture
 checkArchSet = $(if $(TEEM_ARCH),,\

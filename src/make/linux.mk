@@ -24,13 +24,23 @@ OPT_CFLAG ?= -O2
 STATIC_CFLAG = -Wl,-Bstatic
 SHARED_CFLAG = -Wl,-Bdynamic
 SHARED_LDFLAG = -shared
-ARCH_CFLAG = -Wall
-ARCH_LDFLAG = 
 
 TEEM_ENDIAN = 1234
 TEEM_QNANHIBIT = 1
 TEEM_DIO = 0
-TEEM_32BIT = 1
+ifeq ($(SUBARCH),64)
+  TEEM_32BIT = 0
+  ARCH_CFLAG = -fPIC -Wall
+  ARCH_LDFLAG =
+else
+  ifeq ($(SUBARCH),32)
+    TEEM_32BIT = 1
+    ARCH_CFLAG = -Wall
+    ARCH_LDFLAG = 
+  else
+    $(error linux mode $(SUBARCH) not recognized)
+  endif
+endif
 TEEM_BIGBITFIELD = 1
 
 TEEM_ZLIB.IPATH ?=
