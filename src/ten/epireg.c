@@ -203,7 +203,7 @@ _tenEpiRegFindThresh(float *DWthrP, Nrrd **nin, int ninLen) {
   airMopAdd(mop, ntmp=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
 
   for (ni=0; ni<ninLen; ni++) {
-    range = nrrdRangeNewSet(nin[ni], nrrdBlind8BitRangeState);
+    range = nrrdRangeNewSet(nin[ni], nrrdBlind8BitRangeFalse);
     if (!ni) {
       min = range->min;
       max = range->max;

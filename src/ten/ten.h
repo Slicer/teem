@@ -277,6 +277,40 @@ typedef struct {
     whyNowhere;         /* why fiber never got started (from tenFiberStop*) */
 } tenFiberContext;
 
+/*
+******** struct tenEmBimodalParm
+**
+** input and output parameters for tenEMBimodal.  currently, all
+** fields are directly set/read, as opposed to having some API.
+**
+** In the output, material #1 is the one with the lower mean
+*/
+typedef struct {
+  /* ----- input -------- */
+  double minProb,        /* threshold for negligible posterior prob. values */
+    minDelta,            /* convergence test for maximization */
+    minFraction,         /* smallest fraction (in 0.0 to 1.0) that material
+		 	    1 or 2 can legitimately have */
+    minConfidence;       /* smallest confidence value that the model fitting
+			    is allowed to have */
+  int maxIterations;     /* cap on # of non-convergent iterations allowed */
+  /* ----- internal ----- */
+  double *histo,         /* double version of histogram */
+    vmin, vmax,          /* value range represented by histogram. This is
+			    saved from given histogram, and used to inform
+			    final output values, but it is not used for 
+			    any intermediate histogram calculations, all of
+			    which are done entirely in index space */
+    delta;               /* some measure of model change between iters */
+  int N;                 /* number of bins in histogram */
+  /* ----- output ------- */
+  double mean1, stdv1,   /* material 1 mean and  standard dev */
+    mean2, stdv2,        /* same for material 2 */
+    fraction1,           /* fraction of material 1 (== 1 - fracion2) */
+    confidence,          /* (mean2 - mean1)/(stdv1 + stdv2) */
+    threshold;           /* minimum-error threshold */
+} tenEMBimodalParm;
+
 /* defaultsTen.c */
 extern ten_export const char *tenBiffKey;
 extern ten_export const char tenDefFiberKernel[];
@@ -371,6 +405,11 @@ extern int tenEpiRegister(Nrrd **nout, Nrrd **ndwi, int dwiLen, Nrrd *ngrad,
 /* tenGage.c */
 extern ten_export gageKind *tenGageKind;
 
+/* bimod.c */
+extern tenEMBimodalParm* tenEMBimodalParmNew(void);
+extern tenEMBimodalParm* tenEMBimodalParmNix(tenEMBimodalParm *biparm);
+extern int tenEMBimodal(tenEMBimodalParm *biparm, Nrrd *nhisto);
+
 /* tend{Flotsam,Anplot,Anvol,Evec,Eval,...}.c */
 #define TEND_DECLARE(C) extern ten_export unrrduCmd tend_##C##Cmd;
 #define TEND_LIST(C) &tend_##C##Cmd,
@@ -404,3 +443,6 @@ extern ten_export hestCB *tendFiberStopCB;
 #endif
 
 #endif /* TEN_HAS_BEEN_INCLUDED */
+
+
+
