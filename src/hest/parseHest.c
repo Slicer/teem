@@ -643,7 +643,9 @@ _hestDefaults(char **prms, int *udflt, int *nprm, int *appr,
       tmpS = airFree(tmpS);
       /* printf("!%s: nprm[%d] in default = %d\n", me, op, nprm[op]); */
       if (opt[op].min < _hestMax(opt[op].max)) {
-	if (!( AIR_INSIDE(opt[op].min, nprm[op], _hestMax(opt[op].max)) )) {
+	if (!( AIR_INSIDE(opt[op].min, nprm[op], _hestMax(opt[op].max))
+	       || (airTypeString == opt[op].type 
+		   && parm->elideMultipleEmptyStringDefault) )) {
 	  sprintf(err, "%s# parameters (in default) for %s is %d, "
 		  "but need between %d and %d", 
 		  ME, _hestIdent(ident, opt+op, parm, AIR_TRUE), nprm[op],

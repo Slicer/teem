@@ -136,6 +136,7 @@ typedef struct {
     elideMultipleNonExistFloatDefault,
     elideSingleEmptyStringDefault, /* if default for a single string is empty
 				      (""), then don't display default */
+    elideMultipleEmptyStringDefault,
     greedySingleString, /* when parsing a single string, whether or not
 			   to be greedy (as per airParseStrS) */
     columns;            /* number of printable columns in output */
@@ -160,6 +161,7 @@ extern hest_export int hestElideSingleOtherDefault;
 extern hest_export int hestElideSingleNonExistFloatDefault;
 extern hest_export int hestElideMultipleNonExistFloatDefault;
 extern hest_export int hestElideSingleEmptyStringDefault;
+extern hest_export int hestElideMultipleEmptyStringDefault;
 extern hest_export int hestGreedySingleString;
 extern hest_export int hestColumns;
 extern hest_export char hestRespFileFlag;

@@ -352,6 +352,10 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
 	       && airTypeString == opt[i].type
 	       && parm->elideSingleEmptyStringDefault 
 	       && 0 == airStrlen(opt[i].dflt) ))
+	&& (!( (3 == opt[i].kind || 5 == opt[i].kind) 
+	       && airTypeString == opt[i].type
+	       && parm->elideMultipleEmptyStringDefault 
+	       && 0 == airStrlen(opt[i].dflt) ))
 	) {
       /* if there are newlines in the info, then we want to clarify the
 	 default by printing it on its own line */

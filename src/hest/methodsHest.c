@@ -39,6 +39,8 @@ hestParmNew() {
       hestElideMultipleNonExistFloatDefault;
     parm->elideSingleEmptyStringDefault =
       hestElideSingleEmptyStringDefault;
+    parm->elideMultipleEmptyStringDefault =
+      hestElideMultipleEmptyStringDefault;
     parm->columns = hestColumns;
     parm->respFileFlag = hestRespFileFlag;
     parm->respFileComment = hestRespFileComment;
