@@ -18,17 +18,7 @@
 */
 
 #include "hoover.h"
-#if TEEM_PTHREAD
-#include <pthread.h>
-#elif defined(_WIN32)
-#include <windows.h>
-#endif
-
-#if TEEM_PTHREAD || defined(_WIN32)
-const int hooverMyPthread = 1;
-#else
-const int hooverMyPthread = 0;
-#endif
+#include <teem/airThread.h>
 
 /*
 ** learned: if you're going to "simplify" code which computes some
@@ -143,11 +133,7 @@ typedef struct {
   int errCode;
 } _hooverThreadArg;
 
-#if !TEEM_PTHREAD && defined(_WIN32)
-int WINAPI
-#else
 void *
-#endif
 _hooverThreadBody(void *_arg) {
   _hooverThreadArg *arg;
   void *thread;
@@ -185,11 +171,7 @@ _hooverThreadBody(void *_arg) {
 				      arg->whichThread)) ) {
     arg->errCode = ret;
     arg->whichErr = hooverErrThreadBegin;
-#if !TEEM_PTHREAD && defined(_WIN32)
-    return ret;
-#else
     return arg;
-#endif
   }
   lx = arg->ec->volHLen[0];
   ly = arg->ec->volHLen[1];
@@ -264,11 +246,7 @@ _hooverThreadBody(void *_arg) {
 				       rayDirW, rayDirI)) ) {
 	arg->errCode = ret;
 	arg->whichErr = hooverErrRayBegin;
-#if !TEEM_PTHREAD && defined(_WIN32)
-	return ret;
-#else
 	return arg;
-#endif
       }
       
       sampleI = 0;
@@ -289,11 +267,7 @@ _hooverThreadBody(void *_arg) {
 	  /* sampling failed */
 	  arg->errCode = 0;
 	  arg->whichErr = hooverErrSample;
-#if !TEEM_PTHREAD && defined(_WIN32)
-	  return ret;
-#else
 	  return arg;
-#endif
 	}
 	if (!rayStep) {
 	  /* ray decided to finish itself */
@@ -313,11 +287,7 @@ _hooverThreadBody(void *_arg) {
 				     arg->ctx->user)) ) {
 	arg->errCode = ret;
 	arg->whichErr = hooverErrRayEnd;
-#if !TEEM_PTHREAD && defined(_WIN32)
-	return ret;
-#else
 	return arg;
-#endif
       }
     }  /* end this scanline */
     vI += arg->ctx->numThreads;
@@ -328,19 +298,11 @@ _hooverThreadBody(void *_arg) {
 				    arg->ctx->user)) ) {
     arg->errCode = ret;
     arg->whichErr = hooverErrThreadEnd;
-#if !TEEM_PTHREAD && defined(_WIN32)
-    return ret;
-#else
     return arg;
-#endif
   }
   
   /* returning NULL actually indicates that there was NOT an error */
-#if !TEEM_PTHREAD && defined(_WIN32)
-    return 0;
-#else
-    return NULL;
-#endif
+  return NULL;
 }
 
 /*
@@ -355,13 +317,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   _hooverExtraContext *ec;
   _hooverThreadArg args[HOOVER_THREAD_MAX];
   _hooverThreadArg *errArg;
-#if TEEM_PTHREAD
-  pthread_t thread[HOOVER_THREAD_MAX];
-  pthread_attr_t attr;
-#elif defined(_WIN32)
-  HANDLE thread[HOOVER_THREAD_MAX];
-  int errCode;
-#endif
+  airThread thread[HOOVER_THREAD_MAX];
 
   void *render;
   int ret;
@@ -397,27 +353,27 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
     args[threadIdx].errCode = 0;
   }
 
-  /* (done): call pthread_create() once per thread, passing the
+  /* (done): call airThreadCreate() once per thread, passing the
      address of a distinct (and appropriately intialized)
-     _hooverThreadArg to each.  If return of pthread_create() is
+     _hooverThreadArg to each.  If return of airThreadCreate() is
      non-zero, put its return in *errCodeP, the number of the
      problematic in *errThreadP, and return hooverErrThreadCreate.
-     Then call pthread_join() on all the threads, passing &errArg as
+     Then call airThreadJoin() on all the threads, passing &errArg as
      "retval". On non-zero return, set *errCodeP and *errThreadP,
-     and return hooverErrThreadJoin. If return of pthread_join() is
+     and return hooverErrThreadJoin. If return of airThreadJoin() is
      zero, but the errArg is non-NULL, then assume that this errArg
      is actually just the passed _hooverThreadArg returned to us, and
      from this copy errArg->errCode into *errCodeP, and return
      errArg->whichErr */
 
-#ifdef TEEM_PTHREAD
-  pthread_attr_init(&attr);
-#  ifdef __sgi
-  pthread_attr_setscope(&attr, PTHREAD_SCOPE_BOUND_NP);
-#  endif
+  if (1 < ctx->numThreads && !airMultiThreaded) {
+    fprintf(stderr, "%s: WARNING: not multi-threaded; will do %d "
+            "\"threads\" serially !!!\n", me, ctx->numThreads);
+  }
+
   for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
-    if ((ret = pthread_create(&thread[threadIdx], &attr, _hooverThreadBody, 
-			      (void *) &args[threadIdx]))) {
+    if ((ret = airThreadCreate(&thread[threadIdx], _hooverThreadBody, 
+                               (void *) &args[threadIdx]))) {
       *errCodeP = ret;
       *errThreadP = threadIdx;
       airMopError(mop);
@@ -425,7 +381,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
     }
   }
   for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
-    if ((ret = pthread_join(thread[threadIdx], (void **) (&errArg)))) {
+    if ((ret = airThreadJoin(&thread[threadIdx], (void **) (&errArg)))) {
       *errCodeP = ret;
       *errThreadP = threadIdx;
       airMopError(mop);
@@ -437,59 +393,6 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
       return errArg->whichErr;
     }
   }
-#elif defined(_WIN32)
-  if (1 == ctx->numThreads) {
-    errCode = _hooverThreadBody(&(args[0]));
-    if (errCode) {
-      *errCodeP = errCode;
-      airMopError(mop);
-      return args[0].whichErr;
-    }
-  } else {
-    for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
-      thread[threadIdx] = CreateThread(0, 0, _hooverThreadBody,
-				       (void*)&args[threadIdx], 0, 0);
-      if (NULL == thread[threadIdx]) {
-	*errCodeP = GetLastError();
-	*errThreadP = threadIdx;
-	airMopError(mop);
-	return hooverErrThreadCreate;
-      }
-    }
-    for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
-      if (WAIT_FAILED == WaitForSingleObject(thread[threadIdx], INFINITE)) {
-	*errCodeP = GetLastError();
-	*errThreadP = threadIdx;
-	airMopError(mop);
-	return hooverErrThreadJoin;
-      }
-      if (0 == GetExitCodeThread(thread[threadIdx], &errCode)) {
-	*errCodeP = GetLastError();
-	*errThreadP = threadIdx;
-	airMopError(mop);
-	return hooverErrThreadJoin;
-      }
-      if (0 != errCode) {
-	*errCodeP = errCode;
-	*errThreadP = threadIdx;
-	return args[threadIdx].whichErr;
-      }
-    }
-  }
-#else
-  /* old code -- before multi-threading */
-  if (1 == ctx->numThreads) {
-    errArg = _hooverThreadBody(&(args[0]));
-    if (errArg) {
-      *errCodeP = errArg->errCode;
-      airMopError(mop);
-      return errArg->whichErr;
-    }
-  } else {
-    sprintf(err, "%s: sorry, not compiled with TEEM_PTHREAD enabled", me);
-    biffAdd(HOOVER, err); return hooverErrInit; 
-  }
-#endif
 
   if ( (ret = (ctx->renderEnd)(render, ctx->user)) ) {
     *errCodeP = ret;

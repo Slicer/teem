@@ -17,9 +17,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef AIR_THREAD_HAS_BEEN_INCLUDED
-#define AIR_THREAD_HAS_BEEN_INCLUDED
-
 #include "airThread.h"
 
 #if TEEM_PTHREAD || defined(_WIN32)
@@ -81,9 +78,11 @@ airThreadJoin(airThread *thread, void **retP) {
 #else /* ------------------------------------------------------------ */
 /* ------------------------------------------------------------------ */
 
+airThread t;
+
 int
-airThreadCreate(airThread* thread, void *(*threadBody)(void *), void *arg) {
-  thread->ret = threadBody(arg);
+airThreadCreate(airThread *thread, void *(*threadBody)(void *), void *arg) {
+  thread->ret = (*threadBody)(arg);
   return 0;
 }
 
@@ -94,5 +93,3 @@ airThreadJoin(airThread *thread, void **retP) {
 }
 
 #endif
-
-#endif /* AIR_THREAD_HAS_BEEN_INCLUDED */

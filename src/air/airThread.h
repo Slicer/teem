@@ -51,6 +51,7 @@ typedef struct {
 #endif
 } airThread;
 
+#if 0
 typedef struct {
 #if _WIN32
 /* STRONGBAD */
@@ -60,11 +61,15 @@ typedef struct {
 /* POOPSMITH */
 #endif
 } airThreadBarrier;
+#endif
 
 extern int airThreadCreate(airThread *thread, void *(*threadBody)(void *), void *arg);
 extern int airThreadJoin(airThread *thread, void **retP);
+
+#if 0
 extern int airThreadBarrierInit(airThreadBarrier *barrier, unsigned int count);
 extern int airThreadBarrierWait(airThreadBarrier *barrier);
+#endif
 
 extern air_export const int airMultiThreaded;
 

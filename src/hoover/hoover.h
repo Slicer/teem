@@ -261,7 +261,6 @@ extern int hooverContextCheck(hooverContext *ctx);
 extern void hooverContextNix(hooverContext *ctx);
 
 /* rays.c */
-extern hoover_export const int hooverMyPthread;
 extern int hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP);
 
 /* stub.c */
