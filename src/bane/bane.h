@@ -398,9 +398,9 @@ BANE_GKMS_MAP(BANE_GKMS_DECLARE)
 extern bane_export airEnum *baneGkmsMeasr;
 extern bane_export unrrduCmd *baneGkmsCmdList[]; 
 extern void baneGkmsUsage(char *me, hestParm *hparm);
-extern hestCB *baneGkmsHestIncStrategy;
-extern hestCB *baneGkmsHestBEF;
-extern hestCB *baneGkmsHestGthresh;
+extern bane_export hestCB *baneGkmsHestIncStrategy;
+extern bane_export hestCB *baneGkmsHestBEF;
+extern bane_export hestCB *baneGkmsHestGthresh;
 
 #ifdef __cplusplus
 }
