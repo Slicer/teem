@@ -48,6 +48,7 @@ tenGlyphParmNew() {
     parm->slicePos = -1;
     parm->sliceAnisoType = tenAnisoUnknown;
     parm->sliceOffset = 0.0;
+    parm->sliceAnisoGamma = 1.0;
   }
   return parm;
 }
@@ -212,15 +213,20 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	if (parm->doSlice
 	    && I[parm->sliceAxis] == parm->slicePos) {
 	  sliceAniso = aniso[parm->sliceAnisoType];
+	  if (parm->sliceAnisoGamma > 0) {
+	    sliceAniso = pow(sliceAniso, 1.0/parm->sliceAnisoGamma);
+	  } else {
+	    sliceAniso = 1.0 - pow(sliceAniso, -1.0/parm->sliceAnisoGamma);
+	  }
 	  if (glyphsLimn) {
 	    ri = limnObjSquareAdd(glyphsLimn, si + 1);
 	    ELL_4M_IDENTITY_SET(mA);
+	    ell4mPostMul_f(mA, sRot);
 	    ELL_4M_SCALE_SET(mB,
 			     shape->voxLen[0],
 			     shape->voxLen[1],
 			     shape->voxLen[2]);
 	    ell4mPostMul_f(mA, mB);
-	    ell4mPostMul_f(mA, sRot);
 	    ELL_4M_TRANSLATE_SET(mB, W[0], W[1], W[2]);
 	    ell4mPostMul_f(mA, mB);
 	    ELL_4M_TRANSLATE_SET(mB,
@@ -270,7 +276,7 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	R = AIR_ABS(cvec[0]);                           /* standard mapping */
 	G = AIR_ABS(cvec[1]);
 	B = AIR_ABS(cvec[2]);
-	/* desaturate by colMaxSet */
+	/* desaturate by colMaxSat */
 	R = AIR_AFFINE(0.0, parm->colMaxSat, 1.0, 1.0, R);
 	G = AIR_AFFINE(0.0, parm->colMaxSat, 1.0, 1.0, G);
 	B = AIR_AFFINE(0.0, parm->colMaxSat, 1.0, 1.0, B);
