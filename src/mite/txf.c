@@ -102,7 +102,7 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
       }
       isp->item = airEnumVal(isp->kind->enm, qstr);
       if (-1 == isp->item) {
-	sprintf(err, "%s: couldn't parse \"%s\" as a %s varable",
+	sprintf(err, "%s: couldn't parse \"%s\" as a %s variable",
 		me, qstr, isp->kind->name);
 	biffAdd(MITE, err); airMopError(mop); return 1;
       }
