@@ -622,7 +622,7 @@ nrrd1DIrregAclGenerate(Nrrd *nacl, Nrrd *nmap, int aclLen) {
 ** value(s) are linearly weighted according to the position of the
 ** input value among the control point locations.
 **
-** To allow "coloring" if non-existant values -inf, NaN, and +inf, if
+** To allow "coloring" of non-existant values -inf, NaN, and +inf, if
 ** the very first value of the map (the location of the first control
 ** point) is non-existant, then the first three control point locations
 ** must be -inf, NaN, and +inf, in that order, and the information
