@@ -38,7 +38,6 @@ _pushInputProcess(pushContext *pctx) {
   gagePerVolume *pvl;
 
   pctx->nten = nrrdNew();
-  fprintf(stderr, "!%s: bingo 0\n", me);
   mop = airMopNew();
   ntmp = nrrdNew();
   airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
@@ -121,12 +120,6 @@ _pushInputProcess(pushContext *pctx) {
   ELL_3V_SCALE(pctx->maxPos, 1, pctx->gctx->shape->volHalfLen);
 
   airMopOkay(mop);
-  fprintf(stderr, "!%s: bingo 100 \n%d %d %d %d\n%g %g %g\n", me,
-          pctx->nten->axis[0].size,
-          pctx->nten->axis[1].size,
-          pctx->nten->axis[2].size,
-          pctx->nten->axis[3].size,
-          pctx->maxPos[0], pctx->maxPos[1], pctx->maxPos[2]);
   return 0;
 }
 
@@ -284,37 +277,23 @@ _pushForceIncr(pushTask *task, push_t sumForce[3], push_t scale,
     return;
   }
 
-  /* distorted world */
+  /* distorted world; 0.575 - lenV for packing demos */
   /*
-  ff = AIR_MAX(0, 0.5 - lenV);
+  ff = AIR_MAX(0, 0.35 - lenV);
   ff = ff*ff;
+  ff = ff*lenU/lenV;
   ELL_3V_SCALE(force, ff, nU);
   */
 
-  /* true packing? */
+  /* true packing? 0.57*cntr - lenU for packing demos */
+
   ELL_3MV_MUL(tmp, mat, nV);
   cntr = ELL_3V_LEN(tmp);
-  ff = AIR_MAX(0, 0.6*cntr - lenU);
+  ff = AIR_MAX(0, 0.347*cntr - lenU);
   ff = ff*lenV/lenU;
   ff = ff*ff;
   ELL_3V_SCALE(force, ff, nV);
 
-  /*  (0)
-   *   1  2  3
-   *   2  4  5
-   *   3  5  6 
-   */
-  /*
-  */
-  /*
-  ff = ctr/(len*len);
-  ELL_3V_SCALE(force, ff, nV);
-  */
-  /*
-  ff = AIR_MAX(0, ctr/2.3 - len);
-  ff = ff*ff;
-  ELL_3V_SCALE(force, ff, nU);
-  */
 
   if (_pushVerbose) {
     fprintf(stderr, "mypos = %g %g %g\n", mypos[0], mypos[1], mypos[2]);
@@ -322,7 +301,16 @@ _pushForceIncr(pushTask *task, push_t sumForce[3], push_t scale,
     fprintf(stderr, "ten = %g %g %g %g %g %g %g\n", ten[0],
             ten[1], ten[2], ten[3], ten[4], ten[5], ten[6]);
   }
+
   ELL_3V_SCALE_INCR(sumForce, scale, force);
+
+  /* a tiny force to attract things towards the center */
+  /*
+  ELL_3V_NORM(tmp, mypos, cntr);
+  ff = -0.00002*cntr*cntr;
+  ELL_3V_SCALE_INCR(sumForce, ff, tmp);
+  */
+
   return;
 }
 
