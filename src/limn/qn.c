@@ -33,42 +33,44 @@
 /* ----------------------------------------------------------------  */
 
 void
-limn16QNtoV(float *vec, unsigned short qn, int doNorm) {
+limnQN16toV(float *vec, unsigned short qn, int zeroZero, int doNorm) {
   int ui, vi;
   double u, v, x, y, z, n;
-  
-  if (qn) {
-    ui = qn & 0xFF;
-    vi = qn >> 8;
-    u = AIR_AFFINE(-0.5, ui, 255.5, -0.5, 0.5);
-    v = AIR_AFFINE(-0.5, vi, 255.5, -0.5, 0.5);
-    x =  u + v;
-    y =  u - v;
-    z = 1 - AIR_ABS(x) - AIR_ABS(y);
-    z *= (((ui ^ vi) & 0x01) << 1) - 1;
-    if (doNorm) {
-      n = 1.0/sqrt(x*x + y*y + z*z);
-      vec[0] = x*n; 
-      vec[1] = y*n; 
-      vec[2] = z*n;
-    }
-    else {
-      vec[0] = x;
-      vec[1] = y;
-      vec[2] = z;
-    }
+
+  if (zeroZero && !qn) {
+    vec[0] = vec[1] = vec[2] = 0;
+    return;
+  }
+
+  ui = qn & 0xFF;
+  vi = qn >> 8;
+  u = AIR_AFFINE(-0.5, ui, 255.5, -0.5, 0.5);
+  v = AIR_AFFINE(-0.5, vi, 255.5, -0.5, 0.5);
+  x =  u + v;
+  y =  u - v;
+  z = 1 - AIR_ABS(x) - AIR_ABS(y);
+  z *= (((ui ^ vi) & 0x01) << 1) - 1;
+  if (doNorm) {
+    n = 1.0/sqrt(x*x + y*y + z*z);
+    vec[0] = x*n; 
+    vec[1] = y*n; 
+    vec[2] = z*n;
   }
   else {
-    vec[0] = vec[1] = vec[2] = 0;
+    vec[0] = x;
+    vec[1] = y;
+    vec[2] = z;
   }
+
+  return;
 }
 
 unsigned short
-limnVto16QN(float *vec) {
+limnQNVto16(float *vec, int zeroZero) {
   double L, u, v, x, y, z;
   int ui, vi, zi;
   unsigned short ret;
-  char me[]="limnVto16QN";
+  /* char me[]="limnQNVto16"; */
   
   x = vec[0];
   y = vec[1];
@@ -88,6 +90,7 @@ limnVto16QN(float *vec) {
     else if (zi && z < -1.0/128.0) {
       vi -= (((vi >> 7) & 0x01) << 1) - 1;
     }
+    /*
     zi = (ui ^ vi) & 0x01;
     if (!zi && z > 1.0/128.0) {
       printf("%s: panic01\n", me);
@@ -95,11 +98,14 @@ limnVto16QN(float *vec) {
     else if (zi && z < -1.0/128.0) {
       printf("%s: panic02\n", me);
     }
+    */
     ret = (vi << 8) | ui;
-    ret += !ret;
+    ret += zeroZero && !ret;
     return ret;
   }
   else {
+    /* regardless of zeroZero, we really have no choice but
+       to return 0 here */
     return 0;
   }
 }
@@ -107,7 +113,7 @@ limnVto16QN(float *vec) {
 /* ----------------------------------------------------------------  */
 
 void
-limn16QN1PBtoV(float *vec, unsigned short qn, int doNorm) {
+limnQN16PB1toV(float *vec, unsigned short qn, int doNorm) {
   int ui, vi;
   double u, v, x, y, z, n;
   
@@ -138,11 +144,11 @@ limn16QN1PBtoV(float *vec, unsigned short qn, int doNorm) {
 }
 
 unsigned short
-limnVto16QN1PB(float *vec) {
+limnQNVto16PB1(float *vec) {
   double L, u, v, x, y, z;
   int ui, vi, zi;
   unsigned short ret;
-  char me[]="limnVto16QN1PB";
+  char me[]="limnQNVto16PB1";
   
   x = vec[0];
   y = vec[1];
@@ -181,7 +187,7 @@ limnVto16QN1PB(float *vec) {
 /* ----------------------------------------------------------------  */
 
 void
-limn15QNtoV(float *vec, unsigned short qn, int doNorm) {
+limnQN15toV(float *vec, unsigned short qn, int doNorm) {
   int ui, vi, zi;
   double u, v, x, y, z, n;
   
@@ -213,7 +219,7 @@ limn15QNtoV(float *vec, unsigned short qn, int doNorm) {
 }
 
 unsigned short
-limnVto15QN(float *vec) {
+limnQNVto15(float *vec) {
   double L, u, v, x, y, z;
   int ui, vi, zi;
   unsigned short ret;
