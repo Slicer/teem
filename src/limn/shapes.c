@@ -57,14 +57,12 @@ limnObjCubeAdd(limnObj *obj, int sp) {
 int
 limnObjSquareAdd(limnObj *obj, int sp) {
   int pb, v[4], ret;
-  float x, y;
 
-  x = y = 0.5;
   ret = limnObjPartStart(obj);
-  pb = limnObjPointAdd(obj, 0, -x, -y, 0);
-  limnObjPointAdd(obj,      0,  x, -y, 0);
-  limnObjPointAdd(obj,      0,  x,  y, 0);
-  limnObjPointAdd(obj,      0, -x,  y, 0);
+  pb = limnObjPointAdd(obj, 0, -1, -1, 0);
+  limnObjPointAdd(obj,      0,  1, -1, 0);
+  limnObjPointAdd(obj,      0,  1,  1, 0);
+  limnObjPointAdd(obj,      0, -1,  1, 0);
   ELL_4V_SET(v, pb+0, pb+1, pb+2, pb+3);  limnObjFaceAdd(obj, 2, 4, v);
   limnObjPartFinish(obj);
 
