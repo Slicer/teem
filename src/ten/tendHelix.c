@@ -42,7 +42,7 @@ void
 tend_helixDoit(Nrrd *nout, float bnd,
 	       float r, float R, float S, float angle) {
   int sx, sy, sz, xi, yi, zi, idx;
-  double th, t0, t1, t2, t3, v0, v1, v2, v3,
+  double th, t0, t1, t2, t3, v1, v2,
     wpos[3], vpos[3],
     W2H[9], H2W[9], H2C[9], C2H[9], fv[3], rv[3], uv[3], mA[9], mB[9], inside,
     tmp[3], len;
@@ -77,10 +77,8 @@ tend_helixDoit(Nrrd *nout, float bnd,
 	}
 	t1 = RR*t0 + CC*t3;
 	t2 = CC*t0 + RR*t3;
-	v0 = VAL(t0);
 	v1 = VAL(t1);
 	v2 = VAL(t2);
-	v3 = VAL(t3);
 	while ( t3-t0 > 0.0001*(AIR_ABS(t1+t2)) ) {
 	  if (v1 < v2) {
 	    SHIFT3(t3, t2, t1, CC*t0 + RR*t2);
