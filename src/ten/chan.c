@@ -57,15 +57,17 @@ tenBMatrixCalc(Nrrd *nbmat, Nrrd *_ngrad) {
   }
 
   DD = ngrad->axis[1].size;
+  G = (double*)(ngrad->data);
   bmat = (double*)(nbmat->data);
   for (dd=0; dd<DD; dd++) {
-    G = (double*)(ngrad->data) + 3*dd;
     ELL_6V_SET(bmat,
                G[0]*G[0], G[0]*G[1], G[0]*G[2],
-               G[1]*G[1], G[1]*G[2],
-               G[2]*G[2]);
+                          G[1]*G[1], G[1]*G[2],
+                                     G[2]*G[2]);
+    G += 3;
     bmat += 6;
   }
+  nbmat->axis[0].kind = nrrdKind3DSymMatrix;
   
   return 0;
 }
@@ -126,26 +128,28 @@ tenEMatrixCalc(Nrrd *nemat, Nrrd *_nbmat, int knownB0) {
   return 0;
 }
 
-#define _TEN_MAX_DWI_NUM 128
-
 /*
 ******** tenEstimateSingle_f
 **
 ** estimate one single tensor
 **
+** !! requires being passed a pre-allocated double array "vbuf" which is
+** !! used for intermediate calculations (details below)
+**
 ** -------------- IF knownB0 -------------------------
 ** input:
 ** dwi[0] is the B0 image, dwi[1]..dwi[DD-1] are the (DD-1) DWI values,
 ** emat is the (DD-1)-by-6 estimation matrix, which is the pseudo-inverse
-** of the B-matrix (after the off-diagonals have been multiplied by 2)
+** of the B-matrix (after the off-diagonals have been multiplied by 2).
+** vbuf[] is allocated for DD-1 doubles
 **
 ** output:
 ** ten[0]..ten[6] will be the confidence value followed by the tensor
 ** -------------- IF !knownB0 -------------------------
 ** input:
-** dwi[0]..dwi[DD-1] are the DD DWI values,
-** emat is the DD-by-7 estimation matrix.  The 7th row is for estimating
-** the B0 image
+** dwi[0]..dwi[DD-1] are the DD DWI values, emat is the DD-by-7 estimation
+** matrix.  The 7th column is for estimating the B0 image.
+** vbuf[] is allocated for DD doubles
 **
 ** output:
 ** ten[0]..ten[6] will be the confidence value followed by the tensor
@@ -154,11 +158,12 @@ tenEMatrixCalc(Nrrd *nemat, Nrrd *_nbmat, int knownB0) {
 */
 void
 tenEstimateLinearSingle_f(float *ten, float *B0P, float *dwi, double *emat,
-                          int DD, int knownB0,
+                          double *vbuf, int DD, int knownB0,
                           float thresh, float soft, float b) {
-  double logB0, v[_TEN_MAX_DWI_NUM], tmp, mean;
-  int i, j;
-  
+  double logB0, tmp, mean;
+  int ii, jj;
+  /* char me[]="tenEstimateLinearSingle_f"; */
+
   if (knownB0) {
     if (B0P) {
       /* we save this as a courtesy */
@@ -166,41 +171,42 @@ tenEstimateLinearSingle_f(float *ten, float *B0P, float *dwi, double *emat,
     }
     logB0 = log(AIR_MAX(dwi[0], 1));
     mean = 0;
-    for (i=1; i<DD; i++) {
-      tmp = AIR_MAX(dwi[i], 1);
+    for (ii=1; ii<DD; ii++) {
+      tmp = AIR_MAX(dwi[ii], 1);
       mean += tmp;
-      v[i-1] = (logB0 - log(tmp))/b;
+      vbuf[ii-1] = (logB0 - log(tmp))/b;
       if (tenVerbose) {
-        fprintf(stderr, "v[%d] = %f\n", i-1, v[i-1]);
+        fprintf(stderr, "vbuf[%d] = %f\n", ii-1, vbuf[ii-1]);
       }
     }
     mean /= DD-1;
     ten[0] = AIR_AFFINE(-1, airErf((mean - thresh)/(soft + 0.000001)), 1,
                         0, 1);
-    for (j=0; j<6; j++) {
+    for (jj=0; jj<6; jj++) {
       tmp = 0;
-      for (i=0; i<DD-1; i++) {
-        tmp += emat[i + (DD-1)*j]*v[i];
+      for (ii=0; ii<DD-1; ii++) {
+        tmp += emat[ii + (DD-1)*jj]*vbuf[ii];
       }
-      ten[j+1] = tmp;
+      ten[jj+1] = tmp;
     }
   } else {
+    /* !knownB0 */
     mean = 0;
-    for (i=0; i<DD; i++) {
-      tmp = AIR_MAX(dwi[i], 1);
+    for (ii=0; ii<DD; ii++) {
+      tmp = AIR_MAX(dwi[ii], 1);
       mean += tmp;
-      v[i] = -log(tmp)/b;
+      vbuf[ii] = -log(tmp)/b;
     }
     mean /= DD;
     ten[0] = AIR_AFFINE(-1, airErf((mean - thresh)/(soft + 0.000001)), 1,
                         0, 1);
-    for (j=0; j<=6; j++) {
+    for (jj=0; jj<=6; jj++) {
       tmp = 0;
-      for (i=0; i<DD; i++) {
-        tmp += emat[i + DD*j]*v[i];
+      for (ii=0; ii<DD; ii++) {
+        tmp += emat[ii + DD*jj]*vbuf[ii];
       }
-      if (j < 6) {
-        ten[j+1] = tmp;
+      if (jj < 6) {
+        ten[jj+1] = tmp;
       } else {
         /* we're on seventh row, for finding B0 */
         if (B0P) {
@@ -275,11 +281,11 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   Nrrd *nemat, *nbmat, *ncrop, *nhist;
   airArray *mop;
   int E, DD, d, II, sx, sy, sz, cmin[4], cmax[4], amap[4];
-  float *ten, dwi1[_TEN_MAX_DWI_NUM], *terr=NULL, 
+  float *ten, *dwi1, *dwi2, *terr, 
     _B0, *B0, (*lup)(const void *, size_t);
-  double *emat, *bmat;
+  double *emat, *bmat, *vbuf;
   NrrdRange *range;
-  float dwi2[_TEN_MAX_DWI_NUM], te, d1, d2;
+  float te, d1, d2;
 
   if (!(nten && ndwi && _nbmat)) {
     /* nerrP and _NB0P can be NULL */
@@ -310,6 +316,10 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     }
   }
   
+  DD = ndwi->axis[0].size;
+  sx = ndwi->axis[1].size;
+  sy = ndwi->axis[2].size;
+  sz = ndwi->axis[3].size;
   mop = airMopNew();
   airMopAdd(mop, nbmat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdConvert(nbmat, _nbmat, nrrdTypeDouble)) {
@@ -317,16 +327,20 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
   airMopAdd(mop, nemat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-
   if (tenEMatrixCalc(nemat, nbmat, knownB0)) {
     sprintf(err, "%s: trouble computing estimation matrix", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
-  
-  DD = ndwi->axis[0].size;
-  sx = ndwi->axis[1].size;
-  sy = ndwi->axis[2].size;
-  sz = ndwi->axis[3].size;
+  vbuf = (double*)calloc(knownB0 ? DD-1 : DD, sizeof(double));
+  dwi1 = (float*)calloc(DD, sizeof(float));
+  dwi2 = (float*)calloc(knownB0 ? DD : DD+1, sizeof(float));
+  if (!(vbuf && dwi1 && dwi2)) {
+    sprintf(err, "%s: couldn't allocate temp buffers", me);
+    biffAdd(TEN, err); airMopError(mop); return 1;
+  }
+  airMopAdd(mop, vbuf, airFree, airMopAlways);
+  airMopAdd(mop, dwi1, airFree, airMopAlways);
+  airMopAdd(mop, dwi2, airFree, airMopAlways);
   if (!AIR_EXISTS(thresh)) {
     airMopAdd(mop, ncrop=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
     airMopAdd(mop, nhist=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
@@ -364,6 +378,8 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     airMopAdd(mop, nterrP, (airMopper)airSetNull, airMopOnError);
     airMopAdd(mop, *nterrP, (airMopper)nrrdNuke, airMopOnError);
     terr = (float*)((*nterrP)->data);
+  } else {
+    terr = NULL;
   }
   if (nB0P) {
     if (!(*nB0P)) {
@@ -391,8 +407,9 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
         fprintf(stderr, "%s: input dwi1[%d] = %g\n", me, d, dwi1[d]);
       }
     }
-    tenEstimateLinearSingle_f(ten, &_B0,
-                              dwi1, emat, DD, knownB0, thresh, soft, b);
+    tenEstimateLinearSingle_f(ten, &_B0, dwi1, emat, 
+                              vbuf, DD, knownB0, 
+                              thresh, soft, b);
     if (nB0P) {
       *B0 = _B0;
     }
@@ -430,10 +447,11 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
       B0 += 1;
     }
   }
-  /* tenEigenvalueClamp(nten, nten, 0, AIR_NAN); */
+  /* not our job: tenEigenvalueClamp(nten, nten, 0, AIR_NAN); */
 
   ELL_4V_SET(amap, -1, 1, 2, 3);
   nrrdAxisInfoCopy(nten, ndwi, amap, NRRD_AXIS_INFO_NONE);
+  nten->axis[0].kind = nrrdKind3DMaskedSymMatrix;
 
   airMopOkay(mop);
   return 0;
@@ -445,10 +463,13 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 ** given a tensor, simulate the set of diffusion weighted measurements
 ** represented by the given B matrix
 **
-** NOTE: the mindset if this function is very much "knownB0==true":
+** NOTE: the mindset of this function is very much "knownB0==true":
 ** B0 is required as an argument (and its always copied to dwi[0]),
-** and the given bmat is assumed to have DD-1 rows,
-**  so dwi[0] through dwi[DD-1] (DD values total) are set in the output.
+** and the given bmat is assumed to have DD-1 rows (similar to how
+** tenEstimateLinearSingle_f() is set up), and dwi[1] through dwi[DD-1]
+** are set to the calculated DWIs.
+**
+** So: dwi must be allocated for DD values total
 */
 void
 tenSimulateOne_f(float *dwi,
@@ -456,21 +477,21 @@ tenSimulateOne_f(float *dwi,
   double vv;
   /* this is how we multiply the off-diagonal entries by 2 */
   double matwght[6] = {1, 2, 2, 1, 2, 1};
-  int i, j;
+  int ii, jj;
   
   dwi[0] = B0;
   if (tenVerbose) {
     fprintf(stderr, "ten = %g,%g,%g  %g,%g  %g\n", 
             ten[1], ten[2], ten[3], ten[4], ten[5], ten[6]);
   }
-  for (i=0; i<DD-1; i++) {
+  for (ii=0; ii<DD-1; ii++) {
     vv = 0;
-    for (j=0; j<6; j++) {
-      vv += matwght[j]*bmat[j + 6*i]*ten[j+1];
+    for (jj=0; jj<6; jj++) {
+      vv += matwght[jj]*bmat[jj + 6*ii]*ten[jj+1];
     }
-    dwi[i+1] = AIR_MAX(B0, 1)*exp(-b*vv);
+    dwi[ii+1] = AIR_MAX(B0, 1)*exp(-b*vv);
     if (tenVerbose) {
-      fprintf(stderr, "v[%d] = %g --> dwi = %g\n", i, vv, dwi[i+1]);
+      fprintf(stderr, "v[%d] = %g --> dwi = %g\n", ii, vv, dwi[ii+1]);
     }
   }
   

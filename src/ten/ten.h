@@ -472,7 +472,8 @@ TEEM_API void tenRotationTangents_d(double phi1[7],
 TEEM_API int tenBMatrixCalc(Nrrd *nbmat, Nrrd *ngrad);
 TEEM_API int tenEMatrixCalc(Nrrd *nemat, Nrrd *nbmat, int knownB0);
 TEEM_API void tenEstimateLinearSingle_f(float *ten, float *B0P, float *dwi,
-                                        double *emat, int DD, int knownB0,
+                                        double *emat, double *vbuf,
+                                        int DD, int knownB0,
                                         float thresh, float soft, float b);
 TEEM_API int tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
                                  Nrrd **ndwi, int dwiLen, 
