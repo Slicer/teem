@@ -342,10 +342,11 @@ _gageCacheSizeUpdate(gageContext *ctx) {
 void
 _gageOffValueUpdate(gageContext *ctx) {
   char me[]="_gageOffValueUpdate";
-  int fd, i, j, k, sx, sy, sz;
+  int fd, i, j, k, sx, sy;
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
-  PADSIZE(sx, sy, sz, ctx);
+  sx = PADSIZE_X(ctx);
+  sy = PADSIZE_Y(ctx);
   fd = GAGE_FD(ctx);
   /* HEY: look into special casing this for small fd */
   for (k=0; k<fd; k++)

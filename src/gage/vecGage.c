@@ -119,10 +119,11 @@ _gageVecPrereq[GAGE_VEC_MAX+1] = {
 
 void
 _gageVecIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
-  int i, sx, sy, sz, bidx, fd, fddd;
+  int i, sx, sy, bidx, fd, fddd;
   void *here;
 
-  PADSIZE(sx, sy, sz, ctx);
+  sx = PADSIZE_X(ctx);
+  sy = PADSIZE_Y(ctx);
   fd = GAGE_FD(ctx);
   fddd = fd*fd*fd;
   /* the reason to "- ctx->havePad" is that we need to locate the lowest

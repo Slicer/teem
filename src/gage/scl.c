@@ -297,8 +297,10 @@ _gageSclIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageSclIv3Fill";
   int i, sx, sy, sz, fd, bidx, diff;
   void *here;
-
-  PADSIZE(sx, sy, sz, ctx);
+  
+  sx = PADSIZE_X(ctx);
+  sy = PADSIZE_Y(ctx);
+  sz = PADSIZE_Z(ctx);
   fd = GAGE_FD(ctx);
   diff = -ctx->havePad + (nrrdCenterCell == ctx->shape.center);
   diff = -ctx->havePad;

@@ -40,10 +40,9 @@ extern "C" {
 #  define EVALN evalN_d               /* NrrdKernel method */
 #endif
 
-#define PADSIZE(sx, sy, sz, ctx) \
-  ((sx) = (ctx)->shape.sx + 2*((ctx)->havePad), \
-   (sy) = (ctx)->shape.sy + 2*((ctx)->havePad), \
-   (sz) = (ctx)->shape.sz + 2*((ctx)->havePad))
+#define PADSIZE_X(ctx) ((ctx)->shape.sx + 2*((ctx)->havePad))
+#define PADSIZE_Y(ctx) ((ctx)->shape.sy + 2*((ctx)->havePad))
+#define PADSIZE_Z(ctx) ((ctx)->shape.sz + 2*((ctx)->havePad))
 #define ANSWER(pvl, m) \
   ((pvl)->ans + (pvl)->kind->ansOffset[(m)])
 
