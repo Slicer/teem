@@ -22,7 +22,7 @@ TEEM_LIB = hoover
 HEADERS = hoover.h
 TEEM_LIB_OBJS = stub.o methods.o rays.o 
 TEST_BINS = 
-TEEM_BINS = bin/measurend
+TEEM_BINS = bin/mrender
 TEEM_BIN_LIBS = -lhoover -llimn -lgage -lnrrd -lell -lhest -lbiff -lair -lm
 
 include ../make/Common.mk
