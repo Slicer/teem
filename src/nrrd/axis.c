@@ -27,7 +27,7 @@ _nrrdAxisInfoInit(NrrdAxisInfo *axis) {
   
   if (axis) {
     axis->size = 0;
-    axis->spacing = AIR_NAN;
+    axis->spacing = axis->thickness = AIR_NAN;
     axis->min = axis->max = AIR_NAN;
     axis->label = airFree(axis->label);
     axis->unit = airFree(axis->unit);
@@ -140,9 +140,15 @@ _nrrdKindAltered(int kindIn) {
 
   if (nrrdStateKindNoop) {
     kindOut = nrrdKindUnknown;
+    /* HEY: setting the kindOut to unknown is arguably not a no-op.
+       It is more like "conservative".  So maybe nrrdStateKindNoop
+       should be renamed.  But nrrdStateKindConservative would imply
+       that the kind is conserved, which is exactly NOT what we do ... */
   } else {
     if (nrrdKindDomain == kindIn
         || nrrdKindList == kindIn) {
+      /* HEY: shouldn't we disallow or at least warn when a "List"
+	 is being resampled? */
       kindOut = kindIn;
     } else {
       kindOut = nrrdKindUnknown;
@@ -159,6 +165,9 @@ _nrrdAxisInfoCopy(NrrdAxisInfo *dest, const NrrdAxisInfo *src, int bitflag) {
   }
   if (!(NRRD_AXIS_INFO_SPACING_BIT & bitflag)) {
     dest->spacing = src->spacing;
+  }
+  if (!(NRRD_AXIS_INFO_THICKNESS_BIT & bitflag)) {
+    dest->thickness = src->thickness;
   }
   if (!(NRRD_AXIS_INFO_MIN_BIT & bitflag)) {
     dest->min = src->min;
@@ -266,6 +275,9 @@ nrrdAxisInfoSet_nva(Nrrd *nrrd, int axInfo, const void *_info) {
     case nrrdAxisInfoSpacing:
       nrrd->axis[d].spacing = info.D[d];
       break;
+    case nrrdAxisInfoThickness:
+      nrrd->axis[d].thickness = info.D[d];
+      break;
     case nrrdAxisInfoMin:
       nrrd->axis[d].min = info.D[d];
       break;
@@ -328,6 +340,7 @@ nrrdAxisInfoSet(Nrrd *nrrd, int axInfo, ...) {
       */
       break;
     case nrrdAxisInfoSpacing:
+    case nrrdAxisInfoThickness:
     case nrrdAxisInfoMin:
     case nrrdAxisInfoMax:
       info.D[d] = va_arg(ap, double);
@@ -390,6 +403,9 @@ nrrdAxisInfoGet_nva(const Nrrd *nrrd, int axInfo, void *_info) {
     case nrrdAxisInfoSpacing:
       info.D[d] = nrrd->axis[d].spacing;
       break;
+    case nrrdAxisInfoThickness:
+      info.D[d] = nrrd->axis[d].thickness;
+      break;
     case nrrdAxisInfoMin:
       info.D[d] = nrrd->axis[d].min;
       break;
@@ -442,6 +458,7 @@ nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo, ...) {
          "nrrdAxisInfoGet", d, *((int*)ptr)); */
       break;
     case nrrdAxisInfoSpacing:
+    case nrrdAxisInfoThickness:
     case nrrdAxisInfoMin:
     case nrrdAxisInfoMax:
       *((double*)ptr) = info.D[d];

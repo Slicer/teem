@@ -154,7 +154,7 @@ nrrdTypeNumberOfValues[NRRD_TYPE_MAX+1] = {
 **
 ** these fields are valid embedded in PNM and PNG comments
 ** This does NOT include the fields who's values are constrained
-** the image format (and in the case of PNM, magic) itself.
+** by the image format (and in the case of PNM, magic) itself.
 */
 int
 _nrrdFieldValidInImage[NRRD_FIELD_MAX+1] = {
@@ -167,6 +167,7 @@ _nrrdFieldValidInImage[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_dimension */
   0, /* nrrdField_sizes */
   1, /* nrrdField_spacings */
+  1, /* nrrdField_thicknesses */
   1, /* nrrdField_axis_mins */
   1, /* nrrdField_axis_maxs */
   1, /* nrrdField_centers */
@@ -200,6 +201,7 @@ _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_dimension */
   1, /* nrrdField_sizes */
   1, /* nrrdField_spacings */
+  1, /* nrrdField_thicknesses */
   1, /* nrrdField_axis_mins */
   1, /* nrrdField_axis_maxs */
   1, /* nrrdField_centers */
@@ -236,6 +238,7 @@ _nrrdFieldValidInText[NRRD_FIELD_MAX+1] = {
   1, /* nrrdField_dimension: but can only be 1 or 2 */
   0, /* nrrdField_sizes */
   1, /* nrrdField_spacings */
+  1, /* nrrdField_thicknesses */
   1, /* nrrdField_axis_mins */
   1, /* nrrdField_axis_maxs */
   1, /* nrrdField_centers */
@@ -270,6 +273,7 @@ _nrrdFieldRequired[NRRD_FIELD_MAX+1] = {
   1, /* nrrdField_dimension */
   1, /* nrrdField_sizes */
   0, /* nrrdField_spacings */
+  0, /* nrrdField_thicknesses */
   0, /* nrrdField_axis mins */
   0, /* nrrdField_axis maxs */
   0, /* nrrdField_centers */

@@ -215,6 +215,8 @@ nrrdDescribe (FILE *file, const Nrrd *nrrd) {
               airEnumStr(nrrdCenter, nrrd->axis[i].center),
               nrrd->axis[i].size);
       airSinglePrintf(file, NULL, "spacing=%lg, \n", nrrd->axis[i].spacing);
+      airSinglePrintf(file, NULL, "thickness=%lg, \n",
+		      nrrd->axis[i].thickness);
       airSinglePrintf(file, NULL, "    axis(Min,Max) = (%lg,",
                        nrrd->axis[i].min);
       airSinglePrintf(file, NULL, "%lg)\n", nrrd->axis[i].max);
@@ -287,6 +289,13 @@ nrrdCheck (const Nrrd *nrrd) {
       biffAdd(NRRD, err); return 1;
     }
   }
+  nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoThickness, val);
+  for (i=0; i<=nrrd->dim-1; i++) {
+    if (!( !airIsInf_d(val[i]) )) {
+      sprintf(err, "%s: thickness %d (%g) invalid", me, i, val[i]);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
   nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoMin, val);
   for (i=0; i<=nrrd->dim-1; i++) {
     if ((ret=airIsInf_d(val[i]))) {
@@ -327,6 +336,10 @@ nrrdCheck (const Nrrd *nrrd) {
 **
 ** returns 1 iff given two nrrds have same dimension and axes sizes.
 ** This does NOT look at the type of the elements.
+**
+** The intended user of this is someone who really wants the nrrds to be
+** the same size, so that if they aren't, some descriptive (error) message
+** can be generated according to useBiff
 */
 int
 nrrdSameSize (const Nrrd *n1, const Nrrd *n2, int useBiff) {

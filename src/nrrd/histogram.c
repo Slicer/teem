@@ -86,9 +86,12 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   mop = airMopNew();
   /* nout->axis[0].size set */
   nout->axis[0].spacing = AIR_NAN;
+  nout->axis[0].thickness = AIR_NAN;
   if (nout && AIR_EXISTS(nout->axis[0].min) && AIR_EXISTS(nout->axis[0].max)) {
     /* HEY: total hack to externally nail down min and max of histogram:
        use the min and max already set on axis[0] */
+    /* HEY: shouldn't this blatent hack be further restricted by also 
+       checking the existence of range->min and range->max ? */
     min = nout->axis[0].min;
     max = nout->axis[0].max;
   } else {
@@ -186,6 +189,7 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin, int sy, int showLog, double max) {
   }
   /* perhaps I should be using nrrdAxisInfoCopy */
   nout->axis[0].spacing = nout->axis[1].spacing = AIR_NAN;
+  nout->axis[0].thickness = nout->axis[1].thickness = AIR_NAN;
   nout->axis[0].min = nin->axis[0].min;
   nout->axis[0].max = nin->axis[0].max;
   nout->axis[0].center = nout->axis[1].center = nrrdCenterCell;
@@ -337,6 +341,7 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   /* axis ax now has to be set manually */
   nout->axis[ax].size = bins;
   nout->axis[ax].spacing = AIR_NAN; /* min and max convey the information */
+  nout->axis[ax].thickness = AIR_NAN;
   nout->axis[ax].min = range->min;
   nout->axis[ax].max = range->max;
   nout->axis[ax].center = nrrdCenterCell;
@@ -494,6 +499,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
   for (d=0; d<numNin; d++) {
     nout->axis[d].size = bins[d];
     nout->axis[d].spacing = AIR_NAN;
+    nout->axis[d].thickness = AIR_NAN;
     nout->axis[d].min = range[d]->min;
     nout->axis[d].max = range[d]->max;
     nout->axis[d].center = nrrdCenterCell;

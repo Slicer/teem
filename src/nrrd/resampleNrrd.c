@@ -798,17 +798,38 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
                     | NRRD_AXIS_INFO_MIN_BIT
                     | NRRD_AXIS_INFO_MAX_BIT
                     | NRRD_AXIS_INFO_SPACING_BIT
+                    | NRRD_AXIS_INFO_THICKNESS_BIT
                     | NRRD_AXIS_INFO_KIND_BIT));
   for (d=0; d<dim; d++) {
     if (info->kernel[d]) {
+      /* we do resample this axis */
       nout->axis[d].min = info->min[d];
       nout->axis[d].max = info->max[d];
       nout->axis[d].spacing = nin->axis[d].spacing/ratios[d];
+      if (nrrdStateThicknessNoop) {
+	/* HEY: as with nrrdStateKindNoop, this is really more about being
+	   conservative and cautious than being a no-op */
+	nout->axis[d].thickness = AIR_NAN;
+      } else {
+	if (ratios[d] > 1.0) {
+	  /* if up-sampling, the thickness of the region represented by
+	     each sample is not actually getting any smaller- you can't
+	     unblur the averaging that made the slice thick */
+	  nout->axis[d].thickness = nin->axis[d].thickness;
+	} else {
+	  /* if down-sampling, you're piling on yet more blurring, then
+	     whatever notion of thickness that you started with is now
+	     increased according to the resampling ratio */
+	  nout->axis[d].thickness = nin->axis[d].thickness/ratios[d];
+	}
+      }
       nout->axis[d].kind = _nrrdKindAltered(nin->axis[d].kind);
     } else {
+      /* this axis remains untouched */
       nout->axis[d].min = nin->axis[d].min;
       nout->axis[d].max = nin->axis[d].max;
       nout->axis[d].spacing = nin->axis[d].spacing;
+      nout->axis[d].thickness = nin->axis[d].thickness;
       nout->axis[d].kind = nin->axis[d].kind;
     }
   }

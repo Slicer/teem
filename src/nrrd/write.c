@@ -245,6 +245,11 @@ _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIoState *nio, int field) {
       ret |= AIR_EXISTS(nrrd->axis[d].spacing);
     }
     break;
+  case nrrdField_thicknesses:
+    for (d=0; d<nrrd->dim; d++) {
+      ret |= AIR_EXISTS(nrrd->axis[d].thickness);
+    }
+    break;
   case nrrdField_axis_mins:
     for (d=0; d<nrrd->dim; d++) {
       ret |= AIR_EXISTS(nrrd->axis[d].min);
@@ -388,6 +393,14 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
     sprintf(*strP, "%s%s:", prefix, fs);
     for (i=0; i<D; i++) {
       airSinglePrintf(NULL, buff, " %lg", nrrd->axis[i].spacing);
+      strcat(*strP, buff);
+    }
+    break;
+  case nrrdField_thicknesses:
+    *strP = malloc(fslen + D*30);
+    sprintf(*strP, "%s%s:", prefix, fs);
+    for (i=0; i<D; i++) {
+      airSinglePrintf(NULL, buff, " %lg", nrrd->axis[i].thickness);
       strcat(*strP, buff);
     }
     break;

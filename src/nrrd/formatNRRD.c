@@ -24,6 +24,7 @@
 #define MAGIC1 "NRRD0001"
 #define MAGIC2 "NRRD0002"
 #define MAGIC3 "NRRD0003"
+#define MAGIC4 "NRRD0004"
 
 int
 _nrrdFormatNRRD_available(void) {
@@ -61,6 +62,7 @@ _nrrdFormatNRRD_contentStartsLike(NrrdIoState *nio) {
           || !strcmp(MAGIC1, nio->line)
           || !strcmp(MAGIC2, nio->line)
           || !strcmp(MAGIC3, nio->line)
+          || !strcmp(MAGIC4, nio->line)
           );
 }
 
@@ -332,13 +334,15 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     }
   }
   
-  /* we try to use the oldest format that will old the nrrd */
-  fprintf(file, "%s\n", 
-          (_nrrdFieldInteresting(nrrd, nio, nrrdField_kinds)
-           ? MAGIC3
-           : (nrrdKeyValueSize(nrrd) 
-              ? MAGIC2 
-              : MAGIC1)));
+  /* we try to use the oldest format that will hold the nrrd */
+  fprintf(file, "%s\n",
+	  (_nrrdFieldInteresting(nrrd, nio, nrrdField_thicknesses)
+	   ? MAGIC4
+	   : (_nrrdFieldInteresting(nrrd, nio, nrrdField_kinds)
+	      ? MAGIC3
+	      : (nrrdKeyValueSize(nrrd) 
+		 ? MAGIC2 
+		 : MAGIC1))));
 
   /* this is where the majority of the header printing happens */
   for (i=1; i<=NRRD_FIELD_MAX; i++) {

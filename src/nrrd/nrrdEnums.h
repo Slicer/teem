@@ -212,27 +212,29 @@ enum {
 */
 enum {
   nrrdAxisInfoUnknown,
-  nrrdAxisInfoSize,                 /* 1: number of samples along axis */
-#define NRRD_AXIS_INFO_SIZE_BIT    (1<<1)
-  nrrdAxisInfoSpacing,              /* 2: spacing between samples */
-#define NRRD_AXIS_INFO_SPACING_BIT (1<<2)
-  nrrdAxisInfoMin,                  /* 3: minimum pos. assoc. w/ 1st sample */
-#define NRRD_AXIS_INFO_MIN_BIT     (1<<3) 
-  nrrdAxisInfoMax,                  /* 4: maximum pos. assoc. w/ last sample */
-#define NRRD_AXIS_INFO_MAX_BIT     (1<<4)
-  nrrdAxisInfoCenter,               /* 5: cell vs. node */
-#define NRRD_AXIS_INFO_CENTER_BIT  (1<<5)
-  nrrdAxisInfoKind,                 /* 6: from the nrrdKind* enum */
-#define NRRD_AXIS_INFO_KIND_BIT    (1<<6)
-  nrrdAxisInfoLabel,                /* 7: string describing the axis */
-#define NRRD_AXIS_INFO_LABEL_BIT   (1<<7)
-  nrrdAxisInfoUnit,                 /* 8: string identifying units */
-#define NRRD_AXIS_INFO_UNIT_BIT    (1<<8)
+  nrrdAxisInfoSize,                   /* 1: number of samples along axis */
+#define NRRD_AXIS_INFO_SIZE_BIT      (1<<1)
+  nrrdAxisInfoSpacing,                /* 2: spacing between samples */
+#define NRRD_AXIS_INFO_SPACING_BIT   (1<<2)
+  nrrdAxisInfoThickness,              /* 3: thickness of sample region */
+#define NRRD_AXIS_INFO_THICKNESS_BIT (1<<3)
+  nrrdAxisInfoMin,                    /* 4: min pos. assoc. w/ 1st sample */
+#define NRRD_AXIS_INFO_MIN_BIT       (1<<4) 
+  nrrdAxisInfoMax,                    /* 5: max pos. assoc. w/ last sample */
+#define NRRD_AXIS_INFO_MAX_BIT       (1<<5)
+  nrrdAxisInfoCenter,                 /* 6: cell vs. node */
+#define NRRD_AXIS_INFO_CENTER_BIT    (1<<6)
+  nrrdAxisInfoKind,                   /* 7: from the nrrdKind* enum */
+#define NRRD_AXIS_INFO_KIND_BIT      (1<<7)
+  nrrdAxisInfoLabel,                  /* 8: string describing the axis */
+#define NRRD_AXIS_INFO_LABEL_BIT     (1<<8)
+  nrrdAxisInfoUnit,                   /* 9: string identifying units */
+#define NRRD_AXIS_INFO_UNIT_BIT      (1<<9)
   nrrdAxisInfoLast
 };
-#define NRRD_AXIS_INFO_MAX             8
+#define NRRD_AXIS_INFO_MAX               9
 #define NRRD_AXIS_INFO_ALL  \
-    ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6)|(1<<7)|(1<<8))
+    ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6)|(1<<7)|(1<<8)|(1<<9))
 #define NRRD_AXIS_INFO_NONE 0
 
 /*
@@ -256,6 +258,8 @@ enum {
 **    _nrrdFieldOnePerAxis[]
 **    _nrrdFieldValidInText[]
 **    _nrrdFieldRequired[]
+** parseNrrd.c:
+**    _nrrdReadNrrdParseInfo[]
 */
 enum {
   nrrdField_unknown,
@@ -267,25 +271,26 @@ enum {
   nrrdField_dimension,       /*  6 */
   nrrdField_sizes,           /*  7 */
   nrrdField_spacings,        /*  8 */
-  nrrdField_axis_mins,       /*  9 */
-  nrrdField_axis_maxs,       /* 10 */
-  nrrdField_centers,         /* 11 */
-  nrrdField_kinds,           /* 12 */
-  nrrdField_labels,          /* 13 */
-  nrrdField_units,           /* 14 */
-  nrrdField_min,             /* 15 */
-  nrrdField_max,             /* 16 */
-  nrrdField_old_min,         /* 17 */
-  nrrdField_old_max,         /* 18 */
-  nrrdField_data_file,       /* 19 */
-  nrrdField_endian,          /* 20 */
-  nrrdField_encoding,        /* 21 */
-  nrrdField_line_skip,       /* 22 */
-  nrrdField_byte_skip,       /* 23 */
-  nrrdField_keyvalue,        /* 24 */
+  nrrdField_thicknesses,     /*  9 */
+  nrrdField_axis_mins,       /* 10 */
+  nrrdField_axis_maxs,       /* 11 */
+  nrrdField_centers,         /* 12 */
+  nrrdField_kinds,           /* 13 */
+  nrrdField_labels,          /* 14 */
+  nrrdField_units,           /* 15 */
+  nrrdField_min,             /* 16 */
+  nrrdField_max,             /* 17 */
+  nrrdField_old_min,         /* 18 */
+  nrrdField_old_max,         /* 19 */
+  nrrdField_data_file,       /* 20 */
+  nrrdField_endian,          /* 21 */
+  nrrdField_encoding,        /* 22 */
+  nrrdField_line_skip,       /* 23 */
+  nrrdField_byte_skip,       /* 24 */
+  nrrdField_keyvalue,        /* 25 */
   nrrdField_last
 };
-#define NRRD_FIELD_MAX          24
+#define NRRD_FIELD_MAX          25
 
 /* 
 ******** nrrdHasNonExist* enum

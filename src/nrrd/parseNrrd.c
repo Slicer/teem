@@ -169,6 +169,28 @@ _nrrdReadNrrdParse_spacings (Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
 }
 
 int
+_nrrdReadNrrdParse_thicknesses (Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  char me[]="_nrrdReadNrrdParse_thicknesses", err[AIR_STRLEN_MED];
+  int i, ret;
+  double val[NRRD_DIM_MAX];
+  char *info;
+
+  info = nio->line + nio->pos;
+  _CHECK_HAVE_DIM;
+  ret = airParseStrD(val, info, _nrrdFieldSep, nrrd->dim);
+  _CHECK_GOT_ALL_VALUES;
+  for (i=0; i<=nrrd->dim-1; i++) {
+    if (!( !airIsInf_d(val[i]) )) {
+      /* note that unlike spacing, we allow zero thickness */
+      sprintf(err, "%s: thickness %d (%g) invalid", me, i, val[i]);
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
+    }
+  }
+  nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoThickness, val);
+  return 0;
+}
+
+int
 _nrrdReadNrrdParse_axis_mins (Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
   char me[]="_nrrdReadNrrdParse_axis_mins", err[AIR_STRLEN_MED];
   int ret, i, sgn;
@@ -606,6 +628,7 @@ int
   _nrrdReadNrrdParse_dimension,
   _nrrdReadNrrdParse_sizes,
   _nrrdReadNrrdParse_spacings,
+  _nrrdReadNrrdParse_thicknesses,
   _nrrdReadNrrdParse_axis_mins,
   _nrrdReadNrrdParse_axis_maxs,
   _nrrdReadNrrdParse_centers,

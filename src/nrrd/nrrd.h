@@ -58,10 +58,21 @@ extern "C" {
 ** position at the lowest index.  In cell-centering, the position at
 ** the lowest index is between min and max (a touch bigger than min,
 ** assuming min < max).
+**
+** There needs to be a one-to-one correspondence between these variables
+** and the nrrdAxisInfo* enum (nrrdEnums.h), the per-axis header fields
+** (see nrrdField* enum in nrrdEnums.h), and the various methods in axis.c
 */
 typedef struct {
   int size;                      /* number of elements along each axis */
   double spacing;                /* if non-NaN, distance between samples */
+  double thickness;              /* if non-NaN, nominal thickness of region
+				    represented by one sample along the axis.
+				    No semantics relative to spacing are 
+				    assumed or imposed.  Unlike spacing, the
+				    thickness can be zero.  Thickness can be
+				    altered (upon resampling) depending on
+				    nrrdStateThicknessNoop */
   double min, max;               /* if non-NaN, range of positions spanned
                                     by the samples on this axis.  Obviously,
                                     one can set "spacing" to something
@@ -74,7 +85,8 @@ typedef struct {
   int kind;                      /* what kind of information is along this
                                     axis (from the nrrdKind* enum) */
   char *label;                   /* short info string for each axis */
-  char *unit;                    /* short string for identifying units */
+  char *unit;                    /* short string for identifying the units 
+				    used for measuring spacing and thickness */
 } NrrdAxisInfo;
 
 /*
@@ -187,11 +199,12 @@ typedef struct NrrdEncoding_t {
 /*
 ******** NrrdIoState struct
 **
-** Everything transient relating to how the nrrd is read and written.
-** Once the nrrd has been read or written, this information is moot,
-** except that after reading, it is a potentially useful record of what
-** it took to read in a nrrd, and it is the mechanism for hacks like
-** keepNrrdDataFileOpen
+** Everything relating to how the nrrd is read and written.
+** Multiple parameters for writing are set here (like format, encoding, 
+** zlib parameters).  Also, this is the place where those few parameters
+** of reading are stored (like skipData and keepNrrdDataFileOpen).  Also,
+** after the nrrd has been read, it is a potentially useful record of what
+** it took to read it in.
 */
 typedef struct NrrdIoState_t {
   char *path,               /* allows us to remember the directory
@@ -451,6 +464,7 @@ TEEM_API int nrrdStateGrayscaleImage3D;
 TEEM_API int nrrdStateKeyValueReturnInternalPointers;
 TEEM_API int nrrdStateKindNoop;
 /* ---- BEGIN non-NrrdIO */
+TEEM_API int nrrdStateThicknessNoop;
 TEEM_API void nrrdDefGetenv(void);
 TEEM_API void nrrdStateGetenv(void);
 /* ---- END non-NrrdIO */

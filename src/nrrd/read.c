@@ -121,7 +121,7 @@ _nrrdOneLine (int *lenP, NrrdIoState *nio, FILE *file) {
 ** _nrrdCalloc()
 **
 ** allocates the data for the array, but only if necessary (as informed by
-** nio->oldData and nio->oldDataSate).  Only to be called by data readers,
+** nio->oldData and nio->oldDataSize).  Only to be called by data readers,
 ** since it assume the validity of size information, as enforced by
 ** _nrrdHeaderCheck().
 */
