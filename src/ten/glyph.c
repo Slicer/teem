@@ -85,8 +85,8 @@ tenGlyphGen(limnObj *obj, Nrrd *nin, tenGlyphParm *parm) {
 	  }
 	}
 	else {
-	  cl = c[tenAnisoC_l];
-	  cp = c[tenAnisoC_p];
+	  cl = c[tenAniso_Cl];
+	  cp = c[tenAniso_Cp];
 	  if (AIR_LERP(parm->anisoType, cl, cp) < parm->anisoThresh) {
 	    goto nextiter;
 	  }
@@ -105,10 +105,12 @@ tenGlyphGen(limnObj *obj, Nrrd *nin, tenGlyphParm *parm) {
 	    ri = limnObjLoneEdgeAdd(obj, 2);
 	    break;
 	  }
-	  limnObjPartTransform(obj, ri, 
-			       ELL_4M_SET_SCALE(tt,sc[0],sc[1],sc[2]));
-	  limnObjPartTransform(obj, ri, ELL_43M_INSET(tt, evec));
-	  limnObjPartTransform(obj, ri, ELL_4M_SET_TRANSLATE(tt, x, y, z));
+	  ELL_4M_SET_SCALE(tt,sc[0],sc[1],sc[2]);
+	  limnObjPartTransform(obj, ri, tt);
+	  ELL_43M_INSET(tt, evec);
+	  limnObjPartTransform(obj, ri, tt);
+	  ELL_4M_SET_TRANSLATE(tt, x, y, z);
+	  limnObjPartTransform(obj, ri, tt);
 
 	  r = obj->r + ri;
 	  R = parm->fakeSat*AIR_ABS(evec[0+3*0]);
@@ -118,7 +120,7 @@ tenGlyphGen(limnObj *obj, Nrrd *nin, tenGlyphParm *parm) {
 	  G = AIR_CLAMP(0, G, 1);
 	  B = AIR_CLAMP(0, B, 1);
 	  dyeRGBtoHSV(&H, &S, &V, R, G, B);
-	  S *= pow(c[tenAnisoC_l], 0.7);
+	  S *= pow(c[tenAniso_Cl], 0.7);
 	  dyeHSVtoRGB(&R, &G, &B, H, S, V);
 	  R = AIR_AFFINE(0, parm->useColor, 1, 1, R);
 	  G = AIR_AFFINE(0, parm->useColor, 1, 1, G);

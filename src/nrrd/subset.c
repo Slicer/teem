@@ -369,6 +369,9 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
     fprintf(stderr, "%s: PANIC: boundary %d unimplemented\n", 
 	    me, boundary); exit(1); break;
   }
+  /*
+  printf("!%s: boundary = %d, padValue = %g\n", me, boundary, padValue);
+  */
 
   dim = nin->dim;
   nrrdAxesGet_nva(nin, nrrdAxesInfoSize, szIn);

@@ -15,127 +15,119 @@
   of Utah. All Rights Reserved.
 */
 
+#include "private.h"
 
-#include <nrrd.h>
+char *rsmpName = "rsmp";
+char *rsmpInfo = "Upsampling and downsampling with a seperable kernel";
 
-void
-usage(char *me) {
-  /*              0    1      2      3       4       (argc-1) */
-  fprintf(stderr, 
-	  "usage: %s <nin> <kern> <size0> <size1> ... <nout>\n\n", me);
-  fprintf(stderr, "<kern> is the resampling kernel to use; options are:\n");
-  fprintf(stderr, "  \"box\": box filter (nearest neighbor upsampling)\n");
-  fprintf(stderr, "  \"tent\": tent filter (trilinear upsampling)\n");
-  fprintf(stderr, "  \"cubic:B,C\": Mitchell/Netravali BC-family of piecewise cubics\n");
-  fprintf(stderr, "     \"cubic:1,0\": B-spline w/ maximal blurring\n");
-  fprintf(stderr, "     \"cubic:0,0.5\": Catmull-Rom kernel\n");
-  fprintf(stderr, "    (\"cubic:0,C\": all interpolating cubics)\n");
-  fprintf(stderr, "  \"quartic:A\": 1-parameter family of interpolating quartics\n");
-  fprintf(stderr, "     \"quartic:0.0834\": minimizes aliasing (in one sense)\n");
-  fprintf(stderr, "<sizeN> is per-axis resizing info; options are:\n");
-  fprintf(stderr, "  \"=\": no resampling at all on this axis\n");
-  fprintf(stderr, "  <int>: exact number of samples desired\n");
-  fprintf(stderr, "  x<float>: resize ratio; (\"x0.5\": shrink by half; \"x3\": scale by three)\n\n");
-  exit(1);
-}
+typedef struct {
+  nrrdKernel *kernel;
+  double param[NRRD_KERNEL_PARAMS_MAX];
+} unuNrrdKernel;
 
 int
-main(int argc, char *argv[]) {
-  char *me, *in, *out, *err, *kernS, *sizeS;
-  Nrrd *nin, *nout;
-  nrrdResampleInfo *info;
-  nrrdKernel *kern;
-  double param[NRRD_KERNEL_PARAMS_MAX];
-  float ratio;
-  int d, size;
+unuParseKernel(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  unuNrrdKernel *ker;
+  char me[]="unuParseKernel", *nerr;
+  int *typeP;
 
-  me = argv[0];
-  if (!(argc >= 5)) {
-    usage(me);
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
   }
-  in = argv[1];
-  kernS = argv[2];
-  out = argv[argc-1];
-  if (nrrdLoad(nin=nrrdNew(), in)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble reading nrrd from \"%s\":%s\n", me, in, err);
-    free(err);
-    usage(me);
+  ker = ptr;
+  if (nrrdKernelParse(&(ker->kernel), ker->param, str)) {
+    nerr = biffGetDone(NRRD);
+    if (strlen(nerr) > AIR_STRLEN_HUGE - 1)
+      nerr[AIR_STRLEN_HUGE - 1] = '\0';
+    strcpy(err, nerr);
+    free(nerr);
+    return 1;
   }
-  memset(param, 0, NRRD_KERNEL_PARAMS_MAX*sizeof(float));
+  return 0;
+}
+
+hestCB unuKernelHestCB = {
+  sizeof(unuNrrdKernel),
+  "kernel specification",
+  unuParseKernel,
+  NULL
+};
+
+int
+unuParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  float *scale;
+  int num;
   
-  /* parse the kernel */
-  if (nrrdKernelParse(&kern, param, kernS)) {
-    fprintf(stderr, "%s: trouble parsing kernel:\n%s\n", me, biffGet(NRRD));
-    exit(1);
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  scale = ptr;
+  if (!strcmp("=", str)) {
+    scale[0] = 0.0;
+    scale[1] = 0.0;
+    return 0;
   }
 
-  info = nrrdResampleInfoNew();
-  if (argc-4 != nin->dim) {
-    fprintf(stderr, "%s: read in %d-D nrrd, but got %d resampling sizes\n",
-	    me, nin->dim, argc-4);
-    exit(1);
+  /* else */
+  if ('x' == str[0]) {
+    if (1 != sscanf(str+1, "%f", scale+1)) {
+      sprintf(err, "%s: can't parse \"%s\" as x<float>", me, str);
+      return 1;
+    }
+    scale[0] = 1.0;
   }
-  /* for the curious, the constraints/simplifications in this unrrdu,
-     compared to the full options for resampler are:
-     - always resampling full length of axis (min = 0, max = size-1)
-       (no cropping, padding simultaneously with resampling) 
-     - same kernel, with same parameters, for every axis
-     - no rescaling of kernel (param[0] == 1.0)
-     - boundary behavior is always bleed
-     - output type is always input type
-     - renormalization hack always on 
-  */
-  for (d=0; d<=nin->dim-1; d++) {
-    sizeS = argv[3+d];
-    if (!strcmp("=", sizeS)) {
-      /* no resampling on this axis desired */
-      info->kernel[d] = NULL;
-      continue;
+  else {
+    if (1 != sscanf(str, "%d", &num)) {
+      sprintf(err, "%s: can't parse \"%s\" as int", me, str);
+      return 1;
     }
-    if ('x' == sizeS[0]) {
-      if (1 != sscanf(sizeS+1, "%g", &ratio)) {
-	fprintf(stderr, "%s: couldn't parse float in \"%s\"\n",	me, sizeS);
-	usage(me);
-      }
-      info->samples[d] = nin->axis[d].size*ratio;
-      if (!(info->samples[d] > 0)) {
-	fprintf(stderr, "%s: invalid # samples (%d), axis %d (ratio=%g)\n", 
-		me, info->samples[d], d, ratio);
-	usage(me);
-      }
-    }
-    else {
-      if (1 != sscanf(sizeS, "%d", &size)) {
-	fprintf(stderr, "%s: couldn't parse int in \"%s\"\n", me, sizeS);
-	usage(me);
-      }
-      info->samples[d] = size;
-    }
-    info->kernel[d] = kern;
-    memcpy(info->param[d], param, NRRD_KERNEL_PARAMS_MAX*sizeof(float));
-    if (!( AIR_EXISTS(nin->axis[d].min) && AIR_EXISTS(nin->axis[d].max) ))
-      nrrdAxisSetMinMax(nin, d);
-    info->min[d] = nin->axis[d].min;
-    info->max[d] = nin->axis[d].max;
+    scale[0] = 2.0;
+    scale[1] = num;
   }
-  info->boundary = nrrdBoundaryBleed;
-  info->type = nin->type;
-  info->renormalize = AIR_TRUE;
+  return 0;
+}
+
+hestCB unuScaleHestCB = {
+  2*sizeof(float),
+  "sampling specification",
+  unuParseScale,
+  NULL
+};
+
+int
+rsmpMain(int argc, char **argv, char *me) {
+  hestOpt *opt = NULL;
+  char *out, *err;
+  Nrrd *nin, *nout;
+  int axis;
+  airArray *mop;
+
+  OPT_ADD_NIN(nin, "input");
+  OPT_ADD_AXIS(axis, "axis to slice along");
+  OPT_ADD_NOUT(out, "output nrrd");
+
+  mop = airMopInit();
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+
+  USAGE(rsmpInfo);
+  PARSE();
 
   nout = nrrdNew();
-  if (nrrdSpatialResample(nout, nin, info)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble resampling:\n%s\n", me, err);
-    free(err);
-    exit(1);
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+
+  /*
+  if (nrrdFlip(nout, nin, axis)) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: error resampling nrrd:\n%s", me, err);
+    airMopError(mop);
+    return 1;
   }
-  if (nrrdSave(out, nout, NULL)) {
-    fprintf(stderr, "%s: error writing nrrd:\n%s", me, biffGet(NRRD));
-    exit(1);
-  }
-  nrrdNuke(nin);
-  nrrdNuke(nout);
-  nrrdResampleInfoNix(info);
-  exit(0);
+  */
+
+  SAVE();
+
+  airMopOkay(mop);
+  return 0;
 }

@@ -17,9 +17,10 @@
 #
 LIB = ten
 HEADERS = ten.h tenMacros.h
-LIBOBJS = tensor.o chan.o aniso.o glyph.o methods.o
-TEST_BINS = test/chan2tens test/anisos test/boxes test/anisovol test/slices
+LIB_OBJS = tensor.o chan.o aniso.o glyph.o methods.o
+#TEST_BINS = test/chan2tens test/anisos test/boxes test/anisovol test/slices
+TEST_BINS = test/chan2tens test/anisos test/anisovol test/es
 BINS = 
-BINLIBS = -lten -llimn -ldye -lnrrd -lell -lbiff -lair -lm
+BIN_LIBS = -lten -llimn -ldye -lnrrd -lell -lbiff -lair -lm
 
 include ../make/Common.mk

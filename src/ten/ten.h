@@ -35,14 +35,17 @@ extern "C" {
 
 typedef enum {
   tenAnisoUnknown,    /* 0: nobody knows */
-  tenAnisoC_l,        /* 1: linear */
-  tenAnisoC_p,        /* 2: planar */
-  tenAnisoC_a,        /* 3: linear + planar */
-  tenAnisoC_s,        /* 4: spherical */
-  tenAnisoC_t,        /* 5: gk's anisotropy type */
+  tenAniso_Cl,        /* 1: Westin's linear */
+  tenAniso_Cp,        /* 2: Westin's planar */
+  tenAniso_Ca,        /* 3: Westin's linear + planar */
+  tenAniso_Cs,        /* 4: Westin's spherical */
+  tenAniso_Ct,        /* 5: gk's anisotropy type */
+  tenAniso_RA,        /* 6: Bass+Pier's relative anisotropy */
+  tenAniso_FA,        /* 7: (Bass+Pier's fractional anisotropy)/sqrt(2) */
+  tenAniso_VF,        /* 8: volume fraction = 1-(Bass+Pier's volume ratio) */
   tenAnisoLast
 } tenAniso;
-#define TEN_MAX_ANISO 5
+#define TEN_MAX_ANISO    8
 
 typedef struct {
   Nrrd *vThreshVol;

@@ -76,7 +76,8 @@ F(crop) \
 F(pad) \
 F(permute) \
 F(flip) \
-F(convert)
+F(convert) \
+F(histo)
 /*********************************************************/
 
 #define DECLARE(C) \
@@ -118,8 +119,7 @@ unuParseNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   *nrrdP = nrrdNew();
   airMopAdd(mop, *nrrdP, (airMopper)nrrdNuke, airMopOnError);
   if (nrrdLoad(*nrrdP, str)) {
-    nerr = biffGetDone(NRRD);
-    airMopAdd(mop, nerr, airFree, airMopOnError);
+    airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
     if (strlen(nerr) > AIR_STRLEN_HUGE - 1)
       nerr[AIR_STRLEN_HUGE - 1] = '\0';
     strcpy(err, nerr);

@@ -76,7 +76,7 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin,
   sx = nin->axis[1].size;
   sy = nin->axis[2].size;
   sz = nin->axis[3].size;
-  if (nrrdMaybeAlloc_va(nout, 7*sx*sy*sz, nrrdTypeFloat, 4,
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4,
 			7, sx, sy, sz)) {
     sprintf(err, "%s: couldn't alloc output", me);
     biffMove(TEN, err, NRRD); return 1;

@@ -141,7 +141,9 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
   }
   
   /* else lowPax < dim (actually, lowPax < dim-1) */
+  /*
   printf("!%s: lowPax = %d\n", me, lowPax);
+  */
   
   /* allocate output */
   nrrdAxesGet_nva(nin, nrrdAxesInfoSize, szIn);
@@ -160,8 +162,10 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
   }
   numLines = nrrdElementNumber(nin)/lineSize;
   lineSize *= nrrdElementSize(nin);
+  /*
   printf("!%s: numLines = %d, lineSize = %d\n", me,
 	 (int)numLines, (int)lineSize);
+  */
 
   /* the skinny */
   src = nin->data;

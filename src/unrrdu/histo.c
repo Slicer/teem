@@ -15,73 +15,52 @@
   of Utah. All Rights Reserved.
 */
 
+#include "private.h"
 
-#include <nrrd.h>
-
-int
-usage(char *me) {
-  /*              0      1        2      3        4   */  
-  fprintf(stderr,
-	  "usage: %s <nrrdIn> <sizeX> <sizeY> <pgmOut>\n", me);
-  return 1;
-}
+char *histoName = "histo";
+char *histoInfo = "Create (PGM) image of histogram of values in a nrrd";
 
 int
-main(int argc, char **argv) {
-  char *me, *err, *xStr, *yStr, *inStr, *outStr;
-  int sx, sy;
-  Nrrd *nin, *nhist, *nimg;
-  nrrdIO *io;
+histoMain(int argc, char **argv, char *me) {
+  hestOpt *opt = NULL;
+  char *out, *err;
+  Nrrd *nin, *nout, *nhist;
+  int size[2];
+  airArray *mop;
 
-  me = argv[0];
-  if (5 != argc)
-    return usage(me);
-  inStr = argv[1];
-  xStr = argv[2];
-  yStr = argv[3];
-  outStr = argv[4];
-  
-  if (1 != sscanf(xStr, "%d", &sx) ||
-      1 != sscanf(yStr, "%d", &sy)) {
-    fprintf(stderr, "%s: couldn't parse %s, %s as histo image dimensions\n",
-	    me, xStr, yStr);
-    return 1;
-  }
-  if (!strcmp(outStr, "-")) {
-    fprintf(stderr, "%s: sorry, can't write PNMs to stdout yet\n", me);
-    return 1;
-  }
-  if (nrrdLoad(nin=nrrdNew(), inStr)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: can't read nrrd from \"%s\":\n%s", me, inStr, err);
-    free(err);
-    return 1;
-  }
+  OPT_ADD_NIN(nin, "input");
+  hestOptAdd(&opt, "s|size", "sizeX sizeY", airTypeInt, 2, 2, size, NULL,
+	     "size of output image");
+  OPT_ADD_NOUT(out, "output nrrd");
+
+  mop = airMopInit();
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+
+  USAGE(histoInfo);
+  PARSE();
+
   nhist = nrrdNew();
-  if (nrrdHisto(nhist, nin, sx, nrrdTypeInt)) {
+  airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
+
+  if (nrrdHisto(nhist, nin, size[0], nrrdTypeInt)) {
     err = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble making histogram:\n%s\n", me, err);
-    free(err);
-    return 1;
-  }
-  nimg = nrrdNew();
-  if (nrrdHistoDraw(nimg, nhist, sy)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble drawing histogram:\n%s\n", me, err);
-    free(err);
-    return 1;
-  }
-  io = nrrdIONew();
-  if (nrrdSave(outStr, nimg, io)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: trouble writing histogram image to \"%s\":\n%s\n",
-	    me, outStr, err);
+    fprintf(stderr, "%s: error calculating histogram:\n%s", me, err);
     free(err);
     return 1;
   }
 
-  nrrdNuke(nin);
-  nrrdNuke(nhist);
-  nrrdNuke(nimg);
+  nout = nrrdNew();
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+
+  if (nrrdHistoDraw(nout, nhist, size[1])) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: error drawing histogram nrrd:\n%s", me, err);
+    airMopError(mop);
+    return 1;
+  }
+
+  SAVE();
+
+  airMopOkay(mop);
   return 0;
 }

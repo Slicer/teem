@@ -129,7 +129,7 @@ ifdef BIN
   endif
   OBJ_PREF = $(ODEST)/$(_BLIB)
   OBJS = $(addprefix $(OBJ_PREF)/,$(BIN_OBJS))
-  # The non-installed binary will be called $(BIN) and will be in the
+  # The non-installed binary will be called $(_BIN) and will be in the
   # main source directory (wherever this .mk file was sourced from).
   # The installed binary goes in the usual place (BDEST)
 endif

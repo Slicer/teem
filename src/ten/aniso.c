@@ -23,13 +23,16 @@
 **
 ** given an array of three SORTED (descending) eigenvalues "e",
 ** calculates the anisotropy coefficients of Westin et al.,
-** and stores them in the "c" array.
+** as well as various others, 
 ** 
-** c[tenAnisoC_l]: c_l; linear 
-** c[tenAnisoC_p]: c_p; planar
-** c[tenAnisoC_a]: c_a: c_l + c_p
-** c[tenAnisoC_s]: c_s: 1 - c_a
-** c[tenAnisoC_t]: c_theta: Gordon's anisotropy type: 0:linear <-> 1:planar
+** c[tenAniso_Cl]: c_l; linear 
+** c[tenAniso_Cp]: c_p; planar
+** c[tenAniso_Ca]: c_a: c_l + c_p
+** c[tenAniso_Cs]: c_s: 1 - c_a
+** c[tenAniso_Ct]: c_theta: Gordon's anisotropy type: 0:linear <-> 1:planar
+** c[tenAniso_RA]: Bass+Pier's relative anisotropy
+** c[tenAniso_FA]: (Bass+Pier's fractional anisotropy)/sqrt(2)
+** c[tenAniso_VR]: 1 - (Bass+Pier's volume ratio)
 **
 ** For a time, this function did not clamp the cl and cp values
 ** between 0.0 and 1.0.  Some sort of bone-headed purist argument.
@@ -45,26 +48,47 @@
 */
 void
 tenAnisotropy(float c[TEN_MAX_ANISO+1], float e[3]) {
-  float sum, cl, cp, ca;
+  float stdv, mean, sum, cl, cp, ca, ra, fa, vf, denom;
   
   sum = e[0] + e[1] + e[2];
   
   if (sum) {
     cl = (e[0] - e[1])/sum;   cl = AIR_CLAMP(0.0, cl, 1.0);
+    c[tenAniso_Cl] = cl;
     cp = 2*(e[1] - e[2])/sum; cp = AIR_CLAMP(0.0, cp, 1.0);
-    c[tenAnisoC_l] = cl;
-    c[tenAnisoC_p] = cp;
+    c[tenAniso_Cp] = cp;
     ca = cl + cp;             ca = AIR_CLAMP(0.0, ca, 1.0);
-    c[tenAnisoC_a] = ca;
-    c[tenAnisoC_s] = 1 - ca;
-    c[tenAnisoC_t] = ca ? cp/ca : 0;
+    c[tenAniso_Ca] = ca;
+    c[tenAniso_Cs] = 1 - ca;
+    c[tenAniso_Ct] = ca ? cp/ca : 0;
+    mean = sum/3.0;
+    stdv = sqrt((mean-e[0])*(mean-e[0])   /* okay, not exactly standard dev */
+		+ (mean-e[1])*(mean-e[1]) 
+		+ (mean-e[2])*(mean-e[2]));
+    ra = stdv/(mean*sqrt(6.0));  ra = AIR_CLAMP(0.0, ra, 1.0);
+    c[tenAniso_RA] = ra;
+    denom = 2.0*(e[0]*e[0] + e[1]*e[1] + e[2]*e[2]);
+    if (denom) {
+      fa = stdv*sqrt(3.0/denom);
+      fa = AIR_CLAMP(0.0, fa, 1.0);
+    }
+    else {
+      fa = 0.0;
+    }
+    c[tenAniso_FA] = fa;
+    vf = 1 - e[0]*e[1]*e[2]/(mean*mean*mean);
+    vf = AIR_CLAMP(0.0, vf, 1.0);
+    c[tenAniso_VF] = vf;
   }
   else {
-    c[tenAnisoC_l] = 0.0;
-    c[tenAnisoC_p] = 0.0;
-    c[tenAnisoC_a] = 0.0;
-    c[tenAnisoC_s] = 0.0;
-    c[tenAnisoC_t] = 0.0;
+    c[tenAniso_Cl] = 0.0;
+    c[tenAniso_Cp] = 0.0;
+    c[tenAniso_Ca] = 0.0;
+    c[tenAniso_Cs] = 0.0;
+    c[tenAniso_Ct] = 0.0;
+    c[tenAniso_RA] = 0.0;
+    c[tenAniso_FA] = 0.0;
+    c[tenAniso_VF] = 0.0;
   }
   return;
 }
@@ -101,8 +125,8 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, float anisoType) {
     }
     tenEigensolve(eval, evec, tensor);
     tenAnisotropy(c, eval);
-    cl = c[tenAnisoC_l];
-    cp = c[tenAnisoC_p];
+    cl = c[tenAniso_Cl];
+    cp = c[tenAniso_Cp];
     out[I] = AIR_LERP(anisoType, cl, cp);
   }
   if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_NONE)) {
