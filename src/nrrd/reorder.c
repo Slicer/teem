@@ -504,6 +504,7 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int num, int axis) {
       ninperm[i] = nrrdNuke(ninperm[i]);
     }
   }
+  free(ninperm);
   nperm = nrrdNuke(nperm);
 
   return 0;
