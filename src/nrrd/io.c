@@ -148,6 +148,12 @@ nrrdOneLine(FILE *file, char *line, int size) {
   return i+1;
 }
 
+/*
+** _nrrdSscanfDouble
+**
+** the only point of having this is to have recognition of "nan"
+** built into the parsing of strings into numbers
+*/
 int
 _nrrdSscanfDouble(char *str, char *fmt, double *ptr) {
   int ret;
@@ -174,10 +180,21 @@ _nrrdSscanfDouble(char *str, char *fmt, double *ptr) {
 }
 
 
+/*
+** _nrrdGetnums()
+**
+** give me a string, tell me how many numbers to parse, I'll put them
+** in the given array
+**
+** This function uses biff.
+*/
 int
 _nrrdGetnums(char *data, double *array, int num) {
   char err[NRRD_MED_STRLEN], me[] = "_nrrdGetnums";
   int i;
+
+  if (!(num > 0))
+    return 0;
 
   if (1 != _nrrdSscanfDouble(data, "%lg", &(array[0]))) {
     sprintf(err, "%s: couldn't get first num of %s", me, data);
@@ -199,6 +216,14 @@ _nrrdGetnums(char *data, double *array, int num) {
   return 0;
 }
 
+/*
+** _nrrdGetstring()
+**
+** parse out one "" delimited from data, put it into str, but don't
+** exceed size characters
+**
+** This function uses biff
+*/
 char *
 _nrrdGetstring(char *data, char *str, int size) {
   char err[NRRD_MED_STRLEN], me[] = "_nrrdGetstring";
@@ -248,7 +273,11 @@ _nrrdJoinFilename(char *fullname, char *dir, char *base) {
   return;
 }
 
-
+/*
+** _nrrdParseLine()
+**
+** does most of the work for parsing a nrrd header
+*/ 
 int
 _nrrdParseLine(Nrrd *nrrd, char *line) {
   int f, i, type, endian, *ivals;
@@ -602,10 +631,11 @@ nrrdReadData(FILE *file, Nrrd *nrrd) {
        present (given) file */
     dataFile = file;
   }
-  printf("(%s: reading %s data ... ", me, nrrdEncoding2Str[nrrd->encoding]);
+  fprintf(stderr, 
+	  "(%s: reading %s data ... ", me, nrrdEncoding2Str[nrrd->encoding]);
   fflush(stdout);
   if ((*fptr)(dataFile, nrrd)) {
-    printf("ERROR)\n");
+    fprintf(stderr, "ERROR)\n");
     sprintf(err, "%s: data reader for %s encoding failed.", 
 	    me, nrrdEncoding2Str[nrrd->encoding]);
     biffAdd(NRRD, err); return 1;
@@ -615,16 +645,16 @@ nrrdReadData(FILE *file, Nrrd *nrrd) {
     fclose(dataFile);
     nrrd->dataFile = NULL;
   }
-  printf("done)\n");
+  fprintf(stderr, "done)\n");
 
   /* now fix endianness if file endian doesn't match our current endian,
      but only if this was an encoding for which it mattered */
   if (nrrdEncodingEndianMatters[nrrd->encoding] 
       && nrrd->fileEndian != nrrdEndianUnknown
       && nrrd->fileEndian != nrrdMyEndian()) {
-    printf("(%s: fixing endianness ... ", me); fflush(stdout);
+    fprintf(stderr, "(%s: fixing endianness ... ", me); fflush(stdout);
     nrrdSwapEndian(nrrd);
-    printf("done)\n");
+    fprintf(stderr, "done)\n");
   }
 
   return 0;
@@ -789,7 +819,12 @@ nrrdOpen(char *name, Nrrd *nrrd) {
     /* the file name didn't start with a directory */
     strcpy(nrrd->dir, "");
   }
-  file = fopen(name, "rb");
+  if (!strcmp("-", name)) {
+    file = stdin;
+  }
+  else {
+    file = fopen(name, "rb");
+  }
   if (!file) {
     sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s", 
 	    me, name, strerror(errno));
@@ -799,7 +834,8 @@ nrrdOpen(char *name, Nrrd *nrrd) {
     sprintf(err, "%s: nrrdRead() failed", me);
     biffAdd(NRRD, err); return 1;
   }
-  fclose(file);
+  if (file != stdin) 
+    fclose(file);
   free(dir);
   free(base);
   return 0;
@@ -835,7 +871,12 @@ nrrdSave(char *name, Nrrd *nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
     biffSet(NRRD, err); return 1;
   }
-  file = fopen(name, "wb");
+  if (!strcmp("-", name)) {
+    file = stdout;
+  }
+  else {
+    file = fopen(name, "wb");
+  }
   if (!file) {
     sprintf(err, "%s: fopen(\"%s\",\"wb\") failed: %s", 
 	    me, name, strerror(errno));
@@ -863,7 +904,8 @@ nrrdSave(char *name, Nrrd *nrrd) {
     sprintf(err, "%s: nrrdWrite() failed", me);
     biffAdd(NRRD, err); return 1;
   }
-  fclose(file);
+  if (file != stdout)
+    fclose(file);
   return 0;
 }
 

@@ -227,7 +227,7 @@ nrrdMultiHisto(Nrrd **nin, int num,
   for (d=0; d<=num-1; d++) {
     size *= bin[d];
   }
-  printf("%s: size = %d\n", me, size);
+  fprintf(stderr, "%s: size = %d\n", me, size);
   if (!(nout->data)) {
     if (nrrdAlloc(nout, size, nrrdTypeInt, num)) {
       sprintf("%s: couldn't allocate multi-dimensional histogram", me);
@@ -243,7 +243,8 @@ nrrdMultiHisto(Nrrd **nin, int num,
   out = nout->data;
 
   /* calculate histogram */
-  printf("%s: will histogram %d %d-tuples\n", me, (int)(nin[0]->num), d);
+  fprintf(stderr, "%s: will histogram %d %d-tuples\n", 
+	  me, (int)(nin[0]->num), d);
   for (i=0; i<=nin[0]->num-1; i++) {
     /*
     printf("i = %d\n", i);

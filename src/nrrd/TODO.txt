@@ -7,6 +7,9 @@ ASAP!!: gaussian kernel, sinc kernel,
 	resampling, blurring,  <-- document setting the float param[] vector
 	weighted median filter
 
+For everything in reorder.c, make them friendly to the input
+and output nrrds being the _same_
+
 try to reproduce Trace/BPT/blah/trap error by setting samples[i]
 to 0 for some axis i- Purify was blind to this
 
