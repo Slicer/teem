@@ -26,7 +26,8 @@ char *_tend_ellipseInfoL =
    ".  Not much to look at here.");
 
 int
-tend_ellipseDoit(FILE *file, Nrrd *nten, float gscale, float cthresh) {
+tend_ellipseDoit(FILE *file, Nrrd *nten,
+		 float gscale, float cthresh, int invert) {
   int sx, sy, x, y;
   float aspect, scale, minX, minY, maxX, maxY, px, py, 
     conf, Dxx, Dxy, Dyy, (*lup)(const void*, size_t);
@@ -68,6 +69,15 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, float gscale, float cthresh) {
   fprintf(file, "%%%%EndProlog\n");
   fprintf(file, "%%%%Page: 1 1\n");
   fprintf(file, "gsave\n");
+  fprintf(file, "0 setgray\n");
+  if (invert) {
+    fprintf(file, "%g %g moveto\n", minX, minY);
+    fprintf(file, "%g %g lineto\n", maxX, minY);
+    fprintf(file, "%g %g lineto\n", maxX, maxY);
+    fprintf(file, "%g %g lineto\n", minX, maxY);
+    fprintf(file, "closepath fill\n");
+    fprintf(file, "1 setgray\n");
+  }
   for (y=0; y<sy; y++) {
     py = NRRD_CELL_POS(minY, maxY, sy, sy-1-y);
     for (x=0; x<sx; x++) {
@@ -83,7 +93,7 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, float gscale, float cthresh) {
 		Dxx, -Dxy, -Dxy, Dyy, px, py);
 	fprintf(file, "0 0 %g 0 360 arc closepath\n", gscale);
 	fprintf(file, "setmatrix\n");
-	fprintf(file, "0 setgray fill\n");
+	fprintf(file, "fill\n");
 	fprintf(file, "grestore\n");
       }
     }
@@ -104,6 +114,7 @@ tend_ellipseMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *outS;
   float gscale, cthresh;
   FILE *fout;
+  int invert;
 
   mop = airMopNew();
 
@@ -112,6 +123,8 @@ tend_ellipseMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "values greater than this threshold");
   hestOptAdd(&hopt, "gsc", "scale", airTypeFloat, 1, 1, &gscale,
 	     "1", "over-all glyph size");
+  hestOptAdd(&hopt, "inv", NULL, airTypeInt, 0, 0, &invert, NULL,
+	     "use white ellipses on black background, instead of reverse");
 
   /* input/output */
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nten, "-",
@@ -134,7 +147,7 @@ tend_ellipseMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   airMopAdd(mop, fout, (airMopper)airFclose, airMopAlways);
 
-  tend_ellipseDoit(fout, nten, gscale, cthresh);
+  tend_ellipseDoit(fout, nten, gscale, cthresh, invert);
 
   airMopOkay(mop);
   return 0;
