@@ -48,7 +48,7 @@ tkwbSlide *
 tkwbSlideNew(char *title, char *image, char *text) {
   tkwbSlide *ret;
 
-  ret = (tkwbSlide*)calloc(1, sizeof(tkwbSlide *));
+  ret = (tkwbSlide*)calloc(1, sizeof(tkwbSlide));
   if (ret) {
     ret->title = airStrdup(title);
     ret->image = airStrdup(image);
@@ -79,7 +79,7 @@ tkwbReadFileToString(char **strP, int *hitEOF, FILE *file, char *stop) {
   totalLen = 0;
   while (lineLen && (!( airStrlen(stop) && !strcmp(line, stop) )) ) {
     lineIdx = airArrayIncrLen(allArr, 1);
-    all[lineIdx] = calloc(strlen(line)+1, sizeof(char));
+    all[lineIdx] = calloc(strlen(line) + strlen("\n") + 1, sizeof(char));
     sprintf(all[lineIdx], "%s\n", line);
     totalLen += strlen(line) + 1;
     lineLen = airOneLine(file, line, AIR_STRLEN_HUGE);
@@ -167,6 +167,9 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
     slide[slideIdx] = tkwbSlideNew(title, image, text);
     fprintf(stderr, "!%s: slide[%d] = %p = (%s,%s,...)\n",
 	    me, slideIdx, slide[slideIdx], title, image);
+    AIR_FREE(title);
+    AIR_FREE(image);
+    AIR_FREE(text);
     airMopAdd(pmop, slide[slideIdx], (airMopper)tkwbSlideNix, airMopAlways);
   }
   if (!hitEOF && !notReally) {
@@ -215,6 +218,7 @@ tkwbExpandImageInfo(tkwbSlide **slide) {
     slide[si]->image = image;
   }
 
+  airMopOkay(mop);
   return 0;
 }
 
