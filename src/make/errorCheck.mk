@@ -20,7 +20,7 @@
 
 ####
 #### errorCheck.mk: checks on validity of the variables that make uses
-#### use
+####
 
 # all the architectures currently supported
 KNOWN_ARCH = irix6.n32 irix6.64 linux cygwin solaris darwin aix

@@ -121,7 +121,7 @@ teem/clean   : $(addsuffix /clean,$(LIBS) bin)
 teem/clobber : $(addsuffix /clobber,$(LIBS) bin) unmegalibs
 nothing : ;
 
-## if.missing(stuff): returns a $stuff if one or more of the files
+## if.missing(stuff): returns $stuff if one or more of the files
 ## listed in stuff don't exist
 ##
 if.missing = $(if $(strip $(foreach x,$(1),$(if $(wildcard $(x)),,no))),$(1))
@@ -141,10 +141,8 @@ else
   ## complain if the destination directories don't exist
   $(if $(call if.missing,$(IDEST) $(LDEST) $(BDEST)),\
     $(error TEEM_DEST="$(TEEM_DEST)" lacks include,lib,bin subdirectories))
-  ## don't bother w/ a rule, just copy the (four) teem*.h headers over there
-  ## if it doesn't look like they're there already
-  $(if $(filter 4,$(words $(wildcard $(IDEST)/teem*.h))),,\
-    $(shell cp $(TEEM_ROOT)/include/teem*.h $(IDEST)))
+  ## out of laziness, always copy over all the teem*.h headers
+  $(shell cp $(TEEM_ROOT)/include/teem*.h $(IDEST))
 endif
 ODEST = $(TEEM_ROOT)/$(TEEM_ARCH)/obj
 PCACHE = $(TEEM_ROOT)/$(TEEM_ARCH)/purify
@@ -172,7 +170,7 @@ endif
 CFLAGS += $(OPT_CFLAG) $(ARCH_CFLAG)
 LDFLAGS += $(ARCH_LDFLAG) $(SHARED_LDFLAG)
 
-## The AIR_SIZE_T_FMT macros requires knowing TEEM_32BIT for all
+## The AIR_SIZE_T_FMT macro requires knowing TEEM_32BIT for all
 ## source files wishing to use it, which might as well be all teem
 ## source files.
 ##
@@ -343,8 +341,8 @@ ifneq (,$(Lsave))
   INCLUDED =
 else
   # Lsave wasn't set, which means that make was invoked on this file,
-  # which means that the library make files did not include the bin
-  # makefile, which means we have to do so here
+  # and since the library make files do not include the bin makefile,
+  # we do so now
   include $(TEEM_SRC)/bin/GNUmakefile
 endif
 

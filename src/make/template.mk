@@ -64,7 +64,8 @@ $(call tests.dev,$(L)): _L := $(L)
 ## 2) a prerequisite .usable is newer than ours.
 ## Naming our libs and headers should effectively trigger an install.
 ##
-## "usable" stuff nixed July 7, 2003
+## "usable" stuff nixed July 7, 2003, but "used" functions from main
+## GNUmakefile are still used.  Yea.
 
 ## $(L)/install depends on usable prerequisite libraries and $(L)'s
 ## installed libs and headers.
@@ -87,8 +88,7 @@ $(L)/clean :
 ## $(L)/clobber undoes $(L)/install.
 ##
 $(L)/clobber : $(L)/clean
-	$(RM) $(call libs.inst,$(_L)) $(call hdrs.inst,$(_L)) \
-	  $(IDEST)/.$(_L).hdr $(LDEST)/.$(_L).lib
+	$(RM) $(call libs.inst,$(_L)) $(call hdrs.inst,$(_L))
 
 ## The objects of a lib depend on the headers of the libraries we
 ## depend on, and on our own headers.
