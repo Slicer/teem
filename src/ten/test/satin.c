@@ -156,7 +156,7 @@ main(int argc, char **argv) {
   hestOptAdd(&hopt, "ca", "aniso level", airTypeFloat, 1, 1, &level, "1.0",
 	     "the non-spherical-ness of the anisotropy used.  \"1.0\" means "
 	     "completely linear or completely planar anisotropy");
-  hestOptAdd(&hopt, "s", "sx sy sz", airTypeInt, 3, 3, size, "64 64 64",
+  hestOptAdd(&hopt, "s", "sx sy sz", airTypeInt, 3, 3, size, "32 32 32",
 	     "dimensions of output volume");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
 	     "output filename");
