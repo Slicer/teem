@@ -255,17 +255,20 @@ meneed = $(call deporder,$(1) $(call need,$(1)))
 usable = $(foreach LIB,$(1),$(LIB)/usable)
 link = $(foreach LIB,$(call linkorder,$(1)),-l$(LIB))
 
-## For XXX in (right now) "ENDIAN", "QNANHIBIT", and "DIO", TEEM_XXX
-## is set in the architecture-specific makefile, and $(L).NEED_XXX is
-## set in the Makefile for the library which needs that info.
-## Meanwhile, teemXxx.h in teem's top-level include directory contains
-## C-preprocessor code to make sure that the variable has been set,
-## and set to something reasonable. more.cflags(L) is the list of -D
-## flags for all required XXX.
+## For XXX in: "ENDIAN", "QNANHIBIT", "DIO", "BIGBITFIELD"
+##
+## TEEM_XXX is set in the architecture-specific makefile, and
+## $(L).NEED_XXX is set in the Makefile for the library which needs
+## that info.  Meanwhile, teemXxx.h in teem's top-level include
+## directory contains C-preprocessor code to make sure that the
+## variable has been set, and set to something
+## reasonable. more.cflags(L) is the list of -D flags for all required
+## XXX.
 ##
 more.cflags = $(if $($(1).NEED_ENDIAN),-DTEEM_ENDIAN=$(TEEM_ENDIAN))\
  $(if $($(1).NEED_DIO),-DTEEM_DIO=$(TEEM_DIO))\
- $(if $($(1).NEED_QNANHIBIT),-DTEEM_QNANHIBIT=$(TEEM_QNANHIBIT))
+ $(if $($(1).NEED_QNANHIBIT),-DTEEM_QNANHIBIT=$(TEEM_QNANHIBIT)) \
+ $(if $($(1).NEED_BIGBITFIELD),-DTEEM_BIGBITFIELD=$(TEEM_BIGBITFIELD))
 
 ## banner(L) is progress indication for compiling library L; see
 ## template.mk.  The double colon rules previously used to print this
