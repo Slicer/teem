@@ -105,11 +105,11 @@ cmedianMain(int argc, char **argv, char *me) {
       airMopError(mop);
       return 1;
     }
-    SAVE(ntmp, NULL);
+    SAVE(out, ntmp, NULL);
     ntmp = nrrdNuke(ntmp);
   }
   else {
-    SAVE(nout, NULL);
+    SAVE(out, nout, NULL);
   }
 
   airMopOkay(mop);

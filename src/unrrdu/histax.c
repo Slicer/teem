@@ -58,7 +58,7 @@ histaxMain(int argc, char **argv, char *me) {
   }
   
 
-  SAVE(nout, NULL);
+  SAVE(out, nout, NULL);
 
   airMopOkay(mop);
   return 0;

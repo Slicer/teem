@@ -104,8 +104,8 @@ typedef struct {
     return 1; \
   }
 
-#define SAVE(nout, io) \
-  if (nrrdSave(out, (nout), (io))) { \
+#define SAVE(outS, nout, io) \
+  if (nrrdSave((outS), (nout), (io))) { \
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways); \
     fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s\n", me, out, err); \
     airMopError(mop); \

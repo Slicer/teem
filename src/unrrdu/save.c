@@ -63,7 +63,7 @@ saveMain(int argc, char **argv, char *me) {
   io->format = format;
   io->encoding = encoding;
   
-  SAVE(nout, io);
+  SAVE(out, nout, io);
 
   airMopOkay(mop);
   return 0;

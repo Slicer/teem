@@ -67,7 +67,7 @@ sliceMain(int argc, char **argv, char *me) {
     return 1;
   }
 
-  SAVE(nout, NULL);
+  SAVE(out, nout, NULL);
 
   airMopOkay(mop);
   return 0;
