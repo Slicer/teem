@@ -67,10 +67,11 @@ enum {
   tenAniso_S,         /* 16: sqrt(Q^3 - R^2) */
   tenAniso_Th,        /* 17: R/Q^3 */
   tenAniso_Cz,        /* 18: Zhukov's invariant-based anisotropy metric */
-  tenAniso_Tr,        /* 19: plain old trace */
+  tenAniso_Det,       /* 19: plain old determinant */
+  tenAniso_Tr,        /* 20: plain old trace */
   tenAnisoLast
 };
-#define TEN_ANISO_MAX    19
+#define TEN_ANISO_MAX    20
 
 /*
 ******** tenGlyphType* enum
@@ -381,6 +382,8 @@ extern int tenAnisoHistogram(Nrrd *nout, Nrrd *nin,
 			     int version, int resolution);
 
 /* miscTen.c */
+extern int tenEvecRGB(Nrrd *nout, Nrrd *nin, int which, int aniso,
+		      float gamma, float bgGray, float isoGray);
 extern short tenEvqOne(float vec[3], float scl);
 extern int tenEvqVolume(Nrrd *nout, Nrrd *nin, int which,
 			int aniso, int scaleByAniso);
@@ -423,7 +426,7 @@ extern int tenEpiRegister4D(Nrrd *nout, Nrrd *nin, Nrrd *ngrad,
 /* mod.c */
 extern int tenSizeNormalize(Nrrd *nout, Nrrd *nin, float weight[3],
 			    float amount, float target);
-extern int tenAnisoScale(Nrrd *nout, Nrrd *nin, float amount);
+extern int tenAnisoScale(Nrrd *nout, Nrrd *nin, float amount, int fixDet);
 extern int tenEigenvaluePower(Nrrd *nout, Nrrd *nin, float expo);
 extern int tenEigenvalueClamp(Nrrd *nout, Nrrd *nin, float min, float max);
 
