@@ -576,7 +576,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
       biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
     }
     arr[0] = floatNin->data;
-    airMopAdd(mop, floatNin, (airMopper)nrrdNuke, airMopOnError);
+    /* airMopAdd(mop, floatNin, (airMopper)nrrdNuke, airMopOnError); */
   }
   else {
     floatNin = NULL;
@@ -650,7 +650,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
 	      " for output of pass %d", me, numOut, pass);
       biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
     }
-    airMopAdd(mop, arr[pass+1], airFree, airMopAlways);
+    /* airMopAdd(mop, arr[pass+1], airFree, airMopAlways); */
     /*
     printf("%s: allocated arr[%d]\n", me, pass+1);
     */
@@ -661,7 +661,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
        array: so that there is a simple consistent (non-branchy) way
        to incorporate the pad values */
     in = (float *)calloc(sizeIn+1, sizeof(float));
-    airMopAdd(mop, in, airFree, airMopAlways);
+    /* airMopAdd(mop, in, airFree, airMopAlways); */
     in[sizeIn] = info->padValue;
 
     dotLen = _nrrdResampleMakeWeightIndex(&weight, &index, &ratio,
@@ -671,8 +671,8 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
       biffAdd(NRRD, err); airMopDone(mop, AIR_TRUE); return 1;
     }
     ratios[d] = ratio;
-    airMopAdd(mop, weight, airFree, airMopAlways);
-    airMopAdd(mop, index, airFree, airMopAlways);
+    /* airMopAdd(mop, weight, airFree, airMopAlways); */
+    /* airMopAdd(mop, index, airFree, airMopAlways); */
 
     /* the skinny: resample all the scanlines */
     _in = arr[pass];
