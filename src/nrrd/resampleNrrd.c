@@ -806,23 +806,13 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
       nout->axis[d].min = info->min[d];
       nout->axis[d].max = info->max[d];
       nout->axis[d].spacing = nin->axis[d].spacing/ratios[d];
-      if (nrrdStateThicknessNoop) {
-	/* HEY: as with nrrdStateKindNoop, this is really more about being
-	   conservative and cautious than being a no-op */
-	nout->axis[d].thickness = AIR_NAN;
-      } else {
-	if (ratios[d] > 1.0) {
-	  /* if up-sampling, the thickness of the region represented by
-	     each sample is not actually getting any smaller- you can't
-	     unblur the averaging that made the slice thick */
-	  nout->axis[d].thickness = nin->axis[d].thickness;
-	} else {
-	  /* if down-sampling, you're piling on yet more blurring, then
-	     whatever notion of thickness that you started with is now
-	     increased according to the resampling ratio */
-	  nout->axis[d].thickness = nin->axis[d].thickness/ratios[d];
-	}
-      }
+      /* no way to usefully update thickness: we could be doing blurring
+         but maintaining the number of samples: thickness increases, or
+         we could be downsampling, in which the relationship between the
+         sampled and the skipped regions of space becomes complicated:
+         no single scalar can represent it, or we could be upsampling,
+         in which the notion of "skip" could be rendered meaningless */
+      out->axis[d].thickness = AIR_NAN;
       nout->axis[d].kind = _nrrdKindAltered(nin->axis[d].kind);
     } else {
       /* this axis remains untouched */

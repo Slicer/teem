@@ -216,7 +216,7 @@ nrrdDescribe (FILE *file, const Nrrd *nrrd) {
               nrrd->axis[i].size);
       airSinglePrintf(file, NULL, "spacing=%lg, \n", nrrd->axis[i].spacing);
       airSinglePrintf(file, NULL, "thickness=%lg, \n",
-		      nrrd->axis[i].thickness);
+                      nrrd->axis[i].thickness);
       airSinglePrintf(file, NULL, "    axis(Min,Max) = (%lg,",
                        nrrd->axis[i].min);
       airSinglePrintf(file, NULL, "%lg)\n", nrrd->axis[i].max);

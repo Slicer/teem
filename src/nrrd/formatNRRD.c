@@ -336,13 +336,13 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   
   /* we try to use the oldest format that will hold the nrrd */
   fprintf(file, "%s\n",
-	  (_nrrdFieldInteresting(nrrd, nio, nrrdField_thicknesses)
-	   ? MAGIC4
-	   : (_nrrdFieldInteresting(nrrd, nio, nrrdField_kinds)
-	      ? MAGIC3
-	      : (nrrdKeyValueSize(nrrd) 
-		 ? MAGIC2 
-		 : MAGIC1))));
+          (_nrrdFieldInteresting(nrrd, nio, nrrdField_thicknesses)
+           ? MAGIC4
+           : (_nrrdFieldInteresting(nrrd, nio, nrrdField_kinds)
+              ? MAGIC3
+              : (nrrdKeyValueSize(nrrd) 
+                 ? MAGIC2 
+                 : MAGIC1))));
 
   /* this is where the majority of the header printing happens */
   for (i=1; i<=NRRD_FIELD_MAX; i++) {

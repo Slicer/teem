@@ -148,7 +148,7 @@ _nrrdKindAltered(int kindIn) {
     if (nrrdKindDomain == kindIn
         || nrrdKindList == kindIn) {
       /* HEY: shouldn't we disallow or at least warn when a "List"
-	 is being resampled? */
+         is being resampled? */
       kindOut = kindIn;
     } else {
       kindOut = nrrdKindUnknown;

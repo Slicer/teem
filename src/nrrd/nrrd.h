@@ -67,12 +67,12 @@ typedef struct {
   int size;                      /* number of elements along each axis */
   double spacing;                /* if non-NaN, distance between samples */
   double thickness;              /* if non-NaN, nominal thickness of region
-				    represented by one sample along the axis.
-				    No semantics relative to spacing are 
-				    assumed or imposed.  Unlike spacing, the
-				    thickness can be zero.  Thickness can be
-				    altered (upon resampling) depending on
-				    nrrdStateThicknessNoop */
+                                    represented by one sample along the axis.
+                                    No semantics relative to spacing are 
+                                    assumed or imposed, and unlike spacing,
+                                    there is no "right" way to alter thickness-
+                                    it is either copied (with cropping) or
+                                    set to NaN (with resampling). */
   double min, max;               /* if non-NaN, range of positions spanned
                                     by the samples on this axis.  Obviously,
                                     one can set "spacing" to something
@@ -86,7 +86,7 @@ typedef struct {
                                     axis (from the nrrdKind* enum) */
   char *label;                   /* short info string for each axis */
   char *unit;                    /* short string for identifying the units 
-				    used for measuring spacing and thickness */
+                                    used for measuring spacing and thickness */
 } NrrdAxisInfo;
 
 /*
@@ -464,7 +464,6 @@ TEEM_API int nrrdStateGrayscaleImage3D;
 TEEM_API int nrrdStateKeyValueReturnInternalPointers;
 TEEM_API int nrrdStateKindNoop;
 /* ---- BEGIN non-NrrdIO */
-TEEM_API int nrrdStateThicknessNoop;
 TEEM_API void nrrdDefGetenv(void);
 TEEM_API void nrrdStateGetenv(void);
 /* ---- END non-NrrdIO */
