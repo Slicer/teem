@@ -21,7 +21,7 @@ LIBOBJS = arrays.o methods.o range.o measr.o inc.o clip.o \
 	hvol.o trnsf.o trex.o probe.o
 #TEST_BINS = test/apply test/gkms test/tinfo test/sigma test/pos \
 #	test/opac test/pvg test/tprobe
-TEST_BINS = test/tprobe
+TEST_BINS = test/tprobe test/apply
 BINS = 
 BINLIBS = -lbane -lnrrd -lbiff -lair -lm
 
