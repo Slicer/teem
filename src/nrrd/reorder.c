@@ -482,6 +482,11 @@ nrrdFlip(Nrrd *nout, const Nrrd *nin, int axis) {
   return 0;
 }
 
+/*
+**
+** NOTE: this seems to destroy all space/orientation info.  What
+** should be done? 
+*/
 int
 nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin,
          int axis, int incrDim) {
@@ -615,7 +620,11 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin,
                 me, i);
         biffAdd(NRRD, err); airMopError(mop); return 1;    
       }
-      nrrdAxisInfoCopy(ninperm[i], nin[i], axmap, NRRD_AXIS_INFO_SIZE_BIT);
+      nrrdAxisInfoCopy(ninperm[i], nin[i], axmap, 
+                       (NRRD_AXIS_INFO_SIZE_BIT
+                        /* HEY: this is being nixed because I can't think
+                           of a sane way of keeping it consistent */
+                        | NRRD_AXIS_INFO_SPACEDIRECTION_BIT));
     } else {
       /* on this part, we permute (no need for a reshape) */
       airMopAdd(mop, ninperm[i], (airMopper)nrrdNuke, airMopAlways);
@@ -686,10 +695,15 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin,
   }
   
   /* copy other axis-specific fields from nin[0] to ntmpperm */
-  for (d=0; d<=outdim-2; d++)
+  for (d=0; d<=outdim-2; d++) {
     map[d] = d;
+  }
   map[outdim-1] = -1;
-  nrrdAxisInfoCopy(ntmpperm, ninperm[0], map, NRRD_AXIS_INFO_NONE);
+  nrrdAxisInfoCopy(ntmpperm, ninperm[0], map, 
+                   (NRRD_AXIS_INFO_NONE
+                    /* HEY: this is being nixed because I can't think
+                       of a sane way of keeping it consistent */
+                    | NRRD_AXIS_INFO_SPACEDIRECTION_BIT));
   ntmpperm->axis[outdim-1].size = outlen;
 
   /* do the permutation required to get output in right order */

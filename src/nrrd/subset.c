@@ -195,9 +195,11 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, int axis, int pos) {
     biffAdd(NRRD, err); return 1;
   }
   /* but we can set the origin more accurately */
-  _nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
-                         1.0, nin->spaceOrigin,
-                         pos, nin->axis[axis].spaceDirection);
+  if (AIR_EXISTS(nout->spaceOrigin[0])) {
+    _nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
+                           1.0, nin->spaceOrigin,
+                           pos, nin->axis[axis].spaceDirection);
+  }
 
   return 0;
 }
@@ -330,10 +332,12 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, int *min, int *max) {
     biffAdd(NRRD, err); return 1;
   }
   /* but we can set the origin more accurately */
-  for (d=0; d<nin->dim; d++) {
-    _nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
-                           1.0, nout->spaceOrigin,
-                           min[d], nin->axis[d].spaceDirection);
+  if (AIR_EXISTS(nout->spaceOrigin[0])) {
+    for (d=0; d<nin->dim; d++) {
+      _nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
+                             1.0, nout->spaceOrigin,
+                             min[d], nin->axis[d].spaceDirection);
+    }
   }
                          
 

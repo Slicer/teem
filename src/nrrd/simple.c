@@ -90,9 +90,12 @@ _nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX],
                        double sclA, const double vecA[NRRD_SPACE_DIM_MAX],
                        double sclB, const double vecB[NRRD_SPACE_DIM_MAX]) {
   int ii;
+  double A, B;
   
   for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
-    sum[ii] = sclA*vecA[ii] + sclB*vecB[ii];
+    A = AIR_EXISTS(vecA[ii] ? vecA[ii] : 0);
+    B = AIR_EXISTS(vecB[ii] ? vecB[ii] : 0);
+    sum[ii] = sclA*A + sclB*B;
   }
 }
                        
@@ -100,9 +103,11 @@ void
 _nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX], 
                    double scl, const double vec[NRRD_SPACE_DIM_MAX]) {
   int ii;
+  double v;
   
   for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
-    out[ii] = scl*vec[ii];
+    v = AIR_EXISTS(vec[ii] ? vec[ii] : 0);
+    out[ii] = scl*v;
   }
 }
                        

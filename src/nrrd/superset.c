@@ -167,8 +167,12 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const int *min) {
     sprintf(err, "%s: nout==nsub disallowed", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdCheck(nsub) || nrrdCheck(nin)) {
-    sprintf(err, "%s: input or subvolume not valid nrrd", me);
+  if (nrrdCheck(nin)) {
+    sprintf(err, "%s: input not valid nrrd", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdCheck(nsub)) {
+    sprintf(err, "%s: subvolume not valid nrrd", me);
     biffAdd(NRRD, err); return 1;
   }
   if (!( nin->dim == nsub->dim )) {
@@ -428,10 +432,12 @@ nrrdPad(Nrrd *nout, const Nrrd *nin,
     biffAdd(NRRD, err); return 1;
   }
   /* but we can set the origin more accurately */
-  for (d=0; d<nin->dim; d++) {
-    _nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
-                           1.0, nout->spaceOrigin,
-                           min[d], nin->axis[d].spaceDirection);
+  if (AIR_EXISTS(nout->spaceOrigin[0])) {
+    for (d=0; d<nin->dim; d++) {
+      _nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
+                             1.0, nout->spaceOrigin,
+                             min[d], nin->axis[d].spaceDirection);
+    }
   }
 
   return 0;

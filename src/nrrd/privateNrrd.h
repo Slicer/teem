@@ -81,6 +81,7 @@ extern const NrrdFormat _nrrdFormatVTK;
 extern const NrrdFormat _nrrdFormatText;
 extern const NrrdFormat _nrrdFormatEPS;
 extern int _nrrdHeaderCheck(Nrrd *nrrd, NrrdIoState *nio, int checkSeen);
+extern int _nrrdFormatNRRD_whichVersion(const Nrrd *nrrd, NrrdIoState *nio);
 
 /* encodingXXX.c */
 extern const NrrdEncoding _nrrdEncodingRaw;
