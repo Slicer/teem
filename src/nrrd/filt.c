@@ -181,17 +181,16 @@ nrrdMedian(Nrrd *nout, Nrrd *nin, int radius, int bins) {
     biffSet(NRRD, err); return 1;
   }
   if (!(AIR_INSIDE(1, nin->dim, 3))) {
-    sprintf(err, "%s: can only handle dim 1, 2, 3 (not %d)", me, nin->dim);
+    sprintf(err, "%s: sorry, can only handle dim 1, 2, 3 (not %d)", 
+	    me, nin->dim);
     biffSet(NRRD, err); return 1;    
   }
-  if (!(nout->data)) {
-    if (nrrdAlloc(nout, nin->num, nin->type, nin->dim)) {
-      sprintf(err, "%s: nrrdAlloc() failed to create slice", me);
-      biffSet(NRRD, err); return 1;
-    }
+  if (nrrdMaybeAlloc(nout, nin->num, nin->type, nin->dim)) {
+    sprintf(err, "%s: failed to create slice", me);
+    biffSet(NRRD, err); return 1;
   }
   if (!(AIR_EXISTS(nin->min) && AIR_EXISTS(nin->max))) {
-    if (nrrdRange(&nin->min, &nin->max, nin)) {
+    if (nrrdMinMaxFind(&nin->min, &nin->max, nin)) {
       sprintf(err, "%s: couldn't learn value range", me);
       biffSet(NRRD, err); return 1;
     }
@@ -223,7 +222,7 @@ nrrdMedian(Nrrd *nout, Nrrd *nin, int radius, int bins) {
     strcpy(nout->label[d], nin->label[d]);
   }
   sprintf(nout->content, "median(%s,%d,%d)", nin->content, radius, bins);
-  free(hist);
+  hist = airFree(hist);
   return(0);
 }
 
@@ -609,7 +608,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   typeOut = nrrdTypeUnknown == info->type ? typeIn : info->type;
 
   if (_nrrdResampleCheckInfo(nin, info)) {
-    sprintf(err, "%s: problem with arguments in nrrdResampleInfo", me);
+    sprintf(err, "%s: problem with arguments", me);
     biffAdd(NRRD, err); return 1;
   }
 
@@ -704,8 +703,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
 	}
       }
       else {
-	free(arr[p-1]);
-	arr[p-1] = NULL;
+	arr[p-1] = airFree(arr[p-1]);
 	/*
 	printf("%s: pass %d: freeing arr[%d]\n", me, p, p-1);
 	*/
@@ -780,14 +778,14 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     }
 
     /* pass-specific clean up */
-    free(smp);
-    free(index);
-    free(in);
+    smp = airFree(smp);
+    index = airFree(index);
+    in = airFree(in);
   }
 
   /* clean up second-to-last array and scanline buffers */
   if (passes > 1) {
-    free(arr[passes-1]);
+    arr[passes-1] = airFree(arr[passes-1]);
     /*
     printf("%s: now freeing arr[%d]\n", me, passes-1);
     */
@@ -798,11 +796,9 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   arr[passes-1] = NULL;
   
   /* create output nrrd and set axis info */
-  if (!nout->data) {
-    if (nrrdAlloc(nout, numOut, typeOut, dim)) {
-      sprintf(err, "%s: couldn't allocate final output nrrd", me);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (nrrdMaybeAlloc(nout, numOut, typeOut, dim)) {
+    sprintf(err, "%s: couldn't allocate final output nrrd", me);
+    biffAdd(NRRD, err); return 1;
   }
   for (d=0; d<=dim-1; d++) {
     if (info->kernel[d]) {
@@ -831,7 +827,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   }
 
   /* final cleanup */
-  free(arr[passes]);
+  arr[passes] = airFree(arr[passes]);
 
   /* enough already */
   return 0;
