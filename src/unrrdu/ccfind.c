@@ -36,7 +36,9 @@ unrrdu_ccfindMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   hestOptAdd(&opt, "v", "filename", airTypeString, 1, 1, &valS, "",
 	     "Giving a filename here allows you to save out the values "
-	     "associated with each connect component");
+	     "associated with each connect component.  This can be used "
+	     "later with \"ccmerge -d\".  By default, no record of the "
+	     "original CC values is kept.");
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "unknown",
 	     "type to use for output, to store the CC ID values.  By default "
 	     "(not using this option), the type used will be the smallest of "
