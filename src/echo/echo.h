@@ -236,7 +236,6 @@ typedef struct {
   ECHO_OBJECT_COMMON;
   EchoObject **obj;
   airArray *objArr;
-  int len;
   echoPos_t min[3], max[3];
 } EchoObjectAABBox;
 
@@ -253,7 +252,6 @@ typedef struct {
   EchoObject **obj;         /* it is important that this match the
 			       ordering in the struct of the aabbox */
   airArray *objArr;
-  int len;
 } EchoObjectList;  
 
 typedef struct {
@@ -271,7 +269,6 @@ extern EchoObject *echoObjectNuke(EchoObject *obj);
 extern void echoObjectBounds(echoPos_t *lo, echoPos_t *hi, EchoObject *obj);
 extern int echoObjectIsContainer(EchoObject *obj);
 extern void echoObjectListAdd(EchoObject *parent, EchoObject *child);
-extern void echoObjectListSetLen(EchoObject *list, int len);
 extern EchoObject *echoObjectListSplit(EchoObject *list, int axis);
 extern EchoObject *echoObjectListSplit3(EchoObject *list, int depth);
 extern void echoObjectSphereSet(EchoObject *sphere,

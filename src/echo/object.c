@@ -53,7 +53,6 @@ NEW_TMPL(Rectangle,);
 NEW_TMPL(TriMesh, /* ??? */ );
 NEW_TMPL(Isosurface, /* ??? */);
 NEW_TMPL(AABBox,
-	 obj->len = 0;
 	 obj->obj = NULL;
 	 obj->objArr = airArrayNew((void**)&(obj->obj), NULL,
 				   sizeof(EchoObject *),
@@ -68,7 +67,6 @@ NEW_TMPL(Split,
 	 obj->obj0 = obj->obj1 = NULL;
 	 );
 NEW_TMPL(List,
-	 obj->len = 0;
 	 obj->obj = NULL;
 	 obj->objArr = airArrayNew((void**)&(obj->obj), NULL,
 				   sizeof(EchoObject *),
@@ -400,29 +398,8 @@ echoObjectListAdd(EchoObject *list, EchoObject *child) {
 	  echoObjectAABBox == list->type) ))
     return;
 
-  if (LIST(list)->len == LIST(list)->objArr->len) {
-    idx = airArrayIncrLen(LIST(list)->objArr, 1);
-  }
-  else {
-    idx = LIST(list)->len;
-    LIST(list)->len++;
-  }
+  idx = airArrayIncrLen(LIST(list)->objArr, 1);
   LIST(list)->obj[idx] = child;
-
-  return;
-}
-
-void
-echoObjectListSetLen(EchoObject *list, int len) {
-  int idx;
-  
-  if (!( list &&
-	 (echoObjectList == list->type ||
-	  echoObjectAABBox == list->type) ))
-    return;
-
-  LIST(list)->len = len;
-  airArraySetLen(LIST(list)->objArr, len);
 
   return;
 }
@@ -485,10 +462,10 @@ echoObjectListSplit(EchoObject *list, int axis) {
   ELL_3V_SET(loest1, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
   ELL_3V_SET(hiest0, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
   ELL_3V_SET(hiest1, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
-  echoObjectListSetLen(list0, splitIdx);
+  airArraySetLen(LIST(list0)->objArr, splitIdx);
   for (i=0; i<splitIdx; i++) {
     o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
-    echoObjectListAdd(list0, o);
+    LIST(list0)->obj[i] = o;
     _echoObjectBounds[o->type](lo, hi, o);
     /*
     printf("000 lo = (%g,%g,%g), hi = (%g,%g,%g)\n",
@@ -497,10 +474,10 @@ echoObjectListSplit(EchoObject *list, int axis) {
     ELL_3V_MIN(loest0, loest0, lo);
     ELL_3V_MAX(hiest0, hiest0, hi);
   }
-  echoObjectListSetLen(list1, len-splitIdx);
+  airArraySetLen(LIST(list1)->objArr, len-splitIdx);
   for (i=splitIdx; i<len; i++) {
     o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
-    echoObjectListAdd(list1, o);
+    LIST(list1)->obj[i] = o;
     _echoObjectBounds[o->type](lo, hi, o);
     /*
     printf("111 lo = (%g,%g,%g), hi = (%g,%g,%g)\n",
