@@ -289,7 +289,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   }
   if (!knownB0 && !nB0P) {
     /* For the time being, this needless restriction helps simplify things */
-    sprintf(err, "%s: don't know (and hence have to estimate) the B=0 image, "
+    sprintf(err, "%s: sorry, don't know (and hence will estimate) B=0 image, "
 	    "but didn't get a Nrrd* to put it in", me);
     biffAdd(TEN, err); return 1;
   }
