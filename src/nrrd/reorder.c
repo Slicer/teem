@@ -20,6 +20,7 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
+#include <teem32bit.h>
 /*
 ******** nrrdInvertPerm()
 **
@@ -632,8 +633,8 @@ nrrdReshape_nva(Nrrd *nout, Nrrd *nin, int dim, int *size) {
     numOut *= size[d];
   }
   if (numOut != nrrdElementNumber(nin)) {
-    sprintf(err, "%s: new sizes product (" AIR_SIZE_T_FMT ") "
-	    "!= # elements (" AIR_SIZE_T_FMT ")",
+    sprintf(err, "%s: new sizes product (" _AIR_SIZE_T_FMT ") "
+	    "!= # elements (" _AIR_SIZE_T_FMT ")",
 	    me, numOut, nrrdElementNumber(nin));
     biffAdd(NRRD, err); return 1;
   }

@@ -23,7 +23,7 @@
 int
 main(int argc, char *argv[]) {
   char *s, *ct, *last, *ret;
-  
+
   if (3 != argc) {
     /*             0   1    2    (3) */
     printf("usage: %s <s> <ct>\n", argv[0]);

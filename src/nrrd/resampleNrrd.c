@@ -20,6 +20,8 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
+#include <teem32bit.h>
+
 /*
   (this was written before airMopSub ... )
 learned: if you start using airMop stuff, and you register a free, but
@@ -615,7 +617,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
     strideIn *= nin->axis[d].size;
   }
   /*
-  printf("%s: strideIn = " AIR_SIZE_T_FMT "\n", me, strideIn);
+  printf("%s: strideIn = " _AIR_SIZE_T_FMT "\n", me, strideIn);
   */
 
   /* go! */
@@ -637,8 +639,8 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
        for the axis being resampled */
     d = ax[pass][topRax];
     /*
-    printf("%s(%d): numOut = " AIR_SIZE_T_FMT "\n", me, pass, numOut);
-    printf("%s(%d): numLines = " AIR_SIZE_T_FMT "\n", me, pass, numLines);
+    printf("%s(%d): numOut = " _AIR_SIZE_T_FMT "\n", me, pass, numOut);
+    printf("%s(%d): numLines = " _AIR_SIZE_T_FMT "\n", me, pass, numLines);
     printf("%s(%d): stride: In=%d, Out=%d\n", me, pass, 
 	   (int)strideIn, (int)strideOut);
     printf("%s(%d): sizeIn = %d\n", me, pass, sizeIn);
@@ -669,7 +671,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
     /* allocate output volume */
     array[pass+1] = (nrrdResample_t*)calloc(numOut, sizeof(nrrdResample_t));
     if (!array[pass+1]) {
-      sprintf(err, "%s: couldn't create array of " AIR_SIZE_T_FMT 
+      sprintf(err, "%s: couldn't create array of " _AIR_SIZE_T_FMT 
 	      " nrrdResample_t's for output of pass %d",
 	      me, numOut, pass);
       biffAdd(NRRD, err); airMopError(mop); return 1;

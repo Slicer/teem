@@ -19,6 +19,8 @@
 
 #include "nrrd.h"
 #include "privateNrrd.h"
+#include <teem32bit.h>
+
 #ifdef TEEM_ZLIB
 #  include <zlib.h> /* needed to write gzipped raw data */
 #endif
@@ -178,8 +180,8 @@ _nrrdWriteDataRaw(Nrrd *nrrd, NrrdIO *io) {
     ret = fwrite(nrrd->data, nrrdElementSize(nrrd),
 		 nrrdElementNumber(nrrd), io->dataFile);
     if (ret != nrrdElementNumber(nrrd)) {
-      sprintf(err, "%s: fwrite() wrote only " AIR_SIZE_T_FMT 
-	      " %d-byte things, not " AIR_SIZE_T_FMT ,
+      sprintf(err, "%s: fwrite() wrote only " _AIR_SIZE_T_FMT 
+	      " %d-byte things, not " _AIR_SIZE_T_FMT ,
 	      me, ret, nrrdElementSize(nrrd), nrrdElementNumber(nrrd));
       biffAdd(NRRD, err); return 1;
     }
@@ -335,8 +337,8 @@ _nrrdWriteDataZlib(Nrrd *nrrd, NrrdIO *io) {
   
   /* Check to see if we got out as much as we thought we should. */
   if (total_written != size) {
-    sprintf(err, "%s: expected " AIR_SIZE_T_FMT " to write bytes, but only "
-	    " wrote " AIR_SIZE_T_FMT " bytes",
+    sprintf(err, "%s: expected " _AIR_SIZE_T_FMT " to write bytes, but only "
+	    " wrote " _AIR_SIZE_T_FMT " bytes",
 	    me, size, total_written);
     biffAdd(NRRD, err);
     return 1;
@@ -480,7 +482,7 @@ _nrrdSprintFieldInfo(char **strP, Nrrd *nrrd, NrrdIO *io, int field) {
     /* ---- end per-axis fields ---- */
   case nrrdField_number:
     *strP = malloc(fslen + 30);
-    sprintf(*strP, "%s: " AIR_SIZE_T_FMT, fs, nrrdElementNumber(nrrd));
+    sprintf(*strP, "%s: " _AIR_SIZE_T_FMT, fs, nrrdElementNumber(nrrd));
     break;
   case nrrdField_content:
     airOneLinify(nrrd->content);

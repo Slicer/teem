@@ -23,6 +23,8 @@
 #  include <zlib.h> /* needed to read gzipped raw data */
 #endif
 
+#include <teem32bit.h>
+
 char _nrrdRelDirFlag[] = "./";
 char _nrrdFieldSep[] = " \t";
 char _nrrdTableSep[] = " ,\t";
@@ -180,7 +182,7 @@ _nrrdCalloc(Nrrd *nrrd) {
   }
   nrrd->data = calloc(num, nrrdElementSize(nrrd));
   if (!nrrd->data) {
-    sprintf(err, "%s: couldn't calloc(" AIR_SIZE_T_FMT
+    sprintf(err, "%s: couldn't calloc(" _AIR_SIZE_T_FMT
 	    ", %d)", me, num, nrrdElementSize(nrrd));
     biffAdd(NRRD, err); return 1;
   }
@@ -249,8 +251,8 @@ _nrrdReadDataRaw(Nrrd *nrrd, NrrdIO *io) {
     }
     ret = fread(nrrd->data, nrrdElementSize(nrrd), num, io->dataFile);
     if (ret != num) {
-      sprintf(err, "%s: fread() got only " AIR_SIZE_T_FMT " %d-byte things, "
-	      "not " AIR_SIZE_T_FMT ,
+      sprintf(err, "%s: fread() got only " _AIR_SIZE_T_FMT " %d-byte things, "
+	      "not " _AIR_SIZE_T_FMT ,
 	      me, ret, nrrdElementSize(nrrd), num);
       biffAdd(NRRD, err); return 1;
     }
@@ -311,16 +313,16 @@ _nrrdReadDataAscii(Nrrd *nrrd, NrrdIO *io) {
   size = nrrdElementSize(nrrd);
   for (I=0; I<num; I++) {
     if (1 != fscanf(io->dataFile, "%s", numbStr)) {
-      sprintf(err, "%s: couldn't parse element " AIR_SIZE_T_FMT
-	      " of " AIR_SIZE_T_FMT, me, I+1, num);
+      sprintf(err, "%s: couldn't parse element " _AIR_SIZE_T_FMT
+	      " of " _AIR_SIZE_T_FMT, me, I+1, num);
       biffAdd(NRRD, err); return 1;
     }
     if (nrrd->type >= nrrdTypeInt) {
       /* sscanf supports putting value directly into this type */
       if (1 != airSingleSscanf(numbStr, nrrdTypeConv[nrrd->type], 
 			       (void*)(data + I*size))) {
-	sprintf(err, "%s: couln't parse %s " AIR_SIZE_T_FMT
-		" of " AIR_SIZE_T_FMT " (\"%s\")", me,
+	sprintf(err, "%s: couln't parse %s " _AIR_SIZE_T_FMT
+		" of " _AIR_SIZE_T_FMT " (\"%s\")", me,
 		airEnumStr(nrrdType, nrrd->type),
 		I+1, num, numbStr);
 	biffAdd(NRRD, err); return 1;
@@ -328,8 +330,8 @@ _nrrdReadDataAscii(Nrrd *nrrd, NrrdIO *io) {
     } else {
       /* sscanf value into an int first */
       if (1 != airSingleSscanf(numbStr, "%d", &tmp)) {
-	sprintf(err, "%s: couln't parse element " AIR_SIZE_T_FMT
-		" of " AIR_SIZE_T_FMT " (\"%s\")",
+	sprintf(err, "%s: couln't parse element " _AIR_SIZE_T_FMT
+		" of " _AIR_SIZE_T_FMT " (\"%s\")",
 		me, I+1, num, numbStr);
 	biffAdd(NRRD, err); return 1;
       }
@@ -450,8 +452,8 @@ _nrrdReadDataZlib(Nrrd *nrrd, NrrdIO *io) {
   
   /* Check to see if we got out as much as we thought we should. */
   if (total_read != size) {
-    sprintf(err, "%s: expected " AIR_SIZE_T_FMT " bytes and received "
-	    AIR_SIZE_T_FMT " bytes",
+    sprintf(err, "%s: expected " _AIR_SIZE_T_FMT " bytes and received "
+	    _AIR_SIZE_T_FMT " bytes",
 	    me, size, total_read);
     biffAdd(NRRD, err);
     return 1;

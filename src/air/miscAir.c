@@ -30,10 +30,10 @@
 
 #if TEEM_32BIT == 1
 const int airMy32Bit = 1;
-const char airMySizeTFmt[] = "%u";
+const char airMyFmt_size_t[] = "%u";
 #else
 const int airMy32Bit = 0;
-const char airMySizeTFmt[] = "%lu";
+const char airMyFmt_size_t[] = "%lu";
 #endif
 
 /*

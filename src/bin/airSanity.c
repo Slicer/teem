@@ -18,6 +18,7 @@
 */
 
 #include <air.h>
+#include <teem32bit.h>
 
 int
 main(int argc, char *argv[]) {
@@ -33,10 +34,10 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "AIR_QNANHIBIT == %d\n", AIR_QNANHIBIT);
     fprintf(stderr, "AIR_DIO == %d\n", AIR_DIO);
     fprintf(stderr, "AIR_32BIT == %d\n", AIR_32BIT);
-    fprintf(stderr, "sizeof(size_t) = " AIR_SIZE_T_FMT 
-	    "; sizeof(void*) = " AIR_SIZE_T_FMT "\n",
+    fprintf(stderr, "sizeof(size_t) = " _AIR_SIZE_T_FMT 
+	    "; sizeof(void*) = " _AIR_SIZE_T_FMT "\n",
 	    sizeof(size_t), sizeof(void*));
-    fprintf(stderr, "AIR_SIZE_T_FMT = \"%s\"\n", AIR_SIZE_T_FMT);
+    fprintf(stderr, "_AIR_SIZE_T_FMT = \"%s\"\n", _AIR_SIZE_T_FMT);
     return 0;
   }
   /* else */

@@ -20,6 +20,7 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
+#include <teem32bit.h>
 #include <limits.h>
 
 /*
@@ -160,7 +161,7 @@ nrrdDescribe(FILE *file, Nrrd *nrrd) {
 
   if (file && nrrd) {
     fprintf(file, "Nrrd at 0x%p:\n", (void*)nrrd);
-    fprintf(file, "Data at 0x%p is " AIR_SIZE_T_FMT
+    fprintf(file, "Data at 0x%p is " _AIR_SIZE_T_FMT
 	    " elements of type %s.\n",
 	    nrrd->data, nrrdElementNumber(nrrd), 
 	    airEnumStr(nrrdType, nrrd->type));

@@ -19,6 +19,7 @@
 
 #include "nrrd.h"
 #include "privateNrrd.h"
+#include <teem32bit.h>
 
 /* ------------------------------------------------------------ */
 
@@ -525,7 +526,7 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
   esize = nrrdElementSize(nrrd);
   nrrd->data = calloc(num, esize);
   if (!(nrrd->data)) {
-    sprintf(err, "%s: calloc(" AIR_SIZE_T_FMT ",%d) failed", 
+    sprintf(err, "%s: calloc(" _AIR_SIZE_T_FMT ",%d) failed", 
 	    me, num, nrrdElementSize(nrrd));
     biffAdd(NRRD, err); return 1 ;
   }

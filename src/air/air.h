@@ -32,9 +32,6 @@
 extern "C" {
 #endif
 
-/* makes sure that TEEM_32BIT is set, to either 0 or 1 */
-#include <teem32bit.h>
-
 #if defined(WIN32) && !defined(TEEM_BUILD)
 #define air_export __declspec(dllimport)
 #else
@@ -309,7 +306,7 @@ extern const char *airInsaneErr(int insane);
 extern int airSanity();
 
 /* miscAir.c */
-extern air_export const char airMySizeTFmt[];
+extern air_export const char airMyFmt_size_t[];
 extern air_export const int airMy32Bit;
 extern void airSrand(void);
 extern double airRand(void);
@@ -413,29 +410,6 @@ extern void airMopDebug(airArray *arr);
 #define AIR_QNANHIBIT (airMyQNaNHiBit)
 #define AIR_DIO (airMyDio)
 #define AIR_32BIT (airMy32Bit)
-
-/*
-******** AIR_SIZE_T_FMT
-**
-** This is the format string to use when printf/fprintf/sprintf-ing 
-** a value of type size_t.  In C99, "%z" serves this purpose.
-**
-** We basically need to leave this as a bare string, so that users can
-** exploit C's implicit string concatenation in forming a format
-** string.  Therefore, unlike the definition of AIR_ENDIAN, AIR_DIO,
-** etc, AIR_SIZE_T_FMT can NOT just refer to a const variable (like
-** airMyEndian).  Therefore, TEEM_32BIT has to be defined for ALL
-** source files which want to use AIR_SIZE_T_FMT, and to be
-** conservative, that's all teem files.  Alas.  Thus, we include
-** <teem32bit.h> above to make sure that TEEM_32BIT is set, and is set
-** to either 0 or 1, so that the following does the expected thing.
-*/
-
-#if TEEM_32BIT == 1
-#  define AIR_SIZE_T_FMT "%u"
-#else
-#  define AIR_SIZE_T_FMT "%lu"
-#endif
 
 /*
 ******** AIR_NAN, AIR_QNAN, AIR_SNAN, AIR_POS_INF, AIR_NEG_INF
@@ -681,6 +655,32 @@ extern void airMopDebug(airArray *arr);
 */
 #define AIR_ROUNDUP(x)   ((int)(floor((x)+0.5)))
 #define AIR_ROUNDDOWN(x) ((int)(ceil((x)-0.5)))
+
+/*
+
+******** _AIR_SIZE_T_FMT
+**
+** This is the format string to use when printf/fprintf/sprintf-ing 
+** a value of type size_t.  In C99, "%z" serves this purpose.
+**
+** This is not a useful macro for the world at large- only for teem
+** source files.  Why: we need to leave this as a bare string, so that
+** we can exploit C's implicit string concatenation in forming a
+** format string.  Therefore, unlike the definition of AIR_ENDIAN,
+** AIR_DIO, etc, AIR_SIZE_T_FMT can NOT just refer to a const variable
+** (like airMyEndian).  Therefore, TEEM_32BIT has to be defined for
+** ALL source files which want to use AIR_SIZE_T_FMT, and to be
+** conservative, that's all teem files.  The converse is, since there is
+** no expectation that other projects which use teem will be defining
+** TEEM_32BIT, this is not useful outside teem, thus the leading _.
+*/
+#if TEEM_32BIT == 1
+#  define _AIR_SIZE_T_FMT "%u"
+#elif TEEM_32BIT == 0
+#  define _AIR_SIZE_T_FMT "%lu"
+#else
+#  define _AIR_SIZE_T_FMT "(no _AIR_SIZE_T_FMT w/out TEEM_32BIT %*d)"
+#endif
 
 /*
 ******** AIR_MEMCPY1, AIR_MEMCPY2, AIR_MEMCPY4, AIR_MEMCPY8, AIR_MEMCPY
