@@ -1,15 +1,16 @@
-scalar 6pack filtering
+test gageContextCopy
+
+add kernel flags to qbert, make them match those in mrender
+and miter.
+
+add flags for explicitly specifying gmax, hmax, vrange
+
+6pack filtering, adapt vector stuff
 
 tests:
 two pervolumes with different sized volumes
 NRWS doing its job
 
-add kernel flags to qbert, make them match those in mrender
-and miter.
-
 retest comparison of upsampling by probing and by unu resample
 
-make sure that setting a zero-query is kosher
 make the curvature direction code (scl.c) more robust
-
-(be sure to set verbose in pvl for debugging)
