@@ -24,16 +24,25 @@ char *genvolInfo = ("generates test volumes.  Not very flexible as long as "
 		    "the \"funk\" library doesn't exist");
 
 float
+rho(float r) {
+  return cos(2*M_PI*6.0*cos(M_PI*r/2));
+}
+
+float
 genvolFunc(float x, float y, float z) {
   float A, B;
 
   A = 1;
   B = 1;
-  /*
+  /* marschner-lobb */
+  return ((1 - sin(M_PI*z/2)) + 0.25*(1 + rho(sqrt(x*x + y*y))))/(2*(1 + 0.25));
+  /* pin-cushion
+  return x*x + y*y + z*z - x*x*x*x - y*y*y*y - z*z*z*z;
+  */
+  /* quadratic surface (moved to quadvol.c)
   return A*x*x + B*y*y - z;
   */
-  return x*x + y*y + z*z - x*x*x*x - y*y*y*y - z*z*z*z;
-  /*
+  /* torus
   A = sqrt(x*x + y*y) - 0.5;
   return 2 - sqrt(A*A + z*z);
   */
