@@ -70,7 +70,7 @@ _baneValidAxis(baneAxis *ax) {
 
 int
 _baneFindInclusion(double min[3], double max[3], 
-		   Nrrd *nin, baneHVolParm *hvp, gageSimple *gsl) {
+		   Nrrd *nin, baneHVolParm *hvp, gageContext *ctx) {
   char me[]="_baneFindInclusion", err[AIR_STRLEN_MED], prog[13];
   int sx, sy, sz, x, y, z;
   baneInc *inc[3];
@@ -96,14 +96,14 @@ _baneFindInclusion(double min[3], double max[3],
   measrParm[0] = hvp->ax[0].measrParm;
   measrParm[1] = hvp->ax[1].measrParm;
   measrParm[2] = hvp->ax[2].measrParm;
-  san = (gageSclAnswer *)(gsl->pvl->ansStruct);
+  san = (gageSclAnswer *)(ctx->pvl[0]->ansStruct);
   if (hvp->verbose) {
     fprintf(stderr, "%s: inclusions: %s %s %s\n", me,
 	    inc[0]->name, inc[1]->name, inc[2]->name);
     fprintf(stderr, "%s: measures: %s %s %s\n", me,
 	    measr[0]->name, measr[1]->name, measr[2]->name);
     fprintf(stderr, "%s: gage query:\n", me);
-    gsl->kind->queryPrint(stderr, gsl->pvl->query);
+    ctx->pvl[0]->kind->queryPrint(stderr, ctx->pvl[0]->query);
   }
 
   hist[0] = inc[0]->histNew(incParm[0]);
@@ -139,9 +139,10 @@ _baneFindInclusion(double min[3], double max[3],
       for (y=0; y<sy; y++) {
 	if (hvp->verbose && !((y+sy*z)%100)) {
 	  fprintf(stderr, "%s", airDoneStr(0, y+sy*z, sy*sz, prog));
+	  fflush(stderr);
 	}
 	for (x=0; x<sx; x++) {
-	  gageSimpleProbe(gsl, x, y, z);
+	  gageProbe(ctx, x, y, z);
 	  /*
 	  fprintf(stderr, "## _baneFindInclusion: (%d,%d,%d) -> (%g,%g,%g)\n",
 		  x,y,z, measr[0]->ans(san, measrParm[0]),
@@ -180,9 +181,10 @@ _baneFindInclusion(double min[3], double max[3],
       for (y=0; y<sy; y++) {
 	if (hvp->verbose && !((y+sy*z)%100)) {
 	  fprintf(stderr, "%s", airDoneStr(0, y+sy*z, sy*sz, prog));
+	  fflush(stderr);
 	}
 	for (x=0; x<sx; x++) {
-	  gageSimpleProbe(gsl, x, y, z);
+	  gageProbe(ctx, x, y, z);
 	  if (incPass[0])
 	    incPass[0](hist[0], measr[0]->ans(san, measrParm[0]), incParm[0]);
 	  if (incPass[1])
@@ -222,7 +224,8 @@ _baneFindInclusion(double min[3], double max[3],
 int
 baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   char me[]="baneMakeHVol", err[AIR_STRLEN_MED], prog[13];
-  gageSimple *gsl;
+  gageContext *ctx;
+  gagePerVolume *pvl;
   gageSclAnswer *san;
   int E, sx, sy, sz, shx, shy, shz, x, y, z, hx, hy, hz,
     *rhvdata, clipVal, hval;
@@ -258,39 +261,33 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   measrParm[2] = hvp->ax[2].measrParm;
 
   /* create the gageSimple and initialize it */
-  gsl = gageSimpleNew();
-  gageValSet(gsl->ctx, gageValVerbose, 0);
-  gageValSet(gsl->ctx, gageValRenormalize, hvp->renormalize);
-  gageValSet(gsl->ctx, gageValCheckIntegrals, AIR_TRUE);
+  ctx = gageContextNew();
+  pvl = gagePerVolumeNew(gageKindScl);
+  gageSet(ctx, gageVerbose, 0);
+  gageSet(ctx, gageRenormalize, hvp->renormalize);
+  gageSet(ctx, gageCheckIntegrals, AIR_TRUE);
+  gageSet(ctx, gageK3Pack, AIR_TRUE);
   E = 0;
-  if (!E) E |= gageSimpleKernelSet(gsl, gageKernel00,
-				   hvp->k[gageKernel00],
-				   hvp->kparm[gageKernel00]);
-  if (!E) E |= gageSimpleKernelSet(gsl, gageKernel11,
-				   hvp->k[gageKernel11],
-				   hvp->kparm[gageKernel11]);
-  if (!E) E |= gageSimpleKernelSet(gsl, gageKernel22,
-				   hvp->k[gageKernel22],
-				   hvp->kparm[gageKernel22]);
+  if (!E) E |= gagePerVolumeAttach(ctx, pvl);
+  if (!E) E |= gageKernelSet(ctx, gageKernel00, hvp->k[gageKernel00],
+			     hvp->kparm[gageKernel00]);
+  if (!E) E |= gageKernelSet(ctx, gageKernel11, hvp->k[gageKernel11],
+			     hvp->kparm[gageKernel11]);
+  if (!E) E |= gageKernelSet(ctx, gageKernel22, hvp->k[gageKernel22],
+			     hvp->kparm[gageKernel22]);
+  if (!E) E |= gageVolumeSet(ctx, pvl, nin);
+  if (!E) E |= gageQuerySet(ctx, pvl, (hvp->ax[0].measr->query |
+				       hvp->ax[1].measr->query |
+				       hvp->ax[2].measr->query));
+  if (!E) E |= gageUpdate(ctx);
   if (E) {
-    sprintf(err, "%s: trouble setting kernels", me);
+    sprintf(err, "%s: trouble setting up gage", me);
     biffMove(BANE, err, GAGE); return 1;
   }
-  gageValSet(gsl->ctx, gageValK3Pack, AIR_TRUE);
-  gsl->nin = nin;
-  gsl->kind = gageKindScl;
-  gsl->query = hvp->ax[0].measr->query;
-  gsl->query |= hvp->ax[1].measr->query;
-  gsl->query |= hvp->ax[2].measr->query;
-  if (gageSimpleUpdate(gsl)) {
-    sprintf(err, "%s: trouble", me);
-    biffMove(BANE, err, GAGE); return 1;
-  }
-  gsl->pvl->verbose = gageValGet(gsl->ctx, gageValVerbose);
-  san = (gageSclAnswer *)(gsl->pvl->ansStruct);
+  san = (gageSclAnswer *)(ctx->pvl[0]->ansStruct);
   
   fprintf(stderr, "##%s: calling _baneFindInclusion ...\n", me);
-  if (_baneFindInclusion(min, max, nin, hvp, gsl)) {
+  if (_baneFindInclusion(min, max, nin, hvp, ctx)) {
     sprintf(err, "%s: trouble finding inclusion ranges", me);
     biffAdd(BANE, err); return 1;
   }
@@ -337,9 +334,10 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
     for (y=0; y<sy; y++) {
       if (hvp->verbose && !((y+sy*z)%100)) {
 	fprintf(stderr, "%s", airDoneStr(0, y+sy*z, sy*sz, prog));
+	fflush(stderr);
       }
       for (x=0; x<sx; x++) {
-	gageSimpleProbe(gsl, x, y, z);
+	gageProbe(ctx, x, y, z);
 	val[0] = measr[0]->ans(san, measrParm[0]);
 	val[1] = measr[1]->ans(san, measrParm[1]);
 	val[2] = measr[2]->ans(san, measrParm[2]);
@@ -404,6 +402,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
     for (hy=0; hy<shy; hy++) {
       if (hvp->verbose && !((hy+shy*hz)%100)) {
 	fprintf(stderr, "%s", airDoneStr(0, hy+shy*hz, shy*shz, prog));
+	fflush(stderr);
       }
       for (hx=0; hx<shx; hx++) {
 	hidx = hx + shx*(hy + shy*hz);

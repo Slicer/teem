@@ -36,10 +36,12 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
     biffAdd(BANE, err); return 1;
   }
 
+  gA = nrrdNew(); gB = nrrdNew();
+  hA = nrrdNew(); hB = nrrdNew();
   /* create initial projections */
   E = 0;
-  if (!E) E |= nrrdProject(gA = nrrdNew(), hvol, 1, nrrdMeasureSum);
-  if (!E) E |= nrrdProject(hA = nrrdNew(), hvol, 0, nrrdMeasureSum);
+  if (!E) E |= nrrdProject(gA, hvol, 1, nrrdMeasureSum);
+  if (!E) E |= nrrdProject(hA, hvol, 0, nrrdMeasureSum);
   if (E) {
     sprintf(err, "%s: trouble creating raw scatterplots", me);
     biffMove(BANE, err, NRRD); return 1;
@@ -47,36 +49,37 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
 
   /* do histogram equalization on them */
   if (histEq) {
-    if (!E) E |= nrrdHistoEq(gA, gA, NULL,
-			     baneStateHistEqBins, baneStateHistEqSmart);
-    if (!E) E |= nrrdHistoEq(hA, hA, NULL,
-			     baneStateHistEqBins, baneStateHistEqSmart);
-    if (E) {
-      sprintf(err, "%s: couldn't histogram equalize scatterplots", me);
-      biffMove(BANE, err, NRRD); return 1;
-    }
+    if (!E) E |= nrrdHistoEq(gB, gA, NULL, baneStateHistEqBins,
+			     baneStateHistEqSmart);
+    if (!E) E |= nrrdHistoEq(hB, hA, NULL, baneStateHistEqBins,
+			     baneStateHistEqSmart);
+  } else {
+    if (!E) E |= nrrdCopy(gB, gA);
+    if (!E) E |= nrrdCopy(hB, hA);
+  }
+  if (E) {
+    sprintf(err, "%s: couldn't histogram equalize or copy", me);
+    biffMove(BANE, err, NRRD); return 1;
   }
 
   /* re-orient them so they look correct on the screen */
-  if (!E) E |= nrrdSwapAxes(gB = nrrdNew(), gA, 0, 1);
-  if (!E) E |= nrrdSwapAxes(hB = nrrdNew(), hA, 0, 1);
-  if (!E) E |= nrrdFlip(gA, gB, 1);
-  if (!E) E |= nrrdFlip(hA, hB, 1);
+  if (!E) E |= nrrdSwapAxes(gA, gB, 0, 1);
+  if (!E) E |= nrrdSwapAxes(hA, hB, 0, 1);
+  if (!E) E |= nrrdFlip(gB, gA, 1);
+  if (!E) E |= nrrdFlip(hB, hA, 1);
   if (E) {
     sprintf(err, "%s: couldn't re-orient scatterplots", me);
     biffMove(BANE, err, NRRD); return 1;
   }
   
-  if (!E) E |= nrrdCopy(nvg, gA);
-  if (!E) E |= nrrdCopy(nvh, hA);
+  if (!E) E |= nrrdCopy(nvg, gB);
+  if (!E) E |= nrrdCopy(nvh, hB);
   if (E) {
     sprintf(err, "%s: trouble saving results to given nrrds", me);
     biffMove(BANE, err, NRRD); return 1;
   }
 
-  nrrdNuke(gA);
-  nrrdNuke(gB);
-  nrrdNuke(hA);
-  nrrdNuke(hB);
+  nrrdNuke(gA); nrrdNuke(gB);
+  nrrdNuke(hA); nrrdNuke(hB);
   return 0;
 }
