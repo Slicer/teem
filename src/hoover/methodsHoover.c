@@ -53,17 +53,19 @@ hooverContextCheck(hooverContext *ctx) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(HOOVER, err); return 1;
   }
-  if (limnCameraUpdate(ctx->cam)) {
-    sprintf(err, "%s: trouble learning view transform matrix", me);
-    biffMove(HOOVER, err, LIMN); return 1;
+  if (airEnumValCheck(nrrdCenter, ctx->imgCentering)) {
+    sprintf(err, "%s: pixel centering (%d) invalid", me, ctx->imgCentering);
+    biffAdd(HOOVER, err); return 1;
   }
   if (airEnumValCheck(nrrdCenter, ctx->volCentering)) {
     sprintf(err, "%s: voxel centering (%d) invalid", me, ctx->volCentering);
     biffAdd(HOOVER, err); return 1;
   }
-  if (airEnumValCheck(nrrdCenter, ctx->imgCentering)) {
-    sprintf(err, "%s: pixel centering (%d) invalid", me, ctx->imgCentering);
-    biffAdd(HOOVER, err); return 1;
+  if (limnCameraAspectSet(ctx->cam,
+			  ctx->imgSize[0], ctx->imgSize[1], ctx->imgCentering)
+      || limnCameraUpdate(ctx->cam)) {
+    sprintf(err, "%s: trouble setting up camera", me);
+    biffMove(HOOVER, err, LIMN); return 1;
   }
   if (!(ctx->volSize[0] > 1 
 	&& ctx->volSize[1] > 1 
