@@ -263,7 +263,8 @@ int
 */
 void
 _nrrdSprintFieldInfo(char *str, Nrrd *nrrd, nrrdIO *io, int field) {
-  char buff[NRRD_STRLEN_MED], *fs;
+  char buff[NRRD_STRLEN_MED];
+  const char *fs;
   int i, D;
 
   if (!( str 

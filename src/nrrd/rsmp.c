@@ -531,13 +531,11 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  printf("%s: bingo 0\n", me);
   if (nrrdBoundaryUnknown == info->boundary) {
     sprintf(err, "%s: need to specify a boundary behavior", me);
     biffAdd(NRRD, err); return 1;
   }
 
-  printf("%s: bingo 1\n", me);
   dim = nin->dim;
   typeIn = nin->type;
   typeOut = nrrdTypeUnknown == info->type ? typeIn : info->type;
@@ -546,13 +544,11 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
     sprintf(err, "%s: problem with arguments", me);
     biffAdd(NRRD, err); return 1;
   }
-  printf("%s: bingo 2\n", me);
 
   _nrrdResampleComputePermute(permute, ax, sz,
 			      &topRax, &botRax, &passes,
 			      nin, info);
   topLax = topRax ? 0 : 1;
-  printf("%s: bingo 3\n", me);
 
   if (0 == passes) {
     /* actually, no resampling was desired.  Copy input to output,
@@ -593,9 +589,9 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   for (d=0; d<topRax; d++) {
     strideIn *= nin->axis[d].size;
   }
-  /* */
+  /*
   printf("%s: strideIn = "NRRD_BIG_INT_PRINTF"\n", me, strideIn);
-  /* */
+  */
 
   /* go! */
   for (pass=0; pass<=passes-1; pass++) {
@@ -780,6 +776,6 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   }
 
   /* enough already */
-  /* airMopDone(mop, AIR_FALSE); */
+  airMopDone(mop, AIR_FALSE);
   return 0;
 }

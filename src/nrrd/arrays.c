@@ -20,7 +20,7 @@
 
 /* for all the arrays that everyone needs.  See nrrd.h for documentation */
 
-char
+const char
 _nrrdEnumFormatStr[NRRD_FORMAT_MAX+1][NRRD_STRLEN_SMALL] = {
   "(unknown_format)",
   "nrrd",
@@ -28,7 +28,7 @@ _nrrdEnumFormatStr[NRRD_FORMAT_MAX+1][NRRD_STRLEN_SMALL] = {
   "table"
 };
 
-char
+const char
 _nrrdEnumBoundaryStr[NRRD_BOUNDARY_MAX+1][NRRD_STRLEN_SMALL] = {
   "(unknown_boundary)",
   "pad",
@@ -37,7 +37,7 @@ _nrrdEnumBoundaryStr[NRRD_BOUNDARY_MAX+1][NRRD_STRLEN_SMALL] = {
   "weight"
 };
 
-char
+const char
 _nrrdEnumMagicStr[NRRD_MAGIC_MAX+1][NRRD_STRLEN_SMALL] = {
   "(unknown_magic)",
   "NRRD00.01",
@@ -48,7 +48,7 @@ _nrrdEnumMagicStr[NRRD_MAGIC_MAX+1][NRRD_STRLEN_SMALL] = {
   "P6"
 };
 
-char 
+const char 
 _nrrdEnumTypeStr[NRRD_TYPE_MAX+1][NRRD_STRLEN_SMALL] = {
   "(unknown_type)",
   "signed char",
@@ -65,14 +65,14 @@ _nrrdEnumTypeStr[NRRD_TYPE_MAX+1][NRRD_STRLEN_SMALL] = {
   "block"
 };
 
-char
+const char
 _nrrdEnumEncodingStr[NRRD_ENCODING_MAX+1][NRRD_STRLEN_SMALL] = {
   "(unknown_encoding)",
   "raw",
   "ascii"
 };
 
-char
+const char
 _nrrdEnumMeasureStr[NRRD_MEASURE_MAX+1][NRRD_STRLEN_SMALL] = {
   "(unknown_measure)",
   "min",
@@ -95,14 +95,14 @@ _nrrdEnumMeasureStr[NRRD_MEASURE_MAX+1][NRRD_STRLEN_SMALL] = {
   "histo-variance"
 };
 
-char
+const char
 _nrrdEnumCenterStr[NRRD_CENTER_MAX+1][NRRD_STRLEN_SMALL] = {
   "(unknown_center)",
   "node",
   "cell"
 };
 
-char
+const char
 _nrrdEnumAxesInfoStr[NRRD_AXESINFO_MAX+1][NRRD_STRLEN_SMALL] = {
   "(unknown_axes_info)",
   "size",
@@ -119,7 +119,7 @@ _nrrdEnumAxesInfoStr[NRRD_AXESINFO_MAX+1][NRRD_STRLEN_SMALL] = {
 ** because this is taken care of in air
 */
 
-char
+const char
 _nrrdEnumFieldStr[NRRD_FIELD_MAX+1][NRRD_STRLEN_SMALL] = {
   "Ernesto \"Che\" Guevara",
   "#",
@@ -145,7 +145,7 @@ _nrrdEnumFieldStr[NRRD_FIELD_MAX+1][NRRD_STRLEN_SMALL] = {
   "byte skip"
 };
 
-char
+const char
 _nrrdEnumNonExistStr[NRRD_NON_EXIST_MAX+1][NRRD_STRLEN_SMALL] = {
   "(unknown)",
   "true",
@@ -153,7 +153,7 @@ _nrrdEnumNonExistStr[NRRD_NON_EXIST_MAX+1][NRRD_STRLEN_SMALL] = {
 };
 
 
-char
+const char
 _nrrdEnumEnumStr[NRRD_ENUM_MAX+1][NRRD_STRLEN_SMALL] = {
   "(unknown_enum)",
   "format",
@@ -200,9 +200,9 @@ _nrrdEnumAllStr[NRRD_ENUM_MAX+1] = {
   _nrrdEnumNonExistStr
 };
 
-char *
+const char *
 nrrdEnumValToStr(int whichEnum, int val) {
-  char (*enstr)[NRRD_STRLEN_SMALL];
+  const char (*enstr)[NRRD_STRLEN_SMALL];
 
   if (nrrdEnumEndian == whichEnum) {
     return airEndianToStr(val);
@@ -211,7 +211,7 @@ nrrdEnumValToStr(int whichEnum, int val) {
   if (!AIR_BETWEEN(nrrdEnumUnknown, whichEnum, nrrdEnumLast))
     return _nrrdEnumEnumStr[nrrdEnumUnknown];
 
-  enstr = (char (*)[NRRD_STRLEN_SMALL])(_nrrdEnumAllStr[whichEnum]);
+  enstr = (const char (*)[NRRD_STRLEN_SMALL])(_nrrdEnumAllStr[whichEnum]);
 
   if (!AIR_BETWEEN(0, val, _nrrdEnumAllMax[whichEnum]+1))
     return enstr[0];

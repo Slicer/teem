@@ -364,7 +364,8 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 
 int
 _nrrdReadPNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
-  char me[]="_nrrdReadPNM", err[NRRD_STRLEN_MED], *fs;
+  char me[]="_nrrdReadPNM", err[NRRD_STRLEN_MED];
+  const char *fs;
   int i, color, got, want, len, ret, val[5], sx, sy, max;
   
   nrrd->type = nrrdTypeUChar;
@@ -511,7 +512,8 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 
 int
 _nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
-  char me[]="_nrrdReadTable", err[NRRD_STRLEN_MED], *fs;
+  char me[]="_nrrdReadTable", err[NRRD_STRLEN_MED];
+  const char *fs;
   int line, len, ret, sx, sy;
   airArray *flArr, *alArr;
   float *fl, *al, oneFloat;

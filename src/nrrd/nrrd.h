@@ -256,8 +256,8 @@ extern int nrrdStateMeasureHistoType;
 
 /******** going between the enums' values and strings */
 /* arrays.c */
-extern char *nrrdEnumValToStr(int whichEnum, int val);
-extern int nrrdEnumStrToVal(int whichEnum, char *_str);
+extern const char *nrrdEnumValToStr(int whichEnum, int val);
+extern int nrrdEnumStrToVal(int whichEnum, char *str);
 extern char nrrdTypeConv[][NRRD_STRLEN_SMALL];
 extern int nrrdEncodingEndianMatters[];
 extern int nrrdTypeSize[];
