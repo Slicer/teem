@@ -70,12 +70,25 @@ limnCameraNix(limnCamera *cam) {
 void
 _limnOptsPSDefaults(limnOptsPS *ps) {
 
-  ps->edgeWidth[0] = 0.0;
-  ps->edgeWidth[1] = 0.0;
-  ps->edgeWidth[2] = 2.0;
-  ps->edgeWidth[3] = 1.0;
-  ps->edgeWidth[4] = 0.0;
+  ps->lineWidth[limnEdgeTypeUnknown] = AIR_NAN;
+  ps->lineWidth[limnEdgeTypeBackFacet] = 0.0;
+  ps->lineWidth[limnEdgeTypeBackCrease] = 0.0;
+  ps->lineWidth[limnEdgeTypeContour] = 2.0;
+  ps->lineWidth[limnEdgeTypeFrontCrease] = 1.0;
+  ps->lineWidth[limnEdgeTypeFrontFacet] = 0.0;
+  ps->lineWidth[limnEdgeTypeBorder] = 1.0;
+  ps->lineWidth[limnEdgeTypeLone] = 1.0;
+  ps->haloWidth[limnEdgeTypeUnknown] = AIR_NAN;
+  ps->haloWidth[limnEdgeTypeBackFacet] = 0.0;
+  ps->haloWidth[limnEdgeTypeBackCrease] = 0.0;
+  ps->haloWidth[limnEdgeTypeContour] = 0.0;
+  ps->haloWidth[limnEdgeTypeFrontCrease] = 0.0;
+  ps->haloWidth[limnEdgeTypeFrontFacet] = 0.0;
+  ps->haloWidth[limnEdgeTypeBorder] = 0.0;
+  ps->haloWidth[limnEdgeTypeLone] = 0.0;
   ps->creaseAngle = 46;
+  ps->showpage = AIR_FALSE;
+  ps->wireFrame = AIR_FALSE;
   ELL_3V_SET(ps->bg, 1, 1, 1);
 }
 

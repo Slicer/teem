@@ -29,6 +29,7 @@ limnObjNew(int incr, int edges) {
   obj->v = NULL;
   obj->e = NULL;
   obj->f = NULL;
+  obj->fSort = NULL;
   obj->r = NULL;
   obj->s = NULL;
 
@@ -59,6 +60,7 @@ limnObjNix(limnObj *obj) {
   airArrayNuke(obj->vA);
   airArrayNuke(obj->eA);
   airArrayNuke(obj->fA);
+  airFree(obj->fSort);
   airArrayNuke(obj->rA);
   airArrayNuke(obj->sA);
   free(obj);
@@ -76,7 +78,7 @@ limnObjPartStart(limnObj *obj) {
   r->eBase = obj->eA->len;  r->eNum = 0;
   r->pBase = obj->pA->len;  r->pNum = 0;
   r->origIdx = rBase;
-  ELL_4V_SET(r->rgba, 1.0, 1.0, 1.0, 1.0);
+  r->sp = 0;
   obj->rCurr = r;
 
   return rBase;
@@ -108,7 +110,7 @@ _limnEdgeInit(limnEdge *e, int sp, int face, int v0, int v1) {
   e->f0 = face;
   e->f1 = -1;
   e->sp = sp;
-  e->visib = 0;
+  e->type = limnEdgeTypeUnknown;
 }
 
 int
@@ -183,7 +185,13 @@ limnObjPartFinish(limnObj *obj) {
 
 int
 limnObjSPAdd(limnObj *obj) {
+  int sBase;
+  limnSP *s;
 
-  return airArrayIncrLen(obj->sA, 1);
+  sBase = airArrayIncrLen(obj->sA, 1);
+  s = &(obj->s[sBase]);
+  ELL_4V_SET(s->rgba, 1, 1, 1, 1);
+  ELL_3V_SET(s->k, 0.5, 0.5, 0.0);
+  s->spec = 50;
+  return sBase;
 }
-

@@ -41,7 +41,7 @@ main(int argc, char *argv[]) {
 
   me = argv[0];
 
-  if (limnEnvMapFill(map=nrrdNew(), cb, limnQN_16checker, NULL)) {
+  if (limnEnvMapFill(map=nrrdNew(), cb, limnQN16checker, NULL)) {
     fprintf(stderr, "%s: trouble:\n%s", me, biffGet(LIMN));
     exit(1);
   }

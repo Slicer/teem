@@ -265,3 +265,40 @@ limnObjDepthSortParts(limnObj *obj) {
 
   return 0;
 }
+
+limnFace *_limnFaceHack;
+
+int
+_limnFaceDepthCompare(const void *_a, const void *_b) {
+  int *a;
+  int *b;
+
+  a = (int *)_a;
+  b = (int *)_b;
+  return -AIR_COMPARE(_limnFaceHack[*a].z, _limnFaceHack[*b].z);
+}
+
+int
+limnObjDepthSortFaces(limnObj *obj) {
+  limnFace *f;
+  limnPoint *p;
+  int fi, vi;
+
+  obj->fSort = (int*)calloc(obj->fA->len, sizeof(int));
+  for (fi=0; fi<obj->fA->len; fi++) {
+    f =  obj->f + fi;
+    f->z = 0;
+    for (vi=f->vBase; vi<f->vBase+f->vNum; vi++) {
+      p = obj->p + obj->v[vi];
+      f->z += p->s[2];
+    }
+    f->z /= f->vNum;
+    obj->fSort[fi] = fi;
+  }
+
+  _limnFaceHack = obj->f;
+  qsort(obj->fSort, obj->fA->len, sizeof(int), _limnFaceDepthCompare);
+
+  return 0;
+}
+

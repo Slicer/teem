@@ -124,15 +124,26 @@ enum {
   limnDeviceLast
 };
 
+enum {
+  limnEdgeTypeUnknown,     /* 0 */
+  limnEdgeTypeBackFacet,   /* 1: back-facing non-crease */
+  limnEdgeTypeBackCrease,  /* 2: back-facing crease */
+  limnEdgeTypeContour,     /* 3: silhoette edge */
+  limnEdgeTypeFrontCrease, /* 4: front-facing crease */
+  limnEdgeTypeFrontFacet,  /* 5: front-facing non-crease */
+  limnEdgeTypeBorder,      /* 6: attached to only one face */
+  limnEdgeTypeLone,        /* 7: attached to no other faces */
+  limnEdgeTypeLast
+};
+#define LIMN_EDGE_TYPE_MAX    5
+
 typedef struct {
-  float edgeWidth[5],  /* different line thickness for different edge types:
-			  0 : non-crease edge, backfacing
-			  1 : crease edge, backfacing
-			  2 : silhouette edge (crease or non-crease)
-			  3 : crease edge: front-facing
-			  4 : non-crease edge, front-facing */
-    creaseAngle,
-    bg[3];             /* background color */
+  float lineWidth[LIMN_EDGE_TYPE_MAX+1],
+    haloWidth[LIMN_EDGE_TYPE_MAX+1],
+    creaseAngle,      /* difference between crease and facet, in *degrees* */
+    bg[3];            /* background color */
+  int showpage,       /* finish with "showpage" */
+    wireFrame;          /* just render wire-frame */
 } limnOptsPS;
 
 typedef struct limnWin_t {
@@ -180,7 +191,7 @@ typedef struct limnEdge_t {
     f0, f1,          /* two face indices (in parent's face list) */
     sp;              /* index into parent's SP list */
   
-  int visib;         /* is edge currently visible (or active) */
+  int type;          /* from the limnEdgeType enum */
 } limnEdge;
 
 /*
@@ -196,7 +207,7 @@ typedef struct limnFace_t {
   int vBase, vNum,   /* start and length in parent's vertex array, "v" */
     sp;              /* index into parent's SP list, "s" */
   
-  int visib;         /* is face currently visible */
+  int visib;         /* is face currently visible (AIR_TRUE or AIR_FALSE) */
   float z;           /* for depth ordering */
 } limnFace;
 
@@ -210,12 +221,12 @@ typedef struct limnPart_t {
     eBase, eNum,     /* start and length in parent's limnEdge array, "e" */
     pBase, pNum,     /* start and length in parent's limnPoint array, "p" */
     origIdx;         /* initial part index of this part */
-
+  
   float z;           /* assuming that the occlusion graph between
 			whole parts is acyclic, one depth value is
 			good enough for painter's algorithm ordering
 			of drawing */
-  float rgba[4];
+  int sp;            /* index into parent's SP list, "s" */
 } limnPart;
 
 /*
@@ -248,6 +259,7 @@ typedef struct limnObj_t {
 
   limnFace *f;       /* array of face structs */
   airArray *fA;      /* airArray around "f" */
+  int *fSort;        /* indices into "f", sorted by depth */
   
   limnPart *r;       /* array of part structs */
   airArray *rA;      /* arrArray around "r" */
@@ -266,14 +278,16 @@ typedef struct limnObj_t {
 ** the different quantized normal schemes currently supported
 */
 enum {
-  limnQN_Unknown,     /* 0 */
-  limnQN_16checker,   /* 1 */
-  limnQN_16simple,    /* 2 */
-  limnQN_16border1,   /* 3 */
-  limnQN_15checker,   /* 4 */
-  limnQN_Last
+  limnQNUnknown,     /* 0 */
+  limnQN16checker,   /* 1 */
+  limnQN16simple,    /* 2 */
+  limnQN16border1,   /* 3 */
+  limnQN15checker,   /* 4 */
+  limnQN14checker,   /* 5 */
+  limnQN12checker,   /* 6 */
+  limnQNLast
 };
-#define LIMN_QN_MAX      4
+#define LIMN_QN_MAX      6
 
 enum {
   limnSplineTypeUnknown,     /* 0 */
@@ -346,9 +360,12 @@ extern limn_export int limnDefCameraOrthographic;
 extern limn_export int limnDefCameraRightHanded;
 
 /* qn.c */
-extern limn_export int limnQNBytes[LIMN_QN_MAX+1];
-extern limn_export void (*limnQNtoV[LIMN_QN_MAX+1])(float *vec, int qn);
-extern limn_export int (*limnVtoQN[LIMN_QN_MAX+1])(float *vec);
+extern limn_export int limnQNBins[LIMN_QN_MAX+1];
+extern limn_export void (*limnQNtoV_f[LIMN_QN_MAX+1])(float *vec, int qn);
+extern limn_export void (*limnQNtoV_d[LIMN_QN_MAX+1])(double *vec, int qn);
+extern limn_export int (*limnVtoQN_f[LIMN_QN_MAX+1])(float *vec);
+extern limn_export int (*limnVtoQN_d[LIMN_QN_MAX+1])(double *vec);
+
 
 /* light.c */
 extern void limnLightSet(limnLight *lit, int which, int vsp,
@@ -403,6 +420,8 @@ extern int limnObjPartFinish(limnObj *obj);
 
 /* io.c */
 extern int limnObjDescribe(FILE *file, limnObj *obj);
+extern int limnObjOFFRead(limnObj *obj, FILE *file);
+extern int limnObjOFFWrite(FILE *file, limnObj *obj);
 
 /* shapes.c */
 extern int limnObjCubeAdd(limnObj *obj, int sp);
@@ -423,9 +442,12 @@ extern int limnObjSpaceTransform(limnObj *obj, limnCamera *cam, limnWin *win,
 				 int space);
 extern int limnObjPartTransform(limnObj *obj, int ri, float tx[16]);
 extern int limnObjDepthSortParts(limnObj *obj);
+extern int limnObjDepthSortFaces(limnObj *obj);
 
 /* renderLimn.c */
 extern int limnObjRender(limnObj *obj, limnCamera *cam, limnWin *win);
+extern int limnObjPSDrawOld(limnObj *obj, limnCamera *cam,
+			    Nrrd *envMap, limnWin *win);
 extern int limnObjPSDraw(limnObj *obj, limnCamera *cam,
 			 Nrrd *envMap, limnWin *win);
 

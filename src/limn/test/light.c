@@ -49,7 +49,7 @@ main(int argc, char *argv[]) {
   limnLightUpdate(lit, cam);
   
   if (limnEnvMapFill(map=nrrdNew(), limnLightDiffuseCB,
-		     limnQN_16checker, lit)) {
+		     limnQN16checker, lit)) {
     fprintf(stderr, "%s: trouble:\n%s", me, biffGet(LIMN));
     exit(1);
   }

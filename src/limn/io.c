@@ -61,3 +61,126 @@ limnObjDescribe(FILE *file, limnObj *obj) {
 
   return 0;
 }
+
+int
+limnObjOFFWrite(FILE *file, limnObj *obj) {
+  char me[]="limnObjOFFWrite", err[AIR_STRLEN_MED];
+  int ii, vi;
+  limnPoint *p;
+  limnFace *f;
+  
+  if (!( obj && file )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  fprintf(file, "OFF\n");
+  fprintf(file, "%d %d -1\n", obj->pA->len, obj->fA->len);
+  for (ii=0; ii<obj->pA->len; ii++) {
+    p = obj->p + ii;
+    fprintf(file, "%g %g %g",
+	    p->w[0]/p->w[3], p->w[1]/p->w[3], p->w[2]/p->w[3]);
+    if (p->sp) {
+      /* its a non-default color */
+      fprintf(file, " %g %g %g", obj->s[p->sp].rgba[0],
+	      obj->s[p->sp].rgba[1], obj->s[p->sp].rgba[2]);
+    }
+    fprintf(file, "\n");
+  }
+  for (ii=0; ii<obj->fA->len; ii++) {
+    f = obj->f + ii;
+    fprintf(file, "%d", f->vNum);
+    for (vi=0; vi<f->vNum; vi++) {
+      fprintf(file, " %d", obj->v[vi + f->vBase]);
+    }
+    if (f->sp) {
+      fprintf(file, " %g %g %g", obj->s[f->sp].rgba[0],
+	      obj->s[f->sp].rgba[1], obj->s[f->sp].rgba[2]);
+    }
+    fprintf(file, "\n");
+  }
+  return 0;
+}
+
+int
+limnObjOFFRead(limnObj *obj, FILE *file) {
+  char me[]="limnObjOFFRead", err[AIR_STRLEN_MED];
+  double vert[6];
+  char line[AIR_STRLEN_LARGE];  /* HEY: bad bad Gordon */
+  int si, lret, nvert, nface, ii, got, ibuff[512];  /* HEY: bad bad Gordon */
+  float fbuff[512];  /* HEY: bad bad Gordon */
+
+  if (!( obj && file )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  got = 0;
+  do {
+    if (!airOneLine(file, line, AIR_STRLEN_LARGE)) {
+      sprintf(err, "%s: hit EOF before getting #vert #face #edge line", me);
+      biffAdd(LIMN, err); return 1;
+    }
+    got = airParseStrI(ibuff, line, AIR_WHITESPACE, 3);
+  } while (3 != got);
+  nvert = ibuff[0];
+  nface = ibuff[1];
+  limnObjPartStart(obj);
+  for (ii=0; ii<nvert; ii++) {
+    do {
+      lret = airOneLine(file, line, AIR_STRLEN_LARGE);
+    } while (1 == lret);
+    if (!lret) {
+      sprintf(err, "%s: hit EOF trying to read vert %d (of %d)",
+	      me, ii, nvert);
+      biffAdd(LIMN, err); return 1;
+    }
+    if (3 != airParseStrD(vert, line, AIR_WHITESPACE, 3)) {
+      sprintf(err, "%s: couldn't parse 3 doubles from \"%s\" "
+	      "for vert %d (of %d)",
+	      me, line, ii, nvert);
+      biffAdd(LIMN, err); return 1;
+    }
+    if (6 == airParseStrD(vert, line, AIR_WHITESPACE, 6)) {
+      /* we could also parse an RGB color */
+      si = limnObjSPAdd(obj);
+      ELL_4V_SET(obj->s[si].rgba, vert[3], vert[4], vert[5], 1);
+    } else {
+      si = 0;
+    }
+    limnObjPointAdd(obj, si,  vert[0], vert[1], vert[2]);
+  }
+  for (ii=0; ii<nface; ii++) {
+    do {
+      lret = airOneLine(file, line, AIR_STRLEN_LARGE);
+    } while (1 == lret);
+    if (!lret) {
+      sprintf(err, "%s: hit EOF trying to read face %d (of %d)",
+	      me, ii, nface);
+      biffAdd(LIMN, err); return 1;
+    }
+    if (1 != sscanf(line, "%d", &nvert)) {
+      sprintf(err, "%s: can't get first int (#verts) from \"%s\" "
+	      "for face %d (of %d)",
+	      me, line, ii, nface);
+      biffAdd(LIMN, err); return 1;
+    }
+    if (nvert+1 != airParseStrI(ibuff, line, AIR_WHITESPACE, nvert+1)) {
+      sprintf(err, "%s: couldn't parse %d ints from \"%s\" "
+	      "for face %d (of %d)",
+	      me, nvert+1, line, ii, nface);
+      biffAdd(LIMN, err); return 1;
+    }
+    if (nvert+1+3 == airParseStrF(fbuff, line, AIR_WHITESPACE, nvert+1+3)) {
+      /* could also parse color */
+      si = limnObjSPAdd(obj);
+      ELL_4V_SET(obj->s[si].rgba,
+		 fbuff[nvert+1+0], fbuff[nvert+1+1], fbuff[nvert+1+2], 1);
+    } else {
+      si = 0;
+    }
+    limnObjFaceAdd(obj, si, nvert, ibuff+1);
+  }
+  limnObjPartFinish(obj);
+  
+  return 0;
+}
+
