@@ -605,11 +605,17 @@ _nrrdReadNrrdParse_kinds (FILE *ffile, Nrrd *nrrd,
   return 0;
 }
 
+typedef union {
+  char **c;
+  void **v;
+} _chpu;
+
 char *
 _nrrdGetQuotedString(char **hP, int useBiff) {
   char me[]="_nrrdGetQuotedString", err[AIR_STRLEN_MED], *h, *buff, *ret;
   airArray *buffArr;
   int pos;
+  _chpu uu;
   
   h = *hP;
   /* skip past space */
@@ -631,7 +637,8 @@ _nrrdGetQuotedString(char **hP, int useBiff) {
     
   /* parse string until end quote */
   buff = NULL;
-  buffArr = airArrayNew((void**)(&buff), NULL, sizeof(char), 2);
+  uu.c = &buff;
+  buffArr = airArrayNew(uu.v, NULL, sizeof(char), 2);
   if (!buffArr) {
     sprintf(err, "%s: couldn't create airArray", me);
       biffMaybeAdd(NRRD, err, useBiff); return NULL;

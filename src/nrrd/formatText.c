@@ -63,6 +63,11 @@ _nrrdFormatText_contentStartsLike(NrrdIoState *nio) {
           || airParseStrF(&oneFloat, nio->line, _nrrdTextSep, 1));
 }
 
+typedef union {
+  float **f;
+  void **v;
+} _fppu;
+
 int
 _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatText_read", err[AIR_STRLEN_MED], *errS;
@@ -72,6 +77,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   /* fl: first line, al: all lines */
   airArray *flArr, *alArr;
   float *fl, *al, oneFloat;
+  _fppu u;
   
   if (!_nrrdFormatText_contentStartsLike(nio)) {
     sprintf(err, "%s: this doesn't look like a %s file", me, 
@@ -172,7 +178,8 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     sprintf(err, "%s: couldn't parse a single number on line %d", me, line);
     biffAdd(NRRD, err); UNSETTWO; return 1;
   }
-  flArr = airArrayNew((void**)&fl, NULL, sizeof(float), _NRRD_TEXT_INCR);
+  u.f = &fl;
+  flArr = airArrayNew(u.v, NULL, sizeof(float), _NRRD_TEXT_INCR);
   if (!flArr) {
     sprintf(err, "%s: couldn't create array for first line values", me);
     biffAdd(NRRD, err); UNSETTWO; return 1;
@@ -199,7 +206,8 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   /* else sx == 1 when nrrd->dim == 1 */
   
   /* now see how many more lines there are */
-  alArr = airArrayNew((void**)&al, NULL, sx*sizeof(float), _NRRD_TEXT_INCR);
+  u.f = &al;
+  alArr = airArrayNew(u.v, NULL, sx*sizeof(float), _NRRD_TEXT_INCR);
   if (!alArr) {
     sprintf(err, "%s: couldn't create data buffer", me);
     biffAdd(NRRD, err); UNSETTWO; return 1;

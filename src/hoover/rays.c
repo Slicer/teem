@@ -317,6 +317,11 @@ _hooverThreadBody(void *_arg) {
   return NULL;
 }
 
+typedef union {
+  _hooverThreadArg **h;
+  void **v;
+} _htpu;
+
 /*
 ******** hooverRender()
 **
@@ -330,6 +335,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   _hooverThreadArg args[HOOVER_THREAD_MAX];
   _hooverThreadArg *errArg;
   airThread *thread[HOOVER_THREAD_MAX];
+  _htpu u;
 
   void *render;
   int ret;
@@ -401,7 +407,8 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   }
 
   for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
-    if ((ret = airThreadJoin(thread[threadIdx], (void **)(&errArg)))) {
+    u.h = &errArg;
+    if ((ret = airThreadJoin(thread[threadIdx], u.v))) {
       *errCodeP = ret;
       *errThreadP = threadIdx;
       airMopError(mop);

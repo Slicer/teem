@@ -132,6 +132,11 @@ limnObjectOFFWrite(FILE *file, limnObject *obj) {
   return 0;
 }
 
+typedef union {
+  int **i;
+  void **v;
+} _ippu;
+
 int
 limnObjectOFFRead(limnObject *obj, FILE *file) {
   char me[]="limnObjectOFFRead", err[AIR_STRLEN_MED];
@@ -145,14 +150,15 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
   
   int *vertBase;
   airArray *vertBaseArr, *mop;
+  _ippu u;
 
   if (!( obj && file )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(LIMN, err); return 1;
   }
   vertBase = NULL;
-  vertBaseArr = airArrayNew((void**)&vertBase, NULL,
-                            sizeof(int), 128);
+  u.i = &vertBase;
+  vertBaseArr = airArrayNew(u.v, NULL, sizeof(int), 128);
   mop = airMopNew();
   airMopAdd(mop, vertBaseArr, (airMopper)airArrayNuke, airMopAlways);
   got = 0;

@@ -47,6 +47,11 @@ airArray *_biffAA=NULL;       /* air array of _biffErr and _biffNum */
 
 #define _BIFF_INCR 2
 
+typedef union {
+  _biffEntry ***b;
+  void **v;
+} _beu;
+
 /*
 ** _biffInit()
 **
@@ -56,10 +61,11 @@ airArray *_biffAA=NULL;       /* air array of _biffErr and _biffNum */
 void
 _biffInit(void) {
   char me[]="_biffInit";
+  _beu uu;
 
+  uu.b = &_biffErr;
   if (!_biffAA) {
-    _biffAA = airArrayNew((void**)&_biffErr, &_biffNum, 
-                          sizeof(_biffEntry*), _BIFF_INCR);
+    _biffAA = airArrayNew(uu.v, &_biffNum, sizeof(_biffEntry*), _BIFF_INCR);
     if (!_biffAA) {
       fprintf(stderr, "%s: PANIC: couldn't allocate internal data\n", me);
       exit(1);

@@ -33,6 +33,11 @@ char _nrrdFieldSep[] = " \t";
 char _nrrdNoSpaceVector[] = "none";
 char _nrrdTextSep[] = " ,\t";
 
+typedef union {
+  char ***c;
+  void **v;
+} _cppu;
+
 /*
 ** _nrrdOneLine
 **
@@ -51,6 +56,7 @@ _nrrdOneLine (int *lenP, NrrdIoState *nio, FILE *file) {
   char me[]="_nrrdOneLine", err[AIR_STRLEN_MED], **line;
   airArray *mop, *lineArr;
   int len, lineIdx;
+  _cppu u;
 
   if (!( lenP && nio && file)) {
     sprintf(err, "%s: got NULL pointer (%p, %p, %p)", me,
@@ -74,7 +80,8 @@ _nrrdOneLine (int *lenP, NrrdIoState *nio, FILE *file) {
   } else {
     /* line didn't fit in buffer, so we have to increase line
        buffer size and put the line together in pieces */
-    lineArr = airArrayNew((void**)(&line), NULL, sizeof(char *), 1);
+    u.c = &line;
+    lineArr = airArrayNew(u.v, NULL, sizeof(char *), 1);
     if (!lineArr) {
       sprintf(err, "%s: couldn't allocate airArray", me);
       biffAdd(NRRD, err); *lenP = 0; return 1;
