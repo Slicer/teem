@@ -484,14 +484,13 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
 
   nrrd->type = type;
   nrrd->data = airFree(nrrd->data);
+  nrrd->dim = dim;
   if (!_nrrdSizeValid(dim, size)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  num = 1;
-  for (d=0; d<=dim-1; d++) {
-    num *= size[d];
-  }
+  nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, size);
+  num = nrrdElementNumber(nrrd);
   esize = nrrdElementSize(nrrd);
   nrrd->data = calloc(num, esize);
   if (!(nrrd->data)) {
@@ -499,7 +498,6 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
 	    me, num, nrrdElementSize(nrrd));
     biffAdd(NRRD, err); return 1 ;
   }
-  nrrd->dim = dim;
 
   return 0;
 }
