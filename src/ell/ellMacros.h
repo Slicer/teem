@@ -246,9 +246,9 @@ extern "C" {
 #define ELL_3M_TRACE(m) ((m)[0] + (m)[4] + (m)[8])
 
 #define ELL_3M_FROB(m) \
-  (sqrt((m)[0]*(m)[0] + (m)[1]*(m)[1] + (m)[2]*(m)[2] + \
-        (m)[3]*(m)[3] + (m)[4]*(m)[4] + (m)[5]*(m)[5] + \
-        (m)[6]*(m)[6] + (m)[7]*(m)[7] + (m)[8]*(m)[8]))
+  (sqrt(ELL_3V_DOT((m)+0, (m)+0) + \
+        ELL_3V_DOT((m)+3, (m)+3) + \
+        ELL_3V_DOT((m)+6, (m)+6)))
 
 #define _ELL_3M_DET(a,b,c,d,e,f,g,h,i) \
   (  (a)*(e)*(i) \
@@ -376,6 +376,24 @@ extern "C" {
 
 #define ELL_4V_NORM(v2, v1, length) \
   (length = ELL_4V_LEN(v1), ELL_4V_SCALE(v2, 1.0/length, v1))
+
+#define ELL_4M_ADD(m3, m1, m2)            \
+  (ELL_4V_ADD((m3)+ 0, (m1)+ 0, (m2)+ 0), \
+   ELL_4V_ADD((m3)+ 4, (m1)+ 4, (m2)+ 4), \
+   ELL_4V_ADD((m3)+ 8, (m1)+ 8, (m2)+ 8), \
+   ELL_4V_ADD((m3)+12, (m1)+12, (m2)+12))
+
+#define ELL_4M_SUB(m3, m1, m2)            \
+  (ELL_4V_SUB((m3)+ 0, (m1)+ 0, (m2)+ 0), \
+   ELL_4V_SUB((m3)+ 4, (m1)+ 4, (m2)+ 4), \
+   ELL_4V_SUB((m3)+ 8, (m1)+ 8, (m2)+ 8), \
+   ELL_4V_SUB((m3)+12, (m1)+12, (m2)+12))
+
+#define ELL_4M_SCALE(m2, a, m1)         \
+  (ELL_4V_SCALE((m2)+ 0, (a), (m1)+ 0), \
+   ELL_4V_SCALE((m2)+ 4, (a), (m1)+ 4), \
+   ELL_4V_SCALE((m2)+ 8, (a), (m1)+ 8), \
+   ELL_4V_SCALE((m2)+12, (a), (m1)+12))
 
 #define ELL_4M_COPY(m2, m1)     \
   (ELL_4V_COPY((m2)+ 0, (m1)+ 0), \
@@ -572,6 +590,12 @@ extern "C" {
    (l)[ 4] = (m)[3], (l)[ 5] = (m)[4], (l)[ 6] = (m)[5], (l)[ 7] = 0, \
    (l)[ 8] = (m)[6], (l)[ 9] = (m)[7], (l)[10] = (m)[8], (l)[11] = 0, \
    (l)[12] =   0   , (l)[13] =   0   , (l)[14] =   0   , (l)[15] = 1)
+
+#define ELL_4M_FROB(m) \
+  (sqrt(ELL_4V_DOT((m)+ 0, (m)+ 0) + \
+        ELL_4V_DOT((m)+ 4, (m)+ 4) + \
+        ELL_4V_DOT((m)+ 8, (m)+ 8) + \
+        ELL_4V_DOT((m)+12, (m)+12)))
 
 #define ELL_4M_DET(m) \
   (  (m)[ 0] * _ELL_3M_DET((m)[ 5], (m)[ 6], (m)[ 7], \
