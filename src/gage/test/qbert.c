@@ -237,14 +237,14 @@ main(int argc, char *argv[]) {
   ctx->c.verbose = 1;   /* reset later */
   ctx->c.renormalize = AIR_TRUE;
   ctx->c.checkIntegrals = AIR_TRUE;
-  kparm[0] = 1.0;
-  kparm[1] = 1.0;
-  kparm[2] = 0.0;
+  kparm[0] = 1.0; kparm[1] = 1.0; kparm[2] = 0.0;
   E = 0;
   /* we have to use a slightly blurring kernel for the 2nd derivatives
      to work out (B-spline is kind of rotationally symmetric) */
+  kparm[0] = 1.0; kparm[1] = 0.0; kparm[2] = 0.5;
   if (!E) E |= gageSclKernelSet(ctx, gageKernel00,
 				nrrdKernelBCCubic, kparm);
+  kparm[0] = 1.0; kparm[1] = 1.0; kparm[2] = 0.0;
   if (!E) E |= gageSclKernelSet(ctx, gageKernel11,
 				nrrdKernelBCCubicD, kparm);
   if (!E) E |= gageSclKernelSet(ctx, gageKernel22,
