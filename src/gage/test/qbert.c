@@ -414,13 +414,14 @@ main(int argc, char *argv[]) {
   sprintf(cmt, "maxh: %g", maxh);  nrrdCommentAdd(nvgh, cmt);
   nrrdSave(outS, nvgh, NULL);
 
+  hparm = hestParmFree(hparm);
+  hopt = hestOptFree(hopt);
+  /* HEY: why am I getting memory-in-use with purify? */
   nvghF = nrrdNuke(nvghF);
   nrsmp = nrrdNuke(nrsmp);
   nvgh = nrrdNuke(nvgh);
   npad = nrrdNuke(npad);
   ctx = gageSclContextNix(ctx);
-  hparm = hestParmFree(hparm);
-  hopt = hestOptFree(hopt);
 
   exit(0);
 }
