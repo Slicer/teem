@@ -68,9 +68,11 @@ unrrdu_headDoit(char *me, NrrdIO *io, char *inS, FILE *fout) {
 #ifdef _WIN32
   /* seems that only on windows does the writing process's fwrite() to
      stdout fail if we exit without consuming everything from stdin */
-  c = fgetc(fin);
-  while (EOF != c) {
-    c = fgetc(fin);
+  {
+	int c = fgetc(fin);
+	while (EOF != c) {
+	  c = fgetc(fin);
+	}
   }
 #endif
 
