@@ -21,6 +21,43 @@
 /*
 ** don't ask
 */
+void
+_hestSetBuff(char *B, hestOpt *O, hestParm *P, int showlong) {
+  char copy[AIR_STRLEN_HUGE], *sep;
+  int max;
+
+  max = _hestMax(O->max);
+  if (O->flag) {
+    strcpy(copy, O->flag);
+    if ((sep = strchr(copy, P->multiFlagSep))) {
+      *sep = 0;
+      strcat(B, "-");
+      strcat(B, copy);
+      if (showlong) {
+	strcat(B, "|--");
+	strcat(B, sep+1);
+      }
+    }
+    else {
+      strcat(B, "-");
+      strcat(B, O->flag);
+    }
+    if (O->min || max)
+      strcat(B, "\t");
+  }
+  if (!O->min && max)
+    strcat(B, "[");
+  if (O->min || max) {
+    strcat(B, "<");
+    strcat(B, O->name);
+    if (O->min < max && max > 1)
+      strcat(B, "...");
+    strcat(B, ">");
+  }
+  if (!O->min && max)
+    strcat(B, "]");
+}
+
 #define SETBUFF(B, O) \
   strcat(B, O.flag ? "-" : ""), \
   strcat(B, O.flag ? O.flag : ""), \
@@ -84,7 +121,7 @@ hestInfo(FILE *file, char *argv0, char *info, hestParm *_parm) {
     fprintf(file, "\n%s: ", argv0);
     _hestPrintStr(file, 0, strlen(argv0) + 2, parm->columns, info, AIR_FALSE);
   }
-  parm = !_parm ? hestParmNix(parm) : NULL;
+  parm = !_parm ? hestParmFree(parm) : NULL;
 }
 
 void
@@ -97,7 +134,7 @@ hestUsage(FILE *f, hestOpt *opt, char *argv0, hestParm *_parm) {
 
   if (_hestPanic(opt, NULL, parm)) {
     /* we can't continue; the opt array is botched */
-    parm = !_parm ? hestParmNix(parm) : NULL;
+    parm = !_parm ? hestParmFree(parm) : NULL;
     return;
   }
     
@@ -113,14 +150,14 @@ hestUsage(FILE *f, hestOpt *opt, char *argv0, hestParm *_parm) {
     strcat(buff, " ");
     if (opt[i].flag && opt[i].dflt)
       strcat(buff, "[");
-    SETBUFF(buff, opt[i]);
+    _hestSetBuff(buff, opt + i, _parm, AIR_FALSE);
     if (opt[i].flag && opt[i].dflt)
       strcat(buff, "]");
   }
 
   _hestPrintStr(f, strlen("Usage: "), 0, parm->columns, buff, AIR_TRUE);
 
-  parm = !_parm ? hestParmNix(parm) : NULL;
+  parm = !_parm ? hestParmFree(parm) : NULL;
   return;
 }
 
@@ -134,7 +171,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
 
   if (_hestPanic(opt, NULL, parm)) {
     /* we can't continue; the opt array is botched */
-    parm = !_parm ? hestParmNix(parm) : NULL;
+    parm = !_parm ? hestParmFree(parm) : NULL;
     return;
   }
     
@@ -145,7 +182,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
     fprintf(f, "\n");
   for (i=0; i<=numOpts-1; i++) {
     strcpy(buff, "");
-    SETBUFF(buff, opt[i]);
+    _hestSetBuff(buff, opt + i, _parm, AIR_TRUE);
     maxlen = AIR_MAX(strlen(buff), maxlen);
   }
   if (parm && parm->respFileEnable) {
@@ -159,7 +196,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
   }
   for (i=0; i<=numOpts-1; i++) {
     strcpy(buff, "");
-    SETBUFF(buff, opt[i]);
+    _hestSetBuff(buff, opt + i, _parm, AIR_TRUE);
     airOneLinify(buff);
     len = strlen(buff);
     for (j=len; j<=maxlen-1; j++)
@@ -205,7 +242,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
     }
     _hestPrintStr(f, maxlen + 3, maxlen + 3, parm->columns, buff, AIR_FALSE);
   }
-  parm = !_parm ? hestParmNix(parm) : NULL;
+  parm = !_parm ? hestParmFree(parm) : NULL;
 
   return;
 }

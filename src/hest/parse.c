@@ -40,7 +40,7 @@ int
 _hestArgsInResponseFiles(int *argcP, int *nrfP,
 			 char **argv, char *err, hestParm *parm) {
   FILE *file;
-  char me[]="_hestArgsInResponseFiles: ", line[AIR_STRLEN_HUGE];
+  char me[]="_hestArgsInResponseFiles: ", line[AIR_STRLEN_HUGE], *pound;
   int ai, len;
 
   *argcP = 0;
@@ -63,11 +63,10 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
       }
       len = airOneLine(file, line, AIR_STRLEN_HUGE);
       while (len > 0) {
-	if (parm->respFileComment != line[0]) {
-	  /* process this only if its not a comment */
-	  airOneLinify(line);
-	  *argcP += airStrntok(line, " ");
-	}
+	if (pound = strchr(line, parm->respFileComment))
+	  *pound = '\0';
+	airOneLinify(line);
+	*argcP += airStrntok(line, " ");
 	len = airOneLine(file, line, AIR_STRLEN_HUGE);
       }
       fclose(file);
@@ -86,8 +85,8 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
 int
 _hestResponseFiles(char **newArgv, char **oldArgv, int nrf,
 		   char *err, hestParm *parm, airArray *pmop) {
-  char line[AIR_STRLEN_HUGE];
-  int len, newArgc, oldArgc, numArgs, ai;
+  char line[AIR_STRLEN_HUGE], *pound;
+  int len, newArgc, oldArgc, incr, ai;
   FILE *file;
   
   if (!parm->respFileEnable) {
@@ -96,6 +95,11 @@ _hestResponseFiles(char **newArgv, char **oldArgv, int nrf,
   }
   newArgc = oldArgc = 0;
   while(oldArgv[oldArgc]) {
+    if (parm->verbosity) {
+      printf("!%s:________ newArgc = %d, oldArgc = %d\n", 
+	     "dammit", newArgc, oldArgc);
+      _hestPrintArgv(newArgc, newArgv);
+    }
     if (parm->respFileFlag != oldArgv[oldArgc][0]) {
       /* nothing to do with a response file, just copy the arg over.
 	 We are not allocating new memory in this case. */
@@ -108,23 +112,34 @@ _hestResponseFiles(char **newArgv, char **oldArgv, int nrf,
       file = fopen(oldArgv[oldArgc]+1, "r");
       len = airOneLine(file, line, AIR_STRLEN_HUGE);
       while (len > 0) {
-	if (parm->respFileComment != line[0]) {
-	  /* process this only if its not a comment */
-	  airOneLinify(line);
-	  numArgs = airStrntok(line, " ");
-	  airParseStrS(newArgv + newArgc, line, " ", numArgs);
-	  for (ai=0; ai<=numArgs-1; ai++) {
-	    /* This time, we did allocate memory.  We can use airFree and
-	       not airFreeP because these will not be reset before mopping */
-	    airMopAdd(pmop, newArgv[newArgc+ai], airFree, airMopAlways);
-	  }
-	  newArgc += numArgs;
+	if (parm->verbosity)
+	  printf("_hestResponseFiles: line: |%s|\n", line);
+	if (pound = strchr(line, parm->respFileComment))
+	  *pound = '\0';
+	if (parm->verbosity)
+	  printf("_hestResponseFiles: -0-> line: |%s|\n", line);
+	airOneLinify(line);
+	incr = airStrntok(line, " ");
+	if (parm->verbosity)
+	  printf("_hestResponseFiles: -1-> line: |%s|, incr=%d\n",
+		 line, incr);
+	airParseStrS(newArgv + newArgc, line, " ", incr);
+	for (ai=0; ai<=incr-1; ai++) {
+	  /* This time, we did allocate memory.  We can use airFree and
+	     not airFreeP because these will not be reset before mopping */
+	  airMopAdd(pmop, newArgv[newArgc+ai], airFree, airMopAlways);
 	}
 	len = airOneLine(file, line, AIR_STRLEN_HUGE);
+	newArgc += incr;
       }
       fclose(file);
     }
     oldArgc++;
+    if (parm->verbosity) {
+      _hestPrintArgv(newArgc, newArgv);
+      printf("!%s: ^^^^^^^ newArgc = %d, oldArgc = %d\n", 
+	     "dammit", newArgc, oldArgc);
+    }
   }
   newArgv[newArgc] = NULL;
 
@@ -140,18 +155,10 @@ _hestResponseFiles(char **newArgv, char **oldArgv, int nrf,
 */
 int
 _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
-  char me[]="_hestPanic: ";
-  int bufflen, numvar, op, numOpts;
-  char tbuff[AIR_STRLEN_HUGE];
-  float tmpF = 0;
+  char me[]="_hestPanic: ", tbuff[AIR_STRLEN_HUGE], *sep;
+  int numvar, op, numOpts;
 
   numOpts = _hestNumOpts(opt);
-
-  bufflen = 0;
-  for (op=0; op<=numOpts-1; op++) {
-    bufflen = AIR_MAX(bufflen, airStrlen(opt[op].flag));
-  }
-  
   numvar = 0;
   for (op=0; op<=numOpts-1; op++) {
     opt[op].kind = _hestKind(opt + op);
@@ -180,6 +187,17 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
 		  ME, op);
 	return 1;
       }
+      strcpy(tbuff, opt[op].flag);
+      if (( sep = strchr(tbuff, parm->multiFlagSep) )) {
+	*sep = '\0';
+	if (!( strlen(tbuff) && strlen(sep+1) )) {
+	  if (err)
+	    sprintf(err, "%s!!!!!! either short (\"%s\") or long (\"%s\") flag"
+		    " of opt[%d] is zero length", ME, tbuff, sep+1, op);
+	  return 1;
+	}
+      }
+      /*
       sprintf(tbuff, "-%s", opt[op].flag);
       if (1 == sscanf(tbuff, "%f", &tmpF)) {
 	if (err)
@@ -187,6 +205,7 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
 		  ME, op, opt[op].flag);
 	return 1;
       }
+      */
     }
     if (1 == opt[op].kind) {
       if (!opt[op].flag) {
@@ -203,6 +222,12 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
 	return 1;
       }
     }
+    if (4 == opt[op].kind && !opt[op].dflt) {
+      if (err)
+	sprintf(err, "%s!!!!!! opt[%d] is single variable parameter, but "
+		"no default set", ME, op);
+      return 1;
+    }
     numvar += (opt[op].min < _hestMax(opt[op].max) && (NULL == opt[op].flag));
   }
   if (numvar > 1) {
@@ -212,6 +237,30 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
     return 1;
   }
   return 0;
+}
+
+int
+_hestErrStrlen(hestOpt *opt, int argc, char **argv) {
+  int a, numOpts, ret;
+
+  ret = 0;
+  numOpts = _hestNumOpts(opt);
+  if (argv) {
+    for (a=0; a<=argc-1; a++) {
+      ret = AIR_MAX(ret, airStrlen(argv[a]));
+    }
+  }
+  for (a=0; a<=numOpts-1; a++) {
+    ret = AIR_MAX(ret, airStrlen(opt[a].flag));
+    ret = AIR_MAX(ret, airStrlen(opt[a].name));
+  }
+  for (a=airTypeUnknown+1; a<=airTypeLast-1; a++) {
+    ret = AIR_MAX(ret, airStrlen(airTypeStr[a]));
+  }
+  ret += 4 * 12;  /* as many as 4 ints per error message */
+  ret += 512;     /* function name and text of error message */
+
+  return ret;
 }
 
 /*
@@ -236,61 +285,73 @@ _hestExtractFlagged(char **prms, int *nprm, int *appr,
 
   a = 0;
   while (a<=*argcP-1) {
-    flag = _hestWhichFlag(opt, argv[a]);
-    /* printf("!%s: A: a = %d -> flag = %d\n", me, a, flag); */
-    if (-1 == flag) {
+    flag = _hestWhichFlag(opt, argv[a], parm);
+    if (parm->verbosity) 
+      printf("!%s: A: a = %d -> flag = %d\n", me, a, flag);
+    if (!(0 <= flag)) {
       /* not a flag, move on */
       a++;
       continue;
     }
     /* see if we can associate some parameters with the flag */
     np = 0;
+    endflag = 0;
     while (np < _hestMax(opt[flag].max) &&
 	   a+np+1 <= *argcP-1 &&
-	   -1 == (endflag = _hestWhichFlag(opt, argv[a+np+1]))) {
+	   -1 == (endflag = _hestWhichFlag(opt, argv[a+np+1], parm))) {
       np++;
-      /* printf("!%s: ... np=%d, endflag = %d\n", me, np, endflag); */
+      if (parm->verbosity)
+	printf("!%s: np --> %d with endflag = %d\n", me, np, endflag);
     }
-    /* printf("!%s: B: np = %d; endflag = %d\n", me, np, endflag); */
+    /* we stopped because we got the max number of parameters, or
+       because we hit the end of the command line, or
+       because _hestWhichFlag() returned something other than -1,
+       which means it returned -2, or a valid option index.  If
+       we stopped because of _hestWhichFlag()'s return value, 
+       endflag has been set to that return value */
+    if (parm->verbosity)
+      printf("!%s: B: np = %d; endflag = %d\n", me, np, endflag); 
     if (np < opt[flag].min) {
       /* didn't get minimum number of parameters */
       if (!( a+np+1 <= *argcP-1 )) {
-	sprintf(err, "%shit end of line before getting %d parameter%s for %s",
+	sprintf(err, "%shit end of line before getting %d parameter%s "
+		"for %s (got %d)",
 		ME, opt[flag].min, opt[flag].min > 1 ? "s" : "",
-		_hestIdent(ident1, opt+flag));
+		_hestIdent(ident1, opt+flag), np);
       }
       else {
-	sprintf(err, "%shit %s before getting %d parameter%s for %s",
+	sprintf(err, "%shit %s before getting %d parameter%s for %s (got %d)",
 		ME, _hestIdent(ident1, opt+endflag),
 		opt[flag].min, opt[flag].min > 1 ? "s" : "",
-		_hestIdent(ident2, opt+flag));
+		_hestIdent(ident2, opt+flag), np);
       }
       return 1;
     }
     nprm[flag] = np;
-    /*
-    printf("!%s:________ a=%d, *argcP = %d -> flag = %d\n", 
-	   me, a, *argcP, flag);
-    _hestPrintArgv(*argcP, argv);
-    */
+    if (parm->verbosity) {
+      printf("!%s:________ a=%d, *argcP = %d -> flag = %d\n", 
+	     me, a, *argcP, flag);
+      _hestPrintArgv(*argcP, argv);
+    }
     /* lose the flag argument */
     free(_hestExtract(argcP, argv, a, 1));
     /* extract the args after the flag */
     if (appr[flag]) {
-      prms[flag] = airFree(prms[flag]);
+      airMopAdd(pmop, prms[flag], NULL, airMopNever);
+      airFree(prms[flag]);
     }
     prms[flag] = _hestExtract(argcP, argv, a, nprm[flag]);
-    if (!appr[flag]) {
-      /* add this only once.  We used airFreeP because prms[flag]
-	 may be free()d and set (a few times) before mopping */
-      airMopAdd(pmop, &(prms[flag]), airFreeP, airMopAlways);
-    }
+    airMopAdd(pmop, prms[flag], airFree, airMopAlways);
     appr[flag] = AIR_TRUE;
-    /*
-    _hestPrintArgv(*argcP, argv);
-    printf("!%s:^^^^^^^^ *argcP = %d\n", me, *argcP);
-    printf("!%s: prms[%d] = %s\n", me, flag, prms[flag]);
-    */
+    if (-2 == endflag) {
+      /* we should lose the end-of-variable-parameter marker */
+      free(_hestExtract(argcP, argv, a, 1));
+    }
+    if (parm->verbosity) {
+      _hestPrintArgv(*argcP, argv);
+      printf("!%s:^^^^^^^^ *argcP = %d\n", me, *argcP);
+      printf("!%s: prms[%d] = %s\n", me, flag, prms[flag]);
+    }
   }
 
   /* make sure that flagged options without default were given */
@@ -356,7 +417,7 @@ _hestExtractUnflagged(char **prms, int *nprm,
       return 1;
     }
     prms[op] = _hestExtract(argcP, argv, 0, np);
-    airMopMem(pmop, &(prms[op]), airMopAlways);
+    airMopAdd(pmop, prms[op], airFree, airMopAlways);
     nprm[op] = np;
   }
   /*
@@ -387,7 +448,7 @@ _hestExtractUnflagged(char **prms, int *nprm,
        op = _hestNextUnflagged(op+1, opt, numOpts)) {
     np = opt[op].min;
     prms[op] = _hestExtract(argcP, argv, nvp, np);
-    airMopMem(pmop, &(prms[op]), airMopAlways);
+    airMopAdd(pmop, prms[op], airFree, airMopAlways);
     nprm[op] = np;
   }
 
@@ -409,7 +470,7 @@ _hestExtractUnflagged(char **prms, int *nprm,
     }
     if (nvp) {
       prms[unflagVar] = _hestExtract(argcP, argv, 0, nvp);
-      airMopMem(pmop, &(prms[unflagVar]), airMopAlways);
+      airMopAdd(pmop, prms[unflagVar], airFree, airMopAlways);
       nprm[unflagVar] = nvp;
     }
     else {
@@ -461,7 +522,7 @@ _hestDefaults(char **prms, int *udflt, int *nprm, int *appr,
       continue;
     prms[op] = airStrdup(opt[op].dflt);
     if (prms[op]) {
-      airMopMem(mop, &(prms[op]), airMopAlways);
+      airMopAdd(mop, prms[op], airFree, airMopAlways);
       airOneLinify(prms[op]);
       tmpS = airStrdup(prms[op]);
       nprm[op] = airStrntok(tmpS, " ");
@@ -613,37 +674,28 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
   }
   else {
     parm = hestParmNew();
-    airMopAdd(mop, parm, (airMopper)hestParmNix, airMopAlways);
+    airMopAdd(mop, parm, (airMopper)hestParmFree, airMopAlways);
   }
 
   /* -------- allocate the err string.  To determine its size with total
      ridiculous safety we have to find the biggest things which can appear
      in the string. */
-  big = 0;
-  for (a=0; a<=_argc-1; a++) {
-    big = AIR_MAX(big, airStrlen(_argv[a]));
-  }
-  for (a=0; a<=numOpts-1; a++) {
-    big = AIR_MAX(big, airStrlen(opt[a].flag));
-    big = AIR_MAX(big, airStrlen(opt[a].name));
-  }
-  for (a=airTypeUnknown+1; a<=airTypeLast-1; a++) {
-    big = AIR_MAX(big, airStrlen(airTypeStr[a]));
-  }
-  big += 4 * 12;  /* as many as 4 ints per error message */
-  big += 512;     /* function name and text of error message */
+  big = _hestErrStrlen(opt, _argc, _argv);
   if (!(err = calloc(big, sizeof(char)))) {
     fprintf(stderr, "%s PANIC: couldn't allocate error message "
 	    "buffer (size %d)\n", me, big);
     exit(1);
   }
-  /* the error string is mopped only when there _wasn't_ an error */
   if (_errP) {
+    /* if they care about the error string, than it is mopped only
+       when there _wasn't_ an error */
     *_errP = err;
     airMopAdd(mop, _errP, (airMopper)airSetNull, airMopOnOkay);
     airMopAdd(mop, err, airFree, airMopOnOkay);
   }
   else {
+    /* otherwise, we're making the error string just for our own
+       convenience, and we'll always clean it up on exit */
     airMopAdd(mop, err, airFree, airMopAlways);
   }
 
@@ -677,7 +729,8 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
   argv = calloc(argc+1, sizeof(char*));
   airMopMem(mop, &argv, airMopAlways);
 
-  /* -------- process response file and set the remaining elements of argv */
+  /* -------- process response files (if any) and set the remaining
+     elements of argv */
   if (_hestResponseFiles(argv, _argv, nrf, err, parm, mop)) {
     airMopDone(mop, AIR_TRUE); return 1;
   }
@@ -702,7 +755,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
     airMopDone(mop, AIR_TRUE); return 1;
   }
 
-  /* any left over arguments indicate error */
+  /* currently, any left over arguments indicate error */
   if (argc) {
     sprintf(err, "%sunexpected arg: \"%s\"", ME, argv[0]);
     airMopDone(mop, AIR_TRUE); return 1;
@@ -732,7 +785,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
 ** free()s whatever was allocated by hestParse()
 */
 void
-hestParseFree(hestOpt *opt, hestParm *parm) {
+hestParseFree(hestOpt *opt) {
   int op, i, numOpts;
   void **vP;
   char **str;

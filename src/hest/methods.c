@@ -30,12 +30,14 @@ hestParmNew() {
     parm->columns = hestColumns;
     parm->respFileFlag = hestRespFileFlag;
     parm->respFileComment = hestRespFileComment;
+    parm->varParamStopFlag = hestVarParamStopFlag;
+    parm->multiFlagSep = hestMultiFlagSep;
   }
   return parm;
 }
 
 hestParm *
-hestParmNix(hestParm *parm) {
+hestParmFree(hestParm *parm) {
 
   return airFree(parm);
 }
@@ -65,7 +67,7 @@ hestOptNew(void) {
 }
 */
 
-hestOpt *
+void
 hestOptAdd(hestOpt **optP, 
 	   char *flag, char *name,
 	   int type, int min, int max,
@@ -75,11 +77,11 @@ hestOptAdd(hestOpt **optP,
   va_list ap;
 
   if (!optP)
-    return NULL;
+    return;
 
   num = *optP ? _hestNumOpts(*optP) : 0;
   if (!(ret = calloc(num+2, sizeof(hestOpt))))
-    return NULL;
+    return;
 
   if (num)
     memcpy(ret, *optP, num*sizeof(hestOpt));
@@ -101,7 +103,7 @@ hestOptAdd(hestOpt **optP,
   if (*optP)
     free(*optP);
   *optP = ret;
-  return ret;
+  return;
 }
 
 void
@@ -114,7 +116,7 @@ _hestOptFree(hestOpt *opt) {
 }
 
 hestOpt *
-hestOptNix(hestOpt *opt) {
+hestOptFree(hestOpt *opt) {
   int op, num;
 
   if (!opt)
@@ -129,6 +131,39 @@ hestOptNix(hestOpt *opt) {
     free(opt);
   }
   return NULL;
+}
+
+int
+hestOptCheck(hestOpt *opt, char **errP) {
+  char *err, me[]="hestOptCheck";
+  hestParm *parm;
+  int big;
+
+  big = _hestErrStrlen(opt, 0, NULL);
+  if (!(err = calloc(big, sizeof(char)))) {
+    fprintf(stderr, "%s PANIC: couldn't allocate error message "
+	    "buffer (size %d)\n", me, big);
+    exit(1);
+  }
+  parm = hestParmNew();
+  if (_hestPanic(opt, err, parm)) {
+    /* problems */
+    if (errP) {
+      /* they did give a pointer address; they'll free it */
+      *errP = err;
+    }
+    else {
+      /* they didn't give a pointer address; their loss */
+      free(err);
+    }
+    hestParmFree(parm);
+    return 1;
+  }
+  /* else, no problems */
+  if (errP)
+    *errP = NULL;
+  hestParmFree(parm);
+  return 0;
 }
 
 
@@ -200,20 +235,43 @@ _hestPrintArgv(int argc, char **argv) {
 **
 ** given a string in "flag" (with the hypen prefix) finds which of
 ** the flags in the given array of options matches that.  Returns
-** the index of the matching option, or -1 if there is no match.
+** the index of the matching option, or -1 if there is no match,
+** but returns -2 if the flag is the end-of-variable-parameter
+** marker (according to parm->varParamStopFlag)
 */
 int
-_hestWhichFlag(hestOpt *opt, char *flag) {
-  char buff[AIR_STRLEN_HUGE];
+_hestWhichFlag(hestOpt *opt, char *flag, hestParm *parm) {
+  char buff[AIR_STRLEN_HUGE], copy[AIR_STRLEN_HUGE], *sep;
   int op, numOpts;
   
   numOpts = _hestNumOpts(opt);
   for (op=0; op<=numOpts-1; op++) {
     if (!opt[op].flag)
       continue;
-    sprintf(buff, "-%s", opt[op].flag);
+    if (strchr(opt[op].flag, parm->multiFlagSep) ) {
+      strcpy(copy, opt[op].flag);
+      sep = strchr(copy, parm->multiFlagSep);
+      *sep = '\0';
+      /* first try the short version */
+      sprintf(buff, "-%s", copy);
+      if (!strcmp(flag, buff))
+	return op;
+      /* then try the long version */
+      sprintf(buff, "--%s", sep+1);
+      if (!strcmp(flag, buff))
+	return op;
+    }
+    else {
+      /* flag has only the short version */
+      sprintf(buff, "-%s", opt[op].flag);
+      if (!strcmp(flag, buff))
+	return op;
+    }
+  }
+  if (parm->varParamStopFlag) {
+    sprintf(buff, "-%c", parm->varParamStopFlag);
     if (!strcmp(flag, buff))
-      return op;
+      return -2;
   }
   return -1;
 }

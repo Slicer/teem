@@ -57,9 +57,9 @@ typedef struct {
 			   5: max - min >= 1; max >= 2 
                               multiple optional parameter */
     alloc;              /* information about whether flag is non-NULL, and what
-			   parameters were used, which determines whether or
+			   parameters were used, that determines whether or
 			   not memory was allocated by hestParse(); info
-			   later used by hestFree():
+			   later used by hestParseFree():
 			   0: no free()ing needed
 			   1: free(*valueP), either because it is a single
 			      string, or because was a dynamically allocated
@@ -75,7 +75,7 @@ typedef struct {
 **
 ** parameters to control behavior of hest functions. 
 **
-** Don't even think about storing per-parse state in here.
+** GK: Don't even think about storing per-parse state in here.
 */
 typedef struct {
   int verbosity,        /* verbose diagnostic messages to stdout */
@@ -83,7 +83,14 @@ typedef struct {
     columns;            /* number of printable columns in output */
   char respFileFlag,    /* the character at the beginning of an argument
 			   indicating that this is a response file name */
-    respFileComment;    /* comment character for the repose files */
+    respFileComment,    /* comment character for the repose files */
+    varParamStopFlag,   /* prefixed by '-' to form the flag which signals
+			   the end of a flagged variable parameter option
+			   (single or multiple) */
+    multiFlagSep;       /* character in flag which signifies that there is
+			   a long and short version, and which seperates
+			   the two.  Or, can be set to '\0' to disable this
+			   behavior entirely. */
 } hestParm;
 
 /* defaults.c */
@@ -92,25 +99,28 @@ extern int hestRespFileEnable;
 extern int hestColumns;
 extern char hestRespFileFlag;
 extern char hestRespFileComment;
+extern char hestVarParamStopFlag;
+extern char hestMultiFlagSep;
 
 /* methods.c */
 extern hestParm *hestParmNew(void);
-extern hestParm *hestParmNix(hestParm *parm);
-extern hestOpt *hestOptAdd(hestOpt **optP, 
-			   char *flag, char *name,
-			   int type, int min, int max,
-			   void *valueP, char *dflt, char *info, ...);
-extern hestOpt *hestOptNix(hestOpt *opt);
-
-/* usage.c */
-extern void hestInfo(FILE *file, char *argv0, char *info, hestParm *parm);
-extern void hestUsage(FILE *file, hestOpt *opt, char *argv0, hestParm *parm);
-extern void hestGlossary(FILE *file, hestOpt *opt, hestParm *parm);
+extern hestParm *hestParmFree(hestParm *parm);
+extern void hestOptAdd(hestOpt **optP, 
+		       char *flag, char *name,
+		       int type, int min, int max,
+		       void *valueP, char *dflt, char *info, ...);
+extern hestOpt *hestOptFree(hestOpt *opt);
+extern int hestOptCheck(hestOpt *opt, char **errP);
 
 /* parse.c */
 extern int hestParse(hestOpt *opt, int argc, char **argv,
 		     char **errP, hestParm *parm);
-extern void hestParseFree(hestOpt *opt, hestParm *parm);
+extern void hestParseFree(hestOpt *opt);
+
+/* usage.c */
+extern void hestUsage(FILE *file, hestOpt *opt, char *argv0, hestParm *parm);
+extern void hestGlossary(FILE *file, hestOpt *opt, hestParm *parm);
+extern void hestInfo(FILE *file, char *argv0, char *info, hestParm *parm);
 
 #ifdef __cplusplus
 }

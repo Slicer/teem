@@ -25,7 +25,7 @@ extern "C" {
 extern char *_hestIdent(char *ident, hestOpt *opt);
 extern int _hestKind(hestOpt *opt);
 extern void _hestPrintArgv(int argc, char **argv);
-extern int _hestWhichFlag(hestOpt *opt, char *flag);
+extern int _hestWhichFlag(hestOpt *opt, char *flag, hestParm *parm);
 extern int _hestCase(hestOpt *opt, int *udflt, int *nprm, int *appr, int op);
 extern char *_hestExtract(int *argcP, char **argv, int a, int np);
 extern int _hestNumOpts(hestOpt *opt);
@@ -34,6 +34,7 @@ extern int _hestMax(int max);
 
 /* parse.c */
 extern int _hestPanic(hestOpt *opt, char *err, hestParm *parm);
+extern int _hestErrStrlen(hestOpt *opt, int argc, char **argv);
 
 
 #ifdef __cplusplus

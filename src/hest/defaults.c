@@ -23,3 +23,5 @@ int hestRespFileEnable = AIR_FALSE;
 int hestColumns = 80;
 char hestRespFileFlag = '@';
 char hestRespFileComment = '#';
+char hestVarParamStopFlag = '-';
+char hestMultiFlagSep = '|';

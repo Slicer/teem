@@ -39,7 +39,7 @@ main(int argc, char **argv) {
   opt = NULL;
   hestOptAdd(&opt, "res",   "sx sy", airTypeInt,    2,  2,  res,  NULL,
 	     "image resolution");
-  hestOptAdd(&opt, "v",     "level", airTypeInt,    0,  1,  &v,   "0",
+  hestOptAdd(&opt, "v|verbose",     "level", airTypeInt,    0,  1,  &v,   "0",
 	     "verbosity level");
   hestOptAdd(&opt, "out",   "file",  airTypeString, 1,  1,  &out, "output.ppm",
 	     "PPM image output");
