@@ -1,4 +1,13 @@
 
+get back verbose IO messages about fread-vs-directIO
+
+call fflush(file) before airDioTest() ? 
+remove calls to nrrdPeripheral*: starting at apply1D.c
+line 398 histogram.c - finish that thought
+sampleUnits map to histogram axis with all things histo
+
+search + replace: teem -> Teem
+
 
 matlab reader/writer for raw and ascii encodings
 
