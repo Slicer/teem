@@ -463,6 +463,7 @@ F(bmat) \
 F(estim) \
 F(sim) \
 F(make) \
+F(helix) \
 F(sten) \
 F(glyph) \
 F(ellipse) \
