@@ -249,7 +249,7 @@ _nrrdCCFind_N(Nrrd *nfpid, int *maxid, airArray *eqvArr,
 ** finds connected components (CCs) in given integral type nrrd "nin",
 ** according to connectivity "conny", putting the results in "nout".
 ** The "type" argument controls what type the output will be.  If
-** type == nrrdTypeUnknown, the type used will be the smallest that 
+** type == nrrdTypeDefault, the type used will be the smallest that 
 ** can contain the CC id values.  Otherwise, the specified type "type"
 ** will be used, assuming that it is large enough to hold the CC ids.
 **
@@ -287,7 +287,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, Nrrd *nin, int type, int conny) {
 	    me, airEnumStr(nrrdType, nin->type));
     biffAdd(NRRD, err); return 1;
   }
-  if (type) {
+  if (nrrdTypeDefault != type) {
     if (!( AIR_IN_OP(nrrdTypeUnknown, type, nrrdTypeLast) )) {
       sprintf(err, "%s: got invalid target type %d", me, type);
       biffAdd(NRRD, err); return 1;
@@ -363,7 +363,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, Nrrd *nin, int type, int conny) {
     }
   }
 
-  if (type) {
+  if (nrrdTypeDefault != type) {
     if (maxid > nrrdTypeMax[type]) {
       sprintf(err, "%s: max cc id %d is too large to fit in output type %s",
 	      me, numid, airEnumStr(nrrdType, type));

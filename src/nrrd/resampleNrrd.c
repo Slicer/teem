@@ -560,7 +560,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
 
   dim = nin->dim;
   typeIn = nin->type;
-  typeOut = nrrdTypeUnknown == info->type ? typeIn : info->type;
+  typeOut = nrrdTypeDefault == info->type ? typeIn : info->type;
 
   if (_nrrdResampleCheckInfo(nin, info)) {
     sprintf(err, "%s: problem with arguments", me);

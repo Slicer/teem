@@ -449,9 +449,12 @@ _nrrdMeasureHistoMode(void *ans, int ansType,
     return;
   }
   /* else there was something in the histogram */
-  /* we assume that there may be multiple bins which reach
-     the maximum height, and we average all those indices.
-     This may well be bone-headed, and is subject to change */
+  /* we assume that there may be multiple bins which reach the maximum
+     height, and we average all those indices.  This may well be
+     bone-headed, and is subject to change.  19 July 03: with the
+     addition of the final "type" argument to nrrdProject, the
+     bone-headedness has been alleviated somewhat, since you can pass
+     nrrTypeFloat or nrrdTypeDouble to get an accurate answer */
   idxsum = 0;
   idxcount = 0;
   for (i=0; i<len; i++) {
@@ -674,6 +677,7 @@ nrrdMeasureLine[NRRD_MEASURE_MAX+1])(void *, int,
 
 int
 _nrrdMeasureType(Nrrd *nin, int measr) {
+  char me[]="_nrrdMeasureType";
   int type=nrrdTypeUnknown;
 
   switch(measr) {
@@ -715,13 +719,16 @@ _nrrdMeasureType(Nrrd *nin, int measr) {
        type for all these histogram-based measures */
     type = nrrdStateMeasureHistoType;
     break;
+  default:
+    fprintf(stderr, "%s: PANIC: type %d not handled\n", me, type);
+    exit(1);
   }
 
   return type;
 }
 
 int
-nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
+nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr, int type) {
   char me[]="nrrdProject", func[]="project", err[AIR_STRLEN_MED];
   int d, i, iType, oType, row, rowNum, col, colNum, colStep, 
     linLen, iElSz, oElSz,
@@ -750,9 +757,17 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
     sprintf(err, "%s: axis %d not in range [0,%d]", me, axis, nin->dim-1);
     biffAdd(NRRD, err); return 1;
   }
+  if (nrrdTypeDefault != type) {
+    if (!( AIR_IN_OP(nrrdTypeUnknown, type, nrrdTypeLast) )) {
+      sprintf(err, "%s: got invalid target type %d", me, type);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
   
   iType = nin->type;
-  oType = _nrrdMeasureType(nin, measr);
+  oType = (nrrdTypeDefault != type 
+	   ? type 
+	   : _nrrdMeasureType(nin, measr));
   iElSz = nrrdTypeSize[iType];
   oElSz = nrrdTypeSize[oType];
   nrrdAxesGet_nva(nin, nrrdAxesInfoSize, iSize);
