@@ -342,8 +342,8 @@ extern nrrd_export airEnum *nrrdTernaryOp;
 /* arraysNrrd.c */
 extern nrrd_export char nrrdTypeConv[][AIR_STRLEN_SMALL];
 extern nrrd_export int nrrdEncodingEndianMatters[];
-extern nrrd_export int nrrdEncodingCompression[];
-extern nrrd_export int nrrdEncodingAvailable[];
+extern nrrd_export int nrrdEncodingIsCompression[];
+extern nrrd_export int nrrdEncodingIsAvailable[];
 extern nrrd_export int nrrdTypeSize[];
 extern nrrd_export int nrrdTypeFixed[];
 extern nrrd_export int nrrdTypeUnsigned[];

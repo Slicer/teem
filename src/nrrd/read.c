@@ -747,7 +747,7 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
     }
     return 1;
   }
-  if (!nrrdEncodingCompression[io->encoding]) {
+  if (!nrrdEncodingIsCompression[io->encoding]) {
     if (nrrdByteSkip(io)) {
       if ((err = (char*)malloc(AIR_STRLEN_MED))) {
 	sprintf(err, "%s: couldn't skip bytes", me);

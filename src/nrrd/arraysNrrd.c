@@ -290,29 +290,31 @@ nrrdEncodingEndianMatters[NRRD_ENCODING_MAX+1] = {
   1,   /* raw */
   0,   /* ascii */
   1,   /* gzip */
+  1,   /* bzip2 */
 };
 
 /*
-******** nrrdEncodingCompresion[]
+******** nrrdEncodingIsCompresion[]
 ** 
 ** tells if given encoding is compression, which changes the
 ** semantics of "byte skip"
 */
 int 
-nrrdEncodingCompression[NRRD_ENCODING_MAX+1] = {
+nrrdEncodingIsCompression[NRRD_ENCODING_MAX+1] = {
   0,   /* unknown */
   0,   /* raw */
   0,   /* ascii */
   1,   /* gzip */
+  1,   /* bzip2 */
 };
 
 /*
-******** nrrdEncodingAvailable[]
+******** nrrdEncodingIsAvailable[]
 ** 
 ** tells which encodings are supported for this build
 */
 int 
-nrrdEncodingAvailable[NRRD_ENCODING_MAX+1] = {
+nrrdEncodingIsAvailable[NRRD_ENCODING_MAX+1] = {
   0,   /* unknown */
   1,   /* raw, always */
   1,   /* ascii, always */
@@ -320,6 +322,11 @@ nrrdEncodingAvailable[NRRD_ENCODING_MAX+1] = {
   1,   /* gzip */
 #else
   0,   /* gzip */
+#endif
+#if TEEM_BZIP2
+  1,   /* bzip2 */
+#else
+  0,   /* bzip2 */
 #endif
 };
 

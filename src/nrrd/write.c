@@ -336,8 +336,8 @@ _nrrdWriteDataGzip(Nrrd *nrrd, NrrdIO *io) {
   
   /* Check to see if we got out as much as we thought we should. */
   if (total_written != size) {
-    sprintf(err, "%s: expected " _AIR_SIZE_T_FMT " to write bytes, but only "
-	    " wrote " _AIR_SIZE_T_FMT " bytes",
+    sprintf(err, "%s: expected to write " _AIR_SIZE_T_FMT " bytes, but only "
+	    "wrote " _AIR_SIZE_T_FMT,
 	    me, size, total_written);
     biffAdd(NRRD, err);
     return 1;
@@ -345,7 +345,8 @@ _nrrdWriteDataGzip(Nrrd *nrrd, NrrdIO *io) {
   
   return 0;
 #else
-  sprintf(err, "%s: sorry, this nrrd not compiled with gzip enabled", me);
+  sprintf(err, "%s: sorry, this nrrd not compiled with zlib "
+	  "(needed for gzip) enabled", me);
   biffAdd(NRRD, err); return 1;
 #endif
 }
@@ -440,8 +441,8 @@ _nrrdWriteDataBzip2(Nrrd *nrrd, NrrdIO *io) {
   
   /* Check to see if we got out as much as we thought we should. */
   if (total_written != size) {
-    sprintf(err, "%s: expected " _AIR_SIZE_T_FMT " to write bytes, but only "
-	    " wrote " _AIR_SIZE_T_FMT " bytes",
+    sprintf(err, "%s: expected to write " _AIR_SIZE_T_FMT " bytes, but only "
+	    "wrote " _AIR_SIZE_T_FMT,
 	    me, size, total_written);
     biffAdd(NRRD, err);
     return 1;
@@ -812,6 +813,7 @@ _nrrdWriteTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
 void
 _nrrdGuessFormat(NrrdIO *io, const char *filename) {
   int strpos;
+  char suffix[AIR_STRLEN_SMALL];
 
   /* currently, we play the detached header game whenever the filename
      ends in NRRD_EXT_HEADER, and when we play this game, the data file
@@ -823,7 +825,12 @@ _nrrdGuessFormat(NrrdIO *io, const char *filename) {
   strpos = strlen(io->base) - strlen(NRRD_EXT_HEADER);
   if (airEndsWith(filename, NRRD_EXT_HEADER)) {
     io->base[strpos++] = '.';
-    strcpy(io->base + strpos, airEnumStr(nrrdEncoding, io->encoding));
+    if (nrrdEncodingIsCompression[io->encoding]) {
+      sprintf(suffix, "raw.%s", airEnumStr(nrrdEncoding, io->encoding));
+    } else {
+      strcpy(suffix, airEnumStr(nrrdEncoding, io->encoding));
+    }
+    strcpy(io->base + strpos, suffix);
     io->seperateHeader = AIR_TRUE;
     io->format = nrrdFormatNRRD;
   } else if (airEndsWith(filename, NRRD_EXT_PGM) 
