@@ -407,7 +407,7 @@ void _nrrdMinMaxFL (_MM_ARGS(FL)) {_MM_FLOAT(FL)}
 void _nrrdMinMaxDB (_MM_ARGS(DB)) {_MM_FLOAT(DB)}
 
 /*
-******** nrrdMinMaxFind[]
+******** nrrdFindMinMax[]
 **
 ** the role of these is to allow finding the EXACT min and max of a nrrd,
 ** so that one does not have to rely on the potentially lossy storage
@@ -415,7 +415,7 @@ void _nrrdMinMaxDB (_MM_ARGS(DB)) {_MM_FLOAT(DB)}
 ** 
 ** These functions have as a side-effect the setting of nrrd->hasNonExist
 */
-void (*nrrdMinMaxFind[NRRD_TYPE_MAX+1])(void *, void *, Nrrd *) = {
+void (*nrrdFindMinMax[NRRD_TYPE_MAX+1])(void *, void *, Nrrd *) = {
   NULL,
   (void (*)(void *, void *, Nrrd *))_nrrdMinMaxCH,
   (void (*)(void *, void *, Nrrd *))_nrrdMinMaxUC,

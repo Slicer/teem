@@ -37,7 +37,7 @@ _nrrdReadNrrdParse_nonfield(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
 int 
 _nrrdReadNrrdParse_comment(Nrrd *nrrd, nrrdIO *io, int useBiff) { 
-  char me[]="_nrrdReadNrrdParse_comment", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_comment", err[AIR_STRLEN_MED];
   char *info;
   
   info = io->line + io->pos;
@@ -50,11 +50,11 @@ _nrrdReadNrrdParse_comment(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
 int 
 _nrrdReadNrrdParse_type(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_type", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_type", err[AIR_STRLEN_MED];
   char *info;
 
   info = io->line + io->pos;
-  if (!(nrrd->type = nrrdEnumStrToVal(nrrdEnumType, info))) {
+  if (!(nrrd->type = airEnumVal(nrrdType, info))) {
     sprintf(err, "%s: couldn't parse type \"%s\"", me, info);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
@@ -63,11 +63,11 @@ _nrrdReadNrrdParse_type(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
 int
 _nrrdReadNrrdParse_encoding(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_encoding", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_encoding", err[AIR_STRLEN_MED];
   char *info;
 
   info = io->line + io->pos;
-  if (!(io->encoding = nrrdEnumStrToVal(nrrdEnumEncoding, info))) {
+  if (!(io->encoding = airEnumVal(nrrdEncoding, info))) {
     sprintf(err, "%s: couldn't parse encoding \"%s\"", me, info);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
@@ -76,11 +76,11 @@ _nrrdReadNrrdParse_encoding(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
 int
 _nrrdReadNrrdParse_endian(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_endian", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_endian", err[AIR_STRLEN_MED];
   char *info;
 
   info = io->line + io->pos;
-  if (!(io->endian = nrrdEnumStrToVal(nrrdEnumEndian, info))) {
+  if (!(io->endian = airEnumVal(airEndian, info))) {
     sprintf(err, "%s: couldn't parse endian \"%s\"", me, info);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
@@ -99,7 +99,7 @@ _nrrdReadNrrdParse_endian(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 */
 int
 _nrrdReadNrrdParse_dimension(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_dimension", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_dimension", err[AIR_STRLEN_MED];
   char *info;
 
   info = io->line + io->pos;
@@ -132,7 +132,7 @@ _nrrdReadNrrdParse_dimension(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
 int
 _nrrdReadNrrdParse_sizes(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_sizes", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_sizes", err[AIR_STRLEN_MED];
   int ret, val[NRRD_DIM_MAX];
   char *info;
 
@@ -146,7 +146,7 @@ _nrrdReadNrrdParse_sizes(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
 int
 _nrrdReadNrrdParse_spacings(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_spacings", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_spacings", err[AIR_STRLEN_MED];
   int i, ret;
   double val[NRRD_DIM_MAX];
   char *info;
@@ -167,7 +167,7 @@ _nrrdReadNrrdParse_spacings(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
 int
 _nrrdReadNrrdParse_axis_mins(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_axis_mins", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_axis_mins", err[AIR_STRLEN_MED];
   int ret;
   double val[NRRD_DIM_MAX];
   char *info;
@@ -182,7 +182,7 @@ _nrrdReadNrrdParse_axis_mins(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
 int
 _nrrdReadNrrdParse_axis_maxs(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_axis_maxs", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_axis_maxs", err[AIR_STRLEN_MED];
   int ret;
   double val[NRRD_DIM_MAX];
   char *info;
@@ -199,7 +199,7 @@ _nrrdReadNrrdParse_axis_maxs(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 */
 int
 _nrrdReadNrrdParse_centers(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_centers", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_centers", err[AIR_STRLEN_MED];
   int i;
   char *tok;
   char *info, *last;
@@ -217,7 +217,7 @@ _nrrdReadNrrdParse_centers(Nrrd *nrrd, nrrdIO *io, int useBiff) {
       nrrd->axis[i].center = nrrdCenterUnknown;
       continue;
     }
-    if (!(nrrd->axis[i].center = nrrdEnumStrToVal(nrrdEnumCenter, tok))) {
+    if (!(nrrd->axis[i].center = airEnumVal(nrrdCenter, tok))) {
       sprintf(err, "%s: couldn't parse \"%s\" center %d of %d",
 	      me, tok, i+1, nrrd->dim);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
@@ -232,8 +232,8 @@ _nrrdReadNrrdParse_centers(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
 int
 _nrrdReadNrrdParse_labels(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_labels", err[NRRD_STRLEN_MED],
-    tmpS[NRRD_STRLEN_BIG];
+  char me[]="_nrrdReadNrrdParse_labels", err[AIR_STRLEN_MED],
+    tmpS[NRRD_STRLEN_LINE];
   char *h;
   int i, len;
   char *info;
@@ -265,7 +265,7 @@ _nrrdReadNrrdParse_labels(Nrrd *nrrd, nrrdIO *io, int useBiff) {
     /* parse string until end quote */
     strcpy(tmpS, "");
     len = 0;
-    while (h[len] && len <= NRRD_STRLEN_BIG-2) {
+    while (h[len] && len <= NRRD_STRLEN_LINE-2) {
       /* printf("!%s: (%d) h+%d |%s|\n", me, i, len, h+len); */
       if ('\"' == h[len]) {
 	break;
@@ -301,7 +301,7 @@ _nrrdReadNrrdParse_labels(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 int
 _nrrdReadNrrdParse_number(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   /*
-  char me[]="_nrrdReadNrrdParse_number", err[NRRD_STRLEN_MED]; 
+  char me[]="_nrrdReadNrrdParse_number", err[AIR_STRLEN_MED]; 
   char *info;
 
   info = io->line + io->pos;
@@ -323,7 +323,7 @@ _nrrdReadNrrdParse_number(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
 int
 _nrrdReadNrrdParse_content(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_content", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_content", err[AIR_STRLEN_MED];
   char *info;
 
   info = io->line + io->pos;
@@ -336,14 +336,14 @@ _nrrdReadNrrdParse_content(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
 int
 _nrrdReadNrrdParse_block_size(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_block_size", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_block_size", err[AIR_STRLEN_MED];
   char *info;
 
   info = io->line + io->pos;
   if (nrrdTypeBlock != nrrd->type) {
     sprintf(err, "%s: known type (%s) is not (%s)", me,
-	    nrrdEnumValToStr(nrrdEnumType, nrrd->type),
-	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+	    airEnumStr(nrrdType, nrrd->type),
+	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   _PARSE_ONE_VAL(nrrd->blockSize, "%d", "int");
@@ -352,7 +352,7 @@ _nrrdReadNrrdParse_block_size(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
 int
 _nrrdReadNrrdParse_min(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_min", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_min", err[AIR_STRLEN_MED];
   char *info;
 
   info = io->line + io->pos;
@@ -362,7 +362,7 @@ _nrrdReadNrrdParse_min(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
 int
 _nrrdReadNrrdParse_max(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_max", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_max", err[AIR_STRLEN_MED];
   char *info;
 
   info = io->line + io->pos;
@@ -372,7 +372,7 @@ _nrrdReadNrrdParse_max(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
 int
 _nrrdReadNrrdParse_old_min(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_old_min", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_old_min", err[AIR_STRLEN_MED];
   char *info;
 
   info = io->line + io->pos;
@@ -382,7 +382,7 @@ _nrrdReadNrrdParse_old_min(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
 int
 _nrrdReadNrrdParse_old_max(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_old_max", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_old_max", err[AIR_STRLEN_MED];
   char *info;
 
   info = io->line + io->pos;
@@ -395,7 +395,7 @@ _nrrdReadNrrdParse_old_max(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 */
 int
 _nrrdReadNrrdParse_data_file(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_data_file", err[NRRD_STRLEN_MED],
+  char me[]="_nrrdReadNrrdParse_data_file", err[AIR_STRLEN_MED],
     dataName[NRRD_STRLEN_LINE];
   char *info;
 
@@ -426,7 +426,7 @@ _nrrdReadNrrdParse_data_file(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
 int
 _nrrdReadNrrdParse_line_skip(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_line_skip", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_line_skip", err[AIR_STRLEN_MED];
   char *info;
 
   info = io->line + io->pos;
@@ -440,7 +440,7 @@ _nrrdReadNrrdParse_line_skip(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
 int
 _nrrdReadNrrdParse_byte_skip(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_byte_skip", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_byte_skip", err[AIR_STRLEN_MED];
   char *info;
 
   info = io->line + io->pos;
@@ -490,7 +490,7 @@ int
 */
 int
 _nrrdReadNrrdParseField(Nrrd *nrrd, nrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParseField", err[NRRD_STRLEN_MED], *next;
+  char me[]="_nrrdReadNrrdParseField", err[AIR_STRLEN_MED], *next;
   int i;
   
   next = io->line + io->pos;
@@ -502,7 +502,7 @@ _nrrdReadNrrdParseField(Nrrd *nrrd, nrrdIO *io, int useBiff) {
 
   /* else we have some field to parse */
   for (i=nrrdField_unknown+1; i<=NRRD_FIELD_MAX; i++) {
-    if (!strncmp(next, _nrrdEnumFieldStr[i], strlen(_nrrdEnumFieldStr[i]))) {
+    if (!strncmp(next, nrrdField.str[i], strlen(nrrdField.str[i]))) {
       /* we matched one of the fields */
       /* printf("!%s: match: %d\n", me, i); */
       break;
@@ -514,13 +514,13 @@ _nrrdReadNrrdParseField(Nrrd *nrrd, nrrdIO *io, int useBiff) {
   }
   
   /* make sure there's a colon */
-  next += strlen(_nrrdEnumFieldStr[i]);
+  next += strlen(nrrdField.str[i]);
   /* skip whitespace ... */
   next += strspn(next, _nrrdFieldSep);
   /* see colon ? */
   if (':' != *next) {
     sprintf(err, "%s: didn't see \":\" after \"%s\"", 
-	    me, _nrrdEnumFieldStr[i]);
+	    me, nrrdField.str[i]);
     biffMaybeAdd(NRRD, err, useBiff); return nrrdField_unknown;
   }
   next++;

@@ -37,7 +37,7 @@ int
 nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
 		   nrrdKernel *kernel, double *param,
 		   int *samples, double *scalings) {
-  char me[]="nrrdSimpleResample", err[NRRD_STRLEN_MED];
+  char me[]="nrrdSimpleResample", err[AIR_STRLEN_MED];
   nrrdResampleInfo *info;
   int d, p, np, center;
 
@@ -92,13 +92,13 @@ nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
 */
 int
 _nrrdResampleCheckInfo(Nrrd *nin, nrrdResampleInfo *info) {
-  char me[] = "_nrrdResampleCheckInfo", err[NRRD_STRLEN_MED];
+  char me[] = "_nrrdResampleCheckInfo", err[AIR_STRLEN_MED];
   nrrdKernel *k;
   int center, p, d, np, minsmp;
 
   if (nrrdTypeBlock == nin->type || nrrdTypeBlock == info->type) {
     sprintf(err, "%s: can't resample to or from type %s", me,
-	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+	    airEnumStr(nrrdType, nrrdTypeBlock));
   }
   if (nrrdBoundaryUnknown == info->boundary) {
     sprintf(err, "%s: didn't set boundary behavior\n", me);
@@ -141,7 +141,7 @@ _nrrdResampleCheckInfo(Nrrd *nin, nrrdResampleInfo *info) {
       sprintf(err, "%s: axis %d # input samples (%d) or output samples (%d) "
 	      " invalid for %s centering",
 	      me, d, nin->axis[d].size, info->samples[d],
-	      nrrdEnumValToStr(nrrdEnumCenter, center));
+	      airEnumStr(nrrdCenter, center));
       biffAdd(NRRD, err); return 1;
     }
   }
@@ -263,7 +263,7 @@ _nrrdResampleComputePermute(int permute[],
 int
 _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
 			     Nrrd *nin, nrrdResampleInfo *info, int d) {
-  char me[]="_nrrdResampleMakeWeightIndex", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdResampleMakeWeightIndex", err[AIR_STRLEN_MED];
   int sizeIn, sizeOut, center, dotLen, halfLen, *index, base, idx;
   double minIn, maxIn, minOut, maxOut, spcIn, spcOut, param0=0.0;
   float ratio, support, integral, *weight, pos, idxF, wght;
@@ -474,7 +474,7 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
 */
 int
 nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
-  char me[]="nrrdSpatialResample", err[NRRD_STRLEN_MED];
+  char me[]="nrrdSpatialResample", err[AIR_STRLEN_MED];
   float *arr[NRRD_DIM_MAX],   /* intermediate copies of the input data
 				 undergoing resampling; we don't need a full-
 				 fledged nrrd for these.  Only about two of

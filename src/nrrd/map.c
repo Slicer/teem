@@ -31,19 +31,19 @@
 */
 int
 nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
-  char me[] = "nrrdConvert", err[NRRD_STRLEN_MED];
+  char me[] = "nrrdConvert", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX];
   nrrdBigInt num;
 
   if (!( nin && nout 
-	 && AIR_BETWEEN(nrrdTypeUnknown, nin->type, nrrdTypeLast)
-	 && AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast) )) {
+	 && airEnumValidVal(nrrdType, nin->type)
+	 && airEnumValidVal(nrrdType, type) )) {
     sprintf(err, "%s: invalid args", me);
     biffAdd(NRRD, err); return 1;
   }
   if (nin->type == nrrdTypeBlock || type == nrrdTypeBlock) {
     sprintf(err, "%s: can't convert to or from nrrd type %s", me,
-	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
 
@@ -72,12 +72,12 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
   nout->content = airFree(nout->content);
   if (nin->content) {
     nout->content = calloc(strlen("()()")
-			   + strlen(nrrdEnumValToStr(nrrdEnumType, nout->type))
+			   + strlen(airEnumStr(nrrdType, nout->type))
 			   + strlen(nin->content)
 			   + 1, sizeof(char));
     if (nout->content) {
       sprintf(nout->content, "(%s)(%s)",
-	      nrrdEnumValToStr(nrrdEnumType, nout->type),
+	      airEnumStr(nrrdType, nout->type),
 	      nin->content);
     }
     else {
@@ -94,38 +94,33 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
 ******** nrrdSetMinMax()
 **
 ** Sets nrrd->min and nrrd->max to the extremal (existant) values in
-** the given nrrd, by calling the appropriate member of nrrdMinMaxFind[]
+** the given nrrd, by calling the appropriate member of nrrdFindMinMax[]
 **
 ** calling this function will result in nrrd->hasNonExist being set
-** (because of the nrrdMinMaxFind[] functions)
+** (because of the nrrdFindMinMax[] functions)
 */
 int
 nrrdSetMinMax(Nrrd *nrrd) {
-  char me[] = "nrrdSetMinMax", err[NRRD_STRLEN_MED];
+  char me[] = "nrrdSetMinMax", err[AIR_STRLEN_MED];
   NRRD_TYPE_BIGGEST _min, _max;
 
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (AIR_BETWEEN(nrrdTypeUnknown, nrrd->type, nrrdTypeBlock)) {
-    nrrdMinMaxFind[nrrd->type](&_min, &_max, nrrd);
-    nrrd->min = nrrdDLoad[nrrd->type](&_min);
-    nrrd->max = nrrdDLoad[nrrd->type](&_max);
+  if (!airEnumValidVal(nrrdType, nrrd->type)) {
+    sprintf(err, "%s: input nrrd has invalid type (%d)", me, nrrd->type);
+    biffAdd(NRRD, err); return 1;
   }
-  else if (nrrdTypeBlock == nrrd->type) {
+  if (nrrdTypeBlock == nrrd->type) {
     sprintf(err, "%s: don't know how to find range for nrrd type %s", me,
-	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
-  else if (nrrdTypeUnknown == nrrd->type) {
-    sprintf(err, "%s: input type is unknown!", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  else {
-    sprintf(err, "%s: nrrd type %d not recognized", me, nrrd->type);
-    biffAdd(NRRD, err); return 1;
-  }
+  /* else should be one of the scalar types */
+  nrrdFindMinMax[nrrd->type](&_min, &_max, nrrd);
+  nrrd->min = nrrdDLoad[nrrd->type](&_min);
+  nrrd->max = nrrdDLoad[nrrd->type](&_max);
   return 0;
 }
 
@@ -147,7 +142,7 @@ nrrdSetMinMax(Nrrd *nrrd) {
 */
 int
 nrrdCleverMinMax(Nrrd *nrrd) {
-  char me[]="_nrrdSetMinMax", err[NRRD_STRLEN_MED];
+  char me[]="nrrdCleverMinMax", err[AIR_STRLEN_MED];
   double min, max;
 
   if (!nrrd) {
@@ -156,7 +151,7 @@ nrrdCleverMinMax(Nrrd *nrrd) {
   }
   if (nrrdTypeBlock == nrrd->type) {
     sprintf(err, "%s: can't find min/max of type %s", me,
-	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+	    airEnumStr(nrrdType, nrrdTypeBlock));
   }
   if (AIR_EXISTS(nrrd->min) && AIR_EXISTS(nrrd->max)) {
     /* both of min and max already set, so we won't look for those, but
@@ -214,7 +209,7 @@ nrrdCleverMinMax(Nrrd *nrrd) {
 */
 int
 nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
-  char me[] = "nrrdQuantize", err[NRRD_STRLEN_MED];
+  char me[] = "nrrdQuantize", err[AIR_STRLEN_MED];
   double valIn, min, max;
   int valOut, type=nrrdTypeUnknown, size[NRRD_DIM_MAX];
   unsigned long long int valOutll;
@@ -230,7 +225,7 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   }
   if (nrrdTypeBlock == nin->type) {
     sprintf(err, "%s: can't quantize type %s", me,
-	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+	    airEnumStr(nrrdType, nrrdTypeBlock));
   }
   if (nrrdCleverMinMax(nin)) {
     sprintf(err, "%s: trouble setting min, max", me);
@@ -349,7 +344,7 @@ _nrrdHistoEqCompare(const void *a, const void *b) {
 */
 int
 nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
-  char me[]="nrrdHistoEq", err[NRRD_STRLEN_MED];
+  char me[]="nrrdHistoEq", err[AIR_STRLEN_MED];
   Nrrd *nhist;
   double val, min, max, *xcoord = NULL, *ycoord = NULL, *last = NULL;
   int i, idx, *respect = NULL, *steady = NULL;
@@ -363,7 +358,7 @@ nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart) {
   }
   if (nrrdTypeBlock == nrrd->type) {
     sprintf(err, "%s: can't histogram equalize type %s", me,
-	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
   num = nrrdElementNumber(nrrd);

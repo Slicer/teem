@@ -86,7 +86,7 @@ _nrrdBlockEndian(void *_data, nrrdBigInt N) {
   char me[]="_nrrdBlockEndian";
   
   fprintf(stderr, "%s: WARNING: can't fix endiannes of nrrd type %s\n", me,
-	  nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+	  airEnumStr(nrrdType, nrrdTypeBlock));
 }
 
 void
@@ -111,7 +111,7 @@ nrrdSwapEndian(Nrrd *nrrd) {
   
   if (nrrd 
       && nrrd->data 
-      && AIR_BETWEEN(nrrdTypeUnknown, nrrd->type, nrrdTypeLast)) {
+      && airEnumValidVal(nrrdType, nrrd->type)) {
     _nrrdSwapEndian[nrrd->type](nrrd->data, nrrdElementNumber(nrrd));
   }
   return;

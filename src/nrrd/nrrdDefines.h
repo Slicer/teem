@@ -20,9 +20,6 @@
 
 #ifndef NRRD_DEFINES_HAS_BEEN_INCLUDED
 #define NRRD_DEFINES_HAS_BEEN_INCLUDED
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include <limits.h>
 
@@ -35,12 +32,7 @@ extern "C" {
 
 #define NRRD_BIG_INT_PRINTF "%llu"
 
-#define NRRD_STRLEN_SMALL   65
-#define NRRD_STRLEN_MED    129
-#define NRRD_STRLEN_BIG    257
-#define NRRD_STRLEN_HUGE   513
-
-#define NRRD_STRLEN_LINE 8*1024+1  /* length of lines from a file.  Needs to
+#define NRRD_STRLEN_LINE 64*1024+1 /* length of lines from a file.  Needs to
 				      be big because of possibility of bare
 				      ascii tables with lots of data */
 #define NRRD_STRLEN_COMMENT 129    /* longest comment strings allowed */
@@ -104,8 +96,4 @@ extern "C" {
 				       a field of the nrrd header, when it
 				       being unknown is not an error */
 
-/* extern C */
-#ifdef __cplusplus
-}
-#endif
 #endif /* NRRD_DEFINES_HAS_BEEN_INCLUDED */

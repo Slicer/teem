@@ -126,7 +126,7 @@ _nrrdFieldInteresting(Nrrd *nrrd, nrrdIO *io, int field) {
 
 int
 _nrrdWriteDataRaw(Nrrd *nrrd, nrrdIO *io) {
-  char me[]="_nrrdWriteDataRaw", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdWriteDataRaw", err[AIR_STRLEN_MED];
   nrrdBigInt bsize;
   size_t size, ret, dio;
   
@@ -198,15 +198,15 @@ _nrrdWriteDataRaw(Nrrd *nrrd, nrrdIO *io) {
 
 int
 _nrrdWriteDataAscii(Nrrd *nrrd, nrrdIO *io) {
-  char me[]="_nrrdWriteDataAscii", err[NRRD_STRLEN_MED], 
-    buff[NRRD_STRLEN_MED];
+  char me[]="_nrrdWriteDataAscii", err[AIR_STRLEN_MED], 
+    buff[AIR_STRLEN_MED];
   int size, bufflen, linelen;
   char *data;
   nrrdBigInt I, num;
   
   if (nrrdTypeBlock == nrrd->type) {
     sprintf(err, "%s: can't write nrrd type %s to ascii", me,
-	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
   /* this shouldn't actually be necessary ... */
@@ -265,7 +265,7 @@ int
 */
 void
 _nrrdSprintFieldInfo(char *str, Nrrd *nrrd, nrrdIO *io, int field) {
-  char buff[NRRD_STRLEN_MED];
+  char buff[AIR_STRLEN_MED];
   const char *fs;
   int i, D;
 
@@ -277,7 +277,7 @@ _nrrdSprintFieldInfo(char *str, Nrrd *nrrd, nrrdIO *io, int field) {
   }
   
   D = nrrd->dim;
-  fs = nrrdEnumValToStr(nrrdEnumField, field);
+  fs = airEnumStr(nrrdField, field);
   switch (field) {
   case nrrdField_comment:
     /* this is handled differently */
@@ -285,16 +285,16 @@ _nrrdSprintFieldInfo(char *str, Nrrd *nrrd, nrrdIO *io, int field) {
     break;
   case nrrdField_type:
     sprintf(str, "%s: %s", fs,
-	    nrrdEnumValToStr(nrrdEnumType, nrrd->type));
+	    airEnumStr(nrrdType, nrrd->type));
     break;
   case nrrdField_encoding:
     sprintf(str, "%s: %s", fs,
-	    nrrdEnumValToStr(nrrdEnumEncoding, io->encoding));
+	    airEnumStr(nrrdEncoding, io->encoding));
     break;
   case nrrdField_endian:
     /* note we record our current architecture's endian */
     sprintf(str, "%s: %s", fs,
-	    nrrdEnumValToStr(nrrdEnumEndian, AIR_ENDIAN));
+	    airEnumStr(airEndian, AIR_ENDIAN));
     break;
   case nrrdField_dimension:
     sprintf(str, "%s: %d", fs, nrrd->dim);
@@ -333,7 +333,7 @@ _nrrdSprintFieldInfo(char *str, Nrrd *nrrd, nrrdIO *io, int field) {
     for (i=0; i<=D-1; i++) {
       sprintf(buff, " %s",
 	      (nrrd->axis[i].center 
-	       ? nrrdEnumValToStr(nrrdEnumCenter, nrrd->axis[i].center)
+	       ? airEnumStr(nrrdCenter, nrrd->axis[i].center)
 	       : NRRD_UNKNOWN));
       strcat(str, buff);
     }
@@ -398,7 +398,7 @@ if (_nrrdFieldInteresting(nrrd, io, field)) { \
 
 int
 _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
-  char me[]="_nrrdWriteNrrd", err[NRRD_STRLEN_MED], 
+  char me[]="_nrrdWriteNrrd", err[AIR_STRLEN_MED], 
     tmpName[NRRD_STRLEN_LINE],  line[NRRD_STRLEN_LINE];
   int i;
   
@@ -415,7 +415,7 @@ _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     io->dataFile = file;
   }
 
-  fprintf(file, "%s\n", nrrdEnumValToStr(nrrdEnumMagic, nrrdMagicNRRD0001));
+  fprintf(file, "%s\n", airEnumStr(nrrdMagic, nrrdMagicNRRD0001));
 
   /* this is where the majority of the header printing happens */
   for (i=1; i<=NRRD_FIELD_MAX; i++) {
@@ -432,7 +432,7 @@ _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 
   if (2 <= nrrdStateVerboseIO) {
     fprintf(stderr, "(%s: writing %s data ", me, 
-	    nrrdEnumValToStr(nrrdEnumEncoding, io->encoding));
+	    airEnumStr(nrrdEncoding, io->encoding));
     fflush(stderr);
   }
   if (_nrrdWriteData[io->encoding](nrrd, io)) {
@@ -458,7 +458,7 @@ _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 
 int
 _nrrdWritePNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
-  char me[]="_nrrdWritePNM", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdWritePNM", err[AIR_STRLEN_MED];
   char line[NRRD_STRLEN_LINE];
   int i, color, sx, sy, magic;
   
@@ -478,7 +478,7 @@ _nrrdWritePNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     sy = nrrd->axis[2].size;
   }
   
-  fprintf(file, "%s\n", nrrdEnumValToStr(nrrdEnumMagic, magic));
+  fprintf(file, "%s\n", airEnumStr(nrrdMagic, magic));
   fprintf(file, "%d %d\n", sx, sy);
   for (i=1; i<=NRRD_FIELD_MAX; i++) {
     if (_nrrdFieldValidInPNM[i]) { 
@@ -501,8 +501,8 @@ _nrrdWritePNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 
 int
 _nrrdWriteTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
-  char cmt[NRRD_STRLEN_SMALL], line[NRRD_STRLEN_LINE],
-    buff[NRRD_STRLEN_SMALL];
+  char cmt[AIR_STRLEN_SMALL], line[NRRD_STRLEN_LINE],
+    buff[AIR_STRLEN_SMALL];
   nrrdBigInt I;
   int i, x, y, sx, sy;
   void *data;
@@ -553,7 +553,7 @@ _nrrdGuessFormat(nrrdIO *io, char *filename) {
   if (airEndsWith(filename, NRRD_EXT_HEADER)) {
     io->base[strpos++] = '.';
     strcpy(io->base + strpos,
-	   nrrdEnumValToStr(nrrdEnumEncoding, io->encoding));
+	   airEnumStr(nrrdEncoding, io->encoding));
     io->seperateHeader = AIR_TRUE;
     io->format = nrrdFormatNRRD;
   }
@@ -630,7 +630,7 @@ _nrrdFixFormat(nrrdIO *io, Nrrd *nrrd) {
 
 int
 nrrdWrite(FILE *file, Nrrd *nrrd, nrrdIO *io) {
-  char me[]="nrrdWrite", err[NRRD_STRLEN_MED];
+  char me[]="nrrdWrite", err[AIR_STRLEN_MED];
   int ret=0;
 
   if (!(file && nrrd && io)) {
@@ -651,7 +651,7 @@ nrrdWrite(FILE *file, Nrrd *nrrd, nrrdIO *io) {
   }
   if (!nrrdFitsInFormat(nrrd, io->format, AIR_TRUE)) {
     sprintf(err, "%s: doesn't fit in %s format", me,
-	    nrrdEnumValToStr(nrrdEnumFormat, io->format));
+	    airEnumStr(nrrdFormat, io->format));
     biffAdd(NRRD, err); return 1;
   }
 
@@ -679,7 +679,7 @@ nrrdWrite(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 
 int
 nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
-  char me[]="nrrdSave", err[NRRD_STRLEN_MED];
+  char me[]="nrrdSave", err[AIR_STRLEN_MED];
   FILE *file;
   airArray *mop;
 

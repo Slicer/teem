@@ -680,7 +680,7 @@ _nrrdMeasureType(Nrrd *nin, int measr) {
 
 int
 nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
-  char me[] = "nrrdProject", err[NRRD_STRLEN_MED];
+  char me[] = "nrrdProject", err[AIR_STRLEN_MED];
   int d, i, iType, oType, row, rowNum, col, colNum, colStep, 
     linLen, iElSz, oElSz,
     map[NRRD_DIM_MAX], iSize[NRRD_DIM_MAX], oSize[NRRD_DIM_MAX];
@@ -693,7 +693,7 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
   }
   if (nrrdTypeBlock == nin->type) {
     sprintf(err, "%s: can't project nrrd type %s", me,
-	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
   if (!AIR_BETWEEN(nrrdMeasureUnknown, measr, nrrdMeasureLast)) {
@@ -778,12 +778,12 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr) {
     nout->content = calloc(strlen("measure(,,)")
 			   + strlen(nin->content)
 			   + 11
-			   + strlen(nrrdEnumValToStr(nrrdEnumMeasure, measr))
+			   + strlen(airEnumStr(nrrdMeasure, measr))
 			   + 1, sizeof(char));
     if (nout->content) {
       sprintf(nout->content, "measure(%s,%d,%s)", 
 	      nin->content, axis,
-	      nrrdEnumValToStr(nrrdEnumMeasure, measr));
+	      airEnumStr(nrrdMeasure, measr));
     }
     else {
       sprintf(err, "%s: couldn't allocate output content", me);

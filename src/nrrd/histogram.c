@@ -33,7 +33,7 @@
 */
 int
 nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type) {
-  char err[NRRD_STRLEN_MED], me[] = "nrrdHisto", cmt[NRRD_STRLEN_MED];
+  char err[AIR_STRLEN_MED], me[] = "nrrdHisto", cmt[AIR_STRLEN_MED];
   int idx;
   nrrdBigInt I, num;
   double min, max, val, count;
@@ -46,7 +46,7 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type) {
     sprintf(err, "%s: bins value (%d) invalid", me, bins);
     biffAdd(NRRD, err); return 1;
   }
-  if (!( AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast-1) )) {
+  if (!( airEnumValidVal(nrrdType, type) && nrrdTypeBlock != type )) {
     sprintf(err, "%s: invalid nrrd type %d", me, type);
     biffAdd(NRRD, err); return 1;
   }
@@ -133,7 +133,7 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type) {
 
 int
 nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy) {
-  char err[NRRD_STRLEN_MED], me[] = "nrrdHistoDraw", cmt[NRRD_STRLEN_MED];
+  char err[AIR_STRLEN_MED], me[] = "nrrdHistoDraw", cmt[AIR_STRLEN_MED];
   int k, sx, x, y, maxhitidx, E,
     numticks, *Y, *logY, tick, *ticks;
   double hits, maxhits;
@@ -246,7 +246,7 @@ nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy) {
 */
 int
 nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins, int type) {
-  char err[NRRD_STRLEN_MED], me[] = "nrrdHistoAxis";
+  char err[AIR_STRLEN_MED], me[] = "nrrdHistoAxis";
   int hidx, d, map[NRRD_DIM_MAX], size[NRRD_DIM_MAX];
   unsigned int szIn[NRRD_DIM_MAX], szOut[NRRD_DIM_MAX],
     coordIn[NRRD_DIM_MAX], coordOut[NRRD_DIM_MAX];
@@ -262,7 +262,7 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins, int type) {
     sprintf(err, "%s: bins value (%d) invalid", me, bins);
     biffAdd(NRRD, err); return 1;
   }
-  if (!( AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast-1) )) {
+  if (!( airEnumValidVal(nrrdType, type) && nrrdTypeBlock != type )) {
     sprintf(err, "%s: invalid nrrd type %d", me, type);
     biffAdd(NRRD, err); return 1;
   }
@@ -355,7 +355,7 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins, int type) {
 int 
 nrrdHistoJoint(Nrrd *nout, Nrrd **nin, 
 	       int numNrrds, int *bins, int type, int *clamp) {
-  char me[]="nrrdHistoJoint", err[NRRD_STRLEN_MED];
+  char me[]="nrrdHistoJoint", err[AIR_STRLEN_MED];
   int d, coord[NRRD_DIM_MAX], skip, hadContent, totalContentStrlen, len=0;
   double val, count;
   nrrdBigInt Iin, Iout, numEl;
@@ -370,7 +370,7 @@ nrrdHistoJoint(Nrrd *nout, Nrrd **nin,
 	    NRRD_DIM_MAX, numNrrds);
     biffAdd(NRRD, err); return 1;
   }
-  if (!( AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast-1) )) {
+  if (!( airEnumValidVal(nrrdType, type) && nrrdTypeBlock != type )) {
     sprintf(err, "%s: invalid nrrd type %d", me, type);
     biffAdd(NRRD, err); return 1;
   }

@@ -58,7 +58,7 @@ _printhist(unsigned char *hist, int bins, char *desc) {
 void
 _nrrdCheapMedian1D(Nrrd *nout, Nrrd *nin, int radius, 
 	      int bins, unsigned char *hist) {
-  /* char me[] = "_nrrdCheapMedian1D"; */
+  /* char me[]="_nrrdCheapMedian1D"; */
   nrrdBigInt X, num;
   int idx, diam, half;
   double val;
@@ -88,7 +88,7 @@ _nrrdCheapMedian1D(Nrrd *nout, Nrrd *nin, int radius,
 void
 _nrrdCheapMedian2D(Nrrd *nout, Nrrd *nin, int radius, 
 	      int bins, unsigned char *hist) {
-  /* char me[] = "_nrrdCheapMedian2D"; */
+  /* char me[]="_nrrdCheapMedian2D"; */
   nrrdBigInt X, Y, I, J;
   int sx, sy, idx, diam, half;
   double val;
@@ -124,7 +124,7 @@ _nrrdCheapMedian2D(Nrrd *nout, Nrrd *nin, int radius,
 void
 _nrrdCheapMedian3D(Nrrd *nout, Nrrd *nin, int radius, 
 	      int bins, unsigned char *hist) {
-  /* char me[] = "_nrrdCheapMedian3D"; */
+  /* char me[]="_nrrdCheapMedian3D"; */
   nrrdBigInt X, Y, Z, I, J, K;
   int sx, sy, sz, idx, diam, half;
   double val;
@@ -167,7 +167,7 @@ _nrrdCheapMedian3D(Nrrd *nout, Nrrd *nin, int radius,
 
 int
 nrrdCheapMedian(Nrrd *nout, Nrrd *nin, int radius, int bins) {
-  char err[NRRD_STRLEN_MED], me[] = "nrrdCheapMedian";
+  char me[]="nrrdCheapMedian", err[AIR_STRLEN_MED];
   unsigned char *hist;
 
   if (!(nin && nout)) {

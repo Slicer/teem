@@ -273,7 +273,7 @@ nrrdNuke(Nrrd *nrrd) {
 
 int
 _nrrdSizeValid(int dim, int *size) {
-  char me[]="_nrrdSizeValid", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdSizeValid", err[AIR_STRLEN_MED];
   int d;
   
   for (d=0; d<=dim-1; d++) {
@@ -293,7 +293,7 @@ _nrrdSizeValid(int dim, int *size) {
 */
 int
 nrrdWrap_nva(Nrrd *nrrd, void *data, int type, int dim, int *size) {
-  char me[] = "nrrdWrap_nva", err[NRRD_STRLEN_MED];
+  char me[] = "nrrdWrap_nva", err[AIR_STRLEN_MED];
   int d;
   
   if (!(nrrd && size)) {
@@ -327,7 +327,7 @@ nrrdWrap_nva(Nrrd *nrrd, void *data, int type, int dim, int *size) {
 */
 int
 nrrdWrap(Nrrd *nrrd, void *data, int type, int dim, ...) {
-  char me[] = "nrrdWrap", err[NRRD_STRLEN_MED];
+  char me[] = "nrrdWrap", err[AIR_STRLEN_MED];
   va_list ap;
   int d, size[NRRD_DIM_MAX];
   
@@ -391,7 +391,7 @@ _nrrdTraverse(Nrrd *nrrd) {
 */
 int 
 nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
-  char me[] = "nrrdAlloc_nva", err[NRRD_STRLEN_MED];
+  char me[] = "nrrdAlloc_nva", err[AIR_STRLEN_MED];
   nrrdBigInt num;
   int d, esize;
 
@@ -399,7 +399,7 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast)) {
+  if (!airEnumValidVal(nrrdType, type)) {
     sprintf(err, "%s: type (%d) is invalid", me, type);
     biffAdd(NRRD, err); return 1;
   }
@@ -441,7 +441,7 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
 */
 int 
 nrrdAlloc(Nrrd *nrrd, int type, int dim, ...) {
-  char me[]="nrrdAlloc", err[NRRD_STRLEN_MED];
+  char me[]="nrrdAlloc", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX], d;
   va_list ap;
   
@@ -474,7 +474,7 @@ nrrdAlloc(Nrrd *nrrd, int type, int dim, ...) {
 */
 int
 nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
-  char me[]="nrrdMaybeAlloc_nva", err[NRRD_STRLEN_MED];
+  char me[]="nrrdMaybeAlloc_nva", err[AIR_STRLEN_MED];
   nrrdBigInt sizeWant, sizeHave, numWant;
   int d, need;
 
@@ -482,7 +482,7 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast)) {
+  if (!airEnumValidVal(nrrdType, type)) {
     sprintf(err, "%s: type (%d) is invalid", me, type);
     biffAdd(NRRD, err); return 1;
   }
@@ -540,7 +540,7 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
 */
 int 
 nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim, ...) {
-  char me[]="nrrdMaybeAlloc", err[NRRD_STRLEN_MED];
+  char me[]="nrrdMaybeAlloc", err[AIR_STRLEN_MED];
   int d, size[NRRD_DIM_MAX];
   nrrdBigInt num;
   va_list ap;
@@ -577,7 +577,7 @@ nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim, ...) {
 */
 int
 nrrdCopy(Nrrd *nout, Nrrd *nin) {
-  char me[]="nrrdCopy", err[NRRD_STRLEN_MED];
+  char me[]="nrrdCopy", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX];
 
   if (!(nin && nout)) {
@@ -628,7 +628,7 @@ nrrdCopy(Nrrd *nout, Nrrd *nin) {
 */
 int
 nrrdPPM(Nrrd *ppm, int sx, int sy) {
-  char me[]="nrrdPPM", err[NRRD_STRLEN_MED];
+  char me[]="nrrdPPM", err[AIR_STRLEN_MED];
 
   if (!(sx > 0 && sy > 0)) {
     sprintf(err, "%s: got invalid sizes (%d,%d)", me, sx, sy);
@@ -648,7 +648,7 @@ nrrdPPM(Nrrd *ppm, int sx, int sy) {
 */
 int
 nrrdPGM(Nrrd *pgm, int sx, int sy) {
-  char me[]="nrrdNewPGM", err[NRRD_STRLEN_MED];
+  char me[]="nrrdNewPGM", err[AIR_STRLEN_MED];
 
   if (!(sx > 0 && sy > 0)) {
     sprintf(err, "%s: got invalid sizes (%d,%d)", me, sx, sy);
@@ -670,7 +670,7 @@ nrrdPGM(Nrrd *pgm, int sx, int sy) {
 */
 int
 nrrdTable(Nrrd *table, int sx, int sy) {
-  char me[]="nrrdTable", err[NRRD_STRLEN_MED];
+  char me[]="nrrdTable", err[AIR_STRLEN_MED];
 
   if (!(sx > 0 && sy > 0)) {
     sprintf(err, "%s: got invalid sizes (%d,%d)", me, sx, sy);

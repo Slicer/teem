@@ -31,7 +31,7 @@
 */
 int
 nrrdInvertPerm(int *invp, int *p, int n) {
-  char me[]="nrrdInvertPerm", err[NRRD_STRLEN_MED];
+  char me[]="nrrdInvertPerm", err[AIR_STRLEN_MED];
   int problem, i;
 
   if (!(invp && p && n > 0)) {
@@ -90,8 +90,8 @@ nrrdInvertPerm(int *invp, int *p, int n) {
 */
 int
 nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
-  char me[]="nrrdPermuteAxes", err[NRRD_STRLEN_MED],
-    tmpS[NRRD_STRLEN_SMALL];
+  char me[]="nrrdPermuteAxes", err[AIR_STRLEN_MED],
+    tmpS[AIR_STRLEN_SMALL];
   nrrdBigInt idxOut, idxIn,  /* indices for input and output scanlines */
     lineSize,                /* size of block of memory which can be
 				moved contiguously from input to output,
@@ -229,7 +229,7 @@ nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
 */
 int
 nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2) {
-  char me[]="nrrdSwapAxes", err[NRRD_STRLEN_MED];
+  char me[]="nrrdSwapAxes", err[AIR_STRLEN_MED], *incontent;
   int i, axes[NRRD_DIM_MAX];
 
   if (!(nout && nin)) {
@@ -247,9 +247,25 @@ nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2) {
     axes[i] = i;
   axes[ax2] = ax1;
   axes[ax1] = ax2;
+  incontent = nin->content;
+  nin->content = NULL;
   if (nrrdPermuteAxes(nout, nin, axes)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); nin->content = incontent; return 1;
+  }
+  nin->content = incontent;
+  if (nin->content) {
+    nout->content = calloc(strlen("swap(,,)")
+			   + strlen(nin->content)
+			   + 11 + 11
+			   + 1, sizeof(char));
+    if (nout->content) {
+      sprintf(nout->content, "swap(%s,%d,%d)", nin->content, ax1, ax2);
+    }
+    else {
+      sprintf(err, "%s: couldn't allocate output content", me);
+      biffAdd(NRRD, err); return 1;
+    }
   }
   return 0;
 }
@@ -274,8 +290,8 @@ nrrdSwapAxes(Nrrd *nout, Nrrd *nin, int ax1, int ax2) {
 */
 int
 nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
-  char me[]="nrrdShuffle", err[NRRD_STRLEN_MED],
-    tmpS[NRRD_STRLEN_SMALL];
+  char me[]="nrrdShuffle", err[AIR_STRLEN_MED],
+    tmpS[AIR_STRLEN_SMALL];
   int size[NRRD_DIM_MAX], *lsize,
     d, ldim, len,
     cIn[NRRD_DIM_MAX+1],
@@ -380,7 +396,7 @@ nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
 */
 int
 nrrdFlip(Nrrd *nout, Nrrd *nin, int axis) {
-  char me[]="nrrdFlip", err[NRRD_STRLEN_MED];
+  char me[]="nrrdFlip", err[AIR_STRLEN_MED], *incontent;
   int i, *perm;
 
   if (!(nout && nin)) {
@@ -399,9 +415,25 @@ nrrdFlip(Nrrd *nout, Nrrd *nin, int axis) {
   for (i=0; i<=nin->axis[axis].size-1; i++) {
     perm[i] = nin->axis[axis].size-1-i;
   }
+  incontent = nin->content;
+  nin->content = NULL;
   if (nrrdShuffle(nout, nin, axis, perm)) {
     sprintf(err, "%s: trouble doing shuffle", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); nin->content = incontent; return 1;
+  }
+  nin->content = incontent;
+  if (nin->content) {
+    nout->content = calloc(strlen("flip(,)")
+			   + strlen(nin->content)
+			   + 11
+			   + 1, sizeof(char));
+    if (nout->content) {
+      sprintf(nout->content, "flip(%s,%d)", nin->content, axis);
+    }
+    else {
+      sprintf(err, "%s: couldn't allocate output content", me);
+      biffAdd(NRRD, err); return 1;
+    }
   }
   nout->axis[axis].min = nin->axis[axis].max;
   nout->axis[axis].max = nin->axis[axis].min;
@@ -411,7 +443,7 @@ nrrdFlip(Nrrd *nout, Nrrd *nin, int axis) {
 
 int
 nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
-  char me[]="nrrdJoin", err[NRRD_STRLEN_MED];
+  char me[]="nrrdJoin", err[AIR_STRLEN_MED];
   int mindim, maxdim, diffdim, outdim, map[NRRD_DIM_MAX], size[NRRD_DIM_MAX],
     i, d, outlen, permute[NRRD_DIM_MAX], ipermute[NRRD_DIM_MAX];
   nrrdBigInt outnum, chunksize;
@@ -619,8 +651,8 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
 */
 int
 nrrdReshape_nva(Nrrd *nout, Nrrd *nin, int dim, int *size) {
-  char me[]="nrrdReshape_nva", err[NRRD_STRLEN_MED],
-    tmpS[NRRD_STRLEN_SMALL];
+  char me[]="nrrdReshape_nva", err[AIR_STRLEN_MED],
+    tmpS[AIR_STRLEN_SMALL];
   nrrdBigInt numOut;
   int d;
 
@@ -691,7 +723,7 @@ nrrdReshape_nva(Nrrd *nout, Nrrd *nin, int dim, int *size) {
 */
 int
 nrrdReshape(Nrrd *nout, Nrrd *nin, int dim, ...) {
-  char me[]="nrrdReshape", err[NRRD_STRLEN_MED];
+  char me[]="nrrdReshape", err[AIR_STRLEN_MED];
   int d, size[NRRD_DIM_MAX];
   va_list ap;
 
@@ -727,7 +759,7 @@ nrrdReshape(Nrrd *nout, Nrrd *nin, int dim, ...) {
 */
 int
 nrrdBlock(Nrrd *nout, Nrrd *nin) {
-  char me[]="nrrdBlock", err[NRRD_STRLEN_MED];
+  char me[]="nrrdBlock", err[AIR_STRLEN_MED];
   int d, numEl, map[NRRD_DIM_MAX], size[NRRD_DIM_MAX];
 
   if (!(nout && nin)) {
@@ -790,7 +822,7 @@ nrrdBlock(Nrrd *nout, Nrrd *nin) {
 */
 int
 nrrdUnblock(Nrrd *nout, Nrrd *nin, int type) {
-  char me[]="nrrdUnblock", err[NRRD_STRLEN_MED];
+  char me[]="nrrdUnblock", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX], d, map[NRRD_DIM_MAX], outElSz;
 
   if (!(nout && nin)) {
@@ -799,7 +831,7 @@ nrrdUnblock(Nrrd *nout, Nrrd *nin, int type) {
   }
   if (nrrdTypeBlock != nin->type) {
     sprintf(err, "%s: need input nrrd type %s", me,
-	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
   if (NRRD_DIM_MAX == nin->dim) {
@@ -807,13 +839,13 @@ nrrdUnblock(Nrrd *nout, Nrrd *nin, int type) {
 	    me, NRRD_DIM_MAX);
     biffAdd(NRRD, err); return 1;
   }
-  if (!AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast)) {
+  if (!airEnumValidVal(nrrdType, type)) {
     sprintf(err, "%s: invalid requested type %d", me, type);
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdTypeBlock == type && (!(0 < nout->blockSize))) {
     sprintf(err, "%s: for %s type, need nout->blockSize set", me,
-	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
   /* this shouldn't actually be necessary ... */
@@ -849,12 +881,12 @@ nrrdUnblock(Nrrd *nout, Nrrd *nin, int type) {
   if (nin->content) {
     nout->content = calloc(strlen("unblock(,,)")
 			   + strlen(nin->content)
-			   + strlen(nrrdEnumValToStr(nrrdEnumType, type))
+			   + strlen(airEnumStr(nrrdType, type))
 			   + 11
 			   + 1, sizeof(char));
     if (nout->content) {
       sprintf(nout->content, "unblock(%s,%s)", 
-	      nin->content, nrrdEnumValToStr(nrrdEnumType, type));
+	      nin->content, airEnumStr(nrrdType, type));
     }
     else {
       sprintf(err, "%s: couldn't allocate output content", me);

@@ -20,9 +20,6 @@
 
 #ifndef NRRD_MACROS_HAS_BEEN_INCLUDED
 #define NRRD_MACROS_HAS_BEEN_INCLUDED
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /*
 ******** NRRD_AXIS_POS, NRRD_AXIS_IDX
@@ -125,8 +122,4 @@ do {                                          \
   }                                           \
 } while (0)
 
-/* extern C */
-#ifdef __cplusplus
-}
-#endif
 #endif /* NRRD_MACROS_HAS_BEEN_INCLUDED */

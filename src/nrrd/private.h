@@ -20,9 +20,6 @@
 
 #ifndef NRRD_PRIVATE_HAS_BEEN_INCLUDED
 #define NRRD_PRIVATE_HAS_BEEN_INCLUDED
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define _NRRD_COMMENT_CHAR '#'
 #define _NRRD_TABLE_INCR 256
@@ -38,7 +35,7 @@ typedef union {
 /* arrays.c */
 extern int _nrrdFieldValidInPNM[NRRD_FIELD_MAX+1];
 extern int _nrrdFieldValidInTable[NRRD_FIELD_MAX+1];
-extern char _nrrdEnumFieldStr[NRRD_FIELD_MAX+1][NRRD_STRLEN_SMALL];
+extern char _nrrdEnumFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL];
 extern int _nrrdFieldRequired[NRRD_FIELD_MAX+1];
 extern int _nrrdFormatUsesDIO[NRRD_FORMAT_MAX+1];
 
@@ -53,7 +50,7 @@ extern void (*_nrrdConv[][NRRD_TYPE_MAX+1])(void *,void *, nrrdBigInt);
 extern int _nrrdSetMinMax(Nrrd *nrrd);
 
 /* read.c */
-extern char _nrrdFieldStr[NRRD_FIELD_MAX+1][NRRD_STRLEN_SMALL];
+extern char _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL];
 extern char _nrrdRelDirFlag[];
 extern char _nrrdFieldSep[];
 extern char _nrrdTableSep[];
@@ -67,8 +64,4 @@ extern int _nrrdReadNrrdParseField(Nrrd *nrrd, nrrdIO *io, int useBiff);
 extern int _nrrdSizeValid(int dim, int *size);
 extern void _nrrdTraverse(Nrrd *nrrd);
 
-/* extern C */
-#ifdef __cplusplus
-}
-#endif
 #endif /* NRRD_PRIVATE_HAS_BEEN_INCLUDED */

@@ -20,9 +20,6 @@
 
 #ifndef NRRD_HAS_BEEN_INCLUDED
 #define NRRD_HAS_BEEN_INCLUDED
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define NRRD "nrrd"
 
@@ -241,7 +238,7 @@ typedef struct {
   double padValue;                  /* if padding, what value to pad with */
 } nrrdResampleInfo;
 
-/******** defaults, as well as state */
+/******** defaults (nrrdDef..) and state (nrrdState..) */
 /* defaults.c */
 extern int nrrdDefWrtEncoding;
 extern int nrrdDefWrtSeperateHeader;
@@ -263,11 +260,22 @@ extern int nrrdStateMeasureType;
 extern int nrrdStateMeasureModeBins;
 extern int nrrdStateMeasureHistoType;
 
-/******** going between the enums' values and strings */
+/******** all the airEnums used through-out nrrd */
+/* (the actual C enums are in nrrdEnums.h) */
+/* enums.c */
+extern airEnum nrrdFormat;
+extern airEnum nrrdBoundary;
+extern airEnum nrrdMagic;
+extern airEnum nrrdType;
+extern airEnum nrrdEncoding;
+extern airEnum nrrdMeasure;
+extern airEnum nrrdCenter;
+extern airEnum nrrdAxesInfo;
+extern airEnum nrrdField;
+
+/******** arrays of things (poor-man's functions/predicates) */
 /* arrays.c */
-extern const char *nrrdEnumValToStr(int whichEnum, int val);
-extern int nrrdEnumStrToVal(int whichEnum, char *str);
-extern char nrrdTypeConv[][NRRD_STRLEN_SMALL];
+extern char nrrdTypeConv[][AIR_STRLEN_SMALL];
 extern int nrrdEncodingEndianMatters[];
 extern int nrrdTypeSize[];
 extern int nrrdTypeFixed[];
@@ -284,14 +292,14 @@ extern Nrrd *nrrdNew(void);
 extern Nrrd *nrrdNix(Nrrd *nrrd);
 extern Nrrd *nrrdEmpty(Nrrd *nrrd);
 extern Nrrd *nrrdNuke(Nrrd *nrrd);
-extern int nrrdWrap(Nrrd *nrrd, void *data, int type, int dim, ...);
 extern int nrrdWrap_nva(Nrrd *nrrd, void *data, int type, int dim, int *size);
+extern int nrrdWrap(Nrrd *nrrd, void *data, int type, int dim, ...);
 extern Nrrd *nrrdUnwrap(Nrrd *nrrd);
 extern int nrrdCopy(Nrrd *nout, Nrrd *nin);
-extern int nrrdAlloc(Nrrd *nrrd, int type, int dim, ...);
 extern int nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size);
-extern int nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim, ...);
+extern int nrrdAlloc(Nrrd *nrrd, int type, int dim, ...);
 extern int nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, int *size);
+extern int nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim, ...);
 extern int nrrdPPM(Nrrd *, int sx, int sy);
 extern int nrrdPGM(Nrrd *, int sx, int sy);
 extern int nrrdTable(Nrrd *table, int sx, int sy);
@@ -299,10 +307,10 @@ extern int nrrdTable(Nrrd *table, int sx, int sy);
 /******** axes related */
 /* axes.c */
 extern int nrrdAxesCopy(Nrrd *nout, Nrrd *nin, int *map, int bitflag);
-extern void nrrdAxesSet(Nrrd *nin, int axInfo, ...);
 extern void nrrdAxesSet_nva(Nrrd *nin, int axInfo, void *info);
-extern void nrrdAxesGet(Nrrd *nrrd, int axInfo, ...);
+extern void nrrdAxesSet(Nrrd *nin, int axInfo, ...);
 extern void nrrdAxesGet_nva(Nrrd *nrrd, int axInfo, void *info);
+extern void nrrdAxesGet(Nrrd *nrrd, int axInfo, ...);
 extern double nrrdAxisPos(Nrrd *nrrd, int ax, double idx);
 extern double nrrdAxisIdx(Nrrd *nrrd, int ax, double pos);
 extern void nrrdAxisPosRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
@@ -353,7 +361,7 @@ extern int    (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, void *);
 extern int    (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, void *);
 extern float  (*nrrdFClamp[NRRD_TYPE_MAX+1])(float);
 extern double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double);
-extern void (*nrrdMinMaxFind[NRRD_TYPE_MAX+1])(void *minP, void *maxP,
+extern void (*nrrdFindMinMax[NRRD_TYPE_MAX+1])(void *minP, void *maxP,
 					       Nrrd *nrrd);
 extern int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *);
 
@@ -374,14 +382,22 @@ extern int nrrdConvert(Nrrd *nout, Nrrd *nin, int type);
 extern int nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits);
 extern int nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart);
 
-/******** sampling, slicing, cropping, padding */
+/******** sampling, slicing, cropping */
 /* subset.c */
-extern int nrrdSample(void *val, Nrrd *nin, ...);
 extern int nrrdSample_nva(void *val, Nrrd *nin, int *coord);
+extern int nrrdSample(void *val, Nrrd *nin, ...);
 extern int nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos);
 extern int nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max);
+
+/******** padding */
+/* superset.c */
+extern int nrrdPad_nva(Nrrd *nout, Nrrd *nin, int *min, int *max,
+		       int boundary, double padValue);
 extern int nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, 
 		   int boundary, ...);
+extern int nrrdSimplePad_nva(Nrrd *nout, Nrrd *nin, int pad,
+			     int boundary, double padValue);
+extern int nrrdSimplePad(Nrrd *nout, Nrrd *nin, int pad, int boundary, ...);
 
 /******** permuting and shuffling */
 /* reorder.c */
@@ -440,11 +456,5 @@ extern nrrdKernel *nrrdKernelZero, /* zero everywhere */
   *nrrdKernelGaussianDD;           /* 2nd derivative of Gaussian */
 extern int nrrdKernelParse(nrrdKernel **kernelP, double *param, char *str);
 
-/* extern C */
-#ifdef __cplusplus
-}
-#endif
 #endif /* NRRD_HAS_BEEN_INCLUDED */
-
-
 

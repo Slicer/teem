@@ -19,9 +19,6 @@
 
 #ifndef NRRD_ENUMS_HAS_BEEN_INCLUDED
 #define NRRD_ENUMS_HAS_BEEN_INCLUDED
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /*******
 ******** NONE of these enums should have values set explicitly in their
@@ -36,14 +33,14 @@ extern "C" {
 **
 ** the different file formats which nrrd supports
 */
-typedef enum {
+enum {
   nrrdFormatUnknown,
   nrrdFormatNRRD,       /* 1: basic nrrd format (associated with both
 			   magic nrrdMagicOldNRRD and nrrdMagicNRRD0001 */
   nrrdFormatPNM,        /* 2: PNM image */
   nrrdFormatTable,      /* 3: bare ASCII table */
   nrrdFormatLast
-} nrrdFormat;
+};
 #define NRRD_FORMAT_MAX    3
 
 /*
@@ -51,7 +48,7 @@ typedef enum {
 **
 ** when resampling, how to deal with the ends of a scanline
 */
-typedef enum {
+enum {
   nrrdBoundaryUnknown,
   nrrdBoundaryPad,      /* 1: fill with some user-specified value */
   nrrdBoundaryBleed,    /* 2: copy the last/first value out as needed */
@@ -60,7 +57,7 @@ typedef enum {
 			   ONLY sensible for a strictly positive kernel
 			   which integrates to unity (as in blurring) */
   nrrdBoundaryLast
-} nrrdBoundary;
+};
 #define NRRD_BOUNDARY_MAX  4
 
 /*
@@ -71,16 +68,16 @@ typedef enum {
 ** WARNING: the PNM format does not _require_ a carraige return after
 ** the magic, but everything seems to do it anyway
 */
-typedef enum {
+enum {
   nrrdMagicUnknown,
-  nrrdMagicOldNRRD,      /* 1: "NRRD00.01" */
-  nrrdMagicNRRD0001,     /* 2: "NRRD0001" */
-  nrrdMagicP2,           /* 3: ascii PGM */
-  nrrdMagicP3,           /* 4: ascii PPM */
-  nrrdMagicP5,           /* 5: binary PGM */
-  nrrdMagicP6,           /* 6: binary PPM */
+  nrrdMagicOldNRRD,      /* 1: "NRRD00.01\n" (pre teem 1.4) */
+  nrrdMagicNRRD0001,     /* 2: "NRRD0001\n" */
+  nrrdMagicP2,           /* 3: "P2\n": ascii PGM */
+  nrrdMagicP3,           /* 4: "P3\n": ascii PPM */
+  nrrdMagicP5,           /* 5: "P5\n": binary PGM */
+  nrrdMagicP6,           /* 6: "P6\n": binary PPM */
   nrrdMagicLast
-} nrrdMagic;
+};
 #define NRRD_MAGIC_MAX      6
 
 /*
@@ -88,7 +85,7 @@ typedef enum {
 **
 ** all the different types, identified by integer
 */
-typedef enum {
+enum {
   nrrdTypeUnknown,
   nrrdTypeChar,          /*  1:   signed 1-byte integer */
   nrrdTypeUChar,         /*  2: unsigned 1-byte integer */
@@ -102,9 +99,9 @@ typedef enum {
   nrrdTypeDouble,        /* 10:          8-byte floating point */
   nrrdTypeBlock,         /* 11: size user defined at run time; MUST BE LAST */
   nrrdTypeLast
-} nrrdType;
+};
 #define NRRD_TYPE_MAX       11
-#define NRRD_TYPE_SIZE_MAX   8    /* sizeof() largest scalar type */
+#define NRRD_TYPE_SIZE_MAX   8    /* max(sizeof()) over all scalar types */
 #define NRRD_TYPE_BIGGEST double  /* this should be a basic C type which
 				     requires for storage the maximum size
 				     of all the basic C types */
@@ -114,12 +111,12 @@ typedef enum {
 **
 ** how data might be encoded into a bytestream
 */
-typedef enum {
+enum {
   nrrdEncodingUnknown,
   nrrdEncodingRaw,        /* 1: same as memory layout (modulo endianness) */
   nrrdEncodingAscii,      /* 2: decimal values are spelled out in ascii */
   nrrdEncodingLast
-} nrrdEncoding;
+};
 #define NRRD_ENCODING_MAX    2
 
 /*
@@ -128,7 +125,7 @@ typedef enum {
 ** ways to "measure" some portion of the array
 ** NEEDS TO BE IN SYNC WITH nrrdMeasr array in measr.c
 */
-typedef enum {
+enum {
   nrrdMeasureUnknown,
   nrrdMeasureMin,            /* 1: smallest value */
   nrrdMeasureMax,            /* 2: biggest value */
@@ -154,7 +151,7 @@ typedef enum {
   nrrdMeasureHistoSum,       /* 18 */
   nrrdMeasureHistoVariance,  /* 19 */
   nrrdMeasureLast
-} nrrdMeasure;
+};
 #define NRRD_MEASURE_MAX        19
 
 /*
@@ -162,7 +159,7 @@ typedef enum {
 **
 ** node-centered vs. cell-centered
 */
-typedef enum {
+enum {
   nrrdCenterUnknown,
   nrrdCenterNode,            /* 1: samples at corners of things
 				(how "voxels" are usually imagined)
@@ -173,7 +170,7 @@ typedef enum {
 				 \___|___/\___|___/\___|___/
 				     X        X        X       */
   nrrdCenterLast
-} nrrdCenter;
+};
 #define NRRD_CENTER_MAX         2
 
 /*
@@ -181,7 +178,7 @@ typedef enum {
 **
 ** the different pieces of per-axis information recorded in a nrrd
 */
-typedef enum {
+enum {
   nrrdAxesInfoUnknown,
   nrrdAxesInfoSize,            /* 1: number of samples along axis */
 #define NRRD_AXESINFO_SIZE    (1<<1)
@@ -197,7 +194,7 @@ typedef enum {
   nrrdAxesInfoLabel,           /* 6: string describing the axis */
 #define NRRD_AXESINFO_LABEL   (1<<6)
   nrrdAxesInfoLast
-} nrrdAxesInfo;
+};
 #define NRRD_AXESINFO_MAX         6
 #define NRRD_AXESINFO_ALL         ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6))
 #define NRRD_AXESINFO_NONE        0
@@ -217,7 +214,7 @@ typedef enum {
 **
 ** the various fields we can parse in a NRRD header
 */
-typedef enum {
+enum {
   nrrdField_unknown,
   nrrdField_comment,         /*  1 */
   nrrdField_content,         /*  2 */
@@ -241,7 +238,7 @@ typedef enum {
   nrrdField_line_skip,       /* 20 */
   nrrdField_byte_skip,       /* 21 */
   nrrdField_last
-} nrrdField;
+};
 #define NRRD_FIELD_MAX          21
 
 /* oh look, I'm violating my rules outline above for how the enum values
@@ -249,40 +246,16 @@ typedef enum {
 ** to have the logical value of both nrrdNonExistFalse and nrrdNonExistTrue
 ** to be (in C) true.  For instance, nrrdHasNonExist() should be able to
 ** return a value from this enum which also functions in a C expressions
-** as the expected boolean value
+** as the expected boolean value.  If someone makes the mistake of testing
+** one of these values as a C truth value, they will probably be harmlessly
+** conservative in thinking that non-existant values do exist.
 */
-typedef enum {
+enum {
   nrrdNonExistFalse,      /* 0 */
   nrrdNonExistTrue,       /* 1 */
   nrrdNonExistUnknown,    /* 2 */
   nrrdNonExistLast
-} nrrdNonExist;
+};
 #define NRRD_NON_EXIST_MAX   2
 
-/*
-******** nrrdEnum enum
-**
-** all the enums above (and then some)
-*/
-typedef enum {
-  nrrdEnumUnknown,
-  nrrdEnumFormat,            /*  1 */
-  nrrdEnumBoundary,          /*  2 */
-  nrrdEnumMagic,             /*  3 */
-  nrrdEnumType,              /*  4 */
-  nrrdEnumEncoding,          /*  5 */
-  nrrdEnumMeasure,           /*  6 */
-  nrrdEnumCenter,            /*  7 */
-  nrrdEnumAxesInfo,          /*  8 */
-  nrrdEnumEndian,            /*  9 */
-  nrrdEnumField,             /* 10 */
-  nrrdEnumNonExist,          /* 11 */
-  nrrdEnumLast
-} nrrdEnum;
-#define NRRD_ENUM_MAX           11
-
-/* extern C */
-#ifdef __cplusplus
-}
-#endif
 #endif /* NRRD_ENUMS_HAS_BEEN_INCLUDED */

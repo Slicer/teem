@@ -18,7 +18,7 @@
 */
 
 
-#include <nrrd.h>
+#include "nrrd.h"
 
 /* ------------------------------------------------------------ */
 
@@ -1126,8 +1126,8 @@ _nrrdKernelStrToKern(char *str) {
 
 int
 nrrdKernelParse(nrrdKernel **kernelP, double *param, char *_str) {
-  char me[]="nrrdKernelParse", err[128], str[NRRD_STRLEN_HUGE],
-    kstr[NRRD_STRLEN_MED], *_pstr=NULL, *pstr;
+  char me[]="nrrdKernelParse", err[128], str[AIR_STRLEN_HUGE],
+    kstr[AIR_STRLEN_MED], *_pstr=NULL, *pstr;
   int i, j, NP;
   
   if (!(kernelP && param && _str)) {

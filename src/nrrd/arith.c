@@ -33,7 +33,7 @@
 ** min and max.  */
 int
 nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, double min, double max) {
-  char me[]="nrrdArithGamma", err[NRRD_STRLEN_MED];
+  char me[]="nrrdArithGamma", err[AIR_STRLEN_MED];
   double val;
   nrrdBigInt I, num;
   double (*lup)(void *, nrrdBigInt);
@@ -55,7 +55,7 @@ nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, double min, double max) {
   }
   if (!( nrrdTypeBlock != nin->type && nrrdTypeBlock != nout->type )) {
     sprintf(err, "%s: can't deal with %s type", me,
-	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
 

@@ -40,7 +40,7 @@ char _nrrdTableSep[] = " ,\t";
 */
 int
 _nrrdValidHeader(Nrrd *nrrd, nrrdIO *io) {
-  char me[]="_nrrdValidHeader", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdValidHeader", err[AIR_STRLEN_MED];
   int i;
 
   for (i=1; i<=NRRD_FIELD_MAX; i++) {
@@ -48,14 +48,14 @@ _nrrdValidHeader(Nrrd *nrrd, nrrdIO *io) {
       continue;
     if (!io->seen[i]) {
       sprintf(err, "%s: didn't see required field: %s",
-	      me, nrrdEnumValToStr(nrrdEnumField, i));
+	      me, airEnumStr(nrrdField, i));
       biffAdd(NRRD, err); return 0;
     }
   }
   if (nrrdTypeBlock == nrrd->type && 0 == nrrd->blockSize) {
     sprintf(err, "%s: type is %s, but missing field: %s", me,
-	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock),
-	    nrrdEnumValToStr(nrrdEnumField, nrrdField_block_size));
+	    airEnumStr(nrrdType, nrrdTypeBlock),
+	    airEnumStr(nrrdField, nrrdField_block_size));
     biffAdd(NRRD, err); return 0;
   }
   /* this shouldn't actually be necessary ... */
@@ -67,9 +67,9 @@ _nrrdValidHeader(Nrrd *nrrd, nrrdIO *io) {
       nrrdEncodingEndianMatters[io->encoding] &&
       1 != nrrdElementSize(nrrd)) {
     sprintf(err, "%s: type (%s) and encoding (%s) require %s info", me,
-	    nrrdEnumValToStr(nrrdEnumType, nrrd->type),
-	    nrrdEnumValToStr(nrrdEnumEncoding, io->encoding),
-	    nrrdEnumValToStr(nrrdEnumField, nrrdField_endian));
+	    airEnumStr(nrrdType, nrrd->type),
+	    airEnumStr(nrrdEncoding, io->encoding),
+	    airEnumStr(nrrdField, nrrdField_endian));
     biffAdd(NRRD, err); return 0;    
   }
   
@@ -83,7 +83,7 @@ _nrrdValidHeader(Nrrd *nrrd, nrrdIO *io) {
 
 int
 _nrrdCalloc(Nrrd *nrrd) {
-  char me[]="_nrrdCalloc", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdCalloc", err[AIR_STRLEN_MED];
   nrrdBigInt num;
 
   nrrd->data = airFree(nrrd->data);
@@ -108,7 +108,7 @@ _nrrdCalloc(Nrrd *nrrd) {
 
 int
 _nrrdReadDataRaw(Nrrd *nrrd, nrrdIO *io) {
-  char me[]="_nrrdReadDataRaw", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadDataRaw", err[AIR_STRLEN_MED];
   nrrdBigInt num, bsize;
   size_t size, ret, dio;
   
@@ -184,6 +184,8 @@ _nrrdReadDataRaw(Nrrd *nrrd, nrrdIO *io) {
       /* the endiannesses of the data and the architecture are different,
 	 and, the size of the data elements is bigger than a byte */
       if (2 <= nrrdStateVerboseIO) {
+	fprintf(stderr, "!%s: io->endian = %d, AIR_ENDIAN = %d\n", 
+		me, io->endian, AIR_ENDIAN);
 	fprintf(stderr, "(%s: fixing endianness ... ", me);
 	fflush(stderr);
       }
@@ -200,7 +202,7 @@ _nrrdReadDataRaw(Nrrd *nrrd, nrrdIO *io) {
 
 int
 _nrrdReadDataAscii(Nrrd *nrrd, nrrdIO *io) {
-  char me[]="_nrrdReadDataAscii", err[NRRD_STRLEN_MED],
+  char me[]="_nrrdReadDataAscii", err[AIR_STRLEN_MED],
     numStr[NRRD_STRLEN_LINE];
   nrrdBigInt I, num;
   char *data;
@@ -208,7 +210,7 @@ _nrrdReadDataAscii(Nrrd *nrrd, nrrdIO *io) {
   
   if (nrrdTypeBlock == nrrd->type) {
     sprintf(err, "%s: can't read nrrd type %s from ascii", me,
-	    nrrdEnumValToStr(nrrdEnumType, nrrdTypeBlock));
+	    airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
   num = nrrdElementNumber(nrrd);
@@ -239,7 +241,7 @@ _nrrdReadDataAscii(Nrrd *nrrd, nrrdIO *io) {
 			       (void*)(data + I*size))) {
 	sprintf(err, "%s: couln't parse %s "NRRD_BIG_INT_PRINTF
 		" of " NRRD_BIG_INT_PRINTF " (\"%s\")", me,
-		nrrdEnumValToStr(nrrdEnumType, nrrd->type),
+		airEnumStr(nrrdType, nrrd->type),
 		I+1, num, numStr);
 	biffAdd(NRRD, err); return 1;
       }
@@ -272,7 +274,7 @@ int
 
 int
 _nrrdReadNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
-  char me[]="_nrrdReadNrrd", err[NRRD_STRLEN_LINE+NRRD_STRLEN_MED];
+  char me[]="_nrrdReadNrrd", err[NRRD_STRLEN_LINE+AIR_STRLEN_MED];
   int i, skipRet, ret, len;
 
   /* parse header lines */
@@ -288,12 +290,12 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
       /* the comment is the one field allowed more than once */
       if (ret != nrrdField_comment && io->seen[ret]) {
 	sprintf(err, "%s: already set field %s", me, 
-		nrrdEnumValToStr(nrrdEnumField, ret));
+		airEnumStr(nrrdField, ret));
 	biffAdd(NRRD, err); return 1;
       }
       if (_nrrdReadNrrdParseInfo[ret](nrrd, io, AIR_TRUE)) {
 	sprintf(err, "%s: trouble parsing %s info \"%s\"", me,
-		nrrdEnumValToStr(nrrdEnumField, ret), io->line+io->pos);
+		airEnumStr(nrrdField, ret), io->line+io->pos);
 	biffAdd(NRRD, err); return 1;
       }
       io->seen[ret] = AIR_TRUE;
@@ -307,7 +309,7 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
   if (!len                        /* we're at EOF ... */
       && !io->seperateHeader) {   /* but there's supposed to be data here! */
     sprintf(err, "%s: hit end of header, but no \"%s\" given", me,
-	    nrrdEnumValToStr(nrrdEnumField, nrrdField_data_file));
+	    airEnumStr(nrrdField, nrrdField_data_file));
     biffAdd(NRRD, err); return 1;
   }
   
@@ -324,7 +326,7 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
   }
   if (2 <= nrrdStateVerboseIO) {
     fprintf(stderr, "(%s: reading %s data ", me, 
-	    nrrdEnumValToStr(nrrdEnumEncoding, io->encoding));
+	    airEnumStr(nrrdEncoding, io->encoding));
     fflush(stderr);
   }
 
@@ -366,7 +368,7 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 
 int
 _nrrdReadPNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
-  char me[]="_nrrdReadPNM", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadPNM", err[AIR_STRLEN_MED];
   const char *fs;
   int i, color, got, want, len, ret, val[5], sx, sy, max;
   
@@ -429,7 +431,7 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 	ret = 0;
 	goto plain;
       }
-      fs = nrrdEnumValToStr(nrrdEnumField, ret);
+      fs = airEnumStr(nrrdField, ret);
       if (!_nrrdFieldValidInPNM[ret]) {
 	if (nrrdStateVerboseIO) {
 	  fprintf(stderr, "(%s: field \"%s\" (not allowed in PNM) "
@@ -514,7 +516,7 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 
 int
 _nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
-  char me[]="_nrrdReadTable", err[NRRD_STRLEN_MED];
+  char me[]="_nrrdReadTable", err[AIR_STRLEN_MED];
   const char *fs;
   int line, len, ret, sx, sy, settwo = 0;
   airArray *flArr, *alArr;
@@ -545,7 +547,7 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
       ret = 0;
       goto plain;
     }
-    fs = nrrdEnumValToStr(nrrdEnumField, ret);
+    fs = airEnumStr(nrrdField, ret);
     if (!_nrrdFieldValidInTable[ret]) {
       if (nrrdStateVerboseIO) {
 	fprintf(stderr, "(%s: field \"%s\" not allowed in table "
@@ -655,7 +657,7 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 */
 int
 nrrdRead(Nrrd *nrrd, FILE *file, nrrdIO *_io) {
-  char err[NRRD_STRLEN_MED], me[] = "nrrdRead";
+  char err[AIR_STRLEN_MED], me[] = "nrrdRead";
   int len;
   float oneFloat;
   nrrdIO *io;
@@ -688,7 +690,7 @@ nrrdRead(Nrrd *nrrd, FILE *file, nrrdIO *_io) {
   }
   
   /* we have one line, see if there's magic, or comments, or numbers */
-  io->magic = nrrdEnumStrToVal(nrrdEnumMagic, io->line);
+  io->magic = airEnumVal(nrrdMagic, io->line);
   switch (io->magic) {
   case nrrdMagicOldNRRD:
   case nrrdMagicNRRD0001:
@@ -776,7 +778,7 @@ _nrrdSplitName(char *path, char *base, char *name) {
 
 int
 nrrdLoad(Nrrd *nrrd, char *filename) {
-  char me[]="nrrdLoad", err[NRRD_STRLEN_MED];
+  char me[]="nrrdLoad", err[AIR_STRLEN_MED];
   nrrdIO *io;
   FILE *file;
   airArray *mop;
