@@ -366,10 +366,10 @@ extern int nrrdFitsInFormat(Nrrd *nrrd, int format, int useBiff);
 
 /******** comments related */
 /* comment.c */
-extern int nrrdCommentAdd(Nrrd *nrrd, char *str);
+extern int nrrdCommentAdd(Nrrd *nrrd, const char *str);
 extern void nrrdCommentClear(Nrrd *nrrd);
 extern int nrrdCommentCopy(Nrrd *nout, Nrrd *nin);
-extern char *nrrdCommentScan(Nrrd *nrrd, char *key);
+extern char *nrrdCommentScan(Nrrd *nrrd, const char *key);
 
 /******** endian related */
 /* (endian.c) */
@@ -401,11 +401,11 @@ extern int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *);
 /******** getting information to and from files */
 /* read.c */
 extern int (*nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *);
-extern int nrrdLoad(Nrrd *nrrd, char *filename);
+extern int nrrdLoad(Nrrd *nrrd, const char *filename);
 extern int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *io);
 /* write.c */
 extern int (*nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *);
-extern int nrrdSave(char *filename, Nrrd *nrrd, NrrdIO *io);
+extern int nrrdSave(const char *filename, Nrrd *nrrd, NrrdIO *io);
 extern int nrrdWrite(FILE *file, Nrrd *nrrd, NrrdIO *io);
 
 /******** some of the point-wise value remapping, conversion, and such */
@@ -498,6 +498,7 @@ extern NrrdKernel *nrrdKernelZero, /* zero everywhere */
   *nrrdKernelGaussian,             /* Gaussian */
   *nrrdKernelGaussianD,            /* 1st derivative of Gaussian */
   *nrrdKernelGaussianDD;           /* 2nd derivative of Gaussian */
-extern int nrrdKernelParse(NrrdKernel **kernelP, double *param, char *str);
+extern int nrrdKernelParse(NrrdKernel **kernelP, double *param,
+			   const char *str);
 
 #endif /* NRRD_HAS_BEEN_INCLUDED */

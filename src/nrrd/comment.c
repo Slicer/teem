@@ -30,7 +30,7 @@
 ** This function does NOT use biff.
 */
 int
-nrrdCommentAdd(Nrrd *nrrd, char *_str) {
+nrrdCommentAdd(Nrrd *nrrd, const char *_str) {
   char /* me[]="nrrdCommentAdd", err[512], */ *str;
   int i, len;
   
@@ -106,7 +106,7 @@ nrrdCommentClear(Nrrd *nrrd) {
 ** than not actually problems).
 */
 char *
-nrrdCommentScan(Nrrd *nrrd, char *key) {
+nrrdCommentScan(Nrrd *nrrd, const char *key) {
   /* char me[]="nrrdCommentScan";  */
   int i;
   char *cmt, *k, *c, *t, *ret=NULL;

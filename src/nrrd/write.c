@@ -539,7 +539,7 @@ _nrrdWriteTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
 ** HEY: this is where the filename of a seperate datafile is determined
 */
 void
-_nrrdGuessFormat(NrrdIO *io, char *filename) {
+_nrrdGuessFormat(NrrdIO *io, const char *filename) {
   int strpos;
 
   /* currently, we play the detached header game whenever the filename
@@ -678,7 +678,7 @@ nrrdWrite(FILE *file, Nrrd *nrrd, NrrdIO *io) {
 }
 
 int
-nrrdSave(char *filename, Nrrd *nrrd, NrrdIO *io) {
+nrrdSave(const char *filename, Nrrd *nrrd, NrrdIO *io) {
   char me[]="nrrdSave", err[AIR_STRLEN_MED];
   FILE *file;
   airArray *mop;

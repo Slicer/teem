@@ -1125,7 +1125,7 @@ _nrrdKernelStrToKern(char *str) {
 }
 
 int
-nrrdKernelParse(NrrdKernel **kernelP, double *param, char *_str) {
+nrrdKernelParse(NrrdKernel **kernelP, double *param, const char *_str) {
   char me[]="nrrdKernelParse", err[128], str[AIR_STRLEN_HUGE],
     kstr[AIR_STRLEN_MED], *_pstr=NULL, *pstr;
   int i, j, NP;

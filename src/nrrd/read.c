@@ -750,7 +750,7 @@ nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *_io) {
 ** ".", and the name is copied into base.
 */
 int
-_nrrdSplitName(char *path, char *base, char *name) {
+_nrrdSplitName(char *path, char *base, const char *name) {
   int i, ret;
   
   i = strrchr(name, '/') - name;
@@ -778,7 +778,7 @@ _nrrdSplitName(char *path, char *base, char *name) {
 }
 
 int
-nrrdLoad(Nrrd *nrrd, char *filename) {
+nrrdLoad(Nrrd *nrrd, const char *filename) {
   char me[]="nrrdLoad", err[AIR_STRLEN_MED];
   NrrdIO *io;
   FILE *file;

@@ -54,7 +54,7 @@ extern char _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL];
 extern char _nrrdRelDirFlag[];
 extern char _nrrdFieldSep[];
 extern char _nrrdTableSep[];
-extern int _nrrdSplitName(char *dir, char *base, char *name);
+extern int _nrrdSplitName(char *dir, char *base, const char *name);
 
 /* parse.c */
 extern int (*_nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1])(Nrrd *, NrrdIO *, int);
