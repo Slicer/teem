@@ -79,7 +79,7 @@ airNoDioErr(int noDio) {
 ** be possible here".
 */
 int
-airDioTest(int fd, void *ptr, size_t size) {
+airDioTest(int fd, const void *ptr, size_t size) {
 #if TEEM_DIO == 0
   /* Teem makefiles think no direct IO is possible on this architecture */
   return airNoDio_arch;
@@ -204,7 +204,7 @@ airDioInfo(int *align, int *min, int *max, int fd) {
 /*
 ******** airDioMalloc
 **
-** does direct IO compatible memory allocation
+** does direct IO compatible memory allocation.  
 ** 
 ** NOTE: like airDioInfo, this assumes that you've called airDioTest 
 ** without incident
@@ -276,7 +276,7 @@ airDioRead(int fd, void *_ptr, size_t size) {
 ** without incident
 */
 size_t
-airDioWrite(int fd, void *_ptr, size_t size) {
+airDioWrite(int fd, const void *_ptr, size_t size) {
 #if TEEM_DIO == 0
   return 0;
 #else

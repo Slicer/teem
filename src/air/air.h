@@ -470,10 +470,10 @@ TEEM_API const char *airNoDioErr(int noDio);
 TEEM_API const int airMyDio;
 TEEM_API int airDisableDio;
 TEEM_API void airDioInfo(int *align, int *min, int *max, int fd);
-TEEM_API int airDioTest(int fd, void *ptr, size_t size);
+TEEM_API int airDioTest(int fd, const void *ptr, size_t size);
 TEEM_API void *airDioMalloc(size_t size, int fd);
 TEEM_API size_t airDioRead(int fd, void *ptr, size_t size);
-TEEM_API size_t airDioWrite(int fd, void *ptr, size_t size);
+TEEM_API size_t airDioWrite(int fd, const void *ptr, size_t size);
 
 /* mop.c: clean-up utilities */
 enum {
