@@ -458,6 +458,7 @@ echoObjectListSplit(EchoObject *list, int axis) {
   */
   
   splitIdx = len/2;
+  printf("splitIdx = %d\n", splitIdx);
   ELL_3V_SET(loest0, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
   ELL_3V_SET(loest1, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
   ELL_3V_SET(hiest0, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
