@@ -84,7 +84,7 @@ main(int argc, char *argv[]) {
   nout->size[2] = size;
   nout->size[3] = size;
   data = nout->data;
-  t0 = airDoubleTime();
+  t0 = airTime();
   for (zi=0; zi<=size-1; zi++) {
     z = AIR_AFFINE(0, zi, size-1, bx, bx+100);
     for (yi=0; yi<=size-1; yi++) {
@@ -110,7 +110,7 @@ main(int argc, char *argv[]) {
       }
     }
   }
-  t1 = airDoubleTime();
+  t1 = airTime();
   printf("probe rate = %g/sec\n", size*size*size/(t1-t0));
   
   nrrdSave("out.nrrd", nout);
