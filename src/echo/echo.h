@@ -35,10 +35,12 @@
 #if 0
 typedef float echoPos_t;
 #define echoPos_nrrdType nrrdTypeFloat
+#define ECHO_POS_MIN FLT_MIN
 #define ECHO_POS_MAX FLT_MAX
 #else 
 typedef double echoPos_t;
 #define echoPos_nrrdType nrrdTypeDouble
+#define ECHO_POS_MIN DBL_MIN
 #define ECHO_POS_MAX DBL_MAX
 #endif
 
@@ -110,10 +112,13 @@ enum {
   echoSamplePixel,      /* 0 */
   echoSampleAreaLight,  /* 1 */
   echoSampleLens,       /* 2 */
-  echoSampleNormal,     /* 3 */
+  echoSampleNormalA,    /* 3 */
+  echoSampleNormalB,    /* 4 */
+  echoSampleMotionA,    /* 5 */
+  echoSampleMotionB,    /* 6 */
   echoSampleLast
 };
-#define ECHO_SAMPLE_NUM    4
+#define ECHO_SAMPLE_NUM    6
 
 enum {
   echoMatterUnknown,
@@ -165,11 +170,12 @@ enum {
   echoObjectTriMesh,    /*  5: only triangles in the mesh */
   echoObjectIsosurface, /*  6 */
   echoObjectAABBox,     /*  7 */
-  echoObjectList,       /*  8 */
-  echoObjectInstance,   /*  9 */
+  echoObjectSplit,      /*  8 */
+  echoObjectList,       /*  9 */
+  echoObjectInstance,   /* 10 */
   echoObjectLast
 };
-#define ECHO_OBJECT_MAX     9
+#define ECHO_OBJECT_MAX    10
 
 /* function: me, k, intx --> lit color */
 
@@ -234,19 +240,32 @@ typedef struct {
 
 typedef struct {
   ECHO_OBJECT_COMMON;
+  int axis;                 /* which axis is split */
+  echoPos_t split,          /* where the axis is split */
+    amin, amax, bmin, bmax, /* bounds on two non-split axes */
+    lomin, lomax,           /* bounds on lower half of split axis */
+    himin, himax;           /* bounds on upper half of split axis */
+  EchoObject *obj0, *obj1;
+} EchoObjectSplit;
+
+typedef struct {
+  ECHO_OBJECT_COMMON;
   EchoObject **obj;
   airArray *objArr;
 } EchoObjectList;  
 
 typedef struct {
   ECHO_OBJECT_COMMON;
-  echoPos_t matx[16];
-  int own;
+  echoPos_t matx[16], mot[9];
+  int own, motion;
   EchoObject *obj;
 } EchoObjectInstance;  
 
 extern EchoObject *echoObjectNew(int type);
+#define ECHO_OBJECT_NEW(TYPE) \
+  (EchoObject##TYPE *)echoObjectNew(echoObject##Type)
 extern EchoObject *echoObjectNix(EchoObject *obj);
+extern void echoObjectBounds(echoPos_t *lo, echoPos_t *hi, EchoObject *obj);
 extern int echoObjectIsContainer(EchoObject *obj);
 extern void echoObjectListAdd(EchoObject *parent, EchoObject *child);
 extern void echoObjectSphereSet(EchoObject *sphere,

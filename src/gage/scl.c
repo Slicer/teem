@@ -229,9 +229,9 @@ _gageSclAnswer(gageSclContext *ctx) {
 			+ ctx->epsilon*ctx->epsilon);
   }
   if (1 & (query >> gageSclNormal)) {
-    ELL_3V_SCALE(ctx->norm, ctx->gvec, 1.0/ctx->gmag[0]);
+    ELL_3V_SCALE(ctx->norm, 1.0/ctx->gmag[0], ctx->gvec);
     len = sqrt(ELL_3V_DOT(ctx->norm, ctx->norm) + ctx->epsilon*ctx->epsilon);
-    ELL_3V_SCALE(ctx->norm, ctx->norm, 1.0/len);
+    ELL_3V_SCALE(ctx->norm, 1.0/len, ctx->norm);
   }
   if (1 & (query >> gageSclHess)) {
     if (ctx->verbose) {

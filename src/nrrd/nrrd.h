@@ -152,7 +152,11 @@ typedef struct {
   /* 
   ** All per-axis specific information
   */
-  NrrdAxis axis[NRRD_DIM_MAX];
+  NrrdAxis axis[NRRD_DIM_MAX];   /* axis[0] is the fastest axis in the scan-
+				    line ordering, the one who's coordinates
+				    change the fastest as the elements are
+				    accessed in the order in which they appear
+				    in memory */
 
   /* 
   ** Information of dubious standing- descriptive of whole array, but

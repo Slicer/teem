@@ -29,7 +29,7 @@ _limnObjWHomog(limnObj *obj) {
   for (pi=0; pi<=obj->pA->len-1; pi++) {
     p = obj->p + pi;
     h = 1.0/p->w[3];
-    ELL_3V_SCALE(p->w, p->w, h);
+    ELL_3V_SCALE(p->w, h, p->w);
     p->w[3] = 1.0;
   }
   

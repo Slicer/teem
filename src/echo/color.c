@@ -164,8 +164,8 @@ _echoFuzzifyNormal(echoPos_t norm[3], echoCol_t fuzz,
   ell3vPerp_f(p0, origNorm);
   ELL_3V_NORM(p0, p0, tmp);
   ELL_3V_CROSS(p1, p0, origNorm);
-  j0 = fuzz*jitt[0 + 2*echoSampleNormal];
-  j1 = fuzz*jitt[1 + 2*echoSampleNormal];
+  j0 = fuzz*jitt[0];
+  j1 = fuzz*jitt[1];
   ELL_3V_SCALEADD3(norm, 1.0, origNorm, j0, p0, j1, p1);
   newside = (ELL_3V_DOT(view, norm) > 0 ? 1 : -1);
   if (side != newside) {
@@ -208,7 +208,8 @@ _echoIntxColorMetal(COLOR_ARGS) {
   rfRay.shadow = AIR_FALSE;
   fuzz = mat[echoMatterMetalFuzzy];
   if (fuzz) {
-    jitt = (echoPos_t *)tstate->njitt->data + samp*2*ECHO_SAMPLE_NUM;
+    jitt = ((echoPos_t *)tstate->njitt->data
+	    + 2*(samp*ECHO_SAMPLE_NUM + echoSampleNormalA));
     _echoFuzzifyNormal(norm, fuzz, jitt, view);
   }
   tmp = 2*ELL_3V_DOT(view, norm);
@@ -304,11 +305,12 @@ _echoIntxColorGlass(COLOR_ARGS) {
   trRay.shadow = rfRay.shadow = AIR_FALSE;
   fuzz = mat[echoMatterGlassFuzzy];
   index = mat[echoMatterGlassIndex];
+  tmp = ELL_3V_DOT(view, norm);
   if (fuzz) {
-    jitt = (echoPos_t *)tstate->njitt->data + samp*2*ECHO_SAMPLE_NUM;
+    jitt = (echoPos_t *)tstate->njitt->data+ 2*samp*ECHO_SAMPLE_NUM;
+    jitt += 2*(echoSampleNormalA + (tmp > 0));
     _echoFuzzifyNormal(norm, fuzz, jitt, view);
   }
-  tmp = ELL_3V_DOT(view, norm);
   ELL_3V_SCALEADD(refl, -1, view, 2*tmp, norm);
   if (0 && param->verbose) {
     printf("(glass; depth = %d)\n", intx->depth);

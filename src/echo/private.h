@@ -20,6 +20,9 @@
 #ifndef ECHO_PRIVATE_HAS_BEEN_INCLUDED
 #define ECHO_PRIVATE_HAS_BEEN_INCLUDED
 
+#define SPLIT(obj) ((EchoObjectSplit*)obj)
+#define LIST(obj)  ((EchoObjectList*)obj)
+
 /* intx.c */
 #define INTX_ARGS(TYPE) EchoIntx *intx, EchoRay *ray,               \
                         EchoParam *param, EchoObject##TYPE *obj
@@ -40,6 +43,15 @@ extern _echoIntxColor_t _echoIntxColor[ECHO_MATTER_MAX+1];
 
 extern int _echoRefract(echoPos_t T[3], echoPos_t V[3],
 			echoPos_t N[3], echoCol_t index);
+
+/* object.c */
+
+#define BNDS_ARGS(TYPE) echoPos_t lo[3], echoPos_t hi[3], \
+                        EchoObject##TYPE *obj
+
+typedef void (*_echoObjectBounds_t)(BNDS_ARGS( ));
+extern _echoObjectBounds_t _echoObjectBounds[ECHO_OBJECT_MAX+1];
+
 
 #endif /*  ECHO_PRIVATE_HAS_BEEN_INCLUDED */
 

@@ -67,14 +67,14 @@ limnCamUpdate(limnCam *cam) {
 	    me, cam->vspNear, cam->vspFar);
     biffAdd(LIMN, err); return 1 ;
   }
-  ELL_3V_SCALE(n, n, 1.0/len);
+  ELL_3V_SCALE(n, 1.0/len, n);
   ELL_3V_CROSS(u, n, cam->up);
   len = ELL_3V_LEN(u);
   if (!len) {
     sprintf(err, "%s: cam->up is co-linear with view direction\n", me);
     biffAdd(LIMN, err); return 1 ;
   }
-  ELL_3V_SCALE(u, u, 1.0/len);
+  ELL_3V_SCALE(u, 1.0/len, u);
 
   if (cam->leftHanded) {
     ELL_3V_CROSS(v, u, n);
