@@ -1,18 +1,34 @@
 
-ASAP!!: reshape, 
-	gaussian kernel, sinc kernel,
-        pow2pad super function,
-        revisit slicer,
-        stitch,
-        join, split, reshape,
-	resampling, blurring,  <-- document setting the float param[] vector
-	weighted median filter
+ASAP!!: 
 
-For everything in reorder.c, make them friendly to the input
-and output nrrds being the _same_
+gaussian kernel,
+sinc kernel,
+pow2pad super function,
+revisit slicer,
+join, split, reshape,
+resampling, blurring,  <-- document setting the float param[] vector
+weighted median filter
 
-try to reproduce Trace/BPT/blah/trap error by setting samples[i]
-to 0 for some axis i- Purify was blind to this
+standardize order of "nin" and "nout" (nrrd input and nrrd output)
+arguments to functions which take both.
+
+be good about setting pointers to null by their own destruction
+
+implement nrrdMaybeAlloc(), and change all nrrd functions 
+from nrrdAlloc to that
+
+For everything in reorder.c, whenever possible, 
+make them friendly to the input and output nrrds being the _same_
+
+look into doing int or double assingments as an alternative
+to doing memcpy()s on 4- and 8- byte quantities
+
+rewrite most of io.c, using some sort of "io context" struct which
+seperates io-specific state from the nrrd itself, since that info
+has no value outside the context of io operations
+
+for things which can produce a nrrd of one higher dimension, 
+make sure it isn't bumping up against NRRD_MAX_DIM
 
 create a new nrrdNewAlloc() which supports taking the axis sizes as
 the last arguments, using var args.  This would be very convenient!
@@ -28,7 +44,7 @@ spreadsheet program)
 functions based on an array of control points.
 
 facilitate a means of mapping from a "block" to a single scalar,
-cso that things like histogramming, filtering, and measuring are 
+so that things like histogramming, filtering, and measuring are 
 possible.  Does the nrrd contain a callback pointer for doing
 this?
 
@@ -37,9 +53,6 @@ specify it.
 
 be smarter about filling in "content" of something created from
 something else with no "content" (like nrrdConvert)
-
-standardize order of "nin" and "nout" (nrrd input and nrrd output)
-arguments to functions which take both.
 
 clarify policy regarding (and make code changes as needed) on what
 quantities can only be "ints" and which need to be long long ints.
