@@ -1031,6 +1031,10 @@ hestParseFree(hestOpt *opt) {
 
   numOpts = _hestNumOpts(opt);
   for (op=0; op<=numOpts-1; op++) {
+    /*
+    printf("!hestParseFree: op = %d/%d -> kind = %d; type = %d; alloc = %d\n", 
+	   op, numOpts-1, opt[op].kind, opt[op].type, opt[op].alloc);
+    */
     vP = opt[op].valueP;
     vAP = opt[op].valueP;
     str = opt[op].valueP;
@@ -1040,12 +1044,9 @@ hestParseFree(hestOpt *opt) {
       /* nothing was allocated */
       break;
     case 1:
-      if (airTypeString == opt[op].type) {
-	*vP = airFree(*vP);
-      }
-      else {
-	*vP = opt[op].CB->delete(*vP);
-      }
+      /* whether this was just a string, or an array of structs (but not
+	 struct pointers), all we do is free this */
+      *vP = airFree(*vP);
       break;
     case 2:
       if (airTypeString == opt[op].type) {
