@@ -30,10 +30,12 @@ rho(float r) {
 
 float
 genvolFunc(float x, float y, float z) {
+  /*
   float A, B;
 
   A = 1;
   B = 1;
+  */
   /* marschner-lobb, the real thing
   return ((1 - sin(M_PI*z/2))
 	  + 0.25*(1 + rho(sqrt(x*x + y*y))))/(2*(1 + 0.25));
