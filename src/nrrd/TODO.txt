@@ -1,0 +1,58 @@
+nrrd:
+ASAP!!: shuffle, 
+	resampling, blurring, weighted median filter
+        join, split, reshape,
+
+make sure reading and writing methods are consistent with notion
+of piping unrrdu programs together on the command line
+
+allow caller to learn mapping used by histogram equalization
+
+convert.c: fix badness with forcing everything through a double
+
+clarify policy regarding when data in the nrrd will be free()ed
+
+determine a consistent policy regarding assumptions and expections
+surrounding use of the min and max fields, perhaps also oldMin and oldMax
+
+"tables": allow reading and writing of simple ascii tables, with no
+header or any kind of explicit size indication (ascii output of a
+spreadsheet program)
+
+"mappings": create minimal support for creating and "evaluating"
+functions based on an array of control points.
+
+other encodings- base 85, gzip, hex
+
+
+functionality to implement:
+filtering: filtered resampling (includes blurring, as well as filtered
+           down sampling and upsampling)
+
+use consts as necessary for the arrays which shouldn't be messed with
+
+try to enforce the policy that variables which exist solely to be
+a local copy of values in nrrds should be **eliminated**.  This
+simplifies understanding how a procedure works.
+
+think of some sensible policy for when to use NRRD_BIG_INTs and 
+regular ints for traversing parts of a nrrd
+
+under what circumstances does an operation not make sense
+given the dimension of the nrrd (0 or 1, maybe 2 dimensional)?
+(more error handling checks)
+
+check for handling of size of type "block"- when does the user have to
+specify it.
+
+facilitate a means of mapping from a "block" to a single scalar,
+cso that things like histogramming, filtering, and measuring are 
+possible.  Does the nrrd contain a callback pointer for doing
+this?
+
+where does nrrd check to see it got a reasonable size,
+how and when does nrrd set the default size to -1
+
+Make sure that io.c stuff can work with a non-fseek-able stream
+(to facilitate nrrd operations by piping), and
+decide whether or not to keep NrrdReadDataType and NrrdWriteDataType
