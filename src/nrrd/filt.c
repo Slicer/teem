@@ -209,7 +209,7 @@ _nrrdCheapMedian2D(Nrrd *nout, Nrrd *nin, int radius, float wght,
 void
 _nrrdCheapMedian3D(Nrrd *nout, Nrrd *nin, int radius, float wght,
 		   int bins, int mode, float *hist) {
-  char me[]="_nrrdCheapMedian3D";
+  char me[]="_nrrdCheapMedian3D", done[13];
   int X, Y, Z, I, J, K;
   int sx, sy, sz, idx, diam;
   float half, *wt;
@@ -220,10 +220,14 @@ _nrrdCheapMedian3D(Nrrd *nout, Nrrd *nin, int radius, float wght,
   sy = nin->axis[1].size;
   sz = nin->axis[2].size;
   lup = nrrdDLookup[nin->type];
+  fprintf(stderr, "%s: ...       ", me);
   if (1 == wght) {
     /* uniform weighting-> can do sliding histogram optimization */
     half = diam*diam*diam/2 + 1;
+    fflush(stderr);
     for (Z=radius; Z<sz-radius; Z++) {
+      fprintf(stderr, "%s", airDoneStr(radius, Z, sz-radius-1, done)); 
+      fflush(stderr);
       for (Y=radius; Y<sy-radius; Y++) {
 	/* initialize histogram */
 	memset(hist, 0, bins*sizeof(float));
@@ -260,7 +264,8 @@ _nrrdCheapMedian3D(Nrrd *nout, Nrrd *nin, int radius, float wght,
     wt = _nrrdCM_wtAlloc(radius, wght);
     half = 0.5;
     for (Z=radius; Z<sz-radius; Z++) {
-      fprintf(stderr, "%s: Z = %d/%d\n", me, Z-radius, sz-2*radius-1);
+      fprintf(stderr, "%s", airDoneStr(radius, Z, sz-radius-1, done)); 
+      fflush(stderr);
       for (Y=radius; Y<sy-radius; Y++) {
 	for (X=radius; X<sx-radius; X++) {
 	  memset(hist, 0, bins*sizeof(float));
@@ -281,6 +286,7 @@ _nrrdCheapMedian3D(Nrrd *nout, Nrrd *nin, int radius, float wght,
     }
     free(wt);
   }
+  fprintf(stderr, "\b\b\b\b\b\b  done\n");
 }
 
 /*
