@@ -29,8 +29,8 @@ flipMain(int argc, char **argv, char *me) {
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input");
-  OPT_ADD_NOUT(out, "output nrrd");
   OPT_ADD_AXIS(axis, "axis to slice along");
+  OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
@@ -52,14 +52,15 @@ flipMain(int argc, char **argv, char *me) {
   }
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  if (nrrdFlip(nout = nrrdNew(), nin, axis)) {
+  nout = nrrdNew();
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+  if (nrrdFlip(nout, nin, axis)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error flipping nrrd:\n%s", me, err);
     free(err);
     airMopError(mop);
     return 1;
   }
-  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (nrrdSave(out, nout, NULL)) {
     err = biffGet(NRRD);
