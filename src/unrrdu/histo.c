@@ -33,9 +33,9 @@ histoMain(int argc, char **argv, char *me) {
   OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, NULL,
 	     "# of bins in histogram");
-  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "int",
+  hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &type, "int",
 	     "type to use for bins in output histogram",
-             NULL, &unuTypeHestCB);
+             NULL, &nrrdType);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

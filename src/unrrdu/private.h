@@ -35,7 +35,7 @@
 /* Nrrd *var */
 #define OPT_ADD_NIN(var, desc) \
   hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &(var), "-", desc, \
-	     NULL, &unuNrrdHestCB)
+	     NULL, NULL, &unuNrrdHestCB)
 
 /* char *var */
 #define OPT_ADD_NOUT(var, desc) \
@@ -48,19 +48,16 @@
 /* int *var; int saw */
 #define OPT_ADD_BOUND(name, var, desc, saw) \
   hestOptAdd(&opt, name, "pos0", airTypeOther, 1, -1, &(var), NULL, desc, \
-	     &(saw), &unuPosHestCB)
+	     &(saw), NULL, &unuPosHestCB)
 
 /* int var */
 #define OPT_ADD_TYPE(var, desc) \
-  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &(var), NULL, desc, \
-             NULL, &unuTypeHestCB)
+  hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &(var), NULL, desc, \
+             NULL, &nrrdType)
 
 extern hestParm *hparm;
 extern hestCB unuNrrdHestCB;
-extern hestCB unuTypeHestCB;
 extern hestCB unuPosHestCB;
-extern hestCB unuBoundaryHestCB;
-extern hestCB unuEncodingHestCB;
 
 typedef struct {
   char *name, *info;

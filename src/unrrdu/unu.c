@@ -157,31 +157,6 @@ hestCB unuNrrdHestCB = {
 }; 
 
 int
-unuParseType(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unuParseType";
-  int *typeP;
-
-  if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  typeP = ptr;
-  *typeP = nrrdEnumStrToVal(nrrdEnumType, str);
-  if (nrrdTypeUnknown == *typeP) {
-    sprintf(err, "%s: \"%s\" is not a recognized nrrd type", me, str);
-    return 1;
-  }
-  return 0;
-}
-
-hestCB unuTypeHestCB = {
-  sizeof(int),
-  "type",
-  unuParseType,
-  NULL
-};
-
-int
 unuParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="unuParsePos";
   int *pos;
@@ -221,56 +196,6 @@ hestCB unuPosHestCB = {
   2*sizeof(int),
   "position",
   unuParsePos,
-  NULL
-};
-
-int
-unuParseBoundary(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unuParseBoundary";
-  int *typeP;
-
-  if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  typeP = ptr;
-  *typeP = nrrdEnumStrToVal(nrrdEnumBoundary, str);
-  if (nrrdTypeUnknown == *typeP) {
-    sprintf(err, "%s: \"%s\" is not a recognized boundary behavior", me, str);
-    return 1;
-  }
-  return 0;
-}
-
-hestCB unuBoundaryHestCB = {
-  sizeof(int),
-  "boundary behavior",
-  unuParseBoundary,
-  NULL
-};
-
-int
-unuParseEncoding(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unuParseEncoding";
-  int *encodingP;
-
-  if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  encodingP = ptr;
-  *encodingP = nrrdEnumStrToVal(nrrdEnumEncoding, str);
-  if (nrrdEncodingUnknown == *encodingP) {
-    sprintf(err, "%s: \"%s\" is not a recognized encoding", me, str);
-    return 1;
-  }
-  return 0;
-}
-
-hestCB unuEncodingHestCB = {
-  sizeof(int),
-  "encoding",
-  unuParseEncoding,
   NULL
 };
 
@@ -316,7 +241,6 @@ main(int argc, char **argv) {
     usage(UNU);
     return 1;
   }
-
   /* else, we should see if they're asking for a command we know about */  
   for (i=0; cmdList[i]; i++) {
     if (!strcmp(argv[1], cmdList[i]->name))
@@ -325,6 +249,7 @@ main(int argc, char **argv) {
   if (cmdList[i]) {
     /* initialize variables used by the various commands */
     hparm = hestParmNew();
+    hparm->elideSingleEnumType = AIR_TRUE;
     hparm->elideSingleOtherType = AIR_TRUE;
     hparm->elideSingleNonExistFloatDefault = AIR_TRUE;
     argv0 = malloc(strlen(UNU) + strlen(argv[1]) + 2);

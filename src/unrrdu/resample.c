@@ -142,7 +142,7 @@ resampleMain(int argc, char **argv, char *me) {
 	     "\b\bo \"x<float>\": number of output samples is some scaling of "
 	     " the number samples in input, multiplied by <float>\n "
 	     "\b\bo \"<int>\": exact number of samples",
-	     &scaleLen, &unuScaleHestCB);
+	     &scaleLen, NULL, &unuScaleHestCB);
   hestOptAdd(&opt, "k", "kern", airTypeOther, 1, 1, &unuk,
 	     "quartic:0.0834",
 	     "The kernel to use for resampling.  Possibilities include:\n "
@@ -156,13 +156,13 @@ resampleMain(int argc, char **argv, char *me) {
 	     "interpolating quartics (\"quartic:0.0834\" is most accurate)\n "
 	     "\b\bo \"gauss:S,C\": Gaussian blurring, with standard deviation "
 	     "S and cut-off at C standard deviations",
-	     NULL, &unuKernelHestCB);
-  hestOptAdd(&opt, "b", "behavior", airTypeOther, 1, 1, &bb, "bleed",
+	     NULL, NULL, &unuKernelHestCB);
+  hestOptAdd(&opt, "b", "behavior", airTypeEnum, 1, 1, &bb, "bleed",
 	     "How to handle samples beyond the input bounds:\n "
 	     "\b\bo \"pad\": use some specified value\n "
 	     "\b\bo \"bleed\": extend border values outward\n "
 	     "\b\bo \"wrap\": wrap-around to other side", 
-	     NULL, &unuBoundaryHestCB);
+	     NULL, &nrrdBoundary);
   hestOptAdd(&opt, "v", "value", airTypeDouble, 1, 1, &padVal, "0.0",
 	     "for \"pad\" boundary behavior, pad with this value");
   OPT_ADD_NOUT(out, "output nrrd");

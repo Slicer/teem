@@ -61,31 +61,6 @@ hestCB unuFileHestCB = {
   unuMaybeFclose,
 };
 
-int
-unuParseEndian(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unuParseEndian";
-  int *endianP;
-
-  if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  endianP = ptr;
-  *endianP = nrrdEnumStrToVal(nrrdEnumEndian, str);
-  if (airEndianUnknown == *endianP) {
-    sprintf(err, "%s: \"%s\" is not a recognized endian", me, str);
-    return 1;
-  }
-  return 0;
-}
-
-hestCB unuEndianHestCB = {
-  sizeof(int),
-  "endian",
-  unuParseEndian,
-  NULL
-};
-
 char *makeName = "make";
 #define INFO "Create a nrrd from scratch, starting with raw data"
 char *makeInfo = INFO;
@@ -111,22 +86,22 @@ makeMain(int argc, char **argv, char *me) {
 
   hestOptAdd(&opt, "i", "file", airTypeOther, 1, 1, &(io->dataFile), "-",
 	     "File to read data from; use \"-\" for stdin",
-	     NULL, &unuFileHestCB);
+	     NULL, NULL, &unuFileHestCB);
   OPT_ADD_TYPE(nrrd->type, "type of data");
   hestOptAdd(&opt, "s", "size0 size1 ", airTypeInt, 1, -1, &size, NULL,
 	     "number of samples along each axis (and implicit indicator "
 	     "of dimension of nrrd)", &sizeLen);
-  hestOptAdd(&opt, "e", "encoding", airTypeOther, 1, 1, &(io->encoding), "raw",
+  hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &(io->encoding), "raw",
 	     "data encoding. Possibilities are \"raw\" and \"ascii\".",
-	     NULL, &unuEncodingHestCB);
-  hestOptAdd(&opt, "endian", "endian", airTypeOther, 1, 1, &(io->endian),
-	     nrrdEnumValToStr(nrrdEnumEndian, airMyEndian),
+	     NULL, &nrrdEncoding);
+  hestOptAdd(&opt, "endian", "endian", airTypeEnum, 1, 1, &(io->endian),
+	     airEnumStr(airEndian, airMyEndian),
 	     "Endianness of data; relevent for any raw data with value "
 	     "representation bigger than 8 bits:\n "
 	     "\b\bo \"little\": Intel and friends\n "
 	     "\b\bo \"big\": everyone else\n "
 	     "Defaults to endianness of this machine.",
-	     NULL, &unuEndianHestCB);
+	     NULL, &airEndian);
   OPT_ADD_NOUT(out, "output nrrd");
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 

@@ -30,31 +30,6 @@ char *projectInfoL = (INFO
 		      "the measure.");
 
 int
-unuParseMeasure(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unuParseMeasure";
-  int *measrP;
-
-  if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  measrP = ptr;
-  *measrP = nrrdEnumStrToVal(nrrdEnumMeasure, str);
-  if (nrrdMeasureUnknown == *measrP) {
-    sprintf(err, "%s: \"%s\" is not a recognized measure", me, str);
-    return 1;
-  }
-  return 0;
-}
-
-hestCB unuMeasureHestCB = {
-  sizeof(int),
-  "measure",
-  unuParseMeasure,
-  NULL
-};
-
-int
 projectMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
@@ -64,7 +39,7 @@ projectMain(int argc, char **argv, char *me) {
 
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_AXIS(axis, "axis to project along");
-  hestOptAdd(&opt, "m", "measr", airTypeOther, 1, 1, &measr, NULL,
+  hestOptAdd(&opt, "m", "measr", airTypeEnum, 1, 1, &measr, NULL,
 	     "How to \"measure\" a scanline.  Possibilities include:\n "
 	     "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", "
 	     "\"variance\"\n "
@@ -77,7 +52,7 @@ projectMain(int argc, char **argv, char *me) {
 	     "\"histo-sum\", \"histo-variance\": same measures, but for when "
 	     "the scanlines are histograms of values, not the values "
 	     "themselves.", 
-	     NULL, &unuMeasureHestCB);
+	     NULL, &nrrdMeasure);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

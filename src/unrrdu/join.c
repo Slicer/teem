@@ -36,7 +36,7 @@ joinMain(int argc, char **argv, char *me) {
 
   hestOptAdd(&opt, "i", "nin0", airTypeOther, 1, -1, &nin, NULL,
 	     "everything to be joined together",
-	     &ninLen, &unuNrrdHestCB);
+	     &ninLen, NULL, &unuNrrdHestCB);
   OPT_ADD_AXIS(axis, "axis to join along");
   hestOptAdd(&opt, "incr", NULL, airTypeInt, 0, 0, &incrDim, NULL,
 	     "in situations where the join axis is among the axes of "

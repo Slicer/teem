@@ -42,7 +42,7 @@ sliceMain(int argc, char **argv, char *me) {
 	     "\b\bo <int> gives 0-based index\n "
 	     "\b\bo M-<int> give index relative "
 	     "to the last sample on the axis (M == #samples-1).",
-	     NULL, &unuPosHestCB);
+	     NULL, NULL, &unuPosHestCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

@@ -72,7 +72,7 @@ quantizeMain(int argc, char **argv, char *me) {
 	     "\b\bo \"8\": unsigned char\n "
 	     "\b\bo \"16\": unsigned short\n "
 	     "\b\bo \"32\": unsigned int",
-	     NULL, &unuBitsHestCB);
+	     NULL, NULL, &unuBitsHestCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();

@@ -40,12 +40,12 @@ padMain(int argc, char **argv, char *me) {
 		"to the last sample on the axis (M == #samples-1).",
 		minLen);
   OPT_ADD_BOUND("max", maxOff, "high corner of bounding box", maxLen);
-  hestOptAdd(&opt, "b", "behavior", airTypeOther, 1, 1, &bb, "bleed",
+  hestOptAdd(&opt, "b", "behavior", airTypeEnum, 1, 1, &bb, "bleed",
 	     "How to handle samples beyond the input bounds:\n "
 	     "\b\bo \"pad\": use some specified value\n "
 	     "\b\bo \"bleed\": extend border values outward\n "
 	     "\b\bo \"wrap\": wrap-around to other side", 
-	     NULL, &unuBoundaryHestCB);
+	     NULL, &nrrdBoundary);
   hestOptAdd(&opt, "v", "value", airTypeDouble, 1, 1, &padVal, "0.0",
 	     "for \"pad\" boundary behavior, pad with this value");
   OPT_ADD_NOUT(out, "output nrrd");

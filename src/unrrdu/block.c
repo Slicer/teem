@@ -44,7 +44,7 @@ blockMain(int argc, char **argv, char *me) {
      no command-line arguments whatsoever, and then the user would not
      know how to get the basic usage information */
   hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &nin, NULL, "input nrrd",
-	     NULL, &unuNrrdHestCB);
+	     NULL, NULL, &unuNrrdHestCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
