@@ -850,6 +850,8 @@ _nrrdWritePNG (FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWritePNG", err[AIR_STRLEN_MED];
 #if TEEM_PNG
   
+  /* insert code here */
+
   return 0;
 #else
   sprintf(err, "%s: sorry, this nrrd not compiled with PNG enabled", me);
