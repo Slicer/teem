@@ -25,6 +25,7 @@
 #define SPHERE(obj)  ((EchoObjectSphere*)obj)
 #define AABBOX(obj)  ((EchoObjectAABBox*)obj)
 #define TRIMESH(obj) ((EchoObjectTriMesh*)obj)
+#define TRIM(obj)    ((EchoObjectTriMesh*)obj)
 
 /* intx.c */
 #define INTX_ARGS(TYPE) EchoIntx *intx, EchoRay *ray,               \

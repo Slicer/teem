@@ -21,6 +21,74 @@
 #include "../private.h"
 
 void
+makeSceneTriMesh(limnCam *cam, EchoParam *param,
+	     EchoObject **sceneP, airArray **lightArrP) {
+  EchoObject *scene, *trim, *rect, *obj;
+  EchoLight *light;
+  airArray *lightArr;
+
+  *sceneP = scene = echoObjectNew(echoObjectList);
+  *lightArrP = lightArr = echoLightArrayNew();
+
+  ELL_3V_SET(cam->from, -3, 3, 30);
+  ELL_3V_SET(cam->at,   0, 0, 0);
+  ELL_3V_SET(cam->up,   0, 0, 1);
+  cam->uMin = -3;
+  cam->uMax = 3;
+  cam->vMin = -3;
+  cam->vMax = 3;
+
+  param->jitter = echoJitterNone;
+  param->verbose = 0;
+  param->samples = 1;
+  param->imgResU = 200;
+  param->imgResV = 200;
+  param->aperture = 0.0;
+  param->gamma = 2.0;
+  param->refDistance = 1;
+  param->renderLights = AIR_TRUE;
+  param->renderBoxes = AIR_FALSE;
+  param->seedRand = AIR_FALSE;
+  param->maxRecDepth = 10;
+  param->shadow = AIR_FALSE;
+
+  trim = echoObjectRoughSphere(6, 3, NULL);
+  echoMatterPhongSet(trim, 1, 1, 1, 1.0,
+		     0.1, 1.0, 0.0, 50);
+  echoObjectListAdd(scene, trim);
+
+  obj = echoObjectNew(echoObjectTriangle);
+  echoObjectTriangleSet(obj,
+			0, 1, 0, 
+			-1, 0, 0,
+			0, 0, 1);
+  echoMatterPhongSet(obj, 1, 0, 1, 1.0,
+		     0.0, 1.0, 0.0, 50);
+  /* echoObjectListAdd(scene, obj); */
+
+  /*
+  obj = echoObjectNew(echoObjectCube);
+  echoMatterPhongSet(obj, 1, 1, 1, 1.0,
+		     0.0, 1.0, 0.0, 50);
+  echoObjectListAdd(scene, obj);
+  */
+  
+  rect = echoObjectNew(echoObjectRectangle);
+  echoObjectRectangleSet(rect,
+			 0, 0, 3,
+			 1.2, 0, 0,
+			 0, 1.2, 0);
+  echoMatterLightSet(rect, 0.25, 0.25, 0.25);
+  echoObjectListAdd(scene, rect);
+  light = echoLightNew(echoLightArea);
+  echoLightAreaSet(light, rect);
+  echoLightArrayAdd(lightArr, light);
+
+  return;
+}
+
+
+void
 makeSceneBVH(limnCam *cam, EchoParam *param,
 	     EchoObject **sceneP, airArray **lightArrP) {
   EchoObject *sphere;
@@ -54,7 +122,7 @@ makeSceneBVH(limnCam *cam, EchoParam *param,
   param->maxRecDepth = 10;
   param->shadow = AIR_FALSE;
 
-  N = 10000000;
+  N = 1000000;
   /* airSrand(); */
   airArraySetLen(LIST(scene)->objArr, N);
   for (i=0; i<N; i++) {
@@ -463,7 +531,8 @@ main(int argc, char **argv) {
   /* makeSceneShadow(cam, param, &scene, &lightArr); */
   /* makeSceneGlassMetal(cam, param, &scene, &lightArr); */
   /* makeSceneGlass(cam, param, &scene, &lightArr);  */
-  makeSceneBVH(cam, param, &scene, &lightArr);
+  /* makeSceneBVH(cam, param, &scene, &lightArr); */
+  makeSceneTriMesh(cam, param, &scene, &lightArr);
   airMopAdd(mop, scene, (airMopper)echoObjectNuke, airMopAlways);
   airMopAdd(mop, lightArr, (airMopper)echoLightArrayNix, airMopAlways);
 

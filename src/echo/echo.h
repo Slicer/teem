@@ -224,7 +224,7 @@ typedef struct {
 typedef struct {
   ECHO_OBJECT_COMMON;
   ECHO_OBJECT_MATTER;
-  echoPos_t min[3], max[3];
+  echoPos_t origin[3], min[3], max[3];
   int numV, numF;
   echoPos_t *pos;
   int *vert;
@@ -287,6 +287,11 @@ extern void echoObjectTriangleSet(EchoObject *_tri,
 				  echoPos_t x0, echoPos_t y0, echoPos_t z0, 
 				  echoPos_t x1, echoPos_t y1, echoPos_t z1, 
 				  echoPos_t x2, echoPos_t y2, echoPos_t z2);
+extern void echoObjectTriMeshSet(EchoObject *_trim,
+				 int numV, echoPos_t *pos,
+				 int numF, int *vert);
+extern EchoObject *echoObjectRoughSphere(int theRes, int phiRes,
+					 echoPos_t *matx);
 
 /* light.c ---------------------------------------- */
 

@@ -139,7 +139,10 @@ _echoObject##TYPE##_nix(EchoObject##TYPE *obj) {                 \
   return NULL;                                                   \
 }
 
-NIX_TMPL(TriMesh, /* ??? */);
+NIX_TMPL(TriMesh,
+	 free(obj->pos);
+	 free(obj->vert);
+	 );
 NIX_TMPL(Isosurface, /* ??? */);
 NIX_TMPL(AABBox,
 	 /* unset callbacks */
@@ -195,7 +198,10 @@ _echoObject##TYPE##_nuke(EchoObject##TYPE *obj) {                \
   return NULL;                                                   \
 }
 
-NUK_TMPL(TriMesh, /* ??? */);
+NUK_TMPL(TriMesh,
+	 free(obj->pos);
+	 free(obj->vert);
+	 );
 NUK_TMPL(Isosurface, /* ??? */);
 NUK_TMPL(AABBox,
 	 /* due to airArray callbacks, this will nuke all kids */
@@ -572,6 +578,72 @@ echoObjectListSplit3(EchoObject *list, int depth) {
   return ret;
 }
 
+void
+_echoSetPos(echoPos_t *p3, echoPos_t *matx, echoPos_t *p4) {
+  echoPos_t tmp[4];
+  
+  if (matx) {
+    ELL_4MV_MUL(tmp, matx, p4);
+    ELL_34V_HOMOG(p3, tmp);
+  }
+  else {
+    ELL_3V_COPY(p3, p4);
+  }
+}
+
+EchoObject *
+echoObjectRoughSphere(int theRes, int phiRes, echoPos_t *matx) {
+  EchoObject *ret;
+  EchoObjectTriMesh *trim;
+  echoPos_t *_pos, *pos, tmp[4];
+  int *_vert, *vert, thidx, phidx, n;
+  echoPos_t th, ph;
+
+  ret = echoObjectNew(echoObjectTriMesh);
+  trim = TRIM(ret);
+  trim->numV = 2 + (phiRes-1)*theRes;
+  trim->numF = 2*theRes + 2*(phiRes-2)*theRes;
+  printf("echoObjectRoughSphere: numV = %d, numF = %d\n",
+	 trim->numV, trim->numF);
+
+  _pos = pos = calloc(3*trim->numV, sizeof(echoPos_t));
+  _vert = vert = calloc(3*trim->numF, sizeof(int));
+  tmp[3] = 1.0;
+
+  ELL_3V_SET(tmp, 0, 0, 1); _echoSetPos(pos, matx, tmp); pos += 3;
+  for (phidx=1; phidx<phiRes; phidx++) {
+    ph = AIR_AFFINE(0, phidx, phiRes, 0.0, M_PI);
+    for (thidx=0; thidx<theRes; thidx++) {
+      th = AIR_AFFINE(0, thidx, theRes, 0.0, 2*M_PI);
+      ELL_3V_SET(tmp, cos(th)*sin(ph), sin(th)*sin(ph), sin(ph));
+      _echoSetPos(pos, matx, tmp); pos += 3;
+    }
+  }
+  ELL_3V_SET(tmp, 0, 0, -1); _echoSetPos(pos, matx, tmp);
+
+  for (thidx=0; thidx<theRes+1; thidx++) {
+    n = AIR_MOD(thidx+1, theRes);
+    ELL_3V_SET(vert, 0, 1+thidx, 1+n); vert += 3;
+  }
+  for (phidx=0; phidx<phiRes-2; phidx++) {
+    for (thidx=0; thidx<theRes; thidx++) {
+      n = AIR_MOD(thidx+1, theRes);
+      ELL_3V_SET(vert, 1+phidx*theRes+thidx, 1+(1+phidx)*theRes+thidx,
+		 1+phidx*theRes+n); vert += 3;
+      ELL_3V_SET(vert, 1+(1+phidx)*theRes+thidx, 1+(1+phidx)*theRes+n, 
+		 1+phidx*theRes+n); vert += 3;
+    }
+  }
+  for (thidx=0; thidx<theRes+1; thidx++) {
+    n = AIR_MOD(thidx+1, theRes);
+    ELL_3V_SET(vert, 1+(phiRes-1)*theRes+thidx, trim->numV-1,
+	       1+(phiRes-1)*theRes+n); vert += 3;
+  }
+
+  echoObjectTriMeshSet(ret, trim->numV, _pos, trim->numF, _vert);
+  
+  return(ret);
+}
 
 void
 echoObjectSphereSet(EchoObject *_sphere,
@@ -615,6 +687,32 @@ echoObjectTriangleSet(EchoObject *_tri,
     ELL_3V_SET(tri->vert[0], x0, y0, z0);
     ELL_3V_SET(tri->vert[1], x1, y1, z1);
     ELL_3V_SET(tri->vert[2], x2, y2, z2);
+  }
+  return;
+}
+
+void
+echoObjectTriMeshSet(EchoObject *_trim,
+		     int numV, echoPos_t *pos,
+		     int numF, int *vert) {
+  EchoObjectTriMesh *trim;
+  int i;
+
+  if (_trim && echoObjectTriMesh == _trim->type) {
+    trim = TRIM(_trim);
+    trim->numV = numV;
+    trim->pos = pos;
+    trim->numF = numF;
+    trim->vert = vert;
+    ELL_3V_SET(trim->min, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
+    ELL_3V_SET(trim->max, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
+    ELL_3V_SET(trim->origin, 0.0, 0.0, 0.0);
+    for (i=0; i<numV; i++) {
+      ELL_3V_MIN(trim->min, trim->min, pos + 3*i);
+      ELL_3V_MAX(trim->max, trim->max, pos + 3*i);
+      ELL_3V_ADD(trim->origin, trim->origin, pos + 3*i);
+    }
+    ELL_3V_SCALE(trim->origin, 1.0/numV, trim->origin);
   }
   return;
 }

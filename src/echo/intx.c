@@ -175,7 +175,7 @@ _echoRayIntxUVCube(EchoIntx *intx, EchoRay *ray) {
 }
 
 /*
-** MINI_INTX
+** TRI_INTX
 **
 ** given a triangle in terms of origin, edge0, edge1, this will
 ** begin the intersection calculation:
@@ -184,28 +184,28 @@ _echoRayIntxUVCube(EchoIntx *intx, EchoRay *ray) {
 ** - sets v, and rules out intx based on COND
 ** - sets t, and rules out intx based on (t < near || t > far)
 */
-#define MINI_INTX(ray, origin, edge0, edge1, pvec, qvec, tvec,               \
-		  det, t, u, v, COND)                                        \
+#define TRI_INTX(ray, origin, edge0, edge1, pvec, qvec, tvec,                \
+                 det, t, u, v, COND, NOPE)                                   \
   ELL_3V_CROSS(pvec, ray->dir, edge1);                                       \
   det = ELL_3V_DOT(pvec, edge0);                                             \
   if (det > -ECHO_EPSILON && det < ECHO_EPSILON) {                           \
-    return AIR_FALSE;                                                        \
+    NOPE;                                                                    \
   }                                                                          \
   /* now det is the reciprocal of the determinant */                         \
   det = 1.0/det;                                                             \
   ELL_3V_SUB(tvec, ray->from, origin);                                       \
   u = det * ELL_3V_DOT(pvec, tvec);                                          \
   if (u < 0.0 || u > 1.0) {                                                  \
-    return AIR_FALSE;                                                        \
+    NOPE;                                                                    \
   }                                                                          \
   ELL_3V_CROSS(qvec, tvec, edge0);                                           \
   v = det * ELL_3V_DOT(qvec, ray->dir);                                      \
   if (COND) {                                                                \
-    return AIR_FALSE;                                                        \
+    NOPE;                                                                    \
   }                                                                          \
   t = det * ELL_3V_DOT(qvec, edge1);                                         \
   if (t < ray->near || t > ray->far) {                                       \
-    return AIR_FALSE;                                                        \
+    NOPE;                                                                    \
   }
 
 int
@@ -213,13 +213,14 @@ _echoRayIntxRectangle(INTX_ARGS(Rectangle)) {
   echoPos_t pvec[3], qvec[3], tvec[3], det, t, u, v, *edge0, *edge1;
   
   if (echoMatterLight == obj->matter
-      && (ray->shadow || !param->renderLights))
+      && (ray->shadow || !param->renderLights)) {
     return AIR_FALSE;
+  }
   edge0 = obj->edge0;
   edge1 = obj->edge1;
-  MINI_INTX(ray, obj->origin, edge0, edge1,
-	    pvec, qvec, tvec, det, t, u, v,
-	    (v < 0.0 || v > 1.0));
+  TRI_INTX(ray, obj->origin, edge0, edge1,
+	   pvec, qvec, tvec, det, t, u, v,
+	   (v < 0.0 || v > 1.0), return AIR_FALSE);
   intx->t = t;
   intx->u = u;
   intx->v = v;
@@ -238,9 +239,9 @@ _echoRayIntxTriangle(INTX_ARGS(Triangle)) {
   
   ELL_3V_SUB(edge0, obj->vert[1], obj->vert[0]);
   ELL_3V_SUB(edge1, obj->vert[2], obj->vert[0]);
-  MINI_INTX(ray, obj->vert[0], edge0, edge1,
-	    pvec, qvec, tvec, det, t, u, v,
-	    (v < 0.0 || u + v > 1.0));
+  TRI_INTX(ray, obj->vert[0], edge0, edge1,
+	   pvec, qvec, tvec, det, t, u, v,
+	    (v < 0.0 || u + v > 1.0), return AIR_FALSE);
   intx->t = t;
   intx->u = u;
   intx->v = v;
@@ -255,9 +256,10 @@ _echoRayIntxTriangle(INTX_ARGS(Triangle)) {
 
 int
 _echoRayIntxTriMesh(INTX_ARGS(TriMesh)) {
-  echoPos_t t, edge0[3], edge1[3];
+  echoPos_t *pos, vert0[3], edge0[3], edge1[3], pvec[3], qvec[3], tvec[3],
+    det, t, u, v;
   EchoObjectTriMesh *trim;
-  int ax, dir;
+  int i, ax, dir, ret;
 
   trim = TRIMESH(obj);
   if (!_echoRayIntxCubeTest(&t, &ax, &dir,
@@ -266,7 +268,46 @@ _echoRayIntxTriMesh(INTX_ARGS(TriMesh)) {
 			    trim->min[2], trim->max[2], ray)) {
     return AIR_FALSE;
   }
-  
+  /* stupid linear search for now */
+  ret = AIR_FALSE;
+  for (i=0; i<trim->numF; i++) {
+    pos = trim->pos + 3*trim->vert[0 + 3*i];
+    ELL_3V_COPY(vert0, pos);
+    pos = trim->pos + 3*trim->vert[1 + 3*i];
+    ELL_3V_SUB(edge0, pos, vert0);
+    pos = trim->pos + 3*trim->vert[2 + 3*i];
+    ELL_3V_SUB(edge1, pos, vert0);
+    TRI_INTX(ray, vert0, edge0, edge1,
+	     pvec, qvec, tvec, det, t, u, v,
+	     (v < 0.0 || u + v > 1.0), continue);
+    intx->t = ray->far = t;
+    intx->u = u;
+    intx->v = v;
+    ELL_3V_CROSS(intx->norm, edge0, edge1);
+    intx->obj = (EchoObject *)obj;
+    intx->face = i;
+    ret = AIR_TRUE;
+  }
+  return ret;
+}
+
+void
+_echoRayIntxUVTriMesh(EchoIntx *intx, EchoRay *ray) {
+  echoPos_t u, v, norm[3];
+  EchoObjectTriMesh *trim;
+
+  trim = TRIM(intx->obj);
+  ELL_3V_SUB(norm, intx->pos, trim->origin);
+  if (norm[0] || norm[1]) {
+    u = atan2(norm[1], norm[0]);
+    intx->u = AIR_AFFINE(-M_PI, u, M_PI, 0.0, 1.0);
+    v = asin(norm[2]);
+    intx->v = AIR_AFFINE(-M_PI/2, v, M_PI/2, 0.0, 1.0);
+  }
+  else {
+    intx->u = 0;
+    intx->v = AIR_AFFINE(-1.0, norm[2], 1.0, 0.0, 1.0);
+  }
 }
 
 int
@@ -383,7 +424,7 @@ _echoRayIntxUV[ECHO_OBJECT_MAX+1] = {
   _echoRayIntxUVCube,
   _echoRayIntxUVNoop,
   _echoRayIntxUVNoop,
-  NULL,
+  _echoRayIntxUVTriMesh,
   NULL,
   NULL,
   NULL,
