@@ -73,11 +73,12 @@ bin/clean:
 bin/clobber: bin/clean
 	$(RM) $(addsuffix $(DOTEXE),$(BINS.INST))
 
-## All the prerequisite usables of the bins, recursivly expanded.  The
-## calls to need() will work correctly because we've gotten here only
-## after going through all the other library makesfiles.  The
-## arguments to need() are libraries for which we need a header and/or
-## libraries we need to link against.
+## All the prerequisite usables of the bins, **RECURSIVELY EXPANDED**
+## (yes, by hand, by you, Gordon!).  The calls to need() will work
+## correctly because we've gotten here only after going through all
+## the other library makesfiles.  The arguments to need() are
+## libraries for which we need a header and/or libraries we need to
+## link against.
 ##	
 airSanity.need  = $(call meneed,air)
 affine.need     = $(call meneed,air)
@@ -93,7 +94,7 @@ unu.need        = $(call meneed,unrrdu nrrd biff hest air)
 mrender.need    = $(call meneed,hoover limn gage nrrd biff hest air)
 miter.need      = $(call meneed,mite hoover limn nrrd ell biff air)
 ungantry.need   = $(call meneed,gage nrrd biff hest air)
-tend.need       = $(call meneed,ten limn dye unrrdu nrrd ell biff air)
+tend.need       = $(call meneed,ten limn gage dye unrrdu nrrd ell biff air)
 vprobe.need     = $(call meneed,ten limn gage nrrd ell biff hest air)
 pprobe.need     = $(call meneed,ten limn gage nrrd ell biff hest air)
 
