@@ -51,7 +51,7 @@ $(L).OBJS = \
 	accessors.o  arith.o     arraysNrrd.o   apply1D.o        \
 	axes.o       comment.o   convertNrrd.o  defaultsNrrd.o   \
 	endianNrrd.o enumsNrrd.o filt.o         gzio.o           \
-	hestNrrd.o   histogram.o iter.o         kernel.o         \
+hestNrrd.o   histogram.o iter.o         kernel.o         \
 	map.o        measure.o   methodsNrrd.o  parseNrrd.o      \
 	read.o       reorder.o   resampleNrrd.o simple.o         \
 	subset.o     superset.o  write.o 
@@ -63,7 +63,7 @@ $(L).TESTS = test/trand test/ax test/io test/minmax test/tkernel \
 
 # boilerplate: declare rules for this library, do other libraries + bins
 include $(TEEM_SRC)/make/template.mk
-ifeq ($(L),$(Lsave))
-  include $(TEEM_SRC)/bin/GNUmakefile
 endif
+ifeq (,$(INCLUDED))
+  include $(TEEM_SRC)/bin/GNUmakefile
 endif

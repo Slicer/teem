@@ -337,6 +337,7 @@ xtern.link  = $(call evallist,$(call for.xtern,$(1),XXX.LINK))
 ## L back the way it was, L would have to be set twice in the lower level
 ## makefiles
 ##
+INCLUDED = true
 ifneq (,$(L))
   ifeq (undefined,$(origin Lsave))
     Lsave := $(L)
@@ -345,6 +346,7 @@ endif
 include $(foreach LIB,$(LIBS),$(TEEM_SRC)/$(LIB)/GNUmakefile)
 ifneq (,$(Lsave))
   L := $(Lsave)
+  INCLUDED =
 else
   # Lsave wasn't set, which means that make was invoked on this file,
   # which means that the library make files did not include the bin

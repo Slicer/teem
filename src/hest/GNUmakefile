@@ -56,7 +56,7 @@ $(L).TESTS = test/ex0 test/ex1 test/ex2 test/ex3 test/ex4 test/ex5 \
 
 # boilerplate: declare rules for this library
 include $(TEEM_SRC)/make/template.mk
-ifeq ($(L),$(Lsave))
-  include $(TEEM_SRC)/bin/GNUmakefile
 endif
+ifeq (,$(INCLUDED))
+  include $(TEEM_SRC)/bin/GNUmakefile
 endif

@@ -59,7 +59,7 @@ $(L).NEED_DIO =
 
 # boilerplate: declare rules for this library
 include $(TEEM_SRC)/make/template.mk
-ifeq ($(L),$(Lsave))
-  include $(TEEM_SRC)/bin/GNUmakefile
 endif
+ifeq (,$(INCLUDED))
+  include $(TEEM_SRC)/bin/GNUmakefile
 endif

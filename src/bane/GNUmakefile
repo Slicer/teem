@@ -57,7 +57,7 @@ $(L).TESTS = test/tinfo test/sigma test/pos \
 
 # boilerplate: declare rules for this library
 include $(TEEM_SRC)/make/template.mk
-ifeq ($(L),$(Lsave))
-  include $(TEEM_SRC)/bin/GNUmakefile
 endif
+ifeq (,$(INCLUDED))
+  include $(TEEM_SRC)/bin/GNUmakefile
 endif
