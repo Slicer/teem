@@ -50,8 +50,6 @@ main(int argc, char *argv[]) {
   float param[NRRD_MAX_KERNEL_PARAMS], ratio;
   int d, size;
 
-  info = nrrdResampleInfoNew();
-  
   me = argv[0];
   if (!(argc >= 5)) {
     usage();
@@ -107,6 +105,7 @@ main(int argc, char *argv[]) {
   usage();
   
  kparsed:
+  info = nrrdResampleInfoNew();
   if (argc-4 != nin->dim) {
     fprintf(stderr, "%s: read in %d-D nrrd, but got %d resampling sizes\n",
 	    me, nin->dim, argc-4);
