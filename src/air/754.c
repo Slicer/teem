@@ -151,7 +151,6 @@ extern air_export const airDouble airDoubleMin;
 float
 airFPPartsToVal_f(int sign, int exp, int frac) {
   _airFloat f;
-
   FP_SET(f, sign, exp, frac);
   return f.v;
 }
@@ -159,25 +158,36 @@ airFPPartsToVal_f(int sign, int exp, int frac) {
 void
 airFPValToParts_f(int *signP, int *expP, int *fracP, float v) {
   _airFloat f;
-
   f.v = v;
   FP_GET(*signP, *expP, *fracP, f);
 }
 
 double
 airFPPartsToVal_d(int sign, int exp, airULLong frac) {
+#ifdef __sparc
   _airFloat f;
-
+  fprintf(stderr, "airFPPartsToVal_d: WARNING: using float, not double\n");
   FP_SET(f, sign, exp, frac);
   return f.v;
+#else
+  _airDouble d;
+  FP_SET(d, sign, exp, frac);
+  return d.v;
+#endif
 }
 
 void
 airFPValToParts_d(int *signP, int *expP, airULLong *fracP, double v) {
+#ifdef __sparc
   _airFloat f;
-
+  fprintf(stderr, "airFPPartsToVal_d: WARNING: using float, not double\n");
   f.v = v;
   FP_GET(*signP, *expP, *fracP, f);
+#else
+  _airDouble d;
+  d.v = v;
+  FP_GET(*signP, *expP, *fracP, d);
+#endif
 }
 
 /*
@@ -242,7 +252,7 @@ airFPGen_f(int cls) {
 double
 airFPGen_d(int cls) {
 #ifdef __sparc
-  fprintf(stderr, "airFPGen_d: WARNING: using floats, not doubles\n");
+  fprintf(stderr, "airFPGen_d: WARNING: using float, not double\n");
   return airFPGen_f(cls);
 #else
   _airDouble f;
@@ -378,7 +388,7 @@ airFPClass_f(float val) {
 int
 airFPClass_d(double val) {
 #ifdef __sparc
-  fprintf(stderr, "airFPClass_d: WARNING: using floats, not doubles\n");
+  fprintf(stderr, "airFPClass_d: WARNING: using float, not double\n");
   return airFPClass_f(val);
 #else
   _airDouble f;
@@ -452,7 +462,7 @@ airFPClass_d(double val) {
 ** returns 1 if input is either kind of NaN, 0 otherwise.  It is okay
 ** to only have a a float version of this function, as opposed to
 ** having one for float and one for double, because Section 6.2 of the
-** 754 spec tells us that that NaN s to be preserved across precision
+** 754 spec tells us that that NaN is to be preserved across precision
 ** changes.
 */
 int

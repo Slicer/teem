@@ -68,6 +68,7 @@ main(int argc, char *argv[]) {
     /* I think solaris turns the SNAN into a QNAN */
     printf("to double and back:\n");
     airFPFprintf_f(stdout, d);
+    printf("AIR_ISNAN_F = %d\n", AIR_ISNAN_F(f));
     /* starting with double */
     d = airFPGen_d(c);
   }

@@ -173,7 +173,6 @@ extern airArray *airArrayNuke(airArray *a);
 ** The values probably won't agree with those in #include's like
 ** ieee.h, ieeefp.h, fp_class.h.  This is because IEEE 754 hasn't
 ** defined standard values for these, so everyone does it differently.
-** Will these standards committees ever learn?
 ** 
 ** This enum uses underscores (against teem convention) to help
 ** legibility while also conforming to the spirit of the somewhat
@@ -453,8 +452,8 @@ extern void airMopDebug(airArray *arr);
 ** gk@cs.utah.edu
 **
 ** The reason to #define AIR_EXISTS as airExists_d is that on some
-** optimizing compilers, the !((x) - (x)) doesn't work.  This has
-** been the case on Windows and 64-bit irix6 with -Ofast.  If
+** optimizing compilers, the !((x) - (x)) doesn't work.  This has been
+** the case on Windows and 64-bit irix6 (64 bit) with -Ofast.  If
 ** airSanity fails because a special value "exists", then use the
 ** first version of AIR_EXISTS.
 **
@@ -501,7 +500,17 @@ extern void airMopDebug(airArray *arr);
 #define AIR_EXISTS_D(x) (                               \
   (*(airULLong*)&(x) & AIR_ULLONG(0x7ff0000000000000))  \
     != AIR_ULLONG(0x7ff0000000000000))
-  
+
+/*
+******** AIR_ISNAN_F(x)
+**
+** detects if a float is NaN by looking at the bits, without relying on
+** any of its arithmetic properties.  As with AIR_EXISTS_F(), this only
+** works when the argument really is a float, and when floats are 4-bytes
+*/
+#define AIR_ISNAN_F(x) (((*(unsigned int*)&(x) & 0x7f800000)==0x7f800000) && \
+			 (*(unsigned int*)&(x) & 0x007fffff))
+
 /*
 ******** AIR_MAX(a,b), AIR_MIN(a,b), AIR_ABS(a)
 **
