@@ -18,17 +18,47 @@
 #
 #
 
-TEEM_LIB = gage
-HEADERS = gage.h
-PRIV_HEADERS = privateGage.h
-TEEM_LIB_OBJS = \
-	defaultsGage.o miscGage.o print.o filter.o methodsGage.o \
+#### Name of the library goes here
+####
+####
+L := gage
+####
+####
+####
+
+# boilerplate: default targets and include tricks
+ifeq (,$($(L).SEEN))
+$(L).SEEN := true
+TEEM_ROOT ?= ../..
+TEEM_SRC ?= ..
+ifeq (,$(DEF_TARGETS))
+dev     : $(L)/dev
+install : $(L)/install
+usable  : $(L)/usable
+clean   : $(L)/clean
+clobber : $(L)/clobber
+nothing :
+DEF_TARGETS = true
+endif
+ifeq (,$(INCLUDED))
+include ../GNUmakefile
+endif
+
+#### Describe library here
+####
+####
+$(L).NEED_LIBS = nrrd biff ell air
+$(L).PUBLIC_HEADERS = gage.h
+$(L).PRIVATE_HEADERS = privateGage.h
+$(L).OBJS = defaultsGage.o miscGage.o print.o filter.o methodsGage.o \
 	general.o update.o \
 	scl.o sclfilter.o sclprint.o sclanswer.o \
 	vecGage.o vecprint.o
-TEST_BINS = test/gantry test/copy
-TEST_BINS = test/gantry
-TEEM_BINS = bin/vprobe bin/qbert 
-TEEM_BIN_LIBS = -lgage -lnrrd -lbiff -lell -lhest -lair -lm
+$(L).TESTS =
+####
+####
+####
 
-include ../make/teem.mk
+# boilerplate: declare rules for this library
+include $(TEEM_ROOT)/src/make/template.mk
+endif

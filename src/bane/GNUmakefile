@@ -18,15 +18,46 @@
 #
 #
 
-TEEM_LIB = bane
-HEADERS = bane.h
-PRIV_HEADERS = privateBane.h
-TEEM_LIB_OBJS = defaultsBane.o range.o inc.o clip.o measr.o valid.o \
-	methodsBane.o trnsf.o scat.o hvol.o trex.o
-#TEST_BINS = test/apply test/tinfo test/sigma test/pos \
-#	test/opac
-TEST_BINS = test/tblah
-TEEM_BINS = bin/gkms
-TEEM_BIN_LIBS = -lbane -lgage -lnrrd -lell -lbiff -lair -lm
+#### Name of the library goes here
+####
+####
+L := bane
+####
+####
+####
 
-include ../make/teem.mk
+# boilerplate: default targets and include tricks
+ifeq (,$($(L).SEEN))
+$(L).SEEN := true
+TEEM_ROOT ?= ../..
+TEEM_SRC ?= ..
+ifeq (,$(DEF_TARGETS))
+dev     : $(L)/dev
+install : $(L)/install
+usable  : $(L)/usable
+clean   : $(L)/clean
+clobber : $(L)/clobber
+nothing :
+DEF_TARGETS = true
+endif
+ifeq (,$(INCLUDED))
+include ../GNUmakefile
+endif
+
+#### Describe library here
+####
+####
+$(L).NEED_LIBS = gage nrrd biff air
+$(L).PUBLIC_HEADERS = bane.h
+$(L).PRIVATE_HEADERS = privateBane.h
+$(L).OBJS = defaultsBane.o range.o inc.o clip.o measr.o valid.o \
+	methodsBane.o trnsf.o scat.o hvol.o trex.o
+$(L).TESTS = test/tinfo test/sigma test/pos \
+	test/opac test/tblah
+####
+####
+####
+
+# boilerplate: declare rules for this library
+include $(TEEM_ROOT)/src/make/template.mk
+endif

@@ -18,7 +18,7 @@
 */
 
 
-#include <ten.h>
+#include "../ten.h"
 
 char *me;
 

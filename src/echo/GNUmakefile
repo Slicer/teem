@@ -18,16 +18,45 @@
 #
 #
 
-TEEM_LIB = echo
-HEADERS = echo.h
-PRIV_HEADERS = privateEcho.h
-TEEM_LIB_OBJS = methodsEcho.o enumsEcho.o object.o lightEcho.o \
-	renderEcho.o intx.o color.o
-#TEST_BINS = test/proj1 test/mod4
-#TEST_BINS = test/test test/trend
-TEST_BINS = test/glyph
-TEST_BINS = test/trend test/glyph
-TEEM_BINS = 
-TEEM_BIN_LIBS = -lten -lecho -llimn -ldye -lnrrd -lell -lbiff -lhest -lair -lm
+#### Name of the library goes here
+####
+####
+L := echo
+####
+####
+####
 
-include ../make/teem.mk
+# boilerplate: default targets and include tricks
+ifeq (,$($(L).SEEN))
+$(L).SEEN := true
+TEEM_ROOT ?= ../..
+TEEM_SRC ?= ..
+ifeq (,$(DEF_TARGETS))
+dev     : $(L)/dev
+install : $(L)/install
+usable  : $(L)/usable
+clean   : $(L)/clean
+clobber : $(L)/clobber
+nothing :
+DEF_TARGETS = true
+endif
+ifeq (,$(INCLUDED))
+include ../GNUmakefile
+endif
+
+#### Describe library here
+####
+####
+$(L).NEED_LIBS = limn nrrd ell biff air
+$(L).PUBLIC_HEADERS = echo.h
+$(L).PRIVATE_HEADERS = privateEcho.h
+$(L).OBJS = methodsEcho.o enumsEcho.o object.o lightEcho.o \
+	renderEcho.o intx.o color.o
+$(L).TESTS = test/trend
+####
+####
+####
+
+# boilerplate: declare rules for this library
+include $(TEEM_ROOT)/src/make/template.mk
+endif

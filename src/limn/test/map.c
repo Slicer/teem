@@ -18,7 +18,7 @@
 */
 
 
-#include <limn.h>
+#include "../limn.h"
 
 void
 cb(float rgb[3], float vec[3], void *blah) {

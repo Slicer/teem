@@ -18,8 +18,8 @@
 #
 #
 
+TEEM_SHEXT = so
 
-SHEXT = so
 OPT_CFLAG = -O2
 STATIC_CFLAG = -Wl,-Bstatic
 SHARED_CFLAG = -Wl,-Bdynamic

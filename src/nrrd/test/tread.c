@@ -32,6 +32,7 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   ninS = argv[1];
+  noutS = argv[2];
   nin = nrrdNew();
   if (nrrdLoad(nin, ninS)) {
     fprintf(stderr, "%s: couldn't open nrrd \"%s\":\n%s", me, ninS,

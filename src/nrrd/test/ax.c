@@ -22,7 +22,7 @@
 #include "../nrrd.h"
 
 float frand(float min, float max) {
-  return (min + drand48() * (max - min));
+  return (min + airRand() * (max - min));
 }
 
 int
@@ -30,8 +30,6 @@ main(int argc, char *argv[]) {
   int i;
   Nrrd *nrrd;
   double diff, idx, idx2, idx3, idx4, lo, hi, pos, pos2, pos3, pos4;
-  struct timeval tv;
-  struct timezone tz;
 
   if (nrrdAlloc(nrrd=nrrdNew(), nrrdTypeFloat, 2, 4, 4)) {
     printf("trouble:\n%s\n", biffGet(NRRD));
@@ -181,8 +179,7 @@ main(int argc, char *argv[]) {
 
   
   /* and now for random-ness */
-  gettimeofday(&tv, &tz); 
-  srand48(tv.tv_usec);
+  airSrand();
   nrrd->axis[0].center = nrrdCenterNode;
   nrrd->axis[0].center = nrrdCenterCell;
   for (i=0; i<=1000000; i++) {

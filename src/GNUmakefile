@@ -54,8 +54,12 @@ TEEM_SRC ?= .
 include $(TEEM_SRC)/make/errorCheck.mk
 
 ## LIBS: all the teem libraries we'll try to build
+## NUMS: "numbering" of all the libraries in link order
+## NUM.LIBS: used for craziness below
 ##
 LIBS = air hest biff ell nrrd unrrdu dye gage bane limn hoover mite ten echo
+NUMS =  D   C    B    A   9     8     7   6     5    4     3    2    1   0
+NUM.LIBS = $(join $(NUMS),$(LIBS:%=.%))
 
 ## MODES: the different kinds of builds that we support.  Declaring
 ## these modes (for all libraries) as phony saves make the effort of
@@ -157,43 +161,44 @@ endif
 ## argument, in order to get a list of files or flags related to
 ## library.  
 ##
-## {LIBS,BINS,HDRS}.INST: installed libraries, binaries, and headers
+## {LIBS,HDRS}.INST: installed librs and headers
 ## USED.INST: whats "used" in a library, installed libraries and headers
 ## {LIBS,OBJS}.DEV: libraries and object files for non-install linking
-## {TESTS,BINS}.DEV: executables built in-place, for debugging
+## TESTS.DEV: tests built in-place, for debugging
 ## HDRS.DEV : the local (original) copies of public and private headers
 ##
 LIBS.INST = $(foreach ext,$(LIBEXTS),$(LDEST)/lib$(1).$(ext))
-BINS.INST = $(addprefix $(BDEST)/,$(notdir $($(1).BINS)))
 USED.INST = $(call LIBS.INST,$(1)) $(call HDRS.INST,$(1))
 HDRS.INST = $(addprefix $(IDEST)/,$($(1).PUBLIC_HEADERS))
 LIBS.DEV = $(foreach ext,$(LIBEXTS),$(ODEST)/lib$(1).$(ext))
 OBJS.DEV = $(addprefix $(ODEST)/,$($(1).OBJS))
 TESTS.DEV = $(addprefix $(TEEM_SRC)/$(1)/,$($(1).TESTS))
-BINS.DEV = $(addprefix $(TEEM_SRC)/$(1)/,$($(1).BINS))
 HDRS.DEV = $(addprefix $(TEEM_SRC)/$(1)/,$($(1).PUBLIC_HEADERS)) \
   $(addprefix $(TEEM_SRC)/$(1)/,$($(1).PRIVATE_HEADERS))
 
 ## $(call NEED.LIBS,L): pseudo-recursive expansion of all the
-## libraries L depends on, either directly or indirectly.  10 levels
-## deep of recursion is about 8 levels overkill for current teem, and
+## libraries L depends on, either directly or indirectly.  9 levels
+## deep of recursion is about 7 levels overkill for current teem, and
 ## is apt to be plenty for any future teem.  make won't allow direct
 ## or indirect recursion in variable names.
 ## 
-ND.0 = $($(1).NEED_LIBS)
-ND.1 = $(sort $(foreach LIB,$(call ND.0,$(1)),$(LIB) $(call ND.0,$(LIB))))
-ND.2 = $(sort $(foreach LIB,$(call ND.1,$(1)),$(LIB) $(call ND.0,$(LIB))))
-ND.3 = $(sort $(foreach LIB,$(call ND.2,$(1)),$(LIB) $(call ND.0,$(LIB))))
-ND.4 = $(sort $(foreach LIB,$(call ND.3,$(1)),$(LIB) $(call ND.0,$(LIB))))
-ND.5 = $(sort $(foreach LIB,$(call ND.4,$(1)),$(LIB) $(call ND.0,$(LIB))))
-ND.6 = $(sort $(foreach LIB,$(call ND.5,$(1)),$(LIB) $(call ND.0,$(LIB))))
-ND.7 = $(sort $(foreach LIB,$(call ND.6,$(1)),$(LIB) $(call ND.0,$(LIB))))
-ND.8 = $(sort $(foreach LIB,$(call ND.7,$(1)),$(LIB) $(call ND.0,$(LIB))))
-ND.9 = $(sort $(foreach LIB,$(call ND.8,$(1)),$(LIB) $(call ND.0,$(LIB))))
-NEED.LIBS = $(sort $(foreach LIB,$(call ND.9,$(1)),$(LIB) $(call ND.0,$(LIB))))
-
-#NEED.HDRS = $(foreach LIB,$($(1).NEED_LIBS),$(call HDRS.INST,$(LIB)))
-#NEED.LIBS = $(foreach LIB,$($(1).NEED_LIBS),$(call LIBS.INST,$(LIB)))
+## Since we rely on $(sort) to remove redundancies, we need a way of
+## putting the libraries back in dependency order (NOT lexical order).
+## We prefix the library names with [0..D], re-sort them, and then
+## lose the prefix.
+## 
+_ND.0 = $($(1).NEED_LIBS)
+_ND.1 = $(sort $(foreach LIB,$(call _ND.0,$(1)),$(LIB) $(call _ND.0,$(LIB))))
+_ND.2 = $(sort $(foreach LIB,$(call _ND.1,$(1)),$(LIB) $(call _ND.0,$(LIB))))
+_ND.3 = $(sort $(foreach LIB,$(call _ND.2,$(1)),$(LIB) $(call _ND.0,$(LIB))))
+_ND.4 = $(sort $(foreach LIB,$(call _ND.3,$(1)),$(LIB) $(call _ND.0,$(LIB))))
+_ND.5 = $(sort $(foreach LIB,$(call _ND.4,$(1)),$(LIB) $(call _ND.0,$(LIB))))
+_ND.6 = $(sort $(foreach LIB,$(call _ND.5,$(1)),$(LIB) $(call _ND.0,$(LIB))))
+_ND.7 = $(sort $(foreach LIB,$(call _ND.6,$(1)),$(LIB) $(call _ND.0,$(LIB))))
+_ND.8 = $(sort $(foreach LIB,$(call _ND.7,$(1)),$(LIB) $(call _ND.0,$(LIB))))
+_ND.9 = $(sort $(foreach LIB,$(call _ND.8,$(1)),$(LIB) $(call _ND.0,$(LIB))))
+_ND.NLS = $(foreach LIB,$(call _ND.9,$(1)),$(filter %.$(LIB),$(NUM.LIBS)))
+NEED.LIBS = $(patsubst .%,%,$(suffix $(sort $(call _ND.NLS,$(1)))))
 
 ## NEED.USABLE: .X.usable for all needed X
 ## NEED.LIBLINKS: -lX for all needed X
@@ -202,31 +207,20 @@ NEED.USABLE = $(foreach LIB,$(call NEED.LIBS,$(1)),$(TEEM_SRC)/.$(LIB).usable)
 NEED.LIBLINKS = $(foreach lib,$(call NEED.LIBS,$(1)),-l$(lib))
 
 ## For XXX things like endianness, TEEM_XXX is set in the
-## archicture-specific makefile, and $(L).NEED_XXX is set in the
+## architecture-specific makefile, and $(L).NEED_XXX is set in the
 ## Makefile for the library which needs that info.  Meanwhile,
 ## teemXxx.h in teem's top-level include directory contains
-## C-preprocessor code to make sure that the variable has been set and
-## set to something reasonable.
+## C-preprocessor code to make sure that the variable has been set,
+## and set to something reasonable.
 ##
 ## Right now XXX is either "ENDIAN", "QNANHIBIT", "DIO"
 ##
-MORE_CFLAGS = $(if $($(1).NEED_ENDIAN),-DTEEM_ENDIAN=$(TEEM_ENDIAN)) \
-  $(if $($(1).NEED_DIO),-DTEEM_DIO=$(TEEM_DIO)) \
-  $(if $($(1).NEED_QNANHIBIT),-DTEEM_QNANHIBIT=$(TEEM_QNANHIBIT))
-
-##            $(1)  $(2)    $(3)
-## MAYBE_COPY(target,source,perm)
-## 
-## If target doesn't exist, then copy from source and set to given
-## permissions If target does exist, 
-##
-#MAYBE_COPY = $(if $(wildcard $(1)),,$(CP) $(2) $(1); $(CHMOD) $(3) $(1))
+MORE_CFLAGS = $(if $($(1).NEED_ENDIAN),-DTEEM_ENDIAN=$(TEEM_ENDIAN))\
+ $(if $($(1).NEED_DIO),-DTEEM_DIO=$(TEEM_DIO))\
+ $(if $($(1).NEED_QNANHIBIT),-DTEEM_QNANHIBIT=$(TEEM_QNANHIBIT))
 
 WHATS.USED.EXISTS = \
 $(if $(strip $(foreach x,$(call USED.INST,$(1)),$(if $(wildcard $(x)),,no))),$(call USED.INST,$(1)))
-
-#WHATS.USED = \
-#$(if $(strip $(foreach x,$(call USED.INST,$(1)),$(if $(wildcard $(x)),,no))),$(call USED.INST,$(1)),$(if --USED.INST for 1 is out of date WRT USED.INST for prereqs--,$(call USED.INST,$(1))))
 
 #######################################
 ## Read in the makefiles for all the libraries.  In order to prevent

@@ -18,11 +18,42 @@
 #
 #
 
-TEEM_LIB = hoover
-HEADERS = hoover.h
-TEEM_LIB_OBJS = stub.o methodsHoover.o rays.o 
-TEST_BINS = 
-TEEM_BINS = bin/mrender
-TEEM_BIN_LIBS = -lhoover -llimn -lgage -lnrrd -lell -lhest -lbiff -lair -lm
+#### Name of the library goes here
+####
+####
+L := hoover
+####
+####
+####
 
-include ../make/teem.mk
+# boilerplate: default targets and include tricks
+ifeq (,$($(L).SEEN))
+$(L).SEEN := true
+TEEM_ROOT ?= ../..
+TEEM_SRC ?= ..
+ifeq (,$(DEF_TARGETS))
+dev     : $(L)/dev
+install : $(L)/install
+usable  : $(L)/usable
+clean   : $(L)/clean
+clobber : $(L)/clobber
+nothing :
+DEF_TARGETS = true
+endif
+ifeq (,$(INCLUDED))
+include ../GNUmakefile
+endif
+
+#### Describe library here
+####
+####
+$(L).NEED_LIBS = limn ell biff air
+$(L).PUBLIC_HEADERS = hoover.h
+$(L).OBJS = stub.o methodsHoover.o rays.o 
+####
+####
+####
+
+# boilerplate: declare rules for this library
+include $(TEEM_ROOT)/src/make/template.mk
+endif

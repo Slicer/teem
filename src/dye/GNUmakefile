@@ -18,11 +18,48 @@
 #
 #
 
-TEEM_LIB = dye
-HEADERS = dye.h
-TEEM_LIB_OBJS = methodsDye.o convertDye.o
-TEST_BINS = test/conv test/bow
-TEEM_BINS =
-TEEM_BIN_LIBS = -ldye -lbiff -lair -lm
+#### Name of the library goes here
+####
+####
+L := dye
+####
+####
+####
 
-include ../make/teem.mk
+# boilerplate: default targets and include tricks
+ifeq (,$($(L).SEEN))
+$(L).SEEN := true
+TEEM_ROOT ?= ../..
+TEEM_SRC ?= ..
+ifeq (,$(DEF_TARGETS))
+dev     : $(L)/dev
+install : $(L)/install
+usable  : $(L)/usable
+clean   : $(L)/clean
+clobber : $(L)/clobber
+nothing :
+DEF_TARGETS = true
+endif
+ifeq (,$(INCLUDED))
+include ../GNUmakefile
+endif
+
+#### Describe library here
+#### (needs ell for macros)
+####
+$(L).NEED_LIBS = ell biff air
+$(L).PUBLIC_HEADERS = dye.h
+$(L).PRIVATE_HEADERS =
+$(L).OBJS = methodsDye.o convertDye.o
+$(L).TESTS = test/conv test/bow
+
+$(L).NEED_ENDIAN =
+$(L).NEED_QNANHIBIT =
+$(L).NEED_DIO =
+####
+####
+####
+
+# boilerplate: declare rules for this library
+include $(TEEM_ROOT)/src/make/template.mk
+endif

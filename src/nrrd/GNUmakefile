@@ -18,22 +18,52 @@
 #
 #
 
-TEEM_LIB = nrrd
-HEADERS = nrrd.h nrrdDefines.h nrrdMacros.h nrrdEnums.h
-PRIV_HEADERS = privateNrrd.h
-TEEM_LIB_OBJS = \
+#### Name of the library goes here
+####
+####
+L := nrrd
+####
+####
+####
+
+# boilerplate: default targets and include tricks
+ifeq (,$($(L).SEEN))
+$(L).SEEN := true
+TEEM_ROOT ?= ../..
+TEEM_SRC ?= ..
+ifeq (,$(DEF_TARGETS))
+dev     : $(L)/dev
+install : $(L)/install
+usable  : $(L)/usable
+clean   : $(L)/clean
+clobber : $(L)/clobber
+nothing :
+DEF_TARGETS = true
+endif
+ifeq (,$(INCLUDED))
+include ../GNUmakefile
+endif
+
+#### Describe library here
+#### (hest needed for callback declaration)
+#### 
+$(L).NEED_LIBS = biff hest air
+$(L).PUBLIC_HEADERS = nrrd.h nrrdDefines.h nrrdMacros.h nrrdEnums.h
+$(L).PRIVATE_HEADERS = privateNrrd.h
+$(L).OBJS = \
 	accessors.o  arith.o        arraysNrrd.o  apply1D.o      \
 	axes.o       comment.o      convertNrrd.o defaultsNrrd.o \
 	endianNrrd.o enumsNrrd.o    filt.o        hestNrrd.o     \
 	histogram.o  iter.o         kernel.o      map.o          \
 	measure.o    methodsNrrd.o  parseNrrd.o   read.o         \
 	reorder.o    resampleNrrd.o simple.o      subset.o       \
-	superset.o   write.o
+	superset.o   write.o 
+$(L).TESTS = test/trand test/ax test/io test/minmax test/tkernel \
+	test/typestest test/tline test/tread
+####
+####
+####
 
-TEST_BINS = test/trand test/shuff test/ax test/io test/minmax test/tkernel
-TEST_BINS = test/typestest
-TEST_BINS = test/tline test/tio
-TEEM_BINS = bin/nrrdSanity bin/overrgb bin/idx2pos bin/pos2idx
-TEEM_BIN_LIBS = -lnrrd -lbiff -lhest -lair -lm
-
-include ../make/teem.mk
+# boilerplate: declare rules for this library
+include $(TEEM_ROOT)/src/make/template.mk
+endif

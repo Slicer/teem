@@ -18,7 +18,7 @@
 */
 
 
-#include <dye.h>
+#include "../dye.h"
 
 char *me;
 

@@ -94,15 +94,15 @@ main(int argc, char *argv[]) {
   ELL_3V_SET(cam->from, -300, 100, -80);
   ELL_3V_SET(cam->at, 0, 0, 0);
   ELL_3V_SET(cam->up, 0, 0, -1);
-  cam->uMin = -(cam->uMax = 85);
-  cam->vMin = -(cam->vMax = 85);
-  cam->near = -5;
+  cam->uRange[0] = -(cam->uRange[1] = 85);
+  cam->vRange[0] = -(cam->vRange[1] = 85);
+  cam->neer = -5;
   cam->dist = 0;
-  cam->far =  5;
-  cam->eyeRel = AIR_FALSE;
+  cam->faar =  5;
+  cam->atRel = AIR_TRUE;
   
   limnLightSetAmbient(lit, 0.5, 0.5, 0.5);
-  limnLightSet(lit, AIR_TRUE, 1, 1, 1, 0, 0, -1);
+  limnLightSet(lit, 0, AIR_TRUE, 1, 1, 1, 0, 0, -1);
   limnLightUpdate(lit, cam);
   limnEnvMapFill(map=nrrdNew(), limnLightDiffuseCB, lit,
 		 limnQN_16checker);

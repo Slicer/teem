@@ -20,6 +20,37 @@
 #include "../echo.h"
 #include "../privateEcho.h"
 
+/* bad bad bad Gordon */
+void
+_dyeHSVtoRGB(float *R, float *G, float *B,
+	    float  H, float  S, float  V) {
+  float min, fract, vsf, mid1, mid2;
+  int sextant;
+  
+  if (0 == S) {
+    *R = *G = *B = V;
+    return;
+  }
+  /* else there is hue */
+  if (1 == H)
+    H = 0;
+  H *= 6;
+  sextant = (int) floor(H);
+  fract = H - sextant;
+  vsf = V*S*fract;
+  min = V*(1 - S);
+  mid1 = min + vsf;
+  mid2 = V - vsf;
+  switch (sextant) {
+  case 0: { *R = V;    *G = mid1; *B = min;  break; }
+  case 1: { *R = mid2; *G = V;    *B = min;  break; }
+  case 2: { *R = min;  *G = V;    *B = mid1; break; }
+  case 3: { *R = min;  *G = mid2; *B = V;    break; }
+  case 4: { *R = mid1; *G = min;  *B = V;    break; }
+  case 5: { *R = V;    *G = min;  *B = mid2; break; }
+  }
+}
+
 void
 makeSceneDOF(limnCam *cam, EchoParm *parm,
 	     EchoObject **sceneP, airArray **lightArrP) {
@@ -466,7 +497,7 @@ makeSceneBVH(limnCam *cam, EchoParm *parm,
     sphere = echoObjectNew(echoObjectSphere);
     echoObjectSphereSet(sphere,
 			4*airRand()-2, 4*airRand()-2, 4*airRand()-2, 0.005);
-    dyeHSVtoRGB(&r, &g, &b, AIR_AFFINE(0, i, N, 0.0, 1.0), 1.0, 1.0);
+    _dyeHSVtoRGB(&r, &g, &b, AIR_AFFINE(0, i, N, 0.0, 1.0), 1.0, 1.0);
     echoMatterPhongSet(sphere, r, g, b, 1.0,
 		       1.0, 0.0, 0.0, 50);
     LIST(scene)->obj[i] = sphere;
@@ -850,7 +881,7 @@ makeSceneRainLights(limnCam *cam, EchoParm *parm,
 			   w/2, AIR_AFFINE(0, i, N-1, -1-w/2, 1-w/2), 1.5,
 			   0, w, 0,
 			   w, 0, 0);
-    dyeHSVtoRGB(&r, &g, &b, AIR_AFFINE(0, i, N, 0.0, 1.0), 1.0, 1.0);
+    _dyeHSVtoRGB(&r, &g, &b, AIR_AFFINE(0, i, N, 0.0, 1.0), 1.0, 1.0);
     echoMatterLightSet(rect, r, g, b);
     echoObjectListAdd(scene, rect);
     light = echoLightNew(echoLightArea);

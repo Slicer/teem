@@ -18,11 +18,43 @@
 #
 #
 
-TEEM_LIB = mite
-HEADERS = mite.h
-TEEM_LIB_OBJS = defaultsMite.o user.o renderMite.o thread.o ray.o
-TEEM_BINS = bin/miter
-TEEM_BIN_LIBS = -lmite -lhoover -llimn -lgage -lnrrd -lell \
-	-lhest -lbiff -lair -lm
+#### Name of the library goes here
+####
+####
+L := mite
+####
+####
+####
 
-include ../make/teem.mk
+# boilerplate: default targets and include tricks
+ifeq (,$($(L).SEEN))
+$(L).SEEN := true
+TEEM_ROOT ?= ../..
+TEEM_SRC ?= ..
+ifeq (,$(DEF_TARGETS))
+dev     : $(L)/dev
+install : $(L)/install
+usable  : $(L)/usable
+clean   : $(L)/clean
+clobber : $(L)/clobber
+nothing :
+DEF_TARGETS = true
+endif
+ifeq (,$(INCLUDED))
+include ../GNUmakefile
+endif
+
+#### Describe library here
+#### (ell for macros)
+####
+$(L).NEED_LIBS = hoover limn gage nrrd ell biff air
+$(L).PUBLIC_HEADERS = mite.h
+$(L).PRIVATE_HEADERS =
+$(L).OBJS = defaultsMite.o user.o renderMite.o thread.o ray.o
+####
+####
+####
+
+# boilerplate: declare rules for this library
+include $(TEEM_ROOT)/src/make/template.mk
+endif

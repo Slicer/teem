@@ -17,7 +17,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include <limn.h>
+
+#include "../limn.h"
 
 char *info = ("dumb little demonstration of calculating the "
 	      "world-to-view and view-to-world transforms given "

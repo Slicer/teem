@@ -18,7 +18,6 @@
 */
 
 #include "../air.h"
-#include <stdio.h>
 #include <teemQnanhibit.h>
 
 char *me;

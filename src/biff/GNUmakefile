@@ -18,11 +18,43 @@
 #
 #
 
-TEEM_LIB = biff
-HEADERS = biff.h
-TEEM_LIB_OBJS = biff.o
-TEST_BINS = test/test
-TEEM_BINS = 
-TEEM_BIN_LIBS = -lbiff -lair -lm
+#### Name of the library goes here
+####
+####
+L := biff
+####
+####
+####
 
-include ../make/teem.mk
+# boilerplate: default targets and include tricks
+ifeq (,$($(L).SEEN))
+$(L).SEEN := true
+TEEM_ROOT ?= ../..
+TEEM_SRC ?= ..
+ifeq (,$(DEF_TARGETS))
+dev     : $(L)/dev
+install : $(L)/install
+usable  : $(L)/usable
+clean   : $(L)/clean
+clobber : $(L)/clobber
+nothing :
+DEF_TARGETS = true
+endif
+ifeq (,$(INCLUDED))
+include ../GNUmakefile
+endif
+
+#### Describe library here
+####
+####
+$(L).NEED_LIBS = air
+$(L).PUBLIC_HEADERS = biff.h
+$(L).OBJS = biff.o
+$(L).TESTS = test/test
+####
+####
+####
+
+# boilerplate: declare rules for this library
+include $(TEEM_ROOT)/src/make/template.mk
+endif

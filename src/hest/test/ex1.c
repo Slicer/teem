@@ -18,8 +18,6 @@
 */
 
 
-#include <stdio.h>
-#include <air.h>
 #include "../hest.h"
 
 int

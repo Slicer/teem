@@ -53,7 +53,6 @@ $(L).OBJS = 754.o array.o miscAir.o parseAir.o endianAir.o \
 	dio.o mop.o enum.o sane.o string.o
 $(L).TESTS = test/floatprint test/doubleprint test/tok \
 	test/tmop test/tline test/fp
-$(L).BINS = bin/airSanity bin/affine
 
 $(L).NEED_ENDIAN = true
 $(L).NEED_QNANHIBIT = true

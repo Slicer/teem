@@ -19,12 +19,10 @@
 #
 
 
-#INSTALL = /usr/local/gnu/bin/install
+TEEM_OTHER_CLEAN = so_locations
+TEEM_SHEXT = so
+TEEM_CPP_ERROR_DIE = -diag_error 1035
 
-OTHER_CLEAN = so_locations
-SHEXT = so
-CFLAGS =
-CPP_ERROR_DIE = -diag_error 1035
 OPT_CFLAG = -O2
 STATIC_CFLAG = -Bstatic
 SHARED_CFLAG = -Bdynamic
@@ -46,3 +44,5 @@ endif
 TEEM_ENDIAN = 4321
 TEEM_QNANHIBIT = 0
 TEEM_DIO = 1
+
+TEEM_PURIFY_CMD = purify

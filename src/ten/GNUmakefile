@@ -18,13 +18,45 @@
 #
 #
 
-TEEM_LIB = ten
-HEADERS = ten.h tenMacros.h
-TEEM_LIB_OBJS = tensor.o chan.o aniso.o methodsTen.o arraysTen.o
-#TEST_BINS = test/chan2tens test/anisos test/boxes test/anisovol test/slices \
-#	test/es test/anisovol
-TEST_BINS = test/chan2tens test/anisos
-TEEM_BINS = 
-TEEM_BIN_LIBS = -lten -lnrrd -lell -lbiff -lair -lm
+#### Name of the library goes here
+####
+####
+L := ten
+####
+####
+####
 
-include ../make/teem.mk
+# boilerplate: default targets and include tricks
+ifeq (,$($(L).SEEN))
+$(L).SEEN := true
+TEEM_ROOT ?= ../..
+TEEM_SRC ?= ..
+ifeq (,$(DEF_TARGETS))
+dev     : $(L)/dev
+install : $(L)/install
+usable  : $(L)/usable
+clean   : $(L)/clean
+clobber : $(L)/clobber
+nothing :
+DEF_TARGETS = true
+endif
+ifeq (,$(INCLUDED))
+include ../GNUmakefile
+endif
+
+#### Describe library here
+#### For time being, glyph (glyph.o, test/boxes, test/slices)
+#### stuff is nixed.
+####
+$(L).NEED_LIBS = limn dye nrrd ell biff air
+$(L).PUBLIC_HEADERS = ten.h tenMacros.h
+$(L).PRIVATE_HEADERS =
+$(L).OBJS = tensor.o chan.o aniso.o methodsTen.o arraysTen.o
+$(L).TESTS = test/chan2tens test/anisos
+####
+####
+####
+
+# boilerplate: declare rules for this library
+include $(TEEM_ROOT)/src/make/template.mk
+endif

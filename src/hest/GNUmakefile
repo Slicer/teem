@@ -18,12 +18,45 @@
 #
 #
 
-TEEM_LIB = hest
-HEADERS = hest.h
-PRIV_HEADERS = privateHest.h
-TEEM_LIB_OBJS = defaultsHest.o methodsHest.o usage.o parseHest.o
-TEST_BINS = test/ex0 test/ex1 test/ex2 test/ex3 test/ex4 test/ex5 \
-	test/strings
-TEEM_BIN_LIBS = -lhest -lair -lm
+#### Name of the library goes here
+####
+####
+L := hest
+####
+####
+####
 
-include ../make/teem.mk
+# boilerplate: default targets and include tricks
+ifeq (,$($(L).SEEN))
+$(L).SEEN := true
+TEEM_ROOT ?= ../..
+TEEM_SRC ?= ..
+ifeq (,$(DEF_TARGETS))
+dev     : $(L)/dev
+install : $(L)/install
+usable  : $(L)/usable
+clean   : $(L)/clean
+clobber : $(L)/clobber
+nothing :
+DEF_TARGETS := true
+endif
+ifeq (,$(INCLUDED))
+include ../GNUmakefile
+endif
+
+#### Describe library here
+####
+####
+$(L).NEED_LIBS = air
+$(L).PUBLIC_HEADERS = hest.h
+$(L).PRIVATE_HEADERS = privateHest.h
+$(L).OBJS = defaultsHest.o methodsHest.o usage.o parseHest.o
+$(L).TESTS = test/ex0 test/ex1 test/ex2 test/ex3 test/ex4 test/ex5 \
+	test/strings
+####
+####
+####
+
+# boilerplate: declare rules for this library
+include $(TEEM_ROOT)/src/make/template.mk
+endif

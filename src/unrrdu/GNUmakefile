@@ -18,26 +18,52 @@
 #
 #
 
-TEEM_LIB = unrrdu
-HEADERS = unrrdu.h
-PRIV_HEADERS = privateUnrrdu.h
-TEEM_LIB_OBJS = flotsam.o
+#### Name of the library goes here
+####
+####
+L := unrrdu
+####
+####
+####
+
+# boilerplate: default targets and include tricks
+ifeq (,$($(L).SEEN))
+$(L).SEEN := true
+TEEM_ROOT ?= ../..
+TEEM_SRC ?= ..
+ifeq (,$(DEF_TARGETS))
+dev     : $(L)/dev
+install : $(L)/install
+usable  : $(L)/usable
+clean   : $(L)/clean
+clobber : $(L)/clobber
+nothing :
+DEF_TARGETS = true
+endif
+ifeq (,$(INCLUDED))
+include ../GNUmakefile
+endif
+
+#### Describe library here
+####
+####
+$(L).NEED_LIBS = nrrd biff hest air
+$(L).PUBLIC_HEADERS = unrrdu.h
+$(L).PRIVATE_HEADERS = privateUnrrdu.h
+$(L).OBJS = flotsam.o
 #
-# every unu command source file must define:
-# char *xxxName
-#      the short string used to invoke the command
-# char *xxxInfo
-#      approx. one line description of the function
-# int xxxMain(int argc, char **argv, char *argv0)
-#      the function to call to do the command
-# This applies to every .o file below!
+# The source for unu command xxx must define a unuCmd "unu_xxxCmd".
+# This applies to every .o file below.
 #
-TEEM_LIB_OBJS += flip.o slice.o convert.o crop.o pad.o permute.o histo.o \
+$(L).OBJS  += flip.o slice.o convert.o crop.o pad.o permute.o histo.o \
 	resample.o cmedian.o reshape.o shuffle.o quantize.o unquantize.o \
 	block.o unblock.o project.o swap.o join.o dhisto.o jhisto.o dice.o \
 	heq.o histax.o gamma.o make.o 1op.o 2op.o 3op.o lut.o rmap.o imap.o \
 	save.o 
-TEEM_BINS = bin/unu
-TEEM_BIN_LIBS = -lunrrdu -lnrrd -lbiff -lhest -lair -lm
+####
+####
+####
 
-include ../make/teem.mk
+# boilerplate: declare rules for this library
+include $(TEEM_ROOT)/src/make/template.mk
+endif

@@ -17,7 +17,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include <ten.h>
+#include "ten.h"
 
 char
 _tenAnisoStr[TEN_ANISO_MAX+1][AIR_STRLEN_SMALL] = {

@@ -18,11 +18,44 @@
 #
 #
 
-TEEM_LIB = ell
-HEADERS = ell.h ellMacros.h
-TEEM_LIB_OBJS = cubic.o eigen.o miscEll.o vecEll.o mat.o
-TEST_BINS = test/sort3 test/cubic
-TEEM_BINS = 
-TEEM_BIN_LIBS = -lell -lbiff -lair -lm
+#### Name of the library goes here
+####
+####
+L := ell
+####
+####
+####
 
-include ../make/teem.mk
+# boilerplate: default targets and include tricks
+ifeq (,$($(L).SEEN))
+$(L).SEEN := true
+TEEM_ROOT ?= ../..
+TEEM_SRC ?= ..
+ifeq (,$(DEF_TARGETS))
+dev     : $(L)/dev
+install : $(L)/install
+usable  : $(L)/usable
+clean   : $(L)/clean
+clobber : $(L)/clobber
+nothing :
+DEF_TARGETS = true
+endif
+ifeq (,$(INCLUDED))
+include ../GNUmakefile
+endif
+
+#### Describe library here
+####
+####
+$(L).NEED_LIBS = air
+$(L).PUBLIC_HEADERS = ell.h ellMacros.h
+$(L).PRIVATE_HEADERS =
+$(L).OBJS = cubic.o eigen.o miscEll.o vecEll.o mat.o
+$(L).TESTS = test/sort3
+####
+####
+####
+
+# boilerplate: declare rules for this library
+include $(TEEM_ROOT)/src/make/template.mk
+endif

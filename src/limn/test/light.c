@@ -20,7 +20,7 @@
 
 char *me;
 
-#include <limn.h>
+#include "../limn.h"
 
 int
 main(int argc, char *argv[]) {

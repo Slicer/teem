@@ -18,7 +18,6 @@
 */
 
 
-#include <stdio.h>
 #include "../air.h"
 
 char *me;
