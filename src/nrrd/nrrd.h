@@ -414,7 +414,7 @@ extern void nrrdAxisPosRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
 extern void nrrdAxisIdxRange(double *loP, double *hiP, Nrrd *nrrd, int ax,
 			     double loPos, double hiPos);
 extern void nrrdAxisSpacingSet(Nrrd *nrrd, int ax);
-extern void nrrdAxisMinMaxSet(Nrrd *nrrd, int ax);
+extern void nrrdAxisMinMaxSet(Nrrd *nrrd, int ax, int defCenter);
 
 /******** simple things */
 /* simple.c */

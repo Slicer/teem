@@ -25,16 +25,8 @@ extern "C" {
 #endif
 
 /*
-******** NRRD_SPACING
-**
-** returns nrrdDefSpacing if the argument doesn't exist, otherwise
-** returns the argument
-*/
-#define NRRD_SPACING(spc) (AIR_EXISTS(spc) ? spc: nrrdDefSpacing)
-
-/*
-******** NRRD_AXIS_CELL_POS, NRRD_AXIS_NODE_POS, NRRD_AXIS_POS
-******** NRRD_AXIS_CELL_IDX, NRRD_AXIS_NODE_IDX, NRRD_AXIS_IDX
+******** NRRD_CELL_POS, NRRD_NODE_POS, NRRD_POS
+******** NRRD_CELL_IDX, NRRD_NODE_IDX, NRRD_IDX
 **
 ** the guts of nrrdAxisPos() and nrrdAxisIdx(), for converting
 ** between "index space" location and "position" or "world space" location,
@@ -44,35 +36,35 @@ extern "C" {
 ** is either nrrdCenterCell or nrrdCenterNode, but not nrrdCenterUnknown.
 */
 /* index to position, cell centering */
-#define NRRD_AXIS_CELL_POS(min, max, size, idx)       \
+#define NRRD_CELL_POS(min, max, size, idx)       \
   AIR_AFFINE(0, (idx) + 0.5, (size), (min), (max))
 
 /* index to position, node centering */
-#define NRRD_AXIS_NODE_POS(min, max, size, idx)       \
+#define NRRD_NODE_POS(min, max, size, idx)       \
   AIR_AFFINE(0, (idx), (size)-1, (min), (max))
 
 /* index to position, either centering */
-#define NRRD_AXIS_POS(center, min, max, size, idx)    \
+#define NRRD_POS(center, min, max, size, idx)    \
   (nrrdCenterCell == (center)                         \
-   ? NRRD_AXIS_CELL_POS((min), (max), (size), (idx))  \
-   : NRRD_AXIS_NODE_POS((min), (max), (size), (idx)))
+   ? NRRD_CELL_POS((min), (max), (size), (idx))  \
+   : NRRD_NODE_POS((min), (max), (size), (idx)))
 
 /* position to index, cell centering */
-#define NRRD_AXIS_CELL_IDX(min, max, size, pos)       \
+#define NRRD_CELL_IDX(min, max, size, pos)       \
   (AIR_AFFINE((min), (pos), (max), 0, (size)) - 0.5)
 
 /* position to index, node centering */
-#define NRRD_AXIS_NODE_IDX(min, max, size, pos)       \
+#define NRRD_NODE_IDX(min, max, size, pos)       \
   AIR_AFFINE((min), (pos), (max), 0, (size)-1)
 
 /* position to index, either centering */
-#define NRRD_AXIS_IDX(center, min, max, size, pos)    \
+#define NRRD_IDX(center, min, max, size, pos)    \
   (nrrdCenterCell == (center)                         \
-   ? NRRD_AXIS_CELL_IDX((min), (max), (size), (pos))  \
-   : NRRD_AXIS_NODE_IDX((min), (max), (size), (pos)))
+   ? NRRD_CELL_IDX((min), (max), (size), (pos))  \
+   : NRRD_NODE_IDX((min), (max), (size), (pos)))
 
 /*
-******** NRRD_AXIS_SPACING
+******** NRRD_SPACING
 **
 ** the guts of nrrdAxisSpacing(), determines the inter-sample
 ** spacing, given centering, min and max "position", and number of samples
@@ -80,7 +72,7 @@ extern "C" {
 ** Unlike nrrdAxisSpacing, this assumes that center is either
 ** nrrdCenterCell or nrrdCenterNode, but not nrrdCenterUnknown.
 */
-#define NRRD_AXIS_SPACING(center, min, max, size)  \
+#define NRRD_SPACING(center, min, max, size)  \
   (nrrdCenterCell == center                        \
    ? ((max) - (min))/(size)                        \
    : ((max) - (min))/((size) - 1))                 \

@@ -39,6 +39,14 @@ extern "C" {
 
 #define _NRRD_TABLE_INCR 256
 
+/*
+** _NRRD_SPACING
+**
+** returns nrrdDefSpacing if the argument doesn't exist, otherwise
+** returns the argument
+*/
+#define _NRRD_SPACING(spc) (AIR_EXISTS(spc) ? spc: nrrdDefSpacing)
+
 typedef union {
   char **CP;
   int *I;
@@ -66,6 +74,7 @@ extern int _nrrdContentSet(Nrrd *nout, const char *func,
 /* axes.c */
 extern void _nrrdAxisInit(NrrdAxis *axis);
 extern int _nrrdCenter(int center);
+extern int _nrrdCenter2(int center, int def);
 
 /* convert.c */
 extern void (*_nrrdConv[][NRRD_TYPE_MAX+1])(void *,void *, size_t);

@@ -336,11 +336,11 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
 ** try to recover floating point values from a quantized nrrd,
 ** using the oldMin and oldMax values, if they exist.  If they
 ** don't exist, the output range will be 0.0 to 1.0.  However,
-** because we're using NRRD_AXIS_CELL_POS to recover values,
+** because we're using NRRD_CELL_POS to recover values,
 ** the output values will never be exactly 0.0 to 1.0 (or oldMin
 ** to oldMax).  In unsigned char data, for instance, the value
 ** V will be mapped to:
-** NRRD_AXIS_CELL_POS(0.0, 1.0, 256, V) ==
+** NRRD_CELL_POS(0.0, 1.0, 256, V) ==
 ** AIR_AFFINE(0, V + 0.5, 256, 0.0, 1.0) ==
 ** ((double)(1.0)-(0.0))*((double)(V+0.5)-(0)) / ((double)(256)-(0)) + (0.0))
 ** (1.0)*(V+0.5) / (256.0) + (0.0) ==
@@ -406,13 +406,13 @@ nrrdUnquantize(Nrrd *nout, Nrrd *nin, int type) {
   case nrrdTypeFloat:
     for (II=0; II<NN; II++) {
       valIn = minIn + nrrdDLookup[nin->type](nin->data, II);
-      outF[II] = NRRD_AXIS_CELL_POS(minOut, maxOut, numValIn, valIn);
+      outF[II] = NRRD_CELL_POS(minOut, maxOut, numValIn, valIn);
     }
     break;
   case nrrdTypeDouble:
     for (II=0; II<NN; II++) {
       valIn = minIn + nrrdDLookup[nin->type](nin->data, II);
-      outD[II] = NRRD_AXIS_CELL_POS(minOut, maxOut, numValIn, valIn);
+      outD[II] = NRRD_CELL_POS(minOut, maxOut, numValIn, valIn);
     }
     break;
   }
@@ -422,8 +422,8 @@ nrrdUnquantize(Nrrd *nout, Nrrd *nin, int type) {
   if (nout != nin) {
     nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
   }
-  nout->min = NRRD_AXIS_CELL_POS(minOut, maxOut, numValIn, 0);
-  nout->max = NRRD_AXIS_CELL_POS(minOut, maxOut, numValIn, numValIn-1);
+  nout->min = NRRD_CELL_POS(minOut, maxOut, numValIn, 0);
+  nout->max = NRRD_CELL_POS(minOut, maxOut, numValIn, numValIn-1);
   nout->oldMin = nout->oldMax = AIR_NAN;
   if (nrrdContentSet(nout, func, nin, "")) {
     sprintf(err, "%s:", me);

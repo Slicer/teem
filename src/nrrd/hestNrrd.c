@@ -160,13 +160,12 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
      are different ways of writing the same number, such as "3" -->
      "+3", "3.1" --> "3.10", so someone accidently using the file when
      they mean to use the number has easy ways of changing the number
-     representation.  On the other hand, to change the file name
-     representation, they could prefix it with "./".  Another problem
-     is that one really wants a general robust test to see if a given
-     string is a valid number representation AND NOTHING BUT THAT, and
-     sscanf() is not that test.  In any case, if there are to be
-     improved smarts about this matter, they need to be implemented
-     below and nowhere else. */
+     representation.  As many trivial transformations are not
+     available on filenames. Another problem is that one really wants
+     a general robust test to see if a given string is a valid number
+     representation AND NOTHING BUT THAT, and sscanf() is not that
+     test.  In any case, if there are to be improved smarts about this
+     matter, they need to be implemented below and nowhere else. */
   
   nrrd = nrrdNew();
   ret = nrrdLoad(nrrd, str);
@@ -182,7 +181,7 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
       /* it failed because of something besides the fopen(), so complain */
       nerr = biffGetDone(NRRD);
       strncpy(err, nerr, AIR_STRLEN_HUGE-1);
-      return 1;
+      airMopError(mop); return 1;
     } else {
       /* fopen() failed, so it probably wasn't meant to be a filename */
       free(biffGetDone(NRRD));
@@ -201,7 +200,7 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
 	if (nrrdLoad(nrrd = nrrdNew(), str)) {
 	  nerr = biffGetDone(NRRD);
 	  strncpy(err, nerr, AIR_STRLEN_HUGE-1);
-	  return 1;
+	  airMopError(mop); return 1;
 	} else {
 	  /* what the hell? */
 	  fprintf(stderr, "%s: PANIC, is it a nrrd or not?", me);

@@ -282,9 +282,10 @@ _nrrdWriteDataGzip (Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteDataGzip", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
   size_t num, bsize, size, total_written;
-  int block_size, wrote, fmt_i=0, error=0;
+  int block_size, fmt_i=0, error=0;
   char *data, fmt[4];
   gzFile gzfout;
+  unsigned int wrote;
   
   /* this shouldn't actually be necessary ... */
   if (!nrrdElementSize(nrrd)) {
@@ -346,7 +347,8 @@ _nrrdWriteDataGzip (Nrrd *nrrd, NrrdIO *io) {
   data = nrrd->data;
   
   /* Ok, now we can begin writing. */
-  while ((error = _nrrdGzWrite(gzfout, data, block_size, &wrote)) == 0 && wrote > 0) {
+  while ((error = _nrrdGzWrite(gzfout, data, block_size, &wrote)) == 0 
+	 && wrote > 0) {
     /* Increment the data pointer to the next available spot. */
     data += wrote;
     total_written += wrote;

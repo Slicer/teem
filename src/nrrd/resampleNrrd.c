@@ -80,7 +80,7 @@ nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
       info->parm[d][p] = parm[p];
     /* set the min/max for this axis if not already set to something */
     if (!( AIR_EXISTS(nin->axis[d].min) && AIR_EXISTS(nin->axis[d].max) ))
-      nrrdAxisMinMaxSet(nin, d);
+      nrrdAxisMinMaxSet(nin, d, nrrdDefCenter);
     info->min[d] = nin->axis[d].min;
     info->max[d] = nin->axis[d].max;
   }
@@ -295,8 +295,8 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
   maxIn = nin->axis[d].max;
   minOut = info->min[d];
   maxOut = info->max[d];
-  spcIn = NRRD_AXIS_SPACING(center, minIn, maxIn, sizeIn);
-  spcOut = NRRD_AXIS_SPACING(center, minOut, maxOut, sizeOut);
+  spcIn = NRRD_SPACING(center, minIn, maxIn, sizeIn);
+  spcOut = NRRD_SPACING(center, minOut, maxOut, sizeOut);
   *ratioP = ratio = spcIn/spcOut;
   support = info->kernel[d]->support(info->parm[d]);
   integral = info->kernel[d]->integral(info->parm[d]);
@@ -328,8 +328,8 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
   /* calculate sample locations and do first pass on indices */
   halfLen = dotLen/2;
   for (i=0; i<sizeOut; i++) {
-    pos = NRRD_AXIS_POS(center, minOut, maxOut, sizeOut, i);
-    idxD = NRRD_AXIS_IDX(center, minIn, maxIn, sizeIn, pos);
+    pos = NRRD_POS(center, minOut, maxOut, sizeOut, i);
+    idxD = NRRD_IDX(center, minIn, maxIn, sizeIn, pos);
     base = floor(idxD) - halfLen + 1;
     for (e=0; e<dotLen; e++) {
       index[e + dotLen*i] = base + e;
@@ -776,7 +776,8 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
 	       (NRRD_AXESINFO_SIZE_BIT |
 		NRRD_AXESINFO_MIN_BIT |
 		NRRD_AXESINFO_MAX_BIT |
-		NRRD_AXESINFO_SPACING_BIT));
+		NRRD_AXESINFO_SPACING_BIT | 
+		NRRD_AXESINFO_CENTER_BIT));
   for (d=0; d<dim; d++) {
     if (info->kernel[d]) {
       nout->axis[d].min = info->min[d];

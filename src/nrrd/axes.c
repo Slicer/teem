@@ -394,6 +394,17 @@ _nrrdCenter(int center) {
   return center;
 }
 
+int
+_nrrdCenter2(int center, int defCenter) {
+  
+  center =  (nrrdCenterUnknown == center
+	     ? defCenter
+	     : center);
+  center = AIR_CLAMP(nrrdCenterUnknown+1, center, nrrdCenterLast-1);
+  return center;
+}
+
+
 /*
 ******** nrrdAxisPos()
 ** 
@@ -416,7 +427,7 @@ nrrdAxisPos(Nrrd *nrrd, int ax, double idx) {
   max = nrrd->axis[ax].max;
   size = nrrd->axis[ax].size;
   
-  return NRRD_AXIS_POS(center, min, max, size, idx);
+  return NRRD_POS(center, min, max, size, idx);
 }
 
 /*
@@ -441,7 +452,7 @@ nrrdAxisIdx(Nrrd *nrrd, int ax, double pos) {
   max = nrrd->axis[ax].max;
   size = nrrd->axis[ax].size;
 
-  return NRRD_AXIS_IDX(center, min, max, size, pos);
+  return NRRD_IDX(center, min, max, size, pos);
 }
 
 /*
@@ -563,20 +574,20 @@ nrrdAxisSpacingSet(Nrrd *nrrd, int ax) {
   }
 
   /* the skinny */
-  nrrd->axis[ax].spacing = NRRD_AXIS_SPACING(center, min, max, size);
+  nrrd->axis[ax].spacing = NRRD_SPACING(center, min, max, size);
 
   return;
 }
 
 void
-nrrdAxisMinMaxSet(Nrrd *nrrd, int ax) {
+nrrdAxisMinMaxSet(Nrrd *nrrd, int ax, int defCenter) {
   int center;
   double spacing;
 
   if (!( nrrd && AIR_INSIDE(0, ax, nrrd->dim-1) ))
     return;
   
-  center = _nrrdCenter(nrrd->axis[ax].center);
+  center = _nrrdCenter2(nrrd->axis[ax].center, defCenter);
   spacing = nrrd->axis[ax].spacing;
   if (!AIR_EXISTS(spacing))
     spacing = nrrdDefSpacing;

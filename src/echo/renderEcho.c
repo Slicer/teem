@@ -165,13 +165,13 @@ echoJitterSet(EchoParm *parm, EchoThreadState *tstate) {
 	jitt[1 + 2*j] = 0.0;
 	break;
       case echoJitterGrid:
-	jitt[0 + 2*j] = NRRD_AXIS_POS(nrrdCenterCell, -0.5, 0.5, n, xi);
-	jitt[1 + 2*j] = NRRD_AXIS_POS(nrrdCenterCell, -0.5, 0.5, n, yi);
+	jitt[0 + 2*j] = NRRD_POS(nrrdCenterCell, -0.5, 0.5, n, xi);
+	jitt[1 + 2*j] = NRRD_POS(nrrdCenterCell, -0.5, 0.5, n, yi);
 	break;
       case echoJitterJitter:
-	jitt[0 + 2*j] = NRRD_AXIS_POS(nrrdCenterCell, -0.5, 0.5, n, xi);
+	jitt[0 + 2*j] = NRRD_POS(nrrdCenterCell, -0.5, 0.5, n, xi);
 	jitt[0 + 2*j] += AIR_AFFINE(0.0, airRand(), 1.0, -w/2, w/2);
-	jitt[1 + 2*j] = NRRD_AXIS_POS(nrrdCenterCell, -0.5, 0.5, n, yi);
+	jitt[1 + 2*j] = NRRD_POS(nrrdCenterCell, -0.5, 0.5, n, yi);
 	jitt[1 + 2*j] += AIR_AFFINE(0.0, airRand(), 1.0, -w/2, w/2);
 	break;
       case echoJitterRandom:
@@ -398,12 +398,12 @@ echoRender(Nrrd *nraw, limnCam *cam,
   img = (echoCol_t *)nraw->data;
   printf("      ");
   for (imgVi=0; imgVi<parm->imgResV; imgVi++) {
-    imgV = NRRD_AXIS_POS(nrrdCenterCell, cam->vRange[0], cam->vRange[1],
-			 parm->imgResV, imgVi);
+    imgV = NRRD_POS(nrrdCenterCell, cam->vRange[0], cam->vRange[1],
+		    parm->imgResV, imgVi);
     printf("%s", airDoneStr(0, imgVi, parm->imgResV-1, done)); fflush(stdout);
     for (imgUi=0; imgUi<parm->imgResU; imgUi++) {
-      imgU = NRRD_AXIS_POS(nrrdCenterCell, cam->uRange[0], cam->uRange[1],
-			   parm->imgResU, imgUi);
+      imgU = NRRD_POS(nrrdCenterCell, cam->uRange[0], cam->uRange[1],
+		      parm->imgResU, imgUi);
 
       echoVerbose = ( (205 == imgUi && 103 == imgVi) ||
 		      (0 && 150 == imgUi && 232 == imgVi) ||

@@ -534,8 +534,9 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
   outlen = 0;
   for (i=0; i<numNin; i++) {
     if (ninperm[i]->type != ninperm[0]->type) {
-      sprintf(err, "%s: type (%d) of part %d unlike first's (%d)",
-	      me, ninperm[i]->type, i, ninperm[0]->type);
+      sprintf(err, "%s: type (%s) of part %d unlike first's (%s)",
+	      me, airEnumStr(nrrdType, ninperm[i]->type),
+	      i, airEnumStr(nrrdType, ninperm[0]->type));
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     if (nrrdTypeBlock == ninperm[0]->type) {
