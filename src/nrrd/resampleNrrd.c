@@ -348,7 +348,7 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
     if (!i) {
       fprintf(stderr, "%s: sample locations:\n", me);
     }
-    fprintf(stderr, "%s: %d\n        ", me, i);
+    fprintf(stderr, "%s: %d (sample locations)\n        ", me, i);
     for (e=0; e<dotLen; e++) {
       fprintf(stderr, "%d/%g ", index[e + dotLen*i], weight[e + dotLen*i]);
     }
@@ -393,14 +393,20 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
      sneaky trick on the kernel parameter 0 in case of downsampling
      to create the blurring of the old index space, but only if !cheap */
   memcpy(parm, info->parm[d], NRRD_KERNEL_PARMS_NUM*sizeof(double));
-  if (ratio < 1) {
-    if (info->cheap) {
-      parm[0] *= ratio;
-    } else {
-      parm[0] /= ratio;
-    }
+  if (ratio < 1 && !(info->cheap)) {
+    parm[0] /= ratio;
   }
   info->kernel[d]->EVALN(weight, weight, dotLen*sizeOut, parm);
+
+  /* ********
+  for (i=0; i<sizeOut; i++) {
+    fprintf(stderr, "%s: %d (sample weights)\n        ", me, i);
+    for (e=0; e<dotLen; e++) {
+      fprintf(stderr, "%d/%g ", index[e + dotLen*i], weight[e + dotLen*i]);
+    }
+    fprintf(stderr, "\n");
+  }
+  ******** */
 
   if (nrrdBoundaryWeight == info->boundary) {
     if (integral) {
