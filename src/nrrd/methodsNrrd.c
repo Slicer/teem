@@ -439,6 +439,59 @@ _nrrdTraverse (Nrrd *nrrd) {
 */
 
 /*
+******** _nrrdCopyShallow
+**
+** Similar to nrrdCopy, but the data itself is not copied.  nout->data
+** and nout->data will share a pointer to the data.  This should be
+** used with extreem caution, because there is no pointer magic to
+** make sure the data is not freed twice.
+*/
+int
+_nrrdCopyShallow (Nrrd *nout, const Nrrd *nin) {
+  char me[]="_nrrdCopyShallow", err[AIR_STRLEN_MED];
+  Nrrd *ntmp;
+
+  if (!(nin && nout)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  /* Don't use nrrdNew as this allocates axillary data that is
+     annoying to delete.  We don't need to anyway since we will simply
+     copy over the pointers later with the memcpy. */
+  ntmp = (Nrrd*)(calloc(1, sizeof(Nrrd)));
+  if (!ntmp) {
+    sprintf(err, "%s: error allocating temporary nrrd.", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  /* Shallow copy the contents of the nrrd.  It's OK if this is not a
+     deep copy (i.e. all the axis info), because nrrdCopy will do this
+     for us.  This is only to facilitate setting the data pointer to
+     NULL which will cause nrrdCopy to not copy the data. */
+  memcpy(ntmp, nin, sizeof(Nrrd));
+
+  /* Setting this to 0 will cause nrrdCopy to not copy the data */
+  ntmp->data = 0;
+  
+  if (nrrdCopy(nout, ntmp)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err);
+    /* Since we should never have copied the data, we want to make sure
+       that we don't delete it here. */
+    free(ntmp);
+    return 1;
+  }
+
+  /* Share the data pointer */
+  nout->data = nin->data;
+
+  /* Clean up */
+  free(ntmp);
+  
+  return 0;
+}
+
+/*
 ******** nrrdCopy
 **
 ** copy method for nrrds.  nout will end up as an "exact" copy of nin.
@@ -477,6 +530,13 @@ nrrdCopy (Nrrd *nout, const Nrrd *nin) {
   } else {
     /* someone is trying to copy structs without data, fine fine fine */
     nout->data = NULL;
+    /* We need to make sure to copy important stuff like type, dim,
+       and sizes, as this information is not copied elsewhere.  The
+       data copying version sets these in nrrdAlloc_nva (which is
+       called by nrrdMaybeAlloc_nva). */
+    nout->type = nin->type;
+    nout->dim = nin->dim;
+    nrrdAxisInfoSet_nva(nout, nrrdAxisInfoSize, size);
   }
   nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
 
