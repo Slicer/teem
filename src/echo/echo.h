@@ -414,8 +414,8 @@ extern void echoInstanceSet(echoObject *inst,
 
 /* matter.c ------------------------------------------ */
 extern echo_export int echoObjectHasMatter[ECHO_TYPE_NUM];
-extern void echoMatterColorSet(echoScene *scene, echoObject *obj,
-			       echoCol_t R, echoCol_t G, echoCol_t B, echoCol_t A);
+extern void echoColorSet(echoScene *scene, echoObject *obj,
+			 echoCol_t R, echoCol_t G, echoCol_t B, echoCol_t A);
 extern void echoMatterPhongSet(echoScene *scene, echoObject *obj,
 			       echoCol_t ka, echoCol_t kd,
 			       echoCol_t ks, echoCol_t sp);
@@ -431,9 +431,6 @@ extern void echoMatterTextureSet(echoScene *scene, echoObject *obj,
 /* intx.c ------------------------------------------- */
 extern int echoRayIntx(echoIntx *intx, echoRay *ray,
 		       echoScene *scene, echoRTParm *parm);
-
-/* color.c ------------------------------------------- */
-extern int echoIntxColor();
 
 /* renderEcho.c ---------------------------------------- */
 

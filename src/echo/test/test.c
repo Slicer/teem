@@ -23,65 +23,30 @@ int
 main(int argc, char **argv) {
   echoScene *scene;
   echoObject *obj;
+  Nrrd *nraw;
+  limnCam *cam;
+  echoRTParm *parm;
+  echoGlobalState *gstate;
+  airArray *mop;
 
+  mop = airMopNew();
   scene = echoSceneNew();
+  airMopAdd(mop, scene, (airMopper)echoSceneNix, airMopAlways);
   obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  obj = echoObjectNew(scene, echoTypeSphere);
-  echoSceneNix(scene);
+  echoSphereSet(obj, 0, 0, 0, 1);
+  echoColorSet(obj, 1, 0.5, 0.25, 1);
+
+  nraw = nrrdNew();
+  cam = limnCamNew();
+  parm = echoRTParmNew();
+  gstate = echoGlobalStateNew();
+  airMopAdd(mop, nraw, (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, cam, (airMopper)limnCamNix, airMopAlways);
+  airMopAdd(mop, parm, (airMopper)echoRTParmNix, airMopAlways);
+  airMopAdd(mop, gstate, (airMopper)echoGlobalStateNix, airMopAlways);
+  
+
+  airMopOkay(mop);
 
   return 0;
 }
