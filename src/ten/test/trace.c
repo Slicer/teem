@@ -57,7 +57,7 @@ main(int argc, char *argv[]) {
     airMopError(mop); exit(1);
   }
   tfx->maxHalfLen = 10;
-  tfx->step = step;
+  tfx->stepSize = step;
 
   nfib = nrrdNew();
   airMopAdd(mop, nfib, (airMopper)nrrdNuke, airMopAlways);
@@ -67,7 +67,7 @@ main(int argc, char *argv[]) {
     airMopError(mop); exit(1);
   }
   fprintf(stderr, "%s: stop[backward] = %d; stop[forward] = %d\n", 
-	  me, tfx->stop[0], tfx->stop[1]);
+	  me, tfx->whyStop[0], tfx->whyStop[1]);
   if (nrrdSave(outS, nfib, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);

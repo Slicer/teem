@@ -24,7 +24,13 @@ const char
 tenDefFiberKernel[] = "cubic:0,0.5";
 
 double
-tenDefFiberStep = 0.01;
+tenDefFiberStepSize = 0.01;
 
 double
 tenDefFiberMaxHalfLen = 3;
+
+int
+tenDefFiberAnisoType = tenAniso_FA;
+
+double
+tenDefFiberAnisoThresh = 0.5;

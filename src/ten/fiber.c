@@ -23,6 +23,73 @@
 #define TEN_FIBER_INCR 512
 
 int
+_tenFiberCheckStop(tenFiberContext *tfx) {
+  
+  if (tfx->stop >> tenFiberStopAniso) {
+    if (tfx->aniso[tfx->anisoType] < tfx->anisoThresh) {
+      return tfx->whyStop[tfx->dir] = tenFiberStopAniso;
+    }
+  }
+  if (tfx->stop >> tenFiberStopLen) {
+    if (tfx->halfLen[tfx->dir] >= tfx->maxHalfLen) {
+      return tfx->whyStop[tfx->dir] = tenFiberStopLen;
+    }
+  }
+  return 0;
+}
+
+/*
+** _tenFiberForward
+**
+** this is responsible for setting:
+** tfx->lastDir
+** tfx->wPos
+** tfx->halfLen[tfx->dir]
+*/
+void
+_tenFiberForward(tenFiberContext *tfx) {
+  char me[]="_tenFiberForward";
+  double forwDir[3];
+
+  switch(tfx->fiberType) {
+  case tenFiberTypeEvec1:
+    ELL_3V_COPY(forwDir, tfx->evec + 3*0);
+    if (!(ELL_3V_LEN(tfx->lastDir))) {
+      /* this is the first step in this fiber half; first half follows
+	 calculated eigenvector, second half goes opposite it */
+      if (tfx->dir) {
+	ELL_3V_SCALE(forwDir, -1, forwDir);
+      }
+    } else {
+      /* we have some history in this fiber half */
+      if (ELL_3V_DOT(tfx->lastDir, forwDir) < 0) {
+	ELL_3V_SCALE(forwDir, -1, forwDir);
+      }
+    }
+    ELL_3V_SCALE(forwDir, tfx->stepSize, forwDir);
+    break;
+  case tenFiberTypeTensorLine:
+  case tenFiberTypePureLine:
+  case tenFiberTypeZhukov:
+    fprintf(stderr, "%s: %s fibers currently not implemented!\n", me,
+	    airEnumStr(tenFiberType, tfx->fiberType));
+    break;
+  default:
+    /* what? */
+    break;
+  }
+  ELL_3V_COPY(tfx->lastDir, forwDir);
+  ELL_3V_ADD(tfx->wPos, tfx->wPos, forwDir);
+  tfx->halfLen[tfx->dir] += ELL_3V_LEN(forwDir);
+  return;
+}
+
+/*
+******** tenFiberTrace
+**
+** takes a starting position (same as gage) in *index* space
+*/
+int
 tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber,
 	      double startX, double startY, double startZ) {
   char me[]="tenFiberTrace", err[AIR_STRLEN_MED];
@@ -30,16 +97,11 @@ tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber,
 				fiber points */
   double *fpts[2];           /* arrays storing forward and backward
 				fiber points */
-  double wPos[3],            /* world position of current point */
+  double 
     wLastPos[3],             /* last world position */
-    iPos[3],                 /* index space position of current point */
-    len[2],                  /* length of fiber */
-    forwdir[3],
-    lastdir[3],
-    *fiber,                  /* array of both forward and backward points, 
+    *fiber;                  /* array of both forward and backward points, 
 				when finished */
-    tmp;
-  int i, idx, dir;
+  int i, idx;
 
   if (!(tfx && nfiber)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -51,59 +113,38 @@ tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber,
     biffAdd(TEN, err); return 1;
   }
 
-  for (dir=0; dir<=1; dir++) {
-    fptsArr[dir] = airArrayNew((void**)&(fpts[dir]), NULL, 
-			       3*sizeof(double), TEN_FIBER_INCR);
-    len[dir] = 0;
-    iPos[0] = startX;
-    iPos[1] = startY;
-    iPos[2] = startZ;
-    gageShapeUnitItoW(tfx->gtx->shape, wPos, iPos);
+  for (tfx->dir=0; tfx->dir<=1; tfx->dir++) {
+    fptsArr[tfx->dir] = airArrayNew((void**)&(fpts[tfx->dir]), NULL, 
+				    3*sizeof(double), TEN_FIBER_INCR);
+    tfx->halfLen[tfx->dir] = 0;
+    ELL_3V_SET(tfx->iPos, startX, startY, startZ);
+    gageShapeUnitItoW(tfx->gtx->shape, tfx->wPos, tfx->iPos);
+    ELL_3V_COPY(wLastPos, tfx->wPos);
+    ELL_3V_SET(tfx->lastDir, 0, 0, 0);
     while (1) {
-      /* record old pos */
-      idx = airArrayIncrLen(fptsArr[dir], 1);
-      ELL_3V_COPY(fpts[dir] + 3*idx, wPos);
-      ELL_3V_COPY(wLastPos, wPos);
-      
-      /* calculate new position */
-      gageShapeUnitWtoI(tfx->gtx->shape, iPos, wPos);
-      if (gageProbe(tfx->gtx, iPos[0], iPos[1], iPos[2])) {
+      if (gageProbe(tfx->gtx, tfx->iPos[0], tfx->iPos[1], tfx->iPos[2])) {
 	/* even if gageProbe had an error OTHER than going out of bounds,
-	   we're not going to report it any differently here */
-	tfx->stop[dir] = tenFiberStopBounds;
+	   we're not going to report it any differently here, alas */
+	tfx->whyStop[tfx->dir] = tenFiberStopBounds;
 	break;
       }
-      ELL_3V_COPY(forwdir, tfx->evec);
-      if (0 == idx) {
-	if (0 == dir) {
-	  /* we use the eigenvector as is */
-	} else {
-	  /* we go opposite of the eigenvector */
-	  ELL_3V_SCALE(forwdir, -1, forwdir);
-	}
-	fprintf(stderr, "%s: !idx, dir = %d, forwdir = (%g,%g,%g)\n", me, dir,
-		forwdir[0], forwdir[1], forwdir[2]);
-      } else {
-	if (ELL_3V_DOT(lastdir, forwdir) < 0) {
-	  ELL_3V_SCALE(forwdir, -1, forwdir);
-	}
+
+      if (_tenFiberCheckStop(tfx)) {
+	break;
       }
-      ELL_3V_SCALEADD(wPos, 1.0, wPos, tfx->step, forwdir);
+
+      idx = airArrayIncrLen(fptsArr[tfx->dir], 1);
+      ELL_3V_COPY(fpts[tfx->dir] + 3*idx, tfx->wPos);
+      ELL_3V_COPY(wLastPos, tfx->wPos);
+
+      _tenFiberForward(tfx);
       
-      /* check termination conditions */
-      ELL_3V_SUB(lastdir, wPos, wLastPos);
-      tmp = ELL_3V_LEN(lastdir);
-      len[dir] += tmp;
-      if (len[dir] >= tfx->maxHalfLen) {
-	tfx->stop[dir] = tenFiberStopLen;
-	break;
-      }
-      ELL_3V_SCALE(lastdir, 1/tmp, lastdir);
+      gageShapeUnitWtoI(tfx->gtx->shape, tfx->iPos, tfx->wPos);
     }
   }
 
   if (nrrdMaybeAlloc(nfiber, nrrdTypeDouble, 2,
-		     3, fptsArr[1]->len + fptsArr[0]->len - 1)) {
+		     3, fptsArr[0]->len + fptsArr[1]->len - 1)) {
     sprintf(err, "%s: couldn't allocate fiber nrrd", me);
     biffMove(TEN, err, NRRD); return 1;
   }

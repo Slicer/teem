@@ -27,16 +27,16 @@ char *_tend_satinInfoL =
    "planar anisotropic tensors, or somewhere in between.");
 
 void
-tend_satinEigen(float *eval, float *evec, float x, float y, float z,
-		float parm, float level) {
+tend_satinSphereEigen(float *eval, float *evec, float x, float y, float z,
+		      float parm, float level, float thick) {
   double bound, bound1, bound2, r, norm, tmp[3], meval;
 
   r = sqrt(x*x + y*y + z*z);
   bound1 = 0.5 - 0.5*airErf(20*(r-0.9));  /* 1 on inside, 0 on outside */
-  bound2 = 0.5 - 0.5*airErf(20*(0.7-r));
+  bound2 = 0.5 - 0.5*airErf(20*(0.9-thick-r));
   bound = AIR_MIN(bound1, bound2);        /* and 0 on the very inside too */
 
-#define BLAH(bound, tmp) AIR_AFFINE(0.0, bound, 1.0, 1.0/3.0, tmp)
+#define BLAH(B, V) AIR_AFFINE(0.0, (B), 1.0, 1.0/3.0, (V))
   
   eval[0] = 5*BLAH(bound, AIR_AFFINE(0.0, parm, 2.0, 1.0, 0.0001));
   eval[1] = 5*BLAH(bound, AIR_AFFINE(0.0, parm, 2.0, 0.0001, 1.0));
@@ -46,15 +46,17 @@ tend_satinEigen(float *eval, float *evec, float x, float y, float z,
   eval[1] = AIR_AFFINE(0.0, level, 1.0, meval, eval[1]);
   eval[2] = AIR_AFFINE(0.0, level, 1.0, meval, eval[2]);
 
-  /* v1: looking down positive Z, points counter clockwise */
+  /* v0: looking down positive Z, points counter clockwise */
   if (x || y) {
     ELL_3V_SET(evec + 3*0, y, -x, 0);
     ELL_3V_NORM(evec + 3*0, evec + 3*0, norm);
 
-    /* v2: points towards pole at positive Z */
+    /* v1: points towards pole at positive Z */
     ELL_3V_SET(tmp, -x, -y, -z);
     ELL_3V_NORM(tmp, tmp, norm);
     ELL_3V_CROSS(evec + 3*1, tmp, evec + 3*0);
+
+    /* v2: v0 x v1 */
     ELL_3V_CROSS(evec + 3*2, evec + 3*0, evec + 3*1);
   } else {
     /* not optimal, but at least it won't show up in glyph visualizations */
@@ -63,14 +65,65 @@ tend_satinEigen(float *eval, float *evec, float x, float y, float z,
   return;
 }
 
+void
+tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z,
+		     float parm, float level, float thick) {
+  double bound, R, r, norm, out[3], up[3], meval;
+
+  thick *= 2;
+  R = sqrt(x*x + y*y);
+  r = sqrt((R-1)*(R-1) + z*z);
+  bound = 0.5 - 0.5*airErf(20*(r-thick));  /* 1 on inside, 0 on outside */
+
+  eval[0] = 5*BLAH(bound, AIR_AFFINE(0.0, parm, 2.0, 1.0, 0.0001));
+  eval[1] = 5*BLAH(bound, AIR_AFFINE(0.0, parm, 2.0, 0.0001, 1.0));
+  eval[2] = 5*BLAH(bound, 0.0001);
+  meval = (eval[0] + eval[1] + eval[2])/3;
+  eval[0] = AIR_AFFINE(0.0, level, 1.0, meval, eval[0]);
+  eval[1] = AIR_AFFINE(0.0, level, 1.0, meval, eval[1]);
+  eval[2] = AIR_AFFINE(0.0, level, 1.0, meval, eval[2]);
+
+  ELL_3V_SET(up, 0, 0, 1);
+
+  if (x || y) {
+    /* v0: looking down positive Z, points counter clockwise */
+    ELL_3V_SET(evec + 3*0, y, -x, 0);
+    ELL_3V_NORM(evec + 3*0, evec + 3*0, norm);
+
+    /* v2: points into core of torus */
+    /* out: points away from (x,y)=(0,0) */
+    ELL_3V_SET(out, x, y, 0);
+    ELL_3V_NORM(out, out, norm);
+    ELL_3V_SCALEADD(evec + 3*2, -z, up, (1-R), out);
+    ELL_3V_NORM(evec + 3*2, evec + 3*2, norm);
+    
+    /* v1: looking at right half of cross-section, points counter clockwise */
+    ELL_3V_CROSS(evec + 3*1, evec + 3*0, evec + 3*2);
+  } else {
+    /* not optimal, but at least it won't show up in glyph visualizations */
+    ELL_3M_IDENTITY_SET(evec);
+  }
+  return;
+}
+
 int
-tend_satinGen(Nrrd *nout, float parm, float level, int size[3]) {
+tend_satinGen(Nrrd *nout, float parm, float level, int wsize,
+	      float thick, int torus) {
   char me[]="tend_satinGen", err[AIR_STRLEN_MED], buff[AIR_STRLEN_SMALL];
   Nrrd *nconf, *neval, *nevec;
   float *conf, *eval, *evec;
-  int xi, yi, zi;
-  float x, y, z;
+  int xi, yi, zi, size[3];
+  float x, y, z, min[3], max[3];
 
+  if (torus) {
+    ELL_3V_SET(size, wsize, wsize, wsize/2);
+    ELL_3V_SET(min, -2, -2, -1);
+    ELL_3V_SET(max, 2, 2, 1);
+  } else {
+    ELL_3V_SET(size, wsize, wsize, wsize);
+    ELL_3V_SET(min, -1, -1, -1);
+    ELL_3V_SET(max, 1, 1, 1);
+  }
   if (nrrdMaybeAlloc(nconf=nrrdNew(), nrrdTypeFloat, 3,
 		     size[0], size[1], size[2]) ||
       nrrdMaybeAlloc(neval=nrrdNew(), nrrdTypeFloat, 4,
@@ -85,13 +138,17 @@ tend_satinGen(Nrrd *nout, float parm, float level, int size[3]) {
   eval = neval->data;
   evec = nevec->data;
   for (zi=0; zi<size[2]; zi++) {
-    z = AIR_AFFINE(0, zi, size[2]-1, -1.0, 1.0);
+    z = AIR_AFFINE(0, zi, size[2]-1, min[2], max[2]);
     for (yi=0; yi<size[1]; yi++) {
-      y = AIR_AFFINE(0, yi, size[1]-1, -1.0, 1.0);
+      y = AIR_AFFINE(0, yi, size[1]-1, min[1], max[1]);
       for (xi=0; xi<size[0]; xi++) {
-	x = AIR_AFFINE(0, xi, size[0]-1, -1.0, 1.0);
+	x = AIR_AFFINE(0, xi, size[0]-1, min[0], max[0]);
 	*conf = 1.0;
-	tend_satinEigen(eval, evec, x, y, z, parm, level);
+	if (torus) {
+	  tend_satinTorusEigen(eval, evec, x, y, z, parm, level, thick);
+	} else {
+	  tend_satinSphereEigen(eval, evec, x, y, z, parm, level, thick);
+	}
 	conf += 1;
 	eval += 3;
 	evec += 9;
@@ -121,20 +178,27 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int size[3];
-  float parm, level;
+  int wsize, torus;
+  float parm, level, thick;
   Nrrd *nout;
   char *outS;
-
+  
+  hestOptAdd(&hopt, "t", "do torus", airTypeInt, 0, 0, &torus, NULL,
+	     "generate a torus dataset, instead of the default spherical");
   hestOptAdd(&hopt, "p", "aniso parm", airTypeFloat, 1, 1, &parm, NULL,
-	     "anisotropy parameter.  0.0 for linear along lines of constant "
-	     "longitude (from pole to pole), 1.0 for planar, 2.0 for linear "
-	     "along lines of constant latitude");
+	     "anisotropy parameter.  0.0 for one direction of linear (along "
+	     "the equator for spheres, or along the larger circumference for "
+	     "toruses), 1.0 for planar, 2.0 for the other direction of linear "
+	     "(from pole to pole for spheres, or along the smaller "
+	     "circumference for toruses)");
   hestOptAdd(&hopt, "ca1", "aniso level", airTypeFloat, 1, 1, &level, "1.0",
 	     "the non-spherical-ness of the anisotropy used.  \"1.0\" means "
 	     "completely linear or completely planar anisotropy");
-  hestOptAdd(&hopt, "s", "sx sy sz", airTypeInt, 3, 3, size, "32 32 32",
-	     "dimensions of output volume");
+  hestOptAdd(&hopt, "th", "thickness", airTypeFloat, 1, 1, &thick, "0.25",
+	     "parameter governing how thick region of high anisotropy is");
+  hestOptAdd(&hopt, "s", "size", airTypeInt, 1, 1, &wsize, "32",
+	     "dimensions of output volume.  For size N, the output is "
+	     "N\tx\tN\tx\tN for spheres, and N\tx\tN\tx\t(N/2) for toruses");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
 	     "output filename");
 
@@ -147,7 +211,7 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (tend_satinGen(nout, parm, level, size)) {
+  if (tend_satinGen(nout, parm, level, wsize, thick, torus)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making volume:\n%s\n", me, err);
     airMopError(mop); return 1;

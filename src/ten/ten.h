@@ -72,6 +72,26 @@ enum {
 };
 #define TEN_ANISO_MAX    19
 
+/*
+******** tenGlyphType* enum
+** 
+** the different types of glyphs that may be used for tensor viz
+*/
+enum {
+  tenGlyphTypeUnknown,    /* 0: nobody knows */
+  tenGlyphTypeBox,        /* 1 */
+  tenGlyphTypeSphere,     /* 2 */
+  tenGlyphTypeCylinder,   /* 3 */
+  tenGlyphTypeSuperquad,  /* 4 */
+  tenGlyphTypeLast
+};
+#define TEN_GLYPH_TYPE_MAX   4
+
+/*
+******** tenGlyphParm struct
+**
+** all input parameters to tenGlyphGen
+*/
 typedef struct {
   int glyphType;          /* from tenGlyphType* enum */
   float sqSharp;          /* how much to turn on edges in superquadrics */
@@ -98,6 +118,11 @@ typedef struct {
   "\b\bo \"vf\": volume fraction = 1-(Basser/Pierpaoli volume ratio)\n " \
   "\b\bo \"tr\": trace"
 
+/*
+******** tenGage* enum
+** 
+** all the possible queries supported in the tenGage gage kind
+*/
 enum {
   tenGageUnknown = -1,  /* -1: nobody knows */
   tenGageTensor,        /*  0: "t", the reconstructed tensor: GT[7] */
@@ -156,43 +181,47 @@ enum {
 };
 #define TEN_FIBER_STOP_MAX 3
 
-/*
-******** tenGlyphType* enum
-** 
-** the different types of glyphs that may be used for tensor viz
-*/
 enum {
-  tenGlyphTypeUnknown,    /* 0: nobody knows */
-  tenGlyphTypeBox,        /* 1 */
-  tenGlyphTypeSphere,     /* 2 */
-  tenGlyphTypeCylinder,   /* 3 */
-  tenGlyphTypeSuperquad,  /* 4 */
-  tenGlyphTypeLast
+  tenFiberParmUnknown,   /* 0: nobody knows */
+  tenFiberParmStepSize,  /* 1: base step size */
+  tenFiberParmLast
 };
-#define TEN_GLYPH_TYPE_MAX   4
+#define TEN_FIBER_PARM_MAX  1
 
 typedef struct {
   /* ---- input -------- */
   Nrrd *dtvol;          /* the volume being analyzed */
   NrrdKernelSpec *ksp;  /* how to interpolate tensor values in dtvol */
-  int type;            /* from the tenFiber* enum */
-  double step,          /* step size in world space */
+  int fiberType,        /* from the tenFiberType* enum */
+    anisoType,          /* which aniso we do a threshold on */
+    stop;               /* BITFLAG for different reasons to stop a fiber */
+  double anisoThresh;   /* anisotropy threshold */
+  double stepSize,      /* step size in world space */
     maxHalfLen;         /* longest propagation (forward or backward) allowed
 			   from midpoint */
   /* ---- internal ----- */
+  int query,            /* query we'll send to gageQuerySet */
+    dir;                /* current direction being computed (0 or 1) */
+  double wPos[3],
+    iPos[3],            /* current world and index space positions */
+    wDir[3],            /* difference between this and last world space pos */
+    lastDir[3];         /* previous value of wDir */
   gageContext *gtx;     /* wrapped around dtvol */
   gage_t *dten,         /* gageAnswerPointer(gtx->pvl[0], tenGageTensor) */
-    *evec;              /* gageAnswerPointer(gtx->pvl[0], tenGageEvec) */
+    *evec,              /* gageAnswerPointer(gtx->pvl[0], tenGageEvec) */
+    *aniso;             /* gageAnswerPointer(gtx->pvl[0], tenGageAniso) */
   /* ---- output ------- */
-  double len;           /* total fiber length in world space */
-  int stop[2];          /* why backward/forward (0/1) tracing stopped
+  double halfLen[2];    /* length of each fiber half in world space */
+  int whyStop[2];       /* why backward/forward (0/1) tracing stopped
 			   (from tenFiberStop* enum) */
 } tenFiberContext;
 
 /* defaultsTen.c */
 extern ten_export const char tenDefFiberKernel[];
-extern ten_export double tenDefFiberStep;
+extern ten_export double tenDefFiberStepSize;
 extern ten_export double tenDefFiberMaxHalfLen;
+extern ten_export int tenDefFiberAnisoType;
+extern ten_export double tenDefFiberAnisoThresh;
 
 /* enumsTen.c */
 extern ten_export airEnum *tenAniso;
@@ -246,6 +275,8 @@ extern int tenFiberTypeSet(tenFiberContext *tfx, int type);
 extern int tenFiberKernelSet(tenFiberContext *tfx,
 			     NrrdKernel *kern,
 			     double parm[NRRD_KERNEL_PARMS_NUM]);
+extern int tenFiberStopSet(tenFiberContext *tfx, int stop, ...);
+extern void tenFiberParmSet(tenFiberContext *tfx, int parm, double val);
 extern int tenFiberUpdate(tenFiberContext *tfx);
 extern tenFiberContext *tenFiberContextNix(tenFiberContext *tfx);
 
