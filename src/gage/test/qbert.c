@@ -403,7 +403,7 @@ main(int argc, char *argv[]) {
   nvgh->axis[1].spacing = npad->axis[0].spacing;
   nvgh->axis[2].spacing = npad->axis[1].spacing;
   nvgh->axis[3].spacing = npad->axis[2].spacing;
-  sprintf(cmt, "exclusions (v/g/h): %g/%g/%g", perc[0], perc[1], perc[2]);
+  sprintf(cmt, "exclusions (v g h): %g %g %g", perc[0], perc[1], perc[2]);
   nrrdCommentAdd(nvgh, cmt);
   sprintf(cmt, "minv: %g", minv);  nrrdCommentAdd(nvgh, cmt);
   sprintf(cmt, "maxv: %g", maxv);  nrrdCommentAdd(nvgh, cmt);
@@ -413,6 +413,7 @@ main(int argc, char *argv[]) {
   sprintf(cmt, "maxh: %g", maxh);  nrrdCommentAdd(nvgh, cmt);
   nrrdSave(outS, nvgh, NULL);
 
+  nvghF = nrrdNuke(nvghF);
   nrsmp = nrrdNuke(nrsmp);
   nvgh = nrrdNuke(nvgh);
   npad = nrrdNuke(npad);
