@@ -20,10 +20,6 @@
 #include "bane.h"
 #include "privateBane.h"
 
-/* ------------------------------------------------------ */
-/* ----------------------- HVOL ------------------------- */
-/* ------------------------------------------------------ */
-
 #define HVOL_INFO "Make histogram volume"
 char *_baneGkms_hvolInfoL =
   (HVOL_INFO

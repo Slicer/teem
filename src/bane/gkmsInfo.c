@@ -20,10 +20,6 @@
 #include "bane.h"
 #include "privateBane.h"
 
-/* ------------------------------------------------------ */
-/* ----------------------- INFO ------------------------- */
-/* ------------------------------------------------------ */
-
 #define INFO_INFO "Project histogram volume for opacity function generation"
 char *_baneGkms_infoInfoL =
   (INFO_INFO

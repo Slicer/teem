@@ -20,10 +20,6 @@
 #include "bane.h"
 #include "privateBane.h"
 
-/* ------------------------------------------------------ */
-/* ----------------------- OPAC ------------------------- */
-/* ------------------------------------------------------ */
-
 #define OPAC_INFO "Generate opacity functions"
 char *_baneGkms_opacInfoL =
   (OPAC_INFO

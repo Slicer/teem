@@ -385,7 +385,7 @@ extern void _baneTRexDone();
 /* scat.c */
 extern int baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq);
 
-/* gkms*.c */
+/* gkms{Flotsam,Hvol,Scat,Pvg,Opac}.c */
 #define BANE_GKMS_DECLARE(C) extern bane_export unrrduCmd baneGkms_##C##Cmd;
 #define BANE_GKMS_LIST(C) &baneGkms_##C##Cmd,
 #define BANE_GKMS_MAP(F) \

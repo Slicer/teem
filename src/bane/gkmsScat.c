@@ -20,10 +20,6 @@
 #include "bane.h"
 #include "privateBane.h"
 
-/* ------------------------------------------------------ */
-/* ----------------------- SCAT ------------------------- */
-/* ------------------------------------------------------ */
-
 #define SCAT_INFO "Make V-G and V-H scatterplots"
 char *_baneGkms_scatInfoL =
   (SCAT_INFO
