@@ -18,10 +18,11 @@
 
 #ifndef NRRD_HAS_BEEN_INCLUDED
 #define NRRD_HAS_BEEN_INCLUDED
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define NRRD "nrrd"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,9 +35,7 @@ extern "C" {
 #include <biff.h>
 
 #include "nrrdDefines.h"
-#include "nrrdAccessors.h"
 
-#define NRRD "nrrd"
 
 /*
 ******** Nrrd struct
@@ -104,7 +103,7 @@ typedef struct {
   ** born of or headed for the filesystem 
   */
   char dir[NRRD_BIG_STRLEN],     /* allows us to remember the directory
-				    from whence this nrrd was "open"ed,
+				    from whence this nrrd was "load"ed,
 				    or to whence this nrrd is "save"ed,
 				    so as to facilitate games with data
 				    files relative to header files */
@@ -123,7 +122,7 @@ typedef struct {
     byteSkip,                    /* exactly like lineSkip, but bytes 
 				    instead of lines.  First the lines are
 				    skipped, then the bytes */
-    fileEndian;                  /* endien-ness of the data written to file,
+    fileEndian;                  /* endian-ness of the data written to file,
 				    (for those encodings for which it 
 				    matters) */
   
@@ -210,13 +209,15 @@ typedef enum {
   nrrdMagicP5,           /* 6: binary PGM */
   nrrdMagicP6,           /* 7: binary PPM */
   nrrdMagicLast          /* 8: after the last valid magic */
-} nrrdMagicType;
+} nrrdMagic;
 
 /*
 ******** nrrdType enum
 **
 ** all the different types, identified by integer
-** must be in sync with NRRD_MAX_TYPE_SIZE in nrrdDefines.h
+**
+** must be in sync with NRRD_TYPE_MAX and NRRD_MAX_TYPE_SIZE #defines below
+**
 ** nrrdTypeBlock must precede nrrdTypeLast
 */
 typedef enum {
@@ -235,6 +236,10 @@ typedef enum {
   nrrdTypeBlock,         /* 12: size user defined at run time */
   nrrdTypeLast           /* 13: after the last valid type */
 } nrrdType;
+
+#define NRRD_MAX_TYPE 12       /* this has to agree with nrrdTypeBlock */
+#define NRRD_MAX_TYPE_SIZE 16  /* sizeof() for largest scalar type supported */
+
 
 /*
 ******** nrrdEncoding enum
@@ -258,48 +263,53 @@ typedef enum {
 ** ways to "measure" some portion of the array
 ** NEEDS TO BE IN SYNC WITH nrrdMeasr array in measr.c
 */
-#define NRRD_MEASR_MAX 18
+#define NRRD_MEASURE_MAX 18
 typedef enum {
-  nrrdMeasrUnknown,          /* 0: nobody knows */
-  nrrdMeasrMin,              /* 1: smallest value */
-  nrrdMeasrMax,              /* 2: biggest value */
-  nrrdMeasrProduct,          /* 3: product of all values */
-  nrrdMeasrSum,              /* 4: sum of all values */
-  nrrdMeasrMean,             /* 5: average of values */
-  nrrdMeasrMedian,           /* 6: value at 50th percentile */
-  nrrdMeasrMode,             /* 7: most common value */
-  nrrdMeasrL1,               /* 8 */
-  nrrdMeasrL2,               /* 9 */
-  nrrdMeasrLinf,             /* 10 */
+  nrrdMeasureUnknown,        /* 0: nobody knows */
+  nrrdMeasureMin,            /* 1: smallest value */
+  nrrdMeasureMax,            /* 2: biggest value */
+  nrrdMeasureMean,           /* 3: average of values */
+  nrrdMeasureMedian,         /* 4: value at 50th percentile */
+  nrrdMeasureMode,           /* 5: most common value */
+  nrrdMeasureProduct,        /* 6: product of all values */
+  nrrdMeasureSum,            /* 7: sum of all values */
+  nrrdMeasureL1,             /* 8 */
+  nrrdMeasureL2,             /* 9 */
+  nrrdMeasureLinf,           /* 10 */
   /* 
-  ** these nrrdMeasrHisto* measures interpret the array as a histogram
+  ** these nrrduMeasureHisto* measures interpret the array as a histogram
   ** of some implied value distribution
   */
-  nrrdMeasrHistoMin,         /* 11 */
-  nrrdMeasrHistoMax,         /* 12 */
-  nrrdMeasrHistoProduct,     /* 13 */
-  nrrdMeasrHistoSum,         /* 14 */
-  nrrdMeasrHistoMean,        /* 15 */
-  nrrdMeasrHistoMedian,      /* 16 */
-  nrrdMeasrHistoMode,        /* 17 */
-  nrrdMeasrHistoVariance,    /* 18 */
-  nrrdMeasrLast
-} nrrdMeasrs;
+  nrrdMeasureHistoMin,       /* 11 */
+  nrrdMeasureHistoMax,       /* 12 */
+  nrrdMeasureHistoMean,      /* 13 */
+  nrrdMeasureHistoMedian,    /* 14 */
+  nrrdMeasureHistoMode,      /* 15 */
+  nrrdMeasureHistoProduct,   /* 16 */
+  nrrdMeasureHistoSum,       /* 17 */
+  nrrdMeasureHistoVariance,  /* 18 */
+  nrrdMeasureLast
+} nrrdMeasure;
 
 /*
-******** nrrdEndian enum
-**
-** for identifying how a file was written to disk, for those encodings
-** where the data on disk is dependent on the endianness of the
-** architecture.  There could potentially be more endiannesses
-** at some future date.
+******** nrrdMinMax enum
+** 
+** behaviors for dealing with the "min" and "max" fields in the nrrd,
+** and the min and max values in a nrrd
 */
 typedef enum {
-  nrrdEndianUnknown,         /* 0: nobody knows */
-  nrrdEndianLittle,          /* 1: Intel and friends */
-  nrrdEndianBig,             /* 2: the rest */
-  nrrdEndianLast
-} nrrdEndians;
+  nrrdMinMaxUnknown,         /* 0: nobody knows */
+  nrrdMinMaxCalc,            /* 1: find the actual min/max of the
+				data, and use it for compuation, but
+				don't set them in nrrd */
+  nrrdMinMaxCalcSet,         /* 2: like nrrdMinMaxCalc, but DO record
+				the min/max in the nrrd */
+  nrrdMinMaxUse,             /* 3: trust and use the min/max values 
+				already stored in the nrrd */
+  nrrdMinMaxInsteadUse,      /* 4: trust and use the min/max values
+				specified by some alternate means */
+  nrrdMinMaxLast
+} nrrdMinMax;
 
 /*
 ** these arrays are all in arrays.c
@@ -347,13 +357,6 @@ extern int nrrdTypeSize[];
 extern char nrrdEncoding2Str[][NRRD_SMALL_STRLEN];
 
 /*
-******** nrrdEndian2Str[][]
-**
-** strings for each endianness type
-*/
-extern char nrrdEndian2Str[][NRRD_SMALL_STRLEN];
-
-/*
 ******** nrrdEncodingEndianMatters[]
 **
 ** indexed by encoding type, non-zero iff encoding exposes endianness
@@ -367,8 +370,6 @@ extern int nrrdStr2Type(char *str);
 
 /******** endian related */
 /* (endian.c) */
-extern int nrrdStr2Endian(char *str);
-extern int nrrdMyEndian();
 extern void nrrdSwapEndian();
 
 /******** making and destroying nrrds and basic info within */
@@ -377,7 +378,7 @@ extern Nrrd *nrrdNew(void);
 extern void nrrdInit(Nrrd *nrrd);
 extern Nrrd *nrrdNix(Nrrd *nrrd);
 extern Nrrd *nrrdUnwrap(Nrrd *nrrd);  /* same as nrrdNix() */
-extern void nrrdEmpty(Nrrd *nrrd);
+extern Nrrd *nrrdEmpty(Nrrd *nrrd);
 extern Nrrd *nrrdNuke(Nrrd *nrrd);
 extern void nrrdWrap(Nrrd *nrrd, void *data, 
 		     NRRD_BIG_INT num, int type, int dim);
@@ -385,15 +386,15 @@ extern Nrrd *nrrdNewWrap(void *data, NRRD_BIG_INT num, int type, int dim);
 extern void nrrdSetInfo(Nrrd *nrrd, NRRD_BIG_INT num, int type, int dim);
 extern Nrrd *nrrdNewSetInfo(NRRD_BIG_INT num, int type, int dim);
 extern int nrrdAlloc(Nrrd *nrrd, NRRD_BIG_INT num, int type, int dim);
+extern int nrrdMaybeAlloc(Nrrd *nrrd, NRRD_BIG_INT num, int type, int dim);
 extern Nrrd *nrrdNewAlloc(NRRD_BIG_INT num, int type, int dim);
 extern Nrrd *nrrdNewPPM(int sx, int sy);
 extern Nrrd *nrrdNewPGM(int sx, int sy);
-extern void nrrdAddComment(Nrrd *nrrd, char *cmt);
-extern void nrrdClearComments(Nrrd *nrrd);
-extern int nrrdScanComments(Nrrd *nrrd, char *key, char **valP);
+extern void nrrdCommentAdd(Nrrd *nrrd, char *cmt);
+extern void nrrdCommentClear(Nrrd *nrrd);
+extern int nrrdCommentScan(Nrrd *nrrd, char *key, char **valP);
 extern void nrrdDescribe(FILE *file, Nrrd *nrrd);
 extern int nrrdCheck(Nrrd *nrrd);
-extern int nrrdRange(double *minP, double *maxP, Nrrd *nrrd);
 extern int nrrdCopy(Nrrd *nout, Nrrd *nin);
 extern Nrrd *nrrdNewCopy(Nrrd *nin);
 extern int nrrdSameSize(Nrrd *n1, Nrrd *n2);
@@ -453,7 +454,8 @@ extern int    (*nrrdSprint[13])(char *, void *);
 extern int    (*nrrdFprint[13])(FILE *, void *);
 extern float  (*nrrdFClamp[13])(float);
 extern double (*nrrdDClamp[13])(double);
-extern void   (*nrrdMinMax[13])(void *, void *, NRRD_BIG_INT, void *);
+extern void   (*_nrrdMinMaxFind[13])(void *minP, void *maxP, 
+				     NRRD_BIG_INT, void *data);
 
 /******** sampling, slicing, cropping+padding */
 /* subset.c */
@@ -473,8 +475,9 @@ extern int nrrdFlip(Nrrd *nout, Nrrd *nin, int axis);
 
 /******** measuring and projecting */
 /* measr.c */
-extern void (*nrrdMeasr[NRRD_MEASR_MAX+1])(void *, int, int, float, float,
-					   void *, int);
+extern void (*_nrrdMeasureAxis[NRRD_MEASURE_MAX+1])(void *, int, int, 
+						    float, float,
+						    void *, int);
 extern int nrrdMeasureAxis(Nrrd *nout, Nrrd *nin, int axis, int measr);
 
 /********* HISTOGRAMS!!! */
@@ -485,7 +488,23 @@ extern int nrrdHistoMulti(Nrrd *nout, Nrrd **nin,
 			  float *min, float *max, int *clamp);
 extern int nrrdHisto(Nrrd *nout, Nrrd *nin, int bins);
 extern int nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy);
-extern int nrrdHistoEq(Nrrd *nin, Nrrd **nhistP, int bins, int smart);
+
+/******** pre-processor black magic for all possible type converters */
+/* convert.c */
+extern void (*_nrrdConv[][NRRD_MAX_TYPE+1])(void *,void *, NRRD_BIG_INT);
+
+/******** point-wise value remapping, conversion, and such */
+/* map.c */
+extern int nrrdMinMaxDo(double *minP, double *maxP, Nrrd *nrrd, 
+			double min, double max, int minmax);
+extern int nrrdMinMaxFind(double *minP, double *maxP, Nrrd *nrrd);
+extern int nrrdConvert(Nrrd *nout, Nrrd *nin, int type);
+extern int nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits, int minmax);
+extern int nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart);
+
+/******** arithmetic and math on nrrds */
+/* arith.c */
+extern int nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, int minmax);
 
 /******** filtering and re-sampling */
 /* filt.c */
@@ -506,17 +525,10 @@ extern nrrdKernel *nrrdKernelZero, /* zero everywhere */
   *nrrdKernelAQuarticD,            /* 1st deriv. of A quartic family */
   *nrrdKernelAQuarticDD;           /* 2nd deriv. of A quartic family */
 
-/******** conversions */
-/* convert.c */
-extern int nrrdConvert(Nrrd *nout, Nrrd *nin, int type);
-extern int nrrdQuantize(Nrrd *nout, Nrrd *nin, float min, float max, int bits);
-
-
 /* extern C */
 #ifdef __cplusplus
 }
 #endif
-
 #endif /* NRRD_HAS_BEEN_INCLUDED */
 
 
