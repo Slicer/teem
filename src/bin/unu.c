@@ -82,8 +82,8 @@ main(int argc, char **argv) {
     /* run the individual unu program, saving its exit status */
     ret = unrrduCmdList[i]->main(argc-2, argv+2, argv0, hparm);
   } else {
-    fprintf(stderr, "%s: unrecognized command: \"%s\"\n", me, argv[1]);
-    unrrduUsage(UNRRDU, hparm);
+    fprintf(stderr, "%s: unrecognized command: \"%s\"; type \"%s\" for "
+	    "complete list\n", me, argv[1], me);
     ret = 1;
   }
 
