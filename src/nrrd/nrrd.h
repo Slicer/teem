@@ -477,11 +477,17 @@ typedef struct {
                                        fixed the mystery of downsampling large
                                        constant regions of 255 (uchar), and
                                        ending up with 254 */
-    clamp;                          /* when copying from the last intermediate
+    clamp,                          /* when copying from the last intermediate
                                        (floating point) result to the output
                                        nrrd, should we clamp the values to the
                                        range of values for the output type, a
                                        concern only for integer outputs */
+    cheap;                          /* when *downsampling* (reducing the number
+                                       of samples), don't bother expanding the
+                                       kernel to achieve filtering in the old
+                                       index space; with nrrdKernelBox this can
+                                       lead to subsampling by picking using
+                                       every other value */
   double padValue;                  /* if padding, what value to pad with */
 } NrrdResampleInfo;
 
@@ -518,6 +524,7 @@ TEEM_API double nrrdDefRsmpScale;
 TEEM_API int nrrdDefRsmpRenormalize;
 TEEM_API int nrrdDefRsmpRound;
 TEEM_API int nrrdDefRsmpClamp;
+TEEM_API int nrrdDefRsmpCheap;
 TEEM_API double nrrdDefRsmpPadValue;
 TEEM_API double nrrdDefKernelParm0;
 /* ---- END non-NrrdIO */

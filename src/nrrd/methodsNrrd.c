@@ -147,6 +147,7 @@ _nrrdResampleInfoInit (NrrdResampleInfo *info) {
   info->renormalize = nrrdDefRsmpRenormalize;
   info->round = nrrdDefRsmpRound;
   info->clamp = nrrdDefRsmpClamp;
+  info->cheap = nrrdDefRsmpCheap;
   info->padValue = nrrdDefRsmpPadValue;
 }
 

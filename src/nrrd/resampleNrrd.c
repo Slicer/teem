@@ -317,7 +317,11 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
   } else {
     /* if downsampling, we need to use all the samples covered by
        the stretched out version of the kernel */
-    dotLen = 2*ceil(support/ratio);
+    if (info->cheap) {
+      dotLen = 2*ceil(support);
+    } else {
+      dotLen = 2*ceil(support/ratio);
+    }
   }
   /*
   fprintf(stderr, "!%s(%d): dotLen = %d\n", me, d, dotLen);
@@ -341,11 +345,13 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
       weight[e + dotLen*i] = idxD - index[e + dotLen*i];
     }
     /* ********
-    if (!i)
+    if (!i) {
       fprintf(stderr, "%s: sample locations:\n", me);
+    }
     fprintf(stderr, "%s: %d\n        ", me, i);
-    for (e=0; e<dotLen; e++)
+    for (e=0; e<dotLen; e++) {
       fprintf(stderr, "%d/%g ", index[e + dotLen*i], weight[e + dotLen*i]);
+    }
     fprintf(stderr, "\n");
     ******** */
   }
@@ -384,10 +390,15 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
   }
 
   /* run the sample locations through the chosen kernel.  We play a 
-     sneaky trick on the kernel parameter 0 in case of downsampling. */
+     sneaky trick on the kernel parameter 0 in case of downsampling
+     to create the blurring of the old index space, but only if !cheap */
   memcpy(parm, info->parm[d], NRRD_KERNEL_PARMS_NUM*sizeof(double));
   if (ratio < 1) {
-    parm[0] /= ratio;
+    if (info->cheap) {
+      parm[0] *= ratio;
+    } else {
+      parm[0] /= ratio;
+    }
   }
   info->kernel[d]->EVALN(weight, weight, dotLen*sizeOut, parm);
 

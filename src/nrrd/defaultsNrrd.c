@@ -46,6 +46,7 @@ double nrrdDefRsmpScale = 1.0;    /* these two should probably be the same */
 int nrrdDefRsmpRenormalize = AIR_TRUE;
 int nrrdDefRsmpRound = AIR_TRUE;
 int nrrdDefRsmpClamp = AIR_TRUE;
+int nrrdDefRsmpCheap = AIR_FALSE;
 double nrrdDefRsmpPadValue = 0.0;
 double nrrdDefKernelParm0 = 1.0; 
 /* ---- END non-NrrdIO */

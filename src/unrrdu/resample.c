@@ -47,6 +47,9 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   NrrdResampleInfo *info;
   NrrdKernelSpec *unuk;
 
+  mop = airMopNew();
+  info = nrrdResampleInfoNew();
+  airMopAdd(mop, info, (airMopper)nrrdResampleInfoNix, airMopAlways);
   hparm->elideSingleOtherDefault = AIR_FALSE;
   hestOptAdd(&opt, "s", "sz0", airTypeOther, 1, -1, &scale, NULL,
              "For each axis, information about how many samples in output:\n "
@@ -79,6 +82,10 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
              "is necessary to avoid \"grating\" on non-integral "
              "down-sampling.  Disabling the renormalization is needed for "
              "correct results with artificially narrow kernels. ");
+  hestOptAdd(&opt, "cheap", NULL, airTypeInt, 0, 0, &(info->cheap), NULL,
+             "when downsampling (reducing number of samples), don't "
+             "try to do correct filtering by scaling kernel to match "
+             "new (stretched) index space; keep it in old index space. ");
   hestOptAdd(&opt, "b", "behavior", airTypeEnum, 1, 1, &bb, "bleed",
              "How to handle samples beyond the input bounds:\n "
              "\b\bo \"pad\": use some specified value\n "
@@ -94,10 +101,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
-  mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
-  info = nrrdResampleInfoNew();
-  airMopAdd(mop, info, (airMopper)nrrdResampleInfoNix, airMopAlways);
   
   USAGE(_unrrdu_resampleInfoL);
   PARSE();
