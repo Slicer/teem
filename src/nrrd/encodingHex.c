@@ -58,28 +58,22 @@ _nrrdEncodingHex_available(void) {
 }
 
 int
-_nrrdEncodingHex_read(Nrrd *nrrd, NrrdIoState *nio) {
+_nrrdEncodingHex_read(FILE *file, void *buf, size_t elNum,
+                      Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingHex_read", err[AIR_STRLEN_MED];
   size_t nibIdx, nibNum;
   unsigned char *data;
   int car=0, nib;
-
-  if (nio->skipData) {
-    return 0;
-  }
-  if (_nrrdCalloc(nrrd, nio)) {
-    sprintf(err, "%s: couldn't allocate sufficient memory for all data", me);
-    biffAdd(NRRD, err); return 1;
-  }
+  
   data = nrrd->data;
   nibIdx = 0;
-  nibNum = 2*nrrdElementNumber(nrrd)*nrrdElementSize(nrrd);
-  if ((int)(nibNum/nrrdElementNumber(nrrd)) != 2*nrrdElementSize(nrrd)) {
+  nibNum = 2*elNum*nrrdElementSize(nrrd);
+  if ((int)(nibNum/elNum) != 2*nrrdElementSize(nrrd)) {
     sprintf(err, "%s: size_t can't hold 2*(#bytes in array)\n", me);
     biffAdd(NRRD, err); return 1;
   }
   while (nibIdx < nibNum) {
-    car = fgetc(nio->dataFile);
+    car = fgetc(file);
     if (EOF == car) break;
     nib = _nrrdReadHexTable[car & 127];
     if (-2 == nib) {
@@ -110,22 +104,20 @@ _nrrdEncodingHex_read(Nrrd *nrrd, NrrdIoState *nio) {
 }
 
 int
-_nrrdEncodingHex_write(const Nrrd *nrrd, NrrdIoState *nio) {
+_nrrdEncodingHex_write(FILE *file, const void *buf, size_t elNum,
+                       const Nrrd *nrrd, NrrdIoState *nio) {
   /* char me[]="_nrrdEncodingHex_write", err[AIR_STRLEN_MED]; */
   unsigned char *data;
   size_t byteIdx, byteNum;
 
-  if (nio->skipData) {
-    return 0;
-  }
   data = (unsigned char*)nrrd->data;
-  byteNum = nrrdElementNumber(nrrd)*nrrdElementSize(nrrd);
+  byteNum = elNum*nrrdElementSize(nrrd);
   for (byteIdx=0; byteIdx<byteNum; byteIdx++) {
-    fprintf(nio->dataFile, "%c%c",
+    fprintf(file, "%c%c",
             _nrrdWriteHexTable[(*data)>>4],
             _nrrdWriteHexTable[(*data)&15]);
     if (34 == byteIdx%35)
-      fprintf(nio->dataFile, "\n");
+      fprintf(file, "\n");
     data++;
   }
   return 0;

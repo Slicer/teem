@@ -36,7 +36,8 @@ _nrrdEncodingBzip2_available(void) {
 }
 
 int
-_nrrdEncodingBzip2_read(Nrrd *nrrd, NrrdIoState *nio) {
+_nrrdEncodingBzip2_read(FILE *file, void *buf, size_t elNum,
+                        Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingBzip2_read", err[AIR_STRLEN_MED];
 #if TEEM_BZIP2
   size_t num, bsize, size, total_read;
@@ -44,9 +45,6 @@ _nrrdEncodingBzip2_read(Nrrd *nrrd, NrrdIoState *nio) {
   char *data;
   BZFILE* bzfin;
   
-  if (nio->skipData) {
-    return 0;
-  }
   num = nrrdElementNumber(nrrd);
   bsize = num * nrrdElementSize(nrrd);
   size = bsize;
@@ -56,14 +54,8 @@ _nrrdEncodingBzip2_read(Nrrd *nrrd, NrrdIoState *nio) {
     exit(1);
   }
 
-  /* Allocate memory for the incoming data. */
-  if (_nrrdCalloc(nrrd, nio)) {
-    sprintf(err, "%s: couldn't allocate sufficient memory for all data", me);
-    biffAdd(NRRD, err); return 1;
-  }
-
   /* Create the BZFILE* for reading in the gzipped data. */
-  bzfin = BZ2_bzReadOpen(&bzerror, nio->dataFile, 0, 0, NULL, 0);
+  bzfin = BZ2_bzReadOpen(&bzerror, file, 0, 0, NULL, 0);
   if (bzerror != BZ_OK) {
     /* there was a problem */
     sprintf(err, "%s: error opening BZFILE: %s", me, 
@@ -151,7 +143,8 @@ _nrrdEncodingBzip2_read(Nrrd *nrrd, NrrdIoState *nio) {
 }
 
 int
-_nrrdEncodingBzip2_write(const Nrrd *nrrd, NrrdIoState *nio) {
+_nrrdEncodingBzip2_write(FILE *file, const void *buf, size_t elNum,
+                         const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingBzip2_write", err[AIR_STRLEN_MED];
 #if TEEM_BZIP2
   size_t num, bsize, size, total_written;
@@ -159,14 +152,6 @@ _nrrdEncodingBzip2_write(const Nrrd *nrrd, NrrdIoState *nio) {
   char *data;
   BZFILE* bzfout;
 
-  if (nio->skipData) {
-    return 0;
-  }
-  /* this shouldn't actually be necessary ... */
-  if (!nrrdElementSize(nrrd)) {
-    sprintf(err, "%s: nrrd reports zero element size!", me);
-    biffAdd(NRRD, err); return 1;
-  }
   num = nrrdElementNumber(nrrd);
   if (!num) {
     sprintf(err, "%s: calculated number of elements to be zero!", me);
@@ -188,7 +173,7 @@ _nrrdEncodingBzip2_write(const Nrrd *nrrd, NrrdIoState *nio) {
   }
   /* Open bzfile for writing. Verbosity and work factor are set
      to default values. */
-  bzfout = BZ2_bzWriteOpen(&bzerror, nio->dataFile, bs, 0, 0);
+  bzfout = BZ2_bzWriteOpen(&bzerror, file, bs, 0, 0);
   if (BZ_OK != bzerror) {
     sprintf(err, "%s: error opening BZFILE: %s", me, 
             BZ2_bzerror(bzfout, &bzerror));
