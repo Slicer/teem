@@ -129,6 +129,11 @@ echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3], echoCol_t spec[3],
     ELL_3V_SUB(Ldir, Lpos, intx->pos);
     ELL_3V_NORM(Ldir, Ldir, Ldist);
     Ldot = ELL_3V_DOT(Ldir, intx->norm);
+    /* HEY: HACK: we have to general per-object-type flag that says,
+       this kind of object has no notion of in-versus-out facing ... */
+    if (echoTypeRectangle == intx->obj->type) {
+      Ldot = AIR_ABS(Ldot);
+    }
     if (Ldot <= 0) {
       continue;
       /* to next light, we aren't facing this one.  NB: this means
@@ -156,6 +161,9 @@ echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3], echoCol_t spec[3],
     ELL_3V_SCALE_INCR(diff, fracseen*Ldot, Lcol);
     if (spec) {
       Ldot = ELL_3V_DOT(Ldir, intx->refl);
+      if (echoTypeRectangle == intx->obj->type) {
+	Ldot = AIR_ABS(Ldot);
+      }
       if (Ldot > 0) {
 	Ldot = pow(Ldot, sp);
 	ELL_3V_SCALE_INCR(spec, fracseen*Ldot, Lcol);

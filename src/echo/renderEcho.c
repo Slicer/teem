@@ -346,7 +346,7 @@ _echoRTRenderThreadBody(void *_arg) {
       arg->jitt = (echoPos_t *)arg->njitt->data;
       chan = arg->chanBuff;
 
-      /* arg->verbose = ( (160 == imgUi && 160 == imgVi) ); */
+      /* arg->verbose = ( (38 == imgUi && 121 == imgVi) ); */
       
       if (arg->verbose) {
 	fprintf(stderr, "\n");
