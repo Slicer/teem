@@ -93,9 +93,18 @@ enum {
 ******** nrrdType enum
 **
 ** all the different types, identified by integer
+**
+** 18 July 03: After some consternation, I decided to set
+** nrrdTypeUnknown and nrrdTypeDefault to the same thing, with the
+** reasoning that the only times that nrrdTypeDefault is used is when
+** controlling an *output* type (the type of "nout"), or rather,
+** choosing not to control an output type.  As output types must be
+** known, there is no confusion between being unset/unknown (invalid)
+** and being simply default.
 */
 enum {
-  nrrdTypeUnknown,
+  nrrdTypeUnknown=0,     /*  0: signifies "type is unset/unknown" */
+  nrrdTypeDefault=0,     /*  0: signifies "determine output type for me" */
   nrrdTypeChar,          /*  1:   signed 1-byte integer */
   nrrdTypeUChar,         /*  2: unsigned 1-byte integer */
   nrrdTypeShort,         /*  3:   signed 2-byte integer */
