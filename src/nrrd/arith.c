@@ -73,6 +73,10 @@ nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   min = range->min;
   max = range->max;
+  if (min == max) {
+    /* this is stupid.  We want min < max to avoid making NaNs */
+    max += 1;
+  }
   lup = nrrdDLookup[nin->type];
   ins = nrrdDInsert[nout->type];
   gamma = 1/gamma;
