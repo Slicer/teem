@@ -18,7 +18,6 @@
 #
 #
 
-# we'll figure out shared libraries eventually...
 TEEM_SHEXT = dylib
 
 AR = libtool
@@ -28,7 +27,7 @@ RANLIB = ranlib
 LD = gcc
 
 OPT_CFLAG ?= -O2
-STATIC_CFLAG =
+STATIC_CFLAG = -Wl,-prebind
 SHARED_CFLAG =
 SHARED_LDFLAG = -dynamic -dynamiclib -fno-common
 SHARED_INSTALL_NAME = -install_name
@@ -38,13 +37,9 @@ ARCH_LDFLAG =
 
 ifeq ($(SUBARCH),64)
   TEEM_32BIT = 0
-  ARCH_CFLAG = -Wall
-  ARCH_LDFLAG =
 else
   ifeq ($(SUBARCH),32)
     TEEM_32BIT = 1
-    ARCH_CFLAG = -Wall
-    ARCH_LDFLAG = 
   else
     $(error darwin sub-architecture "$(SUBARCH)" not recognized)
   endif
