@@ -78,20 +78,20 @@ main(int argc, char **argv) {
   }
   nin = nrrdNuke(nin);
 
-  nrrdAxesGet_va(nout, nrrdAxesInfoSize, 
-		 &(infoI[0]), &(infoI[1]), &(infoI[2]));
+  nrrdAxesGet(nout, nrrdAxesInfoSize, 
+	      &(infoI[0]), &(infoI[1]), &(infoI[2]));
   fprintf(stderr, "sizes: %d %d %d\n", infoI[0], infoI[1], infoI[2]);
-  nrrdAxesGet_va(nout, nrrdAxesInfoMin, 
-		 &(infoD[0]), &(infoD[1]), &(infoD[2]));
+  nrrdAxesGet(nout, nrrdAxesInfoMin, 
+	      &(infoD[0]), &(infoD[1]), &(infoD[2]));
   fprintf(stderr, "mins: %g %g %g\n", infoD[0], infoD[1], infoD[2]);
-  nrrdAxesGet_va(nout, nrrdAxesInfoMax, 
-		 &(infoD[0]), &(infoD[1]), &(infoD[2]));
+  nrrdAxesGet(nout, nrrdAxesInfoMax, 
+	      &(infoD[0]), &(infoD[1]), &(infoD[2]));
   fprintf(stderr, "maxs: %g %g %g\n", infoD[0], infoD[1], infoD[2]);
-  nrrdAxesGet_va(nout, nrrdAxesInfoSpacing, 
-		 &(infoD[0]), &(infoD[1]), &(infoD[2]));
+  nrrdAxesGet(nout, nrrdAxesInfoSpacing, 
+	      &(infoD[0]), &(infoD[1]), &(infoD[2]));
   fprintf(stderr, "spacings: %g %g %g\n", infoD[0], infoD[1], infoD[2]);
-  nrrdAxesGet_va(nout, nrrdAxesInfoLabel, 
-		 &(infoCP[0]), &(infoCP[1]), &(infoCP[2]));
+  nrrdAxesGet(nout, nrrdAxesInfoLabel, 
+	      &(infoCP[0]), &(infoCP[1]), &(infoCP[2]));
   nout = nrrdNuke(nout);
 
   fprintf(stderr, "labels: |%s| |%s| |%s|\n", infoCP[0], infoCP[1], infoCP[2]);
