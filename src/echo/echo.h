@@ -27,6 +27,7 @@
 #include <biff.h>
 #include <ell.h>
 #include <nrrd.h>
+#include <dye.h>
 #include <limn.h>
 
 #ifdef __cplusplus
