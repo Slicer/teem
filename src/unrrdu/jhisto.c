@@ -72,10 +72,10 @@ main(int argc, char **argv) {
     clamp[d] = 0;
   }
   
-  fprintf(stderr, "%s: computing multi-histogram ... ", me); fflush(stdout);
+  fprintf(stderr, "%s: computing joint histogram ... ", me); fflush(stdout);
   nout = nrrdNew();
-  if (nrrdHistoMulti(nout, nin, n, bin, nrrdTypeUShort, clamp)) {
-    fprintf(stderr, "%s: trouble doing multi-histogram:\n%s\n", 
+  if (nrrdHistoJoint(nout, nin, n, bin, nrrdTypeUShort, clamp)) {
+    fprintf(stderr, "%s: trouble doing joint histogram:\n%s\n", 
 	    me, biffGet(NRRD));
     return 1;
   }
