@@ -36,7 +36,7 @@ saveMain(int argc, char **argv, char *me) {
   NrrdIO *io;
 
   OPT_ADD_NIN(nin, "input nrrd");
-  hestOptAdd(&opt, "f", "format", airTypeEnum, 1, 1, &format, "nrrd",
+  hestOptAdd(&opt, "f", "format", airTypeEnum, 1, 1, &format, NULL,
 	     "output file format. Possibilities include:\n "
 	     "\b\bo \"nrrd\": standard nrrd format\n "
 	     "\b\bo \"pnm\": PNM image; PPM for color, PGM for grayscale\n "
