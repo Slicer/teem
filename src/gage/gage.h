@@ -448,6 +448,8 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
 #define GAGE_QUERY_EQUAL(p, q) \
   (p[0] == q[0] && p[1] == q[1] && p[2] == q[2] && p[3] == q[3] \
    && p[4] == q[4] && p[5] == q[5] && p[6] == q[6] && p[7] == q[7])
+#define GAGE_QUERY_NONZERO(q) \
+  (q[0] | q[1] | q[2] | q[3] | q[4] | q[5] | q[6] | q[7])
 #define GAGE_QUERY_ITEM_TEST(q, i) (q[i/8] & (1 << (i % 8)))
 #define GAGE_QUERY_ITEM_ON(q, i) (q[i/8] |= (1 << (i % 8)))
 #define GAGE_QUERY_ITEM_OFF(q, i) (q[i/8] &= ^(1 << (i % 8)))
@@ -571,11 +573,12 @@ typedef struct gageKind_t {
 /*
 ******** gageItemSpec struct
 **
-** dumb little way to store an item/kind pair
+** dumb little way to store a kind/item pair.  Formerly known
+** as a gageQuerySpec.  
 */
 typedef struct {
-  int item;                   /* the quantity we care about */
-  gageKind *kind;             /* what kind it comes from */
+  gageKind *kind;             /* the kind of the volume to measure */
+  int item;                   /* the quantity to measure */
 } gageItemSpec;
 
 /* defaultsGage.c */
