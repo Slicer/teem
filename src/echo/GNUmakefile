@@ -47,12 +47,12 @@ $(L).SEEN := true
 $(L).NEED = limn nrrd ell biff air
 $(L).PUBLIC_HEADERS = echo.h
 $(L).PRIVATE_HEADERS = privateEcho.h
-$(L).OBJS = list.o \
-	intx.o renderEcho.o color.o
-$(L).OBJS = enumsEcho.o methodsEcho.o objmethods.o bounds.o set.o model.o
+$(L).OBJS = list.o color.o
+$(L).OBJS = enumsEcho.o methodsEcho.o objmethods.o bounds.o set.o model.o \
+	matter.o renderEcho.o intx.o 
 $(L).TESTS = test/trend test/bang
 
-$(L).TESTS = 
+$(L).TESTS = test/test
 ####
 ####
 ####

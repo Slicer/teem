@@ -22,9 +22,9 @@
 
 void
 _echoLightColDir(echoCol_t *lcol, echoPos_t ldir[3],
-		 echoPos_t *distP, EchoRTParm *parm,
-		 EchoRectangle *light, int samp,
-		 EchoIntx *intx, EchoThreadState *tstate) {
+		 echoPos_t *distP, echoRTParm *parm,
+		 echoRectangle *light, int samp,
+		 echoIntx *intx, echoThreadState *tstate) {
   echoPos_t at[3], *jitt, x, y;
   float colScale;
   int i;
@@ -44,13 +44,6 @@ _echoLightColDir(echoCol_t *lcol, echoPos_t ldir[3],
   return;
 }
 
-
-/*
- define COLOR_ARGS echoCol_t *chan, EchoIntx *intx, int samp,       \
-                   EchoRTParm *parm, EchoThreadState *tstate,       \
-                   EchoObject *scene, airArray *lightArr
-*/
-
 void
 _echoIntxColorNone(COLOR_ARGS) {
   
@@ -58,7 +51,7 @@ _echoIntxColorNone(COLOR_ARGS) {
 }
 
 void
-_echoIntxUVColor(echoCol_t *chan, EchoIntx *intx) {
+_echoIntxUVColor(echoCol_t *chan, echoIntx *intx) {
   int ui, vi, su, sv;
   unsigned char *tdata;
   echoCol_t *mat;
@@ -99,9 +92,9 @@ _echoIntxColorPhong(COLOR_ARGS) {
     refl[3],             /* unit-length reflection vector */
     ldist;               /* distance to light */
   int lt;
-  EchoLight_ *light;
-  EchoRay shRay;
-  EchoIntx shIntx;
+  echoObject *light;
+  echoRay shRay;
+  echoIntx shIntx;
 
   shRay.depth = 0;
   shRay.shadow = AIR_TRUE;
@@ -125,7 +118,7 @@ _echoIntxColorPhong(COLOR_ARGS) {
   ELL_3V_COPY(shRay.from, intx->pos);
   shRay.neer = ECHO_EPSILON;
   for (lt=0; lt<lightArr->len; lt++) {
-    light = ((EchoLight_ **)lightArr->data)[lt];
+    light = ((echoLight_ **)lightArr->data)[lt];
     _echoLightColDir[light->type](lcol, ldir, &ldist, parm,
 				  light, samp, intx, tstate);
     tmp = ELL_3V_DOT(ldir, norm);
@@ -208,10 +201,10 @@ _echoIntxColorMetal(COLOR_ARGS) {
   echoPos_t *jitt,    /* fuzzy reflection jittering */
     ldir[3], ldist;
   double c;
-  EchoRay rfRay, shRay;
-  EchoIntx shIntx;
+  echoRay rfRay, shRay;
+  echoIntx shIntx;
   int lt;
-  EchoLight_ *light;
+  echoLight_ *light;
 
   mat = intx->obj->mat;
 
@@ -247,7 +240,7 @@ _echoIntxColorMetal(COLOR_ARGS) {
     ELL_3V_COPY(shRay.from, intx->pos);
     shRay.neer = ECHO_EPSILON;
     for (lt=0; lt<lightArr->len; lt++) {
-      light = ((EchoLight_ **)lightArr->data)[lt];
+      light = ((echoLight_ **)lightArr->data)[lt];
       _echoLightColDir[light->type](lcol, ldir, &ldist, parm,
 				    light, samp, intx, tstate);
       tmp = ELL_3V_DOT(ldir, norm);
@@ -310,7 +303,7 @@ _echoIntxColorGlass(COLOR_ARGS) {
     norm[3];          /* unit-length normal */
   echoPos_t *jitt;    /* fuzzy reflection jittering */
   double c;
-  EchoRay trRay, rfRay;
+  echoRay trRay, rfRay;
 
   mat = intx->obj->mat;
 
@@ -409,75 +402,9 @@ _echoIntxColorLight(COLOR_ARGS) {
 }
 
 _echoIntxColor_t
-_echoIntxColor[ECHO_MATTER_MAX+1] = {
-  _echoIntxColorNone,
+_echoIntxColor[ECHO_MATTER_NUM] = {
   _echoIntxColorPhong,
   _echoIntxColorGlass,
   _echoIntxColorMetal,
   _echoIntxColorLight,
 };
-
-void
-echoMatterPhongSet(EchoObject *obj,
-		   echoCol_t r, echoCol_t g, echoCol_t b, echoCol_t a, 
-		   echoCol_t ka, echoCol_t kd, echoCol_t ks, echoCol_t sh) {
-  
-  obj->matter = echoMatterPhong;
-  obj->mat[echoMatterR] = r;
-  obj->mat[echoMatterG] = g;
-  obj->mat[echoMatterB] = b;
-  obj->mat[echoMatterPhongAlpha] = a;
-  obj->mat[echoMatterPhongKa] = ka;
-  obj->mat[echoMatterPhongKd] = kd;
-  obj->mat[echoMatterPhongKs] = ks;
-  obj->mat[echoMatterPhongSh] = sh;
-}
-		   
-void
-echoMatterGlassSet(EchoObject *obj,
-		   echoCol_t r, echoCol_t g, echoCol_t b,
-		   echoCol_t index, echoCol_t kd, echoCol_t fuzzy) {
-
-  obj->matter = echoMatterGlass;
-  obj->mat[echoMatterR] = r;
-  obj->mat[echoMatterG] = g;
-  obj->mat[echoMatterB] = b;
-  obj->mat[echoMatterGlassIndex] = index;
-  obj->mat[echoMatterGlassKd] = kd;
-  obj->mat[echoMatterGlassFuzzy] = fuzzy;
-}
-
-void
-echoMatterMetalSet(EchoObject *obj,
-		   echoCol_t r, echoCol_t g, echoCol_t b,
-		   echoCol_t R0, echoCol_t kd, echoCol_t fuzzy) {
-
-  obj->matter = echoMatterMetal;
-  obj->mat[echoMatterR] = r;
-  obj->mat[echoMatterG] = g;
-  obj->mat[echoMatterB] = b;
-  obj->mat[echoMatterMetalR0] = R0;
-  obj->mat[echoMatterMetalKd] = kd;
-  obj->mat[echoMatterMetalFuzzy] = fuzzy;
-}
-
-void
-echoMatterLightSet(EchoObject *obj,
-		   echoCol_t r, echoCol_t g, echoCol_t b) {
-
-  obj->matter = echoMatterLight;
-  obj->mat[echoMatterR] = r;
-  obj->mat[echoMatterG] = g;
-  obj->mat[echoMatterB] = b;
-}
-
-void
-echoMatterTextureSet(EchoObject *obj, Nrrd *ntext) {
-  
-  if (obj && ntext && 
-      3 == ntext->dim && 
-      nrrdTypeUChar == ntext->type &&
-      4 == ntext->axis[0].size) {
-    obj->ntext = ntext;
-  }
-}

@@ -38,6 +38,7 @@ echoRTParmNew(void) {
     parm->aperture = 0.0;     /* pinhole camera by default */
     parm->timeGamma = 6.0;
     parm->refDistance = 1.0;
+    parm->boxOpac = 0.2;
     ELL_3V_SET(parm->mr, 1.0, 0.0, 1.0);
   }
   return parm;
@@ -57,6 +58,7 @@ echoGlobalStateNew(void) {
   
   state = (echoGlobalState *)calloc(1, sizeof(echoGlobalState));
   if (state) {
+    state->verbose = 0;
     state->time = 0;
   }
   return state;
@@ -114,7 +116,7 @@ echoSceneNew(void) {
     ret->litArr = airArrayNew((void**)&(ret->lit), NULL,
 			      sizeof(echoObject *),
 			      ECHO_LIST_OBJECT_INCR);
-    /* no pointers set; objects are nixed on delete by above */
+    /* no pointers set; light objects are nixed on delete by above */
     ret->nrrd = NULL;
     ret->nrrdArr = airArrayNew((void**)&(ret->nrrd), NULL,
 			       sizeof(Nrrd *),
@@ -126,6 +128,36 @@ echoSceneNew(void) {
     ELL_3V_SET(ret->bg, 0.0, 0.0, 0.0);
   }
   return ret;
+}
+
+void
+_echoSceneLightAdd(echoScene *scene, echoObject *obj) {
+  int idx;
+  
+  for (idx=0; idx<scene->litArr->len; idx++) {
+    if (obj == scene->lit[idx]) {
+      break;
+    }
+    if (scene->litArr->len == idx) {
+      idx = airArrayIncrLen(scene->litArr, 1);
+      scene->lit[idx] = obj;
+    }
+  }
+}
+
+void
+_echoSceneNrrdAdd(echoScene *scene, Nrrd *nrrd) {
+  int idx;
+  
+  for (idx=0; idx<scene->nrrdArr->len; idx++) {
+    if (nrrd == scene->nrrd[idx]) {
+      break;
+    }
+    if (scene->nrrdArr->len == idx) {
+      idx = airArrayIncrLen(scene->nrrdArr, 1);
+      scene->nrrd[idx] = nrrd;
+    }
+  }
 }
 
 echoScene *

@@ -130,7 +130,7 @@ NEW_TMPL(Instance,
 	 )
 
 echoObject *(*
-_echoNew[ECHO_TYPE_NUM])(void) = {
+_echoObjectNew[ECHO_TYPE_NUM])(void) = {
   (echoObject *(*)(void))_echoSphere_new,
   (echoObject *(*)(void))_echoCube_new,
   (echoObject *(*)(void))_echoTriangle_new,
@@ -144,11 +144,14 @@ _echoNew[ECHO_TYPE_NUM])(void) = {
 };
 
 echoObject *
-echoNew(signed char type) {
+echoObjectNew(echoScene *scene, signed char type) {
   echoObject *ret=NULL;
+  int idx;
 
-  if (AIR_IN_OP(echoTypeUnknown, type, echoTypeLast)) {
-    ret = _echoNew[type]();
+  if (scene && AIR_IN_OP(echoTypeUnknown, type, echoTypeLast)) {
+    ret = _echoObjectNew[type]();
+    idx = airArrayIncrLen(scene->objArr, 1);
+    scene->obj[idx] = ret;
   }
   return ret;
 }
@@ -159,7 +162,7 @@ _echoObjectNix[ECHO_TYPE_NUM])(echoObject *) = {
   (echoObject *(*)(echoObject *))airFree,
   (echoObject *(*)(echoObject *))airFree,
   (echoObject *(*)(echoObject *))airFree,
-  (echoObject *(*)(echoObject *))_echoList_nix,
+  (echoObject *(*)(echoObject *))_echoTriMesh_nix,
   (echoObject *(*)(echoObject *))airFree,
   (echoObject *(*)(echoObject *))airFree,
   (echoObject *(*)(echoObject *))airFree,

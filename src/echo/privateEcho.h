@@ -37,6 +37,25 @@ extern "C" {
 #define ECHO_NEW(TYPE) \
   (echoObject##TYPE *)echoNew(echoObject##Type)
 
+/* methodsEcho.c */
+extern void _echoSceneLightAdd(echoScene *scene, echoObject *obj);
+extern void _echoSceneNrrdAdd(echoScene *scene, Nrrd *nrrd);
+
+/* color.c */
+#define INTXCOLOR_ARGS echoCol_t *chan, int samp, echoIntx *intx,  \
+                       echoScene *scene, echoRTParm *parm,        \
+                       echoThreadState *tstate
+typedef void (*_echoIntxColor_t)(INTXCOLOR_ARGS);
+extern _echoIntxColor_t _echoIntxColor[/* matter idx */];
+
+/* intx.c */
+#define RAYINTX_ARGS(TYPE) echoIntx *intx, echoRay *ray, \
+                           echo##TYPE *obj, echoRTParm *parm
+typedef int (*_echoRayIntx_t)(RAYINTX_ARGS(Object));
+extern _echoRayIntx_t _echoRayIntx[/* object type idx */];
+typedef void (*_echoRayIntxUV_t)(echoIntx *intx);
+extern _echoRayIntxUV_t _echoRayIntxUV[/* object type idx */];
+
 #ifdef __cplusplus
 }
 #endif

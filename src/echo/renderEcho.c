@@ -29,22 +29,31 @@ echoThreadStateInit(echoThreadState *tstate,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(ECHO, err); return 1;
   }
+
+  /* this will probably be over-written */
+  tstate->verbose = gstate->verbose;
+
   if (nrrdMaybeAlloc(tstate->nperm, nrrdTypeInt, 2,
 		     ECHO_JITABLE_NUM, parm->numSamples)) {
     sprintf(err, "%s: couldn't allocate jitter permutation array", me);
     biffMove(ECHO, err, NRRD); return 1;
   }
-  nrrdAxesSet(tstate->nperm, nrrdAxesInfoLabel, "info", "sample");
+  nrrdAxesSet(tstate->nperm, nrrdAxesInfoLabel, "jitable", "sample");
+
   if (nrrdMaybeAlloc(tstate->njitt, echoPos_nt, 3,
 		     2, ECHO_JITABLE_NUM, parm->numSamples)) {
     sprintf(err, "%s: couldn't allocate jitter array", me);
     biffMove(ECHO, err, NRRD); return 1;
   }
-  nrrdAxesSet(tstate->njitt, nrrdAxesInfoLabel, "x,y", "info", "sample");
+  nrrdAxesSet(tstate->njitt, nrrdAxesInfoLabel, "x,y", "jitable", "sample");
+
+  AIR_FREE(tstate->permBuff);
   if (!( tstate->permBuff = (int*)calloc(parm->numSamples, sizeof(int)) )) {
     sprintf(err, "%s: couldn't allocate permutation buffer", me);
     biffAdd(ECHO, err); return 1;
   }
+
+  AIR_FREE(tstate->chanBuff);
   if (!( tstate->chanBuff =
 	 (echoCol_t*)calloc(ECHO_IMG_CHANNELS * parm->numSamples,
 			    sizeof(echoCol_t)) )) {
@@ -83,7 +92,7 @@ echoJitterCompute(echoRTParm *parm, echoThreadState *tstate) {
       i = perm[j + ECHO_JITABLE_NUM*s];
       xi = i % n;
       yi = i / n;
-      switch(parm->jitter) {
+      switch(parm->jitterType) {
       case echoJitterNone:
 	jitt[0 + 2*j] = 0.0;
 	jitt[1 + 2*j] = 0.0;
@@ -111,19 +120,18 @@ echoJitterCompute(echoRTParm *parm, echoThreadState *tstate) {
 }
 
 /*
-******** echoCheck
+******** echoRTRenderCheck
 **
-** does all the error checking required of echoRender and
+** does all the error checking required of echoRTRender and
 ** everything that it calls
 */
 int
-echoCheck(Nrrd *nraw, limnCam *cam, 
-	  echoRTParm *parm, echoGlobalState *gstate,
-	  echoScene *scene, airArray *lightArr) {
-  char me[]="echoCheck", err[AIR_STRLEN_MED];
+echoRTRenderCheck(Nrrd *nraw, limnCam *cam, echoScene *scene,
+		  echoRTParm *parm, echoGlobalState *gstate) {
+  char me[]="echoRTRenderCheck", err[AIR_STRLEN_MED];
   int tmp;
 
-  if (!(nraw && cam && parm && gstate && scene && lightArr)) {
+  if (!(nraw && cam && scene && parm && gstate)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(ECHO, err); return 1;
   }
@@ -131,8 +139,8 @@ echoCheck(Nrrd *nraw, limnCam *cam,
     sprintf(err, "%s: camera trouble", me);
     biffMove(ECHO, err, LIMN); return 1;
   }
-  if (!airEnumValValid(echoJitter, parm->jitter)) {
-    sprintf(err, "%s: jitter method (%d) invalid", me, parm->jitter);
+  if (!airEnumValValid(echoJitter, parm->jitterType)) {
+    sprintf(err, "%s: jitter method (%d) invalid", me, parm->jitterType);
     biffAdd(ECHO, err); return 1;
   }
   if (!(parm->numSamples > 0)) {
@@ -149,7 +157,7 @@ echoCheck(Nrrd *nraw, limnCam *cam,
     biffAdd(ECHO, err); return 1;
   }
   
-  switch (parm->jitter) {
+  switch (parm->jitterType) {
   case echoJitterNone:
   case echoJitterRandom:
     break;
@@ -158,12 +166,13 @@ echoCheck(Nrrd *nraw, limnCam *cam,
     tmp = sqrt(parm->numSamples);
     if (tmp*tmp != parm->numSamples) {
       sprintf(err, "%s: need a square # samples for %s jitter method (not %d)",
-	      me, airEnumStr(echoJitter, parm->jitter), parm->numSamples);
+	      me, airEnumStr(echoJitter, parm->jitterType), parm->numSamples);
       biffAdd(ECHO, err); return 1;
     }
     break;
   }
-  
+
+  /* for the time being things are hard-coded to be r,g,b,a,time */
   if (ECHO_IMG_CHANNELS != 5) {
     sprintf(err, "%s: ECHO_IMG_CHANNELS != 5", me);
     biffAdd(ECHO, err); return 1;
@@ -197,56 +206,58 @@ echoChannelAverage(echoCol_t *img,
 }
 
 /*
-** echoRayColor
+******** echoRayColor
 **
-** This is called by echoRender and by the various color routines,
-** following an intersection with non-phong non-light material.
+** This is called by echoRTRender and by the various color routines,
+** following an intersection with non-phong non-light material (the
+** things that require reflection or refraction rays).
 ** As such, it is never called on shadow rays.  
 */
 void
 echoRayColor(echoCol_t *chan, int samp, echoRay *ray,
-	     echoRTParm *parm, echoThreadState *tstate,
-	     echoObject *scene, airArray *lightArr) {
+	     echoScene *scene, echoRTParm *parm, echoThreadState *tstate) {
   float tmp;
   echoIntx intx;
   
   if (ray->depth > parm->maxRecDepth) {
     /* we've exceeded the recursion depth, so no more rays for you */
-    ELL_4V_SET(chan, parm->mrR, parm->mrG, parm->mrB, 1.0);
+    ELL_4V_SET(chan, parm->mr[0], parm->mr[1], parm->mr[2], 1.0);
     return;
   }
 
   intx.boxhits = 0;
-  if (!echoRayIntx(&intx, ray, parm, scene)) {
-    if (echoVerbose) {
+  if (!echoRayIntx(&intx, ray, scene, parm)) {
+    if (tstate->verbose) {
       printf("echoRayColor: (nothing was hit)\n");
     }
     /* ray hits nothing in scene */
-    if (parm->renderBoxes) {
-      tmp = 0.1*intx.boxhits;
-      ELL_4V_SET(chan, tmp, tmp, tmp, 1.0);
+    if (!parm->renderBoxes) {
+      ELL_4V_SET(chan, scene->bg[0], scene->bg[1], scene->bg[2], 1.0);
     }
     else {
-      ELL_4V_SET(chan, parm->bgR, parm->bgG, parm->bgB, 1.0);
+      tmp = 1.0 - pow(1.0 - parm->boxOpac, intx.boxhits);
+      ELL_4V_SET(chan, 1.0, 1.0, 1.0, tmp);
     }
     return;
   }
 
-  /* else we actually hit something.  Chances are, we'll need to
-     know the view vector and intersection location ("pos"), either
-     for texturing or for starting new rays, so we'll calculate 
-     those here.  Also, record the depth for sake of child rays 
-     generated by _echoIntxColor */
+  /* else we actually hit something, so the ray color IS the
+     intersection color.  Chances are, we'll need to know the view
+     vector and intersection location ("pos"), either for texturing or
+     for starting new rays, so we'll calculate those here.  Also,
+     record the depth for sake of child rays generated by _echoIntxColor */
   ELL_3V_SCALE(intx.view, -1, ray->dir);
   ELL_3V_SCALEADD(intx.pos, 1, ray->from, intx.t, ray->dir);
-  if (echoVerbose) {
+  if (tstate->verbose) {
     printf("echoRayColor: hit a %d (%p) at (%g,%g,%g)\n",
 	   intx.obj->type, intx.obj,
 	   intx.pos[0], intx.pos[1], intx.pos[2]);
   }
   intx.depth = ray->depth;
-  _echoIntxColor[intx.obj->matter](chan, &intx, samp, parm,
-				   tstate, scene, lightArr);
+  /*
+  _echoIntxColor[intx.obj->matter](chan, samp, &intx, scene, parm, tstate);
+  */
+  ELL_4V_SET(chan, 1, 1, 1, 1);
 
   return;
 }
@@ -259,9 +270,8 @@ echoRayColor(echoCol_t *chan, int samp, echoRay *ray,
 ** lower-level functions.
 */
 int
-echoRTRender(Nrrd *nraw, limnCam *cam,
-	     echoRTParm *parm, echoGlobalState *gstate,
-	     echoObject *scene, airArray *lightArr) {
+echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
+	     echoRTParm *parm, echoGlobalState *gstate) {
   char me[]="echoRTRender", err[AIR_STRLEN_MED], done[20];
   int imgUi, imgVi,         /* integral pixel indices */
     samp;                   /* which sample are we doing */
@@ -278,7 +288,7 @@ echoRTRender(Nrrd *nraw, limnCam *cam,
   double time0;             /* to record per ray sample time */
   echoRay ray;              /* (not a pointer) */
 
-  if (echoCheck(nraw, cam, parm, gstate, scene, lightArr)) {
+  if (echoRTRenderCheck(nraw, cam, scene, parm, gstate)) {
     sprintf(err, "%s: problem with input", me);
     biffAdd(ECHO, err); return 1;
   }
@@ -288,6 +298,8 @@ echoRTRender(Nrrd *nraw, limnCam *cam,
     biffMove(ECHO, err, NRRD); return 1;
   }
   nrrdAxesSet(nraw, nrrdAxesInfoLabel, "r,g,b,a,t", "x", "y");
+  nrrdAxesSet(nraw, nrrdAxesInfoMin, AIR_NAN, cam->uRange[0], cam->vRange[0]);
+  nrrdAxesSet(nraw, nrrdAxesInfoMax, AIR_NAN, cam->uRange[1], cam->vRange[1]);
   tstate = echoThreadStateNew();
   if (echoThreadStateInit(tstate, parm, gstate)) {
     sprintf(err, "%s:", me);
@@ -299,7 +311,7 @@ echoRTRender(Nrrd *nraw, limnCam *cam,
     airSrand();
   }
   echoJitterCompute(parm, tstate);
-  if (echoVerbose > 2)
+  if (gstate->verbose > 2)
     nrrdSave("jitt.nrrd", tstate->njitt, NULL);
   
   /* set eye, U, V, N, imgOrig */
@@ -309,14 +321,14 @@ echoRTRender(Nrrd *nraw, limnCam *cam,
   ELL_4MV_ROW2_GET(N, cam->W2V);
   ELL_3V_SCALEADD(imgOrig, 1.0, eye, cam->vspDist, N);
   
-  /* determine pixel dimensions */
+  /* determine size of a single pixel (based on cell-centering) */
   pixUsz = (cam->uRange[1] - cam->uRange[0])/(parm->imgResU);
   pixVsz = (cam->vRange[1] - cam->vRange[0])/(parm->imgResV);
 
   ray.depth = 0;
   ray.shadow = AIR_FALSE;
   img = (echoCol_t *)nraw->data;
-  printf("      ");
+  printf("      ");  /* prep for printing airDoneStr */
   for (imgVi=0; imgVi<parm->imgResV; imgVi++) {
     imgV = NRRD_POS(nrrdCenterCell, cam->vRange[0], cam->vRange[1],
 		    parm->imgResV, imgVi);
@@ -325,12 +337,12 @@ echoRTRender(Nrrd *nraw, limnCam *cam,
       imgU = NRRD_POS(nrrdCenterCell, cam->uRange[0], cam->uRange[1],
 		      parm->imgResU, imgUi);
 
-      echoVerbose = ( (205 == imgUi && 103 == imgVi) ||
-		      (0 && 150 == imgUi && 232 == imgVi) ||
-		      (0 && 149 == imgUi && 233 == imgVi) ||
-		      (0 && 150 == imgUi && 233 == imgVi) );
+      tstate->verbose = ( (205 == imgUi && 103 == imgVi) ||
+			  (0 && 150 == imgUi && 232 == imgVi) ||
+			  (0 && 149 == imgUi && 233 == imgVi) ||
+			  (0 && 150 == imgUi && 233 == imgVi) );
       
-      if (echoVerbose) {
+      if (tstate->verbose) {
 	printf("\n");
 	printf("-----------------------------------------------------\n");
 	printf("------------------- (%3d, %3d) ----------------------\n",
@@ -358,6 +370,7 @@ echoRTRender(Nrrd *nraw, limnCam *cam,
 	ELL_3V_SCALEADD3(at, 1, imgOrig, tmp0, U, tmp1, V);
 
 	/* do it! */
+	ray.verbose = tstate->verbose;
 	ELL_3V_SUB(ray.dir, at, ray.from);
 	ray.neer = 0.0;
 	ray.faar = ECHO_POS_MAX;
@@ -368,9 +381,7 @@ echoRTRender(Nrrd *nraw, limnCam *cam,
 	*/
 	time0 = airTime();
 #if 1
-	echoRayColor(chan, samp, &ray,
-		     parm, tstate,
-		     scene, lightArr);
+	echoRayColor(chan, samp, &ray, scene, parm, tstate);
 #else
 	memset(chan, 0, ECHO_IMG_CHANNELS*sizeof(echoCol_t));
 #endif

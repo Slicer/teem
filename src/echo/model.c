@@ -35,13 +35,13 @@ _echoPosSet(echoPos_t *p3, echoPos_t *matx, echoPos_t *p4) {
 }
 
 echoObject *
-echoRoughSphereNew(int theRes, int phiRes, echoPos_t *matx) {
+echoRoughSphereNew(echoScene *scene, int theRes, int phiRes, echoPos_t *matx) {
   echoObject *trim;
   echoPos_t *_pos, *pos, tmp[3];
   int *_vert, *vert, thidx, phidx, n;
   echoPos_t th, ph;
 
-  trim = echoObjectNew(echoTypeTriMesh);
+  trim = echoObjectNew(scene, echoTypeTriMesh);
   TRIMESH(trim)->numV = 2 + (phiRes-1)*theRes;
   TRIMESH(trim)->numF = (2 + 2*(phiRes-2))*theRes;
 

@@ -21,44 +21,17 @@
 
 int
 main(int argc, char **argv) {
-  EchoObject *obj;
-  EchoLight *light;
-  
-  obj = echoObjectNew(echoObjectSphere);
-  obj = echoObjectNix(obj);
-  obj = echoObjectNew(echoObjectCube);
-  obj = echoObjectNix(obj);
-  obj = echoObjectNew(echoObjectTriangle);
-  obj = echoObjectNix(obj);
-  obj = echoObjectNew(echoObjectRectangle);
-  obj = echoObjectNix(obj);
-  obj = echoObjectNew(echoObjectTriMesh);
-  obj = echoObjectNix(obj);
-  obj = echoObjectNew(echoObjectIsosurface);
-  obj = echoObjectNix(obj);
-  obj = echoObjectNew(echoObjectAABBox);
-  obj = echoObjectNix(obj);
-  obj = echoObjectNew(echoObjectList);
-  echoObjectListAdd(obj, echoObjectNew(echoObjectCube));
-  echoObjectListAdd(obj, echoObjectNew(echoObjectCube));
-  echoObjectListAdd(obj, echoObjectNew(echoObjectCube));
-  echoObjectListAdd(obj, echoObjectNew(echoObjectCube));
-  echoObjectListAdd(obj, echoObjectNew(echoObjectCube));
-  echoObjectListAdd(obj, echoObjectNew(echoObjectCube));
-  echoObjectListAdd(obj, echoObjectNew(echoObjectCube));
-  echoObjectListAdd(obj, echoObjectNew(echoObjectCube));
-  echoObjectListAdd(obj, echoObjectNew(echoObjectCube));
-  echoObjectListAdd(obj, echoObjectNew(echoObjectCube));
-  echoObjectListAdd(obj, echoObjectNew(echoObjectCube));
-  echoObjectListAdd(obj, echoObjectNew(echoObjectCube));
-  echoObjectListAdd(obj, echoObjectNew(echoObjectCube));
-  echoObjectListAdd(obj, echoObjectNew(echoObjectCube));
-  obj = echoObjectNix(obj);
+  echoScene *scene;
+  echoObject *obj;
 
-  light = echoLightNew(echoLightDirectional);
-  light = echoLightNix(light);
-  light = echoLightNew(echoLightArea);
-  light = echoLightNix(light);
+  scene = echoSceneNew();
+  obj = echoObjectNew(scene, echoTypeSphere);
+  obj = echoObjectNew(scene, echoTypeSphere);
+  obj = echoObjectNew(scene, echoTypeSphere);
+  obj = echoObjectNew(scene, echoTypeSphere);
+  obj = echoObjectNew(scene, echoTypeSphere);
+  obj = echoObjectNew(scene, echoTypeSphere);
+  echoSceneNix(scene);
 
   return 0;
 }

@@ -96,11 +96,13 @@ typedef struct {
     seedRand;          /* call airSrand() (don't if repeatability wanted) */
   float aperture,      /* shallowness of field */
     timeGamma,         /* gamma for values in time image */
-    refDistance;       /* reference distance for 1/(r*r)'ing area lights */
+    refDistance,       /* reference distance for 1/(r*r)'ing area lights */
+    boxOpac;           /* opacity of bounding boxes with renderBoxes */
   echoCol_t mr[3];     /* color of max recursion depth being hit */
 } echoRTParm;
 
 typedef struct {
+  int verbose;
   double time;         /* time it took to render image */
 } echoGlobalState;
 
@@ -189,7 +191,7 @@ enum {
   echoMatterMetalFuzzy  /* 2 */
 };
 enum {
-  echoMatterLightPower
+  echoMatterLightPower  /* 0 */
 };
 
 #define ECHO_MATTER_PARM_NUM 4
@@ -321,11 +323,44 @@ typedef struct {
   airArray *objArr;
   echoObject **lit;    /* convenience pointers to lights within obj[] */
   airArray *litArr;
-  echoObject **nrrd;   /* nrrds for textures and isosurfaces */
+  Nrrd **nrrd;         /* nrrds for textures and isosurfaces */
   airArray *nrrdArr;
   echoCol_t am[3],     /* color of ambient light */
     bg[3];             /* color of background */
 } echoScene;
+
+/*
+******** echoRay
+**
+** all info associated with a ray being intersected against a scene
+*/
+typedef struct {
+  int verbose;
+  echoPos_t from[3],    /* ray comes from this point */
+    dir[3],             /* ray goes in this (not normalized) direction */
+    neer, faar;         /* look for intx in this interval */
+    int depth,          /* recursion depth */
+    shadow;             /* this is a shadow ray */
+  echoCol_t transp;     /* for shadow rays, the transparency so far; starts
+			   at 1.0, goes down to 0.0 */
+} echoRay;
+
+/*
+******** echoIntx
+**
+** all info about nature and location of an intersection 
+*/
+typedef struct {
+  echoObject *obj;      /* computed with every intersection */
+  echoPos_t t,          /* computed with every intersection */
+    u, v;               /* sometimes needed for texturing */
+  echoPos_t norm[3],    /* computed with every intersection */
+    view[3],            /* always used with coloring */
+    pos[3];             /* always used with coloring (and perhaps texturing) */
+  int depth,            /* the depth of the ray that generated this intx */
+    face,               /* in intx with cube, which face was hit (for textures) */
+    boxhits;            /* how many bounding boxes we hit */
+} echoIntx;
 
 /* enumsEcho.c ------------------------------------------ */
 extern echo_export airEnum *echoJitter;
@@ -343,8 +378,13 @@ extern echoScene *echoSceneNew();
 extern echoScene *echoSceneNix(echoScene *scene);
 
 /* objmethods.c --------------------------------------- */
-extern echoObject *echoObjectNew(signed char type);
+extern echoObject *echoObjectNew(echoScene *scene, signed char type);
 extern echoObject *echoObjectNix(echoObject *obj);
+
+/* model.c ---------------------------------------- */
+
+extern echoObject *echoRoughSphereNew(echoScene *scene, int theRes, int phiRes,
+				      echoPos_t *matx);
 
 /* bounds.c --------------------------------------- */
 extern void echoBoundsGet(echoPos_t *lo, echoPos_t *hi, echoObject *obj);
@@ -372,63 +412,43 @@ extern void echoTriMeshSet(echoObject *trim,
 extern void echoInstanceSet(echoObject *inst,
 			    echoPos_t *M, echoObject *obj);
 
-/* model.c ---------------------------------------- */
+/* matter.c ------------------------------------------ */
+extern echo_export int echoObjectHasMatter[ECHO_TYPE_NUM];
+extern void echoMatterColorSet(echoScene *scene, echoObject *obj,
+			       echoCol_t R, echoCol_t G, echoCol_t B, echoCol_t A);
+extern void echoMatterPhongSet(echoScene *scene, echoObject *obj,
+			       echoCol_t ka, echoCol_t kd,
+			       echoCol_t ks, echoCol_t sp);
+extern void echoMatterGlassSet(echoScene *scene, echoObject *obj,
+			       echoCol_t index, echoCol_t kd, echoCol_t fuzzy);
+extern void echoMatterMetalSet(echoScene *scene, echoObject *obj,
+			       echoCol_t R0, echoCol_t kd, echoCol_t fuzzy);
+extern void echoMatterLightSet(echoScene *scene, echoObject *obj,
+			       echoCol_t power);
+extern void echoMatterTextureSet(echoScene *scene, echoObject *obj,
+				 Nrrd *ntext);
 
-extern echoObject *echoRoughSphereNew(int theRes, int phiRes,
-				      echoPos_t *matx);
+/* intx.c ------------------------------------------- */
+extern int echoRayIntx(echoIntx *intx, echoRay *ray,
+		       echoScene *scene, echoRTParm *parm);
+
+/* color.c ------------------------------------------- */
+extern int echoIntxColor();
 
 /* renderEcho.c ---------------------------------------- */
-
-typedef struct {
-  echoPos_t from[3],    /* ray comes from this point */
-    dir[3],             /* ray goes in this (not normalized) direction */
-    neer, faar;         /* look for intx in this interval */
-    int depth,          /* recursion depth */
-    shadow;             /* this is a shadow ray */
-  echoCol_t transp;     /* for shadow rays, the transparency so far; starts
-			   at 1.0, goes down to 0.0 */
-} echoRay;
-
-typedef struct {
-  echoObject *obj;      /* computed with every intersection */
-  echoPos_t t,          /* computed with every intersection */
-    u, v;               /* sometimes needed for texturing */
-  echoPos_t norm[3],    /* computed with every intersection */
-    view[3],            /* always used with coloring */
-    pos[3];             /* always used with coloring (and perhaps texturing) */
-  int depth,            /* the depth of the ray that generated this intx */
-    face,
-    boxhits;            /* how many bounding boxes we hit */
-} echoIntx;
 
 extern int echoThreadStateInit(echoThreadState *tstate,
 			       echoRTParm *parm, echoGlobalState *gstate);
 extern void echoJitterCompute(echoRTParm *parm, echoThreadState *state);
-extern int echoRTRender(Nrrd *nraw, limnCam *cam,
-			echoRTParm *parm, echoGlobalState *gstate,
-			echoObject *scene, airArray *lightArr);
-
-/* intx.c ------------------------------------------- */
-extern int echoRayIntx(echoIntx *intx, echoRay *ray,
-		       echoRTParm *parm, echoObject *obj);
 extern void echoRayColor(echoCol_t *chan, int samp, echoRay *ray,
-			 echoRTParm *parm, echoThreadState *tstate,
-			 echoObject *scene, airArray *lightArr);
-
-/* color.c ------------------------------------------ */
-extern void echoMatterColorSet(echoObject *obj,
-			       echoCol_t R, echoCol_t G, echoCol_t B,
-			       echoCol_t A);
-extern void echoMatterPhongSet(echoObject *obj,
-			       echoCol_t ka, echoCol_t kd,
-			       echoCol_t ks, echoCol_t sh);
-extern void echoMatterGlassSet(echoObject *obj,
-			       echoCol_t index, echoCol_t kd, echoCol_t fuzzy);
-extern void echoMatterMetalSet(echoObject *obj,
-			       echoCol_t R0, echoCol_t kd, echoCol_t fuzzy);
-extern void echoMatterLightSet(echoObject *obj,
-			       echoCol_t power);
-extern void echoMatterTextureSet(echoObject *obj, Nrrd *ntext);
+			 echoScene *scene, echoRTParm *parm, echoThreadState *tstate);
+extern void echoChannelAverage(echoCol_t *img,
+			       echoRTParm *parm, echoThreadState *tstate);
+extern int echoRTRenderCheck(Nrrd *nraw, limnCam *cam, echoScene *scene,
+			     echoRTParm *parm, echoGlobalState *gstate);
+extern int echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
+			echoRTParm *parm, echoGlobalState *gstate);
+			
 
 #ifdef __cplusplus
 }
