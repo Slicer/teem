@@ -436,6 +436,7 @@ TESTPRINT(void *_iP) {
   printf("HELLO!!\n");
   printf("HELLO!!  i = %d\n", *iP);
   printf("HELLO!!\n");
+  return NULL;
 }
 
 /*
@@ -748,7 +749,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
   printf("!%s: nout: dim = %d; sz[] = %d %d %d\n", me,
 	 dim, sz[passes][0],  sz[passes][1],  sz[passes][2]);
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopOnError);
-  airMopAdd(mop, TEST, TESTPRINT, airMopOnError);
+  airMopAdd(mop, TEST, TESTPRINT, airMopAlways);
   nrrdAxesCopy(nout, nin, NULL, 
 	       (NRRD_AXESINFO_SIZE
 		| NRRD_AXESINFO_AMINMAX
