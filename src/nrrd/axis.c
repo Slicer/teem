@@ -853,36 +853,35 @@ nrrdAxisInfoMinMaxSet(Nrrd *nrrd, int ax, int defCenter) {
 ** nrrdSpacingStatusUnknown          Something about the given arguments is
 **                                   invalid.
 **                                   *spacing = NaN,
-**                                   *sdim = 0, vector = all NaNs
+**                                   vector = all NaNs
 **
 ** nrrdSpacingStatusNone             There is no spacing info at all:
 **                                   *spacing = NaN,
-**                                   *sdim = 0, vector = all NaNs
+**                                   vector = all NaNs
 **
 ** nrrdSpacingStatusScalarNoSpace    There is no surrounding space, but the
 **                                   axis's spacing was known.
 **                                   *spacing = axis->spacing,
-**                                   *sdim = 0, vector = all NaNs
+**                                   vector = all NaNs
 **
 ** nrrdSpacingStatusScalarWithSpace  There *is* a surrounding space, but the
 **                                   given axis does not live in that space,
 **                                   because it has no space direction.  Caller
 **                                   may want to think about what's going on.
 **                                   *spacing = axis->spacing,
-**                                   *sdim = 0, vector = all NaNs
+**                                   vector = all NaNs
 **
 ** nrrdSpacingStatusDirection        There is a surrounding space, in which
 **                                   this axis has a direction V:
-**                                   *spacing = |V|
-**                                   *sdim = spaceDim, vector = V/|V|
+**                                   *spacing = |V| (length of direction),
+**                                   vector = V/|V| (normalized direction)
 */
 int
 nrrdSpacingCalculate(const Nrrd *nrrd, int ax,
-                     double *spacing,
-                     int *sdim, double vector[NRRD_SPACE_DIM_MAX]) {
+                     double *spacing, double vector[NRRD_SPACE_DIM_MAX]) {
   int ret;
   
-  if (!( nrrd && spacing && sdim && vector
+  if (!( nrrd && spacing && vector
          && AIR_IN_CL(0, ax, nrrd->dim-1)
          && !_nrrdCheck(nrrd, AIR_FALSE, AIR_FALSE) )) {
     /* there's a problem with the arguments.  Note: the _nrrdCheck()
@@ -890,9 +889,6 @@ nrrdSpacingCalculate(const Nrrd *nrrd, int ax,
     ret = nrrdSpacingStatusUnknown;
     if (spacing) { 
       *spacing = AIR_NAN;
-    }
-    if (sdim) {
-      *sdim = 0;
     }
     if (vector) {
       _nrrdSpaceVecSetNaN(vector);
@@ -905,20 +901,17 @@ nrrdSpacingCalculate(const Nrrd *nrrd, int ax,
         ret = nrrdSpacingStatusScalarNoSpace;
       }
       *spacing = nrrd->axis[ax].spacing;
-      *sdim = 0;
       _nrrdSpaceVecSetNaN(vector);      
     } else {
       if (nrrd->spaceDim > 0) {
         ret = nrrdSpacingStatusDirection;
         *spacing = _nrrdSpaceVecNorm(nrrd->spaceDim, 
                                      nrrd->axis[ax].spaceDirection);
-        *sdim = nrrd->spaceDim;
         _nrrdSpaceVecScale(vector, 1.0/(*spacing),
                            nrrd->axis[ax].spaceDirection);
       } else {
         ret = nrrdSpacingStatusNone;
         *spacing = AIR_NAN;
-        *sdim = 0;
         _nrrdSpaceVecSetNaN(vector);
       }
     }

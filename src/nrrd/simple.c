@@ -153,16 +153,16 @@ nrrdSpaceGet(const Nrrd *nrrd, int *space, int *spaceDim) {
 ** retrieves the spaceOrigin (and spaceDim) from given nrrd
 */
 void
-nrrdSpaceOriginGet(const Nrrd *nrrd, int *spaceDim,
+nrrdSpaceOriginGet(const Nrrd *nrrd,
                    double vector[NRRD_SPACE_DIM_MAX]) {
   int sdi;
 
-  if (nrrd && spaceDim && vector) {
-    *spaceDim = nrrd->spaceDim;
-    if (*spaceDim > 0) {
-      for (sdi=0; sdi<*spaceDim; sdi++) {
-        vector[sdi] = nrrd->spaceOrigin[sdi];
-      }
+  if (nrrd && vector) {
+    for (sdi=0; sdi<nrrd->spaceDim; sdi++) {
+      vector[sdi] = nrrd->spaceOrigin[sdi];
+    }
+    for (sdi=nrrd->spaceDim; sdi<NRRD_SPACE_DIM_MAX; sdi++) {
+      vector[sdi] = AIR_NAN;
     }
   }
   return;
@@ -173,12 +173,14 @@ nrrdSpaceOriginGet(const Nrrd *nrrd, int *spaceDim,
 **
 ** makes an effort to calculate something like an "origin" (as in
 ** nrrd->spaceOrigin) from the per-axis min, max, or spacing, when
-** there is no real space information.  To avoid making assumptions
-** about the nrrd or the caller, a default sample centering (defaultCenter)
-** has to be provided (use either nrrdCenterNode or nrrdCenterCell).
-** Also, the three axes (ax0, ax1, ax2) that are to be used for the
-** origin calculation have to be given explicitly- this puts the burden
-** of figuring out the semantics of nrrdKinds and such on the caller.
+** there is no real space information.  Like the spaceOrigin, this
+** location is supposed to be THE CENTER of the first sample.  To
+** avoid making assumptions about the nrrd or the caller, a default
+** sample centering (defaultCenter) has to be provided (use either
+** nrrdCenterNode or nrrdCenterCell).  Also, the three axes (ax0, ax1,
+** ax2) that are to be used for the origin calculation have to be
+** given explicitly- this puts the burden of figuring out the
+** semantics of nrrdKinds and such on the caller.
 **
 ** The computed origin is put into the given vector (origin).  The return
 ** value takes on values from the nrrdOriginStatus* enum:
