@@ -175,6 +175,11 @@
    ELL_3V_COPY((m2)+3, (m1)+3), \
    ELL_3V_COPY((m2)+6, (m1)+6))
 
+#define ELL_3M_SET_IDENT(m) \
+  (ELL_3V_SET((m)+0,  1 ,  0 ,  0), \
+   ELL_3V_SET((m)+3,  0 ,  1 ,  0), \
+   ELL_3V_SET((m)+9,  0 ,  0 ,  1))
+
 #define ELL_3M_SETDIAG(m, a, b, c) \
   ((m)[0] = (a), (m)[4] = (b), (m)[8] = (c))
 
