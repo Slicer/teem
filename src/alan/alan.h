@@ -1,0 +1,107 @@
+/*
+  teem: Gordon Kindlmann's research software
+  Copyright (C) 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
+#ifndef ALAN_HAS_BEEN_INCLUDED
+#define ALAN_HAS_BEEN_INCLUDED
+
+#include <stdio.h>
+#include <math.h>
+
+#include <teem/air.h>
+#include <teem/biff.h>
+#include <teem/ell.h>
+#include <teem/nrrd.h>
+
+#if defined(_WIN32) && defined(TEEM_DLL)
+#define alan_export __declspec(dllimport)
+#else
+#define alan_export
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define ALAN alanBiffKey
+
+enum {
+  alanTextureTypeUnknown,
+  alanTextureTypeTuring,
+  alanTextureTypeGrayScott,
+  alanTextureTypeLast
+};
+
+enum {
+  alanParmUnknown,
+  alanParmVerbose,
+  alanParmTextureType,
+  alanParmNumThreads,
+  alanParmSaveInterval,
+  alanParmMaxIteration,
+  alanParmRandRange,
+  alanParmSpeed,
+  alanParmDiffA,
+  alanParmDiffB,
+  alanParmK,
+  alanParmF,
+  alanParmLast
+};
+
+/* there is no alan_t: we always use doubles for now */
+
+typedef struct {
+  int verbose,
+    textureType,     /* what kind are we (from alanTextureType* enum) */
+    dim,             /* either 2 or 3 */
+    size[3],         /* number of texels in X, Y, (Z) */
+    oversample,      /* oversampling of tensors to texels */
+    numThreads,      /* number of threads, of pthreads available here */
+    saveInterval,    /* number of iterations between which to save snapshots */
+    iter,            /* current iteration */
+    maxIteration;    /* limit to number of iterations */
+    
+  double K, F,       /* simulation variables */
+    speed,           /* euler integration step size */
+    initA, initB,    /* initial (constant) values for each morphogen */
+    diffA, diffB,    /* base diffusion rates for each morphogen */
+    randRange;       /* amplitude of noise to destabalize Turing */
+  Nrrd *nlev[2];     /* levels of all morphogens, alternating buffers */
+  Nrrd *nten;        /* tensors guiding texture.  May have 1+3 or 1+6 values
+			per sample, depending on dim */
+} alanContext;
+
+/* methodsAlan.c */
+extern alan_export const int alanMyPthread;
+extern alan_export const char *alanBiffKey;
+extern alanContext *alanContextNew();
+extern alanContext *alanContextNix(alanContext *actx);
+extern int alanDimensionSet(alanContext *actx, int dim);
+extern int alan2DSizeSet(alanContext *actx, int sizeX, int sizeY);
+extern int alan3DSizeSet(alanContext *actx, int sizeX, int sizeY, int sizeZ);
+extern int alanTensorSet(alanContext *actx, Nrrd *nten, int oversample);
+extern int alanParmSet(alanContext *actx, int whichParm, double parm);
+
+/* coreAlan.c */
+extern int alanRun(alanContext *actx);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* ALAN_HAS_BEEN_INCLUDED */
