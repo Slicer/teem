@@ -311,9 +311,9 @@ _tenEMBimodalIterate(tenEMBimodalParm *biparm) {
   /* find new values, and calculate delta */
   _tenEMBimodalPP(biparm);
   f1 = _tenEMBimodalNewFraction1(biparm);
-  if (1 == biparm->stage) {
+  /*   if (1 == biparm->stage) { */
     _tenEMBimodalNewMean(&m1, &m2, biparm);
-  }
+    /*   } */
   _tenEMBimodalNewSigma(&s1, &s2, m1, m2, biparm);
 
   biparm->delta = ((fabs(m1 - om1) + fabs(m2 - om2)
@@ -419,7 +419,7 @@ _tenEMBimodalCheck(tenEMBimodalParm *biparm) {
 int
 tenEMBimodal(tenEMBimodalParm *biparm, Nrrd *_nhisto) {
   char me[]="tenEMBimodal", err[AIR_STRLEN_MED];
-  int done;
+  int done, _iter;
   
   if (!(biparm && _nhisto)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -440,9 +440,9 @@ tenEMBimodal(tenEMBimodalParm *biparm, Nrrd *_nhisto) {
   for (biparm->stage = 1; 
        biparm->stage <= (biparm->twoStage ? 2 : 1);
        biparm->stage++) {
-    for (; 
+    for (_iter=0; 
 	 biparm->iteration <= biparm->maxIteration; 
-	 biparm->iteration++) {
+	 biparm->iteration++, _iter++) {
       if (_tenEMBimodalIterate(biparm)    /* sets delta */
 	  || _tenEMBimodalConfThresh(biparm)
 	  || _tenEMBimodalCheck(biparm)) {
@@ -450,7 +450,8 @@ tenEMBimodal(tenEMBimodalParm *biparm, Nrrd *_nhisto) {
 		biparm->iteration);
 	biffAdd(TEN, err); return 1;
       }
-      if (biparm->delta < biparm->minDelta) {
+      if (biparm->delta < biparm->minDelta
+	  && (!biparm->twoStage || 1 == biparm->stage || _iter > 10) ) {
 	done = AIR_TRUE;
 	break;
       }
