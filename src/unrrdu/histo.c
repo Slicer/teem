@@ -30,6 +30,7 @@ unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin, *nout, *nwght;
   int bins, type, pret;
   double min, max;
+  NrrdRange *range;
   airArray *mop;
 
   hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, NULL,
@@ -61,17 +62,14 @@ unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   
   /* If the input nrrd never specified min and max, then they'll be
-     AIR_NAN, and nrrdMinMaxCleverSet will find them, and will do so
-     according to nrrdStateClever8BitMinMax.  Thus, you may be
-     interested in using the NRRD_STATE_CLEVER_8_BIT_MIN_MAX
-     environment variable.  If the input nrrd had a notion of min and
-     max, we should respect it, but not if the user specified
-     something else. */
-  if (AIR_EXISTS(min))
-    nin->min = min;
-  if (AIR_EXISTS(max))
-    nin->max = max;
-  if (nrrdHisto(nout, nin, nwght, bins, type)) {
+     AIR_NAN, and nrrdRangeSafeSet will find them, and will do so
+     according to nrrdStateBlind8BitRange.  Thus, you may be
+     interested in using the NRRD_STATE_BLIND_8_BIT_RANGE
+     environment variable.  */
+  range = nrrdRangeNew(min, max);
+  airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
+  nrrdRangeSafeSet(range, nin, nrrdBlind8BitRangeState);
+  if (nrrdHisto(nout, nin, range, nwght, bins, type)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error calculating histogram:\n%s", me, err);
     free(err);

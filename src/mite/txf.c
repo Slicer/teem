@@ -274,11 +274,6 @@ _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
     /* this assumes that ntxf type is float, double, or uchar */
     switch(muu->ntxf[ni]->type) {
     case nrrdTypeUChar:
-      if (!( AIR_EXISTS(muu->ntxf[ni]->min) &&
-	     AIR_EXISTS(muu->ntxf[ni]->max) )) {
-	muu->ntxf[ni]->min = 0.0;
-	muu->ntxf[ni]->max = 1.0;
-      }
       if (!E) E |= nrrdUnquantize(mrr->ntxf[ni], muu->ntxf[ni], nrrdTypeUChar);
       break;
     case mite_nt:

@@ -31,6 +31,7 @@ unrrdu_minmaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err;
   Nrrd *nin;
+  NrrdRange *range;
   airArray *mop;
   int pret;
 
@@ -44,10 +45,10 @@ unrrdu_minmaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  nrrdMinMaxSet(nin);
-  airSinglePrintf(stderr, NULL, "min: %f\n", nin->min);
-  airSinglePrintf(stderr, NULL, "max: %f\n", nin->max);
-  if (nin->hasNonExist) {
+  range = nrrdRangeNewSet(nin, nrrdBlind8BitRangeFalse);
+  airSinglePrintf(stderr, NULL, "min: %f\n", range->min);
+  airSinglePrintf(stderr, NULL, "max: %f\n", range->max);
+  if (range->hasNonExist) {
     fprintf(stderr, "# has non-existent values\n");
   }
 

@@ -175,6 +175,7 @@ _tenFindValley(float *valP, Nrrd *nhist, float tweak) {
   float *hist, *histD, *histDD;
   airArray *mop;
   int maxbb, bb, bins;
+  NrrdRange *range;
 
   mop = airMopNew();
   airMopAdd(mop, ntmpA=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
@@ -201,9 +202,10 @@ _tenFindValley(float *valP, Nrrd *nhist, float tweak) {
   hist = (float*)(ntmpB->data);
   histD = (float*)(nhistD->data);
   histDD = (float*)(nhistDD->data);
-  nrrdMinMaxSet(ntmpB);
+  range = nrrdRangeNewSet(ntmpB, nrrdBlind8BitRangeState);
+  airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   for (bb=0; bb<bins-1; bb++) {
-    if (hist[bb] == ntmpB->max) {
+    if (hist[bb] == range->max) {
       /* first seek to max in histogram */
       break;
     }

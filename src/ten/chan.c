@@ -162,8 +162,9 @@ tenEstimate(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *_nbmat,
   airArray *mop;
   int E, DD, d, II, sx, sy, sz, cmin[4], cmax[4];
   float *ten, dwi1[_TEN_MAX_DWI_NUM], dwi2[_TEN_MAX_DWI_NUM], *terr=NULL, te,
-    d1, d2, (*lup)(void *, size_t);
+    d1, d2, (*lup)(const void *, size_t);
   double *bmat, *emat;
+  NrrdRange *range;
 
   if (!(nten && ndwi && _nbmat)) {
     /* nerrP can be NULL */
@@ -204,9 +205,10 @@ tenEstimate(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *_nbmat,
     ELL_4V_SET(cmax, DD-1, sx-1, sy-1, sz-1);
     E = 0;
     if (!E) E |= nrrdCrop(ncrop, ndwi, cmin, cmax);
-    if (!E) nrrdMinMaxSet(ncrop);
-    if (!E) E |= nrrdHisto(nhist, ncrop, NULL,
-			   (int)AIR_MIN(1024, ncrop->max - ncrop->min + 1),
+    if (!E) range = nrrdRangeNewSet(ncrop, nrrdBlind8BitRangeState);
+    if (!E) airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
+    if (!E) E |= nrrdHisto(nhist, ncrop, range, NULL,
+			   (int)AIR_MIN(1024, range->max - range->min + 1),
 			   nrrdTypeFloat);
     if (E) {
       sprintf(err, "%s: trouble histograming to find DW threshold", me);
@@ -310,7 +312,7 @@ tenSimulate(Nrrd *ndwi, Nrrd *nT2, Nrrd *nten, Nrrd *_nbmat, float b) {
   int DD, sx, sy, sz;
   airArray *mop;
   double *bmat;
-  float *dwi, *ten, (*lup)(void *, size_t I);
+  float *dwi, *ten, (*lup)(const void *, size_t I);
   
   if (!ndwi || !nT2 || !nten || !_nbmat
       || tenTensorCheck(nten, nrrdTypeFloat, AIR_TRUE)

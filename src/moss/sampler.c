@@ -102,7 +102,7 @@ mossSamplerSample (float *val, mossSampler *smplr, double xPos, double yPos) {
   char me[]="mossSamplerSample", err[AIR_STRLEN_MED];
   int i, xi, yi, ci, sx, sy, fdiam, frad, ncol;
   double xf, yf, tmp;
-  float (*lup)(void *v, size_t I);
+  float (*lup)(const void *v, size_t I);
   
   if (!(val && smplr)) {
     sprintf(err, "%s: got NULL pointer", me);

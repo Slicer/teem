@@ -32,6 +32,7 @@ baneGkms_scatMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out[2], *perr, err[AIR_STRLEN_MED];
   Nrrd *hvol, *nvgRaw, *nvhRaw, *nvgQuant, *nvhQuant;
+  NrrdRange *vgRange, *vhRange;
   airArray *mop;
   int pret, E;
   double gamma;
@@ -66,13 +67,15 @@ baneGkms_scatMain(int argc, char **argv, char *me, hestParm *hparm) {
     sprintf(err, "%s: trouble creating raw scatterplots", me);
     biffAdd(BANE, err); airMopError(mop); return 1;
   }
+  vgRange = nrrdRangeNewSet(nvgRaw, nrrdBlind8BitRangeFalse);
+  vhRange = nrrdRangeNewSet(nvhRaw, nrrdBlind8BitRangeFalse);
+  airMopAdd(mop, vgRange, (airMopper)nrrdRangeNix, airMopAlways);
+  airMopAdd(mop, vhRange, (airMopper)nrrdRangeNix, airMopAlways);
   E = 0;
-  nrrdMinMaxSet(nvgRaw);
-  if (!E) E |= nrrdArithGamma(nvgRaw, nvgRaw, gamma, nvgRaw->min, nvgRaw->max);
-  nrrdMinMaxSet(nvhRaw);
-  if (!E) E |= nrrdArithGamma(nvhRaw, nvhRaw, gamma, nvhRaw->min, nvhRaw->max);
-  if (!E) E |= nrrdQuantize(nvgQuant, nvgRaw, 8);
-  if (!E) E |= nrrdQuantize(nvhQuant, nvhRaw, 8);
+  if (!E) E |= nrrdArithGamma(nvgRaw, nvgRaw, vgRange, gamma);
+  if (!E) E |= nrrdArithGamma(nvhRaw, nvhRaw, vhRange, gamma);
+  if (!E) E |= nrrdQuantize(nvgQuant, nvgRaw, vgRange, 8);
+  if (!E) E |= nrrdQuantize(nvhQuant, nvhRaw, vhRange, 8);
   if (E) {
     sprintf(err, "%s: trouble doing gamma or quantization", me);
     biffMove(BANE, err, NRRD); airMopError(mop); return 1;

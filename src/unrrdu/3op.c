@@ -39,10 +39,14 @@ unrrdu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   hestOptAdd(&opt, NULL, "operator", airTypeEnum, 1, 1, &op, NULL,
 	     "Ternary operator. Possibilities include:\n "
+	     "\b\bo \"+\", \"x\": sum or product of three values\n"
+	     "\b\bo \"min\", \"max\": minimum, maximum\n "
 	     "\b\bo \"clamp\": second value is clamped to range between "
 	     "the first and the third\n "
-	     "\b\bo \"lerp\": linear interpolation between the second and "
-	     "third values, as the first value varies between 0.0 and 1.0, "
+	     "\b\bo \"ifelse\": if 1st value non-zero, then 2nd value, else "
+	     "3rd value",
+	     "\b\bo \"lerp\": linear interpolation between the 2nd and "
+	     "3rd values, as the 1st value varies between 0.0 and 1.0, "
 	     "respectively\n "
 	     "\b\bo \"exists\": if the first value exists, use the second "
 	     "value, otherwise use the third\n "
@@ -87,16 +91,16 @@ unrrdu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
     /* they wanted to convert nrrds to some other type first */
     E = 0;
     if (in1->nrrd) {
-      if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in1->nrrd, type);
-      if (!E) { nrrdNuke(in1->nrrd); nrrdIterSetNrrd(in1, ntmp); }
+      if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in1->ownNrrd, type);
+      if (!E) nrrdIterSetOwnNrrd(in1, ntmp);
     }
     if (in2->nrrd) {
-      if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in2->nrrd, type);
-      if (!E) { nrrdNuke(in2->nrrd); nrrdIterSetNrrd(in2, ntmp); }
+      if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in2->ownNrrd, type);
+      if (!E) nrrdIterSetOwnNrrd(in2, ntmp);
     }
     if (in3->nrrd) {
-      if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in3->nrrd, type);
-      if (!E) { nrrdNuke(in3->nrrd); nrrdIterSetNrrd(in3, ntmp); }
+      if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in3->ownNrrd, type);
+      if (!E) nrrdIterSetOwnNrrd(in3, ntmp);
     }
     if (E) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
@@ -104,7 +108,7 @@ unrrdu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
       airMopError(mop);
       return 1;
     }
-    /* this will still leave a nrrd in the NrrdIter for nrrdIterNuke()
+    /* this will still leave a nrrd in the NrrdIter for nrrdIterNix()
        (called by hestParseFree() called be airMopOkay()) to clear up */
   }
   if (nrrdArithIterTernaryOp(nout, op, in1, in2, in3)) {

@@ -38,6 +38,7 @@ unrrdu_imapMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err;
   Nrrd *nin, *nmap, *nacl, *nout;
   airArray *mop;
+  NrrdRange *range=NULL;
   int typeOut, rescale, aclLen, pret;
   double min, max;
 
@@ -53,12 +54,13 @@ unrrdu_imapMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "rescale the input values from the input range to the "
 	     "map domain");
   hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
-	     "Value to map to low end of map. Defaults to lowest value "
-	     "found in input nrrd.  Explicitly setting this (and the "
-	     "same for the max) is useful only with rescaling (\"-r\")");
+	     "Low end of input range. Defaults to lowest value "
+	     "found in input nrrd.  Explicitly setting this is useful "
+	     "only with rescaling (\"-r\")");
   hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
-	     "Value to map to high end of map. Defaults to highest value "
-	     "found in input nrrd.");
+	     "High end of input range. Defaults to highest value "
+	     "found in input nrrd.  Explicitly setting this is useful "
+	     "only with rescaling (\"-r\")");
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &typeOut, "default",
 	     "specify the type (\"int\", \"float\", etc.) of the "
 	     "output nrrd. "
@@ -90,12 +92,10 @@ unrrdu_imapMain(int argc, char **argv, char *me, hestParm *hparm) {
   } else {
     nacl = NULL;
   }
-  if (AIR_EXISTS(min))
-    nin->min = min;
-  if (AIR_EXISTS(max))
-    nin->max = max;
   if (rescale) {
-    nrrdMinMaxCleverSet(nin);
+    range = nrrdRangeNew(min, max);
+    airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
+    nrrdRangeSafeSet(range, nin, nrrdBlind8BitRangeState);
   }
   if (nrrdTypeDefault == typeOut) {
     typeOut = nmap->type;
@@ -106,7 +106,7 @@ unrrdu_imapMain(int argc, char **argv, char *me, hestParm *hparm) {
      but chances are most imaps will have only a handful of points,
      in which case the binary search in _nrrd1DIrregFindInterval()
      will finish quickly ... */
-  if (nrrdApply1DIrregMap(nout, nin, nmap, nacl, typeOut, rescale)) {
+  if (nrrdApply1DIrregMap(nout, nin, range, nmap, nacl, typeOut, rescale)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble applying map:\n%s", me, err);
     airMopError(mop);

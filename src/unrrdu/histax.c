@@ -32,6 +32,7 @@ unrrdu_histaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   int axis, type, bins, pret;
   double min, max;
   airArray *mop;
+  NrrdRange *range;
 
   OPT_ADD_AXIS(axis, "axis to histogram along");
   hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, NULL,
@@ -56,11 +57,10 @@ unrrdu_histaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (AIR_EXISTS(min))
-    nin->min = min;
-  if (AIR_EXISTS(max))
-    nin->max = max;
-  if (nrrdHistoAxis(nout, nin, axis, bins, type)) {
+  range = nrrdRangeNew(min, max);
+  airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
+  nrrdRangeSafeSet(range, nin, nrrdBlind8BitRangeState);
+  if (nrrdHistoAxis(nout, nin, range, axis, bins, type)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing axis histogramming:\n%s", me, err);
     airMopError(mop);

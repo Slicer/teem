@@ -196,26 +196,28 @@ _tenEpiRegFindThresh(float *DWthrP, Nrrd **nin, int ninLen) {
   airArray *mop;
   int ni, bins, E;
   double min=0, max=0;
+  NrrdRange *range;
 
   mop = airMopNew();
   airMopAdd(mop, nhist=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ntmp=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
 
   for (ni=0; ni<ninLen; ni++) {
-    nrrdMinMaxSet(nin[ni]);
+    range = nrrdRangeNewSet(nin[ni], nrrdBlind8BitRangeState);
     if (!ni) {
-      min = nin[ni]->min;
-      max = nin[ni]->max;
+      min = range->min;
+      max = range->max;
     } else {
-      min = AIR_MIN(min, nin[ni]->min);
-      max = AIR_MAX(max, nin[ni]->max);
+      min = AIR_MIN(min, range->min);
+      max = AIR_MAX(max, range->max);
     }
+    range = nrrdRangeNix(range);
   }
   bins = AIR_MIN(1024, max - min + 1);
   ntmp->axis[0].min = min;
   ntmp->axis[0].max = max;
   for (ni=0; ni<ninLen; ni++) {
-    if (nrrdHisto(ntmp, nin[ni], NULL, bins, nrrdTypeFloat)) {
+    if (nrrdHisto(ntmp, nin[ni], NULL, NULL, bins, nrrdTypeFloat)) {
       sprintf(err, "%s: problem forming histogram of DWI %d", me, ni);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }

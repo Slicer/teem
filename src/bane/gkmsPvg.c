@@ -91,6 +91,7 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
   int i, pret, invert, sv, sg, smlI;
   float *pos, p, min, max, sml, newsml, newmin, newmax;
+  NrrdRange *range;
 
   hestOptAdd(&opt, "inv", NULL, airTypeInt, 0, 0, &invert, NULL,
 	     "Draw on white background, instead of black");
@@ -188,11 +189,12 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
       pos[i] = AIR_AFFINE(newsml, pos[i], max, 0.0, newmax);
     }
   }
-  nposB->min = newmin;
-  nposB->max = newmax;
+  range = nrrdRangeNew(newmin, newmax);
+  airMopAdd(mop, range, (airMopper)range, airMopAlways);
 
   if (nrrdFlip(nposA, nposB, 1) ||
-      nrrdApply1DIrregMap(npvg, nposA, ndon, NULL, nrrdTypeUChar, AIR_TRUE)) {
+      nrrdApply1DIrregMap(npvg, nposA, range, ndon,
+			  NULL, nrrdTypeUChar, AIR_TRUE)) {
     sprintf(err, "%s: trouble applying colormap", me);
     biffMove(BANE, err, NRRD); airMopError(mop); return 1;
   }

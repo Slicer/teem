@@ -504,7 +504,7 @@ typedef struct gagePerVolume_t {
 				 filling iv3 is up to iv3Fill in the gageKind
 				 struct.  Use of iv2 and iv1 is entirely up
 				 the kind's filter method. */
-  gage_t (*lup)(void *ptr, size_t I); 
+  gage_t (*lup)(const void *ptr, size_t I); 
                               /* nrrd{F,D}Lookup[] element, according to
 				 npad->type and gage_t */
   gage_t *ans;                /* array of length kind->totalAnsLen, to hold

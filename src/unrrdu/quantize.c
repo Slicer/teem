@@ -36,6 +36,7 @@ unrrdu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin, *nout;
   int bits, pret;
   double min, max;
+  NrrdRange *range;
   airArray *mop;
 
   hestOptAdd(&opt, "b", "bits", airTypeOther, 1, 1, &bits, NULL,
@@ -65,14 +66,14 @@ unrrdu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   /* If the input nrrd never specified min and max, then they'll be
-     AIR_NAN, and nrrdMinMaxCleverSet will find them.  If the input nrrd
-     had a notion of min and max, we should respect it, but not if the
-     user specified something else. */
-  if (AIR_EXISTS(min))
-    nin->min = min;
-  if (AIR_EXISTS(max))
-    nin->max = max;
-  if (nrrdQuantize(nout, nin, bits)) {
+     AIR_NAN, and nrrdRangeSafeSet will find them, and will do so
+     according to nrrdStateBlind8BitRange.  Thus, you may be
+     interested in using the NRRD_STATE_BLIND_8_BIT_RANGE
+     environment variable.  */
+  range = nrrdRangeNew(min, max);
+  airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
+  nrrdRangeSafeSet(range, nin, nrrdBlind8BitRangeState);
+  if (nrrdQuantize(nout, nin, range, bits)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error quantizing nrrd:\n%s", me, err);
     airMopError(mop);

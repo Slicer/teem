@@ -43,23 +43,27 @@ unrrdu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err;
   Nrrd *nin, *nmap, *nout;
   airArray *mop;
-  int mapax, typeOut, rescale, pret;
+  NrrdRange *range=NULL;
+  int typeOut, rescale, pret;
   double min, max;
 
   hestOptAdd(&opt, "m", "map", airTypeOther, 1, 1, &nmap, NULL,
 	     "regular map to map input nrrd through",
 	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "r", NULL, airTypeInt, 0, 0, &rescale, NULL,
-	     "rescale the values from the input nrrd range to the "
-	     "map domain, assuming it is explicitly defined");
+	     "rescale the input values from the input range to the "
+	     "map domain.  The map domain is either explicitly "
+	     "defined by the axis min,max along axis 0 or 1, or, it "
+	     "is implicitly defined as zero to one minus the length of "
+	     "that axis.");
   hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
-	     "Value to map to low end of map. Defaults to lowest value "
-	     "found in input nrrd.  Explicitly setting this (and the "
-	     "same for the max) is useful only with rescaling (\"-r\") "
-	     "or if map doesn't know its domain");
+	     "Low end of input range. Defaults to lowest value "
+	     "found in input nrrd.  Explicitly setting this is useful "
+	     "only with rescaling (\"-r\")");
   hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
-	     "Value to map to high end of map. Defaults to highest value "
-	     "found in input nrrd.");
+	     "High end of input range. Defaults to highest value "
+	     "found in input nrrd.  Explicitly setting this is useful "
+	     "only with rescaling (\"-r\")");
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &typeOut, "default",
 	     "specify the type (\"int\", \"float\", etc.) of the "
 	     "output nrrd. "
@@ -79,33 +83,15 @@ unrrdu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (AIR_EXISTS(min))
-    nin->min = min;
-  if (AIR_EXISTS(max))
-    nin->max = max;
-  mapax = nmap->dim - 1;
-  if (!(AIR_EXISTS(nmap->axis[mapax].min) &&
-	AIR_EXISTS(nmap->axis[mapax].max))) {
-    if (rescale) {
-      fprintf(stderr, "%s: can't rescale to non-existant rmap domain\n", me);
-      airMopError(mop);
-      return 1;
-    } else {
-      /* set the map domain to the data range */
-      nrrdMinMaxCleverSet(nin);
-      nmap->axis[mapax].min = nin->min;
-      nmap->axis[mapax].max = nin->max;
-      /* fprintf(stderr, "%s: setting rmap domain to (%g,%g)\n",
-	 me, nin->min, nin->max); */
-    }
-  }
   if (rescale) {
-    nrrdMinMaxCleverSet(nin);
+    range = nrrdRangeNew(min, max);
+    airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
+    nrrdRangeSafeSet(range, nin, nrrdBlind8BitRangeState);
   }
   if (nrrdTypeDefault == typeOut) {
     typeOut = nmap->type;
   }
-  if (nrrdApply1DRegMap(nout, nin, nmap, typeOut, rescale)) {
+  if (nrrdApply1DRegMap(nout, nin, range, nmap, typeOut, rescale)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble applying map:\n%s", me, err);
     airMopError(mop);

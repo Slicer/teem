@@ -35,6 +35,7 @@ unrrdu_gammaMain(int argc, char **argv, char *me, hestParm *hparm) {
   double min, max, gamma;
   airArray *mop;
   int pret;
+  NrrdRange *range;
 
   hestOptAdd(&opt, "g", "gamma", airTypeDouble, 1, 1, &gamma, NULL,
 	     "gamma > 1.0 brightens; gamma < 1.0 darkens. "
@@ -58,15 +59,10 @@ unrrdu_gammaMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  nin->min = min;
-  nin->max = max;
-  if (nrrdMinMaxCleverSet(nin)) {
-    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble determining range in nrrd:\n%s", me, err);
-    airMopError(mop);
-    return 1;
-  }
-  if (nrrdArithGamma(nout, nin, gamma, nin->min, nin->max)) {
+  range = nrrdRangeNew(min, max);
+  airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
+  nrrdRangeSafeSet(range, nin, nrrdBlind8BitRangeState);
+  if (nrrdArithGamma(nout, nin, range, gamma)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing gamma:\n%s", me, err);
     airMopError(mop);

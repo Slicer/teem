@@ -33,11 +33,13 @@ int
 unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
-  Nrrd **nin, *nout, *nwght;
+  Nrrd **nin;
+  Nrrd *nout, *nwght;
   int type, d, ninLen, *bin, binLen, clamp[NRRD_DIM_MAX], pret,
     minLen, maxLen;
   airArray *mop;
   double *min, *max;
+  NrrdRange **range;
 
   hestOptAdd(&opt, "b", "bins0 bins1", airTypeInt, 2, -1, &bin, NULL,
 	     "bins<i> is the number of bins to use along axis i (of joint "
@@ -79,6 +81,12 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
+  range = (NrrdRange **)calloc(ninLen, sizeof(NrrdRange*));
+  airMopAdd(mop, range, airFree, airMopAlways);
+  for (d=0; d<ninLen; d++) {
+    range[d] = nrrdRangeNew(AIR_NAN, AIR_NAN);
+    airMopAdd(mop, range[d], (airMopper)nrrdRangeNix, airMopAlways);
+  }
   if (2 != minLen || (AIR_EXISTS(min[0]) || AIR_EXISTS(min[1]))) {
     if (minLen != ninLen) {
       fprintf(stderr, "%s: # mins (%d) != # input nrrds (%d)\n", me,
@@ -86,9 +94,7 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
       airMopError(mop); return 1;
     }
     for (d=0; d<ninLen; d++) {
-      if (AIR_EXISTS(min[d])) {
-	nin[d]->min = min[d];
-      }
+      range[d]->min = min[d];
     }
   }
   if (2 != maxLen || (AIR_EXISTS(max[0]) || AIR_EXISTS(max[1]))) {
@@ -98,26 +104,17 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
       airMopError(mop); return 1;
     }
     for (d=0; d<ninLen; d++) {
-      if (AIR_EXISTS(max[d])) {
-	nin[d]->max = max[d];
-      }
+      range[d]->max = max[d];
     }
   }
   for (d=0; d<ninLen; d++) {
-    if (nrrdMinMaxCleverSet(nin[d])) {
-      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble determining range in nrrd %d:\n%s",
-	      me, d, err);
-      airMopError(mop);
-      return 1;
-    }
     clamp[d] = 0;
   }
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdHistoJoint(nout, nin, ninLen, nwght, bin, type, clamp)) {
+  if (nrrdHistoJoint(nout, nin, range, ninLen, nwght, bin, type, clamp)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing joint histogram:\n%s", me, err);
     airMopError(mop);

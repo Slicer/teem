@@ -326,7 +326,7 @@ limnSplineEvaluate(double *out, limnSpline *spline, double tt) {
 int
 limnSplineNrrdEvaluate(Nrrd *nout, limnSpline *spline, Nrrd *nin) {
   char me[]="limnSplineNrrdEvaluate", err[AIR_STRLEN_MED];
-  double tt, *out, (*lup)(void *, size_t);
+  double tt, *out, (*lup)(const void *, size_t);
   int odim, infoSize, size[NRRD_DIM_MAX+1];
   size_t I, M;
 

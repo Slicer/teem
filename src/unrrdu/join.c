@@ -33,7 +33,8 @@ int
 unrrdu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
-  Nrrd **nin, *nout;
+  Nrrd **nin;
+  Nrrd *nout;
   int ninLen, axis, incrDim, pret;
   airArray *mop;
 

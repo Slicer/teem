@@ -42,7 +42,7 @@ char *_unrrdu_makeInfoL =
  "or more filenames per line of the response file. ");
 
 int
-unrrduMakeRead(char *me, Nrrd *nrrd, NrrdIO *nio, char *fname,
+unrrduMakeRead(char *me, Nrrd *nrrd, NrrdIO *nio, const char *fname,
 	       int lineSkip, int byteSkip, int encoding) {
   char err[AIR_STRLEN_MED];
 
@@ -77,7 +77,8 @@ int
 unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, **dataFileNames, *content, encInfo[AIR_STRLEN_LARGE];
-  Nrrd *nrrd, **nslice;
+  Nrrd *nrrd;
+  Nrrd **nslice;
   int *size, nameLen, sizeLen, spacingLen, labelLen, headerOnly, pret,
     lineSkip, byteSkip, encoding, endian, slc, type, gotSpacing;
   double *spacing;
