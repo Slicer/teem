@@ -419,8 +419,8 @@ main(int argc, char *argv[]) {
   nvgh = nrrdNuke(nvgh);
   npad = nrrdNuke(npad);
   ctx = gageSclContextNix(ctx);
-  hopt = hestOptFree(hopt);
   hparm = hestParmFree(hparm);
+  hopt = hestOptFree(hopt);
 
   exit(0);
 }
