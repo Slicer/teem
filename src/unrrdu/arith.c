@@ -31,7 +31,7 @@ usage() {
 int
 main(int argc, char *argv[]) {
   FILE *fin, *fout;
-  char *err, *op;
+  char *err, *op, *in1Str, *in2Str, *outStr;
   Nrrd *nin = NULL, *nin1 = NULL, *nin2 = NULL, *nout = NULL;
   double op1, op2, result;
   NRRD_BIG_INT i, len;
@@ -42,7 +42,10 @@ main(int argc, char *argv[]) {
   if (!(argc == 5))
     usage();
 
+  in1Str = argv[1];
   op = argv[2];
+  in2Str = argv[3];
+  outStr = argv[4];
   if (!(op[0] == '+' ||
 	op[0] == '-' ||
 	op[0] == '*' ||
@@ -54,34 +57,31 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: didn't get one of the supported operations\n", me);
     usage();
   }
-  if (fin = fopen(argv[1], "r")) {
-    if (!(nin1 = nrrdNewRead(fin))) {
-      err = biffGet(NRRD);
-      fprintf(stderr, "%s: error reading first nrrd:%s\n", me, err);
+  if (fin = fopen(in1Str, "r")) {
+    fclose(fin);
+    if (!(nin1 = nrrdNewOpen(in1Str))) {
+      fprintf(stderr, "%s: error reading first nrrd:%s\n", me, biffGet(NRRD));
       exit(1);
     }
-    fclose(fin);
-    /* OKAY */
   }
   else {
-    if (!(1 == sscanf(argv[1], "%lg", &op1))) {
-      fprintf(stderr, "%s: can't open %s or parse it as float\n", me, argv[1]);
+    if (!(1 == sscanf(in1Str, "%lg", &op1))) {
+      fprintf(stderr, "%s: can't open %s or parse it as float\n", me, in1Str);
       exit(1);
     }
     printf("%s: op1 is constant %g\n", me, op1);
   }
 
-  if (fin = fopen(argv[3], "r")) {
-    if (!(nin2 = nrrdNewRead(fin))) {
-      err = biffGet(NRRD);
-      fprintf(stderr, "%s: error reading second nrrd:%s\n", me, err);
+  if (fin = fopen(in2Str, "r")) {
+    fclose(fin);
+    if (!(nin2 = nrrdNewOpen(in2Str))) {
+      fprintf(stderr, "%s: error reading second nrrd:%s\n", me, biffGet(NRRD));
       exit(1);
     }
-    fclose(fin);
   }
   else {
-    if (!(1 == sscanf(argv[3], "%lg", &op2))) {
-      fprintf(stderr, "%s: can't open %s or parse it as float\n", me, argv[3]);
+    if (!(1 == sscanf(in2Str, "%lg", &op2))) {
+      fprintf(stderr, "%s: can't open %s or parse it as float\n", me, in2Str);
       exit(1);
     }
     printf("%s: op2 is constant %g\n", me, op2);
@@ -115,7 +115,7 @@ main(int argc, char *argv[]) {
 
   look1 = nin1 ? nrrdDLookup[nin1->type] : NULL;
   look2 = nin2 ? nrrdDLookup[nin2->type] : NULL;
-  len = nin1 ? nin1->num : nin2->num;
+  len = nin->num;
   for (i=0; i<=len-1; i++) {
     if (look1) {
       op1 = look1(nin1->data, i);
@@ -149,27 +149,27 @@ main(int argc, char *argv[]) {
     nrrdDInsert[nin->type](nout->data, i, result);
   }
 
-  if (!(fout = fopen(argv[4], "w"))) {
-    fprintf(stderr, "%s: couldn't open %s for writing\n", me, argv[4]);
-    exit(1);
-  }
-  if (strlen(argv[4]) > 5 &&
+  if (strlen(outStr) > 5 &&
       nout->dim == 2 &&
       nout->type == nrrdTypeUChar &&
-      !strcmp(".pgm", argv[4] + strlen(argv[4]) - 4)) {
+      !strcmp(".pgm", outStr + strlen(outStr) - 4)) {
+    if (!(fout = fopen(outStr, "w"))) {
+      fprintf(stderr, "%s: couldn't open %s for writing\n", me, outStr);
+      exit(1);
+    }
     if (nrrdWritePNM(fout, nout)) {
       fprintf(stderr, "%s: trouble writing as PGM:\n%s\n", me, 
 	      biffGet(NRRD));
       exit(1);
     }
+    fclose(fout);
   }
   else {
-    if (nrrdWrite(fout, nout)) {
-      fprintf(stderr, "%s: trouble in nrrdWrite:\n%s\n", me, biffGet(NRRD));
+    if (nrrdSave(outStr, nout)) {
+      fprintf(stderr, "%s: trouble in nrrdSave:\n%s\n", me, biffGet(NRRD));
       exit(1);
     }
   }
-  fclose(fout);
 
   nrrdNuke(nin1);
   nrrdNuke(nin2);
