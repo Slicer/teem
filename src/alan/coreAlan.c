@@ -46,8 +46,8 @@ _alanCheck(alanContext *actx) {
     sprintf(err, "%s: texture sizes invalid", me);
     biffAdd(ALAN, err); return 1;
   }
-  if (0 == actx->speed) {
-    sprintf(err, "%s: speed == 0", me);
+  if (0 == actx->deltaT) {
+    sprintf(err, "%s: deltaT == 0", me);
     biffAdd(ALAN, err); return 1;
   }
 
@@ -157,7 +157,7 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
       parm[1 + 3*I] = parmInit[1 + 3*I];
       parm[2 + 3*I] = parmInit[2 + 3*I];
     } else {
-      parm[0 + 3*I] = actx->speed;
+      parm[0 + 3*I] = actx->deltaT;
       parm[1 + 3*I] = actx->alpha;
       parm[2 + 3*I] = actx->beta;
     }
@@ -169,7 +169,7 @@ int
 _alanPerIteration(alanContext *actx, int iter) {
   char me[]="_alanPerIteration", fname[AIR_STRLEN_MED];
   Nrrd *nslc, *nimg;
-
+  
   if (!(actx->saveInterval || actx->frameInterval)) {
     if (actx->verbose && !(iter % 100)) {
       fprintf(stderr, "%s: iter = %d, averageChange = %g\n",
@@ -185,7 +185,8 @@ _alanPerIteration(alanContext *actx, int iter) {
   if (actx->frameInterval && !(iter % actx->frameInterval)) {
     nrrdSlice(nslc=nrrdNew(), actx->_nlev[(iter+1) % 2], 0, 0);
     nrrdQuantize(nimg=nrrdNew(), nslc, NULL, 8);
-    sprintf(fname, "%06d.png", actx->constFilename ? 0 : iter);
+    sprintf(fname, (2 == actx->dim ? "%06d.png" : "%06d.nrrd"),
+	    actx->constFilename ? 0 : iter);
     nrrdSave(fname, nimg, NULL);
     fprintf(stderr, "%s: iter = %d, averageChange = %g, saved %s\n",
 	    me, iter, actx->averageChange, fname);
@@ -210,22 +211,38 @@ typedef struct {
 } alanTask;
 
 void *
-_alanTuring2DWorker(void *_task) {
+_alanTuringWorker(void *_task) {
   alan_t *tendata, *ten, Dxx, Dxy, Dyy, react,
-    *lev0, *lev1, *parm, speed, alpha, beta, A, B,
-    *v[9], lapA, lapB, deltaA, deltaB, diffA, diffB, change;
-  int iter, stop, startY, endY, idx, px, mx, py, my, sx, sy, x, y;
+    *lev0, *lev1, *parm, deltaT, alpha, beta, A, B,
+    *v[27], lapA, lapB, deltaA, deltaB, diffA, diffB, change;
+  int dim, iter, stop, startW, endW, idx,
+    px, mx, py, my, pz, mz,
+    startY, endY, startZ, endZ, sx, sy, sz, x, y, z;
   alanTask *task;
 
   task = (alanTask *)_task;
+  dim = task->actx->dim;
   sx = task->actx->size[0];
   sy = task->actx->size[1];
+  sz = (2 == dim ? 1 : task->actx->size[2]);
   parm = (alan_t*)(task->actx->nparm->data);
-  diffA = task->actx->diffA/(task->actx->H*task->actx->H);
-  diffB = task->actx->diffB/(task->actx->H*task->actx->H);
-  startY = task->idx*sy/task->actx->numThreads;
-  endY = (task->idx+1)*sy/task->actx->numThreads;
+  diffA = task->actx->diffA/pow(task->actx->H, dim);
+  diffB = task->actx->diffB/pow(task->actx->H, dim);
+  startW = task->idx*sy/task->actx->numThreads;
+  endW = (task->idx+1)*sy/task->actx->numThreads;
   tendata = task->actx->nten ? (alan_t *)task->actx->nten->data : NULL;
+
+  if (2 == dim) {
+    startZ = 0;
+    endZ = 1;
+    startY = startW;
+    endY = endW;
+  } else {
+    startZ = startW;
+    endZ = endW;
+    startY = 0;
+    endY = sy;
+  }
 
   for (iter = 0; 
        alanStopNot == task->actx->stop && iter < task->actx->maxIteration; 
@@ -239,79 +256,126 @@ _alanTuring2DWorker(void *_task) {
     lev1 = (alan_t*)(task->actx->_nlev[(iter+1) % 2]->data);
     stop = alanStopNot;
     change = 0;
-    for (y = startY; y < endY; y++) {
+    for (z = startZ; z < endZ; z++) {
       if (task->actx->wrap) {
-	py = AIR_MOD(y+1, sy);
-	my = AIR_MOD(y-1, sy);
+	pz = AIR_MOD(z+1, sz);
+	mz = AIR_MOD(z-1, sz);
       } else {
-	py = AIR_MIN(y+1, sy-1);
-	my = AIR_MAX(y-1, 0);
+	pz = AIR_MIN(z+1, sz-1);
+	mz = AIR_MAX(z-1, 0);
       }
-      for (x = 0; x < sx; x++) {
+      for (y = startY; y < endY; y++) {
 	if (task->actx->wrap) {
-	  px = AIR_MOD(x+1, sx);
-	  mx = AIR_MOD(x-1, sx);
+	  py = AIR_MOD(y+1, sy);
+	  my = AIR_MOD(y-1, sy);
 	} else {
-	  px = AIR_MIN(x+1, sx-1);
-	  mx = AIR_MAX(x-1, 0);
+	  py = AIR_MIN(y+1, sy-1);
+	  my = AIR_MAX(y-1, 0);
 	}
-	idx = x + sx*(y);
-	ten = tendata + 4*(x + sx*(y));
-	A = lev0[0 + 2*idx];
-	B = lev0[1 + 2*idx];
-	speed = parm[0 + 3*idx];
-	alpha = parm[1 + 3*idx];
-	beta = parm[2 + 3*idx];
-	v[1] = lev0 + 2*( x + sx*(my));
-	v[3] = lev0 + 2*(mx + sx*( y));
-	v[5] = lev0 + 2*(px + sx*( y));
-	v[7] = lev0 + 2*( x + sx*(py));
-	if (tendata) {
-	  /*
-	  **  0 1 2    Dxy/2          Dyy        -Dxy/2
-	  **  3 4 5     Dxx     -2*(Dxx + Dyy)     Dxx
-	  **  6 7 8   -Dxy/2          Dyy         Dxy/2
-	  */
-	  v[0] = lev0 + 2*(mx + sx*(my));
-	  v[2] = lev0 + 2*(px + sx*(my));
-	  v[6] = lev0 + 2*(mx + sx*(py));
-	  v[8] = lev0 + 2*(px + sx*(py));
-	  Dxx = ten[1];
-	  Dxy = ten[2];
-	  Dyy = ten[3];
-	  lapA = (Dxy*(v[0][0] + v[8][0] - v[2][0] - v[6][0])/2
-		  + Dxx*(v[3][0] + v[5][0]) + Dyy*(v[1][0] + v[7][0])
-		  - 2*(Dxx + Dyy)*A);
-	  lapB = (Dxy*(v[0][1] + v[8][1] - v[2][1] - v[6][1])/2
-		  + Dxx*(v[3][1] + v[5][1]) + Dyy*(v[1][1] + v[7][1])
-		  - 2*(Dxx + Dyy)*B);
-	  react = ten[0];
-	} else {
-	  lapA = v[1][0] + v[3][0] + v[5][0] + v[7][0] - 4*A;
-	  lapB = v[1][1] + v[3][1] + v[5][1] + v[7][1] - 4*B;
-	  react = 1;
+	for (x = 0; x < sx; x++) {
+	  if (task->actx->wrap) {
+	    px = AIR_MOD(x+1, sx);
+	    mx = AIR_MOD(x-1, sx);
+	  } else {
+	    px = AIR_MIN(x+1, sx-1);
+	    mx = AIR_MAX(x-1, 0);
+	  }
+	  idx = x + sx*(y + sy*z);
+	  A = lev0[0 + 2*idx];
+	  B = lev0[1 + 2*idx];
+	  deltaT = parm[0 + 3*idx];
+	  alpha = parm[1 + 3*idx];
+	  beta = parm[2 + 3*idx];
+	  if (2 == dim) {
+	    /*
+	    **  0 1 2 ----> X
+	    **  3 4 5
+	    **  6 7 8
+            **  |
+	    **  v Y
+	    */
+	    v[1] = lev0 + 2*( x + sx*(my));
+	    v[3] = lev0 + 2*(mx + sx*( y));
+	    v[5] = lev0 + 2*(px + sx*( y));
+	    v[7] = lev0 + 2*( x + sx*(py));
+	    if (tendata) {
+	      ten = tendata + 4*(x + sx*(y));
+	      /*
+	      **  0 1 2    Dxy/2          Dyy        -Dxy/2
+	      **  3 4 5     Dxx     -2*(Dxx + Dyy)     Dxx
+	      **  6 7 8   -Dxy/2          Dyy         Dxy/2
+	      */
+	      v[0] = lev0 + 2*(mx + sx*(my));
+	      v[2] = lev0 + 2*(px + sx*(my));
+	      v[6] = lev0 + 2*(mx + sx*(py));
+	      v[8] = lev0 + 2*(px + sx*(py));
+	      Dxx = ten[1];
+	      Dxy = ten[2];
+	      Dyy = ten[3];
+	      lapA = (Dxy*(v[0][0] + v[8][0] - v[2][0] - v[6][0])/2
+		      + Dxx*(v[3][0] + v[5][0]) + Dyy*(v[1][0] + v[7][0])
+		      - 2*(Dxx + Dyy)*A);
+	      lapB = (Dxy*(v[0][1] + v[8][1] - v[2][1] - v[6][1])/2
+		      + Dxx*(v[3][1] + v[5][1]) + Dyy*(v[1][1] + v[7][1])
+		      - 2*(Dxx + Dyy)*B);
+	      react = ten[0];
+	    } else {
+	      lapA = v[1][0] + v[3][0] + v[5][0] + v[7][0] - 4*A;
+	      lapB = v[1][1] + v[3][1] + v[5][1] + v[7][1] - 4*B;
+	      react = 1;
+	    }
+	  } else {
+	    /* 3 == dim */
+	    /*
+	    **          0   1   2   ---- X
+	    **        3   4   5
+	    **      6   7   8
+	    **    /
+	    **  /       9  10  11
+	    ** Y     12  13  14
+	    **     15  16  17
+	    **
+	    **         18  19  20
+	    **       21  22  23
+	    **     24  25  26
+	    **         |
+	    **         |
+	    **         Z
+	    */
+	    v[ 4] = lev0 + 2*( x + sx*( y + sy*(mz)));
+	    v[10] = lev0 + 2*( x + sx*(my + sy*( z)));
+	    v[12] = lev0 + 2*(mx + sx*( y + sy*( z)));
+	    v[14] = lev0 + 2*(px + sx*( y + sy*( z)));
+	    v[16] = lev0 + 2*( x + sx*(py + sy*( z)));
+	    v[22] = lev0 + 2*( x + sx*( y + sy*(pz)));
+	    lapA = (v[ 4][0] + v[10][0] + v[12][0]
+		    + v[14][0] + v[16][0] + v[22][0] - 6*A);
+	    lapB = (v[ 4][1] + v[10][1] + v[12][1]
+		    + v[14][1] + v[16][1] + v[22][1] - 6*B);
+	    react = 1;
+	  }
+	  
+	  deltaA = deltaT*(react*task->actx->K*(alpha - A*B) + diffA*lapA);
+	  if (AIR_ABS(deltaA) > task->actx->maxPixelChange) {
+	    stop = alanStopDiverged;
+	  }
+	  change += AIR_ABS(deltaA);
+	  deltaB = deltaT*(react*task->actx->K*(A*B - B - beta) + diffB*lapB);
+	  if (!( AIR_EXISTS(deltaA) && AIR_EXISTS(deltaB) )) {
+	    stop = alanStopNonExist;
+	  }
+	  
+	  A += deltaA;
+	  B = AIR_MAX(0, B + deltaB);
+	  lev1[0 + 2*idx] = A;
+	  lev1[1 + 2*idx] = B; 
 	}
-	
-	deltaA = speed*(react*task->actx->K*(alpha - A*B) + diffA*lapA);
-	if (AIR_ABS(deltaA) > task->actx->maxPixelChange) {
-	  stop = alanStopDiverged;
-	}
-	change += AIR_ABS(deltaA);
-	deltaB = speed*(react*task->actx->K*(A*B - B - beta) + diffB*lapB);
-	if (!( AIR_EXISTS(deltaA) && AIR_EXISTS(deltaB) )) {
-	  stop = alanStopNonExist;
-	}
-	
-	A += deltaA;
-	B = AIR_MAX(0, B + deltaB);
-	lev1[0 + 2*idx] = A;
-	lev1[1 + 2*idx] = B; 
       }
     }
-
+    
     /* add change to global sum in a threadsafe way */
     airThreadMutexLock(task->actx->changeMutex);
-    task->actx->averageChange += change/(sx*sy);
+    task->actx->averageChange += change/(sx*sy*sz);
     task->actx->changeCount += 1;
     if (task->actx->changeCount == task->actx->numThreads) {
       /* I must be the last thread to reach this point; all 
@@ -377,7 +441,7 @@ alanRun(alanContext *actx) {
     task[tid].actx = actx;
     task[tid].idx = tid;
     task[tid].thread = airThreadNew();
-    airThreadStart(task[tid].thread, _alanTuring2DWorker,
+    airThreadStart(task[tid].thread, _alanTuringWorker,
 		   (void *)&(task[tid]));
   }
   for (tid=0; tid<actx->numThreads; tid++) {

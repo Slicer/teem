@@ -43,7 +43,7 @@ alanContextInit(alanContext *actx) {
     actx->H = 1.25;
     actx->alpha = 16;
     actx->beta = 12;
-    actx->speed = 1.0;
+    actx->deltaT = 1.0;
     actx->initA = actx->initB = 0;
     actx->diffA = actx->diffB = 0;
     actx->perIteration = NULL;
@@ -256,8 +256,8 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
     parmI = parm;
     actx->constFilename = parmI;
     break;
-  case alanParmSpeed:
-    actx->speed = parm;
+  case alanParmDeltaT:
+    actx->deltaT = parm;
     break;
   case alanParmDiffA:
     actx->diffA = parm;

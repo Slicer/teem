@@ -51,7 +51,7 @@ enum {
   alanParmSaveInterval,
   alanParmMaxIteration,
   alanParmRandRange,
-  alanParmSpeed,
+  alanParmDeltaT,
   alanParmDiffA,
   alanParmDiffB,
   alanParmK,
@@ -112,7 +112,7 @@ typedef struct alanContext_t {
 			 any single pixels), assume unstable divergence if 
 			 this is exceeded */
     alpha, beta,      /* variables for turing */
-    speed,            /* euler integration step size */
+    deltaT,           /* euler integration step size */
     initA, initB,     /* initial (constant) values for each morphogen */
     diffA, diffB,     /* base diffusion rates for each morphogen */
     randRange;        /* amplitude of noise to destabalize Turing */
