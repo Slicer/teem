@@ -30,7 +30,7 @@ char *_unrrdu_cmedianInfoL =
  "The method is cheap because it does the median "
  "or mode based on a histogram, which enforces a quantization to the number "
  "of bins in the histogram, which probably means a loss of precision for "
- "anything except 8-bit data.  Also, 8-bit integer values can be recovered "
+ "anything except 8-bit data.  Also, integral values can be recovered "
  "exactly only when the number of bins is exactly min-max+1 (as reported "
  "by \"unu minmax\"). ");
 
