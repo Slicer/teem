@@ -61,6 +61,9 @@ gageItemEntry
 _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
   /* enum value        len,deriv,  prereqs,                                             parent item, index*/
   {gageVecVector,        3,  0,  {-1, -1, -1, -1, -1},                                           -1,  -1},
+  {gageVecVector0,       1,  0,  {gageVecVector, -1, -1, -1, -1},                     gageVecVector,   0},
+  {gageVecVector1,       1,  0,  {gageVecVector, -1, -1, -1, -1},                     gageVecVector,   1},
+  {gageVecVector2,       1,  0,  {gageVecVector, -1, -1, -1, -1},                     gageVecVector,   2},
   {gageVecLength,        1,  0,  {gageVecVector, -1, -1, -1, -1},                                -1,  -1},
   {gageVecNormalized,    3,  0,  {gageVecVector, gageVecLength, -1, -1, -1},                     -1,  -1},
   {gageVecJacobian,      9,  1,  {-1, -1, -1, -1, -1},                                           -1,  -1},
@@ -149,7 +152,7 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
   double symm[9], asym[9], tran[9], eval[3], tmpVec[3], norm;
   gage_t *vecAns, *normAns, *jacAns, *curlAns, *hesAns, *curlGradAns, 
          *helGradAns, *dirHelDirAns, *curlnormgradAns;
-  int asw;
+  /* int asw; */
 
   vecAns          = pvl->directAnswer[gageVecVector];
   normAns         = pvl->directAnswer[gageVecNormalized];
@@ -168,6 +171,10 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
       ell_3v_PRINT(stderr, vecAns);
     }
   }
+  /* done if doV 
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecVector{0,1,2})) {
+  }
+  */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecLength)) {
     pvl->directAnswer[gageVecLength][0] = ELL_3V_LEN(vecAns);
   }
@@ -231,7 +238,7 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
       /* sum of both */
       ELL_3M_ADD2(symm, symm, tmpMat);
       /* get eigenvalues in sorted order */
-      asw = ell_3m_eigenvalues_d(eval, symm, AIR_TRUE);
+      /* asw = */ ell_3m_eigenvalues_d(eval, symm, AIR_TRUE);
       pvl->directAnswer[gageVecLambda2][0] = eval[1];
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecImaginaryPart)) {
@@ -382,6 +389,9 @@ char
 _gageVecStr[][AIR_STRLEN_SMALL] = {
   "(unknown gageVec)",
   "vector",
+  "vector0",
+  "vector1",
+  "vector2",
   "length",
   "normalized",
   "Jacobian",
@@ -412,6 +422,9 @@ char
 _gageVecDesc[][AIR_STRLEN_MED] = {
   "unknown gageVec query",
   "component-wise-interpolated vector",
+  "vector[0]",
+  "vector[1]",
+  "vector[2]",
   "length of vector",
   "normalized vector",
   "3x3 Jacobian",
@@ -442,6 +455,9 @@ int
 _gageVecVal[] = {
   gageVecUnknown,
   gageVecVector,
+  gageVecVector0,
+  gageVecVector1,
+  gageVecVector2,
   gageVecLength,
   gageVecNormalized,
   gageVecJacobian,
@@ -470,6 +486,9 @@ _gageVecVal[] = {
 };
 
 #define GV_V   gageVecVector
+#define GV_V0  gageVecVector0
+#define GV_V1  gageVecVector1
+#define GV_V2  gageVecVector2
 #define GV_L   gageVecLength
 #define GV_N   gageVecNormalized
 #define GV_J   gageVecJacobian
@@ -499,6 +518,9 @@ _gageVecVal[] = {
 char
 _gageVecStrEqv[][AIR_STRLEN_SMALL] = {
   "v", "vector", "vec",
+  "v0", "vector0", "vec0",
+  "v1", "vector1", "vec1",
+  "v2", "vector2", "vec2",
   "l", "length", "len",
   "n", "normalized", "normalized vector",
   "jacobian", "jac", "j",
@@ -530,6 +552,9 @@ _gageVecStrEqv[][AIR_STRLEN_SMALL] = {
 int
 _gageVecValEqv[] = {
   GV_V, GV_V, GV_V,
+  GV_V0, GV_V0, GV_V0,
+  GV_V1, GV_V1, GV_V1,
+  GV_V2, GV_V2, GV_V2,
   GV_L, GV_L, GV_L,
   GV_N, GV_N, GV_N,
   GV_J, GV_J, GV_J,
