@@ -275,11 +275,10 @@ tenEstimate(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *_ngrad,
 void
 tenSimulateOne(float *dwi, float B0, float *ten,
 	       double *wmat, int DD, float b) {
-  double logB0, v[_TEN_MAX_DWI_NUM];
+  double v[_TEN_MAX_DWI_NUM];
   int i, j;
   
   dwi[0] = B0;
-  logB0 = log(AIR_MAX(B0, 1));
   if (tenVerbose) {
     fprintf(stderr, "ten = %g,%g,%g  %g,%g  %g\n", 
 	    ten[1], ten[2], ten[3], ten[4], ten[5], ten[6]);
@@ -289,7 +288,7 @@ tenSimulateOne(float *dwi, float B0, float *ten,
     for (j=0; j<6; j++) {
       v[i] += wmat[j + 6*i]*ten[j+1];
     }
-    dwi[i+1] = exp(logB0 - b*v[i]);
+    dwi[i+1] = AIR_MAX(B0, 1)*exp(-b*v[i]);
     if (tenVerbose) {
       fprintf(stderr, "v[%d] = %g --> dwi = %g\n", i, v[i], dwi[i+1]);
     }
