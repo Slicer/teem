@@ -50,6 +50,7 @@ $(L).more.cflags := $(call more.cflags,$(L))
 $(L).ext.ipath := $(call ext.ipath,$($(L).meneed))
 $(L).ext.lpath := $(call ext.lpath,$($(L).meneed))
 $(L).ext.link := $(call ext.link,$($(L).meneed))
+$(L).ext.Dflag := $(call ext.Dflag,$($(L).meneed))
 
 ## In a rule, the contexts of the target and the prerequisite are
 ## immediate, the contexts of the commands are deferred; there is no
@@ -142,8 +143,8 @@ $(word 1,$($(_L).OBJS))),$(call banner,$(_L)))
 ##
 $($(L).objs.dev) : $(ODEST)/%.o : $(TEEM_SRC)/$(L)/%.c
 	@$(call maybebanner.$(_L),$<)
-	$(P) $(CC) $(CFLAGS) $($(_L).more.cflags) $($(_L).ext.ipath) \
-	  $(IPATH) -c $< -o $@
+	$(P) $(CC) $(CFLAGS) $($(_L).more.cflags) \
+	  $($(_L).ext.Dflag) $($(_L).ext.ipath) $(IPATH) -c $< -o $@
 
 ## How to make development tests.  It doesn't actually matter in this
 ## case where the source files are, we just put the executable in the

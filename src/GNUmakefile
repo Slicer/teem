@@ -291,6 +291,8 @@ ext.lpath = $(strip $(foreach ext,$(ext.wants),$(foreach lib,$(1),\
 $(if $(filter $(ext),$($(lib).EXT)),$(TEEM_$(ext).LPATH)))))
 ext.link = $(strip $(foreach ext,$(ext.wants),$(foreach lib,$(1),\
 $(if $(filter $(ext),$($(lib).EXT)),$($(ext).LINK)))))
+ext.Dflag = $(strip $(foreach ext,$(ext.wants),$(foreach lib,$(1),\
+$(if $(filter $(ext),$($(lib).EXT)),-DTEEM_$(ext)))))
 
 #######################################
 ## Read in the makefiles for all the libraries, and the bins.  In
