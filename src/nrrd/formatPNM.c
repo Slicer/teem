@@ -194,7 +194,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
         goto plain;
       }
       if (!nio->seen[ret] 
-          && nrrdFieldInfoParse[ret](nrrd, nio, AIR_TRUE)) {
+          && nrrdFieldInfoParse[ret](file, nrrd, nio, AIR_TRUE)) {
         perr = biffGetDone(NRRD);
         if (nrrdStateVerboseIO) {
           fprintf(stderr, "(%s: unparsable info for field \"%s\" "
@@ -258,9 +258,9 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   } else {
     nrrdAxisInfoSet(nrrd, nrrdAxisInfoSize, sx, sy);
   }
-  nio->dataFile = file;
   if (!nio->skipData) {
-    if (nio->encoding->read(nrrd, nio)) {
+    if (nio->encoding->read(file, nrrd->data, nrrdElementNumber(nrrd),
+                            nrrd, nio)) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
@@ -313,9 +313,9 @@ _nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   }
   fprintf(file, "255\n");
 
-  nio->dataFile = file;
   if (!nio->skipData) {
-    if (nio->encoding->write(nrrd, nio)) {
+    if (nio->encoding->write(file, nrrd->data, nrrdElementNumber(nrrd),
+                             nrrd, nio)) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
