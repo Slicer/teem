@@ -17,7 +17,7 @@
 
 
 #include <stdio.h>
-#include <ell.h>
+#include "../ell.h"
 
 char *me;
 
