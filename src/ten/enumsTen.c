@@ -91,6 +91,8 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "evec2",
 
   "tensor grad",
+  "tensor grad mag",
+  "tensor grad mag mag",
 
   "trace grad vec",
   "trace grad mag",
@@ -156,6 +158,8 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "eigenvector 1",
   "eigenvector 2",
   "tensor gradients",
+  "tensor gradients magnitudes",
+  "tensor gradients magnitude magnitudes",
   "trace grad vec",
   "trace grad mag",
   "trace normal",
@@ -210,6 +214,8 @@ _tenGageVal[] = {
   tenGageEvec1,         /* "evec1", medium eigenvectors of tensor: GT[3] */
   tenGageEvec2,         /* "evec2", minor eigenvectors of tensor: GT[3] */
   tenGageTensorGrad,    /* "tg", all tensor component gradients: GT[21] */
+  tenGageTensorGradMag,    /* "tgm" */
+  tenGageTensorGradMagMag,    /* "tgmm" */
   tenGageTraceGradVec,  /* "trgv": gradient (vector) of trace: GT[3] */
   tenGageTraceGradMag,  /* "trgm": gradient magnitude of trace: GT[1] */
   tenGageTraceNormal,   /* "trn": normal of trace: GT[3] */
@@ -263,6 +269,8 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "evec1",
   "evec2",
   "tg", "tensor grad",
+  "tgm", "tensor grad mag",
+  "tgmm", "tensor grad mag mag",
   "trgv", "tracegv", "trace grad vec",
   "trgm", "tracegm", "trace grad mag",
   "trn", "tracen", "trace normal",
@@ -317,6 +325,8 @@ _tenGageValEqv[] = {
   tenGageEvec1,
   tenGageEvec2,
   tenGageTensorGrad, tenGageTensorGrad,
+  tenGageTensorGradMag, tenGageTensorGradMag,
+  tenGageTensorGradMagMag, tenGageTensorGradMagMag,
   tenGageTraceGradVec, tenGageTraceGradVec, tenGageTraceGradVec,
   tenGageTraceGradMag, tenGageTraceGradMag, tenGageTraceGradMag,
   tenGageTraceNormal, tenGageTraceNormal, tenGageTraceNormal,

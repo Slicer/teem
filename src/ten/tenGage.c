@@ -45,6 +45,8 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageEvec2,               3,  0,  {tenGageEvec, -1, -1, -1, -1},                                                tenGageEvec,   6},
 
   {tenGageTensorGrad,         21,  1,  {-1, -1, -1, -1, -1},                                                                  -1,  -1},
+  {tenGageTensorGradMag,       3,  1,  {tenGageTensorGrad, -1, -1, -1, -1},                                                   -1,  -1},
+  {tenGageTensorGradMagMag,    1,  1,  {tenGageTensorGradMag, -1, -1, -1, -1},                                                -1,  -1},
 
   {tenGageTraceGradVec,        3,  1,  {tenGageTensor, tenGageTensorGrad, -1, -1, -1},                                        -1,  -1},
   {tenGageTraceGradMag,        1,  1,  {tenGageTraceGradVec, -1, -1, -1, -1},                                                 -1,  -1},
@@ -78,8 +80,6 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageThetaGradMag,        1,  1,  {tenGageThetaGradVec, -1, -1, -1, -1},                                                 -1,  -1},
   {tenGageThetaNormal,         3,  1,  {tenGageThetaGradVec, tenGageThetaGradMag, -1, -1, -1},                                -1,  -1},
   
-  /* the ...Mags item doesn't actually require all of the previous item,
-     but its the easiest way to implement it for now */
   {tenGageInvarGrads,          9,  1,  {tenGageTensor, tenGageTensorGrad, -1, -1, -1},                                        -1,  -1},
   {tenGageInvarGradMags,       3,  1,  {tenGageInvarGrads, -1, -1, -1, -1},                                                   -1,  -1},
   {tenGageRotTans,             9,  1,  {tenGageTensor, tenGageTensorGrad, tenGageEval, tenGageEvec, -1},                      -1,  -1},
@@ -120,7 +120,10 @@ _tenGageFilter (gageContext *ctx, gagePerVolume *pvl) {
 		       fw00, fw11, fw22, \
                        tensor + J, tgrad + J*3, NULL, \
 		       pvl->needD[0], pvl->needD[1], AIR_FALSE)
-    DOIT_2(0); DOIT_2(1); DOIT_2(2); DOIT_2(3);
+    /* HEY: want trilinear interpolation of confidence */
+    tensor[0] = (pvl->iv3[0] + pvl->iv3[1] + pvl->iv3[2] + pvl->iv3[3]
+		 + pvl->iv3[4] + pvl->iv3[5] + pvl->iv3[6] + pvl->iv3[7])/8;
+    DOIT_2(1); DOIT_2(2); DOIT_2(3);
     DOIT_2(4); DOIT_2(5); DOIT_2(6); 
     break;
   case 4:
@@ -129,7 +132,10 @@ _tenGageFilter (gageContext *ctx, gagePerVolume *pvl) {
 		       fw00, fw11, fw22, \
                        tensor + J, tgrad + J*3, NULL, \
 		       pvl->needD[0], pvl->needD[1], AIR_FALSE)
-    DOIT_4(0); DOIT_4(1); DOIT_4(2); DOIT_4(3);
+    /* HEY: want trilinear interpolation of confidence */
+    tensor[0] = (pvl->iv3[21] + pvl->iv3[22] + pvl->iv3[25] + pvl->iv3[26]
+		 + pvl->iv3[37] + pvl->iv3[38] + pvl->iv3[41] + pvl->iv3[42])/8;
+    DOIT_4(1); DOIT_4(2); DOIT_4(3);
     DOIT_4(4); DOIT_4(5); DOIT_4(6); 
     break;
   default:
@@ -140,6 +146,7 @@ _tenGageFilter (gageContext *ctx, gagePerVolume *pvl) {
 		       fw00, fw11, fw22, \
                        tensor + J, tgrad + J*3, NULL, \
 		       pvl->needD[0], pvl->needD[1], AIR_FALSE)
+    /* HEY: this sucks: want trilinear interpolation of confidence */
     DOIT_N(0); DOIT_N(1); DOIT_N(2); DOIT_N(3);
     DOIT_N(4); DOIT_N(5); DOIT_N(6); 
     break;
@@ -257,6 +264,15 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
 	      gradDtA[2], gradDtB[2], gradDtC[2],
 	      gradDtD[2], gradDtE[2],
 	      gradDtF[2]);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorGradMag)) {
+    vecTmp = pvl->directAnswer[tenGageTensorGradMag];
+    vecTmp[0] = sqrt(TEN_T_DOT(gradDdXYZ + 0*7, gradDdXYZ + 0*7));
+    vecTmp[1] = sqrt(TEN_T_DOT(gradDdXYZ + 1*7, gradDdXYZ + 1*7));
+    vecTmp[2] = sqrt(TEN_T_DOT(gradDdXYZ + 2*7, gradDdXYZ + 2*7));
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorGradMag)) {
+    pvl->directAnswer[tenGageTensorGradMagMag][0] = ELL_3V_LEN(vecTmp);
   }
 
   /* --- Trace --- */
@@ -395,8 +411,7 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
 		 1.0/(epsilon + magTmp), vecTmp);
   }
   /* --- Invariant gradients + rotation tangents --- */
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageInvarGrads)
-      || GAGE_QUERY_ITEM_TEST(pvl->query, tenGageInvarGradMags)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageInvarGrads)) {
     double mu1Grad[7], mu2Grad[7], mu2Norm,
       skwGrad[7], skwNorm, copyT[7];
     
@@ -417,9 +432,11 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     vecTmp[1] = TEN_T_DOT(skwGrad, gradDdXYZ + 1*7);
     vecTmp[2] = TEN_T_DOT(skwGrad, gradDdXYZ + 2*7);
     ELL_3V_COPY(pvl->directAnswer[tenGageInvarGrads] + 2*3, vecTmp);
-    pvl->directAnswer[tenGageInvarGradMags][0] = 1;
-    pvl->directAnswer[tenGageInvarGradMags][1] = mu2Norm;
-    pvl->directAnswer[tenGageInvarGradMags][2] = skwNorm;
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageInvarGradMags)) {
+    pvl->directAnswer[tenGageInvarGradMags][0] = ELL_3V_LEN(pvl->directAnswer[tenGageInvarGrads] + 0*3);
+    pvl->directAnswer[tenGageInvarGradMags][1] = ELL_3V_LEN(pvl->directAnswer[tenGageInvarGrads] + 1*3);
+    pvl->directAnswer[tenGageInvarGradMags][2] = ELL_3V_LEN(pvl->directAnswer[tenGageInvarGrads] + 2*3);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEvalGrads)) {
     double matOut[9], tenOut[9];
@@ -434,18 +451,13 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
       ELL_3V_COPY(pvl->directAnswer[tenGageEvalGrads] + evi*3, vecTmp);
     }
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRotTans)
-      || GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRotTanMags)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRotTans)) {
     double phi1[7], phi2[7], phi3[7], 
-      phi1Mag, phi2Mag, phi3Mag,
       eval[3], evec[9];
 
     ELL_3V_COPY(eval, evalAns);
     ELL_9V_COPY(evec, evecAns);
-    tenRotationTangents_d(phi1, &phi1Mag,
-			  phi2, &phi2Mag,
-			  phi3, &phi3Mag,
-			  eval, evec);
+    tenRotationTangents_d(phi1, phi2, phi3, evec);
     vecTmp[0] = TEN_T_DOT(phi1, gradDdXYZ + 0*7);
     vecTmp[1] = TEN_T_DOT(phi1, gradDdXYZ + 1*7);
     vecTmp[2] = TEN_T_DOT(phi1, gradDdXYZ + 2*7);
@@ -458,9 +470,11 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     vecTmp[1] = TEN_T_DOT(phi3, gradDdXYZ + 1*7);
     vecTmp[2] = TEN_T_DOT(phi3, gradDdXYZ + 2*7);
     ELL_3V_COPY(pvl->directAnswer[tenGageRotTans] + 2*3, vecTmp);
-    pvl->directAnswer[tenGageRotTanMags][0] = phi1Mag;
-    pvl->directAnswer[tenGageRotTanMags][1] = phi2Mag;
-    pvl->directAnswer[tenGageRotTanMags][2] = phi3Mag;
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRotTanMags)) {
+    pvl->directAnswer[tenGageRotTanMags][0] = ELL_3V_LEN(pvl->directAnswer[tenGageRotTans] + 0*3);
+    pvl->directAnswer[tenGageRotTanMags][1] = ELL_3V_LEN(pvl->directAnswer[tenGageRotTans] + 1*3);
+    pvl->directAnswer[tenGageRotTanMags][2] = ELL_3V_LEN(pvl->directAnswer[tenGageRotTans] + 2*3);
   }
   /* --- Aniso --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageAniso)) {

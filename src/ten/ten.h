@@ -183,53 +183,56 @@ enum {
 
   tenGageTensorGrad,    /* 18: "tg", all tensor component gradients, starting
 			       with the confidence gradient: GT[21] */
+  tenGageTensorGradMag, /* 19: "tgm", actually a 3-vector of tensor 
+			       gradient norms, one for each axis: GT[3] */
+  tenGageTensorGradMagMag, /* 20: "tgmm", single scalar magnitude: GT[1] */
 
-  tenGageTraceGradVec,  /* 19: "trgv": gradient (vector) of trace: GT[3] */
-  tenGageTraceGradMag,  /* 20: "trgm": gradient magnitude of trace: GT[1] */
-  tenGageTraceNormal,   /* 21: "trn": normal of trace: GT[3] */
+  tenGageTraceGradVec,  /* 21: "trgv": gradient (vector) of trace: GT[3] */
+  tenGageTraceGradMag,  /* 22: "trgm": gradient magnitude of trace: GT[1] */
+  tenGageTraceNormal,   /* 23: "trn": normal of trace: GT[3] */
   
-  tenGageBGradVec,      /* 22: "bgv", gradient (vector) of B: GT[3] */
-  tenGageBGradMag,      /* 23: "bgm", gradient magnitude of B: GT[1] */
-  tenGageBNormal,       /* 24: "bn", normal of B: GT[3] */
+  tenGageBGradVec,      /* 24: "bgv", gradient (vector) of B: GT[3] */
+  tenGageBGradMag,      /* 25: "bgm", gradient magnitude of B: GT[1] */
+  tenGageBNormal,       /* 26: "bn", normal of B: GT[3] */
 
-  tenGageDetGradVec,    /* 25: "detgv", gradient (vector) of Det: GT[3] */
-  tenGageDetGradMag,    /* 26: "detgm", gradient magnitude of Det: GT[1] */
-  tenGageDetNormal,     /* 27: "detn", normal of Det: GT[3] */
+  tenGageDetGradVec,    /* 27: "detgv", gradient (vector) of Det: GT[3] */
+  tenGageDetGradMag,    /* 28: "detgm", gradient magnitude of Det: GT[1] */
+  tenGageDetNormal,     /* 29: "detn", normal of Det: GT[3] */
 
-  tenGageSGradVec,      /* 28: "sgv", gradient (vector) of S: GT[3] */
-  tenGageSGradMag,      /* 29: "sgm", gradient magnitude of S: GT[1] */
-  tenGageSNormal,       /* 30: "sn", normal of S: GT[3] */
+  tenGageSGradVec,      /* 30: "sgv", gradient (vector) of S: GT[3] */
+  tenGageSGradMag,      /* 31: "sgm", gradient magnitude of S: GT[1] */
+  tenGageSNormal,       /* 32: "sn", normal of S: GT[3] */
 
-  tenGageQGradVec,      /* 31: "qgv", gradient vector of Q: GT[3] */
-  tenGageQGradMag,      /* 32: "qgm", gradient magnitude of Q: GT[1] */
-  tenGageQNormal,       /* 33: "qn", normalized gradient of Q: GT[3] */
+  tenGageQGradVec,      /* 33: "qgv", gradient vector of Q: GT[3] */
+  tenGageQGradMag,      /* 34: "qgm", gradient magnitude of Q: GT[1] */
+  tenGageQNormal,       /* 35: "qn", normalized gradient of Q: GT[3] */
 
-  tenGageFAGradVec,     /* 34: "fagv", gradient vector of FA: GT[3] */
-  tenGageFAGradMag,     /* 35: "fagm", gradient magnitude of FA: GT[1] */
-  tenGageFANormal,      /* 36: "fan", normalized gradient of FA: GT[3] */
+  tenGageFAGradVec,     /* 36: "fagv", gradient vector of FA: GT[3] */
+  tenGageFAGradMag,     /* 37: "fagm", gradient magnitude of FA: GT[1] */
+  tenGageFANormal,      /* 38: "fan", normalized gradient of FA: GT[3] */
 
-  tenGageRGradVec,      /* 37: "rgv", gradient vector of Q: GT[3] */
-  tenGageRGradMag,      /* 38: "rgm", gradient magnitude of Q: GT[1] */
-  tenGageRNormal,       /* 39: "rn", normalized gradient of Q: GT[3] */
+  tenGageRGradVec,      /* 39: "rgv", gradient vector of Q: GT[3] */
+  tenGageRGradMag,      /* 40: "rgm", gradient magnitude of Q: GT[1] */
+  tenGageRNormal,       /* 41: "rn", normalized gradient of Q: GT[3] */
 
-  tenGageThetaGradVec,  /* 40: "thgv", gradient vector of Th: GT[3] */
-  tenGageThetaGradMag,  /* 41: "thgm", gradient magnitude of Th: GT[1] */
-  tenGageThetaNormal,   /* 42: "thn", normalized gradient of Th: GT[3] */
+  tenGageThetaGradVec,  /* 42: "thgv", gradient vector of Th: GT[3] */
+  tenGageThetaGradMag,  /* 43: "thgm", gradient magnitude of Th: GT[1] */
+  tenGageThetaNormal,   /* 44: "thn", normalized gradient of Th: GT[3] */
 
-  tenGageInvarGrads,    /* 43, "igs", projections of tensor gradient onto the
+  tenGageInvarGrads,    /* 45, "igs", projections of tensor gradient onto the
 			       normalized shape gradients: eigenvalue 
 			       mean, variance, skew, in that order: GT[9]  */
-  tenGageInvarGradMags, /* 44: "igms", what the tensor-valued shape gradients
-			       where to be normalized by: GT[3] */
-  tenGageRotTans,       /* 45: "rts", projections of the tensor gradient onto
+  tenGageInvarGradMags, /* 46: "igms", vector magnitude of the spatial
+			       invariant gradients (above): GT[3] */
+  tenGageRotTans,       /* 47: "rts", projections of the tensor gradient onto
 			       non-normalized rotation tangents: GT[9] */
-  tenGageRotTanMags,    /* 46: "rtms", lengths of rotation tangents: GT[3] */
-  tenGageEvalGrads,     /* 47: "evgs", projections of tensor gradient onto
+  tenGageRotTanMags,    /* 48: "rtms", mags of vectors above: GT[3] */
+  tenGageEvalGrads,     /* 49: "evgs", projections of tensor gradient onto
 			       gradients of eigenvalues: GT[9] */
-  tenGageAniso,         /* 48: "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
+  tenGageAniso,         /* 50: "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
   tenGageLast
 };
-#define TEN_GAGE_ITEM_MAX  48
+#define TEN_GAGE_ITEM_MAX  50
 
 /*
 ******** tenFiberType* enum
@@ -456,10 +459,10 @@ TEEM_API void tenInvariantGradients_d(double mu1[7],
 				      double mu2[7], double *mu2Norm,
 				      double skw[7], double *skwNorm,
 				      double ten[7]);
-TEEM_API void tenRotationTangents_d(double phi1[7], double *phi1Mag,
-				    double phi2[7], double *phi2Mag,
-				    double phi3[7], double *phi3Mag,
-				    double eval[3], double evec[9]);
+TEEM_API void tenRotationTangents_d(double phi1[7],
+				    double phi2[7],
+				    double phi3[7],
+				    double evec[9]);
 
 /* chan.c */
 /* old tenCalc* functions replaced by tenEstimate* */

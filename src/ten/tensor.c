@@ -642,32 +642,35 @@ tenInvariantGradients_d(double mu1[7],
 ** eval and evec must be pre-computed and given to us
 */
 void
-tenRotationTangents_d(double phi1[7], double *phi1Mag,
-		      double phi2[7], double *phi2Mag,
-		      double phi3[7], double *phi3Mag,
-		      double eval[3], double evec[9]) {
+tenRotationTangents_d(double phi1[7],
+		      double phi2[7],
+		      double phi3[7],
+		      double evec[9]) {
   double outA[9], outB[9], mat[9];
 
-  phi1[0] = phi2[0] = phi3[3] = 1.0;
+  if (phi1) {
+    phi1[0] = 1.0;
+    ELL_3MV_OUTER(outA, evec + 1*3, evec + 2*3);
+    ELL_3MV_OUTER(outB, evec + 2*3, evec + 1*3);
+    ELL_3M_SCALE_ADD2(mat, 0.7071068, outA, 0.7071068, outB);
+    TEN_M2T(phi1, mat);
+  }
 
-  ELL_3MV_OUTER(outA, evec + 1*3, evec + 2*3);
-  ELL_3MV_OUTER(outB, evec + 2*3, evec + 1*3);
-  ELL_3M_SCALE_ADD2(mat, 0.7071068, outA, 0.7071068, outB);
-  TEN_M2T(phi1, mat);
+  if (phi2) {
+    phi2[0] = 1.0;
+    ELL_3MV_OUTER(outA, evec + 0*3, evec + 2*3);
+    ELL_3MV_OUTER(outB, evec + 2*3, evec + 0*3);
+    ELL_3M_SCALE_ADD2(mat, 0.7071068, outA, 0.7071068, outB);
+    TEN_M2T(phi2, mat);
+  }
 
-  ELL_3MV_OUTER(outA, evec + 0*3, evec + 2*3);
-  ELL_3MV_OUTER(outB, evec + 2*3, evec + 0*3);
-  ELL_3M_SCALE_ADD2(mat, 0.7071068, outA, 0.7071068, outB);
-  TEN_M2T(phi2, mat);
-
-  ELL_3MV_OUTER(outA, evec + 0*3, evec + 1*3);
-  ELL_3MV_OUTER(outB, evec + 1*3, evec + 0*3);
-  ELL_3M_SCALE_ADD2(mat, 0.7071068, outA, 0.7071068, outB);
-  TEN_M2T(phi3, mat);
-  
-  *phi1Mag = 1.414214*(eval[1] - eval[2]);
-  *phi2Mag = 1.414214*(eval[0] - eval[2]);
-  *phi3Mag = 1.414214*(eval[0] - eval[1]);
+  if (phi3) {
+    phi3[0] = 1.0;
+    ELL_3MV_OUTER(outA, evec + 0*3, evec + 1*3);
+    ELL_3MV_OUTER(outB, evec + 1*3, evec + 0*3);
+    ELL_3M_SCALE_ADD2(mat, 0.7071068, outA, 0.7071068, outB);
+    TEN_M2T(phi3, mat);
+  }
   
   return;
 }
