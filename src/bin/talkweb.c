@@ -24,7 +24,7 @@
 #include <teem/hest.h>
 #include <teem/nrrd.h>
 
-#define TKWB "webtalk"
+#define TKWB "talkweb"
 
 #define TKWB_TAG_TOC 0
 #define TKWB_TAG_TITLE 1
@@ -37,7 +37,24 @@
 
 #define TKWB_TAG_MAX 7
 
-char *tkwbInfo = ("Generates HTML pages from slide images and text");
+char *tkwbInfo = 
+("Generates HTML pages from slide images and text. "
+ "This program takes multiple inputs: a template for the table of contents "
+ "that will become \"index.html\" (\"-i\"), a template for the pages "
+ "generated for each slide e.g. \"slide000.html\" (\"-t\"), and a script "
+ "text file that contains all the information that will go into the slide "
+ "pages.  The format of this file is:\n "
+ "\t\t- Seperator line indicating slide transitions, e.g. \"-------------\"\n "
+ "\t\t- Title of first slide (one line)\n "
+ "\t\t- Filename for image to put on first slide (one line)\n "
+ "\t\t- Body of HTML text to put with the slide image (multiple lines)\n "
+ "\t\t- Seperator\n "
+ "followed by information for the second slide, and so forth.  Textual "
+ "subtitutions are performed in the template files, according to the "
+ "replacement tags (\"-r\", see below).  Within the slide pages, navigation "
+ "arrows are based on remaining command-line options."
+);
+
 int tkwbArrayIncr = 16;
 
 typedef struct {
