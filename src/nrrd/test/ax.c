@@ -179,7 +179,7 @@ main(int argc, char *argv[]) {
 
   
   /* and now for random-ness */
-  airSrand();
+  airSrand48(airTime());
   nrrd->axis[0].center = nrrdCenterNode;
   nrrd->axis[0].center = nrrdCenterCell;
   for (i=0; i<=1000000; i++) {
