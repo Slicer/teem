@@ -28,11 +28,17 @@
 #include <teem/biff.h>
 #include <teem/ell.h>
 
+#if defined(_WIN32) && defined(TEEM_DLL)
+#define dye_export __declspec(dllimport)
+#else
+#define dye_export
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define DYE "dye"
+#define DYE dyeBiffKey
 
 enum {
   dyeSpaceUnknown,        /* 0: nobody knows */
@@ -56,9 +62,9 @@ typedef struct {
     ii;                   /* which (0 or 1) of the two values is current */
 } dyeColor;
 
-
 /* methodsDye.c */
-extern char dyeSpaceToStr[][AIR_STRLEN_SMALL];
+extern dye_export const char *dyeBiffKey;
+extern dye_export char dyeSpaceToStr[][AIR_STRLEN_SMALL];
 extern int dyeStrToSpace(char *str);
 extern dyeColor *dyeColorInit(dyeColor *col);
 extern dyeColor *dyeColorSet(dyeColor *col, int space, 
@@ -94,7 +100,8 @@ extern void dyeLABtoXYZ(float *X, float *Y, float *Z,
 			float  L, float  A, float  B);
 extern void dyeLUVtoXYZ(float *X, float *Y, float *Z,
 			float  L, float  U, float  V);
-extern dyeConverter dyeSimpleConvert[DYE_MAX_SPACE+1][DYE_MAX_SPACE+1];
+extern dye_export dyeConverter 
+dyeSimpleConvert[DYE_MAX_SPACE+1][DYE_MAX_SPACE+1];
 extern int dyeConvert(dyeColor *col, int space);
 
 #ifdef __cplusplus
