@@ -877,8 +877,9 @@ nrrdSpacingCalculate(const Nrrd *nrrd, int ax,
   
   if (!( nrrd && spacing && sdim && vector
          && AIR_IN_CL(0, ax, nrrd->dim-1)
-         && !_nrrdCheck(nrrd, AIR_TRUE, AIR_FALSE) )) {
-    /* there's a problem with the arguments */
+         && !_nrrdCheck(nrrd, AIR_FALSE, AIR_FALSE) )) {
+    /* there's a problem with the arguments.  Note: the _nrrdCheck()
+       call does not check on non-NULL-ity of nrrd->data */
     *spacing = AIR_NAN;
     ret = nrrdSpacingStatusUnknown;
   } else {
