@@ -320,8 +320,6 @@ main(int argc, char *argv[]) {
   printf("%s: value  range: %g -> %g\n", me, minv, maxv);
   printf("%s:  grad  range: %g -> %g\n", me, ming, maxg);
   printf("%s: 2nd DD range: %g -> %g\n", me, minh, maxh);
-  printf("%s: !!!! dictating that min value = 0\n", me);
-  minv = 0;
   printf("%s: !!!! dictating that min grad = 0\n", me);
   ming = 0;
   printf("%s: !!!! dictating that min h = -(max h)\n", me);
@@ -344,6 +342,7 @@ main(int argc, char *argv[]) {
 	AIR_INDEX(minv, v, maxv, HIST_SIZE, vi);
 	AIR_INDEX(ming, g, maxg, HIST_SIZE, gi);
 	AIR_INDEX(minh, h, maxh, HIST_SIZE, hi);
+	
 	vhist[vi]++;
 	ghist[gi]++;
 	hhist[hi]++;
