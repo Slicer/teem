@@ -72,6 +72,7 @@ _nrrdReadNrrdParse_encoding (Nrrd *nrrd, NrrdIO *io, int useBiff) {
     sprintf(err, "%s: couldn't parse encoding \"%s\"", me, info);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
+
   io->encoding = nrrdEncodingArray[etype];
   return 0;
 }
@@ -524,6 +525,35 @@ _nrrdReadNrrdParse_byte_skip (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   return 0;
 }
 
+int
+_nrrdReadNrrdParse_keyvalue (Nrrd *nrrd, NrrdIO *io, int useBiff) {
+  char me[]="_nrrdReadNrrdParse_keyvalue", err[AIR_STRLEN_MED];
+  char *keysep, *line, *key, *value;
+
+  /* we know this will find something */
+  line = airStrdup(io->line);
+  if (line) {
+    keysep = strstr(line, ":=");
+  }
+  if (!line || !keysep) {
+    sprintf(err, "%s: CONFUSION: can't allocate parse line", me);
+    airFree(line); biffMaybeAdd(NRRD, err, useBiff); return 1;
+  }
+  keysep[0] = 0;
+  keysep[1] = 0;
+  key = line;
+  value = keysep+2;
+  
+  /* convert escape sequences */
+  airUnescape(key);
+  airUnescape(value);
+
+  nrrdKeyValueAdd(nrrd, key, value);
+
+  free(line);
+  return 0;
+}
+
 /*
 ** _nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1]()
 **
@@ -553,7 +583,8 @@ int
   _nrrdReadNrrdParse_endian,
   _nrrdReadNrrdParse_encoding,
   _nrrdReadNrrdParse_line_skip,
-  _nrrdReadNrrdParse_byte_skip
+  _nrrdReadNrrdParse_byte_skip,
+  _nrrdReadNrrdParse_keyvalue,
 };
 
 /*
@@ -564,8 +595,8 @@ int
 int
 _nrrdReadNrrdParseField (Nrrd *nrrd, NrrdIO *io, int useBiff) {
   char me[]="_nrrdReadNrrdParseField", err[AIR_STRLEN_MED], *next,
-    *buff, *colon;
-  int fld;
+    *buff, *colon, *keysep;
+  int fld, noField=AIR_FALSE, badField=AIR_FALSE;
   
   next = io->line + io->pos;
 
@@ -578,26 +609,52 @@ _nrrdReadNrrdParseField (Nrrd *nrrd, NrrdIO *io, int useBiff) {
     sprintf(err, "%s: couldn't allocate buffer!", me);
     biffMaybeAdd(NRRD, err, useBiff); return nrrdField_unknown;
   }
-  if (!( colon = strstr(buff, ": ") )) {
-    sprintf(err, "%s: didn't see \": \"", me);
-    free(buff); biffMaybeAdd(NRRD, err, useBiff); return nrrdField_unknown;
-  }
-  *colon = '\0';
-  if ( nrrdField_unknown == (fld = airEnumVal(nrrdField, buff)) ) {
-    sprintf(err, "%s: didn't recognize any field", me);
-    free(buff); biffMaybeAdd(NRRD, err, useBiff); return nrrdField_unknown;
-  }
 
-  /* else we successfully parsed a field identifier */
-  next += strlen(buff) + 2;
-  free(buff);
+  /* #1: "...if you see a colon, then look for an equal sign..." */
+
+  /* Look for colon: if no colon, or failed to parse as a field, look for
+   * equal sign, if that failed then error */
+
+  /* Let the separator be := */ 
+  /* Escape \n */
+
+  colon = strstr(buff, ": ");
+  noField = !colon;
+  if (colon) {
+    *colon = '\0';
+    badField = ( nrrdField_unknown == (fld = airEnumVal(nrrdField, buff)) );
+    
+  }
+  if (noField || badField) {
+    keysep = strstr(buff, ":=");
+    if (!keysep) {
+      if (noField) {
+        sprintf(err, "%s: didn't see \": \" or \":=\" in line", me);
+      } else {
+        sprintf(err, "%s: failed to parse \"%s\" as field identifier",
+                me, buff);
+      }
+      free(buff); biffMaybeAdd(NRRD, err, useBiff); return nrrdField_unknown;
+    }
+
+    free(buff);
+
+    return nrrdField_keyvalue;
+
+  } else {
+
+    /* *colon = '\0'; */
+    /* else we successfully parsed a field identifier */
+    next += strlen(buff) + 2;
+    free(buff);
   
-  /* skip whitespace prior to start of first field descriptor */
-  next += strspn(next, _nrrdFieldSep);
+    /* skip whitespace prior to start of first field descriptor */
+    next += strspn(next, _nrrdFieldSep);
 
-  io->pos = next - io->line;
+    io->pos = next - io->line;
 
-  return fld;
+    return fld;
+  }
 }
 
 /* kernel parsing is all in kernel.c */

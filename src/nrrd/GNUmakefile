@@ -59,9 +59,9 @@ $(L).OBJS = \
 	formatVTK.o      formatText.o     formatEPS.o      format.o \
         encodingRaw.o    encodingAscii.o  encodingHex.o \
 	encodingGzip.o   encodingBzip2.o  encoding.o \
-	write.o        
+	write.o        keyvalue.o
 $(L).TESTS = test/tread test/trand test/ax test/io test/minmax test/tkernel \
-	test/typestest test/tline test/genvol test/quadvol test/convo
+	test/typestest test/tline test/genvol test/quadvol test/convo test/kv
 
 ####
 ####

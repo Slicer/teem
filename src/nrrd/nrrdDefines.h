@@ -99,6 +99,7 @@ extern "C" {
 
 #define NRRD_COMMENT_CHAR '#'
 #define NRRD_COMMENT_INCR 16
+#define NRRD_KEYVALUE_INCR 32
 #define NRRD_PNM_COMMENT "# NRRD>"   /* this is designed to be robust against
 				        the mungling that xv does, but no
 				        promises for any other image programs */

@@ -208,6 +208,9 @@ nrrdInit (Nrrd *nrrd) {
     /* the comment airArray should be already been allocated, 
        though perhaps empty */
     nrrdCommentClear(nrrd);
+
+    /* likewise for key/value pairs */
+    nrrdKeyValueClear(nrrd);
   }
 }
 
@@ -236,11 +239,21 @@ nrrdNew (void) {
   }
 
   /* create comment airArray (even though it starts empty) */
+  nrrd->cmt = NULL;
   nrrd->cmtArr = airArrayNew((void**)(&(nrrd->cmt)), NULL, 
 			     sizeof(char *), NRRD_COMMENT_INCR);
   if (!nrrd->cmtArr)
     return NULL;
   airArrayPointerCB(nrrd->cmtArr, airNull, airFree);
+
+  /* create key/value airArray (even thought it starts empty) */
+  nrrd->kvp = NULL;
+  nrrd->kvpArr = airArrayNew((void**)(&(nrrd->kvp)), NULL, 
+			     2*sizeof(char *), NRRD_KEYVALUE_INCR);
+  if (!nrrd->kvpArr)
+    return NULL;
+  /* no airArray callbacks for now */
+  
 
   /* finish initializations */
   nrrdInit(nrrd);
@@ -270,6 +283,8 @@ nrrdNix (Nrrd *nrrd) {
     }
     nrrdCommentClear(nrrd);
     nrrd->cmtArr = airArrayNix(nrrd->cmtArr);
+    nrrdKeyValueClear(nrrd);
+    nrrd->kvpArr = airArrayNix(nrrd->kvpArr);
     AIR_FREE(nrrd);
   }
   return NULL;

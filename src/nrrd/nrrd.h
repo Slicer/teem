@@ -143,6 +143,12 @@ typedef struct {
   */
   char **cmt;
   airArray *cmtArr;
+
+  /*
+  ** Key-value pairs.
+  */
+  char **kvp;
+  airArray *kvpArr;
 } Nrrd;
 
 /*
@@ -552,6 +558,13 @@ extern int nrrdCommentAdd(Nrrd *nrrd, const char *str);
 extern void nrrdCommentClear(Nrrd *nrrd);
 extern int nrrdCommentCopy(Nrrd *nout, const Nrrd *nin);
 extern char *nrrdCommentScan(Nrrd *nrrd, const char *key);
+
+/******** key/value pairs */
+/* keyvalue.c */
+extern int nrrdKeyValueAdd(Nrrd *nrrd, const char *key, const char *value);
+extern char *nrrdKeyValueGet(Nrrd *nrrd, const char *key);
+extern int nrrdKeyValueErase(Nrrd *nrrd, const char *key);
+extern void nrrdKeyValueClear(Nrrd *nrrd);
 
 /******** endian related */
 /* endianNrrd.c */

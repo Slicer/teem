@@ -293,9 +293,10 @@ enum {
   nrrdField_encoding,        /* 20 */
   nrrdField_line_skip,       /* 21 */
   nrrdField_byte_skip,       /* 22 */
+  nrrdField_keyvalue,        /* 23 */
   nrrdField_last
 };
-#define NRRD_FIELD_MAX          22
+#define NRRD_FIELD_MAX          23
 
 /* 
 ******** nrrdHasNonExist* enum

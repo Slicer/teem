@@ -147,6 +147,35 @@ airEndsWith(const char *s, const char *suff) {
 }
 
 /*
+******** airUnescape()
+**
+** unescapes \\ and \n in place in a given string.
+**
+*/
+char *
+airUnescape(char *s) {
+  int i, j, len, found=0;
+
+  len = airStrlen(s);
+  if (!len) 
+    return s;
+
+  for (i=1, j=0; i<=len-1; i++, j++) {
+    if (s[i-1] == '\\' && s[i] == '\\') {
+      s[j] = '\\'; i++; found = 1;
+    } else if (s[i-1] == '\\' && s[i] == 'n') {
+      s[j] = '\n'; i++; found = 1;
+    } else {
+      s[j] = s[i-1]; found = 0;
+    }
+  }
+  if (i == len || !found) s[j++] = s[len-1];
+  s[j] = 0;
+
+  return s;
+}
+
+/*
 ******** airOneLinify()
 **
 ** converts all contiguous white space (as determined by isspace()) to

@@ -487,7 +487,8 @@ _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL] = {
   "endian",
   "encoding",
   "line skip",
-  "byte skip"
+  "byte skip",
+  "strong bad LOVES key/value pairs"
 };
 
 char
@@ -514,7 +515,8 @@ _nrrdFieldDesc[NRRD_FIELD_MAX+1][AIR_STRLEN_MED] = {
   "endiannes of data as written in file",
   "encoding of data written in file",
   "number of lines to skip prior to byte skip and reading data",
-  "number of bytes to skip after line skip and prior to reading data"
+  "number of bytes to skip after line skip and prior to reading data",
+  "string-based key/value pairs"
 };
 
 char
@@ -541,6 +543,7 @@ _nrrdFieldStrEqv[][AIR_STRLEN_SMALL]  = {
   "encoding",
   "line skip", "lineskip",
   "byte skip", "byteskip",
+  /* nothing for keyvalue */
   ""
 };
 
@@ -568,6 +571,7 @@ _nrrdFieldValEqv[] = {
   nrrdField_encoding,
   nrrdField_line_skip, nrrdField_line_skip,
   nrrdField_byte_skip, nrrdField_byte_skip,
+  /* nothing for keyvalue */
 };
 
 airEnum

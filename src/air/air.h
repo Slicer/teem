@@ -280,6 +280,7 @@ extern char *airStrtok(char *s, const char *ct, char **last);
 extern int airStrntok(const char *s, const char *ct);
 extern char *airStrtrans(char *s, char from, char to);
 extern int airEndsWith(const char *s, const char *suff);
+extern char *airUnescape(char *s);
 extern char *airOneLinify(char *s);
 extern char *airToLower(char *str);
 extern char *airToUpper(char *str);
