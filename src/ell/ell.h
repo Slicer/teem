@@ -25,6 +25,12 @@
 
 #include "ellMacros.h"
 
+#if defined(WIN32) && !defined(TEEM_BUILD)
+#define ell_export __declspec(dllimport)
+#else
+#define ell_export
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -46,7 +52,7 @@ enum {
 };
 
 /* miscEll.c */
-extern int ellDebug;
+extern ell_export int ellDebug;
 extern void ell3mPrint_f(FILE *f, float s[9]);
 extern void ell3vPrint_f(FILE *f, float s[3]);
 extern void ell3mPrint_d(FILE *f, double s[9]);
