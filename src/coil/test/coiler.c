@@ -30,10 +30,10 @@ main(int argc, char *argv[]) {
   
   int numIters, numThreads, methodType;
   Nrrd *nin, *nout;
-  mop = airMopNew();
   coilContext *cctx;
   double parm[COIL_PARMS_NUM];
   
+  mop = airMopNew();
   me = argv[0];
   hestOptAdd(&hopt, "iter", "# iters", airTypeInt, 1, 1, &numIters, "5",
 	     "number of iterations to do processing for");
