@@ -899,6 +899,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
       break;
     case 5:
       /* -------- multiple optional parameters -------- */
+      /* hammerhead problems in this case */
       if (prms[op] && vP) {
 	if (1 == _hestCase(opt, udflt, nprm, appr, op)) {
 	  *((void**)vP) = NULL;
@@ -937,7 +938,11 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	    opt[op].alloc = (opt[op].CB->destroy ? 3 : 1);
 	    for (p=0; p<=nprm[op]-1; p++) {
 	      tok = airStrtok(!p ? prmsCopy : NULL, " ", &last);
-	      strcpy(cberr, "");
+	      /* hammerhead problems went away when this line
+		 was replaced by the following one:
+		 strcpy(cberr, "");
+	      */
+	      cberr[0] = 0;
 	      ret = opt[op].CB->parse(cP + p*size, tok, cberr);
 	      if (ret) {
 		if (strlen(cberr))
@@ -1018,7 +1023,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
   int a, argc, argr, *nprm, *appr, *udflt, nrf, numOpts, big, ret;
   airArray *mop;
   hestParm *parm;
-  
+
   numOpts = _hestNumOpts(opt);
 
   /* -------- initialize the mop! */
@@ -1096,6 +1101,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
   /*
   _hestPrintArgv(argc, argv);
   */
+
   /* -------- extract flags and their associated parameters from argv */
   if (parm->verbosity) printf("%s: #### calling hestExtractFlagged\n", me);
   if (_hestExtractFlagged(prms, nprm, appr, 
@@ -1108,6 +1114,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
   /*
   _hestPrintArgv(argc, argv);
   */
+
   /* -------- extract args for unflagged options */
   if (parm->verbosity) printf("%s: #### calling hestExtractUnflagged\n", me);
   if (_hestExtractUnflagged(prms, nprm,
@@ -1127,7 +1134,6 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
     airMopError(mop); return 1;
   }
 
-
   /* -------- learn defaults */
   if (parm->verbosity) printf("%s: #### calling hestDefaults\n", me);
   if (_hestDefaults(prms, udflt, nprm, appr,
@@ -1138,6 +1144,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
   if (parm->verbosity) printf("%s: #### hestDefaults done!\n", me);
   
   /* -------- now, the actual parsing of values */
+  /* hammerhead problems in _hestSetValues */
   if (parm->verbosity) printf("%s: #### calling hestSetValues\n", me);
   ret = _hestSetValues(prms, udflt, nprm, appr,
 		       opt,
@@ -1145,6 +1152,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
   if (ret) {
     airMopError(mop); return ret;
   }
+
   if (parm->verbosity) printf("%s: #### hestSetValues done!\n", me);
 
   airMopOkay(mop);

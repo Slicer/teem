@@ -58,6 +58,7 @@ unrrdu_padMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(_unrrdu_padInfoL);
+  /* hammerhead problems were here */
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
