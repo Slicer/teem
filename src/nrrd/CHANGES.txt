@@ -27,6 +27,10 @@ be fixed some day.
 - API CHANGE: (but no one should notice): added dataFN[]
 (data filename) to NrrdIO struct, basically so that
 "unu make -h" can subvert _nrrdWriteNrrd().
+- API NEW: the floating point type that nrrdSpatialResample()
+uses for all intermediate value representation has been
+generalized from float only to nrrdResample_t, which can
+be set to float or double by controlling an #if in nrrd.h
 - API NEW: added nrrdTypeMin[], nrrdTypeMax[], and
 nrrdTypeNumberValues[], arrays which represent for the
 *fixed*point* types the lowest and highest representable
