@@ -58,7 +58,7 @@ tenFiberContextNew(Nrrd *dtvol) {
   char me[]="tenFiberContextNew", err[AIR_STRLEN_MED];
   tenFiberContext *tfx;
   gagePerVolume *pvl;
-  NrrdKernel *kernel;
+  const NrrdKernel *kernel;
   double kparm[NRRD_KERNEL_PARMS_NUM];
   
   tfx = calloc(1, sizeof(tenFiberContext));
@@ -231,7 +231,7 @@ tenFiberStopReset(tenFiberContext *tfx) {
 
 int
 tenFiberKernelSet(tenFiberContext *tfx,
-		  NrrdKernel *kern,
+		  const NrrdKernel *kern,
 		  double parm[NRRD_KERNEL_PARMS_NUM]) {
   char me[]="tenFiberKernelSet", err[AIR_STRLEN_MED];
 

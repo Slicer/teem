@@ -291,7 +291,7 @@ typedef struct {
   baneAxis ax[3];                      /* NB: not pointers to baneAxis */
   int k3pack;
   int renormalize;                     /* use gage's mask renormalization */
-  NrrdKernel *k[GAGE_KERNEL_NUM];
+  const NrrdKernel *k[GAGE_KERNEL_NUM];
   double kparm[GAGE_KERNEL_NUM][NRRD_KERNEL_PARMS_NUM];
   baneClip *clip;
   double clipParm[BANE_CLIP_PARM_NUM];

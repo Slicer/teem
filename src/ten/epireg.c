@@ -51,7 +51,7 @@ int
 _tenEpiRegCheck(Nrrd **nout, Nrrd **ndwi, int dwiLen, Nrrd *ngrad,
 		int reference,
 		float bwX, float bwY, float DWthr,
-		NrrdKernel *kern, double *kparm) {
+		const NrrdKernel *kern, double *kparm) {
   char me[]="_tenEpiRegCheck", err[AIR_STRLEN_MED];
   int ni;
 
@@ -759,7 +759,7 @@ _tenEpiRegGetHST(double *hhP, double *ssP, double *ttP,
 */
 int
 _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx, 
-		    NrrdKernel *kern, double *kparm,
+		    const NrrdKernel *kern, double *kparm,
 		    double hh, double ss, double tt, double cx, double cy) {
   float *wght, *in, pp, pf, tmp;
   int *idx, supp, sx, sy, xi, yi, pb, pi;
@@ -811,7 +811,7 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
 int
 _tenEpiRegWarp(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
 	       Nrrd **nin, int ninLen,
-	       int reference, NrrdKernel *kern, double *kparm,
+	       int reference, const NrrdKernel *kern, double *kparm,
 	       int verb) {
   char me[]="_tenEpiRegWarp", err[AIR_STRLEN_MED];
   Nrrd *ntmp, *nfin, *nslcA, *nslcB, *nwght, *nidx;
@@ -878,7 +878,7 @@ tenEpiRegister3D(Nrrd **nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
 		 int reference,
 		 float bwX, float bwY, float fitFrac,
 		 float DWthr, int doCC, 
-		 NrrdKernel *kern, double *kparm,
+		 const NrrdKernel *kern, double *kparm,
 		 int progress, int verbose) {
   char me[]="tenEpiRegister3D", err[AIR_STRLEN_MED];
   airArray *mop;
@@ -1014,7 +1014,7 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *ngrad,
 		 int reference,
 		 float bwX, float bwY, float fitFrac,
 		 float DWthr, int doCC, 
-		 NrrdKernel *kern, double *kparm,
+		 const NrrdKernel *kern, double *kparm,
 		 int progress, int verbose) {
   char me[]="tenEpiRegister4D", err[AIR_STRLEN_MED];
   int ni, ninLen, amap[4]={-1, 1, 2, 3};

@@ -358,7 +358,7 @@ typedef struct {
 ** "spec"ification), basically: using hest.
 */
 typedef struct {
-  NrrdKernel *kernel;
+  const NrrdKernel *kernel;
   double parm[NRRD_KERNEL_PARMS_NUM];
 } NrrdKernelSpec;
 
@@ -493,9 +493,9 @@ extern NrrdIoState *nrrdIoStateNix(NrrdIoState *io);
 extern NrrdResampleInfo *nrrdResampleInfoNew(void);
 extern NrrdResampleInfo *nrrdResampleInfoNix(NrrdResampleInfo *info);
 extern NrrdKernelSpec *nrrdKernelSpecNew();
-extern void nrrdKernelSpecSet(NrrdKernelSpec *ksp, NrrdKernel *k,
+extern void nrrdKernelSpecSet(NrrdKernelSpec *ksp, const NrrdKernel *k,
 			      double kparm[NRRD_KERNEL_PARMS_NUM]);
-extern void nrrdKernelParmSet(NrrdKernel **kP,
+extern void nrrdKernelParmSet(const NrrdKernel **kP,
 			      double kparm[NRRD_KERNEL_PARMS_NUM],
 			      NrrdKernelSpec *ksp);
 extern NrrdKernelSpec *nrrdKernelSpecNix(NrrdKernelSpec *ksp);
@@ -873,7 +873,7 @@ extern nrrd_export NrrdKernel
   *const nrrdKernelGaussian,     /* Gaussian */
   *const nrrdKernelGaussianD,    /* 1st derivative of Gaussian */
   *const nrrdKernelGaussianDD;   /* 2nd derivative of Gaussian */
-extern int nrrdKernelParse(NrrdKernel **kernelP,
+extern int nrrdKernelParse(const NrrdKernel **kernelP,
 			   double *parm,
 			   const char *str);
 extern int nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str);

@@ -408,7 +408,7 @@ extern int _tenFindValley(float *valP, Nrrd *nhist, float tweak);
 extern tenFiberContext *tenFiberContextNew(Nrrd *dtvol);
 extern int tenFiberTypeSet(tenFiberContext *tfx, int type);
 extern int tenFiberKernelSet(tenFiberContext *tfx,
-			     NrrdKernel *kern,
+			     const NrrdKernel *kern,
 			     double parm[NRRD_KERNEL_PARMS_NUM]);
 extern int tenFiberIntgSet(tenFiberContext *tfx, int intg);
 extern int tenFiberStopSet(tenFiberContext *tfx, int stop, ...);
@@ -426,13 +426,13 @@ extern int tenEpiRegister3D(Nrrd **nout, Nrrd **ndwi, int dwiLen, Nrrd *ngrad,
 			    int reference,
 			    float bwX, float bwY, float fitFrac, float DWthr,
 			    int doCC,
-			    NrrdKernel *kern, double *kparm,
+			    const NrrdKernel *kern, double *kparm,
 			    int progress, int verbose);
 extern int tenEpiRegister4D(Nrrd *nout, Nrrd *nin, Nrrd *ngrad,
 			    int reference,
 			    float bwX, float bwY, float fitFrac,
 			    float DWthr, int doCC, 
-			    NrrdKernel *kern, double *kparm,
+			    const NrrdKernel *kern, double *kparm,
 			    int progress, int verbose);
 
 /* mod.c */

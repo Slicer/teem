@@ -154,7 +154,7 @@ nrrdKernelSpecNix (NrrdKernelSpec *ksp) {
 }
 
 void
-nrrdKernelSpecSet (NrrdKernelSpec *ksp, NrrdKernel *k,
+nrrdKernelSpecSet (NrrdKernelSpec *ksp, const NrrdKernel *k,
 		   double kparm[NRRD_KERNEL_PARMS_NUM]) {
   int p;
 
@@ -167,7 +167,7 @@ nrrdKernelSpecSet (NrrdKernelSpec *ksp, NrrdKernel *k,
 }
 
 void
-nrrdKernelParmSet (NrrdKernel **kP, double kparm[NRRD_KERNEL_PARMS_NUM],
+nrrdKernelParmSet (const NrrdKernel **kP, double kparm[NRRD_KERNEL_PARMS_NUM],
 		   NrrdKernelSpec *ksp) {
   int p;
 

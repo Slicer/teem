@@ -650,7 +650,7 @@ extern int gagePerVolumeIsAttached(gageContext *ctx, gagePerVolume *pvl);
 extern int gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl);
 extern int gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl);
 extern int gageKernelSet(gageContext *ctx,
-			 int which, NrrdKernel *k, double *kparm);
+			 int which, const NrrdKernel *k, double *kparm);
 extern void gageKernelReset(gageContext *ctx);
 extern int gageProbe(gageContext *ctx, gage_t x, gage_t y, gage_t z);
 

@@ -1173,7 +1173,7 @@ _nrrdKernelParseTMFInt(int *val, char *str) {
 }
 
 int
-nrrdKernelParse(NrrdKernel **kernelP, 
+nrrdKernelParse(const NrrdKernel **kernelP, 
 		double *parm, const char *_str) {
   char me[]="nrrdKernelParse", err[128], str[AIR_STRLEN_HUGE],
     kstr[AIR_STRLEN_MED], *_pstr=NULL, *pstr, *tmfStr[3];
@@ -1285,7 +1285,7 @@ nrrdKernelParse(NrrdKernel **kernelP,
 int
 nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str) {
   char me[]="nrrdKernelSpecParse", err[AIR_STRLEN_MED];
-  NrrdKernel *kern;
+  const NrrdKernel *kern;
   double kparm[NRRD_KERNEL_PARMS_NUM];
   
   if (nrrdKernelParse(&kern, kparm, str)) {

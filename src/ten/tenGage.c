@@ -159,7 +159,8 @@ _tenGageFilter (gageContext *ctx, gagePerVolume *pvl) {
 		       fw00, fw11, fw22, \
                        tensor + J, tgrad + J*3, NULL, \
 		       pvl->needD[0], pvl->needD[1], AIR_FALSE)
-    DOIT_2(0); DOIT_2(1); DOIT_2(2); DOIT_2(3); DOIT_2(4); DOIT_2(5); DOIT_2(6); 
+    DOIT_2(0); DOIT_2(1); DOIT_2(2); DOIT_2(3);
+    DOIT_2(4); DOIT_2(5); DOIT_2(6); 
     break;
   case 4:
 #define DOIT_4(J) \
@@ -167,7 +168,8 @@ _tenGageFilter (gageContext *ctx, gagePerVolume *pvl) {
 		       fw00, fw11, fw22, \
                        tensor + J, tgrad + J*3, NULL, \
 		       pvl->needD[0], pvl->needD[1], AIR_FALSE)
-    DOIT_4(0); DOIT_4(1); DOIT_4(2); DOIT_4(3); DOIT_4(4); DOIT_4(5); DOIT_4(6); 
+    DOIT_4(0); DOIT_4(1); DOIT_4(2); DOIT_4(3);
+    DOIT_4(4); DOIT_4(5); DOIT_4(6); 
     break;
   default:
 #define DOIT_N(J)\
@@ -177,7 +179,8 @@ _tenGageFilter (gageContext *ctx, gagePerVolume *pvl) {
 		       fw00, fw11, fw22, \
                        tensor + J, tgrad + J*3, NULL, \
 		       pvl->needD[0], pvl->needD[1], AIR_FALSE)
-    DOIT_N(0); DOIT_N(1); DOIT_N(2); DOIT_N(3); DOIT_N(4); DOIT_N(5); DOIT_N(6); 
+    DOIT_N(0); DOIT_N(1); DOIT_N(2); DOIT_N(3);
+    DOIT_N(4); DOIT_N(5); DOIT_N(6); 
     break;
   }
 

@@ -156,7 +156,7 @@ gageContextCopy (gageContext *ctx) {
 */
 int
 gageKernelSet (gageContext *ctx, 
-	       int which, NrrdKernel *k, double *kparm) {
+	       int which, const NrrdKernel *k, double *kparm) {
   char me[]="gageKernelSet", err[AIR_STRLEN_MED];
   int numParm;
   double support, integral;
