@@ -44,7 +44,7 @@ unrrdu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "\b\bo \"clamp\": second value is clamped to range between "
 	     "the first and the third\n "
 	     "\b\bo \"ifelse\": if 1st value non-zero, then 2nd value, else "
-	     "3rd value",
+	     "3rd value"
 	     "\b\bo \"lerp\": linear interpolation between the 2nd and "
 	     "3rd values, as the 1st value varies between 0.0 and 1.0, "
 	     "respectively\n "
