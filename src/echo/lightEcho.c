@@ -37,7 +37,7 @@ echoLightPosition(echoPos_t pos[3], echoObject *light,
   switch(light->type) {
   case echoTypeRectangle:
     rectLight = RECTANGLE(light);
-    ELL_3V_SCALEADD3(pos, 1, rectLight->origin,
+    ELL_3V_SCALE_ADD3(pos, 1, rectLight->origin,
 		     x, rectLight->edge0,
 		     y, rectLight->edge1);
     break;

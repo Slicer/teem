@@ -323,7 +323,7 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
   ELL_4MV_ROW0_GET(U, cam->W2V);
   ELL_4MV_ROW1_GET(V, cam->W2V);
   ELL_4MV_ROW2_GET(N, cam->W2V);
-  ELL_3V_SCALEADD(imgOrig, 1.0, eye, cam->vspDist, N);
+  ELL_3V_SCALE_ADD(imgOrig, 1.0, eye, cam->vspDist, N);
   
   /* determine size of a single pixel (based on cell-centering) */
   pixUsz = (cam->uRange[1] - cam->uRange[0])/(parm->imgResU);
@@ -366,13 +366,13 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
 	if (parm->aperture) {
 	  tmp0 = parm->aperture*(tstate->jitt[0 + 2*echoJittableLens]);
 	  tmp1 = parm->aperture*(tstate->jitt[1 + 2*echoJittableLens]);
-	  ELL_3V_SCALEADD3(ray.from, 1, ray.from, tmp0, U, tmp1, V);
+	  ELL_3V_SCALE_ADD3(ray.from, 1, ray.from, tmp0, U, tmp1, V);
 	}
 	
 	/* set at[] */
 	tmp0 = imgU + pixUsz*(tstate->jitt[0 + 2*echoJittablePixel]);
 	tmp1 = imgV + pixVsz*(tstate->jitt[1 + 2*echoJittablePixel]);
-	ELL_3V_SCALEADD3(at, 1, imgOrig, tmp0, U, tmp1, V);
+	ELL_3V_SCALE_ADD3(at, 1, imgOrig, tmp0, U, tmp1, V);
 
 	/* do it! */
 	ELL_3V_SUB(ray.dir, at, ray.from);

@@ -66,7 +66,7 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
     if (kd) {
       LdotN = ELL_3V_DOT(muu->lit->dir[0], N);
       if (LdotN > 0) {
-	ELL_3V_SCALEADD(ad, 1.0, ad, LdotN*kd, muu->lit->col[0]);
+	ELL_3V_SCALE_ADD(ad, 1.0, ad, LdotN*kd, muu->lit->col[0]);
       }
     }
     if (ks) {

@@ -54,7 +54,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     /* done if doD1 */
     if (ctx->verbose) {
       fprintf(stderr, "%s: gvec = ", me);
-      ell3vPRINT(stderr, gvec);
+      ell_3v_PRINT(stderr, gvec);
     }
   }
   if (1 & (query >> gageSclGradMag)) {
@@ -88,7 +88,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     /* done if doD2 */
     if (ctx->verbose) {
       fprintf(stderr, "%s: hess = \n", me);
-      ell3mPRINT(stderr, hess);
+      ell_3m_PRINT(stderr, hess);
     }
   }
   if (1 & (query >> gageSclLaplacian)) {
@@ -103,7 +103,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     /* HEY: look at the return value for root multiplicity? */
     /* NB: we have solve and then copy because of possible type
        mismatch between double and gage_t */
-    ell3mEigensolve(heval, hevec, tmpMat, AIR_TRUE);
+    ell_3m_eigensolve_d(heval, hevec, tmpMat, AIR_TRUE);
     ELL_3V_COPY(ans+offset[gageSclHessEval], heval);
   }
   if (1 & (query >> gageSclHessEvec)) {
@@ -125,11 +125,11 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
 
       if (ctx->verbose) {
 	fprintf(stderr, "%s: gten: \n", me);
-	ell3mPRINT(stderr, gten);
+	ell_3m_PRINT(stderr, gten);
 	ELL_3MV_MUL(tmpVec, gten, norm);
 	len = ELL_3V_LEN(tmpVec);
 	fprintf(stderr, "%s: should be small: %30.15f\n", me, (double)len);
-	ell3vPERP(gp1, norm);
+	ell_3v_PERP(gp1, norm);
 	ELL_3MV_MUL(tmpVec, gten, gp1);
 	len = ELL_3V_LEN(tmpVec);
 	fprintf(stderr, "%s: should be bigger: %30.15f\n", me, (double)len);
@@ -144,7 +144,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     }
   }
   if (1 && (query >> gageSclCurvedness)) {
-    curv = ans[offset[gageSclCurvedness]] = ELL_3M_FROBNORM(gten);
+    curv = ans[offset[gageSclCurvedness]] = ELL_3M_FROB(gten);
   }
   if (1 && (query >> gageSclShapeTrace)) {
     ans[offset[gageSclShapeTrace]] = (curv
@@ -161,7 +161,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
       fprintf(stderr, "%s: %g %g\n", me, T, N);
       fprintf(stderr, "%s: !!! D curv determinant % 22.10f < 0.0\n", me, D);
       fprintf(stderr, "%s: gten: \n", me);
-      ell3mPRINT(stderr, gten);
+      ell_3m_PRINT(stderr, gten);
     }
     */
     D = AIR_MAX(D, 0);
@@ -184,10 +184,10 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
        code assumes that the eigenspaces are all one-dimensional */
     ELL_3M_COPY(tmpMat, gten);
     ELL_3M_DIAG_SET(tmpMat, gten[0] - *k1, gten[4]- *k1, gten[8] - *k1);
-    ell3mNullspace1(tmpVec, tmpMat);
+    ell_3m_1d_nullspace_d(tmpVec, tmpMat);
     ELL_3V_COPY(ans+offset[gageSclCurvDir]+0, tmpVec);
     ELL_3M_DIAG_SET(tmpMat, gten[0] - *k2, gten[4] - *k2, gten[8] - *k2);
-    ell3mNullspace1(tmpVec, tmpMat);
+    ell_3m_1d_nullspace_d(tmpVec, tmpMat);
     ELL_3V_COPY(ans+offset[gageSclCurvDir]+3, tmpVec);
   }
   if (1 & (query >> gageSclFlowlineCurv)) {
@@ -200,7 +200,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     } else {
       ELL_3M_ZERO_SET(ncTen);
     }
-    ans[offset[gageSclFlowlineCurv]] = sqrt(ELL_3M_FROBNORM(ncTen));
+    ans[offset[gageSclFlowlineCurv]] = sqrt(ELL_3M_FROB(ncTen));
   }
   return;
 }

@@ -173,7 +173,7 @@ _gageVecFilter (gageContext *ctx, gagePerVolume *pvl) {
        in column order, the 1st column currently contains the three
        derivatives of the X component; this should be the 1st row, and
        likewise for the 2nd and 3rd column/rows.  */
-    ELL_3M_TRANSPOSE_IP(jac, tmp);
+    ELL_3M_TRAN_IP(jac, tmp);
   }
 
   return;
@@ -214,7 +214,7 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
     /* done if doV */
     if (ctx->verbose) {
       fprintf(stderr, "vec = ");
-      ell3vPRINT(stderr, vecAns);
+      ell_3v_PRINT(stderr, vecAns);
     }
   }
   if (1 & (query >> gageVecLength)) {
@@ -236,7 +236,7 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
     */
     if (ctx->verbose) {
       fprintf(stderr, "%s: jac = \n", me);
-      ell3mPRINT(stderr, jacAns);
+      ell_3m_PRINT(stderr, jacAns);
     }
   }
   if (1 & (query >> gageVecDivergence)) {
@@ -269,24 +269,24 @@ _gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
   }
   if (1 & (query >> gageVecMultiGrad)) {
     ELL_3M_IDENTITY_SET(ans + offset[gageVecMultiGrad]);
-    ELL_3MV_OUTERADD(ans + offset[gageVecMultiGrad],
-		     ans + offset[gageVecGradient0],
-		     ans + offset[gageVecGradient0]);
-    ELL_3MV_OUTERADD(ans + offset[gageVecMultiGrad],
-		     ans + offset[gageVecGradient1],
-		     ans + offset[gageVecGradient1]);
-    ELL_3MV_OUTERADD(ans + offset[gageVecMultiGrad],
-		     ans + offset[gageVecGradient2],
-		     ans + offset[gageVecGradient2]);
+    ELL_3MV_OUTER_ADD(ans + offset[gageVecMultiGrad],
+		      ans + offset[gageVecGradient0],
+		      ans + offset[gageVecGradient0]);
+    ELL_3MV_OUTER_ADD(ans + offset[gageVecMultiGrad],
+		      ans + offset[gageVecGradient1],
+		      ans + offset[gageVecGradient1]);
+    ELL_3MV_OUTER_ADD(ans + offset[gageVecMultiGrad],
+		      ans + offset[gageVecGradient2],
+		      ans + offset[gageVecGradient2]);
   }
   if (1 & (query >> gageVecMGFrob)) {
     ans[offset[gageVecMGFrob]] 
-      = ELL_3M_FROBNORM(ans + offset[gageVecMultiGrad]);
+      = ELL_3M_FROB(ans + offset[gageVecMultiGrad]);
   }
   if (1 & (query >> gageVecMGEval)) {
     ELL_3M_COPY(tmpMat, ans + offset[gageVecMultiGrad]);
     /* HEY: look at the return value for root multiplicity? */
-    ell3mEigensolve(mgeval, mgevec, tmpMat, AIR_TRUE);
+    ell_3m_eigensolve_d(mgeval, mgevec, tmpMat, AIR_TRUE);
     ELL_3V_COPY(ans + offset[gageVecMGEval], mgeval);
   }
   if (1 & (query >> gageVecMGEvec)) {

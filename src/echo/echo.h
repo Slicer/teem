@@ -48,30 +48,11 @@ extern "C" {
 #if 0
 typedef float echoPos_t;
 #define ECHO_POS_FLOAT 1
-#define echoPos_nt nrrdTypeFloat
-#define echoPos_at airTypeFloat
-#define ell4mINVERT ell4mInvert_f
-#define ell4mPRINT ell4mPrint_f
-#define ell4mDET ell4mDet_f
-#define ell3vPERP ell3vPerp_f
-#define ell4mPOSTMUL ell4mPostMul_f
-#define ECHO_POS_MIN (-FLT_MAX)
-#define ECHO_POS_MAX FLT_MAX
-#define ECHO_POS_EPS FLT_EPSILON
 #else 
 typedef double echoPos_t;
 #define ECHO_POS_FLOAT 0
-#define echoPos_nt nrrdTypeDouble
-#define echoPos_at airTypeDouble
-#define ell4mINVERT ell4mInvert_d
-#define ell4mPRINT ell4mPrint_d
-#define ell4mDET ell4mDet_d
-#define ell3vPERP ell3vPerp_d
-#define ell4mPOSTMUL ell4mPostMul_d
-#define ECHO_POS_MIN (-DBL_MAX)
-#define ECHO_POS_MAX DBL_MAX
-#define ECHO_POS_EPS DBL_EPSILON
 #endif
+
 
 /* all color information is kept as 
 ** 1: floats

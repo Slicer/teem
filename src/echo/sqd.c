@@ -179,16 +179,16 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
   }
 
 #define VAL(TT)                               \
-  (ELL_3V_SCALEADD(pos, 1, from, (TT), ray->dir),  \
+  (ELL_3V_SCALE_ADD(pos, 1, from, (TT), ray->dir),  \
    v(pos[0], pos[1], pos[2], obj->A, obj->B))
 
 #define VALGRAD(VV, DV, TT)                                \
-  ELL_3V_SCALEADD(pos, 1, from, (TT), ray->dir);                \
+  ELL_3V_SCALE_ADD(pos, 1, from, (TT), ray->dir);                \
   (VV) = vg(grad, pos[0], pos[1], pos[2], obj->A, obj->B); \
   (DV) = ELL_3V_DOT(grad, ray->dir)
 
 #define LVALGRAD(VV, DV, TT)                                \
-  ELL_3V_SCALEADD(pos, 1, from, (TT), ray->dir);                 \
+  ELL_3V_SCALE_ADD(pos, 1, from, (TT), ray->dir);                 \
   (VV) = lvg(grad, pos[0], pos[1], pos[2], obj->A, obj->B); \
   (DV) = ELL_3V_DOT(grad, ray->dir)
 
@@ -198,7 +198,7 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
 #define SHIFT2(a,b,c)   (a)=(b); (b)=(c)
 
   /* testing */
-  ELL_3V_SCALEADD(from, 1, ray->from, Tmin, ray->dir);
+  ELL_3V_SCALE_ADD(from, 1, ray->from, Tmin, ray->dir);
   saveTmin = Tmin;
   Tmin = 0;
   Tmax -= saveTmin;

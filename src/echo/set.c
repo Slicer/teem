@@ -120,7 +120,7 @@ echoInstanceSet(echoObject *inst,
 		echoPos_t *M, echoObject *obj) {
   
   if (inst && echoTypeInstance == inst->type) {
-    ell4mINVERT(INSTANCE(inst)->Mi, M);
+    ell_4m_INV(INSTANCE(inst)->Mi, M);
     ELL_4M_COPY(INSTANCE(inst)->M, M);
     INSTANCE(inst)->obj = obj;
   }

@@ -404,11 +404,11 @@ makeSceneGlassTest(limnCam *cam, echoRTParm *parm, echoScene *scene) {
     inst = echoObjectNew(scene, echoTypeInstance);
     ELL_4M_IDENTITY_SET(ma);
     ELL_4M_SCALE_SET(mb, 1.0/(N+2), 0.8, 3.0/(N+2));
-    ell4mPOSTMUL(ma, mb);
+    ell_4m_POST_MUL(ma, mb);
     ELL_4M_ROTATE_X_SET(mb, AIR_AFFINE(0, i, N-1, -M_PI/2, M_PI/2));
-    ell4mPOSTMUL(ma, mb);
+    ell_4m_POST_MUL(ma, mb);
     ELL_4M_TRANSLATE_SET(mb, AIR_AFFINE(0, i, N-1, -0.8, 0.8), 0, 1);
-    ell4mPOSTMUL(ma, mb);
+    ell_4m_POST_MUL(ma, mb);
     echoInstanceSet(inst, ma, cube);
     echoObjectAdd(scene, inst);
   }

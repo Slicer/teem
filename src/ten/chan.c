@@ -89,7 +89,7 @@ tenEMatrix(Nrrd *nbmat, Nrrd *_ngrad) {
     sprintf(err, "%s: trouble forming weighting matrix", me);
     biffAdd(TEN, err); return 1;
   }
-  if (ellNmPseudoInverse(nbmat, nwmat)) {
+  if (ell_Nm_pseudo_inv(nbmat, nwmat)) {
     sprintf(err, "%s: trouble inverting weighting matrix", me);
     biffMove(TEN, err, ELL); airMopError(mop); return 1;
   }
@@ -188,7 +188,7 @@ tenEstimate(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *_nbmat,
   airMopAdd(mop, nbmat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nemat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if ((bk=NRRD, nrrdConvert(nbmat, _nbmat, nrrdTypeDouble))
-      || (bk=ELL, ellNmPseudoInverse(nemat, nbmat))) {
+      || (bk=ELL, ell_Nm_pseudo_inv(nemat, nbmat))) {
     sprintf(err, "%s: problem calculating matrices", me);
     biffMove(TEN, err, bk); return 1;
   }

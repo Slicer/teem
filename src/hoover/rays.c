@@ -104,9 +104,9 @@ _hooverExtraContextNew(hooverContext *ctx) {
   ec = calloc(1, sizeof(_hooverExtraContext));
   if (ec) {
     _hooverLearnLengths(ec->volHLen, ec->voxLen, ctx);
-    ELL_3V_SCALEADD(ec->rayZero,
-		    1.0, ctx->cam->from,
-		    ctx->cam->vspNeer, ctx->cam->N);
+    ELL_3V_SCALE_ADD(ec->rayZero,
+		     1.0, ctx->cam->from,
+		     ctx->cam->vspNeer, ctx->cam->N);
   }
   return ec;
 }
@@ -274,8 +274,8 @@ _hooverThreadBody(void *_arg) {
       sampleI = 0;
       rayT = 0;
       while (1) {
-	ELL_3V_SCALEADD(rayPosW, 1.0, rayStartW, rayT, rayDirW);
-	ELL_3V_SCALEADD(rayPosI, 1.0, rayStartI, rayT, rayDirI);
+	ELL_3V_SCALE_ADD(rayPosW, 1.0, rayStartW, rayT, rayDirW);
+	ELL_3V_SCALE_ADD(rayPosI, 1.0, rayStartI, rayT, rayDirI);
 	inside = (AIR_IN_CL(mm, rayPosI[0], Mx) &&
 		  AIR_IN_CL(mm, rayPosI[1], My) &&
 		  AIR_IN_CL(mm, rayPosI[2], Mz));

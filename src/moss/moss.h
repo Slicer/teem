@@ -101,8 +101,8 @@ extern moss_export hestCB *mossHestOrigin;
 
 /* xform.c */
 extern void mossMatPrint(FILE *f, double *mat);
-extern double *mossMatPreMultiply(double *mat, double *x);
-extern double *mossMatPostMultiply (double *mat, double *x);
+extern double *mossMatRightMultiply(double *mat, double *x);
+extern double *mossMatLeftMultiply (double *mat, double *x);
 extern double *mossMatInvert(double *inv, double *mat);
 extern double *mossMatIdentitySet(double *mat);
 extern double *mossMatTranslateSet(double *mat, double tx, double ty);

@@ -27,15 +27,15 @@ extern "C" {
 #define GT gage_t
 
 #if GAGE_TYPE_FLOAT
-#  define ell3vPRINT ell3vPrint_f
-#  define ell3mPRINT ell3mPrint_f
-#  define ell3vPERP ell3vPerp_f
+#  define ell_3v_PRINT ell_3v_print_f
+#  define ell_3m_PRINT ell_3m_print_f
+#  define ell_3v_PERP ell_3v_perp_f
 #  define nrrdLOOKUP nrrdFLookup
 #  define EVALN evalN_f               /* NrrdKernel method */
 #else
-#  define ell3vPRINT ell3vPrint_d
-#  define ell3mPRINT ell3mPrint_d
-#  define ell3vPERP ell3vPerp_d
+#  define ell_3v_PRINT ell_3v_print_d
+#  define ell_3m_PRINT ell_3m_print_d
+#  define ell_3v_PERP ell_3v_perp_d
 #  define nrrdLOOKUP nrrdDLookup
 #  define EVALN evalN_d               /* NrrdKernel method */
 #endif

@@ -251,16 +251,16 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   }
   if (1 & (query >> tenGageQGradVec)) {
     ELL_3V_SET(QgradAns, 0, 0, 0);
-    ELL_3V_SCALEINCR(QgradAns,   dtA, tgradAns + 1*3);
-    ELL_3V_SCALEINCR(QgradAns, 2*dtB, tgradAns + 2*3);
-    ELL_3V_SCALEINCR(QgradAns, 2*dtC, tgradAns + 3*3);
-    ELL_3V_SCALEINCR(QgradAns,   dtD, tgradAns + 4*3);
-    ELL_3V_SCALEINCR(QgradAns, 2*dtE, tgradAns + 5*3);
-    ELL_3V_SCALEINCR(QgradAns,   dtF, tgradAns + 6*3);
+    ELL_3V_SCALE_INCR(QgradAns,   dtA, tgradAns + 1*3);
+    ELL_3V_SCALE_INCR(QgradAns, 2*dtB, tgradAns + 2*3);
+    ELL_3V_SCALE_INCR(QgradAns, 2*dtC, tgradAns + 3*3);
+    ELL_3V_SCALE_INCR(QgradAns,   dtD, tgradAns + 4*3);
+    ELL_3V_SCALE_INCR(QgradAns, 2*dtE, tgradAns + 5*3);
+    ELL_3V_SCALE_INCR(QgradAns,   dtF, tgradAns + 6*3);
     tmptmp = -(dtA + dtD + dtF)/3;
-    ELL_3V_SCALEINCR(QgradAns, tmptmp, tgradAns + 1*3);
-    ELL_3V_SCALEINCR(QgradAns, tmptmp, tgradAns + 4*3);
-    ELL_3V_SCALEINCR(QgradAns, tmptmp, tgradAns + 6*3);
+    ELL_3V_SCALE_INCR(QgradAns, tmptmp, tgradAns + 1*3);
+    ELL_3V_SCALE_INCR(QgradAns, tmptmp, tgradAns + 4*3);
+    ELL_3V_SCALE_INCR(QgradAns, tmptmp, tgradAns + 6*3);
   }
   if (1 & (query >> tenGageQGradMag)) {
     tmptmp = ans[offset[tenGageQGradMag]] = ELL_3V_LEN(QgradAns);

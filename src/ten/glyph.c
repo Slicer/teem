@@ -221,19 +221,19 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	  if (glyphsLimn) {
 	    ri = limnObjSquareAdd(glyphsLimn, si + 1);
 	    ELL_4M_IDENTITY_SET(mA);
-	    ell4mPostMul_f(mA, sRot);
+	    ell_4m_post_mul_f(mA, sRot);
 	    ELL_4M_SCALE_SET(mB,
 			     shape->voxLen[0],
 			     shape->voxLen[1],
 			     shape->voxLen[2]);
-	    ell4mPostMul_f(mA, mB);
+	    ell_4m_post_mul_f(mA, mB);
 	    ELL_4M_TRANSLATE_SET(mB, W[0], W[1], W[2]);
-	    ell4mPostMul_f(mA, mB);
+	    ell_4m_post_mul_f(mA, mB);
 	    ELL_4M_TRANSLATE_SET(mB,
 				 originOffset[0],
 				 originOffset[1],
 				 originOffset[2]);
-	    ell4mPostMul_f(mA, mB);
+	    ell_4m_post_mul_f(mA, mB);
 	    lglyph = glyphsLimn->r + ri;
 	    ELL_4V_SET(lglyph->rgba, sliceAniso, sliceAniso, sliceAniso, 1);
 	    limnObjPartTransform(glyphsLimn, ri, mA);
@@ -265,11 +265,11 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
 	ELL_4M_IDENTITY_SET(mA);                        /* reset */
 	ELL_3V_SCALE(eval, parm->glyphScale, eval);     /* scale by evals */
 	ELL_4M_SCALE_SET(mB, eval[0], eval[1], eval[2]);
-	ell4mPostMul_f(mA, mB);
+	ell_4m_post_mul_f(mA, mB);
 	ELL_43M_INSET(mB, evec);                        /* rotate by evecs */
-	ell4mPostMul_f(mA, mB);
+	ell_4m_post_mul_f(mA, mB);
 	ELL_4M_TRANSLATE_SET(mB, W[0], W[1], W[2]);     /* translate */
-	ell4mPostMul_f(mA, mB);
+	ell_4m_post_mul_f(mA, mB);
 
 	/* set color (in R,G,B) */
 	cvec = evec + 3*(AIR_CLAMP(0, parm->colEvec, 2));

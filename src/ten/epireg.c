@@ -548,8 +548,8 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
 	ri += 1;
       }
     }
-    ellNmPseudoInverse(ninv, nmat1);
-    ellNmMultiply(nans, ninv, nvec);
+    ell_Nm_pseudo_inv(ninv, nmat1);
+    ell_Nm_mul(nans, ninv, nvec);
     ans = (double *)(nans->data);
     hst[3] = ans[0];
     hst[4] = ans[1];
@@ -574,8 +574,8 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
 	ri += 1;
       }
     }
-    ellNmPseudoInverse(ninv, nmat1);
-    ellNmMultiply(nans, ninv, nvec);
+    ell_Nm_pseudo_inv(ninv, nmat1);
+    ell_Nm_mul(nans, ninv, nvec);
     ans = (double *)(nans->data);
     hst[0] = ans[0];
     hst[1] = ans[1];
@@ -600,8 +600,8 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
 	ri += 1;
       }
     }
-    ellNmPseudoInverse(ninv, nmat1);
-    ellNmMultiply(nans, ninv, nvec);
+    ell_Nm_pseudo_inv(ninv, nmat1);
+    ell_Nm_mul(nans, ninv, nvec);
     ans = (double *)(nans->data);
     hst[6] = ans[0];
     hst[7] = ans[1];

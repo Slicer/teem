@@ -45,23 +45,23 @@ mossMatPrint (FILE *f, double *mat) {
 }
 
 double *
-mossMatPreMultiply (double *_mat, double *_x) {
+mossMatRightMultiply (double *_mat, double *_x) {
   double mat[9], x[9];
   
   MOSS_MAT_6TO9(x, _x);
   MOSS_MAT_6TO9(mat, _mat);
-  ell3mPreMul_d(mat, x);
+  ell_3m_pre_mul_d(mat, x);
   MOSS_MAT_9TO6(_mat, mat);
   return _mat;
 }
 
 double *
-mossMatPostMultiply (double *_mat, double *_x) {
+mossMatLeftMultiply (double *_mat, double *_x) {
   double mat[9], x[9];
   
   MOSS_MAT_6TO9(x, _x);
   MOSS_MAT_6TO9(mat, _mat);
-  ell3mPostMul_d(mat, x);
+  ell_3m_post_mul_d(mat, x);
   MOSS_MAT_9TO6(_mat, mat);
   return _mat;
 }
@@ -71,7 +71,7 @@ mossMatInvert (double *inv, double *mat) {
   double inv9[9], mat9[9];
 
   MOSS_MAT_6TO9(mat9, mat);
-  ell3mInvert_d(inv9, mat9);
+  ell_3m_inv_d(inv9, mat9);
   MOSS_MAT_9TO6(inv, inv9);
   return inv;
 }
@@ -104,9 +104,9 @@ mossMatFlipSet (double *mat, double angle) {
 
   MOSS_MAT_SET(flip, -1, 0, 0, 1, 0, 0);
   mossMatIdentitySet(mat);
-  mossMatPostMultiply(mat, mossMatRotateSet(rot, -angle));
-  mossMatPostMultiply(mat, flip);
-  mossMatPostMultiply(mat, mossMatRotateSet(rot, angle));
+  mossMatLeftMultiply(mat, mossMatRotateSet(rot, -angle));
+  mossMatLeftMultiply(mat, flip);
+  mossMatLeftMultiply(mat, mossMatRotateSet(rot, angle));
   return mat;
 }
 
@@ -116,9 +116,9 @@ mossMatShearSet (double *mat, double angleFixed, double amount) {
 
   MOSS_MAT_SET(shear, 1, 0, amount, 1, 0, 0);
   mossMatIdentitySet(mat);
-  mossMatPostMultiply(mat, mossMatRotateSet(rot, -angleFixed));
-  mossMatPostMultiply(mat, shear);
-  mossMatPostMultiply(mat, mossMatRotateSet(rot, angleFixed));
+  mossMatLeftMultiply(mat, mossMatRotateSet(rot, -angleFixed));
+  mossMatLeftMultiply(mat, shear);
+  mossMatLeftMultiply(mat, mossMatRotateSet(rot, angleFixed));
   return mat;
 }
 

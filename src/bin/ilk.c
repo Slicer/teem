@@ -166,10 +166,10 @@ main(int argc, char *argv[]) {
 
   /* form complete transform */
   mossMatIdentitySet(mat);
-  mossMatPostMultiply(mat, origMat);
+  mossMatLeftMultiply(mat, origMat);
   for (i=0; i<matListLen; i++)
-    mossMatPostMultiply(mat, matList[i]);
-  mossMatPostMultiply(mat, origInvMat);
+    mossMatLeftMultiply(mat, matList[i]);
+  mossMatLeftMultiply(mat, origInvMat);
 
   if (!AIR_EXISTS(nin->axis[ax0+0].min) || !AIR_EXISTS(nin->axis[ax0+0].max)) {
     nrrdAxisMinMaxSet(nin, ax0+0, mossDefCenter);

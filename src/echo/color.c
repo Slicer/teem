@@ -144,12 +144,12 @@ echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3], echoCol_t spec[3],
       }
     }
     echoLightColor(Lcol, Ldist, scene->light[Lidx], parm, tstate);
-    ELL_3V_SCALEINCR(diff, Ldot, Lcol);
+    ELL_3V_SCALE_INCR(diff, Ldot, Lcol);
     if (spec) {
       Ldot = ELL_3V_DOT(Ldir, intx->refl);
       if (Ldot > 0) {
 	Ldot = pow(Ldot, sp);
-	ELL_3V_SCALEINCR(spec, Ldot, Lcol);
+	ELL_3V_SCALE_INCR(spec, Ldot, Lcol);
       }
     }
   }
@@ -254,7 +254,7 @@ _echoRefract(echoPos_t T[3], echoPos_t V[3],
 	    cosTh, index, cosPh);
   }
   tmp1 = -1.0/index; tmp2 = cosTh/index - cosPh; 
-  ELL_3V_SCALEADD(T, tmp1, V, tmp2, N);
+  ELL_3V_SCALE_ADD(T, tmp1, V, tmp2, N);
   ELL_3V_NORM(T, T, tmp1);
   return AIR_TRUE;
 }
@@ -418,16 +418,16 @@ echoIntxFuzzify(echoIntx *intx, echoCol_t fuzz, echoThreadState *tstate) {
   j1 = fuzz*jitt[1];
   ELL_3V_COPY(oldNorm, intx->norm);
   side = ELL_3V_DOT(intx->refl, oldNorm) > 0;
-  ell3vPERP(perp0, oldNorm);
+  ell_3v_PERP(perp0, oldNorm);
   ELL_3V_NORM(perp0, perp0, tmp);
   ELL_3V_CROSS(perp1, perp0, oldNorm);
-  ELL_3V_SCALEADD3(intx->norm, 1, oldNorm, j0, perp0, j1, perp1);
+  ELL_3V_SCALE_ADD3(intx->norm, 1, oldNorm, j0, perp0, j1, perp1);
   ELL_3V_NORM(intx->norm, intx->norm, tmp);
-  ECHO_REFLECT(intx->refl, intx->norm, intx->view, tmp);
+  _ECHO_REFLECT(intx->refl, intx->norm, intx->view, tmp);
   if (side != (ELL_3V_DOT(intx->refl, oldNorm) > 0)) {
-    ELL_3V_SCALEADD3(intx->norm, 1, oldNorm, -j0, perp0, -j1, perp1);
+    ELL_3V_SCALE_ADD3(intx->norm, 1, oldNorm, -j0, perp0, -j1, perp1);
     ELL_3V_NORM(intx->norm, intx->norm, tmp);
-    ECHO_REFLECT(intx->refl, intx->norm, intx->view, tmp);
+    _ECHO_REFLECT(intx->refl, intx->norm, intx->view, tmp);
   }
   if (tstate->verbose) {
     fprintf(stderr, "%s%s: fuzz[%g](%g,%g,%g) --> (%g,%g,%g)\n",

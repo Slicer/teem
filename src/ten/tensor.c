@@ -180,10 +180,10 @@ tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine) {
 /*
 ******** tenEigensolve
 **
-** uses ell3mEigensolve to get the eigensystem of a single tensor
+** uses ell_3m_eigensolve_d to get the eigensystem of a single tensor
 ** disregards the confidence value t[0]
 **
-** return is same as ell3mEigensolve, which is same as ellCubic
+** return is same as ell_3m_eigensolve_d, which is same as ell_cubic
 **
 ** This does NOT use biff
 */
@@ -198,8 +198,8 @@ tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
   ELL_3M_SCALE(iso, trc, iso);
   ELL_3M_SUB(m, m, iso);
   if (_evec) {
-    ret = ell3mEigensolve(eval, evec, m, AIR_TRUE);
-    if (ellCubicRootThree != ret && tenVerbose) {
+    ret = ell_3m_eigensolve_d(eval, evec, m, AIR_TRUE);
+    if (ell_cubic_root_three != ret && tenVerbose) {
       fprintf(stderr, "---- cubic ret = %d\n", ret);
       fprintf(stderr, "tensor = {\n");
       fprintf(stderr, "    % 15.7f,\n", t[1]);
@@ -215,7 +215,7 @@ tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
     }
     ELL_3V_SET(_eval, eval[0] + trc, eval[1] + trc, eval[2] + trc);
     ELL_3M_COPY(_evec, evec);
-    if (ellCubicRootSingleDouble == ret) {
+    if (ell_cubic_root_single_double == ret) {
       /* this was added to fix a stupid problem with very nearly
 	 isotropic glyphs, used for demonstration figures */
       if (eval[0] == eval[1]) {
@@ -237,7 +237,7 @@ tenEigensolve(float _eval[3], float _evec[9], float t[7]) {
     }
   } else {
     /* caller only wants eigenvalues */
-    ret = ell3mEigenvalues(eval, m, AIR_TRUE);
+    ret = ell_3m_eigenvalues_d(eval, m, AIR_TRUE);
     ELL_3V_SET(_eval, eval[0] + trc, eval[1] + trc, eval[2] + trc);
   }    
   return ret;
@@ -288,7 +288,7 @@ tenMakeOne(float ten[7], float conf, float eval[3], float evec[9]) {
 
   ELL_3M_ZERO_SET(diag);
   ELL_3M_DIAG_SET(diag, eval[0], eval[1], eval[2]);
-  ELL_3M_TRANSPOSE(evecT, evec);
+  ELL_3M_TRAN(evecT, evec);
   ELL_3M_MUL(tmpMat1, diag, evecT);
   ELL_3M_MUL(tmpMat2, evec, tmpMat1);
   ten[0] = conf;

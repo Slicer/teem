@@ -48,22 +48,22 @@ main(int argc, char **argv) {
     exit(1);
   }
 
-  ellDebug = AIR_TRUE;
-  ret = ellCubic(r, A, B, C, AIR_TRUE);
+  ell_debug = AIR_TRUE;
+  ret = ell_cubic(r, A, B, C, AIR_TRUE);
   ans0 = C + r[0]*(B + r[0]*(A + r[0]));
   switch(ret) {
-  case ellCubicRootSingle:
+  case ell_cubic_root_single:
     printf("1 single root: %g -> %f\n", r[0], ans0);
     break;
-  case ellCubicRootTriple:
+  case ell_cubic_root_triple:
     printf("1 triple root: %g -> %f\n", r[0], ans0);
     break;
-  case ellCubicRootSingleDouble:
+  case ell_cubic_root_single_double:
     ans1 = C + r[1]*(B + r[1]*(A + r[1]));
     printf("1 single root %g -> %f, 1 double root %g -> %f\n", 
 	   r[0], ans0, r[1], ans1);
     break;
-  case ellCubicRootThree:
+  case ell_cubic_root_three:
     ans1 = C + r[1]*(B + r[1]*(A + r[1]));
     ans2 = C + r[2]*(B + r[2]*(A + r[2]));
     printf("3 distinct roots:\n %g -> %f\n %g -> %f\n %g -> %f\n",

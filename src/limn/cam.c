@@ -90,7 +90,7 @@ limnCamUpdate(limnCam *cam) {
   ELL_4M_ROWS_SET(R, u, v, n, l);
   ELL_4M_MUL(cam->W2V, R, T);
   ELL_4M_COPY(T, cam->W2V);
-  ell4mInvert_d(cam->V2W, T);
+  ell_4m_inv_d(cam->V2W, T);
 
   return 0;
 }

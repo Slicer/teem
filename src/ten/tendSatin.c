@@ -92,7 +92,7 @@ tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z,
     /* out: points away from (x,y)=(0,0) */
     ELL_3V_SET(out, x, y, 0);
     ELL_3V_NORM(out, out, norm);
-    ELL_3V_SCALEADD(evec + 3*2, -z, up, (1-R), out);
+    ELL_3V_SCALE_ADD(evec + 3*2, -z, up, (1-R), out);
     ELL_3V_NORM(evec + 3*2, evec + 3*2, norm);
     
     /* v1: looking at right half of cross-section, points counter clockwise */

@@ -24,6 +24,30 @@
 extern "C" {
 #endif
 
+#if ECHO_POS_FLOAT
+#  define echoPos_nt nrrdTypeFloat
+#  define echoPos_at airTypeFloat
+#  define ell_4m_INV ell_4m_inv_f
+#  define ell_4m_PRINT ell_4m_print_f
+#  define ell_4m_DET ell_4m_det_f
+#  define ell_3v_PERP ell_3v_perp_f
+#  define ell_4m_POST_MUL ell_4m_post_mul_f
+#  define ECHO_POS_MIN (-FLT_MAX)
+#  define ECHO_POS_MAX FLT_MAX
+#  define ECHO_POS_EPS FLT_EPSILON
+#else
+#  define echoPos_nt nrrdTypeDouble
+#  define echoPos_at airTypeDouble
+#  define ell_4m_INV ell_4m_inv_d
+#  define ell_4m_PRINT ell_4m_print_d
+#  define ell_4m_DET ell_4m_det_d
+#  define ell_3v_PERP ell_3v_perp_d
+#  define ell_4m_POST_MUL ell_4m_post_mul_d
+#  define ECHO_POS_MIN (-DBL_MAX)
+#  define ECHO_POS_MAX DBL_MAX
+#  define ECHO_POS_EPS DBL_EPSILON
+#endif
+
 #define OBJECT(obj)    ((echoObject*)obj)
 #define SPLIT(obj)     ((echoSplit*)obj)
 #define LIST(obj)      ((echoList*)obj)
@@ -36,9 +60,9 @@ extern "C" {
 #define TRIANGLE(obj)  ((echoTriangle*)obj)
 #define INSTANCE(obj)  ((echoInstance*)obj)
 
-#define ECHO_REFLECT(refl, norm, view, tmp) \
+#define _ECHO_REFLECT(refl, norm, view, tmp) \
   (tmp) = 2*ELL_3V_DOT((view), (norm)); \
-  ELL_3V_SCALEADD((refl), -1.0, (view), (tmp), (norm))
+  ELL_3V_SCALE_ADD((refl), -1.0, (view), (tmp), (norm))
 
 #define ECHO_NEW(TYPE) \
   (echoObject##TYPE *)echoNew(echoObject##Type)
