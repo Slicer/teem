@@ -1,12 +1,11 @@
-debug bin/overrgb
-
-create nrrdRsmp_t typedef and make sure that resampler uses it
-
-make decision on whether nrrdBigInt should simply be size_t
+change verbosity to warning when nrrd headers in PPM and tables are botched,
+and to get indication of successful DIO reading
 
 test regular and irregular colormaps with only 2 points, 
 purify unu {lut, rmap, imap} with scalar and nonscalar,
 type  same and different than map type.
+
+nrrdSplice, nrrdInset
 
 2D luts/rmaps
 
@@ -21,14 +20,11 @@ test working with nout==nin
 nrrdContentSet
 nrrdConvert
 nrrdQuantize
+nrrdUnquantize
 
 write a select() function to replace qsort() in median calculation
 
 gzip encoding
-
-change verbosity to get back the "reading data ..." messages.
-AND CERTAINLY get it back to warn when nrrd headers in PPM and tables
-are botched
 
 be sure to test all non-boolean state/default variables .
 
