@@ -1,3 +1,6 @@
+make new calls for setting the different kinds of options, so that
+reliance on var-args is minimized
+
 for super long things like "tend glyph", it would be nice to have
 seperator lines between the long versions of options, to visually
 group them somewhat.
