@@ -104,9 +104,9 @@ tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten) {
       biffAdd(TEN, err); return 1;
     }
     if (!( AIR_IN_CL(0, parm->slicePos,
-		     nten->axis[1+parm->sliceAxis].size) )) {
+		     nten->axis[1+parm->sliceAxis].size-1) )) {
       sprintf(err, "%s: slice pos %d not in valid range [0..%d]", me,
-	      parm->slicePos, nten->axis[1+parm->sliceAxis].size);
+	      parm->slicePos, nten->axis[1+parm->sliceAxis].size-1);
       biffAdd(TEN, err); return 1;
     }
     if (airEnumValCheck(tenAniso, parm->sliceAnisoType)) {
