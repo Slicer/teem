@@ -35,6 +35,9 @@ echoRTParmNew(void) {
     parm->renderLights = AIR_TRUE;
     parm->renderBoxes = AIR_FALSE;
     parm->seedRand = AIR_TRUE;
+    parm->sqDiv = 10;
+    parm->sqNRI = 15;
+    parm->sqTol = 0.0001;
     parm->aperture = 0.0;     /* pinhole camera by default */
     parm->timeGamma = 6.0;
     parm->refDistance = 1.0;
@@ -129,8 +132,9 @@ echoSceneNew(void) {
     airArrayPointerCB(ret->nrrdArr,
 		      airNull,
 		      (void *(*)(void *))nrrdNuke);
-    ELL_3V_SET(ret->am, 1.0, 1.0, 1.0);
-    ELL_3V_SET(ret->bg, 0.0, 0.0, 0.0);
+    ret->envmap = NULL;
+    ELL_3V_SET(ret->ambi, 1.0, 1.0, 1.0);
+    ELL_3V_SET(ret->bkgr, 0.0, 0.0, 0.0);
   }
   return ret;
 }
@@ -173,6 +177,7 @@ echoSceneNix(echoScene *scene) {
     airArrayNuke(scene->rendArr);
     airArrayNuke(scene->litArr);
     airArrayNuke(scene->nrrdArr);
+    /* don't touch envmap nrrd */
     AIR_FREE(scene);
   }
   return NULL;

@@ -23,6 +23,8 @@
 int
 echoObjectHasMatter[ECHO_TYPE_NUM] = {
   1, /* echoTypeSphere */
+  1, /* echoTypeCylinder */
+  1, /* echoTypeSuperquad */
   1, /* echoTypeCube */
   1, /* echoTypeTriangle */
   1, /* echoTypeRectangle */

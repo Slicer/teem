@@ -28,6 +28,8 @@ extern "C" {
 #define SPLIT(obj)     ((echoSplit*)obj)
 #define LIST(obj)      ((echoList*)obj)
 #define SPHERE(obj)    ((echoSphere*)obj)
+#define CYLINDER(obj)  ((echoCylinder*)obj)
+#define SUPERQUAD(obj) ((echoSuperquad*)obj)
 #define RECTANGLE(obj) ((echoRectangle*)obj)
 #define AABBOX(obj)    ((echoAABBox*)obj)
 #define TRIMESH(obj)   ((echoTriMesh*)obj)

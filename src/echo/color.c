@@ -104,10 +104,13 @@ _echoIntxColorPhong(INTXCOLOR_ARGS) {
     ldir[3],             /* unit-length light vector */
     refl[3],             /* unit-length reflection vector */
     ldist;               /* distance to light */
-  int lt;
+  int lt, qn;
   echoObject *light;
   echoRay shRay;
   echoIntx shIntx;
+#if !ECHO_POS_FLOAT
+  float norm_f[3];
+#endif
 
   shRay.depth = 0;
   shRay.shadow = AIR_TRUE;
@@ -124,9 +127,20 @@ _echoIntxColorPhong(INTXCOLOR_ARGS) {
   tmp = 2*ELL_3V_DOT(view, norm);
   ELL_3V_SCALEADD(refl, -1, view, tmp, norm);
 
-  d[0] = ka*scene->am[0];
-  d[1] = ka*scene->am[1];
-  d[2] = ka*scene->am[2];
+  d[0] = ka*scene->ambi[0];
+  d[1] = ka*scene->ambi[1];
+  d[2] = ka*scene->ambi[2];
+  if (scene->envmap) {
+#if ECHO_POS_FLOAT
+    qn = limnVtoQN[limnQN_16checker](norm);
+#else
+    ELL_3V_COPY(norm_f, norm);
+    qn = limnVtoQN[limnQN_16checker](norm_f);
+#endif
+    d[0] += (ka+kd)*((float*)(scene->envmap->data))[0 + 3*qn];
+    d[1] += (ka+kd)*((float*)(scene->envmap->data))[1 + 3*qn];
+    d[2] += (ka+kd)*((float*)(scene->envmap->data))[2 + 3*qn];
+  }
   s[0] = s[1] = s[2] = 0.0;
   ELL_3V_COPY(shRay.from, intx->pos);
   shRay.neer = ECHO_EPSILON;

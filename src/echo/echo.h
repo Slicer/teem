@@ -45,8 +45,9 @@ extern "C" {
 ** 1: floats
 ** 0: doubles
 */
-#if 1
+#if 0
 typedef float echoPos_t;
+#define ECHO_POS_FLOAT 1
 #define echoPos_nt nrrdTypeFloat
 #define echoPos_at airTypeFloat
 #define ell4mINVERT ell4mInvert_f
@@ -56,6 +57,7 @@ typedef float echoPos_t;
 #define ECHO_POS_MAX FLT_MAX
 #else 
 typedef double echoPos_t;
+#define ECHO_POS_FLOAT 0
 #define echoPos_nt nrrdTypeDouble
 #define echoPos_at airTypeDouble
 #define ell4mINVERT ell4mInvert_d
@@ -81,7 +83,7 @@ typedef double echoCol_t;
 #define ECHO_IMG_CHANNELS 5
 #define ECHO_EPSILON 0.001        /* used for adjusting ray positions */
 #define ECHO_NEAR0 0.004          /* used for comparing transparency to zero */
-#define ECHO_LEN_SMALL_ENOUGH 16  /* to control splitting for split objects */
+#define ECHO_LEN_SMALL_ENOUGH 5   /* to control splitting for split objects */
 
 typedef struct {
   int jitterType,      /* from echoJitter* enum below */
@@ -93,7 +95,13 @@ typedef struct {
     maxRecDepth,       /* max recursion depth */
     renderLights,      /* render the area lights */
     renderBoxes,       /* faintly render bounding boxes */
-    seedRand;          /* call airSrand() (don't if repeatability wanted) */
+    seedRand,          /* call airSrand() (don't if repeatability wanted) */
+    sqDiv,             /* how many intervals to brute-force test when
+			  doing the superquadric root-finding */
+    sqNRI;             /* how many iterations of newton-raphson we allow for
+			  finding superquadric root (within tolorance sqTol) */
+  echoPos_t
+    sqTol;             /* how close newtwon-raphson must get to zero */
   float aperture,      /* shallowness of field */
     timeGamma,         /* gamma for values in time image */
     refDistance,       /* reference distance for 1/(r*r)'ing area lights */
@@ -204,19 +212,21 @@ enum {
 enum {
   echoTypeUnknown=-1,
   echoTypeSphere,         /*  0 */
-  echoTypeCube,           /*  1 */
-  echoTypeTriangle,       /*  2 */
-  echoTypeRectangle,      /*  3 */
-  echoTypeTriMesh,        /*  4: only triangles in the mesh */
-  echoTypeIsosurface,     /*  5 */
-  echoTypeAABBox,         /*  6 */
-  echoTypeSplit,          /*  7 */
-  echoTypeList,           /*  8 */
-  echoTypeInstance,       /*  9 */
+  echoTypeCylinder,       /*  1 */
+  echoTypeSuperquad,      /*  2 */
+  echoTypeCube,           /*  3 */
+  echoTypeTriangle,       /*  4 */
+  echoTypeRectangle,      /*  5 */
+  echoTypeTriMesh,        /*  6: only triangles in the mesh */
+  echoTypeIsosurface,     /*  7 */
+  echoTypeAABBox,         /*  8 */
+  echoTypeSplit,          /*  9 */
+  echoTypeList,           /* 10 */
+  echoTypeInstance,       /* 11 */
   echoTypeLast
 };
 
-#define ECHO_TYPE_NUM        10
+#define ECHO_TYPE_NUM        12
 
 /*
 ******** echoObject (generic) and all other object structs
@@ -246,6 +256,19 @@ typedef struct {
   ECHO_OBJECT_MATTER;
   echoPos_t pos[3], rad;
 } echoSphere;
+
+typedef struct {
+  ECHO_OBJECT_COMMON;
+  ECHO_OBJECT_MATTER;
+  int axis;
+} echoCylinder;
+
+typedef struct {
+  ECHO_OBJECT_COMMON;
+  ECHO_OBJECT_MATTER;
+  int axis;
+  echoPos_t A, B;
+} echoSuperquad;
 
 /* edges are unit length, [-0.5, 0.5] on every edge */
 typedef struct {
@@ -327,8 +350,10 @@ typedef struct {
   airArray *litArr;
   Nrrd **nrrd;         /* nrrds for textures and isosurfaces */
   airArray *nrrdArr;
-  echoCol_t am[3],     /* color of ambient light */
-    bg[3];             /* color of background */
+  Nrrd *envmap;        /* 16checker-based diffuse environment map,
+			  not touched by echoSceneNix() */
+  echoCol_t ambi[3],   /* color of ambient light */
+    bkgr[3];           /* color of background */
 } echoScene;
 
 /*
@@ -402,6 +427,10 @@ extern echoObject *echoListSplit3(echoScene *scene,
 extern void echoSphereSet(echoObject *sphere,
 			  echoPos_t x, echoPos_t y,
 			  echoPos_t z, echoPos_t rad);
+extern void echoCylinderSet(echoObject *cylind,
+			    int axis);
+extern void echoSuperquadSet(echoObject *squad,
+			     int axis, echoPos_t A, echoPos_t B);
 extern void echoRectangleSet(echoObject *rect,
 			     echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
 			     echoPos_t x0, echoPos_t y0, echoPos_t z0,

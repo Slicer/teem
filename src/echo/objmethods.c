@@ -58,6 +58,17 @@ NEW_TMPL(Sphere,
 	 obj->rad = 0.5;
 	 )
 
+NEW_TMPL(Cylinder,
+	 _echoMatterInit(OBJECT(obj));
+	 obj->axis = 2;
+	 )
+
+NEW_TMPL(Superquad,
+	 _echoMatterInit(OBJECT(obj));
+	 obj->axis = 2;
+	 obj->A = obj->B = 1;
+	 )
+
 NEW_TMPL(Cube,
 	 _echoMatterInit(OBJECT(obj));
 	 )
@@ -132,6 +143,8 @@ NEW_TMPL(Instance,
 echoObject *(*
 _echoObjectNew[ECHO_TYPE_NUM])(void) = {
   (echoObject *(*)(void))_echoSphere_new,
+  (echoObject *(*)(void))_echoCylinder_new,
+  (echoObject *(*)(void))_echoSuperquad_new,
   (echoObject *(*)(void))_echoCube_new,
   (echoObject *(*)(void))_echoTriangle_new,
   (echoObject *(*)(void))_echoRectangle_new,
@@ -173,7 +186,9 @@ _echoObjectNix[ECHO_TYPE_NUM])(echoObject *) = {
   (echoObject *(*)(echoObject *))airFree,
   (echoObject *(*)(echoObject *))airFree,
   (echoObject *(*)(echoObject *))airFree,
+  (echoObject *(*)(echoObject *))airFree,
   (echoObject *(*)(echoObject *))_echoTriMesh_nix,
+  (echoObject *(*)(echoObject *))airFree,
   (echoObject *(*)(echoObject *))airFree,
   (echoObject *(*)(echoObject *))airFree,
   (echoObject *(*)(echoObject *))airFree,

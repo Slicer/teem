@@ -89,8 +89,8 @@ main(int argc, char **argv) {
   cam->rightHanded = AIR_TRUE;
   cam->uRange[0] = -1.4;  cam->vRange[0] = -1.4;
   cam->uRange[1] =  1.4;  cam->vRange[1] =  1.4;
-  parm->imgResU = parm->imgResV = 600;
-  parm->numSamples = 64;
+  parm->imgResU = parm->imgResV = 300;
+  parm->numSamples = 16;
   parm->jitterType = echoJitterJitter;
   parm->aperture = 0;
   parm->renderBoxes = AIR_FALSE;

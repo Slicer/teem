@@ -139,6 +139,12 @@ echoRTRenderCheck(Nrrd *nraw, limnCam *cam, echoScene *scene,
     sprintf(err, "%s: camera trouble", me);
     biffMove(ECHO, err, LIMN); return 1;
   }
+  if (scene->envmap) {
+    if (limnEnvMapCheck(scene->envmap)) {
+      sprintf(err, "%s: environment map not valid", me);
+      biffMove(ECHO, err, LIMN); return 1;
+    }
+  }
   if (!airEnumValValid(echoJitter, parm->jitterType)) {
     sprintf(err, "%s: jitter method (%d) invalid", me, parm->jitterType);
     biffAdd(ECHO, err); return 1;
@@ -232,7 +238,7 @@ echoRayColor(echoCol_t *chan, int samp, echoRay *ray,
     }
     /* ray hits nothing in scene */
     if (!parm->renderBoxes) {
-      ELL_4V_SET(chan, scene->bg[0], scene->bg[1], scene->bg[2], 1.0);
+      ELL_4V_SET(chan, scene->bkgr[0], scene->bkgr[1], scene->bkgr[2], 1.0);
     } else {
       tmp = 1.0 - pow(1.0 - parm->boxOpac, intx.boxhits);
       ELL_4V_SET(chan, 1.0, 1.0, 1.0, tmp);

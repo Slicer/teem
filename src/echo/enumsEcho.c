@@ -83,6 +83,8 @@ char
 _echoTypeStr[ECHO_TYPE_NUM+1][AIR_STRLEN_SMALL] = {
   "(unknown_object)",
   "sphere",
+  "cylinder",
+  "superquad",
   "cube",
   "triangle",
   "rectangle",
@@ -98,6 +100,8 @@ int
 _echoTypeVal[ECHO_TYPE_NUM+1] = {
   echoTypeUnknown,
   echoTypeSphere,
+  echoTypeCylinder,
+  echoTypeSuperquad,
   echoTypeCube,
   echoTypeTriangle,
   echoTypeRectangle,
@@ -113,6 +117,8 @@ char
 _echoTypeDesc[ECHO_TYPE_NUM+1][AIR_STRLEN_MED] = {
   "unknown_object",
   "sphere",
+  "axis-aligned cylinder",
+  "superquadric (actually, superellipsoid)",
   "unit cube, centered at the origin",
   "triangle",
   "rectangle",
@@ -127,7 +133,9 @@ _echoTypeDesc[ECHO_TYPE_NUM+1][AIR_STRLEN_MED] = {
 char
 _echoTypeStrEqv[][AIR_STRLEN_SMALL] = {
   "sphere",
-  "cube",
+  "cylinder", "cylind", "rod",
+  "superquad", "squad",
+  "cube", "box",
   "triangle", "tri",
   "rectangle", "rect",
   "mesh", "tri-mesh", "trimesh",
@@ -142,7 +150,9 @@ _echoTypeStrEqv[][AIR_STRLEN_SMALL] = {
 int
 _echoTypeValEqv[] = {
   echoTypeSphere,
-  echoTypeCube,
+  echoTypeCylinder, echoTypeCylinder, echoTypeCylinder,
+  echoTypeSuperquad, echoTypeSuperquad,
+  echoTypeCube, echoTypeCube,
   echoTypeTriangle, echoTypeTriangle,
   echoTypeRectangle, echoTypeRectangle,
   echoTypeTriMesh, echoTypeTriMesh, echoTypeTriMesh,

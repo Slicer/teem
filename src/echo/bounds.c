@@ -49,9 +49,19 @@ BNDS_TMPL(Sphere,
 	  hi[2] = obj->pos[2] + obj->rad;
 	  )
 
+BNDS_TMPL(Cylinder,
+	  ELL_3V_SET(lo, -1, -1, -1);
+	  ELL_3V_SET(hi,  1,  1,  1);
+	  )
+
+BNDS_TMPL(Superquad,
+	  ELL_3V_SET(lo, -1, -1, -1);
+	  ELL_3V_SET(hi,  1,  1,  1);
+	  )
+
 BNDS_TMPL(Cube,
-	  ELL_3V_SET(lo, -0.5, -0.5, -0.5);
-	  ELL_3V_SET(hi,  0.5,  0.5,  0.5);
+	  ELL_3V_SET(lo, -1, -1, -1);
+	  ELL_3V_SET(hi,  1,  1,  1);
 	  )
 
 BNDS_TMPL(Triangle,
@@ -155,6 +165,8 @@ BNDS_TMPL(Instance,
 _echoBoundsGet_t
 _echoBoundsGet[ECHO_TYPE_NUM] = {
   (_echoBoundsGet_t)_echoSphere_bounds,
+  (_echoBoundsGet_t)_echoCylinder_bounds,
+  (_echoBoundsGet_t)_echoSuperquad_bounds,
   (_echoBoundsGet_t)_echoCube_bounds,
   (_echoBoundsGet_t)_echoTriangle_bounds,
   (_echoBoundsGet_t)_echoRectangle_bounds,
@@ -170,4 +182,3 @@ void
 echoBoundsGet(echoPos_t *lo, echoPos_t *hi, echoObject *obj) {
   _echoBoundsGet[obj->type](lo, hi, obj);
 }
-

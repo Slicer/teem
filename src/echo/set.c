@@ -32,6 +32,28 @@ echoSphereSet(echoObject *sphere,
 }
 
 void
+echoCylinderSet(echoObject *cylind,
+		int axis) {
+  
+  if (cylind && echoTypeCylinder == cylind->type) {
+    CYLINDER(cylind)->axis = axis;
+  }
+  return;
+}
+
+void
+echoSuperquadSet(echoObject *squad,
+		 int axis, echoPos_t A, echoPos_t B) {
+
+  if (squad && echoTypeSuperquad == squad->type) {
+    SUPERQUAD(squad)->axis = axis;
+    SUPERQUAD(squad)->A = A;
+    SUPERQUAD(squad)->B = B;
+  }
+  return;
+}
+
+void
 echoRectangleSet(echoObject *rect,
 		 echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
 		 echoPos_t e0x, echoPos_t e0y, echoPos_t e0z,
