@@ -169,14 +169,14 @@ _nrrdSscanfDouble(char *str, char *fmt, double *ptr) {
       c++;
     }
     if (strstr(tmp, "nan")) {
-      *ptr = airNand();
+      *ptr = AIR_NAN;
       ret = 1;
     }
     else {
       ret = sscanf(str, fmt, ptr);
       
     }
-    free(tmp);
+    tmp = airFree(tmp);
   }
   return ret;
 }
@@ -369,7 +369,7 @@ _nrrdParseLine(Nrrd *nrrd, char *line) {
 	}
 	else if (18 == f) {
 	  /* have to parse the endianness */
-	  if (nrrdEndianUnknown == (endian = nrrdStr2Endian(next))) {
+	  if (airEndianUnknown == (endian = airStrToEndian(next))) {
 	    sprintf(err, "%s: didn't recognize endianness \"%s\"", me, next);
 	    biffSet(NRRD, err); return 1;
 	  }
@@ -467,7 +467,7 @@ _nrrdNonCmtLine(FILE *file, char *line, int size, Nrrd *nrrd) {
       return 0;
     }
     if (NRRD_COMMENT_CHAR == line[0]) {
-      nrrdAddComment(nrrd, line+1);
+      nrrdCommentAdd(nrrd, line+1);
     }
   } while (NRRD_COMMENT_CHAR == line[0]);
   return len;
@@ -482,7 +482,7 @@ nrrdReadMagic(FILE *file) {
   _nrrdMagicstr[0] = 0;
   do {
     if (!(len = nrrdOneLine(file, line, NRRD_BIG_STRLEN))) {
-      sprintf(err, "%s: initial _nrrdNonCmtLine() hit EOF", me);
+      sprintf(err, "%s: hit EOF", me);
       biffSet(NRRD, err); return nrrdMagicUnknown;
     }
   } while (1 == len);
@@ -515,7 +515,7 @@ nrrdReadHeader(FILE *file, Nrrd *nrrd) {
     return 1;
   case nrrdMagicNrrd0001:
     if (nrrdReadNrrdHeader(file, nrrd)) {
-      sprintf(err, "%s: nrrdReadNrrdHeader failed", me);
+      sprintf(err, "%s: trouble", me);
       biffAdd(NRRD, err); return 1;
     }
     break;
@@ -526,7 +526,7 @@ nrrdReadHeader(FILE *file, Nrrd *nrrd) {
   case nrrdMagicP5:
   case nrrdMagicP6:
     if (nrrdReadPNMHeader(file, nrrd, magic)) {
-      sprintf(err, "%s: nrrdReadPNMHeader failed", me);
+      sprintf(err, "%s: trouble", me);
       biffAdd(NRRD, err); return 1;
     }
     break;
@@ -557,7 +557,7 @@ nrrdReadNrrdHeader(FILE *file, Nrrd *nrrd) {
     }
     if (len > 1) {
       if (_nrrdParseLine(nrrd, line)) {
-	sprintf(err, "%s: _nrrdParseLine(\"%s\") failed", me, line);
+	sprintf(err, "%s: can't parse \"%s\"", me, line);
 	biffAdd(NRRD, err); return 1;
       }
     }
@@ -573,7 +573,7 @@ nrrdReadNrrdHeader(FILE *file, Nrrd *nrrd) {
     }
   }
   if (nrrdCheck(nrrd)) {
-    sprintf(err, "%s: nrrdCheck() failed", me);
+    sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdEncodingUnknown == nrrd->encoding) {
@@ -594,9 +594,7 @@ nrrdReadData(FILE *file, Nrrd *nrrd) {
     sprintf(err, "%s: invalid args", me);
     biffSet(NRRD, err); return 1;
   }
-  if (!(AIR_INSIDE(nrrdEncodingUnknown+1,
-		   nrrd->encoding,
-		   nrrdEncodingLast-1))) {
+  if (!AIR_BETWEEN(nrrdEncodingUnknown, nrrd->encoding, nrrdEncodingLast)) {
     sprintf(err, "%s: invalid encoding: %d", me, nrrd->encoding);
     biffSet(NRRD, err); return 1;
   }
@@ -652,8 +650,8 @@ nrrdReadData(FILE *file, Nrrd *nrrd) {
   /* now fix endianness if file endian doesn't match our current endian,
      but only if this was an encoding for which it mattered */
   if (nrrdEncodingEndianMatters[nrrd->encoding] 
-      && nrrd->fileEndian != nrrdEndianUnknown
-      && nrrd->fileEndian != nrrdMyEndian()) {
+      && nrrd->fileEndian != airEndianUnknown
+      && nrrd->fileEndian != airMyEndian) {
     fprintf(stderr, "(%s: fixing endianness ... ", me); fflush(stdout);
     nrrdSwapEndian(nrrd);
     fprintf(stderr, "done)\n");
@@ -673,13 +671,11 @@ nrrdReadDataRaw(FILE *file, Nrrd *nrrd) {
   }
   num = nrrd->num;
   size = nrrdTypeSize[nrrd->type];
-  if (!nrrd->data) {
-    if (nrrdAlloc(nrrd, nrrd->num, nrrd->type, nrrd->dim)) {
-      /* admittedly weird to be calling this since we already have num, 
-	 type, dim set-- just a way to get error reporting on calloc */
-      sprintf(err, "%s: nrrdAlloc() failed", me);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (nrrdMaybeAlloc(nrrd, nrrd->num, nrrd->type, nrrd->dim)) {
+    /* admittedly weird to be calling this since we already have num, 
+       type, dim set-- just a way to get error reporting on calloc */
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return 1;
   }
   if (num != fread(nrrd->data, size, num, file)) {
     sprintf(err, "%s: unable to read %d objects of size %d", me, num, size);
@@ -710,7 +706,7 @@ nrrdReadDataAscii(FILE *file, Nrrd *nrrd) {
   }
   type = nrrd->type;
   data = nrrd->data;
-  if (!(AIR_INSIDE(nrrdTypeUnknown+1, type, nrrdTypeLast-1))) {
+  if (!AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast)) {
     sprintf(err, "%s: got bogus type %d", me, type);
     biffAdd(NRRD, err); return 1;
   }
@@ -835,13 +831,13 @@ nrrdLoad(char *name, Nrrd *nrrd) {
     biffSet(NRRD, err); return 1;
   }
   if (nrrdRead(file, nrrd)) {
-    sprintf(err, "%s: nrrdRead() failed", me);
+    sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
   if (file != stdin) 
     fclose(file);
-  free(dir);
-  free(base);
+  dir = airFree(dir);
+  base = airFree(base);
   return 0;
 }
 
@@ -855,11 +851,11 @@ nrrdNewLoad(char *name) {
     biffSet(NRRD, err); return NULL;
   }
   if (!(nrrd = nrrdNew())) {
-    sprintf(err, "%s: nrrdNew() failed", me);
+    sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return NULL;
   }
   if (nrrdLoad(name, nrrd)) {
-    sprintf(err, "%s: nrrdLoad() failed", me);
+    sprintf(err, "%s: trouble", me);
     nrrdNuke(nrrd);
     biffAdd(NRRD, err); return NULL;
   }
@@ -902,9 +898,9 @@ nrrdSave(char *name, Nrrd *nrrd) {
     base = airStrdup(rawfn);
     _nrrdSplitFilename(rawfn, dir, base);
     sprintf(nrrd->name, "%s%c%s", _nrrdRelDirFlag, _nrrdDirChars[0], base);
-    free(rawfn);
-    free(dir);
-    free(base);
+    rawfn = airFree(rawfn);
+    dir = airFree(dir);
+    base = airFree(base);
     goto write;
   }
   ext = strstr(name, _nrrdPGMExt);
@@ -938,17 +934,15 @@ nrrdRead(FILE *file, Nrrd *nrrd) {
   char err[NRRD_MED_STRLEN], me[] = "nrrdRead";
 
   if (nrrdReadHeader(file, nrrd)) {
-    sprintf(err, "%s: nrrdReadHeader() failed", me);
+    sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!nrrd->data) {
-    if (nrrdAlloc(nrrd, nrrd->num, nrrd->type, nrrd->dim)) {
-      sprintf(err, "%s: nrrdAlloc() failed", me);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (nrrdMaybeAlloc(nrrd, nrrd->num, nrrd->type, nrrd->dim)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return 1;
   }
   if (nrrdReadData(file, nrrd)) {
-    sprintf(err, "%s: nrrdReadData() failed", me);
+    sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
   return 0;
@@ -964,11 +958,11 @@ nrrdNewRead(FILE *file) {
     biffSet(NRRD, err); return NULL;
   }
   if (!(nrrd = nrrdNew())) {
-    sprintf(err, "%s: nrrdNew() failed", me);
+    sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return NULL;
   }
   if (nrrdRead(file, nrrd)) {
-    sprintf(err, "%s: nrrdRead() failed", me);
+    sprintf(err, "%s: trouble", me);
     nrrdNuke(nrrd);
     biffAdd(NRRD, err); return NULL;
   }
@@ -988,11 +982,11 @@ nrrdWrite(FILE *file, Nrrd *nrrd) {
     nrrd->encoding = nrrdEncodingRaw;
   }
   if (nrrdWriteHeader(file, nrrd)) {
-    sprintf(err, "%s: nrrdWriteHeader() failed", me);
+    sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdWriteData(file, nrrd)) {
-    sprintf(err, "%s: nrrdWriteData() failed", me);
+    sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
   return 0;
@@ -1008,12 +1002,10 @@ nrrdWriteHeader(FILE *file, Nrrd *nrrd) {
     biffSet(NRRD, err); return 1;
   }
   if (nrrdCheck(nrrd)) {
-    sprintf(err, "%s: nrrdCheck() failed", me);
+    sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(AIR_INSIDE(nrrdEncodingUnknown+1,
-		   nrrd->encoding,
-		   nrrdEncodingLast-1))) {
+  if (!AIR_BETWEEN(nrrdEncodingUnknown, nrrd->encoding, nrrdEncodingLast)) {
     sprintf(err, "%s: invalid encoding: %d", me, nrrd->encoding);
     biffSet(NRRD, err); return 1;
   }
@@ -1028,13 +1020,12 @@ nrrdWriteHeader(FILE *file, Nrrd *nrrd) {
   if (AIR_EXISTS(nrrd->oldMax))
     fprintf(file, "old max: %lf\n", nrrd->oldMax);
   fprintf(file, "encoding: %s\n", nrrdEncoding2Str[nrrd->encoding]);
-  /* if chosen encoding exposes endianness, then we need to
+  /* if chosen encoding (and type) exposes endianness, then we need to
      record endianness in the header */
-  nrrd->fileEndian = nrrdMyEndian();
-  /* printf("%s: element size = %d\n", me, nrrdElementSize(nrrd)); */
+  nrrd->fileEndian = airMyEndian;
   if (nrrdEncodingEndianMatters[nrrd->encoding]
       && 1 != nrrdElementSize(nrrd)) {
-    fprintf(file, "endian: %s\n", nrrdEndian2Str[nrrd->fileEndian]);
+    fprintf(file, "endian: %s\n", airEndianToStr(nrrd->fileEndian));
   }
   if (nrrdEncodingUser == nrrd->encoding)
     fprintf(file, "blocksize: %d\n", nrrd->blockSize);
@@ -1104,9 +1095,7 @@ nrrdWriteData(FILE *file, Nrrd *nrrd) {
     sprintf(err, "%s: invalid args", me);
     biffSet(NRRD, err); return 1;
   }
-  if (!(AIR_INSIDE(nrrdEncodingUnknown+1,
-		   nrrd->encoding,
-		   nrrdEncodingLast-1))) {
+  if (!AIR_BETWEEN(nrrdEncodingUnknown, nrrd->encoding, nrrdEncodingLast)) {
     sprintf(err, "%s: invalid encoding: %d", me, nrrd->encoding);
     biffSet(NRRD, err); return 1;
   }
@@ -1173,7 +1162,7 @@ nrrdWriteDataAscii(FILE *file, Nrrd *nrrd) {
   }
   type = nrrd->type;
   data = nrrd->data;
-  if (!(AIR_INSIDE(nrrdTypeUnknown+1, type, nrrdTypeLast-1))) {
+  if (!AIR_BETWEEN(nrrdTypeUnknown, type, nrrdTypeLast)) {
     sprintf(err, "%s: got bogus type %d", me, type);
     biffAdd(NRRD, err); return 1;
   }
@@ -1266,7 +1255,7 @@ nrrdReadPNMHeader(FILE *file, Nrrd *nrrd, int magic) {
     }
     /* printf("%s: got line: |%s|\n", me, line); */
     if ('#' == line[0]) {
-      nrrdAddComment(nrrd, line+1);
+      nrrdCommentAdd(nrrd, line+1);
       continue;
     }
     if (3 == sscanf(line, "%d%d%d", num[got], num[got+1], num[got+2])) {
@@ -1401,7 +1390,7 @@ nrrdWritePNM(FILE *file, Nrrd *nrrd) {
 	  color ? nrrd->size[1] : nrrd->size[0], 
 	  color ? nrrd->size[2] : nrrd->size[1]);
   if (nrrdWriteData(file, nrrd)) {
-    sprintf(err, "%s: nrrdWriteData() failed", me);
+    sprintf(err, "%s: trouble", me);
     biffAdd(NRRD, err); return 1;
   }
   return 0;
