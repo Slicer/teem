@@ -32,17 +32,15 @@ histoMain(int argc, char **argv, char *me) {
   airArray *mop;
 
   OPT_ADD_NIN(nin, "input nrrd");
+  hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, NULL,
+	     "# of bins in histogram");
   hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
 	     "Value at low end of histogram. Defaults to lowest value "
 	     "found in input nrrd.");
   hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
 	     "Value at high end of histogram. Defaults to highest value "
 	     "found in input nrrd.");
-  hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, NULL,
-	     "# of bins in histogram");
-  hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &type, "int",
-	     "type to use for bins in output histogram",
-             NULL, nrrdType);
+  OPT_ADD_TYPE(type, "type to use for bins in output histogram", "uint");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopInit();
