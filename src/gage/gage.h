@@ -608,6 +608,10 @@ extern int gageProbe(gageContext *ctx, gage_t x, gage_t y, gage_t z);
 /* update.c */
 extern int gageUpdate(gageContext *ctx);
 
+/* st.c */
+extern int gageStructureTensor(Nrrd *nout, Nrrd *nin,
+			       int dScale, int iScale, int dsmp);
+
 #ifdef __cplusplus
 }
 #endif
