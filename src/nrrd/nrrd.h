@@ -17,6 +17,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #ifndef NRRD_HAS_BEEN_INCLUDED
 #define NRRD_HAS_BEEN_INCLUDED
@@ -509,3 +513,7 @@ extern int nrrdKernelParse(NrrdKernel **kernelP, double *param,
 			   const char *str);
 
 #endif /* NRRD_HAS_BEEN_INCLUDED */
+
+#ifdef __cplusplus
+}
+#endif

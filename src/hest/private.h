@@ -17,6 +17,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef HEST_PRIVATE_HAS_BEEN_INCLUDED
 #define HEST_PRIVATE_HAS_BEEN_INCLUDED
 
@@ -36,3 +40,7 @@ extern int _hestPanic(hestOpt *opt, char *err, hestParm *parm);
 extern int _hestErrStrlen(hestOpt *opt, int argc, char **argv);
 
 #endif /* HEST_HAS_BEEN_INCLUDED */
+
+#ifdef __cplusplus
+}
+#endif

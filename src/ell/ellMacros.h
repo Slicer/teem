@@ -17,6 +17,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef ELLMACROS_HAS_BEEN_INCLUDED
 #define ELLMACROS_HAS_BEEN_INCLUDED
 
@@ -157,10 +161,25 @@
   (v3)[1] = AIR_MAX((v1)[1], (v2)[1]), \
   (v3)[2] = AIR_MAX((v1)[2], (v2)[2]))
 
-#define ELL_3M_SCALE(m2, m1, s) \
-  (ELL_3V_SCALE((m2)+0, (m1)+0, (s)), \
-   ELL_3V_SCALE((m2)+3, (m1)+3, (s)), \
-   ELL_3V_SCALE((m2)+6, (m1)+6, (s)))
+#define ELL_3V_AFFINE(v,i,x,I,o,O) ( \
+  (v)[0] = AIR_AFFINE((i)[0],(x)[0],(I)[0],(o)[0],(O)[0]), \
+  (v)[1] = AIR_AFFINE((i)[1],(x)[1],(I)[1],(o)[1],(O)[1]), \
+  (v)[2] = AIR_AFFINE((i)[2],(x)[2],(I)[2],(o)[2],(O)[2]))
+
+#define ELL_3V_ABS(v2,v1) ( \
+  (v2)[0] = AIR_ABS((v1)[0]), \
+  (v2)[1] = AIR_ABS((v1)[1]), \
+  (v2)[2] = AIR_ABS((v1)[2]))
+
+#define ELL_3M_SCALE(m2, s, m1) \
+  (ELL_3V_SCALE((m2)+0, (s), (m1)+0), \
+   ELL_3V_SCALE((m2)+3, (s), (m1)+3), \
+   ELL_3V_SCALE((m2)+6, (s), (m1)+6))
+
+#define ELL_3M_SCALEADD(m2, s0, m0, s1, m1) \
+  (ELL_3V_SCALEADD((m2)+0, (s0), (m0)+0, (s1), (m1)+0), \
+   ELL_3V_SCALEADD((m2)+3, (s0), (m0)+3, (s1), (m1)+3), \
+   ELL_3V_SCALEADD((m2)+6, (s0), (m0)+6, (s1), (m1)+6))
 
 #define ELL_3M_ADD(m3, m1, m2) \
   ((m3)[0] = (m1)[0] + (m2)[0],  \
@@ -264,9 +283,9 @@
   (ELL_3V_GET((m)[2], (m)[5], (m)[8], (v)))
 
 #define ELL_3MV_OUTER(m, v1, v2) \
-  (ELL_3V_SCALE((m)+0, (v1), (v2)[0]), \
-   ELL_3V_SCALE((m)+3, (v1), (v2)[1]), \
-   ELL_3V_SCALE((m)+6, (v1), (v2)[2]))
+  (ELL_3V_SCALE((m)+0, (v2)[0], (v1)), \
+   ELL_3V_SCALE((m)+3, (v2)[1], (v1)), \
+   ELL_3V_SCALE((m)+6, (v2)[2], (v1)))
 
 #define ELL_3MV_MUL(v2, m, v1) \
   ((v2)[0] = (m)[0]*(v1)[0] + (m)[3]*(v1)[1] + (m)[6]*(v1)[2], \
@@ -328,7 +347,7 @@
 #define ELL_4V_DOT(v1, v2) \
   ((v1)[0]*(v2)[0] + (v1)[1]*(v2)[1] + (v1)[2]*(v2)[2] + (v1)[3]*(v2)[3])
 
-#define ELL_4V_SCALE(v2, v1, a) \
+#define ELL_4V_SCALE(v2, a, v1) \
   ((v2)[0] = (v1)[0]*a, (v2)[1] = (v1)[1]*a, \
    (v2)[2] = (v1)[2]*a, (v2)[3] = (v1)[3]*a)
 
@@ -535,3 +554,7 @@
   ((v)[0]=(a), (v)[1]=(b), (v)[2]=(c), (v)[3]=(d), (v)[4]=(e))
 
 #endif /* ELLMACROS_HAS_BEEN_INCLUDED */
+
+#ifdef __cplusplus
+   }
+#endif

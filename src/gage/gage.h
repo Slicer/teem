@@ -17,6 +17,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #ifndef GAGE_HAS_BEEN_INCLUDED
 #define GAGE_HAS_BEEN_INCLUDED
@@ -193,3 +197,7 @@ extern gageSclContext *gageSclContextCopy(gageSclContext *ctx);
 extern void gageSclProbe(gageSclContext *ctx, float x, float y, float z);
 
 #endif /* GAGE_HAS_BEEN_INCLUDED */
+
+#ifdef __cplusplus
+}
+#endif

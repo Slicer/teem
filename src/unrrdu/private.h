@@ -17,6 +17,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <air.h>
 #include <biff.h>
 #include <hest.h>
@@ -100,3 +104,7 @@ typedef struct {
     airMopError(mop); \
     return 1; \
   }
+
+#ifdef __cplusplus
+}
+#endif

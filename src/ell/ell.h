@@ -17,6 +17,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef ELL_HAS_BEEN_INCLUDED
 #define ELL_HAS_BEEN_INCLUDED
 
@@ -74,3 +78,7 @@ extern int ell3mEigensolve(double eval[3], double evec[9], double m[9],
 			   int polish);
 
 #endif /* ELL_HAS_BEEN_INCLUDED */
+
+#ifdef __cplusplus
+}
+#endif

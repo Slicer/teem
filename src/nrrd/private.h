@@ -17,6 +17,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #ifndef NRRD_PRIVATE_HAS_BEEN_INCLUDED
 #define NRRD_PRIVATE_HAS_BEEN_INCLUDED
@@ -73,3 +77,7 @@ extern int _nrrdSizeValid(int dim, int *size);
 extern void _nrrdTraverse(Nrrd *nrrd);
 
 #endif /* NRRD_PRIVATE_HAS_BEEN_INCLUDED */
+
+#ifdef __cplusplus
+}
+#endif

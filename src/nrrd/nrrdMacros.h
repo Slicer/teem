@@ -17,6 +17,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #ifndef NRRD_MACROS_HAS_BEEN_INCLUDED
 #define NRRD_MACROS_HAS_BEEN_INCLUDED
@@ -123,3 +127,7 @@ do {                                          \
 } while (0)
 
 #endif /* NRRD_MACROS_HAS_BEEN_INCLUDED */
+
+#ifdef __cplusplus
+}
+#endif

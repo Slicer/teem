@@ -17,6 +17,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define GT GAGE_TYPE
 #define GT_FLOAT GAGE_TYPE_FLOAT
 
@@ -49,3 +53,7 @@ extern void _gageScl3PFilterN(int fd,
 			      GT *fw00, GT *fw11, GT *fw22,
 			      GT *val, GT *gvec, GT *hess,
 			      int doD1, int doD2);
+
+#ifdef __cplusplus
+}
+#endif

@@ -17,6 +17,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef HEST_HAS_BEEN_INCLUDED
 #define HEST_HAS_BEEN_INCLUDED
 
@@ -172,3 +176,7 @@ extern void hestGlossary(FILE *file, hestOpt *opt, hestParm *parm);
 extern void hestInfo(FILE *file, char *argv0, char *info, hestParm *parm);
 
 #endif /* HEST_HAS_BEEN_INCLUDED */
+
+#ifdef __cplusplus
+}
+#endif
