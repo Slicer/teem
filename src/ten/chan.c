@@ -199,7 +199,7 @@ tenEstimate(Nrrd *nten, Nrrd **nterrP, Nrrd *ndwi, Nrrd *_ngrad,
     if (!E) E |= nrrdCrop(ncrop, ndwi, cmin, cmax);
     if (!E) nrrdMinMaxSet(ncrop);
     if (!E) E |= nrrdHisto(nhist, ncrop, NULL,
-			   AIR_MIN(1024, ncrop->max - ncrop->min + 1),
+			   (int)AIR_MIN(1024, ncrop->max - ncrop->min + 1),
 			   nrrdTypeFloat);
     if (E) {
       sprintf(err, "%s: trouble histograming to find DW threshold", me);
