@@ -84,7 +84,7 @@ _nrrdValidHeader(Nrrd *nrrd, NrrdIO *io) {
 int
 _nrrdCalloc(Nrrd *nrrd) {
   char me[]="_nrrdCalloc", err[AIR_STRLEN_MED];
-  nrrdBigInt num;
+  size_t num;
 
   nrrd->data = airFree(nrrd->data);
   /* this shouldn't actually be necessary ... */
@@ -99,7 +99,7 @@ _nrrdCalloc(Nrrd *nrrd) {
   }
   nrrd->data = calloc(num, nrrdElementSize(nrrd));
   if (!nrrd->data) {
-    sprintf(err, "%s: couldn't calloc(" NRRD_BIG_INT_PRINTF
+    sprintf(err, "%s: couldn't calloc(" AIR_SIZE_T_FMT
 	    ", %d)", me, num, nrrdElementSize(nrrd));
     biffAdd(NRRD, err); return 1;
   }
@@ -109,8 +109,7 @@ _nrrdCalloc(Nrrd *nrrd) {
 int
 _nrrdReadDataRaw(Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadDataRaw", err[AIR_STRLEN_MED];
-  nrrdBigInt num, bsize;
-  size_t size, ret, dio;
+  size_t num, bsize, size, ret, dio;
   
   /* this shouldn't actually be necessary ... */
   if (!nrrdElementSize(nrrd)) {
@@ -124,7 +123,7 @@ _nrrdReadDataRaw(Nrrd *nrrd, NrrdIO *io) {
   }
   bsize = num * nrrdElementSize(nrrd);
   size = bsize;
-  if (size != bsize) {
+  if (num != bsize/nrrdElementSize(nrrd)) {
     fprintf(stderr,
 	    "%s: PANIC: \"size_t\" can't represent byte-size of data.\n", me);
     exit(1);
@@ -169,9 +168,9 @@ _nrrdReadDataRaw(Nrrd *nrrd, NrrdIO *io) {
     }
     ret = fread(nrrd->data, nrrdElementSize(nrrd), num, io->dataFile);
     if (ret != num) {
-      sprintf(err, "%s: fread() returned " NRRD_BIG_INT_PRINTF
-	      " (not " NRRD_BIG_INT_PRINTF ")", me,
-	      (nrrdBigInt)ret, num);
+      sprintf(err, "%s: fread() returned " AIR_SIZE_T_FMT
+	      " (not " AIR_SIZE_T_FMT ")", me,
+	      ret, num);
       biffAdd(NRRD, err); return 1;
     }
   }
@@ -204,7 +203,7 @@ int
 _nrrdReadDataAscii(Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadDataAscii", err[AIR_STRLEN_MED],
     numStr[NRRD_STRLEN_LINE];
-  nrrdBigInt I, num;
+  size_t I, num;
   char *data;
   int size, tmp;
   
@@ -231,16 +230,16 @@ _nrrdReadDataAscii(Nrrd *nrrd, NrrdIO *io) {
   size = nrrdElementSize(nrrd);
   for (I=0; I<num; I++) {
     if (1 != fscanf(io->dataFile, "%s", numStr)) {
-      sprintf(err, "%s: couldn't parse element " NRRD_BIG_INT_PRINTF
-	      " of "NRRD_BIG_INT_PRINTF, me, I+1, num);
+      sprintf(err, "%s: couldn't parse element " AIR_SIZE_T_FMT
+	      " of " AIR_SIZE_T_FMT, me, I+1, num);
       biffAdd(NRRD, err); return 1;
     }
     if (nrrd->type >= nrrdTypeInt) {
       /* sscanf supports putting value directly into this type */
       if (1 != airSingleSscanf(numStr, nrrdTypeConv[nrrd->type], 
 			       (void*)(data + I*size))) {
-	sprintf(err, "%s: couln't parse %s "NRRD_BIG_INT_PRINTF
-		" of " NRRD_BIG_INT_PRINTF " (\"%s\")", me,
+	sprintf(err, "%s: couln't parse %s " AIR_SIZE_T_FMT
+		" of " AIR_SIZE_T_FMT " (\"%s\")", me,
 		airEnumStr(nrrdType, nrrd->type),
 		I+1, num, numStr);
 	biffAdd(NRRD, err); return 1;
@@ -248,8 +247,8 @@ _nrrdReadDataAscii(Nrrd *nrrd, NrrdIO *io) {
     } else {
       /* sscanf value into an int first */
       if (1 != airSingleSscanf(numStr, "%d", &tmp)) {
-	sprintf(err, "%s: couln't parse element "NRRD_BIG_INT_PRINTF
-		" of " NRRD_BIG_INT_PRINTF  " (\"%s\")",
+	sprintf(err, "%s: couln't parse element " AIR_SIZE_T_FMT
+		" of " AIR_SIZE_T_FMT " (\"%s\")",
 		me, I+1, num, numStr);
 	biffAdd(NRRD, err); return 1;
       }
@@ -683,13 +682,13 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
   
   switch (nrrd->dim) {
   case 2:
-    if (nrrdAlloc(nrrd, nrrdTypeFloat, 2, sx, sy)) {
+    if (nrrdMaybeAlloc(nrrd, nrrdTypeFloat, 2, sx, sy)) {
       sprintf(err, "%s: couldn't allocate table data", me);
       biffAdd(NRRD, err); UNSETTWO; return 1;
     }
     break;
   case 1:
-    if (nrrdAlloc(nrrd, nrrdTypeFloat, 1, sy)) {
+    if (nrrdMaybeAlloc(nrrd, nrrdTypeFloat, 1, sy)) {
       sprintf(err, "%s: couldn't allocate table data", me);
       biffAdd(NRRD, err); UNSETTWO; return 1;
     }
