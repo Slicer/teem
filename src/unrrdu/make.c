@@ -107,7 +107,7 @@ makeMain(int argc, char **argv, char *me) {
 	     "before reading data");
   hestOptAdd(&opt, "e,encoding", "encoding", airTypeEnum, 1, 1,
 	     &(io->encoding), "raw",
-	     "data encoding. Possibilities are \"raw\" and \"ascii\".",
+	     "data encoding. Possibilities are \"raw\" and \"ascii\"",
 	     NULL, nrrdEncoding);
   hestOptAdd(&opt, "en,endian", "endian", airTypeEnum, 1, 1, &(io->endian),
 	     airEnumStr(airEndian, airMyEndian),

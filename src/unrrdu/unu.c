@@ -29,7 +29,7 @@
 /* how we expect this program to identify itself */
 #define UNU "unu"
 
-/* used to allow over-riding of defaults in hestParse() */
+/* This is a global- used by all the unu commands */
 hestParm *hparm;
 
 /*

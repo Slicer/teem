@@ -152,6 +152,19 @@ _hestPrintStr(FILE *f, int indent, int already, int width, char *_str,
 **   if (argc-2 < hestMinNumArgs(opt)) {
 **     ... usage ...
 **   }
+**
+** HOWEVER! don't forget the response files can complicate all this:
+** in one argument a response file can provide information for any
+** number of arguments, and the argc itself is kind of meaningless.
+** The code examples above only really apply when
+** hparm->respFileEnable is false.  For example, in unrrdu (private.h)
+** we find:
+**
+**   if ( (hparm->respFileEnable && !argc) ||
+**        (!hparm->respFileEnable && argc < hestMinNumArgs(opt)) ) { 
+**     ... usage ...
+**   }
+**
 */
 int
 hestMinNumArgs(hestOpt *opt) {

@@ -82,10 +82,14 @@ typedef struct {
 **
 ** They all assume many many variables.
 **
-** NB: below is an unidiomatic use of hestMinNumArgs()
+** NB: below is an unidiomatic use of hestMinNumArgs(), because of
+** how unu's main invokes the "main" function of the different
+** commands.  Normally the comparison is with argc-1, or argc-2
+** the case of cvs-like commands.
 */
 #define USAGE(info) \
-  if (argc < hestMinNumArgs(opt)) { \
+  if ( (hparm->respFileEnable && !argc) || \
+       (!hparm->respFileEnable && argc < hestMinNumArgs(opt)) ) { \
     hestInfo(stderr, me, (info), hparm); \
     hestUsage(stderr, opt, me, hparm); \
     hestGlossary(stderr, opt, hparm); \
