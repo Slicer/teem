@@ -421,11 +421,12 @@ def: teem.dsp
 	@dlltool --export-all-symbols --output-def teem.def ../win32/make/Release/*.obj
 	@grep -v '; dlltool' teem.def | grep -v '_real' | grep -v '??' | grep -v '_hooverThreadBody' > ../win32/make/teem.def
 	@rm teem.def
+	@-msdev ../win32/make/teem.dsp /make all /clean
 
 unproject:
 	rm -rf ../win32/make/*.dsp ../win32/make/*.dsw ../win32/make/teem.def ../win32/make/install_lib.bat
 
 #win32: #project def
-#	msdev ../win32/make/teem.dsw /make "teem - Win32 Release" all /clean
-#	msdev ../win32/make/teem.dsw /make "teem - Win32 Release" all
+#	msdev ../win32/make/teem.dsw /make all /clean
+#	msdev ../win32/make/teem.dsw /make all
 
