@@ -163,13 +163,17 @@ airFreeP(void *_ptrP) {
 ******** airFclose()
 **
 ** just to facilitate setting a newly fclose()'d file pointer to NULL
-** also makes sure that NULL is not passed to fclose()
+** also makes sure that NULL is not passed to fclose(), and won't close
+** stdin, stdout, or stderr (its up to the user to open these correctly)
 */
 FILE *
 airFclose(FILE *file) {
 
-  if (file)
-    fclose(file);
+  if (file) {
+    if (!( stdin == file || stdout == file || stderr == file )) {
+      fclose(file);
+    }
+  }
   return NULL;
 }
 
