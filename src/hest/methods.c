@@ -41,46 +41,6 @@ hestParmNix(hestParm *parm) {
 }
 
 /*
-******** hestFree()
-**
-** free()s whatever was allocated by hestParse()
-*/
-void
-hestFree(hestOpt *opt, hestParm *parm) {
-  int op, i, numOpts;
-  void **vP;
-  char **str;
-  char ***strP;
-
-  numOpts = _hestNumOpts(opt);
-  for (op=0; op<=numOpts-1; op++) {
-    vP = opt[op].valueP;
-    str = opt[op].valueP;
-    strP = opt[op].valueP;
-    switch (opt[op].alloc) {
-    case 0:
-      /* nothing was allocated */
-      break;
-    case 1:
-      *vP = airFree(*vP);
-      break;
-    case 2:
-      for (i=0; i<=opt[op].min-1; i++) {
-	str[i] = airFree(str[i]);
-      }
-      break;
-    case 3:
-      for (i=0; i<=*(opt[op].sawP)-1; i++) {
-	(*strP)[i] = airFree((*strP)[i]);
-      }
-      *strP = airFree(*strP);
-      break;
-    }
-  }
-  return;
-}
-
-/*
 ** _hestIdent()
 **
 ** how to identify an option in error and usage messages

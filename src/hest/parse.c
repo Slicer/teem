@@ -595,13 +595,15 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 
 int
 hestParse(hestOpt *opt, int _argc, char **_argv,
-	  char *err, hestParm *_parm) {
+	  char **_errP, hestParm *_parm) {
   char me[]="hestParse: ";
-  char **argv, **prms;
-  int a, argc, argr, *nprm, *appr, *udflt, nrf, numOpts;
+  char **argv, **prms, *err;
+  int a, argc, argr, *nprm, *appr, *udflt, nrf, numOpts, big;
   airArray *mop;
   hestParm *parm;
   
+  numOpts = _hestNumOpts(opt);
+
   /* -------- initialize the mop! */
   mop = airMopInit();
 
@@ -614,14 +616,40 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
     airMopAdd(mop, parm, (airMopper)hestParmNix, AIR_FALSE);
   }
 
+  /* -------- allocate the err string.  To determine its size with total
+     ridiculous safety we have to find the biggest things which can appear
+     in the string. */
+  big = 0;
+  for (a=0; a<=_argc-1; a++) {
+    big = AIR_MAX(big, airStrlen(_argv[a]));
+  }
+  for (a=0; a<=numOpts-1; a++) {
+    big = AIR_MAX(big, airStrlen(opt[a].flag));
+    big = AIR_MAX(big, airStrlen(opt[a].name));
+  }
+  for (a=airTypeUnknown+1; a<=airTypeLast-1; a++) {
+    big = AIR_MAX(big, airStrlen(airTypeStr[a]));
+  }
+  big += 4 * 12;  /* as many as 4 ints per error message */
+  big += 512;     /* function name and text of error message */
+  if (!(err = calloc(big, sizeof(char)))) {
+    fprintf(stderr, "%s PANIC: couldn't allocate error message "
+	    "buffer (size %d)\n", me, big);
+    exit(1);
+  }
+  /* the error message buffer _is_ a keeper */
+  airMopAdd(mop, err, airFree, AIR_TRUE);
+  /* if turns out that there was no error, we'll reset *_errP */
+  if (_errP)
+    *_errP = err;
+
   /* -------- check on validity of the hest array */
   if (_hestPanic(opt, err, parm)) {
-    return 1;
+    airMopDone(mop, AIR_TRUE); return 1;
   }
 
   /* -------- Create all the local arrays used to save state during
      the processing of all the different options */
-  numOpts = _hestNumOpts(opt);
   nprm = calloc(numOpts, sizeof(int));   airMopMem(mop, &nprm, AIR_FALSE);
   appr = calloc(numOpts, sizeof(int));   airMopMem(mop, &appr, AIR_FALSE);
   udflt = calloc(numOpts, sizeof(int));  airMopMem(mop, &udflt, AIR_FALSE);
@@ -638,10 +666,10 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
     airMopDone(mop, AIR_TRUE); return 1;
   }
   argc = argr + _argc - nrf;
-
+  /*
   printf("!%s: nrf = %d; argr = %d; _argc = %d --> argc = %d\n", 
 	 me, nrf, argr, _argc, argc);
-
+  */
   argv = calloc(argc+1, sizeof(char*));
   airMopMem(mop, &argv, AIR_FALSE);
 
@@ -649,9 +677,9 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
   if (_hestResponseFiles(argv, _argv, nrf, err, parm, mop)) {
     airMopDone(mop, AIR_TRUE); return 1;
   }
-
+  /*
   _hestPrintArgv(argc, argv);
-
+  */
   /* -------- extract flags and their associated parameters from argv */
   if (_hestExtractFlagged(prms, nprm, appr, 
 			   &argc, argv, 
@@ -659,9 +687,9 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
 			   err, parm, mop)) {
     airMopDone(mop, AIR_TRUE); return 1;
   }
-
+  /*
   _hestPrintArgv(argc, argv);
-
+  */
   /* -------- extract args for unflagged options */
   if (_hestExtractUnflagged(prms, nprm,
 			    &argc, argv,
@@ -691,5 +719,48 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
   }
 
   airMopDone(mop, AIR_FALSE);
+  if (_errP)
+    *_errP = NULL;
   return 0;
 }
+
+/*
+******** hestParseFree()
+**
+** free()s whatever was allocated by hestParse()
+*/
+void
+hestParseFree(hestOpt *opt, hestParm *parm) {
+  int op, i, numOpts;
+  void **vP;
+  char **str;
+  char ***strP;
+
+  numOpts = _hestNumOpts(opt);
+  for (op=0; op<=numOpts-1; op++) {
+    vP = opt[op].valueP;
+    str = opt[op].valueP;
+    strP = opt[op].valueP;
+    switch (opt[op].alloc) {
+    case 0:
+      /* nothing was allocated */
+      break;
+    case 1:
+      *vP = airFree(*vP);
+      break;
+    case 2:
+      for (i=0; i<=opt[op].min-1; i++) {
+	str[i] = airFree(str[i]);
+      }
+      break;
+    case 3:
+      for (i=0; i<=*(opt[op].sawP)-1; i++) {
+	(*strP)[i] = airFree((*strP)[i]);
+      }
+      *strP = airFree(*strP);
+      break;
+    }
+  }
+  return;
+}
+

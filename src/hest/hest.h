@@ -72,7 +72,9 @@ typedef struct {
 /*
 ******** hestParm struct
 **
-** parameters to control behavior of hest functions
+** parameters to control behavior of hest functions. 
+**
+** Don't even think about storing per-parse state in here.
 */
 typedef struct {
   int verbosity,        /* verbose diagnostic messages to stdout */
@@ -93,7 +95,6 @@ extern char hestRespFileComment;
 /* methods.c */
 extern hestParm *hestParmNew(void);
 extern hestParm *hestParmNix(hestParm *parm);
-extern void hestFree(hestOpt *opt, hestParm *parm);
 
 /* usage.c */
 extern void hestInfo(FILE *file, char *argv0, char *info, hestParm *parm);
@@ -102,7 +103,8 @@ extern void hestGlossary(FILE *file, hestOpt *opt, hestParm *parm);
 
 /* parse.c */
 extern int hestParse(hestOpt *opt, int argc, char **argv,
-		     char *err, hestParm *parm);
+		     char **errP, hestParm *parm);
+extern void hestParseFree(hestOpt *opt, hestParm *parm);
 
 #ifdef __cplusplus
 }

@@ -37,7 +37,7 @@ main(int argc, char **argv) {
     {NULL, NULL, 0}
   };
   hestParm *parm;
-  char err[AIR_STRLEN_HUGE], info[] = 
+  char *err, info[] = 
     "This program does nothing in particular, though it does attempt "
     "to pose as some sort of command-line image processing program. "
     "As usual, any implied functionality is purely coincidental, "
@@ -56,11 +56,12 @@ main(int argc, char **argv) {
   }
 
   /* else we got something, see if we can parse it */
-  if (hestParse(opt, argc-1, argv+1, err, parm)) {
+  if (hestParse(opt, argc-1, argv+1, &err, parm)) {
     printf("ERROR: %s\n", err);
     hestUsage(stderr, opt, argv[0], parm);
     hestGlossary(stderr, opt, parm);
     parm = hestParmNix(parm);
+    free(err);
     exit(1);
   }
 
@@ -73,7 +74,7 @@ main(int argc, char **argv) {
   }
   printf("\n");
 
-  hestFree(opt, parm);
+  hestParseFree(opt, parm);
   parm = hestParmNix(parm);
   exit(0);
 }
