@@ -92,7 +92,7 @@ int
 nrrdPermuteAxes(Nrrd *nout, Nrrd *nin, int *axes) {
   char me[]="nrrdPermuteAxes", func[]="permute", err[AIR_STRLEN_MED],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
-  nrrdBigInt idxOut, idxIn,  /* indices for input and output scanlines */
+  size_t idxOut, idxIn,      /* indices for input and output scanlines */
     lineSize,                /* size of block of memory which can be
 				moved contiguously from input to output,
 				thought of as a "scanline" */
@@ -274,7 +274,7 @@ nrrdShuffle(Nrrd *nout, Nrrd *nin, int axis, int *perm) {
     d, ldim, len,
     cIn[NRRD_DIM_MAX+1],
     cOut[NRRD_DIM_MAX+1];
-  nrrdBigInt idxIn, idxOut, lineSize, numLines;
+  size_t idxIn, idxOut, lineSize, numLines;
   unsigned char *dataIn, *dataOut;
 
   if (!(nin && nout && perm)) {
@@ -403,9 +403,10 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
   char me[]="nrrdJoin", err[AIR_STRLEN_MED];
   int mindim, maxdim, diffdim, outdim, map[NRRD_DIM_MAX], size[NRRD_DIM_MAX],
     i, d, outlen, permute[NRRD_DIM_MAX], ipermute[NRRD_DIM_MAX];
-  nrrdBigInt outnum, chunksize;
+  size_t outnum, chunksize;
   char *dataPerm;
-  Nrrd *nperm, **ninperm;
+  Nrrd *ntmpperm,    /* axis-permuted version of output */
+    **ninperm;
   airArray *mop;
 
   /* error checking */
@@ -572,12 +573,12 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
   }
   size[outdim-1] = outlen;
   outnum *= size[outdim-1];
-  if (nrrdAlloc_nva(nperm = nrrdNew(), ninperm[0]->type, outdim, size)) {
+  if (nrrdAlloc_nva(ntmpperm = nrrdNew(), ninperm[0]->type, outdim, size)) {
     sprintf(err, "%s: trouble allocating permutation nrrd", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  airMopAdd(mop, nperm, (airMopper)nrrdNuke, airMopAlways);
-  dataPerm = nperm->data;
+  airMopAdd(mop, ntmpperm, (airMopper)nrrdNuke, airMopAlways);
+  dataPerm = ntmpperm->data;
   for (i=0; i<numNin; i++) {
     /* here is where the actual joining happens */
     chunksize = nrrdElementNumber(ninperm[i])*nrrdElementSize(ninperm[i]);
@@ -585,16 +586,16 @@ nrrdJoin(Nrrd *nout, Nrrd **nin, int numNin, int axis, int incrDim) {
     dataPerm += chunksize;
   }
   
-  /* copy other axis-specific fields from nin[0] to nperm */
+  /* copy other axis-specific fields from nin[0] to ntmpperm */
   for (d=0; d<=outdim-2; d++)
     map[d] = d;
   map[outdim-1] = -1;
-  nrrdAxesCopy(nperm, ninperm[0], map, NRRD_AXESINFO_NONE);
-  nperm->axis[outdim-1].size = outlen;
+  nrrdAxesCopy(ntmpperm, ninperm[0], map, NRRD_AXESINFO_NONE);
+  ntmpperm->axis[outdim-1].size = outlen;
 
   /* do the permutation required to get output in right order */
   nrrdInvertPerm(ipermute, permute, outdim);
-  if (nrrdPermuteAxes(nout, nperm, ipermute)) {
+  if (nrrdPermuteAxes(nout, ntmpperm, ipermute)) {
     sprintf(err, "%s: error permuting temporary nrrd", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
@@ -611,7 +612,7 @@ int
 nrrdReshape_nva(Nrrd *nout, Nrrd *nin, int dim, int *size) {
   char me[]="nrrdReshape_nva", func[]="reshape", err[AIR_STRLEN_MED],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
-  nrrdBigInt numOut;
+  size_t numOut;
   int d;
 
   if (!(nout && nin && size)) {
@@ -632,8 +633,8 @@ nrrdReshape_nva(Nrrd *nout, Nrrd *nin, int dim, int *size) {
     numOut *= size[d];
   }
   if (numOut != nrrdElementNumber(nin)) {
-    sprintf(err, "%s: new sizes product (" NRRD_BIG_INT_PRINTF ") "
-	    "!= # elements (" NRRD_BIG_INT_PRINTF ")",
+    sprintf(err, "%s: new sizes product (" AIR_SIZE_T_FMT ") "
+	    "!= # elements (" AIR_SIZE_T_FMT ")",
 	    me, numOut, nrrdElementNumber(nin));
     biffAdd(NRRD, err); return 1;
   }
