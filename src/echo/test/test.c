@@ -34,6 +34,8 @@ main(int argc, char **argv) {
   obj = echoObjectNix(obj);
   obj = echoObjectNew(echoObjectMesh);
   obj = echoObjectNix(obj);
+  obj = echoObjectNew(echoObjectIsosurface);
+  obj = echoObjectNix(obj);
   obj = echoObjectNew(echoObjectAABox);
   obj = echoObjectNix(obj);
 

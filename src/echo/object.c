@@ -86,6 +86,7 @@ _echoObject##TYPE##_nix(EchoObject##TYPE *obj) {                 \
 }
 
 NIX_TMPL(Mesh, /* ??? */)
+NIX_TMPL(Isosurface, /* ??? */)
 NIX_TMPL(AABox,                                                  \
 	 obj->objArr = airArrayNuke(obj->objArr);                \
 	 )
@@ -100,6 +101,7 @@ _echoObjectNix[ECHO_OBJECT_MAX+1])(EchoObject *) = {
   (echoObjectNix_t)airFree,
   (echoObjectNix_t)airFree,
   (echoObjectNix_t)_echoObjectMesh_nix,
+  (echoObjectNix_t)_echoObjectIsosurface_nix,
   (echoObjectNix_t)_echoObjectAABox_nix
 };
 
