@@ -123,8 +123,8 @@ main(int argc, char *argv[]) {
   fprintf(stderr, "%s: light dir: %g %g %g\n", me,
 	  muu->lit->dir[0][0], muu->lit->dir[0][1], muu->lit->dir[0][2]);
 
-  nrrdAxesGet_nva(muu->nin, nrrdAxesInfoSize, muu->hctx->volSize);
-  nrrdAxesGet_nva(muu->nin, nrrdAxesInfoSpacing, muu->hctx->volSpacing);
+  nrrdAxisInfoGet_nva(muu->nin, nrrdAxisInfoSize, muu->hctx->volSize);
+  nrrdAxisInfoGet_nva(muu->nin, nrrdAxisInfoSpacing, muu->hctx->volSpacing);
   muu->hctx->user = muu;
   muu->hctx->renderBegin = (hooverRenderBegin_t *)miteRenderBegin;
   muu->hctx->threadBegin = (hooverThreadBegin_t *)miteThreadBegin;

@@ -171,7 +171,7 @@ nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy, int showLog, double max) {
     sprintf(err, "%s: failed to allocate histogram image", me);
     biffAdd(NRRD, err); return 1;
   }
-  /* perhaps I should be using nrrdAxesCopy */
+  /* perhaps I should be using nrrdAxisInfoCopy */
   nout->axis[0].spacing = nout->axis[1].spacing = AIR_NAN;
   nout->axis[0].min = nin->axis[0].min;
   nout->axis[0].max = nin->axis[0].max;
@@ -303,7 +303,7 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins, int type) {
     sprintf(err, "%s: trouble setting min and max", me);
     biffAdd(NRRD, err); return 1;
   }
-  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
+  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   size[ax] = bins;
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
     sprintf(err, "%s: failed to alloc output nrrd", me);
@@ -314,7 +314,7 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins, int type) {
   for (d=0; d<nin->dim; d++) {
     map[d] = d != ax ? d : -1;
   }
-  nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_NONE);
+  nrrdAxisInfoCopy(nout, nin, map, NRRD_AXIS_INFO_NONE);
   /* axis ax now has to be set manually */
   nout->axis[ax].size = bins;
   nout->axis[ax].spacing = AIR_NAN; /* min and max convey the information */
@@ -339,8 +339,8 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int ax, int bins, int type) {
      increment the bin in the histogram for the scanline we're in.
      This is not terribly clever, and the memory locality is a
      disaster */
-  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, szIn);
-  nrrdAxesGet_nva(nout, nrrdAxesInfoSize, szOut);
+  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, szIn);
+  nrrdAxisInfoGet_nva(nout, nrrdAxisInfoSize, szOut);
   memset(coordIn, 0, NRRD_DIM_MAX*sizeof(unsigned int));
   num = nrrdElementNumber(nin);
   for (I=0; I<num; I++) {

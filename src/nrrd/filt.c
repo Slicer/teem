@@ -363,7 +363,7 @@ nrrdCheapMedian(Nrrd *nout, Nrrd *nin, int mode, int radius, float wght,
     biffAdd(NRRD, err); return 1;
   }
 
-  nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+  nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   if (nrrdContentSet(nout, func, nin, "%d,%d,%g,%d",
 		     mode, radius, wght, bins)) {
     sprintf(err, "%s:", me);

@@ -957,9 +957,9 @@ _nrrdReadPNM (FILE *file, Nrrd *nrrd, NrrdIO *io) {
 
   /* we know what we need in order to set nrrd fields and read data */
   if (color) {
-    nrrdAxesSet(nrrd, nrrdAxesInfoSize, 3, sx, sy);
+    nrrdAxisInfoSet(nrrd, nrrdAxisInfoSize, 3, sx, sy);
   } else {
-    nrrdAxesSet(nrrd, nrrdAxesInfoSize, sx, sy);
+    nrrdAxisInfoSet(nrrd, nrrdAxisInfoSize, sx, sy);
   }
   io->dataFile = file;
   if (!io->skipData) {
@@ -1328,19 +1328,19 @@ _nrrdReadVTK (FILE *file, Nrrd *nrrd, NrrdIO *io) {
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     nrrd->dim = 3;
-    nrrdAxesSet(nrrd, nrrdAxesInfoSize, sx, sy, sz);
-    nrrdAxesSet(nrrd, nrrdAxesInfoSpacing, xs, ys, zs);
-    nrrdAxesSet(nrrd, nrrdAxesInfoMin, xm, ym, zm);
+    nrrdAxisInfoSet(nrrd, nrrdAxisInfoSize, sx, sy, sz);
+    nrrdAxisInfoSet(nrrd, nrrdAxisInfoSpacing, xs, ys, zs);
+    nrrdAxisInfoSet(nrrd, nrrdAxisInfoMin, xm, ym, zm);
   } else if (!strncmp("VECTORS", three[0], strlen("VECTORS"))) {
     nrrd->dim = 4;
-    nrrdAxesSet(nrrd, nrrdAxesInfoSize, 3, sx, sy, sz);
-    nrrdAxesSet(nrrd, nrrdAxesInfoSpacing, AIR_NAN, xs, ys, zs);
-    nrrdAxesSet(nrrd, nrrdAxesInfoMin, AIR_NAN, xm, ym, zm);
+    nrrdAxisInfoSet(nrrd, nrrdAxisInfoSize, 3, sx, sy, sz);
+    nrrdAxisInfoSet(nrrd, nrrdAxisInfoSpacing, AIR_NAN, xs, ys, zs);
+    nrrdAxisInfoSet(nrrd, nrrdAxisInfoMin, AIR_NAN, xm, ym, zm);
   } else if (!strncmp("TENSORS", three[0], strlen("TENSORS"))) {
     nrrd->dim = 4;
-    nrrdAxesSet(nrrd, nrrdAxesInfoSize, 9, sx, sy, sz);
-    nrrdAxesSet(nrrd, nrrdAxesInfoSpacing, AIR_NAN, xs, ys, zs);
-    nrrdAxesSet(nrrd, nrrdAxesInfoMin, AIR_NAN, xm, ym, zm);
+    nrrdAxisInfoSet(nrrd, nrrdAxisInfoSize, 9, sx, sy, sz);
+    nrrdAxisInfoSet(nrrd, nrrdAxisInfoSpacing, AIR_NAN, xs, ys, zs);
+    nrrdAxisInfoSet(nrrd, nrrdAxisInfoMin, AIR_NAN, xm, ym, zm);
   } else {
     sprintf(err, "%s: sorry, can only deal with SCALARS, VECTORS, and TENSORS "
 	    "currently, so couldn't parse attribute declaration \"%s\"",

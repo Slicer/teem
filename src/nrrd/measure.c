@@ -770,7 +770,7 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr, int type) {
 	   : _nrrdMeasureType(nin, measr));
   iElSz = nrrdTypeSize[iType];
   oElSz = nrrdTypeSize[oType];
-  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, iSize);
+  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, iSize);
   colNum = rowNum = 1;
   for (d=0; d<nin->dim; d++) {
     if (d < axis) {
@@ -829,7 +829,7 @@ nrrdProject(Nrrd *nout, Nrrd *nin, int axis, int measr, int type) {
   }
   
   /* copy the peripheral information */
-  if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_NONE)) {
+  if (nrrdAxisInfoCopy(nout, nin, map, NRRD_AXIS_INFO_NONE)) {
     sprintf(err, "%s:", me); 
     biffAdd(NRRD, err); return 1;
   }

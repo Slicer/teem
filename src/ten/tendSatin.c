@@ -164,8 +164,8 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
   nrrdNuke(nconf);
   nrrdNuke(neval);
   nrrdNuke(nevec);
-  nrrdAxesSet(nout, nrrdAxesInfoSpacing, AIR_NAN, 1.0, 1.0, 1.0);
-  nrrdAxesSet(nout, nrrdAxesInfoLabel, "tensor", "x", "y", "z");
+  nrrdAxisInfoSet(nout, nrrdAxisInfoSpacing, AIR_NAN, 1.0, 1.0, 1.0);
+  nrrdAxisInfoSet(nout, nrrdAxisInfoLabel, "tensor", "x", "y", "z");
   sprintf(buff, "satin(%g,%g,%g)", parm, mina, maxa);
   nout->content = airStrdup(buff);
   return 0;

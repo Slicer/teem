@@ -185,7 +185,7 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
   }
 
   /* allocate space if necessary */
-  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
+  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   /* MUST be nrrdMaybeAlloc_nva (not nrrd Alloc_nva) because we allow
      nout==nin if type sizes match */
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
@@ -198,7 +198,7 @@ nrrdConvert(Nrrd *nout, Nrrd *nin, int type) {
   _nrrdConv[nout->type][nin->type](nout->data, nin->data, num);
 
   /* copy peripheral information */
-  nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+  nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   sprintf(typeS, "(%s)", airEnumStr(nrrdType, nout->type));
   if (nrrdContentSet(nout, typeS, nin, "")) {
     sprintf(err, "%s:", me);
@@ -269,7 +269,7 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   }
   
   /* allocate space if necessary */
-  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
+  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   /* MUST be nrrdMaybeAlloc_nva (not nrrd Alloc_nva) because we allow
      nout==nin if type sizes match */
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
@@ -315,7 +315,7 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   /* set information in new volume */
   /* nrrdPeripheralInit(nout); nout==nin qualms */
   if (nout != nin) {
-    nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+    nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   }
   nout->min = nout->max = AIR_NAN;
   nout->oldMin = minIn;
@@ -385,7 +385,7 @@ nrrdUnquantize(Nrrd *nout, Nrrd *nin, int type) {
     biffAdd(NRRD, err); return 1;
   }
 
-  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
+  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
     sprintf(err, "%s: failed to create output", me);
     biffAdd(NRRD, err); return 1;
@@ -420,7 +420,7 @@ nrrdUnquantize(Nrrd *nout, Nrrd *nin, int type) {
   /* set information in new volume */
   /* nrrdPeripheralInit(nout); nout==nin qualms */
   if (nout != nin) {
-    nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+    nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   }
   nout->min = NRRD_CELL_POS(minOut, maxOut, numValIn, 0);
   nout->max = NRRD_CELL_POS(minOut, maxOut, numValIn, numValIn-1);

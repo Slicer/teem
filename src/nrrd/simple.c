@@ -268,7 +268,7 @@ nrrdCheck (Nrrd *nrrd) {
 	    me, nrrd->dim, NRRD_DIM_MAX);
     biffAdd(NRRD, err); return 1;
   }
-  nrrdAxesGet_nva(nrrd, nrrdAxesInfoSize, size);
+  nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSize, size);
   if (_nrrdSizeCheck(nrrd->dim, size, AIR_TRUE)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
@@ -276,21 +276,21 @@ nrrdCheck (Nrrd *nrrd) {
 
   /* these checks basically cut/paste from validity checks in 
      _nrrdReadNrrdParse_* */
-  nrrdAxesGet_nva(nrrd, nrrdAxesInfoSpacing, val);
+  nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSpacing, val);
   for (i=0; i<=nrrd->dim-1; i++) {
     if (!( !airIsInf_d(val[i]) && (airIsNaN(val[i]) || (0 != val[i])) )) {
       sprintf(err, "%s: spacing %d (%g) invalid", me, i, val[i]);
       biffAdd(NRRD, err); return 1;
     }
   }
-  nrrdAxesGet_nva(nrrd, nrrdAxesInfoMin, val);
+  nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoMin, val);
   for (i=0; i<=nrrd->dim-1; i++) {
     if ((ret=airIsInf_d(val[i]))) {
       sprintf(err, "%s: axis min %d %sinf invalid", me, i, 1==ret ? "+" : "-");
       biffAdd(NRRD, err); return 1;
     }
   }
-  nrrdAxesGet_nva(nrrd, nrrdAxesInfoMax, val);
+  nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoMax, val);
   for (i=0; i<=nrrd->dim-1; i++) {
     if ((ret=airIsInf_d(val[i]))) {
       sprintf(err, "%s: axis ax %d %sinf invalid", me, i, 1==ret ? "+" : "-");
@@ -399,7 +399,7 @@ nrrdElementNumber (Nrrd *nrrd) {
     return 0;
   }
   /* else */
-  nrrdAxesGet_nva(nrrd, nrrdAxesInfoSize, size);
+  nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSize, size);
   if (_nrrdSizeCheck(nrrd->dim, size, AIR_FALSE)) {
     /* the nrrd's size information is invalid, can't proceed */
     return 0;
@@ -658,8 +658,8 @@ _nrrdCheckEnums (void) {
   if (nrrdCenterLast-1 != NRRD_CENTER_MAX) {
     strcpy(which, "nrrdCenter"); goto err;
   }
-  if (nrrdAxesInfoLast-1 != NRRD_AXESINFO_MAX) {
-    strcpy(which, "nrrdAxesInfo"); goto err;
+  if (nrrdAxisInfoLast-1 != NRRD_AXIS_INFO_MAX) {
+    strcpy(which, "nrrdAxisInfo"); goto err;
   }
   /* can't really check on endian enum */
   if (nrrdField_last-1 != NRRD_FIELD_MAX) {

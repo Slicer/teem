@@ -457,11 +457,11 @@ _nrrdCenter_enum = {
 airEnum *
 nrrdCenter = &_nrrdCenter_enum;
 
-/* ------------------------ nrrdAxesInfo ------------------------- */
+/* ------------------------ nrrdAxisInfo ------------------------- */
 
 char
-_nrrdAxesInfoStr[NRRD_AXESINFO_MAX+1][AIR_STRLEN_SMALL] = {
-  "(unknown_axes_info)",
+_nrrdAxisInfoStr[NRRD_AXIS_INFO_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown_axis_info)",
   "size",
   "spacing",
   "min",
@@ -472,8 +472,8 @@ _nrrdAxesInfoStr[NRRD_AXESINFO_MAX+1][AIR_STRLEN_SMALL] = {
 };
 
 char
-_nrrdAxesInfoDesc[NRRD_AXESINFO_MAX+1][AIR_STRLEN_MED] = {
-  "unknown axes info",
+_nrrdAxisInfoDesc[NRRD_AXIS_INFO_MAX+1][AIR_STRLEN_MED] = {
+  "unknown axis info",
   "number of samples along axis",
   "spacing between samples",
   "minimum position in \"world\" space associated with axis",
@@ -484,16 +484,16 @@ _nrrdAxesInfoDesc[NRRD_AXESINFO_MAX+1][AIR_STRLEN_MED] = {
 };
 
 airEnum
-_nrrdAxesInfo = {
-  "axes_info",
-  NRRD_AXESINFO_MAX,
-  _nrrdAxesInfoStr, NULL,
-  _nrrdAxesInfoDesc,
+_nrrdAxisInfo = {
+  "axis_info",
+  NRRD_AXIS_INFO_MAX,
+  _nrrdAxisInfoStr, NULL,
+  _nrrdAxisInfoDesc,
   NULL, NULL,
   AIR_TRUE
 };
 airEnum *
-nrrdAxesInfo = &_nrrdAxesInfo;
+nrrdAxisInfo = &_nrrdAxisInfo;
   
 /* ------------------------ nrrdField ------------------------- */
 

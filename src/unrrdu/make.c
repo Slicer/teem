@@ -194,12 +194,12 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   nrrd->type = type;
   nrrd->dim = sizeLen;
-  nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, size);
+  nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSize, size);
   if (gotSpacing) {
-    nrrdAxesSet_nva(nrrd, nrrdAxesInfoSpacing, spacing);
+    nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSpacing, spacing);
   }
   if (airStrlen(label[0])) {
-    nrrdAxesSet_nva(nrrd, nrrdAxesInfoLabel, label);
+    nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoLabel, label);
   }
   if (airStrlen(content)) {
     nrrd->content = airStrdup(content);
@@ -260,7 +260,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
 	    nslice[slc]->type = type;
 	    nslice[slc]->dim = sizeLen-1;
 	    /* the last element of size[] will be ignored */
-	    nrrdAxesSet_nva(nslice[slc], nrrdAxesInfoSize, size);
+	    nrrdAxisInfoSet_nva(nslice[slc], nrrdAxisInfoSize, size);
 	  } else {
 	    break;
 	  }
@@ -289,10 +289,10 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
       /* unfortunately, we have to re-set some peripheral information
 	 since we never bothered to set it in any nslice[i]... */
       if (gotSpacing) {
-	nrrdAxesSet_nva(nrrd, nrrdAxesInfoSpacing, spacing);
+	nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSpacing, spacing);
       }
       if (airStrlen(label[0])) {
-	nrrdAxesSet_nva(nrrd, nrrdAxesInfoLabel, label);
+	nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoLabel, label);
       }
       if (airStrlen(content)) {
 	nrrd->content = airStrdup(content);

@@ -104,7 +104,7 @@ tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
       tdata += 7;
     }
   }
-  if (nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_SIZE_BIT)) {
+  if (nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_SIZE_BIT)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;

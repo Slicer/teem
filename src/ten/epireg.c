@@ -393,7 +393,7 @@ _tenEpiRegMoments(Nrrd **nmom, Nrrd **nthresh, int ninLen, int verb) {
       sprintf(err, "%s: couldn't allocate nmom[%d]", me, ni);
       biffMove(TEN, err, NRRD); return 1;
     }
-    nrrdAxesSet(nmom[ni], nrrdAxesInfoLabel, "mx,my,h,s,t", "z");
+    nrrdAxisInfoSet(nmom[ni], nrrdAxisInfoLabel, "mx,my,h,s,t", "z");
     thr = (unsigned char *)(nthresh[ni]->data);
     mom = (double *)(nmom[ni]->data);
     for (zi=0; zi<sz; zi++) {
@@ -476,7 +476,8 @@ _tenEpiRegPairXforms(Nrrd *npxfr, Nrrd **nmom, int ninLen) {
     sprintf(err, "%s: couldn't allocate transform nrrd", me);
     biffMove(TEN, err, NRRD); return 1;
   }
-  nrrdAxesSet(npxfr, nrrdAxesInfoLabel, "mx,my,h,s,t", "zi", "orig", "target");
+  nrrdAxisInfoSet(npxfr, nrrdAxisInfoLabel,
+		  "mx,my,h,s,t", "zi", "orig", "target");
   xfr = (double *)(npxfr->data);
   for (bi=0; bi<ninLen; bi++) {
     for (ai=0; ai<ninLen; ai++) {
@@ -522,7 +523,8 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
     sprintf(err, "%s: couldn't allocate HST nrrd", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
-  nrrdAxesSet(nhst, nrrdAxesInfoLabel, "Hx,Hy,Hz,Sx,Sy,Sz,Tx,Ty,Tz", "z");
+  nrrdAxisInfoSet(nhst, nrrdAxisInfoLabel,
+		  "Hx,Hy,Hz,Sx,Sy,Sz,Tx,Ty,Tz", "z");
   grad = (double *)(ngrad->data);
   mat1 = (double *)(nmat1->data);
   mat2 = (double *)(nmat2->data);

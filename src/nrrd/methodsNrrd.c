@@ -203,7 +203,7 @@ nrrdKernelParmSet (NrrdKernel **kP, double kparm[NRRD_KERNEL_PARMS_NUM],
 
 /* ------------------------------------------------------------ */
 
-/* see axes.c for axis-specific "methods" */
+/* see axis.c for axis-specific "methods" */
 
 /* ------------------------------------------------------------ */
 
@@ -224,7 +224,7 @@ nrrdInit (Nrrd *nrrd) {
     nrrd->dim = 0;
     
     for (i=0; i<NRRD_DIM_MAX; i++) {
-      _nrrdAxisInit(&(nrrd->axis[i]));
+      _nrrdAxisInfoInit(&(nrrd->axis[i]));
     }
     
     AIR_FREE(nrrd->content);
@@ -485,7 +485,7 @@ nrrdCopy (Nrrd *nout, Nrrd *nin) {
     sprintf(err, "%s: input nrrd reports zero element size!", me);
     biffAdd(NRRD, err); return 1;
   }
-  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
+  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   if (nin->data) {
     if (nrrdMaybeAlloc_nva(nout, nin->type, nin->dim, size)) {
       sprintf(err, "%s: couldn't allocate data", me);
@@ -497,7 +497,7 @@ nrrdCopy (Nrrd *nout, Nrrd *nin) {
     /* someone is trying to copy structs without data, fine fine fine */
     nout->data = NULL;
   }
-  nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+  nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
 
   /* HEY: shouldn't this be handled with nrrdPeripheralCopy() */
   AIR_FREE(nout->content);
@@ -575,7 +575,7 @@ nrrdAlloc_nva (Nrrd *nrrd, int type, int dim, int *size) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, size);
+  nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSize, size);
   num = nrrdElementNumber(nrrd);
   esize = nrrdElementSize(nrrd);
   nrrd->data = calloc(num, esize);
@@ -693,7 +693,7 @@ nrrdMaybeAlloc_nva (Nrrd *nrrd, int type, int dim, int *size) {
     /* this is essentially a reshape, or maybe not even that */
     nrrd->type = type;
     nrrd->dim = dim;
-    nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, size);
+    nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSize, size);
     /* but we do have to initialize memory! */
     memset(nrrd->data, 0, nrrdElementNumber(nrrd)*nrrdElementSize(nrrd));
   }

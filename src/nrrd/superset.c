@@ -213,8 +213,8 @@ nrrdInset(Nrrd *nout, Nrrd *nin, Nrrd *nsub, int *min) {
   /* WARNING: following code copied/modified from nrrdCrop(),
      so the meanings of "in"/"out", "src"/"dest" are all messed up */
 
-  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, szIn);
-  nrrdAxesGet_nva(nsub, nrrdAxesInfoSize, szOut);
+  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, szIn);
+  nrrdAxisInfoGet_nva(nsub, nrrdAxisInfoSize, szOut);
   numLines = 1;
   for (d=1; d<nin->dim; d++) {
     numLines *= szOut[d];
@@ -318,7 +318,7 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
   */
 
   dim = nin->dim;
-  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, szIn);
+  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, szIn);
   for (d=0; d<dim; d++) {
     if (!(min[d] <= 0)) {
       sprintf(err, "%s: axis %d min (%d) not <= 0", 
@@ -392,9 +392,9 @@ nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, int boundary, ...) {
     }
     NRRD_COORD_INCR(cOut, szOut, dim, 0);
   }
-  if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE_BIT |
-				     NRRD_AXESINFO_MIN_BIT |
-				     NRRD_AXESINFO_MAX_BIT ))) {
+  if (nrrdAxisInfoCopy(nout, nin, NULL, (NRRD_AXIS_INFO_SIZE_BIT |
+					 NRRD_AXIS_INFO_MIN_BIT |
+					 NRRD_AXIS_INFO_MAX_BIT ))) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }

@@ -586,7 +586,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
   if (0 == passes) {
     /* actually, no resampling was desired.  Copy input to output,
        but with the clamping that we normally do at the end of resampling */
-    nrrdAxesGet_nva(nin, nrrdAxesInfoSize, sz[0]);
+    nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, sz[0]);
     if (nrrdMaybeAlloc_nva(nout, typeOut, nin->dim, sz[0])) {
       sprintf(err, "%s: couldn't allocate output", me);
       biffAdd(NRRD, err); return 1;
@@ -597,7 +597,7 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
       tmpF = nrrdFClamp[typeOut](tmpF);
       nrrdFInsert[typeOut](nout->data, I, tmpF);
     }
-    nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+    nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
     /* HEY: need to create textual representation of resampling parameters */
     if (nrrdContentSet(nout, func, nin, "")) {
       sprintf(err, "%s:", me);
@@ -793,12 +793,12 @@ nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopOnError);
-  nrrdAxesCopy(nout, nin, NULL, 
-	       (NRRD_AXESINFO_SIZE_BIT |
-		NRRD_AXESINFO_MIN_BIT |
-		NRRD_AXESINFO_MAX_BIT |
-		NRRD_AXESINFO_SPACING_BIT | 
-		NRRD_AXESINFO_CENTER_BIT));
+  nrrdAxisInfoCopy(nout, nin, NULL, 
+		   (NRRD_AXIS_INFO_SIZE_BIT |
+		    NRRD_AXIS_INFO_MIN_BIT |
+		    NRRD_AXIS_INFO_MAX_BIT |
+		    NRRD_AXIS_INFO_SPACING_BIT | 
+		    NRRD_AXIS_INFO_CENTER_BIT));
   for (d=0; d<dim; d++) {
     if (info->kernel[d]) {
       nout->axis[d].min = info->min[d];

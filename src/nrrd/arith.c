@@ -87,7 +87,7 @@ nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma, double min, double max) {
     biffAdd(NRRD, err); return 1;
   }
   if (nout != nin) {
-    nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+    nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   }
   
   return 0;
@@ -181,7 +181,7 @@ nrrdArithUnaryOp(Nrrd *nout, int op, Nrrd *nin) {
       biffAdd(NRRD, err); return 1;
     }
   }
-  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
+  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   nrrdPeripheralInit(nout);
   uop = _nrrdUnaryOp[op];
 
@@ -273,13 +273,13 @@ nrrdArithBinaryOp(Nrrd *nout, int op, Nrrd *ninA, Nrrd *ninB) {
     biffAdd(NRRD, err); return 1;
   }
   
-  nrrdAxesGet_nva(ninA, nrrdAxesInfoSize, size);
+  nrrdAxisInfoGet_nva(ninA, nrrdAxisInfoSize, size);
   if (!( nout == ninA || nout == ninB)) {
     if (nrrdMaybeAlloc_nva(nout, ninA->type, ninA->dim, size)) {
       sprintf(err, "%s: couldn't allocate output nrrd", me);
       biffAdd(NRRD, err); return 1;
     }
-    if (nrrdAxesCopy(nout, ninA, NULL, NRRD_AXESINFO_NONE)) {
+    if (nrrdAxisInfoCopy(nout, ninA, NULL, NRRD_AXIS_INFO_NONE)) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
@@ -332,7 +332,7 @@ nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
     biffAdd(NRRD, err); return 1;
   }
   type = nin->type;
-  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
+  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
     sprintf(err, "%s: couldn't allocate output nrrd", me);
@@ -360,7 +360,7 @@ nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
     biffAdd(NRRD, err); free(contA); free(contB); return 1;
   }
   if (nout != nin) {
-    nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+    nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   }
   free(contA);
   free(contB); 
@@ -435,13 +435,13 @@ nrrdArithTernaryOp(Nrrd *nout, int op, Nrrd *ninA, Nrrd *ninB, Nrrd *ninC) {
     biffAdd(NRRD, err); return 1;
   }
   
-  nrrdAxesGet_nva(ninA, nrrdAxesInfoSize, size);
+  nrrdAxisInfoGet_nva(ninA, nrrdAxisInfoSize, size);
   if (!( nout == ninA || nout == ninB || nout == ninC)) {
     if (nrrdMaybeAlloc_nva(nout, ninA->type, ninA->dim, size)) {
       sprintf(err, "%s: couldn't allocate output nrrd", me);
       biffAdd(NRRD, err); return 1;
     }
-    if (nrrdAxesCopy(nout, ninA, NULL, NRRD_AXESINFO_NONE)) {
+    if (nrrdAxisInfoCopy(nout, ninA, NULL, NRRD_AXIS_INFO_NONE)) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
@@ -501,7 +501,7 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
     biffAdd(NRRD, err); return 1;
   }
   type = nin->type;
-  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size);
+  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
     sprintf(err, "%s: couldn't allocate output nrrd", me);
     biffAdd(NRRD, err); return 1;
@@ -537,7 +537,7 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
     biffAdd(NRRD, err); free(contA); free(contB); free(contC); return 1;
   }
   if (nout != nin) {
-    nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+    nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   }
   free(contA);
   free(contB); 

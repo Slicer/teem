@@ -214,7 +214,7 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
 	    me, nin->dim, nounStr[kind], NRRD_DIM_MAX);
     biffAdd(NRRD, err); return 1;
   }
-  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, size+mapAxis);
+  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size+mapAxis);
   if (mapAxis) {
     size[0] = colLen;
     axisMap[0] = -1;
@@ -247,8 +247,8 @@ _nrrdApply1DSetUp(Nrrd *nout, Nrrd *nin, Nrrd *nmap,
   }
   fprintf(stderr, "##%s: post maybe alloc: nout->data = %p\n", me, nout->data);
   */
-  if (nrrdAxesCopy(nout, nin, axisMap, NRRD_AXESINFO_NONE)) {
-    sprintf(err, "%s: trouble copying axes", me);
+  if (nrrdAxisInfoCopy(nout, nin, axisMap, NRRD_AXIS_INFO_NONE)) {
+    sprintf(err, "%s: trouble copying axis info", me);
     biffAdd(NRRD, err); return 1;
   }
   mapcnt = _nrrdContentGet(nmap);

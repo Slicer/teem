@@ -43,7 +43,7 @@ nrrdSample_nva(void *val, Nrrd *nrrd, int *coord) {
   }
   
   typeSize = nrrdElementSize(nrrd);
-  nrrdAxesGet_nva(nrrd, nrrdAxesInfoSize, size);
+  nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSize, size);
   for (d=0; d<nrrd->dim; d++) {
     if (!(AIR_IN_CL(0, coord[d], size[d]-1))) {
       sprintf(err, "%s: coordinate %d on axis %d out of bounds (0 to %d)", 
@@ -174,7 +174,7 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
   }
 
   /* copy the peripheral information */
-  if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_NONE)) {
+  if (nrrdAxisInfoCopy(nout, nin, map, NRRD_AXIS_INFO_NONE)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -240,7 +240,7 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
   }
 
   /* allocate */
-  nrrdAxesGet_nva(nin, nrrdAxesInfoSize, szIn);
+  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, szIn);
   numLines = 1;
   for (d=0; d<nin->dim; d++) {
     szOut[d] = max[d] - min[d] + 1;
@@ -284,9 +284,9 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
        copying one (1-D) scanline at a time */
     NRRD_COORD_INCR(cOut, szOut, nin->dim, 1);
   }
-  if (nrrdAxesCopy(nout, nin, NULL, (NRRD_AXESINFO_SIZE_BIT |
-				     NRRD_AXESINFO_MIN_BIT |
-				     NRRD_AXESINFO_MAX_BIT ))) {
+  if (nrrdAxisInfoCopy(nout, nin, NULL, (NRRD_AXIS_INFO_SIZE_BIT |
+					 NRRD_AXIS_INFO_MIN_BIT |
+					 NRRD_AXIS_INFO_MAX_BIT ))) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }

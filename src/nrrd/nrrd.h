@@ -350,7 +350,7 @@ extern nrrd_export airEnum *nrrdType;
 extern nrrd_export airEnum *nrrdEncoding;
 extern nrrd_export airEnum *nrrdMeasure;
 extern nrrd_export airEnum *nrrdCenter;
-extern nrrd_export airEnum *nrrdAxesInfo;
+extern nrrd_export airEnum *nrrdAxisInfo;
 extern nrrd_export airEnum *nrrdField;
 extern nrrd_export airEnum *nrrdUnaryOp;
 extern nrrd_export airEnum *nrrdBinaryOp;
@@ -421,15 +421,15 @@ extern char *nrrdIterContent(NrrdIter *iter);
 extern NrrdIter *nrrdIterNix(NrrdIter *iter);
 extern NrrdIter *nrrdIterNuke(NrrdIter *iter);
 
-/******** axes related */
-/* axes.c */
-extern int nrrdAxesCopy(Nrrd *nout, Nrrd *nin, int *map, int bitflag);
-extern void nrrdAxesSet_nva(Nrrd *nin, int axInfo, void *info);
-extern void nrrdAxesSet(Nrrd *nin, int axInfo,
-			... /* void* */);
-extern void nrrdAxesGet_nva(Nrrd *nrrd, int axInfo, void *info);
-extern void nrrdAxesGet(Nrrd *nrrd, int axInfo,
-			... /* void* */);
+/******** axis info related */
+/* axis.c */
+extern int nrrdAxisInfoCopy(Nrrd *nout, Nrrd *nin, int *map, int bitflag);
+extern void nrrdAxisInfoSet_nva(Nrrd *nin, int axInfo, void *info);
+extern void nrrdAxisInfoSet(Nrrd *nin, int axInfo,
+			    ... /* void* */);
+extern void nrrdAxisInfoGet_nva(Nrrd *nrrd, int axInfo, void *info);
+extern void nrrdAxisInfoGet(Nrrd *nrrd, int axInfo,
+			    ... /* void* */);
 extern double nrrdAxisPos(Nrrd *nrrd, int ax, double idx);
 extern double nrrdAxisIdx(Nrrd *nrrd, int ax, double pos);
 extern void nrrdAxisPosRange(double *loP, double *hiP, Nrrd *nrrd, int ax,

@@ -109,10 +109,10 @@ main(int argc, char *argv[]) {
     }
   }
 
-  nrrdAxesSet(nout, nrrdAxesInfoMin, min[0], min[1], min[2]);
-  nrrdAxesSet(nout, nrrdAxesInfoMax, max[0], max[1], max[2]);
-  nrrdAxesSet(nout, nrrdAxesInfoCenter, 
-	      nrrdCenterNode, nrrdCenterNode, nrrdCenterNode);
+  nrrdAxisInfoSet(nout, nrrdAxisInfoMin, min[0], min[1], min[2]);
+  nrrdAxisInfoSet(nout, nrrdAxisInfoMax, max[0], max[1], max[2]);
+  nrrdAxisInfoSet(nout, nrrdAxisInfoCenter, 
+		  nrrdCenterNode, nrrdCenterNode, nrrdCenterNode);
   nrrdAxisSpacingSet(nout, 0);
   nrrdAxisSpacingSet(nout, 1);
   nrrdAxisSpacingSet(nout, 2);

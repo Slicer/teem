@@ -128,7 +128,7 @@ tenGlyphGen(limnObj *glyphsLimn, echoScene *glyphsEcho,
   double I[3], W[3];
   float cl, cp, *tdata, evec[9], eval[3], *cvec, aniso[TEN_ANISO_MAX+1],
     sRot[16], mA[16], mB[16], R, G, B, qA, qB, glyphAniso, sliceAniso;
-  int idx, ri, axis, si;
+  int idx, ri, axis, si=0;
   limnPart *lglyph;
   limnSP *sp;
   echoObject *eglyph, *inst, *list=NULL, *split, *esquare;

@@ -38,14 +38,16 @@ echoThreadStateInit(echoThreadState *tstate,
     sprintf(err, "%s: couldn't allocate jitter permutation array", me);
     biffMove(ECHO, err, NRRD); return 1;
   }
-  nrrdAxesSet(tstate->nperm, nrrdAxesInfoLabel, "jittable", "sample");
+  nrrdAxisInfoSet(tstate->nperm, nrrdAxisInfoLabel,
+		  "jittable", "sample");
 
   if (nrrdMaybeAlloc(tstate->njitt, echoPos_nt, 3,
 		     2, ECHO_JITTABLE_NUM, parm->numSamples)) {
     sprintf(err, "%s: couldn't allocate jitter array", me);
     biffMove(ECHO, err, NRRD); return 1;
   }
-  nrrdAxesSet(tstate->njitt, nrrdAxesInfoLabel, "x,y", "jittable", "sample");
+  nrrdAxisInfoSet(tstate->njitt, nrrdAxisInfoLabel,
+		  "x,y", "jittable", "sample");
 
   AIR_FREE(tstate->permBuff);
   if (!( tstate->permBuff = (int*)calloc(parm->numSamples, sizeof(int)) )) {
@@ -295,9 +297,12 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
     sprintf(err, "%s: couldn't allocate output image", me);
     biffMove(ECHO, err, NRRD); return 1;
   }
-  nrrdAxesSet(nraw, nrrdAxesInfoLabel, "r,g,b,a,t", "x", "y");
-  nrrdAxesSet(nraw, nrrdAxesInfoMin, AIR_NAN, cam->uRange[0], cam->vRange[0]);
-  nrrdAxesSet(nraw, nrrdAxesInfoMax, AIR_NAN, cam->uRange[1], cam->vRange[1]);
+  nrrdAxisInfoSet(nraw, nrrdAxisInfoLabel,
+		  "r,g,b,a,t", "x", "y");
+  nrrdAxisInfoSet(nraw, nrrdAxisInfoMin,
+		  AIR_NAN, cam->uRange[0], cam->vRange[0]);
+  nrrdAxisInfoSet(nraw, nrrdAxisInfoMax,
+		  AIR_NAN, cam->uRange[1], cam->vRange[1]);
   tstate = echoThreadStateNew();
   if (echoThreadStateInit(tstate, parm, gstate)) {
     sprintf(err, "%s:", me);

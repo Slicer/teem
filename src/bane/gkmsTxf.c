@@ -76,10 +76,10 @@ baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (!E) E |= nrrdMaybeAlloc(nout, nrrdTypeFloat, 3, 1, res[0], res[1]);
   if (!E) E |= !(nout->axis[0].label = airStrdup("A"));
   if (!E) E |= !(nout->axis[1].label = airStrdup("gage(v)"));
-  if (!E) nrrdAxesSet(nout, nrrdAxesInfoMin,
-		      AIR_NAN, (double)min[0], (double)min[1]);
-  if (!E) nrrdAxesSet(nout, nrrdAxesInfoMax,
-		      AIR_NAN, (double)max[0], (double)max[1]);
+  if (!E) nrrdAxisInfoSet(nout, nrrdAxisInfoMin,
+			  AIR_NAN, (double)min[0], (double)min[1]);
+  if (!E) nrrdAxisInfoSet(nout, nrrdAxisInfoMax,
+			  AIR_NAN, (double)max[0], (double)max[1]);
   if (!E) E |= !(nout->axis[2].label = airStrdup("gage(gm)"));
   if (E) {
     sprintf(err, "%s: trouble creating opacity function nrrd", me);

@@ -106,7 +106,7 @@ tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
       tdata += 7;
     }
   }
-  if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_SIZE_BIT)) {
+  if (nrrdAxisInfoCopy(nout, nin, map, NRRD_AXIS_INFO_SIZE_BIT)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;

@@ -35,9 +35,9 @@ main(int argc, char *argv[]) {
     printf("trouble:\n%s\n", biffGet(NRRD));
     exit(1);
   }
-  nrrdAxesSet(nrrd, nrrdAxesInfoMin, 10.0, 10.0);
-  nrrdAxesSet(nrrd, nrrdAxesInfoMax, 12.0, 12.0);
-  nrrdAxesSet(nrrd, nrrdAxesInfoCenter, nrrdCenterNode, nrrdCenterCell);
+  nrrdAxisInfoSet(nrrd, nrrdAxisInfoMin, 10.0, 10.0);
+  nrrdAxisInfoSet(nrrd, nrrdAxisInfoMax, 12.0, 12.0);
+  nrrdAxisInfoSet(nrrd, nrrdAxisInfoCenter, nrrdCenterNode, nrrdCenterCell);
 
   idx = 0;
   printf("\n");
@@ -99,8 +99,8 @@ main(int argc, char *argv[]) {
   printf("range(1, %g -- %g) == (%g -- %g) --> (%g -- %g)\n",
 	 idx, idx2, lo, hi, idx3, idx4);
 
-  nrrdAxesSet(nrrd, nrrdAxesInfoMin, 12.0, 12.0);
-  nrrdAxesSet(nrrd, nrrdAxesInfoMax, 10.0, 10.0);
+  nrrdAxisInfoSet(nrrd, nrrdAxisInfoMin, 12.0, 12.0);
+  nrrdAxisInfoSet(nrrd, nrrdAxisInfoMax, 10.0, 10.0);
   printf("\n(axis min,max flipped)\n");
 
   idx = 0;

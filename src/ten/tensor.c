@@ -105,7 +105,7 @@ tenExpand(Nrrd *nout, Nrrd *nin, float scale, float thresh) {
     TEN_LIST2MAT(nine, seven);
     ELL_3M_SCALE(nine, scale, nine);
   }
-  if (nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_SIZE_BIT)) {
+  if (nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_SIZE_BIT)) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
@@ -167,7 +167,7 @@ tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine) {
     seven += 7;
     nine += 9;
   }
-  if (nrrdAxesCopy(tseven, tnine, NULL, NRRD_AXESINFO_SIZE_BIT)) {
+  if (nrrdAxisInfoCopy(tseven, tnine, NULL, NRRD_AXIS_INFO_SIZE_BIT)) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
@@ -379,7 +379,7 @@ tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec) {
     evec += 9;
   }
   ELL_4V_SET(map, -1, 0, 1, 2);
-  if (nrrdAxesCopy(nout, nconf, map, NRRD_AXESINFO_SIZE_BIT)) {
+  if (nrrdAxisInfoCopy(nout, nconf, map, NRRD_AXIS_INFO_SIZE_BIT)) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }

@@ -465,8 +465,8 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
     sprintf(cmt, "minh: %g", minh);  nrrdCommentAdd(nvgh, cmt);
     sprintf(cmt, "maxh: %g", maxh);  nrrdCommentAdd(nvgh, cmt);
   }
-  nrrdAxesSet(nvgh, nrrdAxesInfoCenter, nrrdCenterUnknown,
-	      nrrdCenterNode, nrrdCenterNode, nrrdCenterNode);
+  nrrdAxisInfoSet(nvgh, nrrdAxisInfoCenter, nrrdCenterUnknown,
+		  nrrdCenterNode, nrrdCenterNode, nrrdCenterNode);
 
   return 0;
 }
@@ -633,9 +633,9 @@ main(int argc, char *argv[]) {
   
   /* this axis info is being saved so that it can be re-enstated at the end */
   spacing[0] = amin[0] = amax[0] = AIR_NAN;
-  nrrdAxesGet_nva(nrsmp, nrrdAxesInfoSpacing, spacing+1);
-  nrrdAxesGet_nva(nrsmp, nrrdAxesInfoMin, amin+1);
-  nrrdAxesGet_nva(nrsmp, nrrdAxesInfoMax, amax+1);
+  nrrdAxisInfoGet_nva(nrsmp, nrrdAxisInfoSpacing, spacing+1);
+  nrrdAxisInfoGet_nva(nrsmp, nrrdAxisInfoMin, amin+1);
+  nrrdAxisInfoGet_nva(nrsmp, nrrdAxisInfoMax, amax+1);
   /* if we had to downsample, we may have enstated axis mins and maxs where
      they didn't exist before, and those shouldn't be saved in output.  But
      we can't just copy axis mins and maxs from the original input because
@@ -701,10 +701,10 @@ main(int argc, char *argv[]) {
     }
 
     /* do final decoration of axes */
-    nrrdAxesSet(nvgh, nrrdAxesInfoLabel, "vgh", "x", "y", "z");
-    nrrdAxesSet_nva(nvgh, nrrdAxesInfoMin, amin);
-    nrrdAxesSet_nva(nvgh, nrrdAxesInfoMax, amax);
-    nrrdAxesSet_nva(nvgh, nrrdAxesInfoSpacing, spacing);
+    nrrdAxisInfoSet(nvgh, nrrdAxisInfoLabel, "vgh", "x", "y", "z");
+    nrrdAxisInfoSet_nva(nvgh, nrrdAxisInfoMin, amin);
+    nrrdAxisInfoSet_nva(nvgh, nrrdAxisInfoMax, amax);
+    nrrdAxisInfoSet_nva(nvgh, nrrdAxisInfoSpacing, spacing);
     nrrdContentSet(nvgh, "qbert", nin, "");
     
     E = nrrdSave(outS, nvgh, NULL);

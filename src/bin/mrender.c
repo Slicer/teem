@@ -470,8 +470,8 @@ main(int argc, char *argv[]) {
 	  airEnumStr(gageKindScl->enm, uu->whatq));
   
   /* set remaining fields of hoover context */
-  nrrdAxesGet_nva(uu->nin, nrrdAxesInfoSize, uu->hctx->volSize);
-  nrrdAxesGet_nva(uu->nin, nrrdAxesInfoSpacing, uu->hctx->volSpacing);
+  nrrdAxisInfoGet_nva(uu->nin, nrrdAxisInfoSize, uu->hctx->volSize);
+  nrrdAxisInfoGet_nva(uu->nin, nrrdAxisInfoSpacing, uu->hctx->volSpacing);
   if (nrrdCenterUnknown != uu->nin->axis[0].center) {
     uu->hctx->volCentering = uu->nin->axis[0].center;
     fprintf(stderr, "%s: setting volCentering to %s\n", me,

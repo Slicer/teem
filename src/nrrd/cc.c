@@ -386,7 +386,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, Nrrd *nin, int type, int conny) {
     biffAdd(NRRD, err); return 1;
   }
   if (nout != nin) {
-    nrrdAxesCopy(nout, nin, NULL, NRRD_AXESINFO_NONE);
+    nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   }
   
   airMopOkay(mop);

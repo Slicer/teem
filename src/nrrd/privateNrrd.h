@@ -53,7 +53,7 @@ typedef union {
   unsigned int *UI;
   double *D;
   void *P;
-} _nrrdAxesInfoPtrs;
+} _nrrdAxisInfoPtrs;
 
 /* arrays.c */
 extern int _nrrdFieldValidInImage[NRRD_FIELD_MAX+1];
@@ -72,9 +72,10 @@ extern int _nrrdContentSet(Nrrd *nout, const char *func,
 			   char *content, const char *format, ...);
 
 
-/* axes.c */
-extern void _nrrdAxisCopy(NrrdAxis *dest, NrrdAxis *src, int bitflag);
-extern void _nrrdAxisInit(NrrdAxis *axis);
+/* axis.c */
+extern void _nrrdAxisInfoCopy(NrrdAxis *dest, NrrdAxis *src,
+			      int bitflag);
+extern void _nrrdAxisInfoInit(NrrdAxis *axis);
 extern int _nrrdCenter(int center);
 extern int _nrrdCenter2(int center, int def);
 

@@ -140,7 +140,7 @@ _nrrdReadNrrdParse_sizes (Nrrd *nrrd, NrrdIO *io, int useBiff) {
     sprintf(err, "%s: array sizes not valid", me);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
-  nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, val);
+  nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSize, val);
   return 0;
 }
 
@@ -161,7 +161,7 @@ _nrrdReadNrrdParse_spacings (Nrrd *nrrd, NrrdIO *io, int useBiff) {
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
   }
-  nrrdAxesSet_nva(nrrd, nrrdAxesInfoSpacing, val);
+  nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSpacing, val);
   return 0;
 }
 
@@ -182,7 +182,7 @@ _nrrdReadNrrdParse_axis_mins (Nrrd *nrrd, NrrdIO *io, int useBiff) {
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
   }
-  nrrdAxesSet_nva(nrrd, nrrdAxesInfoMin, val);
+  nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoMin, val);
   return 0;
 }
 
@@ -203,8 +203,9 @@ _nrrdReadNrrdParse_axis_maxs (Nrrd *nrrd, NrrdIO *io, int useBiff) {
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
   }
-  nrrdAxesSet_nva(nrrd, nrrdAxesInfoMax, val);
+  nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoMax, val);
   return 0;
+
 }
 
 /*

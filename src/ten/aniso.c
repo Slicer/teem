@@ -194,7 +194,7 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, float thresh) {
     out[I] = c[aniso];
   }
   ELL_3V_SET(map, 1, 2, 3);
-  if (nrrdAxesCopy(nout, nin, map, NRRD_AXESINFO_SIZE_BIT)) {
+  if (nrrdAxisInfoCopy(nout, nin, map, NRRD_AXIS_INFO_SIZE_BIT)) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
