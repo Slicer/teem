@@ -413,7 +413,7 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
 
   printf("!%s: data at %llx is from calloc(" NRRD_BIG_INT_PRINTF ", %d)\n",
 	 me, (unsigned long long int)nrrd->data, num, esize);
-  for (I=0,tval=0,test=nrrd->data; I<=num*esize-1; I++) {
+  for (I=0,tval=0,test=nrrd->data; I<=num*esize; I++) {
     tval += test[I];
   }
 
