@@ -327,9 +327,20 @@ xtern.Dflag = $(call for.xtern,$(1),-DTEEM_XXX=1)
 ## the possibility of iterating through the libraries, reading the
 ## make file, and then setting variables based on what was just read.
 ##
+## Lsave is used to preserve the value of L, in case we're being included
+## from a lower-level makefile which set a value for L.  If we didn't put
+## L back the way it was, L would have to be set twice in the lower level
+## makefiles
+##
 INCLUDED := true
+ifeq (undefined,$(origin Lsave))
+  Lsave := $(L)
+endif
 include $(foreach LIB,$(LIBS),$(TEEM_SRC)/$(LIB)/GNUmakefile)
 include $(TEEM_SRC)/bin/GNUmakefile
+ifneq (,$(Lsave))
+  L := $(Lsave)
+endif
 
 ## megalibs: libteem.a and libteem.$(TEEM_SHEXT)
 ##
