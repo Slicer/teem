@@ -79,15 +79,23 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, Nrrd *nwght, int bins, int type) {
   }
   /* nout->axis[0].size set */
   nout->axis[0].spacing = AIR_NAN;
-  if (nrrdMinMaxCleverSet(nin)) {
-    sprintf(err, "%s: trouble setting min and max", me);
-    biffAdd(NRRD, err); return 1;
+  if (nout && AIR_EXISTS(nout->axis[0].min) && AIR_EXISTS(nout->axis[0].max)) {
+    /* HEY: total hack to externally nail down min and max of histogram:
+       use the min and max already set on axis[0] */
+    min = nout->axis[0].min;
+    max = nout->axis[0].max;
+  } else {
+    /* normal path */
+    if (nrrdMinMaxCleverSet(nin)) {
+      sprintf(err, "%s: trouble setting min and max", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    min = nin->min;
+    max = nin->max;
+    nout->axis[0].min = min;
+    nout->axis[0].max = max;
   }
-  min = nin->min;
-  max = nin->max;
   eps = (min == max ? 1.0 : 0.0);
-  nout->axis[0].min = min;
-  nout->axis[0].max = max;
   nout->axis[0].center = nrrdCenterCell;
   /* nout->axis[0].label set below */
   
