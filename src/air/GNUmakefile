@@ -54,7 +54,6 @@ $(L).TESTS = test/floatprint test/doubleprint test/tok \
 $(L).NEED_ENDIAN = true
 $(L).NEED_QNANHIBIT = true
 $(L).NEED_DIO = true
-$(L).NEED_BIGBITFIELD = true
 ####
 ####
 ####
