@@ -207,10 +207,9 @@ _limnSplineFinish_Unknown(double *out, limnSpline *spline,
 void
 _limnSplineFinish_Scalar(double *out, limnSpline *spline,
 			 int ii, double *wght) {
-  int N, idx[4];
+  int idx[4];
   double *cpt;
 
-  N = spline->ncpt->axis[2].size;
   cpt = (double*)(spline->ncpt->data);
   _limnSplineIndexFind(idx, spline, ii);
   *out = (  wght[0]*cpt[idx[0]] + wght[1]*cpt[idx[1]] 
@@ -221,10 +220,9 @@ _limnSplineFinish_Scalar(double *out, limnSpline *spline,
 void
 _limnSplineFinish_2Vec(double *out, limnSpline *spline,
 		       int ii, double *wght) {
-  int N, idx[4];
+  int idx[4];
   double *cpt;
 
-  N = spline->ncpt->axis[2].size;
   cpt = (double*)(spline->ncpt->data);
   _limnSplineIndexFind(idx, spline, ii);
   out[0] = (  wght[0]*cpt[0 + 2*idx[0]] + wght[1]*cpt[0 + 2*idx[1]] 
@@ -237,10 +235,9 @@ _limnSplineFinish_2Vec(double *out, limnSpline *spline,
 void
 _limnSplineFinish_3Vec(double *out, limnSpline *spline,
 		       int ii, double *wght) {
-  int N, idx[4];
+  int idx[4];
   double *cpt;
 
-  N = spline->ncpt->axis[2].size;
   cpt = (double*)(spline->ncpt->data);
   _limnSplineIndexFind(idx, spline, ii);
   out[0] = (  wght[0]*cpt[0 + 3*idx[0]] + wght[1]*cpt[0 + 3*idx[1]] 

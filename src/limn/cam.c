@@ -190,6 +190,11 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
     sprintf(err, "%s: trouble creating %s spline", me, which);
     biffAdd(LIMN, err); airMopError(mop); return 1;
   }
+  airMopAdd(mop, quatSpline, (airMopper)limnSplineNix, airMopAlways);
+  airMopAdd(mop, posSpline, (airMopper)limnSplineNix, airMopAlways);
+  airMopAdd(mop, distSpline, (airMopper)limnSplineNix, airMopAlways);
+  airMopAdd(mop, quatSpline, (airMopper)limnSplineNix, airMopAlways);
+  airMopAdd(mop, timeSpline, (airMopper)limnSplineNix, airMopAlways);
 
   /* evaluate splines */
   if (limnSplineSample(nsample, timeSpline, limnSplineMinT(timeSpline), 
@@ -201,7 +206,7 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
     sprintf(err, "%s: trouble evaluating splines", me);
     biffAdd(LIMN, err); airMopError(mop); return 1;
   }
-  quat = (double*)(npos->data);
+  quat = (double*)(nquat->data);
   pos = (double*)(npos->data);
   dist = (double*)(ndist->data);
   uv = (double*)(nuv->data);
