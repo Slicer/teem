@@ -128,7 +128,7 @@ nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos) {
   }
   if (!(AIR_INSIDE(0, pos, nin->axis[axis].size-1) )) {
     sprintf(err, "%s: position %d out of bounds (0 to %d)", 
-	    me, axis, nin->axis[axis].size-1);
+	    me, pos, nin->axis[axis].size-1);
     biffAdd(NRRD, err); return 1;
   }
   /* this shouldn't actually be necessary ... */
