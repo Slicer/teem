@@ -19,38 +19,29 @@
 
 #include "echo.h"
 
-#define SIMPLE_NEW(TYPE)                                       \
-EchoLight##TYPE *                                              \
-_echoLight##TYPE##_new(void) {                                 \
-  EchoLight##TYPE *ret;                                        \
-                                                               \
-  ret = (EchoLight##TYPE *)calloc(1, sizeof(EchoLight##TYPE)); \
-  ret->type = echoLight##TYPE;                                 \
-  return ret;                                                  \
+#define NEW_TMPL(TYPE, BODY)                                     \
+EchoLight##TYPE *                                                \
+_echoLight##TYPE##_new(void) {                                   \
+  EchoLight##TYPE *light;                                        \
+                                                                 \
+  light = (EchoLight##TYPE *)calloc(1, sizeof(EchoLight##TYPE)); \
+  light->type = echoLight##TYPE;                                 \
+  do { BODY } while (0);                                         \
+  return light;                                                  \
 }
 
-SIMPLE_NEW(Ambient)      /* _echoLightAmbient_new */
-SIMPLE_NEW(Directional)  /* _echoLightDirectional_new */
-
-EchoLightArea *
-_echoLightArea_new(void) {
-  EchoLightArea *ret;
-
-  ret = (EchoLightArea *)calloc(1, sizeof(EchoLightArea));
-  ret->type = echoLightArea;
-  /* ??? */
-  return ret;
-}
-
-
-typedef EchoLight *(*echoLightNew_t)(void);
+NEW_TMPL(Ambient,)                /* _echoLightAmbient_new */
+NEW_TMPL(Directional,)            /* _echoLightDirectional_new */
+NEW_TMPL(Area,                    /* _echoLightArea_new */
+	 light->obj = NULL;
+	 );
 
 EchoLight *(*
 _echoLightNew[ECHO_LIGHT_MAX+1])(void) = {
   NULL,
-  (echoLightNew_t)_echoLightAmbient_new,
-  (echoLightNew_t)_echoLightDirectional_new,
-  (echoLightNew_t)_echoLightArea_new
+  (EchoLight *(*)(void))_echoLightAmbient_new,
+  (EchoLight *(*)(void))_echoLightDirectional_new,
+  (EchoLight *(*)(void))_echoLightArea_new
 };
 
 EchoLight *
@@ -69,14 +60,12 @@ _echoLightArea_nix(EchoLightArea *area) {
   return NULL;
 }
 
-typedef EchoLight *(*echoLightNix_t)(EchoLight *);
-
 EchoLight *(*
 _echoLightNix[ECHO_LIGHT_MAX+1])(EchoLight *) = {
   NULL,
-  (echoLightNix_t)airFree,
-  (echoLightNix_t)airFree,
-  (echoLightNix_t)_echoLightArea_nix
+  (EchoLight *(*)(EchoLight *))airFree,
+  (EchoLight *(*)(EchoLight *))airFree,
+  (EchoLight *(*)(EchoLight *))_echoLightArea_nix
 };
 
 EchoLight *

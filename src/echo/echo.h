@@ -50,7 +50,9 @@ typedef double echoCol_t;
 #define echoCol_nrrdType nrrdTypeDouble
 #endif
 
-#define ECHO_OBJECT_INCR 20
+#define ECHO_AABBOX_OBJECT_MAX 8
+#define ECHO_LIST_OBJECT_INCR 8
+#define ECHO_MATTER_VALUE_NUM 8
 
 typedef struct {
   /* ray-tracing parameters */
@@ -102,6 +104,16 @@ enum {
 };
 #define ECHO_SAMPLE_NUM    4
 
+enum {
+  echoMatterUnknown,
+  echoMatterPhong,      /* 1 */
+  echoMatterGlass,      /* 2 */
+  echoMatterMetal,      /* 3 */
+  echoMatterLight,      /* 4 */
+  echoMatterLast
+};
+#define ECHO_MATTER_MAX    4
+
 /* enum.c ------------------------------------------ */
 extern airEnum echoJitter;
 extern airEnum echoObject;
@@ -114,17 +126,20 @@ enum {
   echoObjectCube,       /* 2 */
   echoObjectTriangle,   /* 3 */
   echoObjectRectangle,  /* 4 */
-  echoObjectMesh,       /* 5: only triangles in the mesh */
+  echoObjectTriMesh,    /* 5: only triangles in the mesh */
   echoObjectIsosurface, /* 6 */
-  echoObjectAABox,      /* 7 */
+  echoObjectAABBox,     /* 7 */
+  echoObjectList,       /* 8 */
   echoObjectLast
 };
-#define ECHO_OBJECT_MAX    7
+#define ECHO_OBJECT_MAX    8
 
 /* function: me, k, intx --> lit color */
 
 #define ECHO_OBJECT_COMMON \
   int type
+#define ECHO_OBJECT_MATERIAL \
+  echoCol_t mat[ECHO_MATTER_VALUE_NUM]
 
 typedef struct {
   ECHO_OBJECT_COMMON;
@@ -132,32 +147,38 @@ typedef struct {
 
 typedef struct {
   ECHO_OBJECT_COMMON;
+  ECHO_OBJECT_MATERIAL;
   echoPos_t pos[3];
   echoPos_t rad;
 } EchoObjectSphere;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
+  ECHO_OBJECT_MATERIAL;
   /* ??? */
 } EchoObjectCube;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
+  ECHO_OBJECT_MATERIAL;
   echoPos_t vert[3][3];
 } EchoObjectTriangle;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
+  ECHO_OBJECT_MATERIAL;
   echoPos_t origin[3], edge0[3], edge1[3];
 } EchoObjectRectangle;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
+  ECHO_OBJECT_MATERIAL;
   /* ??? */
-} EchoObjectMesh;
+} EchoObjectTriMesh;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
+  ECHO_OBJECT_MATERIAL;
   Nrrd *volume;
   float value;
 } EchoObjectIsosurface;
@@ -165,12 +186,20 @@ typedef struct {
 typedef struct {
   ECHO_OBJECT_COMMON;
   echoPos_t min[3], max[3];
+  int len;
+  EchoObject *obj[ECHO_AABBOX_OBJECT_MAX];
+} EchoObjectAABBox;
+
+typedef struct {
+  ECHO_OBJECT_COMMON;
   EchoObject **obj;
   airArray *objArr;
-} EchoObjectAABox;
+} EchoObjectList;  
 
 extern EchoObject *echoObjectNew(int type);
 extern EchoObject *echoObjectNix(EchoObject *obj);
+extern int echoObjectIsContainer(EchoObject *obj);
+extern void echoObjectAdd(EchoObject *parent, EchoObject *child);
 
 /* light.c ---------------------------------------- */
 
@@ -184,8 +213,7 @@ enum {
 #define ECHO_LIGHT_MAX     3
 
 #define ECHO_LIGHT_COMMON \
-  int type;               \
-  echoCol_t col[3]
+  int type                \
 
 typedef struct {
   ECHO_LIGHT_COMMON;
@@ -193,16 +221,18 @@ typedef struct {
 
 typedef struct {
   ECHO_LIGHT_COMMON;
+  echoCol_t col[3];
 } EchoLightAmbient;
 
 typedef struct {
   ECHO_LIGHT_COMMON;
+  echoCol_t col[3];
   echoPos_t dir[3];
 } EchoLightDirectional;
 
 typedef struct {
   ECHO_LIGHT_COMMON;
-  echoPos_t origin[3], edge0[3], edge1[3];
+  EchoObject *obj;
   /* ??? */
 } EchoLightArea;
 

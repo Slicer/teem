@@ -35,36 +35,46 @@ _echoObject##TYPE##_new(void) {                                  \
   echoObjectCube,
   echoObjectTriangle,
   echoObjectRectangle,
-  echoObjectMesh,
+  echoObjectTriMesh,
   echoObjectIsosurface,
-  echoObjectAABox,
+  echoObjectAABBox,
+  echoObjectList,
 */
 
-NEW_TMPL(Sphere,)
-NEW_TMPL(Cube,)
-NEW_TMPL(Triangle,)
-NEW_TMPL(Rectangle,)
-NEW_TMPL(Mesh, /* ??? */ )
-NEW_TMPL(Isosurface, /* ??? */)
-NEW_TMPL(AABox,                                                             \
-	 obj->obj = NULL;                                                   \
-	 obj->objArr = airArrayNew((void**)&(obj->obj), NULL,               \
-				   sizeof(EchoObject *), ECHO_OBJECT_INCR); \
-	 /* register callbacks ... */                                       \
-	 )
-
-typedef EchoObject *(*echoObjectNew_t)(void);
+NEW_TMPL(Sphere,);
+NEW_TMPL(Cube,);
+NEW_TMPL(Triangle,);
+NEW_TMPL(Rectangle,);
+NEW_TMPL(TriMesh, /* ??? */ );
+NEW_TMPL(Isosurface, /* ??? */);
+NEW_TMPL(AABBox,
+	 int i;
+	 for (i=0; i<ECHO_AABBOX_OBJECT_MAX; i++) {
+	   obj->obj[i] = NULL;
+	 }
+	 obj->len = 0;
+	 );
+NEW_TMPL(List,
+	 obj->obj = NULL;
+	 obj->objArr = airArrayNew((void**)&(obj->obj), NULL,
+				   sizeof(EchoObject *),
+				   ECHO_LIST_OBJECT_INCR);
+	 airArrayPointerCB(obj->objArr,
+			   airNull,
+			   (void *(*)(void *))echoObjectNix);
+	 );
 
 EchoObject *(*
 _echoObjectNew[ECHO_OBJECT_MAX+1])(void) = {
   NULL,
-  (echoObjectNew_t)_echoObjectSphere_new,
-  (echoObjectNew_t)_echoObjectCube_new,
-  (echoObjectNew_t)_echoObjectTriangle_new,
-  (echoObjectNew_t)_echoObjectRectangle_new,
-  (echoObjectNew_t)_echoObjectMesh_new,
-  (echoObjectNew_t)_echoObjectIsosurface_new,
-  (echoObjectNew_t)_echoObjectAABox_new
+  (EchoObject *(*)(void))_echoObjectSphere_new,
+  (EchoObject *(*)(void))_echoObjectCube_new,
+  (EchoObject *(*)(void))_echoObjectTriangle_new,
+  (EchoObject *(*)(void))_echoObjectRectangle_new,
+  (EchoObject *(*)(void))_echoObjectTriMesh_new,
+  (EchoObject *(*)(void))_echoObjectIsosurface_new,
+  (EchoObject *(*)(void))_echoObjectAABBox_new,
+  (EchoObject *(*)(void))_echoObjectList_new
 };
 
 EchoObject *
@@ -72,7 +82,6 @@ echoObjectNew(int type) {
   
   return _echoObjectNew[type]();
 }
-
 
 /* ---------------------------------------------------- */
 
@@ -85,28 +94,76 @@ _echoObject##TYPE##_nix(EchoObject##TYPE *obj) {                 \
   return NULL;                                                   \
 }
 
-NIX_TMPL(Mesh, /* ??? */)
-NIX_TMPL(Isosurface, /* ??? */)
-NIX_TMPL(AABox,                                                  \
-	 obj->objArr = airArrayNuke(obj->objArr);                \
-	 )
-
-typedef EchoObject *(*echoObjectNix_t)(EchoObject *);
+NIX_TMPL(TriMesh, /* ??? */);
+NIX_TMPL(Isosurface, /* ??? */);
+NIX_TMPL(AABBox,
+	 int i;
+	 for (i=0; i<obj->len; i++) {
+	   echoObjectNix(obj->obj[i]);
+	 }
+	 );
+NIX_TMPL(List,
+	 /* due to airArray callbacks, this will nuke all kids */
+	 airArrayNuke(obj->objArr);
+	 );
 
 EchoObject *(*
 _echoObjectNix[ECHO_OBJECT_MAX+1])(EchoObject *) = {
   NULL,
-  (echoObjectNix_t)airFree,
-  (echoObjectNix_t)airFree,
-  (echoObjectNix_t)airFree,
-  (echoObjectNix_t)airFree,
-  (echoObjectNix_t)_echoObjectMesh_nix,
-  (echoObjectNix_t)_echoObjectIsosurface_nix,
-  (echoObjectNix_t)_echoObjectAABox_nix
+  (EchoObject *(*)(EchoObject *))airFree,
+  (EchoObject *(*)(EchoObject *))airFree,
+  (EchoObject *(*)(EchoObject *))airFree,
+  (EchoObject *(*)(EchoObject *))airFree,
+  (EchoObject *(*)(EchoObject *))_echoObjectTriMesh_nix,
+  (EchoObject *(*)(EchoObject *))_echoObjectIsosurface_nix,
+  (EchoObject *(*)(EchoObject *))_echoObjectAABBox_nix,
+  (EchoObject *(*)(EchoObject *))_echoObjectList_nix
 };
 
 EchoObject *
 echoObjectNix(EchoObject *obj) {
 
   return _echoObjectNix[obj->type](obj);
+}
+
+int
+echoObjectIsContainer(EchoObject *obj) {
+  
+  if (!obj)
+    return AIR_FALSE;
+
+  if (echoObjectAABBox == obj->type ||
+      echoObjectList == obj->type) {
+    return AIR_TRUE;
+  }
+  else {
+    return AIR_FALSE;
+  }
+}
+
+void
+echoObjectAdd(EchoObject *parent, EchoObject *child) {
+  char me[]="echoObjectAdd";
+  EchoObjectList *list;
+  int idx;
+  
+  if (!(parent && child))
+    return;
+
+  if (!echoObjectIsContainer(parent)) {
+    fprintf(stderr, "%s: can only add to a container object", me);
+    return;
+  }
+
+  if (!(echoObjectList == parent->type)) {
+    fprintf(stderr, "%s: sorry, can only add to %s objects now\n",
+	    me, airEnumStr(echoObject, echoObjectList));
+    return;
+  }
+  
+  list = (EchoObjectList *)parent;
+  idx = airArrayIncrLen(list->objArr, 1);
+  list->obj[idx] = child;
+
+  return;
 }

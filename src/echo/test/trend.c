@@ -50,9 +50,9 @@ main(int argc, char **argv) {
 
   param = echoParamNew();
   airMopAdd(mop, param, (airMopper)echoParamNix, airMopAlways);
-  param->jitter = echoJitterNone;
+  param->jitter = echoJitterGrid;
   param->verbose = 3;
-  param->samples = 1;
+  param->samples = 16;
   param->imgResU = 256;
   param->imgResV = 256;
   param->epsilon = 0.000001;
@@ -61,7 +61,7 @@ main(int argc, char **argv) {
   state = echoGlobalStateNew();
   airMopAdd(mop, state, (airMopper)echoGlobalStateNix, airMopAlways);
 
-  scene = echoObjectNew(echoObjectAABox);
+  scene = echoObjectNew(echoObjectAABBox);
   airMopAdd(mop, scene, (airMopper)echoObjectNix, airMopAlways);
   
   lightArr = airArrayNew((void**)&light, NULL, sizeof(EchoLight *), 1);

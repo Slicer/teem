@@ -215,9 +215,8 @@ echoCheck(Nrrd *nraw, limnCam *cam,
     sprintf(err, "%s: epsilon or aperture doesn't exist", me);
     biffAdd(ECHO, err); return 1;
   }
-  if (echoObjectAABox != scene->type) {
-    sprintf(err, "%s: can only handle %s top-level object", me,
-	    airEnumStr(echoObject, echoObjectAABox));
+  if (!echoObjectIsContainer(scene)) {
+    sprintf(err, "%s: can only render a container object", me);
     biffAdd(ECHO, err); return 1;
   }
 
@@ -257,6 +256,7 @@ echoRender(Nrrd *nraw, limnCam *cam,
     eye[3],                 /* eye center before jittering */
     from[3],                /* ray origination (eye after jittering */
     at[3],                  /* ray destination (pixel center post-jittering) */
+    dir[3],                 /* ray direction */
     U[4], V[4], N[4],       /* view space basis (only first 3 elements used) */
     pixUsz, pixVsz,         /* U and V dimensions of a pixel */
     imgU, imgV,             /* floating point pixel center locations */
@@ -323,6 +323,7 @@ echoRender(Nrrd *nraw, limnCam *cam,
 	tmp = imgV + pixVsz*jitt[1 + 2*echoSamplePixel];
 	ELL_3V_SCALEADD(at, V, tmp);
 
+	ELL_3V_SUB(dir, from, at);
 	
 	/* move jitt to next "scanline" */
 	jitt += 2*ECHO_SAMPLE_NUM;
