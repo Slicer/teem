@@ -150,7 +150,7 @@ main(int argc, char *argv[]) {
   muu->hctx->threadEnd = (hooverThreadEnd_t *)miteThreadEnd;
   muu->hctx->renderEnd = (hooverRenderEnd_t *)miteRenderEnd;
 
-  if (!airThreadCapable) {
+  if (!airThreadCapable && 1 != muu->hctx->numThreads) {
     fprintf(stderr, "%s: This teem not compiled with "
 	    "multi-threading support.\n", me);
     fprintf(stderr, "%s: ==> can't use %d threads; only using 1\n",
