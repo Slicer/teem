@@ -16,7 +16,7 @@
 */
 
 
-#include <nrrd.h>
+#include "../nrrd.h"
 
 char *me;
 

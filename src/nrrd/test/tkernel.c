@@ -15,7 +15,7 @@
   of Utah. All Rights Reserved.
 */
 
-#include <nrrd.h>
+#include "../nrrd.h"
 
 /*
 ** this program demonstrates parsing a string into a kernel with params,

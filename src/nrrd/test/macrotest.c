@@ -16,7 +16,7 @@
 */
 
 
-#include <nrrd.h>
+#include "../nrrd.h"
 
 #define NRRDROUND(x) (int)((x) + 0.5)
 

@@ -22,7 +22,7 @@
 
 char *me;
 
-#include <nrrd.h>
+#include "../nrrd.h"
 
 void
 usage() {

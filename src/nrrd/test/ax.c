@@ -16,8 +16,8 @@
 */
 
 
-#include "../nrrd.h"
 #include <stdlib.h>
+#include "../nrrd.h"
 
 float frand(float min, float max) {
   return (min + drand48() * (max - min));
