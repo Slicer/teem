@@ -439,7 +439,7 @@ _nrrdTraverse (Nrrd *nrrd) {
 */
 
 /*
-******** _nrrdCopyShallow
+** _nrrdCopyShallow
 **
 ** Similar to nrrdCopy, but the data itself is not copied.  nout->data
 ** and nout->data will share a pointer to the data.  This should be
@@ -450,44 +450,45 @@ int
 _nrrdCopyShallow (Nrrd *nout, const Nrrd *nin) {
   char me[]="_nrrdCopyShallow", err[AIR_STRLEN_MED];
   Nrrd *ntmp;
+  airArray *mop;
 
   if (!(nin && nout)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
 
-  /* Don't use nrrdNew as this allocates axillary data that is
-     annoying to delete.  We don't need to anyway since we will simply
-     copy over the pointers later with the memcpy. */
+  /* We're not using nrrdNew() because it allocates new airArray's for
+     comments (cmtArr) and key/value pairs (kvpArr), which we do not
+     need here, and which we don't want to have to explicitly delete */
   ntmp = (Nrrd*)(calloc(1, sizeof(Nrrd)));
   if (!ntmp) {
     sprintf(err, "%s: error allocating temporary nrrd.", me);
     biffAdd(NRRD, err); return 1;
   }
+  /* Since we should never have copied the data, or allocated new meta-data,
+     we want to make sure that we don't delete it here. */
+  airMopAdd(mop, ntmp, airFree, airMopAlways);
+  
   /* Shallow copy the contents of the nrrd.  It's OK if this is not a
      deep copy (i.e. all the axis info), because nrrdCopy will do this
      for us.  This is only to facilitate setting the data pointer to
      NULL which will cause nrrdCopy to not copy the data. */
   memcpy(ntmp, nin, sizeof(Nrrd));
 
-  /* Setting this to 0 will cause nrrdCopy to not copy the data */
-  ntmp->data = 0;
+  /* Setting this to NULL will cause nrrdCopy to not copy the data */
+  ntmp->data = NULL;
   
   if (nrrdCopy(nout, ntmp)) {
-    sprintf(err, "%s:", me);
+    sprintf(err, "%s: couldn't copy to output", me);
     biffAdd(NRRD, err);
-    /* Since we should never have copied the data, we want to make sure
-       that we don't delete it here. */
-    free(ntmp);
+    airMopError(mop);
     return 1;
   }
 
   /* Share the data pointer */
   nout->data = nin->data;
 
-  /* Clean up */
-  free(ntmp);
-  
+  airMopOkay(mop);
   return 0;
 }
 
@@ -531,9 +532,9 @@ nrrdCopy (Nrrd *nout, const Nrrd *nin) {
     /* someone is trying to copy structs without data, fine fine fine */
     nout->data = NULL;
     /* We need to make sure to copy important stuff like type, dim,
-       and sizes, as this information is not copied elsewhere.  The
-       data copying version sets these in nrrdAlloc_nva (which is
-       called by nrrdMaybeAlloc_nva). */
+       and sizes, as this information is not copied elsewhere.  If we
+       did have non-NULL data, this information would be set in 
+       nrrdAlloc_nva() called by nrrdMaybeAlloc_nva() above. */
     nout->type = nin->type;
     nout->dim = nin->dim;
     nrrdAxisInfoSet_nva(nout, nrrdAxisInfoSize, size);
