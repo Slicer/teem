@@ -21,6 +21,7 @@
 
 int
 main(int argc, char **argv) {
+  char *me, *err;
   echoScene *scene;
   echoObject *obj;
   Nrrd *nraw;
@@ -29,12 +30,13 @@ main(int argc, char **argv) {
   echoGlobalState *gstate;
   airArray *mop;
 
+  me = argv[0];
   mop = airMopNew();
   scene = echoSceneNew();
   airMopAdd(mop, scene, (airMopper)echoSceneNix, airMopAlways);
   obj = echoObjectNew(scene, echoTypeSphere);
-  echoSphereSet(obj, 0, 0, 0, 1);
-  echoColorSet(obj, 1, 0.5, 0.25, 1);
+  echoSphereSet(obj, 0, 0, 0, 0.5);
+  echoColorSet(obj, 1, 0.5, 0.25, 0.25);
 
   nraw = nrrdNew();
   cam = limnCamNew();
@@ -44,8 +46,31 @@ main(int argc, char **argv) {
   airMopAdd(mop, cam, (airMopper)limnCamNix, airMopAlways);
   airMopAdd(mop, parm, (airMopper)echoRTParmNix, airMopAlways);
   airMopAdd(mop, gstate, (airMopper)echoGlobalStateNix, airMopAlways);
-  
 
+  ELL_3V_SET(cam->from, 10, 0, 0);
+  ELL_3V_SET(cam->at, 5, 0, 0);
+  ELL_3V_SET(cam->up, 0, 0, 1);
+  cam->neer = -2;
+  cam->dist = 0;
+  cam->faar = 2;
+  cam->atRel = AIR_TRUE;
+  cam->rightHanded = AIR_TRUE;
+  cam->uRange[0] = -1;  cam->vRange[0] = -1;
+  cam->uRange[1] =  1;  cam->vRange[1] =  1;
+  parm->imgResU = parm->imgResV = 128;
+  parm->numSamples = 4;
+  parm->jitterType = echoJitterJitter;
+  parm->aperture = 0;
+
+  if (echoRTRender(nraw, cam, scene, parm, gstate)) {
+    airMopAdd(mop, err = biffGetDone(ECHO), airFree, airMopAlways);
+    fprintf(stderr, "%s: %s\n", me, err);
+    airMopError(mop);
+    return 1;
+  }
+
+  nrrdSave("nraw.nrrd", nraw, NULL);
+  
   airMopOkay(mop);
 
   return 0;

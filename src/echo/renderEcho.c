@@ -257,7 +257,7 @@ echoRayColor(echoCol_t *chan, int samp, echoRay *ray,
   /*
   _echoIntxColor[intx.obj->matter](chan, samp, &intx, scene, parm, tstate);
   */
-  ELL_4V_SET(chan, 1, 1, 1, 1);
+  ELL_4V_COPY(chan, intx.obj->rgba);
 
   return;
 }
