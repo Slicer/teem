@@ -29,9 +29,8 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
   char par1[] = "\t\t\t\t"
     "\"unu\" is a command-line interface to much of the functionality "
     "in \"nrrd\", a C library for raster data processing. Nrrd is one "
-    "library in the \"Teem\" group of libraries, which is the software "
-    "Gordon Kindlmann writes in support of his research.  More information "
-    "about Teem and all its constituent libraries is at "
+    "library in the \"Teem\" collection of libraries.  More information "
+    "about Teem is at "
     "<http://teem.sourceforge.net>.\n";
   char par2[] = "\t\t\t\t"
     "The utility of unu is mainly as a pre-processing tool for getting "
