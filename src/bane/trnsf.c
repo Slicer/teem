@@ -93,9 +93,14 @@ bane2DOpacInfo(Nrrd *info2D, Nrrd *hvol) {
   axes[1] = 0;
 
   /* first create h(v,g) */
-  proj2 = nrrdNewMeasureAxis(hvol, 1, nrrdMeasrHistoMean);
-  if (!(projT = nrrdNewPermuteAxes(proj2, axes))) {
-    sprintf(err, "%s: trouble projecting to create h(v,g)", me);
+  proj2 = nrrdNew();
+  if (nrrdMeasureAxis(proj2, hvol, 1, nrrdMeasrHistoMean)) {
+    sprintf(err, "%s: trouble projecting (step 1) to create h(v,g)", me);
+    biffMove(BANE, err, NRRD); return 1;
+  }
+  projT = nrrdNew();
+  if (nrrdPermuteAxes(projT, proj2, axes)) {
+    sprintf(err, "%s: trouble projecting (step 2) to create h(v,g)", me);
     biffMove(BANE, err, NRRD); return 1;
   }
   for (i=0; i<=sv*sg-1; i++) {
@@ -105,9 +110,14 @@ bane2DOpacInfo(Nrrd *info2D, Nrrd *hvol) {
   nrrdNuke(projT);
 
   /* then create #hits(v,g) */
-  proj2 = nrrdNewMeasureAxis(hvol, 1, nrrdMeasrSum);
-  if (!(projT = nrrdNewPermuteAxes(proj2, axes))) {
-    sprintf(err, "%s: trouble projecting to create #(v,g)", me);
+  proj2 = nrrdNew();
+  if (nrrdMeasureAxis(proj2, hvol, 1, nrrdMeasrSum)) {
+    sprintf(err, "%s: trouble projecting (step 1) to create #(v,g)", me);
+    biffMove(BANE, err, NRRD); return 1;
+  }
+  projT = nrrdNew();
+  if (nrrdPermuteAxes(projT, proj2, axes)) {
+    sprintf(err, "%s: trouble projecting (step 2) to create #(v,g)", me);
     biffMove(BANE, err, NRRD); return 1;
   }
   for (i=0; i<=sv*sg-1; i++) {
@@ -170,12 +180,14 @@ bane1DOpacInfo(Nrrd *info1D, Nrrd *hvol) {
   data1D = info1D->data;
 
   /* sum up along 2nd deriv for each data value, grad mag */
-  if (!(proj2 = nrrdNewMeasureAxis(hvol, 1, nrrdMeasrSum))) {
+  proj2 = nrrdNew();
+  if (nrrdMeasureAxis(proj2, hvol, 1, nrrdMeasrSum)) {
     sprintf(err, "%s: trouble projecting out 2nd deriv. for g(v)", me);
     biffMove(BANE, err, NRRD); return 1;
   }
   /* now determine average gradient at each value (0: grad, 1: value) */
-  if (!(proj1 = nrrdNewMeasureAxis(proj2, 0, nrrdMeasrHistoMean))) {
+  proj1 = nrrdNew();
+  if (nrrdMeasureAxis(proj1, proj2, 0, nrrdMeasrHistoMean)) {
     sprintf(err, "%s: trouble projecting along gradient for g(v)", me);
     biffMove(BANE, err, NRRD); return 1;
   }
@@ -186,12 +198,14 @@ bane1DOpacInfo(Nrrd *info1D, Nrrd *hvol) {
   nrrdNuke(proj2);
 
   /* sum up along gradient for each data value, 2nd deriv */
-  if (!(proj2 = nrrdNewMeasureAxis(hvol, 0, nrrdMeasrSum))) {
+  proj2 = nrrdNew();
+  if (nrrdMeasureAxis(proj2, hvol, 0, nrrdMeasrSum)) {
     sprintf(err, "%s: trouble projecting out gradient for h(v)", me);
     biffMove(BANE, err, NRRD); return 1;
   }
   /* now determine average gradient at each value (0: 2nd deriv, 1: value) */
-  if (!(proj1 = nrrdNewMeasureAxis(proj2, 0, nrrdMeasrHistoMean))) {
+  proj1 = nrrdNew();
+  if (nrrdMeasureAxis(proj1, proj2, 0, nrrdMeasrHistoMean)) {
     sprintf(err, "%s: trouble projecting along 2nd deriv. for h(v)", me);
     biffMove(BANE, err, NRRD); return 1;
   }
@@ -274,13 +288,13 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
   }
   
   len = info2D->size[1];
-  projH2 = nrrdNewMeasureAxis(info2D, 0, nrrdMeasrProduct);
+  nrrdMeasureAxis(projH2 = nrrdNew(), info2D, 0, nrrdMeasrProduct);
   /* nrrdWrite(fopen("projH2","w"), projH2); */
-  projH1 = nrrdNewMeasureAxis(projH2, 1, nrrdMeasrSum);
+  nrrdMeasureAxis(projH1 = nrrdNew(), projH2, 1, nrrdMeasrSum);
   /* nrrdWrite(fopen("projH1","w"), projH1); */
-  projN = nrrdNewMeasureAxis(info2D, 2, nrrdMeasrSum);
+  nrrdMeasureAxis(projN = nrrdNew(), info2D, 2, nrrdMeasrSum);
   /* nrrdWrite(fopen("projN","w"), projN); */
-  projG1 = nrrdNewMeasureAxis(info2D, 2, nrrdMeasrHistoMean);
+  nrrdMeasureAxis(projG1 = nrrdNew(), info2D, 2, nrrdMeasrHistoMean);
   /* nrrdWrite(fopen("projG1","w"), projG1); */
   if (!(projH2 && projH1 && projN && projG1)) {
     sprintf(err, "%s: trouble creating need projections", me);
