@@ -296,6 +296,8 @@ typedef struct {
   int maxIterations;     /* cap on # of non-convergent iterations allowed */
   /* ----- internal ----- */
   double *histo,         /* double version of histogram */
+    *pp1, *pp2,          /* pre-computed posterior probabilities for the
+			    current iteration */
     vmin, vmax,          /* value range represented by histogram. This is
 			    saved from given histogram, and used to inform
 			    final output values, but it is not used for 

@@ -28,11 +28,12 @@ tenEMBimodalParmNew() {
   if (biparm) {
     biparm->minProb = 0.0001;
     biparm->minDelta = 0.000001;
-    biparm->minFraction = 0.05;  /* 5% */
+    biparm->minFraction = 0.07;  /* 7% */
     biparm->minConfidence = 0.5;
     biparm->maxIterations = 3000;
 
     biparm->histo = NULL;
+    biparm->pp1 = biparm->pp2 = NULL;
     biparm->vmin = biparm->vmax = AIR_NAN;
     biparm->N = 0;
   }
@@ -44,6 +45,8 @@ tenEMBimodalParmNix(tenEMBimodalParm *biparm) {
 
   if (biparm) {
     AIR_FREE(biparm->histo);
+    AIR_FREE(biparm->pp1);
+    AIR_FREE(biparm->pp2);
   }
   return NULL;
 }
@@ -66,8 +69,10 @@ _tenEMBimodalInit(tenEMBimodalParm *biparm, Nrrd *_nhisto) {
     sprintf(err, "%s: trouble converting histogram to double", me);
     biffMove(TEN, err, NRRD); nrrdNuke(nhisto); return 1;
   }
-  biparm->histo = (double*)(nhisto->data);
   biparm->N = nhisto->axis[0].size;
+  biparm->histo = (double*)(nhisto->data);
+  biparm->pp1 = (double*)calloc(biparm->N, sizeof(double));
+  biparm->pp2 = (double*)calloc(biparm->N, sizeof(double));
   biparm->vmin = (AIR_EXISTS(nhisto->axis[0].min)
 		  ? nhisto->axis[0].min
 		  : -0.5);
@@ -120,22 +125,40 @@ _tenEMBimodalInit(tenEMBimodalParm *biparm, Nrrd *_nhisto) {
 
 /*
 ** what is posterior probability that measured value x comes from
-** material 1 (*pp1P) or 2 (*pp2P)
+** material 1 and 2, stored in pp1 and pp2
 */
 void
-_tenEMBimodalProb(double *pp1P, double *pp2P, 
-		  double x, tenEMBimodalParm *biparm) {
-  double g1, g2, f1;
+_tenEMBimodalPP(tenEMBimodalParm *biparm) {
+  int i;
+  double g1, g2, pp1, pp2, f1;
   
-  g1 = airGaussian(x, biparm->mean1, biparm->stdv1);
-  g2 = airGaussian(x, biparm->mean2, biparm->stdv2);
-  if (g1 < biparm->minProb && g2 < biparm->minProb) {
-    *pp1P = *pp2P = 0;
-  } else {
-    f1 = biparm->fraction1;
-    *pp1P = (f1*g1) / (f1*g1 + (1-f1)*g2);
-    *pp2P = 1 - *pp1P;
+  
+  for (i=0; i<biparm->N; i++) {
+    g1 = airGaussian(i, biparm->mean1, biparm->stdv1);
+    g2 = airGaussian(i, biparm->mean2, biparm->stdv2);
+    if (g1 < biparm->minProb && g2 < biparm->minProb) {
+      pp1 = pp2 = 0;
+    } else {
+      f1 = biparm->fraction1;
+      pp1 = (f1*g1) / (f1*g1 + (1-f1)*g2);
+      pp2 = 1 - pp1;
+    }
+    biparm->pp1[i] = pp1;
+    biparm->pp2[i] = pp2;
   }
+
+  /*
+  do {
+    Nrrd *ntmp;
+    ntmp = nrrdNew();
+    nrrdWrap(ntmp, biparm->pp1, nrrdTypeDouble, 1, biparm->N);
+    nrrdSave("pp1.nrrd", ntmp, NULL);
+    nrrdWrap(ntmp, biparm->pp2, nrrdTypeDouble, 1, biparm->N);
+    nrrdSave("pp2.nrrd", ntmp, NULL);
+    nrrdNix(ntmp);
+  } while (0);
+  */
+
   return;
 }
 
@@ -146,10 +169,11 @@ _tenEMBimodalNewFraction1(tenEMBimodalParm *biparm) {
 
   s1 = s2 = 0.0;
   for (i=0; i<biparm->N; i++) {
-    _tenEMBimodalProb(&pp1, &pp2, i, biparm);
+    pp1 = biparm->pp1[i];
+    pp2 = biparm->pp2[i];
     h = biparm->histo[i];
-    s1 += i*pp1*h;
-    s2 += i*pp2*h;
+    s1 += i*pp1*h*biparm->fraction1;
+    s2 += i*pp2*h*(1 - biparm->fraction1);
   }
   return s1/(s1 + s2);
 }
@@ -162,7 +186,8 @@ _tenEMBimodalNewMean(double *m1P, double *m2P,
   
   sum1 = isum1 = sum2 = isum2 = 0.0;
   for (i=0; i<biparm->N; i++) {
-    _tenEMBimodalProb(&pp1, &pp2, i, biparm);
+    pp1 = biparm->pp1[i];
+    pp2 = biparm->pp2[i];
     h = biparm->histo[i];
     isum1 += i*pp1*h;
     isum2 += i*pp2*h;
@@ -182,9 +207,10 @@ _tenEMBimodalNewSigma(double *s1P, double *s2P,
   
   sum1 = isum1 = sum2 = isum2 = 0.0;
   for (i=0; i<biparm->N; i++) {
-    _tenEMBimodalProb(&pp1, &pp2, i, biparm);
+    pp1 = biparm->pp1[i];
+    pp2 = biparm->pp2[i];
     h = biparm->histo[i];
-    isum1 += (i-m1)*(1-m1)*pp1*h;
+    isum1 += (i-m1)*(i-m1)*pp1*h;
     isum2 += (i-m2)*(i-m2)*pp2*h;
     sum1 += pp1*h;
     sum2 += pp2*h;
@@ -205,13 +231,16 @@ _tenEMBimodalIterate(tenEMBimodalParm *biparm) {
   os2 = biparm->stdv2;
 
   /* find new values, and calculate delta */
+  _tenEMBimodalPP(biparm);
   f1 = _tenEMBimodalNewFraction1(biparm);
   _tenEMBimodalNewMean(&m1, &m2, biparm);
   _tenEMBimodalNewSigma(&s1, &s2, m1, m2, biparm);
   biparm->delta = ((fabs(m1 - om1) + fabs(m2 - om2)
 		    + fabs(s1 - os1) + fabs(s2 - os2))/biparm->N
 		   + fabs(f1 - of1));
-  fprintf(stderr, "%s: m1, s1 = %g, %g, m2, s2 = %g, %g, f1 = %g\n", 
+  fprintf(stderr, "%s: \n"
+	  "m1, s1 = %g, %g\n"
+	  "m2, s2 = %g, %g, f1 = %g\n", 
 	  "_tenEMBimodalIterate", m1, s1, m2, s2, f1);
   
   /* set new values */
