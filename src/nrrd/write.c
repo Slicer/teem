@@ -361,7 +361,9 @@ _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIoState *nio, int field) {
     break;
   case nrrdField_data_file:
     /* detached header was either requested or is required */
-    ret = nio->detachedHeader || _nrrdDataFNNumber(nio) > 1;
+    ret = (nio->detachedHeader 
+           || nio->dataFNFormat
+           || nio->dataFNArr->len > 1);
     break;
   }
 

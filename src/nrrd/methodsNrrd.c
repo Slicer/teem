@@ -120,7 +120,7 @@ nrrdIoStateNix (NrrdIoState *nio) {
   nio->base = airFree(nio->base);
   nio->line = airFree(nio->line);
   nio->dataFNFormat = airFree(nio->dataFNFormat);
-  nio->dataFNArr = airArrayNix(nio->dataFNArr);
+  nio->dataFNArr = airArrayNuke(nio->dataFNArr);
   /* the NrrdIoState never owned nio->oldData; we don't free it */
   airFree(nio);  /* no NULL assignment, else compile warnings */
   return NULL;

@@ -80,7 +80,7 @@ extern const NrrdFormat _nrrdFormatPNG;
 extern const NrrdFormat _nrrdFormatVTK;
 extern const NrrdFormat _nrrdFormatText;
 extern const NrrdFormat _nrrdFormatEPS;
-extern int _nrrdHeaderCheck(Nrrd *nrrd, NrrdIoState *nio);
+extern int _nrrdHeaderCheck(Nrrd *nrrd, NrrdIoState *nio, int checkSeen);
 
 /* encodingXXX.c */
 extern const NrrdEncoding _nrrdEncodingRaw;

@@ -116,7 +116,7 @@ _nrrdOneLine (int *lenP, NrrdIoState *nio, FILE *file) {
       strcat(nio->line, line[lineIdx]);
     }
     *lenP = strlen(nio->line) + 1;
-    airMopError(mop); 
+    airMopError(mop);
   }
   return 0;
 }
@@ -172,9 +172,10 @@ _nrrdCalloc (Nrrd *nrrd, NrrdIoState *nio, FILE *file) {
 }
 
 /*
-******** nrrdLineSkip, nrrdByteSkip
+******** nrrdLineSkip
 **
 ** public for the sake of things like "unu make"
+** uses the NrrdIoState for its line buffer (used by _nrrdOneLine)
 */
 int
 nrrdLineSkip (FILE *dataFile, NrrdIoState *nio) {
@@ -204,33 +205,46 @@ nrrdLineSkip (FILE *dataFile, NrrdIoState *nio) {
   return 0;
 }
 
+/*
+******** nrrdByteSkip
+**
+** public for the sake of things like "unu make"
+** uses nio for information about how much data should actually be skipped
+** with -1 == byteSkip
+*/
 int
 nrrdByteSkip (FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
   int i, skipRet;
   char me[]="nrrdByteSkip", err[AIR_STRLEN_MED];
-  size_t numbytes;
+  size_t bsize;
 
   if (!( dataFile && nrrd && nio )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
+  if (nio->byteSkip < -1) {
+    sprintf(err, "%s: byteSkip %d not valid", me, nio->byteSkip);
+    biffAdd(NRRD, err); return 1;
+  }
   if (-1 == nio->byteSkip) {
     if (nrrdEncodingRaw != nio->encoding) {
-      sprintf(err, "%s: can't backwards byte skipping in %s encoding",
-              me, nio->encoding->name);
+      sprintf(err, "%s: can do backwards byte skip only in %s "
+              "encoding, not %s", me,
+              nrrdEncodingRaw->name, nio->encoding->name);
       biffAdd(NRRD, err); return 1;
     }
     if (stdin == dataFile) {
       sprintf(err, "%s: can't fseek on stdin", me);
       biffAdd(NRRD, err); return 1;
     }
-    numbytes = nrrdElementNumber(nrrd)*nrrdElementSize(nrrd);
-    if (fseek(dataFile, -((long)numbytes), SEEK_END)) {
+    bsize = nrrdElementNumber(nrrd)/_nrrdDataFNNumber(nio);
+    bsize *= nrrdElementSize(nrrd);
+    if (fseek(dataFile, -((long)bsize), SEEK_END)) {
       sprintf(err, "%s: failed to fseek(dataFile, " _AIR_SIZE_T_FMT
-              ", SEEK_END)", me, numbytes);
+              ", SEEK_END)", me, bsize);
       biffAdd(NRRD, err); return 1;      
     }
-    if (nrrdStateVerboseIO) {
+    if (nrrdStateVerboseIO >= 2) {
       fprintf(stderr, "(%s: actually skipped %d bytes)\n",
               me, (int)ftell(dataFile));
     }
