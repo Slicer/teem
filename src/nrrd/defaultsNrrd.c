@@ -106,7 +106,7 @@ nrrdStateGetenv(void) {
     nrrdStateKindNoop = valI;
   }
   if ((envS = getenv("NRRD_STATE_VERBOSE_IO"))
-      && (-1 != (valI = airEnumVal(airBool, envS)))) {
+      && (1 == sscanf(envS, "%d", &valI))) {
     nrrdStateVerboseIO = valI;
   }
   if ((envS = getenv("NRRD_STATE_BLIND_8_BIT_RANGE"))
