@@ -320,8 +320,7 @@ _alanTuring2DWorker(void *_task) {
     /* HEY: all threads will agree on this, right? */
     task->actx->stop = alanStopMaxIteration;
   }
-  /* else: we bailed because of !(task->actx->keepWorking); some thread
-     should have set task->actx->stop as part of killing things */
+  /* else: the non-alanStopNot value of task->actx->stop made us stop */
   return _task;
 }
 
@@ -331,6 +330,7 @@ alanRun(alanContext *actx) {
   int tid;
   alanTask task[ALAN_THREAD_MAX];
 
+  fprintf(stderr, "%s: blah 0\n", me);
   if (_alanCheck(actx)) {
     sprintf(err, "%s: ", me);
     biffAdd(ALAN, err); return 1;
@@ -340,20 +340,25 @@ alanRun(alanContext *actx) {
 	    "call alanUpdate + alanInit", me);
     biffAdd(ALAN, err); return 1;
   }
-  
 
   airThreadMutexInit(&(actx->changeMutex));
   airThreadBarrierInit(&(actx->iterBarrier), actx->numThreads);
-  task->actx->averageChange = 0;
-  task->actx->changeCount = 0;
+  actx->averageChange = 0;
+  actx->changeCount = 0;
+  actx->stop = alanStopNot;
+  fprintf(stderr, "%s: blah\n", me);
   for (tid=0; tid<actx->numThreads; tid++) {
     task[tid].actx = actx;
     task[tid].idx = tid;
+    fprintf(stderr, "%s: starting thread %d ... \n", me, tid);
     airThreadCreate(&(task[tid].thread), _alanTuring2DWorker,
 		    (void *)&(task[tid]));
+    fprintf(stderr, "                        ... done\n");
   }
   for (tid=0; tid<actx->numThreads; tid++) {
+    fprintf(stderr, "%s: ending thread %d ... \n", me, tid);
     airThreadJoin(&(task[tid].thread), &(task[tid].me));
+    fprintf(stderr, "                        ... done\n");
   }
   airThreadBarrierDone(&(actx->iterBarrier));
   airThreadMutexDone(&(actx->changeMutex));

@@ -74,6 +74,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble: %s\n", me, err); 
     free(err); return 1;
   }
+  fprintf(stderr, "%s: going to run (%d threads) ...\n", me, actx->numThreads);
   alanRun(actx);
   fprintf(stderr, "%s: stop = %d: %s\n", me, actx->stop,
 	  airEnumDesc(alanStop, actx->stop));
