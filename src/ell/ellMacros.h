@@ -215,6 +215,9 @@ extern "C" {
   (v3)[1] = AIR_MAX((v1)[1], (v2)[1]), \
   (v3)[2] = AIR_MAX((v1)[2], (v2)[2]))
 
+#define ELL_3V_EXISTS(v) \
+   (AIR_EXISTS((v)[0]) && AIR_EXISTS((v)[1]) && AIR_EXISTS((v)[2]))
+
 #define ELL_3V_AFFINE(v,i,x,I,o,O) ( \
   (v)[0] = AIR_AFFINE((i)[0],(x)[0],(I)[0],(o)[0],(O)[0]), \
   (v)[1] = AIR_AFFINE((i)[1],(x)[1],(I)[1],(o)[1],(O)[1]), \
@@ -467,6 +470,10 @@ extern "C" {
 
 #define ELL_4V_NORM(v2, v1, length) \
   (length = ELL_4V_LEN(v1), ELL_4V_SCALE(v2, 1.0/length, v1))
+
+#define ELL_4V_EXISTS(v) \
+   (AIR_EXISTS((v)[0]) && AIR_EXISTS((v)[1]) \
+    && AIR_EXISTS((v)[2]) && AIR_EXISTS((v)[3]))
 
 #define ELL_4M_ADD2(m3, m1, m2)            \
   (ELL_4V_ADD2((m3)+ 0, (m1)+ 0, (m2)+ 0), \
