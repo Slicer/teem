@@ -17,7 +17,6 @@
 
 
 #include "nrrd.h"
-#include <math.h>
 
 int
 nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int axis, int bins) {
@@ -35,16 +34,14 @@ nrrdHistoAxis(Nrrd *nout, Nrrd *nin, int axis, int bins) {
     sprintf(err, "%s: axis %d is not in range [0,%d]", me, axis, nin->dim-1);
     biffSet(NRRD, err); return 1;
   }
-  if (nrrdRange(&nin->min, &nin->max, nin)) {
+  if (nrrdMinMaxFind(&nin->min, &nin->max, nin)) {
     sprintf(err, "%s: couldn't find value range", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(nout->data)) {
-    if (nrrdAlloc(nout, (nin->num/nin->size[axis])*bins, 
-		  nrrdTypeUChar, nin->dim)) {
-      sprintf(err, "%s: failed to alloc output nrrd", me);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (nrrdMaybeAlloc(nout, (nin->num/nin->size[axis])*bins, 
+		     nrrdTypeUChar, nin->dim)) {
+    sprintf(err, "%s: failed to alloc output nrrd", me);
+    biffAdd(NRRD, err); return 1;
   }
   memcpy(nout->size, nin->size, nin->dim*sizeof(int));
   nout->size[axis] = bins;
@@ -109,11 +106,9 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins) {
     sprintf(err, "%s: invalid args", me);
     biffSet(NRRD, err); return 1;
   }
-  if (!(nout->data)) {
-    if (nrrdAlloc(nout, bins, nrrdTypeUInt, 1)) {
-      sprintf(err, "%s: failed to alloc histo array (len %d)", me, bins);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (nrrdMaybeAlloc(nout, bins, nrrdTypeUInt, 1)) {
+    sprintf(err, "%s: failed to alloc histo array (len %d)", me, bins);
+    biffAdd(NRRD, err); return 1;
   }
   nout->size[0] = bins;
   hist = nout->data;
@@ -121,7 +116,7 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins) {
 
   /* we only learn the range from the data if min or max is NaN */
   if (!AIR_EXISTS(nin->min) || !AIR_EXISTS(nin->max)) {
-    if (nrrdRange(&nin->min, &nin->max, nin)) {
+    if (nrrdMinMaxFind(&nin->min, &nin->max, nin)) {
       sprintf(err, "%s: couldn't determine value range", me);
       biffSet(NRRD, err); return 1;
     }
@@ -133,7 +128,7 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins) {
     max++;
     sprintf(cmt, "%s: artificially increasing max from %g to %g", 
 	    me, min, max);
-    nrrdAddComment(nout, cmt);
+    nrrdCommentAdd(nout, cmt);
   }
   nout->axisMin[0] = min;
   nout->axisMax[0] = max;
@@ -197,11 +192,9 @@ nrrdHistoMulti(Nrrd *nout, Nrrd **nin,
     size *= bin[d];
   }
   fprintf(stderr, "%s: size = %d\n", me, size);
-  if (!(nout->data)) {
-    if (nrrdAlloc(nout, size, nrrdTypeInt, num)) {
-      sprintf("%s: couldn't allocate multi-dimensional histogram", me);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (nrrdMaybeAlloc(nout, size, nrrdTypeInt, num)) {
+    sprintf("%s: couldn't allocate multi-dimensional histogram", me);
+    biffAdd(NRRD, err); return 1;
   }
   for (d=0; d<=num-1; d++) {
     nout->size[d] = bin[d];
@@ -266,11 +259,9 @@ nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy) {
 	    me, nin->dim, nin->type);
     biffSet(NRRD, err); return 1;
   }
-  if (!(nout->data)) {
-    if (nrrdAlloc(nout, nin->size[0]*sy, nrrdTypeUChar, 2)) {
-      sprintf(err, "%s: nrrdAlloc() failed to allocate histogram image", me);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (nrrdMaybeAlloc(nout, nin->size[0]*sy, nrrdTypeUChar, 2)) {
+    sprintf(err, "%s: failed to allocate histogram image", me);
+    biffAdd(NRRD, err); return 1;
   }
   idata = nout->data;
   nout->size[0] = sx = nin->size[0];
@@ -314,208 +305,18 @@ nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy) {
   }
   for (k=0; k<=nin->numComments-1; k++) {
     sprintf(cmt, "(%s)", nin->comment[k]);
-    nrrdAddComment(nout, cmt);
+    nrrdCommentAdd(nout, cmt);
   }
   sprintf(cmt, "min value: %g\n", nin->axisMin[0]);
-  nrrdAddComment(nout, cmt);
+  nrrdCommentAdd(nout, cmt);
   sprintf(cmt, "max value: %g\n", nin->axisMax[0]);
-  nrrdAddComment(nout, cmt);
+  nrrdCommentAdd(nout, cmt);
   sprintf(cmt, "max hits: %d, around value %g\n", maxhits, 
 	  AIR_AFFINE(0, maxhitidx, sx-1, nin->axisMin[0], nin->axisMax[0]));
-  nrrdAddComment(nout, cmt);
-  free(Y);
-  free(logY);
-  free(ticks);
+  nrrdCommentAdd(nout, cmt);
+  Y = airFree(Y);
+  logY = airFree(logY);
+  ticks = airFree(ticks);
   return 0;
 }
 
-/*
-** _nrrdHistoEqCompare
-**
-** used by nrrdHistoEq in smart mode to sort the "steady" array
-** in _descending_ order
-*/
-int 
-_nrrdHistoEqCompare(const void *a, const void *b) {
-
-  return(*((int*)b) - *((int*)a));
-}
-
-/*
-******** nrrdHistoEq
-**
-** performs histogram equalization on given nrrd, treating it as a
-** big one-dimensional array.  The procedure is as follows: 
-** - create a histogram of nrrd (using "bins" bins)
-** - integrate the histogram, and normalize and shift this so it is 
-**   a monotonically increasing function from min to max, where
-**   (min,max) is the range of values in the nrrd
-** - map the values in the nrrd through the adjusted histogram integral
-** 
-** If the histogram of the given nrrd is already as flat as can be,
-** the histogram integral will increase linearly, and the adjusted
-** histogram integral should be close to the identity function, so
-** the values shouldn't change much.
-**
-** If the nhistP arg is non-NULL, then it is set to point to
-** the histogram that was used for calculation. Otherwise this
-** histogram is deleted on return.
-**
-** This is all that is done normally, when "smart" is <= 0.  In
-** "smart" mode (activated by setting "smart" to something greater
-** than 0), the histogram is analyzed during its creation to detect if
-** there are a few bins which keep getting hit with the same value
-** over and over.  It may be desirable to ignore these bins in the
-** histogram integral because they may not contain any useful
-** information, and so they should not effect how values are
-** re-mapped.  The value of "smart" is the number of bins that will be
-** ignored.  For instance, use the value 1 if the problem with naive
-** histogram equalization is a large amount of background (which is
-** exactly one fixed value).  
-*/
-int
-nrrdHistoEq(Nrrd *nin, Nrrd **nhistP, int bins, int smart) {
-  char err[NRRD_MED_STRLEN], me[] = "nrrdHistoEq";
-  Nrrd *nhist;
-  double val, min, max, *xcoord = NULL, *ycoord = NULL, *last = NULL;
-  int i, idx, *respect = NULL, *steady = NULL;
-  unsigned int *hist;
-  NRRD_BIG_INT I;
-
-  if (!nin) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffSet(NRRD, err); return 1;
-  }
-  if (!(bins > 2)) {
-    sprintf(err, "%s: need # bins > 2 (not %d)", me, bins);
-    biffSet(NRRD, err); return 1;
-  }
-  if (smart <= 0) {
-    nhist = nrrdNew();
-    if (nrrdHisto(nhist, nin, bins)) {
-      sprintf(err, "%s: failed to create histogram", me);
-      biffAdd(NRRD, err); return 1;
-    }
-    hist = nhist->data;
-    min = nhist->axisMin[0];
-    max = nhist->axisMax[0];
-  }
-  else {
-    /* for "smart" mode, we have to some extra work in creating
-       the histogram to look for bins always hit with the same value */
-    if (!(nhist = nrrdNewAlloc(bins, nrrdTypeUInt, 1))) {
-      sprintf(err, "%s: failed to allocate histogram", me);
-      biffAdd(NRRD, err); return 1;
-    }
-    hist = nhist->data;
-    nhist->size[0] = bins;
-    /* allocate the respect, steady, and last arrays */
-    if ( !(respect = calloc(bins, sizeof(int))) ||
-	 !(steady = calloc(bins*2, sizeof(int))) ||
-	 !(last = calloc(bins, sizeof(double))) ) {
-      sprintf(err, "%s: couldn't allocate smart arrays", me);
-      biffSet(NRRD, err); return 1;
-    }
-    for (i=0; i<=bins-1; i++) {
-      last[i] = airNand();
-      respect[i] = 1;
-      steady[1 + 2*i] = i;
-    }
-    /* now create the histogram */
-    if (nrrdRange(&nin->min, &nin->max, nin)) {
-      sprintf(err, "%s: couldn't find value range in nrrd", me);
-      biffAdd(NRRD, err); return 1;
-    }
-    min = nin->min;
-    max = nin->max;
-    for (I=0; I<=nin->num-1; I++) {
-      val = nrrdDLookup[nin->type](nin->data, I);
-      if (AIR_EXISTS(val)) {
-	AIR_INDEX(min, val, max, bins, idx);
-	/*
-	if (!AIR_INSIDE(0, idx, bins-1)) {
-	  printf("%s: I=%d; val=%g, [%g,%g] ===> %d\n", 
-		 me, (int)I, val, min, max, idx);
-	}
-	*/
-	++hist[idx];
-	if (AIR_EXISTS(last[idx])) {
-	  steady[0 + 2*idx] = (last[idx] == val
-			       ? steady[0 + 2*idx]+1
-			       : 0);
-	}
-	last[idx] = val;
-      }
-    }
-    /*
-    for (i=0; i<=bins-1; i++) {
-      printf("steady(%d) = %d\n", i, steady[0 + 2*i]);
-    }
-    */
-    /* now sort the steady array */
-    qsort(steady, bins, 2*sizeof(int), _nrrdHistoEqCompare);
-    /*
-    for (i=0; i<=20; i++) {
-      printf("sorted steady(%d/%d) = %d\n", i, steady[1+2*i], steady[0+2*i]);
-    }
-    */
-    /* we ignore some of the bins according to "smart" arg */
-    for (i=0; i<=smart-1; i++) {
-      respect[steady[1+2*i]] = 0;
-    }
-  }
-  if (!( (xcoord = calloc(bins + 1, sizeof(double))) &&
-	 (ycoord = calloc(bins + 1, sizeof(double))) )) {
-    sprintf(err, "%s: failed to create xcoord, ycoord arrays", me);
-    biffSet(NRRD, err); return 1;
-  }
-
-  /* integrate the histogram then normalize it */
-  for (i=0; i<=bins; i++) {
-    xcoord[i] = AIR_AFFINE(0, i, bins, min, max);
-    if (i == 0) {
-      ycoord[i] = 0;
-    }
-    else {
-      ycoord[i] = ycoord[i-1] + hist[i-1]*(smart 
-					   ? respect[i-1] 
-					   : 1);
-    }
-  }
-  for (i=0; i<=bins; i++) {
-    ycoord[i] = AIR_AFFINE(0, ycoord[i], ycoord[bins], min, max);
-  }
-
-  /* map the nrrd values through the normalized histogram integral */
-  for (i=0; i<=nin->num-1; i++) {
-    val = nrrdDLookup[nin->type](nin->data, i);
-    if (AIR_EXISTS(val)) {
-      AIR_INDEX(min, val, max, bins, idx);
-      val = AIR_AFFINE(xcoord[idx], val, xcoord[idx+1], 
-		       ycoord[idx], ycoord[idx+1]);
-      nrrdDInsert[nin->type](nin->data, i, val);
-    }
-  }
-  
-  /* if user is interested, set pointer to histogram nrrd,
-     otherwise destroy it */
-  if (nhistP) {
-    *nhistP = nhist;
-  }
-  else {
-    nrrdNuke(nhist);
-  }
-  
-  /* clean up, bye */
-  if (xcoord)
-    free(xcoord);
-  if (ycoord)
-    free(ycoord);
-  if (respect)
-    free(respect);
-  if (steady)
-    free(steady);
-  if (last)
-    free(last);
-  return(0);
-}
