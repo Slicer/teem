@@ -37,7 +37,8 @@ char *_unrrdu_saveInfoL =
 int
 unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, encInfo[AIR_STRLEN_HUGE], fmtInfo[AIR_STRLEN_HUGE];
+  char *out, *err, *outData,
+    encInfo[AIR_STRLEN_HUGE], fmtInfo[AIR_STRLEN_HUGE];
   Nrrd *nin, *nout;
   airArray *mop;
   NrrdIoState *nio;
@@ -96,6 +97,11 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
              NULL, airEndian);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
+  hestOptAdd(&opt, "od", "name", airTypeString, 1, 1, &outData, "",
+             "when saving to a \".nhdr\" file, "
+             "this option allows you to explicitly name the data file, "
+             "instead of (by default, not using this option) having it be "
+             "the same filename base as the header file.");
 
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
@@ -123,6 +129,10 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
       fprintf(stderr, "%s: WARNING: will use %s format\n", me,
               nrrdFormatNRRD->name);
       nio->format = nrrdFormatNRRD;
+    }
+    if (strlen(outData)) {
+      airArraySetLen(nio->dataFNArr, 1);
+      nio->dataFN[0] = airStrdup(outData);
     }
   }
 
