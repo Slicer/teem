@@ -95,6 +95,7 @@ extern tenGlyphParm *tenGlyphParmNix(tenGlyphParm *parm);
 extern ten_export int tenVerbose;
 extern int tenTensorCheck(Nrrd *nin, int wantType, int useBiff);
 extern int tenExpand(Nrrd *tnine, Nrrd *tseven, float thresh);
+extern int tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine);
 extern int tenEigensolve(float eval[3], float evec[9], float t[7]);
 extern int tenTensorMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec);
 
@@ -134,6 +135,7 @@ F(eval) \
 F(evec) \
 F(evq) \
 F(expand) \
+F(shrink) \
 F(satin)
 TEND_MAP(TEND_DECLARE)
 extern ten_export unrrduCmd *tendCmdList[]; 

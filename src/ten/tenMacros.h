@@ -43,7 +43,8 @@ extern "C" {
 **   1  4  7
 **   2  5  8
 **
-** Note that TEN_MAT2LIST does NOT set the threshold element (index 0)
+** Note that TEN_MAT2LIST does NOT set the threshold element (index 0),
+** and that the threshold value plays no role in TEN_LIST2MAT.
 */
 
 #define TEN_LIST2MAT(m, l) ( \

@@ -112,6 +112,60 @@ tenExpand(Nrrd *nout, Nrrd *nin, float thresh) {
   return 0;
 }
 
+int
+tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine) {
+  char me[]="tenShrink", err[AIR_STRLEN_MED];
+  int sx, sy, sz;
+  float *seven, *conf, *nine;
+  size_t I, N;
+  
+  if (!(tseven && tnine)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( nrrdTypeFloat == tnine->type &&
+	 4 == tnine->dim &&
+	 9 == tnine->axis[0].size )) {
+    sprintf(err, "%s: type not %s (was %s) or dim not 4 (was %d) "
+	    "or first axis size not 9 (was %d)", me,
+	    airEnumStr(nrrdType, nrrdTypeFloat),
+	    airEnumStr(nrrdType, tnine->type),
+	    tnine->dim, tnine->axis[0].size);
+    biffAdd(TEN, err); return 1;
+  }
+  sx = tnine->axis[1].size;
+  sy = tnine->axis[2].size;
+  sz = tnine->axis[3].size;
+  if (nconf) {
+    if (!( nrrdTypeFloat == nconf->type &&
+	   3 == nconf->dim &&
+	   sx == nconf->axis[0].size &&
+	   sy == nconf->axis[1].size &&
+	   sz == nconf->axis[2].size )) {
+      sprintf(err, "%s: confidence type not %s (was %s) or dim not 3 (was %d) "
+	      "or dimensions didn't match tensor volume", me,
+	      airEnumStr(nrrdType, nrrdTypeFloat),
+	      airEnumStr(nrrdType, nconf->type),
+	      nconf->dim);
+      biffAdd(TEN, err); return 1;
+    }
+  }
+  if (nrrdMaybeAlloc(tseven, nrrdTypeFloat, 4, 7, sx, sy, sz)) {
+    sprintf(err, "%s: trouble allocating output", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  seven = tseven->data;
+  conf = nconf ? nconf->data : NULL;
+  nine = tnine->data;
+  N = sx*sy*sz;
+  for (I=0; I<N; I++) {
+    TEN_MAT2LIST(seven, nine);
+    seven[0] = conf ? conf[I] : 1.0;
+    seven += 7;
+    nine += 9;
+  }
+  return 0;
+}
 
 /*
 ******** tenEigensolve
