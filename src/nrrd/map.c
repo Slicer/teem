@@ -521,7 +521,7 @@ nrrdHistoEq(Nrrd *nout, Nrrd *nin, Nrrd **nmapP,
   num = nrrdElementNumber(nin);
   if (smart <= 0) {
     nhist = nrrdNew();
-    if (nrrdHisto(nhist, nin, bins, nrrdTypeUInt)) {
+    if (nrrdHisto(nhist, nin, NULL, bins, nrrdTypeUInt)) {
       sprintf(err, "%s: failed to create histogram", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
