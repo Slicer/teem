@@ -459,7 +459,7 @@ int
 nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, int *size) {
   char me[] = "nrrdAlloc_nva", err[AIR_STRLEN_MED];
   nrrdBigInt num;
-  int d, esize;
+  int esize;
 
   if (!(nrrd && size)) {
     sprintf(err, "%s: got NULL pointer", me);
