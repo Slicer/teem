@@ -667,7 +667,7 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
     } else {
       /* there is some ambiguity between a "LIST" of length one,
          and a single explicit data filename, but that's harmless */
-      *strP = malloc(fslen + strlen(nio->dataFN[0]));
+      *strP = malloc(fslen + strlen("./") + strlen(nio->dataFN[0]) + 1);
       sprintf(*strP, "%s%s: %s%s", prefix, fs, 
               /* this is a favor to older readers that can deal with
                  this NRRD file because its being saved in a NRRD0003
