@@ -33,10 +33,10 @@
 */
 int
 nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type) {
-  char err[AIR_STRLEN_MED], me[] = "nrrdHisto", cmt[AIR_STRLEN_MED];
+  char err[AIR_STRLEN_MED], me[] = "nrrdHisto";
   int idx;
   nrrdBigInt I, num;
-  double min, max, val, count;
+  double min, max, eps, val, count;
 
   if (!(nin && nout)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -63,16 +63,7 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type) {
   }
   min = nin->min;
   max = nin->max;
-  if (min == max) {
-    /* need this to insure that index generation isn't confused */
-    max++;
-    sprintf(cmt, "%s: artificially increasing max from %g to %g", 
-	    me, min, max);
-    if (nrrdCommentAdd(nout, cmt)) {
-      sprintf(err, "%s: trouble adding comments to image", me);
-      biffAdd(NRRD, err); return 1;
-    }
-  }
+  eps = (min == max ? 1.0 : 0.0);
   nout->axis[0].min = min;
   nout->axis[0].max = max;
   nout->axis[0].center = nrrdCenterCell;
@@ -83,11 +74,11 @@ nrrdHisto(Nrrd *nout, Nrrd *nin, int bins, int type) {
   for (I=0; I<=num-1; I++) {
     val = nrrdDLookup[nin->type](nin->data, I);
     if (AIR_EXISTS(val)) {
-      if (val < min || val > max) {
+      if (val < min || val > max+eps) {
 	/* value is outside range; ignore it */
 	continue;
       }
-      AIR_INDEX(min, val, max, bins, idx);
+      AIR_INDEX(min, val, max+eps, bins, idx);
       /* count is a double in order to simplify clamping the
 	 hit values to the representable range for nout->type */
       /*
@@ -215,8 +206,8 @@ nrrdHistoDraw(Nrrd *nout, Nrrd *nin, int sy) {
   if (!E) E |= nrrdCommentAdd(nout, cmt);
   sprintf(cmt, "max value: %g\n", nout->axis[0].max);
   if (!E) E |= nrrdCommentAdd(nout, cmt);
-  sprintf(cmt, "max hits: %g, around value %g\n", maxhits,
-	  nrrdAxisPos(nout, 0, maxhitidx));
+  sprintf(cmt, "max hits: %g, in bin %d, around value %g\n",
+	  maxhits, maxhitidx, nrrdAxisPos(nout, 0, maxhitidx));
   if (!E) E |= nrrdCommentAdd(nout, cmt);
   if (E) {
     sprintf(err, "%s: trouble adding comments to image", me);

@@ -395,7 +395,8 @@ nrrdSanity(void) {
 	    nrrdCenterUnknown+1, nrrdCenterLast-1);
     biffAdd(NRRD, err); return 0;
   }
-  if (!airEnumValidVal(nrrdType, nrrdDefRsmpType)) {
+  if (!( nrrdTypeUnknown == nrrdDefRsmpType ||
+	 airEnumValidVal(nrrdType, nrrdDefRsmpType) )) {
     sprintf(err, "%s: nrrdDefRsmpType (%d) not in valid range [%d,%d]",
 	    me, nrrdDefRsmpType,
 	    nrrdTypeUnknown, nrrdTypeLast-1);

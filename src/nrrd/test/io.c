@@ -29,7 +29,7 @@ int
 main(int argc, char **argv) {
   char *me, *err;
   Nrrd *nrrd;
-  nrrdIO *io;
+  NrrdIO *io;
 
   me = argv[0];
   if (3 != argc)

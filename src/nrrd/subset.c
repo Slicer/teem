@@ -329,3 +329,27 @@ nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max) {
   return 0;
 }
 
+/*
+******** nrrdSimpleCrop()
+**
+*/
+int
+nrrdSimpleCrop(Nrrd *nout, Nrrd *nin, int crop) {
+  char me[]="nrrdSimpleCrop", err[AIR_STRLEN_MED];
+  int d, min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
+
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  for (d=0; d<=nin->dim-1; d++) {
+    min[d] = crop;
+    max[d] = nin->axis[d].size-1 - crop;
+  }
+  if (nrrdCrop(nout, nin, min, max)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  return 0;
+}
+

@@ -259,4 +259,70 @@ enum {
 };
 #define NRRD_NON_EXIST_MAX   2
 
+/*
+******** nrrdUnaryOp enum
+**
+** for unary operations on nrrds
+*/
+enum {
+  nrrdUnaryOpUnknown,
+  nrrdUnaryOpNegative,   /*  1 */
+  nrrdUnaryOpReciprocal, /*  2 */
+  nrrdUnaryOpSin,        /*  3 */
+  nrrdUnaryOpCos,        /*  4 */
+  nrrdUnaryOpTan,        /*  5 */
+  nrrdUnaryOpAsin,       /*  6 */
+  nrrdUnaryOpAcos,       /*  7 */
+  nrrdUnaryOpAtan,       /*  8 */
+  nrrdUnaryOpExp,        /*  9 */
+  nrrdUnaryOpLog,        /* 10 */
+  nrrdUnaryOpLog10,      /* 11 */
+  nrrdUnaryOpSqrt,       /* 12 */
+  nrrdUnaryOpCeil,       /* 13 */
+  nrrdUnaryOpFloor,      /* 14 */
+  nrrdUnaryOpAbs,        /* 15 */
+  nrrdUnaryOpSgn,        /* 16 */
+  nrrdUnaryOpExists,     /* 17 */
+  nrrdUnaryOpLast
+};
+#define NRRD_UNARY_OP_MAX   17
+
+
+/*
+******** nrrdBinaryOp enum
+**
+** for binary operations on nrrds
+*/
+enum {
+  nrrdBinaryOpUnknown,
+  nrrdBinaryOpAdd,        /*  1 */
+  nrrdBinaryOpSubtract,   /*  2 */
+  nrrdBinaryOpMultiply,   /*  3 */
+  nrrdBinaryOpDivide,     /*  4 */
+  nrrdBinaryOpPow,        /*  5 */
+  nrrdBinaryOpMod,        /*  6 */
+  nrrdBinaryOpFmod,       /*  7 */
+  nrrdBinaryOpAtan2,      /*  8 */
+  nrrdBinaryOpMin,        /*  9 */
+  nrrdBinaryOpMax,        /* 10 */
+  nrrdBinaryOpLessThan,   /* 11 */
+  nrrdBinaryOpCompare,    /* 12 */
+  nrrdBinaryOpLast
+};
+#define NRRD_BINARY_OP_MAX   12
+
+/*
+******** nrrdTernaryOp
+**
+** for ternary operations on nrrds
+*/
+enum {
+  nrrdTernaryOpUnknown,
+  nrrdTernaryOpClamp,     /* 1 */
+  nrrdTernaryOpLerp,      /* 2 */
+  nrrdTernaryOpLast
+};
+#define NRRD_TERNARY_OP_MAX  2
+
 #endif /* NRRD_ENUMS_HAS_BEEN_INCLUDED */
+

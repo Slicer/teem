@@ -24,7 +24,7 @@
 /* ------------------------------------------------------------ */
 
 void
-_nrrdAxisInit(nrrdAxis *axis) {
+_nrrdAxisInit(NrrdAxis *axis) {
   
   if (axis) {
     axis->size = 0;
@@ -39,7 +39,7 @@ _nrrdAxisInit(nrrdAxis *axis) {
 nrrdAxisNew(void) {
   nrrdAxis *axis;
 
-  axis = calloc(1, sizeof(nrrdAxis));
+  axis = calloc(1, sizeof(NrrdAxis));
   axis->label = NULL;
   if (axis) {
     _nrrdAxisInit(axis);
@@ -47,8 +47,8 @@ nrrdAxisNew(void) {
   return axis;
 }
 
-nrrdAxis *
-nrrdAxisNix(nrrdAxis *axis) {
+NrrdAxis *
+nrrdAxisNix(NrrdAxis *axis) {
 
   if (axis) {
     axis->label = airFree(axis->label);

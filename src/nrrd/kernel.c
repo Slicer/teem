@@ -83,12 +83,12 @@ _nrrdZeroN_f(float *f, float *x, int len, double *param) {
   }
 }
 
-nrrdKernel
+NrrdKernel
 _nrrdKernelZero = {
   1, _nrrdZeroSup, _nrrdZeroInt,
   _nrrdZero1_f, _nrrdZeroN_f, _nrrdZero1_d, _nrrdZeroN_d
 };
-nrrdKernel *
+NrrdKernel *
 nrrdKernelZero = &_nrrdKernelZero;
 
 /* ------------------------------------------------------------ */
@@ -154,12 +154,12 @@ _nrrdBoxN_f(float *f, float *x, int len, double *param) {
   }
 }
 
-nrrdKernel
+NrrdKernel
 _nrrdKernelBox = {
   1, _nrrdBoxSup, _nrrdBoxInt,  
   _nrrdBox1_f,  _nrrdBoxN_f,  _nrrdBox1_d,  _nrrdBoxN_d
 };
-nrrdKernel *
+NrrdKernel *
 nrrdKernelBox = &_nrrdKernelBox;
 
 /* ------------------------------------------------------------ */
@@ -223,12 +223,12 @@ _nrrdTentN_f(float *f, float *x, int len, double *param) {
   }
 }
 
-nrrdKernel
+NrrdKernel
 _nrrdKernelTent = {
   1, _nrrdTentSup,_nrrdTentInt, 
   _nrrdTent1_f, _nrrdTentN_f, _nrrdTent1_d, _nrrdTentN_d
 };
-nrrdKernel *
+NrrdKernel *
 nrrdKernelTent = &_nrrdKernelTent;
 
 /* ------------------------------------------------------------ */
@@ -294,12 +294,12 @@ _nrrdFDN_f(float *f, float *x, int len, double *param) {
   }
 }
 
-nrrdKernel
+NrrdKernel
 _nrrdKernelFD = {
   1, _nrrdFDSup,  _nrrdFDInt,   
   _nrrdFD1_f,   _nrrdFDN_f,   _nrrdFD1_d,   _nrrdFDN_d
 };
-nrrdKernel *
+NrrdKernel *
 nrrdKernelForwDiff = &_nrrdKernelFD;
 
 /* ------------------------------------------------------------ */
@@ -366,12 +366,12 @@ _nrrdCDN_f(float *f, float *x, int len, double *param) {
   }
 }
 
-nrrdKernel
+NrrdKernel
 _nrrdKernelCD = {
   1, _nrrdCDSup,  _nrrdCDInt,   
   _nrrdCD1_f,   _nrrdCDN_f,   _nrrdCD1_d,   _nrrdCDN_d
 };
-nrrdKernel *
+NrrdKernel *
 nrrdKernelCentDiff = &_nrrdKernelCD;
 
 /* ------------------------------------------------------------ */
@@ -442,12 +442,12 @@ _nrrdBCN_f(float *f, float *x, int len, double *param) {
   }
 }
 
-nrrdKernel
+NrrdKernel
 _nrrdKernelBC = {
   3, _nrrdBCSup,  _nrrdBCInt,   
   _nrrdBC1_f,   _nrrdBCN_f,   _nrrdBC1_d,   _nrrdBCN_d
 };
-nrrdKernel *
+NrrdKernel *
 nrrdKernelBCCubic = &_nrrdKernelBC;
 
 /* ------------------------------------------------------------ */
@@ -522,12 +522,12 @@ _nrrdDBCN_f(float *f, float *x, int len, double *param) {
   }
 }
 
-nrrdKernel
+NrrdKernel
 _nrrdKernelDBC = {
   3, _nrrdDBCSup, _nrrdDBCInt,  
   _nrrdDBC1_f,  _nrrdDBCN_f,  _nrrdDBC1_d,  _nrrdDBCN_d
 };
-nrrdKernel *
+NrrdKernel *
 nrrdKernelBCCubicD = &_nrrdKernelDBC;
 
 /* ------------------------------------------------------------ */
@@ -598,12 +598,12 @@ _nrrdDDBCN_f(float *f, float *x, int len, double *param) {
   }
 }
 
-nrrdKernel
+NrrdKernel
 _nrrdKernelDDBC = {
   3, _nrrdDDBCSup,_nrrdDDBCInt, 
   _nrrdDDBC1_f, _nrrdDDBCN_f, _nrrdDDBC1_d, _nrrdDDBCN_d
 };
-nrrdKernel *
+NrrdKernel *
 nrrdKernelBCCubicDD = &_nrrdKernelDDBC;
 
 /* ------------------------------------------------------------ */
@@ -677,12 +677,12 @@ _nrrdA4N_f(float *f, float *x, int len, double *param) {
   }
 }
 
-nrrdKernel
+NrrdKernel
 _nrrdKernelA4 = {
   2, _nrrdA4Sup,  _nrrdA4Int,   
   _nrrdA41_f,   _nrrdA4N_f,   _nrrdA41_d,   _nrrdA4N_d
 };
-nrrdKernel *
+NrrdKernel *
 nrrdKernelAQuartic = &_nrrdKernelA4;
 
 /* ------------------------------------------------------------ */
@@ -759,12 +759,12 @@ _nrrdDA4N_f(float *f, float *x, int len, double *param) {
   }
 }
 
-nrrdKernel
+NrrdKernel
 _nrrdKernelDA4 = {
   2, _nrrdDA4Sup, _nrrdDA4Int,  
   _nrrdDA41_f,  _nrrdDA4N_f,  _nrrdDA41_d,  _nrrdDA4N_d
 };
-nrrdKernel *
+NrrdKernel *
 nrrdKernelAQuarticD = &_nrrdKernelDA4;
 
 /* ------------------------------------------------------------ */
@@ -837,12 +837,12 @@ _nrrdDDA4N_f(float *f, float *x, int len, double *param) {
   }
 }
 
-nrrdKernel
+NrrdKernel
 _nrrdKernelDDA4 = {
   2, _nrrdDDA4Sup,_nrrdDDA4Int, 
   _nrrdDDA41_f, _nrrdDDA4N_f, _nrrdDDA41_d, _nrrdDDA4N_d
 };
-nrrdKernel *
+NrrdKernel *
 nrrdKernelAQuarticDD = &_nrrdKernelDDA4;
 
 /* ------------------------------------------------------------ */
@@ -916,12 +916,12 @@ _nrrdGN_f(float *f, float *x, int len, double *param) {
   }
 }
 
-nrrdKernel
+NrrdKernel
 _nrrdKernelG = {
   2, _nrrdGSup,  _nrrdGInt,   
   _nrrdG1_f,   _nrrdGN_f,   _nrrdG1_d,   _nrrdGN_d
 };
-nrrdKernel *
+NrrdKernel *
 nrrdKernelGaussian = &_nrrdKernelG;
 
 /* ------------------------------------------------------------ */
@@ -995,12 +995,12 @@ _nrrdDGN_f(float *f, float *x, int len, double *param) {
   }
 }
 
-nrrdKernel
+NrrdKernel
 _nrrdKernelDG = {
   2, _nrrdDGSup,  _nrrdDGInt,   
   _nrrdDG1_f,   _nrrdDGN_f,   _nrrdDG1_d,   _nrrdDGN_d
 };
-nrrdKernel *
+NrrdKernel *
 nrrdKernelGaussianD = &_nrrdKernelDG;
 
 /* ------------------------------------------------------------ */
@@ -1076,18 +1076,18 @@ _nrrdDDGN_f(float *f, float *x, int len, double *param) {
   }
 }
 
-nrrdKernel
+NrrdKernel
 _nrrdKernelDDG = {
   2, _nrrdDDGSup,  _nrrdDDGInt,   
   _nrrdDDG1_f,   _nrrdDDGN_f,   _nrrdDDG1_d,   _nrrdDDGN_d
 };
-nrrdKernel *
+NrrdKernel *
 nrrdKernelGaussianDD = &_nrrdKernelDDG;
 
 
 /* ------------------------------------------------------------ */
 
-nrrdKernel *
+NrrdKernel *
 _nrrdKernelStrToKern(char *str) {
   
   if (!strcmp("zero", str))       return nrrdKernelZero;
@@ -1125,7 +1125,7 @@ _nrrdKernelStrToKern(char *str) {
 }
 
 int
-nrrdKernelParse(nrrdKernel **kernelP, double *param, char *_str) {
+nrrdKernelParse(NrrdKernel **kernelP, double *param, char *_str) {
   char me[]="nrrdKernelParse", err[128], str[AIR_STRLEN_HUGE],
     kstr[AIR_STRLEN_MED], *_pstr=NULL, *pstr;
   int i, j, NP;

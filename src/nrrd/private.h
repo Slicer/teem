@@ -40,7 +40,7 @@ extern int _nrrdFieldRequired[NRRD_FIELD_MAX+1];
 extern int _nrrdFormatUsesDIO[NRRD_FORMAT_MAX+1];
 
 /* axes.c */
-extern void _nrrdAxisInit(nrrdAxis *axis);
+extern void _nrrdAxisInit(NrrdAxis *axis);
 extern int _nrrdCenter(int center);
 
 /* convert.c */
@@ -57,8 +57,8 @@ extern char _nrrdTableSep[];
 extern int _nrrdSplitName(char *dir, char *base, char *name);
 
 /* parse.c */
-extern int (*_nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1])(Nrrd *, nrrdIO *, int);
-extern int _nrrdReadNrrdParseField(Nrrd *nrrd, nrrdIO *io, int useBiff);
+extern int (*_nrrdReadNrrdParseInfo[NRRD_FIELD_MAX+1])(Nrrd *, NrrdIO *, int);
+extern int _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIO *io, int useBiff);
 
 /* methods.c */
 extern int _nrrdSizeValid(int dim, int *size);

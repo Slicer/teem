@@ -48,7 +48,7 @@
 typedef unsigned long long int nrrdBigInt;
 
 /*
-******** nrrdIO struct
+******** NrrdIO struct
 **
 ** Everything transient relating to how the nrrd is read and written.
 ** Once the nrrd has been read or written, this information is moot.
@@ -105,10 +105,10 @@ typedef struct {
 				    is the max number of values to write on
 				    a line */
     seen[NRRD_FIELD_MAX+1];      /* for error checking in header parsing */
-} nrrdIO;
+} NrrdIO;
 
 /*
-******** nrrdAxis struct
+******** NrrdAxis struct
 **
 ** all the information which can sensibly be associated with
 ** one axis of a nrrd.  The only member which MUST be explicitly
@@ -132,7 +132,7 @@ typedef struct {
 				    at any time. */
   int center;                    /* cell vs. node centering */
   char *label;                   /* short info string for each axis */
-} nrrdAxis;
+} NrrdAxis;
 
 /*
 ******** Nrrd struct
@@ -152,7 +152,7 @@ typedef struct {
   /* 
   ** All per-axis specific information
   */
-  nrrdAxis axis[NRRD_DIM_MAX];
+  NrrdAxis axis[NRRD_DIM_MAX];
 
   /* 
   ** Information of dubious standing- descriptive of whole array, but
@@ -184,7 +184,7 @@ typedef struct {
 } Nrrd;
 
 /*
-******** nrrdKernel struct
+******** NrrdKernel struct
 **
 ** these are essentially the methods of the various kernels implemented.
 **
@@ -206,16 +206,16 @@ typedef struct {
 		    double *param);
   void (*evalN_d)(double *f, double *x,  /* evaluate N times, double prec. */
 		  int N, double *param);
-} nrrdKernel;
+} NrrdKernel;
 
 /*
-******** nrrdResampleInfo struct
+******** NrrdResampleInfo struct
 **
 ** a struct to contain the many parameters needed for nrrdSpatialResample()
 */
 typedef struct {
   /* kernel, samples, and param are all per-axis */
-  nrrdKernel *kernel[NRRD_DIM_MAX]; /* kernels from nrrd (or something
+  NrrdKernel *kernel[NRRD_DIM_MAX]; /* kernels from nrrd (or something
 				       supplied by the user) */
   int samples[NRRD_DIM_MAX];        /* number of samples */
   double param[NRRD_DIM_MAX][NRRD_KERNEL_PARAMS_MAX], /* kernel arguments */
@@ -236,7 +236,23 @@ typedef struct {
 				       range of values for the output type, a
 				       concern only for fixed-point outputs */
   double padValue;                  /* if padding, what value to pad with */
-} nrrdResampleInfo;
+} NrrdResampleInfo;
+
+/*
+******** NrrdIter struct
+**
+** to hold values, either a single value, or a whole nrrd of values,
+** and to facilitate iterating through those values
+*/
+typedef struct {
+  Nrrd *nrrd;                       /* nrrd to get values from */
+  double val;                       /* single fixed value */
+  int size;                         /* type size */
+  char *data;                       /* where to get the next value */
+  nrrdBigInt left;                  /* number of values beyond what "data"
+				       currently points to */
+  double (*load)(void*);            /* how to get a value out of "data" */
+} NrrdIter;
 
 /******** defaults (nrrdDef..) and state (nrrdState..) */
 /* defaults.c */
@@ -272,6 +288,9 @@ extern airEnum nrrdMeasure;
 extern airEnum nrrdCenter;
 extern airEnum nrrdAxesInfo;
 extern airEnum nrrdField;
+extern airEnum nrrdUnaryOp;
+extern airEnum nrrdBinaryOp;
+extern airEnum nrrdTernaryOp;
 
 /******** arrays of things (poor-man's functions/predicates) */
 /* arrays.c */
@@ -282,11 +301,11 @@ extern int nrrdTypeFixed[];
 
 /******** pseudo-constructors, pseudo-destructors, and such */
 /* (methods.c) */
-extern void nrrdIOReset(nrrdIO *io);
-extern nrrdIO *nrrdIONew(void);
-extern nrrdIO *nrrdIONix(nrrdIO *io);
-extern nrrdResampleInfo *nrrdResampleInfoNew(void);
-extern nrrdResampleInfo *nrrdResampleInfoNix(nrrdResampleInfo *info);
+extern void nrrdIOReset(NrrdIO *io);
+extern NrrdIO *nrrdIONew(void);
+extern NrrdIO *nrrdIONix(NrrdIO *io);
+extern NrrdResampleInfo *nrrdResampleInfoNew(void);
+extern NrrdResampleInfo *nrrdResampleInfoNix(NrrdResampleInfo *info);
 extern void nrrdInit(Nrrd *nrrd);
 extern Nrrd *nrrdNew(void);
 extern Nrrd *nrrdNix(Nrrd *nrrd);
@@ -303,6 +322,11 @@ extern int nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim, ...);
 extern int nrrdPPM(Nrrd *, int sx, int sy);
 extern int nrrdPGM(Nrrd *, int sx, int sy);
 extern int nrrdTable(Nrrd *table, int sx, int sy);
+extern NrrdIter *nrrdIterFromNrrd(Nrrd *nrrd);
+extern NrrdIter *nrrdIterFromValue(double val);
+extern double nrrdIterValue(NrrdIter *iter);
+extern NrrdIter *nrrdIterNix(NrrdIter *iter);
+extern NrrdIter *nrrdIterNuke(NrrdIter *iter);
 
 /******** axes related */
 /* axes.c */
@@ -367,15 +391,15 @@ extern int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *);
 
 /******** getting information to and from files */
 /* read.c */
-extern int (*nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, nrrdIO *);
+extern int (*nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *);
 extern int nrrdLoad(Nrrd *nrrd, char *filename);
-extern int nrrdRead(Nrrd *nrrd, FILE *file, nrrdIO *io);
+extern int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *io);
 /* write.c */
-extern int (*nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, nrrdIO *);
-extern int nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io);
-extern int nrrdWrite(FILE *file, Nrrd *nrrd, nrrdIO *io);
+extern int (*nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *);
+extern int nrrdSave(char *filename, Nrrd *nrrd, NrrdIO *io);
+extern int nrrdWrite(FILE *file, Nrrd *nrrd, NrrdIO *io);
 
-/******** point-wise value remapping, conversion, and such */
+/******** some of the point-wise value remapping, conversion, and such */
 /* map.c */
 extern int nrrdSetMinMax(Nrrd *nrrd);
 extern int nrrdCleverMinMax(Nrrd *nrrd);
@@ -383,21 +407,24 @@ extern int nrrdConvert(Nrrd *nout, Nrrd *nin, int type);
 extern int nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits);
 extern int nrrdHistoEq(Nrrd *nrrd, Nrrd **nhistP, int bins, int smart);
 
+/******** rest of point-wise value remapping, and "color"mapping */
+/* apply.c */
+extern int nrrdApply1DLut(Nrrd *nout, Nrrd *nlut, Nrrd *nin);
+extern int nrrdApply1DRegMap(Nrrd *nout, Nrrd *nmap, Nrrd *nin,
+			     NrrdKernel *kernel, double *param);
+
 /******** sampling, slicing, cropping */
 /* subset.c */
 extern int nrrdSample_nva(void *val, Nrrd *nin, int *coord);
 extern int nrrdSample(void *val, Nrrd *nin, ...);
 extern int nrrdSlice(Nrrd *nout, Nrrd *nin, int axis, int pos);
 extern int nrrdCrop(Nrrd *nout, Nrrd *nin, int *min, int *max);
+extern int nrrdSimpleCrop(Nrrd *nout, Nrrd *nin, int crop);
 
 /******** padding */
 /* superset.c */
-extern int nrrdPad_nva(Nrrd *nout, Nrrd *nin, int *min, int *max,
-		       int boundary, double padValue);
 extern int nrrdPad(Nrrd *nout, Nrrd *nin, int *min, int *max, 
 		   int boundary, ...);
-extern int nrrdSimplePad_nva(Nrrd *nout, Nrrd *nin, int pad,
-			     int boundary, double padValue);
 extern int nrrdSimplePad(Nrrd *nout, Nrrd *nin, int pad, int boundary, ...);
 
 /******** permuting and shuffling */
@@ -429,19 +456,25 @@ extern int nrrdHistoJoint(Nrrd *nout, Nrrd **nin,
 /* arith.c */
 extern int nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma,
 			  double min, double max);
+extern int nrrdArithUnaryOp(Nrrd *nout, int op, Nrrd *nin);
+extern int nrrdArithBinaryOp(Nrrd *nout, int op,
+			     NrrdIter *inA, NrrdIter *inB);
+extern int nrrdArithTernaryOp(Nrrd *nout, int op,
+			      NrrdIter *inA, NrrdIter *inB, NrrdIter *inC);
 
 /******** filtering and re-sampling */
 /* filt.c */
-extern int nrrdCheapMedian(Nrrd *nout, Nrrd *nin, int radius, int bins);
+extern int nrrdCheapMedian(Nrrd *nout, Nrrd *nin,
+			   int radius, float wght, int bins);
 /* rsmp.c */
-extern int nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info);
+extern int nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info);
 extern int nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
-			      nrrdKernel *kernel, double *param,
+			      NrrdKernel *kernel, double *param,
 			      int *samples, double *scalings);
 
 /******** kernels (interpolation, 1st and 2nd derivatives) */
 /* kernel.c */
-extern nrrdKernel *nrrdKernelZero, /* zero everywhere */
+extern NrrdKernel *nrrdKernelZero, /* zero everywhere */
   *nrrdKernelBox,                  /* box filter (nearest neighbor) */
   *nrrdKernelTent,                 /* tent filter (linear interpolation) */
   *nrrdKernelForwDiff,             /* forward-difference-ish 1st deriv. */
@@ -455,7 +488,6 @@ extern nrrdKernel *nrrdKernelZero, /* zero everywhere */
   *nrrdKernelGaussian,             /* Gaussian */
   *nrrdKernelGaussianD,            /* 1st derivative of Gaussian */
   *nrrdKernelGaussianDD;           /* 2nd derivative of Gaussian */
-extern int nrrdKernelParse(nrrdKernel **kernelP, double *param, char *str);
+extern int nrrdKernelParse(NrrdKernel **kernelP, double *param, char *str);
 
 #endif /* NRRD_HAS_BEEN_INCLUDED */
-

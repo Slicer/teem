@@ -24,7 +24,7 @@
 /* ------------------------------------------------------------ */
 
 void
-_nrrdIOInit(nrrdIO *io) {
+_nrrdIOInit(NrrdIO *io) {
 
   if (io) {
     strcpy(io->dir, "");
@@ -46,11 +46,11 @@ _nrrdIOInit(nrrdIO *io) {
   }
 }
 
-nrrdIO *
+NrrdIO *
 nrrdIONew(void) {
-  nrrdIO *io;
+  NrrdIO *io;
   
-  io = calloc(1, sizeof(nrrdIO));
+  io = calloc(1, sizeof(NrrdIO));
   if (io) {
     /* explicitly sets pointers to NULL */
     _nrrdIOInit(io);
@@ -66,7 +66,7 @@ nrrdIONew(void) {
 ** complicated, and I haven't thought through all the possibilities...
 */
 void
-nrrdIOReset(nrrdIO *io) {
+nrrdIOReset(NrrdIO *io) {
 
   /* this started as a copy of the body of _nrrdIOInit() */
   if (io) {
@@ -87,8 +87,8 @@ nrrdIOReset(nrrdIO *io) {
   }
 }
 
-nrrdIO *
-nrrdIONix(nrrdIO *io) {
+NrrdIO *
+nrrdIONix(NrrdIO *io) {
 
   return airFree(io);
 }
@@ -96,7 +96,7 @@ nrrdIONix(nrrdIO *io) {
 /* ------------------------------------------------------------ */
 
 void
-_nrrdResampleInfoInit(nrrdResampleInfo *info) {
+_nrrdResampleInfoInit(NrrdResampleInfo *info) {
   int i, d;
 
   for (d=0; d<=NRRD_DIM_MAX-1; d++) {
@@ -114,11 +114,11 @@ _nrrdResampleInfoInit(nrrdResampleInfo *info) {
   info->padValue = nrrdDefRsmpPadValue;
 }
 
-nrrdResampleInfo *
+NrrdResampleInfo *
 nrrdResampleInfoNew(void) {
-  nrrdResampleInfo *info;
+  NrrdResampleInfo *info;
 
-  info = (nrrdResampleInfo*)(calloc(1, sizeof(nrrdResampleInfo)));
+  info = (NrrdResampleInfo*)(calloc(1, sizeof(NrrdResampleInfo)));
   if (info) {
     /* explicitly sets pointers to NULL */
     _nrrdResampleInfoInit(info);
@@ -126,8 +126,8 @@ nrrdResampleInfoNew(void) {
   return info;
 }
 
-nrrdResampleInfo *
-nrrdResampleInfoNix(nrrdResampleInfo *info) {
+NrrdResampleInfo *
+nrrdResampleInfoNix(NrrdResampleInfo *info) {
   
   return airFree(info);
 }
@@ -683,4 +683,97 @@ nrrdTable(Nrrd *table, int sx, int sy) {
     return 1;
   }
   return 0;
+}
+
+NrrdIter *
+_nrrdIterNew() {
+  NrrdIter *iter;
+
+  if (iter = calloc(1, sizeof(NrrdIter))) {
+    iter->nrrd = NULL;
+    iter->val = AIR_NAN;
+    iter->size = 0;
+    iter->data = NULL;
+    iter->left = 0;
+    iter->load = NULL;
+  }
+  return iter;
+}
+
+/*
+******** nrrdIterFromValue
+**
+*/
+NrrdIter *
+nrrdIterFromValue(double val) {
+  NrrdIter *iter = NULL;
+
+  if (iter = _nrrdIterNew()) {
+    iter->val = val;
+    iter->size = nrrdTypeSize[nrrdTypeDouble];
+    iter->data = (void*)&(iter->val);
+    iter->load = nrrdDLoad[nrrdTypeDouble];
+  }
+  return iter;
+}
+
+/*
+******** nrrdIterFromNrrd
+**
+*/
+NrrdIter *
+nrrdIterFromNrrd(Nrrd *nrrd) {
+  NrrdIter *iter = NULL;
+
+  if ((iter = _nrrdIterNew()) && nrrd && nrrd->data) {
+    iter->nrrd = nrrd;
+    iter->size = nrrdTypeSize[nrrd->type];
+    iter->data = nrrd->data;
+    iter->left = nrrdElementNumber(nrrd)-1;
+    iter->load = nrrdDLoad[nrrd->type];
+  }
+  return iter;
+}
+
+/*
+******** nrrdIterValue
+**
+*/
+double
+nrrdIterValue(NrrdIter *iter) {
+  double ret = 0.0;
+
+  if (iter) {
+    ret = iter->load(iter->data);
+    if (iter->nrrd) {
+      iter->data += iter->size;
+      iter->left -= 1;
+      if (-1 == iter->left) {
+	iter->data = iter->nrrd->data;
+	iter->left = nrrdElementNumber(iter->nrrd)-1;
+      }
+    }
+  }
+  return ret;
+}
+
+NrrdIter *
+nrrdIterNix(NrrdIter *iter) {
+
+  if (iter) {
+    free(iter);
+  }
+  return NULL;
+}
+
+NrrdIter *
+nrrdIterNuke(NrrdIter *iter) {
+
+  if (iter) {
+    if (iter->nrrd) {
+      iter->nrrd = nrrdNuke(iter->nrrd);
+    }
+    free(iter);
+  }
+  return NULL;
 }

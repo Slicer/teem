@@ -27,7 +27,7 @@
 */
 
 int
-_nrrdFieldInteresting(Nrrd *nrrd, nrrdIO *io, int field) {
+_nrrdFieldInteresting(Nrrd *nrrd, NrrdIO *io, int field) {
   int d, ret;
   
   if (!( nrrd
@@ -125,7 +125,7 @@ _nrrdFieldInteresting(Nrrd *nrrd, nrrdIO *io, int field) {
 }
 
 int
-_nrrdWriteDataRaw(Nrrd *nrrd, nrrdIO *io) {
+_nrrdWriteDataRaw(Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteDataRaw", err[AIR_STRLEN_MED];
   nrrdBigInt bsize;
   size_t size, ret, dio;
@@ -197,7 +197,7 @@ _nrrdWriteDataRaw(Nrrd *nrrd, nrrdIO *io) {
 }
 
 int
-_nrrdWriteDataAscii(Nrrd *nrrd, nrrdIO *io) {
+_nrrdWriteDataAscii(Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteDataAscii", err[AIR_STRLEN_MED], 
     buff[AIR_STRLEN_MED];
   int size, bufflen, linelen;
@@ -248,7 +248,7 @@ _nrrdWriteDataAscii(Nrrd *nrrd, nrrdIO *io) {
 }
 
 int
-(*nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, nrrdIO *) = {
+(*nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
   NULL,
   _nrrdWriteDataRaw,
   _nrrdWriteDataAscii
@@ -264,7 +264,7 @@ int
 ** are worth writing.
 */
 void
-_nrrdSprintFieldInfo(char *str, Nrrd *nrrd, nrrdIO *io, int field) {
+_nrrdSprintFieldInfo(char *str, Nrrd *nrrd, NrrdIO *io, int field) {
   char buff[AIR_STRLEN_MED];
   const char *fs;
   int i, D;
@@ -397,7 +397,7 @@ if (_nrrdFieldInteresting(nrrd, io, field)) { \
 }
 
 int
-_nrrdWriteNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
+_nrrdWriteNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteNrrd", err[AIR_STRLEN_MED], 
     tmpName[NRRD_STRLEN_LINE],  line[NRRD_STRLEN_LINE];
   int i;
@@ -457,7 +457,7 @@ _nrrdWriteNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 }
 
 int
-_nrrdWritePNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
+_nrrdWritePNM(FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWritePNM", err[AIR_STRLEN_MED];
   char line[NRRD_STRLEN_LINE];
   int i, color, sx, sy, magic;
@@ -500,7 +500,7 @@ _nrrdWritePNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 }
 
 int
-_nrrdWriteTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
+_nrrdWriteTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char cmt[AIR_STRLEN_SMALL], line[NRRD_STRLEN_LINE],
     buff[AIR_STRLEN_SMALL];
   nrrdBigInt I;
@@ -539,7 +539,7 @@ _nrrdWriteTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 ** HEY: this is where the filename of a seperate datafile is determined
 */
 void
-_nrrdGuessFormat(nrrdIO *io, char *filename) {
+_nrrdGuessFormat(NrrdIO *io, char *filename) {
   int strpos;
 
   /* currently, we play the detached header game whenever the filename
@@ -571,7 +571,7 @@ _nrrdGuessFormat(nrrdIO *io, char *filename) {
 }
 
 void
-_nrrdFixFormat(nrrdIO *io, Nrrd *nrrd) {
+_nrrdFixFormat(NrrdIO *io, Nrrd *nrrd) {
   char me[]="_nrrdFixFormat";
   int fits;
 
@@ -629,7 +629,7 @@ _nrrdFixFormat(nrrdIO *io, Nrrd *nrrd) {
 }
 
 int
-nrrdWrite(FILE *file, Nrrd *nrrd, nrrdIO *io) {
+nrrdWrite(FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="nrrdWrite", err[AIR_STRLEN_MED];
   int ret=0;
 
@@ -671,14 +671,14 @@ nrrdWrite(FILE *file, Nrrd *nrrd, nrrdIO *io) {
     biffAdd(NRRD, err); return 1;
   }
   
-  /* reset the nrrdIO so that it can be used again */
+  /* reset the NrrdIO so that it can be used again */
   nrrdIOReset(io);
 
   return 0;
 }
 
 int
-nrrdSave(char *filename, Nrrd *nrrd, nrrdIO *io) {
+nrrdSave(char *filename, Nrrd *nrrd, NrrdIO *io) {
   char me[]="nrrdSave", err[AIR_STRLEN_MED];
   FILE *file;
   airArray *mop;

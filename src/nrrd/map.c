@@ -210,7 +210,7 @@ nrrdCleverMinMax(Nrrd *nrrd) {
 int
 nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   char me[] = "nrrdQuantize", err[AIR_STRLEN_MED];
-  double valIn, min, max;
+  double valIn, min, max, eps;
   int valOut, type=nrrdTypeUnknown, size[NRRD_DIM_MAX];
   unsigned long long int valOutll;
   nrrdBigInt I, num;
@@ -254,20 +254,21 @@ nrrdQuantize(Nrrd *nout, Nrrd *nin, int bits) {
   num = nrrdElementNumber(nin);
   min = nin->min; 
   max = nin->max;
+  eps = (min == max ? 1.0 : 0.0);
   for (I=0; I<=num-1; I++) {
     valIn = nrrdDLookup[nin->type](nin->data, I);
     valIn = AIR_CLAMP(min, valIn, max);
     switch (bits) {
     case 8:
-      AIR_INDEX(min, valIn, max, 1 << 8, valOut);
+      AIR_INDEX(min, valIn, max+eps, 1 << 8, valOut);
       nrrdDInsert[nrrdTypeUChar](nout->data, I, valOut);
       break;
     case 16:
-      AIR_INDEX(min, valIn, max, 1 << 16, valOut);
+      AIR_INDEX(min, valIn, max+eps, 1 << 16, valOut);
       nrrdDInsert[nrrdTypeUShort](nout->data, I, valOut);
       break;
     case 32:
-      AIR_INDEX(min, valIn, max, 1LLU << 32, valOutll);
+      AIR_INDEX(min, valIn, max+eps, 1LLU << 32, valOutll);
       nrrdDInsert[nrrdTypeUInt](nout->data, I, valOutll);
       break;
     }

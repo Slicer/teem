@@ -79,7 +79,7 @@ char
 _nrrdMagicStr[NRRD_MAGIC_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_magic)",
   "NRRD00.01",
-  "NRRD00.01", /* "NRRD0001", */
+  "NRRD00.01", /*   "NRRD0001", */
   "P2",
   "P3",
   "P5",
@@ -380,4 +380,204 @@ _nrrdNonExistStr[NRRD_NON_EXIST_MAX+1][AIR_STRLEN_SMALL] = {
   "false"
 };
 */
+
+
+/* ------------------------ nrrdUnaryOp ---------------------- */
+
+#define nuNeg nrrdUnaryOpNegative
+#define nuRcp nrrdUnaryOpReciprocal
+#define nuSin nrrdUnaryOpSin
+#define nuCos nrrdUnaryOpCos
+#define nuTan nrrdUnaryOpTan
+#define nuAsn nrrdUnaryOpAsin
+#define nuAcs nrrdUnaryOpAcos
+#define nuAtn nrrdUnaryOpAtan
+#define nuExp nrrdUnaryOpExp
+#define nuLge nrrdUnaryOpLog
+#define nuLgt nrrdUnaryOpLog10
+#define nuSqt nrrdUnaryOpSqrt
+#define nuCil nrrdUnaryOpCeil
+#define nuFlr nrrdUnaryOpFloor
+#define nuAbs nrrdUnaryOpAbs
+#define nuSgn nrrdUnaryOpSgn
+#define nuExs nrrdUnaryOpExists
+
+char 
+_nrrdUnaryOpStr[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown_unary_op)",
+  "-",
+  "r",
+  "sin",
+  "cos",
+  "tan",
+  "asin",
+  "acos",
+  "atan",
+  "exp",
+  "log",
+  "log10",
+  "sqrt",
+  "ceil",
+  "floor",
+  "abs",
+  "sgn",
+  "exists"
+};
+
+char
+_nrrdUnaryOpStrEqv[][AIR_STRLEN_SMALL] = {
+  "-", "neg", "negative", "minus",
+  "r", "recip",
+  "sin",
+  "cos",
+  "tan",
+  "asin", "arcsin",
+  "acos", "arccos",
+  "atan", "arctan",
+  "exp",
+  "ln", "log",
+  "log10",
+  "sqrt",
+  "ceil",
+  "floor",
+  "abs", "fabs",
+  "sgn", "sign",
+  "exists",
+  ""
+};
+
+int
+_nrrdUnaryOpValEqv[] = {
+  nuNeg, nuNeg, nuNeg, nuNeg,
+  nuRcp, nuRcp,
+  nuSin,
+  nuCos,
+  nuTan,
+  nuAsn, nuAsn,
+  nuAcs, nuAcs,
+  nuAtn, nuAtn,
+  nuExp,
+  nuLge, nuLge,
+  nuLgt,
+  nuSqt,
+  nuCil,
+  nuFlr,
+  nuAbs, nuAbs,
+  nuSgn, nuSgn,
+  nuExs
+};
+
+airEnum
+nrrdUnaryOp = {
+  "unary op",
+  NRRD_UNARY_OP_MAX,
+  _nrrdUnaryOpStr, NULL,
+  _nrrdUnaryOpStrEqv, _nrrdUnaryOpValEqv,
+  AIR_FALSE
+};
+
+
+/* ------------------------ nrrdBinaryOp ---------------------- */
+
+char 
+_nrrdBinaryOpStr[NRRD_BINARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown_binary_op)",
+  "+",
+  "-",
+  "x",
+  "/",
+  "^",
+  "%",
+  "fmod",
+  "min",
+  "max",
+  "lt",
+  "comp"
+};
+
+#define nbAdd nrrdBinaryOpAdd
+#define nbSub nrrdBinaryOpSubtract
+#define nbMul nrrdBinaryOpMultiply
+#define nbDiv nrrdBinaryOpDivide
+#define nbPow nrrdBinaryOpPow
+#define nbMod nrrdBinaryOpMod
+#define nbFmd nrrdBinaryOpFmod
+#define nbAtn nrrdBinaryOpAtan2
+#define nbMin nrrdBinaryOpMin
+#define nbMax nrrdBinaryOpMax
+#define nbLet nrrdBinaryOpLessThan
+#define nbCmp nrrdBinaryOpCompare
+
+char
+_nrrdBinaryOpStrEqv[][AIR_STRLEN_SMALL] = {
+  "+", "plus", "add",
+  "-", "minus", "subtract", "sub", 
+  "x", "*", "times", "multiply", "product",
+  "/", "divide", "quotient",
+  "^", "pow", "power",
+  "%", "mod", "modulo",
+  "fmod",
+  "atan2", 
+  "min", "minimum",
+  "max", "maximum",
+  "LT", "less", "lessthan",
+  "comp", "compare",
+  ""
+};
+
+int
+_nrrdBinaryOpValEqv[] = {
+  nbAdd, nbAdd, nbAdd,
+  nbSub, nbSub, nbSub, nbSub, 
+  nbMul, nbMul, nbMul, nbMul, nbMul, 
+  nbDiv, nbDiv, nbDiv, 
+  nbPow, nbPow, nbPow,
+  nbMod, nbMod, nbMod, 
+  nbFmd,
+  nbAtn,
+  nbMin, nbMin,
+  nbMax, nbMax,
+  nbLet, nbLet, nbLet,
+  nbCmp, nbCmp
+};
+
+airEnum
+nrrdBinaryOp = {
+  "binary op",
+  NRRD_BINARY_OP_MAX,
+  _nrrdBinaryOpStr, NULL,
+  _nrrdBinaryOpStrEqv, _nrrdBinaryOpValEqv,
+  AIR_FALSE
+};
+
+/* ------------------------ nrrdTernaryOp ---------------------- */
+
+char 
+_nrrdTernaryOpStr[NRRD_TERNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown_ternary_op)",
+  "clamp",
+  "lerp"
+};
+
+char
+_nrrdTernaryOpStrEqv[][AIR_STRLEN_SMALL] = {
+  "clamp",
+  "lerp",
+  ""
+};
+
+int
+_nrrdTernaryOpValEqv[] = {
+  nrrdTernaryOpClamp,
+  nrrdTernaryOpLerp
+};
+
+airEnum
+nrrdTernaryOp = {
+  "ternary op",
+  NRRD_TERNARY_OP_MAX,
+  _nrrdTernaryOpStr, NULL,
+  _nrrdTernaryOpStrEqv, _nrrdTernaryOpValEqv,
+  AIR_FALSE
+};
 

@@ -39,7 +39,7 @@ char _nrrdTableSep[] = " ,\t";
 ** "num" field (to the product of the axes' sizes)
 */
 int
-_nrrdValidHeader(Nrrd *nrrd, nrrdIO *io) {
+_nrrdValidHeader(Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdValidHeader", err[AIR_STRLEN_MED];
   int i;
 
@@ -107,7 +107,7 @@ _nrrdCalloc(Nrrd *nrrd) {
 }
 
 int
-_nrrdReadDataRaw(Nrrd *nrrd, nrrdIO *io) {
+_nrrdReadDataRaw(Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadDataRaw", err[AIR_STRLEN_MED];
   nrrdBigInt num, bsize;
   size_t size, ret, dio;
@@ -201,7 +201,7 @@ _nrrdReadDataRaw(Nrrd *nrrd, nrrdIO *io) {
 }
 
 int
-_nrrdReadDataAscii(Nrrd *nrrd, nrrdIO *io) {
+_nrrdReadDataAscii(Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadDataAscii", err[AIR_STRLEN_MED],
     numStr[NRRD_STRLEN_LINE];
   nrrdBigInt I, num;
@@ -266,14 +266,14 @@ _nrrdReadDataAscii(Nrrd *nrrd, nrrdIO *io) {
 ** This is necessitated by the memory restrictions of direct I/O
 */
 int
-(*nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, nrrdIO *) = {
+(*nrrdReadData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *) = {
   NULL,
   _nrrdReadDataRaw,
   _nrrdReadDataAscii
 };
 
 int
-_nrrdReadNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
+_nrrdReadNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadNrrd", err[NRRD_STRLEN_LINE+AIR_STRLEN_MED];
   int i, skipRet, ret, len;
 
@@ -367,7 +367,7 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 }
 
 int
-_nrrdReadPNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
+_nrrdReadPNM(FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadPNM", err[AIR_STRLEN_MED];
   const char *fs;
   int i, color, got, want, len, ret, val[5], sx, sy, max;
@@ -515,7 +515,7 @@ _nrrdReadPNM(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 }
 
 int
-_nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
+_nrrdReadTable(FILE *file, Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdReadTable", err[AIR_STRLEN_MED];
   const char *fs;
   int line, len, ret, sx, sy, settwo = 0;
@@ -649,18 +649,18 @@ _nrrdReadTable(FILE *file, Nrrd *nrrd, nrrdIO *io) {
 **
 ** read in nrrd from a given file.  We don't yet know the format or
 ** anything else about how the data is written.  The only use for the
-** nrrdIO struct "_io" here is to contain the base directory in which
+** NrrdIO struct "_io" here is to contain the base directory in which
 ** we'll look for a seperate data file, if that's desired.  Currently
-** no other communication to us is done via the nrrdIO, so _io can be
+** no other communication to us is done via the NrrdIO, so _io can be
 ** passed as NULL (if no header-relative datafiles are desired), and a
-** nrrdIO will be created as needed.
+** NrrdIO will be created as needed.
 */
 int
-nrrdRead(Nrrd *nrrd, FILE *file, nrrdIO *_io) {
+nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *_io) {
   char err[AIR_STRLEN_MED], me[] = "nrrdRead";
   int len;
   float oneFloat;
-  nrrdIO *io;
+  NrrdIO *io;
   airArray *mop;
 
   if (!(file && nrrd)) {
@@ -722,14 +722,15 @@ nrrdRead(Nrrd *nrrd, FILE *file, nrrdIO *_io) {
     }
     else {
       /* there's no hope */
-      sprintf(err, "%s: couldn't parse any format (NRRD, PNM, or table)", me);
+      sprintf(err, "%s: couldn't parse \"%s\" as magic of any format",
+	      me, io->line);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     break;
   }
 
   if (_io) {
-    /* reset the given nrrdIO so that it can be used again */
+    /* reset the given NrrdIO so that it can be used again */
     nrrdIOReset(_io);
   }
 
@@ -779,7 +780,7 @@ _nrrdSplitName(char *path, char *base, char *name) {
 int
 nrrdLoad(Nrrd *nrrd, char *filename) {
   char me[]="nrrdLoad", err[AIR_STRLEN_MED];
-  nrrdIO *io;
+  NrrdIO *io;
   FILE *file;
   airArray *mop;
 

@@ -1,14 +1,17 @@
-nrrdAxis -> NrrdAxis
-nrrdIO -> NrrdIO
-nrrdKernel -> NrrdKernel
-nrrdResampleInfo -> NrrdResampleInfo 
+do warning messages if the number of kernel parameters in a kernel
+specification string is _greater_ than useful
 
-allow NULL io arg to nrrdWriteData[] and nrrdReadData[] functions
+figure out what of axes and content gets passed through
+with nrrdUnaryOp, nrrdBinaryOp, nrrdTernaryOp
+
+figure out trouble with Mariana
+
+mappings, regular and irregular
+  change nrrdHistoEq accordingly, allow learning of mapping used.
 
 nrrdPad_nva, nrrdSimplePad_nva
 
 write a select() function to replace qsort() in median calculation
-make the NRRD00.01 ---> NRRD0001 switchover
 
 revisit resampler, one last time
 go through all functions to:
@@ -35,16 +38,11 @@ finish writing format.txt
 
 make nrrdDescribe() a little prettier
 
-make nrrdHistoEq permit learning what mapping was used to acheive equalization
-
 split
 
 better regular median filtering, weighted median filter
 
 debug and scrutinize current implementation of all "nhdr" related behavior
-
-"mappings": create minimal support for creating and "evaluating"
-functions based on an array of control points.
 
 clarify policy regarding when data in the nrrd will be free()ed
 

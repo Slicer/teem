@@ -35,10 +35,10 @@ fire).  */
 
 int
 nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
-		   nrrdKernel *kernel, double *param,
+		   NrrdKernel *kernel, double *param,
 		   int *samples, double *scalings) {
   char me[]="nrrdSimpleResample", err[AIR_STRLEN_MED];
-  nrrdResampleInfo *info;
+  NrrdResampleInfo *info;
   int d, p, np, center;
 
   if (!(nout && nin && kernel && (samples || scalings))) {
@@ -86,14 +86,14 @@ nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
 /*
 ** _nrrdResampleCheckInfo()
 **
-** checks validity of given nrrdResampleInfo *info: 
+** checks validity of given NrrdResampleInfo *info: 
 ** - all required parameters exist
 ** - both min[d] and max[d] for all axes d
 */
 int
-_nrrdResampleCheckInfo(Nrrd *nin, nrrdResampleInfo *info) {
+_nrrdResampleCheckInfo(Nrrd *nin, NrrdResampleInfo *info) {
   char me[] = "_nrrdResampleCheckInfo", err[AIR_STRLEN_MED];
-  nrrdKernel *k;
+  NrrdKernel *k;
   int center, p, d, np, minsmp;
 
   if (nrrdTypeBlock == nin->type || nrrdTypeBlock == info->type) {
@@ -160,7 +160,7 @@ _nrrdResampleComputePermute(int permute[],
 			    int sz[NRRD_DIM_MAX][NRRD_DIM_MAX], 
 			    int *topRax, int *botRax, int *passes,
 			    Nrrd *nin,
-			    nrrdResampleInfo *info) {
+			    NrrdResampleInfo *info) {
   /* char me[]="_nrrdResampleComputePermute"; */
   int a, p, d, dim;
   
@@ -262,7 +262,7 @@ _nrrdResampleComputePermute(int permute[],
 */
 int
 _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
-			     Nrrd *nin, nrrdResampleInfo *info, int d) {
+			     Nrrd *nin, NrrdResampleInfo *info, int d) {
   char me[]="_nrrdResampleMakeWeightIndex", err[AIR_STRLEN_MED];
   int sizeIn, sizeOut, center, dotLen, halfLen, *index, base, idx;
   double minIn, maxIn, minOut, maxOut, spcIn, spcOut, param0=0.0;
@@ -473,7 +473,7 @@ _nrrdResampleMakeWeightIndex(float **weightP, int **indexP, float *ratioP,
 ** of such axis permutation overhead.
 */
 int
-nrrdSpatialResample(Nrrd *nout, Nrrd *nin, nrrdResampleInfo *info) {
+nrrdSpatialResample(Nrrd *nout, Nrrd *nin, NrrdResampleInfo *info) {
   char me[]="nrrdSpatialResample", err[AIR_STRLEN_MED];
   float *arr[NRRD_DIM_MAX],   /* intermediate copies of the input data
 				 undergoing resampling; we don't need a full-
