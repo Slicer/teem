@@ -34,7 +34,8 @@ baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nout;
   airArray *mop;
   int pret, E, res[2], vi, gi, step;
-  float min[2], max[2], top[2], v0, g0, *data, v, g, gwidth, width,
+  float min[2], max[2], top[2], v0, g0, *data, v, g,
+    gwidth, width, mwidth, 
     tvl, tvr, vl, vr, tmp, maxa;
 
   hestOptAdd(&opt, "r", "Vres Gres", airTypeInt, 2, 2, res, "256 256",
@@ -55,6 +56,8 @@ baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "data value and grad mag at center of top of triangle");
   hestOptAdd(&opt, "w", "value width", airTypeFloat, 1, 1, &width, NULL,
 	     "range of values to be spanned at top of triangle");
+  hestOptAdd(&opt, "mw", "value width", airTypeFloat, 1, 1, &mwidth, "0",
+	     "range of values to be spanned at BOTTOM of triangle");
   hestOptAdd(&opt, "step", NULL, airTypeInt, 0, 0, &step, NULL,
 	     "instead of assigning opacity inside a triangular region, "
 	     "make it more like a step function, in which opacity never "
@@ -75,12 +78,12 @@ baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
   E = 0;
   if (!E) E |= nrrdMaybeAlloc(nout, nrrdTypeFloat, 3, 1, res[0], res[1]);
   if (!E) E |= !(nout->axis[0].label = airStrdup("A"));
-  if (!E) E |= !(nout->axis[1].label = airStrdup("gage(v)"));
+  if (!E) E |= !(nout->axis[1].label = airStrdup("gage(scalar:v)"));
   if (!E) nrrdAxisInfoSet(nout, nrrdAxisInfoMin,
 			  AIR_NAN, (double)min[0], (double)min[1]);
   if (!E) nrrdAxisInfoSet(nout, nrrdAxisInfoMax,
 			  AIR_NAN, (double)max[0], (double)max[1]);
-  if (!E) E |= !(nout->axis[2].label = airStrdup("gage(gm)"));
+  if (!E) E |= !(nout->axis[2].label = airStrdup("gage(scalar:gm)"));
   if (E) {
     sprintf(err, "%s: trouble creating opacity function nrrd", me);
     biffMove(BANE, err, NRRD); airMopError(mop); return 1;
@@ -88,12 +91,13 @@ baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
   data = nout->data;
   tvl = top[0] - width/2; 
   tvr = top[0] + width/2;
+  mwidth /= 2;
   for (gi=0; gi<res[1]; gi++) {
     g = NRRD_CELL_POS(min[1], max[1], res[1], gi);
     for (vi=0; vi<res[0]; vi++) {
       v = NRRD_CELL_POS(min[0], max[0], res[0], vi);
-      vl = AIR_AFFINE(0, g, top[1], v0, tvl);
-      vr = AIR_AFFINE(0, g, top[1], v0, tvr);
+      vl = AIR_AFFINE(0, g, top[1], v0-mwidth, tvl);
+      vr = AIR_AFFINE(0, g, top[1], v0+mwidth, tvr);
       if (g > top[1]) {
 	data[vi + res[0]*gi] = 0;
 	continue;
