@@ -144,8 +144,9 @@ gageSimpleNix(gageSimple *spl) {
       spl->ctx = gageContextNix(spl->ctx);
     if (spl->pvl)      /* and this */
       spl->pvl= gagePerVolumeNix(spl->pvl);
-    if (spl->ans)      /* and this */
-      spl->ans = spl->kind->ansNix(spl->ans);
+    /* but we don't spl->kind->ansNix(spl->ans) because spl->ans is
+       just a copy of the answer point already freed by
+       gagePerVolumeNix(spl->pvl) */
     free(spl);
   }
   return NULL;
