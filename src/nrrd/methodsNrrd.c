@@ -455,7 +455,6 @@ int
 nrrdCopy (Nrrd *nout, const Nrrd *nin) {
   char me[]="nrrdCopy", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX];
-  int i;
 
   if (!(nin && nout)) {
     sprintf(err, "%s: got NULL pointer", me);
