@@ -88,6 +88,10 @@ tenAnisoCalc(float c[TEN_ANISO_MAX+1], float e[3]) {
   c[tenAniso_VF] = vf;
   /* that's right, this is NOT dimensionless */
   c[tenAniso_RR] = e0*e0 + e1*e1 + e2*e2 - e0*e1 - e0*e2 - e1*e2;
+  /* but this one is */
+  c[tenAniso_RP] = acos(-0.5*(e0+e1-2*e2)*(e0+e2-2*e1)*(e1+e2-2*e0)
+			/ sqrt(tenAnisoSigma +
+			       c[tenAniso_RR]*c[tenAniso_RR]*c[tenAniso_RR]))/M_PI;
   c[tenAniso_Cz] = ((e0 + e1)/(tenAnisoSigma + e2) 
 		    + (e1 + e2)/(tenAnisoSigma + e0) 
 		    + (e0 + e2)/(tenAnisoSigma + e1))/6;

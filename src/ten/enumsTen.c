@@ -37,6 +37,7 @@ _tenAnisoStr[TEN_ANISO_MAX+1][AIR_STRLEN_SMALL] = {
   "FA",
   "VF",
   "RR",
+  "RP",
   "Cz",
   "Tr"
 };
@@ -63,6 +64,7 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "eigenvalues",
   "eigenvectors",
   "tensor gradient",
+  "rr anisotropy",
   "rr gradient vector",
   "rr gradient magnitude",
   "normalized rr gradient",
@@ -82,6 +84,7 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "tensor eigenvalues",
   "tensor eigenvectors",
   "tensor gradient",
+  "rr anisotropy",
   "rr gradient vector",
   "rr gradient magnitude",
   "normalized rr gradient",
@@ -101,6 +104,7 @@ _tenGageVal[] = {
   tenGageEval,
   tenGageEvec,
   tenGageTensorGrad,
+  tenGageRR,
   tenGageRRGradVec,
   tenGageRRGradMag,
   tenGageRRNormal,
@@ -117,6 +121,7 @@ _tenGageVal[] = {
 #define TG_AL   tenGageEval
 #define TG_EC   tenGageEvec
 #define TG_TG   tenGageTensorGrad
+#define TG_RR   tenGageRR
 #define TG_RGV  tenGageRRGradVec
 #define TG_RGM  tenGageRRGradMag
 #define TG_RGN  tenGageRRNormal
@@ -134,6 +139,7 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "eval", "eigenvalues",
   "evec", "eigenvectors",
   "tg", "tgrad", "t grad", "tensor gradient",
+  "rr",
   "rrv", "rrgrad", "rr grad", "rr gradient vector",
   "rrg", "rrgmag", "rr gmag", "rr gradient magnitude",
   "rrn", "rrnorm", "rr norm", "normalized rr gradient",
@@ -153,6 +159,7 @@ _tenGageValEqv[] = {
   TG_AL, TG_AL,
   TG_EC, TG_EC,
   TG_TG, TG_TG, TG_TG, TG_TG,
+  TG_RR,
   TG_RGV, TG_RGV, TG_RGV, TG_RGV,
   TG_RGM, TG_RGM, TG_RGM, TG_RGM,
   TG_RGN, TG_RGN, TG_RGN, TG_RGN,

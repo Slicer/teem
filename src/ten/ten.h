@@ -61,11 +61,12 @@ enum {
   tenAniso_FA,        /* 12: (Bass+Pier's fractional anisotropy)/sqrt(2) */
   tenAniso_VF,        /* 13: volume fraction = 1-(Bass+Pier's volume ratio) */
   tenAniso_RR,        /* 14: square of radius of circle in cubic solve for evals */
-  tenAniso_Cz,        /* 15: Zhukov's invariant-based */
-  tenAniso_Tr,        /* 16: plain old trace */
+  tenAniso_RP,        /* 15: root phase in cubic eval solve */
+  tenAniso_Cz,        /* 16: Zhukov's invariant-based */
+  tenAniso_Tr,        /* 17: plain old trace */
   tenAnisoLast
 };
-#define TEN_ANISO_MAX    16
+#define TEN_ANISO_MAX    17
 
 typedef struct {
   Nrrd *vThreshVol;
@@ -99,21 +100,22 @@ enum {
   tenGageEvec,          /*  4: "evec", eigenvectors of tensor: GT[9] */
   tenGageTensorGrad,    /*  5: "tg", all tensor component gradients, starting with
 			        the confidence value gradient: GT[21] */
-  tenGageRRGradVec,     /*  6: "rrv", gradient of rr anisotropy: GT[3] */
-  tenGageRRGradMag,     /*  7: "rrg", grad mag of rr anisotropy: *GT */
-  tenGageRRNormal,      /*  8: "rrn", normalized gradient of rr anisotropy: GT[3] */
-  tenGageMultiGrad,     /*  9: "mg", sum of outer products of the tensor 
+  tenGageRR,            /*  6: "rr", rr anisotropy: *GT */
+  tenGageRRGradVec,     /*  7: "rrv", gradient of rr anisotropy: GT[3] */
+  tenGageRRGradMag,     /*  8: "rrg", grad mag of rr anisotropy: *GT */
+  tenGageRRNormal,      /*  9: "rrn", normalized gradient of rr anisotropy: GT[3] */
+  tenGageMultiGrad,     /* 10: "mg", sum of outer products of the tensor 
 			       matrix elements, correctly counting the off-diagonal
 			       entries twice, but not counting the confidence
 			       value: GT[9] */
-  tenGageFrobMG,        /* 10: "frmg", frobenius norm of multi gradient: *GT */
-  tenGageMGEval,        /* 11: "mgeval", eigenvalues of multi gradient: GT[3] */
-  tenGageMGEvec,        /* 12: "mgevec", eigenvectors of multi gradient: GT[9] */
-  tenGageAniso,         /* 13: "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
+  tenGageFrobMG,        /* 11: "frmg", frobenius norm of multi gradient: *GT */
+  tenGageMGEval,        /* 12: "mgeval", eigenvalues of multi gradient: GT[3] */
+  tenGageMGEvec,        /* 13: "mgevec", eigenvectors of multi gradient: GT[9] */
+  tenGageAniso,         /* 14: "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
   tenGageLast
 };
-#define TEN_GAGE_MAX       13
-#define TEN_GAGE_TOTAL_ANS_LENGTH (71+TEN_ANISO_MAX+1)
+#define TEN_GAGE_MAX       14
+#define TEN_GAGE_TOTAL_ANS_LENGTH (72+TEN_ANISO_MAX+1)
 
 /* enumsTen.c */
 extern ten_export airEnum *tenAniso;
