@@ -260,10 +260,9 @@ _limnSplineFinish_Normal(double *out, limnSpline *spline,
 void
 _limnSplineFinish_4Vec(double *out, limnSpline *spline,
 		       int ii, double *wght) {
-  int N, idx[4];
+  int idx[4];
   double *cpt;
 
-  N = spline->ncpt->axis[2].size;
   cpt = (double*)(spline->ncpt->data);
   _limnSplineIndexFind(idx, spline, ii);
   out[0] = (  wght[0]*cpt[0 + 4*idx[0]] + wght[1]*cpt[0 + 4*idx[1]] 
@@ -283,10 +282,9 @@ _limnSplineFinish_4Vec(double *out, limnSpline *spline,
 void
 _limnSplineFinish_Quaternion(double *out, limnSpline *spline,
 			     int ii, double *wght) {
-  int N, idx[4];
+  int idx[4];
   double *cpt;
 
-  N = spline->ncpt->axis[2].size;
   cpt = (double*)(spline->ncpt->data);
   _limnSplineIndexFind(idx, spline, ii);
   ell_q_avg4_d(out, LIMN_SPLINE_Q_AVG_EPS, wght, 
