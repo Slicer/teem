@@ -68,29 +68,6 @@ enum {
 #define NRRD_BOUNDARY_MAX  4
 
 /*
-******** nrrdMagic enum
-**
-** the different "magic numbers" that nrrd knows about.  Can only deal
-** with a magic on a line of its own, with a carraige return.  
-** WARNING: the PNM format does not _require_ a carraige return after
-** the magic, but everything seems to do it anyway
-*/
-enum {
-  nrrdMagicUnknown,
-  nrrdMagicOldNRRD,      /* 1: "NRRD00.01" (pre teem 1.4) */
-  nrrdMagicNRRD0001,     /* 2: "NRRD0001" */
-  nrrdMagicP2,           /* 3: "P2": ascii PGM */
-  nrrdMagicP3,           /* 4: "P3": ascii PPM */
-  nrrdMagicP5,           /* 5: "P5": binary PGM */
-  nrrdMagicP6,           /* 6: "P6": binary PPM */
-  nrrdMagicPNG,          /* 7: "\211PNG": PNG */
-  nrrdMagicVTK10,        /* 8: "# vtk DataFile Version 1.0" */
-  nrrdMagicVTK20,        /* 9: "# vtk DataFile Version 2.0" */
-  nrrdMagicLast
-};
-#define NRRD_MAGIC_MAX      9
-
-/*
 ******** nrrdType enum
 **
 ** all the different types, identified by integer

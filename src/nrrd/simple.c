@@ -498,9 +498,6 @@ _nrrdCheckEnums (void) {
   if (nrrdBoundaryLast-1 != NRRD_BOUNDARY_MAX) {
     strcpy(which, "nrrdBoundary"); goto err;
   }
-  if (nrrdMagicLast-1 != NRRD_MAGIC_MAX) {
-    strcpy(which, "nrrdMagic"); goto err;
-  }
   if (nrrdTypeLast-1 != NRRD_TYPE_MAX) {
     strcpy(which, "nrrdType"); goto err;
   }
