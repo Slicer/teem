@@ -21,49 +21,75 @@
 #include "tenPrivate.h"
 
 int
-_tenEpiRegCheck(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *ngrad,
+_tenEpiRegSave(char *fname, Nrrd *nsingle, Nrrd **nmulti,
+	       int len, char *desc) {
+  char me[]="_tenEpiRegSave", err[AIR_STRLEN_MED];
+  Nrrd *nout;
+  airArray *mop;
+
+  mop = airMopNew();
+  if (nsingle) {
+    nout = nsingle;
+  } else {
+    airMopAdd(mop, nout=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdJoin(nout, nmulti, len, 0, AIR_TRUE)) {
+      sprintf(err, "%s: couldn't join %s for output", me, desc);
+      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+    }
+  }
+  if (nrrdSave(fname, nout, NULL)) {
+    sprintf(err, "%s: trouble saving %s to \"%s\"", me, desc, fname);
+    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+  }
+  fprintf(stderr, "%s: saved %s to \"%s\"\n", me, desc, fname);
+  airMopOkay(mop); 
+  return 0;
+}
+
+
+int
+_tenEpiRegCheck(Nrrd **nout, Nrrd **ndwi, int dwiLen, Nrrd *ngrad,
 		int reference,
-		float bwX, float bwY, float B0thr, float DWthr,
+		float bwX, float bwY, float DWthr,
 		NrrdKernel *kern, double *kparm) {
   char me[]="_tenEpiRegCheck", err[AIR_STRLEN_MED];
   int ni;
 
-  if (!( nout && nin && ngrad && kern && kparm )) {
+  if (!( nout && ndwi && ngrad && kern && kparm )) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
-  }
-  /* what is this for? */
-  if (!( ninLen >= 3 )) {
-    sprintf(err, "%s: given ninLen (%d) not >= 3", me, ninLen);
     biffAdd(TEN, err); return 1;
   }
   if (tenGradCheck(ngrad)) {
     sprintf(err, "%s: problem with given gradient list", me);
     biffAdd(TEN, err); return 1;
   }
-  if (ninLen-1 != ngrad->axis[1].size) {
+  if (dwiLen != ngrad->axis[1].size) {
     sprintf(err, "%s: got %d DWIs, but %d gradient directions", me,
-	    ninLen-1, ngrad->axis[1].size);
+	    dwiLen, ngrad->axis[1].size);
     biffAdd(TEN, err); return 1;
   }
-  for (ni=0; ni<ninLen; ni++) {
-    if (nrrdCheck(nin[ni])) {
-      sprintf(err, "%s: basic nrrd validity failed on nin[%d]", me, ni);
+  for (ni=0; ni<dwiLen; ni++) {
+    if (!nout[ni]) {
+      sprintf(err, "%s: nout[%d] is NULL", me, ni);
+      biffAdd(TEN, err); return 1;
+    }
+    if (nrrdCheck(ndwi[ni])) {
+      sprintf(err, "%s: basic nrrd validity failed on ndwi[%d]", me, ni);
       biffMove(TEN, err, NRRD); return 1;
     }
-    if (!nrrdSameSize(nin[0], nin[ni], AIR_TRUE)) {
-      sprintf(err, "%s: nin[%d] is different from nin[0]", me, ni);
+    if (!nrrdSameSize(ndwi[0], ndwi[ni], AIR_TRUE)) {
+      sprintf(err, "%s: ndwi[%d] is different from ndwi[0]", me, ni);
       biffMove(TEN, err, NRRD); return 1;
     }
   }
-  if (!( 3 == nin[0]->dim )) {
+  if (!( 3 == ndwi[0]->dim )) {
     sprintf(err, "%s: didn't get a set of 3-D arrays (got %d-D)", me,
-	    nin[0]->dim);
+	    ndwi[0]->dim);
     biffAdd(TEN, err); return 1;
   }
-  if (!( AIR_IN_CL(0, reference, ninLen-1) )) {
-    sprintf(err, "%s: reference index %d not in valid range [0,%d]", 
-	    me, reference, ninLen-1);
+  if (!( AIR_IN_CL(-1, reference, dwiLen-1) )) {
+    sprintf(err, "%s: reference index %d not in valid range [-1,%d]", 
+	    me, reference, dwiLen-1);
     biffAdd(TEN, err); return 1;
   }
   if (!( AIR_EXISTS(bwX) && AIR_EXISTS(bwY) )) {
@@ -83,7 +109,7 @@ _tenEpiRegCheck(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *ngrad,
 ** to manage them
 */
 int
-_tenEpiRegBlur(Nrrd **nblur, Nrrd **nin, int ninLen,
+_tenEpiRegBlur(Nrrd **nblur, Nrrd **ndwi, int dwiLen,
 	       float bwX, float bwY, int verb) {
   char me[]="_tenEpiRegBlur", err[AIR_STRLEN_MED];
   NrrdResampleInfo *rinfo;
@@ -95,12 +121,12 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **nin, int ninLen,
     if (verb) {
       fprintf(stderr, "%s:\n            ", me); fflush(stderr);
     }
-    for (ni=0; ni<ninLen; ni++) {
+    for (ni=0; ni<dwiLen; ni++) {
       if (verb) {
 	fprintf(stderr, "% 2d ", ni); fflush(stderr);
       }
-      if (nrrdCopy(nblur[ni], nin[ni])) {
-	sprintf(err, "%s: trouble copying nin[%d]", me, ni);
+      if (nrrdCopy(nblur[ni], ndwi[ni])) {
+	sprintf(err, "%s: trouble copying ndwi[%d]", me, ni);
 	biffMove(TEN, err, NRRD); return 1;
       }
     }
@@ -110,9 +136,9 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **nin, int ninLen,
     return 0;
   }
   /* else we need to blur */
-  sx = nin[0]->axis[0].size;
-  sy = nin[0]->axis[1].size;
-  sz = nin[0]->axis[2].size;
+  sx = ndwi[0]->axis[0].size;
+  sy = ndwi[0]->axis[1].size;
+  sz = ndwi[0]->axis[2].size;
   mop = airMopNew();
   rinfo = nrrdResampleInfoNew();
   airMopAdd(mop, rinfo, (airMopper)nrrdResampleInfoNix, airMopAlways);
@@ -120,11 +146,15 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **nin, int ninLen,
     rinfo->kernel[0] = nrrdKernelGaussian;
     rinfo->parm[0][0] = bwX;
     rinfo->parm[0][1] = 3.0; /* how many stnd devs do we cut-off at */
+  } else {
+    rinfo->kernel[0] = NULL;
   }
   if (bwY) {
     rinfo->kernel[1] = nrrdKernelGaussian;
     rinfo->parm[1][0] = bwY;
     rinfo->parm[1][1] = 3.0; /* how many stnd devs do we cut-off at */
+  } else {
+    rinfo->kernel[1] = NULL;
   }
   rinfo->kernel[2] = NULL;
   ELL_3V_SET(rinfo->samples, sx, sy, sz);
@@ -137,20 +167,20 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **nin, int ninLen,
   if (verb) {
     fprintf(stderr, "%s:\n            ", me); fflush(stderr);
   }
-  for (ni=0; ni<ninLen; ni++) {
+  for (ni=0; ni<dwiLen; ni++) {
     if (verb) {
       fprintf(stderr, "% 2d ", ni); fflush(stderr);
     }
-    savemin[0] = nin[ni]->axis[0].min; savemax[0] = nin[ni]->axis[0].max; 
-    savemin[1] = nin[ni]->axis[1].min; savemax[1] = nin[ni]->axis[1].max;
-    nin[ni]->axis[0].min = 0; nin[ni]->axis[0].max = sx-1;
-    nin[ni]->axis[1].min = 0; nin[ni]->axis[1].max = sy-1;
-    if (nrrdSpatialResample(nblur[ni], nin[ni], rinfo)) {
-      sprintf(err, "%s: trouble blurring nin[%d]", me, ni);
+    savemin[0] = ndwi[ni]->axis[0].min; savemax[0] = ndwi[ni]->axis[0].max; 
+    savemin[1] = ndwi[ni]->axis[1].min; savemax[1] = ndwi[ni]->axis[1].max;
+    ndwi[ni]->axis[0].min = 0; ndwi[ni]->axis[0].max = sx-1;
+    ndwi[ni]->axis[1].min = 0; ndwi[ni]->axis[1].max = sy-1;
+    if (nrrdSpatialResample(nblur[ni], ndwi[ni], rinfo)) {
+      sprintf(err, "%s: trouble blurring ndwi[%d]", me, ni);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
-    nin[ni]->axis[0].min = savemin[0]; nin[ni]->axis[0].max = savemax[0]; 
-    nin[ni]->axis[1].min = savemin[1]; nin[ni]->axis[1].max = savemax[1];
+    ndwi[ni]->axis[0].min = savemin[0]; ndwi[ni]->axis[0].max = savemax[0]; 
+    ndwi[ni]->axis[1].min = savemin[1]; ndwi[ni]->axis[1].max = savemax[1];
   }
   if (verb) {
     fprintf(stderr, "done\n");
@@ -160,7 +190,7 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **nin, int ninLen,
 }
 
 int
-_tenEpiRegFindThresh(float *B0thrP, float *DWthrP, Nrrd **nin, int ninLen) {
+_tenEpiRegFindThresh(float *DWthrP, Nrrd **nin, int ninLen) {
   char me[]="_tenEpiRegFindThresh", err[AIR_STRLEN_MED];
   Nrrd *nhist, *ntmp;
   airArray *mop;
@@ -171,21 +201,9 @@ _tenEpiRegFindThresh(float *B0thrP, float *DWthrP, Nrrd **nin, int ninLen) {
   airMopAdd(mop, nhist=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ntmp=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
 
-  nrrdMinMaxSet(nin[0]);
-  bins = AIR_MIN(1024, nin[0]->max - nin[0]->min + 1);
-  if (nrrdHisto(nhist, nin[0], NULL, bins, nrrdTypeFloat)) {
-    sprintf(err, "%s: problem forming B0 histogram", me);
-    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
-  }
-  if (_tenFindValley(B0thrP, nhist, 0.8)) {
-    sprintf(err, "%s: problem finding B0 histogram valley", me);
-    biffAdd(TEN, err); airMopError(mop); return 1;
-  }
-  fprintf(stderr, "%s: using %g for B0 threshold\n", me, *B0thrP);
-
-  for (ni=1; ni<ninLen; ni++) {
+  for (ni=0; ni<ninLen; ni++) {
     nrrdMinMaxSet(nin[ni]);
-    if (1 == ni) {
+    if (!ni) {
       min = nin[ni]->min;
       max = nin[ni]->max;
     } else {
@@ -196,12 +214,12 @@ _tenEpiRegFindThresh(float *B0thrP, float *DWthrP, Nrrd **nin, int ninLen) {
   bins = AIR_MIN(1024, max - min + 1);
   ntmp->axis[0].min = min;
   ntmp->axis[0].max = max;
-  for (ni=1; ni<ninLen; ni++) {
+  for (ni=0; ni<ninLen; ni++) {
     if (nrrdHisto(ntmp, nin[ni], NULL, bins, nrrdTypeFloat)) {
       sprintf(err, "%s: problem forming histogram of DWI %d", me, ni);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
-    if (1 == ni) {
+    if (!ni) {
       E = nrrdCopy(nhist, ntmp);
     } else {
       E = nrrdArithBinaryOp(nhist, nrrdBinaryOpAdd, nhist, ntmp);
@@ -211,7 +229,7 @@ _tenEpiRegFindThresh(float *B0thrP, float *DWthrP, Nrrd **nin, int ninLen) {
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
   }
-  if (_tenFindValley(DWthrP, nhist, 0.9)) {
+  if (_tenFindValley(DWthrP, nhist, 0.85)) {
     sprintf(err, "%s: problem finding DWI histogram valley", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
@@ -223,15 +241,15 @@ _tenEpiRegFindThresh(float *B0thrP, float *DWthrP, Nrrd **nin, int ninLen) {
 
 int
 _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, int ninLen,
-		    float B0thr, float DWthr, int verb) {
+		    float DWthr, int verb) {
   char me[]="_tenEpiRegThreshold", err[AIR_STRLEN_MED];
   airArray *mop;
   int I, sx, sy, sz, ni;
   float val;
   unsigned char *thr;
 
-  if (!( AIR_EXISTS(B0thr) && AIR_EXISTS(DWthr) )) {
-    if (_tenEpiRegFindThresh(&B0thr, &DWthr, nblur, ninLen)) {
+  if (!( AIR_EXISTS(DWthr) )) {
+    if (_tenEpiRegFindThresh(&DWthr, nblur, ninLen)) {
       sprintf(err, "%s: trouble with automatic threshold determination", me);
       biffAdd(TEN, err); return 1;
     }
@@ -255,7 +273,7 @@ _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, int ninLen,
     thr = (unsigned char *)(nthresh[ni]->data);
     for (I=0; I<sx*sy*sz; I++) {
       val = nrrdFLookup[nblur[ni]->type](nblur[ni]->data, I);
-      val -= !ni ? B0thr : DWthr;
+      val -= DWthr;
       thr[I] = (val >= 0 ? 1 : 0);
     }
   }
@@ -289,57 +307,32 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
   char me[]="_tenEpiRegCC", err[AIR_STRLEN_MED];
   Nrrd *nslc, *ncc, *nval, *nsize;
   airArray *mop;
-  int ni, z, sz, big, E;
+  int ni, z, sz, big;
 
-  if (verb) {
-    fprintf(stderr, "%s:\n            ", me); fflush(stderr);
-  }
   mop = airMopNew();
   airMopAdd(mop, nslc=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nval=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ncc=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nsize=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   sz = nthr[0]->axis[2].size;
+  if (verb) {
+    fprintf(stderr, "%s:\n            ", me); fflush(stderr);
+  }
   for (ni=0; ni<ninLen; ni++) {
     if (verb) {
       fprintf(stderr, "% 2d ", ni); fflush(stderr);
     }
-#if 0
-    /* within each slice, we merge to dark little pieces (smaller than
-       brightSize), pieces, and merge to bright big pieces (smaller then
-       darkSize) .  The problem with this is when a 3-D connected piece
-       of brain is seen as detached in a slice, as happens at the top of
-       the cortex, and sometimes in the temporal lobes */
-    for (z=0; z<sz; z++) {
-      if ( nrrdSlice(nslc, nthr[ni], 2, z)
-	   || nrrdCCFind(ncc, &nval, nslc, nrrdTypeDefault, conny)
-	   || nrrdCCMerge(ncc, ncc, nval, 1, darkSize, 0, conny)
-	   || nrrdCCMerge(ncc, ncc, nval, -1, brightSize, 0, conny)
-	   || nrrdCCRevalue(nslc, ncc, nval)
-	   || nrrdSplice(nthr[ni], nthr[ni], nslc, 2, z) ) {
-	sprintf(err, "%s: trouble processing slice %d of nthr[%d]", me, z, ni);
-	biffMove(TEN, err, NRRD); return 1;
-      }
-      num = nrrdCCNum(ncc);
-      if (2 != num) {
-	fprintf(stderr, "%s: slice %d of nthr[%d] has %d CCs\n",
-		me, z, ni, num);
-      }
-    }
-#else
     /* for each volume, we find the biggest bright 3-D CC, and merge
        down (to dark) all smaller bright pieces.  Then, within each
        slice, we do 2-D CCs, find the biggest bright CC (size == big),
        and merge up (to bright) all small dark pieces, where
        (currently) small is big/2 */
-    E = 0;
-    if (!E) E |= nrrdCCFind(ncc, &nval, nthr[ni], nrrdTypeDefault, conny);
-    if (!E) E |= nrrdCCSize(nsize, ncc);
-    if (!E) big = _tenEpiRegBB(nval, nsize);
-    if (!E) E |= nrrdCCMerge(ncc, ncc, nval, -1, big-1, 0, conny);
-    if (!E) E |= nrrdCCRevalue(nthr[ni], ncc, nval);
-    if (E) {
-      sprintf(err, "%s: trouble processing nthr[%d]", me, ni);
+    if (nrrdCCFind(ncc, &nval, nthr[ni], nrrdTypeDefault, conny)
+	|| nrrdCCSize(nsize, ncc)
+	|| !(big = _tenEpiRegBB(nval, nsize)) 
+	|| nrrdCCMerge(ncc, ncc, nval, -1, big-1, 0, conny)
+	|| nrrdCCRevalue(nthr[ni], ncc, nval)) {
+      sprintf(err, "%s: trouble with 3-D processing nthr[%d]", me, ni);
       biffMove(TEN, err, NRRD); return 1;
     }
     for (z=0; z<sz; z++) {
@@ -354,7 +347,6 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
 	biffMove(TEN, err, NRRD); return 1;
       }
     }
-#endif
   }
   if (verb) {
     fprintf(stderr, "done\n");
@@ -418,12 +410,12 @@ _tenEpiRegMoments(Nrrd **nmom, Nrrd **nthresh, int ninLen, int verb) {
       }
       if (!N) {
 	sprintf(err, "%s: saw no non-zero pixels in nthresh[%d]; "
-		"%s threshold too high?", me, ni, !ni ? "B0" : "DW");
+		"DWI threshold too high?", me, ni);
 	biffAdd(TEN, err); return 1;
       }
       if (N == sx*sy) {
 	sprintf(err, "%s: saw only non-zero pixels in nthresh[%d]; "
-		"%s threshold too low?", me, ni, !ni ? "B0" : "DW");
+		"DWI hreshold too low?", me, ni);
 	biffAdd(TEN, err); return 1;
       }
       mx /= N;
@@ -484,7 +476,7 @@ _tenEpiRegPairXforms(Nrrd *npxfr, Nrrd **nmom, int ninLen) {
     sprintf(err, "%s: couldn't allocate transform nrrd", me);
     biffMove(TEN, err, NRRD); return 1;
   }
-  nrrdAxesSet(npxfr, nrrdAxesInfoLabel, "mx,my,h,s,t", "zi", "orig", "txfd");
+  nrrdAxesSet(npxfr, nrrdAxesInfoLabel, "mx,my,h,s,t", "zi", "orig", "target");
   xfr = (double *)(npxfr->data);
   for (bi=0; bi<ninLen; bi++) {
     for (ai=0; ai<ninLen; ai++) {
@@ -521,7 +513,7 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
   airMopAdd(mop, ninv=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nvec=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nans=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  npairs = (ninLen-1)*(ninLen-2);
+  npairs = ninLen*(ninLen-1);
   sz = npxfr->axis[1].size;
   if (nrrdMaybeAlloc(nhst, nrrdTypeDouble, 2, 9, sz)
       || nrrdMaybeAlloc(nmat1, nrrdTypeDouble, 2, 3, npairs)
@@ -536,16 +528,16 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
   mat2 = (double *)(nmat2->data);
   vec = (double *)(nvec->data);
 
-  /* ------ find Mx, My, Mz per slice */
+  /* ------ find Sx, Sy, Sz per slice */
   for (z=0; z<sz; z++) {
     hst = (double *)(nhst->data) + 0 + 9*z;
     ri = 0;
-    for (A=1; A<ninLen; A++) {
-      for (B=1; B<ninLen; B++) {
+    for (A=0; A<ninLen; A++) {
+      for (B=0; B<ninLen; B++) {
 	if (A == B) continue;
 	pxfr = (double *)(npxfr->data) + 0 + 5*(z + sz*(A + ninLen*B));
-	gA = grad + 0 + 3*(A-1);
-	gB = grad + 0 + 3*(B-1);
+	gA = grad + 0 + 3*A;
+	gB = grad + 0 + 3*B;
 	ELL_3V_SET(mat1 + 3*ri,
 		   pxfr[SCALE]*gA[0] - gB[0],
 		   pxfr[SCALE]*gA[1] - gB[1],
@@ -562,16 +554,16 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
     hst[5] = ans[2];
   }
 
-  /* ------ find Sx, Sy, Sz per slice */
+  /* ------ find Hx, Hy, Hz per slice */
   for (z=0; z<sz; z++) {
     hst = (double *)(nhst->data) + 0 + 9*z;
     ri = 0;
-    for (A=1; A<ninLen; A++) {
-      for (B=1; B<ninLen; B++) {
+    for (A=0; A<ninLen; A++) {
+      for (B=0; B<ninLen; B++) {
 	if (A == B) continue;
 	pxfr = (double *)(npxfr->data) + 0 + 5*(z + sz*(A + ninLen*B));
-	gA = grad + 0 + 3*(A-1);
-	gB = grad + 0 + 3*(B-1);
+	gA = grad + 0 + 3*A;
+	gB = grad + 0 + 3*B;
 	ELL_3V_SET(mat1 + 3*ri,
 		   gB[0] - pxfr[SCALE]*gA[0],
 		   gB[1] - pxfr[SCALE]*gA[1],
@@ -592,12 +584,12 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
   for (z=0; z<sz; z++) {
     hst = (double *)(nhst->data) + 0 + 9*z;
     ri = 0;
-    for (A=1; A<ninLen; A++) {
-      for (B=1; B<ninLen; B++) {
+    for (A=0; A<ninLen; A++) {
+      for (B=0; B<ninLen; B++) {
 	if (A == B) continue;
 	pxfr = (double *)(npxfr->data) + 0 + 5*(z + sz*(A + ninLen*B));
-	gA = grad + 0 + 3*(A-1);
-	gB = grad + 0 + 3*(B-1);
+	gA = grad + 0 + 3*A;
+	gB = grad + 0 + 3*B;
 	ELL_3V_SET(mat1 + 3*ri,
 		   gB[0] - pxfr[SCALE]*gA[0],
 		   gB[1] - pxfr[SCALE]*gA[1],
@@ -618,46 +610,9 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
   return 0;
 }
 
-/*
-int
-_tenEpiRegSmoothHST(Nrrd *nhst, float bwP) {
-  char me[]="_tenEpiRegSmoothHST", err[AIR_STRLEN_MED];
-  NrrdResampleInfo *rinfo;
-  airArray *mop;
-  int sz, sp;
-
-  if (nhst->axis[1].size > 1) {
-    sp = nhst->axis[0].size;
-    sz = nhst->axis[1].size;
-    mop = airMopNew();
-    rinfo = nrrdResampleInfoNew();
-    airMopAdd(mop, rinfo, (airMopper)nrrdResampleInfoNix, airMopAlways);
-    rinfo->kernel[1] = nrrdKernelGaussian;
-    rinfo->parm[1][0] = bwP;
-    rinfo->parm[1][1] = 3.0; / * how many stnd devs do we cut-off at * /
-    ELL_2V_SET(rinfo->samples, sp, sz);
-    ELL_2V_SET(rinfo->min, 0, 0);
-    ELL_2V_SET(rinfo->max, sp-1, sz-1);
-    rinfo->boundary = nrrdBoundaryBleed;
-    rinfo->type = nrrdTypeDefault;
-    rinfo->renormalize = AIR_TRUE;
-    rinfo->clamp = AIR_TRUE;
-    
-    nhst->axis[1].min = 0;
-    nhst->axis[1].max = sz-1;
-    if (nrrdSpatialResample(nhst, nhst, rinfo)) {
-      sprintf(err, "%s: trouble blurring nhst", me);
-      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
-    }
-    airMopOkay(mop);
-  }
-  return 0;
-}
-*/
-
 int
 _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
-		 float goodFrac, int verb) {
+		 float goodFrac, int prog, int verb) {
   char me[]="_tenEpiRegFitHST", err[AIR_STRLEN_MED];
   airArray *mop;
   Nrrd *ncc, *ntA, *ntB, *nsd, *nl2;
@@ -676,10 +631,10 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
      and define per-slice "messiness" as the quotient of the
      SD integral with the L2 integral */
   if (verb) {
-    fprintf(stderr, "%s: measuring segmentation quality ... ", me);
+    fprintf(stderr, "%s: measuring segmentation uncertainty ... ", me);
     fflush(stderr);
   }
-  if (nrrdJoin(ncc, _ncc+1, ninLen-1, 0, AIR_TRUE)
+  if (nrrdJoin(ncc, _ncc, ninLen, 0, AIR_TRUE)
       || nrrdProject(ntA, ncc, 0, nrrdMeasureSD, nrrdTypeFloat)
       || nrrdProject(ntB, ntA, 0, nrrdMeasureSum, nrrdTypeFloat)
       || nrrdProject(nsd, ntB, 0, nrrdMeasureSum, nrrdTypeFloat)
@@ -692,6 +647,10 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
   }
   if (verb) {
     fprintf(stderr, "done\n");
+  }
+  if (prog && _tenEpiRegSave("messy.txt", ntA,
+			     NULL, 0, "segmentation uncertainty")) {
+    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
   /* now ntA stores the per-slice messiness */
   mess = (float*)(ntA->data);
@@ -711,13 +670,13 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
   }
   /* sort into ascending messiness */
   qsort(two, zi, 2*sizeof(float), nrrdValCompare[nrrdTypeFloat]);
-  /* flip ordering whilc thresholding messiness into usability */
+  /* flip ordering while thresholding messiness into usability */
   for (zi=0; zi<sz; zi++) {
     tmp = two[1 + 2*zi];
     two[1 + 2*zi] = (AIR_AFFINE(0, zi, sz-1, 0, 1) <= goodFrac ? 1.0 : 0.0);
     two[0 + 2*zi] = tmp;
   }  
-  /* sort again, into ascending slice order */
+  /* sort again, now into ascending slice order */
   qsort(two, zi, 2*sizeof(float), nrrdValCompare[nrrdTypeFloat]);
   if (verb) {
     fprintf(stderr, "%s: using slices", me);
@@ -756,122 +715,32 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
   return 0;
 }
 
-
 int
 _tenEpiRegGetHST(double *hhP, double *ssP, double *ttP,
-		 int ref, int ni, int zi,
+		 int reference, int ni, int zi,
 		 Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad) {
-  double *xfr, *hst, *grad, zero[3]={0,0,0};
+  double *xfr, *hst, *grad;
   int sz, ninLen;
 
   /* these could also have been passed to us, but we can also discover them */
   sz = npxfr->axis[1].size;
   ninLen = npxfr->axis[2].size;
 
-  if (ref) {
-    /* we register against a specific DWI */
-    xfr = (double*)(npxfr->data) + 0 + 5*(zi + sz*(ref + ninLen*ni));
-    *hhP = xfr[2];
-    *ssP = xfr[3];
-    *ttP = xfr[4];
-  } else {
-    /* we use the estimated S,M,T vectors to determine distortion
+  if (-1 == reference) {
+    /* we use the estimated H,S,T vectors to determine distortion
        as a function of gradient direction, and then invert this */
     hst = (double*)(nhst->data) + 0 + 9*zi;
-    if (ni) {
-      grad = (double*)(ngrad->data) + 0 + 3*(ni-1);
-    } else {
-      grad = zero;
-    }
+    grad = (double*)(ngrad->data) + 0 + 3*ni;
     *hhP = ELL_3V_DOT(grad, hst + 0*3);
     *ssP = 1 + ELL_3V_DOT(grad, hst + 1*3);
     *ttP = ELL_3V_DOT(grad, hst + 2*3);
+  } else {
+    /* we register against a specific DWI */
+    xfr = (double*)(npxfr->data) + 0 + 5*(zi + sz*(reference + ninLen*ni));
+    *hhP = xfr[2];
+    *ssP = xfr[3];
+    *ttP = xfr[4];
   }
-  return 0;
-}
-
-int
-_tenEpiRegWarp1(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
-		Nrrd **nin, int ninLen,
-		int ref, NrrdKernel *kern, double *kparm,
-		int verb) {
-  char me[]="_tenEpiRegWarp1", err[AIR_STRLEN_MED];
-  gageContext *gtx;
-  gagePerVolume *pvl=NULL;
-  airArray *mop;
-  int E, ni, xi, yi, zi, sx, sy, sz;
-  gage_t *val;
-  double cx, cy, hh, ss, tt;
-
-  mop = airMopNew();
-  gtx = gageContextNew();
-  airMopAdd(mop, gtx, (airMopper)gageContextNix, airMopAlways);
-
-  /* gageSet(gtx, gageParmRenormalize, AIR_TRUE); */
-  gageSet(gtx, gageParmCheckIntegrals, AIR_TRUE);
-  gageSet(gtx, gageParmRequireAllSpacings, AIR_FALSE);
-  gageSet(gtx, gageParmRequireEqualCenters, AIR_FALSE);
-  gageSet(gtx, gageParmDefaultCenter, nrrdCenterCell);
-
-  if (verb) {
-    fprintf(stderr, "%s:\n            ", me); fflush(stderr);
-  }
-  sx = nin[0]->axis[0].size;
-  sy = nin[0]->axis[1].size;
-  sz = nin[0]->axis[2].size;
-  cx = sx/2.0;
-  cy = sy/2.0;
-  for (ni=0; ni<ninLen; ni++) {
-    if (verb) {
-      fprintf(stderr, "% 2d ", ni); fflush(stderr);
-    }
-    if (nrrdCopy(ndone[ni], nin[ni])) {
-      sprintf(err, "%s: couldn't do initial copy of nin[%d]", me, ni);
-      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
-    }
-    if (!ni) {
-      /* we've just copied the B=0 image, and that's all we're supposed 
-	 to do, so we're done.  All successive dwi volumes will have to
-	 deal with gage */
-      continue;
-    }
-    E = 0;
-    if (pvl) {
-      if (!E) E |= gagePerVolumeDetach(gtx, pvl);
-      if (!E) gagePerVolumeNix(pvl);
-    }
-    if (!E) E |= !(pvl = gagePerVolumeNew(gtx, nin[ni], gageKindScl));
-    if (!E) E |= gageQuerySet(gtx, pvl, 1 << gageSclValue);
-    /* this next one is needlessly repeated */
-    if (!E) E |= gageKernelSet(gtx, gageKernel00, kern, kparm);
-    if (!E) E |= gagePerVolumeAttach(gtx, pvl);
-    if (!E) E |= gageUpdate(gtx);
-    if (E) {
-      sprintf(err, "%s: trouble with gage on nin[%d]", me, ni);
-      biffMove(TEN, err, GAGE); airMopError(mop); return 1;
-    }
-    val = gageAnswerPointer(gtx, pvl, gageSclValue);
-    if (gageProbe(gtx, 0, 0, 0)) {
-      sprintf(err, "%s: gage failed initial probe: %s", me, gageErrStr);
-      biffAdd(TEN, err); airMopError(mop); return 1;
-    }
-    for (zi=0; zi<sz; zi++) {
-      _tenEpiRegGetHST(&hh, &ss, &tt, ref, ni, zi, npxfr, nhst, ngrad);
-      tt += (1-ss)*cy - hh*cx;
-      for (yi=0; yi<sy; yi++) {
-	for (xi=0; xi<sx; xi++) {
-	  gageProbe(gtx, xi, hh*xi + ss*yi + tt, zi);
-	  nrrdDInsert[ndone[ni]->type](ndone[ni]->data, xi + sx*(yi + sy*zi),
-				       nrrdDClamp[ndone[ni]->type](ss*(*val)));
-	}
-      }
-    }
-  }
-  if (verb) {
-    fprintf(stderr, "done\n");
-  }
-
-  airMopOkay(mop);
   return 0;
 }
 
@@ -935,18 +804,15 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
 }
 
 /*
-** _tenEpiRegWarp2()
+** _tenEpiRegWarp()
 **
-** an optimized version of _tenEpiRegWarp1(), which is MUCH faster because
-** it doesn't use gage, which is appropriate, since the resampling is really
-** only happening along one dimension.
 */
 int
-_tenEpiRegWarp2(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
-		Nrrd **nin, int ninLen,
-		int ref, NrrdKernel *kern, double *kparm,
-		int verb) {
-  char me[]="_tenEpiRegWarp2", err[AIR_STRLEN_MED];
+_tenEpiRegWarp(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
+	       Nrrd **nin, int ninLen,
+	       int reference, NrrdKernel *kern, double *kparm,
+	       int verb) {
+  char me[]="_tenEpiRegWarp", err[AIR_STRLEN_MED];
   Nrrd *ntmp, *nfin, *nslcA, *nslcB, *nwght, *nidx;
   airArray *mop;
   int sx, sy, sz, ni, zi, supp;
@@ -974,23 +840,20 @@ _tenEpiRegWarp2(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
     sprintf(err, "%s: trouble allocating buffers", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
-  if (nrrdCopy(ndone[0], nin[0])) {
-    sprintf(err, "%s: trouble copying T2 ref image", me);
-    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
-  }
-  for (ni=1; ni<ninLen; ni++) {
+  for (ni=0; ni<ninLen; ni++) {
     if (verb) {
       fprintf(stderr, "% 2d ", ni); fflush(stderr);
     }
     if (nrrdCopy(ndone[ni], nin[ni])
-	|| ((1==ni) && nrrdSlice(nslcB, ndone[ni], 2, 0)) /* slice at 1==ni */
+	|| ((!ni) && nrrdSlice(nslcB, ndone[ni], 2, 0)) /* only when 0==ni */
 	|| nrrdAxesSwap(ntmp, nin[ni], 0, 1)
 	|| nrrdConvert(nfin, ntmp, nrrdTypeFloat)) {
       sprintf(err, "%s: trouble prepping at ni=%d", me, ni);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
     for (zi=0; zi<sz; zi++) {
-      if (_tenEpiRegGetHST(&hh, &ss, &tt, ref, ni, zi, npxfr, nhst, ngrad)
+      if (_tenEpiRegGetHST(&hh, &ss, &tt, reference,
+			   ni, zi, npxfr, nhst, ngrad)
 	  || nrrdSlice(nslcA, nfin, 2, zi)
 	  || _tenEpiRegSliceWarp(nslcB, nslcA, nwght, nidx, kern, kparm,
 				 hh, ss, tt, cx, cy)
@@ -1010,15 +873,15 @@ _tenEpiRegWarp2(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
 }
 
 int
-tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
+tenEpiRegister(Nrrd **nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
 	       int reference,
 	       float bwX, float bwY, float fitFrac,
-	       float B0thr, float DWthr, int doCC, 
+	       float DWthr, int doCC, 
 	       NrrdKernel *kern, double *kparm,
 	       int progress, int verbose) {
   char me[]="tenEpiRegister", err[AIR_STRLEN_MED];
   airArray *mop;
-  Nrrd **nbuffA, **nbuffB, *npxfr, *nprog, *nhst, *ngrad;
+  Nrrd **nbuffA, **nbuffB, *npxfr, *nhst, *ngrad;
   int i, hack1, hack2;
 
   hack1 = nrrdStateAlwaysSetContent;
@@ -1028,7 +891,7 @@ tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
 
   mop = airMopNew();
   if (_tenEpiRegCheck(nout, nin, ninLen, _ngrad, reference,
-		      bwX, bwY, B0thr, DWthr,
+		      bwX, bwY, DWthr,
 		      kern, kparm)) {
     sprintf(err, "%s: trouble with input", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
@@ -1047,7 +910,6 @@ tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
     airMopAdd(mop, nbuffB[i] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   }
   airMopAdd(mop, npxfr = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nprog = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nhst = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ngrad = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdConvert(ngrad, _ngrad, nrrdTypeDouble)) {
@@ -1060,28 +922,20 @@ tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
     sprintf(err, "%s: trouble %s", me, (bwX || bwY) ? "blurring" : "copying");
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
-  if (progress) {
-    if (nrrdJoin(nprog, nbuffA, ninLen, 0, AIR_TRUE)
-	|| nrrdSave("blur.nrrd", nprog, NULL)) {
-      sprintf(err, "%s: trouble saving intermediate: blurred", me);
-      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
-    }
-    fprintf(stderr, "%s: saved blur.nrrd\n", me);
+  if (progress && _tenEpiRegSave("blur.nrrd", NULL,
+				 nbuffA, ninLen, "blurred DWIs")) {
+    airMopError(mop); return 1;
   }
 
   /* ------ threshold */
   if (_tenEpiRegThreshold(nbuffB, nbuffA, ninLen, 
-			  B0thr, DWthr, verbose)) {
+			  DWthr, verbose)) {
     sprintf(err, "%s: trouble thresholding", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
-  if (progress) {
-    if (nrrdJoin(nprog, nbuffB, ninLen, 0, AIR_TRUE)
-	|| nrrdSave("thresh.nrrd", nprog, NULL)) {
-      sprintf(err, "%s: trouble saving intermediate: tresholded", me);
-      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
-    }
-    fprintf(stderr, "%s: saved thresh.nrrd\n", me);
+  if (progress && _tenEpiRegSave("thresh.nrrd", NULL,
+				 nbuffB, ninLen, "thresholded DWIs")) {
+    airMopError(mop); return 1;
   }
 
   /* ------ connected components */
@@ -1090,14 +944,9 @@ tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
       sprintf(err, "%s: trouble doing connected components", me);
       biffAdd(TEN, err); airMopError(mop); return 1;
     }
-    if (progress) {
-      if (nrrdJoin(nprog, nbuffB, ninLen, 0, AIR_TRUE)
-	  || nrrdSave("ccs.nrrd", nprog, NULL)) {
-	sprintf(err, "%s: trouble saving intermediate: "
-		"connected components ", me);
-	biffMove(TEN, err, NRRD); airMopError(mop); return 1;
-      }
-      fprintf(stderr, "%s: saved ccs.nrrd\n", me);
+    if (progress && _tenEpiRegSave("ccs.nrrd", NULL,
+				   nbuffB, ninLen, "connected components")) {
+      airMopError(mop); return 1;
     }
   }
 
@@ -1106,13 +955,9 @@ tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
     sprintf(err, "%s: trouble finding moments", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
-  if (progress) {
-    if (nrrdJoin(nprog, nbuffA, ninLen, 0, AIR_TRUE)
-	|| nrrdSave("mom.nrrd", nprog, NULL)) {
-      sprintf(err, "%s: trouble saving intermediate: moments", me);
-      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
-    }
-    fprintf(stderr, "%s: saved mom.nrrd\n", me);
+  if (progress && _tenEpiRegSave("mom.nrrd", NULL,
+				 nbuffA, ninLen, "moments")) {
+    airMopError(mop); return 1;
   }
 
   /* ------ transforms */
@@ -1120,60 +965,40 @@ tenEpiRegister(Nrrd *nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
     sprintf(err, "%s: trouble calculating transforms", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
-  if (progress) {
-    if (nrrdSave("pxfr.nrrd", npxfr, NULL)) {
-      sprintf(err, "%s: trouble saving intermediate: pair-wise xforms", me);
-      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
-    }
-    fprintf(stderr, "%s: saved pxfr.nrrd\n", me);
+  if (progress && _tenEpiRegSave("pxfr.nrrd", npxfr,
+				 NULL, 0, "pair-wise xforms")) {
+    airMopError(mop); return 1;
   }
 
-  if (0 == reference) {
+  if (-1 == reference) {
     /* ------ HST estimation */
     if (_tenEpiRegEstimHST(nhst, npxfr, ninLen, ngrad)) {
       sprintf(err, "%s: trouble estimating HST", me);
       biffAdd(TEN, err); airMopError(mop); return 1;
     }
-    if (progress) {
-      if (nrrdSave("hst.nrrd", nhst, NULL)) {
-	sprintf(err, "%s: trouble saving intermediate: HST estimates", me);
-	biffMove(TEN, err, NRRD); airMopError(mop); return 1;
-      }
-      fprintf(stderr, "%s: saved hst.nrrd\n", me);
+    if (progress && _tenEpiRegSave("hst.txt", nhst,
+				   NULL, 0, "HST estimates")) {
+      airMopError(mop); return 1;
     }
 
     if (fitFrac) {
       /* ------ HST parameter fitting */
-      if (_tenEpiRegFitHST(nhst, nbuffB, ninLen, fitFrac, verbose)) {
+      if (_tenEpiRegFitHST(nhst, nbuffB, ninLen, fitFrac, progress, verbose)) {
 	sprintf(err, "%s: trouble fitting HST", me);
 	biffAdd(TEN, err); airMopError(mop); return 1;
       }
-      if (progress) {
-	if (nrrdSave("fit-hst.nrrd", nhst, NULL)) {
-	  sprintf(err, "%s: trouble saving intermediate: fitted HST", me);
-	  biffMove(TEN, err, NRRD); airMopError(mop); return 1;
-	}
-	fprintf(stderr, "%s: saved fit-hst.nrrd\n", me);
+      if (progress && _tenEpiRegSave("fit-hst.txt", nhst,
+				     NULL, 0, "fitted HST")) {
+	airMopError(mop); return 1;
       }
     }
   }
 
   /* ------ doit */
-  if (_tenEpiRegWarp2(nbuffB, npxfr, nhst, ngrad, nin, ninLen,
-		      reference, kern, kparm, verbose)) {
+  if (_tenEpiRegWarp(nout, npxfr, nhst, ngrad, nin, ninLen,
+		     reference, kern, kparm, verbose)) {
     sprintf(err, "%s: trouble performing final registration", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
-  }
-  
-  if (verbose) {
-    fprintf(stderr, "%s: creating final output ... ", me); fflush(stderr);
-  }
-  if (nrrdJoin(nout, nbuffB, ninLen, 0, AIR_TRUE)) {
-    sprintf(err, "%s: trouble creating final output", me);
-    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
-  }
-  if (verbose) {
-    fprintf(stderr, "done\n");
   }
   
   airMopOkay(mop);

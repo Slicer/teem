@@ -23,8 +23,8 @@
 #define INFO "Generate postscript or ray-traced renderings of box glyphs"
 char *_tend_glyphInfoL =
   (INFO
-   ".  Whether the output is postscript versus ray-traced image in controlled "
-   "by the initial \"rt\" flag (default, the output is postscript). "
+   ".  Whether the output is postscript or a ray-traced image is controlled "
+   "by the initial \"rt\" flag (by default, the output is postscript). "
    "Because this is doing viz/graphics, many parameters need to be set. "
    "Use a response file to simplify giving the command-line options which "
    "aren't changing between invocations. "
