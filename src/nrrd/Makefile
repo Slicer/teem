@@ -18,7 +18,7 @@
 LIB = nrrd
 HEADERS = nrrd.h nrrdDefines.h nrrdMacros.h nrrdEnums.h
 PRIV_HEADERS = private.h
-LIBOBJS = \
+LIB_OBJS = \
 	accessors.o  arith.o      arrays.o     axes.o       \
         comment.o    convert.o    defaults.o   endian.o     \
 	filt.o       histogram.o  kernel.o     map.o        \
@@ -29,6 +29,6 @@ LIBOBJS = \
 #TEST_BINS = test/enum2str test/str2enum 
 TEST_BINS = test/shuff test/ax test/io test/minmax test/tkernel
 BINS = bin/nrrdSanity
-BINLIBS = -lnrrd -lbiff -lair -lm
+BIN_LIBS = -lnrrd -lbiff -lair -lm
 
 include ../make/Common.mk

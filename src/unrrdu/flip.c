@@ -15,56 +15,60 @@
   of Utah. All Rights Reserved.
 */
 
+#include "private.h"
 
-#include <nrrd.h>
-
-char *me; 
-
-int
-usage() {
-                      /*  0     1       2       3    (4) */
-  fprintf(stderr, "usage: %s <nrrdIn> <axis> <nrrdOut>\n", me);
-  return 1;
-}
+char *flipName = "flip";
+char *flipInfo = "Reverse order of samples along one axis";
 
 int
-main(int argc, char *argv[]) {
-  char *in, *out, *err;
-  int axis;
+flipMain(int argc, char **argv, char *me) {
+  hestOpt *opt = NULL;
+  char *out, *err;
   Nrrd *nin, *nout;
+  int axis;
+  airArray *mop;
 
-  me = argv[0];
-  if (4 != argc)
-    return usage();
+  OPT_ADD_NIN(nin, "input");
+  OPT_ADD_NOUT(out, "output nrrd");
+  OPT_ADD_AXIS(axis, "axis to slice along");
 
-  if (1 != sscanf(argv[2], "%d", &axis)) {
-    fprintf(stderr, "%s: couldn't parse %s as axis\n", me, argv[2]);
+  mop = airMopInit();
+  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+
+  if (!argc) {
+    hestInfo(stderr, me, flipInfo, hparm);
+    hestUsage(stderr, opt, me, hparm);
+    hestGlossary(stderr, opt, hparm);
+    airMopError(mop);
     return 1;
   }
-  in = argv[1];
-  out = argv[3];
 
-  if (nrrdLoad(nin=nrrdNew(), in)) {
+  if (hestParse(opt, argc, argv, &err, hparm)) {
+    fprintf(stderr, "%s: %s\n", me, err); free(err);
+    hestUsage(stderr, opt, me, hparm);
+    hestGlossary(stderr, opt, hparm);
+    airMopError(mop);
+    return 1;
+  }
+  airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
+
+  if (nrrdFlip(nout = nrrdNew(), nin, axis)) {
     err = biffGet(NRRD);
-    fprintf(stderr, "%s: couldn't get nrrd from %s:\n%s\n", me, in, err);
+    fprintf(stderr, "%s: error flipping nrrd:\n%s", me, err);
     free(err);
+    airMopError(mop);
     return 1;
   }
-  nout = nrrdNew();
-  if (nrrdFlip(nout, nin, axis)) {
-    err = biffGet(NRRD);
-    fprintf(stderr, "%s: error flipping nrrd:\n%s\n", me, err);
-    free(err);
-    return 1;
-  }
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+
   if (nrrdSave(out, nout, NULL)) {
     err = biffGet(NRRD);
-    fprintf(stderr, "%s: error saving nrrd to %s:\n%s\n", me, out, err);
+    fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s\n", me, out, err);
     free(err);
+    airMopError(mop);
     return 1;
   }
-    
-  nrrdNuke(nin);
-  nrrdNuke(nout);
+
+  airMopOkay(mop);
   return 0;
 }

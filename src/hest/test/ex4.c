@@ -28,7 +28,7 @@ parse(void *_ptr, char *str, char *err) {
   ptr = _ptr;
   ret = sscanf(str, "%lf,%lf", ptr + 0, ptr + 1);
   if (2 != ret) {
-    sprintf(err, "parsed %d, not 2 doubles", ret);
+    sprintf(err, "parsed %d (not 2) doubles", ret);
     return 1;
   }
   return 0;
@@ -43,23 +43,22 @@ hestCB cbinfo = {
 
 int
 main(int argc, char **argv) {
-  static double single[2], triple[6], maybe[2], *many;
-  static int howMany;
-  hestOpt opt[] = {
-    {"A",   "x,y", airTypeOther,   1,  1,  single,  "30,50", 
-     "testing A",  NULL,  &cbinfo},
-    {"B",   "x1,y1 x2,y2 x3,y3", airTypeOther, 3, 3, triple, "1,2 3,4 5,6",
-     "testing B",  NULL,  &cbinfo},
-    {"C",   "mx,my", airTypeOther,   0,  1,  maybe,  "-0.1,-0.2", 
-     "testing C",  NULL,  &cbinfo},
-    {"D",   "nx,ny", airTypeOther,   1,  -1,  &many,  "8,8 7,7", 
-     "testing D",  &howMany,  &cbinfo},
-    {NULL, NULL, 0}
-  };
+  double single[2], triple[6], maybe[2], *many;
+  int howMany, i, N;
+  hestOpt *opt = NULL;
   char *err = NULL;
-  int i;
+
+  hestOptAdd(&opt, "A",     "x,y",               airTypeOther, 1,  1, single, 
+	     "30,50",       "testing A",         NULL,         &cbinfo);
+  hestOptAdd(&opt, "B",     "x1,y1 x2,y2 x3,y3", airTypeOther, 3,  3, triple,
+	     "1,2 3,4 5,6", "testing B",         NULL,         &cbinfo);
+  hestOptAdd(&opt, "C",     "mx,my",             airTypeOther, 0,  1, maybe,
+	     "-0.1,-0.2",   "testing C",         NULL,         &cbinfo);
+  hestOptAdd(&opt, "D",     "nx,ny",             airTypeOther, 1, -1, &many,
+	     "8,8 7,7",     "testing D",         &howMany,     &cbinfo);
+  hestOptAdd(&opt, "int",    "N",                airTypeInt,   1,  1, &N,
+	     NULL,           "an integer");
   
-  hestVerbosity = 10;
   if (hestParse(opt, argc-1, argv+1, &err, NULL)) {
     fprintf(stderr, "ERROR: %s\n", err); free(err);
     hestUsage(stderr, opt, argv[0], NULL);
@@ -77,5 +76,6 @@ main(int argc, char **argv) {
   }
   printf("\n");
 
+  hestParseFree(opt);
   exit(0);
 }

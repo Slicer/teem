@@ -39,8 +39,11 @@ limnCamNew(void) {
   limnCam *cam;
 
   cam = (limnCam *)calloc(1, sizeof(limnCam));
-  cam->eyeRel = 1;
-  cam->leftHanded = 0;
+  if (cam) {
+    cam->eyeRel = AIR_TRUE;
+    cam->ortho = AIR_FALSE;
+    cam->leftHanded = AIR_FALSE;
+  }
   return cam;
 }
 
@@ -70,15 +73,17 @@ limnWinNew(int device) {
   limnWin *win;
 
   win = (limnWin *)calloc(1, sizeof(limnWin));
-  win->device = device;
-  switch(device) {
-  case limnDevicePS:
-    win->yFlip = 1;
-    _limnOptsPSDefaults(&(win->ps));
-    break;
+  if (win) {
+    win->device = device;
+    switch(device) {
+    case limnDevicePS:
+      win->yFlip = 1;
+      _limnOptsPSDefaults(&(win->ps));
+      break;
+    }
+    win->scale = 72;
+    win->file = NULL;
   }
-  win->scale = 72;
-  win->file = NULL;
   return win;
 }
 

@@ -35,19 +35,6 @@ extern "C" {
 #define LIMN_MAXLIT 20
 
 /*
-******** limnQN enum
-**
-** the different quantized normal schemes currently supported
-*/
-typedef enum {
-  limnQNUnknown,
-  limnQN16,
-  limnQN16PB1,
-  limnQN15,
-  limnQNLast
-} limnQN;
-
-/*
 ****** struct limnCam
 **
 ** for all standard graphics camera parameters
@@ -57,7 +44,8 @@ typedef enum {
 typedef struct limnCam_t {
   float from[3],     /* location of eyepoint */
     at[3],           /* what eye is looking at */
-    up[3],           /* what is up direction for eye */
+    up[3],           /* what is up direction for eye (this is not updated
+			to the "true" up) */
     uMin, uMax,      /* range of U values to put on horiz. image axis */
     vMin, vMax,      /* range of V values to put on vert. image axis */
     near, far,       /* near and far clipping plane distances */
@@ -67,15 +55,20 @@ typedef struct limnCam_t {
 			at point.  if false: near, far, and dist
 			quantities measure distance from the _at_
 			point, but with the same sense (sign) as above */
-    leftHanded;
-  
-  float W2V[16],     /* not usually user-set: the world to view transform.
-			The _rows_ of this matrix (or the 3x3 submatrix)
-			are the U, V, N vectors which form the right-handed
-			view-space coordinate frame.  The matrix is stored
-			in column-major order. */
-    vspNear, vspFar,
-    vspDist;         /* not usually user-set: near and far dist (view space) */
+    ortho,           /* no perspective projection: just orthographic */
+    leftHanded;      /* if leftHanded, then V = UxN (V points "upwards"),
+			otherwise V = NxU (V points "downwards") */
+  float W2V[16],     /* not usually user-set: the world to view
+			transform.  The _rows_ of this matrix (its
+			3x3 submatrix) are the U, V, N vectors which
+			form the view-space coordinate frame.  The
+			ordering of elements into the matrix is from ell:
+			0   4   8  12
+			1   5   9  13
+			2   6  10  14
+			3   7  11  15 */
+    vspNear, vspFar, /* not usually user-set: near and far dist (view space) */
+    vspDist;         
 } limnCam;
 
 typedef enum {
@@ -108,13 +101,15 @@ typedef struct limnWin_t {
 */
 typedef struct {
   float amb[3],           /* RGB ambient light color */
-    _dir[LIMN_MAXLIT][3], /* direction of light[i] (only world space) 
-			     This is calculated/copied from dir[] */
     dir[LIMN_MAXLIT][3],  /* direction of light[i] (either view or world space)
 			     This is what the user sets */
+    _dir[LIMN_MAXLIT][3], /* direction of light[i] (only world space) 
+			     Not user-set: calculated/copied from dir[] */
     col[LIMN_MAXLIT][3];  /* RGB color of light[i] */
   int lNum,               /* number of lights for which information is set
-			     (not all of which are necessarily "on") */
+			     (not all of which are necessarily "on")
+			     Really, this is 1+highest index of light who's
+			     information has been set */
     on[LIMN_MAXLIT],      /* light[i] is on */
     vsp[LIMN_MAXLIT];     /* light[i] lives in view space */
 } limnLight;
@@ -235,14 +230,25 @@ typedef struct limnObj_t {
   int edges;         /* if non-zero, build edges as faces are added */
 } limnObj;
 
+/*
+******** limnQN enum
+**
+** the different quantized normal schemes currently supported
+*/
+typedef enum {
+  limnQN_Unknown,     /* 0 */
+  limnQN_16checker,   /* 1 */
+  limnQN_16simple,    /* 2 */
+  limnQN_16border1,   /* 3 */
+  limnQN_15checker,   /* 4 */
+  limnQN_Last
+} limnQN;
+#define LIMN_QN_MAX      4
+
 /* qn.c */
-extern float *limnQN16toV(float *vec, unsigned short qn, 
-			  int zeroZero, int doNorm);
-extern unsigned short limnQNVto16(float *vec, int zeroZero);
-extern float *limnQN16PB1toV(float *vec, unsigned short qn, int doNorm);
-extern unsigned short limnQNVto16PB1(float *vec);
-extern float *limnQN15toV(float *vec, unsigned short qn, int doNorm);
-extern unsigned short limnQNVto15(float *vec);
+extern int limnQNBytes[LIMN_QN_MAX+1];
+extern void (*limnQNtoV[LIMN_QN_MAX+1])(float *vec, int qn, int doNorm);
+extern int (*limnVtoQN[LIMN_QN_MAX+1])(int *qnP, float *vec);
 
 /* light.c */
 typedef void (*limnEnvMapCB)(float rgb[3], float vec[3], void *data);

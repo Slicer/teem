@@ -17,9 +17,9 @@
 #
 LIB = biff
 HEADERS = biff.h
-LIBOBJS = biff.o
+LIB_OBJS = biff.o
 TEST_BINS = test/test
 BINS = 
-BINLIBS = -lbiff -lair -lm
+BIN_LIBS = -lbiff -lair -lm
 
 include ../make/Common.mk

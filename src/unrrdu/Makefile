@@ -15,13 +15,20 @@
 # of Utah. All Rights Reserved.
 #
 #
-LIB = 
-HEADERS = 
-LIBOBJS = 
-TEST_BINS = 
-BINS = crop pad histo histax permute slice dice join reshape \
-	2a arith heq median nconvert quantize project \
-	jhisto rsmp block unblock flip
-BINLIBS = -lnrrd -lbiff -lair -lm
+BIN = unrrdu/unu
+PRIV_HEADERS = private.h
+BIN_OBJS = unu.o
+#
+# every unu command source file must define:
+# char *xxxName
+#      the short string used to invoke the command
+# char *xxxInfo
+#      approx. one line description of the function
+# int xxxMain(int argc, char **argv, char *argv0)
+#      the function to call to do the command
+# This applies to every .o file below!
+#
+BIN_OBJS += flip.o slice.o
+BIN_LIBS = -lnrrd -lbiff -lhest -lair -lm
 
 include ../make/Common.mk

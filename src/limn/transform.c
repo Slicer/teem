@@ -167,6 +167,7 @@ limnObjSpaceTransform(limnObj *obj, limnCam *cam, limnWin *win, int space) {
   char me[]="limnObjSpaceTransform";
   int ret;
 
+  /* HEY: deal with cam->ortho */
   switch(space) {
   case limnSpaceView:
     ret = _limnObjVTransform(obj, cam);

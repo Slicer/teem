@@ -17,10 +17,10 @@
 #
 LIB = limn
 HEADERS = limn.h
-LIBOBJS = qn.o light.o cam.o methods.o obj.o shapes.o io.o \
+LIB_OBJS = qn.o light.o cam.o methods.o obj.o shapes.o io.o \
 	transform.o render.o
-TEST_BINS = test/map test/des test/light
+TEST_BINS = test/map test/des test/light test/cam
 BINS =
-BINLIBS = -llimn -lell -lnrrd -lbiff -lair -lm
+BIN_LIBS = -llimn -lell -lnrrd -lbiff -lair -lm
 
 include ../make/Common.mk

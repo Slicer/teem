@@ -29,20 +29,20 @@ limnEnvMapFill(Nrrd *map, limnEnvMapCB cb, void *data, int qnMethod) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(LIMN, err); return 1;
   }
-  if (!AIR_BETWEEN(limnQNUnknown, qnMethod, limnQNLast)) {
+  if (!AIR_BETWEEN(limnQN_Unknown, qnMethod, limnQN_Last)) {
     sprintf(err, "%s: QN method %d invalid", me, qnMethod);
     biffAdd(LIMN, err); return 1;
   }
   switch(qnMethod) {
-  case limnQN16:
+  case limnQN_16checker:
     sx = sy = 256;
-    if (nrrdMaybeAlloc_va(map, 3*sx*sy, nrrdTypeFloat, 3, 3, sx, sy)) {
+    if (nrrdMaybeAlloc_va(map, nrrdTypeFloat, 3, 3, sx, sy)) {
       sprintf(err, "%s: couldn't alloc output", me);
       biffMove(LIMN, err, NRRD); return 1;
     }
     mapData = map->data;
     for (qn=0; qn<=sx*sy-1; qn++) {
-      limnQN16toV(vec, qn, AIR_FALSE, AIR_TRUE);
+      limnQNtoV[limnQN_16checker](vec, qn, AIR_TRUE);
       cb(mapData + 3*qn, vec, data);
     }
     break;

@@ -306,8 +306,8 @@ _hestErrStrlen(hestOpt *opt, int argc, char **argv) {
   }
   if (other) {
     /* the callback's error() function may sprintf an error message
-       into a buffer which is size AIR_STRLEN_LARGE */
-    ret += AIR_STRLEN_LARGE;
+       into a buffer which is size AIR_STRLEN_HUGE */
+    ret += AIR_STRLEN_HUGE;
   }
   ret += 4 * 12;  /* as many as 4 ints per error message */
   ret += 257;     /* function name and text of hest's error message */
@@ -610,7 +610,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	       hestOpt *opt,
 	       char *err, hestParm *parm, airArray *pmop) {
   char ident[AIR_STRLEN_HUGE], me[]="_hestSetValues: ",
-    cberr[AIR_STRLEN_LARGE], *tok, *last, *prmsCopy;
+    cberr[AIR_STRLEN_HUGE], *tok, *last, *prmsCopy;
   double tmpD;
   int op, type, numOpts, p, ret;
   void *vP;
@@ -659,8 +659,9 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	  ret = opt[op].CB->parse(vP, prms[op], cberr);
 	  if (ret) {
 	    if (strlen(cberr))
-	      sprintf(err, "%serror parsing \"%s\" as %s: %s", 
-		      ME, prms[op], opt[op].CB->type, cberr);
+	      sprintf(err, "%serror parsing \"%s\" as %s:%s%s", 
+		      ME, prms[op], opt[op].CB->type, 
+		      strchr(cberr, '\n') ? "\n" : "", cberr);
 	    else 
 	      sprintf(err, "%serror parsing \"%s\" as %s: return val %d", 
 		      ME, prms[op], opt[op].CB->type, ret);
@@ -705,8 +706,9 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	    ret = opt[op].CB->parse(cP + p*size, tok, cberr);
 	    if (ret) {
 	      if (strlen(cberr))
-		sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s: %s", 
-			ME, tok, prms[op], opt[op].CB->type, cberr);
+		sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s:%s%s", 
+			ME, tok, prms[op], opt[op].CB->type,
+			strchr(cberr, '\n') ? "\n" : "", cberr);
 	      else 
 		sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s: "
 			"return val %d", 
@@ -769,8 +771,9 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	  ret = opt[op].CB->parse(vP, prms[op], cberr);
 	  if (ret) {
 	    if (strlen(cberr))
-	      sprintf(err, "%serror parsing \"%s\" as %s: %s", 
-		      ME, prms[op], opt[op].CB->type, cberr);
+	      sprintf(err, "%serror parsing \"%s\" as %s:%s%s", 
+		      ME, prms[op], opt[op].CB->type,
+		      strchr(cberr, '\n') ? "\n" : "", cberr);
 	    else 
 	      sprintf(err, "%serror parsing \"%s\" as %s: return val %d", 
 		      ME, prms[op], opt[op].CB->type, ret);
@@ -793,7 +796,14 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	  /* alloc and sawP set above */
 	}
 	else {
-	  *((void**)vP) = calloc(nprm[op], size);
+	  if (airTypeString == type) {
+	    /* this is sneakiness: we allocate one more element so that
+	       the resulting char** is, like argv, NULL-terminated */
+	    *((void**)vP) = calloc(nprm[op], size+1);
+	  }
+	  else {
+	    *((void**)vP) = calloc(nprm[op], size);
+	  }
 	  if (parm->verbosity) {
 	    printf("!%s: nprm[%d] = %d\n", me, op, nprm[op]);
 	    printf("!%s: new array is at 0x%lx\n", me, 
@@ -820,6 +830,8 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	      for (p=0; p<=nprm[op]-1; p++) {
 		airMopAdd(pmop, (*((char***)vP))[p], airFree, airMopOnError);
 	      }
+	      /* do the NULL-termination described above */
+	      (*((char***)vP))[nprm[op]] = NULL;
 	    }
 	  }
 	  else {
@@ -833,8 +845,10 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
 	      ret = opt[op].CB->parse(cP + p*size, tok, cberr);
 	      if (ret) {
 		if (strlen(cberr))
-		  sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s: %s", 
-			  ME, tok, prms[op], opt[op].CB->type, cberr);
+		  sprintf(err,"%serror parsing \"%s\" (in \"%s\") as %s:%s%s", 
+			  ME, tok, prms[op], opt[op].CB->type,
+			  strchr(cberr, '\n') ? "\n" : "", cberr);
+
 		else 
 		  sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s: "
 			  "return val %d", 
@@ -1004,8 +1018,11 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
 ******** hestParseFree()
 **
 ** free()s whatever was allocated by hestParse()
+** 
+** returns NULL only to facilitate use with the airMop functions.
+** You should probably ignored this quirk.
 */
-void
+void *
 hestParseFree(hestOpt *opt) {
   int op, i, numOpts;
   void **vP;
@@ -1054,6 +1071,5 @@ hestParseFree(hestOpt *opt) {
       break;
     }
   }
-  return;
+  return NULL;
 }
-

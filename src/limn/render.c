@@ -69,10 +69,10 @@ _limnPSDrawFace(limnObj *obj, limnPart *r, limnFace *f,
 		limnCam *cam, Nrrd *nmap, limnWin *win) {
   int vi;
   limnPoint *p;
-  unsigned short qn;
+  int qn;
   float *map, R, G, B;
 
-  qn = limnQNVto16(f->wn, AIR_FALSE);
+  limnVtoQN[limnQN_16checker](&qn, f->wn);
   map = nmap->data;
   for (vi=0; vi<f->vNum; vi++) {
     p = obj->p + obj->v[vi + f->vBase];

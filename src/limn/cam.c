@@ -21,15 +21,14 @@
 /*
 ******** limnCamUpdate()
 **
-** sets uvn in cam, as well as eNear, eFar, and eDist
+** sets in cam: W2V matrix, vspNear, vspFar, vspDist
 **
 ** This does use biff to describe problems with camera settings
 */
 int
 limnCamUpdate(limnCam *cam) {
-  char me[] = "limnCamUpdate", err[128];
-  float eNear, eDist, eFar, len, 
-    l[4], u[4], v[4], n[4], T[16], R[16];
+  char me[] = "limnCamUpdate", err[129];
+  float len, l[4], u[4], v[4], n[4], T[16], R[16];
 
   ELL_4V_SET(u, 0, 0, 0, 0);
   ELL_4V_SET(v, 0, 0, 0, 0);
@@ -45,30 +44,25 @@ limnCamUpdate(limnCam *cam) {
     biffAdd(LIMN, err); return 1;
   }
   if (cam->eyeRel) {
-    eNear = cam->near;
-    eFar = cam->far;
-    eDist = cam->dist;
+    /* ctx->cam->{near,dist} are eye relative */
     cam->vspNear = cam->near;
     cam->vspFar = cam->far;
     cam->vspDist = cam->dist;
   }
   else {
     /* ctx->cam->{near,dist} are "at" relative */
-    eNear = cam->near + len;
-    eDist = cam->dist + len;
-    eFar = cam->far + len;
     cam->vspNear = cam->near + len;
     cam->vspFar = cam->far + len;
     cam->vspDist = cam->dist +len;
   }
-  if (eNear < 0 || eDist < 0 ||eFar < 0) {
+  if (!(cam->vspNear >= 0 && cam->vspDist >= 0 && cam->vspFar >= 0)) {
     sprintf(err, "%s: eye-relative near (%g), dist (%g), or far (%g) < 0\n",
-	    me, eNear, eDist, eFar);
+	    me, cam->vspNear, cam->vspDist, cam->vspFar);
     biffAdd(LIMN, err); return 1;
   }
-  if (eNear > eFar) {
+  if (!(cam->vspNear <= cam->vspFar)) {
     sprintf(err, "%s: eye-relative near (%g) further than far (%g)\n",
-	    me, eNear, eFar);
+	    me, cam->vspNear, cam->vspFar);
     biffAdd(LIMN, err); return 1 ;
   }
   ELL_3V_SCALE(n, n, 1.0/len);
@@ -89,12 +83,7 @@ limnCamUpdate(limnCam *cam) {
 
   ELL_4M_SET_TRANSLATE(T, -cam->from[0], -cam->from[1], -cam->from[2]);
   ELL_4M_SET_ROWS(R, u, v, n, l);
-  ELL_4MM_MUL(cam->W2V, R, T);
-
-  printf("%s: W2V:\n", me);
-  ell4mPrint(stdout, cam->W2V);
-  printf("%s: near, dist, far = %g, %g, %g\n", me,
-	 cam->vspNear, cam->vspDist, cam->vspFar);
+  ELL_4M_MUL(cam->W2V, R, T);
 
   return 0;
 }

@@ -17,9 +17,9 @@
 #
 LIB = ell
 HEADERS = ell.h ellMacros.h
-LIBOBJS = cubic.o eigen.o misc.o vec.o
+LIB_OBJS = cubic.o eigen.o misc.o vec.o
 TEST_BINS = test/sort3 test/cubic
 BINS = 
-BINLIBS = -lell -lbiff -lair -lm
+BIN_LIBS = -lell -lbiff -lair -lm
 
 include ../make/Common.mk

@@ -23,7 +23,7 @@
 int
 main(int argc, char **argv) {
   int res[2], v, numIn;
-  char **in, *out, *blah[3], *option;
+  char **in, *out, *blah[3], *option = NULL;
   int n, *ints, numN;
   hestOpt *opt = NULL;
   hestParm *parm;
@@ -35,6 +35,7 @@ main(int argc, char **argv) {
 
   parm = hestParmNew();
   parm->respFileEnable = AIR_TRUE;
+  parm->verbosity = 3;
 
   opt = NULL;
   hestOptAdd(&opt, "v|verbose",     "level", airTypeInt,    0,  1,  &v,   "0",
@@ -43,15 +44,18 @@ main(int argc, char **argv) {
 	     "PPM image output");
   hestOptAdd(&opt, "blah",  "input", airTypeString, 3,  3,  blah,  "a b c",
 	     "input image file(s)");
-  hestOptAdd(&opt, "option","opt",   airTypeString, 0,  1,  &option,  "barf",
+  hestOptAdd(&opt, "option","opt", airTypeString, 0, 1, &option, "default",
 	     "this is just a test");
+  /*
   hestOptAdd(&opt, NULL,    "input", airTypeString, 1, -1,  &in,  NULL,
 	     "input image file(s)", &numIn);
+  */
   hestOptAdd(&opt, "ints",  "N",     airTypeInt,    1,  -1, &ints,  "10 20 30",
 	     "a list of integers", &numN);
   hestOptAdd(&opt, "res",   "sx sy", airTypeInt,    2,  2,  res,  NULL,
 	     "image resolution");
   
+  printf("what 0\n");
   if (1 == argc) {
     /* didn't get anything at all on command line */
     /* print program information ... */
@@ -64,6 +68,8 @@ main(int argc, char **argv) {
     parm = hestParmFree(parm);
     exit(1);
   }
+
+  printf("what 1\n");
 
   /* else we got something, see if we can parse it */
   if (hestParse(opt, argc-1, argv+1, &err, parm)) {
@@ -79,24 +85,28 @@ main(int argc, char **argv) {
     printf(" ---- option = %lx\n", (unsigned long)option);
     exit(1);
   }
+  printf("what 2\n");
 
-  printf("(err = %s)\n", err);
+  printf("(err = %s)\n", err ? err : "(null)");
   printf("  v = %d\n", v);
-  printf("out = \"%s\"\n", out);
+  printf("out = \"%s\"\n", out ? out : "(null)");
   printf("blah = \"%s\" \"%s\" \"%s\"\n", blah[0], blah[1], blah[2]);
-  printf("option = \"%s\"\n", option);
+  printf("option = \"%s\"\n", option ? option : "(null)");
   printf("res = %d %d\n", res[0], res[1]);
+  /*
   printf(" ---- in = %lx\n", (unsigned long)in);
   printf(" in = %d files:", numIn);
   for (n=0; n<=numIn-1; n++) {
-    printf(" \"%s\"", in[n]);
+    printf(" \"%s\"", in[n] ? in[n] : "(null)");
   }
   printf("\n");
+  */
   printf(" ints = %d ints:", numN);
   for (n=0; n<=numN-1; n++) {
     printf(" %d", ints[n]);
   }
   printf("\n");
+  printf("what 3\n");
 
   /* free the memory allocated by parsing ... */
   hestParseFree(opt);

@@ -24,6 +24,7 @@ extern "C" {
 #include <stdio.h>
 #include <stddef.h>
 #include <stdarg.h>
+#include <string.h>
 #include <air.h>
 
 /*
@@ -41,7 +42,7 @@ extern "C" {
 typedef struct {
   size_t size;          /* sizeof() one thing */
   char *type;           /* used by hestGlossary() to describe the type */
-  int (*parse)(void *ptr, char *str, char err[AIR_STRLEN_LARGE]);
+  int (*parse)(void *ptr, char *str, char err[AIR_STRLEN_HUGE]);
                         /* how to parse one thing from a string.  This will
 			   be called multiple times for multiple parameter
 			   options.  A non-zero return value is considered
@@ -146,9 +147,11 @@ extern int hestOptCheck(hestOpt *opt, char **errP);
 /* parse.c */
 extern int hestParse(hestOpt *opt, int argc, char **argv,
 		     char **errP, hestParm *parm);
-extern void hestParseFree(hestOpt *opt);
+extern void *hestParseFree(hestOpt *opt);
 
 /* usage.c */
+extern void _hestPrintStr(FILE *f, int indent, int already, int width,
+			  char *_str, int bslash);
 extern void hestUsage(FILE *file, hestOpt *opt, char *argv0, hestParm *parm);
 extern void hestGlossary(FILE *file, hestOpt *opt, hestParm *parm);
 extern void hestInfo(FILE *file, char *argv0, char *info, hestParm *parm);
