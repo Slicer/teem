@@ -42,8 +42,8 @@ extern "C" {
 #define ECHO echoBiffKey
 
 /* all position and transform information is kept as ...
-** 1: floats
-** 0: doubles
+** 1: float
+** 0: double
 */
 #if 0
 typedef float echoPos_t;
@@ -55,8 +55,8 @@ typedef double echoPos_t;
 
 
 /* all color information is kept as 
-** 1: floats
-** 0: doubles
+** 1: float
+** 0: double
 */
 #if 1
 typedef float echoCol_t;

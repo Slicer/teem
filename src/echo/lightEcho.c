@@ -84,12 +84,10 @@ echoEnvmapLookup(echoCol_t rgb[3], echoPos_t norm[3], Nrrd *envmap) {
   int qn;
   float *data;
 
-#if !ECHO_POS_FLOAT
-  float norm_f[3];
-  ELL_3V_COPY(norm_f, norm);
-  qn = limnVtoQN[limnQN_16checker](norm_f);
+#if ECHO_POS_FLOAT
+  qn = limnVtoQN_f[limnQN16checker](norm);
 #else
-  qn = limnVtoQN[limnQN_16checker](norm);
+  qn = limnVtoQN_d[limnQN16checker](norm);
 #endif
   data = (float*)(envmap->data) + 3*qn;
   ELL_3V_COPY(rgb, data);

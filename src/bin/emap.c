@@ -27,12 +27,11 @@ char *emapInfo = ("Creates environment maps based on limn's 16checker "
 		  "normal quantization method.  By taking into account "
 		  "camera parameters, this allows for both lights in "
 		  "both world and view space.  Solely out of laziness, "
-		  "the nrrd format is used for specifying the lights. "
-		  "For N lights, the nrrd must be a 7 x N array of floats; "
-		  "the 7 values are: 0/1 (world/view space), R\tG\tB color, "
-		  "X\tY\tZ position.  The most convenient way of doing this "
-		  "is to put this information in a text file, one line "
-		  "per light.");
+		  "the nrrd format is used for specifying the lights, but not "
+		  "to worry: you can use a simple un-adorned text file, "
+		  "defining one light per line, with 7 values per light: "
+		  "0/1 (world/view space), R\tG\tB color, and "
+		  "X\tY\tZ position.");
 
 int
 main(int argc, char *argv[]) {
@@ -111,7 +110,7 @@ main(int argc, char *argv[]) {
   }
   nmap=nrrdNew();
   airMopAdd(mop, nmap, (airMopper)nrrdNuke, airMopAlways);
-  if (limnEnvMapFill(nmap, limnLightDiffuseCB, limnQN_16checker, light)) {
+  if (limnEnvMapFill(nmap, limnLightDiffuseCB, limnQN16checker, light)) {
     airMopAdd(mop, errS = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: problem making environment map:\n%s\n", me, errS);
     airMopError(mop); return 1;
@@ -141,13 +140,13 @@ main(int argc, char *argv[]) {
 	/* first, the near side of the sphere */
 	ELL_3V_SET(V, u, v, -w);
 	ELL_3MV_MUL(W, V2W, V);
-	qn = limnVtoQN[limnQN_16checker](W);
+	qn = limnVtoQN_f[limnQN16checker](W);
 	ELL_3V_COPY(debug + 3*(ui + 1024*vi), map + 3*qn);
 	
 	/* second, the far side of the sphere */
 	ELL_3V_SET(V, u, v, w);
 	ELL_3MV_MUL(W, V2W, V);
-	qn = limnVtoQN[limnQN_16checker](W);
+	qn = limnVtoQN_f[limnQN16checker](W);
 	ELL_3V_COPY(debug + 3*(ui + 512 + 1024*vi), map + 3*qn);
       }
     }
