@@ -273,7 +273,7 @@ enum {
 ** all the "items" that gage knows how to measure in a 3-vector volume
 **
 ** The strings gives one of the gageVec airEnum identifiers, and GT[x]
-** says how many scalars are associated with this scalar.
+** says how many scalars are associated with this value.
 */
 enum {
   gageVecUnknown=-1, /* -1: nobody knows */
@@ -286,16 +286,24 @@ enum {
 			    2:dv_z/dx  5:dv_z/dy  8:dv_z/dz */
   gageVecDivergence, /*  4: "d", divergence (based on Jacobian): GT[1] */
   gageVecCurl,       /*  5: "c", curl (based on Jacobian): GT[3] */
-  gageVecGradient0,  /*  6: "g0", gradient of 1st component of vector: GT[3] */
-  gageVecGradient1,  /*  7: "g1", gradient of 2nd component of vector: GT[3] */
-  gageVecGradient2,  /*  8: "g2", gradient of 3rd component of vector: GT[3] */
-  gageVecMultiGrad,  /*  9: "mg", sum of outer products of gradients: GT[9] */
-  gageVecMGFrob,     /* 10: "mgfrob", frob norm of multi-gradient: GT[1] */
-  gageVecMGEval,     /* 11: "mgeval", eigenvalues of multi-gradient: GT[3] */
-  gageVecMGEvec,     /* 12: "mgevec", eigenvectors of multi-gradient: GT[9] */
+  gageVecHelicity,   /*  6: "h", helicity: vec . curl: GT[1] */
+  gageVecNormHelicity,/* 7: "nh", normalized helicity: GT[1] */
+  gageVecLambda2,    /*  8: "lmabda2", lambda2 criterion: GT[1] */
+  gageVecHessian,    /*  9: "vh", second-order derivative: GT[27] */
+  gageVecCurlGradient,/*10: "cg", curl gradient: GT[9] */
+  gageVecHelGradient,/* 11: "hg", helicity gradient: GT[3] */
+  gageVecDirHelDeriv,/* 12: "dhd", directional derivative of helicity: GT[1] */ 
+  gageVecProjHelGradient,/* 13: "phg", projected helicity gradient: GT[3] */
+  gageVecGradient0,  /* 14: "g0", gradient of 1st component of vector: GT[3] */
+  gageVecGradient1,  /* 15: "g1", gradient of 2nd component of vector: GT[3] */
+  gageVecGradient2,  /* 16: "g2", gradient of 3rd component of vector: GT[3] */
+  gageVecMultiGrad,  /* 17: "mg", sum of outer products of gradients: GT[9] */
+  gageVecMGFrob,     /* 18: "mgfrob", frob norm of multi-gradient: GT[1] */
+  gageVecMGEval,     /* 19: "mgeval", eigenvalues of multi-gradient: GT[3] */
+  gageVecMGEvec,     /* 20: "mgevec", eigenvectors of multi-gradient: GT[9] */
   gageVecLast
 };
-#define GAGE_VEC_ITEM_MAX     12
+#define GAGE_VEC_ITEM_MAX     20
 
 struct gageKind_t;       /* dumb forward declaraction, ignore */
 struct gagePerVolume_t;  /* dumb forward declaraction, ignore */

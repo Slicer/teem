@@ -35,7 +35,7 @@ gageErrNum=-1;
 ** NANs around can make things fantastically slow ...
 */
 gage_t
-gageZeroNormal[3] = {1,0,0};
+gageZeroNormal[3] = {0,0,0};
 
 char
 _gageKernelStr[][AIR_STRLEN_SMALL] = {
