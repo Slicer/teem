@@ -11,7 +11,7 @@ The "teem" CVS tree
 
 2: cd src
 
-3: make
+3: make (actually, gmake: this MUST be GNU make)
 
 =============== General Info
 
