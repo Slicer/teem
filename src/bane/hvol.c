@@ -287,13 +287,11 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   char me[]="baneMakeHVol", err[AIR_STRLEN_MED], prog[13];
   gageContext *ctx;
   gagePerVolume *pvl;
-  gageSclAnswer *san;
   int E, sx, sy, sz, shx, shy, shz, x, y, z, hx, hy, hz,
     *rhvdata, clipVal, hval, pad;
   /* these are doubles because ultimately the inclusion functions
      use doubles, because I wanted the most generality */
-  double val[3], min[3], max[3], *measrParm[3];
-  baneMeasr *measr[3];
+  double val[3], min[3], max[3];
   size_t hidx, included;
   float fracIncluded;
   unsigned char *nhvdata;
@@ -312,12 +310,6 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   sx = nin->axis[0].size;
   sy = nin->axis[1].size;
   sz = nin->axis[2].size;
-  measr[0] = hvp->ax[0].measr;
-  measr[1] = hvp->ax[1].measr;
-  measr[2] = hvp->ax[2].measr;
-  measrParm[0] = hvp->ax[0].measrParm;
-  measrParm[1] = hvp->ax[1].measrParm;
-  measrParm[2] = hvp->ax[2].measrParm;
 
   /* create the gageSimple and initialize it */
   ctx = gageContextNew();
@@ -347,7 +339,6 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
     sprintf(err, "%s: trouble setting up gage", me);
     biffMove(BANE, err, GAGE); return 1;
   }
-  san = (gageSclAnswer *)(ctx->pvl[0]->ansStruct);
   pad = ctx->fr;
   
   if (_baneFindInclusion(min, max, nin, hvp, ctx)) {
