@@ -144,6 +144,7 @@ extern int _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIoState *nio, int useBiff);
 /* methods.c */
 extern int _nrrdSizeCheck(int dim, const int *size, int useBiff);
 extern void _nrrdTraverse(Nrrd *nrrd);
+extern int _nrrdCopyShallow (Nrrd *nout, const Nrrd *nin);
 
 #if TEEM_ZLIB
 #include <zlib.h>
