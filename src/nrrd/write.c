@@ -232,7 +232,6 @@ _nrrdWriteDataHex (Nrrd *nrrd, NrrdIO *io) {
   return 0;
 }
 
-
 int
 _nrrdWriteDataAscii (Nrrd *nrrd, NrrdIO *io) {
   char me[]="_nrrdWriteDataAscii", err[AIR_STRLEN_MED], 
