@@ -1,26 +1,28 @@
 Changes from 1.4:
 
-nrrd.h:
+nrrd.h (and nrrd as a whole):
 - API CHANGE: nrrdMinMaxClever() renamed to
 nrrdMinMaxCleverSet()
-- API NEW: added nrrdApply1DIrregMap(), for "colormapping"
-with irregular univariate maps
-- API NEW: added nrrd1DIrregMapValid(),
-nrrd1DIrregAclValid() which may be useful for verifying
-suitability of nrrds used in nrrdApply1DIrregMap().
 - API CHANGE: nrrdApply1DLut() and nrrdApply1DRegMap() now
 take two final int arguments:
   typeOut: what type should output be
   rescale: values from input nrrd should be affine-rescaled
            from nrrd range to lut/map domain.
 nrrdApply1DIrregMap() uses the same two arguments.
+- API CHANGE: (but no one should notice): added dataFN[]
+(data filename) to NrrdIO struct, basically so that
+"unu make -h" can subvert _nrrdWriteNrrd().
+- API NEW: added nrrdApply1DIrregMap(), for "colormapping"
+with irregular univariate maps
+- API NEW: added nrrd1DIrregMapValid(),
+nrrd1DIrregAclValid() which may be useful for verifying
+suitability of nrrds used in nrrdApply1DIrregMap().
 - API NEW: added _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1],
 which is non-zero for nrrdField_{sizes,spacings,etc.}:
 those things for which you need as many values as there
 are axes in the nrrd.
-- API CHANGE: (but no one should notice): added dataFN[]
-to NrrdIO struct, basically so that "unu make -h" can
-subvert _nrrdWriteNrrd().
+- API NEW: added nrrdTypeUnsigned[], which is non-zero for
+things like unsigned chars and unsigned shorts
 - FUNCTIONALITY CHANGE: tables can now hold 1D data, see
 info for read.c and simple.c
 - FUNCTIONALITY CHANGE: nrrdHistoEq() now permits learning
