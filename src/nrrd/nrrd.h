@@ -589,9 +589,13 @@ extern int nrrdArithGamma(Nrrd *nout, Nrrd *nin, double gamma,
 			  double min, double max);
 extern int nrrdArithUnaryOp(Nrrd *nout, int op, Nrrd *nin);
 extern int nrrdArithBinaryOp(Nrrd *nout, int op,
-			     NrrdIter *inA, NrrdIter *inB);
+			     Nrrd *ninA, Nrrd *ninB);
 extern int nrrdArithTernaryOp(Nrrd *nout, int op,
-			      NrrdIter *inA, NrrdIter *inB, NrrdIter *inC);
+			      Nrrd *ninA, Nrrd *ninB, Nrrd *ninC);
+extern int nrrdArithIterBinaryOp(Nrrd *nout, int op,
+				 NrrdIter *inA, NrrdIter *inB);
+extern int nrrdArithIterTernaryOp(Nrrd *nout, int op,
+				  NrrdIter *inA, NrrdIter *inB, NrrdIter *inC);
 
 /******** filtering and re-sampling */
 /* filt.c */

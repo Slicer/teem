@@ -101,7 +101,7 @@ unrrdu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
     /* this will still leave a nrrd in the NrrdIter for nrrdIterNuke()
        (called by hestParseFree() called be airMopOkay()) to clear up */
   }
-  if (nrrdArithBinaryOp(nout, op, in1, in2)) {
+  if (nrrdArithIterBinaryOp(nout, op, in1, in2)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing binary operation:\n%s", me, err);
     airMopError(mop);

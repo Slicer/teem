@@ -107,7 +107,7 @@ unrrdu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
     /* this will still leave a nrrd in the NrrdIter for nrrdIterNuke()
        (called by hestParseFree() called be airMopOkay()) to clear up */
   }
-  if (nrrdArithTernaryOp(nout, op, in1, in2, in3)) {
+  if (nrrdArithIterTernaryOp(nout, op, in1, in2, in3)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing ternary operation:\n%s", me, err);
     airMopError(mop);

@@ -245,9 +245,73 @@ double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
   _nrrdBinaryOpExists
 };
 
+/*
+******** nrrdArithBinaryOp
+**
+** this is a simplified version of nrrdArithIterBinaryOp, written after
+** that, in a hurry, to operate directly on two nrrds, instead with
+** the NrrdIter nonsense
+*/
 int
-nrrdArithBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
+nrrdArithBinaryOp(Nrrd *nout, int op, Nrrd *ninA, Nrrd *ninB) {
   char me[]="nrrdArithBinaryOp", err[AIR_STRLEN_MED], *contA, *contB;
+  size_t N, I;
+  int size[NRRD_DIM_MAX];
+  double (*ins)(void *v, size_t I, double d), (*lupA)(void *v, size_t I), 
+    (*lupB)(void *v, size_t I), (*bop)(double a, double b), valA, valB;
+
+  if (!( nout && !nrrdCheck(ninA) && !nrrdCheck(ninB) )) {
+    sprintf(err, "%s: NULL pointer or invalid args", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!nrrdSameSize(ninA, ninB, AIR_TRUE)) {
+    sprintf(err, "%s: size mismatch between arguments", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!airEnumValValid(nrrdBinaryOp, op)) {
+    sprintf(err, "%s: binary op %d invalid", me, op);
+    biffAdd(NRRD, err); return 1;
+  }
+  
+  nrrdAxesGet_nva(ninA, nrrdAxesInfoSize, size);
+  if (!( nout == ninA || nout == ninB)) {
+    if (nrrdMaybeAlloc_nva(nout, ninA->type, ninA->dim, size)) {
+      sprintf(err, "%s: couldn't allocate output nrrd", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    if (nrrdAxesCopy(nout, ninA, NULL, NRRD_AXESINFO_NONE)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    nrrdPeripheralCopy(nout, ninA);
+  }
+  bop = _nrrdBinaryOp[op];
+
+  N = nrrdElementNumber(ninA);
+  lupA = nrrdDLookup[ninA->type];
+  lupB = nrrdDLookup[ninB->type];
+  ins = nrrdDInsert[nout->type];
+  for (I=0; I<N; I++) {
+    valA = lupA(ninA->data, I);
+    valB = lupB(ninB->data, I);
+    ins(nout->data, I, bop(valA, valB));
+  }
+
+  contA = _nrrdContentGet(ninA);
+  contB = _nrrdContentGet(ninB);
+  if (_nrrdContentSet(nout, airEnumStr(nrrdBinaryOp, op),
+		      contA, "%s", contB)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); free(contA); free(contB); return 1;
+  }
+  free(contA);
+  free(contB); 
+  return 0;
+}
+
+int
+nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
+  char me[]="nrrdArithIterBinaryOp", err[AIR_STRLEN_MED], *contA, *contB;
   size_t N, I;
   int type, size[NRRD_DIM_MAX];
   double (*insert)(void *v, size_t I, double d), 
@@ -339,10 +403,83 @@ double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
   _nrrdTernaryOpInClosed
 };
 
+/*
+******** nrrdArithTerneryOp
+**
+** UNTESTED UNTESTED UNTESTED UNTESTED UNTESTED UNTESTED UNTESTED UNTESTED
+**
+** this is a simplified version of nrrdArithIterTernaryOp, written after
+** that, in a hurry, to operate directly on three nrrds, instead with
+** the NrrdIter nonsense
+*/
 int
-nrrdArithTernaryOp(Nrrd *nout, int op,
-		   NrrdIter *inA, NrrdIter *inB, NrrdIter *inC) {
-  char me[]="nrrdArithTernaryOp", err[AIR_STRLEN_MED],
+nrrdArithTernaryOp(Nrrd *nout, int op, Nrrd *ninA, Nrrd *ninB, Nrrd *ninC) {
+  char me[]="nrrdArithTernaryOp", err[AIR_STRLEN_MED], *contA, *contB, *contC;
+  size_t N, I;
+  int size[NRRD_DIM_MAX];
+  double (*ins)(void *v, size_t I, double d), (*lupA)(void *v, size_t I), 
+    (*lupB)(void *v, size_t I), (*lupC)(void *v, size_t I),
+    (*top)(double a, double b, double c), valA, valB, valC;
+
+  if (!( nout && !nrrdCheck(ninA) && !nrrdCheck(ninB) && !nrrdCheck(ninC) )) {
+    sprintf(err, "%s: NULL pointer or invalid args", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!( nrrdSameSize(ninA, ninB, AIR_TRUE) &&
+	 nrrdSameSize(ninA, ninC, AIR_TRUE) )) {
+    sprintf(err, "%s: size mismatch between arguments", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!airEnumValValid(nrrdTernaryOp, op)) {
+    sprintf(err, "%s: ternary op %d invalid", me, op);
+    biffAdd(NRRD, err); return 1;
+  }
+  
+  nrrdAxesGet_nva(ninA, nrrdAxesInfoSize, size);
+  if (!( nout == ninA || nout == ninB || nout == ninC)) {
+    if (nrrdMaybeAlloc_nva(nout, ninA->type, ninA->dim, size)) {
+      sprintf(err, "%s: couldn't allocate output nrrd", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    if (nrrdAxesCopy(nout, ninA, NULL, NRRD_AXESINFO_NONE)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    nrrdPeripheralCopy(nout, ninA);
+  }
+  top = _nrrdTernaryOp[op];
+
+  N = nrrdElementNumber(ninA);
+  lupA = nrrdDLookup[ninA->type];
+  lupB = nrrdDLookup[ninB->type];
+  lupC = nrrdDLookup[ninC->type];
+  ins = nrrdDInsert[nout->type];
+  for (I=0; I<N; I++) {
+    valA = lupA(ninA->data, I);
+    valB = lupB(ninB->data, I);
+    valC = lupC(ninC->data, I);
+    ins(nout->data, I, top(valA, valB, valC));
+  }
+
+  contA = _nrrdContentGet(ninA);
+  contB = _nrrdContentGet(ninB);
+  contC = _nrrdContentGet(ninC);
+  if (_nrrdContentSet(nout, airEnumStr(nrrdTernaryOp, op),
+		      contA, "%s,%s", contB, contC)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); free(contA); free(contB); free(contC); return 1;
+  }
+  free(contA);
+  free(contB); 
+  free(contC); 
+
+  return 0;
+}
+
+int
+nrrdArithIterTernaryOp(Nrrd *nout, int op,
+		       NrrdIter *inA, NrrdIter *inB, NrrdIter *inC) {
+  char me[]="nrrdArithIterTernaryOp", err[AIR_STRLEN_MED],
     *contA, *contB, *contC;
   size_t N, I;
   int type, size[NRRD_DIM_MAX];
