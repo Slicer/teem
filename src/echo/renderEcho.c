@@ -237,7 +237,7 @@ echoRayColor(echoCol_t *chan, echoRay *ray,
   intx.boxhits = 0;
   if (!echoRayIntx(&intx, ray, scene, parm, tstate)) {
     if (tstate->verbose) {
-      fprintf(stderr, "%s%s: (nothing was hit)\n", _echoDot(tstate->depth), me);
+      fprintf(stderr, "%s%s: (nothing was hit)\n",_echoDot(tstate->depth), me);
     }
     /* ray hits nothing in scene */
     ELL_4V_SET(chan, scene->bkgr[0], scene->bkgr[1], scene->bkgr[2],
@@ -340,7 +340,7 @@ echoRTRender(Nrrd *nraw, limnCam *cam, echoScene *scene,
       imgU = NRRD_POS(nrrdCenterCell, cam->uRange[0], cam->uRange[1],
 		      parm->imgResU, imgUi);
 
-      tstate->verbose = ( (160 == imgUi && 160 == imgVi) );
+      /* tstate->verbose = ( (160 == imgUi && 160 == imgVi) ); */
       
       if (tstate->verbose) {
 	fprintf(stderr, "\n");
