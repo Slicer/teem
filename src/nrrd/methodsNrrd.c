@@ -48,6 +48,7 @@ _nrrdIOInit(NrrdIO *io) {
     io->zlibStrategy = nrrdZlibStrategyDefault;
     io->bzip2BlockSize = -1;
     io->skipData = AIR_FALSE;
+    io->keepSeperateDataFileOpen = AIR_FALSE;
     memset(io->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
   }
 }
@@ -75,15 +76,18 @@ nrrdIOReset(NrrdIO *io) {
 
   /* this started as a copy of the body of _nrrdIOInit() */
   if (io) {
-    /* okay to leave buffers allocated */
+    /* okay to leave buffers allocated? */
     io->dir = airFree(io->dir);
     io->base = airFree(io->base);
     io->dataFN = airFree(io->dataFN);
     /* io->line is the one thing it makes sense to recycle */
     if (io->line) strcpy(io->line, ""); 
-    io->dataFile = NULL;
     io->pos = 0;
-    io->magic = nrrdMagicUnknown;
+    if (!io->keepSeperateDataFileOpen) {
+      /* basically a hack for the sake of unu data */
+      io->dataFile = NULL;
+      io->magic = nrrdMagicUnknown;
+    }
     /* io->format = nrrdDefWrtFormat; */
     /* io->encoding = nrrdDefWrtEncoding; */
     io->endian = airEndianUnknown;

@@ -117,6 +117,7 @@ typedef struct {
 			       data, instead setting nrrd->data to
 			       NULL.  This results in a broken Nrrd,
 			       so be careful. */
+    keepSeperateDataFileOpen, /* this hack for the sake of unu data */
     zlibLevel,              /* zlib compression level (0-9, -1 for
 			       default[6], 0 for no compression). */
     zlibStrategy,           /* zlib compression strategy, can be one
@@ -153,6 +154,7 @@ typedef struct {
 				    at any time. */
   int center;                    /* cell vs. node centering */
   char *label;                   /* short info string for each axis */
+  char *unit;                    /* short string for identifying units */
 } NrrdAxis;
 
 /*
@@ -471,6 +473,7 @@ extern int nrrdLineSkip(NrrdIO *io);
 extern int nrrdByteSkip(NrrdIO *io);
 extern int nrrdLoad(Nrrd *nrrd, const char *filename);
 extern int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *io);
+extern void nrrdDirBaseSet(NrrdIO *io, const char *name);
 /* write.c */
 extern nrrd_export int (*nrrdWriteData[NRRD_ENCODING_MAX+1])(Nrrd *, NrrdIO *);
 extern int nrrdSave(const char *filename, Nrrd *nrrd, NrrdIO *io);

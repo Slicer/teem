@@ -30,6 +30,7 @@ _nrrdAxisInit(NrrdAxis *axis) {
     axis->spacing = AIR_NAN;
     axis->min = axis->max = AIR_NAN;
     axis->label = airFree(axis->label);
+    axis->unit = airFree(axis->unit);
     axis->center = nrrdCenterUnknown;
   }
 }
@@ -40,6 +41,7 @@ nrrdAxisNew(void) {
 
   axis = calloc(1, sizeof(NrrdAxis));
   axis->label = NULL;
+  axis->unit = NULL;
   if (axis) {
     _nrrdAxisInit(axis);
   }
@@ -51,6 +53,7 @@ nrrdAxisNix(NrrdAxis *axis) {
 
   if (axis) {
     axis->label = airFree(axis->label);
+    axis->unit = airFree(axis->unit);
     airFree(axis);
   }
   return NULL;
@@ -69,6 +72,7 @@ nrrdAxisCopy(nrrdAxis *ax1, nrrdAxis *ax0) {
     ax1->min = ax0->min;
     ax1->max = ax0->max;
     ax1->label = airStrdup(ax0->label);
+    ax1->unit = airStrdup(ax0->unit);
     ax1->center = ax0->center;
   }
 }
@@ -138,6 +142,10 @@ nrrdAxesCopy(Nrrd *nout, Nrrd *nin, int *map, int bitflag) {
       nout->axis[d].label = airFree(nout->axis[d].label);
       nout->axis[d].label = airStrdup(nin->axis[from].label);
     }
+    if (!(NRRD_AXESINFO_UNIT_BIT & bitflag)) {
+      nout->axis[d].unit = airFree(nout->axis[d].unit);
+      nout->axis[d].unit = airStrdup(nin->axis[from].unit);
+    }
   }
   return 0;
 }
@@ -180,6 +188,10 @@ nrrdAxesSet_nva(Nrrd *nrrd, int axInfo, void *_info) {
     case nrrdAxesInfoLabel:
       nrrd->axis[d].label = airFree(nrrd->axis[d].label);
       nrrd->axis[d].label = airStrdup(info.CP[d]);
+      break;
+    case nrrdAxesInfoUnit:
+      nrrd->axis[d].unit = airFree(nrrd->axis[d].unit);
+      nrrd->axis[d].unit = airStrdup(info.CP[d]);
       break;
     }
   }
@@ -240,6 +252,10 @@ nrrdAxesSet(Nrrd *nrrd, int axInfo, ...) {
 	     "nrrdAxesSet_va", d, info.CP[d]);
       */
       break;
+    case nrrdAxesInfoUnit:
+      /* same explanation as above */
+      info.CP[d] = va_arg(ap, char *);
+      break;
     }
   }
   va_end(ap);
@@ -255,9 +271,10 @@ nrrdAxesSet(Nrrd *nrrd, int axInfo, ...) {
 **
 ** get any of the axis fields into an array
 **
-** Note that getting axes labels involves implicitly allocating space
-** for them, due to the action of airStrdup().  The user is
-** responsible for free()ing these strings when done with them. 
+** Note that getting axes labels and untis involves implicitly
+** allocating space for them, due to the action of airStrdup().  The
+** user is responsible for free()ing these strings when done with
+** them.
 */
 void
 nrrdAxesGet_nva(Nrrd *nrrd, int axInfo, void *_info) {
@@ -291,6 +308,10 @@ nrrdAxesGet_nva(Nrrd *nrrd, int axInfo, void *_info) {
     case nrrdAxesInfoLabel:
       /* note airStrdup()! */
       info.CP[d] = airStrdup(nrrd->axis[d].label);
+      break;
+    case nrrdAxesInfoUnit:
+      /* note airStrdup()! */
+      info.CP[d] = airStrdup(nrrd->axis[d].unit);
       break;
     }
   }
@@ -341,6 +362,10 @@ nrrdAxesGet(Nrrd *nrrd, int axInfo, ...) {
       *((char**)ptr) = info.CP[d];
       /* printf("!%s: got char*[%d] = |%s|\n", "nrrdAxesSet_va", d, 
        *((char**)ptr)); */
+      break;
+    case nrrdAxesInfoUnit:
+      /* same explanation as above */
+      *((char**)ptr) = info.CP[d];
       break;
     }
   }

@@ -171,6 +171,7 @@ _nrrdFieldValidInPNM[NRRD_FIELD_MAX+1] = {
   1, /* nrrdField_axis_maxs */
   1, /* nrrdField_centers */
   1, /* nrrdField_labels */
+  1, /* nrrdField_units */
   1, /* nrrdField_min */
   1, /* nrrdField_max */
   1, /* nrrdField_old_min */
@@ -202,6 +203,7 @@ _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1] = {
   1, /* nrrdField_axis_maxs */
   1, /* nrrdField_centers */
   1, /* nrrdField_labels */
+  1, /* nrrdField_units */
   0, /* nrrdField_min */
   0, /* nrrdField_max */
   0, /* nrrdField_old_min */
@@ -236,6 +238,7 @@ _nrrdFieldValidInTable[NRRD_FIELD_MAX+1] = {
   1, /* nrrdField_axis_maxs */
   1, /* nrrdField_centers */
   1, /* nrrdField_labels */
+  1, /* nrrdField_units */
   1, /* nrrdField_min */
   1, /* nrrdField_max */
   1, /* nrrdField_old_min */
@@ -268,6 +271,7 @@ _nrrdFieldRequired[NRRD_FIELD_MAX+1] = {
   0, /* "axis maxs" */
   0, /* "centers" */
   0, /* "labels" */
+  0, /* "units" */
   0, /* "min" */
   0, /* "max" */
   0, /* "old min" */

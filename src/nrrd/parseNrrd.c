@@ -238,13 +238,69 @@ _nrrdReadNrrdParse_centers(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   return 0;
 }
 
+char *
+_nrrdGetQuotedString(char **hP, int useBiff) {
+  char me[]="_nrrdGetQuotedString", err[AIR_STRLEN_MED], *h, *buff, *ret;
+  airArray *buffArr;
+  int pos;
+  
+  h = *hP;
+  /* skip past space */
+  /* printf("!%s: h |%s|\n", me, h);*/
+  h += strspn(h, _nrrdFieldSep);
+  /* printf("!%s: h |%s|\n", me, h);*/
+
+  /* make sure we have something */
+  if (!*h) {
+    sprintf(err, "%s: hit end of string", me);
+    biffMaybeAdd(NRRD, err, useBiff); return NULL;
+  }
+  /* make sure we have a starting quote */
+  if ('"' != *h) {
+    sprintf(err, "%s: didn't start with \"", me);
+    biffMaybeAdd(NRRD, err, useBiff); return NULL;
+  }
+  h++;
+    
+  /* parse string until end quote */
+  buff = NULL;
+  buffArr = airArrayNew((void**)(&buff), NULL, sizeof(char), 2);
+  if (!buffArr) {
+    sprintf(err, "%s: couldn't create airArray", me);
+      biffMaybeAdd(NRRD, err, useBiff); return NULL;
+  }
+  pos = airArrayIncrLen(buffArr, 1);  /* pos should get 0 */
+  while (h[pos]) {
+    /* printf("!%s: h+%d |%s|\n", me, pos, h+pos); */
+    if ('\"' == h[pos]) {
+      break;
+    }
+    if ('\\' == h[pos] && '\"' == h[pos+1]) {
+      h += 1;
+    }
+    buff[pos] = h[pos];
+    pos = airArrayIncrLen(buffArr, 1);
+  }
+  if ('\"' != h[pos]) {
+    sprintf(err, "%s: didn't see ending \" soon enough", me);
+    biffMaybeAdd(NRRD, err, useBiff); return NULL;
+  }
+  h += pos + 1;
+  buff[pos] = 0;
+
+  ret = airStrdup(buff);
+  airArrayNuke(buffArr);
+  *hP = h;
+  
+  return ret;
+}
+
 int
 _nrrdReadNrrdParse_labels(Nrrd *nrrd, NrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_labels", err[AIR_STRLEN_MED], *tmp;
+  char me[]="_nrrdReadNrrdParse_labels", err[AIR_STRLEN_MED];
   char *h;  /* this is the "here" pointer which gradually progresses
 	       through all the labels (for all axes) */
-  int i, len;
-  airArray *tmpArr;
+  int i;
   char *info;
 
   /* because we have to correctly interpret quote marks, we
@@ -254,59 +310,35 @@ _nrrdReadNrrdParse_labels(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   _CHECK_HAVE_DIM;
   h = info;
   for (i=0; i<=nrrd->dim-1; i++) {
-    /* skip past space */
-    /* printf("!%s: (%d) h |%s|\n", me, i, h); */
-    h += strspn(h, _nrrdFieldSep);
-    /* printf("!%s: (%d) h |%s|\n", me, i, h); */
+    if (!( nrrd->axis[i].label = _nrrdGetQuotedString(&h, useBiff) )) {
+      sprintf(err, "%s: couldn't get get label %d of %d\n",
+	      me, i+1, nrrd->dim);
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
+    }
+  }
 
-    if (!*h) {
-      sprintf(err, "%s: saw end of input before label %d of %d", 
-	      me, i+1, nrrd->dim);
-      biffMaybeAdd(NRRD, err, useBiff); return 1;
-    }
+  return 0;
+}
 
-    /* make sure we have a starting quote */
-    if ('"' != *h) {
-      sprintf(err, "%s: parsing label %d of %d, didn't see start \"",
+int
+_nrrdReadNrrdParse_units(Nrrd *nrrd, NrrdIO *io, int useBiff) {
+  char me[]="_nrrdReadNrrdParse_unitss", err[AIR_STRLEN_MED];
+  char *h;
+  int i;
+  char *info;
+
+  /* because we have to correctly interpret quote marks, we
+     can't simply rely on airParseStrS */
+  info = io->line + io->pos;
+  /* printf("!%s: info |%s|\n", me, info); */
+  _CHECK_HAVE_DIM;
+  h = info;
+  for (i=0; i<=nrrd->dim-1; i++) {
+    if (!( nrrd->axis[i].unit = _nrrdGetQuotedString(&h, useBiff) )) {
+      sprintf(err, "%s: couldn't get get unit %d of %d\n",
 	      me, i+1, nrrd->dim);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
-    h++;
-    
-    /* parse string until end quote */
-    tmp = NULL;
-    tmpArr = airArrayNew((void**)(&tmp), NULL, sizeof(char), 2);
-    if (!tmpArr) {
-      sprintf(err, "%s: couldn't create airArray for label %d of %d\n",
-	      me, i+1, nrrd->dim);
-      biffMaybeAdd(NRRD, err, useBiff); return 1;
-    }
-    len = airArrayIncrLen(tmpArr, 1);  /* len should be 0 */
-    while (h[len]) {
-      /* printf("!%s: (%d) h+%d |%s|\n", me, i, len, h+len); */
-      if ('\"' == h[len]) {
-	break;
-      }
-      if ('\\' == h[len] && '\"' == h[len+1]) {
-	h += 1;
-      }
-      tmp[len] = h[len];
-      len = airArrayIncrLen(tmpArr, 1);
-    }
-    if ('\"' != h[len]) {
-      sprintf(err, "%s: parsing label %d of %d, didn't see ending \" "
-	      "soon enough", me, i+1, nrrd->dim);
-      biffMaybeAdd(NRRD, err, useBiff); return 1;
-    }
-    tmp[len] = 0;
-    nrrd->axis[i].label = airStrdup(tmp);
-    if (!nrrd->axis[i].label) {
-      sprintf(err, "%s: couldn't allocate label %d", me, i);
-      biffMaybeAdd(NRRD, err, useBiff); return 1;
-    }
-    h += len+1;
-    airArrayNuke(tmpArr);
-    /* printf("!%s: out[%d] |%s|\n", me, i, nrrd->axis[i].label); */
   }
 
   return 0;
@@ -333,7 +365,7 @@ _nrrdReadNrrdParse_number(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   ** 
   **     number: Hank Hill sells propane and propane accessories
   **
-  ** is a valid field specification, but whatever ...
+  ** is a valid field specification, but at least Peggy is proud ...
   */
 
   return 0;
@@ -431,7 +463,7 @@ _nrrdReadNrrdParse_data_file(Nrrd *nrrd, NrrdIO *io, int useBiff) {
   info = io->line + io->pos;
   if (!strncmp(info, _nrrdRelDirFlag, strlen(_nrrdRelDirFlag))) {
     /* data file directory is relative to header directory */
-    if (!strlen(io->dir)) {
+    if (!io->dir) {
       sprintf(err, "%s: want header-relative data file, but don't know "
 	      "directory of header", me);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
@@ -502,6 +534,7 @@ int
   _nrrdReadNrrdParse_axis_maxs,
   _nrrdReadNrrdParse_centers,
   _nrrdReadNrrdParse_labels,
+  _nrrdReadNrrdParse_units,
   _nrrdReadNrrdParse_min,
   _nrrdReadNrrdParse_max,
   _nrrdReadNrrdParse_old_min,
@@ -520,7 +553,8 @@ int
 */
 int
 _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIO *io, int useBiff) {
-  char me[]="_nrrdReadNrrdParseField", err[AIR_STRLEN_MED], *next;
+  char me[]="_nrrdReadNrrdParseField", err[AIR_STRLEN_MED], *next,
+    *buff, *colon;
   int i;
   
   next = io->line + io->pos;
@@ -530,31 +564,25 @@ _nrrdReadNrrdParseField(Nrrd *nrrd, NrrdIO *io, int useBiff) {
     return nrrdField_comment;
   }
 
-  /* else we have some field to parse */
-  for (i=nrrdField_unknown+1; i<=NRRD_FIELD_MAX; i++) {
-    if (!strncmp(next, nrrdField->str[i], strlen(nrrdField->str[i]))) {
-      /* we matched one of the fields */
-      /* printf("!%s: match: %d\n", me, i); */
-      break;
-    }
+  if (!( buff = airStrdup(next) )) {
+    sprintf(err, "%s: couldn't allocate buffer!", me);
+    biffMaybeAdd(NRRD, err, useBiff); return nrrdField_unknown;
   }
-  if (i > NRRD_FIELD_MAX) {
+  if (!( colon = strstr(buff, ": ") )) {
+    sprintf(err, "%s: didn't see \": \"", me);
+    free(buff); biffMaybeAdd(NRRD, err, useBiff); return nrrdField_unknown;
+  }
+  *colon = '\0';
+  if ( nrrdField_unknown == (i = airEnumVal(nrrdField, buff)) ) {
     sprintf(err, "%s: didn't recognize any field", me);
-    biffMaybeAdd(NRRD, err, useBiff); return nrrdField_unknown;
+    free(buff); biffMaybeAdd(NRRD, err, useBiff); return nrrdField_unknown;
   }
+
+  /* else we successfully parsed a field identifier */
+  next += strlen(buff) + 2;
+  free(buff);
   
-  /* make sure there's a colon */
-  next += strlen(nrrdField->str[i]);
-  /* skip whitespace ... */
-  next += strspn(next, _nrrdFieldSep);
-  /* see colon ? */
-  if (':' != *next) {
-    sprintf(err, "%s: didn't see \":\" after \"%s\"", 
-	    me, nrrdField->str[i]);
-    biffMaybeAdd(NRRD, err, useBiff); return nrrdField_unknown;
-  }
-  next++;
-  /* skip whitespace ... */
+  /* skip whitespace prior to start of first field descriptor */
   next += strspn(next, _nrrdFieldSep);
 
   io->pos = next - io->line;

@@ -95,6 +95,12 @@ _nrrdFieldInteresting(Nrrd *nrrd, NrrdIO *io, int field) {
       ret |= !!(airStrlen(nrrd->axis[d].label));
     }
     break;
+  case nrrdField_units:
+    ret = 0;
+    for (d=0; d<nrrd->dim; d++) {
+      ret |= !!(airStrlen(nrrd->axis[d].unit));
+    }
+    break;
   case nrrdField_endian:
     ret = (nrrdEncodingEndianMatters[io->encoding]
 	   && 1 < nrrdElementSize(nrrd));
@@ -588,6 +594,21 @@ _nrrdSprintFieldInfo(char **strP, Nrrd *nrrd, NrrdIO *io, int field) {
       strcat(*strP, " \"");
       if (airStrlen(nrrd->axis[i].label)) {
 	strcat(*strP, nrrd->axis[i].label);
+      }
+      strcat(*strP, "\"");
+    }
+    break;
+  case nrrdField_units:
+    fdlen = 0;
+    for (i=0; i<D; i++) {
+      fdlen += airStrlen(nrrd->axis[i].unit) + 4;
+    }
+    *strP = malloc(fslen + fdlen);
+    sprintf(*strP, "%s:", fs);
+    for (i=0; i<D; i++) {
+      strcat(*strP, " \"");
+      if (airStrlen(nrrd->axis[i].unit)) {
+	strcat(*strP, nrrd->axis[i].unit);
       }
       strcat(*strP, "\"");
     }

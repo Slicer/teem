@@ -259,27 +259,6 @@ _nrrdReadDataRaw(Nrrd *nrrd, NrrdIO *io) {
     }
   }
 
-  if (airEndianUnknown != io->endian) {
-    /* we positively know the endianness of data just read */
-    if (io->endian != AIR_ENDIAN && 1 < nrrdElementSize(nrrd)) {
-      /* the endiannesses of the data and the architecture are different,
-	 and, the size of the data elements is bigger than a byte */
-      if (2 <= nrrdStateVerboseIO) {
-	/*
-	fprintf(stderr, "!%s: io->endian = %d, AIR_ENDIAN = %d\n", 
-		me, io->endian, AIR_ENDIAN);
-	*/
-	fprintf(stderr, "(%s: fixing endianness ... ", me);
-	fflush(stderr);
-      }
-      nrrdSwapEndian(nrrd);
-      if (2 <= nrrdStateVerboseIO) {
-	fprintf(stderr, "done)");
-	fflush(stderr);
-      }
-    }
-  }
-  
   return 0;
 }
 
@@ -442,27 +421,6 @@ _nrrdReadDataGzip(Nrrd *nrrd, NrrdIO *io) {
     return 1;
   }
   
-  if (airEndianUnknown != io->endian) {
-    /* we positively know the endianness of data just read */
-    if (io->endian != AIR_ENDIAN && 1 < nrrdElementSize(nrrd)) {
-      /* the endiannesses of the data and the architecture are different,
-	 and, the size of the data elements is bigger than a byte */
-      if (2 <= nrrdStateVerboseIO) {
-	/*
-	fprintf(stderr, "!%s: io->endian = %d, AIR_ENDIAN = %d\n", 
-		me, io->endian, AIR_ENDIAN);
-	*/
-	fprintf(stderr, "(%s: fixing endianness ... ", me);
-	fflush(stderr);
-      }
-      nrrdSwapEndian(nrrd);
-      if (2 <= nrrdStateVerboseIO) {
-	fprintf(stderr, "done)");
-	fflush(stderr);
-      }
-    }
-  }
-  
   return 0;
 #else
   sprintf(err, "%s: sorry, this nrrd not compiled with gzip enabled", me);
@@ -581,27 +539,6 @@ _nrrdReadDataBzip2(Nrrd *nrrd, NrrdIO *io) {
 	    me, size, total_read);
     biffAdd(NRRD, err);
     return 1;
-  }
-  
-  if (airEndianUnknown != io->endian) {
-    /* we positively know the endianness of data just read */
-    if (io->endian != AIR_ENDIAN && 1 < nrrdElementSize(nrrd)) {
-      /* the endiannesses of the data and the architecture are different,
-	 and, the size of the data elements is bigger than a byte */
-      if (2 <= nrrdStateVerboseIO) {
-	/*
-	fprintf(stderr, "!%s: io->endian = %d, AIR_ENDIAN = %d\n", 
-		me, io->endian, AIR_ENDIAN);
-	*/
-	fprintf(stderr, "(%s: fixing endianness ... ", me);
-	fflush(stderr);
-      }
-      nrrdSwapEndian(nrrd);
-      if (2 <= nrrdStateVerboseIO) {
-	fprintf(stderr, "done)");
-	fflush(stderr);
-      }
-    }
   }
   
   return 0;
@@ -768,6 +705,27 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
       }
       return 1;
     }
+    if (airEndianUnknown != io->endian) {
+      /* we positively know the endianness of data just read */
+      if (1 < nrrdElementSize(nrrd)
+	  && nrrdEncodingEndianMatters[io->encoding]
+	  && io->endian != AIR_ENDIAN) {
+	/* endianness has been exposed, and its wrong */
+	if (2 <= nrrdStateVerboseIO) {
+	  /*
+	    fprintf(stderr, "!%s: io->endian = %d, AIR_ENDIAN = %d\n", 
+	    me, io->endian, AIR_ENDIAN);
+	  */
+	  fprintf(stderr, "(%s: fixing endianness ... ", me);
+	  fflush(stderr);
+	}
+	nrrdSwapEndian(nrrd);
+	if (2 <= nrrdStateVerboseIO) {
+	  fprintf(stderr, "done)");
+	  fflush(stderr);
+	}
+      }
+    }
   } else {
     nrrd->data = NULL;
   }
@@ -775,7 +733,9 @@ _nrrdReadNrrd(FILE *file, Nrrd *nrrd, NrrdIO *io) {
     fprintf(stderr, "done)\n");
   }
   if (io->seperateHeader && stdin != io->dataFile) {
-    io->dataFile = airFclose(io->dataFile);
+    if (!io->keepSeperateDataFileOpen) {
+      io->dataFile = airFclose(io->dataFile);
+    }
   } else {
     /* put things back the way we found them */
     io->dataFile = NULL;
@@ -1227,30 +1187,34 @@ nrrdRead(Nrrd *nrrd, FILE *file, NrrdIO *_io) {
 ** ".", and the name is copied into base.
 */
 int
-_nrrdSplitName(char **pathP, char **baseP, const char *name) {
+_nrrdSplitName(char **dirP, char **baseP, const char *name) {
   int i, ret;
   
   i = strrchr(name, '/') - name;
   /* we found a valid break if the last directory character
      is somewhere in the string except the last character */
   if (i>=0 && i<strlen(name)-1) {
-    *pathP = airStrdup(name);
-    (*pathP)[i] = 0;
+    *dirP = airStrdup(name);
+    (*dirP)[i] = 0;
     *baseP = airStrdup(name + i + 1);
-    /*
-    printf("_nrrdSplitName: path = |%s|\n", *pathP);
-    printf("_nrrdSplitName: base = |%s|\n", *baseP);
-    */
     ret = 1;
   } else {
     /* if the name had no slash, its in the current directory, which
        means that we need to explicitly store "." as the header
        directory in case we have header-relative data. */
-    *pathP = airStrdup(".");
+    *dirP = airStrdup(".");
     *baseP = airStrdup(name);
     ret = 0;
   }
   return ret;
+}
+
+void
+nrrdDirBaseSet(NrrdIO *io, const char *name) {
+  
+  if (io && name) {
+    _nrrdSplitName(&(io->dir), &(io->base), name);
+  }
 }
 
 /*

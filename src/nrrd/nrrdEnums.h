@@ -213,10 +213,12 @@ enum {
 #define NRRD_AXESINFO_CENTER_BIT  (1<<5)
   nrrdAxesInfoLabel,               /* 6: string describing the axis */
 #define NRRD_AXESINFO_LABEL_BIT   (1<<6)
+  nrrdAxesInfoUnit,                /* 7: string identifying units */
+#define NRRD_AXESINFO_UNIT_BIT    (1<<7)
   nrrdAxesInfoLast
 };
-#define NRRD_AXESINFO_MAX             6
-#define NRRD_AXESINFO_ALL  ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6))
+#define NRRD_AXESINFO_MAX             7
+#define NRRD_AXESINFO_ALL  ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6)|(1<<7))
 #define NRRD_AXESINFO_NONE 0
 
 /*
@@ -248,18 +250,19 @@ enum {
   nrrdField_axis_maxs,       /* 10 */
   nrrdField_centers,         /* 11 */
   nrrdField_labels,          /* 12 */
-  nrrdField_min,             /* 13 */
-  nrrdField_max,             /* 14 */
-  nrrdField_old_min,         /* 15 */
-  nrrdField_old_max,         /* 16 */
-  nrrdField_data_file,       /* 17 */
-  nrrdField_endian,          /* 18 */
-  nrrdField_encoding,        /* 19 */
-  nrrdField_line_skip,       /* 20 */
-  nrrdField_byte_skip,       /* 21 */
+  nrrdField_units,           /* 13 */
+  nrrdField_min,             /* 14 */
+  nrrdField_max,             /* 15 */
+  nrrdField_old_min,         /* 16 */
+  nrrdField_old_max,         /* 17 */
+  nrrdField_data_file,       /* 18 */
+  nrrdField_endian,          /* 19 */
+  nrrdField_encoding,        /* 20 */
+  nrrdField_line_skip,       /* 21 */
+  nrrdField_byte_skip,       /* 22 */
   nrrdField_last
 };
-#define NRRD_FIELD_MAX          21
+#define NRRD_FIELD_MAX          22
 
 /* oh look, I'm violating my rules outline above for how the enum values
 ** should be ordered.  The reason for this is that its just too bizarro

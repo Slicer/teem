@@ -316,6 +316,7 @@ _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL] = {
   "axis maxs",
   "centers",
   "labels",
+  "units",
   "min",
   "max",
   "old min",
@@ -326,28 +327,6 @@ _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL] = {
   "line skip",
   "byte skip"
 };
-
-#define nfComment  nrrdField_comment
-#define nfContent  nrrdField_content
-#define nfNumber   nrrdField_number
-#define nfType     nrrdField_type
-#define nfBsize    nrrdField_block_size
-#define nfDim      nrrdField_dimension
-#define nfSizes    nrrdField_sizes
-#define nfSpacings nrrdField_spacings
-#define nfAMins    nrrdField_axis_mins
-#define nfAMaxs    nrrdField_axis_maxs
-#define nfCenters  nrrdField_centers
-#define nfLabels   nrrdField_labels
-#define nfMin      nrrdField_min
-#define nfMax      nrrdField_max
-#define nfOMin     nrrdField_old_min
-#define nfOMax     nrrdField_old_max
-#define nfDataFile nrrdField_data_file
-#define nfEndian   nrrdField_endian
-#define nfEncoding nrrdField_encoding
-#define nfLineSkip nrrdField_line_skip
-#define nfByteSkip nrrdField_byte_skip
 
 char
 _nrrdFieldStrEqv[][AIR_STRLEN_SMALL]  = {
@@ -363,6 +342,7 @@ _nrrdFieldStrEqv[][AIR_STRLEN_SMALL]  = {
   "axis maxs", "axismaxs",
   "centers",
   "labels",
+  "units",
   "min",
   "max",
   "old min", "oldmin",
@@ -377,27 +357,28 @@ _nrrdFieldStrEqv[][AIR_STRLEN_SMALL]  = {
 
 int
 _nrrdFieldValEqv[] = {
-  nfComment,
-  nfContent,
-  nfNumber,
-  nfType,
-  nfBsize, nfBsize,
-  nfDim,
-  nfSizes,
-  nfSpacings,
-  nfAMins, nfAMins,
-  nfAMaxs, nfAMaxs,
-  nfCenters,
-  nfLabels,
-  nfMin,
-  nfMax,
-  nfOMin,
-  nfOMax,
-  nfDataFile, nfDataFile,
-  nfEndian,
-  nfEncoding, 
-  nfLineSkip, nfLineSkip,
-  nfByteSkip, nfByteSkip,
+  nrrdField_comment,
+  nrrdField_content,
+  nrrdField_number,
+  nrrdField_type,
+  nrrdField_block_size, nrrdField_block_size,
+  nrrdField_dimension,
+  nrrdField_sizes,
+  nrrdField_spacings,
+  nrrdField_axis_mins, nrrdField_axis_mins,
+  nrrdField_axis_maxs, nrrdField_axis_maxs,
+  nrrdField_centers,
+  nrrdField_labels,
+  nrrdField_units,
+  nrrdField_min,
+  nrrdField_max,
+  nrrdField_old_min, nrrdField_old_min,
+  nrrdField_old_max, nrrdField_old_max,
+  nrrdField_data_file, nrrdField_data_file,
+  nrrdField_endian,
+  nrrdField_encoding,
+  nrrdField_line_skip, nrrdField_line_skip,
+  nrrdField_byte_skip, nrrdField_byte_skip,
 };
 
 airEnum
