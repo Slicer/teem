@@ -82,6 +82,7 @@ EchoObjectMesh *
 _echoObjectMesh_nix(EchoObjectMesh *mesh) {
 
   /* ??? */
+  free(mesh);
   return NULL;
 }
 
@@ -89,6 +90,7 @@ EchoObjectAABox *
 _echoObjectAABox_nix(EchoObjectAABox *box) {
   
   box->objArr = airArrayNuke(box->objArr);
+  free(box);
   return NULL;
 }
 
