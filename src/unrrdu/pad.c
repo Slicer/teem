@@ -27,7 +27,7 @@ padMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int *minOff, minLen, *maxOff, maxLen, ax, bb, ret,
+  int *minOff, minLen, *maxOff, maxLen, ax, bb,
     min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
   double padVal;
   airArray *mop;
@@ -74,13 +74,7 @@ padMain(int argc, char **argv, char *me) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdBoundaryPad == bb) {
-    ret = nrrdPad(nout, nin, min, max, bb, padVal);
-  }
-  else {
-    ret = nrrdPad(nout, nin, min, max, bb);
-  }
-  if (ret) {
+  if (nrrdPad_nva(nout, nin, min, max, bb, padVal)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error padding nrrd:\n%s", me, err);
     airMopError(mop);
