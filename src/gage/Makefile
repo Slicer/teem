@@ -22,8 +22,9 @@ TEEM_LIB = gage
 HEADERS = gage.h
 PRIV_HEADERS = private.h
 TEEM_LIB_OBJS = \
-	defaults.o enums.o arrays.o methods.o kinds.o general.o print.o \
-	filter.o scl.o sclfilter.o sclprint.o vec.o vecprint.o simple.o
+	defaults.o misc.o print.o filter.o methods.o general.o update.o \
+	scl.o sclfilter.o sclprint.o sclanswer.o \
+	vec.o vecprint.o
 TEST_BINS = test/gantry
 TEEM_BINS = bin/vprobe bin/qbert 
 TEEM_BIN_LIBS = -lgage -lnrrd -lbiff -lell -lhest -lair -lm

@@ -20,6 +20,151 @@
 #include "gage.h"
 #include "private.h"
 
+/*
+  gageVecVector,      *  0: component-wise-interpolatd (CWI) vector: GT[3] *
+  gageVecLength,      *  1: length of CWI vector: *GT *
+  gageVecNormalized,  *  2: normalized CWI vector: GT[3] *
+  gageVecJacobian,    *  3: component-wise Jacobian: GT[9] *
+  gageVecDivergence,  *  4: divergence (based on Jacobian): *GT *
+  gageVecCurl,        *  5: curl (based on Jacobian): *GT *
+  gageVecLast
+  0   1   2   3   4   5
+*/
+
+/*
+******** gageVecAnsLength[]
+**
+** the number of gage_t used for each answer
+*/
+int
+gageVecAnsLength[GAGE_VEC_MAX+1] = {
+  3,  1,  3,  9,  1,  3
+};
+
+/*
+******** gageVecAnsOffset[]
+**
+** the index into the answer array of the first element of the answer
+*/
+int
+gageVecAnsOffset[GAGE_VEC_MAX+1] = {
+  0,  3,  4,  7, 16, 17 /* 20 */
+};
+
+/*
+** _gageVecNeedDeriv[]
+**
+** each value is a BIT FLAG representing the different value/derivatives
+** that are needed to calculate the quantity.  
+*/
+int
+_gageVecNeedDeriv[GAGE_VEC_MAX+1] = {
+  1,  1,  1,  2,  2,  2
+};
+
+/*
+** _gageVecPrereq[]
+** 
+** this records the measurements which are needed as ingredients for any
+** given measurement, but it is not necessarily the recursive expansion of
+** that requirement.
+*/
+unsigned int
+_gageVecPrereq[GAGE_VEC_MAX+1] = {
+  /* gageVecVector */
+  0,
+
+  /* gageVecLength */
+  (1<<gageVecVector),
+
+  /* gageVecNormalized */
+  (1<<gageVecVector) | (1<<gageVecLength),
+
+  /* gageVecJacobian */
+  0,
+
+  /* gageVecDivergence */
+  (1<<gageVecJacobian),
+
+  /* gageVecCurl */
+  (1<<gageVecJacobian)
+};
+
+void
+_gageVecIv3Fill(gageContext *ctx, gagePerVolume *pvl, void *here) {
+  int i, fd, fddd;
+  
+  fd = ctx->fd;
+  fddd = fd*fd*fd;
+  for (i=0; i<fddd; i++) {
+    /* note that the vector component axis is being shifted 
+       from the fastest to the slowest axis, to anticipate
+       component-wise filtering operations */
+    pvl->iv3[i + fddd*0] = pvl->lup(here, 0 + 3*ctx->off[i]);
+    pvl->iv3[i + fddd*1] = pvl->lup(here, 1 + 3*ctx->off[i]);
+    pvl->iv3[i + fddd*2] = pvl->lup(here, 2 + 3*ctx->off[i]);
+  }
+
+  return;
+}
+
+void
+_gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
+  char me[]="_gageVecFilter";
+  gageVecAnswer *van;
+  gage_t *fw00, *fw11, *fw22, tmp;
+  int fd;
+
+  fd = ctx->fd;
+  van = (gageVecAnswer *)pvl->ansStruct;
+  fw00 = ctx->fw + fd*3*gageKernel00;
+  fw11 = ctx->fw + fd*3*gageKernel11;
+  fw22 = ctx->fw + fd*3*gageKernel22;
+  /* perform the filtering */
+  if (ctx->k3pack) {
+    switch (fd) {
+    case 2:
+#define DOIT_2(J) \
+      _gageScl3PFilter2(pvl->iv3 + J*8, pvl->iv2 + J*4, pvl->iv1 + J*2, \
+			fw00, fw11, fw22, \
+                        van->vec + J, van->jac + J*3, NULL, \
+			pvl->needD[0], pvl->needD[1], AIR_FALSE)
+      DOIT_2(0); DOIT_2(1); DOIT_2(2); 
+      break;
+    case 4:
+#define DOIT_4(J) \
+      _gageScl3PFilter4(pvl->iv3 + J*64, pvl->iv2 + J*16, pvl->iv1 + J*4, \
+			fw00, fw11, fw22, \
+                        van->vec + J, van->jac + J*3, NULL, \
+			pvl->needD[0], pvl->needD[1], AIR_FALSE)
+      DOIT_4(0); DOIT_4(1); DOIT_4(2); 
+      break;
+    default:
+#define DOIT_N(J)\
+      _gageScl3PFilterN(fd, \
+                        pvl->iv3 + J*fd*fd*fd, \
+                        pvl->iv2 + J*fd*fd, pvl->iv1 + J*fd, \
+			fw00, fw11, fw22, \
+                        van->vec + J, van->jac + J*3, NULL, \
+			pvl->needD[0], pvl->needD[1], AIR_FALSE)
+      DOIT_N(0); DOIT_N(1); DOIT_N(2); 
+      break;
+    }
+  } else {
+    fprintf(stderr, "!%s: sorry, 6pack filtering not implemented\n", me);
+  }
+
+  if (pvl->needD[1]) {
+    /* because we operated component-at-a-time, and because matrices are
+       in column order, the 1st column currently contains the three
+       derivatives of the X component; this should be the 1st row, and
+       likewise for the 2nd and 3rd column/rows.  */
+    ELL_3M_TRANSPOSE_IP(van->jac, tmp);
+  }
+
+  return;
+}
+
 void
 _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageVecAnswer";
@@ -83,74 +228,112 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   return;
 }
 
-void
-_gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="_gageVecFilter";
+char
+_gageVecStr[][AIR_STRLEN_SMALL] = {
+  "(unknown gageVec)",
+  "vector",
+  "length",
+  "normalized",
+  "Jacobian",
+  "divergence",
+  "curl"
+};
+
+int
+_gageVecVal[] = {
+  gageVecUnknown,
+  gageVecVector,
+  gageVecLength,
+  gageVecNormalized,
+  gageVecJacobian,
+  gageVecDivergence,
+  gageVecCurl,
+};
+
+#define GV_V gageVecVector
+#define GV_L gageVecLength
+#define GV_N gageVecNormalized
+#define GV_J gageVecJacobian
+#define GV_D gageVecDivergence
+#define GV_C gageVecCurl
+
+char
+_gageVecStrEqv[][AIR_STRLEN_SMALL] = {
+  "v", "vector", "vec",
+  "l", "length", "len",
+  "n", "normalized", "normalized vector",
+  "jacobian", "jac", "j",
+  "divergence", "div", "d",
+  "curl", "c"
+  ""
+};
+
+int
+_gageVecValEqv[] = {
+  GV_V, GV_V, GV_V,
+  GV_L, GV_L, GV_L,
+  GV_N, GV_N, GV_N,
+  GV_J, GV_J, GV_J,
+  GV_D, GV_D, GV_D,
+  GV_C, GV_C
+};
+
+airEnum
+_gageVec = {
+  "gageVec",
+  GAGE_VEC_MAX+1,
+  _gageVecStr, _gageVecVal,
+  _gageVecStrEqv, _gageVecValEqv,
+  AIR_FALSE
+};
+airEnum *
+gageVec = &_gageVec;
+
+gageVecAnswer *
+_gageVecAnswerNew() {
   gageVecAnswer *van;
-  gage_t *fw00, *fw11, *fw22, tmp;
-  int fd;
+  int i;
 
-  fd = ctx->fd;
-  van = (gageVecAnswer *)pvl->ansStruct;
-  fw00 = ctx->fw + fd*3*gageKernel00;
-  fw11 = ctx->fw + fd*3*gageKernel11;
-  fw22 = ctx->fw + fd*3*gageKernel22;
-  /* perform the filtering */
-  if (ctx->k3pack) {
-    switch (fd) {
-    case 2:
-#define DOIT_2(J) \
-      _gageScl3PFilter2(pvl->iv3 + J*8, pvl->iv2 + J*4, pvl->iv1 + J*2, \
-			fw00, fw11, fw22, \
-                        van->vec + J, van->jac + J*3, NULL, \
-			pvl->doV, pvl->doD1, AIR_FALSE)
-      DOIT_2(0); DOIT_2(1); DOIT_2(2); 
-      break;
-    case 4:
-#define DOIT_4(J) \
-      _gageScl3PFilter4(pvl->iv3 + J*64, pvl->iv2 + J*16, pvl->iv1 + J*4, \
-			fw00, fw11, fw22, \
-                        van->vec + J, van->jac + J*3, NULL, \
-			pvl->doV, pvl->doD1, AIR_FALSE)
-      DOIT_4(0); DOIT_4(1); DOIT_4(2); 
-      break;
-    default:
-#define DOIT_N(J)\
-      _gageScl3PFilterN(fd, \
-                        pvl->iv3 + J*fd*fd*fd, \
-                        pvl->iv2 + J*fd*fd, pvl->iv1 + J*fd, \
-			fw00, fw11, fw22, \
-                        van->vec + J, van->jac + J*3, NULL, \
-			pvl->doV, pvl->doD1, AIR_FALSE)
-      DOIT_N(0); DOIT_N(1); DOIT_N(2); 
-      break;
-    }
-  } else {
-    fprintf(stderr, "!%s: sorry, 6pack filtering not implemented\n", me);
+  van = (gageVecAnswer *)calloc(1, sizeof(gageVecAnswer));
+  if (van) {
+    for (i=0; i<GAGE_VEC_TOTAL_ANS_LENGTH; i++)
+      van->ans[i] = AIR_NAN;
+    van->vec  = &(van->ans[gageVecAnsOffset[gageVecVector]]);
+    van->len  = &(van->ans[gageVecAnsOffset[gageVecLength]]);
+    van->norm = &(van->ans[gageVecAnsOffset[gageVecNormalized]]);
+    van->jac  = &(van->ans[gageVecAnsOffset[gageVecJacobian]]);
+    van->div  = &(van->ans[gageVecAnsOffset[gageVecDivergence]]);
+    van->curl = &(van->ans[gageVecAnsOffset[gageVecCurl]]);
   }
-
-  /* because we operated component-at-a-time, and because matrices are
-     in column order, the 1st column currently contains the three
-     derivatives of the X component; this should be the 1st row */
-  ELL_3M_TRANSPOSE_IP(van->jac, tmp);
-
-  return;
+  return van;
 }
 
-void
-_gageVecIv3Fill(gageContext *ctx, gagePerVolume *pvl, void *here) {
-  int i, fd, fddd;
-  
-  fd = ctx->fd;
-  fddd = fd*fd*fd;
-  for (i=0; i<fddd; i++) {
-    /* note that the vector component axis is being shifted 
-       from the fastest to the slowest axis, to anticipate
-       component-wise filtering operations */
-    pvl->iv3[i + fddd*0] = pvl->lup(here, 0 + 3*ctx->off[i]);
-    pvl->iv3[i + fddd*1] = pvl->lup(here, 1 + 3*ctx->off[i]);
-    pvl->iv3[i + fddd*2] = pvl->lup(here, 2 + 3*ctx->off[i]);
-  }
+gageVecAnswer *
+_gageVecAnswerNix(gageVecAnswer *van) {
 
-  return;
+  return airFree(van);
 }
+
+gageKind
+_gageKindVec = {
+  "vector",
+  &_gageVec,
+  1,
+  3,
+  GAGE_VEC_MAX,
+  gageVecAnsLength,
+  gageVecAnsOffset,
+  GAGE_VEC_TOTAL_ANS_LENGTH,
+  _gageVecNeedDeriv,
+  _gageVecPrereq,
+  _gageVecPrint_query,
+  (void *(*)(void))_gageVecAnswerNew,
+  (void *(*)(void*))_gageVecAnswerNix,
+  _gageVecIv3Fill,
+  _gageVecIv3Print,
+  _gageVecFilter,
+  _gageVecAnswer
+};
+gageKind *
+gageKindVec = &_gageKindVec;
+

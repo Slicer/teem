@@ -58,43 +58,6 @@ hestCB gantryNrrdHestCB = {
   (airMopper)nrrdNuke
 }; 
 
-/*
-** gantryNrrdKernel
-** 
-** this is what will be parsed from the command-line: a kernel and its
-** parameter list
-*/
-typedef struct {
-  NrrdKernel *kernel;
-  double parm[NRRD_KERNEL_PARMS_NUM];
-} gantryNrrdKernel;
-
-int
-gantryParseKernel(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  gantryNrrdKernel *ker;
-  char me[]="gantryParseKernel", *nerr;
-
-  if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  ker = ptr;
-  if (nrrdKernelParse(&(ker->kernel), ker->parm, str)) {
-    nerr = biffGetDone(NRRD);
-    strncpy(err, nerr, AIR_STRLEN_HUGE-1);
-    free(nerr);
-    return 1;
-  }
-  return 0;
-}
-
-hestCB gantryKernelHestCB = {
-  sizeof(gantryNrrdKernel),
-  "kernel specification",
-  gantryParseKernel,
-  NULL
-};
-
 char info[]="Gantry tilt be gone!  This program is actually of limited "
 "utility: it can only change the tilt by shearing with the "
 "X and Z axis fixed, by some angle \"around\" the X axis, assuming "
@@ -106,13 +69,13 @@ main(int argc, char *argv[]) {
   hestOpt *hopt = NULL;
   gageContext *ctx;
   gagePerVolume *pvl;
-  gageSclAnswer *san;
-  Nrrd *nin, *npad, *nout;
+  Nrrd *nin, *nout;
   char *me, *herr, *outS;
   float angle;
   double xs, ys, zs, y, z;
-  int sx, sy, sz, E, xi, yi, zi, needPad;
-  gantryNrrdKernel gantric;
+  gage_t *val;
+  int sx, sy, sz, E, xi, yi, zi;
+  NrrdKernelSpec *gantric;
   void *out;
   double (*insert)(void *v, nrrdBigInt I, double d);
   
@@ -122,7 +85,7 @@ main(int argc, char *argv[]) {
 
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
 	     "input volume, in nrrd format",
-	     NULL, NULL, &gantryNrrdHestCB);
+	     NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "a", "angle", airTypeFloat, 1, 1, &angle, NULL,
 	     "angle, in degrees, of the gantry tilt around the X axis. "
 	     "This is opposite of the amount of tweak we apply.");
@@ -141,21 +104,19 @@ main(int argc, char *argv[]) {
 	     "interpolating quartics (\"quartic:0.0834\" is most accurate)\n "
 	     "\b\bo \"gauss:S,C\": Gaussian blurring, with standard deviation "
 	     "S and cut-off at C standard deviations",
-	     NULL, NULL, &gantryKernelHestCB);
+	     NULL, NULL, nrrdHestNrrdKernelSpec);
   hestOptAdd(&hopt, "o", "output", airTypeString, 1, 1, &outS, NULL,
 	     "output volume in nrrd format");
   if (hestOptCheck(hopt, &herr)) { printf("%s\n", herr); exit(1); }
-  
-  if (1 == argc) {
-    hestInfo(stderr, me, info, hparm);
-    hestUsage(stderr, hopt, me, hparm);
-    hestGlossary(stderr, hopt, hparm);
-    hparm = hestParmFree(hparm);
-    hopt = hestOptFree(hopt);
-    exit(1);
-  }
-  if (hestParse(hopt, argc-1, argv+1, &herr, hparm)) {
-    fprintf(stderr, "ERROR: %s\n", herr); free(herr);
+
+  E = 0;
+  if ( (1 == argc) ||
+       (E = hestParse(hopt, argc-1, argv+1, &herr, hparm)) ) {
+    if (E) {
+      fprintf(stderr, "ERROR: %s\n", herr); free(herr);
+    } else {
+      hestInfo(stderr, me, info, hparm);
+    }
     hestUsage(stderr, hopt, me, hparm);
     hestGlossary(stderr, hopt, hparm);
     hparm = hestParmFree(hparm);
@@ -185,29 +146,22 @@ main(int argc, char *argv[]) {
   insert = nrrdDInsert[nout->type];
 
   ctx = gageContextNew();
-  gageValSet(ctx, gageValVerbose, 1);
-  gageValSet(ctx, gageValRenormalize, AIR_TRUE);
-  gageValSet(ctx, gageValCheckIntegrals, AIR_TRUE);
-  if (gageKernelSet(ctx, gageKernel00, gantric.kernel, gantric.parm)) {
-    fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));
-    exit(1);
-  }  
-  needPad = gageValGet(ctx, gageValNeedPad);
-  if (nrrdSimplePad(npad=nrrdNew(), nin, needPad, nrrdBoundaryBleed)) {
-    fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(NRRD));
-    exit(1);
-  }
+  gageSet(ctx, gageVerbose, 1);
+  gageSet(ctx, gageRenormalize, AIR_TRUE);
   E = 0;
-  if (!E) E |= !(pvl = gagePerVolumeNew(needPad, gageKindScl));
-  if (!E) san = (gageSclAnswer *)pvl->ansStruct;
-  if (!E) E |= gageVolumeSet(ctx, pvl, npad, needPad);
-  if (!E) E |= gageQuerySet(pvl, 1 << gageSclValue);
-  if (!E) E |= gageUpdate(ctx, pvl);
+  if (!E) E |= !(pvl = gagePerVolumeNew(gageKindScl));
+  if (!E) E |= gagePerVolumeAttach(ctx, pvl);
+  if (!E) E |= gageKernelSet(ctx, gageKernel00,
+			     gantric->kernel, gantric->parm);
+  if (!E) E |= gageQuerySet(ctx, pvl, 1 << gageSclValue);
+  if (!E) E |= gageVolumeSet(ctx, pvl, nin);
+  if (!E) E |= gageUpdate(ctx);
   if (E) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(GAGE));
     exit(1);
   }
-  gageValSet(ctx, gageValVerbose, 0);
+  gageSet(ctx, gageVerbose, 0);
+  val = gageAnswerPointer(pvl, gageSclValue);
   
   for (zi=0; zi<sz; zi++) {
     for (yi=0; yi<sy; yi++) {
@@ -220,8 +174,8 @@ main(int argc, char *argv[]) {
 	y = (yi - sy/2.0)*ys;
 	z = (zi*zs + y*sin(-angle*3.141592653/180.0))/zs;
 	z = AIR_CLAMP(0, z, sz-1);
-	gageProbe(ctx, pvl, xi, yi, z);
-	insert(out, xi + sx*(yi + sy*zi), *(san->val));
+	gageProbe(ctx, xi, yi, z);
+	insert(out, xi + sx*(yi + sy*zi), *val);
       }
     }
   }
@@ -233,9 +187,8 @@ main(int argc, char *argv[]) {
   ctx = gageContextNix(ctx);
   hparm = hestParmFree(hparm);
   hopt = hestOptFree(hopt);
-  pvl = gagePerVolumeNix(pvl);
   nrrdNuke(nout);
-  nrrdNuke(npad);
+  nrrdNuke(nin);
   
   exit(0);
 }

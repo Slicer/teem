@@ -1,3 +1,8 @@
+tests:
+having query==0 should be kosher
+two pervolumes with different sized volumes
+NRWS doing its job
+
 add kernel flags to qbert, make them match those in mrender
 and miter.
 

@@ -114,16 +114,16 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
   negX = negY = negZ = 0;
   posX = posY = posZ = 0;
   for (i=0; i<fd; i++) {
-    if (fwX[i] <= 0) { negX += fwX[i]; } else { posX += fwX[i]; }
-    if (fwY[i] <= 0) { negY += fwY[i]; } else { posY += fwY[i]; }
-    if (fwZ[i] <= 0) { negZ += fwZ[i]; } else { posZ += fwZ[i]; }
+    if (fwX[i] <= 0) { negX += -fwX[i]; } else { posX += fwX[i]; }
+    if (fwY[i] <= 0) { negY += -fwY[i]; } else { posY += fwY[i]; }
+    if (fwZ[i] <= 0) { negZ += -fwZ[i]; } else { posZ += fwZ[i]; }
   }
   /* fix is the sqrt() of factor by which the positive values
-     are too big.  negative values are scaled up by this;
-     positive values are scaled down by this */
-  fixX = sqrt(-posX/negX);
-  fixY = sqrt(-posY/negY);
-  fixZ = sqrt(-posZ/negZ);
+     are too big.  negative values are scaled up by fix;
+     positive values are scaled down by fix */
+  fixX = sqrt(posX/negX);
+  fixY = sqrt(posY/negY);
+  fixZ = sqrt(posZ/negZ);
   if (ctx->verbose > 1) {
     fprintf(stderr, "%s: fixX = % 10.4f, fixY = % 10.4f, fixX = % 10.4f\n",
 	    me, (float)fixX, (float)fixY, (float)fixZ);
@@ -141,12 +141,6 @@ _gageFwSet(gageContext *ctx) {
   char me[]="_gageFwSet";
   int i, j, fd;
   gage_t *fwX, *fwY, *fwZ;
-
-#if GT_FLOAT
-#  define EVALN evalN_f
-#else
-#  define EVALN evalN_d
-#endif
 
   fd = ctx->fd;
   for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
@@ -192,9 +186,9 @@ _gageFwSet(gageContext *ctx) {
       fwY = ctx->fw + 0 + fd*(1 + 3*i);
       fwZ = ctx->fw + 0 + fd*(2 + 3*i);
       for (j=0; j<fd; j++) {
-	fwX[j] *= ctx->fwScl[i][0];
-	fwY[j] *= ctx->fwScl[i][1];
-	fwZ[j] *= ctx->fwScl[i][2];
+	fwX[j] *= ctx->fwScale[i][0];
+	fwY[j] *= ctx->fwScale[i][1];
+	fwZ[j] *= ctx->fwScale[i][2];
       }
     }
     if (ctx->verbose > 1) {

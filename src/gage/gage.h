@@ -70,22 +70,72 @@ typedef double gage_t;
 */
 
 /*
+******** GAGE_PERVOLUME_NUM
+**
+** max number of pervolumes that can be associated with a context.
+** Since this is so often just 1, it makes no sense to adopt a more
+** general mechanism to allow an unlimited number of pervolumes.
+*/
+#define GAGE_PERVOLUME_NUM 4
+
+/*
+******** the unnamed enum of boolean-ish flags
+**
+** these are passed to gageSet
+*/
+enum {
+  gageVerbose,             /* this isn't a boolean */
+  gageRenormalize,
+  gageCheckIntegrals,
+  gageNoRepadWhenSmaller,
+  gageK3Pack
+};
+
+/*
+******** gageFlag... enum
+**
+** organizes all the dependendies within a context and between a
+** context and pervolumes.  Basically, all of this complexity is to
+** the handle the fact that different kernels have diferrent supports,
+** which requires different amounts of padding around volumes.  The
+** user should not have to be concerned about any of this; it should
+** be useful only to gageUpdate().  The flags pertaining to state 
+** which is specific to a kind is indicated as such.
+*/
+enum {
+  gageFlagUnknown=-1,   /* -1: nobody knows */
+  gageFlagNeedD,        /*  0: (kind-specific) required derivatives */
+  gageFlagK3Pack,       /*  1: whether to use 3 or 6 kernels */
+  gageFlagNeedK,        /*  2: which of the kernels will actually be used */
+  gageFlagKernel,       /*  3: any one of the kernels or its parameters */
+  gageFlagNRWS,         /*  4: change in ctx->noRepadWhenSmaller */
+  gageFlagNeedPad,      /*  5: required padding based on required kernels */
+  gageFlagPadder,       /*  6: (kind-specific) how to pad volumes */
+  gageFlagNin,          /*  7: (kind-specific) original unpadded volume */
+  gageFlagHavePad,      /*  8: padding we'll actually use (may not want to
+			       repad when going to a smaller padding) */
+  gageFlagNpad,         /*  9: (kind-specific) padded volume */
+  gageFlagLast
+};
+#define GAGE_FLAG_NUM      10
+
+/*
 ******** gageKernel... enum
 **
 ** these are the different kernels that might be used in gage, regardless
 ** of what kind of volume is being probed.
 */
 enum {
-  gageKernelUnknown=-1, /*-1: nobody knows */
-  gageKernel00,         /* 0: measuring values */
-  gageKernel10,         /* 1: reconstructing 1st derivatives */
-  gageKernel11,         /* 2: measuring 1st derivatives */
-  gageKernel20,         /* 3: reconstructing 1st partials and 2nd deriv.s */
-  gageKernel21,         /* 4: measuring 1st partials for a 2nd derivative */
-  gageKernel22,         /* 5: measuring 2nd derivatives */
+  gageKernelUnknown=-1, /* -1: nobody knows */
+  gageKernel00,         /*  0: measuring values */
+  gageKernel10,         /*  1: reconstructing 1st derivatives */
+  gageKernel11,         /*  2: measuring 1st derivatives */
+  gageKernel20,         /*  3: reconstructing 1st partials and 2nd deriv.s */
+  gageKernel21,         /*  4: measuring 1st partials for a 2nd derivative */
+  gageKernel22,         /*  5: measuring 2nd derivatives */
   gageKernelLast
 };
-#define GAGE_KERNEL_NUM    6
+#define GAGE_KERNEL_NUM     6
 
 /*
 ** modifying the enums below (scalar, vector, etc query quantities)
@@ -105,7 +155,7 @@ enum {
 **
 ** NOTE: although it is currently listed that way, it is not necessary
 ** that prerequisite measurements are listed before the other measurements
-** which need them
+** which need them (that is represented by _gageSclPrereq)
 **
 ** (in the following, GT means gage_t)
 */
@@ -148,22 +198,20 @@ enum {
 #define GAGE_VEC_MAX      5
 #define GAGE_VEC_TOTAL_ANS_LENGTH 20
 
+struct gageKind_t;
+
 /*
-******** gageVal... enum
+******** gagePadder_t, gageNixer_t
 **
-** the different integer values/flags in a gageContext
-** that can be got (via gageValGet()) or set (via gageValSet())
+** type of functions used to pad volumes and to remove padded volumes.
+** Chances are, no one has to worry about these, since the default
+** padder (_gageStandardPadder) and nixer (_gageStandardNixer) probably
+** do exactly what you want.
 */
-enum {
-  gageValUnknown,        /* 0: nobody knows */
-  gageValVerbose,        /* 1: verbosity */
-  gageValRenormalize,    /* 2: make mask weights' sum = continuous integral */
-  gageValCheckIntegrals, /* 3: verify integrals of kernels */
-  gageValK3Pack,         /* 4: use only three kernels (00, 11, and 22) */
-  gageValNeedPad,        /* 5: given kernels chosen, the padding needed */
-  gageValHavePad,        /* 6: the padding of the volume used */
-  gageValLast
-};
+typedef int (gagePadder_t)(Nrrd *npad, Nrrd *nin, struct gageKind_t *kind,
+			   int padding, void *padInfo);
+typedef void (gageNixer_t)(Nrrd *npad, struct gageKind_t *kind,
+			   void *padInfo);
 
 /*
 ******** gageContext struct
@@ -171,18 +219,11 @@ enum {
 ** The information here is specific to the dimensions, scalings, and
 ** padding of a volume, but not to kind of volume (all kind-specific
 ** information is in the gagePerVolume).  One context can be used in
-** conjuction with probing two different kinds of volumes.
+** conjuction with probing multiple volumes.
 */
-typedef struct {
+typedef struct gageContext_t {
   /*  --------------------------------------- Input parameters */
   int verbose;                /* verbosity */
-  gage_t gradMagMin;          /* gradient vector lengths can never be
-				 smaller than this */
-  double integralNearZero;    /* tolerance with checkIntegrals */
-  NrrdKernel *k[GAGE_KERNEL_NUM];
-                              /* interp, 1st, 2nd deriv. kernels */
-  double kparm[GAGE_KERNEL_NUM][NRRD_KERNEL_PARMS_NUM];
-                              /* kernel parameters */
   int renormalize;            /* hack to make sure that sum of
 				 discrete value reconstruction weights
 				 is same as kernel's continuous
@@ -193,6 +234,10 @@ typedef struct {
 				 appropriate for the task for which
 				 the kernel is being set:
 				 reconstruction: 1.0, derivatives: 0.0 */
+  int noRepadWhenSmaller;     /* if a change in parameters leads a newer and
+				 smaller amount of padding, don't generate a
+				 new padded volume, use the somewhat overly
+				 padded volume */
   int k3pack;                 /* non-zero (true) iff we do not use
 				 kernels for gageKernelIJ with I != J.
 				 So, we use the value reconstruction
@@ -200,48 +245,62 @@ typedef struct {
 				 derivative reconstruction, and so on.
 				 This is faster because we can re-use
 				 results from low-order convolutions. */
+  gage_t gradMagMin;          /* pre-normalized vector lengths can't be
+				 smaller than this */
+  double integralNearZero;    /* tolerance with checkIntegrals on derivative
+				 kernels */
+  NrrdKernel *k[GAGE_KERNEL_NUM];
+                              /* all the kernels we might ever need */
+  double kparm[GAGE_KERNEL_NUM][NRRD_KERNEL_PARMS_NUM];
+                              /* all the kernel parameters */
+  struct gagePerVolume_t *pvl[GAGE_PERVOLUME_NUM];
+                              /* the pervolumes attached to this context */
+  int numPvl;                 /* number of pervolumes currently attached */
+  gagePadder_t *padder;       /* how to pad nin to produce npad; use NULL
+				 to signify no-op */  
+  gageNixer_t *nixer;         /* for when npad is to be replaced or removed;
+				 use NULL to signify no-op */
   /*  --------------------------------------- Internal state */
-  int haveVolume;             /* non-zero iff gageVolumeSet has been called
-				 (used to ensure that all volumes associated
-				 with this context are consistent */
-  /*  ------------ kernel-dependent */
-  int needPad;                /* amount of boundary margin required
-				 for current kernels (irrespective of
-				 query, which is perhaps foolish) */
-  int fr, fd;                 /* max filter radius and diameter */
-  gage_t *fsl,                /* filter sample locations (all axes) */
+  int flag[GAGE_FLAG_NUM];    /* all the flags used by gageUpdate() used to
+				 describe what changed in this context */
+  int pvlFlag[GAGE_FLAG_NUM]; /* for the kind-specific flags, these mean that
+				 something changed in one of the pvl's, which
+				 may or may not mean that the same flag will be
+				 raised in the context's main flag[] array */
+  int thisIsACopy;            /* I am the result of gageContextCopy */
+  int needPad;                /* amount of boundary margin required for current
+				 queries (in all pervolumes), kernels, and
+				 the value of k3pack */
+  int havePad;                /* amount of padding currently in pervolumes */
+  int fr, fd;                 /* max filter radius and diameter (among the
+				 required kernels) */
+  gage_t *fsl,                /* filter sample locations (all axes):
+				 logically a fd x 3 array */
     *fw;                      /* filter weights (all axes, all kernels):
 				 logically a fd x 3 x GAGE_KERNEL_NUM array */
-  unsigned int *off;          /* offsets to other fd^3 samples needed
-				 to fill 3D intermediate value
-				 cache. Allocated size is dependent on
-				 kernels (hence consideration as
-				 kernel-dependent), values inside are
-				 dependent on the dimensions of the
-				 volume.  It may be more correct to be using
-				 nrrdBigInt instead of uint, but the X and Y
-				 dimensions of the volume would have to be
-				 super-outrageous for that to be a problem */
-  /*  ------------ volume-dependent */
-  int havePad;                /* amount of boundary margin associated
-				 with current volume (may be greater
-				 than needPad) */
-  int sx, sy, sz;             /* dimensions of padded nrrd (ctx->npad) */
+  unsigned int *off;          /* offsets to other fd^3 samples needed to fill
+				 3D intermediate value cache. Allocated size is
+				 dependent on kernels, values inside are
+				 dependent on the dimensions of the volume. It
+				 may be more correct to be using nrrdBigInt
+				 instead of uint, but the X and Y dimensions of
+				 the volume would have to be super-outrageous
+				 for that to be a problem */
+  int sx, sy, sz;             /* dimensions of PADDED volume */
   gage_t xs, ys, zs,          /* spacings for each axis */
-    fwScl[GAGE_KERNEL_NUM][3];/* how to rescale weights for each of the
+    fwScale[GAGE_KERNEL_NUM][3];
+                              /* how to rescale weights for each of the
 				 kernels according to non-unity-ness of
 				 sample spacing (0=X, 1=Y, 2=Z) */
-  /*  ------------ query-dependent: actually, dependent on every query
-      associated with all pervolumes used with this context */
-  int needK[GAGE_KERNEL_NUM]; /* which kernels are needed */
-  /*  ------------ probe-location-dependent */
-  gage_t xf, yf, zf;          /* fractional voxel location of last
-				 query, used to short-circuit
-				 calculation of filter sample
+  int needD[3];               /* which value/derivatives need to be calculated
+				 for all pervolumes (doV, doD1, doD2) */
+  int needK[GAGE_KERNEL_NUM]; /* which kernels are needed for all pervolumes */
+  gage_t xf, yf, zf;          /* fractional voxel location of last query, used
+				 to short-circuit calculation of filter sample
 				 locations and weights */
-  int bidx;                   /* base-index: lowest (linear) index, in
-				 the PADDED volume, of the samples
-				 currrently in 3D value cache */
+  int bidx;                   /* base-index: lowest (linear) index, in the
+				 PADDED volume, of the samples currrently in
+				 3D value cache */
 } gageContext;
 
 /*
@@ -250,30 +309,33 @@ typedef struct {
 ** information that is specific to one volume, and to one kind of
 ** volume.
 */
-typedef struct {
-  int verbose;
-  unsigned int query;         /* the query (yes, recursively expanded) */
-  Nrrd *npad;                 /* user-padded nrrd, not "owned" by gage,
-				 nrrdNuke() and nrrdNix() not called */
+typedef struct gagePerVolume_t {
+  struct gageKind_t *kind;    /* what kind of volume is this pervolume for */
+  unsigned int query;         /* the query, recursively expanded */
+  Nrrd *nin;                  /* the original, unpadded volume, passed to the
+				 padder below, but never freed or passed
+				 to anything else */
+  void *padInfo;              /* supplemental information for padder and nixer,
+				 but only used when they are different than the
+				 usual/default ones.  Setting (and freeing)
+				 this is currently none of gage's business, and
+				 no other callbacks facilitate handling this */
+  Nrrd *npad;                 /* the padded nrrd which is probed */
   /*  --------------------------------------- Internal state */
-  /*  ------------ kernel-dependent */
-  gage_t *iv3, *iv2, *iv1;    /* 3D, 2D, 1D, value caches.  Exactly how
-				 values are arranged in iv3 (non-scalar
-				 volumes can have the component axis
-				 be the slowest or the fastest) is not
-				 strictly speaking gage's concern, as
-				 filling iv3 is up to iv3Fill in the
-				 gageKind struct */
-  /*  ------------ volume-dependent */
-  struct gageKind_t *kind;
+  int thisIsACopy;            /* I'm a copy */
+  int flagNin;                /* this nin has been set/changed */
+  gage_t *iv3, *iv2, *iv1;    /* 3D, 2D, 1D, value caches.  Exactly how values
+				 are arranged in iv3 (non-scalar volumes can
+				 have the component axis be the slowest or the
+				 fastest) is not strictly speaking gage's
+				 concern, as filling iv3 is up to iv3Fill in
+				 the gageKind struct.  Use of iv2 and iv1 is
+				 entirely up the kind's filter method. */
   gage_t (*lup)(void *ptr, nrrdBigInt I); 
                               /* nrrd{F,D}Lookup[] element, according to
-				 npad and gage_t */
-  /*  ------------ query-dependent: these represent the needs of
-      the one query associated with this pervolume */
-  int doV, doD1, doD2;        /* which derivatives need to be calculated
-				 (more immediately useful for 3pack) */
-  int needK[GAGE_KERNEL_NUM]; /* which kernels are needed */
+				 npad->type and gage_t */
+  int needD[3];               /* which derivatives need to be calculated for
+				 this pervolumes */
   /*  --------------------------------------- Output */
   void *ansStruct;            /* an answer struct, such as gageSclAnswer */
 } gagePerVolume;
@@ -289,7 +351,8 @@ typedef struct gageKind_t {
   airEnum *enm;                     /* such as gageScl.  NB: the "unknown"
 				       value in the enum MUST be -1 (since
 				       queries are formed as bitflags) */
-  int baseDim,                      /* dimension that x,y,z axes start on */
+  int baseDim,                      /* dimension that x,y,z axes start on
+				       (0 for scalars, 1 for vectors) */
     valLen,                         /* number of scalars per data point */
     queryMax,                       /* such as GAGE_SCL_MAX */
     *ansLength,                     /* such as gageSclAnsLength */
@@ -314,32 +377,8 @@ typedef struct gageKind_t {
 } gageKind;
 
 /*
-******** gageSimpleStruct
-**
-** If all defaults are okay, and if padding by bleeding is okay,
-** and if there is only one volume per context, then this is a 
-** suitable basis for a simplified access to gage functionality.
-*/
-typedef struct {
-  Nrrd *nin;                  /* the input volume to probe */
-  gageKind *kind;             /* kind of volume */
-  NrrdKernel *k[GAGE_KERNEL_NUM];
-                              /* interp, 1st, 2nd deriv. kernels */
-  double kparm[GAGE_KERNEL_NUM][NRRD_KERNEL_PARMS_NUM];
-                              /* kernel parameters */
-  unsigned int query;         /* the query (NOT recursively expanded) */
-  /*  --------------------------------------- Internal state */
-  Nrrd *npad;                 /* padded input */
-  gageContext *ctx;
-  gagePerVolume *pvl;
-  /*  --------------------------------------- Output */
-  void *ansStruct;            /* an answer struct, such as gageSclAnswer */
-  gage_t *ansVec;             /* the main array of the answer struct */
-} gageSimple;
-
-/*
 ** NB: All "answer" structs MUST have the main answer vector "ans"
-** as the first element so the vector of any kind's answer can be
+** as the first element so the main vector of any kind's answer can be
 ** obtained by casting to gageSclAnswer.
 */
 
@@ -375,54 +414,58 @@ extern int gageDefVerbose;
 extern gage_t gageDefGradMagMin;
 extern int gageDefRenormalize;
 extern int gageDefCheckIntegrals;
+extern int gageDefNoRepadWhenSmaller;
 extern int gageDefK3Pack;
+extern double gageDefIntegralNearZero;
 
-/* enums.c */
-extern airEnum *gageKernel;
-extern airEnum *gageScl;
-extern airEnum *gageVec;
-
-/* arrays.c */
-extern gage_t gageZeroNormal[3];
+/* misc.c */
+/* gageErrStr and gageErrNum are for describing errors that happen in
+   gageProbe(): using biff is too heavy-weight for this, and the idea is
+   that no ill should occur if the error is repeatedly ignored */
 extern char gageErrStr[AIR_STRLEN_LARGE];
 extern int gageErrNum;
+extern gage_t gageZeroNormal[3];
+extern airEnum *gageKernel;
+
+/* scl.c */
 extern int gageSclAnsLength[GAGE_SCL_MAX+1];
 extern int gageSclAnsOffset[GAGE_SCL_MAX+1];
+extern airEnum *gageScl;
+extern gageKind *gageKindScl;
+
+/* vec.c (together with vecprint.c, these contain everything to
+   implement the "vec" kind, and could be used as examples of what it
+   takes to create a new gageKind) */
 extern int gageVecAnsLength[GAGE_VEC_MAX+1];
 extern int gageVecAnsOffset[GAGE_VEC_MAX+1];
-
-/* kinds.c */
-extern gageKind *gageKindScl;
+extern airEnum *gageVec;
 extern gageKind *gageKindVec;
 
 /* methods.c */
 extern gageContext *gageContextNew();
+extern gageContext *gageContextCopy(gageContext *ctx);
 extern gageContext *gageContextNix(gageContext *ctx);
-extern gagePerVolume *gagePerVolumeNew(int needPad, gageKind *kind);
-extern gagePerVolume *gagePerVolumeNix(gagePerVolume *pvl);
+extern gagePerVolume *gagePerVolumeNew(gageKind *kind);
+extern gagePerVolume *gagePerVolumeNix(gageContext *ctx, gagePerVolume *pvl);
 
 /* general.c */
-extern void gageValSet(gageContext *ctx, int which, int val);
-extern int gageValGet(gageContext *ctx, int which);
+extern void gageSet(gageContext *ctx, int which, int val);
+extern int gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl);
+extern int gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl);
+extern gage_t *gageAnswerPointer(gagePerVolume *pvl, int measure);
+extern void gagePadderSet(gageContext *ctx, gagePadder_t *padder);
+extern void gageNixerSet(gageContext *ctx, gageNixer_t *nixer);
 extern int gageKernelSet(gageContext *ctx,
 			 int which, NrrdKernel *k, double *kparm);
 extern void gageKernelReset(gageContext *ctx);
+extern int gageQuerySet(gageContext *ctx, gagePerVolume *pvl,
+			unsigned int query);
 extern int gageVolumeSet(gageContext *ctx, gagePerVolume *pvl,
-			 Nrrd *npad, int havePad);
-extern int gageQuerySet(gagePerVolume *pvl, unsigned int query);
-extern int gageUpdate(gageContext *ctx, gagePerVolume *pvl);
-extern int gageProbe(gageContext *ctx, gagePerVolume *pvl,
-		     gage_t x, gage_t y, gage_t z);
+			 Nrrd *nin);
+extern int gageProbe(gageContext *ctx, gage_t x, gage_t y, gage_t z);
 
-/* simple.c */
-extern gageSimple *gageSimpleNew();
-extern int gageSimpleUpdate(gageSimple *spl);
-extern int gageSimpleKernelSet(gageSimple *spl,
-			       int which, NrrdKernel *k, double *kparm);
-extern int gageSimpleVolumeSet(gageSimple *spl, Nrrd *nrrd, gageKind *kind);
-extern int gageSimpleQuerySet(gageSimple *spl, unsigned int query);
-extern int gageSimpleProbe(gageSimple *spl, gage_t x, gage_t y, gage_t z);
-extern gageSimple *gageSimpleNix(gageSimple *spl);
+/* update.c */
+extern int gageUpdate(gageContext *ctx);
 
 #endif /* GAGE_HAS_BEEN_INCLUDED */
 #ifdef __cplusplus

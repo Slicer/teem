@@ -20,203 +20,276 @@
 #include "gage.h"
 #include "private.h"
 
-void
-_gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="_gageSclAnswer";
-  unsigned int query;
-  gage_t len, sHess[9], gp1[3], gp2[3], nPerp[9], 
-    ginv, gmag=0, T, N, D;
-  double tmpMat[9], tmpVec[3], hevec[9], heval[3];
-  gageSclAnswer *san;
-
-  query = pvl->query;
-  san = (gageSclAnswer *)pvl->ansStruct;
-  if (1 & (query >> gageSclValue)) {
-    /* done if doV */
-    if (ctx->verbose) {
-      fprintf(stderr, "val = % 15.7f\n", (double)(san->val[0]));
-    }
-  }
-  if (1 & (query >> gageSclGradVec)) {
-    /* done if doD1 */
-    if (ctx->verbose) {
-      fprintf(stderr, "gvec = ");
-      ell3vPRINT(stderr, san->gvec);
-    }
-  }
-  if (1 & (query >> gageSclGradMag)) {
-    san->gmag[0] = sqrt(ELL_3V_DOT(san->gvec, san->gvec));
-  }
-  if (1 & (query >> gageSclNormal)) {
-    /* this will always set gmag */
-    if (san->gmag[0]) {
-      ELL_3V_SCALE(san->norm, 1.0/san->gmag[0], san->gvec);
-      /* polishing ... 
-      len = sqrt(ELL_3V_DOT(san->norm, san->norm));
-      ELL_3V_SCALE(san->norm, 1.0/len, san->norm);
-      */
-      gmag = san->gmag[0];
-    } else {
-      ELL_3V_COPY(san->norm, gageZeroNormal);
-      gmag = ctx->gradMagMin;
-    }
-  }
-  if (1 & (query >> gageSclHessian)) {
-    /* done if doD2 */
-    if (ctx->verbose) {
-      fprintf(stderr, "%s: hess = \n", me);
-      ell3mPRINT(stderr, san->hess);
-    }
-  }
-  if (1 & (query >> gageSclLaplacian)) {
-    san->lapl[0] = san->hess[0] + san->hess[4] + san->hess[8];
-    if (ctx->verbose) {
-      fprintf(stderr, "%s: lapl = %g + %g + %g  = %g\n", me,
-	      san->hess[0], san->hess[4], san->hess[8],
-	      san->lapl[0]);
-    }
-  }
-  if (1 & (query >> gageSclHessEval)) {
-    ELL_3M_COPY(tmpMat, san->hess);
-    /* HEY: look at the return value for root multiplicity? */
-    ell3mEigensolve(heval, hevec, tmpMat, AIR_TRUE);
-    ELL_3V_COPY(san->heval, heval);
-  }
-  if (1 & (query >> gageSclHessEvec)) {
-    ELL_3M_COPY(san->hevec, hevec);
-  }
-  if (1 & (query >> gageScl2ndDD)) {
-    ELL_3MV_MUL(tmpVec, san->hess, san->norm);
-    san->scnd[0] = ELL_3V_DOT(san->norm, tmpVec);
-  }
-  if (1 & (query >> gageSclGeomTens)) {
-    ginv = 1.0/gmag;
-    /* we flip the sign as well as scaling the Hessian, so that when
-       values "inside" an isosurface are higher, we get the expected
-       sense: the normal points outwards from a surface */
-    ELL_3M_SCALE(sHess, -ginv, san->hess);
-    /* nPerp = I - outer(norm, norm): matrix which projects onto the
-       plane perpendicular to the normal */
-    ELL_3MV_OUTER(nPerp, san->norm, san->norm);
-    ELL_3M_SCALE(nPerp, -1, nPerp);
-    nPerp[0] += 1;
-    nPerp[4] += 1;
-    nPerp[8] += 1;
-
-    /* san->gten = nPerp * sHess * nPerp */
-    ELL_3M_MUL(tmpMat, sHess, nPerp);
-    ELL_3M_MUL(san->gten, nPerp, tmpMat);
-
-    if (ctx->verbose) {
-      ELL_3MV_MUL(tmpVec, san->gten, san->norm); len = ELL_3V_LEN(tmpVec);
-      fprintf(stderr, "should be small: %30.15f\n", (double)len);
-      ell3vPERP(gp1, san->norm);
-      ELL_3MV_MUL(tmpVec, san->gten, gp1); len = ELL_3V_LEN(tmpVec);
-      fprintf(stderr, "should be bigger: %30.15f\n", (double)len);
-      ELL_3V_CROSS(gp2, gp1, san->norm);
-      ELL_3MV_MUL(tmpVec, san->gten, gp2); len = ELL_3V_LEN(tmpVec);
-      fprintf(stderr, "should be bigger: %30.15f\n", (double)len);
-    }
-  }
-  if (1 && (query >> gageSclCurvedness)) {
-    san->C[0] = ELL_3M_L2NORM(san->gten);
-  }
-  if (1 && (query >> gageSclShapeTrace)) {
-    san->St[0] = ELL_3M_TRACE(san->gten);
-  }
-  if (1 && (query >> gageSclK1K2)) {
-    T = san->St[0];
-    N = san->C[0];
-    D = 2*N*N - T*T;
-    if (D < 0) {
-      fprintf(stderr, "%s: !!! D curv determinant % 22.10f < 0.0\n", me, D);
-    }
-    D = AIR_MAX(D, 0);
-    D = sqrt(D);
-    san->k1k2[0] = 0.5*(T + D);
-    san->k1k2[1] = 0.5*(T - D);
-  }
-  if (1 & (query >> gageSclShapeIndex)) {
-     san->Si[0] = -(2/M_PI)*atan2(san->k1k2[0] + san->k1k2[1],
-				  san->k1k2[0] - san->k1k2[1]);
-  }
-  if (1 & (query >> gageSclCurvDir)) {
-    /* HEY: this only works when K1, K2, 0 are all well mutually distinct,
-       since these are the eigenvalues of the geometry tensor, and this
-       code assumes that the eigenspaces are all one-dimensional */
-    ELL_3M_COPY(tmpMat, san->gten);
-    ELL_3M_SET_DIAG(tmpMat,
-		    san->gten[0]-san->k1k2[0],
-		    san->gten[4]-san->k1k2[0],
-		    san->gten[8]-san->k1k2[0]);
-    ell3mNullspace1(tmpVec, tmpMat);
-    ELL_3V_COPY(san->cdir+0, tmpVec);
-    ELL_3M_SET_DIAG(tmpMat,
-		    san->gten[0]-san->k1k2[1],
-		    san->gten[4]-san->k1k2[1],
-		    san->gten[8]-san->k1k2[1]);
-    ell3mNullspace1(tmpVec, tmpMat);
-    ELL_3V_COPY(san->cdir+3, tmpVec);
-  }
-  return;
-}
-
-void
-_gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="_gageSclFilter";
-  int fd;
-  gageSclAnswer *san;
-  gage_t *fw00, *fw11, *fw22;
-
-  fd = ctx->fd;
-  san = (gageSclAnswer *)pvl->ansStruct;
-  fw00 = ctx->fw + fd*3*gageKernel00;
-  fw11 = ctx->fw + fd*3*gageKernel11;
-  fw22 = ctx->fw + fd*3*gageKernel22;
-  /* perform the filtering */
-  if (ctx->k3pack) {
-    switch (fd) {
-    case 2:
-      _gageScl3PFilter2(pvl->iv3, pvl->iv2, pvl->iv1, 
-			fw00, fw11, fw22,
-			san->val, san->gvec, san->hess,
-			pvl->doV, pvl->doD1, pvl->doD2);
-      break;
-    case 4:
-      _gageScl3PFilter4(pvl->iv3, pvl->iv2, pvl->iv1, 
-			fw00, fw11, fw22,
-			san->val, san->gvec, san->hess,
-			pvl->doV, pvl->doD1, pvl->doD2);
-      break;
-    default:
-      _gageScl3PFilterN(fd,
-			pvl->iv3, pvl->iv2, pvl->iv1, 
-			fw00, fw11, fw22,
-			san->val, san->gvec, san->hess,
-			pvl->doV, pvl->doD1, pvl->doD2);
-      break;
-    }
-  } else {
-    fprintf(stderr, "!%s: sorry, 6pack filtering not implemented\n", me);
-  }
-
-  return;
-}
-
-void
-_gageSclIv3Fill(gageContext *ctx, gagePerVolume *pvl, void *here) {
-  int i, fd;
-  
-  fd = ctx->fd;
-  for (i=0; i<fd*fd*fd; i++)
-    pvl->iv3[i] = pvl->lup(here, ctx->off[i]);
-
-  return;
-}
 /*
-    if (1 == valLen) {
-    } else {
-      for (i=0; i<fd*fd*fd; i++)
-	memcpy(pvl->iv3 + i, here + valLen*ctx->off[i], valLen);
-    }
+  gageSclUnknown=-1,  * -1: nobody knows *
+  gageSclValue,       *  0: data value: *GT *
+  gageSclGradVec,     *  1: gradient vector, un-normalized: GT[3] *
+  gageSclGradMag,     *  2: gradient magnitude: *GT *
+  gageSclNormal,      *  3: gradient vector, normalized: GT[3] *
+  gageSclHessian,     *  4: Hessian: GT[9] *
+  gageSclLaplacian,   *  5: Laplacian: Dxx + Dyy + Dzz: *GT *
+  gageSclHessEval,    *  6: Hessian's eigenvalues: GT[3] *
+  gageSclHessEvec,    *  7: Hessian's eigenvectors: GT[9] *
+  gageScl2ndDD,       *  8: 2nd dir.deriv. along gradient: *GT *
+  gageSclGeomTens,    *  9: symm. matrix w/ evals 0,K1,K2 and evecs grad,
+			     curvature directions: GT[9] *
+  gageSclCurvedness,  * 10: L2 norm of K1, K2 (not Koen.'s "C"): *GT *
+  gageSclShapeTrace,  * 11, (K1+K2)/Curvedness: *GT *
+  gageSclShapeIndex,  * 12: Koen.'s shape index, ("S"): *GT *
+  gageSclK1K2,        * 13: principle curvature magnitudes: GT[2] *
+  gageSclCurvDir,     * 14: principle curvature directions: GT[6] *
+  gageSclLast
+  0   1   2   3   4   5   6   7   8   9  10  11  12  13  14
 */
+
+/*
+******** gageSclAnsLength[]
+**
+** the number of gage_t used for each answer
+*/
+int
+gageSclAnsLength[GAGE_SCL_MAX+1] = {
+  1,  3,  1,  3,  9,  1,  3,  9,  1,  9,  1,  1,  1,  2,  6
+};
+
+/*
+******** gageSclAnsOffset[]
+**
+** the index into the answer array of the first element of the answer
+*/
+int
+gageSclAnsOffset[GAGE_SCL_MAX+1] = {
+  0,  1,  4,  5,  8, 17, 18, 21, 30, 31, 40, 41, 42, 43, 45  /* 51 */
+};
+
+/*
+** _gageSclNeedDeriv[]
+**
+** each value is a BIT FLAG representing the different value/derivatives
+** that are needed to calculate the quantity.  
+*/
+int
+_gageSclNeedDeriv[GAGE_SCL_MAX+1] = {
+  1,  2,  2,  2,  4,  4,  4,  4,  6,  6,  6,  6,  6,  6,  6
+};
+
+/*
+** _gageSclPrereq[]
+** 
+** this records the measurements which are needed as ingredients for any
+** given measurement, but it is not necessarily the recursive expansion of
+** that requirement (that role is performed by gageSclSetQuery())
+*/
+unsigned int
+_gageSclPrereq[GAGE_SCL_MAX+1] = {
+  /* gageSclValue */
+  0,
+
+  /* gageSclGradVec */
+  0,
+
+  /* gageSclGradMag */
+  (1<<gageSclGradVec),
+
+  /* gageSclNormal */
+  (1<<gageSclGradVec) | (1<<gageSclGradMag),
+
+  /* gageSclHessian */
+  0,
+
+  /* gageSclLaplacian */
+  (1<<gageSclHessian),   /* not really true, but this is simpler */
+
+  /* gageSclHessEval */
+  (1<<gageSclHessian),
+
+  /* gageSclHessEvec */
+  (1<<gageSclHessian) | (1<<gageSclHessEval),
+
+  /* gageScl2ndDD */
+  (1<<gageSclHessian) | (1<<gageSclNormal),
+
+  /* gageSclGeomTens */
+  (1<<gageSclHessian) | (1<<gageSclNormal) | (1<<gageSclGradMag),
+  
+  /* gageSclCurvedness */
+  (1<<gageSclGeomTens),
+
+  /* gageSclShapeTrace */
+  (1<<gageSclGeomTens),
+
+  /* gageSclShapeIndex */
+  (1<<gageSclK1K2),
+
+  /* gageSclK1K2 */
+  (1<<gageSclCurvedness) | (1<<gageSclShapeTrace),
+
+  /* gageSclCurvDir */
+  (1<<gageSclGeomTens) | (1<<gageSclK1K2)
+  
+};
+
+char
+_gageSclStr[][AIR_STRLEN_SMALL] = {
+  "(unknown gageScl)",
+  "value",
+  "gradient vector",
+  "gradient magnitude",
+  "normalized gradient",
+  "Hessian",
+  "Laplacian",
+  "Hessian eigenvalues",
+  "Hessian eigenvectors",
+  "2nd DD along gradient",
+  "geometry tensor",
+  "curvedness",
+  "shape trace",
+  "shape index",
+  "kappa1 kappa2",
+  "curvature directions"
+};
+
+int
+_gageSclVal[] = {
+  gageSclUnknown,
+  gageSclValue,
+  gageSclGradVec,
+  gageSclGradMag,
+  gageSclNormal,
+  gageSclHessian,
+  gageSclLaplacian,
+  gageSclHessEval,
+  gageSclHessEvec,
+  gageScl2ndDD,
+  gageSclGeomTens,
+  gageSclCurvedness,
+  gageSclShapeTrace,
+  gageSclShapeIndex,
+  gageSclK1K2,
+  gageSclCurvDir
+};
+
+#define GS_V  gageSclValue
+#define GS_GV gageSclGradVec
+#define GS_GM gageSclGradMag
+#define GS_N  gageSclNormal
+#define GS_H  gageSclHessian
+#define GS_L  gageSclLaplacian
+#define GS_HA gageSclHessEval
+#define GS_HE gageSclHessEvec
+#define GS_2D gageScl2ndDD
+#define GS_GT gageSclGeomTens
+#define GS_CV gageSclCurvedness
+#define GS_ST gageSclShapeTrace
+#define GS_SI gageSclShapeIndex
+#define GS_KK gageSclK1K2
+#define GS_CD gageSclCurvDir
+
+char
+_gageSclStrEqv[][AIR_STRLEN_SMALL] = {
+  "v", "val", "value", 
+  "grad", "gvec", "gradvec", "grad vec", "gradient vector",
+  "g", "gm", "gmag", "gradmag", "grad mag", "gradient magnitude",
+  "n", "normal", "gnorm", "normg", "norm", "normgrad", \
+       "norm grad", "normalized gradient",
+  "h", "hess", "hessian",
+  "l", "lapl", "laplacian",
+  "heval", "h eval", "hessian eval", "hessian eigenvalues",
+  "hevec", "h evec", "hessian evec", "hessian eigenvectors",
+  "2d", "2dd", "2nddd", "2nd", "2nd dd", "2nd dd along gradient",
+  "gten", "geoten", "geomten", "geometry tensor",
+  "cv", "curvedness",
+  "st", "shape trace",
+  "si", "shape index",
+  "k1k2", "k1 k2", "kappa1kappa2", "kappa1 kappa2",
+  "cdir", "c dir", "curvdir", "curv dir", "curvature directions",
+  ""
+};
+
+int
+_gageSclValEqv[] = {
+  GS_V, GS_V, GS_V,
+  GS_GV, GS_GV, GS_GV, GS_GV, GS_GV, 
+  GS_GM, GS_GM, GS_GM, GS_GM, GS_GM, GS_GM,
+  GS_N, GS_N, GS_N, GS_N, GS_N, GS_N, GS_N, GS_N,
+  GS_H, GS_H, GS_H, 
+  GS_L, GS_L, GS_L, 
+  GS_HA, GS_HA, GS_HA, GS_HA, 
+  GS_HE, GS_HE, GS_HE, GS_HE, 
+  GS_2D, GS_2D, GS_2D, GS_2D, GS_2D, GS_2D,
+  GS_GT, GS_GT, GS_GT, GS_GT, 
+  GS_CV, GS_CV,
+  GS_ST, GS_ST,
+  GS_SI, GS_SI,
+  GS_KK, GS_KK, GS_KK, GS_KK, 
+  GS_CD, GS_CD, GS_CD, GS_CD, GS_CD
+};
+
+airEnum
+_gageScl = {
+  "gageScl",
+  GAGE_SCL_MAX+1,
+  _gageSclStr, _gageSclVal,
+  _gageSclStrEqv, _gageSclValEqv,
+  AIR_FALSE
+};
+airEnum *
+gageScl = &_gageScl;
+
+gageSclAnswer *
+_gageSclAnswerNew() {
+  gageSclAnswer *san;
+  int i;
+
+  san = (gageSclAnswer *)calloc(1, sizeof(gageSclAnswer));
+  if (san) {
+    for (i=0; i<GAGE_SCL_TOTAL_ANS_LENGTH; i++)
+      san->ans[i] = AIR_NAN;
+    san->val   = &(san->ans[gageSclAnsOffset[gageSclValue]]);
+    san->gvec  = &(san->ans[gageSclAnsOffset[gageSclGradVec]]);
+    san->gmag  = &(san->ans[gageSclAnsOffset[gageSclGradMag]]);
+    san->norm  = &(san->ans[gageSclAnsOffset[gageSclNormal]]);
+    san->hess  = &(san->ans[gageSclAnsOffset[gageSclHessian]]);
+    san->lapl  = &(san->ans[gageSclAnsOffset[gageSclLaplacian]]);
+    san->heval = &(san->ans[gageSclAnsOffset[gageSclHessEval]]);
+    san->hevec = &(san->ans[gageSclAnsOffset[gageSclHessEvec]]);
+    san->scnd  = &(san->ans[gageSclAnsOffset[gageScl2ndDD]]);
+    san->gten  = &(san->ans[gageSclAnsOffset[gageSclGeomTens]]);
+    san->C     = &(san->ans[gageSclAnsOffset[gageSclCurvedness]]);
+    san->St    = &(san->ans[gageSclAnsOffset[gageSclShapeTrace]]);
+    san->Si    = &(san->ans[gageSclAnsOffset[gageSclShapeIndex]]);
+    san->k1k2  = &(san->ans[gageSclAnsOffset[gageSclK1K2]]);
+    san->cdir  = &(san->ans[gageSclAnsOffset[gageSclCurvDir]]);
+  }
+  return san;
+}
+
+gageSclAnswer *
+_gageSclAnswerNix(gageSclAnswer *san) {
+
+  return airFree(san);
+}
+
+gageKind
+_gageKindScl = {
+  "scalar",
+  &_gageScl,
+  0,
+  1,
+  GAGE_SCL_MAX,
+  gageSclAnsLength,
+  gageSclAnsOffset,
+  GAGE_SCL_TOTAL_ANS_LENGTH,
+  _gageSclNeedDeriv,
+  _gageSclPrereq,
+  _gageSclPrint_query,
+  (void *(*)(void))_gageSclAnswerNew,
+  (void *(*)(void*))_gageSclAnswerNix,
+  _gageSclIv3Fill,
+  _gageSclIv3Print,
+  _gageSclFilter,
+  _gageSclAnswer
+};
+gageKind *
+gageKindScl = &_gageKindScl;
+

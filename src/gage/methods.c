@@ -26,49 +26,94 @@
 */
 gageContext *
 gageContextNew() {
+  char me[]="gageContextNew", err[AIR_STRLEN_MED];
   int i;
   gageContext *ctx;
   
   ctx = (gageContext*)calloc(1, sizeof(gageContext));
-  if (ctx) {
-    ctx->verbose = gageDefVerbose;
-    ctx->gradMagMin = gageDefGradMagMin;
-    ctx->renormalize = gageDefRenormalize;
-    ctx->checkIntegrals = gageDefCheckIntegrals;
-    ctx->k3pack = gageDefK3Pack;
-
-    ctx->haveVolume = AIR_FALSE;
-
-    ctx->fsl = ctx->fw = NULL;
-    ctx->off = NULL;
-    gageKernelReset(ctx);
-
-    ctx->havePad = -1;
-    ctx->sx = ctx->sy = ctx->sz = -1;
-    ctx->xs = ctx->ys = ctx->zs = AIR_NAN;
-    for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-      ctx->fwScl[i][0] = ctx->fwScl[i][1] = ctx->fwScl[i][2] = AIR_NAN;
-    }
-
-    for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-      ctx->needK[i] = AIR_FALSE;
-    }
-
-    ctx->bidx = -1;
-    ctx->xf = ctx->xf = ctx->xf = AIR_NAN;
+  if (!(ctx)) {
+    sprintf(err, "%s: couldn't allocate struct", me);
+    biffAdd(GAGE, err); return NULL;
   }
+
+  ctx->verbose = gageDefVerbose;
+  ctx->gradMagMin = gageDefGradMagMin;
+  ctx->renormalize = gageDefRenormalize;
+  ctx->checkIntegrals = gageDefCheckIntegrals;
+  ctx->noRepadWhenSmaller = gageDefNoRepadWhenSmaller;
+  ctx->integralNearZero = gageDefIntegralNearZero;
+  ctx->k3pack = gageDefK3Pack;
+  gageKernelReset(ctx);
+  for (i=0; i<GAGE_PERVOLUME_NUM; i++)
+    ctx->pvl[i] = NULL;
+  ctx->numPvl = 0;
+  ctx->padder = _gageStandardPadder;
+  ctx->nixer = _gageStandardNixer;
+  for (i=0; i<GAGE_FLAG_NUM; i++) {
+    ctx->flag[i] = AIR_FALSE;
+    ctx->pvlFlag[i] = AIR_FALSE;
+  }
+  ctx->thisIsACopy = AIR_FALSE;
+  ctx->needPad = ctx->havePad = ctx->fr = ctx->fd = -1;
+  ctx->fsl = ctx->fw = NULL;
+  ctx->off = NULL;
+  ctx->sx = ctx->sy = ctx->sz = -1;
+  ctx->xs = ctx->ys = ctx->zs = AIR_NAN;
+  for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
+    ctx->fwScale[i][0] = ctx->fwScale[i][1] = ctx->fwScale[i][2] = AIR_NAN;
+  }
+  ctx->needD[0] = ctx->needD[1] = ctx->needD[2] = AIR_FALSE;
+  for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
+    ctx->needK[i] = AIR_FALSE;
+  }
+  ctx->xf = ctx->xf = ctx->xf = AIR_NAN;
+  ctx->bidx = -1;
+
   return ctx;
 }
 
 /*
+******** gageContextCopy()
+**
+** the semantics and utility of this are purposefully limited: given a context
+** on which has just been successfully called gageUpdate(), this will create
+** a new context and new attached pervolumes so that you can call gageProbe()
+** on the new context and by probing the same volumes with the same kernels
+** and the same queries.  And that's all you can do- you can't change any
+** state in either the original or any of the copy contexts.  This is only
+** intended as a simple way to supported multi-threaded usages which want
+** to do the exact same thing in many different threads.  If you want to 
+** change state, then gageContextNix() all the copy contexts, gage...Set(),
+** gageUpdate(), and gageContextCopy() again.
+*/
+gageContext *
+gageContextCopy(gageContext *ctx) {
+  char me[]="gageContextCopy" /*, err[AIR_STRLEN_MED] */ ;
+
+  fprintf(stderr, "%s: sorry, not yet implemented.\n", me);
+
+  return NULL;
+}
+
+
+/*
 ** gageContextNix()
 **
+** responsible for freeing and clearing up everything hanging off a 
+** context so that things can be returned to the way they were prior
+** to gageContextNew().
 */
 gageContext *
 gageContextNix(gageContext *ctx) {
+  int i;
 
   if (ctx) {
-    gageKernelReset(ctx);
+    RESET(ctx->fw);
+    RESET(ctx->fsl);
+    RESET(ctx->off);
+    for (i=0; i<ctx->numPvl; i++) {
+      gagePerVolumeNix(ctx, ctx->pvl[i]);
+    }
   }
   return airFree(ctx);
 }
@@ -76,126 +121,63 @@ gageContextNix(gageContext *ctx) {
 /*
 ******** gagePerVolumeNew()
 **
-** allocates a new gagePerVolume, given needPad (so as to allocate
-** the iv3, iv2, and iv1 buffers).  Returns a pointer to the new
-** struct if all is well, or NULL if otherwise.
-**
-** It does seem strange that needPad isn't actually stored in this
-** struct, doesn't it.  Currently, it is stored in the gageContext.
-**
-** DOES use biff, unlike other gage methods.
+** creates a new pervolume of a known kind, but nothing besides the
+** answer struct is allocated
 */
 gagePerVolume *
-gagePerVolumeNew(int needPad, gageKind *kind) {
+gagePerVolumeNew(gageKind *kind) {
   char me[]="gagePerVolumeNew", err[AIR_STRLEN_MED];
   gagePerVolume *pvl;
-  int i, fd, E;
 
-  if (!( needPad >= 0 )) {
-    sprintf(err, "%s: given needPad (%d) not >= 0", me, needPad);
-    biffAdd(GAGE, err); return NULL;
-  }
   if (!( kind )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return NULL;
   }
-
-  fd = 2*(needPad + 1);
   pvl = (gagePerVolume *)calloc(1, sizeof(gagePerVolume));
   if (!( pvl )) {
-    sprintf(err, "%s: couldn't allocate gagePerVolume struct", me);
+    sprintf(err, "%s: couldn't allocate struct", me);
     biffAdd(GAGE, err); return NULL;
   }
 
-  E = 0;
-  if (!E) E |= !(pvl->iv3 = calloc(fd*fd*fd*kind->valLen, sizeof(gage_t)));
-  if (!E) E |= !(pvl->iv2 = calloc(fd*fd*kind->valLen, sizeof(gage_t)));
-  if (!E) E |= !(pvl->iv1 = calloc(fd*kind->valLen, sizeof(gage_t)));
-  if (E) {
-    sprintf(err, "%s: couldn't allocate buffers for fd = %d", me, fd);
-    biffAdd(GAGE, err); return NULL;
-  }
-
-  /* query- and volume-dependent stuff is initialized to NULL/non-values*/
-  pvl->query = 0;
-  pvl->npad = NULL;
   pvl->kind = kind;
+  pvl->query = 0;
+  pvl->nin = NULL;
+  pvl->padInfo = NULL;
+  pvl->npad = NULL;
+  pvl->thisIsACopy = AIR_FALSE;
+  pvl->flagNin = AIR_FALSE;
+  pvl->iv3 = pvl->iv2 = pvl->iv1 = NULL;
   pvl->lup = NULL;
-  pvl->doV = pvl->doD1 = pvl->doD2 = AIR_FALSE;
-  for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-    pvl->needK[i] = AIR_FALSE;
-  }
-
+  pvl->needD[0] = pvl->needD[1] = pvl->needD[2] = AIR_FALSE;
   pvl->ansStruct = pvl->kind->ansNew();
 
   return pvl;
 }
 
+/*
+******** gagePerVolumeNix()
+**
+** uses the nixer to remove the padded volume, and frees all other
+** dynamically allocated memory assocated with a pervolume
+**
+** Unfortunately, because the nixer is in the gageContext, that has
+** to be passed to this function.
+*/
 gagePerVolume *
-gagePerVolumeNix(gagePerVolume *pvl) {
+gagePerVolumeNix(gageContext *ctx, gagePerVolume *pvl) {
+  void *padInfo;
 
-  airFree(pvl->iv3);
-  airFree(pvl->iv2);
-  airFree(pvl->iv1);
+  RESET(pvl->iv3);
+  RESET(pvl->iv2);
+  RESET(pvl->iv1);
+  padInfo = (ctx->nixer == _gageStandardNixer
+	     ? NULL
+	     : pvl->padInfo);
+  /* a NULL nixer is a no-op */
+  if (ctx->nixer) {
+    ctx->nixer(pvl->npad, pvl->kind, padInfo);
+  }
   pvl->kind->ansNix(pvl->ansStruct);
   return airFree(pvl);
 }
 
-gageSclAnswer *
-_gageSclAnswerNew() {
-  gageSclAnswer *san;
-  int i;
-
-  san = (gageSclAnswer *)calloc(1, sizeof(gageSclAnswer));
-  if (san) {
-    for (i=0; i<GAGE_SCL_TOTAL_ANS_LENGTH; i++)
-      san->ans[i] = AIR_NAN;
-    san->val   = &(san->ans[gageSclAnsOffset[gageSclValue]]);
-    san->gvec  = &(san->ans[gageSclAnsOffset[gageSclGradVec]]);
-    san->gmag  = &(san->ans[gageSclAnsOffset[gageSclGradMag]]);
-    san->norm  = &(san->ans[gageSclAnsOffset[gageSclNormal]]);
-    san->hess  = &(san->ans[gageSclAnsOffset[gageSclHessian]]);
-    san->lapl  = &(san->ans[gageSclAnsOffset[gageSclLaplacian]]);
-    san->heval = &(san->ans[gageSclAnsOffset[gageSclHessEval]]);
-    san->hevec = &(san->ans[gageSclAnsOffset[gageSclHessEvec]]);
-    san->scnd  = &(san->ans[gageSclAnsOffset[gageScl2ndDD]]);
-    san->gten  = &(san->ans[gageSclAnsOffset[gageSclGeomTens]]);
-    san->C     = &(san->ans[gageSclAnsOffset[gageSclCurvedness]]);
-    san->St    = &(san->ans[gageSclAnsOffset[gageSclShapeTrace]]);
-    san->Si    = &(san->ans[gageSclAnsOffset[gageSclShapeIndex]]);
-    san->k1k2  = &(san->ans[gageSclAnsOffset[gageSclK1K2]]);
-    san->cdir  = &(san->ans[gageSclAnsOffset[gageSclCurvDir]]);
-  }
-  return san;
-}
-
-gageSclAnswer *
-_gageSclAnswerNix(gageSclAnswer *san) {
-
-  return airFree(san);
-}
-
-gageVecAnswer *
-_gageVecAnswerNew() {
-  gageVecAnswer *van;
-  int i;
-
-  van = (gageVecAnswer *)calloc(1, sizeof(gageVecAnswer));
-  if (van) {
-    for (i=0; i<GAGE_VEC_TOTAL_ANS_LENGTH; i++)
-      van->ans[i] = AIR_NAN;
-    van->vec  = &(van->ans[gageVecAnsOffset[gageVecVector]]);
-    van->len  = &(van->ans[gageVecAnsOffset[gageVecLength]]);
-    van->norm = &(van->ans[gageVecAnsOffset[gageVecNormalized]]);
-    van->jac  = &(van->ans[gageVecAnsOffset[gageVecJacobian]]);
-    van->div  = &(van->ans[gageVecAnsOffset[gageVecDivergence]]);
-    van->curl = &(van->ans[gageVecAnsOffset[gageVecCurl]]);
-  }
-  return van;
-}
-
-gageVecAnswer *
-_gageVecAnswerNix(gageVecAnswer *van) {
-
-  return airFree(van);
-}

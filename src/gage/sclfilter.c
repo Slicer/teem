@@ -20,6 +20,17 @@
 #include "gage.h"
 #include "private.h"
 
+void
+_gageSclIv3Fill(gageContext *ctx, gagePerVolume *pvl, void *here) {
+  int i, fd;
+  
+  fd = ctx->fd;
+  for (i=0; i<fd*fd*fd; i++)
+    pvl->iv3[i] = pvl->lup(here, ctx->off[i]);
+
+  return;
+}
+
 #define X 0
 #define Y 1
 #define Z 2
@@ -390,3 +401,46 @@ _gageScl3PFilterN(int fd,
 
   return;
 }
+
+void
+_gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
+  char me[]="_gageSclFilter";
+  int fd;
+  gageSclAnswer *san;
+  gage_t *fw00, *fw11, *fw22;
+
+  fd = ctx->fd;
+  san = (gageSclAnswer *)pvl->ansStruct;
+  fw00 = ctx->fw + fd*3*gageKernel00;
+  fw11 = ctx->fw + fd*3*gageKernel11;
+  fw22 = ctx->fw + fd*3*gageKernel22;
+  /* perform the filtering */
+  if (ctx->k3pack) {
+    switch (fd) {
+    case 2:
+      _gageScl3PFilter2(pvl->iv3, pvl->iv2, pvl->iv1, 
+			fw00, fw11, fw22,
+			san->val, san->gvec, san->hess,
+			pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+      break;
+    case 4:
+      _gageScl3PFilter4(pvl->iv3, pvl->iv2, pvl->iv1, 
+			fw00, fw11, fw22,
+			san->val, san->gvec, san->hess,
+			pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+      break;
+    default:
+      _gageScl3PFilterN(fd,
+			pvl->iv3, pvl->iv2, pvl->iv1, 
+			fw00, fw11, fw22,
+			san->val, san->gvec, san->hess,
+			pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+      break;
+    }
+  } else {
+    fprintf(stderr, "!%s: sorry, 6pack filtering not implemented\n", me);
+  }
+
+  return;
+}
+

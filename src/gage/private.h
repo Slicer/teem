@@ -22,37 +22,22 @@ extern "C" {
 #endif
 
 #define GT gage_t
-#define GT_FLOAT GAGE_TYPE_FLOAT
 
-#if GT_FLOAT
-#define ell3vPRINT ell3vPrint_f
-#define ell3mPRINT ell3mPrint_f
-#define ell3vPERP ell3vPerp_f
-#define nrrdLOOKUP nrrdFLookup
+#if GAGE_TYPE_FLOAT
+#  define ell3vPRINT ell3vPrint_f
+#  define ell3mPRINT ell3mPrint_f
+#  define ell3vPERP ell3vPerp_f
+#  define nrrdLOOKUP nrrdFLookup
+#  define EVALN evalN_f               /* NrrdKernel method */
 #else
-#define ell3vPRINT ell3vPrint_d
-#define ell3mPRINT ell3mPrint_d
-#define ell3vPERP ell3vPerp_d
-#define nrrdLOOKUP nrrdDLookup
+#  define ell3vPRINT ell3vPrint_d
+#  define ell3mPRINT ell3mPrint_d
+#  define ell3vPERP ell3vPerp_d
+#  define nrrdLOOKUP nrrdDLookup
+#  define EVALN evalN_d               /* NrrdKernel method */
 #endif
 
 #define RESET(p) p = airFree(p)
-
-/* methods.c */
-extern gageSclAnswer *_gageSclAnswerNew();
-extern gageSclAnswer *_gageSclAnswerNix(gageSclAnswer *san);
-extern gageVecAnswer *_gageVecAnswerNew();
-extern gageVecAnswer *_gageVecAnswerNix(gageVecAnswer *van);
-
-/* arrays.c */
-extern unsigned int _gageSclPrereq[GAGE_SCL_MAX+1];
-extern unsigned int _gageVecPrereq[GAGE_VEC_MAX+1];
-extern int _gageSclNeedDeriv[GAGE_SCL_MAX+1];
-extern int _gageVecNeedDeriv[GAGE_VEC_MAX+1];
-
-/* enums.c */
-extern airEnum _gageScl;
-extern airEnum _gageVec;
 
 /* print.c */
 extern void _gagePrint_off(FILE *, gageContext *ctx);
@@ -62,25 +47,17 @@ extern void _gagePrint_fslw(FILE *, gageContext *ctx);
 extern int _gageLocationSet(gageContext *ctx, int *newBidxP,
 			    gage_t x, gage_t y, gage_t z);
 
+/* scl.c */
+extern int _gageSclNeedDeriv[GAGE_SCL_MAX+1];
+extern unsigned int _gageSclPrereq[GAGE_SCL_MAX+1];
+  /* extern airEnum _gageScl; */
+
 /* sclprint.c */
 extern void _gageSclPrint_query(FILE *, unsigned int query);
 extern void _gageSclIv3Print(FILE *, gageContext *ctx, gagePerVolume *pvl);
 
-/* vecprint.c */
-extern void _gageVecPrint_query(FILE *, unsigned int query);
-extern void _gageVecIv3Print(FILE *, gageContext *ctx, gagePerVolume *pvl);
-
-/* scl.c */
-extern void _gageSclFilter(gageContext *ctx, gagePerVolume *pvl);
-extern void _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl);
+/* sclfilter.c */
 extern void _gageSclIv3Fill(gageContext *ctx, gagePerVolume *pvl, void *here);
-
-/* vec.c */
-extern void _gageVecFilter(gageContext *ctx, gagePerVolume *pvl);
-extern void _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl);
-extern void _gageVecIv3Fill(gageContext *ctx, gagePerVolume *pvl, void *here);
-
-/* sclfilt.c */
 extern void _gageScl3PFilter2(GT *iv3, GT *iv2, GT *iv1,
 			      GT *fw00, GT *fw11, GT *fw22,
 			      GT *val, GT *gvec, GT *hess,
@@ -94,12 +71,21 @@ extern void _gageScl3PFilterN(int fd,
 			      GT *fw00, GT *fw11, GT *fw22,
 			      GT *val, GT *gvec, GT *hess,
 			      int doV, int doD1, int doD2);
+extern void _gageSclFilter(gageContext *ctx, gagePerVolume *pvl);
 
-/* general.c */
-extern int _gageKernelDependentSet(gageContext *ctx);
-extern int _gageVolumeDependentSet(gageContext *ctx, Nrrd *npad,
-				   gageKind *kind);
-  
+/* sclanswer.c */
+extern void _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl);
+
+/* vecprint.c */
+extern void _gageVecPrint_query(FILE *, unsigned int query);
+extern void _gageVecIv3Print(FILE *, gageContext *ctx, gagePerVolume *pvl);
+
+/* misc.c */
+extern int _gagePerVolumeAttached(gageContext *ctx, gagePerVolume *pvl);
+extern int _gageStandardPadder(Nrrd *npad, Nrrd *nin, gageKind *kind,
+			       int padding, void *_info);
+extern void _gageStandardNixer(Nrrd *npad, gageKind *kind, void *_info);
+
 #ifdef __cplusplus
 }
 #endif

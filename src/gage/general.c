@@ -20,70 +20,205 @@
 #include "gage.h"
 #include "private.h"
 
+/*
+******** gageSet()
+**
+** for setting the boolean-ish flags in the context in an intelligent
+** manner, since changing some of them can have many consequences
+*/
 void
-gageValSet(gageContext *ctx, int which, int val) {
-  char me[]="gageValSet";
+gageSet(gageContext *ctx, int which, int val) {
+  char me[]="gageSet";
   
-  if (ctx && AIR_BETWEEN(gageValUnknown, which, gageValLast)) {
-    switch (which) {
-    case gageValVerbose:
-      ctx->verbose = val;
-      break;
-    case gageValRenormalize:
-      ctx->renormalize = val;
-      break;
-    case gageValCheckIntegrals:
-      ctx->checkIntegrals = val;
-      break;
-    case gageValK3Pack:
-      ctx->k3pack = val;
-      break;
-    case gageValNeedPad:
-      ctx->needPad = val;
-      break;
-    case gageValHavePad:
-      ctx->havePad = val;
-      break;
-    default:
-      fprintf(stderr, "%s: which = %d unknown!!\n", me, which);
-      break;
-    }
+  switch (which) {
+  case gageVerbose:
+    ctx->verbose = val;
+    break;
+  case gageRenormalize:
+    ctx->renormalize = !!val;
+    /* we have to make sure that any existing filter weights
+       are not re-used; because gageUpdage() is not called mid-probing,
+       we don't use the flag machinery.  Instead we just invalidate
+       the last known fractional probe locations */
+    ctx->xf = ctx->xf = ctx->xf = AIR_NAN;
+    break;
+  case gageCheckIntegrals:
+    ctx->checkIntegrals = !!val;
+    /* nothing changes because of this, it just affects future calls to
+       gageKernelSet() */
+    break;
+  case gageK3Pack:
+    ctx->k3pack = !!val;
+    ctx->flag[gageFlagK3Pack] = AIR_TRUE;
+    break;
+  case gageNoRepadWhenSmaller:
+    ctx->noRepadWhenSmaller = !!val;
+    ctx->flag[gageFlagNRWS] = AIR_TRUE;
+    break;
+  default:
+    fprintf(stderr, "\n%s: which = %d unknown!!\n\n", me, which);
+    break;
   }
   return;
 }
 
+/*
+******** gagePerVolumeAttach()
+**
+** attaches a pervolume to a context, which actually involves 
+** very little work
+*/
 int
-gageValGet(gageContext *ctx, int which) {
-  char me[]="gageValGet";
-  int val=-1;
+gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl) {
+  char me[]="gagePerVolumeAttach", err[AIR_STRLEN_MED];
 
-  if (ctx && AIR_BETWEEN(gageValUnknown, which, gageValLast)) {
-    switch (which) {
-    case gageValVerbose:
-      val = ctx->verbose;
-      break;
-    case gageValRenormalize:
-      val = ctx->renormalize;
-      break;
-    case gageValCheckIntegrals:
-      val = ctx->checkIntegrals;
-      break;
-    case gageValK3Pack:
-      val = ctx->k3pack;
-      break;
-    case gageValNeedPad:
-      val = ctx->needPad;
-      break;
-    case gageValHavePad:
-      val = ctx->havePad;
-      break;
-    default:
-      fprintf(stderr, "%s: which = %d unknown!!\n", me, which);
-      val = -1;
-      break;
+  if (!( ctx && pvl )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  if (_gagePerVolumeAttached(ctx, pvl)) {
+    sprintf(err, "%s: given pervolume already attached", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  if (ctx->numPvl == GAGE_PERVOLUME_NUM) {
+    sprintf(err, "%s: sorry, already have GAGE_PERVOLUME_NUM == %d "
+	    "pervolumes attached", me, GAGE_PERVOLUME_NUM);
+    biffAdd(GAGE, err); return 1;
+  }
+
+  /* here we go */
+  ctx->pvl[ctx->numPvl++] = pvl;
+
+  return 0;
+}
+
+/*
+******** gagePerVolumeDetach()
+**
+** detaches a pervolume from a context, but does nothing else
+** with the pervolume; caller may still want to call gagePerVolumeNix
+*/
+int
+gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl) {
+  char me[]="gagePerVolumeDetach", err[AIR_STRLEN_MED];
+  int i, idx;
+
+  if (!( ctx && pvl )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  idx = -1;
+  for (i=0; i<ctx->numPvl; i++) {
+    if (pvl == ctx->pvl[i]) {
+      idx = i;
     }
   }
-  return val;
+  if (-1 == idx) {
+    sprintf(err, "%s: given pervolume not currently attached", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  for (i=idx+1; i<ctx->numPvl; i++) {
+    ctx->pvl[i-1] = ctx->pvl[i];
+  }
+  ctx->pvl[ctx->numPvl--] = NULL;
+  return 0;
+}
+
+/*
+******** gageAnswerPointer()
+**
+** way of getting a pointer to a specific answer in a pervolume's
+** ansStruct, assuming the pervolume is valid, the requested measure
+** is a valid, and has an ansStruct allocted, and the ansStruct's main
+** answer array is where it should be in the struct.
+*/
+gage_t *
+gageAnswerPointer(gagePerVolume *pvl, int measure) {
+  gage_t *ret = NULL;
+  gageSclAnswer *san;
+
+  if (pvl && airEnumValidVal(pvl->kind->enm, measure)) {
+    san = (gageSclAnswer *)(pvl->ansStruct);
+    if (san) {
+      ret = san->ans + pvl->kind->ansOffset[measure];
+    }
+  }
+  return ret;
+}
+
+/*
+******** gageQuerySet()
+**
+** sets a query in a pervolume.  Does recursive expansion of query
+** to cover all prerequisite measures.  
+**
+** Sets: pvl->query, pvl->needD[]
+*/
+int
+gageQuerySet(gageContext *ctx, gagePerVolume *pvl, unsigned int query) {
+  char me[]="gageQuerySet", err[AIR_STRLEN_MED];
+  unsigned int mask, lastq, q;
+  int d;
+  
+  if (!( ctx && pvl )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  mask = (1U << (pvl->kind->queryMax+1)) - 1;
+  if (query != (query & mask)) {
+    sprintf(err, "%s: invalid bits set in query", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  pvl->query = query;
+  if (ctx->verbose) {
+    fprintf(stderr, "%s: original query = %u ...\n", me, pvl->query);
+    pvl->kind->queryPrint(stderr, pvl->query);
+  }
+  /* recursive expansion of prerequisites */
+  do {
+    lastq = pvl->query;
+    q = pvl->kind->queryMax+1;
+    do {
+      q--;
+      if ((1<<q) & pvl->query)
+	pvl->query |= pvl->kind->queryPrereq[q];
+    } while (q);
+  } while (pvl->query != lastq);
+  if (ctx->verbose) {
+    fprintf(stderr, "!%s: expanded query = %u ...\n", me, pvl->query);
+    pvl->kind->queryPrint(stderr, pvl->query);
+  }
+  pvl->needD[0] = pvl->needD[1] = pvl->needD[2] = AIR_FALSE;
+  q = pvl->kind->queryMax+1;
+  do {
+    q--;
+    if (pvl->query & (1 << q)) {
+      for (d=0; d<=2; d++) {
+	pvl->needD[d]  |= (pvl->kind->needDeriv[q] & (1 << d));
+      }
+    }
+  } while (q);
+
+  ctx->pvlFlag[gageFlagNeedD] = AIR_TRUE;
+
+  return 0;
+}
+
+void
+gagePadderSet(gageContext *ctx, gagePadder_t *padder) {
+
+  if (ctx) {
+    ctx->padder = padder;
+    ctx->flag[gageFlagPadder] = AIR_TRUE;
+  }
+}
+
+void
+gageNixerSet(gageContext *ctx, gageNixer_t *nixer) {
+  
+  if (ctx) {
+    ctx->nixer = nixer;
+  }
 }
 
 /*
@@ -95,6 +230,8 @@ gageValGet(gageContext *ctx, int which) {
 ** Refers to ctx->checkIntegrals and acts appropriately.
 **
 ** Does use biff.
+**
+** Sets: ctx->k[which], ctx->kparm[which]
 */
 int
 gageKernelSet(gageContext *ctx, 
@@ -133,15 +270,16 @@ gageKernelSet(gageContext *ctx,
 	gageKernel10 == which ||
 	gageKernel20 == which) {
       if (!( integral > 0 )) {
-	sprintf(err, "%s: reconstruction kernel's integral (%g) not > 0",
+	sprintf(err, "%s: reconstruction kernel's integral (%g) not > 0.0",
 		me, integral);
 	biffAdd(GAGE, err); return 1;
       }
     } else {
-      /* its a derivative, so integral must be zero */
-      if (!( integral == 0 )) {
-	sprintf(err, "%s: derivative kernel's integral (%g) not == 0",
-		me, integral);
+      /* its a derivative, so integral must be near zero */
+      if (!( AIR_ABS(integral) <= ctx->integralNearZero )) {
+	sprintf(err, "%s: derivative kernel's integral (%g) not within "
+		"%g of 0.0",
+		me, integral, ctx->integralNearZero);
 	biffAdd(GAGE, err); return 1;
       }
     }
@@ -150,21 +288,15 @@ gageKernelSet(gageContext *ctx,
   /* okay, fine, set the kernel */
   ctx->k[which] = k;
   memcpy(ctx->kparm[which], kparm, numParm*sizeof(double));
+  ctx->flag[gageFlagKernel] = AIR_TRUE;
 
-  if (_gageKernelDependentSet(ctx)) {
-    sprintf(err, "%s:", me);
-    biffAdd(GAGE, err); return 1;
-  }
   return 0;
 }
 
 /*
 ** gageKernelReset()
 **
-** reset kernels and the things that depend on them:
-** k[], kparm, needPad, fr, fd, fsl, fw, off
-** However, this obviously does not handle kernel-dependent things which
-** are specific to scalar, vector, etc, probing
+** reset kernels and parameters.
 */
 void
 gageKernelReset(gageContext *ctx) {
@@ -176,362 +308,71 @@ gageKernelReset(gageContext *ctx) {
       for (j=0; j<NRRD_KERNEL_PARMS_NUM; j++)
 	ctx->kparm[i][j] = AIR_NAN;
     }
-    ctx->needPad = -1;
-    ctx->fr = ctx->fd = -1;
-    RESET(ctx->fw);
-    RESET(ctx->fsl);
-    RESET(ctx->off);
+    ctx->flag[gageFlagKernel] = AIR_TRUE;
   }
   return;
-}
-
-/*
-**
-** _gageKernelDependentSet()
-**
-** sets things which depend on the kernel set, but which are not
-** specific to scalar, volume, etc, probing:
-** fr, fd, needPad, fsl, fw, off
-** Is called after a kernel is set in the context.
-**
-** Does use biff.
-*/
-int
-_gageKernelDependentSet(gageContext *ctx) {
-  char me[]="_gageKernelDependentSet", err[AIR_STRLEN_MED];
-  double maxRad;
-  int i, E;
-
-  maxRad = 0;
-  for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-    if (ctx->k[i]) {
-      maxRad = AIR_MAX(maxRad, ctx->k[i]->support(ctx->kparm[i]));
-    }
-  }
-  ctx->fr = AIR_ROUNDUP(maxRad);
-  ctx->fd = 2*ctx->fr;
-  ctx->needPad = ctx->fr - 1;
-  if (ctx->verbose) {
-    fprintf(stderr, "%s: fr = %d, fd = %d, needPad = %d\n",
-	    me, ctx->fr, ctx->fd, ctx->needPad);
-  }
-	  
-  airFree(ctx->fsl);
-  airFree(ctx->fw);
-  airFree(ctx->off);
-  E = 0;
-  if (!E) E |= !(ctx->fsl = calloc(ctx->fd*3, sizeof(gage_t)));
-  if (!E) E |= !(ctx->fw = calloc(ctx->fd*3*GAGE_KERNEL_NUM, sizeof(gage_t)));
-  if (!E) E |= !(ctx->off = calloc(ctx->fd*ctx->fd*ctx->fd, sizeof(int)));
-  if (E) {
-    sprintf(err, "%s: couldn't allocate caches for fd=%d", me, ctx->fd);
-    biffAdd(GAGE, err); return 1;
-  }
-
-  return 0;
 }
 
 /*
 ******** gageVolumeSet()
 **
-** Associates a volume with a context and a pervolume.
+** Associates an unpadded volume with a pervolume.
 **
 ** Requires that the volume's axis spacings are set (in contrast to
 ** previous versions of this function).
+**
+** Sets: pvl->nin, pvl->lup
 */
 int
 gageVolumeSet(gageContext *ctx, gagePerVolume *pvl,
-	      Nrrd *npad, int havePad) {
+	      Nrrd *nin) {
   char me[]="gageVolumeSet", err[AIR_STRLEN_MED];
-  int baseDim;
+  int bd;
+  double xs, ys, zs;
 
-  if (!( ctx && pvl && npad )) {
+  if (!( ctx && pvl && nin )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return 1;
   }
-  if (!nrrdValid(npad)) {
+  if (!_gagePerVolumeAttached(ctx, pvl)) {
+    sprintf(err, "%s: given pervolume not currently attached", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  if (!nrrdValid(nin)) {
     sprintf(err, "%s: basic nrrd validity check failed", me);
     biffMove(GAGE, err, NRRD); return 1;
   }
-  if (nrrdTypeBlock == npad->dim) {
+  if (nrrdTypeBlock == nin->dim) {
     sprintf(err, "%s: need a non-block type nrrd", me);
     biffAdd(GAGE, err); return 1;
   }
-  baseDim = pvl->kind->baseDim;
-  if (3 + baseDim != npad->dim) {
+  bd = pvl->kind->baseDim;
+  if (3 + bd != nin->dim) {
     sprintf(err, "%s: nrrd should have dimension %d, not %d",
-	    me, 3 + baseDim, npad->dim);
+	    me, 3 + bd, nin->dim);
     biffAdd(GAGE, err); return 1;
   }
-  if (!( AIR_EXISTS(npad->axis[baseDim+0].spacing) &&
-	 AIR_EXISTS(npad->axis[baseDim+1].spacing) &&
-	 AIR_EXISTS(npad->axis[baseDim+2].spacing) )) {
-    sprintf(err, "%s: spacings for axis %d,%d,%d don't all exist",
-	    me, baseDim+0, baseDim+1, baseDim+2);
+  xs = nin->axis[bd+0].spacing;
+  ys = nin->axis[bd+1].spacing;
+  zs = nin->axis[bd+2].spacing;
+  if (!( AIR_EXISTS(xs) && AIR_EXISTS(ys) && AIR_EXISTS(zs) )) {
+    sprintf(err, "%s: spacings (axes %d,%d,%d) don't all exist",
+	    me, bd+0, bd+1, bd+2);
     biffAdd(GAGE, err); return 1;
   }
-  if (!( ctx->needPad >= 0 )) {
-    sprintf(err, "%s: known needed padding (%d) invalid", me,
-	    ctx->needPad);
+  if (!( xs != 0 && ys != 0 && zs != 0 )) {
+    sprintf(err, "%s: spacings (%g,%g,%g) (axes %d,%d,%d) not all non-zero",
+	    me, xs, ys, zs, bd+0, bd+1, bd+2);
     biffAdd(GAGE, err); return 1;
   }
-  if (!( havePad >= ctx->needPad)) {
-    sprintf(err, "%s: given pad (%d) not >= needed padding (%d)", 
-	    me, havePad, ctx->needPad);
-    biffAdd(GAGE, err); return 1;
-  }
+  /* the checks to make sure than all the volumes match in size
+     and spacing, and setting ctx->xs, ctx->ys, ctx->zs, ctx->fwScale[],
+     will have to wait until gageUpdate() */
+  pvl->nin = nin;
+  pvl->lup = nrrdLOOKUP[nin->type];
+  pvl->flagNin = AIR_TRUE;
+  ctx->pvlFlag[gageFlagNin] = AIR_TRUE;
 
-  if (ctx->haveVolume) {
-    if (!( ctx->havePad == havePad )) {
-      sprintf(err, "%s: known padding (%d) != new padding (%d)",
-	      me, ctx->havePad, havePad);
-      biffAdd(GAGE, err); return 1;
-    }
-    if (!( ctx->sx == npad->axis[baseDim+0].size &&
-	   ctx->sy == npad->axis[baseDim+1].size &&
-	   ctx->sz == npad->axis[baseDim+2].size )) {
-      sprintf(err, "%s: known dims (%d,%d,%d) != new dims (%d,%d,%d)",
-	      me, ctx->sx, ctx->sy, ctx->sz,
-	      npad->axis[baseDim+0].size,
-	      npad->axis[baseDim+1].size,
-	      npad->axis[baseDim+2].size);
-      biffAdd(GAGE, err); return 1;
-    }
-    if (!( ctx->xs == npad->axis[baseDim+0].spacing &&
-	   ctx->ys == npad->axis[baseDim+1].spacing &&
-	   ctx->zs == npad->axis[baseDim+2].spacing )) {
-      sprintf(err, "%s: known spacings (%g,%g,%g) != new spacings (%g,%g,%g)",
-	      me, ctx->xs, ctx->ys, ctx->zs,
-	      npad->axis[baseDim+0].spacing,
-	      npad->axis[baseDim+1].spacing,
-	      npad->axis[baseDim+2].spacing);
-      biffAdd(GAGE, err); return 1;
-    }
-  } else {
-    ctx->havePad = havePad;
-    if (_gageVolumeDependentSet(ctx, npad, pvl->kind)) {
-      sprintf(err, "%s:", me);
-      biffAdd(GAGE, err); return 1;
-    }
-    ctx->haveVolume = AIR_TRUE;
-
-    /* set things in the pvl */
-    pvl->npad = npad;
-    /* iv3,iv2,iv1 allocated by gagePerVolumeNew() */
-    pvl->lup = nrrdLOOKUP[npad->type];
-  }
-
-  return 0;
-}
-
-int
-_gageVolumeDependentSet(gageContext *ctx, Nrrd *npad, gageKind *kind) {
-  char me[]="_gageVolumeDependentSet", err[AIR_STRLEN_MED];
-  int i, j, k, fd, baseDim;
-  
-  /* first, set things in the context */
-  baseDim = kind->baseDim;
-  ctx->sx = npad->axis[baseDim+0].size;
-  ctx->sy = npad->axis[baseDim+1].size;
-  ctx->sz = npad->axis[baseDim+2].size;
-  ctx->xs = npad->axis[baseDim+0].spacing;
-  ctx->ys = npad->axis[baseDim+1].spacing;
-  ctx->zs = npad->axis[baseDim+2].spacing;
-  if (ctx->verbose) {
-    fprintf(stderr, 
-	    "%s: padded (%d) volume: sizes (%d,%d,%d) spacings (%g,%g,%g)\n",
-	    me, ctx->havePad, ctx->sx, ctx->sy, ctx->sz,
-	    ctx->xs, ctx->ys, ctx->zs);
-  }
-  for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-    switch (i) {
-    case gageKernel00:
-    case gageKernel10:
-    case gageKernel20:
-      /* interpolation requires no re-weighting for non-unit spacing */
-      ctx->fwScl[i][0] = 1.0;
-      ctx->fwScl[i][1] = 1.0;
-      ctx->fwScl[i][2] = 1.0;
-      break;
-    case gageKernel11:
-    case gageKernel21:
-      ctx->fwScl[i][0] = 1.0/ctx->xs;
-      ctx->fwScl[i][1] = 1.0/ctx->ys;
-      ctx->fwScl[i][2] = 1.0/ctx->zs;
-      break;
-    case gageKernel22:
-      ctx->fwScl[i][0] = 1.0/(ctx->xs*ctx->xs);
-      ctx->fwScl[i][1] = 1.0/(ctx->ys*ctx->ys);
-      ctx->fwScl[i][2] = 1.0/(ctx->zs*ctx->zs);
-      break;
-    }
-  }
-  if (ctx->verbose) {
-    fprintf(stderr, "%s: fw re-scaling for non-unit spacing:\n", me);
-    fprintf(stderr, "              X               Y               Z\n");
-#define PRINT(NN) \
-    fprintf(stderr, "   "#NN": % 15.7f % 15.7f % 15.7f\n", \
-	    ctx->fwScl[gageKernel##NN][0], \
-	    ctx->fwScl[gageKernel##NN][1], \
-	    ctx->fwScl[gageKernel##NN][2]);
-    PRINT(00);
-    PRINT(11);
-    PRINT(22);
-  }
-  if (!ctx->off) {
-    sprintf(err, "%s: offset array (ctx->off) not allocated", me);
-    biffAdd(GAGE, err); return 1;
-  }
-  fd = ctx->fd;
-  for (k=0; k<fd; k++)
-    for (j=0; j<fd; j++)
-      for (i=0; i<fd; i++)
-	ctx->off[i + fd*(j + fd*k)] = i + ctx->sx*(j + ctx->sy*k);
-  if (ctx->verbose > 2) {
-    fprintf(stderr, "%s: offset array for %d x %d x %d volume:\n",
-	    me, ctx->sx, ctx->sy, ctx->sz);
-    _gagePrint_off(stderr, ctx);
-  }
-
-  return 0;
-}
-
-int
-gageQuerySet(gagePerVolume *pvl, unsigned int query) {
-  char me[]="gageQuerySet", err[AIR_STRLEN_MED];
-  unsigned int mask, lastq, q;
-  
-  if (!( pvl )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
-  }
-  if (!( pvl->kind )) {
-    sprintf(err, "%s: pvl->kind NULL", me);
-    biffAdd(GAGE, err); return 1;
-  }
-  mask = (1U << (pvl->kind->queryMax+1)) - 1;
-  if (query != (query & mask)) {
-    sprintf(err, "%s: invalid bits set in query", me);
-    biffAdd(GAGE, err); return 1;
-  }
-  pvl->query = query;
-  if (pvl->verbose) {
-    fprintf(stderr, "%s: original query = %u ...\n", me, pvl->query);
-    pvl->kind->queryPrint(stderr, pvl->query);
-  }
-  /* recursive expansion of prerequisites */
-  do {
-    lastq = pvl->query;
-    q = pvl->kind->queryMax+1;
-    do {
-      q--;
-      if ((1<<q) & pvl->query)
-	pvl->query |= pvl->kind->queryPrereq[q];
-    } while (q);
-  } while (pvl->query != lastq);
-  if (pvl->verbose) {
-    fprintf(stderr, "!%s: expanded query = %u ...\n", me, pvl->query);
-    pvl->kind->queryPrint(stderr, pvl->query);
-  }
-
-  return 0;
-}
-
-void
-_gageNeedKSet(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="_gageNeedKSet";
-  unsigned int q;
-  int i;
-
-  /* we DO NOT reset all the needK and do{V,D1,D2} in ctx to
-     AIR_FALSE, because we need to accumulate all the needs across the
-     different pervolumes that may be associated with this context.
-     We DO reset them in pvl because they are pervolume-specific */
-  /* determine which kernels are needed */
-  pvl->doV = pvl->doD1 = pvl->doD2 = AIR_FALSE;
-  for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-    pvl->needK[i] = AIR_FALSE;
-  }
-  q = pvl->kind->queryMax+1;
-  do {
-    q--;
-    if (pvl->query & (1 << q)) {
-      if (pvl->kind->needDeriv[q] & (1 << 0)) {
-	pvl->doV = AIR_TRUE;
-	pvl->needK[gageKernel00] = ctx->needK[gageKernel00] = AIR_TRUE;
-      }
-      if (pvl->kind->needDeriv[q] & (1 << 1)) {
-	pvl->doD1 = AIR_TRUE;
-	pvl->needK[gageKernel11] = ctx->needK[gageKernel11] = AIR_TRUE;
-	if (ctx->k3pack) {
-	  pvl->needK[gageKernel00] = ctx->needK[gageKernel00] = AIR_TRUE;
-	} else {
-	  pvl->needK[gageKernel10] = ctx->needK[gageKernel10] = AIR_TRUE;
-	}
-      }
-      if (pvl->kind->needDeriv[q] & (1 << 2)) {
-	pvl->doD2 = AIR_TRUE;
-	pvl->needK[gageKernel22] = ctx->needK[gageKernel22] = AIR_TRUE;
-	if (ctx->k3pack) {
-	  pvl->needK[gageKernel00] = ctx->needK[gageKernel00] = AIR_TRUE;
-	  pvl->needK[gageKernel11] = ctx->needK[gageKernel11] = AIR_TRUE;
-	} else {
-	  pvl->needK[gageKernel20] = ctx->needK[gageKernel20] = AIR_TRUE;
-	  pvl->needK[gageKernel21] = ctx->needK[gageKernel21] = AIR_TRUE;
-	}
-      }
-    }
-  } while (q);
-  if (ctx->verbose) {
-    fprintf(stderr,
-	    "%s: needK = %d/%d ; %d/%d %d/%d ; %d/%d %d/%d %d/%d\n", me,
-	    pvl->needK[gageKernel00], ctx->needK[gageKernel00],
-	    pvl->needK[gageKernel10], ctx->needK[gageKernel10],
-	    pvl->needK[gageKernel11], ctx->needK[gageKernel11],
-	    pvl->needK[gageKernel20], ctx->needK[gageKernel20],
-	    pvl->needK[gageKernel21], ctx->needK[gageKernel21],
-	    pvl->needK[gageKernel22], ctx->needK[gageKernel22]);
-  }
-  return;
-}
-
-/*
-******** gageUpdate()
-**
-** call just before probing begins.
-**
-** If probing multiple volumes with one context, this needs to be called
-** once on each pervolume.
-*/
-int
-gageUpdate(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="gageUpdate", err[AIR_STRLEN_MED];
-  int i;
-
-  if (!( ctx && pvl )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
-  }
-  if (!( ctx->fr > 0 && ctx->fd == 2*ctx->fr )) {
-    sprintf(err, "%s: max filter radius, diameter (%d,%d) unset/invalid",
-	    me, ctx->fr, ctx->fd);
-    biffAdd(GAGE, err); return 1;
-  }
-
-  _gageNeedKSet(ctx, pvl);
-  for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-    if (ctx->needK[i] && !ctx->k[i]) {
-      sprintf(err, "%s: need kernel %s for given query", me,
-	      airEnumStr(gageKernel, i));
-      biffAdd(GAGE, err); return 1;
-    }
-  }
-
-  if (!( pvl->npad )) {
-    sprintf(err, "%s: no padded volume set", me);
-    biffAdd(GAGE, err); return 1;
-  }
-  
   return 0;
 }
 
@@ -541,13 +382,12 @@ gageUpdate(gageContext *ctx, gagePerVolume *pvl) {
 ** how to do probing
 **
 ** doesn't actually do much more than call callbacks in the gageKind
-** struct.
+** structs of the attached pervolumes
 */
 int
-gageProbe(gageContext *ctx, gagePerVolume *pvl,
-	  gage_t x, gage_t y, gage_t z) {
+gageProbe(gageContext *ctx, gage_t x, gage_t y, gage_t z) {
   char me[]="gageProbe";
-  int newBidx;
+  int newBidx, i;
   char *here;
   
   /* fprintf(stderr, "##%s: bingo 0\n", me); */
@@ -560,25 +400,36 @@ gageProbe(gageContext *ctx, gagePerVolume *pvl,
   /* fprintf(stderr, "##%s: bingo 1\n", me); */
   /* if necessary, refill the iv3 cache */
   if (newBidx) {
-    here = ((char*)(pvl->npad->data)
-	    + (ctx->bidx * pvl->kind->valLen * nrrdTypeSize[pvl->npad->type]));
-    pvl->kind->iv3Fill(ctx, pvl, here);
+    for (i=0; i<ctx->numPvl; i++) {
+      here = ((char*)(ctx->pvl[i]->npad->data)
+	      + (ctx->bidx * 
+		 ctx->pvl[i]->kind->valLen * 
+		 nrrdTypeSize[ctx->pvl[i]->npad->type]));
+      ctx->pvl[i]->kind->iv3Fill(ctx, ctx->pvl[i], here);
+    }
   }
   /* fprintf(stderr, "##%s: bingo 2\n", me); */
   if (ctx->verbose > 1) {
-    fprintf(stderr,
-	    "%s: value cache with bidx = %d:\n", me, ctx->bidx);
-    pvl->kind->iv3Print(stderr, ctx, pvl);
+    for (i=0; i<ctx->numPvl; i++) {
+      fprintf(stderr, "%s: pvl[%d]'s value cache with bidx = %d:\n",
+	      me, i, ctx->bidx);
+      ctx->pvl[i]->kind->iv3Print(stderr, ctx, ctx->pvl[i]);
+    }
   }
 
   /* fprintf(stderr, "##%s: bingo 3\n", me); */
   /* do filtering convolution to get basic answers */
-  pvl->kind->filter(ctx, pvl);
+  for (i=0; i<ctx->numPvl; i++) {
+    ctx->pvl[i]->kind->filter(ctx, ctx->pvl[i]);
+  }
 
   /* fprintf(stderr, "##%s: bingo 4\n", me); */
   /* generate remaining answers */
-  pvl->kind->answer(ctx, pvl);
+  for (i=0; i<ctx->numPvl; i++) {
+    ctx->pvl[i]->kind->answer(ctx, ctx->pvl[i]);
+  }
   
   /* fprintf(stderr, "##%s: bingo 5\n", me); */
   return 0;
 }
+
