@@ -20,8 +20,9 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-#define MAGIC "NRRD0001"
-#define OLD_MAGIC "NRRD00.01"
+#define MAGIC0 "NRRD00.01"
+#define MAGIC1 "NRRD0001"
+#define MAGIC2 "NRRD0002"
 
 int
 _nrrdFormatNRRD_available(void) {
@@ -55,8 +56,10 @@ _nrrdFormatNRRD_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
 int
 _nrrdFormatNRRD_contentStartsLike(NrrdIO *nio) {
   
-  return (!strcmp(OLD_MAGIC, nio->line) ||
-	  !strcmp(MAGIC, nio->line));
+  return (!strcmp(MAGIC0, nio->line)
+	  || !strcmp(MAGIC1, nio->line)
+	  || !strcmp(MAGIC2, nio->line)
+	  );
 }
 
 /*
@@ -113,6 +116,11 @@ _nrrdHeaderCheck (Nrrd *nrrd, NrrdIO *nio) {
   return 0;
 }
 
+/*
+** Note: currently, this will read key/value pairs from a NRRD0001
+** file without any complaints, even though strictly speaking the
+** presence of the key/value pairs is in violation of the format
+*/
 int
 _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIO *nio) {
   char me[]="_nrrdFormatNRRD_read", *err=NULL;
@@ -322,7 +330,9 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIO *nio) {
     }
   }
 
-  fprintf(file, "%s\n", MAGIC);
+  /* currently, which magic we use depends only on whether there are
+     key/value pairs */
+  fprintf(file, "%s\n", nrrdKeyValueSize(nrrd) ? MAGIC2 : MAGIC1);
 
   /* this is where the majority of the header printing happens */
   for (i=1; i<=NRRD_FIELD_MAX; i++) {
