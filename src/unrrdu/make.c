@@ -86,8 +86,7 @@ int
 unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, **dataFileNames, **kvp, *content, encInfo[AIR_STRLEN_LARGE];
-  Nrrd *nrrd;
-  Nrrd **nslice;
+  Nrrd *nrrd, **nslice, *njoin, *nsave;
   int *size, sizeLen, buflen,
     nameLen, kvpLen, ii, spacingLen, thicknessLen, labelLen, unitsLen,
     spunitsLen, headerOnly, pret, lineSkip, byteSkip, endian, slc, type,
@@ -106,10 +105,6 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hparm->greedySingleString = AIR_TRUE;
 
   mop = airMopNew();
-  nio = nrrdIoStateNew();
-  airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
-  nrrd = nrrdNew();
-  airMopAdd(mop, nrrd, (airMopper)nrrdNuke, airMopAlways);
   
   hestOptAdd(&opt, "h", NULL, airTypeBool, 0, 0, &headerOnly, NULL,
              "Generate header ONLY: don't write out the whole nrrd, "
@@ -294,6 +289,15 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
+
+  /* ----------------- END ERROR CHECKING ---------------- */
+  /* ----------------- BEGIN SETTING INFO ---------------- */
+  
+  nio = nrrdIoStateNew();
+  airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
+  nrrd = nrrdNew();
+  airMopAdd(mop, nrrd, (airMopper)nrrdNuke, airMopAlways);
+
   nrrd->type = type;
   nrrd->dim = sizeLen;
   nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSize, size);
@@ -505,6 +509,9 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop); return 1;
   }
   
+  /* ----------------- END SETTING INFO ---------------- */
+  /* -------------------- BEGIN I/O -------------------- */
+
   if (headerOnly) {
     /* we don't have to fopen() any input; all we care about
        is the name of the input datafile.  We disallow stdin here */
@@ -537,6 +544,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
        recorded in the header, and done by the next reader */
     nrrdFormatNRRD->write(fileOut, nrrd, nio);
   } else {
+    /* else not headerOnly */
     /* we're not actually using the handy unrrduHestFileCB,
        since we have to open the input data file by hand */
     if (1 == nameLen) {
@@ -547,31 +555,25 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
                 me, dataFileNames[0], err);
         airMopError(mop); return 1;
       }
+      nsave = nrrd;
     } else {
       /* create one nrrd for each slice, read them all in, then
          join them together */
+      njoin = nrrdNew();
+      airMopAdd(mop, njoin, (airMopper)nrrdNuke, airMopAlways);
       nslice = (Nrrd **)calloc(nameLen, sizeof(Nrrd *));
-      slc = 0;
-      if (nslice) {
-        airMopAdd(mop, nslice, airFree, airMopAlways);
-        for (slc=0; slc<nameLen; slc++) {
-          nslice[slc] = nrrdNew();
-          if (nslice[slc]) {
-            airMopAdd(mop, nslice[slc], (airMopper)nrrdNuke, airMopAlways);
-            nslice[slc]->type = type;
-            nslice[slc]->dim = sizeLen-1;
-            /* the last element of size[] will be ignored */
-            nrrdAxisInfoSet_nva(nslice[slc], nrrdAxisInfoSize, size);
-          } else {
-            break;
-          }
-        }
-      }
-      if (slc != nameLen) {
+      if (!nslice) {
         fprintf(stderr, "%s: couldn't allocate nslice array!\n", me);
         airMopError(mop); return 1;
       }
+      airMopAdd(mop, nslice, airFree, airMopAlways);
       for (slc=0; slc<nameLen; slc++) {
+        nslice[slc] = nrrdNew();
+        airMopAdd(mop, nslice[slc], (airMopper)nrrdNuke, airMopAlways);
+        nslice[slc]->type = type;
+        nslice[slc]->dim = sizeLen-1;
+        /* the last element of size[] will be ignored */
+        nrrdAxisInfoSet_nva(nslice[slc], nrrdAxisInfoSize, size);
         if (unrrduMakeRead(me, nslice[slc], nio, dataFileNames[slc],
                            lineSkip, byteSkip, encoding)) {
           airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
@@ -581,40 +583,30 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
           airMopError(mop); return 1;
         }
       }
-      if (nrrdJoin(nrrd, (const Nrrd**)nslice,
+      if (nrrdJoin(njoin, (const Nrrd**)nslice,
                    nameLen, nrrd->dim-1, AIR_TRUE)) {
         airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble joining slices together:\n%s",
                 me, err);
         airMopError(mop); return 1;
       }
-      /* unfortunately, we have to re-set some peripheral information
-         since we never bothered to set it in any nslice[i]... */
-      if (gotSpacing) {
-        nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSpacing, spacing);
-      }
-      if (gotThickness) {
-        nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoThickness, thickness);
-      }
-      if (airStrlen(label[0])) {
-        nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoLabel, label);
-      }
-      if (airStrlen(units[0])) {
-        nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoUnits, units);
-      }
-      if (airStrlen(content)) {
-        nrrd->content = airStrdup(content);
-      }
+      /* copy peripheral information already set in nrrd to njoin */
+      nrrdBasicInfoCopy(njoin, nrrd, (NRRD_BASIC_INFO_DATA_BIT
+                                      | NRRD_BASIC_INFO_TYPE_BIT
+                                      | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                                      | NRRD_BASIC_INFO_DIMENSION_BIT));
+      nrrdAxisInfoCopy(njoin, nrrd, NULL, NRRD_AXIS_INFO_NONE);
+      nsave = njoin;
     }
-    if (1 < nrrdElementSize(nrrd)
+    if (1 < nrrdElementSize(nsave)
         && encoding->endianMatters
         && endian != AIR_ENDIAN) {
       /* endianness exposed in encoding, and its wrong */
-      nrrdSwapEndian(nrrd);
+      nrrdSwapEndian(nsave);
     }
     /* we are saving normally- no need to subvert nrrdSave() here;
        we just pass it the output filename */
-    SAVE(out, nrrd, NULL);
+    SAVE(out, nsave, NULL);
   }
 
   airMopOkay(mop);
