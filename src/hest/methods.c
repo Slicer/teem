@@ -281,6 +281,7 @@ _hestNumOpts(hestOpt *opt) {
   while (opt[num].flag || opt[num].name || opt[num].type) {
     num++;
   }
+  printf("_hestNumOpts: %d\n", num);
   return num;
 }
 
