@@ -76,7 +76,8 @@ makeMain(int argc, char **argv, char *me) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nrrd;
-  int *size, sizeLen;
+  int *size, sizeLen, spacingLen;
+  double *spacing;
   airArray *mop;
   NrrdIO *io;
 
@@ -89,24 +90,30 @@ makeMain(int argc, char **argv, char *me) {
   hestOptAdd(&opt, "i", "file", airTypeOther, 1, 1, &(io->dataFile), "-",
 	     "File to read data from; use \"-\" for stdin",
 	     NULL, NULL, &unuFileHestCB);
-  OPT_ADD_TYPE(nrrd->type, "type of data");
-  hestOptAdd(&opt, "lineskip", "skip", airTypeInt, 1, 1, &(io->lineSkip), "0",
-	     "number of ascii lines to skip before reading data");
-  hestOptAdd(&opt, "byteskip", "skip", airTypeInt, 1, 1, &(io->byteSkip), "0",
-	     "number of bytes to skip (after skipping ascii lines, if any) "
-	     "before reading data");
-  hestOptAdd(&opt, "s", "size0 size1 ", airTypeInt, 1, -1, &size, NULL,
+  hestOptAdd(&opt, "t,type", "type", airTypeEnum, 1, 1, &(nrrd->type),
+	     NULL, "type of data (e.g. \"uchar\", \"int\", etc)",
+	     NULL, nrrdType);
+  hestOptAdd(&opt, "s,size", "size0 size1", airTypeInt, 1, -1, &size, NULL,
 	     "number of samples along each axis (and implicit indicator "
 	     "of dimension of nrrd)", &sizeLen);
-  hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &(io->encoding), "raw",
+  hestOptAdd(&opt, "sp,spacing", "spc0 spc1", airTypeDouble, 1, -1, &spacing,
+	     NULL, "spacing between samples on each axis", &spacingLen);
+  hestOptAdd(&opt, "ls,lineskip", "skip", airTypeInt, 1, 1,
+	     &(io->lineSkip), "0",
+	     "number of ascii lines to skip before reading data");
+  hestOptAdd(&opt, "bs,byteskip", "skip", airTypeInt, 1, 1,
+	     &(io->byteSkip), "0",
+	     "number of bytes to skip (after skipping ascii lines, if any) "
+	     "before reading data");
+  hestOptAdd(&opt, "e,encoding", "encoding", airTypeEnum, 1, 1,
+	     &(io->encoding), "raw",
 	     "data encoding. Possibilities are \"raw\" and \"ascii\".",
 	     NULL, nrrdEncoding);
-  hestOptAdd(&opt, "endian", "endian", airTypeEnum, 1, 1, &(io->endian),
+  hestOptAdd(&opt, "en,endian", "endian", airTypeEnum, 1, 1, &(io->endian),
 	     airEnumStr(airEndian, airMyEndian),
 	     "Endianness of data; relevent for any raw data with value "
-	     "representation bigger than 8 bits:\n "
-	     "\b\bo \"little\": Intel and friends\n "
-	     "\b\bo \"big\": everyone else\n "
+	     "representation bigger than 8 bits: \"little\" for Intel and "
+	     "friends; \"big\" for everyone else.\n "
 	     "Defaults to endianness of this machine.",
 	     NULL, airEndian);
   OPT_ADD_NOUT(out, "output nrrd");
@@ -124,8 +131,14 @@ makeMain(int argc, char **argv, char *me) {
     airMopError(mop);
     return 1;
   }
+  if (sizeLen != spacingLen) {
+    fprintf(stderr,
+	    "%s: got different numbers of sizes (%d) and spacings (%d)",
+	    me, sizeLen, spacingLen);
+  }
   nrrd->dim = sizeLen;
   nrrdAxesSet_nva(nrrd, nrrdAxesInfoSize, size);
+  nrrdAxesSet_nva(nrrd, nrrdAxesInfoSpacing, spacing);
   
   if (nrrdLineSkip(io)) {
     sprintf(err, "%s: couldn't skip lines", me);
