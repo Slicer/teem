@@ -21,12 +21,14 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Collapse scanlines to scalars along some axis"
-char *_unrrdu_projectInfoL = (INFO
-			   ". The scanline is reduced to a single scalar by "
-			   "\"measuring\" all the values in the scanline "
-			   "with some measure.  The output nrrd has dimension "
-			   "one less than input; the output type depends on "
-			   "the measure.");
+char *_unrrdu_projectInfoL = 
+(INFO
+ ". The scanline is reduced to a single scalar by "
+ "\"measuring\" all the values in the scanline "
+ "with some measure.  The output nrrd has dimension "
+ "one less than input; the output type depends on "
+ "the measure in a non-trivial way, or it can be set explicitly "
+ "with the \"-t\" option.");
 
 int
 unrrdu_projectMain(int argc, char **argv, char *me, hestParm *hparm) {
