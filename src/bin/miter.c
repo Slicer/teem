@@ -33,8 +33,8 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   hestParm *hparm=NULL;
   miteUser *muu;
-  char *me, *errS, *outS, *shadeStr;
-  int renorm, baseDim;
+  char *me, *errS, *outS, *shadeStr, *normalStr;
+  int renorm, baseDim, verbPix[2];
   int E, Ecode;
   float ads[3];
   double gmc;
@@ -85,7 +85,10 @@ main(int argc, char *argv[]) {
 	     NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "ss", "shading spec", airTypeString, 1, 1, &shadeStr,
 	     "phong:gage(scalar:n)", "how to do shading");
-  hestOptAdd(&hopt, "ns", "normal side", airTypeInt, 1, 1, &(muu->normalSide),
+  hestOptAdd(&hopt, "ns", "normal spec", airTypeString, 1, 1, &normalStr,
+	     "", "\"normal\" to use for those miteVal's that need one");
+  hestOptAdd(&hopt, "side", "normal side", airTypeInt, 1, 1,
+	     &(muu->normalSide),
 	     "1", "how to interpret gradients as normals:\n "
 	     "\b\bo \"1\": normal points to lower values (higher == "
 	     "more \"inside\")\n "
@@ -104,6 +107,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "ref", "size", airTypeDouble, 1, 1, &(muu->refStep),
 	     "0.01", "\"reference\" step size (world space) for doing "
 	     "opacity correction in compositing");
+  hestOptAdd(&hopt, "vp", "verbose pixel", airTypeInt, 2, 2, verbPix,
+	     "-1 -1", "pixel for which to turn on verbose messages");
   hestOptAdd(&hopt, "n1", "near1", airTypeDouble, 1, 1, &(muu->opacNear1),
 	     "0.99", "opacity close enough to 1.0 to terminate ray");
   hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1,
@@ -140,6 +145,8 @@ main(int argc, char *argv[]) {
   muu->rangeInit[miteRangeKs] = ads[2];
   gageParmSet(muu->gctx0, gageParmGradMagCurvMin, gmc);
   gageParmSet(muu->gctx0, gageParmRenormalize, renorm);
+  muu->verbUi = verbPix[0];
+  muu->verbVi = verbPix[1];
 
   muu->nout = nrrdNew();  
   airMopAdd(mop, muu->nout, (airMopper)nrrdNuke, airMopAlways);
@@ -154,6 +161,7 @@ main(int argc, char *argv[]) {
     return 1;
   }
   strncpy(muu->shadeStr, shadeStr, AIR_STRLEN_MED-1);
+  strncpy(muu->normalStr, normalStr, AIR_STRLEN_MED-1);
   muu->shadeStr[AIR_STRLEN_MED-1] = 0;
   muu->hctx->volSize[0] = nin->axis[baseDim+0].size;
   muu->hctx->volSize[1] = nin->axis[baseDim+1].size;
