@@ -39,10 +39,10 @@ unrrdu_untileMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   hestOptAdd(&opt, "a", "axMerge ax0 ax1", airTypeInt, 3, 3, axes, NULL,
-	     "an axis is extracted from ax0 and ax1 and merged into axMerge");
+             "an axis is extracted from ax0 and ax1 and merged into axMerge");
   hestOptAdd(&opt, "s", "fast, slow sizes", airTypeInt, 2, 2, size, NULL,
-	     "fast and slow axis sizes to produce as result of splitting "
-	     "given axis.");
+             "fast and slow axis sizes to produce as result of splitting "
+             "given axis.");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

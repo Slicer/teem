@@ -40,18 +40,18 @@ tend_calcMain(int argc, char **argv, char *me, hestParm *hparm) {
   float thresh, slope, b;
 
   hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, NULL,
-	     "confidence threshold");
+             "confidence threshold");
   hestOptAdd(&hopt, "s", "slope", airTypeFloat, 1, 1, &slope, "0.01",
-	     "d(confidence)/dv at threshold");
+             "d(confidence)/dv at threshold");
   hestOptAdd(&hopt, "b", "b", airTypeFloat, 1, 1, &b, "1",
-	     "b value from scan");
+             "b value from scan");
   hestOptAdd(&hopt, "v", "version", airTypeInt, 1, 1, &version, "1",
-	     "which set of gradient directions are used, either 1 or 2");
+             "which set of gradient directions are used, either 1 or 2");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-	     "input volume of diffusion-weighted images",
-	     NULL, NULL, nrrdHestNrrd);
+             "input volume of diffusion-weighted images",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output image (floating point)");
+             "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

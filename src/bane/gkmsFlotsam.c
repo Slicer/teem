@@ -138,7 +138,7 @@ baneGkmsParseBEF(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     if (nrrdLoad(*nrrdP, str, NULL)) {
       airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
       sprintf(mesg, "%s: couldn't parse \"%s\" as four-parameter BEF or "
-	      "as a nrrd filename\n", me, str);
+              "as a nrrd filename\n", me, str);
       strcpy(err, mesg);
       strncat(err, nerr, AIR_STRLEN_HUGE-1-strlen(mesg)-1);
       airMopError(mop);
@@ -241,7 +241,7 @@ baneGkmsUsage(char *me, hestParm *hparm) {
 
   sprintf(buff, "--- Semi-Automatic Generation of Transfer Functions ---");
   sprintf(fmt, "%%%ds\n",
-	  (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
+          (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
   
   for (i=0; baneGkmsCmdList[i]; i++) {
@@ -256,7 +256,7 @@ baneGkmsUsage(char *me, hestParm *hparm) {
     len = strlen(buff);
     fprintf(stderr, "%s", buff);
     _hestPrintStr(stderr, len, len, hparm->columns,
-		  baneGkmsCmdList[i]->info, AIR_FALSE);
+                  baneGkmsCmdList[i]->info, AIR_FALSE);
   }
 }
 

@@ -37,7 +37,7 @@ unrrdu_axinsertMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   OPT_ADD_AXIS(axis, "dimension (axis index) at which to insert the new axis");
   hestOptAdd(&opt, "l", "label", airTypeString, 1, 1, &label, "",
-	     "label to associate with new axis");
+             "label to associate with new axis");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

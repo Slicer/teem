@@ -128,28 +128,28 @@ echoSceneNew(void) {
   if (ret) {
     ret->cat = NULL;
     ret->catArr = airArrayNew((void**)&(ret->cat), NULL,
-			      sizeof(echoObject *),
-			      ECHO_LIST_OBJECT_INCR);
+                              sizeof(echoObject *),
+                              ECHO_LIST_OBJECT_INCR);
     airArrayPointerCB(ret->catArr,
-		      airNull,
-		      (void *(*)(void *))echoObjectNix);
+                      airNull,
+                      (void *(*)(void *))echoObjectNix);
     ret->rend = NULL;
     ret->rendArr = airArrayNew((void**)&(ret->rend), NULL,
-			       sizeof(echoObject *),
-			       ECHO_LIST_OBJECT_INCR);
+                               sizeof(echoObject *),
+                               ECHO_LIST_OBJECT_INCR);
     /* no callbacks set, renderable objecs are nixed from catArr */
     ret->light = NULL;
     ret->lightArr = airArrayNew((void**)&(ret->light), NULL,
-				sizeof(echoObject *),
-				ECHO_LIST_OBJECT_INCR);
+                                sizeof(echoObject *),
+                                ECHO_LIST_OBJECT_INCR);
     /* no callbacks set; light objects are nixed from catArr */
     ret->nrrd = NULL;
     ret->nrrdArr = airArrayNew((void**)&(ret->nrrd), NULL,
-			       sizeof(Nrrd *),
-			       ECHO_LIST_OBJECT_INCR);
+                               sizeof(Nrrd *),
+                               ECHO_LIST_OBJECT_INCR);
     airArrayPointerCB(ret->nrrdArr,
-		      airNull,
-		      (void *(*)(void *))nrrdNuke);
+                      airNull,
+                      (void *(*)(void *))nrrdNuke);
     ret->envmap = NULL;
     ELL_3V_SET(ret->ambi, 1.0, 1.0, 1.0);
     ELL_3V_SET(ret->bkgr, 0.0, 0.0, 0.0);

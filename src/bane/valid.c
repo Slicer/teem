@@ -39,8 +39,8 @@ baneInputCheck (Nrrd *nin, baneHVolParm *hvp) {
     biffAdd(BANE, err); return 1;
   }
   if (!( AIR_EXISTS(nin->axis[0].spacing) && nin->axis[0].spacing != 0 &&
-	 AIR_EXISTS(nin->axis[1].spacing) && nin->axis[1].spacing != 0 &&
-	 AIR_EXISTS(nin->axis[2].spacing) && nin->axis[2].spacing != 0 )) {
+         AIR_EXISTS(nin->axis[1].spacing) && nin->axis[1].spacing != 0 &&
+         AIR_EXISTS(nin->axis[2].spacing) && nin->axis[2].spacing != 0 )) {
     sprintf(err, "%s: must have non-zero existant spacing for all 3 axes", me);
     biffAdd(BANE, err); return 1;
   }
@@ -69,13 +69,13 @@ baneHVolCheck (Nrrd *hvol) {
   }
   if (nrrdTypeUChar != hvol->type) {
     sprintf(err, "%s: need type to be %s (not %s)", 
-	    me, airEnumStr(nrrdType, nrrdTypeUChar),
-	    airEnumStr(nrrdType, hvol->type));
+            me, airEnumStr(nrrdType, nrrdTypeUChar),
+            airEnumStr(nrrdType, hvol->type));
     biffAdd(BANE, err); return 1;
   }
   if (!( AIR_EXISTS(hvol->axis[0].min) && AIR_EXISTS(hvol->axis[0].max) && 
-	 AIR_EXISTS(hvol->axis[1].min) && AIR_EXISTS(hvol->axis[1].max) && 
-	 AIR_EXISTS(hvol->axis[2].min) && AIR_EXISTS(hvol->axis[2].max) )) {
+         AIR_EXISTS(hvol->axis[1].min) && AIR_EXISTS(hvol->axis[1].max) && 
+         AIR_EXISTS(hvol->axis[2].min) && AIR_EXISTS(hvol->axis[2].max) )) {
     sprintf(err, "%s: axisMin and axisMax must be set for all axes", me);
     biffAdd(BANE, err); return 1;
   }
@@ -84,18 +84,18 @@ baneHVolCheck (Nrrd *hvol) {
   ** particular kind of histogram volume ...
   if (strcmp(hvol->axis[0].label, baneMeasrGradMag->name)) {
     sprintf(err, "%s: expected \"%s\" on axis 0 label",
-	    me, baneMeasrGradMag->name);
+            me, baneMeasrGradMag->name);
     biffAdd(BANE, err); return 1;
   }
   if (strcmp(hvol->axis[1].label, baneMeasrLapl->name) &&
       strcmp(hvol->axis[1].label, baneMeasrHess->name)) {
     sprintf(err, "%s: expected a 2nd deriv. measr on axis 1 (%s or %s)",
-	    me, baneMeasrHess->name, baneMeasrLapl->name);
+            me, baneMeasrHess->name, baneMeasrLapl->name);
     biffAdd(BANE, err); return 1;    
   }
   if (strcmp(hvol->axis[2].label, baneMeasrVal->name)) {
     sprintf(err, "%s: expected \"%s\" on axis 2",
-	    me, baneMeasrVal->name);
+            me, baneMeasrVal->name);
     biffAdd(BANE, err); return 1;
   }
   */
@@ -198,7 +198,7 @@ baneBcptsCheck (Nrrd *Bcpts) {
   for (i=0; i<=len-2; i++) {
     if (!(data[0 + 2*i] <= data[0 + 2*(i+1)])) {
       sprintf(err, "%s: value coord %d (%g) not <= coord %d (%g)", me,
-	      i, data[0 + 2*i], i+1, data[0 + 2*(i+1)]);
+              i, data[0 + 2*i], i+1, data[0 + 2*(i+1)]);
       biffAdd(BANE, err); return 1;
     }
   }

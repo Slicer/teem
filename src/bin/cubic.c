@@ -61,13 +61,13 @@ main(int argc, char **argv) {
   case ell_cubic_root_single_double:
     ans1 = C + r[1]*(B + r[1]*(A + r[1]));
     printf("1 single root %g -> %f, 1 double root %g -> %f\n", 
-	   r[0], ans0, r[1], ans1);
+           r[0], ans0, r[1], ans1);
     break;
   case ell_cubic_root_three:
     ans1 = C + r[1]*(B + r[1]*(A + r[1]));
     ans2 = C + r[2]*(B + r[2]*(A + r[2]));
     printf("3 distinct roots:\n %g -> %f\n %g -> %f\n %g -> %f\n",
-	   r[0], ans0, r[1], ans1, r[2], ans2);
+           r[0], ans0, r[1], ans1, r[2], ans2);
     break;
   default:
     printf("%s: something fatally wacky happened\n", me);

@@ -118,7 +118,7 @@ gageKernel = &_gageKernel_enum;
 */
 Nrrd *
 _gageStandardPadder (Nrrd *nin, gageKind *kind, 
-		     int padding, gagePerVolume *pvl) {
+                     int padding, gagePerVolume *pvl) {
   Nrrd *npad;
   char me[]="_gageStandardPadder", err[AIR_STRLEN_MED];
   int i, min[NRRD_DIM_MAX], max[NRRD_DIM_MAX], baseDim;

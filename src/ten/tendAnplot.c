@@ -39,20 +39,20 @@ tend_anplotMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *outS;
 
   hestOptAdd(&hopt, "r", "res", airTypeInt, 1, 1, &res, "256",
-	     "resolution of anisotropy plot");
+             "resolution of anisotropy plot");
   hestOptAdd(&hopt, "w", NULL, airTypeInt, 0, 0, &whole, NULL,
-	     "sample the whole triangle of constant trace, "
-	     "instead of just the "
-	     "sixth of it in which the eigenvalues have the "
-	     "traditional sorted order. ");
+             "sample the whole triangle of constant trace, "
+             "instead of just the "
+             "sixth of it in which the eigenvalues have the "
+             "traditional sorted order. ");
   hestOptAdd(&hopt, "nan", NULL, airTypeInt, 0, 0, &nanout, NULL,
-	     "set the pixel values outside the triangle to be NaN, "
-	     "instead of 0");
+             "set the pixel values outside the triangle to be NaN, "
+             "instead of 0");
   hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &aniso, NULL,
-	     "Which anisotropy metric to plot.  " TEN_ANISO_DESC,
-	     NULL, tenAniso);
+             "Which anisotropy metric to plot.  " TEN_ANISO_DESC,
+             NULL, tenAniso);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output image (floating point)");
+             "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

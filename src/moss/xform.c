@@ -39,9 +39,9 @@ void
 mossMatPrint (FILE *f, double *mat) {
 
   fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
-	  (float)mat[0], (float)mat[1], (float)mat[2]);
+          (float)mat[0], (float)mat[1], (float)mat[2]);
   fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
-	  (float)mat[3], (float)mat[4], (float)mat[5]);
+          (float)mat[3], (float)mat[4], (float)mat[5]);
 }
 
 double *
@@ -138,10 +138,10 @@ mossMatApply (double *ox, double *oy, double *mat, double ix, double iy) {
 
 int
 mossLinearTransform (Nrrd *nout, Nrrd *nin, float *bg,
-		     double *mat, mossSampler *msp,
-		     double xMin, double xMax,
-		     double yMin, double yMax,
-		     int xSize, int ySize) {
+                     double *mat, mossSampler *msp,
+                     double xMin, double xMax,
+                     double yMin, double yMax,
+                     int xSize, int ySize) {
   char me[]="mossLinearTransform", err[AIR_STRLEN_MED];
   int ncol, xi, yi, ci, ax0, xCent, yCent;
   float *val, (*ins)(void *v, size_t I, float f), (*clamp)(float val);
@@ -161,11 +161,11 @@ mossLinearTransform (Nrrd *nout, Nrrd *nin, float *bg,
   }
   ax0 = MOSS_AXIS0(nin);
   if (!( AIR_EXISTS(nin->axis[ax0+0].min)
-	 && AIR_EXISTS(nin->axis[ax0+0].max)
-	 && AIR_EXISTS(nin->axis[ax0+1].min)
-	 && AIR_EXISTS(nin->axis[ax0+1].max) )) {
+         && AIR_EXISTS(nin->axis[ax0+0].max)
+         && AIR_EXISTS(nin->axis[ax0+1].min)
+         && AIR_EXISTS(nin->axis[ax0+1].max) )) {
     sprintf(err, "%s: input axis min,max not set on axes %d and %d", me,
-	    ax0+0, ax0+1); biffAdd(MOSS, err); return 1;
+            ax0+0, ax0+1); biffAdd(MOSS, err); return 1;
   }
 
   ncol = MOSS_NCOL(nin);
@@ -197,18 +197,18 @@ mossLinearTransform (Nrrd *nout, Nrrd *nin, float *bg,
     for (xi=0; xi<xSize; xi++) {
       /*
       mossVerbose = ( (36 == xi && 72 == yi) ||
-		      (37 == xi && 73 == yi) ||
-		      (105 == xi && 175 == yi) );
+                      (37 == xi && 73 == yi) ||
+                      (105 == xi && 175 == yi) );
       */
       xOutPos = NRRD_POS(xCent, xMin, xMax, xSize, xi);
       mossMatApply(&xInPos, &yInPos, inv, xOutPos, yOutPos);
       xInPos = NRRD_IDX(xCent, nin->axis[ax0+0].min, nin->axis[ax0+0].max,
-			nin->axis[ax0+0].size, xInPos);
+                        nin->axis[ax0+0].size, xInPos);
       yInPos = NRRD_IDX(yCent, nin->axis[ax0+1].min, nin->axis[ax0+1].max,
-			nin->axis[ax0+1].size, yInPos);
+                        nin->axis[ax0+1].size, yInPos);
       mossSamplerSample(val, msp, xInPos, yInPos);
       for (ci=0; ci<ncol; ci++) {
-	ins(nout->data, ci + ncol*(xi + xSize*yi), clamp(val[ci]));
+        ins(nout->data, ci + ncol*(xi + xSize*yi), clamp(val[ci]));
       }
     }
   }

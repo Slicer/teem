@@ -48,17 +48,17 @@ washQtoM3(double m[9], double q[4]) {
   /* mathematica work implies that we should be 
      setting ROW vectors here */
   ELL_3V_SET(m+0, 
-	     1 - 2*(y*y + z*z),
-	     2*(x*y - w*z),
-	     2*(x*z + w*y));
+             1 - 2*(y*y + z*z),
+             2*(x*y - w*z),
+             2*(x*z + w*y));
   ELL_3V_SET(m+3,
-	     2*(x*y + w*z),
-	     1 - 2*(x*x + z*z),
-	     2*(y*z - w*x));
+             2*(x*y + w*z),
+             1 - 2*(x*x + z*z),
+             2*(y*z - w*x));
   ELL_3V_SET(m+6,
-	     2*(x*z - w*y),
-	     2*(y*z + w*x),
-	     1 - 2*(x*x + y*y));
+             2*(x*z - w*y),
+             2*(y*z + w*x),
+             1 - 2*(x*x + y*y));
 }
 
 int
@@ -76,14 +76,14 @@ main(int argc, char *argv[]) {
   
   me = argv[0];
   hestOptAdd(&hopt, "n", "# samples", airTypeInt, 1, 1, &samp, "4",
-	     "number of samples along each edge of cube");
+             "number of samples along each edge of cube");
   hestOptAdd(&hopt, "c", "cl cp", airTypeDouble, 2, 2, clp, NULL,
-	     "shape of tensor to use; \"cl\" and \"cp\" are cl1 "
-	     "and cp1 values, both in [0.0,1.0]");
+             "shape of tensor to use; \"cl\" and \"cp\" are cl1 "
+             "and cp1 values, both in [0.0,1.0]");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output file to save tensors into");
+             "output file to save tensors into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
-		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   
@@ -94,7 +94,7 @@ main(int argc, char *argv[]) {
   fprintf(stderr, "%s: want evals = %g %g %g\n", me, xyz[0], xyz[1], xyz[2]);
 
   if (nrrdMaybeAlloc(nten, nrrdTypeFloat, 4,
-		     7, samp, samp, samp)) {
+                     7, samp, samp, samp)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't allocate output:\n%s\n", me, err);
     airMopError(mop); 
@@ -106,23 +106,23 @@ main(int argc, char *argv[]) {
   for (zi=0; zi<samp; zi++) {
     for (yi=0; yi<samp; yi++) {
       for (xi=0; xi<samp; xi++) {
-	q[0] = 1.0;
-	q[1] = AIR_AFFINE(-0.5, (float)xi, samp-0.5, -1, 1);
-	q[2] = AIR_AFFINE(-0.5, (float)yi, samp-0.5, -1, 1);
-	q[3] = AIR_AFFINE(-0.5, (float)zi, samp-0.5, -1, 1);
-	len = ELL_4V_LEN(q);
-	ELL_4V_SCALE(q, 1.0/len, q);
-	washQtoM3(mRF, q);
-	ELL_3M_TRANSPOSE(mRI, mRF);
-	
-	ELL_3M_IDENTITY_SET(mT);
-	ell_3m_post_mul_d(mT, mRI);
-	ell_3m_post_mul_d(mT, mD);
-	ell_3m_post_mul_d(mT, mRF);
+        q[0] = 1.0;
+        q[1] = AIR_AFFINE(-0.5, (float)xi, samp-0.5, -1, 1);
+        q[2] = AIR_AFFINE(-0.5, (float)yi, samp-0.5, -1, 1);
+        q[3] = AIR_AFFINE(-0.5, (float)zi, samp-0.5, -1, 1);
+        len = ELL_4V_LEN(q);
+        ELL_4V_SCALE(q, 1.0/len, q);
+        washQtoM3(mRF, q);
+        ELL_3M_TRANSPOSE(mRI, mRF);
+        
+        ELL_3M_IDENTITY_SET(mT);
+        ell_3m_post_mul_d(mT, mRI);
+        ell_3m_post_mul_d(mT, mD);
+        ell_3m_post_mul_d(mT, mRF);
 
-	tdata[0] = 1.0;
-	TEN_M2T(tdata, mT);
-	tdata += 7;
+        tdata[0] = 1.0;
+        TEN_M2T(tdata, mT);
+        tdata += 7;
       }
     }
   }

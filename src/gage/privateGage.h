@@ -46,7 +46,7 @@ extern "C" {
 
 /* shape.c */
 extern int _gageShapeSet(gageContext *ctx, gageShape *shape,
-			 Nrrd *nin, int baseDim);
+                         Nrrd *nin, int baseDim);
 
 /* pvl.c */
 extern gagePerVolume *_gagePerVolumeCopy(gagePerVolume *pvl, int fd);
@@ -72,9 +72,9 @@ extern void _gageVecIv3Print(FILE *, gageContext *ctx, gagePerVolume *pvl);
 
 /* misc.c */
 extern Nrrd* _gageStandardPadder(Nrrd *nin, gageKind *kind,
-				 int padding, gagePerVolume *pvl);
+                                 int padding, gagePerVolume *pvl);
 extern void _gageStandardNixer(Nrrd *npad, gageKind *kind,
-			       gagePerVolume *pvl);
+                               gagePerVolume *pvl);
 
 #ifdef __cplusplus
 }

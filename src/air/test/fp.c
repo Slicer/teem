@@ -44,7 +44,7 @@ main(int argc, char *argv[]) {
   else {
     printf("%s: !!!!\n", me);
     printf("%s: !!!! PROBLEM: nan's hi bit is NOT airMyQNaNHiBit (%d)\n",
-	   me, airMyQNaNHiBit);
+           me, airMyQNaNHiBit);
     printf("%s: !!!!\n", me);
   }    
 
@@ -56,12 +56,12 @@ main(int argc, char *argv[]) {
     sprintf(str, "%f", f);
     ret = airSingleSscanf(str, "%f", &parsed);
     printf("********** airFPGen_f(%d) = %f (-> %f(%d)) (AIR_EXISTS = %d)\n", 
-	   c, f, parsed, ret, AIR_EXISTS(f));
+           c, f, parsed, ret, AIR_EXISTS(f));
     airSinglePrintf(stdout, NULL, "--<%f>--\n", f);
     if (c != airFPClass_f(f)) {
       printf("\n\n%s: Silly hardware!!!\n", me);
       printf("%s: can't return a float of class %d %sfrom a function\n\n\n",
-	     me, c, airFP_SNAN == c ? "(signaling NaN) " : "");
+             me, c, airFP_SNAN == c ? "(signaling NaN) " : "");
     }
     airFPFprintf_f(stdout, f);
     d = f;
@@ -78,7 +78,7 @@ main(int argc, char *argv[]) {
 
   f = AIR_SNAN;
   printf("SNaN test: f = SNaN = float(0x%x) = %f; (QNaNHiBit = %d)\n", 
-	 airFloatSNaN.i, f, airMyQNaNHiBit);
+         airFloatSNaN.i, f, airMyQNaNHiBit);
   airFPFprintf_f(stdout, f);
   g = f*f;
   printf("g = f*f = %f\n", g);
@@ -95,10 +95,10 @@ main(int argc, char *argv[]) {
   printf("DBL_MIN:\n"); airFPFprintf_d(stdout, DBL_MIN); printf("\n");
 
   printf("AIR_NAN = %f; AIR_EXISTS(AIR_NAN) = %d\n", 
-	 AIR_NAN, AIR_EXISTS(AIR_NAN));
+         AIR_NAN, AIR_EXISTS(AIR_NAN));
   printf("AIR_POS_INF = %f; AIR_EXISTS(AIR_POS_INF) = %d\n", 
-	 AIR_POS_INF, AIR_EXISTS(AIR_POS_INF));
+         AIR_POS_INF, AIR_EXISTS(AIR_POS_INF));
   printf("AIR_NEG_INF = %f; AIR_EXISTS(AIR_NEG_INF) = %d\n", 
-	 AIR_NEG_INF, AIR_EXISTS(AIR_NEG_INF));
+         AIR_NEG_INF, AIR_EXISTS(AIR_NEG_INF));
   exit(0);
 }

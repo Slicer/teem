@@ -21,8 +21,8 @@
 #include "../limn.h"
 
 char *info = ("dumb little demonstration of calculating the "
-	      "world-to-view and view-to-world transforms given "
-	      "from, at, and up locations.");
+              "world-to-view and view-to-world transforms given "
+              "from, at, and up locations.");
 
 int
 main(int argc, char *argv[]) {
@@ -38,15 +38,15 @@ main(int argc, char *argv[]) {
   
   me = argv[0];
   hestOptAdd(&hopt, "fr", "eye pos", airTypeDouble, 3, 3, cam->from,
-	     NULL, "camera eye point");
+             NULL, "camera eye point");
   hestOptAdd(&hopt, "at", "at pos", airTypeDouble, 3, 3, cam->at,
-	     "0 0 0", "camera look-at point");
+             "0 0 0", "camera look-at point");
   hestOptAdd(&hopt, "up", "up dir", airTypeDouble, 3, 3, cam->up,
-	     "0 0 1", "camera pseudo up vector");
+             "0 0 1", "camera pseudo up vector");
   hestOptAdd(&hopt, "rh", NULL, airTypeInt, 0, 0, &(cam->rightHanded), NULL,
-	     "use a right-handed UVN frame (V points down)");
+             "use a right-handed UVN frame (V points down)");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
-		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   

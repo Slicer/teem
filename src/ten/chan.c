@@ -60,9 +60,9 @@ tenBMatrixCalc(Nrrd *nbmat, Nrrd *_ngrad) {
   for (dd=0; dd<DD; dd++) {
     G = (double*)(ngrad->data) + 3*dd;
     ELL_6V_SET(bmat,
-	       G[0]*G[0], G[0]*G[1], G[0]*G[2],
-	       G[1]*G[1], G[1]*G[2],
-	       G[2]*G[2]);
+               G[0]*G[0], G[0]*G[1], G[0]*G[2],
+               G[1]*G[1], G[1]*G[2],
+               G[2]*G[2]);
     bmat += 6;
   }
   
@@ -153,8 +153,8 @@ tenEMatrixCalc(Nrrd *nemat, Nrrd *_nbmat, int knownB0) {
 */
 void
 tenEstimateLinearSingle_f(float *ten, float *B0P, float *dwi, double *emat,
-			  int DD, int knownB0,
-			  float thresh, float soft, float b) {
+                          int DD, int knownB0,
+                          float thresh, float soft, float b) {
   double logB0, v[_TEN_MAX_DWI_NUM], tmp, mean;
   int i, j;
   
@@ -170,15 +170,15 @@ tenEstimateLinearSingle_f(float *ten, float *B0P, float *dwi, double *emat,
       mean += tmp;
       v[i-1] = (logB0 - log(tmp))/b;
       if (tenVerbose)
-	fprintf(stderr, "v[%d] = %f\n", i-1, v[i-1]);
+        fprintf(stderr, "v[%d] = %f\n", i-1, v[i-1]);
     }
     mean /= DD-1;
     ten[0] = AIR_AFFINE(-1, airErf((mean - thresh)/(soft + 0.000001)), 1,
-			0, 1);
+                        0, 1);
     for (j=0; j<6; j++) {
       tmp = 0;
       for (i=0; i<DD-1; i++) {
-	tmp += emat[i + (DD-1)*j]*v[i];
+        tmp += emat[i + (DD-1)*j]*v[i];
       }
       ten[j+1] = tmp;
     }
@@ -191,19 +191,19 @@ tenEstimateLinearSingle_f(float *ten, float *B0P, float *dwi, double *emat,
     }
     mean /= DD;
     ten[0] = AIR_AFFINE(-1, airErf((mean - thresh)/(soft + 0.000001)), 1,
-			0, 1);
+                        0, 1);
     for (j=0; j<=6; j++) {
       tmp = 0;
       for (i=0; i<DD; i++) {
-	tmp += emat[i + DD*j]*v[i];
+        tmp += emat[i + DD*j]*v[i];
       }
       if (j < 6) {
-	ten[j+1] = tmp;
+        ten[j+1] = tmp;
       } else {
-	/* we're on seventh row, for finding B0 */
-	if (B0P) {
-	  *B0P = exp(b*tmp);
-	}
+        /* we're on seventh row, for finding B0 */
+        if (B0P) {
+          *B0P = exp(b*tmp);
+        }
       }
     }
   }
@@ -220,9 +220,9 @@ tenEstimateLinearSingle_f(float *ten, float *B0P, float *dwi, double *emat,
 */
 int
 tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
-		    Nrrd **_ndwi, int dwiLen, 
-		    Nrrd *_nbmat, int knownB0, 
-		    double thresh, double soft, double b) {
+                    Nrrd **_ndwi, int dwiLen, 
+                    Nrrd *_nbmat, int knownB0, 
+                    double thresh, double soft, double b) {
   char me[]="tenEstimateLinear3D", err[AIR_STRLEN_MED];
   Nrrd *ndwi;
   airArray *mop;
@@ -242,7 +242,7 @@ tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 
   nrrdAxisInfoCopy(ndwi, _ndwi[0], amap, NRRD_AXIS_INFO_NONE);
   if (tenEstimateLinear4D(nten, nterrP, nB0P, 
-			  ndwi, _nbmat, knownB0, thresh, soft, b)) {
+                          ndwi, _nbmat, knownB0, thresh, soft, b)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
@@ -267,8 +267,8 @@ tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 */
 int
 tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
-		    Nrrd *ndwi, Nrrd *_nbmat, int knownB0,
-		    double thresh, double soft, double b) {
+                    Nrrd *ndwi, Nrrd *_nbmat, int knownB0,
+                    double thresh, double soft, double b) {
   char me[]="tenEstimateLinear4D", err[AIR_STRLEN_MED];
   Nrrd *nemat, *nbmat, *ncrop, *nhist;
   airArray *mop;
@@ -295,15 +295,15 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   if (knownB0) {
     if (!( ndwi->axis[0].size == 1 + _nbmat->axis[1].size )) {
       sprintf(err, "%s: (knownB0 == true) # input images (%d) "
-	      "!= 1 + # B matrix rows (1+%d)",
-	      me, ndwi->axis[0].size, _nbmat->axis[1].size);
+              "!= 1 + # B matrix rows (1+%d)",
+              me, ndwi->axis[0].size, _nbmat->axis[1].size);
       biffAdd(TEN, err); return 1;
     }
   } else {
     if (!( ndwi->axis[0].size == _nbmat->axis[1].size )) {
       sprintf(err, "%s: (knownB0 == false) # dwi (%d) != "
-	      "# B matrix rows (%d)",
-	      me, ndwi->axis[0].size, _nbmat->axis[1].size);
+              "# B matrix rows (%d)",
+              me, ndwi->axis[0].size, _nbmat->axis[1].size);
       biffAdd(TEN, err); return 1;
     }
   }
@@ -334,8 +334,8 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     if (!E) range = nrrdRangeNewSet(ncrop, nrrdBlind8BitRangeState);
     if (!E) airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
     if (!E) E |= nrrdHisto(nhist, ncrop, range, NULL,
-			   (int)AIR_MIN(1024, range->max - range->min + 1),
-			   nrrdTypeFloat);
+                           (int)AIR_MIN(1024, range->max - range->min + 1),
+                           nrrdTypeFloat);
     if (E) {
       sprintf(err, "%s: trouble histograming to find DW threshold", me);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
@@ -385,38 +385,38 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     for (d=0; d<DD; d++) {
       dwi1[d] = lup(ndwi->data, d + DD*II);
       if (tenVerbose)
-	fprintf(stderr, "%s: input dwi1[%d] = %g\n", me, d, dwi1[d]);
+        fprintf(stderr, "%s: input dwi1[%d] = %g\n", me, d, dwi1[d]);
     }
     tenEstimateLinearSingle_f(ten, &_B0,
-			      dwi1, emat, DD, knownB0, thresh, soft, b);
+                              dwi1, emat, DD, knownB0, thresh, soft, b);
     if (nB0P) {
       *B0 = _B0;
     }
     if (tenVerbose) {
       fprintf(stderr, "%s: output ten = (%g) %g,%g,%g  %g,%g  %g\n", me,
-	      ten[0], ten[1], ten[2], ten[3], ten[4], ten[5], ten[6]);
+              ten[0], ten[1], ten[2], ten[3], ten[4], ten[5], ten[6]);
     }
     if (nterrP) {
       te = 0;
       if (knownB0) {
-	tenSimulateOne_f(dwi2, _B0, ten, bmat, DD, b);
-	for (d=1; d<DD; d++) {
-	  d1 = AIR_MAX(dwi1[d], 1);
-	  d2 = AIR_MAX(dwi2[d], 1);
-	  te += (d1 - d2)*(d1 - d2);
-	}
-	te /= (DD-1);
+        tenSimulateOne_f(dwi2, _B0, ten, bmat, DD, b);
+        for (d=1; d<DD; d++) {
+          d1 = AIR_MAX(dwi1[d], 1);
+          d2 = AIR_MAX(dwi2[d], 1);
+          te += (d1 - d2)*(d1 - d2);
+        }
+        te /= (DD-1);
       } else {
-	tenSimulateOne_f(dwi2, _B0, ten, bmat, DD+1, b);
-	for (d=0; d<DD; d++) {
-	  d1 = AIR_MAX(dwi1[d], 1);
-	  /* tenSimulateOne_f always puts the B0 in the beginning of
-	     the dwi vector, but in this case we didn't have it in
-	     the input dwi vecctor */
-	  d2 = AIR_MAX(dwi2[d+1], 1);
-	  te += (d1 - d2)*(d1 - d2);
-	}
-	te /= DD;
+        tenSimulateOne_f(dwi2, _B0, ten, bmat, DD+1, b);
+        for (d=0; d<DD; d++) {
+          d1 = AIR_MAX(dwi1[d], 1);
+          /* tenSimulateOne_f always puts the B0 in the beginning of
+             the dwi vector, but in this case we didn't have it in
+             the input dwi vecctor */
+          d2 = AIR_MAX(dwi2[d+1], 1);
+          te += (d1 - d2)*(d1 - d2);
+        }
+        te /= DD;
       }
       *terr = sqrt(te);
       terr += 1;
@@ -448,7 +448,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 */
 void
 tenSimulateOne_f(float *dwi,
-		 float B0, float *ten, double *bmat, int DD, float b) {
+                 float B0, float *ten, double *bmat, int DD, float b) {
   double vv;
   /* this is how we multiply the off-diagonal entries by 2 */
   double matwght[6] = {1, 2, 2, 1, 2, 1};
@@ -457,7 +457,7 @@ tenSimulateOne_f(float *dwi,
   dwi[0] = B0;
   if (tenVerbose) {
     fprintf(stderr, "ten = %g,%g,%g  %g,%g  %g\n", 
-	    ten[1], ten[2], ten[3], ten[4], ten[5], ten[6]);
+            ten[1], ten[2], ten[3], ten[4], ten[5], ten[6]);
   }
   for (i=0; i<DD-1; i++) {
     vv = 0;
@@ -501,12 +501,12 @@ tenSimulate(Nrrd *ndwi, Nrrd *nT2, Nrrd *nten, Nrrd *_nbmat, double b) {
   sy = nT2->axis[1].size;
   sz = nT2->axis[2].size;
   if (!(3 == nT2->dim
-	&& sx == nten->axis[1].size
-	&& sy == nten->axis[2].size
-	&& sz == nten->axis[3].size)) {
+        && sx == nten->axis[1].size
+        && sy == nten->axis[2].size
+        && sz == nten->axis[3].size)) {
     sprintf(err, "%s: dimensions of T2 volume (%d,%d,%d) don't match "
-	    "tensor volume (%d,%d,%d)", me, sx, sy, sz, nten->axis[1].size,
-	    nten->axis[2].size, nten->axis[3].size);
+            "tensor volume (%d,%d,%d)", me, sx, sy, sz, nten->axis[1].size,
+            nten->axis[2].size, nten->axis[3].size);
     biffAdd(TEN, err); return 1;
   }
   if (nrrdMaybeAlloc(ndwi, nrrdTypeFloat, 4, DD, sx, sy, sz)) {
@@ -556,7 +556,7 @@ tenSimulate(Nrrd *ndwi, Nrrd *nT2, Nrrd *nten, Nrrd *_nbmat, double b) {
 */
 void
 tenCalcOneTensor1(float tens[7], float chan[7], 
-		  float thresh, float slope, float b) {
+                  float thresh, float slope, float b) {
   double c[7], sum, d1, d2, d3, d4, d5, d6;
   
   c[0] = AIR_MAX(chan[0], 1);
@@ -590,7 +590,7 @@ tenCalcOneTensor1(float tens[7], float chan[7],
 */
 void
 tenCalcOneTensor2(float tens[7], float chan[7], 
-		  float thresh, float slope, float b) {
+                  float thresh, float slope, float b) {
   double c[7], sum, d1, d2, d3, d4, d5, d6;
   
   c[0] = AIR_MAX(chan[0], 1);
@@ -624,13 +624,13 @@ tenCalcOneTensor2(float tens[7], float chan[7],
 */
 int
 tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
-	      float thresh, float slope, float b) {
+              float thresh, float slope, float b) {
   char me[] = "tenCalcTensor", err[128], cmt[128];
   float *out, tens[7], chan[7];
   int sx, sy, sz;
   size_t I;
   void (*calcten)(float tens[7], float chan[7], 
-		  float thresh, float slope, float b);
+                  float thresh, float slope, float b);
   
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -681,7 +681,7 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
     nout->axis[3].spacing = 1.0;
   }    
   sprintf(cmt, "%s: using thresh = %g, slope = %g, b = %g\n", 
-	  me, thresh, slope, b);
+          me, thresh, slope, b);
   nrrdCommentAdd(nout, cmt);
   out = nout->data;
   for (I=0; I<=sx*sy*sz-1; I++) {

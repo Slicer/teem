@@ -94,8 +94,8 @@ _hooverExtraContextNew(hooverContext *ctx) {
   if (ec) {
     _hooverLearnLengths(ec->volHLen, ec->voxLen, ctx);
     ELL_3V_SCALE_ADD2(ec->rayZero,
-		      1.0, ctx->cam->from,
-		      ctx->cam->vspNeer, ctx->cam->N);
+                      1.0, ctx->cam->from,
+                      ctx->cam->vspNeer, ctx->cam->N);
   }
   return ec;
 }
@@ -145,29 +145,29 @@ _hooverThreadBody(void *_arg) {
     Mx, My, Mz,          /* highest position in index space on each axis */
     u, v,                /* floating-point coords in image */
     uvScale,             /* how to scale (u,v) to go from image to 
-			    near plane, according to ortho or perspective */
+                            near plane, according to ortho or perspective */
     lx, ly, lz,          /* half edge-lengths of volume */
     rayLen=0,            /* length of segment formed by ray line intersecting
-			    the near and far clipping planes */
+                            the near and far clipping planes */
     rayT,                /* current position along ray (world-space) */
     rayDirW[3],          /* unit-length ray direction (world-space) */
     rayDirI[3],          /* rayDirW transformed into index space;
-			    not unit length, but a unit change in
-			    world space along rayDirW translates to
-			    this change in index space along rayDirI */
+                            not unit length, but a unit change in
+                            world space along rayDirW translates to
+                            this change in index space along rayDirI */
     rayPosW[3],          /* current ray location (world-space) */
     rayPosI[3],          /* current ray location (index-space) */
     rayStartW[3],        /* ray start on near plane (world-space) */
     rayStartI[3],        /* ray start on near plane (index-space) */
     rayStep,             /* distance between samples (world-space) */
     vOff[3], uOff[3];    /* offsets in arg->ec->wU and arg->ec->wV
-			    directions towards start of ray */
+                            directions towards start of ray */
 
   arg = (_hooverThreadArg *)_arg;
   if ( (ret = (arg->ctx->threadBegin)(&thread, 
-				      arg->render, 
-				      arg->ctx->user,
-				      arg->whichThread)) ) {
+                                      arg->render, 
+                                      arg->ctx->user,
+                                      arg->whichThread)) ) {
     arg->errCode = ret;
     arg->whichErr = hooverErrThreadBegin;
     return arg;
@@ -218,23 +218,23 @@ _hooverThreadBody(void *_arg) {
 
     if (nrrdCenterCell == arg->ctx->imgCentering) {
       v = uvScale*AIR_AFFINE(-0.5, vI, arg->ctx->imgSize[1]-0.5,
-			     arg->ctx->cam->vRange[0],
-			     arg->ctx->cam->vRange[1]);
+                             arg->ctx->cam->vRange[0],
+                             arg->ctx->cam->vRange[1]);
     } else {
       v = uvScale*AIR_AFFINE(0.0, vI, arg->ctx->imgSize[1]-1.0,
-			     arg->ctx->cam->vRange[0],
-			     arg->ctx->cam->vRange[1]);
+                             arg->ctx->cam->vRange[0],
+                             arg->ctx->cam->vRange[1]);
     }
     ELL_3V_SCALE(vOff, v, arg->ctx->cam->V);
     for (uI=0; uI<arg->ctx->imgSize[0]; uI++) {
       if (nrrdCenterCell == arg->ctx->imgCentering) {
-	u = uvScale*AIR_AFFINE(-0.5, uI, arg->ctx->imgSize[0]-0.5,
-			       arg->ctx->cam->uRange[0],
-			       arg->ctx->cam->uRange[1]);
+        u = uvScale*AIR_AFFINE(-0.5, uI, arg->ctx->imgSize[0]-0.5,
+                               arg->ctx->cam->uRange[0],
+                               arg->ctx->cam->uRange[1]);
       } else {
-	u = uvScale*AIR_AFFINE(0.0, uI, arg->ctx->imgSize[0]-1.0,
-			       arg->ctx->cam->uRange[0],
-			       arg->ctx->cam->uRange[1]);
+        u = uvScale*AIR_AFFINE(0.0, uI, arg->ctx->imgSize[0]-1.0,
+                               arg->ctx->cam->uRange[0],
+                               arg->ctx->cam->uRange[1]);
       }
       ELL_3V_SCALE(uOff, u, arg->ctx->cam->U);
       ELL_3V_ADD3(rayStartW, uOff, vOff, arg->ec->rayZero);
@@ -242,71 +242,71 @@ _hooverThreadBody(void *_arg) {
       rayStartI[1] = AIR_AFFINE(-ly, rayStartW[1], ly, mm, My);
       rayStartI[2] = AIR_AFFINE(-lz, rayStartW[2], lz, mm, Mz);
       if (!arg->ctx->cam->orthographic) {
-	ELL_3V_SUB(rayDirW, rayStartW, arg->ctx->cam->from);
-	ELL_3V_NORM(rayDirW, rayDirW, tmp);
-	rayDirI[0] = AIR_DELTA(-lx, rayDirW[0], lx, mm, Mx);
-	rayDirI[1] = AIR_DELTA(-ly, rayDirW[1], ly, mm, My);
-	rayDirI[2] = AIR_DELTA(-lz, rayDirW[2], lz, mm, Mz);
-	rayLen = ((arg->ctx->cam->vspFaar - arg->ctx->cam->vspNeer)/
-		  ELL_3V_DOT(rayDirW, arg->ctx->cam->N));
+        ELL_3V_SUB(rayDirW, rayStartW, arg->ctx->cam->from);
+        ELL_3V_NORM(rayDirW, rayDirW, tmp);
+        rayDirI[0] = AIR_DELTA(-lx, rayDirW[0], lx, mm, Mx);
+        rayDirI[1] = AIR_DELTA(-ly, rayDirW[1], ly, mm, My);
+        rayDirI[2] = AIR_DELTA(-lz, rayDirW[2], lz, mm, Mz);
+        rayLen = ((arg->ctx->cam->vspFaar - arg->ctx->cam->vspNeer)/
+                  ELL_3V_DOT(rayDirW, arg->ctx->cam->N));
       }
       if ( (ret = (arg->ctx->rayBegin)(thread,
-				       arg->render,
-				       arg->ctx->user,
-				       uI, vI, rayLen,
-				       rayStartW, rayStartI,
-				       rayDirW, rayDirI)) ) {
-	arg->errCode = ret;
-	arg->whichErr = hooverErrRayBegin;
-	return arg;
+                                       arg->render,
+                                       arg->ctx->user,
+                                       uI, vI, rayLen,
+                                       rayStartW, rayStartI,
+                                       rayDirW, rayDirI)) ) {
+        arg->errCode = ret;
+        arg->whichErr = hooverErrRayBegin;
+        return arg;
       }
       
       sampleI = 0;
       rayT = 0;
       while (1) {
-	ELL_3V_SCALE_ADD2(rayPosW, 1.0, rayStartW, rayT, rayDirW);
-	ELL_3V_SCALE_ADD2(rayPosI, 1.0, rayStartI, rayT, rayDirI);
-	inside = (AIR_IN_CL(mm, rayPosI[0], Mx) &&
-		  AIR_IN_CL(mm, rayPosI[1], My) &&
-		  AIR_IN_CL(mm, rayPosI[2], Mz));
-	rayStep = (arg->ctx->sample)(thread,
-				     arg->render,
-				     arg->ctx->user,
-				     sampleI, rayT,
-				     inside,
-				     rayPosW, rayPosI);
-	if (!AIR_EXISTS(rayStep)) {
-	  /* sampling failed */
-	  arg->errCode = 0;
-	  arg->whichErr = hooverErrSample;
-	  return arg;
-	}
-	if (!rayStep) {
-	  /* ray decided to finish itself */
-	  break;
-	} 
-	/* else we moved to a new location along the ray */
-	rayT += rayStep;
-	if (!AIR_IN_CL(0, rayT, rayLen)) {
-	  /* ray stepped outside near-far clipping region, its done. */
-	  break;
-	}
-	sampleI++;
+        ELL_3V_SCALE_ADD2(rayPosW, 1.0, rayStartW, rayT, rayDirW);
+        ELL_3V_SCALE_ADD2(rayPosI, 1.0, rayStartI, rayT, rayDirI);
+        inside = (AIR_IN_CL(mm, rayPosI[0], Mx) &&
+                  AIR_IN_CL(mm, rayPosI[1], My) &&
+                  AIR_IN_CL(mm, rayPosI[2], Mz));
+        rayStep = (arg->ctx->sample)(thread,
+                                     arg->render,
+                                     arg->ctx->user,
+                                     sampleI, rayT,
+                                     inside,
+                                     rayPosW, rayPosI);
+        if (!AIR_EXISTS(rayStep)) {
+          /* sampling failed */
+          arg->errCode = 0;
+          arg->whichErr = hooverErrSample;
+          return arg;
+        }
+        if (!rayStep) {
+          /* ray decided to finish itself */
+          break;
+        } 
+        /* else we moved to a new location along the ray */
+        rayT += rayStep;
+        if (!AIR_IN_CL(0, rayT, rayLen)) {
+          /* ray stepped outside near-far clipping region, its done. */
+          break;
+        }
+        sampleI++;
       }
       
       if ( (ret = (arg->ctx->rayEnd)(thread,
-				     arg->render,
-				     arg->ctx->user)) ) {
-	arg->errCode = ret;
-	arg->whichErr = hooverErrRayEnd;
-	return arg;
+                                     arg->render,
+                                     arg->ctx->user)) ) {
+        arg->errCode = ret;
+        arg->whichErr = hooverErrRayEnd;
+        return arg;
       }
     }  /* end this scanline */
   } /* end while(1) assignment of scanlines */
 
   if ( (ret = (arg->ctx->threadEnd)(thread,
-				    arg->render,
-				    arg->ctx->user)) ) {
+                                    arg->render,
+                                    arg->ctx->user)) ) {
     arg->errCode = ret;
     arg->whichErr = hooverErrThreadEnd;
     return arg;
@@ -391,7 +391,7 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
 
   for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
     if ((ret = airThreadStart(thread[threadIdx], _hooverThreadBody, 
-			      (void *) &args[threadIdx]))) {
+                              (void *) &args[threadIdx]))) {
       *errCodeP = ret;
       *errThreadP = threadIdx;
       airMopError(mop);

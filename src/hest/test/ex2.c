@@ -38,13 +38,13 @@ main(int argc, char **argv) {
 
   opt = NULL;
   hestOptAdd(&opt, "res",   "sx sy", airTypeInt,    2,  2,  res,  NULL,
-	     "image resolution");
+             "image resolution");
   hestOptAdd(&opt, "v",     "level", airTypeInt,    0,  1,  &v,   "0",
-	     "verbosity level");
+             "verbosity level");
   hestOptAdd(&opt, "out",   "file",  airTypeString, 1,  1,  &out, "output.ppm",
-	     "PPM image output");
+             "PPM image output");
   hestOptAdd(&opt, NULL,    "input", airTypeString, 1, -1,  &in,  NULL,
-	     "input image file(s)", &numIn);
+             "input image file(s)", &numIn);
   
   if (1 == argc) {
     /* didn't get anything at all on command line */

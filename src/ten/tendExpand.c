@@ -41,17 +41,17 @@ tend_expandMain(int argc, char **argv, char *me, hestParm *hparm) {
   float scale, thresh;
 
   hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "0.5",
-	     "confidence level to threshold output tensors at.  Should "
-	     "be between 0.0 and 1.0.");
+             "confidence level to threshold output tensors at.  Should "
+             "be between 0.0 and 1.0.");
   hestOptAdd(&hopt, "s", "scale", airTypeFloat, 1, 1, &scale, "1.0",
-	     "how to scale values before saving as 9-value tensor.  Useful "
-	     "for visualization tools which assume certain characteristic "
-	     "ranges of eigenvalues");
+             "how to scale values before saving as 9-value tensor.  Useful "
+             "for visualization tools which assume certain characteristic "
+             "ranges of eigenvalues");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-	     "input diffusion tensor volume, with 7 values per sample",
-	     NULL, NULL, nrrdHestNrrd);
+             "input diffusion tensor volume, with 7 values per sample",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
-	     "output tensor volume, with the 9 matrix components per sample");
+             "output tensor volume, with the 9 matrix components per sample");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

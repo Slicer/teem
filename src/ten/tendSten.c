@@ -37,20 +37,20 @@ tend_stenMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *outS;
 
   hestOptAdd(&hopt, "ds", "diff. scale", airTypeInt, 1, 1, &dScale, "1",
-	     "differentiation scale, in pixels: the radius of the "
-	     "kernel used for differentation to compute gradient vectors");
+             "differentiation scale, in pixels: the radius of the "
+             "kernel used for differentation to compute gradient vectors");
   hestOptAdd(&hopt, "is", "int. scale", airTypeInt, 1, 1, &iScale, "2",
-	     "integration scale, in pixels: the radius of the "
-	     "kernel used for blurring outer products of gradients "
-	     "in order compute structure tensors");
+             "integration scale, in pixels: the radius of the "
+             "kernel used for blurring outer products of gradients "
+             "in order compute structure tensors");
   hestOptAdd(&hopt, "df", "downsample factor", airTypeInt, 1, 1, &dsmp, "1",
-	     "the factor by which to downsample when creating volume of "
-	     "structure tensors");
+             "the factor by which to downsample when creating volume of "
+             "structure tensors");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-	     "input scalar volume",
-	     NULL, NULL, nrrdHestNrrd);
+             "input scalar volume",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output filename");
+             "output filename");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -64,7 +64,7 @@ tend_stenMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (gageStructureTensor(nout, nin, dScale, iScale, dsmp)) {
     airMopAdd(mop, err=biffGetDone(GAGE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble calculating structure tensors:\n%s\n",
-	    me, err);
+            me, err);
     airMopError(mop); return 1;
   }
 

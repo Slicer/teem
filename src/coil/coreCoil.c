@@ -33,11 +33,11 @@
     for (zni=0; zni<diam; zni++) { \
       zvi = AIR_CLAMP(0, zni-radius+z0, sizeZ-1) - z0; \
       for (yni=0; yni<diam; yni++) { \
-	yvi = AIR_CLAMP(0, yni-radius+y0, sizeY-1) - y0; \
-	for (vi=0; vi<valLen; vi++) { \
-	  iv3[xni][vi + valLen*(yni + diam*zni)] =  \
-	    here[vi + valLen*(0 + 2*(xvi + sizeX*(yvi + sizeY*zvi)))]; \
-	} \
+        yvi = AIR_CLAMP(0, yni-radius+y0, sizeY-1) - y0; \
+        for (vi=0; vi<valLen; vi++) { \
+          iv3[xni][vi + valLen*(yni + diam*zni)] =  \
+            here[vi + valLen*(0 + 2*(xvi + sizeX*(yvi + sizeY*zvi)))]; \
+        } \
       } \
     } \
   } else { \
@@ -45,14 +45,14 @@
     for (zni=0; zni<diam; zni++) { \
       zvi = AIR_CLAMP(0, zni-radius+z0, sizeZ-1) - z0; \
       for (yni=0; yni<diam; yni++) { \
-	yvi = AIR_CLAMP(0, yni-radius+y0, sizeY-1) - y0; \
-	for (xni=0; xni<diam; xni++) { \
-	  xvi = AIR_CLAMP(0, xni-radius+x0, sizeX-1) - x0; \
-	  for (vi=0; vi<valLen; vi++) { \
-	    iv3[xni][vi + valLen*(yni + diam*zni)] =  \
-	      here[vi + valLen*(0 + 2*(xvi + sizeX*(yvi + sizeY*zvi)))]; \
-	  } \
-	} \
+        yvi = AIR_CLAMP(0, yni-radius+y0, sizeY-1) - y0; \
+        for (xni=0; xni<diam; xni++) { \
+          xvi = AIR_CLAMP(0, xni-radius+x0, sizeX-1) - x0; \
+          for (vi=0; vi<valLen; vi++) { \
+            iv3[xni][vi + valLen*(yni + diam*zni)] =  \
+              here[vi + valLen*(0 + 2*(xvi + sizeX*(yvi + sizeY*zvi)))]; \
+          } \
+        } \
       } \
     } \
   }
@@ -65,7 +65,7 @@
 */
 void
 _coilIv3Fill_R_L(coil_t **iv3, coil_t *here, int radius, int valLen,
-		 int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ) {
+                 int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ) {
   int diam, vi,    /* value index */
     xni, yni, zni, /* neighborhood (iv3) indices */
     xvi, yvi, zvi; /* volume indices */
@@ -78,7 +78,7 @@ _coilIv3Fill_R_L(coil_t **iv3, coil_t *here, int radius, int valLen,
 
 void
 _coilIv3Fill_1_1(coil_t **iv3, coil_t *here, int radius, int valLen,
-	     int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ) {
+             int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ) {
   int vi,          /* value index */
     xni, yni, zni, /* neighborhood (iv3) indices */
     xvi, yvi, zvi; /* volume indices */
@@ -90,7 +90,7 @@ _coilIv3Fill_1_1(coil_t **iv3, coil_t *here, int radius, int valLen,
 
 void
 _coilIv3Fill_1_7(coil_t **iv3, coil_t *here, int radius, int valLen,
-	     int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ) {
+             int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ) {
   int vi,          /* value index */
     xni, yni, zni, /* neighborhood (iv3) indices */
     xvi, yvi, zvi; /* volume indices */
@@ -136,8 +136,8 @@ _coilProcess(coilTask *task, int doFilter) {
   int xi, yi, sizeX, sizeY, thisZ, sizeZ, valLen, radius;
   coil_t *here;
   void (*filter)(coil_t *delta, coil_t **iv3, 
-		 double spacing[3],
-		 double parm[COIL_PARMS_NUM]);
+                 double spacing[3],
+                 double parm[COIL_PARMS_NUM]);
   
   sizeX = task->cctx->size[0];
   sizeY = task->cctx->size[1];
@@ -149,31 +149,31 @@ _coilProcess(coilTask *task, int doFilter) {
     while (1) {
       thisZ = _coilThisZGet(task, doFilter);
       if (thisZ == sizeZ) {
-	break;
+        break;
       }
       here = (coil_t*)(task->cctx->nvol->data) + 2*valLen*sizeX*sizeY*thisZ;
       for (yi=0; yi<sizeY; yi++) {
-	for (xi=0; xi<sizeX; xi++) {
-	  task->iv3Fill(task->iv3, here + 0*valLen, radius, valLen,
-			xi, yi, thisZ, sizeX, sizeY, sizeZ);
-	  filter(here + 1*valLen, task->iv3,
-		 task->cctx->spacing, task->cctx->parm);
-	  here += 2*valLen;
-	}
+        for (xi=0; xi<sizeX; xi++) {
+          task->iv3Fill(task->iv3, here + 0*valLen, radius, valLen,
+                        xi, yi, thisZ, sizeX, sizeY, sizeZ);
+          filter(here + 1*valLen, task->iv3,
+                 task->cctx->spacing, task->cctx->parm);
+          here += 2*valLen;
+        }
       }
     }
   } else {
     while (1) {
       thisZ = _coilThisZGet(task, doFilter);
       if (thisZ == sizeZ) {
-	break;
+        break;
       }
       here = (coil_t*)(task->cctx->nvol->data) + 2*valLen*sizeX*sizeY*thisZ;
       for (yi=0; yi<sizeY; yi++) {
-	for (xi=0; xi<sizeX; xi++) {
-	  task->cctx->kind->update(here + 0*valLen, here + 1*valLen);
-	  here += 2*valLen;
-	}
+        for (xi=0; xi<sizeX; xi++) {
+          task->cctx->kind->update(here + 0*valLen, here + 1*valLen);
+          here += 2*valLen;
+        }
       }
     }
   }
@@ -232,12 +232,12 @@ _coilWorker(void *_task) {
     /* wait until parent has set cctx->finished */
     if (task->cctx->verbose > 1) {
       fprintf(stderr, "%s(%d): waiting to check finished\n",
-	      me, task->threadIdx);
+              me, task->threadIdx);
     }
     airThreadBarrierWait(task->cctx->filterBarrier);
     if (task->cctx->finished) {
       if (task->cctx->verbose > 1) {
-	fprintf(stderr, "%s(%d): done!\n", me, task->threadIdx);
+        fprintf(stderr, "%s(%d): done!\n", me, task->threadIdx);
       }
       break;
     }
@@ -246,7 +246,7 @@ _coilWorker(void *_task) {
     /* first: filter */
     if (task->cctx->verbose > 1) {
       fprintf(stderr, "%s(%d): filtering ... \n",
-	      me, task->threadIdx);
+              me, task->threadIdx);
     }
     _coilProcess(task, AIR_TRUE);
 
@@ -254,7 +254,7 @@ _coilWorker(void *_task) {
     airThreadBarrierWait(task->cctx->updateBarrier);
     if (task->cctx->verbose > 1) {
       fprintf(stderr, "%s(%d): updating ... \n",
-	      me, task->threadIdx);
+              me, task->threadIdx);
     }
     _coilProcess(task, AIR_FALSE);
 
@@ -318,7 +318,7 @@ coilStart(coilContext *cctx) {
       fprintf(stderr, "%s: spawning thread %d\n", me, tidx);
     }
     airThreadStart(cctx->task[tidx]->thread, _coilWorker,
-		   (void *)(cctx->task[tidx]));
+                   (void *)(cctx->task[tidx]));
   }
 
   /* set things as though we've just finished an update phase */
@@ -351,7 +351,7 @@ coilIterate(coilContext *cctx, int numIterations) {
   for (iter=0; iter<numIterations; iter++) {
     if (cctx->verbose) {
       fprintf(stderr, "%s: starting iter %d (of %d)\n", me, iter, 
-	      numIterations);
+              numIterations);
     }
     cctx->finished = AIR_FALSE;
     if (cctx->numThreads > 1) {
@@ -377,7 +377,7 @@ coilIterate(coilContext *cctx, int numIterations) {
   time1 = airTime();
   if (cctx->verbose) {
     fprintf(stderr, "%s: elapsed time = %g (%g/iter)\n", me,
-	    time1 - time0, (time1 - time0)/numIterations);
+            time1 - time0, (time1 - time0)/numIterations);
   }
   return 0;
 }

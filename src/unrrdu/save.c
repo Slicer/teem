@@ -47,52 +47,52 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
 
   strcpy(fmtInfo,
-	 "output file format. Possibilities include:\n "
-	 "\b\bo \"nrrd\": standard nrrd format\n "
-	 "\b\bo \"pnm\": PNM image; PPM for color, PGM for grayscale\n "
-	 "\b\bo \"text\": plain ASCII text for 1-D and 2-D data\n "
-	 "\b\bo \"vtk\": VTK \"STRUCTURED_POINTS\" dataset");
+         "output file format. Possibilities include:\n "
+         "\b\bo \"nrrd\": standard nrrd format\n "
+         "\b\bo \"pnm\": PNM image; PPM for color, PGM for grayscale\n "
+         "\b\bo \"text\": plain ASCII text for 1-D and 2-D data\n "
+         "\b\bo \"vtk\": VTK \"STRUCTURED_POINTS\" dataset");
   if (nrrdFormatPNG->available()) {
     strcat(fmtInfo,
-	   "\n \b\bo \"png\": PNG image");
+           "\n \b\bo \"png\": PNG image");
   }
   strcat(fmtInfo,
-	 "\n \b\bo \"eps\": EPS file");
+         "\n \b\bo \"eps\": EPS file");
   hestOptAdd(&opt, "f", "format", airTypeEnum, 1, 1, &formatType, NULL,
-	     fmtInfo, NULL, nrrdFormatType);
+             fmtInfo, NULL, nrrdFormatType);
   strcpy(encInfo,
-	 "encoding of data in file.  Not all encodings are supported in "
-	 "a given format. Possibilities include:"
-	 "\n \b\bo \"raw\": raw encoding"
-	 "\n \b\bo \"ascii\": print data in ascii"
-	 "\n \b\bo \"hex\": two hex digits per byte");
+         "encoding of data in file.  Not all encodings are supported in "
+         "a given format. Possibilities include:"
+         "\n \b\bo \"raw\": raw encoding"
+         "\n \b\bo \"ascii\": print data in ascii"
+         "\n \b\bo \"hex\": two hex digits per byte");
   if (nrrdEncodingGzip->available()) {
     strcat(encInfo, 
-	   "\n \b\bo \"gzip\", \"gz\": gzip compressed raw data");
+           "\n \b\bo \"gzip\", \"gz\": gzip compressed raw data");
   }
   if (nrrdEncodingBzip2->available()) {
     strcat(encInfo, 
-	   "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
+           "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
   }
   if (nrrdEncodingGzip->available() || nrrdEncodingBzip2->available()) {
     strcat(encInfo,
-	   "\n The specifiers for compressions may be followed by a colon "
-	   "\":\", followed by an optional digit giving compression \"level\" "
-	   "(for gzip) or \"block size\" (for bzip2).  For gzip, this can be "
-	   "followed by an optional character for a compression strategy:\n "
-	   "\b\bo \"d\": default, Huffman with string match\n "
-	   "\b\bo \"h\": Huffman alone\n "
-	   "\b\bo \"f\": specialized for filtered data\n "
-	   "For example, \"gz\", \"gz:9\", \"gz:9f\" are all valid");
+           "\n The specifiers for compressions may be followed by a colon "
+           "\":\", followed by an optional digit giving compression \"level\" "
+           "(for gzip) or \"block size\" (for bzip2).  For gzip, this can be "
+           "followed by an optional character for a compression strategy:\n "
+           "\b\bo \"d\": default, Huffman with string match\n "
+           "\b\bo \"h\": Huffman alone\n "
+           "\b\bo \"f\": specialized for filtered data\n "
+           "For example, \"gz\", \"gz:9\", \"gz:9f\" are all valid");
   }
   hestOptAdd(&opt, "e", "encoding", airTypeOther, 1, 1, enc, "raw",
-	     encInfo, NULL, NULL, &unrrduHestEncodingCB);
+             encInfo, NULL, NULL, &unrrduHestEncodingCB);
   hestOptAdd(&opt, "en", "endian", airTypeEnum, 1, 1, &(nio->endian),
-	     airEnumStr(airEndian, airMyEndian),
-	     "Endianness to save data out as; \"little\" for Intel and "
-	     "friends; \"big\" for everyone else. "
-	     "Defaults to endianness of this machine",
-	     NULL, airEndian);
+             airEnumStr(airEndian, airMyEndian),
+             "Endianness to save data out as; \"little\" for Intel and "
+             "friends; \"big\" for everyone else. "
+             "Defaults to endianness of this machine",
+             NULL, airEndian);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -120,7 +120,7 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (airEndsWith(out, NRRD_EXT_NHDR)) {
     if (nio->format != nrrdFormatNRRD) {
       fprintf(stderr, "%s: WARNING: will use %s format\n", me,
-	      nrrdFormatNRRD->name);
+              nrrdFormatNRRD->name);
       nio->format = nrrdFormatNRRD;
     }
   }

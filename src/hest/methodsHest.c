@@ -88,9 +88,9 @@ hestOptNew(void) {
 
 void
 hestOptAdd(hestOpt **optP, 
-	   char *flag, char *name,
-	   int type, int min, int max,
-	   void *valueP, const char *dflt, const char *info, ...) {
+           char *flag, char *name,
+           int type, int min, int max,
+           void *valueP, const char *dflt, const char *info, ...) {
   hestOpt *ret = NULL;
   int num;
   va_list ap;
@@ -182,7 +182,7 @@ hestOptCheck(hestOpt *opt, char **errP) {
   big = _hestErrStrlen(opt, 0, NULL);
   if (!(err = calloc(big, sizeof(char)))) {
     fprintf(stderr, "%s PANIC: couldn't allocate error message "
-	    "buffer (size %d)\n", me, big);
+            "buffer (size %d)\n", me, big);
     exit(1);
   }
   parm = hestParmNew();
@@ -228,9 +228,9 @@ _hestIdent(char *ident, hestOpt *opt, hestParm *parm, int brief) {
   }
   else {
     sprintf(ident, "%s%s%s option", 
-	    opt->flag ? "\"-"      : "<",
-	    opt->flag ? opt->flag : opt->name,
-	    opt->flag ? "\""       : ">");
+            opt->flag ? "\"-"      : "<",
+            opt->flag ? opt->flag : opt->name,
+            opt->flag ? "\""       : ">");
   }
   return ident;
 }
@@ -312,17 +312,17 @@ _hestWhichFlag(hestOpt *opt, char *flag, hestParm *parm) {
       /* first try the short version */
       sprintf(buff, "-%s", copy);
       if (!strcmp(flag, buff))
-	return op;
+        return op;
       /* then try the long version */
       sprintf(buff, "--%s", sep+1);
       if (!strcmp(flag, buff))
-	return op;
+        return op;
     }
     else {
       /* flag has only the short version */
       sprintf(buff, "-%s", opt[op].flag);
       if (!strcmp(flag, buff))
-	return op;
+        return op;
     }
   }
   if (parm->verbosity)
@@ -353,7 +353,7 @@ _hestCase(hestOpt *opt, int *udflt, int *nprm, int *appr, int op) {
     return 0;
   }
   else if ( (4 == opt[op].kind && udflt[op]) ||
-	    (5 == opt[op].kind && !nprm[op]) ) {
+            (5 == opt[op].kind && !nprm[op]) ) {
     return 1;
   }
   else {

@@ -32,27 +32,27 @@ unrrdu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   hestOptAdd(&opt, NULL, "operator", airTypeEnum, 1, 1, &op, NULL,
-	     "Unary operator. Possibilities include:\n "
-	     "\b\bo \"-\": negative (multiply by -1.0)\n "
-	     "\b\bo \"r\": reciprocal (1.0/value)\n "
-	     "\b\bo \"sin\", \"cos\", \"tan\", \"asin\", \"acos\", \"atan\": "
-	     "same as in C\n "
-	     "\b\bo \"exp\", \"log\", \"log10\", \"log1p\": same as in C\n "
-	     "\b\bo \"log2\": log base 2\n "
-	     "\b\bo \"sqrt\", \"cbrt\", \"ceil\", \"floor\": same as in C\n "
-	     "\b\bo \"erf\": error function (integral of Gaussian)\n "
-	     "\b\bo \"rup\", \"rdn\": round up or down to integral value\n "
-	     "\b\bo \"abs\": absolute value\n "
-	     "\b\bo \"sgn\": -1, 0, 1 if value is <0, ==0, or >0\n "
-	     "\b\bo \"exists\": 1 iff not NaN or +/-Inf, 0 otherwise\n "
-	     "\b\bo \"rand\": random number in [0.0,1.0), no relation to input",
-	     NULL, nrrdUnaryOp);
+             "Unary operator. Possibilities include:\n "
+             "\b\bo \"-\": negative (multiply by -1.0)\n "
+             "\b\bo \"r\": reciprocal (1.0/value)\n "
+             "\b\bo \"sin\", \"cos\", \"tan\", \"asin\", \"acos\", \"atan\": "
+             "same as in C\n "
+             "\b\bo \"exp\", \"log\", \"log10\", \"log1p\": same as in C\n "
+             "\b\bo \"log2\": log base 2\n "
+             "\b\bo \"sqrt\", \"cbrt\", \"ceil\", \"floor\": same as in C\n "
+             "\b\bo \"erf\": error function (integral of Gaussian)\n "
+             "\b\bo \"rup\", \"rdn\": round up or down to integral value\n "
+             "\b\bo \"abs\": absolute value\n "
+             "\b\bo \"sgn\": -1, 0, 1 if value is <0, ==0, or >0\n "
+             "\b\bo \"exists\": 1 iff not NaN or +/-Inf, 0 otherwise\n "
+             "\b\bo \"rand\": random number in [0.0,1.0), no relation to input",
+             NULL, nrrdUnaryOp);
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "default",
-	     "convert input nrrd to this type prior to "
-	     "doing operation.  Useful when desired output is float "
-	     "(e.g., with log1p), but input is integral. By default "
-	     "(not using this option), the types of "
-	     "the input nrrds are left unchanged.",
+             "convert input nrrd to this type prior to "
+             "doing operation.  Useful when desired output is float "
+             "(e.g., with log1p), but input is integral. By default "
+             "(not using this option), the types of "
+             "the input nrrds are left unchanged.",
              NULL, NULL, &unrrduHestMaybeTypeCB);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");

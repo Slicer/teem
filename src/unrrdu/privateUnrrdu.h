@@ -55,7 +55,7 @@ extern "C" {
 /* int *var; int saw */
 #define OPT_ADD_BOUND(name, var, desc, saw) \
   hestOptAdd(&opt, name, "pos0", airTypeOther, 1, -1, &(var), NULL, desc, \
-	     &(saw), NULL, &unrrduHestPosCB)
+             &(saw), NULL, &unrrduHestPosCB)
 
 /* int var */
 #define OPT_ADD_TYPE(var, desc, dflt) \

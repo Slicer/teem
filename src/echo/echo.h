@@ -73,7 +73,7 @@ typedef struct {
     reuseJitter,       /* don't recompute jitter offsets per pixel */
     permuteJitter,     /* properly permute the various jitter arrays */
     textureNN,         /* use nearest-neighbor for texture lookups 
-			  (rather than bilinear interpolation) */
+                          (rather than bilinear interpolation) */
     numSamples,        /* rays per pixel */
     imgResU, imgResV,  /* horz. and vert. image resolution */
     maxRecDepth,       /* max recursion depth */
@@ -81,17 +81,17 @@ typedef struct {
     renderBoxes,       /* faintly render bounding boxes */
     seedRand,          /* call airSrand() (don't if repeatability wanted) */
     sqNRI,             /* how many iterations of newton-raphson we allow for
-			  finding superquadric root (within tolorance sqTol) */
+                          finding superquadric root (within tolorance sqTol) */
     numThreads;        /* number of threads to spawn per rendering */
   echoPos_t
     sqTol;             /* how close newtwon-raphson must get to zero */
   echoCol_t
     shadow,            /* the extent to which shadows are seen:
-			  0: no shadow rays cast
-			  >0: shadow rays cast, results weighed by shadow
-			  1: full shadowing */
+                          0: no shadow rays cast
+                          >0: shadow rays cast, results weighed by shadow
+                          1: full shadowing */
     glassC;            /* should really be an additional material parameter:
-			  Beer's law attenuation in glass */
+                          Beer's law attenuation in glass */
   float aperture,      /* shallowness of field */
     timeGamma,         /* gamma for values in time image */
     boxOpac;           /* opacity of bounding boxes with renderBoxes */
@@ -119,18 +119,18 @@ typedef struct {
     threadIdx,          /* my thread index */
     depth;              /* how many recursion levels are we at */
   Nrrd *nperm,          /* ECHO_JITTABLE_NUM x parm->numSamples array 
-			   of ints, each column is a (different) random
-			   permutation of [0 .. parm->numSamples-1], each
-			   row corresponds to the different jittables for
-			   a single sample */
+                           of ints, each column is a (different) random
+                           permutation of [0 .. parm->numSamples-1], each
+                           row corresponds to the different jittables for
+                           a single sample */
     *njitt;             /* 2 x ECHO_JITTABLE_NUM x parm->numSamples array
-			   of echoPos_t's in domain [-1/2,1/2]; like the nperm
-			   array, each row is comprised of the jitter vectors
-			   (for all possible jittables) to use for 1 sample */
+                           of echoPos_t's in domain [-1/2,1/2]; like the nperm
+                           array, each row is comprised of the jitter vectors
+                           (for all possible jittables) to use for 1 sample */
   int *permBuff;        /* temp array for creating permutations */
   echoPos_t *jitt;      /* pointer into njitt, good for current sample */
   echoCol_t *chanBuff;  /* for storing ray color and other parameters for each
-			   of the parm->numSamples rays in current pixel */
+                           of the parm->numSamples rays in current pixel */
   airDrand48State *rst; /* random number state */
   void *returnPtr;      /* for airThreadJoin */
 } echoThreadState;
@@ -211,10 +211,10 @@ enum {
 enum {
   echoMatterLightPower, /* 0 */
   echoMatterLightUnit   /* 1 : (takes over role of old parm->refDistance)
-			   distance to be considered unity when calculating
-			   inverse square fall-off of light intensity, or,
-			   use 0.0 to mean "this is a directional light"
-			   (with no fall-off at all) */
+                           distance to be considered unity when calculating
+                           inverse square fall-off of light intensity, or,
+                           use 0.0 to mean "this is a directional light"
+                           (with no fall-off at all) */
 };
 
 #define ECHO_MATTER_PARM_NUM 4
@@ -262,8 +262,8 @@ enum {
 typedef struct {
   ECHO_OBJECT_COMMON;
   ECHO_OBJECT_MATTER;   /* ha! its not actually in every object, but in
-			   those cases were we want to access it without
-			   knowing object type, then it will be there ... */
+                           those cases were we want to access it without
+                           knowing object type, then it will be there ... */
 } echoObject;
 
 typedef struct {
@@ -295,8 +295,8 @@ typedef struct {
   ECHO_OBJECT_COMMON;
   ECHO_OBJECT_MATTER;
   echoPos_t vert[3][3];  /* e0 = vert[1]-vert[0],
-			    e1 = vert[2]-vert[0],
-			    normal = e0 x e1 */
+                            e1 = vert[2]-vert[0],
+                            normal = e0 x e1 */
 } echoTriangle;
 
 typedef struct {
@@ -366,7 +366,7 @@ typedef struct echoScene_t {
   Nrrd **nrrd;         /* nrrds for textures and isosurfaces */
   airArray *nrrdArr;
   Nrrd *envmap;        /* 16checker-based diffuse environment map,
-			  not touched by echoSceneNix() */
+                          not touched by echoSceneNix() */
   echoCol_t ambi[3],   /* color of ambient light */
     bkgr[3];           /* color of background */
 } echoScene;
@@ -382,7 +382,7 @@ typedef struct {
     neer, faar;         /* look for intx in this interval */
   int shadow;           /* this is a shadow ray */
   echoCol_t transp;     /* for shadow rays, the transparency so far; starts
-			   at 1.0, goes down to 0.0 */
+                           at 1.0, goes down to 0.0 */
 } echoRay;
 
 /*
@@ -399,7 +399,7 @@ typedef struct {
     refl[3],            /* reflection of view across line spanned by normal */
     pos[3];             /* always used with coloring (and perhaps texturing) */
   int face,             /* in intx with cube, which face was hit 
-			   (used for textures) */
+                           (used for textures) */
     boxhits;            /* how many bounding boxes we hit */
 } echoIntx;
 
@@ -426,7 +426,7 @@ TEEM_API echoObject *echoObjectNix(echoObject *obj);
 
 /* model.c ---------------------------------------- */
 TEEM_API echoObject *echoRoughSphereNew(echoScene *scene, int theRes, int phiRes,
-					echoPos_t *matx);
+                                        echoPos_t *matx);
 
 /* bounds.c --------------------------------------- */
 TEEM_API void echoBoundsGet(echoPos_t *lo, echoPos_t *hi, echoObject *obj);
@@ -434,91 +434,91 @@ TEEM_API void echoBoundsGet(echoPos_t *lo, echoPos_t *hi, echoObject *obj);
 /* list.c --------------------------------------- */
 TEEM_API void echoListAdd(echoObject *parent, echoObject *child);
 TEEM_API echoObject *echoListSplit(echoScene *scene,
-				   echoObject *list, int axis);
+                                   echoObject *list, int axis);
 TEEM_API echoObject *echoListSplit3(echoScene *scene,
-				    echoObject *list, int depth);
+                                    echoObject *list, int depth);
 
 /* set.c --------------------------------------- */
 TEEM_API void echoSphereSet(echoObject *sphere,
-			    echoPos_t x, echoPos_t y,
-			    echoPos_t z, echoPos_t rad);
+                            echoPos_t x, echoPos_t y,
+                            echoPos_t z, echoPos_t rad);
 TEEM_API void echoCylinderSet(echoObject *cylind,
-			      int axis);
+                              int axis);
 TEEM_API void echoSuperquadSet(echoObject *squad,
-			       int axis, echoPos_t A, echoPos_t B);
+                               int axis, echoPos_t A, echoPos_t B);
 TEEM_API void echoRectangleSet(echoObject *rect,
-			       echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
-			       echoPos_t x0, echoPos_t y0, echoPos_t z0,
-			       echoPos_t x1, echoPos_t y1, echoPos_t z1);
+                               echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
+                               echoPos_t x0, echoPos_t y0, echoPos_t z0,
+                               echoPos_t x1, echoPos_t y1, echoPos_t z1);
 TEEM_API void echoTriangleSet(echoObject *tri,
-			      echoPos_t x0, echoPos_t y0, echoPos_t z0, 
-			      echoPos_t x1, echoPos_t y1, echoPos_t z1, 
-			      echoPos_t x2, echoPos_t y2, echoPos_t z2);
+                              echoPos_t x0, echoPos_t y0, echoPos_t z0, 
+                              echoPos_t x1, echoPos_t y1, echoPos_t z1, 
+                              echoPos_t x2, echoPos_t y2, echoPos_t z2);
 TEEM_API void echoTriMeshSet(echoObject *trim,
-			     int numV, echoPos_t *pos,
-			     int numF, int *vert);
+                             int numV, echoPos_t *pos,
+                             int numF, int *vert);
 TEEM_API void echoInstanceSet(echoObject *inst,
-			      echoPos_t *M, echoObject *obj);
+                              echoPos_t *M, echoObject *obj);
 
 /* matter.c ------------------------------------------ */
 TEEM_API int echoObjectHasMatter[ECHO_TYPE_NUM];
 TEEM_API void echoColorSet(echoObject *obj,
-			   echoCol_t R, echoCol_t G, echoCol_t B, echoCol_t A);
+                           echoCol_t R, echoCol_t G, echoCol_t B, echoCol_t A);
 TEEM_API void echoMatterPhongSet(echoScene *scene, echoObject *obj,
-				 echoCol_t ka, echoCol_t kd,
-				 echoCol_t ks, echoCol_t sp);
+                                 echoCol_t ka, echoCol_t kd,
+                                 echoCol_t ks, echoCol_t sp);
 TEEM_API void echoMatterGlassSet(echoScene *scene, echoObject *obj,
-				 echoCol_t index, echoCol_t ka,
-				 echoCol_t kd, echoCol_t fuzzy);
+                                 echoCol_t index, echoCol_t ka,
+                                 echoCol_t kd, echoCol_t fuzzy);
 TEEM_API void echoMatterMetalSet(echoScene *scene, echoObject *obj,
-				 echoCol_t R0, echoCol_t ka,
-				 echoCol_t kd, echoCol_t fuzzy);
+                                 echoCol_t R0, echoCol_t ka,
+                                 echoCol_t kd, echoCol_t fuzzy);
 TEEM_API void echoMatterLightSet(echoScene *scene, echoObject *obj,
-				 echoCol_t power, echoCol_t unit);
+                                 echoCol_t power, echoCol_t unit);
 TEEM_API void echoMatterTextureSet(echoScene *scene, echoObject *obj,
-				   Nrrd *ntext);
+                                   Nrrd *ntext);
 
 /* lightEcho.c ------------------------------------------- */
 TEEM_API void echoLightPosition(echoPos_t pos[3], echoObject *light,
-				echoThreadState *tstate);
+                                echoThreadState *tstate);
 TEEM_API void echoLightColor(echoCol_t rgb[3], echoPos_t Ldist,
-			     echoObject *light, echoRTParm *parm,
-			     echoThreadState *tstate);
+                             echoObject *light, echoRTParm *parm,
+                             echoThreadState *tstate);
 TEEM_API void echoEnvmapLookup(echoCol_t rgb[3], echoPos_t norm[3],
-			       Nrrd *envmap);
+                               Nrrd *envmap);
 
 /* color.c ------------------------------------------- */
 TEEM_API void echoTextureLookup(echoCol_t rgba[4], Nrrd *ntext,
-				echoPos_t u, echoPos_t v, echoRTParm *parm);
+                                echoPos_t u, echoPos_t v, echoRTParm *parm);
 TEEM_API void echoIntxMaterialColor(echoCol_t rgba[4], echoIntx *intx,
-				    echoRTParm *parm);
+                                    echoRTParm *parm);
 TEEM_API void echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3],
-				 echoCol_t spec[3], echoCol_t sp,
-				 echoIntx *intx, echoScene *scene,
-				 echoRTParm *parm, echoThreadState *tstate);
+                                 echoCol_t spec[3], echoCol_t sp,
+                                 echoIntx *intx, echoScene *scene,
+                                 echoRTParm *parm, echoThreadState *tstate);
 TEEM_API void echoIntxFuzzify(echoIntx *intx, echoCol_t fuzz,
-			      echoThreadState *tstate);
+                              echoThreadState *tstate);
 
 /* intx.c ------------------------------------------- */
 TEEM_API int echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene,
-			 echoRTParm *parm, echoThreadState *tstate);
+                         echoRTParm *parm, echoThreadState *tstate);
 TEEM_API void echoIntxColor(echoCol_t rgba[4], echoIntx *intx,
-			    echoScene *scene, echoRTParm *parm,
-			    echoThreadState *tstate);
+                            echoScene *scene, echoRTParm *parm,
+                            echoThreadState *tstate);
 
 /* renderEcho.c ---------------------------------------- */
 TEEM_API int echoThreadStateInit(int threadIdx, echoThreadState *tstate,
-				 echoRTParm *parm, echoGlobalState *gstate);
+                                 echoRTParm *parm, echoGlobalState *gstate);
 TEEM_API void echoJitterCompute(echoRTParm *parm, echoThreadState *state);
 TEEM_API void echoRayColor(echoCol_t rgba[4], echoRay *ray,
-			   echoScene *scene, echoRTParm *parm,
-			   echoThreadState *tstate);
+                           echoScene *scene, echoRTParm *parm,
+                           echoThreadState *tstate);
 TEEM_API void echoChannelAverage(echoCol_t *img,
-			       echoRTParm *parm, echoThreadState *tstate);
+                               echoRTParm *parm, echoThreadState *tstate);
 TEEM_API int echoRTRenderCheck(Nrrd *nraw, limnCamera *cam, echoScene *scene,
-			       echoRTParm *parm, echoGlobalState *gstate);
+                               echoRTParm *parm, echoGlobalState *gstate);
 TEEM_API int echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
-			  echoRTParm *parm, echoGlobalState *gstate);
+                          echoRTParm *parm, echoGlobalState *gstate);
 
 #ifdef __cplusplus
 }

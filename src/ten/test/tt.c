@@ -39,16 +39,16 @@ _cap2xyz(double xyz[3], double ca, double cp, int version, int whole) {
   */
   if (whole) {
     ELL_3V_SET(xyz,
-	       AIR_AFFINE(0.0, 0.9, 1.0, mean, cl),
-	       AIR_AFFINE(0.0, 0.9, 1.0, mean, cp),
-	       AIR_AFFINE(0.0, 0.9, 1.0, mean, cs));
+               AIR_AFFINE(0.0, 0.9, 1.0, mean, cl),
+               AIR_AFFINE(0.0, 0.9, 1.0, mean, cp),
+               AIR_AFFINE(0.0, 0.9, 1.0, mean, cs));
     ELL_3V_SET(xyz, cl, cp, cs);
   } else {
     if (1 == version) {
       ELL_3V_SET(xyz,
-		 (3 + 3*cl - cs)/6,
-		 (2 - 2*cl + cp)/6,
-		 2*cs/6);
+                 (3 + 3*cl - cs)/6,
+                 (2 - 2*cl + cp)/6,
+                 2*cs/6);
     } else {
       ELL_3V_SET(xyz, 1, 1 - cl, cs);
     }
@@ -69,17 +69,17 @@ washQtoM3(double m[9], double q[4]) {
   /* mathematica work implies that we should be 
      setting ROW vectors here */
   ELL_3V_SET(m+0, 
-	     1 - 2*(y*y + z*z),
-	     2*(x*y - w*z),
-	     2*(x*z + w*y));
+             1 - 2*(y*y + z*z),
+             2*(x*y - w*z),
+             2*(x*z + w*y));
   ELL_3V_SET(m+3,
-	     2*(x*y + w*z),
-	     1 - 2*(x*x + z*z),
-	     2*(y*z - w*x));
+             2*(x*y + w*z),
+             1 - 2*(x*x + z*z),
+             2*(y*z - w*x));
   ELL_3V_SET(m+6,
-	     2*(x*z - w*y),
-	     2*(y*z + w*x),
-	     1 - 2*(x*x + y*y));
+             2*(x*z - w*y),
+             2*(y*z + w*x),
+             1 - 2*(x*x + y*y));
 }
 
 int
@@ -97,25 +97,25 @@ main(int argc, char *argv[]) {
   
   me = argv[0];
   hestOptAdd(&hopt, "n", "# samples", airTypeInt, 1, 1, &samp, "4",
-	     "number of glyphs along each edge of triangle");
+             "number of glyphs along each edge of triangle");
   hestOptAdd(&hopt, "p", "x y z", airTypeDouble, 3, 3, p, NULL,
-	     "location in quaternion quotient space");
+             "location in quaternion quotient space");
   hestOptAdd(&hopt, "ca", "max ca", airTypeDouble, 1, 1, &maxca, "0.8",
-	     "maximum ca to use at bottom edge of triangle");
+             "maximum ca to use at bottom edge of triangle");
   hestOptAdd(&hopt, "w", NULL, airTypeInt, 0, 0, &whole, NULL,
-	     "sample the whole triangle of constant trace, "
-	     "instead of just the "
-	     "sixth of it in which the eigenvalues have the "
-	     "traditional sorted order. ");
+             "sample the whole triangle of constant trace, "
+             "instead of just the "
+             "sixth of it in which the eigenvalues have the "
+             "traditional sorted order. ");
   hestOptAdd(&hopt, "hack", "hack", airTypeDouble, 1, 1, &hack, "0.04",
-	     "this is a hack");
+             "this is a hack");
   hestOptAdd(&hopt, "v", "version", airTypeInt, 1, 1, &version, "1",
-	     "which version of the Westin metrics to use to parameterize "
-	     "triangle; \"1\" for ISMRM 97, \"2\" for MICCAI 99");
+             "which version of the Westin metrics to use to parameterize "
+             "triangle; \"1\" for ISMRM 97, \"2\" for MICCAI 99");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output file to save tensors into");
+             "output file to save tensors into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
-		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   
@@ -128,7 +128,7 @@ main(int argc, char *argv[]) {
     return 1;
   }
   if (nrrdMaybeAlloc(nten, nrrdTypeFloat, 4,
-		     7, 2*samp-1, samp, 3)) {
+                     7, 2*samp-1, samp, 3)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't allocate output:\n%s\n", me, err);
     airMopError(mop); 
@@ -151,14 +151,14 @@ main(int argc, char *argv[]) {
     }
     for (xi=0; xi<=yi; xi++) {
       if (whole) {
-	cp = AIR_AFFINE(0, xi, samp-1, 0.0, 1.0);
+        cp = AIR_AFFINE(0, xi, samp-1, 0.0, 1.0);
       } else {
-	cp = AIR_AFFINE(0, xi, samp-1, hackcp, maxca-hack/2.0);
+        cp = AIR_AFFINE(0, xi, samp-1, hackcp, maxca-hack/2.0);
       }
       _cap2xyz(xyz, ca, cp, version, whole);
       /*
       fprintf(stderr, "%s: (%d,%d) -> (%g,%g) -> %g %g %g\n", me,
-	      yi, xi, ca, cp, xyz[0], xyz[1], xyz[2]);
+              yi, xi, ca, cp, xyz[0], xyz[1], xyz[2]);
       */
       ELL_3M_IDENTITY_SET(mD);
       ELL_3M_DIAG_SET(mD, xyz[0], xyz[1], xyz[2]);
@@ -168,7 +168,7 @@ main(int argc, char *argv[]) {
       ell_3m_post_mul_d(mT, mRF);
       
       tdata = (float*)nten->data + 
-	7*(2*(samp-1-xi) - (samp-1-yi) + (2*samp-1)*((samp-1-yi) + samp));
+        7*(2*(samp-1-xi) - (samp-1-yi) + (2*samp-1)*((samp-1-yi) + samp));
       tdata[0] = 1.0;
       TEN_M2T(tdata, mT);
     }

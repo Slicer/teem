@@ -25,7 +25,7 @@ void
 usage() {
   /*                      0    1      2        3        4         5   (6) */
   fprintf(stderr, "usage: %s <bIn> <sigma> <gthresh> <info2In> <trnsfOut>\n",
-	  me);
+          me);
   exit(1);
 }
 
@@ -52,7 +52,7 @@ main(int argc, char *argv[]) {
   }
   if (!(info2 = nrrdNewRead(file))) {
     fprintf(stderr, "%s: trouble reading info 2%s:\n%s\n", me, iStr, 
-	    biffGet(NRRD));
+            biffGet(NRRD));
     usage();
   }
   fclose(file);
@@ -63,7 +63,7 @@ main(int argc, char *argv[]) {
   }
   if (!(Bcpts = nrrdNewRead(file))) {
     fprintf(stderr, "%s: trouble reading b(x) %s:\n%s\n", me, 
-	    bStr, biffGet(NRRD));
+            bStr, biffGet(NRRD));
     usage();
   }
   fclose(file);
@@ -85,7 +85,7 @@ main(int argc, char *argv[]) {
   trnsf = baneNewDirtTrnsf(Bcpts, sigma, gthresh, info2);
   if (!trnsf) {
     fprintf(stderr, "%s: trouble computing opacity functions:\n%s\n", me,
-	    biffGet(BANE));
+            biffGet(BANE));
     exit(1);
   }
   if (!(file = fopen(tStr, "w"))) {
@@ -94,7 +94,7 @@ main(int argc, char *argv[]) {
   }
   if (dirtTrnsfWrite(file, trnsf)) {
     fprintf(stderr, "%s: trouble writing trnsf to %s\n:%s\n", me, 
-	    tStr, biffGet(DIRT));
+            tStr, biffGet(DIRT));
     usage();
   }
   fclose(file);

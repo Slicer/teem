@@ -39,15 +39,15 @@ extern "C" {
 #define NRRD_EXT_EPS    ".eps"
 
 #define NRRD_KERNEL_PARMS_NUM 8    /* max # arguments to a kernel-
-				      this is weird: it isn't the max
-				      of any of the NrrdKernels
-				      defined by the nrrd library
-				      (that is more like 3), but is
-				      the max number of parms of any
-				      NrrdKernel used by anyone using
-				      teem, such as in gage.
-				      Enforcing one global max
-				      simplifies implementation. */
+                                      this is weird: it isn't the max
+                                      of any of the NrrdKernels
+                                      defined by the nrrd library
+                                      (that is more like 3), but is
+                                      the max number of parms of any
+                                      NrrdKernel used by anyone using
+                                      teem, such as in gage.
+                                      Enforcing one global max
+                                      simplifies implementation. */
 
 /* 
 ** For the 64-bit integer types (not standard except in C99), we try
@@ -101,18 +101,18 @@ extern "C" {
 #define NRRD_COMMENT_INCR 16
 #define NRRD_KEYVALUE_INCR 32
 #define NRRD_PNM_COMMENT "# NRRD>"    /* this is designed to be robust against
-				         the mungling that xv does, but no
-				         promises for any other image
-					 programs */
+                                         the mungling that xv does, but no
+                                         promises for any other image
+                                         programs */
 
 #define NRRD_PNG_FIELD_KEY "NRRD"     /* this is the key used for getting nrrd
-				         fields into/out of png comments */
+                                         fields into/out of png comments */
 #define NRRD_PNG_COMMENT_KEY "NRRD#"  /* this is the key used for getting nrrd
-				         comments into/out of png comments */
+                                         comments into/out of png comments */
 
 #define NRRD_UNKNOWN  "???"           /* how to represent something unknown in
-				         a field of the nrrd header, when it
-				         being unknown is not an error */
+                                         a field of the nrrd header, when it
+                                         being unknown is not an error */
 
 #ifdef __cplusplus
 }

@@ -45,13 +45,13 @@ _nrrdFormatPNG_nameLooksLike(const char *filename) {
 
 int
 _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
-			int useBiff) {
+                        int useBiff) {
   char me[]="_nrrdFormatPNG_fitsInto", err[AIR_STRLEN_MED];
 
 #if !TEEM_PNG  /* ------------------------------------------- */
 
   sprintf(err, "%s: %s format not available in this teem build",
-	  me, nrrdFormatPNG->name);
+          me, nrrdFormatPNG->name);
   biffMaybeAdd(NRRD, err, useBiff); 
   return AIR_FALSE;
 
@@ -61,15 +61,15 @@ _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
 
   if (!( nrrd && encoding )) {
     sprintf(err, "%s: got NULL nrrd (%p) or encoding (%p)",
-	    me, nrrd, encoding);
+            me, nrrd, encoding);
     biffMaybeAdd(NRRD, err, useBiff); 
     return AIR_FALSE;
   }
   if (!( nrrdTypeUChar == nrrd->type || nrrdTypeUShort == nrrd->type )) {
     sprintf(err, "%s: type must be %s or %s (not %s)", me,
-	    airEnumStr(nrrdType, nrrdTypeUChar),
-	    airEnumStr(nrrdType, nrrdTypeUShort),
-	    airEnumStr(nrrdType, nrrd->type));
+            airEnumStr(nrrdType, nrrdTypeUChar),
+            airEnumStr(nrrdType, nrrdTypeUShort),
+            airEnumStr(nrrdType, nrrd->type));
     biffMaybeAdd(NRRD, err, useBiff); 
     return AIR_FALSE;
   }
@@ -80,11 +80,11 @@ _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
     ret = AIR_TRUE;
   } else if (3 == nrrd->dim) {
     if (!( 1 == nrrd->axis[0].size
-	   || 2 == nrrd->axis[0].size
-	   || 3 == nrrd->axis[0].size
-	   || 4 == nrrd->axis[0].size )) {
+           || 2 == nrrd->axis[0].size
+           || 3 == nrrd->axis[0].size
+           || 4 == nrrd->axis[0].size )) {
       sprintf(err, "%s: 1st axis size is %d, not 1, 2, 3, or 4",
-	      me, nrrd->axis[0].size);
+              me, nrrd->axis[0].size);
       biffMaybeAdd(NRRD, err, useBiff); 
       return AIR_FALSE;
     }
@@ -170,15 +170,15 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
   if (!_nrrdFormatPNG_contentStartsLike(nio)) {
     sprintf(err, "%s: this doesn't look like a %s file", me, 
-	    nrrdFormatPNG->name);
+            nrrdFormatPNG->name);
     biffAdd(NRRD, err); return 1;
   }
 
 #if TEEM_PNG
   /* create png struct with the error handlers above */
   png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL,
-			       _nrrdErrorHandlerPNG,
-			       _nrrdWarningHandlerPNG);
+                               _nrrdErrorHandlerPNG,
+                               _nrrdWarningHandlerPNG);
   if (png == NULL) {
     sprintf(err, "%s: failed to create PNG read struct", me);
     biffAdd(NRRD, err); return 1;
@@ -209,7 +209,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
      before the first data chunk */
   png_read_info(png, info);
   png_get_IHDR(png, info, &width, &height, &depth, &type, 
-	       NULL, NULL, NULL);
+               NULL, NULL, NULL);
   /* expand paletted colors into rgb triplets */
   if (type == PNG_COLOR_TYPE_PALETTE)
     png_set_palette_to_rgb(png);
@@ -275,7 +275,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   if (nio->oldData
       && (nio->oldDataSize
-	  == nrrdTypeSize[ntype]*nsize[0]*nsize[1]*nsize[2])) {
+          == nrrdTypeSize[ntype]*nsize[0]*nsize[1]*nsize[2])) {
     ret = nrrdWrap_nva(nrrd, nio->oldData, ntype, ndim, nsize);
   } else {
     ret = nrrdMaybeAlloc_nva(nrrd, ntype, ndim, nsize);
@@ -306,62 +306,62 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       int ret;
       nio->pos = 0;
       /* Reading PNGs teaches Gordon that his scheme for parsing nrrd header
-	 information is inappropriately specific to reading PNMs and NRRDs,
-	 since in this case the text from which we parse a nrrd field
-	 descriptor did NOT come from a line of text as read by
-	 _nrrdOneLine */
+         information is inappropriately specific to reading PNMs and NRRDs,
+         since in this case the text from which we parse a nrrd field
+         descriptor did NOT come from a line of text as read by
+         _nrrdOneLine */
       nio->line = airFree(nio->line);
       nio->line = airStrdup(txt[i].text);
       ret = _nrrdReadNrrdParseField(nrrd, nio, AIR_FALSE);
       if (ret) {
-	const char* fs = airEnumStr(nrrdField, ret);
-	if (nrrdField_comment == ret) {
-	  ret = 0;
-	  goto plain;
-	}
-	if (!_nrrdFieldValidInImage[ret]) {
-	  if (nrrdStateVerboseIO) {
-	    fprintf(stderr, "(%s: field \"%s\" (not allowed in PNG) "
-		    "--> plain comment)\n", me, fs);
-	  }
-	  ret = 0;
-	  goto plain;
-	}
-	if (!nio->seen[ret] 
-	    && _nrrdReadNrrdParseInfo[ret](nrrd, nio, AIR_FALSE)) {
-	  if (nrrdStateVerboseIO) {
-	    fprintf(stderr, "(%s: unparsable info for field \"%s\" "
-		    "--> plain comment)\n", me, fs);
-	  }
-	  ret = 0;
-	  goto plain;
-	}
-	nio->seen[ret] = AIR_TRUE;	
+        const char* fs = airEnumStr(nrrdField, ret);
+        if (nrrdField_comment == ret) {
+          ret = 0;
+          goto plain;
+        }
+        if (!_nrrdFieldValidInImage[ret]) {
+          if (nrrdStateVerboseIO) {
+            fprintf(stderr, "(%s: field \"%s\" (not allowed in PNG) "
+                    "--> plain comment)\n", me, fs);
+          }
+          ret = 0;
+          goto plain;
+        }
+        if (!nio->seen[ret] 
+            && _nrrdReadNrrdParseInfo[ret](nrrd, nio, AIR_FALSE)) {
+          if (nrrdStateVerboseIO) {
+            fprintf(stderr, "(%s: unparsable info for field \"%s\" "
+                    "--> plain comment)\n", me, fs);
+          }
+          ret = 0;
+          goto plain;
+        }
+        nio->seen[ret] = AIR_TRUE;      
       plain:
-	if (!ret) {
-	  if (nrrdCommentAdd(nrrd, nio->line)) {
-	    sprintf(err, "%s: couldn't add comment", me);
+        if (!ret) {
+          if (nrrdCommentAdd(nrrd, nio->line)) {
+            sprintf(err, "%s: couldn't add comment", me);
             png_destroy_read_struct(&png, &info, NULL);
-	    biffAdd(NRRD, err); return 1;
-	  }
-	}
+            biffAdd(NRRD, err); return 1;
+          }
+        }
       }
     } else if (!strcmp(txt[i].key, NRRD_PNG_COMMENT_KEY)) {
       char *p, *c;
       c = airStrtok(txt[i].text, "\n", &p);
       while (c) {
-	if (nrrdCommentAdd(nrrd, c)) {
-	  sprintf(err, "%s: couldn't add comment", me);
+        if (nrrdCommentAdd(nrrd, c)) {
+          sprintf(err, "%s: couldn't add comment", me);
           png_destroy_read_struct(&png, &info, NULL);
-	  biffAdd(NRRD, err); return 1;
-	}
-	c = airStrtok(NULL, "\n", &p);
+          biffAdd(NRRD, err); return 1;
+        }
+        c = airStrtok(NULL, "\n", &p);
       }
     } else {
       if (nrrdKeyValueAdd(nrrd, txt[i].key, txt[i].text)) {
-	sprintf(err, "%s: couldn't add key/value pair", me);
+        sprintf(err, "%s: couldn't add key/value pair", me);
         png_destroy_read_struct(&png, &info, NULL);
-	biffAdd(NRRD, err); return 1;
+        biffAdd(NRRD, err); return 1;
       }
     }
   }
@@ -393,8 +393,8 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   /* no need to check type and format, done in FitsInFormat */
   /* create png struct with the error handlers above */
   png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL,
-				_nrrdErrorHandlerPNG,
-				_nrrdWarningHandlerPNG);
+                                _nrrdErrorHandlerPNG,
+                                _nrrdWarningHandlerPNG);
   if (png == NULL) {
     sprintf(err, "%s: failed to create PNG write struct", me);
     biffAdd(NRRD, err); return 1;
@@ -448,7 +448,7 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       break;
       default:
       sprintf(err, "%s: nrrd->axis[0].size (%d) not compatible with PNG",
-	      me, nrrd->axis[0].size);
+              me, nrrd->axis[0].size);
       png_destroy_write_struct(&png, &info);
       biffAdd(NRRD, err); return 1;
       break;
@@ -462,8 +462,8 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   }
   /* set image header info */
   png_set_IHDR(png, info, width, height, depth, type,
-	       PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
-	       PNG_FILTER_TYPE_BASE);
+               PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
+               PNG_FILTER_TYPE_BASE);
   /* add nrrd fields to the text chunk */
   numtxt = 0;
   csize = 0;

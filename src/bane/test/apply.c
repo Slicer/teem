@@ -45,7 +45,7 @@ main(int argc, char *argv[]) {
   
   if (nrrdLoad(nin=nrrdNew(), iStr)) {
     fprintf(stderr, "%s: trouble reading input nrrd:\n%s\n", me, 
-	    biffGet(NRRD));
+            biffGet(NRRD));
     usage();
   }
 
@@ -61,7 +61,7 @@ main(int argc, char *argv[]) {
 
   if (nrrdSave(oStr, nout, NULL)) {
     fprintf(stderr, "%s: trouble writing output nrrd:\n%s\n", me,
-	    biffGet(NRRD));
+            biffGet(NRRD));
     usage();
   }
   exit(0);

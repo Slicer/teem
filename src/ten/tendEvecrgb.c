@@ -38,25 +38,25 @@ tend_evecrgbMain(int argc, char **argv, char *me, hestParm *hparm) {
   float bg, gray, gamma, thresh;
 
   hestOptAdd(&hopt, "c", "evec index", airTypeInt, 1, 1, &cc, NULL,
-	     "which eigenvector will be colored. \"0\" for the "
-	     "principal, \"1\" for the middle, \"2\" for the minor");
+             "which eigenvector will be colored. \"0\" for the "
+             "principal, \"1\" for the middle, \"2\" for the minor");
   hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &aniso, NULL,
-	     "Which anisotropy to use for modulating the saturation "
-	     "of the colors.  " TEN_ANISO_DESC,
-	     NULL, tenAniso);
+             "Which anisotropy to use for modulating the saturation "
+             "of the colors.  " TEN_ANISO_DESC,
+             NULL, tenAniso);
   hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "0.5",
-	     "confidence threshold");
+             "confidence threshold");
   hestOptAdd(&hopt, "bg", "background", airTypeFloat, 1, 1, &bg, "0",
-	     "gray level to use for voxels who's confidence is zero ");
+             "gray level to use for voxels who's confidence is zero ");
   hestOptAdd(&hopt, "gr", "gray", airTypeFloat, 1, 1, &gray, "0",
-	     "the gray level to desaturate towards as anisotropy "
-	     "decreases (while confidence remains 1.0)");
+             "the gray level to desaturate towards as anisotropy "
+             "decreases (while confidence remains 1.0)");
   hestOptAdd(&hopt, "gam", "gamma", airTypeFloat, 1, 1, &gamma, "1",
-	     "gamma to use on color components");
+             "gamma to use on color components");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
+             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output image (floating point)");
+             "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

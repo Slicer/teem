@@ -41,23 +41,23 @@ main(int argc, char *argv[]) {
   hopt = NULL;
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-	     "input image", NULL, NULL, nrrdHestNrrd);
+             "input image", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "b", "rbins hbins", airTypeInt, 2, 2, bins, NULL,
-	     "# of histogram bins: radial and value");
+             "# of histogram bins: radial and value");
   hestOptAdd(&hopt, "min", "value", airTypeDouble, 1, 1, &vmin, "nan",
-	     "Value at low end of histogram. Defaults to lowest value "
-	     "found in input nrrd.");
+             "Value at low end of histogram. Defaults to lowest value "
+             "found in input nrrd.");
   hestOptAdd(&hopt, "max", "value", airTypeDouble, 1, 1, &vmax, "nan",
-	     "Value at high end of histogram. Defaults to highest value "
-	     "found in input nrrd.");
+             "Value at high end of histogram. Defaults to highest value "
+             "found in input nrrd.");
   hestOptAdd(&hopt, "rmax", "max radius", airTypeDouble, 1, 1, &rmax, "nan",
-	     "largest radius to include in histogram");
+             "largest radius to include in histogram");
   hestOptAdd(&hopt, "c", "center x, y", airTypeDouble, 2, 2, cent, NULL,
-	     "The center point around which to build radial histogram");
+             "The center point around which to build radial histogram");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
-	     "file to write histogram to");
+             "file to write histogram to");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
-		 me, histradInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, histradInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -101,10 +101,10 @@ main(int argc, char *argv[]) {
     for (yi=0; yi<sy; yi++) {
       rad = DIST(cent[0], cent[1], xi, yi);
       if (!AIR_IN_OP(0, rad, rmax))
-	continue;
+        continue;
       val = lup(nin->data, xi + sx*yi);
       if (!AIR_IN_OP(vmin, val, vmax))
-	continue;
+        continue;
       AIR_INDEX(0, rad, rmax, rbins, ridx);
       AIR_INDEX(vmin, val, vmax, hbins, hidx);
       hist[ridx + rbins*hidx] += 1;

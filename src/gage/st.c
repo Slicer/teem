@@ -48,8 +48,8 @@ _gageHash (int x, int y, int z) {
 
 void
 _gageCacheProbe (gageContext *ctx, gage_t *grad,
-		 int *cc, gage_t *gc, 
-		 int x, int y, int z) {
+                 int *cc, gage_t *gc, 
+                 int x, int y, int z) {
   int hi;
 
   hi = _gageHash(x, y, z);
@@ -82,7 +82,7 @@ _gageCacheProbe (gageContext *ctx, gage_t *grad,
 */
 int
 gageStructureTensor (Nrrd *nout, Nrrd *nin,
-		     int dScale, int iScale, int dsmp) {
+                     int dScale, int iScale, int dsmp) {
   char me[]="gageStructureTensor", err[AIR_STRLEN_MED];
   NrrdKernelSpec *gk0, *gk1, *ik0;
   int E, rad, diam, osx, osy, osz, oxi, oyi, ozi,
@@ -104,15 +104,15 @@ gageStructureTensor (Nrrd *nout, Nrrd *nin,
   }
   /*
   if (!( AIR_EXISTS(nin->axis[0].spacing) 
-	 && AIR_EXISTS(nin->axis[1].spacing) 
-	 && AIR_EXISTS(nin->axis[2].spacing) )) {
+         && AIR_EXISTS(nin->axis[1].spacing) 
+         && AIR_EXISTS(nin->axis[2].spacing) )) {
     sprintf(err, "%s: nin's axis 0,1,2 spacings don't all exist", me);
     biffAdd(GAGE, me); return 1;
   }
   */
   if (!( dScale >= 1 && iScale >= 1 && dsmp >= 1 )) {
     sprintf(err, "%s: dScale (%d), iScale (%d), dsmp (%d) not all >= 1", 
-	    me, dScale, iScale, dsmp);
+            me, dScale, iScale, dsmp);
     biffAdd(GAGE, me); return 1;
   }
 
@@ -163,7 +163,7 @@ gageStructureTensor (Nrrd *nout, Nrrd *nin,
   ys /= ms;
   zs /= ms;
   fprintf(stderr, "iScale = %d, xs, ys, zs = %g, %g, %g\n",
-	  iScale, xs, ys, xs);
+          iScale, xs, ys, xs);
 
   rad = 0;
   ik0->parm[0] = iScale/xs;
@@ -210,7 +210,7 @@ gageStructureTensor (Nrrd *nout, Nrrd *nin,
     ik0->parm[0] = iScale/zs;
     izw[wi+rad] = ik0->kernel->eval1_d(wi, ik0->parm);
     fprintf(stderr, "%d --> (%g,%g,%g) -> (%g,%g,%g)\n",
-	    wi, wi/xs, wi/ys, wi/zs, ixw[wi+rad], iyw[wi+rad], izw[wi+rad]);
+            wi, wi/xs, wi/ys, wi/zs, ixw[wi+rad], iyw[wi+rad], izw[wi+rad]);
   }
 
   osx = (nin->axis[0].size)/dsmp;
@@ -228,36 +228,36 @@ gageStructureTensor (Nrrd *nout, Nrrd *nin,
     for (oyi=0; oyi<osy; oyi++) {
       for (oxi=0; oxi<osx; oxi++) {
 
-	sten[0] = sten[1] = sten[2] = sten[3] = sten[4] = sten[5] = 0;
-	for (_izi=0; _izi<diam; _izi++) {
-	  izi = AIR_CLAMP(0, _izi - rad + ozi*dsmp, nin->axis[2].size-1);
-	  if (!izw[_izi]) continue;
-	  for (_iyi=0; _iyi<diam; _iyi++) {
-	    iyi = AIR_CLAMP(0, _iyi - rad + oyi*dsmp, nin->axis[1].size-1);
-	    if (!iyw[_iyi]) continue;
-	    for (_ixi=0; _ixi<diam; _ixi++) {
-	      ixi = AIR_CLAMP(0, _ixi - rad + oxi*dsmp, nin->axis[0].size-1);
-	      if (!ixw[_ixi]) continue;
-	      wght = ixw[_ixi]*iyw[_iyi]*izw[_izi];
-	      _gageCacheProbe(ctx, grad, coordCache, gradCache, ixi, iyi, izi);
-	      sten[0] += wght*grad[0]*grad[0];
-	      sten[1] += wght*grad[0]*grad[1];
-	      sten[2] += wght*grad[0]*grad[2];
-	      sten[3] += wght*grad[1]*grad[1];
-	      sten[4] += wght*grad[1]*grad[2];
-	      sten[5] += wght*grad[2]*grad[2];
-	    }
-	  }
-	}
-	out[0] = 1.0;
-	out[1] = sten[0];
-	out[2] = sten[1];
-	out[3] = sten[2];
-	out[4] = sten[3];
-	out[5] = sten[4];
-	out[6] = sten[5]; 
-	out += 7;
-	
+        sten[0] = sten[1] = sten[2] = sten[3] = sten[4] = sten[5] = 0;
+        for (_izi=0; _izi<diam; _izi++) {
+          izi = AIR_CLAMP(0, _izi - rad + ozi*dsmp, nin->axis[2].size-1);
+          if (!izw[_izi]) continue;
+          for (_iyi=0; _iyi<diam; _iyi++) {
+            iyi = AIR_CLAMP(0, _iyi - rad + oyi*dsmp, nin->axis[1].size-1);
+            if (!iyw[_iyi]) continue;
+            for (_ixi=0; _ixi<diam; _ixi++) {
+              ixi = AIR_CLAMP(0, _ixi - rad + oxi*dsmp, nin->axis[0].size-1);
+              if (!ixw[_ixi]) continue;
+              wght = ixw[_ixi]*iyw[_iyi]*izw[_izi];
+              _gageCacheProbe(ctx, grad, coordCache, gradCache, ixi, iyi, izi);
+              sten[0] += wght*grad[0]*grad[0];
+              sten[1] += wght*grad[0]*grad[1];
+              sten[2] += wght*grad[0]*grad[2];
+              sten[3] += wght*grad[1]*grad[1];
+              sten[4] += wght*grad[1]*grad[2];
+              sten[5] += wght*grad[2]*grad[2];
+            }
+          }
+        }
+        out[0] = 1.0;
+        out[1] = sten[0];
+        out[2] = sten[1];
+        out[3] = sten[2];
+        out[4] = sten[3];
+        out[5] = sten[4];
+        out[6] = sten[5]; 
+        out += 7;
+        
       }
     }
   }

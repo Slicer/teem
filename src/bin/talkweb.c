@@ -160,7 +160,7 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
   }
 
   slideArr = airArrayNew((void**)(&slide), NULL,
-			 sizeof(tkwbSlide*), tkwbArrayIncr);
+                         sizeof(tkwbSlide*), tkwbArrayIncr);
   airMopAdd(mop, slideArr, (airMopper)airArrayNix, airMopAlways);
   hitEOF = notReally = AIR_FALSE;
   while (!hitEOF) {
@@ -211,21 +211,21 @@ tkwbExpandImageInfo(tkwbSlide **slide) {
   for (si=0; slide[si]; si++) {
     if (nrrdLoad(nimg, slide[si]->image, NULL)) {
       sprintf(err, "%s: trouble reading slide image \"%s\"",
-	      me, slide[si]->image);
+              me, slide[si]->image);
       biffMove(TKWB, err, NRRD); airMopError(mop); return 1;
     }
     if (!nrrdFormatPNG->fitsInto(nimg, nrrdEncodingGzip, AIR_TRUE)) {
       sprintf(err, "%s: slide image \"%s\" doesn't seem to be an image",
-	      me, slide[si]->image);
+              me, slide[si]->image);
       biffMove(TKWB, err, NRRD); airMopError(mop); return 1;
     }
     sx = nimg->axis[nimg->dim-2].size;
     sy = nimg->axis[nimg->dim-1].size;
     len = (strlen("<img width=xxxx height=xxxx src=\"\">") 
-	   + strlen(slide[si]->image) + 1);
+           + strlen(slide[si]->image) + 1);
     image = (char *)calloc(len, sizeof(char));
     sprintf(image, "<img width=%d height=%d src=\"%s\">",
-	    sx, sy, slide[si]->image);
+            sx, sy, slide[si]->image);
     free(slide[si]->image);
     slide[si]->image = image;
   }
@@ -241,7 +241,7 @@ tkwbWriteStringToFile(char *filename, char *content) {
 
   if (!(file = fopen(filename, "wb"))) {
     sprintf(err, "%s: trouble opening file \"%s\": %s", 
-	    me, filename, strerror(errno));
+            me, filename, strerror(errno));
     biffAdd(TKWB, err); return 1;
   }
   fprintf(file, "%s", content);
@@ -252,8 +252,8 @@ tkwbWriteStringToFile(char *filename, char *content) {
 
 int
 _tkwbStringSubst(char **sP,  /* string to search in */
-		 char *f,    /* find */
-		 char *r) {  /* replace */
+                 char *f,    /* find */
+                 char *r) {  /* replace */
   char *p,                   /* place where find was found */
     *n;                      /* new string */
 
@@ -276,8 +276,8 @@ _tkwbStringSubst(char **sP,  /* string to search in */
 */
 void
 tkwbStringSubst(char **sP,  /* string to search in */
-		char *f,    /* find */
-		char *r) {  /* replace */
+                char *f,    /* find */
+                char *r) {  /* replace */
 
   _tkwbStringSubst(sP, f, r);
   return;
@@ -295,7 +295,7 @@ tkwbWriteIndex(char *_index, tkwbSlide **slide, char *tag[TKWB_TAG_MAX+1]) {
   replLen += strlen("<ol>\n");
   for (si=0; slide[si]; si++) {
     replLen += (strlen("<li> <a href=\"slideXXX.html\"></a>\n") 
-		+ strlen(slide[si]->title));
+                + strlen(slide[si]->title));
   }
   replLen += strlen("</ol>\n");
   
@@ -308,7 +308,7 @@ tkwbWriteIndex(char *_index, tkwbSlide **slide, char *tag[TKWB_TAG_MAX+1]) {
   strcpy(repl, "<ol>\n");
   for (si=0; slide[si]; si++) {
     sprintf(tmp, "<li> <a href=\"slide%03d.html\">%s</a>\n", 
-	    si+1, slide[si]->title);
+            si+1, slide[si]->title);
     strcat(repl, tmp);
   }
   strcat(repl, "</ol>");
@@ -327,7 +327,7 @@ tkwbWriteIndex(char *_index, tkwbSlide **slide, char *tag[TKWB_TAG_MAX+1]) {
 
 int
 tkwbWriteSlides(tkwbSlide **slide, int numSlides, char *tmpl, 
-		char *tag[TKWB_TAG_MAX+1], char *link[4]) {
+                char *tag[TKWB_TAG_MAX+1], char *link[4]) {
   char me[]="tkwbWriteSlides", err[AIR_STRLEN_MED];
   char *text, name[AIR_STRLEN_MED], frst[AIR_STRLEN_MED], prev[AIR_STRLEN_MED],
     next[AIR_STRLEN_MED], last[AIR_STRLEN_MED];
@@ -366,7 +366,7 @@ tkwbWriteSlides(tkwbSlide **slide, int numSlides, char *tmpl,
 
 int
 tkwbDoit(char *indexS, char *tmplS, char *scriptS,
-	 char *tag[TKWB_TAG_MAX+1], char *link[4]) {
+         char *tag[TKWB_TAG_MAX+1], char *link[4]) {
   char me[]="tkwbDoit", err[AIR_STRLEN_MED];
   char *index, *tmpl;
   tkwbSlide **slide;
@@ -423,48 +423,48 @@ main(int argc, char *argv[]) {
 
   me = argv[0];
   hestOptAdd(&hopt, "i", "index", airTypeString, 1, 1, &indexS, NULL,
-	     "*index* template HTML filename.  This will be turned into "
-	     "the \"index.html\" index file, after the links to all the "
-	     "slides have been substituted in.");
+             "*index* template HTML filename.  This will be turned into "
+             "the \"index.html\" index file, after the links to all the "
+             "slides have been substituted in.");
   hestOptAdd(&hopt, "t", "slide", airTypeString, 1, 1, &tmplS, NULL,
-	     "*slide* template HTML filename.  "
-	     "The text of this includes the tags "
-	     "that are replaced with their per-slide values, to produce the "
-	     "HTML file for each slide's page. ");
+             "*slide* template HTML filename.  "
+             "The text of this includes the tags "
+             "that are replaced with their per-slide values, to produce the "
+             "HTML file for each slide's page. ");
   hestOptAdd(&hopt, "s", "script", airTypeString, 1, 1, &scriptS, NULL,
-	     "script filename.  This file contains information about each "
-	     "slide: the slide title, the slide image filename, and the "
-	     "HTML text to accompany the slide image.");
+             "script filename.  This file contains information about each "
+             "slide: the slide title, the slide image filename, and the "
+             "HTML text to accompany the slide image.");
   hestOptAdd(&hopt, "r", "tags", airTypeString,
-	     TKWB_TAG_MAX+1, TKWB_TAG_MAX+1, pretag,
-	     "TOC TITLE IMAGE FIRST PREV NEXT LAST TEXT",
-	     "replacement tags that will be converted into links. "
-	     "The actual replcement tag is the string given here embedded "
-	     "in an HTML comment (no space).  So saying \"TOC\" means the "
-	     "actual replacement tag will be \"<!--TOC-->\". The first tag "
-	     "is replaced in the index template; all others are in the "
-	     "slide template. "
-	     "In order, the tags are for:\n "
-	     "\b\bo In the index template, the list of links to slide pages\n "
-	     "\b\bo The slide title\n "
-	     "\b\bo The slide image\n "
-	     "\b\bo The link to the first slide\n "
-	     "\b\bo The link to the previous slide\n "
-	     "\b\bo The link to the next slide\n "
-	     "\b\bo The link to the last slide\n "
-	     "\b\bo The text accompanying each slide");
+             TKWB_TAG_MAX+1, TKWB_TAG_MAX+1, pretag,
+             "TOC TITLE IMAGE FIRST PREV NEXT LAST TEXT",
+             "replacement tags that will be converted into links. "
+             "The actual replcement tag is the string given here embedded "
+             "in an HTML comment (no space).  So saying \"TOC\" means the "
+             "actual replacement tag will be \"<!--TOC-->\". The first tag "
+             "is replaced in the index template; all others are in the "
+             "slide template. "
+             "In order, the tags are for:\n "
+             "\b\bo In the index template, the list of links to slide pages\n "
+             "\b\bo The slide title\n "
+             "\b\bo The slide image\n "
+             "\b\bo The link to the first slide\n "
+             "\b\bo The link to the previous slide\n "
+             "\b\bo The link to the next slide\n "
+             "\b\bo The link to the last slide\n "
+             "\b\bo The text accompanying each slide");
   hestOptAdd(&hopt, "first", "text", airTypeString, 1, 1, &frstLink,
-	     "<b>|&lt;&lt;</b>", "Snippet of HTML text to be converted into "
-	     "link to first slide.  Some image could be used here. "
-	     "Following three arguments are similar. ");
+             "<b>|&lt;&lt;</b>", "Snippet of HTML text to be converted into "
+             "link to first slide.  Some image could be used here. "
+             "Following three arguments are similar. ");
   hestOptAdd(&hopt, "prev", "text", airTypeString, 1, 1, &prevLink,
-	     "<b>&lt;--</b>", "HTML for link to previous slide");
+             "<b>&lt;--</b>", "HTML for link to previous slide");
   hestOptAdd(&hopt, "next", "text", airTypeString, 1, 1, &nextLink,
-	     "<b>--&gt;</b>", "HTML for link to next slide");
+             "<b>--&gt;</b>", "HTML for link to next slide");
   hestOptAdd(&hopt, "last", "text", airTypeString, 1, 1, &lastLink,
-	     "<b>&gt;&gt;|</b>", "HTML for link to last slide");
+             "<b>&gt;&gt;|</b>", "HTML for link to last slide");
   hestParseOrDie(hopt, argc-1, argv+1, NULL, me, tkwbInfo,
-		 AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 AIR_TRUE, AIR_TRUE, AIR_TRUE);
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);

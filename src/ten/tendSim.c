@@ -42,17 +42,17 @@ tend_simMain(int argc, char **argv, char *me, hestParm *hparm) {
   float b;
 
   hestOptAdd(&hopt, "B", "B matrix", airTypeOther, 1, 1, &nbmat, NULL,
-	     "B matrix, one row per diffusion-weighted image", 
-	     NULL, NULL, nrrdHestNrrd);
+             "B matrix, one row per diffusion-weighted image", 
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "r", "reference field", airTypeOther, 1, 1, &nT2, "-",
-	     "reference anatomical scan, with no diffusion weighting",
-	     NULL, NULL, nrrdHestNrrd);
+             "reference anatomical scan, with no diffusion weighting",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "i", "tensor field", airTypeOther, 1, 1, &nin, "-",
-	     "input diffusion tensor field", NULL, NULL, nrrdHestNrrd);
+             "input diffusion tensor field", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "b", "b", airTypeFloat, 1, 1, &b, "1",
-	     "b value for simulated scan");
+             "b value for simulated scan");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output image (floating point)");
+             "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

@@ -28,7 +28,7 @@ hooverStubRenderBegin(void **rendInfoP, void *userInfo) {
 
 int
 hooverStubThreadBegin(void **threadInfoP, void *rendInfo, void *userInfo,
-		      int whichThread) {
+                      int whichThread) {
 
   *threadInfoP = NULL;
   return 0;
@@ -36,21 +36,21 @@ hooverStubThreadBegin(void **threadInfoP, void *rendInfo, void *userInfo,
 
 int 
 hooverStubRayBegin(void *threadInfo, void *renderInfo, void *userInfo,
-		   int uIndex,
-		   int vIndex, 
-		   double rayLen,
-		   double rayStartWorld[3],
-		   double rayStartIndex[3],
-		   double rayDirWorld[3],
-		   double rayDirIndex[3]) {
+                   int uIndex,
+                   int vIndex, 
+                   double rayLen,
+                   double rayStartWorld[3],
+                   double rayStartIndex[3],
+                   double rayDirWorld[3],
+                   double rayDirIndex[3]) {
   /*
   char me[]="hooverStubRayBegin";
   fprintf(stderr, "%s: ray(%d,%d), len=%g\n"
-	  "  start=(%g,%g,%g)\n"
-	  "  dir=(%g,%g,%g)\n",
-	  me, uIndex, vIndex, rayLen,
-	  rayStartWorld[0], rayStartWorld[1], rayStartWorld[2],
-	  rayDirWorld[0], rayDirWorld[1], rayDirWorld[2]);
+          "  start=(%g,%g,%g)\n"
+          "  dir=(%g,%g,%g)\n",
+          me, uIndex, vIndex, rayLen,
+          rayStartWorld[0], rayStartWorld[1], rayStartWorld[2],
+          rayDirWorld[0], rayDirWorld[1], rayDirWorld[2]);
   */
 
   return 0;
@@ -58,14 +58,14 @@ hooverStubRayBegin(void *threadInfo, void *renderInfo, void *userInfo,
 
 double
 hooverStubSample(void *threadInfo, void *renderInfo, void *userInfo,
-		 int num, double rayT,
-		 int inside,
-		 double samplePosWorld[3],
-		 double samplePosIndex[3]) {
+                 int num, double rayT,
+                 int inside,
+                 double samplePosWorld[3],
+                 double samplePosIndex[3]) {
   /*
   char me[]="hooverStubSample";
   fprintf(stderr, "%s:      sample(%g,%g,%g)\n", me,
-	  samplePosWorld[0], samplePosWorld[1], samplePosWorld[2]);
+          samplePosWorld[0], samplePosWorld[1], samplePosWorld[2]);
   */
 
   /* we want the stub renderer to actually finish */

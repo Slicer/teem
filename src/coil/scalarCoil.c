@@ -38,31 +38,31 @@ coil_t
 _coilLaplacian3(coil_t **iv3, double spacing[3]) {
   
   return (  (iv3[0][4] - 2*iv3[1][4] + iv3[2][4])/(spacing[0]*spacing[0])
-	  + (iv3[1][3] - 2*iv3[1][4] + iv3[1][5])/(spacing[1]*spacing[1])
-	  + (iv3[1][1] - 2*iv3[1][4] + iv3[1][7])/(spacing[2]*spacing[2]));
+          + (iv3[1][3] - 2*iv3[1][4] + iv3[1][5])/(spacing[1]*spacing[1])
+          + (iv3[1][1] - 2*iv3[1][4] + iv3[1][7])/(spacing[2]*spacing[2]));
 }
 
 void
 _coilKindScalarFilterTesting(coil_t *delta, coil_t **iv3, 
-			     double spacing[3],
-			     double parm[COIL_PARMS_NUM]) {
+                             double spacing[3],
+                             double parm[COIL_PARMS_NUM]) {
   delta[0] = 0;
 }
 
 void
 _coilKindScalarFilterHomogeneous(coil_t *delta, coil_t **iv3,
-				 double spacing[3],
-				 double parm[COIL_PARMS_NUM]) {
+                                 double spacing[3],
+                                 double parm[COIL_PARMS_NUM]) {
   
   delta[0] = parm[0]*_coilLaplacian3(iv3, spacing);
 }
 
 void
 _coilKindScalar3x3x3Gradients(coil_t *forwX, coil_t *backX,
-			      coil_t *forwY, coil_t *backY,
-			      coil_t *forwZ, coil_t *backZ,
-			      coil_t **i,
-			      coil_t rspX, coil_t rspY, coil_t rspZ) {
+                              coil_t *forwY, coil_t *backY,
+                              coil_t *forwZ, coil_t *backZ,
+                              coil_t **i,
+                              coil_t rspX, coil_t rspY, coil_t rspZ) {
 
   /* gradients at forward and backward X */
   forwX[0] = rspX*(i[2][4] - i[1][4]);
@@ -101,8 +101,8 @@ _coilKindScalar3x3x3Gradients(coil_t *forwX, coil_t *backX,
 
 void
 _coilKindScalarFilterPeronaMalik(coil_t *delta, coil_t **iv3,
-				 double spacing[3],
-				 double parm[COIL_PARMS_NUM]) {
+                                 double spacing[3],
+                                 double parm[COIL_PARMS_NUM]) {
   coil_t forwX[3], backX[3], forwY[3], backY[3], forwZ[3], backZ[3], 
     KK, rspX, rspY, rspZ;
 
@@ -112,10 +112,10 @@ _coilKindScalarFilterPeronaMalik(coil_t *delta, coil_t **iv3,
   rspZ = 1.0/spacing[2];
 
   _coilKindScalar3x3x3Gradients(forwX, backX,
-				forwY, backY,
-				forwZ, backZ,
-				iv3,
-				rspX, rspY, rspZ);
+                                forwY, backY,
+                                forwZ, backZ,
+                                iv3,
+                                rspX, rspY, rspZ);
   
   /* compute fluxes */
   KK = parm[1]*parm[1];
@@ -127,14 +127,14 @@ _coilKindScalarFilterPeronaMalik(coil_t *delta, coil_t **iv3,
   backZ[2] *= _COIL_CONDUCT(ELL_3V_DOT(backZ, backZ), KK);
 
   delta[0] = parm[0]*(rspX*(forwX[0] - backX[0])
-		      + rspY*(forwY[1] - backY[1])
-		      + rspZ*(forwZ[2] - backZ[2]));
+                      + rspY*(forwY[1] - backY[1])
+                      + rspZ*(forwZ[2] - backZ[2]));
 }
 
 void
 _coilKindScalarFilterModifiedCurvature(coil_t *delta, coil_t **iv3,
-				       double spacing[3],
-				       double parm[COIL_PARMS_NUM]) {
+                                       double spacing[3],
+                                       double parm[COIL_PARMS_NUM]) {
   coil_t forwX[3], backX[3], forwY[3], backY[3], forwZ[3], backZ[3],
     grad[3], gm, eps, KK, LL, rspX, rspY, rspZ, lerp;
 
@@ -144,10 +144,10 @@ _coilKindScalarFilterModifiedCurvature(coil_t *delta, coil_t **iv3,
   rspZ = 1.0/spacing[2];
 
   _coilKindScalar3x3x3Gradients(forwX, backX,
-				forwY, backY,
-				forwZ, backZ,
-				iv3,
-				rspX, rspY, rspZ);
+                                forwY, backY,
+                                forwZ, backZ,
+                                iv3,
+                                rspX, rspY, rspZ);
   grad[0] = rspX*(iv3[2][4] - iv3[0][4]);
   grad[1] = rspY*(iv3[1][5] - iv3[1][3]);
   grad[2] = rspZ*(iv3[1][7] - iv3[1][1]);
@@ -171,9 +171,9 @@ _coilKindScalarFilterModifiedCurvature(coil_t *delta, coil_t **iv3,
 
   lerp = parm[2];
   delta[0] = (lerp*_coilLaplacian3(iv3, spacing)
-	      + (1-lerp)*gm*(rspX*(forwX[0] - backX[0])
-			     + rspY*(forwY[1] - backY[1])
-			     + rspZ*(forwZ[2] - backZ[2])));
+              + (1-lerp)*gm*(rspX*(forwX[0] - backX[0])
+                             + rspY*(forwY[1] - backY[1])
+                             + rspZ*(forwZ[2] - backZ[2])));
   delta[0] *= parm[0];
 }
 

@@ -23,7 +23,7 @@
 
 int
 tenSizeNormalize(Nrrd *nout, Nrrd *nin, double _weight[3],
-		 double amount, double target) {
+                 double amount, double target) {
   char me[]="tenSizeNormalize", err[AIR_STRLEN_MED];
   float *tin, *tout, eval[3], evec[9], size, weight[3];
   size_t N, I;
@@ -52,7 +52,7 @@ tenSizeNormalize(Nrrd *nout, Nrrd *nin, double _weight[3],
   weight[2] /= size;
   /*
   fprintf(stderr, "!%s: real weight = %g %g %g; amount = %g\n",
-	  me, weight[0], weight[1], weight[2], amount);
+          me, weight[0], weight[1], weight[2], amount);
   */
   tin = (float*)(nin->data);
   tout = (float*)(nout->data);
@@ -60,11 +60,11 @@ tenSizeNormalize(Nrrd *nout, Nrrd *nin, double _weight[3],
   for (I=0; I<=N-1; I++) {
     tenEigensolve_f(eval, evec, tin);
     size = (weight[0]*AIR_ABS(eval[0])
-	    + weight[1]*AIR_ABS(eval[1])
-	    + weight[2]*AIR_ABS(eval[2]));
+            + weight[1]*AIR_ABS(eval[1])
+            + weight[2]*AIR_ABS(eval[2]));
     /*
     fprintf(stderr, "!%s: eval = %g %g %g --> size = %g --> ",
-	    me, eval[0], eval[1], eval[2], size);
+            me, eval[0], eval[1], eval[2], size);
     */
     eval[0] = AIR_AFFINE(0, amount, 1, eval[0], target*eval[0]/size);
     eval[1] = AIR_AFFINE(0, amount, 1, eval[1], target*eval[1]/size);
@@ -125,7 +125,7 @@ tenSizeScale(Nrrd *nout, Nrrd *nin, double amount) {
 */
 int
 tenAnisoScale(Nrrd *nout, Nrrd *nin, double scale,
-	      int fixDet, int makePositive) {
+              int fixDet, int makePositive) {
   char me[]="tenAnisoScale", err[AIR_STRLEN_MED];
   size_t I, N;
   float *tin, *tout, mean, eval[3], evec[9];

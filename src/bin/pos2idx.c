@@ -22,9 +22,9 @@
 #include <teem/nrrd.h>
 
 char *info = ("Converts from floating-point \"position\" to floating-point "
-	      "\"index\", given the centering of the data "
-	      "(cell vs. node), the range of positions, and the number "
-	      "of intervals into which position has been quantized. ");
+              "\"index\", given the centering of the data "
+              "(cell vs. node), the range of positions, and the number "
+              "of intervals into which position has been quantized. ");
 
 int
 main(int argc, char *argv[]) {
@@ -35,22 +35,22 @@ main(int argc, char *argv[]) {
 
   me = argv[0];
   hestOptAdd(&hopt, NULL, "center", airTypeEnum, 1, 1, &center, NULL,
-	     "which centering applies to the quantized position.\n "
-	     "Possibilities are:\n "
-	     "\b\bo \"cell\": for histogram bins, quantized values, and "
-	     "pixels-as-squares\n "
-	     "\b\bo \"node\": for non-trivially interpolated "
-	     "sample points", NULL, nrrdCenter);
+             "which centering applies to the quantized position.\n "
+             "Possibilities are:\n "
+             "\b\bo \"cell\": for histogram bins, quantized values, and "
+             "pixels-as-squares\n "
+             "\b\bo \"node\": for non-trivially interpolated "
+             "sample points", NULL, nrrdCenter);
   hestOptAdd(&hopt, NULL, "minPos", airTypeDouble, 1, 1, &minPos, NULL,
-	     "smallest position associated with index 0");
+             "smallest position associated with index 0");
   hestOptAdd(&hopt, NULL, "maxPos", airTypeDouble, 1, 1, &maxPos, NULL,
-	     "highest position associated with highest index");
+             "highest position associated with highest index");
   hestOptAdd(&hopt, NULL, "num", airTypeDouble, 1, 1, &size, NULL,
-	     "number of intervals into which position has been quantized");
+             "number of intervals into which position has been quantized");
   hestOptAdd(&hopt, NULL, "pos", airTypeDouble, 1, 1, &pos, NULL,
-	     "the input position, to be converted to an index");
+             "the input position, to be converted to an index");
   hestParseOrDie(hopt, argc-1, argv+1, NULL, me, info,
-		 AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 AIR_TRUE, AIR_TRUE, AIR_TRUE);
 
   index = NRRD_IDX(center, minPos, maxPos, size, pos);
   printf("%g\n", index);

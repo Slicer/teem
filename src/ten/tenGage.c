@@ -117,24 +117,24 @@ _tenGageFilter (gageContext *ctx, gagePerVolume *pvl) {
   case 2:
 #define DOIT_2(J) \
       gageScl3PFilter2(pvl->iv3 + J*8, pvl->iv2 + J*4, pvl->iv1 + J*2, \
-		       fw00, fw11, fw22, \
+                       fw00, fw11, fw22, \
                        tensor + J, tgrad + J*3, NULL, \
-		       pvl->needD[0], pvl->needD[1], AIR_FALSE)
+                       pvl->needD[0], pvl->needD[1], AIR_FALSE)
     /* HEY: want trilinear interpolation of confidence */
     tensor[0] = (pvl->iv3[0] + pvl->iv3[1] + pvl->iv3[2] + pvl->iv3[3]
-		 + pvl->iv3[4] + pvl->iv3[5] + pvl->iv3[6] + pvl->iv3[7])/8;
+                 + pvl->iv3[4] + pvl->iv3[5] + pvl->iv3[6] + pvl->iv3[7])/8;
     DOIT_2(1); DOIT_2(2); DOIT_2(3);
     DOIT_2(4); DOIT_2(5); DOIT_2(6); 
     break;
   case 4:
 #define DOIT_4(J) \
       gageScl3PFilter4(pvl->iv3 + J*64, pvl->iv2 + J*16, pvl->iv1 + J*4, \
-		       fw00, fw11, fw22, \
+                       fw00, fw11, fw22, \
                        tensor + J, tgrad + J*3, NULL, \
-		       pvl->needD[0], pvl->needD[1], AIR_FALSE)
+                       pvl->needD[0], pvl->needD[1], AIR_FALSE)
     /* HEY: want trilinear interpolation of confidence */
     tensor[0] = (pvl->iv3[21] + pvl->iv3[22] + pvl->iv3[25] + pvl->iv3[26]
-		 + pvl->iv3[37] + pvl->iv3[38] + pvl->iv3[41] + pvl->iv3[42])/8;
+                 + pvl->iv3[37] + pvl->iv3[38] + pvl->iv3[41] + pvl->iv3[42])/8;
     DOIT_4(1); DOIT_4(2); DOIT_4(3);
     DOIT_4(4); DOIT_4(5); DOIT_4(6); 
     break;
@@ -143,9 +143,9 @@ _tenGageFilter (gageContext *ctx, gagePerVolume *pvl) {
       gageScl3PFilterN(fd, \
                        pvl->iv3 + J*fd*fd*fd, \
                        pvl->iv2 + J*fd*fd, pvl->iv1 + J*fd, \
-		       fw00, fw11, fw22, \
+                       fw00, fw11, fw22, \
                        tensor + J, tgrad + J*3, NULL, \
-		       pvl->needD[0], pvl->needD[1], AIR_FALSE)
+                       pvl->needD[0], pvl->needD[1], AIR_FALSE)
     /* HEY: this sucks: want trilinear interpolation of confidence */
     DOIT_N(0); DOIT_N(1); DOIT_N(2); DOIT_N(3);
     DOIT_N(4); DOIT_N(5); DOIT_N(6); 
@@ -187,7 +187,7 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     dtF = tenAns[6];
     if (ctx->verbose) {
       fprintf(stderr, "tensor = (%g) %g %g %g   %g %g   %g\n", tenAns[0],
-	      dtA, dtB, dtC, dtD, dtE, dtF);
+              dtA, dtB, dtC, dtD, dtE, dtF);
     }
   }
   /* done if doV 
@@ -203,12 +203,12 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDet)) {
     cbC = -(pvl->directAnswer[tenGageDet][0] = 
-	    2*dtB*dtC*dtE + dtA*dtD*dtF 
-	    - dtC*dtC*dtD - dtA*dtE*dtE - dtB*dtB*dtF);
+            2*dtB*dtC*dtE + dtA*dtD*dtF 
+            - dtC*dtC*dtD - dtA*dtE*dtE - dtB*dtB*dtF);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageS)) {
     cbS = (pvl->directAnswer[tenGageS][0] = 
-	   dtA*dtA + dtD*dtD + dtF*dtF + 2*dtB*dtB + 2*dtC*dtC + 2*dtE*dtE);
+           dtA*dtA + dtD*dtD + dtF*dtF + 2*dtB*dtB + 2*dtC*dtC + 2*dtE*dtE);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageQ)) {
     cbQ = pvl->directAnswer[tenGageQ][0] = (cbS - cbB)/9;
@@ -253,17 +253,17 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     gradDtE = vecTmp + 5*3;
     gradDtF = vecTmp + 6*3;
     TEN_T_SET(gradDdXYZ + 0*7, tenAns[0],
-	      gradDtA[0], gradDtB[0], gradDtC[0],
-	      gradDtD[0], gradDtE[0],
-	      gradDtF[0]);
+              gradDtA[0], gradDtB[0], gradDtC[0],
+              gradDtD[0], gradDtE[0],
+              gradDtF[0]);
     TEN_T_SET(gradDdXYZ + 1*7, tenAns[0],
-	      gradDtA[1], gradDtB[1], gradDtC[1],
-	      gradDtD[1], gradDtE[1],
-	      gradDtF[1]);
+              gradDtA[1], gradDtB[1], gradDtC[1],
+              gradDtD[1], gradDtE[1],
+              gradDtF[1]);
     TEN_T_SET(gradDdXYZ + 2*7, tenAns[0],
-	      gradDtA[2], gradDtB[2], gradDtC[2],
-	      gradDtD[2], gradDtE[2],
-	      gradDtF[2]);
+              gradDtA[2], gradDtB[2], gradDtC[2],
+              gradDtD[2], gradDtE[2],
+              gradDtF[2]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorGradMag)) {
     vecTmp = pvl->directAnswer[tenGageTensorGradMag];
@@ -287,36 +287,36 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTraceNormal)) {
     ELL_3V_SCALE(pvl->directAnswer[tenGageTraceNormal],
-		 1.0/(epsilon + magTmp), vecTmp);
+                 1.0/(epsilon + magTmp), vecTmp);
   }
   /* --- B --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageBGradVec)) {
     gradCbB = vecTmp = pvl->directAnswer[tenGageBGradVec];
     ELL_3V_SCALE_ADD6(vecTmp, 
-		      dtD + dtF, gradDtA,
-		      -2*dtB, gradDtB,
-		      -2*dtC, gradDtC,
-		      dtA + dtF, gradDtD,
-		      -2*dtE, gradDtE,
-		      dtA + dtD, gradDtF);
+                      dtD + dtF, gradDtA,
+                      -2*dtB, gradDtB,
+                      -2*dtC, gradDtC,
+                      dtA + dtF, gradDtD,
+                      -2*dtE, gradDtE,
+                      dtA + dtD, gradDtF);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageBGradMag)) {
     magTmp = pvl->directAnswer[tenGageBGradMag][0] = ELL_3V_LEN(vecTmp);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageBNormal)) {
     ELL_3V_SCALE(pvl->directAnswer[tenGageBNormal],
-		 1.0/(epsilon + magTmp), vecTmp);
+                 1.0/(epsilon + magTmp), vecTmp);
   }
   /* --- Det --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDetGradVec)) {
     vecTmp = pvl->directAnswer[tenGageDetGradVec];
     ELL_3V_SCALE_ADD6(vecTmp,
-		      dtD*dtF - dtE*dtE, gradDtA,
-		      2*(dtC*dtE - dtB*dtF), gradDtB,
-		      2*(dtB*dtE - dtC*dtD), gradDtC,
-		      dtA*dtF - dtC*dtC, gradDtD,
-		      2*(dtB*dtC - dtA*dtE), gradDtE,
-		      dtA*dtD - dtB*dtB, gradDtF);
+                      dtD*dtF - dtE*dtE, gradDtA,
+                      2*(dtC*dtE - dtB*dtF), gradDtB,
+                      2*(dtB*dtE - dtC*dtD), gradDtC,
+                      dtA*dtF - dtC*dtC, gradDtD,
+                      2*(dtB*dtC - dtA*dtE), gradDtE,
+                      dtA*dtD - dtB*dtB, gradDtF);
     ELL_3V_SCALE(gradCbC, -1, vecTmp);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDetGradMag)) {
@@ -324,32 +324,32 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDetNormal)) {
     ELL_3V_SCALE(pvl->directAnswer[tenGageDetNormal],
-		 1.0/(epsilon + magTmp), vecTmp);
+                 1.0/(epsilon + magTmp), vecTmp);
   }
   /* --- S --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageSGradVec)) {
     gradCbS = vecTmp = pvl->directAnswer[tenGageSGradVec];
     ELL_3V_SCALE_ADD6(vecTmp,
-		      2*dtA, gradDtA,
-		      4*dtB, gradDtB,
-		      4*dtC, gradDtC,
-		      2*dtD, gradDtD,
-		      4*dtE, gradDtE,
-		      2*dtF, gradDtF);
+                      2*dtA, gradDtA,
+                      4*dtB, gradDtB,
+                      4*dtC, gradDtC,
+                      2*dtD, gradDtD,
+                      4*dtE, gradDtE,
+                      2*dtF, gradDtF);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageSGradMag)) {
     magTmp = pvl->directAnswer[tenGageSGradMag][0] = ELL_3V_LEN(vecTmp);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageSNormal)) {
     ELL_3V_SCALE(pvl->directAnswer[tenGageSNormal],
-		 1.0/(epsilon + magTmp), vecTmp);
+                 1.0/(epsilon + magTmp), vecTmp);
   }
   /* --- Q --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageQGradVec)) {
     gradCbQ = vecTmp = pvl->directAnswer[tenGageQGradVec];
     ELL_3V_SCALE_ADD2(vecTmp,
-		      1.0/9.0, gradCbS, 
-		      -1.0/9.0, gradCbB);
+                      1.0/9.0, gradCbS, 
+                      -1.0/9.0, gradCbB);
 
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageQGradMag)) {
@@ -357,7 +357,7 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageQNormal)) {
     ELL_3V_SCALE(pvl->directAnswer[tenGageQNormal],
-		 1.0/(epsilon + magTmp), vecTmp);
+                 1.0/(epsilon + magTmp), vecTmp);
   }
   /* --- FA --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAGradVec)) {
@@ -365,32 +365,32 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     tmp0 = 9.0/(epsilon + 2*pvl->directAnswer[tenGageFA][0]*cbS);
     tmp1 = -tmp0*cbQ/(epsilon + cbS);
     ELL_3V_SCALE_ADD2(vecTmp,
-		      tmp0, gradCbQ, 
-		      tmp1, gradCbS);
+                      tmp0, gradCbQ, 
+                      tmp1, gradCbS);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAGradMag)) {
     magTmp = pvl->directAnswer[tenGageFAGradMag][0] = ELL_3V_LEN(vecTmp);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFANormal)) {
     ELL_3V_SCALE(pvl->directAnswer[tenGageFANormal],
-		 1.0/(epsilon + magTmp), vecTmp);
+                 1.0/(epsilon + magTmp), vecTmp);
   }
   /* --- R --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRGradVec)) {
     gradCbR = vecTmp = pvl->directAnswer[tenGageRGradVec];
     tmp0 = 1.0/(epsilon + 2*sqrt(cbQ*cbQ*cbQ));
     ELL_3V_SCALE_ADD4(vecTmp,
-		      (5*cbB - 2*cbS)/54.0, gradCbA,
-		      -1.0/2.0, gradCbC,
-		      5.0*cbA/54.0, gradCbB,
-		      -cbA/27.0, gradCbS);
+                      (5*cbB - 2*cbS)/54.0, gradCbA,
+                      -1.0/2.0, gradCbC,
+                      5.0*cbA/54.0, gradCbB,
+                      -cbA/27.0, gradCbS);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRGradMag)) {
     magTmp = pvl->directAnswer[tenGageRGradMag][0] = ELL_3V_LEN(vecTmp);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRNormal)) {
     ELL_3V_SCALE(pvl->directAnswer[tenGageRNormal],
-		 1.0/(epsilon + magTmp), vecTmp);
+                 1.0/(epsilon + magTmp), vecTmp);
   }
   /* --- Theta --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageThetaGradVec)) {
@@ -400,15 +400,15 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     tmp1 = 1.0/(epsilon + tmp1);
     tmp0 = tmp1*3*cbR/(epsilon + 2*cbQ);
     ELL_3V_SCALE_ADD2(vecTmp,
-		      tmp0, gradCbQ,
-		      -tmp1, gradCbR);
+                      tmp0, gradCbQ,
+                      -tmp1, gradCbR);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageThetaGradMag)) {
     magTmp = pvl->directAnswer[tenGageThetaGradMag][0] = ELL_3V_LEN(vecTmp);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageThetaNormal)) {
     ELL_3V_SCALE(pvl->directAnswer[tenGageThetaNormal],
-		 1.0/(epsilon + magTmp), vecTmp);
+                 1.0/(epsilon + magTmp), vecTmp);
   }
   /* --- Invariant gradients + rotation tangents --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageInvarGrads)) {
@@ -417,9 +417,9 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     
     TEN_T_COPY(copyT, tenAns);
     tenInvariantGradients_d(mu1Grad, 
-			    mu2Grad, &mu2Norm,
-			    skwGrad, &skwNorm,
-			    copyT);
+                            mu2Grad, &mu2Norm,
+                            skwGrad, &skwNorm,
+                            copyT);
     vecTmp[0] = TEN_T_DOT(mu1Grad, gradDdXYZ + 0*7);
     vecTmp[1] = TEN_T_DOT(mu1Grad, gradDdXYZ + 1*7);
     vecTmp[2] = TEN_T_DOT(mu1Grad, gradDdXYZ + 2*7);

@@ -79,7 +79,7 @@ main(int argc, char *argv[]) {
   fprintf(stderr, "%s: going to run (%d threads) ...\n", me, actx->numThreads);
   alanRun(actx);
   fprintf(stderr, "%s: stop = %d: %s\n", me, actx->stop,
-	  airEnumDesc(alanStop, actx->stop));
+          airEnumDesc(alanStop, actx->stop));
   /*
   nrrdSave("lev0.nrrd", actx->nlev[0], NULL);
   nrrdSave("lev1.nrrd", actx->nlev[1], NULL);

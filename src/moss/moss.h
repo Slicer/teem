@@ -37,11 +37,11 @@ extern "C" {
 #define MOSS_NCOL(img) (3 == (img)->dim ? (img)->axis[0].size : 1)
 #define MOSS_AXIS0(img) (3 == (img)->dim ? 1 : 0)
 #define MOSS_SX(img) (3 == (img)->dim \
-		      ? (img)->axis[1].size \
-		      : (img)->axis[0].size )
+                      ? (img)->axis[1].size \
+                      : (img)->axis[0].size )
 #define MOSS_SY(img) (3 == (img)->dim \
-		      ? (img)->axis[2].size \
-		      : (img)->axis[1].size )
+                      ? (img)->axis[2].size \
+                      : (img)->axis[1].size )
 
 enum {
   mossFlagUnknown=-1,  /* -1: nobody knows */
@@ -58,10 +58,10 @@ typedef struct {
   float *ivc;                          /* intermediate value cache */
   double *xFslw, *yFslw;               /* filter sample locations->weights */
   int fdiam, ncol;                     /* filter diameter; ivc is allocated
-					  for (fdiam+1) x (fdiam+1) x ncol
-					  doubles, with that axis ordering */
+                                          for (fdiam+1) x (fdiam+1) x ncol
+                                          doubles, with that axis ordering */
   int *xIdx, *yIdx;                    /* arrays for x and y coordinates,
-					  both allocated for fdiam */
+                                          both allocated for fdiam */
   float *bg;                           /* background color */
   int boundary;                        /* from nrrdBoundary* enum */
   int flag[MOSS_FLAG_NUM];             /* I'm a flag-waving struct */
@@ -84,10 +84,10 @@ TEEM_API int mossImageAlloc(Nrrd *image, int type, int sx, int sy, int ncol);
 /* sampler.c */
 TEEM_API int mossSamplerImageSet(mossSampler *smplr, Nrrd *image, float *bg);
 TEEM_API int mossSamplerKernelSet(mossSampler *smplr,
-				  const NrrdKernel *kernel, double *kparm);
+                                  const NrrdKernel *kernel, double *kparm);
 TEEM_API int mossSamplerUpdate(mossSampler *smplr);
 TEEM_API int mossSamplerSample(float *val, mossSampler *smplr,
-			       double xPos, double yPos);
+                               double xPos, double yPos);
 
 /* hestMoss.c */
 TEEM_API hestCB *mossHestTransform;
@@ -103,16 +103,16 @@ TEEM_API double *mossMatTranslateSet(double *mat, double tx, double ty);
 TEEM_API double *mossMatRotateSet(double *mat, double angle);
 TEEM_API double *mossMatFlipSet(double *mat, double angle);
 TEEM_API double *mossMatShearSet(double *mat, double angleFixed,
-				 double amount);
+                                 double amount);
 TEEM_API double *mossMatScaleSet(double *mat, double sx, double sy);
 TEEM_API void mossMatApply(double *ox, double *oy, double *mat,
-			   double ix, double iy);
+                           double ix, double iy);
 TEEM_API int mossLinearTransform(Nrrd *nout, Nrrd *nin, float *bg,
-				 double *mat,
-				 mossSampler *msp,
-				 double xMin, double xMax,
-				 double yMin, double yMax,
-				 int sx, int sy);
+                                 double *mat,
+                                 mossSampler *msp,
+                                 double xMin, double xMax,
+                                 double yMin, double yMax,
+                                 int sx, int sy);
 
 
 #ifdef __cplusplus

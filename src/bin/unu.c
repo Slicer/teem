@@ -43,9 +43,9 @@ main(int argc, char **argv) {
     fprintf(stderr, "  %s: nrrd sanity check FAILED.\n", me);
     fprintf(stderr, "\n");
     fprintf(stderr, "  This means that either nrrd can't work on this "
-	    "platform, or (more likely)\n");
+            "platform, or (more likely)\n");
     fprintf(stderr, "  there was an error in the compilation options "
-	    "and variable definitions\n");
+            "and variable definitions\n");
     fprintf(stderr, "  for how teem was built here.\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "  %s\n", err = biffGetDone(NRRD));
@@ -91,7 +91,7 @@ main(int argc, char **argv) {
     ret = unrrduCmdList[i]->main(argc-2, argv+2, argv0, hparm);
   } else {
     fprintf(stderr, "%s: unrecognized command: \"%s\"; type \"%s\" for "
-	    "complete list\n", me, argv[1], me);
+            "complete list\n", me, argv[1], me);
     ret = 1;
   }
 

@@ -124,8 +124,8 @@ limnEnvMapCheck(Nrrd *envMap) {
   }
   if (!(nrrdTypeFloat == envMap->type)) {
     sprintf(err, "%s: type should be %s, not %s", me,
-	    airEnumStr(nrrdType, nrrdTypeFloat),
-	    airEnumStr(nrrdType, envMap->type));
+            airEnumStr(nrrdType, nrrdTypeFloat),
+            airEnumStr(nrrdType, envMap->type));
     biffAdd(LIMN, err); return 1;
   }
   if (!(3 == envMap->dim)) {
@@ -133,12 +133,12 @@ limnEnvMapCheck(Nrrd *envMap) {
     biffAdd(LIMN, err); return 1;
   }
   if (!(3 == envMap->axis[0].size
-	&& 256 == envMap->axis[1].size
-	&& 256 == envMap->axis[2].size)) {
+        && 256 == envMap->axis[1].size
+        && 256 == envMap->axis[2].size)) {
     sprintf(err, "%s: dimension should be 3x256x256, not %dx%dx%d", me,
-	    envMap->axis[0].size, 
-	    envMap->axis[1].size, 
-	    envMap->axis[2].size);
+            envMap->axis[0].size, 
+            envMap->axis[1].size, 
+            envMap->axis[2].size);
     biffAdd(LIMN, err); return 1;
   }
   return 0;

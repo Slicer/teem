@@ -37,7 +37,7 @@ unrrdu_reshapeMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   hestOptAdd(&opt, "s", "sz0 sz1 ", airTypeInt, 1, -1, &size, NULL,
-	     "new axes sizes", &sizeLen);
+             "new axes sizes", &sizeLen);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

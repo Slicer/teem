@@ -46,21 +46,21 @@ unrrdu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
   hparm->respFileEnable = AIR_TRUE;
 
   hestOptAdd(&opt, "i", "nin0", airTypeOther, 1, -1, &nin, NULL,
-	     "everything to be joined together",
-	     &ninLen, NULL, nrrdHestNrrd);
+             "everything to be joined together",
+             &ninLen, NULL, nrrdHestNrrd);
   OPT_ADD_AXIS(axis, "axis to join along");
   hestOptAdd(&opt, "incr", NULL, airTypeInt, 0, 0, &incrDim, NULL,
-	     "in situations where the join axis is *not* among the existing "
-	     "axes of the input nrrds, then this flag signifies that the join "
-	     "axis should be *inserted*, and the output dimension should "
-	     "be one greater than input dimension.  Without this flag, the "
-	     "nrrds are joined side-by-side, along an existing axis.");
+             "in situations where the join axis is *not* among the existing "
+             "axes of the input nrrds, then this flag signifies that the join "
+             "axis should be *inserted*, and the output dimension should "
+             "be one greater than input dimension.  Without this flag, the "
+             "nrrds are joined side-by-side, along an existing axis.");
   hestOptAdd(&opt, "l", "label", airTypeString, 1, 1, &label, "",
-	     "label to associate with join axis");
+             "label to associate with join axis");
   hestOptAdd(&opt, "mm", "min max", airTypeDouble, 2, 2, mm, "nan nan",
-	     "min and max values along join axis");
+             "min and max values along join axis");
   hestOptAdd(&opt, "sp", "spacing", airTypeDouble, 1, 1, &spc, "nan",
-	     "spacing between samples along join axis");
+             "spacing between samples along join axis");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();

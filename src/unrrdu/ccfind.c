@@ -35,21 +35,21 @@ unrrdu_ccfindMain(int argc, char **argv, char *me, hestParm *hparm) {
   int type, conny, pret;
 
   hestOptAdd(&opt, "v", "filename", airTypeString, 1, 1, &valS, "",
-	     "Giving a filename here allows you to save out the values "
-	     "associated with each connect component.  This can be used "
-	     "later with \"ccmerge -d\".  By default, no record of the "
-	     "original CC values is kept.");
+             "Giving a filename here allows you to save out the values "
+             "associated with each connect component.  This can be used "
+             "later with \"ccmerge -d\".  By default, no record of the "
+             "original CC values is kept.");
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "default",
-	     "type to use for output, to store the CC ID values.  By default "
-	     "(not using this option), the type used will be the smallest of "
-	     "uchar, ushort, or int, that can represent all the CC ID values. "
-	     "Using this option allows one to specify the integral type to "
-	     "be used.",
+             "type to use for output, to store the CC ID values.  By default "
+             "(not using this option), the type used will be the smallest of "
+             "uchar, ushort, or int, that can represent all the CC ID values. "
+             "Using this option allows one to specify the integral type to "
+             "be used.",
              NULL, NULL, &unrrduHestMaybeTypeCB);
   hestOptAdd(&opt, "c", "connectivity", airTypeInt, 1, 1, &conny, NULL,
-	     "what kind of connectivity to use: the number of coordinates "
-	     "that vary in order to traverse the neighborhood of a given "
-	     "sample.  In 2D: \"1\": 4-connected, \"2\": 8-connected");
+             "what kind of connectivity to use: the number of coordinates "
+             "that vary in order to traverse the neighborhood of a given "
+             "sample.  In 2D: \"1\": 4-connected, \"2\": 8-connected");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

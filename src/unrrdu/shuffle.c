@@ -46,9 +46,9 @@ unrrdu_shuffleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hparm->respFileEnable = AIR_TRUE;
 
   hestOptAdd(&opt, "p", "slc0 slc1", airTypeInt, 1, -1, &perm, NULL,
-	     "new slice ordering", &permLen);
+             "new slice ordering", &permLen);
   hestOptAdd(&opt, "inv", NULL, airTypeInt, 0, 0, &inverse, NULL,
-	     "use inverse of given permutation");
+             "use inverse of given permutation");
   OPT_ADD_AXIS(axis, "axis to shuffle along");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
@@ -67,13 +67,13 @@ unrrdu_shuffleMain(int argc, char **argv, char *me, hestParm *hparm) {
      checking on length of permutation */
   if (!( AIR_IN_CL(0, axis, nin->dim-1) )) {
     fprintf(stderr, "%s: axis %d not in valid range [%d,%d]\n", 
-	    me, axis, 0, nin->dim-1);
+            me, axis, 0, nin->dim-1);
     airMopError(mop);
     return 1;
   }
   if (!( permLen == nin->axis[axis].size )) {
     fprintf(stderr, "%s: permutation length (%d) != axis %d's size (%d)\n",
-	    me, permLen, axis, nin->axis[axis].size);
+            me, permLen, axis, nin->axis[axis].size);
     airMopError(mop);
     return 1;
   }
@@ -82,7 +82,7 @@ unrrdu_shuffleMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopAdd(mop, iperm, airFree, airMopAlways);
     if (nrrdInvertPerm(iperm, perm, permLen)) {
       fprintf(stderr,
-	      "%s: couldn't compute inverse of given permutation\n", me);
+              "%s: couldn't compute inverse of given permutation\n", me);
       airMopError(mop);
       return 1;
     }

@@ -38,38 +38,38 @@ main() {
   printf("|%s|\n", line);
 
   strcpy(line, "Director, writor, and editor John Sayles goes happily "
-	 "against the grain with this tale, set in a fictional Latin "
-	 "American country and shot almost entirely in Spanish and Indian "
-	 "dialects.  The story follows a well-to-do physician who has trained "
-	 "young doctors to work in the countryside among local Mayan Indians. "
-	 "He now wants to find each of the 'ambassadors of health,' but as "
-	 "the film unfolds, he comes to realize that a civil war is engulfing "
-	 "his country and the Indians are practically ensalved.  The\tMen\t"
-	 "with\tGuns (Los\tHombres\tArmados) have forever left their mark, "
-	 "too, on "
-	 "his students.  Sayles based his idea for the film, shot in Mexico, "
-	 "on the 36-year long civil war in Guatemala, which began in 1960.");
+         "against the grain with this tale, set in a fictional Latin "
+         "American country and shot almost entirely in Spanish and Indian "
+         "dialects.  The story follows a well-to-do physician who has trained "
+         "young doctors to work in the countryside among local Mayan Indians. "
+         "He now wants to find each of the 'ambassadors of health,' but as "
+         "the film unfolds, he comes to realize that a civil war is engulfing "
+         "his country and the Indians are practically ensalved.  The\tMen\t"
+         "with\tGuns (Los\tHombres\tArmados) have forever left their mark, "
+         "too, on "
+         "his students.  Sayles based his idea for the film, shot in Mexico, "
+         "on the 36-year long civil war in Guatemala, which began in 1960.");
   printf("airStrlen(line) = %d\n", (int)airStrlen(line));
 
   fprintf(stdout, "This was found on my desk: ");
   _hestPrintStr(stdout, 10, strlen("This was found on my desk: "),
-		80, line, AIR_FALSE);
+                80, line, AIR_FALSE);
 
   fprintf(stdout, "This was found on my desk: ");
   _hestPrintStr(stdout, 10, strlen("This was found on my desk: "),
-		79, line, AIR_FALSE);
+                79, line, AIR_FALSE);
 
   fprintf(stdout, "This was found on my desk: ");
   _hestPrintStr(stdout, 10, strlen("This was found on my desk: "),
-		78, line, AIR_FALSE);
+                78, line, AIR_FALSE);
 
   fprintf(stdout, "This was found on my desk: ");
   _hestPrintStr(stdout, 10, strlen("This was found on my desk: "),
-		77, line, AIR_FALSE);
+                77, line, AIR_FALSE);
 
   fprintf(stdout, "This was found on my desk: ");
   _hestPrintStr(stdout, 10, strlen("This was found on my desk: "),
-		76, line, AIR_FALSE);
+                76, line, AIR_FALSE);
   
   exit(0);
 }

@@ -38,9 +38,9 @@ tend_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *outS;
 
   hestOptAdd(&hopt, "i", "conf evals evecs", airTypeOther, 3, 3, nin, NULL,
-	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
+             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output image (floating point)");
+             "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

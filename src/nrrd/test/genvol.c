@@ -21,7 +21,7 @@
 #include "../nrrd.h"
 
 char *genvolInfo = ("generates test volumes.  Not very flexible as long as "
-		    "the \"funk\" library doesn't exist");
+                    "the \"funk\" library doesn't exist");
 
 float
 rho(float r) {
@@ -38,11 +38,11 @@ genvolFunc(float x, float y, float z) {
   */
   /* marschner-lobb, the real thing
   return ((1 - sin(AIR_PI*z/2))
-	  + 0.25*(1 + rho(sqrt(x*x + y*y))))/(2*(1 + 0.25));
-	   */
+          + 0.25*(1 + rho(sqrt(x*x + y*y))))/(2*(1 + 0.25));
+           */
   /* marschner-lobb, linear variation in Z */
   return (1 - (AIR_PI*z + 3)/5
-	  + 0.25*(1 + rho(sqrt(x*x + y*y)))/(2*(1 + 0.25)));
+          + 0.25*(1 + rho(sqrt(x*x + y*y)))/(2*(1 + 0.25)));
 
   /* cone 
   return z - 2*sqrt(x*x + y*y) + 0.5;
@@ -77,15 +77,15 @@ main(int argc, char *argv[]) {
   hopt = NULL;
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hestOptAdd(&hopt, "s", "sx sy sz", airTypeInt, 3, 3, size, "128 128 128",
-	     "dimensions of output volume");
+             "dimensions of output volume");
   hestOptAdd(&hopt, "min", "x y z", airTypeFloat, 3, 3, min, "-1 -1 -1",
-	     "lower bounding corner of volume");
+             "lower bounding corner of volume");
   hestOptAdd(&hopt, "max", "x y z", airTypeFloat, 3, 3, max, "1 1 1",
-	     "upper bounding corner of volume");
+             "upper bounding corner of volume");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &out, "-",
-	     "file to write output nrrd to");
+             "file to write output nrrd to");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
-		 me, genvolInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, genvolInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -103,9 +103,9 @@ main(int argc, char *argv[]) {
     for (yi=0; yi<size[1]; yi++) {
       y = AIR_AFFINE(0, yi, size[1]-1, min[1], max[1]);
       for (xi=0; xi<size[0]; xi++) {
-	x = AIR_AFFINE(0, xi, size[0]-1, min[0], max[0]);
-	*data = genvolFunc(x,y,z);
-	data += 1;
+        x = AIR_AFFINE(0, xi, size[0]-1, min[0], max[0]);
+        *data = genvolFunc(x,y,z);
+        data += 1;
       }
     }
   }
@@ -113,7 +113,7 @@ main(int argc, char *argv[]) {
   nrrdAxisInfoSet(nout, nrrdAxisInfoMin, min[0], min[1], min[2]);
   nrrdAxisInfoSet(nout, nrrdAxisInfoMax, max[0], max[1], max[2]);
   nrrdAxisInfoSet(nout, nrrdAxisInfoCenter, 
-		  nrrdCenterNode, nrrdCenterNode, nrrdCenterNode);
+                  nrrdCenterNode, nrrdCenterNode, nrrdCenterNode);
   nrrdAxisInfoSpacingSet(nout, 0);
   nrrdAxisInfoSpacingSet(nout, 1);
   nrrdAxisInfoSpacingSet(nout, 2);

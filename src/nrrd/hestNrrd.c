@@ -202,28 +202,28 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
       free(biffGetDone(NRRD));
       ret = airSingleSscanf(str, "%lf", &val);
       if (_nrrdLooksLikeANumber(str)
-	  || (1 == ret && !AIR_EXISTS(val))) {
-	/* either it patently looks like a number, or,
-	   it already parsed as a number and it is a special value */
-	if (1 == ret) {
-	  nrrdIterSetValue(*iterP, val);
-	} else {
-	  /* oh, this is bad. */
-	  fprintf(stderr, "%s: PANIC, is it a number or not?", me);
-	  exit(1);
-	}
+          || (1 == ret && !AIR_EXISTS(val))) {
+        /* either it patently looks like a number, or,
+           it already parsed as a number and it is a special value */
+        if (1 == ret) {
+          nrrdIterSetValue(*iterP, val);
+        } else {
+          /* oh, this is bad. */
+          fprintf(stderr, "%s: PANIC, is it a number or not?", me);
+          exit(1);
+        }
       } else {
-	/* it doesn't look like a number, but the fopen failed, so
-	   we'll let it fail again and pass back the error messages */
-	if (nrrdLoad(nrrd = nrrdNew(), str, NULL)) {
-	  nerr = biffGetDone(NRRD);
-	  strncpy(err, nerr, AIR_STRLEN_HUGE-1);
-	  airMopError(mop); return 1;
-	} else {
-	  /* what the hell? */
-	  fprintf(stderr, "%s: PANIC, is it a nrrd or not?", me);
-	  exit(1);
-	}
+        /* it doesn't look like a number, but the fopen failed, so
+           we'll let it fail again and pass back the error messages */
+        if (nrrdLoad(nrrd = nrrdNew(), str, NULL)) {
+          nerr = biffGetDone(NRRD);
+          strncpy(err, nerr, AIR_STRLEN_HUGE-1);
+          airMopError(mop); return 1;
+        } else {
+          /* what the hell? */
+          fprintf(stderr, "%s: PANIC, is it a nrrd or not?", me);
+          exit(1);
+        }
       }
     }
   }

@@ -43,7 +43,7 @@ miteThreadNew() {
      be done by gagePerVolumeNew */
   mtt->ansMiteVal = 
     (gage_t *)calloc(gageKindTotalAnswerLength(miteValGageKind), 
-		     sizeof(gage_t));
+                     sizeof(gage_t));
   mtt->directAnsMiteVal = 
     (gage_t **)calloc(miteValGageKind->itemMax+1, sizeof(gage_t*));
   if (!(mtt->ansMiteVal && mtt->directAnsMiteVal)) {
@@ -81,7 +81,7 @@ miteThreadNix(miteThread *mtt) {
 */
 int 
 miteThreadBegin(miteThread **mttP, miteRender *mrr,
-		miteUser *muu, int whichThread) {
+                miteUser *muu, int whichThread) {
   char me[]="miteThreadBegin", err[AIR_STRLEN_MED];
 
   /* all the miteThreads have already been allocated */
@@ -102,20 +102,20 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
   if (-1 != mrr->sclPvlIdx) {
     (*mttP)->ansScl = (*mttP)->gctx->pvl[mrr->sclPvlIdx]->answer;
     (*mttP)->nPerp = ((*mttP)->ansScl 
-		      + gageKindAnswerOffset(gageKindScl, gageSclNPerp));
+                      + gageKindAnswerOffset(gageKindScl, gageSclNPerp));
     (*mttP)->geomTens = ((*mttP)->ansScl
-			 + gageKindAnswerOffset(gageKindScl, gageSclGeomTens));
+                         + gageKindAnswerOffset(gageKindScl, gageSclGeomTens));
   } else {
     (*mttP)->ansScl = NULL;
     (*mttP)->nPerp = NULL;
     (*mttP)->geomTens = NULL;
   }
   (*mttP)->ansVec = (-1 != mrr->vecPvlIdx
-		     ? (*mttP)->gctx->pvl[mrr->vecPvlIdx]->answer
-		     : NULL);
+                     ? (*mttP)->gctx->pvl[mrr->vecPvlIdx]->answer
+                     : NULL);
   (*mttP)->ansTen = (-1 != mrr->tenPvlIdx
-		     ? (*mttP)->gctx->pvl[mrr->tenPvlIdx]->answer
-		     : NULL);
+                     ? (*mttP)->gctx->pvl[mrr->tenPvlIdx]->answer
+                     : NULL);
   (*mttP)->thrid = whichThread;
   (*mttP)->samples = 0;
   (*mttP)->verbose = 0;
@@ -137,7 +137,7 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
     break;
   default:
     sprintf(err, "%s: shade method %d not implemented!",
-	    me, mrr->shadeSpec->method);
+            me, mrr->shadeSpec->method);
     biffAdd(MITE, err); return 1;
     break;
   }
@@ -151,7 +151,7 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
 
 int 
 miteThreadEnd(miteThread *mtt, miteRender *mrr,
-	      miteUser *muu) {
+              miteUser *muu) {
 
   return 0;
 }

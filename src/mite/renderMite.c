@@ -38,10 +38,10 @@ _miteRenderNew(void) {
     mrr->tenPvlIdx = -1;
     mrr->normalSpec = gageItemSpecNew();
     airMopAdd(mrr->rmop, mrr->normalSpec,
-	      (airMopper)gageItemSpecNix, airMopAlways);
+              (airMopper)gageItemSpecNix, airMopAlways);
     mrr->shadeSpec = miteShadeSpecNew();
     airMopAdd(mrr->rmop, mrr->shadeSpec,
-	      (airMopper)miteShadeSpecNix, airMopAlways);
+              (airMopper)miteShadeSpecNix, airMopAlways);
     mrr->time0 = AIR_NAN;
     GAGE_QUERY_RESET(mrr->queryMite);
     mrr->queryMiteNonzero = AIR_FALSE;
@@ -96,10 +96,10 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   }
   miteVariableParse((*mrrP)->normalSpec, muu->normalStr);
   miteQueryAdd(queryScl, queryVec, queryTen, (*mrrP)->queryMite,
-	       (*mrrP)->normalSpec);
+               (*mrrP)->normalSpec);
   miteShadeSpecParse((*mrrP)->shadeSpec, muu->shadeStr);
   miteShadeSpecQueryAdd(queryScl, queryVec, queryTen, (*mrrP)->queryMite,
-			(*mrrP)->shadeSpec);
+                        (*mrrP)->shadeSpec);
   (*mrrP)->queryMiteNonzero = GAGE_QUERY_NONZERO((*mrrP)->queryMite);
 
   E = 0;
@@ -123,24 +123,24 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
     if (!E) (*mrrP)->tenPvlIdx = pvlIdx++;
   }
   if (!E) E |= gageKernelSet(muu->gctx0, gageKernel00,
-			     muu->ksp[gageKernel00]->kernel,
-			     muu->ksp[gageKernel00]->parm);
+                             muu->ksp[gageKernel00]->kernel,
+                             muu->ksp[gageKernel00]->parm);
   if (!E) E |= gageKernelSet(muu->gctx0, gageKernel11,
-			     muu->ksp[gageKernel11]->kernel,
-			     muu->ksp[gageKernel11]->parm);
+                             muu->ksp[gageKernel11]->kernel,
+                             muu->ksp[gageKernel11]->parm);
   if (!E) E |= gageKernelSet(muu->gctx0, gageKernel22,
-			     muu->ksp[gageKernel22]->kernel,
-			     muu->ksp[gageKernel22]->parm);
+                             muu->ksp[gageKernel22]->kernel,
+                             muu->ksp[gageKernel22]->parm);
   if (!E) E |= gageUpdate(muu->gctx0);
   if (E) {
     sprintf(err, "%s: gage trouble", me);
     biffMove(MITE, err, GAGE); return 1;
   }
   fprintf(stderr, "!%s: kernel support = %d^3 samples\n",
-	  me, GAGE_FD(muu->gctx0));
+          me, GAGE_FD(muu->gctx0));
   
   if (nrrdMaybeAlloc(muu->nout, mite_nt, 3, 5 /* RGBAZ */ ,
-		     muu->hctx->imgSize[0], muu->hctx->imgSize[1])) {
+                     muu->hctx->imgSize[0], muu->hctx->imgSize[1])) {
     sprintf(err, "%s: nrrd trouble", me);
     biffMove(MITE, err, NRRD);
     return 1;
@@ -159,7 +159,7 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
       biffAdd(MITE, err); return 1;
     }
     airMopAdd((*mrrP)->rmop, (*mrrP)->tt[thr],
-	      (airMopper)miteThreadNix, airMopAlways);
+              (airMopper)miteThreadNix, airMopAlways);
   }
 
   (*mrrP)->time0 = airTime();

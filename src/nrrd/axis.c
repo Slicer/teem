@@ -142,7 +142,7 @@ _nrrdKindAltered(int kindIn) {
     kindOut = nrrdKindUnknown;
   } else {
     if (nrrdKindDomain == kindIn
-	|| nrrdKindList == kindIn) {
+        || nrrdKindList == kindIn) {
       kindOut = kindIn;
     } else {
       kindOut = nrrdKindUnknown;
@@ -221,10 +221,10 @@ nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin, const int *axmap, int bitflag) {
   if (axmap) {
     for (d=0; d<nout->dim; d++) {
       if (-1 == axmap[d]) {
-	continue;
+        continue;
       }
       if (!AIR_IN_CL(0, axmap[d], nin->dim-1)) {
-	return 3;
+        return 3;
       }
     }
   }
@@ -251,9 +251,9 @@ nrrdAxisInfoSet_nva(Nrrd *nrrd, int axInfo, const void *_info) {
   int d;
   
   if (!( nrrd 
-	 && AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX) 
-	 && AIR_IN_OP(nrrdAxisInfoUnknown, axInfo, nrrdAxisInfoLast) 
-	 && _info )) {
+         && AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX) 
+         && AIR_IN_OP(nrrdAxisInfoUnknown, axInfo, nrrdAxisInfoLast) 
+         && _info )) {
     return;
   }
   info.P = _info;
@@ -304,8 +304,8 @@ nrrdAxisInfoSet(Nrrd *nrrd, int axInfo, ...) {
   va_list ap;
 
   if (!( nrrd 
-	 && AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX) 
-	 && AIR_IN_OP(nrrdAxisInfoUnknown, axInfo, nrrdAxisInfoLast) )) {
+         && AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX) 
+         && AIR_IN_OP(nrrdAxisInfoUnknown, axInfo, nrrdAxisInfoLast) )) {
     return;
   }
 
@@ -324,7 +324,7 @@ nrrdAxisInfoSet(Nrrd *nrrd, int axInfo, ...) {
       info.I[d] = va_arg(ap, int);
       /*
       printf("!%s: got int[%d] = %d\n", 
-	     "nrrdAxisInfoSet", d, info.I[d]);
+             "nrrdAxisInfoSet", d, info.I[d]);
       */
       break;
     case nrrdAxisInfoSpacing:
@@ -333,17 +333,17 @@ nrrdAxisInfoSet(Nrrd *nrrd, int axInfo, ...) {
       info.D[d] = va_arg(ap, double);
       /*
       printf("!%s: got double[%d] = %g\n", 
-	     "nrrdAxisInfoSet", d, info.D[d]); 
+             "nrrdAxisInfoSet", d, info.D[d]); 
       */
       break;
     case nrrdAxisInfoLabel:
       /* we DO NOT do the airStrdup() here because this pointer value is
-	 just going to be handed to nrrdAxisInfoSet_nva(), which WILL do the
-	 airStrdup(); we're not violating the rules for axis labels */
+         just going to be handed to nrrdAxisInfoSet_nva(), which WILL do the
+         airStrdup(); we're not violating the rules for axis labels */
       info.CP[d] = va_arg(ap, char *);
       /*
       printf("!%s: got char*[%d] = |%s|\n", 
-	     "nrrdAxisInfoSet", d, info.CP[d]);
+             "nrrdAxisInfoSet", d, info.CP[d]);
       */
       break;
     case nrrdAxisInfoUnit:
@@ -376,8 +376,8 @@ nrrdAxisInfoGet_nva(const Nrrd *nrrd, int axInfo, void *_info) {
   int d;
   
   if (!( nrrd 
-	 && AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX) 
-	 && AIR_IN_OP(nrrdAxisInfoUnknown, axInfo, nrrdAxisInfoLast) )) {
+         && AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX) 
+         && AIR_IN_OP(nrrdAxisInfoUnknown, axInfo, nrrdAxisInfoLast) )) {
     return;
   }
   
@@ -424,8 +424,8 @@ nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo, ...) {
   va_list ap;
 
   if (!( nrrd 
-	 && AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX) 
-	 && AIR_IN_OP(nrrdAxisInfoUnknown, axInfo, nrrdAxisInfoLast) )) {
+         && AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX) 
+         && AIR_IN_OP(nrrdAxisInfoUnknown, axInfo, nrrdAxisInfoLast) )) {
     return;
   }
 
@@ -439,7 +439,7 @@ nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo, ...) {
     case nrrdAxisInfoSize:
       *((int*)ptr) = info.I[d];
       /* printf("!%s: got int[%d] = %d\n", 
-	 "nrrdAxisInfoGet", d, *((int*)ptr)); */
+         "nrrdAxisInfoGet", d, *((int*)ptr)); */
       break;
     case nrrdAxisInfoSpacing:
     case nrrdAxisInfoMin:
@@ -452,11 +452,11 @@ nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo, ...) {
     case nrrdAxisInfoKind:
       *((int*)ptr) = info.I[d];
       /* printf("!%s: got int[%d] = %d\n", 
-	 "nrrdAxisInfoGet", d, *((int*)ptr)); */
+         "nrrdAxisInfoGet", d, *((int*)ptr)); */
       break;
     case nrrdAxisInfoLabel:
       /* we DO NOT do the airStrdup() here because this pointer value just
-	 came from nrrdAxisInfoGet_nva(), which already did the airStrdup() */
+         came from nrrdAxisInfoGet_nva(), which already did the airStrdup() */
       *((char**)ptr) = info.CP[d];
       /* printf("!%s: got char*[%d] = |%s|\n", "nrrdAxisInfoSet", d, 
        *((char**)ptr)); */
@@ -486,8 +486,8 @@ int
 _nrrdCenter(int center) {
   
   center =  (nrrdCenterUnknown == center
-	     ? nrrdDefCenter
-	     : center);
+             ? nrrdDefCenter
+             : center);
   center = AIR_CLAMP(nrrdCenterUnknown+1, center, nrrdCenterLast-1);
   return center;
 }
@@ -496,8 +496,8 @@ int
 _nrrdCenter2(int center, int defCenter) {
   
   center =  (nrrdCenterUnknown == center
-	     ? defCenter
-	     : center);
+             ? defCenter
+             : center);
   center = AIR_CLAMP(nrrdCenterUnknown+1, center, nrrdCenterLast-1);
   return center;
 }
@@ -562,8 +562,8 @@ nrrdAxisInfoIdx(const Nrrd *nrrd, int ax, double pos) {
 */
 void
 nrrdAxisInfoPosRange(double *loP, double *hiP,
-		     const Nrrd *nrrd, int ax, 
-		     double loIdx, double hiIdx) {
+                     const Nrrd *nrrd, int ax, 
+                     double loIdx, double hiIdx) {
   int center, size, flip = 0;
   double min, max, tmp;
 
@@ -613,8 +613,8 @@ nrrdAxisInfoPosRange(double *loP, double *hiP,
 */
 void
 nrrdAxisInfoIdxRange(double *loP, double *hiP,
-		     const Nrrd *nrrd, int ax, 
-		     double loPos, double hiPos) {
+                     const Nrrd *nrrd, int ax, 
+                     double loPos, double hiPos) {
   int center, size, flip = 0;
   double min, max, tmp;
 
@@ -676,7 +676,7 @@ nrrdAxisInfoSpacingSet(Nrrd *nrrd, int ax) {
 
   /* the skinny */
   nrrd->axis[ax].spacing = NRRD_SPACING(_nrrdCenter(nrrd->axis[ax].center),
-					min, max, nrrd->axis[ax].size);
+                                        min, max, nrrd->axis[ax].size);
   nrrd->axis[ax].spacing *= sign;
 
   return;

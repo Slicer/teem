@@ -20,7 +20,7 @@
 #include "../ell.h"
 
 char *rot2aaInfo = ("converts a list of rotation matrices to a list of "
-		    "angle axis specifications");
+                    "angle axis specifications");
 
 int
 main(int argc, char *argv[]) {
@@ -38,12 +38,12 @@ main(int argc, char *argv[]) {
   hopt = NULL;
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hestOptAdd(&hopt, NULL, "input matrices", airTypeOther, 1, 1, &_nmat, NULL,
-	     "list of rotation matrices, 2-D array with one matrix "
-	     "(in ROW-major order) per scanline", NULL, NULL, nrrdHestNrrd);
+             "list of rotation matrices, 2-D array with one matrix "
+             "(in ROW-major order) per scanline", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, NULL, "output filename", airTypeString, 1, 1, &outS, "-",
-	     "file to write EPS output to");
+             "file to write EPS output to");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
-		 me, rot2aaInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, rot2aaInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 

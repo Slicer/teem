@@ -32,7 +32,7 @@ rangeTest(char *me, double imin, double imax) {
     range = baneRangeNew(i);
     range->answer(&omin, &omax, imin, imax);
     printf("%s: range %s --> (%g,%g)\n",
-	   me, range->name, omin, omax);
+           me, range->name, omin, omax);
     range = baneRangeNix(range);
   }
 }
@@ -84,11 +84,11 @@ incTest(char *me, int num, baneRange *range) {
     /*
     if (inc->passA) {
       for (j=0; j<num; j++)
-	inc->process[0](hist, val[j], incParm);
+        inc->process[0](hist, val[j], incParm);
     }
     if (inc->passB) {
       for (j=0; j<num; j++)
-	inc->process[1](hist, val[j], incParm);
+        inc->process[1](hist, val[j], incParm);
     }
     inc->ans(&omin, &omax, hist, incParm, range);
     */

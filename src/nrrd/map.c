@@ -38,7 +38,7 @@ nrrdMinMaxSet(Nrrd *nrrd) {
 
   if (nrrd) {
     if (!airEnumValCheck(nrrdType, nrrd->type)
-	&& nrrdTypeBlock != nrrd->type) {
+        && nrrdTypeBlock != nrrd->type) {
       nrrdFindMinMax[nrrd->type](&_min, &_max, nrrd);
       nrrd->min = nrrdDLoad[nrrd->type](&_min);
       nrrd->max = nrrdDLoad[nrrd->type](&_max);
@@ -82,7 +82,7 @@ nrrdMinMaxCleverSet(Nrrd *nrrd) {
   }
   if (nrrdTypeBlock == nrrd->type) {
     sprintf(err, "%s: can't find min/max of type %s", me,
-	    airEnumStr(nrrdType, nrrdTypeBlock));
+            airEnumStr(nrrdType, nrrdTypeBlock));
   }
   if (AIR_EXISTS(nrrd->min) && AIR_EXISTS(nrrd->max)) {
     / * both of min and max already set, so we won't look for those, but
@@ -94,14 +94,14 @@ nrrdMinMaxCleverSet(Nrrd *nrrd) {
       && (nrrdTypeChar == nrrd->type || nrrdTypeUChar == nrrd->type)) {
     if (nrrdTypeChar == nrrd->type) {
       if (!AIR_EXISTS(nrrd->min))
-	nrrd->min = SCHAR_MIN;
+        nrrd->min = SCHAR_MIN;
       if (!AIR_EXISTS(nrrd->max))
-	nrrd->max = SCHAR_MAX;
+        nrrd->max = SCHAR_MAX;
     } else {
       if (!AIR_EXISTS(nrrd->min))
-	nrrd->min = 0;
+        nrrd->min = 0;
       if (!AIR_EXISTS(nrrd->max))
-	nrrd->max = UCHAR_MAX;
+        nrrd->max = UCHAR_MAX;
     }
     nrrdHasNonExistSet(nrrd);
     return 0;
@@ -144,14 +144,14 @@ nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
   size_t num;
 
   if (!( nin && nout 
-	 && !airEnumValCheck(nrrdType, nin->type)
-	 && !airEnumValCheck(nrrdType, type) )) {
+         && !airEnumValCheck(nrrdType, nin->type)
+         && !airEnumValCheck(nrrdType, type) )) {
     sprintf(err, "%s: invalid args", me);
     biffAdd(NRRD, err); return 1;
   }
   if (nin->type == nrrdTypeBlock || type == nrrdTypeBlock) {
     sprintf(err, "%s: can't convert to or from nrrd type %s", me,
-	    airEnumStr(nrrdType, nrrdTypeBlock));
+            airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
   if (nout == nin && nrrdTypeSize[type] != nrrdTypeSize[nin->type]) {
@@ -164,8 +164,8 @@ nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
        non-sensical integral values */
     if (nrrdHasNonExist(nin)) {
       sprintf(err, "%s: can't convert to integral values (%s) with "
-	      "non-existant values in input", me,
-	      airEnumStr(nrrdType, type));
+              "non-existant values in input", me,
+              airEnumStr(nrrdType, type));
       biffAdd(NRRD, err); return 1;
     }
   }
@@ -174,13 +174,13 @@ nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
   if (type == nin->type) {
     if (nout == nin) {
       /* nout == nin is allowed if the input and output type are
-	 of the same size, which will certainly be the case if the
-	 input and output types are identical, so there's actually
-	 no work to do */
+         of the same size, which will certainly be the case if the
+         input and output types are identical, so there's actually
+         no work to do */
     } else {
       if (nrrdCopy(nout, nin)) {
-	sprintf(err, "%s: couldn't copy input to output", me);
-	biffAdd(NRRD, err); return 1;
+        sprintf(err, "%s: couldn't copy input to output", me);
+        biffAdd(NRRD, err); return 1;
       }
     }
     return 0;
@@ -243,7 +243,7 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, int bits) {
   }
   if (nrrdTypeBlock == nin->type) {
     sprintf(err, "%s: can't quantize type %s", me,
-	    airEnumStr(nrrdType, nrrdTypeBlock));
+            airEnumStr(nrrdType, nrrdTypeBlock));
   }
 
   /* determine nrrd type from number of bits */
@@ -368,19 +368,19 @@ nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
   }
   if (!( type == nrrdTypeFloat || type == nrrdTypeDouble )) {
     sprintf(err, "%s: output type must be %s or %s (not %s)", me,
-	    airEnumStr(nrrdType, nrrdTypeFloat),
-	    airEnumStr(nrrdType, nrrdTypeDouble),
-	    airEnumStr(nrrdType, type));
+            airEnumStr(nrrdType, nrrdTypeFloat),
+            airEnumStr(nrrdType, nrrdTypeDouble),
+            airEnumStr(nrrdType, type));
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdTypeBlock == nin->type) {
     sprintf(err, "%s: can't unquantize type %s", me,
-	    airEnumStr(nrrdType, nrrdTypeBlock));
+            airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
   if (!nrrdTypeIsIntegral[nin->type]) {
     sprintf(err, "%s: can only unquantize integral types, not %s", me,
-	    airEnumStr(nrrdType, nin->type));
+            airEnumStr(nrrdType, nin->type));
     biffAdd(NRRD, err); return 1;
   }
   if (nout == nin && nrrdTypeSize[type] != nrrdTypeSize[nin->type]) {
@@ -481,7 +481,7 @@ _nrrdHistoEqCompare(const void *a, const void *b) {
 */
 int
 nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
-	    int bins, int smart, float amount) {
+            int bins, int smart, float amount) {
   char me[]="nrrdHistoEq", func[]="heq", err[AIR_STRLEN_MED];
   Nrrd *nhist, *nmap;
   float *ycoord = NULL;
@@ -498,7 +498,7 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
   }
   if (nrrdTypeBlock == nin->type) {
     sprintf(err, "%s: can't histogram equalize type %s", me,
-	    airEnumStr(nrrdType, nrrdTypeBlock));
+            airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
   if (!(bins > 4)) {
@@ -564,7 +564,7 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
     airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
     if (range->min == range->max) {
       sprintf(err, "%s: invalid min and max in nrrd.  "
-	      "Min and max are equivalent (min,max = %g).", me, range->min);
+              "Min and max are equivalent (min,max = %g).", me, range->min);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     min = range->min;
@@ -572,14 +572,14 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
     for (I=0; I<num; I++) {
       val = nrrdDLookup[nin->type](nin->data, I);
       if (AIR_EXISTS(val)) {
-	AIR_INDEX(min, val, max, bins, idx);
-	++hist[idx];
-	if (AIR_EXISTS(last[idx])) {
-	  steady[0 + 2*idx] = (last[idx] == val
-			       ? 1 + steady[0 + 2*idx]
-			       : 0);
-	}
-	last[idx] = val;
+        AIR_INDEX(min, val, max, bins, idx);
+        ++hist[idx];
+        if (AIR_EXISTS(last[idx])) {
+          steady[0 + 2*idx] = (last[idx] == val
+                               ? 1 + steady[0 + 2*idx]
+                               : 0);
+        }
+        last[idx] = val;
       }
     }
     /*
@@ -605,7 +605,7 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   airMopAdd(mop, nmap, (airMopper)nrrdNuke,
-	    nmapP ? airMopOnError : airMopAlways);
+            nmapP ? airMopOnError : airMopAlways);
   nmap->axis[0].min = min;
   nmap->axis[0].max = max;
   ycoord = nmap->data;
@@ -616,8 +616,8 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
       ycoord[i] = 0;
     } else {
       ycoord[i] = ycoord[i-1] + hist[i-1]*(smart 
-					   ? respect[i-1] 
-					   : 1);
+                                           ? respect[i-1] 
+                                           : 1);
     }
   }
   /* if we've done smart, the integral will have little flat spots
@@ -633,12 +633,12 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
        if hist[i-1] was not respected (!respect[i-1]) */
     for (i=1; i<=bins-1; i++) {
       if (!respect[i-1]) {
-	/* lort and hirt will bracket the index of the bad control point
-	   with points corresponding either to respected bins or the
-	   endpoints of the histogram */
-	for (lort=i; lort>=1 && !respect[lort-1]; lort--);
-	for (hirt=i; hirt<=bins-1 && !respect[hirt-1]; hirt++);
-	ycoord[i] = AIR_AFFINE(lort, i, hirt, ycoord[lort], ycoord[hirt]);
+        /* lort and hirt will bracket the index of the bad control point
+           with points corresponding either to respected bins or the
+           endpoints of the histogram */
+        for (lort=i; lort>=1 && !respect[lort-1]; lort--);
+        for (hirt=i; hirt<=bins-1 && !respect[hirt-1]; hirt++);
+        ycoord[i] = AIR_AFFINE(lort, i, hirt, ycoord[lort], ycoord[hirt]);
       }
     }
     /* the very last control point has to be handled differently */
@@ -651,7 +651,7 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
   for (i=0; i<=bins; i++) {
     ycoord[i] = AIR_AFFINE(0.0, ycoord[i], ycoord[bins], min, max);
     ycoord[i] = AIR_AFFINE(0.0, amount, 1.0,
-			   AIR_AFFINE(0, i, bins, min, max), ycoord[i]);
+                           AIR_AFFINE(0, i, bins, min, max), ycoord[i]);
   }
 
   /* map the nrrd values through the normalized histogram integral */
@@ -665,7 +665,7 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
     if (AIR_EXISTS(val)) {
       AIR_INDEX(min, val, max, bins, idx);
       val = AIR_AFFINE(xcoord[idx], val, xcoord[idx+1], 
-		       ycoord[idx], ycoord[idx+1]);
+                       ycoord[idx], ycoord[idx+1]);
     }
     nrrdDInsert[nout->type](nout->data, I, val);
   }

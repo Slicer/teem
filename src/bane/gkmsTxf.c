@@ -39,33 +39,33 @@ baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
     tvl, tvr, vl, vr, tmp, maxa;
 
   hestOptAdd(&opt, "r", "Vres Gres", airTypeInt, 2, 2, res, "256 256",
-	     "resolution of the transfer function in value and gradient "
-	     "magnitude");
+             "resolution of the transfer function in value and gradient "
+             "magnitude");
   hestOptAdd(&opt, "min", "Vmin Gmin", airTypeFloat, 2, 2, min, "0.0 0.0",
-	     "minimum value and grad mag in txf");
+             "minimum value and grad mag in txf");
   hestOptAdd(&opt, "max", "Vmax Gmax", airTypeFloat, 2, 2, max, NULL,
-	     "maximum value and grad mag in txf");
+             "maximum value and grad mag in txf");
   hestOptAdd(&opt, "v", "base value", airTypeFloat, 1, 1, &v0, NULL,
-	     "data value at which to position bottom of triangle");
+             "data value at which to position bottom of triangle");
   hestOptAdd(&opt, "g", "gthresh", airTypeFloat, 1, 1, &g0, "0.0",
-	     "lowest grad mag to receive opacity");
+             "lowest grad mag to receive opacity");
   hestOptAdd(&opt, "gw", "gwidth", airTypeFloat, 1, 1, &gwidth, "0.0",
-	     "range of grad mag values over which to apply threshold "
-	     "at low gradient magnitudes");
+             "range of grad mag values over which to apply threshold "
+             "at low gradient magnitudes");
   hestOptAdd(&opt, "top", "Vtop Gtop", airTypeFloat, 2, 2, top, NULL,
-	     "data value and grad mag at center of top of triangle");
+             "data value and grad mag at center of top of triangle");
   hestOptAdd(&opt, "w", "value width", airTypeFloat, 1, 1, &width, NULL,
-	     "range of values to be spanned at top of triangle");
+             "range of values to be spanned at top of triangle");
   hestOptAdd(&opt, "mw", "value width", airTypeFloat, 1, 1, &mwidth, "0",
-	     "range of values to be spanned at BOTTOM of triangle");
+             "range of values to be spanned at BOTTOM of triangle");
   hestOptAdd(&opt, "step", NULL, airTypeInt, 0, 0, &step, NULL,
-	     "instead of assigning opacity inside a triangular region, "
-	     "make it more like a step function, in which opacity never "
-	     "decreases in increasing data value");
+             "instead of assigning opacity inside a triangular region, "
+             "make it more like a step function, in which opacity never "
+             "decreases in increasing data value");
   hestOptAdd(&opt, "a", "max opac", airTypeFloat, 1, 1, &maxa, "1.0",
-	     "highest opacity to assign");
+             "highest opacity to assign");
   hestOptAdd(&opt, "o", "opacOut", airTypeString, 1, 1, &out, NULL,
-	     "output opacity function filename");
+             "output opacity function filename");
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
@@ -80,9 +80,9 @@ baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (!E) E |= !(nout->axis[0].label = airStrdup("A"));
   if (!E) E |= !(nout->axis[1].label = airStrdup("gage(scalar:v)"));
   if (!E) nrrdAxisInfoSet(nout, nrrdAxisInfoMin,
-			  AIR_NAN, (double)min[0], (double)min[1]);
+                          AIR_NAN, (double)min[0], (double)min[1]);
   if (!E) nrrdAxisInfoSet(nout, nrrdAxisInfoMax,
-			  AIR_NAN, (double)max[0], (double)max[1]);
+                          AIR_NAN, (double)max[0], (double)max[1]);
   if (!E) E |= !(nout->axis[2].label = airStrdup("gage(scalar:gm)"));
   if (E) {
     sprintf(err, "%s: trouble creating opacity function nrrd", me);
@@ -99,13 +99,13 @@ baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
       vl = AIR_AFFINE(0, g, top[1], v0-mwidth, tvl);
       vr = AIR_AFFINE(0, g, top[1], v0+mwidth, tvr);
       if (g > top[1]) {
-	data[vi + res[0]*gi] = 0;
-	continue;
+        data[vi + res[0]*gi] = 0;
+        continue;
       }
       tmp = (v - vl)/(0.00001 + vr - vl);
       tmp = 1 - AIR_ABS(2*tmp - 1);
       if (step && v > (vr + vl)/2) {
-	tmp = 1;
+        tmp = 1;
       }
       tmp = AIR_MAX(0, tmp);
       data[vi + res[0]*gi] = tmp*maxa;

@@ -26,11 +26,11 @@
   fprintf(stderr, "_ellAlign3: v3 = %g %g %g\n", (v+3)[0], (v+3)[1], (v+3)[2]);
   fprintf(stderr, "_ellAlign3: v6 = %g %g %g\n", (v+6)[0], (v+6)[1], (v+6)[2]);
   fprintf(stderr, "_ellAlign3: d = %g %g %g -> %d %d %d\n",
-	  d0, d1, d2, Mi, ai, bi);
+          d0, d1, d2, Mi, ai, bi);
   fprintf(stderr, "_ellAlign3:  pre dot signs (03, 06, 36): %d %d %d\n",
-	  airSgn(ELL_3V_DOT(v+0, v+3)),
-	  airSgn(ELL_3V_DOT(v+0, v+6)),
-	  airSgn(ELL_3V_DOT(v+3, v+6)));
+          airSgn(ELL_3V_DOT(v+0, v+3)),
+          airSgn(ELL_3V_DOT(v+0, v+6)),
+          airSgn(ELL_3V_DOT(v+3, v+6)));
   */
 
 /* lop B
@@ -38,9 +38,9 @@
   fprintf(stderr, "_ellAlign3: v3 = %g %g %g\n", (v+3)[0], (v+3)[1], (v+3)[2]);
   fprintf(stderr, "_ellAlign3: v6 = %g %g %g\n", (v+6)[0], (v+6)[1], (v+6)[2]);
   fprintf(stderr, "_ellAlign3:  post dot signs %d %d %d\n",
-	  airSgn(ELL_3V_DOT(v+0, v+3)),
-	  airSgn(ELL_3V_DOT(v+0, v+6)),
-	  airSgn(ELL_3V_DOT(v+3, v+6)));
+          airSgn(ELL_3V_DOT(v+0, v+3)),
+          airSgn(ELL_3V_DOT(v+0, v+6)),
+          airSgn(ELL_3V_DOT(v+3, v+6)));
   if (airSgn(ELL_3V_DOT(v+0, v+3)) < 0
       || airSgn(ELL_3V_DOT(v+0, v+6)) < 0
       || airSgn(ELL_3V_DOT(v+3, v+6)) < 0) {
@@ -86,7 +86,7 @@ _ell_make_right_handed_d(double v[9]) {
   fprintf(stderr, "          %g %g %g\n", (t+3)[0], (t+3)[1], (t+3)[2]);
   fprintf(stderr, "          %g %g %g\n", (t+6)[0], (t+6)[1], (t+6)[2]);
   fprintf(stderr, "cross dots:  %g %g %g\n",
-	  ELL_3V_DOT(t+0, t+3), ELL_3V_DOT(t+0, t+6), ELL_3V_DOT(t+3, t+6));
+          ELL_3V_DOT(t+0, t+3), ELL_3V_DOT(t+0, t+6), ELL_3V_DOT(t+3, t+6));
 */
 
 /* lop B
@@ -95,7 +95,7 @@ _ell_make_right_handed_d(double v[9]) {
   fprintf(stderr, "          %g %g %g\n", (t+3)[0], (t+3)[1], (t+3)[2]);
   fprintf(stderr, "          %g %g %g\n", (t+6)[0], (t+6)[1], (t+6)[2]);
   fprintf(stderr, "cross dots:  %g %g %g\n",
-	  ELL_3V_DOT(t+0, t+3), ELL_3V_DOT(t+0, t+6), ELL_3V_DOT(t+3, t+6));
+          ELL_3V_DOT(t+0, t+3), ELL_3V_DOT(t+0, t+6), ELL_3V_DOT(t+3, t+6));
 */
 
 /*
@@ -220,8 +220,8 @@ _ell_3m_evecs_d(double evec[9], double eval[3], int roots, double m[9]) {
   case ell_cubic_root_three:
     /* if (ell_debug) {
       printf("ell_3m_evecs_d: evals: %20.15f %20.15f %20.15f\n", 
-	     eval[0], eval[1], eval[2]);
-	     } */
+             eval[0], eval[1], eval[2]);
+             } */
     ELL_3M_DIAG_SET(n, m[0]-e0, m[4]-e0, m[8]-e0);
     ell_3m_1d_nullspace_d(evec+0, n);
     ELL_3M_DIAG_SET(n, m[0]-e1, m[4]-e1, m[8]-e1);
@@ -270,17 +270,17 @@ _ell_3m_evecs_d(double evec[9], double eval[3], int roots, double m[9]) {
     printf("ell_3m_evecs_d (numroots = %d): evecs: \n", numroots);
     ELL_3MV_MUL(tmpv, m, evec[0]);
     printf(" (%g:%g): %20.15f %20.15f %20.15f\n", 
-	   eval[0], ELL_3V_DOT(evec[0], tmpv), 
-	   evec[0][0], evec[0][1], evec[0][2]);
+           eval[0], ELL_3V_DOT(evec[0], tmpv), 
+           evec[0][0], evec[0][1], evec[0][2]);
     ELL_3MV_MUL(tmpv, m, evec[1]);
     printf(" (%g:%g): %20.15f %20.15f %20.15f\n", 
-	   eval[1], ELL_3V_DOT(evec[1], tmpv), 
-	   evec[1][0], evec[1][1], evec[1][2]);
+           eval[1], ELL_3V_DOT(evec[1], tmpv), 
+           evec[1][0], evec[1][1], evec[1][2]);
     ELL_3MV_MUL(tmpv, m, evec[2]);
     printf(" (%g:%g): %20.15f %20.15f %20.15f\n", 
-	   eval[2], ELL_3V_DOT(evec[2], tmpv), 
-	   evec[2][0], evec[2][1], evec[2][2]);
-	   } */
+           eval[2], ELL_3V_DOT(evec[2], tmpv), 
+           evec[2][0], evec[2][1], evec[2][2]);
+           } */
   return;
 }
 
@@ -338,7 +338,7 @@ ell_3m_eigensolve_d(double eval[3], double evec[9], double m[9], int newton) {
 */
 int
 ell_3m_svd_d(double uu[9], double sval[3], double vv[9], 
-	     double mat[9], int newton) {
+             double mat[9], int newton) {
   double trn[9], msqr[9], eval[3], evec[9];
   int roots;
   

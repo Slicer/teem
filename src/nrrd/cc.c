@@ -68,7 +68,7 @@ _nrrdCCEqvAdd(airArray *eqvArr, int j, int k) {
   
   if (_nrrdCC_verb) {
     fprintf(stderr, "%s: ***(%d,%d)***: eqvArr->len = %d\n", "_nrrdCCEqvAdd",
-	    j, k, eqvArr->len);
+            j, k, eqvArr->len);
   }
   if (eqvArr->len) {
     eqv = (int *)(eqvArr->data);
@@ -76,7 +76,7 @@ _nrrdCCEqvAdd(airArray *eqvArr, int j, int k) {
        the last one in an effort to reduce duplicate entries */
     eqi = eqvArr->len-1;
     if ( (eqv[0 + 2*eqi] == j && eqv[1 + 2*eqi] == k) ||
-	 (eqv[0 + 2*eqi] == k && eqv[1 + 2*eqi] == j) ) {
+         (eqv[0 + 2*eqi] == k && eqv[1 + 2*eqi] == j) ) {
       /* don't add a duplicate */
       return;
     }
@@ -90,7 +90,7 @@ _nrrdCCEqvAdd(airArray *eqvArr, int j, int k) {
 
 int
 _nrrdCCFind_2(Nrrd *nout, int *numid, airArray *eqvArr,
-	      const Nrrd *nin, int conny) {
+              const Nrrd *nin, int conny) {
   char me[]="_nrrdCCFind_2"  /* , err[AIR_STRLEN_MED]*/ ; 
   double pvl[5], vl=0;
   int id, pid[5], (*lup)(const void *, size_t), *out;
@@ -112,46 +112,46 @@ _nrrdCCFind_2(Nrrd *nout, int *numid, airArray *eqvArr,
   for (y=0; y<sy; y++) {
     for (x=0; x<sx; x++) {
       if (_nrrdCC_verb) {
-	fprintf(stderr, "%s(%d,%d) -----------\n", me, x, y);
+        fprintf(stderr, "%s(%d,%d) -----------\n", me, x, y);
       }
       if (!x) {
-	pvl[1] = GETV_2(-1, y);   pid[1] = GETI_2(-1, y);
-	pvl[2] = GETV_2(-1, y-1); pid[2] = GETI_2(-1, y-1);
-	pvl[3] = GETV_2(0, y-1);  pid[3] = GETI_2(0, y-1);
-	
+        pvl[1] = GETV_2(-1, y);   pid[1] = GETI_2(-1, y);
+        pvl[2] = GETV_2(-1, y-1); pid[2] = GETI_2(-1, y-1);
+        pvl[3] = GETV_2(0, y-1);  pid[3] = GETI_2(0, y-1);
+        
       } else {
-	pvl[1] = vl;              pid[1] = id;
-	pvl[2] = pvl[3];          pid[2] = pid[3];
-	pvl[3] = pvl[4];          pid[3] = pid[4];
+        pvl[1] = vl;              pid[1] = id;
+        pvl[2] = pvl[3];          pid[2] = pid[3];
+        pvl[3] = pvl[4];          pid[3] = pid[4];
       }
       pvl[4] = GETV_2(x+1, y-1);  pid[4] = GETI_2(x+1, y-1);
       vl = GETV_2(x, y);
       p = 0;
       if (vl == pvl[1]) {
-	id = pid[p=1];
+        id = pid[p=1];
       }
 #define TEST(P) \
       if (vl == pvl[(P)]) {                                                   \
-	if (p) { if (pid[(P)] != id) { _nrrdCCEqvAdd(eqvArr, pid[(P)], id); } \
-	} else { id = pid[p=(P)]; }                                           \
+        if (p) { if (pid[(P)] != id) { _nrrdCCEqvAdd(eqvArr, pid[(P)], id); } \
+        } else { id = pid[p=(P)]; }                                           \
       }
       TEST(3);
       if (2 == conny) {
-	TEST(2);
-	TEST(4);
+        TEST(2);
+        TEST(4);
       }
       if (!p) {
-	/* didn't match anything previous */
-	id = *numid;
-	(*numid)++;
+        /* didn't match anything previous */
+        id = *numid;
+        (*numid)++;
       }
       if (_nrrdCC_verb) {
-	fprintf(stderr, "%s: pvl: %g %g %g %g (vl = %g)\n", me,
-		pvl[1], pvl[2], pvl[3], pvl[4], vl);
-	fprintf(stderr, "        pid: %d %d %d %d\n",
-		pid[1], pid[2], pid[3], pid[4]);
-	fprintf(stderr, "    --> p = %d, id = %d, *numid = %d\n",
-		p, id, *numid);
+        fprintf(stderr, "%s: pvl: %g %g %g %g (vl = %g)\n", me,
+                pvl[1], pvl[2], pvl[3], pvl[4], vl);
+        fprintf(stderr, "        pid: %d %d %d %d\n",
+                pid[1], pid[2], pid[3], pid[4]);
+        fprintf(stderr, "    --> p = %d, id = %d, *numid = %d\n",
+                p, id, *numid);
       }
       out[x + sx*y] = id;
     }
@@ -162,7 +162,7 @@ _nrrdCCFind_2(Nrrd *nout, int *numid, airArray *eqvArr,
 
 int
 _nrrdCCFind_3(Nrrd *nout, int *numid, airArray *eqvArr,
-	      const Nrrd *nin, int conny) {
+              const Nrrd *nin, int conny) {
   /* char me[]="_nrrdCCFind_2", err[AIR_STRLEN_MED] ; */
   double pvl[14], vl=0;
   int id, pid[14], *out, (*lup)(const void *, size_t);
@@ -187,51 +187,51 @@ _nrrdCCFind_3(Nrrd *nout, int *numid, airArray *eqvArr,
   for (z=0; z<sz; z++) {
     for (y=0; y<sy; y++) {
       for (x=0; x<sx; x++) {
-	if (!x) {
-	  pvl[ 1] = GETV_3(-1,   y,   z);  pid[ 1] = GETI_3(-1,   y,   z);
-	  pvl[ 2] = GETV_3(-1, y-1,   z);  pid[ 2] = GETI_3(-1, y-1,   z);
-	  pvl[ 3] = GETV_3( 0, y-1,   z);  pid[ 3] = GETI_3( 0, y-1,   z);
-	  pvl[ 5] = GETV_3(-1, y-1, z-1);  pid[ 5] = GETI_3(-1, y-1, z-1);
-	  pvl[ 8] = GETV_3(-1,   y, z-1);  pid[ 8] = GETI_3(-1,   y, z-1);
-	  pvl[11] = GETV_3(-1, y+1, z-1);  pid[11] = GETI_3(-1, y+1, z-1);
-	  pvl[ 6] = GETV_3( 0, y-1, z-1);  pid[ 6] = GETI_3( 0, y-1, z-1);
-	  pvl[ 9] = GETV_3( 0,   y, z-1);  pid[ 9] = GETI_3( 0,   y, z-1);
-	  pvl[12] = GETV_3( 0, y+1, z-1);  pid[12] = GETI_3( 0, y+1, z-1);
-	} else {
-	  pvl[ 1] = vl;                    pid[ 1] = id;
-	  pvl[ 2] = pvl[ 3];               pid[ 2] = pid[ 3];
-	  pvl[ 3] = pvl[ 4];               pid[ 3] = pid[ 4];
-	  pvl[ 5] = pvl[ 6];               pid[ 5] = pid[ 6];
-	  pvl[ 8] = pvl[ 9];               pid[ 8] = pid[ 9];
-	  pvl[11] = pvl[12];               pid[11] = pid[12];
-	  pvl[ 6] = pvl[ 7];               pid[ 6] = pid[ 7];
-	  pvl[ 9] = pvl[10];               pid[ 9] = pid[10];
-	  pvl[12] = pvl[13];               pid[12] = pid[13];
-	}
-	pvl[ 4] = GETV_3(x+1, y-1,   z);   pid[ 4] = GETI_3(x+1, y-1,   z);
-	pvl[ 7] = GETV_3(x+1, y-1, z-1);   pid[ 7] = GETI_3(x+1, y-1, z-1);
-	pvl[10] = GETV_3(x+1,   y, z-1);   pid[10] = GETI_3(x+1,   y, z-1);
-	pvl[13] = GETV_3(x+1, y+1, z-1);   pid[13] = GETI_3(x+1, y+1, z-1);
-	vl = GETV_3(x, y, z);
-	p = 0;
-	if (vl == pvl[1]) {
-	  id = pid[p=1];
-	}
-	TEST(3);
-	TEST(9);
-	if (2 <= conny) {
-	  TEST(2); TEST(4);
-	  TEST(6); TEST(8); TEST(10); TEST(12);
-	  if (3 == conny) {
-	    TEST(5); TEST(7); TEST(11); TEST(13);
-	  }
-	}
-	if (!p) {
-	  /* didn't match anything previous */
-	  id = *numid;
-	  (*numid)++;
-	}
-	out[x + sx*(y + sy*z)] = id;
+        if (!x) {
+          pvl[ 1] = GETV_3(-1,   y,   z);  pid[ 1] = GETI_3(-1,   y,   z);
+          pvl[ 2] = GETV_3(-1, y-1,   z);  pid[ 2] = GETI_3(-1, y-1,   z);
+          pvl[ 3] = GETV_3( 0, y-1,   z);  pid[ 3] = GETI_3( 0, y-1,   z);
+          pvl[ 5] = GETV_3(-1, y-1, z-1);  pid[ 5] = GETI_3(-1, y-1, z-1);
+          pvl[ 8] = GETV_3(-1,   y, z-1);  pid[ 8] = GETI_3(-1,   y, z-1);
+          pvl[11] = GETV_3(-1, y+1, z-1);  pid[11] = GETI_3(-1, y+1, z-1);
+          pvl[ 6] = GETV_3( 0, y-1, z-1);  pid[ 6] = GETI_3( 0, y-1, z-1);
+          pvl[ 9] = GETV_3( 0,   y, z-1);  pid[ 9] = GETI_3( 0,   y, z-1);
+          pvl[12] = GETV_3( 0, y+1, z-1);  pid[12] = GETI_3( 0, y+1, z-1);
+        } else {
+          pvl[ 1] = vl;                    pid[ 1] = id;
+          pvl[ 2] = pvl[ 3];               pid[ 2] = pid[ 3];
+          pvl[ 3] = pvl[ 4];               pid[ 3] = pid[ 4];
+          pvl[ 5] = pvl[ 6];               pid[ 5] = pid[ 6];
+          pvl[ 8] = pvl[ 9];               pid[ 8] = pid[ 9];
+          pvl[11] = pvl[12];               pid[11] = pid[12];
+          pvl[ 6] = pvl[ 7];               pid[ 6] = pid[ 7];
+          pvl[ 9] = pvl[10];               pid[ 9] = pid[10];
+          pvl[12] = pvl[13];               pid[12] = pid[13];
+        }
+        pvl[ 4] = GETV_3(x+1, y-1,   z);   pid[ 4] = GETI_3(x+1, y-1,   z);
+        pvl[ 7] = GETV_3(x+1, y-1, z-1);   pid[ 7] = GETI_3(x+1, y-1, z-1);
+        pvl[10] = GETV_3(x+1,   y, z-1);   pid[10] = GETI_3(x+1,   y, z-1);
+        pvl[13] = GETV_3(x+1, y+1, z-1);   pid[13] = GETI_3(x+1, y+1, z-1);
+        vl = GETV_3(x, y, z);
+        p = 0;
+        if (vl == pvl[1]) {
+          id = pid[p=1];
+        }
+        TEST(3);
+        TEST(9);
+        if (2 <= conny) {
+          TEST(2); TEST(4);
+          TEST(6); TEST(8); TEST(10); TEST(12);
+          if (3 == conny) {
+            TEST(5); TEST(7); TEST(11); TEST(13);
+          }
+        }
+        if (!p) {
+          /* didn't match anything previous */
+          id = *numid;
+          (*numid)++;
+        }
+        out[x + sx*(y + sy*z)] = id;
       }
     }
   }
@@ -241,7 +241,7 @@ _nrrdCCFind_3(Nrrd *nout, int *numid, airArray *eqvArr,
 
 int
 _nrrdCCFind_N(Nrrd *nfpid, int *maxid, airArray *eqvArr,
-	      const Nrrd *nin, int conny) {
+              const Nrrd *nin, int conny) {
   char me[]="_nrrdCCFind_N", err[AIR_STRLEN_MED];
 
   sprintf(err, "%s: sorry, not implemented yet", me);
@@ -289,8 +289,8 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type, int conny) {
   }
   if (!( nrrdTypeIsIntegral[nin->type] && nrrdTypeSize[nin->type] <= 4 )) {
     sprintf(err, "%s: can only find connected components in 1, 2, or 4 byte "
-	    "integral values (not %s)",
-	    me, airEnumStr(nrrdType, nin->type));
+            "integral values (not %s)",
+            me, airEnumStr(nrrdType, nin->type));
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdTypeDefault != type) {
@@ -300,19 +300,19 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type, int conny) {
     }
     if (!( nrrdTypeIsIntegral[type] && nrrdTypeSize[type] <= 4 )) {
       sprintf(err, "%s: can only save connected components to 1, 2, or 4 byte "
-	      "integral values (not %s)",
-	      me, airEnumStr(nrrdType, type));
+              "integral values (not %s)",
+              me, airEnumStr(nrrdType, type));
       biffAdd(NRRD, err); return 1;
     }
   }
   if (!( AIR_IN_CL(1, conny, nin->dim) )) {
     sprintf(err, "%s: connectivity value must be in [1..%d] for %d-D "
-	    "data (not %d)", me, nin->dim, nin->dim, conny);
+            "data (not %d)", me, nin->dim, nin->dim, conny);
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdConvert(nfpid=nrrdNew(), nin, nrrdTypeInt)) {
     sprintf(err, "%s: couldn't allocate fpid %s array to match input size",
-	    me, airEnumStr(nrrdType, nrrdTypeInt));
+            me, airEnumStr(nrrdType, nrrdTypeInt));
     biffAdd(NRRD, err); return 1;
   }
 
@@ -372,22 +372,22 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type, int conny) {
   if (nrrdTypeDefault != type) {
     if (maxid > nrrdTypeMax[type]) {
       sprintf(err, "%s: max cc id %d is too large to fit in output type %s",
-	      me, numid, airEnumStr(nrrdType, type));
+              me, numid, airEnumStr(nrrdType, type));
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
   } else {
     type = (maxid <= nrrdTypeMax[nrrdTypeUChar]
-	    ? nrrdTypeUChar
-	    : (maxid <= nrrdTypeMax[nrrdTypeUShort]
-	       ? nrrdTypeUShort
-	       : nrrdTypeInt));
+            ? nrrdTypeUChar
+            : (maxid <= nrrdTypeMax[nrrdTypeUShort]
+               ? nrrdTypeUShort
+               : nrrdTypeInt));
   }
   if (nrrdConvert(nout, nfpid, type)) {
     sprintf(err, "%s: trouble converting to final output", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   if (nrrdContentSet(nout, func, nin, "%s,%d",
-		     airEnumStr(nrrdType, type), conny)) {
+                     airEnumStr(nrrdType, type), conny)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -416,13 +416,13 @@ _nrrdCCAdj_2(unsigned char *out, int numid, const Nrrd *nin, int conny) {
   for (y=0; y<sy; y++) {
     for (x=0; x<sx; x++) {
       if (!x) {
-	pid[1] = GETV_2(-1, y);
-	pid[2] = GETV_2(-1, y-1);
-	pid[3] = GETV_2(0, y-1);
+        pid[1] = GETV_2(-1, y);
+        pid[2] = GETV_2(-1, y-1);
+        pid[3] = GETV_2(0, y-1);
       } else {
-	pid[1] = id;
-	pid[2] = pid[3];
-	pid[3] = pid[4];
+        pid[1] = id;
+        pid[2] = pid[3];
+        pid[3] = pid[4];
       }
       pid[4] = GETV_2(x+1, y-1);
       id = GETV_2(x, y);
@@ -434,8 +434,8 @@ _nrrdCCAdj_2(unsigned char *out, int numid, const Nrrd *nin, int conny) {
       TADJ(1);
       TADJ(3);
       if (2 == conny) {
-	TADJ(2);
-	TADJ(4);
+        TADJ(2);
+        TADJ(4);
       }
     }
   }
@@ -455,42 +455,42 @@ _nrrdCCAdj_3(unsigned char *out, int numid, const Nrrd *nin, int conny) {
   for (z=0; z<sz; z++) {
     for (y=0; y<sy; y++) {
       for (x=0; x<sx; x++) {
-	if (!x) {
-	  pid[ 1] = GETV_3(-1,   y,   z);
-	  pid[ 2] = GETV_3(-1, y-1,   z);
-	  pid[ 3] = GETV_3( 0, y-1,   z);
-	  pid[ 5] = GETV_3(-1, y-1, z-1);
-	  pid[ 8] = GETV_3(-1,   y, z-1);
-	  pid[11] = GETV_3(-1, y+1, z-1);
-	  pid[ 6] = GETV_3( 0, y-1, z-1);
-	  pid[ 9] = GETV_3( 0,   y, z-1);
-	  pid[12] = GETV_3( 0, y+1, z-1);
-	} else {
-	  pid[ 1] = id;
-	  pid[ 2] = pid[ 3];
-	  pid[ 3] = pid[ 4];
-	  pid[ 5] = pid[ 6];
-	  pid[ 8] = pid[ 9];
-	  pid[11] = pid[12];
-	  pid[ 6] = pid[ 7];
-	  pid[ 9] = pid[10];
-	  pid[12] = pid[13];
-	}
-	pid[ 4] = GETV_3(x+1, y-1,   z);
-	pid[ 7] = GETV_3(x+1, y-1, z-1);
-	pid[10] = GETV_3(x+1,   y, z-1);
-	pid[13] = GETV_3(x+1, y+1, z-1);
-	id = GETV_3(x, y, z);
-	TADJ(1);
-	TADJ(3);
-	TADJ(9);
-	if (2 <= conny) {
-	  TADJ(2); TADJ(4);
-	  TADJ(6); TADJ(8); TADJ(10); TADJ(12);
-	  if (3 == conny) {
-	    TADJ(5); TADJ(7); TADJ(11); TADJ(13);
-	  }
-	}
+        if (!x) {
+          pid[ 1] = GETV_3(-1,   y,   z);
+          pid[ 2] = GETV_3(-1, y-1,   z);
+          pid[ 3] = GETV_3( 0, y-1,   z);
+          pid[ 5] = GETV_3(-1, y-1, z-1);
+          pid[ 8] = GETV_3(-1,   y, z-1);
+          pid[11] = GETV_3(-1, y+1, z-1);
+          pid[ 6] = GETV_3( 0, y-1, z-1);
+          pid[ 9] = GETV_3( 0,   y, z-1);
+          pid[12] = GETV_3( 0, y+1, z-1);
+        } else {
+          pid[ 1] = id;
+          pid[ 2] = pid[ 3];
+          pid[ 3] = pid[ 4];
+          pid[ 5] = pid[ 6];
+          pid[ 8] = pid[ 9];
+          pid[11] = pid[12];
+          pid[ 6] = pid[ 7];
+          pid[ 9] = pid[10];
+          pid[12] = pid[13];
+        }
+        pid[ 4] = GETV_3(x+1, y-1,   z);
+        pid[ 7] = GETV_3(x+1, y-1, z-1);
+        pid[10] = GETV_3(x+1,   y, z-1);
+        pid[13] = GETV_3(x+1, y+1, z-1);
+        id = GETV_3(x, y, z);
+        TADJ(1);
+        TADJ(3);
+        TADJ(9);
+        if (2 <= conny) {
+          TADJ(2); TADJ(4);
+          TADJ(6); TADJ(8); TADJ(10); TADJ(12);
+          if (3 == conny) {
+            TADJ(5); TADJ(7); TADJ(11); TADJ(13);
+          }
+        }
       }
     }
   }
@@ -526,7 +526,7 @@ nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, int conny) {
   }
   if (!( AIR_IN_CL(1, conny, nin->dim) )) {
     sprintf(err, "%s: connectivity value must be in [1..%d] for %d-D "
-	    "data (not %d)", me, nin->dim, nin->dim, conny);
+            "data (not %d)", me, nin->dim, nin->dim, conny);
     biffAdd(NRRD, err); return 1;
   }
   maxid = nrrdCCMax(nin);
@@ -607,7 +607,7 @@ nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, int conny) {
 */
 int
 nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
-	    int valDir, int maxSize, int maxNeighbor, int conny) {
+            int valDir, int maxSize, int maxNeighbor, int conny) {
   char me[]="nrrdCCMerge", func[]="ccmerge", err[AIR_STRLEN_MED], *valcnt;
   int _i, i, j, bigi=0, numid, *size, *sizeId, *id,
     *nn,  /* number of neighbors */
@@ -702,7 +702,7 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
     for (j=numid-1; j>_i; j--) {
       bigi = id[j];
       if (adj[bigi + numid*i]) 
-	break;
+        break;
     }
     if (j == _i)
       continue;   /* we had no neighbors ?!?! */
@@ -720,14 +720,14 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
   }
 
   valcnt = ((_nval && _nval->content) 
-	    ? _nval->content 
-	    : nrrdStateUnknownContent);
+            ? _nval->content 
+            : nrrdStateUnknownContent);
   if ( (valDir && nrrdContentSet(nout, func, nin, "%c(%s),%d,%d,%d",
-				  (valDir > 0 ? '+' : '-'), valcnt,
-				  maxSize, maxNeighbor, conny))
+                                  (valDir > 0 ? '+' : '-'), valcnt,
+                                  maxSize, maxNeighbor, conny))
        ||
        (!valDir && nrrdContentSet(nout, func, nin, ".,%d,%d,%d",
-				 maxSize, maxNeighbor, conny)) ) {
+                                 maxSize, maxNeighbor, conny)) ) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
@@ -823,7 +823,7 @@ nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin) {
     if (map[jd]) {
       map[jd] = id;
       if (nvalP) {
-	ins(val, id, jd);
+        ins(val, id, jd);
       }
       id++;
     }

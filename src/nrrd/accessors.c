@@ -274,7 +274,7 @@ float _nrrdFClampUS(FL v) { return AIR_CLAMP(0, v, USHRT_MAX);}
 float _nrrdFClampIN(FL v) { return AIR_CLAMP(INT_MIN, v, INT_MAX);}
 float _nrrdFClampUI(FL v) { return AIR_CLAMP(0, v, UINT_MAX);}
 float _nrrdFClampLL(FL v) { return AIR_CLAMP(NRRD_LLONG_MIN, v, 
-					     NRRD_LLONG_MAX);}
+                                             NRRD_LLONG_MAX);}
 float _nrrdFClampUL(FL v) { return AIR_CLAMP(0, v, NRRD_ULLONG_MAX);}
 float _nrrdFClampFL(FL v) { return v; }
 float _nrrdFClampDB(FL v) { return v; }
@@ -306,7 +306,7 @@ double _nrrdDClampUS(DB v) { return AIR_CLAMP(0, v, USHRT_MAX);}
 double _nrrdDClampIN(DB v) { return AIR_CLAMP(INT_MIN, v, INT_MAX);}
 double _nrrdDClampUI(DB v) { return AIR_CLAMP(0, v, UINT_MAX);}
 double _nrrdDClampLL(DB v) { return AIR_CLAMP(NRRD_LLONG_MIN, v, 
-					      NRRD_LLONG_MAX);}
+                                              NRRD_LLONG_MAX);}
 double _nrrdDClampUL(DB v) { return AIR_CLAMP(0, v, NRRD_ULLONG_MAX);}
 double _nrrdDClampFL(DB v) { return AIR_CLAMP(-FLT_MAX, v, FLT_MAX); }
 double _nrrdDClampDB(DB v) { return v; }
@@ -445,7 +445,7 @@ void _nrrdMinMaxExactFindDB (_MMEF_ARGS(DB)) {_MMEF_FLOAT(DB)}
 */
 void (*
 nrrdMinMaxExactFind[NRRD_TYPE_MAX+1])(void *minP, void *maxP,
-				      int *hneP, const Nrrd *) = {
+                                      int *hneP, const Nrrd *) = {
   NULL,
   (void (*)(void *, void *, int *, const Nrrd *))_nrrdMinMaxExactFindCH,
   (void (*)(void *, void *, int *, const Nrrd *))_nrrdMinMaxExactFindUC,

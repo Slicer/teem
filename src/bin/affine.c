@@ -25,11 +25,11 @@ usage(char *me) {
   fprintf(stderr, "usage: %s <minIn> <value> <maxIn> <minOut> <maxOut>\n", me);
   fprintf(stderr, "\n");
   fprintf(stderr,
-	  "This uses air's AIR_AFFINE macro to print out the value which stands in\n");
+          "This uses air's AIR_AFFINE macro to print out the value which stands in\n");
   fprintf(stderr,
-	  "the same relationship with the interval [<minOut>, <maxOut>] as <value>\n");
+          "the same relationship with the interval [<minOut>, <maxOut>] as <value>\n");
   fprintf(stderr,
-	  "has with the interval [minIn, maxOut].\n");
+          "has with the interval [minIn, maxOut].\n");
   exit(1);
 }
 
@@ -44,10 +44,10 @@ main(int argc, char *argv[]) {
   }
 
   if (5 != (sscanf(argv[1], "%lg", &minIn) +
-	    sscanf(argv[2], "%lg", &valIn) +
-	    sscanf(argv[3], "%lg", &maxIn) +
-	    sscanf(argv[4], "%lg", &minOut) +
-	    sscanf(argv[5], "%lg", &maxOut))) {
+            sscanf(argv[2], "%lg", &valIn) +
+            sscanf(argv[3], "%lg", &maxIn) +
+            sscanf(argv[4], "%lg", &minOut) +
+            sscanf(argv[5], "%lg", &maxOut))) {
     fprintf(stderr, "%s: couldn't parse all args as doubles\n", me);
     usage(me);
   }

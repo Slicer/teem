@@ -42,21 +42,21 @@ main(int argc, char **argv) {
   hparm = hestParmNew();
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
+             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "p", "nprobe", airTypeOther, 1, 1, &nprobe, NULL,
-	     "input list of points to probe at, as 3xN float nrrd",
-	     NULL, NULL, nrrdHestNrrd);
+             "input list of points to probe at, as 3xN float nrrd",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "sc", "scaling", airTypeFloat, 3, 3, scale, "1.0 1.0 1.0",
-	     "scaling that took index space positions (in nin) to "
-	     "vertex positions (in nprobe); hopefully just the \"spacings\" "
-	     "on the volume that was isosurfaced.");
+             "scaling that took index space positions (in nin) to "
+             "vertex positions (in nprobe); hopefully just the \"spacings\" "
+             "on the volume that was isosurfaced.");
   hestOptAdd(&hopt, "pow", "power", airTypeFloat, 1, 1, &power, "0.4",
-	     "power to raise cl_2 to to determine saturation of color");
+             "power to raise cl_2 to to determine saturation of color");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
-	     "output image (floating point)");
+             "output image (floating point)");
   
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
-		 me, "secret testing area", AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, "secret testing area", AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -68,8 +68,8 @@ main(int argc, char **argv) {
   }
 
   if (!( nrrdTypeFloat == nprobe->type &&
-	 2 == nprobe->dim &&
-	 3 == nprobe->axis[0].size )) {
+         2 == nprobe->dim &&
+         3 == nprobe->axis[0].size )) {
     fprintf(stderr, "%s: didn't get valid probe point list\n", me);
     airMopError(mop);
     return 1;
@@ -85,8 +85,8 @@ main(int argc, char **argv) {
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   if (!E) E |= gageKernelSet(ctx, gageKernel00, nrrdKernelTent, kparm);
   if (!E) E |= gageQuerySet(pvl, ((1 << tenGageEvec) | 
-				  (1 << tenGageAniso) |
-				  (1 << tenGageTensor)) );
+                                  (1 << tenGageAniso) |
+                                  (1 << tenGageTensor)) );
   if (!E) E |= gageUpdate(ctx);
   if (E) {
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);

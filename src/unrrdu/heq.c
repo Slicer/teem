@@ -46,22 +46,22 @@ unrrdu_heqMain(int argc, char **argv, char *me, hestParm *hparm) {
   */
 
   hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, NULL,
-	     "# bins to use in histogram that is created in order to "
-	     "calculate the mapping that achieves the equalization.");
+             "# bins to use in histogram that is created in order to "
+             "calculate the mapping that achieves the equalization.");
   hestOptAdd(&opt, "s", "bins", airTypeInt, 0, 1, &smart, "0",
-	     "# bins in value histogram to ignore in calculating the mapping. "
-	     "Bins are ignored when they get more hits than other bins, and "
-	     "when the values that fall in them are constant.  This is an "
-	     "effective way to prevent large regions of background value "
-	     "from distorting the equalization mapping.");
+             "# bins in value histogram to ignore in calculating the mapping. "
+             "Bins are ignored when they get more hits than other bins, and "
+             "when the values that fall in them are constant.  This is an "
+             "effective way to prevent large regions of background value "
+             "from distorting the equalization mapping.");
   hestOptAdd(&opt, "a", "amount", airTypeFloat, 1, 1, &amount, "1.0",
-	     "extent to which the histogram equalizing mapping should be "
-	     "applied; 0.0: no change, 1.0: full equalization");
+             "extent to which the histogram equalizing mapping should be "
+             "applied; 0.0: no change, 1.0: full equalization");
   hestOptAdd(&opt, "m", "filename", airTypeString, 1, 1, &mapS, "",
-	     "The value mapping used to achieve histogram equalization is "
-	     "represented by a univariate regular map.  By giving a filename "
-	     "here, that map can be saved out and applied to other nrrds "
-	     "with \"unu rmap\"");
+             "The value mapping used to achieve histogram equalization is "
+             "represented by a univariate regular map.  By giving a filename "
+             "here, that map can be saved out and applied to other nrrds "
+             "with \"unu rmap\"");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -76,7 +76,7 @@ unrrdu_heqMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   
   if (nrrdHistoEq(nout, nin, airStrlen(mapS) ? &nmap : NULL,
-		  bins, smart, amount)) {
+                  bins, smart, amount)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble histogram equalizing:\n%s", me, err);
     airMopError(mop);

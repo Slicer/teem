@@ -39,14 +39,14 @@ tend_anvolMain(int argc, char **argv, char *me, hestParm *hparm) {
   float thresh;
 
   hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &aniso, NULL,
-	     "Which anisotropy metric to plot.  " TEN_ANISO_DESC,
-	     NULL, tenAniso);
+             "Which anisotropy metric to plot.  " TEN_ANISO_DESC,
+             NULL, tenAniso);
   hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "0.5",
-	     "confidence threshold");
+             "confidence threshold");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
+             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output image (floating point)");
+             "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

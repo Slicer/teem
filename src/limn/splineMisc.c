@@ -246,24 +246,24 @@ limnSplineTypeSpecParse(char *_str) {
   
   if (!( (limnSplineTypeBC == type) == !!bcS )) {
     sprintf(err, "%s: spline type %s %s, but %s a parameter string %s%s%s", me,
-	    (limnSplineTypeBC == type) ? "is" : "is not",
-	    airEnumStr(limnSplineType, limnSplineTypeBC),
-	    !!bcS ? "got unexpected" : "did not get",
-	    !!bcS ? "\"" : "",
-	    !!bcS ? bcS : "",
-	    !!bcS ? "\"" : "");
+            (limnSplineTypeBC == type) ? "is" : "is not",
+            airEnumStr(limnSplineType, limnSplineTypeBC),
+            !!bcS ? "got unexpected" : "did not get",
+            !!bcS ? "\"" : "",
+            !!bcS ? bcS : "",
+            !!bcS ? "\"" : "");
     biffAdd(LIMN, err); airMopError(mop); return NULL;
   }
   if (limnSplineTypeBC == type) {
     if (2 != sscanf(bcS, "%lg,%lg", &B, &C)) {
       sprintf(err, "%s: couldn't parse \"B,C\" parameters from \"%s\"", me,
-	      bcS);
+              bcS);
       biffAdd(LIMN, err); airMopError(mop); return NULL;
     }
   }
   spec = (limnSplineTypeBC == type
-	  ? limnSplineTypeSpecNew(type, B, C)
-	  : limnSplineTypeSpecNew(type));
+          ? limnSplineTypeSpecNew(type, B, C)
+          : limnSplineTypeSpecNew(type));
   if (!spec) {
     sprintf(err, "%s: limnSplineTypeSpec allocation failed", me);
     biffAdd(LIMN, err); airMopError(mop); return NULL;
@@ -294,7 +294,7 @@ limnSplineParse(char *_str) {
   col = strchr(str, ':');
   if (!col) {
     sprintf(err, "%s: saw no colon seperator (between nrrd filename and "
-	    "spline info) in \"%s\"", me, _str);
+            "spline info) in \"%s\"", me, _str);
     biffAdd(LIMN, err); airMopError(mop); return NULL;
   }
   fnameS = str;
@@ -310,7 +310,7 @@ limnSplineParse(char *_str) {
   col = strchr(tmpS, ':');
   if (!col) {
     sprintf(err, "%s: saw no colon seperator (between spline info "
-	    "and spline type) in \"%s\"", me, tmpS);
+            "and spline type) in \"%s\"", me, tmpS);
     biffAdd(LIMN, err); airMopError(mop); return NULL;
   }
   infoS = tmpS;
@@ -329,8 +329,8 @@ limnSplineParse(char *_str) {
   if (limnSplineTypeTimeWarp == spec->type 
       && limnSplineInfoScalar != info) {
     sprintf(err, "%s: can only time-warp %s info, not %s", me,
-	    airEnumStr(limnSplineInfo, limnSplineInfoScalar),
-	    airEnumStr(limnSplineInfo, info));
+            airEnumStr(limnSplineInfo, limnSplineInfoScalar),
+            airEnumStr(limnSplineInfo, info));
     biffAdd(LIMN, err); airMopError(mop); return NULL;
   }
 

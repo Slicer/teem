@@ -213,7 +213,7 @@ airThreadStart(airThread *thread, void *(*threadBody)(void *), void *arg) {
   thread->body = threadBody;
   thread->arg = arg;
   thread->handle = CreateThread(0, 0, _airThreadWin32Body, 
-				(void *)thread, 0, 0);
+                                (void *)thread, 0, 0);
   return NULL == thread->handle;
 }
 
@@ -303,7 +303,7 @@ airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex) {
      semaphore until airThreadCondSignal or airThreadCondBroadcast
      are called by another thread */
   if (WAIT_FAILED == SignalObjectAndWait(mutex->handle, cond->sema,
-					 INFINITE, FALSE)) {
+                                         INFINITE, FALSE)) {
     return 1;
   }
   /* reacquire lock to avoid race conditions */
@@ -319,7 +319,7 @@ airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex) {
     /* atomically signal the done event and waits until
        we can acquire the mutex (this is required to ensure fairness) */
     if (WAIT_FAILED == SignalObjectAndWait(cond->done, mutex->handle,
-					   INFINITE, FALSE)) {
+                                           INFINITE, FALSE)) {
       return 1;
     }
   } else {

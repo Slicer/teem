@@ -81,7 +81,7 @@ printans(FILE *file, gage_t *ans, int len) {
 }
 
 char *probeInfo = ("Uses gageProbe() to query scalar or vector volumes "
-		   "at a single probe location.");
+                   "at a single probe location.");
 
 int
 main(int argc, char *argv[]) {
@@ -105,32 +105,32 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hparm->elideSingleOtherType = AIR_TRUE;
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-	     "input volume", NULL, NULL, nrrdHestNrrd);
+             "input volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
-	     "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")",
-	     NULL, NULL, &probeKindHestCB);
+             "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")",
+             NULL, NULL, &probeKindHestCB);
   hestOptAdd(&hopt, "p", "x y z", airTypeFloat, 3, 3, pos, NULL,
-	     "the position in index space at which to probe");
+             "the position in index space at which to probe");
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
-	     "the quantity (scalar, vector, or matrix) to learn by probing");
+             "the quantity (scalar, vector, or matrix) to learn by probing");
   hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00,
-	     "tent", "kernel for gageKernel00",
-	     NULL, NULL, nrrdHestKernelSpec);
+             "tent", "kernel for gageKernel00",
+             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k11", "kern11", airTypeOther, 1, 1, &k11,
-	     "cubicd:1,0", "kernel for gageKernel11",
-	     NULL, NULL, nrrdHestKernelSpec);
+             "cubicd:1,0", "kernel for gageKernel11",
+             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k22", "kern22", airTypeOther, 1, 1, &k22,
-	     "cubicdd:1,0", "kernel for gageKernel22",
-	     NULL, NULL, nrrdHestKernelSpec);
+             "cubicdd:1,0", "kernel for gageKernel22",
+             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "rn", NULL, airTypeInt, 0, 0, &renorm, NULL,
-	     "renormalize kernel weights at each new sample location. "
-	     "\"Accurate\" kernels don't need this; doing it always "
-	     "makes things go slower");
+             "renormalize kernel weights at each new sample location. "
+             "\"Accurate\" kernels don't need this; doing it always "
+             "makes things go slower");
   hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc,
-	     "0.0", "For curvature-based queries, use zero when gradient "
-	     "magnitude is below this");
+             "0.0", "For curvature-based queries, use zero when gradient "
+             "magnitude is below this");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
-		 me, probeInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, probeInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -138,7 +138,7 @@ main(int argc, char *argv[]) {
   if (-1 == what) {
     /* -1 indeed always means "unknown" for any gageKind */
     fprintf(stderr, "%s: couldn't parse \"%s\" as measure of \"%s\" volume\n",
-	    me, whatS, kind->name);
+            me, whatS, kind->name);
     hestUsage(stderr, hopt, me, hparm);
     hestGlossary(stderr, hopt, hparm);
     airMopError(mop);
@@ -180,7 +180,7 @@ main(int argc, char *argv[]) {
     return 1;
   }
   printf("%s: %s(%g,%g,%g) = ", me,
-	 airEnumStr(kind->enm, what), pos[0], pos[1], pos[2]);
+         airEnumStr(kind->enm, what), pos[0], pos[1], pos[2]);
   printans(stdout, answer, ansLen);
   printf("\n");
 
@@ -201,7 +201,7 @@ main(int argc, char *argv[]) {
       return 1;
     }
     printf("====== B %s: %s(%g,%g,%g) = ", me,
-	   airEnumStr(kind->enm, what), pos[0], pos[1], pos[2]);
+           airEnumStr(kind->enm, what), pos[0], pos[1], pos[2]);
     printans(stdout, answer2, ansLen);
     printf("\n");
     
@@ -209,28 +209,28 @@ main(int argc, char *argv[]) {
     ELL_3V_SET(pos, 1.2, 2.3, 3.4);
     gageProbe(ctx2, pos[0], pos[1], pos[2]);
     printf("====== C %s: %s(%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
-	   pos[0], pos[1], pos[2]);
+           pos[0], pos[1], pos[2]);
     printans(stdout, answer2, ansLen);
     printf("\n");
     
     ELL_3V_SET(pos, 4.4, 5.5, 6.6);
     gageProbe(ctx, pos[0], pos[1], pos[2]);
     printf("====== D %s: %s(%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
-	   pos[0], pos[1], pos[2]);
+           pos[0], pos[1], pos[2]);
     printans(stdout, answer, ansLen);
     printf("\n");
     
     ELL_3V_SET(pos, 1.2, 2.3, 3.4);
     gageProbe(ctx, pos[0], pos[1], pos[2]);
     printf("====== E %s: %s(%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
-	   pos[0], pos[1], pos[2]);
+           pos[0], pos[1], pos[2]);
     printans(stdout, answer, ansLen);
     printf("\n");
     
     ELL_3V_SET(pos, 1.2, 2.3, 3.4);
     gageProbe(ctx2, pos[0], pos[1], pos[2]);
     printf("====== F %s: %s(%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
-	   pos[0], pos[1], pos[2]);
+           pos[0], pos[1], pos[2]);
     printans(stdout, answer2, ansLen);
     printf("\n");
     

@@ -40,18 +40,18 @@ tend_normMain(int argc, char **argv, char *me, hestParm *hparm) {
   double weight[3];
 
   hestOptAdd(&hopt, "w", "w0 w1 w2", airTypeDouble, 3, 3, weight, NULL,
-	     "relative weights to put on major, medium, and minor "
-	     "eigenvalue when performing normalization (internally "
-	     "rescaled to have a 1.0 L1 norm). These weightings determine "
-	     "the tensors's \"size\".");
+             "relative weights to put on major, medium, and minor "
+             "eigenvalue when performing normalization (internally "
+             "rescaled to have a 1.0 L1 norm). These weightings determine "
+             "the tensors's \"size\".");
   hestOptAdd(&hopt, "a", "amount", airTypeFloat, 1, 1, &amount, "1.0",
-	     "how much of the normalization to perform");
+             "how much of the normalization to perform");
   hestOptAdd(&hopt, "t", "target", airTypeFloat, 1, 1, &target, "1.0",
-	     "target size, post normalization");
+             "target size, post normalization");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
+             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output image (floating point)");
+             "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

@@ -45,7 +45,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     /* done if doV */
     if (ctx->verbose) {
       fprintf(stderr, "%s: val = % 15.7f\n", me, 
-	      (double)(pvl->directAnswer[gageSclValue][0]));
+              (double)(pvl->directAnswer[gageSclValue][0]));
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclGradVec)) {
@@ -93,8 +93,8 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     pvl->directAnswer[gageSclLaplacian][0] = hess[0] + hess[4] + hess[8];
     if (ctx->verbose) {
       fprintf(stderr, "%s: lapl = %g + %g + %g  = %g\n", me,
-	      hess[0], hess[4], hess[8], 
-	      pvl->directAnswer[gageSclLaplacian][0]);
+              hess[0], hess[4], hess[8], 
+              pvl->directAnswer[gageSclLaplacian][0]);
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessFrob)) {
@@ -118,7 +118,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclGeomTens)) {
     if (gmag > ctx->parm.gradMagCurvMin) {
       /* parm.curvNormalSide applied here to determine the sense of the
-	 normal when doing all curvature calculations */
+         normal when doing all curvature calculations */
       ELL_3M_SCALE(sHess, -(ctx->parm.curvNormalSide)/gmag, hess);
       
       /* gten = nPerp * sHess * nPerp */
@@ -126,20 +126,20 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
       ELL_3M_MUL(gten, nPerp, tmpMat);
 
       if (ctx->verbose) {
-	fprintf(stderr, "%s: gten: \n", me);
-	ell_3m_PRINT(stderr, gten);
-	ELL_3MV_MUL(tmpVec, gten, norm);
-	len = ELL_3V_LEN(tmpVec);
-	fprintf(stderr, "%s: should be small: %30.15f\n", me, (double)len);
-	ell_3v_PERP(gp1, norm);
-	ELL_3MV_MUL(tmpVec, gten, gp1);
-	len = ELL_3V_LEN(tmpVec);
-	fprintf(stderr, "%s: should be bigger: %30.15f\n", me, (double)len);
-	ELL_3V_CROSS(gp2, gp1, norm);
-	ELL_3MV_MUL(tmpVec, gten, gp2);
-	len = ELL_3V_LEN(tmpVec);
-	fprintf(stderr, "%s: should (also) be bigger: %30.15f\n",
-		me, (double)len);
+        fprintf(stderr, "%s: gten: \n", me);
+        ell_3m_PRINT(stderr, gten);
+        ELL_3MV_MUL(tmpVec, gten, norm);
+        len = ELL_3V_LEN(tmpVec);
+        fprintf(stderr, "%s: should be small: %30.15f\n", me, (double)len);
+        ell_3v_PERP(gp1, norm);
+        ELL_3MV_MUL(tmpVec, gten, gp1);
+        len = ELL_3V_LEN(tmpVec);
+        fprintf(stderr, "%s: should be bigger: %30.15f\n", me, (double)len);
+        ELL_3V_CROSS(gp2, gp1, norm);
+        ELL_3MV_MUL(tmpVec, gten, gp2);
+        len = ELL_3V_LEN(tmpVec);
+        fprintf(stderr, "%s: should (also) be bigger: %30.15f\n",
+                me, (double)len);
       }
     } else {
       ELL_3M_ZERO_SET(gten);
@@ -150,8 +150,8 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclShapeTrace)) {
     pvl->directAnswer[gageSclShapeTrace][0] = (curv
-					       ? ELL_3M_TRACE(gten)/curv
-					       : 0);
+                                               ? ELL_3M_TRACE(gten)/curv
+                                               : 0);
   }
   if ( (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclK1)) ||
        (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclK2)) ){
@@ -202,7 +202,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclFlowlineCurv)) {
     if (gmag >= ctx->parm.gradMagCurvMin) {
       /* because of the gageSclGeomTens prerequisite, sHess, nPerp, and
-	 nProj are all already set */
+         nProj are all already set */
       /* ncTen = nPerp * sHess * nProj */
       ELL_3M_MUL(tmpMat, sHess, nProj);
       ELL_3M_MUL(ncTen, nPerp, tmpMat);
@@ -218,7 +218,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     fd = GAGE_FD(ctx);
     if (fd > FD_MEDIAN_MAX) {
       fprintf(stderr, "%s: PANIC: current filter diameter = %d "
-	      "> FD_MEDIAN_MAX = %d\n", me, fd, FD_MEDIAN_MAX);
+              "> FD_MEDIAN_MAX = %d\n", me, fd, FD_MEDIAN_MAX);
       exit(1);
     }
     fw = ctx->fw + fd*3*gageKernel00;
@@ -227,12 +227,12 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     nidx = 0;
     for (xi=0; xi<fd; xi++) {
       for (yi=0; yi<fd; yi++) {
-	for (zi=0; zi<fd; zi++) {
-	  iv3wght[0 + 2*nidx] = pvl->iv3[nidx];
-	  iv3wght[1 + 2*nidx] = fw[xi + 0*fd]*fw[yi + 1*fd]*fw[zi + 2*fd];
-	  wghtSum += iv3wght[1 + 2*nidx];
-	  nidx++;
-	}
+        for (zi=0; zi<fd; zi++) {
+          iv3wght[0 + 2*nidx] = pvl->iv3[nidx];
+          iv3wght[1 + 2*nidx] = fw[xi + 0*fd]*fw[yi + 1*fd]*fw[zi + 2*fd];
+          wghtSum += iv3wght[1 + 2*nidx];
+          nidx++;
+        }
       }
     }
     qsort(iv3wght, fd*fd*fd, 2*sizeof(gage_t), nrrdValCompare[gage_nrrdType]);
@@ -240,7 +240,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     for (nidx=0; nidx<fd*fd*fd; nidx++) {
       wght += iv3wght[1 + 2*nidx];
       if (wght > wghtSum/2) {
-	break;
+        break;
       }
     }
     pvl->directAnswer[gageSclMedian][0] = iv3wght[0 + 2*nidx];

@@ -68,8 +68,8 @@ main(int argc, char *argv[]) {
     do {
       ret = airOneLine(file, line, size);
       if (ret) {
-	printf("%2d   |%s|\n", ret, line);
-	maxed |= (ret == size+1);
+        printf("%2d   |%s|\n", ret, line);
+        maxed |= (ret == size+1);
       }
     } while(ret > 0);
     myclose(file);

@@ -35,31 +35,31 @@ int
 _nrrdFormatPNM_nameLooksLike(const char *filename) {
   
   return (airEndsWith(filename, NRRD_EXT_PGM)
-	  || airEndsWith(filename, NRRD_EXT_PPM));
+          || airEndsWith(filename, NRRD_EXT_PPM));
 }
 
 int
 _nrrdFormatPNM_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
-			int useBiff) {
+                        int useBiff) {
   char me[]="_nrrdFormatPNM_fitsInto", err[AIR_STRLEN_MED];
   int ret;
   
   if (!( nrrd && encoding )) {
     sprintf(err, "%s: got NULL nrrd (%p) or encoding (%p)",
-	    me, nrrd, encoding);
+            me, nrrd, encoding);
     biffMaybeAdd(NRRD, err, useBiff); 
     return AIR_FALSE;
   }
   if (nrrdTypeUChar != nrrd->type) {
     sprintf(err, "%s: type must be %s (not %s)", me,
-	    airEnumStr(nrrdType, nrrdTypeUChar),
-	    airEnumStr(nrrdType, nrrd->type));
+            airEnumStr(nrrdType, nrrdTypeUChar),
+            airEnumStr(nrrdType, nrrd->type));
     biffMaybeAdd(NRRD, err, useBiff); 
     return AIR_FALSE;
   }
   if (!( nrrdEncodingRaw == encoding || nrrdEncodingAscii == encoding)) {
     sprintf(err, "%s: encoding can only be %s or %s", me,
-	    nrrdEncodingRaw->name, nrrdEncodingAscii->name);
+            nrrdEncodingRaw->name, nrrdEncodingAscii->name);
     biffMaybeAdd(NRRD, err, useBiff); 
     return AIR_FALSE;
   }
@@ -76,7 +76,7 @@ _nrrdFormatPNM_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
     } else {
       /* else its no good */
       sprintf(err, "%s: dim is 3, but 1st axis size is %d, not 1 or 3",
-	      me, nrrd->axis[0].size);
+              me, nrrd->axis[0].size);
       biffMaybeAdd(NRRD, err, useBiff); 
       return AIR_FALSE;
     }
@@ -92,9 +92,9 @@ int
 _nrrdFormatPNM_contentStartsLike(NrrdIoState *nio) {
   
   return (!strcmp(MAGIC_P6, nio->line)
-	  || !strcmp(MAGIC_P5, nio->line)
-	  || !strcmp(MAGIC_P3, nio->line)
-	  || !strcmp(MAGIC_P2, nio->line));
+          || !strcmp(MAGIC_P5, nio->line)
+          || !strcmp(MAGIC_P3, nio->line)
+          || !strcmp(MAGIC_P2, nio->line));
 }
 
 int
@@ -105,7 +105,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
   if (!_nrrdFormatPNM_contentStartsLike(nio)) {
     sprintf(err, "%s: this doesn't look like a %s file", me, 
-	    nrrdFormatPNM->name);
+            nrrdFormatPNM->name);
     biffAdd(NRRD, err); return 1;
   }
   nrrd->type = nrrdTypeUChar;
@@ -159,57 +159,57 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     }
     if (!(0 < len)) {
       sprintf(err, "%s: hit EOF in header with %d of %d ints parsed",
-	      me, got, want);
+              me, got, want);
       biffAdd(NRRD, err); return 1;
     }
     if ('#' == nio->line[0]) {
       if (strncmp(nio->line, NRRD_PNM_COMMENT, strlen(NRRD_PNM_COMMENT))) {
-	/* this is a generic comment */
-	ret = 0;
-	goto plain;
+        /* this is a generic comment */
+        ret = 0;
+        goto plain;
       }
       /* else this PNM comment is trying to tell us something */
       nio->pos = strlen(NRRD_PNM_COMMENT);
       nio->pos += strspn(nio->line + nio->pos, _nrrdFieldSep);
       ret = _nrrdReadNrrdParseField(nrrd, nio, AIR_FALSE);
       if (!ret) {
-	if (nrrdStateVerboseIO) {
-	  fprintf(stderr, "(%s: unparsable field \"%s\" --> plain comment)\n",
-		  me, nio->line);
-	}
-	goto plain;
+        if (nrrdStateVerboseIO) {
+          fprintf(stderr, "(%s: unparsable field \"%s\" --> plain comment)\n",
+                  me, nio->line);
+        }
+        goto plain;
       }
       if (nrrdField_comment == ret) {
-	ret = 0;
-	goto plain;
+        ret = 0;
+        goto plain;
       }
       fs = airEnumStr(nrrdField, ret);
       if (!_nrrdFieldValidInImage[ret]) {
-	if (nrrdStateVerboseIO) {
-	  fprintf(stderr, "(%s: field \"%s\" (not allowed in PNM) "
-		  "--> plain comment)\n", me, fs);
-	}
-	ret = 0;
-	goto plain;
+        if (nrrdStateVerboseIO) {
+          fprintf(stderr, "(%s: field \"%s\" (not allowed in PNM) "
+                  "--> plain comment)\n", me, fs);
+        }
+        ret = 0;
+        goto plain;
       }
       if (!nio->seen[ret] 
-	  && _nrrdReadNrrdParseInfo[ret](nrrd, nio, AIR_TRUE)) {
-	perr = biffGetDone(NRRD);
-	if (nrrdStateVerboseIO) {
-	  fprintf(stderr, "(%s: unparsable info for field \"%s\" "
-		  "--> plain comment:\n%s)\n", me, fs, perr);
-	}
-	free(perr);
-	ret = 0;
-	goto plain;
+          && _nrrdReadNrrdParseInfo[ret](nrrd, nio, AIR_TRUE)) {
+        perr = biffGetDone(NRRD);
+        if (nrrdStateVerboseIO) {
+          fprintf(stderr, "(%s: unparsable info for field \"%s\" "
+                  "--> plain comment:\n%s)\n", me, fs, perr);
+        }
+        free(perr);
+        ret = 0;
+        goto plain;
       }
       nio->seen[ret] = AIR_TRUE;
     plain:
       if (!ret) {
-	if (nrrdCommentAdd(nrrd, nio->line+1)) {
-	  sprintf(err, "%s: couldn't add comment", me);
-	  biffAdd(NRRD, err); return 1;
-	}
+        if (nrrdCommentAdd(nrrd, nio->line+1)) {
+          sprintf(err, "%s: couldn't add comment", me);
+          biffAdd(NRRD, err); return 1;
+        }
       }
       continue;
     }
@@ -233,7 +233,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       ;
     if (i != strlen(nio->line)) {
       sprintf(err, "%s: \"%s\" has no integers but isn't just whitespace", 
-	      me, nio->line);
+              me, nio->line);
       biffAdd(NRRD, err); return 1;
     }
   }
@@ -247,7 +247,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   if (255 != max) {
     sprintf(err, "%s: sorry, can only deal with max value 255 (not %d)", 
-	    me, max);
+            me, max);
     biffAdd(NRRD, err); return 1;
   }
 

@@ -45,8 +45,8 @@ test/tspline -loop -t 300 300 -s 10 -i s.txt:2v:bc:1,0 -m 1000 > ! out.ps
 #include "../limn.h"
 
 char *info = ("Test limnSplines by drawing postscript curves. "
-	      "As such, the only limnSpline allowed is 2vector. "
-	      "The output is written to standard out.");
+              "As such, the only limnSpline allowed is 2vector. "
+              "The output is written to standard out.");
 
 int
 main(int argc, char *argv[]) {
@@ -62,27 +62,27 @@ main(int argc, char *argv[]) {
   
   me = argv[0];
   hestOptAdd(&hopt, "i", "spline", airTypeOther, 1, 1, &spline, NULL,
-	     "the spline that we want to sample", NULL, NULL, limnHestSpline);
+             "the spline that we want to sample", NULL, NULL, limnHestSpline);
   hestOptAdd(&hopt, "w", "timewarp", airTypeOther, 1, 1, &warp, "",
-	     "how to (optionally) warp the spline domain",
-	     NULL, NULL, limnHestSpline);
+             "how to (optionally) warp the spline domain",
+             NULL, NULL, limnHestSpline);
   hestOptAdd(&hopt, "loop", NULL, airTypeInt, 0, 0, &loop, NULL,
-	     "the last control point is in fact the first");
+             "the last control point is in fact the first");
   hestOptAdd(&hopt, "m", "M", airTypeInt, 1, 1, &M, "512",
-	     "the number of sample points at which to evalute the spline");
+             "the number of sample points at which to evalute the spline");
   hestOptAdd(&hopt, "t", "tx ty", airTypeDouble, 2, 2, tran, "0.0 0.0",
-	     "translation for drawing");
+             "translation for drawing");
   hestOptAdd(&hopt, "s", "scale", airTypeDouble, 1, 1, &scale, "1.0",
-	     "scaling for drawing");
+             "scaling for drawing");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
-		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   spline->loop = loop;
   if (!( limnSplineInfo2Vector == spline->info )) {
     fprintf(stderr, "%s: sorry, can only have %s info for PostScript\n",
-	    me, airEnumStr(limnSplineInfo, limnSplineInfo2Vector));
+            me, airEnumStr(limnSplineInfo, limnSplineInfo2Vector));
     airMopError(mop);
     return 1;
   }
@@ -90,26 +90,26 @@ main(int argc, char *argv[]) {
     warp->loop = loop;
     if (!( limnSplineTypeTimeWarp == warp->type )) {
       fprintf(stderr, "%s: %s spline isn't; its %s\n", me,
-	      airEnumStr(limnSplineType, limnSplineTypeTimeWarp),
-	      airEnumStr(limnSplineType, warp->type));
+              airEnumStr(limnSplineType, limnSplineTypeTimeWarp),
+              airEnumStr(limnSplineType, warp->type));
       airMopError(mop);
       return 1;
     }
     if (loop) {
       if (!( limnSplineNumPoints(warp) == 1 + limnSplineNumPoints(spline) )) {
-	fprintf(stderr, "%s: # warp points (%d) needs to be 1 more than "
-		"# spline points (%d) for looping\n", me, 
-		limnSplineNumPoints(warp), limnSplineNumPoints(spline));
-	airMopError(mop);
-	return 1;
+        fprintf(stderr, "%s: # warp points (%d) needs to be 1 more than "
+                "# spline points (%d) for looping\n", me, 
+                limnSplineNumPoints(warp), limnSplineNumPoints(spline));
+        airMopError(mop);
+        return 1;
       }
     } else {
       if (!( limnSplineNumPoints(warp) ==  limnSplineNumPoints(spline) )) {
-	fprintf(stderr, "%s: # warp points (%d) != # spline points (%d)\n", me,
-		limnSplineNumPoints(warp), limnSplineNumPoints(spline));
-		
-	airMopError(mop);
-	return 1;
+        fprintf(stderr, "%s: # warp points (%d) != # spline points (%d)\n", me,
+                limnSplineNumPoints(warp), limnSplineNumPoints(spline));
+                
+        airMopError(mop);
+        return 1;
       }
     }
   }
@@ -120,7 +120,7 @@ main(int argc, char *argv[]) {
     minT = limnSplineMinT(warp);
     maxT = limnSplineMaxT(warp);
     ret = (limnSplineSample(ntmp, warp, minT, M, maxT)
-	   || limnSplineNrrdEvaluate(nout, spline, ntmp));
+           || limnSplineNrrdEvaluate(nout, spline, ntmp));
   } else {
     minT = limnSplineMinT(spline);
     maxT = limnSplineMaxT(spline);
@@ -138,14 +138,14 @@ main(int argc, char *argv[]) {
   printf("%%!\n");
   printf("1 setlinewidth\n");
   printf("%g %g moveto\n",
-	 scale*out[0 + 2*0] + tran[0], scale*out[1 + 2*0] + tran[1]);
+         scale*out[0 + 2*0] + tran[0], scale*out[1 + 2*0] + tran[1]);
   printf("gsave\n");
   printf("0.2 setlinewidth\n");
   printf("currentpoint newpath 3 0 360 arc stroke\n");
   printf("grestore\n");
   for (i=1; i<M; i++) {
     printf("%g %g lineto\n",
-	   scale*out[0 + 2*i] + tran[0], scale*out[1 + 2*i] + tran[1]);
+           scale*out[0 + 2*i] + tran[0], scale*out[1 + 2*i] + tran[1]);
     if (0 == AIR_MOD(i, pause)) {
       printf("gsave\n");
       printf("0.2 setlinewidth\n");

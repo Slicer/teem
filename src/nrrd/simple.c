@@ -77,8 +77,8 @@ _nrrdContentGet(const Nrrd *nin) {
   char *ret;
   
   ret = ((nin && nin->content) ? 
-	 airStrdup(nin->content) : 
-	 airStrdup(nrrdStateUnknownContent));
+         airStrdup(nin->content) : 
+         airStrdup(nrrdStateUnknownContent));
   if (!ret) {
     fprintf(stderr, "%s: PANIC: content strdup failed!\n", me);
     exit(1);
@@ -88,7 +88,7 @@ _nrrdContentGet(const Nrrd *nin) {
 
 int
 _nrrdContentSet_nva (Nrrd *nout, const char *func,
-		     char *content, const char *format, va_list arg) {
+                     char *content, const char *format, va_list arg) {
   char me[]="_nrrdContentSet_nva", err[AIR_STRLEN_MED],
     *buff;
 
@@ -104,26 +104,26 @@ _nrrdContentSet_nva (Nrrd *nout, const char *func,
   vsprintf(buff, format, arg);
 
   nout->content = calloc(strlen("(,)")
-			 + airStrlen(func)
-			 + 1                      /* '(' */
-			 + airStrlen(content)
-			 + 1                      /* ',' */
-			 + airStrlen(buff)
-			 + 1                      /* ')' */
-			 + 1, sizeof(char));      /* '\0' */
+                         + airStrlen(func)
+                         + 1                      /* '(' */
+                         + airStrlen(content)
+                         + 1                      /* ',' */
+                         + airStrlen(buff)
+                         + 1                      /* ')' */
+                         + 1, sizeof(char));      /* '\0' */
   if (!nout->content) {
     sprintf(err, "%s: couln't alloc output content!", me);
     biffAdd(NRRD, err); buff = airFree(buff); return 1;
   }
   sprintf(nout->content, "%s(%s%s%s)", func, content,
-	  airStrlen(buff) ? "," : "", buff);
+          airStrlen(buff) ? "," : "", buff);
   airFree(buff);  /* no NULL assignment, else compile warnings */
   return 0;
 }
 
 int
 _nrrdContentSet (Nrrd *nout, const char *func,
-		 char *content, const char *format, ...) {
+                 char *content, const char *format, ...) {
   char me[]="_nrrdContentSet", err[AIR_STRLEN_MED];
   va_list ap;
   
@@ -152,7 +152,7 @@ _nrrdContentSet (Nrrd *nout, const char *func,
 */
 int
 nrrdContentSet (Nrrd *nout, const char *func,
-		const Nrrd *nin, const char *format, ...) {
+                const Nrrd *nin, const char *format, ...) {
   char me[]="nrrdContentSet", err[AIR_STRLEN_MED];
   va_list ap;
   char *content;
@@ -198,9 +198,9 @@ nrrdDescribe (FILE *file, const Nrrd *nrrd) {
   if (file && nrrd) {
     fprintf(file, "Nrrd at 0x%p:\n", (void*)nrrd);
     fprintf(file, "Data at 0x%p is " _AIR_SIZE_T_FMT
-	    " elements of type %s.\n",
-	    nrrd->data, nrrdElementNumber(nrrd), 
-	    airEnumStr(nrrdType, nrrd->type));
+            " elements of type %s.\n",
+            nrrd->data, nrrdElementNumber(nrrd), 
+            airEnumStr(nrrdType, nrrd->type));
     if (nrrdTypeBlock == nrrd->type) 
       fprintf(file, "The blocks have size %d\n", nrrd->blockSize);
     if (airStrlen(nrrd->content))
@@ -208,30 +208,30 @@ nrrdDescribe (FILE *file, const Nrrd *nrrd) {
     fprintf(file, "%d-dimensional array, with axes:\n", nrrd->dim);
     for (i=0; i<nrrd->dim; i++) {
       if (airStrlen(nrrd->axis[i].label))
-	fprintf(file, "%d: (\"%s\") ", i, nrrd->axis[i].label);
+        fprintf(file, "%d: (\"%s\") ", i, nrrd->axis[i].label);
       else
-	fprintf(file, "%d: ", i);
+        fprintf(file, "%d: ", i);
       fprintf(file, "%s-centered, size=%d, ",
-	      airEnumStr(nrrdCenter, nrrd->axis[i].center),
-	      nrrd->axis[i].size);
+              airEnumStr(nrrdCenter, nrrd->axis[i].center),
+              nrrd->axis[i].size);
       airSinglePrintf(file, NULL, "spacing=%lg, \n", nrrd->axis[i].spacing);
       airSinglePrintf(file, NULL, "    axis(Min,Max) = (%lg,",
-		       nrrd->axis[i].min);
+                       nrrd->axis[i].min);
       airSinglePrintf(file, NULL, "%lg)\n", nrrd->axis[i].max);
     }
     /*
     airSinglePrintf(file, NULL, "The min, max values are %lg",
-		     nrrd->min);
+                     nrrd->min);
     airSinglePrintf(file, NULL, ", %lg\n", nrrd->max);
     */
     airSinglePrintf(file, NULL, "The old min, old max values are %lg",
-		     nrrd->oldMin);
+                     nrrd->oldMin);
     airSinglePrintf(file, NULL, ", %lg\n", nrrd->oldMax);
     /* fprintf(file, "hasNonExist = %d\n", nrrd->hasNonExist); */
     if (nrrd->cmtArr->len) {
       fprintf(file, "Comments:\n");
       for (i=0; i<nrrd->cmtArr->len; i++) {
-	fprintf(file, "%s\n", nrrd->cmt[i]);
+        fprintf(file, "%s\n", nrrd->cmt[i]);
       }
     }
     fprintf(file, "\n");
@@ -263,13 +263,13 @@ nrrdCheck (const Nrrd *nrrd) {
   }
   if (nrrdTypeBlock == nrrd->type && (!(0 < nrrd->blockSize)) ) {
     sprintf(err, "%s: nrrd type is %s but nrrd->blockSize (%d) invalid", me,
-	    airEnumStr(nrrdType, nrrdTypeBlock),
-	    nrrd->blockSize);
+            airEnumStr(nrrdType, nrrdTypeBlock),
+            nrrd->blockSize);
     biffAdd(NRRD, err); return 1;
   }
   if (!AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX)) {
     sprintf(err, "%s: dimension %d is outside valid range [1,%d]",
-	    me, nrrd->dim, NRRD_DIM_MAX);
+            me, nrrd->dim, NRRD_DIM_MAX);
     biffAdd(NRRD, err); return 1;
   }
   nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSize, size);
@@ -346,7 +346,7 @@ nrrdSameSize (const Nrrd *n1, const Nrrd *n2, int useBiff) {
   for (i=0; i<n1->dim; i++) {
     if (n1->axis[i].size != n2->axis[i].size) {
       sprintf(err, "%s: n1->axis[%d].size (%d) != n2->axis[%d].size (%d)", 
-	      me, i, n1->axis[i].size, i, n2->axis[i].size);
+              me, i, n1->axis[i].size, i, n2->axis[i].size);
       biffMaybeAdd(NRRD, err, useBiff); 
       return 0;
     }
@@ -458,8 +458,8 @@ nrrdHasNonExistSet (Nrrd *nrrd) {
     for (I=0; I<N; I++) {
       val = nrrdFLookup[nrrd->type](nrrd->data, I);
       if (!AIR_EXISTS(val)) {
-	nrrd->hasNonExist = nrrdNonExistTrue;
-	break;
+        nrrd->hasNonExist = nrrdNonExistTrue;
+        break;
       }
     }
   }
@@ -557,72 +557,72 @@ nrrdSanity (void) {
   }
   if (airEnumValCheck(nrrdCenter, nrrdDefCenter)) {
     sprintf(err, "%s: nrrdDefCenter (%d) not in valid range [%d,%d]",
-	    me, nrrdDefCenter,
-	    nrrdCenterUnknown+1, nrrdCenterLast-1);
+            me, nrrdDefCenter,
+            nrrdCenterUnknown+1, nrrdCenterLast-1);
     biffAdd(NRRD, err); return 0;
   }
   /* ---- BEGIN non-NrrdIO */
   if (!( nrrdTypeDefault == nrrdDefRsmpType
-	 || !airEnumValCheck(nrrdType, nrrdDefRsmpType) )) {
+         || !airEnumValCheck(nrrdType, nrrdDefRsmpType) )) {
     sprintf(err, "%s: nrrdDefRsmpType (%d) not in valid range [%d,%d]",
-	    me, nrrdDefRsmpType,
-	    nrrdTypeUnknown, nrrdTypeLast-1);
+            me, nrrdDefRsmpType,
+            nrrdTypeUnknown, nrrdTypeLast-1);
     biffAdd(NRRD, err); return 0;
   }
   if (airEnumValCheck(nrrdBoundary, nrrdDefRsmpBoundary)) {
     sprintf(err, "%s: nrrdDefRsmpBoundary (%d) not in valid range [%d,%d]",
-	    me, nrrdDefRsmpBoundary,
-	    nrrdBoundaryUnknown+1, nrrdBoundaryLast-1);
+            me, nrrdDefRsmpBoundary,
+            nrrdBoundaryUnknown+1, nrrdBoundaryLast-1);
     biffAdd(NRRD, err); return 0;
   }
   if (airEnumValCheck(nrrdType, nrrdStateMeasureType)) {
     sprintf(err, "%s: nrrdStateMeasureType (%d) not in valid range [%d,%d]",
-	    me, nrrdStateMeasureType,
-	    nrrdTypeUnknown+1, nrrdTypeLast-1);
+            me, nrrdStateMeasureType,
+            nrrdTypeUnknown+1, nrrdTypeLast-1);
     biffAdd(NRRD, err); return 0;
   }
   if (airEnumValCheck(nrrdType, nrrdStateMeasureHistoType)) {
     sprintf(err,
-	    "%s: nrrdStateMeasureHistoType (%d) not in valid range [%d,%d]",
-	    me, nrrdStateMeasureType,
-	    nrrdTypeUnknown+1, nrrdTypeLast-1);
+            "%s: nrrdStateMeasureHistoType (%d) not in valid range [%d,%d]",
+            me, nrrdStateMeasureType,
+            nrrdTypeUnknown+1, nrrdTypeLast-1);
     biffAdd(NRRD, err); return 0;
   }
   /* ---- END non-NrrdIO */
 
   if (!( nrrdTypeSize[nrrdTypeChar] == sizeof(char)
-	 && nrrdTypeSize[nrrdTypeUChar] == sizeof(unsigned char)
-	 && nrrdTypeSize[nrrdTypeShort] == sizeof(short)
-	 && nrrdTypeSize[nrrdTypeUShort] == sizeof(unsigned short)
-	 && nrrdTypeSize[nrrdTypeInt] == sizeof(int)
-	 && nrrdTypeSize[nrrdTypeUInt] == sizeof(unsigned int)
-	 && nrrdTypeSize[nrrdTypeLLong] == sizeof(airLLong)
-	 && nrrdTypeSize[nrrdTypeULLong] == sizeof(airULLong)
-	 && nrrdTypeSize[nrrdTypeFloat] == sizeof(float)
-	 && nrrdTypeSize[nrrdTypeDouble] == sizeof(double) )) {
+         && nrrdTypeSize[nrrdTypeUChar] == sizeof(unsigned char)
+         && nrrdTypeSize[nrrdTypeShort] == sizeof(short)
+         && nrrdTypeSize[nrrdTypeUShort] == sizeof(unsigned short)
+         && nrrdTypeSize[nrrdTypeInt] == sizeof(int)
+         && nrrdTypeSize[nrrdTypeUInt] == sizeof(unsigned int)
+         && nrrdTypeSize[nrrdTypeLLong] == sizeof(airLLong)
+         && nrrdTypeSize[nrrdTypeULLong] == sizeof(airULLong)
+         && nrrdTypeSize[nrrdTypeFloat] == sizeof(float)
+         && nrrdTypeSize[nrrdTypeDouble] == sizeof(double) )) {
     sprintf(err, "%s: sizeof() for nrrd types has problem: "
-	    "expected (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d) "
-	    "but got (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)", me,
-	    nrrdTypeSize[nrrdTypeChar],
-	    nrrdTypeSize[nrrdTypeUChar],
-	    nrrdTypeSize[nrrdTypeShort],
-	    nrrdTypeSize[nrrdTypeUShort],
-	    nrrdTypeSize[nrrdTypeInt],
-	    nrrdTypeSize[nrrdTypeUInt],
-	    nrrdTypeSize[nrrdTypeLLong],
-	    nrrdTypeSize[nrrdTypeULLong],
-	    nrrdTypeSize[nrrdTypeFloat],
-	    nrrdTypeSize[nrrdTypeDouble],
-	    (int)sizeof(char),
-	    (int)sizeof(unsigned char),
-	    (int)sizeof(short),
-	    (int)sizeof(unsigned short),
-	    (int)sizeof(int),
-	    (int)sizeof(unsigned int),
-	    (int)sizeof(airLLong),
-	    (int)sizeof(airULLong),
-	    (int)sizeof(float),
-	    (int)sizeof(double));
+            "expected (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d) "
+            "but got (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)", me,
+            nrrdTypeSize[nrrdTypeChar],
+            nrrdTypeSize[nrrdTypeUChar],
+            nrrdTypeSize[nrrdTypeShort],
+            nrrdTypeSize[nrrdTypeUShort],
+            nrrdTypeSize[nrrdTypeInt],
+            nrrdTypeSize[nrrdTypeUInt],
+            nrrdTypeSize[nrrdTypeLLong],
+            nrrdTypeSize[nrrdTypeULLong],
+            nrrdTypeSize[nrrdTypeFloat],
+            nrrdTypeSize[nrrdTypeDouble],
+            (int)sizeof(char),
+            (int)sizeof(unsigned char),
+            (int)sizeof(short),
+            (int)sizeof(unsigned short),
+            (int)sizeof(int),
+            (int)sizeof(unsigned int),
+            (int)sizeof(airLLong),
+            (int)sizeof(airULLong),
+            (int)sizeof(float),
+            (int)sizeof(double));
     biffAdd(NRRD, err); return 0;
   }
 
@@ -633,15 +633,15 @@ nrrdSanity (void) {
   }
   if (maxsize != NRRD_TYPE_SIZE_MAX) {
     sprintf(err, "%s: actual max type size is %d != %d == NRRD_TYPE_SIZE_MAX",
-	    me, maxsize, NRRD_TYPE_SIZE_MAX);
+            me, maxsize, NRRD_TYPE_SIZE_MAX);
     biffAdd(NRRD, err); return 0;
   }
 
   /* check on NRRD_TYPE_BIGGEST */
   if (maxsize != sizeof(NRRD_TYPE_BIGGEST)) {
     sprintf(err, "%s: actual max type size is %d != "
-	    "%d == sizeof(NRRD_TYPE_BIGGEST)",
-	    me, maxsize, (int)sizeof(NRRD_TYPE_BIGGEST));
+            "%d == sizeof(NRRD_TYPE_BIGGEST)",
+            me, maxsize, (int)sizeof(NRRD_TYPE_BIGGEST));
     biffAdd(NRRD, err); return 0;
   }
   
@@ -649,30 +649,30 @@ nrrdSanity (void) {
   tmpLLI = NRRD_LLONG_MAX;
   if (tmpLLI != NRRD_LLONG_MAX) {
     sprintf(err, "%s: long long int can't hold NRRD_LLONG_MAX ("
-	    AIR_ULLONG_FMT ")", me,
-	    NRRD_LLONG_MAX);
+            AIR_ULLONG_FMT ")", me,
+            NRRD_LLONG_MAX);
     biffAdd(NRRD, err); return 0;
   }
   tmpLLI += 1;
   if (NRRD_LLONG_MIN != tmpLLI) {
     sprintf(err, "%s: long long int min (" AIR_LLONG_FMT ") or max ("
-	    AIR_LLONG_FMT ") incorrect", me,
-	    NRRD_LLONG_MIN, NRRD_LLONG_MAX);
+            AIR_LLONG_FMT ") incorrect", me,
+            NRRD_LLONG_MIN, NRRD_LLONG_MAX);
     biffAdd(NRRD, err); return 0;
   }
   tmpULLI = NRRD_ULLONG_MAX;
   if (tmpULLI != NRRD_ULLONG_MAX) {
     sprintf(err, 
-	    "%s: unsigned long long int can't hold NRRD_ULLONG_MAX ("
-	    AIR_ULLONG_FMT ")",
-	    me, NRRD_ULLONG_MAX);
+            "%s: unsigned long long int can't hold NRRD_ULLONG_MAX ("
+            AIR_ULLONG_FMT ")",
+            me, NRRD_ULLONG_MAX);
     biffAdd(NRRD, err); return 0;
   }
   tmpULLI += 1;
   if (tmpULLI != 0) {
     sprintf(err, "%s: unsigned long long int max (" AIR_ULLONG_FMT 
-	    ") incorrect", me,
-	    NRRD_ULLONG_MAX);
+            ") incorrect", me,
+            NRRD_ULLONG_MAX);
     biffAdd(NRRD, err); return 0;
   }
 
@@ -683,13 +683,13 @@ nrrdSanity (void) {
   
   if (!( NRRD_DIM_MAX >= 3 )) {
     sprintf(err, "%s: NRRD_DIM_MAX == %d seems awfully small, doesn't it?",
-	    me, NRRD_DIM_MAX);
+            me, NRRD_DIM_MAX);
     biffAdd(NRRD, err); return 0;
   }
 
   if (!nrrdTypeIsIntegral[nrrdTypeBlock]) {
     sprintf(err, "%s: nrrdTypeInteger[nrrdTypeBlock] is not true, things "
-	    "could get wacky", me);
+            "could get wacky", me);
     biffAdd(NRRD, err); return 0;
   }
 

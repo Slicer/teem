@@ -22,7 +22,7 @@
 
 #define INFO "Interchange scan-line ordering of two axes"
 char *_unrrdu_swapInfoL = (INFO
-		       ". Special case of \"unu\tpermute\".");
+                       ". Special case of \"unu\tpermute\".");
 
 int
 unrrdu_swapMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -33,7 +33,7 @@ unrrdu_swapMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   hestOptAdd(&opt, "a", "axisA axisB", airTypeInt, 2, 2, ax, NULL,
-	     "the two axes to switch (0-based numbering)");
+             "the two axes to switch (0-based numbering)");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

@@ -37,15 +37,15 @@ tend_sliceMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin, *nout;
 
   hestOptAdd(&hopt, "a", "axis", airTypeInt, 1, 1, &axis, NULL,
-	     "axis along which to slice");
+             "axis along which to slice");
   hestOptAdd(&hopt, "p", "pos", airTypeInt, 1, 1, &pos, NULL,
-	     "position to slice at");
+             "position to slice at");
   hestOptAdd(&hopt, "d", "dim", airTypeInt, 1, 1, &dim, "3",
-	     "dimension of desired tensor output, can be either 2 or 3");
+             "dimension of desired tensor output, can be either 2 or 3");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
+             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output tensor slice");
+             "output tensor slice");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

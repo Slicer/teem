@@ -62,15 +62,15 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   if (3 != (sscanf(minS, "%lf", &min) +
-	    sscanf(stepS, "%lf", &step) +
-	    sscanf(maxS, "%lf", &max))) {
+            sscanf(stepS, "%lf", &step) +
+            sscanf(maxS, "%lf", &max))) {
     fprintf(stderr, "%s: couldn't parse \"%s\", \"%s\", \"%s\" as 3 doubles\n",
-	    me, minS, stepS, maxS);
+            me, minS, stepS, maxS);
     exit(1);
   }
   if (!( min <= -k->support(parm) && max >= k->support(parm) )) {
     fprintf(stderr, "%s: WARNING: support=%g => lower min (%g) or raise max (%g)\n",
-	    me, k->support(parm), min, max);
+            me, k->support(parm), min, max);
   }
 
   /* see how many values are in the interval */
@@ -80,9 +80,9 @@ main(int argc, char *argv[]) {
   }
   /* allocate domain and range for both float and double */
   if (!( (dom_d = calloc(len, sizeof(double))) &&
-	 (ran_d = calloc(len, sizeof(double))) &&
-	 (dom_f = calloc(len, sizeof(float))) &&
-	 (ran_f = calloc(len, sizeof(float))) )) {
+         (ran_d = calloc(len, sizeof(double))) &&
+         (dom_f = calloc(len, sizeof(float))) &&
+         (ran_f = calloc(len, sizeof(float))) )) {
     fprintf(stderr, "%s: PANIC: couldn't allocate buffers\n", me);
     exit(1);
   }
@@ -107,25 +107,25 @@ main(int argc, char *argv[]) {
     r_d = k->eval1_d(v, parm);
     if (!CLOSE(r_f,r_d)) {
       fprintf(stderr, "%s: (eval1_f(%g)== %f) != (eval1_d(%g)== %f)\n",
-	      me, v, r_f, v, r_d);
+              me, v, r_f, v, r_d);
     }
     /* compare single float with vector float */
     if (!CLOSE(r_f,ran_f[i])) {
       fprintf(stderr, "%s: (eval1_f(%g)== %f) != (evalN_f[%d]== %f)\n",
-	      me, v, r_f, i, ran_f[i]);
+              me, v, r_f, i, ran_f[i]);
     }
     /* compare single float with vector double */
     r_d = ran_d[i];
     if (!CLOSE(r_f,r_d)) {
       fprintf(stderr, "%s: (eval1_f(%g)== %f) != (evalN_d[%d]== %f)\n",
-	      me, v, r_f, i, r_d);
+              me, v, r_f, i, r_d);
     }
     integral += step*ran_d[i];
     i++;
   }
   if (!KINDACLOSE(integral, k->integral(parm))) {
     fprintf(stderr, 
-	    "discrete integral %f != %f\n", integral, k->integral(parm));
+            "discrete integral %f != %f\n", integral, k->integral(parm));
     /* not a fatal error */
   }
   

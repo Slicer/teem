@@ -52,7 +52,7 @@ main(int argc, char *argv[]) {
   }
   if (dyeConvert(col, spc)) {
     fprintf(stderr, "%s: trouble converting to %s:\n%s", 
-	    me, spcS, biffGet(DYE));
+            me, spcS, biffGet(DYE));
     exit(1);
   }
   printf("%s\n", dyeColorSprintf(buff, col));

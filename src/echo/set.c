@@ -22,7 +22,7 @@
 
 void
 echoSphereSet(echoObject *sphere,
-	      echoPos_t x, echoPos_t y, echoPos_t z, echoPos_t rad) {
+              echoPos_t x, echoPos_t y, echoPos_t z, echoPos_t rad) {
 
   if (sphere && echoTypeSphere == sphere->type) {
     ELL_3V_SET(SPHERE(sphere)->pos, x, y, z);
@@ -33,7 +33,7 @@ echoSphereSet(echoObject *sphere,
 
 void
 echoCylinderSet(echoObject *cylind,
-		int axis) {
+                int axis) {
   
   if (cylind && echoTypeCylinder == cylind->type) {
     CYLINDER(cylind)->axis = axis;
@@ -43,7 +43,7 @@ echoCylinderSet(echoObject *cylind,
 
 void
 echoSuperquadSet(echoObject *squad,
-		 int axis, echoPos_t A, echoPos_t B) {
+                 int axis, echoPos_t A, echoPos_t B) {
 
   if (squad && echoTypeSuperquad == squad->type) {
     SUPERQUAD(squad)->axis = axis;
@@ -55,9 +55,9 @@ echoSuperquadSet(echoObject *squad,
 
 void
 echoRectangleSet(echoObject *rect,
-		 echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
-		 echoPos_t e0x, echoPos_t e0y, echoPos_t e0z,
-		 echoPos_t e1x, echoPos_t e1y, echoPos_t e1z) {
+                 echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
+                 echoPos_t e0x, echoPos_t e0y, echoPos_t e0z,
+                 echoPos_t e1x, echoPos_t e1y, echoPos_t e1z) {
 
   if (rect && echoTypeRectangle == rect->type) {
     ELL_3V_SET(RECTANGLE(rect)->origin, ogx, ogy, ogz);
@@ -66,12 +66,12 @@ echoRectangleSet(echoObject *rect,
   }
   return;
 }
-		       
+                       
 void
 echoTriangleSet(echoObject *tri,
-		echoPos_t x0, echoPos_t y0, echoPos_t z0, 
-		echoPos_t x1, echoPos_t y1, echoPos_t z1, 
-		echoPos_t x2, echoPos_t y2, echoPos_t z2) {
+                echoPos_t x0, echoPos_t y0, echoPos_t z0, 
+                echoPos_t x1, echoPos_t y1, echoPos_t z1, 
+                echoPos_t x2, echoPos_t y2, echoPos_t z2) {
 
   if (tri && echoTypeTriangle == tri->type) {
     ELL_3V_SET(TRIANGLE(tri)->vert[0], x0, y0, z0);
@@ -93,8 +93,8 @@ echoTriangleSet(echoObject *tri,
 */
 void
 echoTriMeshSet(echoObject *trim,
-	       int numV, echoPos_t *pos,
-	       int numF, int *vert) {
+               int numV, echoPos_t *pos,
+               int numF, int *vert) {
   int i;
 
   if (trim && echoTypeTriMesh == trim->type) {
@@ -117,7 +117,7 @@ echoTriMeshSet(echoObject *trim,
 
 void
 echoInstanceSet(echoObject *inst,
-		echoPos_t *M, echoObject *obj) {
+                echoPos_t *M, echoObject *obj) {
   
   if (inst && echoTypeInstance == inst->type) {
     ell_4m_INV(INSTANCE(inst)->Mi, M);

@@ -231,16 +231,16 @@ nrrdKernelBlackmanD = &_nrrdKernelDBlack;
    ? (-(3.289868133696453 + 8.093075608893272/(R*R))                            \
       + x*x*(9.7409091034 + 86.694091020262/(R*R*R*R) + 79.8754546479/(R*R)))   \
    : ((R*x*cos(AIR_PI*x)*(-2.638937829015426*R - AIR_PI*R*cos((AIR_PI*x)/R)           \
-	    - 0.5026548245743669*R*cos((2*AIR_PI*x)/R)                            \
-	    - AIR_PI*AIR_PI*x*sin((AIR_PI*x)/R)                                       \
-	    - 3.158273408348595*x*sin((2*AIR_PI*x)/R))                            \
+            - 0.5026548245743669*R*cos((2*AIR_PI*x)/R)                            \
+            - AIR_PI*AIR_PI*x*sin((AIR_PI*x)/R)                                       \
+            - 3.158273408348595*x*sin((2*AIR_PI*x)/R))                            \
   + sin(AIR_PI*x)*((-4.934802200544679*x*x                                        \
-	   + R*R*(1 - 4.934802200544679*x*x))*cos((AIR_PI*x)/R)                   \
-	  + (-3.158273408348595*x*x                                             \
-	     + R*R*(0.16 - 0.7895683520871487*x*x))*cos((2*AIR_PI*x)/R)           \
-	  + R*(0.84*R - 4.14523384845753*R*x*x                                  \
-	       + AIR_PI*x*sin((AIR_PI*x)/R)                                         \
-	       + 1.0053096491487339*x*sin((2*AIR_PI*x)/R))))/(AIR_PI*R*R*x*x*x))    \
+           + R*R*(1 - 4.934802200544679*x*x))*cos((AIR_PI*x)/R)                   \
+          + (-3.158273408348595*x*x                                             \
+             + R*R*(0.16 - 0.7895683520871487*x*x))*cos((2*AIR_PI*x)/R)           \
+          + R*(0.84*R - 4.14523384845753*R*x*x                                  \
+               + AIR_PI*x*sin((AIR_PI*x)/R)                                         \
+               + 1.0053096491487339*x*sin((2*AIR_PI*x)/R))))/(AIR_PI*R*R*x*x*x))    \
    )))
 
 WS_1_D(DDBlack, _DDBLACK, POW3)

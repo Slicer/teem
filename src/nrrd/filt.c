@@ -96,8 +96,8 @@ _nrrdCM_wtAlloc(int radius, float wght) {
 
 void
 _nrrdCheapMedian1D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
-		   int radius, float wght,
-		   int bins, int mode, float *hist) {
+                   int radius, float wght,
+                   int bins, int mode, float *hist) {
   /* char me[]="_nrrdCheapMedian1D"; */
   size_t num;
   int X, I, idx, diam;
@@ -125,8 +125,8 @@ _nrrdCheapMedian1D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
       nrrdDInsert[nout->type](nout->data, X, val);
       /* probably update histogram for next iteration */
       if (X < num-radius-1) {
-	hist[INDEX(nin, range, lup, X+radius+1, bins, val, idx)]++;
-	hist[INDEX(nin, range, lup, X-radius, bins, val, idx)]--;
+        hist[INDEX(nin, range, lup, X+radius+1, bins, val, idx)]++;
+        hist[INDEX(nin, range, lup, X-radius, bins, val, idx)]--;
       }
     }
   } else {
@@ -136,7 +136,7 @@ _nrrdCheapMedian1D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     for (X=radius; X<num-radius; X++) {
       memset(hist, 0, bins*sizeof(float));
       for (I=-radius; I<=radius; I++) {
-	hist[INDEX(nin, range, lup, I+X, bins, val, idx)] += wt[I+radius];
+        hist[INDEX(nin, range, lup, I+X, bins, val, idx)] += wt[I+radius];
       }
       idx = mode ? _nrrdCM_mode(hist, bins) : _nrrdCM_median(hist, half);
       val = NRRD_NODE_POS(range->min, range->max, bins, idx);
@@ -148,8 +148,8 @@ _nrrdCheapMedian1D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
 
 void
 _nrrdCheapMedian2D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
-		   int radius, float wght,
-		   int bins, int mode, float *hist) {
+                   int radius, float wght,
+                   int bins, int mode, float *hist) {
   /* char me[]="_nrrdCheapMedian2D"; */
   int X, Y, I, J;
   int sx, sy, idx, diam;
@@ -168,25 +168,25 @@ _nrrdCheapMedian2D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
       memset(hist, 0, bins*sizeof(float));
       X = radius;
       for (J=-radius; J<=radius; J++) {
-	for (I=-radius; I<=radius; I++) {
-	  hist[INDEX(nin, range, lup, X+I + sx*(J+Y), bins, val, idx)]++;
-	}
+        for (I=-radius; I<=radius; I++) {
+          hist[INDEX(nin, range, lup, X+I + sx*(J+Y), bins, val, idx)]++;
+        }
       }
       /* _nrrdCM_printhist(hist, bins, "after init"); */
       /* find median at each point using existing histogram */
       for (X=radius; X<sx-radius; X++) {
-	idx = mode ? _nrrdCM_mode(hist, bins) : _nrrdCM_median(hist, half);
-	val = NRRD_NODE_POS(range->min, range->max, bins, idx);
-	nrrdDInsert[nout->type](nout->data, X + sx*Y, val);
-	/* probably update histogram for next iteration */
-	if (X < sx-radius-1) {
-	  for (J=-radius; J<=radius; J++) {
-	    hist[INDEX(nin, range, lup, X+radius+1 + sx*(J+Y), bins,
-		       val, idx)]++;
-	    hist[INDEX(nin, range, lup, X-radius + sx*(J+Y), bins,
-		       val, idx)]--;
-	  }
-	}
+        idx = mode ? _nrrdCM_mode(hist, bins) : _nrrdCM_median(hist, half);
+        val = NRRD_NODE_POS(range->min, range->max, bins, idx);
+        nrrdDInsert[nout->type](nout->data, X + sx*Y, val);
+        /* probably update histogram for next iteration */
+        if (X < sx-radius-1) {
+          for (J=-radius; J<=radius; J++) {
+            hist[INDEX(nin, range, lup, X+radius+1 + sx*(J+Y), bins,
+                       val, idx)]++;
+            hist[INDEX(nin, range, lup, X-radius + sx*(J+Y), bins,
+                       val, idx)]--;
+          }
+        }
       }
     }
   } else {
@@ -195,16 +195,16 @@ _nrrdCheapMedian2D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     half = 0.5;
     for (Y=radius; Y<sy-radius; Y++) {
       for (X=radius; X<sx-radius; X++) {
-	memset(hist, 0, bins*sizeof(float));
-	for (J=-radius; J<=radius; J++) {
-	  for (I=-radius; I<=radius; I++) {
-	    hist[INDEX(nin, range, lup, I+X + sx*(J+Y),
-		       bins, val, idx)] += wt[I+radius]*wt[J+radius];
-	  }
-	}
-	idx = mode ? _nrrdCM_mode(hist, bins) : _nrrdCM_median(hist, half);
-	val = NRRD_NODE_POS(range->min, range->max, bins, idx);
-	nrrdDInsert[nout->type](nout->data, X + sx*Y, val);
+        memset(hist, 0, bins*sizeof(float));
+        for (J=-radius; J<=radius; J++) {
+          for (I=-radius; I<=radius; I++) {
+            hist[INDEX(nin, range, lup, I+X + sx*(J+Y),
+                       bins, val, idx)] += wt[I+radius]*wt[J+radius];
+          }
+        }
+        idx = mode ? _nrrdCM_mode(hist, bins) : _nrrdCM_median(hist, half);
+        val = NRRD_NODE_POS(range->min, range->max, bins, idx);
+        nrrdDInsert[nout->type](nout->data, X + sx*Y, val);
       }
     }
     free(wt);
@@ -213,8 +213,8 @@ _nrrdCheapMedian2D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
 
 void
 _nrrdCheapMedian3D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
-		   int radius, float wght,
-		   int bins, int mode, float *hist) {
+                   int radius, float wght,
+                   int bins, int mode, float *hist) {
   char me[]="_nrrdCheapMedian3D", done[13];
   int X, Y, Z, I, J, K;
   int sx, sy, sz, idx, diam;
@@ -235,34 +235,34 @@ _nrrdCheapMedian3D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
       fprintf(stderr, "%s", airDoneStr(radius, Z, sz-radius-1, done)); 
       fflush(stderr);
       for (Y=radius; Y<sy-radius; Y++) {
-	/* initialize histogram */
-	memset(hist, 0, bins*sizeof(float));
-	X = radius;
-	for (K=-radius; K<=radius; K++) {
-	  for (J=-radius; J<=radius; J++) {
-	    for (I=-radius; I<=radius; I++) {
-	      hist[INDEX(nin, range, lup, I+X + sx*(J+Y + sy*(K+Z)),
-			 bins, val, idx)]++;
-	    }
-	  }
-	}
-	/* find median at each point using existing histogram */
-	for (X=radius; X<sx-radius; X++) {
-	  idx = mode ? _nrrdCM_mode(hist, bins) : _nrrdCM_median(hist, half);
-	  val = NRRD_NODE_POS(range->min, range->max, bins, idx);
-	  nrrdDInsert[nout->type](nout->data, X + sx*(Y + sy*Z), val);
-	  /* probably update histogram for next iteration */
-	  if (X < sx-radius-1) {
-	    for (K=-radius; K<=radius; K++) {
-	      for (J=-radius; J<=radius; J++) {
-		hist[INDEX(nin, range, lup, X+radius+1 + sx*(J+Y + sy*(K+Z)),
-			   bins, val, idx)]++;
-		hist[INDEX(nin, range, lup, X-radius + sx*(J+Y + sy*(K+Z)),
-			   bins, val, idx)]--;
-	      }
-	    }
-	  }
-	}
+        /* initialize histogram */
+        memset(hist, 0, bins*sizeof(float));
+        X = radius;
+        for (K=-radius; K<=radius; K++) {
+          for (J=-radius; J<=radius; J++) {
+            for (I=-radius; I<=radius; I++) {
+              hist[INDEX(nin, range, lup, I+X + sx*(J+Y + sy*(K+Z)),
+                         bins, val, idx)]++;
+            }
+          }
+        }
+        /* find median at each point using existing histogram */
+        for (X=radius; X<sx-radius; X++) {
+          idx = mode ? _nrrdCM_mode(hist, bins) : _nrrdCM_median(hist, half);
+          val = NRRD_NODE_POS(range->min, range->max, bins, idx);
+          nrrdDInsert[nout->type](nout->data, X + sx*(Y + sy*Z), val);
+          /* probably update histogram for next iteration */
+          if (X < sx-radius-1) {
+            for (K=-radius; K<=radius; K++) {
+              for (J=-radius; J<=radius; J++) {
+                hist[INDEX(nin, range, lup, X+radius+1 + sx*(J+Y + sy*(K+Z)),
+                           bins, val, idx)]++;
+                hist[INDEX(nin, range, lup, X-radius + sx*(J+Y + sy*(K+Z)),
+                           bins, val, idx)]--;
+              }
+            }
+          }
+        }
       }
     }
   } else {
@@ -273,21 +273,21 @@ _nrrdCheapMedian3D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
       fprintf(stderr, "%s", airDoneStr(radius, Z, sz-radius-1, done)); 
       fflush(stderr);
       for (Y=radius; Y<sy-radius; Y++) {
-	for (X=radius; X<sx-radius; X++) {
-	  memset(hist, 0, bins*sizeof(float));
-	  for (K=-radius; K<=radius; K++) {
-	    for (J=-radius; J<=radius; J++) {
-	      for (I=-radius; I<=radius; I++) {
-		hist[INDEX(nin, range, lup, I+X + sx*(J+Y + sy*(K+Z)),
-			   bins, val, idx)]
-		  += wt[I+radius]*wt[J+radius]*wt[K+radius];
-	      }
-	    }
-	  }
-	  idx = mode ? _nrrdCM_mode(hist, bins) : _nrrdCM_median(hist, half);
-	  val = NRRD_NODE_POS(range->min, range->max, bins, idx);
-	  nrrdDInsert[nout->type](nout->data, X + sx*(Y + sy*Z), val);
-	}
+        for (X=radius; X<sx-radius; X++) {
+          memset(hist, 0, bins*sizeof(float));
+          for (K=-radius; K<=radius; K++) {
+            for (J=-radius; J<=radius; J++) {
+              for (I=-radius; I<=radius; I++) {
+                hist[INDEX(nin, range, lup, I+X + sx*(J+Y + sy*(K+Z)),
+                           bins, val, idx)]
+                  += wt[I+radius]*wt[J+radius]*wt[K+radius];
+              }
+            }
+          }
+          idx = mode ? _nrrdCM_mode(hist, bins) : _nrrdCM_median(hist, half);
+          val = NRRD_NODE_POS(range->min, range->max, bins, idx);
+          nrrdDInsert[nout->type](nout->data, X + sx*(Y + sy*Z), val);
+        }
       }
     }
     free(wt);
@@ -304,8 +304,8 @@ _nrrdCheapMedian3D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
 */
 int
 nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
-		int pad, int mode,
-		int radius, float wght, int bins) {
+                int pad, int mode,
+                int radius, float wght, int bins) {
   char me[]="nrrdCheapMedian", func[]="cmedian", err[AIR_STRLEN_MED];
   NrrdRange *range;
   float *hist;
@@ -326,7 +326,7 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
   }
   if (!(AIR_IN_CL(1, _nin->dim, 3))) {
     sprintf(err, "%s: sorry, can only handle dim 1, 2, 3 (not %d)", 
-	    me, _nin->dim);
+            me, _nin->dim);
     biffAdd(NRRD, err); return 1;    
   }
   if (_nout == _nin) {
@@ -335,7 +335,7 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
   }
   if (nrrdTypeBlock == _nin->type) {
     sprintf(err, "%s: can't filter nrrd type %s", me,
-	    airEnumStr(nrrdType, nrrdTypeBlock));
+            airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
 
@@ -380,13 +380,13 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
     break;
   default:
     sprintf(err, "%s: sorry, %d-dimensional median unimplemented",
-	    me, nin->dim);
+            me, nin->dim);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 
   nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   if (nrrdContentSet(nout, func, nin, "%d,%d,%g,%d",
-		     mode, radius, wght, bins)) {
+                     mode, radius, wght, bins)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }

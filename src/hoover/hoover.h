@@ -42,36 +42,36 @@ extern "C" {
 ******** the mess of typedefs for callbacks used below
 */
 typedef int (hooverRenderBegin_t)(void **renderP,
-				  void *user);
+                                  void *user);
 typedef int (hooverThreadBegin_t)(void **threadP,
-				  void *render,
-				  void *user,
-				  int whichThread);
+                                  void *render,
+                                  void *user,
+                                  int whichThread);
 typedef int (hooverRayBegin_t)(void *thread,
-			       void *render,
-			       void *user,
-			       int uIndex,    /* img coords of current ray */
-			       int vIndex, 
-			       double rayLen, /* length of ray segment between
-						 near and far planes,  */
-			       double rayStartWorld[3],
-			       double rayStartIndex[3],
-			       double rayDirWorld[3],
-			       double rayDirIndex[3]);
+                               void *render,
+                               void *user,
+                               int uIndex,    /* img coords of current ray */
+                               int vIndex, 
+                               double rayLen, /* length of ray segment between
+                                                 near and far planes,  */
+                               double rayStartWorld[3],
+                               double rayStartIndex[3],
+                               double rayDirWorld[3],
+                               double rayDirIndex[3]);
 typedef double (hooverSample_t)(void *thread,
-				void *render,
-				void *user,
-				int num,    /* which sample this is, 0-based */
-				double rayT,/* position along ray */
-				int inside, /* sample is inside the volume */
-				double samplePosWorld[3],
-				double samplePosIndex[3]);
+                                void *render,
+                                void *user,
+                                int num,    /* which sample this is, 0-based */
+                                double rayT,/* position along ray */
+                                int inside, /* sample is inside the volume */
+                                double samplePosWorld[3],
+                                double samplePosIndex[3]);
 typedef int (hooverRayEnd_t)(void *thread,
-			     void *render,
-			     void *user);
+                             void *render,
+                             void *user);
 typedef int (hooverThreadEnd_t)(void *thread,
-				void *render,
-				void *user);
+                                void *render,
+                                void *user);
 typedef int (hooverRenderEnd_t)(void *rend, void *user);
 
 /*

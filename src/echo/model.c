@@ -67,15 +67,15 @@ echoRoughSphereNew(echoScene *scene, int theRes, int phiRes, echoPos_t *matx) {
     for (thidx=0; thidx<theRes; thidx++) {
       n = AIR_MOD(thidx+1, theRes);
       ELL_3V_SET(vert, 1+phidx*theRes+thidx, 1+(1+phidx)*theRes+thidx,
-		 1+phidx*theRes+n); vert += 3;
+                 1+phidx*theRes+n); vert += 3;
       ELL_3V_SET(vert, 1+(1+phidx)*theRes+thidx, 1+(1+phidx)*theRes+n, 
-		 1+phidx*theRes+n); vert += 3;
+                 1+phidx*theRes+n); vert += 3;
     }
   }
   for (thidx=0; thidx<theRes; thidx++) {
     n = AIR_MOD(thidx+1, theRes);
     ELL_3V_SET(vert, 1+(phiRes-2)*theRes+thidx, TRIMESH(trim)->numV-1,
-	       1+(phiRes-2)*theRes+n); 
+               1+(phiRes-2)*theRes+n); 
     vert += 3;
   }
 

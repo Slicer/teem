@@ -60,17 +60,17 @@ tenGradientCheck(Nrrd *ngrad, int type, int minnum) {
   }
   if (!( 3 == ngrad->axis[0].size && 2 == ngrad->dim )) {
     sprintf(err, "%s: need a 3xN 2-D array (not a %dx? %d-D array)",
-	    me, ngrad->axis[0].size, ngrad->dim);
+            me, ngrad->axis[0].size, ngrad->dim);
     biffAdd(TEN, err); return 1;
   }
   if (nrrdTypeUnknown != type && type != ngrad->type) {
     sprintf(err, "%s: requested type %s but got type %s", me,
-	    airEnumStr(nrrdType, type), airEnumStr(nrrdType, ngrad->type));
+            airEnumStr(nrrdType, type), airEnumStr(nrrdType, ngrad->type));
     biffAdd(TEN, err); return 1;
   }
   if (!( minnum <= ngrad->axis[1].size )) {
     sprintf(err, "%s: have only %d gradients, need at least %d",
-	    me, ngrad->axis[1].size, minnum);
+            me, ngrad->axis[1].size, minnum);
     biffAdd(TEN, err); return 1;
   }
 
@@ -147,8 +147,8 @@ tenGradientJitter(Nrrd *nout, Nrrd *nin, double dist) {
 
 void
 _tenGradientChangeFind(Nrrd *ndvdt, Nrrd *ndpdt,
-		       Nrrd *nvel, Nrrd *npos,
-		       tenGradientParm *tgparm) {
+                       Nrrd *nvel, Nrrd *npos,
+                       tenGradientParm *tgparm) {
   double *dvdt, *dpdt, *vel, *pos, qq, force[3], ff[3],
     pdir[3], mdir[3], plen, mlen, prep, mrep;
   int num, ii, jj;
@@ -165,23 +165,23 @@ _tenGradientChangeFind(Nrrd *ndvdt, Nrrd *ndpdt,
     ELL_3V_SET(force, 0, 0, 0);
     for (jj=0; jj<num; jj++) {
       if (ii == jj) {
-	continue;
+        continue;
       }
       ELL_3V_SUB(pdir, pos + 3*ii, pos + 3*jj);
       ELL_3V_NORM(pdir, pdir, plen);
       prep = qq/(plen*plen);
       if (tgparm->single) {
-	mrep = 0;
-	ELL_3V_SET(mdir, 0, 0, 0);
+        mrep = 0;
+        ELL_3V_SET(mdir, 0, 0, 0);
       } else {
-	ELL_3V_ADD2(mdir, pos + 3*ii, pos + 3*jj);
-	ELL_3V_NORM(mdir, mdir, mlen);
-	mrep = qq/(mlen*mlen);
+        ELL_3V_ADD2(mdir, pos + 3*ii, pos + 3*jj);
+        ELL_3V_NORM(mdir, mdir, mlen);
+        mrep = qq/(mlen*mlen);
       }
       ELL_3V_SCALE_ADD3(ff,
-			prep, pdir,
-			mrep, mdir,
-			-tgparm->drag, vel + 3*ii);
+                        prep, pdir,
+                        mrep, mdir,
+                        -tgparm->drag, vel + 3*ii);
       ELL_3V_ADD2(force, force, ff);
     }
     ELL_3V_SCALE(dvdt + 3*ii, 1.0/tgparm->mass, force);
@@ -192,9 +192,9 @@ _tenGradientChangeFind(Nrrd *ndvdt, Nrrd *ndpdt,
 
 void
 _tenGradientChangeApply(Nrrd *nvel1, Nrrd *npos1,
-			Nrrd *ndvdt, Nrrd *ndpdt, 
-			Nrrd *nvel0, Nrrd *npos0,
-			tenGradientParm *tgparm, double amount) {
+                        Nrrd *ndvdt, Nrrd *ndpdt, 
+                        Nrrd *nvel0, Nrrd *npos0,
+                        tenGradientParm *tgparm, double amount) {
   double *dvdt, *dpdt, *vel0, *pos0, *vel1, *pos1, len, dot;
   int ii, num;
 
@@ -208,11 +208,11 @@ _tenGradientChangeApply(Nrrd *nvel1, Nrrd *npos1,
 
   for (ii=0; ii<num; ii++) {
     ELL_3V_SCALE_ADD2(vel1,
-		      1.0, vel0,
-		      amount*tgparm->dt, dvdt);
+                      1.0, vel0,
+                      amount*tgparm->dt, dvdt);
     ELL_3V_SCALE_ADD2(pos1,
-		      1.0, pos0,
-		      amount*tgparm->dt, dpdt);
+                      1.0, pos0,
+                      amount*tgparm->dt, dpdt);
     ELL_3V_NORM(pos1, pos1, len);
     dot = ELL_3V_DOT(vel1, pos1);
     ELL_3V_SCALE_ADD2(vel1, 1.0, vel1, -dot, pos1);
@@ -283,9 +283,9 @@ tenGradientMeanMinimize(Nrrd *nout, Nrrd *nin, tenGradientParm *tgparm) {
     improv = lastLen - len;
     lastLen = len;
     fprintf(stderr, "%s: improvement: %g  (mean length = %g)\n",
-	    me, improv, len);
+            me, improv, len);
   } while (improv > tgparm->minMeanImprovement
-	   && len > tgparm->minMean);
+           && len > tgparm->minMean);
   
   return 0;
 }
@@ -366,36 +366,36 @@ tenGradientDistribute(Nrrd *nout, Nrrd *nin, tenGradientParm *tgparm) {
   meanVelocity = _tenGradientMeanVelocity(nvel);
   for (iter=0;
        (iter < tgparm->minIteration 
-	|| (iter < tgparm->maxIteration
-	    && meanVelocity > tgparm->minVelocity)); 
+        || (iter < tgparm->maxIteration
+            && meanVelocity > tgparm->minVelocity)); 
        iter++) {
     _tenGradientChangeFind(ndvdt, ndpdt,
-			   nvel, npos, tgparm);
+                           nvel, npos, tgparm);
     _tenGradientChangeApply(nveltmp, npostmp,
-			    ndvdt, ndpdt, 
-			    nvel, npos, tgparm, 0.5);
+                            ndvdt, ndpdt, 
+                            nvel, npos, tgparm, 0.5);
     _tenGradientChangeFind(ndvdt, ndpdt,
-			   nveltmp, npostmp, tgparm);
+                           nveltmp, npostmp, tgparm);
     _tenGradientChangeApply(nvel, npos,
-			    ndvdt, ndpdt, 
-			    nvel, npos, tgparm, 1.0);
+                            ndvdt, ndpdt, 
+                            nvel, npos, tgparm, 1.0);
     meanVelocity = _tenGradientMeanVelocity(nvel);
     if (tgparm->snap) {
       if (!(iter % tgparm->snap)) {
-	sprintf(filename, "%05d.nrrd", iter/tgparm->snap);
-	fprintf(stderr, "%s: %d: meanVelocity = %g; saving %s\n",
-		me, iter, meanVelocity, filename);
-	if (nrrdSave(filename, npos, NULL)) {
-	  serr = biffGetDone(NRRD);
-	  fprintf(stderr, "%s: iter=%d, couldn't save snapshot:\n%s"
-		  "continuing ...\n", me, iter, serr);
-	  free(serr);
-	}
+        sprintf(filename, "%05d.nrrd", iter/tgparm->snap);
+        fprintf(stderr, "%s: %d: meanVelocity = %g; saving %s\n",
+                me, iter, meanVelocity, filename);
+        if (nrrdSave(filename, npos, NULL)) {
+          serr = biffGetDone(NRRD);
+          fprintf(stderr, "%s: iter=%d, couldn't save snapshot:\n%s"
+                  "continuing ...\n", me, iter, serr);
+          free(serr);
+        }
       }
     } else {
       if (!(iter % 1000)) {
-	fprintf(stderr, "%s: iteration = %d: meanVelocity = %g\n",
-		me, iter, meanVelocity);
+        fprintf(stderr, "%s: iteration = %d: meanVelocity = %g\n",
+                me, iter, meanVelocity);
       }
     }
   }
@@ -422,7 +422,7 @@ tenGradientGenerate(Nrrd *nout, int num, tenGradientParm *tgparm) {
   }
   if (!( num >= 3 )) {
     sprintf(err, "%s: can generate minimum of 3 gradient directions "
-	    "(not %d)", me, num);
+            "(not %d)", me, num);
     biffAdd(TEN, err); return 1;
   }
   mop = airMopNew();

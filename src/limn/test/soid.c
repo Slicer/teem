@@ -38,28 +38,28 @@ main(int argc, char *argv[]) {
   
   me = argv[0];
   hestOptAdd(&hopt, "sc", "scalings", airTypeFloat, 3, 3, scale, "1 1 1",
-	     "axis-aligned scaling to do on ellipsoid");
+             "axis-aligned scaling to do on ellipsoid");
   hestOptAdd(&hopt, "AB", "A, B exponents", airTypeFloat, 2, 2, AB, "nan nan",
-	     "Directly set the A, B parameters to the superquadric surface, "
-	     "over-riding the default behavior of determining them from the "
-	     "scalings \"-sc\" as superquadric tensor glyphs");
+             "Directly set the A, B parameters to the superquadric surface, "
+             "over-riding the default behavior of determining them from the "
+             "scalings \"-sc\" as superquadric tensor glyphs");
   hestOptAdd(&hopt, "os", "over-all scaling", airTypeFloat, 1, 1, &os, "1",
-	     "over-all scaling (multiplied by scalings)");
+             "over-all scaling (multiplied by scalings)");
   hestOptAdd(&hopt, "sh", "superquad sharpness", airTypeFloat, 1, 1, &sh, "0",
-	     "how much to sharpen edges as a "
-	     "function of differences between eigenvalues");
+             "how much to sharpen edges as a "
+             "function of differences between eigenvalues");
   hestOptAdd(&hopt, "sphere", NULL, airTypeInt, 0, 0, &sphere, NULL,
-	     "use a sphere instead of a superquadric");
+             "use a sphere instead of a superquadric");
   hestOptAdd(&hopt, "p", "x y z", airTypeFloat, 3, 3, p, "0 0 0",
-	     "location in quaternion quotient space");
+             "location in quaternion quotient space");
   hestOptAdd(&hopt, "r", "radius", airTypeFloat, 1, 1, &rad, "0.015",
-	     "black axis cylinder radius (or 0.0 to not drawn these)");
+             "black axis cylinder radius (or 0.0 to not drawn these)");
   hestOptAdd(&hopt, "res", "resolution", airTypeInt, 1, 1, &res, "25",
-	     "tesselation resolution for both glyph and axis cylinders");
+             "tesselation resolution for both glyph and axis cylinders");
   hestOptAdd(&hopt, "o", "output OFF", airTypeString, 1, 1, &outS, "out.off",
-	     "output file to save OFF into");
+             "output file to save OFF into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
-		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
@@ -104,15 +104,15 @@ main(int argc, char *argv[]) {
     }
     /*
     fprintf(stderr, "eval = %g %g %g -> cl=%g %s cp=%g -> axis = %d\n",
-	    eval[0], eval[1], eval[2], cl, cl > cp ? ">" : "<", cp, axis);
+            eval[0], eval[1], eval[2], cl, cl > cp ? ">" : "<", cp, axis);
     */
   }
   if (sphere) {
     partIdx = limnObjectPolarSphereAdd(obj, lookSoid, 
-				       0, 2*res, res);
+                                       0, 2*res, res);
   } else {
     partIdx = limnObjectPolarSuperquadAdd(obj, lookSoid, 
-					  axis, qA, qB, 2*res, res);
+                                          axis, qA, qB, 2*res, res);
   }
   ELL_4M_IDENTITY_SET(matA);
   ELL_4M_SCALE_SET(matB, scale[0], scale[1], scale[2]);

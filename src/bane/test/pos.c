@@ -47,18 +47,18 @@ main(int argc, char *argv[]) {
   if (1 != sscanf(sigStr, "%g", &sigma) ||
       1 != sscanf(gthStr, "%g", &gthresh)) {
     fprintf(stderr, "%s: couldn't parse %s and %s as floats\n", me, 
-	    sigStr, gthStr);
+            sigStr, gthStr);
     usage();
   }
 
   if (nrrdLoad(info=nrrdNew(), iStr, NULL)) {
     fprintf(stderr, "%s: trouble reading \"%s\" :\n%s\n", me, 
-	    iStr, biffGet(NRRD));
+            iStr, biffGet(NRRD));
     exit(1);
   }
   if (banePosCalc(pos = nrrdNew(), sigma, gthresh, info)) {
     fprintf(stderr, "%s: trouble calculating %s:\n%s\n", me,
-	    2 == info->dim ? "p(v,g)" : "p(v)", biffGet(BANE));
+            2 == info->dim ? "p(v,g)" : "p(v)", biffGet(BANE));
     exit(1);
   }
   if (nrrdSave(oStr, pos, NULL)) {

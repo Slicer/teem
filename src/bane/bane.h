@@ -69,8 +69,8 @@ enum {
   baneRangePositive,     /* 1: always positive: enforce that min == 0 */
   baneRangeNegative,     /* 2: always negative: enforce that max == 0 */
   baneRangeZeroCentered, /* 3: positive and negative, centered around
-			    zero: enforce (conservative) centering of
-			    interval around 0 */
+                            zero: enforce (conservative) centering of
+                            interval around 0 */
   baneRangeAnywhere,     /* 4: anywhere: essentially a no-op */
   baneRangeLast
 };
@@ -84,10 +84,10 @@ typedef struct {
   char name[AIR_STRLEN_SMALL];
   int type;
   double center;  /* for baneRangeAnywhere: nominal center of value range
-		     NOTE: there is currently no API for setting this,
-		     it has to be set manually */
+                     NOTE: there is currently no API for setting this,
+                     it has to be set manually */
   int (*answer)(double *ominP, double *omaxP,
-		double imin, double imax);
+                double imin, double imax);
 } baneRange;
 
 /* -------------------------- inc -------------------------- */
@@ -112,20 +112,20 @@ typedef struct {
 enum {
   baneIncUnknown,     /* 0: nobody knows */
   baneIncAbsolute,    /* 1: within explicitly specified bounds 
-			 -- incParm[0]: new min
-			 -- incParm[1]: new max */
+                         -- incParm[0]: new min
+                         -- incParm[1]: new max */
   baneIncRangeRatio,  /* 2: some fraction of the total range
-			 -- incParm[0]: scales the size of the range, after
-			    it has been sent through the associated range
-			    function. */
+                         -- incParm[0]: scales the size of the range, after
+                            it has been sent through the associated range
+                            function. */
   baneIncPercentile,  /* 3: exclude some percentile
-			 -- incParm[0]: resolution of histogram generated
-			 -- incParm[1]: PERCENT of hits to throw away,
-			    by nibbling away at lower and upper ends of
-			    range, in a manner dependant on the range type */
+                         -- incParm[0]: resolution of histogram generated
+                         -- incParm[1]: PERCENT of hits to throw away,
+                            by nibbling away at lower and upper ends of
+                            range, in a manner dependant on the range type */
   baneIncStdv,        /* 4: some multiple of the standard deviation
-			 -- incParm[0]: range is standard deviation 
-			    times this */
+                         -- incParm[0]: range is standard deviation 
+                            times this */
   baneIncLast
 };
 
@@ -144,7 +144,7 @@ typedef struct baneInc_t {
   double parm[BANE_PARM_NUM];
   void (*process[2])(struct baneInc_t *inc, double val);
   int (*answer)(double *minP, double *maxP,
-		Nrrd *hist, double *parm, baneRange *range);
+                Nrrd *hist, double *parm, baneRange *range);
 } baneInc;
 
 /* -------------------------- clip -------------------------- */
@@ -205,19 +205,19 @@ typedef struct {
 enum {
   baneMeasrUnknown,           /* 0: nobody knows */
   baneMeasrValuePositive,     /* 1: the data value, with positive range
-				 (gageSclValue) */
+                                 (gageSclValue) */
   baneMeasrValueZeroCentered, /* 2: the data value, with zero-centered range
-				 (gageSclValue) */
+                                 (gageSclValue) */
   baneMeasrValueAnywhere,     /* 3: the data value, with anywhere range
-				 (gageSclValue) */
+                                 (gageSclValue) */
   baneMeasrGradMag,           /* 4: gradient magnitude (gageSclGradMag) */
   baneMeasrLaplacian,         /* 5: Laplacian (gageSclLaplacian) */
   baneMeasr2ndDD,             /* 6: Hessian-based measure of 2nd DD along
-				 gradient (gageScl2ndDD) */
+                                 gradient (gageScl2ndDD) */
   baneMeasrTotalCurv,         /* 7: L2 norm of K1, K2 principal curvatures
-				 (gageSclTotalCurv) */
+                                 (gageSclTotalCurv) */
   baneMeasrFlowlineCurv,      /* 8: curvature of normal streamline
-				 (gageSclFlowlineCurv) */
+                                 (gageSclFlowlineCurv) */
   baneMeasrLast
 };
 
@@ -231,7 +231,7 @@ typedef struct baneMeasr_t {
   int type;
   double parm[BANE_PARM_NUM];
   gageQuery query;       /* the gageScl query needed for this measure,
-			    but NOT its recursive prerequisite expansion). */
+                            but NOT its recursive prerequisite expansion). */
   baneRange *range;
   int offset0;
   double (*answer)(struct baneMeasr_t *, gage_t *, double *parm);
@@ -261,16 +261,16 @@ typedef struct {
   /* -------------- input */
   int verbose,                         /* status messages to stderr */
     makeMeasrVol,                      /* create a 3 x X x Y x Z volume of
-					  measurements, so that they aren't
-					  measured (as many as) three times */
+                                          measurements, so that they aren't
+                                          measured (as many as) three times */
     renormalize,                       /* use gage's mask renormalization */
     k3pack;        
   const NrrdKernel *k[GAGE_KERNEL_NUM];
   double kparm[GAGE_KERNEL_NUM][NRRD_KERNEL_PARMS_NUM];
   baneClip *clip;
   double incLimit;                     /* lowest permissible fraction of the
-					  data remaining after new inclusion
-					  has been determined */
+                                          data remaining after new inclusion
+                                          has been determined */
   baneAxis axis[3];
   /* -------------- internal */
   Nrrd *measrVol;
@@ -292,8 +292,8 @@ TEEM_API int baneHack;
 TEEM_API baneRange *baneRangeNew(int type);
 TEEM_API baneRange *baneRangeCopy(baneRange *range);
 TEEM_API int baneRangeAnswer(baneRange *range,
-			     double *ominP, double *omaxP,
-			     double imin, double imax);
+                             double *ominP, double *omaxP,
+                             double imin, double imax);
 TEEM_API baneRange *baneRangeNix(baneRange *range);
 
 /* inc.c */
@@ -321,7 +321,7 @@ TEEM_API baneMeasr *baneMeasrNix(baneMeasr *measr);
 TEEM_API baneHVolParm *baneHVolParmNew();
 TEEM_API void baneHVolParmGKMSInit(baneHVolParm *hvp);
 TEEM_API void baneHVolParmAxisSet(baneHVolParm *hvp, int axisIdx,
-				  int res, baneMeasr *measr, baneInc *inc);
+                                  int res, baneMeasr *measr, baneInc *inc);
 TEEM_API void baneHVolParmClipSet(baneHVolParm *hvp, baneClip *clip);
 TEEM_API baneHVolParm *baneHVolParmNix(baneHVolParm *hvp);
 
@@ -334,10 +334,10 @@ TEEM_API int baneBcptsCheck(Nrrd *Bcpts);
 
 /* hvol.c */
 TEEM_API void baneProbe(double val[3],
-			Nrrd *nin, baneHVolParm *hvp, gageContext *ctx,
-			int x, int y, int z);
+                        Nrrd *nin, baneHVolParm *hvp, gageContext *ctx,
+                        int x, int y, int z);
 TEEM_API int baneFindInclusion(double min[3], double max[3], 
-			       Nrrd *nin, baneHVolParm *hvp, gageContext *ctx);
+                               Nrrd *nin, baneHVolParm *hvp, gageContext *ctx);
 TEEM_API int baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp);
 TEEM_API Nrrd *baneGKMSHVol(Nrrd *nin, float gradPerc, float hessPerc);
 
@@ -347,11 +347,11 @@ TEEM_API int bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D);
 TEEM_API int baneSigmaCalc(float *sP, Nrrd *info);
 TEEM_API int banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info);
 TEEM_API void _baneOpacCalcA(int lutLen, float *opacLut, 
-			     int numCpts, float *xo,
-			     float *pos);
+                             int numCpts, float *xo,
+                             float *pos);
 TEEM_API void _baneOpacCalcB(int lutLen, float *opacLut, 
-			     int numCpts, float *x, float *o,
-			     float *pos);
+                             int numCpts, float *x, float *o,
+                             float *pos);
 TEEM_API int baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos);
 
 /* trex.c */

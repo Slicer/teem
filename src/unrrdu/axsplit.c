@@ -37,8 +37,8 @@ unrrdu_axsplitMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   OPT_ADD_AXIS(axis, "dimension (axis index) to split at");
   hestOptAdd(&opt, "s", "fast, slow sizes", airTypeInt, 2, 2, size, NULL,
-	     "fast and slow axis sizes to produce as result of splitting "
-	     "given axis.");
+             "fast and slow axis sizes to produce as result of splitting "
+             "given axis.");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

@@ -110,10 +110,10 @@ typedef struct alanContext_t {
   alan_t K, F,        /* simulation variables */
     deltaX,           /* size of spatial grid discretization */
     minAverageChange, /* min worthwhile "avergageChange" value (see below),
-			 assume convergence if it falls below this */
+                         assume convergence if it falls below this */
     maxPixelChange,   /* maximum allowed change in the first morphogen (on
-			 any single pixels), assume unstable divergence if 
-			 this is exceeded */
+                         any single pixels), assume unstable divergence if 
+                         this is exceeded */
     alpha, beta,      /* variables for turing */
     react,            /* additional scaling of reaction term */
     deltaT,           /* euler integration step size */
@@ -121,7 +121,7 @@ typedef struct alanContext_t {
     diffA, diffB,     /* base diffusion rates for each morphogen */
     randRange;        /* amplitude of noise to destabalize Turing */
   Nrrd *nten;         /* tensors guiding texture.  May have 1+3 or 1+6 values
-			 per sample, depending on dim */
+                         per sample, depending on dim */
   /* if non-NULL, this is called once per iteration, at its completion */
   int (*perIteration)(struct alanContext_t *, int iter);
 
@@ -158,7 +158,7 @@ TEEM_API airEnum *alanStop;
 /* coreAlan.c */
 TEEM_API int alanUpdate(alanContext *actx);
 TEEM_API int alanInit(alanContext *actx,
-		      const Nrrd *nlevInit, const Nrrd *nparmInit);
+                      const Nrrd *nlevInit, const Nrrd *nparmInit);
 TEEM_API int alanPriorityParm(alanContext *actx, const Nrrd *npri);
 TEEM_API int alanRun(alanContext *actx);
 

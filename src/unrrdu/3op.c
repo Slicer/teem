@@ -38,37 +38,37 @@ unrrdu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   hestOptAdd(&opt, NULL, "operator", airTypeEnum, 1, 1, &op, NULL,
-	     "Ternary operator. Possibilities include:\n "
-	     "\b\bo \"+\", \"x\": sum or product of three values\n "
-	     "\b\bo \"min\", \"max\": minimum, maximum\n "
-	     "\b\bo \"clamp\": second value is clamped to range between "
-	     "the first and the third\n "
-	     "\b\bo \"ifelse\": if 1st value non-zero, then 2nd value, else "
-	     "3rd value\n "
-	     "\b\bo \"lerp\": linear interpolation between the 2nd and "
-	     "3rd values, as the 1st value varies between 0.0 and 1.0, "
-	     "respectively\n "
-	     "\b\bo \"exists\": if the first value exists, use the second "
-	     "value, otherwise use the third\n "
-	     "\b\bo \"in_op\": 1 iff second value is > first and < "
-	     "second, 0 otherwise\n "
-	     "\b\bo \"in_cl\": 1 iff second value is >= first and <= "
-	     "second, 0 otherwise",
-	     NULL, nrrdTernaryOp);
+             "Ternary operator. Possibilities include:\n "
+             "\b\bo \"+\", \"x\": sum or product of three values\n "
+             "\b\bo \"min\", \"max\": minimum, maximum\n "
+             "\b\bo \"clamp\": second value is clamped to range between "
+             "the first and the third\n "
+             "\b\bo \"ifelse\": if 1st value non-zero, then 2nd value, else "
+             "3rd value\n "
+             "\b\bo \"lerp\": linear interpolation between the 2nd and "
+             "3rd values, as the 1st value varies between 0.0 and 1.0, "
+             "respectively\n "
+             "\b\bo \"exists\": if the first value exists, use the second "
+             "value, otherwise use the third\n "
+             "\b\bo \"in_op\": 1 iff second value is > first and < "
+             "second, 0 otherwise\n "
+             "\b\bo \"in_cl\": 1 iff second value is >= first and <= "
+             "second, 0 otherwise",
+             NULL, nrrdTernaryOp);
   hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
-	     "First input.  Can be float or nrrd.",
-	     NULL, NULL, nrrdHestIter);
+             "First input.  Can be float or nrrd.",
+             NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, NULL, "in2", airTypeOther, 1, 1, &in2, NULL,
-	     "Second input.  Can be float or nrrd.",
-	     NULL, NULL, nrrdHestIter);
+             "Second input.  Can be float or nrrd.",
+             NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, NULL, "in3", airTypeOther, 1, 1, &in3, NULL,
-	     "Third input.  Can be float or nrrd.",
-	     NULL, NULL, nrrdHestIter);
+             "Third input.  Can be float or nrrd.",
+             NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "default",
-	     "type to convert all nrrd inputs to, prior to "
-	     "doing operation.  This also determines output type. "
-	     "By default (not using this option), the types of the input "
-	     "nrrds are left unchanged.",
+             "type to convert all nrrd inputs to, prior to "
+             "doing operation.  This also determines output type. "
+             "By default (not using this option), the types of the input "
+             "nrrds are left unchanged.",
              NULL, NULL, &unrrduHestMaybeTypeCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -85,7 +85,7 @@ unrrdu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
   /*
   fprintf(stderr, "%s: op = %d\n", me, op);
   fprintf(stderr, "%s: in1->left = %d, in2->left = %d\n", me, 
-	  (int)(in1->left), (int)(in2->left));
+          (int)(in1->left), (int)(in2->left));
   */
   if (nrrdTypeDefault != type) {
     /* they wanted to convert nrrds to some other type first */

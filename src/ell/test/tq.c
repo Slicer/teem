@@ -57,7 +57,7 @@ main(int argc, char *argv[]) {
     }
     ELL_3V_SUB(axisA_f, axisA_f, axisB_f);
     printf(" aa -> q -> aa error: %g, %g\n",
-	   CA + AIR_ABS(angleA_f - angleB_f), CA + ELL_3V_LEN(axisA_f));
+           CA + AIR_ABS(angleA_f - angleB_f), CA + ELL_3V_LEN(axisA_f));
 
     /* convert to 3m and back, and back */
     ell_q_to_3m_f(mat3A_f, qA_f);
@@ -69,7 +69,7 @@ main(int argc, char *argv[]) {
     ELL_Q_TO_3M(mat3B_f, qA_f);
     ELL_3M_SUB(mat3C_f, mat3B_f, mat3A_f);
     printf(" q -> 3m -> q error: %g, %g\n",
-	   CA + ELL_4V_LEN(qC_f), CA + ELL_3M_FROB(mat3C_f));
+           CA + ELL_4V_LEN(qC_f), CA + ELL_3M_FROB(mat3C_f));
 
     /* convert to 4m and back, and back */
     ell_q_to_4m_f(mat4A_f, qA_f);
@@ -81,7 +81,7 @@ main(int argc, char *argv[]) {
     ELL_Q_TO_4M(mat4B_f, qA_f);
     ELL_4M_SUB(mat4C_f, mat4B_f, mat4A_f);
     printf(" q -> 4m -> q error: %g, %g\n",
-	   CA + ELL_4V_LEN(qC_f), CA + ELL_4M_FROB(mat4C_f));
+           CA + ELL_4V_LEN(qC_f), CA + ELL_4M_FROB(mat4C_f));
 
     /* make a point that we'll rotate */
     ELL_3V_SET(pntA_f, 2*airDrand48()-1, 2*airDrand48()-1, 2*airDrand48()-1);
@@ -100,11 +100,11 @@ main(int argc, char *argv[]) {
       ELL_4V_SCALE(qC_f, -1, qC_f);
     }
     printf("    inv mul = %g %g %g %g\n", qC_f[0], 
-	   CA + qC_f[1], CA + qC_f[2], CA + qC_f[3]);
+           CA + qC_f[1], CA + qC_f[2], CA + qC_f[3]);
     ell_q_inv_f(qC_f, qB_f);
     ELL_4V_SUB(qC_f, qB_f, qB_f);
     printf("    inv diff = %g %g %g %g\n", CA + qC_f[0], 
-	   CA + qC_f[1], CA + qC_f[2], CA + qC_f[3]);
+           CA + qC_f[1], CA + qC_f[2], CA + qC_f[3]);
 
     /* exp and log */
     ell_q_log_f(qC_f, qA_f);
@@ -113,7 +113,7 @@ main(int argc, char *argv[]) {
     ell_q_exp_f(qB_f, qC_f);
     ELL_4V_SUB(qC_f, qB_f, qA_f);
     printf("    exp/log diff = %g %g %g %g\n", CA + qC_f[0], 
-	   CA + qC_f[1], CA + qC_f[2], CA + qC_f[3]);
+           CA + qC_f[1], CA + qC_f[2], CA + qC_f[3]);
 
     /* pow, not very exhaustive */
     ell_q_to_3m_f(mat3A_f, qA_f);
@@ -127,11 +127,11 @@ main(int argc, char *argv[]) {
       printf("  start q = %g %g %g %g\n", qA_f[0], qA_f[1], qA_f[2], qA_f[3]);
       angleA_f = ell_q_to_aa_f(axisA_f, qA_f);
       printf("  --> aa = %g  (%g %g %g)\n", angleA_f, 
-	     axisA_f[0], axisA_f[1], axisA_f[2]);
+             axisA_f[0], axisA_f[1], axisA_f[2]);
       printf("   q^3 = %g %g %g %g\n", qB_f[0], qB_f[1], qB_f[2], qB_f[3]);
       angleA_f = ell_q_to_aa_f(axisA_f, qB_f);
       printf("  --> aa = %g  (%g %g %g)\n", angleA_f, 
-	     axisA_f[0], axisA_f[1], axisA_f[2]);
+             axisA_f[0], axisA_f[1], axisA_f[2]);
       exit(1);
     }
 
@@ -143,7 +143,7 @@ main(int argc, char *argv[]) {
     ell_3m_inv_f(mat3C_f, mat3A_f);
     ELL_3M_SUB(mat3C_f, mat3B_f, mat3C_f);
     printf("      det = %g; size = %g; err = %g\n", det, frob*frob/3,
-	   CA + ELL_3M_FROB(mat3C_f));
+           CA + ELL_3M_FROB(mat3C_f));
     
   }
 

@@ -42,14 +42,14 @@ main(int argc, char **argv) {
   
   if (nrrdLoad(nrrd=nrrdNew(), argv[1], NULL)) {
     fprintf(stderr, "%s: trouble loading \"%s\":\n%s", 
-	    me, argv[1], err = biffGetDone(NRRD));
+            me, argv[1], err = biffGetDone(NRRD));
     free(err);
     exit(1);
   }
 
   if ((value = nrrdKeyValueGet(nrrd, key))) {
     fprintf(stderr, "%s: '%s':='%s' (%d)\n", me, key, value, 
-	    (int)strlen(value));
+            (int)strlen(value));
   } else {
     fprintf(stderr, "%s: value not found for key: %s\n", me, key);
   }

@@ -49,31 +49,31 @@ main(int argc, char *argv[]) {
   hparm->elideSingleOtherType = AIR_TRUE;
 
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-	     "input volume, in nrrd format",
-	     NULL, NULL, nrrdHestNrrd);
+             "input volume, in nrrd format",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "a", "angle", airTypeFloat, 1, 1, &angle, NULL,
-	     "angle, in degrees, of the gantry tilt around the X axis. "
-	     "This is opposite of the amount of tweak we apply.");
+             "angle, in degrees, of the gantry tilt around the X axis. "
+             "This is opposite of the amount of tweak we apply.");
   hestOptAdd(&hopt, "k", "kern", airTypeOther, 1, 1, &gantric,
-	     "tent",
-	     "The kernel to use for resampling.  Chances are, there "
-	     "is no justification for anything more than \"tent\".  "
-	     "Possibilities include:\n "
-	     "\b\bo \"box\": nearest neighbor interpolation\n "
-	     "\b\bo \"tent\": linear interpolation\n "
-	     "\b\bo \"cubic:B,C\": Mitchell/Netravali BC-family of "
-	     "cubics:\n "
-	     "\t\t\"cubic:1,0\": B-spline; maximal blurring\n "
-	     "\t\t\"cubic:0,0.5\": Catmull-Rom; good interpolating kernel\n "
-	     "\b\bo \"quartic:A\": 1-parameter family of "
-	     "interpolating quartics (\"quartic:0.0834\" is most accurate)\n "
-	     "\b\bo \"gauss:S,C\": Gaussian blurring, with standard deviation "
-	     "S and cut-off at C standard deviations",
-	     NULL, NULL, nrrdHestKernelSpec);
+             "tent",
+             "The kernel to use for resampling.  Chances are, there "
+             "is no justification for anything more than \"tent\".  "
+             "Possibilities include:\n "
+             "\b\bo \"box\": nearest neighbor interpolation\n "
+             "\b\bo \"tent\": linear interpolation\n "
+             "\b\bo \"cubic:B,C\": Mitchell/Netravali BC-family of "
+             "cubics:\n "
+             "\t\t\"cubic:1,0\": B-spline; maximal blurring\n "
+             "\t\t\"cubic:0,0.5\": Catmull-Rom; good interpolating kernel\n "
+             "\b\bo \"quartic:A\": 1-parameter family of "
+             "interpolating quartics (\"quartic:0.0834\" is most accurate)\n "
+             "\b\bo \"gauss:S,C\": Gaussian blurring, with standard deviation "
+             "S and cut-off at C standard deviations",
+             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "o", "output", airTypeString, 1, 1, &outS, NULL,
-	     "output volume in nrrd format");
+             "output volume in nrrd format");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
-		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
 
   sx = nin->axis[0].size;
   sy = nin->axis[1].size;
@@ -86,7 +86,7 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   fprintf(stderr, "%s: input and output have dimensions %d %d %d\n",
-	  me, sx, sy, sz);
+          me, sx, sy, sz);
   
   /* start by just copying the nrrd; then we'll meddle with the values */
   if (nrrdCopy(nout = nrrdNew(), nin)) {
@@ -103,7 +103,7 @@ main(int argc, char *argv[]) {
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, gageKindScl));
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   if (!E) E |= gageKernelSet(ctx, gageKernel00,
-			     gantric->kernel, gantric->parm);
+                             gantric->kernel, gantric->parm);
   if (!E) E |= gageQueryItemOn(ctx, pvl, gageSclValue);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
@@ -116,16 +116,16 @@ main(int argc, char *argv[]) {
   for (zi=0; zi<sz; zi++) {
     for (yi=0; yi<sy; yi++) {
       for (xi=0; xi<sx; xi++) {
-	
-	/* convert to world space, use angle to determine new
-	   world space position, convert back to index space,
-	   clamp z to find inside old volume */
-	
-	y = (yi - sy/2.0)*ys;
-	z = (zi*zs + y*sin(-angle*3.141592653/180.0))/zs;
-	z = AIR_CLAMP(0, z, sz-1);
-	gageProbe(ctx, xi, yi, z);
-	insert(out, xi + sx*(yi + sy*zi), *val);
+        
+        /* convert to world space, use angle to determine new
+           world space position, convert back to index space,
+           clamp z to find inside old volume */
+        
+        y = (yi - sy/2.0)*ys;
+        z = (zi*zs + y*sin(-angle*3.141592653/180.0))/zs;
+        z = AIR_CLAMP(0, z, sz-1);
+        gageProbe(ctx, xi, yi, z);
+        insert(out, xi + sx*(yi + sy*zi), *val);
       }
     }
   }

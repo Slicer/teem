@@ -45,9 +45,9 @@ tend_bmatMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *outS;
 
   hestOptAdd(&hopt, "i", "grads", airTypeOther, 1, 1, &ngrad, NULL,
-	     "array of gradient directions", NULL, NULL, nrrdHestNrrd);
+             "array of gradient directions", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output B matrix");
+             "output B matrix");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

@@ -36,11 +36,11 @@ _hestSetBuff(char *B, hestOpt *O, hestParm *P, int showlong) {
       strcat(B, "-");
       strcat(B, copy);
       if (showlong) {
-	len = strlen(B);
-	B[len] = P->multiFlagSep;
-	B[len+1] = '\0';
-	strcat(B, "--");
-	strcat(B, sep+1);
+        len = strlen(B);
+        B[len] = P->multiFlagSep;
+        B[len+1] = '\0';
+        strcat(B, "--");
+        strcat(B, sep+1);
       }
     }
     else {
@@ -82,7 +82,7 @@ _hestSetBuff(char *B, hestOpt *O, hestParm *P, int showlong) {
 */
 void
 _hestPrintStr(FILE *f, int indent, int already, int width, const char *_str,
-	      int bslash) {
+              int bslash) {
   char *str, *ws, *last;
   int nwrd, wrd, pos, s, newed=AIR_FALSE;
 
@@ -103,11 +103,11 @@ _hestPrintStr(FILE *f, int indent, int already, int width, const char *_str,
     } else {
       /* else we start a new line and print the indent */
       if (bslash) {
-	fprintf(f, " \\");
+        fprintf(f, " \\");
       }
       fprintf(f, "\n");
       for (s=0; s<=indent-1; s++) {
-	fprintf(f, " ");
+        fprintf(f, " ");
       }
       fprintf(f, "%s", ws); 
       pos = indent + strlen(ws);
@@ -115,7 +115,7 @@ _hestPrintStr(FILE *f, int indent, int already, int width, const char *_str,
     /* if the last character of the word was a newline, then indent */
     if ('\n' == ws[strlen(ws)-1]) {
       for (s=0; s<indent; s++) {
-	fprintf(f, " ");
+        fprintf(f, " ");
       }
       pos = indent;
       newed = AIR_TRUE;
@@ -183,7 +183,7 @@ hestMinNumArgs(hestOpt *opt) {
     if (!opt[i].dflt) {
       count += opt[i].min;
       if (!(0 == opt[i].min && 0 == opt[i].max)) {
-	count += !!opt[i].flag;
+        count += !!opt[i].flag;
       }
     }
   }  
@@ -287,89 +287,89 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
     if (opt[i].info)
       strcat(buff, opt[i].info);
     if ((opt[i].min || _hestMax(opt[i].max))
-	&& (!( 2 == opt[i].kind
-	       && airTypeEnum == opt[i].type 
-	       && parm->elideSingleEnumType )) 
-	&& (!( 2 == opt[i].kind
-	       && airTypeOther == opt[i].type 
-	       && parm->elideSingleOtherType )) 
-	) {
+        && (!( 2 == opt[i].kind
+               && airTypeEnum == opt[i].type 
+               && parm->elideSingleEnumType )) 
+        && (!( 2 == opt[i].kind
+               && airTypeOther == opt[i].type 
+               && parm->elideSingleOtherType )) 
+        ) {
       /* if there are newlines in the info, then we want to clarify the
          type by printing it on its own line */
       if (opt[i].info && strchr(opt[i].info, '\n')) {
-	strcat(buff, "\n ");
+        strcat(buff, "\n ");
       }
       else {
-	strcat(buff, " ");
+        strcat(buff, " ");
       }
       strcat(buff, "(");
       if (opt[i].min == 0 && _hestMax(opt[i].max) == 1) {
-	strcat(buff, "optional\t");
+        strcat(buff, "optional\t");
       }
       else {
-	if (opt[i].min == _hestMax(opt[i].max) && _hestMax(opt[i].max) > 1) {
-	  sprintf(tmpS, "%d\t", _hestMax(opt[i].max));
-	  strcat(buff, tmpS);
-	}
-	else if (opt[i].min < _hestMax(opt[i].max)) {
-	  if (-1 == opt[i].max) {
-	    sprintf(tmpS, "%d\tor\tmore\t", opt[i].min);
-	  }
-	  else {
-	    sprintf(tmpS, "%d..%d\t", opt[i].min, _hestMax(opt[i].max));
-	  }
-	  strcat(buff, tmpS);
-	}
+        if (opt[i].min == _hestMax(opt[i].max) && _hestMax(opt[i].max) > 1) {
+          sprintf(tmpS, "%d\t", _hestMax(opt[i].max));
+          strcat(buff, tmpS);
+        }
+        else if (opt[i].min < _hestMax(opt[i].max)) {
+          if (-1 == opt[i].max) {
+            sprintf(tmpS, "%d\tor\tmore\t", opt[i].min);
+          }
+          else {
+            sprintf(tmpS, "%d..%d\t", opt[i].min, _hestMax(opt[i].max));
+          }
+          strcat(buff, tmpS);
+        }
       }
       sprintf(tmpS, "%s%s", 
-	      (airTypeEnum == opt[i].type
-	       ? opt[i].enm->name
-	       : (airTypeOther == opt[i].type
-		  ? opt[i].CB->type
-		  : airTypeStr[opt[i].type])),
-	      (_hestMax(opt[i].max) > 1 
-	       ? (airTypeOther == opt[i].type
-		  && 'y' == opt[i].CB->type[airStrlen(opt[i].CB->type)-1]
-		  && parm->cleverPluralizeOtherY
-		  ? "\bies" 
-		  : "s")
-	       : ""));
+              (airTypeEnum == opt[i].type
+               ? opt[i].enm->name
+               : (airTypeOther == opt[i].type
+                  ? opt[i].CB->type
+                  : airTypeStr[opt[i].type])),
+              (_hestMax(opt[i].max) > 1 
+               ? (airTypeOther == opt[i].type
+                  && 'y' == opt[i].CB->type[airStrlen(opt[i].CB->type)-1]
+                  && parm->cleverPluralizeOtherY
+                  ? "\bies" 
+                  : "s")
+               : ""));
       strcat(buff, tmpS);
       strcat(buff, ")");
     }
     /*
     fprintf(stderr, "!%s: parm->elideSingleOtherDefault = %d\n",
-	    "hestGlossary", parm->elideSingleOtherDefault);
+            "hestGlossary", parm->elideSingleOtherDefault);
     */
     if (opt[i].dflt 
-	&& (opt[i].min || _hestMax(opt[i].max))
-	&& (!( 2 == opt[i].kind
-	       && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
-	       && !AIR_EXISTS(airAtod(opt[i].dflt)) 
-	       && parm->elideSingleNonExistFloatDefault ))
-	&& (!( (3 == opt[i].kind || 5 == opt[i].kind) 
-	       && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
-	       && !AIR_EXISTS(airAtod(opt[i].dflt)) 
-	       && parm->elideMultipleNonExistFloatDefault ))
-	&& (!( 2 == opt[i].kind
-	       && airTypeOther == opt[i].type
-	       && parm->elideSingleOtherDefault ))
-	&& (!( 2 == opt[i].kind
-	       && airTypeString == opt[i].type
-	       && parm->elideSingleEmptyStringDefault 
-	       && 0 == airStrlen(opt[i].dflt) ))
-	&& (!( (3 == opt[i].kind || 5 == opt[i].kind) 
-	       && airTypeString == opt[i].type
-	       && parm->elideMultipleEmptyStringDefault 
-	       && 0 == airStrlen(opt[i].dflt) ))
-	) {
+        && (opt[i].min || _hestMax(opt[i].max))
+        && (!( 2 == opt[i].kind
+               && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
+               && !AIR_EXISTS(airAtod(opt[i].dflt)) 
+               && parm->elideSingleNonExistFloatDefault ))
+        && (!( (3 == opt[i].kind || 5 == opt[i].kind) 
+               && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
+               && !AIR_EXISTS(airAtod(opt[i].dflt)) 
+               && parm->elideMultipleNonExistFloatDefault ))
+        && (!( 2 == opt[i].kind
+               && airTypeOther == opt[i].type
+               && parm->elideSingleOtherDefault ))
+        && (!( 2 == opt[i].kind
+               && airTypeString == opt[i].type
+               && parm->elideSingleEmptyStringDefault 
+               && 0 == airStrlen(opt[i].dflt) ))
+        && (!( (3 == opt[i].kind || 5 == opt[i].kind) 
+               && airTypeString == opt[i].type
+               && parm->elideMultipleEmptyStringDefault 
+               && 0 == airStrlen(opt[i].dflt) ))
+        ) {
       /* if there are newlines in the info, then we want to clarify the
-	 default by printing it on its own line */
+         default by printing it on its own line */
       if (opt[i].info && strchr(opt[i].info, '\n')) {
-	strcat(buff, "\n ");
+        strcat(buff, "\n ");
       }
       else {
-	strcat(buff, "; ");
+        strcat(buff, "; ");
       }
       strcat(buff, "default:\t");
       strcpy(tmpS, opt[i].dflt);

@@ -70,8 +70,8 @@ hestCB probeKindHestCB = {
 }; 
 
 char *probeInfo = ("Shows off the functionality of the gage library. "
-		   "Uses gageProbe() to query scalar or vector volumes "
-		   "to learn various measured or derived quantities. ");
+                   "Uses gageProbe() to query scalar or vector volumes "
+                   "to learn various measured or derived quantities. ");
 
 int
 main(int argc, char *argv[]) {
@@ -96,43 +96,43 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hparm->elideSingleOtherType = AIR_TRUE;
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-	     "input volume", NULL, NULL, nrrdHestNrrd);
+             "input volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
-	     "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")",
-	     NULL, NULL, &probeKindHestCB);
+             "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")",
+             NULL, NULL, &probeKindHestCB);
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
-	     "the quantity (scalar, vector, or matrix) to learn by probing");
+             "the quantity (scalar, vector, or matrix) to learn by probing");
   hestOptAdd(&hopt, "s", "sclX sclY sxlZ", airTypeFloat, 3, 3, scale,
-	     "1.0 1.0 1.0",
-	     "scaling factor for resampling on each axis "
-	     "(>1.0 : supersampling)");
+             "1.0 1.0 1.0",
+             "scaling factor for resampling on each axis "
+             "(>1.0 : supersampling)");
   hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00,
-	     "tent", "kernel for gageKernel00",
-	     NULL, NULL, nrrdHestKernelSpec);
+             "tent", "kernel for gageKernel00",
+             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k11", "kern11", airTypeOther, 1, 1, &k11,
-	     "cubicd:1,0", "kernel for gageKernel11",
-	     NULL, NULL, nrrdHestKernelSpec);
+             "cubicd:1,0", "kernel for gageKernel11",
+             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k22", "kern22", airTypeOther, 1, 1, &k22,
-	     "cubicdd:1,0", "kernel for gageKernel22",
-	     NULL, NULL, nrrdHestKernelSpec);
+             "cubicdd:1,0", "kernel for gageKernel22",
+             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "rn", NULL, airTypeInt, 0, 0, &renorm, NULL,
-	     "renormalize kernel weights at each new sample location. "
-	     "\"Accurate\" kernels don't need this; doing it always "
-	     "makes things go slower");
+             "renormalize kernel weights at each new sample location. "
+             "\"Accurate\" kernels don't need this; doing it always "
+             "makes things go slower");
   hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc,
-	     "0.0", "For curvature-based queries, use zero when gradient "
-	     "magnitude is below this");
+             "0.0", "For curvature-based queries, use zero when gradient "
+             "magnitude is below this");
   hestOptAdd(&hopt, "m", "matrix", airTypeOther, 1, 1, &_nmat, "",
-	     "transform matrix to map volume through "
-	     "(actually the probe locations are sent through "
-	     "its inverse).  By default, there is no transform",
-	     NULL, NULL, nrrdHestNrrd);
+             "transform matrix to map volume through "
+             "(actually the probe locations are sent through "
+             "its inverse).  By default, there is no transform",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &otype, "float",
-	     "type of output volume", NULL, nrrdType);
+             "type of output volume", NULL, nrrdType);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output volume");
+             "output volume");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
-		 me, probeInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, probeInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -140,7 +140,7 @@ main(int argc, char *argv[]) {
   if (-1 == what) {
     /* -1 indeed always means "unknown" for any gageKind */
     fprintf(stderr, "%s: couldn't parse \"%s\" as measure of \"%s\" volume\n",
-	    me, whatS, kind->name);
+            me, whatS, kind->name);
     hestUsage(stderr, hopt, me, hparm);
     hestGlossary(stderr, hopt, hparm);
     airMopError(mop);
@@ -149,7 +149,7 @@ main(int argc, char *argv[]) {
 
   if (_nmat) {
     if (!( 2 == _nmat->dim 
-	   && 4 == _nmat->axis[0].size && 4 == _nmat->axis[1].size )) {
+           && 4 == _nmat->axis[0].size && 4 == _nmat->axis[1].size )) {
       fprintf(stderr, "%s: matrix needs to be a 2D 4x4 array\n", me);
       airMopError(mop);
       return 1;
@@ -216,14 +216,14 @@ main(int argc, char *argv[]) {
   ***/
 
   fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
-	  2*(ctx->havePad + 1));
+          2*(ctx->havePad + 1));
   fprintf(stderr, "%s: effective scaling is %g %g %g\n", me,
-	  (float)sox/six, (float)soy/siy, (float)soz/siz);
+          (float)sox/six, (float)soy/siy, (float)soz/siz);
   if (ansLen > 1) {
     fprintf(stderr, "%s: creating %d x %d x %d x %d output\n", 
-	   me, ansLen, sox, soy, soz);
+           me, ansLen, sox, soy, soz);
     if (!E) E |= nrrdMaybeAlloc(nout=nrrdNew(), otype, 4,
-				ansLen, sox, soy, soz);
+                                ansLen, sox, soy, soz);
   } else {
     fprintf(stderr, "%s: creating %d x %d x %d output\n", me, sox, soy, soz);
     if (!E) E |= nrrdMaybeAlloc(nout=nrrdNew(), otype, 3, sox, soy, soz);
@@ -242,46 +242,46 @@ main(int argc, char *argv[]) {
     for (yi=0; yi<=soy-1; yi++) {
       y = AIR_AFFINE(0, yi, soy-1, 0, siy-1);
       for (xi=0; xi<=sox-1; xi++) {
-	x = AIR_AFFINE(0, xi, sox-1, 0, six-1);
-	idx = xi + sox*(yi + soy*zi);
-	ctx->verbose = 0*( (!xi && !yi && !zi) ||
-			   /* ((100 == xi) && (8 == yi) && (8 == zi)) */
-			   ((61 == xi) && (51 == yi) && (46 == zi))
-			   /* ((40==xi) && (30==yi) && (62==zi)) || */
-			   /* ((40==xi) && (30==yi) && (63==zi)) */ );
-	
-	ELL_4V_SET(opos, x*spx, y*spy, z*spz, 1);
-	ELL_4MV_MUL(ipos, mat, opos);
-	/*
-	fprintf(stderr, "%s: (%g,%g,%g) --> (%g,%g,%g)\n", 
-		me, opos[0], opos[1], opos[2], ipos[0], ipos[1], ipos[2]);
-	*/
-	ELL_4V_HOMOG(ipos, ipos);
-	ipos[0] = AIR_CLAMP(0, ipos[0]/spx, six-1);
-	ipos[1] = AIR_CLAMP(0, ipos[1]/spy, siy-1);
-	ipos[2] = AIR_CLAMP(0, ipos[2]/spz, siz-1);
-	/*
-	fprintf(stderr, "%s: (%g,%g,%g) --> (%g,%g,%g)\n", 
-		me, x, y, z, ipos[0], ipos[1], ipos[2]);
-	*/
-	
-	if (gageProbe(ctx, ipos[0], ipos[1], ipos[2])) {
-	  fprintf(stderr, 
-		  "%s: trouble at i=(%d,%d,%d) -> f=(%g,%g,%g):\n%s\n(%d)\n",
-		  me, xi, yi, zi, ipos[0], ipos[1], ipos[2],
-		  gageErrStr, gageErrNum);
-	  airMopError(mop);
-	  return 1;
-	}
-	if (1 == ansLen) {
-	  nrrdFInsert[nout->type](nout->data, idx,
-				  nrrdFClamp[nout->type](*answer));
-	} else {
-	  for (a=0; a<=ansLen-1; a++) {
-	    nrrdFInsert[nout->type](nout->data, a + ansLen*idx, 
-				    nrrdFClamp[nout->type](answer[a]));
-	  }
-	}
+        x = AIR_AFFINE(0, xi, sox-1, 0, six-1);
+        idx = xi + sox*(yi + soy*zi);
+        ctx->verbose = 0*( (!xi && !yi && !zi) ||
+                           /* ((100 == xi) && (8 == yi) && (8 == zi)) */
+                           ((61 == xi) && (51 == yi) && (46 == zi))
+                           /* ((40==xi) && (30==yi) && (62==zi)) || */
+                           /* ((40==xi) && (30==yi) && (63==zi)) */ );
+        
+        ELL_4V_SET(opos, x*spx, y*spy, z*spz, 1);
+        ELL_4MV_MUL(ipos, mat, opos);
+        /*
+        fprintf(stderr, "%s: (%g,%g,%g) --> (%g,%g,%g)\n", 
+                me, opos[0], opos[1], opos[2], ipos[0], ipos[1], ipos[2]);
+        */
+        ELL_4V_HOMOG(ipos, ipos);
+        ipos[0] = AIR_CLAMP(0, ipos[0]/spx, six-1);
+        ipos[1] = AIR_CLAMP(0, ipos[1]/spy, siy-1);
+        ipos[2] = AIR_CLAMP(0, ipos[2]/spz, siz-1);
+        /*
+        fprintf(stderr, "%s: (%g,%g,%g) --> (%g,%g,%g)\n", 
+                me, x, y, z, ipos[0], ipos[1], ipos[2]);
+        */
+        
+        if (gageProbe(ctx, ipos[0], ipos[1], ipos[2])) {
+          fprintf(stderr, 
+                  "%s: trouble at i=(%d,%d,%d) -> f=(%g,%g,%g):\n%s\n(%d)\n",
+                  me, xi, yi, zi, ipos[0], ipos[1], ipos[2],
+                  gageErrStr, gageErrNum);
+          airMopError(mop);
+          return 1;
+        }
+        if (1 == ansLen) {
+          nrrdFInsert[nout->type](nout->data, idx,
+                                  nrrdFClamp[nout->type](*answer));
+        } else {
+          for (a=0; a<=ansLen-1; a++) {
+            nrrdFInsert[nout->type](nout->data, a + ansLen*idx, 
+                                    nrrdFClamp[nout->type](answer[a]));
+          }
+        }
       }
     }
   }

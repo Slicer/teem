@@ -300,9 +300,9 @@ airFPClass_f(float val) {
       ret = airFP_POS_NORM;
     else {
       if (TEEM_QNANHIBIT == frac >> 22)
-	ret = airFP_QNAN;
+        ret = airFP_QNAN;
       else
-	ret = airFP_SNAN;
+        ret = airFP_SNAN;
     }
     break;
   case 4: 
@@ -326,9 +326,9 @@ airFPClass_f(float val) {
       ret = airFP_NEG_NORM;
     else {
       if (TEEM_QNANHIBIT == frac >> 22)
-	ret = airFP_QNAN;
+        ret = airFP_QNAN;
       else
-	ret = airFP_SNAN;
+        ret = airFP_SNAN;
     }
     break;
   }
@@ -363,9 +363,9 @@ airFPClass_d(double val) {
   f.v = val;
   sign = f.c2.sign; 
   exp = f.c2.exp;    /* this seems to be a WIN32 bug: on a quiet-NaN, f.c.exp
-			should be non-zero, but it was completely zero, so that
-			this function returned airFP_NEG_DENORM instead of
-			airFP_QNAN */
+                        should be non-zero, but it was completely zero, so that
+                        this function returned airFP_NEG_DENORM instead of
+                        airFP_QNAN */
   frac = f.c.frac;
   hibit = frac >> 51;
 
@@ -393,9 +393,9 @@ airFPClass_d(double val) {
       ret = airFP_POS_NORM;
     } else {
       if (TEEM_QNANHIBIT == hibit) {
-	ret = airFP_QNAN;
+        ret = airFP_QNAN;
       } else {
-	ret = airFP_SNAN;
+        ret = airFP_SNAN;
       }
     }
     break;
@@ -421,9 +421,9 @@ airFPClass_d(double val) {
       ret = airFP_NEG_NORM;
     else {
       if (TEEM_QNANHIBIT == hibit) {
-	ret = airFP_QNAN;
+        ret = airFP_QNAN;
       } else {
-	ret = airFP_SNAN;
+        ret = airFP_SNAN;
       }
     }
     break;
@@ -531,7 +531,7 @@ airFPFprintf_f(FILE *file, float val) {
     fprintf(file, "%f: class %d; 0x%08x = ",val, airFPClass_f(val), f.i);
     fprintf(file, "sign:0x%x, exp:0x%02x, frac:0x%06x = \n", sign, exp, frac);
     fprintf(file, " S < . . Exp . . > "
-	    "< . . . . . . . . . Frac. . . . . . . . . . >\n");
+            "< . . . . . . . . . Frac. . . . . . . . . . >\n");
     fprintf(file, " %d ", sign);
     for (i=7; i>=0; i--) {
       fprintf(file, "%d ", (exp >> i) & 1);
@@ -558,7 +558,7 @@ airFPFprintf_d(FILE *file, double val) {
     fprintf(file, "%f: class %d; 0x%08x%08x = \n",
             val, airFPClass_d(val), d.h.half1, d.h.half0);
     fprintf(file, "sign:0x%x, exp:0x%03x, frac:0x%05x%08x = \n",
-	    d.c2.sign, d.c2.exp, d.c2.frac1, d.c2.frac0);
+            d.c2.sign, d.c2.exp, d.c2.frac1, d.c2.frac0);
     fprintf(file, "S<...Exp...><.......................Frac.......................>\n");
     fprintf(file, "%d", d.c2.sign);
     for (i=10; i>=0; i--) {

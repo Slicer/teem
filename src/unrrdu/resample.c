@@ -48,41 +48,41 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   hparm->elideSingleOtherDefault = AIR_FALSE;
   hestOptAdd(&opt, "s", "sz0", airTypeOther, 1, -1, &scale, NULL,
-	     "For each axis, information about how many samples in output:\n "
-	     "\b\bo \"=\": leave this axis completely untouched: no "
-	     "resampling whatsoever\n "
-	     "\b\bo \"x<float>\": multiply the number of input samples by "
-	     "<float>, and round to the nearest integer, to get the number "
-	     "of output samples.  Use \"x1\" to resample the axis but leave "
-	     "the number of samples unchanged\n "
-	     "\b\bo \"<int>\": exact number of output samples",
-	     &scaleLen, NULL, &unrrduHestScaleCB);
+             "For each axis, information about how many samples in output:\n "
+             "\b\bo \"=\": leave this axis completely untouched: no "
+             "resampling whatsoever\n "
+             "\b\bo \"x<float>\": multiply the number of input samples by "
+             "<float>, and round to the nearest integer, to get the number "
+             "of output samples.  Use \"x1\" to resample the axis but leave "
+             "the number of samples unchanged\n "
+             "\b\bo \"<int>\": exact number of output samples",
+             &scaleLen, NULL, &unrrduHestScaleCB);
   hestOptAdd(&opt, "k", "kern", airTypeOther, 1, 1, &unuk, "cubic:0,0.5",
-	     "The kernel to use for resampling.  Possibilities include:\n "
-	     "\b\bo \"box\": nearest neighbor interpolation\n "
-	     "\b\bo \"tent\": linear interpolation\n "
-	     "\b\bo \"cubic:B,C\": Mitchell/Netravali BC-family of "
-	     "cubics:\n "
-	     "\t\t\"cubic:1,0\": B-spline; maximal blurring\n "
-	     "\t\t\"cubic:0,0.5\": Catmull-Rom; good interpolating kernel\n "
-	     "\b\bo \"quartic:A\": 1-parameter family of "
-	     "interpolating quartics (\"quartic:0.0834\" is most accurate)\n "
-	     "\b\bo \"hann:R\": Hann (cosine bell) windowed sinc, radius R\n "
-	     "\b\bo \"black:R\": Blackman windowed sinc, radius R\n "
-	     "\b\bo \"gauss:S,C\": Gaussian blurring, with standard deviation "
-	     "S and cut-off at C standard deviations",
-	     NULL, NULL, nrrdHestKernelSpec);
+             "The kernel to use for resampling.  Possibilities include:\n "
+             "\b\bo \"box\": nearest neighbor interpolation\n "
+             "\b\bo \"tent\": linear interpolation\n "
+             "\b\bo \"cubic:B,C\": Mitchell/Netravali BC-family of "
+             "cubics:\n "
+             "\t\t\"cubic:1,0\": B-spline; maximal blurring\n "
+             "\t\t\"cubic:0,0.5\": Catmull-Rom; good interpolating kernel\n "
+             "\b\bo \"quartic:A\": 1-parameter family of "
+             "interpolating quartics (\"quartic:0.0834\" is most accurate)\n "
+             "\b\bo \"hann:R\": Hann (cosine bell) windowed sinc, radius R\n "
+             "\b\bo \"black:R\": Blackman windowed sinc, radius R\n "
+             "\b\bo \"gauss:S,C\": Gaussian blurring, with standard deviation "
+             "S and cut-off at C standard deviations",
+             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&opt, "b", "behavior", airTypeEnum, 1, 1, &bb, "bleed",
-	     "How to handle samples beyond the input bounds:\n "
-	     "\b\bo \"pad\": use some specified value\n "
-	     "\b\bo \"bleed\": extend border values outward\n "
-	     "\b\bo \"wrap\": wrap-around to other side", 
-	     NULL, nrrdBoundary);
+             "How to handle samples beyond the input bounds:\n "
+             "\b\bo \"pad\": use some specified value\n "
+             "\b\bo \"bleed\": extend border values outward\n "
+             "\b\bo \"wrap\": wrap-around to other side", 
+             NULL, nrrdBoundary);
   hestOptAdd(&opt, "v", "value", airTypeDouble, 1, 1, &padVal, "0.0",
-	     "for \"pad\" boundary behavior, pad with this value");
+             "for \"pad\" boundary behavior, pad with this value");
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "default",
-	     "type to save OUTPUT as. By default (not using this option), "
-	     "the output type is the same as the input type",
+             "type to save OUTPUT as. By default (not using this option), "
+             "the output type is the same as the input type",
              NULL, NULL, &unrrduHestMaybeTypeCB);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
@@ -98,7 +98,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   if (scaleLen != nin->dim) {
     fprintf(stderr, "%s: # sampling sizes (%d) != input nrrd dimension (%d)\n",
-	    me, scaleLen, nin->dim);
+            me, scaleLen, nin->dim);
     return 1;
   }
   for (d=0; d<=nin->dim-1; d++) {
@@ -120,11 +120,11 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
     memcpy(info->parm[d], unuk->parm, NRRD_KERNEL_PARMS_NUM*sizeof(double));
     if (info->kernel[d] &&
-	(!( AIR_EXISTS(nin->axis[d].min) && AIR_EXISTS(nin->axis[d].max))) ) {
+        (!( AIR_EXISTS(nin->axis[d].min) && AIR_EXISTS(nin->axis[d].max))) ) {
        nrrdAxisInfoMinMaxSet(nin, d, 
-			     (nin->axis[d].center
-			      ? nin->axis[d].center 
-			      : nrrdDefCenter));
+                             (nin->axis[d].center
+                              ? nin->axis[d].center 
+                              : nrrdDefCenter));
     }
     info->min[d] = nin->axis[d].min;
     info->max[d] = nin->axis[d].max;

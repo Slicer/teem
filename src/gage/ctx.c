@@ -129,7 +129,7 @@ gageContextCopy (gageContext *ctx) {
   ntx->off = (unsigned int *)calloc(fd*fd*fd, sizeof(unsigned int));
   if (!( ntx->fsl && ntx->fw && ntx->off )) {
     sprintf(err, "%s: couldn't allocate new filter caches for fd=%d",
-	    me, fd);
+            me, fd);
     biffAdd(GAGE, err); return NULL;
   }
   /* the content of the offset array needs to be copied because
@@ -156,7 +156,7 @@ gageContextCopy (gageContext *ctx) {
 */
 int
 gageKernelSet (gageContext *ctx, 
-	       int which, const NrrdKernel *k, double *kparm) {
+               int which, const NrrdKernel *k, double *kparm) {
   char me[]="gageKernelSet", err[AIR_STRLEN_MED];
   int numParm;
   double support, integral;
@@ -171,17 +171,17 @@ gageKernelSet (gageContext *ctx,
   }
   if (airEnumValCheck(gageKernel, which)) {
     sprintf(err, "%s: \"which\" (%d) not in range [%d,%d]", me,
-	    which, gageKernelUnknown+1, gageKernelLast-1);
+            which, gageKernelUnknown+1, gageKernelLast-1);
     biffAdd(GAGE, err); return 1;
   }
   if (ctx->verbose) {
     fprintf(stderr, "%s: which = %d -> %s\n", me, which,
-	    airEnumStr(gageKernel, which));
+            airEnumStr(gageKernel, which));
   }
   numParm = k->numParm;
   if (!(AIR_IN_CL(0, numParm, NRRD_KERNEL_PARMS_NUM))) {
     sprintf(err, "%s: kernel's numParm (%d) not in range [%d,%d]",
-	    me, numParm, 0, NRRD_KERNEL_PARMS_NUM);
+            me, numParm, 0, NRRD_KERNEL_PARMS_NUM);
     biffAdd(GAGE, err); return 1;
   }
   support = k->support(kparm);
@@ -192,20 +192,20 @@ gageKernelSet (gageContext *ctx,
   if (ctx->parm.checkIntegrals) {
     integral = k->integral(kparm);
     if (gageKernel00 == which ||
-	gageKernel10 == which ||
-	gageKernel20 == which) {
+        gageKernel10 == which ||
+        gageKernel20 == which) {
       if (!( integral > 0 )) {
-	sprintf(err, "%s: reconstruction kernel's integral (%g) not > 0.0",
-		me, integral);
-	biffAdd(GAGE, err); return 1;
+        sprintf(err, "%s: reconstruction kernel's integral (%g) not > 0.0",
+                me, integral);
+        biffAdd(GAGE, err); return 1;
       }
     } else {
       /* its a derivative, so integral must be near zero */
       if (!( AIR_ABS(integral) <= ctx->parm.kernelIntegralNearZero )) {
-	sprintf(err, "%s: derivative kernel's integral (%g) not within "
-		"%g of 0.0",
-		me, integral, ctx->parm.kernelIntegralNearZero);
-	biffAdd(GAGE, err); return 1;
+        sprintf(err, "%s: derivative kernel's integral (%g) not within "
+                "%g of 0.0",
+                me, integral, ctx->parm.kernelIntegralNearZero);
+        biffAdd(GAGE, err); return 1;
       }
     }
   }
@@ -367,7 +367,7 @@ gagePerVolumeAttach (gageContext *ctx, gagePerVolume *pvl) {
   }
   if (ctx->numPvl == GAGE_PERVOLUME_NUM) {
     sprintf(err, "%s: sorry, already have GAGE_PERVOLUME_NUM == %d "
-	    "pervolumes attached", me, GAGE_PERVOLUME_NUM);
+            "pervolumes attached", me, GAGE_PERVOLUME_NUM);
     biffAdd(GAGE, err); return 1;
   }
 
@@ -466,23 +466,23 @@ gageIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
      right ? */
   /* diff = -ctx->havePad + (nrrdCenterCell == ctx->shape.center); */
   bidx = (ctx->point.xi - ctx->havePad
-	  + sx*(ctx->point.yi - ctx->havePad
-		+ sy*(ctx->point.zi - ctx->havePad)));
+          + sx*(ctx->point.yi - ctx->havePad
+                + sy*(ctx->point.zi - ctx->havePad)));
   if (ctx->verbose) {
     fprintf(stderr, "%s: hello, valLen = %d, pvl->npad = %p, data = %p\n",
-	    me, pvl->kind->valLen, pvl->npad, pvl->npad->data);
+            me, pvl->kind->valLen, pvl->npad, pvl->npad->data);
   }
   here = ((char*)(pvl->npad->data) + (bidx * pvl->kind->valLen * 
-				      nrrdTypeSize[pvl->npad->type]));
+                                      nrrdTypeSize[pvl->npad->type]));
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
   if (ctx->verbose) {
     fprintf(stderr, "%s: padded size = (%d,%d,%d);\n"
-	    "    fd = %d; point (pad: %d) coord = (%d,%d,%d) --> bidx = %d\n",
-	    me, sx, sy, sz,
-	    fd, ctx->havePad, ctx->point.xi, ctx->point.yi, ctx->point.zi,
-	    bidx);
+            "    fd = %d; point (pad: %d) coord = (%d,%d,%d) --> bidx = %d\n",
+            me, sx, sy, sz,
+            fd, ctx->havePad, ctx->point.xi, ctx->point.yi, ctx->point.zi,
+            bidx);
     fprintf(stderr, "%s: here = %p; iv3 = %p; off[0] = %d\n",
-	    me, here, pvl->iv3, ctx->off[0]);
+            me, here, pvl->iv3, ctx->off[0]);
   }
   switch(pvl->kind->valLen) {
   case 1:
@@ -515,8 +515,8 @@ gageIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
   default:
     for (i=0; i<fddd; i++) {
       for (tup=0; tup<pvl->kind->valLen; tup++) {
-	pvl->iv3[i + fddd*tup] = 
-	  pvl->lup(here, 0 + pvl->kind->valLen*ctx->off[i]);
+        pvl->iv3[i + fddd*tup] = 
+          pvl->lup(here, 0 + pvl->kind->valLen*ctx->off[i]);
       }
     }
     break;
@@ -551,8 +551,8 @@ gageProbe (gageContext *ctx, gage_t x, gage_t y, gage_t z) {
   /* fprintf(stderr, "##%s: bingo 1\n", me); */
   /* if necessary, refill the iv3 cache */
   if (!( xi == ctx->point.xi &&
-	 yi == ctx->point.yi &&
-	 zi == ctx->point.zi )) {
+         yi == ctx->point.yi &&
+         zi == ctx->point.zi )) {
     for (i=0; i<ctx->numPvl; i++) {
       gageIv3Fill(ctx, ctx->pvl[i]);
     }
@@ -561,10 +561,10 @@ gageProbe (gageContext *ctx, gage_t x, gage_t y, gage_t z) {
   for (i=0; i<ctx->numPvl; i++) {
     if (ctx->verbose > 1) {
       fprintf(stderr, "%s: pvl[%d]'s value cache with (unpadded) "
-	      "coords = %d,%d,%d:\n", me, i,
-	      ctx->point.xi - ctx->havePad,
-	      ctx->point.yi - ctx->havePad,
-	      ctx->point.zi - ctx->havePad);
+              "coords = %d,%d,%d:\n", me, i,
+              ctx->point.xi - ctx->havePad,
+              ctx->point.yi - ctx->havePad,
+              ctx->point.zi - ctx->havePad);
       ctx->pvl[i]->kind->iv3Print(stderr, ctx, ctx->pvl[i]);
     }
     ctx->pvl[i]->kind->filter(ctx, ctx->pvl[i]);

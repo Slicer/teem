@@ -41,38 +41,38 @@ main(int argc, char *argv[]) {
   
   me = argv[0];
   hestOptAdd(&hopt, "fr", "from point", airTypeDouble, 3, 3, cam->from,"4 4 4",
-	     "position of camera, used to determine view vector");
+             "position of camera, used to determine view vector");
   hestOptAdd(&hopt, "at", "at point", airTypeDouble, 3, 3, cam->at, "0 0 0",
-	     "camera look-at point, used to determine view vector");
+             "camera look-at point, used to determine view vector");
   hestOptAdd(&hopt, "up", "up vector", airTypeDouble, 3, 3, cam->up, "0 0 1",
-	     "camera pseudo-up vector, used to determine view coordinates");
+             "camera pseudo-up vector, used to determine view coordinates");
   hestOptAdd(&hopt, "rh", NULL, airTypeInt, 0, 0, &(cam->rightHanded), NULL,
-	     "use a right-handed UVN frame (V points down)");
+             "use a right-handed UVN frame (V points down)");
   hestOptAdd(&hopt, "or", NULL, airTypeInt, 0, 0, &(cam->orthographic), NULL,
-	     "use orthogonal projection");
+             "use orthogonal projection");
   hestOptAdd(&hopt, "ur", "uMin uMax", airTypeDouble, 2, 2, cam->uRange,
-	     "-1 1", "range in U direction of image plane");
+             "-1 1", "range in U direction of image plane");
   hestOptAdd(&hopt, "vr", "vMin vMax", airTypeDouble, 2, 2, cam->vRange,
-	     "-1 1", "range in V direction of image plane");
+             "-1 1", "range in V direction of image plane");
   hestOptAdd(&hopt, "e", "envmap", airTypeOther, 1, 1, &nmap, NULL,
-	     "16checker-based environment map",
-	     NULL, NULL, nrrdHestNrrd);
+             "16checker-based environment map",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "ws", "winscale", airTypeFloat, 1, 1, &winscale,
-	     "200", "world to points (PostScript) scaling");
+             "200", "world to points (PostScript) scaling");
   hestOptAdd(&hopt, "wire", NULL, airTypeInt, 0, 0, &wire, NULL,
-	     "just do wire-frame rendering");
+             "just do wire-frame rendering");
   hestOptAdd(&hopt, "concave", NULL, airTypeInt, 0, 0, &concave, NULL,
-	     "use slightly buggy rendering method suitable for "
-	     "concave or self-occluding objects");
+             "use slightly buggy rendering method suitable for "
+             "concave or self-occluding objects");
   hestOptAdd(&hopt, "wd", "5 widths", airTypeFloat, 5, 5, edgeWidth,
-	     "0.0 0.0 3.0 2.0 0.0",
-	     "width of edges drawn for five kinds of "
-	     "edges: back non-crease, back crease, "
-	     "silohuette, front crease, front non-crease");
+             "0.0 0.0 3.0 2.0 0.0",
+             "width of edges drawn for five kinds of "
+             "edges: back non-crease, back crease, "
+             "silohuette, front crease, front non-crease");
   hestOptAdd(&hopt, "o", "output PS", airTypeString, 1, 1, &outS, "out.ps",
-	     "output file to render postscript into");
+             "output file to render postscript into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
-		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   
@@ -153,8 +153,8 @@ main(int argc, char *argv[]) {
 
   if (limnObjectRender(obj, cam, win)
       || (concave
-	  ? limnObjectPSDrawConcave(obj, cam, nmap, win)
-	  : limnObjectPSDraw(obj, cam, nmap, win))) {
+          ? limnObjectPSDrawConcave(obj, cam, nmap, win)
+          : limnObjectPSDraw(obj, cam, nmap, win))) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;

@@ -43,8 +43,8 @@ wheelPreamble(wheelPS *wps) {
   fprintf(wps->file, "%%%%Creator: limn\n");
   fprintf(wps->file, "%%%%Pages: 1\n");
   fprintf(wps->file, "%%%%BoundingBox: 0 0 %d %d\n", 
-	  (int)(wps->maxX),
-	  (int)(wps->maxY));
+          (int)(wps->maxX),
+          (int)(wps->maxY));
   fprintf(wps->file, "%%%%EndComments\n");
   fprintf(wps->file, "%%%%EndProlog\n");
   fprintf(wps->file, "%%%%Page: 1 1\n");
@@ -86,7 +86,7 @@ wheelGray(wheelPS *wps, double gray) {
 
 void
 wheelArrow(wheelPS *wps, double x0, double y0, double x1, double y1,
-	   double alen, double awidth) {
+           double alen, double awidth) {
   double len, dir[2], perp[2];
   
   dir[0] = x0 - x1;
@@ -95,20 +95,20 @@ wheelArrow(wheelPS *wps, double x0, double y0, double x1, double y1,
   ELL_2V_SET(perp, -dir[1], dir[0]);
   fprintf(wps->file, "%g %g M\n", WPS_X(x0), WPS_Y(y0));
   fprintf(wps->file, "%g %g L S\n",
-	  WPS_X(x1 + alen*dir[0]/2), 
-	  WPS_Y(y1 + alen*dir[1]/2));
+          WPS_X(x1 + alen*dir[0]/2), 
+          WPS_Y(y1 + alen*dir[1]/2));
   if (alen && awidth) {
     if (len < alen) {
       awidth *= len/alen;
       alen = len;
     }
     fprintf(wps->file, "%g %g M\n", 
-	    WPS_X(x1 + alen*dir[0] + awidth*perp[0]), 
-	    WPS_Y(y1 + alen*dir[1] + awidth*perp[1]));
+            WPS_X(x1 + alen*dir[0] + awidth*perp[0]), 
+            WPS_Y(y1 + alen*dir[1] + awidth*perp[1]));
     fprintf(wps->file, "%g %g L\n", WPS_X(x1), WPS_Y(y1));
     fprintf(wps->file, "%g %g L CP F\n", 
-	    WPS_X(x1 + alen*dir[0] - awidth*perp[0]), 
-	    WPS_Y(y1 + alen*dir[1] - awidth*perp[1]));
+            WPS_X(x1 + alen*dir[0] - awidth*perp[0]), 
+            WPS_Y(y1 + alen*dir[1] - awidth*perp[1]));
   }
   return;
 }
@@ -142,17 +142,17 @@ main(int argc, char *argv[]) {
   hopt = NULL;
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hestOptAdd(&hopt, "w", "arrowWidth lineWidth", airTypeDouble, 2, 2, width, 
-	     "1.0 0.2", "widths");
+             "1.0 0.2", "widths");
   hestOptAdd(&hopt, "n", "number", airTypeInt, 1, 1, &num, "10",
-	     "number of arrows");
+             "number of arrows");
   hestOptAdd(&hopt, "f", "frames", airTypeInt, 1, 1, &frames, "10",
-	     "number of frames");
+             "number of frames");
   hestOptAdd(&hopt, "psc", "scale", airTypeDouble, 1, 1, &psc, "200",
-	     "scaling from world space to PostScript points");
+             "scaling from world space to PostScript points");
   hestOptAdd(&hopt, "o", "prefix", airTypeString, 1, 1, &outS, NULL,
-	     "prefix of file names");
+             "prefix of file names");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
-		 me, interInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, interInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 

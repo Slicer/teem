@@ -35,12 +35,12 @@ unrrdu_ccsettleMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   mop = airMopNew();
   hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-	     "input nrrd",
-	     NULL, NULL, nrrdHestNrrd);
+             "input nrrd",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "v", "filename", airTypeString, 1, 1, &valS, "",
-	     "Giving a filename here allows you to save out the mapping "
-	     "from new (settled) values to old values, in the form of a "
-	     "1-D lookup table");
+             "Giving a filename here allows you to save out the mapping "
+             "from new (settled) values to old values, in the form of a "
+             "1-D lookup table");
   OPT_ADD_NOUT(out, "output nrrd");
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 

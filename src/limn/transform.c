@@ -51,18 +51,18 @@ _limnObjectNormals(limnObject *obj, int space) {
     ELL_3V_SET(nn, 0, 0, 0);
     for (vii=0; vii<face->sideNum; vii++) {
       vert0 = obj->vert 
-	+ part->vertIdx[face->vertIdxIdx[vii]];
+        + part->vertIdx[face->vertIdxIdx[vii]];
       vert1 = obj->vert 
-	+ part->vertIdx[face->vertIdxIdx[AIR_MOD(vii+1, face->sideNum)]];
+        + part->vertIdx[face->vertIdxIdx[AIR_MOD(vii+1, face->sideNum)]];
       vert2 = obj->vert
-	+ part->vertIdx[face->vertIdxIdx[AIR_MOD(vii-1, face->sideNum)]];
+        + part->vertIdx[face->vertIdxIdx[AIR_MOD(vii-1, face->sideNum)]];
       if (limnSpaceWorld == space) {
-	ELL_3V_SUB(vec1, vert1->world, vert0->world);
-	ELL_3V_SUB(vec2, vert2->world, vert0->world);
+        ELL_3V_SUB(vec1, vert1->world, vert0->world);
+        ELL_3V_SUB(vec2, vert2->world, vert0->world);
       }
       else {
-	ELL_3V_SUB(vec1, vert1->screen, vert0->screen);
-	ELL_3V_SUB(vec2, vert2->screen, vert0->screen);
+        ELL_3V_SUB(vec1, vert1->screen, vert0->screen);
+        ELL_3V_SUB(vec2, vert2->screen, vert0->screen);
       }
       ELL_3V_CROSS(cross, vec1, vec2);
       ELL_3V_ADD2(nn, nn, cross);
@@ -72,14 +72,14 @@ _limnObjectNormals(limnObject *obj, int space) {
       ELL_3V_NORM(face->worldNormal, nn, norm);
       /*
       printf("%s: wn[%d] = %g %g %g\n", "_limnObjectNormals", faceIdx,
-	     f->wn[0], f->wn[1], f->wn[2]);
+             f->wn[0], f->wn[1], f->wn[2]);
       */
     }
     else {
       ELL_3V_NORM(face->screenNormal, nn, norm);
       /*
       printf("%s: sn[%d] = %g %g %g\n", "_limnObjectNormals", faceIdx,
-	     f->sn[0], f->sn[1], f->sn[2]);
+             f->sn[0], f->sn[1], f->sn[2]);
       */
     }
   }
@@ -100,8 +100,8 @@ _limnObjectVTransform(limnObject *obj, limnCamera *cam) {
     ELL_4V_SCALE(vert->view, d, vert->view);
     /*
     printf("%s: w[%d] = %g %g %g %g --> v = %g %g %g\n", 
-	   "_limnObjectVTransform",
-	   pi, p->w[0], p->w[1], p->w[2], p->w[3], p->v[0], p->v[1], p->v[2]);
+           "_limnObjectVTransform",
+           pi, p->w[0], p->w[1], p->w[2], p->w[3], p->v[0], p->v[1], p->v[2]);
     */
   }
   return 0;
@@ -116,14 +116,14 @@ _limnObjectSTransform(limnObject *obj, limnCamera *cam) {
   for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
     d = (cam->orthographic 
-	 ? 1
-	 : cam->vspDist/vert->view[2]);
+         ? 1
+         : cam->vspDist/vert->view[2]);
     vert->screen[0] = d*vert->view[0];
     vert->screen[1] = d*vert->view[1];
     vert->screen[2] = vert->view[2];
     /*
     printf("%s: v[%d] = %g %g %g --> s = %g %g %g\n", "_limnObjectSTransform",
-	   pi, p->v[0], p->v[1], p->v[2], p->s[0], p->s[1], p->s[2]);
+           pi, p->v[0], p->v[1], p->v[2], p->s[0], p->s[1], p->s[2]);
     */
   }
   return 0;
@@ -146,12 +146,12 @@ _limnObjectDTransform(limnObject *obj, limnCamera *cam, limnWindow *win) {
   for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
     vert->device[0] = AIR_AFFINE(cam->uRange[0], vert->screen[0],
-				  cam->uRange[1], wx0, wx1);
+                                  cam->uRange[1], wx0, wx1);
     vert->device[1] = AIR_AFFINE(cam->vRange[0], vert->screen[1],
-				  cam->vRange[1], wy0, wy1);
+                                  cam->vRange[1], wy0, wy1);
     /*
     printf("%s: s[%d] = %g %g --> s = %g %g\n", "_limnObjectDTransform",
-	   pi, p->s[0], p->s[1], p->d[0], p->d[1]);
+           pi, p->s[0], p->s[1], p->d[0], p->d[1]);
     */
   }
   return 0;
@@ -196,7 +196,7 @@ limnObjectNormals(limnObject *obj, int space) {
 
 int
 limnObjectSpaceTransform(limnObject *obj, limnCamera *cam,
-		      limnWindow *win, int space) {
+                      limnWindow *win, int space) {
   char me[]="limnObjectSpaceTransform";
   int ret;
 
@@ -318,7 +318,7 @@ limnObjectDepthSortFaces(limnObject *obj) {
   }
 
   qsort(obj->faceSort, obj->faceNum,
-	sizeof(limnFace *), _limnFaceDepthCompare);
+        sizeof(limnFace *), _limnFaceDepthCompare);
 
   return 0;
 }
@@ -339,7 +339,7 @@ limnObjectFaceReverse(limnObject *obj) {
     buff = (int *)calloc(face->sideNum, sizeof(int));
     if (!(buff)) {
       sprintf(err, "%s: couldn't allocate %d side buffer for face %d\n", 
-	      me, face->sideNum, faceIdx);
+              me, face->sideNum, faceIdx);
       biffAdd(LIMN, err); return 1;
     }
     memcpy(buff, face->vertIdxIdx, face->sideNum*sizeof(int));

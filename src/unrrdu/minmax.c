@@ -64,7 +64,7 @@ unrrdu_minmaxMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   mop = airMopNew();
   hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL,
-	     "input nrrd(s)", &ninLen);
+             "input nrrd(s)", &ninLen);
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(_unrrdu_minmaxInfoL);
@@ -78,7 +78,7 @@ unrrdu_minmaxMain(int argc, char **argv, char *me, hestParm *hparm) {
     if (unrrdu_minmaxDoit(me, inS[ni], stdout)) {
       airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble with \"%s\":\n%s",
-	      me, inS[ni], err);
+              me, inS[ni], err);
       /* continue working on the remaining files */
     }
     if (ninLen > 1 && ni < ninLen-1) {

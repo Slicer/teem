@@ -23,7 +23,7 @@ char *wheelInfo = ("Makes pictures of the eigenvalue wheel");
 
 void
 wheelTenToGeom(double geom[3], double a, double b, double c,
-	       double d, double e, double f) {
+               double d, double e, double f) {
   double A, B, C, Q, QQQ, R, Th;
 
   A = -a - d - f;
@@ -72,9 +72,9 @@ wheelGeomToABC(double *ABC, double center, double radius, double angle) {
   ELL_3V_SET(geom, center, radius, angle);
   wheelGeomToRoot(x, yroot, geom);
   ELL_3V_SET(ABC,
-	     -x[0] - x[1] - x[2],
-	     x[0]*x[1] + x[1]*x[2] + x[0]*x[2],
-	     -x[0]*x[1]*x[2]);
+             -x[0] - x[1] - x[2],
+             x[0]*x[1] + x[1]*x[2] + x[0]*x[2],
+             -x[0]*x[1]*x[2]);
   return;
 }
 
@@ -100,8 +100,8 @@ wheelPreamble(wheelPS *wps) {
   fprintf(wps->file, "%%%%Creator: limn\n");
   fprintf(wps->file, "%%%%Pages: 1\n");
   fprintf(wps->file, "%%%%BoundingBox: 0 0 %d %d\n", 
-	  (int)(wps->maxX),
-	  (int)(wps->maxY));
+          (int)(wps->maxX),
+          (int)(wps->maxY));
   fprintf(wps->file, "%%%%EndComments\n");
   fprintf(wps->file, "%%%%EndProlog\n");
   fprintf(wps->file, "%%%%Page: 1 1\n");
@@ -161,7 +161,7 @@ wheelGraph(wheelPS *wps, double a, double d, double f) {
     x = AIR_AFFINE(0, xi, 99, wps->bbox[0], wps->bbox[2]);
     y = (((x + A)*x + B)*x + C)/2;
     fprintf(wps->file, "%g %g %s\n", WPS_X(x), WPS_Y(wps->yscale*y),
-	    xi ? "L" : "M");
+            xi ? "L" : "M");
   }
   fprintf(wps->file, "S\n");
   return;
@@ -179,23 +179,23 @@ void
 wheelCircle(wheelPS *wps, double xc, double yc, double rad) {
 
   fprintf(wps->file, "%g %g %g 0 360 arc closepath S\n", 
-	  WPS_X(xc), WPS_Y(yc), WPS_S(rad));
+          WPS_X(xc), WPS_Y(yc), WPS_S(rad));
   return;
 }
 
 void
 wheelArc(wheelPS *wps, double xc, double yc, double rad,
-	 double angle1, double angle2) {
+         double angle1, double angle2) {
   
   fprintf(wps->file, "newpath %g %g %g %g %g arc S\n", 
-	  WPS_X(xc), WPS_Y(yc), WPS_S(rad), angle1, angle2);
+          WPS_X(xc), WPS_Y(yc), WPS_S(rad), angle1, angle2);
 }
 
 void
 wheelDot(wheelPS *wps, double x, double y, double rad) {
 
   fprintf(wps->file, "%g %g %g 0 360 arc closepath F S\n", 
-	  WPS_X(x), WPS_Y(y), WPS_S(rad));
+          WPS_X(x), WPS_Y(y), WPS_S(rad));
   return;
 }
 
@@ -226,33 +226,33 @@ main(int argc, char *argv[]) {
   hopt = NULL;
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hestOptAdd(&hopt, "t", "a b c d e f", airTypeDouble, 6, 6, tval,
-	     "nan nan nan nan nan nan nan",
-	     "six values of symmetric tensors");
+             "nan nan nan nan nan nan nan",
+             "six values of symmetric tensors");
   hestOptAdd(&hopt, "ABC", "A B C", airTypeDouble, 3, 3, ABC, "nan nan nan",
-	     "directly give coefficients of cubic polynomial "
-	     "(and override info from \"-t\")");
+             "directly give coefficients of cubic polynomial "
+             "(and override info from \"-t\")");
   hestOptAdd(&hopt, "g", "c rad th", airTypeDouble, 3, 3, geom, "nan nan nan",
-	     "directly give center, radius, and angle (in degrees) of wheel "
-	     "(and override info from \"-t\" and \"-ABC\"");
+             "directly give center, radius, and angle (in degrees) of wheel "
+             "(and override info from \"-t\" and \"-ABC\"");
   hestOptAdd(&hopt, "correct", NULL, airTypeInt, 0, 0, &correct, NULL,
-	     "when using \"-g\", be honest about what the estimated "
-	     "acos(sqrt(2)*skew)/3 is going to be");
+             "when using \"-g\", be honest about what the estimated "
+             "acos(sqrt(2)*skew)/3 is going to be");
   hestOptAdd(&hopt, "labels", NULL, airTypeInt, 0, 0, &labels, NULL,
-	     "put little labels on things; fix with psfrag in LaTeX");
+             "put little labels on things; fix with psfrag in LaTeX");
   hestOptAdd(&hopt, "htick", "pos", airTypeDouble, 1, 1, &htick, "nan",
-	     "location of single tick mark on horizontal axis");
+             "location of single tick mark on horizontal axis");
   hestOptAdd(&hopt, "bb", "bbox", airTypeDouble, 4, 4, bbox, 
-	     "nan nan nan nan", "bounding box, in world space around the "
-	     "region of the graph that should be drawn to EPS");
+             "nan nan nan nan", "bounding box, in world space around the "
+             "region of the graph that should be drawn to EPS");
   hestOptAdd(&hopt, "ysc", "scale", airTypeDouble, 1, 1, &(wps.yscale), "0.5",
-	     "scaling on Y axis for drawing graph of characteristic "
-	     "polynomial, or \"0\" to turn this off.");
+             "scaling on Y axis for drawing graph of characteristic "
+             "polynomial, or \"0\" to turn this off.");
   hestOptAdd(&hopt, "psc", "scale", airTypeDouble, 1, 1, &psc, "100",
-	     "scaling from world space to PostScript points");
+             "scaling from world space to PostScript points");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
-	     "file to write EPS output to");
+             "file to write EPS output to");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
-		 me, wheelInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, wheelInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -275,7 +275,7 @@ main(int argc, char *argv[]) {
       tval[4] = 0;
       tval[5] = xroot[2];
       wheelTenToGeom(geom,
-		     tval[0], tval[1], tval[2], tval[3], tval[4], tval[5]);
+                     tval[0], tval[1], tval[2], tval[3], tval[4], tval[5]);
       wheelGeomToRoot(xroot, yroot, geom);
     }
     wheelGeomToABC(ABC, geom[0], geom[1], geom[2]);
@@ -289,7 +289,7 @@ main(int argc, char *argv[]) {
   }
   fprintf(stderr, "%s: ABC: %g %g %g\n", me, ABC[0], ABC[1], ABC[2]);
   fprintf(stderr, "%s: xroot: %g %g %g\n",
-	  me, xroot[0], xroot[1], xroot[2]);
+          me, xroot[0], xroot[1], xroot[2]);
   fprintf(stderr, "%s: geom: %g %g %g\n", me, geom[0], geom[1], geom[2]);
 
   if (!AIR_EXISTS(bbox[0])) {
@@ -298,7 +298,7 @@ main(int argc, char *argv[]) {
     bbox[2] = geom[0] + 1.2*geom[1];
     bbox[3] = + 1.2*geom[1];
     fprintf(stderr, "%s: bbox %g %g %g %g\n", me,
-	    bbox[0], bbox[1], bbox[2], bbox[3]);
+            bbox[0], bbox[1], bbox[2], bbox[3]);
   }
   wps.psc = psc;
   ELL_4V_COPY(wps.bbox, bbox);
@@ -360,7 +360,7 @@ main(int argc, char *argv[]) {
     wheelWidth(&wps, 2);
     wheelArc(&wps, geom[0], 0, geom[1]/2, 0, 180*geom[2]/AIR_PI);
     wheelLabel(&wps, geom[1]*cos(geom[2]/2)/2.5, 
-	       geom[1]*sin(geom[2]/2)/2.5, "theta");
+               geom[1]*sin(geom[2]/2)/2.5, "theta");
     wheelLabel(&wps, xroot[0], yroot[0], "spoke0");
     wheelLabel(&wps, xroot[1], yroot[1], "spoke-");
     wheelLabel(&wps, xroot[2], yroot[2], "spoke+");

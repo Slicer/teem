@@ -42,7 +42,7 @@ _alanCheck(alanContext *actx) {
     biffAdd(ALAN, err); return 1;
   }
   if (!( actx->size[0] > 0 && actx->size[1] > 0
-	 && (2 == actx->dim || actx->size[2] > 0) )) {
+         && (2 == actx->dim || actx->size[2] > 0) )) {
     sprintf(err, "%s: texture sizes invalid", me);
     biffAdd(ALAN, err); return 1;
   }
@@ -72,16 +72,16 @@ alanUpdate(alanContext *actx) {
   actx->nparm = nrrdNew();
   if (2 == actx->dim) {
     ret = (nrrdMaybeAlloc(actx->_nlev[0], alan_nt, 3,
-			  2, actx->size[0], actx->size[1])
-	   || nrrdCopy(actx->_nlev[1], actx->_nlev[0])
-	   || nrrdMaybeAlloc(actx->nparm, alan_nt, 3,
-			     3, actx->size[0], actx->size[1]));
+                          2, actx->size[0], actx->size[1])
+           || nrrdCopy(actx->_nlev[1], actx->_nlev[0])
+           || nrrdMaybeAlloc(actx->nparm, alan_nt, 3,
+                             3, actx->size[0], actx->size[1]));
   } else {
     ret = (nrrdMaybeAlloc(actx->_nlev[0], alan_nt, 4,
-			  2, actx->size[0], actx->size[1], actx->size[2])
-	   || nrrdCopy(actx->_nlev[1], actx->_nlev[0])
-	   || nrrdMaybeAlloc(actx->nparm, alan_nt, 4,
-			     3, actx->size[0], actx->size[1], actx->size[2]));
+                          2, actx->size[0], actx->size[1], actx->size[2])
+           || nrrdCopy(actx->_nlev[1], actx->_nlev[0])
+           || nrrdMaybeAlloc(actx->nparm, alan_nt, 4,
+                             3, actx->size[0], actx->size[1], actx->size[2]));
   }
   if (ret) {
     sprintf(err, "%s: trouble allocating buffers", me);
@@ -112,11 +112,11 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
       biffMove(ALAN, err, NRRD); return 1;
     }
     if (!( alan_nt == nlevInit->type 
-	   && nlevInit->dim == 1 + actx->dim
-	   && actx->_nlev[0]->axis[0].size == nlevInit->axis[0].size
-	   && actx->size[0] == nlevInit->axis[1].size
-	   && actx->size[1] == nlevInit->axis[2].size 
-	   && (2 == actx->dim || actx->size[2] == nlevInit->axis[3].size) )) {
+           && nlevInit->dim == 1 + actx->dim
+           && actx->_nlev[0]->axis[0].size == nlevInit->axis[0].size
+           && actx->size[0] == nlevInit->axis[1].size
+           && actx->size[1] == nlevInit->axis[2].size 
+           && (2 == actx->dim || actx->size[2] == nlevInit->axis[3].size) )) {
       sprintf(err, "%s: type/size mismatch with given nlevInit", me);
       biffAdd(ALAN, err); return 1;
     }
@@ -128,11 +128,11 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
       biffMove(ALAN, err, NRRD); return 1;
     }
     if (!( alan_nt == nparmInit->type 
-	   && nparmInit->dim == 1 + actx->dim
-	   && 3 == nparmInit->axis[0].size
-	   && actx->size[0] == nparmInit->axis[1].size
-	   && actx->size[1] == nparmInit->axis[2].size 
-	   && (2 == actx->dim || actx->size[2] == nparmInit->axis[3].size) )) {
+           && nparmInit->dim == 1 + actx->dim
+           && 3 == nparmInit->axis[0].size
+           && actx->size[0] == nparmInit->axis[1].size
+           && actx->size[1] == nparmInit->axis[2].size 
+           && (2 == actx->dim || actx->size[2] == nparmInit->axis[3].size) )) {
       sprintf(err, "%s: type/size mismatch with given nparmInit", me);
       biffAdd(ALAN, err); return 1;
     }
@@ -150,7 +150,7 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
       lev0[1 + 2*I] = levInit[1 + 2*I];
     } else {
       /* NOTE: the random number stuff here is OUTSIDE the multi-threaded
-	 segment of the program- only the init thread does this */
+         segment of the program- only the init thread does this */
       lev0[0 + 2*I] = actx->initA + RAND;
       lev0[1 + 2*I] = actx->initB + RAND;
     }
@@ -175,23 +175,23 @@ _alanPerIteration(alanContext *actx, int iter) {
   if (!(actx->saveInterval || actx->frameInterval)) {
     if (actx->verbose && !(iter % 100)) {
       fprintf(stderr, "%s: iter = %d, averageChange = %g\n",
-	      me, iter, actx->averageChange);
+              me, iter, actx->averageChange);
     }
   }
   if (actx->saveInterval && !(iter % actx->saveInterval)) {
     sprintf(fname, "%06d.nrrd", actx->constFilename ? 0 : iter);
     nrrdSave(fname, actx->_nlev[(iter+1) % 2], NULL);
     fprintf(stderr, "%s: iter = %d, averageChange = %g, saved %s\n",
-	    me, iter, actx->averageChange, fname);
+            me, iter, actx->averageChange, fname);
   }
   if (actx->frameInterval && !(iter % actx->frameInterval)) {
     nrrdSlice(nslc=nrrdNew(), actx->_nlev[(iter+1) % 2], 0, 0);
     nrrdQuantize(nimg=nrrdNew(), nslc, NULL, 8);
     sprintf(fname, (2 == actx->dim ? "%06d.png" : "%06d.nrrd"),
-	    actx->constFilename ? 0 : iter);
+            actx->constFilename ? 0 : iter);
     nrrdSave(fname, nimg, NULL);
     fprintf(stderr, "%s: iter = %d, averageChange = %g, saved %s\n",
-	    me, iter, actx->averageChange, fname);
+            me, iter, actx->averageChange, fname);
     nrrdNuke(nslc);
     nrrdNuke(nimg);
   }
@@ -252,8 +252,8 @@ _alanTuringWorker(void *_task) {
 
   for (iter = 0; 
        (alanStopNot == task->actx->stop 
-	&& (0 == task->actx->maxIteration
-	    || iter < task->actx->maxIteration)); 
+        && (0 == task->actx->maxIteration
+            || iter < task->actx->maxIteration)); 
        iter++) {
 
     if (0 == task->idx) {
@@ -267,147 +267,147 @@ _alanTuringWorker(void *_task) {
     conf = 1;  /* if you have no data; this will stay 1 */
     for (z = startZ; z < endZ; z++) {
       if (task->actx->wrap) {
-	pz = AIR_MOD(z+1, sz);
-	mz = AIR_MOD(z-1, sz);
+        pz = AIR_MOD(z+1, sz);
+        mz = AIR_MOD(z-1, sz);
       } else {
-	pz = AIR_MIN(z+1, sz-1);
-	mz = AIR_MAX(z-1, 0);
+        pz = AIR_MIN(z+1, sz-1);
+        mz = AIR_MAX(z-1, 0);
       }
       for (y = startY; y < endY; y++) {
-	if (task->actx->wrap) {
-	  py = AIR_MOD(y+1, sy);
-	  my = AIR_MOD(y-1, sy);
-	} else {
-	  py = AIR_MIN(y+1, sy-1);
-	  my = AIR_MAX(y-1, 0);
-	}
-	for (x = 0; x < sx; x++) {
-	  if (task->actx->wrap) {
-	    px = AIR_MOD(x+1, sx);
-	    mx = AIR_MOD(x-1, sx);
-	  } else {
-	    px = AIR_MIN(x+1, sx-1);
-	    mx = AIR_MAX(x-1, 0);
-	  }
-	  idx = x + sx*(y + sy*z);
-	  A = lev0[0 + 2*idx];
-	  B = lev0[1 + 2*idx];
-	  deltaT = parm[0 + 3*idx];
-	  alpha = parm[1 + 3*idx];
-	  beta = parm[2 + 3*idx];
-	  lapA = lapB = corrA = corrB = 0;
-	  if (2 == dim) {
-	    /*
-	    **  0 1 2 ----> X
-	    **  3 4 5
-	    **  6 7 8
+        if (task->actx->wrap) {
+          py = AIR_MOD(y+1, sy);
+          my = AIR_MOD(y-1, sy);
+        } else {
+          py = AIR_MIN(y+1, sy-1);
+          my = AIR_MAX(y-1, 0);
+        }
+        for (x = 0; x < sx; x++) {
+          if (task->actx->wrap) {
+            px = AIR_MOD(x+1, sx);
+            mx = AIR_MOD(x-1, sx);
+          } else {
+            px = AIR_MIN(x+1, sx-1);
+            mx = AIR_MAX(x-1, 0);
+          }
+          idx = x + sx*(y + sy*z);
+          A = lev0[0 + 2*idx];
+          B = lev0[1 + 2*idx];
+          deltaT = parm[0 + 3*idx];
+          alpha = parm[1 + 3*idx];
+          beta = parm[2 + 3*idx];
+          lapA = lapB = corrA = corrB = 0;
+          if (2 == dim) {
+            /*
+            **  0 1 2 ----> X
+            **  3 4 5
+            **  6 7 8
             **  |
-	    **  v Y
-	    */
-	    v[1] = lev0 + 2*( x + sx*(my));
-	    v[3] = lev0 + 2*(mx + sx*( y));
-	    v[5] = lev0 + 2*(px + sx*( y));
-	    v[7] = lev0 + 2*( x + sx*(py));
-	    if (tendata) {
-	      /*
-	      **  0 1 2    Dxy/2          Dyy        -Dxy/2
-	      **  3 4 5     Dxx     -2*(Dxx + Dyy)     Dxx
-	      **  6 7 8   -Dxy/2          Dyy         Dxy/2
-	      */
-	      v[0] = lev0 + 2*(mx + sx*(my));
-	      v[2] = lev0 + 2*(px + sx*(my));
-	      v[6] = lev0 + 2*(mx + sx*(py));
-	      v[8] = lev0 + 2*(px + sx*(py));
-	      ten = tendata + 4*idx;
-	      conf = (AIR_CLAMP(0.3, ten[0], 1) - 0.3)/0.7;
-	      if (conf) {
-		Dxx = ten[1];
-		Dxy = ten[2];
-		Dyy = ten[3];
-		lapA = (Dxy*(v[0][0] + v[8][0] - v[2][0] - v[6][0])/2
-			+ Dxx*(v[3][0] + v[5][0]) + Dyy*(v[1][0] + v[7][0])
-			- 2*(Dxx + Dyy)*A);
-		lapB = (Dxy*(v[0][1] + v[8][1] - v[2][1] - v[6][1])/2
-			+ Dxx*(v[3][1] + v[5][1]) + Dyy*(v[1][1] + v[7][1])
-			- 2*(Dxx + Dyy)*B);
-		if (!(task->actx->homogAniso)) {
-		  tpx = tendata + 4*(px + sx*( y + sy*( z)));
-		  tmx = tendata + 4*(mx + sx*( y + sy*( z)));
-		  tpy = tendata + 4*( x + sx*(py + sy*( z)));
-		  tmy = tendata + 4*( x + sx*(my + sy*( z)));
-		  corrA = ((tpx[1] - tmx[1])*(v[5][0] - v[3][0])/4 +  /* Dxx,x * A,x */
-			   (tpx[2] - tmx[2])*(v[7][0] - v[1][0])/4 +  /* Dxy,x * A,y */
-			   (tpy[2] - tmy[2])*(v[5][0] - v[3][0])/4 +  /* Dxy,y * A,x */
-			   (tpy[3] - tmy[3])*(v[7][0] - v[1][0]));    /* Dyy,y * A,y */
-		  corrB = ((tpx[1] - tmx[1])*(v[5][1] - v[3][1])/4 +  /* Dxx,x * B,x */
-			   (tpx[2] - tmx[2])*(v[7][1] - v[1][1])/4 +  /* Dxy,x * B,y */
-			   (tpy[2] - tmy[2])*(v[5][1] - v[3][1])/4 +  /* Dxy,y * B,x */
-			   (tpy[3] - tmy[3])*(v[7][1] - v[1][1]));    /* Dyy,y * B,y */
-		}
-	      } else {
-		/* no confidence; you diffuse */
-		lapA = v[1][0] + v[3][0] + v[5][0] + v[7][0] - 4*A;
-		lapB = v[1][1] + v[3][1] + v[5][1] + v[7][1] - 4*B;
-	      }
-	    } else {
-	      /* no data; you diffuse */
-	      lapA = v[1][0] + v[3][0] + v[5][0] + v[7][0] - 4*A;
-	      lapB = v[1][1] + v[3][1] + v[5][1] + v[7][1] - 4*B;
-	    }
-	  } else {
-	    /* 3 == dim */
-	    /*
-	    **          0   1   2   ---- X
-	    **        3   4   5
-	    **      6   7   8
-	    **    /
-	    **  /       9  10  11
-	    ** Y     12  13  14
-	    **     15  16  17
-	    **
-	    **         18  19  20
-	    **       21  22  23
-	    **     24  25  26
-	    **         |
-	    **         |
-	    **         Z
-	    */
-	    v[ 4] = lev0 + 2*( x + sx*( y + sy*(mz)));
-	    v[10] = lev0 + 2*( x + sx*(my + sy*( z)));
-	    v[12] = lev0 + 2*(mx + sx*( y + sy*( z)));
-	    v[14] = lev0 + 2*(px + sx*( y + sy*( z)));
-	    v[16] = lev0 + 2*( x + sx*(py + sy*( z)));
-	    v[22] = lev0 + 2*( x + sx*( y + sy*(pz)));
-	    if (tendata) {
+            **  v Y
+            */
+            v[1] = lev0 + 2*( x + sx*(my));
+            v[3] = lev0 + 2*(mx + sx*( y));
+            v[5] = lev0 + 2*(px + sx*( y));
+            v[7] = lev0 + 2*( x + sx*(py));
+            if (tendata) {
+              /*
+              **  0 1 2    Dxy/2          Dyy        -Dxy/2
+              **  3 4 5     Dxx     -2*(Dxx + Dyy)     Dxx
+              **  6 7 8   -Dxy/2          Dyy         Dxy/2
+              */
+              v[0] = lev0 + 2*(mx + sx*(my));
+              v[2] = lev0 + 2*(px + sx*(my));
+              v[6] = lev0 + 2*(mx + sx*(py));
+              v[8] = lev0 + 2*(px + sx*(py));
+              ten = tendata + 4*idx;
+              conf = (AIR_CLAMP(0.3, ten[0], 1) - 0.3)/0.7;
+              if (conf) {
+                Dxx = ten[1];
+                Dxy = ten[2];
+                Dyy = ten[3];
+                lapA = (Dxy*(v[0][0] + v[8][0] - v[2][0] - v[6][0])/2
+                        + Dxx*(v[3][0] + v[5][0]) + Dyy*(v[1][0] + v[7][0])
+                        - 2*(Dxx + Dyy)*A);
+                lapB = (Dxy*(v[0][1] + v[8][1] - v[2][1] - v[6][1])/2
+                        + Dxx*(v[3][1] + v[5][1]) + Dyy*(v[1][1] + v[7][1])
+                        - 2*(Dxx + Dyy)*B);
+                if (!(task->actx->homogAniso)) {
+                  tpx = tendata + 4*(px + sx*( y + sy*( z)));
+                  tmx = tendata + 4*(mx + sx*( y + sy*( z)));
+                  tpy = tendata + 4*( x + sx*(py + sy*( z)));
+                  tmy = tendata + 4*( x + sx*(my + sy*( z)));
+                  corrA = ((tpx[1] - tmx[1])*(v[5][0] - v[3][0])/4 +  /* Dxx,x * A,x */
+                           (tpx[2] - tmx[2])*(v[7][0] - v[1][0])/4 +  /* Dxy,x * A,y */
+                           (tpy[2] - tmy[2])*(v[5][0] - v[3][0])/4 +  /* Dxy,y * A,x */
+                           (tpy[3] - tmy[3])*(v[7][0] - v[1][0]));    /* Dyy,y * A,y */
+                  corrB = ((tpx[1] - tmx[1])*(v[5][1] - v[3][1])/4 +  /* Dxx,x * B,x */
+                           (tpx[2] - tmx[2])*(v[7][1] - v[1][1])/4 +  /* Dxy,x * B,y */
+                           (tpy[2] - tmy[2])*(v[5][1] - v[3][1])/4 +  /* Dxy,y * B,x */
+                           (tpy[3] - tmy[3])*(v[7][1] - v[1][1]));    /* Dyy,y * B,y */
+                }
+              } else {
+                /* no confidence; you diffuse */
+                lapA = v[1][0] + v[3][0] + v[5][0] + v[7][0] - 4*A;
+                lapB = v[1][1] + v[3][1] + v[5][1] + v[7][1] - 4*B;
+              }
+            } else {
+              /* no data; you diffuse */
+              lapA = v[1][0] + v[3][0] + v[5][0] + v[7][0] - 4*A;
+              lapB = v[1][1] + v[3][1] + v[5][1] + v[7][1] - 4*B;
+            }
+          } else {
+            /* 3 == dim */
+            /*
+            **          0   1   2   ---- X
+            **        3   4   5
+            **      6   7   8
+            **    /
+            **  /       9  10  11
+            ** Y     12  13  14
+            **     15  16  17
+            **
+            **         18  19  20
+            **       21  22  23
+            **     24  25  26
+            **         |
+            **         |
+            **         Z
+            */
+            v[ 4] = lev0 + 2*( x + sx*( y + sy*(mz)));
+            v[10] = lev0 + 2*( x + sx*(my + sy*( z)));
+            v[12] = lev0 + 2*(mx + sx*( y + sy*( z)));
+            v[14] = lev0 + 2*(px + sx*( y + sy*( z)));
+            v[16] = lev0 + 2*( x + sx*(py + sy*( z)));
+            v[22] = lev0 + 2*( x + sx*( y + sy*(pz)));
+            if (tendata) {
 
-	      if (!(task->actx->homogAniso)) {
-		
-	      }
-	    } else {
-	      lapA = (v[ 4][0] + v[10][0] + v[12][0]
-		      + v[14][0] + v[16][0] + v[22][0] - 6*A);
-	      lapB = (v[ 4][1] + v[10][1] + v[12][1]
-		      + v[14][1] + v[16][1] + v[22][1] - 6*B);
-	    }
-	  }
-	  
-	  deltaA = deltaT*(react*conf*task->actx->K*(alpha - A*B) 
-			   + diffA*(lapA + corrA));
-	  if (AIR_ABS(deltaA) > task->actx->maxPixelChange) {
-	    stop = alanStopDiverged;
-	  }
-	  change += AIR_ABS(deltaA);
-	  deltaB = deltaT*(react*conf*task->actx->K*(A*B - B - beta)
-			   + diffB*(lapB + corrB));
-	  if (!( AIR_EXISTS(deltaA) && AIR_EXISTS(deltaB) )) {
-	    stop = alanStopNonExist;
-	  }
-	  
-	  A += deltaA;
-	  B = AIR_MAX(0, B + deltaB);
-	  lev1[0 + 2*idx] = A;
-	  lev1[1 + 2*idx] = B; 
-	}
+              if (!(task->actx->homogAniso)) {
+                
+              }
+            } else {
+              lapA = (v[ 4][0] + v[10][0] + v[12][0]
+                      + v[14][0] + v[16][0] + v[22][0] - 6*A);
+              lapB = (v[ 4][1] + v[10][1] + v[12][1]
+                      + v[14][1] + v[16][1] + v[22][1] - 6*B);
+            }
+          }
+          
+          deltaA = deltaT*(react*conf*task->actx->K*(alpha - A*B) 
+                           + diffA*(lapA + corrA));
+          if (AIR_ABS(deltaA) > task->actx->maxPixelChange) {
+            stop = alanStopDiverged;
+          }
+          change += AIR_ABS(deltaA);
+          deltaB = deltaT*(react*conf*task->actx->K*(A*B - B - beta)
+                           + diffB*(lapB + corrB));
+          if (!( AIR_EXISTS(deltaA) && AIR_EXISTS(deltaB) )) {
+            stop = alanStopNonExist;
+          }
+          
+          A += deltaA;
+          B = AIR_MAX(0, B + deltaB);
+          lev1[0 + 2*idx] = A;
+          lev1[1 + 2*idx] = B; 
+        }
       }
     }
     
@@ -417,21 +417,21 @@ _alanTuringWorker(void *_task) {
     task->actx->changeCount += 1;
     if (task->actx->changeCount == task->actx->numThreads) {
       /* I must be the last thread to reach this point; all 
-	 others must have passed the mutex unlock, and are
-	 sitting at the barrier */
+         others must have passed the mutex unlock, and are
+         sitting at the barrier */
       if (alanStopNot != stop) {
-	/* there was some problem in going from lev0 to lev1, which
-	   we deal with now by setting actx->stop */
-	task->actx->stop = stop;
+        /* there was some problem in going from lev0 to lev1, which
+           we deal with now by setting actx->stop */
+        task->actx->stop = stop;
       } else if (task->actx->averageChange < task->actx->minAverageChange) {
-	/* we converged */
-	task->actx->stop = alanStopConverged;
+        /* we converged */
+        task->actx->stop = alanStopConverged;
       } else {
-	/* we keep going */
-	_alanPerIteration(task->actx, iter);
-	if (task->actx->perIteration) {
-	  task->actx->perIteration(task->actx, iter);
-	}
+        /* we keep going */
+        _alanPerIteration(task->actx, iter);
+        if (task->actx->perIteration) {
+          task->actx->perIteration(task->actx, iter);
+        }
       }
       task->actx->averageChange = 0;
       task->actx->changeCount = 0;
@@ -462,7 +462,7 @@ alanRun(alanContext *actx) {
   }
   if (!( actx->_nlev[0] && actx->_nlev[0] )) {
     sprintf(err, "%s: _nlev[0,1] not allocated: "
-	    "call alanUpdate + alanInit", me);
+            "call alanUpdate + alanInit", me);
     biffAdd(ALAN, err); return 1;
   }
 
@@ -480,7 +480,7 @@ alanRun(alanContext *actx) {
     task[tid].idx = tid;
     task[tid].thread = airThreadNew();
     airThreadStart(task[tid].thread, _alanTuringWorker,
-		   (void *)&(task[tid]));
+                   (void *)&(task[tid]));
   }
   for (tid=0; tid<actx->numThreads; tid++) {
     airThreadJoin(task[tid].thread, &(task[tid].me));

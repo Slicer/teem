@@ -47,7 +47,7 @@ nrrdSample_nva(void *val, const Nrrd *nrrd, const int *coord) {
   for (d=0; d<nrrd->dim; d++) {
     if (!(AIR_IN_CL(0, coord[d], size[d]-1))) {
       sprintf(err, "%s: coordinate %d on axis %d out of bounds (0 to %d)", 
-	      me, coord[d], d, size[d]-1);
+              me, coord[d], d, size[d]-1);
       biffAdd(NRRD, err); return 1;
     }
   }
@@ -125,12 +125,12 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, int axis, int pos) {
   }
   if (!(AIR_IN_CL(0, axis, nin->dim-1))) {
     sprintf(err, "%s: slice axis %d out of bounds (0 to %d)", 
-	    me, axis, nin->dim-1);
+            me, axis, nin->dim-1);
     biffAdd(NRRD, err); return 1;
   }
   if (!(AIR_IN_CL(0, pos, nin->axis[axis].size-1) )) {
     sprintf(err, "%s: position %d out of bounds (0 to %d)", 
-	    me, pos, nin->axis[axis].size-1);
+            me, pos, nin->axis[axis].size-1);
     biffAdd(NRRD, err); return 1;
   }
   /* this shouldn't actually be necessary ... */
@@ -223,13 +223,13 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, int *min, int *max) {
   for (d=0; d<nin->dim; d++) {
     if (!(min[d] <= max[d])) {
       sprintf(err, "%s: axis %d min (%d) not <= max (%d)", 
-	      me, d, min[d], max[d]);
+              me, d, min[d], max[d]);
       biffAdd(NRRD, err); return 1;
     }
     if (!(AIR_IN_CL(0, min[d], nin->axis[d].size-1) &&
-	  AIR_IN_CL(0, max[d], nin->axis[d].size-1))) {
+          AIR_IN_CL(0, max[d], nin->axis[d].size-1))) {
       sprintf(err, "%s: axis %d min (%d) or max (%d) out of bounds [0,%d]",
-	      me, d, min[d], max[d], nin->axis[d].size-1);
+              me, d, min[d], max[d], nin->axis[d].size-1);
       biffAdd(NRRD, err); return 1;
     }
   }
@@ -275,9 +275,9 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, int *min, int *max) {
     NRRD_INDEX_GEN(idxIn, cIn, szIn, nin->dim);
     /*
     printf("!%s: %5d: cOut=(%3d,%3d,%3d) --> idxOut = %5d\n",
-	   me, (int)I, cOut[0], cOut[1], cOut[2], (int)idxOut);
+           me, (int)I, cOut[0], cOut[1], cOut[2], (int)idxOut);
     printf("!%s: %5d:  cIn=(%3d,%3d,%3d) -->  idxIn = %5d\n",
-	   me, (int)I, cIn[0], cIn[1], cIn[2], (int)idxIn);
+           me, (int)I, cIn[0], cIn[1], cIn[2], (int)idxIn);
     */
     memcpy(dataOut + idxOut*typeSize, dataIn + idxIn*typeSize, lineSize);
     /* the lowest coordinate in cOut[] will stay zero, since we are 
@@ -285,14 +285,14 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, int *min, int *max) {
     NRRD_COORD_INCR(cOut, szOut, nin->dim, 1);
   }
   if (nrrdAxisInfoCopy(nout, nin, NULL, (NRRD_AXIS_INFO_SIZE_BIT |
-					 NRRD_AXIS_INFO_MIN_BIT |
-					 NRRD_AXIS_INFO_MAX_BIT ))) {
+                                         NRRD_AXIS_INFO_MIN_BIT |
+                                         NRRD_AXIS_INFO_MAX_BIT ))) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   for (d=0; d<nin->dim; d++) {
     nrrdAxisInfoPosRange(&(nout->axis[d].min), &(nout->axis[d].max),
-			 nin, d, min[d], max[d]);
+                         nin, d, min[d], max[d]);
     nout->axis[d].kind = _nrrdKindAltered(nin->axis[d].kind);
   }
   strcpy(buff1, "");

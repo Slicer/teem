@@ -28,8 +28,8 @@ char *_tend_satinInfoL =
 
 void
 tend_satinSphereEigen(float *eval, float *evec, float x, float y, float z,
-		      float parm, float mina, float maxa,
-		      float thick, float bnd) {
+                      float parm, float mina, float maxa,
+                      float thick, float bnd) {
   double aniso, bound1, bound2, r, norm, tmp[3];
 
   r = sqrt(x*x + y*y + z*z);
@@ -40,10 +40,10 @@ tend_satinSphereEigen(float *eval, float *evec, float x, float y, float z,
   aniso = AIR_AFFINE(0, AIR_MIN(bound1, bound2), 1, mina, maxa);
 
   ELL_3V_SET(eval,
-	     AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 1.0, 0.0)),
-	     AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 0.0, 1.0)),
-	     AIR_LERP(aniso, 1.0/3.0, 0));
-	     
+             AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 1.0, 0.0)),
+             AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 0.0, 1.0)),
+             AIR_LERP(aniso, 1.0/3.0, 0));
+             
   /* v0: looking down positive Z, points counter clockwise */
   if (x || y) {
     ELL_3V_SET(evec + 3*0, y, -x, 0);
@@ -65,8 +65,8 @@ tend_satinSphereEigen(float *eval, float *evec, float x, float y, float z,
 
 void
 tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z,
-		     float parm, float mina, float maxa,
-		     float thick, float bnd) {
+                     float parm, float mina, float maxa,
+                     float thick, float bnd) {
   double bound, R, r, norm, out[3], up[3], aniso;
 
   thick *= 2;
@@ -77,9 +77,9 @@ tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z,
   aniso = AIR_AFFINE(0, bound, 1, mina, maxa);
 
   ELL_3V_SET(eval,
-	     AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 1.0, 0.0)),
-	     AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 0.0, 1.0)),
-	     AIR_LERP(aniso, 1.0/3.0, 0));
+             AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 1.0, 0.0)),
+             AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 0.0, 1.0)),
+             AIR_LERP(aniso, 1.0/3.0, 0));
 
   ELL_3V_SET(up, 0, 0, 1);
 
@@ -106,7 +106,7 @@ tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z,
 
 int
 tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
-	      float thick, float bnd, int torus) {
+              float thick, float bnd, int torus) {
   char me[]="tend_satinGen", err[AIR_STRLEN_MED], buff[AIR_STRLEN_SMALL];
   Nrrd *nconf, *neval, *nevec;
   float *conf, *eval, *evec;
@@ -123,11 +123,11 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
     ELL_3V_SET(max, 1, 1, 1);
   }
   if (nrrdMaybeAlloc(nconf=nrrdNew(), nrrdTypeFloat, 3,
-		     size[0], size[1], size[2]) ||
+                     size[0], size[1], size[2]) ||
       nrrdMaybeAlloc(neval=nrrdNew(), nrrdTypeFloat, 4,
-		     3, size[0], size[1], size[2]) ||
+                     3, size[0], size[1], size[2]) ||
       nrrdMaybeAlloc(nevec=nrrdNew(), nrrdTypeFloat, 4,
-		     9, size[0], size[1], size[2])) {
+                     9, size[0], size[1], size[2])) {
     sprintf(err, "%s: trouble allocating temp nrrds", me);
     biffMove(TEN, err, NRRD); return 1;
   }
@@ -140,18 +140,18 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
     for (yi=0; yi<size[1]; yi++) {
       y = AIR_AFFINE(0, yi, size[1]-1, min[1], max[1]);
       for (xi=0; xi<size[0]; xi++) {
-	x = AIR_AFFINE(0, xi, size[0]-1, min[0], max[0]);
-	*conf = 1.0;
-	if (torus) {
-	  tend_satinTorusEigen(eval, evec, x, y, z, parm,
-			       mina, maxa, thick, bnd);
-	} else {
-	  tend_satinSphereEigen(eval, evec, x, y, z, parm,
-				mina, maxa, thick, bnd);
-	}
-	conf += 1;
-	eval += 3;
-	evec += 9;
+        x = AIR_AFFINE(0, xi, size[0]-1, min[0], max[0]);
+        *conf = 1.0;
+        if (torus) {
+          tend_satinTorusEigen(eval, evec, x, y, z, parm,
+                               mina, maxa, thick, bnd);
+        } else {
+          tend_satinSphereEigen(eval, evec, x, y, z, parm,
+                                mina, maxa, thick, bnd);
+        }
+        conf += 1;
+        eval += 3;
+        evec += 9;
       }
     }
   }
@@ -184,29 +184,29 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *outS;
   
   hestOptAdd(&hopt, "t", "do torus", airTypeInt, 0, 0, &torus, NULL,
-	     "generate a torus dataset, instead of the default spherical");
+             "generate a torus dataset, instead of the default spherical");
   hestOptAdd(&hopt, "p", "aniso parm", airTypeFloat, 1, 1, &parm, NULL,
-	     "anisotropy parameter.  0.0 for one direction of linear (along "
-	     "the equator for spheres, or along the larger circumference for "
-	     "toruses), 1.0 for planar, 2.0 for the other direction of linear "
-	     "(from pole to pole for spheres, or along the smaller "
-	     "circumference for toruses)");
+             "anisotropy parameter.  0.0 for one direction of linear (along "
+             "the equator for spheres, or along the larger circumference for "
+             "toruses), 1.0 for planar, 2.0 for the other direction of linear "
+             "(from pole to pole for spheres, or along the smaller "
+             "circumference for toruses)");
   hestOptAdd(&hopt, "max", "max ca1", airTypeFloat, 1, 1, &maxa, "1.0",
-	     "maximum anisotropy in dataset, according to the \"ca1\" "
-	     "anisotropy metric.  \"1.0\" means "
-	     "completely linear or completely planar anisotropy");
+             "maximum anisotropy in dataset, according to the \"ca1\" "
+             "anisotropy metric.  \"1.0\" means "
+             "completely linear or completely planar anisotropy");
   hestOptAdd(&hopt, "min", "min ca1", airTypeFloat, 1, 1, &mina, "0.0",
-	     "minimum anisotropy in dataset");
+             "minimum anisotropy in dataset");
   hestOptAdd(&hopt, "b", "boundary", airTypeFloat, 1, 1, &bnd, "0.05",
-	     "parameter governing how fuzzy the boundary between high and "
-	     "low anisotropy is. Use \"-b 0\" for no fuzziness");
+             "parameter governing how fuzzy the boundary between high and "
+             "low anisotropy is. Use \"-b 0\" for no fuzziness");
   hestOptAdd(&hopt, "th", "thickness", airTypeFloat, 1, 1, &thick, "0.3",
-	     "parameter governing how thick region of high anisotropy is");
+             "parameter governing how thick region of high anisotropy is");
   hestOptAdd(&hopt, "s", "size", airTypeInt, 1, 1, &wsize, "32",
-	     "dimensions of output volume.  For size N, the output is "
-	     "N\tx\tN\tx\tN for spheres, and 2N\tx\t2N\tx\tN for toruses");
+             "dimensions of output volume.  For size N, the output is "
+             "N\tx\tN\tx\tN for spheres, and 2N\tx\t2N\tx\tN for toruses");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output filename");
+             "output filename");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

@@ -45,7 +45,7 @@ unrrdu_blockMain(int argc, char **argv, char *me, hestParm *hparm) {
      no command-line arguments whatsoever, and then the user would not
      know how to get the basic usage information */
   hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &nin, NULL, "input nrrd",
-	     NULL, NULL, nrrdHestNrrd);
+             NULL, NULL, nrrdHestNrrd);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();

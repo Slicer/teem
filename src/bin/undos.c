@@ -24,13 +24,13 @@
 #include <teem/hest.h>
 
 char *info = ("Converts from DOS text files to normal (converting LF-CR pairs "
-	      "to just CR), or, with the \"-r\" option, convert back to DOS, "
-	      "for whatever sick and twisted reason you'd have to do that. "
-	      "Unlike the simple sed or perl scripts for this purpose, "
-	      "this program is careful to be idempotent.  Also, this makes "
-	      "an effort to not meddle with binary files (on which this may "
-	      "be mistakenly invoked).  A message is printed "
-	      "to stderr for all the files actually modified. ");
+              "to just CR), or, with the \"-r\" option, convert back to DOS, "
+              "for whatever sick and twisted reason you'd have to do that. "
+              "Unlike the simple sed or perl scripts for this purpose, "
+              "this program is careful to be idempotent.  Also, this makes "
+              "an effort to not meddle with binary files (on which this may "
+              "be mistakenly invoked).  A message is printed "
+              "to stderr for all the files actually modified. ");
 
 #define CR 10
 #define LF 13
@@ -56,7 +56,7 @@ undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
   if (!fin) {
     if (!quiet) {
       fprintf(stderr, "%s: couldn't open \"%s\" for reading: \"%s\"\n", 
-	      me, name, strerror(errno));
+              me, name, strerror(errno));
     }
     airMopError(mop); return;
   }
@@ -87,7 +87,7 @@ undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
     ci = airArrayIncrLen(dataArr, 1);
     if (-1 == ci) {
       if (!quiet) {
-	fprintf(stderr, "%s: internal allocation error #2\n", me);
+        fprintf(stderr, "%s: internal allocation error #2\n", me);
       }
       airMopError(mop); return;
     }
@@ -98,7 +98,7 @@ undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
   if (EOF != car) {
     if (!quiet) {
       fprintf(stderr, "%s: more than %g%% of \"%s\" is non-printing, "
-	      "skipping ...\n", me, BAD_PERC, name);
+              "skipping ...\n", me, BAD_PERC, name);
     }
     airMopError(mop); return;    
   }
@@ -112,15 +112,15 @@ undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
   } else if (reverse) {
     for (ci=0; ci<dataArr->len; ci++) {
       if (CR == data[ci] && (ci && LF != data[ci-1])) {
-	willConvert = AIR_TRUE;
-	break;
+        willConvert = AIR_TRUE;
+        break;
       }
     }
   } else {
     for (ci=0; ci<dataArr->len; ci++) {
       if (LF == data[ci] && (ci+1<dataArr->len && CR == data[ci+1])) {
-	willConvert = AIR_TRUE;
-	break;
+        willConvert = AIR_TRUE;
+        break;
       }
     }
   }
@@ -131,9 +131,9 @@ undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
   } else {
     if (!quiet) {
       fprintf(stderr, "%s: %s \"%s\" %s DOS ... \n", me, 
-	      noAction ? "would convert" : "converting",
-	      name,
-	      reverse ? "to" : "from");
+              noAction ? "would convert" : "converting",
+              name,
+              reverse ? "to" : "from");
     }
   }
   if (noAction) {
@@ -149,7 +149,7 @@ undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
   if (!fout) {
     if (!quiet) {
       fprintf(stderr, "%s: couldn't open \"%s\" for writing: \"%s\"\n", 
-	      me, name, strerror(errno));
+              me, name, strerror(errno));
     }
     airMopError(mop); return;
   }
@@ -161,28 +161,28 @@ undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
   if (reverse) {
     for (ci=0; ci<dataArr->len; ci++) {
       if (CR == data[ci] && (ci && LF != data[ci-1])) {
-	car = putc(LF, fout);
-	if (EOF != car) {
-	  car = putc(CR, fout);
-	}
+        car = putc(LF, fout);
+        if (EOF != car) {
+          car = putc(CR, fout);
+        }
       } else {
-	car = putc(data[ci], fout);
+        car = putc(data[ci], fout);
       }
     }
   } else {
     for (ci=0; EOF != car && ci<dataArr->len; ci++) {
       if (LF == data[ci] && (ci+1<dataArr->len && CR == data[ci+1])) {
-	car = putc(CR, fout);
-	ci++;
+        car = putc(CR, fout);
+        ci++;
       } else {
-	car = putc(data[ci], fout);
+        car = putc(data[ci], fout);
       }
     }
   }
   if (EOF == car) {
     if (!quiet) {
       fprintf(stderr, "%s: ERROR writing \"%s\" possible data loss !!! "
-	      "(sorry)\n", me, name);
+              "(sorry)\n", me, name);
     }
   }
   fout = airFclose(fout);
@@ -200,18 +200,18 @@ main(int argc, char *argv[]) {
 
   me = argv[0];
   hestOptAdd(&hopt, "r", NULL, airTypeInt, 0, 0, &reverse, NULL,
-	     "convert back to DOS, instead of converting from DOS to normal");
+             "convert back to DOS, instead of converting from DOS to normal");
   hestOptAdd(&hopt, "q", NULL, airTypeInt, 0, 0, &quiet, NULL,
-	     "never print anything to stderr, even for errors.");
+             "never print anything to stderr, even for errors.");
   hestOptAdd(&hopt, "n", NULL, airTypeInt, 0, 0, &noAction, NULL,
-	     "don't actually write converted files, just pretend to. "
-	     "This is useful to see which files WOULD be converted. ");
+             "don't actually write converted files, just pretend to. "
+             "This is useful to see which files WOULD be converted. ");
   hestOptAdd(&hopt, NULL, "file", airTypeString, 1, -1, &name, NULL,
-	     "all the files to convert.  Each file will be over-written "
-	     "with its converted contents.  Use \"-\" to read from stdin "
-	     "and write to stdout", &lenName);
+             "all the files to convert.  Each file will be over-written "
+             "with its converted contents.  Use \"-\" to read from stdin "
+             "and write to stdout", &lenName);
   hestParseOrDie(hopt, argc-1, argv+1, NULL, me, info,
-		 AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 AIR_TRUE, AIR_TRUE, AIR_TRUE);
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);

@@ -36,7 +36,7 @@ unrrdu_permuteMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   hestOptAdd(&opt, "p", "ax0 ax1", airTypeInt, 1, -1, &perm, NULL,
-	     "new axis ordering", &permLen);
+             "new axis ordering", &permLen);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -52,8 +52,8 @@ unrrdu_permuteMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   if (!( permLen == nin->dim )) {
     fprintf(stderr,
-	    "%s: # axes in permutation (%d) != nrrd dim (%d)\n",
-	    me, permLen, nin->dim);
+            "%s: # axes in permutation (%d) != nrrd dim (%d)\n",
+            me, permLen, nin->dim);
     airMopError(mop);
     return 1;
   }

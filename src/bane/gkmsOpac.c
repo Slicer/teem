@@ -36,43 +36,43 @@ baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
   float sigma, gthrInfo[2], gthresh;
 
   hestOptAdd(&opt, "b", "bef", airTypeOther, 1, 1, &nbef, "1,1,0,1",
-	     "boundary emphasis function mapping from \"position\" to "
-	     "opacity. Can be either:\n "
-	     "\b\bo filename of nrrd suitable for \"unu imap\", or:\n "
-	     "\b\bo comma-seperated list of four floats, with no spaces: "
-	     "\"s,w,c,a\", where\n "
-	     "s = shape of function, between 0.0 for box and "
-	     "1.0 for tent\n "
-	     "w = full-width half-max of function support\n "
-	     "c = where to center function support\n "
-	     "a = maximum opacity\n "
-	     "If all goes well, the units for \"w\" and \"c\" are voxels.",
-	     NULL, NULL, baneGkmsHestBEF);
+             "boundary emphasis function mapping from \"position\" to "
+             "opacity. Can be either:\n "
+             "\b\bo filename of nrrd suitable for \"unu imap\", or:\n "
+             "\b\bo comma-seperated list of four floats, with no spaces: "
+             "\"s,w,c,a\", where\n "
+             "s = shape of function, between 0.0 for box and "
+             "1.0 for tent\n "
+             "w = full-width half-max of function support\n "
+             "c = where to center function support\n "
+             "a = maximum opacity\n "
+             "If all goes well, the units for \"w\" and \"c\" are voxels.",
+             NULL, NULL, baneGkmsHestBEF);
   hestOptAdd(&opt, "s", "sigma", airTypeFloat, 1, 1, &sigma, "nan",
-	     "scaling in position calculation, accounts for thickness "
-	     "of transition region between materials. Lower sigmas lead to "
-	     "wider peaks in opacity function. "
-	     "Calculated automatically by default.");
+             "scaling in position calculation, accounts for thickness "
+             "of transition region between materials. Lower sigmas lead to "
+             "wider peaks in opacity function. "
+             "Calculated automatically by default.");
   hestOptAdd(&opt, "g", "gthresh", airTypeOther, 1, 1, gthrInfo, "x0.04",
-	     "minimum significant gradient magnitude.  Can be given "
-	     "in two different ways:\n "
-	     "\b\bo \"<float>\": specify gthresh as <float> exactly.\n "
-	     "\b\bo \"x<float>\": gthresh is a scaling, by <float>, of "
-	     "the maximum gradient magnitude in the info file.",
-	     NULL, NULL, baneGkmsHestGthresh);
+             "minimum significant gradient magnitude.  Can be given "
+             "in two different ways:\n "
+             "\b\bo \"<float>\": specify gthresh as <float> exactly.\n "
+             "\b\bo \"x<float>\": gthresh is a scaling, by <float>, of "
+             "the maximum gradient magnitude in the info file.",
+             NULL, NULL, baneGkmsHestGthresh);
   hestOptAdd(&opt, "r", "radius", airTypeInt, 1, 1, &radius, "0",
-	     "radius of median filtering to apply to opacity function, "
-	     "use \"0\" to signify no median filtering");
+             "radius of median filtering to apply to opacity function, "
+             "use \"0\" to signify no median filtering");
   hestOptAdd(&opt, "m", "befOut", airTypeString, 1, 1, &befS, "",
-	     "if boundary emphasis function given via \"-b\" "
-	     "is in the \"s,w,c,a\" form, then save out the "
-	     "corresponding nrrd to <befOut>, suitable for use in this "
-	     "command or \"unu imap\"");
+             "if boundary emphasis function given via \"-b\" "
+             "is in the \"s,w,c,a\" form, then save out the "
+             "corresponding nrrd to <befOut>, suitable for use in this "
+             "command or \"unu imap\"");
   hestOptAdd(&opt, "i", "infoIn", airTypeOther, 1, 1, &ninfo, NULL,
-	     "input info file (from \"gkms info\")",
+             "input info file (from \"gkms info\")",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "o", "opacOut", airTypeString, 1, 1, &outS, NULL,
-	     "output 1D or 2D opacity function");
+             "output 1D or 2D opacity function");
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
@@ -110,8 +110,8 @@ baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
     else {
       if (nrrdProject(nmax, ninfo, 1, nrrdMeasureMax, nrrdTypeDefault)) {
-	sprintf(err, "%s: couldn't do max projection of 1D histo-info", me);
-	biffAdd(BANE, err); airMopError(mop); return 1;
+        sprintf(err, "%s: couldn't do max projection of 1D histo-info", me);
+        biffAdd(BANE, err); airMopError(mop); return 1;
       }
       gthresh = gthrInfo[1]*nrrdFLookup[nmax->type](nmax->data, 0);
     }

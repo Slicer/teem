@@ -34,7 +34,7 @@
 */
 int
 nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
-	       const NrrdRange *_range, double gamma) {
+               const NrrdRange *_range, double gamma) {
   char me[]="nrrdArithGamma", func[]="gamma", err[AIR_STRLEN_MED];
   double val, min, max;
   size_t I, num;
@@ -54,7 +54,7 @@ nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
   }
   if (!( nrrdTypeBlock != nin->type && nrrdTypeBlock != nout->type )) {
     sprintf(err, "%s: can't deal with %s type", me,
-	    airEnumStr(nrrdType, nrrdTypeBlock));
+            airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
   if (nout != nin) {
@@ -190,7 +190,7 @@ nrrdArithUnaryOp(Nrrd *nout, int op, const Nrrd *nin) {
   }
   if (nrrdTypeBlock == nin->type) {
     sprintf(err, "%s: can't operate on type %s", me,
-	    airEnumStr(nrrdType, nrrdTypeBlock));
+            airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
   if (airEnumValCheck(nrrdUnaryOp, op)) {
@@ -244,7 +244,7 @@ double _nrrdBinaryOpCompare(double a, double b) {
 double _nrrdBinaryOpEqual(double a, double b)     {return (a == b);}
 double _nrrdBinaryOpNotEqual(double a, double b)  {return (a != b);}
 double _nrrdBinaryOpExists(double a, double b)    {return (AIR_EXISTS(a) 
-							   ? a : b);}
+                                                           ? a : b);}
 
 double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
   NULL,
@@ -325,7 +325,7 @@ nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
   contA = _nrrdContentGet(ninA);
   contB = _nrrdContentGet(ninB);
   if (_nrrdContentSet(nout, airEnumStr(nrrdBinaryOp, op),
-		      contA, "%s", contB)) {
+                      contA, "%s", contB)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); free(contA); free(contB); return 1;
   }
@@ -352,8 +352,8 @@ nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
     biffAdd(NRRD, err); return 1;
   }
   nin = (_NRRD_ITER_NRRD(inA) 
-	 ? _NRRD_ITER_NRRD(inA) 
-	 : _NRRD_ITER_NRRD(inB));
+         ? _NRRD_ITER_NRRD(inA) 
+         : _NRRD_ITER_NRRD(inB));
   if (!nin) {
     sprintf(err, "%s: can't operate on two fixed values", me);
     biffAdd(NRRD, err); return 1;
@@ -370,7 +370,7 @@ nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
 
   /*
   fprintf(stderr, "!%s: inA->left = %d, inB->left = %d\n", me, 
-	  (int)(inA->left), (int)(inB->left));
+          (int)(inA->left), (int)(inB->left));
   */
   N = nrrdElementNumber(nin);
   insert = nrrdDInsert[type];
@@ -382,7 +382,7 @@ nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
   contA = nrrdIterContent(inA);
   contB = nrrdIterContent(inB);
   if (_nrrdContentSet(nout, airEnumStr(nrrdBinaryOp, op),
-		      contA, "%s", contB)) {
+                      contA, "%s", contB)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); free(contA); free(contB); return 1;
   }
@@ -464,7 +464,7 @@ double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
 */
 int
 nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA, 
-		   const Nrrd *ninB, const Nrrd *ninC) {
+                   const Nrrd *ninB, const Nrrd *ninC) {
   char me[]="nrrdArithTernaryOp", err[AIR_STRLEN_MED], *contA, *contB, *contC;
   size_t N, I;
   int size[NRRD_DIM_MAX];
@@ -478,7 +478,7 @@ nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA,
     biffAdd(NRRD, err); return 1;
   }
   if (!( nrrdSameSize(ninA, ninB, AIR_TRUE) &&
-	 nrrdSameSize(ninA, ninC, AIR_TRUE) )) {
+         nrrdSameSize(ninA, ninC, AIR_TRUE) )) {
     sprintf(err, "%s: size mismatch between arguments", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -517,7 +517,7 @@ nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA,
   contB = _nrrdContentGet(ninB);
   contC = _nrrdContentGet(ninC);
   if (_nrrdContentSet(nout, airEnumStr(nrrdTernaryOp, op),
-		      contA, "%s,%s", contB, contC)) {
+                      contA, "%s,%s", contB, contC)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); free(contA); free(contB); free(contC); return 1;
   }
@@ -530,7 +530,7 @@ nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA,
 
 int
 nrrdArithIterTernaryOp(Nrrd *nout, int op,
-		       NrrdIter *inA, NrrdIter *inB, NrrdIter *inC) {
+                       NrrdIter *inA, NrrdIter *inB, NrrdIter *inC) {
   char me[]="nrrdArithIterTernaryOp", err[AIR_STRLEN_MED],
     *contA, *contB, *contC;
   size_t N, I;
@@ -548,10 +548,10 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
     biffAdd(NRRD, err); return 1;
   }
   nin = (_NRRD_ITER_NRRD(inA) 
-	 ? _NRRD_ITER_NRRD(inA) 
-	 : (_NRRD_ITER_NRRD(inB) 
-	    ? _NRRD_ITER_NRRD(inB) 
-	    : _NRRD_ITER_NRRD(inC)));
+         ? _NRRD_ITER_NRRD(inA) 
+         : (_NRRD_ITER_NRRD(inB) 
+            ? _NRRD_ITER_NRRD(inB) 
+            : _NRRD_ITER_NRRD(inC)));
   if (!nin) {
     sprintf(err, "%s: can't operate on three fixed values", me);
     biffAdd(NRRD, err); return 1;
@@ -567,7 +567,7 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
 
   /*
   fprintf(stderr, "%!s: inA->left = %d, inB->left = %d\n", me, 
-	  (int)(inA->left), (int)(inB->left));
+          (int)(inA->left), (int)(inB->left));
   */
   N = nrrdElementNumber(nin);
   insert = nrrdDInsert[type];
@@ -578,8 +578,8 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
     /*
     if (!(I % 1000)) {
       fprintf(stderr, "!%s: %d: top(%g,%g,%g) = %g\n", me, (int)I,
-	      valA, valB, valC,
-	      top(valA, valB, valC));
+              valA, valB, valC,
+              top(valA, valB, valC));
     }
     */
     insert(nout->data, I, top(valA, valB, valC));
@@ -588,7 +588,7 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
   contB = nrrdIterContent(inB);
   contC = nrrdIterContent(inC);
   if (_nrrdContentSet(nout, airEnumStr(nrrdTernaryOp, op),
-		      contA, "%s,%s", contB, contC)) {
+                      contA, "%s,%s", contB, contC)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); free(contA); free(contB); free(contC); return 1;
   }

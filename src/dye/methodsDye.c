@@ -48,7 +48,7 @@ dyeStrToSpace(char *_str) {
     }
     for (spc=0; spc<dyeSpaceLast; spc++) {
       if (!strcmp(str, dyeSpaceToStr[spc])) {
-	break;
+        break;
       }
     }
     if (dyeSpaceLast == spc) {
@@ -83,8 +83,8 @@ dyeColorSet(dyeColor *col, int space, float v0, float v1, float v2) {
        but we don't switch if new and current colorspaces are the same.
        If the other one is being used too, oh well.  */
     if (dyeSpaceUnknown != col->spc[col->ii] &&
-	AIR_EXISTS(col->val[col->ii][0]) &&
-	col->spc[col->ii] != space) {
+        AIR_EXISTS(col->val[col->ii][0]) &&
+        col->spc[col->ii] != space) {
       col->ii = 1 - col->ii;
     }
 
@@ -109,7 +109,7 @@ dyeColorGet(float *v0P, float *v1P, float *v2P, dyeColor *col) {
 
 int
 dyeColorGetAs(float *v0P, float *v1P, float *v2P, 
-	      dyeColor *colIn, int space) {
+              dyeColor *colIn, int space) {
   dyeColor _col, *col;
   
   col = &_col;
@@ -187,9 +187,9 @@ dyeColorSprintf(char *str, dyeColor *col) {
   if (str && col) {
     col->ii = AIR_CLAMP(0, col->ii, 1);
     sprintf(str, "%s:%g,%g,%g", dyeSpaceToStr[col->spc[col->ii]],
-	    col->val[col->ii][0], 
-	    col->val[col->ii][1], 
-	    col->val[col->ii][2]);
+            col->val[col->ii][0], 
+            col->val[col->ii][1], 
+            col->val[col->ii][2]);
   }
   return str;
 }

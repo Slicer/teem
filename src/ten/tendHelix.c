@@ -40,7 +40,7 @@ char *_tend_helixInfoL =
 
 void
 tend_helixDoit(Nrrd *nout, float bnd,
-	       float r, float R, float S, float angle, float ev[3]) {
+               float r, float R, float S, float angle, float ev[3]) {
   int sx, sy, sz, xi, yi, zi, idx;
   double th, t0, t1, t2, t3, v1, v2,
     wpos[3], vpos[3],
@@ -59,7 +59,7 @@ tend_helixDoit(Nrrd *nout, float bnd,
     for (yi=0; yi<sy; yi++) {
       vpos[1] = AIR_AFFINE(0, yi, sy-1, nout->axis[2].min, nout->axis[2].max);
       for (xi=0; xi<sx; xi++, idx++) {
-	vpos[0] = AIR_AFFINE(0, xi, sx-1, nout->axis[1].min,nout->axis[1].max);
+        vpos[0] = AIR_AFFINE(0, xi, sx-1, nout->axis[1].min,nout->axis[1].max);
 
 #define WPOS(pos, th) ELL_3V_SET((pos), R*cos(th), R*sin(th), S*(th)/(2*AIR_PI))
 #define VAL(th) (WPOS(wpos, th), ELL_3V_DIST(wpos, vpos))
@@ -67,61 +67,61 @@ tend_helixDoit(Nrrd *nout, float bnd,
 #define CC (1.0-RR)
 #define SHIFT3(a,b,c,d) (a)=(b); (b)=(c); (c)=(d)
 #define SHIFT2(a,b,c)   (a)=(b); (b)=(c)
-	
-	th = atan2(vpos[1], vpos[0]);
-	th += 2*AIR_PI*floor(0.5 + vpos[2]/S - th/(2*AIR_PI));
-	if (S*th/(2*AIR_PI) > vpos[2]) {
-	  t0 = th - AIR_PI; t3 = th;
-	} else {
-	  t0 = th; t3 = th + AIR_PI;
-	}
-	t1 = RR*t0 + CC*t3;
-	t2 = CC*t0 + RR*t3;
-	v1 = VAL(t1);
-	v2 = VAL(t2);
-	while ( t3-t0 > 0.0001*(AIR_ABS(t1+t2)) ) {
-	  if (v1 < v2) {
-	    SHIFT3(t3, t2, t1, CC*t0 + RR*t2);
-	    SHIFT2(v2, v1, VAL(t1));
-	  } else {
-	    SHIFT3(t0, t1, t2, RR*t1 + CC*t3);
-	    SHIFT2(v1, v2, VAL(t2));
-	  }
-	}
+        
+        th = atan2(vpos[1], vpos[0]);
+        th += 2*AIR_PI*floor(0.5 + vpos[2]/S - th/(2*AIR_PI));
+        if (S*th/(2*AIR_PI) > vpos[2]) {
+          t0 = th - AIR_PI; t3 = th;
+        } else {
+          t0 = th; t3 = th + AIR_PI;
+        }
+        t1 = RR*t0 + CC*t3;
+        t2 = CC*t0 + RR*t3;
+        v1 = VAL(t1);
+        v2 = VAL(t2);
+        while ( t3-t0 > 0.0001*(AIR_ABS(t1+t2)) ) {
+          if (v1 < v2) {
+            SHIFT3(t3, t2, t1, CC*t0 + RR*t2);
+            SHIFT2(v2, v1, VAL(t1));
+          } else {
+            SHIFT3(t0, t1, t2, RR*t1 + CC*t3);
+            SHIFT2(v1, v2, VAL(t2));
+          }
+        }
 
-	/* well-written code is self-documenting */
+        /* well-written code is self-documenting */
 
-	WPOS(wpos, t1);
-	ELL_3V_SUB(wpos, vpos, wpos);
-	ELL_3V_SET(fv, -R*sin(t1), R*cos(t1), S/AIR_PI);
-	ELL_3V_NORM(fv, fv, len);
-	ELL_3V_COPY(rv, wpos);
-	ELL_3V_NORM(rv, rv, len);
-	len = ELL_3V_DOT(rv, fv);
-	ELL_3V_SCALE(tmp, -len, fv);
-	ELL_3V_ADD2(rv, rv, tmp);
-	ELL_3V_NORM(rv, rv, len);
-	ELL_3V_CROSS(uv, rv, fv);
-	ELL_3V_NORM(uv, uv, len);
-	ELL_3MV_ROW0_SET(W2H, uv);
-	ELL_3MV_ROW1_SET(W2H, rv);
-	ELL_3MV_ROW2_SET(W2H, fv);
-	ELL_3M_TRANSPOSE(H2W, W2H);
-	inside = 0.5 - 0.5*airErf((ELL_3V_LEN(wpos)-r)/(bnd + 0.0001));
-	th = angle*ELL_3V_LEN(wpos)/r;
-	ELL_3M_ROTATE_Y_SET(H2C, th);
-	ELL_3M_TRANSPOSE(C2H, H2C);
-	ELL_3M_SCALE_SET(mA,
-			 AIR_LERP(inside, 0.5, ev[1]),
-			 AIR_LERP(inside, 0.5, ev[2]),
-			 AIR_LERP(inside, 0.5, ev[0]));
-	ELL_3M_MUL(mB, mA, H2C);
-	ELL_3M_MUL(mA, mB, W2H);
-	ELL_3M_MUL(mB, C2H, mA);
-	ELL_3M_MUL(mA, H2W, mB);
-	
-       	TEN_M2T(out + 7*idx, mA);
-	(out + 7*idx)[0] = 1.0;
+        WPOS(wpos, t1);
+        ELL_3V_SUB(wpos, vpos, wpos);
+        ELL_3V_SET(fv, -R*sin(t1), R*cos(t1), S/AIR_PI);
+        ELL_3V_NORM(fv, fv, len);
+        ELL_3V_COPY(rv, wpos);
+        ELL_3V_NORM(rv, rv, len);
+        len = ELL_3V_DOT(rv, fv);
+        ELL_3V_SCALE(tmp, -len, fv);
+        ELL_3V_ADD2(rv, rv, tmp);
+        ELL_3V_NORM(rv, rv, len);
+        ELL_3V_CROSS(uv, rv, fv);
+        ELL_3V_NORM(uv, uv, len);
+        ELL_3MV_ROW0_SET(W2H, uv);
+        ELL_3MV_ROW1_SET(W2H, rv);
+        ELL_3MV_ROW2_SET(W2H, fv);
+        ELL_3M_TRANSPOSE(H2W, W2H);
+        inside = 0.5 - 0.5*airErf((ELL_3V_LEN(wpos)-r)/(bnd + 0.0001));
+        th = angle*ELL_3V_LEN(wpos)/r;
+        ELL_3M_ROTATE_Y_SET(H2C, th);
+        ELL_3M_TRANSPOSE(C2H, H2C);
+        ELL_3M_SCALE_SET(mA,
+                         AIR_LERP(inside, 0.5, ev[1]),
+                         AIR_LERP(inside, 0.5, ev[2]),
+                         AIR_LERP(inside, 0.5, ev[0]));
+        ELL_3M_MUL(mB, mA, H2C);
+        ELL_3M_MUL(mA, mB, W2H);
+        ELL_3M_MUL(mB, C2H, mA);
+        ELL_3M_MUL(mA, H2W, mB);
+        
+        TEN_M2T(out + 7*idx, mA);
+        (out + 7*idx)[0] = 1.0;
       }
     }
   }
@@ -142,35 +142,35 @@ tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *outS;
 
   hestOptAdd(&hopt, "s", "size", airTypeInt, 3, 3, size, NULL, 
-	     "sizes along fast, medium, and slow axes of the sampled volume, "
-	     "often called \"X\", \"Y\", and \"Z\".  It is best to use "
-	     "slightly different sizes here, to expose errors in interpreting "
-	     "axis ordering (e.g. \"-s 39 40 41\")");
+             "sizes along fast, medium, and slow axes of the sampled volume, "
+             "often called \"X\", \"Y\", and \"Z\".  It is best to use "
+             "slightly different sizes here, to expose errors in interpreting "
+             "axis ordering (e.g. \"-s 39 40 41\")");
   hestOptAdd(&hopt, "min", "min corner", airTypeDouble, 3, 3, min+1,
-	     "-2 -2 -2",
-	     "location of low corner of sampled tensor volume");
+             "-2 -2 -2",
+             "location of low corner of sampled tensor volume");
   hestOptAdd(&hopt, "max", "max corner", airTypeDouble, 3, 3, max+1, "2 2 2",
-	     "location of high corner of sampled tensor volume");
+             "location of high corner of sampled tensor volume");
   hestOptAdd(&hopt, "b", "boundary", airTypeFloat, 1, 1, &bnd, "0.05",
-	     "parameter governing how fuzzy the boundary between high and "
-	     "low anisotropy is. Use \"-b 0\" for no fuzziness");
+             "parameter governing how fuzzy the boundary between high and "
+             "low anisotropy is. Use \"-b 0\" for no fuzziness");
   hestOptAdd(&hopt, "r", "little radius", airTypeFloat, 1, 1, &r, "0.5",
-	     "(minor) radius of cylinder tracing helix");
+             "(minor) radius of cylinder tracing helix");
   hestOptAdd(&hopt, "R", "big radius", airTypeFloat, 1, 1, &R, "1.2",
-	     "(major) radius of helical turns");
+             "(major) radius of helical turns");
   hestOptAdd(&hopt, "S", "spacing", airTypeFloat, 1, 1, &S, "2",
-	     "spacing between turns of helix (along its axis)");
+             "spacing between turns of helix (along its axis)");
   hestOptAdd(&hopt, "a", "angle", airTypeFloat, 1, 1, &angle, "1.0",
-	     "maximal angle of twist of tensors along path.  There is no "
-	     "twist at helical core of path, and twist increases linearly "
-	     "with radius around this path.  Positive twist angle with "
-	     "positive spacing resulting in a right-handed twist around a "
-	     "right-handed helix. ");
+             "maximal angle of twist of tensors along path.  There is no "
+             "twist at helical core of path, and twist increases linearly "
+             "with radius around this path.  Positive twist angle with "
+             "positive spacing resulting in a right-handed twist around a "
+             "right-handed helix. ");
   hestOptAdd(&hopt, "ev", "eigenvalues", airTypeFloat, 3, 3, ev, "0.9 0.4 0.2",
-	     "eigenvalues of tensors (in order) along direction of coil, "
-	     "circumferential around coil, and radial around coil. ");
+             "eigenvalues of tensors (in order) along direction of coil, "
+             "circumferential around coil, and radial around coil. ");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output file");
+             "output file");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

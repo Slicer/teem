@@ -41,7 +41,7 @@ main(int argc, char **argv) {
   
   if (nrrdLoad(nrrd=nrrdNew(), argv[1], NULL)) {
     fprintf(stderr, "%s: trouble loading \"%s\":\n%s", 
-	    me, argv[1], err = biffGet(NRRD));
+            me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
@@ -49,7 +49,7 @@ main(int argc, char **argv) {
   range = nrrdRangeNewSet(nrrd, nrrdBlind8BitRangeState);
 
   printf("%s: min = %g; max = %g, hasNonExist = %d\n", me,
-	 range->min, range->max, range->hasNonExist);
+         range->min, range->max, range->hasNonExist);
 
   nrrdNuke(nrrd);
 

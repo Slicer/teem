@@ -37,9 +37,9 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
 
   hestOptAdd(&hopt, "s", "sx sy sz", airTypeInt, 3, 3, size, "128 128 128",
-	     "dimensions of output volume");
+             "dimensions of output volume");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
-		 me, tmplInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, tmplInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   

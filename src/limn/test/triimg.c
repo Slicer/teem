@@ -21,8 +21,8 @@
 #include "../limn.h"
 
 char *info = ("Save a triangular piece of an image to an EPS file. "
-	      "You might want to ilk -t 1,-0.5,0,0,0.866,0 -k tent "
-	      "-0 u:0,1 -b pad -bg 0 before you use this. ");
+              "You might want to ilk -t 1,-0.5,0,0,0.866,0 -k tent "
+              "-0 u:0,1 -b pad -bg 0 before you use this. ");
 
 int
 main(int argc, char *argv[]) {
@@ -40,29 +40,29 @@ main(int argc, char *argv[]) {
   mop = airMopNew();
   me = argv[0];
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-	     "input image.  Must be SQUARE 8-bit RGB or gray",
-	     NULL, NULL, nrrdHestNrrd);
+             "input image.  Must be SQUARE 8-bit RGB or gray",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "w", "width", airTypeFloat, 1, 1, &width, "0.0",
-	     "border width to put around triangle, in pixels, "
-	     "or \"0\" to not have any border");
+             "border width to put around triangle, in pixels, "
+             "or \"0\" to not have any border");
   hestOptAdd(&hopt, "labels", NULL, airTypeInt, 0, 0, &labels, NULL,
-	     "put little labels on things; fix with psfrag in LaTeX");
+             "put little labels on things; fix with psfrag in LaTeX");
   hestOptAdd(&hopt, "o", "output EPS", airTypeString, 1, 1, &outS, NULL,
-	     "output file to render postscript into");
+             "output file to render postscript into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
-		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   
   if (!( 2 == nin->dim || 3 == nin->dim )) {
     fprintf(stderr, "%s: input nrrd must be 2-D or 3-D (not %d-D)\n", me,
-	    nin->dim);
+            nin->dim);
     airMopError(mop); return 1;
   }
   if (!( nrrdTypeUChar == nin->type )) {
     fprintf(stderr, "%s: input nrrd must be type %s (not %s)\n", me,
-	    airEnumStr(nrrdType, nrrdTypeUChar),
-	    airEnumStr(nrrdType, nin->type));
+            airEnumStr(nrrdType, nrrdTypeUChar),
+            airEnumStr(nrrdType, nin->type));
     airMopError(mop); return 1;
   }
   sx = (2 == nin->dim ? nin->axis[0].size : nin->axis[1].size);
@@ -96,14 +96,14 @@ main(int argc, char *argv[]) {
   fprintf(file, "%%%%Title: raving lunatic\n");
   fprintf(file, "%%%%Pages: 1\n");
   fprintf(file, "%%%%BoundingBox: %d %d %d %d\n",
-	  (int)floor(minX), (int)floor(minY),
-	  (int)ceil(maxX), (int)ceil(maxY));
+          (int)floor(minX), (int)floor(minY),
+          (int)ceil(maxX), (int)ceil(maxY));
   fprintf(file, "%%%%HiResBoundingBox: %g %g %g %g\n", 
-	  minX, minY, maxX, maxY);
+          minX, minY, maxX, maxY);
   fprintf(file, "%%%%EndComments\n");
   fprintf(file, "%%%%BeginProlog\n");
   fprintf(file, "%% linestr creates an empty string to hold "
-	  "one scanline\n");
+          "one scanline\n");
   fprintf(file, "/linestr %d string def\n", sx*(gray ? 1 : 3));
   fprintf(file, "%%%%EndProlog\n");
   fprintf(file, "%%%%Page: 1 1\n");
@@ -112,7 +112,7 @@ main(int argc, char *argv[]) {
   fprintf(file, "%g %g moveto\n", minX, minY);
   fprintf(file, "%g %g lineto\n", maxX, minY);
   fprintf(file, "%g %g lineto\n",
-	  (minX + maxX)/2, minY + hack*(maxX - minX));
+          (minX + maxX)/2, minY + hack*(maxX - minX));
   fprintf(file, "closepath\n");
   fprintf(file, "clip\n");
   fprintf(file, "gsave newpath\n");
@@ -122,7 +122,7 @@ main(int argc, char *argv[]) {
   fprintf(file, "%d %d 8\n", sx, sy);
   fprintf(file, "[%d 0 0 -%d 0 %d]\n", sx, sy, sy);
   fprintf(file, "{currentfile linestr readhexstring pop} %s\n",
-	  gray ? "image" : "false 3 colorimage");
+          gray ? "image" : "false 3 colorimage");
   nio->dataFile = file;
   nrrdEncodingHex->write(nin, nio);
   nio->dataFile = NULL;
@@ -133,17 +133,17 @@ main(int argc, char *argv[]) {
     fprintf(file, "%g %g moveto\n", minX, minY);
     fprintf(file, "%g %g lineto\n", maxX, minY);
     fprintf(file, "%g %g lineto\n",
-	    (minX + maxX)/2, minY + hack*(maxX - minX));
+            (minX + maxX)/2, minY + hack*(maxX - minX));
     fprintf(file, "closepath\n");
     fprintf(file, "%g setlinewidth 0 setgray stroke\n",
-	    2*width*scale);
+            2*width*scale);
   }
   if (labels) {
     /* happily, psfrag doesn't respect the clipping path */
     fprintf(file, "/Helvetica findfont 20 scalefont setfont\n");
     fprintf(file, "%g %g moveto (A) show\n", maxX, minY);
     fprintf(file, "%g %g moveto (B) show\n", (minX + maxX)/2,
-	    minY + hack*(maxX - minX));
+            minY + hack*(maxX - minX));
     fprintf(file, "%g %g moveto (C) show\n", minX, minY);
   }
 

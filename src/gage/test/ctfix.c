@@ -20,9 +20,9 @@
 #include "../gage.h"
 
 char *ctfixInfo = ("removes circular streaks from CT datasets, "
-		   "assuming you know where they are.  nrrd/test/histrad "
-		   "is useful for finding the radius of a streak "
-		   "in a given slice.");
+                   "assuming you know where they are.  nrrd/test/histrad "
+                   "is useful for finding the radius of a streak "
+                   "in a given slice.");
 
 int
 main(int argc, char *argv[]) {
@@ -47,27 +47,27 @@ main(int argc, char *argv[]) {
   hopt = NULL;
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-	     "input volume", NULL, NULL, nrrdHestNrrd);
+             "input volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "si", "streak info", airTypeOther, 1, 1, &_nsinfo, NULL,
-	     "list of streaks as 2D nrrd; per line: \n "
-	     "<slice> <radius> <width> <start> <stop> \n "
-	     "where start and stop are angles in [0,4] "
-	     "(instead of [-pi,pi]) delimiting arc");
+             "list of streaks as 2D nrrd; per line: \n "
+             "<slice> <radius> <width> <start> <stop> \n "
+             "where start and stop are angles in [0,4] "
+             "(instead of [-pi,pi]) delimiting arc");
   hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &kern,
-	     "tent", "kernel to use for median weighting",
-	     NULL, NULL, nrrdHestKernelSpec);
+             "tent", "kernel to use for median weighting",
+             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "c", "center x, y", airTypeDouble, 2, 2, cent, NULL,
-	     "The center point of tomography, around which streaks are "
-	     "circular arcs or fragments thereof");
+             "The center point of tomography, around which streaks are "
+             "circular arcs or fragments thereof");
   hestOptAdd(&hopt, "r", "core radius", airTypeDouble, 1, 1, &corerad, "0",
-	     "in addition to the per-streak filtering, giving a non-zero "
-	     "radius here turns on filtering of *every* slice within "
-	     "this radius, to handle glitches along central tomography "
-	     "radius");
+             "in addition to the per-streak filtering, giving a non-zero "
+             "radius here turns on filtering of *every* slice within "
+             "this radius, to handle glitches along central tomography "
+             "radius");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
-	     "fixed volume output");
+             "fixed volume output");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
-		 me, ctfixInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, ctfixInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -84,7 +84,7 @@ main(int argc, char *argv[]) {
   if (nrrdConvert(nsinfo, _nsinfo, nrrdTypeDouble)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't convert streak info to doubles:\n%s",
-	    me, err);
+            me, err);
     airMopError(mop); return 1;
   }
   sinfo = (double*)(nsinfo->data);
@@ -124,12 +124,12 @@ main(int argc, char *argv[]) {
   fprintf(stderr, "%s: processing streaks ... \n", me);
   for (si=0; si<nsinfo->axis[1].size; si++) {
     fprintf(stderr, "%s: streak %d of %d       ",
-	    me, si+1, nsinfo->axis[1].size);
+            me, si+1, nsinfo->axis[1].size);
     fflush(stderr);
     zi = sinfo[0 + 5*si];
     if (!AIR_IN_CL(0, zi, sz-1)) {
       fprintf(stderr, "%s: streak[%d] zi=%d outside valid range [0,%d]\n",
-	      me, si, zi, sz-1);
+              me, si, zi, sz-1);
       airMopError(mop); return 1;
     }
     srad = sinfo[1 + 5*si];
@@ -138,23 +138,23 @@ main(int argc, char *argv[]) {
     astop = sinfo[4 + 5*si];
     for (yi=0; yi<sy; yi++) {
       if (!(yi%3)) {
-	fprintf(stderr, "%s", airDoneStr(0, yi, sy-1, done));
-	fflush(stderr);
+        fprintf(stderr, "%s", airDoneStr(0, yi, sy-1, done));
+        fflush(stderr);
       }
       for (xi=0; xi<sx; xi++) {
-	r = DIST(xi, yi, cent[0], cent[1]);
-	if (!( AIR_ABS(r-srad) < swidth/2 )) {
-	  continue;
-	}
-	angle = atan2(yi-cent[1], xi-cent[0]);
-	angle = AIR_AFFINE(-AIR_PI, angle, AIR_PI, 0, 4);
-	if (!( (astart < astop && AIR_IN_CL(astart, angle, astop))
-	       || (astart > astop && (AIR_IN_CL(astart, angle, 4)
-				      || AIR_IN_CL(0, angle, astop))) )) {
-	  continue;
-	}
-	gageProbe(ctx, xi, yi, zi);
-	ins(nout->data, xi + sx*(yi + sy*zi), *answer);
+        r = DIST(xi, yi, cent[0], cent[1]);
+        if (!( AIR_ABS(r-srad) < swidth/2 )) {
+          continue;
+        }
+        angle = atan2(yi-cent[1], xi-cent[0]);
+        angle = AIR_AFFINE(-AIR_PI, angle, AIR_PI, 0, 4);
+        if (!( (astart < astop && AIR_IN_CL(astart, angle, astop))
+               || (astart > astop && (AIR_IN_CL(astart, angle, 4)
+                                      || AIR_IN_CL(0, angle, astop))) )) {
+          continue;
+        }
+        gageProbe(ctx, xi, yi, zi);
+        ins(nout->data, xi + sx*(yi + sy*zi), *answer);
       }
     }
     fprintf(stderr, "\n");
@@ -165,14 +165,14 @@ main(int argc, char *argv[]) {
     for (zi=0; zi<sz; zi++) {
       fprintf(stderr, "%s", airDoneStr(0, zi, sz-1, done));
       for (yi=0; yi<sy; yi++) {
-	for (xi=0; xi<sx; xi++) {
-	  r = DIST(xi, yi, cent[0], cent[1]);
-	  if (!( r < corerad )) {
-	    continue;
-	  }
-	  gageProbe(ctx, xi, yi, zi);
-	  ins(nout->data, xi + sx*(yi + sy*zi), *answer);
-	}
+        for (xi=0; xi<sx; xi++) {
+          r = DIST(xi, yi, cent[0], cent[1]);
+          if (!( r < corerad )) {
+            continue;
+          }
+          gageProbe(ctx, xi, yi, zi);
+          ins(nout->data, xi + sx*(yi + sy*zi), *answer);
+        }
       }
     }
     fprintf(stderr, "\n");

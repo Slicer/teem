@@ -44,7 +44,7 @@ float dyeWhiteuvp_n[2] = {0.197839, 0.468342};
 
 void
 dyeRGBtoHSV(float *H, float *S, float *V,
-	    float  R, float  G, float  B) {
+            float  R, float  G, float  B) {
   float max, min, delta;
   
   max = AIR_MAX(R,G);
@@ -87,7 +87,7 @@ dyeRGBtoHSV(float *H, float *S, float *V,
 */
 void
 dyeHSVtoRGB(float *R, float *G, float *B,
-	    float  H, float  S, float  V) {
+            float  H, float  S, float  V) {
   float min, fract, vsf, mid1, mid2;
   int sextant;
   
@@ -130,7 +130,7 @@ dyeHSVtoRGB(float *R, float *G, float *B,
 */
 void
 dyeRGBtoHSL(float *H, float *S, float *L,
-	    float  R, float  G, float  B) {
+            float  R, float  G, float  B) {
   float min, max, lev, delta;
 
   max = AIR_MAX(R,G);
@@ -174,7 +174,7 @@ dyeRGBtoHSL(float *H, float *S, float *L,
 */
 void
 dyeHSLtoRGB(float *R, float *G, float *B,
-	    float  H, float  S, float  L) {
+            float  H, float  S, float  L) {
   float m1, m2, fract, mid1, mid2;
   int sextant;
   
@@ -208,7 +208,7 @@ dyeHSLtoRGB(float *R, float *G, float *B,
 
 void
 dyeRGBtoXYZ(float *X, float *Y, float *Z,
-	    float  R, float  G, float  B) {
+            float  R, float  G, float  B) {
   float in[3], out[3];
   
   ELL_3V_SET(in, R, G, B);
@@ -219,7 +219,7 @@ dyeRGBtoXYZ(float *X, float *Y, float *Z,
 
 void
 dyeXYZtoRGB(float *R, float *G, float *B,
-	    float  X, float  Y, float  Z) {
+            float  X, float  Y, float  Z) {
   float in[3], out[3];
   
   ELL_3V_SET(in, X, Y, Z);
@@ -240,7 +240,7 @@ dyeLcubed(float t) {
 
 void
 dyeXYZtoLAB(float *L, float *A, float *B,
-	    float  X, float  Y, float  Z) {
+            float  X, float  Y, float  Z) {
   float Xnorm, Ynorm, Znorm;
   
   Xnorm = X/dyeWhiteXYZ_n[0];
@@ -253,7 +253,7 @@ dyeXYZtoLAB(float *L, float *A, float *B,
 
 void 
 dyeXYZtoLUV(float *L, float *U, float *V,
-	    float  X, float  Y, float  Z) {
+            float  X, float  Y, float  Z) {
   float Ynorm, up, vp;
 
   Ynorm = Y/dyeWhiteXYZ_n[1];
@@ -266,7 +266,7 @@ dyeXYZtoLUV(float *L, float *U, float *V,
 
 void 
 dyeLABtoXYZ(float *X, float *Y, float *Z,
-	    float  L, float  A, float  B) {
+            float  L, float  A, float  B) {
   float YnormCbrt;
 
   YnormCbrt = (16 + L)/116;
@@ -278,7 +278,7 @@ dyeLABtoXYZ(float *X, float *Y, float *Z,
 
 void 
 dyeLUVtoXYZ(float *X, float *Y, float *Z,
-	    float  L, float  U, float  V) {
+            float  L, float  U, float  V) {
   float up, vp, YnormCbrt;
 
   YnormCbrt = (16 + L)/116;
@@ -292,7 +292,7 @@ dyeLUVtoXYZ(float *X, float *Y, float *Z,
 
 void 
 dyeIdentity(float *A, float *B, float *C,
-	    float  a, float  b, float  c) {
+            float  a, float  b, float  c) {
   *A = a;
   *B = b;
   *C = c;
@@ -356,38 +356,38 @@ dyeConvert(dyeColor *col, int outSpace) {
     else {
       /* the start and end spaces are at different stages */
       if (inSpace < outSpace) {
-	/* we are going towards higher stages */
-	if (inSpace < dyeSpaceRGB) {
-	  if (!E) E |= dyeConvert(col, dyeSpaceRGB);
-	  if (!E) E |= dyeConvert(col, outSpace);
-	}
-	else if (inSpace == dyeSpaceRGB) {
-	  if (!E) E |= dyeConvert(col, dyeSpaceXYZ);
-	  if (!E) E |= dyeConvert(col, outSpace);
-	}
-	else {
-	  sprintf(err, "%s: CONFUSED! can't go %s -> %s\n",
-		  me, dyeSpaceToStr[inSpace], dyeSpaceToStr[outSpace]);
-	  biffAdd(DYE, err);
-	  E = 1;
-	}
+        /* we are going towards higher stages */
+        if (inSpace < dyeSpaceRGB) {
+          if (!E) E |= dyeConvert(col, dyeSpaceRGB);
+          if (!E) E |= dyeConvert(col, outSpace);
+        }
+        else if (inSpace == dyeSpaceRGB) {
+          if (!E) E |= dyeConvert(col, dyeSpaceXYZ);
+          if (!E) E |= dyeConvert(col, outSpace);
+        }
+        else {
+          sprintf(err, "%s: CONFUSED! can't go %s -> %s\n",
+                  me, dyeSpaceToStr[inSpace], dyeSpaceToStr[outSpace]);
+          biffAdd(DYE, err);
+          E = 1;
+        }
       }
       else {
-	/* we are going towards lower stages */
-	if (outSpace < dyeSpaceRGB) {
-	  if (!E) E |= dyeConvert(col, dyeSpaceRGB);
-	  if (!E) E |= dyeConvert(col, outSpace);
-	}
-	else if (outSpace == dyeSpaceRGB) {
-	  if (!E) E |= dyeConvert(col, dyeSpaceXYZ);
-	  if (!E) E |= dyeConvert(col, dyeSpaceRGB);
-	}
-	else {
-	  sprintf(err, "%s: CONFUSED! can't go %s -> %s\n",
-		  me, dyeSpaceToStr[inSpace], dyeSpaceToStr[outSpace]);
-	  biffAdd(DYE, err);
-	  E = 1;
-	}
+        /* we are going towards lower stages */
+        if (outSpace < dyeSpaceRGB) {
+          if (!E) E |= dyeConvert(col, dyeSpaceRGB);
+          if (!E) E |= dyeConvert(col, outSpace);
+        }
+        else if (outSpace == dyeSpaceRGB) {
+          if (!E) E |= dyeConvert(col, dyeSpaceXYZ);
+          if (!E) E |= dyeConvert(col, dyeSpaceRGB);
+        }
+        else {
+          sprintf(err, "%s: CONFUSED! can't go %s -> %s\n",
+                  me, dyeSpaceToStr[inSpace], dyeSpaceToStr[outSpace]);
+          biffAdd(DYE, err);
+          E = 1;
+        }
       }
     }
   }

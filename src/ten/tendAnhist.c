@@ -39,14 +39,14 @@ tend_anhistMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *outS;
 
   hestOptAdd(&hopt, "v", "westin version", airTypeInt, 1, 1, &version, "1",
-	     "Which version of Westin's anisotropy metric triple "
-	     "to use, either \"1\" or \"2\"");
+             "Which version of Westin's anisotropy metric triple "
+             "to use, either \"1\" or \"2\"");
   hestOptAdd(&hopt, "r", "res", airTypeInt, 1, 1, &res, "256",
-	     "resolution of anisotropy plot");
+             "resolution of anisotropy plot");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
+             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
-	     "output image (floating point)");
+             "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

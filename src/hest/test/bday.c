@@ -36,8 +36,8 @@ runexp(int *year, int N, int M) {
 }
 
 char *info = ("simulates M people in a room finding out if two or more "
-	      "of them share a birthday.  For fun, can vary the number "
-	      "of days in the year.");
+              "of them share a birthday.  For fun, can vary the number "
+              "of days in the year.");
 
 int
 main(int argc, char *argv[]) {
@@ -51,15 +51,15 @@ main(int argc, char *argv[]) {
   me = argv[0];
   mop = airMopNew();
   hestOptAdd(&hopt, "N", "days", airTypeInt, 1, 1, &N, "365",
-	     "# of days in year");
+             "# of days in year");
   /* E != P */
   hestOptAdd(&hopt, "E", "exps", airTypeInt, 1, 1, &P, "100000",
-	     "number of experiments after which to print out newly "
-	     "computed probability");
+             "number of experiments after which to print out newly "
+             "computed probability");
   hestOptAdd(&hopt, NULL, "people", airTypeInt, 1, 1, &M, NULL,
-	     "# of people in room");
+             "# of people in room");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
-		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   
@@ -85,7 +85,7 @@ main(int argc, char *argv[]) {
     yes += runexp(year, N, M);
     if (!(E % P)) {
       printf("P = %10d/%10d = %22.20f =?= %22.20f\n",
-	     yes, E, (double)yes/E, crct);
+             yes, E, (double)yes/E, crct);
     }
     E++;
   }

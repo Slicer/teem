@@ -21,12 +21,12 @@
 
 void
 _coilKind7TensorTangents(coil_t traceGrad[6],
-			 coil_t varianceGrad[6],
-			 coil_t skewGrad[6],
-			 coil_t rot0Grad[6],
-			 coil_t rot1Grad[6],
-			 coil_t rot2Grad[6],
-			 coil_t tensor[7]) {
+                         coil_t varianceGrad[6],
+                         coil_t skewGrad[6],
+                         coil_t rot0Grad[6],
+                         coil_t rot1Grad[6],
+                         coil_t rot2Grad[6],
+                         coil_t tensor[7]) {
   /*
   coil_t a, b, c, d, e, f;
 
@@ -42,8 +42,8 @@ _coilKind7TensorTangents(coil_t traceGrad[6],
 
 void
 _coilKind7TensorFilterTesting(coil_t *delta, coil_t **iv3, 
-			      double spacing[3],
-			      double parm[COIL_PARMS_NUM]) {
+                              double spacing[3],
+                              double parm[COIL_PARMS_NUM]) {
   delta[0] = 0;
   delta[1] = 0;
   delta[2] = 0;
@@ -72,36 +72,36 @@ _coilKind7TensorFilterTesting(coil_t *delta, coil_t **iv3,
 
 #define TENS(ten, iv3) \
   TEN_T_SET(ten,                                                  \
-	    IND(iv3,0,1,1,1),                                     \
-	    IND(iv3,1,1,1,1), IND(iv3,2,1,1,1), IND(iv3,3,1,1,1), \
-	    IND(iv3,4,1,1,1), IND(iv3,5,1,1,1),                   \
-	    IND(iv3,6,1,1,1))
+            IND(iv3,0,1,1,1),                                     \
+            IND(iv3,1,1,1,1), IND(iv3,2,1,1,1), IND(iv3,3,1,1,1), \
+            IND(iv3,4,1,1,1), IND(iv3,5,1,1,1),                   \
+            IND(iv3,6,1,1,1))
 
 #define TENGRAD(tengrad, iv3, rspX, rspY, rspZ) (          \
   TEN_T_SET(tengrad + 0*7,                                 \
             1.0,                                           \
-	    rspX*(IND(iv3,1,2,1,1) - IND(iv3,1,0,1,1))/2,  \
-	    rspX*(IND(iv3,2,2,1,1) - IND(iv3,2,0,1,1))/2,  \
-	    rspX*(IND(iv3,3,2,1,1) - IND(iv3,3,0,1,1))/2,  \
-	    rspX*(IND(iv3,4,2,1,1) - IND(iv3,4,0,1,1))/2,  \
-	    rspX*(IND(iv3,5,2,1,1) - IND(iv3,5,0,1,1))/2,  \
-	    rspX*(IND(iv3,6,2,1,1) - IND(iv3,6,0,1,1))/2), \
+            rspX*(IND(iv3,1,2,1,1) - IND(iv3,1,0,1,1))/2,  \
+            rspX*(IND(iv3,2,2,1,1) - IND(iv3,2,0,1,1))/2,  \
+            rspX*(IND(iv3,3,2,1,1) - IND(iv3,3,0,1,1))/2,  \
+            rspX*(IND(iv3,4,2,1,1) - IND(iv3,4,0,1,1))/2,  \
+            rspX*(IND(iv3,5,2,1,1) - IND(iv3,5,0,1,1))/2,  \
+            rspX*(IND(iv3,6,2,1,1) - IND(iv3,6,0,1,1))/2), \
   TEN_T_SET(tengrad + 1*7,                                 \
-	    1.0,                                           \
-	    rspY*(IND(iv3,1,1,2,1) - IND(iv3,1,1,0,1))/2,  \
-	    rspY*(IND(iv3,2,1,2,1) - IND(iv3,2,1,0,1))/2,  \
-	    rspY*(IND(iv3,3,1,2,1) - IND(iv3,3,1,0,1))/2,  \
-	    rspY*(IND(iv3,4,1,2,1) - IND(iv3,4,1,0,1))/2,  \
-	    rspY*(IND(iv3,5,1,2,1) - IND(iv3,5,1,0,1))/2,  \
-	    rspY*(IND(iv3,6,1,2,1) - IND(iv3,6,1,0,1))/2), \
+            1.0,                                           \
+            rspY*(IND(iv3,1,1,2,1) - IND(iv3,1,1,0,1))/2,  \
+            rspY*(IND(iv3,2,1,2,1) - IND(iv3,2,1,0,1))/2,  \
+            rspY*(IND(iv3,3,1,2,1) - IND(iv3,3,1,0,1))/2,  \
+            rspY*(IND(iv3,4,1,2,1) - IND(iv3,4,1,0,1))/2,  \
+            rspY*(IND(iv3,5,1,2,1) - IND(iv3,5,1,0,1))/2,  \
+            rspY*(IND(iv3,6,1,2,1) - IND(iv3,6,1,0,1))/2), \
   TEN_T_SET(tengrad + 2*7,                                 \
-	    1.0,                                           \
-	    rspZ*(IND(iv3,1,1,1,2) - IND(iv3,1,1,1,0))/2,  \
-	    rspZ*(IND(iv3,2,1,1,2) - IND(iv3,2,1,1,0))/2,  \
-	    rspZ*(IND(iv3,3,1,1,2) - IND(iv3,3,1,1,0))/2,  \
-	    rspZ*(IND(iv3,4,1,1,2) - IND(iv3,4,1,1,0))/2,  \
-	    rspZ*(IND(iv3,5,1,1,2) - IND(iv3,5,1,1,0))/2,  \
-	    rspZ*(IND(iv3,6,1,1,2) - IND(iv3,6,1,1,0))/2))
+            1.0,                                           \
+            rspZ*(IND(iv3,1,1,1,2) - IND(iv3,1,1,1,0))/2,  \
+            rspZ*(IND(iv3,2,1,1,2) - IND(iv3,2,1,1,0))/2,  \
+            rspZ*(IND(iv3,3,1,1,2) - IND(iv3,3,1,1,0))/2,  \
+            rspZ*(IND(iv3,4,1,1,2) - IND(iv3,4,1,1,0))/2,  \
+            rspZ*(IND(iv3,5,1,1,2) - IND(iv3,5,1,1,0))/2,  \
+            rspZ*(IND(iv3,6,1,1,2) - IND(iv3,6,1,1,0))/2))
 
 #define LAPL(iv3, vi, rspsqX, rspsqY, rspsqZ) \
   (  rspsqX*(IND(iv3, vi, 0, 1, 1) - 2*IND(iv3, vi, 1, 1, 1) + IND(iv3, vi, 2, 1, 1)) \
@@ -110,8 +110,8 @@ _coilKind7TensorFilterTesting(coil_t *delta, coil_t **iv3,
 
 void
 _coilKind7TensorFilterHomogeneous(coil_t *delta, coil_t **iv3, 
-				  double spacing[3],
-				  double parm[COIL_PARMS_NUM]) {
+                                  double spacing[3],
+                                  double parm[COIL_PARMS_NUM]) {
   coil_t rspsqX, rspsqY, rspsqZ;
   
   rspsqX = 1.0/(spacing[0]*spacing[0]);
@@ -147,8 +147,8 @@ _coilKind7TensorFilterHomogeneous(coil_t *delta, coil_t **iv3,
 */
 void
 _coilKind7TensorFilterSelf(coil_t *delta, coil_t **iv3, 
-			   double spacing[3],
-			   double parm[COIL_PARMS_NUM]) {
+                           double spacing[3],
+                           double parm[COIL_PARMS_NUM]) {
   coil_t hess[7], rspX, rspY, rspZ;
   float eval[3], evec[9], tens[7], lin;
 
@@ -170,8 +170,8 @@ _coilKind7TensorFilterSelf(coil_t *delta, coil_t **iv3,
 
 void
 _coilKind7TensorFilterFinish(coil_t *delta, coil_t **iv3, 
-			     double spacing[3],
-			     double parm[COIL_PARMS_NUM]) {
+                             double spacing[3],
+                             double parm[COIL_PARMS_NUM]) {
   coil_t rspX, rspY, rspZ,
     rspsqX, rspsqY, rspsqZ;
   double eval[3], evec[9], tens[7], tengrad[21], grad[3], LL, KK,
@@ -186,36 +186,36 @@ _coilKind7TensorFilterFinish(coil_t *delta, coil_t **iv3,
   TENGRAD(tengrad, iv3, rspX, rspY, rspZ);
   tenEigensolve_d(eval, evec, tens);
   tenInvariantGradients_d(dmu1,
-			  dmu2, &mu2Norm,
-			  dskw, &skwNorm,
-			  tens);
+                          dmu2, &mu2Norm,
+                          dskw, &skwNorm,
+                          tens);
   tenRotationTangents_d(NULL, NULL, phi3, evec);
   /* \midhat{\nabla} \mu_1 ----------------- */
   ELL_3V_SET(grad,
-	     TEN_T_DOT(dmu1, tengrad + 0*7),
-	     TEN_T_DOT(dmu1, tengrad + 1*7),
-	     TEN_T_DOT(dmu1, tengrad + 2*7));
+             TEN_T_DOT(dmu1, tengrad + 0*7),
+             TEN_T_DOT(dmu1, tengrad + 1*7),
+             TEN_T_DOT(dmu1, tengrad + 2*7));
   LL = ELL_3V_DOT(grad,grad);
   KK = parm[1]*parm[1];
   cnd = _COIL_CONDUCT(LL, KK);
   /* \midhat{\nabla} \mu_2 ----------------- */
   ELL_3V_SET(grad,
-	     TEN_T_DOT(dmu2, tengrad + 0*7),
-	     TEN_T_DOT(dmu2, tengrad + 1*7),
-	     TEN_T_DOT(dmu2, tengrad + 2*7));
+             TEN_T_DOT(dmu2, tengrad + 0*7),
+             TEN_T_DOT(dmu2, tengrad + 1*7),
+             TEN_T_DOT(dmu2, tengrad + 2*7));
   LL = ELL_3V_DOT(grad,grad);
   KK = parm[2]*parm[2];
   cnd *= _COIL_CONDUCT(LL, KK);
   /* \midhat{\nabla} \skw and twist! ----------------- */
   ELL_3V_SET(grad,
-	     TEN_T_DOT(dskw, tengrad + 0*7),
-	     TEN_T_DOT(dskw, tengrad + 1*7),
-	     TEN_T_DOT(dskw, tengrad + 2*7));
+             TEN_T_DOT(dskw, tengrad + 0*7),
+             TEN_T_DOT(dskw, tengrad + 1*7),
+             TEN_T_DOT(dskw, tengrad + 2*7));
   LL = ELL_3V_DOT(grad,grad);
   ELL_3V_SET(grad,
-	     TEN_T_DOT(phi3, tengrad + 0*7),
-	     TEN_T_DOT(phi3, tengrad + 1*7),
-	     TEN_T_DOT(phi3, tengrad + 2*7));
+             TEN_T_DOT(phi3, tengrad + 0*7),
+             TEN_T_DOT(phi3, tengrad + 1*7),
+             TEN_T_DOT(phi3, tengrad + 2*7));
   LL += ELL_3V_DOT(grad,grad);
   KK = parm[3]*parm[3];
   cnd *= _COIL_CONDUCT(LL, KK); 

@@ -39,7 +39,7 @@ enhexUsage(char *me) {
   fprintf(stderr, "usage: %s <in> [<out>]\n", me);
   fprintf(stderr, " <in>: file to read raw data from\n");
   fprintf(stderr, "<out>: file to write hex data to; "
-	  "uses stdout by default\n");
+          "uses stdout by default\n");
   fprintf(stderr, " \"-\" can be used to refer to stdin/stdout\n");
   exit(1);
 }
@@ -79,7 +79,7 @@ main(int argc, char *argv[]) {
     fin = fopen(inS, "rb");
     if (!fin) {
       fprintf(stderr, "\n%s: couldn't fopen(\"%s\",\"rb\"): %s\n\n",
-	      me, inS, strerror(errno));
+              me, inS, strerror(errno));
       enhexUsage(me);
     }
   }
@@ -92,9 +92,9 @@ main(int argc, char *argv[]) {
     } else {
       fout = fopen(outS, "w");
       if (!fout) {
-	fprintf(stderr, "\n%s: couldn't fopen(\"%s\",\"w\"): %s\n\n",
-		me, outS, strerror(errno));
-	enhexUsage(me);
+        fprintf(stderr, "\n%s: couldn't fopen(\"%s\",\"w\"): %s\n\n",
+                me, outS, strerror(errno));
+        enhexUsage(me);
       }
     }
   }

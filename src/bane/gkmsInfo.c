@@ -35,20 +35,20 @@ baneGkms_infoMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret, one, measr;
 
   hestOptAdd(&opt, "m", "measr", airTypeEnum, 1, 1, &measr, "mean",
-	     "How to project along the 2nd derivative axis.  Possibilities "
-	     "include:\n "
-	     "\b\bo \"mean\": average value\n "
-	     "\b\bo \"median\": value at 50th percentile\n "
-	     "\b\bo \"mode\": most common value\n "
-	     "\b\bo \"min\", \"max\": probably not useful",
-	     NULL, baneGkmsMeasr);
+             "How to project along the 2nd derivative axis.  Possibilities "
+             "include:\n "
+             "\b\bo \"mean\": average value\n "
+             "\b\bo \"median\": value at 50th percentile\n "
+             "\b\bo \"mode\": most common value\n "
+             "\b\bo \"min\", \"max\": probably not useful",
+             NULL, baneGkmsMeasr);
   hestOptAdd(&opt, "one", NULL, airTypeInt, 0, 0, &one, NULL,
-	     "Create 1-dimensional info file; default is 2-dimensional");
+             "Create 1-dimensional info file; default is 2-dimensional");
   hestOptAdd(&opt, "i", "hvolIn", airTypeOther, 1, 1, &hvol, NULL,
-	     "input histogram volume (from \"gkms hvol\")",
+             "input histogram volume (from \"gkms hvol\")",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "o", "infoOut", airTypeString, 1, 1, &outS, NULL,
-	     "output info file, used by \"gkms pvg\" and \"gkms opac\"");
+             "output info file, used by \"gkms pvg\" and \"gkms opac\"");
   
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);

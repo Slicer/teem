@@ -38,34 +38,34 @@ unrrdu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   hestOptAdd(&opt, NULL, "operator", airTypeEnum, 1, 1, &op, NULL,
-	     "Binary operator. Possibilities include:\n "
-	     "\b\bo \"+\", \"-\", \"x\", \"/\": "
-	     "add, subtract, multiply, divide\n "
-	     "\b\bo \"^\": exponentiation (pow)\n "
-	     "\b\bo \"spow\": signed exponentiation: sgn(x)pow(abs(x),p)\n "
-	     "\b\bo \"%\": integer modulo\n "
-	     "\b\bo \"fmod\": same as fmod() in C\n "
-	     "\b\bo \"atan2\": same as atan2() in C\n "
-	     "\b\bo \"min\", \"max\": minimum, maximum\n "
-	     "\b\bo \"lt\", \"lte\", \"gt\", \"gte\": same as C's <, <=, >, <=\n "
-	     "\b\bo \"eq\", \"neq\": same as C's == and !=\n "
-	     "\b\bo \"comp\": -1, 0, or 1 if 1st value is less than, "
+             "Binary operator. Possibilities include:\n "
+             "\b\bo \"+\", \"-\", \"x\", \"/\": "
+             "add, subtract, multiply, divide\n "
+             "\b\bo \"^\": exponentiation (pow)\n "
+             "\b\bo \"spow\": signed exponentiation: sgn(x)pow(abs(x),p)\n "
+             "\b\bo \"%\": integer modulo\n "
+             "\b\bo \"fmod\": same as fmod() in C\n "
+             "\b\bo \"atan2\": same as atan2() in C\n "
+             "\b\bo \"min\", \"max\": minimum, maximum\n "
+             "\b\bo \"lt\", \"lte\", \"gt\", \"gte\": same as C's <, <=, >, <=\n "
+             "\b\bo \"eq\", \"neq\": same as C's == and !=\n "
+             "\b\bo \"comp\": -1, 0, or 1 if 1st value is less than, "
              "equal to, or greater than 2nd value\n "
-	     "\b\bo \"exists\": if 1st value exists, use it, "
-	     "else use 2nd value",
-	     NULL, nrrdBinaryOp);
+             "\b\bo \"exists\": if 1st value exists, use it, "
+             "else use 2nd value",
+             NULL, nrrdBinaryOp);
   hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
-	     "First input.  Can be float or nrrd.",
-	     NULL, NULL, nrrdHestIter);
+             "First input.  Can be float or nrrd.",
+             NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, NULL, "in2", airTypeOther, 1, 1, &in2, NULL,
-	     "Second input.  Can be float or nrrd.",
-	     NULL, NULL, nrrdHestIter);
+             "Second input.  Can be float or nrrd.",
+             NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "default",
-	     "type to convert all INPUT nrrds to, prior to "
-	     "doing operation, useful for doing, for instance, the difference "
-	     "between two unsigned char nrrds.  This will also determine "
-	     "output type. By default (not using this option), the types of "
-	     "the input nrrds are left unchanged.",
+             "type to convert all INPUT nrrds to, prior to "
+             "doing operation, useful for doing, for instance, the difference "
+             "between two unsigned char nrrds.  This will also determine "
+             "output type. By default (not using this option), the types of "
+             "the input nrrds are left unchanged.",
              NULL, NULL, &unrrduHestMaybeTypeCB);
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -82,7 +82,7 @@ unrrdu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
   /*
   fprintf(stderr, "%s: op = %d\n", me, op);
   fprintf(stderr, "%s: in1->left = %d, in2->left = %d\n", me, 
-	  (int)(in1->left), (int)(in2->left));
+          (int)(in1->left), (int)(in2->left));
   */
   if (nrrdTypeDefault != type) {
     /* they wanted to convert nrrds to some other type first */

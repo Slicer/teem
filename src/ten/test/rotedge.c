@@ -42,15 +42,15 @@ main(int argc, char *argv[]) {
   
   me = argv[0];
   hestOptAdd(&hopt, "nx ny", "# samples", airTypeInt, 2, 2, samp, "90 90",
-	     "number of samples along each edge of cube");
+             "number of samples along each edge of cube");
   hestOptAdd(&hopt, "mrg", "margin", airTypeFloat, 1, 1, &mrg, "0.11",
-	     "margin above and below anisotropic samples");
+             "margin above and below anisotropic samples");
   hestOptAdd(&hopt, "slp", "slope", airTypeFloat, 1, 1, &slp, "35",
-	     "something about boundary between different shapes");
+             "something about boundary between different shapes");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output file to save tensors into");
+             "output file to save tensors into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
-		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   
@@ -58,7 +58,7 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, nten, (airMopper)nrrdNuke, airMopAlways);
 
   if (nrrdMaybeAlloc(nten, nrrdTypeFloat, 4,
-		     7, samp[0], samp[1], 1)) {
+                     7, samp[0], samp[1], 1)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't allocate output:\n%s\n", me, err);
     airMopError(mop); 
@@ -79,19 +79,19 @@ main(int argc, char *argv[]) {
       
       ELL_3M_IDENTITY_SET(mD);
       ELL_3M_DIAG_SET(mD,
-		      mean + radius*cos(theta),
-		      mean + radius*cos(theta - 2*AIR_PI/3),
-		      mean + radius*cos(theta + 2*AIR_PI/3));
+                      mean + radius*cos(theta),
+                      mean + radius*cos(theta - 2*AIR_PI/3),
+                      mean + radius*cos(theta + 2*AIR_PI/3));
       rot1 = rot2 = rot3 = 0;
       if (x < 1) {
-	xx = AIR_CLAMP(0, x, 1);
-	rot1 = AIR_PI*(1-cos(AIR_PI*xx))/2;
+        xx = AIR_CLAMP(0, x, 1);
+        rot1 = AIR_PI*(1-cos(AIR_PI*xx))/2;
       } else if (x < 2) {
-	xx = AIR_CLAMP(0, x-1, 1);
-	rot2 = AIR_PI*(1-cos(AIR_PI*xx))/2;
+        xx = AIR_CLAMP(0, x-1, 1);
+        rot2 = AIR_PI*(1-cos(AIR_PI*xx))/2;
       } else {
-	xx = AIR_CLAMP(0, x-2, 1);
-	rot3 = AIR_PI*(1-cos(AIR_PI*xx))/2;
+        xx = AIR_CLAMP(0, x-2, 1);
+        rot3 = AIR_PI*(1-cos(AIR_PI*xx))/2;
       }
 
       /* set mRT, mR */

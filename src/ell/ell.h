@@ -170,8 +170,8 @@ TEEM_API void ell_q_3v_rotate_d(double v2[3], double q[4], double v1[3]);
 TEEM_API void ell_q_4v_rotate_f( float v2[4],  float q[4],  float v1[4]);
 TEEM_API void ell_q_4v_rotate_d(double v2[4], double q[4], double v1[4]);
 TEEM_API void ell_q_avg4_d(double avg[4], double eps, double wght[4],
-			   double q1[4], double q2[4],
-			   double q3[4], double q4[4]);
+                           double q1[4], double q2[4],
+                           double q3[4], double q4[4]);
 
 /* genmat.c */
 TEEM_API int ell_Nm_check(Nrrd *mat);
@@ -182,18 +182,18 @@ TEEM_API int ell_Nm_pseudo_inv(Nrrd *dest, Nrrd *src);
 
 /* cubic.c */
 TEEM_API int ell_cubic(double root[3],
-		       double A, double B, double C, int newton);
+                       double A, double B, double C, int newton);
 
 /* eigen.c */
 TEEM_API void ell_3m_1d_nullspace_d(double ans[3], double n[9]);
 TEEM_API void ell_3m_2d_nullspace_d(double ans0[3],
-				    double ans1[3], double n[9]);
+                                    double ans1[3], double n[9]);
 TEEM_API int ell_3m_eigenvalues_d(double eval[3], 
-				  double m[9], int newton);
+                                  double m[9], int newton);
 TEEM_API int ell_3m_eigensolve_d(double eval[3], double evec[9], double m[9],
-				 int newton);
+                                 int newton);
 TEEM_API int ell_3m_svd_d(double uu[9], double sval[3], double vv[9], 
-			  double mat[9], int newton);
+                          double mat[9], int newton);
 
 
 #ifdef __cplusplus

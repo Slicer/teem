@@ -61,18 +61,18 @@ unrrdu_axdeleteMain(int argc, char **argv, char *me, hestParm *hparm) {
       airMopError(mop); return 1;
     }
     for (axis=0;
-	 axis<nout->dim && nout->axis[axis].size > 1;
-	 axis++);
+         axis<nout->dim && nout->axis[axis].size > 1;
+         axis++);
     while (axis<nout->dim) {
       if (nrrdAxesDelete(ntmp, nout, axis)
-	  || nrrdCopy(nout, ntmp)) {
-	airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-	fprintf(stderr, "%s: error deleting axis:\n%s", me, err);
-	airMopError(mop); return 1;
+          || nrrdCopy(nout, ntmp)) {
+        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+        fprintf(stderr, "%s: error deleting axis:\n%s", me, err);
+        airMopError(mop); return 1;
       }
       for (axis=0;
-	   axis<nout->dim && nout->axis[axis].size > 1;
-	   axis++);
+           axis<nout->dim && nout->axis[axis].size > 1;
+           axis++);
     }
   } else {
     if (nrrdAxesDelete(nout, nin, axis)) {

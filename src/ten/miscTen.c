@@ -23,8 +23,8 @@
 
 int
 tenEvecRGB(Nrrd *nout, Nrrd *nin, int which, int aniso,
-	   double cthresh, double gamma,
-	   double bgGray, double isoGray) {
+           double cthresh, double gamma,
+           double bgGray, double isoGray) {
   char me[]="tenEvecRGB", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX];
   float *tdata, *cdata, eval[3], evec[9], R, G, B, an[TEN_ANISO_MAX+1];
@@ -191,12 +191,12 @@ tenBMatrixCheck(Nrrd *nbmat) {
   }
   if (!( 6 == nbmat->axis[0].size && 2 == nbmat->dim )) {
     sprintf(err, "%s: need a 6xN 2-D array (not a %dxN %d-D array)",
-	    me, nbmat->axis[0].size, nbmat->dim);
+            me, nbmat->axis[0].size, nbmat->dim);
     biffAdd(TEN, err); return 1;
   }
   if (!( 6 <= nbmat->axis[1].size )) {
     sprintf(err, "%s: have only %d rows, need at least 6",
-	    me, nbmat->axis[1].size);
+            me, nbmat->axis[1].size);
     biffAdd(TEN, err); return 1;
   }
 
@@ -244,11 +244,11 @@ _tenFindValley(double *valP, Nrrd *nhist, double tweak, int save) {
   dparm[2] = 0.0;
   if (nrrdCheapMedian(ntmpA, nhist, AIR_TRUE, AIR_FALSE, 2, 1.0, 1024)
       || nrrdSimpleResample(ntmpB, ntmpA,
-			    nrrdKernelGaussian, gparm, &bins, NULL)
+                            nrrdKernelGaussian, gparm, &bins, NULL)
       || nrrdSimpleResample(nhistD, ntmpB,
-			    nrrdKernelBCCubicD, dparm, &bins, NULL)
+                            nrrdKernelBCCubicD, dparm, &bins, NULL)
       || nrrdSimpleResample(nhistDD, ntmpB,
-			    nrrdKernelBCCubicDD, dparm, &bins, NULL)) {
+                            nrrdKernelBCCubicDD, dparm, &bins, NULL)) {
     sprintf(err, "%s: trouble processing histogram", me);
     biffMove(TEN, err, NRRD), airMopError(mop); return 1;
   }

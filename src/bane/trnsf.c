@@ -39,12 +39,12 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
     biffAdd(BANE, err); return 1;
   }
   if (!(nrrdMeasureHistoMin == measr ||
-	nrrdMeasureHistoMax == measr ||
-	nrrdMeasureHistoMean == measr ||
-	nrrdMeasureHistoMedian == measr ||
-	nrrdMeasureHistoMode == measr)) {
+        nrrdMeasureHistoMax == measr ||
+        nrrdMeasureHistoMean == measr ||
+        nrrdMeasureHistoMedian == measr ||
+        nrrdMeasureHistoMode == measr)) {
     sprintf(err, "%s: measure %d doesn't make sense for histovolume",
-	    me, dim);
+            me, dim);
     biffAdd(BANE, err); return 1;
   }
   if (baneHVolCheck(hvol)) {
@@ -63,7 +63,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
 
     /* sum up along 2nd deriv for each data value, grad mag */
     if (nrrdProject(proj2=nrrdNew(), hvol, 1,
-		    nrrdMeasureSum, nrrdTypeDefault)) {
+                    nrrdMeasureSum, nrrdTypeDefault)) {
       sprintf(err, "%s: trouble projecting out 2nd deriv. for g(v)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
@@ -80,7 +80,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
 
     /* sum up along gradient for each data value, 2nd deriv */
     if (nrrdProject(proj2 = nrrdNew(), hvol, 0,
-		    nrrdMeasureSum, nrrdTypeDefault)) {
+                    nrrdMeasureSum, nrrdTypeDefault)) {
       sprintf(err, "%s: trouble projecting out gradient for h(v)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
@@ -127,7 +127,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
 
     /* then create #hits(v,g) */
     if (nrrdProject(proj2=nrrdNew(), hvol, 1,
-		    nrrdMeasureSum, nrrdTypeDefault)) {
+                    nrrdMeasureSum, nrrdTypeDefault)) {
       sprintf(err, "%s: trouble projecting (step 1) to create #(v,g)", me);
       biffMove(BANE, err, NRRD); return 1;
     }
@@ -161,13 +161,13 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
   
   len = info2D->axis[1].size;
   if (nrrdProject(projH2=nrrdNew(), info2D, 0,
-		  nrrdMeasureProduct, nrrdTypeDefault)
+                  nrrdMeasureProduct, nrrdTypeDefault)
       || nrrdProject(projH1=nrrdNew(), projH2, 1,
-		     nrrdMeasureSum, nrrdTypeDefault)
+                     nrrdMeasureSum, nrrdTypeDefault)
       || nrrdProject(projN=nrrdNew(), info2D, 2,
-		     nrrdMeasureSum, nrrdTypeDefault)
+                     nrrdMeasureSum, nrrdTypeDefault)
       || nrrdProject(projG1=nrrdNew(), info2D, 2,
-		     nrrdMeasureHistoMean, nrrdTypeDefault)) {
+                     nrrdMeasureHistoMean, nrrdTypeDefault)) {
     sprintf(err, "%s: trouble creating needed projections", me);
     biffAdd(BANE, err); return 1;
   }
@@ -183,7 +183,7 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
   for (i=0; i<len; i++) {
     data1D[0 + 2*i] = nrrdFLookup[projG1->type](projG1->data, 1 + 2*i);
     data1D[1 + 2*i] = (nrrdFLookup[projH1->type](projH1->data, i) / 
-		       nrrdFLookup[projN->type](projN->data, 1 + 2*i));
+                       nrrdFLookup[projN->type](projN->data, 1 + 2*i));
   }
   nrrdNuke(projH2);
   nrrdNuke(projH1);
@@ -285,9 +285,9 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
       g = infoData[0+2*i];
       h = infoData[1+2*i];
       if (AIR_EXISTS(g) && AIR_EXISTS(h))
-	p = -sigma*sigma*h/AIR_MAX(0, g-gthresh);
+        p = -sigma*sigma*h/AIR_MAX(0, g-gthresh);
       else
-	p = AIR_NAN;
+        p = AIR_NAN;
       p = airIsInf_f(p) ? 10000 : p;
       posData[i] = p;
     }
@@ -307,16 +307,16 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
     for (gi=0; gi<sg; gi++) {
       g = AIR_AFFINE(0, gi, sg-1, info->axis[2].min, info->axis[2].max);
       for (vi=0; vi<sv; vi++) {
-	h = nrrdFLookup[info->type](info->data, 0 + 2*(vi + sv*gi));
-	/* from pg. 61 of GK's MS */
-	if (AIR_EXISTS(h)) {
-	  p = -sigma*sigma*h/AIR_MAX(0, g-gthresh);
-	}
-	else {
-	  p = AIR_NAN;
-	}
-	p = airIsInf_f(p) ? AIR_NAN : p;
-	posData[vi + sv*gi] = p;
+        h = nrrdFLookup[info->type](info->data, 0 + 2*(vi + sv*gi));
+        /* from pg. 61 of GK's MS */
+        if (AIR_EXISTS(h)) {
+          p = -sigma*sigma*h/AIR_MAX(0, g-gthresh);
+        }
+        else {
+          p = AIR_NAN;
+        }
+        p = airIsInf_f(p) ? AIR_NAN : p;
+        posData[vi + sv*gi] = p;
       }
     }
   }
@@ -325,8 +325,8 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
 
 void
 _baneOpacCalcA(int lutLen, float *opacLut, 
-	       int numCpts, float *xo,
-	       float *pos) {
+               int numCpts, float *xo,
+               float *pos) {
   int i, j;
   float p;
 
@@ -346,9 +346,9 @@ _baneOpacCalcA(int lutLen, float *opacLut,
     }
     for (j=1; j<numCpts; j++)
       if (p < xo[0 + 2*j])
-	break;
+        break;
     opacLut[i] = AIR_AFFINE(xo[0 + 2*(j-1)], p, xo[0 + 2*j], 
-			    xo[1 + 2*(j-1)], xo[1 + 2*j]);
+                            xo[1 + 2*(j-1)], xo[1 + 2*j]);
   }
   /*
   for (i=0; i<numCpts; i++)
@@ -360,17 +360,17 @@ _baneOpacCalcA(int lutLen, float *opacLut,
 
 void
 _baneOpacCalcB(int lutLen, float *opacLut, 
-	       int numCpts, float *x, float *o,
-	       float *pos) {
+               int numCpts, float *x, float *o,
+               float *pos) {
   /* char me[]="_baneOpacCalcB"; */
   int i, j;
   float p, op;
 
   /*
   printf("%s(%d, %lu, %d, %lu, %lu, %lu): hello\n", me, lutLen,
-	 (unsigned long)opacLut, numCpts, 
-	 (unsigned long)x, (unsigned long)o, 
-	 (unsigned long)pos);
+         (unsigned long)opacLut, numCpts, 
+         (unsigned long)x, (unsigned long)o, 
+         (unsigned long)pos);
   */
   /*
   for (i=0; i<numCpts; i++) {
@@ -397,7 +397,7 @@ _baneOpacCalcB(int lutLen, float *opacLut,
     }
     for (j=1; j<numCpts; j++)
       if (p < x[j])
-	break;
+        break;
     op = AIR_AFFINE(x[j-1], p, x[j], o[j-1], o[j]);
   endloop:
     opacLut[i] = op;

@@ -27,10 +27,10 @@ main(int argc, char *argv[]) {
   
   me = argv[0];
   hestOptAdd(&hopt, "t", "transform", airTypeOther, 1, 1, &mat, "identity",
-	     "transform(s) to apply to image",
-	     NULL, NULL, mossHestTransform);
+             "transform(s) to apply to image",
+             NULL, NULL, mossHestTransform);
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
-		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
 
   fprintf(stderr, "%s: got transform:\n", me);
   mossMatPrint(stderr, mat);

@@ -63,16 +63,16 @@ typedef struct {
   int size;                      /* number of elements along each axis */
   double spacing;                /* if non-NaN, distance between samples */
   double min, max;               /* if non-NaN, range of positions spanned
-				    by the samples on this axis.  Obviously,
-				    one can set "spacing" to something
-				    incompatible with min and max: the idea
-				    is that only one (min and max, or
-				    spacing) should be taken to be significant
-				    at any time. */
+                                    by the samples on this axis.  Obviously,
+                                    one can set "spacing" to something
+                                    incompatible with min and max: the idea
+                                    is that only one (min and max, or
+                                    spacing) should be taken to be significant
+                                    at any time. */
   int center;                    /* cell vs. node centering (value should be
-				    one of nrrdCenter{Unknown,Node,Cell} */
+                                    one of nrrdCenter{Unknown,Node,Cell} */
   int kind;                      /* what kind of information is along this
-				    axis (from the nrrdKind* enum) */
+                                    axis (from the nrrdKind* enum) */
   char *label;                   /* short info string for each axis */
   char *unit;                    /* short string for identifying units */
 } NrrdAxisInfo;
@@ -96,10 +96,10 @@ typedef struct {
   ** All per-axis specific information
   */
   NrrdAxisInfo axis[NRRD_DIM_MAX]; /* axis[0] is the fastest axis in the scan-
-				      line ordering, the one who's coordinates
-				      change the fastest as the elements are
-				      accessed in the order in which they
-				      appear in memory */
+                                      line ordering, the one who's coordinates
+                                      change the fastest as the elements are
+                                      accessed in the order in which they
+                                      appear in memory */
 
   /* 
   ** Information of dubious standing- descriptive of whole array, but
@@ -109,10 +109,10 @@ typedef struct {
   char *content;                   /* brief account of what this data is */
   int blockSize;                   /* for nrrdTypeBlock:, block byte size */
   double oldMin, oldMax;           /* if non-NaN, and if nrrd is of integral
-				      type, extremal values for the array
-				      BEFORE it was quantized */
+                                      type, extremal values for the array
+                                      BEFORE it was quantized */
   void *ptr;                       /* never read or set by nrrd; use/abuse
-				      as you see fit */
+                                      as you see fit */
 
   /* 
   ** Comments.  Read from, and written to, header.
@@ -140,8 +140,8 @@ struct NrrdEncoding_t;
 typedef struct {
   char name[AIR_STRLEN_SMALL];    /* short identifying string */
   int isImage,    /* this format is intended solely for "2D" images, which
-		     controls the invocation of _nrrdReshapeUpGrayscale()
-		     if nrrdStateGrayscaleImage3D */
+                     controls the invocation of _nrrdReshapeUpGrayscale()
+                     if nrrdStateGrayscaleImage3D */
     readable,     /* we can read as well as write this format */
     usesDIO;      /* this format can use Direct IO */
 
@@ -155,7 +155,7 @@ typedef struct {
   /* (for writing) returns non-zero if a given nrrd/encoding pair will fit
      in this format */
   int (*fitsInto)(const Nrrd *nrrd, const struct NrrdEncoding_t *encoding, 
-		   int useBiff);
+                   int useBiff);
 
   /* (for reading) returns non-zero if what has been read in so far 
      is recognized as the beginning of this format */
@@ -195,86 +195,86 @@ typedef struct NrrdEncoding_t {
 */
 typedef struct NrrdIoState_t {
   char *path,               /* allows us to remember the directory
-			       from whence this nrrd was "load"ed, or
-			       to whence this nrrd is "save"ed, MINUS the
-			       trailing "/", so as to facilitate games with
-			       header-relative data files */
+                               from whence this nrrd was "load"ed, or
+                               to whence this nrrd is "save"ed, MINUS the
+                               trailing "/", so as to facilitate games with
+                               header-relative data files */
     *base,                  /* when "save"ing a nrrd into seperate
-			       header and data, the name of the header
-			       file (e.g. "output.nhdr") MINUS the ".nhdr".
-			       This is  massaged to produce a header-
-			       relative data filename.  */
+                               header and data, the name of the header
+                               file (e.g. "output.nhdr") MINUS the ".nhdr".
+                               This is  massaged to produce a header-
+                               relative data filename.  */
     *dataFN,                /* ON READ: no semantics 
-			       ON WRITE: name to be saved in the "data file"
-			       field of the nrrd, either verbatim from
-			       "unu make -h", or, internally, created based
-			       on detached header path and name */
+                               ON WRITE: name to be saved in the "data file"
+                               field of the nrrd, either verbatim from
+                               "unu make -h", or, internally, created based
+                               on detached header path and name */
     *line;                  /* buffer for saving one line from file */
   
   int lineLen,              /* allocated size of line, including the
-			       last character for \0 */
+                               last character for \0 */
     pos;                    /* line[pos] is beginning of stuff which
-			       still has yet to be parsed */
+                               still has yet to be parsed */
 
   FILE *dataFile;           /* if non-NULL, where the data is to be
-			       read from or written to.  If NULL, data
-			       will be read from current file */
+                               read from or written to.  If NULL, data
+                               will be read from current file */
 
   int endian,               /* endian-ness of the data in file, for
-			       those encoding/type combinations for
-			       which it matters (from nrrdEndian) */
+                               those encoding/type combinations for
+                               which it matters (from nrrdEndian) */
     lineSkip,               /* if dataFile non-NULL, the number of
-			       lines in dataFile that should be
-			       skipped over (so as to bypass another
-			       form of ASCII header preceeding raw
-			       data) */
+                               lines in dataFile that should be
+                               skipped over (so as to bypass another
+                               form of ASCII header preceeding raw
+                               data) */
     byteSkip,               /* exactly like lineSkip, but bytes
-			       instead of lines.  First the lines are
-			       skipped, then the bytes */
+                               instead of lines.  First the lines are
+                               skipped, then the bytes */
     seen[NRRD_FIELD_MAX+1], /* for error checking in header parsing */
     detachedHeader,         /* ON READ+WRITE: nrrd is split into distinct
-			       header and data (for nrrd format only) */
+                               header and data (for nrrd format only) */
     bareText,               /* when writing a plain text file, is there any
-			       effort made to record the nrrd struct
-			       info in the text file */
+                               effort made to record the nrrd struct
+                               info in the text file */
     charsPerLine,           /* when writing ASCII data in which we
-			       intend only to write a huge long list
-			       of numbers whose text formatting
-			       implies nothing, then how many
-			       characters do we limit ourselves to per
-			       line */
+                               intend only to write a huge long list
+                               of numbers whose text formatting
+                               implies nothing, then how many
+                               characters do we limit ourselves to per
+                               line */
     valsPerLine,            /* when writing ASCII data in which we DO
-			       intend to sigify (or at least hint at)
-			       something with the formatting, then
-			       what is the max number of values to
-			       write on a line */
+                               intend to sigify (or at least hint at)
+                               something with the formatting, then
+                               what is the max number of values to
+                               write on a line */
     skipData,               /* if non-zero (all formats):
-			       ON READ: don't allocate memory for, and don't
-			       read in, the data portion of the file (but we
-			       do verify that for nrrds, detached datafiles
-			       can be opened).  Note: Does NOT imply 
-			       keepNrrdDataFileOpen.  Warning: resulting
-			       nrrd struct will have "data" pointer NULL.
-			       ON WRITE: don't write data portion of file
-			       (for nrrds, don't even try to open detached
-			       datafiles).  Warning: can result in broken
-			       noncomformant files.
-			       (be careful with this) */
+                               ON READ: don't allocate memory for, and don't
+                               read in, the data portion of the file (but we
+                               do verify that for nrrds, detached datafiles
+                               can be opened).  Note: Does NOT imply 
+                               keepNrrdDataFileOpen.  Warning: resulting
+                               nrrd struct will have "data" pointer NULL.
+                               ON WRITE: don't write data portion of file
+                               (for nrrds, don't even try to open detached
+                               datafiles).  Warning: can result in broken
+                               noncomformant files.
+                               (be careful with this) */
     keepNrrdDataFileOpen,   /* ON READ: don't close nio->dataFile when
-			       you otherwise would, when reading the
-			       nrrd format Probably used in conjunction with
-			       skipData.  (currently for "unu data")
-			       ON WRITE: no semantics */
+                               you otherwise would, when reading the
+                               nrrd format Probably used in conjunction with
+                               skipData.  (currently for "unu data")
+                               ON WRITE: no semantics */
     zlibLevel,              /* zlib compression level (0-9, -1 for
-			       default[6], 0 for no compression). */
+                               default[6], 0 for no compression). */
     zlibStrategy,           /* zlib compression strategy, can be one
-			       of the nrrdZlibStrategy enums, default is
-			       nrrdZlibStrategyDefault. */
+                               of the nrrdZlibStrategy enums, default is
+                               nrrdZlibStrategyDefault. */
     bzip2BlockSize;         /* block size used for compression, 
-			       roughly equivalent to better but slower
-			       (1-9, -1 for default[9]). */
+                               roughly equivalent to better but slower
+                               (1-9, -1 for default[9]). */
   void *oldData;            /* ON READ: data pointer that may have already been
-			       allocated for the right size to hold the data */
+                               allocated for the right size to hold the data */
   size_t oldDataSize;       /* ON READ: size of data pointed to by oldData */
   /* format and encoding.  These are initialized to nrrdFormatUnknown
      and nrrdEncodingUnknown, respectively. USE THESE VALUES for 
@@ -302,8 +302,8 @@ typedef struct NrrdIoState_t {
 */
 typedef struct {
   double min, max;  /* if non-NaN, nominally: extremal values for array, but
-		       practically: the min and max values to use for nrrd
-		       calls for which a min and max values are used */
+                       practically: the min and max values to use for nrrd
+                       calls for which a min and max values are used */
   int hasNonExist;  /* from the nrrdHasNonExist* enum values */
 } NrrdRange;
 
@@ -367,34 +367,34 @@ typedef struct {
 typedef struct {
   const NrrdKernel 
     *kernel[NRRD_DIM_MAX];   /* which kernel to use on each axis; use NULL to
-				say no resampling whatsoever on this axis */
+                                say no resampling whatsoever on this axis */
   int samples[NRRD_DIM_MAX]; /* number of samples per axis */
   double parm[NRRD_DIM_MAX][NRRD_KERNEL_PARMS_NUM], /* kernel arguments */
     min[NRRD_DIM_MAX],
     max[NRRD_DIM_MAX];       /* min[i] and max[i] are the range, in WORLD
-				space, along which to resample
-				       axis i. axis mins and maxs are required
-				       on resampled axes. */
+                                space, along which to resample
+                                       axis i. axis mins and maxs are required
+                                       on resampled axes. */
   int boundary,                     /* value from the nrrdBoundary enum */
     type,                           /* desired type of output, use
-				       nrrdTypeUnknown for "same as input" */
+                                       nrrdTypeUnknown for "same as input" */
     renormalize,                    /* when downsampling with a kernel with
-		   		       non-zero integral, should we renormalize
-				       the weights to match the kernel integral
-				       so as to remove annoying ripple */
+                                       non-zero integral, should we renormalize
+                                       the weights to match the kernel integral
+                                       so as to remove annoying ripple */
     round,                          /* when copying from the last intermediate
-				       (floating point) result to the output
-				       nrrd, for integer outputs, do we round
-				       to the nearest integer first, before
-				       clamping and assigning.  Enabling this
-				       fixed the mystery of downsampling large
-				       constant regions of 255 (uchar), and
-				       ending up with 254 */
+                                       (floating point) result to the output
+                                       nrrd, for integer outputs, do we round
+                                       to the nearest integer first, before
+                                       clamping and assigning.  Enabling this
+                                       fixed the mystery of downsampling large
+                                       constant regions of 255 (uchar), and
+                                       ending up with 254 */
     clamp;                          /* when copying from the last intermediate
-				       (floating point) result to the output
-				       nrrd, should we clamp the values to the
-				       range of values for the output type, a
-				       concern only for integer outputs */
+                                       (floating point) result to the output
+                                       nrrd, should we clamp the values to the
+                                       range of values for the output type, a
+                                       concern only for integer outputs */
   double padValue;                  /* if padding, what value to pad with */
 } NrrdResampleInfo;
 
@@ -407,12 +407,12 @@ typedef struct {
 typedef struct {
   const Nrrd *nrrd;            /* read-only nrrd to get values from */
   Nrrd *ownNrrd;               /* another nrrd to get values from, which we
-			          do "own", and do delete on nrrdIterNix */
+                                  do "own", and do delete on nrrdIterNix */
   double val;                  /* single fixed value */
   int size;                    /* type size */
   char *data;                  /* where to get the next value */
   size_t left;                 /* number of values beyond what "data"
-				  currently points to */
+                                  currently points to */
   double (*load)(const void*); /* how to get a value out of "data" */
 } NrrdIter;
 
@@ -492,10 +492,10 @@ TEEM_API NrrdResampleInfo *nrrdResampleInfoNew(void);
 TEEM_API NrrdResampleInfo *nrrdResampleInfoNix(NrrdResampleInfo *info);
 TEEM_API NrrdKernelSpec *nrrdKernelSpecNew();
 TEEM_API void nrrdKernelSpecSet(NrrdKernelSpec *ksp, const NrrdKernel *k,
-				double kparm[NRRD_KERNEL_PARMS_NUM]);
+                                double kparm[NRRD_KERNEL_PARMS_NUM]);
 TEEM_API void nrrdKernelParmSet(const NrrdKernel **kP,
-				double kparm[NRRD_KERNEL_PARMS_NUM],
-				NrrdKernelSpec *ksp);
+                                double kparm[NRRD_KERNEL_PARMS_NUM],
+                                NrrdKernelSpec *ksp);
 TEEM_API NrrdKernelSpec *nrrdKernelSpecNix(NrrdKernelSpec *ksp);
 /* ---- END non-NrrdIO */
 TEEM_API void nrrdInit(Nrrd *nrrd);
@@ -504,17 +504,17 @@ TEEM_API Nrrd *nrrdNix(Nrrd *nrrd);
 TEEM_API Nrrd *nrrdEmpty(Nrrd *nrrd);
 TEEM_API Nrrd *nrrdNuke(Nrrd *nrrd);
 TEEM_API int nrrdWrap_nva(Nrrd *nrrd, void *data, int type,
-			  int dim, const int *size);
+                          int dim, const int *size);
 TEEM_API int nrrdWrap(Nrrd *nrrd, void *data, int type, int dim,
-		      ... /* sx, sy, .., axis(dim-1) size */);
+                      ... /* sx, sy, .., axis(dim-1) size */);
 TEEM_API int nrrdCopy(Nrrd *nout, const Nrrd *nin);
 TEEM_API int nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, const int *size);
 TEEM_API int nrrdAlloc(Nrrd *nrrd, int type, int dim,
-		       ... /* sx, sy, .., axis(dim-1) size */);
+                       ... /* sx, sy, .., axis(dim-1) size */);
 TEEM_API int nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim,
-				const int *size);
+                                const int *size);
 TEEM_API int nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim,
-			    ... /* sx, sy, .., axis(dim-1) size */);
+                            ... /* sx, sy, .., axis(dim-1) size */);
 TEEM_API int nrrdPPM(Nrrd *, int sx, int sy);
 TEEM_API int nrrdPGM(Nrrd *, int sx, int sy);
 
@@ -522,21 +522,21 @@ TEEM_API int nrrdPGM(Nrrd *, int sx, int sy);
 /* axis.c */
 TEEM_API int nrrdKindSize(int kind);
 TEEM_API int nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin,
-			      const int *axmap, int bitflag);
+                              const int *axmap, int bitflag);
 TEEM_API void nrrdAxisInfoSet_nva(Nrrd *nin, int axInfo, const void *info);
 TEEM_API void nrrdAxisInfoSet(Nrrd *nin, int axInfo,
-			      ... /* const void* */);
+                              ... /* const void* */);
 TEEM_API void nrrdAxisInfoGet_nva(const Nrrd *nrrd, int axInfo, void *info);
 TEEM_API void nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo,
-			      ... /* void* */);
+                              ... /* void* */);
 TEEM_API double nrrdAxisInfoPos(const Nrrd *nrrd, int ax, double idx);
 TEEM_API double nrrdAxisInfoIdx(const Nrrd *nrrd, int ax, double pos);
 TEEM_API void nrrdAxisInfoPosRange(double *loP, double *hiP,
-				   const Nrrd *nrrd, int ax,
-				   double loIdx, double hiIdx);
+                                   const Nrrd *nrrd, int ax,
+                                   double loIdx, double hiIdx);
 TEEM_API void nrrdAxisInfoIdxRange(double *loP, double *hiP,
-				   const Nrrd *nrrd, int ax,
-				   double loPos, double hiPos);
+                                   const Nrrd *nrrd, int ax,
+                                   double loPos, double hiPos);
 TEEM_API void nrrdAxisInfoSpacingSet(Nrrd *nrrd, int ax);
 TEEM_API void nrrdAxisInfoMinMaxSet(Nrrd *nrrd, int ax, int defCenter);
 
@@ -546,8 +546,8 @@ TEEM_API const char *nrrdBiffKey;
 TEEM_API int nrrdPeripheralInit(Nrrd *nrrd);
 TEEM_API int nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin);
 TEEM_API int nrrdContentSet(Nrrd *nout, const char *func,
-			    const Nrrd *nin, const char *format,
-			    ... /* printf-style arg list */ );
+                            const Nrrd *nin, const char *format,
+                            ... /* printf-style arg list */ );
 TEEM_API void nrrdDescribe(FILE *file, const Nrrd *nrrd);
 TEEM_API int nrrdCheck(const Nrrd *nrrd);
 TEEM_API int nrrdElementSize(const Nrrd *nrrd);
@@ -567,7 +567,7 @@ TEEM_API int nrrdKeyValueSize(const Nrrd *nrrd);
 TEEM_API int nrrdKeyValueAdd(Nrrd *nrrd, const char *key, const char *value);
 TEEM_API char *nrrdKeyValueGet(const Nrrd *nrrd, const char *key);
 TEEM_API void nrrdKeyValueIndex(const Nrrd *nrrd, 
-			      char **keyP, char **valueP, int ki);
+                              char **keyP, char **valueP, int ki);
 TEEM_API int nrrdKeyValueErase(Nrrd *nrrd, const char *key);
 TEEM_API void nrrdKeyValueClear(Nrrd *nrrd);
 TEEM_API int nrrdKeyValueCopy(Nrrd *nout, const Nrrd *nin);
@@ -606,9 +606,9 @@ TEEM_API int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIoState *io);
 /* write.c */
 TEEM_API int nrrdIoStateSet(NrrdIoState *io, int parm, int value);
 TEEM_API int nrrdIoStateEncodingSet(NrrdIoState *io,
-				    const NrrdEncoding *encoding);
+                                    const NrrdEncoding *encoding);
 TEEM_API int nrrdIoStateFormatSet(NrrdIoState *io, 
-				  const NrrdFormat *format);
+                                  const NrrdFormat *format);
 TEEM_API int nrrdIoStateGet(NrrdIoState *io, int parm);
 TEEM_API const NrrdEncoding *nrrdIoStateEncodingGet(NrrdIoState *io);
 TEEM_API const NrrdFormat *nrrdIoStateFormatGet(NrrdIoState *io);
@@ -636,8 +636,8 @@ TEEM_API int    (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, const void *);
 TEEM_API float  (*nrrdFClamp[NRRD_TYPE_MAX+1])(float);
 TEEM_API double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double);
 TEEM_API void (*nrrdMinMaxExactFind[NRRD_TYPE_MAX+1])(void *minP, void *maxP,
-						      int *hasNonExistP,
-						      const Nrrd *nrrd);
+                                                      int *hasNonExistP,
+                                                      const Nrrd *nrrd);
 TEEM_API int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *);
 /* ---- END non-NrrdIO */
 
@@ -650,24 +650,24 @@ TEEM_API int nrrdInvertPerm(int *invp, const int *perm, int n);
 TEEM_API int nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes);
 TEEM_API int nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, int ax1, int ax2);
 TEEM_API int nrrdShuffle(Nrrd *nout, const Nrrd *nin, int axis,
-			 const int *perm);
+                         const int *perm);
 TEEM_API int nrrdFlip(Nrrd *nout, const Nrrd *nin, int axis);
 TEEM_API int nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin, 
-		      int axis, int incrDim);
+                      int axis, int incrDim);
 TEEM_API int nrrdReshape(Nrrd *nout, const Nrrd *nin, int dim,
-			 ... /* sx, sy, .., axis(dim-1) size */ );
+                         ... /* sx, sy, .., axis(dim-1) size */ );
 TEEM_API int nrrdReshape_nva(Nrrd *nout, const Nrrd *nin,
-			     int dim, const int *size);
+                             int dim, const int *size);
 TEEM_API int nrrdAxesSplit(Nrrd *nout, const Nrrd *nin, int ax,
-			   int sizeFast, int sizeSlow);
+                           int sizeFast, int sizeSlow);
 TEEM_API int nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, int ax);
 TEEM_API int nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, int ax);
 TEEM_API int nrrdBlock(Nrrd *nout, const Nrrd *nin);
 TEEM_API int nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type);
 TEEM_API int nrrdTile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
-			int axSplit, int sizeFast, int sizeSlow);
+                        int axSplit, int sizeFast, int sizeSlow);
 TEEM_API int nrrdUntile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
-			  int axMerge, int sizeFast, int sizeSlow);
+                          int axMerge, int sizeFast, int sizeSlow);
 
 /******** things useful with hest */
 /* hestNrrd.c */
@@ -692,9 +692,9 @@ TEEM_API NrrdRange *nrrdRangeCopy(const NrrdRange *range);
 TEEM_API NrrdRange *nrrdRangeNix(NrrdRange *range);
 TEEM_API void nrrdRangeReset(NrrdRange *range);
 TEEM_API void nrrdRangeSet(NrrdRange *range,
-			   const Nrrd *nrrd, int blind8BitRange);
+                           const Nrrd *nrrd, int blind8BitRange);
 TEEM_API void nrrdRangeSafeSet(NrrdRange *range,
-			       const Nrrd *nrrd, int blind8BitRange);
+                               const Nrrd *nrrd, int blind8BitRange);
 TEEM_API NrrdRange *nrrdRangeNewSet(const Nrrd *nrrd, int blind8BitRange);
 TEEM_API int nrrdHasNonExist(const Nrrd *nrrd);
 
@@ -702,41 +702,41 @@ TEEM_API int nrrdHasNonExist(const Nrrd *nrrd);
 /* map.c */
 TEEM_API int nrrdConvert(Nrrd *nout, const Nrrd *nin, int type);
 TEEM_API int nrrdQuantize(Nrrd *nout, const Nrrd *nin,
-			  const NrrdRange *range, int bits);
+                          const NrrdRange *range, int bits);
 
 TEEM_API int nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type);
 TEEM_API int nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nhistP,
-			 int bins, int smart, float amount);
+                         int bins, int smart, float amount);
 
 /******** rest of point-wise value remapping, and "color"mapping */
 /* apply1D.c */
 TEEM_API int nrrdApply1DLut(Nrrd *nout,
-			    const Nrrd *nin, const NrrdRange *range,
-			    const Nrrd *nlut, int typeOut, int rescale);
+                            const Nrrd *nin, const NrrdRange *range,
+                            const Nrrd *nlut, int typeOut, int rescale);
 TEEM_API int nrrdApplyMulti1DLut(Nrrd *nout, const Nrrd *nin,
-				 const NrrdRange *_range, const Nrrd *nmlut,
-				 int typeOut, int rescale);
+                                 const NrrdRange *_range, const Nrrd *nmlut,
+                                 int typeOut, int rescale);
 TEEM_API int nrrdApply1DRegMap(Nrrd *nout,
-			       const Nrrd *nin, const NrrdRange *range,
-			       const Nrrd *nmap, int typeOut, int rescale);
+                               const Nrrd *nin, const NrrdRange *range,
+                               const Nrrd *nmap, int typeOut, int rescale);
 TEEM_API int nrrdApplyMulti1DRegMap(Nrrd *nout, const Nrrd *nin,
-				    const NrrdRange *_range, const Nrrd *nmmap,
-				    int typeOut, int rescale);
+                                    const NrrdRange *_range, const Nrrd *nmmap,
+                                    int typeOut, int rescale);
 TEEM_API int nrrd1DIrregMapCheck(const Nrrd *nmap);
 TEEM_API int nrrd1DIrregAclGenerate(Nrrd *nacl, const Nrrd *nmap, int aclLen);
 TEEM_API int nrrd1DIrregAclCheck(const Nrrd *nacl);
 TEEM_API int nrrdApply1DIrregMap(Nrrd *nout,
-				 const Nrrd *nin, const NrrdRange *range, 
-				 const Nrrd *nmap, const Nrrd *nacl,
-				 int typeOut, int rescale);
+                                 const Nrrd *nin, const NrrdRange *range, 
+                                 const Nrrd *nmap, const Nrrd *nacl,
+                                 int typeOut, int rescale);
 TEEM_API int nrrdApply1DSubstitution(Nrrd *nout,
-				     const Nrrd *nin, const Nrrd *nsubst);
+                                     const Nrrd *nin, const Nrrd *nsubst);
 
 /******** sampling, slicing, cropping */
 /* subset.c */
 TEEM_API int nrrdSample_nva(void *val, const Nrrd *nin, const int *coord);
 TEEM_API int nrrdSample(void *val, const Nrrd *nin,
-			... /* coord0, coord1, .., coord(dim-1) */ );
+                        ... /* coord0, coord1, .., coord(dim-1) */ );
 TEEM_API int nrrdSlice(Nrrd *nout, const Nrrd *nin, int axis, int pos);
 TEEM_API int nrrdCrop(Nrrd *nout, const Nrrd *nin, int *min, int *max);
 TEEM_API int nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, int crop);
@@ -744,64 +744,64 @@ TEEM_API int nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, int crop);
 /******** padding */
 /* superset.c */
 TEEM_API int nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
-			int axis, int pos);
+                        int axis, int pos);
 TEEM_API int nrrdPad_nva(Nrrd *nout, const Nrrd *nin,
-			 const int *min, const int *max,
-			 int boundary, double padValue);
+                         const int *min, const int *max,
+                         int boundary, double padValue);
 TEEM_API int nrrdPad(Nrrd *nout, const Nrrd *nin,
-		     const int *min, const int *max, int boundary,
-		     ... /* if nrrdBoundaryPad, what value */);
+                     const int *min, const int *max, int boundary,
+                     ... /* if nrrdBoundaryPad, what value */);
 TEEM_API int nrrdSimplePad_nva(Nrrd *nout, const Nrrd *nin, int pad,
-			       int boundary, double padValue);
+                               int boundary, double padValue);
 TEEM_API int nrrdSimplePad(Nrrd *nout, const Nrrd *nin, int pad, int boundary,
-			   ... /* if nrrdBoundaryPad, what value */);
+                           ... /* if nrrdBoundaryPad, what value */);
 TEEM_API int nrrdInset(Nrrd *nout, const Nrrd *nin,
-		       const Nrrd *nsub, const int *min);
+                       const Nrrd *nsub, const int *min);
 
 /******** measuring and projecting */
 /* measure.c */
 TEEM_API void (*nrrdMeasureLine[NRRD_MEASURE_MAX+1])(void *ans, int ansType,
-						     const void *line,
-						     int lineType, int lineLen,
-						     double axMin,
-						     double axMax);
+                                                     const void *line,
+                                                     int lineType, int lineLen,
+                                                     double axMin,
+                                                     double axMax);
 TEEM_API int nrrdProject(Nrrd *nout, const Nrrd *nin,
-			 int axis, int measr, int type);
+                         int axis, int measr, int type);
 
 /********* various kinds of histograms */
 /* histogram.c */
 TEEM_API int nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
-		       const Nrrd *nwght, int bins, int type);
+                       const Nrrd *nwght, int bins, int type);
 TEEM_API int nrrdHistoDraw(Nrrd *nout, const Nrrd *nin, int sy,
-			   int showLog, double max);
+                           int showLog, double max);
 TEEM_API int nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
-			   int axis, int bins, int type);
+                           int axis, int bins, int type);
 TEEM_API int nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
-			    const NrrdRange *const *range, int numNin,
-			    const Nrrd *nwght, const int *bins,
-			    int type, const int *clamp);
+                            const NrrdRange *const *range, int numNin,
+                            const Nrrd *nwght, const int *bins,
+                            int type, const int *clamp);
 
 /******** arithmetic and math on nrrds */
 /* arith.c */
 TEEM_API int nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
-			    const NrrdRange *range, double gamma);
+                            const NrrdRange *range, double gamma);
 TEEM_API int nrrdArithUnaryOp(Nrrd *nout, int op, const Nrrd *nin);
 TEEM_API int nrrdArithBinaryOp(Nrrd *nout, int op,
-			       const Nrrd *ninA, const Nrrd *ninB);
+                               const Nrrd *ninA, const Nrrd *ninB);
 TEEM_API int nrrdArithTernaryOp(Nrrd *nout, int op,
-				const Nrrd *ninA, const Nrrd *ninB,
-				const Nrrd *ninC);
+                                const Nrrd *ninA, const Nrrd *ninB,
+                                const Nrrd *ninC);
 TEEM_API int nrrdArithIterBinaryOp(Nrrd *nout, int op,
-				   NrrdIter *inA, NrrdIter *inB);
+                                   NrrdIter *inA, NrrdIter *inB);
 TEEM_API int nrrdArithIterTernaryOp(Nrrd *nout, int op,
-				    NrrdIter *inA, NrrdIter *inB,
-				    NrrdIter *inC);
+                                    NrrdIter *inA, NrrdIter *inB,
+                                    NrrdIter *inC);
 
 /******** filtering and re-sampling */
 /* filt.c */
 TEEM_API int nrrdCheapMedian(Nrrd *nout, const Nrrd *nin,
-			     int pad, int mode,
-			     int radius, float wght, int bins);
+                             int pad, int mode,
+                             int radius, float wght, int bins);
 
 /*
 ******** nrrdResample_t typedef
@@ -826,10 +826,10 @@ typedef double nrrdResample_t;
 
 /* resampleNrrd.c */
 TEEM_API int nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
-				 const NrrdResampleInfo *info);
+                                 const NrrdResampleInfo *info);
 TEEM_API int nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
-				const NrrdKernel *kernel, const double *parm,
-				const int *samples, const double *scalings);
+                                const NrrdKernel *kernel, const double *parm,
+                                const int *samples, const double *scalings);
 
 /******** connected component extraction and manipulation */
 /* ccmethods.c */
@@ -839,10 +839,10 @@ TEEM_API int nrrdCCMax(const Nrrd *nin);
 TEEM_API int nrrdCCNum(const Nrrd *nin);
 /* cc.c */
 TEEM_API int nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin,
-			int type, int conny);
+                        int type, int conny);
 TEEM_API int nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, int conny);
 TEEM_API int nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *nval,
-			 int dir, int maxSize, int maxNeighbor, int conny);
+                         int dir, int maxSize, int maxNeighbor, int conny);
 TEEM_API int nrrdCCRevalue (Nrrd *nout, const Nrrd *nin, const Nrrd *nval);
 TEEM_API int nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin);
   
@@ -880,8 +880,8 @@ TEEM_API NrrdKernel
   *const nrrdKernelGaussianD,    /* 1st derivative of Gaussian */
   *const nrrdKernelGaussianDD;   /* 2nd derivative of Gaussian */
 TEEM_API int nrrdKernelParse(const NrrdKernel **kernelP,
-			     double *parm,
-			     const char *str);
+                             double *parm,
+                             const char *str);
 TEEM_API int nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str);
 
 /* ---- END non-NrrdIO */

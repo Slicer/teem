@@ -23,8 +23,8 @@
 /* the non-histogram measures assume that there will be no NaNs in data */
 void
 _nrrdMeasureUnknown(void *ans, int ansType,
-		    const void *line, int lineType, int len, 
-		    double axmin, double axmax) {
+                    const void *line, int lineType, int len, 
+                    double axmin, double axmax) {
   char me[]="_nrrdMeasureUnknown";
   
   fprintf(stderr, "%s: Need To Specify A Measure !!! \n", me);
@@ -33,8 +33,8 @@ _nrrdMeasureUnknown(void *ans, int ansType,
 
 void
 _nrrdMeasureMin(void *ans, int ansType,
-		const void *line, int lineType, int len,
-		double axmin, double axmax) {
+                const void *line, int lineType, int len,
+                double axmin, double axmax) {
   double val, M;
   int i;
 
@@ -51,7 +51,7 @@ _nrrdMeasureMin(void *ans, int ansType,
     for (; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
       if (AIR_EXISTS(val)) {
-	M = AIR_MIN(M, val);
+        M = AIR_MIN(M, val);
       }
     }
   }
@@ -61,8 +61,8 @@ _nrrdMeasureMin(void *ans, int ansType,
 
 void
 _nrrdMeasureMax(void *ans, int ansType,
-		const void *line, int lineType, int len, 
-		double axmin, double axmax) {
+                const void *line, int lineType, int len, 
+                double axmin, double axmax) {
   double val, M;
   int i;
 
@@ -79,7 +79,7 @@ _nrrdMeasureMax(void *ans, int ansType,
     for (; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
       if (AIR_EXISTS(val)) {
-	M = AIR_MAX(M, val);
+        M = AIR_MAX(M, val);
       }
     }
   }
@@ -88,8 +88,8 @@ _nrrdMeasureMax(void *ans, int ansType,
 
 void
 _nrrdMeasureProduct(void *ans, int ansType,
-		    const void *line, int lineType, int len, 
-		    double axmin, double axmax) {
+                    const void *line, int lineType, int len, 
+                    double axmin, double axmax) {
   double val, P;
   int i;
 
@@ -107,7 +107,7 @@ _nrrdMeasureProduct(void *ans, int ansType,
     for (; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
       if (AIR_EXISTS(val)) {
-	P *= val;
+        P *= val;
       }
     }
   }
@@ -116,8 +116,8 @@ _nrrdMeasureProduct(void *ans, int ansType,
 
 void
 _nrrdMeasureSum(void *ans, int ansType,
-		const void *line, int lineType, int len, 
-		double axmin, double axmax) {
+                const void *line, int lineType, int len, 
+                double axmin, double axmax) {
   double val, S;
   int i;
 
@@ -133,7 +133,7 @@ _nrrdMeasureSum(void *ans, int ansType,
     for (; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
       if (AIR_EXISTS(val)) {
-	S += val;
+        S += val;
       }
     }
   }
@@ -142,8 +142,8 @@ _nrrdMeasureSum(void *ans, int ansType,
 
 void
 _nrrdMeasureMean(void *ans, int ansType,
-		 const void *line, int lineType, int len, 
-		 double axmin, double axmax) {
+                 const void *line, int lineType, int len, 
+                 double axmin, double axmax) {
   double val, S, M;
   int i, count;
 
@@ -161,11 +161,11 @@ _nrrdMeasureMean(void *ans, int ansType,
       /* there was an existant value */
       count = 1;
       for (; i<len; i++) {
-	val = nrrdDLookup[lineType](line, i);
-	if (AIR_EXISTS(val)) {
-	  count++;
-	  S += val;
-	}
+        val = nrrdDLookup[lineType](line, i);
+        if (AIR_EXISTS(val)) {
+          count++;
+          S += val;
+        }
       }
       M = S/count;
     } else {
@@ -179,13 +179,13 @@ _nrrdMeasureMean(void *ans, int ansType,
 /* stupid little forward declaration */
 void
 _nrrdMeasureHistoMode(void *ans, int ansType,
-		      const void *line, int lineType, int len, 
-		      double axmin, double axmax);
+                      const void *line, int lineType, int len, 
+                      double axmin, double axmax);
 
 void
 _nrrdMeasureMode(void *ans, int ansType,
-		 const void *_line, int lineType, int len, 
-		 double axmin, double axmax) {
+                 const void *_line, int lineType, int len, 
+                 double axmin, double axmax) {
   Nrrd *nline, *nhist;
   void *line;
 
@@ -202,7 +202,7 @@ _nrrdMeasureMode(void *ans, int ansType,
     }
     nhist = nrrdNew();
     if (nrrdHisto(nhist, nline, NULL, NULL,
-		  nrrdStateMeasureModeBins, nrrdTypeInt)) {
+                  nrrdStateMeasureModeBins, nrrdTypeInt)) {
       free(biffGetDone(NRRD));
       nrrdNuke(nhist);
       nrrdNix(nline);
@@ -212,8 +212,8 @@ _nrrdMeasureMode(void *ans, int ansType,
     
     /* now we pass this histogram off to histo-mode */
     _nrrdMeasureHistoMode(ans, ansType,
-			  nhist->data, nrrdTypeInt, nrrdStateMeasureModeBins,
-			  nhist->axis[0].min, nhist->axis[0].max);
+                          nhist->data, nrrdTypeInt, nrrdStateMeasureModeBins,
+                          nhist->axis[0].min, nhist->axis[0].max);
     nrrdNuke(nhist);
     nrrdNix(nline);
   } else {
@@ -224,8 +224,8 @@ _nrrdMeasureMode(void *ans, int ansType,
 
 void
 _nrrdMeasureMedian(void *ans, int ansType,
-		   const void *_line, int lineType, int len, 
-		   double axmin, double axmax) {
+                   const void *_line, int lineType, int len, 
+                   double axmin, double axmax) {
   double M=0;
   int i, mid;
   void *line;
@@ -246,13 +246,13 @@ _nrrdMeasureMedian(void *ans, int ansType,
       len -= i;
       mid = len/2;
       if (len % 2) {
-	/* len is odd, there is a middle value, its at mid */
-	M = nrrdDLookup[lineType](line, i+mid);
+        /* len is odd, there is a middle value, its at mid */
+        M = nrrdDLookup[lineType](line, i+mid);
       } else {
-	/* len is even, two middle values are at mid-1 and mid */
-	M = nrrdDLookup[lineType](line, i+mid-1);
-	M += nrrdDLookup[lineType](line, i+mid);
-	M /= 2.0;
+        /* len is even, two middle values are at mid-1 and mid */
+        M = nrrdDLookup[lineType](line, i+mid-1);
+        M += nrrdDLookup[lineType](line, i+mid);
+        M /= 2.0;
       }
     }
   }
@@ -261,8 +261,8 @@ _nrrdMeasureMedian(void *ans, int ansType,
 
 void
 _nrrdMeasureL1(void *ans, int ansType,
-	       const void *line, int lineType, int len, 
-	       double axmin, double axmax) {
+               const void *line, int lineType, int len, 
+               double axmin, double axmax) {
   double val, S;
   int i;
 
@@ -280,7 +280,7 @@ _nrrdMeasureL1(void *ans, int ansType,
     for (; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
       if (AIR_EXISTS(val)) {
-	S += AIR_ABS(val);
+        S += AIR_ABS(val);
       }
     }
   }
@@ -289,8 +289,8 @@ _nrrdMeasureL1(void *ans, int ansType,
 
 void
 _nrrdMeasureL2(void *ans, int ansType,
-	       const void *line, int lineType, int len, 
-	       double axmin, double axmax) {
+               const void *line, int lineType, int len, 
+               double axmin, double axmax) {
   double val, S;
   int i;
 
@@ -308,7 +308,7 @@ _nrrdMeasureL2(void *ans, int ansType,
     for (; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
       if (AIR_EXISTS(val)) {
-	S += val*val;
+        S += val*val;
       }
     }
   }
@@ -317,8 +317,8 @@ _nrrdMeasureL2(void *ans, int ansType,
 
 void
 _nrrdMeasureLinf(void *ans, int ansType,
-		 const void *line, int lineType, int len, 
-		 double axmin, double axmax) {
+                 const void *line, int lineType, int len, 
+                 double axmin, double axmax) {
   double val, M;
   int i;
 
@@ -338,8 +338,8 @@ _nrrdMeasureLinf(void *ans, int ansType,
     for (; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
       if (AIR_EXISTS(val)) {
-	val = AIR_ABS(val);
-	M = AIR_MAX(M, val);
+        val = AIR_ABS(val);
+        M = AIR_MAX(M, val);
       }
     }
   }
@@ -348,8 +348,8 @@ _nrrdMeasureLinf(void *ans, int ansType,
 
 void
 _nrrdMeasureVariance(void *ans, int ansType,
-		     const void *line, int lineType, int len, 
-		     double axmin, double axmax) {
+                     const void *line, int lineType, int len, 
+                     double axmin, double axmax) {
   double val, S, SS;
   int i, count;
 
@@ -367,9 +367,9 @@ _nrrdMeasureVariance(void *ans, int ansType,
     for (i=0; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
       if (AIR_EXISTS(val)) {
-	count++;
-	S += val;
-	SS += val*val;
+        count++;
+        S += val;
+        SS += val*val;
       }
     }
     if (count) {
@@ -384,8 +384,8 @@ _nrrdMeasureVariance(void *ans, int ansType,
 
 void
 _nrrdMeasureSD(void *ans, int ansType,
-	       const void *line, int lineType, int len, 
-	       double axmin, double axmax) {
+               const void *line, int lineType, int len, 
+               double axmin, double axmax) {
   double var;
 
   _nrrdMeasureVariance(ans, ansType, line, lineType, len, axmin, axmax);
@@ -395,8 +395,8 @@ _nrrdMeasureSD(void *ans, int ansType,
 
 void
 _nrrdMeasureSkew(void *ans, int ansType,
-		 const void *line, int lineType, int len, 
-		 double axmin, double axmax) {
+                 const void *line, int lineType, int len, 
+                 double axmin, double axmax) {
   double val, diff, mean, vari, third;
   int i, count;
   
@@ -415,8 +415,8 @@ _nrrdMeasureSkew(void *ans, int ansType,
     for (i=0; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
       if (AIR_EXISTS(val)) {
-	count++;
-	mean += val;
+        count++;
+        mean += val;
       }
     }
   }
@@ -438,9 +438,9 @@ _nrrdMeasureSkew(void *ans, int ansType,
     for (i=0; i<len; i++) {
       val = nrrdDLookup[lineType](line, i);
       if (AIR_EXISTS(val)) {
-	diff = val - mean;
-	vari += diff*diff;
-	third += diff*diff*diff;
+        diff = val - mean;
+        vari += diff*diff;
+        third += diff*diff*diff;
       }
     }
   }
@@ -481,8 +481,8 @@ _nrrdMeasureSkew(void *ans, int ansType,
 
 void
 _nrrdMeasureHistoMedian(void *ans, int ansType,
-			const void *line, int lineType, int len, 
-			double axmin, double axmax) {
+                        const void *line, int lineType, int len, 
+                        double axmin, double axmax) {
   double sum, tmp, half, ansD;
   int i;
   
@@ -513,8 +513,8 @@ _nrrdMeasureHistoMedian(void *ans, int ansType,
 
 void
 _nrrdMeasureHistoMode(void *ans, int ansType,
-		      const void *line, int lineType, int len, 
-		      double axmin, double axmax) {
+                      const void *line, int lineType, int len, 
+                      double axmin, double axmax) {
   double val, max, idxsum, ansD;
   int i, idxcount;
   
@@ -546,7 +546,7 @@ _nrrdMeasureHistoMode(void *ans, int ansType,
   ansD = idxsum/idxcount;
   /*
   printf("idxsum = %g; idxcount = %d --> ansD = %g --> ",
-	 (float)idxsum, idxcount, ansD);
+         (float)idxsum, idxcount, ansD);
   */
   if (AIR_EXISTS(axmin) && AIR_EXISTS(axmax)) 
     ansD = NRRD_CELL_POS(axmin, axmax, len, ansD);
@@ -558,8 +558,8 @@ _nrrdMeasureHistoMode(void *ans, int ansType,
 
 void
 _nrrdMeasureHistoMean(void *ans, int ansType,
-		      const void *line, int lineType, int len, 
-		      double axmin, double axmax) {
+                      const void *line, int lineType, int len, 
+                      double axmin, double axmax) {
   double count, hits, ansD;
   int i;
   
@@ -582,8 +582,8 @@ _nrrdMeasureHistoMean(void *ans, int ansType,
 
 void
 _nrrdMeasureHistoVariance(void *ans, int ansType,
-			  const void *line, int lineType, int len, 
-			  double axmin, double axmax) {
+                          const void *line, int lineType, int len, 
+                          double axmin, double axmax) {
   double S, SS, count, hits, val;
   int i;
   
@@ -613,8 +613,8 @@ _nrrdMeasureHistoVariance(void *ans, int ansType,
 
 void
 _nrrdMeasureHistoSD(void *ans, int ansType,
-		    const void *line, int lineType, int len, 
-		    double axmin, double axmax) {
+                    const void *line, int lineType, int len, 
+                    double axmin, double axmax) {
   double var;
 
   _nrrdMeasureHistoVariance(ans, ansType, line, lineType, len, axmin, axmax);
@@ -624,8 +624,8 @@ _nrrdMeasureHistoSD(void *ans, int ansType,
 
 void
 _nrrdMeasureHistoProduct(void *ans, int ansType,
-			 const void *line, int lineType, int len, 
-			 double axmin, double axmax) {
+                         const void *line, int lineType, int len, 
+                         double axmin, double axmax) {
   double val, product, count, hits;
   int i;
   
@@ -651,8 +651,8 @@ _nrrdMeasureHistoProduct(void *ans, int ansType,
 
 void
 _nrrdMeasureHistoSum(void *ans, int ansType,
-		     const void *line, int lineType, int len, 
-		     double axmin, double axmax) {
+                     const void *line, int lineType, int len, 
+                     double axmin, double axmax) {
   double sum, hits, val;
   int i;
   
@@ -672,8 +672,8 @@ _nrrdMeasureHistoSum(void *ans, int ansType,
 
 void
 _nrrdMeasureHistoL2(void *ans, int ansType,
-		    const void *line, int lineType, int len, 
-		    double axmin, double axmax) {
+                    const void *line, int lineType, int len, 
+                    double axmin, double axmax) {
   double l2, count, hits, val;
   int i;
   
@@ -698,8 +698,8 @@ _nrrdMeasureHistoL2(void *ans, int ansType,
 
 void
 _nrrdMeasureHistoMax(void *ans, int ansType,
-		     const void *line, int lineType, int len, 
-		     double axmin, double axmax) {
+                     const void *line, int lineType, int len, 
+                     double axmin, double axmax) {
   int i;
   double val;
 
@@ -722,8 +722,8 @@ _nrrdMeasureHistoMax(void *ans, int ansType,
 
 void
 _nrrdMeasureHistoMin(void *ans, int ansType,
-		     const void *line, int lineType, int len, 
-		     double axmin, double axmax) {
+                     const void *line, int lineType, int len, 
+                     double axmin, double axmax) {
   int i;
   double val;
 
@@ -746,8 +746,8 @@ _nrrdMeasureHistoMin(void *ans, int ansType,
 
 void (*
 nrrdMeasureLine[NRRD_MEASURE_MAX+1])(void *, int,
-				     const void *, int, int, 
-				     double, double) = {
+                                     const void *, int, int, 
+                                     double, double) = {
   _nrrdMeasureUnknown,
   _nrrdMeasureMin,
   _nrrdMeasureMax,
@@ -847,7 +847,7 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, int axis, int measr, int type) {
   }
   if (nrrdTypeBlock == nin->type) {
     sprintf(err, "%s: can't project nrrd type %s", me,
-	    airEnumStr(nrrdType, nrrdTypeBlock));
+            airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
   if (!AIR_IN_OP(nrrdMeasureUnknown, measr, nrrdMeasureLast)) {
@@ -867,8 +867,8 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, int axis, int measr, int type) {
   
   iType = nin->type;
   oType = (nrrdTypeDefault != type 
-	   ? type 
-	   : _nrrdMeasureType(nin, measr));
+           ? type 
+           : _nrrdMeasureType(nin, measr));
   iElSz = nrrdTypeSize[iType];
   oElSz = nrrdTypeSize[oType];
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, iSize);
@@ -905,7 +905,7 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, int axis, int measr, int type) {
   /* allocate a scanline buffer */
   if (!(_line = calloc(linLen, iElSz))) {
     sprintf(err, "%s: couldn't calloc(%d,%d) scanline buffer",
-	    me, linLen, iElSz);
+            me, linLen, iElSz);
     biffAdd(NRRD, err); return 1;
   }
 
@@ -919,12 +919,12 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, int axis, int measr, int type) {
       line = _line;
       ptr = iData + iElSz*(col + row*colStep);
       for (i=0; i<linLen; i++) {
-	memcpy(line, ptr, iElSz);
-	ptr += iElSz*colNum;
-	line += iElSz;
+        memcpy(line, ptr, iElSz);
+        ptr += iElSz*colNum;
+        line += iElSz;
       }
       nrrdMeasureLine[measr](oData, oType, _line, iType, linLen,
-			     axmin, axmax);
+                             axmin, axmax);
       oData += oElSz;
     }
   }
@@ -935,7 +935,7 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, int axis, int measr, int type) {
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdContentSet(nout, func, nin,
-		     "%d,%s", axis, airEnumStr(nrrdMeasure, measr))) {
+                     "%d,%s", axis, airEnumStr(nrrdMeasure, measr))) {
     sprintf(err, "%s:", me); 
     biffAdd(NRRD, err); return 1;
   }

@@ -32,7 +32,7 @@ _baneIncProcess_LearnMinMax(baneInc *inc, double val) {
   }
   /*
   fprintf(stderr, "## _baneInc_LearnMinMax: (%g,%g)\n",
-	  inc->nhist->axis[0].min, inc->nhist->axis[0].max);
+          inc->nhist->axis[0].min, inc->nhist->axis[0].max);
   */
   return;
 }
@@ -51,11 +51,11 @@ _baneIncProcess_HistFill(baneInc *inc, double val) {
   int idx, *hist;
 
   AIR_INDEX(inc->nhist->axis[0].min, val, inc->nhist->axis[0].max,
-	    inc->nhist->axis[0].size, idx);
+            inc->nhist->axis[0].size, idx);
   /*
   fprintf(stderr, "## _baneInc_HistFill: (%g,%g,%g) %d ---> %d\n",
-	  inc->nhist->axis[0].min, val, inc->nhist->axis[0].max,
-	  inc->nhist->axis[0].size, idx);
+          inc->nhist->axis[0].min, val, inc->nhist->axis[0].max,
+          inc->nhist->axis[0].size, idx);
   */
   if (AIR_IN_CL(0, idx, inc->nhist->axis[0].size-1)) {
     hist = (int*)inc->nhist->data;
@@ -72,8 +72,8 @@ _baneIncProcess_HistFill(baneInc *inc, double val) {
 */
 int
 _baneIncAnswer_Absolute(double *minP, double *maxP,
-			Nrrd *hist, double *incParm,
-			baneRange *range) {
+                        Nrrd *hist, double *incParm,
+                        baneRange *range) {
   *minP = incParm[0];
   *maxP = incParm[1];
   return 0;
@@ -87,8 +87,8 @@ _baneIncAnswer_Absolute(double *minP, double *maxP,
 */
 int
 _baneIncAnswer_RangeRatio(double *minP, double *maxP, 
-			  Nrrd *hist, double *incParm,
-			  baneRange *range) {
+                          Nrrd *hist, double *incParm,
+                          baneRange *range) {
   char me[]="_baneIncAnwer_RangeRatio", err[AIR_STRLEN_MED];
   double mid;
   
@@ -118,8 +118,8 @@ _baneIncAnswer_RangeRatio(double *minP, double *maxP,
 */
 int
 _baneIncAnswer_Percentile(double *minP, double *maxP,
-			  Nrrd *nhist, double *incParm,
-			  baneRange *range) {
+                          Nrrd *nhist, double *incParm,
+                          baneRange *range) {
   char me[]="_baneIncAnswer_Percentile", err[AIR_STRLEN_MED];
   int *hist, i, histSize, sum;
   float minIncr, maxIncr, out, outsofar, mid, minIdx, maxIdx;
@@ -142,13 +142,13 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
   */
   out = sum*incParm[1]/100.0;
   fprintf(stderr, "##%s: hist's size=%d, sum=%d --> out = %g\n", me,
-	  histSize, sum, out);
+          histSize, sum, out);
   if (range->answer(&min, &max, nhist->axis[0].min, nhist->axis[0].max)) {
     sprintf(err, "%s:", me); biffAdd(BANE, err); return 1;
   }
   fprintf(stderr, "##%s: hist's min,max (%g,%g) ---%s---> %g, %g\n",
-	  me, nhist->axis[0].min, nhist->axis[0].max,
-	  range->name, min, max);
+          me, nhist->axis[0].min, nhist->axis[0].max,
+          range->name, min, max);
   if (baneRangeAnywhere == range->type) {
     mid = AIR_EXISTS(range->center) ? range->center : (min + max)/2;
   } else {
@@ -160,7 +160,7 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
        HOWEVER: the mode of histogram would probably be better ... */
   }
   fprintf(stderr, "##%s: hist (%g,%g) --> min,max = (%g,%g) --> mid = %g\n",
-	  me, nhist->axis[0].min, nhist->axis[0].max, min, max, mid);
+          me, nhist->axis[0].min, nhist->axis[0].max, min, max, mid);
   if (max-mid > mid-min) {
     /* the max is further from the mid than the min */
     maxIncr = 1;
@@ -176,9 +176,9 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
   }
   fprintf(stderr, "##%s: --> {min,max}Incr = %g,%g\n", me, minIncr, maxIncr);
   minIdx = AIR_AFFINE(nhist->axis[0].min, min, nhist->axis[0].max,
-		      0, histSize-1);
+                      0, histSize-1);
   maxIdx = AIR_AFFINE(nhist->axis[0].min, max, nhist->axis[0].max,
-		      0, histSize-1);
+                      0, histSize-1);
   outsofar = 0;
   while (outsofar < out) {
     if (AIR_IN_CL(0, minIdx, histSize-1)) {
@@ -191,14 +191,14 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
     maxIdx -= maxIncr;
     if (minIdx > maxIdx) {
       sprintf(err, "%s: minIdx (%g) passed maxIdx (%g) during "
-	      "histogram traversal", me, minIdx, maxIdx);
+              "histogram traversal", me, minIdx, maxIdx);
       biffAdd(BANE, err); return 1;
     }
   }
   *minP = AIR_AFFINE(0, minIdx, histSize-1,
-		     nhist->axis[0].min, nhist->axis[0].max);
+                     nhist->axis[0].min, nhist->axis[0].max);
   *maxP = AIR_AFFINE(0, maxIdx, histSize-1,
-		     nhist->axis[0].min, nhist->axis[0].max);
+                     nhist->axis[0].min, nhist->axis[0].max);
   fprintf(stderr, "##%s: --> output min, max = %g, %g\n", me, *minP, *maxP);
   return 0;
 }
@@ -210,8 +210,8 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
 */
 int
 _baneIncAnswer_Stdv(double *minP, double *maxP,
-		    Nrrd *hist, double *incParm,
-		    baneRange *range) {
+                    Nrrd *hist, double *incParm,
+                    baneRange *range) {
   float SS, stdv, mid, mean, width;
   int count;
 
@@ -221,7 +221,7 @@ _baneIncAnswer_Stdv(double *minP, double *maxP,
   stdv = sqrt(SS - mean*mean);
   width = incParm[0]*stdv;
   fprintf(stderr, "##%s: mean=%g, stdv=%g --> width=%g\n",
-	  "_baneIncAnswer_Stdv", mean, stdv, width);
+          "_baneIncAnswer_Stdv", mean, stdv, width);
   switch (range->type) {
   case baneRangePositive:
     *minP = 0;

@@ -50,9 +50,9 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
   /* do histogram equalization on them */
   if (histEq) {
     if (!E) E |= nrrdHistoEq(gB, gA, NULL, baneStateHistEqBins,
-			     baneStateHistEqSmart, 1.0);
+                             baneStateHistEqSmart, 1.0);
     if (!E) E |= nrrdHistoEq(hB, hA, NULL, baneStateHistEqBins,
-			     baneStateHistEqSmart, 1.0);
+                             baneStateHistEqSmart, 1.0);
   } else {
     if (!E) E |= nrrdCopy(gB, gA);
     if (!E) E |= nrrdCopy(hB, hA);

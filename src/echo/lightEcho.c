@@ -27,7 +27,7 @@
 */
 void
 echoLightPosition(echoPos_t pos[3], echoObject *light,
-		  echoThreadState *tstate) {
+                  echoThreadState *tstate) {
   char me[]="echoLightPos";
   echoPos_t x, y;
   echoRectangle *rectLight;
@@ -38,8 +38,8 @@ echoLightPosition(echoPos_t pos[3], echoObject *light,
   case echoTypeRectangle:
     rectLight = RECTANGLE(light);
     ELL_3V_SCALE_ADD3(pos, 1, rectLight->origin,
-		     x, rectLight->edge0,
-		     y, rectLight->edge1);
+                     x, rectLight->edge0,
+                     y, rectLight->edge1);
     break;
   default:
     fprintf(stderr, "%s: currently only support echoTypeRectangle lights", me);
@@ -57,7 +57,7 @@ echoLightPosition(echoPos_t pos[3], echoObject *light,
 */
 void
 echoLightColor(echoCol_t rgb[3], echoPos_t Ldist,
-	       echoObject *light, echoRTParm *parm, echoThreadState *tstate) {
+               echoObject *light, echoRTParm *parm, echoThreadState *tstate) {
   echoCol_t rgba[4], falloff;
   echoPos_t x, y;
   

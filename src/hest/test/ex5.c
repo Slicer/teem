@@ -49,15 +49,15 @@ main(int argc, char **argv) {
   char *err = NULL;
 
   hestOptAdd(&opt, "A",      "token",           airTypeOther, 1,  1, &single, 
-	     "alpha",        "testing A",       NULL,  NULL,  &cbinfo);
+             "alpha",        "testing A",       NULL,  NULL,  &cbinfo);
   hestOptAdd(&opt, "B",      "tok1 tok2 tok3",  airTypeOther, 3,  3, triple,
-	     "beta psi rho", "testing B",       NULL,  NULL,  &cbinfo);
+             "beta psi rho", "testing B",       NULL,  NULL,  &cbinfo);
   hestOptAdd(&opt, "C",      "mtok",            airTypeOther, 0,  1, &maybe,
-	     "gamma",        "testing C",       NULL,  NULL,  &cbinfo);
+             "gamma",        "testing C",       NULL,  NULL,  &cbinfo);
   hestOptAdd(&opt, "D",      "tok",             airTypeOther, 1, -1, &many,
-	     "kappa omega",  "testing D",       &howMany, NULL, &cbinfo);
+             "kappa omega",  "testing D",       &howMany, NULL, &cbinfo);
   hestOptAdd(&opt, "int",    "N",               airTypeInt,   1,  1, &N,
-	     NULL,           "an integer");
+             NULL,           "an integer");
   
   if (hestParse(opt, argc-1, argv+1, &err, NULL)) {
     fprintf(stderr, "ERROR: %s\n", err); free(err);

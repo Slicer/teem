@@ -22,10 +22,10 @@
 
 #define INFO "Expand \"blocks\" into scanlines on axis 0"
 char *_unrrdu_unblockInfoL = (INFO
-		      ". Based on the requested output type, the number of "
-		      "samples along axis 0 will be determined automatically. "
-		      "Axis N information will be bumped up to axis N+1. "
-		      "Underlying data is unchanged.");
+                      ". Based on the requested output type, the number of "
+                      "samples along axis 0 will be determined automatically. "
+                      "Axis N information will be bumped up to axis N+1. "
+                      "Underlying data is unchanged.");
 
 int
 unrrdu_unblockMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -37,8 +37,8 @@ unrrdu_unblockMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   OPT_ADD_TYPE(type, "type to unblock to", NULL);
   hestOptAdd(&opt, "bs", "blocksize", airTypeInt, 1, 1, &blockSize, "0",
-	     "Useful only if *output* type is also block: the size of "
-	     "blocks in output nrrd");
+             "Useful only if *output* type is also block: the size of "
+             "blocks in output nrrd");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

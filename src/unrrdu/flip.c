@@ -22,7 +22,7 @@
 
 #define INFO "Reverse order of slices along one axis"
 char *_unrrdu_flipInfoL = (INFO
-		       ". Special case of \"unu\tshuffle\".");
+                       ". Special case of \"unu\tshuffle\".");
 
 int
 unrrdu_flipMain(int argc, char **argv, char *me, hestParm *hparm) {

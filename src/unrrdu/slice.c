@@ -22,8 +22,8 @@
 
 #define INFO "Slice at a position along an axis"
 char *_unrrdu_sliceInfoL = (INFO
-			". Output nrrd dimension is one less than input nrrd "
-			"dimension.  Per-axis information is preserved.");
+                        ". Output nrrd dimension is one less than input nrrd "
+                        "dimension.  Per-axis information is preserved.");
 
 int
 unrrdu_sliceMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -35,11 +35,11 @@ unrrdu_sliceMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   OPT_ADD_AXIS(axis, "axis to slice along");
   hestOptAdd(&opt, "p", "pos", airTypeOther, 1, 1, _pos, NULL,
-	     "position to slice at:\n "
-	     "\b\bo <int> gives 0-based index\n "
-	     "\b\bo M-<int> give index relative "
-	     "to the last sample on the axis (M == #samples-1).",
-	     NULL, NULL, &unrrduHestPosCB);
+             "position to slice at:\n "
+             "\b\bo <int> gives 0-based index\n "
+             "\b\bo M-<int> give index relative "
+             "to the last sample on the axis (M == #samples-1).",
+             NULL, NULL, &unrrduHestPosCB);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

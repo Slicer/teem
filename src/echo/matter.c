@@ -38,7 +38,7 @@ echoObjectHasMatter[ECHO_TYPE_NUM] = {
 
 void
 echoColorSet(echoObject *obj,
-	     echoCol_t R, echoCol_t G, echoCol_t B, echoCol_t A) {
+             echoCol_t R, echoCol_t G, echoCol_t B, echoCol_t A) {
 
   if (obj && echoObjectHasMatter[obj->type]) {
     ELL_4V_SET(obj->rgba, R, G, B, A);
@@ -47,7 +47,7 @@ echoColorSet(echoObject *obj,
 
 void
 echoMatterPhongSet(echoScene *scene, echoObject *obj,
-		   echoCol_t ka, echoCol_t kd, echoCol_t ks, echoCol_t sp) {
+                   echoCol_t ka, echoCol_t kd, echoCol_t ks, echoCol_t sp) {
   
   if (scene && obj && echoObjectHasMatter[obj->type]) {
     obj->matter = echoMatterPhong;
@@ -57,11 +57,11 @@ echoMatterPhongSet(echoScene *scene, echoObject *obj,
     obj->mat[echoMatterPhongSp] = sp;
   }
 }
-		   
+                   
 void
 echoMatterGlassSet(echoScene *scene, echoObject *obj,
-		   echoCol_t index, echoCol_t ka,
-		   echoCol_t kd, echoCol_t fuzzy) {
+                   echoCol_t index, echoCol_t ka,
+                   echoCol_t kd, echoCol_t fuzzy) {
 
   if (scene && obj && echoObjectHasMatter[obj->type]) {
     obj->matter = echoMatterGlass;
@@ -74,8 +74,8 @@ echoMatterGlassSet(echoScene *scene, echoObject *obj,
 
 void
 echoMatterMetalSet(echoScene *scene, echoObject *obj,
-		   echoCol_t R0, echoCol_t ka, 
-		   echoCol_t kd, echoCol_t fuzzy) {
+                   echoCol_t R0, echoCol_t ka, 
+                   echoCol_t kd, echoCol_t fuzzy) {
 
   if (scene && obj && echoObjectHasMatter[obj->type]) {
     obj->matter = echoMatterMetal;
@@ -88,7 +88,7 @@ echoMatterMetalSet(echoScene *scene, echoObject *obj,
 
 void
 echoMatterLightSet(echoScene *scene, echoObject *obj,
-		   echoCol_t power, echoCol_t unit) {
+                   echoCol_t power, echoCol_t unit) {
   
   if (scene && obj && echoObjectHasMatter[obj->type]) {
     obj->matter = echoMatterLight;

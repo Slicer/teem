@@ -53,91 +53,91 @@ _echoMatterInit(echoObject *obj) {
 }
 
 NEW_TMPL(Sphere,
-	 _echoMatterInit(OBJECT(obj));
-	 ELL_3V_SET(obj->pos, 0, 0, 0);
-	 obj->rad = 1.0;
-	 )
+         _echoMatterInit(OBJECT(obj));
+         ELL_3V_SET(obj->pos, 0, 0, 0);
+         obj->rad = 1.0;
+         )
 
 NEW_TMPL(Cylinder,
-	 _echoMatterInit(OBJECT(obj));
-	 obj->axis = 2;
-	 )
+         _echoMatterInit(OBJECT(obj));
+         obj->axis = 2;
+         )
 
 NEW_TMPL(Superquad,
-	 _echoMatterInit(OBJECT(obj));
-	 obj->axis = 2;
-	 obj->A = obj->B = 1;
-	 )
+         _echoMatterInit(OBJECT(obj));
+         obj->axis = 2;
+         obj->A = obj->B = 1;
+         )
 
 NEW_TMPL(Cube,
-	 _echoMatterInit(OBJECT(obj));
-	 )
+         _echoMatterInit(OBJECT(obj));
+         )
 
 NEW_TMPL(Triangle,
-	 _echoMatterInit(OBJECT(obj));
-	 ELL_3V_SET(obj->vert[0], 0, 0, 0);
-	 ELL_3V_SET(obj->vert[1], 0, 0, 0);
-	 ELL_3V_SET(obj->vert[2], 0, 0, 0);
-	 )
+         _echoMatterInit(OBJECT(obj));
+         ELL_3V_SET(obj->vert[0], 0, 0, 0);
+         ELL_3V_SET(obj->vert[1], 0, 0, 0);
+         ELL_3V_SET(obj->vert[2], 0, 0, 0);
+         )
 
 NEW_TMPL(Rectangle,
-	 _echoMatterInit(OBJECT(obj));
-	 ELL_3V_SET(obj->origin, 0, 0, 0);
-	 ELL_3V_SET(obj->edge0, 0, 0, 0);
-	 ELL_3V_SET(obj->edge1, 0, 0, 0);
-	 )
+         _echoMatterInit(OBJECT(obj));
+         ELL_3V_SET(obj->origin, 0, 0, 0);
+         ELL_3V_SET(obj->edge0, 0, 0, 0);
+         ELL_3V_SET(obj->edge1, 0, 0, 0);
+         )
 
 NEW_TMPL(TriMesh,
-	 _echoMatterInit(OBJECT(obj));
-	 ELL_3V_SET(obj->meanvert, 0, 0, 0);
-	 ELL_3V_SET(obj->min, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
-	 ELL_3V_SET(obj->max, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
-	 obj->numV = obj->numF = 0;
-	 obj->pos = NULL;
-	 obj->vert = NULL;
-	 )
+         _echoMatterInit(OBJECT(obj));
+         ELL_3V_SET(obj->meanvert, 0, 0, 0);
+         ELL_3V_SET(obj->min, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
+         ELL_3V_SET(obj->max, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
+         obj->numV = obj->numF = 0;
+         obj->pos = NULL;
+         obj->vert = NULL;
+         )
 NIX_TMPL(TriMesh,
-	 obj->pos = airFree(obj->pos);
-	 obj->vert = airFree(obj->vert);
-	 )
+         obj->pos = airFree(obj->pos);
+         obj->vert = airFree(obj->vert);
+         )
 
 NEW_TMPL(Isosurface,
-	 _echoMatterInit(OBJECT(obj));
-	 obj->volume = NULL;
-	 obj->value = 0.0;
-	 /* ??? */
-	 )
+         _echoMatterInit(OBJECT(obj));
+         obj->volume = NULL;
+         obj->value = 0.0;
+         /* ??? */
+         )
 
 NEW_TMPL(AABBox,
-	 obj->obj = NULL;
-	 ELL_3V_SET(obj->min, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
-	 ELL_3V_SET(obj->max, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
-	 )
+         obj->obj = NULL;
+         ELL_3V_SET(obj->min, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
+         ELL_3V_SET(obj->max, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
+         )
 
 NEW_TMPL(Split,
-	 obj->axis = -1;
-	 ELL_3V_SET(obj->min0, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
-	 ELL_3V_SET(obj->max0, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
-	 ELL_3V_SET(obj->min1, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
-	 ELL_3V_SET(obj->max1, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
-	 obj->obj0 = obj->obj1 = NULL;
-	 )
+         obj->axis = -1;
+         ELL_3V_SET(obj->min0, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
+         ELL_3V_SET(obj->max0, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
+         ELL_3V_SET(obj->min1, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
+         ELL_3V_SET(obj->max1, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
+         obj->obj0 = obj->obj1 = NULL;
+         )
 
 NEW_TMPL(List,
-	 obj->obj = NULL;
-	 obj->objArr = airArrayNew((void**)&(obj->obj), NULL,
-				   sizeof(echoObject *),
-				   ECHO_LIST_OBJECT_INCR);
-	 )
+         obj->obj = NULL;
+         obj->objArr = airArrayNew((void**)&(obj->obj), NULL,
+                                   sizeof(echoObject *),
+                                   ECHO_LIST_OBJECT_INCR);
+         )
 NIX_TMPL(List,
-	 airArrayNuke(obj->objArr);
-	 )
+         airArrayNuke(obj->objArr);
+         )
 
 NEW_TMPL(Instance,
-	 ELL_4M_IDENTITY_SET(obj->M);
-	 ELL_4M_IDENTITY_SET(obj->Mi);
-	 obj->obj = NULL;
-	 )
+         ELL_4M_IDENTITY_SET(obj->M);
+         ELL_4M_IDENTITY_SET(obj->Mi);
+         obj->obj = NULL;
+         )
 
 echoObject *(*
 _echoObjectNew[ECHO_TYPE_NUM])(void) = {

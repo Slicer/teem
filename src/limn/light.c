@@ -29,8 +29,8 @@
 */
 void
 limnLightSet(limnLight *lit, int which, int vsp,
-	     float r, float g, float b,
-	     float x, float y, float z) {
+             float r, float g, float b,
+             float x, float y, float z) {
   
   if (lit && AIR_IN_CL(0, which, LIMN_LIGHT_NUM-1)) {
     lit->on[which] = 1;

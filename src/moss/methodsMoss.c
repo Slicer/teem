@@ -61,7 +61,7 @@ mossSamplerFill (mossSampler *smplr, int fdiam, int ncol) {
   smplr->xIdx = (int*)calloc(fdiam, sizeof(int));
   smplr->yIdx = (int*)calloc(fdiam, sizeof(int));
   if (!( smplr->ivc && smplr->xFslw && smplr->yFslw 
-	 && smplr->xIdx && smplr->yIdx )) {
+         && smplr->xIdx && smplr->yIdx )) {
     sprintf(err, "%s: couldn't allocate buffers", me);
     biffAdd(MOSS, err); return 1;
   }
@@ -105,9 +105,9 @@ mossImageCheck (Nrrd *image) {
     biffMove(MOSS, err, NRRD); return 1;
   }
   if (!( (2 == image->dim || 3 == image->dim)
-	 && nrrdTypeBlock != image->type )) {
+         && nrrdTypeBlock != image->type )) {
     sprintf(err, "%s: image has invalid dimension (%d) or type (%s)", me,
-	    image->dim, airEnumStr(nrrdType, image->type));
+            image->dim, airEnumStr(nrrdType, image->type));
     biffAdd(MOSS, err); return 1;
   }
   
@@ -120,7 +120,7 @@ mossImageAlloc (Nrrd *image, int type, int sx, int sy, int ncol) {
   int ret;
 
   if (!(image && AIR_IN_OP(nrrdTypeUnknown, type, nrrdTypeBlock)
-	&& sx > 0 && sy > 0 && ncol > 0)) {
+        && sx > 0 && sy > 0 && ncol > 0)) {
     sprintf(err, "%s: got NULL pointer or bad args", me);
     biffAdd(MOSS, err); return 1;
   }
@@ -142,8 +142,8 @@ int
 _mossCenter(int center) {
   
   center =  (nrrdCenterUnknown == center
-	     ? mossDefCenter
-	     : center);
+             ? mossDefCenter
+             : center);
   center = AIR_CLAMP(nrrdCenterUnknown+1, center, nrrdCenterLast-1);
   return center;
 }

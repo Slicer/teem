@@ -30,13 +30,13 @@ coilVolumeCheck(const Nrrd *nin, const coilKind *kind) {
   }
   if (nrrdTypeBlock == nin->type) {
     sprintf(err, "%s: can only operate on scalar types, not %s", me,
-	    airEnumStr(nrrdType, nrrdTypeBlock));
+            airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(COIL, err); return 1;
   }
   baseDim = (1 == kind->valLen ? 0 : 1);
   if (3 + baseDim != nin->dim) {
     sprintf(err, "%s: dim of input must be 3+%d (3 + baseDim), not %d", 
-	    me, baseDim, nin->dim);
+            me, baseDim, nin->dim);
     biffAdd(COIL, err); return 1;
   }
 
@@ -65,9 +65,9 @@ coilContextNew() {
 
 int
 coilContextAllSet(coilContext *cctx, const Nrrd *nin,
-		  const coilKind *kind, const coilMethod *method,
-		  int radius, int numThreads, int verbose,
-		  double parm[COIL_PARMS_NUM]) {
+                  const coilKind *kind, const coilMethod *method,
+                  int radius, int numThreads, int verbose,
+                  double parm[COIL_PARMS_NUM]) {
   char me[]="coilContextAllSet", err[AIR_STRLEN_MED];
   int size[NRRD_DIM_MAX], sx, sy, sz, someExist, allExist, baseDim, pi;
   double xsp, ysp, zsp;
@@ -84,25 +84,25 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
   }
   if (!( radius >= 1 && numThreads >= 1 )) {
     sprintf(err, "%s: radius (%d) not >= 1 or numThreads (%d) not >= 1", me,
-	    radius, numThreads);
+            radius, numThreads);
     biffAdd(COIL, err); return 1;
   }
   if (!( AIR_IN_OP(coilMethodTypeUnknown, method->type,
-		   coilMethodTypeLast) )) {
+                   coilMethodTypeLast) )) {
     sprintf(err, "%s: method->type %d not valid", me, method->type);
     biffAdd(COIL, err); return 1;
   }
   
   if (!kind->filter[method->type]) {
     sprintf(err, "%s: sorry, %s filtering not available on %s kind",
-	    me, method->name, kind->name);
+            me, method->name, kind->name);
     biffAdd(COIL, err); return 1;
   }
 
   /* warn if we can't do the multiple threads user wants */
   if (numThreads > 1 && !airThreadCapable && airThreadNoopWarning) {
     fprintf(stderr, "%s: WARNING: this teem not thread capable: using 1 "
-	    "thread, not %d\n", me, numThreads);
+            "thread, not %d\n", me, numThreads);
     numThreads = 1;
   }
   
@@ -112,7 +112,7 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
   for (pi=0; pi<method->numParm; pi++) {
     if (!AIR_EXISTS(parm[pi])) {
       sprintf(err, "%s: parm[%d] (need %d) doesn't exist",
-	      me, pi, method->numParm);
+              me, pi, method->numParm);
       biffAdd(COIL, err); airMopError(mop); return 1;
     }
     cctx->parm[pi] = parm[pi];
@@ -125,7 +125,7 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
   sz = nin->axis[2 + baseDim].size;
   if (sz < numThreads) {
     fprintf(stderr, "%s: wanted %d threads but volume only has %d slices, "
-	    "using %d threads instead\n", me, numThreads, sz, sz);
+            "using %d threads instead\n", me, numThreads, sz, sz);
     numThreads = sz;
   }
   ELL_3V_SET(cctx->size, sx, sy, sz);
@@ -142,14 +142,14 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
   } else {
     if ( !allExist ) {
       sprintf(err, "%s: spacings (%g,%g,%g) not uniformly existant", 
-	      me, xsp, ysp, zsp);
+              me, xsp, ysp, zsp);
       biffAdd(COIL, err); airMopError(mop); return 1;
     }
   }
   ELL_3V_SET(cctx->spacing, xsp, ysp, zsp);
   if (cctx->verbose) {
     fprintf(stderr, "%s: spacings: %g %g %g\n", me, 
-	    cctx->spacing[0], cctx->spacing[1], cctx->spacing[2]);
+            cctx->spacing[0], cctx->spacing[1], cctx->spacing[2]);
   }
   
   /* allocate nvol */

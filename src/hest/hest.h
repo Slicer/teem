@@ -48,16 +48,16 @@ typedef struct {
   char *type;           /* used by hestGlossary() to describe the type */
   int (*parse)(void *ptr, char *str, char err[AIR_STRLEN_HUGE]);
                         /* how to parse one thing from a string.  This will
-			   be called multiple times for multiple parameter
-			   options.  A non-zero return value is considered
-			   an error.  Error message go in the err string */
+                           be called multiple times for multiple parameter
+                           options.  A non-zero return value is considered
+                           an error.  Error message go in the err string */
   void *(*destroy)(void *ptr);
                         /* if non-NULL, this is the destructor that will be
-			   called by hestParseFree() (or by hestParse() if
-			   there is an error midway through parsing).  The
-			   argument is NOT the same as passed to parse():
-			   it is the result of dereferencing the argument
-			   to parse() */
+                           called by hestParseFree() (or by hestParse() if
+                           there is an error midway through parsing).  The
+                           argument is NOT the same as passed to parse():
+                           it is the result of dereferencing the argument
+                           to parse() */
 } hestCB;
 
 /*
@@ -74,37 +74,37 @@ typedef struct {
   char *dflt,           /* default value written out as string */
     *info;              /* description to be printed with "glossary" info */
   int *sawP;            /* used ONLY for multiple variable parameter options
-			   (min < max > 2): storage of # of parsed values */
+                           (min < max > 2): storage of # of parsed values */
   airEnum *enm;         /* used ONLY for airTypeEnum options */
   hestCB *CB;           /* used ONLY for airTypeOther options */
 
   /* --------------------- end of user-defined fields */
 
   int kind,             /* what kind of option is this, based on min and max,
-			   set by hestParse() (actually _hestPanic()),
-			   later used by hestFree():
-			   1: min == max == 0
-			      stand-alone flag; no parameters
-			   2: min == max == 1
+                           set by hestParse() (actually _hestPanic()),
+                           later used by hestFree():
+                           1: min == max == 0
+                              stand-alone flag; no parameters
+                           2: min == max == 1
                               single fixed parameter
-			   3: min == max >= 2
+                           3: min == max >= 2
                               multiple fixed parameters
-			   4: min == 0; max == 1;
+                           4: min == 0; max == 1;
                               single variable parameter
-			   5: max - min >= 1; max >= 2 
+                           5: max - min >= 1; max >= 2 
                               multiple variable parameters */
     alloc;              /* information about whether flag is non-NULL, and what
-			   parameters were used, that determines whether or
-			   not memory was allocated by hestParse(); info
-			   later used by hestParseFree():
-			   0: no free()ing needed
-			   1: free(*valueP), either because it is a single
-			      string, or because was a dynamically allocated
-			      array of non-strings
-			   2: free((*valueP)[i]), because they are elements
-			      of a fixed-length array of strings
-			   3: free((*valueP)[i]) and free(*valueP), because
- 			      it is a dynamically allocated array of strings */
+                           parameters were used, that determines whether or
+                           not memory was allocated by hestParse(); info
+                           later used by hestParseFree():
+                           0: no free()ing needed
+                           1: free(*valueP), either because it is a single
+                              string, or because was a dynamically allocated
+                              array of non-strings
+                           2: free((*valueP)[i]), because they are elements
+                              of a fixed-length array of strings
+                           3: free((*valueP)[i]) and free(*valueP), because
+                              it is a dynamically allocated array of strings */
 } hestOpt;
 
 /*
@@ -118,36 +118,36 @@ typedef struct {
   int verbosity,        /* verbose diagnostic messages to stdout */
     respFileEnable,     /* whether or not to use response files */
     elideSingleEnumType,  /* if type is airTypeEnum, and if its a single fixed
-			     parameter option, then don't bother printing the
-			     type information as part of hestGlossary() */
+                             parameter option, then don't bother printing the
+                             type information as part of hestGlossary() */
     elideSingleOtherType, /* like above, but for airTypeOther */
     elideSingleOtherDefault, /* don't display default for single fixed
-				airTypeOther parameter */
+                                airTypeOther parameter */
     elideSingleNonExistFloatDefault, /* if default for a single fixed floating
-					point (float or double) parameter
-					doesn't AIR_EXIST, then don't display
-					the default */
+                                        point (float or double) parameter
+                                        doesn't AIR_EXIST, then don't display
+                                        the default */
     elideMultipleNonExistFloatDefault,
     elideSingleEmptyStringDefault, /* if default for a single string is empty
-				      (""), then don't display default */
+                                      (""), then don't display default */
     elideMultipleEmptyStringDefault,
     greedySingleString, /* when parsing a single string, whether or not
-			   to be greedy (as per airParseStrS) */
+                           to be greedy (as per airParseStrS) */
     cleverPluralizeOtherY, /* when printing the type for airTypeOther, when
-			      the min number of items is > 1, and the type
-			      string ends with "y", then pluralize with 
-			      "ies" instead of "ys" */
+                              the min number of items is > 1, and the type
+                              string ends with "y", then pluralize with 
+                              "ies" instead of "ys" */
     columns;            /* number of printable columns in output */
   char respFileFlag,    /* the character at the beginning of an argument
-			   indicating that this is a response file name */
+                           indicating that this is a response file name */
     respFileComment,    /* comment character for the repose files */
     varParamStopFlag,   /* prefixed by '-' to form the flag which signals
-			   the end of a flagged variable parameter option
-			   (single or multiple) */
+                           the end of a flagged variable parameter option
+                           (single or multiple) */
     multiFlagSep;       /* character in flag which signifies that there is
-			   a long and short version, and which seperates
-			   the two.  Or, can be set to '\0' to disable this
-			   behavior entirely. */
+                           a long and short version, and which seperates
+                           the two.  Or, can be set to '\0' to disable this
+                           behavior entirely. */
 } hestParm;
 
 /* defaultsHest.c */
@@ -172,31 +172,31 @@ TEEM_API char hestMultiFlagSep;
 TEEM_API hestParm *hestParmNew(void);
 TEEM_API hestParm *hestParmFree(hestParm *parm);
 TEEM_API void hestOptAdd(hestOpt **optP, 
-			 char *flag, char *name,
-			 int type, int min, int max,
-			 void *valueP, const char *dflt, const char *info,
-			 ... /* int *sawP, airEnum *enm , hestCB *CB */);
+                         char *flag, char *name,
+                         int type, int min, int max,
+                         void *valueP, const char *dflt, const char *info,
+                         ... /* int *sawP, airEnum *enm , hestCB *CB */);
 TEEM_API hestOpt *hestOptFree(hestOpt *opt);
 TEEM_API int hestOptCheck(hestOpt *opt, char **errP);
 
 /* parseHest.c */
 TEEM_API int hestParse(hestOpt *opt, int argc, char **argv,
-		       char **errP, hestParm *parm);
+                       char **errP, hestParm *parm);
 TEEM_API void *hestParseFree(hestOpt *opt);
 TEEM_API void hestParseOrDie(hestOpt *opt, int argc, char **argv,
-			     hestParm *parm,
-			     char *me, char *info,
-			     int doInfo, int doUsage, int doGlossary);
+                             hestParm *parm,
+                             char *me, char *info,
+                             int doInfo, int doUsage, int doGlossary);
 
 /* usage.c */
 TEEM_API void _hestPrintStr(FILE *f, int indent, int already, int width,
-			    const char *_str, int bslash);
+                            const char *_str, int bslash);
 TEEM_API int hestMinNumArgs(hestOpt *opt);
 TEEM_API void hestUsage(FILE *file, hestOpt *opt, const char *argv0,
-			hestParm *parm);
+                        hestParm *parm);
 TEEM_API void hestGlossary(FILE *file, hestOpt *opt, hestParm *parm);
 TEEM_API void hestInfo(FILE *file, const char *argv0, const char *info,
-		       hestParm *parm);
+                       hestParm *parm);
 
 #ifdef __cplusplus
 }

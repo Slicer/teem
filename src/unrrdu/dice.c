@@ -38,12 +38,12 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
   OPT_ADD_AXIS(axis, "axis to slice along");
   OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "s", "start", airTypeInt, 1, 1, &start, "0",
-	     "integer value to start numbering with");
+             "integer value to start numbering with");
   hestOptAdd(&opt, "o", "prefix", airTypeString, 1, 1, &base, NULL,
-	     "output filename prefix. Output nrrds will be saved out as "
-	     "<prefix>00.nrrd, <prefix>01.nrrd, <prefix>02.nrrd, and so on "
-	     "(with \"-s\" option, numbering will be different). If this is a "
-	     "directory name, you probably want to end it with a \"/\".");
+             "output filename prefix. Output nrrds will be saved out as "
+             "<prefix>00.nrrd, <prefix>01.nrrd, <prefix>02.nrrd, and so on "
+             "(with \"-s\" option, numbering will be different). If this is a "
+             "directory name, you probably want to end it with a \"/\".");
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
@@ -59,7 +59,7 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   if (!(AIR_IN_CL(0, axis, nin->dim-1))) {
     fprintf(stderr, "%s: given axis (%d) outside range [0,%d]\n",
-	    me, axis, nin->dim-1);
+            me, axis, nin->dim-1);
     airMopError(mop);
     return 1;
   }
@@ -93,17 +93,17 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
     if (0 == pos) {
       /* See if these slices would be better saved as PNG or PNM images.
-	 Altering the file name will tell nrrdSave() to use a different
-	 file format. */
+         Altering the file name will tell nrrdSave() to use a different
+         file format. */
       if (nrrdFormatPNG->fitsInto(nout, nrrdEncodingRaw, AIR_FALSE)) {
-	strcpy(format + strlen(format) - 4, "png");
+        strcpy(format + strlen(format) - 4, "png");
       } else {
-	fit = nrrdFormatPNM->fitsInto(nout, nrrdEncodingRaw, AIR_FALSE);
-	if (2 == fit) {
-	  strcpy(format + strlen(format) - 4, "pgm");
-	} else if (3 == fit) {
-	  strcpy(format + strlen(format) - 4, "ppm");
-	}
+        fit = nrrdFormatPNM->fitsInto(nout, nrrdEncodingRaw, AIR_FALSE);
+        if (2 == fit) {
+          strcpy(format + strlen(format) - 4, "pgm");
+        } else if (3 == fit) {
+          strcpy(format + strlen(format) - 4, "ppm");
+        }
       }
     }
     sprintf(out, format, base, pos+start);

@@ -33,15 +33,15 @@ unrrdu_cropMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   OPT_ADD_BOUND("min", minOff,
-		"low corner of bounding box.\n "
-		"\b\bo <int> gives 0-based index\n "
-		"\b\bo M, M+<int>, M-<int> give index relative "
-		"to the last sample on the axis (M == #samples-1).",
-		minLen);
+                "low corner of bounding box.\n "
+                "\b\bo <int> gives 0-based index\n "
+                "\b\bo M, M+<int>, M-<int> give index relative "
+                "to the last sample on the axis (M == #samples-1).",
+                minLen);
   OPT_ADD_BOUND("max", maxOff, "high corner of bounding box.  Besides "
-		"the specification styles described above, there's also:\n "
-		"\b\bo m+<int> give index relative to minimum.",
-		maxLen);
+                "the specification styles described above, there's also:\n "
+                "\b\bo m+<int> give index relative to minimum.",
+                maxLen);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -54,15 +54,15 @@ unrrdu_cropMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   if (!( minLen == nin->dim && maxLen == nin->dim )) {
     fprintf(stderr,
-	    "%s: # min coords (%d) or max coords (%d) != nrrd dim (%d)\n",
-	    me, minLen, maxLen, nin->dim);
+            "%s: # min coords (%d) or max coords (%d) != nrrd dim (%d)\n",
+            me, minLen, maxLen, nin->dim);
     airMopError(mop);
     return 1;
   }
   for (ax=0; ax<=nin->dim-1; ax++) {
     if (-1 == minOff[0 + 2*ax]) {
       fprintf(stderr, "%s: can't use m+<int> specification for axis %d min\n",
-	      me, ax);
+              me, ax);
       airMopError(mop);
       return 1;
     }
@@ -76,7 +76,7 @@ unrrdu_cropMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
     /*
     fprintf(stderr, "%s: ax %2d: min = %4d, max = %4d\n",
-	    me, ax, min[ax], max[ax]);
+            me, ax, min[ax], max[ax]);
     */
   }
 

@@ -37,11 +37,11 @@ unrrdu_axmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   hestOptAdd(&opt, "a", "ax0", airTypeInt, 1, -1, &axes, NULL,
-	     "axis (or axes) to merge.  Each axis index identified is the "
-	     "lower of the pair of axes that will be merged.  Saying \"-a 2\" "
-	     "means to merge axis 2 and axis 3 into axis 2.  If multiple "
-	     "merges are to be done, the indices listed here are for "
-	     "the axes prior to any merging.", &axesLen);
+             "axis (or axes) to merge.  Each axis index identified is the "
+             "lower of the pair of axes that will be merged.  Saying \"-a 2\" "
+             "means to merge axis 2 and axis 3 into axis 2.  If multiple "
+             "merges are to be done, the indices listed here are for "
+             "the axes prior to any merging.", &axesLen);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

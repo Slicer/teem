@@ -42,35 +42,35 @@ main(int argc, char **argv) {
   
   if (nrrdLoad(nrrd=nrrdNew(), argv[1], NULL)) {
     fprintf(stderr, "%s: trouble loading \"%s\":\n%s", 
-	    me, argv[1], err = biffGet(NRRD));
+            me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
 
   if (nrrdSave(argv[2], nrrd, io)) {
     fprintf(stderr, "%s: trouble saving \"%s\":\n%s", 
-	    me, argv[1], err = biffGet(NRRD));
+            me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
   nrrdIoStateInit(io);
   if (nrrdSave(argv[2], nrrd, io)) {
     fprintf(stderr, "%s: trouble saving \"%s\":\n%s", 
-	    me, argv[1], err = biffGet(NRRD));
+            me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
   nrrdIoStateInit(io);
   if (nrrdSave(argv[2], nrrd, io)) {
     fprintf(stderr, "%s: trouble saving \"%s\":\n%s", 
-	    me, argv[1], err = biffGet(NRRD));
+            me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
   nrrdIoStateInit(io);
   if (nrrdSave(argv[2], nrrd, io)) {
     fprintf(stderr, "%s: trouble saving \"%s\":\n%s", 
-	    me, argv[1], err = biffGet(NRRD));
+            me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }

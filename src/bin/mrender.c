@@ -61,12 +61,12 @@ hestCB probeKindHestCB = {
 #define MREND "mrender"
 
 char *info = ("A demonstration of hoover, gage, and nrrd measures. "
-	      "Uses hoover to cast rays through a volume (scalar, vector, or "
-	      "tensor), gage to "
-	      "measure one of various quantities along the rays, and a "
-	      "specified nrrd measure to reduce all the values along a ray "
-	      "down to one scalar, which is saved in the output (float) "
-	      "image.");
+              "Uses hoover to cast rays through a volume (scalar, vector, or "
+              "tensor), gage to "
+              "measure one of various quantities along the rays, and a "
+              "specified nrrd measure to reduce all the values along a ray "
+              "down to one scalar, which is saved in the output (float) "
+              "image.");
 
 /* -------------------------------------------------------------- */
 
@@ -135,21 +135,21 @@ mrendUserCheck(mrendUser *uu) {
   
   if (3 + uu->kind->baseDim != uu->nin->dim) {
     sprintf(err, "%s: input nrrd needs %d dimensions, not %d", 
-	    me,  + uu->kind->baseDim, uu->nin->dim);
+            me,  + uu->kind->baseDim, uu->nin->dim);
     biffAdd(MREND, err); return 1;
   }
   if (!( uu->nin->axis[0].center == uu->nin->axis[1].center &&
-	 uu->nin->axis[0].center == uu->nin->axis[2].center )) {
+         uu->nin->axis[0].center == uu->nin->axis[2].center )) {
     sprintf(err, "%s: axes 0,1,2 centerings (%s,%s,%s) not equal", me,
-	    airEnumStr(nrrdCenter, uu->nin->axis[0].center),
-	    airEnumStr(nrrdCenter, uu->nin->axis[1].center),
-	    airEnumStr(nrrdCenter, uu->nin->axis[2].center));
+            airEnumStr(nrrdCenter, uu->nin->axis[0].center),
+            airEnumStr(nrrdCenter, uu->nin->axis[1].center),
+            airEnumStr(nrrdCenter, uu->nin->axis[2].center));
     biffAdd(MREND, err); return 1;
   }
   if (1 != uu->kind->table[uu->whatq].answerLength) {
     sprintf(err, "%s: quantity %s (in %s volumes) isn't a scalar; "
-	    "can't render it",
-	    me, airEnumStr(uu->kind->enm, uu->whatq), uu->kind->name);
+            "can't render it",
+            me, airEnumStr(uu->kind->enm, uu->whatq), uu->kind->name);
     biffAdd(MREND, err); return 1;
   }
   
@@ -171,7 +171,7 @@ typedef struct mrendThread_t {
   float *val,        /* array of ray samples */
     rayLen,          /* length of ray segment between near and far */
     rayStep;         /* ray step needed FOR THIS RAY, to acheive sampling on
-			planes (same scaling of uu->rayStep) */
+                        planes (same scaling of uu->rayStep) */
   int thrid,         /* thread ID */
     valLen,          /* allocated size of val */
     valNum,          /* number of values set in val (index of next value) */
@@ -179,7 +179,7 @@ typedef struct mrendThread_t {
     numSamples,      /* total number of samples this thread has done */
     verbose;         /* blah blah blah blah */
   gageContext *gctx; /* thread-specific gage context (or copy of uu->gctx0
-			for the first thread) */
+                        for the first thread) */
   gage_t *answer;    /* pointer to the SINGLE answer we care about */
 } mrendThread;
 
@@ -201,14 +201,14 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   if (!E) E |= !(pvl = gagePerVolumeNew(uu->gctx0, uu->nin, uu->kind));
   if (!E) E |= gagePerVolumeAttach(uu->gctx0, pvl);
   if (!E) E |= gageKernelSet(uu->gctx0, gageKernel00,
-			     uu->ksp[gageKernel00]->kernel,
-			     uu->ksp[gageKernel00]->parm);
+                             uu->ksp[gageKernel00]->kernel,
+                             uu->ksp[gageKernel00]->parm);
   if (!E) E |= gageKernelSet(uu->gctx0, gageKernel11,
-			     uu->ksp[gageKernel11]->kernel,
-			     uu->ksp[gageKernel11]->parm);
+                             uu->ksp[gageKernel11]->kernel,
+                             uu->ksp[gageKernel11]->parm);
   if (!E) E |= gageKernelSet(uu->gctx0, gageKernel22,
-			     uu->ksp[gageKernel22]->kernel,
-			     uu->ksp[gageKernel22]->parm);
+                             uu->ksp[gageKernel22]->kernel,
+                             uu->ksp[gageKernel22]->parm);
   if (!E) E |= gageQueryItemOn(uu->gctx0, pvl, uu->whatq);
   if (!E) E |= gageUpdate(uu->gctx0);
   if (E) {
@@ -217,10 +217,10 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
     return 1;
   }
   fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
-	  GAGE_FD(uu->gctx0));
+          GAGE_FD(uu->gctx0));
 
   if (nrrdMaybeAlloc((*rrP)->nout=nrrdNew(), nrrdTypeFloat, 2,
-		     uu->hctx->imgSize[0], uu->hctx->imgSize[1])) {
+                     uu->hctx->imgSize[0], uu->hctx->imgSize[1])) {
     sprintf(err, "%s: nrrd trouble", me);
     biffMove(MREND, err, NRRD);
     return 1;
@@ -256,9 +256,9 @@ mrendRenderEnd(mrendRender *rr, mrendUser *uu) {
   rr->time1 = airTime();
   fprintf(stderr, "\n");
   fprintf(stderr, "%s: rendering time = %g secs\n", me,
-	  rr->time1 - rr->time0);
+          rr->time1 - rr->time0);
   fprintf(stderr, "%s: sampling rate = %g KHz\n", me,
-	  rr->totalSamples/(1000.0*(rr->time1 - rr->time0)));
+          rr->totalSamples/(1000.0*(rr->time1 - rr->time0)));
   if (nrrdSave(uu->outS, rr->nout, NULL)) {
     sprintf(err, "%s: trouble saving image", me);
     biffMove(MREND, err, NRRD);
@@ -272,7 +272,7 @@ mrendRenderEnd(mrendRender *rr, mrendUser *uu) {
 
 int
 mrendThreadBegin(mrendThread **ttP,
-		 mrendRender *rr, mrendUser *uu, int whichThread) {
+                 mrendRender *rr, mrendUser *uu, int whichThread) {
 
   /* allocating the mrendThreads should be part of the thread body,
      but as long as there isn't a mutex around registering them with
@@ -287,7 +287,7 @@ mrendThreadBegin(mrendThread **ttP,
     (*ttP)->gctx = gageContextCopy(uu->gctx0);
   }
   (*ttP)->answer = gageAnswerPointer((*ttP)->gctx,
-				     (*ttP)->gctx->pvl[0], uu->whatq);
+                                     (*ttP)->gctx->pvl[0], uu->whatq);
   (*ttP)->val = NULL;
   (*ttP)->valLen = 0;
   (*ttP)->valNum = 0;
@@ -309,13 +309,13 @@ mrendThreadEnd(mrendThread *tt, mrendRender *rr, mrendUser *uu) {
 
 int
 mrendRayBegin(mrendThread *tt, mrendRender *rr, mrendUser *uu,
-	      int uIndex,
-	      int vIndex,
-	      double rayLen,
-	      double rayStartWorld[3],
-	      double rayStartIndex[3],
-	      double rayDirWorld[3],
-	      double rayDirIndex[3]) {
+              int uIndex,
+              int vIndex,
+              double rayLen,
+              double rayStartWorld[3],
+              double rayStartIndex[3],
+              double rayDirWorld[3],
+              double rayDirIndex[3]) {
   int newLen;
 
   tt->ui = uIndex;
@@ -329,7 +329,7 @@ mrendRayBegin(mrendThread *tt, mrendRender *rr, mrendUser *uu,
   }
   tt->rayLen = rayLen;
   tt->rayStep = (uu->rayStep*tt->rayLen /
-		 (uu->hctx->cam->vspFaar - uu->hctx->cam->vspNeer));
+                 (uu->hctx->cam->vspFaar - uu->hctx->cam->vspNeer));
   newLen = AIR_ROUNDUP(rayLen/tt->rayStep) + 1;
   if (!tt->val || newLen > tt->valLen) {
     tt->val = airFree(tt->val);
@@ -352,10 +352,10 @@ mrendRayEnd(mrendThread *tt, mrendRender *rr, mrendUser *uu) {
 
   if (tt->valNum) {
     nrrdMeasureLine[uu->measr](&answer,
-			       nrrdTypeFloat,
-			       tt->val, nrrdTypeFloat,
-			       tt->valNum,
-			       0, tt->rayLen);
+                               nrrdTypeFloat,
+                               tt->val, nrrdTypeFloat,
+                               tt->valNum,
+                               0, tt->rayLen);
     answer = AIR_EXISTS(answer) ? answer : uu->fromNaN;
     rr->imgData[(tt->ui) + (rr->sx)*(tt->vi)] = answer;
   } else {
@@ -369,15 +369,15 @@ mrendRayEnd(mrendThread *tt, mrendRender *rr, mrendUser *uu) {
 
 double
 mrendSample(mrendThread *tt, mrendRender *rr, mrendUser *uu,
-	    int num, double rayT,
-	    int inside,
-	    double samplePosWorld[3],
-	    double samplePosIndex[3]) {
+            int num, double rayT,
+            int inside,
+            double samplePosWorld[3],
+            double samplePosIndex[3]) {
   char me[]="mrendSample", err[AIR_STRLEN_MED];
 
   if (inside) {
     if (gageProbe(tt->gctx,
-		  samplePosIndex[0], samplePosIndex[1], samplePosIndex[2])) {
+                  samplePosIndex[0], samplePosIndex[1], samplePosIndex[2])) {
       sprintf(err, "%s: gage trouble: %s (%d)", me, gageErrStr, gageErrNum);
       biffAdd(MREND, err);
       return AIR_NAN;
@@ -426,9 +426,9 @@ mrendGage(char *prefix) {
     /* 2nd pass through: create output */
     for (i=airEnumUnknown(gageScl)+1; !airEnumValCheck(gageScl, i); i++) {
       if (1 == gageKindScl->table[i].answerLength) {
-	line = airEnumFmtDesc(gageScl, i, AIR_FALSE, "\n \b\bo \"%s\": %s");
-	strcat(ret, line);
-	free(line);
+        line = airEnumFmtDesc(gageScl, i, AIR_FALSE, "\n \b\bo \"%s\": %s");
+        strcat(ret, line);
+        free(line);
       }
     }
   }
@@ -457,65 +457,65 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, uu, (airMopper)mrendUserNix, airMopAlways);
 
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &(uu->nin), NULL,
-	     "input nrrd to render", NULL, NULL, nrrdHestNrrd);
+             "input nrrd to render", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &(uu->kind), NULL,
-	     "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")",
-	     NULL, NULL, &probeKindHestCB);
+             "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")",
+             NULL, NULL, &probeKindHestCB);
   limnHestCameraOptAdd(&hopt, uu->hctx->cam,
-		       NULL, "0 0 0", "0 0 1",
-		       NULL, NULL, NULL,
-		       "nan nan", "nan nan", "20");
+                       NULL, "0 0 0", "0 0 1",
+                       NULL, NULL, NULL,
+                       "nan nan", "nan nan", "20");
   hestOptAdd(&hopt, "is", "image size", airTypeInt, 2, 2, uu->hctx->imgSize,
-	     "256 256", "image dimensions");
+             "256 256", "image dimensions");
   hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1,
-	     &(uu->ksp[gageKernel00]), "tent",
-	     "value reconstruction kernel",
-	     NULL, NULL, nrrdHestKernelSpec);
+             &(uu->ksp[gageKernel00]), "tent",
+             "value reconstruction kernel",
+             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k11", "kernel", airTypeOther, 1, 1,
-	     &(uu->ksp[gageKernel11]), "cubicd:1,0",
-	     "first derivative kernel",
-	     NULL, NULL, nrrdHestKernelSpec);
+             &(uu->ksp[gageKernel11]), "cubicd:1,0",
+             "first derivative kernel",
+             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k22", "kernel", airTypeOther, 1, 1,
-	     &(uu->ksp[gageKernel22]), "cubicdd:1,0",
-	     "second derivative kernel",
-	     NULL, NULL, nrrdHestKernelSpec);
+             &(uu->ksp[gageKernel22]), "cubicdd:1,0",
+             "second derivative kernel",
+             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "rn", NULL, airTypeBool, 0, 0, &renorm, NULL,
-	     "renormalize kernel weights at each new sample location. "
-	     "\"Accurate\" kernels don't need this; doing it always "
-	     "makes things go slower");
+             "renormalize kernel weights at each new sample location. "
+             "\"Accurate\" kernels don't need this; doing it always "
+             "makes things go slower");
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
-	     "the quantity (scalar, vector, or matrix) to learn by probing");
+             "the quantity (scalar, vector, or matrix) to learn by probing");
   hestOptAdd(&hopt, "m", "measure", airTypeEnum, 1, 1, &(uu->measr), NULL,
-	     "how to collapse list of ray samples into one scalar. "
-	     NRRD_MEASURE_DESC,
-	     NULL, nrrdMeasure);
+             "how to collapse list of ray samples into one scalar. "
+             NRRD_MEASURE_DESC,
+             NULL, nrrdMeasure);
   hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc, "0.0",
-	     "For curvature-related queries, set answer to zero when "
-	     "gradient magnitude is below this");
+             "For curvature-related queries, set answer to zero when "
+             "gradient magnitude is below this");
   hestOptAdd(&hopt, "fn", "from nan", airTypeDouble, 1, 1, &(uu->fromNaN),
-	     "nan", "When histo-based measures generate NaN answers, the "
-	     "value that should be substituted for NaN.");
+             "nan", "When histo-based measures generate NaN answers, the "
+             "value that should be substituted for NaN.");
   hestOptAdd(&hopt, "step", "size", airTypeDouble, 1, 1, &(uu->rayStep),
-	     "0.01", "step size along ray in world space");
+             "0.01", "step size along ray in world space");
   hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1,
-	     &(uu->hctx->numThreads),
-	     "1", "number of threads hoover should use");
+             &(uu->hctx->numThreads),
+             "1", "number of threads hoover should use");
   hestOptAdd(&hopt, "vp", "img coords", airTypeInt, 2, 2, &(uu->verbPixel),
-	     "-1 -1", "pixel coordinates for which to turn on all verbose "
-	     "debugging messages, or \"-1 -1\" to disable this.");
+             "-1 -1", "pixel coordinates for which to turn on all verbose "
+             "debugging messages, or \"-1 -1\" to disable this.");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &(uu->outS),
-	     NULL, "file to write output nrrd to");
+             NULL, "file to write output nrrd to");
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
 
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
-		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   uu->whatq = airEnumVal(uu->kind->enm, whatS);
   if (-1 == uu->whatq) {
     /* -1 indeed always means "unknown" for any gageKind */
     fprintf(stderr, "%s: couldn't parse \"%s\" as measure of \"%s\" volume\n",
-	    me, whatS, uu->kind->name);
+            me, whatS, uu->kind->name);
     hestUsage(stderr, hopt, me, hparm);
     hestGlossary(stderr, hopt, hparm);
     airMopError(mop);
@@ -524,7 +524,7 @@ main(int argc, char *argv[]) {
 
   if (mrendUserCheck(uu)) {
     fprintf(stderr, "%s: problem with input parameters:\n%s\n",
-	    me, errS = biffGetDone(MREND)); free(errS);
+            me, errS = biffGetDone(MREND)); free(errS);
     airMopError(mop);
     return 1;
   }
@@ -532,12 +532,12 @@ main(int argc, char *argv[]) {
   gageParmSet(uu->gctx0, gageParmRequireAllSpacings, AIR_FALSE);
   gageParmSet(uu->gctx0, gageParmRenormalize, renorm);
   fprintf(stderr, "%s: will render %s of %s in %s volume\n", me,
-	  airEnumStr(nrrdMeasure, uu->measr),
-	  airEnumStr(uu->kind->enm, uu->whatq), uu->kind->name);
+          airEnumStr(nrrdMeasure, uu->measr),
+          airEnumStr(uu->kind->enm, uu->whatq), uu->kind->name);
   
   if (limnCameraAspectSet(uu->hctx->cam, 
-			  uu->hctx->imgSize[0], uu->hctx->imgSize[1],
-			  nrrdCenterCell)
+                          uu->hctx->imgSize[0], uu->hctx->imgSize[1],
+                          nrrdCenterCell)
       || limnCameraUpdate(uu->hctx->cam)) {
     airMopAdd(mop, errS = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble setting camera:\n%s\n", me, errS);
@@ -556,10 +556,10 @@ main(int argc, char *argv[]) {
   if (nrrdCenterUnknown != uu->nin->axis[base].center) {
     uu->hctx->volCentering = uu->nin->axis[base].center;
     fprintf(stderr, "%s: setting volCentering to %s\n", me,
-	    airEnumStr(nrrdCenter, uu->nin->axis[base].center));
+            airEnumStr(nrrdCenter, uu->nin->axis[base].center));
   }
   fprintf(stderr, "!%s: uu->hctx->volCentering = %d\n",
-	  me, uu->hctx->volCentering);
+          me, uu->hctx->volCentering);
   /* this is reasonable for now */
   uu->hctx->imgCentering = nrrdCenterCell;
   uu->hctx->user = uu;
@@ -573,9 +573,9 @@ main(int argc, char *argv[]) {
 
   if (!airThreadCapable && 1 != uu->hctx->numThreads) {
     fprintf(stderr, "%s: This teem not compiled with "
-	    "multi-threading support.\n", me);
+            "multi-threading support.\n", me);
     fprintf(stderr, "%s: --> can't use %d threads; only using 1\n",
-	    me, uu->hctx->numThreads);
+            me, uu->hctx->numThreads);
     uu->hctx->numThreads = 1;
   }
 
@@ -583,10 +583,10 @@ main(int argc, char *argv[]) {
   if (E) {
     if (hooverErrInit == E) {
       fprintf(stderr, "%s: ERROR:\n%s\n",
-	      me, errS = biffGetDone(HOOVER)); free(errS);
+              me, errS = biffGetDone(HOOVER)); free(errS);
     } else {
       fprintf(stderr, "%s: ERROR:\n%s\n",
-	      me, errS = biffGetDone(MREND)); free(errS);
+              me, errS = biffGetDone(MREND)); free(errS);
     }
     airMopError(mop);
     return 1;

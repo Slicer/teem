@@ -42,30 +42,30 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   NrrdRange **range;
 
   hestOptAdd(&opt, "b", "bins0 bins1", airTypeInt, 2, -1, &bin, NULL,
-	     "bins<i> is the number of bins to use along axis i (of joint "
-	     "histogram), which represents the values of nin<i> ",
-	     &binLen);
+             "bins<i> is the number of bins to use along axis i (of joint "
+             "histogram), which represents the values of nin<i> ",
+             &binLen);
   hestOptAdd(&opt, "w", "nweight", airTypeOther, 1, 1, &nwght, "",
-	     "how to weigh contributions to joint histogram.  By default "
-	     "(not using this option), the increment is one bin count per "
-	     "sample, but by giving a nrrd, the value in the nrrd at the "
-	     "corresponding location will be the bin count increment ",
-	     NULL, NULL, nrrdHestNrrd);
+             "how to weigh contributions to joint histogram.  By default "
+             "(not using this option), the increment is one bin count per "
+             "sample, but by giving a nrrd, the value in the nrrd at the "
+             "corresponding location will be the bin count increment ",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "min", "min0 min1", airTypeDouble, 2, -1, &min, "nan nan",
-	     "min<i> is the low range of values to be quantized along "
-	     "axis i; use \"nan\" to represent lowest value present ",
-	     &minLen);
+             "min<i> is the low range of values to be quantized along "
+             "axis i; use \"nan\" to represent lowest value present ",
+             &minLen);
   hestOptAdd(&opt, "max", "max0 max1", airTypeDouble, 2, -1, &max, "nan nan",
-	     "max<i> is the high range of values to be quantized along "
-	     "axis i; use \"nan\" to represent highest value present ",
-	     &maxLen);
+             "max<i> is the high range of values to be quantized along "
+             "axis i; use \"nan\" to represent highest value present ",
+             &maxLen);
   OPT_ADD_TYPE(type, "type to use for output (the type used to store hit "
-	       "counts in the joint histogram).  Clamping is done on hit "
-	       "counts so that they never overflow a fixed-point type",
-	       "uint");
+               "counts in the joint histogram).  Clamping is done on hit "
+               "counts so that they never overflow a fixed-point type",
+               "uint");
   hestOptAdd(&opt, "i", "nin0 nin1", airTypeOther, 2, -1, &nin, NULL,
-	     "All input nrrds",
-	     &ninLen, NULL, nrrdHestNrrd);
+             "All input nrrds",
+             &ninLen, NULL, nrrdHestNrrd);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
@@ -77,7 +77,7 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   if (ninLen != binLen) {
     fprintf(stderr, "%s: # input nrrds (%d) != # bin specifications (%d)\n",
-	    me, ninLen, binLen);
+            me, ninLen, binLen);
     airMopError(mop);
     return 1;
   }
@@ -90,7 +90,7 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (2 != minLen || (AIR_EXISTS(min[0]) || AIR_EXISTS(min[1]))) {
     if (minLen != ninLen) {
       fprintf(stderr, "%s: # mins (%d) != # input nrrds (%d)\n", me,
-	      minLen, ninLen);
+              minLen, ninLen);
       airMopError(mop); return 1;
     }
     for (d=0; d<ninLen; d++) {
@@ -100,7 +100,7 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (2 != maxLen || (AIR_EXISTS(max[0]) || AIR_EXISTS(max[1]))) {
     if (maxLen != ninLen) {
       fprintf(stderr, "%s: # maxs (%d) != # input nrrds (%d)\n", me,
-	      maxLen, ninLen);
+              maxLen, ninLen);
       airMopError(mop); return 1;
     }
     for (d=0; d<ninLen; d++) {
@@ -115,7 +115,7 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (nrrdHistoJoint(nout, (const Nrrd**)nin, (const NrrdRange**)range,
-		     ninLen, nwght, bin, type, clamp)) {
+                     ninLen, nwght, bin, type, clamp)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing joint histogram:\n%s", me, err);
     airMopError(mop);

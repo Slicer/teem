@@ -21,28 +21,28 @@
 #include "privateBane.h"
 
 float _baneGkmsDonData[] = {0 /* AIR_NEG_INF */ , 0, 0, 0,
-			    0 /* AIR_NAN */ , 0, 0, 0,
-			    0 /* AIR_POS_INF */ , 0, 0, 0,
-			    -9.5, 0, 107, 255,   /* (3) start: blue */
-			    -8.5, 51, 104, 255,
-			    -7.5, 103, 117, 255,
-			    -6.5, 123, 124, 255,
-			    -5.5, 141, 130, 255,
-			    -4.5, 156, 132, 255,
-			    -3.5, 166, 131, 245,
-			    -2.5, 174, 131, 231,
-			    -1.5, 181, 130, 216,
-			    -0.5, 255, 255, 255, /* (12) middle */
-			    0.5,  255, 255, 255, /* (13) middle */
-			    1.5,  192, 129, 186,
-			    2.5,  197, 128, 172,
-			    3.5,  200, 128, 158,
-			    4.5,  204, 127, 142,
-			    5.5,  210, 126, 113,
-			    6.5,  212, 126, 98,
-			    7.5,  213, 126, 84,
-			    8.5,  216, 126, 49,
-			    9.5, 220, 133, 0};  /* (22) end: orange */
+                            0 /* AIR_NAN */ , 0, 0, 0,
+                            0 /* AIR_POS_INF */ , 0, 0, 0,
+                            -9.5, 0, 107, 255,   /* (3) start: blue */
+                            -8.5, 51, 104, 255,
+                            -7.5, 103, 117, 255,
+                            -6.5, 123, 124, 255,
+                            -5.5, 141, 130, 255,
+                            -4.5, 156, 132, 255,
+                            -3.5, 166, 131, 245,
+                            -2.5, 174, 131, 231,
+                            -1.5, 181, 130, 216,
+                            -0.5, 255, 255, 255, /* (12) middle */
+                            0.5,  255, 255, 255, /* (13) middle */
+                            1.5,  192, 129, 186,
+                            2.5,  197, 128, 172,
+                            3.5,  200, 128, 158,
+                            4.5,  204, 127, 142,
+                            5.5,  210, 126, 113,
+                            6.5,  212, 126, 98,
+                            7.5,  213, 126, 84,
+                            8.5,  216, 126, 49,
+                            9.5, 220, 133, 0};  /* (22) end: orange */
 #define INVERT(d,i) \
     (d)[1 + (i)*4] = 255 - (d)[1 + (i)*4]; \
     (d)[2 + (i)*4] = 255 - (d)[2 + (i)*4]; \
@@ -94,15 +94,15 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
   NrrdRange *range;
 
   hestOptAdd(&opt, "inv", NULL, airTypeInt, 0, 0, &invert, NULL,
-	     "Draw on white background, instead of black");
+             "Draw on white background, instead of black");
   hestOptAdd(&opt, "m", "mapOut", airTypeString, 1, 1, &mapS, "",
-	     "save out the colormap used here, so that it can be applied "
-	     "to other nrrds with \"unu imap -r\"");
+             "save out the colormap used here, so that it can be applied "
+             "to other nrrds with \"unu imap -r\"");
   hestOptAdd(&opt, "i", "infoIn", airTypeOther, 1, 1, &ninfo, NULL,
-	     "input info file (from \"gkms info\")",
+             "input info file (from \"gkms info\")",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "o", "imageOut", airTypeString, 1, 1, &outS, NULL,
-	     "output image, in PPM format");
+             "output image, in PPM format");
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
@@ -110,12 +110,12 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
   airMopAdd(mop, ndon=_baneGkmsDonNew(invert),
-	    (airMopper)nrrdNuke, airMopAlways);
+            (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nposA=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nposB=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, npvg=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nio=nrrdIoStateNew(), (airMopper)nrrdIoStateNix,
-	    airMopAlways);
+            airMopAlways);
 
   if (airStrlen(mapS)) {
     if (nrrdSave(mapS, ndon, NULL)) {
@@ -195,7 +195,7 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   if (nrrdFlip(nposA, nposB, 1) ||
       nrrdApply1DIrregMap(npvg, nposA, range, ndon,
-			  NULL, nrrdTypeUChar, AIR_TRUE)) {
+                          NULL, nrrdTypeUChar, AIR_TRUE)) {
     sprintf(err, "%s: trouble applying colormap", me);
     biffMove(BANE, err, NRRD); airMopError(mop); return 1;
   }

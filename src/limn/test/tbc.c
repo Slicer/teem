@@ -61,20 +61,20 @@ main(int argc, char *argv[]) {
   
   me = argv[0];
   hestOptAdd(&hopt, "i", "spline data", airTypeOther, 1, 1, &ncptA, NULL,
-	     "data points for the spline, must be 2-vectors",
-	     NULL, NULL, nrrdHestNrrd);
+             "data points for the spline, must be 2-vectors",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "loop", NULL, airTypeInt, 0, 0, &loop, NULL,
-	     "the last control point is in fact the first");
+             "the last control point is in fact the first");
   hestOptAdd(&hopt, "n", "N", airTypeInt, 1, 1, &N, "10",
-	     "how many samples along each edge of BC space");
+             "how many samples along each edge of BC space");
   hestOptAdd(&hopt, "m", "M", airTypeInt, 1, 1, &M, "512",
-	     "the number of sample points at which to evalute the spline");
+             "the number of sample points at which to evalute the spline");
   hestOptAdd(&hopt, "t", "tx ty", airTypeDouble, 2, 2, tran, "0.0 0.0",
-	     "translation for drawing");
+             "translation for drawing");
   hestOptAdd(&hopt, "s", "scale", airTypeDouble, 1, 1, &scale, "1.0",
-	     "scaling for drawing");
+             "scaling for drawing");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
-		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   
@@ -86,7 +86,7 @@ main(int argc, char *argv[]) {
   spec = limnSplineTypeSpecNew(limnSplineTypeBC, 0, 0);
   airMopAdd(mop, ncptB=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (limnSplineNrrdCleverFix(ncptB, ncptA, limnSplineInfo2Vector,
-			      limnSplineTypeBC)
+                              limnSplineTypeBC)
       || !(spline = limnSplineNew(ncptB, limnSplineInfo2Vector, spec))) {
     airMopAdd(mop, err=biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
@@ -125,10 +125,10 @@ main(int argc, char *argv[]) {
       printf("%g %g scale\n", scale, scale);
       printf("%g %g moveto\n", out[0 + 2*0], out[1 + 2*0]);
       for (i=1; i<M; i++) {
-	printf("%g %g lineto\n", out[0 + 2*i], out[1 + 2*i]);
+        printf("%g %g lineto\n", out[0 + 2*i], out[1 + 2*i]);
       }
       if (spline->loop) {
-	printf("closepath\n");
+        printf("closepath\n");
       }
       printf("stroke\n");
       

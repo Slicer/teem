@@ -41,49 +41,49 @@ baneGkms_hvolMain(int argc, char **argv, char *me, hestParm *hparm) {
   NrrdKernelSpec *ksp00, *ksp11, *ksp22;
 
   hestOptAdd(&opt, "s", "incV incG incH", airTypeOther, 3, 3, inc, 
-	     "f:1.0 p:0.005 p:0.015",
-	     "Strategies for determining how much of the range "
-	     "of a quantity should be included and quantized in its axis "
-	     "of the histogram volume.  Possibilities include:\n "
-	     "\b\bo \"f:<F>\": included range is some fraction of the "
-	     "total range, as scaled by F\n "
-	     "\b\bo \"p:<P>\": exclude the extremal P percent of "
-	     "the values\n "
-	     "\b\bo \"s:<S>\": included range is S times the standard "
-	     "deviation of the values\n "
-	     "\b\bo \"a:<min>,<max>\": range is from <min> to <max>",
-	     NULL, NULL, baneGkmsHestIncStrategy);
+             "f:1.0 p:0.005 p:0.015",
+             "Strategies for determining how much of the range "
+             "of a quantity should be included and quantized in its axis "
+             "of the histogram volume.  Possibilities include:\n "
+             "\b\bo \"f:<F>\": included range is some fraction of the "
+             "total range, as scaled by F\n "
+             "\b\bo \"p:<P>\": exclude the extremal P percent of "
+             "the values\n "
+             "\b\bo \"s:<S>\": included range is S times the standard "
+             "deviation of the values\n "
+             "\b\bo \"a:<min>,<max>\": range is from <min> to <max>",
+             NULL, NULL, baneGkmsHestIncStrategy);
   hestOptAdd(&opt, "d", "dimV dimG dimH", airTypeInt, 3, 3, dim,
-	     "256 256 256",
-	     "Dimensions of histogram volume; number of samples along "
-	     "each axis");
+             "256 256 256",
+             "Dimensions of histogram volume; number of samples along "
+             "each axis");
   hestOptAdd(&opt, "k00", "kernel", airTypeOther, 1, 1, &ksp00, "tent",
-	     "value reconstruction kernel",
-	     NULL, NULL, nrrdHestKernelSpec);
+             "value reconstruction kernel",
+             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&opt, "k11", "kernel", airTypeOther, 1, 1, &ksp11, "cubicd:1,0",
-	     "first derivative kernel",
-	     NULL, NULL, nrrdHestKernelSpec);
+             "first derivative kernel",
+             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&opt, "k22", "kernel", airTypeOther, 1, 1, &ksp22, "cubicdd:1,0",
-	     "second derivative kernel",
-	     NULL, NULL, nrrdHestKernelSpec);
+             "second derivative kernel",
+             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&opt, "l", NULL, airTypeInt, 0, 0, &lapl, NULL,
-	     "Use Laplacian instead of Hessian to approximate second "
-	     "directional derivative.  No faster, less accurate.");
+             "Use Laplacian instead of Hessian to approximate second "
+             "directional derivative.  No faster, less accurate.");
   hestOptAdd(&opt, "slow", NULL, airTypeInt, 0, 0, &slow, NULL,
-	     "Instead of allocating a floating point VGH volume and measuring "
-	     "V,G,H once, measure V,G,H multiple times on seperate passes "
-	     "(slower, but needs less memory)");
+             "Instead of allocating a floating point VGH volume and measuring "
+             "V,G,H once, measure V,G,H multiple times on seperate passes "
+             "(slower, but needs less memory)");
   if (nrrdEncodingGzip->available()) {
     hestOptAdd(&opt, "gz", NULL, airTypeInt, 0, 0, &gz, NULL,
-	       "Use gzip compression for output histo-volume; "
-	       "much less disk space, slightly slower to read/write");
+               "Use gzip compression for output histo-volume; "
+               "much less disk space, slightly slower to read/write");
   }
   hestOptAdd(&opt, "i", "volumeIn", airTypeOther, 1, 1, &nin, NULL,
-	     "input scalar volume for which a transfer function is needed",
+             "input scalar volume for which a transfer function is needed",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "o", "hvolOut", airTypeString, 1, 1, &out, NULL,
-	     "output histogram volume, used by \"gkms scat\" and "
-	     "\"gkms info\"");
+             "output histogram volume, used by \"gkms scat\" and "
+             "\"gkms info\"");
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);

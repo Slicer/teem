@@ -24,8 +24,8 @@ char *info = ("Save a single ellipsoid or superquadric into an OFF file.");
 
 int
 soidDoit(limnObject *obj, int look,
-	 int sphere, float gamma, int res,
-	 float AB[2], float ten[7]) {
+         int sphere, float gamma, int res,
+         float AB[2], float ten[7]) {
   int partIdx, axis;
   float cl, cp, qA, qB, eval[3], evec[9], matA[16], matB[16];
 
@@ -49,16 +49,16 @@ soidDoit(limnObject *obj, int look,
     }
 
     fprintf(stderr, "eval = %g %g %g -> cl=%g %s cp=%g -> axis = %d\n",
-	    eval[0], eval[1], eval[2], cl, cl > cp ? ">" : "<", cp, axis);
+            eval[0], eval[1], eval[2], cl, cl > cp ? ">" : "<", cp, axis);
 
   }
 
   if (sphere) {
     partIdx = limnObjectPolarSphereAdd(obj, look,
-				       0, 2*res, res);
+                                       0, 2*res, res);
   } else {
     partIdx = limnObjectPolarSuperquadAdd(obj, look,
-					  axis, qA, qB, 2*res, res);
+                                          axis, qA, qB, 2*res, res);
   }
   ELL_4M_IDENTITY_SET(matA);
   ELL_4V_SET(matB + 0*4, eval[0],       0,       0, 0);
@@ -94,34 +94,34 @@ main(int argc, char *argv[]) {
 
   me = argv[0];
   hestOptAdd(&hopt, "sc", "scalings", airTypeDouble, 3, 3, scale, "1 1 1",
-	     "axis-aligned scaling to do on ellipsoid");
+             "axis-aligned scaling to do on ellipsoid");
   hestOptAdd(&hopt, "AB", "A, B exponents", airTypeFloat, 2, 2, AB, "nan nan",
-	     "Directly set the A, B parameters to the superquadric surface, "
-	     "over-riding the default behavior of determining them from the "
-	     "scalings \"-sc\" as superquadric tensor glyphs");
+             "Directly set the A, B parameters to the superquadric surface, "
+             "over-riding the default behavior of determining them from the "
+             "scalings \"-sc\" as superquadric tensor glyphs");
   hestOptAdd(&hopt, "os", "over-all scaling", airTypeFloat, 1, 1, &os, "1",
-	     "over-all scaling (multiplied by scalings)");
+             "over-all scaling (multiplied by scalings)");
   hestOptAdd(&hopt, "vs", "over-all scaling", airTypeFloat, 1, 1, &vs, "1",
-	     "scaling along view-direction (to show off bas-relief "
-	     "ambibuity of ellipsoids versus superquads)");
+             "scaling along view-direction (to show off bas-relief "
+             "ambibuity of ellipsoids versus superquads)");
   hestOptAdd(&hopt, "fr", "from (eye) point", airTypeFloat, 3, 3, &view,
-	     "4 4 4", "eye point, needed for non-unity \"-vs\"");
+             "4 4 4", "eye point, needed for non-unity \"-vs\"");
   hestOptAdd(&hopt, "gamma", "superquad sharpness", airTypeFloat, 1, 1,
-	     &gamma, "0",
-	     "how much to sharpen edges as a "
-	     "function of differences between eigenvalues");
+             &gamma, "0",
+             "how much to sharpen edges as a "
+             "function of differences between eigenvalues");
   hestOptAdd(&hopt, "sphere", NULL, airTypeInt, 0, 0, &sphere, NULL,
-	     "use a sphere instead of a superquadric");
+             "use a sphere instead of a superquadric");
   hestOptAdd(&hopt, "p", "x y z", airTypeFloat, 3, 3, p, "0 0 0",
-	     "location in quaternion quotient space");
+             "location in quaternion quotient space");
   hestOptAdd(&hopt, "r", "radius", airTypeFloat, 1, 1, &rad, "0.015",
-	     "black axis cylinder radius (or 0.0 to not drawn these)");
+             "black axis cylinder radius (or 0.0 to not drawn these)");
   hestOptAdd(&hopt, "res", "resolution", airTypeInt, 1, 1, &res, "25",
-	     "tesselation resolution for both glyph and axis cylinders");
+             "tesselation resolution for both glyph and axis cylinders");
   hestOptAdd(&hopt, "o", "output OFF", airTypeString, 1, 1, &outS, "out.off",
-	     "output file to save OFF into");
+             "output file to save OFF into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
-		 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
@@ -197,9 +197,9 @@ main(int argc, char *argv[]) {
   TEN_M2T(ten, matA);
 
   partIdx = soidDoit(obj, lookSoid,
-		     sphere, gamma, res,
-		     (AIR_EXISTS(AB[0]) && AIR_EXISTS(AB[1])) ? AB : NULL,
-		     ten);
+                     sphere, gamma, res,
+                     (AIR_EXISTS(AB[0]) && AIR_EXISTS(AB[1])) ? AB : NULL,
+                     ten);
 
   ELL_4V_SET(q, 1, p[0], p[1], p[2]);
   ELL_4V_NORM(q, q, len);

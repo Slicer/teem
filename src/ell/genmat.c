@@ -34,8 +34,8 @@ ell_Nm_check(Nrrd *mat) {
   }
   if (!( nrrdTypeDouble == mat->type )) {
     sprintf(err, "%s: nrrd must be type %s (not %s)", me,
-	    airEnumStr(nrrdType, nrrdTypeDouble),
-	    airEnumStr(nrrdType, mat->type));
+            airEnumStr(nrrdType, nrrdTypeDouble),
+            airEnumStr(nrrdType, mat->type));
     biffAdd(ELL, err); return 1;
   }
 
@@ -89,7 +89,7 @@ ell_Nm_mul (Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
   NN = nB->axis[0].size;
   if (MM != nB->axis[1].size) {
     sprintf(err, "%s: size mismatch: %d-by-%d times %d-by-%d",
-	    me, LL, MM, nB->axis[1].size, NN);
+            me, LL, MM, nB->axis[1].size, NN);
     biffAdd(ELL, err); return 1;
   }
   if (nrrdMaybeAlloc(nAB, nrrdTypeDouble, 2, NN, LL)) {
@@ -103,7 +103,7 @@ ell_Nm_mul (Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
     for (nn=0; nn<NN; nn++) {
       tmp = 0;
       for (mm=0; mm<MM; mm++) {
-	tmp += A[ll*MM + mm]*B[mm*NN + nn];
+        tmp += A[ll*MM + mm]*B[mm*NN + nn];
       }
       AB[ll*NN + nn] = tmp;
     }
@@ -134,7 +134,7 @@ _ell_LU_decomp (double *a, int *indx, int NN)  {
     big = 0.0;
     for (j=0; j<NN; j++) {
       if ((tmp=AIR_ABS(a[i*NN + j])) > big) {
-	big = tmp;
+        big = tmp;
       }
     }
     if (!big) {
@@ -151,7 +151,7 @@ _ell_LU_decomp (double *a, int *indx, int NN)  {
     for (i=0; i<j; i++) {
       sum = a[i*NN + j];
       for (k=0; k<i; k++)
-	sum -= a[i*NN + k]*a[k*NN + j];
+        sum -= a[i*NN + k]*a[k*NN + j];
       a[i*NN + j] = sum;
     }
     
@@ -162,12 +162,12 @@ _ell_LU_decomp (double *a, int *indx, int NN)  {
     for (i=j; i<NN; i++) {
       sum = a[i*NN + j];
       for (k=0; k<j; k++)
-	sum -= a[i*NN + k]*a[k*NN + j];
+        sum -= a[i*NN + k]*a[k*NN + j];
       a[i*NN + j] = sum;
       /* imax column is one in which abs(a[i][j])/vv[i] */
       if ((tmp = AIR_ABS(sum)/vv[i]) >= big) {
-	big = tmp;
-	imax = i;
+        big = tmp;
+        imax = i;
       }
     }
     
@@ -176,9 +176,9 @@ _ell_LU_decomp (double *a, int *indx, int NN)  {
     if (j != imax) {
       /* could record parity # of permutes here */
       for (k=0; k<NN; k++) {
-	tmp = a[imax*NN + k];
-	a[imax*NN + k] = a[j*NN + k];
-	a[j*NN + k] = tmp;
+        tmp = a[imax*NN + k];
+        a[imax*NN + k] = a[j*NN + k];
+        a[j*NN + k] = tmp;
       }
       tmp = vv[imax];
       vv[imax] = vv[j];
@@ -194,7 +194,7 @@ _ell_LU_decomp (double *a, int *indx, int NN)  {
     if (j != NN) {
       tmp = 1.0/a[j*NN + j];
       for (i=j+1; i<NN; i++) {
-	a[i*NN + j] *= tmp;
+        a[i*NN + j] *= tmp;
       }
     }
   }
@@ -251,8 +251,8 @@ _ell_inv (double *inv, double *_mat, int NN) {
   int *indx=NULL, ret=0;
 
   if (!( (col = (double*)calloc(NN, sizeof(double))) &&
-	 (mat = (double*)calloc(NN*NN, sizeof(double))) &&
-	 (indx = (int*)calloc(NN, sizeof(int))) )) {
+         (mat = (double*)calloc(NN*NN, sizeof(double))) &&
+         (indx = (int*)calloc(NN, sizeof(int))) )) {
     sprintf(err, "%s: couldn't allocate all buffers", me);
     biffAdd(ELL, err); ret = 1; goto seeya;
   }
@@ -299,7 +299,7 @@ ell_Nm_inv (Nrrd *ninv, Nrrd *nmat) {
   NN = nmat->axis[0].size;
   if (!( NN == nmat->axis[1].size )) {
     sprintf(err, "%s: need a square matrix, not %d-by-%d",
-	    me, nmat->axis[1].size, NN);
+            me, nmat->axis[1].size, NN);
     biffAdd(ELL, err); return 1;
   }
   if (nrrdMaybeAlloc(ninv, nrrdTypeDouble, 2, NN, NN)) {

@@ -59,7 +59,7 @@ unrrduUsage(const char *me, hestParm *hparm) {
 
   sprintf(buff, "--- unu: Utah Nrrd Utilities command-line interface ---");
   sprintf(fmt, "%%%ds\n",
-	  (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
+          (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
   
   for (i=0; unrrduCmdList[i]; i++) {
@@ -74,7 +74,7 @@ unrrduUsage(const char *me, hestParm *hparm) {
     len = strlen(buff);
     fprintf(stderr, "%s", buff);
     _hestPrintStr(stderr, len, len, hparm->columns,
-		  unrrduCmdList[i]->info, AIR_FALSE);
+                  unrrduCmdList[i]->info, AIR_FALSE);
   }
 }
 
@@ -142,7 +142,7 @@ unrrduParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     }
     if (pos[1] < 0 ) {
       sprintf(err, "%s: int in m+<int> must be non-negative (not %d)",
-	      me, pos[1]);
+              me, pos[1]);
       return 1;
     }
     return 0;
@@ -340,7 +340,7 @@ unrrduParseFile(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   fileP = ptr;
   if (!( *fileP = airFopen(str, stdin, "rb") )) {
     sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s",
-	    me, str, strerror(errno));
+            me, str, strerror(errno));
     return 1;
   }
   return 0;
@@ -407,17 +407,17 @@ unrrduParseEncoding(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     }
     while (*opt) {
       if (isdigit(*opt)) {
-	enc[1] = *opt - '0';
+        enc[1] = *opt - '0';
       } else if ('d' == tolower(*opt)) {
-	enc[2] = nrrdZlibStrategyDefault;
+        enc[2] = nrrdZlibStrategyDefault;
       } else if ('h' == tolower(*opt)) {
-	enc[2] = nrrdZlibStrategyHuffman;
+        enc[2] = nrrdZlibStrategyHuffman;
       } else if ('f' == tolower(*opt)) {
-	enc[2] = nrrdZlibStrategyFiltered;
+        enc[2] = nrrdZlibStrategyFiltered;
       } else {
-	sprintf(err, "%s: parameter char \"%c\" not a digit or 'd','h','f'",
-		me, *opt);
-	airMopError(mop); return 1;
+        sprintf(err, "%s: parameter char \"%c\" not a digit or 'd','h','f'",
+                me, *opt);
+        airMopError(mop); return 1;
       }
       opt++;
     }

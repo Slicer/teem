@@ -126,7 +126,7 @@ _gageFwDerivRenormalize (gageContext *ctx, int wch) {
   fixZ = sqrt(posZ/negZ);
   if (ctx->verbose > 1) {
     fprintf(stderr, "%s: fixX = % 10.4f, fixY = % 10.4f, fixX = % 10.4f\n",
-	    me, (float)fixX, (float)fixY, (float)fixZ);
+            me, (float)fixX, (float)fixY, (float)fixZ);
   }
   for (i=0; i<fd; i++) {
     if (fwX[i] <= 0) { fwX[i] *= fixX; } else { fwX[i] /= fixX; }
@@ -148,7 +148,7 @@ _gageFwSet (gageContext *ctx) {
       continue;
     /* we evaluate weights for all three axes with one call */
     ctx->ksp[i]->kernel->EVALN(ctx->fw + 3*fd*i, ctx->fsl,
-			       3*fd, ctx->ksp[i]->parm);
+                               3*fd, ctx->ksp[i]->parm);
   }
 
   if (ctx->verbose > 1) {
@@ -158,16 +158,16 @@ _gageFwSet (gageContext *ctx) {
   if (ctx->parm.renormalize) {
     for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       if (!ctx->needK[i])
-	continue;
+        continue;
       switch (i) {
       case gageKernel00:
       case gageKernel10:
       case gageKernel20:
-	_gageFwValueRenormalize(ctx, i);
-	break;
+        _gageFwValueRenormalize(ctx, i);
+        break;
       default:
-	_gageFwDerivRenormalize(ctx, i);
-	break;
+        _gageFwDerivRenormalize(ctx, i);
+        break;
       }
     }
     if (ctx->verbose > 1) {
@@ -178,20 +178,20 @@ _gageFwSet (gageContext *ctx) {
 
   /* fix weightings for non-unit-spacing samples */
   if (!( 1.0 == ctx->shape->spacing[0] &&
-	 1.0 == ctx->shape->spacing[1] &&
-	 1.0 == ctx->shape->spacing[2] )) {
+         1.0 == ctx->shape->spacing[1] &&
+         1.0 == ctx->shape->spacing[2] )) {
     for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       if (!ctx->needK[i])
-	continue;
+        continue;
       if (gageKernel00 == i || gageKernel10 == i || gageKernel20 == i)
-	continue;
+        continue;
       fwX = ctx->fw + 0 + fd*(0 + 3*i);
       fwY = ctx->fw + 0 + fd*(1 + 3*i);
       fwZ = ctx->fw + 0 + fd*(2 + 3*i);
       for (j=0; j<fd; j++) {
-	fwX[j] *= ctx->shape->fwScale[i][0];
-	fwY[j] *= ctx->shape->fwScale[i][1];
-	fwZ[j] *= ctx->shape->fwScale[i][2];
+        fwX[j] *= ctx->shape->fwScale[i][0];
+        fwY[j] *= ctx->shape->fwScale[i][1];
+        fwZ[j] *= ctx->shape->fwScale[i][2];
       }
     }
     if (ctx->verbose > 1) {
@@ -230,11 +230,11 @@ _gageLocationSet (gageContext *ctx, gage_t x, gage_t y, gage_t z) {
   */
   if (nrrdCenterNode == ctx->shape->center) {
     if (!( AIR_IN_CL(0,x,tx) && 
-	   AIR_IN_CL(0,y,ty) && 
-	   AIR_IN_CL(0,z,tz) )) {
+           AIR_IN_CL(0,y,ty) && 
+           AIR_IN_CL(0,z,tz) )) {
       sprintf(gageErrStr, "%s: position (%g,%g,%g) outside (node-centered) "
-	      "bounds [0,%d]x[0,%d]x[0,%d]",
-	      me, (float)x, (float)y, (float)z, tx, ty, tz);
+              "bounds [0,%d]x[0,%d]x[0,%d]",
+              me, (float)x, (float)y, (float)z, tx, ty, tz);
       gageErrNum = 0;
       return 1;
     }
@@ -243,11 +243,11 @@ _gageLocationSet (gageContext *ctx, gage_t x, gage_t y, gage_t z) {
     zi = z; zi -= zi == tz; zf = z - zi;
   } else {
     if (!( AIR_IN_CL(-0.5,x,tx+0.5) &&
-	   AIR_IN_CL(-0.5,y,ty+0.5) &&
-	   AIR_IN_CL(-0.5,z,tz+0.5) )) {
+           AIR_IN_CL(-0.5,y,ty+0.5) &&
+           AIR_IN_CL(-0.5,z,tz+0.5) )) {
       sprintf(gageErrStr, "%s: position (%g,%g,%g) outside (cell-centered) "
-	      "bounds [-0.5,%f]x[-0.5,%f]x[-0.5,%f]",
-	      me, (float)x, (float)y, (float)z, tx+0.5, ty+0.5, tz+0.5);
+              "bounds [-0.5,%f]x[-0.5,%f]x[-0.5,%f]",
+              me, (float)x, (float)y, (float)z, tx+0.5, ty+0.5, tz+0.5);
       gageErrNum = 0;
       return 1;
     }
@@ -261,20 +261,20 @@ _gageLocationSet (gageContext *ctx, gage_t x, gage_t y, gage_t z) {
   ctx->point.zi = zi + ctx->havePad;
   if (ctx->verbose > 1) {
     fprintf(stderr, "%s: \n"
-	    "        pos (% 15.7f,% 15.7f,% 15.7f) (unpadded) \n"
-	    "        -> i(%5d,%5d,%5d) (unpadded) \n"
-	    "        -> i(%5d,%5d,%5d) (padded) \n"
-	    "         + f(% 15.7f,% 15.7f,% 15.7f) \n",
-	    me,
-	    (float)x, (float)y, (float)z,
-	    xi, yi, zi,
-	    ctx->point.xi, ctx->point.yi, ctx->point.zi,
-	    (float)xf, (float)yf, (float)zf);
+            "        pos (% 15.7f,% 15.7f,% 15.7f) (unpadded) \n"
+            "        -> i(%5d,%5d,%5d) (unpadded) \n"
+            "        -> i(%5d,%5d,%5d) (padded) \n"
+            "         + f(% 15.7f,% 15.7f,% 15.7f) \n",
+            me,
+            (float)x, (float)y, (float)z,
+            xi, yi, zi,
+            ctx->point.xi, ctx->point.yi, ctx->point.zi,
+            (float)xf, (float)yf, (float)zf);
   }
   
   if (!( ctx->point.xf == xf &&
-	 ctx->point.yf == yf &&
-	 ctx->point.zf == zf )) {
+         ctx->point.yf == yf &&
+         ctx->point.zf == zf )) {
     ctx->point.xf = xf;
     ctx->point.yf = yf;
     ctx->point.zf = zf;

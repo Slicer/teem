@@ -38,26 +38,26 @@ _gagePrint_off (FILE *file, gageContext *ctx) {
   case 4:
     for (i=3; i>=0; i--) {
       fprintf(file, "% 6d   % 6d   % 6d   % 6d\n", 
-	      off[12+16*i], off[13+16*i], 
-	      off[14+16*i], off[15+16*i]);
+              off[12+16*i], off[13+16*i], 
+              off[14+16*i], off[15+16*i]);
       fprintf(file, "   % 6d  %c% 6d   % 6d%c   % 6d\n", 
-	      off[ 8+16*i], (i==1||i==2)?'\\':' ',
-	      off[ 9+16*i], off[10+16*i], (i==1||i==2)?'\\':' ',
-	      off[11+16*i]);
+              off[ 8+16*i], (i==1||i==2)?'\\':' ',
+              off[ 9+16*i], off[10+16*i], (i==1||i==2)?'\\':' ',
+              off[11+16*i]);
       fprintf(file, "      % 6d  %c% 6d   % 6d%c   % 6d\n", 
-	      off[ 4+16*i], (i==1||i==2)?'\\':' ',
-	      off[ 5+16*i], off[ 6+16*i], (i==1||i==2)?'\\':' ',
-	      off[ 7+16*i]);
+              off[ 4+16*i], (i==1||i==2)?'\\':' ',
+              off[ 5+16*i], off[ 6+16*i], (i==1||i==2)?'\\':' ',
+              off[ 7+16*i]);
       fprintf(file, "         % 6d   % 6d   % 6d   % 6d\n", 
-	      off[ 0+16*i], off[ 1+16*i],
-	      off[ 2+16*i], off[ 3+16*i]);
+              off[ 0+16*i], off[ 1+16*i],
+              off[ 2+16*i], off[ 3+16*i]);
       if (i) fprintf(file, "\n");
     }
     break;
   default:
     for (i=0; i<fd*fd*fd; i++) {
       fprintf(file, "  off[% 3d,% 3d,% 3d] = % 6d\n",
-	      i%fd, (i/fd)%fd, i/(fd*fd), off[i]);
+              i%fd, (i/fd)%fd, i/(fd*fd), off[i]);
     }
     break;
   }
@@ -66,11 +66,11 @@ _gagePrint_off (FILE *file, gageContext *ctx) {
 #define PRINT_2(NN,C)                                  \
    fw = fw##NN##C;                                     \
    fprintf(file, " --" #NN "-->% 15.7f   % 15.7f\n", \
-	  (float)fw[0], (float)fw[1])
+          (float)fw[0], (float)fw[1])
 #define PRINT_4(NN,C)                                                      \
    fw = fw##NN##C;                                                         \
    fprintf(file, " --" #NN "-->% 15.7f   % 15.7f   % 15.7f   % 15.7f\n", \
-	  (float)fw[0], (float)fw[1], (float)fw[2], (float)fw[3])
+          (float)fw[0], (float)fw[1], (float)fw[2], (float)fw[3])
 #define PRINT_N(NN,C)                                   \
    fw = fw##NN##C;                                      \
    fprintf(file, " --" #NN "--> \n");                 \
@@ -125,24 +125,24 @@ _gagePrint_fslw (FILE *file, gageContext *ctx) {
   switch(fd) {
   case 2:
     fprintf(file, "x[]: % 15.7f   % 15.7f\n",
-	    (float)fslx[0], (float)fslx[1]);
+            (float)fslx[0], (float)fslx[1]);
     PRINTALL(PRINT_2, 0);
     fprintf(file, "y[]: % 15.7f   % 15.7f\n",
-	    (float)fsly[0], (float)fsly[1]);
+            (float)fsly[0], (float)fsly[1]);
     PRINTALL(PRINT_2, 1);
     fprintf(file, "z[]: % 15.7f   % 15.7f\n",
-	    (float)fslz[0], (float)fslz[1]);
+            (float)fslz[0], (float)fslz[1]);
     PRINTALL(PRINT_2, 2);
     break;
   case 4:
     fprintf(file, "x[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", 
-	    (float)fslx[0], (float)fslx[1], (float)fslx[2], (float)fslx[3]);
+            (float)fslx[0], (float)fslx[1], (float)fslx[2], (float)fslx[3]);
     PRINTALL(PRINT_4, 0);
     fprintf(file, "y[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", 
-	    (float)fsly[0], (float)fsly[1], (float)fsly[2], (float)fsly[3]);
+            (float)fsly[0], (float)fsly[1], (float)fsly[2], (float)fsly[3]);
     PRINTALL(PRINT_4, 1);
     fprintf(file, "z[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", 
-	    (float)fslz[0], (float)fslz[1], (float)fslz[2], (float)fslz[3]);
+            (float)fslz[0], (float)fslz[1], (float)fslz[2], (float)fslz[3]);
     PRINTALL(PRINT_4, 2);
     break;
   default:

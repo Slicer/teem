@@ -38,12 +38,12 @@ main(int argc, char *argv[]) {
     printf("%s: encodings supported in this build:\n", me);
     for (enc=nrrdEncodingTypeUnknown+1; enc<nrrdEncodingTypeLast; enc++) {
       printf("%s: %s\n", airEnumStr(nrrdEncodingType, enc),
-	     nrrdEncodingArray[enc]->available() ? "yes" : "not available");
+             nrrdEncodingArray[enc]->available() ? "yes" : "not available");
     }
     printf("%s: formats supported in this build:\n", me);
     for (form=nrrdFormatTypeUnknown+1; form<nrrdFormatTypeLast; form++) {
       printf("%s: %s\n", airEnumStr(nrrdFormatType, form),
-	     nrrdFormatArray[form]->available() ? "yes" : "not available");
+             nrrdFormatArray[form]->available() ? "yes" : "not available");
     }
   }
 

@@ -21,7 +21,7 @@
 #include "../nrrd.h"
 
 char *quadInfo = ("generates quadratic test volumes, with isosurfaces "
-		    "which should resemble z = A*x^2 + B*y^2");
+                    "which should resemble z = A*x^2 + B*y^2");
 
 float
 quadFunc(float x, float y, float z, float A, float B, float off) {
@@ -45,19 +45,19 @@ main(int argc, char *argv[]) {
   hopt = NULL;
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hestOptAdd(&hopt, "s", "sx sy sz", airTypeInt, 3, 3, size, "128 128 128",
-	     "dimensions of output volume");
+             "dimensions of output volume");
   hestOptAdd(&hopt, "min", "x y z", airTypeFloat, 3, 3, min, "-1 -1 -1",
-	     "lower bounding corner of volume");
+             "lower bounding corner of volume");
   hestOptAdd(&hopt, "max", "x y z", airTypeFloat, 3, 3, max, "1 1 1",
-	     "upper bounding corner of volume");
+             "upper bounding corner of volume");
   hestOptAdd(&hopt, "c", "A B", airTypeFloat, 2, 2, AB, NULL,
-	     "A and B quadratic coefficients");
+             "A and B quadratic coefficients");
   hestOptAdd(&hopt, "off", "z offset", airTypeFloat, 1, 1, &off, "0.0",
-	     "vertical offset");
+             "vertical offset");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &out, "-",
-	     "file to write output nrrd to");
+             "file to write output nrrd to");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
-		 me, quadInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, quadInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -75,9 +75,9 @@ main(int argc, char *argv[]) {
     for (yi=0; yi<size[1]; yi++) {
       y = AIR_AFFINE(0, yi, size[1]-1, min[1], max[1]);
       for (xi=0; xi<size[0]; xi++) {
-	x = AIR_AFFINE(0, xi, size[0]-1, min[0], max[0]);
-	*data = quadFunc(x,y,z, AB[0], AB[1], off);
-	data += 1;
+        x = AIR_AFFINE(0, xi, size[0]-1, min[0], max[0]);
+        *data = quadFunc(x,y,z, AB[0], AB[1], off);
+        data += 1;
       }
     }
   }

@@ -49,8 +49,8 @@ tenTensorCheck(Nrrd *nin, int wantType, int want4D, int useBiff) {
   if (wantType) {
     if (nin->type != wantType) {
       sprintf(err, "%s: wanted type %s, got type %s", me,
-	      airEnumStr(nrrdType, wantType),
-	      airEnumStr(nrrdType, nin->type));
+              airEnumStr(nrrdType, wantType),
+              airEnumStr(nrrdType, nin->type));
       if (useBiff) biffAdd(TEN, err); return 1;
     }
   }
@@ -127,13 +127,13 @@ tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine) {
     biffAdd(TEN, err); return 1;
   }
   if (!( nrrdTypeFloat == tnine->type &&
-	 4 == tnine->dim &&
-	 9 == tnine->axis[0].size )) {
+         4 == tnine->dim &&
+         9 == tnine->axis[0].size )) {
     sprintf(err, "%s: type not %s (was %s) or dim not 4 (was %d) "
-	    "or first axis size not 9 (was %d)", me,
-	    airEnumStr(nrrdType, nrrdTypeFloat),
-	    airEnumStr(nrrdType, tnine->type),
-	    tnine->dim, tnine->axis[0].size);
+            "or first axis size not 9 (was %d)", me,
+            airEnumStr(nrrdType, nrrdTypeFloat),
+            airEnumStr(nrrdType, tnine->type),
+            tnine->dim, tnine->axis[0].size);
     biffAdd(TEN, err); return 1;
   }
   sx = tnine->axis[1].size;
@@ -141,15 +141,15 @@ tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine) {
   sz = tnine->axis[3].size;
   if (nconf) {
     if (!( nrrdTypeFloat == nconf->type &&
-	   3 == nconf->dim &&
-	   sx == nconf->axis[0].size &&
-	   sy == nconf->axis[1].size &&
-	   sz == nconf->axis[2].size )) {
+           3 == nconf->dim &&
+           sx == nconf->axis[0].size &&
+           sy == nconf->axis[1].size &&
+           sz == nconf->axis[2].size )) {
       sprintf(err, "%s: confidence type not %s (was %s) or dim not 3 (was %d) "
-	      "or dimensions didn't match tensor volume", me,
-	      airEnumStr(nrrdType, nrrdTypeFloat),
-	      airEnumStr(nrrdType, nconf->type),
-	      nconf->dim);
+              "or dimensions didn't match tensor volume", me,
+              airEnumStr(nrrdType, nrrdTypeFloat),
+              airEnumStr(nrrdType, nconf->type),
+              nconf->dim);
       biffAdd(TEN, err); return 1;
     }
   }
@@ -222,23 +222,23 @@ tenEigensolve_f(float _eval[3], float _evec[9], float t[7]) {
     ELL_3M_COPY(_evec, evec);
     if (ell_cubic_root_single_double == ret) {
       /* this was added to fix a stupid problem with very nearly
-	 isotropic glyphs, used for demonstration figures */
+         isotropic glyphs, used for demonstration figures */
       if (eval[0] == eval[1]) {
-	ELL_3V_CROSS(_evec+6, _evec+0, _evec+3);
+        ELL_3V_CROSS(_evec+6, _evec+0, _evec+3);
       } else {
-	ELL_3V_CROSS(_evec+0, _evec+3, _evec+6);
+        ELL_3V_CROSS(_evec+0, _evec+3, _evec+6);
       }
     }
     if (tenVerbose && _eval[2] < 0) {
       fprintf(stderr, "tenEigensolve -------------\n");
       fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
-	      t[1], t[2], t[3]);
+              t[1], t[2], t[3]);
       fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
-	      t[2], t[4], t[5]);
+              t[2], t[4], t[5]);
       fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
-	      t[3], t[5], t[6]);
+              t[3], t[5], t[6]);
       fprintf(stderr, " --> % 15.7f % 15.7f % 15.7f\n",
-	      _eval[0], _eval[1], _eval[2]);
+              _eval[0], _eval[1], _eval[2]);
     }
   } else {
     /* caller only wants eigenvalues */
@@ -262,11 +262,11 @@ tenEigensolve_d(double _eval[3], double evec[9], double t[7]) {
     ELL_3V_SET(_eval, eval[0] + trc, eval[1] + trc, eval[2] + trc);
     if (ell_cubic_root_single_double == ret) {
       /* this was added to fix a stupid problem with very nearly
-	 isotropic glyphs, used for demonstration figures */
+         isotropic glyphs, used for demonstration figures */
       if (eval[0] == eval[1]) {
-	ELL_3V_CROSS(evec+6, evec+0, evec+3);
+        ELL_3V_CROSS(evec+6, evec+0, evec+3);
       } else {
-	ELL_3V_CROSS(evec+0, evec+3, evec+6);
+        ELL_3V_CROSS(evec+0, evec+3, evec+6);
       }
     }
   } else {
@@ -283,35 +283,35 @@ tenEigensolve_d(double _eval[3], double evec[9], double t[7]) {
     fprintf(stderr, "###################################  I = %d\n", (int)I);
     tenEigensolve(teval, tevec, out);
     fprintf(stderr, "evals: (%g %g %g) %g %g %g --> %g %g %g\n", 
-	    AIR_ABS(eval[0] - teval[0]) + 1,
-	    AIR_ABS(eval[1] - teval[1]) + 1,
-	    AIR_ABS(eval[2] - teval[2]) + 1,
-	    eval[0], eval[1], eval[2], 
-	    teval[0], teval[1], teval[2]);
+            AIR_ABS(eval[0] - teval[0]) + 1,
+            AIR_ABS(eval[1] - teval[1]) + 1,
+            AIR_ABS(eval[2] - teval[2]) + 1,
+            eval[0], eval[1], eval[2], 
+            teval[0], teval[1], teval[2]);
     fprintf(stderr, "   tevec lens: %g %g %g\n", ELL_3V_LEN(tevec+3*0),
-	    ELL_3V_LEN(tevec+3*1), ELL_3V_LEN(tevec+3*2));
+            ELL_3V_LEN(tevec+3*1), ELL_3V_LEN(tevec+3*2));
     ELL_3V_CROSS(tmp1, evec+3*0, evec+3*1); tmp2[0] = ELL_3V_LEN(tmp1);
     ELL_3V_CROSS(tmp1, evec+3*0, evec+3*2); tmp2[1] = ELL_3V_LEN(tmp1);
     ELL_3V_CROSS(tmp1, evec+3*1, evec+3*2); tmp2[2] = ELL_3V_LEN(tmp1);
     fprintf(stderr, "   evec[0] = %g %g %g\n", 
-	    (evec+3*0)[0], (evec+3*0)[1], (evec+3*0)[2]);
+            (evec+3*0)[0], (evec+3*0)[1], (evec+3*0)[2]);
     fprintf(stderr, "   evec[1] = %g %g %g\n",
-	    (evec+3*1)[0], (evec+3*1)[1], (evec+3*1)[2]);
+            (evec+3*1)[0], (evec+3*1)[1], (evec+3*1)[2]);
     fprintf(stderr, "   evec[2] = %g %g %g\n",
-	    (evec+3*2)[0], (evec+3*2)[1], (evec+3*2)[2]);
+            (evec+3*2)[0], (evec+3*2)[1], (evec+3*2)[2]);
     fprintf(stderr, "   evec crosses: %g %g %g\n",
-	    tmp2[0], tmp2[1], tmp2[2]);
+            tmp2[0], tmp2[1], tmp2[2]);
     ELL_3V_CROSS(tmp1, tevec+3*0, tevec+3*1); tmp2[0] = ELL_3V_LEN(tmp1);
     ELL_3V_CROSS(tmp1, tevec+3*0, tevec+3*2); tmp2[1] = ELL_3V_LEN(tmp1);
     ELL_3V_CROSS(tmp1, tevec+3*1, tevec+3*2); tmp2[2] = ELL_3V_LEN(tmp1);
     fprintf(stderr, "   tevec[0] = %g %g %g\n", 
-	    (tevec+3*0)[0], (tevec+3*0)[1], (tevec+3*0)[2]);
+            (tevec+3*0)[0], (tevec+3*0)[1], (tevec+3*0)[2]);
     fprintf(stderr, "   tevec[1] = %g %g %g\n",
-	    (tevec+3*1)[0], (tevec+3*1)[1], (tevec+3*1)[2]);
+            (tevec+3*1)[0], (tevec+3*1)[1], (tevec+3*1)[2]);
     fprintf(stderr, "   tevec[2] = %g %g %g\n",
-	    (tevec+3*2)[0], (tevec+3*2)[1], (tevec+3*2)[2]);
+            (tevec+3*2)[0], (tevec+3*2)[1], (tevec+3*2)[2]);
     fprintf(stderr, "   tevec crosses: %g %g %g\n",
-	    tmp2[0], tmp2[1], tmp2[2]);
+            tmp2[0], tmp2[1], tmp2[2]);
     if (tmp2[1] < 0.5) {
       fprintf(stderr, "(panic)\n");
       exit(0);
@@ -357,43 +357,43 @@ tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec) {
   }
   if (!( 3 == nconf->dim && nrrdTypeFloat == nconf->type )) {
     sprintf(err, "%s: first nrrd not a confidence volume "
-	    "(dim = %d, not 3; type = %s, not %s)", me,
-	    nconf->dim, airEnumStr(nrrdType, nconf->type),
-	    airEnumStr(nrrdType, nrrdTypeFloat));
+            "(dim = %d, not 3; type = %s, not %s)", me,
+            nconf->dim, airEnumStr(nrrdType, nconf->type),
+            airEnumStr(nrrdType, nrrdTypeFloat));
     biffAdd(TEN, err); return 1;
   }
   sx = nconf->axis[0].size;
   sy = nconf->axis[1].size;
   sz = nconf->axis[2].size;
   if (!( 4 == neval->dim && 4 == nevec->dim &&
-	 nrrdTypeFloat == neval->type &&
-	 nrrdTypeFloat == nevec->type )) {
+         nrrdTypeFloat == neval->type &&
+         nrrdTypeFloat == nevec->type )) {
     sprintf(err, "%s: second and third nrrd aren't both 4-D (%d and %d) "
-	    "and type %s (%s and %s)",
-	    me, neval->dim, nevec->dim,
-	    airEnumStr(nrrdType, nrrdTypeFloat),
-	    airEnumStr(nrrdType, neval->type),
-	    airEnumStr(nrrdType, nevec->type));
+            "and type %s (%s and %s)",
+            me, neval->dim, nevec->dim,
+            airEnumStr(nrrdType, nrrdTypeFloat),
+            airEnumStr(nrrdType, neval->type),
+            airEnumStr(nrrdType, nevec->type));
     biffAdd(TEN, err); return 1;
   }
   if (!( 3 == neval->axis[0].size &&
-	 sx == neval->axis[1].size &&
-	 sy == neval->axis[2].size &&
-	 sz == neval->axis[3].size )) {
+         sx == neval->axis[1].size &&
+         sy == neval->axis[2].size &&
+         sz == neval->axis[3].size )) {
     sprintf(err, "%s: second nrrd sizes wrong: (%d,%d,%d,%d) not (3,%d,%d,%d)",
-	    me, neval->axis[0].size, neval->axis[1].size,
-	    neval->axis[2].size, neval->axis[3].size,
-	    sx, sy, sz);
+            me, neval->axis[0].size, neval->axis[1].size,
+            neval->axis[2].size, neval->axis[3].size,
+            sx, sy, sz);
     biffAdd(TEN, err); return 1;
   }
   if (!( 9 == nevec->axis[0].size &&
-	 sx == nevec->axis[1].size &&
-	 sy == nevec->axis[2].size &&
-	 sz == nevec->axis[3].size )) {
+         sx == nevec->axis[1].size &&
+         sy == nevec->axis[2].size &&
+         sz == nevec->axis[3].size )) {
     sprintf(err, "%s: third nrrd sizes wrong: (%d,%d,%d,%d) not (9,%d,%d,%d)",
-	    me, nevec->axis[0].size, nevec->axis[1].size,
-	    nevec->axis[2].size, nevec->axis[3].size,
-	    sx, sy, sz);
+            me, nevec->axis[0].size, nevec->axis[1].size,
+            nevec->axis[2].size, nevec->axis[3].size,
+            sx, sy, sz);
     biffAdd(TEN, err); return 1;
   }
 
@@ -450,7 +450,7 @@ tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos, int dim) {
   }
   if (!(AIR_IN_CL(0, pos, nten->axis[1+axis].size-1))) {
     sprintf(err, "%s: slice position %d not in valid range [0..%d]", me,
-	    pos, nten->axis[1+axis].size-1);
+            pos, nten->axis[1+axis].size-1);
     biffAdd(TEN, err); return 1;
   }
 
@@ -464,7 +464,7 @@ tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos, int dim) {
   airMopAdd(mop, nslice=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (3 == dim) {
     if (nrrdSlice(nslice, nten, axis+1, pos)
-	|| nrrdAxesInsert(nout, nslice, axis+1)) {
+        || nrrdAxesInsert(nout, nslice, axis+1)) {
       sprintf(err, "%s: trouble making slice", me);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
@@ -489,11 +489,11 @@ tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos, int dim) {
       break;
     }
     if (nrrdSlice(nslice, nten, axis+1, pos)
-	|| nrrdSlice(ncoeff[0], nslice, 0, ci[0])
-	|| nrrdSlice(ncoeff[1], nslice, 0, ci[1])
-	|| nrrdSlice(ncoeff[2], nslice, 0, ci[2])
-	|| nrrdSlice(ncoeff[3], nslice, 0, ci[3])
-	|| nrrdJoin(nout, (const Nrrd **)ncoeff, 4, 0, AIR_TRUE)) {
+        || nrrdSlice(ncoeff[0], nslice, 0, ci[0])
+        || nrrdSlice(ncoeff[1], nslice, 0, ci[1])
+        || nrrdSlice(ncoeff[2], nslice, 0, ci[2])
+        || nrrdSlice(ncoeff[3], nslice, 0, ci[3])
+        || nrrdJoin(nout, (const Nrrd **)ncoeff, 4, 0, AIR_TRUE)) {
       sprintf(err, "%s: trouble collecting coefficients", me);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
@@ -516,9 +516,9 @@ tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos, int dim) {
 */
 void
 tenInvariantGradients_d(double mu1[7],
-			double mu2[7], double *mu2Norm,
-			double skw[7], double *skwNorm,
-			double ten[7]) {
+                        double mu2[7], double *mu2Norm,
+                        double skw[7], double *skwNorm,
+                        double ten[7]) {
   double eval[3], evec[9];
   double mu1Dot, mu2Dot, dot, mev, third, matR[9],
     matA[9], matB[9], norm, epsilon;
@@ -527,24 +527,24 @@ tenInvariantGradients_d(double mu1[7],
   epsilon = 0.00001;
 
   TEN_T_SET(mu1, ten[0],
-	    0.57735027, 0, 0,      /* sqrt(1/3) = 0.57735027 */
-	    0.57735027, 0, 
-	    0.57735027);
+            0.57735027, 0, 0,      /* sqrt(1/3) = 0.57735027 */
+            0.57735027, 0, 
+            0.57735027);
   TEN_T_SET(mu2, ten[0],
-	    2*Txx - Tyy - Tzz, 3*Txy, 3*Txz,
-	    2*Tyy - Txx - Tzz, 3*Tyz,
-	    2*Tzz - Txx - Tyy);
+            2*Txx - Tyy - Tzz, 3*Txy, 3*Txz,
+            2*Tyy - Txx - Tzz, 3*Tyz,
+            2*Tzz - Txx - Tyy);
   *mu2Norm = TEN_T_NORM(mu2);
   if (*mu2Norm < epsilon) {
     /* they gave us a diagonal matrix */
     TEN_T_SET(mu2, ten[0],
-	      0.816496581, 0, 0,   /* sqrt(2/3) = 0.816496581 */
-	      -0.408248290, 0,     /* sqrt(1/6) = 0.408248290 */
-	      -0.408248290);
+              0.816496581, 0, 0,   /* sqrt(2/3) = 0.816496581 */
+              -0.408248290, 0,     /* sqrt(1/6) = 0.408248290 */
+              -0.408248290);
     TEN_T_SET(skw, ten[0],
-	      0, 0, 0,
-	      0.707106781, 0,      /* sqrt(1/2) = 0.707106781 */
-	      -0.707106781);
+              0, 0, 0,
+              0.707106781, 0,      /* sqrt(1/2) = 0.707106781 */
+              -0.707106781);
     *skwNorm = 0;  /* have to invent a value, this works */
   } else {
     /* we have some variance */
@@ -557,9 +557,9 @@ tenInvariantGradients_d(double mu1[7],
       TEN_T_SCALE(mu2, 1.0/(norm), mu2);
     }
     TEN_T_SET(skw, ten[0],
-	      Tyy*Tzz - Tyz*Tyz, Txz*Tyz - Txy*Tzz, Txy*Tyz - Txz*Tyy,
-	      Txx*Tzz - Txz*Txz, Txy*Txz - Tyz*Txx,
-	      Txx*Tyy - Txy*Txy);
+              Tyy*Tzz - Tyz*Tyz, Txz*Tyz - Txy*Tzz, Txy*Tyz - Txz*Tyy,
+              Txx*Tzz - Txz*Txz, Txy*Txz - Tyz*Txx,
+              Txx*Tyy - Txy*Txy);
     mu1Dot = TEN_T_DOT(skw, mu1);
     mu2Dot = TEN_T_DOT(skw, mu2);
     TEN_T_SCALE_INCR2(skw, -mu1Dot, mu1, -mu2Dot, mu2);
@@ -569,25 +569,25 @@ tenInvariantGradients_d(double mu1[7],
       tenEigensolve_d(eval, evec, ten);
       mev = (eval[0] + eval[1] + eval[2])/3;
       third = ((eval[0] - mev)*(eval[0] - mev)*(eval[0] - mev)
-	       + (eval[1] - mev)*(eval[1] - mev)*(eval[1] - mev)
-	       + (eval[2] - mev)*(eval[2] - mev)*(eval[2] - mev))/3;
+               + (eval[1] - mev)*(eval[1] - mev)*(eval[1] - mev)
+               + (eval[2] - mev)*(eval[2] - mev)*(eval[2] - mev))/3;
       if (third > 0) {
-	/* skw is positive: linear: eval[1] = eval[2] */
-	ELL_3V_SET(matA + 0*3, 0, 0, 0);
-	ELL_3V_SET(matA + 1*3, 0, 0.707106781, 0);
-	ELL_3V_SET(matA + 2*3, 0, 0, -0.707106781);
+        /* skw is positive: linear: eval[1] = eval[2] */
+        ELL_3V_SET(matA + 0*3, 0, 0, 0);
+        ELL_3V_SET(matA + 1*3, 0, 0.707106781, 0);
+        ELL_3V_SET(matA + 2*3, 0, 0, -0.707106781);
       } else {
-	/* skw is negative: planar: eval[0] = eval[1] */
-	ELL_3V_SET(matA + 0*3, 0.707106781, 0, 0);
-	ELL_3V_SET(matA + 1*3, 0, -0.707106781, 0);
-	ELL_3V_SET(matA + 2*3, 0, 0, 0);
+        /* skw is negative: planar: eval[0] = eval[1] */
+        ELL_3V_SET(matA + 0*3, 0.707106781, 0, 0);
+        ELL_3V_SET(matA + 1*3, 0, -0.707106781, 0);
+        ELL_3V_SET(matA + 2*3, 0, 0, 0);
       }
       ELL_3M_TRANSPOSE(matR, evec);
       ELL_3M_MUL(matB, matA, evec);
       ELL_3M_MUL(matA, matR, matB);
       TEN_M2T(skw, matA);
       /* not sure why this last orgthonalization against mu2 is needed,
-	 but I got some slop otherwise : mu2 . skw = 0.001 or so */
+         but I got some slop otherwise : mu2 . skw = 0.001 or so */
       dot = TEN_T_DOT(mu2, skw);
       TEN_T_SCALE_INCR(skw, -dot, mu2);
       norm = TEN_T_NORM(skw);
@@ -598,12 +598,12 @@ tenInvariantGradients_d(double mu1[7],
       /* make damn sure skw is orthogonal to mu1 ... */
       dot = TEN_T_DOT(skw, mu1);
       if (AIR_ABS(dot) > epsilon) {
-	TEN_T_SCALE_INCR(skw, -dot, mu1);
+        TEN_T_SCALE_INCR(skw, -dot, mu1);
       }
       /* ... and to mu2 */
       dot = TEN_T_DOT(skw, mu2);
       if (AIR_ABS(dot) > epsilon) {
-	TEN_T_SCALE_INCR(skw, -dot, mu2);
+        TEN_T_SCALE_INCR(skw, -dot, mu2);
       }
       norm = TEN_T_NORM(skw);
       TEN_T_SCALE(skw, 1.0/(norm), skw);
@@ -612,26 +612,26 @@ tenInvariantGradients_d(double mu1[7],
   if (fabs(TEN_T_DOT(skw, mu1)) > 0.7) {
     fprintf(stderr, "tenShapeGradients_d : PANIC\n");
     fprintf(stderr, "dots = %g %g %g\n",
-	    TEN_T_DOT(mu1, mu2),
-	    TEN_T_DOT(mu1, skw),
-	    TEN_T_DOT(mu2, skw));
+            TEN_T_DOT(mu1, mu2),
+            TEN_T_DOT(mu1, skw),
+            TEN_T_DOT(mu2, skw));
     fprintf(stderr, "ten = (%g) %g %g %g   %g %g   %g\n",
-	    ten[0],
-	    ten[1], ten[2], ten[3],
-	    ten[4], ten[5],
-	    ten[6]);
+            ten[0],
+            ten[1], ten[2], ten[3],
+            ten[4], ten[5],
+            ten[6]);
     fprintf(stderr, "mu2Norm = %g; mu2 = (%g) %g %g %g   %g %g   %g\n",
-	    *mu2Norm,
-	    mu2[0],
-	    mu2[1], mu2[2], mu2[3],
-	    mu2[4], mu2[5],
-	    mu2[6]);
+            *mu2Norm,
+            mu2[0],
+            mu2[1], mu2[2], mu2[3],
+            mu2[4], mu2[5],
+            mu2[6]);
     fprintf(stderr, "skwNorm = %g; skw = (%g) %g %g %g   %g %g   %g\n",
-	    *skwNorm,
-	    skw[0],
-	    skw[1], skw[2], skw[3],
-	    skw[4], skw[5],
-	    skw[6]);
+            *skwNorm,
+            skw[0],
+            skw[1], skw[2], skw[3],
+            skw[4], skw[5],
+            skw[6]);
     exit(0);
   }
 
@@ -643,9 +643,9 @@ tenInvariantGradients_d(double mu1[7],
 */
 void
 tenRotationTangents_d(double phi1[7],
-		      double phi2[7],
-		      double phi3[7],
-		      double evec[9]) {
+                      double phi2[7],
+                      double phi3[7],
+                      double evec[9]) {
   double outA[9], outB[9], mat[9];
 
   if (phi1) {

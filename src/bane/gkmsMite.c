@@ -36,11 +36,11 @@ baneGkms_miteMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret, E;
 
   hestOptAdd(&opt, "i", "opacIn", airTypeOther, 1, 1, &nin, NULL,
-	     "input opacity function (1 or 2 dimensional), from "
-	     "\"gkms opac\"",
+             "input opacity function (1 or 2 dimensional), from "
+             "\"gkms opac\"",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "o", "opacOut", airTypeString, 1, 1, &out, NULL,
-	     "output opacity function filename");
+             "output opacity function filename");
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);

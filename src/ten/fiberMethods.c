@@ -71,13 +71,13 @@ tenFiberContextNew(Nrrd *dtvol) {
     tfx->ksp = nrrdKernelSpecNew();
     tfx->gtx = gageContextNew();
     if ( !(pvl = gagePerVolumeNew(tfx->gtx, dtvol, tenGageKind)) 
-	 || (gagePerVolumeAttach(tfx->gtx, pvl)) ) {
+         || (gagePerVolumeAttach(tfx->gtx, pvl)) ) {
       sprintf(err, "%s: gage trouble", me);
       biffMove(TEN, err, GAGE); return NULL;
     }
     if (nrrdKernelParse(&kernel, kparm, tenDefFiberKernel)) {
       sprintf(err, "%s: couldn't parse tenDefFiberKernel \"%s\"",
-	      me,  tenDefFiberKernel);
+              me,  tenDefFiberKernel);
       biffMove(TEN, err, NRRD); return NULL;
     }
     if (tenFiberKernelSet(tfx, kernel, kparm)) {
@@ -88,8 +88,8 @@ tenFiberContextNew(Nrrd *dtvol) {
     tfx->anisoType = tenDefFiberAnisoType;
     tfx->anisoThresh = tenDefFiberAnisoThresh;
     tfx->confThresh = 0.5; /* why do I even bother setting these- they'll
-			      only get read if the right tenFiberStopSet has
-			      been called, in which case they'll be set... */
+                              only get read if the right tenFiberStopSet has
+                              been called, in which case they'll be set... */
     tfx->stepSize = tenDefFiberStepSize;
     tfx->useIndexSpace = tenDefFiberUseIndexSpace;
     tfx->maxHalfLen = tenDefFiberMaxHalfLen;
@@ -235,8 +235,8 @@ tenFiberStopReset(tenFiberContext *tfx) {
 
 int
 tenFiberKernelSet(tenFiberContext *tfx,
-		  const NrrdKernel *kern,
-		  double parm[NRRD_KERNEL_PARMS_NUM]) {
+                  const NrrdKernel *kern,
+                  double parm[NRRD_KERNEL_PARMS_NUM]) {
   char me[]="tenFiberKernelSet", err[AIR_STRLEN_MED];
 
   if (!(tfx && kern)) {
@@ -245,7 +245,7 @@ tenFiberKernelSet(tenFiberContext *tfx,
   }
   nrrdKernelSpecSet(tfx->ksp, kern, parm);
   if (gageKernelSet(tfx->gtx, gageKernel00,
-		    tfx->ksp->kernel, tfx->ksp->parm)) {
+                    tfx->ksp->kernel, tfx->ksp->parm)) {
     sprintf(err, "%s: problem setting kernel", me);
     biffMove(TEN, err, GAGE); return 1;
   }
@@ -287,7 +287,7 @@ tenFiberParmSet(tenFiberContext *tfx, int parm, double val) {
       break;
     default:
       fprintf(stderr, "%s: WARNING!!! tenFiberParm %d not handled\n",
-	      me, parm);
+              me, parm);
       break;
     }
   }
@@ -308,7 +308,7 @@ tenFiberUpdate(tenFiberContext *tfx) {
   }
   if (!( AIR_IN_OP(tenFiberTypeUnknown, tfx->fiberType, tenFiberTypeLast) )) {
     sprintf(err, "%s: tfx->fiberType set to bogus value (%d)", me,
-	    tfx->fiberType);
+            tfx->fiberType);
     biffAdd(TEN, err); return 1;
   }
   if (tenFiberIntgUnknown == tfx->intg) {

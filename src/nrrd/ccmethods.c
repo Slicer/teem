@@ -88,7 +88,7 @@ _nrrdCC_eclass (int *map, int len, airArray *eqvArr) {
       k = map[k];
     if (j != k) {
       if (j < k) {
-	t = j; j = k; k = t;
+        t = j; j = k; k = t;
       }
       map[j] = k;
     }
@@ -111,12 +111,12 @@ nrrdCCValid(const Nrrd *nin) {
   }
   if (!( nrrdTypeIsIntegral[nin->type] )) {
     sprintf(err, "%s: need an integral type (not %s)", me,
-	    airEnumStr(nrrdType, nin->type));
+            airEnumStr(nrrdType, nin->type));
     biffAdd(NRRD, err); return 0;
   }
   if (!( nrrdTypeSize[nin->type] <= 2 || nrrdTypeInt == nin->type )) {
     sprintf(err, "%s: valid connected component types are 1- and 2-byte "
-	    "integers, and %s", me, airEnumStr(nrrdType, nrrdTypeInt));
+            "integers, and %s", me, airEnumStr(nrrdType, nrrdTypeInt));
     biffAdd(NRRD, err); return 0;
   }
   return 1;

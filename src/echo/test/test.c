@@ -43,10 +43,10 @@ main(int argc, char **argv) {
     G = airDrand48();
     B = airDrand48();
     echoSphereSet(sph,
-		  AIR_AFFINE(0, R, 1, -1, 1),
-		  AIR_AFFINE(0, G, 1, -1, 1),
-		  AIR_AFFINE(0, B, 1, -1, 1),
-		  0.05);
+                  AIR_AFFINE(0, R, 1, -1, 1),
+                  AIR_AFFINE(0, G, 1, -1, 1),
+                  AIR_AFFINE(0, B, 1, -1, 1),
+                  0.05);
     echoColorSet(sph, R, G, B, 1.0);
     echoMatterPhongSet(scene, sph, 0, 1, 0, 40);
     echoListAdd(list, sph);
@@ -56,16 +56,16 @@ main(int argc, char **argv) {
 
   rect = echoObjectNew(scene, echoTypeRectangle);
   echoRectangleSet(rect, -1, -1, -1,
-		   2, 0, 0,
-		   0, 2, 0);
+                   2, 0, 0,
+                   0, 2, 0);
   echoColorSet(rect, 1, 1, 1, 1);
   echoMatterPhongSet(scene, rect, 0, 1, 0, 40);
   echoObjectAdd(scene, rect);
 
   rect = echoObjectNew(scene, echoTypeRectangle);
   echoRectangleSet(rect, -0.25, -0.25, 2,
-		   0.5, 0, 0,
-		   0, 0.5, 0);
+                   0.5, 0, 0,
+                   0, 0.5, 0);
   echoColorSet(rect, 1, 1, 1, 1);
   echoMatterLightSet(scene, rect, 3, 1);
   

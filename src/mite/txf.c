@@ -132,35 +132,35 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
     if (-1 != isp->item) {
       isp->kind = gageKindScl;
       fprintf(stderr, "\n%s: WARNING: deprecated use of txf domain "
-	      "\"gage(%s)\" without explicit gage kind specification; "
-	      "should use \"gage(%s:%s)\" instead\n\n",
-	      me, kqstr, gageKindScl->name, kqstr);
+              "\"gage(%s)\" without explicit gage kind specification; "
+              "should use \"gage(%s:%s)\" instead\n\n",
+              me, kqstr, gageKindScl->name, kqstr);
     } else {
       /* should be of form "<kind>:<item>" */
       col = strstr(kqstr, ":");
       if (!col) {
-	sprintf(err, "%s: didn't see \":\" seperator between gage "
-		"kind and item", me);
-	biffAdd(MITE, err); airMopError(mop); return 1;
+        sprintf(err, "%s: didn't see \":\" seperator between gage "
+                "kind and item", me);
+        biffAdd(MITE, err); airMopError(mop); return 1;
       }
       *col = 0;
       kstr = kqstr;
       qstr = col+1;
       if (!strcmp(gageKindScl->name, kstr)) {
-	isp->kind = gageKindScl;
+        isp->kind = gageKindScl;
       } else if (!strcmp(gageKindVec->name, kstr)) {
-	isp->kind = gageKindVec;
+        isp->kind = gageKindVec;
       } else if (!strcmp(tenGageKind->name, kstr)) {
-	isp->kind = tenGageKind;
+        isp->kind = tenGageKind;
       } else {
-	sprintf(err, "%s: don't recognized \"%s\" gage kind", me, kstr);
-	biffAdd(MITE, err); airMopError(mop); return 1;
+        sprintf(err, "%s: don't recognized \"%s\" gage kind", me, kstr);
+        biffAdd(MITE, err); airMopError(mop); return 1;
       }
       isp->item = airEnumVal(isp->kind->enm, qstr);
       if (-1 == isp->item) {
-	sprintf(err, "%s: couldn't parse \"%s\" as a %s variable",
-		me, qstr, isp->kind->name);
-	biffAdd(MITE, err); airMopError(mop); return 1;
+        sprintf(err, "%s: couldn't parse \"%s\" as a %s variable",
+                me, qstr, isp->kind->name);
+        biffAdd(MITE, err); airMopError(mop); return 1;
       }
     }
   } else if (strstr(buff, "mite(") == buff) {
@@ -174,7 +174,7 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
     isp->item = airEnumVal(miteVal, qstr);
     if (-1 == isp->item) {
       sprintf(err, "%s: couldn't parse \"%s\" as a miteVal variable",
-	      me, qstr);
+              me, qstr);
       biffAdd(MITE, err); airMopError(mop); return 1;
     }
     isp->kind = miteValGageKind;
@@ -185,8 +185,8 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
       /* its measured by mite */
       isp->kind = miteValGageKind;
       fprintf(stderr, "\n%s: WARNING: deprecated use of txf domain "
-	      "\"%s\"; should use \"mite(%s)\" instead\n\n",
-	      me, label, label);
+              "\"%s\"; should use \"mite(%s)\" instead\n\n",
+              me, label, label);
     } else {
       sprintf(err, "%s: \"%s\" not a recognized variable", me, label);
       biffAdd(MITE, err); airMopError(mop); return 1;
@@ -203,13 +203,13 @@ miteVariablePrint(char *buff, const gageItemSpec *isp) {
   if (!(isp->kind)) {
     strcpy(buff, "");
   } else if (gageKindScl == isp->kind
-	     || gageKindVec == isp->kind
-	     || tenGageKind == isp->kind) {
+             || gageKindVec == isp->kind
+             || tenGageKind == isp->kind) {
     sprintf(buff, "gage(%s:%s)", isp->kind->name, 
-	    airEnumStr(isp->kind->enm, isp->item));
+            airEnumStr(isp->kind->enm, isp->item));
   } else if (miteValGageKind == isp->kind) {
     sprintf(buff, "%s(%s)", isp->kind->name, 
-	    airEnumStr(isp->kind->enm, isp->item));
+            airEnumStr(isp->kind->enm, isp->item));
   } else {
     sprintf(buff, "(%s: unknown gageKind!)", me);
   }
@@ -227,18 +227,18 @@ miteNtxfCheck(const Nrrd *ntxf) {
     biffMove(MITE, err, NRRD); return 1;
   }
   if (!( nrrdTypeFloat == ntxf->type || 
-	 nrrdTypeDouble == ntxf->type || 
-	 nrrdTypeUChar == ntxf->type )) {
+         nrrdTypeDouble == ntxf->type || 
+         nrrdTypeUChar == ntxf->type )) {
     sprintf(err, "%s: need a type %s, %s or %s nrrd (not %s)", me,
-	    airEnumStr(nrrdType, nrrdTypeFloat),
-	    airEnumStr(nrrdType, nrrdTypeDouble),
-	    airEnumStr(nrrdType, nrrdTypeUChar),
-	    airEnumStr(nrrdType, ntxf->type));
+            airEnumStr(nrrdType, nrrdTypeFloat),
+            airEnumStr(nrrdType, nrrdTypeDouble),
+            airEnumStr(nrrdType, nrrdTypeUChar),
+            airEnumStr(nrrdType, ntxf->type));
     biffAdd(MITE, err); return 1;
   }
   if (!( 2 <= ntxf->dim )) {
     sprintf(err, "%s: nrrd dim (%d) isn't at least 2 (for a 1-D txf)",
-	    me, ntxf->dim);
+            me, ntxf->dim);
     biffAdd(MITE, err); return 1;
   }
   rangeStr = ntxf->axis[0].label;
@@ -248,14 +248,14 @@ miteNtxfCheck(const Nrrd *ntxf) {
   }
   if (airStrlen(rangeStr) != ntxf->axis[0].size) {
     sprintf(err, "%s: axis[0]'s size is %d, but label specifies %d values",
-	    me, ntxf->axis[0].size, (int)airStrlen(rangeStr));
+            me, ntxf->axis[0].size, (int)airStrlen(rangeStr));
     biffAdd(MITE, err); return 1;
   }
   for (rii=0; rii<airStrlen(rangeStr); rii++) {
     if (!strchr(miteRangeChar, rangeStr[rii])) {
       sprintf(err, "%s: char %d of axis[0]'s label (\"%c\") isn't a valid "
-	      "transfer function range specifier (not in \"%s\")",
-	      me, rii, rangeStr[rii], miteRangeChar);
+              "transfer function range specifier (not in \"%s\")",
+              me, rii, rangeStr[rii], miteRangeChar);
       biffAdd(MITE, err); return 1;
     }
   }
@@ -267,44 +267,44 @@ miteNtxfCheck(const Nrrd *ntxf) {
     domStr = ntxf->axis[axi].label;
     if (0 == airStrlen(domStr)) {
       sprintf(err, "%s: axis[%d] of txf didn't specify a domain variable",
-	      me, axi);
+              me, axi);
       biffAdd(MITE, err); return 1;
     }
     if (miteVariableParse(&isp, domStr)) {
       sprintf(err, "%s: couldn't parse txf domain \"%s\" for axis %d\n", 
-	      me, domStr, axi);
+              me, domStr, axi);
       biffAdd(MITE, err); return 1;
     }
     if (!( 1 == isp.kind->table[isp.item].answerLength ||
-	   3 == isp.kind->table[isp.item].answerLength )) {
+           3 == isp.kind->table[isp.item].answerLength )) {
       sprintf(err, "%s: %s not a scalar or vector: can't be a txf "
-	      "domain variable", me, domStr);
+              "domain variable", me, domStr);
       biffAdd(MITE, err); return 1;
     }
     if (3 == isp.kind->table[isp.item].answerLength) {
       /* has to be right length for one of the quantization schemes */
       log2 = airLog2(ntxf->axis[axi].size);
       if (-1 == log2) {
-	sprintf(err, "%s: txf axis size for %s must be power of 2 (not %d)",
-		me, domStr, ntxf->axis[axi].size);
-	biffAdd(MITE, err); return 1;
+        sprintf(err, "%s: txf axis size for %s must be power of 2 (not %d)",
+                me, domStr, ntxf->axis[axi].size);
+        biffAdd(MITE, err); return 1;
       } else {
-	if (!( AIR_IN_CL(8, log2, 16) )) {
-	  sprintf(err, "%s: log_2 of txf axis size for %s should be in "
-		  "range [8,16] (not %d)", me, domStr, log2);
-	  biffAdd(MITE, err); return 1;
-	}
+        if (!( AIR_IN_CL(8, log2, 16) )) {
+          sprintf(err, "%s: log_2 of txf axis size for %s should be in "
+                  "range [8,16] (not %d)", me, domStr, log2);
+          biffAdd(MITE, err); return 1;
+        }
       }
     } else {
       if (!( AIR_EXISTS(ntxf->axis[axi].min) && 
-	     AIR_EXISTS(ntxf->axis[axi].max) )) {
-	sprintf(err, "%s: min and max of axis %d aren't both set", me, axi);
-	biffAdd(MITE, err); return 1;
+             AIR_EXISTS(ntxf->axis[axi].max) )) {
+        sprintf(err, "%s: min and max of axis %d aren't both set", me, axi);
+        biffAdd(MITE, err); return 1;
       }
       if (!( ntxf->axis[axi].min < ntxf->axis[axi].max )) {
-	sprintf(err, "%s: min (%g) not less than max (%g) on axis %d", 
-		me, ntxf->axis[axi].min, ntxf->axis[axi].max, axi);
-	biffAdd(MITE, err); return 1;
+        sprintf(err, "%s: min (%g) not less than max (%g) on axis %d", 
+                me, ntxf->axis[axi].min, ntxf->axis[axi].max, axi);
+        biffAdd(MITE, err); return 1;
       }
     }
   }
@@ -334,8 +334,8 @@ miteNtxfCheck(const Nrrd *ntxf) {
 */
 void
 miteQueryAdd(gageQuery queryScl, gageQuery queryVec, 
-	     gageQuery queryTen, gageQuery queryMite,
-	     gageItemSpec *isp) {
+             gageQuery queryTen, gageQuery queryMite,
+             gageItemSpec *isp) {
   char me[]="miteQueryAdd";
   
   if (NULL == isp->kind) {
@@ -361,9 +361,9 @@ miteQueryAdd(gageQuery queryScl, gageQuery queryVec,
     case miteValNdotV: 
     case miteValNdotL:
       /* the "N" can be a normalized vector from any of the
-	 available kinds (except miteValGageKind!), and its
-	 associated query will be handled elsewhere, so there's
-	 nothing to add here */
+         available kinds (except miteValGageKind!), and its
+         associated query will be handled elsewhere, so there's
+         nothing to add here */
       break;
     case miteValGTdotV:
       GAGE_QUERY_ITEM_ON(queryScl, gageSclGeomTens);
@@ -397,15 +397,15 @@ _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
   for (ni=0; ni<mrr->ntxfNum; ni++) {
     mrr->ntxf[ni] = nrrdNew();
     if (!E) airMopAdd(mrr->rmop, mrr->ntxf[ni],
-		      (airMopper)nrrdNuke, airMopAlways);
+                      (airMopper)nrrdNuke, airMopAlways);
     if (!( nrrdTypeUChar == muu->ntxf[ni]->type 
-	   || nrrdTypeFloat == muu->ntxf[ni]->type 
-	   || nrrdTypeDouble == muu->ntxf[ni]->type )) {
+           || nrrdTypeFloat == muu->ntxf[ni]->type 
+           || nrrdTypeDouble == muu->ntxf[ni]->type )) {
       sprintf(err, "%s: sorry, can't handle txf of type %s (only %s, %s, %s)",
-	      me, airEnumStr(nrrdType, muu->ntxf[ni]->type),
-	      airEnumStr(nrrdType, nrrdTypeUChar),
-	      airEnumStr(nrrdType, nrrdTypeFloat),
-	      airEnumStr(nrrdType, nrrdTypeDouble));
+              me, airEnumStr(nrrdType, muu->ntxf[ni]->type),
+              airEnumStr(nrrdType, nrrdTypeUChar),
+              airEnumStr(nrrdType, nrrdTypeFloat),
+              airEnumStr(nrrdType, nrrdTypeDouble));
       biffAdd(MITE, err); return 1;
     }
     /* note that key/values need to be copied for the sake of
@@ -453,10 +453,10 @@ _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu) {
     nnum = nrrdElementNumber(ntxf)/rnum;
     for (ei=0; ei<nnum; ei++) {
       for (ri=0; ri<rnum; ri++) {
-	if (ntxf->axis[0].label[ri] == miteRangeChar[miteRangeAlpha]) {
-	  alpha = data[ri + rnum*ei];
-	  data[ri + rnum*ei] = 1 - pow(1 - alpha, frac);
-	}
+        if (ntxf->axis[0].label[ri] == miteRangeChar[miteRangeAlpha]) {
+          alpha = data[ri + rnum*ei];
+          data[ri + rnum*ei] = 1 - pow(1 - alpha, frac);
+        }
       }
     }
   }
@@ -552,61 +552,61 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
       stage->val = _miteAnswerPointer(mtt, &isp);
       /*
       fprintf(stderr, "!%s: ans=%p + offset[%d]=%d == %p\n", me,
-	      mtt->ans, dom, kind->ansOffset[dom], stage->val);
+              mtt->ans, dom, kind->ansOffset[dom], stage->val);
       */
       stage->size = ntxf->axis[di].size;
       stage->min =  ntxf->axis[di].min;
       stage->max =  ntxf->axis[di].max;
       if (di > 1) {
-	stage->data = NULL;
+        stage->data = NULL;
       } else {
-	stage->data = ntxf->data;
-	value = nrrdKeyValueGet(ntxf, "miteStageOp");
-	if (value) {
-	  stage->op = airEnumVal(miteStageOp, value);
-	  if (miteStageOpUnknown == stage->op) {
-	    stage->op = miteStageOpMultiply;
-	  }
-	} else {
-	  stage->op = miteStageOpMultiply;
-	}
-	if (1 == isp.kind->table[isp.item].answerLength) {
-	  stage->qn = NULL;
-	} else if (3 == isp.kind->table[isp.item].answerLength) {
-	  log2 = airLog2(ntxf->axis[di].size);
-	  switch(log2) {
-	  case 8:  stage->qn = limnVtoQN_GT[ limnQN8octa]; break;
-	  case 9:  stage->qn = limnVtoQN_GT[ limnQN9octa]; break;
-	  case 10: stage->qn = limnVtoQN_GT[limnQN10octa]; break;
-	  case 11: stage->qn = limnVtoQN_GT[limnQN11octa]; break;
-	  case 12: stage->qn = limnVtoQN_GT[limnQN12octa]; break;
-	  case 13: stage->qn = limnVtoQN_GT[limnQN13octa]; break;
-	  case 14: stage->qn = limnVtoQN_GT[limnQN14octa]; break;
-	  case 15: stage->qn = limnVtoQN_GT[limnQN15octa]; break;
-	  case 16: stage->qn = limnVtoQN_GT[limnQN16octa]; break;
-	  default:
-	    sprintf(err, "%s: txf axis %d size %d not usable for vector "
-		    "txf domain variable %s", me,
-		    di, ntxf->axis[di].size, ntxf->axis[di].label);
-	    biffAdd(MITE, err); return 1;
-	    break;
-	  }
-	} else {
-	  sprintf(err, "%s: %s not scalar or vector (len = %d): can't be "
-		  "a txf domain variable", me,
-		  ntxf->axis[di].label,
-		  isp.kind->table[isp.item].answerLength);
-	  biffAdd(MITE, err); return 1;
-	}
-	stage->rangeNum = ntxf->axis[0].size;
-	for (rii=0; rii<stage->rangeNum; rii++) {
-	  rc = ntxf->axis[0].label[rii];
-	  stage->rangeIdx[rii] = strchr(miteRangeChar, rc) - miteRangeChar;
-	  /*
-	  fprintf(stderr, "!%s: range: %c -> %d\n", "_miteStageSet",
-		  ntxf->axis[0].label[rii], stage->rangeIdx[rii]);
-	  */
-	}
+        stage->data = ntxf->data;
+        value = nrrdKeyValueGet(ntxf, "miteStageOp");
+        if (value) {
+          stage->op = airEnumVal(miteStageOp, value);
+          if (miteStageOpUnknown == stage->op) {
+            stage->op = miteStageOpMultiply;
+          }
+        } else {
+          stage->op = miteStageOpMultiply;
+        }
+        if (1 == isp.kind->table[isp.item].answerLength) {
+          stage->qn = NULL;
+        } else if (3 == isp.kind->table[isp.item].answerLength) {
+          log2 = airLog2(ntxf->axis[di].size);
+          switch(log2) {
+          case 8:  stage->qn = limnVtoQN_GT[ limnQN8octa]; break;
+          case 9:  stage->qn = limnVtoQN_GT[ limnQN9octa]; break;
+          case 10: stage->qn = limnVtoQN_GT[limnQN10octa]; break;
+          case 11: stage->qn = limnVtoQN_GT[limnQN11octa]; break;
+          case 12: stage->qn = limnVtoQN_GT[limnQN12octa]; break;
+          case 13: stage->qn = limnVtoQN_GT[limnQN13octa]; break;
+          case 14: stage->qn = limnVtoQN_GT[limnQN14octa]; break;
+          case 15: stage->qn = limnVtoQN_GT[limnQN15octa]; break;
+          case 16: stage->qn = limnVtoQN_GT[limnQN16octa]; break;
+          default:
+            sprintf(err, "%s: txf axis %d size %d not usable for vector "
+                    "txf domain variable %s", me,
+                    di, ntxf->axis[di].size, ntxf->axis[di].label);
+            biffAdd(MITE, err); return 1;
+            break;
+          }
+        } else {
+          sprintf(err, "%s: %s not scalar or vector (len = %d): can't be "
+                  "a txf domain variable", me,
+                  ntxf->axis[di].label,
+                  isp.kind->table[isp.item].answerLength);
+          biffAdd(MITE, err); return 1;
+        }
+        stage->rangeNum = ntxf->axis[0].size;
+        for (rii=0; rii<stage->rangeNum; rii++) {
+          rc = ntxf->axis[0].label[rii];
+          stage->rangeIdx[rii] = strchr(miteRangeChar, rc) - miteRangeChar;
+          /*
+          fprintf(stderr, "!%s: range: %c -> %d\n", "_miteStageSet",
+                  ntxf->axis[0].label[rii], stage->rangeIdx[rii]);
+          */
+        }
       }
       stageIdx++;
     }
@@ -635,22 +635,22 @@ _miteStageRun(miteThread *mtt) {
     if (stage->data) {
       rangeData = stage->data + stage->rangeNum*finalIdx;
       for (rii=0; rii<stage->rangeNum; rii++) {
-	ri = stage->rangeIdx[rii];
-	switch(stage->op) {
-	case miteStageOpMin:
-	  mtt->range[ri] = AIR_MIN(mtt->range[ri], rangeData[rii]);
-	  break;
-	case miteStageOpMax:
-	  mtt->range[ri] = AIR_MAX(mtt->range[ri], rangeData[rii]);
-	  break;
-	case miteStageOpAdd:
-	  mtt->range[ri] += rangeData[rii];
-	  break;
-	case miteStageOpMultiply:
-	default:
-	  mtt->range[ri] *= rangeData[rii];
-	  break;
-	}
+        ri = stage->rangeIdx[rii];
+        switch(stage->op) {
+        case miteStageOpMin:
+          mtt->range[ri] = AIR_MIN(mtt->range[ri], rangeData[rii]);
+          break;
+        case miteStageOpMax:
+          mtt->range[ri] = AIR_MAX(mtt->range[ri], rangeData[rii]);
+          break;
+        case miteStageOpAdd:
+          mtt->range[ri] += rangeData[rii];
+          break;
+        case miteStageOpMultiply:
+        default:
+          mtt->range[ri] *= rangeData[rii];
+          break;
+        }
       }
       finalIdx = 0;
     }

@@ -30,13 +30,13 @@ int
 _nrrdFormatText_nameLooksLike(const char *fname) {
   
   return (airEndsWith(fname, NRRD_EXT_TEXT)
-	  || airEndsWith(fname, ".text")
-	  || airEndsWith(fname, ".ascii"));
+          || airEndsWith(fname, ".text")
+          || airEndsWith(fname, ".ascii"));
 }
 
 int
 _nrrdFormatText_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
-			 int useBiff) {
+                         int useBiff) {
   char me[]="_nrrdFormatText_fitsInto", err[AIR_STRLEN_MED];
   
   /* encoding ignored- always ascii */
@@ -59,7 +59,7 @@ _nrrdFormatText_contentStartsLike(NrrdIoState *nio) {
   float oneFloat;
 
   return (NRRD_COMMENT_CHAR == nio->line[0] 
-	  || airParseStrF(&oneFloat, nio->line, _nrrdTextSep, 1));
+          || airParseStrF(&oneFloat, nio->line, _nrrdTextSep, 1));
 }
 
 int
@@ -74,7 +74,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   
   if (!_nrrdFormatText_contentStartsLike(nio)) {
     sprintf(err, "%s: this doesn't look like a %s file", me, 
-	    nrrdFormatText->name);
+            nrrdFormatText->name);
     biffAdd(NRRD, err); return 1;
   }
 
@@ -98,7 +98,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     /* could we parse anything? */
     if (!ret) {
       /* being unable to parse a comment as a nrrd field is not 
-	 any kind of error */
+         any kind of error */
       goto plain;
     }
     if (nrrdField_comment == ret) {
@@ -108,24 +108,24 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     fs = airEnumStr(nrrdField, ret);
     if (!_nrrdFieldValidInText[ret]) {
       if (nrrdStateVerboseIO) {
-	fprintf(stderr, "(%s: field \"%s\" not allowed in plain text "
-		"--> plain comment)\n", me, fs);
+        fprintf(stderr, "(%s: field \"%s\" not allowed in plain text "
+                "--> plain comment)\n", me, fs);
       }
       ret = 0;
       goto plain;
     }
     /* when reading plain text, we simply ignore repetitions of a field */
     if (!nio->seen[ret]
-	&& _nrrdReadNrrdParseInfo[ret](nrrd, nio, AIR_TRUE)) {
+        && _nrrdReadNrrdParseInfo[ret](nrrd, nio, AIR_TRUE)) {
       errS = biffGetDone(NRRD);
       if (nrrdStateVerboseIO) {
-	fprintf(stderr, "%s: %s", me, errS);
-	fprintf(stderr, "(%s: malformed field \"%s\" --> plain comment)\n",
-		me, fs);
+        fprintf(stderr, "%s: %s", me, errS);
+        fprintf(stderr, "(%s: malformed field \"%s\" --> plain comment)\n",
+                me, fs);
       }
       if (nrrdField_dimension == ret) {
-	/* "# dimension: 0" lead nrrd->dim being set to 0 */
-	nrrd->dim = 2;
+        /* "# dimension: 0" lead nrrd->dim being set to 0 */
+        nrrd->dim = 2;
       }
       free(errS);
       ret = 0;
@@ -133,16 +133,16 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     }
     if (nrrdField_dimension == ret) {
       if (!(1 == nrrd->dim || 2 == nrrd->dim)) {
-	if (nrrdStateVerboseIO) {
-	  fprintf(stderr, "(%s: plain text dimension can only be 1 or 2; "
-		  "resetting to 2)\n", me);
-	}
-	nrrd->dim = 2;
+        if (nrrdStateVerboseIO) {
+          fprintf(stderr, "(%s: plain text dimension can only be 1 or 2; "
+                  "resetting to 2)\n", me);
+        }
+        nrrd->dim = 2;
       }
       if (1 == nrrd->dim && gotOnePerAxis) {
-	fprintf(stderr, "(%s: already parsed per-axis field, can't reset "
-		"dimension to 1; resetting to 2)\n", me);
-	nrrd->dim = 2;
+        fprintf(stderr, "(%s: already parsed per-axis field, can't reset "
+                "dimension to 1; resetting to 2)\n", me);
+        nrrd->dim = 2;
       }
     }
     if (_nrrdFieldOnePerAxis[ret]) 
@@ -151,8 +151,8 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   plain:
     if (!ret) {
       if (nrrdCommentAdd(nrrd, nio->line + 1)) {
-	sprintf(err, "%s: couldn't add comment", me);
-	biffAdd(NRRD, err); UNSETTWO; return 1;
+        sprintf(err, "%s: couldn't add comment", me);
+        biffAdd(NRRD, err); UNSETTWO; return 1;
       }
     }
     if (_nrrdOneLine(&len, nio, file)) {
@@ -185,7 +185,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     }
     if (sx > airParseStrF(fl, nio->line, _nrrdTextSep, sx)) {
       /* We asked for sx ints and got less.  We know that we successfully
-	 got one value, so we did succeed in parsing sx-1 values */
+         got one value, so we did succeed in parsing sx-1 values */
       sx--;
       break;
     }
@@ -212,7 +212,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     ret = airParseStrF(al + sy*sx, nio->line, _nrrdTextSep, sx);
     if (sx > ret) {
       sprintf(err, "%s: could only parse %d values (not %d) on line %d",
-	      me, ret, sx, line);
+              me, ret, sx, line);
       biffAdd(NRRD, err); UNSETTWO; return 1;
     }
     sy++;
@@ -224,7 +224,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   /*
   fprintf(stderr, "%s: nrrd->dim = %d, sx = %d; sy = %d\n",
-	  me, nrrd->dim, sx, sy);
+          me, nrrd->dim, sx, sy);
   */
 
   if (!( 1 == nrrd->dim || 2 == nrrd->dim )) {
@@ -269,9 +269,9 @@ _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     }
     for (i=1; i<=NRRD_FIELD_MAX; i++) {
       if (_nrrdFieldValidInText[i]
-	  && nrrdField_dimension != i  /* dimension is handled above */
-	  && _nrrdFieldInteresting(nrrd, nio, i)) {
-	_nrrdFprintFieldInfo (file, cmt, nrrd, nio, i);
+          && nrrdField_dimension != i  /* dimension is handled above */
+          && _nrrdFieldInteresting(nrrd, nio, i)) {
+        _nrrdFprintFieldInfo (file, cmt, nrrd, nio, i);
       }
     }
   }

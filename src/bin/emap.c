@@ -24,14 +24,14 @@
 #include <teem/limn.h>
 
 char *emapInfo = ("Creates environment maps based on limn's \"checker\" "
-		  "normal quantization methods.  By taking into account "
-		  "camera parameters, this allows for both lights in "
-		  "both world and view space.  Solely out of laziness, "
-		  "the nrrd format is used for specifying the lights, but not "
-		  "to worry: you can use a simple un-adorned text file, "
-		  "defining one light per line, with 7 values per light: "
-		  "0/1 (world/view space), R\tG\tB color, and "
-		  "X\tY\tZ position.");
+                  "normal quantization methods.  By taking into account "
+                  "camera parameters, this allows for both lights in "
+                  "both world and view space.  Solely out of laziness, "
+                  "the nrrd format is used for specifying the lights, but not "
+                  "to worry: you can use a simple un-adorned text file, "
+                  "defining one light per line, with 7 values per light: "
+                  "0/1 (world/view space), R\tG\tB color, and "
+                  "X\tY\tZ position.");
 
 int
 main(int argc, char *argv[]) {
@@ -54,34 +54,34 @@ main(int argc, char *argv[]) {
   cam = limnCameraNew();
   airMopAdd(mop, cam, (airMopper)limnCameraNix, airMopAlways);
   hestOptAdd(&hopt, "i", "nlight", airTypeOther, 1, 1, &nlight, NULL,
-	     "input nrrd containing light information",
-	     NULL, NULL, nrrdHestNrrd);
+             "input nrrd containing light information",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "b", "# bits", airTypeInt, 1, 1, &bits, "16",
-	     "number of bits to use for normal quantization, "
-	     "between 8 and 16 inclusive. ");
+             "number of bits to use for normal quantization, "
+             "between 8 and 16 inclusive. ");
   hestOptAdd(&hopt, "amb", "ambient RGB", airTypeFloat, 3, 3, amb, "0 0 0",
-	     "ambient light color");
+             "ambient light color");
   hestOptAdd(&hopt, "fr", "from point", airTypeDouble, 3, 3, cam->from,"1 0 0",
-	     "position of camera, used to determine view vector");
+             "position of camera, used to determine view vector");
   hestOptAdd(&hopt, "at", "at point", airTypeDouble, 3, 3, cam->at, "0 0 0",
-	     "camera look-at point, used to determine view vector");
+             "camera look-at point, used to determine view vector");
   hestOptAdd(&hopt, "up", "up vector", airTypeDouble, 3, 3, cam->up, "0 0 1",
-	     "camera pseudo-up vector, used to determine view coordinates");
+             "camera pseudo-up vector, used to determine view coordinates");
   hestOptAdd(&hopt, "rh", NULL, airTypeInt, 0, 0, &(cam->rightHanded), NULL,
-	     "use a right-handed UVN frame (V points down)");
+             "use a right-handed UVN frame (V points down)");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, NULL,
-	     "file to write output envmap to");
+             "file to write output envmap to");
   hestOptAdd(&hopt, "d", "filename", airTypeString, 1, 1, &debugS, "",
-	     "Use this option to save out (to the given filename) a rendering "
-	     "of the front (on the left) and back (on the right) of a sphere "
-	     "as shaded with the new environment map.  U increases "
-	     "right-ward, V increases downward.  The back sphere half is "
-	     "rendered as though the front half was removed");
+             "Use this option to save out (to the given filename) a rendering "
+             "of the front (on the left) and back (on the right) of a sphere "
+             "as shaded with the new environment map.  U increases "
+             "right-ward, V increases downward.  The back sphere half is "
+             "rendered as though the front half was removed");
   hestOptAdd(&hopt, "err", NULL, airTypeInt, 0, 0, &doerr, NULL,
-	     "If using \"-d\", make the image represent the error between the "
-	     "real and quantized vector");
+             "If using \"-d\", make the image represent the error between the "
+             "real and quantized vector");
   hestParseOrDie(hopt, argc-1, argv+1, hparm, me, emapInfo,
-		 AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -97,17 +97,17 @@ main(int argc, char *argv[]) {
   case 8: method = limnQN8octa; break;
   default:
     fprintf(stderr, "%s: requested #bits (%d) not in valid range [8,16]\n",
-	    me, bits);
+            me, bits);
     airMopError(mop); return 1;
   }
 
   if (!(nrrdTypeFloat == nlight->type &&
-	2 == nlight->dim && 
-	7 == nlight->axis[0].size &&
-	LIMN_LIGHT_NUM >= nlight->axis[1].size)) {
+        2 == nlight->dim && 
+        7 == nlight->axis[0].size &&
+        LIMN_LIGHT_NUM >= nlight->axis[1].size)) {
     fprintf(stderr, "%s: nlight isn't valid format for light specification, "
-	    "must be: float type, 2-dimensional, 7\tx\tN size, N <= %d\n",
-	    me, LIMN_LIGHT_NUM);
+            "must be: float type, 2-dimensional, 7\tx\tN size, N <= %d\n",
+            me, LIMN_LIGHT_NUM);
     airMopError(mop); return 1;
   }
   light = limnLightNew();
@@ -117,8 +117,8 @@ main(int argc, char *argv[]) {
   for (li=0; li<nlight->axis[1].size; li++) {
     linfo = (float *)(nlight->data) + 7*li;
     limnLightSet(light, li, !!linfo[0], 
-		 linfo[1], linfo[2], linfo[3], 
-		 linfo[4], linfo[5], linfo[6]);
+                 linfo[1], linfo[2], linfo[3], 
+                 linfo[4], linfo[5], linfo[6]);
   }
   
   cam->neer = -0.000000001;
@@ -153,38 +153,38 @@ main(int argc, char *argv[]) {
     for (vi=0; vi<=511; vi++) {
       v = AIR_AFFINE(0, vi, 511, -0.999, 0.999);
       for (ui=0; ui<=511; ui++) {
-	u = AIR_AFFINE(0, ui, 511, -0.999, 0.999);
-	r = sqrt(u*u + v*v);
-	if (r > 1) {
-	  continue;
-	}
-	w = sqrt(1 - r*r);
-	
-	/* first, the near side of the sphere */
-	ELL_3V_SET(V, u, v, -w);
-	ELL_3MV_MUL(W, V2W, V);
-	qn = limnVtoQN_f[method](W);
-	if (doerr) {
-	  limnQNtoV_f[method](V, qn);
-	  ELL_3V_SUB(W, W, V);
-	  diff = ELL_3V_LEN(W);
-	  ELL_3V_SET(debug + 3*(ui + 1024*vi), diff, diff, diff);
-	} else {
-	  ELL_3V_COPY(debug + 3*(ui + 1024*vi), map + 3*qn);
-	}
+        u = AIR_AFFINE(0, ui, 511, -0.999, 0.999);
+        r = sqrt(u*u + v*v);
+        if (r > 1) {
+          continue;
+        }
+        w = sqrt(1 - r*r);
+        
+        /* first, the near side of the sphere */
+        ELL_3V_SET(V, u, v, -w);
+        ELL_3MV_MUL(W, V2W, V);
+        qn = limnVtoQN_f[method](W);
+        if (doerr) {
+          limnQNtoV_f[method](V, qn);
+          ELL_3V_SUB(W, W, V);
+          diff = ELL_3V_LEN(W);
+          ELL_3V_SET(debug + 3*(ui + 1024*vi), diff, diff, diff);
+        } else {
+          ELL_3V_COPY(debug + 3*(ui + 1024*vi), map + 3*qn);
+        }
 
-	/* second, the far side of the sphere */
-	ELL_3V_SET(V, u, v, w);
-	ELL_3MV_MUL(W, V2W, V);
-	qn = limnVtoQN_f[method](W);
-	if (doerr) {
-	  limnQNtoV_f[method](V, qn);
-	  ELL_3V_SUB(W, W, V);
-	  diff = ELL_3V_LEN(W);
-	  ELL_3V_SET(debug + 3*(ui + 512 + 1024*vi), diff, diff, diff);
-	} else {
-	  ELL_3V_COPY(debug + 3*(ui + 512 + 1024*vi), map + 3*qn);
-	}
+        /* second, the far side of the sphere */
+        ELL_3V_SET(V, u, v, w);
+        ELL_3MV_MUL(W, V2W, V);
+        qn = limnVtoQN_f[method](W);
+        if (doerr) {
+          limnQNtoV_f[method](V, qn);
+          ELL_3V_SUB(W, W, V);
+          diff = ELL_3V_LEN(W);
+          ELL_3V_SET(debug + 3*(ui + 512 + 1024*vi), diff, diff, diff);
+        } else {
+          ELL_3V_COPY(debug + 3*(ui + 512 + 1024*vi), map + 3*qn);
+        }
       }
     }
     nrrdSave(debugS, ndebug, NULL);

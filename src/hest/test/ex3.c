@@ -39,19 +39,19 @@ main(int argc, char **argv) {
 
   opt = NULL;
   hestOptAdd(&opt, "v,verbose",     "level", airTypeInt,    0,  1,  &v,   "0",
-	     "verbosity level");
+             "verbosity level");
   hestOptAdd(&opt, "out",   "file",  airTypeString, 1,  1,  &out, "output.ppm",
-	     "PPM image output");
+             "PPM image output");
   hestOptAdd(&opt, "blah",  "input", airTypeString, 3,  3,  blah,  "a b c",
-	     "input image file(s)");
+             "input image file(s)");
   hestOptAdd(&opt, "option","opt", airTypeString, 0, 1, &option, "default",
-	     "this is just a test");
+             "this is just a test");
   hestOptAdd(&opt, NULL,    "input", airTypeString, 1, -1,  &in,  NULL,
-	     "input image file(s)", &numIn);
+             "input image file(s)", &numIn);
   hestOptAdd(&opt, "ints",  "N",     airTypeInt,    1,  -1, &ints,  "10 20 30",
-	     "a list of integers", &numN);
+             "a list of integers", &numN);
   hestOptAdd(&opt, "res",   "sx sy", airTypeInt,    2,  2,  res,  NULL,
-	     "image resolution");
+             "image resolution");
   
   printf("what 0\n");
   if (1 == argc) {

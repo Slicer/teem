@@ -44,31 +44,31 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin, *nout;
   
   hestOptAdd(&hopt, "s", "seed point", airTypeDouble, 3, 3, start, NULL,
-	     "seed point for fiber; it will propogate in two opposite "
-	     "directions starting from here");
+             "seed point for fiber; it will propogate in two opposite "
+             "directions starting from here");
   hestOptAdd(&hopt, "step", "step size", airTypeDouble, 1, 1, &step, "0.01",
-	     "stepsize along fiber, in world space");
+             "stepsize along fiber, in world space");
   hestOptAdd(&hopt, "stop", "stop1", airTypeOther, 1, -1, &_stop, 
-	     NULL, "the conditions that should signify the end of a fiber. "
-	     "Multiple stopping criteria are logically OR-ed and tested at "
-	     "every point along the fiber.  Possibilities include:\n "
-	     "\b\bo \"aniso:<type>,<thresh>\": require anisotropy to be "
-	     "above the given threshold.  Which anisotropy type is given "
-	     "as with \"tend anvol\" (see its usage info)\n "
-	     "\b\bo \"len:<length>\": limits the length, in world space, "
-	     "of each fiber half\n "
-	     "\b\bo \"steps:<N>\": limits the number of points in each "
-	     "fiber half\n "
-	     "\b\bo \"conf:<thresh>\": requires the tensor confidence value "
-	     "to be above the given threshold. ",
-	     &stopLen, NULL, tendFiberStopCB);
+             NULL, "the conditions that should signify the end of a fiber. "
+             "Multiple stopping criteria are logically OR-ed and tested at "
+             "every point along the fiber.  Possibilities include:\n "
+             "\b\bo \"aniso:<type>,<thresh>\": require anisotropy to be "
+             "above the given threshold.  Which anisotropy type is given "
+             "as with \"tend anvol\" (see its usage info)\n "
+             "\b\bo \"len:<length>\": limits the length, in world space, "
+             "of each fiber half\n "
+             "\b\bo \"steps:<N>\": limits the number of points in each "
+             "fiber half\n "
+             "\b\bo \"conf:<thresh>\": requires the tensor confidence value "
+             "to be above the given threshold. ",
+             &stopLen, NULL, tendFiberStopCB);
   hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &ksp,
-	     "tent", "kernel for reconstructing tensor field",
-	     NULL, NULL, nrrdHestKernelSpec);
+             "tent", "kernel for reconstructing tensor field",
+             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
+             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output fiber");
+             "output fiber");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -89,7 +89,7 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
     switch((int)stop[0]) {
     case tenFiberStopAniso:
       if (!E) E |= tenFiberStopSet(tfx, tenFiberStopAniso,
-				   (int)stop[1], stop[2]);
+                                   (int)stop[1], stop[2]);
       break;
     case tenFiberStopLength:
       if (!E) E |= tenFiberStopSet(tfx, tenFiberStopLength, stop[1]);
@@ -125,8 +125,8 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   if (nout->data) {
     fprintf(stderr, "%s: whyStop[backward] = %s; whyStop[forward] = %s\n", me,
-	    airEnumStr(tenFiberStop, tfx->whyStop[0]),
-	    airEnumStr(tenFiberStop, tfx->whyStop[1]));
+            airEnumStr(tenFiberStop, tfx->whyStop[0]),
+            airEnumStr(tenFiberStop, tfx->whyStop[1]));
     if (nrrdSave(outS, nout, NULL)) {
       airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
@@ -134,7 +134,7 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
   } else {
     fprintf(stderr, "%s: fiber failed to start: %s.\n",
-	    me, airEnumDesc(tenFiberStop, tfx->whyNowhere));
+            me, airEnumDesc(tenFiberStop, tfx->whyNowhere));
   }
   airMopOkay(mop);
   return 0;

@@ -72,20 +72,20 @@ nrrdRangeSet(NrrdRange *range, const Nrrd *nrrd, int blind8BitRange) {
       && !airEnumValCheck(nrrdType, nrrd->type)
       && nrrdTypeBlock != nrrd->type) {
     blind = (nrrdBlind8BitRangeTrue == blind8BitRange
-	     || (nrrdBlind8BitRangeState == blind8BitRange
-		 && nrrdStateBlind8BitRange));
+             || (nrrdBlind8BitRangeState == blind8BitRange
+                 && nrrdStateBlind8BitRange));
     if (blind && 1 == nrrdTypeSize[nrrd->type]) {
       if (nrrdTypeChar == nrrd->type) {
-	range->min = SCHAR_MIN;
-	range->max = SCHAR_MAX;
+        range->min = SCHAR_MIN;
+        range->max = SCHAR_MAX;
       } else {
-	range->min = 0;
-	range->max = UCHAR_MAX;
+        range->min = 0;
+        range->max = UCHAR_MAX;
       }
       range->hasNonExist = nrrdHasNonExistFalse;
     } else {
       nrrdMinMaxExactFind[nrrd->type](&_min, &_max, &(range->hasNonExist),
-				      nrrd);
+                                      nrrd);
       range->min = nrrdDLoad[nrrd->type](&_min);
       range->max = nrrdDLoad[nrrd->type](&_max);
     }

@@ -38,26 +38,26 @@ _gageSclIv3Print (FILE *file, gageContext *ctx, gagePerVolume *pvl) {
   case 4:
     for (i=3; i>=0; i--) {
       fprintf(file, "% 10.4f   % 10.4f   % 10.4f   % 10.4f\n", 
-	      (float)iv3[12+16*i], (float)iv3[13+16*i], 
-	      (float)iv3[14+16*i], (float)iv3[15+16*i]);
+              (float)iv3[12+16*i], (float)iv3[13+16*i], 
+              (float)iv3[14+16*i], (float)iv3[15+16*i]);
       fprintf(file, "   % 10.4f  %c% 10.4f   % 10.4f%c   % 10.4f\n", 
-	      (float)iv3[ 8+16*i], (i==1||i==2)?'\\':' ',
-	      (float)iv3[ 9+16*i], (float)iv3[10+16*i], (i==1||i==2)?'\\':' ',
-	      (float)iv3[11+16*i]);
+              (float)iv3[ 8+16*i], (i==1||i==2)?'\\':' ',
+              (float)iv3[ 9+16*i], (float)iv3[10+16*i], (i==1||i==2)?'\\':' ',
+              (float)iv3[11+16*i]);
       fprintf(file, "      % 10.4f  %c% 10.4f   % 10.4f%c   % 10.4f\n", 
-	      (float)iv3[ 4+16*i], (i==1||i==2)?'\\':' ',
-	      (float)iv3[ 5+16*i], (float)iv3[ 6+16*i], (i==1||i==2)?'\\':' ',
-	      (float)iv3[ 7+16*i]);
+              (float)iv3[ 4+16*i], (i==1||i==2)?'\\':' ',
+              (float)iv3[ 5+16*i], (float)iv3[ 6+16*i], (i==1||i==2)?'\\':' ',
+              (float)iv3[ 7+16*i]);
       fprintf(file, "         % 10.4f   % 10.4f   % 10.4f   % 10.4f\n", 
-	      (float)iv3[ 0+16*i], (float)iv3[ 1+16*i],
-	      (float)iv3[ 2+16*i], (float)iv3[ 3+16*i]);
+              (float)iv3[ 0+16*i], (float)iv3[ 1+16*i],
+              (float)iv3[ 2+16*i], (float)iv3[ 3+16*i]);
       if (i) fprintf(file, "\n");
     }
     break;
   default:
     for (i=0; i<fd*fd*fd; i++) {
       fprintf(file, "  iv3[% 3d,% 3d,% 3d] = % 10.4f\n",
-	      i%fd, (i/fd)%fd, i/(fd*fd), (float)iv3[i]);
+              i%fd, (i/fd)%fd, i/(fd*fd), (float)iv3[i]);
     }
     break;
   }

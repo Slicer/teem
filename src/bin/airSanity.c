@@ -35,13 +35,13 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "AIR_DIO == %d\n", AIR_DIO);
     fprintf(stderr, "AIR_32BIT == %d\n", AIR_32BIT);
     fprintf(stderr, "sizeof(size_t) = " _AIR_SIZE_T_FMT 
-	    "; sizeof(void*) = " _AIR_SIZE_T_FMT "\n",
-	    sizeof(size_t), sizeof(void*));
+            "; sizeof(void*) = " _AIR_SIZE_T_FMT "\n",
+            sizeof(size_t), sizeof(void*));
     fprintf(stderr, "_AIR_SIZE_T_FMT = \"%s\"\n", _AIR_SIZE_T_FMT);
     return 0;
   }
   /* else */
   fprintf(stderr, "%s: air sanity check FAILED:\n%s\n",
-	  me, airInsaneErr(aret));
+          me, airInsaneErr(aret));
   return 1;
 }

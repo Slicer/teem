@@ -42,12 +42,12 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], float e[3]) {
 
   if (!( e[0] >= e[1] && e[1] >= e[2] )) {
     fprintf(stderr, "tenAnisoCalc_f: eigen values not sorted: "
-	    "%g %g %g (%d %d)\n",
-	    e[0], e[1], e[2], e[0] >= e[1], e[1] >= e[2]);
+            "%g %g %g (%d %d)\n",
+            e[0], e[1], e[2], e[0] >= e[1], e[1] >= e[2]);
   }
   if (tenVerbose && !( e[0] >= 0 && e[1] >= 0 && e[2] >= 0 )) {
     fprintf(stderr, "tenAnisoCalc_f: eigen values not all >= 0: %g %g %g\n",
-	    e[0], e[1], e[2]);
+            e[0], e[1], e[2]);
   }
   e0 = AIR_MAX(e[0], 0);
   e1 = AIR_MAX(e[1], 0);
@@ -75,8 +75,8 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], float e[3]) {
   /* non-westin anisos */
   mean = sum/3.0;
   stdv = sqrt((mean-e0)*(mean-e0)   /* okay, not exactly standard dev */
-	      + (mean-e1)*(mean-e1) 
-	      + (mean-e2)*(mean-e2));
+              + (mean-e1)*(mean-e1) 
+              + (mean-e2)*(mean-e2));
   ra = stdv/(FLT_EPSILON + mean*sqrt(6.0));
   ra = AIR_CLAMP(0.0, ra, 1.0);
   c[tenAniso_RA] = ra;
@@ -101,8 +101,8 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], float e[3]) {
   c[tenAniso_Skew] = R/(FLT_EPSILON + sqrt(2*Q*Q*Q));
   c[tenAniso_Th] = acos(AIR_CLAMP(-1, sqrt(2)*c[tenAniso_Skew], 1))/3;
   c[tenAniso_Cz] = ((e0 + e1)/(FLT_EPSILON + e2) 
-		    + (e1 + e2)/(FLT_EPSILON + e0) 
-		    + (e0 + e2)/(FLT_EPSILON + e1))/6;
+                    + (e1 + e2)/(FLT_EPSILON + e0) 
+                    + (e0 + e2)/(FLT_EPSILON + e1))/6;
   c[tenAniso_Det] = e0*e1*e2;
   c[tenAniso_Tr] = e0 + e1 + e2;
   c[TEN_ANISO_MAX-2] = e0;
@@ -118,8 +118,8 @@ tenAnisoPlot(Nrrd *nout, int aniso, int res, int whole, int nanout) {
   int x, y;
   float m0[3], m1[3], m2[3], c0, c1, c2, e[3];
   float S = 1/3.0, L = 1, P = 1/2.0;  /* these make Westin's original
-					 (cl,cp,cs) align with the 
-					 barycentric coordinates */
+                                         (cl,cp,cs) align with the 
+                                         barycentric coordinates */
 
   if (airEnumValCheck(tenAniso, aniso)) {
     sprintf(err, "%s: invalid aniso (%d)", me, aniso);
@@ -158,7 +158,7 @@ tenAnisoPlot(Nrrd *nout, int aniso, int res, int whole, int nanout) {
     }
     if (nanout) {
       for (x=y+1; x<res; x++) {
-	out[x + res*y] = AIR_NAN;
+        out[x + res*y] = AIR_NAN;
       }
     }
   }
@@ -205,9 +205,9 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, double thresh) {
       copyI = I;
       NRRD_COORD_GEN(coord, size, 3, copyI);
       sprintf(err, "%s: not all eigenvalues exist (%g,%g,%g) at sample "
-	      "%d = (%d,%d,%d)",
-	      me, eval[0], eval[1], eval[2], (int)I,
-	      coord[0], coord[1], coord[2]);
+              "%d = (%d,%d,%d)",
+              me, eval[0], eval[1], eval[2], (int)I,
+              coord[0], coord[1], coord[2]);
       biffAdd(TEN, err); return 1;
     }
     tenAnisoCalc_f(c, eval);

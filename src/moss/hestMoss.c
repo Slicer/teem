@@ -62,7 +62,7 @@ _mossHestTransformParse (void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     mossMatShearSet(*matP, shf, sha);
 
   } else if (6 == sscanf(str, "%lf,%lf,%lf,%lf,%lf,%lf",
-			 mat+0, mat+1, mat+2, mat+3, mat+4, mat+5)) {
+                         mat+0, mat+1, mat+2, mat+3, mat+4, mat+5)) {
     MOSS_MAT_COPY(*matP, mat);
 
   } else {

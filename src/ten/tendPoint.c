@@ -38,9 +38,9 @@ tend_pointMain(int argc, char **argv, char *me, hestParm *hparm) {
     angle, axis[3], mat[9];
 
   hestOptAdd(&hopt, "p", "x y z", airTypeInt, 3, 3, loc, NULL,
-	     "coordinates of sample to be described");
+             "coordinates of sample to be described");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
+             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -57,12 +57,12 @@ tend_pointMain(int argc, char **argv, char *me, hestParm *hparm) {
   sy = nin->axis[2].size;
   sz = nin->axis[3].size;
   if (!( AIR_IN_CL(0, loc[0], sx-1) &&
-	 AIR_IN_CL(0, loc[1], sy-1) &&
-	 AIR_IN_CL(0, loc[2], sz-1) )) {
+         AIR_IN_CL(0, loc[1], sy-1) &&
+         AIR_IN_CL(0, loc[2], sz-1) )) {
     fprintf(stderr, "%s: location (%d,%d,%d) not inside volume "
-	    "[0..%d]x[0..%d]x[0..%d]\n",
-	    me, loc[0], loc[1], loc[2],
-	    sx-1, sy-1, sz-1);
+            "[0..%d]x[0..%d]x[0..%d]\n",
+            me, loc[0], loc[1], loc[2],
+            sx-1, sy-1, sz-1);
     airMopError(mop); return 1;
   }
 
@@ -72,33 +72,33 @@ tend_pointMain(int argc, char **argv, char *me, hestParm *hparm) {
   fprintf(stderr, "confidence = %g\n", tdata[0]);
   fprintf(stderr, "tensor =\n");
   fprintf(stderr, "{%.7f,%.7f,%.7f,%.7f,%.7f,%.7f} = \n",
-	  tdata[1], tdata[2], tdata[3], tdata[4], tdata[5], tdata[6]);
+          tdata[1], tdata[2], tdata[3], tdata[4], tdata[5], tdata[6]);
   fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", tdata[1], tdata[2], tdata[3]);
   fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", tdata[2], tdata[4], tdata[5]);
   fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", tdata[3], tdata[5], tdata[6]);
   tenEigensolve_f(eval, evec, tdata);
   fprintf(stderr, "eigensystem = (<eigenvalue> : <eigenvector>):\n");
   fprintf(stderr, "% 15.7f : % 15.7f % 15.7f % 15.7f\n",
-	  eval[0], evec[0], evec[1], evec[2]);
+          eval[0], evec[0], evec[1], evec[2]);
   fprintf(stderr, "% 15.7f : % 15.7f % 15.7f % 15.7f\n",
-	  eval[1], evec[3], evec[4], evec[5]);
+          eval[1], evec[3], evec[4], evec[5]);
   fprintf(stderr, "% 15.7f : % 15.7f % 15.7f % 15.7f\n",
-	  eval[2], evec[6], evec[7], evec[8]);
+          eval[2], evec[6], evec[7], evec[8]);
   angle = ell_3m_to_aa_f(axis, evec);
   fprintf(stderr, "eigenvector rotation: %g around {%g,%g,%g}\n",
-	  angle, axis[0], axis[1], axis[2]);
+          angle, axis[0], axis[1], axis[2]);
   ell_aa_to_3m_f(mat, angle, axis);
   fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n",
-	  mat[0], mat[1], mat[2]);
+          mat[0], mat[1], mat[2]);
   fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n",
-	  mat[3], mat[4], mat[5]);
+          mat[3], mat[4], mat[5]);
   fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n",
-	  mat[6], mat[7], mat[8]);
+          mat[6], mat[7], mat[8]);
   tenAnisoCalc_f(c, eval);
   fprintf(stderr, "anisotropies = \n");
   for (i=1; i<=TEN_ANISO_MAX; i++) {
     fprintf(stderr, "%s: % 15.7f\n",
-	    airEnumStr(tenAniso, i), c[i]);
+            airEnumStr(tenAniso, i), c[i]);
   }
 
   airMopOkay(mop);

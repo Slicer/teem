@@ -22,7 +22,7 @@
 
 int
 _baneRangePositive_Answer(double *ominP, double *omaxP,
-			  double imin, double imax) {
+                          double imin, double imax) {
   char me[]="_baneRangePositive_Answer", err[AIR_STRLEN_MED];
 
   if (!( AIR_EXISTS(imin) && AIR_EXISTS(imax) )) {
@@ -36,7 +36,7 @@ _baneRangePositive_Answer(double *ominP, double *omaxP,
 
 int
 _baneRangeNegative_Answer(double *ominP, double *omaxP,
-			  double imin, double imax) {
+                          double imin, double imax) {
   char me[]="_baneRangeNegative_Answer", err[AIR_STRLEN_MED];
   
   if (!( AIR_EXISTS(imin) && AIR_EXISTS(imax) )) {
@@ -58,7 +58,7 @@ _baneRangeNegative_Answer(double *ominP, double *omaxP,
 */
 int
 _baneRangeZeroCentered_Answer(double *ominP, double *omaxP,
-			      double imin, double imax) {
+                              double imin, double imax) {
   char me[]="_baneRangeZeroCentered_Answer", err[AIR_STRLEN_MED];
 
   if (!( AIR_EXISTS(imin) && AIR_EXISTS(imax) )) {
@@ -75,7 +75,7 @@ _baneRangeZeroCentered_Answer(double *ominP, double *omaxP,
 
 int
 _baneRangeAnywhere_Answer(double *ominP, double *omaxP,
-			  double imin, double imax) {
+                          double imin, double imax) {
   char me[]="_baneRangeAnywhere_Answer", err[AIR_STRLEN_MED];
 
   if (!( AIR_EXISTS(imin) && AIR_EXISTS(imax) )) {
@@ -143,8 +143,8 @@ baneRangeCopy(baneRange *range) {
 
 int
 baneRangeAnswer(baneRange *range,
-		double *ominP, double *omaxP,
-		double imin, double imax) {
+                double *ominP, double *omaxP,
+                double imin, double imax) {
   char me[]="baneRangeAnswer", err[AIR_STRLEN_MED];
   
   if (!(range && ominP && omaxP)) {

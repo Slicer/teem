@@ -38,16 +38,16 @@ baneGkms_scatMain(int argc, char **argv, char *me, hestParm *hparm) {
   double gamma;
 
   hestOptAdd(&opt, "g", "gamma", airTypeDouble, 1, 1, &gamma, "1.0",
-	     "gamma used to brighten/darken scatterplots. "
-	     "gamma > 1.0 brightens; gamma < 1.0 darkens. "
-	     "Negative gammas invert values (like in xv). ");
+             "gamma used to brighten/darken scatterplots. "
+             "gamma > 1.0 brightens; gamma < 1.0 darkens. "
+             "Negative gammas invert values (like in xv). ");
   hestOptAdd(&opt, "i", "hvolIn", airTypeOther, 1, 1, &hvol, NULL,
-	     "input histogram volume (from \"gkms hvol\")",
+             "input histogram volume (from \"gkms hvol\")",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "o", "vgOut vhOut", airTypeString, 2, 2, out, NULL,
-	     "Filenames to use for two output scatterplots, (gradient "
-	     "magnitude versus value, and 2nd derivative versus value); "
-	     "can use PGM or PNG format");
+             "Filenames to use for two output scatterplots, (gradient "
+             "magnitude versus value, and 2nd derivative versus value); "
+             "can use PGM or PNG format");
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);

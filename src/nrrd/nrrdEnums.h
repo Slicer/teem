@@ -81,8 +81,8 @@ enum {
   nrrdBoundaryBleed,    /* 2: copy the last/first value out as needed */
   nrrdBoundaryWrap,     /* 3: wrap-around */
   nrrdBoundaryWeight,   /* 4: normalize the weighting on the existing samples;
-			   ONLY sensible for a strictly positive kernel
-			   which integrates to unity (as in blurring) */
+                           ONLY sensible for a strictly positive kernel
+                           which integrates to unity (as in blurring) */
   nrrdBoundaryLast
 };
 #define NRRD_BOUNDARY_MAX  4
@@ -119,8 +119,8 @@ enum {
 #define NRRD_TYPE_MAX       11
 #define NRRD_TYPE_SIZE_MAX   8    /* max(sizeof()) over all scalar types */
 #define NRRD_TYPE_BIGGEST double  /* this should be a basic C type which
-				     requires for storage the maximum size
-				     of all the basic C types */
+                                     requires for storage the maximum size
+                                     of all the basic C types */
 
 /*
 ******** nrrdEncodingType enum
@@ -160,13 +160,13 @@ enum {
 enum {
   nrrdCenterUnknown,
   nrrdCenterNode,            /* 1: samples at corners of things
-				(how "voxels" are usually imagined)
-				|\______/|\______/|\______/|
-				X        X        X        X   */
+                                (how "voxels" are usually imagined)
+                                |\______/|\______/|\______/|
+                                X        X        X        X   */
   nrrdCenterCell,            /* 2: samples at middles of things
-				(characteristic of histogram bins)
-				 \___|___/\___|___/\___|___/
-				     X        X        X       */
+                                (characteristic of histogram bins)
+                                 \___|___/\___|___/\___|___/
+                                     X        X        X       */
   nrrdCenterLast
 };
 #define NRRD_CENTER_MAX         2
@@ -373,8 +373,8 @@ enum {
 enum {
   nrrdBlind8BitRangeUnknown,   /* 0 */
   nrrdBlind8BitRangeTrue,      /* 1: blindly use the widest extrema (e.g.,
-				  [0-255] for uchar, regardless of what's
-				  really present in the data values */
+                                  [0-255] for uchar, regardless of what's
+                                  really present in the data values */
   nrrdBlind8BitRangeFalse,     /* 2: use the exact value range in the data */
   nrrdBlind8BitRangeState,     /* 3: defer to nrrdStateBlind8BitMinMax */
   nrrdBlind8BitRangeLast

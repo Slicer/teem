@@ -105,8 +105,8 @@ nrrdIterValue(NrrdIter *iter) {
       iter->data += iter->size;
       iter->left -= 1;
       if (-1 == iter->left) {
-	iter->data = (_NRRD_ITER_NRRD(iter)->data);
-	iter->left = nrrdElementNumber(_NRRD_ITER_NRRD(iter))-1;
+        iter->data = (_NRRD_ITER_NRRD(iter)->data);
+        iter->left = nrrdElementNumber(_NRRD_ITER_NRRD(iter))-1;
       }
     }
   }

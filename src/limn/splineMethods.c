@@ -69,7 +69,7 @@ _limnSplineTimeWarpSet(limnSpline *spline) {
     }
     if (ii && !(time[ii-1] < time[ii])) {
       sprintf(err, "%s: time[%d] = %g not < time[%d] = %g", me,
-	      ii-1, time[ii-1], ii, time[ii]);
+              ii-1, time[ii-1], ii, time[ii]);
       biffAdd(LIMN, err); return 1;
     }
     /* this will be used below */
@@ -84,18 +84,18 @@ _limnSplineTimeWarpSet(limnSpline *spline) {
   }
   if (spline->loop) {
     ss = ((cpt[1+3*1] - cpt[1+3*0] + cpt[1+3*(N-1)] - cpt[1+3*(N-2)])
-	  / (time[1] - time[0] + time[N-1] - time[N-2]));
+          / (time[1] - time[0] + time[N-1] - time[N-2]));
     cpt[2 + 3*0] = ss*(time[1] - time[0]);
     cpt[0 + 3*(N-1)] = ss*(time[N-1] - time[N-2]);
   } else {
     cpt[2 + 3*0] = ((cpt[1+3*1] - cpt[1+3*0])
-		    * (time[1] - time[0]));
+                    * (time[1] - time[0]));
     cpt[0 + 3*(N-1)] = ((cpt[1+3*(N-1)] - cpt[1+3*(N-2)])
-			* (time[N-1] - time[N-2]));
+                        * (time[N-1] - time[N-2]));
   }
   /*
   fprintf(stderr, "s[0]=%g, post = %g; s[1]=%g pre = %g\n", 
-	  cpt[1 + 3*0], cpt[2 + 3*0], cpt[1 + 3*1], cpt[0 + 3*1]);
+          cpt[1 + 3*0], cpt[2 + 3*0], cpt[1 + 3*1], cpt[0 + 3*1]);
   */
   return 0;
 }
@@ -152,7 +152,7 @@ limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
     size = limnSplineInfoSize[info];
     if (!( size == _ncpt->axis[0].size && 3 == _ncpt->axis[1].size )) {
       sprintf(err, "%s: expected %dx3xN nrrd, not %dx%dxN", me,
-	      size, _ncpt->axis[0].size, _ncpt->axis[1].size);
+              size, _ncpt->axis[0].size, _ncpt->axis[1].size);
       biffAdd(LIMN, err); return NULL;
     }
     N = _ncpt->axis[2].size;
@@ -191,7 +191,7 @@ limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
     spline->ncpt = nrrdNew();
     airMopAdd(mop, spline->ncpt, (airMopper)nrrdNuke, airMopOnError);
     if (nrrdMaybeAlloc(spline->ncpt, nrrdTypeDouble, 3,
-		       1, 3, _ncpt->axis[0].size)) {
+                       1, 3, _ncpt->axis[0].size)) {
       sprintf(err, "%s: trouble allocating real control points", me);
       biffMove(LIMN, err, NRRD); airMopError(mop); return NULL;
     }
@@ -273,40 +273,40 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
     N = nin->axis[1].size;
     if (wantSize != nin->axis[0].size) {
       sprintf(err, "%s: expected axis[0].size %d for info %s, but got %d", 
-	      me, wantSize, airEnumStr(limnSplineInfo, info),
-	      nin->axis[0].size);
+              me, wantSize, airEnumStr(limnSplineInfo, info),
+              nin->axis[0].size);
       biffAdd(LIMN, err); airMopError(mop); return 1;
     }
     if (limnSplineTypeTimeWarp == type) {
       /* time-warp handled differently */
       if (nrrdAxesDelete(nout, nin, 0)) {
-	sprintf(err, "%s: couldn't make data 1-D", me);
-	biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+        sprintf(err, "%s: couldn't make data 1-D", me);
+        biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
       }
     } else {
       if (limnSplineTypeHasImplicitTangents[type]) {
-	ELL_3V_SET(min, 0, -1, 0);
-	ELL_3V_SET(max, wantSize-1, 1, N-1); 
-	if (nrrdAxesInsert(ntmpA, nin, 1)
-	    || nrrdPad(nout, ntmpA, min, max, nrrdBoundaryPad, 0.0)) {
-	  sprintf(err, "%s: trouble with axinsert/pad", me);
-	  biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
-	}
+        ELL_3V_SET(min, 0, -1, 0);
+        ELL_3V_SET(max, wantSize-1, 1, N-1); 
+        if (nrrdAxesInsert(ntmpA, nin, 1)
+            || nrrdPad(nout, ntmpA, min, max, nrrdBoundaryPad, 0.0)) {
+          sprintf(err, "%s: trouble with axinsert/pad", me);
+          biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+        }
       } else {
-	/* the post- and pre- point information may be interlaced with the 
-	   main control point values */
-	if (1 != AIR_MOD(N, 3)) {
-	  sprintf(err, "%s: axis[1].size must be 1+(multiple of 3) when using "
-		  "interlaced tangent information, not %d", me, N);
-	  biffAdd(LIMN, err); airMopError(mop); return 1;
-	}
-	ELL_2V_SET(min, 0, -1);
-	ELL_2V_SET(max, wantSize-1, N);
-	if (nrrdPad(ntmpA, nin, min, max, nrrdBoundaryPad, 0.0)
-	    || nrrdAxesSplit(nout, ntmpA, 1, 3, (N+2)/3)) {
-	  sprintf(err, "%s: trouble with pad/axsplit", me);
-	  biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
-	}
+        /* the post- and pre- point information may be interlaced with the 
+           main control point values */
+        if (1 != AIR_MOD(N, 3)) {
+          sprintf(err, "%s: axis[1].size must be 1+(multiple of 3) when using "
+                  "interlaced tangent information, not %d", me, N);
+          biffAdd(LIMN, err); airMopError(mop); return 1;
+        }
+        ELL_2V_SET(min, 0, -1);
+        ELL_2V_SET(max, wantSize-1, N);
+        if (nrrdPad(ntmpA, nin, min, max, nrrdBoundaryPad, 0.0)
+            || nrrdAxesSplit(nout, ntmpA, 1, 3, (N+2)/3)) {
+          sprintf(err, "%s: trouble with pad/axsplit", me);
+          biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+        }
       }
     }
     break;
@@ -314,41 +314,41 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
     N = nin->axis[0].size;
     if (limnSplineInfoScalar != info) {
       sprintf(err, "%s: can't have %s spline with 1-D nrrd", me,
-	      airEnumStr(limnSplineInfo, info));
+              airEnumStr(limnSplineInfo, info));
       biffAdd(LIMN, err); airMopError(mop); return 1;
     }
     if (limnSplineTypeTimeWarp == type) {
       /* nothing fancey needed for time-warp */
       if (nrrdCopy(nout, nin)) {
-	sprintf(err, "%s: trouble setting output", me);
-	biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+        sprintf(err, "%s: trouble setting output", me);
+        biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
       }
     } else {
       if (limnSplineTypeHasImplicitTangents[type]) {
-	ELL_3V_SET(min, 0, -1, 0);
-	ELL_3V_SET(max, 0, 1, N-1); 
-	if (nrrdAxesInsert(ntmpA, nin, 0)
-	    || nrrdAxesInsert(ntmpB, ntmpA, 0)
-	    || nrrdPad(nout, ntmpB, min, max, nrrdBoundaryPad, 0.0)) {
-	  sprintf(err, "%s: trouble with axinsert/axinsert/pad", me);
-	  biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
-	}
+        ELL_3V_SET(min, 0, -1, 0);
+        ELL_3V_SET(max, 0, 1, N-1); 
+        if (nrrdAxesInsert(ntmpA, nin, 0)
+            || nrrdAxesInsert(ntmpB, ntmpA, 0)
+            || nrrdPad(nout, ntmpB, min, max, nrrdBoundaryPad, 0.0)) {
+          sprintf(err, "%s: trouble with axinsert/axinsert/pad", me);
+          biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+        }
       } else {
-	/* the post- and pre- point information may be interlaced with the 
-	   main control point values */
-	if (1 != AIR_MOD(N, 3)) {
-	  sprintf(err, "%s: axis[1].size must be 1+(multiple of 3) when using "
-		  "interlaced tangent information, not %d", me, N);
-	  biffAdd(LIMN, err); airMopError(mop); return 1;
-	}
-	ELL_2V_SET(min, 0, -1);
-	ELL_2V_SET(max, 0, N+1);
-	if (nrrdAxesInsert(ntmpA, nin, 0)
-	    || nrrdPad(ntmpB, ntmpA, min, max, nrrdBoundaryPad, 0.0)
-	    || nrrdAxesSplit(nout, ntmpB, 1, 3, (N+2)/3)) {
-	  sprintf(err, "%s: trouble with axinsert/pad/axsplit", me);
-	  biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
-	}
+        /* the post- and pre- point information may be interlaced with the 
+           main control point values */
+        if (1 != AIR_MOD(N, 3)) {
+          sprintf(err, "%s: axis[1].size must be 1+(multiple of 3) when using "
+                  "interlaced tangent information, not %d", me, N);
+          biffAdd(LIMN, err); airMopError(mop); return 1;
+        }
+        ELL_2V_SET(min, 0, -1);
+        ELL_2V_SET(max, 0, N+1);
+        if (nrrdAxesInsert(ntmpA, nin, 0)
+            || nrrdPad(ntmpB, ntmpA, min, max, nrrdBoundaryPad, 0.0)
+            || nrrdAxesSplit(nout, ntmpB, 1, 3, (N+2)/3)) {
+          sprintf(err, "%s: trouble with axinsert/pad/axsplit", me);
+          biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+        }
       }
     }
     break;
@@ -410,7 +410,7 @@ limnSplineUpdate(limnSpline *spline, Nrrd *_ncpt) {
     }
     if (!( spline->ncpt->axis[2].size == _ncpt->axis[0].size )) {
       sprintf(err, "%s: have %d time points, but got %d", me,
-	      spline->ncpt->axis[2].size, _ncpt->axis[0].size);
+              spline->ncpt->axis[2].size, _ncpt->axis[0].size);
       biffAdd(LIMN, err); return 1;
     }
   } else {
@@ -423,7 +423,7 @@ limnSplineUpdate(limnSpline *spline, Nrrd *_ncpt) {
   if (limnSplineTypeTimeWarp == spline->type) {
     ntmp = nrrdNew();
     if (nrrdWrap(ntmp, spline->time, nrrdTypeDouble, 1, _ncpt->axis[0].size)
-	|| nrrdConvert(ntmp, _ncpt, nrrdTypeDouble)) {
+        || nrrdConvert(ntmp, _ncpt, nrrdTypeDouble)) {
       sprintf(err, "%s: trouble copying info", me);
       biffMove(LIMN, err, NRRD); nrrdNix(ntmp); return 1;
     }

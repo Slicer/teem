@@ -33,14 +33,14 @@ unrrdu_insetMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   OPT_ADD_BOUND("min", minOff,
-		"coordinates of where to locate sub-volume within "
-		"input nrrd.\n "
-		"\b\bo <int> gives 0-based index\n "
-		"\b\bo M, M+<int>, M-<int> give index relative "
-		"to the last sample on the axis (M == #samples-1).",
-		minLen);
+                "coordinates of where to locate sub-volume within "
+                "input nrrd.\n "
+                "\b\bo <int> gives 0-based index\n "
+                "\b\bo M, M+<int>, M-<int> give index relative "
+                "to the last sample on the axis (M == #samples-1).",
+                minLen);
   hestOptAdd(&opt, "s", "nsub", airTypeOther, 1, 1, &(nsub), NULL,
-	     "sub-region nrrd.  This the data to be inset in \"nin\"",
+             "sub-region nrrd.  This the data to be inset in \"nin\"",
              NULL, NULL, nrrdHestNrrd);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
@@ -54,15 +54,15 @@ unrrdu_insetMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   if (!( minLen == nin->dim )) {
     fprintf(stderr,
-	    "%s: # min coords (%d) != nrrd dim (%d)\n",
-	    me, minLen, nin->dim);
+            "%s: # min coords (%d) != nrrd dim (%d)\n",
+            me, minLen, nin->dim);
     airMopError(mop);
     return 1;
   }
   for (ax=0; ax<=nin->dim-1; ax++) {
     if (-1 == minOff[0 + 2*ax]) {
       fprintf(stderr, "%s: can't use m+<int> specification for axis %d min\n",
-	      me, ax);
+              me, ax);
       airMopError(mop);
       return 1;
     }

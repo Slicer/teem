@@ -20,7 +20,7 @@
 #include "../ell.h"
 
 char *invInfo = ("Tests ell_Nm_inv and ell_Nm_pseudo_inv, "
-		 "and ell_{3,4}inv_d where possible ");
+                 "and ell_{3,4}inv_d where possible ");
 
 int
 main(int argc, char *argv[]) {
@@ -38,12 +38,12 @@ main(int argc, char *argv[]) {
   hopt = NULL;
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hestOptAdd(&hopt, NULL, "matrix", airTypeOther, 1, 1, &nin, NULL,
-	     "transform(s) to apply to image",
-	     NULL, NULL, nrrdHestNrrd);
+             "transform(s) to apply to image",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
-	     "file to write output nrrd to");
+             "file to write output nrrd to");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
-		 me, invInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, invInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -70,8 +70,8 @@ main(int argc, char *argv[]) {
     ell_4m_print_d(stderr, m4);
   }
   func = (nmat->axis[0].size == nmat->axis[1].size
-	  ? ell_Nm_inv
-	  : ell_Nm_pseudo_inv);
+          ? ell_Nm_inv
+          : ell_Nm_pseudo_inv);
   if (func(ninv, nmat)) {
     airMopAdd(mop, err = biffGetDone(ELL), airFree, airMopAlways);
     fprintf(stderr, "%s: problem inverting:\n%s\n", me, err);

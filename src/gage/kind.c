@@ -38,55 +38,55 @@ gageKindCheck(gageKind *kind) {
   }
   if (kind->itemMax > GAGE_ITEM_MAX) {
     sprintf(err, "%s: kind \"%s\" item max %d > GAGE_ITEM_MAX %d", 
-	    me, kind->name, kind->itemMax, GAGE_ITEM_MAX);
+            me, kind->name, kind->itemMax, GAGE_ITEM_MAX);
     biffAdd(GAGE, err); return 1;
   }
   for (ii=0; ii<=kind->itemMax; ii++) {
     if (ii != kind->table[ii].enumVal) {
       sprintf(err, "%s: item %d of kind \"%s\" has enumVal %d (not %d)",
-	      me, ii, kind->name, kind->table[ii].enumVal, ii);
+              me, ii, kind->name, kind->table[ii].enumVal, ii);
       biffAdd(GAGE, err); return 1;
     }
     alen = kind->table[ii].answerLength;
     if (!(1 <= alen)) {
       sprintf(err, "%s: item %d of kind \"%s\" has invalid answerLength %d",
-	      me, ii, kind->name, alen);
+              me, ii, kind->name, alen);
       biffAdd(GAGE, err); return 1;
     }
     if (!(AIR_IN_CL(0, kind->table[ii].needDeriv, 2))) {
       sprintf(err, "%s: item %d of kind \"%s\" has invalid needDeriv %d",
-	      me, ii, kind->name, kind->table[ii].needDeriv);
+              me, ii, kind->name, kind->table[ii].needDeriv);
       biffAdd(GAGE, err); return 1;
     }
     pitem = kind->table[ii].parentItem;
     pindex = kind->table[ii].parentIndex;
     if (-1 != pitem) {
       if (0 == ii) {
-	sprintf(err, "%s: first item (index 0) of kind \"%s\" can't "
-		"be a sub-item (wanted parent index %d)", 
-		me, kind->name, pitem);
-	biffAdd(GAGE, err); return 1;
+        sprintf(err, "%s: first item (index 0) of kind \"%s\" can't "
+                "be a sub-item (wanted parent index %d)", 
+                me, kind->name, pitem);
+        biffAdd(GAGE, err); return 1;
       }
       if (!(AIR_IN_CL(0, pitem, kind->itemMax))) {
-	sprintf(err, "%s: item %d of kind \"%s\" wants parent item %d "
-		"outside valid range [0..%d]",
-		me, ii, kind->name, pitem, kind->itemMax);
-	biffAdd(GAGE, err); return 1;
+        sprintf(err, "%s: item %d of kind \"%s\" wants parent item %d "
+                "outside valid range [0..%d]",
+                me, ii, kind->name, pitem, kind->itemMax);
+        biffAdd(GAGE, err); return 1;
       }
       if (-1 != kind->table[pitem].parentItem) {
-	sprintf(err, "%s: item %d of kind \"%s\" has parent %d which "
-		"wants to have parent %d: can't have sub-sub-items", 
-		me, ii, kind->name, pitem, kind->table[pitem].parentItem);
-	biffAdd(GAGE, err); return 1;
+        sprintf(err, "%s: item %d of kind \"%s\" has parent %d which "
+                "wants to have parent %d: can't have sub-sub-items", 
+                me, ii, kind->name, pitem, kind->table[pitem].parentItem);
+        biffAdd(GAGE, err); return 1;
       }
       if (!( 0 <= pindex
-	     && (pindex + alen <= kind->table[pitem].answerLength) )) {
-	sprintf(err, "%s: item %d of kind \"%s\" wants index range [%d,%d] "
-		"of parent %d, which isn't in valid range [0,%d]",
-		me, ii, kind->name,
-		pindex, pindex + alen - 1,
-		pitem, kind->table[pitem].answerLength - 1);
-	biffAdd(GAGE, err); return 1;
+             && (pindex + alen <= kind->table[pitem].answerLength) )) {
+        sprintf(err, "%s: item %d of kind \"%s\" wants index range [%d,%d] "
+                "of parent %d, which isn't in valid range [0,%d]",
+                me, ii, kind->name,
+                pindex, pindex + alen - 1,
+                pitem, kind->table[pitem].answerLength - 1);
+        biffAdd(GAGE, err); return 1;
       }
     }
   }  
@@ -106,8 +106,8 @@ gageKindTotalAnswerLength(gageKind *kind) {
   alen = 0;
   for (ii=0; ii<=kind->itemMax; ii++) {
     alen += (-1 == kind->table[ii].parentItem
-	     ? kind->table[ii].answerLength
-	     : 0);
+             ? kind->table[ii].answerLength
+             : 0);
   }
   return alen;
 }
@@ -133,7 +133,7 @@ _gageKindAnswerOffset(gageKind *kind, int item) {
   if (-1 != parent) {
     /* we're a sub-item */
     return (kind->table[item].parentIndex 
-	    + _gageKindAnswerOffset(kind, parent));
+            + _gageKindAnswerOffset(kind, parent));
   }
 
   /* else we're not a sub-item: find the first previous non-sub-item */
@@ -143,7 +143,7 @@ _gageKindAnswerOffset(gageKind *kind, int item) {
     ii--;
   }
   return (kind->table[ii].answerLength
-	  + _gageKindAnswerOffset(kind, ii));
+          + _gageKindAnswerOffset(kind, ii));
 }
 
 int

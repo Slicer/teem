@@ -35,12 +35,12 @@ main(int argc, char *argv[]) {
   noutName = argv[2];
   if (nrrdLoad(nin=nrrdNew(), ninName, NULL)) {
     fprintf(stderr, "%s: couldn't open nrrd \"%s\":\n%s", me, ninName,
-	    err = biffGetDone(NRRD));
+            err = biffGetDone(NRRD));
     free(err); exit(1);
   }
   if (nrrdSave(noutName, nin, NULL)) {
     fprintf(stderr, "%s: trouble saving nrrd to \"%s\":\n%s", me, noutName,
-	    err = biffGetDone(NRRD));
+            err = biffGetDone(NRRD));
     free(err); exit(1);
   }
   nrrdNuke(nin);

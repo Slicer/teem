@@ -26,9 +26,9 @@
 
 void
 gageScl3PFilter2 (gage_t *ivX, gage_t *ivY, gage_t *ivZ,
-		  gage_t *fw0, gage_t *fw1, gage_t *fw2,
-		  gage_t *val, gage_t *gvec, gage_t *hess,
-		  int doV, int doD1, int doD2) {
+                  gage_t *fw0, gage_t *fw1, gage_t *fw2,
+                  gage_t *val, gage_t *gvec, gage_t *hess,
+                  int doV, int doD1, int doD2) {
 
   /* fw? + 2*?
        |     |  
@@ -132,9 +132,9 @@ gageScl3PFilter2 (gage_t *ivX, gage_t *ivY, gage_t *ivZ,
 
 void
 gageScl3PFilter4 (gage_t *ivX, gage_t *ivY, gage_t *ivZ,
-		  gage_t *fw0, gage_t *fw1, gage_t *fw2,
-		  gage_t *val, gage_t *gvec, gage_t *hess,
-		  int doV, int doD1, int doD2) {
+                  gage_t *fw0, gage_t *fw1, gage_t *fw2,
+                  gage_t *val, gage_t *gvec, gage_t *hess,
+                  int doV, int doD1, int doD2) {
 
   /* fw? + 4*?
        |     |  
@@ -185,15 +185,15 @@ gageScl3PFilter4 (gage_t *ivX, gage_t *ivY, gage_t *ivZ,
     /* What on earth was this for? 
     if (AIR_ABS(505.6159668 - *val) < 0.0001) {
       printf("ivY =   % 10.4f   % 10.4f   % 10.4f   % 10.4f\n",
-	     ivY[ 0], ivY[ 1], ivY[ 2], ivY[ 3]);
+             ivY[ 0], ivY[ 1], ivY[ 2], ivY[ 3]);
       printf("ivY =   % 10.4f   % 10.4f   % 10.4f   % 10.4f\n",
-	     ivY[ 4], ivY[ 5], ivY[ 6], ivY[ 7]);
+             ivY[ 4], ivY[ 5], ivY[ 6], ivY[ 7]);
       printf("ivY =   % 10.4f   % 10.4f   % 10.4f   % 10.4f\n",
-	     ivY[ 8], ivY[ 9], ivY[10], ivY[11]);
+             ivY[ 8], ivY[ 9], ivY[10], ivY[11]);
       printf("ivY =   % 10.4f   % 10.4f   % 10.4f   % 10.4f\n",
-	     ivY[12], ivY[13], ivY[14], ivY[15]);
+             ivY[12], ivY[13], ivY[14], ivY[15]);
       printf("--> \nivZ =   % 10.4f   % 10.4f   % 10.4f   % 10.4f\n",
-	     ivZ[ 0], ivZ[ 1], ivZ[ 2], ivZ[ 3]);
+             ivZ[ 0], ivZ[ 1], ivZ[ 2], ivZ[ 3]);
       printf("--> *val = % 10.4f\n", (float)(*val));
     }
     */
@@ -299,10 +299,10 @@ gageScl3PFilter4 (gage_t *ivX, gage_t *ivY, gage_t *ivZ,
 
 void
 gageScl3PFilterN (int fd,
-		  gage_t *ivX, gage_t *ivY, gage_t *ivZ,
-		  gage_t *fw0, gage_t *fw1, gage_t *fw2,
-		  gage_t *val, gage_t *gvec, gage_t *hess,
-		  int doV, int doD1, int doD2) {
+                  gage_t *ivX, gage_t *ivY, gage_t *ivZ,
+                  gage_t *fw0, gage_t *fw1, gage_t *fw2,
+                  gage_t *val, gage_t *gvec, gage_t *hess,
+                  int doV, int doD1, int doD2) {
   int i, j;
   gage_t T;
 
@@ -411,28 +411,28 @@ _gageSclFilter (gageContext *ctx, gagePerVolume *pvl) {
   switch (fd) {
   case 2:
     gageScl3PFilter2(pvl->iv3, pvl->iv2, pvl->iv1, 
-		     fw00, fw11, fw22,
-		     pvl->directAnswer[gageSclValue],
-		     pvl->directAnswer[gageSclGradVec],
-		     pvl->directAnswer[gageSclHessian],
-		     pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+                     fw00, fw11, fw22,
+                     pvl->directAnswer[gageSclValue],
+                     pvl->directAnswer[gageSclGradVec],
+                     pvl->directAnswer[gageSclHessian],
+                     pvl->needD[0], pvl->needD[1], pvl->needD[2]);
     break;
   case 4:
     gageScl3PFilter4(pvl->iv3, pvl->iv2, pvl->iv1, 
-		     fw00, fw11, fw22,
-		     pvl->directAnswer[gageSclValue],
-		     pvl->directAnswer[gageSclGradVec],
-		     pvl->directAnswer[gageSclHessian],
-		     pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+                     fw00, fw11, fw22,
+                     pvl->directAnswer[gageSclValue],
+                     pvl->directAnswer[gageSclGradVec],
+                     pvl->directAnswer[gageSclHessian],
+                     pvl->needD[0], pvl->needD[1], pvl->needD[2]);
     break;
   default:
     gageScl3PFilterN(fd,
-		     pvl->iv3, pvl->iv2, pvl->iv1, 
-		     fw00, fw11, fw22,
-		     pvl->directAnswer[gageSclValue],
-		     pvl->directAnswer[gageSclGradVec],
-		     pvl->directAnswer[gageSclHessian],
-		     pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+                     pvl->iv3, pvl->iv2, pvl->iv1, 
+                     fw00, fw11, fw22,
+                     pvl->directAnswer[gageSclValue],
+                     pvl->directAnswer[gageSclGradVec],
+                     pvl->directAnswer[gageSclHessian],
+                     pvl->needD[0], pvl->needD[1], pvl->needD[2]);
     break;
   }
 

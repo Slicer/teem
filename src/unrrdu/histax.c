@@ -22,7 +22,7 @@
 
 #define INFO "Replace each scanline along an axis with its histogram"
 char *_unrrdu_histaxInfoL = (INFO
-			 ". ");
+                         ". ");
 
 int
 unrrdu_histaxMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -36,14 +36,14 @@ unrrdu_histaxMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   OPT_ADD_AXIS(axis, "axis to histogram along");
   hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, NULL,
-	     "# of bins in histogram");
+             "# of bins in histogram");
   OPT_ADD_TYPE(type, "output type", "uchar");
   hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
-	     "Value at low end of histogram. Defaults to lowest value "
-	     "found in input nrrd.");
+             "Value at low end of histogram. Defaults to lowest value "
+             "found in input nrrd.");
   hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
-	     "Value at high end of histogram. Defaults to highest value "
-	     "found in input nrrd.");
+             "Value at high end of histogram. Defaults to highest value "
+             "found in input nrrd.");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

@@ -52,12 +52,12 @@ main(int argc, char *argv[]) {
   }
   if (baneOpacInfo(info = nrrdNew(), hvol, dim, nrrdMeasureHistoMean)) {
     fprintf(stderr, "%s: trouble calculting %d-D opacity info:\n%s\n",
-	    me, dim, biffGet(BANE));
+            me, dim, biffGet(BANE));
     exit(1);
   }
   if (nrrdSave(oStr, info, NULL)) {
     fprintf(stderr, "%s: trouble saving nrrd to %s:\n%s\n", me, oStr,
-	    biffGet(NRRD));
+            biffGet(NRRD));
     exit(1);
   }
   nrrdNuke(hvol);

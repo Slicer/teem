@@ -38,39 +38,39 @@ _nrrdFormatVTK_nameLooksLike(const char *fname) {
 
 int
 _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
-			int useBiff) {
+                        int useBiff) {
   char me[]="_nrrdFormatVTK_fitsInto", err[AIR_STRLEN_MED];
   
   if (!( nrrd && encoding )) {
     sprintf(err, "%s: got NULL nrrd (%p) or encoding (%p)",
-	    me, nrrd, encoding);
+            me, nrrd, encoding);
     biffMaybeAdd(NRRD, err, useBiff); 
     return AIR_FALSE;
   }
   if (!( nrrdEncodingRaw == encoding || nrrdEncodingAscii == encoding)) {
     sprintf(err, "%s: encoding can only be %s or %s", me,
-	    nrrdEncodingRaw->name, nrrdEncodingAscii->name);
+            nrrdEncodingRaw->name, nrrdEncodingAscii->name);
     biffMaybeAdd(NRRD, err, useBiff); 
     return AIR_FALSE;
   }
   if (!( nrrdTypeUChar == nrrd->type
-	 || nrrdTypeChar == nrrd->type
-	 || nrrdTypeUShort == nrrd->type
-	 || nrrdTypeShort == nrrd->type
-	 || nrrdTypeUInt == nrrd->type
-	 || nrrdTypeInt == nrrd->type
-	 || nrrdTypeFloat == nrrd->type
-	 || nrrdTypeDouble == nrrd->type )) {
+         || nrrdTypeChar == nrrd->type
+         || nrrdTypeUShort == nrrd->type
+         || nrrdTypeShort == nrrd->type
+         || nrrdTypeUInt == nrrd->type
+         || nrrdTypeInt == nrrd->type
+         || nrrdTypeFloat == nrrd->type
+         || nrrdTypeDouble == nrrd->type )) {
     sprintf(err, "%s: type %s doesn't fit in VTK (as currently implemented)",
-	    me, airEnumStr(nrrdType, nrrd->type));
+            me, airEnumStr(nrrdType, nrrd->type));
     biffMaybeAdd(NRRD, err, useBiff); 
     return AIR_FALSE;
   }
   if (!( 3 == nrrd->dim
-	 || (4 == nrrd->dim && 3 == nrrd->axis[0].size)
-	 || (4 == nrrd->dim && 9 == nrrd->axis[0].size) )) {
+         || (4 == nrrd->dim && 3 == nrrd->axis[0].size)
+         || (4 == nrrd->dim && 9 == nrrd->axis[0].size) )) {
     sprintf(err, "%s: nrrd didn't look like a volume of scalars, "
-	    "vectors, or tensors", me);
+            "vectors, or tensors", me);
     biffMaybeAdd(NRRD, err, useBiff); 
     return AIR_FALSE;
   }
@@ -81,8 +81,8 @@ int
 _nrrdFormatVTK_contentStartsLike(NrrdIoState *nio) {
   
   return (!strcmp(MAGIC1, nio->line)
-	  || !strcmp(MAGIC2, nio->line)
-	  || !strcmp(MAGIC3, nio->line));
+          || !strcmp(MAGIC2, nio->line)
+          || !strcmp(MAGIC3, nio->line));
 }
 
 int
@@ -94,7 +94,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
   if (!_nrrdFormatVTK_contentStartsLike(nio)) {
     sprintf(err, "%s: this doesn't look like a %s file", me, 
-	    nrrdFormatVTK->name);
+            nrrdFormatVTK->name);
     biffAdd(NRRD, err); return 1;
   }
 
@@ -122,7 +122,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     nio->encoding = nrrdEncodingRaw;
   } else {
     sprintf(err, "%s: encoding \"%s\" wasn't \"ASCII\" or \"BINARY\"",
-	    me, nio->line);
+            me, nio->line);
     biffAdd(NRRD, err); return 1;
   }
   GETLINE(DATASET); airToUpper(nio->line);
@@ -140,22 +140,22 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   while (!strstr(nio->line, "POINT_DATA")) {
     if (strstr(nio->line, "ORIGIN")) {
       if (3 != sscanf(nio->line, "ORIGIN %lf %lf %lf", &xm, &ym, &zm)) {
-	sprintf(err, "%s: couldn't parse ORIGIN line (\"%s\")", me, nio->line);
-	biffAdd(NRRD, err); return 1;
+        sprintf(err, "%s: couldn't parse ORIGIN line (\"%s\")", me, nio->line);
+        biffAdd(NRRD, err); return 1;
       }
     } else if (strstr(nio->line, "SPACING")) {
       if (3 != sscanf(nio->line, "SPACING %lf %lf %lf",
-		      &xs, &ys, &zs)) {
-	sprintf(err, "%s: couldn't parse SPACING line (\"%s\")",
-		me, nio->line);
-	biffAdd(NRRD, err); return 1;
+                      &xs, &ys, &zs)) {
+        sprintf(err, "%s: couldn't parse SPACING line (\"%s\")",
+                me, nio->line);
+        biffAdd(NRRD, err); return 1;
       }      
     } else if (strstr(nio->line, "ASPECT_RATIO")) {
       if (3 != sscanf(nio->line, "ASPECT_RATIO %lf %lf %lf",
-		      &xs, &ys, &zs)) {
-	sprintf(err, "%s: couldn't parse ASPECT_RATIO line (\"%s\")",
-		me, nio->line);
-	biffAdd(NRRD, err); return 1;
+                      &xs, &ys, &zs)) {
+        sprintf(err, "%s: couldn't parse ASPECT_RATIO line (\"%s\")",
+                me, nio->line);
+        biffAdd(NRRD, err); return 1;
       }      
     }
     GETLINE(next); airToUpper(nio->line);
@@ -166,14 +166,14 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   if (N != sx*sy*sz) {
     sprintf(err, "%s: product of sizes (%d*%d*%d == %d) != # elements (%d)", 
-	    me, sx, sy, sz, sx*sy*sz, N);
+            me, sx, sy, sz, sx*sy*sz, N);
     biffAdd(NRRD, err); return 1;
   }
   GETLINE(attribute declaration);
   mop = airMopNew();
   if (3 != airParseStrS(three, nio->line, AIR_WHITESPACE, 3, AIR_FALSE)) {
     sprintf(err, "%s: didn't see three words in attribute declaration \"%s\"",
-	    me, nio->line);
+            me, nio->line);
     biffAdd(NRRD, err); return 1;
   }
   airMopAdd(mop, three[0], airFree, airMopAlways);
@@ -183,7 +183,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   if (!strcmp(three[2], "bit")) {
     if (nrrdEncodingAscii == nio->encoding) {
       fprintf(stderr, "%s: WARNING: \"bit\"-type data will be read in as "
-	      "unsigned char\n", me);
+              "unsigned char\n", me);
       nrrd->type = nrrdTypeUChar;
     } else {
       sprintf(err, "%s: can't read in \"bit\"-type data as BINARY", me);
@@ -235,8 +235,8 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     nrrdAxisInfoSet(nrrd, nrrdAxisInfoMin, AIR_NAN, xm, ym, zm);
   } else {
     sprintf(err, "%s: sorry, can only deal with SCALARS, VECTORS, and TENSORS "
-	    "currently, so couldn't parse attribute declaration \"%s\"",
-	    me, nio->line);
+            "currently, so couldn't parse attribute declaration \"%s\"",
+            me, nio->line);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   nio->dataFile = file;
@@ -272,8 +272,8 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   if (!( 3 == nrrd->dim || 
-	 (4 == nrrd->dim && (3 == nrrd->axis[0].size ||
-			     9 == nrrd->axis[0].size)) )) {
+         (4 == nrrd->dim && (3 == nrrd->axis[0].size ||
+                             9 == nrrd->axis[0].size)) )) {
     sprintf(err, "%s: doesn't seem to be scalar, vector, or tensor", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
@@ -321,7 +321,7 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
     break;
   default:
     sprintf(err, "%s: can't put %s-type nrrd into VTK", me, 
-	    airEnumStr(nrrdType, nrrd->type));
+            airEnumStr(nrrdType, nrrd->type));
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   fprintf(file, "%s\n", MAGIC3);

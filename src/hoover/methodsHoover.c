@@ -64,16 +64,16 @@ hooverContextCheck(hooverContext *ctx) {
     biffAdd(HOOVER, err); return 1;
   }
   if (limnCameraAspectSet(ctx->cam,
-			  ctx->imgSize[0], ctx->imgSize[1], ctx->imgCentering)
+                          ctx->imgSize[0], ctx->imgSize[1], ctx->imgCentering)
       || limnCameraUpdate(ctx->cam)) {
     sprintf(err, "%s: trouble setting up camera", me);
     biffMove(HOOVER, err, LIMN); return 1;
   }
   if (!(ctx->volSize[0] > 1 
-	&& ctx->volSize[1] > 1 
-	&& ctx->volSize[2] > 1)) {
+        && ctx->volSize[1] > 1 
+        && ctx->volSize[2] > 1)) {
     sprintf(err, "%s: volume dimensions (%dx%dx%d) invalid", me,
-	    ctx->volSize[0], ctx->volSize[1], ctx->volSize[2]);
+            ctx->volSize[0], ctx->volSize[1], ctx->volSize[2]);
     biffAdd(HOOVER, err); return 1;
   }
   sxe = AIR_EXISTS(ctx->volSpacing[0]);
@@ -85,28 +85,28 @@ hooverContextCheck(hooverContext *ctx) {
     ctx->volSpacing[0] = nrrdDefSpacing;
     ctx->volSpacing[1] = ctx->volSpacing[2] = ctx->volSpacing[0];
     fprintf(stderr, "%s: WARNING: assuming spacing %g for all axes\n",
-	    me, ctx->volSpacing[0]);
+            me, ctx->volSpacing[0]);
     /* HEY : nrrdDefSpacing need not be the same as gageParm's 
        defaultSpacing, but we don't know anything about gage here,
        so what else can we do? */
   } else if (sxe && sye && sze) {
     /* all existed */
     if (!(ctx->volSpacing[0] > 0.0
-	  && ctx->volSpacing[1] > 0.0
-	  && ctx->volSpacing[2] > 0.0)) {
+          && ctx->volSpacing[1] > 0.0
+          && ctx->volSpacing[2] > 0.0)) {
       sprintf(err, "%s: volume spacing (%gx%gx%g) invalid", me,
-	      ctx->volSpacing[0], ctx->volSpacing[1], ctx->volSpacing[2]);
+              ctx->volSpacing[0], ctx->volSpacing[1], ctx->volSpacing[2]);
       biffAdd(HOOVER, err); return 1;
     }
   } else {
     /* some existed, some didn't */
     sprintf(err, "%s: spacings %g, %g, %g don't all exist or not", me,
-	    ctx->volSpacing[0], ctx->volSpacing[1], ctx->volSpacing[2]);
+            ctx->volSpacing[0], ctx->volSpacing[1], ctx->volSpacing[2]);
     biffAdd(HOOVER, err); return 1;
   }
   if (!(ctx->imgSize[0] > 0 && ctx->imgSize[1] > 0)) {
     sprintf(err, "%s: image dimensions (%dx%d) invalid", me,
-	    ctx->imgSize[0], ctx->imgSize[1]);
+            ctx->imgSize[0], ctx->imgSize[1]);
     biffAdd(HOOVER, err); return 1;
   }
   if (!(ctx->numThreads >= 1)) {
@@ -115,7 +115,7 @@ hooverContextCheck(hooverContext *ctx) {
   }
   if (!(ctx->numThreads <= HOOVER_THREAD_MAX)) {
     sprintf(err, "%s: sorry, number threads (%d) > max (%d)", me, 
-	    ctx->numThreads, HOOVER_THREAD_MAX);
+            ctx->numThreads, HOOVER_THREAD_MAX);
     biffAdd(HOOVER, err); return 1;
   }
   if (!ctx->renderBegin) {

@@ -42,22 +42,22 @@ tend_evqMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *outS;
 
   hestOptAdd(&hopt, "c", "evec index", airTypeInt, 1, 1, &which, "0",
-	     "Which eigenvector should be quantized: \"0\" for the "
-	     "direction of fastest diffusion (eigenvector associated "
-	     "with largest eigenvalue), \"1\" or \"2\" for other two "
-	     "eigenvectors (associated with middle and smallest eigenvalue)");
+             "Which eigenvector should be quantized: \"0\" for the "
+             "direction of fastest diffusion (eigenvector associated "
+             "with largest eigenvalue), \"1\" or \"2\" for other two "
+             "eigenvectors (associated with middle and smallest eigenvalue)");
   hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &aniso, NULL,
-	     "Which anisotropy metric to scale the eigenvector "
-	     "with.  " TEN_ANISO_DESC,
-	     NULL, tenAniso);
+             "Which anisotropy metric to scale the eigenvector "
+             "with.  " TEN_ANISO_DESC,
+             NULL, tenAniso);
   hestOptAdd(&hopt, "ns", NULL, airTypeInt, 0, 0, &dontScaleByAniso, NULL,
-	     "Don't attenuate the color by anisotropy.  By default (not "
-	     "using this option), regions with low or no anisotropy are "
-	     "very dark colors or black");
+             "Don't attenuate the color by anisotropy.  By default (not "
+             "using this option), regions with low or no anisotropy are "
+             "very dark colors or black");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
+             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output image (floating point)");
+             "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

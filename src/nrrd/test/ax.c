@@ -43,61 +43,61 @@ main(int argc, char *argv[]) {
   printf("\n");
   pos = nrrdAxisInfoPos(nrrd, 0, idx);
   printf("pos(0, %g) == %g --> %g\n",
-	 idx, pos, nrrdAxisInfoIdx(nrrd, 0, pos));
+         idx, pos, nrrdAxisInfoIdx(nrrd, 0, pos));
   pos = nrrdAxisInfoPos(nrrd, 1, idx);
   printf("pos(1, %g) == %g --> %g\n",
-	 idx, pos, nrrdAxisInfoIdx(nrrd, 1, pos));
+         idx, pos, nrrdAxisInfoIdx(nrrd, 1, pos));
 
   idx = 1;
   printf("\n");
   pos = nrrdAxisInfoPos(nrrd, 0, idx);
   printf("pos(0, %g) == %g --> %g\n",
-	 idx, pos, nrrdAxisInfoIdx(nrrd, 0, pos));
+         idx, pos, nrrdAxisInfoIdx(nrrd, 0, pos));
   pos = nrrdAxisInfoPos(nrrd, 1, idx);
   printf("pos(1, %g) == %g --> %g\n",
-	 idx, pos, nrrdAxisInfoIdx(nrrd, 1, pos));
+         idx, pos, nrrdAxisInfoIdx(nrrd, 1, pos));
 
   idx = 2;
   printf("\n");
   pos = nrrdAxisInfoPos(nrrd, 0, idx);
   printf("pos(0, %g) == %g --> %g\n",
-	 idx, pos, nrrdAxisInfoIdx(nrrd, 0, pos));
+         idx, pos, nrrdAxisInfoIdx(nrrd, 0, pos));
   pos = nrrdAxisInfoPos(nrrd, 1, idx);
   printf("pos(1, %g) == %g --> %g\n",
-	 idx, pos, nrrdAxisInfoIdx(nrrd, 1, pos));
+         idx, pos, nrrdAxisInfoIdx(nrrd, 1, pos));
 
   idx = 0; idx2 = 0;
   printf("\n");
   nrrdAxisInfoPosRange(&lo, &hi, nrrd, 0, idx, idx2);
   nrrdAxisInfoIdxRange(&idx3, &idx4, nrrd, 0, lo, hi);
   printf("range(0, %g -- %g) == (%g -- %g) --> (%g -- %g)\n",
-	 idx, idx2, lo, hi, idx3, idx4);
+         idx, idx2, lo, hi, idx3, idx4);
   nrrdAxisInfoPosRange(&lo, &hi, nrrd, 1, idx, idx2);
   nrrdAxisInfoIdxRange(&idx3, &idx4, nrrd, 1, lo, hi);
   printf("range(1, %g -- %g) == (%g -- %g) --> (%g -- %g)\n",
-	 idx, idx2, lo, hi, idx3, idx4);
+         idx, idx2, lo, hi, idx3, idx4);
 
   idx = 0; idx2 = 1;
   printf("\n");
   nrrdAxisInfoPosRange(&lo, &hi, nrrd, 0, idx, idx2);
   nrrdAxisInfoIdxRange(&idx3, &idx4, nrrd, 0, lo, hi);
   printf("range(0, %g -- %g) == (%g -- %g) --> (%g -- %g)\n",
-	 idx, idx2, lo, hi, idx3, idx4);
+         idx, idx2, lo, hi, idx3, idx4);
   nrrdAxisInfoPosRange(&lo, &hi, nrrd, 1, idx, idx2);
   nrrdAxisInfoIdxRange(&idx3, &idx4, nrrd, 1, lo, hi);
   printf("range(1, %g -- %g) == (%g -- %g) --> (%g -- %g)\n",
-	 idx, idx2, lo, hi, idx3, idx4);
+         idx, idx2, lo, hi, idx3, idx4);
 
   idx = 1; idx2 = 0;
   printf("\n");
   nrrdAxisInfoPosRange(&lo, &hi, nrrd, 0, idx, idx2);
   nrrdAxisInfoIdxRange(&idx3, &idx4, nrrd, 0, lo, hi);
   printf("range(0, %g -- %g) == (%g -- %g) --> (%g -- %g)\n",
-	 idx, idx2, lo, hi, idx3, idx4);
+         idx, idx2, lo, hi, idx3, idx4);
   nrrdAxisInfoPosRange(&lo, &hi, nrrd, 1, idx, idx2);
   nrrdAxisInfoIdxRange(&idx3, &idx4, nrrd, 1, lo, hi);
   printf("range(1, %g -- %g) == (%g -- %g) --> (%g -- %g)\n",
-	 idx, idx2, lo, hi, idx3, idx4);
+         idx, idx2, lo, hi, idx3, idx4);
 
   nrrdAxisInfoSet(nrrd, nrrdAxisInfoMin, 12.0, 12.0);
   nrrdAxisInfoSet(nrrd, nrrdAxisInfoMax, 10.0, 10.0);
@@ -107,61 +107,61 @@ main(int argc, char *argv[]) {
   printf("\n");
   pos = nrrdAxisInfoPos(nrrd, 0, idx);
   printf("pos(0, %g) == %g --> %g\n",
-	 idx, pos, nrrdAxisInfoIdx(nrrd, 0, pos));
+         idx, pos, nrrdAxisInfoIdx(nrrd, 0, pos));
   pos = nrrdAxisInfoPos(nrrd, 1, idx);
   printf("pos(1, %g) == %g --> %g\n",
-	 idx, pos, nrrdAxisInfoIdx(nrrd, 1, pos));
+         idx, pos, nrrdAxisInfoIdx(nrrd, 1, pos));
 
   idx = 1;
   printf("\n");
   pos = nrrdAxisInfoPos(nrrd, 0, idx);
   printf("pos(0, %g) == %g --> %g\n",
-	 idx, pos, nrrdAxisInfoIdx(nrrd, 0, pos));
+         idx, pos, nrrdAxisInfoIdx(nrrd, 0, pos));
   pos = nrrdAxisInfoPos(nrrd, 1, idx);
   printf("pos(1, %g) == %g --> %g\n",
-	 idx, pos, nrrdAxisInfoIdx(nrrd, 1, pos));
+         idx, pos, nrrdAxisInfoIdx(nrrd, 1, pos));
 
   idx = 2;
   printf("\n");
   pos = nrrdAxisInfoPos(nrrd, 0, idx);
   printf("pos(0, %g) == %g --> %g\n",
-	 idx, pos, nrrdAxisInfoIdx(nrrd, 0, pos));
+         idx, pos, nrrdAxisInfoIdx(nrrd, 0, pos));
   pos = nrrdAxisInfoPos(nrrd, 1, idx);
   printf("pos(1, %g) == %g --> %g\n",
-	 idx, pos, nrrdAxisInfoIdx(nrrd, 1, pos));
+         idx, pos, nrrdAxisInfoIdx(nrrd, 1, pos));
 
   idx = 0; idx2 = 0;
   printf("\n");
   nrrdAxisInfoPosRange(&lo, &hi, nrrd, 0, idx, idx2);
   nrrdAxisInfoIdxRange(&idx3, &idx4, nrrd, 0, lo, hi);
   printf("range(0, %g -- %g) == (%g -- %g) --> (%g -- %g)\n",
-	 idx, idx2, lo, hi, idx3, idx4);
+         idx, idx2, lo, hi, idx3, idx4);
   nrrdAxisInfoPosRange(&lo, &hi, nrrd, 1, idx, idx2);
   nrrdAxisInfoIdxRange(&idx3, &idx4, nrrd, 1, lo, hi);
   printf("range(1, %g -- %g) == (%g -- %g) --> (%g -- %g)\n",
-	 idx, idx2, lo, hi, idx3, idx4);
+         idx, idx2, lo, hi, idx3, idx4);
 
   idx = 0; idx2 = 2;
   printf("\n");
   nrrdAxisInfoPosRange(&lo, &hi, nrrd, 0, idx, idx2);
   nrrdAxisInfoIdxRange(&idx3, &idx4, nrrd, 0, lo, hi);
   printf("range(0, %g -- %g) == (%g -- %g) --> (%g -- %g)\n",
-	 idx, idx2, lo, hi, idx3, idx4);
+         idx, idx2, lo, hi, idx3, idx4);
   nrrdAxisInfoPosRange(&lo, &hi, nrrd, 1, idx, idx2);
   nrrdAxisInfoIdxRange(&idx3, &idx4, nrrd, 1, lo, hi);
   printf("range(1, %g -- %g) == (%g -- %g) --> (%g -- %g)\n",
-	 idx, idx2, lo, hi, idx3, idx4);
+         idx, idx2, lo, hi, idx3, idx4);
 
   idx = 2; idx2 = 0;
   printf("\n");
   nrrdAxisInfoPosRange(&lo, &hi, nrrd, 0, idx, idx2);
   nrrdAxisInfoIdxRange(&idx3, &idx4, nrrd, 0, lo, hi);
   printf("range(0, %g -- %g) == (%g -- %g) --> (%g -- %g)\n",
-	 idx, idx2, lo, hi, idx3, idx4);
+         idx, idx2, lo, hi, idx3, idx4);
   nrrdAxisInfoPosRange(&lo, &hi, nrrd, 1, idx, idx2);
   nrrdAxisInfoIdxRange(&idx3, &idx4, nrrd, 1, lo, hi);
   printf("range(1, %g -- %g) == (%g -- %g) --> (%g -- %g)\n",
-	 idx, idx2, lo, hi, idx3, idx4);
+         idx, idx2, lo, hi, idx3, idx4);
 
   nrrd->axis[0].center = nrrdCenterCell;
   nrrd->axis[0].size = 4;

@@ -51,7 +51,7 @@ _nrrdEncodingBzip2_read(Nrrd *nrrd, NrrdIoState *nio) {
   size = bsize;
   if (num != bsize/nrrdElementSize(nrrd)) {
     fprintf(stderr,
-	    "%s: PANIC: \"size_t\" can't represent byte-size of data.\n", me);
+            "%s: PANIC: \"size_t\" can't represent byte-size of data.\n", me);
     exit(1);
   }
 
@@ -66,7 +66,7 @@ _nrrdEncodingBzip2_read(Nrrd *nrrd, NrrdIoState *nio) {
   if (bzerror != BZ_OK) {
     /* there was a problem */
     sprintf(err, "%s: error opening BZFILE: %s", me, 
-	    BZ2_bzerror(bzfin, &bzerror));
+            BZ2_bzerror(bzfin, &bzerror));
     biffAdd(NRRD, err);
     BZ2_bzReadClose(&bzerror, bzfin);
     return 1;
@@ -79,7 +79,7 @@ _nrrdEncodingBzip2_read(Nrrd *nrrd, NrrdIoState *nio) {
     read = BZ2_bzRead(&bzerror, bzfin, &b, 1);
     if (read != 1 || bzerror != BZ_OK) {
       sprintf(err, "%s: hit an error skipping byte %d of %d: %s",
-	      me, i, nio->byteSkip, BZ2_bzerror(bzfin, &bzerror));
+              me, i, nio->byteSkip, BZ2_bzerror(bzfin, &bzerror));
       biffAdd(NRRD, err);
       return 1;
     }
@@ -104,7 +104,7 @@ _nrrdEncodingBzip2_read(Nrrd *nrrd, NrrdIoState *nio) {
   /* Ok, now we can begin reading. */
   bzerror = BZ_OK;
   while ((read = BZ2_bzRead(&bzerror, bzfin, data, block_size))
-	  && (BZ_OK == bzerror || BZ_STREAM_END == bzerror) ) {
+          && (BZ_OK == bzerror || BZ_STREAM_END == bzerror) ) {
     /* Increment the data pointer to the next available spot. */
     data += read;
     total_read += read;
@@ -119,7 +119,7 @@ _nrrdEncodingBzip2_read(Nrrd *nrrd, NrrdIoState *nio) {
   
   if (!( BZ_OK == bzerror || BZ_STREAM_END == bzerror )) {
     sprintf(err, "%s: error reading from BZFILE: %s",
-	    me, BZ2_bzerror(bzfin, &bzerror));
+            me, BZ2_bzerror(bzfin, &bzerror));
     biffAdd(NRRD, err);
     return 1;
   }
@@ -128,7 +128,7 @@ _nrrdEncodingBzip2_read(Nrrd *nrrd, NrrdIoState *nio) {
   BZ2_bzReadClose(&bzerror, bzfin);
   if (BZ_OK != bzerror) {
     sprintf(err, "%s: error closing BZFILE: %s", me,
-	    BZ2_bzerror(bzfin, &bzerror));
+            BZ2_bzerror(bzfin, &bzerror));
     biffAdd(NRRD, err);
     return 1;
   }
@@ -136,8 +136,8 @@ _nrrdEncodingBzip2_read(Nrrd *nrrd, NrrdIoState *nio) {
   /* Check to see if we got out as much as we thought we should. */
   if (total_read != size) {
     sprintf(err, "%s: expected " _AIR_SIZE_T_FMT " bytes and received "
-	    _AIR_SIZE_T_FMT " bytes",
-	    me, size, total_read);
+            _AIR_SIZE_T_FMT " bytes",
+            me, size, total_read);
     biffAdd(NRRD, err);
     return 1;
   }
@@ -175,7 +175,7 @@ _nrrdEncodingBzip2_write(const Nrrd *nrrd, NrrdIoState *nio) {
   size = bsize;
   if (num != bsize/nrrdElementSize(nrrd)) {
     fprintf(stderr,
-	    "%s: PANIC: \"size_t\" can't represent byte-size of data.\n", me);
+            "%s: PANIC: \"size_t\" can't represent byte-size of data.\n", me);
     exit(1);
   }
 
@@ -190,7 +190,7 @@ _nrrdEncodingBzip2_write(const Nrrd *nrrd, NrrdIoState *nio) {
   bzfout = BZ2_bzWriteOpen(&bzerror, nio->dataFile, bs, 0, 0);
   if (BZ_OK != bzerror) {
     sprintf(err, "%s: error opening BZFILE: %s", me, 
-	    BZ2_bzerror(bzfout, &bzerror));
+            BZ2_bzerror(bzfout, &bzerror));
     biffAdd(NRRD, err);
     BZ2_bzWriteClose(&bzerror, bzfout, 0, NULL, NULL);
     return 1;
@@ -231,7 +231,7 @@ _nrrdEncodingBzip2_write(const Nrrd *nrrd, NrrdIoState *nio) {
 
   if (BZ_OK != bzerror) {
     sprintf(err, "%s: error writing to BZFILE: %s",
-	    me, BZ2_bzerror(bzfout, &bzerror));
+            me, BZ2_bzerror(bzfout, &bzerror));
     biffAdd(NRRD, err);
     return 1;
   }
@@ -240,7 +240,7 @@ _nrrdEncodingBzip2_write(const Nrrd *nrrd, NrrdIoState *nio) {
   BZ2_bzWriteClose(&bzerror, bzfout, 0, NULL, NULL);
   if (BZ_OK != bzerror) {
     sprintf(err, "%s: error closing BZFILE: %s", me,
-	    BZ2_bzerror(bzfout, &bzerror));
+            BZ2_bzerror(bzfout, &bzerror));
     biffAdd(NRRD, err);
     return 1;
   }
@@ -248,8 +248,8 @@ _nrrdEncodingBzip2_write(const Nrrd *nrrd, NrrdIoState *nio) {
   /* Check to see if we got out as much as we thought we should. */
   if (total_written != size) {
     sprintf(err, "%s: expected to write " _AIR_SIZE_T_FMT " bytes, but only "
-	    "wrote " _AIR_SIZE_T_FMT,
-	    me, size, total_written);
+            "wrote " _AIR_SIZE_T_FMT,
+            me, size, total_written);
     biffAdd(NRRD, err);
     return 1;
   }

@@ -82,7 +82,7 @@ gagePerVolumeNew (gageContext *ctx, Nrrd *nin, gageKind *kind) {
   pvl->iv3 = pvl->iv2 = pvl->iv1 = NULL;
   pvl->lup = nrrdLOOKUP[nin->type];
   pvl->answer = (gage_t *)calloc(gageKindTotalAnswerLength(kind),
-				 sizeof(gage_t));
+                                 sizeof(gage_t));
   pvl->directAnswer = (gage_t **)calloc(kind->itemMax+1, sizeof(gage_t*));
   if (!(pvl->answer && pvl->directAnswer)) {
     sprintf(err, "%s: couldn't alloc answer and directAnswer arrays", me);
@@ -128,11 +128,11 @@ _gagePerVolumeCopy (gagePerVolume *pvl, int fd) {
   nvl->iv2 = (gage_t *)calloc(fd*fd*nvl->kind->valLen, sizeof(gage_t));
   nvl->iv1 = (gage_t *)calloc(fd*nvl->kind->valLen, sizeof(gage_t));
   nvl->answer = (gage_t *)calloc(gageKindTotalAnswerLength(nvl->kind),
-				 sizeof(gage_t));
+                                 sizeof(gage_t));
   nvl->directAnswer = (gage_t **)calloc(nvl->kind->itemMax+1,
-					sizeof(gage_t*));
+                                        sizeof(gage_t*));
   if (!( nvl->iv3 && nvl->iv2 && nvl->iv1
-	 && nvl->answer && nvl->directAnswer )) {
+         && nvl->answer && nvl->directAnswer )) {
     sprintf(err, "%s: couldn't allocate all caches", me);
     biffAdd(GAGE, err); return NULL;
   }
@@ -265,11 +265,11 @@ gageQuerySet (gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
     do {
       ii--;
       if (GAGE_QUERY_ITEM_TEST(pvl->query, ii)) {
-	for (pi=0; pi<GAGE_ITEM_PREREQ_NUM; pi++) {
-	  if (-1 != pvl->kind->table[ii].prereq[pi]) {
-	    GAGE_QUERY_ITEM_ON(pvl->query, pvl->kind->table[ii].prereq[pi]);
-	  }
-	}
+        for (pi=0; pi<GAGE_ITEM_PREREQ_NUM; pi++) {
+          if (-1 != pvl->kind->table[ii].prereq[pi]) {
+            GAGE_QUERY_ITEM_ON(pvl->query, pvl->kind->table[ii].prereq[pi]);
+          }
+        }
       }
     } while (ii);
   } while (!GAGE_QUERY_EQUAL(pvl->query, lastQuery));

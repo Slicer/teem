@@ -81,34 +81,34 @@ typedef struct {
   char name[AIR_STRLEN_SMALL];
                /* what are these things? */
   int M;       /* If "val" is NULL, the the valid enum values are from 1 to M
- 	          (represented by strings str[1] through str[M]), and the
- 	          unknown/invalid value is 0.  If "val" is non-NULL, the
- 	          valid enum values are from val[1] to val[M] (but again, 
-		  represented by strings str[1] through str[M]), and the
-		  unknown/invalid value is val[0].  In both cases, str[0]
-		  is the string to represent an unknown/invalid value */
+                  (represented by strings str[1] through str[M]), and the
+                  unknown/invalid value is 0.  If "val" is non-NULL, the
+                  valid enum values are from val[1] to val[M] (but again, 
+                  represented by strings str[1] through str[M]), and the
+                  unknown/invalid value is val[0].  In both cases, str[0]
+                  is the string to represent an unknown/invalid value */
   char (*str)[AIR_STRLEN_SMALL]; 
                /* "canonical" textual representation of the enum values */
   int *val;    /* non-NULL iff valid values in the enum are not [1..M], and/or
-		  if value for unknown/invalid is not zero */
+                  if value for unknown/invalid is not zero */
   char (*desc)[AIR_STRLEN_MED];
                /* desc[i] is a short description of the enum values represented
-		  by str[i] (thereby starting with the unknown value), to be
-		  used to by things like hest */
+                  by str[i] (thereby starting with the unknown value), to be
+                  used to by things like hest */
   char (*strEqv)[AIR_STRLEN_SMALL];  
                /* All the variations in strings recognized in mapping from
-		  string to value (the values in valEqv).  This **MUST** be
-		  terminated by a zero-length string ("") so as to signify
-		  the end of the list.  This should not contain the string
-		  for unknown/invalid.  If "strEqv" is NULL, then mapping
-		  from string to value is done by traversing "str", and 
-		  "valEqv" is ignored. */
+                  string to value (the values in valEqv).  This **MUST** be
+                  terminated by a zero-length string ("") so as to signify
+                  the end of the list.  This should not contain the string
+                  for unknown/invalid.  If "strEqv" is NULL, then mapping
+                  from string to value is done by traversing "str", and 
+                  "valEqv" is ignored. */
   int *valEqv; /* The values corresponding to the strings in strEqv; there
-		  should be one integer for each non-zero-length string in
-		  strEqv: strEqv[i] is a valid string representation for
-		  value valEqv[i]. This should not contain the value for
-		  unknown/invalid.  This "valEqv" is ignored if "strEqv" is
-		  NULL. */
+                  should be one integer for each non-zero-length string in
+                  strEqv: strEqv[i] is a valid string representation for
+                  value valEqv[i]. This should not contain the value for
+                  unknown/invalid.  This "valEqv" is ignored if "strEqv" is
+                  NULL. */
   int sense;   /* require case matching on strings */
 } airEnum;
 TEEM_API int airEnumUnknown(airEnum *enm);
@@ -117,7 +117,7 @@ TEEM_API char *airEnumStr(airEnum *enm, int val);
 TEEM_API char *airEnumDesc(airEnum *enm, int val);
 TEEM_API int airEnumVal(airEnum *enm, const char *str);
 TEEM_API char *airEnumFmtDesc(airEnum *enm, int val, int canon,
-			      const char *fmt);
+                              const char *fmt);
 
 /*
 ******** airEndian enum
@@ -140,19 +140,19 @@ TEEM_API const int airMyEndian;
 typedef struct {
   void *data,         /* where the data is */
     **dataP;          /* (possibly NULL) address of user's data variable,
-			 kept in sync with internal "data" variable */
+                         kept in sync with internal "data" variable */
   int len,            /* length of array: # units for which there is
-		         considered to be data (which is <= total # units
-		         allocated).  The # bytes which contain data is
-		         len*unit.  Always updated (unlike "*lenP") */
+                         considered to be data (which is <= total # units
+                         allocated).  The # bytes which contain data is
+                         len*unit.  Always updated (unlike "*lenP") */
     *lenP,            /* (possibly NULL) address of user's length variable,
-			 kept in sync with internal "len" variable */
+                         kept in sync with internal "len" variable */
     incr,             /* the granularity of the changes in amount of space
-			 allocated: when the length reaches a multiple of
-			 "incr", then the array is resized */
+                         allocated: when the length reaches a multiple of
+                         "incr", then the array is resized */
     size;             /* array is allocated to have "size" increments, or,
-			 size*incr elements, or, 
-			 size*incr*unit bytes */
+                         size*incr elements, or, 
+                         size*incr*unit bytes */
   size_t unit;        /* the size in bytes of one element in the array */
 
   /* the following are all callbacks useful for maintaining either an array
@@ -176,9 +176,9 @@ typedef struct {
 } airArray;
 TEEM_API airArray *airArrayNew(void **dataP, int *lenP, size_t unit, int incr);
 TEEM_API void airArrayStructCB(airArray *a, void (*initCB)(void *),
-			       void (*doneCB)(void *));
+                               void (*doneCB)(void *));
 TEEM_API void airArrayPointerCB(airArray *a, void *(*allocCB)(void),
-				void *(*freeCB)(void *));
+                                void *(*freeCB)(void *));
 TEEM_API int airArraySetLen(airArray *a, int newlen);
 TEEM_API int airArrayIncrLen(airArray *a, int delta);
 TEEM_API airArray *airArrayNix(airArray *a);
@@ -217,7 +217,7 @@ typedef struct {
 
 TEEM_API airThread *airThreadNew(void);
 TEEM_API int airThreadStart(airThread *thread, 
-			    void *(*threadBody)(void *), void *arg);
+                            void *(*threadBody)(void *), void *arg);
 TEEM_API int airThreadJoin(airThread *thread, void **retP);
 TEEM_API airThread *airThreadNix(airThread *thread);
 
@@ -281,7 +281,7 @@ TEEM_API float airFPPartsToVal_f(int sign, int exp, int frac);
 TEEM_API void airFPValToParts_f(int *signP, int *expP, int *fracP, float v);
 TEEM_API double airFPPartsToVal_d(int sign, int exp, airULLong frac);
 TEEM_API void airFPValToParts_d(int *signP, int *expP, airULLong *fracP,
-				double v);
+                                double v);
 TEEM_API float airFPGen_f(int cls);
 TEEM_API double airFPGen_d(int cls);
 TEEM_API int airFPClass_f(float val);
@@ -342,22 +342,22 @@ TEEM_API double airAtod(const char *str);
 TEEM_API int airSingleSscanf(const char *str, const char *fmt, void *ptr);
 TEEM_API airEnum *airBool;
 TEEM_API int airParseStrB(int *out, const char *s,
-			  const char *ct, int n, ... /* nothing used */);
+                          const char *ct, int n, ... /* nothing used */);
 TEEM_API int airParseStrI(int *out, const char *s,
-			  const char *ct, int n, ... /* nothing used */);
+                          const char *ct, int n, ... /* nothing used */);
 TEEM_API int airParseStrF(float *out, const char *s,
-			  const char *ct, int n, ... /* nothing used */);
+                          const char *ct, int n, ... /* nothing used */);
 TEEM_API int airParseStrD(double *out, const char *s,
-			  const char *ct, int n, ... /* nothing used */);
+                          const char *ct, int n, ... /* nothing used */);
 TEEM_API int airParseStrC(char *out, const char *s,
-			  const char *ct, int n, ... /* nothing used */);
+                          const char *ct, int n, ... /* nothing used */);
 TEEM_API int airParseStrS(char **out, const char *s,
-			  const char *ct, int n, ... /* REQUIRED, even if n>1:
-							int greedy */);
+                          const char *ct, int n, ... /* REQUIRED, even if n>1:
+                                                        int greedy */);
 TEEM_API int airParseStrE(int *out, const char *s,
-			  const char *ct, int n, ... /* REQ'ED: airEnum *e */);
+                          const char *ct, int n, ... /* REQ'ED: airEnum *e */);
 TEEM_API int (*airParseStr[AIR_TYPE_MAX+1])(void *, const char *,
-					    const char *, int, ...);
+                                            const char *, int, ...);
 
 /* string.c */
 TEEM_API char *airStrdup(const char *s);
@@ -387,7 +387,7 @@ enum {
   airInsane_nInfExists,    /*  3: AIR_EXISTS(negative infinity) was true */
   airInsane_NaNExists,     /*  4: AIR_EXISTS(NaN) was true */
   airInsane_FltDblFPClass, /*  5: double -> float assignment messed up the
-			       airFPClass_f() of the value */
+                               airFPClass_f() of the value */
   airInsane_QNaNHiBit,     /*  6: airMyQNaNHiBit is wrong */
   airInsane_dio,           /*  7: airMyDio set to something invalid */
   airInsane_32Bit,         /*  8: airMy32Bit is wrong */
@@ -483,7 +483,7 @@ typedef struct {
 } airMop;
 TEEM_API airArray *airMopNew(void);
 TEEM_API void airMopAdd(airArray *arr,
-		      void *ptr, airMopper mop, int when);
+                      void *ptr, airMopper mop, int when);
 TEEM_API void airMopSub(airArray *arr, void *ptr, airMopper mop);
 TEEM_API void airMopMem(airArray *arr, void *_ptrP, int when);
 TEEM_API void airMopUnMem(airArray *arr, void *_ptrP);
@@ -617,7 +617,7 @@ TEEM_API void airMopDebug(airArray *arr);
 ** works when the argument really is a float, and when floats are 4-bytes
 */
 #define AIR_ISNAN_F(x) (((*(unsigned int*)&(x) & 0x7f800000)==0x7f800000) && \
-			 (*(unsigned int*)&(x) & 0x007fffff))
+                         (*(unsigned int*)&(x) & 0x007fffff))
 
 /*
 ******** AIR_MAX(a,b), AIR_MIN(a,b), AIR_ABS(a)
@@ -634,7 +634,7 @@ TEEM_API void airMopDebug(airArray *arr);
 ** the sort of compare that qsort() wants for ascending sort
 */
 #define AIR_COMPARE(a,b) ((a) < (b)     \
-		          ? -1          \
+                          ? -1          \
                           : ((a) > (b) \
                              ? 1        \
                              : 0))
@@ -658,10 +658,10 @@ TEEM_API void airMopDebug(airArray *arr);
 ** interval defined by the first and third arguments
 */
 #define AIR_CLAMP(a,b,c) ((b) < (a)        \
-		 	   ? (a)           \
-			   : ((b) > (c)    \
-			      ? (c)        \
-			      : (b)))
+                           ? (a)           \
+                           : ((b) > (c)    \
+                              ? (c)        \
+                              : (b)))
 
 /*
 ******** AIR_MOD(i, N)

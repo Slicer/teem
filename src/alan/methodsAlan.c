@@ -145,7 +145,7 @@ alan3DSizeSet(alanContext *actx, int sizeX, int sizeY, int sizeZ) {
   }
   if (!( sizeX >= 10 && sizeY >= 10 && sizeZ >= 10 )) {
     sprintf(err, "%s: sizes (%d,%d,%d) invalid (too small?)",
-	    me, sizeX, sizeY, sizeZ);
+            me, sizeX, sizeY, sizeZ);
     biffAdd(ALAN, err); return 1;
   }
 
@@ -240,7 +240,7 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
     parmI = parm;
     if (!airThreadCapable) {
       fprintf(stderr, "%s: WARNING: no multi-threading available, so 1 thread "
-	      "will be used, not %d\n", me, parmI);
+              "will be used, not %d\n", me, parmI);
       parmI = 1;
     }
     actx->numThreads = parmI;

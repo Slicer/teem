@@ -22,7 +22,7 @@
 
 /* bad Gordon */
 extern int _nrrdReadNrrdParse_keyvalue(Nrrd *nrrd, NrrdIoState *io,
-				       int useBiff);
+                                       int useBiff);
 
 #define INFO "Create a nrrd (or nrrd header) from scratch"
 char *_unrrdu_makeInfoL =
@@ -43,7 +43,7 @@ char *_unrrdu_makeInfoL =
 
 int
 unrrduMakeRead(char *me, Nrrd *nrrd, NrrdIoState *nio, const char *fname,
-	       int lineSkip, int byteSkip, const NrrdEncoding *encoding) {
+               int lineSkip, int byteSkip, const NrrdEncoding *encoding) {
   char err[AIR_STRLEN_MED];
 
   nrrdIoStateInit(nio);
@@ -52,7 +52,7 @@ unrrduMakeRead(char *me, Nrrd *nrrd, NrrdIoState *nio, const char *fname,
   nio->encoding = encoding;
   if (!( nio->dataFile = airFopen(fname, stdin, "rb") )) {
     sprintf(err, "%s:  couldn't fopen(\"%s\",\"rb\"): %s\n", 
-	    me, fname, strerror(errno));
+            me, fname, strerror(errno));
     biffAdd(me, err); return 1;
   }
   if (nrrdLineSkip(nio)) {
@@ -104,72 +104,72 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nrrd, (airMopper)nrrdNuke, airMopAlways);
   
   hestOptAdd(&opt, "h", NULL, airTypeBool, 0, 0, &headerOnly, NULL,
-	     "Generate header ONLY: don't write out the whole nrrd, "
-	     "don't even bother reading the input data, just output the "
-	     "detached nrrd header file (usually with a \".nhdr\" "
-	     "extension) determined by the options below. "
-	     "*NOTE*: The filename given with \"-i\" should probably start "
-	     "with \"./\" to indicate that the "
-	     "data file is to be found relative to the header file "
-	     "(as opposed to the current working directory of whomever "
-	     "is reading the nrrd).  Detached headers are incompatible with "
-	     "using stdin as the data source, or using multiple data "
-	     "files");
+             "Generate header ONLY: don't write out the whole nrrd, "
+             "don't even bother reading the input data, just output the "
+             "detached nrrd header file (usually with a \".nhdr\" "
+             "extension) determined by the options below. "
+             "*NOTE*: The filename given with \"-i\" should probably start "
+             "with \"./\" to indicate that the "
+             "data file is to be found relative to the header file "
+             "(as opposed to the current working directory of whomever "
+             "is reading the nrrd).  Detached headers are incompatible with "
+             "using stdin as the data source, or using multiple data "
+             "files");
   hestOptAdd(&opt, "i", "file", airTypeString, 1, -1, &dataFileNames, "-",
-	     "Filename(s) of data file(s); use \"-\" for stdin. ", &nameLen);
+             "Filename(s) of data file(s); use \"-\" for stdin. ", &nameLen);
   hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &type, NULL,
-	     "type of data (e.g. \"uchar\", \"int\", \"float\", "
-	     "\"double\", etc.)",
-	     NULL, nrrdType);
+             "type of data (e.g. \"uchar\", \"int\", \"float\", "
+             "\"double\", etc.)",
+             NULL, nrrdType);
   hestOptAdd(&opt, "s", "sz0 sz1", airTypeInt, 1, -1, &size, NULL,
-	     "number of samples along each axis (and implicit indicator "
-	     "of dimension of nrrd)", &sizeLen);
+             "number of samples along each axis (and implicit indicator "
+             "of dimension of nrrd)", &sizeLen);
   hestOptAdd(&opt, "sp", "sp0 sp1", airTypeDouble, 1, -1, &spacing, "nan",
-	     "spacing between samples on each axis.  Use \"nan\" for "
-	     "any non-spatial axes (e.g. spacing between red, green, and blue "
-	     "along axis 0 of interleaved RGB image data)", &spacingLen);
+             "spacing between samples on each axis.  Use \"nan\" for "
+             "any non-spatial axes (e.g. spacing between red, green, and blue "
+             "along axis 0 of interleaved RGB image data)", &spacingLen);
   hestOptAdd(&opt, "l", "lb0 lb1", airTypeString, 1, -1, &label, "",
-	     "short string labels for each of the axes", &labelLen);
+             "short string labels for each of the axes", &labelLen);
   hestOptAdd(&opt, "c", "content", airTypeString, 1, 1, &content, "",
-	     "Specifies the content string of the nrrd, which is built upon "
-	     "by many nrrd function to record a history of operations");
+             "Specifies the content string of the nrrd, which is built upon "
+             "by many nrrd function to record a history of operations");
   hestOptAdd(&opt, "ls", "lineskip", airTypeInt, 1, 1, &lineSkip, "0",
-	     "number of ascii lines to skip before reading data");
+             "number of ascii lines to skip before reading data");
   hestOptAdd(&opt, "bs", "byteskip", airTypeInt, 1, 1, &byteSkip, "0",
-	     "number of bytes to skip (after skipping ascii lines, if any) "
-	     "before reading data.  Can use \"-bs -1\" to skip a binary "
-	     "header of unknown length in raw-encoded data");
+             "number of bytes to skip (after skipping ascii lines, if any) "
+             "before reading data.  Can use \"-bs -1\" to skip a binary "
+             "header of unknown length in raw-encoded data");
   strcpy(encInfo,
-	 "output file format. Possibilities include:"
-	 "\n \b\bo \"raw\": raw encoding"
-	 "\n \b\bo \"ascii\": ascii values, one scanline per line of text, "
-	 "values within line are delimited by space, tab, or comma"
-	 "\n \b\bo \"hex\": two hex digits per byte");
+         "output file format. Possibilities include:"
+         "\n \b\bo \"raw\": raw encoding"
+         "\n \b\bo \"ascii\": ascii values, one scanline per line of text, "
+         "values within line are delimited by space, tab, or comma"
+         "\n \b\bo \"hex\": two hex digits per byte");
   if (nrrdEncodingGzip->available()) {
     strcat(encInfo, 
-	   "\n \b\bo \"gzip\", \"gz\": gzip compressed raw data");
+           "\n \b\bo \"gzip\", \"gz\": gzip compressed raw data");
   }
   if (nrrdEncodingBzip2->available()) {
     strcat(encInfo, 
-	   "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
+           "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
   }
   hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &encodingType, "raw",
-	     encInfo, NULL, nrrdEncodingType);
+             encInfo, NULL, nrrdEncodingType);
   hestOptAdd(&opt, "en", "endian", airTypeEnum, 1, 1, &endian,
-	     airEnumStr(airEndian, airMyEndian),
-	     "Endianness of data; relevent for any data with value "
-	     "representation bigger than 8 bits, with a non-ascii encoding: "
-	     "\"little\" for Intel and friends "
-	     "(least significant byte first, at lower address); "
-	     "\"big\" for everyone else (most significant byte first). "
-	     "Defaults to endianness of this machine",
-	     NULL, airEndian);
+             airEnumStr(airEndian, airMyEndian),
+             "Endianness of data; relevent for any data with value "
+             "representation bigger than 8 bits, with a non-ascii encoding: "
+             "\"little\" for Intel and friends "
+             "(least significant byte first, at lower address); "
+             "\"big\" for everyone else (most significant byte first). "
+             "Defaults to endianness of this machine",
+             NULL, airEndian);
   hestOptAdd(&opt, "kv", "key/val", airTypeString, 0, -1, &kvp, "",
-	     "key/value string pairs to be stored in nrrd.  Each key/value "
-	     "pair must be a single string (put it in \"\"s "
-	     "if the key or the value contain spaces).  The format of each "
-	     "pair is \"<key>:=<value>\", with no spaces before or after "
-	     "\":=\".", &kvpLen);
+             "key/value string pairs to be stored in nrrd.  Each key/value "
+             "pair must be a single string (put it in \"\"s "
+             "if the key or the value contain spaces).  The format of each "
+             "pair is \"<key>:=<value>\", with no spaces before or after "
+             "\":=\".", &kvpLen);
   OPT_ADD_NOUT(out, "output filename");
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
@@ -183,29 +183,29 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
      so as to simulate having read the information from a header */
   if (!( AIR_IN_CL(1, sizeLen, NRRD_DIM_MAX) )) {
     fprintf(stderr, "%s: # axis sizes (%d) not in valid nrrd dimension "
-	    "range ([1,%d])\n", me, sizeLen, NRRD_DIM_MAX);
+            "range ([1,%d])\n", me, sizeLen, NRRD_DIM_MAX);
     airMopError(mop);
     return 1;
   }
   gotSpacing = (spacingLen > 1 ||
-		(sizeLen == 1 && AIR_EXISTS(spacing[0])));
+                (sizeLen == 1 && AIR_EXISTS(spacing[0])));
   if (gotSpacing && spacingLen != sizeLen) {
     fprintf(stderr,
-	    "%s: got different numbers of sizes (%d) and spacings (%d)\n",
-	    me, sizeLen, spacingLen);
+            "%s: got different numbers of sizes (%d) and spacings (%d)\n",
+            me, sizeLen, spacingLen);
     airMopError(mop);
     return 1;
   }
   if (airStrlen(label[0]) && sizeLen != labelLen) {
     fprintf(stderr,
-	    "%s: got different numbers of sizes (%d) and labels (%d)\n",
-	    me, sizeLen, labelLen);
+            "%s: got different numbers of sizes (%d) and labels (%d)\n",
+            me, sizeLen, labelLen);
     airMopError(mop);
     return 1;
   }
   if (nameLen > 1 && nameLen != size[sizeLen-1]) {
     fprintf(stderr, "%s: got %d slice filenames but the last axis has %d "
-	    "elements\n", me, nameLen, size[sizeLen-1]);
+            "elements\n", me, nameLen, size[sizeLen-1]);
     airMopError(mop);
     return 1;
   }
@@ -224,16 +224,16 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (kvpLen) {
     for (ki=0; ki<kvpLen; ki++) {
       /* a hack: have to use NrrdIoState->line as the channel to communicate
-	 the key/value pair, since we have to emulate it having been
-	 read from a NRRD header.  But because nio doesn't own the 
-	 memory, we must be careful to unset the pointer prior to 
-	 NrrdIoStateNix being called by the mop. */
+         the key/value pair, since we have to emulate it having been
+         read from a NRRD header.  But because nio doesn't own the 
+         memory, we must be careful to unset the pointer prior to 
+         NrrdIoStateNix being called by the mop. */
       nio->line = kvp[ki];
       if (_nrrdReadNrrdParse_keyvalue (nrrd, nio, AIR_TRUE)) {
-	airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-	fprintf(stderr, "%s: trouble with key/value %d \"%s\":\n%s",
-		me, ki, kvp[ki], err);
-	nio->line = NULL; airMopError(mop); return 1;
+        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+        fprintf(stderr, "%s: trouble with key/value %d \"%s\":\n%s",
+                me, ki, kvp[ki], err);
+        nio->line = NULL; airMopError(mop); return 1;
       }
       nio->line = NULL;
     }
@@ -244,12 +244,12 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
        is the name of the input datafile.  We disallow stdin here */
     if (1 != nameLen) {
       fprintf(stderr, "%s: can't use detached headers with multiple "
-	      "data files\n", me);
+              "data files\n", me);
       airMopError(mop); return 1;
     }
     if (!strcmp("-", dataFileNames[0])) {
       fprintf(stderr, "%s: can't use detached headers with stdin as "
-	      "data source\n", me);
+              "data source\n", me);
       airMopError(mop); return 1;
     }
     nio->lineSkip = lineSkip;
@@ -263,7 +263,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
        will not write any data, because of nio->skipData = AIR_TRUE */
     if (!( fileOut = airFopen(out, stdout, "wb") )) {
       fprintf(stderr, "%s: couldn't fopen(\"%s\",\"wb\"): %s\n", 
-	      me, out, strerror(errno));
+              me, out, strerror(errno));
       airMopError(mop); return 1;
     }
     airMopAdd(mop, fileOut, (airMopper)airFclose, airMopAlways);
@@ -275,68 +275,68 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
        since we have to open the input data file by hand */
     if (1 == nameLen) {
       if (unrrduMakeRead(me, nrrd, nio, dataFileNames[0],
-			 lineSkip, byteSkip, encoding)) {
-	airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
-	fprintf(stderr, "%s: trouble reading from \"%s\":\n%s",
-		me, dataFileNames[0], err);
-	airMopError(mop); return 1;
+                         lineSkip, byteSkip, encoding)) {
+        airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
+        fprintf(stderr, "%s: trouble reading from \"%s\":\n%s",
+                me, dataFileNames[0], err);
+        airMopError(mop); return 1;
       }
     } else {
       /* create one nrrd for each slice, read them all in, then
-	 join them together */
+         join them together */
       nslice = (Nrrd **)calloc(nameLen, sizeof(Nrrd *));
       slc = 0;
       if (nslice) {
-	airMopAdd(mop, nslice, airFree, airMopAlways);
-	for (slc=0; slc<nameLen; slc++) {
-	  nslice[slc] = nrrdNew();
-	  if (nslice[slc]) {
-	    airMopAdd(mop, nslice[slc], (airMopper)nrrdNuke, airMopAlways);
-	    nslice[slc]->type = type;
-	    nslice[slc]->dim = sizeLen-1;
-	    /* the last element of size[] will be ignored */
-	    nrrdAxisInfoSet_nva(nslice[slc], nrrdAxisInfoSize, size);
-	  } else {
-	    break;
-	  }
-	}
+        airMopAdd(mop, nslice, airFree, airMopAlways);
+        for (slc=0; slc<nameLen; slc++) {
+          nslice[slc] = nrrdNew();
+          if (nslice[slc]) {
+            airMopAdd(mop, nslice[slc], (airMopper)nrrdNuke, airMopAlways);
+            nslice[slc]->type = type;
+            nslice[slc]->dim = sizeLen-1;
+            /* the last element of size[] will be ignored */
+            nrrdAxisInfoSet_nva(nslice[slc], nrrdAxisInfoSize, size);
+          } else {
+            break;
+          }
+        }
       }
       if (slc != nameLen) {
-	fprintf(stderr, "%s: couldn't allocate nslice array!\n", me);
-	airMopError(mop); return 1;
+        fprintf(stderr, "%s: couldn't allocate nslice array!\n", me);
+        airMopError(mop); return 1;
       }
       for (slc=0; slc<nameLen; slc++) {
-	if (unrrduMakeRead(me, nslice[slc], nio, dataFileNames[slc],
-			   lineSkip, byteSkip, encoding)) {
-	  airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
-	  fprintf(stderr, "%s: trouble reading from \"%s\" "
-		  "(file %d of %d):\n%s",
-		  me, dataFileNames[slc], slc+1, nameLen, err);
-	  airMopError(mop); return 1;
-	}
+        if (unrrduMakeRead(me, nslice[slc], nio, dataFileNames[slc],
+                           lineSkip, byteSkip, encoding)) {
+          airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
+          fprintf(stderr, "%s: trouble reading from \"%s\" "
+                  "(file %d of %d):\n%s",
+                  me, dataFileNames[slc], slc+1, nameLen, err);
+          airMopError(mop); return 1;
+        }
       }
       if (nrrdJoin(nrrd, (const Nrrd**)nslice,
-		   nameLen, nrrd->dim-1, AIR_TRUE)) {
-	airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-	fprintf(stderr, "%s: trouble joining slices together:\n%s",
-		me, err);
-	airMopError(mop); return 1;
+                   nameLen, nrrd->dim-1, AIR_TRUE)) {
+        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+        fprintf(stderr, "%s: trouble joining slices together:\n%s",
+                me, err);
+        airMopError(mop); return 1;
       }
       /* unfortunately, we have to re-set some peripheral information
-	 since we never bothered to set it in any nslice[i]... */
+         since we never bothered to set it in any nslice[i]... */
       if (gotSpacing) {
-	nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSpacing, spacing);
+        nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSpacing, spacing);
       }
       if (airStrlen(label[0])) {
-	nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoLabel, label);
+        nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoLabel, label);
       }
       if (airStrlen(content)) {
-	nrrd->content = airStrdup(content);
+        nrrd->content = airStrdup(content);
       }
     }
     if (1 < nrrdElementSize(nrrd)
-	&& encoding->endianMatters
-	&& endian != AIR_ENDIAN) {
+        && encoding->endianMatters
+        && endian != AIR_ENDIAN) {
       /* endianness exposed in encoding, and its wrong */
       nrrdSwapEndian(nrrd);
     }

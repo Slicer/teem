@@ -69,25 +69,25 @@ main(int argc, char *argv[]) {
   me = argv[0];
   mop = airMopNew();
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-	     "input nrrd to composite", NULL, NULL, nrrdHestNrrd);
+             "input nrrd to composite", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "c", "contrast", airTypeDouble, 1, 1, &contr, "0.0",
-	     "contrast to apply to RGB values, before gamma. \"0.0\" "
-	     "means no change, \"1.0\" means thresholding, \"-1.0\" "
-	     "means a complete washout.");
+             "contrast to apply to RGB values, before gamma. \"0.0\" "
+             "means no change, \"1.0\" means thresholding, \"-1.0\" "
+             "means a complete washout.");
   hestOptAdd(&hopt, "cfp", "fixed point", airTypeDouble, 1, 1, &cfp, "0.5",
-	     "component level that doesn't change with contrast");
+             "component level that doesn't change with contrast");
   hestOptAdd(&hopt, "g", "gamma", airTypeDouble, 1, 1, &gamma, "1.0",
-	     "gamma to apply to image data, after contrast");
+             "gamma to apply to image data, after contrast");
   hestOptAdd(&hopt, "b", "background", airTypeDouble, 3, 3, back, "0 0 0",
-	     "background color to composite against; white is "
-	     "1 1 1, not 255 255 255.");
+             "background color to composite against; white is "
+             "1 1 1, not 255 255 255.");
   hestOptAdd(&hopt, "bi", "nbg", airTypeOther, 1, 1, &_nbg, "",
-	     "8-bit RGB background image to composite against",
-	     NULL, NULL, nrrdHestNrrd);
+             "8-bit RGB background image to composite against",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS,
-	     NULL, "file to write output PPM image to");
+             NULL, "file to write output PPM image to");
   hestParseOrDie(hopt, argc-1, argv+1, NULL, me, overInfo,
-		 AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   
@@ -97,7 +97,7 @@ main(int argc, char *argv[]) {
   }
   if (nrrdTypeBlock == nin->type) {
     fprintf(stderr, "%s: can't use a %s nrrd\n", me,
-	    airEnumStr(nrrdType, nrrdTypeBlock));
+            airEnumStr(nrrdType, nrrdTypeBlock));
     airMopError(mop); return 1;
   }
 
@@ -105,10 +105,10 @@ main(int argc, char *argv[]) {
   sy = nin->axis[2].size;
   if (_nbg) {
     if (!(3 == _nbg->dim 
-	  && 3 == _nbg->axis[0].size
-	  && 2 <= _nbg->axis[1].size
-	  && 2 <= _nbg->axis[2].size
-	  && nrrdTypeUChar == _nbg->type)) {
+          && 3 == _nbg->axis[0].size
+          && 2 <= _nbg->axis[1].size
+          && 2 <= _nbg->axis[2].size
+          && nrrdTypeUChar == _nbg->type)) {
       fprintf(stderr, "%s: background not an 8-bit RGB image\n", me);
       airMopError(mop); return 1;
     }

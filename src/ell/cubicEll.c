@@ -97,8 +97,8 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
     /*
     if (ell_debug) {
       fprintf(stderr, "%s: root = %g -> %g, nr=% 20.15f\n"
-	      "   fnr=% 20.15f\n", me,
-	      x, (((x + A)*x + B)*x + C), nr, fnr);
+              "   fnr=% 20.15f\n", me,
+              x, (((x + A)*x + B)*x + C), nr, fnr);
     }
     */
     if (fnr < -epsilon || fnr > epsilon) {
@@ -108,16 +108,16 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
     }
     else {
       if (ell_debug) {
-	fprintf(stderr, "%s: rescued double root:% 20.15f\n", me, nr);
+        fprintf(stderr, "%s: rescued double root:% 20.15f\n", me, nr);
       } 
       if (x > nr) {
-	root[0] = x;
-	root[1] = nr;
-	root[2] = nr;
+        root[0] = x;
+        root[1] = nr;
+        root[2] = nr;
       } else {
-	root[0] = nr;
-	root[1] = nr;
-	root[2] = x;
+        root[0] = nr;
+        root[1] = nr;
+        root[2] = x;
       }
       return ell_cubic_root_single_double;
     }
@@ -128,13 +128,13 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
       /* one double root and one single root */
       u = airCbrt(R);
       if (u > 0) {
-	root[0] = 2*u - sub;
-	root[1] = -u - sub;
-	root[2] = -u - sub;
+        root[0] = 2*u - sub;
+        root[1] = -u - sub;
+        root[2] = -u - sub;
       } else {
-	root[0] = -u - sub;
-	root[1] = -u - sub;
-	root[2] = 2*u - sub;
+        root[0] = -u - sub;
+        root[1] = -u - sub;
+        root[2] = 2*u - sub;
       }
       return ell_cubic_root_single_double;
     } 

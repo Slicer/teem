@@ -39,31 +39,31 @@ unrrdu_mrmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   double min, max;
 
   hestOptAdd(&opt, "m", "mmap", airTypeOther, 1, -1, &_nmmap, NULL,
-	     "one nrrd of regular maps to map input nrrd through, or, "
-	     "list of nrrds which contain the individual entries of the map "
-	     "at each voxel, which will be joined together.",
-	     &_nmmapLen, NULL, nrrdHestNrrd);
+             "one nrrd of regular maps to map input nrrd through, or, "
+             "list of nrrds which contain the individual entries of the map "
+             "at each voxel, which will be joined together.",
+             &_nmmapLen, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "r", NULL, airTypeInt, 0, 0, &rescale, NULL,
-	     "rescale the input values from the input range to the "
-	     "map domain.  The map domain is either explicitly "
-	     "defined by the axis min,max along axis 0 or 1, or, it "
-	     "is implicitly defined as zero to one minus the length of "
-	     "that axis.");
+             "rescale the input values from the input range to the "
+             "map domain.  The map domain is either explicitly "
+             "defined by the axis min,max along axis 0 or 1, or, it "
+             "is implicitly defined as zero to one minus the length of "
+             "that axis.");
   hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
-	     "Low end of input range. Defaults to lowest value "
-	     "found in input nrrd.  Explicitly setting this is useful "
-	     "only with rescaling (\"-r\") or if the map domain is only "
-	     "implicitly defined");
+             "Low end of input range. Defaults to lowest value "
+             "found in input nrrd.  Explicitly setting this is useful "
+             "only with rescaling (\"-r\") or if the map domain is only "
+             "implicitly defined");
   hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
-	     "High end of input range. Defaults to highest value "
-	     "found in input nrrd.  Explicitly setting this is useful "
-	     "only with rescaling (\"-r\") or if the map domain is only "
-	     "implicitly defined");
+             "High end of input range. Defaults to highest value "
+             "found in input nrrd.  Explicitly setting this is useful "
+             "only with rescaling (\"-r\") or if the map domain is only "
+             "implicitly defined");
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &typeOut, "default",
-	     "specify the type (\"int\", \"float\", etc.) of the "
-	     "output nrrd. "
-	     "By default (not using this option), the output type "
-	     "is the map's type.",
+             "specify the type (\"int\", \"float\", etc.) of the "
+             "output nrrd. "
+             "By default (not using this option), the output type "
+             "is the map's type.",
              NULL, NULL, &unrrduHestMaybeTypeCB);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
@@ -106,7 +106,7 @@ unrrdu_mrmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
 
   if (!( AIR_EXISTS(nmmap->axis[mapAxis].min) && 
-	 AIR_EXISTS(nmmap->axis[mapAxis].max) )) {
+         AIR_EXISTS(nmmap->axis[mapAxis].max) )) {
     rescale = AIR_TRUE;
   }
   if (rescale) {

@@ -36,74 +36,74 @@ void
 ell_3m_print_f(FILE *f, float s[9]) {
 
   fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
-	  s[0], s[1], s[2]);
+          s[0], s[1], s[2]);
   fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
-	  s[3], s[4], s[5]);
+          s[3], s[4], s[5]);
   fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
-	  s[6], s[7], s[8]);
+          s[6], s[7], s[8]);
 }
 
 void
 ell_3v_print_f(FILE *f, float s[3]) {
 
   fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
-	  s[0], s[1], s[2]);
+          s[0], s[1], s[2]);
 }
 
 void
 ell_3m_print_d(FILE *f, double s[9]) {
 
   fprintf(f, "% 31.15f % 31.15f % 31.15f\n", 
-	  s[0], s[1], s[2]);
+          s[0], s[1], s[2]);
   fprintf(f, "% 31.15f % 31.15f % 31.15f\n", 
-	  s[3], s[4], s[5]);
+          s[3], s[4], s[5]);
   fprintf(f, "% 31.15f % 31.15f % 31.15f\n", 
-	  s[6], s[7], s[8]);
+          s[6], s[7], s[8]);
 }
 
 void
 ell_3v_print_d(FILE *f, double s[3]) {
 
   fprintf(f, "% 31.15f % 31.15f % 31.15f\n",
-	  s[0], s[1], s[2]);
+          s[0], s[1], s[2]);
 }
 
 void
 ell_4m_print_f(FILE *f, float s[16]) {
 
   fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n", 
-	  s[ 0], s[ 1], s[ 2], s[ 3]);
+          s[ 0], s[ 1], s[ 2], s[ 3]);
   fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n", 
-	  s[ 4], s[ 5], s[ 6], s[ 7]);
+          s[ 4], s[ 5], s[ 6], s[ 7]);
   fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n", 
-	  s[ 8], s[ 9], s[10], s[11]);
+          s[ 8], s[ 9], s[10], s[11]);
   fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n", 
-	  s[12], s[13], s[14], s[15]);
+          s[12], s[13], s[14], s[15]);
 }
 
 void
 ell_4v_print_f(FILE *f, float s[4]) {
 
   fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n", 
-	  s[0], s[1], s[2], s[3]);
+          s[0], s[1], s[2], s[3]);
 }
 
 void
 ell_4m_print_d(FILE *f, double s[16]) {
 
   fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n", 
-	  s[ 0], s[ 1], s[ 2], s[ 3]);
+          s[ 0], s[ 1], s[ 2], s[ 3]);
   fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n", 
-	  s[ 4], s[ 5], s[ 6], s[ 7]);
+          s[ 4], s[ 5], s[ 6], s[ 7]);
   fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n", 
-	  s[ 8], s[ 9], s[10], s[11]);
+          s[ 8], s[ 9], s[10], s[11]);
   fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n", 
-	  s[12], s[13], s[14], s[15]);
+          s[12], s[13], s[14], s[15]);
 }
 
 void
 ell_4v_print_d(FILE *f, double s[4]) {
 
   fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n", 
-	  s[0], s[1], s[2], s[3]);
+          s[0], s[1], s[2], s[3]);
 }

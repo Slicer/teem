@@ -63,7 +63,7 @@ _tenEMBimodalInit(tenEMBimodalParm *biparm, Nrrd *_nhisto) {
 
   if (!( biparm->maxIteration > 5 )) {
     sprintf(err, "%s: biparm->maxIteration = %d too small", me, 
-	    biparm->maxIteration);
+            biparm->maxIteration);
     biffAdd(TEN, err); return 1;
   }
   
@@ -78,11 +78,11 @@ _tenEMBimodalInit(tenEMBimodalParm *biparm, Nrrd *_nhisto) {
   biparm->N = nhisto->axis[0].size;
   biparm->histo = (double*)(nhisto->data);
   biparm->vmin = (AIR_EXISTS(nhisto->axis[0].min)
-		  ? nhisto->axis[0].min
-		  : -0.5);
+                  ? nhisto->axis[0].min
+                  : -0.5);
   biparm->vmax = (AIR_EXISTS(nhisto->axis[0].max)
-		  ? nhisto->axis[0].max
-		  : biparm->N - 0.5);
+                  ? nhisto->axis[0].max
+                  : biparm->N - 0.5);
 
   (nrrdMeasureLine[nrrdMeasureHistoMedian])
     (&medianD, nrrdTypeDouble,
@@ -134,8 +134,8 @@ _tenEMBimodalInit(tenEMBimodalParm *biparm, Nrrd *_nhisto) {
   if (biparm->verbose) {
     fprintf(stderr, "%s: median = %d\n", me, median);
     fprintf(stderr, "%s: m1, s1 = %g, %g; m2, s2 = %g, %g\n", me,
-	    biparm->mean1, biparm->stdv1,
-	    biparm->mean2, biparm->stdv2);
+            biparm->mean1, biparm->stdv1,
+            biparm->mean2, biparm->stdv2);
   }
   
   airMopOkay(mop);
@@ -172,8 +172,8 @@ _tenEMBimodalPP(tenEMBimodalParm *biparm) {
   double g1, g2, pp1, pp2, f1, min;
   
   min = (1 == biparm->stage 
-	 ? biparm->minProb 
-	 : biparm->minProb2);
+         ? biparm->minProb 
+         : biparm->minProb2);
   f1 = biparm->fraction1;
   for (i=0; i<biparm->N; i++) {
     g1 = airGaussian(i, biparm->mean1, biparm->stdv1);
@@ -218,7 +218,7 @@ _tenEMBimodalNewFraction1(tenEMBimodalParm *biparm) {
 
 void
 _tenEMBimodalNewMean(double *m1P, double *m2P,
-		     tenEMBimodalParm *biparm) {
+                     tenEMBimodalParm *biparm) {
   int i;
   double pp1, pp2, h, sum1, isum1, sum2, isum2;
   
@@ -238,8 +238,8 @@ _tenEMBimodalNewMean(double *m1P, double *m2P,
 
 void
 _tenEMBimodalNewSigma(double *s1P, double *s2P,
-		      double m1, double m2, 
-		      tenEMBimodalParm *biparm) {
+                      double m1, double m2, 
+                      tenEMBimodalParm *biparm) {
   int i;
   double pp1, pp2, h, sum1, isum1, sum2, isum2;
   
@@ -317,8 +317,8 @@ _tenEMBimodalIterate(tenEMBimodalParm *biparm) {
   _tenEMBimodalNewSigma(&s1, &s2, m1, m2, biparm);
 
   biparm->delta = ((fabs(m1 - om1) + fabs(m2 - om2)
-		    + fabs(s1 - os1) + fabs(s2 - os2))/biparm->N
-		   + fabs(f1 - of1));
+                    + fabs(s1 - os1) + fabs(s2 - os2))/biparm->N
+                   + fabs(f1 - of1));
   
   /* set new values */
   biparm->mean1 = m1;
@@ -345,7 +345,7 @@ _tenEMBimodalConfThresh(tenEMBimodalParm *biparm) {
   double m1, s1, m2, s2, f1, f2, A, B, C, D, t1, t2;
 
   biparm->confidence = ((biparm->mean2 - biparm->mean1)
-			/ (biparm->stdv1 + biparm->stdv2));
+                        / (biparm->stdv1 + biparm->stdv2));
   m1 = biparm->mean1;
   s1 = biparm->stdv1;
   f1 = biparm->fraction1;
@@ -369,7 +369,7 @@ _tenEMBimodalConfThresh(tenEMBimodalParm *biparm) {
       biparm->threshold = t2;
     } else {
       sprintf(err, "%s: neither computed threshold %g,%g inside open interval "
-	      "between means (%g,%g)", me, t1, t2, m1, m2);
+              "between means (%g,%g)", me, t1, t2, m1, m2);
       biffAdd(TEN, err); return 1;
       return 1;
     }
@@ -377,7 +377,7 @@ _tenEMBimodalConfThresh(tenEMBimodalParm *biparm) {
 
   if (biparm->verbose) {
     fprintf(stderr, "%s: conf = %g, thresh = %g\n", me, 
-	    biparm->confidence, biparm->threshold);
+            biparm->confidence, biparm->threshold);
   }
   return 0;
 }
@@ -388,29 +388,29 @@ _tenEMBimodalCheck(tenEMBimodalParm *biparm) {
 
   if (!( biparm->confidence > biparm->minConfidence )) {
     sprintf(err, "%s: confidence %g went below threshold %g", me,
-	    biparm->confidence, biparm->minConfidence);
+            biparm->confidence, biparm->minConfidence);
     biffAdd(TEN, err); return 1;
   }
   if (!( biparm->stdv1 > 0 && biparm->stdv2 > 0 )) {
     sprintf(err, "%s: stdv of material 1 (%g) or 2 (%g) went negative", me,
-	    biparm->stdv1, biparm->stdv2);
+            biparm->stdv1, biparm->stdv2);
     biffAdd(TEN, err); return 1;
   }
   if (!( biparm->mean1 > 0 && biparm->mean1 < biparm->N-1
-	 && biparm->mean2 > 0 && biparm->mean2 < biparm->N-1 )) {
+         && biparm->mean2 > 0 && biparm->mean2 < biparm->N-1 )) {
     sprintf(err, "%s: mean of material 1 (%g) or 2 (%g) went outside "
-	    "given histogram range [0 .. %d]", me,
-	    biparm->mean1, biparm->mean2, biparm->N-1);
+            "given histogram range [0 .. %d]", me,
+            biparm->mean1, biparm->mean2, biparm->N-1);
     biffAdd(TEN, err); return 1;
   }
   if (biparm->fraction1 < biparm->minFraction) {
     sprintf(err, "%s: material 1 fraction (%g) fell below threshold %g", me,
-	    biparm->fraction1, biparm->minFraction);
+            biparm->fraction1, biparm->minFraction);
     biffAdd(TEN, err); return 1;
   }
   if (1 - biparm->fraction1 < biparm->minFraction) {
     sprintf(err, "%s: material 2 fraction (%g) fell below threshold %g", me,
-	    1 - biparm->fraction1, biparm->minFraction);
+            1 - biparm->fraction1, biparm->minFraction);
     biffAdd(TEN, err); return 1;
   }
   return 0;
@@ -441,25 +441,25 @@ tenEMBimodal(tenEMBimodalParm *biparm, Nrrd *_nhisto) {
        biparm->stage <= (biparm->twoStage ? 2 : 1);
        biparm->stage++) {
     for (_iter=0; 
-	 biparm->iteration <= biparm->maxIteration; 
-	 biparm->iteration++, _iter++) {
+         biparm->iteration <= biparm->maxIteration; 
+         biparm->iteration++, _iter++) {
       if (_tenEMBimodalIterate(biparm)    /* sets delta */
-	  || _tenEMBimodalConfThresh(biparm)
-	  || _tenEMBimodalCheck(biparm)) {
-	sprintf(err, "%s: problem with fitting (iter=%d)", me,
-		biparm->iteration);
-	biffAdd(TEN, err); return 1;
+          || _tenEMBimodalConfThresh(biparm)
+          || _tenEMBimodalCheck(biparm)) {
+        sprintf(err, "%s: problem with fitting (iter=%d)", me,
+                biparm->iteration);
+        biffAdd(TEN, err); return 1;
       }
       if (biparm->delta < biparm->minDelta
-	  && (!biparm->twoStage || 1 == biparm->stage || _iter > 10) ) {
-	done = AIR_TRUE;
-	break;
+          && (!biparm->twoStage || 1 == biparm->stage || _iter > 10) ) {
+        done = AIR_TRUE;
+        break;
       }
     }
   }
   if (!done) {
     sprintf(err, "%s: didn't converge after %d iterations", me, 
-	    biparm->maxIteration);
+            biparm->maxIteration);
     biffAdd(TEN, err); return 1;
   }
   

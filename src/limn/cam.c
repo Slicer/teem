@@ -46,7 +46,7 @@ limnCameraUpdate(limnCamera *cam) {
   len = ELL_3V_LEN(nn);
   if (!len) {
     sprintf(err, "%s: cam->at (%g,%g,%g) == cam->from", me,
-	    cam->at[0], cam->at[1], cam->at[2]);
+            cam->at[0], cam->at[1], cam->at[2]);
     biffAdd(LIMN, err); return 1;
   }
   if (cam->atRelative) {
@@ -63,18 +63,18 @@ limnCameraUpdate(limnCamera *cam) {
   }
   if (!(cam->vspNeer > 0 && cam->vspDist > 0 && cam->vspFaar > 0)) {
     sprintf(err, "%s: eye-relative near (%g), dist (%g), or far (%g) <= 0",
-	    me, cam->vspNeer, cam->vspDist, cam->vspFaar);
+            me, cam->vspNeer, cam->vspDist, cam->vspFaar);
     biffAdd(LIMN, err); return 1;
   }
   if (!(cam->vspNeer <= cam->vspFaar)) {
     sprintf(err, "%s: eye-relative near (%g) further than far (%g)",
-	    me, cam->vspNeer, cam->vspFaar);
+            me, cam->vspNeer, cam->vspFaar);
     biffAdd(LIMN, err); return 1 ;
   }
   if (AIR_EXISTS(cam->fov)) {
     if (!( AIR_IN_OP(0.0, cam->fov, 180.0) )) {
       sprintf(err, "%s: cam->fov (%g) not in valid range between 0 and 180",
-	      me, cam->fov);
+              me, cam->fov);
       biffAdd(LIMN, err); return 1 ;
     }
     if (!AIR_EXISTS(cam->aspect)) {
@@ -187,12 +187,12 @@ limnCameraAspectSet(limnCamera *cam, int horz, int vert, int centering) {
 */
 int
 limnCameraPathMake(limnCamera *cam, int numFrames,
-		   limnCamera *keycam, double *time, int numKeys,
-		   int trackWhat, 
-		   limnSplineTypeSpec *quatType,
-		   limnSplineTypeSpec *posType,
-		   limnSplineTypeSpec *distType,
-		   limnSplineTypeSpec *viewType) {
+                   limnCamera *keycam, double *time, int numKeys,
+                   int trackWhat, 
+                   limnSplineTypeSpec *quatType,
+                   limnSplineTypeSpec *posType,
+                   limnSplineTypeSpec *distType,
+                   limnSplineTypeSpec *viewType) {
   char me[]="limnCameraPathMake", err[AIR_STRLEN_MED];
   char which[AIR_STRLEN_MED];
   airArray *mop;
@@ -209,15 +209,15 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
     biffAdd(LIMN, err); return 1;
   }
   if (!( AIR_IN_OP(limnCameraPathTrackUnknown, trackWhat,
-		   limnCameraPathTrackLast) )) {
+                   limnCameraPathTrackLast) )) {
     sprintf(err, "%s: trackWhat %d not in valid range [%d,%d]", me,
-	    trackWhat, limnCameraPathTrackUnknown+1,
-	    limnCameraPathTrackLast-1);
+            trackWhat, limnCameraPathTrackUnknown+1,
+            limnCameraPathTrackLast-1);
     biffAdd(LIMN, err); return 1;
   }
   if (limnCameraPathTrackBoth != trackWhat && !quatType) {
     sprintf(err, "%s: need the quaternion limnSplineTypeSpec if not "
-	    "doing trackBoth", me);
+            "doing trackBoth", me);
     biffAdd(LIMN, err); return 1;
   }
 
@@ -270,7 +270,7 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
     ell_4m_to_q_d(quat + 4*ii, keycam[ii].W2V);
     if (ii) {
       if (0 > ELL_4V_DOT(quat + 4*ii, quat + 4*(ii-1))) {
-	ELL_4V_SCALE(quat + 4*ii, -1, quat + 4*ii);
+        ELL_4V_SCALE(quat + 4*ii, -1, quat + 4*ii);
       }
     }
     ELL_3V_COPY(from + 3*ii, keycam[ii].from);
@@ -279,25 +279,25 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
     ELL_3V_SUB(fratVec, keycam[ii].from, keycam[ii].at);
     fratDist = ELL_3V_LEN(fratVec);
     ELL_4V_SET(dist + 4*ii, fratDist, 
-	       keycam[ii].neer, keycam[ii].dist, keycam[ii].faar);
+               keycam[ii].neer, keycam[ii].dist, keycam[ii].faar);
     ELL_2V_SET(fova + 2*ii, keycam[ii].fov, keycam[ii].aspect);
   }
 
   /* create splines from nrrds */
   if (!( (strcpy(which, "quaternion"), quatSpline = 
-	  limnSplineCleverNew(nquat, limnSplineInfoQuaternion, quatType))
-	 && (strcpy(which, "from point"), fromSpline = 
-	     limnSplineCleverNew(nfrom, limnSplineInfo3Vector, posType))
-	 && (strcpy(which, "at point"), atptSpline = 
-	     limnSplineCleverNew(natpt, limnSplineInfo3Vector, posType))
-	 && (strcpy(which, "up vector"), upvcSpline = 
-	     limnSplineCleverNew(nupvc, limnSplineInfo3Vector, posType))
-	 && (strcpy(which, "plane distances"), distSpline = 
-	     limnSplineCleverNew(ndist, limnSplineInfo4Vector, distType))
-	 && (strcpy(which, "field-of-view"), fovaSpline =
-	     limnSplineCleverNew(nfova, limnSplineInfo2Vector, viewType))
-	 && (strcpy(which, "time warp"), timeSpline = 
-	     limnSplineCleverNew(ntime, limnSplineInfoScalar, timeType)) )) {
+          limnSplineCleverNew(nquat, limnSplineInfoQuaternion, quatType))
+         && (strcpy(which, "from point"), fromSpline = 
+             limnSplineCleverNew(nfrom, limnSplineInfo3Vector, posType))
+         && (strcpy(which, "at point"), atptSpline = 
+             limnSplineCleverNew(natpt, limnSplineInfo3Vector, posType))
+         && (strcpy(which, "up vector"), upvcSpline = 
+             limnSplineCleverNew(nupvc, limnSplineInfo3Vector, posType))
+         && (strcpy(which, "plane distances"), distSpline = 
+             limnSplineCleverNew(ndist, limnSplineInfo4Vector, distType))
+         && (strcpy(which, "field-of-view"), fovaSpline =
+             limnSplineCleverNew(nfova, limnSplineInfo2Vector, viewType))
+         && (strcpy(which, "time warp"), timeSpline = 
+             limnSplineCleverNew(ntime, limnSplineInfoScalar, timeType)) )) {
     sprintf(err, "%s: trouble creating %s spline", me, which);
     biffAdd(LIMN, err); airMopError(mop); return 1;
   }
@@ -312,8 +312,8 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
   /* evaluate splines */
   E = AIR_FALSE;
   if (!E) E |= limnSplineSample(nsample, timeSpline,
-				limnSplineMinT(timeSpline), numFrames,
-				limnSplineMaxT(timeSpline));
+                                limnSplineMinT(timeSpline), numFrames,
+                                limnSplineMaxT(timeSpline));
   quat = NULL;
   from = NULL;
   atpt = NULL;
@@ -365,15 +365,15 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
       ell_q_to_3m_d(W2V, quat + 4*ii);
       ELL_3MV_ROW1_GET(cam[ii].up, W2V);
       if (cam[ii].rightHanded) {
-	ELL_3V_SCALE(cam[ii].up, -1, cam[ii].up);
+        ELL_3V_SCALE(cam[ii].up, -1, cam[ii].up);
       }
       ELL_3MV_ROW2_GET(N, W2V);
       if (limnCameraPathTrackFrom == trackWhat) {
-	ELL_3V_COPY(cam[ii].from, from + 3*ii);
-	ELL_3V_SCALE_ADD2(cam[ii].at, 1.0, cam[ii].from, fratDist, N);
+        ELL_3V_COPY(cam[ii].from, from + 3*ii);
+        ELL_3V_SCALE_ADD2(cam[ii].at, 1.0, cam[ii].from, fratDist, N);
       } else {
-	ELL_3V_COPY(cam[ii].at, atpt + 3*ii);
-	ELL_3V_SCALE_ADD2(cam[ii].from, 1.0, cam[ii].at, -fratDist, N);
+        ELL_3V_COPY(cam[ii].at, atpt + 3*ii);
+        ELL_3V_SCALE_ADD2(cam[ii].from, 1.0, cam[ii].at, -fratDist, N);
       }
     }
     cam[ii].neer = (dist + 4*ii)[1];

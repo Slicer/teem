@@ -41,7 +41,7 @@ unrrdu_headDoit(char *me, NrrdIoState *io, char *inS, FILE *fout) {
   mop = airMopNew();
   if (!( fin = airFopen(inS, stdin, "rb") )) {
     sprintf(err, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", 
-	    me, inS, strerror(errno));
+            me, inS, strerror(errno));
     biffAdd(me, err); airMopError(mop); return 1;
   }
   airMopAdd(mop, fin, (airMopper)airFclose, airMopAlways);
@@ -56,7 +56,7 @@ unrrdu_headDoit(char *me, NrrdIoState *io, char *inS, FILE *fout) {
   }
   if (!( nrrdFormatNRRD->contentStartsLike(io) )) {
     sprintf(err, "%s: first line (\"%s\") isn't a nrrd magic\n", 
-	    me, io->line);
+            me, io->line);
     biffAdd(me, err); airMopError(mop); return 1;
   }
   while (len > 1) {
@@ -91,7 +91,7 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   mop = airMopNew();
   hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL,
-	     "input nrrd(s)", &ninLen);
+             "input nrrd(s)", &ninLen);
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(_unrrdu_headInfoL);
@@ -108,7 +108,7 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
     if (unrrdu_headDoit(me, io, inS[ni], stdout)) {
       airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble reading from \"%s\":\n%s",
-	      me, inS[ni], err);
+              me, inS[ni], err);
       /* continue working on the remaining files */
     }
     if (ninLen > 1 && ni < ninLen-1) {

@@ -36,9 +36,9 @@ unrrdu_ccadjMain(int argc, char **argv, char *me, hestParm *hparm) {
   int conny, pret;
 
   hestOptAdd(&opt, "c", "connectivity", airTypeInt, 1, 1, &conny, NULL,
-	     "what kind of connectivity to use: the number of coordinates "
-	     "that vary in order to traverse the neighborhood of a given "
-	     "sample.  In 2D: \"1\": 4-connected, \"2\": 8-connected");
+             "what kind of connectivity to use: the number of coordinates "
+             "that vary in order to traverse the neighborhood of a given "
+             "sample.  In 2D: \"1\": 4-connected, \"2\": 8-connected");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

@@ -47,62 +47,62 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   float bw[2], thr, fitFrac;
   
   hestOptAdd(&hopt, "i", "dwi0 dwi1", airTypeOther, 1, -1, &nin, NULL,
-	     "all the diffusion-weighted images (DWIs), as seperate 3D nrrds, "
-	     "**OR**: one 4D nrrd of all DWIs stacked along axis 0",
-	     &ninLen, NULL, nrrdHestNrrd);
+             "all the diffusion-weighted images (DWIs), as seperate 3D nrrds, "
+             "**OR**: one 4D nrrd of all DWIs stacked along axis 0",
+             &ninLen, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "g", "grads", airTypeOther, 1, 1, &ngrad, NULL,
-	     "array of gradient directions, in the same order as the "
-	     "associated DWIs were given to \"-i\"", NULL, NULL, nrrdHestNrrd);
+             "array of gradient directions, in the same order as the "
+             "associated DWIs were given to \"-i\"", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "r", "reference", airTypeInt, 1, 1, &ref, "-1",
-	     "which of the DW volumes (zero-based numbering) should be used "
-	     "as the standard, to which all other images are transformed. "
-	     "Using -1 (the default) means that 9 intrinsic parameters "
-	     "governing the relationship between the gradient direction "
-	     "and the resulting distortion are estimated and fitted, "
-	     "ensuring good registration with the non-diffusion-weighted "
-	     "T2 image (which is never explicitly used in registration). "
-	     "Otherwise, by picking a specific DWI, no distortion parameter "
-	     "estimation is done. ");
+             "which of the DW volumes (zero-based numbering) should be used "
+             "as the standard, to which all other images are transformed. "
+             "Using -1 (the default) means that 9 intrinsic parameters "
+             "governing the relationship between the gradient direction "
+             "and the resulting distortion are estimated and fitted, "
+             "ensuring good registration with the non-diffusion-weighted "
+             "T2 image (which is never explicitly used in registration). "
+             "Otherwise, by picking a specific DWI, no distortion parameter "
+             "estimation is done. ");
   hestOptAdd(&hopt, "nv", NULL, airTypeInt, 0, 0, &noverbose, NULL,
-	     "turn OFF verbose mode, and "
-	     "have no idea what stage processing is at.");
+             "turn OFF verbose mode, and "
+             "have no idea what stage processing is at.");
   hestOptAdd(&hopt, "p", NULL, airTypeInt, 0, 0, &progress, NULL,
-	     "save out intermediate steps of processing");
+             "save out intermediate steps of processing");
   hestOptAdd(&hopt, "bw", "x,y blur", airTypeFloat, 2, 2, bw, "1.0 2.0",
-	     "standard devs in X and Y directions of gaussian filter used "
-	     "to blur the DWIs prior to doing segmentation. This blurring "
-	     "does not effect the final resampling of registered DWIs. "
-	     "Use \"0.0 0.0\" to say \"no blurring\"");
+             "standard devs in X and Y directions of gaussian filter used "
+             "to blur the DWIs prior to doing segmentation. This blurring "
+             "does not effect the final resampling of registered DWIs. "
+             "Use \"0.0 0.0\" to say \"no blurring\"");
   hestOptAdd(&hopt, "t", "DWI thresh", airTypeFloat, 1, 1, &thr, "nan",
-	     "Threshold value to use on DWIs, "
-	     "to do initial seperation of brain and non-brain.  By default, "
-	     "the threshold is determined automatically by histogram "
-	     "analysis. ");
+             "Threshold value to use on DWIs, "
+             "to do initial seperation of brain and non-brain.  By default, "
+             "the threshold is determined automatically by histogram "
+             "analysis. ");
   hestOptAdd(&hopt, "ncc", NULL, airTypeInt, 0, 0, &nocc, NULL,
-	     "do *NOT* do connected component (CC) analysis, after "
-	     "thresholding and before moment calculation.  Doing CC analysis "
-	     "usually gives better results because it converts the "
-	     "thresholding output into something much closer to a "
-	     "real segmentation");
+             "do *NOT* do connected component (CC) analysis, after "
+             "thresholding and before moment calculation.  Doing CC analysis "
+             "usually gives better results because it converts the "
+             "thresholding output into something much closer to a "
+             "real segmentation");
   hestOptAdd(&hopt, "f", "fit frac", airTypeFloat, 1, 1, &fitFrac, "0.70",
-	     "(only meaningful with \"-r -1\") When doing linear fitting "
-	     "of the intrinsic distortion parameters, it is good "
-	     "to ignore the slices for which the segmentation was poor.  A "
-	     "heuristic is used to rank the slices according to segmentation "
-	     "quality.  This option controls how many of the (best) slices "
-	     "contribute to the fitting.  Use \"0\" to disable distortion "
-	     "parameter fitting. ");
+             "(only meaningful with \"-r -1\") When doing linear fitting "
+             "of the intrinsic distortion parameters, it is good "
+             "to ignore the slices for which the segmentation was poor.  A "
+             "heuristic is used to rank the slices according to segmentation "
+             "quality.  This option controls how many of the (best) slices "
+             "contribute to the fitting.  Use \"0\" to disable distortion "
+             "parameter fitting. ");
   hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &ksp, "cubic:0,0.5",
-	     "kernel for resampling DWIs along the phase-encoding "
-	     "direction during final registration stage",
-	     NULL, NULL, nrrdHestKernelSpec);
+             "kernel for resampling DWIs along the phase-encoding "
+             "direction during final registration stage",
+             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "s", "start #", airTypeInt, 1, 1, &baseNum, "1",
-	     "first number to use in numbered sequence of output files.");
+             "first number to use in numbered sequence of output files.");
   hestOptAdd(&hopt, "o", "output/prefix", airTypeString, 1, 1, &outS, NULL,
-	     "For seperate 3D DWI volume inputs: prefix for output filenames; "
-	     "will save out one (registered) "
-	     "DWI for each input DWI, using the same type as the input. "
-	     "**OR**: For single 4D DWI input: output file name. ");
+             "For seperate 3D DWI volume inputs: prefix for output filenames; "
+             "will save out one (registered) "
+             "DWI for each input DWI, using the same type as the input. "
+             "**OR**: For single 4D DWI input: output file name. ");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -126,16 +126,16 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   if (1 == ninLen) {
     rret = tenEpiRegister4D(nout4D, nin[0], ngrad,
-			    ref,
-			    bw[0], bw[1], fitFrac, thr, !nocc,
-			    ksp->kernel, ksp->parm,
-			    progress, !noverbose);
+                            ref,
+                            bw[0], bw[1], fitFrac, thr, !nocc,
+                            ksp->kernel, ksp->parm,
+                            progress, !noverbose);
   } else {
     rret = tenEpiRegister3D(nout3D, nin, ninLen, ngrad,
-			    ref,
-			    bw[0], bw[1], fitFrac, thr, !nocc,
-			    ksp->kernel, ksp->parm,
-			    progress, !noverbose);
+                            ref,
+                            bw[0], bw[1], fitFrac, thr, !nocc,
+                            ksp->kernel, ksp->parm,
+                            progress, !noverbose);
   }
   if (rret) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
@@ -152,16 +152,16 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   } else {
     for (ni=0; ni<ninLen; ni++) {
       if (ninLen+baseNum > 99) {
-	sprintf(buff, "%s%05d.nrrd", outS, ni+baseNum);
+        sprintf(buff, "%s%05d.nrrd", outS, ni+baseNum);
       } else if (ninLen+baseNum > 9) {
-	sprintf(buff, "%s%02d.nrrd", outS, ni+baseNum);
+        sprintf(buff, "%s%02d.nrrd", outS, ni+baseNum);
       } else {
-	sprintf(buff, "%s%d.nrrd", outS, ni+baseNum);
+        sprintf(buff, "%s%d.nrrd", outS, ni+baseNum);
       }
       if (nrrdSave(buff, nout3D[ni], NULL)) {
-	airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
-	fprintf(stderr, "%s: trouble writing \"%s\":\n%s\n", me, buff, err);
-	airMopError(mop); return 1;
+        airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+        fprintf(stderr, "%s: trouble writing \"%s\":\n%s\n", me, buff, err);
+        airMopError(mop); return 1;
       }
     }
   }

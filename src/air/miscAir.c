@@ -21,7 +21,7 @@
 #include "air.h"
 #include <teem32bit.h>
 /* timer functions */
-#ifdef _WIN32
+#ifdef _MSC_VER
 #include <io.h>
 #include <fcntl.h>
 #include <time.h>
@@ -188,7 +188,7 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
   if (isF || isD) {
     if (isF) {
       /* use "double" instead of "float" because var args are _always_
-	 subject to old-style C type promotions: float promotes to double */
+         subject to old-style C type promotions: float promotes to double */
       valF = (float)(va_arg(ap, double));
       cls = airFPClass_f(valF);
     }
@@ -202,13 +202,13 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
     case airFP_POS_INF:
     case airFP_NEG_INF:
       if (isF) {
-	memcpy(conv, "%s", 2);
+        memcpy(conv, "%s", 2);
       }
       else {
-	/* this sneakiness allows us to replace a 3-character conversion
-	   sequence for a double (such as %lg) with a 3-character conversion
-	   for a string, which we know has at most 4 characters */
-	memcpy(conv, "%4s", 3);
+        /* this sneakiness allows us to replace a 3-character conversion
+           sequence for a double (such as %lg) with a 3-character conversion
+           for a string, which we know has at most 4 characters */
+        memcpy(conv, "%4s", 3);
       }
       break;
     }
@@ -226,10 +226,10 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
       break;
     default:
       if (isF) {
-	ret = PRINT(file, str, fmt, valF);
+        ret = PRINT(file, str, fmt, valF);
       }
       else {
-	ret = PRINT(file, str, fmt, valD);
+        ret = PRINT(file, str, fmt, valD);
       }
       break;
     }
@@ -350,7 +350,7 @@ airDoneStr(float start, float here, float end, char *str) {
     }
     else if (perc == 1000) {
       /* the "% 3d" formatting sequence should have taken care
-	 of this, but whatever */
+         of this, but whatever */
       sprintf(str, "\b\b\b\b\b\b100.0%%");
     }
     else {
@@ -367,7 +367,7 @@ airDoneStr(float start, float here, float end, char *str) {
   else {
     if (len != strlen(str)) {
       printf("len(\\b\\b\\b\\b\\b\\b% 3d.%d%%) != %d\n", 
-	      perc/10, perc%10, len);
+              perc/10, perc%10, len);
       exit(1);
     }
   }
@@ -397,8 +397,8 @@ double
 airSgnPow(double v, double p) {
 
   return (v >= 0
-	  ? pow(v, p)
-	  : -pow(-v, p));
+          ? pow(v, p)
+          : -pow(-v, p));
 }
 
 /*
@@ -422,10 +422,10 @@ airLog2(float n) {
 int
 airSgn(double v) {
   return (v > 0
-	  ? 1
-	  : (v < 0
-	     ? -1
-	     : 0));
+          ? 1
+          : (v < 0
+             ? -1
+             : 0));
 }
 
 /*
@@ -451,7 +451,7 @@ airBinaryPrintUInt(FILE *file, int digits, unsigned int N) {
   digits = AIR_CLAMP(1, digits, 32);
   for (digits=digits; digits>=1; digits--) {
     fprintf(file, "%c", ((1<<(digits-1)) & N
-			 ? '1' : '0'));
+                         ? '1' : '0'));
   }
 }
 

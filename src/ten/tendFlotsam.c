@@ -50,7 +50,7 @@ tendUsage(char *me, hestParm *hparm) {
 
   sprintf(buff, "--- Diffusion Tensor Processing and Analysis ---");
   sprintf(fmt, "%%%ds\n",
-	  (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
+          (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
   
   for (i=0; tendCmdList[i]; i++) {
@@ -65,7 +65,7 @@ tendUsage(char *me, hestParm *hparm) {
     len = strlen(buff);
     fprintf(stderr, "%s", buff);
     _hestPrintStr(stderr, len, len, hparm->columns,
-		  tendCmdList[i]->info, AIR_FALSE);
+                  tendCmdList[i]->info, AIR_FALSE);
   }
 }
 
@@ -106,7 +106,7 @@ tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
   info[0] = airEnumVal(tenFiberStop, str);
   if (tenFiberStopUnknown == info[0]) {
     sprintf(err, "%s: didn't recognize \"%s\" as %s",
-	    me, str, tenFiberStop->name);
+            me, str, tenFiberStop->name);
     airMopError(mop); return 1;
   }
   switch((int)info[0]) {
@@ -115,7 +115,7 @@ tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     opt2 = strchr(opt, ',');
     if (!opt2) {
       sprintf(err, "%s: didn't see comma between aniso and level in \"%s\"",
-	      me, opt);
+              me, opt);
       airMopError(mop); return 1;
     }
     *opt2 = '\0';
@@ -123,17 +123,17 @@ tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     info[1] = airEnumVal(tenAniso, opt);
     if (tenAnisoUnknown == info[1]) {
       sprintf(err, "%s: didn't recognize \"%s\" as %s",
-	      me, opt, tenAniso->name);
+              me, opt, tenAniso->name);
       airMopError(mop); return 1;
     }
     if (1 != sscanf(opt2, "%lg", info+2)) {
       sprintf(err, "%s: couldn't parse aniso level \"%s\" as double",
-	      me, opt2);
+              me, opt2);
       airMopError(mop); return 1;
     }
     /*
     fprintf(stderr, "!%s: parsed aniso:%s,%g\n", me,
-	    airEnumStr(tenAniso, info[1]), info[2]);
+            airEnumStr(tenAniso, info[1]), info[2]);
     */
     break;
   case tenFiberStopLength:
@@ -142,14 +142,14 @@ tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     /* <conf> : double */
     if (1 != sscanf(opt, "%lg", info+1)) {
       sprintf(err, "%s: couldn't parse %s \"%s\" as double", me,
-	      (info[0] == tenFiberStopLength
-	       ? "length" : "confidence"), opt);
+              (info[0] == tenFiberStopLength
+               ? "length" : "confidence"), opt);
       airMopError(mop); return 1;
     }
     /*
     fprintf(stderr, "!%s: parse %s:%g\n", me, 
-	    (info[0] == tenFiberStopLength ? "length" : "confidence"),
-	    info[1]);
+            (info[0] == tenFiberStopLength ? "length" : "confidence"),
+            info[1]);
     */
     break;
   case tenFiberStopNumSteps:

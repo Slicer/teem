@@ -35,7 +35,7 @@ _nrrdFormatEPS_nameLooksLike(const char *filename) {
 
 int
 _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
-			int useBiff) {
+                        int useBiff) {
   char me[]="_nrrdFormatEPS_fitsInto", err[AIR_STRLEN_MED];
   int ret;
   
@@ -47,8 +47,8 @@ _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   }
   if (nrrdTypeUChar != nrrd->type) {
     sprintf(err, "%s: type must be %s (not %s)", me,
-	    airEnumStr(nrrdType, nrrdTypeUChar),
-	    airEnumStr(nrrdType, nrrd->type));
+            airEnumStr(nrrdType, nrrdTypeUChar),
+            airEnumStr(nrrdType, nrrd->type));
     biffMaybeAdd(NRRD, err, useBiff); 
     return AIR_FALSE;
   }
@@ -65,7 +65,7 @@ _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
     } else {
       /* else its no good */
       sprintf(err, "%s: dim is 3, but 1st axis size is %d, not 1 or 3",
-	      me, nrrd->axis[0].size);
+              me, nrrd->axis[0].size);
       biffMaybeAdd(NRRD, err, useBiff); 
       return AIR_FALSE;
     }
@@ -143,19 +143,19 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
 
   fprintf(file, "%%!PS-Adobe-3.0 EPSF-3.0\n");
   fprintf(file, "%%%%Creator: Nrrd Utilities From the "
-	  "Great Nation of Deseret\n");
+          "Great Nation of Deseret\n");
   fprintf(file, "%%%%Title: %s\n",
-	  nrrd->content ? nrrd->content : NRRD_UNKNOWN);
+          nrrd->content ? nrrd->content : NRRD_UNKNOWN);
   fprintf(file, "%%%%Pages: 1\n");
   fprintf(file, "%%%%BoundingBox: %d %d %d %d\n",
-	  (int)floor(minX), (int)floor(minY),
-	  (int)ceil(maxX), (int)ceil(maxY));
+          (int)floor(minX), (int)floor(minY),
+          (int)ceil(maxX), (int)ceil(maxY));
   fprintf(file, "%%%%HiResBoundingBox: %g %g %g %g\n", 
-	  minX, minY, maxX, maxY);
+          minX, minY, maxX, maxY);
   fprintf(file, "%%%%EndComments\n");
   fprintf(file, "%%%%BeginProlog\n");
   fprintf(file, "%% linestr creates an empty string to hold "
-	  "one scanline\n");
+          "one scanline\n");
   fprintf(file, "/linestr %d string def\n", sx*(color ? 3 : 1));
   fprintf(file, "%%%%EndProlog\n");
   fprintf(file, "%%%%Page: 1 1\n");
@@ -172,7 +172,7 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   fprintf(file, "%d %d 8\n", sx, sy);
   fprintf(file, "[%d 0 0 -%d 0 %d]\n", sx, sy, sy);
   fprintf(file, "{currentfile linestr readhexstring pop} %s\n",
-	  color ? "false 3 colorimage" : "image");
+          color ? "false 3 colorimage" : "image");
   nio->dataFile = file;
   nrrdEncodingHex->write(nrrd, nio);
   nio->dataFile = NULL;

@@ -27,7 +27,7 @@ char *_tend_ellipseInfoL =
 
 int
 tend_ellipseDoit(FILE *file, Nrrd *nten,
-		 float gscale, float cthresh, int invert) {
+                 float gscale, float cthresh, int invert) {
   int sx, sy, x, y;
   float aspect, scale, minX, minY, maxX, maxY, px, py, 
     conf, Dxx, Dxy, Dyy, (*lup)(const void*, size_t);
@@ -60,10 +60,10 @@ tend_ellipseDoit(FILE *file, Nrrd *nten,
   fprintf(file, "%%%%Title: blah blah blah\n");
   fprintf(file, "%%%%Pages: 1\n");
   fprintf(file, "%%%%BoundingBox: %d %d %d %d\n",
-	  (int)floor(minX), (int)floor(minY),
-	  (int)ceil(maxX), (int)ceil(maxY));
+          (int)floor(minX), (int)floor(minY),
+          (int)ceil(maxX), (int)ceil(maxY));
   fprintf(file, "%%%%HiResBoundingBox: %g %g %g %g\n", 
-	  minX, minY, maxX, maxY);
+          minX, minY, maxX, maxY);
   fprintf(file, "%%%%EndComments\n");
   fprintf(file, "%%%%BeginProlog\n");
   fprintf(file, "%%%%EndProlog\n");
@@ -83,18 +83,18 @@ tend_ellipseDoit(FILE *file, Nrrd *nten,
     for (x=0; x<sx; x++) {
       conf = lup(nten->data, 0 + 4*(x + sx*y));
       if (conf > cthresh) {
-	Dxx = lup(nten->data, 1 + 4*(x + sx*y));
-	Dxy = lup(nten->data, 2 + 4*(x + sx*y));
-	Dyy = lup(nten->data, 3 + 4*(x + sx*y));
-	px = NRRD_CELL_POS(minX, maxX, sx, x);
-	fprintf(file, "gsave\n");
-	fprintf(file, "matrix currentmatrix\n");
-	fprintf(file, "[%g %g %g %g %g %g] concat\n",
-		Dxx, -Dxy, -Dxy, Dyy, px, py);
-	fprintf(file, "0 0 %g 0 360 arc closepath\n", gscale);
-	fprintf(file, "setmatrix\n");
-	fprintf(file, "fill\n");
-	fprintf(file, "grestore\n");
+        Dxx = lup(nten->data, 1 + 4*(x + sx*y));
+        Dxy = lup(nten->data, 2 + 4*(x + sx*y));
+        Dyy = lup(nten->data, 3 + 4*(x + sx*y));
+        px = NRRD_CELL_POS(minX, maxX, sx, x);
+        fprintf(file, "gsave\n");
+        fprintf(file, "matrix currentmatrix\n");
+        fprintf(file, "[%g %g %g %g %g %g] concat\n",
+                Dxx, -Dxy, -Dxy, Dyy, px, py);
+        fprintf(file, "0 0 %g 0 360 arc closepath\n", gscale);
+        fprintf(file, "setmatrix\n");
+        fprintf(file, "fill\n");
+        fprintf(file, "grestore\n");
       }
     }
   }
@@ -119,18 +119,18 @@ tend_ellipseMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopNew();
 
   hestOptAdd(&hopt, "ctr", "conf thresh", airTypeFloat, 1, 1, &cthresh, "0.5",
-	     "Glyphs will be drawn only for tensors with confidence "
-	     "values greater than this threshold");
+             "Glyphs will be drawn only for tensors with confidence "
+             "values greater than this threshold");
   hestOptAdd(&hopt, "gsc", "scale", airTypeFloat, 1, 1, &gscale,
-	     "1", "over-all glyph size");
+             "1", "over-all glyph size");
   hestOptAdd(&hopt, "inv", NULL, airTypeInt, 0, 0, &invert, NULL,
-	     "use white ellipses on black background, instead of reverse");
+             "use white ellipses on black background, instead of reverse");
 
   /* input/output */
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nten, "-",
-	     "image of 2D tensors", NULL, NULL, nrrdHestNrrd);
+             "image of 2D tensors", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output PostScript file");
+             "output PostScript file");
 
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_tend_ellipseInfoL);

@@ -58,9 +58,9 @@ convoFunc(Nrrd *nout, Nrrd *_nimg, Nrrd *_nmask, int renorm, int crop) {
   max[1] = isy - 1 + hiy;
   /*
   fprintf(stderr, "%s: lox,loy = %d,%d   hix,hiy = %d,%d\n",
-	  me, lox, loy, hix, hiy);
+          me, lox, loy, hix, hiy);
   fprintf(stderr, "%s: min[] = %d,%d    max[] = %d,%d\n",
-	  me, min[0], min[1], max[0], max[1]);
+          me, min[0], min[1], max[0], max[1]);
   */
 
   mop = airMopNew();
@@ -91,7 +91,7 @@ convoFunc(Nrrd *nout, Nrrd *_nimg, Nrrd *_nmask, int renorm, int crop) {
     }
     if (sum) {
       for (i=0; i<nrrdElementNumber(nmask); i++) {
-	mdata[i] /= sum;
+        mdata[i] /= sum;
       }
     }
   }
@@ -102,14 +102,14 @@ convoFunc(Nrrd *nout, Nrrd *_nimg, Nrrd *_nmask, int renorm, int crop) {
       ohere = odata + ix+lox + osx*(iy+loy);
       ihere = idata + ix + isx*iy;
       for (my=-loy; my<=hiy; my++) {
-	for (mx=-lox; mx<=hix; mx++) {
-	  ohere[mx+osx*my] += mdata[mx+lox + msx*(my+loy)]*ihere[mx+isx*my];
-	  if (10 == iy && 10 == ix) {
-	    fprintf(stderr, "mdata[%d,%d] = mdata[%d] = %g\n",
-		    mx, my, mx+lox + msx*(my+loy), 
-		    mdata[mx+lox + msx*(my+loy)]);
-	  }
-	}
+        for (mx=-lox; mx<=hix; mx++) {
+          ohere[mx+osx*my] += mdata[mx+lox + msx*(my+loy)]*ihere[mx+isx*my];
+          if (10 == iy && 10 == ix) {
+            fprintf(stderr, "mdata[%d,%d] = mdata[%d] = %g\n",
+                    mx, my, mx+lox + msx*(my+loy), 
+                    mdata[mx+lox + msx*(my+loy)]);
+          }
+        }
       }
     }
   }
@@ -118,15 +118,15 @@ convoFunc(Nrrd *nout, Nrrd *_nimg, Nrrd *_nmask, int renorm, int crop) {
     for (ix=0; ix<osx; ix++) {
       ohere = odata + ix + osx*iy;
       for (my=-loy; my<=hiy; my++) {
-	y = iy + my - loy;
-	if (!AIR_IN_CL(0, y, isy-1))
-	  continue;
-	for (mx=-lox; mx<=hix; mx++) {
-	  x = ix + mx - lox;
-	  if (!AIR_IN_CL(0, x, isx-1))
-	    continue;
-	  *ohere += mdata[mx+lox + msx*(my+loy)]*idata[x + isx*y];
-	}
+        y = iy + my - loy;
+        if (!AIR_IN_CL(0, y, isy-1))
+          continue;
+        for (mx=-lox; mx<=hix; mx++) {
+          x = ix + mx - lox;
+          if (!AIR_IN_CL(0, x, isx-1))
+            continue;
+          *ohere += mdata[mx+lox + msx*(my+loy)]*idata[x + isx*y];
+        }
       }      
     }
   }
@@ -165,18 +165,18 @@ main(int argc, char *argv[]) {
   hopt = NULL;
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hestOptAdd(&hopt, "c", NULL, airTypeInt, 0, 0, &uncrop, NULL,
-	     "Don't crop the output image to the dimensions of the input "
-	     "image.");
+             "Don't crop the output image to the dimensions of the input "
+             "image.");
   hestOptAdd(&hopt, "r", NULL, airTypeInt, 0, 0, &renorm, NULL,
-	     "Don't renormalize the weights in the mask to 1.0. ");
+             "Don't renormalize the weights in the mask to 1.0. ");
   hestOptAdd(&hopt, NULL, "image", airTypeOther, 1, 1, &nimg, NULL,
-	     "image to operate on", NULL, NULL, nrrdHestNrrd);
+             "image to operate on", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, NULL, "mask", airTypeOther, 1, 1, &nmask, NULL,
-	     "mask to convolve with", NULL, NULL, nrrdHestNrrd);
+             "mask to convolve with", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, NULL, "filename", airTypeString, 1, 1, &out, NULL,
-	     "file to write output nrrd to");
+             "file to write output nrrd to");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
-		 me, convoInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                 me, convoInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -185,7 +185,7 @@ main(int argc, char *argv[]) {
 
   if (!( 2 == nimg->dim && 2 == nmask->dim )) {
     fprintf(stderr, "%s: dimension of image (%d) and mask (%d) not both 2\n",
-	    me, nimg->dim, nmask->dim);
+            me, nimg->dim, nmask->dim);
     airMopError(mop); return 1;
   }
 

@@ -39,16 +39,16 @@ tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
   size_t N, I;
 
   hestOptAdd(&hopt, "c", "c0 ", airTypeInt, 1, 3, &comp, NULL,
-	     "which eigenvalues should be saved out. \"0\" for the "
-	     "largest, \"1\" for the middle, \"2\" for the smallest, "
-	     "\"0 1\", \"1 2\", \"0 1 2\" or similar for more than one",
-	     &compLen);
+             "which eigenvalues should be saved out. \"0\" for the "
+             "largest, \"1\" for the middle, \"2\" for the smallest, "
+             "\"0 1\", \"1 2\", \"0 1 2\" or similar for more than one",
+             &compLen);
   hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "0.5",
-	     "confidence threshold");
+             "confidence threshold");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-	     "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
+             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-	     "output image (floating point)");
+             "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -59,7 +59,7 @@ tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
   for (cc=0; cc<compLen; cc++) {
     if (!AIR_IN_CL(0, comp[cc], 2)) {
       fprintf(stderr, "%s: requested component %d (%d of 3) not in [0..2]\n",
-	      me, comp[cc], cc+1);
+              me, comp[cc], cc+1);
       airMopError(mop); return 1;
     }
   }
@@ -98,7 +98,7 @@ tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
       tenEigensolve_f(eval, evec, tdata);
       scl = tdata[0] >= thresh;
       for (cc=0; cc<compLen; cc++) {
-	ELL_3V_SCALE(edata+3*cc, scl, evec+3*comp[cc]);
+        ELL_3V_SCALE(edata+3*cc, scl, evec+3*comp[cc]);
       }
       edata += 3*compLen;
       tdata += 7;

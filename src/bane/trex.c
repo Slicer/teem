@@ -39,17 +39,17 @@ _baneTRexRead(char *fname) {
 
   if (nrrdLoad(baneNpos=nrrdNew(), fname, NULL)) {
     fprintf(stderr, "%s: !!! trouble reading \"%s\":\n%s\n", me, 
-	    fname, biffGet(NRRD));
+            fname, biffGet(NRRD));
     return NULL;
   }
   if (banePosCheck(baneNpos, 1)) {
     fprintf(stderr, "%s: !!! didn't get a valid p(x) file:\n%s\n", me, 
-	    biffGet(BANE));
+            biffGet(BANE));
     return NULL;
   }
   if (TREX_LUTLEN != baneNpos->axis[0].size) {
     fprintf(stderr, "%s: !!! need a length %d p(x) (not %d)\n", me, 
-	    TREX_LUTLEN, baneNpos->axis[0].size); 
+            TREX_LUTLEN, baneNpos->axis[0].size); 
     return NULL;
   }
 
