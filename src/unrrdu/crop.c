@@ -67,7 +67,6 @@ getint(char *str, int *n, int *offset) {
 
 int
 main(int argc, char *argv[]) {
-  FILE *fin, *fout;
   char *inStr, *outStr, *errStr;
   int i, udim, min[NRRD_MAX_DIM], max[NRRD_MAX_DIM], 
     minoffset[NRRD_MAX_DIM], maxoffset[NRRD_MAX_DIM];
@@ -95,16 +94,11 @@ main(int argc, char *argv[]) {
       usage();
     }
   }
-  if (!(fin = fopen(inStr, "r"))) {
-    fprintf(stderr, "%s: couldn't open %s for reading\n", me, inStr);
-    exit(1);
-  }
-  if (!(nin = nrrdNewRead(fin))) {
+  if (!(nin = nrrdNewOpen(inStr))) {
     errStr = biffGet(NRRD);
-    fprintf(stderr, "%s: error reading nrrd:%s\n", me, errStr);
+    fprintf(stderr, "%s: trouble reading input:%s\n", me, errStr);
     exit(1);
   }
-  fclose(fin);
   if (udim != nin->dim) {
     fprintf(stderr, "%s: input nrrd has dimension %d, but given %d axes\n",
 	    me, nin->dim, udim);
@@ -131,16 +125,11 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: error cropping nrrd:\n%s", me, biffGet(NRRD));
     exit(1);
   }
-  if (!(fout = fopen(outStr, "w"))) {
-    fprintf(stderr, "%s: couldn't open %s for writing\n", me, outStr);
-    exit(1);
-  }
   nout->encoding = nin->encoding;
-  if (nrrdWrite(fout, nout)) {
+  if (nrrdSave(outStr, nout)) {
     fprintf(stderr, "%s: error writing nrrd:\n%s", me, biffGet(NRRD));
     exit(1);
   }
-  fclose(fout);
   nrrdNuke(nin);
   nrrdNuke(nout);
   exit(0);
