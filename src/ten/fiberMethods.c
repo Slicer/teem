@@ -107,14 +107,12 @@ tenFiberContextNew(Nrrd *dtvol) {
 int
 tenFiberTypeSet(tenFiberContext *tfx, int type) {
   char me[]="tenFiberTypeSet", err[AIR_STRLEN_MED];
-  gagePerVolume *pvl;
   int qse;
 
   if (!tfx) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  pvl = tfx->gtx->pvl[0];
   qse = 0;
   switch(type) {
   case tenFiberTypeEvec1:
