@@ -110,7 +110,7 @@ nrrdPermuteAxes(Nrrd *nin, Nrrd *nout, int *axes) {
   }
   
   dim = nin->dim;
-  for (d=0; axes[d] == d && d<=dim-1; d++)
+  for (d=0; d<=dim-1 && axes[d] == d; d++)
     ;
   topFax = d-1;
 
