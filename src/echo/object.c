@@ -50,7 +50,8 @@ _echoObjectAABox_new(void) {
 
   ret = (EchoObjectAABox *)calloc(1, sizeof(EchoObjectAABox *));
   ret->type = echoObjectAABox;
-  ret->objArr = airArrayNew((void**)(&(ret->obj)), NULL, 
+  ret->obj = NULL;
+  ret->objArr = airArrayNew((void**)&(ret->obj), NULL, 
 			    sizeof(EchoObject *), ECHO_OBJECT_INCR);
   /* register callbacks ... */
   return ret;
