@@ -604,6 +604,8 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin,
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 
+  /* HEY: set content on output, right? */
+
   airMopOkay(mop); 
   return 0;
 }
