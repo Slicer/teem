@@ -557,23 +557,18 @@ void
 _nrrdMeasureHistoSum(void *ans, int ansType,
 		     void *line, int lineType, int len, 
 		     double axmin, double axmax) {
-  double sum, count, hits, val;
+  double sum, hits, val;
   int i;
   
   if (!(AIR_EXISTS(axmin) && AIR_EXISTS(axmax))) {
     axmin = -0.5;
     axmax = len-0.5;
   }
-  sum = count = 0;
+  sum = 0;
   for (i=0; i<len; i++) {
     val = NRRD_CELL_POS(axmin, axmax, len, i);
     hits = nrrdDLookup[lineType](line, i);
-    count += hits;
     sum += hits*val;
-  }
-  if (!count) {
-    nrrdDStore[ansType](ans, AIR_NAN);
-    return;
   }
   nrrdDStore[ansType](ans, sum);
 }
