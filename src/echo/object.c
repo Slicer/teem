@@ -458,7 +458,6 @@ echoObjectListSplit(EchoObject *list, int axis) {
   */
   
   splitIdx = len/2;
-  printf("splitIdx = %d\n", splitIdx);
   ELL_3V_SET(loest0, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
   ELL_3V_SET(loest1, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
   ELL_3V_SET(hiest0, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
@@ -511,36 +510,44 @@ echoObjectListSplit3(EchoObject *list, int depth) {
 	 echoObjectAABBox == list->type )) 
     return NULL;
   
-  if (0 == depth)
-    return list;
-  
+  printf("echoObjectListSplit3: ------ depth = %d\n", depth);
+  printf("echoObjectListSplit3: X\n");
   ret = tmp = echoObjectListSplit(list, 0);
+
+  printf("echoObjectListSplit3: Y 0\n");
   SPLIT(tmp)->obj0 = echoObjectListSplit(SPLIT(tmp)->obj0, 1);
+  printf("echoObjectListSplit3: Y 1\n");
   SPLIT(tmp)->obj1 = echoObjectListSplit(SPLIT(tmp)->obj1, 1);
 
   tmp = SPLIT(ret)->obj0;
+  printf("echoObjectListSplit3: Z 0 0\n");
   SPLIT(tmp)->obj0 = echoObjectListSplit(SPLIT(tmp)->obj0, 2);
+  printf("echoObjectListSplit3: Z 0 1\n");
   SPLIT(tmp)->obj1 = echoObjectListSplit(SPLIT(tmp)->obj1, 2);
   tmp = SPLIT(ret)->obj1;
+  printf("echoObjectListSplit3: Z 1 0\n");
   SPLIT(tmp)->obj0 = echoObjectListSplit(SPLIT(tmp)->obj0, 2);
+  printf("echoObjectListSplit3: Z 1 1\n");
   SPLIT(tmp)->obj1 = echoObjectListSplit(SPLIT(tmp)->obj1, 2);
 
-  ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj0)->obj0)->obj0);
-  *ptr = echoObjectListSplit3(*ptr, depth-1);
-  ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj0)->obj0)->obj1);
-  *ptr = echoObjectListSplit3(*ptr, depth-1);
-  ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj0)->obj1)->obj0);
-  *ptr = echoObjectListSplit3(*ptr, depth-1);
-  ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj0)->obj1)->obj1);
-  *ptr = echoObjectListSplit3(*ptr, depth-1);
-  ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj1)->obj0)->obj0);
-  *ptr = echoObjectListSplit3(*ptr, depth-1);
-  ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj1)->obj0)->obj1);
-  *ptr = echoObjectListSplit3(*ptr, depth-1);
-  ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj1)->obj1)->obj0);
-  *ptr = echoObjectListSplit3(*ptr, depth-1);
-  ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj1)->obj1)->obj1);
-  *ptr = echoObjectListSplit3(*ptr, depth-1);
+  if (depth-1) {
+    ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj0)->obj0)->obj0);
+    *ptr = echoObjectListSplit3(*ptr, depth-1);
+    ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj0)->obj0)->obj1);
+    *ptr = echoObjectListSplit3(*ptr, depth-1);
+    ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj0)->obj1)->obj0);
+    *ptr = echoObjectListSplit3(*ptr, depth-1);
+    ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj0)->obj1)->obj1);
+    *ptr = echoObjectListSplit3(*ptr, depth-1);
+    ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj1)->obj0)->obj0);
+    *ptr = echoObjectListSplit3(*ptr, depth-1);
+    ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj1)->obj0)->obj1);
+    *ptr = echoObjectListSplit3(*ptr, depth-1);
+    ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj1)->obj1)->obj0);
+    *ptr = echoObjectListSplit3(*ptr, depth-1);
+    ptr = &(SPLIT(SPLIT(SPLIT(ret)->obj1)->obj1)->obj1);
+    *ptr = echoObjectListSplit3(*ptr, depth-1);
+  }
   return ret;
 }
 

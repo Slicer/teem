@@ -76,7 +76,7 @@ makeSceneBVH(limnCam *cam, EchoParam *param,
   echoLightAreaSet(light, rect);
   echoLightArrayAdd(lightArr, light);
 
-  *sceneP = scene = echoObjectListSplit3(scene, 2);
+  *sceneP = scene = echoObjectListSplit3(scene, 1);
   printf("scene type = %d\n", scene->type);
 
 }

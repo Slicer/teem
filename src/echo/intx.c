@@ -276,10 +276,6 @@ _echoRayIntxSplit(INTX_ARGS(Split)) {
     ret = AIR_TRUE;
   }
   if (_echoRayIntx[b->type](intx, ray, param, b)) {
-    if (ray->shadow) {
-      return AIR_TRUE;
-    }
-    ray->far = intx->t;
     ret = AIR_TRUE;
   }
   return ret;
