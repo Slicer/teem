@@ -40,6 +40,95 @@ hestParmNix(hestParm *parm) {
   return airFree(parm);
 }
 
+void
+_hestOptInit(hestOpt *opt) {
+
+  opt->flag = opt->name = NULL;
+  opt->type = opt->min = opt->max = 0;
+  opt->valueP = NULL;
+  opt->dflt = opt->info = NULL;
+  opt->sawP = NULL;
+  opt->kind = opt->alloc = 0;
+}
+
+hestOpt *
+hestOptNew(void) {
+  hestOpt *opt;
+  
+  opt = calloc(1, sizeof(hestOpt));
+  if (opt) {
+    _hestOptInit(opt);
+    opt->min = 1;
+  }
+  return opt;
+}
+
+hestOpt *
+hestOptAdd(hestOpt *opt, 
+	   char *flag, char *name,
+	   int type, int min, int max,
+	   void *valueP, char *dflt, char *info, ...) {
+  hestOpt *ret = NULL;
+  int num;
+  va_list ap;
+
+  if (!opt)
+    return NULL;
+
+  num = _hestNumOpts(opt);
+  if (!(ret = calloc(num+1, sizeof(hestOpt))))
+    return NULL;
+
+  if (num)
+    memcpy(ret, opt, num*sizeof(hestOpt));
+  ret[num].flag = airStrdup(flag);
+  ret[num].name = airStrdup(name);
+  ret[num].type = type;
+  ret[num].min = min;
+  ret[num].max = max;
+  ret[num].valueP = valueP;
+  ret[num].dflt = airStrdup(dflt);
+  ret[num].info = airStrdup(info);
+  if (5 == _hestKind(&(ret[num]))) {
+    va_start(ap, info);
+    ret[num].sawP = va_arg(ap, int*);
+    va_end(ap);
+  }
+  _hestOptInit(&(ret[num+1]));
+  ret[num+1].min = 1;
+  free(opt);
+
+  return ret;
+}
+
+void
+_hestOptFree(hestOpt *opt) {
+  
+  airFree(opt->flag);
+  airFree(opt->name);
+  airFree(opt->dflt);
+  airFree(opt->info);
+}
+
+hestOpt *
+hestOptNix(hestOpt *opt) {
+  int op, num;
+
+  if (!opt)
+    return NULL;
+
+  num = _hestNumOpts(opt);
+  if (opt[num+1].min) {
+    /* we only try to free this if it looks like something we allocated */
+    for (op=0; op<=num-1; op++) {
+      _hestOptFree(opt+op);
+    }
+    free(opt);
+  }
+  return NULL;
+}
+
+
 /*
 ** _hestIdent()
 **
