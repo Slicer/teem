@@ -345,7 +345,7 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   fprintf(file, "ORIGIN %g %g %g\n", xm, ym, zm);
   fprintf(file, "SPACING %g %g %g\n", xs, ys, zs);
   fprintf(file, "POINT_DATA %d\n", sx*sy*sz);
-  airSrand();
+  airSrand48(airTime());
   sprintf(name, "nrrd%05d", airRandInt(100000));
   if (3 == nrrd->dim) {
     fprintf(file, "SCALARS %s %s\n", name, type);

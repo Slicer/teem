@@ -146,7 +146,7 @@ double _nrrdUnaryOpAbs(double a)        {return AIR_ABS(a);}
 double _nrrdUnaryOpSgn(double a) {
   return (a < 0.0 ? -1 : (a > 0.0 ? 1 : 0));}
 double _nrrdUnaryOpExists(double a)     {return AIR_EXISTS(a);}
-double _nrrdUnaryOpRand(double a)       {return airRand();}  /* wacky! */
+double _nrrdUnaryOpRand(double a)       {return airDrand48();}  /* wacky! */
 
 double (*_nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
   NULL,
