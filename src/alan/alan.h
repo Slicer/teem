@@ -61,17 +61,22 @@ enum {
   alanParmDiffB,
   alanParmK,
   alanParmF,
+  alanParmH,
+  alanParmAlpha,
+  alanParmBeta,
   alanParmLast
 };
 
 enum {
   alanStopUnknown=0,
-  alanStopNot=0,
-  alanStopMaxIteration,
-  alanStopNonExist,
-  alanStopConverged,
+  alanStopNot,          /* 1 */
+  alanStopMaxIteration, /* 2 */
+  alanStopNonExist,     /* 3 */
+  alanStopConverged,    /* 4 */
+  alanStopDiverged,     /* 5 */
   alanStopLast
-};    
+};
+#define ALAN_STOP_MAX      5
 
 /* all morphogen values are stored as
 ** 1: floats
@@ -99,6 +104,13 @@ typedef struct {
     saveInterval,    /* number of iterations between which to save all state */
     maxIteration;    /* limit to number of iterations */
   alan_t K, F,       /* simulation variables */
+    H,               /* size of spatial grid discretization */
+    minTada,         /* minimum worthwhile tada value (see below), assume
+			convergence if tada falls below this */
+    maxAda,          /* maximum allowed ada (abs() of diff in morpho A, for 
+			any single pixels), assume unstable divergence if 
+			this is exceeded */
+    alpha, beta,     /* variables for turing */
     speed,           /* euler integration step size */
     initA, initB,    /* initial (constant) values for each morphogen */
     diffA, diffB,    /* base diffusion rates for each morphogen */
@@ -109,6 +121,7 @@ typedef struct {
   /* INTERNAL -------------------------- */
   int iter;          /* current iteration */
   Nrrd *nlev[2];     /* levels of all morphogens, alternating buffers */
+  double tada;       /* total abs() of differences in morphogen A */
 
   /* OUTPUT ---------------------------- */
   int stop;          /* why we stopped */
@@ -125,7 +138,12 @@ extern int alan3DSizeSet(alanContext *actx, int sizeX, int sizeY, int sizeZ);
 extern int alanTensorSet(alanContext *actx, Nrrd *nten, int oversample);
 extern int alanParmSet(alanContext *actx, int whichParm, double parm);
 
+/* enumsAlan.c */
+extern alan_export airEnum *alanStop;
+
 /* coreAlan.c */
+extern int alanUpdate(alanContext *actx);
+extern int alanInit(alanContext *actx, const Nrrd *ninit);
 extern int alanRun(alanContext *actx);
 
 #ifdef __cplusplus

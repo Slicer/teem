@@ -24,32 +24,45 @@ int
 main(int argc, char *argv[]) {
   alanContext *actx;
   char *err, *me;
+  Nrrd *ninit;
 
   me = argv[0];
 
+  ninit=nrrdNew();
+  if (nrrdLoad(ninit, "init.nrrd", NULL)) {
+    fprintf(stderr, "%s: load(init.nrrd) failed\n", me);
+    ninit = nrrdNuke(ninit);
+  }
   airSrand();
   actx = alanContextNew();
   if (alanDimensionSet(actx, 2)
       || alan2DSizeSet(actx, 128, 128)
-      || alanParmSet(actx, alanParmMaxIteration, 10000)
+      || alanParmSet(actx, alanParmMaxIteration, 100000)
       || alanParmSet(actx, alanParmVerbose, 1)
       || alanParmSet(actx, alanParmTextureType, alanTextureTypeTuring)
-      || alanParmSet(actx, alanParmRandRange, 0.1)
+      || alanParmSet(actx, alanParmRandRange, 2.0)
       || alanParmSet(actx, alanParmK, 0.0125)
-      || alanParmSet(actx, alanParmSaveInterval, 0)
-      || alanParmSet(actx, alanParmFrameInterval, 10)
+      || alanParmSet(actx, alanParmH, 1.2)
+      || alanParmSet(actx, alanParmAlpha, 16.0 + 0.05)
+      || alanParmSet(actx, alanParmBeta, 12.0 - 0.05)
+      || alanParmSet(actx, alanParmSpeed, 1.2)
+      || alanParmSet(actx, alanParmSaveInterval, 500)
+      || alanParmSet(actx, alanParmFrameInterval,100)
       ) {
     err = biffGetDone(ALAN);
     fprintf(stderr, "%s: trouble: %s\n", me, err); 
     free(err); return 1;
   }
 
-  if (alanRun(actx)) {
+  if (alanUpdate(actx) 
+      || alanInit(actx, ninit)) {
     err = biffGetDone(ALAN);
     fprintf(stderr, "%s: trouble: %s\n", me, err); 
     free(err); return 1;
   }
-  fprintf(stderr, "%s: stop = %d\n", me, actx->stop);
+  alanRun(actx);
+  fprintf(stderr, "%s: stop = %d: %s\n", me, actx->stop,
+	  airEnumDesc(alanStop, actx->stop));
   nrrdSave("lev0.nrrd", actx->nlev[0], NULL);
   nrrdSave("lev1.nrrd", actx->nlev[1], NULL);
   

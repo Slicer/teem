@@ -45,7 +45,7 @@ $(L).SEEN := true
 $(L).NEED = air biff ell nrrd
 $(L).PUBLIC_HEADERS = alan.h
 $(L).PRIVATE_HEADERS =
-$(L).OBJS = methodsAlan.o coreAlan.o
+$(L).OBJS = methodsAlan.o enumsAlan.o coreAlan.o 
 $(L).TESTS = test/tspot
 
 $(L).NEED_ENDIAN =

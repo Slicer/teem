@@ -48,8 +48,13 @@ alanContextInit(alanContext *actx) {
     actx->frameInterval = 10;
     actx->saveInterval = 100;
     actx->maxIteration = 100000;
+    actx->minTada = 0.00002;
+    actx->maxAda = 6;
     actx->K = AIR_NAN;
     actx->F = AIR_NAN;
+    actx->H = 1.25;
+    actx->alpha = 16;
+    actx->beta = 12;
     actx->speed = 1.0;
     actx->initA = actx->initB = 0;
     actx->diffA = actx->diffB = 0;
@@ -214,8 +219,8 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
     case alanTextureTypeTuring:
       actx->initA = 4.0;
       actx->initB = 4.0;
-      actx->diffA = 0.125;
-      actx->diffB = 0.03125;
+      actx->diffA = 0.25;
+      actx->diffB = 0.0625;
       break;
     case alanTextureTypeGrayScott:
       actx->initA = 1;
@@ -268,6 +273,15 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
     break;
   case alanParmF:
     actx->F = parm;
+    break;
+  case alanParmH:
+    actx->H = parm;
+    break;
+  case alanParmAlpha:
+    actx->alpha = parm;
+    break;
+  case alanParmBeta:
+    actx->beta = parm;
     break;
   default:
     sprintf(err, "%s: parameter %d invalid", me, whichParm);
