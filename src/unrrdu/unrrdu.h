@@ -128,6 +128,7 @@ F(1op) \
 F(2op) \
 F(3op) \
 F(lut) \
+F(subst) \
 F(rmap) \
 F(imap) \
 F(ccfind) \

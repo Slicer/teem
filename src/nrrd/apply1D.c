@@ -854,3 +854,69 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   airMopOkay(mop);
   return 0;
 }
+
+/*
+******** nrrdApply1DSubstitution
+**
+** A "subst" is a substitution table, i.e. a list of pairs that describes
+** what values should be substituted with what (substitution rules).
+** The output is a copy of the input with values substituted using this table.
+*/
+int
+nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *nsubst)
+{
+  char me[]="nrrdApply1DSubstitution", err[AIR_STRLEN_MED];
+  double (*lup)(const void *, size_t);
+  double (*slup)(const void *, size_t);
+  double (*ins)(void *, size_t, double);
+  double val, sval;
+  size_t ii, num;
+  int jj, asize0, asize1;
+  int changed;
+
+  if (!(nout && nsubst && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdTypeBlock == nin->type || nrrdTypeBlock == nsubst->type) {
+    sprintf(err, "%s: input or substitution type is %s, need scalar",
+	    me, airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAdd(NRRD, err); return 1;
+  }
+  if (2 != nsubst->dim) {
+    sprintf(err, "%s: substitution table hasize to be 2 dimensional, not %d",
+	    me, nsubst->dim);
+    biffAdd(NRRD, err); return 1;
+  }
+  nrrdAxisInfoGet(nsubst, nrrdAxisInfoSize, &asize0, &asize1);
+  if (2 != asize0) {
+    sprintf(err, "%s: substitution table hasize to be 2xN, not %dxN",
+	    me, asize0);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nout != nin) {
+    if (nrrdCopy(nout, nin)) {
+      sprintf(err, "%s: couldn't initialize by copy to output", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+  lup = nrrdDLookup[nout->type];
+  slup = nrrdDLookup[nsubst->type];
+  ins = nrrdDInsert[nout->type];
+  num = nrrdElementNumber(nout);
+  for (ii=0; ii<num; ii++) {
+    val = lup(nout->data, ii);
+    changed = AIR_FALSE;
+    for (jj=0; jj<asize1; jj++) {
+      sval = slup(nsubst->data, jj*2);
+      if (val == sval) {
+	val = slup(nsubst->data, jj*2+1);
+	changed = AIR_TRUE;
+      }
+    }
+    if (changed) {
+      ins(nout->data, ii, val);
+    }
+  }
+  return 0;
+}

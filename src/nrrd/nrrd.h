@@ -715,6 +715,8 @@ TEEM_API int nrrdApply1DIrregMap(Nrrd *nout,
 				 const Nrrd *nin, const NrrdRange *range, 
 				 const Nrrd *nmap, const Nrrd *nacl,
 				 int typeOut, int rescale);
+TEEM_API int nrrdApply1DSubstitution(Nrrd *nout,
+				     const Nrrd *nin, const Nrrd *nsubst);
 
 /******** sampling, slicing, cropping */
 /* subset.c */
