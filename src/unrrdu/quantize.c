@@ -85,8 +85,14 @@ quantizeMain(int argc, char **argv, char *me) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  nin->min = min;
-  nin->max = max;
+  /* If the input nrrd never specified min and max, then they'll be
+     AIR_NAN, and nrrdMinMaxClever will find them.  If the input nrrd
+     had a notion of min and max, we should respect it, but not if the
+     user specified something else. */
+  if (AIR_EXISTS(min))
+    nin->min = min;
+  if (AIR_EXISTS(max))
+    nin->max = max;
   if (nrrdQuantize(nout, nin, bits)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error quantizing nrrd:\n%s", me, err);
