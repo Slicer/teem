@@ -670,7 +670,7 @@ TEEM_API int nrrdKeyValueSize(const Nrrd *nrrd);
 TEEM_API int nrrdKeyValueAdd(Nrrd *nrrd, const char *key, const char *value);
 TEEM_API char *nrrdKeyValueGet(const Nrrd *nrrd, const char *key);
 TEEM_API void nrrdKeyValueIndex(const Nrrd *nrrd, 
-                              char **keyP, char **valueP, int ki);
+                                char **keyP, char **valueP, int ki);
 TEEM_API int nrrdKeyValueErase(Nrrd *nrrd, const char *key);
 TEEM_API void nrrdKeyValueClear(Nrrd *nrrd);
 TEEM_API int nrrdKeyValueCopy(Nrrd *nout, const Nrrd *nin);
