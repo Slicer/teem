@@ -30,7 +30,6 @@ _echoLight##TYPE##_new(void) {                                   \
   return light;                                                  \
 }
 
-NEW_TMPL(Ambient,)                /* _echoLightAmbient_new */
 NEW_TMPL(Directional,)            /* _echoLightDirectional_new */
 NEW_TMPL(Area,                    /* _echoLightArea_new */
 	 light->obj = NULL;
@@ -39,7 +38,6 @@ NEW_TMPL(Area,                    /* _echoLightArea_new */
 EchoLight *(*
 _echoLightNew[ECHO_LIGHT_MAX+1])(void) = {
   NULL,
-  (EchoLight *(*)(void))_echoLightAmbient_new,
   (EchoLight *(*)(void))_echoLightDirectional_new,
   (EchoLight *(*)(void))_echoLightArea_new
 };
@@ -64,7 +62,6 @@ EchoLight *(*
 _echoLightNix[ECHO_LIGHT_MAX+1])(EchoLight *) = {
   NULL,
   (EchoLight *(*)(EchoLight *))airFree,
-  (EchoLight *(*)(EchoLight *))airFree,
   (EchoLight *(*)(EchoLight *))_echoLightArea_nix
 };
 
@@ -73,3 +70,31 @@ echoLightNix(EchoLight *light) {
 
   return _echoLightNix[light->type](light);
 }
+
+void
+echoLightArrayAdd(airArray *lightArr, EchoLight *light) {
+  int idx;
+  
+  if (!(lightArr && light))
+    return;
+
+  idx = airArrayIncrLen(lightArr, 1);
+  ((EchoLight **)lightArr->data)[idx] = light;
+}
+
+void
+echoLightDirectionalSet(EchoLight *_light,
+			echoCol_t r, echoCol_t g, echoCol_t b,
+			echoPos_t x, echoPos_t y, echoPos_t z) {
+  EchoLightDirectional *light;
+  echoPos_t tmp;
+
+  if (_light && echoLightDirectional == _light->type) {
+    light = (EchoLightDirectional *)_light;
+    ELL_3V_SET(light->col, r, g, b);
+    ELL_3V_SET(light->dir, x, y, z);
+    ELL_3V_NORM(light->dir, light->dir, tmp);
+  }
+}
+  
+			

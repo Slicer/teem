@@ -30,10 +30,14 @@ echoParamNew(void) {
   param->recDepth = 1;
   param->reuseJitter = AIR_FALSE;
   param->permuteJitter = AIR_TRUE;
+  param->amR = 1.0;
+  param->amG = 1.0;
+  param->amB = 1.0;
   param->bgR = 0.0;
   param->bgG = 0.0;
   param->bgB = 0.0;
   param->gamma = 2.2;
+  param->timeGamma = 8;
 
   /* these will have to be user-set */
   param->imgResU = param->imgResV = 0;

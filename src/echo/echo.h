@@ -64,7 +64,10 @@ typedef struct {
     reuseJitter,       /* don't recompute jitter offsets per pixel */
     permuteJitter;     /* properly permute the various jitter arrays */
   float epsilon,       /* somewhat bigger than zero */
-    aperture;          /* shallowness of field */
+    aperture,          /* shallowness of field */
+    timeGamma;         /* gamma for values in time image */
+  echoCol_t
+    amR, amG, amB;     /* ambient light color */
 
   /* RGB image generation parameters */
   echoCol_t
@@ -161,51 +164,51 @@ enum {
 
 #define ECHO_OBJECT_COMMON              \
   int type
-#define ECHO_OBJECT_MATERIAL            \
+#define ECHO_OBJECT_MATTER              \
   int matter;                           \
   echoCol_t mat[ECHO_MATTER_VALUE_NUM]
 
 typedef struct {
   ECHO_OBJECT_COMMON;
-  ECHO_OBJECT_MATERIAL;  /* ha! its not actually in every object, but in
-			    those cases were we want to access it without
-			    knowing object type, then it will be there ... */
+  ECHO_OBJECT_MATTER;   /* ha! its not actually in every object, but in
+			   those cases were we want to access it without
+			   knowing object type, then it will be there ... */
 } EchoObject;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
-  ECHO_OBJECT_MATERIAL;
+  ECHO_OBJECT_MATTER;
   echoPos_t pos[3];
   echoPos_t rad;
 } EchoObjectSphere;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
-  ECHO_OBJECT_MATERIAL;
+  ECHO_OBJECT_MATTER;
   /* ??? */
 } EchoObjectCube;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
-  ECHO_OBJECT_MATERIAL;
+  ECHO_OBJECT_MATTER;
   echoPos_t vert[3][3];
 } EchoObjectTriangle;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
-  ECHO_OBJECT_MATERIAL;
+  ECHO_OBJECT_MATTER;
   echoPos_t origin[3], edge0[3], edge1[3];
 } EchoObjectRectangle;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
-  ECHO_OBJECT_MATERIAL;
+  ECHO_OBJECT_MATTER;
   /* ??? */
 } EchoObjectTriMesh;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
-  ECHO_OBJECT_MATERIAL;
+  ECHO_OBJECT_MATTER;
   Nrrd *volume;
   float value;
 } EchoObjectIsosurface;
@@ -234,17 +237,19 @@ extern EchoObject *echoObjectNew(int type);
 extern EchoObject *echoObjectNix(EchoObject *obj);
 extern int echoObjectIsContainer(EchoObject *obj);
 extern void echoObjectListAdd(EchoObject *parent, EchoObject *child);
+extern void echoObjectSphereSet(EchoObject *sphere,
+				echoPos_t x, echoPos_t y,
+				echoPos_t z, echoPos_t rad);
 
 /* light.c ---------------------------------------- */
 
 enum {
   echoLightUnknown,
-  echoLightAmbient,     /* 1 */
-  echoLightDirectional, /* 2 */
-  echoLightArea,        /* 3 */
+  echoLightDirectional, /* 1 */
+  echoLightArea,        /* 2 */
   echoLightLast
 };
-#define ECHO_LIGHT_MAX     3
+#define ECHO_LIGHT_MAX     2
 
 #define ECHO_LIGHT_COMMON \
   int type                \
@@ -256,12 +261,7 @@ typedef struct {
 typedef struct {
   ECHO_LIGHT_COMMON;
   echoCol_t col[3];
-} EchoLightAmbient;
-
-typedef struct {
-  ECHO_LIGHT_COMMON;
-  echoCol_t col[3];
-  echoPos_t dir[3];
+  echoPos_t dir[3];          /* normalized by echoLightDirectionalSet */
 } EchoLightDirectional;
 
 typedef struct {
@@ -272,6 +272,9 @@ typedef struct {
 
 extern EchoLight *echoLightNew(int type);
 extern EchoLight *echoLightNix(EchoLight *light);
+extern void echoLightDirectionalSet(EchoLight *_light,
+				    echoCol_t r, echoCol_t g, echoCol_t b,
+				    echoPos_t x, echoPos_t y, echoPos_t z);
 
 /* methods.c --------------------------------------- */
 extern EchoParam *echoParamNew();
@@ -291,7 +294,7 @@ typedef struct {
 
 typedef struct {
   echoPos_t t;
-  echoPos_t norm[3], pos[3];
+  echoPos_t view[3], norm[3], pos[3];
   EchoObject *obj;
   /* ??? extra information for where in tri mesh it hit? */
 } EchoIntx;
@@ -305,11 +308,18 @@ extern int echoRender(Nrrd *nraw, limnCam *cam,
 		      EchoParam *param, EchoGlobalState *state,
 		      EchoObject *scene, airArray *lightArr);
 
-/* ray.c ------------------------------------------- */
+/* intx.c ------------------------------------------- */
 extern void echoRayColor(echoCol_t *chan, int samp,
 			 echoPos_t from[3], echoPos_t dir[3],
 			 echoPos_t near, echoPos_t far,
 			 EchoParam *param, EchoThreadState *tstate,
 			 EchoObject *scene, airArray *lightArr);
+
+extern void echoMatterPhongSet(EchoObject *obj,
+			       echoCol_t r, echoCol_t g,
+			       echoCol_t b, echoCol_t a, 
+			       echoCol_t ka, echoCol_t kd,
+			       echoCol_t ks, echoCol_t sh);
+
 
 #endif /* ECHO_HAS_BEEN_INCLUDED */

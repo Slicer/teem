@@ -55,8 +55,6 @@ main(int argc, char **argv) {
   echoObjectListAdd(obj, echoObjectNew(echoObjectCube));
   obj = echoObjectNix(obj);
 
-  light = echoLightNew(echoLightAmbient);
-  light = echoLightNix(light);
   light = echoLightNew(echoLightDirectional);
   light = echoLightNix(light);
   light = echoLightNew(echoLightArea);

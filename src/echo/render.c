@@ -18,6 +18,7 @@
 */
 
 #include "echo.h"
+#include "private.h"
 
 /*
 ******** echoComposite
@@ -273,6 +274,26 @@ echoChannelAverage(echoCol_t *img,
   return;
 }
 
+void
+echoRayColor(echoCol_t *chan, int samp,
+	     echoPos_t from[3], echoPos_t dir[3],
+	     echoPos_t near, echoPos_t far,
+	     EchoParam *param, EchoThreadState *tstate,
+	     EchoObject *obj, airArray *lightArr) {
+  
+  EchoIntx intx;  /* NOT a pointer */
+  
+  if (!_echoRayIntx[obj->type](&intx, from, dir, near, far, param, obj)) {
+    /* ray hits nothing in obj */
+    ELL_4V_SET(chan, 0, 0, 0, 0);
+    return;
+  }
+  /* else we actually hit something */
+  _echoIntxColor[intx.obj->matter](chan, &intx, samp, param,
+				   tstate, obj, lightArr);
+
+  return;
+}
 
 /*
 ******** echoRender
@@ -300,7 +321,7 @@ echoRender(Nrrd *nraw, limnCam *cam,
     *jitt;                  /* current scanline of master jitter array */
   EchoThreadState *tstate;  /* only one thread for now */
   echoCol_t *img, *chan;    /* current scanline of channel buffer array */
-
+  double time0;             /* to record per ray sample time */
 
   if (echoCheck(nraw, cam, param, gstate, scene, lightArr)) {
     sprintf(err, "%s: problem with input", me);
@@ -331,7 +352,7 @@ echoRender(Nrrd *nraw, limnCam *cam,
   ELL_4MV_GET_ROW2(N, cam->W2V);
   ELL_3V_COPY(imgOrig, eye);
   ELL_3V_SCALEADD(imgOrig, N, cam->vspDist);
-
+  
   /* determine pixel dimensions */
   pixUsz = (cam->uMax - cam->uMin)/(param->imgResU);
   pixVsz = (cam->vMax - cam->vMin)/(param->imgResV);
@@ -356,7 +377,7 @@ echoRender(Nrrd *nraw, limnCam *cam,
 	ELL_3V_SCALEADD(from, U, tmp);
 	tmp = param->aperture*jitt[1 + 2*echoSampleLens];
 	ELL_3V_SCALEADD(from, V, tmp);
-
+	
 	/* set at[] */
 	ELL_3V_COPY(at, imgOrig);
 	tmp = imgU + pixUsz*jitt[0 + 2*echoSamplePixel];
@@ -365,9 +386,15 @@ echoRender(Nrrd *nraw, limnCam *cam,
 	ELL_3V_SCALEADD(at, V, tmp);
 
 	/* do it! */
-	ELL_3V_SUB(dir, from, at);
+	ELL_3V_SUB(dir, at, from);
 	near = 0.0;
 	far = POS_MAX;
+	/*
+	printf("!%s:(%d,%d): from=(%g,%g,%g); at=(%g,%g,%g); dir=(%g,%g,%g)\n",
+	       me, imgUi, imgVi, from[0], from[1], from[2],
+	       at[0], at[1], at[2], dir[0], dir[1], dir[2]);
+	*/
+	time0 = airTime();
 #if 1
 	echoRayColor(chan, samp,
 		     from, dir,
@@ -375,14 +402,16 @@ echoRender(Nrrd *nraw, limnCam *cam,
 		     param, tstate,
 		     scene, lightArr);
 #else
-	memset(chan, ECHO_IMG_CHANNELS*sizeof(echoCol_t));
+	memset(chan, 0, ECHO_IMG_CHANNELS*sizeof(echoCol_t));
 #endif
+	chan[4] = airTime() - time0;
 	
 	/* move to next "scanlines" */
 	jitt += 2*ECHO_SAMPLE_NUM;
 	chan += ECHO_IMG_CHANNELS;
       }
       echoChannelAverage(img, param, tstate);
+      img += ECHO_IMG_CHANNELS;
       if (!param->reuseJitter) 
 	echoJitterSet(param, tstate);
     }

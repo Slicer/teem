@@ -169,3 +169,16 @@ echoObjectListAdd(EchoObject *parent, EchoObject *child) {
 
   return;
 }
+
+void
+echoObjectSphereSet(EchoObject *_sphere,
+		    echoPos_t x, echoPos_t y, echoPos_t z, echoPos_t rad) {
+  EchoObjectSphere *sphere;
+
+  if (_sphere && echoObjectSphere == _sphere->type) {
+    sphere = (EchoObjectSphere *)_sphere;
+    ELL_3V_SET(sphere->pos, x, y, z);
+    sphere->rad = rad;
+  }
+  return;
+}

@@ -29,5 +29,14 @@ typedef int (*_echoRayIntx_t)(INTX_ARGS());
 
 extern _echoRayIntx_t _echoRayIntx[ECHO_OBJECT_MAX+1];
 
+#define COLOR_ARGS echoCol_t *chan, EchoIntx *intx, int samp,       \
+                   EchoParam *param, EchoThreadState *tstate,       \
+                   EchoObject *obj, airArray *lightArr
+
+typedef void (*_echoIntxColor_t) (COLOR_ARGS);
+
+extern _echoIntxColor_t _echoIntxColor[ECHO_MATTER_MAX+1];
+
 
 #endif /*  ECHO_PRIVATE_HAS_BEEN_INCLUDED */
+
