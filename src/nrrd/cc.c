@@ -269,7 +269,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, Nrrd *nin, int type, int conny) {
   airArray *mop, *eqvArr;
   int ret, *map, *fpid, numid, maxid,
     (*lup)(void *, size_t), (*ins)(void *, size_t, int);
-  size_t I;
+  size_t I, NN;
   void *val;
   
   if (!(nout && nin)) {
@@ -339,7 +339,8 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, Nrrd *nin, int type, int conny) {
   maxid = _nrrdCC_eclass(map, numid, eqvArr);
   /* convert fpid values to final id values */
   fpid = (int*)(nfpid->data);
-  for (I=0; I<nrrdElementNumber(nfpid); I++) {
+  NN = nrrdElementNumber(nfpid);
+  for (I=0; I<NN; I++) {
     fpid[I] = map[fpid[I]];
   }
   if (nvalP) {
@@ -353,7 +354,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, Nrrd *nin, int type, int conny) {
     val = nval->data;
     lup = nrrdILookup[nin->type];
     ins = nrrdIInsert[nin->type];
-    for (I=0; I<nrrdElementNumber(nfpid); I++) {
+    for (I=0; I<NN; I++) {
       ins(val, fpid[I], lup(nin->data, I));
     }
   }
@@ -605,7 +606,7 @@ nrrdCCMerge(Nrrd *nout, Nrrd *nin, Nrrd *_nval,
   Nrrd *nadj, *nsize, *ntmp, *nval, *nnn;
   unsigned char *adj;
   airArray *mop;
-  size_t I;
+  size_t I, NN;
   
   mop = airMopNew();
   if (!( nout && nrrdCCValid(nin) )) {
@@ -704,7 +705,8 @@ nrrdCCMerge(Nrrd *nout, Nrrd *nin, Nrrd *_nval,
   }
   lup = nrrdILookup[nin->type];
   ins = nrrdIInsert[nout->type];
-  for (I=0; I<nrrdElementNumber(nin); I++) {
+  NN = nrrdElementNumber(nin);
+  for (I=0; I<NN; I++) {
     ins(nout->data, I, map[lup(nin->data, I)]);
   }
 

@@ -385,7 +385,7 @@ nrrdElementNumber (Nrrd *nrrd) {
   }
   num = 1;
   for (d=0; d<nrrd->dim; d++) {
-    /* negative numbers were caught by _nrrdSizeCheck() */
+    /* negative numbers and overflow were caught by _nrrdSizeCheck() */
     num *= size[d];
   }
   return num;

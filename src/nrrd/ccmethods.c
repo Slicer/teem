@@ -142,7 +142,7 @@ int
 nrrdCCSize(Nrrd *nout, Nrrd *nin) {
   char me[]="nrrdCCSize", func[]="ccsize", err[AIR_STRLEN_MED];
   int *out, maxid, (*lup)(void *, size_t);
-  size_t I;
+  size_t I, NN;
 
   if (!( nout && nrrdCCValid(nin) )) {
     sprintf(err, "%s: invalid args", me);
@@ -155,7 +155,8 @@ nrrdCCSize(Nrrd *nout, Nrrd *nin) {
   }
   out = (int *)(nout->data);
   lup = nrrdILookup[nin->type];
-  for (I=0; I<nrrdElementNumber(nin); I++) {
+  NN = nrrdElementNumber(nin);
+  for (I=0; I<NN; I++) {
     out[lup(nin->data, I)] += 1;
   }
   if (nrrdContentSet(nout, func, nin, "")) {
@@ -176,11 +177,12 @@ nrrdCCSize(Nrrd *nout, Nrrd *nin) {
 int
 nrrdCCMax(Nrrd *nin) {
   int (*lup)(void *, size_t), id, max=0;
-  size_t I;
+  size_t I, NN;
 
   if (nrrdCCValid(nin)) {
     lup = nrrdILookup[nin->type];
-    for (I=0; I<nrrdElementNumber(nin); I++) {
+    NN = nrrdElementNumber(nin);
+    for (I=0; I<NN; I++) {
       id = lup(nin->data, I);
       max = AIR_MAX(max, id);
     }

@@ -343,14 +343,26 @@ nrrdNuke (Nrrd *nrrd) {
 int
 _nrrdSizeCheck (int dim, int *size, int useBiff) {
   char me[]="_nrrdSizeCheck", err[AIR_STRLEN_MED];
+  size_t num;
   int d;
   
+  num = 1;
   for (d=0; d<dim; d++) {
     if (!(size[d] > 0)) {
       sprintf(err, "%s: invalid size (%d) for axis %d (dim = %d)",
 	      me, size[d], d, dim);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
+    num *= size[d];
+  }
+  /* see if num was overflowed */
+  for (d=0; d<dim; d++) {
+    num /= size[d];
+  }
+  if (1 != num) {
+    sprintf(err, "%s: total # of elements too large to be represented in "
+	    "type size_t, so too large for current architecture", me);
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   return 0;
 }
@@ -699,17 +711,15 @@ int
 nrrdMaybeAlloc (Nrrd *nrrd, int type, int dim, ...) {
   char me[]="nrrdMaybeAlloc", err[AIR_STRLEN_MED];
   int d, size[NRRD_DIM_MAX];
-  size_t num;
   va_list ap;
   
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  num = 1;
   va_start(ap, dim);
   for (d=0; d<dim; d++) {
-    num *= (size[d] = va_arg(ap, int));
+    size[d] = va_arg(ap, int);
   }
   va_end(ap);
   if (_nrrdSizeCheck(dim, size, AIR_TRUE)) {
