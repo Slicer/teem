@@ -135,6 +135,8 @@ F(3op) \
 F(lut) \
 F(rmap) \
 F(imap) \
+F(ccfind) \
+F(ccmeld) \
 F(save)
 
 /*

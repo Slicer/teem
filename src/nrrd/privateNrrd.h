@@ -109,9 +109,16 @@ extern void _nrrdTraverse(Nrrd *nrrd);
 /* gzio.c */
 extern gzFile _nrrdGzOpen(FILE* fd, const char *mode);
 extern int _nrrdGzClose(gzFile file);
-extern int _nrrdGzRead(gzFile file, voidp buf, unsigned int len, unsigned int* read);
-extern int _nrrdGzWrite(gzFile file, const voidp buf, unsigned int len, unsigned int* written);
+extern int _nrrdGzRead(gzFile file, voidp buf, unsigned int len,
+		       unsigned int* read);
+extern int _nrrdGzWrite(gzFile file, const voidp buf, unsigned int len,
+			unsigned int* written);
 #endif
+
+/* ccmethods.c */
+extern int _nrrdCC_maxid(Nrrd *nin);
+extern int _nrrdCC_settle(int *map, int len);
+extern int _nrrdCC_eclass(int *map, int len, airArray *eqvArr);
 
 #ifdef __cplusplus
 }

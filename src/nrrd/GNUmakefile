@@ -55,7 +55,7 @@ $(L).OBJS = \
 	map.o        measure.o   methodsNrrd.o  parseNrrd.o      \
 	read.o       reorder.o   resampleNrrd.o simple.o         \
 	subset.o     superset.o  write.o        tmfKernel.o      \
-	winKernel.o
+	winKernel.o  ccmethods.o cc.o
 $(L).TESTS = test/tread test/trand test/ax test/io test/minmax test/tkernel \
 	test/typestest test/tline test/genvol test/quadvol test/convo
 ####
