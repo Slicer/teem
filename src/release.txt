@@ -24,7 +24,7 @@ cp src/LICENSE.txt ~/teemdoc/html/tree/src/
 
 1) Check namespace safety
   a) Make sure all library symbols are properly prefixed.  On linux,
-  this should return nothing:
+  this should return nothing (actually this shows lots of Bzip2 stuff, why?):
   cd teem/linux.32/lib
   nm libteem.so \
   | grep -v "gcc2_compiled." | grep -v " U " | grep -v " A " \
@@ -48,7 +48,7 @@ cp src/LICENSE.txt ~/teemdoc/html/tree/src/
   | grep -v " echo" | grep -v " _echo"
   b) Make sure #defines in header files are properly prefixed:
   cd ../../include
-  grep #define *.h | grep -v _export \
+  grep #define teem/*.h | grep -v _export \
   | grep -v " echo" | grep -v " ell" | grep -v " gage" \
   | grep -v " AIR" | grep -v " _AIR" \
   | grep -v " HEST" | grep -v " _HEST" \
@@ -78,45 +78,22 @@ setenv VERSION <<version>>
 cvs -d:ext:kindlmann@cvs.sourceforge.net:/cvsroot/teem co teem
 cd teem
 find . -name CVS  -exec rm -rf {} \;
+rm -rf darwin linux linux.64/
 cd ..; mv teem teem-${VERSION}-src
 tar czvf teem-${VERSION}-src.tar.gz teem-${VERSION}-src
 mv teem-${VERSION}-src.tar.gz ~/rel
+
+cvs -d:ext:kindlmann@cvs.sourceforge.net:/cvsroot/teem co NrrdIO
+cd NrrdIO
+find . -name CVS  -exec rm -rf {} \;
+cd ..; mv NrrdIO NrrdIO-${VERSION}-src
+tar czvf NrrdIO-${VERSION}-src.tar.gz NrrdIO-${VERSION}-src
+mv NrrdIO-${VERSION}-src.tar.gz ~/rel
 
 4) Checkout a tree:
 
 "make teem/install" on all platforms ...
 
-mojojojo:
-setenv TEEM_ARCH darwin.32
-setenv TEEM_PNG
-setenv TEEM_ZLIB
-setenv TEEM_BZIP2
-setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/darwin/lib
-setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/darwin/include
-setenv TEEM_PNG_LPATH -L/home/sci/gk/usr/darwin/lib
-setenv TEEM_PNG_IPATH -I/home/sci/gk/usr/darwin/include
-scout:
-setenv TEEM_ARCH darwin.64
-setenv TEEM_PNG
-setenv TEEM_ZLIB
-setenv TEEM_BZIP2
-setenv TEEM_PTHREAD
-setenv TEEM_BZIP2_LPATH -L/sw/lib
-setenv TEEM_BZIP2_IPATH -I/sw/include
-setenv TEEM_ZLIB_LPATH -L/sw/lib
-setenv TEEM_ZLIB_IPATH -I/sw/include
-setenv TEEM_PNG_LPATH -L/sw/lib
-setenv TEEM_PNG_IPATH -I/sw/include
-carrot:
-setenv TEEM_ARCH irix6.n32
-setenv TEEM_PNG
-setenv TEEM_ZLIB
-setenv TEEM_BZIP2
-setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/irix6.n32/lib
-setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
-setenv TEEM_PNG_LPATH -L/home/sci/gk/usr/irix6.n32/lib
-setenv TEEM_PNG_IPATH -I/home/sci/gk/usr/irix6.n32/include
-setenv PATH ${PATH}:/home/sci/gk/usr/local/irix6.n32/bin
 rapture/ray/muse:
 setenv TEEM_ARCH irix6.64
 setenv TEEM_PNG
@@ -132,21 +109,6 @@ setenv TEEM_PTHREAD
 setenv TEEM_LINK_SHARED
 setenv PATH ${PATH}:/home/sci/gk/usr/local/irix6.64/bin
 setenv LD_LIBRARY64_PATH ${LD_LIBRARY64_PATH}:/home/sci/gk/usr/local/irix6.64/lib
-carnitas:
-setenv TEEM_ARCH linux.32
-setenv TEEM_PNG
-setenv TEEM_ZLIB
-setenv TEEM_BZIP2
-# setenv TEEM_BZIP2_LPATH -L/home/sci/gk/usr/linux.32/lib
-# setenv TEEM_BZIP2_IPATH -I/home/sci/gk/usr/include
-
-(options for doing valgrind)
-setenv OPT_CFLAG "-g"
-setenv TEEM_LINK_SHARED
-setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sci/gk/usr/local/linux.32/lib
-setenv PATH ${PATH}:/home/sci/gk/usr/local/linux.32/bin
-alias valgrind /home/sci/gk/usr/linux/bin/valgrind \
-  --show-reachable=yes --leak-check=yes 
 
 vision:
 setenv TEEM_ARCH solaris
@@ -163,11 +125,11 @@ setenv TEEM_PNG_IPATH -I/usr/local/include
 
 5) Create Unix-ish binary builds (without src or docs):
    for each TEEM_ARCH in:
-   irix6.n32 irix6.ia64 irix6.amd64 linux.32 linux.64 cygwin solaris darwin.32 darwin.64
+   irix6.n32 linux.ia64 linux.amd64 linux.32 cygwin solaris darwin.32 darwin.64
 -  ssh to some ARCH machine, copy teem-VERSION-src.tar.gz there if needed
 -  setenv TEEM_XXX for all the externals that it makes sense to 
       compile into the distributed statically linked binaries
-setenv VERSION 1.8.0
+setenv VERSION <<<version>>>
 tar xzvf ~/rel/teem-${VERSION}-src.tar.gz
 cd teem-${VERSION}-src; setenv TEEM_DEST `pwd`
 cd src; make; cd ..
@@ -178,7 +140,7 @@ cd ..
 mv teem-${VERSION}-src teem-${VERSION}-${TEEM_ARCH}
 tar czvf teem-${VERSION}-${TEEM_ARCH}.tar.gz teem-${VERSION}-${TEEM_ARCH}
 mv -f teem-${VERSION}-${TEEM_ARCH}.tar.gz ~/rel
-rm -rf teem-${VERSION}-${TEEM_ARCH}
+yes | rm -rf teem-${VERSION}-${TEEM_ARCH}
 
 6) Create Windows binary builds.
 
@@ -190,7 +152,11 @@ prompt
 cd incoming
 mput *.tar.gz
 
-8) update online documentation (which may be done more often than releases)
+8) make a CVS tag for the version
+cvs rtag version-X_X_X teem
+(can't use "." in cvs tag name)
+
+9) update online documentation (which may be done more often than releases)
 cd ~/teemdoc
 cvs commit -m "pre-release doc update"
 
