@@ -28,7 +28,9 @@ _pushTaskNew(pushContext *pctx, int threadIdx) {
   task = (pushTask *)calloc(1, sizeof(pushTask));
   if (task) {
     task->pctx = pctx;
-    /* task->gctx = gageContextCopy(pctx->gctx); */
+    task->gctx = gageContextCopy(pctx->gctx);
+    task->tenAns = gageAnswerPointer(task->gctx, task->gctx->pvl[0],
+                                     tenGageTensor);
     if (threadIdx) {
       task->thread = airThreadNew();
     }
@@ -42,7 +44,7 @@ pushTask *
 _pushTaskNix(pushTask *task) {
 
   if (task) {
-    /* task->gctx = gageContextNix(task->gctx); */
+    task->gctx = gageContextNix(task->gctx);
     if (task->threadIdx) {
       task->thread = airThreadNix(task->thread);
     }
@@ -173,6 +175,16 @@ _pushContextCheck(pushContext *pctx) {
             pctx->numThread, PUSH_THREAD_MAX);
     biffAdd(PUSH, err); return 1;
   }
+
+  if (nrrdCheck(pctx->nin)) {
+    sprintf(err, "%s: got a broken input nrrd", me);
+    biffMove(PUSH, err, NRRD); return 1;
+  }
+  if (!( (3 == pctx->nin->dim && 4 == pctx->nin->axis[0].size) 
+         || (4 == pctx->nin->dim && 7 == pctx->nin->axis[0].size) )) {
+    sprintf(err, "%s: input doesn't look like 2D or 3D masked tensors", me);
+    biffAdd(PUSH, err); return 1;
+  }
   return 0;
 }
 
@@ -198,6 +210,10 @@ pushStart(pushContext *pctx) {
     biffMove(PUSH, err, NRRD); return 1;
   }
 
+  if (_pushInputProcess(pctx)) {
+    sprintf(err, "%s: trouble creating internal input", me);
+    biffAdd(PUSH, err); return 1;
+  }
   /* initialize point positions and velocities in nPosVel */
   _pushInitialize(pctx);
 
@@ -286,7 +302,7 @@ pushIterate(pushContext *pctx) {
 }
 
 int
-pushOutputGet(Nrrd *nout, pushContext *pctx) {
+pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pushContext *pctx) {
   char me[]="pushOutputGet", err[AIR_STRLEN_MED];
   int min[2], max[2];
 
@@ -294,14 +310,22 @@ pushOutputGet(Nrrd *nout, pushContext *pctx) {
   min[1] = 0;
   max[0] = (2 == pctx->dimIn ? 1 : 2);
   max[1] = pctx->nPosVel->axis[1].size - 1;
-  if (nrrdCrop(nout, pctx->nPosVel, min, max)) {
-    sprintf(err, "%s: couldn't crop to recover output", me);
-    biffMove(PUSH, err, NRRD); return 1;
+  if (nPosOut) {
+    if (nrrdCrop(nPosOut, pctx->nPosVel, min, max)) {
+      sprintf(err, "%s: couldn't crop to recover output", me);
+      biffMove(PUSH, err, NRRD); return 1;
+    }
+  }
+  if (nTenOut) {
+
   }
 
   return 0;
 }
 
+/*
+** blows away nten and gctx
+*/
 int
 pushFinish(pushContext *pctx) {
   char me[]="pushFinish", err[AIR_STRLEN_MED];
@@ -311,6 +335,10 @@ pushFinish(pushContext *pctx) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(PUSH, err); return 1;
   }
+
+  pctx->nten = nrrdNuke(pctx->nten);
+  pctx->gctx = gageContextNix(pctx->gctx);
+  pctx->tenAns = NULL;
 
   nrrdEmpty(pctx->nPosVel);
   nrrdEmpty(pctx->nVelAcc);

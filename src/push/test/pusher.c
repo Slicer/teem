@@ -32,11 +32,14 @@ main(int argc, char *argv[]) {
   char *outS;
   int numIters, numThread, numBatch, ptsPerBatch, snap;
   pushContext *pctx;
-  Nrrd *nout;
+  Nrrd *nin, *nPosOut;
   double step, drag, minMeanVel;
+  NrrdKernelSpec *kk;
   
   mop = airMopNew();
   me = argv[0];
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "",
+             "input volume to filter", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "iter", "# iters", airTypeInt, 1, 1, &numIters, "5",
              "number of iterations to do processing for");
   hestOptAdd(&hopt, "dt", "step", airTypeDouble, 1, 1, &step, "0.01",
@@ -54,6 +57,9 @@ main(int argc, char *argv[]) {
              "number of batches of points to use in simulation");
   hestOptAdd(&hopt, "ppb", "pts/batch", airTypeInt, 1, 1, &ptsPerBatch, "5",
              "number of points to put in each batch");
+  hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &kk,
+             "tent", "kernel for tensor field sampling",
+             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "tmp.nrrd",
              "output file to save filtering result into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
@@ -63,9 +69,10 @@ main(int argc, char *argv[]) {
 
   pctx = pushContextNew();
   airMopAdd(mop, pctx, (airMopper)pushContextNix, airMopAlways);
-  nout = nrrdNew();
-  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+  nPosOut = nrrdNew();
+  airMopAdd(mop, nPosOut, (airMopper)nrrdNuke, airMopAlways);
   
+  pctx->nin = nin;
   pctx->numThread = numThread;
   pctx->drag = drag;
   pctx->step = step;
@@ -75,9 +82,12 @@ main(int argc, char *argv[]) {
   pctx->pointsPerBatch = ptsPerBatch;
   pctx->numStage = 2;
   pctx->verbose = 0;
+  pctx->kernel = kk->kernel;
+  memcpy(pctx->kparm, kk->parm, NRRD_KERNEL_PARMS_NUM*sizeof(double));
+
   if (pushStart(pctx)
       || pushRun(pctx)
-      || pushOutputGet(nout, pctx)
+      || pushOutputGet(nPosOut, NULL, pctx)
       || pushFinish(pctx)) {
     airMopAdd(mop, err = biffGetDone(PUSH), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
@@ -85,7 +95,7 @@ main(int argc, char *argv[]) {
     return 1;
   }
   fprintf(stderr, "%s: time to compute = %g secs\n", me, pctx->time);
-  if (nrrdSave(outS, nout, NULL)) {
+  if (nrrdSave(outS, nPosOut, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't save output:\n%s\n", me, err);
     airMopError(mop); 

@@ -28,6 +28,7 @@
 #include <teem/ell.h>
 #include <teem/nrrd.h>
 #include <teem/gage.h>
+#include <teem/ten.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,6 +53,7 @@ typedef float push_t;
 typedef struct pushTask_t {
   struct pushContext_t *pctx;      /* parent's context */
   gageContext *gctx;               /* result of gageContextCopy(pctx->gctx) */
+  gage_t *tenAns;                  /* result of gage probing */
   airThread *thread;               /* my thread */
   int threadIdx;                   /* which thread am I */
   double meanVel;                  /* mean velocity for points in my batches */
@@ -75,14 +77,16 @@ typedef struct pushContext_t {
     snap,                          /* if non-zero, interval between iterations
                                       at which output snapshots are saved */
     verbose;                       /* blah blah blah */
+  const NrrdKernel *kernel;
+  double kparm[NRRD_KERNEL_PARMS_NUM];
   double stageParm[PUSH_STAGE_MAX][PUSH_STAGE_PARM_MAX]; /* parms for stages */
   pushProcess process[PUSH_STAGE_MAX]; /* the function for each stage */
   /* INTERNAL -------------------------- */
-  Nrrd *nin3D,                     /* always 3D masked tensors */
-    *nmask,                        /* 3D mask volume (from "confidence") */
+  Nrrd *nten,                      /* always 3D masked tensors */
     *nPosVel,
     *nVelAcc;
-  gageContext *gctx;               /* gage context around nin and ndist */
+  gageContext *gctx;               /* gage context around nten */
+  gage_t *tenAns;                  /* result of gage probing */
   int dimIn,                       /* dimension (2 or 3) of input */
     finished,                      /* used to signal all threads to return */
     stage,                         /* stage currently undergoing processing */
@@ -90,7 +94,9 @@ typedef struct pushContext_t {
                                       processed, either in filter or in update
                                       stage.  Stage is done when
                                       batch == numBatch */
-  double meanVel,                  /* latest mean velocity of particles */
+  double minPos[3],                /* lower corner of world position */
+    maxPos[3],                     /* upper corner of world position */
+    meanVel,                       /* latest mean velocity of particles */
     time0, time1;                  /* time at start and stop of run */
   pushTask **task;                 /* dynamically allocated array of tasks */
   airThreadMutex *batchMutex;      /* mutex around batch (and stage) */
@@ -112,7 +118,7 @@ TEEM_API pushContext *pushContextNix(pushContext *pctx);
 /* corePush.c */
 TEEM_API int pushStart(pushContext *pctx);
 TEEM_API int pushIterate(pushContext *pctx);
-TEEM_API int pushOutputGet(Nrrd *nout, pushContext *pctx);
+TEEM_API int pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pushContext *pctx);
 TEEM_API int pushFinish(pushContext *pctx);
 
 /* action.c */

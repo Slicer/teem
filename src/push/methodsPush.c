@@ -25,19 +25,23 @@
 pushContext *
 pushContextNew(void) {
   pushContext *pctx;
-  int sidx;
+  int ii;
 
   pctx = (pushContext *)calloc(1, sizeof(pushContext));
   if (pctx) {
     pctx->nin = NULL;
-    for (sidx=0; sidx<PUSH_STAGE_MAX; sidx++) {
-      pctx->process[sidx] = _pushProcessDummy;
+    for (ii=0; ii<PUSH_STAGE_MAX; ii++) {
+      pctx->process[ii] = _pushProcessDummy;
     }
-    pctx->nin3D = NULL;
-    pctx->nmask = NULL;
+    pctx->kernel = NULL;
+    for (ii=0; ii<NRRD_KERNEL_PARMS_NUM; ii++) {
+      pctx->kparm[ii] = AIR_NAN;
+    }
+    pctx->nten = NULL;
     pctx->nPosVel = nrrdNew();
     pctx->nVelAcc = nrrdNew();
     pctx->gctx = NULL;
+    pctx->tenAns = NULL;
     pctx->task = NULL;
     pctx->batchMutex = NULL;
     pctx->stageBarrierA = NULL;

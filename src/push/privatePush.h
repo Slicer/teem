@@ -30,6 +30,7 @@ void _pushProcessDummy(pushTask *task, int batch,
                        double parm[PUSH_STAGE_PARM_MAX]);
 
 /* action.c */
+int _pushInputProcess(pushContext *pctx);
 void _pushInitialize(pushContext *pctx);
 void _pushRepel(pushTask *task, int batch,
                 double parm[PUSH_STAGE_PARM_MAX]);
