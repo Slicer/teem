@@ -95,7 +95,7 @@ main(int argc, char *argv[]) {
   float perc[3], *vghF, v, g, h, minv, maxv, ming, maxg, minh, maxh;
   double t0, t1;
   hestParm *hparm;
-  hestOpt *opt = NULL;
+  hestOpt *hopt = NULL;
   gageSclContext *ctx;
   double kparm[3];
 
@@ -103,12 +103,12 @@ main(int argc, char *argv[]) {
   hparm = hestParmNew();
   hparm->elideSingleOtherType = AIR_TRUE;
 
-  hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
 	     "input volume, in nrrd format",
 	     NULL, NULL, &qbertNrrdHestCB);
-  hestOptAdd(&opt, "d", "sx sy sz", airTypeInt, 3, 3, sz, NULL,
+  hestOptAdd(&hopt, "d", "sx sy sz", airTypeInt, 3, 3, sz, NULL,
 	     "dimensions of output volume");
-  hestOptAdd(&opt, "p", "pv pg ph", airTypeFloat, 3, 3, perc, "0 2 4",
+  hestOptAdd(&hopt, "p", "pv pg ph", airTypeFloat, 3, 3, perc, "0 2 4",
 	     "percentiles along value, gradient, and 2nd derivative "
 	     "axes to EXCLUDE in the quantized 8-bit ranges. "
 	     "\"0 0 0\" will fit ALL values and derivatives into 8-bits, "
@@ -118,27 +118,27 @@ main(int argc, char *argv[]) {
 	     "Noisier datasets will require higher derivative exclusion "
 	     "values so as to best use the 8-bits on the significant "
 	     "range of derivative values.");
-  hestOptAdd(&opt, "b", "border", airTypeInt, 1, 1, &border, "0",
+  hestOptAdd(&hopt, "b", "border", airTypeInt, 1, 1, &border, "0",
 	     "number of samples on boundary of output volumes which "
 	     "will be all zeroes");
-  hestOptAdd(&opt, "o", "output", airTypeString, 1, 1, &outS, NULL,
+  hestOptAdd(&hopt, "o", "output", airTypeString, 1, 1, &outS, NULL,
 	     "output volume in nrrd format");
-  if (hestOptCheck(opt, &herr)) { printf("%s\n", herr); exit(1); }
+  if (hestOptCheck(hopt, &herr)) { printf("%s\n", herr); exit(1); }
 
   if (1 == argc) {
     hestInfo(stderr, me, info, hparm);
-    hestUsage(stderr, opt, me, hparm);
-    hestGlossary(stderr, opt, hparm);
+    hestUsage(stderr, hopt, me, hparm);
+    hestGlossary(stderr, hopt, hparm);
     hparm = hestParmFree(hparm);
-    opt = hestOptFree(opt);
+    hopt = hestOptFree(hopt);
     exit(1);
   }
-  if (hestParse(opt, argc-1, argv+1, &herr, hparm)) {
+  if (hestParse(hopt, argc-1, argv+1, &herr, hparm)) {
     fprintf(stderr, "ERROR: %s\n", herr); free(herr);
-    hestUsage(stderr, opt, me, hparm);
-    hestGlossary(stderr, opt, hparm);
+    hestUsage(stderr, hopt, me, hparm);
+    hestGlossary(stderr, hopt, hparm);
     hparm = hestParmFree(hparm);
-    opt = hestOptFree(opt);
+    hopt = hestOptFree(hopt);
     exit(1);
   }
   printf("output size = %d %d %d\n", sz[0], sz[1], sz[2]);
@@ -250,6 +250,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(NRRD));
     exit(1);
   }
+  nrrdEmpty(npad);
   if (!E) E |= gageSclVolumeSet(ctx, needPad, npad2);
   if (!E) E |= gageSclQuerySet(ctx,
 			       (1 << gageSclValue) | 
@@ -418,6 +419,7 @@ main(int argc, char *argv[]) {
   nvgh = nrrdNuke(nvgh);
   npad = nrrdNuke(npad);
   ctx = gageSclContextNix(ctx);
+  hestParseFree(hopt);
   hparm = hestParmFree(hparm);
 
   exit(0);
