@@ -51,6 +51,7 @@ tenGlyphParmNew() {
     parm->slicePos = -1;
     parm->sliceAnisoType = tenAnisoUnknown;
     parm->sliceOffset = 0.0;
+    parm->sliceBias = 0.05;
     parm->sliceGamma = 1.0;
   }
   return parm;
@@ -283,9 +284,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
 	if (!( tdata[0] >= parm->confThresh ))
 	  continue;
 	sliceGray = aniso[parm->sliceAnisoType];
-	/* HEY: look, a visualization parameter (0.03) that is not
-	   exposed anywhere in an API, just super ... */
-	sliceGray = AIR_AFFINE(0, sliceGray, 1, 0.03, 1);
+	sliceGray = AIR_AFFINE(0, sliceGray, 1, parm->sliceBias, 1);
       }
       if (parm->sliceGamma > 0) {
 	sliceGray = pow(sliceGray, 1.0/parm->sliceGamma);

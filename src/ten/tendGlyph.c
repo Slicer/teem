@@ -162,6 +162,9 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "sg", "slice gamma", airTypeFloat, 1, 1, 
 	     &(gparm->sliceGamma), "1.7",
 	     "Gamma to apply to values on slice.");
+  hestOptAdd(&hopt, "sb", "slice bias", airTypeFloat, 1, 1, 
+	     &(gparm->sliceBias), "0.05",
+	     "amount by which to bump up slice gray values prior to gamma.");
 
   /* camera */
   hestOptAdd(&hopt, "fr", "from point", airTypeDouble, 3, 3, cam->from, NULL,

@@ -118,10 +118,11 @@ typedef struct {
      in grayscale as a sheet of grayscale squares, one per sample. As
      with glyphs, these are thresholded by confThresh and maskThresh
      (but not anisoThresh).  Things can be lightened up with a
-     sliceGamma > 1.  The squares will be at their corresponding
+     sliceGamma > 1, after the slice's gray values have been mapped from
+     [0,1] to [sliceBias,1]. The squares will be at their corresponding
      sample locations, but offset by sliceOffset */
   int doSlice, sliceAxis, slicePos, sliceAnisoType;
-  float sliceOffset, sliceGamma;
+  float sliceOffset, sliceBias, sliceGamma;
 } tenGlyphParm;
 
 #define TEN_ANISO_DESC \
@@ -366,6 +367,21 @@ typedef struct {
     threshold;           /* minimum-error threshold */
 } tenEMBimodalParm;
 
+/*
+******** struct tenGradientParm
+**
+** all parameters for repulsion-based generation of gradient directions
+*/
+typedef struct {
+  double mass, 
+    charge,
+    drag, 
+    dt,
+    minVelocity,
+    jitter; 
+  int snap, single, minIteration, maxIteration;
+} tenGradientParm;
+
 /* defaultsTen.c */
 TEEM_API const char *tenBiffKey;
 TEEM_API const char tenDefFiberKernel[];
@@ -376,6 +392,8 @@ TEEM_API int tenDefFiberAnisoType;
 TEEM_API double tenDefFiberAnisoThresh;
 TEEM_API int tenDefFiberIntg;
 TEEM_API double tenDefFiberWPunct;
+
+/* grads.c */
 
 /* enumsTen.c */
 TEEM_API airEnum *tenAniso;
@@ -400,7 +418,8 @@ TEEM_API int tenTensorCheck(Nrrd *nin, int wantType, int want4D, int useBiff);
 TEEM_API int tenExpand(Nrrd *tnine, Nrrd *tseven, float scale, float thresh);
 TEEM_API int tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine);
 TEEM_API int tenEigensolve(float eval[3], float evec[9], float ten[7]);
-TEEM_API void tenMakeOne(float ten[7], float conf, float eval[3], float evec[9]);
+TEEM_API void tenMakeOne(float ten[7],
+			 float conf, float eval[3], float evec[9]);
 TEEM_API int tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec);
 TEEM_API int tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos, int dim);
 
@@ -459,7 +478,8 @@ TEEM_API tenFiberContext *tenFiberContextNix(tenFiberContext *tfx);
 TEEM_API int tenFiberTrace(tenFiberContext *tfx, Nrrd *fiber, double start[3]);
 
 /* epireg.c */
-TEEM_API int tenEpiRegister3D(Nrrd **nout, Nrrd **ndwi, int dwiLen, Nrrd *ngrad,
+TEEM_API int tenEpiRegister3D(Nrrd **nout, Nrrd **ndwi,
+			      int dwiLen, Nrrd *ngrad,
 			      int reference,
 			      float bwX, float bwY, float fitFrac, float DWthr,
 			      int doCC,
@@ -495,6 +515,7 @@ TEEM_API int tenEMBimodal(tenEMBimodalParm *biparm, Nrrd *nhisto);
 #define TEND_LIST(C) &tend_##C##Cmd,
 /* removed from below (superseded by estim): F(calc) \ */
 #define TEND_MAP(F) \
+F(grads) \
 F(epireg) \
 F(bmat) \
 F(estim) \
