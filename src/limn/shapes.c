@@ -84,6 +84,12 @@ limnObjLoneEdgeAdd(limnObj *obj, int sp) {
   return ret;
 }
 
+/*
+******** limnObjCylinderAdd
+**
+** adds a cylinder that fills up the bi-unit cube [-1,1]^3,
+** with axis "axis" (0:X, 1:Y, 2:Z), with discretization "res"
+*/
 int
 limnObjCylinderAdd(limnObj *obj, int sp, int axis, int res) {
   float th;
