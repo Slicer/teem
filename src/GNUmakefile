@@ -45,6 +45,11 @@
 TEEM_ROOT ?= ..
 TEEM_SRC ?= .
 
+## When making Windows project files, set TEEM_ARCH to cygwin
+ifeq (project, $(MAKECMDGOALS))
+TEEM_ARCH ?= cygwin
+endif
+
 ## read in the check* functions, and check on TEEM_ARCH
 ##
 include $(TEEM_SRC)/make/errorCheck.mk
