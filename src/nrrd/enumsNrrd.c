@@ -779,7 +779,8 @@ _nrrdBinaryOpStr[NRRD_BINARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "gte",
   "comp",
   "eq",
-  "neq"
+  "neq",
+  "exists"
 };
 
 char 
@@ -801,7 +802,8 @@ _nrrdBinaryOpDesc[NRRD_BINARY_OP_MAX+1][AIR_STRLEN_MED] = {
   "greater than or equal",
   "compare (resulting in -1, 0, or 1)",
   "equal",
-  "not equal"
+  "not equal",
+  "if exists(a), then a, else b"
 };
 
 #define nbAdd nrrdBinaryOpAdd
@@ -821,6 +823,7 @@ _nrrdBinaryOpDesc[NRRD_BINARY_OP_MAX+1][AIR_STRLEN_MED] = {
 #define nbCmp nrrdBinaryOpCompare
 #define nbEq  nrrdBinaryOpEqual
 #define nbNeq nrrdBinaryOpNotEqual
+#define nbExt nrrdBinaryOpExists
 
 char
 _nrrdBinaryOpStrEqv[][AIR_STRLEN_SMALL] = {
@@ -841,6 +844,7 @@ _nrrdBinaryOpStrEqv[][AIR_STRLEN_SMALL] = {
   "comp", "compare",
   "eq", "==", "equal",
   "neq", "!=", "notequal",
+  "exists",
   ""
 };
 
@@ -862,7 +866,8 @@ _nrrdBinaryOpValEqv[] = {
   nbGte, nbGte, nbGte,
   nbCmp, nbCmp,
   nbEq, nbEq, nbEq,
-  nbNeq, nbNeq, nbNeq
+  nbNeq, nbNeq, nbNeq,
+  nbExt
 };
 
 airEnum

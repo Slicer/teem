@@ -355,9 +355,10 @@ enum {
   nrrdBinaryOpCompare,    /* 15 */
   nrrdBinaryOpEqual,      /* 16 */
   nrrdBinaryOpNotEqual,   /* 17 */
+  nrrdBinaryOpExists,     /* 18 */
   nrrdBinaryOpLast
 };
-#define NRRD_BINARY_OP_MAX   17
+#define NRRD_BINARY_OP_MAX   18
 
 /*
 ******** nrrdTernaryOp
