@@ -437,6 +437,7 @@ extern nrrd_export int nrrdStateDisableContent;
 extern nrrd_export char *nrrdStateUnknownContent;
 extern nrrd_export int nrrdStateDisallowIntegerNonExist;
 extern nrrd_export int nrrdStateGrayscaleImage3D;
+extern nrrd_export int nrrdStateKeyValueReturnInternalPointers;
 extern void nrrdDefGetenv(void);
 extern void nrrdStateGetenv(void);
 
@@ -568,6 +569,7 @@ extern void nrrdKeyValueIndex(const Nrrd *nrrd,
 			      char **keyP, char **valueP, int ki);
 extern int nrrdKeyValueErase(Nrrd *nrrd, const char *key);
 extern void nrrdKeyValueClear(Nrrd *nrrd);
+extern int nrrdKeyValueCopy(Nrrd *nout, const Nrrd *nin);
 
 /******** endian related */
 /* endianNrrd.c */

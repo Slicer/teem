@@ -63,6 +63,8 @@ int nrrdStateDisableContent = AIR_FALSE;
 char *nrrdStateUnknownContent = NRRD_UNKNOWN;
 int nrrdStateDisallowIntegerNonExist = AIR_TRUE;
 int nrrdStateGrayscaleImage3D = AIR_FALSE;
+/* there is no sane reason to change this default initialization */
+int nrrdStateKeyValueReturnInternalPointers = AIR_FALSE;
 
 /* should the acceptance (or not) of malformed NRRD header fields 
    embedded in PNM or text comments be controlled here? */
