@@ -33,7 +33,7 @@ unrrdu_projectMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int axis, measr, pret;
+  int axis, measr, pret, type;
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "axis to project along");
@@ -41,6 +41,10 @@ unrrdu_projectMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "How to \"measure\" a scanline, by summarizing all its values "
 	     "with a single scalar. " NRRD_MEASURE_DESC,
 	     NULL, nrrdMeasure);
+  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "default",
+	     "type to use for output. By default (not using this option), "
+	     "the output type is determined auto-magically",
+             NULL, NULL, &unrrduHestMaybeTypeCB);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -54,7 +58,7 @@ unrrdu_projectMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdProject(nout, nin, axis, measr)) {
+  if (nrrdProject(nout, nin, axis, measr, type)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error projecting nrrd:\n%s", me, err);
     airMopError(mop);

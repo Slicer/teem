@@ -39,7 +39,7 @@ unrrdu_ccfindMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "associated with each connect component.  This can be used "
 	     "later with \"ccmerge -d\".  By default, no record of the "
 	     "original CC values is kept.");
-  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "unknown",
+  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "default",
 	     "type to use for output, to store the CC ID values.  By default "
 	     "(not using this option), the type used will be the smallest of "
 	     "uchar, ushort, or int, that can represent all the CC ID values. "

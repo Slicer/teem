@@ -80,7 +80,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     NULL, nrrdBoundary);
   hestOptAdd(&opt, "v", "value", airTypeDouble, 1, 1, &padVal, "0.0",
 	     "for \"pad\" boundary behavior, pad with this value");
-  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "unknown",
+  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "default",
 	     "type to save OUTPUT as. By default (not using this option), "
 	     "the output type is the same as the input type",
              NULL, NULL, &unrrduHestMaybeTypeCB);

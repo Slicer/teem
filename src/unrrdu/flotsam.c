@@ -22,6 +22,10 @@
 
 #include <ctype.h>
 
+
+const char *
+unrrduBiffKey = "unrrdu";
+
 /* number of columns that hest will used */
 int
 unrrduDefNumColumns = 78;
@@ -44,7 +48,7 @@ unrrduCmdList[] = {
 ** with their one-line descriptions
 */
 void
-unrrduUsage(char *me, hestParm *hparm) {
+unrrduUsage(const char *me, hestParm *hparm) {
   int i, maxlen, len, c;
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
 
@@ -171,6 +175,13 @@ hestCB unrrduHestPosCB = {
 ** parsable value, contrary to how airEnums usually work with hest.
 ** For instance, we might want to use "unknown" to represent
 ** "same type as the input, whatever that is".
+**
+** 18 July 03: with new nrrdTypeDefault, this function becomes
+** less of a hack, and more necessary, because the notion of an
+** unknown but valid type (as a default type is) falls squarely
+** outside the nrrdType airEnum framework.  Added a seperate test
+** for "default", even though currently nrrdTypeUnknown is the same
+** value as nrrdTypeDefault.
 */
 int
 unrrduParseMaybeType(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
@@ -185,6 +196,8 @@ unrrduParseMaybeType(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   typeP = ptr;
   if (!strcmp("unknown", str)) {
     *typeP = nrrdTypeUnknown;
+  } else if (!strcmp("default", str)) {
+    *typeP = nrrdTypeDefault;
   } else {
     *typeP = airEnumVal(nrrdType, str);
     if (nrrdTypeUnknown == *typeP) {

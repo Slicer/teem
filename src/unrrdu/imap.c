@@ -59,7 +59,7 @@ unrrdu_imapMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
 	     "Value to map to high end of map. Defaults to highest value "
 	     "found in input nrrd.");
-  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &typeOut, "unknown",
+  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &typeOut, "default",
 	     "specify the type (\"int\", \"float\", etc.) of the "
 	     "output nrrd. "
 	     "By default (not using this option), the output type "
@@ -97,7 +97,7 @@ unrrdu_imapMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (rescale) {
     nrrdMinMaxCleverSet(nin);
   }
-  if (nrrdTypeUnknown == typeOut) {
+  if (nrrdTypeDefault == typeOut) {
     typeOut = nmap->type;
   }
   /* some very non-exhaustive tests seemed to indicate that the

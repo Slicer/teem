@@ -45,7 +45,7 @@ unrrdu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
 	     "\b\bo \"sgn\": -1, 0, 1 if value is <0, ==0, or >0\n "
 	     "\b\bo \"exists\": 1 iff not NaN or +/-Inf, 0 otherwise",
 	     NULL, nrrdUnaryOp);
-  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "unknown",
+  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "default",
 	     "convert input nrrd to this type prior to "
 	     "doing operation.  Useful when desired output is float "
 	     "(e.g., with log1p), but input is integral. By default "
@@ -65,7 +65,7 @@ unrrdu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdTypeUnknown != type) {
+  if (nrrdTypeDefault != type) {
     /* they requested conversion to another type prior to the 1op */
     airMopAdd(mop, ntmp=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
     if (nrrdConvert(ntmp, nin, type)) {
