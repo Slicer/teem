@@ -190,7 +190,7 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
   }
   range = nrrdRangeNew(newmin, newmax);
-  airMopAdd(mop, range, (airMopper)range, airMopAlways);
+  airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
 
   if (nrrdFlip(nposA, nposB, 1) ||
       nrrdApply1DIrregMap(npvg, nposA, range, ndon,
