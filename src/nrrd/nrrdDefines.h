@@ -34,8 +34,6 @@ extern "C" {
 #define NRRD_EXT_PPM    ".ppm"
 #define NRRD_EXT_TABLE  ".txt"
 
-#define NRRD_BIG_INT_PRINTF "%llu"
-
 #define NRRD_STRLEN_LINE 64*1024+1 /* length of lines from a file.  Needs to
 				      be big because of possibility of bare
 				      ascii tables with lots of data */
