@@ -527,7 +527,7 @@ int
 main(int argc, char *argv[]) {
   char *me, *outS, *errS;
   Nrrd *nin, *npad, *nrsmp, *nvghF, *nvhist, *nghist, *nhhist, *nvgh;
-  int E, i, sz[3], ups, doH, useFloat, scat;
+  int E, i, sz[3], ups, notdoH, useFloat, scat;
   NrrdKernelSpec *k00, *k11, *k22;
   double amin[4], amax[4], spacing[4];
   float vperc, gperc, hperc, perc[3];
@@ -548,9 +548,9 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
 	     "input volume, in nrrd format",
 	     NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "h", NULL, airTypeInt, 0, 0, &doH, NULL,
-	     "Make a 3-channel VGH volume, instead of the usual (default) "
-	     "2-channel VG volume.");
+  hestOptAdd(&hopt, "vg", NULL, airTypeInt, 0, 0, &notdoH, NULL,
+	     "Make a 2-channel VG volume, instead of the usual (default) "
+	     "3-channel VGH volume.");
   hestOptAdd(&hopt, "f", NULL, airTypeInt, 0, 0, &useFloat, NULL,
 	     "Keep the output volume in floating point, instead of "
 	     "(by default) quantizing down to 8-bits.  The "
@@ -585,7 +585,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "vp", "V excl perc", airTypeFloat, 1, 1, &vperc,
 	     "0.000",
 	     "Percent of voxels to through away in quantization (if doing "
-	     "quantization) based their data value being too or too low. ");
+	     "quantization) based their data value being too high or "
+	     "too low. ");
   hestOptAdd(&hopt, "gp", "G perc", airTypeFloat, 1, 1, &gperc, "0.002",
 	     "Like \"-vp\", but for gradient magnitudes. ");
   hestOptAdd(&hopt, "hp", "H perc", airTypeFloat, 1, 1, &hperc, "0.004",
@@ -654,7 +655,7 @@ main(int argc, char *argv[]) {
   
   nvghF = nrrdNew();
   airMopAdd(mop, nvghF, (airMopper)nrrdNuke, airMopAlways);
-  if (qbertProbe(nvghF, nrsmp, k00, k11, k22, doH, sz)) {
+  if (qbertProbe(nvghF, nrsmp, k00, k11, k22, !notdoH, sz)) {
     airMopAdd(mop, errS=biffGetDone(QBERT), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, errS);
     airMopError(mop); exit(1);
@@ -665,7 +666,7 @@ main(int argc, char *argv[]) {
   if (useFloat) {
     /* we're done! */
     if (scat && (qbertScat(nvghF, 1, scat, "vg.pgm")
-		 || (doH && qbertScat(nvghF, 2, scat, "vh.pgm")))) {
+		 || (!notdoH && qbertScat(nvghF, 2, scat, "vh.pgm")))) {
       airMopAdd(mop, errS=biffGetDone(QBERT), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s\n", me, errS);
       airMopError(mop); exit(1);
@@ -697,14 +698,16 @@ main(int argc, char *argv[]) {
     nvghF = nrrdNuke(nvghF);
     
     if (scat && (qbertScat(nvgh, 1, scat, "vg.pgm")
-		 || (doH && qbertScat(nvgh, 2, scat, "vh.pgm")))) {
+		 || (!notdoH && qbertScat(nvgh, 2, scat, "vh.pgm")))) {
       airMopAdd(mop, errS=biffGetDone(QBERT), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s\n", me, errS);
       airMopError(mop); exit(1);
     }
 
     /* do final decoration of axes */
-    nrrdAxisInfoSet(nvgh, nrrdAxisInfoLabel, "vgh", "x", "y", "z");
+    nrrdAxisInfoSet(nvgh, nrrdAxisInfoLabel,
+		    !notdoH ? "vgh" : "vg",
+		    "x", "y", "z");
     nrrdAxisInfoSet_nva(nvgh, nrrdAxisInfoMin, amin);
     nrrdAxisInfoSet_nva(nvgh, nrrdAxisInfoMax, amax);
     nrrdAxisInfoSet_nva(nvgh, nrrdAxisInfoSpacing, spacing);
