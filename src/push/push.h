@@ -85,6 +85,7 @@ typedef struct pushContext_t {
     step,                          /* time step in integration */
     mass,                          /* mass of particles */
     scale,                         /* scaling from tensor to glyph size */
+    nudge,                         /* scaling of nudging towards center */
     margin,                        /* space allowed around [-1,1]^3 for pnts */
     minMeanVel;                    /* stop if mean velocity drops below this */
   int seed,                        /* seed value for airSrand48 */

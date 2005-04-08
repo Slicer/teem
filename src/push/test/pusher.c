@@ -33,7 +33,7 @@ main(int argc, char *argv[]) {
   int seed, numThread, numPoint, snap, minIter, maxIter, singleBin;
   pushContext *pctx;
   Nrrd *nin, *nPosOut, *nTenOut;
-  double step, drag, mass, scale, margin, minMeanVel;
+  double step, drag, mass, scale, nudge, margin, minMeanVel;
   NrrdKernelSpec *ksp00, *ksp11;
   
   mop = airMopNew();
@@ -55,6 +55,10 @@ main(int argc, char *argv[]) {
              "amount of drag");
   hestOptAdd(&hopt, "mass", "mass", airTypeDouble, 1, 1, &mass, "1",
              "mass of each particle");
+  hestOptAdd(&hopt, "nudge", "nudge", airTypeDouble, 1, 1, &nudge, "0.001",
+             "scaling of how distance from origin generates a nudging "
+             "force back towards the origin (as if by sitting in "
+             "parabola y = (1/2)*nudge*x^2)");
   hestOptAdd(&hopt, "scl", "scale", airTypeDouble, 1, 1, &scale, "0.25",
              "scaling from tensor size to glyph size");
   hestOptAdd(&hopt, "marg", "margin", airTypeDouble, 1, 1, &margin, "0.2",
@@ -99,6 +103,7 @@ main(int argc, char *argv[]) {
   pctx->step = step;
   pctx->mass = mass;
   pctx->scale = scale;
+  pctx->nudge = nudge;
   pctx->margin = margin;
   pctx->minMeanVel = minMeanVel;
   pctx->snap = snap;

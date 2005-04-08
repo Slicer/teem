@@ -132,40 +132,37 @@ int
 _pushBinPointsRebin(pushContext *pctx) {
   char me[]="_pushBinPointsRebin", err[AIR_STRLEN_MED];
   airArray *pidxArr;
-  int *pidx, oldbi, newbi, pi, pii;
+  int oldbi, newbi, pi, pii;
   push_t *attr, *pos;
 
   if (!pctx->singleBin) {
     attr = (push_t*)pctx->nPointAttr->data;
     for (oldbi=0; oldbi<pctx->numBin; oldbi++) {
       pidxArr = pctx->pidxArr[oldbi];
-      pidx = pctx->pidx[oldbi];
       for (pii=0; pii<pidxArr->len; /* nope! */) {
-        fprintf(stderr, "!%s: bingo -10\n", me);
-        pi = pidx[pii];
+        pi = pctx->pidx[oldbi][pii];
         pos = attr + PUSH_POS + PUSH_ATTR_LEN*pi;
         newbi = _pushBinFind(pctx, pos);
-        fprintf(stderr, "!%s: bingo -9 --> %d\n", me, newbi);
         if (-1 == newbi) {
           sprintf(err, "%s: point %d pos (%g,%g,%g) outside domain", me,
                   pi, pos[0], pos[1], pos[2]);
           biffAdd(PUSH, err); return 1;
         }
         if (oldbi != newbi) {
-          fprintf(stderr, "!%s: bingo 0: out of %d\n", me, oldbi);
+          /* fprintf(stderr, "!%s: bingo 0: out of %d\n", me, oldbi); */
           _pushBinPointRemove(pctx, oldbi, pii);
-          fprintf(stderr, "!%s: bingo 1: into %d\n", me, newbi);
+          /* fprintf(stderr, "!%s: bingo 1: into %d\n", me, newbi); */
           _pushBinPointAdd(pctx, newbi, pi);
-          fprintf(stderr, "!%s: bingo 2\n", me);
+          /* fprintf(stderr, "!%s: bingo 2\n", me); */
           /* don't increment pii; the next point index is now at pii */
         } else {
           /* this point is already in the right bin, move to next */
           pii++;
         }
-        fprintf(stderr, "!%s: bingo 3: %d %d %d\n", me,
-                pii, pidxArr->len, pii<pidxArr->len);
+        /* fprintf(stderr, "!%s: bingo 3: %d %d %d\n", me,
+           pii, pidxArr->len, pii<pidxArr->len); */
       }
-      fprintf(stderr, "!%s: bingo 4\n", me);
+      /* fprintf(stderr, "!%s: bingo 4\n", me); */
     }
     /*
       for (oldbi=0; oldbi<pctx->numBin; oldbi++) {
@@ -579,7 +576,6 @@ _pushRepel(pushTask *task, int bin, double parm[PUSH_STAGE_PARM_MAX]) {
   myPidx = task->pctx->pidx[bin];
   myPidxArrLen = task->pctx->pidxArr[bin]->len;
   numNei = _pushBinNeighborhoodFind(task->pctx, nei, bin, task->pctx->dimIn);
-  fprintf(stderr, "!%s: len(%d) = %d\n", "_pushRepel", bin, myPidxArrLen);
   for (ii=0; ii<myPidxArrLen; ii++) {
     pidxI = myPidx[ii];
     attrI = attr + PUSH_ATTR_LEN*pidxI;
@@ -587,7 +583,6 @@ _pushRepel(pushTask *task, int bin, double parm[PUSH_STAGE_PARM_MAX]) {
     /* initialize force accumulator */
     ELL_3V_SET(sumForce, 0, 0, 0);
 
-#if 0
     /* go through pairs */
     for (ni=0; ni<numNei; ni++) {
       neiPidx = task->pctx->pidx[nei[ni]];
@@ -601,15 +596,15 @@ _pushRepel(pushTask *task, int bin, double parm[PUSH_STAGE_PARM_MAX]) {
         _pushForceCalc(task, force, task->pctx->scale,
                        attrI + PUSH_POS, attrI + PUSH_TEN, 
                        attrJ + PUSH_POS, attrJ + PUSH_TEN);
-
+        /*
         if (ELL_3V_LEN(force)) {
           fprintf(stderr, "!%s: %d <---> %d : %g\n",
                   "_pushRepel", pidxI, pidxJ, ELL_3V_LEN(force));
         }
+        */
         ELL_3V_INCR(sumForce, force);
       }
     }
-#endif
 
     /* drag */
     ELL_3V_SCALE_INCR(sumForce, -task->pctx->drag, attrI + PUSH_VEL);
@@ -617,13 +612,15 @@ _pushRepel(pushTask *task, int bin, double parm[PUSH_STAGE_PARM_MAX]) {
     /* nudging towards image center */
     ELL_3V_NORM(dir, attrI + PUSH_POS, dist);
     if (dist) {
-      ELL_3V_SCALE_INCR(sumForce, -0.001*dist*dist, dir);
+      ELL_3V_SCALE_INCR(sumForce, -task->pctx->nudge*dist, dir);
     }
+    /*
     if (ELL_3V_LEN(sumForce)) {
       fprintf(stderr, "!%s: %d(%d) : (%g,%g,%g)\n",
               "_pushRepel", pidxI, bin, 
               sumForce[0], sumForce[1], sumForce[2]);
     }
+    */
 
     /* copy results to tmp world */
     ELL_3V_COPY(velAcc + 3*(0 + 2*pidxI), attrI + PUSH_VEL);
