@@ -130,7 +130,7 @@ _pushBinPointsAllAdd(pushContext *pctx) {
 
 int
 _pushBinPointsRebin(pushContext *pctx) {
-  char me[]="_pushBinPointsRebin", err[AIR_STRLEN_MED];
+  char me[]="_pushBinPointsRebin" /* , err[AIR_STRLEN_MED] */;
   airArray *pidxArr;
   int oldbi, newbi, pi, pii;
   push_t *attr, *pos;
@@ -143,33 +143,31 @@ _pushBinPointsRebin(pushContext *pctx) {
         pi = pctx->pidx[oldbi][pii];
         pos = attr + PUSH_POS + PUSH_ATTR_LEN*pi;
         newbi = _pushBinFind(pctx, pos);
+        /*
         if (-1 == newbi) {
           sprintf(err, "%s: point %d pos (%g,%g,%g) outside domain", me,
                   pi, pos[0], pos[1], pos[2]);
           biffAdd(PUSH, err); return 1;
         }
-        if (oldbi != newbi) {
-          /* fprintf(stderr, "!%s: bingo 0: out of %d\n", me, oldbi); */
+        */
+        if (-1 == newbi) {
+          /* bad point! I kill you now */
           _pushBinPointRemove(pctx, oldbi, pii);
-          /* fprintf(stderr, "!%s: bingo 1: into %d\n", me, newbi); */
-          _pushBinPointAdd(pctx, newbi, pi);
-          /* fprintf(stderr, "!%s: bingo 2\n", me); */
-          /* don't increment pii; the next point index is now at pii */
+          fprintf(stderr, "%s: killing point %d at (%g,%g,%g)\n", me,
+                  pi, pos[0], pos[1], pos[2]);
+          ELL_3V_SET(pos, AIR_NAN, AIR_NAN, AIR_NAN);
         } else {
-          /* this point is already in the right bin, move to next */
-          pii++;
+          if (oldbi != newbi) {
+            _pushBinPointRemove(pctx, oldbi, pii);
+            _pushBinPointAdd(pctx, newbi, pi);
+            /* don't increment pii; the next point index is now at pii */
+          } else {
+            /* this point is already in the right bin, move to next */
+            pii++;
+          }
         }
-        /* fprintf(stderr, "!%s: bingo 3: %d %d %d\n", me,
-           pii, pidxArr->len, pii<pidxArr->len); */
       }
-      /* fprintf(stderr, "!%s: bingo 4\n", me); */
     }
-    /*
-      for (oldbi=0; oldbi<pctx->numBin; oldbi++) {
-      pidxArr = pctx->pidxArr[oldbi];
-      fprintf(stderr, "!%s: bin %d len = %d\n", me, oldbi, pidxArr->len);
-      }
-    */
   }
 
   return 0;
