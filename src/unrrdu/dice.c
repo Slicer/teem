@@ -85,7 +85,7 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  for (pos=0; pos<=top; pos++) {
+  for (pos=0; pos<nin->axis[axis].size; pos++) {
     if (nrrdSlice(nout, nin, axis, pos)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: error slicing nrrd:%s\n", me, err);
