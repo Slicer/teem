@@ -87,6 +87,9 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos,
   }
   for (ti=0; ti<nt; ti++) {
     if (npos) {
+      if (!AIR_EXISTS(pdata[0])) {
+        continue;
+      }
       px = AIR_AFFINE(min[0], pdata[0], max[0], minX, maxX);
       py = AIR_AFFINE(min[1], pdata[1], max[1], maxY, minY);
       pdata += 2;

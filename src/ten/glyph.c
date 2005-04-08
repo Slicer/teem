@@ -275,6 +275,11 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
     }
     if (npos) {
       ELL_3V_COPY(pW, (float*)(npos->data) + 3*idx);
+      if (!( AIR_EXISTS(pW[0]) && AIR_EXISTS(pW[1]) && AIR_EXISTS(pW[2]) )) {
+        /* position doesn't exist- perhaps because its from the push
+           library, which kills points by setting their coords to nan */
+        continue;
+      }
     } else {
       NRRD_COORD_GEN(pI, shape->size, 3, _idx);
       gageShapeUnitItoW(shape, pW, pI);
