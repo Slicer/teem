@@ -489,43 +489,40 @@ _pushForceCalc(pushTask *task, push_t force[3], push_t scale,
                push_t *myPos, push_t *myTen,
                push_t *herPos, push_t *herTen) {
   char me[]="_pushForceIncr";
-  push_t ten[7], inv[7];
+  push_t ten[7], inv[7], maxDist;
   float U[3], nU[3], lenU, V[3], nV[3], lenV, ff;
 
+  maxDist = 2*task->pctx->maxEval*task->pctx->scale;
   ELL_3V_SUB(U, myPos, herPos);
   ELL_3V_NORM(nU, U, lenU);
-  TEN_T_SCALE_ADD2(ten, 0.5, myTen, 0.5, herTen);
-  _pushTenInv(task->pctx, inv, ten);
-  TEN_TV_MUL(V, inv, U);
-  ELL_3V_NORM(nV, V, lenV);
-  if (!lenU) {
-    fprintf(stderr, "%s: myPos == herPos == (%g,%g,%g)\n", me,
-            myPos[0], myPos[1], myPos[2]);
-    return;
+  if (lenU > maxDist) {
+    ELL_3V_SET(force, 0, 0, 0);
+  } else {
+    TEN_T_SCALE_ADD2(ten, 0.5, myTen, 0.5, herTen);
+    _pushTenInv(task->pctx, inv, ten);
+    TEN_TV_MUL(V, inv, U);
+    ELL_3V_NORM(nV, V, lenV);
+    if (!lenU) {
+      fprintf(stderr, "%s: myPos == herPos == (%g,%g,%g)\n", me,
+              myPos[0], myPos[1], myPos[2]);
+      return;
+    }
+    
+    /* distorted world; scale=0.2875 for packing, 0.175 for quart */
+    /*
+      ff = AIR_MAX(0, 2*scale - lenV);
+      ff = ff*ff;
+      ff /= lenV;
+      ELL_3V_SCALE(force, ff, U);
+    */
+    
+    /* true packing? scale=0.285 for packing, for 0.1735 for quart */
+    
+    ff = AIR_MAX(0, 2*scale - lenV);
+    ff = ff*ff;
+    ELL_3V_SCALE(force, ff, nV);
   }
-
-  /* distorted world; scale=0.2875 for packing, 0.175 for quart */
-
-  ff = AIR_MAX(0, 2*scale - lenV);
-  ff = ff*ff;
-  ff /= lenV;
-  ELL_3V_SCALE(force, ff, U);
-
-
-  /* true packing? scale=0.285 for packing, for 0.1735 for quart */
-  /*
-  ff = AIR_MAX(0, 2*scale - lenV);
-  ff = ff*ff;
-  ELL_3V_SCALE(force, ff, nV);
-  */
   
-  if (_pushVerbose) {
-    fprintf(stderr, "myPos = %g %g %g\n", myPos[0], myPos[1], myPos[2]);
-    fprintf(stderr, "U = %g %g %g\n", U[0], U[1], U[2]);
-    fprintf(stderr, "myTen = %g %g %g %g %g %g %g\n", myTen[0],
-            myTen[1], myTen[2], myTen[3], myTen[4], myTen[5], myTen[6]);
-  }
-
   return;
 }
 
