@@ -635,26 +635,27 @@ _pushRepel(pushTask *task, int bin, double parm[PUSH_STAGE_PARM_MAX]) {
 void
 _pushUpdate(pushTask *task, int bin,
             double parm[PUSH_STAGE_PARM_MAX]) {
-  push_t *attr, *attrI, *velAcc, *newPos, *newVel, *oldVel, *oldAcc;
+  push_t *attrData, *attr, *velAccData, *oldVel, *oldAcc;
   int *pidx, pidxLen, pidxI, pii;
   double step;
 
   step = task->pctx->step;
-  attr = (push_t *)task->pctx->nPointAttr->data;
-  velAcc = (push_t *)task->pctx->nVelAcc->data;
+  velAccData = (push_t *)task->pctx->nVelAcc->data;
+  attrData = (push_t *)task->pctx->nPointAttr->data;
   pidx = task->pctx->pidx[bin];
   pidxLen = task->pctx->pidxArr[bin]->len;
   for (pii=0; pii<pidxLen; pii++) {
     pidxI = pidx[pii];
-    attrI = attr + PUSH_ATTR_LEN*pidxI;
-    newPos = attr + PUSH_POS + PUSH_ATTR_LEN*pidxI;
-    newVel = attr + PUSH_VEL + PUSH_ATTR_LEN*pidxI;
-    oldVel = velAcc + 3*(0 + 2*pidxI);
-    oldAcc = velAcc + 3*(1 + 2*pidxI);
-    ELL_3V_SCALE_INCR(newPos, step, oldVel);
-    ELL_3V_SCALE_INCR(newVel, step, oldAcc);
-    task->sumVel += ELL_3V_LEN(newVel);
-    _pushProbe(task->pctx, task->gctx, newPos[0], newPos[1], newPos[2]);
+    attr =  attrData + PUSH_ATTR_LEN*pidxI;
+    oldVel = velAccData + 3*(0 + 2*pidxI);
+    oldAcc = velAccData + 3*(1 + 2*pidxI);
+    ELL_3V_SCALE_INCR(attr + PUSH_POS, step, oldVel);
+    ELL_3V_SCALE_INCR(attr + PUSH_VEL, step, oldAcc);
+    task->sumVel += ELL_3V_LEN(attr + PUSH_VEL);
+    _pushProbe(task->pctx, task->gctx, 
+               (attr + PUSH_POS)[0], 
+               (attr + PUSH_POS)[1], 
+               (attr + PUSH_POS)[2]);
     TEN_T_COPY(attr + PUSH_TEN + PUSH_ATTR_LEN*pidxI, task->tenAns);
     ELL_3V_COPY(attr + PUSH_CNT + PUSH_ATTR_LEN*pidxI, task->cntAns);
   }
