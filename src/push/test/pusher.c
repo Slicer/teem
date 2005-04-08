@@ -30,24 +30,36 @@ main(int argc, char *argv[]) {
   airArray *mop;
   
   char *outS[2];
-  int numThread, numBatch, ptsPerBatch, snap, maxIter;
+  int seed, numThread, numPoint, snap, minIter, maxIter, singleBin;
   pushContext *pctx;
   Nrrd *nin, *nPosOut, *nTenOut;
-  double step, drag, mass, minMeanVel;
-  NrrdKernelSpec *kk;
+  double step, drag, mass, scale, margin, minMeanVel;
+  NrrdKernelSpec *ksp00, *ksp11;
   
   mop = airMopNew();
   me = argv[0];
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "",
              "input volume to filter", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "mi", "# iters", airTypeInt, 1, 1, &maxIter, "0",
+  hestOptAdd(&hopt, "nobin", NULL, airTypeBool, 0, 0, &singleBin, NULL,
+             "turn off spatial binning (which prevents multi-threading "
+             "from being useful), for debugging or speed-up measurement");
+  hestOptAdd(&hopt, "seed", "seed", airTypeInt, 1, 1, &seed, "42",
+             "seed value for RNG which determines initial point locations");
+  hestOptAdd(&hopt, "maxi", "# iters", airTypeInt, 1, 1, &maxIter, "0",
              "if non-zero, max number of iterations to do processing for");
+  hestOptAdd(&hopt, "mini", "# iters", airTypeInt, 1, 1, &minIter, "0",
+             "if non-zero, min number of iterations to do processing for");
   hestOptAdd(&hopt, "step", "step", airTypeDouble, 1, 1, &step, "0.01",
              "time step in integration");
   hestOptAdd(&hopt, "drag", "drag", airTypeDouble, 1, 1, &drag, "0.01",
              "amount of drag");
   hestOptAdd(&hopt, "mass", "mass", airTypeDouble, 1, 1, &mass, "1",
              "mass of each particle");
+  hestOptAdd(&hopt, "scl", "scale", airTypeDouble, 1, 1, &scale, "0.25",
+             "scaling from tensor size to glyph size");
+  hestOptAdd(&hopt, "marg", "margin", airTypeDouble, 1, 1, &margin, "0.2",
+             "margin around [-1,1]^3 within which to allow points to "
+             "overflow, outside of which they're disallowed");
   hestOptAdd(&hopt, "mmv", "mean vel", airTypeDouble, 1, 1, &minMeanVel,
              "0.1", "minimum mean velocity that signifies convergence");
   hestOptAdd(&hopt, "snap", "iters", airTypeInt, 1, 1, &snap, "0",
@@ -55,12 +67,13 @@ main(int argc, char *argv[]) {
              "is saved");
   hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1, &numThread, "5",
              "number of threads to run");
-  hestOptAdd(&hopt, "nb", "# batches", airTypeInt, 1, 1, &numBatch, "5",
-             "number of batches of points to use in simulation");
-  hestOptAdd(&hopt, "ppb", "pts/batch", airTypeInt, 1, 1, &ptsPerBatch, "5",
-             "number of points to put in each batch");
-  hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &kk,
+  hestOptAdd(&hopt, "np", "# points", airTypeInt, 1, 1, &numPoint, "100",
+             "number of points to use in simulation");
+  hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1, &ksp00,
              "tent", "kernel for tensor field sampling",
+             NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "k11", "kernel", airTypeOther, 1, 1, &ksp11,
+             "fordif", "kernel for finding containment gradient from mask",
              NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 2, 2, outS, "p.nrrd t.nrrd",
              "output files to save position and tensor info into");
@@ -78,19 +91,22 @@ main(int argc, char *argv[]) {
   
   pctx->nin = nin;
   pctx->numThread = numThread;
+  pctx->singleBin = singleBin;
   pctx->maxIter = maxIter;
-  pctx->minIter = 100;
+  pctx->minIter = minIter;
+  pctx->seed = seed;
   pctx->drag = drag;
   pctx->step = step;
   pctx->mass = mass;
+  pctx->scale = scale;
+  pctx->margin = margin;
   pctx->minMeanVel = minMeanVel;
   pctx->snap = snap;
-  pctx->numBatch = numBatch;
-  pctx->pointsPerBatch = ptsPerBatch;
+  pctx->numPoint = numPoint;
   pctx->numStage = 2;
   pctx->verbose = 0;
-  pctx->kernel = kk->kernel;
-  memcpy(pctx->kparm, kk->parm, NRRD_KERNEL_PARMS_NUM*sizeof(double));
+  nrrdKernelSpecSet(pctx->ksp00, ksp00->kernel, ksp00->parm);
+  nrrdKernelSpecSet(pctx->ksp11, ksp11->kernel, ksp11->parm);
 
   if (pushStart(pctx)
       || pushRun(pctx)

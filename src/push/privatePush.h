@@ -33,6 +33,8 @@ extern void _pushProcessDummy(pushTask *task, int batch,
                               double parm[PUSH_STAGE_PARM_MAX]);
 
 /* action.c */
+extern void _pushTenInv(pushContext *pctx, push_t *inv, push_t *ten);
+extern int _pushBinPointsRebin(pushContext *pctx);
 extern void _pushProbe(pushContext *pctx, gageContext *gctx,
                        double x, double y, double z);
 extern int _pushInputProcess(pushContext *pctx);

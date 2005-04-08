@@ -31,20 +31,25 @@ pushContextNew(void) {
   if (pctx) {
     pctx->nin = NULL;
     pctx->mass = 1.0;
+    pctx->scale = 0.2;
+    pctx->margin = 0.3;
+    pctx->seed = 42;
     for (ii=0; ii<PUSH_STAGE_MAX; ii++) {
       pctx->process[ii] = _pushProcessDummy;
     }
-    pctx->kernel = NULL;
-    for (ii=0; ii<NRRD_KERNEL_PARMS_NUM; ii++) {
-      pctx->kparm[ii] = AIR_NAN;
-    }
+    pctx->ksp00 = nrrdKernelSpecNew();
+    pctx->ksp11 = nrrdKernelSpecNew();
     pctx->nten = NULL;
-    pctx->nPosVel = nrrdNew();
+    pctx->nmask = NULL;
+    pctx->nPointAttr = nrrdNew();
     pctx->nVelAcc = nrrdNew();
     pctx->gctx = NULL;
     pctx->tenAns = NULL;
+    pctx->cntAns = NULL;
+    pctx->pidx = NULL;
+    pctx->pidxArr = NULL;
     pctx->task = NULL;
-    pctx->batchMutex = NULL;
+    pctx->binMutex = NULL;
     pctx->stageBarrierA = NULL;
     pctx->stageBarrierB = NULL;
     pctx->noutPos = NULL;
@@ -57,8 +62,10 @@ pushContext *
 pushContextNix(pushContext *pctx) {
   
   if (pctx) {
-    pctx->nPosVel = nrrdNuke(pctx->nPosVel);
+    pctx->nPointAttr = nrrdNuke(pctx->nPointAttr);
     pctx->nVelAcc = nrrdNuke(pctx->nVelAcc);
+    pctx->ksp00 = nrrdKernelSpecNix(pctx->ksp00);
+    pctx->ksp11 = nrrdKernelSpecNix(pctx->ksp11);
     free(pctx);
   }
   return NULL;

@@ -23,9 +23,163 @@
 #include "push.h"
 #include "privatePush.h"
 
+void
+_pushTenInv(pushContext *pctx, push_t *inv, push_t *ten) {
+  push_t tmp=0.0, det;
+
+  if (2 == pctx->dimIn) {
+    tmp = ten[6];
+    ten[6] = 1.0;
+  }
+  TEN_T_INV(inv, ten, det);
+  if (2 == pctx->dimIn) {
+    ten[6] = tmp;
+    inv[6] = 0.0;
+  }
+  return;
+}
+
+/* returns -1 if position is outside simulation domain */
+int
+_pushBinFind(pushContext *pctx, push_t *pos) {
+  push_t min, max;
+  int be, xi, yi, zi, bi;
+
+  if (pctx->singleBin) {
+    bi = 0;
+  } else {
+    min = -1.0 - pctx->margin;
+    max = 1.0 + pctx->margin;
+    be = pctx->binsEdge;
+    if (AIR_IN_CL(min, pos[0], max)
+        && AIR_IN_CL(min, pos[1], max)
+        && AIR_IN_CL(min, pos[2], max)) {
+      AIR_INDEX(min, pos[0], max, be, xi);
+      AIR_INDEX(min, pos[1], max, be, yi);
+      if (2 == pctx->dimIn) {
+        zi = 0;
+      } else {
+        AIR_INDEX(min, pos[2], max, be, zi);
+      }
+      bi = xi + be*(yi + be*zi);
+    } else {
+      bi = -1;
+    }
+  }
+
+  return bi;
+}
+
+void
+_pushBinPointAdd(pushContext *pctx, int bi, int pi) {
+  int pii;
+
+  pii = airArrayIncrLen(pctx->pidxArr[bi], 1);
+  pctx->pidx[bi][pii] = pi;
+  return;
+}
+
+void
+_pushBinPointRemove(pushContext *pctx, int bi, int losePii) {
+  airArray *pidxArr;
+  int *pidx, npi, pii;
+
+  pidx = pctx->pidx[bi];
+  pidxArr = pctx->pidxArr[bi];
+
+  /*
+  fprintf(stderr, "______________ bi=%d, losePii=%d\n", bi, losePii);
+  for (pii=0; pii<pidxArr->len; pii++) {
+    fprintf(stderr, " %d", pidx[pii]);
+  }
+  fprintf(stderr, "\n");
+  */
+  
+  npi = pidxArr->len;
+  for (pii=losePii; pii<npi-1; pii++) {
+    pidx[pii] = pidx[pii+1];
+  }
+  airArrayIncrLen(pidxArr, -1);
+
+  /*
+  for (pii=0; pii<pidxArr->len; pii++) {
+    fprintf(stderr, " %d", pidx[pii]);
+  }
+  fprintf(stderr, "\n");
+  fprintf(stderr, "^^^^^^^^^^^^^^\n");
+  */
+
+  return;
+}
+
+/* does no checking for being out of bounds */
+void
+_pushBinPointsAllAdd(pushContext *pctx) {
+  int bi, pi, np;
+  push_t *attr, *pos;
+
+  np = pctx->nPointAttr->axis[1].size;
+  attr = (push_t*)pctx->nPointAttr->data;
+  for (pi=0; pi<np; pi++) {
+    pos = attr + PUSH_POS + PUSH_ATTR_LEN*pi;
+    bi = _pushBinFind(pctx, pos);
+    _pushBinPointAdd(pctx, bi, pi);
+  }
+  return;
+}
+
+int
+_pushBinPointsRebin(pushContext *pctx) {
+  char me[]="_pushBinPointsRebin", err[AIR_STRLEN_MED];
+  airArray *pidxArr;
+  int *pidx, oldbi, newbi, pi, pii;
+  push_t *attr, *pos;
+
+  if (!pctx->singleBin) {
+    attr = (push_t*)pctx->nPointAttr->data;
+    for (oldbi=0; oldbi<pctx->numBin; oldbi++) {
+      pidxArr = pctx->pidxArr[oldbi];
+      pidx = pctx->pidx[oldbi];
+      for (pii=0; pii<pidxArr->len; /* nope! */) {
+        fprintf(stderr, "!%s: bingo -10\n", me);
+        pi = pidx[pii];
+        pos = attr + PUSH_POS + PUSH_ATTR_LEN*pi;
+        newbi = _pushBinFind(pctx, pos);
+        fprintf(stderr, "!%s: bingo -9 --> %d\n", me, newbi);
+        if (-1 == newbi) {
+          sprintf(err, "%s: point %d pos (%g,%g,%g) outside domain", me,
+                  pi, pos[0], pos[1], pos[2]);
+          biffAdd(PUSH, err); return 1;
+        }
+        if (oldbi != newbi) {
+          fprintf(stderr, "!%s: bingo 0: out of %d\n", me, oldbi);
+          _pushBinPointRemove(pctx, oldbi, pii);
+          fprintf(stderr, "!%s: bingo 1: into %d\n", me, newbi);
+          _pushBinPointAdd(pctx, newbi, pi);
+          fprintf(stderr, "!%s: bingo 2\n", me);
+          /* don't increment pii; the next point index is now at pii */
+        } else {
+          /* this point is already in the right bin, move to next */
+          pii++;
+        }
+        fprintf(stderr, "!%s: bingo 3: %d %d %d\n", me,
+                pii, pidxArr->len, pii<pidxArr->len);
+      }
+      fprintf(stderr, "!%s: bingo 4\n", me);
+    }
+    /*
+      for (oldbi=0; oldbi<pctx->numBin; oldbi++) {
+      pidxArr = pctx->pidxArr[oldbi];
+      fprintf(stderr, "!%s: bin %d len = %d\n", me, oldbi, pidxArr->len);
+      }
+    */
+  }
+
+  return 0;
+}
+
 /*
-** creates nten and gctx
-** sets tenAns
+** sets tenAns, cntAns
 */
 int
 _pushInputProcess(pushContext *pctx) {
@@ -34,24 +188,26 @@ _pushInputProcess(pushContext *pctx) {
   Nrrd *ntmp;
   NrrdRange *nrange;
   airArray *mop;
-  int E, ni;
-  gagePerVolume *pvl;
+  int E, ii, nn;
+  gagePerVolume *tpvl, *mpvl;
+  float *tdata, eval[3], maxDist;
 
-  pctx->nten = nrrdNew();
   mop = airMopNew();
+
+  /* ------------------------ fill pctx->nten, check mask range */
   ntmp = nrrdNew();
   airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
   E = AIR_FALSE;
   if (3 == pctx->nin->dim) {
     /* input is 2D array of 2D tensors */
     pctx->dimIn = 2;
-    for (ni=0; ni<7; ni++) {
-      if (ni < 2) {
-        two[ni] = nrrdNew();
-        airMopAdd(mop, two[ni], (airMopper)nrrdNuke, airMopAlways);
+    for (ii=0; ii<7; ii++) {
+      if (ii < 2) {
+        two[ii] = nrrdNew();
+        airMopAdd(mop, two[ii], (airMopper)nrrdNuke, airMopAlways);
       }
-      seven[ni] = nrrdNew();
-      airMopAdd(mop, seven[ni], (airMopper)nrrdNuke, airMopAlways);
+      seven[ii] = nrrdNew();
+      airMopAdd(mop, seven[ii], (airMopper)nrrdNuke, airMopAlways);
     }
     /*    (0)         (0)
      *     1  2  3     1  2
@@ -73,18 +229,19 @@ _pushInputProcess(pushContext *pctx) {
     pctx->dimIn = 3;
     E = nrrdConvert(pctx->nten, pctx->nin, nrrdTypeFloat);
   }
-  if (!E) E |= nrrdSlice(ntmp, pctx->nten, 0, 0);
+  if (!E) E |= nrrdSlice(pctx->nmask, pctx->nten, 0, 0);
   if (E) {
     sprintf(err, "%s: trouble creating 3D tensor input", me);
     biffMove(PUSH, err, NRRD); airMopError(mop); return 1;
   }
-  nrange = nrrdRangeNewSet(pctx->nten, nrrdBlind8BitRangeFalse);
+  nrange = nrrdRangeNewSet(pctx->nmask, nrrdBlind8BitRangeFalse);
   airMopAdd(mop, nrange, (airMopper)nrrdRangeNix, airMopAlways);
-  if (AIR_ABS(1.0 - nrange->max) > 0.01) {
-    sprintf(err, "%s: max value in tensor mask is %g, not 1.0", me,
-            nrange->max);
+  if (AIR_ABS(1.0 - nrange->max) > 0.005) {
+    sprintf(err, "%s: tensor mask max %g not close 1.0", me, nrange->max);
     biffAdd(PUSH, err); airMopError(mop); return 1;
   }
+
+  /* ------------------------ set up gage and answer pointers */
   pctx->nten->axis[1].spacing = (AIR_EXISTS(pctx->nten->axis[1].spacing)
                                  ? pctx->nten->axis[1].spacing
                                  : 1.0);
@@ -94,28 +251,79 @@ _pushInputProcess(pushContext *pctx) {
   pctx->nten->axis[3].spacing = (AIR_EXISTS(pctx->nten->axis[3].spacing)
                                  ? pctx->nten->axis[3].spacing
                                  : 1.0);
+  pctx->nmask->axis[0].spacing = pctx->nten->axis[1].spacing;
+  pctx->nmask->axis[1].spacing = pctx->nten->axis[2].spacing;
+  pctx->nmask->axis[2].spacing = pctx->nten->axis[3].spacing;
   /* HEY: we're only doing this because gage has a bug with
      cell-centered volume 1 sample thick- perhaps there should
      be a warning ... */
-  pctx->nten->axis[1].center = nrrdCenterNode;
-  pctx->nten->axis[2].center = nrrdCenterNode;
-  pctx->nten->axis[3].center = nrrdCenterNode;
+  pctx->nten->axis[1].center = pctx->nmask->axis[0].center = nrrdCenterNode;
+  pctx->nten->axis[2].center = pctx->nmask->axis[1].center = nrrdCenterNode;
+  pctx->nten->axis[3].center = pctx->nmask->axis[2].center = nrrdCenterNode;
 
   pctx->gctx = gageContextNew();
   E = AIR_FALSE;
-  if (!E) E |= !(pvl = gagePerVolumeNew(pctx->gctx, pctx->nten, tenGageKind));
-  if (!E) E |= gagePerVolumeAttach(pctx->gctx, pvl);
+  /* set up tensor probing */
+  if (!E) E |= !(tpvl = gagePerVolumeNew(pctx->gctx,
+                                         pctx->nten, tenGageKind));
+  if (!E) E |= gagePerVolumeAttach(pctx->gctx, tpvl);
   if (!E) E |= gageKernelSet(pctx->gctx, gageKernel00,
-                             pctx->kernel, pctx->kparm);
-  if (!E) E |= gageQueryItemOn(pctx->gctx, pvl, tenGageTensor);
+                             pctx->ksp00->kernel, pctx->ksp00->parm);
+  if (!E) E |= gageQueryItemOn(pctx->gctx, tpvl, tenGageTensor);
+  /* set up mask gradient probing */
+  if (!E) E |= !(mpvl = gagePerVolumeNew(pctx->gctx,
+                                         pctx->nmask, gageKindScl));
+  if (!E) E |= gagePerVolumeAttach(pctx->gctx, mpvl);
+  if (!E) E |= gageKernelSet(pctx->gctx, gageKernel11,
+                             pctx->ksp11->kernel, pctx->ksp11->parm);
+  if (!E) E |= gageQueryItemOn(pctx->gctx, mpvl, gageSclGradVec);
   if (!E) E |= gageUpdate(pctx->gctx);
   if (E) {
     sprintf(err, "%s: trouble setting up gage", me);
     biffMove(PUSH, err, GAGE); airMopError(mop); return 1;
   }
-  pctx->tenAns = gageAnswerPointer(pctx->gctx, pvl, tenGageTensor);
-  gageParmSet(pctx->gctx, gageParmRequireAllSpacings, AIR_FALSE);
+  pctx->tenAns = gageAnswerPointer(pctx->gctx, tpvl, tenGageTensor);
+  pctx->cntAns = gageAnswerPointer(pctx->gctx, mpvl, gageSclGradVec);
+  gageParmSet(pctx->gctx, gageParmRequireAllSpacings, AIR_TRUE);
 
+  /* ------------------------ find maxEval and set up binning */
+  nn = nrrdElementNumber(pctx->nten)/7;
+  tdata = (float*)pctx->nten->data;
+  pctx->maxEval = 0;
+  for (ii=0; ii<nn; ii++) {
+    tenEigensolve_f(eval, NULL, tdata);
+    if (tdata[0] > 0.5) {
+      /* HEY: this limitation may be a bad idea */
+      pctx->maxEval = AIR_MAX(pctx->maxEval, eval[0]);
+    }
+    tdata += 7;
+  }
+  maxDist = 2*pctx->maxEval*pctx->scale;
+  if (pctx->singleBin) {
+    pctx->binsEdge = 1;
+    pctx->numBin = 1;
+  } else {
+    pctx->binsEdge = ceil((1 + 2*pctx->margin)/maxDist);
+    fprintf(stderr, "!%s: maxEval = %g -> binsEdge = %d\n",
+            me, pctx->maxEval, pctx->binsEdge);
+    pctx->numBin = pctx->binsEdge*pctx->binsEdge*(2 == pctx->dimIn ? 
+                                                  1 : pctx->binsEdge);
+  }
+  pctx->pidx = (int**)calloc(pctx->numBin, sizeof(int*));
+  pctx->pidxArr = (airArray**)calloc(pctx->numBin, sizeof(airArray*));
+  if (!( pctx->pidx && pctx->pidxArr )) {
+    sprintf(err, "%s: trouble allocating pidx arrays", me);
+    biffAdd(PUSH, err); airMopError(mop); return 1;
+  }
+  for (ii=0; ii<pctx->numBin; ii++) {
+    pctx->pidx[ii] = NULL;
+    pctx->pidxArr[ii] = airArrayNew((void **)&(pctx->pidx[ii]), NULL,
+                                    sizeof(int), PUSH_PIDX_INCR);
+  }
+  /* we can do binning now- but it will be rebinned post-initialization */
+  _pushBinPointsAllAdd(pctx);
+
+  /* ------------------------ other stuff */
   ELL_3V_SCALE(pctx->minPos, -1, pctx->gctx->shape->volHalfLen);
   ELL_3V_SCALE(pctx->maxPos, 1, pctx->gctx->shape->volHalfLen);
 
@@ -126,49 +334,66 @@ _pushInputProcess(pushContext *pctx) {
 int
 pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pushContext *pctx) {
   char me[]="pushOutputGet", err[AIR_STRLEN_MED];
-  int min[2], max[2], npt, pi;
-  float *tdata;
-  push_t *posVel;
+  int min[2], max[2], numPoint, E;
+  Nrrd *ntmp, *four[4];
+  airArray *mop;
 
-  npt = pctx->nPosVel->axis[1].size;
+  mop = airMopNew();
+  numPoint = pctx->nPointAttr->axis[1].size;
   if (nPosOut) {
-    min[0] = 0;
+    min[0] = PUSH_POS;
     min[1] = 0;
-    max[0] = (2 == pctx->dimIn ? 1 : 2);
-    max[1] = npt - 1;
-    if (nrrdCrop(nPosOut, pctx->nPosVel, min, max)) {
+    max[0] = PUSH_POS + (2 == pctx->dimIn ? 1 : 2);
+    max[1] = numPoint - 1;
+    if (nrrdCrop(nPosOut, pctx->nPointAttr, min, max)) {
       sprintf(err, "%s: couldn't crop to recover position output", me);
-      biffMove(PUSH, err, NRRD); return 1;
+      biffMove(PUSH, err, NRRD); airMopError(mop); return 1;
     }
   }
   if (nTenOut) {
-    /*    (0)         (0)
-     *     1  2  3     1  2
-     *        4  5        3
-     *           6            */
-    if (nrrdMaybeAlloc(nTenOut, nrrdTypeFloat, 2,
-                       (2 == pctx->dimIn ? 4 : 7), npt)) {
-      sprintf(err, "%s: couldn't allocate tensor output", me);
-      biffMove(PUSH, err, NRRD); return 1;
+    ntmp = NULL;
+    if (2 == pctx->dimIn) {
+      ntmp = nrrdNew();
+      airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
     }
-    tdata = (float*)nTenOut->data;
-    posVel = (push_t*)pctx->nPosVel->data;
-    for (pi=0; pi<npt; pi++) {
-      _pushProbe(pctx, pctx->gctx, posVel[0], posVel[1], posVel[2]);
-      if (2 == pctx->dimIn) {
-        tdata[0] = pctx->tenAns[0];
-        tdata[1] = pctx->tenAns[1];
-        tdata[2] = pctx->tenAns[2];
-        tdata[3] = pctx->tenAns[4];
-        tdata += 4;
-      } else {
-        TEN_T_COPY(tdata, pctx->tenAns);
-        tdata += 7;
+    min[0] = PUSH_TEN;
+    min[1] = 0;
+    max[0] = PUSH_TEN + 6;
+    max[1] = numPoint - 1;
+    if (nrrdCrop((2 == pctx->dimIn
+                  ? ntmp
+                  : nTenOut), pctx->nPointAttr, min, max)) {
+      sprintf(err, "%s: couldn't crop to recover tensor output", me);
+      biffMove(PUSH, err, NRRD); airMopError(mop); return 1;
+    }
+    if (2 == pctx->dimIn) {
+      four[0] = nrrdNew();
+      airMopAdd(mop, four[0], (airMopper)nrrdNuke, airMopAlways);
+      four[1] = nrrdNew();
+      airMopAdd(mop, four[1], (airMopper)nrrdNuke, airMopAlways);
+      four[2] = nrrdNew();
+      airMopAdd(mop, four[2], (airMopper)nrrdNuke, airMopAlways);
+      four[3] = nrrdNew();
+      airMopAdd(mop, four[3], (airMopper)nrrdNuke, airMopAlways);
+      /*    (0)         (0)
+       *     1  2  3     1  2
+       *        4  5        3
+       *           6            */
+      E = AIR_FALSE;
+      if (!E) E |= nrrdSlice(four[0], ntmp, 0, 0);
+      if (!E) E |= nrrdSlice(four[1], ntmp, 0, 1);
+      if (!E) E |= nrrdSlice(four[2], ntmp, 0, 2);
+      if (!E) E |= nrrdSlice(four[3], ntmp, 0, 4);
+      if (!E) E |= nrrdJoin(nTenOut, (const Nrrd *const *)four,
+                            4, 0, AIR_TRUE);
+      if (E) {
+        sprintf(err, "%s: trouble generating 2D tensor output", me);
+        biffMove(PUSH, err, NRRD); airMopError(mop); return 1;
       }
-      posVel += 6;
     }
   }
 
+  airMopOkay(mop);
   return 0;
 }
 
@@ -194,8 +419,8 @@ _pushProbe(pushContext *pctx, gageContext *gctx,
 
 void
 _pushInitialize(pushContext *pctx) {
-  int npt, pi;
-  push_t *pos, *vel;
+  int numPoint, pi;
+  push_t *attr, *pos, *vel, *ten, *cnt;
 
   /*
   {
@@ -222,11 +447,13 @@ _pushInitialize(pushContext *pctx) {
   }
   */
   
-  npt = pctx->nPosVel->axis[1].size;
-  for (pi=0; pi<npt; pi++) {
-    pos = (push_t *)(pctx->nPosVel->data) + 2*3*pi;
-    vel = pos + 3;
-    ELL_3V_SET(vel, 0, 0, 0);
+  numPoint = pctx->nPointAttr->axis[1].size;
+  for (pi=0; pi<numPoint; pi++) {
+    attr = (push_t *)(pctx->nPointAttr->data) + PUSH_ATTR_LEN*pi;
+    pos = attr + PUSH_POS;
+    vel = attr + PUSH_VEL;
+    ten = attr + PUSH_TEN;
+    cnt = attr + PUSH_CNT;
     do {
       pos[0] = AIR_AFFINE(0.0, airDrand48(), 1.0,
                           pctx->minPos[0], pctx->maxPos[0]);
@@ -239,8 +466,13 @@ _pushInitialize(pushContext *pctx) {
                             pctx->minPos[2], pctx->maxPos[2]);
       }
       _pushProbe(pctx, pctx->gctx, pos[0], pos[1], pos[2]);
-    } while (pctx->tenAns[0] < 0.5);
+      TEN_T_COPY(ten, pctx->tenAns);
+    } while (ten[0] < 0.5);
+    ELL_3V_SET(vel, 0, 0, 0);
+    ELL_3V_COPY(cnt, pctx->cntAns);
   }
+  /* do rebinning, now that we have positions */
+  _pushBinPointsRebin(pctx);
 
   /* HEY: this should be done by the user */
   pctx->process[0] = _pushRepel;
@@ -249,149 +481,180 @@ _pushInitialize(pushContext *pctx) {
   return;
 }
 
+/*
+** for now, don't get clever and take point list indices instead
+** of point information- may need to probe between arc vertices 
+** to get intermediate tensors
+*/
 void
-_pushForceIncr(pushTask *task, push_t sumForce[3], push_t scale,
-               push_t ten[7], push_t mypos[3], push_t *there) {
+_pushForceCalc(pushTask *task, push_t force[3], push_t scale, 
+               push_t *myPos, push_t *myTen,
+               push_t *herPos, push_t *herTen) {
   char me[]="_pushForceIncr";
-  float force[3], mat[9], inv[9], 
-    U[3], nU[3], lenU,
-    V[3], nV[3], lenV,
-    ff;
-  float tmp[3], cntr;
+  push_t ten[7], inv[7];
+  float U[3], nU[3], lenU, V[3], nV[3], lenV, ff;
 
-  TEN_T2M(mat, ten);
-  if (2 == task->pctx->dimIn) {
-    mat[8] = 1.0;
-  }
-  ell_3m_inv_f(inv, mat);
-  if (2 == task->pctx->dimIn) {
-    mat[8] = inv[8] = 0.0;
-  }
-  ELL_3V_SUB(U, mypos, there);
+  ELL_3V_SUB(U, myPos, herPos);
   ELL_3V_NORM(nU, U, lenU);
-  ELL_3MV_MUL(V, inv, U);
+  TEN_T_SCALE_ADD2(ten, 0.5, myTen, 0.5, herTen);
+  _pushTenInv(task->pctx, inv, ten);
+  TEN_TV_MUL(V, inv, U);
   ELL_3V_NORM(nV, V, lenV);
   if (!lenU) {
-    fprintf(stderr, "%s: mypos == there == (%g,%g,%g)\n", me,
-            mypos[0], mypos[1], mypos[2]);
+    fprintf(stderr, "%s: myPos == herPos == (%g,%g,%g)\n", me,
+            myPos[0], myPos[1], myPos[2]);
     return;
   }
 
-  /* distorted world; 0.575 - lenV for packing demos */
-  /*
-  ff = AIR_MAX(0, 0.35 - lenV);
+  /* distorted world; scale=0.2875 for packing, 0.175 for quart */
+
+  ff = AIR_MAX(0, 2*scale - lenV);
   ff = ff*ff;
-  ff = ff*lenU/lenV;
-  ELL_3V_SCALE(force, ff, nU);
-  */
+  ff /= lenV;
+  ELL_3V_SCALE(force, ff, U);
 
-  /* true packing? 0.57*cntr - lenU for packing demos */
 
-  ELL_3MV_MUL(tmp, mat, nV);
-  cntr = ELL_3V_LEN(tmp);
-  ff = AIR_MAX(0, 0.347*cntr - lenU);
-  ff = ff*lenV/lenU;
+  /* true packing? scale=0.285 for packing, for 0.1735 for quart */
+  /*
+  ff = AIR_MAX(0, 2*scale - lenV);
   ff = ff*ff;
   ELL_3V_SCALE(force, ff, nV);
-
-
-  if (_pushVerbose) {
-    fprintf(stderr, "mypos = %g %g %g\n", mypos[0], mypos[1], mypos[2]);
-    fprintf(stderr, "U = %g %g %g\n", U[0], U[1], U[2]);
-    fprintf(stderr, "ten = %g %g %g %g %g %g %g\n", ten[0],
-            ten[1], ten[2], ten[3], ten[4], ten[5], ten[6]);
-  }
-
-  ELL_3V_SCALE_INCR(sumForce, scale, force);
-
-  /* a tiny force to attract things towards the center */
-  /*
-  ELL_3V_NORM(tmp, mypos, cntr);
-  ff = -0.00002*cntr*cntr;
-  ELL_3V_SCALE_INCR(sumForce, ff, tmp);
   */
+  
+  if (_pushVerbose) {
+    fprintf(stderr, "myPos = %g %g %g\n", myPos[0], myPos[1], myPos[2]);
+    fprintf(stderr, "U = %g %g %g\n", U[0], U[1], U[2]);
+    fprintf(stderr, "myTen = %g %g %g %g %g %g %g\n", myTen[0],
+            myTen[1], myTen[2], myTen[3], myTen[4], myTen[5], myTen[6]);
+  }
 
   return;
 }
 
-void
-_pushRepel(pushTask *task, int batch,
-           double parm[PUSH_STAGE_PARM_MAX]) {
-  push_t *mypos, TT[7], *posVel, *velAcc, force[3], tmp[3];
-  int pi, pj, npt, ppb;
+int
+_pushBinNeighborhoodFind(pushContext *pctx, int *nei, int bin, int dimIn) {
+  int numNei, be, tmp, xx, yy, zz, xi, yi, zi,
+    xmin, xmax, ymin, ymax, zmin, zmax;
 
-  npt = task->pctx->nPosVel->axis[1].size;
-  ppb = task->pctx->pointsPerBatch;
-  posVel = (push_t *)task->pctx->nPosVel->data;
-  velAcc = (push_t *)task->pctx->nVelAcc->data;
-  for (pi=batch*ppb; pi<(batch+1)*ppb; pi++) {
-    mypos = posVel + 3*(0 + 2*pi);
-    _pushProbe(task->pctx, task->gctx, mypos[0], mypos[1], mypos[2]);
-    TEN_T_COPY(TT, task->tenAns);
-    ELL_3V_SET(force, 0, 0, 0);
-    for (pj=0; pj<npt; pj++) {
-      if (pi == pj) {
-        continue;
-      }
-      /*
-      _pushVerbose = (94 == task->pctx->iter 
-                      && 4 == batch 
-                      && 95 == pi 
-                      && 183 == pj);
-      */
-      _pushForceIncr(task, force, 1.0, TT, mypos, posVel + 3*(0 + 2*pj));
+  numNei = 0;
+  if (pctx->singleBin) {
+    nei[numNei++] = 0;
+  } else {
+    be = pctx->binsEdge;
+    tmp = bin;
+    xi = tmp % be;
+    tmp = (tmp-xi)/be;
+    yi = tmp % be;
+    xmin = AIR_MAX(0, xi-1);
+    xmax = AIR_MIN(xi+1, be-1);
+    ymin = AIR_MAX(0, yi-1);
+    ymax = AIR_MIN(yi+1, be-1);
+    if (2 == pctx->dimIn) {
+      zmin = zmax = 0;
+    } else {
+      zi = (tmp-yi)/be;
+      zmin = AIR_MAX(0, zi-1);
+      zmax = AIR_MIN(zi+1, be-1);
     }
-    ELL_3V_COPY(tmp, mypos);
-    tmp[0] = 2*task->pctx->minPos[0] - tmp[0];
-    /* tmp[0] = task->pctx->minPos[0]; */
-    _pushForceIncr(task, force, 4.0, TT, mypos, tmp);
-    ELL_3V_COPY(tmp, mypos);
-    tmp[0] = 2*task->pctx->maxPos[0] - tmp[0];
-    /* tmp[0] = task->pctx->maxPos[0]; */
-    _pushForceIncr(task, force, 4.0, TT, mypos, tmp);
-    ELL_3V_COPY(tmp, mypos);
-    tmp[1] = 2*task->pctx->minPos[1] - tmp[1];
-    /* tmp[1] = task->pctx->minPos[1]; */
-    _pushForceIncr(task, force, 4.0, TT, mypos, tmp);
-    ELL_3V_COPY(tmp, mypos);
-    tmp[1] = 2*task->pctx->maxPos[1] - tmp[1];
-    /* tmp[1] = task->pctx->maxPos[1]; */
-    _pushForceIncr(task, force, 4.0, TT, mypos, tmp);
-    ELL_3V_SCALE_INCR(force, -task->pctx->drag, posVel + 3*(1 + 2*pi));
-    ELL_3V_COPY(velAcc + 3*(0 + 2*pi), posVel + 3*(1 + 2*pi));
-    ELL_3V_COPY(velAcc + 3*(1 + 2*pi), force);
+    for (zz=zmin; zz<=zmax; zz++) {
+      for (yy=ymin; yy<=ymax; yy++) {
+        for (xx=xmin; xx<=xmax; xx++) {
+          nei[numNei++] = xx + be*(yy + be*zz);
+        }
+      }
+    }
+  }
+  
+  return numNei;
+}
 
+void
+_pushRepel(pushTask *task, int bin, double parm[PUSH_STAGE_PARM_MAX]) {
+  push_t *attr, *velAcc, *attrI, *attrJ, force[3], sumForce[3], dist, dir[3];
+  int *neiPidx, *myPidx, nei[27], ni, numNei, jj, ii, pidxJ, pidxI,
+    myPidxArrLen, neiPidxArrLen;
+
+  attr = (push_t *)task->pctx->nPointAttr->data;
+  velAcc = (push_t *)task->pctx->nVelAcc->data;
+  myPidx = task->pctx->pidx[bin];
+  myPidxArrLen = task->pctx->pidxArr[bin]->len;
+  numNei = _pushBinNeighborhoodFind(task->pctx, nei, bin, task->pctx->dimIn);
+  fprintf(stderr, "!%s: len(%d) = %d\n", "_pushRepel", bin, myPidxArrLen);
+  for (ii=0; ii<myPidxArrLen; ii++) {
+    pidxI = myPidx[ii];
+    attrI = attr + PUSH_ATTR_LEN*pidxI;
+
+    /* initialize force accumulator */
+    ELL_3V_SET(sumForce, 0, 0, 0);
+
+#if 0
+    /* go through pairs */
+    for (ni=0; ni<numNei; ni++) {
+      neiPidx = task->pctx->pidx[nei[ni]];
+      neiPidxArrLen = task->pctx->pidxArr[nei[ni]]->len;
+      for (jj=0; jj<neiPidxArrLen; jj++) {
+        pidxJ = neiPidx[jj];
+        if (pidxI == pidxJ) {
+          continue;
+        }
+        attrJ = attr + PUSH_ATTR_LEN*pidxJ;
+        _pushForceCalc(task, force, task->pctx->scale,
+                       attrI + PUSH_POS, attrI + PUSH_TEN, 
+                       attrJ + PUSH_POS, attrJ + PUSH_TEN);
+
+        if (ELL_3V_LEN(force)) {
+          fprintf(stderr, "!%s: %d <---> %d : %g\n",
+                  "_pushRepel", pidxI, pidxJ, ELL_3V_LEN(force));
+        }
+        ELL_3V_INCR(sumForce, force);
+      }
+    }
+#endif
+
+    /* drag */
+    ELL_3V_SCALE_INCR(sumForce, -task->pctx->drag, attrI + PUSH_VEL);
+
+    /* nudging towards image center */
+    ELL_3V_NORM(dir, attrI + PUSH_POS, dist);
+    if (dist) {
+      ELL_3V_SCALE_INCR(sumForce, -0.001*dist*dist, dir);
+    }
+    if (ELL_3V_LEN(sumForce)) {
+      fprintf(stderr, "!%s: %d(%d) : (%g,%g,%g)\n",
+              "_pushRepel", pidxI, bin, 
+              sumForce[0], sumForce[1], sumForce[2]);
+    }
+
+    /* copy results to tmp world */
+    ELL_3V_COPY(velAcc + 3*(0 + 2*pidxI), attrI + PUSH_VEL);
+    ELL_3V_SCALE(velAcc + 3*(1 + 2*pidxI), 1.0/task->pctx->mass, sumForce);
   }
   return;
 }
 
 void
-_pushUpdate(pushTask *task, int batch,
+_pushUpdate(pushTask *task, int bin,
             double parm[PUSH_STAGE_PARM_MAX]) {
-  push_t *posVel, *velAcc, *newPos, *newVel, *oldVel, *oldAcc;
-  int pi, ppb;
-  double step, move;
+  push_t *attr, *attrI, *velAcc, *newPos, *newVel, *oldVel, *oldAcc;
+  int *pidx, pidxLen, pidxI, pii;
+  double step;
 
-  ppb = task->pctx->pointsPerBatch;
   step = task->pctx->step;
-  posVel = (push_t *)task->pctx->nPosVel->data;
+  attr = (push_t *)task->pctx->nPointAttr->data;
   velAcc = (push_t *)task->pctx->nVelAcc->data;
-  for (pi=batch*ppb; pi<(batch+1)*ppb; pi++) {
-    newPos = posVel + 3*(0 + 2*pi);
-    newVel = posVel + 3*(1 + 2*pi);
-    oldVel = velAcc + 3*(0 + 2*pi);
-    oldAcc = velAcc + 3*(1 + 2*pi);
-    _pushProbe(task->pctx, task->gctx, newPos[0], newPos[1], newPos[2]);
-    move = task->tenAns[0] > 0.5;
-    ELL_3V_SCALE_INCR(newPos, move*step, oldVel);
-    /*
-    newPos[0] = AIR_CLAMP(-0.99, newPos[0], 0.99);
-    newPos[1] = AIR_CLAMP(-0.99, newPos[1], 0.99);
-    newPos[2] = AIR_CLAMP(-0.99, newPos[2], 0.99);
-    */
-    ELL_3V_SCALE_INCR(newVel, move*step/(task->pctx->mass), oldAcc);
-    ELL_3V_SCALE(newVel, move, newVel);
+  pidx = task->pctx->pidx[bin];
+  pidxLen = task->pctx->pidxArr[bin]->len;
+  for (pii=0; pii<pidxLen; pii++) {
+    pidxI = pidx[pii];
+    attrI = attr + PUSH_ATTR_LEN*pidxI;
+    newPos = attr + PUSH_POS + PUSH_ATTR_LEN*pidxI;
+    newVel = attr + PUSH_VEL + PUSH_ATTR_LEN*pidxI;
+    oldVel = velAcc + 3*(0 + 2*pidxI);
+    oldAcc = velAcc + 3*(1 + 2*pidxI);
+    ELL_3V_SCALE_INCR(newPos, step, oldVel);
+    ELL_3V_SCALE_INCR(newVel, step, oldAcc);
     task->sumVel += ELL_3V_LEN(newVel);
+    _pushProbe(task->pctx, task->gctx, newPos[0], newPos[1], newPos[2]);
   }
   return;
 }
@@ -412,7 +675,7 @@ pushRun(pushContext *pctx) {
       sprintf(err, "%s: trouble on iter %d", me, pctx->iter);
       biffAdd(PUSH, err); return 1;
     }
-    /* this goofiness is because it seems like stupid Euler 
+    /* this goofiness is because it seems like my stupid Euler 
        integration can lead to real motion only happening on
        every other iteration ... */
     if (0 == pctx->iter) {
@@ -435,8 +698,7 @@ pushRun(pushContext *pctx) {
         sprintf(err, "%s: couldn't get snapshot for iter %d", me, pctx->iter);
         biffAdd(PUSH, err); return 1;
       }
-      fprintf(stderr, "%s: saving snapshot %s (meanVel = %g)\n",
-              me, poutS, meanVel);
+      fprintf(stderr, "%s: %s (meanVel = %g)\n", me, poutS, meanVel);
       if (nrrdSave(poutS, npos, NULL)
           || nrrdSave(toutS, nten, NULL)) {
         sprintf(err, "%s: couldn't save snapshot for iter %d", me, pctx->iter);

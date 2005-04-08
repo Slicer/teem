@@ -50,10 +50,25 @@ typedef float push_t;
 #define PUSH_TYPE_FLOAT 1
 #endif
 
+/*
+**  0: pos = position,                         0 + 3 =
+**  3: vel = velocity,                         3 + 3 =
+**  6: ten = tensor,                           6 + 7 =
+** 13: cnt = containment by gradient of mask  13 + 3 = 16.
+*/
+#define PUSH_POS  0
+#define PUSH_VEL  3
+#define PUSH_TEN  6
+#define PUSH_CNT 13
+#define PUSH_ATTR_LEN 16
+
+/* increment for airArrays in bins */
+#define PUSH_PIDX_INCR 32
+
 typedef struct pushTask_t {
   struct pushContext_t *pctx;      /* parent's context */
   gageContext *gctx;               /* result of gageContextCopy(pctx->gctx) */
-  gage_t *tenAns;                  /* result of gage probing */
+  gage_t *tenAns, *cntAns;         /* results of gage probing */
   airThread *thread;               /* my thread */
   int threadIdx;                   /* which thread am I */
   double sumVel;                   /* sum of velocities of pts in my batches */
@@ -66,42 +81,51 @@ typedef void (*pushProcess)(struct pushTask_t *task, int batch,
 typedef struct pushContext_t {
   /* INPUT ----------------------------- */
   Nrrd *nin;                       /* image of 2D or 3D masked tensors */
-  double drag,                     /* magnitude of viscosity term */
+  double drag,                     /* to slow fast things down */
     step,                          /* time step in integration */
     mass,                          /* mass of particles */
+    scale,                         /* scaling from tensor to glyph size */
+    margin,                        /* space allowed around [-1,1]^3 for pnts */
     minMeanVel;                    /* stop if mean velocity drops below this */
-  int pointsPerBatch,              /* number points per "batch" */
-    numBatch,                      /* total number of batches in simulation */
+  int seed,                        /* seed value for airSrand48 */
+    numPoint,                      /* number of points to simulate */
     numThread,                     /* number of threads to use */
     numStage,                      /* number of stages */
     minIter,                       /* if non-zero, min number of iterations */
     maxIter,                       /* if non-zero, max number of iterations */
     snap,                          /* if non-zero, interval between iterations
                                       at which output snapshots are saved */
+    singleBin,                     /* disable binning (for debugging) */
     verbose;                       /* blah blah blah */
-  const NrrdKernel *kernel;
-  double kparm[NRRD_KERNEL_PARMS_NUM];
+  NrrdKernelSpec *ksp00,           /* for sampling tensor field */
+    *ksp11;                        /* for gradient of mask */
   double stageParm[PUSH_STAGE_MAX][PUSH_STAGE_PARM_MAX]; /* parms for stages */
   pushProcess process[PUSH_STAGE_MAX]; /* the function for each stage */
   /* INTERNAL -------------------------- */
-  Nrrd *nten,                      /* always 3D masked tensors */
-    *nPosVel,
-    *nVelAcc;
+  Nrrd *nten,                      /* 3D image of 3D masked tensors */
+    *nmask,                        /* mask image from nten */
+    *nPointAttr,                   /* 1-vector of point attributes */
+    *nVelAcc;                      /* for implementing integration */
   gageContext *gctx;               /* gage context around nten */
-  gage_t *tenAns;                  /* result of gage probing */
+  gage_t *tenAns,                  /* gage probe to learn tensor */
+    *cntAns;                       /* gage probe to learn containment vector */
   int dimIn,                       /* dimension (2 or 3) of input */
+    binsEdge,                      /* # bins along edge of grid */
+    numBin,                        /* total # bins in grid */
     finished,                      /* used to signal all threads to return */
     stage,                         /* stage currently undergoing processing */
-    batch;                         /* *next* batch of points needing to be
-                                      processed, either in filter or in update
-                                      stage.  Stage is done when
-                                      batch == numBatch */
-  double minPos[3],                /* lower corner of world position */
+    bin;                           /* *next* bin of points needing to be
+                                      processed.  Stage is done when
+                                      bin == numBin */
+  int **pidx;                      /* image/volume of point index arrays */
+  airArray **pidxArr;              /* all airArrays around pidx[] */
+  double maxEval,                  /* maximum eigenvalue in input field */
+    minPos[3],                     /* lower corner of world position */
     maxPos[3],                     /* upper corner of world position */
     meanVel,                       /* latest mean velocity of particles */
     time0, time1;                  /* time at start and stop of run */
   pushTask **task;                 /* dynamically allocated array of tasks */
-  airThreadMutex *batchMutex;      /* mutex around batch (and stage) */
+  airThreadMutex *binMutex;        /* mutex around bin */
   airThreadBarrier *stageBarrierA, /* barriers between stages */
     *stageBarrierB;
   /* OUTPUT ---------------------------- */
