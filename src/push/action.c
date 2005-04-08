@@ -656,8 +656,8 @@ _pushUpdate(pushTask *task, int bin,
                (attr + PUSH_POS)[0], 
                (attr + PUSH_POS)[1], 
                (attr + PUSH_POS)[2]);
-    TEN_T_COPY(attr + PUSH_TEN + PUSH_ATTR_LEN*pidxI, task->tenAns);
-    ELL_3V_COPY(attr + PUSH_CNT + PUSH_ATTR_LEN*pidxI, task->cntAns);
+    TEN_T_COPY(attr + PUSH_TEN, task->tenAns);
+    ELL_3V_COPY(attr + PUSH_CNT, task->cntAns);
   }
   return;
 }
