@@ -61,6 +61,9 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos,
   }
   minX *= 72; minY *= 72;
   maxX *= 72; maxY *= 72;
+  if (npos) {
+    gscale *= (maxX - minX)/(max[0] - min[0]);
+  }
 
   fprintf(file, "%%!PS-Adobe-3.0 EPSF-3.0\n");
   fprintf(file, "%%%%Creator: tend ellipse\n");
