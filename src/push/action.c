@@ -426,10 +426,10 @@ _pushInitialize(pushContext *pctx) {
     int sx, sy, xi, yi;
     double p[3];
     
-    sx = 300;
-    sy = 300;
+    sx = 30;
+    sy = 30;
     ntmp = nrrdNew();
-    nrrdMaybeAlloc(ntmp, nrrdTypeDouble, 2, sx, sy);
+    nrrdMaybeAlloc(ntmp, nrrdTypeDouble, 3, 4, sx, sy);
     data = (double*)ntmp->data;
     p[2] = 0.0;
     for (yi=0; yi<sy; yi++) {
@@ -437,7 +437,10 @@ _pushInitialize(pushContext *pctx) {
       for (xi=0; xi<sx; xi++) {
         p[0] = AIR_AFFINE(0, xi, sx-1, pctx->minPos[0], pctx->maxPos[0]);
         _pushProbe(pctx, pctx->gctx, p[0], p[1], p[2]);
-        data[xi + sx*yi] = pctx->tenAns[0];
+        data[0 + 4*(xi + sx*yi)] = pctx->tenAns[0];
+        data[1 + 4*(xi + sx*yi)] = pctx->tenAns[1];
+        data[2 + 4*(xi + sx*yi)] = pctx->tenAns[2];
+        data[3 + 4*(xi + sx*yi)] = pctx->tenAns[4];
       }
     }
     nrrdSave("pray.nrrd", ntmp, NULL);
@@ -652,6 +655,8 @@ _pushUpdate(pushTask *task, int bin,
     ELL_3V_SCALE_INCR(newVel, step, oldAcc);
     task->sumVel += ELL_3V_LEN(newVel);
     _pushProbe(task->pctx, task->gctx, newPos[0], newPos[1], newPos[2]);
+    TEN_T_COPY(attr + PUSH_TEN + PUSH_ATTR_LEN*pidxI, task->tenAns);
+    ELL_3V_COPY(attr + PUSH_CNT + PUSH_ATTR_LEN*pidxI, task->cntAns);
   }
   return;
 }
