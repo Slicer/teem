@@ -519,7 +519,6 @@ _pushForceCalc(pushTask *task, push_t force[3], push_t scale,
     /* true packing? scale=0.285 for packing, for 0.1735 for quart */
     
     ff = AIR_MAX(0, 2*scale - lenV);
-    ff = ff*ff;
     ELL_3V_SCALE(force, ff, nV);
   }
   
@@ -565,9 +564,11 @@ _pushBinNeighborhoodFind(pushContext *pctx, int *nei, int bin, int dimIn) {
 
 void
 _pushRepel(pushTask *task, int bin, double parm[PUSH_STAGE_PARM_MAX]) {
-  push_t *attr, *velAcc, *attrI, *attrJ, force[3], sumForce[3], dist, dir[3];
+  push_t *attr, *velAcc, *attrI, *attrJ, force[3], sumForce[3],
+    dist, dir[3], drag;
   int *neiPidx, *myPidx, nei[27], ni, numNei, jj, ii, pidxJ, pidxI,
     myPidxArrLen, neiPidxArrLen;
+  /* push_t mid[3]; */
 
   attr = (push_t *)task->pctx->nPointAttr->data;
   velAcc = (push_t *)task->pctx->nVelAcc->data;
@@ -595,17 +596,36 @@ _pushRepel(pushTask *task, int bin, double parm[PUSH_STAGE_PARM_MAX]) {
                        attrI + PUSH_POS, attrI + PUSH_TEN, 
                        attrJ + PUSH_POS, attrJ + PUSH_TEN);
         /*
-        if (ELL_3V_LEN(force)) {
+        ELL_3V_SCALE_ADD2(mid, 0.5, attrI + PUSH_POS, 0.5, attrJ + PUSH_POS);
+        if (ELL_3V_LEN(force)
+            && AIR_IN_OP(-0.26, mid[0], -0.24)
+            && AIR_IN_OP(0.08, mid[1], 0.10)) {
+          fprintf(stderr, "!%s: @(%g,%g) : %d <--- %d : (%f,%f) %30.15f\n",
+                  "_pushRepel",
+                  mid[0], mid[1],
+                  pidxI, pidxJ, force[0], force[1],
+                  ELL_3V_LEN(force));
+        }
+        */
+        /*
+          if (ELL_3V_LEN(force)) {
           fprintf(stderr, "!%s: %d <---> %d : %g\n",
                   "_pushRepel", pidxI, pidxJ, ELL_3V_LEN(force));
         }
         */
-        ELL_3V_INCR(sumForce, force);
+        ELL_3V_SCALE_INCR(sumForce, task->pctx->stiff, force);
       }
     }
 
     /* drag */
-    ELL_3V_SCALE_INCR(sumForce, -task->pctx->drag, attrI + PUSH_VEL);
+    if (task->pctx->minIter
+        && task->pctx->iter < task->pctx->minIter) {
+      drag = AIR_AFFINE(0, task->pctx->iter, task->pctx->minIter,
+                        task->pctx->preDrag, task->pctx->drag);
+    } else {
+      drag = task->pctx->drag;
+    }
+    ELL_3V_SCALE_INCR(sumForce, -drag, attrI + PUSH_VEL);
 
     /* nudging towards image center */
     ELL_3V_NORM(dir, attrI + PUSH_POS, dist);

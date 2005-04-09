@@ -33,7 +33,7 @@ main(int argc, char *argv[]) {
   int seed, numThread, numPoint, snap, minIter, maxIter, singleBin;
   pushContext *pctx;
   Nrrd *nin, *nPosOut, *nTenOut;
-  double step, drag, mass, scale, nudge, margin, minMeanVel;
+  double step, drag, preDrag, mass, scale, nudge, stiff, margin, minMeanVel;
   NrrdKernelSpec *ksp00, *ksp11;
   
   mop = airMopNew();
@@ -53,8 +53,13 @@ main(int argc, char *argv[]) {
              "time step in integration");
   hestOptAdd(&hopt, "drag", "drag", airTypeDouble, 1, 1, &drag, "0.01",
              "amount of drag");
+  hestOptAdd(&hopt, "preDrag", "preDrag", airTypeDouble, 1, 1, &preDrag,
+             "0.2",
+             "amount of drag at beginning of minimum iteration period");
   hestOptAdd(&hopt, "mass", "mass", airTypeDouble, 1, 1, &mass, "1",
              "mass of each particle");
+  hestOptAdd(&hopt, "stiff", "stiff", airTypeDouble, 1, 1, &stiff, "1",
+             "spring constant on surface of particle");
   hestOptAdd(&hopt, "nudge", "nudge", airTypeDouble, 1, 1, &nudge, "0.001",
              "scaling of how distance from origin generates a nudging "
              "force back towards the origin (as if by sitting in "
@@ -100,8 +105,10 @@ main(int argc, char *argv[]) {
   pctx->minIter = minIter;
   pctx->seed = seed;
   pctx->drag = drag;
+  pctx->preDrag = preDrag;
   pctx->step = step;
   pctx->mass = mass;
+  pctx->stiff = stiff;
   pctx->scale = scale;
   pctx->nudge = nudge;
   pctx->margin = margin;

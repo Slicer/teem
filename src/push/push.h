@@ -82,9 +82,12 @@ typedef struct pushContext_t {
   /* INPUT ----------------------------- */
   Nrrd *nin;                       /* image of 2D or 3D masked tensors */
   double drag,                     /* to slow fast things down */
+    preDrag,                       /* different drag pre-min-iter */
     step,                          /* time step in integration */
     mass,                          /* mass of particles */
     scale,                         /* scaling from tensor to glyph size */
+    stiff,                         /* spring constant on glyph surface */
+    preStiff,                      /* different stiff pre-min-iter */
     nudge,                         /* scaling of nudging towards center */
     margin,                        /* space allowed around [-1,1]^3 for pnts */
     minMeanVel;                    /* stop if mean velocity drops below this */
