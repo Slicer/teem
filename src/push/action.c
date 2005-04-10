@@ -422,8 +422,8 @@ _pushForceCalc(pushContext *pctx, push_t force[3], push_t scale,
                push_t *myPos, push_t *myTen,
                push_t *herPos, push_t *herTen) {
   char me[]="_pushForceIncr";
-  push_t ten[7], inv[7], maxDist;
-  float U[3], nU[3], lenU, V[3], nV[3], lenV, ff;
+  push_t ten[7], inv[7], myInv[7], herInv[7], maxDist;
+  float U[3], nU[3], lenU, V[3], nV[3], lenV, W[3], nW[3], lenW, ff;
 
   maxDist = 2*pctx->maxEval*pctx->scale;
   ELL_3V_SUB(U, myPos, herPos);
@@ -440,18 +440,28 @@ _pushForceCalc(pushContext *pctx, push_t force[3], push_t scale,
               myPos[0], myPos[1], myPos[2]);
       return;
     }
-    
+
     /* distorted world */
     /*
-      ff = AIR_MAX(0, 2*scale - lenV);
-      ff /= lenV;
-      ELL_3V_SCALE(force, ff, U);
+    ff = AIR_MAX(0, 2*scale - lenV);
+    ff /= lenV;
+    ELL_3V_SCALE(force, ff, U);
     */
     
-    /* true packing? */
-    
+    /* packing */
+
     ff = AIR_MAX(0, 2*scale - lenV);
     ELL_3V_SCALE(force, ff, nV);
+
+    _pushTenInv(pctx, myInv, myTen);
+    _pushTenInv(pctx, herInv, herTen);
+    TEN_TV_MUL(V, myInv, U);
+    ELL_3V_NORM(nV, V, lenV);
+    TEN_TV_MUL(W, herInv, U);
+    ELL_3V_NORM(nW, W, lenW);
+    ff = 1.0/lenW - 1.0/lenV;
+    ff = sqrt((2-ff)/(2+ff));
+    ELL_3V_SCALE(force, ff, force);
 
   }
   
@@ -528,6 +538,7 @@ _pushInitialize(pushContext *pctx) {
   /* do rebinning, now that we have positions */
   _pushBinPointsRebin(pctx);
 
+
   {
     Nrrd *ntmp;
     double *data;
@@ -540,8 +551,8 @@ _pushInitialize(pushContext *pctx) {
     ten = attr + PUSH_TEN;
     cnt = attr + PUSH_CNT;
 
-    sx = 200;
-    sy = 200;
+    sx = 501;
+    sy = 501;
     ntmp = nrrdNew();
     nrrdMaybeAlloc(ntmp, nrrdTypeDouble, 3, 3, sx, sy);
     data = (double*)ntmp->data;
@@ -562,7 +573,6 @@ _pushInitialize(pushContext *pctx) {
     }
     nrrdSave("pray.nrrd", ntmp, NULL);
   }
-  
 
 
   /* HEY: this should be done by the user */
