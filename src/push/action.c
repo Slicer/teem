@@ -412,6 +412,52 @@ _pushProbe(pushContext *pctx, gageContext *gctx,
   return;
 }
 
+/*
+** for now, don't get clever and take point list indices instead
+** of point information- may need to probe between arc vertices 
+** to get intermediate tensors
+*/
+void
+_pushForceCalc(pushContext *pctx, push_t force[3], push_t scale, 
+               push_t *myPos, push_t *myTen,
+               push_t *herPos, push_t *herTen) {
+  char me[]="_pushForceIncr";
+  push_t ten[7], inv[7], maxDist;
+  float U[3], nU[3], lenU, V[3], nV[3], lenV, ff;
+
+  maxDist = 2*pctx->maxEval*pctx->scale;
+  ELL_3V_SUB(U, myPos, herPos);
+  ELL_3V_NORM(nU, U, lenU);
+  if (lenU > maxDist) {
+    ELL_3V_SET(force, 0, 0, 0);
+  } else {
+    TEN_T_SCALE_ADD2(ten, 0.5, myTen, 0.5, herTen);
+    _pushTenInv(pctx, inv, ten);
+    TEN_TV_MUL(V, inv, U);
+    ELL_3V_NORM(nV, V, lenV);
+    if (!lenU) {
+      fprintf(stderr, "%s: myPos == herPos == (%g,%g,%g)\n", me,
+              myPos[0], myPos[1], myPos[2]);
+      return;
+    }
+    
+    /* distorted world */
+    /*
+      ff = AIR_MAX(0, 2*scale - lenV);
+      ff /= lenV;
+      ELL_3V_SCALE(force, ff, U);
+    */
+    
+    /* true packing? */
+    
+    ff = AIR_MAX(0, 2*scale - lenV);
+    ELL_3V_SCALE(force, ff, nV);
+
+  }
+  
+  return;
+}
+
 void
 _pushInitialize(pushContext *pctx) {
   int numPoint, pi;
@@ -482,57 +528,47 @@ _pushInitialize(pushContext *pctx) {
   /* do rebinning, now that we have positions */
   _pushBinPointsRebin(pctx);
 
+  {
+    Nrrd *ntmp;
+    double *data;
+    int sx, sy, xi, yi;
+    push_t f[3], p[3], t[7];
+
+    attr = (push_t *)(pctx->nPointAttr->data);
+    pos = attr + PUSH_POS;
+    vel = attr + PUSH_VEL;
+    ten = attr + PUSH_TEN;
+    cnt = attr + PUSH_CNT;
+
+    sx = 200;
+    sy = 200;
+    ntmp = nrrdNew();
+    nrrdMaybeAlloc(ntmp, nrrdTypeDouble, 3, 3, sx, sy);
+    data = (double*)ntmp->data;
+    p[2] = 0.0;
+    for (yi=0; yi<sy; yi++) {
+      p[1] = AIR_AFFINE(0, yi, sy-1, pctx->minPos[1], pctx->maxPos[1]);
+      for (xi=0; xi<sx; xi++) {
+        p[0] = AIR_AFFINE(0, xi, sx-1, pctx->minPos[0], pctx->maxPos[0]);
+        _pushProbe(pctx, pctx->gctx, p[0], p[1], p[2]);
+        TEN_T_COPY(t, pctx->tenAns);
+        _pushForceCalc(pctx, f, pctx->scale,
+                       pos, ten,
+                       p, t);
+        data[0 + 3*(xi + sx*yi)] = f[0];
+        data[1 + 3*(xi + sx*yi)] = f[1];
+        data[2 + 3*(xi + sx*yi)] = f[2];
+      }
+    }
+    nrrdSave("pray.nrrd", ntmp, NULL);
+  }
+  
+
+
   /* HEY: this should be done by the user */
   pctx->process[0] = _pushRepel;
   pctx->process[1] = _pushUpdate;
 
-  return;
-}
-
-/*
-** for now, don't get clever and take point list indices instead
-** of point information- may need to probe between arc vertices 
-** to get intermediate tensors
-*/
-void
-_pushForceCalc(pushTask *task, push_t force[3], push_t scale, 
-               push_t *myPos, push_t *myTen,
-               push_t *herPos, push_t *herTen) {
-  char me[]="_pushForceIncr";
-  push_t ten[7], inv[7], maxDist;
-  float U[3], nU[3], lenU, V[3], nV[3], lenV, ff;
-
-  maxDist = 2*task->pctx->maxEval*task->pctx->scale;
-  ELL_3V_SUB(U, myPos, herPos);
-  ELL_3V_NORM(nU, U, lenU);
-  if (lenU > maxDist) {
-    ELL_3V_SET(force, 0, 0, 0);
-  } else {
-    TEN_T_SCALE_ADD2(ten, 0.5, myTen, 0.5, herTen);
-    _pushTenInv(task->pctx, inv, ten);
-    TEN_TV_MUL(V, inv, U);
-    ELL_3V_NORM(nV, V, lenV);
-    if (!lenU) {
-      fprintf(stderr, "%s: myPos == herPos == (%g,%g,%g)\n", me,
-              myPos[0], myPos[1], myPos[2]);
-      return;
-    }
-    
-    /* distorted world; scale=0.2875 for packing, 0.175 for quart */
-    /*
-      ff = AIR_MAX(0, 2*scale - lenV);
-      ff = ff*ff;
-      ff /= lenV;
-      ELL_3V_SCALE(force, ff, U);
-    */
-    
-    /* true packing? scale=0.285 for packing, for 0.1735 for quart */
-    
-    ff = AIR_MAX(0, 2*scale - lenV);
-    /* ff = 2*scale - lenV; */
-    ELL_3V_SCALE(force, ff, nV);
-  }
-  
   return;
 }
 
@@ -603,7 +639,7 @@ _pushRepel(pushTask *task, int bin, double parm[PUSH_STAGE_PARM_MAX]) {
           continue;
         }
         attrJ = attr + PUSH_ATTR_LEN*pidxJ;
-        _pushForceCalc(task, force, task->pctx->scale,
+        _pushForceCalc(task->pctx, force, task->pctx->scale,
                        attrI + PUSH_POS, attrI + PUSH_TEN, 
                        attrJ + PUSH_POS, attrJ + PUSH_TEN);
         /*
