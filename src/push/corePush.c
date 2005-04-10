@@ -193,6 +193,18 @@ _pushContextCheck(pushContext *pctx) {
     sprintf(err, "%s: input doesn't look like 2D or 3D masked tensors", me);
     biffAdd(PUSH, err); return 1;
   }
+
+  if (pctx->npos) {
+    if (nrrdCheck(pctx->npos)) {
+      sprintf(err, "%s: got a broken position nrrd", me);
+      biffMove(PUSH, err, NRRD); return 1;
+    }
+    if (!( 2 == pctx->npos->dim 
+           && 3 == pctx->npos->axis[0].size )) {
+      sprintf(err, "%s: position nrrd not 2-D 3-by-N", me);
+      biffAdd(PUSH, err); return 1;
+    }
+  }
   return 0;
 }
 
@@ -204,6 +216,9 @@ pushStart(pushContext *pctx) {
   if (_pushContextCheck(pctx)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(PUSH, err); return 1;
+  }
+  if (pctx->npos) {
+    pctx->numPoint = pctx->npos->axis[1].size;
   }
 
   airSrand48(pctx->seed);

@@ -80,7 +80,9 @@ typedef void (*pushProcess)(struct pushTask_t *task, int batch,
 
 typedef struct pushContext_t {
   /* INPUT ----------------------------- */
-  Nrrd *nin;                       /* image of 2D or 3D masked tensors */
+  Nrrd *nin,                       /* image of 2D or 3D masked tensors */
+    *npos;                         /* positions to start with
+                                      (overrides numPoint) */
   double drag,                     /* to slow fast things down */
     preDrag,                       /* different drag pre-min-iter */
     step,                          /* time step in integration */

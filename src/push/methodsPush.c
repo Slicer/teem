@@ -30,6 +30,7 @@ pushContextNew(void) {
   pctx = (pushContext *)calloc(1, sizeof(pushContext));
   if (pctx) {
     pctx->nin = NULL;
+    pctx->npos = NULL;
     pctx->mass = 1.0;
     pctx->scale = 0.2;
     pctx->margin = 0.3;

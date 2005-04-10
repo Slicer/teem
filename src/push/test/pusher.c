@@ -32,14 +32,17 @@ main(int argc, char *argv[]) {
   char *outS[2];
   int seed, numThread, numPoint, snap, minIter, maxIter, singleBin;
   pushContext *pctx;
-  Nrrd *nin, *nPosOut, *nTenOut;
+  Nrrd *nin, *nPosIn, *nPosOut, *nTenOut;
   double step, drag, preDrag, mass, scale, nudge, stiff, margin, minMeanVel;
   NrrdKernelSpec *ksp00, *ksp11;
   
   mop = airMopNew();
   me = argv[0];
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "",
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
              "input volume to filter", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "pi", "npos", airTypeOther, 1, 1, &nPosIn, "",
+             "positions to start at (overrides \"-np\")",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "nobin", NULL, airTypeBool, 0, 0, &singleBin, NULL,
              "turn off spatial binning (which prevents multi-threading "
              "from being useful), for debugging or speed-up measurement");
@@ -99,6 +102,7 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, nTenOut, (airMopper)nrrdNuke, airMopAlways);
   
   pctx->nin = nin;
+  pctx->npos = nPosIn;
   pctx->numThread = numThread;
   pctx->singleBin = singleBin;
   pctx->maxIter = maxIter;

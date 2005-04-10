@@ -416,6 +416,7 @@ void
 _pushInitialize(pushContext *pctx) {
   int numPoint, pi;
   push_t *attr, *pos, *vel, *ten, *cnt;
+  double (*lup)(const void *v, size_t I);
 
   /*
   {
@@ -446,26 +447,35 @@ _pushInitialize(pushContext *pctx) {
   */
   
   numPoint = pctx->nPointAttr->axis[1].size;
+  lup = pctx->npos ? nrrdDLookup[pctx->npos->type] : NULL;
   for (pi=0; pi<numPoint; pi++) {
     attr = (push_t *)(pctx->nPointAttr->data) + PUSH_ATTR_LEN*pi;
     pos = attr + PUSH_POS;
     vel = attr + PUSH_VEL;
     ten = attr + PUSH_TEN;
     cnt = attr + PUSH_CNT;
-    do {
-      pos[0] = AIR_AFFINE(0.0, airDrand48(), 1.0,
-                          pctx->minPos[0], pctx->maxPos[0]);
-      pos[1] = AIR_AFFINE(0.0, airDrand48(), 1.0,
-                          pctx->minPos[1], pctx->maxPos[1]);
-      if (2 == pctx->dimIn) {
-        pos[2] = 0;
-      } else {
-        pos[2] = AIR_AFFINE(0.0, airDrand48(), 1.0,
-                            pctx->minPos[2], pctx->maxPos[2]);
-      }
+    if (pctx->npos) {
+      pos[0] = lup(pctx->npos->data, 0 + 3*pi);
+      pos[1] = lup(pctx->npos->data, 1 + 3*pi);
+      pos[2] = lup(pctx->npos->data, 2 + 3*pi);
       _pushProbe(pctx, pctx->gctx, pos[0], pos[1], pos[2]);
       TEN_T_COPY(ten, pctx->tenAns);
-    } while (ten[0] < 0.5);
+    } else {
+      do {
+        pos[0] = AIR_AFFINE(0.0, airDrand48(), 1.0,
+                            pctx->minPos[0], pctx->maxPos[0]);
+        pos[1] = AIR_AFFINE(0.0, airDrand48(), 1.0,
+                            pctx->minPos[1], pctx->maxPos[1]);
+        if (2 == pctx->dimIn) {
+          pos[2] = 0;
+        } else {
+          pos[2] = AIR_AFFINE(0.0, airDrand48(), 1.0,
+                              pctx->minPos[2], pctx->maxPos[2]);
+        }
+        _pushProbe(pctx, pctx->gctx, pos[0], pos[1], pos[2]);
+        TEN_T_COPY(ten, pctx->tenAns);
+      } while (ten[0] < 0.5);
+    }
     ELL_3V_SET(vel, 0, 0, 0);
     ELL_3V_COPY(cnt, pctx->cntAns);
   }
@@ -519,6 +529,7 @@ _pushForceCalc(pushTask *task, push_t force[3], push_t scale,
     /* true packing? scale=0.285 for packing, for 0.1735 for quart */
     
     ff = AIR_MAX(0, 2*scale - lenV);
+    /* ff = 2*scale - lenV; */
     ELL_3V_SCALE(force, ff, nV);
   }
   
@@ -710,8 +721,8 @@ pushRun(pushContext *pctx) {
     if (pctx->snap && !(pctx->iter % pctx->snap)) {
       nten = nrrdNew();
       npos = nrrdNew();
-      sprintf(poutS, "snap-%06d-pos.nrrd", pctx->iter);
-      sprintf(toutS, "snap-%06d-ten.nrrd", pctx->iter);
+      sprintf(poutS, "snap.%06d.pos.nrrd", pctx->iter);
+      sprintf(toutS, "snap.%06d.ten.nrrd", pctx->iter);
       if (pushOutputGet(npos, nten, pctx)) {
         sprintf(err, "%s: couldn't get snapshot for iter %d", me, pctx->iter);
         biffAdd(PUSH, err); return 1;
