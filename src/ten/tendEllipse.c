@@ -29,23 +29,22 @@ char *_tend_ellipseInfoL =
 int
 tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos,
                  float min[2], float max[2],
-                 float gscale, float cthresh, int invert) {
+                 float gscale, float dotRad, float cthresh,
+                 int invert) {
   int sx=0, sy=0, x, y, nt, ti;
   float aspect, minX, minY, maxX, maxY, px, py, 
     conf, Dxx, Dxy, Dyy, *tdata, *pdata;
   
-  tdata = (float*)nten->data;
   if (npos) {
-    pdata = (float*)npos->data;
     nt = npos->axis[1].size;
     aspect = (max[0] - min[0])/(max[1] - min[1]);
   } else {
-    pdata = NULL;
     sx = nten->axis[1].size;
     sy = nten->axis[2].size;
     nt = sx*sy;
     aspect = (float)sx/sy;
   }
+
   if (aspect > 7.5/10) {
     /* image has a wider aspect ratio than safely printable page area */
     minX = 0.5;
@@ -63,6 +62,7 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos,
   maxX *= 72; maxY *= 72;
   if (npos) {
     gscale *= (maxX - minX)/(max[0] - min[0]);
+    dotRad *= (maxX - minX)/(max[0] - min[0]);
   }
 
   fprintf(file, "%%!PS-Adobe-3.0 EPSF-3.0\n");
@@ -88,6 +88,9 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos,
     fprintf(file, "closepath fill\n");
     fprintf(file, "1 setgray\n");
   }
+
+  tdata = (float*)nten->data;
+  pdata = npos ? (float*)npos->data : NULL;
   for (ti=0; ti<nt; ti++) {
     if (npos) {
       if (!AIR_EXISTS(pdata[0])) {
@@ -120,6 +123,39 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos,
     }
     tdata += 4;
   }
+  if (dotRad) {
+    tdata = (float*)nten->data;
+    pdata = npos ? (float*)npos->data : NULL;
+    if (invert) {
+      fprintf(file, "0 setgray\n");
+    } else {
+      fprintf(file, "1 setgray\n");
+    }
+    for (ti=0; ti<nt; ti++) {
+      if (npos) {
+        if (!AIR_EXISTS(pdata[0])) {
+          pdata += 2;
+          tdata += 4;
+          continue;
+        }
+        px = AIR_AFFINE(min[0], pdata[0], max[0], minX, maxX);
+        py = AIR_AFFINE(min[1], pdata[1], max[1], maxY, minY);
+        pdata += 2;
+      } else {
+        x = ti % sx;
+        y = ti / sx;
+        px = NRRD_CELL_POS(minX, maxX, sx, x);
+        py = NRRD_CELL_POS(minY, maxY, sy, sy-1-y);
+      }
+      conf = tdata[0];
+      if (conf > cthresh) {
+        fprintf(file, "gsave\n");
+        fprintf(file, "%g %g %g 0 360 arc closepath fill\n", px, py, dotRad);
+        fprintf(file, "grestore\n");
+      }
+      tdata += 4;
+    }
+  }
   fprintf(file, "grestore\n");
   
   return 0;
@@ -134,7 +170,7 @@ tend_ellipseMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   Nrrd *nten, *npos;
   char *outS;
-  float gscale, cthresh, min[2], max[2];
+  float gscale, dotRad, cthresh, min[2], max[2];
   FILE *fout;
   int invert;
 
@@ -145,6 +181,9 @@ tend_ellipseMain(int argc, char **argv, char *me, hestParm *hparm) {
              "values greater than this threshold");
   hestOptAdd(&hopt, "gsc", "scale", airTypeFloat, 1, 1, &gscale, "1",
              "over-all glyph size");
+  hestOptAdd(&hopt, "dot", "radius", airTypeFloat, 1, 1, &dotRad, "0.0",
+             "radius of little dot to put in middle of ellipse, or \"0\" "
+             "for no such dot");
   hestOptAdd(&hopt, "inv", NULL, airTypeInt, 0, 0, &invert, NULL,
              "use white ellipses on black background, instead of reverse");
   hestOptAdd(&hopt, "min", "minX minY", airTypeFloat, 2, 2, min, "-1 -1",
@@ -196,7 +235,8 @@ tend_ellipseMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   airMopAdd(mop, fout, (airMopper)airFclose, airMopAlways);
 
-  tend_ellipseDoit(fout, nten, npos, min, max, gscale, cthresh, invert);
+  tend_ellipseDoit(fout, nten, npos, min, max, 
+                   gscale, dotRad, cthresh, invert);
 
   airMopOkay(mop);
   return 0;
