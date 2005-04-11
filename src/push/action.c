@@ -298,7 +298,7 @@ _pushInputProcess(pushContext *pctx) {
     pctx->binsEdge = 1;
     pctx->numBin = 1;
   } else {
-    pctx->binsEdge = ceil((1 + 2*pctx->margin)/maxDist);
+    pctx->binsEdge = floor((2 + 2*pctx->margin)/maxDist);
     fprintf(stderr, "!%s: maxEval = %g -> binsEdge = %d\n",
             me, pctx->maxEval, pctx->binsEdge);
     pctx->numBin = pctx->binsEdge*pctx->binsEdge*(2 == pctx->dimIn ? 
@@ -423,46 +423,42 @@ _pushForceCalc(pushContext *pctx, push_t force[3], push_t scale,
                push_t *herPos, push_t *herTen) {
   char me[]="_pushForceIncr";
   push_t ten[7], inv[7], myInv[7], herInv[7], maxDist;
-  float U[3], nU[3], lenU, V[3], nV[3], lenV, W[3], nW[3], lenW, ff;
+  float D[3], nD[3], lenD, V[3], nV[3], lenV, W[3], nW[3], lenW, ff;
+
+  /* in case lenD > maxDist */
+  ELL_3V_SET(force, 0, 0, 0);
 
   maxDist = 2*pctx->maxEval*pctx->scale;
-  ELL_3V_SUB(U, myPos, herPos);
-  ELL_3V_NORM(nU, U, lenU);
-  if (lenU > maxDist) {
-    ELL_3V_SET(force, 0, 0, 0);
-  } else {
+  ELL_3V_SUB(D, myPos, herPos);
+  ELL_3V_NORM(nD, D, lenD);
+  if (lenD <= maxDist) {
     TEN_T_SCALE_ADD2(ten, 0.5, myTen, 0.5, herTen);
     _pushTenInv(pctx, inv, ten);
-    TEN_TV_MUL(V, inv, U);
+    TEN_TV_MUL(V, inv, D);
     ELL_3V_NORM(nV, V, lenV);
-    if (!lenU) {
+    if (!lenD) {
       fprintf(stderr, "%s: myPos == herPos == (%g,%g,%g)\n", me,
               myPos[0], myPos[1], myPos[2]);
       return;
     }
 
-    /* distorted world */
+
+    /* not really packing */
+
+    ff = AIR_MAX(0, 2*scale/lenV - 1);
+    ELL_3V_SCALE(force, ff, D);
+
     /*
-    ff = AIR_MAX(0, 2*scale - lenV);
-    ff /= lenV;
-    ELL_3V_SCALE(force, ff, U);
-    */
-    
-    /* packing */
-
-    ff = AIR_MAX(0, 2*scale - lenV);
-    ELL_3V_SCALE(force, ff, nV);
-
     _pushTenInv(pctx, myInv, myTen);
     _pushTenInv(pctx, herInv, herTen);
-    TEN_TV_MUL(V, myInv, U);
+    TEN_TV_MUL(V, myInv, D);
     ELL_3V_NORM(nV, V, lenV);
-    TEN_TV_MUL(W, herInv, U);
+    TEN_TV_MUL(W, herInv, D);
     ELL_3V_NORM(nW, W, lenW);
     ff = 1.0/lenW - 1.0/lenV;
     ff = sqrt((2-ff)/(2+ff));
     ELL_3V_SCALE(force, ff, force);
-
+    */
   }
   
   return;
