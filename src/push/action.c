@@ -425,16 +425,16 @@ _pushForceCalc(pushContext *pctx, push_t force[3],
   char me[]="_pushForceIncr";
   push_t ten[7], inv[7], myInv[7], maxDist;
   float ff, mm,
-    D[3], nD[3], lenD, 
-    U[3], nU[3], lenU, 
-    V[3], nV[3], lenV;
+    D[3], lenD, 
+    U[3], lenU, 
+    V[3], lenV;
 
   /* in case lenD > maxDist */
   ELL_3V_SET(force, 0, 0, 0);
 
   maxDist = 2*pctx->maxEval*pctx->scale;
   ELL_3V_SUB(D, myPos, herPos);
-  ELL_3V_NORM(nD, D, lenD);
+  lenD = ELL_3V_LEN(D);
   if (!lenD) {
     fprintf(stderr, "%s: myPos == herPos == (%g,%g,%g)\n", me,
             myPos[0], myPos[1], myPos[2]);
@@ -444,7 +444,7 @@ _pushForceCalc(pushContext *pctx, push_t force[3],
     TEN_T_SCALE_ADD2(ten, 0.5, myTen, 0.5, herTen);
     _pushTenInv(pctx, inv, ten);
     TEN_TV_MUL(U, inv, D);
-    ELL_3V_NORM(nU, U, lenU);
+    lenU = ELL_3V_LEN(U);
 
     /* not really packing */
 
@@ -454,7 +454,7 @@ _pushForceCalc(pushContext *pctx, push_t force[3],
     if (pctx->driftCorrect) {
       _pushTenInv(pctx, myInv, myTen);
       TEN_TV_MUL(V, myInv, D);
-      ELL_3V_NORM(nV, V, lenV);
+      lenV = ELL_3V_LEN(V);
       mm = 1.0/lenU - 1.0/lenV;
       ff = sqrt((1 - 2*scale*mm)/(1 + 2*scale*mm));
       ELL_3V_SCALE(force, ff, force);
