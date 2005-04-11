@@ -30,7 +30,8 @@ main(int argc, char *argv[]) {
   airArray *mop;
   
   char *outS[2];
-  int seed, numThread, numPoint, snap, minIter, maxIter, singleBin;
+  int seed, numThread, numPoint, snap, minIter, maxIter, singleBin,
+    noDriftCorrect;
   pushContext *pctx;
   Nrrd *nin, *nPosIn, *nPosOut, *nTenOut;
   double step, drag, preDrag, mass, scale, nudge, stiff, margin, minMeanVel;
@@ -46,6 +47,9 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "nobin", NULL, airTypeBool, 0, 0, &singleBin, NULL,
              "turn off spatial binning (which prevents multi-threading "
              "from being useful), for debugging or speed-up measurement");
+  hestOptAdd(&hopt, "ndc", NULL, airTypeBool, 0, 0, &noDriftCorrect, NULL,
+             "turn off the correction for sliding around near changes of "
+             "size in the tensor field");
   hestOptAdd(&hopt, "seed", "seed", airTypeInt, 1, 1, &seed, "42",
              "seed value for RNG which determines initial point locations");
   hestOptAdd(&hopt, "maxi", "# iters", airTypeInt, 1, 1, &maxIter, "0",
@@ -120,6 +124,7 @@ main(int argc, char *argv[]) {
   pctx->snap = snap;
   pctx->numPoint = numPoint;
   pctx->numStage = 2;
+  pctx->driftCorrect = !noDriftCorrect;
   pctx->verbose = 0;
   nrrdKernelSpecSet(pctx->ksp00, ksp00->kernel, ksp00->parm);
   nrrdKernelSpecSet(pctx->ksp11, ksp11->kernel, ksp11->parm);

@@ -102,6 +102,7 @@ typedef struct pushContext_t {
     snap,                          /* if non-zero, interval between iterations
                                       at which output snapshots are saved */
     singleBin,                     /* disable binning (for debugging) */
+    driftCorrect,                  /* prevent sliding near anisotropy edges */
     verbose;                       /* blah blah blah */
   NrrdKernelSpec *ksp00,           /* for sampling tensor field */
     *ksp11;                        /* for gradient of mask */

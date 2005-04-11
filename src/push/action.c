@@ -418,16 +418,16 @@ _pushProbe(pushContext *pctx, gageContext *gctx,
 ** to get intermediate tensors
 */
 void
-_pushForceCalc(pushContext *pctx, push_t force[3], push_t scale, 
+_pushForceCalc(pushContext *pctx, push_t force[3],
+               push_t scale, push_t stiff, 
                push_t *myPos, push_t *myTen,
                push_t *herPos, push_t *herTen) {
   char me[]="_pushForceIncr";
-  push_t ten[7], inv[7], myInv[7], herInv[7], maxDist;
-  float ff,
+  push_t ten[7], inv[7], myInv[7], maxDist;
+  float ff, mm,
     D[3], nD[3], lenD, 
     U[3], nU[3], lenU, 
-    V[3], nV[3], lenV, 
-    W[3], nW[3], lenW;
+    V[3], nV[3], lenV;
 
   /* in case lenD > maxDist */
   ELL_3V_SET(force, 0, 0, 0);
@@ -449,15 +449,16 @@ _pushForceCalc(pushContext *pctx, push_t force[3], push_t scale,
     /* not really packing */
 
     ff = AIR_MAX(0, 2*scale/lenU - 1);
-    ELL_3V_SCALE(force, ff, D);
+    ELL_3V_SCALE(force, stiff*ff, D);
 
-    _pushTenInv(pctx, myInv, myTen);
-    TEN_TV_MUL(V, myInv, D);
-    ELL_3V_NORM(nV, V, lenV);
-    ff = scale*(1.0/lenU - 1.0/lenV)*2;
-    ff = sqrt((2-ff)/(2+ff));
-    ELL_3V_SCALE(force, ff, force);
-
+    if (pctx->driftCorrect) {
+      _pushTenInv(pctx, myInv, myTen);
+      TEN_TV_MUL(V, myInv, D);
+      ELL_3V_NORM(nV, V, lenV);
+      mm = 1.0/lenU - 1.0/lenV;
+      ff = sqrt((1 - 2*scale*mm)/(1 + 2*scale*mm));
+      ELL_3V_SCALE(force, ff, force);
+    }
   }
   
   return;
@@ -546,8 +547,8 @@ _pushInitialize(pushContext *pctx) {
     ten = attr + PUSH_TEN;
     cnt = attr + PUSH_CNT;
 
-    sx = 501;
-    sy = 501;
+    sx = 600;
+    sy = 600;
     ntmp = nrrdNew();
     nrrdMaybeAlloc(ntmp, nrrdTypeDouble, 3, 3, sx, sy);
     data = (double*)ntmp->data;
@@ -558,7 +559,8 @@ _pushInitialize(pushContext *pctx) {
         p[0] = AIR_AFFINE(0, xi, sx-1, pctx->minPos[0], pctx->maxPos[0]);
         _pushProbe(pctx, pctx->gctx, p[0], p[1], p[2]);
         TEN_T_COPY(t, pctx->tenAns);
-        _pushForceCalc(pctx, f, pctx->scale,
+        _pushForceCalc(pctx, f,
+                       pctx->scale, pctx->stiff,
                        pos, ten,
                        p, t);
         data[0 + 3*(xi + sx*yi)] = f[0];
@@ -566,6 +568,10 @@ _pushInitialize(pushContext *pctx) {
         data[2 + 3*(xi + sx*yi)] = f[2];
       }
     }
+    ntmp->axis[1].min = pctx->minPos[0];
+    ntmp->axis[1].max = pctx->maxPos[0];
+    ntmp->axis[2].min = pctx->minPos[1];
+    ntmp->axis[2].max = pctx->maxPos[1];
     nrrdSave("pray.nrrd", ntmp, NULL);
   }
 
@@ -644,7 +650,8 @@ _pushRepel(pushTask *task, int bin, double parm[PUSH_STAGE_PARM_MAX]) {
           continue;
         }
         attrJ = attr + PUSH_ATTR_LEN*pidxJ;
-        _pushForceCalc(task->pctx, force, task->pctx->scale,
+        _pushForceCalc(task->pctx, force,
+                       task->pctx->scale, task->pctx->stiff,
                        attrI + PUSH_POS, attrI + PUSH_TEN, 
                        attrJ + PUSH_POS, attrJ + PUSH_TEN);
         /*
@@ -665,7 +672,7 @@ _pushRepel(pushTask *task, int bin, double parm[PUSH_STAGE_PARM_MAX]) {
                   "_pushRepel", pidxI, pidxJ, ELL_3V_LEN(force));
         }
         */
-        ELL_3V_SCALE_INCR(sumForce, task->pctx->stiff, force);
+        ELL_3V_INCR(sumForce, force);
       }
     }
 

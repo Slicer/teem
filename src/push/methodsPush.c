@@ -40,6 +40,7 @@ pushContextNew(void) {
     }
     pctx->ksp00 = nrrdKernelSpecNew();
     pctx->ksp11 = nrrdKernelSpecNew();
+    pctx->driftCorrect = AIR_TRUE;
     pctx->nten = NULL;
     pctx->nmask = NULL;
     pctx->nPointAttr = nrrdNew();
