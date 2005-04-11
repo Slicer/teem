@@ -453,7 +453,7 @@ _pushForceCalc(pushContext *pctx, push_t force[3],
     } else if (diff > 0) {
       diff = diff*(diff*diff/(pull*pull) - 2*diff/pull + 1);
     }
-    ELL_3V_SCALE(force, stiff*diff, nU);
+    ELL_3V_SCALE(force, -stiff*diff, nU);
 
     if (pctx->driftCorrect) {
       _pushTenInv(pctx, myInv, myTen);
@@ -537,47 +537,52 @@ _pushInitialize(pushContext *pctx) {
   /* do rebinning, now that we have positions */
   _pushBinPointsRebin(pctx);
 
-
+  /*
   {
     Nrrd *ntmp;
     double *data;
-    int sx, sy, xi, yi;
-    push_t f[3], p[3], t[7];
+    int sx, sy, np, xi, yi, pi;
+    push_t sf[3], f[3], p[3], t[7];
 
-    attr = (push_t *)(pctx->nPointAttr->data);
-    pos = attr + PUSH_POS;
-    vel = attr + PUSH_VEL;
-    ten = attr + PUSH_TEN;
-    cnt = attr + PUSH_CNT;
-
-    sx = 600;
-    sy = 600;
+    sx = 400;
+    sy = 400;
+    np = pctx->nPointAttr->axis[1].size;
     ntmp = nrrdNew();
     nrrdMaybeAlloc(ntmp, nrrdTypeDouble, 3, 3, sx, sy);
     data = (double*)ntmp->data;
     p[2] = 0.0;
+    fprintf(stderr, "sampling forces ..."); fflush(stderr);
     for (yi=0; yi<sy; yi++) {
+      fprintf(stderr, " %d/%d", yi, sy); fflush(stderr);
       p[1] = AIR_AFFINE(0, yi, sy-1, pctx->minPos[1], pctx->maxPos[1]);
       for (xi=0; xi<sx; xi++) {
         p[0] = AIR_AFFINE(0, xi, sx-1, pctx->minPos[0], pctx->maxPos[0]);
         _pushProbe(pctx, pctx->gctx, p[0], p[1], p[2]);
         TEN_T_COPY(t, pctx->tenAns);
-        _pushForceCalc(pctx, f,
-                       pctx->scale, pctx->stiff,
-                       pos, ten,
-                       p, t);
-        data[0 + 3*(xi + sx*yi)] = f[0];
-        data[1 + 3*(xi + sx*yi)] = f[1];
-        data[2 + 3*(xi + sx*yi)] = f[2];
+        ELL_3V_SET(sf, 0, 0, 0);
+        for (pi=0; pi<np; pi++) {
+          attr = (push_t *)(pctx->nPointAttr->data) + PUSH_ATTR_LEN*pi;
+          pos = attr + PUSH_POS;
+          ten = attr + PUSH_TEN;
+          _pushForceCalc(pctx, f,
+                         pctx->scale, pctx->stiff,
+                         p, t,
+                         pos, ten);
+          ELL_3V_INCR(sf, f);
+        }
+        data[0 + 3*(xi + sx*yi)] = sf[0];
+        data[1 + 3*(xi + sx*yi)] = sf[1];
+        data[2 + 3*(xi + sx*yi)] = sf[2];
       }
     }
+    fprintf(stderr, "done.\n");
     ntmp->axis[1].min = pctx->minPos[0];
     ntmp->axis[1].max = pctx->maxPos[0];
     ntmp->axis[2].min = pctx->minPos[1];
     ntmp->axis[2].max = pctx->maxPos[1];
     nrrdSave("pray.nrrd", ntmp, NULL);
   }
-
+  */
 
   /* HEY: this should be done by the user */
   pctx->process[0] = _pushRepel;
@@ -625,8 +630,9 @@ _pushBinNeighborhoodFind(pushContext *pctx, int *nei, int bin, int dimIn) {
 
 void
 _pushRepel(pushTask *task, int bin, double parm[PUSH_STAGE_PARM_MAX]) {
-  push_t *attr, *velAcc, *attrI, *attrJ, force[3], sumForce[3],
-    dist, dir[3], drag;
+  push_t *attr, *pos, *velAcc, *attrI, *attrJ, force[3], sumForce[3],
+    dd, dir[3], drag, wall;
+  double *minPos, *maxPos;
   int *neiPidx, *myPidx, nei[27], ni, numNei, jj, ii, pidxJ, pidxI,
     myPidxArrLen, neiPidxArrLen;
   /* push_t mid[3]; */
@@ -689,10 +695,48 @@ _pushRepel(pushTask *task, int bin, double parm[PUSH_STAGE_PARM_MAX]) {
     }
     ELL_3V_SCALE_INCR(sumForce, -drag, attrI + PUSH_VEL);
 
+    pos = attrI + PUSH_POS;
+    
     /* nudging towards image center */
-    ELL_3V_NORM(dir, attrI + PUSH_POS, dist);
-    if (dist) {
-      ELL_3V_SCALE_INCR(sumForce, -task->pctx->nudge*dist, dir);
+    if (task->pctx->nudge) {
+      ELL_3V_NORM(dir, pos, dd);
+      if (dd) {
+        ELL_3V_SCALE_INCR(sumForce, -task->pctx->nudge*dd, dir);
+      }
+    }
+
+    /* unforgiving walls */
+    wall = task->pctx->wall;
+    minPos = task->pctx->minPos;
+    maxPos = task->pctx->maxPos;
+    if (wall) {
+      dd = pos[0] - minPos[0];
+      if (dd < 0) {
+        sumForce[0] += -wall*dd;
+      } else {
+        dd = maxPos[0] - pos[0];
+        if (dd < 0) {
+          sumForce[0] += wall*dd;
+        }
+      }
+      dd = pos[1] - minPos[1];
+      if (dd < 0) {
+        sumForce[1] += -wall*dd;
+      } else {
+        dd = maxPos[1] - pos[1];
+        if (dd < 0) {
+          sumForce[1] += wall*dd;
+        }
+      }
+      dd = pos[2] - minPos[2];
+      if (dd < 0) {
+        sumForce[2] += -wall*dd;
+      } else {
+        dd = maxPos[2] - pos[2];
+        if (dd < 0) {
+          sumForce[2] += wall*dd;
+        }
+      }
     }
     /*
     if (ELL_3V_LEN(sumForce)) {

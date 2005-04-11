@@ -92,6 +92,7 @@ typedef struct pushContext_t {
     stiff,                         /* spring constant on glyph surface */
     preStiff,                      /* different stiff pre-min-iter */
     nudge,                         /* scaling of nudging towards center */
+    wall,                          /* spring constant of walls */
     margin,                        /* space allowed around [-1,1]^3 for pnts */
     minMeanVel;                    /* stop if mean velocity drops below this */
   int seed,                        /* seed value for airSrand48 */

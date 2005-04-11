@@ -35,7 +35,7 @@ main(int argc, char *argv[]) {
   pushContext *pctx;
   Nrrd *nin, *nPosIn, *nPosOut, *nTenOut;
   double step, drag, preDrag, mass, scale, nudge, stiff, margin,
-    pull, minMeanVel;
+    pull, wall, minMeanVel;
   NrrdKernelSpec *ksp00, *ksp11;
   
   mop = airMopNew();
@@ -68,10 +68,12 @@ main(int argc, char *argv[]) {
              "mass of each particle");
   hestOptAdd(&hopt, "stiff", "stiff", airTypeDouble, 1, 1, &stiff, "1",
              "spring constant on surface of particle");
-  hestOptAdd(&hopt, "nudge", "nudge", airTypeDouble, 1, 1, &nudge, "0.001",
+  hestOptAdd(&hopt, "nudge", "nudge", airTypeDouble, 1, 1, &nudge, "0.00",
              "scaling of how distance from origin generates a nudging "
              "force back towards the origin (as if by sitting in "
              "parabola y = (1/2)*nudge*x^2)");
+  hestOptAdd(&hopt, "wall", "wall", airTypeDouble, 1, 1, &wall, "0.00",
+             "spring constant of containing walls");
   hestOptAdd(&hopt, "scl", "scale", airTypeDouble, 1, 1, &scale, "0.25",
              "scaling from tensor size to glyph size");
   hestOptAdd(&hopt, "pull", "pull", airTypeDouble, 1, 1, &pull, "0",
@@ -124,6 +126,7 @@ main(int argc, char *argv[]) {
   pctx->scale = scale;
   pctx->pull = pull;
   pctx->nudge = nudge;
+  pctx->wall = wall;
   pctx->margin = margin;
   pctx->minMeanVel = minMeanVel;
   pctx->snap = snap;
