@@ -34,7 +34,8 @@ main(int argc, char *argv[]) {
     noDriftCorrect;
   pushContext *pctx;
   Nrrd *nin, *nPosIn, *nPosOut, *nTenOut;
-  double step, drag, preDrag, mass, scale, nudge, stiff, margin, minMeanVel;
+  double step, drag, preDrag, mass, scale, nudge, stiff, margin,
+    pull, minMeanVel;
   NrrdKernelSpec *ksp00, *ksp11;
   
   mop = airMopNew();
@@ -73,6 +74,9 @@ main(int argc, char *argv[]) {
              "parabola y = (1/2)*nudge*x^2)");
   hestOptAdd(&hopt, "scl", "scale", airTypeDouble, 1, 1, &scale, "0.25",
              "scaling from tensor size to glyph size");
+  hestOptAdd(&hopt, "pull", "pull", airTypeDouble, 1, 1, &pull, "0",
+             "width of perimeter within which there is attraction "
+             "(in scaled glyph space, as if \"-scl\" == 1)");
   hestOptAdd(&hopt, "marg", "margin", airTypeDouble, 1, 1, &margin, "0.2",
              "margin around [-1,1]^3 within which to allow points to "
              "overflow, outside of which they're disallowed");
@@ -118,6 +122,7 @@ main(int argc, char *argv[]) {
   pctx->mass = mass;
   pctx->stiff = stiff;
   pctx->scale = scale;
+  pctx->pull = pull;
   pctx->nudge = nudge;
   pctx->margin = margin;
   pctx->minMeanVel = minMeanVel;

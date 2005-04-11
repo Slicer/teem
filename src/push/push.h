@@ -88,6 +88,7 @@ typedef struct pushContext_t {
     step,                          /* time step in integration */
     mass,                          /* mass of particles */
     scale,                         /* scaling from tensor to glyph size */
+    pull,                          /* region in which there is attraction */
     stiff,                         /* spring constant on glyph surface */
     preStiff,                      /* different stiff pre-min-iter */
     nudge,                         /* scaling of nudging towards center */
