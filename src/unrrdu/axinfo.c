@@ -30,7 +30,7 @@ char *_unrrdu_axinfoInfoL =
 int
 unrrdu_axinfoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, *label;
+  char *out, *err, *label, *units;
   Nrrd *nin, *nout;
   int axis, pret;
   double mm[2], spc;
@@ -39,6 +39,8 @@ unrrdu_axinfoMain(int argc, char **argv, char *me, hestParm *hparm) {
   OPT_ADD_AXIS(axis, "dimension (axis index) to modify");
   hestOptAdd(&opt, "l", "label", airTypeString, 1, 1, &label, "",
              "label to associate with axis");
+  hestOptAdd(&opt, "u", "units", airTypeString, 1, 1, &units, "",
+             "units of measurement");
   hestOptAdd(&opt, "mm", "min max", airTypeDouble, 2, 2, mm, "nan nan",
              "min and max values along axis");
   hestOptAdd(&opt, "sp", "spacing", airTypeDouble, 1, 1, &spc, "nan",
@@ -83,6 +85,10 @@ unrrdu_axinfoMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (strlen(label)) {
     nout->axis[axis].label = airFree(nout->axis[axis].label);
     nout->axis[axis].label = airStrdup(label);
+  }
+  if (strlen(units)) {
+    nout->axis[axis].units = airFree(nout->axis[axis].units);
+    nout->axis[axis].units = airStrdup(units);
   }
   if (AIR_EXISTS(mm[0])) {
     nout->axis[axis].min = mm[0];
