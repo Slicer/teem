@@ -34,9 +34,10 @@ main(int argc, char *argv[]) {
     noDriftCorrect;
   pushContext *pctx;
   Nrrd *nin, *nPosIn, *nPosOut, *nTenOut;
-  double step, drag, preDrag, mass, scale, nudge, stiff, margin,
-    pull, wall, minMeanVel;
+  double step, drag, preDrag, mass, scale, nudge, margin,
+    wall, minMeanVel;
   NrrdKernelSpec *ksp00, *ksp11;
+  pushForce *force;
   
   mop = airMopNew();
   me = argv[0];
@@ -45,12 +46,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "pi", "npos", airTypeOther, 1, 1, &nPosIn, "",
              "positions to start at (overrides \"-np\")",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "nobin", NULL, airTypeBool, 0, 0, &singleBin, NULL,
-             "turn off spatial binning (which prevents multi-threading "
-             "from being useful), for debugging or speed-up measurement");
-  hestOptAdd(&hopt, "ndc", NULL, airTypeBool, 0, 0, &noDriftCorrect, NULL,
-             "turn off the correction for sliding around near changes of "
-             "size in the tensor field");
+  hestOptAdd(&hopt, "np", "# points", airTypeInt, 1, 1, &numPoint, "100",
+             "number of points to use in simulation");
   hestOptAdd(&hopt, "seed", "seed", airTypeInt, 1, 1, &seed, "42",
              "seed value for RNG which determines initial point locations");
   hestOptAdd(&hopt, "maxi", "# iters", airTypeInt, 1, 1, &maxIter, "0",
@@ -59,6 +56,8 @@ main(int argc, char *argv[]) {
              "if non-zero, min number of iterations to do processing for");
   hestOptAdd(&hopt, "step", "step", airTypeDouble, 1, 1, &step, "0.01",
              "time step in integration");
+  hestOptAdd(&hopt, "scl", "scale", airTypeDouble, 1, 1, &scale, "0.25",
+             "scaling from tensor size to glyph size");
   hestOptAdd(&hopt, "drag", "drag", airTypeDouble, 1, 1, &drag, "0.01",
              "amount of drag");
   hestOptAdd(&hopt, "preDrag", "preDrag", airTypeDouble, 1, 1, &preDrag,
@@ -66,19 +65,15 @@ main(int argc, char *argv[]) {
              "amount of drag at beginning of minimum iteration period");
   hestOptAdd(&hopt, "mass", "mass", airTypeDouble, 1, 1, &mass, "1",
              "mass of each particle");
-  hestOptAdd(&hopt, "stiff", "stiff", airTypeDouble, 1, 1, &stiff, "1",
-             "spring constant on surface of particle");
-  hestOptAdd(&hopt, "nudge", "nudge", airTypeDouble, 1, 1, &nudge, "0.00",
+  hestOptAdd(&hopt, "force", "spec", airTypeOther, 1, 1, &force, NULL,
+             "specification of force function to use",
+             NULL, NULL, pushHestForce);
+  hestOptAdd(&hopt, "nudge", "nudge", airTypeDouble, 1, 1, &nudge, "0.0",
              "scaling of how distance from origin generates a nudging "
              "force back towards the origin (as if by sitting in "
              "parabola y = (1/2)*nudge*x^2)");
-  hestOptAdd(&hopt, "wall", "wall", airTypeDouble, 1, 1, &wall, "0.00",
+  hestOptAdd(&hopt, "wall", "wall", airTypeDouble, 1, 1, &wall, "0.0",
              "spring constant of containing walls");
-  hestOptAdd(&hopt, "scl", "scale", airTypeDouble, 1, 1, &scale, "0.25",
-             "scaling from tensor size to glyph size");
-  hestOptAdd(&hopt, "pull", "pull", airTypeDouble, 1, 1, &pull, "0",
-             "width of perimeter within which there is attraction "
-             "(in scaled glyph space, as if \"-scl\" == 1)");
   hestOptAdd(&hopt, "marg", "margin", airTypeDouble, 1, 1, &margin, "0.2",
              "margin around [-1,1]^3 within which to allow points to "
              "overflow, outside of which they're disallowed");
@@ -89,14 +84,18 @@ main(int argc, char *argv[]) {
              "is saved");
   hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1, &numThread, "5",
              "number of threads to run");
-  hestOptAdd(&hopt, "np", "# points", airTypeInt, 1, 1, &numPoint, "100",
-             "number of points to use in simulation");
   hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1, &ksp00,
              "tent", "kernel for tensor field sampling",
              NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k11", "kernel", airTypeOther, 1, 1, &ksp11,
              "fordif", "kernel for finding containment gradient from mask",
              NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "nobin", NULL, airTypeBool, 0, 0, &singleBin, NULL,
+             "turn off spatial binning (which prevents multi-threading "
+             "from being useful), for debugging or speed-up measurement");
+  hestOptAdd(&hopt, "ndc", NULL, airTypeBool, 0, 0, &noDriftCorrect, NULL,
+             "turn off the correction for sliding around near changes of "
+             "size in the tensor field");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 2, 2, outS, "p.nrrd t.nrrd",
              "output files to save position and tensor info into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
@@ -122,9 +121,8 @@ main(int argc, char *argv[]) {
   pctx->preDrag = preDrag;
   pctx->step = step;
   pctx->mass = mass;
-  pctx->stiff = stiff;
+  pctx->force = force;
   pctx->scale = scale;
-  pctx->pull = pull;
   pctx->nudge = nudge;
   pctx->wall = wall;
   pctx->margin = margin;

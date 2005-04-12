@@ -35,9 +35,10 @@ pushContextNew(void) {
     pctx->scale = 0.2;
     pctx->margin = 0.3;
     pctx->seed = 42;
-    for (ii=0; ii<PUSH_STAGE_MAX; ii++) {
+    for (ii=0; ii<PUSH_STAGE_MAXNUM; ii++) {
       pctx->process[ii] = _pushProcessDummy;
     }
+    pctx->force = NULL;
     pctx->ksp00 = nrrdKernelSpecNew();
     pctx->ksp11 = nrrdKernelSpecNew();
     pctx->driftCorrect = AIR_TRUE;
@@ -66,6 +67,7 @@ pushContextNix(pushContext *pctx) {
   if (pctx) {
     pctx->nPointAttr = nrrdNuke(pctx->nPointAttr);
     pctx->nVelAcc = nrrdNuke(pctx->nVelAcc);
+    /* weirdness: we don't manage the pushForce- caller (perhaps hest) does */
     pctx->ksp00 = nrrdKernelSpecNix(pctx->ksp00);
     pctx->ksp11 = nrrdKernelSpecNix(pctx->ksp11);
     free(pctx);

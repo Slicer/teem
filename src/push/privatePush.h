@@ -28,21 +28,30 @@ extern "C" {
 /* defaultsPush.c */
 extern int _pushVerbose;
 
+/* forces.c */
+extern airEnum *pushForceEnum;
+
+/* binning.c */
+extern int _pushBinFind(pushContext *pctx, push_t *pos);
+extern void _pushBinPointAdd(pushContext *pctx, int bi, int pi);
+extern void _pushBinPointRemove(pushContext *pctx, int bi, int losePii);
+extern void _pushBinPointsAllAdd(pushContext *pctx);
+extern int _pushBinPointsRebin(pushContext *pctx);
+extern int _pushBinNeighborhoodFind(pushContext *pctx, int *nei,
+                                    int bin, int dimIn);
+
 /* corePush.c */
-extern void _pushProcessDummy(pushTask *task, int batch, 
-                              double parm[PUSH_STAGE_PARM_MAX]);
+extern void _pushProcessDummy(pushTask *task, int bin,
+                              const push_t *parm);
 
 /* action.c */
 extern void _pushTenInv(pushContext *pctx, push_t *inv, push_t *ten);
 extern int _pushBinPointsRebin(pushContext *pctx);
-extern void _pushProbe(pushContext *pctx, gageContext *gctx,
-                       double x, double y, double z);
+extern void _pushProbe(pushContext *pctx, gageContext *gctx, push_t *pos);
 extern int _pushInputProcess(pushContext *pctx);
 extern void _pushInitialize(pushContext *pctx);
-extern void _pushRepel(pushTask *task, int batch,
-                       double parm[PUSH_STAGE_PARM_MAX]);
-extern void _pushUpdate(pushTask *task, int batch,
-                        double parm[PUSH_STAGE_PARM_MAX]);
+extern void _pushRepel(pushTask *task, int bin, const push_t *parm);
+extern void _pushUpdate(pushTask *task, int bin, const push_t *parm);
 
 #ifdef __cplusplus
 }

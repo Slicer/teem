@@ -34,12 +34,6 @@
 extern "C" {
 #endif
 
-#define PUSH pushBiffKey
-
-#define PUSH_STAGE_MAX 4
-#define PUSH_STAGE_PARM_MAX 1
-#define PUSH_THREAD_MAX 512
-
 #ifdef TEEM_PUSH_TYPE_DOUBLE
 typedef double push_t;
 #define push_nrrdType nrrdTypeDouble
@@ -49,6 +43,12 @@ typedef float push_t;
 #define push_nrrdType nrrdTypeFloat
 #define PUSH_TYPE_FLOAT 1
 #endif
+
+#define PUSH pushBiffKey
+#define PUSH_STAGE_MAXNUM 4
+#define PUSH_STAGE_PARM_MAXNUM 1
+#define PUSH_FORCE_PARM_MAXNUM 3
+#define PUSH_THREAD_MAXNUM 512
 
 /*
 **  0: pos = position,                         0 + 3 =
@@ -65,6 +65,7 @@ typedef float push_t;
 /* increment for airArrays in bins */
 #define PUSH_PIDX_INCR 32
 
+
 typedef struct pushTask_t {
   struct pushContext_t *pctx;      /* parent's context */
   gageContext *gctx;               /* result of gageContextCopy(pctx->gctx) */
@@ -75,8 +76,16 @@ typedef struct pushTask_t {
   void *returnPtr;                 /* for airThreadJoin */
 } pushTask;
 
-typedef void (*pushProcess)(struct pushTask_t *task, int batch,
-                            double parm[PUSH_STAGE_PARM_MAX]);
+typedef void (*pushProcess)(pushTask *task, int bin,
+                            const push_t parm[PUSH_STAGE_PARM_MAXNUM]);
+
+typedef struct {
+  push_t (*eval)(push_t dist, push_t scale,
+                 const push_t parm[PUSH_FORCE_PARM_MAXNUM]);
+  push_t (*maxDist)(push_t scale, push_t maxEval,
+                    const push_t parm[PUSH_FORCE_PARM_MAXNUM]);
+  push_t parm[PUSH_FORCE_PARM_MAXNUM];
+} pushForce;
 
 typedef struct pushContext_t {
   /* INPUT ----------------------------- */
@@ -88,9 +97,6 @@ typedef struct pushContext_t {
     step,                          /* time step in integration */
     mass,                          /* mass of particles */
     scale,                         /* scaling from tensor to glyph size */
-    pull,                          /* region in which there is attraction */
-    stiff,                         /* spring constant on glyph surface */
-    preStiff,                      /* different stiff pre-min-iter */
     nudge,                         /* scaling of nudging towards center */
     wall,                          /* spring constant of walls */
     margin,                        /* space allowed around [-1,1]^3 for pnts */
@@ -106,10 +112,11 @@ typedef struct pushContext_t {
     singleBin,                     /* disable binning (for debugging) */
     driftCorrect,                  /* prevent sliding near anisotropy edges */
     verbose;                       /* blah blah blah */
+  pushForce *force;                /* force function to use */
   NrrdKernelSpec *ksp00,           /* for sampling tensor field */
     *ksp11;                        /* for gradient of mask */
-  double stageParm[PUSH_STAGE_MAX][PUSH_STAGE_PARM_MAX]; /* parms for stages */
-  pushProcess process[PUSH_STAGE_MAX]; /* the function for each stage */
+  push_t stageParm[PUSH_STAGE_MAXNUM][PUSH_STAGE_PARM_MAXNUM];
+  pushProcess process[PUSH_STAGE_MAXNUM]; /* the function for each stage */
   /* INTERNAL -------------------------- */
   Nrrd *nten,                      /* 3D image of 3D masked tensors */
     *nmask,                        /* mask image from nten */
@@ -128,7 +135,7 @@ typedef struct pushContext_t {
                                       bin == numBin */
   int **pidx;                      /* image/volume of point index arrays */
   airArray **pidxArr;              /* all airArrays around pidx[] */
-  double maxEval,                  /* maximum eigenvalue in input field */
+  double maxDist,                  /* max distance btween interacting points */
     minPos[3],                     /* lower corner of world position */
     maxPos[3],                     /* upper corner of world position */
     meanVel,                       /* latest mean velocity of particles */
@@ -147,9 +154,19 @@ typedef struct pushContext_t {
 /* defaultsPush.c */
 TEEM_API const char *pushBiffKey;
 
+/* miscPush.c */
+TEEM_API void pushTenInv(pushContext *pctx, push_t *inv, push_t *ten);
+
 /* methodsPush.c */
-TEEM_API pushContext *pushContextNew();
+TEEM_API pushContext *pushContextNew(void);
 TEEM_API pushContext *pushContextNix(pushContext *pctx);
+
+/* forces.c */
+TEEM_API pushForce *pushForceNew(void);
+TEEM_API pushForce *pushForceParse(const char *str);
+TEEM_API pushForce *pushForceNix(pushForce *force);
+TEEM_API hestCB *pushHestForce;
+
 
 /* corePush.c */
 TEEM_API int pushStart(pushContext *pctx);

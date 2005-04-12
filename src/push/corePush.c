@@ -61,7 +61,7 @@ _pushTaskNix(pushTask *task) {
 
 void
 _pushProcessDummy(pushTask *task, int bin, 
-                  double parm[PUSH_STAGE_PARM_MAX]) {
+                  const push_t parm[PUSH_STAGE_PARM_MAXNUM]) {
   char me[]="_pushProcessDummy";
   int i, j;
 
@@ -157,9 +157,9 @@ _pushContextCheck(pushContext *pctx) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(PUSH, err); return 1;
   }
-  if (!( AIR_IN_CL(1, pctx->numStage, PUSH_STAGE_MAX) )) {
+  if (!( AIR_IN_CL(1, pctx->numStage, PUSH_STAGE_MAXNUM) )) {
     sprintf(err, "%s: pctx->numStage (%d) outside valid range [1,%d]", me,
-            pctx->numStage, PUSH_STAGE_MAX);
+            pctx->numStage, PUSH_STAGE_MAXNUM);
     biffAdd(PUSH, err); return 1;
   }
   nul = AIR_FALSE;
@@ -178,9 +178,9 @@ _pushContextCheck(pushContext *pctx) {
     sprintf(err, "%s: pctx->numThread (%d) not >= 1\n", me, pctx->numThread);
     biffAdd(PUSH, err); return 1;
   }
-  if (!( AIR_IN_CL(1, pctx->numThread, PUSH_THREAD_MAX) )) {
+  if (!( AIR_IN_CL(1, pctx->numThread, PUSH_THREAD_MAXNUM) )) {
     sprintf(err, "%s: pctx->numThread (%d) outside valid range [1,%d]", me,
-            pctx->numThread, PUSH_THREAD_MAX);
+            pctx->numThread, PUSH_THREAD_MAXNUM);
     biffAdd(PUSH, err); return 1;
   }
 
