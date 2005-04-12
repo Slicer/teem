@@ -62,6 +62,26 @@ airEnum *
 pushForceEnum = &_pushForceEnum;
 
 /* ----------------------------------------------------------------
+** ------------------------------ (stubs) -------------------------
+** ----------------------------------------------------------------
+*/
+push_t
+_pushForceUnknownEval(push_t dist, push_t scale, const push_t *parm) {
+  char me[]="_pushForceUnknownEval";
+  
+  fprintf(stderr, "%s: this is not good.\n", me);
+  return AIR_NAN;
+}
+
+push_t
+_pushForceUnknownMaxDist(push_t scale, push_t maxEval, const push_t *parm) {
+  char me[]="_pushForceUnknownMaxDist";
+
+  fprintf(stderr, "%s: this is not good.\n", me);
+  return AIR_NAN;
+}
+
+/* ----------------------------------------------------------------
 ** ------------------------------ SPRING --------------------------
 ** ----------------------------------------------------------------
 ** 2 parms:
@@ -107,8 +127,8 @@ _pushForceParmNum[PUSH_FORCE_MAX+1] = {
 push_t
 (*_pushForceEval[PUSH_FORCE_MAX+1])(push_t dist, push_t scale,
                                     const push_t *parm) = {
+				      _pushForceUnknownEval,
                                       _pushForceSpringEval,
-                                      NULL,
                                       NULL,
                                       NULL,
                                       NULL
@@ -117,8 +137,8 @@ push_t
 push_t
 (*_pushForceMaxDist[PUSH_FORCE_MAX+1])(push_t dist, push_t scale,
                                        const push_t *parm) = {
+                                         _pushForceUnknownMaxDist,
                                          _pushForceSpringMaxDist,
-                                         NULL,
                                          NULL,
                                          NULL,
                                          NULL
@@ -217,6 +237,8 @@ pushForceParse(const char *_str) {
   /* parameters have been set, now set the rest of the force info */
   force->eval = _pushForceEval[fri];
   force->maxDist = _pushForceMaxDist[fri];
+  fprintf(stderr, "!%s: fri = %d -> %p %p\n", me, fri,
+	  force->eval, force->maxDist);
 
   airMopOkay(mop);
   return force;

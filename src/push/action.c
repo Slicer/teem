@@ -141,8 +141,11 @@ _pushInputProcess(pushContext *pctx) {
     }
     tdata += 7;
   }
+  fprintf(stderr, "%s: hello, maxEval = %g, force = %p\n",
+	  me, maxEval, pctx->force->maxDist);
   pctx->maxDist = pctx->force->maxDist(pctx->scale, maxEval,
                                        pctx->force->parm);
+  fprintf(stderr, "%s: bingo 0\n", me);
   if (pctx->singleBin) {
     pctx->binsEdge = 1;
     pctx->numBin = 1;
@@ -153,12 +156,14 @@ _pushInputProcess(pushContext *pctx) {
     pctx->numBin = pctx->binsEdge*pctx->binsEdge*(2 == pctx->dimIn ? 
                                                   1 : pctx->binsEdge);
   }
+  fprintf(stderr, "%s: bingo 0\n", me);
   pctx->pidx = (int**)calloc(pctx->numBin, sizeof(int*));
   pctx->pidxArr = (airArray**)calloc(pctx->numBin, sizeof(airArray*));
   if (!( pctx->pidx && pctx->pidxArr )) {
     sprintf(err, "%s: trouble allocating pidx arrays", me);
     biffAdd(PUSH, err); airMopError(mop); return 1;
   }
+  fprintf(stderr, "%s: bingo 1\n", me);
   for (ii=0; ii<pctx->numBin; ii++) {
     pctx->pidx[ii] = NULL;
     pctx->pidxArr[ii] = airArrayNew((void **)&(pctx->pidx[ii]), NULL,
@@ -166,12 +171,14 @@ _pushInputProcess(pushContext *pctx) {
   }
   /* we can do binning now- but it will be rebinned post-initialization */
   _pushBinPointsAllAdd(pctx);
+  fprintf(stderr, "%s: bingo 2\n", me);
 
   /* ------------------------ other stuff */
   ELL_3V_SCALE(pctx->minPos, -1, pctx->gctx->shape->volHalfLen);
   ELL_3V_SCALE(pctx->maxPos, 1, pctx->gctx->shape->volHalfLen);
 
   airMopOkay(mop);
+  fprintf(stderr, "%s: bye\n", me);
   return 0;
 }
 
