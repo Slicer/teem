@@ -103,7 +103,7 @@ _pushForceSpringFunc(push_t haveDist, push_t restDist,
   } else {
     ret = diff;
   }
-  ret *= parm[0];
+  ret *= -parm[0];
   return ret;
 }
 
@@ -128,17 +128,39 @@ _pushForceSpringMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
 push_t
 _pushForceGaussFunc(push_t haveDist, push_t restDist,
                     push_t scale, const push_t *parm) {
-  push_t x, sig, cut;
+  push_t sig, cut;
 
   sig = restDist/SQRTTHREE;
-  cut = sig*parm[0];
-  return _DGAUSS(haveDist, sig, cut);
+  cut = parm[0];
+  return -_DGAUSS(haveDist, sig, cut);
 }
 
 push_t
 _pushForceGaussMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
 
-  return 2*scale*maxEval*parm[0]/SQRTTHREE;
+  return (2*scale*maxEval/SQRTTHREE)*parm[0];
+}
+
+/* ----------------------------------------------------------------
+** ------------------------------ CHARGE --------------------------
+** ----------------------------------------------------------------
+** 1 parms:
+** (scale: distance to "1.0" in graph of x^(-2))
+** parm[0]: cut-off (as multiple of "1.0")
+*/
+push_t
+_pushForceChargeFunc(push_t haveDist, push_t restDist,
+                     push_t scale, const push_t *parm) {
+  push_t xx;
+
+  xx = haveDist/restDist;
+  return xx > parm[0] ? 0 : 1.0/(xx*xx);
+}
+
+push_t
+_pushForceChargeMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
+
+  return (2*scale*maxEval)*parm[0];
 }
 
 /* ----------------------------------------------------------------
@@ -163,7 +185,7 @@ push_t
 				      _pushForceUnknownFunc,
                                       _pushForceSpringFunc,
                                       _pushForceGaussFunc,
-                                      NULL,
+                                      _pushForceChargeFunc,
                                       NULL
 };
 
@@ -174,7 +196,7 @@ push_t
                                          _pushForceUnknownMaxDist,
                                          _pushForceSpringMaxDist,
                                          _pushForceGaussMaxDist,
-                                         NULL,
+                                         _pushForceChargeMaxDist,
                                          NULL
 };
 

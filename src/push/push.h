@@ -34,7 +34,11 @@
 extern "C" {
 #endif
 
-#ifdef TEEM_PUSH_TYPE_DOUBLE
+/*
+** 0: push_t == float
+** 1: push_t == double
+*/
+#if 0
 typedef double push_t;
 #define push_nrrdType nrrdTypeDouble
 #define PUSH_TYPE_FLOAT 0

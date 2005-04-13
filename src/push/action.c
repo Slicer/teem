@@ -150,6 +150,10 @@ _pushInputProcess(pushContext *pctx) {
     pctx->binsEdge = floor((2.0 + 2*pctx->margin)/pctx->maxDist);
     fprintf(stderr, "!%s: maxEval=%g -> maxDist=%g -> binsEdge=%d\n",
             me, maxEval, pctx->maxDist, pctx->binsEdge);
+    if (!(pctx->binsEdge >= 1)) {
+      fprintf(stderr, "!%s: fixing binsEdge %d to 1\n", me, pctx->binsEdge);
+      pctx->binsEdge = 1;
+    }
     pctx->numBin = pctx->binsEdge*pctx->binsEdge*(2 == pctx->dimIn ? 
                                                   1 : pctx->binsEdge);
   }
@@ -305,7 +309,7 @@ _pushForceCalc(pushContext *pctx, push_t fvec[3], pushForce *force,
       TEN_TV_MUL(V, myInv, D);
       lenV = ELL_3V_LEN(V);
       mm = 1.0/lenU - 1.0/lenV;
-      fix = sqrt((1 - 2*pctx->scale*mm)/(1 + 2*pctx->scale*mm));
+      fix = 2*sqrt((1 - 2*pctx->scale*mm)/(1 + 2*pctx->scale*mm));
       ELL_3V_SCALE(fvec, fix, fvec);
     }
   }
@@ -317,7 +321,7 @@ _pushRepel(pushTask *task, int bin,
            const push_t parm[PUSH_STAGE_PARM_MAXNUM]) {
   push_t *attr, *velAcc, *attrI, *attrJ, fvec[3], sumFvec[3],
     dist, dir[3], drag;
-  int *neiPidx, *myPidx, nei[27], ni, numNei, jj, ii, pidxJ, pidxI,
+  int *neiPidx, *myPidx, nei[27], ni, numNei, jj, ii, ci, pidxJ, pidxI,
     myPidxArrLen, neiPidxArrLen;
   /* push_t mid[3]; */
 
@@ -377,9 +381,24 @@ _pushRepel(pushTask *task, int bin,
     ELL_3V_SCALE_INCR(sumFvec, -drag, attrI + PUSH_VEL);
 
     /* nudging towards image center */
-    ELL_3V_NORM(dir, attrI + PUSH_POS, dist);
-    if (dist) {
-      ELL_3V_SCALE_INCR(sumFvec, -task->pctx->nudge*dist, dir);
+    if (task->pctx->nudge) {
+      ELL_3V_NORM(dir, attrI + PUSH_POS, dist);
+      if (dist) {
+        ELL_3V_SCALE_INCR(sumFvec, -task->pctx->nudge*dist, dir);
+      }
+    }
+    if (task->pctx->wall) {
+      for (ci=0; ci<=2; ci++) {
+        dist = (attrI + PUSH_POS)[ci] - task->pctx->minPos[ci];
+        if (dist < 0) {
+          sumFvec[ci] += -task->pctx->wall*dist;
+        } else {
+          dist = task->pctx->maxPos[ci] - (attrI + PUSH_POS)[ci];
+          if (dist < 0) {
+            sumFvec[ci] += task->pctx->wall*dist;
+          }
+        }
+      }
     }
     /*
     if (ELL_3V_LEN(sumFvec)) {
@@ -519,7 +538,7 @@ _pushInitialize(pushContext *pctx) {
         _pushProbe(pctx, pctx->gctx, attrTmp + PUSH_POS);
         TEN_T_COPY(attrTmp + PUSH_TEN, pctx->tenAns);
         ELL_3V_SET(fsum, 0, 0, 0);
-        for (pi=0; pi<np; pi++) {
+        for (pi=0; pi<np; pi+=30) {
           attr = (push_t *)(pctx->nPointAttr->data) + PUSH_ATTR_LEN*pi;
           _pushForceCalc(pctx, fvec, pctx->force, attrTmp, attr);
           ELL_3V_INCR(fsum, fvec);
@@ -527,7 +546,7 @@ _pushInitialize(pushContext *pctx) {
         ELL_3V_COPY(data+ 3*(xi + sx*yi), fsum);
       }
     }
-    fprintf(stderr, "done\n");
+    fprintf(stderr, " done.\n");
     ntmp->axis[1].min = pctx->minPos[0];
     ntmp->axis[1].max = pctx->maxPos[0];
     ntmp->axis[2].min = pctx->minPos[1];
