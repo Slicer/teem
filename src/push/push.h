@@ -58,13 +58,15 @@ typedef float push_t;
 **  0: pos = position,                         0 + 3 =
 **  3: vel = velocity,                         3 + 3 =
 **  6: ten = tensor,                           6 + 7 =
-** 13: cnt = containment by gradient of mask  13 + 3 = 16.
+** 13: inv = tensor inverse,                  13 + 7 =
+** 20: cnt = containment by gradient of mask  20 + 3 = 23.
 */
 #define PUSH_POS  0
 #define PUSH_VEL  3
 #define PUSH_TEN  6
-#define PUSH_CNT 13
-#define PUSH_ATTR_LEN 16
+#define PUSH_INV 13
+#define PUSH_CNT 20
+#define PUSH_ATTR_LEN 23
 
 /* increment for airArrays in bins */
 #define PUSH_PIDX_INCR 32

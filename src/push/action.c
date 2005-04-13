@@ -273,7 +273,7 @@ void
 _pushForceCalc(pushContext *pctx, push_t fvec[3], pushForce *force,
                push_t *myAttr, push_t *herAttr) {
   char me[]="_pushForceIncr";
-  push_t ten[7], inv[7], myInv[7], dot;
+  push_t ten[7], inv[7], dot;
   float haveDist, restDist, mm, fix, mag,
     D[3], nD[3], lenD, 
     U[3], nU[3], lenU, 
@@ -305,8 +305,7 @@ _pushForceCalc(pushContext *pctx, push_t fvec[3], pushForce *force,
     ELL_3V_SCALE(fvec, mag, nU);
 
     if (pctx->driftCorrect) {
-      pushTenInv(pctx, myInv, myAttr + PUSH_TEN);
-      TEN_TV_MUL(V, myInv, D);
+      TEN_TV_MUL(V, myAttr + PUSH_INV, D);
       lenV = ELL_3V_LEN(V);
       /* dc-0: mm = 2*dot*pctx->scale*(1.0/lenV - 1.0/lenU);
          fix = (1 - mm)/(1 + mm); */
@@ -449,6 +448,7 @@ _pushUpdate(pushTask *task, int bin,
     task->sumVel += ELL_3V_LEN(attr + PUSH_VEL);
     _pushProbe(task->pctx, task->gctx, attr + PUSH_POS);
     TEN_T_COPY(attr + PUSH_TEN, task->tenAns);
+    pushTenInv(task->pctx, attr + PUSH_INV, attr + PUSH_TEN);
     ELL_3V_COPY(attr + PUSH_CNT, task->cntAns);
   }
   return;
