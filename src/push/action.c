@@ -457,7 +457,7 @@ _pushUpdate(pushTask *task, int bin,
 void
 _pushInitialize(pushContext *pctx) {
   int numPoint, pi;
-  push_t *attr, *pos, *vel, *ten, *cnt;
+  push_t *attr;
   double (*lup)(const void *v, size_t I);
 
   /*
@@ -492,34 +492,32 @@ _pushInitialize(pushContext *pctx) {
   lup = pctx->npos ? nrrdDLookup[pctx->npos->type] : NULL;
   for (pi=0; pi<numPoint; pi++) {
     attr = (push_t *)(pctx->nPointAttr->data) + PUSH_ATTR_LEN*pi;
-    pos = attr + PUSH_POS;
-    vel = attr + PUSH_VEL;
-    ten = attr + PUSH_TEN;
-    cnt = attr + PUSH_CNT;
     if (pctx->npos) {
-      pos[0] = lup(pctx->npos->data, 0 + 3*pi);
-      pos[1] = lup(pctx->npos->data, 1 + 3*pi);
-      pos[2] = lup(pctx->npos->data, 2 + 3*pi);
-      _pushProbe(pctx, pctx->gctx, pos);
-      TEN_T_COPY(ten, pctx->tenAns);
+      ELL_3V_SET(attr + PUSH_POS,
+                 lup(pctx->npos->data, 0 + 3*pi),
+                 lup(pctx->npos->data, 1 + 3*pi),
+                 lup(pctx->npos->data, 2 + 3*pi));
+      _pushProbe(pctx, pctx->gctx, attr + PUSH_POS);
+      TEN_T_COPY(attr + PUSH_TEN, pctx->tenAns);
     } else {
       do {
-        pos[0] = AIR_AFFINE(0.0, airDrand48(), 1.0,
-                            pctx->minPos[0], pctx->maxPos[0]);
-        pos[1] = AIR_AFFINE(0.0, airDrand48(), 1.0,
-                            pctx->minPos[1], pctx->maxPos[1]);
+        (attr + PUSH_POS)[0] = AIR_AFFINE(0.0, airDrand48(), 1.0,
+                                          pctx->minPos[0], pctx->maxPos[0]);
+        (attr + PUSH_POS)[1] = AIR_AFFINE(0.0, airDrand48(), 1.0,
+                                          pctx->minPos[1], pctx->maxPos[1]);
         if (2 == pctx->dimIn) {
-          pos[2] = 0;
+          (attr + PUSH_POS)[2] = 0;
         } else {
-          pos[2] = AIR_AFFINE(0.0, airDrand48(), 1.0,
-                              pctx->minPos[2], pctx->maxPos[2]);
+          (attr + PUSH_POS)[2] = AIR_AFFINE(0.0, airDrand48(), 1.0,
+                                            pctx->minPos[2], pctx->maxPos[2]);
         }
-        _pushProbe(pctx, pctx->gctx, pos);
-        TEN_T_COPY(ten, pctx->tenAns);
-      } while (ten[0] < 0.5);
+        _pushProbe(pctx, pctx->gctx, attr + PUSH_POS);
+        TEN_T_COPY(attr + PUSH_TEN, pctx->tenAns);
+      } while ((attr + PUSH_TEN)[0] < 0.5);
     }
-    ELL_3V_SET(vel, 0, 0, 0);
-    ELL_3V_COPY(cnt, pctx->cntAns);
+    ELL_3V_SET(attr + PUSH_VEL, 0, 0, 0);
+    pushTenInv(pctx, attr + PUSH_INV, attr + PUSH_TEN);
+    ELL_3V_COPY(attr + PUSH_CNT, pctx->cntAns);
   }
   /* do rebinning, now that we have positions */
   _pushBinPointsRebin(pctx);
@@ -549,6 +547,7 @@ _pushInitialize(pushContext *pctx) {
                                              pctx->minPos[0], pctx->maxPos[0]);
         _pushProbe(pctx, pctx->gctx, attrTmp + PUSH_POS);
         TEN_T_COPY(attrTmp + PUSH_TEN, pctx->tenAns);
+        pushTenInv(pctx, attrTmp + PUSH_INV, attrTmp + PUSH_TEN);
         ELL_3V_SET(fsum, 0, 0, 0);
         for (pi=0; pi<np; pi+=30) {
           attr = (push_t *)(pctx->nPointAttr->data) + PUSH_ATTR_LEN*pi;
@@ -613,7 +612,8 @@ pushRun(pushContext *pctx) {
         sprintf(err, "%s: couldn't get snapshot for iter %d", me, pctx->iter);
         biffAdd(PUSH, err); return 1;
       }
-      fprintf(stderr, "%s: %s (meanVel = %g)\n", me, poutS, meanVel);
+      fprintf(stderr, "%s: %s, meanVel=%g, %g iter/sec\n", me,
+              poutS, meanVel, pctx->iter/(airTime()-pctx->time0));
       if (nrrdSave(poutS, npos, NULL)
           || nrrdSave(toutS, nten, NULL)) {
         sprintf(err, "%s: couldn't save snapshot for iter %d", me, pctx->iter);

@@ -69,7 +69,7 @@ typedef float push_t;
 #define PUSH_ATTR_LEN 23
 
 /* increment for airArrays in bins */
-#define PUSH_PIDX_INCR 32
+#define PUSH_PIDX_INCR 64
 
 
 typedef struct pushTask_t {
