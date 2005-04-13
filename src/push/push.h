@@ -80,9 +80,9 @@ typedef void (*pushProcess)(pushTask *task, int bin,
                             const push_t parm[PUSH_STAGE_PARM_MAXNUM]);
 
 typedef struct {
-  push_t (*eval)(push_t dist, push_t scale,
+  push_t (*eval)(push_t haveDist, push_t restDist, push_t scale,
                  const push_t parm[PUSH_FORCE_PARM_MAXNUM]);
-  push_t (*maxDist)(push_t scale, push_t maxEval,
+  push_t (*maxDist)(push_t maxEval, push_t scale,
                     const push_t parm[PUSH_FORCE_PARM_MAXNUM]);
   push_t parm[PUSH_FORCE_PARM_MAXNUM];
 } pushForce;

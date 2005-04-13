@@ -66,7 +66,8 @@ pushForceEnum = &_pushForceEnum;
 ** ----------------------------------------------------------------
 */
 push_t
-_pushForceUnknownEval(push_t dist, push_t scale, const push_t *parm) {
+_pushForceUnknownEval(push_t haveDist, push_t restDist,
+                      push_t scale, const push_t *parm) {
   char me[]="_pushForceUnknownEval";
   
   fprintf(stderr, "%s: this is not good.\n", me);
@@ -74,7 +75,7 @@ _pushForceUnknownEval(push_t dist, push_t scale, const push_t *parm) {
 }
 
 push_t
-_pushForceUnknownMaxDist(push_t scale, push_t maxEval, const push_t *parm) {
+_pushForceUnknownMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
   char me[]="_pushForceUnknownMaxDist";
 
   fprintf(stderr, "%s: this is not good.\n", me);
@@ -89,25 +90,27 @@ _pushForceUnknownMaxDist(push_t scale, push_t maxEval, const push_t *parm) {
 ** 1: pull distance
 */
 push_t
-_pushForceSpringEval(push_t dist, push_t scale, const push_t *parm) {
-  push_t ret, pull;
+_pushForceSpringEval(push_t haveDist, push_t restDist,
+                     push_t scale, const push_t *parm) {
+  push_t diff, ret, pull;
 
   pull = parm[1]*scale;
-  if (dist > pull) {
+  diff = haveDist - restDist;
+  if (diff > pull) {
     ret = 0;
-  } else if (dist > 0) {
-    ret = dist*(dist*dist/(pull*pull) - 2*dist/pull + 1);
+  } else if (diff > 0) {
+    ret = diff*(diff*diff/(pull*pull) - 2*diff/pull + 1);
   } else {
-    ret = dist;
+    ret = diff;
   }
   ret *= parm[0];
   return ret;
 }
 
 push_t
-_pushForceSpringMaxDist(push_t scale, push_t maxEval, const push_t *parm) {
+_pushForceSpringMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
 
-  return scale*maxEval + parm[1];
+  return 2*scale*maxEval*(1.0 + parm[1]);
 }
 
 /* ----------------------------------------------------------------
@@ -117,15 +120,17 @@ _pushForceSpringMaxDist(push_t scale, push_t maxEval, const push_t *parm) {
 
 int
 _pushForceParmNum[PUSH_FORCE_MAX+1] = {
-  0,
-  2,
-  2,
-  1,
-  0
+  0, /* pushForceUnknown */
+  2, /* pushForceSpring */
+  2, /* pushForceGauss */
+  1, /* pushForceCharge */
+  0  /* pushForceCotan */
 };
 
 push_t
-(*_pushForceEval[PUSH_FORCE_MAX+1])(push_t dist, push_t scale,
+(*_pushForceEval[PUSH_FORCE_MAX+1])(push_t haveDist,
+                                    push_t restDist,
+                                    push_t scale,
                                     const push_t *parm) = {
 				      _pushForceUnknownEval,
                                       _pushForceSpringEval,
@@ -135,7 +140,8 @@ push_t
 };
 
 push_t
-(*_pushForceMaxDist[PUSH_FORCE_MAX+1])(push_t dist, push_t scale,
+(*_pushForceMaxDist[PUSH_FORCE_MAX+1])(push_t maxEval,
+                                       push_t scale,
                                        const push_t *parm) = {
                                          _pushForceUnknownMaxDist,
                                          _pushForceSpringMaxDist,
@@ -237,8 +243,6 @@ pushForceParse(const char *_str) {
   /* parameters have been set, now set the rest of the force info */
   force->eval = _pushForceEval[fri];
   force->maxDist = _pushForceMaxDist[fri];
-  fprintf(stderr, "!%s: fri = %d -> %p %p\n", me, fri,
-	  force->eval, force->maxDist);
 
   airMopOkay(mop);
   return force;

@@ -141,29 +141,24 @@ _pushInputProcess(pushContext *pctx) {
     }
     tdata += 7;
   }
-  fprintf(stderr, "%s: hello, maxEval = %g, force = %p\n",
-	  me, maxEval, pctx->force->maxDist);
   pctx->maxDist = pctx->force->maxDist(pctx->scale, maxEval,
                                        pctx->force->parm);
-  fprintf(stderr, "%s: bingo 0\n", me);
   if (pctx->singleBin) {
     pctx->binsEdge = 1;
     pctx->numBin = 1;
   } else {
     pctx->binsEdge = floor((2.0 + 2*pctx->margin)/pctx->maxDist);
-    fprintf(stderr, "!%s: maxDist = %g -> binsEdge = %d\n",
-            me, pctx->maxDist, pctx->binsEdge);
+    fprintf(stderr, "!%s: maxEval=%g -> maxDist=%g -> binsEdge=%d\n",
+            me, maxEval, pctx->maxDist, pctx->binsEdge);
     pctx->numBin = pctx->binsEdge*pctx->binsEdge*(2 == pctx->dimIn ? 
                                                   1 : pctx->binsEdge);
   }
-  fprintf(stderr, "%s: bingo 0\n", me);
   pctx->pidx = (int**)calloc(pctx->numBin, sizeof(int*));
   pctx->pidxArr = (airArray**)calloc(pctx->numBin, sizeof(airArray*));
   if (!( pctx->pidx && pctx->pidxArr )) {
     sprintf(err, "%s: trouble allocating pidx arrays", me);
     biffAdd(PUSH, err); airMopError(mop); return 1;
   }
-  fprintf(stderr, "%s: bingo 1\n", me);
   for (ii=0; ii<pctx->numBin; ii++) {
     pctx->pidx[ii] = NULL;
     pctx->pidxArr[ii] = airArrayNew((void **)&(pctx->pidx[ii]), NULL,
@@ -171,14 +166,12 @@ _pushInputProcess(pushContext *pctx) {
   }
   /* we can do binning now- but it will be rebinned post-initialization */
   _pushBinPointsAllAdd(pctx);
-  fprintf(stderr, "%s: bingo 2\n", me);
 
   /* ------------------------ other stuff */
   ELL_3V_SCALE(pctx->minPos, -1, pctx->gctx->shape->volHalfLen);
   ELL_3V_SCALE(pctx->maxPos, 1, pctx->gctx->shape->volHalfLen);
 
   airMopOkay(mop);
-  fprintf(stderr, "%s: bye\n", me);
   return 0;
 }
 
@@ -276,8 +269,8 @@ void
 _pushForceCalc(pushContext *pctx, push_t fvec[3], pushForce *force,
                push_t *myAttr, push_t *herAttr) {
   char me[]="_pushForceIncr";
-  push_t ten[7], inv[7], myInv[7];
-  float dist, mm, fix, mag,
+  push_t ten[7], inv[7], myInv[7], dot;
+  float haveDist, restDist, mm, fix, mag,
     D[3], nD[3], lenD, 
     U[3], nU[3], lenU, 
     V[3], lenV;
@@ -301,9 +294,10 @@ _pushForceCalc(pushContext *pctx, push_t fvec[3], pushForce *force,
     pushTenInv(pctx, inv, ten);
     TEN_TV_MUL(U, inv, D);
     ELL_3V_NORM(nU, U, lenU);
-    dist = (1 - 2*pctx->scale/lenU)*lenD;
-    dist *= ELL_3V_DOT(nU, nD);
-    mag = force->eval(dist, pctx->scale, force->parm);
+    dot = ELL_3V_DOT(nU, nD);
+    haveDist = dot*lenD;
+    restDist = dot*2*pctx->scale*lenD/lenU;
+    mag = force->eval(haveDist, restDist, pctx->scale, force->parm);
     ELL_3V_SCALE(fvec, mag, nU);
 
     if (pctx->driftCorrect) {
@@ -503,18 +497,20 @@ _pushInitialize(pushContext *pctx) {
   {
     Nrrd *ntmp;
     double *data;
-    int sx, sy, xi, yi;
-    push_t fvec[3], attrTmp[PUSH_ATTR_LEN];
+    int sx, sy, np, xi, yi, pi;
+    push_t fsum[3], fvec[3], attrTmp[PUSH_ATTR_LEN];
 
-    attr = (push_t *)(pctx->nPointAttr->data);
 
-    sx = 600;
-    sy = 600;
+    sx = 300;
+    sy = 300;
+    np = pctx->nPointAttr->axis[1].size;
     ntmp = nrrdNew();
     nrrdMaybeAlloc(ntmp, nrrdTypeDouble, 3, 3, sx, sy);
     data = (double*)ntmp->data;
     (attrTmp + PUSH_POS)[2] = 0.0;
+    fprintf(stderr, "sampling force field"); fflush(stderr);
     for (yi=0; yi<sy; yi++) {
+      fprintf(stderr, " %d/%d", yi, sy);
       (attrTmp + PUSH_POS)[1] = AIR_AFFINE(0, yi, sy-1,
                                            pctx->minPos[1], pctx->maxPos[1]);
       for (xi=0; xi<sx; xi++) {
@@ -522,10 +518,16 @@ _pushInitialize(pushContext *pctx) {
                                              pctx->minPos[0], pctx->maxPos[0]);
         _pushProbe(pctx, pctx->gctx, attrTmp + PUSH_POS);
         TEN_T_COPY(attrTmp + PUSH_TEN, pctx->tenAns);
-        _pushForceCalc(pctx, fvec, pctx->force, attr, attrTmp);
-        ELL_3V_COPY(data+ 3*(xi + sx*yi), fvec);
+        ELL_3V_SET(fsum, 0, 0, 0);
+        for (pi=0; pi<np; pi++) {
+          attr = (push_t *)(pctx->nPointAttr->data) + PUSH_ATTR_LEN*pi;
+          _pushForceCalc(pctx, fvec, pctx->force, attrTmp, attr);
+          ELL_3V_INCR(fsum, fvec);
+        }
+        ELL_3V_COPY(data+ 3*(xi + sx*yi), fsum);
       }
     }
+    fprintf(stderr, "done\n");
     ntmp->axis[1].min = pctx->minPos[0];
     ntmp->axis[1].max = pctx->maxPos[0];
     ntmp->axis[2].min = pctx->minPos[1];
