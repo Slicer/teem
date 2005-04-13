@@ -316,8 +316,12 @@ _pushForceCalc(pushContext *pctx, push_t fvec[3], pushForce *force,
        but *reverse* drift for cotan!! 
        mm = 4*dot*pctx->scale*(1.0/lenV - 1.0/lenU);
        fix = (1 + mm)/(1 - mm); */
+      /* 
+      ** ----- this is probably correct, based on
+      ** ----- tests with the one-ramp.nrrd dataset
+      */
       mm = 2*dot*pctx->scale*(1.0/lenV - 1.0/lenU);
-      fix = (1 + mm)/(1 - mm);
+      fix = sqrt((1 + mm)/(1 - mm));
       ELL_3V_SCALE(fvec, fix, fvec);
     }
   }
