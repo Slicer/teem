@@ -312,8 +312,11 @@ _pushForceCalc(pushContext *pctx, push_t fvec[3], pushForce *force,
          fix = (1 - mm)/(1 + mm); */
       /* dc-1: mm = 2*dot*pctx->scale*(1.0/lenV - 1.0/lenU);
          fix = (1 + mm)/(1 - mm); */
-      /* dc-2: seems to work for gaussian; still drifting w/ charge */
-      mm = 4*dot*pctx->scale*(1.0/lenV - 1.0/lenU);
+      /* dc-2: seems to work for gaussian; still drifting w/ charge;
+       but *reverse* drift for cotan!! 
+       mm = 4*dot*pctx->scale*(1.0/lenV - 1.0/lenU);
+       fix = (1 + mm)/(1 - mm); */
+      mm = 2*dot*pctx->scale*(1.0/lenV - 1.0/lenU);
       fix = (1 + mm)/(1 - mm);
       ELL_3V_SCALE(fvec, fix, fvec);
     }

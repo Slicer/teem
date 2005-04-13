@@ -165,6 +165,29 @@ _pushForceChargeMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
 }
 
 /* ----------------------------------------------------------------
+** ------------------------------ COTAN ---------------------------
+** ----------------------------------------------------------------
+** 1 parms:
+** (scale: distance to "1.0")
+** parm[0]: vertical scaling 
+*/
+push_t
+_pushForceCotanFunc(push_t haveDist, push_t restDist,
+                    push_t scale, const push_t *parm) {
+  push_t xx, ss;
+
+  xx = haveDist/restDist;
+  ss = sin(xx*AIR_PI/2.0);
+  return -parm[0]*(xx > 1 ? 0 : 1.0 - 1.0/(ss*ss));
+}
+
+push_t
+_pushForceCotanMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
+
+  return 2*scale*maxEval;
+}
+
+/* ----------------------------------------------------------------
 ** ------------------------------ arrays ... ----------------------
 ** ----------------------------------------------------------------
 */
@@ -175,7 +198,7 @@ _pushForceParmNum[PUSH_FORCE_MAX+1] = {
   2, /* pushForceSpring */
   1, /* pushForceGauss */
   2, /* pushForceCharge */
-  0  /* pushForceCotan */
+  1  /* pushForceCotan */
 };
 
 push_t
@@ -187,7 +210,7 @@ push_t
                                       _pushForceSpringFunc,
                                       _pushForceGaussFunc,
                                       _pushForceChargeFunc,
-                                      NULL
+                                      _pushForceCotanFunc,
 };
 
 push_t
@@ -198,7 +221,7 @@ push_t
                                          _pushForceSpringMaxDist,
                                          _pushForceGaussMaxDist,
                                          _pushForceChargeMaxDist,
-                                         NULL
+                                         _pushForceCotanMaxDist,
 };
 
 pushForce *
