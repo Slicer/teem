@@ -66,9 +66,9 @@ pushForceEnum = &_pushForceEnum;
 ** ----------------------------------------------------------------
 */
 push_t
-_pushForceUnknownEval(push_t haveDist, push_t restDist,
+_pushForceUnknownFunc(push_t haveDist, push_t restDist,
                       push_t scale, const push_t *parm) {
-  char me[]="_pushForceUnknownEval";
+  char me[]="_pushForceUnknownFunc";
   
   fprintf(stderr, "%s: this is not good.\n", me);
   return AIR_NAN;
@@ -90,7 +90,7 @@ _pushForceUnknownMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
 ** 1: pull distance
 */
 push_t
-_pushForceSpringEval(push_t haveDist, push_t restDist,
+_pushForceSpringFunc(push_t haveDist, push_t restDist,
                      push_t scale, const push_t *parm) {
   push_t diff, ret, pull;
 
@@ -114,6 +114,34 @@ _pushForceSpringMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
 }
 
 /* ----------------------------------------------------------------
+** ------------------------------ GAUSS --------------------------
+** ----------------------------------------------------------------
+** 1 parms:
+** (scale: distance to inflection point of force function)
+** parm[0]: cut-off (as a multiple of standard dev)
+*/
+#define _DGAUSS(x, sig, cut) (                                               \
+   x >= sig*cut ? 0                                                          \
+   : -exp(-x*x/(2.0*sig*sig))*x)
+#define SQRTTHREE 1.73205080756887729352
+
+push_t
+_pushForceGaussFunc(push_t haveDist, push_t restDist,
+                    push_t scale, const push_t *parm) {
+  push_t x, sig, cut;
+
+  sig = restDist/SQRTTHREE;
+  cut = sig*parm[0];
+  return _DGAUSS(haveDist, sig, cut);
+}
+
+push_t
+_pushForceGaussMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
+
+  return 2*scale*maxEval*parm[0]/SQRTTHREE;
+}
+
+/* ----------------------------------------------------------------
 ** ------------------------------ arrays ... ----------------------
 ** ----------------------------------------------------------------
 */
@@ -122,19 +150,19 @@ int
 _pushForceParmNum[PUSH_FORCE_MAX+1] = {
   0, /* pushForceUnknown */
   2, /* pushForceSpring */
-  2, /* pushForceGauss */
+  1, /* pushForceGauss */
   1, /* pushForceCharge */
   0  /* pushForceCotan */
 };
 
 push_t
-(*_pushForceEval[PUSH_FORCE_MAX+1])(push_t haveDist,
+(*_pushForceFunc[PUSH_FORCE_MAX+1])(push_t haveDist,
                                     push_t restDist,
                                     push_t scale,
                                     const push_t *parm) = {
-				      _pushForceUnknownEval,
-                                      _pushForceSpringEval,
-                                      NULL,
+				      _pushForceUnknownFunc,
+                                      _pushForceSpringFunc,
+                                      _pushForceGaussFunc,
                                       NULL,
                                       NULL
 };
@@ -145,19 +173,19 @@ push_t
                                        const push_t *parm) = {
                                          _pushForceUnknownMaxDist,
                                          _pushForceSpringMaxDist,
-                                         NULL,
+                                         _pushForceGaussMaxDist,
                                          NULL,
                                          NULL
 };
 
 pushForce *
-pushForceNew() {
+_pushForceNew() {
   pushForce *force;
   int pi;
 
   force = (pushForce *)calloc(1, sizeof(pushForce));
   if (force) {
-    force->eval = NULL;
+    force->func = NULL;
     force->maxDist = NULL;
     for (pi=0; pi<PUSH_FORCE_PARM_MAXNUM; pi++) {
       force->parm[pi] = AIR_NAN;
@@ -190,7 +218,7 @@ pushForceParse(const char *_str) {
   mop = airMopNew();
   str = airStrdup(_str);
   airMopAdd(mop, str, (airMopper)airFree, airMopAlways);
-  force = pushForceNew();
+  force = _pushForceNew();
   airMopAdd(mop, force, (airMopper)pushForceNix, airMopOnError);
 
   col = strchr(str, ':');
@@ -241,7 +269,7 @@ pushForceParse(const char *_str) {
   }
   
   /* parameters have been set, now set the rest of the force info */
-  force->eval = _pushForceEval[fri];
+  force->func = _pushForceFunc[fri];
   force->maxDist = _pushForceMaxDist[fri];
 
   airMopOkay(mop);

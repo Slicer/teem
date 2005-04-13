@@ -297,7 +297,7 @@ _pushForceCalc(pushContext *pctx, push_t fvec[3], pushForce *force,
     dot = ELL_3V_DOT(nU, nD);
     haveDist = dot*lenD;
     restDist = dot*2*pctx->scale*lenD/lenU;
-    mag = force->eval(haveDist, restDist, pctx->scale, force->parm);
+    mag = force->func(haveDist, restDist, pctx->scale, force->parm);
     ELL_3V_SCALE(fvec, mag, nU);
 
     if (pctx->driftCorrect) {

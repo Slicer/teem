@@ -80,7 +80,7 @@ typedef void (*pushProcess)(pushTask *task, int bin,
                             const push_t parm[PUSH_STAGE_PARM_MAXNUM]);
 
 typedef struct {
-  push_t (*eval)(push_t haveDist, push_t restDist, push_t scale,
+  push_t (*func)(push_t haveDist, push_t restDist, push_t scale,
                  const push_t parm[PUSH_FORCE_PARM_MAXNUM]);
   push_t (*maxDist)(push_t maxEval, push_t scale,
                     const push_t parm[PUSH_FORCE_PARM_MAXNUM]);
@@ -162,7 +162,6 @@ TEEM_API pushContext *pushContextNew(void);
 TEEM_API pushContext *pushContextNix(pushContext *pctx);
 
 /* forces.c */
-TEEM_API pushForce *pushForceNew(void);
 TEEM_API pushForce *pushForceParse(const char *str);
 TEEM_API pushForce *pushForceNix(pushForce *force);
 TEEM_API hestCB *pushHestForce;
