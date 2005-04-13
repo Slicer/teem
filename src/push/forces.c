@@ -144,9 +144,10 @@ _pushForceGaussMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
 /* ----------------------------------------------------------------
 ** ------------------------------ CHARGE --------------------------
 ** ----------------------------------------------------------------
-** 1 parms:
+** 2 parms:
 ** (scale: distance to "1.0" in graph of x^(-2))
-** parm[0]: cut-off (as multiple of "1.0")
+** parm[0]: vertical scaling 
+** parm[1]: cut-off (as multiple of "1.0")
 */
 push_t
 _pushForceChargeFunc(push_t haveDist, push_t restDist,
@@ -154,13 +155,13 @@ _pushForceChargeFunc(push_t haveDist, push_t restDist,
   push_t xx;
 
   xx = haveDist/restDist;
-  return xx > parm[0] ? 0 : 1.0/(xx*xx);
+  return parm[0]*(xx > parm[1] ? 0 : 1.0/(xx*xx));
 }
 
 push_t
 _pushForceChargeMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
 
-  return (2*scale*maxEval)*parm[0];
+  return (2*scale*maxEval)*parm[1];
 }
 
 /* ----------------------------------------------------------------
@@ -173,7 +174,7 @@ _pushForceParmNum[PUSH_FORCE_MAX+1] = {
   0, /* pushForceUnknown */
   2, /* pushForceSpring */
   1, /* pushForceGauss */
-  1, /* pushForceCharge */
+  2, /* pushForceCharge */
   0  /* pushForceCotan */
 };
 

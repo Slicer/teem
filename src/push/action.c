@@ -308,8 +308,13 @@ _pushForceCalc(pushContext *pctx, push_t fvec[3], pushForce *force,
       pushTenInv(pctx, myInv, myAttr + PUSH_TEN);
       TEN_TV_MUL(V, myInv, D);
       lenV = ELL_3V_LEN(V);
-      mm = 1.0/lenU - 1.0/lenV;
-      fix = 2*sqrt((1 - 2*pctx->scale*mm)/(1 + 2*pctx->scale*mm));
+      /* dc-0: mm = 2*dot*pctx->scale*(1.0/lenV - 1.0/lenU);
+         fix = (1 - mm)/(1 + mm); */
+      /* dc-1: mm = 2*dot*pctx->scale*(1.0/lenV - 1.0/lenU);
+         fix = (1 + mm)/(1 - mm); */
+      /* dc-2: seems to work for gaussian; still drifting w/ charge */
+      mm = 4*dot*pctx->scale*(1.0/lenV - 1.0/lenU);
+      fix = (1 + mm)/(1 - mm);
       ELL_3V_SCALE(fvec, fix, fvec);
     }
   }
