@@ -443,7 +443,7 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut,
           if (tenOut) {
             ELL_4V_SET(tenOut + pointRun*4,
                        point->ten[0], point->ten[1],
-                       point->ten[2], point->ten[3]);
+                       point->ten[2], point->ten[4]);
           }
         } else {
           if (posOut) {
