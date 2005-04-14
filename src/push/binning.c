@@ -21,15 +21,17 @@
 #include "push.h"
 #include "privatePush.h"
 
-/* returns -1 if position is outside simulation domain */
-int
-_pushBinFind(pushContext *pctx, push_t *pos) {
-  push_t min, max;
-  int be, xi, yi, zi, bi;
+/* returns NULL if position is outside simulation domain */
+pushBin *
+_pushBinLocate(pushContext *pctx, pushThing *thing) {
+  push_t min, max, *pos;
+  int be, xi, yi, zi;
+  pushBin *ret;
 
   if (pctx->singleBin) {
-    bi = 0;
+    ret = pctx->bin[0];
   } else {
+    pos = _pushThingPos(thing);
     min = -1.0 - pctx->margin;
     max = 1.0 + pctx->margin;
     be = pctx->binsEdge;
@@ -43,152 +45,147 @@ _pushBinFind(pushContext *pctx, push_t *pos) {
       } else {
         AIR_INDEX(min, pos[2], max, be, zi);
       }
-      bi = xi + be*(yi + be*zi);
+      ret = pctx->bin[xi + be*(yi + be*zi)];
     } else {
-      bi = -1;
+      ret = NULL;
     }
   }
 
-  return bi;
+  return ret;
 }
 
+/*
+** HEY: doesn't check to make sure thing isn't already in bin
+*/
 void
-_pushBinPointAdd(pushContext *pctx, int bi, int pi) {
-  int pii;
+_pushBinThingAdd(pushContext *pctx, pushBin *bin, pushThing *thing) {
+  int thgI;
 
-  pii = airArrayIncrLen(pctx->pidxArr[bi], 1);
-  pctx->pidx[bi][pii] = pi;
+  thgI = airArrayIncrLen(bin->thingArr, 1);
+  bin->thing[thgI] = thing;
+
   return;
 }
 
+/*
+** remove the pointer to the thing from the bin, don't kill the thing
+** because we don't know here if this is part of a killing, or a rebinning
+*/
 void
-_pushBinPointRemove(pushContext *pctx, int bi, int losePii) {
-  airArray *pidxArr;
-  int *pidx, npi, pii;
+_pushBinThingRemove(pushContext *pctx, pushBin *bin, int loseIdx) {
+  int thgI;
 
-  pidx = pctx->pidx[bi];
-  pidxArr = pctx->pidxArr[bi];
-
-  /*
-  fprintf(stderr, "______________ bi=%d, losePii=%d\n", bi, losePii);
-  for (pii=0; pii<pidxArr->len; pii++) {
-    fprintf(stderr, " %d", pidx[pii]);
+  for (thgI=loseIdx; thgI<bin->numThing-1; thgI++) {
+    bin->thing[thgI] = bin->thing[thgI+1];
   }
-  fprintf(stderr, "\n");
-  */
+  airArrayIncrLen(bin->thingArr, -1);
   
-  npi = pidxArr->len;
-  for (pii=losePii; pii<npi-1; pii++) {
-    pidx[pii] = pidx[pii+1];
-  }
-  airArrayIncrLen(pidxArr, -1);
-
-  /*
-  for (pii=0; pii<pidxArr->len; pii++) {
-    fprintf(stderr, " %d", pidx[pii]);
-  }
-  fprintf(stderr, "\n");
-  fprintf(stderr, "^^^^^^^^^^^^^^\n");
-  */
-
   return;
 }
 
-/* does no checking for being out of bounds */
 void
-_pushBinPointsAllAdd(pushContext *pctx) {
-  int bi, pi, np;
-  push_t *attr, *pos;
+_pushBinNeighborSet(pushBin *bin, pushBin **nei, int num) {
+  int neiI;
 
-  np = pctx->nPointAttr->axis[1].size;
-  attr = (push_t*)pctx->nPointAttr->data;
-  for (pi=0; pi<np; pi++) {
-    pos = attr + PUSH_POS + PUSH_ATTR_LEN*pi;
-    bi = _pushBinFind(pctx, pos);
-    _pushBinPointAdd(pctx, bi, pi);
+  bin->neighbor = airFree(bin->neighbor);
+  bin->neighbor = (pushBin **)calloc(1+num, sizeof(pushBin *));
+  for (neiI=0; neiI<num; neiI++) {
+    bin->neighbor[neiI] = nei[neiI];
+  }
+  bin->neighbor[neiI] = NULL;
+  return;
+}
+
+void
+_pushBinAllNeighborSet(pushContext *pctx) {
+  pushBin *nei[27];
+  int numNei, be, xx, yy, zz, xi, yi, zi,
+    xmin, xmax, ymin, ymax, zmin, zmax;
+
+  if (pctx->singleBin) {
+    numNei = 0;
+    nei[numNei++] = pctx->bin[0];
+    _pushBinNeighborSet(pctx->bin[0], nei, numNei);
+  } else {
+    be = pctx->binsEdge;
+    for (zi=0; zi<(2 == pctx->dimIn ? 1 : be); zi++) {
+      for (yi=0; yi<be; yi++) {
+        for (xi=0; xi<be; xi++) {
+          xmin = AIR_MAX(0, xi-1);
+          xmax = AIR_MIN(xi+1, be-1);
+          ymin = AIR_MAX(0, yi-1);
+          ymax = AIR_MIN(yi+1, be-1);
+          if (2 == pctx->dimIn) {
+            zmin = zmax = 0;
+          } else {
+            zmin = AIR_MAX(0, zi-1);
+            zmax = AIR_MIN(zi+1, be-1);
+          }
+          numNei = 0;
+          for (zz=zmin; zz<=zmax; zz++) {
+            for (yy=ymin; yy<=ymax; yy++) {
+              for (xx=xmin; xx<=xmax; xx++) {
+                nei[numNei++] = pctx->bin[xx + be*(yy + be*zz)];
+              }
+            }
+          }
+          _pushBinNeighborSet(pctx->bin[xi + be*(yi + be*zi)], nei, numNei);
+        }
+      }
+    }
   }
   return;
 }
 
 int
-_pushBinPointsRebin(pushContext *pctx) {
-  char me[]="_pushBinPointsRebin" /* , err[AIR_STRLEN_MED] */;
-  airArray *pidxArr;
-  int oldbi, newbi, pi, pii;
-  push_t *attr, *pos;
-
-  if (!pctx->singleBin) {
-    attr = (push_t*)pctx->nPointAttr->data;
-    for (oldbi=0; oldbi<pctx->numBin; oldbi++) {
-      pidxArr = pctx->pidxArr[oldbi];
-      for (pii=0; pii<pidxArr->len; /* nope! */) {
-        pi = pctx->pidx[oldbi][pii];
-        pos = attr + PUSH_POS + PUSH_ATTR_LEN*pi;
-        newbi = _pushBinFind(pctx, pos);
-        /*
-        if (-1 == newbi) {
-          sprintf(err, "%s: point %d pos (%g,%g,%g) outside domain", me,
-                  pi, pos[0], pos[1], pos[2]);
-          biffAdd(PUSH, err); return 1;
-        }
-        */
-        if (-1 == newbi) {
-          /* bad point! I kill you now */
-          _pushBinPointRemove(pctx, oldbi, pii);
-          fprintf(stderr, "%s: killing point %d at (%g,%g,%g)\n", me,
-                  pi, pos[0], pos[1], pos[2]);
-          ELL_3V_SET(pos, AIR_NAN, AIR_NAN, AIR_NAN);
-        } else {
-          if (oldbi != newbi) {
-            _pushBinPointRemove(pctx, oldbi, pii);
-            _pushBinPointAdd(pctx, newbi, pi);
-            /* don't increment pii; the next point index is now at pii */
-          } else {
-            /* this point is already in the right bin, move to next */
-            pii++;
-          }
-        }
-      }
-    }
+pushBinAdd(pushContext *pctx, pushThing *thing) {
+  char me[]="pushBinAdd";
+  pushBin *bin;
+  
+  bin = _pushBinLocate(pctx, thing);
+  if (!bin) {
+    fprintf(stderr, "!%s: thing outside simulation domain\n", me);
+  } else {
+    _pushBinThingAdd(pctx, bin, thing);
   }
-
   return 0;
 }
 
 int
-_pushBinNeighborhoodFind(pushContext *pctx, int *nei, int bin, int dimIn) {
-  int numNei, be, tmp, xx, yy, zz, xi, yi, zi,
-    xmin, xmax, ymin, ymax, zmin, zmax;
+pushRebin(pushContext *pctx) {
+  char me[]="pushRebin";
+  int oldBinI, thgI;
+  push_t *pos;
+  pushBin *oldBin, *newBin;
+  pushThing *thing;
 
-  numNei = 0;
-  if (pctx->singleBin) {
-    nei[numNei++] = 0;
-  } else {
-    be = pctx->binsEdge;
-    tmp = bin;
-    xi = tmp % be;
-    tmp = (tmp-xi)/be;
-    yi = tmp % be;
-    xmin = AIR_MAX(0, xi-1);
-    xmax = AIR_MIN(xi+1, be-1);
-    ymin = AIR_MAX(0, yi-1);
-    ymax = AIR_MIN(yi+1, be-1);
-    if (2 == pctx->dimIn) {
-      zmin = zmax = 0;
-    } else {
-      zi = (tmp-yi)/be;
-      zmin = AIR_MAX(0, zi-1);
-      zmax = AIR_MIN(zi+1, be-1);
-    }
-    for (zz=zmin; zz<=zmax; zz++) {
-      for (yy=ymin; yy<=ymax; yy++) {
-        for (xx=xmin; xx<=xmax; xx++) {
-          nei[numNei++] = xx + be*(yy + be*zz);
+  if (!pctx->singleBin) {
+    for (oldBinI=0; oldBinI<pctx->numBin; oldBinI++) {
+      oldBin = pctx->bin[oldBinI];
+      for (thgI=0; thgI<oldBin->numThing; /* nope! */) {
+        thing = oldBin->thing[thgI];
+        newBin = _pushBinLocate(pctx, thing);
+        if (NULL == newBin) {
+          /* bad thing! I kill you now */
+          pos = _pushThingPos(thing);
+          fprintf(stderr, "%s: killing thing at (%g,%g,%g)\n", me,
+                  pos[0], pos[1], pos[2]);
+          _pushBinThingRemove(pctx, oldBin, thgI);
+          pushThingNix(thing);
+        } else {
+          if (oldBin != newBin) {
+            _pushBinThingRemove(pctx, oldBin, thgI);
+            _pushBinThingAdd(pctx, newBin, thing);
+            /* don't increment thgI; the *next* thing index is now thgI */
+          } else {
+            /* this thing is already in the right bin, move on */
+            thgI++;
+          }
         }
-      }
+      } /* for thgI */
     }
   }
-  
-  return numNei;
+
+  return 0;
 }
 

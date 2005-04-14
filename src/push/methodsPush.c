@@ -22,39 +22,144 @@
 #include "push.h"
 #include "privatePush.h"
 
+pushThing *
+pushThingNew(int numPoint) {
+  pushThing *thg;
+
+  thg = (pushThing *)calloc(1, sizeof(pushThing));
+  if (thg) {
+    thg->seed = -1;
+    if (numPoint > 0) {
+      thg->numPoint = numPoint;
+      thg->point = (pushPoint *)calloc(numPoint, sizeof(pushPoint));
+    } else {
+      thg->numPoint = 0;
+      thg->point = NULL;
+    }
+  }
+  return thg;
+}
+
+/* 
+** private because it returns an internal address
+*/
+push_t *
+_pushThingPos(pushThing *thg) {
+  push_t *ret=NULL;
+
+  if (thg) {
+    if (1 == thg->numPoint) {
+      ret = thg->point[0].pos;
+    } else if (1 < thg->numPoint) {
+      ret = thg->point[thg->seed].pos;
+    }
+  }
+  return ret;
+}
+
+pushThing *
+pushThingNix(pushThing *thg) {
+  
+  if (thg) {
+    thg->point = airFree(thg->point);
+    airFree(thg);
+  }
+  return NULL;
+}
+
+pushBin *
+pushBinNew() {
+  pushBin *bin;
+
+  bin = (pushBin *)calloc(1, sizeof(pushBin));
+  if (bin) {
+    bin->numThing = 0;
+    bin->thing = NULL;
+    bin->thingArr = airArrayNew((void**)&(bin->thing), &(bin->numThing),
+                                sizeof(pushThing *), PUSH_ARRAY_INCR);
+    /* airArray callbacks are tempting but super confusing .... */
+    bin->neighbor = NULL;
+  }
+  return bin;
+}
+
+/*
+** bins own their contents: when you nix a bin, you nix its contents
+*/
+pushBin *
+pushBinNix(pushBin *bin) {
+  int thingI;
+
+  if (bin) {
+    for (thingI=0; thingI<bin->numThing; thingI++) {
+      bin->thing[thingI] = pushThingNix(bin->thing[thingI]);
+    }
+    bin->thingArr = airArrayNuke(bin->thingArr);
+    bin->neighbor = airFree(bin->neighbor);
+    airFree(bin);
+  }
+  return NULL;
+}
+
+
 pushContext *
 pushContextNew(void) {
   pushContext *pctx;
-  int ii;
+  int si, pi;
 
   pctx = (pushContext *)calloc(1, sizeof(pushContext));
   if (pctx) {
     pctx->nin = NULL;
     pctx->npos = NULL;
+    pctx->nstn = NULL;
+    pctx->drag = 0.1;
+    pctx->preDrag = 1.0;
+    pctx->step = 0.01;
     pctx->mass = 1.0;
     pctx->scale = 0.2;
+    pctx->nudge = 0.0;
+    pctx->wall = 0.1;
     pctx->margin = 0.3;
+    pctx->minMeanVel = 0.0;
     pctx->seed = 42;
-    for (ii=0; ii<PUSH_STAGE_MAXNUM; ii++) {
-      pctx->process[ii] = _pushProcessDummy;
-    }
+    pctx->numThing = 0;
+    pctx->numThread = 1;
+    pctx->numStage = 0;
+    pctx->minIter = 0;
+    pctx->maxIter = 0;
+    pctx->snap = 0;
+    pctx->singleBin = AIR_FALSE;
+    pctx->driftCorrect = AIR_TRUE;
+    pctx->verbose = 0;
     pctx->force = NULL;
     pctx->ksp00 = nrrdKernelSpecNew();
     pctx->ksp11 = nrrdKernelSpecNew();
-    pctx->driftCorrect = AIR_TRUE;
+    for (si=0; si<PUSH_STAGE_MAXNUM; si++) {
+      for (pi=0; pi<PUSH_STAGE_PARM_MAXNUM; pi++) {
+        pctx->stageParm[si][pi] = AIR_NAN;
+      }
+      pctx->process[si] = _pushProcessDummy;
+    }
     pctx->nten = NULL;
     pctx->nmask = NULL;
-    pctx->nPointAttr = nrrdNew();
-    pctx->nVelAcc = nrrdNew();
     pctx->gctx = NULL;
-    pctx->tenAns = NULL;
-    pctx->cntAns = NULL;
-    pctx->pidx = NULL;
-    pctx->pidxArr = NULL;
+    pctx->dimIn = 0;
+    /* binsEdge and numBin are found later */
+    pctx->binsEdge = pctx->numBin = 0;
+    pctx->finished = AIR_FALSE;
+    pctx->stageIdx = pctx->binIdx = 0;
+    pctx->bin = NULL;
+    pctx->maxDist = AIR_NAN;
+    ELL_3V_SET(pctx->minPos, AIR_NAN, AIR_NAN, AIR_NAN);
+    ELL_3V_SET(pctx->maxPos, AIR_NAN, AIR_NAN, AIR_NAN);
+    pctx->meanVel = 0;
+    pctx->time0 = pctx->time1 = 0;
     pctx->task = NULL;
     pctx->binMutex = NULL;
     pctx->stageBarrierA = NULL;
     pctx->stageBarrierB = NULL;
+    pctx->time = 0;
+    pctx->iter = 0;
     pctx->noutPos = NULL;
     pctx->noutTen = NULL;
   }
@@ -65,12 +170,10 @@ pushContext *
 pushContextNix(pushContext *pctx) {
   
   if (pctx) {
-    pctx->nPointAttr = nrrdNuke(pctx->nPointAttr);
-    pctx->nVelAcc = nrrdNuke(pctx->nVelAcc);
     /* weirdness: we don't manage the pushForce- caller (perhaps hest) does */
     pctx->ksp00 = nrrdKernelSpecNix(pctx->ksp00);
     pctx->ksp11 = nrrdKernelSpecNix(pctx->ksp11);
-    free(pctx);
+    airFree(pctx);
   }
   return NULL;
 }

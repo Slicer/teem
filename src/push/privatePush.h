@@ -28,11 +28,14 @@ extern "C" {
 /* defaultsPush.c */
 extern int _pushVerbose;
 
+/* methodsPush.c */
+extern push_t *_pushThingPos(pushThing *thg);
+
 /* forces.c */
 extern airEnum *pushForceEnum;
 
 /* binning.c */
-extern int _pushBinFind(pushContext *pctx, push_t *pos);
+extern int _pushBinIdxFind(pushContext *pctx, push_t *pos);
 extern void _pushBinPointAdd(pushContext *pctx, int bi, int pi);
 extern void _pushBinPointRemove(pushContext *pctx, int bi, int losePii);
 extern void _pushBinPointsAllAdd(pushContext *pctx);
@@ -41,16 +44,22 @@ extern int _pushBinNeighborhoodFind(pushContext *pctx, int *nei,
                                     int bin, int dimIn);
 
 /* corePush.c */
+extern pushTask *_pushTaskNew(pushContext *pctx, int threadIdx);
 extern void _pushProcessDummy(pushTask *task, int bin,
                               const push_t *parm);
 
 /* action.c */
+extern int _pushTensorFieldSetup(pushContext *pctx);
+extern int _pushGageSetup(pushContext *pctx);
+extern int _pushTaskSetup(pushContext *pctx);
+extern int _pushBinSetup(pushContext *pctx);
+extern int _pushThingSetup(pushContext *pctx);
 extern void _pushTenInv(pushContext *pctx, push_t *inv, push_t *ten);
 extern int _pushBinPointsRebin(pushContext *pctx);
-extern void _pushProbe(pushContext *pctx, gageContext *gctx, push_t *pos);
+extern void _pushProbe(pushTask *task, pushPoint *point);
 extern int _pushInputProcess(pushContext *pctx);
 extern void _pushInitialize(pushContext *pctx);
-extern void _pushRepel(pushTask *task, int bin, const push_t *parm);
+extern void _pushForce(pushTask *task, int bin, const push_t *parm);
 extern void _pushUpdate(pushTask *task, int bin, const push_t *parm);
 
 #ifdef __cplusplus

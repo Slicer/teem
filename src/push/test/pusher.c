@@ -30,10 +30,10 @@ main(int argc, char *argv[]) {
   airArray *mop;
   
   char *outS[2];
-  int seed, numThread, numPoint, snap, minIter, maxIter, singleBin,
+  int seed, numThread, numThing, snap, minIter, maxIter, singleBin,
     noDriftCorrect;
   pushContext *pctx;
-  Nrrd *nin, *nPosIn, *nPosOut, *nTenOut;
+  Nrrd *nin, *nPosIn, *nPosOut, *nTenOut, *nStnOut;
   double step, drag, preDrag, mass, scale, nudge, margin,
     wall, minMeanVel;
   NrrdKernelSpec *ksp00, *ksp11;
@@ -46,7 +46,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "pi", "npos", airTypeOther, 1, 1, &nPosIn, "",
              "positions to start at (overrides \"-np\")",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "np", "# points", airTypeInt, 1, 1, &numPoint, "100",
+  hestOptAdd(&hopt, "np", "# points", airTypeInt, 1, 1, &numThing, "100",
              "number of points to use in simulation");
   hestOptAdd(&hopt, "seed", "seed", airTypeInt, 1, 1, &seed, "42",
              "seed value for RNG which determines initial point locations");
@@ -82,7 +82,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "snap", "iters", airTypeInt, 1, 1, &snap, "0",
              "if non-zero, number of iterations between which a snapshot "
              "is saved");
-  hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1, &numThread, "5",
+  hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1, &numThread, "1",
              "number of threads to run");
   hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1, &ksp00,
              "tent", "kernel for tensor field sampling",
@@ -109,6 +109,8 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, nPosOut, (airMopper)nrrdNuke, airMopAlways);
   nTenOut = nrrdNew();
   airMopAdd(mop, nTenOut, (airMopper)nrrdNuke, airMopAlways);
+  nStnOut = nrrdNew();
+  airMopAdd(mop, nStnOut, (airMopper)nrrdNuke, airMopAlways);
   
   pctx->nin = nin;
   pctx->npos = nPosIn;
@@ -128,7 +130,7 @@ main(int argc, char *argv[]) {
   pctx->margin = margin;
   pctx->minMeanVel = minMeanVel;
   pctx->snap = snap;
-  pctx->numPoint = numPoint;
+  pctx->numThing = numThing;
   pctx->numStage = 2;
   pctx->driftCorrect = !noDriftCorrect;
   pctx->verbose = 0;
@@ -137,7 +139,7 @@ main(int argc, char *argv[]) {
 
   if (pushStart(pctx)
       || pushRun(pctx)
-      || pushOutputGet(nPosOut, nTenOut, pctx)
+      || pushOutputGet(nPosOut, nTenOut, nStnOut, pctx)
       || pushFinish(pctx)) {
     airMopAdd(mop, err = biffGetDone(PUSH), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);

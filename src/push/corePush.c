@@ -41,6 +41,8 @@ _pushTaskNew(pushContext *pctx, int threadIdx) {
       task->thread = airThreadNew();
     }
     task->threadIdx = threadIdx;
+    task->numThing = 0;
+    task->sumVel = 0;
     task->returnPtr = NULL;
   }
   return task;
@@ -66,7 +68,7 @@ _pushProcessDummy(pushTask *task, int bin,
   int i, j;
 
   fprintf(stderr, "%s(%d): dummy processing bin %d (stage %d)\n", me,
-          task->threadIdx, bin, task->pctx->stage);
+          task->threadIdx, bin, task->pctx->stageIdx);
   j = 0;
   for (i=0; i<=1000000*(1+task->threadIdx); i++) {
     j += i;
@@ -87,30 +89,31 @@ _pushProcessDummy(pushTask *task, int bin,
 ** this is run once per task (thread), per stage
 */
 void
-_pushStageRun(pushTask *task, int stage) {
-  int bin;
+_pushStageRun(pushTask *task, int stageIdx) {
+  int binIdx;
   
-  while (task->pctx->bin < task->pctx->numBin) {
+  while (task->pctx->binIdx < task->pctx->numBin) {
     if (task->pctx->numThread > 1) {
       airThreadMutexLock(task->pctx->binMutex);
     }
     do {
-      bin = task->pctx->bin;
-      if (task->pctx->bin < task->pctx->numBin) {
-        task->pctx->bin++;
+      binIdx = task->pctx->binIdx;
+      if (task->pctx->binIdx < task->pctx->numBin) {
+        task->pctx->binIdx++;
       }
-    } while (bin < task->pctx->numBin
-             && 0 == task->pctx->pidxArr[bin]->len);
+    } while (binIdx < task->pctx->numBin
+             && 0 == task->pctx->bin[binIdx]->numThing);
     if (task->pctx->numThread > 1) {
       airThreadMutexUnlock(task->pctx->binMutex);
     }
 
-    if (bin == task->pctx->numBin) {
+    if (binIdx == task->pctx->numBin) {
       /* no more bins to process */
       break;
     }
 
-    task->pctx->process[stage](task, bin, task->pctx->stageParm[stage]);
+    task->pctx->process[stageIdx](task, binIdx,
+                                  task->pctx->stageParm[stageIdx]);
   }
   return;
 }
@@ -139,9 +142,9 @@ _pushWorker(void *_task) {
     
     if (task->pctx->verbose > 1) {
       fprintf(stderr, "%s(%d): starting to run stage %d\n",
-              me, task->threadIdx, task->pctx->stage);
+              me, task->threadIdx, task->pctx->stageIdx);
     }
-    _pushStageRun(task, task->pctx->stage);
+    _pushStageRun(task, task->pctx->stageIdx);
     airThreadBarrierWait(task->pctx->stageBarrierB);
   }
 
@@ -170,8 +173,8 @@ _pushContextCheck(pushContext *pctx) {
     sprintf(err, "%s: one or more of the process functions was NULL", me);
     biffAdd(PUSH, err); return 1;
   }
-  if (!( pctx->numPoint >= 1 )) {
-    sprintf(err, "%s: pctx->numPoint (%d) not >= 1\n", me, pctx->numPoint);
+  if (!( pctx->numThing >= 1 )) {
+    sprintf(err, "%s: pctx->numThing (%d) not >= 1\n", me, pctx->numThing);
     biffAdd(PUSH, err); return 1;
   }
   if (!( pctx->numThread >= 1 )) {
@@ -205,58 +208,51 @@ _pushContextCheck(pushContext *pctx) {
       biffAdd(PUSH, err); return 1;
     }
   }
+  if (pctx->nstn) {
+    if (!pctx->npos) {
+      sprintf(err, "%s: can't have start/num nrrd w/out position nrrd", me);
+      biffAdd(PUSH, err); return 1;
+    }
+    if (nrrdCheck(pctx->nstn)) {
+      sprintf(err, "%s: got a broken start/num nrrd", me);
+      biffMove(PUSH, err, NRRD); return 1;
+    }
+    if (!( 2 == pctx->nstn->dim 
+           && nrrdTypeInt == pctx->nstn->type
+           && 2 == pctx->nstn->axis[0].size )) {
+      sprintf(err, "%s: start/num nrrd not 2-D 2-by-N array of %s", me,
+              airEnumStr(nrrdType, nrrdTypeInt));
+      biffAdd(PUSH, err); return 1;
+    }
+  }
   return 0;
 }
 
 int
 pushStart(pushContext *pctx) {
   char me[]="pushStart", err[AIR_STRLEN_MED];
-  int tidx, E;
+  int tidx;
 
   if (_pushContextCheck(pctx)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(PUSH, err); return 1;
   }
-  if (pctx->npos) {
-    pctx->numPoint = pctx->npos->axis[1].size;
-  }
 
   airSrand48(pctx->seed);
-
-  pctx->nten = nrrdNew();
-  pctx->nmask = nrrdNew();
-
-  E = AIR_FALSE;
-  E |= nrrdMaybeAlloc(pctx->nPointAttr, push_nrrdType, 2,
-                      PUSH_ATTR_LEN, pctx->numPoint);
-  E |= nrrdMaybeAlloc(pctx->nVelAcc, push_nrrdType, 2,
-                      2*3, pctx->numPoint);
-  if (E) {
-    sprintf(err, "%s: couldn't allocate internal arrays", me);
-    biffMove(PUSH, err, NRRD); return 1;
-  }
-
-  if (_pushInputProcess(pctx)) {
-    sprintf(err, "%s: trouble creating internal input", me);
-    biffAdd(PUSH, err); return 1;
-  }
-  /* initialize point positions and velocities in nPosVel */
-  _pushInitialize(pctx);
-
-  /* we create tasks for ALL threads, including me, thread 0 */
-  pctx->task = (pushTask **)calloc(pctx->numThread, sizeof(pushTask *));
-  if (!(pctx->task)) {
-    sprintf(err, "%s: couldn't allocate array of tasks", me);
-    biffAdd(PUSH, err); return 1;
-  }
-  for (tidx=0; tidx<pctx->numThread; tidx++) {
-    pctx->task[tidx] = _pushTaskNew(pctx, tidx);
-    if (!(pctx->task[tidx])) {
-      sprintf(err, "%s: couldn't allocate task %d", me, tidx);
-      biffAdd(PUSH, err); return 1;
-    }
-  }
   
+  if (_pushTensorFieldSetup(pctx)
+      || _pushGageSetup(pctx)
+      || _pushTaskSetup(pctx)
+      || _pushBinSetup(pctx)
+      || _pushThingSetup(pctx)) {
+    sprintf(err, "%s: trouble setting up context", me);
+    biffAdd(PUSH, err); return 1;
+  }
+
+  /* HEY: this should be done by the user */
+  pctx->process[0] = _pushForce;
+  pctx->process[1] = _pushUpdate;
+
   pctx->finished = AIR_FALSE;
   if (pctx->numThread > 1) {
     pctx->binMutex = airThreadMutexNew();
@@ -286,7 +282,7 @@ pushStart(pushContext *pctx) {
 int
 pushIterate(pushContext *pctx) {
   char me[]="pushIterate", err[AIR_STRLEN_MED];
-  int ti;
+  int ti, numThing;
 
   if (!pctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -298,32 +294,35 @@ pushIterate(pushContext *pctx) {
   }
   /* the _pushWorker checks finished after the barriers */
   pctx->finished = AIR_FALSE;
-  pctx->bin=0;
-  pctx->stage=0;
+  pctx->binIdx=0;
+  pctx->stageIdx=0;
   for (ti=0; ti<pctx->numThread; ti++) {
     pctx->task[ti]->sumVel = 0;
+    pctx->task[ti]->numThing = 0;
   }
   do {
     if (pctx->numThread > 1) {
       airThreadBarrierWait(pctx->stageBarrierA);
     }
     if (pctx->verbose) {
-      fprintf(stderr, "%s: starting stage %d\n", me, pctx->stage);
+      fprintf(stderr, "%s: starting stage %d\n", me, pctx->stageIdx);
     }
-    _pushStageRun(pctx->task[0], pctx->stage);
+    _pushStageRun(pctx->task[0], pctx->stageIdx);
     if (pctx->numThread > 1) {
       airThreadBarrierWait(pctx->stageBarrierB);
     }
     /* This is the only code to happen between barriers */
-    pctx->stage++;
-    pctx->bin=0;
-  } while (pctx->stage < pctx->numStage);
+    pctx->stageIdx++;
+    pctx->binIdx=0;
+  } while (pctx->stageIdx < pctx->numStage);
   pctx->meanVel = 0;
+  numThing = 0;
   for (ti=0; ti<pctx->numThread; ti++) {
     pctx->meanVel += pctx->task[ti]->sumVel;
+    numThing += pctx->task[ti]->numThing;
   }
-  pctx->meanVel /= pctx->numPoint;
-  if (_pushBinPointsRebin(pctx)) {
+  pctx->meanVel /= numThing;
+  if (pushRebin(pctx)) {
     sprintf(err, "%s: problem with new point locations", me);
     biffAdd(PUSH, err); return 1;
   }
@@ -332,6 +331,7 @@ pushIterate(pushContext *pctx) {
 }
 
 /*
+** this is called *after* pushOutputGet
 ** blows away nten and gctx
 */
 int
@@ -343,20 +343,6 @@ pushFinish(pushContext *pctx) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(PUSH, err); return 1;
   }
-
-  pctx->nten = nrrdNuke(pctx->nten);
-  pctx->nmask = nrrdNuke(pctx->nmask);
-  pctx->gctx = gageContextNix(pctx->gctx);
-  pctx->tenAns = NULL;
-
-  nrrdEmpty(pctx->nPointAttr);
-  nrrdEmpty(pctx->nVelAcc);
-
-  for (ii=0; ii<pctx->numBin; ii++) {
-    pctx->pidxArr[ii] = airArrayNuke(pctx->pidxArr[ii]);
-  }
-  pctx->pidxArr = airFree(pctx->pidxArr);
-  pctx->pidx = airFree(pctx->pidx);
 
   if (pctx->verbose > 1) {
     fprintf(stderr, "%s: finishing workers\n", me);
@@ -373,6 +359,16 @@ pushFinish(pushContext *pctx) {
     pctx->task[tidx] = _pushTaskNix(pctx->task[tidx]);
   }
   pctx->task = airFree(pctx->task);
+
+  pctx->nten = nrrdNuke(pctx->nten);
+  pctx->nmask = nrrdNuke(pctx->nmask);
+  pctx->gctx = gageContextNix(pctx->gctx);
+  for (ii=0; ii<pctx->numBin; ii++) {
+    pctx->bin[ii] = pushBinNix(pctx->bin[ii]);
+  }
+  pctx->bin = airFree(pctx->bin);
+  pctx->binsEdge = pctx->numBin = 0;
+
 
   if (pctx->numThread > 1) {
     pctx->binMutex = airThreadMutexNix(pctx->binMutex);
