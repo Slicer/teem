@@ -248,6 +248,7 @@ _pushBinSetup(pushContext *pctx) {
   for (ii=0; ii<pctx->numBin; ii++) {
     pctx->bin[ii] = pushBinNew();
   }
+  _pushBinAllNeighborSet(pctx);
 
   return 0;
 }
