@@ -26,7 +26,7 @@ char *_tend_fiberInfoL =
   (INFO
    ".  Currently, only fibers based on 4th-order Runge-Kutta on "
    "principal eigenvector are supported via \"tend\".  The \"world space\" "
-   "in which fibers are calculated has the volume inscribed in a bi-unit cube"
+   "in which fibers are calculated has the volume inscribed in a bi-unit cube "
    "centered at the origin. The output fiber is in the form "
    "of a 3xN array of doubles, with N points along fiber.");
 
@@ -110,14 +110,13 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (!E) E |= tenFiberTypeSet(tfx, tenFiberTypeEvec1);
   if (!E) E |= tenFiberKernelSet(tfx, ksp->kernel, ksp->parm);
   if (!E) E |= tenFiberIntgSet(tfx, tenFiberIntgRK4);
+  if (!E) E |= tenFiberParmSet(tfx, tenFiberParmStepSize, step);
   if (!E) E |= tenFiberUpdate(tfx);
   if (E) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); exit(1);
   }
-
-  tenFiberParmSet(tfx, tenFiberParmStepSize, step);
 
   if (tenFiberTrace(tfx, nout, start)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
