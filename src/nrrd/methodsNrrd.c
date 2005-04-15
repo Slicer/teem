@@ -188,6 +188,17 @@ nrrdKernelSpecNew (void) {
 }
 
 NrrdKernelSpec *
+nrrdKernelSpecCopy (NrrdKernelSpec *oldKsp) {
+  NrrdKernelSpec *ksp;
+
+  ksp = (NrrdKernelSpec *)calloc(1, sizeof(NrrdKernelSpec));
+  if (ksp) {
+    memcpy(ksp, oldKsp, sizeof(NrrdKernelSpec));
+  }
+  return ksp;
+}
+
+NrrdKernelSpec *
 nrrdKernelSpecNix (NrrdKernelSpec *ksp) {
 
   ksp = airFree(ksp);

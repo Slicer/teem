@@ -587,6 +587,7 @@ TEEM_API NrrdIoState *nrrdIoStateNix(NrrdIoState *nio);
 TEEM_API NrrdResampleInfo *nrrdResampleInfoNew(void);
 TEEM_API NrrdResampleInfo *nrrdResampleInfoNix(NrrdResampleInfo *info);
 TEEM_API NrrdKernelSpec *nrrdKernelSpecNew();
+TEEM_API NrrdKernelSpec *nrrdKernelSpecCopy(NrrdKernelSpec *ksp);
 TEEM_API void nrrdKernelSpecSet(NrrdKernelSpec *ksp, const NrrdKernel *k,
                                 double kparm[NRRD_KERNEL_PARMS_NUM]);
 TEEM_API void nrrdKernelParmSet(const NrrdKernel **kP,
