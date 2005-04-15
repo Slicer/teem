@@ -532,7 +532,11 @@ TEEM_API tenFiberContext *tenFiberContextCopy(tenFiberContext *tfx);
 TEEM_API tenFiberContext *tenFiberContextNix(tenFiberContext *tfx);
 
 /* fiber.c */
-TEEM_API int tenFiberTrace(tenFiberContext *tfx, Nrrd *fiber, double start[3]);
+TEEM_API int tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
+                              double *buff, int halfBuffLen,
+                              int *startIdxP, int *endIdxP,
+                              double seed[3]);
+TEEM_API int tenFiberTrace(tenFiberContext *tfx, Nrrd *fiber, double seed[3]);
 
 /* epireg.c */
 TEEM_API int tenEpiRegister3D(Nrrd **nout, Nrrd **ndwi,
