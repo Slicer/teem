@@ -228,22 +228,21 @@ airMopDone(airArray *arr, int error) {
   /*
   printf("airMopDone(%p): hello, %s\n", (void*)arr, error ? "error" : "okay");
   */
-  if (!arr)
-    return;
-
-  mops = arr->data;
-  for (i=arr->len-1; i>=0; i--) {
-    if (mops[i].ptr
-        && (airMopAlways == mops[i].when
-            || (airMopOnError == mops[i].when && error)
-            || (airMopOnOkay == mops[i].when && !error))) {
-      mops[i].mop(mops[i].ptr);
+  if (arr) {
+    mops = arr->data;
+    for (i=arr->len-1; i>=0; i--) {
+      if (mops[i].ptr
+          && (airMopAlways == mops[i].when
+              || (airMopOnError == mops[i].when && error)
+              || (airMopOnOkay == mops[i].when && !error))) {
+        mops[i].mop(mops[i].ptr);
+      }
     }
+    airArrayNuke(arr);
+    /*
+      printf("airMopDone(%p): done!\n", (void*)arr);
+    */
   }
-  airArrayNuke(arr);
-  /*
-  printf("airMopDone(%p): done!\n", (void*)arr);
-  */
   return;
 }
 
