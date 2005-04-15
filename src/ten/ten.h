@@ -299,9 +299,14 @@ enum {
                                   seeded in and output in index space,
                                   instead of default world */
   tenFiberParmWPunct,          /* 3: tensor-line parameter */
+  tenFiberParmAnisoStepSize,   /* 4: which of the tenAniso_* values to use to
+                                  (additionally) scale the underlying step
+                                  vectors in the integration, or,
+                                  tenAnisoUnknown to scale vectors solely by 
+                                  tfx->stepSize */
   tenFiberParmLast
 };
-#define TEN_FIBER_PARM_MAX        3
+#define TEN_FIBER_PARM_MAX        4
 
 /*
 ******** tenFiberContext
@@ -317,6 +322,7 @@ typedef struct {
   int fiberType,        /* from tenFiberType* enum */
     intg,               /* from tenFiberIntg* enum */
     anisoType,          /* which aniso we do a threshold on */
+    anisoStepSize,      /* which anisotropy scales the other-wise unit steps */
     stop;               /* BITFLAG for different reasons to stop a fiber */
   double anisoThresh;   /* anisotropy threshold */
   int maxNumSteps,      /* max # steps allowed on one fiber half */
@@ -327,6 +333,7 @@ typedef struct {
   double confThresh;    /* confidence threshold */
   double wPunct;        /* knob for tensor lines */
   /* ---- internal ----- */
+  int thisIsACopy;      /* non-zero if I come from tenFiberContextCopy */
   gageQuery query;      /* query we'll send to gageQuerySet */
   int dir;              /* current direction being computed (0 or 1) */
   double wPos[3],       /* current world space location */
@@ -413,6 +420,7 @@ TEEM_API double tenDefFiberStepSize;
 TEEM_API int tenDefFiberUseIndexSpace;
 TEEM_API double tenDefFiberMaxHalfLen;
 TEEM_API int tenDefFiberAnisoType;
+TEEM_API int tenDefFiberAnisoStepSize;
 TEEM_API double tenDefFiberAnisoThresh;
 TEEM_API int tenDefFiberIntg;
 TEEM_API double tenDefFiberWPunct;
@@ -520,6 +528,7 @@ TEEM_API void tenFiberStopReset(tenFiberContext *tfx);
 TEEM_API int tenFiberIntSet(tenFiberContext *tfx, int intType);
 TEEM_API int tenFiberParmSet(tenFiberContext *tfx, int parm, double val);
 TEEM_API int tenFiberUpdate(tenFiberContext *tfx);
+TEEM_API tenFiberContext *tenFiberContextCopy(tenFiberContext *tfx);
 TEEM_API tenFiberContext *tenFiberContextNix(tenFiberContext *tfx);
 
 /* fiber.c */

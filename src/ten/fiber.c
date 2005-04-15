@@ -84,14 +84,20 @@ _tenFiberAlign(tenFiberContext *tfx, double vec[3]) {
 }
 
 /*
-** the _tenFiberStep_* routines put their UNIT_LENGTH output in 
-** the given step[] vector
+** -------------------------------------------------------------------
+** -------------------------------------------------------------------
+** The _tenFiberStep_* routines are responsible for putting a step into
+** the given step[] vector.  Without anisoStepSize, this should be
+** UNIT LENGTH, with anisoStepSize, its scaled by that anisotropy measure
 */
 void
 _tenFiberStep_Evec1(tenFiberContext *tfx, double step[3]) {
   
   ELL_3V_COPY(step, tfx->evec + 3*0);
   _tenFiberAlign(tfx, step);
+  if (tfx->anisoStepSize) {
+    ELL_3V_SCALE(step, tfx->aniso[tfx->anisoStepSize], step);
+  }
 }
 
 void
@@ -119,6 +125,9 @@ _tenFiberStep_TensorLine(tenFiberContext *tfx, double step[3]) {
                     (1-cl)*tfx->wPunct, vout);
   /* _tenFiberAlign(tfx, step); */
   ELL_3V_NORM(step, step, len);
+  if (tfx->anisoStepSize) {
+    ELL_3V_SCALE(step, tfx->aniso[tfx->anisoStepSize], step);
+  }
 }
 
 void
@@ -143,6 +152,8 @@ _tenFiberStep[TEN_FIBER_TYPE_MAX+1])(tenFiberContext *, double *) = {
 };
 
 /*
+** -------------------------------------------------------------------
+** -------------------------------------------------------------------
 ** The _tenFiberIntegrate_* routines must assume that 
 ** _tenFiberProbe(tfx, tfx->wPos) has just been called
 */

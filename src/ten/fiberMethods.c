@@ -87,6 +87,7 @@ tenFiberContextNew(Nrrd *dtvol) {
     }
     tfx->fiberType = tenFiberTypeUnknown;
     tfx->anisoType = tenDefFiberAnisoType;
+    tfx->anisoStepSize = tenDefFiberAnisoStepSize;
     tfx->anisoThresh = tenDefFiberAnisoThresh;
     tfx->confThresh = 0.5; /* why do I even bother setting these- they'll
                               only get read if the right tenFiberStopSet has
@@ -96,6 +97,7 @@ tenFiberContextNew(Nrrd *dtvol) {
     tfx->maxHalfLen = tenDefFiberMaxHalfLen;
     tfx->intg = tenDefFiberIntg;
     tfx->wPunct = tenDefFiberWPunct;
+    tfx->thisIsACopy = AIR_FALSE;
     tfx->stop = 0;
 
     GAGE_QUERY_RESET(tfx->query);
@@ -273,7 +275,7 @@ tenFiberIntgSet(tenFiberContext *tfx, int intg) {
 
 int
 tenFiberParmSet(tenFiberContext *tfx, int parm, double val) {
-  char me[]="tenFiberParmSet";
+  char me[]="tenFiberParmSet", err[AIR_STRLEN_MED];
 
   if (tfx) {
     switch(parm) {
@@ -285,6 +287,17 @@ tenFiberParmSet(tenFiberContext *tfx, int parm, double val) {
       break;
     case tenFiberParmWPunct:
       tfx->wPunct = val;
+      break;
+    case tenFiberParmAnisoStepSize:
+      tfx->anisoStepSize = val;
+      if (!(AIR_IN_OP(tenAnisoUnknown, tfx->anisoStepSize, tenAnisoLast))) {
+        sprintf(err, "%s: given aniso type %d not valid", me,
+                tfx->anisoStepSize);
+        biffAdd(TEN, err); return 1;
+      }
+      if (tenAnisoUnknown != tfx->anisoStepSize) {
+        GAGE_QUERY_ITEM_ON(tfx->query, tenGageAniso);
+      }
       break;
     default:
       fprintf(stderr, "%s: WARNING!!! tenFiberParm %d not handled\n",
@@ -330,6 +343,27 @@ tenFiberUpdate(tenFiberContext *tfx) {
     biffMove(TEN, err, GAGE); return 1;
   }
   return 0;
+}
+
+/*
+** exact same precautions about utility of this as with gageContextCopy!!!
+** So: only after tenFiberUpdate, and don't touch anything, and don't
+** call anything except tenFiberTrace and tenFiberContextNix
+*/
+tenFiberContext *
+tenFiberContextCopy(tenFiberContext *oldTfx) {
+  tenFiberContext *tfx;
+
+  tfx = (tenFiberContext *)calloc(1, sizeof(tenFiberContext));
+  memcpy(tfx, oldTfx, sizeof(tenFiberContext));
+  tfx->thisIsACopy = AIR_TRUE;
+  tfx->ksp = nrrdKernelSpecCopy(oldTfx->ksp);
+  tfx->gtx = gageContextCopy(oldTfx->gtx);
+  tfx->dten = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageTensor);
+  tfx->eval = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageEval0);
+  tfx->evec = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageEvec0);
+  tfx->aniso = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageAniso);
+  return tfx;
 }
 
 tenFiberContext *
