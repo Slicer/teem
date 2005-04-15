@@ -219,6 +219,7 @@ tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber, double start[3]) {
     *fiber;                  /* array of both forward and backward points, 
                                 when finished */
   int i, ret, stop, idx;
+  airArray *mop;
 
   if (!(tfx && nfiber)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -248,9 +249,11 @@ tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber, double start[3]) {
   tfx->whyStop[0] = tfx->whyStop[1] = tenFiberStopUnknown;
   tfx->whyNowhere = tenFiberStopUnknown;
 
+  mop = airMopNew();
   for (tfx->dir=0; tfx->dir<=1; tfx->dir++) {
     fptsArr[tfx->dir] = airArrayNew((void**)&(fpts[tfx->dir]), NULL, 
                                     3*sizeof(double), TEN_FIBER_INCR);
+    airMopAdd(mop, fptsArr[tfx->dir], (airMopper)airArrayNuke, airMopAlways);
     tfx->halfLen[tfx->dir] = 0;
     if (tfx->useIndexSpace) {
       ELL_3V_COPY(iPos, start);
@@ -293,7 +296,7 @@ tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber, double start[3]) {
   if (nrrdMaybeAlloc(nfiber, nrrdTypeDouble, 2,
                      3, fptsArr[0]->len + fptsArr[1]->len - 1)) {
     sprintf(err, "%s: couldn't allocate fiber nrrd", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
   fiber = (double*)(nfiber->data);
   idx = 0;
@@ -305,5 +308,8 @@ tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber, double start[3]) {
     ELL_3V_COPY(fiber + 3*idx, fpts[1] + 3*i);
     idx++;
   }
+
+  airMopOkay(mop);
   return 0;
 }
+
