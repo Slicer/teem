@@ -21,46 +21,6 @@
 #include "push.h"
 #include "privatePush.h"
 
-pushTask *
-_pushTaskNew(pushContext *pctx, int threadIdx) {
-  pushTask *task;
-
-  task = (pushTask *)calloc(1, sizeof(pushTask));
-  if (task) {
-    task->pctx = pctx;
-    task->gctx = gageContextCopy(pctx->gctx);
-    /* 
-    ** HEY: its a limitation in gage that we have to know a priori
-    ** the ordering of per-volumes in the context ...
-    */
-    task->tenAns = gageAnswerPointer(task->gctx, task->gctx->pvl[0],
-                                     tenGageTensor);
-    task->cntAns = gageAnswerPointer(task->gctx, task->gctx->pvl[1],
-                                     gageSclGradVec);
-    if (threadIdx) {
-      task->thread = airThreadNew();
-    }
-    task->threadIdx = threadIdx;
-    task->numThing = 0;
-    task->sumVel = 0;
-    task->returnPtr = NULL;
-  }
-  return task;
-}
-
-pushTask *
-_pushTaskNix(pushTask *task) {
-
-  if (task) {
-    task->gctx = gageContextNix(task->gctx);
-    if (task->threadIdx) {
-      task->thread = airThreadNix(task->thread);
-    }
-    free(task);
-  }
-  return NULL;
-}
-
 void
 _pushProcessDummy(pushTask *task, int bin, 
                   const push_t parm[PUSH_STAGE_PARM_MAXNUM]) {
@@ -240,8 +200,11 @@ pushStart(pushContext *pctx) {
 
   airSrand48(pctx->seed);
   
+  /* the ordering of things below is important: gage and fiber contexts
+     have to be set up before they're copied by task setup */
   if (_pushTensorFieldSetup(pctx)
-      || _pushGageSetup(pctx)
+      || _pushGageSetup(pctx) 
+      || _pushFiberSetup(pctx)
       || _pushTaskSetup(pctx)
       || _pushBinSetup(pctx)
       || _pushThingSetup(pctx)) {

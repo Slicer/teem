@@ -42,10 +42,12 @@ extern "C" {
 typedef double push_t;
 #define push_nrrdType nrrdTypeDouble
 #define PUSH_TYPE_FLOAT 0
+#define tenEIGENSOLVE tenEigensolve_d
 #else
 typedef float push_t;
 #define push_nrrdType nrrdTypeFloat
 #define PUSH_TYPE_FLOAT 1
+#define tenEIGENSOLVE tenEigensolve_f
 #endif
 
 #define PUSH pushBiffKey
@@ -54,20 +56,55 @@ typedef float push_t;
 #define PUSH_FORCE_PARM_MAXNUM 3
 #define PUSH_THREAD_MAXNUM 512
 
+/*
+******** pointPoint
+**
+** information about a point in the simulation.  There are really two
+** kinds of information here: "pos", "vel", and "frc" pertain to the simulation
+** of point dynamics, while "ten", "inv", and "cnt" are properties of the field
+** sampled at the point.  "tan" and "cur" are only meaningful for tractlets.
+*/
 typedef struct pushPoint_t {
   push_t pos[3],               /* position in world space */
     vel[3],                    /* velocity */
     frc[3],                    /* force accumulator for current iteration */
     ten[7],                    /* tensor here */
+    aniso,                     /* value of Cl1 (Westin ISMRM '97) */
     inv[7],                    /* inverse of tensor */
     cnt[3],                    /* mask's containment gradient */
-    dir[3];                    /* for tractlets, unit direction through me */
+    tan[3],                    /* tangent: unit direction through me */
+    nor[3];                    /* change in tangent, normalized */
 } pushPoint;
 
+/*
+******** pushThing struct
+**
+** represents both single points, and tractlets, as follows:
+**
+** for single points: "point" tells the whole story of the point,
+** but point.dir is meaningless.  For the sake of easily computing all
+** pair-wise point interactions between things, "numVert" is 1, and
+** "vert" points to "point".  "len" is 0.
+**
+** for tractlets: the "pos", "vel", "frc" fields of "point" summarize the
+** the dynamics of the entire tractlet, while the field attributes
+** ("ten", "inv", "cnt") pertain exactly to the seed point.  For example,
+** a particular tensor anisotropy in "point.ten" may have resulted in this
+** thing turning from a point into a tractlet, or vice versa.  "numVert" is
+** the number of tractlet vertices; "vert" is the array of them.  The
+** only field of the vertex points that is not meaningful is "vel": the
+** tractlet velocity is "point.vel"
+*/
 typedef struct pushThing_t {
-  short numPoint,              /* 1 for point, more for tractlets */
-    seed;                      /* which of the following points is the seed */
-  pushPoint *point;            /* dyn. alloc. array of points (not pointers) */
+  pushPoint point;             /* information about single point, or a
+                                  seed point, hard to say exactly */
+  pushPoint *vert;             /* dyn. alloc. array of tractlet vertices
+                                  (not! pointers to pushPoints), or, just
+                                  the address of "point" for single point */
+  int numVert,                 /* 1 for single point, else length of vert[] */
+    seedIdx;                   /* which of the vertices is the seed point */
+  push_t len;                  /* 0 for point, else (world-space) length of
+                                  tractlet */
 } pushThing;
 
 typedef struct pushBin_t {
@@ -85,10 +122,12 @@ typedef struct pushTask_t {
   struct pushContext_t *pctx;  /* parent's context */
   gageContext *gctx;           /* result of gageContextCopy(pctx->gctx) */
   gage_t *tenAns, *cntAns;     /* results of gage probing */
+  tenFiberContext *fctx;       /* result of tenFiberContextCopy(pctx->fctx) */
   airThread *thread;           /* my thread */
   int threadIdx,               /* which thread am I */
     numThing;                  /* # things I let live this iteration */
-  double sumVel;               /* sum of velocities of pts in my batches */
+  double sumVel,               /* sum of velocities of pts in my batches */
+    *vertBuff;                 /* buffer for tractlet vertices */
   void *returnPtr;             /* for airThreadJoin */
 } pushTask;
 
@@ -117,8 +156,11 @@ typedef struct pushContext_t {
     nudge,                         /* scaling of nudging towards center */
     wall,                          /* spring constant of walls */
     margin,                        /* space allowed around [-1,1]^3 for pnts */
+    tlThresh, tlSlope, tlStep,     /* tractlet formation parameters */
     minMeanVel;                    /* stop if mean velocity drops below this */
   int seed,                        /* seed value for airSrand48 */
+    tlFrenet,                      /* use Frenet frames for tractlet forces */
+    tlNumStep,                     /* max # points on each tractlet half */
     numThing,                      /* number things to start simulation w/ */
     numThread,                     /* number of threads to use */
     numStage,                      /* number of stages */
@@ -138,6 +180,7 @@ typedef struct pushContext_t {
   Nrrd *nten,                      /* 3D image of 3D masked tensors */
     *nmask;                        /* mask image from nten */
   gageContext *gctx;               /* gage context around nten */
+  tenFiberContext *fctx;           /* tenFiber context around nten */
   int dimIn,                       /* dimension (2 or 3) of input */
     binsEdge,                      /* # bins along edge of grid */
     numBin,                        /* total # bins in grid */
@@ -148,6 +191,7 @@ typedef struct pushContext_t {
                                       binIdx == numBin */
   pushBin **bin;                   /* volume of bins (see binsEdge, numBin) */
   double maxDist,                  /* max distance btween interacting points */
+    maxEval, meanEval,             /* max and mean principal eval in field */
     minPos[3],                     /* lower corner of world position */
     maxPos[3],                     /* upper corner of world position */
     meanVel,                       /* latest mean velocity of particles */
@@ -170,7 +214,7 @@ TEEM_API const char *pushBiffKey;
 TEEM_API void pushTenInv(pushContext *pctx, push_t *inv, push_t *ten);
 
 /* methodsPush.c */
-TEEM_API pushThing *pushThingNew(int numPoint);
+TEEM_API pushThing *pushThingNew(int numVert);
 TEEM_API pushThing *pushThingNix(pushThing *thg);
 TEEM_API pushBin *pushBinNew(void);
 TEEM_API pushBin *pushBinNix(pushBin *bin);
@@ -184,6 +228,7 @@ TEEM_API hestCB *pushHestForce;
 
 /* binning.c */
 TEEM_API int pushBinAdd(pushContext *pctx, pushThing *thing);
+TEEM_API void pushBinAllNeighborSet(pushContext *pctx);
 TEEM_API int pushRebin(pushContext *pctx);
 
 /* corePush.c */

@@ -35,13 +35,7 @@ extern push_t *_pushThingPos(pushThing *thg);
 extern airEnum *pushForceEnum;
 
 /* binning.c */
-extern int _pushBinIdxFind(pushContext *pctx, push_t *pos);
-extern void _pushBinPointAdd(pushContext *pctx, int bi, int pi);
-extern void _pushBinPointRemove(pushContext *pctx, int bi, int losePii);
-extern void _pushBinPointsAllAdd(pushContext *pctx);
-extern int _pushBinPointsRebin(pushContext *pctx);
-extern int _pushBinNeighborhoodFind(pushContext *pctx, int *nei,
-                                    int bin, int dimIn);
+extern pushBin *_pushBinLocate(pushContext *pctx, pushThing *thing);
 
 /* corePush.c */
 extern pushTask *_pushTaskNew(pushContext *pctx, int threadIdx);
@@ -49,8 +43,11 @@ extern void _pushProcessDummy(pushTask *task, int bin,
                               const push_t *parm);
 
 /* action.c */
+extern pushTask *_pushTaskNew(pushContext *pctx, int threadIdx);
+extern pushTask *_pushTaskNix(pushTask *task);
 extern int _pushTensorFieldSetup(pushContext *pctx);
 extern int _pushGageSetup(pushContext *pctx);
+extern int _pushFiberSetup(pushContext *pctx);
 extern int _pushTaskSetup(pushContext *pctx);
 extern int _pushBinSetup(pushContext *pctx);
 extern int _pushThingSetup(pushContext *pctx);

@@ -31,11 +31,11 @@ main(int argc, char *argv[]) {
   
   char *outS[2];
   int seed, numThread, numThing, snap, minIter, maxIter, singleBin,
-    noDriftCorrect;
+    noDriftCorrect, tln, frenet;
   pushContext *pctx;
-  Nrrd *nin, *nPosIn, *nPosOut, *nTenOut, *nStnOut;
+  Nrrd *nin, *nPosIn, *nStnIn, *nPosOut, *nTenOut, *nStnOut;
   double step, drag, preDrag, mass, scale, nudge, margin,
-    wall, minMeanVel;
+    wall, minMeanVel, tlf[3];
   NrrdKernelSpec *ksp00, *ksp11;
   pushForce *force;
   
@@ -45,6 +45,9 @@ main(int argc, char *argv[]) {
              "input volume to filter", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "pi", "npos", airTypeOther, 1, 1, &nPosIn, "",
              "positions to start at (overrides \"-np\")",
+             NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "si", "nstn", airTypeOther, 1, 1, &nStnIn, "",
+             "connectivity/tractlet information for \"-pi\" nrrd",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "np", "# points", airTypeInt, 1, 1, &numThing, "100",
              "number of points to use in simulation");
@@ -56,6 +59,16 @@ main(int argc, char *argv[]) {
              "if non-zero, min number of iterations to do processing for");
   hestOptAdd(&hopt, "step", "step", airTypeDouble, 1, 1, &step, "0.01",
              "time step in integration");
+  hestOptAdd(&hopt, "tlf", "thr lin step", airTypeDouble, 3, 3, tlf,
+             "1 0 0.01",
+             "three parameters determining tractlet formation: the "
+             "Cl treshold below which there is no tractlet, the slope of "
+             "the mapping (above thresh) from Cl to speed, and the base "
+             "size of each step");
+  hestOptAdd(&hopt, "tln", "# steps", airTypeInt, 1, 1, &tln, "10",
+             "max number of steps in each tractlet half");
+  hestOptAdd(&hopt, "fren", NULL, airTypeInt, 0, 0, &frenet, NULL,
+             "use tractlet Frenet frame for force averaging");
   hestOptAdd(&hopt, "scl", "scale", airTypeDouble, 1, 1, &scale, "0.25",
              "scaling from tensor size to glyph size");
   hestOptAdd(&hopt, "drag", "drag", airTypeDouble, 1, 1, &drag, "0.01",
@@ -114,6 +127,7 @@ main(int argc, char *argv[]) {
   
   pctx->nin = nin;
   pctx->npos = nPosIn;
+  pctx->nstn = nStnIn;
   pctx->numThread = numThread;
   pctx->singleBin = singleBin;
   pctx->maxIter = maxIter;
@@ -123,6 +137,11 @@ main(int argc, char *argv[]) {
   pctx->preDrag = preDrag;
   pctx->step = step;
   pctx->mass = mass;
+  pctx->tlThresh = tlf[0];
+  pctx->tlSlope = tlf[1];
+  pctx->tlStep = tlf[2];
+  pctx->tlNumStep = tln;
+  pctx->tlFrenet = frenet;
   pctx->force = force;
   pctx->scale = scale;
   pctx->nudge = nudge;

@@ -103,7 +103,7 @@ _pushForceSpringFunc(push_t haveDist, push_t restDist,
   } else {
     ret = diff;
   }
-  ret *= -parm[0];
+  ret *= parm[0];
   return ret;
 }
 
@@ -132,7 +132,7 @@ _pushForceGaussFunc(push_t haveDist, push_t restDist,
 
   sig = restDist/SQRTTHREE;
   cut = parm[0];
-  return -_DGAUSS(haveDist, sig, cut);
+  return _DGAUSS(haveDist, sig, cut);
 }
 
 push_t
@@ -155,7 +155,7 @@ _pushForceChargeFunc(push_t haveDist, push_t restDist,
   push_t xx;
 
   xx = haveDist/restDist;
-  return parm[0]*(xx > parm[1] ? 0 : 1.0/(xx*xx));
+  return -parm[0]*(xx > parm[1] ? 0 : 1.0/(xx*xx));
 }
 
 push_t
@@ -178,7 +178,7 @@ _pushForceCotanFunc(push_t haveDist, push_t restDist,
 
   xx = haveDist/restDist;
   ss = sin(xx*AIR_PI/2.0);
-  return -parm[0]*(xx > 1 ? 0 : 1.0 - 1.0/(ss*ss));
+  return parm[0]*(xx > 1 ? 0 : 1.0 - 1.0/(ss*ss));
 }
 
 push_t

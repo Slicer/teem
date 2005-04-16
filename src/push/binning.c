@@ -31,7 +31,7 @@ _pushBinLocate(pushContext *pctx, pushThing *thing) {
   if (pctx->singleBin) {
     ret = pctx->bin[0];
   } else {
-    pos = _pushThingPos(thing);
+    pos = thing->point.pos;
     min = -1.0 - pctx->margin;
     max = 1.0 + pctx->margin;
     be = pctx->binsEdge;
@@ -97,7 +97,7 @@ _pushBinNeighborSet(pushBin *bin, pushBin **nei, int num) {
 }
 
 void
-_pushBinAllNeighborSet(pushContext *pctx) {
+pushBinAllNeighborSet(pushContext *pctx) {
   pushBin *nei[27];
   int numNei, be, xx, yy, zz, xi, yi, zi,
     xmin, xmax, ymin, ymax, zmin, zmax;
@@ -155,7 +155,6 @@ int
 pushRebin(pushContext *pctx) {
   char me[]="pushRebin";
   int oldBinI, thgI;
-  push_t *pos;
   pushBin *oldBin, *newBin;
   pushThing *thing;
 
@@ -167,9 +166,10 @@ pushRebin(pushContext *pctx) {
         newBin = _pushBinLocate(pctx, thing);
         if (NULL == newBin) {
           /* bad thing! I kill you now */
-          pos = _pushThingPos(thing);
           fprintf(stderr, "%s: killing thing at (%g,%g,%g)\n", me,
-                  pos[0], pos[1], pos[2]);
+                  thing->point.pos[0],
+                  thing->point.pos[1],
+                  thing->point.pos[2]);
           _pushBinThingRemove(pctx, oldBin, thgI);
           pushThingNix(thing);
         } else {

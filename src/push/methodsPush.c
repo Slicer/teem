@@ -23,45 +23,33 @@
 #include "privatePush.h"
 
 pushThing *
-pushThingNew(int numPoint) {
+pushThingNew(int numVert) {
   pushThing *thg;
 
-  thg = (pushThing *)calloc(1, sizeof(pushThing));
-  if (thg) {
-    thg->seed = -1;
-    if (numPoint > 0) {
-      thg->numPoint = numPoint;
-      thg->point = (pushPoint *)calloc(numPoint, sizeof(pushPoint));
-    } else {
-      thg->numPoint = 0;
-      thg->point = NULL;
+  if (!( numVert >= 1 )) {
+    thg = NULL;
+  } else {
+    thg = (pushThing *)calloc(1, sizeof(pushThing));
+    if (thg) {
+      thg->numVert = numVert;
+      if (1 == numVert) {
+        thg->vert = &(thg->point);
+      } else {
+        thg->vert = (pushPoint *)calloc(numVert, sizeof(pushPoint));
+      }
+      thg->len = 0;
     }
   }
   return thg;
-}
-
-/* 
-** private because it returns an internal address
-*/
-push_t *
-_pushThingPos(pushThing *thg) {
-  push_t *ret=NULL;
-
-  if (thg) {
-    if (1 == thg->numPoint) {
-      ret = thg->point[0].pos;
-    } else if (1 < thg->numPoint) {
-      ret = thg->point[thg->seed].pos;
-    }
-  }
-  return ret;
 }
 
 pushThing *
 pushThingNix(pushThing *thg) {
   
   if (thg) {
-    thg->point = airFree(thg->point);
+    if (thg->vert != &(thg->point)) {
+      thg->vert = airFree(thg->vert);
+    }
     airFree(thg);
   }
   return NULL;
@@ -120,6 +108,8 @@ pushContextNew(void) {
     pctx->nudge = 0.0;
     pctx->wall = 0.1;
     pctx->margin = 0.3;
+    pctx->tlThresh = 1.0;
+    pctx->tlSlope = 0.0;
     pctx->minMeanVel = 0.0;
     pctx->seed = 42;
     pctx->numThing = 0;
@@ -143,6 +133,7 @@ pushContextNew(void) {
     pctx->nten = NULL;
     pctx->nmask = NULL;
     pctx->gctx = NULL;
+    pctx->fctx = NULL;
     pctx->dimIn = 0;
     /* binsEdge and numBin are found later */
     pctx->binsEdge = pctx->numBin = 0;
