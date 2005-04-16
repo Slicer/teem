@@ -1,4 +1,7 @@
-ten/fiber.c memory leak
+unu dice: add "-f <format>" option to avoid annoyances...
+unu dice: be able to more directly control the formatting of the filenames
+  (such as # of zeros)
+
 unu save -f nrrd -e text produces a text file that does not end w/ newline
 
 unu: jhisto works with axis[0] elements when given a single nrrd
