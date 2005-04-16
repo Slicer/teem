@@ -295,7 +295,8 @@ pushIterate(pushContext *pctx) {
 
 /*
 ** this is called *after* pushOutputGet
-** blows away nten and gctx
+**
+** should nix everything created by the many _push*Setup() functions
 */
 int
 pushFinish(pushContext *pctx) {
@@ -326,12 +327,12 @@ pushFinish(pushContext *pctx) {
   pctx->nten = nrrdNuke(pctx->nten);
   pctx->nmask = nrrdNuke(pctx->nmask);
   pctx->gctx = gageContextNix(pctx->gctx);
+  pctx->fctx = tenFiberContextNix(pctx->fctx);
   for (ii=0; ii<pctx->numBin; ii++) {
     pctx->bin[ii] = pushBinNix(pctx->bin[ii]);
   }
   pctx->bin = airFree(pctx->bin);
   pctx->binsEdge = pctx->numBin = 0;
-
 
   if (pctx->numThread > 1) {
     pctx->binMutex = airThreadMutexNix(pctx->binMutex);

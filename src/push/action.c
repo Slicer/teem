@@ -23,9 +23,9 @@
 
 /* 
 ** _pushTensorFieldSetup sets:
-**   pctx->dimIn
-**   pctx->nten
-**   pctx->nmask
+**** pctx->dimIn
+**** pctx->nten
+**** pctx->nmask
 ** and checks mask range
 */
 int
@@ -111,9 +111,9 @@ _pushTensorFieldSetup(pushContext *pctx) {
 
 /*
 ** _pushGageSetup sets:
-**   pctx->gctx
-**   pctx->minPos
-**   pctx->maxPos
+**** pctx->gctx
+**** pctx->minPos
+**** pctx->maxPos
 */
 int
 _pushGageSetup(pushContext *pctx) {
@@ -151,7 +151,7 @@ _pushGageSetup(pushContext *pctx) {
 
 /*
 ** _pushFiberSetup sets:
-**   pctx->fctx
+**** pctx->fctx
 */
 int
 _pushFiberSetup(pushContext *pctx) {
@@ -181,8 +181,6 @@ _pushFiberSetup(pushContext *pctx) {
     sprintf(err, "%s: trouble setting up fiber context", me);
     biffMove(PUSH, err, TEN); return 1;
   }
-
-
   return 0;
 }
 
@@ -233,8 +231,8 @@ _pushTaskNix(pushTask *task) {
 
 /*
 ** _pushTaskSetup sets:
-**   pctx->task
-**   pctx->task[]
+**** pctx->task
+**** pctx->task[]
 */
 int
 _pushTaskSetup(pushContext *pctx) {
@@ -258,11 +256,10 @@ _pushTaskSetup(pushContext *pctx) {
 
 /*
 ** _pushBinSetup sets:
-**   pctx->maxDist, pctx->minEval, pctx->maxEval
-**   pctx->binsEdge
-**   pctx->numBin
-**   pctx->bin
-**   pctx->bin[]
+**** pctx->maxDist, pctx->minEval, pctx->maxEval
+**** pctx->binsEdge, pctx->numBin
+**** pctx->bin
+**** pctx->bin[]
 */
 int
 _pushBinSetup(pushContext *pctx) {
@@ -348,7 +345,7 @@ _pushProbe(pushTask *task, pushPoint *point) {
 
 /*
 ** _pushThingSetup sets:
-**   pctx->numThing (in case pctx->nstn and/or pctx->npos)
+**** pctx->numThing (in case pctx->nstn and/or pctx->npos)
 */
 int
 _pushThingSetup(pushContext *pctx) {
