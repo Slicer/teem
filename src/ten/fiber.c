@@ -32,8 +32,8 @@ _tenFiberProbe(tenFiberContext *tfx, double wPos[3]) {
 }
 
 int
-_tenFiberCheckStop(tenFiberContext *tfx) {
-  char me[]="_tenFiberCheckStop";
+_tenFiberStopCheck(tenFiberContext *tfx) {
+  char me[]="_tenFiberStopCheck";
 
   if (tfx->numSteps[tfx->dir] >= TEN_FIBER_NUM_STEPS_MAX) {
     fprintf(stderr, "%s: numSteps[%d] exceeded sanity check value of %d!!\n",
@@ -53,7 +53,7 @@ _tenFiberCheckStop(tenFiberContext *tfx) {
     }
   }
   if (1 & (tfx->stop >> tenFiberStopNumSteps)) {
-    if (tfx->numSteps[tfx->dir] >= tfx->maxNumSteps) {
+    if (tfx->numSteps[tfx->dir] > tfx->maxNumSteps) {
       return tenFiberStopNumSteps;
     }
   }
@@ -92,17 +92,22 @@ _tenFiberAlign(tenFiberContext *tfx, double vec[3]) {
 */
 void
 _tenFiberStep_Evec1(tenFiberContext *tfx, double step[3]) {
+  double xx, *func;
   
   ELL_3V_COPY(step, tfx->evec + 3*0);
   _tenFiberAlign(tfx, step);
-  if (tfx->anisoStepSize) {
-    ELL_3V_SCALE(step, tfx->aniso[tfx->anisoStepSize], step);
+  if (tfx->anisoSpeed) {
+    func = tfx->anisoSpeedFunc;
+    xx = AIR_MAX(0, tfx->aniso[tfx->anisoSpeed] - func[0]);
+    xx = func[1] + func[2]*xx + func[3]*xx*xx;
+    ELL_3V_SCALE(step, xx, step);
   }
 }
 
 void
 _tenFiberStep_TensorLine(tenFiberContext *tfx, double step[3]) {
   double cl, evec0[3], vout[3], vin[3], len;
+  double xx, *func;
   
   ELL_3V_COPY(evec0, tfx->evec + 3*0);
   _tenFiberAlign(tfx, evec0);
@@ -125,8 +130,11 @@ _tenFiberStep_TensorLine(tenFiberContext *tfx, double step[3]) {
                     (1-cl)*tfx->wPunct, vout);
   /* _tenFiberAlign(tfx, step); */
   ELL_3V_NORM(step, step, len);
-  if (tfx->anisoStepSize) {
-    ELL_3V_SCALE(step, tfx->aniso[tfx->anisoStepSize], step);
+  if (tfx->anisoSpeed) {
+    func = tfx->anisoSpeedFunc;
+    xx = AIR_MAX(0, tfx->aniso[tfx->anisoSpeed] - func[0]);
+    xx = func[1] + func[2]*xx + func[3]*xx*xx;
+    ELL_3V_SCALE(step, xx, step);
   }
 }
 
@@ -253,6 +261,13 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
       biffAdd(TEN, err); return 1;
     }
   }
+
+  /* initialize the quantities which describe the fiber halves */
+  tfx->halfLen[0] = tfx->halfLen[1] = 0.0;
+  tfx->numSteps[0] = tfx->numSteps[1] = 0.0;
+  tfx->whyStop[0] = tfx->whyStop[1] = tenFiberStopUnknown;
+
+  /* try probing once */
   if (tfx->useIndexSpace) {
     ret = gageProbe(tfx->gtx, seed[0], seed[0], seed[0]);
   } else {
@@ -264,7 +279,9 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
             me, gageErrStr, gageErrNum);
     biffAdd(TEN, err); return 1;
   }
-  if ((whyStop = _tenFiberCheckStop(tfx))) {
+
+  /* see if we're doomed */
+  if ((whyStop = _tenFiberStopCheck(tfx))) {
     /* stopped immediately at seed point, but that's not an error */
     tfx->whyNowhere = whyStop;
     if (nfiber) {
@@ -276,11 +293,6 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
   } else {
     tfx->whyNowhere = tenFiberStopUnknown;
   }
-
-  /* initialize the quantities which describe the fiber halves */
-  tfx->halfLen[0] = tfx->halfLen[1] = 0.0;
-  tfx->numSteps[0] = tfx->numSteps[1] = 0.0;
-  tfx->whyStop[0] = tfx->whyStop[1] = tenFiberStopUnknown;
 
   /* airMop{Error,Okay}() can safely be called on NULL */
   mop = nfiber ? airMopNew() : NULL;
@@ -313,8 +325,14 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
         tfx->whyStop[tfx->dir] = tenFiberStopBounds;
         break;
       }
-      if ((whyStop = _tenFiberCheckStop(tfx))) {
-        /* (of course, this can include tenFiberStopNumSteps) */
+      if ((whyStop = _tenFiberStopCheck(tfx))) {
+        if (tenFiberStopNumSteps == whyStop) {
+          /* we stopped along this direction because tfx->numSteps[tfx->dir]
+             exceeded tfx->maxNumSteps.  Okay.  But tfx->numSteps[tfx->dir]
+             is supposed to be a record of how steps were (successfully)
+             taken.  So we need to decrementing before moving on ... */
+          tfx->numSteps[tfx->dir]--;
+        }
         tfx->whyStop[tfx->dir] = whyStop;
         break;
       }
@@ -329,6 +347,11 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
         ELL_3V_COPY(fpts[tfx->dir] + 3*fptsIdx, currPoint);
       } else {
         ELL_3V_COPY(buff + 3*buffIdx, currPoint);
+        /*
+        fprintf(stderr, "!%s: (dir %d) saving to %d pnt %g %g %g\n", me,
+                tfx->dir, buffIdx,
+                currPoint[0], currPoint[1], currPoint[2]);
+        */
         buffIdx += !tfx->dir ? -1 : 1;
       }
       /* forwDir is set by this to point to the next fiber point */

@@ -39,9 +39,6 @@ tenDefFiberMaxHalfLen = 3;
 int
 tenDefFiberAnisoType = tenAniso_FA;
 
-int
-tenDefFiberAnisoStepSize = tenAnisoUnknown;
-
 double
 tenDefFiberAnisoThresh = 0.5;
 

@@ -87,7 +87,12 @@ tenFiberContextNew(Nrrd *dtvol) {
     }
     tfx->fiberType = tenFiberTypeUnknown;
     tfx->anisoType = tenDefFiberAnisoType;
-    tfx->anisoStepSize = tenDefFiberAnisoStepSize;
+    /* so I'm not using the normal default mechanism, shoot me */
+    tfx->anisoSpeed = tenAnisoUnknown;
+    tfx->anisoSpeedFunc[0] = 0;
+    tfx->anisoSpeedFunc[1] = 0;
+    tfx->anisoSpeedFunc[2] = 0;
+    tfx->anisoSpeedFunc[3] = 0;
     tfx->anisoThresh = tenDefFiberAnisoThresh;
     tfx->confThresh = 0.5; /* why do I even bother setting these- they'll
                               only get read if the right tenFiberStopSet has
@@ -237,6 +242,41 @@ tenFiberStopReset(tenFiberContext *tfx) {
 }
 
 int
+tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
+                      double off, double con,
+                      double lin, double par) {
+  char me[]="tenFiberAnisoSpeedSet", err[AIR_STRLEN_MED];
+
+  if (!tfx) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (airEnumValCheck(tenAniso, aniso)) {
+    sprintf(err, "%s: aniso %d not valid", me, aniso);
+    biffAdd(TEN, err); return 1;
+  }
+  tfx->anisoSpeed = aniso;
+  tfx->anisoSpeedFunc[0] = off;
+  tfx->anisoSpeedFunc[1] = con;
+  tfx->anisoSpeedFunc[2] = lin;
+  tfx->anisoSpeedFunc[3] = par;
+
+  return 0;
+}
+
+int
+tenFiberAnisoSpeedReset(tenFiberContext *tfx) {
+  char me[]="tenFiberAnisoSpeedReset", err[AIR_STRLEN_MED];
+
+  if (!tfx) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  tfx->anisoSpeed = tenAnisoUnknown;
+  return 0;
+}
+
+int
 tenFiberKernelSet(tenFiberContext *tfx,
                   const NrrdKernel *kern,
                   double parm[NRRD_KERNEL_PARMS_NUM]) {
@@ -275,7 +315,7 @@ tenFiberIntgSet(tenFiberContext *tfx, int intg) {
 
 int
 tenFiberParmSet(tenFiberContext *tfx, int parm, double val) {
-  char me[]="tenFiberParmSet", err[AIR_STRLEN_MED];
+  char me[]="tenFiberParmSet";
 
   if (tfx) {
     switch(parm) {
@@ -287,17 +327,6 @@ tenFiberParmSet(tenFiberContext *tfx, int parm, double val) {
       break;
     case tenFiberParmWPunct:
       tfx->wPunct = val;
-      break;
-    case tenFiberParmAnisoStepSize:
-      tfx->anisoStepSize = val;
-      if (!(AIR_IN_OP(tenAnisoUnknown, tfx->anisoStepSize, tenAnisoLast))) {
-        sprintf(err, "%s: given aniso type %d not valid", me,
-                tfx->anisoStepSize);
-        biffAdd(TEN, err); return 1;
-      }
-      if (tenAnisoUnknown != tfx->anisoStepSize) {
-        GAGE_QUERY_ITEM_ON(tfx->query, tenGageAniso);
-      }
       break;
     default:
       fprintf(stderr, "%s: WARNING!!! tenFiberParm %d not handled\n",
