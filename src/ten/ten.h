@@ -336,7 +336,8 @@ typedef struct {
   double wPos[3],       /* current world space location */
     wDir[3],            /* difference between this and last world space pos */
     lastDir[3],         /* previous value of wDir */
-    firstEvec[3];
+    firstEvec[3];       /* principal eigenvector first found at seed point */
+  int lastDirSet;       /* lastDir[] is usefully set */
   gageContext *gtx;     /* wrapped around dtvol */
   gage_t *dten,         /* gageAnswerPointer(gtx->pvl[0], tenGageTensor) */
     *eval,              /* gageAnswerPointer(gtx->pvl[0], tenGageEval) */

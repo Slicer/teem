@@ -68,11 +68,20 @@ _tenFiberStopCheck(tenFiberContext *tfx) {
 void
 _tenFiberAlign(tenFiberContext *tfx, double vec[3]) {
 
-  if (!(ELL_3V_LEN(tfx->lastDir))) {
-    /* this is the first step in this fiber half; first half follows
-       whatever comes from eigenvector calc, second half goes opposite it */
-    if (tfx->dir) {
-      ELL_3V_SCALE(vec, -1, vec);
+  if (!(tfx->lastDirSet)) {
+    /* this is the first step (or one of the intermediate steps 
+       for RK4) in this fiber half; 1st half follows the
+       eigenvector determined at seed point, 2nd goes opposite */
+    if (!tfx->dir) {
+      /* 1st half */
+      if (ELL_3V_DOT(tfx->firstEvec, vec) < 0) {
+        ELL_3V_SCALE(vec, -1, vec);
+      }
+    } else {
+      /* 2nd half */
+      if (ELL_3V_DOT(tfx->firstEvec, vec) > 0) {
+        ELL_3V_SCALE(vec, -1, vec);
+      }
     }
   } else {
     /* we have some history in this fiber half */
@@ -112,7 +121,7 @@ _tenFiberStep_TensorLine(tenFiberContext *tfx, double step[3]) {
   ELL_3V_COPY(evec0, tfx->evec + 3*0);
   _tenFiberAlign(tfx, evec0);
 
-  if (ELL_3V_DOT(tfx->lastDir, tfx->lastDir)) {
+  if (tfx->lastDirSet) {
     ELL_3V_COPY(vin, tfx->lastDir);
     TEN_T3V_MUL(vout, tfx->dten, tfx->lastDir);
     ELL_3V_NORM(vout, vout, len);
@@ -294,6 +303,11 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
     tfx->whyNowhere = tenFiberStopUnknown;
   }
 
+  /* record the principal eigenvector at the seed point, which
+     is needed to align the 4 intermediate steps of RK4 for the
+     FIRST step of each half of the tract */
+  ELL_3V_COPY(tfx->firstEvec, tfx->evec + 3*0);
+
   /* airMop{Error,Okay}() can safely be called on NULL */
   mop = nfiber ? airMopNew() : NULL;
 
@@ -318,6 +332,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
       ELL_3V_COPY(tfx->wPos, seed);
     }
     ELL_3V_SET(tfx->lastDir, 0, 0, 0);
+    tfx->lastDirSet = AIR_FALSE;
     for (tfx->numSteps[tfx->dir] = 0; AIR_TRUE; tfx->numSteps[tfx->dir]++) {
       if (_tenFiberProbe(tfx, tfx->wPos)) {
         /* even if gageProbe had an error OTHER than going out of bounds,
@@ -360,6 +375,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
         break;
       }
       ELL_3V_COPY(tfx->lastDir, forwDir);
+      tfx->lastDirSet = AIR_TRUE;
       ELL_3V_ADD2(tfx->wPos, tfx->wPos, forwDir);
       tfx->halfLen[tfx->dir] += ELL_3V_LEN(forwDir);
     }
