@@ -278,7 +278,7 @@ _pushBinSetup(pushContext *pctx) {
     if (tdata[0] > 0.5) {
       /* HEY: this limitation may be a bad idea */
       count++;
-      pctx->meanEval = eval[0];
+      pctx->meanEval += eval[0];
       pctx->maxEval = AIR_MAX(pctx->maxEval, eval[0]);
     }
     tdata += 7;
@@ -605,8 +605,8 @@ _pushPairwiseForce(pushContext *pctx, push_t fvec[3], pushForce *force,
       ** ----- this is probably correct, based on
       ** ----- tests with the one-ramp.nrrd dataset
       */
-      mm = 2*dot*pctx->scale*(1.0/lenV - 1.0/lenU);
-      fix = sqrt((1 + mm)/(1 - mm));
+      mm = 2*dot*pctx->scale*(1.0/lenU - 1.0/lenV);
+      fix = sqrt((1 - mm)/(1 + mm));
       ELL_3V_SCALE(fvec, fix, fvec);
     }
   }
@@ -757,7 +757,7 @@ void
 _pushThingTractletBe(pushTask *task, pushThing *thing) {
   char me[]="_pushThingTractletBe", *err;
   int vertIdx, tret, startIdx, endIdx, numVert;
-  double seed[3], len;
+  double seed[3], tmp;
 
   /* NOTE: the seed point velocity remains as the tractlet velocity */
 
@@ -775,12 +775,14 @@ _pushThingTractletBe(pushTask *task, pushThing *thing) {
             task->fctx->whyNowhere);
     exit(1);
   }
-
   numVert = endIdx - startIdx + 1;
   if (!( numVert >= 3 )) {
     fprintf(stderr, "!%s: problem: numVert only %d < 3\n", me, numVert);
     exit(1);
   }
+
+  /* remember the length */
+  thing->len = task->fctx->halfLen[0] + task->fctx->halfLen[1];
 
   /* allocate tractlet vertices as needed */
   if (numVert != thing->numVert) {
@@ -801,33 +803,31 @@ _pushThingTractletBe(pushTask *task, pushThing *thing) {
   thing->seedIdx = task->pctx->tlNumStep - startIdx;
 
   /* compute tangent at all vertices */
-  thing->len = 0;
-  ELL_3V_SUB(thing->vert[0].tan, thing->vert[1].pos, thing->vert[0].pos);
-  ELL_3V_NORM(thing->vert[0].tan, thing->vert[0].tan, len);
-  thing->len += len;
-  for (vertIdx=1; vertIdx<numVert-1; vertIdx++) {
-    ELL_3V_SUB(thing->vert[vertIdx].tan,
-               thing->vert[vertIdx+1].pos,
-               thing->vert[vertIdx-1].pos);
-    ELL_3V_NORM(thing->vert[vertIdx].tan, thing->vert[vertIdx].tan, len);
-    thing->len += len;
-  }
-  ELL_3V_SUB(thing->vert[numVert-1].tan,
+  if (task->pctx->tlFrenet) {
+    ELL_3V_SUB(thing->vert[0].tan, thing->vert[1].pos, thing->vert[0].pos);
+    ELL_3V_NORM(thing->vert[0].tan, thing->vert[0].tan, tmp);
+    for (vertIdx=1; vertIdx<numVert-1; vertIdx++) {
+      ELL_3V_SUB(thing->vert[vertIdx].tan,
+                 thing->vert[vertIdx+1].pos,
+                 thing->vert[vertIdx-1].pos);
+      ELL_3V_NORM(thing->vert[vertIdx].tan, thing->vert[vertIdx].tan, tmp);
+    }
+    ELL_3V_SUB(thing->vert[numVert-1].tan,
              thing->vert[numVert-1].pos,
-             thing->vert[numVert-2].pos);
-  ELL_3V_NORM(thing->vert[numVert-1].tan, thing->vert[numVert-1].tan, len);
-  thing->len += len;
-
-  /* compute "normal" at all vertices */
-  for (vertIdx=1; vertIdx<numVert-1; vertIdx++) {
-    ELL_3V_CROSS(thing->vert[vertIdx].nor,
-                 thing->vert[vertIdx+1].tan,
-                 thing->vert[vertIdx-1].tan);
-    ELL_3V_NORM(thing->vert[vertIdx].nor, thing->vert[vertIdx].nor, len);
+               thing->vert[numVert-2].pos);
+    ELL_3V_NORM(thing->vert[numVert-1].tan, thing->vert[numVert-1].tan, tmp);
+    
+    /* compute "normal" at all vertices */
+    for (vertIdx=1; vertIdx<numVert-1; vertIdx++) {
+      ELL_3V_CROSS(thing->vert[vertIdx].nor,
+                   thing->vert[vertIdx+1].tan,
+                   thing->vert[vertIdx-1].tan);
+      ELL_3V_NORM(thing->vert[vertIdx].nor, thing->vert[vertIdx].nor, tmp);
+    }
+    ELL_3V_COPY(thing->vert[0].nor, thing->vert[1].nor);
+    ELL_3V_COPY(thing->vert[numVert-1].nor, thing->vert[numVert-2].nor);
   }
-  ELL_3V_COPY(thing->vert[0].nor, thing->vert[1].nor);
-  ELL_3V_COPY(thing->vert[numVert-1].nor, thing->vert[numVert-2].nor);
-  
+
   return;
 }
 
