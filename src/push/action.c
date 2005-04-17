@@ -807,8 +807,6 @@ _pushThingTractletBe(pushTask *task, pushThing *thing) {
   /* NOTE: the seed point velocity remains as the tractlet velocity */
 
   ELL_3V_COPY(seed, thing->point.pos);
-  tenVerbose = ((34 == task->pctx->iter || 35 == task->pctx->iter)
-                && 229 == thing->ttaagg);
   tret = tenFiberTraceSet(task->fctx, NULL, 
                           task->vertBuff, task->pctx->tlNumStep,
                           &startIdx, &endIdx, seed);
@@ -843,15 +841,6 @@ _pushThingTractletBe(pushTask *task, pushThing *thing) {
 
   /* copy from fiber tract vertex buffer */
   for (vertIdx=0; vertIdx<numVert; vertIdx++) {
-    if (35 == task->pctx->iter && 229 == thing->ttaagg) {
-      fprintf(stderr, "(%g,%g,%g)   (%g,%g,%g)\n", 
-              thing->vert[vertIdx].pos[0],
-              thing->vert[vertIdx].pos[1],
-              thing->vert[vertIdx].pos[2],
-              (task->vertBuff + 3*(startIdx + vertIdx))[0],
-              (task->vertBuff + 3*(startIdx + vertIdx))[1],
-              (task->vertBuff + 3*(startIdx + vertIdx))[2]);
-    }
     ELL_3V_COPY(thing->vert[vertIdx].pos,
                 task->vertBuff + 3*(startIdx + vertIdx));
     _pushProbe(task, thing->vert + vertIdx);
