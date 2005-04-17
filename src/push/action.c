@@ -21,6 +21,11 @@
 #include "push.h"
 #include "privatePush.h"
 
+/* this is needed to make sure that tractlets that are really just
+   a bunch of vertices piled up on each other are not subjected
+   to any kind of frenet frame calculation */
+#define MIN_FRENET_LEN 0.05
+
 /* 
 ** _pushTensorFieldSetup sets:
 **** pctx->dimIn
@@ -737,7 +742,7 @@ _pushForce(pushTask *task, int myBinIdx,
     /* convert per-vertex forces on tractlet to total force */
     if (myThing->numVert > 1) {
       ELL_3V_SET(sumFvec, 0, 0, 0);
-      if (task->pctx->tlFrenet) {
+      if (task->pctx->tlFrenet && myThing->len > MIN_FRENET_LEN) {
         ELL_3V_SET(fTNB, 0, 0, 0);
         for (myVertIdx=0; myVertIdx<myThing->numVert; myVertIdx++) {
           myPoint = myThing->vert + myVertIdx;
@@ -848,7 +853,7 @@ _pushThingTractletBe(pushTask *task, pushThing *thing) {
   thing->seedIdx = task->pctx->tlNumStep - startIdx;
 
   /* compute tangent at all vertices */
-  if (task->pctx->tlFrenet) {
+  if (task->pctx->tlFrenet && thing->len > MIN_FRENET_LEN) {
     ELL_3V_SUB(thing->vert[0].tan, thing->vert[1].pos, thing->vert[0].pos);
     ELL_3V_NORM(thing->vert[0].tan, thing->vert[0].tan, tmp);
     for (vertIdx=1; vertIdx<numVert-1; vertIdx++) {
@@ -870,7 +875,13 @@ _pushThingTractletBe(pushTask *task, pushThing *thing) {
       ELL_3V_NORM(thing->vert[vertIdx].nor, thing->vert[vertIdx].nor, tmp);
       tmp = ELL_3V_LEN(thing->vert[vertIdx].nor);
       if (!AIR_EXISTS(tmp)) {
-        fprintf(stderr, "%g %g %g --> %g\n",
+        fprintf(stderr, "(%d) (%g,%g,%g) X (%g,%g,%g) = %g %g %g --> %g\n", vertIdx,
+                (thing->vert[vertIdx+1].tan)[0],
+                (thing->vert[vertIdx+1].tan)[1],
+                (thing->vert[vertIdx+1].tan)[2],
+                (thing->vert[vertIdx-1].tan)[0],
+                (thing->vert[vertIdx-1].tan)[1],
+                (thing->vert[vertIdx-1].tan)[2],
                 thing->vert[vertIdx].nor[0],
                 thing->vert[vertIdx].nor[1],
                 thing->vert[vertIdx].nor[2],
