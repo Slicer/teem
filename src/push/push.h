@@ -96,6 +96,7 @@ typedef struct pushPoint_t {
 ** tractlet velocity is "point.vel"
 */
 typedef struct pushThing_t {
+  int ttaagg;
   pushPoint point;             /* information about single point, or a
                                   seed point, hard to say exactly */
   pushPoint *vert;             /* dyn. alloc. array of tractlet vertices

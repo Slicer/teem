@@ -380,6 +380,10 @@ _pushThingSetup(pushContext *pctx) {
 		   lup(pctx->npos->data, 2 + 3*(thing->seedIdx + baseIdx)));
 	_pushProbe(pctx->task[0], &(thing->point));
       }
+      /*
+      fprintf(stderr, "!%s: numThing(%d) = %d\n", "_pushThingSetup",
+              thingIdx, thing->numVert);
+      */
     } else if (pctx->npos) {
       thing = pushThingNew(1);
       ELL_3V_SET(thing->vert[0].pos,
@@ -411,7 +415,32 @@ _pushThingSetup(pushContext *pctx) {
     }
     pushBinAdd(pctx, thing);
   }
-
+  /*
+  {
+    Nrrd *nten, *npos, *nstn;
+    char me[]="dammit", err[AIR_STRLEN_MED], poutS[AIR_STRLEN_MED],
+      toutS[AIR_STRLEN_MED], soutS[AIR_STRLEN_MED];
+      nten = nrrdNew();
+      npos = nrrdNew();
+      nstn = nrrdNew();
+      sprintf(poutS, "snap-pre.%06d.pos.nrrd", -1);
+      sprintf(toutS, "snap-pre.%06d.ten.nrrd", -1);
+      sprintf(soutS, "snap-pre.%06d.stn.nrrd", -1);
+      if (pushOutputGet(npos, nten, nstn, pctx)) {
+        sprintf(err, "%s: couldn't get snapshot for iter %d", me, -1);
+        biffAdd(PUSH, err); return 1;
+      }
+      if (nrrdSave(poutS, npos, NULL)
+          || nrrdSave(toutS, nten, NULL)
+          || nrrdSave(soutS, nstn, NULL)) {
+        sprintf(err, "%s: couldn't save snapshot for iter %d", me, -1);
+        biffMove(PUSH, err, NRRD); return 1;
+      }
+      nten = nrrdNuke(nten);
+      npos = nrrdNuke(npos);
+      nstn = nrrdNuke(nstn);
+  }
+  */
   return 0;
 }
 
@@ -778,6 +807,8 @@ _pushThingTractletBe(pushTask *task, pushThing *thing) {
   /* NOTE: the seed point velocity remains as the tractlet velocity */
 
   ELL_3V_COPY(seed, thing->point.pos);
+  tenVerbose = ((34 == task->pctx->iter || 35 == task->pctx->iter)
+                && 229 == thing->ttaagg);
   tret = tenFiberTraceSet(task->fctx, NULL, 
                           task->vertBuff, task->pctx->tlNumStep,
                           &startIdx, &endIdx, seed);
@@ -812,6 +843,15 @@ _pushThingTractletBe(pushTask *task, pushThing *thing) {
 
   /* copy from fiber tract vertex buffer */
   for (vertIdx=0; vertIdx<numVert; vertIdx++) {
+    if (35 == task->pctx->iter && 229 == thing->ttaagg) {
+      fprintf(stderr, "(%g,%g,%g)   (%g,%g,%g)\n", 
+              thing->vert[vertIdx].pos[0],
+              thing->vert[vertIdx].pos[1],
+              thing->vert[vertIdx].pos[2],
+              (task->vertBuff + 3*(startIdx + vertIdx))[0],
+              (task->vertBuff + 3*(startIdx + vertIdx))[1],
+              (task->vertBuff + 3*(startIdx + vertIdx))[2]);
+    }
     ELL_3V_COPY(thing->vert[vertIdx].pos,
                 task->vertBuff + 3*(startIdx + vertIdx));
     _pushProbe(task, thing->vert + vertIdx);
@@ -908,29 +948,6 @@ pushRun(pushContext *pctx) {
   vel[0] = AIR_NAN;
   vel[1] = AIR_NAN;
   do {
-    if (pctx->snap && !(pctx->iter % pctx->snap)) {
-      nten = nrrdNew();
-      npos = nrrdNew();
-      nstn = nrrdNew();
-      sprintf(poutS, "snap-pre.%06d.pos.nrrd", pctx->iter);
-      sprintf(toutS, "snap-pre.%06d.ten.nrrd", pctx->iter);
-      sprintf(soutS, "snap-pre.%06d.stn.nrrd", pctx->iter);
-      if (pushOutputGet(npos, nten, nstn, pctx)) {
-        sprintf(err, "%s: couldn't get snapshot for iter %d", me, pctx->iter);
-        biffAdd(PUSH, err); return 1;
-      }
-      fprintf(stderr, "%s: %s, meanVel=%g, %g iter/sec\n", me,
-              poutS, meanVel, pctx->iter/(airTime()-pctx->time0));
-      if (nrrdSave(poutS, npos, NULL)
-          || nrrdSave(toutS, nten, NULL)
-          || nrrdSave(soutS, nstn, NULL)) {
-        sprintf(err, "%s: couldn't save snapshot for iter %d", me, pctx->iter);
-        biffMove(PUSH, err, NRRD); return 1;
-      }
-      nten = nrrdNuke(nten);
-      npos = nrrdNuke(npos);
-      nstn = nrrdNuke(nstn);
-    }
     if (pushIterate(pctx)) {
       sprintf(err, "%s: trouble on iter %d", me, pctx->iter);
       biffAdd(PUSH, err); return 1;
@@ -939,9 +956,9 @@ pushRun(pushContext *pctx) {
       nten = nrrdNew();
       npos = nrrdNew();
       nstn = nrrdNew();
-      sprintf(poutS, "snap-pos.%06d.pos.nrrd", pctx->iter);
-      sprintf(toutS, "snap-pos.%06d.ten.nrrd", pctx->iter);
-      sprintf(soutS, "snap-pos.%06d.stn.nrrd", pctx->iter);
+      sprintf(poutS, "snap.%06d.pos.nrrd", pctx->iter);
+      sprintf(toutS, "snap.%06d.ten.nrrd", pctx->iter);
+      sprintf(soutS, "snap.%06d.stn.nrrd", pctx->iter);
       if (pushOutputGet(npos, nten, nstn, pctx)) {
         sprintf(err, "%s: couldn't get snapshot for iter %d", me, pctx->iter);
         biffAdd(PUSH, err); return 1;

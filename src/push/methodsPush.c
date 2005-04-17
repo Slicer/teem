@@ -24,6 +24,7 @@
 
 pushThing *
 pushThingNew(int numVert) {
+  static int ttaagg=0;
   pushThing *thg;
 
   if (!( numVert >= 1 )) {
@@ -31,6 +32,7 @@ pushThingNew(int numVert) {
   } else {
     thg = (pushThing *)calloc(1, sizeof(pushThing));
     if (thg) {
+      thg->ttaagg = ttaagg++;
       thg->numVert = numVert;
       if (1 == numVert) {
         thg->vert = &(thg->point);
