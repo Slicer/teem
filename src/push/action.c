@@ -372,11 +372,14 @@ _pushThingSetup(pushContext *pctx) {
         _pushProbe(pctx->task[0], thing->vert + pointIdx);
       }
       thing->seedIdx = stn[2 + 3*thingIdx];
-      ELL_3V_SET(thing->point.pos,
-                 lup(pctx->npos->data, 0 + 3*(thing->seedIdx + baseIdx)),
-                 lup(pctx->npos->data, 1 + 3*(thing->seedIdx + baseIdx)),
-                 lup(pctx->npos->data, 2 + 3*(thing->seedIdx + baseIdx)));
-      _pushProbe(pctx->task[0], &(thing->point));
+      if (1 < thing->numVert) {
+	/* info about seedpoint has to be set separately */
+	ELL_3V_SET(thing->point.pos,
+		   lup(pctx->npos->data, 0 + 3*(thing->seedIdx + baseIdx)),
+		   lup(pctx->npos->data, 1 + 3*(thing->seedIdx + baseIdx)),
+		   lup(pctx->npos->data, 2 + 3*(thing->seedIdx + baseIdx)));
+	_pushProbe(pctx->task[0], &(thing->point));
+      }
     } else if (pctx->npos) {
       thing = pushThingNew(1);
       ELL_3V_SET(thing->vert[0].pos,
@@ -898,8 +901,8 @@ pushRun(pushContext *pctx) {
   char me[]="pushRun", err[AIR_STRLEN_MED],
     poutS[AIR_STRLEN_MED], toutS[AIR_STRLEN_MED], soutS[AIR_STRLEN_MED];
   Nrrd *npos, *nten, *nstn;
-  double vel[2], meanVel;
-
+  double vel[2], meanVel=0;
+  
   pctx->iter = 0;
   pctx->time0 = airTime();
   vel[0] = AIR_NAN;
