@@ -38,6 +38,7 @@ pushThingNew(int numVert) {
         thg->vert = (pushPoint *)calloc(numVert, sizeof(pushPoint));
       }
       thg->len = 0;
+      thg->seedIdx = -1;
     }
   }
   return thg;

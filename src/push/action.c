@@ -350,28 +350,33 @@ _pushProbe(pushTask *task, pushPoint *point) {
 int
 _pushThingSetup(pushContext *pctx) {
   double (*lup)(const void *v, size_t I);
-  int *stn, pointIdx, baseIdx, numPoint, thingIdx;
+  int *stn, pointIdx, baseIdx, thingIdx;
   pushThing *thing;
 
-  numPoint = (pctx->npos
-              ? pctx->npos->axis[1].size
-              : pctx->numThing);
   pctx->numThing = (pctx->nstn
                     ? pctx->nstn->axis[1].size
-                    : numPoint);
+                    : (pctx->npos
+                       ? pctx->npos->axis[1].size
+                       : pctx->numThing));
   lup = pctx->npos ? nrrdDLookup[pctx->npos->type] : NULL;
   stn = pctx->nstn ? (int*)pctx->nstn->data : NULL;
   for (thingIdx=0; thingIdx<pctx->numThing; thingIdx++) {
     if (pctx->nstn) {
-      thing = pushThingNew(stn[1 + 2*thingIdx]);
-      baseIdx = stn[0 + 2*thingIdx];
-      for (pointIdx=0; pointIdx<stn[1 + 2*thingIdx]; pointIdx++) {
+      baseIdx = stn[0 + 3*thingIdx];
+      thing = pushThingNew(stn[1 + 3*thingIdx]);
+      for (pointIdx=0; pointIdx<thing->numVert; pointIdx++) {
         ELL_3V_SET(thing->vert[pointIdx].pos,
                    lup(pctx->npos->data, 0 + 3*(pointIdx + baseIdx)),
                    lup(pctx->npos->data, 1 + 3*(pointIdx + baseIdx)),
                    lup(pctx->npos->data, 2 + 3*(pointIdx + baseIdx)));
         _pushProbe(pctx->task[0], thing->vert + pointIdx);
       }
+      thing->seedIdx = stn[2 + 3*thingIdx];
+      ELL_3V_SET(thing->point.pos,
+                 lup(pctx->npos->data, 0 + 3*(thing->seedIdx + baseIdx)),
+                 lup(pctx->npos->data, 1 + 3*(thing->seedIdx + baseIdx)),
+                 lup(pctx->npos->data, 2 + 3*(thing->seedIdx + baseIdx)));
+      _pushProbe(pctx->task[0], &(thing->point));
     } else if (pctx->npos) {
       thing = pushThingNew(1);
       ELL_3V_SET(thing->vert[0].pos,
@@ -503,7 +508,8 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut,
                         2 == pctx->dimIn ? 4 : 7, numPoint);
   }
   if (nStnOut) {
-    E |= nrrdMaybeAlloc(nStnOut, nrrdTypeInt, 2, 2, numThing);
+    E |= nrrdMaybeAlloc(nStnOut, nrrdTypeInt, 2,
+                        3, numThing);
   }
   if (E) {
     sprintf(err, "%s: trouble allocating outputs", me);
@@ -520,14 +526,14 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut,
     for (thingIdx=0; thingIdx<bin->numThing; thingIdx++) {
       thing = bin->thing[thingIdx];
       if (stnOut) {
-        ELL_2V_SET(stnOut + thingRun*2,
-                   pointRun, thing->numVert);
+        ELL_3V_SET(stnOut + 3*thingRun,
+                   pointRun, thing->numVert, thing->seedIdx);
       }
       for (pointIdx=0; pointIdx<thing->numVert; pointIdx++) {
         point = thing->vert + pointIdx;
         if (2 == pctx->dimIn) {
           if (posOut) {
-            ELL_2V_SET(posOut + pointRun*2,
+            ELL_2V_SET(posOut + 2*pointRun,
                        point->pos[0], point->pos[1]);
           }
           /*    (0)         (0)
@@ -535,17 +541,17 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut,
            *        4  5        3
            *           6            */
           if (tenOut) {
-            ELL_4V_SET(tenOut + pointRun*4,
+            ELL_4V_SET(tenOut + 4*pointRun,
                        point->ten[0], point->ten[1],
                        point->ten[2], point->ten[4]);
           }
         } else {
           if (posOut) {
-            ELL_3V_SET(posOut + pointRun*3,
+            ELL_3V_SET(posOut + 3*pointRun,
                        point->pos[0], point->pos[1], point->pos[2]);
           }
           if (tenOut) {
-            TEN_T_COPY(tenOut + pointRun*7, point->ten);
+            TEN_T_COPY(tenOut + 7*pointRun, point->ten);
           }
         }
         pointRun++;
@@ -575,6 +581,7 @@ _pushPairwiseForce(pushContext *pctx, push_t fvec[3], pushForce *force,
   if (!lenD) {
     fprintf(stderr, "%s: myPos == herPos == (%g,%g,%g)\n", me,
             myPoint->pos[0], myPoint->pos[1], myPoint->pos[2]);
+    exit(1);
     return;
   }
   if (lenD <= pctx->maxDist) {
@@ -635,7 +642,7 @@ _pushForce(pushTask *task, int myBinIdx,
   pushThing *myThing, *herThing;
   pushPoint *myPoint, *herPoint, *seedPoint;
   int myThingIdx, herThingIdx, myVertIdx, herVertIdx, ci;
-  push_t myCharge, herCharge,
+  push_t myCharge, herCharge, charge,
     dist, dir[3], drag, fvec[3], sumFvec[3], binorm[3], fTNB[3];
 
   myBin = task->pctx->bin[myBinIdx];
@@ -658,13 +665,18 @@ _pushForce(pushTask *task, int myBinIdx,
             continue;
           }
           herCharge = _pushThingPointCharge(task, herThing);
+          charge = (myCharge + herCharge)/2;
           for (herVertIdx=0; herVertIdx<herThing->numVert; herVertIdx++) {
             herPoint = herThing->vert + herVertIdx;
             
             /* ... and sum the pair-wise forces from all of them */
             _pushPairwiseForce(task->pctx, fvec, task->pctx->force,
                                myPoint, herPoint);
-            ELL_3V_SCALE_INCR(sumFvec, myCharge*herCharge, fvec);
+            /* using myCharge*herCharge should be right, but it results
+               in the tractlets not exerting much force, and moving 
+               sluggishly- this way there seems to be continuity of
+               movement between points and tractlets */
+            ELL_3V_SCALE_INCR(sumFvec, charge, fvec);
           }
         }
         neighbor++;
@@ -749,6 +761,7 @@ _pushThingPointBe(pushTask *task, pushThing *thing) {
     thing->vert = &(thing->point);
     thing->numVert = 1;
     thing->len = 0;
+    thing->seedIdx = -1;
   }
   return;
 }
@@ -823,6 +836,15 @@ _pushThingTractletBe(pushTask *task, pushThing *thing) {
                    thing->vert[vertIdx+1].tan,
                    thing->vert[vertIdx-1].tan);
       ELL_3V_NORM(thing->vert[vertIdx].nor, thing->vert[vertIdx].nor, tmp);
+      tmp = ELL_3V_LEN(thing->vert[vertIdx].nor);
+      if (!AIR_EXISTS(tmp)) {
+        fprintf(stderr, "%g %g %g --> %g\n",
+                thing->vert[vertIdx].nor[0],
+                thing->vert[vertIdx].nor[1],
+                thing->vert[vertIdx].nor[2],
+                ELL_3V_LEN(thing->vert[vertIdx].nor));
+        exit(1);
+      }
     }
     ELL_3V_COPY(thing->vert[0].nor, thing->vert[1].nor);
     ELL_3V_COPY(thing->vert[numVert-1].nor, thing->vert[numVert-2].nor);
@@ -883,31 +905,13 @@ pushRun(pushContext *pctx) {
   vel[0] = AIR_NAN;
   vel[1] = AIR_NAN;
   do {
-    if (pushIterate(pctx)) {
-      sprintf(err, "%s: trouble on iter %d", me, pctx->iter);
-      biffAdd(PUSH, err); return 1;
-    }
-    /* this goofiness is because it seems like my stupid Euler 
-       integration can lead to real motion only happening on
-       every other iteration ... */
-    if (0 == pctx->iter) {
-      vel[0] = pctx->meanVel;
-      meanVel = pctx->meanVel;
-    } else if (1 == pctx->iter) {
-      vel[1] = pctx->meanVel;
-      meanVel = (vel[0] + vel[1])/2;
-    } else {
-      vel[0] = vel[1];
-      vel[1] = pctx->meanVel;
-      meanVel = (vel[0] + vel[1])/2;
-    }
     if (pctx->snap && !(pctx->iter % pctx->snap)) {
       nten = nrrdNew();
       npos = nrrdNew();
       nstn = nrrdNew();
-      sprintf(poutS, "snap.%06d.pos.nrrd", pctx->iter);
-      sprintf(toutS, "snap.%06d.ten.nrrd", pctx->iter);
-      sprintf(soutS, "snap.%06d.stn.nrrd", pctx->iter);
+      sprintf(poutS, "snap-pre.%06d.pos.nrrd", pctx->iter);
+      sprintf(toutS, "snap-pre.%06d.ten.nrrd", pctx->iter);
+      sprintf(soutS, "snap-pre.%06d.stn.nrrd", pctx->iter);
       if (pushOutputGet(npos, nten, nstn, pctx)) {
         sprintf(err, "%s: couldn't get snapshot for iter %d", me, pctx->iter);
         biffAdd(PUSH, err); return 1;
@@ -923,6 +927,47 @@ pushRun(pushContext *pctx) {
       nten = nrrdNuke(nten);
       npos = nrrdNuke(npos);
       nstn = nrrdNuke(nstn);
+    }
+    if (pushIterate(pctx)) {
+      sprintf(err, "%s: trouble on iter %d", me, pctx->iter);
+      biffAdd(PUSH, err); return 1;
+    }
+    if (pctx->snap && !(pctx->iter % pctx->snap)) {
+      nten = nrrdNew();
+      npos = nrrdNew();
+      nstn = nrrdNew();
+      sprintf(poutS, "snap-pos.%06d.pos.nrrd", pctx->iter);
+      sprintf(toutS, "snap-pos.%06d.ten.nrrd", pctx->iter);
+      sprintf(soutS, "snap-pos.%06d.stn.nrrd", pctx->iter);
+      if (pushOutputGet(npos, nten, nstn, pctx)) {
+        sprintf(err, "%s: couldn't get snapshot for iter %d", me, pctx->iter);
+        biffAdd(PUSH, err); return 1;
+      }
+      fprintf(stderr, "%s: %s, meanVel=%g, %g iter/sec\n", me,
+              poutS, meanVel, pctx->iter/(airTime()-pctx->time0));
+      if (nrrdSave(poutS, npos, NULL)
+          || nrrdSave(toutS, nten, NULL)
+          || nrrdSave(soutS, nstn, NULL)) {
+        sprintf(err, "%s: couldn't save snapshot for iter %d", me, pctx->iter);
+        biffMove(PUSH, err, NRRD); return 1;
+      }
+      nten = nrrdNuke(nten);
+      npos = nrrdNuke(npos);
+      nstn = nrrdNuke(nstn);
+    }
+    /* this goofiness is because it seems like my stupid Euler 
+       integration can lead to real motion only happening on
+       every other iteration ... */
+    if (0 == pctx->iter) {
+      vel[0] = pctx->meanVel;
+      meanVel = pctx->meanVel;
+    } else if (1 == pctx->iter) {
+      vel[1] = pctx->meanVel;
+      meanVel = (vel[0] + vel[1])/2;
+    } else {
+      vel[0] = vel[1];
+      vel[1] = pctx->meanVel;
+      meanVel = (vel[0] + vel[1])/2;
     }
     pctx->iter++;
   } while ( (pctx->iter < pctx->minIter)
