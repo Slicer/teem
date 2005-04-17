@@ -217,7 +217,7 @@ tenEigensolve_f(float _eval[3], float _evec[9], float t[7]) {
   ELL_3M_ADD2(m, m, iso);
   if (_evec) {
     ret = ell_3m_eigensolve_d(eval, evec, m, AIR_TRUE);
-    if (tenVerbose) {
+    if (tenVerbose > 4) {
       fprintf(stderr, "---- cubic ret = %d\n", ret);
       fprintf(stderr, "tensor = {\n");
       fprintf(stderr, "    % 15.7f,\n", t[1]);
@@ -242,8 +242,8 @@ tenEigensolve_f(float _eval[3], float _evec[9], float t[7]) {
         ELL_3V_CROSS(_evec+0, _evec+3, _evec+6);
       }
     }
-    if (tenVerbose && _eval[2] < 0) {
-      fprintf(stderr, "tenEigensolve -------------\n");
+    if ((tenVerbose > 1) && _eval[2] < 0) {
+      fprintf(stderr, "tenEigensolve_f -------------\n");
       fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
               t[1], t[2], t[3]);
       fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 

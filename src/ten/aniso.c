@@ -46,7 +46,7 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], float e[3]) {
             "%g %g %g (%d %d)\n",
             e[0], e[1], e[2], e[0] >= e[1], e[1] >= e[2]);
   }
-  if (tenVerbose && !( e[0] >= 0 && e[1] >= 0 && e[2] >= 0 )) {
+  if ((tenVerbose > 1) && !( e[0] >= 0 && e[1] >= 0 && e[2] >= 0 )) {
     fprintf(stderr, "tenAnisoCalc_f: eigen values not all >= 0: %g %g %g\n",
             e[0], e[1], e[2]);
   }
