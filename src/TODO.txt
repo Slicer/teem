@@ -2,6 +2,15 @@ unu dice: add "-f <format>" option to avoid annoyances...
 unu dice: be able to more directly control the formatting of the filenames
   (such as # of zeros)
 
+make system really botched: change the size of the tenFiberContext
+(added a field or two), do a make ten/install, then cd ../push; rm -f test/pusher
+make install; make; and you'll STILL get memory errors due to seeing 
+library/object files which use the older context size.  Do a top-level
+make clobber, and then things work.  This is crap.
+I think the problem is that development object files of push were not
+recompiled when they should have been- doing a make clobber; make in push
+solved the problem...
+
 unu save -f nrrd -e text produces a text file that does not end w/ newline
 
 unu: jhisto works with axis[0] elements when given a single nrrd
