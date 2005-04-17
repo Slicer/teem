@@ -335,7 +335,8 @@ typedef struct {
   int dir;              /* current direction being computed (0 or 1) */
   double wPos[3],       /* current world space location */
     wDir[3],            /* difference between this and last world space pos */
-    lastDir[3];         /* previous value of wDir */
+    lastDir[3],         /* previous value of wDir */
+    firstEvec[3];
   gageContext *gtx;     /* wrapped around dtvol */
   gage_t *dten,         /* gageAnswerPointer(gtx->pvl[0], tenGageTensor) */
     *eval,              /* gageAnswerPointer(gtx->pvl[0], tenGageEval) */
