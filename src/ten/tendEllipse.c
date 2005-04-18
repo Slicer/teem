@@ -92,7 +92,8 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn,
   }
 
   fprintf(file, "gsave\n");
-  fprintf(file, "0.5 setgray\n");
+  fprintf(file, "%g setgray\n", 
+          (nstn ? 0.5 : (invert ? 1.0 : 0.0)));
   tdata = (float*)nten->data;
   pdata = npos ? (float*)npos->data : NULL;
   for (ti=0; ti<nt; ti++) {
@@ -264,11 +265,13 @@ tend_ellipseMain(int argc, char **argv, char *me, hestParm *hparm) {
     fprintf(stderr, "%s: didn't get float type tensors\n", me);
     airMopError(mop); return 1;
   }
-  if (!( nrrdTypeInt == nstn->type 
-         && 2 == nstn->dim
-         && 3 == nstn->axis[0].size )) {
-    fprintf(stderr, "%s: connectivity isn't 2-D 3-by-N array\n", me);
-    airMopError(mop); return 1;
+  if (nstn) {
+    if (!( nrrdTypeInt == nstn->type 
+           && 2 == nstn->dim
+           && 3 == nstn->axis[0].size )) {
+      fprintf(stderr, "%s: connectivity isn't 2-D 3-by-N array\n", me);
+      airMopError(mop); return 1;
+    }
   }
   if (!(fout = airFopen(outS, stdout, "wb"))) {
     fprintf(stderr, "%s: couldn't open \"%s\" for writing\n", me, outS);
