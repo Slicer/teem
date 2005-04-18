@@ -179,8 +179,9 @@ _pushFiberSetup(pushContext *pctx) {
   if (!E) E |= tenFiberIntgSet(pctx->fctx, tenFiberIntgRK4);
   if (!E) E |= tenFiberParmSet(pctx->fctx, tenFiberParmStepSize, pctx->tlStep);
   if (!E) E |= tenFiberAnisoSpeedSet(pctx->fctx, tenAniso_Cl1,
-                                     pctx->tlThresh /* off */, 0 /* con */,
-                                     pctx->tlSlope /* lin */, 0 /* par */);
+                                     1 /* lerp */ ,
+                                     pctx->tlThresh /* thresh */,
+                                     pctx->tlSoft);
   if (!E) E |= tenFiberUpdate(pctx->fctx);
   if (E) {
     sprintf(err, "%s: trouble setting up fiber context", me);

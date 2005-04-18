@@ -92,8 +92,7 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn,
   }
 
   fprintf(file, "gsave\n");
-  fprintf(file, "%g setgray\n", 
-          (nstn ? 0.5 : (invert ? 1.0 : 0.0)));
+  fprintf(file, "0.5 setgray\n");
   tdata = (float*)nten->data;
   pdata = npos ? (float*)npos->data : NULL;
   for (ti=0; ti<nt; ti++) {
@@ -129,7 +128,7 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn,
     fprintf(file, "gsave\n");
     tdata = (float*)nten->data;
     pdata = npos ? (float*)npos->data : NULL;
-    fprintf(file, "%g setgray\n", invert ? 0.0 : 1.0);
+    fprintf(file, "%g setgray\n", invert ? 1.0 : 0.0);
     for (ti=0; ti<nt; ti++) {
       if (npos) {
         px = AIR_AFFINE(min[0], pdata[0], max[0], minX, maxX);

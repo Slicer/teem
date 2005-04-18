@@ -111,8 +111,8 @@ pushContextNew(void) {
     pctx->nudge = 0.0;
     pctx->wall = 0.1;
     pctx->margin = 0.3;
-    pctx->tlThresh = 1.0;
-    pctx->tlSlope = 0.0;
+    pctx->tlThresh = 0.0;
+    pctx->tlSoft = 0.0;
     pctx->minMeanVel = 0.0;
     pctx->seed = 42;
     pctx->numThing = 0;

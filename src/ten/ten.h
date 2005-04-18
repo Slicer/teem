@@ -320,8 +320,7 @@ typedef struct {
     anisoSpeed,         /* base step size is function of this anisotropy */
     stop;               /* BITFLAG for different reasons to stop a fiber */
   double anisoThresh,   /* anisotropy threshold */
-    anisoSpeedFunc[4];  /* step scaled by func[1] + func[2]*x + func[3]*x*x
-                           where x = max(0, anisoSpeed - func[0]) */
+    anisoSpeedFunc[3];  /* parameters of mapping aniso to speed */
   int maxNumSteps,      /* max # steps allowed on one fiber half */
     useIndexSpace;      /* output in index space, not world space */
   double stepSize,      /* step size in world space */
@@ -524,8 +523,7 @@ TEEM_API int tenFiberIntgSet(tenFiberContext *tfx, int intg);
 TEEM_API int tenFiberStopSet(tenFiberContext *tfx, int stop, ...);
 TEEM_API void tenFiberStopReset(tenFiberContext *tfx);
 TEEM_API int tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
-                                   double offset, double constant,
-                                   double slope, double parabolic);
+                                   double lerp, double thresh, double soft);
 TEEM_API int tenFiberAnisoSpeedReset(tenFiberContext *tfx);
 TEEM_API int tenFiberParmSet(tenFiberContext *tfx, int parm, double val);
 TEEM_API int tenFiberUpdate(tenFiberContext *tfx);

@@ -92,7 +92,6 @@ tenFiberContextNew(Nrrd *dtvol) {
     tfx->anisoSpeedFunc[0] = 0;
     tfx->anisoSpeedFunc[1] = 0;
     tfx->anisoSpeedFunc[2] = 0;
-    tfx->anisoSpeedFunc[3] = 0;
     tfx->anisoThresh = tenDefFiberAnisoThresh;
     tfx->confThresh = 0.5; /* why do I even bother setting these- they'll
                               only get read if the right tenFiberStopSet has
@@ -243,8 +242,7 @@ tenFiberStopReset(tenFiberContext *tfx) {
 
 int
 tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
-                      double off, double con,
-                      double lin, double par) {
+                      double lerp, double thresh, double soft) {
   char me[]="tenFiberAnisoSpeedSet", err[AIR_STRLEN_MED];
 
   if (!tfx) {
@@ -256,10 +254,9 @@ tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
     biffAdd(TEN, err); return 1;
   }
   tfx->anisoSpeed = aniso;
-  tfx->anisoSpeedFunc[0] = off;
-  tfx->anisoSpeedFunc[1] = con;
-  tfx->anisoSpeedFunc[2] = lin;
-  tfx->anisoSpeedFunc[3] = par;
+  tfx->anisoSpeedFunc[0] = lerp;
+  tfx->anisoSpeedFunc[1] = thresh;
+  tfx->anisoSpeedFunc[2] = soft;
 
   return 0;
 }

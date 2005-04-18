@@ -157,7 +157,7 @@ typedef struct pushContext_t {
     nudge,                         /* scaling of nudging towards center */
     wall,                          /* spring constant of walls */
     margin,                        /* space allowed around [-1,1]^3 for pnts */
-    tlThresh, tlSlope, tlStep,     /* tractlet formation parameters */
+    tlThresh, tlSoft, tlStep,      /* tractlet formation parameters */
     minMeanVel;                    /* stop if mean velocity drops below this */
   int seed,                        /* seed value for airSrand48 */
     tlFrenet,                      /* use Frenet frames for tractlet forces */

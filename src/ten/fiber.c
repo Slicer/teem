@@ -93,6 +93,28 @@ _tenFiberAlign(tenFiberContext *tfx, double vec[3]) {
 }
 
 /*
+** parm[0]: lerp between 1 and the stuff below
+** parm[1]: "t": (parm[1],0) is control point between (0,0) and (1,1)
+** parm[2]: "d": parabolic blend between parm[1]-parm[2] and parm[1]+parm[2]
+*/
+void
+_tenFiberAnisoSpeed(double *step, double xx, double parm[3]) {
+  double aa, dd, tt, yy;
+
+  tt = parm[1];
+  dd = parm[2];
+  aa = 1.0/(DBL_EPSILON + 4*dd*(1.0-tt));
+  yy = xx - tt + dd;
+  xx = (xx < tt - dd
+        ? 0
+        : (xx < tt + dd
+           ? aa*yy*yy
+           : (xx - tt)/(1 - tt)));
+  xx = AIR_LERP(parm[0], 1, xx);
+  ELL_3V_SCALE(step, xx, step);
+}
+
+/*
 ** -------------------------------------------------------------------
 ** -------------------------------------------------------------------
 ** The _tenFiberStep_* routines are responsible for putting a step into
@@ -101,22 +123,18 @@ _tenFiberAlign(tenFiberContext *tfx, double vec[3]) {
 */
 void
 _tenFiberStep_Evec1(tenFiberContext *tfx, double step[3]) {
-  double xx, *func;
   
   ELL_3V_COPY(step, tfx->evec + 3*0);
   _tenFiberAlign(tfx, step);
   if (tfx->anisoSpeed) {
-    func = tfx->anisoSpeedFunc;
-    xx = AIR_MAX(0, tfx->aniso[tfx->anisoSpeed] - func[0]);
-    xx = func[1] + func[2]*xx + func[3]*xx*xx;
-    ELL_3V_SCALE(step, xx, step);
+    _tenFiberAnisoSpeed(step, tfx->aniso[tfx->anisoSpeed],
+                        tfx->anisoSpeedFunc);
   }
 }
 
 void
 _tenFiberStep_TensorLine(tenFiberContext *tfx, double step[3]) {
   double cl, evec0[3], vout[3], vin[3], len;
-  double xx, *func;
   
   ELL_3V_COPY(evec0, tfx->evec + 3*0);
   _tenFiberAlign(tfx, evec0);
@@ -140,10 +158,8 @@ _tenFiberStep_TensorLine(tenFiberContext *tfx, double step[3]) {
   /* _tenFiberAlign(tfx, step); */
   ELL_3V_NORM(step, step, len);
   if (tfx->anisoSpeed) {
-    func = tfx->anisoSpeedFunc;
-    xx = AIR_MAX(0, tfx->aniso[tfx->anisoSpeed] - func[0]);
-    xx = func[1] + func[2]*xx + func[3]*xx*xx;
-    ELL_3V_SCALE(step, xx, step);
+    _tenFiberAnisoSpeed(step, tfx->aniso[tfx->anisoSpeed],
+                        tfx->anisoSpeedFunc);
   }
 }
 

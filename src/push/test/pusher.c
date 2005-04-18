@@ -138,7 +138,7 @@ main(int argc, char *argv[]) {
   pctx->step = step;
   pctx->mass = mass;
   pctx->tlThresh = tlf[0];
-  pctx->tlSlope = tlf[1];
+  pctx->tlSoft = tlf[1];
   pctx->tlStep = tlf[2];
   pctx->tlNumStep = tln;
   pctx->tlFrenet = frenet;
