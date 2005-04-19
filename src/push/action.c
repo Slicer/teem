@@ -172,7 +172,8 @@ _pushFiberSetup(pushContext *pctx) {
   if (!E) E |= tenFiberStopSet(pctx->fctx, tenFiberStopNumSteps,
                                pctx->tlNumStep);
   if (!E) E |= tenFiberStopSet(pctx->fctx, tenFiberStopAniso,
-                               tenAniso_Cl1, pctx->tlThresh);
+                               tenAniso_Cl1,
+                               pctx->tlThresh - pctx->tlSoft);
   if (!E) E |= tenFiberTypeSet(pctx->fctx, tenFiberTypeEvec1);
   if (!E) E |= tenFiberKernelSet(pctx->fctx,
                                  pctx->ksp00->kernel, pctx->ksp00->parm);
@@ -312,9 +313,10 @@ _pushBinSetup(pushContext *pctx) {
     biffAdd(PUSH, err); return 1;
   }
   for (ii=0; ii<pctx->numBin; ii++) {
-    pctx->bin[ii] = pushBinNew();
+    pctx->bin[ii] = pushBinNew(pctx->binIncr);
   }
   pushBinAllNeighborSet(pctx);
+  pushBinAllStrangerSet(pctx, pctx->tlNeighborRadius);
 
   return 0;
 }
@@ -619,7 +621,6 @@ _pushPairwiseForce(pushContext *pctx, push_t fvec[3], pushForce *force,
   if (!lenD) {
     fprintf(stderr, "%s: myPos == herPos == (%g,%g,%g)\n", me,
             myPoint->pos[0], myPoint->pos[1], myPoint->pos[2]);
-    exit(1);
     return;
   }
   if (lenD <= pctx->maxDist) {
@@ -681,7 +682,7 @@ _pushForce(pushTask *task, int myBinIdx,
   pushPoint *myPoint, *herPoint, *seedPoint;
   int myThingIdx, herThingIdx, myVertIdx, herVertIdx, ci;
   push_t myCharge, herCharge, charge,
-    dist, dir[3], drag, fvec[3], sumFvec[3], binorm[3], fTNB[3];
+    len, dir[3], drag, fvec[3], sumFvec[3], binorm[3], fTNB[3];
 
   myBin = task->pctx->bin[myBinIdx];
 
@@ -694,7 +695,9 @@ _pushForce(pushTask *task, int myBinIdx,
       ELL_3V_SET(sumFvec, 0, 0, 0);
 
       /* ... go through all points in all things in neighboring bins ... */
-      neighbor = myBin->neighbor;
+      neighbor = (1 == myThing->numVert
+                  ? myBin->neighbor
+                  : myBin->stranger);
       while ((herBin = *neighbor)) {
         for (herThingIdx=0; herThingIdx<herBin->numThing; herThingIdx++) {
           herThing = herBin->thing[herThingIdx];
@@ -710,6 +713,7 @@ _pushForce(pushTask *task, int myBinIdx,
             /* ... and sum the pair-wise forces from all of them */
             _pushPairwiseForce(task->pctx, fvec, task->pctx->force,
                                myPoint, herPoint);
+
             /* using myCharge*herCharge should be right, but it results
                in the tractlets not exerting much force, and moving 
                sluggishly- this way there seems to be continuity of
@@ -723,13 +727,13 @@ _pushForce(pushTask *task, int myBinIdx,
       /* each point in this thing also potentially experiences wall forces */
       if (task->pctx->wall) {
         for (ci=0; ci<=2; ci++) {
-          dist = myPoint->pos[ci] - task->pctx->minPos[ci];
-          if (dist < 0) {
-            sumFvec[ci] += -task->pctx->wall*dist;
+          len = myPoint->pos[ci] - task->pctx->minPos[ci];
+          if (len < 0) {
+            sumFvec[ci] += -task->pctx->wall*len;
           } else {
-            dist = task->pctx->maxPos[ci] - myPoint->pos[ci];
-            if (dist < 0) {
-              sumFvec[ci] += task->pctx->wall*dist;
+            len = task->pctx->maxPos[ci] - myPoint->pos[ci];
+            if (len < 0) {
+              sumFvec[ci] += task->pctx->wall*len;
             }
           }
         }
@@ -778,9 +782,9 @@ _pushForce(pushTask *task, int myBinIdx,
     
     /* nudging (whole thing) towards image center */
     if (task->pctx->nudge) {
-      ELL_3V_NORM(dir, myThing->point.pos, dist);
-      if (dist) {
-        ELL_3V_SCALE_INCR(myThing->point.frc, -task->pctx->nudge*dist, dir);
+      ELL_3V_NORM(dir, myThing->point.pos, len);
+      if (len) {
+        ELL_3V_SCALE_INCR(myThing->point.frc, -task->pctx->nudge*len, dir);
       }
     }
 
@@ -928,7 +932,8 @@ _pushUpdate(pushTask *task, int binIdx,
     /* sample field at new point location */
     _pushProbe(task, &(thing->point));
     /* be a point or tractlet, depending on anisotropy (and location) */
-    if (inside && (thing->point.aniso > task->pctx->tlThresh)) {
+    if (inside 
+        && thing->point.aniso >= task->pctx->tlThresh - task->pctx->tlSoft) {
       _pushThingTractletBe(task, thing);
     } else {
       _pushThingPointBe(task, thing);

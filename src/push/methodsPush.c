@@ -59,7 +59,7 @@ pushThingNix(pushThing *thg) {
 }
 
 pushBin *
-pushBinNew() {
+pushBinNew(int incr) {
   pushBin *bin;
 
   bin = (pushBin *)calloc(1, sizeof(pushBin));
@@ -67,9 +67,10 @@ pushBinNew() {
     bin->numThing = 0;
     bin->thing = NULL;
     bin->thingArr = airArrayNew((void**)&(bin->thing), &(bin->numThing),
-                                sizeof(pushThing *), PUSH_ARRAY_INCR);
+                                sizeof(pushThing *), incr);
     /* airArray callbacks are tempting but super confusing .... */
     bin->neighbor = NULL;
+    bin->stranger = NULL;
   }
   return bin;
 }
@@ -87,6 +88,7 @@ pushBinNix(pushBin *bin) {
     }
     bin->thingArr = airArrayNuke(bin->thingArr);
     bin->neighbor = airFree(bin->neighbor);
+    bin->stranger = airFree(bin->stranger);
     airFree(bin);
   }
   return NULL;
@@ -115,6 +117,8 @@ pushContextNew(void) {
     pctx->tlSoft = 0.0;
     pctx->minMeanVel = 0.0;
     pctx->seed = 42;
+    pctx->tlNeighborRadius = 2;
+    pctx->binIncr = 30;
     pctx->numThing = 0;
     pctx->numThread = 1;
     pctx->numStage = 0;

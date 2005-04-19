@@ -97,8 +97,21 @@ _pushBinNeighborSet(pushBin *bin, pushBin **nei, int num) {
 }
 
 void
+_pushBinStrangerSet(pushBin *bin, pushBin **str, int num) {
+  int strI;
+
+  bin->stranger = airFree(bin->stranger);
+  bin->stranger = (pushBin **)calloc(1+num, sizeof(pushBin *));
+  for (strI=0; strI<num; strI++) {
+    bin->stranger[strI] = str[strI];
+  }
+  bin->stranger[strI] = NULL;
+  return;
+}
+
+void
 pushBinAllNeighborSet(pushContext *pctx) {
-  pushBin *nei[27];
+  pushBin *nei[3*3*3];
   int numNei, be, xx, yy, zz, xi, yi, zi,
     xmin, xmax, ymin, ymax, zmin, zmax;
 
@@ -133,6 +146,49 @@ pushBinAllNeighborSet(pushContext *pctx) {
         }
       }
     }
+  }
+  return;
+}
+
+void
+pushBinAllStrangerSet(pushContext *pctx, int radius) {
+  pushBin **str;
+  int numStr, be, xx, yy, zz, xi, yi, zi, diam,
+    xmin, xmax, ymin, ymax, zmin, zmax;
+
+  if (pctx->singleBin) {
+    numStr = 0;
+    _pushBinStrangerSet(pctx->bin[0], NULL, numStr);
+  } else {
+    diam = 1 + 2*radius;
+    str = (pushBin**)calloc(diam*diam*diam, sizeof(pushBin*));
+    be = pctx->binsEdge;
+    for (zi=0; zi<(2 == pctx->dimIn ? 1 : be); zi++) {
+      for (yi=0; yi<be; yi++) {
+        for (xi=0; xi<be; xi++) {
+          xmin = AIR_MAX(0, xi-radius);
+          xmax = AIR_MIN(xi+radius, be-1);
+          ymin = AIR_MAX(0, yi-radius);
+          ymax = AIR_MIN(yi+radius, be-1);
+          if (2 == pctx->dimIn) {
+            zmin = zmax = 0;
+          } else {
+            zmin = AIR_MAX(0, zi-radius);
+            zmax = AIR_MIN(zi+radius, be-1);
+          }
+          numStr = 0;
+          for (zz=zmin; zz<=zmax; zz++) {
+            for (yy=ymin; yy<=ymax; yy++) {
+              for (xx=xmin; xx<=xmax; xx++) {
+                str[numStr++] = pctx->bin[xx + be*(yy + be*zz)];
+              }
+            }
+          }
+          _pushBinStrangerSet(pctx->bin[xi + be*(yi + be*zi)], str, numStr);
+        }
+      }
+    }
+    free(str);
   }
   return;
 }

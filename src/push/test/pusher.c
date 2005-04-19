@@ -31,7 +31,7 @@ main(int argc, char *argv[]) {
   
   char *outS[2];
   int seed, numThread, numThing, snap, minIter, maxIter, singleBin,
-    noDriftCorrect, tln, frenet;
+    noDriftCorrect, tln, frenet, incr, tlr;
   pushContext *pctx;
   Nrrd *nin, *nPosIn, *nStnIn, *nPosOut, *nTenOut, *nStnOut;
   double step, drag, preDrag, mass, scale, nudge, margin,
@@ -59,14 +59,17 @@ main(int argc, char *argv[]) {
              "if non-zero, min number of iterations to do processing for");
   hestOptAdd(&hopt, "step", "step", airTypeDouble, 1, 1, &step, "0.01",
              "time step in integration");
-  hestOptAdd(&hopt, "tlf", "thr lin step", airTypeDouble, 3, 3, tlf,
-             "1 0 0.01",
+  hestOptAdd(&hopt, "tlf", "thr soft step", airTypeDouble, 3, 3, tlf,
+             "0.2 0.2 0.01",
              "three parameters determining tractlet formation: the "
-             "Cl treshold below which there is no tractlet, the slope of "
-             "the mapping (above thresh) from Cl to speed, and the base "
+             "nominal Cl treshold below which there is no tractlet, "
+             "the region of smoothing around the threshold, and the base "
              "size of each step");
   hestOptAdd(&hopt, "tln", "# steps", airTypeInt, 1, 1, &tln, "10",
              "max number of steps in each tractlet half");
+  hestOptAdd(&hopt, "tlr", "radius", airTypeInt, 1, 1, &tlr, "2",
+             "radius of bin neighborhood calculation of "
+             "tractlet-tractlet interations");
   hestOptAdd(&hopt, "fren", NULL, airTypeInt, 0, 0, &frenet, NULL,
              "use tractlet Frenet frame for force averaging");
   hestOptAdd(&hopt, "scl", "scale", airTypeDouble, 1, 1, &scale, "0.25",
@@ -106,6 +109,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "nobin", NULL, airTypeBool, 0, 0, &singleBin, NULL,
              "turn off spatial binning (which prevents multi-threading "
              "from being useful), for debugging or speed-up measurement");
+  hestOptAdd(&hopt, "incr", "N", airTypeInt, 1, 1, &incr, "60",
+             "increment for per-bin airArray of things");
   hestOptAdd(&hopt, "ndc", NULL, airTypeBool, 0, 0, &noDriftCorrect, NULL,
              "turn off the correction for sliding around near changes of "
              "size in the tensor field");
@@ -125,6 +130,7 @@ main(int argc, char *argv[]) {
   nStnOut = nrrdNew();
   airMopAdd(mop, nStnOut, (airMopper)nrrdNuke, airMopAlways);
   
+  pctx->binIncr = incr;
   pctx->nin = nin;
   pctx->npos = nPosIn;
   pctx->nstn = nStnIn;
@@ -141,6 +147,7 @@ main(int argc, char *argv[]) {
   pctx->tlSoft = tlf[1];
   pctx->tlStep = tlf[2];
   pctx->tlNumStep = tln;
+  pctx->tlNeighborRadius = tlr;
   pctx->tlFrenet = frenet;
   pctx->force = force;
   pctx->scale = scale;

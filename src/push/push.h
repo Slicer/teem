@@ -65,6 +65,7 @@ typedef float push_t;
 ** sampled at the point.  "tan" and "cur" are only meaningful for tractlets.
 */
 typedef struct pushPoint_t {
+  struct pushThing_t *thing;   /* what thing do I belong to */
   push_t pos[3],               /* position in world space */
     vel[3],                    /* velocity */
     frc[3],                    /* force accumulator for current iteration */
@@ -114,10 +115,12 @@ typedef struct pushBin_t {
   airArray *thingArr;          /* airArray around thingPtr and numThing */
   struct pushBin_t **neighbor; /* pre-computed NULL-terminated list of all
                                   neighboring bins, including myself */
+  struct pushBin_t **stranger; /* pre-computed NULL-terminated list of all
+                                  bins around the neighbor bins, for doing
+                                  tractlet-tractlet interactions */
 } pushBin;
 
 /* increment for airArrays */
-#define PUSH_ARRAY_INCR 64
 
 typedef struct pushTask_t {
   struct pushContext_t *pctx;  /* parent's context */
@@ -162,6 +165,10 @@ typedef struct pushContext_t {
   int seed,                        /* seed value for airSrand48 */
     tlFrenet,                      /* use Frenet frames for tractlet forces */
     tlNumStep,                     /* max # points on each tractlet half */
+    tlNeighborRadius,              /* radius of neighborhood for finding
+                                      tractlet/tractlet interactions- binning
+                                      is set up with radius 1 in mind */
+    binIncr,                       /* increment for per-bin thing airArray */
     numThing,                      /* number things to start simulation w/ */
     numThread,                     /* number of threads to use */
     numStage,                      /* number of stages */
@@ -217,7 +224,7 @@ TEEM_API void pushTenInv(pushContext *pctx, push_t *inv, push_t *ten);
 /* methodsPush.c */
 TEEM_API pushThing *pushThingNew(int numVert);
 TEEM_API pushThing *pushThingNix(pushThing *thg);
-TEEM_API pushBin *pushBinNew(void);
+TEEM_API pushBin *pushBinNew(int incr);
 TEEM_API pushBin *pushBinNix(pushBin *bin);
 TEEM_API pushContext *pushContextNew(void);
 TEEM_API pushContext *pushContextNix(pushContext *pctx);
@@ -230,6 +237,7 @@ TEEM_API hestCB *pushHestForce;
 /* binning.c */
 TEEM_API int pushBinAdd(pushContext *pctx, pushThing *thing);
 TEEM_API void pushBinAllNeighborSet(pushContext *pctx);
+TEEM_API void pushBinAllStrangerSet(pushContext *pctx, int radius);
 TEEM_API int pushRebin(pushContext *pctx);
 
 /* corePush.c */
