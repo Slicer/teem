@@ -123,18 +123,18 @@ _pushTensorFieldSetup(pushContext *pctx) {
 int
 _pushGageSetup(pushContext *pctx) {
   char me[]="_pushGageSetup", err[AIR_STRLEN_MED];
-  gagePerVolume *tpvl, *mpvl;
+  gagePerVolume *mpvl;
   int E;
 
   pctx->gctx = gageContextNew();
   E = AIR_FALSE;
   /* set up tensor probing */
-  if (!E) E |= !(tpvl = gagePerVolumeNew(pctx->gctx,
-                                         pctx->nten, tenGageKind));
-  if (!E) E |= gagePerVolumeAttach(pctx->gctx, tpvl);
+  if (!E) E |= !(pctx->tpvl = gagePerVolumeNew(pctx->gctx,
+                                               pctx->nten, tenGageKind));
+  if (!E) E |= gagePerVolumeAttach(pctx->gctx, pctx->tpvl);
   if (!E) E |= gageKernelSet(pctx->gctx, gageKernel00,
                              pctx->ksp00->kernel, pctx->ksp00->parm);
-  if (!E) E |= gageQueryItemOn(pctx->gctx, tpvl, tenGageTensor);
+  if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->tpvl, tenGageTensor);
   /* set up mask gradient probing */
   if (!E) E |= !(mpvl = gagePerVolumeNew(pctx->gctx,
                                          pctx->nmask, gageKindScl));
@@ -163,7 +163,7 @@ _pushFiberSetup(pushContext *pctx) {
   char me[]="_pushFiberSetup", err[AIR_STRLEN_MED];
   int E;
 
-  pctx->fctx = tenFiberContextNew(pctx->nten);
+  pctx->fctx = tenFiberContextWrap(pctx->gctx, pctx->tpvl, pctx->nten);
   if (!pctx->fctx) { 
     sprintf(err, "%s: couldn't create fiber context", me);
     biffMove(PUSH, err, TEN); return 1;
@@ -316,7 +316,6 @@ _pushBinSetup(pushContext *pctx) {
     pctx->bin[ii] = pushBinNew(pctx->binIncr);
   }
   pushBinAllNeighborSet(pctx);
-  pushBinAllStrangerSet(pctx, pctx->tlNeighborRadius);
 
   return 0;
 }
@@ -354,9 +353,15 @@ _pushProbe(pushTask *task, pushPoint *point) {
 /*
 ** _pushThingSetup sets:
 **** pctx->numThing (in case pctx->nstn and/or pctx->npos)
+**
+** This is only called by the master thread
+** 
+** this should set stuff to be like after an update stage and
+** just before the rebinning
 */
 int
 _pushThingSetup(pushContext *pctx) {
+  char me[]="_pushThingSetup", err[AIR_STRLEN_MED];
   double (*lup)(const void *v, size_t I);
   int *stn, pointIdx, baseIdx, thingIdx;
   pushThing *thing;
@@ -421,7 +426,18 @@ _pushThingSetup(pushContext *pctx) {
            the range of values in the mask */
       } while (thing->vert[0].ten[0] < 0.5);
     }
-    pushBinAdd(pctx, thing);
+    for (pointIdx=0; pointIdx<thing->numVert; pointIdx++) {
+      if (pushBinPointAdd(pctx, thing->vert + pointIdx)) {
+        sprintf(err, "%s: trouble binning vert %d of thing %d", me,
+                pointIdx, thingIdx);
+        biffAdd(PUSH, err); return 1;
+      }
+      ELL_3V_SET(thing->vert[pointIdx].vel, 0, 0, 0);
+    }
+    if (pushBinThingAdd(pctx, thing)) {
+      sprintf(err, "%s: trouble thing %d", me, thingIdx);
+      biffAdd(PUSH, err); return 1;
+    }
   }
   /*
   {
@@ -674,103 +690,96 @@ _pushThingPointCharge(pushTask *task, pushThing *thg) {
   return THING_SIZE(task, thg)/thg->numVert;
 }
 
-void
+int
 _pushForce(pushTask *task, int myBinIdx,
            const push_t parm[PUSH_STAGE_PARM_MAXNUM]) {
+  /* char me[]="_pushForce"; */
   pushBin *myBin, *herBin, **neighbor;
-  pushThing *myThing, *herThing;
-  pushPoint *myPoint, *herPoint, *seedPoint;
-  int myThingIdx, herThingIdx, myVertIdx, herVertIdx, ci;
+  pushPoint *myPoint, *herPoint;
+  pushThing *myThing;
+  int myThingIdx, myPointIdx, herPointIdx, ci;
   push_t myCharge, herCharge, charge,
-    len, dir[3], drag, fvec[3], sumFvec[3], binorm[3], fTNB[3];
+    len, dir[3], drag, fvec[3];
+
+  /* fprintf(stderr, "!%s: bingo 0 %d\n", me, myBinIdx); */
 
   myBin = task->pctx->bin[myBinIdx];
 
-  /* for all points in all things in THIS bin ... */
+  /* initialize forces for things in this bin.  This is necessary
+     for tractlets in this bin, and redundant (with following
+     loop) for points in this bin */
   for (myThingIdx=0; myThingIdx<myBin->numThing; myThingIdx++) {
     myThing = myBin->thing[myThingIdx];
-    myCharge = _pushThingPointCharge(task, myThing);
-    for (myVertIdx=0; myVertIdx<myThing->numVert; myVertIdx++) {
-      myPoint = myThing->vert + myVertIdx;
-      ELL_3V_SET(sumFvec, 0, 0, 0);
+    ELL_3V_SET(myThing->point.frc, 0, 0, 0);
+  }
 
-      /* ... go through all points in all things in neighboring bins ... */
-      neighbor = (1 == myThing->numVert
-                  ? myBin->neighbor
-                  : myBin->stranger);
-      while ((herBin = *neighbor)) {
-        for (herThingIdx=0; herThingIdx<herBin->numThing; herThingIdx++) {
-          herThing = herBin->thing[herThingIdx];
-          if (myThing == herThing) {
-            /* dude, that's messed up */
-            continue;
-          }
-          herCharge = _pushThingPointCharge(task, herThing);
-          charge = (myCharge + herCharge)/2;
-          for (herVertIdx=0; herVertIdx<herThing->numVert; herVertIdx++) {
-            herPoint = herThing->vert + herVertIdx;
+  /* fprintf(stderr, "!%s: bingo 1 %d\n", me, myBinIdx); */
+
+  /* compute pair-wise forces between all points in this bin,
+     and all points in all neighboring bins */
+  for (myPointIdx=0; myPointIdx<myBin->numPoint; myPointIdx++) {
+    myPoint = myBin->point[myPointIdx];
+    myCharge = _pushThingPointCharge(task, myPoint->thing);
+    ELL_3V_SET(myPoint->frc, 0, 0, 0);
+
+    neighbor = myBin->neighbor;
+    while ((herBin = *neighbor)) {
+      for (herPointIdx=0; herPointIdx<herBin->numPoint; herPointIdx++) {
+        herPoint = herBin->point[herPointIdx];
+        if (myPoint->thing == herPoint->thing) {
+          /* there are no intra-thing forces */
+          continue;
+        }
+        herCharge = _pushThingPointCharge(task, herPoint->thing);
+        charge = (myCharge + herCharge)/2;
             
-            /* ... and sum the pair-wise forces from all of them */
-            _pushPairwiseForce(task->pctx, fvec, task->pctx->force,
-                               myPoint, herPoint);
+        _pushPairwiseForce(task->pctx, fvec, task->pctx->force,
+                           myPoint, herPoint);
 
-            /* using myCharge*herCharge should be right, but it results
-               in the tractlets not exerting much force, and moving 
-               sluggishly- this way there seems to be continuity of
-               movement between points and tractlets */
-            ELL_3V_SCALE_INCR(sumFvec, charge, fvec);
-          }
-        }
-        neighbor++;
-      }
-  
-      /* each point in this thing also potentially experiences wall forces */
-      if (task->pctx->wall) {
-        for (ci=0; ci<=2; ci++) {
-          len = myPoint->pos[ci] - task->pctx->minPos[ci];
-          if (len < 0) {
-            sumFvec[ci] += -task->pctx->wall*len;
-          } else {
-            len = task->pctx->maxPos[ci] - myPoint->pos[ci];
-            if (len < 0) {
-              sumFvec[ci] += task->pctx->wall*len;
-            }
-          }
-        }
-      }
+        /* using myCharge*herCharge should be right, but it results
+           in the tractlets not exerting much force, and moving 
+           sluggishly- this way there seems to be continuity of
+           movement between points and tractlets */
+        ELL_3V_SCALE_INCR(myPoint->frc, charge, fvec);
 
-      /* save accumulated force for this point */
-      ELL_3V_COPY(myPoint->frc, sumFvec);
+        /* POST */
+        if (1 == task->pctx->iter 
+            && 192 == myPoint->thing->ttaagg
+            && ELL_3V_LEN(fvec)) {
+          fprintf(stderr, "%f,%f += %f,%f <- %f <- (% 4d) %f,%f\n",
+                  myPoint->frc[0], myPoint->frc[1],
+                  fvec[0], fvec[1],
+                  charge,
+                  herPoint->thing->ttaagg,
+                  herPoint->pos[0], herPoint->pos[1]);
+        }
 
-    } /* for myVertIdx ... */
-    
-    /* convert per-vertex forces on tractlet to total force */
-    if (myThing->numVert > 1) {
-      ELL_3V_SET(sumFvec, 0, 0, 0);
-      if (task->pctx->tlFrenet && myThing->len > MIN_FRENET_LEN) {
-        ELL_3V_SET(fTNB, 0, 0, 0);
-        for (myVertIdx=0; myVertIdx<myThing->numVert; myVertIdx++) {
-          myPoint = myThing->vert + myVertIdx;
-          ELL_3V_CROSS(binorm, myPoint->tan, myPoint->nor);
-          fTNB[0] += ELL_3V_DOT(myPoint->frc, myPoint->tan);
-          fTNB[1] += ELL_3V_DOT(myPoint->frc, myPoint->nor);
-          fTNB[2] += ELL_3V_DOT(myPoint->frc, binorm);
-        }
-        seedPoint = myThing->vert + myThing->seedIdx;
-        ELL_3V_CROSS(binorm, seedPoint->tan, seedPoint->nor);
-        ELL_3V_SCALE_INCR(sumFvec, fTNB[0], seedPoint->tan);
-        ELL_3V_SCALE_INCR(sumFvec, fTNB[1], seedPoint->nor);
-        ELL_3V_SCALE_INCR(sumFvec, fTNB[2], binorm);
-      } else {
-        for (myVertIdx=0; myVertIdx<myThing->numVert; myVertIdx++) {
-          myPoint = myThing->vert + myVertIdx;
-          ELL_3V_INCR(sumFvec, myPoint->frc);
-        }
       }
-      ELL_3V_SCALE(myThing->point.frc, 1.0/myThing->numVert, sumFvec);
+      neighbor++;
     }
+  
+    /* fprintf(stderr, "!%s: bingo 1.3 %d\n", me, myBinIdx); */
+    /* each point in this thing also potentially experiences wall forces */
+    if (task->pctx->wall) {
+      for (ci=0; ci<=2; ci++) {
+        len = myPoint->pos[ci] - task->pctx->minPos[ci];
+        if (len < 0) {
+          myPoint->frc[ci] += -task->pctx->wall*len;
+        } else {
+          len = task->pctx->maxPos[ci] - myPoint->pos[ci];
+          if (len < 0) {
+            myPoint->frc[ci] += task->pctx->wall*len;
+          }
+        }
+      }
+    }
+  } /* for myPointIdx ... */
 
-    /* drag: currently based on the whole *thing's* velocity */
+  /* fprintf(stderr, "!%s: bingo 2 %d\n", me, myBinIdx); */
+
+  /* drag and nudging are computed per-thing, not per-point */
+  for (myThingIdx=0; myThingIdx<myBin->numThing; myThingIdx++) {
+    myThing = myBin->thing[myThingIdx];
     if (task->pctx->minIter
         && task->pctx->iter < task->pctx->minIter) {
       drag = AIR_AFFINE(0, task->pctx->iter, task->pctx->minIter,
@@ -779,61 +788,79 @@ _pushForce(pushTask *task, int myBinIdx,
       drag = task->pctx->drag;
     }
     ELL_3V_SCALE_INCR(myThing->point.frc, -drag, myThing->point.vel);
-    
-    /* nudging (whole thing) towards image center */
     if (task->pctx->nudge) {
       ELL_3V_NORM(dir, myThing->point.pos, len);
       if (len) {
         ELL_3V_SCALE_INCR(myThing->point.frc, -task->pctx->nudge*len, dir);
       }
     }
-
   }
-  return;
+
+  /* fprintf(stderr, "!%s: bingo 100\n", me); */
+  return 0;
 }
 
-void
+int
 _pushThingPointBe(pushTask *task, pushThing *thing) {
+  char me[]="_pushThingPointBe", err[AIR_STRLEN_MED];
+  int vertIdx;
 
   if (1 == thing->numVert) {
-    /* its already a point */
+    /* its already a point, so no points have to be nullified
+       in the bins.  The point may be rebinned later, but so what. */
   } else {
-    /* lose vertex info */
+    /* have to nullify, but not remove (because it wouldn't be
+       thread-safe) any outstanding pointers to this point in bins */
+    for (vertIdx=0; vertIdx<thing->numVert; vertIdx++) {
+      if (_pushBinPointNullify(task->pctx, NULL, thing->vert + vertIdx)) {
+        sprintf(err, "%s(%d): couldn't nullify vertex %d of thing %p",
+                me, task->threadIdx,
+                vertIdx, thing);
+        biffAdd(PUSH, err); return 1;
+      }
+    }
+    /* free vertex info */
     airFree(thing->vert);
     thing->vert = &(thing->point);
     thing->numVert = 1;
     thing->len = 0;
     thing->seedIdx = -1;
   }
-  return;
+  return 0;
 }
 
-void
-_pushThingTractletBe(pushTask *task, pushThing *thing) {
-  char me[]="_pushThingTractletBe", *err;
+int
+_pushThingTractletBe(pushTask *task, pushThing *thing, pushBin *oldBin) {
+  char me[]="_pushThingTractletBe", err[AIR_STRLEN_MED];
   int vertIdx, tret, startIdx, endIdx, numVert;
   double seed[3], tmp;
+  pushBin *newBin;
 
   /* NOTE: the seed point velocity remains as the tractlet velocity */
 
+  if (!(newBin = _pushBinLocate(task->pctx, thing->point.pos))) {
+    sprintf(err, "%s(%d): can't find bin for tractlet", me, task->threadIdx);
+    biffAdd(PUSH, err); return 1;
+  }
   ELL_3V_COPY(seed, thing->point.pos);
   tret = tenFiberTraceSet(task->fctx, NULL, 
                           task->vertBuff, task->pctx->tlNumStep,
                           &startIdx, &endIdx, seed);
   if (tret) {
-    err = biffGetDone(TEN);
-    fprintf(stderr, "!%s: fiber tracing failed:\n%s\n", me, err);
-    exit(1);
+    sprintf(err, "%s(%d): fiber tracing failed", me, task->threadIdx);
+    biffMove(PUSH, err, TEN); return 1;
   }
   if (task->fctx->whyNowhere) {
-    fprintf(stderr, "!%s: fiber tracing got nowhere: %d\n", me,
-            task->fctx->whyNowhere);
-    exit(1);
+    sprintf(err, "%s(%d): fiber tracing got nowhere: %d == %s\n", me,
+            task->threadIdx,
+            task->fctx->whyNowhere,
+            airEnumDesc(tenFiberStop, task->fctx->whyNowhere));
+    biffAdd(PUSH, err); return 1;
   }
   numVert = endIdx - startIdx + 1;
   if (!( numVert >= 3 )) {
-    fprintf(stderr, "!%s: problem: numVert only %d < 3\n", me, numVert);
-    exit(1);
+    sprintf(err, "%s(%d): numVert only %d < 3", me, task->threadIdx, numVert);
+    biffAdd(PUSH, err); return 1;
   }
 
   /* remember the length */
@@ -841,16 +868,39 @@ _pushThingTractletBe(pushTask *task, pushThing *thing) {
 
   /* allocate tractlet vertices as needed */
   if (numVert != thing->numVert) {
-    if (1 != thing->numVert) {
-      /* don't try to free thing->point for points */
+    if (1 == thing->numVert) {
+      /* it used to be a point, nullify old bin's pointer to it */
+      if (_pushBinPointNullify(task->pctx, oldBin, &(thing->point))) {
+        sprintf(err, "%s(%d): couldn't nullify former point %p of thing %p",
+                me, task->threadIdx,
+                &(thing->point), thing);
+        biffAdd(PUSH, err); return 1;
+      }
+    } else {
+      /* it used to be a tractlet (but w/ different numVert); verts still
+         have the position information so that we can recover the old bins */
+      for (vertIdx=0; vertIdx<thing->numVert; vertIdx++) {
+        if (_pushBinPointNullify(task->pctx, NULL, thing->vert + vertIdx)) {
+          sprintf(err, "%s(%d): couldn't nullify old vert %d %p of thing %p",
+                  me, task->threadIdx,
+                  vertIdx, thing->vert + vertIdx, thing);
+          biffAdd(PUSH, err); return 1;
+        }
+      }
       airFree(thing->vert);
     }
     thing->vert = (pushPoint*)calloc(numVert, sizeof(pushPoint));
     thing->numVert = numVert;
+    /* put tractlet points into this bin, since we can do so in a 
+       thread-safe way; later they will be re-binned */
+    for (vertIdx=0; vertIdx<thing->numVert; vertIdx++) {
+      _pushBinPointAdd(task->pctx, newBin, thing->vert + vertIdx);
+    }
   }
 
   /* copy from fiber tract vertex buffer */
   for (vertIdx=0; vertIdx<numVert; vertIdx++) {
+    thing->vert[vertIdx].thing = thing;
     ELL_3V_COPY(thing->vert[vertIdx].pos,
                 task->vertBuff + 3*(startIdx + vertIdx));
     _pushProbe(task, thing->vert + vertIdx);
@@ -880,7 +930,8 @@ _pushThingTractletBe(pushTask *task, pushThing *thing) {
       ELL_3V_NORM(thing->vert[vertIdx].nor, thing->vert[vertIdx].nor, tmp);
       tmp = ELL_3V_LEN(thing->vert[vertIdx].nor);
       if (!AIR_EXISTS(tmp)) {
-        fprintf(stderr, "(%d) (%g,%g,%g) X (%g,%g,%g) = %g %g %g --> %g\n", vertIdx,
+        fprintf(stderr, "(%d) (%g,%g,%g) X (%g,%g,%g) = "
+                "%g %g %g --> %g\n", vertIdx,
                 (thing->vert[vertIdx+1].tan)[0],
                 (thing->vert[vertIdx+1].tan)[1],
                 (thing->vert[vertIdx+1].tan)[2],
@@ -898,29 +949,114 @@ _pushThingTractletBe(pushTask *task, pushThing *thing) {
     ELL_3V_COPY(thing->vert[numVert-1].nor, thing->vert[numVert-2].nor);
   }
 
-  return;
+  return 0;
 }
 
 void
+_pushPrintForce(pushContext *pctx, pushThing *thing) {
+  int vi, posI[3], frcI[3];
+  double pos[3], frc[3];
+
+  ELL_3V_SCALE(posI, 1000000, thing->point.pos);
+  ELL_3V_SCALE(pos, 1.0/1000000, posI);
+  ELL_3V_SCALE(frcI, 1000000, thing->point.frc);
+  ELL_3V_SCALE(frc, 1.0/1000000, frcI);
+  fprintf(stderr, "% 4d@(% 6.6f,% 6.6f)(% 6.6f,% 6.6f)",
+          thing->ttaagg, pos[0], pos[1], frc[0], frc[1]);
+  for (vi=0; vi<thing->numVert; vi++) {
+    ELL_3V_SCALE(frcI, 1000000, thing->vert[vi].frc);
+    ELL_3V_SCALE(frc, 1.0/1000000, frcI);
+    fprintf(stderr, "--(% 6.6f,% 6.6f)", frc[0], frc[1]);
+  }
+  fprintf(stderr, "\n");
+}
+
+int
 _pushUpdate(pushTask *task, int binIdx,
             const push_t parm[PUSH_STAGE_PARM_MAXNUM]) {
-  int thingIdx, inside;
+  char me[]="_pushUpdate", err[AIR_STRLEN_MED];
+  int thingIdx, vertIdx, inside, ret;
   double step, mass, *minPos, *maxPos;
-  pushBin *bin;
+  push_t fTNB[3], binorm[3], fvec[3];
+  pushBin *bin, *oldBin;
   pushThing *thing;
+  pushPoint *point, *seedPoint;
 
   step = task->pctx->step;
   bin = task->pctx->bin[binIdx];
   minPos = task->pctx->minPos;
   maxPos = task->pctx->maxPos;
   for (thingIdx=0; thingIdx<bin->numThing; thingIdx++) {
-    task->numThing++;
     thing = bin->thing[thingIdx];
+
+    /* convert per-vertex forces on tractlet to total force */
+    if (thing->numVert > 1) {
+      ELL_3V_SET(fvec, 0, 0, 0);
+      if (task->pctx->tlFrenet && thing->len > MIN_FRENET_LEN) {
+        ELL_3V_SET(fTNB, 0, 0, 0);
+        for (vertIdx=0; vertIdx<thing->numVert; vertIdx++) {
+          point = thing->vert + vertIdx;
+          ELL_3V_CROSS(binorm, point->tan, point->nor);
+          fTNB[0] += ELL_3V_DOT(point->frc, point->tan);
+          fTNB[1] += ELL_3V_DOT(point->frc, point->nor);
+          fTNB[2] += ELL_3V_DOT(point->frc, binorm);
+        }
+        seedPoint = thing->vert + thing->seedIdx;
+        ELL_3V_CROSS(binorm, seedPoint->tan, seedPoint->nor);
+        ELL_3V_SCALE_INCR(fvec, fTNB[0], seedPoint->tan);
+        ELL_3V_SCALE_INCR(fvec, fTNB[1], seedPoint->nor);
+        ELL_3V_SCALE_INCR(fvec, fTNB[2], binorm);
+      } else {
+        for (vertIdx=0; vertIdx<thing->numVert; vertIdx++) {
+          point = thing->vert + vertIdx;
+          ELL_3V_INCR(fvec, point->frc);
+        }
+      }
+      /* we have to add this on ("INCR") and not just set it,
+         because the drag and nudge forces were already stored
+         here during the force stage */
+      ELL_3V_SCALE_INCR(thing->point.frc, 1.0/thing->numVert, fvec);
+    }
+
+    /* POST */
+    if (1 == task->pctx->iter 
+        && 192 == thing->ttaagg) {
+      fprintf(stderr, "final: %f,%f\n", 
+              thing->point.frc[0], thing->point.frc[1]);
+    }
+    if (0 && 1 == task->pctx->iter) {
+      _pushPrintForce(task->pctx, thing);
+    }
+
+    /* remember bin that the thing is currently in before the 
+       position is updated- if it changes from a point to a tractlet,
+       we need to remove a bin's reference to the point, since it'll
+       then be a seedpoint, and not a lone point (nor tractlet vertex) */
+    if (!( oldBin = _pushBinLocate(task->pctx, thing->point.pos) )) {
+      sprintf(err, "%s(%d): couldn't get old bin from point of thing %d %p "
+              "in bin %d", me, task->threadIdx, thingIdx, thing, binIdx);
+      biffAdd(PUSH, err); return 1;
+    }
+
     /* update dynamics: applies equally to points and tractlets */
     mass = _pushThingMass(task, thing);
     ELL_3V_SCALE_INCR(thing->point.pos, step, thing->point.vel);
     ELL_3V_SCALE_INCR(thing->point.vel, step/mass, thing->point.frc);
     task->sumVel += ELL_3V_LEN(thing->point.vel);
+    if (!AIR_EXISTS(task->sumVel)) {
+      sprintf(err, "%s(%d): sumVel went NaN (from vel (%g,%g,%g), from force "
+              "(%g,%g,%g)) on thing (%d verts) %d %p of bin %d", 
+              me, task->threadIdx,
+              thing->point.vel[0],
+              thing->point.vel[1],
+              thing->point.vel[2],
+              thing->point.frc[0],
+              thing->point.frc[1],
+              thing->point.frc[2],
+              thingIdx, thing->numVert, thing, binIdx);
+      biffAdd(PUSH, err); return 1;
+    }
+    task->numThing += 1;
     /* while _pushProbe clamps positions to inside domain before
        calling gageProbe, we can exert no such control over the gageProbe
        called within tenFiberTraceSet.  So for now, things turn to points
@@ -932,14 +1068,20 @@ _pushUpdate(pushTask *task, int binIdx,
     /* sample field at new point location */
     _pushProbe(task, &(thing->point));
     /* be a point or tractlet, depending on anisotropy (and location) */
-    if (inside 
-        && thing->point.aniso >= task->pctx->tlThresh - task->pctx->tlSoft) {
-      _pushThingTractletBe(task, thing);
+    if (inside && (thing->point.aniso 
+                   >= (task->pctx->tlThresh - task->pctx->tlSoft))) {
+      ret = _pushThingTractletBe(task, thing, oldBin);
     } else {
-      _pushThingPointBe(task, thing);
+      ret = _pushThingPointBe(task, thing);
     }
-  }
-  return;
+    if (ret) {
+      sprintf(err, "%s(%d): trouble updating thing %d %p of bin %d",
+              me, task->threadIdx,
+              thingIdx, thing, binIdx);
+      biffAdd(PUSH, err); return 1;
+    }
+  } /* for thingIdx */
+  return 0;
 }
 
 int

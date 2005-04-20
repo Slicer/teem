@@ -21,7 +21,7 @@
 #include "push.h"
 #include "privatePush.h"
 
-void
+int
 _pushProcessDummy(pushTask *task, int bin, 
                   const push_t parm[PUSH_STAGE_PARM_MAXNUM]) {
   char me[]="_pushProcessDummy";
@@ -42,14 +42,15 @@ _pushProcessDummy(pushTask *task, int bin,
   for (i=0; i<=1000000*(1+task->threadIdx); i++) {
     j -= i;
   }
-  return;
+  return 0;
 }
 
 /*
 ** this is run once per task (thread), per stage
 */
-void
+int
 _pushStageRun(pushTask *task, int stageIdx) {
+  char me[]="_pushStageRun", err[AIR_STRLEN_MED];
   int binIdx;
   
   while (task->pctx->binIdx < task->pctx->numBin) {
@@ -62,7 +63,8 @@ _pushStageRun(pushTask *task, int stageIdx) {
         task->pctx->binIdx++;
       }
     } while (binIdx < task->pctx->numBin
-             && 0 == task->pctx->bin[binIdx]->numThing);
+             && 0 == task->pctx->bin[binIdx]->numThing
+             && 0 == task->pctx->bin[binIdx]->numPoint);
     if (task->pctx->numThread > 1) {
       airThreadMutexUnlock(task->pctx->binMutex);
     }
@@ -72,15 +74,19 @@ _pushStageRun(pushTask *task, int stageIdx) {
       break;
     }
 
-    task->pctx->process[stageIdx](task, binIdx,
-                                  task->pctx->stageParm[stageIdx]);
+    if (task->pctx->process[stageIdx](task, binIdx,
+                                      task->pctx->stageParm[stageIdx])) {
+      sprintf(err, "%s(%d): had trouble running stage %d", me,
+              task->threadIdx, stageIdx);
+      biffAdd(PUSH, err); return 1;
+    }
   }
-  return;
+  return 0;
 }
 
 void *
 _pushWorker(void *_task) {
-  char me[]="_pushWorker";
+  char me[]="_pushWorker", *err;
   pushTask *task;
   
   task = (pushTask *)_task;
@@ -104,7 +110,11 @@ _pushWorker(void *_task) {
       fprintf(stderr, "%s(%d): starting to run stage %d\n",
               me, task->threadIdx, task->pctx->stageIdx);
     }
-    _pushStageRun(task, task->pctx->stageIdx);
+    if (_pushStageRun(task, task->pctx->stageIdx)) {
+      err = biffGetDone(PUSH);
+      fprintf(stderr, "%s: task %d trouble with stage %d:\n%s", me,
+              task->threadIdx, task->pctx->stageIdx, err);
+    }
     airThreadBarrierWait(task->pctx->stageBarrierB);
   }
 
@@ -282,6 +292,10 @@ pushIterate(pushContext *pctx) {
   numThing = 0;
   for (ti=0; ti<pctx->numThread; ti++) {
     pctx->meanVel += pctx->task[ti]->sumVel;
+    /*
+    fprintf(stderr, "!%s: task %d sumVel = %g\n", me,
+            ti, pctx->task[ti]->sumVel);
+    */
     numThing += pctx->task[ti]->numThing;
   }
   pctx->meanVel /= numThing;

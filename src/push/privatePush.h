@@ -35,11 +35,15 @@ extern push_t *_pushThingPos(pushThing *thg);
 extern airEnum *pushForceEnum;
 
 /* binning.c */
-extern pushBin *_pushBinLocate(pushContext *pctx, pushThing *thing);
+extern pushBin *_pushBinLocate(pushContext *pctx, push_t *pos);
+extern int _pushBinPointNullify(pushContext *pctx,
+                                pushBin *oldBin, pushPoint *point);
+extern void _pushBinPointAdd(pushContext *pctx,
+                             pushBin *bin, pushPoint *point);
 
 /* corePush.c */
 extern pushTask *_pushTaskNew(pushContext *pctx, int threadIdx);
-extern void _pushProcessDummy(pushTask *task, int bin,
+extern int _pushProcessDummy(pushTask *task, int bin,
                               const push_t *parm);
 
 /* action.c */
@@ -56,8 +60,8 @@ extern int _pushBinPointsRebin(pushContext *pctx);
 extern void _pushProbe(pushTask *task, pushPoint *point);
 extern int _pushInputProcess(pushContext *pctx);
 extern void _pushInitialize(pushContext *pctx);
-extern void _pushForce(pushTask *task, int bin, const push_t *parm);
-extern void _pushUpdate(pushTask *task, int bin, const push_t *parm);
+extern int _pushForce(pushTask *task, int bin, const push_t *parm);
+extern int _pushUpdate(pushTask *task, int bin, const push_t *parm);
 
 #ifdef __cplusplus
 }

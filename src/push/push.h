@@ -83,7 +83,7 @@ typedef struct pushPoint_t {
 ** represents both single points, and tractlets, as follows:
 **
 ** for single points: "point" tells the whole story of the point,
-** but point.dir is meaningless.  For the sake of easily computing all
+** but point.{tan,nor} is meaningless.  For the sake of easily computing all
 ** pair-wise point interactions between things, "numVert" is 1, and
 ** "vert" points to "point".  "len" is 0.
 **
@@ -101,7 +101,7 @@ typedef struct pushThing_t {
   pushPoint point;             /* information about single point, or a
                                   seed point, hard to say exactly */
   pushPoint *vert;             /* dyn. alloc. array of tractlet vertices
-                                  (not! pointers to pushPoints), or, just
+                                  (*not* pointers to pushPoints), or, just
                                   the address of "point" for single point */
   int numVert,                 /* 1 for single point, else length of vert[] */
     seedIdx;                   /* which of the vertices is the seed point */
@@ -110,14 +110,14 @@ typedef struct pushThing_t {
 } pushThing;
 
 typedef struct pushBin_t {
+  int numPoint;                /* # of points in this bin */
+  pushPoint **point;           /* dyn. alloc. array of point pointers */
+  airArray *pointArr;          /* airArray around pointPtr and numThing */
   int numThing;                /* # of things in this bin */
   pushThing **thing;           /* dyn. alloc. array of thing pointers */
   airArray *thingArr;          /* airArray around thingPtr and numThing */
   struct pushBin_t **neighbor; /* pre-computed NULL-terminated list of all
                                   neighboring bins, including myself */
-  struct pushBin_t **stranger; /* pre-computed NULL-terminated list of all
-                                  bins around the neighbor bins, for doing
-                                  tractlet-tractlet interactions */
 } pushBin;
 
 /* increment for airArrays */
@@ -135,8 +135,8 @@ typedef struct pushTask_t {
   void *returnPtr;             /* for airThreadJoin */
 } pushTask;
 
-typedef void (*pushProcess)(pushTask *task, int bin,
-                            const push_t parm[PUSH_STAGE_PARM_MAXNUM]);
+typedef int (*pushProcess)(pushTask *task, int bin,
+                           const push_t parm[PUSH_STAGE_PARM_MAXNUM]);
 
 typedef struct {
   push_t (*func)(push_t haveDist, push_t restDist, push_t scale,
@@ -187,7 +187,8 @@ typedef struct pushContext_t {
   /* INTERNAL -------------------------- */
   Nrrd *nten,                      /* 3D image of 3D masked tensors */
     *nmask;                        /* mask image from nten */
-  gageContext *gctx;               /* gage context around nten */
+  gageContext *gctx;               /* gage context around stuff */
+  gagePerVolume *tpvl;             /* gage pervolume around nten */
   tenFiberContext *fctx;           /* tenFiber context around nten */
   int dimIn,                       /* dimension (2 or 3) of input */
     binsEdge,                      /* # bins along edge of grid */
@@ -197,7 +198,7 @@ typedef struct pushContext_t {
     binIdx;                        /* *next* bin of points needing to be
                                       processed.  Stage is done when
                                       binIdx == numBin */
-  pushBin **bin;                   /* volume of bins (see binsEdge, numBin) */
+  pushBin **bin;                  /* volume of bins (see binsEdge, numBin) */
   double maxDist,                  /* max distance btween interacting points */
     maxEval, meanEval,             /* max and mean principal eval in field */
     minPos[3],                     /* lower corner of world position */
@@ -235,9 +236,9 @@ TEEM_API pushForce *pushForceNix(pushForce *force);
 TEEM_API hestCB *pushHestForce;
 
 /* binning.c */
-TEEM_API int pushBinAdd(pushContext *pctx, pushThing *thing);
+TEEM_API int pushBinThingAdd(pushContext *pctx, pushThing *thing);
+TEEM_API int pushBinPointAdd(pushContext *pctx, pushPoint *point);
 TEEM_API void pushBinAllNeighborSet(pushContext *pctx);
-TEEM_API void pushBinAllStrangerSet(pushContext *pctx, int radius);
 TEEM_API int pushRebin(pushContext *pctx);
 
 /* corePush.c */

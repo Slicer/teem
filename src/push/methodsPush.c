@@ -24,8 +24,9 @@
 
 pushThing *
 pushThingNew(int numVert) {
-  static int ttaagg=0;
+  static int ttaagg=0; 
   pushThing *thg;
+  int idx;
 
   if (!( numVert >= 1 )) {
     thg = NULL;
@@ -33,11 +34,15 @@ pushThingNew(int numVert) {
     thg = (pushThing *)calloc(1, sizeof(pushThing));
     if (thg) {
       thg->ttaagg = ttaagg++;
+      thg->point.thing = thg;
       thg->numVert = numVert;
       if (1 == numVert) {
         thg->vert = &(thg->point);
       } else {
         thg->vert = (pushPoint *)calloc(numVert, sizeof(pushPoint));
+        for (idx=0; idx<numVert; idx++) {
+          thg->vert[idx].thing = thg;
+        }
       }
       thg->len = 0;
       thg->seedIdx = -1;
@@ -68,27 +73,31 @@ pushBinNew(int incr) {
     bin->thing = NULL;
     bin->thingArr = airArrayNew((void**)&(bin->thing), &(bin->numThing),
                                 sizeof(pushThing *), incr);
+    bin->numPoint = 0;
+    bin->point = NULL;
+    bin->pointArr = airArrayNew((void**)&(bin->point), &(bin->numPoint),
+                                sizeof(pushPoint *), incr);
     /* airArray callbacks are tempting but super confusing .... */
     bin->neighbor = NULL;
-    bin->stranger = NULL;
   }
   return bin;
 }
 
 /*
-** bins own their contents: when you nix a bin, you nix its contents
+** bins own the "thing" they contain, when you nix a bin, you nix the
+** the things inside, but not the points (they belong to things)
 */
 pushBin *
 pushBinNix(pushBin *bin) {
-  int thingI;
+  int idx;
 
   if (bin) {
-    for (thingI=0; thingI<bin->numThing; thingI++) {
-      bin->thing[thingI] = pushThingNix(bin->thing[thingI]);
+    bin->pointArr = airArrayNuke(bin->pointArr);
+    for (idx=0; idx<bin->numThing; idx++) {
+      bin->thing[idx] = pushThingNix(bin->thing[idx]);
     }
     bin->thingArr = airArrayNuke(bin->thingArr);
     bin->neighbor = airFree(bin->neighbor);
-    bin->stranger = airFree(bin->stranger);
     airFree(bin);
   }
   return NULL;
@@ -140,6 +149,7 @@ pushContextNew(void) {
     pctx->nten = NULL;
     pctx->nmask = NULL;
     pctx->gctx = NULL;
+    pctx->tpvl = NULL;
     pctx->fctx = NULL;
     pctx->dimIn = 0;
     /* binsEdge and numBin are found later */
