@@ -284,37 +284,12 @@ _biffFindMaxAndSum(int *maxP, int *sumP, _biffEntry *ent) {
 /***********************************************************************/
 
 /*
-******** biffSet()
-**
-** Sets given message "err" to be only message at "key".  "key" can be
-** a new or existing key, but if it is an existing key, then existing
-** messages at that key are lost
-*/
-void
-biffSet(const char *key, const char *err) {
-  _biffEntry *ent;
-
-  _biffInit();
-  _biffCheckKey(key);
-
-  ent = _biffFindKey(key);
-  if (!ent) {
-    /* not a key we remember seeing */
-    ent = _biffAddKey(key);
-  }
-
-  /* delete any existing messages at this index */
-  airArraySetLen(ent->AA, 0);
-
-  /* add the new message */
-  _biffAddErr(ent, err);
-  return;
-}
-
-/*
 ******** biffAdd()
 **
-** just like biffSet(), but doesn't delete existing messages
+** Adds string "err" at key "key", whether or not there are any 
+** existing messages there.  Since biffSet() was killed 
+** Wed Apr 20 11:11:51 EDT 2005, this has become the main biff
+** function.
 */
 void
 biffAdd(const char *key, const char *err) {
