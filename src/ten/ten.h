@@ -329,7 +329,8 @@ typedef struct {
   double confThresh;    /* confidence threshold */
   double wPunct;        /* knob for tensor lines */
   /* ---- internal ----- */
-  int thisIsACopy;      /* non-zero if I come from tenFiberContextCopy */
+  int wrapped,          /* non-zero iff tenFiberContextWrap was used */
+    thisIsACopy;        /* non-zero if I come from tenFiberContextCopy */
   gageQuery query;      /* query we'll send to gageQuerySet */
   int dir;              /* current direction being computed (0 or 1) */
   double wPos[3],       /* current world space location */
@@ -337,11 +338,12 @@ typedef struct {
     lastDir[3],         /* previous value of wDir */
     firstEvec[3];       /* principal eigenvector first found at seed point */
   int lastDirSet;       /* lastDir[] is usefully set */
-  gageContext *gtx;     /* wrapped around dtvol */
-  gage_t *dten,         /* gageAnswerPointer(gtx->pvl[0], tenGageTensor) */
-    *eval,              /* gageAnswerPointer(gtx->pvl[0], tenGageEval) */
-    *evec,              /* gageAnswerPointer(gtx->pvl[0], tenGageEvec) */
-    *aniso;             /* gageAnswerPointer(gtx->pvl[0], tenGageAniso) */
+  gageContext *gtx;     /* wrapped around pvl */
+  gagePerVolume *pvl;   /* wrapped around dtvol */
+  gage_t *dten,         /* gageAnswerPointer(pvl, tenGageTensor) */
+    *eval,              /* gageAnswerPointer(pvl, tenGageEval) */
+    *evec,              /* gageAnswerPointer(pvl, tenGageEvec) */
+    *aniso;             /* gageAnswerPointer(pvl, tenGageAniso) */
   /* ---- output ------- */
   double halfLen[2];    /* length of each fiber half in world space */
   int numSteps[2],      /* how many samples are used for each fiber half */
@@ -514,6 +516,9 @@ TEEM_API int _tenFindValley(double *valP, Nrrd *nhist,
                             double tweak, int save);
 
 /* fiberMethods.c */
+TEEM_API tenFiberContext *tenFiberContextWrap(gageContext *gtx,
+                                              gagePerVolume *pvl,
+                                              Nrrd *dtvol);
 TEEM_API tenFiberContext *tenFiberContextNew(Nrrd *dtvol);
 TEEM_API int tenFiberTypeSet(tenFiberContext *tfx, int type);
 TEEM_API int tenFiberKernelSet(tenFiberContext *tfx,

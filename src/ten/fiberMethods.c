@@ -55,61 +55,99 @@ _tenLearnLengths(double vhlen[3], int center, Nrrd *dtvol) {
 */
 
 tenFiberContext *
+tenFiberContextWrap(gageContext *gtx, gagePerVolume *pvl, Nrrd *dtvol) {
+  char me[]="tenFiberContextWrap", err[AIR_STRLEN_MED];
+  tenFiberContext *tfx;
+  const NrrdKernel *kernel;
+  double kparm[NRRD_KERNEL_PARMS_NUM];
+
+  if (!(gtx && pvl && dtvol)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return NULL;
+  }
+  if (tenTensorCheck(dtvol, nrrdTypeUnknown, AIR_TRUE, AIR_TRUE)) {
+    sprintf(err, "%s: didn't get a tensor volume", me);
+    biffAdd(TEN, err); return NULL;
+  }
+  if (dtvol != pvl->nin) {
+    sprintf(err, "%s: given perVolume doesn't contain given dtvol", me);
+    biffAdd(TEN, err); return NULL;
+  }
+  if (!gagePerVolumeIsAttached(gtx, pvl)) {
+    sprintf(err, "%s: given perVolume not attached to given gageContext", me);
+    biffAdd(TEN, err); return NULL;
+  }
+  if (!( tfx = calloc(1, sizeof(tenFiberContext)) )) {
+    /* that is not good */
+    return NULL;
+  }
+
+  tfx->wrapped = AIR_TRUE;
+  tfx->dtvol = dtvol;
+  tfx->ksp = nrrdKernelSpecNew();
+  tfx->gtx = gtx;
+  tfx->pvl = pvl;
+  if (nrrdKernelParse(&kernel, kparm, tenDefFiberKernel)) {
+    sprintf(err, "%s: couldn't parse tenDefFiberKernel \"%s\"",
+            me,  tenDefFiberKernel);
+    biffMove(TEN, err, NRRD); return NULL;
+  }
+  if (tenFiberKernelSet(tfx, kernel, kparm)) {
+    sprintf(err, "%s: couldn't set default kernel", me);
+    biffAdd(TEN, err); return NULL;
+  }
+  tfx->fiberType = tenFiberTypeUnknown;
+  tfx->anisoType = tenDefFiberAnisoType;
+  /* so I'm not using the normal default mechanism, shoot me */
+  tfx->anisoSpeed = tenAnisoUnknown;
+  tfx->anisoSpeedFunc[0] = 0;
+  tfx->anisoSpeedFunc[1] = 0;
+  tfx->anisoSpeedFunc[2] = 0;
+  tfx->anisoThresh = tenDefFiberAnisoThresh;
+  tfx->confThresh = 0.5; /* why do I even bother setting these- they'll
+                            only get read if the right tenFiberStopSet has
+                            been called, in which case they'll be set... */
+  tfx->stepSize = tenDefFiberStepSize;
+  tfx->useIndexSpace = tenDefFiberUseIndexSpace;
+  tfx->maxHalfLen = tenDefFiberMaxHalfLen;
+  tfx->intg = tenDefFiberIntg;
+  tfx->wPunct = tenDefFiberWPunct;
+  tfx->thisIsACopy = AIR_FALSE;
+  tfx->stop = 0;
+  
+  GAGE_QUERY_RESET(tfx->query);
+  tfx->dten = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageTensor);
+  tfx->eval = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEval0);
+  tfx->evec = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEvec0);
+  tfx->aniso = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageAniso);
+  return tfx;
+}
+
+tenFiberContext *
 tenFiberContextNew(Nrrd *dtvol) {
   char me[]="tenFiberContextNew", err[AIR_STRLEN_MED];
   tenFiberContext *tfx;
+  gageContext *gtx;
   gagePerVolume *pvl;
-  const NrrdKernel *kernel;
-  double kparm[NRRD_KERNEL_PARMS_NUM];
   
-  tfx = calloc(1, sizeof(tenFiberContext));
-  if (tfx) {
-    if (tenTensorCheck(dtvol, nrrdTypeUnknown, AIR_TRUE, AIR_TRUE)) {
-      sprintf(err, "%s: didn't get a tensor volume", me);
-      biffAdd(TEN, err); return NULL;
-    }
-    tfx->dtvol = dtvol;
-    tfx->ksp = nrrdKernelSpecNew();
-    tfx->gtx = gageContextNew();
-    if ( !(pvl = gagePerVolumeNew(tfx->gtx, dtvol, tenGageKind)) 
-         || (gagePerVolumeAttach(tfx->gtx, pvl)) ) {
-      sprintf(err, "%s: gage trouble", me);
-      biffMove(TEN, err, GAGE); return NULL;
-    }
-    if (nrrdKernelParse(&kernel, kparm, tenDefFiberKernel)) {
-      sprintf(err, "%s: couldn't parse tenDefFiberKernel \"%s\"",
-              me,  tenDefFiberKernel);
-      biffMove(TEN, err, NRRD); return NULL;
-    }
-    if (tenFiberKernelSet(tfx, kernel, kparm)) {
-      sprintf(err, "%s: couldn't set default kernel", me);
-      biffAdd(TEN, err); return NULL;
-    }
-    tfx->fiberType = tenFiberTypeUnknown;
-    tfx->anisoType = tenDefFiberAnisoType;
-    /* so I'm not using the normal default mechanism, shoot me */
-    tfx->anisoSpeed = tenAnisoUnknown;
-    tfx->anisoSpeedFunc[0] = 0;
-    tfx->anisoSpeedFunc[1] = 0;
-    tfx->anisoSpeedFunc[2] = 0;
-    tfx->anisoThresh = tenDefFiberAnisoThresh;
-    tfx->confThresh = 0.5; /* why do I even bother setting these- they'll
-                              only get read if the right tenFiberStopSet has
-                              been called, in which case they'll be set... */
-    tfx->stepSize = tenDefFiberStepSize;
-    tfx->useIndexSpace = tenDefFiberUseIndexSpace;
-    tfx->maxHalfLen = tenDefFiberMaxHalfLen;
-    tfx->intg = tenDefFiberIntg;
-    tfx->wPunct = tenDefFiberWPunct;
-    tfx->thisIsACopy = AIR_FALSE;
-    tfx->stop = 0;
-
-    GAGE_QUERY_RESET(tfx->query);
-    tfx->dten = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageTensor);
-    tfx->eval = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageEval0);
-    tfx->evec = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageEvec0);
-    tfx->aniso = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageAniso);
+  if (tenTensorCheck(dtvol, nrrdTypeUnknown, AIR_TRUE, AIR_TRUE)) {
+    sprintf(err, "%s: didn't get a tensor volume", me);
+    biffAdd(TEN, err); return NULL;
   }
+
+  gtx = gageContextNew();
+  if ( !(pvl = gagePerVolumeNew(gtx, dtvol, tenGageKind)) 
+       || (gagePerVolumeAttach(gtx, pvl)) ) {
+    sprintf(err, "%s: gage trouble", me);
+    biffMove(TEN, err, GAGE); return NULL;
+  }
+
+  if (!( tfx = tenFiberContextWrap(gtx, pvl, dtvol) )) {
+    sprintf(err, "%s: trouble wrapping into context", me);
+    biffAdd(TEN, err); return NULL;
+  }
+  tfx->wrapped = AIR_FALSE;
+
   return tfx;
 }
 
@@ -363,7 +401,7 @@ tenFiberUpdate(tenFiberContext *tfx) {
     sprintf(err, "%s: no fiber stopping criteria set", me);
     biffAdd(TEN, err); return 1;
   }
-  if (gageQuerySet(tfx->gtx, tfx->gtx->pvl[0], tfx->query)
+  if (gageQuerySet(tfx->gtx, tfx->pvl, tfx->query)
       || gageUpdate(tfx->gtx)) {
     sprintf(err, "%s: trouble with gage", me);
     biffMove(TEN, err, GAGE); return 1;
@@ -385,10 +423,11 @@ tenFiberContextCopy(tenFiberContext *oldTfx) {
   tfx->thisIsACopy = AIR_TRUE;
   tfx->ksp = nrrdKernelSpecCopy(oldTfx->ksp);
   tfx->gtx = gageContextCopy(oldTfx->gtx);
-  tfx->dten = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageTensor);
-  tfx->eval = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageEval0);
-  tfx->evec = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageEvec0);
-  tfx->aniso = gageAnswerPointer(tfx->gtx, tfx->gtx->pvl[0], tenGageAniso);
+  tfx->pvl = tfx->gtx->pvl[0];  /* HEY! gage API sucks */
+  tfx->dten = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageTensor);
+  tfx->eval = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEval0);
+  tfx->evec = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEvec0);
+  tfx->aniso = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageAniso);
   return tfx;
 }
 
@@ -397,7 +436,9 @@ tenFiberContextNix(tenFiberContext *tfx) {
   
   if (tfx) {
     tfx->ksp = nrrdKernelSpecNix(tfx->ksp);
-    tfx->gtx = gageContextNix(tfx->gtx);
+    if (tfx->thisIsACopy || !tfx->wrapped) {
+      tfx->gtx = gageContextNix(tfx->gtx);
+    }
     free(tfx);
   }
   return NULL;
