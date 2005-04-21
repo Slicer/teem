@@ -357,7 +357,9 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   mop = airMopNew();
   airMopAdd(mop, ec, (airMopper)_hooverExtraContextNix, airMopAlways);
   if ( (ret = (ctx->renderBegin)(&render, ctx->user)) ) {
-    *errCodeP = ret;
+    if (errCodeP) {
+      *errCodeP = ret;
+    }
     airMopError(mop);
     return hooverErrRenderBegin;
   }
@@ -399,8 +401,12 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
     if ((ret = airThreadStart(thread[threadIdx], _hooverThreadBody, 
                               (void *) &args[threadIdx]))) {
-      *errCodeP = ret;
-      *errThreadP = threadIdx;
+      if (errCodeP) {
+        *errCodeP = ret;
+      }
+      if (errThreadP) {
+        *errThreadP = threadIdx;
+      }
       airMopError(mop);
       return hooverErrThreadCreate;
     }
@@ -409,14 +415,22 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
     u.h = &errArg;
     if ((ret = airThreadJoin(thread[threadIdx], u.v))) {
-      *errCodeP = ret;
-      *errThreadP = threadIdx;
+      if (errCodeP) {
+        *errCodeP = ret;
+      }
+      if (errThreadP) {
+        *errThreadP = threadIdx;
+      }
       airMopError(mop);
       return hooverErrThreadJoin;
     }
     if (errArg != NULL) {
-      *errCodeP = errArg->errCode;
-      *errThreadP = threadIdx;
+      if (errCodeP) {
+        *errCodeP = errArg->errCode;
+      }
+      if (errThreadP) {
+        *errThreadP = threadIdx;
+      }
       return errArg->whichErr;
     }
     thread[threadIdx] = airThreadNix(thread[threadIdx]);
@@ -427,7 +441,9 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   }
 
   if ( (ret = (ctx->renderEnd)(render, ctx->user)) ) {
-    *errCodeP = ret;
+    if (errCodeP) {
+      *errCodeP = ret;
+    }
     return hooverErrRenderEnd;
   }
   render = NULL;
