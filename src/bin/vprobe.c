@@ -217,7 +217,7 @@ main(int argc, char *argv[]) {
   ***/
 
   fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
-          2*(ctx->havePad + 1));
+          2*ctx->radius);
   fprintf(stderr, "%s: effective scaling is %g %g %g\n", me,
           (float)sox/six, (float)soy/siy, (float)soz/siz);
   if (ansLen > 1) {

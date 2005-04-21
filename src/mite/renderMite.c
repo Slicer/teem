@@ -138,7 +138,7 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
     biffMove(MITE, err, GAGE); return 1;
   }
   fprintf(stderr, "!%s: kernel support = %d^3 samples\n",
-          me, GAGE_FD(muu->gctx0));
+          me, 2*muu->gctx0->radius);
   
   if (nrrdMaybeAlloc(muu->nout, mite_nt, 3, 5 /* RGBAZ */ ,
                      muu->hctx->imgSize[0], muu->hctx->imgSize[1])) {

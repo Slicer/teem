@@ -103,7 +103,7 @@ _tenGageFilter (gageContext *ctx, gagePerVolume *pvl) {
   gage_t *fw00, *fw11, *fw22, *tensor, *tgrad;
   int fd;
 
-  fd = GAGE_FD(ctx);
+  fd = 2*ctx->radius;
   tensor = pvl->directAnswer[tenGageTensor];
   tgrad = pvl->directAnswer[tenGageTensorGrad];
   if (!ctx->parm.k3pack) {
