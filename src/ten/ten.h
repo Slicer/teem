@@ -329,8 +329,6 @@ typedef struct {
   double confThresh;    /* confidence threshold */
   double wPunct;        /* knob for tensor lines */
   /* ---- internal ----- */
-  int wrapped,          /* non-zero iff tenFiberContextWrap was used */
-    thisIsACopy;        /* non-zero if I come from tenFiberContextCopy */
   gageQuery query;      /* query we'll send to gageQuerySet */
   int dir;              /* current direction being computed (0 or 1) */
   double wPos[3],       /* current world space location */
@@ -418,6 +416,7 @@ TEEM_API const char *tenBiffKey;
 TEEM_API const char tenDefFiberKernel[];
 TEEM_API double tenDefFiberStepSize;
 TEEM_API int tenDefFiberUseIndexSpace;
+TEEM_API int tenDefFiberMaxNumSteps;
 TEEM_API double tenDefFiberMaxHalfLen;
 TEEM_API int tenDefFiberAnisoType;
 TEEM_API double tenDefFiberAnisoThresh;
@@ -516,9 +515,6 @@ TEEM_API int _tenFindValley(double *valP, Nrrd *nhist,
                             double tweak, int save);
 
 /* fiberMethods.c */
-TEEM_API tenFiberContext *tenFiberContextWrap(gageContext *gtx,
-                                              gagePerVolume *pvl,
-                                              Nrrd *dtvol);
 TEEM_API tenFiberContext *tenFiberContextNew(Nrrd *dtvol);
 TEEM_API int tenFiberTypeSet(tenFiberContext *tfx, int type);
 TEEM_API int tenFiberKernelSet(tenFiberContext *tfx,

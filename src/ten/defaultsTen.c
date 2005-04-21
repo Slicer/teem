@@ -33,6 +33,9 @@ tenDefFiberStepSize = 0.01;
 int
 tenDefFiberUseIndexSpace = AIR_FALSE;
 
+int
+tenDefFiberMaxNumSteps = 0;
+
 double
 tenDefFiberMaxHalfLen = 3;
 

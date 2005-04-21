@@ -38,6 +38,12 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
   char *outS;
 
+  /*
+  gageContext *gtx;
+  gagePerVolume *pvl;
+  tenFiberContext *_tfx;
+  */
+
   tenFiberContext *tfx;
   NrrdKernelSpec *ksp;
   double start[3], step, *_stop, *stop;
@@ -79,7 +85,16 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (!( tfx = tenFiberContextNew(nin) )) {
+
+  /*
+  gtx = gageContextNew();
+  pvl = gagePerVolumeNew(gtx, nin, tenGageKind);
+  gagePerVolumeAttach(gtx, pvl);
+  tfx = tenFiberContextWrap(gtx, pvl, nin);
+  */
+  tfx = tenFiberContextNew(nin);
+
+  if (!tfx) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: failed to create the fiber context:\n%s\n", me, err);
     airMopError(mop); exit(1);
@@ -118,6 +133,7 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop); exit(1);
   }
 
+  /* _tfx = tenFiberContextCopy(tfx); */
   if (tenFiberTrace(tfx, nout, start)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
