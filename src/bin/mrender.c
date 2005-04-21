@@ -218,7 +218,7 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
     return 1;
   }
   fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
-          GAGE_FD(uu->gctx0));
+          2*uu->gctx0->radius);
   
   if (nrrdMaybeAlloc((*rrP)->nout=nrrdNew(), nrrdTypeFloat, 2,
                      uu->hctx->imgSize[0], uu->hctx->imgSize[1])) {
@@ -301,6 +301,9 @@ mrendThreadBegin(mrendThread **ttP,
 int
 mrendThreadEnd(mrendThread *tt, mrendRender *rr, mrendUser *uu) {
   
+  if (tt->thrid) {
+    tt->gctx = gageContextNix(tt->gctx);
+  }
   tt->val = airFree(tt->val);
   
   return 0;
@@ -442,7 +445,7 @@ int
 main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   hestParm *hparm;
-  int E, Ecode, renorm, base, offfr;
+  int E, Ecode, Ethread, renorm, base, offfr;
   char *me, *errS, *whatS;
   mrendUser *uu;
   airArray *mop;
@@ -614,14 +617,16 @@ main(int argc, char *argv[]) {
     uu->hctx->numThreads = 1;
   }
   
-  E = hooverRender(uu->hctx, &Ecode, NULL);
+  E = hooverRender(uu->hctx, &Ecode, &Ethread);
   if (E) {
     if (hooverErrInit == E) {
-      fprintf(stderr, "%s: ERROR:\n%s\n",
-              me, errS = biffGetDone(HOOVER)); free(errS);
+      fprintf(stderr, "%s: ERROR (code %d, thread %d):\n%s\n",
+              me, Ecode, Ethread, errS = biffGetDone(HOOVER));
+      free(errS);
     } else {
-      fprintf(stderr, "%s: ERROR:\n%s\n",
-              me, errS = biffGetDone(MREND)); free(errS);
+      fprintf(stderr, "%s: ERROR (code %d, thread %d):\n%s\n",
+              me, Ecode, Ethread, errS = biffGetDone(MREND));
+      free(errS);
     }
     airMopError(mop);
     return 1;

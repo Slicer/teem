@@ -36,7 +36,7 @@ main(int argc, char *argv[]) {
   miteUser *muu;
   char *me, *errS, *outS, *shadeStr, *normalStr, debugStr[AIR_STRLEN_MED];
   int renorm, baseDim, verbPix[2], offfr;
-  int E, Ecode;
+  int E, Ecode, Ethread;
   float ads[3];
   double gmc, turn, eye[3], eyedist;
   Nrrd *nin;
@@ -242,14 +242,16 @@ main(int argc, char *argv[]) {
   
   fprintf(stderr, "%s: rendering ... ", me); fflush(stderr);
   
-  E = hooverRender(muu->hctx, &Ecode, NULL);
+  E = hooverRender(muu->hctx, &Ecode, &Ethread);
   if (E) {
     if (hooverErrInit == E) {
       airMopAdd(mop, errS = biffGetDone(HOOVER), airFree, airMopAlways);
-      fprintf(stderr, "%s: ERROR:\n%s\n", me, errS);
+      fprintf(stderr, "%s: ERROR (code %d, thread %d):\n%s\n",
+              me, Ecode, Ethread, errS);
     } else {
       airMopAdd(mop, errS = biffGetDone(MITE), airFree, airMopAlways);
-      fprintf(stderr, "%s: ERROR:\n%s\n", me, errS);
+      fprintf(stderr, "%s: ERROR (code %d, thread %d):\n%s\n",
+              me, Ecode, Ethread, errS);
     }
     airMopError(mop);
     return 1;
