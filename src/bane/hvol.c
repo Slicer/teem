@@ -302,7 +302,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
     sprintf(err, "%s: trouble setting up gage", me);
     biffMove(BANE, err, GAGE); airMopError(mop); return 1;
   }
-  pad = GAGE_FR(ctx);
+  pad = ctx->radius;
   
   if (baneFindInclusion(min, max, nin, hvp, ctx)) {
     sprintf(err, "%s: trouble finding inclusion ranges", me);
