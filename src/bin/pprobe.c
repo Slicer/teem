@@ -75,8 +75,9 @@ printans(FILE *file, gage_t *ans, int len) {
   int a;
 
   for (a=0; a<=len-1; a++) {
-    if (a)
+    if (a) {
       printf(", ");
+    }
     printf("%g", ans[a]);
   }
 }
@@ -154,8 +155,8 @@ main(int argc, char *argv[]) {
 
   ctx = gageContextNew();
   airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
+  gageParmSet(ctx, gageParmVerbose, 42);
   gageParmSet(ctx, gageParmGradMagMin, gmc);
-  gageParmSet(ctx, gageParmVerbose, 30);
   gageParmSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
