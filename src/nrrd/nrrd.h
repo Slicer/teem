@@ -570,13 +570,13 @@ TEEM_API airEnum *nrrdTernaryOp;
 
 /******** arrays of things (poor-man's functions/predicates) */
 /* arraysNrrd.c */
-TEEM_API char nrrdTypePrintfStr[][AIR_STRLEN_SMALL];
-TEEM_API int nrrdTypeSize[];
-TEEM_API double nrrdTypeMin[];
-TEEM_API double nrrdTypeMax[];
-TEEM_API int nrrdTypeIsIntegral[];
-TEEM_API int nrrdTypeIsUnsigned[];
-TEEM_API double nrrdTypeNumberOfValues[];
+TEEM_API const char nrrdTypePrintfStr[][AIR_STRLEN_SMALL];
+TEEM_API const int nrrdTypeSize[];
+TEEM_API const double nrrdTypeMin[];
+TEEM_API const double nrrdTypeMax[];
+TEEM_API const int nrrdTypeIsIntegral[];
+TEEM_API const int nrrdTypeIsUnsigned[];
+TEEM_API const double nrrdTypeNumberOfValues[];
 
 /******** pseudo-constructors, pseudo-destructors, and such */
 /* methodsNrrd.c */

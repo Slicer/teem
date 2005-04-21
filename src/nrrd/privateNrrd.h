@@ -100,11 +100,11 @@ extern int _nrrdCalloc (Nrrd *nrrd, NrrdIoState *nio, FILE *file);
 extern char _nrrdFieldSep[];
 
 /* arrays.c */
-extern int _nrrdFieldValidInImage[NRRD_FIELD_MAX+1];
-extern int _nrrdFieldValidInText[NRRD_FIELD_MAX+1];
-extern int _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1];
-extern char _nrrdEnumFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL];
-extern int _nrrdFieldRequired[NRRD_FIELD_MAX+1];
+extern const int _nrrdFieldValidInImage[NRRD_FIELD_MAX+1];
+extern const int _nrrdFieldValidInText[NRRD_FIELD_MAX+1];
+extern const int _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1];
+extern const char _nrrdEnumFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL];
+extern const int _nrrdFieldRequired[NRRD_FIELD_MAX+1];
 
 /* simple.c */
 extern char *_nrrdContentGet(const Nrrd *nin);
