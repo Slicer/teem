@@ -28,7 +28,7 @@
 ** and the given parameter settings in the context
 */
 int
-gageVolumeCheck (gageContext *ctx, Nrrd *nin, gageKind *kind) {
+gageVolumeCheck (gageContext *ctx, const Nrrd *nin, gageKind *kind) {
   char me[]="gageVolumeCheck", err[AIR_STRLEN_MED];
   gageShape shape;
 
@@ -49,7 +49,7 @@ gageVolumeCheck (gageContext *ctx, Nrrd *nin, gageKind *kind) {
 ** uses biff primarily because of the error checking in gageVolumeCheck()
 */
 gagePerVolume *
-gagePerVolumeNew (gageContext *ctx, Nrrd *nin, gageKind *kind) {
+gagePerVolumeNew (gageContext *ctx, const Nrrd *nin, gageKind *kind) {
   char me[]="gagePerVolumeNew", err[AIR_STRLEN_MED];
   gagePerVolume *pvl;
   int ii;
@@ -67,16 +67,11 @@ gagePerVolumeNew (gageContext *ctx, Nrrd *nin, gageKind *kind) {
     sprintf(err, "%s: couldn't alloc gagePerVolume", me);
     biffAdd(GAGE, err); return NULL;
   }
-  pvl->thisIsACopy = AIR_FALSE;
   pvl->verbose = gageDefVerbose;
   pvl->kind = kind;
   GAGE_QUERY_RESET(pvl->query);
   pvl->needD[0] = pvl->needD[1] = pvl->needD[2] = AIR_FALSE;
   pvl->nin = nin;
-  pvl->padder = _gageStandardPadder;
-  pvl->nixer = _gageStandardNixer;
-  pvl->padInfo = NULL;
-  pvl->npad = NULL;
   for (ii=0; ii<GAGE_PVL_FLAG_NUM; ii++) {
     pvl->flag[ii] = AIR_FALSE;
   }
@@ -118,11 +113,6 @@ _gagePerVolumeCopy (gagePerVolume *pvl, int fd) {
      constant state of gage construction, this seems much simpler.
      Pointers are fixed below */
   memcpy(nvl, pvl, sizeof(gagePerVolume));
-  nvl->thisIsACopy = AIR_TRUE;
-  nvl->nin = NULL;             /* foil any repadding attempts */
-  nvl->padder = NULL;          /* foil any repadding attempts */
-  nvl->nixer = NULL;           /* foil any repadding attempts */
-  nvl->padInfo = NULL;         /* foil any repadding attempts */
   /* the padded volume (nvl->npad) is the one that is shared between the 
      original and copied pervolumes; that pointer has already been copied */
   nvl->iv3 = (gage_t *)calloc(fd*fd*fd*nvl->kind->valLen, sizeof(gage_t));
@@ -147,49 +137,22 @@ _gagePerVolumeCopy (gagePerVolume *pvl, int fd) {
 /*
 ******** gagePerVolumeNix()
 **
-** uses the nixer to remove the padded volume, and frees all other
-** dynamically allocated memory assocated with a pervolume
+** frees all dynamically allocated memory assocated with a pervolume
 **
 ** does not use biff
 */
 gagePerVolume *
 gagePerVolumeNix (gagePerVolume *pvl) {
 
-  pvl->iv3 = airFree(pvl->iv3);
-  pvl->iv2 = airFree(pvl->iv2);
-  pvl->iv1 = airFree(pvl->iv1);
-  if (!pvl->thisIsACopy && pvl->nixer) {
-    pvl->nixer(pvl->npad, pvl->kind, pvl);
+  if (pvl) {
+    pvl->iv3 = airFree(pvl->iv3);
+    pvl->iv2 = airFree(pvl->iv2);
+    pvl->iv1 = airFree(pvl->iv1);
+    pvl->answer = airFree(pvl->answer);
+    pvl->directAnswer = airFree(pvl->directAnswer);
+    pvl = airFree(pvl);
   }
-  pvl->answer = airFree(pvl->answer);
-  pvl->directAnswer = airFree(pvl->directAnswer);
-  pvl = airFree(pvl);
   return NULL;
-}
-
-/*
-******** gagePadderSet()
-**
-*/
-void
-gagePadderSet (gageContext *ctx, gagePerVolume *pvl, gagePadder_t *padder) {
-
-  if (pvl) {
-    pvl->padder = padder;
-    pvl->flag[gagePvlFlagPadder] = AIR_TRUE;
-  }
-}
-
-/*
-******** gageNixerSet()
-**
-*/
-void
-gageNixerSet (gageContext *ctx, gagePerVolume *pvl, gageNixer_t *nixer) {
-  
-  if (pvl) {
-    pvl->nixer = nixer;
-  }
 }
 
 /*
@@ -218,10 +181,6 @@ gageQueryReset(gageContext *ctx, gagePerVolume *pvl) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return 1;
   }
-  if (pvl->thisIsACopy) {
-    sprintf(err, "%s: can't operate on a pervolume copy", me);
-    biffAdd(GAGE, err); return 1;
-  }
 
   GAGE_QUERY_RESET(pvl->query);
 
@@ -248,10 +207,6 @@ gageQuerySet (gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
   
   if (!( pvl )) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
-  }
-  if (pvl->thisIsACopy) {
-    sprintf(err, "%s: can't operate on a pervolume copy", me);
     biffAdd(GAGE, err); return 1;
   }
   GAGE_QUERY_COPY(pvl->query, query);
@@ -291,10 +246,6 @@ gageQueryAdd(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return 1;
   }
-  if (pvl->thisIsACopy) {
-    sprintf(err, "%s: can't operate on a pervolume copy", me);
-    biffAdd(GAGE, err); return 1;
-  }
 
   GAGE_QUERY_ADD(pvl->query, query);
   if (gageQuerySet(ctx, pvl, pvl->query)) {
@@ -311,10 +262,6 @@ gageQueryItemOn(gageContext *ctx, gagePerVolume *pvl, int item) {
 
   if (!( pvl )) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
-  }
-  if (pvl->thisIsACopy) {
-    sprintf(err, "%s: can't operate on a pervolume copy", me);
     biffAdd(GAGE, err); return 1;
   }
 

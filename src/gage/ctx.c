@@ -34,7 +34,6 @@ gageContextNew () {
   ctx = (gageContext*)calloc(1, sizeof(gageContext));
   if (ctx) {
     ctx->verbose = gageDefVerbose;
-    ctx->thisIsACopy = AIR_FALSE;
     gageParmReset(&ctx->parm);
     for(i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       ctx->ksp[i] = NULL;
@@ -52,7 +51,7 @@ gageContextNew () {
     for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       ctx->needK[i] = AIR_FALSE;
     }
-    ctx->needPad = ctx->havePad = -1;
+    ctx->radius = -1;
     ctx->fsl = ctx->fw = NULL;
     ctx->off = NULL;
     gagePointReset(&ctx->point);
@@ -61,50 +60,15 @@ gageContextNew () {
 }
 
 /*
-******** gageContextNix()
-**
-** responsible for freeing and clearing up everything hanging off a 
-** context so that things can be returned to the way they were prior
-** to gageContextNew().
-**
-** does not use biff
-*/
-gageContext *
-gageContextNix (gageContext *ctx) {
-  int i;
-
-  if (ctx) {
-    if (!ctx->thisIsACopy) {
-      gageKernelReset(ctx);
-    }
-    for (i=0; i<ctx->numPvl; i++) {
-      gagePerVolumeNix(ctx->pvl[i]);
-      /* no point in doing a detach, the whole context is going bye-bye */
-    }
-    if (!ctx->thisIsACopy) {
-      ctx->shape = gageShapeNix(ctx->shape);
-    }
-    ctx->fw = airFree(ctx->fw);
-    ctx->fsl = airFree(ctx->fsl);
-    ctx->off = airFree(ctx->off);
-  }
-  ctx = airFree(ctx);
-  return NULL;
-}
-
-/*
 ******** gageContextCopy()
 **
-** the semantics and utility of this are purposefully limited: given a context
-** on which gageUpdate() has just been successfully called, this will create
-** a new context and new attached pervolumes so that you can call gageProbe()
-** on the new context by probing the same volumes with the same kernels
-** and the same queries.  And that's all you can do- you can't change any
-** state in either the original or any of the copy contexts.  This is only
-** intended as a simple way to supported multi-threaded usages which want
-** to do the exact same thing in many different threads.  If you want to 
-** change state, then gageContextNix() all the copy contexts, gage...Set(),
-** gageUpdate(), and gageContextCopy() again.
+** gives you a new context, which behaves the same as the given context,
+** with newly allocated pervolumes attached.  With the avoidance of
+** padding to create a private copy of the volume, the gageContext is
+** light-weight enough that there is no reason that this function can't
+** return an independent and fully functioning copy of the context (whereas
+** before you weren't allowed to do anything but gageProbe() on the on
+** copied context).
 */
 gageContext *
 gageContextCopy (gageContext *ctx) {
@@ -121,16 +85,18 @@ gageContextCopy (gageContext *ctx) {
      constant state of gage construction, this seems much simpler.
      Pointers are fixed below */
   memcpy(ntx, ctx, sizeof(gageContext));
-
+  for (i=0; i<GAGE_KERNEL_NUM; i++) {
+    ntx->ksp[i] = nrrdKernelSpecCopy(ctx->ksp[i]);
+  }
   for (i=0; i<ntx->numPvl; i++) {
-    ntx->pvl[i] = _gagePerVolumeCopy(ctx->pvl[i], GAGE_FD(ctx));
+    ntx->pvl[i] = _gagePerVolumeCopy(ctx->pvl[i], 2*ctx->radius);
     if (!ntx->pvl[i]) {
       sprintf(err, "%s: trouble copying pervolume %d", me, i);
       biffAdd(GAGE, err); return NULL;
     }
   }
-  ntx->thisIsACopy = AIR_TRUE;
-  fd = GAGE_FD(ntx);
+  ntx->shape = gageShapeCopy(ctx->shape);
+  fd = 2*ntx->radius;
   ntx->fsl = (gage_t *)calloc(fd*3, sizeof(gage_t));
   ntx->fw = (gage_t *)calloc(fd*3*GAGE_KERNEL_NUM, sizeof(gage_t));
   ntx->off = (unsigned int *)calloc(fd*fd*fd, sizeof(unsigned int));
@@ -147,6 +113,34 @@ gageContextCopy (gageContext *ctx) {
   gagePointReset(&ntx->point);
 
   return ntx;
+}
+
+/*
+******** gageContextNix()
+**
+** responsible for freeing and clearing up everything hanging off a 
+** context so that things can be returned to the way they were prior
+** to gageContextNew().
+**
+** does not use biff
+*/
+gageContext *
+gageContextNix (gageContext *ctx) {
+  int i;
+
+  if (ctx) {
+    gageKernelReset(ctx);
+    for (i=0; i<ctx->numPvl; i++) {
+      gagePerVolumeNix(ctx->pvl[i]);
+      /* no point in doing a detach, the whole context is going bye-bye */
+    }
+    ctx->shape = gageShapeNix(ctx->shape);
+    ctx->fw = airFree(ctx->fw);
+    ctx->fsl = airFree(ctx->fsl);
+    ctx->off = airFree(ctx->off);
+  }
+  ctx = airFree(ctx);
+  return NULL;
 }
 
 /*
@@ -170,10 +164,6 @@ gageKernelSet (gageContext *ctx,
 
   if (!(ctx && k && kparm)) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
-  }
-  if (ctx->thisIsACopy) {
-    sprintf(err, "%s: can't operate on a context copy", me);
     biffAdd(GAGE, err); return 1;
   }
   if (airEnumValCheck(gageKernel, which)) {
@@ -217,7 +207,7 @@ gageKernelSet (gageContext *ctx,
     }
   }
 
-  /* okay enough enough, go set the kernel */
+  /* okay, enough enough, go set the kernel */
   if (!ctx->ksp[which]) {
     ctx->ksp[which] = nrrdKernelSpecNew();
   }
@@ -234,14 +224,10 @@ gageKernelSet (gageContext *ctx,
 */
 void
 gageKernelReset (gageContext *ctx) {
-  char me[]="gageKernelReset";
+  /* char me[]="gageKernelReset"; */
   int i;
 
   if (ctx) {
-    if (ctx->thisIsACopy) {
-      fprintf(stderr, "\n%s: can't operate on a context copy!\n\n", me);
-      return;
-    }
     for(i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       ctx->ksp[i] = nrrdKernelSpecNix(ctx->ksp[i]);
     }
@@ -262,10 +248,6 @@ gageParmSet (gageContext *ctx, int which, gage_t val) {
   char me[]="gageParmSet";
   int p;
   
-  if (ctx->thisIsACopy) {
-    fprintf(stderr, "\n%s: can't operate on a copy of a context!\n\n", me);
-    return;
-  }
   switch (which) {
   case gageParmVerbose:
     ctx->verbose = val;
@@ -284,10 +266,6 @@ gageParmSet (gageContext *ctx, int which, gage_t val) {
   case gageParmCheckIntegrals:
     ctx->parm.checkIntegrals = val ? AIR_TRUE : AIR_FALSE;
     /* no flags to set, simply affects future calls to gageKernelSet() */
-    break;
-  case gageParmNoRepadWhenSmaller:
-    ctx->parm.noRepadWhenSmaller = AIR_TRUE;
-    /* no flag to set, but does affect future calls to _gageHavePadUpdate() */
     break;
   case gageParmK3Pack:
     ctx->parm.k3pack = val ? AIR_TRUE : AIR_FALSE;
@@ -365,10 +343,6 @@ gagePerVolumeAttach (gageContext *ctx, gagePerVolume *pvl) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return 1;
   }
-  if (ctx->thisIsACopy) {
-    sprintf(err, "%s: can't operate on a context copy", me);
-    biffAdd(GAGE, err); return 1;
-  }
   if (gagePerVolumeIsAttached(ctx, pvl)) {
     sprintf(err, "%s: given pervolume already attached", me);
     biffAdd(GAGE, err); return 1;
@@ -426,10 +400,6 @@ gagePerVolumeDetach (gageContext *ctx, gagePerVolume *pvl) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return 1;
   }
-  if (ctx->thisIsACopy) {
-    sprintf(err, "%s: can't operate on a context copy", me);
-    biffAdd(GAGE, err); return 1;
-  }
   if (!gagePerVolumeIsAttached(ctx, pvl)) {
     sprintf(err, "%s: given pervolume not currently attached", me);
     biffAdd(GAGE, err); return 1;
@@ -454,80 +424,103 @@ gagePerVolumeDetach (gageContext *ctx, gagePerVolume *pvl) {
 /*
 ** gageIv3Fill()
 **
-** based on ctx's shape and havePad, and the (xi,yi,zi) determined from
+** based on ctx's shape and radius, and the (xi,yi,zi) determined from
 ** the probe location, fills the iv3 cache in the given pervolume
 */
 void
 gageIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="gageIv3Fill";
-  int i, sx, sy, sz, fd, fddd, bidx, tup;
-  void *here;
+  int _xx, _yy, _zz, xx, yy, zz, sx, sy, sz, lx, ly, lz,
+    hx, hy, hz, fr, fddd, cacheIdx, dataIdx, tup;
+  char *data, *here;
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
-  sx = PADSIZE_X(ctx);
-  sy = PADSIZE_Y(ctx);
-  sz = PADSIZE_Z(ctx);
-  fd = GAGE_FD(ctx);
-  fddd = fd*fd*fd;
-  /* we shouldn't have to worry about centering anymore, since it
-     was taken into account in calculating havePad in _gageHavePadUpdate(),
-     right ? */
-  /* diff = -ctx->havePad + (nrrdCenterCell == ctx->shape.center); */
-  bidx = (ctx->point.xi - ctx->havePad
-          + sx*(ctx->point.yi - ctx->havePad
-                + sy*(ctx->point.zi - ctx->havePad)));
-  if (ctx->verbose) {
-    fprintf(stderr, "%s: hello, valLen = %d, pvl->npad = %p, data = %p\n",
-            me, pvl->kind->valLen, pvl->npad, pvl->npad->data);
-  }
-  here = ((char*)(pvl->npad->data) + (bidx * pvl->kind->valLen * 
-                                      nrrdTypeSize[pvl->npad->type]));
-  if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
-  if (ctx->verbose) {
-    fprintf(stderr, "%s: padded size = (%d,%d,%d);\n"
-            "    fd = %d; point (pad: %d) coord = (%d,%d,%d) --> bidx = %d\n",
-            me, sx, sy, sz,
-            fd, ctx->havePad, ctx->point.xi, ctx->point.yi, ctx->point.zi,
-            bidx);
-    fprintf(stderr, "%s: here = %p; iv3 = %p; off[0] = %d\n",
-            me, here, pvl->iv3, ctx->off[0]);
-  }
-  switch(pvl->kind->valLen) {
-  case 1:
-    for (i=0; i<fddd; i++) {
-      pvl->iv3[i] = pvl->lup(here, ctx->off[i]);
+  sx = ctx->shape->size[0];
+  sy = ctx->shape->size[1];
+  sz = ctx->shape->size[2];
+  fr = ctx->radius;
+  lx = ctx->point.xi - (fr - 1);
+  ly = ctx->point.yi - (fr - 1);
+  lz = ctx->point.zi - (fr - 1);
+  hx = lx + 2*fr - 1;
+  hy = ly + 2*fr - 1;
+  hz = lz + 2*fr - 1;
+  fddd = 2*fr*2*fr*2*fr;
+  data = (char*)pvl->nin->data;
+  if (lx >= 0 && ly >= 0 && lz >= 0 &&
+      hx < sx && hy < sy && hz < sz) {
+    /* all the samples we need are inside the existing volume */
+    dataIdx = lx + sx*(ly + sy*(lz));
+    if (ctx->verbose) {
+      fprintf(stderr, "%s: hello, valLen = %d, pvl->nin = %p, data = %p\n",
+              me, pvl->kind->valLen, pvl->nin, pvl->nin->data);
     }
-    break;
-    /* the tuple axis is being shifted from the fastest to
-       the slowest axis, to anticipate component-wise filtering
-       operations */
-  case 3:
-    for (i=0; i<fddd; i++) {
-      pvl->iv3[i + fddd*0] = pvl->lup(here, 0 + 3*ctx->off[i]);
-      pvl->iv3[i + fddd*1] = pvl->lup(here, 1 + 3*ctx->off[i]);
-      pvl->iv3[i + fddd*2] = pvl->lup(here, 2 + 3*ctx->off[i]);
+    here = data + dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
+    if (ctx->verbose) {
+      fprintf(stderr, "%s: size = (%d,%d,%d);\n"
+              "  fd = %d; coord = (%d,%d,%d) --> dataIdx = %d\n",
+              me, sx, sy, sz, 2*fr,
+              ctx->point.xi, ctx->point.yi, ctx->point.zi,
+              dataIdx);
+      fprintf(stderr, "%s: here = %p; iv3 = %p; off[0] = %d\n",
+              me, here, pvl->iv3, ctx->off[0]);
     }
-    break;
-  case 7:
-    /* this might come in handy for tenGage ... */
-    for (i=0; i<fddd; i++) {
-      pvl->iv3[i + fddd*0] = pvl->lup(here, 0 + 7*ctx->off[i]);
-      pvl->iv3[i + fddd*1] = pvl->lup(here, 1 + 7*ctx->off[i]);
-      pvl->iv3[i + fddd*2] = pvl->lup(here, 2 + 7*ctx->off[i]);
-      pvl->iv3[i + fddd*3] = pvl->lup(here, 3 + 7*ctx->off[i]);
-      pvl->iv3[i + fddd*4] = pvl->lup(here, 4 + 7*ctx->off[i]);
-      pvl->iv3[i + fddd*5] = pvl->lup(here, 5 + 7*ctx->off[i]);
-      pvl->iv3[i + fddd*6] = pvl->lup(here, 6 + 7*ctx->off[i]);
+    switch(pvl->kind->valLen) {
+    case 1:
+      for (cacheIdx=0; cacheIdx<fddd; cacheIdx++) {
+        pvl->iv3[cacheIdx] = pvl->lup(here, ctx->off[cacheIdx]);
+      }
+      break;
+      /* NOTE: the tuple axis is being shifted from the fastest to
+         the slowest axis, to anticipate component-wise filtering
+         operations */
+    case 3:
+      for (cacheIdx=0; cacheIdx<fddd; cacheIdx++) {
+        pvl->iv3[cacheIdx + fddd*0] = pvl->lup(here, 0 + 3*ctx->off[cacheIdx]);
+        pvl->iv3[cacheIdx + fddd*1] = pvl->lup(here, 1 + 3*ctx->off[cacheIdx]);
+        pvl->iv3[cacheIdx + fddd*2] = pvl->lup(here, 2 + 3*ctx->off[cacheIdx]);
+      }
+      break;
+    case 7:
+      /* this might come in handy for tenGage ... */
+      for (cacheIdx=0; cacheIdx<fddd; cacheIdx++) {
+        pvl->iv3[cacheIdx + fddd*0] = pvl->lup(here, 0 + 7*ctx->off[cacheIdx]);
+        pvl->iv3[cacheIdx + fddd*1] = pvl->lup(here, 1 + 7*ctx->off[cacheIdx]);
+        pvl->iv3[cacheIdx + fddd*2] = pvl->lup(here, 2 + 7*ctx->off[cacheIdx]);
+        pvl->iv3[cacheIdx + fddd*3] = pvl->lup(here, 3 + 7*ctx->off[cacheIdx]);
+        pvl->iv3[cacheIdx + fddd*4] = pvl->lup(here, 4 + 7*ctx->off[cacheIdx]);
+        pvl->iv3[cacheIdx + fddd*5] = pvl->lup(here, 5 + 7*ctx->off[cacheIdx]);
+        pvl->iv3[cacheIdx + fddd*6] = pvl->lup(here, 6 + 7*ctx->off[cacheIdx]);
+      }
+      break;
+    default:
+      for (cacheIdx=0; cacheIdx<fddd; cacheIdx++) {
+        for (tup=0; tup<pvl->kind->valLen; tup++) {
+          pvl->iv3[cacheIdx + fddd*tup] = 
+            pvl->lup(here, tup + pvl->kind->valLen*ctx->off[cacheIdx]);
+        }
+      }
+      break;
     }
-    break;
-  default:
-    for (i=0; i<fddd; i++) {
-      for (tup=0; tup<pvl->kind->valLen; tup++) {
-        pvl->iv3[i + fddd*tup] = 
-          pvl->lup(here, 0 + pvl->kind->valLen*ctx->off[i]);
+  } else {
+    /* the query requires samples which don't actually lie 
+       within the volume- more care has to be taken */
+    cacheIdx = 0;
+    for (_zz=lz; _zz<=hz; _zz++) {
+      zz = AIR_CLAMP(0, _zz, sz-1);
+      for (_yy=ly; _yy<=hy; _yy++) {
+        yy = AIR_CLAMP(0, _yy, sy-1);
+        for (_xx=lx; _xx<=hx; _xx++) {
+          xx = AIR_CLAMP(0, _xx, sx-1);
+          dataIdx = xx + sx*(yy + sy*zz);
+          here = data + dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
+          for (tup=0; tup<pvl->kind->valLen; tup++) {
+            pvl->iv3[cacheIdx + fddd*tup] = pvl->lup(here, tup);
+          }
+          cacheIdx++;
+        }
       }
     }
-    break;
   }
   if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
   return;
@@ -536,7 +529,7 @@ gageIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
 /*
 ******** gageProbe()
 **
-** how to do probing.  (x,y,z) position is in UNPADDED volume
+** how to do probing.  (x,y,z) position is *index space* position
 **
 ** doesn't actually do much more than call callbacks in the gageKind
 ** structs of the attached pervolumes
@@ -568,11 +561,9 @@ gageProbe (gageContext *ctx, gage_t x, gage_t y, gage_t z) {
   /* fprintf(stderr, "##%s: bingo 2\n", me); */
   for (i=0; i<ctx->numPvl; i++) {
     if (ctx->verbose > 1) {
-      fprintf(stderr, "%s: pvl[%d]'s value cache with (unpadded) "
+      fprintf(stderr, "%s: pvl[%d]'s value cache at "
               "coords = %d,%d,%d:\n", me, i,
-              ctx->point.xi - ctx->havePad,
-              ctx->point.yi - ctx->havePad,
-              ctx->point.zi - ctx->havePad);
+              ctx->point.xi, ctx->point.yi, ctx->point.zi);
       ctx->pvl[i]->kind->iv3Print(stderr, ctx, ctx->pvl[i]);
     }
     ctx->pvl[i]->kind->filter(ctx, ctx->pvl[i]);

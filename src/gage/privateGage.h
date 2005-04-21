@@ -41,13 +41,9 @@ extern "C" {
 #  define EVALN evalN_d               /* NrrdKernel method */
 #endif
 
-#define PADSIZE_X(ctx) ((ctx)->shape->size[0] + 2*((ctx)->havePad))
-#define PADSIZE_Y(ctx) ((ctx)->shape->size[1] + 2*((ctx)->havePad))
-#define PADSIZE_Z(ctx) ((ctx)->shape->size[2] + 2*((ctx)->havePad))
-
 /* shape.c */
 extern int _gageShapeSet(gageContext *ctx, gageShape *shape,
-                         Nrrd *nin, int baseDim);
+                         const Nrrd *nin, int baseDim);
 
 /* pvl.c */
 extern gagePerVolume *_gagePerVolumeCopy(gagePerVolume *pvl, int fd);
@@ -70,12 +66,6 @@ extern void _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl);
 
 /* vecprint.c */
 extern void _gageVecIv3Print(FILE *, gageContext *ctx, gagePerVolume *pvl);
-
-/* misc.c */
-extern Nrrd* _gageStandardPadder(Nrrd *nin, gageKind *kind,
-                                 int padding, gagePerVolume *pvl);
-extern void _gageStandardNixer(Nrrd *npad, gageKind *kind,
-                               gagePerVolume *pvl);
 
 #ifdef __cplusplus
 }

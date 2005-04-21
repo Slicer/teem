@@ -40,9 +40,6 @@ int
 gageDefCheckIntegrals = AIR_TRUE;
 
 int
-gageDefNoRepadWhenSmaller = AIR_FALSE;
-
-int
 gageDefK3Pack = AIR_TRUE;
 
 gage_t

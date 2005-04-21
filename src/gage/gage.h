@@ -78,14 +78,6 @@ typedef float gage_t;
 #endif
 
 /*
-******** GAGE_FD, GAGE_FR #defines
-**
-** these macros replace fields that used to be in the gageContext
-*/
-#define GAGE_FD(ctx) (2*((ctx)->havePad + 1))
-#define GAGE_FR(ctx) ((ctx)->havePad + 1)
-
-/*
 ******** GAGE_PERVOLUME_NUM
 **
 ** max number of pervolumes that can be associated with a context.
@@ -112,7 +104,6 @@ enum {
   gageParmVerbose,                /* non-boolean int */
   gageParmRenormalize,            /* int */
   gageParmCheckIntegrals,         /* int */
-  gageParmNoRepadWhenSmaller,     /* int */
   gageParmK3Pack,                 /* int */
   gageParmGradMagMin,             /* gage_t */
   gageParmGradMagCurvMin,         /* gage_t */
@@ -129,15 +120,11 @@ enum {
 ******** gage{Ctx,Pvl}Flag... enum
 **
 ** organizes all the dependendies within a context and between a
-** context and pervolumes.  Basically, all of this complexity is here
-** to the handle the fact that different queries need different
-** kernels, and different kernels have different supports, which
-** requires different amounts of padding around volumes.  The user
-** should not have to be concerned about any of this; it should be
-** useful only to gageUpdate().
-**
-** A change to the "nixer" could never require re-padding the original
-** volume, so it is not included as a flag below.
+** context and pervolumes.  This logic is to determine the support
+** required for a query: different queries need different kernels,
+** different kernels have different supports.  The user should not
+** have to be concerned about any of this; it should be useful only
+** to gageUpdate().
 */
 enum {
   gageCtxFlagUnknown=-1,
@@ -145,8 +132,7 @@ enum {
   gageCtxFlagK3Pack,     /*  1: whether to use 3 or 6 kernels */
   gageCtxFlagNeedK,      /*  2: which of the kernels will actually be used */
   gageCtxFlagKernel,     /*  3: any one of the kernels or its parameters */
-  gageCtxFlagHavePad,    /*  4: padding we'll actually use (may not want to
-                             repad when going to a smaller padding) */
+  gageCtxFlagRadius,     /*  4: radius of support for kernels with query */
   gageCtxFlagShape,      /*  5: a new pervolume shape was set */
   gageCtxFlagLast
 };
@@ -157,11 +143,9 @@ enum {
   gagePvlFlagVolume,     /*  0: got a new volume */
   gagePvlFlagQuery,      /*  1: what do you really care about */
   gagePvlFlagNeedD,      /*  2: derivatives required for query */
-  gagePvlFlagPadder,     /*  3: how to pad volumes */
-  gagePvlFlagPadInfo,    /*  4: supplemental pad/nix info */
   gagePvlFlagLast
 };
-#define GAGE_PVL_FLAG_NUM    5
+#define GAGE_PVL_FLAG_NUM    3
   
 
 /*
@@ -325,32 +309,18 @@ struct gageKind_t;       /* dumb forward declaraction, ignore */
 struct gagePerVolume_t;  /* dumb forward declaraction, ignore */
 
 /*
-******** gagePadder_t, gageNixer_t
-**
-** type of functions used to pad volumes and to remove padded volumes.
-** Chances are, no one has to worry about these, since the default
-** padder (_gageStandardPadder) and nixer (_gageStandardNixer) probably
-** do exactly what you want.
-*/
-typedef Nrrd* (gagePadder_t)(Nrrd *nin, struct gageKind_t *kind,
-                             int padding, struct gagePerVolume_t *pvl);
-typedef void (gageNixer_t)(Nrrd *npad, struct gageKind_t *kind,
-                           struct gagePerVolume_t *pvl);
-
-/*
 ******** gageShape struct
 **
 ** just a container for all the information related to the "shape"
 ** of all the volumes associated with a context
 */
 typedef struct gageShape_t {
-  int size[3],                /* dimensions of UNPADDED volume */
+  int size[3],                /* dimensions of volume */
     defaultCenter,            /* default centering to use when given volume
                                  has no centering set */
     center;                   /* the sample centering of the volume(s)- this
-                                 is an issue for determing the extent of the
-                                 volume, and in cell centering, an extra
-                                 sample of padding */
+                                 determines the extent of the locations
+                                 that may be probed */
   gage_t spacing[3],          /* spacings for each axis */
     fwScale[GAGE_KERNEL_NUM][3];
                               /* how to rescale weights for each of the
@@ -379,10 +349,6 @@ typedef struct gageParm_t {
                                  appropriate for the task for which
                                  the kernel is being set:
                                  reconstruction: 1.0, derivatives: 0.0 */
-  int noRepadWhenSmaller;     /* if a change in parameters leads to a newer and
-                                 smaller amount of padding, don't generate a
-                                 new padded volume, use the somewhat overly
-                                 padded volume (a.k.a "NRWS") */
   int k3pack;                 /* non-zero (true) iff we do not use
                                  kernels for gageKernelIJ with I != J.
                                  So, we use the value reconstruction
@@ -425,8 +391,7 @@ typedef struct gageParm_t {
 /*
 ******** gagePoint struct
 **
-** stores location of last query location, in terms of coordinates
-** in the PADDED volume
+** stores location of last query location
 */
 typedef struct gagePoint_t {
   gage_t xf, yf, zf;          /* fractional voxel location, used to
@@ -483,13 +448,12 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
 ******** gageContext struct
 **
 ** The information here is specific to the dimensions, scalings, and
-** padding of a volume, but not to kind of volume (all kind-specific
+** radius of kernel support, but not to kind of volume (all kind-specific
 ** information is in the gagePerVolume).  One context can be used in
 ** conjuction with probing multiple volumes.
 */
 typedef struct gageContext_t {
-  int verbose,                /* verbosity */
-    thisIsACopy;              /* I am the result of gageContextCopy */
+  int verbose;                /* verbosity */
   gageParm parm;              /* parameters */
   NrrdKernelSpec *ksp[GAGE_KERNEL_NUM];  /* all the kernels we'll ever need */
   struct gagePerVolume_t *pvl[GAGE_PERVOLUME_NUM];
@@ -502,18 +466,9 @@ typedef struct gageContext_t {
   int needD[3];               /* which value/derivatives need to be calculated
                                  for all pervolumes (doV, doD1, doD2) */
   int needK[GAGE_KERNEL_NUM]; /* which kernels are needed for all pervolumes */
-  int needPad;                /* amount of boundary margin required for current
-                                 queries (in all pervolumes), kernels, and
-                                 the value of k3pack */
-  int havePad;                /* amount of padding currently in pervolumes
-                                 Note: fd == 2*(havePad + 1)
-                                 where fd is the "filter diameter", the length
-                                 of the filter weight arrays.  It is an 
-                                 unnecessary but GREATLY simplifying constraint
-                                 that ties fd to havePad according to above,
-                                 unnecessary since with noRepadWhenSmaller we
-                                 could have a volume that is padded more than
-                                 needed for the given set of filters */
+  int radius;                 /* radius of support of samples needed to 
+                                 satisfy query, given the set of kernels.
+                                 The "filter diameter" fd == 2*radius */
   gage_t *fsl,                /* filter sample locations (all axes):
                                  logically a fd x 3 array */
     *fw;                      /* filter weights (all axes, all kernels):
@@ -536,22 +491,12 @@ typedef struct gageContext_t {
 ** volume.
 */
 typedef struct gagePerVolume_t {
-  int verbose,                /* verbosity */
-    thisIsACopy;              /* I'm a copy */
+  int verbose;                /* verbosity */
   struct gageKind_t *kind;    /* what kind of volume is this pervolume for */
   gageQuery query;            /* the query, recursively expanded */
   int needD[3];               /* which derivatives need to be calculated for
                                  the query (above) in this volume */
-  Nrrd *nin;                  /* the original, unpadded volume, passed to the
-                                 padder below, but never nixed or nuked by
-                                 gage, and never passed to anything else */
-  gagePadder_t *padder;       /* how to pad nin to produce npad; use NULL
-                                 to signify no-op */  
-  gageNixer_t *nixer;         /* for when npad is to be replaced or removed;
-                                 use NULL to signify no-op */
-  void *padInfo;              /* supplemental information intended for use
-                                 by the padder/nixer */
-  Nrrd *npad;                 /* the padded nrrd which is probed */
+  const Nrrd *nin;            /* the volume to sample within */
   int flag[GAGE_PVL_FLAG_NUM];/* for the kind-specific flags ... */
   gage_t *iv3, *iv2, *iv1;    /* 3D, 2D, 1D, value caches.  These are cubical,
                                  square, and linear arrays, all length fd on
@@ -564,7 +509,7 @@ typedef struct gagePerVolume_t {
                                  the kind's filter method. */
   gage_t (*lup)(const void *ptr, size_t I); 
                               /* nrrd{F,D}Lookup[] element, according to
-                                 npad->type and gage_t */
+                                 nin->type and gage_t */
   gage_t *answer;             /* main buffer to hold all the answers */
   gage_t **directAnswer;      /* array of pointers into answer */
 } gagePerVolume;
@@ -613,7 +558,6 @@ TEEM_API gage_t gageDefGradMagMin;
 TEEM_API gage_t gageDefGradMagCurvMin;
 TEEM_API int gageDefRenormalize;
 TEEM_API int gageDefCheckIntegrals;
-TEEM_API int gageDefNoRepadWhenSmaller;
 TEEM_API int gageDefK3Pack;
 TEEM_API gage_t gageDefDefaultSpacing;
 TEEM_API int gageDefCurvNormalSide;
@@ -671,8 +615,9 @@ TEEM_API gageKind *gageKindVec;
 /* shape.c */
 TEEM_API void gageShapeReset(gageShape *shp);
 TEEM_API gageShape *gageShapeNew();
+TEEM_API gageShape *gageShapeCopy(gageShape *shp);
 TEEM_API gageShape *gageShapeNix(gageShape *shape);
-TEEM_API int gageShapeSet(gageShape *shp, Nrrd *nin, int baseDim);
+TEEM_API int gageShapeSet(gageShape *shp, const Nrrd *nin, int baseDim);
 TEEM_API void gageShapeUnitWtoI(gageShape *shape,
                                 double index[3], double world[3]);
 TEEM_API void gageShapeUnitItoW(gageShape *shape,
@@ -684,14 +629,12 @@ TEEM_API int gageShapeEqual(gageShape *shp1, char *name1,
    what the first argument is, not what appears in the function name,
    but that's just a complete mess now */
 /* pvl.c */
-TEEM_API int gageVolumeCheck(gageContext *ctx, Nrrd *nin, gageKind *kind);
+TEEM_API int gageVolumeCheck(gageContext *ctx, const Nrrd *nin,
+                             gageKind *kind);
 TEEM_API gagePerVolume *gagePerVolumeNew(gageContext *ctx,
-                                         Nrrd *nin, gageKind *kind);
+                                         const Nrrd *nin,
+                                         gageKind *kind);
 TEEM_API gagePerVolume *gagePerVolumeNix(gagePerVolume *pvl);
-TEEM_API void gagePadderSet(gageContext *ctx,
-                            gagePerVolume *pvl, gagePadder_t *padder);
-TEEM_API void gageNixerSet(gageContext *ctx, 
-                           gagePerVolume *pvl, gageNixer_t *nixer);
 TEEM_API gage_t *gageAnswerPointer(gageContext *ctx, 
                                    gagePerVolume *pvl, int item);
 TEEM_API int gageQueryReset(gageContext *ctx, gagePerVolume *pvl);
@@ -718,7 +661,7 @@ TEEM_API int gageProbe(gageContext *ctx, gage_t x, gage_t y, gage_t z);
 TEEM_API int gageUpdate(gageContext *ctx);
 
 /* st.c */
-TEEM_API int gageStructureTensor(Nrrd *nout, Nrrd *nin,
+TEEM_API int gageStructureTensor(Nrrd *nout, const Nrrd *nin,
                                  int dScale, int iScale, int dsmp);
 
 #ifdef __cplusplus

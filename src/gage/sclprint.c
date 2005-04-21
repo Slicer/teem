@@ -27,7 +27,7 @@ _gageSclIv3Print (FILE *file, gageContext *ctx, gagePerVolume *pvl) {
   int i, fd;
 
   iv3 = pvl->iv3;
-  fd = GAGE_FD(ctx);
+  fd = 2*ctx->radius;
   fprintf(file, "iv3[]:\n");
   switch(fd) {
   case 2:

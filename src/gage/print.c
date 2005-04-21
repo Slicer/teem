@@ -26,7 +26,7 @@ _gagePrint_off (FILE *file, gageContext *ctx) {
   int i, fd;
   unsigned int *off;
 
-  fd = GAGE_FD(ctx);
+  fd = 2*ctx->radius;
   off = ctx->off;
   fprintf(stderr, "off[]:\n");
   switch(fd) {
@@ -99,7 +99,7 @@ _gagePrint_fslw (FILE *file, gageContext *ctx) {
 
   /* float *p; */
 
-  fd = GAGE_FD(ctx);
+  fd = 2*ctx->radius;
   fslx = ctx->fsl + fd*0;
   fsly = ctx->fsl + fd*1;
   fslz = ctx->fsl + fd*2;

@@ -54,6 +54,17 @@ gageShapeNew () {
 }
 
 gageShape *
+gageShapeCopy (gageShape *shp) {
+  gageShape *nhp;
+
+  if ((nhp = gageShapeNew())) {
+    /* no pointers, so this is easy */
+    memcpy(nhp, shp, sizeof(gageShape));
+  }
+  return nhp;
+}
+
+gageShape *
 gageShapeNix (gageShape *shape) {
   
   return airFree(shape);
@@ -71,10 +82,11 @@ gageShapeNix (gageShape *shape) {
 ** This function has subsumed the old gageVolumeCheck.
 */
 int
-_gageShapeSet (gageContext *ctx, gageShape *shape, Nrrd *nin, int baseDim) {
+_gageShapeSet (gageContext *ctx, gageShape *shape,
+               const Nrrd *nin, int baseDim) {
   char me[]="_gageShapeSet", err[AIR_STRLEN_MED];
   int i, ai, minsize, cx, cy, cz, sx, sy, sz, num[3], defCenter;
-  NrrdAxisInfo *ax[3];
+  const NrrdAxisInfo *ax[3];
   double maxLen, xs, ys, zs, defSpacing;
 
   /* ------ basic error checking */
@@ -222,7 +234,7 @@ _gageShapeSet (gageContext *ctx, gageShape *shape, Nrrd *nin, int baseDim) {
 }
 
 int
-gageShapeSet (gageShape *shape, Nrrd *nin, int baseDim) {
+gageShapeSet (gageShape *shape, const Nrrd *nin, int baseDim) {
   char me[]="gageShapeSet", err[AIR_STRLEN_MED];
 
   if (_gageShapeSet(NULL, shape, nin, baseDim)) {

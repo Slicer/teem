@@ -23,7 +23,7 @@
 
 /*
 ** sets the filter sample location (fsl) array based
-** on probe location (xf,yf,zf)
+** on probe location (xf,yf,zf) stored in ctx->point
 **
 ** One possible rare surpise: if a filter is not continuous with 0
 ** at the end of its support, and if the sample location is at the
@@ -37,7 +37,7 @@ _gageFslSet (gageContext *ctx) {
   gage_t *fslx, *fsly, *fslz;
   gage_t xf, yf, zf;
 
-  fr = GAGE_FR(ctx);
+  fr = ctx->radius;
   fslx = ctx->fsl + 0*2*fr;
   fsly = ctx->fsl + 1*2*fr;
   fslz = ctx->fsl + 2*2*fr;
@@ -77,7 +77,7 @@ _gageFwValueRenormalize (gageContext *ctx, int wch) {
   gage_t integral, sumX, sumY, sumZ, *fwX, *fwY, *fwZ;
   int i, fd;
 
-  fd = GAGE_FD(ctx);
+  fd = 2*ctx->radius;
   fwX = ctx->fw + 0 + fd*(0 + 3*wch);
   fwY = ctx->fw + 0 + fd*(1 + 3*wch);
   fwZ = ctx->fw + 0 + fd*(2 + 3*wch);
@@ -108,7 +108,7 @@ _gageFwDerivRenormalize (gageContext *ctx, int wch) {
     *fwX, *fwY, *fwZ;
   int i, fd;
 
-  fd = GAGE_FD(ctx);
+  fd = 2*ctx->radius;
   fwX = ctx->fw + 0 + fd*(0 + 3*wch);
   fwY = ctx->fw + 0 + fd*(1 + 3*wch);
   fwZ = ctx->fw + 0 + fd*(2 + 3*wch);
@@ -143,10 +143,11 @@ _gageFwSet (gageContext *ctx) {
   int i, j, fd;
   gage_t *fwX, *fwY, *fwZ;
 
-  fd = GAGE_FD(ctx);
+  fd = 2*ctx->radius;
   for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-    if (!ctx->needK[i])
+    if (!ctx->needK[i]) {
       continue;
+    }
     /* we evaluate weights for all three axes with one call */
     ctx->ksp[i]->kernel->EVALN(ctx->fw + 3*fd*i, ctx->fsl,
                                3*fd, ctx->ksp[i]->parm);
@@ -182,10 +183,12 @@ _gageFwSet (gageContext *ctx) {
          1.0 == ctx->shape->spacing[1] &&
          1.0 == ctx->shape->spacing[2] )) {
     for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-      if (!ctx->needK[i])
+      if (!ctx->needK[i]) {
         continue;
-      if (gageKernel00 == i || gageKernel10 == i || gageKernel20 == i)
+      }
+      if (gageKernel00 == i || gageKernel10 == i || gageKernel20 == i) {
         continue;
+      }
       fwX = ctx->fw + 0 + fd*(0 + 3*i);
       fwY = ctx->fw + 0 + fd*(1 + 3*i);
       fwZ = ctx->fw + 0 + fd*(2 + 3*i);
@@ -200,6 +203,7 @@ _gageFwSet (gageContext *ctx) {
       _gagePrint_fslw(stderr, ctx);
     }
   }
+  return;
 }
 
 /*
@@ -209,7 +213,7 @@ _gageFwSet (gageContext *ctx) {
 ** depend on it:
 ** fsl, fw
 **
-** (x,y,z) is index space position in the unpadded volume
+** (x,y,z) is index space position in the volume
 **
 ** does NOT use biff, but returns 1 on error and 0 if all okay
 ** Currently only error is probing outside volume, which sets
@@ -218,59 +222,52 @@ _gageFwSet (gageContext *ctx) {
 int
 _gageLocationSet (gageContext *ctx, gage_t x, gage_t y, gage_t z) {
   char me[]="_gageProbeLocationSet";
-  int tx, ty, tz,  /* "top" x, y, z: highest valid index in UNPADDED volume */
-    xi, yi, zi;    /* computed integral positions in PADDED volume */
-  gage_t xf, yf, zf;
+  int top[3],      /* "top" x, y, z: highest valid index in volume */
+    xi, yi, zi;    /* computed integral positions in volume */
+  gage_t xf, yf, zf, min, max[3];
 
-  tx = ctx->shape->size[0] - 1;
-  ty = ctx->shape->size[1] - 1;
-  tz = ctx->shape->size[2] - 1;
+  top[0] = ctx->shape->size[0] - 1;
+  top[1] = ctx->shape->size[1] - 1;
+  top[2] = ctx->shape->size[2] - 1;
   /* 
   ** the {x,y,z}i integral positions are first computed in unpadded
   ** space (as are the {x,y,z}f fractional positions) ... 
   */
   if (nrrdCenterNode == ctx->shape->center) {
-    if (!( AIR_IN_CL(0,x,tx) && 
-           AIR_IN_CL(0,y,ty) && 
-           AIR_IN_CL(0,z,tz) )) {
-      sprintf(gageErrStr, "%s: position (%g,%g,%g) outside (node-centered) "
-              "bounds [0,%d]x[0,%d]x[0,%d]",
-              me, (float)x, (float)y, (float)z, tx, ty, tz);
-      gageErrNum = 0;
-      return 1;
-    }
-    xi = x; xi -= xi == tx; xf = x - xi;
-    yi = y; yi -= yi == ty; yf = y - yi;
-    zi = z; zi -= zi == tz; zf = z - zi;
+    min = 0;
+    max[0] = top[0];
+    max[1] = top[1];
+    max[2] = top[2];
   } else {
-    if (!( AIR_IN_CL(-0.5,x,tx+0.5) &&
-           AIR_IN_CL(-0.5,y,ty+0.5) &&
-           AIR_IN_CL(-0.5,z,tz+0.5) )) {
-      sprintf(gageErrStr, "%s: position (%g,%g,%g) outside (cell-centered) "
-              "bounds [-0.5,%f]x[-0.5,%f]x[-0.5,%f]",
-              me, (float)x, (float)y, (float)z, tx+0.5, ty+0.5, tz+0.5);
-      gageErrNum = 0;
-      return 1;
-    }
-    xi = (int)(x+1)-1; xi = AIR_CLAMP(0, xi, tx-1); xf = x - xi;
-    yi = (int)(y+1)-1; yi = AIR_CLAMP(0, yi, ty-1); yf = y - yi;
-    zi = (int)(z+1)-1; zi = AIR_CLAMP(0, zi, tz-1); zf = z - zi;
+    min = -0.5;
+    max[0] = top[0] + 0.5;
+    max[1] = top[1] + 0.5;
+    max[2] = top[2] + 0.5;
   }
-  /* now {x,y,z}i are shifted to padded space */
-  ctx->point.xi = xi + ctx->havePad;
-  ctx->point.yi = yi + ctx->havePad;
-  ctx->point.zi = zi + ctx->havePad;
+  if (!( AIR_IN_CL(min, x, max[0]) && 
+         AIR_IN_CL(min, y, max[1]) && 
+         AIR_IN_CL(min, z, max[2]) )) {
+    sprintf(gageErrStr, "%s: position (%g,%g,%g) outside (%s-centered) "
+            "bounds [%g,%g]x[%g,%g]x[%g,%g]",
+            me, x, y, z,
+            airEnumStr(nrrdCenter, ctx->shape->center),
+            min, max[0], min, max[1], min, max[2]);
+    gageErrNum = 0;
+    return 1;
+  }
+  xi = (int)(x+1)-1; xi -= xi == top[0]; xf = x - xi;
+  yi = (int)(y+1)-1; yi -= yi == top[1]; yf = y - yi;
+  zi = (int)(z+1)-1; zi -= zi == top[2]; zf = z - zi;
+
+  ctx->point.xi = xi;
+  ctx->point.yi = yi;
+  ctx->point.zi = zi;
   if (ctx->verbose > 1) {
     fprintf(stderr, "%s: \n"
-            "        pos (% 15.7f,% 15.7f,% 15.7f) (unpadded) \n"
-            "        -> i(%5d,%5d,%5d) (unpadded) \n"
-            "        -> i(%5d,%5d,%5d) (padded) \n"
+            "        pos (% 15.7f,% 15.7f,% 15.7f) \n"
+            "        -> i(%5d,%5d,%5d) \n"
             "         + f(% 15.7f,% 15.7f,% 15.7f) \n",
-            me,
-            (float)x, (float)y, (float)z,
-            xi, yi, zi,
-            ctx->point.xi, ctx->point.yi, ctx->point.zi,
-            (float)xf, (float)yf, (float)zf);
+            me, x, y, z, xi, yi, zi, xf, yf, zf);
   }
   
   if (!( ctx->point.xf == xf &&

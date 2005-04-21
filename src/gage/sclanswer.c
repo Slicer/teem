@@ -216,7 +216,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     /* this item is currently a complete oddball in that it does not
        benefit from anything done in the "filter" stage, which is in
        fact a waste of time if the query consists only  of this item */
-    fd = GAGE_FD(ctx);
+    fd = 2*ctx->radius;
     if (fd > FD_MEDIAN_MAX) {
       fprintf(stderr, "%s: PANIC: current filter diameter = %d "
               "> FD_MEDIAN_MAX = %d\n", me, fd, FD_MEDIAN_MAX);

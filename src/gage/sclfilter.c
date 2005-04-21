@@ -400,7 +400,7 @@ _gageSclFilter (gageContext *ctx, gagePerVolume *pvl) {
   int fd;
   gage_t *fw00, *fw11, *fw22;
 
-  fd = GAGE_FD(ctx);
+  fd = 2*ctx->radius;
   if (!ctx->parm.k3pack) {
     fprintf(stderr, "!%s: sorry, 6-pack filtering not implemented\n", me);
     return;

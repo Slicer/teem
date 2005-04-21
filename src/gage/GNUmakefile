@@ -48,9 +48,9 @@ $(L).NEED = ell nrrd biff air
 $(L).PUBLIC_HEADERS = gage.h
 $(L).PRIVATE_HEADERS = privateGage.h
 $(L).OBJS = defaultsGage.o miscGage.o scl.o kind.o \
-        shape.o pvl.o ctx.o update.o filter.o \
+        shape.o pvl.o update.o \
 	print.o sclanswer.o sclprint.o sclfilter.o \
-	vecGage.o vecprint.o st.o
+	vecGage.o vecprint.o st.o filter.o ctx.o 
 $(L).TESTS = test/ctfix
 ####
 ####

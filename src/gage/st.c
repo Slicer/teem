@@ -82,7 +82,7 @@ _gageCacheProbe (gageContext *ctx, gage_t *grad,
 ** an appropriate iScale > 1, so that you don't undersample.
 */
 int
-gageStructureTensor (Nrrd *nout, Nrrd *nin,
+gageStructureTensor (Nrrd *nout, const Nrrd *nin,
                      int dScale, int iScale, int dsmp) {
   char me[]="gageStructureTensor", err[AIR_STRLEN_MED];
   NrrdKernelSpec *gk0, *gk1, *ik0;

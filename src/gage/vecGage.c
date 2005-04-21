@@ -101,7 +101,7 @@ _gageVecFilter (gageContext *ctx, gagePerVolume *pvl) {
   gage_t *fw00, *fw11, *fw22, *vec, *jac, *hes;
   int fd;
 
-  fd = GAGE_FD(ctx);
+  fd = 2*ctx->radius;
   vec  = pvl->directAnswer[gageVecVector];
   jac  = pvl->directAnswer[gageVecJacobian];
   hes  = pvl->directAnswer[gageVecHessian];

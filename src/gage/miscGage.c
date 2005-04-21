@@ -107,6 +107,10 @@ gageKernel = &_gageKernel_enum;
 /*
 ** _gageStandardPadder()
 **
+*********************************************************
+** as of about Wed Apr 20 19:32:54 EDT 2005, this is moot
+*********************************************************
+**
 ** the usual/default padder used in gage, basically just a simple
 ** wrapper around nrrdPad(), but similar in spirit to nrrdSimplePad().
 **
@@ -161,6 +165,10 @@ _gageStandardPadder (Nrrd *nin, gageKind *kind,
 /*
 ** _gageStandardNixer()
 **
+*********************************************************
+** as of about Wed Apr 20 19:32:54 EDT 2005, this is moot
+*********************************************************
+**
 ** the usual/default nixer used in gage, which is a simple wrapper
 ** around nrrdNuke at this point, although other things could be
 ** implemented later ...
@@ -187,7 +195,6 @@ gageParmReset (gageParm *parm) {
   if (parm) {
     parm->renormalize = gageDefRenormalize;
     parm->checkIntegrals = gageDefCheckIntegrals;
-    parm->noRepadWhenSmaller = gageDefNoRepadWhenSmaller;
     parm->k3pack = gageDefK3Pack;
     parm->gradMagMin = gageDefGradMagMin;
     parm->gradMagCurvMin = gageDefGradMagCurvMin;
