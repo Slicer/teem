@@ -50,7 +50,7 @@ hooverContextNew() {
 int
 hooverContextCheck(hooverContext *ctx) {
   char me[]="hooverContextCheck", err[AIR_STRLEN_MED];
-  int sxe, sye, sze;
+  int sxe, sye, sze, minSize;
 
   if (!ctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -70,10 +70,11 @@ hooverContextCheck(hooverContext *ctx) {
     sprintf(err, "%s: trouble setting up camera", me);
     biffMove(HOOVER, err, LIMN); return 1;
   }
-  if (!(ctx->volSize[0] > 1 
-        && ctx->volSize[1] > 1 
-        && ctx->volSize[2] > 1)) {
-    sprintf(err, "%s: volume dimensions (%dx%dx%d) invalid", me,
+  minSize = (nrrdCenterCell == ctx->volCentering ? 1 : 2);
+  if (!(ctx->volSize[0] >= minSize
+        && ctx->volSize[1] >= minSize 
+        && ctx->volSize[2] >= minSize)) {
+    sprintf(err, "%s: volume dimensions (%dx%dx%d) too small", me,
             ctx->volSize[0], ctx->volSize[1], ctx->volSize[2]);
     biffAdd(HOOVER, err); return 1;
   }
