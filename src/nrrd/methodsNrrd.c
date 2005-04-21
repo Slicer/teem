@@ -189,11 +189,13 @@ nrrdKernelSpecNew (void) {
 
 NrrdKernelSpec *
 nrrdKernelSpecCopy (NrrdKernelSpec *oldKsp) {
-  NrrdKernelSpec *ksp;
+  NrrdKernelSpec *ksp=NULL;
 
-  ksp = (NrrdKernelSpec *)calloc(1, sizeof(NrrdKernelSpec));
-  if (ksp) {
-    memcpy(ksp, oldKsp, sizeof(NrrdKernelSpec));
+  if (oldKsp) {
+    ksp = (NrrdKernelSpec *)calloc(1, sizeof(NrrdKernelSpec));
+    if (ksp) {
+      memcpy(ksp, oldKsp, sizeof(NrrdKernelSpec));
+    }
   }
   return ksp;
 }
