@@ -1334,6 +1334,10 @@ nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str) {
   const NrrdKernel *kern;
   double kparm[NRRD_KERNEL_PARMS_NUM];
   
+  if (!( ksp && str )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
   if (nrrdKernelParse(&kern, kparm, str)) {
     sprintf(err, "%s: ", me);
     biffAdd(NRRD, err); return 1;
