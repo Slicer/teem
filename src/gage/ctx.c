@@ -574,3 +574,37 @@ gageProbe (gageContext *ctx, gage_t x, gage_t y, gage_t z) {
   return 0;
 }
 
+int
+gageProbeSpace(gageContext *ctx, gage_t x, gage_t y, gage_t z,
+               int indexSpace, int clamp) {
+  int ret, center, *size;
+  gage_t xi, yi, zi;
+  double *hlen;
+
+  size = ctx->shape->size;
+  center = ctx->shape->center;
+  if (indexSpace) {
+    xi = x;
+    yi = y;
+    zi = z;
+  } else {
+    /* have to convert from world to index */
+    hlen = ctx->shape->volHalfLen;
+    xi = NRRD_IDX(center, -hlen[0], hlen[0], size[0], x);
+    yi = NRRD_IDX(center, -hlen[1], hlen[1], size[1], y);
+    zi = NRRD_IDX(center, -hlen[2], hlen[2], size[2], z);
+  }
+  if (clamp) {
+    if (nrrdCenterNode == center) {
+      xi = AIR_CLAMP(0, xi, size[0]-1);
+      yi = AIR_CLAMP(0, yi, size[1]-1);
+      zi = AIR_CLAMP(0, zi, size[2]-1);
+    } else {
+      xi = AIR_CLAMP(-0.5, xi, size[0]-0.5);
+      yi = AIR_CLAMP(-0.5, yi, size[1]-0.5);
+      zi = AIR_CLAMP(-0.5, zi, size[2]-0.5);
+    }
+  }
+  ret = gageProbe(ctx, xi, yi, zi);
+  return ret;
+}

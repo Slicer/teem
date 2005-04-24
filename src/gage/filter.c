@@ -229,10 +229,6 @@ _gageLocationSet (gageContext *ctx, gage_t x, gage_t y, gage_t z) {
   top[0] = ctx->shape->size[0] - 1;
   top[1] = ctx->shape->size[1] - 1;
   top[2] = ctx->shape->size[2] - 1;
-  /* 
-  ** the {x,y,z}i integral positions are first computed in unpadded
-  ** space (as are the {x,y,z}f fractional positions) ... 
-  */
   if (nrrdCenterNode == ctx->shape->center) {
     min = 0;
     max[0] = top[0];
@@ -255,9 +251,9 @@ _gageLocationSet (gageContext *ctx, gage_t x, gage_t y, gage_t z) {
     gageErrNum = 0;
     return 1;
   }
-  xi = (int)(x+1)-1; xi -= xi == top[0]; xf = x - xi;
-  yi = (int)(y+1)-1; yi -= yi == top[1]; yf = y - yi;
-  zi = (int)(z+1)-1; zi -= zi == top[2]; zf = z - zi;
+  xi = (int)(x+1) - 1; xf = x - xi;
+  yi = (int)(y+1) - 1; yf = y - yi;
+  zi = (int)(z+1) - 1; zf = z - zi;
 
   ctx->point.xi = xi;
   ctx->point.yi = yi;

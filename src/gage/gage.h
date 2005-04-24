@@ -656,6 +656,8 @@ TEEM_API int gageKernelSet(gageContext *ctx,
                            int which, const NrrdKernel *k, double *kparm);
 TEEM_API void gageKernelReset(gageContext *ctx);
 TEEM_API int gageProbe(gageContext *ctx, gage_t x, gage_t y, gage_t z);
+TEEM_API int gageProbeSpace(gageContext *ctx, gage_t x, gage_t y, gage_t z,
+                            int indexSpace, int clamp);
 
 /* update.c */
 TEEM_API int gageUpdate(gageContext *ctx);
