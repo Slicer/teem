@@ -180,7 +180,8 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn,
         vi = sdata[0 + 3*ti] + sdata[2 + 3*ti];
         px = AIR_AFFINE(min[0], pdata[0 + 2*vi], max[0], minX, maxX);
         py = AIR_AFFINE(min[1], pdata[1 + 2*vi], max[1], maxY, minY);
-        fprintf(file, "%g %g %g 0 360 arc closepath fill\n", px, py, dotRad + lineWidth);
+        fprintf(file, "%g %g %g 0 360 arc closepath fill\n",
+                px, py, dotRad + lineWidth);
       }
     }
     fprintf(file, "grestore\n");
