@@ -15,11 +15,7 @@ unu save -f nrrd -e text produces a text file that does not end w/ newline
 
 unu: jhisto works with axis[0] elements when given a single nrrd
 
-gage: avoid padding and re-allocation!
 gage: re-modularize to facilitate probing bricked data
- apparent problem w/ gage probing (0,0,0) in a cell-centered thickness-1 volume
-gageIv3Fill: padded size = (258,258,3);
-    fd = 4; point (pad: 1) coord = (1,1,0) --> bidx = -66564
 
 gage: consider changing gageProbe() to take position both in index and
 unit world space, since many programs only care about unit world space
@@ -140,6 +136,9 @@ include a list of published papers using teem:
 Kindlmann: Superquadric Tensor Glyphs
 Kindlmann Vis03: Curvature-Based Transfer Functions
 Lefohn Vis03: Interactive Deformation and Visualization of Level Set Surfaces Using Graphics Hardware
+Lefohn TVCG July/August 04: A Streaming Narrow-Band Algorithm: Interactive Computation and Visualization of Level Sets
 Kniss VisSym04: Medical Applications of Multi-field Volume Rendering and VR Techniques
 Deschamps TVCG04: Fast Evolution of Image Manifolds and Application to Filtering and Segmentation in 3D Medical Images
 ikits Vis03: A Constraint-based Technique for Haptic Volume Exploration
+fout Eurovis 05: High-Quality Rendering of Compressed Volume Data Formats
+callahan TVCG May/June 05: Hardware-Assisted Visibility Sorting for Unstructured Volume Rendering
