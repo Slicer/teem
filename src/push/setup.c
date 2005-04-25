@@ -25,6 +25,7 @@
 ** _pushTensorFieldSetup sets:
 **** pctx->dimIn
 **** pctx->nten
+**** pctx->ninv
 **** pctx->nmask
 ** and checks mask range
 */
@@ -35,13 +36,17 @@ _pushTensorFieldSetup(pushContext *pctx) {
   NrrdRange *nrange;
   airArray *mop;
   Nrrd *ntmp;
-  int ii, E;
+  int E;
+  float *_ten, *_inv;
+  push_t ten[7], inv[7];
+  size_t ii, NN;
 
   mop = airMopNew();
   ntmp = nrrdNew();
   airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
   E = AIR_FALSE;
   pctx->nten = nrrdNew();
+  pctx->ninv = nrrdNew();
   pctx->nmask = nrrdNew();
   if (3 == pctx->nin->dim) {
     /* input is 2D array of 2D tensors */
@@ -74,9 +79,27 @@ _pushTensorFieldSetup(pushContext *pctx) {
     pctx->dimIn = 3;
     E = nrrdConvert(pctx->nten, pctx->nin, nrrdTypeFloat);
   }
-  if (!E) E |= nrrdSlice(pctx->nmask, pctx->nten, 0, 0);
+  
+  /* set up ninv from nten */
+  if (!E) E |= nrrdCopy(pctx->ninv, pctx->nten);
   if (E) {
     sprintf(err, "%s: trouble creating 3D tensor input", me);
+    biffMove(PUSH, err, NRRD); airMopError(mop); return 1;
+  }
+  _ten = (float*)pctx->nten->data;
+  _inv = (float*)pctx->ninv->data;
+  NN = nrrdElementNumber(pctx->nten)/7;
+  for (ii=0; ii<NN; ii++) {
+    TEN_T_COPY(ten, _ten);
+    _pushTenInv(pctx, inv, ten);
+    TEN_T_COPY(_inv, inv);
+    _ten += 7;
+    _inv += 7;
+  }
+
+  if (!E) E |= nrrdSlice(pctx->nmask, pctx->nten, 0, 0);
+  if (E) {
+    sprintf(err, "%s: trouble creating mask", me);
     biffMove(PUSH, err, NRRD); airMopError(mop); return 1;
   }
   nrange = nrrdRangeNewSet(pctx->nmask, nrrdBlind8BitRangeFalse);
@@ -95,12 +118,21 @@ _pushTensorFieldSetup(pushContext *pctx) {
   pctx->nten->axis[3].spacing = (AIR_EXISTS(pctx->nten->axis[3].spacing)
                                  ? pctx->nten->axis[3].spacing
                                  : 1.0);
+  pctx->ninv->axis[1].spacing = pctx->nten->axis[1].spacing;
+  pctx->ninv->axis[2].spacing = pctx->nten->axis[2].spacing;
+  pctx->ninv->axis[3].spacing = pctx->nten->axis[3].spacing;
   pctx->nmask->axis[0].spacing = pctx->nten->axis[1].spacing;
   pctx->nmask->axis[1].spacing = pctx->nten->axis[2].spacing;
   pctx->nmask->axis[2].spacing = pctx->nten->axis[3].spacing;
-  pctx->nten->axis[1].center = pctx->nmask->axis[0].center = nrrdCenterCell;
-  pctx->nten->axis[2].center = pctx->nmask->axis[1].center = nrrdCenterCell;
-  pctx->nten->axis[3].center = pctx->nmask->axis[2].center = nrrdCenterCell;
+  pctx->nten->axis[1].center = nrrdCenterCell;
+  pctx->nten->axis[2].center = nrrdCenterCell;
+  pctx->nten->axis[3].center = nrrdCenterCell;
+  pctx->ninv->axis[1].center = nrrdCenterCell;
+  pctx->ninv->axis[2].center = nrrdCenterCell;
+  pctx->ninv->axis[3].center = nrrdCenterCell;
+  pctx->nmask->axis[0].center = nrrdCenterCell;
+  pctx->nmask->axis[1].center = nrrdCenterCell;
+  pctx->nmask->axis[2].center = nrrdCenterCell;
 
   airMopOkay(mop); 
   return 0;
@@ -127,6 +159,11 @@ _pushGageSetup(pushContext *pctx) {
   if (!E) E |= gageKernelSet(pctx->gctx, gageKernel00,
                              pctx->ksp00->kernel, pctx->ksp00->parm);
   if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->tpvl, tenGageTensor);
+  /* set up tensor inverse probing */
+  if (!E) E |= !(pctx->ipvl = gagePerVolumeNew(pctx->gctx,
+                                               pctx->ninv, tenGageKind));
+  if (!E) E |= gagePerVolumeAttach(pctx->gctx, pctx->ipvl);
+  if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->ipvl, tenGageTensor);
   /* set up mask gradient probing */
   if (!E) E |= !(mpvl = gagePerVolumeNew(pctx->gctx,
                                          pctx->nmask, gageKindScl));
@@ -170,6 +207,7 @@ _pushFiberSetup(pushContext *pctx) {
   if (!E) E |= tenFiberKernelSet(pctx->fctx,
                                  pctx->ksp00->kernel, pctx->ksp00->parm);
   if (!E) E |= tenFiberIntgSet(pctx->fctx, tenFiberIntgRK4);
+  /* if (!E) E |= tenFiberIntgSet(pctx->fctx, tenFiberIntgEuler); */
   if (!E) E |= tenFiberParmSet(pctx->fctx, tenFiberParmStepSize, pctx->tlStep);
   if (!E) E |= tenFiberAnisoSpeedSet(pctx->fctx, tenAniso_Cl1,
                                      1 /* lerp */ ,
@@ -198,7 +236,9 @@ _pushTaskNew(pushContext *pctx, int threadIdx) {
     */
     task->tenAns = gageAnswerPointer(task->gctx, task->gctx->pvl[0],
                                      tenGageTensor);
-    task->cntAns = gageAnswerPointer(task->gctx, task->gctx->pvl[1],
+    task->invAns = gageAnswerPointer(task->gctx, task->gctx->pvl[1],
+                                     tenGageTensor);
+    task->cntAns = gageAnswerPointer(task->gctx, task->gctx->pvl[2],
                                      gageSclGradVec);
     if (threadIdx) {
       task->thread = airThreadNew();
@@ -299,13 +339,13 @@ _pushBinSetup(pushContext *pctx) {
     pctx->numBin = pctx->binsEdge*pctx->binsEdge*(2 == pctx->dimIn ? 
                                                   1 : pctx->binsEdge);
   }
-  pctx->bin = (pushBin **)calloc(pctx->numBin, sizeof(pushBin*));
+  pctx->bin = (pushBin *)calloc(pctx->numBin, sizeof(pushBin));
   if (!( pctx->bin )) {
     sprintf(err, "%s: trouble allocating bin arrays", me);
     biffAdd(PUSH, err); return 1;
   }
   for (ii=0; ii<pctx->numBin; ii++) {
-    pctx->bin[ii] = pushBinNew(pctx->binIncr);
+    pushBinInit(pctx->bin + ii, pctx->binIncr);
   }
   pushBinAllNeighborSet(pctx);
 
@@ -345,6 +385,7 @@ _pushThingSetup(pushContext *pctx) {
                    lup(pctx->npos->data, 1 + 3*(pointIdx + baseIdx)),
                    lup(pctx->npos->data, 2 + 3*(pointIdx + baseIdx)));
         _pushProbe(pctx->task[0], thing->vert + pointIdx);
+        thing->vert[pointIdx].charge = _pushThingPointCharge(pctx, thing);
       }
       thing->seedIdx = stn[2 + 3*thingIdx];
       if (1 < thing->numVert) {
@@ -366,6 +407,7 @@ _pushThingSetup(pushContext *pctx) {
                  lup(pctx->npos->data, 1 + 3*thingIdx),
                  lup(pctx->npos->data, 2 + 3*thingIdx));
       _pushProbe(pctx->task[0], thing->vert + 0);
+      thing->vert[0].charge = _pushThingPointCharge(pctx, thing);
     } else {
       thing = pushThingNew(1);
       do {
@@ -395,6 +437,7 @@ _pushThingSetup(pushContext *pctx) {
         biffAdd(PUSH, err); return 1;
       }
       ELL_3V_SET(thing->vert[pointIdx].vel, 0, 0, 0);
+      thing->vert[pointIdx].charge = _pushThingPointCharge(pctx, thing);
     }
     if (pushBinThingAdd(pctx, thing)) {
       sprintf(err, "%s: trouble thing %d", me, thingIdx);

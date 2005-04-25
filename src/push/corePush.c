@@ -63,8 +63,8 @@ _pushStageRun(pushTask *task, int stageIdx) {
         task->pctx->binIdx++;
       }
     } while (binIdx < task->pctx->numBin
-             && 0 == task->pctx->bin[binIdx]->numThing
-             && 0 == task->pctx->bin[binIdx]->numPoint);
+             && 0 == task->pctx->bin[binIdx].numThing
+             && 0 == task->pctx->bin[binIdx].numPoint);
     if (task->pctx->numThread > 1) {
       airThreadMutexUnlock(task->pctx->binMutex);
     }
@@ -84,6 +84,7 @@ _pushStageRun(pushTask *task, int stageIdx) {
   return 0;
 }
 
+/* the main loop for each worker thread */
 void *
 _pushWorker(void *_task) {
   char me[]="_pushWorker", *err;
@@ -114,6 +115,8 @@ _pushWorker(void *_task) {
       err = biffGetDone(PUSH);
       fprintf(stderr, "%s: task %d trouble with stage %d:\n%s", me,
               task->threadIdx, task->pctx->stageIdx, err);
+      /* HEY: we should be using the "finished" mechanism to
+         shut the whole production down */
     }
     airThreadBarrierWait(task->pctx->stageBarrierB);
   }
@@ -254,7 +257,7 @@ pushStart(pushContext *pctx) {
 */
 int
 pushIterate(pushContext *pctx) {
-  char me[]="pushIterate", err[AIR_STRLEN_MED];
+  char me[]="pushIterate", *_err, err[AIR_STRLEN_MED];
   int ti, numThing;
 
   if (!pctx) {
@@ -278,9 +281,16 @@ pushIterate(pushContext *pctx) {
       airThreadBarrierWait(pctx->stageBarrierA);
     }
     if (pctx->verbose) {
-      fprintf(stderr, "%s: starting stage %d\n", me, pctx->stageIdx);
+      fprintf(stderr, "%s: starting iter %d stage %d\n", me, 
+              pctx->iter, pctx->stageIdx);
     }
-    _pushStageRun(pctx->task[0], pctx->stageIdx);
+    if (_pushStageRun(pctx->task[0], pctx->stageIdx)) {
+      _err = biffGetDone(PUSH);
+      fprintf(stderr, "%s: task %d trouble w/ iter %d stage %d:\n%s", me,
+              pctx->task[0]->threadIdx, pctx->iter,
+              pctx->task[0]->pctx->stageIdx, _err);
+      return 1;
+    }
     if (pctx->numThread > 1) {
       airThreadBarrierWait(pctx->stageBarrierB);
     }
@@ -303,7 +313,84 @@ pushIterate(pushContext *pctx) {
     sprintf(err, "%s: problem with new point locations", me);
     biffAdd(PUSH, err); return 1;
   }
+  if (0 && 100 == pctx->iter) {
+    _pushForceSample(pctx, 300, 300);
+  }
   
+  return 0;
+}
+
+int
+pushRun(pushContext *pctx) {
+  char me[]="pushRun", err[AIR_STRLEN_MED],
+    poutS[AIR_STRLEN_MED], toutS[AIR_STRLEN_MED], soutS[AIR_STRLEN_MED];
+  Nrrd *npos, *nten, *nstn;
+  double vel[2], meanVel=0;
+  
+  pctx->iter = 0;
+  pctx->time0 = airTime();
+  vel[0] = AIR_NAN;
+  vel[1] = AIR_NAN;
+  do {
+    if (400 == pctx->iter) {
+      int bi, ti;
+      pushBin *bin;
+      for (bi=0; bi<pctx->numBin; bi++) {
+        bin = pctx->bin + bi;
+        for (ti=0; ti<bin->numThing; ti++) {
+          ELL_3V_SET(bin->thing[ti]->point.vel, 0, 0, 0);
+        }
+      }
+    }
+    if (pushIterate(pctx)) {
+      sprintf(err, "%s: trouble on iter %d", me, pctx->iter);
+      biffAdd(PUSH, err); return 1;
+    }
+    if (pctx->snap && !(pctx->iter % pctx->snap)) {
+      nten = nrrdNew();
+      npos = nrrdNew();
+      nstn = nrrdNew();
+      sprintf(poutS, "snap.%06d.pos.nrrd", pctx->iter);
+      sprintf(toutS, "snap.%06d.ten.nrrd", pctx->iter);
+      sprintf(soutS, "snap.%06d.stn.nrrd", pctx->iter);
+      if (pushOutputGet(npos, nten, nstn, pctx)) {
+        sprintf(err, "%s: couldn't get snapshot for iter %d", me, pctx->iter);
+        biffAdd(PUSH, err); return 1;
+      }
+      fprintf(stderr, "%s: %s, meanVel=%g, %g iter/sec\n", me,
+              poutS, meanVel, pctx->iter/(airTime()-pctx->time0));
+      if (nrrdSave(poutS, npos, NULL)
+          || nrrdSave(toutS, nten, NULL)
+          || nrrdSave(soutS, nstn, NULL)) {
+        sprintf(err, "%s: couldn't save snapshot for iter %d", me, pctx->iter);
+        biffMove(PUSH, err, NRRD); return 1;
+      }
+      nten = nrrdNuke(nten);
+      npos = nrrdNuke(npos);
+      nstn = nrrdNuke(nstn);
+    }
+    /* this goofiness is because it seems like my stupid Euler 
+       integration can lead to real motion only happening on
+       every other iteration ... */
+    if (0 == pctx->iter) {
+      vel[0] = pctx->meanVel;
+      meanVel = pctx->meanVel;
+    } else if (1 == pctx->iter) {
+      vel[1] = pctx->meanVel;
+      meanVel = (vel[0] + vel[1])/2;
+    } else {
+      vel[0] = vel[1];
+      vel[1] = pctx->meanVel;
+      meanVel = (vel[0] + vel[1])/2;
+    }
+    pctx->iter++;
+  } while ( (pctx->iter < pctx->minIter)
+            || (meanVel > pctx->minMeanVel
+                && (0 == pctx->maxIter
+                    || pctx->iter < pctx->maxIter)) );
+  pctx->time1 = airTime();
+  pctx->time = pctx->time1 - pctx->time0;
+
   return 0;
 }
 
@@ -339,11 +426,12 @@ pushFinish(pushContext *pctx) {
   pctx->task = airFree(pctx->task);
 
   pctx->nten = nrrdNuke(pctx->nten);
+  pctx->ninv = nrrdNuke(pctx->ninv);
   pctx->nmask = nrrdNuke(pctx->nmask);
   pctx->gctx = gageContextNix(pctx->gctx);
   pctx->fctx = tenFiberContextNix(pctx->fctx);
   for (ii=0; ii<pctx->numBin; ii++) {
-    pctx->bin[ii] = pushBinNix(pctx->bin[ii]);
+    pushBinDone(pctx->bin + ii);
   }
   pctx->bin = airFree(pctx->bin);
   pctx->binsEdge = pctx->numBin = 0;

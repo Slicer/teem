@@ -31,7 +31,7 @@ main(int argc, char *argv[]) {
   
   char *outS[2];
   int seed, numThread, numThing, snap, minIter, maxIter, singleBin,
-    noDriftCorrect, tln, frenet, incr, tlr;
+    noDriftCorrect, tln, frenet, incr;
   pushContext *pctx;
   Nrrd *nin, *nPosIn, *nStnIn, *nPosOut, *nTenOut, *nStnOut;
   double step, drag, preDrag, mass, scale, nudge, margin,
@@ -67,9 +67,6 @@ main(int argc, char *argv[]) {
              "size of each step");
   hestOptAdd(&hopt, "tln", "# steps", airTypeInt, 1, 1, &tln, "10",
              "max number of steps in each tractlet half");
-  hestOptAdd(&hopt, "tlr", "radius", airTypeInt, 1, 1, &tlr, "2",
-             "radius of bin neighborhood calculation of "
-             "tractlet-tractlet interations");
   hestOptAdd(&hopt, "fren", NULL, airTypeInt, 0, 0, &frenet, NULL,
              "use tractlet Frenet frame for force averaging");
   hestOptAdd(&hopt, "scl", "scale", airTypeDouble, 1, 1, &scale, "0.25",
@@ -147,7 +144,6 @@ main(int argc, char *argv[]) {
   pctx->tlSoft = tlf[1];
   pctx->tlStep = tlf[2];
   pctx->tlNumStep = tln;
-  pctx->tlNeighborRadius = tlr;
   pctx->tlFrenet = frenet;
   pctx->force = force;
   pctx->scale = scale;

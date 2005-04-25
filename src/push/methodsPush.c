@@ -63,44 +63,37 @@ pushThingNix(pushThing *thg) {
   return NULL;
 }
 
-pushBin *
-pushBinNew(int incr) {
-  pushBin *bin;
+void
+pushBinInit(pushBin *bin, int incr) {
 
-  bin = (pushBin *)calloc(1, sizeof(pushBin));
-  if (bin) {
-    bin->numThing = 0;
-    bin->thing = NULL;
-    bin->thingArr = airArrayNew((void**)&(bin->thing), &(bin->numThing),
-                                sizeof(pushThing *), incr);
-    bin->numPoint = 0;
-    bin->point = NULL;
-    bin->pointArr = airArrayNew((void**)&(bin->point), &(bin->numPoint),
-                                sizeof(pushPoint *), incr);
-    /* airArray callbacks are tempting but super confusing .... */
-    bin->neighbor = NULL;
-  }
-  return bin;
+  bin->numThing = 0;
+  bin->thing = NULL;
+  bin->thingArr = airArrayNew((void**)&(bin->thing), &(bin->numThing),
+                              sizeof(pushThing *), incr);
+  bin->numPoint = 0;
+  bin->point = NULL;
+  bin->pointArr = airArrayNew((void**)&(bin->point), &(bin->numPoint),
+                              sizeof(pushPoint *), incr);
+  /* airArray callbacks are tempting but super confusing .... */
+  bin->neighbor = NULL;
+  return;
 }
 
 /*
 ** bins own the "thing" they contain, when you nix a bin, you nix the
 ** the things inside, but not the points (they belong to things)
 */
-pushBin *
-pushBinNix(pushBin *bin) {
+void
+pushBinDone(pushBin *bin) {
   int idx;
 
-  if (bin) {
-    bin->pointArr = airArrayNuke(bin->pointArr);
-    for (idx=0; idx<bin->numThing; idx++) {
-      bin->thing[idx] = pushThingNix(bin->thing[idx]);
-    }
-    bin->thingArr = airArrayNuke(bin->thingArr);
-    bin->neighbor = airFree(bin->neighbor);
-    airFree(bin);
+  bin->pointArr = airArrayNuke(bin->pointArr);
+  for (idx=0; idx<bin->numThing; idx++) {
+    bin->thing[idx] = pushThingNix(bin->thing[idx]);
   }
-  return NULL;
+  bin->thingArr = airArrayNuke(bin->thingArr);
+  bin->neighbor = airFree(bin->neighbor);
+  return;
 }
 
 
@@ -126,7 +119,6 @@ pushContextNew(void) {
     pctx->tlSoft = 0.0;
     pctx->minMeanVel = 0.0;
     pctx->seed = 42;
-    pctx->tlNeighborRadius = 2;
     pctx->binIncr = 30;
     pctx->numThing = 0;
     pctx->numThread = 1;
@@ -147,6 +139,7 @@ pushContextNew(void) {
       pctx->process[si] = _pushProcessDummy;
     }
     pctx->nten = NULL;
+    pctx->ninv = NULL;
     pctx->nmask = NULL;
     pctx->gctx = NULL;
     pctx->tpvl = NULL;

@@ -30,7 +30,7 @@ _pushBinLocate(pushContext *pctx, push_t *pos) {
   pushBin *ret;
 
   if (pctx->singleBin) {
-    ret = pctx->bin[0];
+    ret = pctx->bin + 0;
   } else {
     min = -1.0 - pctx->margin;
     max = 1.0 + pctx->margin;
@@ -45,7 +45,7 @@ _pushBinLocate(pushContext *pctx, push_t *pos) {
       } else {
         AIR_INDEX(min, pos[2], max, be, zi);
       }
-      ret = pctx->bin[xi + be*(yi + be*zi)];
+      ret = pctx->bin + xi + be*(yi + be*zi);
     } else {
       sprintf(err, "%s: one of (%g,%g,%g) coords out of bounds [%g,%g]", me,
               pos[0], pos[1], pos[2], min, max);
@@ -85,11 +85,8 @@ _pushBinPointAdd(pushContext *pctx, pushBin *bin, pushPoint *point) {
 */
 void
 _pushBinThingRemove(pushContext *pctx, pushBin *bin, int loseIdx) {
-  int thgI;
 
-  for (thgI=loseIdx; thgI<bin->numThing-1; thgI++) {
-    bin->thing[thgI] = bin->thing[thgI+1];
-  }
+  bin->thing[loseIdx] = bin->thing[bin->numThing-1];
   airArrayIncrLen(bin->thingArr, -1);
   
   return;
@@ -97,11 +94,8 @@ _pushBinThingRemove(pushContext *pctx, pushBin *bin, int loseIdx) {
 
 void
 _pushBinPointRemove(pushContext *pctx, pushBin *bin, int loseIdx) {
-  int pntI;
 
-  for (pntI=loseIdx; pntI<bin->numPoint-1; pntI++) {
-    bin->point[pntI] = bin->point[pntI+1];
-  }
+  bin->point[loseIdx] = bin->point[bin->numPoint-1];
   airArrayIncrLen(bin->pointArr, -1);
   
   return;
@@ -153,32 +147,32 @@ pushBinAllNeighborSet(pushContext *pctx) {
 
   if (pctx->singleBin) {
     numNei = 0;
-    nei[numNei++] = pctx->bin[0];
-    _pushBinNeighborSet(pctx->bin[0], nei, numNei);
+    nei[numNei++] = pctx->bin + 0;
+    _pushBinNeighborSet(pctx->bin + 0, nei, numNei);
   } else {
     be = pctx->binsEdge;
     for (zi=0; zi<(2 == pctx->dimIn ? 1 : be); zi++) {
+      if (2 == pctx->dimIn) {
+        zmin = zmax = 0;
+      } else {
+        zmin = AIR_MAX(0, zi-1);
+        zmax = AIR_MIN(zi+1, be-1);
+      }
       for (yi=0; yi<be; yi++) {
+        ymin = AIR_MAX(0, yi-1);
+        ymax = AIR_MIN(yi+1, be-1);
         for (xi=0; xi<be; xi++) {
           xmin = AIR_MAX(0, xi-1);
           xmax = AIR_MIN(xi+1, be-1);
-          ymin = AIR_MAX(0, yi-1);
-          ymax = AIR_MIN(yi+1, be-1);
-          if (2 == pctx->dimIn) {
-            zmin = zmax = 0;
-          } else {
-            zmin = AIR_MAX(0, zi-1);
-            zmax = AIR_MIN(zi+1, be-1);
-          }
           numNei = 0;
           for (zz=zmin; zz<=zmax; zz++) {
             for (yy=ymin; yy<=ymax; yy++) {
               for (xx=xmin; xx<=xmax; xx++) {
-                nei[numNei++] = pctx->bin[xx + be*(yy + be*zz)];
+                nei[numNei++] = pctx->bin + xx + be*(yy + be*zz);
               }
             }
           }
-          _pushBinNeighborSet(pctx->bin[xi + be*(yi + be*zi)], nei, numNei);
+          _pushBinNeighborSet(pctx->bin + xi + be*(yi + be*zi), nei, numNei);
         }
       }
     }
@@ -218,7 +212,7 @@ pushBinPointAdd(pushContext *pctx, pushPoint *point) {
 */
 int
 pushRebin(pushContext *pctx) {
-  char me[]="pushRebin", err[AIR_STRLEN_MED];
+  char me[]="pushRebin";
   int oldBinIdx, thingIdx, pointIdx;
   pushBin *oldBin, *newBin;
   pushThing *thing;
@@ -227,7 +221,7 @@ pushRebin(pushContext *pctx) {
   /* even if there is a single bin, we have to toss out-of-bounds
      things, and prune nullified points */
   for (oldBinIdx=0; oldBinIdx<pctx->numBin; oldBinIdx++) {
-    oldBin = pctx->bin[oldBinIdx];
+    oldBin = pctx->bin + oldBinIdx;
 
     /* quietly clear out pointers to points that got nullified,
        or that went out of bounds (not an error here) */

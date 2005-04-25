@@ -47,8 +47,8 @@ $(L).SEEN := true
 $(L).NEED = ten gage ell nrrd biff air
 $(L).PUBLIC_HEADERS = push.h
 $(L).PRIVATE_HEADERS = privatePush.h
-$(L).OBJS = defaultsPush.o miscPush.o methodsPush.o binning.o \
-  forces.o corePush.o action.o
+$(L).OBJS = defaultsPush.o methodsPush.o binning.o \
+  forces.o corePush.o setup.o action.o
 $(L).TESTS = test/pusher
 ####
 ####

@@ -46,7 +46,7 @@ extern pushTask *_pushTaskNew(pushContext *pctx, int threadIdx);
 extern int _pushProcessDummy(pushTask *task, int bin,
                               const push_t *parm);
 
-/* action.c */
+/* setup.c */
 extern pushTask *_pushTaskNew(pushContext *pctx, int threadIdx);
 extern pushTask *_pushTaskNix(pushTask *task);
 extern int _pushTensorFieldSetup(pushContext *pctx);
@@ -55,8 +55,11 @@ extern int _pushFiberSetup(pushContext *pctx);
 extern int _pushTaskSetup(pushContext *pctx);
 extern int _pushBinSetup(pushContext *pctx);
 extern int _pushThingSetup(pushContext *pctx);
-extern void _pushTenInv(pushContext *pctx, push_t *inv, push_t *ten);
-extern int _pushBinPointsRebin(pushContext *pctx);
+
+/* action.c */
+extern push_t _pushThingPointCharge(pushContext *pctx, pushThing *thg);
+extern int _pushForceSample(pushContext *pctx, int sx, int sy);
+void _pushTenInv(pushContext *pctx, push_t *inv, push_t *ten);
 extern void _pushProbe(pushTask *task, pushPoint *point);
 extern int _pushInputProcess(pushContext *pctx);
 extern void _pushInitialize(pushContext *pctx);

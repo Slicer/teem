@@ -61,12 +61,14 @@ typedef float push_t;
 **
 ** information about a point in the simulation.  There are really two
 ** kinds of information here: "pos", "vel", and "frc" pertain to the simulation
-** of point dynamics, while "ten", "inv", and "cnt" are properties of the field
-** sampled at the point.  "tan" and "cur" are only meaningful for tractlets.
+** of point dynamics, while "ten", "aniso", "inv", and "cnt" are properties of
+** the field sampled at the point.  "tan" and "cur" are only meaningful in
+** tractlets.
 */
 typedef struct pushPoint_t {
   struct pushThing_t *thing;   /* what thing do I belong to */
-  push_t pos[3],               /* position in world space */
+  push_t charge,               /* "charge" of the point */
+    pos[3],                    /* position in world space */
     vel[3],                    /* velocity */
     frc[3],                    /* force accumulator for current iteration */
     ten[7],                    /* tensor here */
@@ -100,15 +102,28 @@ typedef struct pushThing_t {
   int ttaagg;
   pushPoint point;             /* information about single point, or a
                                   seed point, hard to say exactly */
+  int numVert;                 /* 1 for single point, else length of vert[] */
   pushPoint *vert;             /* dyn. alloc. array of tractlet vertices
                                   (*not* pointers to pushPoints), or, just
                                   the address of "point" for single point */
-  int numVert,                 /* 1 for single point, else length of vert[] */
-    seedIdx;                   /* which of the vertices is the seed point */
+  int seedIdx;                 /* which of the vertices is the seed point */
   push_t len;                  /* 0 for point, else (world-space) length of
                                   tractlet */
 } pushThing;
 
+/*
+******** pushBin
+**
+** the data structure for doing spatial binning.  This really serves two
+** related purposes- to bin *all* the points in the simulation-- both 
+** single points as well as vertices of tractlets-- and also to bin the
+** all "things".  The binning of points is used for the force calculation
+** stage, and the binngin of things is used for the update stage.
+**
+** The bins are the *only* way to access the things in the simulation, so
+** bins own the things they contain.  However, because things point to
+** points, bins do not own the points they contain.
+*/
 typedef struct pushBin_t {
   int numPoint;                /* # of points in this bin */
   pushPoint **point;           /* dyn. alloc. array of point pointers */
@@ -120,24 +135,30 @@ typedef struct pushBin_t {
                                   neighboring bins, including myself */
 } pushBin;
 
-/* increment for airArrays */
-
+/*
+******** pushTask
+**
+** The information specific for a thread.  
+*/
 typedef struct pushTask_t {
   struct pushContext_t *pctx;  /* parent's context */
   gageContext *gctx;           /* result of gageContextCopy(pctx->gctx) */
-  gage_t *tenAns, *cntAns;     /* results of gage probing */
+  gage_t *tenAns, *invAns,
+    *cntAns;                   /* results of gage probing */
   tenFiberContext *fctx;       /* result of tenFiberContextCopy(pctx->fctx) */
   airThread *thread;           /* my thread */
   int threadIdx,               /* which thread am I */
     numThing;                  /* # things I let live this iteration */
-  double sumVel,               /* sum of velocities of pts in my batches */
+  double sumVel,               /* sum of velocities of things in my bins */
     *vertBuff;                 /* buffer for tractlet vertices */
   void *returnPtr;             /* for airThreadJoin */
 } pushTask;
 
-typedef int (*pushProcess)(pushTask *task, int bin,
-                           const push_t parm[PUSH_STAGE_PARM_MAXNUM]);
-
+/*
+******** pushForce
+**
+** the functions and information which determine inter-point forces
+*/
 typedef struct {
   push_t (*func)(push_t haveDist, push_t restDist, push_t scale,
                  const push_t parm[PUSH_FORCE_PARM_MAXNUM]);
@@ -146,6 +167,19 @@ typedef struct {
   push_t parm[PUSH_FORCE_PARM_MAXNUM];
 } pushForce;
 
+/*
+******** pushProcess
+**
+** the sort of function that is called by the worker threads
+*/
+typedef int (*pushProcess)(pushTask *task, int bin,
+                           const push_t parm[PUSH_STAGE_PARM_MAXNUM]);
+
+/*
+******** pushContext
+**
+** everything for doing one simulation computation
+*/
 typedef struct pushContext_t {
   /* INPUT ----------------------------- */
   Nrrd *nin,                       /* image of 2D or 3D masked tensors */
@@ -165,9 +199,6 @@ typedef struct pushContext_t {
   int seed,                        /* seed value for airSrand48 */
     tlFrenet,                      /* use Frenet frames for tractlet forces */
     tlNumStep,                     /* max # points on each tractlet half */
-    tlNeighborRadius,              /* radius of neighborhood for finding
-                                      tractlet/tractlet interactions- binning
-                                      is set up with radius 1 in mind */
     binIncr,                       /* increment for per-bin thing airArray */
     numThing,                      /* number things to start simulation w/ */
     numThread,                     /* number of threads to use */
@@ -186,9 +217,10 @@ typedef struct pushContext_t {
   pushProcess process[PUSH_STAGE_MAXNUM]; /* the function for each stage */
   /* INTERNAL -------------------------- */
   Nrrd *nten,                      /* 3D image of 3D masked tensors */
+    *ninv,                         /* pre-computed inverse of nten */
     *nmask;                        /* mask image from nten */
-  gageContext *gctx;               /* gage context around stuff */
-  gagePerVolume *tpvl;             /* gage pervolume around nten */
+  gageContext *gctx;               /* gage context around nten and nmask */
+  gagePerVolume *tpvl, *ipvl;      /* gage pervolumes around nten and ninv */
   tenFiberContext *fctx;           /* tenFiber context around nten */
   int dimIn,                       /* dimension (2 or 3) of input */
     binsEdge,                      /* # bins along edge of grid */
@@ -198,7 +230,7 @@ typedef struct pushContext_t {
     binIdx;                        /* *next* bin of points needing to be
                                       processed.  Stage is done when
                                       binIdx == numBin */
-  pushBin **bin;                  /* volume of bins (see binsEdge, numBin) */
+  pushBin *bin;                    /* volume of bins (see binsEdge, numBin) */
   double maxDist,                  /* max distance btween interacting points */
     maxEval, meanEval,             /* max and mean principal eval in field */
     minPos[3],                     /* lower corner of world position */
@@ -219,14 +251,11 @@ typedef struct pushContext_t {
 /* defaultsPush.c */
 TEEM_API const char *pushBiffKey;
 
-/* miscPush.c */
-TEEM_API void pushTenInv(pushContext *pctx, push_t *inv, push_t *ten);
-
 /* methodsPush.c */
 TEEM_API pushThing *pushThingNew(int numVert);
 TEEM_API pushThing *pushThingNix(pushThing *thg);
-TEEM_API pushBin *pushBinNew(int incr);
-TEEM_API pushBin *pushBinNix(pushBin *bin);
+TEEM_API void pushBinInit(pushBin *bin, int incr);
+TEEM_API void pushBinDone(pushBin *bin);
 TEEM_API pushContext *pushContextNew(void);
 TEEM_API pushContext *pushContextNix(pushContext *pctx);
 
@@ -235,21 +264,21 @@ TEEM_API pushForce *pushForceParse(const char *str);
 TEEM_API pushForce *pushForceNix(pushForce *force);
 TEEM_API hestCB *pushHestForce;
 
+/* corePush.c */
+TEEM_API int pushStart(pushContext *pctx);
+TEEM_API int pushIterate(pushContext *pctx);
+TEEM_API int pushRun(pushContext *pctx);
+TEEM_API int pushFinish(pushContext *pctx);
+
 /* binning.c */
 TEEM_API int pushBinThingAdd(pushContext *pctx, pushThing *thing);
 TEEM_API int pushBinPointAdd(pushContext *pctx, pushPoint *point);
 TEEM_API void pushBinAllNeighborSet(pushContext *pctx);
 TEEM_API int pushRebin(pushContext *pctx);
 
-/* corePush.c */
-TEEM_API int pushStart(pushContext *pctx);
-TEEM_API int pushIterate(pushContext *pctx);
-TEEM_API int pushFinish(pushContext *pctx);
-
 /* action.c */
 TEEM_API int pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut, 
                            pushContext *pctx);
-TEEM_API int pushRun(pushContext *pctx);
 
 #ifdef __cplusplus
 }
