@@ -251,6 +251,7 @@ _pushPairwiseForce(pushContext *pctx, push_t fvec[3], pushForce *force,
     ** ----- tests with the one-ramp.nrrd dataset
     */
     mm = 2*dot*pctx->scale*(1.0/lenU - 1.0/lenV);
+    mm = AIR_MAX(mm, -0.95);
     if (mm <= -1) {
       sprintf(err, "%s: invalid mm <= -1 from:\n"
               "%g == 2*(dot=%g)*(scale=%g)*(1.0/lenU=%g - 1.0/lenV=%g = %g)",
