@@ -190,6 +190,7 @@ _nrrdFieldValidInImage[NRRD_FIELD_MAX+1] = {
   1, /* nrrdField_sample_units */
   1, /* nrrdField_space_units */
   1, /* nrrdField_space_origin */
+  1, /* nrrdField_measurement_frame */
   0  /* nrrdField_data_file */
 };
 
@@ -231,6 +232,7 @@ _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_sample_units */
   0, /* nrrdField_space_units */
   0, /* nrrdField_space_origin */
+  0, /* nrrdField_measurement_frame */
   0  /* nrrdField_data_file */
 };
 
@@ -275,6 +277,7 @@ _nrrdFieldValidInText[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_sample_units */
   0, /* nrrdField_space_units */
   0, /* nrrdField_space_origin */
+  0, /* nrrdField_measurement_frame */
   0  /* nrrdField_data_file */
 };
 
@@ -317,6 +320,7 @@ _nrrdFieldRequired[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_sample_units */
   0, /* nrrdField_space_units */
   0, /* nrrdField_space_origin */
+  0, /* nrrdField_measurement_frame */
   0  /* nrrdField_data file */
 };
 

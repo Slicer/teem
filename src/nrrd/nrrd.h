@@ -152,12 +152,25 @@ typedef struct {
                                        This identifies the number of entries in
                                        "origin" and the per-axis "direction"
                                        vectors that are taken as meaningful */
-  char *spaceUnits[NRRD_SPACE_DIM_MAX];   
+  char *spaceUnits[NRRD_SPACE_DIM_MAX];
                                     /* units for coordinates of space */
-  double spaceOrigin[NRRD_SPACE_DIM_MAX]; 
+  double spaceOrigin[NRRD_SPACE_DIM_MAX];
                                     /* the location of the center the first
                                        (lowest memory address) array sample,
                                        regardless of node-vs-cell centering */
+  double measurementFrame[NRRD_SPACE_DIM_MAX][NRRD_SPACE_DIM_MAX];
+                                    /* if spaceDim is non-zero, this may store 
+                                       a spaceDim-by-spaceDim matrix which 
+                                       transforms vector/matrix coefficients
+                                       in the "measurement frame" to those in
+                                       the world space described by spaceDim
+                                       (and hopefully space).  Coeff [i][j] is
+                                       column i and row j.  There are not
+                                       strict semantics linking this to the
+                                       "kind" of any axis, as it sometimes 
+                                       makes sense to record the measurement
+                                       frame even with solely scalar data
+                                       (e.g. DWI measurements). */
   int blockSize;                    /* for nrrdTypeBlock:, block byte size */
   double oldMin, oldMax;            /* if non-NaN, and if nrrd is of integral
                                        type, extremal values for the array

@@ -267,44 +267,47 @@ enum {
 */
 enum {
   nrrdBasicInfoUnknown,
-  nrrdBasicInfoData,                        /*  1 */
-#define NRRD_BASIC_INFO_DATA_BIT           (1<< 1)
-  nrrdBasicInfoType,                        /*  2 */
-#define NRRD_BASIC_INFO_TYPE_BIT           (1<< 2)
-  nrrdBasicInfoBlocksize,                   /*  3 */
-#define NRRD_BASIC_INFO_BLOCKSIZE_BIT      (1<< 3)
-  nrrdBasicInfoDimension,                   /*  4 */
-#define NRRD_BASIC_INFO_DIMENSION_BIT      (1<< 4)
-  nrrdBasicInfoContent,                     /*  5 */
-#define NRRD_BASIC_INFO_CONTENT_BIT        (1<< 5)
-  nrrdBasicInfoSampleUnits,                 /*  6 */
-#define NRRD_BASIC_INFO_SAMPLEUNITS_BIT    (1<< 6)
-  nrrdBasicInfoSpace,                       /*  7 */
-#define NRRD_BASIC_INFO_SPACE_BIT          (1<< 7)
-  nrrdBasicInfoSpaceDimension,              /*  8 */
-#define NRRD_BASIC_INFO_SPACEDIMENSION_BIT (1<< 8)
-  nrrdBasicInfoSpaceUnits,                  /*  9 */
-#define NRRD_BASIC_INFO_SPACEUNITS_BIT     (1<< 9)
-  nrrdBasicInfoSpaceOrigin,                 /* 10 */
-#define NRRD_BASIC_INFO_SPACEORIGIN_BIT    (1<<10)
-  nrrdBasicInfoOldMin,                      /* 11 */
-#define NRRD_BASIC_INFO_OLDMIN_BIT         (1<<11)
-  nrrdBasicInfoOldMax,                      /* 12 */ 
-#define NRRD_BASIC_INFO_OLDMAX_BIT         (1<<12)
-  nrrdBasicInfoComments,                    /* 13 */
-#define NRRD_BASIC_INFO_COMMENTS_BIT       (1<<13)
-  nrrdBasicInfoKeyValuePairs,               /* 14 */
-#define NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT  (1<<14)
+  nrrdBasicInfoData,                          /*  1 */
+#define NRRD_BASIC_INFO_DATA_BIT             (1<< 1)
+  nrrdBasicInfoType,                          /*  2 */
+#define NRRD_BASIC_INFO_TYPE_BIT             (1<< 2)
+  nrrdBasicInfoBlocksize,                     /*  3 */
+#define NRRD_BASIC_INFO_BLOCKSIZE_BIT        (1<< 3)
+  nrrdBasicInfoDimension,                     /*  4 */
+#define NRRD_BASIC_INFO_DIMENSION_BIT        (1<< 4)
+  nrrdBasicInfoContent,                       /*  5 */
+#define NRRD_BASIC_INFO_CONTENT_BIT          (1<< 5)
+  nrrdBasicInfoSampleUnits,                   /*  6 */
+#define NRRD_BASIC_INFO_SAMPLEUNITS_BIT      (1<< 6)
+  nrrdBasicInfoSpace,                         /*  7 */
+#define NRRD_BASIC_INFO_SPACE_BIT            (1<< 7)
+  nrrdBasicInfoSpaceDimension,                /*  8 */
+#define NRRD_BASIC_INFO_SPACEDIMENSION_BIT   (1<< 8)
+  nrrdBasicInfoSpaceUnits,                    /*  9 */
+#define NRRD_BASIC_INFO_SPACEUNITS_BIT       (1<< 9)
+  nrrdBasicInfoSpaceOrigin,                   /* 10 */
+#define NRRD_BASIC_INFO_SPACEORIGIN_BIT      (1<<10)
+  nrrdBasicInfoMeasurementFrame,              /* 11 */
+#define NRRD_BASIC_INFO_MEASUREMENTFRAME_BIT (1<<11)
+  nrrdBasicInfoOldMin,                        /* 12 */
+#define NRRD_BASIC_INFO_OLDMIN_BIT           (1<<12)
+  nrrdBasicInfoOldMax,                        /* 13 */ 
+#define NRRD_BASIC_INFO_OLDMAX_BIT           (1<<13)
+  nrrdBasicInfoComments,                      /* 14 */
+#define NRRD_BASIC_INFO_COMMENTS_BIT         (1<<14)
+  nrrdBasicInfoKeyValuePairs,                 /* 15 */
+#define NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT    (1<<15)
   nrrdBasicInfoLast
 };
-#define NRRD_BASIC_INFO_MAX                    14
+#define NRRD_BASIC_INFO_MAX                      15
 #define NRRD_BASIC_INFO_ALL  \
     ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6)|(1<<7)|(1<<8)|(1<<9)|(1<<10)\
-     |(1<<11)|(1<<12)|(1<<13)|(1<<14))
+     |(1<<11)|(1<<12)|(1<<13)|(1<<14)|(1<<15))
 #define NRRD_BASIC_INFO_SPACE (NRRD_BASIC_INFO_SPACE_BIT \
                                | NRRD_BASIC_INFO_SPACEDIMENSION_BIT \
                                | NRRD_BASIC_INFO_SPACEUNITS_BIT \
-                               | NRRD_BASIC_INFO_SPACEORIGIN_BIT)
+                               | NRRD_BASIC_INFO_SPACEORIGIN_BIT \
+                               | NRRD_BASIC_INFO_MEASUREMENTFRAME_BIT)
 #define NRRD_BASIC_INFO_NONE 0
 
 /*
@@ -346,40 +349,41 @@ enum {
 */
 enum {
   nrrdField_unknown,
-  nrrdField_comment,          /*  1 */
-  nrrdField_content,          /*  2 */
-  nrrdField_number,           /*  3 */
-  nrrdField_type,             /*  4 */
-  nrrdField_block_size,       /*  5 */
-  nrrdField_dimension,        /*  6 */
-  nrrdField_space,            /*  7 */
-  nrrdField_space_dimension,  /*  8 */
-  nrrdField_sizes,            /*  9 ----- begin per-axis ----- */
-  nrrdField_spacings,         /* 10 */
-  nrrdField_thicknesses,      /* 11 */
-  nrrdField_axis_mins,        /* 12 */
-  nrrdField_axis_maxs,        /* 13 */
-  nrrdField_space_directions, /* 14 */
-  nrrdField_centers,          /* 15 */
-  nrrdField_kinds,            /* 16 */
-  nrrdField_labels,           /* 17 */
-  nrrdField_units,            /* 18 ------ end per-axis ------ */
-  nrrdField_min,              /* 19 */
-  nrrdField_max,              /* 20 */
-  nrrdField_old_min,          /* 21 */
-  nrrdField_old_max,          /* 22 */
-  nrrdField_endian,           /* 23 */
-  nrrdField_encoding,         /* 24 */
-  nrrdField_line_skip,        /* 25 */
-  nrrdField_byte_skip,        /* 26 */
-  nrrdField_keyvalue,         /* 27 */
-  nrrdField_sample_units,     /* 28 */
-  nrrdField_space_units,      /* 29 */
-  nrrdField_space_origin,     /* 30 */
-  nrrdField_data_file,        /* 31 */
+  nrrdField_comment,           /*  1 */
+  nrrdField_content,           /*  2 */
+  nrrdField_number,            /*  3 */
+  nrrdField_type,              /*  4 */
+  nrrdField_block_size,        /*  5 */
+  nrrdField_dimension,         /*  6 */
+  nrrdField_space,             /*  7 */
+  nrrdField_space_dimension,   /*  8 */
+  nrrdField_sizes,             /*  9 ----- begin per-axis ----- */
+  nrrdField_spacings,          /* 10 */
+  nrrdField_thicknesses,       /* 11 */
+  nrrdField_axis_mins,         /* 12 */
+  nrrdField_axis_maxs,         /* 13 */
+  nrrdField_space_directions,  /* 14 */
+  nrrdField_centers,           /* 15 */
+  nrrdField_kinds,             /* 16 */
+  nrrdField_labels,            /* 17 */
+  nrrdField_units,             /* 18 ------ end per-axis ------ */
+  nrrdField_min,               /* 19 */
+  nrrdField_max,               /* 20 */
+  nrrdField_old_min,           /* 21 */
+  nrrdField_old_max,           /* 22 */
+  nrrdField_endian,            /* 23 */
+  nrrdField_encoding,          /* 24 */
+  nrrdField_line_skip,         /* 25 */
+  nrrdField_byte_skip,         /* 26 */
+  nrrdField_keyvalue,          /* 27 */
+  nrrdField_sample_units,      /* 28 */
+  nrrdField_space_units,       /* 29 */
+  nrrdField_space_origin,      /* 30 */
+  nrrdField_measurement_frame, /* 31 */
+  nrrdField_data_file,         /* 32 */
   nrrdField_last
 };
-#define NRRD_FIELD_MAX           31
+#define NRRD_FIELD_MAX            32
 
 /* 
 ******** nrrdHasNonExist* enum

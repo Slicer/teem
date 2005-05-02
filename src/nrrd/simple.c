@@ -497,7 +497,7 @@ nrrdDescribe (FILE *file, const Nrrd *nrrd) {
 ** exclusion of min/max/spacing/units versus using spaceDirection.
 */
 int
-_nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int checkOrigin, int useBiff) {
+_nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int useBiff) {
   char me[]="_nrrdFieldCheckSpaceInfo", err[AIR_STRLEN_MED];
   int dd, ii, exists;
 
@@ -520,6 +520,7 @@ _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int checkOrigin, int useBiff) {
         biffMaybeAdd(NRRD, err, useBiff); return 1;
       }
     }
+    /* check that all coeffs of spaceOrigin have consistent existance */
     exists = AIR_EXISTS(nrrd->spaceOrigin[0]);
     for (ii=0; ii<nrrd->spaceDim; ii++) {
       if (exists ^ AIR_EXISTS(nrrd->spaceOrigin[ii])) {
@@ -528,18 +529,26 @@ _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int checkOrigin, int useBiff) {
         biffMaybeAdd(NRRD, err, useBiff); return 1;
       }
     }
-    /* this is a relic of those few pre-Fri Feb 11 04:25:36 EST 2005
-       weeks when I though that spaceOrigin must be known */
-    if (checkOrigin && !exists) {
-      sprintf(err, "%s: coefficients of origin vector must all exist", me);
-      biffMaybeAdd(NRRD, err, useBiff); return 1;
+    /* check that all coeffs of measurementFrame have consistent existance */
+    exists = AIR_EXISTS(nrrd->measurementFrame[0][0]);
+    for (dd=0; dd<nrrd->spaceDim; dd++) {
+      for (ii=0; ii<nrrd->spaceDim; ii++) {
+        if (exists ^ AIR_EXISTS(nrrd->measurementFrame[dd][ii])) {
+          sprintf(err, "%s: existance of measurement frame coefficients must "
+                  "be consistent: [col][row] [%d][%d] not like [0][0])",
+                  me, dd, ii);
+          biffMaybeAdd(NRRD, err, useBiff); return 1;
+        }
+      }
     }
+    /* check on space directions */
     for (dd=0; dd<nrrd->dim; dd++) {
       exists = AIR_EXISTS(nrrd->axis[dd].spaceDirection[0]);
       for (ii=1; ii<nrrd->spaceDim; ii++) {
         if (exists ^ AIR_EXISTS(nrrd->axis[dd].spaceDirection[ii])) {
-          sprintf(err, "%s: existance of space direction coefficients must "
-                  "be consistent (val[0] not like val[%d])", me, ii);
+          sprintf(err, "%s: existance of space direction %d coefficients "
+                  "must be consistent (val[0] not like val[%d])", me,
+                  dd, ii);
           biffMaybeAdd(NRRD, err, useBiff); return 1;
         }
       }
@@ -656,7 +665,7 @@ int
 _nrrdFieldCheck_space(const Nrrd *nrrd, int useBiff) {
   char me[]="_nrrdFieldCheck_space", err[AIR_STRLEN_MED];
 
-  if (_nrrdFieldCheckSpaceInfo(nrrd, AIR_FALSE, useBiff)) {
+  if (_nrrdFieldCheckSpaceInfo(nrrd, useBiff)) {
     sprintf(err, "%s: trouble", me);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
@@ -667,7 +676,7 @@ int
 _nrrdFieldCheck_space_dimension(const Nrrd *nrrd, int useBiff) {
   char me[]="_nrrdFieldCheck_space_dimension", err[AIR_STRLEN_MED];
   
-  if (_nrrdFieldCheckSpaceInfo(nrrd, AIR_FALSE, useBiff)) {
+  if (_nrrdFieldCheckSpaceInfo(nrrd, useBiff)) {
     sprintf(err, "%s: trouble", me);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
@@ -700,7 +709,7 @@ _nrrdFieldCheck_spacings(const Nrrd *nrrd, int useBiff) {
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
   }
-  if (_nrrdFieldCheckSpaceInfo(nrrd, AIR_FALSE, useBiff)) {
+  if (_nrrdFieldCheckSpaceInfo(nrrd, useBiff)) {
     sprintf(err, "%s: trouble", me);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
@@ -738,7 +747,7 @@ _nrrdFieldCheck_axis_mins(const Nrrd *nrrd, int useBiff) {
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
   }
-  if (_nrrdFieldCheckSpaceInfo(nrrd, AIR_FALSE, useBiff)) {
+  if (_nrrdFieldCheckSpaceInfo(nrrd, useBiff)) {
     sprintf(err, "%s: trouble", me);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
@@ -759,7 +768,7 @@ _nrrdFieldCheck_axis_maxs(const Nrrd *nrrd, int useBiff) {
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
   }
-  if (_nrrdFieldCheckSpaceInfo(nrrd, AIR_FALSE, useBiff)) {
+  if (_nrrdFieldCheckSpaceInfo(nrrd, useBiff)) {
     sprintf(err, "%s: trouble", me);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
@@ -771,7 +780,7 @@ int
 _nrrdFieldCheck_space_directions(const Nrrd *nrrd, int useBiff) {
   char me[]="_nrrdFieldCheck_space_directions", err[AIR_STRLEN_MED];
 
-  if (_nrrdFieldCheckSpaceInfo(nrrd, AIR_FALSE, useBiff)) {
+  if (_nrrdFieldCheckSpaceInfo(nrrd, useBiff)) {
     sprintf(err, "%s: space info problem", me);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
@@ -833,7 +842,7 @@ _nrrdFieldCheck_units(const Nrrd *nrrd, int useBiff) {
 
   /* as with labels- the strings themselves don't need checking themselves */
   /* but per-axis units cannot be set for axes with space directions ... */
-  if (_nrrdFieldCheckSpaceInfo(nrrd, AIR_FALSE, useBiff)) {
+  if (_nrrdFieldCheckSpaceInfo(nrrd, useBiff)) {
     sprintf(err, "%s: space info problem", me);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
@@ -882,7 +891,7 @@ _nrrdFieldCheck_space_units(const Nrrd *nrrd, int useBiff) {
 
   /* not sure if there's anything to specifically check for the
      space units themselves ... */
-  if (_nrrdFieldCheckSpaceInfo(nrrd, AIR_FALSE, useBiff)) {
+  if (_nrrdFieldCheckSpaceInfo(nrrd, useBiff)) {
     sprintf(err, "%s: space info problem", me);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
@@ -897,7 +906,18 @@ _nrrdFieldCheck_space_origin(const Nrrd *nrrd, int useBiff) {
      the spaceOrigin must be known to describe the 
      space/orientation stuff, but that's too restrictive,
      which is why below says AIR_FALSE instead of AIR_TRUE */
-  if (_nrrdFieldCheckSpaceInfo(nrrd, AIR_FALSE, useBiff)) {
+  if (_nrrdFieldCheckSpaceInfo(nrrd, useBiff)) {
+    sprintf(err, "%s: space info problem", me);
+    biffMaybeAdd(NRRD, err, useBiff); return 1;
+  }
+  return 0;
+}
+
+int
+_nrrdFieldCheck_measurement_frame(const Nrrd *nrrd, int useBiff) {
+  char me[]="_nrrdFieldCheck_measurement_frame", err[AIR_STRLEN_MED];
+  
+  if (_nrrdFieldCheckSpaceInfo(nrrd, useBiff)) {
     sprintf(err, "%s: space info problem", me);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
@@ -937,6 +957,7 @@ int
   _nrrdFieldCheck_noop,           /* sample units */
   _nrrdFieldCheck_space_units,
   _nrrdFieldCheck_space_origin,
+  _nrrdFieldCheck_measurement_frame,
   _nrrdFieldCheck_noop,           /* data_file */
 };
 
