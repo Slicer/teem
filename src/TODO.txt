@@ -2,6 +2,8 @@ unu dice: add "-f <format>" option to avoid annoyances...
 unu dice: be able to more directly control the formatting of the filenames
   (such as # of zeros)
 
+track down nrrdSpatialResample bug that J ran into
+
 make system really botched: change the size of the tenFiberContext
 (added a field or two), do a make ten/install, then cd ../push; rm -f test/pusher
 make install; make; and you'll STILL get memory errors due to seeing 
