@@ -165,12 +165,9 @@ typedef struct {
                                        in the "measurement frame" to those in
                                        the world space described by spaceDim
                                        (and hopefully space).  Coeff [i][j] is
-                                       column i and row j.  There are not
-                                       strict semantics linking this to the
-                                       "kind" of any axis, as it sometimes 
-                                       makes sense to record the measurement
-                                       frame even with solely scalar data
-                                       (e.g. DWI measurements). */
+                                       column i and row j.  There are no
+                                       semantics linking this to the "kind" of
+                                       any axis, for a variety of reasons */
   int blockSize;                    /* for nrrdTypeBlock:, block byte size */
   double oldMin, oldMax;            /* if non-NaN, and if nrrd is of integral
                                        type, extremal values for the array
