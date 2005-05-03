@@ -57,7 +57,7 @@ char *_unrrdu_makeInfoL =
  "an empty string.  This creates a convenient way to convey something that "
  "the shell doesn't make it easy to convey.  Shell expansion weirdness "
  "also requires the use of quotes around the arguments to \"-orig\" (space "
- "origin) and \"-dirs\" (space directions).");
+ "origin), \"-dirs\" (space directions), and \"-mf\" (measurement frame).");
 
 int
 unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -75,7 +75,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   NrrdIoState *nio;
   FILE *fileOut;
   char **label, **units, **spunits, **kinds, **centerings, *parseBuf,
-    *spcStr, *_origStr, *origStr, *_dirStr, *dirStr;
+    *spcStr, *_origStr, *origStr, *_dirStr, *dirStr, *_mframeStr, *mframeStr;
   const NrrdEncoding *encoding;
 
   /* so that long lists of filenames can be read from file */
@@ -160,7 +160,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
              "\"big\" for everyone else (most significant byte first). "
              "Defaults to endianness of this machine",
              NULL, airEndian);
-  hestOptAdd(&opt, "kv", "key/val", airTypeString, 0, -1, &kvp, "",
+  hestOptAdd(&opt, "kv", "key/val", airTypeString, 1, -1, &kvp, "",
              "key/value string pairs to be stored in nrrd.  Each key/value "
              "pair must be a single string (put it in \"\"s "
              "if the key or the value contain spaces).  The format of each "
@@ -183,9 +183,17 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
              "(NOTE: must quote whole vector list) The \"space directions\": "
              "the vectors in space spanned by incrementing (by one) each "
              "axis index (the column vectors of the index-to-world "
-             "matrix transform), OR, \"none\" for non-spatial axes. Quoting "
-             "around vector list (not individually) is needed because of "
-             "limitations in the parser.");
+             "matrix transform), OR, \"none\" for non-spatial axes. Give "
+             "one vector per axis. (Quoting around whole vector list, not "
+             "individually, is needed because of limitations in the parser)");
+  hestOptAdd(&opt, "mf", "col0 col1 ...", airTypeString, 1, 1, &_mframeStr, "",
+             "(NOTE: must quote whole vector list). Each vector is a *column* "
+             "vector of the matrix which transforms from coordinates in "
+             "measurement frame (in which the coefficients of vectors and "
+             "tensors are given) to coordinates of world space (given with "
+             "\"-spc\"). This is not a per-axis field: the column vectors "
+             "comprise a D-by-D square matrix, where D is the dimension of "
+             "world space.");
   hestOptAdd(&opt, "spu", "spu0 spu1", airTypeString, 1, -1, &spunits, "",
              "short strings giving units with which the coefficients of the "
              "space origin and direction vectors are measured.", &spunitsLen);
@@ -493,6 +501,26 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble with space directions \"%s\":\n%s",
               me, dirStr, err);
+      nio->line = NULL; airMopError(mop); return 1;
+    }
+    nio->line = NULL;
+  }
+  if (airStrlen(_mframeStr)) {
+    /* same confusion as above */
+    if ('\"' == _mframeStr[0] && '\"' == _mframeStr[strlen(_mframeStr)-1]) {
+      _mframeStr[strlen(_mframeStr)-1] = 0;
+      mframeStr = _mframeStr + 1;
+    } else {
+      mframeStr = _mframeStr;
+    }
+    /* same hack about using NrrdIoState->line as basis for parsing */
+    nio->line = mframeStr;
+    nio->pos = 0;
+    if (nrrdFieldInfoParse[nrrdField_measurement_frame](NULL, nrrd, 
+                                                        nio, AIR_TRUE)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble with measurement frame \"%s\":\n%s",
+              me, mframeStr, err);
       nio->line = NULL; airMopError(mop); return 1;
     }
     nio->line = NULL;
