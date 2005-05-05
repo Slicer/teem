@@ -26,12 +26,14 @@ char *_unrrdu_diceInfoL =
 (INFO
  ". Calls \"unu slice\" for each position "
  "along the indicated axis, and saves out a different "
- "nrrd for each position. ");
+ "file for each sample along that axis. ");
 
 int
 unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *base, out[512], *err, format[512];
+  char *base, *err, fnout[AIR_STRLEN_MED], /* file name out */
+    fffname[AIR_STRLEN_MED],  /* format for filename */
+    *ftmpl;                   /* format template */
   Nrrd *nin, *nout;
   int pos, axis, top, pret, start, fit;
   airArray *mop;
@@ -40,11 +42,18 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
   OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "s", "start", airTypeInt, 1, 1, &start, "0",
              "integer value to start numbering with");
+  hestOptAdd(&opt, "ff", "form", airTypeString, 1, 1, &ftmpl, "",
+             "a printf-style format to use for generating all "
+             "filenames.  Use this to override the number of characters "
+             "used to represent the slice position, or the file format "
+             "of the output, e.g. \"-ff %03.ppm\" for 000.ppm, "
+             "001.ppm, etc. By default (not using this option), slices "
+             "are saved in NRRD format (or PNM or PNG where possible) "
+             "with shortest possible filenames.");
   hestOptAdd(&opt, "o", "prefix", airTypeString, 1, 1, &base, NULL,
-             "output filename prefix. Output nrrds will be saved out as "
-             "<prefix>00.nrrd, <prefix>01.nrrd, <prefix>02.nrrd, and so on "
-             "(with \"-s\" option, numbering will be different). If this is a "
-             "directory name, you probably want to end it with a \"/\".");
+             "output filename prefix (excluding info set via \"-ff\"), "
+             "basically to set path of output files (so be sure to end "
+             "with \"/\".");
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
@@ -65,23 +74,28 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
     return 1;
   }
 
-  top = start + nin->axis[axis].size-1;
-  if (top > 9999999)
-    sprintf(format, "%%s%%08d.nrrd");
-  else if (top > 999999)
-    sprintf(format, "%%s%%07d.nrrd");
-  else if (top > 99999)
-    sprintf(format, "%%s%%06d.nrrd");
-  else if (top > 9999)
-    sprintf(format, "%%s%%05d.nrrd");
-  else if (top > 999)
-    sprintf(format, "%%s%%04d.nrrd");
-  else if (top > 99)
-    sprintf(format, "%%s%%03d.nrrd");
-  else if (top > 9)
-    sprintf(format, "%%s%%02d.nrrd");
-  else
-    sprintf(format, "%%s%%01d.nrrd");
+  if (airStrlen(ftmpl)) {
+    sprintf(fffname, "%%s%s", ftmpl);
+  } else {
+    top = start + nin->axis[axis].size-1;
+    if (top > 9999999) {
+      sprintf(fffname, "%%s%%08d.nrrd");
+    } else if (top > 999999) {
+      sprintf(fffname, "%%s%%07d.nrrd");
+    } else if (top > 99999) {
+      sprintf(fffname, "%%s%%06d.nrrd");
+    } else if (top > 9999) {
+      sprintf(fffname, "%%s%%05d.nrrd");
+    } else if (top > 999) {
+      sprintf(fffname, "%%s%%04d.nrrd");
+    } else if (top > 99) {
+      sprintf(fffname, "%%s%%03d.nrrd");
+    } else if (top > 9) {
+      sprintf(fffname, "%%s%%02d.nrrd");
+    } else {
+      sprintf(fffname, "%%s%%01d.nrrd");
+    }
+  }
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
@@ -92,26 +106,27 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
       airMopError(mop);
       return 1;
     }
-    if (0 == pos) {
+    if (0 == pos && !airStrlen(ftmpl)) {
       /* See if these slices would be better saved as PNG or PNM images.
          Altering the file name will tell nrrdSave() to use a different
          file format. */
       if (nrrdFormatPNG->fitsInto(nout, nrrdEncodingRaw, AIR_FALSE)) {
-        strcpy(format + strlen(format) - 4, "png");
+        strcpy(fffname + strlen(fffname) - 4, "png");
       } else {
         fit = nrrdFormatPNM->fitsInto(nout, nrrdEncodingRaw, AIR_FALSE);
         if (2 == fit) {
-          strcpy(format + strlen(format) - 4, "pgm");
+          strcpy(fffname + strlen(fffname) - 4, "pgm");
         } else if (3 == fit) {
-          strcpy(format + strlen(format) - 4, "ppm");
+          strcpy(fffname + strlen(fffname) - 4, "ppm");
         }
       }
     }
-    sprintf(out, format, base, pos+start);
-    fprintf(stderr, "%s: %s ...\n", me, out);
-    if (nrrdSave(out, nout, NULL)) {
+    sprintf(fnout, fffname, base, pos+start);
+    fprintf(stderr, "%s: %s ...\n", me, fnout);
+    if (nrrdSave(fnout, nout, NULL)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: error writing nrrd to \"%s\":%s\n", me, out, err);
+      fprintf(stderr, "%s: error writing nrrd to \"%s\":%s\n",
+              me, fnout, err);
       airMopError(mop);
       return 1;
     }
