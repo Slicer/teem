@@ -84,8 +84,8 @@ void
 _limnObjectFaceEmpty(limnFace *face) {
 
   if (face) {
-    airFree(face->vertIdxIdx);
-    airFree(face->edgeIdxIdx);
+    airFree(face->vertIdx);
+    airFree(face->edgeIdx);
   }
   return;
 }
@@ -154,27 +154,27 @@ limnObjectVertexAdd(limnObject *obj, int partIdx, int lookIdx,
   vert->partIdx = partIdx;
   vert->lookIdx = lookIdx;
 
-  return vertIdxIdx;
+  return vertIdx;
 }
 
 int
 limnObjectEdgeAdd(limnObject *obj, int partIdx, int lookIdx,
-                  int faceIdxIdx, int vertIdxIdx0, int vertIdxIdx1) {
-  int tmp, edgeIdx, edgeIdxIdx;
+                  int faceIdx, int vertIdx0, int vertIdx1) {
+  int tmp, edgeIdx=-42, edgeIdxIdx;
   limnEdge *edge=NULL;
   limnPart *part;
   
   part = obj->part[partIdx];
-  if (vertIdxIdx0 > vertIdxIdx1) {
-    ELL_SWAP2(vertIdxIdx0, vertIdxIdx1, tmp);
+  if (vertIdx0 > vertIdx1) {
+    ELL_SWAP2(vertIdx0, vertIdx1, tmp);
   }
 
   /* do a linear search through this part's existing edges */
   for (edgeIdxIdx=0; edgeIdxIdx<part->edgeIdxNum; edgeIdxIdx++) {
     edgeIdx = part->edgeIdx[edgeIdxIdx];
     edge = obj->edge + edgeIdx;
-    if (edge->vertIdxIdx[0] == vertIdxIdx0
-        && edge->vertIdxIdx[1] == vertIdxIdx1) {
+    if (edge->vertIdx[0] == vertIdx0
+        && edge->vertIdx[1] == vertIdx1) {
       break;
     }
   }
@@ -184,25 +184,25 @@ limnObjectEdgeAdd(limnObject *obj, int partIdx, int lookIdx,
     edge = obj->edge + edgeIdx;
     edgeIdxIdx = airArrayIncrLen(part->edgeIdxArr, 1);
     part->edgeIdx[edgeIdxIdx] = edgeIdx;
-    edge->vertIdxIdx[0] = vertIdxIdx0;
-    edge->vertIdxIdx[1] = vertIdxIdx1;
-    edge->faceIdxIdx[0] = faceIdxIdx;
-    edge->faceIdxIdx[1] = -1;
+    edge->vertIdx[0] = vertIdx0;
+    edge->vertIdx[1] = vertIdx1;
+    edge->faceIdx[0] = faceIdx;
+    edge->faceIdx[1] = -1;
     edge->lookIdx = lookIdx;
     edge->partIdx = partIdx;
     edge->type = limnEdgeTypeUnknown;
     edge->once = AIR_FALSE;
   } else {
     /* edge already exists; "edge", "edgeIdx", and "edgeIdxIdx" are all set */
-    edge->faceIdxIdx[1] = faceIdxIdx;
+    edge->faceIdx[1] = faceIdx;
   }
 
-  return edgeIdxIdx;
+  return edgeIdx;
 }
 
 int
 limnObjectFaceAdd(limnObject *obj, int partIdx,
-                  int lookIdx, int sideNum, int *vertIdxIdx) {
+                  int lookIdx, int sideNum, int *vertIdx) {
   limnFace *face;
   limnPart *part;
   int faceIdx, faceIdxIdx, sideIdx;
@@ -213,18 +213,18 @@ limnObjectFaceAdd(limnObject *obj, int partIdx,
   faceIdxIdx = airArrayIncrLen(part->faceIdxArr, 1);
   part->faceIdx[faceIdxIdx] = faceIdx;
   
-  face->vertIdxIdx = (int*)calloc(sideNum, sizeof(int));
+  face->vertIdx = (int*)calloc(sideNum, sizeof(int));
   face->sideNum = sideNum;
   if (obj->doEdges) {
-    face->edgeIdxIdx = (int*)calloc(sideNum, sizeof(int));
+    face->edgeIdx = (int*)calloc(sideNum, sizeof(int));
   }
   for (sideIdx=0; sideIdx<sideNum; sideIdx++) {
-    face->vertIdxIdx[sideIdx] = vertIdxIdx[sideIdx];
+    face->vertIdx[sideIdx] = vertIdx[sideIdx];
     if (obj->doEdges) {
-      face->edgeIdxIdx[sideIdx] = 
-        limnObjectEdgeAdd(obj, partIdx, 0, faceIdxIdx,
-                          vertIdxIdx[sideIdx],
-                          vertIdxIdx[AIR_MOD(sideIdx+1, sideNum)]);
+      face->edgeIdx[sideIdx] = 
+        limnObjectEdgeAdd(obj, partIdx, 0, faceIdx,
+                          vertIdx[sideIdx],
+                          vertIdx[AIR_MOD(sideIdx+1, sideNum)]);
     }
   }
   ELL_3V_SET(face->worldNormal, AIR_NAN, AIR_NAN, AIR_NAN);

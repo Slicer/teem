@@ -48,8 +48,8 @@ limnObjectDescribe(FILE *file, limnObject *obj) {
       fprintf(file, "part %d==%d | %d(%d): "
               "vert(%d,%d), face(%d,%d)\n", 
               partIdx, edge->partIdx, eii, part->edgeIdx[eii],
-              edge->vertIdxIdx[0], edge->vertIdxIdx[1],
-              edge->faceIdxIdx[0], edge->faceIdxIdx[1]);
+              edge->vertIdx[0], edge->vertIdx[1],
+              edge->faceIdx[0], edge->faceIdx[1]);
     }
     fprintf(file, "part %d | faces: %d ========\n", partIdx, part->faceIdxNum);
     for (fii=0; fii<part->faceIdxNum; fii++) {
@@ -57,9 +57,10 @@ limnObjectDescribe(FILE *file, limnObject *obj) {
       fprintf(file, "part %d==%d | %d(%d): [", 
               partIdx, face->partIdx, fii, part->faceIdx[fii]);
       for (si=0; si<face->sideNum; si++) {
-        fprintf(file, "%d", part->vertIdx[face->vertIdxIdx[si]]);
-        if (si < face->sideNum-1)
+        fprintf(file, "%d", face->vertIdx[si]);
+        if (si < face->sideNum-1) {
           fprintf(file, ",");
+        }
       }
       fprintf(file, "]; wn = (%g,%g,%g)", face->worldNormal[0],
               face->worldNormal[1], face->worldNormal[2]);
@@ -117,7 +118,7 @@ limnObjectOFFWrite(FILE *file, limnObject *obj) {
       face = obj->face + part->faceIdx[fii];
       fprintf(file, "%d", face->sideNum);
       for (si=0; si<face->sideNum; si++) {
-        fprintf(file, " %d", part->vertIdx[face->vertIdxIdx[si]]);
+        fprintf(file, " %d", face->vertIdx[si]);
       }
       if (face->lookIdx) {
         fprintf(file, " %g %g %g",
@@ -280,9 +281,6 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
       }
     } else {
       lookIdx = 0;
-    }
-    for (vii=0; vii<vertNum; vii++) {
-      (ibuff+1)[vii] -= vertBase[partIdx];
     }
     /*
     fprintf(stderr, "line %d: faceGot = %d; lookIdx = %d; partIdx = %d\n",

@@ -51,12 +51,9 @@ _limnObjectNormals(limnObject *obj, int space) {
     /* add up cross products at all vertices */
     ELL_3V_SET(nn, 0, 0, 0);
     for (vii=0; vii<face->sideNum; vii++) {
-      vert0 = obj->vert 
-        + part->vertIdx[face->vertIdxIdx[vii]];
-      vert1 = obj->vert 
-        + part->vertIdx[face->vertIdxIdx[AIR_MOD(vii+1, face->sideNum)]];
-      vert2 = obj->vert
-        + part->vertIdx[face->vertIdxIdx[AIR_MOD(vii-1, face->sideNum)]];
+      vert0 = obj->vert + face->vertIdx[vii];
+      vert1 = obj->vert + face->vertIdx[AIR_MOD(vii+1, face->sideNum)];
+      vert2 = obj->vert + face->vertIdx[AIR_MOD(vii-1, face->sideNum)];
       if (limnSpaceWorld == space) {
         ELL_3V_SUB(vec1, vert1->world, vert0->world);
         ELL_3V_SUB(vec2, vert2->world, vert0->world);
@@ -311,7 +308,7 @@ limnObjectDepthSortFaces(limnObject *obj) {
     part = obj->part[face->partIdx];
     face->depth = 0;
     for (vii=0; vii<face->sideNum; vii++) {
-      vert = obj->vert + part->vertIdx[face->vertIdxIdx[vii]];
+      vert = obj->vert + face->vertIdx[vii];
       face->depth += vert->screen[2];
     }
     face->depth /= face->sideNum;
@@ -343,13 +340,13 @@ limnObjectFaceReverse(limnObject *obj) {
               me, face->sideNum, faceIdx);
       biffAdd(LIMN, err); return 1;
     }
-    memcpy(buff, face->vertIdxIdx, face->sideNum*sizeof(int));
+    memcpy(buff, face->vertIdx, face->sideNum*sizeof(int));
     for (sii=0; sii<face->sideNum; sii++) {
-      face->vertIdxIdx[sii] = buff[face->sideNum-1-sii];
+      face->vertIdx[sii] = buff[face->sideNum-1-sii];
     }
-    memcpy(buff, face->edgeIdxIdx, face->sideNum*sizeof(int));
+    memcpy(buff, face->edgeIdx, face->sideNum*sizeof(int));
     for (sii=0; sii<face->sideNum; sii++) {
-      face->edgeIdxIdx[sii] = buff[face->sideNum-1-sii];
+      face->edgeIdx[sii] = buff[face->sideNum-1-sii];
     }
     free(buff);
   }

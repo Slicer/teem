@@ -110,7 +110,7 @@ _limnPSDrawFace(limnObject *obj, limnFace *face,
   look = obj->look + face->lookIdx;
   part = obj->part[face->partIdx];
   for (vii=0; vii<face->sideNum; vii++) {
-    vert = obj->vert + part->vertIdx[face->vertIdxIdx[vii]];
+    vert = obj->vert + face->vertIdx[vii];
     fprintf(win->file, "%g %g %s\n", 
             vert->device[0], vert->device[1], vii ? "L" : "M");
   }
@@ -148,8 +148,8 @@ _limnPSDrawEdge(limnObject *obj, limnEdge *edge,
 
   part = obj->part[edge->partIdx];
   if (win->ps.lineWidth[edge->type]) {
-    vert0 = obj->vert + part->vertIdx[edge->vertIdxIdx[0]];
-    vert1 = obj->vert + part->vertIdx[edge->vertIdxIdx[1]];
+    vert0 = obj->vert + edge->vertIdx[0];
+    vert1 = obj->vert + edge->vertIdx[1];
     fprintf(win->file, "%g %g M ", vert0->device[0], vert0->device[1]);
     fprintf(win->file, "%g %g L ", vert1->device[0], vert1->device[1]);
     fprintf(win->file, "%g W 0 Gr ", win->ps.lineWidth[edge->type]);
@@ -249,10 +249,10 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
       /* draw ALL edges */
       for (eii=0; eii<part->edgeIdxNum; eii++) {
         edge = obj->edge + part->edgeIdx[eii];
-        face0 = obj->face + part->faceIdx[edge->faceIdxIdx[0]];
-        face1 = (-1 == edge->faceIdxIdx[1]
+        face0 = obj->face + edge->faceIdx[0];
+        face1 = (-1 == edge->faceIdx[1]
                  ? NULL
-                 : obj->face + part->faceIdx[edge->faceIdxIdx[1]]);
+                 : obj->face + edge->faceIdx[1]);
         if (!face1) {
           edge->type = limnEdgeTypeBorder;
         } else {
@@ -326,10 +326,10 @@ limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
   for (edgeIdx=0; edgeIdx<obj->edgeNum; edgeIdx++) {
     edge = obj->edge + edgeIdx;
     part = obj->part[edge->partIdx];
-    face0 = obj->face + part->faceIdx[edge->faceIdxIdx[0]];
-    face1 = (-1 == edge->faceIdxIdx[1]
+    face0 = obj->face + edge->faceIdx[0];
+    face1 = (-1 == edge->faceIdx[1]
              ? NULL
-             : obj->face + part->faceIdx[edge->faceIdxIdx[1]]);
+             : obj->face + edge->faceIdx[1]);
     if (!face1) {
       edge->type = limnEdgeTypeBorder;
     } else {
@@ -363,7 +363,7 @@ limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
     /* draw those edges around the face that won't be seen again by 
        future faces in the depth-first traversal */
     for (eii=0; eii<face->sideNum; eii++) {
-      edge = obj->edge + part->edgeIdx[face->edgeIdxIdx[eii]];
+      edge = obj->edge + face->edgeIdx[eii];
       if (limnEdgeTypeContour == edge->type) {
         _limnPSDrawEdge(obj, edge, cam, win);
       } else if (limnEdgeTypeFrontCrease == edge->type 

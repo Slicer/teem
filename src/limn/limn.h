@@ -95,7 +95,7 @@ typedef struct limnCamera_t {
     V2W[16],          /* View to world transform */
     U[4], V[4], N[4], /* View space basis vectors (in world coords)
                          last element always zero */
-    vspNeer, vspFaar, /* not usually user-set: neer, far, and image plane
+    vspNeer, vspFaar, /* not usually user-set: near, far, and image plane
                          distances, in view space */
     vspDist;
 } limnCamera;
@@ -173,8 +173,8 @@ enum {
 */
 typedef struct {
   float rgba[4];
-  float kads[3],   /* phong: ka, kd, ks */
-    spow;          /* specular power */
+  float kads[3],              /* phong: ka, kd, ks */
+    spow;                     /* specular power */
 } limnLook;
 
 /*
@@ -185,12 +185,12 @@ typedef struct {
 ** Has no dynamically allocated information or pointers
 */
 typedef struct {
-  float world[4],        /* world coordinates (homogeneous) */
-    view[4],            /* view coordinates */
-    screen[3],            /* screen coordinates (device independant) */
-    device[2],            /* device coordinates */
-    worldNormal[3];        /* vertex normal (world coords only) */
-  int lookIdx,            /* index into parent's look array */
+  float world[4],             /* world coordinates (homogeneous) */
+    view[4],                  /* view coordinates */
+    screen[3],                /* screen coordinates (device independant) */
+    device[2],                /* device coordinates */
+    worldNormal[3];           /* vertex normal (world coords only) */
+  int lookIdx,                /* index into parent's look array */
     partIdx;
 } limnVertex;
 
@@ -202,30 +202,30 @@ typedef struct {
 ** Has no dynamically allocated information or pointers
 */
 typedef struct limnEdge_t {
-  int vertIdxIdx[2], faceIdxIdx[2],
-    lookIdx,         /* index into parent's look array */
-    partIdx;
-  int type,          /* from the limnEdgeType enum */
-    once;            /* flag used for certain kinds of rendering */
+  int vertIdx[2], faceIdx[2], /* indices into object's master vert
+                                 and face arrays */
+    lookIdx,                  /* index into parent's look array */
+    partIdx;                  /* which part do we belong to */
+  int type,                   /* from the limnEdgeType enum */
+    once;                     /* flag used for certain kinds of rendering */
 } limnEdge;
 
 /*
 ******** struct limnFace
 **
 ** all the information about a face
-**
-** Has no dynamically allocated information or pointers
 */
 typedef struct limnFace_t {
   float worldNormal[3],
     screenNormal[3];
-  int *vertIdxIdx,   /* normal array (not airArray) of indices (in part's
-                        vertIdx) vertex indices (in object's vert) */
-    *edgeIdxIdx,     /* likewise for edges */
-    sideNum;      /* number of sides (allocated length of {vert,edge}IdxIdx */
+  int *vertIdx,               /* regular array (*not* airArray) of vertex
+                                 indices in object's master vert array */
+    *edgeIdx,                 /* likewise for edges */
+    sideNum;                  /* number of sides (allocated length of
+                                 {vert,edge}Idx arrays */
   int lookIdx,
     partIdx;
-  int visible;         /* is face currently visible (AIR_TRUE or AIR_FALSE) */
+  int visible;                /* non-zero if face currently visible */
   float depth;
 } limnFace;
 
@@ -235,10 +235,12 @@ typedef struct limnFace_t {
 ** one connected part of an object
 */
 typedef struct limnPart_t {
-  int *vertIdx, vertIdxNum,
-    *edgeIdx, edgeIdxNum,
-    *faceIdx, faceIdxNum;
-  airArray *vertIdxArr, *edgeIdxArr, *faceIdxArr;
+  int *vertIdx, vertIdxNum; /* (air)arrays of indices in object's vert array */
+  airArray *vertIdxArr;
+  int *edgeIdx, edgeIdxNum; /* (air)arrays of indices in object's edge array */
+  airArray *edgeIdxArr;
+  int *faceIdx, faceIdxNum; /* (air)arrays of indices in object's face array */
+  airArray *faceIdxArr;
   int lookIdx;
   float depth;
 } limnPart;
@@ -442,10 +444,10 @@ TEEM_API int limnObjectPartAdd(limnObject *obj);
 TEEM_API int limnObjectVertexAdd(limnObject *obj, int partIdx, int lookIdx,
                                  float x, float y, float z);
 TEEM_API int limnObjectEdgeAdd(limnObject *obj, int partIdx, int lookIdx,
-                               int faceIdxIdx, int vertIdxIdx0,
-                               int vertIdxIdx1);
+                               int faceIdx, int vertIdx0,
+                               int vertIdx1);
 TEEM_API int limnObjectFaceAdd(limnObject *obj, int partIdx, int lookIdx,
-                               int sideNum, int *vertIdxIdx);
+                               int sideNum, int *vertIdx);
 
 /* io.c */
 TEEM_API int limnObjectDescribe(FILE *file, limnObject *obj);
