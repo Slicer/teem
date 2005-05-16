@@ -32,17 +32,23 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn,
                  float gscale, float dotRad, float lineWidth, float cthresh,
                  int invert) {
   int sx=0, sy=0, x, y, nt, ti, vi, *sdata;
-  float aspect, minX, minY, maxX, maxY, px, py, 
+  float aspect, minX, minY, maxX, maxY, px, py, spx, spy,
     conf, Dxx, Dxy, Dyy, *tdata, *pdata;
   
   if (npos) {
     nt = npos->axis[1].size;
     aspect = (max[0] - min[0])/(max[1] - min[1]);
   } else {
+    spx = (AIR_EXISTS(nten->axis[1].spacing)
+           ? nten->axis[1].spacing
+           : 1);
+    spy = (AIR_EXISTS(nten->axis[2].spacing)
+           ? nten->axis[2].spacing
+           : 1);
     sx = nten->axis[1].size;
     sy = nten->axis[2].size;
     nt = sx*sy;
-    aspect = (float)sx/sy;
+    aspect = (float)(sx*spx)/(sy*spy);
   }
 
   if (aspect > 7.5/10) {
