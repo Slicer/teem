@@ -114,7 +114,7 @@ main(int argc, char *argv[]) {
   light = limnLightNew();
   airMopAdd(mop, light, (airMopper)limnLightNix, airMopAlways);
 
-  limnLightSetAmbient(light, amb[0], amb[1], amb[2]);
+  limnLightAmbientSet(light, amb[0], amb[1], amb[2]);
   for (li=0; li<nlight->axis[1].size; li++) {
     linfo = (float *)(nlight->data) + 7*li;
     limnLightSet(light, li, !!linfo[0], 
