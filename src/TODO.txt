@@ -1,8 +1,3 @@
-unu dice: add "-f <format>" option to avoid annoyances...
-unu dice: be able to more directly control the formatting of the filenames
-  (such as # of zeros)
-
-track down nrrdSpatialResample bug that J ran into
 
 make system really botched: change the size of the tenFiberContext
 (added a field or two), do a make ten/install, then cd ../push; rm -f test/pusher
@@ -12,6 +7,24 @@ make clobber, and then things work.  This is crap.
 I think the problem is that development object files of push were not
 recompiled when they should have been- doing a make clobber; make in push
 solved the problem...
+(noted earlier:)
+- HUGE PROBLEM: change limn.h, cd ../ten, make, nothing to be done WRONG
+- HUGE PROBLEM: make a change in nrrdEnums.h, which unrrdu/project.c 
+  uses directly. recompile, and nrrd gets compiled, but not unrrdu,
+  so unu doesn't get updated correctly!
+- want seperate directories for static and shared libraries
+- want bin/dev and bin/install targets
+
+add BSD architecture that guy emailed me about
+
+** time to refactor nrrdSpatialResample:
+unu resample clobbers space directions!
+track down nrrdSpatialResample bug that J ran into
+unu cmedian -r 1 -b 329 -i unrrdu/test/P124DcmPre30lpSeries1InitialIM0100.png \
+ | unu resample -s x0.25 x0.25 -k box -cheap \
+ | unu histo -b 329 -o 2-histo.txt
+is generating wrong values with "setenv NRRD_DEF_CENTER cell", but not with node!
+
 
 unu save -f nrrd -e text produces a text file that does not end w/ newline
 
@@ -19,16 +32,18 @@ unu: jhisto works with axis[0] elements when given a single nrrd
 
 gage: re-modularize to facilitate probing bricked data
 
-gage: consider changing gageProbe() to take position both in index and
-unit world space, since many programs only care about unit world space
+nrrd: add fft support
+nrrd: allow nrrd header I/O to and from strings
+nrrd: add support for VFF file format
+nrrd: add support for NIFTI-1 file format
+
+--------- teem 1.9 cut-off
 
 air: make airOneLine return number of bytes read; current return
   of string length is entirely redundant with return of strlen()
   and then enable the ftell() check after PNG magic read
 
 nrrd: generalize I/O so that magic needn't be on line by itself
-nrrd: allow nrrd header I/O to and from strings
-nrrd: add support for VFF file format
 
 bin/unu: valgrid parsing of encoding stuff
 
@@ -54,13 +69,6 @@ teem\src\bane\hvol.c(167) : warning C4700: local variable 'hist' used
 
 finish big changes
 - ADD gkms back into teem bins!
-
-teem: fix bugs in teem makefile stuff: 
-- HUGE PROBLEM: make a change in nrrdEnums.h, which unrrdu/project.c 
-  uses directly. recompile, and nrrd gets compiled, but not unrrdu,
-  so unu doesn't get updated correctly!
-- want seperate directories for static and shared libraries
-- want bin/dev and bin/install targets
 
 ell: debug SVD of things based on negative eigenvalues
  - add flag to say: always positive sv's, or always right-handed rotations
