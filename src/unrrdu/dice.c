@@ -21,6 +21,9 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
+/* bad gordon */
+extern int _nrrdContainsPercentDAndMore(char *str);
+
 #define INFO "Save all slices along one axis into separate files"
 char *_unrrdu_diceInfoL = 
 (INFO
@@ -75,6 +78,12 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
 
   if (airStrlen(ftmpl)) {
+    if (!_nrrdContainsPercentDAndMore(ftmpl)) {
+      fprintf(stderr, "%s: given filename format \"%s\" doesn't seem to "
+              "have the format sequence to print an integer\n", me, ftmpl);
+      airMopError(mop);
+      return 1;
+    }
     sprintf(fffname, "%%s%s", ftmpl);
   } else {
     top = start + nin->axis[axis].size-1;
