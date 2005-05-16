@@ -62,6 +62,7 @@ limnObjectNew(int incr, int doEdges) {
   /* create (default) look 0 */
   limnObjectLookAdd(obj);
 
+  obj->vertSpace = limnSpaceUnknown;
   obj->doEdges = doEdges;
   obj->incr = incr;
     
@@ -135,7 +136,7 @@ limnObjectPartAdd(limnObject *obj) {
 }
 
 int
-limnObjectVertexAdd(limnObject *obj, int partIdx, int lookIdx,
+limnObjectVertexAdd(limnObject *obj, int partIdx,
                     float x, float y, float z) {
   limnPart *part;
   limnVertex *vert;
@@ -147,12 +148,11 @@ limnObjectVertexAdd(limnObject *obj, int partIdx, int lookIdx,
   vertIdxIdx = airArrayIncrLen(part->vertIdxArr, 1);
   part->vertIdx[vertIdxIdx] = vertIdx;
   ELL_4V_SET(vert->world, x, y, z, 1);
-  ELL_3V_SET(vert->view, AIR_NAN, AIR_NAN, AIR_NAN);
-  ELL_3V_SET(vert->screen, AIR_NAN, AIR_NAN, AIR_NAN);
-  ELL_3V_SET(vert->worldNormal, AIR_NAN, AIR_NAN, AIR_NAN);
-  vert->device[0] = vert->device[1] = AIR_NAN;
-  vert->partIdx = partIdx;
-  vert->lookIdx = lookIdx;
+  ELL_4V_SET(vert->coord, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
+  ELL_4V_SET(vert->rgba, 0, 0, 0, 1);
+  /* ELL_3V_SET(vert->view, AIR_NAN, AIR_NAN, AIR_NAN); */
+  /* ELL_3V_SET(vert->screen, AIR_NAN, AIR_NAN, AIR_NAN); */
+  ELL_4V_SET(vert->worldNormal, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
 
   return vertIdx;
 }

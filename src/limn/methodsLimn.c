@@ -32,8 +32,9 @@ limnLightNew(void) {
 limnLight *
 limnLightNix(limnLight *lit) {
   
-  if (lit)
+  if (lit) {
     free(lit);
+  }
   return NULL;
 }
 

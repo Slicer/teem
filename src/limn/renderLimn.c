@@ -34,12 +34,12 @@ limnObjectRender(limnObject *obj, limnCamera *cam, limnWindow *win) {
   fprintf(stderr, "%s: true right = %g %g %g\n", me,
           cam->U[0], cam->U[1], cam->U[2]);
   */
-  if (!E) E |= limnObjectHomog(obj, limnSpaceWorld);
-  if (!E) E |= limnObjectNormals(obj, limnSpaceWorld);
+  if (!E) E |= limnObjectWorldHomog(obj);
+  if (!E) E |= limnObjectFaceNormals(obj, limnSpaceWorld);
   if (!E) E |= limnObjectSpaceTransform(obj, cam, win, limnSpaceView);
   if (!E) E |= limnObjectSpaceTransform(obj, cam, win, limnSpaceScreen);
+  if (!E) E |= limnObjectFaceNormals(obj, limnSpaceScreen);
   if (!E) E |= limnObjectSpaceTransform(obj, cam, win, limnSpaceDevice);
-  if (!E) E |= limnObjectNormals(obj, limnSpaceScreen);
   if (E) {
     sprintf(err, "%s: trouble", me);
     biffAdd(LIMN, err); return 1;
@@ -112,7 +112,7 @@ _limnPSDrawFace(limnObject *obj, limnFace *face,
   for (vii=0; vii<face->sideNum; vii++) {
     vert = obj->vert + face->vertIdx[vii];
     fprintf(win->file, "%g %g %s\n", 
-            vert->device[0], vert->device[1], vii ? "L" : "M");
+            vert->coord[0], vert->coord[1], vii ? "L" : "M");
   }
   R = look->kads[0]*look->rgba[0];
   G = look->kads[0]*look->rgba[1];
@@ -150,8 +150,8 @@ _limnPSDrawEdge(limnObject *obj, limnEdge *edge,
   if (win->ps.lineWidth[edge->type]) {
     vert0 = obj->vert + edge->vertIdx[0];
     vert1 = obj->vert + edge->vertIdx[1];
-    fprintf(win->file, "%g %g M ", vert0->device[0], vert0->device[1]);
-    fprintf(win->file, "%g %g L ", vert1->device[0], vert1->device[1]);
+    fprintf(win->file, "%g %g M ", vert0->coord[0], vert0->coord[1]);
+    fprintf(win->file, "%g %g L ", vert1->coord[0], vert1->coord[1]);
     fprintf(win->file, "%g W 0 Gr ", win->ps.lineWidth[edge->type]);
     fprintf(win->file, "S\n");
   }
@@ -179,6 +179,12 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
   limnPart *part; int partIdx;
   limnVertex *vert; int vii;
 
+  if (limnSpaceDevice != obj->vertSpace) {
+    sprintf(err, "%s: object's verts in %s (not %s) space", me,
+            airEnumStr(limnSpace, obj->vertSpace),
+            airEnumStr(limnSpace, limnSpaceDevice));
+    biffAdd(LIMN, err); return 1;
+  }
   if (nmap) {
     if (limnEnvMapCheck(nmap)) {
       sprintf(err, "%s: trouble", me); 
@@ -197,8 +203,8 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
     inside = 0;
     for (vii=0; vii<part->vertIdxNum; vii++) {
       vert = obj->vert + part->vertIdx[vii];
-      inside |= (AIR_IN_CL(win->bbox[0], vert->device[0], win->bbox[2]) &&
-                 AIR_IN_CL(win->bbox[1], vert->device[1], win->bbox[3]));
+      inside |= (AIR_IN_CL(win->bbox[0], vert->coord[0], win->bbox[2]) &&
+                 AIR_IN_CL(win->bbox[1], vert->coord[1], win->bbox[3]));
       if (inside) {
         /* at least vertex is in, we know we can't skip this part */
         break;
@@ -296,6 +302,12 @@ limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
   limnFace *face, *face0, *face1; int faceIdx;
   limnEdge *edge; int edgeIdx, eii;
 
+  if (limnSpaceDevice != obj->vertSpace) {
+    sprintf(err, "%s: object's verts in %s (not %s) space", me,
+            airEnumStr(limnSpace, obj->vertSpace),
+            airEnumStr(limnSpace, limnSpaceDevice));
+    biffAdd(LIMN, err); return 1;
+  }
   if (nmap) {
     if (limnEnvMapCheck(nmap)) {
       sprintf(err, "%s: trouble", me); 

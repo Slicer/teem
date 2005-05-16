@@ -65,7 +65,7 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   
-  obj = limnObjectNew(10, AIR_TRUE);
+  obj = limnObjectNew(100, AIR_FALSE);
   airMopAdd(mop, obj, (airMopper)limnObjectNix, airMopAlways);
 
   /* create limnLooks for ellipsoid and for rods */

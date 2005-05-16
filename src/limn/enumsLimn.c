@@ -21,6 +21,29 @@
 #include "limn.h"
 
 char
+_limnSpaceStr[LIMN_SPACE_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown space)",
+  "world",
+  "view",
+  "screen",
+  "device"
+};
+
+airEnum
+_limnSpace = {
+  "limn space",
+  LIMN_SPACE_MAX,
+  _limnSpaceStr, NULL,
+  NULL,
+  NULL, NULL,
+  AIR_FALSE
+};
+airEnum *
+limnSpace = &_limnSpace;
+
+/* ------------------------------------------------------------ */  
+
+char
 _limnCameraPathTrackStr[][AIR_STRLEN_SMALL] = {
   "(unknown limnCameraPathTrack)",
   "from",

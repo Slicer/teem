@@ -36,21 +36,21 @@ limnLightSet(limnLight *lit, int which, int vsp,
   if (lit && AIR_IN_CL(0, which, LIMN_LIGHT_NUM-1)) {
     lit->on[which] = 1;
     lit->vsp[which] = vsp;
-    ELL_3V_SET(lit->col[which], r, g, b);
-    ELL_3V_SET(lit->_dir[which], x, y, z);
+    ELL_4V_SET(lit->col[which], r, g, b, 1.0);
+    ELL_4V_SET(lit->_dir[which], x, y, z, 0.0);
   }
 }
 
 /*
-******** limnLightSetAmbient()
+******** limnLightAmbientSet()
 **
 ** sets the ambient light color
 */
 void
-limnLightSetAmbient(limnLight *lit, float r, float g, float b) {
+limnLightAmbientSet(limnLight *lit, float r, float g, float b) {
   
   if (lit) {
-    ELL_3V_SET(lit->amb, r, g, b);
+    ELL_4V_SET(lit->amb, r, g, b, 1.0);
   }
 }
 
@@ -87,7 +87,7 @@ limnLightUpdate(limnLight *lit, limnCamera *cam) {
       ELL_3V_COPY(dir, _dir);
     }
     ELL_3V_NORM(dir, dir, norm);
-    ELL_3V_COPY(lit->dir[i], dir);
+    ELL_4V_SET(lit->dir[i], dir[0], dir[1], dir[2], 0.0);
   }
   return 0;
 }
@@ -112,11 +112,11 @@ limnLightReset(limnLight *lit) {
   int i;
 
   if (lit) {
-    ELL_3V_SET(lit->amb, 0, 0, 0);
+    ELL_4V_SET(lit->amb, 0, 0, 0, 1);
     for (i=0; i<LIMN_LIGHT_NUM; i++) {
-      ELL_3V_SET(lit->_dir[i], 0, 0, 0);
-      ELL_3V_SET(lit->dir[i], 0, 0, 0);
-      ELL_3V_SET(lit->col[i], 0, 0, 0);
+      ELL_4V_SET(lit->_dir[i], 0, 0, 0, 0);
+      ELL_4V_SET(lit->dir[i], 0, 0, 0, 0);
+      ELL_4V_SET(lit->col[i], 0, 0, 0, 1);
       lit->on[i] = AIR_FALSE;
       lit->vsp[i] = AIR_FALSE;
     }

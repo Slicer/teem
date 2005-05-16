@@ -36,14 +36,14 @@ limnObjectCubeAdd(limnObject *obj, int lookIdx) {
                   | /             0     1
                     ------ x
   */
-  vII0 = limnObjectVertexAdd(obj, partIdx, 0, -1, -1, -1);
-  limnObjectVertexAdd(obj, partIdx, lookIdx,  1, -1, -1);
-  limnObjectVertexAdd(obj, partIdx, lookIdx,  1,  1, -1);
-  limnObjectVertexAdd(obj, partIdx, lookIdx, -1,  1, -1);
-  limnObjectVertexAdd(obj, partIdx, lookIdx, -1, -1,  1);
-  limnObjectVertexAdd(obj, partIdx, lookIdx,  1, -1,  1);
-  limnObjectVertexAdd(obj, partIdx, lookIdx,  1,  1,  1);
-  limnObjectVertexAdd(obj, partIdx, lookIdx, -1,  1,  1);
+  vII0 = limnObjectVertexAdd(obj, partIdx, -1, -1, -1);
+  limnObjectVertexAdd(obj, partIdx, 1, -1, -1);
+  limnObjectVertexAdd(obj, partIdx, 1,  1, -1);
+  limnObjectVertexAdd(obj, partIdx, 1,  1, -1);
+  limnObjectVertexAdd(obj, partIdx, 1, -1,  1);
+  limnObjectVertexAdd(obj, partIdx, 1, -1,  1);
+  limnObjectVertexAdd(obj, partIdx, 1,  1,  1);
+  limnObjectVertexAdd(obj, partIdx, 1,  1,  1);
   ELL_4V_SET(vII, vII0+3, vII0+2, vII0+1, vII0+0);
   limnObjectFaceAdd(obj, partIdx, lookIdx, 4, vII);
   ELL_4V_SET(vII, vII0+1, vII0+5, vII0+4, vII0+0);
@@ -65,10 +65,10 @@ limnObjectSquareAdd(limnObject *obj, int lookIdx) {
   int vII0, vII[4], partIdx;
 
   partIdx = limnObjectPartAdd(obj);
-  vII0 = limnObjectVertexAdd(obj, partIdx, lookIdx, 0, 0, 0);
-  limnObjectVertexAdd(obj, partIdx, lookIdx, 1, 0, 0);
-  limnObjectVertexAdd(obj, partIdx, lookIdx, 1, 1, 0);
-  limnObjectVertexAdd(obj, partIdx, lookIdx, 0, 1, 0);
+  vII0 = limnObjectVertexAdd(obj, partIdx, 0, 0, 0);
+  limnObjectVertexAdd(obj, partIdx, 1, 0, 0);
+  limnObjectVertexAdd(obj, partIdx, 1, 1, 0);
+  limnObjectVertexAdd(obj, partIdx, 0, 1, 0);
   ELL_4V_SET(vII, vII0+0, vII0+1, vII0+2, vII0+3); 
   limnObjectFaceAdd(obj, partIdx, lookIdx, 4, vII);
   return partIdx;
@@ -92,22 +92,16 @@ limnObjectCylinderAdd(limnObject *obj, int lookIdx, int axis, int res) {
     theta = AIR_AFFINE(0, ii, res, 0, 2*AIR_PI);
     switch(axis) {
     case 0:
-      tmp = limnObjectVertexAdd(obj, partIdx, lookIdx, 
-                                1, -sin(theta), cos(theta));
-      limnObjectVertexAdd(obj, partIdx, lookIdx,
-                          -1, -sin(theta), cos(theta));
+      tmp = limnObjectVertexAdd(obj, partIdx, 1, -sin(theta), cos(theta));
+      limnObjectVertexAdd(obj, partIdx, -1, -sin(theta), cos(theta));
       break;
     case 1:
-      tmp = limnObjectVertexAdd(obj, partIdx, lookIdx,
-                                sin(theta), 1, cos(theta));
-      limnObjectVertexAdd(obj, partIdx, lookIdx,
-                          sin(theta), -1, cos(theta));
+      tmp = limnObjectVertexAdd(obj, partIdx, sin(theta), 1, cos(theta));
+      limnObjectVertexAdd(obj, partIdx, sin(theta), -1, cos(theta));
       break;
     case 2: default:
-      tmp = limnObjectVertexAdd(obj, partIdx, lookIdx,
-                                cos(theta), sin(theta), 1);
-      limnObjectVertexAdd(obj, partIdx, lookIdx,
-                          cos(theta), sin(theta), -1);
+      tmp = limnObjectVertexAdd(obj, partIdx, cos(theta), sin(theta), 1);
+      limnObjectVertexAdd(obj, partIdx, cos(theta), sin(theta), -1);
       break;
     }
     if (!ii) {
@@ -148,13 +142,13 @@ limnObjectConeAdd(limnObject *obj, int lookIdx, int axis, int res) {
     th = AIR_AFFINE(0, ii, res, 0, 2*AIR_PI);
     switch(axis) {
     case 0:
-      tmp = limnObjectVertexAdd(obj, partIdx, lookIdx, 0, -sin(th), cos(th));
+      tmp = limnObjectVertexAdd(obj, partIdx, 0, -sin(th), cos(th));
       break;
     case 1:
-      tmp = limnObjectVertexAdd(obj, partIdx, lookIdx, sin(th), 0, cos(th));
+      tmp = limnObjectVertexAdd(obj, partIdx, sin(th), 0, cos(th));
       break;
     case 2: default:
-      tmp = limnObjectVertexAdd(obj, partIdx, lookIdx, cos(th), sin(th), 0);
+      tmp = limnObjectVertexAdd(obj, partIdx, cos(th), sin(th), 0);
       break;
     }
     if (!ii) {
@@ -163,13 +157,13 @@ limnObjectConeAdd(limnObject *obj, int lookIdx, int axis, int res) {
   }
   switch(axis) {
   case 0:
-    limnObjectVertexAdd(obj, partIdx, lookIdx, 1, 0, 0);
+    limnObjectVertexAdd(obj, partIdx, 1, 0, 0);
     break;
   case 1:
-    limnObjectVertexAdd(obj, partIdx, lookIdx, 0, 1, 0);
+    limnObjectVertexAdd(obj, partIdx, 0, 1, 0);
     break;
   case 2: default:
-    limnObjectVertexAdd(obj, partIdx, lookIdx, 0, 0, 1);
+    limnObjectVertexAdd(obj, partIdx, 0, 0, 1);
     break;
   }
   for (ii=0; ii<=res-1; ii++) {
@@ -198,13 +192,13 @@ limnObjectPolarSphereAdd(limnObject *obj, int lookIdx, int axis,
   partIdx = limnObjectPartAdd(obj);
   switch(axis) {
   case 0:
-    vII0 = limnObjectVertexAdd(obj, partIdx, 0, 1, 0, 0);
+    vII0 = limnObjectVertexAdd(obj, partIdx, 1, 0, 0);
     break;
   case 1:
-    vII0 = limnObjectVertexAdd(obj, partIdx, 0, 0, 1, 0);
+    vII0 = limnObjectVertexAdd(obj, partIdx, 0, 1, 0);
     break;
   case 2: default:
-    vII0 = limnObjectVertexAdd(obj, partIdx, 0, 0, 0, 1);
+    vII0 = limnObjectVertexAdd(obj, partIdx, 0, 0, 1);
     break;
   }
   for (pi=1; pi<=phiRes-1; pi++) {
@@ -213,26 +207,29 @@ limnObjectPolarSphereAdd(limnObject *obj, int lookIdx, int axis,
       t = AIR_AFFINE(0, ti, thetaRes, 0, 2*AIR_PI);
       switch(axis) {
       case 0:
-        limnObjectVertexAdd(obj, partIdx, 0, cos(p), -sin(t)*sin(p), cos(t)*sin(p));
+        limnObjectVertexAdd(obj, partIdx,
+                            cos(p), -sin(t)*sin(p), cos(t)*sin(p));
         break;
       case 1:
-        limnObjectVertexAdd(obj, partIdx, 0, sin(t)*sin(p), cos(p), cos(t)*sin(p));
+        limnObjectVertexAdd(obj, partIdx,
+                            sin(t)*sin(p), cos(p), cos(t)*sin(p));
         break;
       case 2: default:
-        limnObjectVertexAdd(obj, partIdx, 0, cos(t)*sin(p), sin(t)*sin(p), cos(p));
+        limnObjectVertexAdd(obj, partIdx,
+                            cos(t)*sin(p), sin(t)*sin(p), cos(p));
         break;
       }
     }
   }
   switch(axis) {
   case 0:
-    pl = limnObjectVertexAdd(obj, partIdx, 0, -1, 0, 0);
+    pl = limnObjectVertexAdd(obj, partIdx, -1, 0, 0);
     break;
   case 1:
-    pl = limnObjectVertexAdd(obj, partIdx, 0, 0, -1, 0);
+    pl = limnObjectVertexAdd(obj, partIdx, 0, -1, 0);
     break;
   case 2: default:
-    pl = limnObjectVertexAdd(obj, partIdx, 0, 0, 0, -1);
+    pl = limnObjectVertexAdd(obj, partIdx, 0, 0, -1);
     break;
   }
   for (ti=1; ti<=thetaRes; ti++) {
@@ -270,13 +267,13 @@ limnObjectPolarSuperquadAdd(limnObject *obj, int lookIdx, int axis,
   partIdx = limnObjectPartAdd(obj);
   switch(axis) {
   case 0:
-    vII0 = limnObjectVertexAdd(obj, partIdx, 0, 1, 0, 0);
+    vII0 = limnObjectVertexAdd(obj, partIdx, 1, 0, 0);
     break;
   case 1:
-    vII0 = limnObjectVertexAdd(obj, partIdx, 0, 0, 1, 0);
+    vII0 = limnObjectVertexAdd(obj, partIdx, 0, 1, 0);
     break;
   case 2: default:
-    vII0 = limnObjectVertexAdd(obj, partIdx, 0, 0, 0, 1);
+    vII0 = limnObjectVertexAdd(obj, partIdx, 0, 0, 1);
     break;
   }
   for (pi=1; pi<=phiRes-1; pi++) {
@@ -300,18 +297,18 @@ limnObjectPolarSuperquadAdd(limnObject *obj, int lookIdx, int axis,
         z = airSgnPow(cos(p),B);
         break;
       }
-      limnObjectVertexAdd(obj, partIdx, 0, x, y, z);
+      limnObjectVertexAdd(obj, partIdx, x, y, z);
     }
   }
   switch(axis) {
   case 0:
-    pl = limnObjectVertexAdd(obj, partIdx, 0, -1, 0, 0);
+    pl = limnObjectVertexAdd(obj, partIdx, -1, 0, 0);
     break;
   case 1:
-    pl = limnObjectVertexAdd(obj, partIdx, 0, 0, -1, 0);
+    pl = limnObjectVertexAdd(obj, partIdx, 0, -1, 0);
     break;
   case 2: default:
-    pl = limnObjectVertexAdd(obj, partIdx, 0, 0, 0, -1);
+    pl = limnObjectVertexAdd(obj, partIdx, 0, 0, -1);
     break;
   }
   for (ti=1; ti<=thetaRes; ti++) {

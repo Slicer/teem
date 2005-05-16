@@ -36,7 +36,7 @@ extern "C" {
 #endif
 
 #define LIMN limnBiffKey
-#define LIMN_LIGHT_NUM 16
+#define LIMN_LIGHT_NUM 8
 
 /*
 ******** #define LIMN_SPLINE_Q_AVG_EPS
@@ -103,17 +103,21 @@ typedef struct limnCamera_t {
 /*
 ******** struct limnLight
 **
-** information for directional lighting and the ambient light
+** information for directional lighting and the ambient light.  All
+** the vectors are length 4 (instead of 3) for the sake of passing them
+** directly to OpenGL. For colors, the last coefficient (alpha) is
+** always 1.0, and for directions it is 0.0 (w, homog coord).
+** 
 **
 ** Has no dynamically allocated information or pointers
 */
 typedef struct {
-  float amb[3],              /* RGB ambient light color */
-    _dir[LIMN_LIGHT_NUM][3], /* direction of light[i] (view or world space).
+  float amb[4],              /* RGBA ambient light color */
+    _dir[LIMN_LIGHT_NUM][4], /* direction of light[i] (view or world space).
                                 This is what the user sets via limnLightSet */
-    dir[LIMN_LIGHT_NUM][3],  /* direction of light[i] (ONLY world space) 
+    dir[LIMN_LIGHT_NUM][4],  /* direction of light[i] (ONLY world space) 
                                 Not user-set: calculated/copied from _dir[] */
-    col[LIMN_LIGHT_NUM][3];  /* RGB color of light[i] */
+    col[LIMN_LIGHT_NUM][4];  /* RGBA color of light[i] */
   int on[LIMN_LIGHT_NUM],    /* light[i] is on */
     vsp[LIMN_LIGHT_NUM];     /* light[i] lives in view space */
 } limnLight;
@@ -157,13 +161,14 @@ typedef struct {
 } limnWindow;
 
 enum {
-  limnSpaceUnknown,
-  limnSpaceWorld,
-  limnSpaceView,
-  limnSpaceScreen,
-  limnSpaceDevice,
+  limnSpaceUnknown,  /* 0 */ 
+  limnSpaceWorld,    /* 1 */
+  limnSpaceView,     /* 2 */
+  limnSpaceScreen,   /* 3 */
+  limnSpaceDevice,   /* 4 */
   limnSpaceLast
 };
+#define LIMN_SPACE_MAX  4
 
 /*
 ******** struct limnLook
@@ -180,18 +185,21 @@ typedef struct {
 /*
 ******** struct limnVertex
 **
-** all the information you might want for a point
+** all the information you might want for a point.
+**
+** This used to have seperate coordinate arrays for view, screen, and 
+** device space, but these have been collapsed (in the interest of space)
+** into coord, with obj->vertSpace indicating which space these are in.
+** This also used to have a lookIdx (now just rgba[4]), and a partIdx
+** (which was never actually used).
 **
 ** Has no dynamically allocated information or pointers
 */
 typedef struct {
   float world[4],             /* world coordinates (homogeneous) */
-    view[4],                  /* view coordinates */
-    screen[3],                /* screen coordinates (device independant) */
-    device[2],                /* device coordinates */
-    worldNormal[3];           /* vertex normal (world coords only) */
-  int lookIdx,                /* index into parent's look array */
-    partIdx;
+    rgba[4],                  /* RGBA color */
+    coord[4],                 /* coordinates in some space */
+    worldNormal[4];           /* vertex normal (world coords only) */
 } limnVertex;
 
 /*
@@ -281,7 +289,8 @@ typedef struct {
   limnLook *look; int lookNum;
   airArray *lookArr;
 
-  int doEdges,       /* if non-zero, build edges as faces are added */
+  int vertSpace,     /* which space limnVert->coord is in */
+    doEdges,         /* if non-zero, build edges as faces are added */
     incr;            /* increment to use with airArrays */
 } limnObject;
 
@@ -384,6 +393,7 @@ TEEM_API int limnDefCameraOrthographic;
 TEEM_API int limnDefCameraRightHanded;
 
 /* enumsLimn.c */
+TEEM_API airEnum *limnSpace;
 TEEM_API airEnum *limnCameraPathTrack;
 
 /* qn.c */
@@ -397,7 +407,7 @@ TEEM_API int (*limnVtoQN_d[LIMN_QN_MAX+1])(double *vec);
 TEEM_API void limnLightSet(limnLight *lit, int which, int vsp,
                            float r, float g, float b,
                            float x, float y, float z);
-TEEM_API void limnLightSetAmbient(limnLight *lit, float r, float g, float b);
+TEEM_API void limnLightAmbientSet(limnLight *lit, float r, float g, float b);
 TEEM_API void limnLightSwitch(limnLight *lit, int which, int on);
 TEEM_API void limnLightReset(limnLight *lit);
 TEEM_API int limnLightUpdate(limnLight *lit, limnCamera *cam);
@@ -441,7 +451,7 @@ TEEM_API int limnObjectLookAdd(limnObject *obj);
 TEEM_API limnObject *limnObjectNew(int incr, int doEdges);
 TEEM_API limnObject *limnObjectNix(limnObject *obj);
 TEEM_API int limnObjectPartAdd(limnObject *obj);
-TEEM_API int limnObjectVertexAdd(limnObject *obj, int partIdx, int lookIdx,
+TEEM_API int limnObjectVertexAdd(limnObject *obj, int partIdx,
                                  float x, float y, float z);
 TEEM_API int limnObjectEdgeAdd(limnObject *obj, int partIdx, int lookIdx,
                                int faceIdx, int vertIdx0,
@@ -469,8 +479,9 @@ TEEM_API int limnObjectPolarSuperquadAdd(limnObject *obj, int lookIdx,
                                          int thetaRes, int phiRes);
 
 /* transform.c */
-TEEM_API int limnObjectHomog(limnObject *obj, int space);
-TEEM_API int limnObjectNormals(limnObject *obj, int space);
+TEEM_API int limnObjectWorldHomog(limnObject *obj);
+TEEM_API int limnObjectFaceNormals(limnObject *obj, int space);
+TEEM_API int limnObjectVertexNormals(limnObject *obj);
 TEEM_API int limnObjectSpaceTransform(limnObject *obj, limnCamera *cam,
                                       limnWindow *win, int space);
 TEEM_API int limnObjectPartTransform(limnObject *obj, int partIdx,

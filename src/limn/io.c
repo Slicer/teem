@@ -35,12 +35,11 @@ limnObjectDescribe(FILE *file, limnObject *obj) {
     fprintf(file, "part %d | verts: %d ========\n", partIdx, part->vertIdxNum);
     for (vii=0; vii<part->vertIdxNum; vii++) {
       vert = obj->vert + part->vertIdx[vii];
-      fprintf(file, "part %d==%d | %d(%d): "
-              "w=(%g,%g,%g)\tv=(%g,%g,%g)\ts(%g,%g,%g)\n", 
-              partIdx, vert->partIdx, vii, part->vertIdx[vii], 
-              vert->world[0], vert->world[1], vert->world[2],
-              vert->view[0], vert->view[1], vert->view[2],
-              vert->screen[0], vert->screen[1], vert->screen[2]);
+      fprintf(file, "part %d | %d(%d): w=(%g,%g,%g)\n", 
+              partIdx, vii, part->vertIdx[vii], 
+              vert->world[0], vert->world[1], vert->world[2]);
+      /* vert->view[0], vert->view[1], vert->view[2]); */
+      /* vert->screen[0], vert->screen[1], vert->screen[2]); */
     }
     fprintf(file, "part %d | edges: %d ========\n", partIdx, part->edgeIdxNum);
     for (eii=0; eii<part->edgeIdxNum; eii++) {
@@ -99,13 +98,14 @@ limnObjectOFFWrite(FILE *file, limnObject *obj) {
               vert->world[0]/vert->world[3],
               vert->world[1]/vert->world[3],
               vert->world[2]/vert->world[3]);
+      /* verts no longer have a lookIdx
       if (vert->lookIdx) {
-        /* its a non-default color */
         fprintf(file, " %g %g %g",
                 obj->look[vert->lookIdx].rgba[0],
                 obj->look[vert->lookIdx].rgba[1],
                 obj->look[vert->lookIdx].rgba[2]);
       }
+      */
       fprintf(file, "\n");
     }
   }
@@ -144,7 +144,7 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
   double vert[6];
   char line[AIR_STRLEN_LARGE];  /* HEY: bad Gordon */
   int lineCount, lookIdx, partIdx, idxTmp, lret, vertNum, vertGot,
-    faceNum, vii, faceGot, got;
+    faceNum, faceGot, got;
   int ibuff[512]; /* HEY: bad Gordon */
   float fbuff[512];  /* HEY: bad bad Gordon */
   float lastRGB[3]; int lastLook;
@@ -227,7 +227,7 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
     fprintf(stderr, "line %d: vertGot = %d; lookIdx = %d; partIdx = %d\n",
             lineCount, vertGot, lookIdx, partIdx);
     */
-    limnObjectVertexAdd(obj, partIdx, lookIdx, vert[0], vert[1], vert[2]);
+    limnObjectVertexAdd(obj, partIdx, vert[0], vert[1], vert[2]);
     vertGot++;
   }
   /* read face information */
