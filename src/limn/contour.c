@@ -377,6 +377,7 @@ limn3DContourContextNix(limn3DContourContext *lctx) {
     lctx->range = nrrdRangeNix(lctx->range);
     lctx->vidx = airFree(lctx->vidx);
     lctx->val = airFree(lctx->val);
+    airFree(lctx);
   }
   return NULL;
 }
@@ -421,14 +422,14 @@ limn3DContourVolumeSet(limn3DContourContext *lctx, const Nrrd *nvol) {
   nrrdRangeSet(lctx->range, nvol, nrrdBlind8BitRangeFalse);
   if (!( lctx->sx == nvol->axis[0].size &&
          lctx->sy == nvol->axis[1].size &&
-         lctx->sz == nvol->axis[1].size )) {
+         lctx->sz == nvol->axis[2].size )) {
     lctx->sx = nvol->axis[0].size;
     lctx->sy = nvol->axis[1].size;
-    lctx->sz = nvol->axis[1].size;
+    lctx->sz = nvol->axis[2].size;
     airFree(lctx->vidx);
     airFree(lctx->val);
     lctx->vidx = (int *)calloc(5*lctx->sx*lctx->sy, sizeof(int));
-    lctx->val = (double *)calloc(lctx->sx*lctx->sy*2, sizeof(int));
+    lctx->val = (double *)calloc(2*lctx->sx*lctx->sy, sizeof(double));
   }
   return 0;
 }
@@ -437,7 +438,7 @@ int
 limn3DContourExtract(limn3DContourContext *lctx,
                      limnObject *cont, double isovalue) {
   char me[]="limn3DContourExtract", err[AIR_STRLEN_MED];
-  int sx, sy, sz, xi, yi, zi, si, partIdx;
+  int sx, sy, sz, xi, yi, zi, si, partIdx, vidx[12];
   double (*lup)(const void *, size_t);
   const void *data;
   int e2v[12][2] = {        /* maps edge index to corner vertex indices */
@@ -498,11 +499,30 @@ limn3DContourExtract(limn3DContourContext *lctx,
   for (yi=0; yi<sy; yi++) {
     for (xi=0; xi<sx; xi++) {
       si = xi + sx*yi;
-      ELL_5V_SET(lctx->vidx + 5*si, -1, -1, -1, -1, -1);
+      lctx->vidx[0 + 5*si] = -1;
+      lctx->vidx[1 + 5*si] = -1;
+      lctx->vidx[2 + 5*si] = -1;
+      lctx->vidx[3 + 5*si] = -1;
+      lctx->vidx[4 + 5*si] = -1;
       lctx->val[0 + 2*si] = AIR_NAN;
-      lctx->val[1 + 2*si] = lup(data, si + sy*0) - isovalue;
+      lctx->val[1 + 2*si] = lup(data, si + sx*sy*0) - isovalue;
     }
   }
+
+  /* set up vidx */
+  /*                X      Y */
+  vidx[0]  = 0 + 5*(0 + sx*0);
+  vidx[1]  = 1 + 5*(0 + sx*0);
+  vidx[2]  = 1 + 5*(1 + sx*0);
+  vidx[3]  = 0 + 5*(0 + sx*1);
+  vidx[4]  = 2 + 5*(0 + sx*0);
+  vidx[5]  = 2 + 5*(1 + sx*0);
+  vidx[6]  = 2 + 5*(0 + sx*1);
+  vidx[7]  = 2 + 5*(1 + sx*1);
+  vidx[8]  = 3 + 5*(0 + sx*0);
+  vidx[9]  = 4 + 5*(0 + sx*0);
+  vidx[10] = 4 + 5*(1 + sx*0);
+  vidx[11] = 3 + 5*(0 + sx*1);
 
   /* go through all slices */
   for (zi=0; zi<sz-1; zi++) {
@@ -516,14 +536,14 @@ limn3DContourExtract(limn3DContourContext *lctx,
         lctx->vidx[3 + 5*si] = -1;
         lctx->vidx[4 + 5*si] = -1;
         lctx->val[0 + 2*si] = lctx->val[1 + 2*si];
-        lctx->val[1 + 2*si] = lup(data, si + sy*(zi+1)) - isovalue;
+        lctx->val[1 + 2*si] = lup(data, si + sx*sy*(zi+1)) - isovalue;
       }
     }
     /* triangulate slice */
     for (yi=0; yi<sy-1; yi++) {
       double vval[8], vert[3], ww;
       unsigned char vcase;
-      int ti, vi, ei, vi0, vi1, ecase, vidx[12], vii[3];
+      int ti, vi, ei, vi0, vi1, ecase, *tcase, vii[3];
       for (xi=0; xi<sx-1; xi++) {
         si = xi + sx*yi;
         /* learn voxel values */
@@ -536,7 +556,7 @@ limn3DContourExtract(limn3DContourContext *lctx,
         vval[5] = lctx->val[2*(1 + 0*sx + si) + 1];
         vval[6] = lctx->val[2*(0 + 1*sx + si) + 1];
         vval[7] = lctx->val[2*(1 + 1*sx + si) + 1];
-        /* determine voxel case */
+        /* determine voxel and edge case */
         vcase = 0;
         for (vi=0; vi<8; vi++) {
           vcase |= (vval[vi] > 0) << vi;
@@ -546,53 +566,37 @@ limn3DContourExtract(limn3DContourContext *lctx,
           continue;
         }
         ecase = _limn3DContourEdge[vcase];
-        /* learn any existing indices for vertices */
-        vidx[0] = lctx->vidx[0 + 5*si];
-        vidx[1] = lctx->vidx[1 + 5*si];
-        vidx[2] = -1;
-        vidx[3] = -1;
-        vidx[4] = lctx->vidx[2 + 5*si];
-        vidx[5] = -1;
-        vidx[6] = -1;
-        vidx[7] = -1;
-        vidx[8] = lctx->vidx[3 + 5*si];
-        vidx[9] = lctx->vidx[4 + 5*si];
-        vidx[10] = -1;
-        vidx[11] = -1;
         /* create new vertices as needed */
         for (ei=0; ei<12; ei++) {
-          if ((ecase & (1 << ei)) && -1 == vidx[ei]) {
+          if ((ecase & (1 << ei))
+              && -1 == lctx->vidx[vidx[ei] + 5*si]) {
             /* this edge is needed for triangulation, and,
                we haven't already created a vertex for it */
             vi0 = e2v[ei][0];
             vi1 = e2v[ei][1];
             ww = vval[vi0]/(vval[vi0] - vval[vi1]);
             ELL_3V_LERP(vert, ww, vccoord[vi0], vccoord[vi1]);
-            vidx[ei] = limnObjectVertexAdd(cont, partIdx,
-                                           vert[0] + xi, 
-                                           vert[1] + yi, 
-                                           vert[2] + zi);
+            lctx->vidx[vidx[ei] + 5*si] = limnObjectVertexAdd(cont, partIdx,
+                                                              vert[0] + xi, 
+                                                              vert[1] + yi, 
+                                                              vert[2] + zi);
+            fprintf(stderr, "%s: vert %d (edge %d) of (%d,%d,%d) "
+                    "at %g %g %g\n",
+                    me, lctx->vidx[vidx[ei] + 5*si], ei, xi, yi, zi,
+                    vert[0] + xi, vert[1] + yi, vert[2] + zi);
           }
         }
         /* add triangles */
         ti = 0;
-        while (-1 != _limn3DContourTriangle[vcase][0 + ti]) {
+        tcase = _limn3DContourTriangle[vcase];
+        while (-1 != tcase[0 + 3*ti]) {
           ELL_3V_SET(vii,
-                     vidx[_limn3DContourTriangle[vcase][0 + ti]],
-                     vidx[_limn3DContourTriangle[vcase][1 + ti]],
-                     vidx[_limn3DContourTriangle[vcase][2 + ti]]);
+                     lctx->vidx[vidx[tcase[0 + 3*ti]] + 5*si],
+                     lctx->vidx[vidx[tcase[1 + 3*ti]] + 5*si],
+                     lctx->vidx[vidx[tcase[2 + 3*ti]] + 5*si]);
           limnObjectFaceAdd(cont, partIdx, 0, 3, vii);
           ti++;
         }
-        /* remember new vertex indices for future voxels of america */
-        /*                X   Y */
-        lctx->vidx[1 + 5*(1 + 0*sx + si)] = vidx[2];
-        lctx->vidx[0 + 5*(0 + 1*sx + si)] = vidx[3];
-        lctx->vidx[2 + 5*(1 + 0*sx + si)] = vidx[5];
-        lctx->vidx[2 + 5*(0 + 1*sx + si)] = vidx[6];
-        lctx->vidx[2 + 5*(1 + 1*sx + si)] = vidx[7];
-        lctx->vidx[4 + 5*(1 + 0*sx + si)] = vidx[10];
-        lctx->vidx[3 + 5*(0 + 1*sx + si)] = vidx[11];        
       }
     }
   }

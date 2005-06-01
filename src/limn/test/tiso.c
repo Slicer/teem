@@ -55,6 +55,8 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
 
   lctx = limn3DContourContextNew();
+  airMopAdd(mop, lctx, (airMopper)limn3DContourContextNix, airMopAlways);
+
   if (limn3DContourVolumeSet(lctx, nin)
       || limn3DContourExtract(lctx, obj, isoval)
       || limnObjectOFFWrite(file, obj)) {
