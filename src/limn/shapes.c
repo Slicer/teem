@@ -39,11 +39,11 @@ limnObjectCubeAdd(limnObject *obj, int lookIdx) {
   vII0 = limnObjectVertexAdd(obj, partIdx, -1, -1, -1);
   limnObjectVertexAdd(obj, partIdx, 1, -1, -1);
   limnObjectVertexAdd(obj, partIdx, 1,  1, -1);
-  limnObjectVertexAdd(obj, partIdx, 1,  1, -1);
-  limnObjectVertexAdd(obj, partIdx, 1, -1,  1);
+  limnObjectVertexAdd(obj, partIdx, -1,  1, -1);
+  limnObjectVertexAdd(obj, partIdx, -1, -1,  1);
   limnObjectVertexAdd(obj, partIdx, 1, -1,  1);
   limnObjectVertexAdd(obj, partIdx, 1,  1,  1);
-  limnObjectVertexAdd(obj, partIdx, 1,  1,  1);
+  limnObjectVertexAdd(obj, partIdx, -1,  1,  1);
   ELL_4V_SET(vII, vII0+3, vII0+2, vII0+1, vII0+0);
   limnObjectFaceAdd(obj, partIdx, lookIdx, 4, vII);
   ELL_4V_SET(vII, vII0+1, vII0+5, vII0+4, vII0+0);
