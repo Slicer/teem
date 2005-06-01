@@ -294,6 +294,23 @@ typedef struct {
     incr;            /* increment to use with airArrays */
 } limnObject;
 
+typedef struct {
+  /* ------- input ------- */
+  const Nrrd *nvol;             /* the volume we're operating on */
+  int reverse;                  /* reverse sense of inside/outside */
+  /* ------ internal ----- */
+  double (*lup)(const void *, size_t);  /* for getting values out of nvol */
+  NrrdRange *range;             /* to store min and max of nvol */
+  int sx, sy, sz;               /* dimensions */
+  int *vidx;                    /* 5 * sx * sy array of vertex index
+                                   offsets, to support re-using of vertices
+                                   across voxels and slices */
+  double *val;                  /* 2 * sx * sy array as value cache (note
+                                   that Z has become fastest axis) */
+  /* ------ output ----- */
+  double time;                  /* time for extraction */
+} limn3DContourContext;
+
 /*
 ******** limnQN enum
 **
@@ -530,6 +547,15 @@ TEEM_API int limnSplineNrrdEvaluate(Nrrd *nout, limnSpline *spline, Nrrd *nin);
 TEEM_API int limnSplineSample(Nrrd *nout, limnSpline *spline,
                               double minT, int M, double maxT);
 
+/* contour.c */
+TEEM_API limn3DContourContext *limn3DContourContextNew(void);
+TEEM_API limn3DContourContext *limn3DContourContextNix(limn3DContourContext *);
+TEEM_API int limn3DContourReverseSet(limn3DContourContext *lctx,
+                                     int reverse);
+TEEM_API int limn3DContourVolumeSet(limn3DContourContext *lctx,
+                                    const Nrrd *nvol);
+TEEM_API int limn3DContourExtract(limn3DContourContext *lctx,
+                                  limnObject *cont, double isovalue);
 
 #ifdef __cplusplus
 }
