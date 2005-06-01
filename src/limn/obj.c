@@ -149,7 +149,7 @@ limnObjectVertexAdd(limnObject *obj, int partIdx,
   part->vertIdx[vertIdxIdx] = vertIdx;
   ELL_4V_SET(vert->world, x, y, z, 1);
   ELL_4V_SET(vert->coord, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
-  ELL_4V_SET(vert->rgba, 0, 0, 0, 1);
+  ELL_4V_SET(vert->rgba, 1, 1, 1, 1);
   /* ELL_3V_SET(vert->view, AIR_NAN, AIR_NAN, AIR_NAN); */
   /* ELL_3V_SET(vert->screen, AIR_NAN, AIR_NAN, AIR_NAN); */
   ELL_4V_SET(vert->worldNormal, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
