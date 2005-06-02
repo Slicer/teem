@@ -570,8 +570,8 @@ limn3DContourExtract(limn3DContourContext *lctx,
         for (ei=0; ei<12; ei++) {
           if ((ecase & (1 << ei))
               && -1 == lctx->vidx[vidx[ei] + 5*si]) {
-            /* this edge is needed for triangulation, and,
-               we haven't already created a vertex for it */
+            /* this edge is needed for triangulation,
+               and, we haven't already created a vertex for it */
             vi0 = e2v[ei][0];
             vi1 = e2v[ei][1];
             ww = vval[vi0]/(vval[vi0] - vval[vi1]);
