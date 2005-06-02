@@ -48,7 +48,7 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   
-  obj = limnObjectNew(100, AIR_FALSE);
+  obj = limnObjectNew(2000, AIR_FALSE);
   airMopAdd(mop, obj, (airMopper)limnObjectNix, airMopAlways);
 
   file = airFopen(outS, stdout, "w");
@@ -64,6 +64,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
+  fprintf(stderr, "%s: extraction time = %g\n", me, lctx->time);
   
   airMopOkay(mop);
   return 0;
