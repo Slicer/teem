@@ -12,6 +12,9 @@ solved the problem...
 - HUGE PROBLEM: make a change in nrrdEnums.h, which unrrdu/project.c 
   uses directly. recompile, and nrrd gets compiled, but not unrrdu,
   so unu doesn't get updated correctly!
+- HUGE PROBLEM: add a macro in ELL, make install in ell,
+  cd limn, make ../limn/test/tiso, doesn't see new header
+  and fails at link-time with "<new macro> symbol undefined"
 - want seperate directories for static and shared libraries
 - want bin/dev and bin/install targets
 
