@@ -359,6 +359,10 @@ limn3DContourContextNew(void) {
     lctx->nvol = NULL;
     lctx->reverse = AIR_FALSE;
     lctx->lup = NULL;
+    lctx->spanSize = 300;
+    lctx->nspanHist = nrrdNew();
+    nrrdMaybeAlloc(lctx->nspanHist, nrrdTypeInt, 2, 
+                   lctx->spanSize, lctx->spanSize);
     lctx->range = nrrdRangeNew(AIR_NAN, AIR_NAN);
     lctx->sx = 0;
     lctx->sy = 0;
@@ -374,6 +378,7 @@ limn3DContourContext *
 limn3DContourContextNix(limn3DContourContext *lctx) {
 
   if (lctx) {
+    lctx->nspanHist = nrrdNuke(lctx->nspanHist);
     lctx->range = nrrdRangeNix(lctx->range);
     lctx->vidx = airFree(lctx->vidx);
     lctx->val = airFree(lctx->val);
@@ -398,6 +403,9 @@ limn3DContourReverseSet(limn3DContourContext *lctx,
 int
 limn3DContourVolumeSet(limn3DContourContext *lctx, const Nrrd *nvol) {
   char me[]="limn3DContourVolumeSet", err[AIR_STRLEN_MED];
+  int minI, maxI, *spanHist, sx, sy, sz, ss, si, xi, yi, zi, vi;
+  double val, min, max, (*lup)(const void *v, size_t I);
+  void *data;
 
   if (!( lctx && nvol )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -419,6 +427,7 @@ limn3DContourVolumeSet(limn3DContourContext *lctx, const Nrrd *nvol) {
 
   lctx->nvol = nvol;
   lctx->lup = nrrdDLookup[nvol->type];
+  /* set/allocate things related to volume dimensions */
   nrrdRangeSet(lctx->range, nvol, nrrdBlind8BitRangeFalse);
   if (!( lctx->sx == nvol->axis[0].size &&
          lctx->sy == nvol->axis[1].size &&
@@ -430,6 +439,50 @@ limn3DContourVolumeSet(limn3DContourContext *lctx, const Nrrd *nvol) {
     airFree(lctx->val);
     lctx->vidx = (int *)calloc(5*lctx->sx*lctx->sy, sizeof(int));
     lctx->val = (double *)calloc(2*lctx->sx*lctx->sy, sizeof(double));
+  }
+  /* compute span space histogram */
+  ss = lctx->spanSize;
+  spanHist = (int*)(lctx->nspanHist->data);
+  for (si=0; si<ss*ss; si++) {
+    spanHist[si] = 0;
+  }
+  sx = lctx->sx;
+  sy = lctx->sy;
+  sz = lctx->sz;
+  lup = lctx->lup;
+  data = nvol->data;
+  for (zi=0; zi<sz-1; zi++) {
+    for (yi=0; yi<sy-1; yi++) {
+      for (xi=0; xi<sx-1; xi++) {
+        vi = xi + sx*(yi + sy*zi);
+        val = lctx->lup(data, vi + 0 + 0*sx + 0*sx*sy);
+        min = max = val;
+        val = lctx->lup(data, vi + 1 + 0*sx + 0*sx*sy);
+        min = AIR_MIN(min, val);
+        max = AIR_MAX(max, val);
+        val = lctx->lup(data, vi + 0 + 1*sx + 0*sx*sy);
+        min = AIR_MIN(min, val);
+        max = AIR_MAX(max, val);
+        val = lctx->lup(data, vi + 1 + 1*sx + 0*sx*sy);
+        min = AIR_MIN(min, val);
+        max = AIR_MAX(max, val);
+        val = lctx->lup(data, vi + 0 + 0*sx + 1*sx*sy);
+        min = AIR_MIN(min, val);
+        max = AIR_MAX(max, val);
+        val = lctx->lup(data, vi + 1 + 0*sx + 1*sx*sy);
+        min = AIR_MIN(min, val);
+        max = AIR_MAX(max, val);
+        val = lctx->lup(data, vi + 0 + 1*sx + 1*sx*sy);
+        min = AIR_MIN(min, val);
+        max = AIR_MAX(max, val);
+        val = lctx->lup(data, vi + 1 + 1*sx + 1*sx*sy);
+        min = AIR_MIN(min, val);
+        max = AIR_MAX(max, val);
+        AIR_INDEX(lctx->range->min, min, lctx->range->max, ss, minI);
+        AIR_INDEX(lctx->range->min, max, lctx->range->max, ss, maxI);
+        spanHist[minI + ss*maxI]++;
+      }
+    }
   }
   return 0;
 }

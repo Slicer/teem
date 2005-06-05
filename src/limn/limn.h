@@ -300,6 +300,8 @@ typedef struct {
   int reverse;                  /* reverse sense of inside/outside */
   /* ------ internal ----- */
   double (*lup)(const void *, size_t);  /* for getting values out of nvol */
+  int spanSize;                 /* resolution of span space along edge */
+  Nrrd *nspanHist;              /* image of span space */
   NrrdRange *range;             /* to store min and max of nvol */
   int sx, sy, sz;               /* dimensions */
   int *vidx;                    /* 5 * sx * sy array of vertex index
