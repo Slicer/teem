@@ -136,6 +136,16 @@ limnObjectPartAdd(limnObject *obj) {
 }
 
 int
+limnObjectVertexNumPreSet(limnObject *obj, int partIdx, int vertNum) {
+  limnPart *part;  
+
+  part = obj->part[partIdx];
+  airArrayLenPreSet(obj->vertArr, vertNum);
+  airArrayLenPreSet(part->vertIdxArr, vertNum);
+  return 0;
+}
+
+int
 limnObjectVertexAdd(limnObject *obj, int partIdx,
                     float x, float y, float z) {
   limnPart *part;
@@ -198,6 +208,16 @@ limnObjectEdgeAdd(limnObject *obj, int partIdx, int lookIdx,
   }
 
   return edgeIdx;
+}
+
+int
+limnObjectFaceNumPreSet(limnObject *obj, int partIdx, int faceNum) {
+  limnPart *part;  
+
+  part = obj->part[partIdx];
+  airArrayLenPreSet(obj->faceArr, faceNum);
+  airArrayLenPreSet(part->faceIdxArr, faceNum);
+  return 0;
 }
 
 int

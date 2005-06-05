@@ -310,6 +310,9 @@ typedef struct {
   double *val;                  /* 2 * sx * sy array as value cache (note
                                    that Z has become fastest axis) */
   /* ------ output ----- */
+  int voxNum, vertNum, faceNum; /* number of voxels contributing to latest
+                                   isosurface, and number of vertices and
+                                   faces in that isosurface */
   double time;                  /* time for extraction */
 } limn3DContourContext;
 
@@ -470,11 +473,15 @@ TEEM_API int limnObjectLookAdd(limnObject *obj);
 TEEM_API limnObject *limnObjectNew(int incr, int doEdges);
 TEEM_API limnObject *limnObjectNix(limnObject *obj);
 TEEM_API int limnObjectPartAdd(limnObject *obj);
+TEEM_API int limnObjectVertexNumPreSet(limnObject *obj, int partIdx, 
+                                       int vertNum);
 TEEM_API int limnObjectVertexAdd(limnObject *obj, int partIdx,
                                  float x, float y, float z);
 TEEM_API int limnObjectEdgeAdd(limnObject *obj, int partIdx, int lookIdx,
                                int faceIdx, int vertIdx0,
                                int vertIdx1);
+TEEM_API int limnObjectFaceNumPreSet(limnObject *obj, int partIdx,
+                                     int faceNum);
 TEEM_API int limnObjectFaceAdd(limnObject *obj, int partIdx, int lookIdx,
                                int sideNum, int *vertIdx);
 

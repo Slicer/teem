@@ -491,7 +491,9 @@ int
 limn3DContourExtract(limn3DContourContext *lctx,
                      limnObject *cont, double isovalue) {
   char me[]="limn3DContourExtract", err[AIR_STRLEN_MED];
-  int sx, sy, sz, xi, yi, zi, si, partIdx, vidx[12];
+  int sx, sy, sz, xi, yi, zi, si, partIdx, vidx[12],
+    minI, maxI, valI, ss, *spanHist,
+    estVoxNum, estFaceNum, estVertNum;
   double (*lup)(const void *, size_t);
   const void *data;
   int e2v[12][2] = {        /* maps edge index to corner vertex indices */
@@ -535,11 +537,11 @@ limn3DContourExtract(limn3DContourContext *lctx,
     return 0;
   }
   
-  /* start time */
+  /* initialize output summary info */
+  lctx->voxNum = 0;
+  lctx->vertNum = 0;
+  lctx->faceNum = 0;
   lctx->time = airTime();
-  
-  /* start a new part */
-  partIdx = limnObjectPartAdd(cont);
 
   /* copy local variables */
   sx = lctx->sx;
@@ -547,7 +549,25 @@ limn3DContourExtract(limn3DContourContext *lctx,
   sz = lctx->sz;
   lup = lctx->lup;
   data = lctx->nvol->data;
+  ss = lctx->spanSize;
+  spanHist = (int*)(lctx->nspanHist->data);
+
+  /* estimate number of voxels, faces, and vertices involved */
+  estVoxNum = 0;
+  AIR_INDEX(lctx->range->min, isovalue, lctx->range->max, ss, valI);
+  for (minI=0; minI<=valI; minI++) {
+    for (maxI=valI; maxI<ss; maxI++) {
+      estVoxNum += spanHist[minI + ss*maxI];
+    }
+  }
+  estFaceNum = estVoxNum*2.03;
+  estVertNum = estVoxNum*1.03;
   
+  /* start new part, and preset length of face and vert arrays */
+  partIdx = limnObjectPartAdd(cont);
+  limnObjectFaceNumPreSet(cont, partIdx, estFaceNum);
+  limnObjectVertexNumPreSet(cont, partIdx, estVertNum);
+
   /* initialize per-slice stuff */
   for (yi=0; yi<sy; yi++) {
     for (xi=0; xi<sx; xi++) {
@@ -618,6 +638,7 @@ limn3DContourExtract(limn3DContourContext *lctx,
           /* no triangles added here */
           continue;
         }
+        lctx->voxNum++;
         ecase = _limn3DContourEdge[vcase];
         /* create new vertices as needed */
         for (ei=0; ei<12; ei++) {
@@ -633,6 +654,7 @@ limn3DContourExtract(limn3DContourContext *lctx,
                                                               vert[0] + xi, 
                                                               vert[1] + yi, 
                                                               vert[2] + zi);
+            lctx->vertNum++;
             /*
             fprintf(stderr, "%s: vert %d (edge %d) of (%d,%d,%d) "
                     "at %g %g %g\n",
@@ -650,6 +672,7 @@ limn3DContourExtract(limn3DContourContext *lctx,
                      lctx->vidx[vidx[tcase[1 + 3*ti]] + 5*si],
                      lctx->vidx[vidx[tcase[2 + 3*ti]] + 5*si]);
           limnObjectFaceAdd(cont, partIdx, 0, 3, vii);
+          lctx->faceNum++;
           ti++;
         }
       }
