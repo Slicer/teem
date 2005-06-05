@@ -126,7 +126,7 @@ makeSceneBVH(limnCamera *cam, echoRTParm *parm, echoObject **sceneP) {
   parm->shadow = 0.0;
 
   N = 1000000;
-  airArraySetLen(LIST(scene)->objArr, N);
+  airArrayLenSet(LIST(scene)->objArr, N);
   for (i=0; i<N; i++) {
     sphere = echoObjectNew(echoSphere);
     echoSphereSet(sphere,

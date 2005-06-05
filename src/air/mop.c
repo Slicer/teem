@@ -79,7 +79,7 @@ airMopAdd(airArray *arr, void *ptr, airMopper mop, int when) {
     }
   }
   /* this is a new ptr */
-  i = airArrayIncrLen(arr, 1);
+  i = airArrayLenIncr(arr, 1);
   mops = arr->data;
   mops[i].ptr = ptr;
   mops[i].mop = mop;

@@ -187,7 +187,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   for (sx=1; 1; sx++) {
     /* there is obviously a limit to the number of numbers that can 
        be parsed from a single finite line of input text */
-    if (airArraySetLen(flArr, sx)) {
+    if (airArrayLenSet(flArr, sx)) {
       sprintf(err, "%s: couldn't alloc space for %d values", me, sx);
       biffAdd(NRRD, err); UNSETTWO; return 1;
     }
@@ -214,7 +214,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   sy = 0;
   while (len) {
-    if (-1 == airArrayIncrLen(alArr, 1)) {
+    if (-1 == airArrayLenIncr(alArr, 1)) {
       sprintf(err, "%s: couldn't create scanline of %d values", me, sx);
       biffAdd(NRRD, err); UNSETTWO; return 1;
     }

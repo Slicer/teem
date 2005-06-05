@@ -332,7 +332,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     } else {
       nio->dataFileDim = nrrd->dim;
     }
-    airArraySetLen(nio->dataFNArr, nameLen);
+    airArrayLenSet(nio->dataFNArr, nameLen);
     for (ii=0; ii<nameLen; ii++) {
       nio->dataFN[ii] = airStrdup(dataFileNames[ii]);
     }
@@ -619,7 +619,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     /* then save normally */
     nrrdIoStateInit(nio);
     if (strlen(outData)) {
-      airArraySetLen(nio->dataFNArr, 1);
+      airArrayLenSet(nio->dataFNArr, 1);
       nio->dataFN[0] = airStrdup(outData);
     }
     SAVE(out, nrrd, nio);

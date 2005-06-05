@@ -131,7 +131,7 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
       nio->format = nrrdFormatNRRD;
     }
     if (strlen(outData)) {
-      airArraySetLen(nio->dataFNArr, 1);
+      airArrayLenSet(nio->dataFNArr, 1);
       nio->dataFN[0] = airStrdup(outData);
     }
   }

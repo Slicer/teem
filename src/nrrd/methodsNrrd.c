@@ -60,7 +60,7 @@ nrrdIoStateInit (NrrdIoState *nio) {
     nio->base = airFree(nio->base);
     nio->line = airFree(nio->line);
     nio->dataFNFormat = airFree(nio->dataFNFormat);
-    airArraySetLen(nio->dataFNArr, 0);
+    airArrayLenSet(nio->dataFNArr, 0);
     /* closing this is always someone else's responsibility */
     nio->headerFile = NULL;
     nio->dataFile = NULL;

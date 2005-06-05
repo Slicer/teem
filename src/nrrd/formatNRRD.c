@@ -550,7 +550,7 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     }
     airMopAdd(mop, tmp, airFree, airMopOnError);
     sprintf(tmp, "%s.%s", nio->base, nio->encoding->suffix);
-    ii = airArrayIncrLen(nio->dataFNArr, 1);
+    ii = airArrayLenIncr(nio->dataFNArr, 1);
     nio->dataFN[ii] = tmp;
   }
   

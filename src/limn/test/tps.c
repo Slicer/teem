@@ -91,7 +91,7 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, obj, (airMopper)limnObjectNix, airMopAlways);
 
   /* create limnLooks for diffuse (#0) and flat (#1) shading */
-  lookIdx = airArrayIncrLen(obj->lookArr, 2);
+  lookIdx = airArrayLenIncr(obj->lookArr, 2);
   look = obj->look + lookIdx + 0;
   ELL_4V_SET(look->rgba, 1, 1, 1, 1);
   ELL_3V_SET(look->kads, 0, 1, 0);

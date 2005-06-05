@@ -163,7 +163,7 @@ echoObjectNew(echoScene *scene, signed char type) {
 
   if (scene && AIR_IN_OP(echoTypeUnknown, type, echoTypeLast)) {
     ret = _echoObjectNew[type]();
-    idx = airArrayIncrLen(scene->catArr, 1);
+    idx = airArrayLenIncr(scene->catArr, 1);
     scene->cat[idx] = ret;
   }
   return ret;
@@ -174,7 +174,7 @@ echoObjectAdd(echoScene *scene, echoObject *obj) {
   int idx;
 
   if (scene && obj) {
-    idx = airArrayIncrLen(scene->rendArr, 1);
+    idx = airArrayLenIncr(scene->rendArr, 1);
     scene->rend[idx] = obj;
   }
   return 0;

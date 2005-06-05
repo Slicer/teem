@@ -643,7 +643,7 @@ _nrrdGetQuotedString(char **hP, int useBiff) {
     sprintf(err, "%s: couldn't create airArray", me);
       biffMaybeAdd(NRRD, err, useBiff); return NULL;
   }
-  pos = airArrayIncrLen(buffArr, 1);  /* pos should get 0 */
+  pos = airArrayLenIncr(buffArr, 1);  /* pos should get 0 */
   while (h[pos]) {
     /* printf("!%s: h+%d |%s|\n", me, pos, h+pos); */
     if ('\"' == h[pos]) {
@@ -653,7 +653,7 @@ _nrrdGetQuotedString(char **hP, int useBiff) {
       h += 1;
     }
     buff[pos] = h[pos];
-    pos = airArrayIncrLen(buffArr, 1);
+    pos = airArrayLenIncr(buffArr, 1);
   }
   if ('\"' != h[pos]) {
     sprintf(err, "%s: didn't see ending \" soon enough", me);
@@ -1235,7 +1235,7 @@ _nrrdReadNrrdParse_data_file (FILE *ffile, Nrrd *nrrd,
         biffMaybeAdd(NRRD, err, useBiff); airMopError(mop); return 1;
       }
       if (linelen > 0) {
-        tmp = airArrayIncrLen(nio->dataFNArr, 1);
+        tmp = airArrayLenIncr(nio->dataFNArr, 1);
         nio->dataFN[tmp] = airStrdup(nio->line);
       }
     } while (linelen > 0);
@@ -1245,7 +1245,7 @@ _nrrdReadNrrdParse_data_file (FILE *ffile, Nrrd *nrrd,
     /* -------------------- (single filename) ------------------- */
     /* ---------------------------------------------------------- */
     /* there is apparently only a single detached data file */
-    tmp = airArrayIncrLen(nio->dataFNArr, 1);
+    tmp = airArrayLenIncr(nio->dataFNArr, 1);
     nio->dataFN[tmp] = airStrdup(info);
     nio->dataFileDim = nrrd->dim;
   }

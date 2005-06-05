@@ -160,6 +160,7 @@ typedef struct {
                          size*incr elements, or, 
                          size*incr*unit bytes */
   size_t unit;        /* the size in bytes of one element in the array */
+  int noReallocWhenSmaller;  /* as it says */
 
   /* the following are all callbacks useful for maintaining either an array
      of pointers (allocCB and freeCB) or array of structs (initCB and
@@ -185,8 +186,8 @@ TEEM_API void airArrayStructCB(airArray *a, void (*initCB)(void *),
                                void (*doneCB)(void *));
 TEEM_API void airArrayPointerCB(airArray *a, void *(*allocCB)(void),
                                 void *(*freeCB)(void *));
-TEEM_API int airArraySetLen(airArray *a, int newlen);
-TEEM_API int airArrayIncrLen(airArray *a, int delta);
+TEEM_API int airArrayLenSet(airArray *a, int newlen);
+TEEM_API int airArrayLenIncr(airArray *a, int delta);
 TEEM_API airArray *airArrayNix(airArray *a);
 TEEM_API airArray *airArrayNuke(airArray *a);
 

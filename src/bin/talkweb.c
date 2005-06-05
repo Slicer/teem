@@ -96,7 +96,7 @@ tkwbReadFileToString(char **strP, int *hitEOF, FILE *file, char *stop) {
   lineLen = airOneLine(file, line, AIR_STRLEN_HUGE);
   totalLen = 0;
   while (lineLen && (!( airStrlen(stop) && !strcmp(line, stop) )) ) {
-    lineIdx = airArrayIncrLen(allArr, 1);
+    lineIdx = airArrayLenIncr(allArr, 1);
     all[lineIdx] = calloc(strlen(line) + strlen("\n") + 1, sizeof(char));
     sprintf(all[lineIdx], "%s\n", line);
     totalLen += strlen(line) + 1;
@@ -165,7 +165,7 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
   airMopAdd(mop, slideArr, (airMopper)airArrayNix, airMopAlways);
   hitEOF = notReally = AIR_FALSE;
   while (!hitEOF) {
-    slideIdx = airArrayIncrLen(slideArr, 1);
+    slideIdx = airArrayLenIncr(slideArr, 1);
     len = airOneLine(file, line, AIR_STRLEN_HUGE);
     if (!len) {
       /* got EOF after a division marker, that's okay */
@@ -190,7 +190,7 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
     biffAdd(TKWB, err); airMopError(mop); return 1;
   }
   if (!notReally) {
-    slideIdx = airArrayIncrLen(slideArr, 1);
+    slideIdx = airArrayLenIncr(slideArr, 1);
   }
   slide[slideIdx] = NULL;
   

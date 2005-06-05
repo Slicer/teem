@@ -179,7 +179,7 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
   lastLook = -1;
   partIdx = limnObjectPartAdd(obj);
   vertGot = 0;
-  airArrayIncrLen(vertBaseArr, 1);
+  airArrayLenIncr(vertBaseArr, 1);
   vertBase[partIdx] = vertGot;
   while (vertGot < vertNum) {
     do {
@@ -199,7 +199,7 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
                   me, idxTmp, partIdx);
           biffAdd(LIMN, err); airMopError(mop); return 1;
         }
-        airArrayIncrLen(vertBaseArr, 1);
+        airArrayLenIncr(vertBaseArr, 1);
         vertBase[partIdx] = vertGot;
       }
       continue;

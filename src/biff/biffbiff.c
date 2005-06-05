@@ -177,7 +177,7 @@ void
 _biffNukeEntry(_biffEntry *ent) {
 
   if (ent) {
-    airArraySetLen(ent->AA, 0);
+    airArrayLenSet(ent->AA, 0);
     airArrayNuke(ent->AA);
     free(ent);
   }
@@ -208,7 +208,7 @@ _biffAddKey(const char *key) {
   newIdx = ii;
   /* printf("HEY: index(new key \"%s\") = %d\n", key, ii); */
   
-  if (-1 == airArrayIncrLen(_biffAA, 1)) {
+  if (-1 == airArrayLenIncr(_biffAA, 1)) {
     fprintf(stderr, "%s: PANIC: couldn't accomodate one more key\n", me);
     exit(1);
   }
@@ -236,7 +236,7 @@ _biffAddErr(_biffEntry *e, const char *err) {
   int ii, len;
 
   /* printf("%s: HEY(before): err[%s]->num = %d\n", me, e->key, e->num); */
-  if (-1 == airArrayIncrLen(e->AA, 1)) {
+  if (-1 == airArrayLenIncr(e->AA, 1)) {
     fprintf(stderr, "%s: PANIC: couldn't add message for key %s\n",
             me, e->key);
     exit(1);
@@ -482,7 +482,7 @@ biffDone(const char *key) {
   for (i=idx; i<=_biffNum-2; i++) {
     _biffErr[i] = _biffErr[i+1];
   }
-  airArrayIncrLen(_biffAA, -1);
+  airArrayLenIncr(_biffAA, -1);
 
   return;
 }

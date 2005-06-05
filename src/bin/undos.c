@@ -85,7 +85,7 @@ undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
     airMopError(mop); return;
   }
   do {
-    ci = airArrayIncrLen(dataArr, 1);
+    ci = airArrayLenIncr(dataArr, 1);
     if (-1 == ci) {
       if (!quiet) {
         fprintf(stderr, "%s: internal allocation error #2\n", me);

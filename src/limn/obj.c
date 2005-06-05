@@ -26,7 +26,7 @@ limnObjectLookAdd(limnObject *obj) {
   int lookIdx;
   limnLook *look;
 
-  lookIdx = airArrayIncrLen(obj->lookArr, 1);
+  lookIdx = airArrayLenIncr(obj->lookArr, 1);
   look = &(obj->look[lookIdx]);
   ELL_4V_SET(look->rgba, 1, 1, 1, 1);
   ELL_3V_SET(look->kads, 0.0, 1.0, 0.0);
@@ -117,7 +117,7 @@ limnObjectPartAdd(limnObject *obj) {
   int partIdx;
   limnPart *part;
 
-  partIdx = airArrayIncrLen(obj->partArr, 1);
+  partIdx = airArrayLenIncr(obj->partArr, 1);
   part = obj->part[partIdx] = (limnPart*)calloc(1, sizeof(limnPart));
   
   part->vertIdx = NULL;
@@ -143,9 +143,9 @@ limnObjectVertexAdd(limnObject *obj, int partIdx,
   int vertIdx, vertIdxIdx;
 
   part = obj->part[partIdx];
-  vertIdx = airArrayIncrLen(obj->vertArr, 1);
+  vertIdx = airArrayLenIncr(obj->vertArr, 1);
   vert = obj->vert + vertIdx;
-  vertIdxIdx = airArrayIncrLen(part->vertIdxArr, 1);
+  vertIdxIdx = airArrayLenIncr(part->vertIdxArr, 1);
   part->vertIdx[vertIdxIdx] = vertIdx;
   ELL_4V_SET(vert->world, x, y, z, 1);
   ELL_4V_SET(vert->coord, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
@@ -180,9 +180,9 @@ limnObjectEdgeAdd(limnObject *obj, int partIdx, int lookIdx,
   }
   if (edgeIdxIdx == part->edgeIdxNum) {
     /* edge not found, add it */
-    edgeIdx = airArrayIncrLen(obj->edgeArr, 1);
+    edgeIdx = airArrayLenIncr(obj->edgeArr, 1);
     edge = obj->edge + edgeIdx;
-    edgeIdxIdx = airArrayIncrLen(part->edgeIdxArr, 1);
+    edgeIdxIdx = airArrayLenIncr(part->edgeIdxArr, 1);
     part->edgeIdx[edgeIdxIdx] = edgeIdx;
     edge->vertIdx[0] = vertIdx0;
     edge->vertIdx[1] = vertIdx1;
@@ -208,9 +208,9 @@ limnObjectFaceAdd(limnObject *obj, int partIdx,
   int faceIdx, faceIdxIdx, sideIdx;
 
   part = obj->part[partIdx];
-  faceIdx = airArrayIncrLen(obj->faceArr, 1);
+  faceIdx = airArrayLenIncr(obj->faceArr, 1);
   face = obj->face + faceIdx;
-  faceIdxIdx = airArrayIncrLen(part->faceIdxArr, 1);
+  faceIdxIdx = airArrayLenIncr(part->faceIdxArr, 1);
   part->faceIdx[faceIdxIdx] = faceIdx;
   
   face->vertIdx = (int*)calloc(sideNum, sizeof(int));

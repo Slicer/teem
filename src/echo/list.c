@@ -30,7 +30,7 @@ echoListAdd(echoObject *list, echoObject *child) {
           echoTypeAABBox == list->type) ))
     return;
   
-  idx = airArrayIncrLen(LIST(list)->objArr, 1);
+  idx = airArrayLenIncr(LIST(list)->objArr, 1);
   LIST(list)->obj[idx] = child;
 
   return;
@@ -96,7 +96,7 @@ echoListSplit(echoScene *scene, echoObject *list, int axis) {
   ELL_3V_SET(loest1, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
   ELL_3V_SET(hiest0, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
   ELL_3V_SET(hiest1, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
-  airArraySetLen(LIST(list0)->objArr, splitIdx);
+  airArrayLenSet(LIST(list0)->objArr, splitIdx);
   for (i=0; i<splitIdx; i++) {
     o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
     LIST(list0)->obj[i] = o;
@@ -108,7 +108,7 @@ echoListSplit(echoScene *scene, echoObject *list, int axis) {
     ELL_3V_MIN(loest0, loest0, lo);
     ELL_3V_MAX(hiest0, hiest0, hi);
   }
-  airArraySetLen(LIST(list1)->objArr, len-splitIdx);
+  airArrayLenSet(LIST(list1)->objArr, len-splitIdx);
   for (i=splitIdx; i<len; i++) {
     o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
     LIST(list1)->obj[i-splitIdx] = o;
@@ -135,7 +135,7 @@ echoListSplit(echoScene *scene, echoObject *list, int axis) {
 
   /* we can't delete the list object here, we just gut it so 
      that there's nothing substantial left of it */
-  airArraySetLen(LIST(list)->objArr, 0);
+  airArrayLenSet(LIST(list)->objArr, 0);
   mids = airFree(mids);
   return split;
 }

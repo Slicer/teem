@@ -168,7 +168,7 @@ _echoSceneLightAdd(echoScene *scene, echoObject *obj) {
     }
   }
   if (scene->lightArr->len == idx) {
-    idx = airArrayIncrLen(scene->lightArr, 1);
+    idx = airArrayLenIncr(scene->lightArr, 1);
     scene->light[idx] = obj;
   }
 }
@@ -182,7 +182,7 @@ _echoSceneNrrdAdd(echoScene *scene, Nrrd *nrrd) {
       break;
     }
     if (scene->nrrdArr->len == idx) {
-      idx = airArrayIncrLen(scene->nrrdArr, 1);
+      idx = airArrayLenIncr(scene->nrrdArr, 1);
       scene->nrrd[idx] = nrrd;
     }
   }

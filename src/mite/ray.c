@@ -234,7 +234,7 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
   
   /* initialize txf range quantities, and apply all txfs */
   if (mtt->verbose) {
-    muu->debugIdx = airArrayIncrLen(muu->debugArr, muu->ndebug->axis[0].size);
+    muu->debugIdx = airArrayLenIncr(muu->debugArr, muu->ndebug->axis[0].size);
   }
   memcpy(mtt->range, muu->rangeInit, MITE_RANGE_NUM*sizeof(mite_t));
   _miteStageRun(mtt, muu);

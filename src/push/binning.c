@@ -63,7 +63,7 @@ void
 _pushBinThingAdd(pushContext *pctx, pushBin *bin, pushThing *thing) {
   int thgI;
 
-  thgI = airArrayIncrLen(bin->thingArr, 1);
+  thgI = airArrayLenIncr(bin->thingArr, 1);
   bin->thing[thgI] = thing;
 
   return;
@@ -73,7 +73,7 @@ void
 _pushBinPointAdd(pushContext *pctx, pushBin *bin, pushPoint *point) {
   int pntI;
 
-  pntI = airArrayIncrLen(bin->pointArr, 1);
+  pntI = airArrayLenIncr(bin->pointArr, 1);
   bin->point[pntI] = point;
 
   return;
@@ -87,7 +87,7 @@ void
 _pushBinThingRemove(pushContext *pctx, pushBin *bin, int loseIdx) {
 
   bin->thing[loseIdx] = bin->thing[bin->numThing-1];
-  airArrayIncrLen(bin->thingArr, -1);
+  airArrayLenIncr(bin->thingArr, -1);
   
   return;
 }
@@ -96,7 +96,7 @@ void
 _pushBinPointRemove(pushContext *pctx, pushBin *bin, int loseIdx) {
 
   bin->point[loseIdx] = bin->point[bin->numPoint-1];
-  airArrayIncrLen(bin->pointArr, -1);
+  airArrayLenIncr(bin->pointArr, -1);
   
   return;
 }

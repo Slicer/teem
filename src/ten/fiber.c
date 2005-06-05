@@ -374,7 +374,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
         ELL_3V_COPY(currPoint, tfx->wPos);
       }
       if (nfiber) {
-        fptsIdx = airArrayIncrLen(fptsArr[tfx->dir], 1);
+        fptsIdx = airArrayLenIncr(fptsArr[tfx->dir], 1);
         ELL_3V_COPY(fpts[tfx->dir] + 3*fptsIdx, currPoint);
       } else {
         ELL_3V_COPY(buff + 3*buffIdx, currPoint);

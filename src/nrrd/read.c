@@ -90,7 +90,7 @@ _nrrdOneLine (int *lenP, NrrdIoState *nio, FILE *file) {
     mop = airMopNew();
     airMopAdd(mop, lineArr, (airMopper)airArrayNuke, airMopAlways);
     while (len == nio->lineLen+1) {
-      lineIdx = airArrayIncrLen(lineArr, 1);
+      lineIdx = airArrayLenIncr(lineArr, 1);
       if (-1 == lineIdx) {
         sprintf(err, "%s: couldn't increment line buffer array", me);
         biffAdd(NRRD, err); *lenP = 0; airMopError(mop); return 1;
@@ -105,7 +105,7 @@ _nrrdOneLine (int *lenP, NrrdIoState *nio, FILE *file) {
       len = airOneLine(file, nio->line, nio->lineLen);
     }
     /* last part did fit in nio->line buffer, also save this into line[] */
-    lineIdx = airArrayIncrLen(lineArr, 1);
+    lineIdx = airArrayLenIncr(lineArr, 1);
     if (-1 == lineIdx) {
       sprintf(err, "%s: couldn't increment line buffer array", me);
       biffAdd(NRRD, err); *lenP = 0; airMopError(mop); return 1;

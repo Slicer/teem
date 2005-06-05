@@ -66,7 +66,7 @@ _tendGlyphReadCams(int imgSize[2], limnCamera **camP,
 
   while ( 0 < airOneLine(fin, line, AIR_STRLEN_HUGE) ) {
     airStrtrans(airStrtrans(line, '{', ' '), '}', ' ');
-    ki = airArrayIncrLen(camA, 1);
+    ki = airArrayLenIncr(camA, 1);
     if (14 != sscanf(line, "cam.di %lg cam.at %lg %lg %lg "
                      "cam.up %lg %lg %lg cam.dn %lg cam.df %lg cam.va %lg "
                      "relDwell %lg cam.fr %lg %lg %lg",

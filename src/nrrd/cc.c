@@ -82,7 +82,7 @@ _nrrdCCEqvAdd(airArray *eqvArr, int j, int k) {
       return;
     }
   }
-  eqi = airArrayIncrLen(eqvArr, 1);
+  eqi = airArrayLenIncr(eqvArr, 1);
   eqv = (int *)(eqvArr->data);
   eqv[0 + 2*eqi] = j;
   eqv[1 + 2*eqi] = k;
