@@ -124,6 +124,45 @@ airArrayPointerCB(airArray *a,
 }
 
 /*
+******** airArrayLenPreSet()
+**
+** allocates the array to hold up to given length, without 
+** actually changing the length.  In order for this to be 
+** useful, this also turns on noReallocWhenSmaller
+*/
+int
+airArrayLenPreSet(airArray *a, int newlen) {
+  int newsize;
+  void *newdata;
+
+  if (!a || newlen < 0) {
+    return 1;
+  }
+
+  if (newlen == 0) {
+    /* there is no pre-set length, turn off noReallocWhenSmaller */
+    a->noReallocWhenSmaller = AIR_FALSE;
+    return 0;
+  }
+
+  newsize = (newlen-1)/a->incr + 1;
+  if (newsize > a->size) {
+    newdata = calloc(newsize*a->incr, a->unit);
+    if (!newdata) {
+      return 1;
+    }
+    memcpy(newdata, a->data, AIR_MIN(a->len*a->unit, 
+                                     newsize*a->incr*a->unit));
+    free(a->data);
+    _airSetData(a, newdata);
+    a->size = newsize;
+  }
+  a->noReallocWhenSmaller = AIR_TRUE;
+
+  return 0;
+}
+
+/*
 ******** airArrayLenSet()
 **
 ** Set the length of the array, allocating or freeing as needed
@@ -154,8 +193,7 @@ airArrayLenSet(airArray *a, int newlen) {
       addr = (char*)(a->data) + i*a->unit;
       if (a->freeCB) {
         (a->freeCB)(*((void**)addr));
-      }
-      else {
+      } else {
         (a->doneCB)(addr);
       }
     }
@@ -167,7 +205,7 @@ airArrayLenSet(airArray *a, int newlen) {
     if (newsize) {
       /* array should be bigger or smaller, but not zero-length */
       if (newsize > a->size
-          || (newsize < a->size && a->noReallocWhenSmaller)) {
+          || (newsize < a->size && !(a->noReallocWhenSmaller)) ) {
         newdata = calloc(newsize*a->incr, a->unit);
         if (!newdata) {
           return 1;
@@ -176,14 +214,14 @@ airArrayLenSet(airArray *a, int newlen) {
                                          newsize*a->incr*a->unit));
         free(a->data);
         _airSetData(a, newdata);
+        a->size = newsize;
       }
-    }
-    else {
+    } else {
       /* array should be zero-length */
       free(a->data);
       _airSetData(a, NULL);
+      a->size = newsize;
     }
-    a->size = newsize;
   }
   /* else new size is still within current allocated length,
      and neither "size" nor "data" need to change */
@@ -194,8 +232,7 @@ airArrayLenSet(airArray *a, int newlen) {
       addr = (char*)(a->data) + i*a->unit;
       if (a->allocCB) {
         *((void**)addr) = (a->allocCB)();
-      }
-      else {
+      } else {
         (a->initCB)(addr);
       }
     }
@@ -227,8 +264,7 @@ airArrayLenIncr(airArray *a, int delta) {
   err = airArrayLenSet(a, delta + base);
   if (err) {
     ret = -1;
-  }
-  else {
+  } else {
     ret = (delta <= 0 ? 0 : base);
   }
 

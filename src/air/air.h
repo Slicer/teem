@@ -187,6 +187,7 @@ TEEM_API void airArrayStructCB(airArray *a, void (*initCB)(void *),
 TEEM_API void airArrayPointerCB(airArray *a, void *(*allocCB)(void),
                                 void *(*freeCB)(void *));
 TEEM_API int airArrayLenSet(airArray *a, int newlen);
+TEEM_API int airArrayLenPreSet(airArray *a, int newlen);
 TEEM_API int airArrayLenIncr(airArray *a, int delta);
 TEEM_API airArray *airArrayNix(airArray *a);
 TEEM_API airArray *airArrayNuke(airArray *a);
