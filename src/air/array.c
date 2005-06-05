@@ -22,7 +22,7 @@
 #include "air.h"
 
 void
-_airSetLen(airArray *a, int len) {
+_airLenSet(airArray *a, int len) {
   
   a->len = len;
   /* printf("    HEY: len = %d\n", a->len); */
@@ -76,9 +76,10 @@ airArrayNew(void **dataP, int *lenP, size_t unit, int incr) {
   a->dataP = dataP;
   _airSetData(a, NULL);
   a->lenP = lenP;
-  _airSetLen(a, 0);
+  _airLenSet(a, 0);
   a->incr = incr;
   a->unit = unit;
+  a->noReallocWhenSmaller = AIR_FALSE;
 
   a->allocCB = NULL;
   a->freeCB = NULL;
@@ -123,7 +124,7 @@ airArrayPointerCB(airArray *a,
 }
 
 /*
-******** airArraySetLen()
+******** airArrayLenSet()
 **
 ** Set the length of the array, allocating or freeing as needed
 ** 
@@ -135,7 +136,7 @@ airArrayPointerCB(airArray *a,
 ** have been called on invalidated elements 
 */
 int
-airArraySetLen(airArray *a, int newlen) {
+airArrayLenSet(airArray *a, int newlen) {
   int i, newsize;
   void *addr, *newdata;
   
@@ -165,17 +166,17 @@ airArraySetLen(airArray *a, int newlen) {
     /* we have to change the size of the array */
     if (newsize) {
       /* array should be bigger or smaller, but not zero-length */
-      newdata = calloc(newsize*a->incr, a->unit);
-      /*
-      printf("       did calloc(%d,%d) --> %p\n",
-             newsize*a->incr, a->unit, newdata);
-      */
-      if (!newdata)
-        return 1;
-      memcpy(newdata, a->data, AIR_MIN(a->len*a->unit, 
-                                       newsize*a->incr*a->unit));
-      free(a->data);
-      _airSetData(a, newdata);
+      if (newsize > a->size
+          || (newsize < a->size && a->noReallocWhenSmaller)) {
+        newdata = calloc(newsize*a->incr, a->unit);
+        if (!newdata) {
+          return 1;
+        }
+        memcpy(newdata, a->data, AIR_MIN(a->len*a->unit, 
+                                         newsize*a->incr*a->unit));
+        free(a->data);
+        _airSetData(a, newdata);
+      }
     }
     else {
       /* array should be zero-length */
@@ -199,16 +200,16 @@ airArraySetLen(airArray *a, int newlen) {
       }
     }
   }
-  _airSetLen(a, newlen);
+  _airLenSet(a, newlen);
 
 
   return 0;
 }
 
 /*
-******** airArrayIncrLen()
+******** airArrayLenIncr()
 **
-** Like airArraySetLen, but works with an increment instead of an
+** Like airArrayLenSet, but works with an increment instead of an
 ** absolute length.  Return value is different: if there was an
 ** error, the return is -1.  If no error, then return depends on
 ** if delta was positive or negative: if delta <= 0; return 0,
@@ -216,14 +217,14 @@ airArraySetLen(airArray *a, int newlen) {
 ** allocated segment (a->len before length was increased)
 */
 int
-airArrayIncrLen(airArray *a, int delta) {
+airArrayLenIncr(airArray *a, int delta) {
   int base, err, ret;
 
   if (!a)
     return -1;
 
   base = a->len;
-  err = airArraySetLen(a, delta + base);
+  err = airArrayLenSet(a, delta + base);
   if (err) {
     ret = -1;
   }
@@ -243,7 +244,7 @@ airArray *
 airArrayNuke(airArray *a) {
   
   if (a) {
-    airArraySetLen(a, 0);
+    airArrayLenSet(a, 0);
     free(a);
   }
   return NULL;
