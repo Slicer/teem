@@ -328,8 +328,12 @@ typedef struct gageShape_t {
                                  sample spacing (0=X, 1=Y, 2=Z) */
   double volHalfLen[3],       /* half the lengths along each axis in order
                                  to bound the volume in a bi-unit cube */
-    voxLen[3];                /* when bound in bi-unit cube, the dimensions
+    voxLen[3],                /* when bound in bi-unit cube, the dimensions
                                  of a single voxel */
+    ItoW[16],                 /* homogeneous coord transform from index
+                                 to world space (defined by bi-unit cube) */
+    WtoI[16];                 /* inverse of above */
+
 } gageShape;
 
 /*

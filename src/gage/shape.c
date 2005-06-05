@@ -87,7 +87,8 @@ _gageShapeSet (gageContext *ctx, gageShape *shape,
   char me[]="_gageShapeSet", err[AIR_STRLEN_MED];
   int i, ai, minsize, cx, cy, cz, sx, sy, sz, num[3], defCenter;
   const NrrdAxisInfo *ax[3];
-  double maxLen, xs, ys, zs, defSpacing;
+  double maxLen, xs, ys, zs, defSpacing,
+    vecA[3], vecB[3], vecC[3], vecD[4];
 
   /* ------ basic error checking */
   if (!( shape && nin )) {
@@ -229,6 +230,31 @@ _gageShapeSet (gageContext *ctx, gageShape *shape,
     shape->volHalfLen[ai] /= maxLen;
     shape->voxLen[ai] = 2*shape->volHalfLen[ai]/num[ai];
   }
+
+  /* ------ set transform matrices */
+  /* sets rot 3 */
+  ELL_4M_IDENTITY_SET(shape->ItoW);
+  /* row 0 */
+  ELL_3V_SET(vecC, 0, 0, 0);
+  gageShapeUnitItoW(shape, vecA, vecC);
+  ELL_3V_SET(vecC, 1, 0, 0);
+  gageShapeUnitItoW(shape, vecB, vecC);
+  vecD[3] = vecA[0];
+  ELL_3V_SUB(vecD, vecB, vecA);
+  ELL_4MV_ROW0_SET(shape->ItoW, vecD);
+  /* row 1 */
+  ELL_3V_SET(vecC, 0, 1, 0);
+  gageShapeUnitItoW(shape, vecB, vecC);
+  vecD[3] = vecA[1];
+  ELL_3V_SUB(vecD, vecB, vecA);
+  ELL_4MV_ROW1_SET(shape->ItoW, vecD);
+  /* row 2 */
+  ELL_3V_SET(vecC, 0, 0, 1);
+  gageShapeUnitItoW(shape, vecB, vecC);
+  vecD[3] = vecA[2];
+  ELL_3V_SUB(vecD, vecB, vecA);
+  ELL_4MV_ROW2_SET(shape->ItoW, vecD);
+  ell_4m_inv_d(shape->WtoI, shape->ItoW);
 
   return 0;
 }
