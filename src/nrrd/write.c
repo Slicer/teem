@@ -674,7 +674,7 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
         maxl = AIR_MAX(maxl, (int)strlen(nio->dataFN[ii]));
       }
       *strP = malloc(fslen + strlen(NRRD_LIST_FLAG) + 10 
-                     + nio->dataFNArr->len*maxl);
+                     + nio->dataFNArr->len * (maxl + 1));
       fnb = malloc(fslen + strlen(NRRD_LIST_FLAG) + 10 + maxl);
       if (nio->dataFileDim == nrrd->dim-1) {
         sprintf(*strP, "%s%s: LIST\n", prefix, fs);
