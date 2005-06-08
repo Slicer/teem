@@ -393,6 +393,10 @@ _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIoState *nio, int field) {
 ** the per-axis information), but many only make sense in NRRD files.
 ** This is just one example of NRRD-format-specific stuff that is not
 ** in formatNRRD.c
+**
+** HEY: the use of "10", "20", and "30" as stand-ins for "maximum
+** number of characters that might be used for printing this integral
+** value" is getting pretty tiresome...
 */
 void
 _nrrdSprintFieldInfo (char **strP, char *prefix,
@@ -675,7 +679,7 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
       }
       *strP = malloc(fslen + strlen(NRRD_LIST_FLAG) + 10 
                      + nio->dataFNArr->len * (maxl + 1));
-      fnb = malloc(fslen + strlen(NRRD_LIST_FLAG) + 10 + maxl);
+      fnb = malloc(fslen + strlen(NRRD_LIST_FLAG) + 10 + maxl + 1);
       if (nio->dataFileDim == nrrd->dim-1) {
         sprintf(*strP, "%s%s: LIST\n", prefix, fs);
       } else {
