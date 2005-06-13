@@ -671,6 +671,10 @@ limn3DContourExtract(limn3DContourContext *lctx,
                      lctx->vidx[vidx[tcase[0 + 3*ti]] + 5*si],
                      lctx->vidx[vidx[tcase[1 + 3*ti]] + 5*si],
                      lctx->vidx[vidx[tcase[2 + 3*ti]] + 5*si]);
+          if (lctx->reverse) {
+            int tmpi;
+            tmpi = vii[1]; vii[1] = vii[2]; vii[2] = tmpi;
+          }
           limnObjectFaceAdd(cont, partIdx, 0, 3, vii);
           lctx->faceNum++;
           ti++;
