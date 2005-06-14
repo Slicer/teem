@@ -26,9 +26,10 @@ gageShapeReset (gageShape *shape) {
   int i, ai;
   
   if (shape) {
-    ELL_3V_SET(shape->size, -1, -1, -1);
     shape->defaultCenter = gageDefDefaultCenter;
+    ELL_3V_SET(shape->size, -1, -1, -1);
     shape->center = nrrdCenterUnknown;
+    shape->fromOrientation = AIR_FALSE;
     ELL_3V_SET(shape->spacing, AIR_NAN, AIR_NAN, AIR_NAN);
     for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       /* valgrind complained about AIR_NAN at -O2 */
@@ -85,10 +86,11 @@ int
 _gageShapeSet (gageContext *ctx, gageShape *shape,
                const Nrrd *nin, int baseDim) {
   char me[]="_gageShapeSet", err[AIR_STRLEN_MED];
-  int i, ai, minsize, cx, cy, cz, sx, sy, sz, num[3], defCenter;
+  int i, ai, minsize, cx, cy, cz, sx, sy, sz, num[3], defCenter, statCalc[3];
   const NrrdAxisInfo *ax[3];
   double maxLen, xs, ys, zs, defSpacing,
-    vecA[3], vecB[3], vecC[3], vecD[4];
+    vecA[3], vecB[3], vecC[3], vecD[4],
+    spcCalc[3], vecCalc[3][NRRD_SPACE_DIM_MAX], orig[NRRD_SPACE_DIM_MAX];
 
   /* ------ basic error checking */
   if (!( shape && nin )) {
@@ -115,8 +117,66 @@ _gageShapeSet (gageContext *ctx, gageShape *shape,
   ax[0] = &(nin->axis[baseDim+0]);
   ax[1] = &(nin->axis[baseDim+1]);
   ax[2] = &(nin->axis[baseDim+2]);
+  statCalc[0] = nrrdSpacingCalculate(nin, baseDim + 0,
+                                     spcCalc + 0, vecCalc[0]);
+  statCalc[1] = nrrdSpacingCalculate(nin, baseDim + 1,
+                                     spcCalc + 1, vecCalc[1]);
+  statCalc[2] = nrrdSpacingCalculate(nin, baseDim + 2,
+                                     spcCalc + 2, vecCalc[2]);
+  /* see if nrrdSpacingCalculate ever *failed* */
+  if (nrrdSpacingStatusUnknown == statCalc[0] ||
+      nrrdSpacingStatusUnknown == statCalc[1] ||
+      nrrdSpacingStatusUnknown == statCalc[2]) {
+    sprintf(err, "%s: nrrdSpacingCalculate trouble on axis %d, %d, or %d",
+            me, baseDim + 0, baseDim + 1, baseDim + 2);
+    biffAdd(GAGE, err); gageShapeReset(shape);
+    return 1;
+  }
+  /* see if nrrdSpacingCalculate encountered an axis with no space
+     direction in a nrrd that nominally has a surrounding space */
+  if (nrrdSpacingStatusScalarWithSpace == statCalc[0] ||
+      nrrdSpacingStatusScalarWithSpace == statCalc[1] ||
+      nrrdSpacingStatusScalarWithSpace == statCalc[2]) {
+    sprintf(err, "%s: nrrdSpacingCalculate weirdness on axis %d, %d, or %d",
+            me, baseDim + 0, baseDim + 1, baseDim + 2);
+    biffAdd(GAGE, err); gageShapeReset(shape);
+    return 1;
+  }
+  if (!( (nrrdSpacingStatusDirection == statCalc[0] &&
+          nrrdSpacingStatusDirection == statCalc[1] &&
+          nrrdSpacingStatusDirection == statCalc[2])
+         ||
+         (nrrdSpacingStatusDirection != statCalc[0] &&
+          nrrdSpacingStatusDirection != statCalc[1] &&
+          nrrdSpacingStatusDirection != statCalc[2])
+         )) {
+    sprintf(err, "%s: inconsistent space directions use "
+            "in axis %d, %d, and %d",
+            me, baseDim + 0, baseDim + 1, baseDim + 2);
+    biffAdd(GAGE, err); gageShapeReset(shape);
+    return 1;
+  }
+  if (nrrdSpacingStatusDirection == statCalc[0] &&
+      nrrdSpacingStatusDirection == statCalc[1] &&
+      nrrdSpacingStatusDirection == statCalc[2]) {
+    /* this will get reset to false in case of error */
+    shape->fromOrientation = AIR_TRUE;
+  } else {
+    shape->fromOrientation = AIR_FALSE;
+  }
+  /* oh yea, we should make sure the space dimension is right! */
+  if (shape->fromOrientation && 3 != nin->spaceDim) {
+    sprintf(err, "%s: orientation space dimension %d != 3",
+            me, nin->spaceDim);
+    biffAdd(GAGE, err); gageShapeReset(shape);
+    return 1;
+  }
 
-  /* ------ find centering */
+  /* ------ find centering (set shape->center) */
+  /* HEY: when we have full orientation information (via spaceDirections
+     and spaceOrigin) the centering information is moot for determining
+     shape, but until all usage of gageShape stuff is properly overhauled
+     to take orientation into account, we'll still set shape->center */
   cx = ax[0]->center;
   cy = ax[1]->center;
   cz = ax[2]->center;
@@ -148,11 +208,12 @@ _gageShapeSet (gageContext *ctx, gageShape *shape,
                       : (nrrdCenterUnknown != cz ? cz
                          : defCenter)));
 
-  /* ------ find sizes */
+  /* ------ find sizes (set shape->size[0,1,2]) */
   sx = ax[0]->size;
   sy = ax[1]->size;
   sz = ax[2]->size;
   minsize = (nrrdCenterCell == shape->center ? 1 : 2);
+  /* HEY: perhaps this should be relaxed if we have full orientation info */
   if (!(sx >= minsize && sy >= minsize && sz >= minsize )) {
     sprintf(err, "%s: sizes (%d,%d,%d) must all be >= %d "
             "(min number of %s-centered samples)", me, 
@@ -164,28 +225,34 @@ _gageShapeSet (gageContext *ctx, gageShape *shape,
   shape->size[1] = sy;
   shape->size[2] = sz;
 
-  /* ------ find spacings */
-  xs = ax[0]->spacing;
-  ys = ax[1]->spacing;
-  zs = ax[2]->spacing;
-  if (ctx && ctx->parm.requireAllSpacings) {
-    if (!( AIR_EXISTS(xs) && AIR_EXISTS(ys) && AIR_EXISTS(zs) )) {
-      sprintf(err, "%s: spacings for axes %d,%d,%d don't all exist",
-              me, baseDim+0, baseDim+1, baseDim+2);
+  /* ------ find spacings (set shape->spacing[0,1,2]) */
+  if (shape->fromOrientation) {
+    xs = spcCalc[0];
+    ys = spcCalc[1];
+    zs = spcCalc[2];
+  } else {
+    xs = ax[0]->spacing;
+    ys = ax[1]->spacing;
+    zs = ax[2]->spacing;
+    if (ctx && ctx->parm.requireAllSpacings) {
+      if (!( AIR_EXISTS(xs) && AIR_EXISTS(ys) && AIR_EXISTS(zs) )) {
+        sprintf(err, "%s: spacings for axes %d,%d,%d don't all exist",
+                me, baseDim+0, baseDim+1, baseDim+2);
+        biffAdd(GAGE, err); gageShapeReset(shape);
+        return 1;
+      }
+    }
+    /* there is no shape->defaultSpacing, we'll go out on a limb ... */
+    defSpacing = ctx ? ctx->parm.defaultSpacing : nrrdDefSpacing;
+    xs = AIR_EXISTS(xs) ? xs : defSpacing;
+    ys = AIR_EXISTS(ys) ? ys : defSpacing;
+    zs = AIR_EXISTS(zs) ? zs : defSpacing;
+    if (!( xs != 0 && ys != 0 && zs != 0 )) {
+      sprintf(err, "%s: spacings (%g,%g,%g) for axes %d,%d,%d not all "
+              "non-zero", me, xs, ys, zs, baseDim+0, baseDim+1, baseDim+2);
       biffAdd(GAGE, err); gageShapeReset(shape);
       return 1;
     }
-  }
-  /* there is no shape->defaultSpacing, we'll go out on a limb ... */
-  defSpacing = ctx ? ctx->parm.defaultSpacing : nrrdDefSpacing;
-  xs = AIR_EXISTS(xs) ? xs : defSpacing;
-  ys = AIR_EXISTS(ys) ? ys : defSpacing;
-  zs = AIR_EXISTS(zs) ? zs : defSpacing;
-  if (!( xs != 0 && ys != 0 && zs != 0 )) {
-    sprintf(err, "%s: spacings (%g,%g,%g) for axes %d,%d,%d not all "
-            "non-zero", me, xs, ys, zs, baseDim+0, baseDim+1, baseDim+2);
-    biffAdd(GAGE, err); gageShapeReset(shape);
-    return 1;
   }
   shape->spacing[0] = xs;
   shape->spacing[1] = ys;
@@ -217,7 +284,9 @@ _gageShapeSet (gageContext *ctx, gageShape *shape,
     }
   }
 
-  /* ------ learn lengths for bounding nrrd in bi-unit cube */
+  /* ------ learn lengths for bounding nrrd in bi-unit cube
+     (set shape->volHalfLen[0,1,2] and shape->voxLen[0,1,2]) */
+  /* HEY: does it make any sense to be setting this if fromOrientation? */
   maxLen = 0.0;
   for (ai=0; ai<=2; ai++) {
     num[ai] = (nrrdCenterNode == shape->center
@@ -234,26 +303,49 @@ _gageShapeSet (gageContext *ctx, gageShape *shape,
   /* ------ set transform matrices */
   /* sets rot 3 */
   ELL_4M_IDENTITY_SET(shape->ItoW);
-  /* row 0 */
-  ELL_3V_SET(vecC, 0, 0, 0);
-  gageShapeUnitItoW(shape, vecA, vecC);
-  ELL_3V_SET(vecC, 1, 0, 0);
-  gageShapeUnitItoW(shape, vecB, vecC);
-  vecD[3] = vecA[0];
-  ELL_3V_SUB(vecD, vecB, vecA);
-  ELL_4MV_ROW0_SET(shape->ItoW, vecD);
-  /* row 1 */
-  ELL_3V_SET(vecC, 0, 1, 0);
-  gageShapeUnitItoW(shape, vecB, vecC);
-  vecD[3] = vecA[1];
-  ELL_3V_SUB(vecD, vecB, vecA);
-  ELL_4MV_ROW1_SET(shape->ItoW, vecD);
-  /* row 2 */
-  ELL_3V_SET(vecC, 0, 0, 1);
-  gageShapeUnitItoW(shape, vecB, vecC);
-  vecD[3] = vecA[2];
-  ELL_3V_SUB(vecD, vecB, vecA);
-  ELL_4MV_ROW2_SET(shape->ItoW, vecD);
+  if (shape->fromOrientation) {
+    /* find translation vector (we check above that spaceDim == 3) */
+    nrrdSpaceOriginGet(nin, orig);
+    if (!( AIR_EXISTS(orig[0]) &&
+           AIR_EXISTS(orig[1]) && 
+           AIR_EXISTS(orig[2]) )) {
+      /* don't have origin, so set it to come from the middle of volume */
+      ELL_3V_SET(orig, 0.0, 0.0, 0.0);
+      ELL_3V_SCALE_INCR(orig, -(shape->size[0] - 1)/2.0, vecCalc[0]);
+      ELL_3V_SCALE_INCR(orig, -(shape->size[1] - 1)/2.0, vecCalc[1]);
+      ELL_3V_SCALE_INCR(orig, -(shape->size[2] - 1)/2.0, vecCalc[2]);
+    }
+    ELL_3V_COPY(vecD, vecCalc[0]);
+    vecD[3] = orig[0];
+    ELL_4MV_ROW0_SET(shape->ItoW, vecD);
+    ELL_3V_COPY(vecD, vecCalc[1]);
+    vecD[3] = orig[1];
+    ELL_4MV_ROW1_SET(shape->ItoW, vecD);
+    ELL_3V_COPY(vecD, vecCalc[2]);
+    vecD[3] = orig[2];
+    ELL_4MV_ROW2_SET(shape->ItoW, vecD);
+  } else {
+    /* row 0 */
+    ELL_3V_SET(vecC, 0, 0, 0);
+    gageShapeUnitItoW(shape, vecA, vecC);
+    ELL_3V_SET(vecC, 1, 0, 0);
+    gageShapeUnitItoW(shape, vecB, vecC);
+    vecD[3] = vecA[0];
+    ELL_3V_SUB(vecD, vecB, vecA);
+    ELL_4MV_ROW0_SET(shape->ItoW, vecD);
+    /* row 1 */
+    ELL_3V_SET(vecC, 0, 1, 0);
+    gageShapeUnitItoW(shape, vecB, vecC);
+    vecD[3] = vecA[1];
+    ELL_3V_SUB(vecD, vecB, vecA);
+    ELL_4MV_ROW1_SET(shape->ItoW, vecD);
+    /* row 2 */
+    ELL_3V_SET(vecC, 0, 0, 1);
+    gageShapeUnitItoW(shape, vecB, vecC);
+    vecD[3] = vecA[2];
+    ELL_3V_SUB(vecD, vecB, vecA);
+    ELL_4MV_ROW2_SET(shape->ItoW, vecD);
+  }
   ell_4m_inv_d(shape->WtoI, shape->ItoW);
 
   return 0;
@@ -288,6 +380,16 @@ gageShapeUnitWtoI (gageShape *shape, double index[3], double world[3]) {
 }
 
 void
+gageShapeWtoI (gageShape *shape, double _index[3], double _world[3]) {
+  double index[4], world[4];
+
+  ELL_3V_COPY(world, _world);
+  world[3] = 1.0;
+  ELL_4MV_MUL(index, shape->WtoI, world);
+  ELL_3V_SCALE(_index, 1.0/index[3], index);
+}
+
+void
 gageShapeUnitItoW (gageShape *shape, double world[3], double index[3]) {
   int i;
   
@@ -304,6 +406,16 @@ gageShapeUnitItoW (gageShape *shape, double world[3], double index[3]) {
   }
 }
 
+void
+gageShapeItoW (gageShape *shape, double _world[3], double _index[3]) {
+  double world[4], index[4];
+
+  ELL_3V_COPY(index, _index);
+  index[3] = 1.0;
+  ELL_4MV_MUL(world, shape->ItoW, index);
+  ELL_3V_SCALE(_world, 1.0/world[3], world);
+}
+
 int
 gageShapeEqual (gageShape *shape1, char *_name1,
                 gageShape *shape2, char *_name2) {
@@ -312,27 +424,45 @@ gageShapeEqual (gageShape *shape1, char *_name1,
 
   name1 = _name1 ? _name1 : what;
   name2 = _name2 ? _name2 : what;
-  if (!( shape1->size[0] == shape2->size[0] &&
-         shape1->size[1] == shape2->size[1] &&
-         shape1->size[2] == shape2->size[2] )) {
-    sprintf(err, "%s: dimensions of %s (%d,%d,%d) != %s's (%d,%d,%d)", me,
-            name1, shape1->size[0], shape1->size[1], shape1->size[2],
-            name2, shape2->size[0], shape2->size[1], shape2->size[2]);
+  if (!( shape1->fromOrientation == shape2->fromOrientation )) {
+    sprintf(err, "%s: fromOrientation of %s (%s) != %s's (%s)", me,
+            name1, shape1->fromOrientation ? "true" : "false",
+            name2, shape2->fromOrientation ? "true" : "false");
     biffAdd(GAGE, err); return 0;
   }
-  if (!( shape1->spacing[0] == shape2->spacing[0] &&
-         shape1->spacing[1] == shape2->spacing[1] &&
-         shape1->spacing[2] == shape2->spacing[2] )) {
-    sprintf(err, "%s: spacings of %s (%g,%g,%g) != %s's (%g,%g,%g)", me,
-            name1, shape1->spacing[0], shape1->spacing[1], shape1->spacing[2],
-            name2, shape2->spacing[0], shape2->spacing[1], shape2->spacing[2]);
-    biffAdd(GAGE, err); return 0;
-  }
-  if (!( shape1->center == shape2->center )) {
-    sprintf(err, "%s: centering of %s (%s) != %s's (%s)", me,
-            name1, airEnumStr(nrrdCenter, shape1->center),
-            name2, airEnumStr(nrrdCenter, shape2->center));
-    biffAdd(GAGE, err); return 0;
+  if (shape1->fromOrientation) {
+    if (!( ELL_4M_EQUAL(shape1->ItoW,shape2->ItoW) )) {
+      sprintf(err, "%s: ItoW matrices of %s and %s not the same", me,
+              name1, name2);
+      biffAdd(GAGE, err); return 0;
+    }
+  } else {
+    if (!( shape1->size[0] == shape2->size[0] &&
+           shape1->size[1] == shape2->size[1] &&
+           shape1->size[2] == shape2->size[2] )) {
+      sprintf(err, "%s: dimensions of %s (%d,%d,%d) != %s's (%d,%d,%d)", me,
+              name1, 
+              shape1->size[0], shape1->size[1], shape1->size[2],
+              name2,
+              shape2->size[0], shape2->size[1], shape2->size[2]);
+      biffAdd(GAGE, err); return 0;
+    }
+    if (!( shape1->spacing[0] == shape2->spacing[0] &&
+           shape1->spacing[1] == shape2->spacing[1] &&
+           shape1->spacing[2] == shape2->spacing[2] )) {
+      sprintf(err, "%s: spacings of %s (%g,%g,%g) != %s's (%g,%g,%g)", me,
+              name1,
+              shape1->spacing[0], shape1->spacing[1], shape1->spacing[2],
+              name2,
+              shape2->spacing[0], shape2->spacing[1], shape2->spacing[2]);
+      biffAdd(GAGE, err); return 0;
+    }
+    if (!( shape1->center == shape2->center )) {
+      sprintf(err, "%s: centering of %s (%s) != %s's (%s)", me,
+              name1, airEnumStr(nrrdCenter, shape1->center),
+              name2, airEnumStr(nrrdCenter, shape2->center));
+      biffAdd(GAGE, err); return 0;
+    }
   }
 
   return 1;

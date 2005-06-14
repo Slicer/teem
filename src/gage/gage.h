@@ -313,14 +313,24 @@ struct gagePerVolume_t;  /* dumb forward declaraction, ignore */
 **
 ** just a container for all the information related to the "shape"
 ** of all the volumes associated with a context
+**
+** Note that the utility of gageShape has extended well beyond doing
+** convolution-based measurements in volumes- it has become the one-stop
+** place for figuring out a reasonable way of locating a logically
+** a volume in 3-D space, including using a nrrd's full orientation 
+** information if it is known.
 */
 typedef struct gageShape_t {
-  int size[3],                /* dimensions of volume */
-    defaultCenter,            /* default centering to use when given volume
-                                 has no centering set */
-    center;                   /* the sample centering of the volume(s)- this
+  int defaultCenter,          /* default centering to use when given volume
+                                 has no centering set. *NOTE* this is the 
+                                 only "input" field in the gageShape, all the
+                                 rest are set by _gageShapeSet */
+    size[3],                  /* raster dimensions of volume */
+    center,                   /* the sample centering of the volume(s)- this
                                  determines the extent of the locations
                                  that may be probed */
+    fromOrientation;          /* non-zero iff the spaceDirections and
+                                 spaceOrigin information was used */
   gage_t spacing[3],          /* spacings for each axis */
     fwScale[GAGE_KERNEL_NUM][3];
                               /* how to rescale weights for each of the
@@ -331,7 +341,8 @@ typedef struct gageShape_t {
     voxLen[3],                /* when bound in bi-unit cube, the dimensions
                                  of a single voxel */
     ItoW[16],                 /* homogeneous coord transform from index
-                                 to world space (defined by bi-unit cube) */
+                                 to world space (defined either by bi-unit
+                                 cube or from full orientation info ) */
     WtoI[16];                 /* inverse of above */
 
 } gageShape;
@@ -624,8 +635,12 @@ TEEM_API gageShape *gageShapeNix(gageShape *shape);
 TEEM_API int gageShapeSet(gageShape *shp, const Nrrd *nin, int baseDim);
 TEEM_API void gageShapeUnitWtoI(gageShape *shape,
                                 double index[3], double world[3]);
+TEEM_API void gageShapeWtoI(gageShape *shape,
+                            double index[3], double world[3]);
 TEEM_API void gageShapeUnitItoW(gageShape *shape,
                                 double world[3], double index[3]);
+TEEM_API void gageShapeItoW(gageShape *shape,
+                            double world[3], double index[3]);
 TEEM_API int gageShapeEqual(gageShape *shp1, char *name1,
                             gageShape *shp2, char *name2);
 
