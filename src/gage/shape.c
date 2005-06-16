@@ -89,7 +89,7 @@ _gageShapeSet (gageContext *ctx, gageShape *shape,
   int i, ai, minsize, cx, cy, cz, sx, sy, sz, num[3], defCenter, statCalc[3];
   const NrrdAxisInfo *ax[3];
   double maxLen, xs, ys, zs, defSpacing,
-    vecA[3], vecB[3], vecC[3], vecD[4],
+    vecA[4], vecB[3], vecC[3], vecD[4],
     spcCalc[3], vecCalc[3][NRRD_SPACE_DIM_MAX], orig[NRRD_SPACE_DIM_MAX];
 
   /* ------ basic error checking */
@@ -301,8 +301,6 @@ _gageShapeSet (gageContext *ctx, gageShape *shape,
   }
 
   /* ------ set transform matrices */
-  /* sets rot 3 */
-  ELL_4M_IDENTITY_SET(shape->ItoW);
   if (shape->fromOrientation) {
     /* find translation vector (we check above that spaceDim == 3) */
     nrrdSpaceOriginGet(nin, orig);
@@ -311,40 +309,51 @@ _gageShapeSet (gageContext *ctx, gageShape *shape,
            AIR_EXISTS(orig[2]) )) {
       /* don't have origin, so set it to come from the middle of volume */
       ELL_3V_SET(orig, 0.0, 0.0, 0.0);
-      ELL_3V_SCALE_INCR(orig, -(shape->size[0] - 1)/2.0, vecCalc[0]);
-      ELL_3V_SCALE_INCR(orig, -(shape->size[1] - 1)/2.0, vecCalc[1]);
-      ELL_3V_SCALE_INCR(orig, -(shape->size[2] - 1)/2.0, vecCalc[2]);
+      ELL_3V_SCALE_INCR(orig, -(shape->size[0]-1)*spcCalc[0]/2.0, vecCalc[0]);
+      ELL_3V_SCALE_INCR(orig, -(shape->size[1]-1)*spcCalc[1]/2.0, vecCalc[1]);
+      ELL_3V_SCALE_INCR(orig, -(shape->size[2]-1)*spcCalc[2]/2.0, vecCalc[2]);
     }
-    ELL_3V_COPY(vecD, vecCalc[0]);
-    vecD[3] = orig[0];
-    ELL_4MV_ROW0_SET(shape->ItoW, vecD);
-    ELL_3V_COPY(vecD, vecCalc[1]);
-    vecD[3] = orig[1];
-    ELL_4MV_ROW1_SET(shape->ItoW, vecD);
-    ELL_3V_COPY(vecD, vecCalc[2]);
-    vecD[3] = orig[2];
-    ELL_4MV_ROW2_SET(shape->ItoW, vecD);
+    vecD[3] = 0;
+    ELL_3V_SCALE(vecD, spcCalc[0], vecCalc[0]);
+    ELL_4MV_COL0_SET(shape->ItoW, vecD);
+    ELL_3V_SCALE(vecD, spcCalc[1], vecCalc[1]);
+    ELL_4MV_COL1_SET(shape->ItoW, vecD);
+    ELL_3V_SCALE(vecD, spcCalc[2], vecCalc[2]);
+    ELL_4MV_COL2_SET(shape->ItoW, vecD);
+    vecD[3] = 1;
+    ELL_3V_COPY(vecD, orig);
+    ELL_4MV_COL3_SET(shape->ItoW, vecD);
+    /*
+    fprintf(stderr, "%s: %g (%g,%g,%g)\n", me,
+            spcCalc[0], vecCalc[0][0], vecCalc[0][1], vecCalc[0][2]);
+    fprintf(stderr, "%s: %g (%g,%g,%g)\n", me,
+            spcCalc[1], vecCalc[1][0], vecCalc[1][1], vecCalc[1][2]);
+    fprintf(stderr, "%s: %g (%g,%g,%g)\n", me,
+            spcCalc[2], vecCalc[2][0], vecCalc[2][1], vecCalc[2][2]);
+    */
   } else {
-    /* row 0 */
     ELL_3V_SET(vecC, 0, 0, 0);
     gageShapeUnitItoW(shape, vecA, vecC);
     ELL_3V_SET(vecC, 1, 0, 0);
     gageShapeUnitItoW(shape, vecB, vecC);
-    vecD[3] = vecA[0];
     ELL_3V_SUB(vecD, vecB, vecA);
-    ELL_4MV_ROW0_SET(shape->ItoW, vecD);
-    /* row 1 */
+    vecD[3] = 0;
+    ELL_4MV_COL0_SET(shape->ItoW, vecD);
+
     ELL_3V_SET(vecC, 0, 1, 0);
     gageShapeUnitItoW(shape, vecB, vecC);
-    vecD[3] = vecA[1];
     ELL_3V_SUB(vecD, vecB, vecA);
-    ELL_4MV_ROW1_SET(shape->ItoW, vecD);
-    /* row 2 */
+    vecD[3] = 0;
+    ELL_4MV_COL1_SET(shape->ItoW, vecD);
+
     ELL_3V_SET(vecC, 0, 0, 1);
     gageShapeUnitItoW(shape, vecB, vecC);
-    vecD[3] = vecA[2];
     ELL_3V_SUB(vecD, vecB, vecA);
-    ELL_4MV_ROW2_SET(shape->ItoW, vecD);
+    vecD[3] = 0;
+    ELL_4MV_COL2_SET(shape->ItoW, vecD);
+
+    vecA[3] = 1;
+    ELL_4MV_COL3_SET(shape->ItoW, vecA);
   }
   ell_4m_inv_d(shape->WtoI, shape->ItoW);
 
