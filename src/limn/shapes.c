@@ -26,6 +26,7 @@ limnObjectCubeAdd(limnObject *obj, int lookIdx) {
   int vII[4], vII0, partIdx;
 
   partIdx = limnObjectPartAdd(obj);
+  obj->part[partIdx]->lookIdx = lookIdx;
   /*
                                      7     6
 
@@ -65,6 +66,7 @@ limnObjectSquareAdd(limnObject *obj, int lookIdx) {
   int vII0, vII[4], partIdx;
 
   partIdx = limnObjectPartAdd(obj);
+  obj->part[partIdx]->lookIdx = lookIdx;
   vII0 = limnObjectVertexAdd(obj, partIdx, 0, 0, 0);
   limnObjectVertexAdd(obj, partIdx, 1, 0, 0);
   limnObjectVertexAdd(obj, partIdx, 1, 1, 0);
@@ -86,6 +88,7 @@ limnObjectCylinderAdd(limnObject *obj, int lookIdx, int axis, int res) {
   double theta;
   
   partIdx = limnObjectPartAdd(obj);
+  obj->part[partIdx]->lookIdx = lookIdx;
   vII = (int *)calloc(res, sizeof(int));
 
   for (ii=0; ii<=res-1; ii++) {
@@ -138,6 +141,7 @@ limnObjectConeAdd(limnObject *obj, int lookIdx, int axis, int res) {
   vII = (int *)calloc(res, sizeof(int));
 
   partIdx = limnObjectPartAdd(obj);
+  obj->part[partIdx]->lookIdx = lookIdx;
   for (ii=0; ii<=res-1; ii++) {
     th = AIR_AFFINE(0, ii, res, 0, 2*AIR_PI);
     switch(axis) {
@@ -190,6 +194,7 @@ limnObjectPolarSphereAdd(limnObject *obj, int lookIdx, int axis,
   phiRes = AIR_MAX(phiRes, 2);
   
   partIdx = limnObjectPartAdd(obj);
+  obj->part[partIdx]->lookIdx = lookIdx;
   switch(axis) {
   case 0:
     vII0 = limnObjectVertexAdd(obj, partIdx, 1, 0, 0);
@@ -265,6 +270,7 @@ limnObjectPolarSuperquadAdd(limnObject *obj, int lookIdx, int axis,
   phiRes = AIR_MAX(phiRes, 2);
   
   partIdx = limnObjectPartAdd(obj);
+  obj->part[partIdx]->lookIdx = lookIdx;
   switch(axis) {
   case 0:
     vII0 = limnObjectVertexAdd(obj, partIdx, 1, 0, 0);
